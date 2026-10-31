@@ -1,29 +1,17 @@
 # START HERE — AI CONTINUATION PACKAGE
 
-This is a curated, self-contained continuation package for **JianghuSect v2.0.2**. It is not a new project and must not be rebuilt from an older branch or reconstructed from snippets.
+This is a clean, self-contained continuation package for **JianghuSect**. Legacy reports, outdated audits, and obsolete JSON dumps have been removed to keep your context window clean and save tokens.
 
-## Mandatory reading order
+## Mandatory Reading & Execution Order
 
-1. `MASTER_IMPLEMENTATION_PROMPT_EN.md` — authoritative assignment and product intent.
-2. `AUDIT_FINDINGS_EN.md` — source-level findings independently inspected in the supplied v2.0.2 archive.
-3. `BASELINE_VERIFICATION_EN.md` — actual baseline checks and limitations.
-4. `PROJECT_CONTEXT_EN.md` — continuity requirements from the user's prior project discussions.
-5. `HISTORICAL_EVIDENCE/` and `DESIGN_REFERENCE/` — supporting history and design references; these are evidence, not unquestionable truth.
-6. `GAME_SOURCE/` — authoritative editable source. Inspect actual code before changing anything.
+1. **`MASTER_IMPLEMENTATION_PROMPT_EN.md`** — **Read this first.** It contains the complete, authoritative specification for the current patch, current data baselines, exact schemas, testing instructions, and deliverable requirements.
+2. **`GAME_SOURCE/`** — The authoritative editable source code:
+   - `GAME_SOURCE/data/` — Game data catalogs (`data_cult.js`, `data_tech.js`, `data_martial.js`, `data_items.js`, `data_expansion.js`, `data_ecology.js`, etc.)
+   - `GAME_SOURCE/js/` — Core simulation and UI logic (`cultivation.js`, `martial.js`, `proficiency.js`, `sect.js`, `economy.js`, `combat.js`, `skills.js`, `ai.js`, `cognition.js`, `ui.js`, etc.)
+   - `GAME_SOURCE/test/` — Automated Node.js test suites
+   - `GAME_SOURCE/tools/build_single.js` — Rebuilds the standalone `GAME_SOURCE/JianghuSect_single.html`
 
-## Source authority
+## Critical Rules
 
-- The authoritative implementation is `GAME_SOURCE/`.
-- `GAME_SOURCE/JianghuSect_single.html` is the current standalone build.
-- `GAME_SOURCE/index.html`, `data/`, `js/`, `css/`, and `assets/` are the editable source of truth.
-- The source directory was deliberately re-rooted from the legacy folder name `JianghuSect_v1.10/` to `GAME_SOURCE/`. **Do not infer the game version from the old folder name.**
-- Package release: `v2.0.2`; runtime: `SIM.VERSION 1.10.11`; patch: `SIM.PATCH_VERSION 1.12.7`; elemental authority: `ELEM.VERSION 2.0.1`; save marker: `2.0.0-elemental`.
-- `js/human_core.js` is protected and must remain byte-for-byte identical unless an unavoidable blocker is proven.
-
-## Important exclusions
-
-The original archive contained a large historical source/reference dump, obsolete prompt files, superseded roadmaps, already-applied patches, duplicated reports, stale test-result screenshots and old package metadata. They were removed to prevent context pollution. The active source, all test JavaScript files, the required test fixture, relevant tools, architecture documents and final-code 90-day evidence were retained. See `PACKAGE_SCOPE_EN.md`.
-
-## Execution rule
-
-Do not stop after summarizing. Audit, design, implement, test, rebuild and package the completed work. The master prompt explicitly authorizes independent reasoning and better design choices. Do not use GitHub or remote branches; the supplied package is the only source baseline.
+- **Never modify `GAME_SOURCE/js/human_core.js`** (`HC.FINGERPRINT === '155:2f9c9dd7'`, verified by `node test/core_lock.js`).
+- **Begin execution immediately:** Do not wait for the user to re-prompt you. Audit, design, implement, test, rebuild `JianghuSect_single.html`, write `PATCH_IMPLEMENTATION_REPORT.md`, and update `MASTER_IMPLEMENTATION_PROMPT_EN.md` with your recommended prompt for the subsequent patch.

@@ -57,6 +57,7 @@ const profiles={
  DREAM_ILLUSION_WEAVER:[{reflex:22,agility:18},{SCRIPTURE:.24,TALISMAN:.20},'late',['FOCUS'],['LIGHT']],
  MIND_SWORD_TELEKINESIS:[{reflex:24,spiritualFoundation:20},{SWORD:.20,ARRAY:.22},'late',['SWORD','FOCUS'],['ROBE']],
  STAR_ARCHER:[{reflex:24,dexterity:20},{hunting:.28,survival:.20},'late',['BOW'],['LIGHT']],
+ SHADOW_ARCHER:[{agility:24,reflex:22,explosiveness:18},{hunting:.30,POISON:.18,survival:.18},'early',['BOW'],['LIGHT']],
  STAFF_GUARD:[{toughness:26,endurance:24,speed:-6},{mining:.28,FORGING:.18},'early',['STAFF'],['HEAVY']]
 };
 M.PATHS=paths;M.PROFILES=profiles;
