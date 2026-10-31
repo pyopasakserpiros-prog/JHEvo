@@ -1634,13 +1634,13 @@
   EDITOR.EDITABLE_GROUPS = {
     personality: { min: 0, max: 100, keys: ['ambition', 'courage', 'discipline', 'empathy', 'aggression', 'loyalty', 'curiosity', 'caution', 'pride', 'integrity', 'composure', 'rationality', 'creativity', 'trustfulness'] },
     values: { min: 0, max: 100, keys: ['martialPeak', 'wealthResource', 'honorLegacy', 'familyClan', 'freedom', 'knowledgeCraft', 'sectDuty', 'powerStatus'] },
-    interests: { min: 0, max: 100, keys: ['combat', 'alchemy', 'forging', 'scholarship', 'meditation', 'socializing', 'herbs', 'trade', 'arts', 'beasts', 'building', 'cooking', 'mining', 'farming', 'worship'] },
+    interests: { min: 0, max: 100, keys: ['combat', 'meditation', 'alchemy', 'forging', 'arrays', 'medicine', 'scholarship', 'herbs', 'beasts', 'labor', 'trade', 'leading', 'teaching', 'socializing', 'exploring', 'arts', 'cuisine', 'gambling', 'collecting', 'intrigue', 'solitude', 'worship', 'building', 'romance'] },
     aptitudes: { min: 0, max: 100, keys: ['cultivation', 'comprehension', 'combat', 'crafting', 'command', 'socialCommerce'] },
     physiology: { min: 1, max: 100, keys: ['strength', 'speed', 'agility', 'dexterity', 'balance', 'endurance', 'toughness', 'vitality', 'flexibility', 'reflex', 'recoveryRate', 'immunity', 'spiritualFoundation', 'meridianCapacity', 'meridianIntegrity', 'senseAcuity'] },
-    intellect: { min: 1, max: 100, keys: ['memory', 'reasoning', 'comprehension', 'focus', 'willpower', 'perceptiveness', 'intuition', 'creativity', 'planning', 'judgement', 'numeracy', 'spatial', 'learningSpeed', 'readPeople', 'inventiveness', 'wisdom'] },
-    social: { min: 0, max: 100, keys: ['charisma', 'leadership', 'persuasion', 'deception', 'intimidation', 'empathySense', 'teaching', 'etiquette', 'hospitality'] },
+    intellect: { min: 1, max: 100, keys: ['reasoning', 'comprehension', 'memory', 'workingMemory', 'learningSpeed', 'thinkingSpeed', 'focus', 'spatial', 'numeracy', 'verbal', 'planning', 'judgement', 'inventiveness', 'intuition', 'perceptiveness', 'readPeople', 'wisdom', 'willpower'] },
+    social: { min: 0, max: 100, keys: ['charisma', 'leadership', 'persuasion', 'deception', 'intimidation', 'teaching', 'hospitality'] },
     affinities: { min: 0, max: 100, keys: ['FIRE', 'WATER_ICE', 'LIGHTNING', 'WIND', 'EARTH_METAL', 'WOOD_LIFE', 'YIN_SHADOW', 'LIGHT_YANG', 'SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE'] },
-    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'INTERNAL_QI', 'LIGHTFOOT', 'BODY_REFINING', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'HERB_LORE', 'BEAST_TAMING', 'SCRIPTURE', 'MUSIC_MIND', 'STEALTH', 'MEDICINE', 'POISON', 'DIVINATION', 'SOUL_DIVINE', 'farming', 'cooking', 'mining', 'herbalism', 'administration', 'trading', 'diplomacy', 'survival', 'construction', 'teaching'] }
+    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE', 'herbalism', 'mining', 'cooking', 'trading', 'administration', 'diplomacy', 'stealth', 'survival', 'arts', 'construction', 'ritual'] }
   };
 
   EDITOR.memberEditState = (W, nOrId) => {

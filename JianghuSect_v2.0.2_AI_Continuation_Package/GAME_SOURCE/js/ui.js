@@ -3567,13 +3567,13 @@
       const grpLabels = {
         personality: "บุคลิกภาพ (Personality 14)",
         values: "คุณค่าชีวิต (Values 8)",
-        interests: "ความสนใจ (Interests 15)",
+        interests: "ความสนใจ (Interests 24)",
         aptitudes: "พรสวรรค์ (Aptitudes 6)",
         affinities: "ความถนัดทั้ง 23 ด้าน (Affinities: 8 ธาตุ + 15 ศาสตร์)",
         physiology: "สรีระและรากฐานกาย (Physiology 16)",
-        intellect: "สติปัญญา (Intellect 16)",
-        social: "ทักษะสังคม (Social 9)",
-        skills: "ทักษะยุทธ์และวิชาชีพ (Skills 30)"
+        intellect: "สติปัญญา (Intellect 18)",
+        social: "ทักษะสังคม (Social 7)",
+        skills: "ทักษะยุทธ์และวิชาชีพ (Skills 26)"
       };
       h += "<h3>3. ค่าพื้นฐานและความถนัดตัวละคร (คำนวณ HP/Qi/พลังรบอัตโนมัติ)</h3><div class=\"card\">";
       h += "<select id=\"editStatGroupSel\" style=\"margin-bottom:8px\">" + Object.keys(grpLabels).map(gk => "<option value=\"" + gk + "\"" + (grp === gk ? " selected" : "") + ">" + grpLabels[gk] + "</option>").join("") + "</select>";
