@@ -457,7 +457,7 @@
   /* ---------- แผ่นข้อมูล ---------- */
   UI.close = () => { UI.sheet = null; UI.tab = null; $('sheet').classList.remove('show'); document.querySelectorAll('#hudBottom button').forEach(b => b.classList.remove('on')); if (!UI.G.W) $('start').classList.remove('hidden'); UI.updateHud(true); };
   function show(kind, title, tabs, active, tall) {
-    UI.sheet = kind; UI.tab = active; $('sheet').classList.add('show'); $('sheet').classList.toggle('tall', !!tall); $('shTitle').innerHTML = title;
+    UI.sheet = kind; UI.tab = active; UI.tabs = tabs || []; $('sheet').classList.add('show'); $('sheet').classList.toggle('tall', !!tall); $('shTitle').innerHTML = title;
     $('shTabs').style.display = tabs && tabs.length ? 'flex' : 'none';
     $('shTabs').innerHTML = (tabs || []).map(t => '<button data-t="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>').join('');
     $('shTabs').onclick = e => { const b = e.target.closest('button'); if (b) { UI.tab = b.dataset.t; if (UI.sheet === 'log') UI.logFilters = new Set([UI.tab]); UI.render(); } };
@@ -468,7 +468,7 @@
     if (!UI.G.W && kind !== 'menu') { UI.close(); return; }
     if (UI.sheet === kind && kind !== 'npc' && kind !== 'edit' && (!arg || UI.tab === arg)) { UI.close(); return; }
     if (kind === 'people') show('people', '👥 ผู้คนในสำนัก', [['rank', 'ตามระดับ'], ['act', 'กำลังทำอะไร'], ['cult', 'ตบะ'], ['mood', 'อารมณ์']], 'rank');
-    else if (kind === 'sect') show('sect', '🏯 สำนัก', [['over', 'ภาพรวม'], ['policy', 'นโยบาย/นิสัยผู้นำ'], ['posts', 'ตำแหน่ง'], ['stock', 'คลัง'], ['shop', '🛒 ร้าน/คุณูปการ'], ['bld', 'อาคาร']], arg || 'over');
+    else if (kind === 'sect') show('sect', '🏯 สำนัก', [['over', 'ภาพรวม'], ['policy', 'นโยบาย/นิสัยผู้นำ'], ['posts', 'ตำแหน่ง'], ['library', '📚 หอคัมภีร์'], ['stock', 'คลัง'], ['shop', '🛒 ร้าน/คุณูปการ'], ['bld', 'อาคาร']], arg || 'over');
     else if (kind === 'log') show('log', '📜 บันทึกเหตุการณ์', Object.keys(LOG_GROUPS).map(k => [k, LOG_GROUPS[k][0]]), 'all');
     else if (kind === 'world') show('world', '🧭 ยุทธภพนอกสำนัก', [['exp', 'คณะเดินทาง'], ['visitors', '🎐 ผู้มาเยือน'], ['clues', '🗺️ เบาะแส/มรดก'], ['content', '🌿 พื้นที่/ตำรับ'], ['ecology', '🐾 อสูรและนิเวศ'], ['disc', '🔭 ค้นพบ'], ['sects', 'สำนักอื่น'], ['hist', 'ประวัติ']], arg || 'exp', true);
     else if (kind === 'edit') {
@@ -496,7 +496,20 @@
     const n = W && W.byId[id];
     if (!n) { UI.toast('ไม่พบข้อมูลตัวละครนี้ (ออกจากสำนักหรือถูกลบแล้ว)'); return; }
     UI.G.R.selected = id; UI.npcId = id;
-    show('npc', esc(HC.fullName(n)) + ' <span class="muted" style="font-weight:400">' + SECT.title(n) + '</span>', [['ov', 'ภาพรวม'], ['elem', 'ธาตุ/รากปราณ'], ['self', 'ตัวตน'], ['body', 'กาย'], ['mind', 'ปัญญา/สังคม'], ['skill', 'ทักษะ'], ['rel', 'ความสัมพันธ์'], ['life', 'ชีวิต'], ['cmp', 'เทียบกับ…']], tab || 'ov', true);
+    show('npc', esc(HC.fullName(n)) + ' <span class="muted" style="font-weight:400">' + SECT.title(n) + '</span>', [
+      ['ov', 'ภาพรวม'],
+      ['bag', '🎒 ถุงสัมภาระ'],
+      ['tech', '⚔️ วรยุทธ์'],
+      ['sub', '🌿 สายย่อย'],
+      ['elem', 'ธาตุ/รากปราณ'],
+      ['self', 'ตัวตน'],
+      ['body', 'กาย'],
+      ['mind', 'ปัญญา/สังคม'],
+      ['skill', 'ทักษะ'],
+      ['rel', 'ความสัมพันธ์'],
+      ['life', 'ชีวิต'],
+      ['cmp', 'เทียบกับ…']
+    ], tab || 'ov', true);
     UI.render();
   };
   UI.openBuilding = id => {
@@ -528,7 +541,7 @@
 
   UI.doAction = (a, arg) => {
     const G = UI.G, W = G.W;
-    if (a === 'npc') UI.openNpc(arg);
+    if (a === 'npc') { const p = String(arg || '').split('|'); UI.openNpc(p[0], p[1]); }
     else if (a === 'editnpc') UI.openEditNpc(arg, 'char');
     else if (a === 'spawnnpc') UI.openEditNpc(arg, 'spawn');
     else if (a === 'open-spawn-sect') { UI.spawnDest = 'sect'; UI.open('edit', 'spawn'); }
@@ -636,6 +649,17 @@
       UI.toast(res.ok ? ('ถอดวิชาติดตัว「' + (t ? t.nameTh : techId) + '」ออกจากช่องวิชาติดตัวแล้ว') : (res.reason || 'ไม่สามารถถอดวิชาติดตัวได้'));
       UI.render();
       UI.updateHud(true);
+    }
+    else if (a === 'switch-mantra') {
+      const parts = String(arg || '').split('|');
+      const npc = W.byId[parts[0]], mId = parts[1];
+      if (npc && npc.cult && mId && (npc.cult.unlockedMantras || []).includes(mId)) {
+        npc.cult.mantra = mId;
+        HC.bump(npc);
+        if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(npc);
+        UI.render();
+        UI.toast('เปลี่ยนคัมภีร์ลมปราณหลักเป็น「' + (CULT.tech(mId) ? CULT.tech(mId).nameTh : mId) + '」');
+      }
     }
     else if (a === 'donate-personal') {
       const [npcId, kind, itemId] = String(arg || '').split('|');
@@ -759,6 +783,30 @@
       }
       UI.render();
       UI.updateHud(true);
+    }
+    else if (a === 'study-tech-lib') {
+      const [npcId, techId] = String(arg || '').split('|');
+      const n = W.byId[npcId];
+      if (!n || !techId) return;
+      const res = (g.MARTIAL && g.MARTIAL.startStudy) ? g.MARTIAL.startStudy(W, n, techId) : { ok: false, reason: 'ไม่พบบริการศึกษา' };
+      const t = CULT.tech(techId);
+      UI.toast(res && res.ok ? (n.h.name.given + ' เริ่มศึกษา「' + (t ? t.nameTh : techId) + '」จากหอคัมภีร์แล้ว') : (res && res.reason ? res.reason : 'ไม่สามารถเริ่มศึกษาได้'));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'study-sub-lib') {
+      const [npcId, subId] = String(arg || '').split('|');
+      const n = W.byId[npcId];
+      if (!n || !subId) return;
+      const res = (g.MARTIAL && g.MARTIAL.studySubpath) ? g.MARTIAL.studySubpath(W, n, subId) : { ok: false, reason: 'ไม่พบบริการศึกษา' };
+      const subObj = CULT.subList.find(x => x.sub.id === subId);
+      UI.toast(res && res.ok ? (n.h.name.given + ' ศึกษาสายย่อย「' + (subObj ? subObj.sub.nameTh : subId) + '」สำเร็จแล้ว!') : (res && res.reason ? res.reason : 'ไม่สามารถศึกษาสายย่อยนี้ได้'));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-lib-cat') {
+      UI.libCat = arg;
+      UI.render();
     }
     else if (a === 'open-bag-container') {
       const n = W.byId[arg];
@@ -926,6 +974,10 @@
     if (shSort) shSort.onchange = () => { UI.shopSort = shSort.value; UI.shopPage = 1; UI.render(); };
     const shBuyer = body.querySelector("#shopBuyerSel");
     if (shBuyer) shBuyer.onchange = () => { UI.shopBuyerId = shBuyer.value; UI.render(); };
+
+    // Sect library member selector
+    const libNpc = body.querySelector('#libNpcId');
+    if (libNpc) libNpc.onchange = () => { UI.libNpcId = libNpc.value; UI.render(); };
 
     // Personal bag filters
     const bgSearch = body.querySelector("#bagSearch");
@@ -1360,6 +1412,184 @@
   }
   UI.buildSectShopItems = buildSectShopItems;
 
+  UI.rSectLibrary = W => {
+    const S = W.sect;
+    const alive = W.npcs.filter(n => !n.dead && !n.exiled);
+    if (!UI.libNpcId || !W.byId[UI.libNpcId] || W.byId[UI.libNpcId].dead || W.byId[UI.libNpcId].exiled) {
+      UI.libNpcId = (UI.G.R && UI.G.R.selected && W.byId[UI.G.R.selected] && !W.byId[UI.G.R.selected].dead && !W.byId[UI.G.R.selected].exiled)
+        ? UI.G.R.selected
+        : (S.masterId && W.byId[S.masterId] ? S.masterId : (alive[0] ? alive[0].id : null));
+    }
+    const selNpc = UI.libNpcId ? W.byId[UI.libNpcId] : null;
+
+    let h = '<h3>📚 หอคัมภีร์สำนัก (Sect Knowledge Library)</h3>';
+    h += '<div class="card"><div class="grid2">';
+    h += '<div>📖 คัมภีร์วิชาหลักในหอ <b>' + (S.library || []).length + '</b> เล่ม</div>';
+    h += '<div>🌿 คัมภีร์สายย่อยในหอ <b>' + (S.subLibrary || []).length + '</b> เล่ม</div>';
+    const surplusTechCount = (S.surplusTechManuals || []).length;
+    const surplusSubCount = (S.surplusSubManuals || []).length;
+    if (surplusTechCount > 0 || surplusSubCount > 0) {
+      h += '<div>📦 คัมภีร์ฉบับส่วนเกินรอจำหน่าย <b>' + (surplusTechCount + surplusSubCount) + '</b> เล่ม</div>';
+    }
+    h += '</div><div class="muted" style="margin-top:6px">คัมภีร์ในหอคัมภีร์เป็นความรู้ถาวรของสำนัก สมาชิกที่มีสิทธิ์และวิถีต้องกันสามารถศึกษาได้โดยใช้แต้มคุณูปการ (คป.) โดยคัมภีร์ยังคงอยู่ในหอตลอดไป</div></div>';
+
+    // Member selection bar
+    h += '<h3>👤 เลือกศิษย์/สมาชิกที่จะศึกษา</h3><div class="card">';
+    h += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+    h += '<label style="font-weight:600">สมาชิก:</label><select id="libNpcId" style="flex:1;min-width:180px">';
+    alive.forEach(n => {
+      const stageTxt = n.cult ? CULT.stageName(n) : 'ปุถุชน';
+      const cpVal = Math.round(n.cp || 0);
+      const isSel = n.id === UI.libNpcId;
+      h += '<option value="' + n.id + '"' + (isSel ? ' selected' : '') + '>' + esc(HC.fullName(n)) + ' (' + SECT.title(n) + ' · ' + stageTxt + ' · ' + cpVal + ' คป.)</option>';
+    });
+    h += '</select></div>';
+
+    if (selNpc) {
+      const cpVal = Math.round(selNpc.cp || 0);
+      const allowedTier = SECT.canLearnTier ? SECT.canLearnTier(W, selNpc) : 1;
+      const pathTxt = selNpc.cult ? ((CULT.PATHS[selNpc.cult.path] && CULT.PATHS[selNpc.cult.path].nameTh) || selNpc.cult.path) : 'ยังไม่เปิดวิถี';
+      const subTxt = selNpc.cult && selNpc.cult.sub !== 'NONE' ? ((CULT.subInfo(selNpc.cult.path, selNpc.cult.sub) || {}).nameTh || selNpc.cult.sub) : 'ไม่มีสายย่อย';
+      h += '<div style="margin-top:6px;font-size:12px;display:flex;gap:8px;flex-wrap:wrap" class="muted">';
+      h += '<span>วิถี: <b>' + esc(pathTxt) + '</b></span>';
+      h += '<span>สายย่อย: <b>' + esc(subTxt) + '</b></span>';
+      h += '<span>สิทธิ์หอคัมภีร์: <b>ขั้น ' + allowedTier + '</b></span>';
+      h += '<span>แต้มคงเหลือ: <b style="color:var(--gold,#f0a030)">' + cpVal + ' คป.</b></span>';
+      if (selNpc.cult && selNpc.cult.learning) {
+        const lTech = CULT.tech(selNpc.cult.learning.id) || {};
+        const pct = Math.round((selNpc.cult.learning.got / selNpc.cult.learning.need) * 100);
+        h += '<span style="color:#4fb2f2">กำลังศึกษา: <b>' + esc(lTech.nameTh || selNpc.cult.learning.id) + ' (' + pct + '%)</b></span>';
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+
+    // Sub-category selector
+    UI.libCat = UI.libCat || 'ALL';
+    h += '<div style="margin:8px 0 4px;display:flex;gap:6px;flex-wrap:wrap">';
+    [['ALL', 'ทั้งหมด (' + ((S.library || []).length + (S.subLibrary || []).length) + ')'],
+     ['MAIN', 'คัมภีร์วิชาหลัก (' + (S.library || []).length + ')'],
+     ['SUB', 'คัมภีร์สายย่อย (' + (S.subLibrary || []).length + ')']].forEach(([k, label]) => {
+      h += '<button class="btn' + (UI.libCat === k ? ' pri' : '') + '" style="padding:4px 10px;font-size:11.5px" data-do="set-lib-cat" data-arg="' + k + '">' + label + '</button>';
+    });
+    h += '</div>';
+
+    // 1. Main Technique Library
+    if (UI.libCat === 'ALL' || UI.libCat === 'MAIN') {
+      h += '<h3>📖 คัมภีร์วิชาหลักในหอ (' + (S.library || []).length + ' เล่ม)</h3>';
+      if (!(S.library || []).length) {
+        h += '<div class="card muted">หอคัมภีร์ยังไม่มีคัมภีร์วิชาหลัก (สามารถค้นหาจากยุทธภพ มอบบริจาค หรือเสกเข้าหอคัมภีร์)</div>';
+      } else {
+        h += '<div class="card">';
+        (S.library || []).forEach(tid => {
+          const t = CULT.tech(tid);
+          if (!t) return;
+          const isLeg = !!(t.legendary || t.grade === "Legendary" || /^LEG_/.test(tid));
+          const reqTier = t.reqTier || t.tier || 1;
+          const fee = (g.CPE && g.CPE.techPrice) ? g.CPE.techPrice(W, t) : (reqTier * 30);
+          const elMeta = (g.ELEM && g.ELEM.META && g.ELEM.META[t.element]) || { nameTh: t.element || "ไร้ธาตุ", icon: "⚪" };
+          const elChip = t.element && t.element !== "NEUTRAL" ? (' <span class="chip">' + elMeta.icon + ' ' + esc(elMeta.nameTh) + '</span>') : '';
+          const legChip = isLeg ? ' <span class="chip g">★ Legendary</span>' : '';
+
+          let statusBadge = '';
+          let canStudy = false;
+          let blockReason = '';
+
+          if (!selNpc) {
+            blockReason = 'กรุณาเลือกสมาชิก';
+          } else if (!selNpc.cult) {
+            blockReason = 'ยังเป็นปุถุชน ต้องเปิดวิถีบำเพ็ญก่อน';
+          } else if ((selNpc.cult.techs || []).includes(tid) || selNpc.cult.mantra === tid) {
+            statusBadge = '<span class="chip ok">✔ เรียนรู้แล้ว</span>';
+          } else if (selNpc.cult.learning && selNpc.cult.learning.id === tid) {
+            const pct = Math.round((selNpc.cult.learning.got / selNpc.cult.learning.need) * 100);
+            statusBadge = '<span class="chip b">กำลังศึกษา (' + pct + '%)</span>';
+          } else if (selNpc.cult.learning) {
+            blockReason = 'กำลังศึกษาวิชาอื่นอยู่';
+          } else if (reqTier > (SECT.canLearnTier ? SECT.canLearnTier(W, selNpc) : 1)) {
+            blockReason = '🔒 สิทธิ์หอคัมภีร์ไม่ถึงขั้น ' + reqTier;
+          } else if (t.path && t.path !== 'ANY' && t.path !== selNpc.cult.path) {
+            blockReason = '🔒 วิถีไม่ตรงกัน (ต้องการ ' + t.path + ')';
+          } else if ((selNpc.cp || 0) < fee) {
+            blockReason = '🔒 แต้ม คป. ไม่พอ (ต้องการ ' + fee + ' คป.)';
+          } else {
+            canStudy = true;
+          }
+
+          const actionBtn = canStudy
+            ? '<button class="btn pri" style="padding:4px 10px;font-size:11.5px" data-do="study-tech-lib" data-arg="' + selNpc.id + '|' + tid + '">📖 ศึกษา (' + fee + ' คป.)</button>'
+            : (statusBadge || '<span class="muted" style="font-size:11px">' + esc(blockReason) + '</span>');
+
+          h += '<div class="logrow" style="align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line,#2a2f3a)">';
+          h += '<div style="flex:1;min-width:0">';
+          h += '<span class="chip b">วิชาหลัก T' + reqTier + '</span>' + legChip + elChip + ' <b>' + esc(t.nameTh) + '</b>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:2px">วิถี ' + (t.path || 'ANY') + (t.sub ? ' (' + t.sub + ')' : '') + ' · ระดับขั้นขั้นต่ำ ' + reqTier + ' · ค่าศึกษา ' + fee + ' คป.</div>';
+          if (t.descTh) h += '<div class="muted" style="font-size:11px">' + esc(t.descTh) + '</div>';
+          h += '</div><div style="flex-shrink:0">' + actionBtn + '</div></div>';
+        });
+        h += '</div>';
+      }
+    }
+
+    // 2. Subpath Manual Library
+    if (UI.libCat === 'ALL' || UI.libCat === 'SUB') {
+      h += '<h3>📜 คัมภีร์สายย่อยในหอ (' + (S.subLibrary || []).length + ' เล่ม)</h3>';
+      if (!(S.subLibrary || []).length) {
+        h += '<div class="card muted">หอคัมภีร์ยังไม่มีคัมภีร์สายย่อย (สามารถค้นหาจากมรดกยุทธภพ หรือรับบริจาคจากสมาชิก)</div>';
+      } else {
+        h += '<div class="card">';
+        (S.subLibrary || []).forEach(subId => {
+          const subObj = CULT.subList.find(x => x.sub.id === subId);
+          if (!subObj) return;
+          const sub = subObj.sub;
+          const path = subObj.path;
+          const fee = (g.MARTIAL && g.MARTIAL.studyFee) ? g.MARTIAL.studyFee(W, "S:" + subId) : 180;
+          const elMeta = (g.ELEM && g.ELEM.META && g.ELEM.META[sub.element]) || { nameTh: sub.element || "ไร้ธาตุ", icon: "⚪" };
+          const elChip = sub.element && sub.element !== "NEUTRAL" ? (' <span class="chip">' + elMeta.icon + ' ' + esc(elMeta.nameTh) + '</span>') : '';
+
+          let statusBadge = '';
+          let canStudy = false;
+          let blockReason = '';
+
+          if (!selNpc) {
+            blockReason = 'กรุณาเลือกสมาชิก';
+          } else if (!selNpc.cult) {
+            blockReason = 'ยังเป็นปุถุชน ต้องเปิดวิถีบำเพ็ญก่อน';
+          } else if (selNpc.cult.sub === subId) {
+            statusBadge = '<span class="chip ok">✔ สายย่อยปัจจุบัน</span>';
+          } else {
+            const elig = g.MARTIAL ? g.MARTIAL.eligible(selNpc, "S:" + subId) : { ok: false, reason: 'ไม่พบระบบตรวจสอบ' };
+            const reqTier = (elig.knowledge && elig.knowledge.tier) || (g.MARTIAL && g.MARTIAL.knowledge && g.MARTIAL.knowledge("S:" + subId) ? g.MARTIAL.knowledge("S:" + subId).tier : 1);
+            const tierOk = (SECT.canLearnTier ? SECT.canLearnTier(W, selNpc) : 1) >= reqTier;
+            if (!tierOk) {
+              blockReason = '🔒 สิทธิ์หอคัมภีร์ไม่ถึงขั้น ' + reqTier;
+            } else if (!elig.ok) {
+              blockReason = '🔒 ' + (elig.reason || 'ไม่ผ่านเกณฑ์วิถีหรือมีสายย่อยอื่นอยู่');
+            } else if ((selNpc.cp || 0) < fee) {
+              blockReason = '🔒 แต้ม คป. ไม่พอ (ต้องการ ' + fee + ' คป.)';
+            } else {
+              canStudy = true;
+            }
+          }
+
+          const subReqTier = (g.MARTIAL && g.MARTIAL.knowledge && g.MARTIAL.knowledge("S:" + subId)) ? g.MARTIAL.knowledge("S:" + subId).tier : 1;
+          const actionBtn = canStudy
+            ? '<button class="btn pri" style="padding:4px 10px;font-size:11.5px" data-do="study-sub-lib" data-arg="' + selNpc.id + '|' + subId + '">🌿 ศึกษาสายย่อย (' + fee + ' คป.)</button>'
+            : (statusBadge || '<span class="muted" style="font-size:11px">' + esc(blockReason) + '</span>');
+
+          h += '<div class="logrow" style="align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line,#2a2f3a)">';
+          h += '<div style="flex:1;min-width:0">';
+          h += '<span class="chip v">สายย่อย T' + subReqTier + '</span>' + elChip + ' <b>' + esc(sub.nameTh) + '</b>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:2px">วิถี ' + path + ' · ค่าศึกษา ' + fee + ' คป. · กำหนดสายย่อยถาวร</div>';
+          if (sub.descTh) h += '<div class="muted" style="font-size:11px">' + esc(sub.descTh) + '</div>';
+          h += '</div><div style="flex-shrink:0">' + actionBtn + '</div></div>';
+        });
+        h += '</div>';
+      }
+    }
+    return h;
+  };
+
   /* ----- สำนัก ----- */
   UI.rSect = () => {
     const W = UI.G.W, S = W.sect, m = W.byId[S.masterId], tab = UI.tab; let h = '';
@@ -1412,6 +1642,8 @@
       const locked = Object.entries(SECT.PLANNED_POSTS).filter(([id]) => !SECT.POSTS[id]);
       h += '<h3>ตำแหน่งที่เตรียมไว้สำหรับอนาคต</h3><div class="card muted">เมื่อระบบรองรับเปิดใช้งาน เจ้าสำนักจึงจะพิจารณาหาคนมาประจำ</div>';
       h += locked.map(([id, p]) => '<div class="card" data-locked-office="' + id + '"><b>🔒 ' + esc(p.nameTh) + ' · ยังไม่ปลดล็อก</b><div class="muted">รอ' + esc(p.requires) + '</div></div>').join('');
+    } else if (tab === 'library') {
+      h += UI.rSectLibrary(W);
     } else if (tab === 'stock') {
       h += '<div class="card"><div class="grid2"><div>💎 ศิลา <b>' + U.fmtNum(S.stones) + '</b></div><div>🌾 ข้าว <b>' + ECO.count(W, 'grain') + '</b></div><div>🍚 อาหารปรุง <b>' + ECO.count(W, 'meal') + '</b></div><div>⚔ อุปกรณ์ในคลัง <b>' + S.gear.length + '</b></div><div>📚 คัมภีร์ในหอ <b>' + S.library.length + '</b></div><div>🔬 ตำรับระดับ <b>' + S.recipeTier + '</b></div></div><div style="margin-top:8px"><button class="btn pri" data-do="open-spawn-sect">✨ เสกไอเทมเข้าคลังสำนัก</button></div></div>';
       const rd = S.reserveDirectives || {};
@@ -1539,7 +1771,7 @@
       } else {
         h += "<div class=\"edit-grid\" style=\"margin-bottom:8px\">";
         h += "<input id=\"stockSearch\" type=\"search\" placeholder=\"ค้นหาชื่อไอเทมในคลัง…\" value=\"" + esc(UI.stockSearch || "") + "\">";
-        h += "<select id=\"stockType\">" + [["ALL", "ทุกประเภท"], ["PROVISION", "เสบียง"], ["PILL", "โอสถ"], ["MATERIAL", "วัตถุดิบ"], ["EQUIPMENT", "อุปกรณ์"], ["CRYSTAL", "ผลึกสายย่อย"], ["TECH_MANUAL", "คัมภีร์ในหอ"], ["ORGAN", "อวัยวะอสูร"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.stockType === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
+        h += "<select id=\"stockType\">" + [["ALL", "ทุกประเภท"], ["PROVISION", "เสบียง"], ["PILL", "โอสถ"], ["MATERIAL", "วัตถุดิบ"], ["EQUIPMENT", "อุปกรณ์"], ["CRYSTAL", "ผลึกวิชา/สายย่อย"], ["TECH_MANUAL", "คัมภีร์ในหอ"], ["ORGAN", "อวัยวะอสูร"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.stockType === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
         h += "<select id=\"stockTier\">" + [["ALL", "ทุกระดับ"], ["1", "ระดับ 1"], ["2", "ระดับ 2"], ["3", "ระดับ 3"], ["4", "ระดับ 4"], ["5", "ระดับ 5"], ["6", "ระดับ 6"], ["7", "ระดับ 7"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.stockTier === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
         h += "<select id=\"stockSort\">" + [["qty", "เรียงตามจำนวน"], ["tier", "เรียงตามระดับ"], ["value", "เรียงตามมูลค่า"], ["name", "เรียงตามชื่อ"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.stockSort === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
         h += "</div>";
@@ -2722,7 +2954,7 @@
       // Classic List View
       h += "<div class=\"edit-grid\" style=\"margin-bottom:8px\">";
       h += "<input id=\"bagSearch\" type=\"search\" placeholder=\"ค้นหาไอเทมในถุง…\" value=\"" + esc(UI.bagSearch || "") + "\">";
-      h += "<select id=\"bagType\">" + [["ALL", "ทุกประเภท"], ["EQUIPPED", "สวมใส่อยู่"], ["EQUIPMENT", "อุปกรณ์ในถุง"], ["PILL", "โอสถ"], ["MATERIAL", "วัตถุดิบ"], ["CRYSTAL", "ผลึกสายย่อย"], ["TECH_MANUAL", "คัมภีร์วิชา"], ["SUB_MANUAL", "คัมภีร์สายย่อย"], ["RECIPE_SCROLL", "ม้วนตำรับ"], ["ORGAN", "อวัยวะอสูร"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.bagType === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
+      h += "<select id=\"bagType\">" + [["ALL", "ทุกประเภท"], ["EQUIPPED", "สวมใส่อยู่"], ["EQUIPMENT", "อุปกรณ์ในถุง"], ["PILL", "โอสถ"], ["MATERIAL", "วัตถุดิบ"], ["CRYSTAL", "ผลึกวิชา/สายย่อย"], ["TECH_MANUAL", "คัมภีร์วิชา"], ["SUB_MANUAL", "คัมภีร์สายย่อย"], ["RECIPE_SCROLL", "ม้วนตำรับ"], ["ORGAN", "อวัยวะอสูร"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.bagType === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
       h += "<select id=\"bagSort\">" + [["tier", "เรียงตามระดับ/สวมใส่"], ["qty", "เรียงตามจำนวน"], ["value", "เรียงตามมูลค่า"], ["name", "เรียงตามชื่อ"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.bagSort === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
       h += "</div>";
 
@@ -2736,6 +2968,170 @@
       }
     }
     h += "</div>";
+    return h;
+  }
+
+  function renderTechTab(W, n) {
+    if (!n.cult) return '<div class="card muted">ตัวละครนี้ยังเป็นปุถุชน ยังไม่ตื่นรู้ปราณหรือฝึกวรยุทธ์</div>';
+    let h = '';
+    const c = n.cult, M = g.MARTIAL;
+    // 1. Mantra (คัมภีร์ลมปราณหลัก)
+    const curMantra = c.mantra ? CULT.tech(c.mantra) : null;
+    h += '<h3>1. คัมภีร์ลมปราณหลัก (Mantra)</h3><div class="card">';
+    if (curMantra) {
+      const em = g.ELEM ? g.ELEM.explainCompatibility(n, curMantra, 'MANTRA_PRACTICE') : null;
+      h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>' + esc(curMantra.nameTh) + '</b> ' + gradeChip(curMantra) + '</div>';
+      h += '<div class="muted" style="margin-top:2px">' + esc(curMantra.descTh || curMantra.desc || '') + '</div>';
+      if (em) h += '<div class="muted" style="font-size:11.5px;color:var(--text)">' + esc(em.summaryTh) + ' · อัตราบำเพ็ญ ×' + em.cultivationMultiplier.toFixed(2) + (em.breakthroughBonus ? ' · โบนัสทะลวงด่าน ' + (em.breakthroughBonus >= 0 ? '+' : '') + Math.round(em.breakthroughBonus * 100) + '%' : '') + '</div>';
+    } else {
+      h += '<div class="muted">ยังไม่ได้โคจรคัมภีร์ลมปราณหลัก</div>';
+    }
+    const unlockedMantras = (c.unlockedMantras || []).filter(id => id !== c.mantra);
+    if (unlockedMantras.length) {
+      h += '<div style="margin-top:6px;border-top:1px solid var(--line,#3a3f4a);padding-top:4px"><b>คัมภีร์ปราณอื่นที่ตื่นรู้แล้ว:</b></div>' + unlockedMantras.map(id => {
+        const mt = CULT.tech(id);
+        if (!mt) return '';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0"><span>' + esc(mt.nameTh) + ' ' + gradeChip(mt) + '</span><button class="btn" style="padding:1px 6px;font-size:11px" data-do="switch-mantra" data-arg="' + n.id + '|' + id + '">เปลี่ยนมาใช้เล่มนี้</button></div>';
+      }).join('');
+    }
+    h += '</div>';
+
+    // 2. Study in progress (กำลังศึกษา)
+    if (c.learning) {
+      const lt = CULT.tech(c.learning.id);
+      const pct = Math.min(100, Math.round(c.learning.got / Math.max(1, c.learning.need) * 100));
+      h += '<h3>2. ความก้าวหน้าการศึกษาตำรา</h3><div class="card">';
+      h += '<div>กำลังศึกษา: <b>' + esc(lt ? lt.nameTh : c.learning.id) + '</b> ' + (lt ? gradeChip(lt) : '') + '</div>';
+      h += bar('ความคืบหน้า', pct, { wide: true, txt: Math.round(c.learning.got) + '/' + c.learning.need + ' (' + pct + '%)', color: '#c9a15b' });
+      h += '<div class="muted" style="font-size:11.5px">เหลือเวลาประมาณ ' + Math.max(1, Math.ceil((c.learning.need - c.learning.got) / 10)) + ' กิจกรรม · สามารถใช้ผลึกวิชาเพื่อเรียนรู้ทันทีได้</div>';
+      h += '</div>';
+    }
+
+    // 3. Active combat techniques and moves (วิชาต่อสู้และกระบวนท่าที่พร้อมใช้)
+    const sl = g.SK ? g.SK.list(n) : [];
+    h += '<h3>' + (c.learning ? '3' : '2') + '. วิชาต่อสู้และกระบวนท่า (' + sl.length + ')</h3><div class="card">';
+    if (sl.length) {
+      h += sl.map(p => {
+        const parent = CULT.tech(p.tech || p.id);
+        const curStage = (g.SK.unlockedStage && parent) ? g.SK.unlockedStage(n, parent) : 1;
+        const maxStage = (parent && Array.isArray(parent.stages) && parent.stages.length) ? parent.stages.length : 1;
+        const mastery = (g.SK.masteryPoints && parent) ? g.SK.masteryPoints(n, parent.id) : 0;
+        const allM = (g.SK.allMoves && parent && Array.isArray(parent.moveDefs) && parent.moveDefs.length > 1) ? g.SK.allMoves(parent) : [];
+        const lockedM = allM.filter(mv => !g.SK.canSelectMove(n, parent, mv.id));
+        const elemInter = (g.ELEM && parent) ? g.ELEM.explainCompatibility(n, parent, 'COMBAT_SKILL') : null;
+        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+      }).join('');
+    } else {
+      h += '<div class="muted">ยังไม่มีกระบวนท่าต่อสู้ที่ติดตั้ง</div>';
+    }
+    h += '</div>';
+
+    // 4. Passive techniques and slot occupancy (วิชาติดตัวและช่องติดตั้ง)
+    if (M) {
+      const slotInfo = M.passiveSlotInfo ? M.passiveSlotInfo(n) : { base: 3, bonus: 0, total: 3, reasons: [] };
+      const maxSlots = slotInfo.total || slotInfo.max || 3;
+      const bonusReasons = slotInfo.reasons || slotInfo.bonusReasons || [];
+      const activePassIds = M.activePassives ? M.activePassives(n) : [];
+      const inactivePassList = M.inactivePassives ? M.inactivePassives(n) : [];
+      const pass = c.techs.map(CULT.tech).filter(t => t && (t.passive || t.cat === 'PASSIVE'));
+      h += '<h3>' + (c.learning ? '4' : '3') + '. ช่องวิชาติดตัว (Passives: ' + activePassIds.length + '/' + maxSlots + ' ช่อง)</h3><div class="card">';
+      h += '<div class="muted" style="margin-bottom:6px">ช่องพื้นฐาน ' + slotInfo.base + (slotInfo.bonus > 0 ? ' + โบนัสสายย่อย +' + slotInfo.bonus + ' [' + esc(bonusReasons.join(', ')) + ']' : '') + '</div>';
+      if (pass.length) {
+        h += pass.map(t => {
+          const isComp = M.isTechCompatible ? M.isTechCompatible(n, t) : M.activeTechs(n).includes(t.id);
+          const condOk = M.conditionMatches(n, t);
+          const inSlot = activePassIds.includes(t.id);
+          const inactObj = inactivePassList.find(x => x.id === t.id);
+          let statusTxt = 'ทำงาน';
+          if (!isComp) statusTxt = 'หยุดทำงาน (วิถี/สาย/ขั้นไม่ตรง)';
+          else if (!condOk) statusTxt = 'หยุดทำงาน (อุปกรณ์ไม่ตรง)';
+          else if (!inSlot) statusTxt = 'หยุดทำงาน (' + (inactObj ? inactObj.reason : 'ไม่ได้บรรจุในช่องวิชาติดตัว') + ')';
+          const btn = inSlot
+            ? ' <button class="btn" style="padding:1px 6px;font-size:10.5px" data-do="unequip-passive" data-arg="' + n.id + '|' + t.id + '">ถอด</button>'
+            : (isComp && condOk ? ' <button class="btn pri" style="padding:1px 6px;font-size:10.5px" data-do="equip-passive" data-arg="' + n.id + '|' + t.id + '">สวมใส่</button>' : '');
+          return '<div style="padding:3px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(' + esc(M.conditionText(t)) + ')</span><div class="muted" style="font-size:11px">' + esc(statusTxt) + '</div></div><div>' + btn + '</div></div>';
+        }).join('');
+      } else {
+        h += '<div class="muted">ยังไม่มีวิชาติดตัวที่เรียนรู้</div>';
+      }
+      h += '</div>';
+    }
+
+    // 5. All learned techniques overview
+    h += '<h3>' + (c.learning ? '5' : '4') + '. คัมภีร์วิชาที่จดจำได้ทั้งหมด (' + c.techs.length + ')</h3><div class="card">';
+    if (c.techs.length) {
+      h += c.techs.map(id => {
+        const t = CULT.tech(id);
+        if (!t) return '';
+        const ex = g.ELEM ? g.ELEM.explainCompatibility(n, t, 'COMBAT_SKILL') : null;
+        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(t.cat || 'วิชา') + ')</span></div>' + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
+      }).join('');
+    } else {
+      h += '<div class="muted">ยังไม่ได้เรียนรู้วิชาใด</div>';
+    }
+    h += '</div>';
+
+    return h;
+  }
+
+  function renderSubTab(W, n) {
+    if (!n.cult) return '<div class="card muted">ตัวละครนี้ยังเป็นปุถุชน ยังไม่มีสายย่อยเฉพาะทาง</div>';
+    let h = '';
+    const c = n.cult, M = g.MARTIAL;
+    const sub = CULT.subInfo(c.path, c.sub);
+    h += '<h3>1. ข้อมูลสายย่อยเฉพาะทาง (Specialization)</h3><div class="card">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>สายย่อย: ' + esc(sub ? sub.nameTh : (c.sub || 'ไม่มี')) + '</b> <span class="chip b">' + esc(CULT.PATHS[c.path]?.shortTh || c.path) + '</span></div>';
+    if (sub && sub.descTh) h += '<div class="muted" style="margin-top:2px">' + esc(sub.descTh) + '</div>';
+    if (c.track) {
+      const tr = c.track;
+      const trR = CULT.trackRealm(n);
+      const trTh = CULT.trackThreshold(n);
+      const trGate = CULT.checkTrackGates(W, n);
+      h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)"><b>🌿 ขั้นสายเฉพาะ: ' + esc(trR ? trR.nameTh : '') + ' (ลำดับ ' + tr.ordinal + '/9)</b>' + (trTh !== Infinity ? bar('ความก้าวหน้าสายเฉพาะ', tr.prog / trTh * 100, { wide: true, txt: Math.round(tr.prog) + '/' + trTh, color: '#7fd1b9' }) : '') + '<div class="muted" style="font-size:11.5px">เทียบเคียงขั้นหลัก: <b>' + (trR ? trR.majorBandEquivalent.toFixed(1) : '') + '</b> · พลังรบเฉพาะทางเทียบเคียง: <b>' + (trR ? trR.functionalCombatPower : '') + ' CP</b></div><div style="font-size:12px;margin-top:4px">' + (tr.ordinal >= 9 ? '<span class="chip ok">บรรลุขั้น 9 สูงสุดแล้ว</span>' : trGate.ok ? '<span class="chip ok">✔ ผ่านเกณฑ์ทักษะและศิลา พร้อมทะลวงขั้นถัดไป</span>' : '<span class="chip r">🔒 ' + esc(trGate.reason) + '</span>') + '</div></div>';
+    } else {
+      h += '<div class="muted" style="margin-top:6px">ยังไม่ได้เปิดขั้นสายเฉพาะทาง (ต้องใช้คัมภีร์หรือผลึกสายย่อย)</div>';
+    }
+    h += '</div>';
+
+    // 2. Innate subpath techniques & dormant techniques
+    if (M) {
+      const actInn = (M.activeInnateTechs ? M.activeInnateTechs(n) : []).map(id => typeof id === 'string' ? CULT.tech(id) : id).filter(Boolean);
+      const dormInn = (M.dormantInnateTechs ? M.dormantInnateTechs(n) : []).map(id => typeof id === 'string' ? CULT.tech(id) : id).filter(Boolean);
+      if (actInn.length || dormInn.length) {
+        h += '<h3>2. วิชาเฉพาะสายย่อยติดตัว</h3><div class="card">';
+        actInn.forEach(t => {
+          const curStage = (g.SK.unlockedStage && t) ? g.SK.unlockedStage(n, t) : 1;
+          const maxStage = (t && Array.isArray(t.stages) && t.stages.length) ? t.stages.length : 1;
+          const mast = (g.SK.masteryPoints && t) ? g.SK.masteryPoints(n, t.id) : 0;
+          h += '<div style="padding:3px 0"><span class="chip g">ติดตัวสายย่อย · ทำงาน</span> ' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ความชำนาญ ' + mast + ' · ขั้น ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:11.5px">' + esc(t.descTh || '') + '</div></div>';
+        });
+        dormInn.forEach(t => {
+          const mast = (g.SK.masteryPoints && t) ? g.SK.masteryPoints(n, t.id) : 0;
+          h += '<div style="padding:3px 0;opacity:0.7"><span class="chip">หลับใหล · สายเดิม (' + esc(t.sub) + ')</span> ' + esc(t.nameTh) + ' <span class="muted">(ความชำนาญคงเดิม ' + mast + ')</span></div>';
+        });
+        h += '</div>';
+      }
+      // Synergies
+      const synInfo = M.evaluateSynergies ? M.evaluateSynergies(n) : { active: [] };
+      if (synInfo && Array.isArray(synInfo.active) && synInfo.active.length) {
+        h += '<h3>3. การประสานวิชาและสายย่อย (Synergies)</h3><div class="card">';
+        synInfo.active.forEach(sy => {
+          h += '<div style="padding:2px 0"><span class="chip ok">ประสานสำเร็จ</span> <b>' + esc(sy.nameTh) + '</b> <span class="muted">— ' + esc(sy.descTh || '') + '</span></div>';
+        });
+        h += '</div>';
+      }
+      // Crystals in personal inventory
+      const d = M.describe ? M.describe(W, n) : { crystals: [] };
+      if (d && Array.isArray(d.crystals) && d.crystals.length) {
+        h += '<h3>4. ผลึกความรู้ในตัว</h3><div class="card">' + d.crystals.map(([key, qty]) => {
+          const choice = M.crystalDecision(W, n, key), gate = M.eligible(n, key);
+          return '<div style="padding:2px 0"><b>' + esc(M.crystalName(key)) + '</b> ×' + qty + ' · <span class="chip">' + esc(({ use: 'ตั้งใจใช้', retain: 'เก็บไว้', donate: 'ตั้งใจบริจาค' })[choice.action] || 'เก็บไว้') + '</span><div class="muted" style="font-size:11.5px">' + esc(gate.ok ? choice.reason : gate.reason) + '</div></div>';
+        }).join('') + '</div>';
+      }
+    }
+
+    // Retraining interface
+    h += UI.martialRetraining(W, n);
     return h;
   }
 
@@ -2831,12 +3227,22 @@
       } else h += '<div class="muted">ยังเป็นปุถุชน ยังไม่ตื่นรู้ปราณ · พลังรบ ' + Math.round(CULT.power(n)) + '</div>';
       const eq = Object.keys(n.equip || {}).filter(k => n.equip[k]); if (eq.length) h += '<div style="margin-top:4px">' + eq.map(k => '<span class="chip g">' + esc(n.equip[k].nameTh) + ' · ' + esc(g.MARTIAL.TYPES[g.MARTIAL.gearType(n.equip[k])]) + '</span>').join('') + '</div>';
       h += '</div>';
-      h += UI.martialNpc(W, n) + UI.martialRetraining(W, n);
+      h += '<div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">' +
+        '<button class="btn" data-do="npc" data-arg="' + n.id + '|bag">🎒 เปิดถุงสัมภาระ</button>' +
+        '<button class="btn" data-do="npc" data-arg="' + n.id + '|tech">⚔️ วิชา/วรยุทธ์ (' + (n.cult ? n.cult.techs.length : 0) + ')</button>' +
+        '<button class="btn" data-do="npc" data-arg="' + n.id + '|sub">🌿 สายย่อย/ทะลวงด่าน' + (n.cult && n.cult.track ? ' (ขั้น ' + n.cult.track.ordinal + ')' : '') + '</button>' +
+      '</div>';
       h += '<h3>ในสำนัก</h3><div class="card"><div class="grid2"><div>ระดับ: <b>' + SECT.title(n) + '</b></div><div>เข้าสำนัก: ' + Math.max(0, Math.round(W.day - n.joinDay)) + ' วันก่อน</div><div>ผลงานสะสม: ' + Math.round(n.merit) + '</div><div>พอใจสำนัก: ' + Math.round(n.sat == null ? 60 : n.sat) + '</div><div>ศิลาส่วนตัว: ' + Math.round(n.inv.stones) + '</div><div>โชค: ' + Math.round(n.h.destiny.luck) + '</div></div>' + (n.mentor && W.byId[n.mentor] ? '<div>อาจารย์: ' + nameLink(W.byId[n.mentor]) + '</div>' : '') + (n.h.life.family.spouse && W.byId[n.h.life.family.spouse] ? '<div>คู่ครอง: ' + nameLink(W.byId[n.h.life.family.spouse]) + '</div>' : '') + ((n.h.life.family.disciples || []).length ? '<div>ศิษย์: ' + n.h.life.family.disciples.map(i => W.byId[i]).filter(Boolean).map(nameLink).join('、') + '</div>' : '') + (n.stats && (n.stats.kills || n.stats.sparWin) ? '<div class="muted">สถิติ: สังหาร ' + (n.stats.kills || 0) + ' · ประลองชนะ ' + (n.stats.sparWin || 0) + ' แพ้ ' + (n.stats.sparLoss || 0) + '</div>' : '') + '</div>';
-      h += renderPersonalBagSection(W, n);
       const authRecipes = Array.from(new Set(n.recipes || [])).map(id => ECO.recipeById[id]).filter(Boolean);
       if (authRecipes.length) h += '<h3>📖 ตำรับที่ได้รับสิทธิ์ศึกษา</h3><div class="card">' + authRecipes.map(r => '<span class="chip ok">' + esc(r.nameTh) + ' (' + esc(r.outNameTh) + ')</span>').join('') + '</div>';
       h += '<h3>รูปลักษณ์</h3><div class="card muted">' + esc(HC.appearanceText(n)) + '</div>';
+      h += renderPersonalBagSection(W, n);
+    } else if (tab === 'bag') {
+      h += renderPersonalBagSection(W, n);
+    } else if (tab === 'tech') {
+      h += renderTechTab(W, n);
+    } else if (tab === 'sub') {
+      h += renderSubTab(W, n);
     } else if (tab === 'self') {
       h += '<div class="muted">แถบสีขาว = ค่ากำเนิด · แถบสี = ค่าปัจจุบัน (รวมผลฝึก/อายุ/นิสัยพิเศษ)</div><h3>คุณค่าชีวิต 8 (และความอิ่มเอมของแต่ละข้อ)</h3><div class="card">' + HC.layerIds('values').map(id => bar(AI.VALUE_TH[id] || HC.nameOf('values.' + id), HC.eff(n, 'values.' + id), { wide: true, mark: n.h.fulfil[id], tip: HC.nameOf('values.' + id) })).join('') + '<div class="muted">ขีดขาว = ความอิ่มเอมตอนนี้ (ต่ำ → อยากทำสิ่งนั้น)</div></div>';
       h += '<h3>บุคลิกภาพ 14</h3><div class="card">' + statLayer(n, 'personality') + '</div><h3>อารมณ์พื้นฐาน</h3><div class="card">' + statLayer(n, 'temperament') + '</div>';
@@ -3198,7 +3604,7 @@
       h += "<div class=\"muted\" style=\"margin-bottom:6px\">รองรับการค้นหาด้วยชื่อ รหัส ระดับความหายาก (เช่น <code>Legendary</code>, <code>LEG_WPN_</code>, <code>LEG_</code>) ธาตุ สายวิชา และรหัสเอฟเฟกต์ พร้อมระบบแบ่งหน้าแสดงผลครบทุกไอเทม</div>";
       h += "<div class=\"edit-grid\">";
       h += "<div class=\"edit-field\"><label>ปลายทาง</label><select id=\"spawnDest\"><option value=\"sect\"" + (UI.spawnDest === "sect" ? " selected" : "") + ">🏯 คลังสำนัก</option><option value=\"npc\"" + (UI.spawnDest === "npc" ? " selected" : "") + ">🎒 ถุงส่วนตัวของ " + esc(n ? n.h.name.given : "ตัวละคร") + "</option></select></div>";
-      h += "<div class=\"edit-field\"><label>หมวดหมู่</label><select id=\"spawnKind\">" + [["ALL", "ทุกหมวดหมู่"], ["PROVISION", "เสบียง/ศิลา"], ["MATERIAL", "วัตถุดิบ"], ["PILL", "โอสถพื้นฐาน"], ["CRAFTED_PILL", "โอสถตำรับ"], ["EQUIPMENT", "อุปกรณ์ยุทธ์/ศาสตราตำนาน"], ["TECH_MANUAL", "คัมภีร์วิชา/ปราณตำนาน"], ["CRYSTAL", "ผลึกสายย่อย"], ["SUB_MANUAL", "คัมภีร์สายย่อย"], ["RECIPE_SCROLL", "ม้วนตำรับ"], ["ORGAN", "อวัยวะอสูร"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.spawnKind === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
+      h += "<div class=\"edit-field\"><label>หมวดหมู่</label><select id=\"spawnKind\">" + [["ALL", "ทุกหมวดหมู่"], ["PROVISION", "เสบียง/ศิลา"], ["MATERIAL", "วัตถุดิบ"], ["PILL", "โอสถพื้นฐาน"], ["CRAFTED_PILL", "โอสถตำรับ"], ["EQUIPMENT", "อุปกรณ์ยุทธ์/ศาสตราตำนาน"], ["TECH_MANUAL", "คัมภีร์วิชา/ปราณตำนาน"], ["CRYSTAL", "ผลึกวิชา/สายย่อย"], ["SUB_MANUAL", "คัมภีร์สายย่อย"], ["RECIPE_SCROLL", "ม้วนตำรับ"], ["ORGAN", "อวัยวะอสูร"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.spawnKind === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>ระดับ (Tier)</label><select id=\"spawnTier\">" + [["ALL", "ทุกระดับ"], ["1", "ระดับ 1"], ["2", "ระดับ 2"], ["3", "ระดับ 3"], ["4", "ระดับ 4"], ["5", "ระดับ 5"], ["6", "ระดับ 6"], ["7", "ระดับ 7"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.spawnTier === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>ธาตุ (Element)</label><select id=\"spawnElement\">" + [["ALL", "ทุกธาตุ"], ["FIRE", "🔥 ธาตุไฟ"], ["WATER_ICE", "❄️ ธาตุน้ำ-น้ำแข็ง"], ["LIGHTNING", "⚡ ธาตุสายฟ้า"], ["WIND", "🌪️ ธาตุลม"], ["EARTH_METAL", "⛰️ ธาตุดิน-โลหะ"], ["WOOD_LIFE", "🌿 ธาตุไม้-ชีวิต"], ["YIN_SHADOW", "🌑 ธาตุหยิน-เงา"], ["LIGHT_YANG", "☀️ ธาตุแสง-หยาง"], ["ASTRAL", "✨ ดารา-มิติ (พิเศษ)"], ["BLOOD_DEMON", "🩸 โลหิต-มาร (พิเศษ)"], ["NEUTRAL", "⚪ ไร้ธาตุเฉพาะ"]].map(([k, v]) => "<option value=\"" + k + "\"" + ((UI.spawnElement || "ALL") === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>ความหายาก (Rarity)</label><select id=\"spawnRarity\">" + [["ALL", "ทุกระดับความหายาก"], ["Legendary", "★ Legendary (ตำนาน)"], ["Rare", "Rare (หายาก)"], ["Uncommon", "Uncommon (ปานกลาง)"], ["Common", "Common (ทั่วไป)"]].map(([k, v]) => "<option value=\"" + k + "\"" + ((UI.spawnRarity || "ALL") === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
@@ -3219,6 +3625,7 @@
         h += paged.items.map(item => {
           const legChip = item.legendary ? " <span class=\"chip g\">★ Legendary</span>" : "";
           const elChip = item.element && item.element !== "NEUTRAL" ? (" <span class=\"chip\">" + (item.elementIcon || "") + " " + esc(item.elementShortTh || item.element) + "</span>") : "";
+          const famChip = item.crystalFamily === "TECH" ? " <span class=\"chip b\">ผลึกวิชา</span>" : (item.crystalFamily === "SUBPATH" ? " <span class=\"chip v\">ผลึกสายย่อย</span>" : "");
           const extraBtns = [];
           if (n && item.kind === "EQUIPMENT") {
             extraBtns.push("<button class=\"btn\" style=\"padding:4px 8px;font-size:11px\" data-do=\"spawn-equip-item\" data-arg=\"" + item.kind + "|" + item.id + "\">⚔️ เสก+สวมใส่</button>");
@@ -3226,7 +3633,7 @@
           if (n && n.cult && item.kind === "TECH_MANUAL") {
             extraBtns.push("<button class=\"btn\" style=\"padding:4px 8px;font-size:11px\" data-do=\"spawn-teach-item\" data-arg=\"" + item.kind + "|" + item.id + "\">📖 ถ่ายทอด</button>");
           }
-          return "<div class=\"logrow\" style=\"align-items:center;gap:6px\"><div style=\"flex:1;min-width:0\"><span class=\"chip b\">" + esc(item.kind) + " T" + item.tier + "</span>" + legChip + elChip + " <b>" + esc(item.nameTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(" + esc(item.id) + ")</span><div class=\"muted\" style=\"font-size:11px\">" + esc(item.descTh || "") + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\">" + extraBtns.join("") + "<button class=\"btn pri\" style=\"padding:4px 10px;font-size:11.5px\" data-do=\"spawn-item\" data-arg=\"" + item.kind + "|" + item.id + "\">✨ เสก</button></div></div>";
+          return "<div class=\"logrow\" style=\"align-items:center;gap:6px\"><div style=\"flex:1;min-width:0\"><span class=\"chip b\">" + esc(item.kind) + " T" + item.tier + "</span>" + famChip + legChip + elChip + " <b>" + esc(item.nameTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(" + esc(item.id) + ")</span><div class=\"muted\" style=\"font-size:11px\">" + esc(item.descTh || "") + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\">" + extraBtns.join("") + "<button class=\"btn pri\" style=\"padding:4px 10px;font-size:11.5px\" data-do=\"spawn-item\" data-arg=\"" + item.kind + "|" + item.id + "\">✨ เสก</button></div></div>";
         }).join("");
       }
       h += "</div>";

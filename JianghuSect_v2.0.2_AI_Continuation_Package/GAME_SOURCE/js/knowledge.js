@@ -282,14 +282,20 @@ M.buyCrystal=(W,n,key,price)=>{
 };
 M.donateCrystal=(W,n,key)=>{
  if(!M.knowledge(key)||!n.inv||!Number.isInteger(n.inv.crystals&&n.inv.crystals[key])||n.inv.crystals[key]<1)return {ok:false,reason:'ไม่มีผลึก'};
- if((W.sect.crystals&&W.sect.crystals[key]||0)>=999)return {ok:false,reason:'คลังเต็ม'};
+ const cur=(W.sect.crystals&&W.sect.crystals[key])||0;
  const spawned=n.inv.spawnedCrystals&&n.inv.spawnedCrystals[key]>0;
  const r=n.inv.crystalBought&&n.inv.crystalBought[key];let reward=spawned?0:M.crystalReward(W,key);
  if(!spawned&&r&&r.qty>0)reward=Math.min(reward,Math.floor(r.cap*.4));
  if(spawned){n.inv.spawnedCrystals[key]--;if(n.inv.spawnedCrystals[key]<=0)delete n.inv.spawnedCrystals[key];}
- removeUnit(n,key);W.sect.crystals=W.sect.crystals||{};W.sect.crystals[key]=(W.sect.crystals[key]||0)+1;
+ removeUnit(n,key);
+ if(cur>=999){
+  W.sect.knowledgeOverflow=W.sect.knowledgeOverflow||{};
+  W.sect.knowledgeOverflow[key]=(W.sect.knowledgeOverflow[key]||0)+1;
+ }else{
+  W.sect.crystals=W.sect.crystals||{};W.sect.crystals[key]=cur+1;
+ }
  if(reward>0){CPE.mint(W,n,reward,'บริจาค'+M.crystalName(key),true);CPE.S(W).donated+=reward;}
- M.ensure(W).donated++;return {ok:true,reward};
+ M.ensure(W).donated++;return {ok:true,reward,overflow:cur>=999};
 };
 M.donateManual=(W,n,id,kind)=>{
  const isSub=kind==='sub';
@@ -298,10 +304,32 @@ M.donateManual=(W,n,id,kind)=>{
  if(!info||!Array.isArray(bag)||!bag.includes(id))return {ok:false,reason:'ไม่มีคัมภีร์'};
  const spList=n.inv&&(isSub?n.inv.spawnedSubManuals:n.inv.spawnedTechs),isSpawned=Array.isArray(spList)&&spList.includes(id);
  if(isSpawned)spList.splice(spList.indexOf(id),1);
- const lib=isSub?(W.sect.subLibrary||(W.sect.subLibrary=[])):W.sect.library,duplicate=lib.includes(id),reward=(duplicate||isSpawned)?0:isSub?Math.round((100+info.tier*60)*CPE.S(W).price):CPE.techReward(W,id);
- bag.splice(bag.indexOf(id),1);if(!duplicate)lib.push(id);
- if(reward){CPE.mint(W,n,reward,'บริจาคคัมภีร์'+info.nameTh,true);CPE.S(W).donated+=reward;}
- return {ok:true,reward};
+ const lib=isSub?(W.sect.subLibrary||(W.sect.subLibrary=[])):W.sect.library,duplicate=lib.includes(id);
+ const baseReward=isSub?Math.round((100+info.tier*60)*CPE.S(W).price):CPE.techReward(W,id);
+ const reward=(isSpawned||duplicate)?0:baseReward;
+ bag.splice(bag.indexOf(id),1);
+ if(!duplicate){
+  lib.push(id);
+ }else{
+  if(isSub){
+   W.sect.surplusSubManuals=W.sect.surplusSubManuals||[];
+   W.sect.surplusSubManuals.push(id);
+   if(isSpawned){
+    W.sect.spawnedSurplusSub=W.sect.spawnedSurplusSub||[];
+    W.sect.spawnedSurplusSub.push(id);
+   }
+  }else{
+   W.sect.surplusTechManuals=W.sect.surplusTechManuals||[];
+   W.sect.surplusTechManuals.push(id);
+   if(isSpawned){
+    W.sect.spawnedSurplusTech=W.sect.spawnedSurplusTech||[];
+    W.sect.spawnedSurplusTech.push(id);
+   }
+  }
+ }
+ if(reward){CPE.mint(W,n,reward,'บริจาคคัมภีร์'+info.nameTh+(duplicate?' (ฉบับส่วนเกิน)':''),true);CPE.S(W).donated+=reward;}
+ if(g.SECT&&g.SECT.notifyStockChanged)g.SECT.notifyStockChanged(W,id);
+ return {ok:true,reward,duplicate,playerSpawned:isSpawned};
 };
 M.startStudy=(W,n,id,opts)=>{
  if(M.isInnateTech&&M.isInnateTech(id))return {ok:false,reason:'วิชาเฉพาะสายย่อยติดตัวไม่สามารถศึกษาจากหอคัมภีร์'};

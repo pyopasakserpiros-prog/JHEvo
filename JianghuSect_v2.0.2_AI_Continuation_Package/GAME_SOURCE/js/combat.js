@@ -309,13 +309,14 @@
     });
     const syn = (!a.foe && g.MARTIAL && g.MARTIAL.skillSynergy) ? g.MARTIAL.skillSynergy(a, p) : null;
     const elemDmgMult = elemInter ? elemInter.totalDamageMult : 1;
+    const elemHealMult = elemInter && elemInter.healSupportMult ? elemInter.healSupportMult : 1;
     const masBase = a.foe ? 1 : (SK.masteryBase ? SK.masteryBase(a, p) : 1);
     if (!a.foe && g.MARTIAL) {
       const efficiency = g.MARTIAL.skillEfficiency(a, p);
       if (!efficiency) return;
       const dMult = efficiency * (syn ? syn.dmgMult : 1) * elemDmgMult;
-      const shMult = efficiency * (syn ? syn.shieldMult : 1);
-      const hlMult = efficiency * (syn ? syn.healMult : 1);
+      const shMult = efficiency * (syn ? syn.shieldMult : 1) * elemHealMult;
+      const hlMult = efficiency * (syn ? syn.healMult : 1) * elemHealMult;
       const dtMult = efficiency * (syn ? syn.dotMult : 1);
       p = Object.assign({}, p, {
         M: p.M * efficiency,
@@ -340,6 +341,8 @@
       // must still modify real damage rather than remaining a UI-only matchup.
       p.synDmgMult = (p.synDmgMult || 1) * elemDmgMult;
       p.dot = (p.dot || 0) * elemDmgMult;
+      if (p.shield) p.shield = (p.shield || 0) * elemHealMult;
+      if (p.heal) p.heal = (p.heal || 0) * elemHealMult;
       if (p.channel && typeof p.channel === 'object') {
         p.channel = Object.assign({}, p.channel, {
           tickM: p.channel.tickM * elemDmgMult,

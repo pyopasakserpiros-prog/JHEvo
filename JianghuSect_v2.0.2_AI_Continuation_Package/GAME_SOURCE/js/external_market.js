@@ -25,18 +25,91 @@
   };
 
   EXT.isTradable = id => {
+    if (!id || typeof id !== 'string') return false;
     if (id === 'grain' || id === 'meal') return true;
     if (ECO.isPill(id)) return !!ECO.pillInfo(id);
-    const m = ECO.matById[id];
-    return !!m;
+    if (ECO.matById[id]) return true;
+    if (g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[id]) return true;
+    if (id.startsWith('ORGAN:')) {
+      const oid = id.slice(6);
+      return !!(g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[oid]);
+    }
+    const cleanKey = id.startsWith('CRYSTAL:') ? id.slice(8) : id;
+    if (g.MARTIAL && g.MARTIAL.knowledge && g.MARTIAL.knowledge(cleanKey)) return true;
+    if (id.startsWith('TECH_MANUAL:') || id.startsWith('TM:')) {
+      const tid = id.replace(/^(TECH_MANUAL:|TM:)/, '');
+      return !!(CULT && CULT.tech(tid));
+    }
+    if (id.startsWith('SUB_MANUAL:') || id.startsWith('SM:')) {
+      const sid = id.replace(/^(SUB_MANUAL:|SM:)/, '');
+      return !!(CULT && (CULT.trackDef(sid) || (CULT.subList && CULT.subList.some(x => x.sub && x.sub.id === sid))));
+    }
+    if (id.startsWith('RECIPE_SCROLL:') || id.startsWith('FORMULA:') || id.startsWith('R:')) {
+      const rid = id.replace(/^(RECIPE_SCROLL:|FORMULA:|R:)/, '');
+      return !!(ECO.recipeById && ECO.recipeById[rid]);
+    }
+    if (id.startsWith('EQ:')) {
+      const eqId = id.slice(3);
+      return !!(ECO.itemById && ECO.itemById[eqId]);
+    }
+    if (ECO.itemById && ECO.itemById[id]) return true;
+    return false;
   };
   EXT.activeVisitors = W => {
     const visitors = W && W.world && Array.isArray(W.world.visitors) ? W.world.visitors : [];
     return visitors.filter(v => v && v.kind === 'trader' && Number.isFinite(v.untilDay) && v.untilDay >= W.day && Number.isFinite(v.stones) && v.stones >= 0);
   };
+  EXT.basePrice = (W, id) => {
+    if (!id || typeof id !== 'string') return 0;
+    if (id === 'grain') return ECO.GRAIN_PRICE || 3;
+    if (id === 'meal') return 1.2;
+    if (ECO.matById[id]) return ECO.matById[id].value || 5;
+    if (ECO.isPill(id)) {
+      const r = ECO.recipeById[id.slice(2)];
+      return r ? 14 * Math.pow(2.05, (r.tier || 1) - 1) : 10;
+    }
+    const organId = id.startsWith('ORGAN:') ? id.slice(6) : id;
+    if (g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[organId]) {
+      const o = g.CONTENT.organById[organId];
+      return Math.round(20 * Math.pow(1.85, (o.tier || 1) - 1));
+    }
+    const cleanKey = id.startsWith('CRYSTAL:') ? id.slice(8) : id;
+    if (g.MARTIAL && g.MARTIAL.knowledge) {
+      const k = g.MARTIAL.knowledge(cleanKey);
+      if (k) {
+        if (k.kind === 'sub') return Math.round(45 + 30 * k.tier * k.tier);
+        return Math.round(18 * Math.pow(k.tier, 2) * (k.legendary ? 2.5 : 1));
+      }
+    }
+    if (id.startsWith('TECH_MANUAL:') || id.startsWith('TM:')) {
+      const tid = id.replace(/^(TECH_MANUAL:|TM:)/, '');
+      const t = CULT && CULT.tech(tid);
+      if (t) return Math.round(40 * Math.pow(t.tier || 1, 2.2) * (t.legendary ? 3 : 1));
+    }
+    if (id.startsWith('SUB_MANUAL:') || id.startsWith('SM:')) {
+      const sid = id.replace(/^(SUB_MANUAL:|SM:)/, '');
+      const s = CULT && (CULT.trackDef(sid) || (CULT.subList && (CULT.subList.find(x => x.sub && x.sub.id === sid) || {}).sub));
+      if (s) return Math.round(120 + 80 * (s.tier || 1) * (s.tier || 1));
+    }
+    if (id.startsWith('RECIPE_SCROLL:') || id.startsWith('FORMULA:') || id.startsWith('R:')) {
+      const rid = id.replace(/^(RECIPE_SCROLL:|FORMULA:|R:)/, '');
+      const r = ECO.recipeById && ECO.recipeById[rid];
+      if (r) return Math.round(30 * Math.pow(2, (r.tier || 1) - 1));
+    }
+    if (id.startsWith('EQ:')) {
+      const eqId = id.slice(3);
+      const it = ECO.itemById && ECO.itemById[eqId];
+      if (it) return it.value || Math.round(25 * Math.pow(1.9, (it.tier || 1) - 1));
+    }
+    if (ECO.itemById && ECO.itemById[id]) {
+      const it = ECO.itemById[id];
+      return it.value || Math.round(25 * Math.pow(1.9, (it.tier || 1) - 1));
+    }
+    return ECO.base(id) || 5;
+  };
   EXT.quotePrice = (W, id, side, skill) => {
     if (!EXT.isTradable(id)) return 0;
-    const base = ECO.price(W, id);
+    const base = (EXT.basePrice(W, id) || ECO.price(W, id)) * ((W.market && W.market.mult[id]) || 1);
     if (!Number.isFinite(base) || base <= 0) return 0;
     skill = clamp(Number.isFinite(skill) ? skill : 40, 0, 100);
     let mult = 1;
@@ -76,6 +149,19 @@
         .filter(k => EXT.isTradable(k) && (subtype !== 'general' || BASIC_PILLS.has(k)));
       if (pills.length) { const id = W.rng.pick(pills); addStock(W, stock, id, 1, subtype === 'medicine' ? 4 : 2); }
     }
+    if ((subtype === 'rare' || subtype === 'caravan') && W.rng.chance(0.35)) {
+      if (g.MARTIAL && g.MARTIAL.techCatalog) {
+        const pool = (g.CULT && g.CULT.techList ? g.CULT.techList : []).filter(t => t && !t.innateOnly && t.tier <= (subtype === 'rare' ? 5 : 3));
+        if (pool.length) {
+          const t = W.rng.pick(pool);
+          addStock(W, stock, 'T:' + t.id, 1, 2);
+        }
+      }
+    }
+    if (subtype === 'medicine' && g.CONTENT && g.CONTENT.rareOrgans && W.rng.chance(0.3)) {
+      const org = W.rng.pick(g.CONTENT.rareOrgans);
+      if (org) addStock(W, stock, org.id, 1, 2);
+    }
     return stock;
   }
   function buildWants(W, stock, subtype) {
@@ -100,6 +186,19 @@
       wants[id] = W.rng.int(1, maxWant);
       used.add(id);
     });
+    if ((subtype === 'rare' || subtype === 'caravan') && W.sect.surplusTechManuals && W.sect.surplusTechManuals.length > 0) {
+      const sm = W.sect.surplusTechManuals.find(m => !(W.sect.spawnedSurplusTech && W.sect.spawnedSurplusTech.includes(m)));
+      if (sm) { wants['TECH_MANUAL:' + sm] = 1; used.add('TECH_MANUAL:' + sm); }
+    }
+    if ((subtype === 'rare' || subtype === 'caravan') && W.sect.surplusSubManuals && W.sect.surplusSubManuals.length > 0) {
+      const ssm = W.sect.surplusSubManuals.find(m => !(W.sect.spawnedSurplusSub && W.sect.spawnedSurplusSub.includes(m)));
+      if (ssm) { wants['SUB_MANUAL:' + ssm] = 1; used.add('SUB_MANUAL:' + ssm); }
+    }
+    if ((subtype === 'medicine' || subtype === 'rare') && g.CONTENT && W.sect.organs) {
+      for (const oid of Object.keys(W.sect.organs)) {
+        if (g.CONTENT.organCount(W, oid) > 2) { wants[oid] = 1; used.add(oid); break; }
+      }
+    }
     const targetWantsCount = subtype === 'rare' ? 4 : 5;
     while (Object.keys(wants).length < targetWantsCount) {
       let id = null;
@@ -188,16 +287,40 @@
       if (!b || !EXT.isTradable(b.id)) return;
       add(b.id, b.n, 10 + (b.id === 'grain' ? 3 : 0), 'รายการสั่งซื้อของหอคลัง');
     });
-    // 3. Fallback scan of trader inventory for critical shortages
+    // 3. Member demand: inspect stock for items needed by alive sect members
+    const npcs = (W.npcs || []).filter(n => !n.dead && !n.exiled && !n.away);
     Object.keys(v.stock).forEach(id => {
-      if (!EXT.isTradable(id)) return;
+      if (seen.has(id) || !EXT.isTradable(id)) return;
+      // Member needs for knowledge / crystals
+      const cleanKey = id.startsWith('CRYSTAL:') ? id.slice(8) : id;
+      if (g.MARTIAL && g.MARTIAL.knowledge && g.MARTIAL.knowledge(cleanKey)) {
+        const k = g.MARTIAL.knowledge(cleanKey);
+        const known = k.kind === 'sub' ? (W.sect.subLibrary || []).includes(k.id) : (W.sect.library || []).includes(k.id);
+        const eligibleCount = npcs.filter(n => g.MARTIAL.eligible(n, cleanKey).ok).length;
+        if (!known && eligibleCount > 0) {
+          add(id, 1, 16 + eligibleCount, 'ศิษย์ในสำนัก ' + eligibleCount + ' คนตรงเกณฑ์ศึกษาและยังไม่มีในหอคัมภีร์');
+        } else if (known && eligibleCount > 0 && ((W.sect.crystals && W.sect.crystals[cleanKey]) || 0) < 1) {
+          add(id, 1, 9, 'ผลึกช่วยร่นเวลาศึกษาสำหรับศิษย์ที่ตรงสาย');
+        }
+      }
+      // Member needs for emergency pills
+      if (ECO.isPill(id)) {
+        const needy = npcs.filter(n => pillNeed(n, id) > 0).length;
+        if (needy > 0) {
+          add(id, Math.min(needy, 4), 15 + needy, 'โอสถจำเป็นเร่งด่วนสำหรับศิษย์บาดเจ็บ/ปราณพร่อง (' + needy + ' คน)');
+        }
+      }
+    });
+    // 4. Fallback scan of trader inventory for critical shortages
+    Object.keys(v.stock).forEach(id => {
+      if (!EXT.isTradable(id) || seen.has(id)) return;
       const count = ECO.count(W, id);
       const res = EXT.reserveForSect(W, id);
       if (count < res * 0.4) {
         add(id, Math.min(4, Math.ceil(res - count)), 6 + (res - count) / Math.max(1, res), 'สต็อกต่ำกว่า 40% ของเกณฑ์สำรอง');
       }
     });
-    return out.sort((a, b) => b.priority - a.priority).slice(0, 4);
+    return out.sort((a, b) => b.priority - a.priority).slice(0, 5);
   }
   function record(W, visitor, side, id, qty, unitPrice, total, npc, reason) {
     const stats = EXT.ensure(W), history = W.world.tradeHistory;
@@ -235,7 +358,7 @@
         const unit = EXT.quotePrice(W, need.id, 'sect-buy', skill);
         if (!unit || budget < unit) continue;
         // Avoid purchasing overpriced items (> 1.4x base) unless critical
-        const basePrice = ECO.base(need.id);
+        const basePrice = (EXT.basePrice ? EXT.basePrice(W, need.id) : 0) || ECO.base(need.id);
         if (need.priority < 18 && basePrice > 0 && unit > basePrice * 1.4) continue;
 
         const maxQty = Math.min(need.n, v.stock[need.id] || 0, Math.floor(budget / unit));
@@ -247,7 +370,40 @@
         v.stones += total;
         v.stock[need.id] -= qty;
         if (!v.stock[need.id]) delete v.stock[need.id];
-        ECO.add(W, need.id, qty);
+        if (need.id.startsWith('CRYSTAL:') || need.id.startsWith('T:') || need.id.startsWith('S:')) {
+          const cKey = need.id.startsWith('CRYSTAL:') ? need.id.slice(8) : need.id;
+          W.sect.crystals = W.sect.crystals || {};
+          W.sect.crystals[cKey] = (W.sect.crystals[cKey] || 0) + qty;
+        } else if (need.id.startsWith('TECH_MANUAL:') || need.id.startsWith('TM:')) {
+          const tid = need.id.replace(/^(TECH_MANUAL:|TM:)/, '');
+          W.sect.library = W.sect.library || [];
+          if (!W.sect.library.includes(tid)) W.sect.library.push(tid);
+          else {
+            W.sect.surplusTechManuals = W.sect.surplusTechManuals || [];
+            W.sect.surplusTechManuals.push(tid);
+          }
+        } else if (need.id.startsWith('SUB_MANUAL:') || need.id.startsWith('SM:')) {
+          const sid = need.id.replace(/^(SUB_MANUAL:|SM:)/, '');
+          W.sect.subLibrary = W.sect.subLibrary || [];
+          if (!W.sect.subLibrary.includes(sid)) W.sect.subLibrary.push(sid);
+          else {
+            W.sect.surplusSubManuals = W.sect.surplusSubManuals || [];
+            W.sect.surplusSubManuals.push(sid);
+          }
+        } else if (need.id.startsWith('RECIPE_SCROLL:') || need.id.startsWith('FORMULA:') || need.id.startsWith('R:')) {
+          const rid = need.id.replace(/^(RECIPE_SCROLL:|FORMULA:|R:)/, '');
+          W.sect.knownRecipes = W.sect.knownRecipes || [];
+          if (!W.sect.knownRecipes.includes(rid)) W.sect.knownRecipes.push(rid);
+          else {
+            W.sect.surplusRecipes = W.sect.surplusRecipes || [];
+            W.sect.surplusRecipes.push(rid);
+          }
+        } else if (g.CONTENT && g.CONTENT.organById && (g.CONTENT.organById[need.id] || (need.id.startsWith('ORGAN:') && g.CONTENT.organById[need.id.slice(6)]))) {
+          const oid = need.id.startsWith('ORGAN:') ? need.id.slice(6) : need.id;
+          g.CONTENT.addOrgan(W, oid, qty);
+        } else {
+          ECO.add(W, need.id, qty);
+        }
         budget -= total;
         result.bought += qty;
         result.buyCost += total;
@@ -313,6 +469,107 @@
       const sellReason = 'ขายส่วนเกินตามการประเมินคลังสำนัก (คงเหลือ ' + ECO.count(W, id) + '/' + resFloor + ')';
       record(W, v, 'sect-sell', id, qty, unit, total, null, sellReason);
       W.log('finance', 'สำนักขายส่วนเกิน ' + ECO.name(id) + ' ×' + qty + ' ให้' + v.nameTh + ' ได้รับ ' + total + ' ศิลา (คงคลังคงเหลือ ' + ECO.count(W, id) + ' เกณฑ์สำรอง ' + resFloor + ')', [], { txKind: 'sale', itemId: id, qty, reason: sellReason });
+    }
+
+    // Surplus duplicate tech manuals
+    if (W.sect.surplusTechManuals && W.sect.surplusTechManuals.length > 0 && (v.subtype === 'rare' || v.subtype === 'caravan' || (v.wants && Object.keys(v.wants).some(k => k.startsWith('TECH_MANUAL:'))))) {
+      for (let i = W.sect.surplusTechManuals.length - 1; i >= 0; i--) {
+        const tid = W.sect.surplusTechManuals[i];
+        if (W.sect.spawnedSurplusTech && W.sect.spawnedSurplusTech.includes(tid)) continue; // Anti-minting
+        const key = 'TECH_MANUAL:' + tid;
+        const unit = EXT.quotePrice(W, key, 'sect-sell', skill);
+        if (unit > 0 && v.stones >= unit) {
+          W.sect.surplusTechManuals.splice(i, 1);
+          v.stones -= unit;
+          if (v.wants && v.wants[key]) {
+            v.wants[key]--;
+            if (v.wants[key] <= 0) delete v.wants[key];
+          }
+          const tObj = CULT && CULT.tech(tid);
+          const tName = tObj ? tObj.nameTh : tid;
+          ECO.earn(W, unit, 'ขายคัมภีร์วิชาส่วนเกินให้' + v.nameTh + ': ' + tName);
+          result.sold += 1;
+          result.sellRevenue += unit;
+          record(W, v, 'sect-sell', key, 1, unit, unit, null, 'ขายคัมภีร์วิชาส่วนเกิน');
+          W.log('finance', 'สำนักขายคัมภีร์วิชาส่วนเกิน「' + tName + '」ให้' + v.nameTh + ' ได้รับ ' + unit + ' ศิลา', [], { txKind: 'sale', itemId: key, qty: 1, reason: 'ขายคัมภีร์ส่วนเกิน' });
+          break; // limit to 1 manual per visit day
+        }
+      }
+    }
+
+    // Surplus duplicate sub manuals
+    if (W.sect.surplusSubManuals && W.sect.surplusSubManuals.length > 0 && (v.subtype === 'rare' || v.subtype === 'caravan' || (v.wants && Object.keys(v.wants).some(k => k.startsWith('SUB_MANUAL:'))))) {
+      for (let i = W.sect.surplusSubManuals.length - 1; i >= 0; i--) {
+        const sid = W.sect.surplusSubManuals[i];
+        if (W.sect.spawnedSurplusSub && W.sect.spawnedSurplusSub.includes(sid)) continue; // Anti-minting
+        const key = 'SUB_MANUAL:' + sid;
+        const unit = EXT.quotePrice(W, key, 'sect-sell', skill);
+        if (unit > 0 && v.stones >= unit) {
+          W.sect.surplusSubManuals.splice(i, 1);
+          v.stones -= unit;
+          if (v.wants && v.wants[key]) {
+            v.wants[key]--;
+            if (v.wants[key] <= 0) delete v.wants[key];
+          }
+          const sObj = CULT && (CULT.trackDef(sid) || (CULT.subList && (CULT.subList.find(x => x.sub && x.sub.id === sid) || {}).sub));
+          const sName = sObj ? sObj.nameTh : sid;
+          ECO.earn(W, unit, 'ขายคัมภีร์สายย่อยส่วนเกินให้' + v.nameTh + ': ' + sName);
+          result.sold += 1;
+          result.sellRevenue += unit;
+          record(W, v, 'sect-sell', key, 1, unit, unit, null, 'ขายคัมภีร์สายย่อยส่วนเกิน');
+          W.log('finance', 'สำนักขายคัมภีร์สายย่อยส่วนเกิน「' + sName + '」ให้' + v.nameTh + ' ได้รับ ' + unit + ' ศิลา', [], { txKind: 'sale', itemId: key, qty: 1, reason: 'ขายคัมภีร์สายย่อยส่วนเกิน' });
+          break;
+        }
+      }
+    }
+
+    // Surplus duplicate recipes
+    if (W.sect.surplusRecipes && W.sect.surplusRecipes.length > 0 && (v.subtype === 'medicine' || v.subtype === 'caravan' || v.subtype === 'rare')) {
+      for (let i = W.sect.surplusRecipes.length - 1; i >= 0; i--) {
+        const rid = W.sect.surplusRecipes[i];
+        if (W.sect.spawnedSurplusRecipes && W.sect.spawnedSurplusRecipes.includes(rid)) continue; // Anti-minting
+        const key = 'RECIPE_SCROLL:' + rid;
+        const unit = EXT.quotePrice(W, key, 'sect-sell', skill);
+        if (unit > 0 && v.stones >= unit) {
+          W.sect.surplusRecipes.splice(i, 1);
+          v.stones -= unit;
+          const rObj = ECO.recipeById && ECO.recipeById[rid];
+          const rName = rObj ? rObj.nameTh : rid;
+          ECO.earn(W, unit, 'ขายม้วนตำรับส่วนเกินให้' + v.nameTh + ': ' + rName);
+          result.sold += 1;
+          result.sellRevenue += unit;
+          record(W, v, 'sect-sell', key, 1, unit, unit, null, 'ขายม้วนตำรับส่วนเกิน');
+          W.log('finance', 'สำนักขายม้วนตำรับส่วนเกิน「' + rName + '」ให้' + v.nameTh + ' ได้รับ ' + unit + ' ศิลา', [], { txKind: 'sale', itemId: key, qty: 1, reason: 'ขายม้วนตำรับส่วนเกิน' });
+          break;
+        }
+      }
+    }
+
+    // Surplus rare organs (keep at least 2 for research catalyst)
+    if (g.CONTENT && W.sect.organs && (v.subtype === 'medicine' || v.subtype === 'rare')) {
+      for (const oid of Object.keys(W.sect.organs)) {
+        const count = g.CONTENT.organCount(W, oid);
+        const spawnedOrg = (W.sect.spawnedOrgans && W.sect.spawnedOrgans[oid]) || 0;
+        const naturalCount = Math.max(0, count - spawnedOrg);
+        if (naturalCount > 2) {
+          const unit = EXT.quotePrice(W, oid, 'sect-sell', skill);
+          if (unit > 0 && v.stones >= unit && g.CONTENT.takeOrgan(W, oid, 1)) {
+            v.stones -= unit;
+            if (v.wants && v.wants[oid]) {
+              v.wants[oid]--;
+              if (v.wants[oid] <= 0) delete v.wants[oid];
+            }
+            const oObj = g.CONTENT.organById && g.CONTENT.organById[oid];
+            const oName = oObj ? oObj.nameTh : oid;
+            ECO.earn(W, unit, 'ขายอวัยวะอสูรส่วนเกินให้' + v.nameTh + ': ' + oName);
+            result.sold += 1;
+            result.sellRevenue += unit;
+            record(W, v, 'sect-sell', oid, 1, unit, unit, null, 'ขายอวัยวะอสูรส่วนเกิน');
+            W.log('finance', 'สำนักขายอวัยวะอสูรส่วนเกิน「' + oName + '」ให้' + v.nameTh + ' ได้รับ ' + unit + ' ศิลา (คงเหลือในคลัง ' + g.CONTENT.organCount(W, oid) + ')', [], { txKind: 'sale', itemId: oid, qty: 1, reason: 'ขายอวัยวะอสูรส่วนเกิน' });
+            break;
+          }
+        }
+      }
     }
 
     return result;

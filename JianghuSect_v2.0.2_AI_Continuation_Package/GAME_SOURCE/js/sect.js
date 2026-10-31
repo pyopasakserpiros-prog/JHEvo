@@ -2191,17 +2191,44 @@
       }));
     });
 
-    // 6. Specialization Crystals & Sub Manuals
+    // 6A. Technique Crystals (all valid, non-innate techniques with canonical T:<techniqueId>)
+    const seenTechCrystalIds = new Set();
+    [...(JD.TECH.techniques || []), ...(JD.TECH.mantras || [])].forEach(t => {
+      if (!t || !t.id || t.innateOnly || (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) || seenTechCrystalIds.has(t.id)) return;
+      seenTechCrystalIds.add(t.id);
+      const isLeg = !!(t.legendary || t.grade === "Legendary" || /^LEG_/.test(t.id));
+      const isMantra = /_MANTRA$|^QI_MANTRA$/.test(t.cat || "");
+      const fxIds = [];
+      if (t.fxKind) fxIds.push(t.fxKind);
+      if (Array.isArray(t.fx)) t.fx.forEach(x => { if (x && x.id) fxIds.push(x.id); });
+      if (t.passive && t.passive.id) fxIds.push(t.passive.id);
+      out.push(enrichCatalogEntry({
+        key: "CRYSTAL:T:" + t.id, kind: "CRYSTAL", id: "T:" + t.id, crystalFamily: "TECH",
+        nameTh: "ผลึกวิชา「" + t.nameTh + "」",
+        tier: t.tier || 1, grade: isLeg ? "Legendary" : (t.grade || "Common"),
+        rarity: isLeg ? "Legendary" : (t.grade || "Common"), legendary: isLeg, isMantra,
+        compatiblePath: t.path || "ANY", sub: t.sub || null, weaponTypes: t.weaponTypes || null,
+        element: t.element || "NEUTRAL", elementProfile: t.elementProfile || null,
+        effectIds: fxIds, sourceRegistry: isMantra ? "JD.TECH.mantras(CRYSTAL)" : "JD.TECH.techniques(CRYSTAL)",
+        stackable: true, canSect: true, canNpc: true,
+        descTh: "ผลึกสืบทอดวิชา (" + (t.path || "ANY") + (t.sub ? " · " + t.sub : "") + ") ระดับ " + (t.tier || 1) + " (" + (isLeg ? "Legendary" : (t.grade || "Common")) + ") ใช้แล้วหมดไป"
+      }));
+    });
+
+    // 6B. Specialization Crystals (S:<subId>) & Sub Manuals
     CULT.subList.forEach(({ path, sub }) => {
       out.push(enrichCatalogEntry({
-        key: "CRYSTAL:" + sub.id, kind: "CRYSTAL", id: sub.id, nameTh: "ผลึกสายย่อย「" + sub.nameTh + "」",
-        tier: 3, compatiblePath: path, sub: sub.id, element: sub.element || "NEUTRAL", elementProfile: sub.elementProfile || null,
+        key: "CRYSTAL:S:" + sub.id, kind: "CRYSTAL", id: "S:" + sub.id, crystalFamily: "SUBPATH",
+        nameTh: "ผลึกสายย่อย「" + sub.nameTh + "」",
+        tier: 3, grade: "Rare", rarity: "Rare", compatiblePath: path, sub: sub.id,
+        element: sub.element || "NEUTRAL", elementProfile: sub.elementProfile || null,
         sourceRegistry: "CULT.subList(CRYSTAL)", stackable: true, canSect: true, canNpc: true,
         descTh: "ผลึกสืบทอดสายย่อย (" + path + ") ใช้แล้วหมดไป"
       }));
       out.push(enrichCatalogEntry({
         key: "SUB_MANUAL:" + sub.id, kind: "SUB_MANUAL", id: sub.id, nameTh: "คัมภีร์สายย่อย「" + sub.nameTh + "」",
-        tier: 4, compatiblePath: path, sub: sub.id, element: sub.element || "NEUTRAL", elementProfile: sub.elementProfile || null,
+        tier: 4, grade: "Exceptional", rarity: "Exceptional", compatiblePath: path, sub: sub.id,
+        element: sub.element || "NEUTRAL", elementProfile: sub.elementProfile || null,
         sourceRegistry: "CULT.subList(SUB_MANUAL)", stackable: false, canSect: true, canNpc: true,
         descTh: "คัมภีร์สายย่อยถาวรประจำหอคัมภีร์ (" + path + ")"
       }));
@@ -2354,6 +2381,8 @@
       itemNameTh = m.nameTh;
       if (dest === 'sect') {
         ECO.add(W, id, qty);
+        W.sect.spawnedMats = W.sect.spawnedMats || {};
+        W.sect.spawnedMats[id] = (W.sect.spawnedMats[id] || 0) + qty;
       } else {
         npc.inv.mats = npc.inv.mats || {};
         npc.inv.mats[id] = (npc.inv.mats[id] || 0) + qty;
@@ -2367,6 +2396,8 @@
       itemNameTh = info.nameTh || ECO.name(pillId);
       if (dest === 'sect') {
         ECO.add(W, pillId, qty, quality);
+        W.sect.spawnedPills = W.sect.spawnedPills || {};
+        W.sect.spawnedPills[pillId] = (W.sect.spawnedPills[pillId] || 0) + qty;
       } else {
         ECO.addPersonalPill(npc, pillId, quality, qty);
         npc.inv.spawnedPills = npc.inv.spawnedPills || {};
@@ -2438,6 +2469,8 @@
       if (dest === 'sect') {
         W.sect.crystals = W.sect.crystals || {};
         W.sect.crystals[cKey] = (W.sect.crystals[cKey] || 0) + qty;
+        W.sect.spawnedCrystals = W.sect.spawnedCrystals || {};
+        W.sect.spawnedCrystals[cKey] = (W.sect.spawnedCrystals[cKey] || 0) + qty;
       } else {
         npc.inv.crystals = npc.inv.crystals || {};
         npc.inv.crystals[cKey] = (npc.inv.crystals[cKey] || 0) + qty;
@@ -2478,6 +2511,8 @@
       itemNameTh = o.nameTh;
       if (dest === 'sect') {
         g.CONTENT.addOrgan(W, id, qty);
+        W.sect.spawnedOrgans = W.sect.spawnedOrgans || {};
+        W.sect.spawnedOrgans[id] = (W.sect.spawnedOrgans[id] || 0) + qty;
       } else {
         npc.inv.organs = npc.inv.organs || {};
         npc.inv.organs[id] = (npc.inv.organs[id] || 0) + qty;

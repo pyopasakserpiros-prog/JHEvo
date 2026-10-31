@@ -79,6 +79,10 @@ console.log('Testing Phase 2: Character Editor, Item Spawner, Anti-Minting & Bag
   // Catalog filtering
   const allCat = SECT.EDITOR.catalog(W, {});
   assert(allCat.length > 50, 'Catalog should expose all provisions, materials, pills, gear, manuals, crystals, scrolls, and organs');
+  const techCrystals = allCat.filter(x => x.kind === 'CRYSTAL' && x.id.startsWith('T:'));
+  const subCrystals = allCat.filter(x => x.kind === 'CRYSTAL' && x.id.startsWith('S:'));
+  assert(techCrystals.length > 10, 'Catalog must expose non-innate technique crystals (T:<techId>)');
+  assert(subCrystals.length > 10, 'Catalog must expose specialization crystals (S:<subId>)');
 
   // Reject invalid quantities
   assert.strictEqual(SECT.EDITOR.spawnItem(W, { kind: 'PROVISION', id: 'stones', dest: 'sect', qty: 0 }).ok, false);
@@ -121,6 +125,15 @@ console.log('Testing Phase 2: Character Editor, Item Spawner, Anti-Minting & Bag
   const subId = CULT.subList[0].sub.id;
   assert(SECT.EDITOR.spawnItem(W, { kind: 'CRYSTAL', id: subId, dest: 'npc', npcId: n.id, qty: 1 }).ok);
   const donCr = G.MARTIAL.donateCrystal(W, n, G.MARTIAL.subKey(subId)); assert(donCr.ok && donCr.reward === 0);
+
+  // Spawn T: technique crystal to NPC bag and sect stock
+  const sampleTechKey = techCrystals[0].id;
+  assert(SECT.EDITOR.spawnItem(W, { kind: 'CRYSTAL', id: sampleTechKey, dest: 'npc', npcId: n.id, qty: 1 }).ok);
+  assert(n.inv.crystals[sampleTechKey] >= 1, 'Spawned T: crystal must be present in NPC bag');
+  const donTechCr = G.MARTIAL.donateCrystal(W, n, sampleTechKey);
+  assert(donTechCr.ok && donTechCr.reward === 0, 'Donating player-spawned T: crystal must mint 0 CP');
+  assert(SECT.EDITOR.spawnItem(W, { kind: 'CRYSTAL', id: sampleTechKey, dest: 'sect', qty: 2 }).ok);
+  assert(W.sect.crystals[sampleTechKey] >= 2, 'Spawned T: crystal must be present in sect stock');
 
   const techId = G.JD.EXPANSION.techniques[0].id;
   W.sect.library = W.sect.library.filter(x => x !== techId);

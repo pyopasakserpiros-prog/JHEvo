@@ -212,7 +212,15 @@
     }
     C.grantRecipeAuth(W,n,id);
     if(W.sect.knownRecipes.includes(id)) {
-      if(!opts.quiet) W.log('research',n.h.name.given+' ส่งมอบม้วนตำรับซ้ำ「'+r.nameTh+'」เข้าหอคัมภีร์ (มีอยู่แล้ว ได้ 0 คป.)',[n.id]);
+      W.sect.surplusRecipes = W.sect.surplusRecipes || [];
+      W.sect.surplusRecipes.push(id);
+      if (spawned) {
+        W.sect.spawnedSurplusRecipes = W.sect.spawnedSurplusRecipes || [];
+        W.sect.spawnedSurplusRecipes.push(id);
+      }
+      W.world.contentMetrics.formulasDonated++;
+      if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, id);
+      if(!opts.quiet) W.log('research',n.h.name.given+' ส่งมอบม้วนตำรับซ้ำ「'+r.nameTh+'」เข้าคลังสำนัก (เก็บเป็นฉบับส่วนเกินรอจำหน่าย)',[n.id]);
       return {ok:true,duplicate:true,reward:0,playerSpawned:spawned};
     }
     W.sect.knownRecipes.push(id);

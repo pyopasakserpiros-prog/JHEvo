@@ -1417,6 +1417,69 @@
     });
   };
 
+  ELEM.RELATIONS = Object.freeze({
+    FIRE: Object.freeze({
+      WATER_ICE: 'OPPOSE',
+      WOOD_LIFE: 'SUPPORT',
+      EARTH_METAL: 'SUPPORT',
+      WIND: 'SUPPORT',
+      LIGHT_YANG: 'SUPPORT'
+    }),
+    WATER_ICE: Object.freeze({
+      FIRE: 'OPPOSE',
+      WOOD_LIFE: 'SUPPORT',
+      EARTH_METAL: 'SUPPORT',
+      YIN_SHADOW: 'SUPPORT'
+    }),
+    WOOD_LIFE: Object.freeze({
+      EARTH_METAL: 'OPPOSE',
+      FIRE: 'SUPPORT',
+      WATER_ICE: 'SUPPORT'
+    }),
+    EARTH_METAL: Object.freeze({
+      WOOD_LIFE: 'OPPOSE',
+      LIGHTNING: 'OPPOSE',
+      WATER_ICE: 'SUPPORT',
+      FIRE: 'SUPPORT'
+    }),
+    LIGHTNING: Object.freeze({
+      EARTH_METAL: 'OPPOSE',
+      WIND: 'SUPPORT'
+    }),
+    WIND: Object.freeze({
+      FIRE: 'SUPPORT',
+      LIGHTNING: 'SUPPORT'
+    }),
+    LIGHT_YANG: Object.freeze({
+      YIN_SHADOW: 'OPPOSE',
+      BLOOD_DEMON: 'OPPOSE',
+      FIRE: 'SUPPORT',
+      ASTRAL: 'SUPPORT'
+    }),
+    YIN_SHADOW: Object.freeze({
+      LIGHT_YANG: 'OPPOSE',
+      WATER_ICE: 'SUPPORT'
+    }),
+    ASTRAL: Object.freeze({
+      BLOOD_DEMON: 'OPPOSE',
+      LIGHT_YANG: 'SUPPORT'
+    }),
+    BLOOD_DEMON: Object.freeze({
+      LIGHT_YANG: 'OPPOSE',
+      ASTRAL: 'OPPOSE'
+    })
+  });
+
+  ELEM.classifyRelation = (elA, elB) => {
+    if (!elA || !elB || elA === 'NEUTRAL' || elB === 'NEUTRAL') return 'NEUTRAL';
+    if (elA === elB) return 'MATCH';
+    const rel = ELEM.RELATIONS[elA] && ELEM.RELATIONS[elA][elB];
+    if (rel) return rel;
+    const revRel = ELEM.RELATIONS[elB] && ELEM.RELATIONS[elB][elA];
+    if (revRel) return revRel;
+    return 'NEUTRAL';
+  };
+
   ELEM.combatElementalMatchup = (attacker, defender, attackDef) => {
     const atkProf = ELEM.getProfile(attackDef);
     if (!atkProf.valid || atkProf.primary === 'NEUTRAL') return 1.0;
@@ -1425,6 +1488,8 @@
       if (defender.foe) {
         const sp = JD.BEASTS && JD.BEASTS.species && JD.BEASTS.species.find(s => s.id === defender.speciesId || s.nameTh === defender.name);
         if (sp && sp.element) defEl = sp.element;
+        else if (defender.element && defender.element !== 'NEUTRAL') defEl = defender.element;
+        else if (defender.elementProfile && defender.elementProfile.primary) defEl = defender.elementProfile.primary;
       } else if (defender.cult) {
         const m = defender.cult.mantra && CULT.tech(defender.cult.mantra);
         const sub = CULT.subInfo(defender.cult.path, defender.cult.sub);
@@ -1502,6 +1567,7 @@
     const targetControlFactor = clamp(1 + (targetCounterMult - 1) * 0.5, 0.90, 1.10);
     const controlChanceMult = +clamp((attackerCompat.controlChanceMult || 1) * targetControlFactor, 0.75, 1.25).toFixed(4);
     const totalDamageMult = +clamp(attackerCompat.combatMultiplier * weaponResonance * targetCounterMult, 0.58, 1.52).toFixed(4);
+    const healSupportMult = +clamp(attackerCompat.combatMultiplier * weaponResonance, 0.70, 1.40).toFixed(4);
     return {
       attackerCompat,
       weaponResonance,
@@ -1510,6 +1576,7 @@
       counterRelation,
       totalDamageMult,
       damageMult: totalDamageMult,
+      healSupportMult,
       costMult: attackerCompat.qiCostMultiplier,
       accBonus: attackerCompat.accBonus,
       controlChanceMult

@@ -151,3 +151,19 @@ The v2.0.2 historical handoff identifies these unresolved areas; verify them aga
 7. **Do not solve UI discoverability by adding duplicate sources of truth.** The Library tab must read canonical sect state and call existing study authorities.
 8. **Do not remove the overview summary.** The user explicitly wants the important information to remain visible there.
 9. **Do not trust stale audit counts or old prompt files.** Rebuild runtime inventories from the active source.
+
+---
+
+## 7. Resolution Status in Current Release
+
+All confirmed findings F-01 through F-08, along with broader Priority F elemental requirements, have been fully implemented, verified, and locked with regression tests:
+
+- **F-01 (Edit Hub Crystals):** RESOLVED. Both `T:<techId>` and `S:<subId>` crystals are fully cataloged, filtered, and spawnable in `sect.js` and `ui.js`. Verified via `test/phase2_edit_hub_inventory.js`.
+- **F-02 (Sect Library Tab):** RESOLVED. Dedicated `library` tab added in `ui.js` supporting both main techniques and subpaths with eligibility checks and CP study actions. Subpath tier gate dynamically checked. Verified via `test/sect_library_suite.js`.
+- **F-03 (Duplicate Manuals Surplus):** RESOLVED. Duplicate technique and subpath manuals are retained in `W.sect.surplusTechManuals` and `W.sect.surplusSubManuals`. Zero unbacked CP is minted for duplicates (anti-minting). Verified via `test/unified_donation_suite.js` and `test/martial_paths.js`.
+- **F-04 (Duplicate Recipes Surplus):** RESOLVED. Duplicate recipe scrolls are retained in `W.sect.surplusRecipes`. Zero unbacked CP is minted for duplicates. Verified via `test/unified_donation_suite.js` and `test/recipe_scroll_lifecycle.js`.
+- **F-05 (Crystal 999 Overflow):** RESOLVED. Crystal donations overflow cleanly into `W.sect.knowledgeOverflow` and drain back on demand. Verified via `test/unified_donation_suite.js`.
+- **F-06 (External Market Whitelist):** RESOLVED. `EXT.isTradable` and `EXT.basePrice` extended to knowledge crystals, manuals, recipe scrolls, organs, and equipment. Member-demand buying and surplus liquidation implemented in `EXT.tradeSect`. Verified via `test/external_market_expansion_suite.js`.
+- **F-07 (Character Sheet Tabs):** RESOLVED. NPC sheet equipped with dedicated `bag`, `tech`, and `sub` tabs, while `ov` retains concise overview summary and quick navigation. Verified via `test/npc_sheet_tabs_suite.js`, `test/ui_content.js`, `test/organs_experiments_politics.js`, and `test/inventory_grid_ui_suite.js`.
+- **F-08 (Sect-Spawned Provenance):** RESOLVED. Added `spawnedCrystals`, `spawnedOrgans`, `spawnedSurplusTech`, `spawnedSurplusSub`, and `spawnedSurplusRecipes` tracking to prevent spawned items from being monetized for Spirit Stones or CP. Verified via `test/external_market_expansion_suite.js`.
+- **Priority F (Elemental Coherence & Effect Scaling):** RESOLVED. Defined `ELEM.RELATIONS` and `ELEM.classifyRelation` (`MATCH`, `SUPPORT`, `OPPOSE`, `NEUTRAL`). Implemented `healSupportMult` for friendly healing/shielding in `cultivation.js` and `combat.js`. Supported non-beast foes in `combatElementalMatchup`. Verified via `test/elemental_effect_scaling_suite.js`.
