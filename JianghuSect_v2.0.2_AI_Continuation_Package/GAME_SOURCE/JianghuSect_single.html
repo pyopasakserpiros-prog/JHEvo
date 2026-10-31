@@ -8587,6 +8587,7 @@ D.classify=(slot,name)=>{
 };
 const branches=[
  {id:'STAR_ARCHER',nameTh:'เซียนศรดารา',path:'XIAN',combatBonus:1.06,defenseBonus:.94,breakthroughMod:.96,cultivationBonus:1,descTh:'ยิงแม่นจากระยะไกล เติบโตปลายทาง แต่รับแรงปะทะไม่เก่ง'},
+ {id:'SHADOW_ARCHER',nameTh:'สายศรเงาปลิดวิญญาณ',path:'DEMON',combatBonus:1.10,defenseBonus:.90,breakthroughMod:.95,cultivationBonus:1,descTh:'เร้นกายลอบยิงจากมุมมืด ศรอาบพิษและไอรัตติกาล ปลิดชีพเป้าหมายก่อนรู้ตัว'},
  {id:'STAFF_GUARD',nameTh:'องครักษ์พลองเหล็ก',path:'BODY',combatBonus:.95,defenseBonus:1.12,breakthroughMod:1.03,cultivationBonus:1,descTh:'ตั้งรับด้วยพลองและเกราะหนัก แข็งแกร่งแต่เชื่องช้า'}
 ];
 branches.forEach(s=>{if(!JD.CULT.paths[s.path].subPaths.some(x=>x.id===s.id))JD.CULT.paths[s.path].subPaths.push(s);});D.subPaths=branches;
@@ -8600,8 +8601,13 @@ for(const tier of [1,3,5])for(const type of Object.keys(gearNames)){
  D.items.push(item);D.recipes.push(recipe);JD.ITEMS.items.push(item);JD.ITEMS.recipes.push(recipe);
 }
 
-// 1. Existing 10 MP_ techniques (5 active + 5 passive)
+// 1. Existing 10 MP_ techniques + Bow curriculum expansion
 D.techniques=[
+ {id:'MP_BOW_BASIC',nameTh:'เพลงศรวายุครามเจาะเกราะ',path:'XIAN',sub:'STAR_ARCHER',tier:1,grade:'Common',combatArch:'pierce',element:'WIND',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ศรทะลวงลม',reqMastery:0}],
+  moveDefs:[
+   {id:'MP_BOW_BASIC_M1',parentId:'MP_BOW_BASIC',stageReq:1,reqMastery:0,nameTh:'ศรวายุแหวกอากาศ',arch:'pierce',type:'m',M:1.25,hits:1,cd:6,wind:2,costPct:3.0,pen:15,aoe:false,aiRole:'opener'}
+  ]},
  {id:'MP_BOW_RAIN',nameTh:'ฝนศรเจ็ดดารา',path:'XIAN',sub:'STAR_ARCHER',tier:2,grade:'Rare',combatArch:'sweep',element:'ASTRAL',weaponTypes:['BOW'],
   stages:[{stage:1,id:'ST1',nameTh:'ร้อยศรประสาน',reqMastery:0},{stage:2,id:'ST2',nameTh:'ดาราโปรยฟ้า',reqMastery:18}],
   moveDefs:[
@@ -8609,6 +8615,25 @@ D.techniques=[
    {id:'MP_BOW_RAIN_M2',parentId:'MP_BOW_RAIN',stageReq:2,reqMastery:18,nameTh:'ฝนศรเจ็ดดารา',arch:'sweep',type:'m',M:1.15,hits:1,cd:12,wind:5,costPct:6.5,pen:10,aoe:true,aiRole:'aoe_pressure'}
   ]},
  {id:'MP_BOW_FOCUS',nameTh:'จิตสงบเหนี่ยวสายศร',path:'XIAN',sub:'STAR_ARCHER',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_BOW_FOCUS',weaponTypes:['BOW'],passive:{f:{crit:9,acc:24}}},
+ {id:'MP_BOW_PIERCE_CLOUD',nameTh:'เพลงศรทะลวงเมฆาเจ็ดระยะ',path:'XIAN',sub:'STAR_ARCHER',tier:3,grade:'Rare',combatArch:'snipe',element:'ASTRAL',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ศรสะบั้นเมฆ',reqMastery:0},{stage:2,id:'ST2',nameTh:'เก้าศรล่าตะวัน',reqMastery:25}],
+  moveDefs:[
+   {id:'MP_BOW_PIERCE_M1',parentId:'MP_BOW_PIERCE_CLOUD',stageReq:1,reqMastery:0,nameTh:'ศรสะบั้นเมฆ',arch:'pierce',type:'m',M:1.55,hits:1,cd:10,wind:3,costPct:5.0,pen:30,critAdd:10,aoe:false,aiRole:'burst'},
+   {id:'MP_BOW_PIERCE_M2',parentId:'MP_BOW_PIERCE_CLOUD',stageReq:2,reqMastery:25,nameTh:'เก้าศรล่าตะวัน',arch:'burst',type:'m',M:1.85,hits:1,cd:15,wind:4,costPct:7.5,pen:45,critAdd:15,aoe:false,aiRole:'finisher'}
+  ]},
+ {id:'PASS_BOW_HAWK_EYE_T3',nameTh:'เนตรเหยี่ยวทะลวงสายลม',path:'ANY',sub:null,tier:3,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_PASS_BOW_HAWK_EYE',weaponTypes:['BOW'],passive:{f:{acc:35,crit:12,pen:15}}},
+ {id:'MP_BOW_SHADOW_SNIPE',nameTh:'เพลงศรเงาอเวจีปลิดวิญญาณ',path:'DEMON',sub:'SHADOW_ARCHER',tier:4,grade:'Exceptional',combatArch:'flurry',element:'YIN_SHADOW',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ศรซ่อนเงา',reqMastery:0},{stage:2,id:'ST2',nameTh:'มัจจุราชไร้เสียง',reqMastery:35}],
+  moveDefs:[
+   {id:'MP_BOW_SHADOW_M1',parentId:'MP_BOW_SHADOW_SNIPE',stageReq:1,reqMastery:0,nameTh:'ศรซ่อนเงา',arch:'pierce',type:'m',M:1.70,hits:1,cd:11,wind:2,costPct:6.0,pen:38,critAdd:14,aoe:false,aiRole:'opener'},
+   {id:'MP_BOW_SHADOW_M2',parentId:'MP_BOW_SHADOW_SNIPE',stageReq:2,reqMastery:35,nameTh:'มัจจุราชไร้เสียง',arch:'burst',type:'m',M:2.20,hits:1,cd:18,wind:3,costPct:8.5,pen:55,critAdd:22,aoe:false,aiRole:'finisher'}
+  ]},
+ {id:'MP_BOW_METEOR_STORM',nameTh:'เพลงศรดาราจักรเก้าทิศทลายภพ',path:'XIAN',sub:'STAR_ARCHER',tier:5,grade:'Exceptional',combatArch:'sweep',element:'ASTRAL',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ห่าฝนศรดาวตก',reqMastery:0},{stage:2,id:'ST2',nameTh:'ดาราสลายมิติ',reqMastery:45}],
+  moveDefs:[
+   {id:'MP_BOW_METEOR_M1',parentId:'MP_BOW_METEOR_STORM',stageReq:1,reqMastery:0,nameTh:'ห่าฝนศรดาวตก',arch:'sweep',type:'m',M:1.60,hits:2,cd:16,wind:4,costPct:8.0,pen:35,aoe:true,aiRole:'aoe_pressure'},
+   {id:'MP_BOW_METEOR_M2',parentId:'MP_BOW_METEOR_STORM',stageReq:2,reqMastery:45,nameTh:'ดาราสลายมิติ',arch:'burst',type:'m',M:2.65,hits:1,cd:24,wind:5,costPct:11.0,pen:65,critAdd:25,aoe:false,aiRole:'finisher'}
+  ]},
  {id:'MP_STAFF_WALL',nameTh:'กำแพงพลองพิทักษ์',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',combatArch:'guard',element:'EARTH_METAL',weaponTypes:['STAFF']},
  {id:'MP_STAFF_ROOT',nameTh:'หยั่งรากพลองเหล็ก',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_STAFF_ROOT',weaponTypes:['STAFF'],passive:{p:{def:.15},f:{pen:6}}},
  {id:'MP_SPEAR_LINE',nameTh:'ทวนธงรบทะลวงแนว',path:'GOD',sub:'WAR_DEITY',tier:2,grade:'Rare',combatArch:'pierce',element:'LIGHT_YANG',weaponTypes:['SPEAR']},
@@ -10026,7 +10051,7 @@ D.classifyEntryGrade=classifyEntryGrade;
 // Older text-only weapons receive a deterministic type once at the catalog boundary.
 JD.ITEMS.items.forEach(i=>{if(i.slot)i.gearType=i.gearType||D.classify(i.slot,i.nameTh);});
 JD.ITEMS.recipes.forEach(r=>{if(r.outType==='EQUIPMENT'){const it=JD.ITEMS.items.find(i=>i.id===r.outItemId);if(it)r.gearType=it.gearType;}});
-const preferred={SWORD_IMMORTAL:['SWORD'],MIND_SWORD_TELEKINESIS:['SWORD','FOCUS'],SHADOW_ASSASSIN:['BLADE'],WAR_DEITY:['SPEAR','BLADE'],TIGER_SOVEREIGN:['FIST'],BLOOD_DRAGON:['FIST'],VAJRA_BODHI:['STAFF','FIST'],STAFF_GUARD:['STAFF'],STAR_ARCHER:['BOW']};
+const preferred={SWORD_IMMORTAL:['SWORD'],MIND_SWORD_TELEKINESIS:['SWORD','FOCUS'],SHADOW_ASSASSIN:['BLADE'],WAR_DEITY:['SPEAR','BLADE'],TIGER_SOVEREIGN:['FIST'],BLOOD_DRAGON:['FIST'],VAJRA_BODHI:['STAFF','FIST'],STAFF_GUARD:['STAFF'],STAR_ARCHER:['BOW'],SHADOW_ARCHER:['BOW','BLADE']};
 function inferWeaponTypesFromName(t){
  const nm=String(t&&t.nameTh||'');
  if(/^คัมภีร์|^เคล็ด|^มนตรา|^มหาเวท/.test(nm)&&!/กระบี่|ดาบ|ทวน|หอก|ค้อน|ขวาน|ง้าว|กระบอง|พลอง|คฑา|คันศร|ธนู|พัด|พิณ/.test(nm))return null;
@@ -10042,7 +10067,7 @@ function inferWeaponTypesFromName(t){
 }
 JD.TECH.techniques.forEach(t=>{if(t.cat==='COMBAT_TECHNIQUE'&&!t.weaponTypes){const wt=inferWeaponTypesFromName(t);if(wt)t.weaponTypes=wt;}});
 D.preferred=preferred;
-D.subPreferences={STAR_ARCHER:{aff:{SWORD:.2,WIND:.5},p:{'physiology.dexterity':.7,'intellect.perceptiveness':.6,'personality.caution':.3}},STAFF_GUARD:{aff:{BODY_REFINING:.8},p:{'physiology.toughness':.7,'physiology.endurance':.6,'personality.loyalty':.3}}};
+D.subPreferences={STAR_ARCHER:{aff:{SWORD:.2,WIND:.5},p:{'physiology.dexterity':.7,'intellect.perceptiveness':.6,'personality.caution':.3}},SHADOW_ARCHER:{aff:{POISON:.4,YIN_SHADOW:.6,MOVEMENT:.4},p:{'physiology.agility':.7,'intellect.perceptiveness':.6,'social.deception':.4}},STAFF_GUARD:{aff:{BODY_REFINING:.8},p:{'physiology.toughness':.7,'physiology.endurance':.6,'personality.loyalty':.3}}};
 
 // Canonical Elemental Profile assignment for all D.* and JD.* entries
 const PASSIVE_EL_MAP={
@@ -10114,10 +10139,12 @@ const PASSIVE_EL_MAP={
  PASS_TALISMAN_BRUSHWORK_T2:{el:'LIGHT_YANG',w:{LIGHT_YANG:.6,WIND:.4}},
  PASS_ARRAY_GEOMANCY_T3:{el:'ASTRAL',w:{ASTRAL:.6,EARTH_METAL:.4}},
  PASS_FIVE_ELEMENT_RESONANCE_T4:{el:'WOOD_LIFE',w:{WOOD_LIFE:.2,FIRE:.2,EARTH_METAL:.2,WATER_ICE:.2,WIND:.2},comp:'FIVE_ELEMENTS'},
- PASS_YIN_YANG_BALANCE_T4:{el:'LIGHT_YANG',w:{LIGHT_YANG:.5,YIN_SHADOW:.5},comp:'YIN_YANG'}
+ PASS_YIN_YANG_BALANCE_T4:{el:'LIGHT_YANG',w:{LIGHT_YANG:.5,YIN_SHADOW:.5},comp:'YIN_YANG'},
+ PASS_BOW_HAWK_EYE_T3:{el:'WIND',w:{WIND:.7,ASTRAL:.3}}
 };
 D.subPaths.forEach(s=>{
  if(s.id==='STAR_ARCHER'){s.element='ASTRAL';s.elementProfile={mode:'INTRINSIC_WEIGHTED',primary:'ASTRAL',weights:{ASTRAL:.55,WIND:.45}};}
+ else if(s.id==='SHADOW_ARCHER'){s.element='YIN_SHADOW';s.elementProfile={mode:'INTRINSIC_WEIGHTED',primary:'YIN_SHADOW',weights:{YIN_SHADOW:.6,WIND:.4}};}
  else if(s.id==='STAFF_GUARD'){s.element='EARTH_METAL';s.elementProfile={mode:'INTRINSIC_SINGLE',primary:'EARTH_METAL',weights:{EARTH_METAL:1}};}
 });
 D.items.forEach(it=>{
@@ -25459,14 +25486,14 @@ D.SYNERGIES.forEach(syn=>{
     mission: { nameTh: 'ผู้อาวุโสฝ่ายกิจการนอกสำนัก', hall: 'mission_hall', desc: 'จัดคณะเดินทางนอกสำนัก ค้าขาย ล่าอสูร หาศิษย์ใหม่' },
     guard: { nameTh: 'หัวหน้าองครักษ์', hall: 'gate', desc: 'เฝ้าประตู สำนัก ตรวจตรา ป้องกันศัตรู' },
     registry: { nameTh: 'ผู้อาวุโสหอทะเบียน', hall: 'main_hall', desc: 'พิจารณาผู้สมัครเข้าสำนัก จัดทำทะเบียนศิษย์ แทนเจ้าสำนัก' },
-    healer: { nameTh: 'หมอหลวงสำนัก', hall: 'infirmary', desc: 'รักษาผู้บาดเจ็บ ดูแลสุขภาพทั้งสำนัก' }
+    healer: { nameTh: 'หมอหลวงสำนัก', hall: 'infirmary', desc: 'รักษาผู้บาดเจ็บ ดูแลสุขภาพทั้งสำนัก' },
+    disciples: { nameTh: 'ศิษย์สืบทอด', hall: 'main_hall', desc: 'ศิษย์เอกผู้สืบทอดตำแหน่งเจ้าสำนัก ได้รับการเสนอชื่อและโหวตเลือกจากเจ้าสำนักและเหล่าผู้อาวุโส' }
   };
   SECT.PLANNED_POSTS = {
     diplomacy: { nameTh: 'ฝ่ายการทูต', requires: 'ระบบภารกิจและข้อตกลงทางการทูตที่มอบหมายเฉพาะฝ่าย' },
     intelligence: { nameTh: 'ฝ่ายข่าวกรอง', requires: 'ระบบข่าวและการยืนยันแหล่งข่าว' },
     beastcare: { nameTh: 'ฝ่ายสัตว์วิญญาณ', requires: 'ระบบจับ เลี้ยง และดูแลสัตว์' },
-    formation: { nameTh: 'ฝ่ายค่ายกลป้องกัน', requires: 'ระบบค่ายกลประจำพื้นที่และการบำรุงรักษา' },
-    disciples: { nameTh: 'ฝ่ายศิษย์สืบทอด', requires: 'ระบบหลักสูตรและการมอบหมายศิษย์รายฝ่าย' }
+    formation: { nameTh: 'ฝ่ายค่ายกลป้องกัน', requires: 'ระบบค่ายกลประจำพื้นที่และการบำรุงรักษา' }
   };
   Object.assign(SECT.POSTS, {
     commander: { nameTh: 'แม่ทัพสำนัก', hall: 'training_ground', desc: 'ประเมินศัตรู ระดมกำลัง และนำการป้องกันสำนัก' },
@@ -25477,8 +25504,75 @@ D.SYNERGIES.forEach(syn=>{
   });
   SECT.POST_IDS = Object.keys(SECT.POSTS);
   // A future office becomes assignable only after its implementation joins POSTS.
+  SECT.ARCHETYPES = {
+    sword: {
+      id: 'sword',
+      nameTh: 'สำนักกระบี่เซียน',
+      titleTh: 'วิถีกระบี่เหินเมฆา',
+      descTh: 'สำนักมุ่งเน้นเพลงกระบี่อันคมกริบและปราณกระบี่พิสุทธิ์ ทรงอานุภาพทั้งระยะประชิดและการควบคุมกระบี่บิน',
+      path: 'XIAN',
+      subs: ['SWORD_IMMORTAL', 'MIND_SWORD_TELEKINESIS', 'YIN_YANG_HARMONY'],
+      techs: ['ART190_XIAN_001', 'ART190_XIAN_031', 'PASS_SWORD_FAMILIAR_T1', 'ART190_XIAN_013', 'MP_SWORD_POISE', 'ART190_XIAN_002', 'PASS_SWORD_EDGE_T3', 'PASS_SWORD_INTENT_T3', 'ART190_XIAN_016', 'ART190_XIAN_038', 'ART190_XIAN_009', 'PASS_SWORD_HEART_CLARITY_T5'],
+      crystals: { 'S:SWORD_IMMORTAL': 2, 'S:YIN_YANG_HARMONY': 1 }
+    },
+    blade: {
+      id: 'blade',
+      nameTh: 'สำนักดาบคลั่ง',
+      titleTh: 'วิถีดาบผ่าพิภพ',
+      descTh: 'สำนักสายพลังกาย ดาบหนัก ดาบใหญ่ และการทำลายล้างไร้ขอบเขต ฟันขาดทุกปราการด้วยพละกำลังมหาศาล',
+      path: 'BODY',
+      subs: ['TIGER_SOVEREIGN', 'SOLAR_FORGE', 'BLOOD_DEMON'],
+      techs: ['PASS_BLADE_FOUNDATION_T1', 'ART190_BODY_001', 'ART190_BODY_021', 'PASS_BLADE_HEAVY_CLEAVE_T3', 'ART190_BODY_012', 'ART190_BODY_006', 'ART190_XIAN_018', 'PASS_BLADE_BLOOD_EDGE_T5', 'ART190_BODY_004', 'ART190_BODY_027'],
+      crystals: { 'S:TIGER_SOVEREIGN': 2, 'S:SOLAR_FORGE': 1 }
+    },
+    spear: {
+      id: 'spear',
+      nameTh: 'สำนักทวนมังกร',
+      titleTh: 'วิถีทวนทะลวงเมฆา',
+      descTh: 'สำนักสายทวนและหอกยาว เน้นระยะการรบที่ได้เปรียบ ทะลวงแนวรบ ค่ายกลทัพ และป้องกันรอบด้าน',
+      path: 'BODY',
+      subs: ['BLOOD_DRAGON', 'WAR_DEITY', 'STAFF_GUARD'],
+      techs: ['PASS_SPEAR_REACH_T1', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART190_BODY_002', 'MP_SPEAR_LINE', 'SRC110_NW_ART_126', 'ART190_GOD_032', 'ART190_BODY_026', 'PASS_SPEAR_DRAGON_SPINE_T3', 'ART190_GOD_006', 'ART190_BODY_039', 'ART190_XIAN_029', 'PASS_SPEAR_PIERCING_AURA_T5'],
+      crystals: { 'S:BLOOD_DRAGON': 2, 'S:WAR_DEITY': 1 }
+    },
+    fist: {
+      id: 'fist',
+      nameTh: 'สำนักหมัดกายทอง',
+      titleTh: 'วิถีหมัดกายทองคำ',
+      descTh: 'สำนักหมัดมวย ฝ่ามือ และกายทองคำวัชระ ทรงพลังประชิดตัว ความทนทานสูงสุด และสะท้อนการโจมตี',
+      path: 'BODY',
+      subs: ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'THUNDER_BODY'],
+      techs: ['ART190_BODY_001', 'ART190_BODY_021', 'ART190_BODY_003', 'ART190_BODY_013', 'ART190_BODY_032', 'ART190_BODY_015', 'ART190_BODY_004', 'ART190_BODY_018', 'ART190_BODY_027', 'ART190_BODY_009', 'ART190_BODY_029'],
+      crystals: { 'S:VAJRA_BODHI': 2, 'S:TITAN_MOUNTAIN_BODY': 1 }
+    },
+    alchemy: {
+      id: 'alchemy',
+      nameTh: 'สำนักโอสถเต๋า',
+      titleTh: 'วิถีโอสถบงกชสวรรค์',
+      descTh: 'สำนักมุ่งเน้นการหลอมโอสถ โคจรปราณเบญจธาตุ และยันต์ค่ายกลสวรรค์ เพิ่มอายุขัยและฟื้นฟูชีพจร',
+      path: 'XIAN',
+      subs: ['ELIXIR_DAO', 'FIVE_ELEMENTS', 'ASTRAL_ARRAY'],
+      techs: ['ART190_XIAN_021', 'ART190_XIAN_051', 'ART190_XIAN_003', 'ART190_XIAN_033', 'ART190_XIAN_063', 'PASS_MERIDIAN_DISCIPLINE_T2', 'ART190_XIAN_015', 'ART190_XIAN_045', 'ART190_XIAN_027', 'ART190_XIAN_057', 'ART190_XIAN_039', 'ART190_XIAN_069'],
+      crystals: { 'S:ELIXIR_DAO': 2, 'S:FIVE_ELEMENTS': 1 }
+    },
+    bow: {
+      id: 'bow',
+      nameTh: 'สำนักเกาทัณฑ์ดาราสวรรค์',
+      titleTh: 'วิถีเกาทัณฑ์ทะลวงมิติ',
+      descTh: 'สำนักสายธนูและเกาทัณฑ์ ยิงสังหารศัตรูจากระยะไกล ปราณดาราทะลวงมิติ และศรเงาปลิดวิญญาณ',
+      path: 'XIAN',
+      subs: ['STAR_ARCHER', 'SHADOW_ARCHER'],
+      techs: ['PASS_BOW_STILLNESS_T1', 'MP_BOW_BASIC', 'INNATE_STAR_ARCHER_ASTRAL_LOCK', 'MP_BOW_RAIN', 'MP_BOW_FOCUS', 'MP_BOW_PIERCE_CLOUD', 'PASS_BOW_HAWK_EYE_T3', 'MP_BOW_SHADOW_SNIPE', 'MP_BOW_METEOR_STORM'],
+      crystals: { 'S:STAR_ARCHER': 2, 'S:SHADOW_ARCHER': 1 }
+    }
+  };
+
   SECT.officeState = (W, id) => {
     if (!SECT.POSTS[id]) return { enabled: false, reason: SECT.PLANNED_POSTS[id]?.requires || 'ยังไม่มีระบบรองรับตำแหน่งนี้' };
+    if (id === 'disciples') {
+      const pop = W.npcs.filter(n => !n.dead && !n.exiled).length;
+      return { enabled: pop >= 2, reason: pop < 2 ? 'รอสมาชิกอย่างน้อย 2 คน' : '' };
+    }
     const min = id === 'commander' ? 12 : ['provision', 'herbal', 'wildwarden', 'steward'].includes(id) ? 16 : 0;
     const pop = W.npcs.filter(n => !n.dead && !n.exiled).length;
     return { enabled: pop >= min, reason: pop < min ? 'รอสมาชิกอย่างน้อย ' + min + ' คน' : '' };
@@ -25562,6 +25656,11 @@ D.SYNERGIES.forEach(syn=>{
       case 'guard': return martial * .25 + e('intellect.perceptiveness') * .2 + e('social.leadership') * .15 + e('personality.courage') * .2 + stage * 6;
       case 'registry': return e('intellect.judgement') * .25 + e('intellect.readPeople') * .25 + sk.administration * .2 + e('personality.integrity') * .15 + e('personality.empathy') * .1 + stage * 2;
       case 'healer': return sk.MEDICINE * .45 + e('personality.empathy') * .2 + sk.ALCHEMY * .1 + e('aptitudes.crafting') * .1 + e('affinities.MEDICINE') * .1;
+      case 'disciples': {
+        const cultPower = (g.CULT && g.CULT.power) ? g.CULT.power(n) : 0;
+        const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (n.cult ? n.cult.stage : 0);
+        return eqStage * 7 + (cultPower / 50) + e('personality.loyalty') * 0.25 + e('personality.integrity') * 0.20 + e('social.leadership') * 0.22 + e('values.sectDuty') * 0.20 + (n.merit || 0) * 0.05 - Math.max(0, (n.h.state.heartDemon || 0) - 20) * 0.25;
+      }
     }
     return 0;
   };
@@ -25577,12 +25676,30 @@ D.SYNERGIES.forEach(syn=>{
     return merit * meritK + (rel + flat * 1.2) * (1 - meritK) * 0.55 + (n.cult ? n.cult.stage * 2 : 0) - (n.h.state.heartDemon > 40 ? 6 : 0);
   };
   SECT.relationScore = (a, b) => { const r = a.h.mind.relations[b.id]; return r ? r.a * 0.6 + r.t * 0.2 + r.r * 0.2 : 0; };
-  SECT.eligible = (W, post, n) => { if (!SECT.officeState(W, post).enabled) return false; const small = W.npcs.length < 14; return !n.dead && !n.away && !n.sealed && !n.sealedBt && !(n.jail > W.t) && n.rank >= (small ? 1 : 2) && n.id !== W.sect.masterId && n.id !== W.sect.deputyId && !n.post && (n.cult ? n.cult.stage >= (small ? 1 : 2) : n.rank >= 3) && !n.exiled; };
+  SECT.eligible = (W, post, n) => {
+    if (!SECT.officeState(W, post).enabled) return false;
+    if (n.dead || n.away || n.sealed || n.sealedBt || (n.jail > W.t) || (n.punished > W.t) || n.exiled) return false;
+    if (n.id === W.sect.masterId || n.id === W.sect.deputyId) return false;
+    if (post === 'disciples') {
+      return n.rank >= 1 && n.rank <= 4 && (n.cult ? n.cult.stage >= 1 : n.rank >= 2);
+    }
+    const small = W.npcs.length < 14;
+    return n.rank >= (small ? 1 : 2) && !n.post && (n.cult ? n.cult.stage >= (small ? 1 : 2) : n.rank >= 3);
+  };
   SECT.appoint = (W, post, n, why) => {
     if (!SECT.officeState(W, post).enabled) return false;
     const old = SECT.holder(W, post); if (old && old.id === n.id) return;
-    if (old) { old.post = null; if (old.rank === 4) old.rank = 3; }
-    n.post = post; n.assist = null; if (n.rank < 4) n.rank = 4;
+    if (old) {
+      old.post = null;
+      if (old.rank === 4 && post !== 'disciples') old.rank = 3;
+    }
+    n.post = post; n.assist = null;
+    if (post === 'disciples') {
+      if (n.rank < 3) n.rank = 3;
+      W.sect.successorId = n.id;
+    } else {
+      if (n.rank < 4) n.rank = 4;
+    }
     W.sect.posts[post] = n.id; n.sat = Math.min(100, (n.sat || 60) + 12);
     HC.experience(n, 'promoted', 1);
     SECT.reassignBed(W, n);
@@ -25591,9 +25708,108 @@ D.SYNERGIES.forEach(syn=>{
   };
   SECT.dismiss = (W, post, why) => {
     const n = SECT.holder(W, post); if (!n) return;
-    n.post = null; if (n.rank === 4) n.rank = 3; W.sect.posts[post] = null;
+    n.post = null;
+    if (post === 'disciples') {
+      if (W.sect.successorId === n.id) W.sect.successorId = null;
+    } else {
+      if (n.rank === 4) n.rank = 3;
+    }
+    W.sect.posts[post] = null;
     n.sat = Math.max(0, (n.sat || 60) - 18); HC.experience(n, 'punished_fair', 0.6);
     W.log('dismiss', n.h.name.given + ' พ้นจากตำแหน่ง' + SECT.POSTS[post].nameTh + (why ? ' — ' + why : ''), [n.id]);
+  };
+
+  SECT.electSuccessor = (W, opts) => {
+    opts = opts || {};
+    const S = W.sect;
+    const master = S.masterId ? W.byId[S.masterId] : null;
+    const deputy = S.deputyId ? W.byId[S.deputyId] : null;
+
+    // 1. Determine Voters
+    // Sect Master (weight 4.0), Deputy (2.5), Elders with office (1.5), Elders without office (1.0)
+    let voters = [];
+    if (master && !master.dead && !master.exiled && !master.away) {
+      voters.push({ npc: master, weight: 4.0, roleTh: 'เจ้าสำนัก' });
+    }
+    if (deputy && !deputy.dead && !deputy.exiled && !deputy.away) {
+      voters.push({ npc: deputy, weight: 2.5, roleTh: 'รองเจ้าสำนัก' });
+    }
+    W.npcs.forEach(n => {
+      if (n.dead || n.exiled || n.away || n.id === S.masterId || n.id === S.deputyId) return;
+      if (n.rank >= 4) {
+        const isOfficeHolder = Boolean(n.post && n.post !== 'disciples');
+        voters.push({
+          npc: n,
+          weight: isOfficeHolder ? 1.5 : 1.0,
+          roleTh: isOfficeHolder ? ('ผู้อาวุโส (' + SECT.POSTS[n.post].nameTh + ')') : 'ผู้อาวุโส'
+        });
+      }
+    });
+
+    // Fallback if no master and no elders: surviving disciples vote
+    if (!voters.length) {
+      W.npcs.forEach(n => {
+        if (!n.dead && !n.exiled && !n.away && n.rank >= 1) {
+          voters.push({ npc: n, weight: 1.0, roleTh: 'ศิษย์สำนัก' });
+        }
+      });
+    }
+
+    if (!voters.length) {
+      return { ok: false, reason: 'ไม่มีผู้มีสิทธิ์โหวตในสำนัก' };
+    }
+
+    // 2. Gather Candidates
+    let cands = W.npcs.filter(n => SECT.eligible(W, 'disciples', n));
+    if (!cands.length) {
+      cands = W.npcs.filter(n => !n.dead && !n.exiled && !n.away && n.id !== S.masterId && n.id !== S.deputyId && n.rank >= 1 && n.rank <= 4);
+    }
+    if (!cands.length) {
+      return { ok: false, reason: 'ไม่มีศิษย์ที่ผ่านเกณฑ์ได้รับการเสนอชื่อ' };
+    }
+
+    // 3. Tally Weighted Votes
+    const tallies = cands.map(cand => {
+      let weightedScore = 0;
+      let voteDetails = [];
+      voters.forEach(v => {
+        const voterNpc = v.npc;
+        let score = SECT.appointScore(W, 'disciples', cand, voterNpc);
+        if (cand.mentor === voterNpc.id || (voterNpc.h?.life?.family?.disciples && voterNpc.h.life.family.disciples.includes(cand.id))) {
+          score += 15;
+        }
+        const rel = voterNpc.h?.mind?.relations && voterNpc.h.mind.relations[cand.id];
+        if (rel) {
+          score += (rel.a * 0.3 + rel.t * 0.2);
+        }
+        weightedScore += score * v.weight;
+        voteDetails.push({ voterId: voterNpc.id, voterName: voterNpc.h.name.given, roleTh: v.roleTh, weight: v.weight, score });
+      });
+      return {
+        candidate: cand,
+        weightedScore,
+        avgScore: weightedScore / voters.reduce((acc, x) => acc + x.weight, 0),
+        voteDetails
+      };
+    });
+
+    tallies.sort((a, b) => b.weightedScore - a.weightedScore);
+    const winnerData = tallies[0];
+    const winner = winnerData.candidate;
+
+    // 4. Appoint winner
+    SECT.appoint(W, 'disciples', winner, 'ผ่านการคัดเลือกและโหวตโดยเจ้าสำนักและสภาผู้อาวุโส (คะแนนถ่วงน้ำหนัก ' + Math.round(winnerData.weightedScore) + ')');
+
+    W.sect.successorElection = {
+      day: W.day,
+      winnerId: winner.id,
+      winnerName: winner.h.name.given,
+      tallies: tallies.slice(0, 3).map(t => ({ id: t.candidate.id, name: t.candidate.h.name.given, score: Math.round(t.weightedScore) }))
+    };
+
+    W.log('politics', 'สภาสำนักและเจ้าสำนักจัดประชุมคัดเลือกศิษย์สืบทอด: มีมติเลือก ' + winner.h.name.given + ' เป็นศิษย์สืบทอดคนใหม่', [winner.id].concat(voters.map(v => v.npc.id)));
+
+    return { ok: true, winner, tallies };
   };
   // คนที่อยากได้ตำแหน่งแต่ไม่ได้ จะน้อยใจ (ขึ้นกับความทะเยอทะยานและความสามารถ) → ปมความขัดแย้งทางการเมือง
   SECT.resentOthers = (W, post, winner) => {
@@ -26692,25 +26908,69 @@ D.SYNERGIES.forEach(syn=>{
   /* ---------- สืบทอดตำแหน่งเจ้าสำนัก ---------- */
   SECT.succession = (W, why) => {
     const S = W.sect, old = W.byId[S.masterId];
-    const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== S.masterId);
-    if (!cands.length) { W.log('crisis', 'สำนักไร้ผู้นำและไม่มีผู้สืบทอด!', []); return; }
-    const voters = W.npcs.filter(n => !n.dead && n.rank >= 4 && n.id !== S.masterId);
+
+    // 1. If an appointed successor disciple exists and is valid, they ascend immediately!
+    let succ = SECT.holder(W, 'disciples') || (S.successorId ? W.byId[S.successorId] : null);
+    if (succ && !succ.dead && !succ.exiled && !succ.away) {
+      if (succ.post) { S.posts[succ.post] = null; succ.post = null; }
+      if (S.successorId === succ.id) S.successorId = null;
+      if (S.deputyId === succ.id) S.deputyId = null;
+      succ.rank = 6;
+      S.masterId = succ.id;
+      succ.sat = 95;
+      if (old && !old.dead && old.rank === 6) { old.rank = 4; }
+      W.log('succession', 'ศิษย์สืบทอด ' + succ.h.name.given + ' ขึ้นสืบทอดตำแหน่งเจ้าสำนักคนใหม่ตามพินัยกรรมสำนัก' + (why ? ' (' + why + ')' : ''), [succ.id]);
+      W.fame(6);
+      S.policyShift = W.day;
+      return succ;
+    }
+
+    // 2. No successor disciple: gather candidates from rank >= 3.
+    // If none (e.g. early game or heavy casualties), cascade down to rank >= 1, then rank >= 0!
+    let cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== S.masterId);
+    if (!cands.length) {
+      cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 1 && n.id !== S.masterId);
+    }
+    if (!cands.length) {
+      cands = W.npcs.filter(n => !n.dead && !n.exiled && n.id !== S.masterId);
+    }
+    if (!cands.length) {
+      W.log('crisis', 'สำนักไร้ผู้สืบทอดและไม่มีสมาชิกคนใดหลงเหลืออยู่!', []);
+      return null;
+    }
+
+    // 3. Elders and members vote
+    const voters = W.npcs.filter(n => !n.dead && !n.exiled && n.id !== S.masterId && (n.rank >= 4 || n.rank >= 1));
     const score = c => {
       const stage = c.cult ? c.cult.stage : 0;
       let tot = 0;
-      voters.forEach(v => { if (v.id === c.id) { tot += 22; return; } const rel = SECT.relationScore(v, c); const vm = HC.eff(v, 'personality.rationality') / 100; tot += rel * .5 + (stage * 6 + CULT.power(c) / 400 + SECT.relevance('mission', c) * .1) * (.4 + vm * .6) + (c.id === S.deputyId ? 10 : 0) * (HC.eff(v, 'personality.loyalty') / 100) + HC.eff(c, 'social.leadership') * .15; });
+      voters.forEach(v => {
+        if (v.id === c.id) { tot += 25; return; }
+        const rel = SECT.relationScore(v, c);
+        const vm = HC.eff(v, 'personality.rationality') / 100;
+        const vWeight = (v.id === S.deputyId) ? 2.5 : (v.rank >= 4 ? (v.post ? 1.5 : 1.0) : 0.8);
+        tot += vWeight * (rel * 0.5 + (stage * 6 + CULT.power(c) / 400 + SECT.relevance('mission', c) * 0.1) * (0.4 + vm * 0.6) + (c.id === S.deputyId ? 12 : 0) + HC.eff(c, 'social.leadership') * 0.2);
+      });
       return tot / Math.max(1, voters.length);
     };
     cands.sort((a, b) => score(b) - score(a));
     const nm = cands[0];
     if (nm.post) { S.posts[nm.post] = null; nm.post = null; }
+    if (S.successorId === nm.id) S.successorId = null;
     if (S.deputyId === nm.id) S.deputyId = null;
     nm.rank = 6; S.masterId = nm.id; nm.sat = 90;
     if (old && !old.dead && old.rank === 6) { old.rank = 4; }
-    W.log('succession', nm.h.name.given + ' ขึ้นเป็นเจ้าสำนักคนใหม่' + (why ? ' (' + why + ')' : ''), [nm.id]);
+    W.log('succession', 'สภาสำนักมีมติเลือก ' + nm.h.name.given + ' ขึ้นเป็นเจ้าสำนักคนใหม่' + (why ? ' (' + why + ')' : ''), [nm.id]);
     W.fame(5);
-    cands.slice(1, 4).forEach(c => { const amb = HC.eff(c, 'personality.ambition'); if (amb > 60) { c.sat = Math.max(0, (c.sat || 60) - (amb - 50) * .4); const r = SECT.rel(c, nm.id); r.v += 12; r.a -= 6; } });
+    cands.slice(1, 4).forEach(c => {
+      const amb = HC.eff(c, 'personality.ambition');
+      if (amb > 60) {
+        c.sat = Math.max(0, (c.sat || 60) - (amb - 50) * 0.4);
+        const r = SECT.rel(c, nm.id); r.v += 12; r.a -= 6;
+      }
+    });
     S.policyShift = W.day;
+    return nm;
   };
 
   /* ---------- รายเดือน ---------- */
@@ -43191,7 +43451,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     mission: ['ผู้อาวุโสฝ่ายกิจการนอกสำนัก', 'พิจารณาคณะเดินทางและความเสี่ยง'],
     guard: ['องครักษ์', 'เฝ้าระวังและรักษาความปลอดภัย'],
     registry: ['หอทะเบียน', 'ดูแลทะเบียนและผู้สมัคร'],
-    healer: ['หมอหลวง', 'ดูแลผู้บาดเจ็บและความพร้อมของสถานรักษา']
+    healer: ['หมอหลวง', 'ดูแลผู้บาดเจ็บและความพร้อมของสถานรักษา'],
+    disciples: ['ศิษย์สืบทอด', 'ศึกษาการบริหารสำนัก ฝึกฝนตน และเตรียมสืบทอดตำแหน่งเจ้าสำนัก']
   };
   COG.OFFICE = OFFICE;
 
@@ -46041,7 +46302,18 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     // ---- ศิษย์ตามลำดับ ----
     for (let i = 0; i < 2; i++) { const n = SIM.buildNpc(W, rng, { sex: i === 0 ? (master.h.sex === 'M' ? 'F' : 'M') : rng.chance(0.5) ? 'M' : 'F', ageYears: rng.int(16, 23), quality: 0.5 + rng.gauss(0, 0.3), skillExp: 0.25, trainedness: 0.55, rank: 1, stage: 1, tenure: rng.int(200, 700), merit: 40 }); SIM.register(W, n); n.mentor = master.id; master.h.life.family.disciples.push(n.id); n.h.life.family.master = master.id; }
     // ---- ห้องสมุด/คลัง/ตำรับ ----
-    W.sect.library = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier <= 2).map(t => t.id).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3).slice(0, 12).map(t => t.id)).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3 && (t.path === 'DEMON' || t.path === 'HEART_SOUL')).map(t => t.id)).concat(JD.TECH.techniques.filter(t => t.starterPassive && !t.innateOnly).map(t => t.id));
+    const archKey = opts.archetype || opts.sectArchetype || 'sword';
+    const arch = (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey]) || (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES.sword);
+    if (arch) {
+      W.sect.archetype = arch.id;
+      if (!opts.sectName) W.sect.name = arch.nameTh;
+      const baseCurriculum = ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL'];
+      W.sect.library = Array.from(new Set(arch.techs.concat(baseCurriculum)));
+      W.sect.crystals = Object.assign({}, arch.crystals);
+      W.sect.unlockedSubs = arch.subs.slice();
+    } else {
+      W.sect.library = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier <= 2).map(t => t.id).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3).slice(0, 12).map(t => t.id)).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3 && (t.path === 'DEMON' || t.path === 'HEART_SOUL')).map(t => t.id)).concat(JD.TECH.techniques.filter(t => t.starterPassive && !t.innateOnly).map(t => t.id));
+    }
     W._founding = false;
     const S = W.sect; S.stock.grain = 150; S.stock.meal = 30;
     ECO.recipesFor(W, ['ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN']).forEach(r => r.inputs.forEach(i => { const m = ECO.matById[i.matId]; if (m && m.tier <= 2) S.stock[i.matId] = Math.max(S.stock[i.matId] || 0, 8 + (m.tier === 1 ? 6 : 0)); }));
@@ -57160,6 +57432,16 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     else if (a === 'load') UI.loadSlot(arg);
     else if (a === 'export') UI.exportFile();
     else if (a === 'import') $('impFile').click();
+    else if (a === 'elect-successor') {
+      const res = SECT.electSuccessor(W);
+      if (res && res.winner) {
+        UI.toast('สภาสำนักมีมติเลือก ' + res.winner.h.name.given + ' เป็นศิษย์สืบทอด!');
+      } else {
+        UI.toast(res && res.reason ? res.reason : 'ยังไม่สามารถคัดเลือกศิษย์สืบทอดได้ในขณะนี้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
     else if (a === 'new') { UI.close(); UI.showStart(); }
     else if (a === 'tool') UI.tool(arg);
     else if (a === 'cmp') { UI.cmpId = arg; UI.render(); }
@@ -58240,8 +58522,22 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const recent = W.logs.filter(l => l.type === 'decision').slice(-6).reverse(); if (recent.length) h += '<h3>การตัดสินใจล่าสุดของเจ้าสำนัก</h3><div class="card">' + recent.map(l => '<div class="logrow"><span class="tm">' + dayStamp(l.t) + '</span>' + linkify(W, l.text, l.ids, l.refs) + '</div>').join('') + '</div>';
     } else if (tab === 'posts') {
       h += '<div class="card"><b>ตำแหน่งบริหาร</b><div class="muted">ผู้นำเลือกคนตามความสามารถหรือความสนิท ขึ้นกับนโยบาย "ยึดความสามารถ" ' + Math.round(S.policy.meritocracy) + '</div></div>';
-      const slots = [['เจ้าสำนัก', W.byId[S.masterId]], ['รองเจ้าสำนัก', W.byId[S.deputyId]]].concat(SECT.POST_IDS.map(p => [SECT.POSTS[p].nameTh, SECT.holder(W, p), SECT.POSTS[p].desc, SECT.officeState(W, p)]));
-      h += slots.map(s => { const n = s[1]; return '<div class="prow" ' + (n ? 'data-npc="' + n.id + '"' : '') + '>' + (n ? portraitHtml(n, 40) : '<div style="width:40px;height:40px;border-radius:10px;background:#0e141b;display:flex;align-items:center;justify-content:center">—</div>') + '<div class="pi"><div class="nm">' + s[0] + '</div><div class="sub">' + (n ? esc(HC.fullName(n)) + ' · ' + (n.cult ? CULT.stageName(n) : 'ปุถุชน') : s[3] && !s[3].enabled ? '🔒 ยังไม่ปลดล็อก · ' + esc(s[3].reason) : 'ว่าง · เจ้าสำนักกำลังพิจารณาคนที่เหมาะสม') + '</div><div class="sub">' + esc(s[2] || '') + '</div></div></div>'; }).join('');
+      const slots = [['เจ้าสำนัก', W.byId[S.masterId]], ['รองเจ้าสำนัก', W.byId[S.deputyId]]].concat(SECT.POST_IDS.map(p => [SECT.POSTS[p].nameTh, SECT.holder(W, p), SECT.POSTS[p].desc, SECT.officeState(W, p), p]));
+      h += slots.map(s => {
+        const n = s[1], pId = s[4];
+        let subText = '';
+        if (n) {
+          subText = esc(HC.fullName(n)) + ' · ' + (n.cult ? CULT.stageName(n) : 'ปุถุชน');
+          if (pId === 'disciples') subText += ' · <button class="btn" style="padding:1px 6px;font-size:10.5px" data-do="elect-successor">🗳️ คัดเลือกใหม่</button>';
+        } else if (s[3] && !s[3].enabled) {
+          subText = '🔒 ยังไม่ปลดล็อก · ' + esc(s[3].reason);
+        } else if (pId === 'disciples') {
+          subText = 'ว่าง · <button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="elect-successor">🗳️ เปิดการประชุมคัดเลือกศิษย์สืบทอด</button>';
+        } else {
+          subText = 'ว่าง · เจ้าสำนักกำลังพิจารณาคนที่เหมาะสม';
+        }
+        return '<div class="prow" ' + (n ? 'data-npc="' + n.id + '"' : '') + '>' + (n ? portraitHtml(n, 40) : '<div style="width:40px;height:40px;border-radius:10px;background:#0e141b;display:flex;align-items:center;justify-content:center">—</div>') + '<div class="pi"><div class="nm">' + s[0] + '</div><div class="sub">' + subText + '</div><div class="sub">' + esc(s[2] || '') + '</div></div></div>';
+      }).join('');
       const locked = Object.entries(SECT.PLANNED_POSTS).filter(([id]) => !SECT.POSTS[id]);
       h += '<h3>ตำแหน่งที่เตรียมไว้สำหรับอนาคต</h3><div class="card muted">เมื่อระบบรองรับเปิดใช้งาน เจ้าสำนักจึงจะพิจารณาหาคนมาประจำ</div>';
       h += locked.map(([id, p]) => '<div class="card" data-locked-office="' + id + '"><b>🔒 ' + esc(p.nameTh) + ' · ยังไม่ปลดล็อก</b><div class="muted">รอ' + esc(p.requires) + '</div></div>').join('');
@@ -60304,7 +60600,27 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   UI.showStart = (seed) => {
     const st = $('start'); st.classList.remove('hidden'); seed = seed || String(Math.floor(Math.random() * 90000 + 10000));
     const cands = SIM.candidates(seed);
-    let h = '<h1>🏯 สำนักเมฆาหยก</h1><div class="sub">เกมจำลองสำนักยุทธภพ · NPC ทุกคนคิดและใช้ชีวิตเอง<br>เลือก “เจ้าสำนัก” ผู้กำหนดชะตาสำนัก — นิสัยของเขาจะเปลี่ยนนโยบาย การแต่งตั้ง และบรรยากาศทั้งสำนักจริง ๆ</div>';
+    UI.selectedArchetype = UI.selectedArchetype || 'sword';
+    const archs = (g.SECT && g.SECT.ARCHETYPES) ? Object.values(g.SECT.ARCHETYPES) : [];
+    const curArch = (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[UI.selectedArchetype]) || archs[0] || { nameTh: 'สำนักกระบี่เซียน', titleTh: 'วิถีกระบี่เหินเมฆา', descTh: '', subs: [], techs: [] };
+
+    let h = '<h1>🏯 สำนักเมฆาหยก</h1><div class="sub">เกมจำลองสำนักยุทธภพ · NPC ทุกคนคิดและใช้ชีวิตเอง<br>เลือก “ชุดวิชาประจำสำนักเริ่มต้น” และ “เจ้าสำนัก” ผู้กำหนดชะตาสำนักจริง ๆ</div>';
+
+    if (archs.length) {
+      h += '<h3 style="margin-top:10px">⚔️ เลือกชุดสำนักเริ่มต้น (Sect Archetype)</h3>';
+      h += '<div class="row" style="gap:6px;margin:8px 0;flex-wrap:wrap">';
+      archs.forEach(a => {
+        const isSel = a.id === curArch.id;
+        h += '<button type="button" class="btn' + (isSel ? ' pri' : '') + '" data-pick-arch="' + a.id + '" style="flex:1;min-width:130px;padding:7px 9px;text-align:left">';
+        h += '<b style="font-size:12.5px">' + esc(a.nameTh) + '</b><div style="font-size:10.5px;opacity:0.85">' + esc(a.titleTh) + '</div>';
+        h += '<div style="font-size:10px;color:var(--gold);margin-top:2px">' + a.techs.length + ' วิชา · ' + a.subs.length + ' สายย่อย</div>';
+        h += '</button>';
+      });
+      h += '</div>';
+      h += '<div class="card" style="margin-bottom:12px;background:rgba(255,255,255,0.03)"><div class="muted">' + esc(curArch.descTh) + '</div><div style="font-size:11.5px;margin-top:4px"><b>สายย่อยเริ่มต้นในสำนัก:</b> ' + curArch.subs.map(s => (CULT.subInfo(curArch.path, s) || { nameTh: s }).nameTh).join(', ') + '</div></div>';
+    }
+
+    h += '<h3>👑 เลือกเจ้าสำนัก</h3>';
     cands.forEach(c => {
       const n = c.npc, s = c.style; const top = Object.keys(s.focus).sort((a, b) => s.focus[b] - s.focus[a])[0];
       h += '<div class="cand"><div class="top">' + portraitHtml(n, 64) + '<div><div class="nm">' + esc(c.name) + '</div><div class="muted">' + esc(c.age) + ' · ' + esc(CULT.stageName(n)) + '</div><div class="muted">' + esc(c.identity.title) + '</div></div></div><div style="margin-top:6px">' + c.identity.tags.map(t => '<span class="chip v">' + esc(t) + '</span>').join('') + '</div>';
@@ -60313,7 +60629,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     });
     h += '<div class="row" style="gap:8px;margin:10px 0"><button id="stReroll" style="flex:1">🎲 สุ่มผู้สมัครชุดใหม่</button><button id="stLoad" style="flex:1">📂 โหลดเกมที่บันทึก</button></div>' + (hasAuto() ? '<button id="stAuto" class="btn pri" style="width:100%;margin:0 0 8px">▶ เล่นต่อจากออโตเซฟ (' + esc(localStorage.getItem('jhs_auto_meta') || '') + ')</button>' : '') + '<div class="muted" style="text-align:center">เมล็ดโลก ' + esc(seed) + ' (เมล็ดเดียวกัน = โลกเดียวกัน)</div>';
     st.innerHTML = h; drawPortraitsCands(st, cands);
-    st.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { st.classList.add('hidden'); UI.G.newGame(seed, +b.dataset.pick); });
+    st.querySelectorAll('[data-pick-arch]').forEach(b => b.onclick = () => { UI.selectedArchetype = b.dataset.pickArch; UI.showStart(seed); });
+    st.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { st.classList.add('hidden'); UI.G.newGame(seed, +b.dataset.pick, UI.selectedArchetype || 'sword'); });
     if ($('stAuto')) $('stAuto').onclick = () => { try { UI.G.load(localStorage.getItem('jhs_auto')); st.classList.add('hidden'); } catch (e) { UI.toast('โหลดออโตเซฟไม่ได้: ' + e.message); } };
     $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { st.classList.add('hidden'); UI.open('menu'); };
     st.scrollTop = 0;
@@ -60361,8 +60678,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     UI.applyOpts(); G.lastRender = 0; UI.updateHud(true);
     G.err = null; G.errShown = 0;
   }
-  G.newGame = (seed, idx) => {
-    const W = SIM.create(seed, { masterIdx: idx });
+  G.newGame = (seed, idx, archId) => {
+    const W = SIM.create(seed, { masterIdx: idx, archetype: archId });
     bindWorld(W); const m = W.byId[W.sect.masterId]; G.R.focus(m.x, m.y, 1.1);
     UI.toast('ยินดีต้อนรับ เจ้าสำนัก ' + m.h.name.given + ' — แตะตัวละครเพื่อดูว่าเขากำลังคิดอะไรอยู่');
   };

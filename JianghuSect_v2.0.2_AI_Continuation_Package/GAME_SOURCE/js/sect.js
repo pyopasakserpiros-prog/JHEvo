@@ -271,14 +271,14 @@
     mission: { nameTh: 'ผู้อาวุโสฝ่ายกิจการนอกสำนัก', hall: 'mission_hall', desc: 'จัดคณะเดินทางนอกสำนัก ค้าขาย ล่าอสูร หาศิษย์ใหม่' },
     guard: { nameTh: 'หัวหน้าองครักษ์', hall: 'gate', desc: 'เฝ้าประตู สำนัก ตรวจตรา ป้องกันศัตรู' },
     registry: { nameTh: 'ผู้อาวุโสหอทะเบียน', hall: 'main_hall', desc: 'พิจารณาผู้สมัครเข้าสำนัก จัดทำทะเบียนศิษย์ แทนเจ้าสำนัก' },
-    healer: { nameTh: 'หมอหลวงสำนัก', hall: 'infirmary', desc: 'รักษาผู้บาดเจ็บ ดูแลสุขภาพทั้งสำนัก' }
+    healer: { nameTh: 'หมอหลวงสำนัก', hall: 'infirmary', desc: 'รักษาผู้บาดเจ็บ ดูแลสุขภาพทั้งสำนัก' },
+    disciples: { nameTh: 'ศิษย์สืบทอด', hall: 'main_hall', desc: 'ศิษย์เอกผู้สืบทอดตำแหน่งเจ้าสำนัก ได้รับการเสนอชื่อและโหวตเลือกจากเจ้าสำนักและเหล่าผู้อาวุโส' }
   };
   SECT.PLANNED_POSTS = {
     diplomacy: { nameTh: 'ฝ่ายการทูต', requires: 'ระบบภารกิจและข้อตกลงทางการทูตที่มอบหมายเฉพาะฝ่าย' },
     intelligence: { nameTh: 'ฝ่ายข่าวกรอง', requires: 'ระบบข่าวและการยืนยันแหล่งข่าว' },
     beastcare: { nameTh: 'ฝ่ายสัตว์วิญญาณ', requires: 'ระบบจับ เลี้ยง และดูแลสัตว์' },
-    formation: { nameTh: 'ฝ่ายค่ายกลป้องกัน', requires: 'ระบบค่ายกลประจำพื้นที่และการบำรุงรักษา' },
-    disciples: { nameTh: 'ฝ่ายศิษย์สืบทอด', requires: 'ระบบหลักสูตรและการมอบหมายศิษย์รายฝ่าย' }
+    formation: { nameTh: 'ฝ่ายค่ายกลป้องกัน', requires: 'ระบบค่ายกลประจำพื้นที่และการบำรุงรักษา' }
   };
   Object.assign(SECT.POSTS, {
     commander: { nameTh: 'แม่ทัพสำนัก', hall: 'training_ground', desc: 'ประเมินศัตรู ระดมกำลัง และนำการป้องกันสำนัก' },
@@ -289,8 +289,75 @@
   });
   SECT.POST_IDS = Object.keys(SECT.POSTS);
   // A future office becomes assignable only after its implementation joins POSTS.
+  SECT.ARCHETYPES = {
+    sword: {
+      id: 'sword',
+      nameTh: 'สำนักกระบี่เซียน',
+      titleTh: 'วิถีกระบี่เหินเมฆา',
+      descTh: 'สำนักมุ่งเน้นเพลงกระบี่อันคมกริบและปราณกระบี่พิสุทธิ์ ทรงอานุภาพทั้งระยะประชิดและการควบคุมกระบี่บิน',
+      path: 'XIAN',
+      subs: ['SWORD_IMMORTAL', 'MIND_SWORD_TELEKINESIS', 'YIN_YANG_HARMONY'],
+      techs: ['ART190_XIAN_001', 'ART190_XIAN_031', 'PASS_SWORD_FAMILIAR_T1', 'ART190_XIAN_013', 'MP_SWORD_POISE', 'ART190_XIAN_002', 'PASS_SWORD_EDGE_T3', 'PASS_SWORD_INTENT_T3', 'ART190_XIAN_016', 'ART190_XIAN_038', 'ART190_XIAN_009', 'PASS_SWORD_HEART_CLARITY_T5'],
+      crystals: { 'S:SWORD_IMMORTAL': 2, 'S:YIN_YANG_HARMONY': 1 }
+    },
+    blade: {
+      id: 'blade',
+      nameTh: 'สำนักดาบคลั่ง',
+      titleTh: 'วิถีดาบผ่าพิภพ',
+      descTh: 'สำนักสายพลังกาย ดาบหนัก ดาบใหญ่ และการทำลายล้างไร้ขอบเขต ฟันขาดทุกปราการด้วยพละกำลังมหาศาล',
+      path: 'BODY',
+      subs: ['TIGER_SOVEREIGN', 'SOLAR_FORGE', 'BLOOD_DEMON'],
+      techs: ['PASS_BLADE_FOUNDATION_T1', 'ART190_BODY_001', 'ART190_BODY_021', 'PASS_BLADE_HEAVY_CLEAVE_T3', 'ART190_BODY_012', 'ART190_BODY_006', 'ART190_XIAN_018', 'PASS_BLADE_BLOOD_EDGE_T5', 'ART190_BODY_004', 'ART190_BODY_027'],
+      crystals: { 'S:TIGER_SOVEREIGN': 2, 'S:SOLAR_FORGE': 1 }
+    },
+    spear: {
+      id: 'spear',
+      nameTh: 'สำนักทวนมังกร',
+      titleTh: 'วิถีทวนทะลวงเมฆา',
+      descTh: 'สำนักสายทวนและหอกยาว เน้นระยะการรบที่ได้เปรียบ ทะลวงแนวรบ ค่ายกลทัพ และป้องกันรอบด้าน',
+      path: 'BODY',
+      subs: ['BLOOD_DRAGON', 'WAR_DEITY', 'STAFF_GUARD'],
+      techs: ['PASS_SPEAR_REACH_T1', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART190_BODY_002', 'MP_SPEAR_LINE', 'SRC110_NW_ART_126', 'ART190_GOD_032', 'ART190_BODY_026', 'PASS_SPEAR_DRAGON_SPINE_T3', 'ART190_GOD_006', 'ART190_BODY_039', 'ART190_XIAN_029', 'PASS_SPEAR_PIERCING_AURA_T5'],
+      crystals: { 'S:BLOOD_DRAGON': 2, 'S:WAR_DEITY': 1 }
+    },
+    fist: {
+      id: 'fist',
+      nameTh: 'สำนักหมัดกายทอง',
+      titleTh: 'วิถีหมัดกายทองคำ',
+      descTh: 'สำนักหมัดมวย ฝ่ามือ และกายทองคำวัชระ ทรงพลังประชิดตัว ความทนทานสูงสุด และสะท้อนการโจมตี',
+      path: 'BODY',
+      subs: ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'THUNDER_BODY'],
+      techs: ['ART190_BODY_001', 'ART190_BODY_021', 'ART190_BODY_003', 'ART190_BODY_013', 'ART190_BODY_032', 'ART190_BODY_015', 'ART190_BODY_004', 'ART190_BODY_018', 'ART190_BODY_027', 'ART190_BODY_009', 'ART190_BODY_029'],
+      crystals: { 'S:VAJRA_BODHI': 2, 'S:TITAN_MOUNTAIN_BODY': 1 }
+    },
+    alchemy: {
+      id: 'alchemy',
+      nameTh: 'สำนักโอสถเต๋า',
+      titleTh: 'วิถีโอสถบงกชสวรรค์',
+      descTh: 'สำนักมุ่งเน้นการหลอมโอสถ โคจรปราณเบญจธาตุ และยันต์ค่ายกลสวรรค์ เพิ่มอายุขัยและฟื้นฟูชีพจร',
+      path: 'XIAN',
+      subs: ['ELIXIR_DAO', 'FIVE_ELEMENTS', 'ASTRAL_ARRAY'],
+      techs: ['ART190_XIAN_021', 'ART190_XIAN_051', 'ART190_XIAN_003', 'ART190_XIAN_033', 'ART190_XIAN_063', 'PASS_MERIDIAN_DISCIPLINE_T2', 'ART190_XIAN_015', 'ART190_XIAN_045', 'ART190_XIAN_027', 'ART190_XIAN_057', 'ART190_XIAN_039', 'ART190_XIAN_069'],
+      crystals: { 'S:ELIXIR_DAO': 2, 'S:FIVE_ELEMENTS': 1 }
+    },
+    bow: {
+      id: 'bow',
+      nameTh: 'สำนักเกาทัณฑ์ดาราสวรรค์',
+      titleTh: 'วิถีเกาทัณฑ์ทะลวงมิติ',
+      descTh: 'สำนักสายธนูและเกาทัณฑ์ ยิงสังหารศัตรูจากระยะไกล ปราณดาราทะลวงมิติ และศรเงาปลิดวิญญาณ',
+      path: 'XIAN',
+      subs: ['STAR_ARCHER', 'SHADOW_ARCHER'],
+      techs: ['PASS_BOW_STILLNESS_T1', 'MP_BOW_BASIC', 'INNATE_STAR_ARCHER_ASTRAL_LOCK', 'MP_BOW_RAIN', 'MP_BOW_FOCUS', 'MP_BOW_PIERCE_CLOUD', 'PASS_BOW_HAWK_EYE_T3', 'MP_BOW_SHADOW_SNIPE', 'MP_BOW_METEOR_STORM'],
+      crystals: { 'S:STAR_ARCHER': 2, 'S:SHADOW_ARCHER': 1 }
+    }
+  };
+
   SECT.officeState = (W, id) => {
     if (!SECT.POSTS[id]) return { enabled: false, reason: SECT.PLANNED_POSTS[id]?.requires || 'ยังไม่มีระบบรองรับตำแหน่งนี้' };
+    if (id === 'disciples') {
+      const pop = W.npcs.filter(n => !n.dead && !n.exiled).length;
+      return { enabled: pop >= 2, reason: pop < 2 ? 'รอสมาชิกอย่างน้อย 2 คน' : '' };
+    }
     const min = id === 'commander' ? 12 : ['provision', 'herbal', 'wildwarden', 'steward'].includes(id) ? 16 : 0;
     const pop = W.npcs.filter(n => !n.dead && !n.exiled).length;
     return { enabled: pop >= min, reason: pop < min ? 'รอสมาชิกอย่างน้อย ' + min + ' คน' : '' };
@@ -374,6 +441,11 @@
       case 'guard': return martial * .25 + e('intellect.perceptiveness') * .2 + e('social.leadership') * .15 + e('personality.courage') * .2 + stage * 6;
       case 'registry': return e('intellect.judgement') * .25 + e('intellect.readPeople') * .25 + sk.administration * .2 + e('personality.integrity') * .15 + e('personality.empathy') * .1 + stage * 2;
       case 'healer': return sk.MEDICINE * .45 + e('personality.empathy') * .2 + sk.ALCHEMY * .1 + e('aptitudes.crafting') * .1 + e('affinities.MEDICINE') * .1;
+      case 'disciples': {
+        const cultPower = (g.CULT && g.CULT.power) ? g.CULT.power(n) : 0;
+        const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (n.cult ? n.cult.stage : 0);
+        return eqStage * 7 + (cultPower / 50) + e('personality.loyalty') * 0.25 + e('personality.integrity') * 0.20 + e('social.leadership') * 0.22 + e('values.sectDuty') * 0.20 + (n.merit || 0) * 0.05 - Math.max(0, (n.h.state.heartDemon || 0) - 20) * 0.25;
+      }
     }
     return 0;
   };
@@ -389,12 +461,30 @@
     return merit * meritK + (rel + flat * 1.2) * (1 - meritK) * 0.55 + (n.cult ? n.cult.stage * 2 : 0) - (n.h.state.heartDemon > 40 ? 6 : 0);
   };
   SECT.relationScore = (a, b) => { const r = a.h.mind.relations[b.id]; return r ? r.a * 0.6 + r.t * 0.2 + r.r * 0.2 : 0; };
-  SECT.eligible = (W, post, n) => { if (!SECT.officeState(W, post).enabled) return false; const small = W.npcs.length < 14; return !n.dead && !n.away && !n.sealed && !n.sealedBt && !(n.jail > W.t) && n.rank >= (small ? 1 : 2) && n.id !== W.sect.masterId && n.id !== W.sect.deputyId && !n.post && (n.cult ? n.cult.stage >= (small ? 1 : 2) : n.rank >= 3) && !n.exiled; };
+  SECT.eligible = (W, post, n) => {
+    if (!SECT.officeState(W, post).enabled) return false;
+    if (n.dead || n.away || n.sealed || n.sealedBt || (n.jail > W.t) || (n.punished > W.t) || n.exiled) return false;
+    if (n.id === W.sect.masterId || n.id === W.sect.deputyId) return false;
+    if (post === 'disciples') {
+      return n.rank >= 1 && n.rank <= 4 && (n.cult ? n.cult.stage >= 1 : n.rank >= 2);
+    }
+    const small = W.npcs.length < 14;
+    return n.rank >= (small ? 1 : 2) && !n.post && (n.cult ? n.cult.stage >= (small ? 1 : 2) : n.rank >= 3);
+  };
   SECT.appoint = (W, post, n, why) => {
     if (!SECT.officeState(W, post).enabled) return false;
     const old = SECT.holder(W, post); if (old && old.id === n.id) return;
-    if (old) { old.post = null; if (old.rank === 4) old.rank = 3; }
-    n.post = post; n.assist = null; if (n.rank < 4) n.rank = 4;
+    if (old) {
+      old.post = null;
+      if (old.rank === 4 && post !== 'disciples') old.rank = 3;
+    }
+    n.post = post; n.assist = null;
+    if (post === 'disciples') {
+      if (n.rank < 3) n.rank = 3;
+      W.sect.successorId = n.id;
+    } else {
+      if (n.rank < 4) n.rank = 4;
+    }
     W.sect.posts[post] = n.id; n.sat = Math.min(100, (n.sat || 60) + 12);
     HC.experience(n, 'promoted', 1);
     SECT.reassignBed(W, n);
@@ -403,9 +493,108 @@
   };
   SECT.dismiss = (W, post, why) => {
     const n = SECT.holder(W, post); if (!n) return;
-    n.post = null; if (n.rank === 4) n.rank = 3; W.sect.posts[post] = null;
+    n.post = null;
+    if (post === 'disciples') {
+      if (W.sect.successorId === n.id) W.sect.successorId = null;
+    } else {
+      if (n.rank === 4) n.rank = 3;
+    }
+    W.sect.posts[post] = null;
     n.sat = Math.max(0, (n.sat || 60) - 18); HC.experience(n, 'punished_fair', 0.6);
     W.log('dismiss', n.h.name.given + ' พ้นจากตำแหน่ง' + SECT.POSTS[post].nameTh + (why ? ' — ' + why : ''), [n.id]);
+  };
+
+  SECT.electSuccessor = (W, opts) => {
+    opts = opts || {};
+    const S = W.sect;
+    const master = S.masterId ? W.byId[S.masterId] : null;
+    const deputy = S.deputyId ? W.byId[S.deputyId] : null;
+
+    // 1. Determine Voters
+    // Sect Master (weight 4.0), Deputy (2.5), Elders with office (1.5), Elders without office (1.0)
+    let voters = [];
+    if (master && !master.dead && !master.exiled && !master.away) {
+      voters.push({ npc: master, weight: 4.0, roleTh: 'เจ้าสำนัก' });
+    }
+    if (deputy && !deputy.dead && !deputy.exiled && !deputy.away) {
+      voters.push({ npc: deputy, weight: 2.5, roleTh: 'รองเจ้าสำนัก' });
+    }
+    W.npcs.forEach(n => {
+      if (n.dead || n.exiled || n.away || n.id === S.masterId || n.id === S.deputyId) return;
+      if (n.rank >= 4) {
+        const isOfficeHolder = Boolean(n.post && n.post !== 'disciples');
+        voters.push({
+          npc: n,
+          weight: isOfficeHolder ? 1.5 : 1.0,
+          roleTh: isOfficeHolder ? ('ผู้อาวุโส (' + SECT.POSTS[n.post].nameTh + ')') : 'ผู้อาวุโส'
+        });
+      }
+    });
+
+    // Fallback if no master and no elders: surviving disciples vote
+    if (!voters.length) {
+      W.npcs.forEach(n => {
+        if (!n.dead && !n.exiled && !n.away && n.rank >= 1) {
+          voters.push({ npc: n, weight: 1.0, roleTh: 'ศิษย์สำนัก' });
+        }
+      });
+    }
+
+    if (!voters.length) {
+      return { ok: false, reason: 'ไม่มีผู้มีสิทธิ์โหวตในสำนัก' };
+    }
+
+    // 2. Gather Candidates
+    let cands = W.npcs.filter(n => SECT.eligible(W, 'disciples', n));
+    if (!cands.length) {
+      cands = W.npcs.filter(n => !n.dead && !n.exiled && !n.away && n.id !== S.masterId && n.id !== S.deputyId && n.rank >= 1 && n.rank <= 4);
+    }
+    if (!cands.length) {
+      return { ok: false, reason: 'ไม่มีศิษย์ที่ผ่านเกณฑ์ได้รับการเสนอชื่อ' };
+    }
+
+    // 3. Tally Weighted Votes
+    const tallies = cands.map(cand => {
+      let weightedScore = 0;
+      let voteDetails = [];
+      voters.forEach(v => {
+        const voterNpc = v.npc;
+        let score = SECT.appointScore(W, 'disciples', cand, voterNpc);
+        if (cand.mentor === voterNpc.id || (voterNpc.h?.life?.family?.disciples && voterNpc.h.life.family.disciples.includes(cand.id))) {
+          score += 15;
+        }
+        const rel = voterNpc.h?.mind?.relations && voterNpc.h.mind.relations[cand.id];
+        if (rel) {
+          score += (rel.a * 0.3 + rel.t * 0.2);
+        }
+        weightedScore += score * v.weight;
+        voteDetails.push({ voterId: voterNpc.id, voterName: voterNpc.h.name.given, roleTh: v.roleTh, weight: v.weight, score });
+      });
+      return {
+        candidate: cand,
+        weightedScore,
+        avgScore: weightedScore / voters.reduce((acc, x) => acc + x.weight, 0),
+        voteDetails
+      };
+    });
+
+    tallies.sort((a, b) => b.weightedScore - a.weightedScore);
+    const winnerData = tallies[0];
+    const winner = winnerData.candidate;
+
+    // 4. Appoint winner
+    SECT.appoint(W, 'disciples', winner, 'ผ่านการคัดเลือกและโหวตโดยเจ้าสำนักและสภาผู้อาวุโส (คะแนนถ่วงน้ำหนัก ' + Math.round(winnerData.weightedScore) + ')');
+
+    W.sect.successorElection = {
+      day: W.day,
+      winnerId: winner.id,
+      winnerName: winner.h.name.given,
+      tallies: tallies.slice(0, 3).map(t => ({ id: t.candidate.id, name: t.candidate.h.name.given, score: Math.round(t.weightedScore) }))
+    };
+
+    W.log('politics', 'สภาสำนักและเจ้าสำนักจัดประชุมคัดเลือกศิษย์สืบทอด: มีมติเลือก ' + winner.h.name.given + ' เป็นศิษย์สืบทอดคนใหม่', [winner.id].concat(voters.map(v => v.npc.id)));
+
+    return { ok: true, winner, tallies };
   };
   // คนที่อยากได้ตำแหน่งแต่ไม่ได้ จะน้อยใจ (ขึ้นกับความทะเยอทะยานและความสามารถ) → ปมความขัดแย้งทางการเมือง
   SECT.resentOthers = (W, post, winner) => {
@@ -1504,25 +1693,69 @@
   /* ---------- สืบทอดตำแหน่งเจ้าสำนัก ---------- */
   SECT.succession = (W, why) => {
     const S = W.sect, old = W.byId[S.masterId];
-    const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== S.masterId);
-    if (!cands.length) { W.log('crisis', 'สำนักไร้ผู้นำและไม่มีผู้สืบทอด!', []); return; }
-    const voters = W.npcs.filter(n => !n.dead && n.rank >= 4 && n.id !== S.masterId);
+
+    // 1. If an appointed successor disciple exists and is valid, they ascend immediately!
+    let succ = SECT.holder(W, 'disciples') || (S.successorId ? W.byId[S.successorId] : null);
+    if (succ && !succ.dead && !succ.exiled && !succ.away) {
+      if (succ.post) { S.posts[succ.post] = null; succ.post = null; }
+      if (S.successorId === succ.id) S.successorId = null;
+      if (S.deputyId === succ.id) S.deputyId = null;
+      succ.rank = 6;
+      S.masterId = succ.id;
+      succ.sat = 95;
+      if (old && !old.dead && old.rank === 6) { old.rank = 4; }
+      W.log('succession', 'ศิษย์สืบทอด ' + succ.h.name.given + ' ขึ้นสืบทอดตำแหน่งเจ้าสำนักคนใหม่ตามพินัยกรรมสำนัก' + (why ? ' (' + why + ')' : ''), [succ.id]);
+      W.fame(6);
+      S.policyShift = W.day;
+      return succ;
+    }
+
+    // 2. No successor disciple: gather candidates from rank >= 3.
+    // If none (e.g. early game or heavy casualties), cascade down to rank >= 1, then rank >= 0!
+    let cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== S.masterId);
+    if (!cands.length) {
+      cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 1 && n.id !== S.masterId);
+    }
+    if (!cands.length) {
+      cands = W.npcs.filter(n => !n.dead && !n.exiled && n.id !== S.masterId);
+    }
+    if (!cands.length) {
+      W.log('crisis', 'สำนักไร้ผู้สืบทอดและไม่มีสมาชิกคนใดหลงเหลืออยู่!', []);
+      return null;
+    }
+
+    // 3. Elders and members vote
+    const voters = W.npcs.filter(n => !n.dead && !n.exiled && n.id !== S.masterId && (n.rank >= 4 || n.rank >= 1));
     const score = c => {
       const stage = c.cult ? c.cult.stage : 0;
       let tot = 0;
-      voters.forEach(v => { if (v.id === c.id) { tot += 22; return; } const rel = SECT.relationScore(v, c); const vm = HC.eff(v, 'personality.rationality') / 100; tot += rel * .5 + (stage * 6 + CULT.power(c) / 400 + SECT.relevance('mission', c) * .1) * (.4 + vm * .6) + (c.id === S.deputyId ? 10 : 0) * (HC.eff(v, 'personality.loyalty') / 100) + HC.eff(c, 'social.leadership') * .15; });
+      voters.forEach(v => {
+        if (v.id === c.id) { tot += 25; return; }
+        const rel = SECT.relationScore(v, c);
+        const vm = HC.eff(v, 'personality.rationality') / 100;
+        const vWeight = (v.id === S.deputyId) ? 2.5 : (v.rank >= 4 ? (v.post ? 1.5 : 1.0) : 0.8);
+        tot += vWeight * (rel * 0.5 + (stage * 6 + CULT.power(c) / 400 + SECT.relevance('mission', c) * 0.1) * (0.4 + vm * 0.6) + (c.id === S.deputyId ? 12 : 0) + HC.eff(c, 'social.leadership') * 0.2);
+      });
       return tot / Math.max(1, voters.length);
     };
     cands.sort((a, b) => score(b) - score(a));
     const nm = cands[0];
     if (nm.post) { S.posts[nm.post] = null; nm.post = null; }
+    if (S.successorId === nm.id) S.successorId = null;
     if (S.deputyId === nm.id) S.deputyId = null;
     nm.rank = 6; S.masterId = nm.id; nm.sat = 90;
     if (old && !old.dead && old.rank === 6) { old.rank = 4; }
-    W.log('succession', nm.h.name.given + ' ขึ้นเป็นเจ้าสำนักคนใหม่' + (why ? ' (' + why + ')' : ''), [nm.id]);
+    W.log('succession', 'สภาสำนักมีมติเลือก ' + nm.h.name.given + ' ขึ้นเป็นเจ้าสำนักคนใหม่' + (why ? ' (' + why + ')' : ''), [nm.id]);
     W.fame(5);
-    cands.slice(1, 4).forEach(c => { const amb = HC.eff(c, 'personality.ambition'); if (amb > 60) { c.sat = Math.max(0, (c.sat || 60) - (amb - 50) * .4); const r = SECT.rel(c, nm.id); r.v += 12; r.a -= 6; } });
+    cands.slice(1, 4).forEach(c => {
+      const amb = HC.eff(c, 'personality.ambition');
+      if (amb > 60) {
+        c.sat = Math.max(0, (c.sat || 60) - (amb - 50) * 0.4);
+        const r = SECT.rel(c, nm.id); r.v += 12; r.a -= 6;
+      }
+    });
     S.policyShift = W.day;
+    return nm;
   };
 
   /* ---------- รายเดือน ---------- */

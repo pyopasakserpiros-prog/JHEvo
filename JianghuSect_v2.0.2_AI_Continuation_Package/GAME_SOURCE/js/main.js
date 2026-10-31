@@ -26,8 +26,8 @@
     UI.applyOpts(); G.lastRender = 0; UI.updateHud(true);
     G.err = null; G.errShown = 0;
   }
-  G.newGame = (seed, idx) => {
-    const W = SIM.create(seed, { masterIdx: idx });
+  G.newGame = (seed, idx, archId) => {
+    const W = SIM.create(seed, { masterIdx: idx, archetype: archId });
     bindWorld(W); const m = W.byId[W.sect.masterId]; G.R.focus(m.x, m.y, 1.1);
     UI.toast('ยินดีต้อนรับ เจ้าสำนัก ' + m.h.name.given + ' — แตะตัวละครเพื่อดูว่าเขากำลังคิดอะไรอยู่');
   };

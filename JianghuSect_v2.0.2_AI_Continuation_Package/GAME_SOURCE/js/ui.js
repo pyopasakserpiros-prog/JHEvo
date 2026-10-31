@@ -557,6 +557,16 @@
     else if (a === 'load') UI.loadSlot(arg);
     else if (a === 'export') UI.exportFile();
     else if (a === 'import') $('impFile').click();
+    else if (a === 'elect-successor') {
+      const res = SECT.electSuccessor(W);
+      if (res && res.winner) {
+        UI.toast('สภาสำนักมีมติเลือก ' + res.winner.h.name.given + ' เป็นศิษย์สืบทอด!');
+      } else {
+        UI.toast(res && res.reason ? res.reason : 'ยังไม่สามารถคัดเลือกศิษย์สืบทอดได้ในขณะนี้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
     else if (a === 'new') { UI.close(); UI.showStart(); }
     else if (a === 'tool') UI.tool(arg);
     else if (a === 'cmp') { UI.cmpId = arg; UI.render(); }
@@ -1637,8 +1647,22 @@
       const recent = W.logs.filter(l => l.type === 'decision').slice(-6).reverse(); if (recent.length) h += '<h3>การตัดสินใจล่าสุดของเจ้าสำนัก</h3><div class="card">' + recent.map(l => '<div class="logrow"><span class="tm">' + dayStamp(l.t) + '</span>' + linkify(W, l.text, l.ids, l.refs) + '</div>').join('') + '</div>';
     } else if (tab === 'posts') {
       h += '<div class="card"><b>ตำแหน่งบริหาร</b><div class="muted">ผู้นำเลือกคนตามความสามารถหรือความสนิท ขึ้นกับนโยบาย "ยึดความสามารถ" ' + Math.round(S.policy.meritocracy) + '</div></div>';
-      const slots = [['เจ้าสำนัก', W.byId[S.masterId]], ['รองเจ้าสำนัก', W.byId[S.deputyId]]].concat(SECT.POST_IDS.map(p => [SECT.POSTS[p].nameTh, SECT.holder(W, p), SECT.POSTS[p].desc, SECT.officeState(W, p)]));
-      h += slots.map(s => { const n = s[1]; return '<div class="prow" ' + (n ? 'data-npc="' + n.id + '"' : '') + '>' + (n ? portraitHtml(n, 40) : '<div style="width:40px;height:40px;border-radius:10px;background:#0e141b;display:flex;align-items:center;justify-content:center">—</div>') + '<div class="pi"><div class="nm">' + s[0] + '</div><div class="sub">' + (n ? esc(HC.fullName(n)) + ' · ' + (n.cult ? CULT.stageName(n) : 'ปุถุชน') : s[3] && !s[3].enabled ? '🔒 ยังไม่ปลดล็อก · ' + esc(s[3].reason) : 'ว่าง · เจ้าสำนักกำลังพิจารณาคนที่เหมาะสม') + '</div><div class="sub">' + esc(s[2] || '') + '</div></div></div>'; }).join('');
+      const slots = [['เจ้าสำนัก', W.byId[S.masterId]], ['รองเจ้าสำนัก', W.byId[S.deputyId]]].concat(SECT.POST_IDS.map(p => [SECT.POSTS[p].nameTh, SECT.holder(W, p), SECT.POSTS[p].desc, SECT.officeState(W, p), p]));
+      h += slots.map(s => {
+        const n = s[1], pId = s[4];
+        let subText = '';
+        if (n) {
+          subText = esc(HC.fullName(n)) + ' · ' + (n.cult ? CULT.stageName(n) : 'ปุถุชน');
+          if (pId === 'disciples') subText += ' · <button class="btn" style="padding:1px 6px;font-size:10.5px" data-do="elect-successor">🗳️ คัดเลือกใหม่</button>';
+        } else if (s[3] && !s[3].enabled) {
+          subText = '🔒 ยังไม่ปลดล็อก · ' + esc(s[3].reason);
+        } else if (pId === 'disciples') {
+          subText = 'ว่าง · <button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="elect-successor">🗳️ เปิดการประชุมคัดเลือกศิษย์สืบทอด</button>';
+        } else {
+          subText = 'ว่าง · เจ้าสำนักกำลังพิจารณาคนที่เหมาะสม';
+        }
+        return '<div class="prow" ' + (n ? 'data-npc="' + n.id + '"' : '') + '>' + (n ? portraitHtml(n, 40) : '<div style="width:40px;height:40px;border-radius:10px;background:#0e141b;display:flex;align-items:center;justify-content:center">—</div>') + '<div class="pi"><div class="nm">' + s[0] + '</div><div class="sub">' + subText + '</div><div class="sub">' + esc(s[2] || '') + '</div></div></div>';
+      }).join('');
       const locked = Object.entries(SECT.PLANNED_POSTS).filter(([id]) => !SECT.POSTS[id]);
       h += '<h3>ตำแหน่งที่เตรียมไว้สำหรับอนาคต</h3><div class="card muted">เมื่อระบบรองรับเปิดใช้งาน เจ้าสำนักจึงจะพิจารณาหาคนมาประจำ</div>';
       h += locked.map(([id, p]) => '<div class="card" data-locked-office="' + id + '"><b>🔒 ' + esc(p.nameTh) + ' · ยังไม่ปลดล็อก</b><div class="muted">รอ' + esc(p.requires) + '</div></div>').join('');
@@ -3701,7 +3725,27 @@
   UI.showStart = (seed) => {
     const st = $('start'); st.classList.remove('hidden'); seed = seed || String(Math.floor(Math.random() * 90000 + 10000));
     const cands = SIM.candidates(seed);
-    let h = '<h1>🏯 สำนักเมฆาหยก</h1><div class="sub">เกมจำลองสำนักยุทธภพ · NPC ทุกคนคิดและใช้ชีวิตเอง<br>เลือก “เจ้าสำนัก” ผู้กำหนดชะตาสำนัก — นิสัยของเขาจะเปลี่ยนนโยบาย การแต่งตั้ง และบรรยากาศทั้งสำนักจริง ๆ</div>';
+    UI.selectedArchetype = UI.selectedArchetype || 'sword';
+    const archs = (g.SECT && g.SECT.ARCHETYPES) ? Object.values(g.SECT.ARCHETYPES) : [];
+    const curArch = (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[UI.selectedArchetype]) || archs[0] || { nameTh: 'สำนักกระบี่เซียน', titleTh: 'วิถีกระบี่เหินเมฆา', descTh: '', subs: [], techs: [] };
+
+    let h = '<h1>🏯 สำนักเมฆาหยก</h1><div class="sub">เกมจำลองสำนักยุทธภพ · NPC ทุกคนคิดและใช้ชีวิตเอง<br>เลือก “ชุดวิชาประจำสำนักเริ่มต้น” และ “เจ้าสำนัก” ผู้กำหนดชะตาสำนักจริง ๆ</div>';
+
+    if (archs.length) {
+      h += '<h3 style="margin-top:10px">⚔️ เลือกชุดสำนักเริ่มต้น (Sect Archetype)</h3>';
+      h += '<div class="row" style="gap:6px;margin:8px 0;flex-wrap:wrap">';
+      archs.forEach(a => {
+        const isSel = a.id === curArch.id;
+        h += '<button type="button" class="btn' + (isSel ? ' pri' : '') + '" data-pick-arch="' + a.id + '" style="flex:1;min-width:130px;padding:7px 9px;text-align:left">';
+        h += '<b style="font-size:12.5px">' + esc(a.nameTh) + '</b><div style="font-size:10.5px;opacity:0.85">' + esc(a.titleTh) + '</div>';
+        h += '<div style="font-size:10px;color:var(--gold);margin-top:2px">' + a.techs.length + ' วิชา · ' + a.subs.length + ' สายย่อย</div>';
+        h += '</button>';
+      });
+      h += '</div>';
+      h += '<div class="card" style="margin-bottom:12px;background:rgba(255,255,255,0.03)"><div class="muted">' + esc(curArch.descTh) + '</div><div style="font-size:11.5px;margin-top:4px"><b>สายย่อยเริ่มต้นในสำนัก:</b> ' + curArch.subs.map(s => (CULT.subInfo(curArch.path, s) || { nameTh: s }).nameTh).join(', ') + '</div></div>';
+    }
+
+    h += '<h3>👑 เลือกเจ้าสำนัก</h3>';
     cands.forEach(c => {
       const n = c.npc, s = c.style; const top = Object.keys(s.focus).sort((a, b) => s.focus[b] - s.focus[a])[0];
       h += '<div class="cand"><div class="top">' + portraitHtml(n, 64) + '<div><div class="nm">' + esc(c.name) + '</div><div class="muted">' + esc(c.age) + ' · ' + esc(CULT.stageName(n)) + '</div><div class="muted">' + esc(c.identity.title) + '</div></div></div><div style="margin-top:6px">' + c.identity.tags.map(t => '<span class="chip v">' + esc(t) + '</span>').join('') + '</div>';
@@ -3710,7 +3754,8 @@
     });
     h += '<div class="row" style="gap:8px;margin:10px 0"><button id="stReroll" style="flex:1">🎲 สุ่มผู้สมัครชุดใหม่</button><button id="stLoad" style="flex:1">📂 โหลดเกมที่บันทึก</button></div>' + (hasAuto() ? '<button id="stAuto" class="btn pri" style="width:100%;margin:0 0 8px">▶ เล่นต่อจากออโตเซฟ (' + esc(localStorage.getItem('jhs_auto_meta') || '') + ')</button>' : '') + '<div class="muted" style="text-align:center">เมล็ดโลก ' + esc(seed) + ' (เมล็ดเดียวกัน = โลกเดียวกัน)</div>';
     st.innerHTML = h; drawPortraitsCands(st, cands);
-    st.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { st.classList.add('hidden'); UI.G.newGame(seed, +b.dataset.pick); });
+    st.querySelectorAll('[data-pick-arch]').forEach(b => b.onclick = () => { UI.selectedArchetype = b.dataset.pickArch; UI.showStart(seed); });
+    st.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { st.classList.add('hidden'); UI.G.newGame(seed, +b.dataset.pick, UI.selectedArchetype || 'sword'); });
     if ($('stAuto')) $('stAuto').onclick = () => { try { UI.G.load(localStorage.getItem('jhs_auto')); st.classList.add('hidden'); } catch (e) { UI.toast('โหลดออโตเซฟไม่ได้: ' + e.message); } };
     $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { st.classList.add('hidden'); UI.open('menu'); };
     st.scrollTop = 0;

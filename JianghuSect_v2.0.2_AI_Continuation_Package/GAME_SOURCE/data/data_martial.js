@@ -23,6 +23,7 @@ D.classify=(slot,name)=>{
 };
 const branches=[
  {id:'STAR_ARCHER',nameTh:'เซียนศรดารา',path:'XIAN',combatBonus:1.06,defenseBonus:.94,breakthroughMod:.96,cultivationBonus:1,descTh:'ยิงแม่นจากระยะไกล เติบโตปลายทาง แต่รับแรงปะทะไม่เก่ง'},
+ {id:'SHADOW_ARCHER',nameTh:'สายศรเงาปลิดวิญญาณ',path:'DEMON',combatBonus:1.10,defenseBonus:.90,breakthroughMod:.95,cultivationBonus:1,descTh:'เร้นกายลอบยิงจากมุมมืด ศรอาบพิษและไอรัตติกาล ปลิดชีพเป้าหมายก่อนรู้ตัว'},
  {id:'STAFF_GUARD',nameTh:'องครักษ์พลองเหล็ก',path:'BODY',combatBonus:.95,defenseBonus:1.12,breakthroughMod:1.03,cultivationBonus:1,descTh:'ตั้งรับด้วยพลองและเกราะหนัก แข็งแกร่งแต่เชื่องช้า'}
 ];
 branches.forEach(s=>{if(!JD.CULT.paths[s.path].subPaths.some(x=>x.id===s.id))JD.CULT.paths[s.path].subPaths.push(s);});D.subPaths=branches;
@@ -36,8 +37,13 @@ for(const tier of [1,3,5])for(const type of Object.keys(gearNames)){
  D.items.push(item);D.recipes.push(recipe);JD.ITEMS.items.push(item);JD.ITEMS.recipes.push(recipe);
 }
 
-// 1. Existing 10 MP_ techniques (5 active + 5 passive)
+// 1. Existing 10 MP_ techniques + Bow curriculum expansion
 D.techniques=[
+ {id:'MP_BOW_BASIC',nameTh:'เพลงศรวายุครามเจาะเกราะ',path:'XIAN',sub:'STAR_ARCHER',tier:1,grade:'Common',combatArch:'pierce',element:'WIND',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ศรทะลวงลม',reqMastery:0}],
+  moveDefs:[
+   {id:'MP_BOW_BASIC_M1',parentId:'MP_BOW_BASIC',stageReq:1,reqMastery:0,nameTh:'ศรวายุแหวกอากาศ',arch:'pierce',type:'m',M:1.25,hits:1,cd:6,wind:2,costPct:3.0,pen:15,aoe:false,aiRole:'opener'}
+  ]},
  {id:'MP_BOW_RAIN',nameTh:'ฝนศรเจ็ดดารา',path:'XIAN',sub:'STAR_ARCHER',tier:2,grade:'Rare',combatArch:'sweep',element:'ASTRAL',weaponTypes:['BOW'],
   stages:[{stage:1,id:'ST1',nameTh:'ร้อยศรประสาน',reqMastery:0},{stage:2,id:'ST2',nameTh:'ดาราโปรยฟ้า',reqMastery:18}],
   moveDefs:[
@@ -45,6 +51,25 @@ D.techniques=[
    {id:'MP_BOW_RAIN_M2',parentId:'MP_BOW_RAIN',stageReq:2,reqMastery:18,nameTh:'ฝนศรเจ็ดดารา',arch:'sweep',type:'m',M:1.15,hits:1,cd:12,wind:5,costPct:6.5,pen:10,aoe:true,aiRole:'aoe_pressure'}
   ]},
  {id:'MP_BOW_FOCUS',nameTh:'จิตสงบเหนี่ยวสายศร',path:'XIAN',sub:'STAR_ARCHER',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_BOW_FOCUS',weaponTypes:['BOW'],passive:{f:{crit:9,acc:24}}},
+ {id:'MP_BOW_PIERCE_CLOUD',nameTh:'เพลงศรทะลวงเมฆาเจ็ดระยะ',path:'XIAN',sub:'STAR_ARCHER',tier:3,grade:'Rare',combatArch:'snipe',element:'ASTRAL',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ศรสะบั้นเมฆ',reqMastery:0},{stage:2,id:'ST2',nameTh:'เก้าศรล่าตะวัน',reqMastery:25}],
+  moveDefs:[
+   {id:'MP_BOW_PIERCE_M1',parentId:'MP_BOW_PIERCE_CLOUD',stageReq:1,reqMastery:0,nameTh:'ศรสะบั้นเมฆ',arch:'pierce',type:'m',M:1.55,hits:1,cd:10,wind:3,costPct:5.0,pen:30,critAdd:10,aoe:false,aiRole:'burst'},
+   {id:'MP_BOW_PIERCE_M2',parentId:'MP_BOW_PIERCE_CLOUD',stageReq:2,reqMastery:25,nameTh:'เก้าศรล่าตะวัน',arch:'burst',type:'m',M:1.85,hits:1,cd:15,wind:4,costPct:7.5,pen:45,critAdd:15,aoe:false,aiRole:'finisher'}
+  ]},
+ {id:'PASS_BOW_HAWK_EYE_T3',nameTh:'เนตรเหยี่ยวทะลวงสายลม',path:'ANY',sub:null,tier:3,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_PASS_BOW_HAWK_EYE',weaponTypes:['BOW'],passive:{f:{acc:35,crit:12,pen:15}}},
+ {id:'MP_BOW_SHADOW_SNIPE',nameTh:'เพลงศรเงาอเวจีปลิดวิญญาณ',path:'DEMON',sub:'SHADOW_ARCHER',tier:4,grade:'Exceptional',combatArch:'flurry',element:'YIN_SHADOW',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ศรซ่อนเงา',reqMastery:0},{stage:2,id:'ST2',nameTh:'มัจจุราชไร้เสียง',reqMastery:35}],
+  moveDefs:[
+   {id:'MP_BOW_SHADOW_M1',parentId:'MP_BOW_SHADOW_SNIPE',stageReq:1,reqMastery:0,nameTh:'ศรซ่อนเงา',arch:'pierce',type:'m',M:1.70,hits:1,cd:11,wind:2,costPct:6.0,pen:38,critAdd:14,aoe:false,aiRole:'opener'},
+   {id:'MP_BOW_SHADOW_M2',parentId:'MP_BOW_SHADOW_SNIPE',stageReq:2,reqMastery:35,nameTh:'มัจจุราชไร้เสียง',arch:'burst',type:'m',M:2.20,hits:1,cd:18,wind:3,costPct:8.5,pen:55,critAdd:22,aoe:false,aiRole:'finisher'}
+  ]},
+ {id:'MP_BOW_METEOR_STORM',nameTh:'เพลงศรดาราจักรเก้าทิศทลายภพ',path:'XIAN',sub:'STAR_ARCHER',tier:5,grade:'Exceptional',combatArch:'sweep',element:'ASTRAL',weaponTypes:['BOW'],
+  stages:[{stage:1,id:'ST1',nameTh:'ห่าฝนศรดาวตก',reqMastery:0},{stage:2,id:'ST2',nameTh:'ดาราสลายมิติ',reqMastery:45}],
+  moveDefs:[
+   {id:'MP_BOW_METEOR_M1',parentId:'MP_BOW_METEOR_STORM',stageReq:1,reqMastery:0,nameTh:'ห่าฝนศรดาวตก',arch:'sweep',type:'m',M:1.60,hits:2,cd:16,wind:4,costPct:8.0,pen:35,aoe:true,aiRole:'aoe_pressure'},
+   {id:'MP_BOW_METEOR_M2',parentId:'MP_BOW_METEOR_STORM',stageReq:2,reqMastery:45,nameTh:'ดาราสลายมิติ',arch:'burst',type:'m',M:2.65,hits:1,cd:24,wind:5,costPct:11.0,pen:65,critAdd:25,aoe:false,aiRole:'finisher'}
+  ]},
  {id:'MP_STAFF_WALL',nameTh:'กำแพงพลองพิทักษ์',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',combatArch:'guard',element:'EARTH_METAL',weaponTypes:['STAFF']},
  {id:'MP_STAFF_ROOT',nameTh:'หยั่งรากพลองเหล็ก',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_STAFF_ROOT',weaponTypes:['STAFF'],passive:{p:{def:.15},f:{pen:6}}},
  {id:'MP_SPEAR_LINE',nameTh:'ทวนธงรบทะลวงแนว',path:'GOD',sub:'WAR_DEITY',tier:2,grade:'Rare',combatArch:'pierce',element:'LIGHT_YANG',weaponTypes:['SPEAR']},
@@ -1462,7 +1487,7 @@ D.classifyEntryGrade=classifyEntryGrade;
 // Older text-only weapons receive a deterministic type once at the catalog boundary.
 JD.ITEMS.items.forEach(i=>{if(i.slot)i.gearType=i.gearType||D.classify(i.slot,i.nameTh);});
 JD.ITEMS.recipes.forEach(r=>{if(r.outType==='EQUIPMENT'){const it=JD.ITEMS.items.find(i=>i.id===r.outItemId);if(it)r.gearType=it.gearType;}});
-const preferred={SWORD_IMMORTAL:['SWORD'],MIND_SWORD_TELEKINESIS:['SWORD','FOCUS'],SHADOW_ASSASSIN:['BLADE'],WAR_DEITY:['SPEAR','BLADE'],TIGER_SOVEREIGN:['FIST'],BLOOD_DRAGON:['FIST'],VAJRA_BODHI:['STAFF','FIST'],STAFF_GUARD:['STAFF'],STAR_ARCHER:['BOW']};
+const preferred={SWORD_IMMORTAL:['SWORD'],MIND_SWORD_TELEKINESIS:['SWORD','FOCUS'],SHADOW_ASSASSIN:['BLADE'],WAR_DEITY:['SPEAR','BLADE'],TIGER_SOVEREIGN:['FIST'],BLOOD_DRAGON:['FIST'],VAJRA_BODHI:['STAFF','FIST'],STAFF_GUARD:['STAFF'],STAR_ARCHER:['BOW'],SHADOW_ARCHER:['BOW','BLADE']};
 function inferWeaponTypesFromName(t){
  const nm=String(t&&t.nameTh||'');
  if(/^คัมภีร์|^เคล็ด|^มนตรา|^มหาเวท/.test(nm)&&!/กระบี่|ดาบ|ทวน|หอก|ค้อน|ขวาน|ง้าว|กระบอง|พลอง|คฑา|คันศร|ธนู|พัด|พิณ/.test(nm))return null;
@@ -1478,7 +1503,7 @@ function inferWeaponTypesFromName(t){
 }
 JD.TECH.techniques.forEach(t=>{if(t.cat==='COMBAT_TECHNIQUE'&&!t.weaponTypes){const wt=inferWeaponTypesFromName(t);if(wt)t.weaponTypes=wt;}});
 D.preferred=preferred;
-D.subPreferences={STAR_ARCHER:{aff:{SWORD:.2,WIND:.5},p:{'physiology.dexterity':.7,'intellect.perceptiveness':.6,'personality.caution':.3}},STAFF_GUARD:{aff:{BODY_REFINING:.8},p:{'physiology.toughness':.7,'physiology.endurance':.6,'personality.loyalty':.3}}};
+D.subPreferences={STAR_ARCHER:{aff:{SWORD:.2,WIND:.5},p:{'physiology.dexterity':.7,'intellect.perceptiveness':.6,'personality.caution':.3}},SHADOW_ARCHER:{aff:{POISON:.4,YIN_SHADOW:.6,MOVEMENT:.4},p:{'physiology.agility':.7,'intellect.perceptiveness':.6,'social.deception':.4}},STAFF_GUARD:{aff:{BODY_REFINING:.8},p:{'physiology.toughness':.7,'physiology.endurance':.6,'personality.loyalty':.3}}};
 
 // Canonical Elemental Profile assignment for all D.* and JD.* entries
 const PASSIVE_EL_MAP={
@@ -1550,10 +1575,12 @@ const PASSIVE_EL_MAP={
  PASS_TALISMAN_BRUSHWORK_T2:{el:'LIGHT_YANG',w:{LIGHT_YANG:.6,WIND:.4}},
  PASS_ARRAY_GEOMANCY_T3:{el:'ASTRAL',w:{ASTRAL:.6,EARTH_METAL:.4}},
  PASS_FIVE_ELEMENT_RESONANCE_T4:{el:'WOOD_LIFE',w:{WOOD_LIFE:.2,FIRE:.2,EARTH_METAL:.2,WATER_ICE:.2,WIND:.2},comp:'FIVE_ELEMENTS'},
- PASS_YIN_YANG_BALANCE_T4:{el:'LIGHT_YANG',w:{LIGHT_YANG:.5,YIN_SHADOW:.5},comp:'YIN_YANG'}
+ PASS_YIN_YANG_BALANCE_T4:{el:'LIGHT_YANG',w:{LIGHT_YANG:.5,YIN_SHADOW:.5},comp:'YIN_YANG'},
+ PASS_BOW_HAWK_EYE_T3:{el:'WIND',w:{WIND:.7,ASTRAL:.3}}
 };
 D.subPaths.forEach(s=>{
  if(s.id==='STAR_ARCHER'){s.element='ASTRAL';s.elementProfile={mode:'INTRINSIC_WEIGHTED',primary:'ASTRAL',weights:{ASTRAL:.55,WIND:.45}};}
+ else if(s.id==='SHADOW_ARCHER'){s.element='YIN_SHADOW';s.elementProfile={mode:'INTRINSIC_WEIGHTED',primary:'YIN_SHADOW',weights:{YIN_SHADOW:.6,WIND:.4}};}
  else if(s.id==='STAFF_GUARD'){s.element='EARTH_METAL';s.elementProfile={mode:'INTRINSIC_SINGLE',primary:'EARTH_METAL',weights:{EARTH_METAL:1}};}
 });
 D.items.forEach(it=>{
