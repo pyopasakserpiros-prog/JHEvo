@@ -1,0 +1,3 @@
+Original user-supplied archive: JianghuSect_v2.0.2_Gemini_Handoff.zip
+Bytes: 19080530
+SHA-256: 56157fcdd3bc1eaffa8878d549b4a47ef665375ba54ba0c421770105e0d89194
