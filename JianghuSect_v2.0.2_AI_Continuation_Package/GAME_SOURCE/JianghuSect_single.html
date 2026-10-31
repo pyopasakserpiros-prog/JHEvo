@@ -23772,6 +23772,24 @@ D.SYNERGIES.forEach(syn=>{
     if (c.path === "GOD") return [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
     return st;
   };
+  CULT.equivalentStage = entity => {
+    if (!entity) return 0;
+    const c = entity.cult || (entity.path && entity.stage ? entity : null);
+    if (!c || !c.path) return 0;
+    const st = Math.max(1, c.stage || 1);
+    let ns = st;
+    if (c.path === "BODY") ns = [1, 2.5, 4.5, 6.8, 9][Math.min(4, st - 1)] || st;
+    else if (c.path === "GOD") ns = [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
+    if (c.track) {
+      const r = (CULT.trackRealm ? CULT.trackRealm(c.track.subPath, c.track.ordinal) : null);
+      if (r && Number.isFinite(r.majorBandEquivalent)) {
+        ns = Math.max(ns, r.majorBandEquivalent);
+      } else if (c.track.ordinal) {
+        ns = Math.max(ns, c.track.ordinal);
+      }
+    }
+    return ns;
+  };
   CULT.effectiveTechStage = npc => {
     if (!npc || !npc.cult) return 0;
     const c = npc.cult, st = Math.max(1, c.stage || 1);
@@ -27976,11 +27994,34 @@ D.SYNERGIES.forEach(syn=>{
 
   A.sleep = {
     nameTh: 'นอนหลับ', icon: '😴', color: '#6a7bd1',
+    can: (n, W) => {
+      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+      if (eqStage >= 2 && n.h.state.rest >= 85 && !(n.inj && n.inj.length)) return false;
+      return true;
+    },
     score(n, W, S) {
       const s = n.h.state, h = hourOf(W);
-      S.add('ง่วง', Math.pow((100 - s.rest) / 100, 1.5) * 2.6);
-      if (isNight(h)) S.add('ดึกแล้ว', 1.1 + (E(n, 'personality.discipline') - 50) / 200);
-      else if (s.rest > 55) S.add('ยังไม่ง่วง', -1.6);
+      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+
+      // ผู้ฝึกตนระดับเทียบเคียงยิ่งสูง ยิ่งควบคุมสมาธิและวิญญาณได้ดี ไม่ง่วงง่าย
+      const sleepUrgeMult = 1 / (1 + eqStage * 0.7);
+      const drowsinessPower = 1.5 + eqStage * 0.12;
+      S.add('ง่วง', Math.pow((100 - s.rest) / 100, drowsinessPower) * 2.6 * sleepUrgeMult);
+
+      if (isNight(h)) {
+        // ปุถุชนนอนตามเวลา แต่ผู้ฝึกตนยิ่งระดับสูงยิ่งไม่ผูกติดกับเวลานอนของปุถุชน
+        const nightPull = Math.max(0, 1.1 - eqStage * 0.28);
+        if (nightPull > 0) {
+          S.add('ดึกแล้ว', nightPull + (E(n, 'personality.discipline') - 50) / 200 * (1 - Math.min(1, eqStage / 4)));
+        }
+      }
+
+      // หากยังมีพลังพักผ่อนเพียงพอ ไม่รู้สึกง่วง (ทั้งกลางวันและกลางคืน)
+      const alertThresh = Math.max(25, 55 - eqStage * 3.5);
+      if (s.rest > alertThresh) {
+        S.add('ยังไม่ง่วง', -1.6 * (1 + eqStage * 0.25));
+      }
+
       if (s.hp < CULT.hpMax(n) * 0.5) S.add('บาดเจ็บ', 0.5);
       if (s.satiety < 35 && ECO.count(W, 'meal') > 0) S.add('หิวเกินกว่าจะนอน', -1.5);
     },
@@ -27990,12 +28031,22 @@ D.SYNERGIES.forEach(syn=>{
       if (n.bed != null) return { st: W.map.stations[n.bed] };
       const s = AI.freeStation(W, n, 'relax', 'spirit_pond'); return s ? { st: s, out: true } : { pos: { x: n.x, y: n.y }, out: true };
     },
-    dur: n => 300 + Math.round((100 - n.h.state.rest) * 3.2),
+    dur: n => {
+      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+      const base = 300 / (1 + eqStage * 0.15);
+      return Math.round(base + (100 - n.h.state.rest) * 3.2 / (1 + eqStage * 0.2));
+    },
     tick(n, W, ctx) {
       const s = n.h.state; const mult = ctx.out ? 0.6 : 1;
-      s.rest = Math.min(100, s.rest + 0.2 * mult * (0.8 + E(n, 'physiology.recoveryRate') / 250)); s.energy = Math.min(100, s.energy + 0.14);
+      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+      const recMult = 1 + eqStage * 0.22;
+      s.rest = Math.min(100, s.rest + 0.2 * mult * (0.8 + E(n, 'physiology.recoveryRate') / 250) * recMult);
+      s.energy = Math.min(100, s.energy + 0.14 * (1 + eqStage * 0.15));
       s.stress = Math.max(0, s.stress - 0.02); s.heartDemon = Math.max(0, s.heartDemon - 0.004);
       const hm = n._nd ? n._nd.hpMax : CULT.hpMax(n); s.hp = Math.min(hm, s.hp + hm * 0.00012 * 1.8 * (0.6 + E(n, 'physiology.recoveryRate') / 100));
+
+      // เมื่อพักผ่อนเต็มแล้ว ผู้ฝึกตนตื่นทันที ไม่ต้องนอนแช่รอจนเช้า
+      if (eqStage >= 1 && s.rest >= 96) return 'done';
       if (s.rest >= 99 && !isNight(hourOf(W))) return 'done';
       if (s.rest >= 98 && W.t % 1440 > 330 && W.t % 1440 < 700) return 'done';
     },
@@ -28027,11 +28078,14 @@ D.SYNERGIES.forEach(syn=>{
       S.add('ใฝ่ตบะ', (E(n, 'values.martialPeak') - 40) / 160 + (E(n, 'personality.ambition') - 40) / 220);
       S.add('วินัย', (E(n, 'personality.discipline') - 45) / 200);
       valueTerm(n, { martialPeak: 1.2 }, S);
+      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
       if (c.stage >= CULT.maxStage(n)) S.add('ถึงขั้นสุดยอดแล้ว', -1);
       else if (c.prog >= CULT.threshold(n)) S.add('รอทะลวง', -0.8);
-      if (st.rest < 28) S.add('เหนื่อยล้า', -0.8); if (st.energy < 30) S.add('หมดแรง', -0.7);
+      const restLowThresh = Math.max(12, 28 - eqStage * 2);
+      if (st.rest < restLowThresh) S.add('เหนื่อยล้า', -0.8 / (1 + eqStage * 0.3));
+      if (st.energy < 30) S.add('หมดแรง', -0.7);
       S.add('พื้นฐานบำเพ็ญ', 0.35 * clamp(CULT.rate(n, 1) / 1.2, 0.2, 1.4));
-      if (isNight(hourOf(W))) S.add('ยามดึกเงียบสงบ', 0.15);
+      if (isNight(hourOf(W))) S.add('ยามดึกเงียบสงบ', 0.25 + eqStage * 0.15);
     },
     where(W, n) {
       const c = n.cult;
@@ -28078,9 +28132,11 @@ D.SYNERGIES.forEach(syn=>{
       const c = n.cult, s = n.h.state;
       const r = CULT.rate(n, ctx.mult || 1) / 60;
       CULT.gain(n, r); if (c.pillT > 0) c.pillT--;
-      const eDrain = c.path === 'BODY' ? 0.13 : c.path === 'DEMON' ? 0.045 : c.path === 'HEART_SOUL' ? 0.02 : 0.015;
-      const rDrain = c.path === 'HEART_SOUL' ? 0.032 : c.path === 'DEMON' ? 0.025 : 0.02;
-      s.energy = Math.max(0, s.energy - eDrain); s.rest = Math.max(0, s.rest - rDrain);
+      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1);
+      const eDrain = Math.max(0, (c.path === 'BODY' ? 0.13 : c.path === 'DEMON' ? 0.045 : c.path === 'HEART_SOUL' ? 0.02 : 0.015) - eqStage * 0.01);
+      const rDrain = Math.max(0, (c.path === 'HEART_SOUL' ? 0.032 : c.path === 'DEMON' ? 0.025 : 0.02) - eqStage * 0.015);
+      s.energy = Math.max(0, s.energy - eDrain);
+      if (rDrain > 0) s.rest = Math.max(0, s.rest - rDrain);
       if (c.path === 'BODY') {
         if (W.t % 20 === 0) { HC.trainBody(n, 'strength', 1.2); HC.trainBody(n, 'toughness', 1.2); HC.trainBody(n, 'endurance', 1.0); }
       } else if (c.path === 'DEMON') {
@@ -28188,7 +28244,8 @@ D.SYNERGIES.forEach(syn=>{
         const multiTech = activeIds.map(id => CULT.tech(id)).find(t => t && !t.passive && t.cat !== 'PASSIVE' && ((Array.isArray(t.moveDefs) && t.moveDefs.length > 1) || (Array.isArray(t.stages) && t.stages.length > 1)));
         if (multiTech) g.SK.gainMastery(W, n, multiTech.id, 0.5);
       }
-      s.energy = Math.max(0, s.energy - 0.1); s.rest -= 0.02; s.stress = Math.max(0, s.stress - 0.01);
+      const restMult = (n._nd && n._nd.restDrainMult != null) ? n._nd.restDrainMult : 1;
+      s.energy = Math.max(0, s.energy - 0.1); s.rest = Math.max(0, s.rest - 0.02 * restMult); s.stress = Math.max(0, s.stress - 0.01);
       AI.vf(n, { martialPeak: 0.05 });
       if (s.energy < 14) return 'done';
     },
@@ -28225,7 +28282,8 @@ D.SYNERGIES.forEach(syn=>{
         c.learning.got += (0.7 + E(n, 'intellect.learningSpeed') / 100 + E(n, 'intellect.comprehension') / 250) * elemLearnMult * (n.insightT > 0 ? 1.45 : 1) * (g.MARTIAL ? g.MARTIAL.lifeMult(n, 'SCRIPTURE') * g.MARTIAL.skillEffects(n).study : 1);
         if (c.learning.got >= c.learning.need) { const oldHp = n.h && n.h.state ? n.h.state.hp : null, oldQi = n.h && n.h.state ? n.h.state.qi : null; const t = CULT.tech(c.learning.id); if (!c.techs.includes(c.learning.id)) c.techs.push(c.learning.id); c.learning = null; const nonPass = c.techs.filter(id => { const x = CULT.tech(id); return x && !x.passive && x.cat !== 'PASSIVE' && !x.innateOnly; }); while (nonPass.length > CULT.maxTechs(n)) { const dropId = nonPass.shift(); const idx = c.techs.indexOf(dropId); if (idx >= 0) c.techs.splice(idx, 1); } if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(n); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); if (g.MARTIAL && g.MARTIAL.syncResourceCaps) g.MARTIAL.syncResourceCaps(n, oldHp, oldQi); const tName = t ? t.nameTh : ''; W.log('learn', n.h.name.given + ' เรียนรู้วิชา「' + tName + '」สำเร็จ', [n.id]); AI.mem(W, n, 'เรียนรู้ ' + tName, 0.6); HC.experience(n, 'craft_success', 0.6); return 'done'; }
       }
-      s.energy = Math.max(0, s.energy - 0.025); s.rest -= 0.03; AI.vf(n, { knowledgeCraft: 0.05 });
+      const restMult = (n._nd && n._nd.restDrainMult != null) ? n._nd.restDrainMult : 1;
+      s.energy = Math.max(0, s.energy - 0.025); s.rest = Math.max(0, s.rest - 0.03 * restMult); AI.vf(n, { knowledgeCraft: 0.05 });
       if (n.insightT > 0) n.insightT--;
     },
     done(n, W) {
@@ -28905,15 +28963,17 @@ D.SYNERGIES.forEach(syn=>{
   /* ความต้องการ + ผลคงที่ของร่างกายทุกนาที */
   function getNeedsRates(n) {
     const cStage = n.cult ? n.cult.stage : 0;
+    const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (cStage || 0);
     const passVer = n._passVer || 0;
     const eqA = n.equip ? n.equip.ARMOR : null;
     const vit = n.h.physiology.vitality;
     const nd = n._nd;
-    if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit) return nd;
+    if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.eqStage === eqStage && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit) return nd;
     const next = {
       day: HC.nowDay,
       ver: n._ver,
       cStage,
+      eqStage,
       passVer,
       eqA,
       vit,
@@ -28924,7 +28984,8 @@ D.SYNERGIES.forEach(syn=>{
       strD: 0.004 * (0.5 + E(n, 'personality.composure') / 100),
       recK: 0.00012 * (0.5 + E(n, 'physiology.recoveryRate') / 100),
       qiMax: cStage ? CULT.qiMax(n) : 0,
-      hpMax: CULT.hpMax(n)
+      hpMax: CULT.hpMax(n),
+      restDrainMult: eqStage > 0 ? (1 / (1 + eqStage * 0.75 + Math.pow(Math.max(0, eqStage - 3), 1.5) * 0.45)) : 1.0
     };
     n._nd = next;
     return next;
@@ -28932,7 +28993,19 @@ D.SYNERGIES.forEach(syn=>{
   AI.needs = (W, n) => {
     const s = n.h.state, f = n.h.fulfil, id = n.act.id, nr = getNeedsRates(n);
     s.satiety = Math.max(0, s.satiety - 0.075 * nr.met * (id === 'sleep' ? 0.5 : 1));
-    if (id !== 'sleep') { s.rest = Math.max(0, s.rest - 0.085 * (1 + (id === 'practice' || id === 'mine' || id === 'farm' ? 0.35 : 0))); s.energy = Math.min(100, s.energy + (id === 'idle' || id === 'leisure' || id === 'eat' ? 0.07 : 0.015)); }
+    if (id !== 'sleep') {
+      if (id === 'cultivate' && nr.eqStage > 0) {
+        // บำเพ็ญภาวนาคือการพักผ่อนขัดเกลาจิตวิญญาณ ไม่สูญเสียการพักผ่อน ยิ่งระดับสูงยิ่งฟื้นฟูสมาธิและการพักผ่อน
+        const focusVal = (n.h && n.h.intellect && Number.isFinite(n.h.intellect.focus)) ? n.h.intellect.focus : 50;
+        const medRestRecovery = (0.025 + nr.eqStage * 0.02) * (0.8 + focusVal / 250);
+        s.rest = Math.min(100, s.rest + medRestRecovery);
+        s.energy = Math.min(100, s.energy + 0.02 + nr.eqStage * 0.01);
+      } else {
+        const drainMult = nr.restDrainMult != null ? nr.restDrainMult : 1.0;
+        s.rest = Math.max(0, s.rest - 0.085 * drainMult * (1 + (id === 'practice' || id === 'mine' || id === 'farm' ? 0.35 : 0)));
+        s.energy = Math.min(100, s.energy + (id === 'idle' || id === 'leisure' || id === 'eat' ? 0.07 : 0.015));
+      }
+    }
     if (id !== 'pair' && id !== 'festival') { s.social = Math.max(0, s.social - nr.socD); s.loneliness = clamp(s.loneliness + (s.social < 35 ? 0.012 : -0.004), 0, 100); }
     s.novelty = Math.max(0, s.novelty - nr.novD);
     for (let i = 0; i < VAL_IDS.length; i++) { const k = VAL_IDS[i]; if (f[k] > 0) f[k] = Math.max(0, f[k] - 0.0042); }
@@ -28958,7 +29031,8 @@ D.SYNERGIES.forEach(syn=>{
     if (id === 'breakthrough' || id === 'fight' || id === 'sentence') return false;
     const hm = n._nd ? n._nd.hpMax : CULT.hpMax(n);
     if (s.satiety < (id === 'sleep' ? 8 : 24) && id !== 'eat' && ECO.count(W, 'meal') > 0) return true;
-    if (id === 'sleep' && s.rest < 70 && isNight(hourOf(W))) return false;
+    const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+    if (id === 'sleep' && s.rest < (eqStage >= 1 ? 50 : 70) && isNight(hourOf(W))) return false;
     if (s.hp < hm * 0.35 && id !== 'heal' && id !== 'sleep' && id !== 'eat') return true;
     if (s.rest < 6 && id !== 'sleep' && id !== 'eat' && id !== 'heal') return true;
     if (W.sect.festival && W.sect.festival.until > W.t && id !== 'festival' && id !== 'eat' && id !== 'sleep' && W.sect.festival.startAt === W.t) return true;

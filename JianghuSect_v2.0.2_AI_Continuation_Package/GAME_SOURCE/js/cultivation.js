@@ -1736,6 +1736,24 @@
     if (c.path === "GOD") return [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
     return st;
   };
+  CULT.equivalentStage = entity => {
+    if (!entity) return 0;
+    const c = entity.cult || (entity.path && entity.stage ? entity : null);
+    if (!c || !c.path) return 0;
+    const st = Math.max(1, c.stage || 1);
+    let ns = st;
+    if (c.path === "BODY") ns = [1, 2.5, 4.5, 6.8, 9][Math.min(4, st - 1)] || st;
+    else if (c.path === "GOD") ns = [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
+    if (c.track) {
+      const r = (CULT.trackRealm ? CULT.trackRealm(c.track.subPath, c.track.ordinal) : null);
+      if (r && Number.isFinite(r.majorBandEquivalent)) {
+        ns = Math.max(ns, r.majorBandEquivalent);
+      } else if (c.track.ordinal) {
+        ns = Math.max(ns, c.track.ordinal);
+      }
+    }
+    return ns;
+  };
   CULT.effectiveTechStage = npc => {
     if (!npc || !npc.cult) return 0;
     const c = npc.cult, st = Math.max(1, c.stage || 1);
