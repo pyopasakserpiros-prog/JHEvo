@@ -1845,7 +1845,11 @@
   CULT.mantraPool = path => JD.TECH.mantras.filter(m => m.path === path).concat(JD.TECH.techniques.filter(t => /_MANTRA$/.test(t.cat) && t.path === path).map(t => ({ id: t.id, nameTh: t.nameTh, path: t.path, tier: t.tier, power: t.power, element: t.element, elementProfile: t.elementProfile, legendary: !!t.legendary })));
   CULT.bestMantra = (path, maxTier, npc) => {
     const unlocked = npc && npc.cult && Array.isArray(npc.cult.unlockedMantras) ? npc.cult.unlockedMantras : [];
-    const pool = CULT.mantraPool(path).filter(m => m.tier <= maxTier && (!m.legendary || unlocked.includes(m.id)));
+    const effMax = (npc && npc.cult && npc.cult.path === path && CULT.effectiveTechStage) ? Math.max(maxTier || 1, CULT.effectiveTechStage(npc)) : (maxTier || 1);
+    let pool = CULT.mantraPool(path).filter(m => m.tier <= effMax && (!m.legendary || unlocked.includes(m.id)));
+    if (!pool.length && path === 'GOD') {
+      pool = CULT.mantraPool(path).filter(m => m.tier <= 2 && (!m.legendary || unlocked.includes(m.id)));
+    }
     if (npc && npc.h) {
       pool.sort((a, b) => {
         const ca = ELEM.resolveCompatibility(npc, TECH_BY_ID[a.id] || a, 'MANTRA_PRACTICE').cultivationMultiplier;
@@ -2016,8 +2020,9 @@
       }
       h.state.hp = CULT.hpMax(npc); h.state.qi = CULT.qiMax(npc);
       HC.experience(npc, 'insight', 0.8);
-      const m = CULT.bestMantra(c.path, c.stage, npc);
-      if (m && (!c.mantra || !TECH_BY_ID[c.mantra] || TECH_BY_ID[c.mantra].tier < m.tier) && c.stage >= m.tier - 1) c.mantra = m.id;
+      const effSt = CULT.effectiveTechStage(npc);
+      const m = CULT.bestMantra(c.path, effSt, npc);
+      if (m && (!c.mantra || !TECH_BY_ID[c.mantra] || TECH_BY_ID[c.mantra].tier < m.tier) && effSt >= m.tier - 1) c.mantra = m.id;
       ELEM.syncSpecialAccess(npc);
       c.pillT = 0; c.pillBoost = 0; if (g.BN) g.BN.onResult(W, npc, true);
     } else {

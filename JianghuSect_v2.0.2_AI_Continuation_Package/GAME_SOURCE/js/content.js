@@ -168,7 +168,7 @@
     if(!ownsScroll && (!inLibrary || r.tier>(W.sect.recipeTier||1))) return false;
     const paths=Array.isArray(r.compatiblePath)?r.compatiblePath:[r.compatiblePath||'ANY'];
     if(!paths.includes('ANY') && (!n.cult || !paths.includes(n.cult.path))) return false;
-    if(r.minStage && (!n.cult || n.cult.stage<r.minStage)) return false;
+    if(r.minStage && (!n.cult || (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage)<r.minStage)) return false;
     if(ownsScroll) return true;
     const hall=r.craft==='ALCHEMY'?'alchemy':'forge';
     if(n.post===hall || n.assist===hall || n.rank>=4 || n.id===W.sect.masterId) return true;

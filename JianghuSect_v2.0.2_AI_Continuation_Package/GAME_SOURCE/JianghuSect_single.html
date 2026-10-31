@@ -23908,7 +23908,11 @@ D.SYNERGIES.forEach(syn=>{
   CULT.mantraPool = path => JD.TECH.mantras.filter(m => m.path === path).concat(JD.TECH.techniques.filter(t => /_MANTRA$/.test(t.cat) && t.path === path).map(t => ({ id: t.id, nameTh: t.nameTh, path: t.path, tier: t.tier, power: t.power, element: t.element, elementProfile: t.elementProfile, legendary: !!t.legendary })));
   CULT.bestMantra = (path, maxTier, npc) => {
     const unlocked = npc && npc.cult && Array.isArray(npc.cult.unlockedMantras) ? npc.cult.unlockedMantras : [];
-    const pool = CULT.mantraPool(path).filter(m => m.tier <= maxTier && (!m.legendary || unlocked.includes(m.id)));
+    const effMax = (npc && npc.cult && npc.cult.path === path && CULT.effectiveTechStage) ? Math.max(maxTier || 1, CULT.effectiveTechStage(npc)) : (maxTier || 1);
+    let pool = CULT.mantraPool(path).filter(m => m.tier <= effMax && (!m.legendary || unlocked.includes(m.id)));
+    if (!pool.length && path === 'GOD') {
+      pool = CULT.mantraPool(path).filter(m => m.tier <= 2 && (!m.legendary || unlocked.includes(m.id)));
+    }
     if (npc && npc.h) {
       pool.sort((a, b) => {
         const ca = ELEM.resolveCompatibility(npc, TECH_BY_ID[a.id] || a, 'MANTRA_PRACTICE').cultivationMultiplier;
@@ -24079,8 +24083,9 @@ D.SYNERGIES.forEach(syn=>{
       }
       h.state.hp = CULT.hpMax(npc); h.state.qi = CULT.qiMax(npc);
       HC.experience(npc, 'insight', 0.8);
-      const m = CULT.bestMantra(c.path, c.stage, npc);
-      if (m && (!c.mantra || !TECH_BY_ID[c.mantra] || TECH_BY_ID[c.mantra].tier < m.tier) && c.stage >= m.tier - 1) c.mantra = m.id;
+      const effSt = CULT.effectiveTechStage(npc);
+      const m = CULT.bestMantra(c.path, effSt, npc);
+      if (m && (!c.mantra || !TECH_BY_ID[c.mantra] || TECH_BY_ID[c.mantra].tier < m.tier) && effSt >= m.tier - 1) c.mantra = m.id;
       ELEM.syncSpecialAccess(npc);
       c.pillT = 0; c.pillBoost = 0; if (g.BN) g.BN.onResult(W, npc, true);
     } else {
@@ -24586,7 +24591,7 @@ D.SYNERGIES.forEach(syn=>{
     if (!ECO.recipeKnownFor(W, npc, r)) return false;
     const paths = Array.isArray(r.compatiblePath) ? r.compatiblePath : [r.compatiblePath || 'ANY'];
     if (!paths.includes('ANY') && (!npc.cult || !paths.includes(npc.cult.path))) return false;
-    if (r.minStage && (!npc.cult || npc.cult.stage < r.minStage)) return false;
+    if (r.minStage && (!npc.cult || (CULT.effectiveTechStage ? CULT.effectiveTechStage(npc) : npc.cult.stage) < r.minStage)) return false;
     const building = W.map.byId[hall || (r.craft === 'ALCHEMY' ? 'alchemy' : 'forge')];
     return !r.facilityLevel || !!building && building.level >= r.facilityLevel;
   };
@@ -26613,7 +26618,7 @@ D.SYNERGIES.forEach(syn=>{
     const maxAllowedTier = Math.max(tier <= 2 ? 2 : 1, SECT.canLearnTier(W, n) + 1);
     if (tier > maxAllowedTier && n.rank < 4 && !n.post && !n.mentor) return false;
     const minStage = itemSpec.minStage || 0;
-    const stage = n.cult ? (n.cult.stage || 0) : 0;
+    const stage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult.stage || 0)) : 0;
     if (minStage > stage) return false;
     const paths = Array.isArray(itemSpec.compatiblePath) ? itemSpec.compatiblePath : (itemSpec.compatiblePath ? [itemSpec.compatiblePath] : ['ANY']);
     if (!paths.includes('ANY')) {
@@ -27307,9 +27312,10 @@ D.SYNERGIES.forEach(syn=>{
           }
 
           // Reconcile mantra
+          const effStMantra = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
           const curMantra = n.cult.mantra ? CULT.tech(n.cult.mantra) : null;
-          if (!curMantra || curMantra.path !== targetPath || curMantra.tier > n.cult.stage) {
-            const bestM = CULT.bestMantra(targetPath, n.cult.stage, n);
+          if (!curMantra || curMantra.path !== targetPath || curMantra.tier > Math.max(effStMantra, targetPath === 'GOD' ? 2 : 1)) {
+            const bestM = CULT.bestMantra(targetPath, effStMantra, n);
             n.cult.mantra = bestM ? bestM.id : null;
           }
 
@@ -27362,7 +27368,8 @@ D.SYNERGIES.forEach(syn=>{
           if (!eq) return;
           const paths = Array.isArray(eq.compatiblePath) ? eq.compatiblePath : (eq.compatiblePath ? [eq.compatiblePath] : ['ANY']);
           const pathOk = paths.includes('ANY') || (n.cult && paths.includes(n.cult.path));
-          const stageOk = (eq.minStage || 0) <= (n.cult ? n.cult.stage : 0);
+          const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
+          const stageOk = (eq.minStage || 0) <= effSt;
           if (!pathOk || !stageOk) {
             n.equip[slot] = null;
             reconciled.unequippedGear.push(eq.nameTh || eq.id);
@@ -27991,8 +27998,9 @@ D.SYNERGIES.forEach(syn=>{
     if (!paths.includes('ANY') && (!n.cult || !paths.includes(n.cult.path))) {
       return { ok: false, reason: 'วิถีไม่ตรงกับอุปกรณ์ (' + paths.join('/') + ')' };
     }
-    if ((eq.minStage || 0) > (n.cult ? n.cult.stage : 0)) {
-      return { ok: false, reason: 'ต้องมีตบะอย่างน้อยขั้น ' + eq.minStage };
+    const effStage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
+    if ((eq.minStage || 0) > effStage) {
+      return { ok: false, reason: 'ต้องมีตบะเทียบเท่าอย่างน้อยขั้น ' + eq.minStage };
     }
     list.splice(idx, 1);
     n.equip = n.equip || { WEAPON: null, ARMOR: null, ACCESSORY: null };
@@ -39406,10 +39414,11 @@ D.SYNERGIES.forEach(syn=>{
     if (c && (!savingForTech || cp > reserveTechCp * 1.15)) {
       const inHysteresis = n._lastGearSwapAt != null && (W.t - n._lastGearSwapAt) < 1440;
       const multReq = inHysteresis ? 1.38 : 1.2, flatReq = inHysteresis ? 16 : 8;
+      const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
       ["WEAPON", "ARMOR", "ACCESSORY"].forEach(slot => {
         const cur = n.equip && n.equip[slot], cs = cur ? g.MARTIAL.gearSuitability(n, cur).score : 0;
         W.sect.gear.forEach(gr => {
-          if (gr.slot !== slot || (gr.minStage || 1) > c.stage + 1) return;
+          if (gr.slot !== slot || (gr.minStage || 1) > effSt + 1) return;
           const price = CPE.gearPrice(W, gr);
           const fit = g.MARTIAL.gearSuitability(n, gr, price), gs = fit.score;
           const isGoalTarget = n.cognition?.goal?.id === "gear_upgrade" && n.cognition.goal.targetId === (gr.uid || gr.id);
@@ -39437,7 +39446,8 @@ D.SYNERGIES.forEach(syn=>{
         W.log('shop', '[ซื้อสินค้า] ' + n.h.name.given + ' แลกคุณูปการ ' + p.price + ' คป. ซื้อ「' + ECO.name(p.key) + '」×1 จากร้านสำนัก', [n.id], { txKind: 'purchase', itemId: p.key, qty: 1, recipientId: n.id });
       }
     } else {
-      if (!n.cult || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(p.gear && p.gear.slot) || (p.gear.minStage || 1) > n.cult.stage + 1) return false;
+      const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
+      if (!n.cult || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(p.gear && p.gear.slot) || (p.gear.minStage || 1) > effSt + 1) return false;
       const i = W.sect.gear.indexOf(p.gear); if (i < 0) return false;
       if (!CPE.spend(W, n, p.price, 'ซื้อ' + p.gear.nameTh)) return false;
       W.sect.gear.splice(i, 1);
@@ -40821,7 +40831,7 @@ D.SYNERGIES.forEach(syn=>{
     if(!ownsScroll && (!inLibrary || r.tier>(W.sect.recipeTier||1))) return false;
     const paths=Array.isArray(r.compatiblePath)?r.compatiblePath:[r.compatiblePath||'ANY'];
     if(!paths.includes('ANY') && (!n.cult || !paths.includes(n.cult.path))) return false;
-    if(r.minStage && (!n.cult || n.cult.stage<r.minStage)) return false;
+    if(r.minStage && (!n.cult || (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage)<r.minStage)) return false;
     if(ownsScroll) return true;
     const hall=r.craft==='ALCHEMY'?'alchemy':'forge';
     if(n.post===hall || n.assist===hall || n.rank>=4 || n.id===W.sect.masterId) return true;
@@ -42522,7 +42532,8 @@ M.conditionText=t=>{
  return a.join(' + ')+(t.passive?' · ถอดแล้วผลหาย':t.requiresWeapon?' · จำเป็นต้องสวมใส่อาวุธนี้':' · อาวุธที่ถนัด ×1.15 / อื่น ×0.65');
 };
 M.gearSuitability=(n,it,price)=>{
- if(!it||!n.cult||(it.minStage||1)>n.cult.stage+1)return {score:-Infinity,reasons:['ขั้นบำเพ็ญไม่ถึง']};
+ const effSt=n&&n.cult?(CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage):0;
+ if(!it||!n.cult||(it.minStage||1)>effSt+1)return {score:-Infinity,reasons:['ขั้นบำเพ็ญไม่ถึง']};
  const c=n.cult;
  if(it.compatiblePath){const cp=Array.isArray(it.compatiblePath)?it.compatiblePath:[it.compatiblePath];if(!cp.includes('ANY')&&!cp.includes(c.path))return {score:-Infinity,reasons:['ต่างวิถีหลัก']};}
  const path=paths[c.path]||paths.XIAN,sub=profiles[c.sub],type=M.gearType(it),weapons=sub?sub[3]:path.weapons,armor=sub?sub[4]:path.armor,reasons=[],s=it.st||ST.gearStats(Object.assign({},it));
@@ -42577,12 +42588,13 @@ M.classifyGearForNpc=(W,n,it,price)=>{
  const curSuit=cur?M.gearSuitability(n,cur,0):{score:0,rawPower:0,reasons:[]};
  const curScore=Number.isFinite(curSuit.score)?curSuit.score:0;
  const newScore=suit.score;
- const usableNow=(it.minStage||1)<=n.cult.stage&&Number.isFinite(newScore);
+ const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage;
+ const usableNow=(it.minStage||1)<=effSt&&Number.isFinite(newScore);
  const hysteresis=cur?Math.max(8,Math.abs(curScore)*0.16):4;
  if(usableNow&&newScore>curScore+hysteresis){
   return {category:'useful-now',deltaScore:newScore-curScore,suit,curSuit,reasonTh:cur?'ดีกว่าของเดิมชัดเจน (+'+Math.round(newScore-curScore)+')':'ยังไม่มีอุปกรณ์ในช่องนี้'};
  }
- const futureStageOk=(it.minStage||1)===n.cult.stage+1&&Number.isFinite(newScore)&&newScore>curScore*1.22+12;
+ const futureStageOk=(it.minStage||1)===effSt+1&&Number.isFinite(newScore)&&newScore>curScore*1.22+12;
  const retrainPrep=n.martialIntent&&n.martialIntent.action==='prepare'&&suit.reasons.some(r=>r.includes('เตรียมอาวุธ'));
  if(futureStageOk||retrainPrep){
   return {category:'valuable-to-own',deltaScore:newScore-curScore,suit,curSuit,reasonTh:retrainPrep?'เก็บไว้เตรียมเปลี่ยนสายย่อย':'เก็บไว้ใช้เมื่อทะลวงขั้นถัดไป'};
@@ -42594,7 +42606,8 @@ M.classifyGearForNpc=(W,n,it,price)=>{
    const r=rels[o.id];
    const isClose=o.mentor===n.id||n.mentor===o.id||(n.h.life.family.spouse===o.id)||(r&&(r.a>=42||(r.g||0)>=30||r.bond==='สหาย'||r.bond==='คนรัก'||r.bond==='คู่ครอง'||r.bond==='ศิษย์'));
    if(!isClose)continue;
-   if((it.minStage||1)>o.cult.stage)continue;
+   const oEffSt=CULT.effectiveTechStage?CULT.effectiveTechStage(o):o.cult.stage;
+   if((it.minStage||1)>oEffSt)continue;
    const oSuit=M.gearSuitability(o,it,0);
    const oCur=o.equip&&o.equip[it.slot];
    const oCurScore=oCur?M.gearSuitability(o,oCur,0).score:0;
@@ -42635,7 +42648,7 @@ M.skillPractice=(n,id,hours,quality)=>{
  if(gain&&(hours>=0.1||((groups.weapon.includes(id)||['SOUL_DIVINE','MOVEMENT','stealth','BODY_REFINING','TALISMAN','ARRAY'].includes(id))&&Math.floor(M.skillRead(n,id)*4)!==Math.floor((M.skillRead(n,id)-gain)*4))))ST.dirty(n);return gain||0;
 };
 M.isBeast=u=>!!u&&!!u.foe&&(u.kind==='beast'||!!u.wild&&!!u.speciesId);
-M.gearUsable=(n,it)=>!!it&&(!n.cult||(it.minStage||1)<=n.cult.stage+1);
+M.gearUsable=(n,it)=>!!it&&(!n.cult||(it.minStage||1)<=(CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage)+1);
 M.equippedType=n=>M.gearUsable(n,n.equip&&n.equip.WEAPON)?M.gearType(n.equip.WEAPON):'FIST';
 M.pathSkillAffinity=(n,path,sub)=>{const profile=M.PROFILES[sub],preferred=profile?profile[3]:M.PATHS[path].weapons;return Math.max(...preferred.map(type=>M.weaponSkill(n,type)))*.18;};
 M.weaponSkill=(n,type)=>M.skillRead(n,({FIST:'FIST_PALM'}[type||M.equippedType(n)]||type||M.equippedType(n)));
@@ -44017,8 +44030,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     }
     if (best) return best;
     // 2. Check sect shop / armory gear
+    const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
     for (const eq of (W.sect.gear || [])) {
-      if (!eq || !eq.slot || (eq.minStage || 1) > n.cult.stage) continue;
+      if (!eq || !eq.slot || (eq.minStage || 1) > effSt) continue;
       if (!SECT.canAccessItem(W, n, eq)) continue;
       const price = (g.CPE && g.CPE.gearPrice) ? g.CPE.gearPrice(W, eq) : 20;
       const cl = M.classifyGearForNpc(W, n, eq, price);
@@ -44914,7 +44928,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     const idx = n.inv.gear.findIndex(g2 => g2 && (g2.uid === gearUidOrId || g2.id === gearUidOrId));
     if (idx < 0) return false;
     const eq = n.inv.gear[idx];
-    if ((eq.minStage || 1) > rec.cult.stage) return false;
+    const recEffSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(rec) : rec.cult.stage;
+    if ((eq.minStage || 1) > recEffSt) return false;
     n.inv.gear.splice(idx, 1);
     if (!n.inv.gear.length) delete n.inv.gear;
     rec.inv = rec.inv || {};
@@ -58701,8 +58716,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           if (it.price > Math.floor(buyer.cp || 0) && it.shopKind !== "bounty_mat") {
             locked = true; lockReason = "แต้มคุณูปการไม่พอ (มี " + Math.round(buyer.cp || 0) + "/" + it.price + " คป.)";
           } else if (it.shopKind === "gear" && it.gear) {
-            if (!buyer.cult || (it.gear.minStage || 1) > buyer.cult.stage + 1) {
-              locked = true; lockReason = "ขั้นตบะยังไม่ถึงเกณฑ์สวมใส่ (ต้องการขั้น " + Math.max(1, (it.gear.minStage || 1) - 1) + ")";
+            const effSt = buyer.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(buyer) : buyer.cult.stage) : 0;
+            if (!buyer.cult || (it.gear.minStage || 1) > effSt + 1) {
+              locked = true; lockReason = "ขั้นตบะเทียบเคียงยังไม่ถึงเกณฑ์สวมใส่ (ต้องการขั้น " + Math.max(1, (it.gear.minStage || 1) - 1) + ")";
             }
           } else if (it.shopKind === "crystal") {
             const ok = (g.MARTIAL && g.MARTIAL.canAcquireKnowledge) ? g.MARTIAL.canAcquireKnowledge(W, buyer, it.key) : ((g.MARTIAL && g.MARTIAL.eligible) ? g.MARTIAL.eligible(buyer, it.key).ok : true);

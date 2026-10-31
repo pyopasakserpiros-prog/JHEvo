@@ -589,8 +589,9 @@
     }
     if (best) return best;
     // 2. Check sect shop / armory gear
+    const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
     for (const eq of (W.sect.gear || [])) {
-      if (!eq || !eq.slot || (eq.minStage || 1) > n.cult.stage) continue;
+      if (!eq || !eq.slot || (eq.minStage || 1) > effSt) continue;
       if (!SECT.canAccessItem(W, n, eq)) continue;
       const price = (g.CPE && g.CPE.gearPrice) ? g.CPE.gearPrice(W, eq) : 20;
       const cl = M.classifyGearForNpc(W, n, eq, price);
@@ -1486,7 +1487,8 @@
     const idx = n.inv.gear.findIndex(g2 => g2 && (g2.uid === gearUidOrId || g2.id === gearUidOrId));
     if (idx < 0) return false;
     const eq = n.inv.gear[idx];
-    if ((eq.minStage || 1) > rec.cult.stage) return false;
+    const recEffSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(rec) : rec.cult.stage;
+    if ((eq.minStage || 1) > recEffSt) return false;
     n.inv.gear.splice(idx, 1);
     if (!n.inv.gear.length) delete n.inv.gear;
     rec.inv = rec.inv || {};

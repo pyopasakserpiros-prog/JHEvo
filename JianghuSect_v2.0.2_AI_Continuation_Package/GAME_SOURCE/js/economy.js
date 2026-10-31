@@ -81,7 +81,7 @@
     if (!ECO.recipeKnownFor(W, npc, r)) return false;
     const paths = Array.isArray(r.compatiblePath) ? r.compatiblePath : [r.compatiblePath || 'ANY'];
     if (!paths.includes('ANY') && (!npc.cult || !paths.includes(npc.cult.path))) return false;
-    if (r.minStage && (!npc.cult || npc.cult.stage < r.minStage)) return false;
+    if (r.minStage && (!npc.cult || (CULT.effectiveTechStage ? CULT.effectiveTechStage(npc) : npc.cult.stage) < r.minStage)) return false;
     const building = W.map.byId[hall || (r.craft === 'ALCHEMY' ? 'alchemy' : 'forge')];
     return !r.facilityLevel || !!building && building.level >= r.facilityLevel;
   };

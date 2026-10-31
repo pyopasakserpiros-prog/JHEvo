@@ -1398,7 +1398,7 @@
     const maxAllowedTier = Math.max(tier <= 2 ? 2 : 1, SECT.canLearnTier(W, n) + 1);
     if (tier > maxAllowedTier && n.rank < 4 && !n.post && !n.mentor) return false;
     const minStage = itemSpec.minStage || 0;
-    const stage = n.cult ? (n.cult.stage || 0) : 0;
+    const stage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult.stage || 0)) : 0;
     if (minStage > stage) return false;
     const paths = Array.isArray(itemSpec.compatiblePath) ? itemSpec.compatiblePath : (itemSpec.compatiblePath ? [itemSpec.compatiblePath] : ['ANY']);
     if (!paths.includes('ANY')) {
@@ -2092,9 +2092,10 @@
           }
 
           // Reconcile mantra
+          const effStMantra = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
           const curMantra = n.cult.mantra ? CULT.tech(n.cult.mantra) : null;
-          if (!curMantra || curMantra.path !== targetPath || curMantra.tier > n.cult.stage) {
-            const bestM = CULT.bestMantra(targetPath, n.cult.stage, n);
+          if (!curMantra || curMantra.path !== targetPath || curMantra.tier > Math.max(effStMantra, targetPath === 'GOD' ? 2 : 1)) {
+            const bestM = CULT.bestMantra(targetPath, effStMantra, n);
             n.cult.mantra = bestM ? bestM.id : null;
           }
 
@@ -2147,7 +2148,8 @@
           if (!eq) return;
           const paths = Array.isArray(eq.compatiblePath) ? eq.compatiblePath : (eq.compatiblePath ? [eq.compatiblePath] : ['ANY']);
           const pathOk = paths.includes('ANY') || (n.cult && paths.includes(n.cult.path));
-          const stageOk = (eq.minStage || 0) <= (n.cult ? n.cult.stage : 0);
+          const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
+          const stageOk = (eq.minStage || 0) <= effSt;
           if (!pathOk || !stageOk) {
             n.equip[slot] = null;
             reconciled.unequippedGear.push(eq.nameTh || eq.id);
@@ -2776,8 +2778,9 @@
     if (!paths.includes('ANY') && (!n.cult || !paths.includes(n.cult.path))) {
       return { ok: false, reason: 'วิถีไม่ตรงกับอุปกรณ์ (' + paths.join('/') + ')' };
     }
-    if ((eq.minStage || 0) > (n.cult ? n.cult.stage : 0)) {
-      return { ok: false, reason: 'ต้องมีตบะอย่างน้อยขั้น ' + eq.minStage };
+    const effStage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
+    if ((eq.minStage || 0) > effStage) {
+      return { ok: false, reason: 'ต้องมีตบะเทียบเท่าอย่างน้อยขั้น ' + eq.minStage };
     }
     list.splice(idx, 1);
     n.equip = n.equip || { WEAPON: null, ARMOR: null, ACCESSORY: null };

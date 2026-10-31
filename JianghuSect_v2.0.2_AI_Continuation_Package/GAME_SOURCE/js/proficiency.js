@@ -20,7 +20,7 @@ M.skillPractice=(n,id,hours,quality)=>{
  if(gain&&(hours>=0.1||((groups.weapon.includes(id)||['SOUL_DIVINE','MOVEMENT','stealth','BODY_REFINING','TALISMAN','ARRAY'].includes(id))&&Math.floor(M.skillRead(n,id)*4)!==Math.floor((M.skillRead(n,id)-gain)*4))))ST.dirty(n);return gain||0;
 };
 M.isBeast=u=>!!u&&!!u.foe&&(u.kind==='beast'||!!u.wild&&!!u.speciesId);
-M.gearUsable=(n,it)=>!!it&&(!n.cult||(it.minStage||1)<=n.cult.stage+1);
+M.gearUsable=(n,it)=>!!it&&(!n.cult||(it.minStage||1)<=(CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage)+1);
 M.equippedType=n=>M.gearUsable(n,n.equip&&n.equip.WEAPON)?M.gearType(n.equip.WEAPON):'FIST';
 M.pathSkillAffinity=(n,path,sub)=>{const profile=M.PROFILES[sub],preferred=profile?profile[3]:M.PATHS[path].weapons;return Math.max(...preferred.map(type=>M.weaponSkill(n,type)))*.18;};
 M.weaponSkill=(n,type)=>M.skillRead(n,({FIST:'FIST_PALM'}[type||M.equippedType(n)]||type||M.equippedType(n)));

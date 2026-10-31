@@ -673,7 +673,8 @@ M.conditionText=t=>{
  return a.join(' + ')+(t.passive?' · ถอดแล้วผลหาย':t.requiresWeapon?' · จำเป็นต้องสวมใส่อาวุธนี้':' · อาวุธที่ถนัด ×1.15 / อื่น ×0.65');
 };
 M.gearSuitability=(n,it,price)=>{
- if(!it||!n.cult||(it.minStage||1)>n.cult.stage+1)return {score:-Infinity,reasons:['ขั้นบำเพ็ญไม่ถึง']};
+ const effSt=n&&n.cult?(CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage):0;
+ if(!it||!n.cult||(it.minStage||1)>effSt+1)return {score:-Infinity,reasons:['ขั้นบำเพ็ญไม่ถึง']};
  const c=n.cult;
  if(it.compatiblePath){const cp=Array.isArray(it.compatiblePath)?it.compatiblePath:[it.compatiblePath];if(!cp.includes('ANY')&&!cp.includes(c.path))return {score:-Infinity,reasons:['ต่างวิถีหลัก']};}
  const path=paths[c.path]||paths.XIAN,sub=profiles[c.sub],type=M.gearType(it),weapons=sub?sub[3]:path.weapons,armor=sub?sub[4]:path.armor,reasons=[],s=it.st||ST.gearStats(Object.assign({},it));
@@ -728,12 +729,13 @@ M.classifyGearForNpc=(W,n,it,price)=>{
  const curSuit=cur?M.gearSuitability(n,cur,0):{score:0,rawPower:0,reasons:[]};
  const curScore=Number.isFinite(curSuit.score)?curSuit.score:0;
  const newScore=suit.score;
- const usableNow=(it.minStage||1)<=n.cult.stage&&Number.isFinite(newScore);
+ const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage;
+ const usableNow=(it.minStage||1)<=effSt&&Number.isFinite(newScore);
  const hysteresis=cur?Math.max(8,Math.abs(curScore)*0.16):4;
  if(usableNow&&newScore>curScore+hysteresis){
   return {category:'useful-now',deltaScore:newScore-curScore,suit,curSuit,reasonTh:cur?'ดีกว่าของเดิมชัดเจน (+'+Math.round(newScore-curScore)+')':'ยังไม่มีอุปกรณ์ในช่องนี้'};
  }
- const futureStageOk=(it.minStage||1)===n.cult.stage+1&&Number.isFinite(newScore)&&newScore>curScore*1.22+12;
+ const futureStageOk=(it.minStage||1)===effSt+1&&Number.isFinite(newScore)&&newScore>curScore*1.22+12;
  const retrainPrep=n.martialIntent&&n.martialIntent.action==='prepare'&&suit.reasons.some(r=>r.includes('เตรียมอาวุธ'));
  if(futureStageOk||retrainPrep){
   return {category:'valuable-to-own',deltaScore:newScore-curScore,suit,curSuit,reasonTh:retrainPrep?'เก็บไว้เตรียมเปลี่ยนสายย่อย':'เก็บไว้ใช้เมื่อทะลวงขั้นถัดไป'};
@@ -745,7 +747,8 @@ M.classifyGearForNpc=(W,n,it,price)=>{
    const r=rels[o.id];
    const isClose=o.mentor===n.id||n.mentor===o.id||(n.h.life.family.spouse===o.id)||(r&&(r.a>=42||(r.g||0)>=30||r.bond==='สหาย'||r.bond==='คนรัก'||r.bond==='คู่ครอง'||r.bond==='ศิษย์'));
    if(!isClose)continue;
-   if((it.minStage||1)>o.cult.stage)continue;
+   const oEffSt=CULT.effectiveTechStage?CULT.effectiveTechStage(o):o.cult.stage;
+   if((it.minStage||1)>oEffSt)continue;
    const oSuit=M.gearSuitability(o,it,0);
    const oCur=o.equip&&o.equip[it.slot];
    const oCurScore=oCur?M.gearSuitability(o,oCur,0).score:0;

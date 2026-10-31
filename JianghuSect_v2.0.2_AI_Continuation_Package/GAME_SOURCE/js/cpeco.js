@@ -290,10 +290,11 @@
     if (c && (!savingForTech || cp > reserveTechCp * 1.15)) {
       const inHysteresis = n._lastGearSwapAt != null && (W.t - n._lastGearSwapAt) < 1440;
       const multReq = inHysteresis ? 1.38 : 1.2, flatReq = inHysteresis ? 16 : 8;
+      const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
       ["WEAPON", "ARMOR", "ACCESSORY"].forEach(slot => {
         const cur = n.equip && n.equip[slot], cs = cur ? g.MARTIAL.gearSuitability(n, cur).score : 0;
         W.sect.gear.forEach(gr => {
-          if (gr.slot !== slot || (gr.minStage || 1) > c.stage + 1) return;
+          if (gr.slot !== slot || (gr.minStage || 1) > effSt + 1) return;
           const price = CPE.gearPrice(W, gr);
           const fit = g.MARTIAL.gearSuitability(n, gr, price), gs = fit.score;
           const isGoalTarget = n.cognition?.goal?.id === "gear_upgrade" && n.cognition.goal.targetId === (gr.uid || gr.id);
@@ -321,7 +322,8 @@
         W.log('shop', '[ซื้อสินค้า] ' + n.h.name.given + ' แลกคุณูปการ ' + p.price + ' คป. ซื้อ「' + ECO.name(p.key) + '」×1 จากร้านสำนัก', [n.id], { txKind: 'purchase', itemId: p.key, qty: 1, recipientId: n.id });
       }
     } else {
-      if (!n.cult || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(p.gear && p.gear.slot) || (p.gear.minStage || 1) > n.cult.stage + 1) return false;
+      const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
+      if (!n.cult || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(p.gear && p.gear.slot) || (p.gear.minStage || 1) > effSt + 1) return false;
       const i = W.sect.gear.indexOf(p.gear); if (i < 0) return false;
       if (!CPE.spend(W, n, p.price, 'ซื้อ' + p.gear.nameTh)) return false;
       W.sect.gear.splice(i, 1);

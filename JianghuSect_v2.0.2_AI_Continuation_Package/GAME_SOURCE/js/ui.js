@@ -1826,8 +1826,9 @@
           if (it.price > Math.floor(buyer.cp || 0) && it.shopKind !== "bounty_mat") {
             locked = true; lockReason = "แต้มคุณูปการไม่พอ (มี " + Math.round(buyer.cp || 0) + "/" + it.price + " คป.)";
           } else if (it.shopKind === "gear" && it.gear) {
-            if (!buyer.cult || (it.gear.minStage || 1) > buyer.cult.stage + 1) {
-              locked = true; lockReason = "ขั้นตบะยังไม่ถึงเกณฑ์สวมใส่ (ต้องการขั้น " + Math.max(1, (it.gear.minStage || 1) - 1) + ")";
+            const effSt = buyer.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(buyer) : buyer.cult.stage) : 0;
+            if (!buyer.cult || (it.gear.minStage || 1) > effSt + 1) {
+              locked = true; lockReason = "ขั้นตบะเทียบเคียงยังไม่ถึงเกณฑ์สวมใส่ (ต้องการขั้น " + Math.max(1, (it.gear.minStage || 1) - 1) + ")";
             }
           } else if (it.shopKind === "crystal") {
             const ok = (g.MARTIAL && g.MARTIAL.canAcquireKnowledge) ? g.MARTIAL.canAcquireKnowledge(W, buyer, it.key) : ((g.MARTIAL && g.MARTIAL.eligible) ? g.MARTIAL.eligible(buyer, it.key).ok : true);
