@@ -7167,10 +7167,159 @@
   };
   X.MISSIONS.sanctum = { nameTh: 'สำรวจวิหารโบราณหลายชั้น', icon: '🏛️' };
 
+  EX.SANCTUM_BONUS_CHANCE_BY_FLOOR = Object.freeze({
+    0: 0,
+    1: 0.04,
+    2: 0.08,
+    3: 0.12
+  });
+
+  EX.SANCTUM_BONUS_TIERS = Object.freeze([
+    Object.freeze({ id: 'RARE_MATERIAL', weight: 48, rarityRank: 1, rarityLabel: 'Rare Material' }),
+    Object.freeze({ id: 'RECIPE_SCROLL', weight: 26, rarityRank: 2, rarityLabel: 'Uncommon/Rare Recipe' }),
+    Object.freeze({ id: 'SUBPATH_CRYSTAL', weight: 15, rarityRank: 3, rarityLabel: 'Sanctum Subpath Crystal' }),
+    Object.freeze({ id: 'UNCOMMON_MANUAL', weight: 9.5, rarityRank: 4, rarityLabel: 'Uncommon/Rare Manual' }),
+    Object.freeze({ id: 'APEX_LEGENDARY', weight: 1.5, rarityRank: 5, rarityLabel: 'Legendary Manual', minFloor: 3 })
+  ]);
+
   EX.ensureSanctums = W => {
     const e = dex(W);
-    if (!e.sanctums) e.sanctums = { clearedFloors: {}, runs: 0, catalystsFound: 0, history: [] };
+    if (!e.sanctums) e.sanctums = { clearedFloors: {}, runs: 0, catalystsFound: 0, bonusDrops: 0, bonusByTier: {}, history: [] };
+    if (e.sanctums.bonusDrops == null) e.sanctums.bonusDrops = 0;
+    if (!e.sanctums.bonusByTier || typeof e.sanctums.bonusByTier !== 'object') e.sanctums.bonusByTier = {};
     return e.sanctums;
+  };
+
+  EX.rollSanctumBonusReward = (W, sc, deepestFloor, alive, out, opts) => {
+    opts = opts || {};
+    const floor = clamp(Math.floor(Number(deepestFloor) || 0), 0, 3);
+    const chance = EX.SANCTUM_BONUS_CHANCE_BY_FLOOR[floor] || 0;
+    if (floor <= 0 || chance <= 0) {
+      return { deepestFloor: floor, chance: 0, roll: null, triggered: false, tierId: null, reward: null, fallbackUsed: null };
+    }
+    const roll = (typeof opts.bonusRoll === 'number') ? opts.bonusRoll : (W && W.rng ? W.rng.next() : 1);
+    if (!(roll < chance)) {
+      return { deepestFloor: floor, chance, roll, triggered: false, tierId: null, reward: null, fallbackUsed: null };
+    }
+    // Second weighted roll across SANCTUM_BONUS_TIERS (total weight = 100)
+    const totalWeight = EX.SANCTUM_BONUS_TIERS.reduce((s, t) => s + t.weight, 0);
+    const rawSecond = (typeof opts.tierRoll === 'number') ? clamp(opts.tierRoll, 0, 0.999999) * totalWeight : (W && W.rng ? W.rng.next() * totalWeight : 0);
+    let pickedTier = EX.SANCTUM_BONUS_TIERS[0];
+    if (opts.forceBonusTier) {
+      pickedTier = EX.SANCTUM_BONUS_TIERS.find(t => t.id === opts.forceBonusTier) || pickedTier;
+    } else {
+      let acc = 0;
+      for (let i = 0; i < EX.SANCTUM_BONUS_TIERS.length; i++) {
+        acc += EX.SANCTUM_BONUS_TIERS[i].weight;
+        if (rawSecond < acc) { pickedTier = EX.SANCTUM_BONUS_TIERS[i]; break; }
+      }
+    }
+
+    let effectiveTierId = pickedTier.id;
+    let fallbackUsed = null;
+    const sanctumPaths = sc && sc.id === 'SANCTUM_BLOOD_VAJRA' ? ['BODY', 'DEMON'] : sc && sc.id === 'SANCTUM_ASTRAL_DIVINE' ? ['XIAN', 'GOD', 'DEMON'] : ['XIAN', 'HEART_SOUL'];
+    const sanctumSubs = (sc && Array.isArray(sc.floors)) ? sc.floors.slice(0, floor).map(f => f.subPath).filter(Boolean) : ['SWORD_IMMORTAL'];
+
+    // Helper: check if a manual is already owned in library or any living NPC
+    const isManualOwned = tid => {
+      if (W.sect && Array.isArray(W.sect.library) && W.sect.library.includes(tid)) return true;
+      if (W.sect && W.sect.crystals && (W.sect.crystals['T:' + tid] || 0) > 0) return true;
+      if (g.VC && g.VC.isTargetAlreadyClaimed && g.VC.isTargetAlreadyClaimed(W, { unique: true, targetKind: 'TECH_MANUAL', targetId: tid })) return true;
+      for (const n of (W.npcs || [])) {
+        if (!n || n.dead) continue;
+        if (n.cult && ((n.cult.techs && n.cult.techs.includes(tid)) || n.cult.mantra === tid || (Array.isArray(n.cult.unlockedMantras) && n.cult.unlockedMantras.includes(tid)))) return true;
+        if (n.inv && Array.isArray(n.inv.techs) && n.inv.techs.includes(tid)) return true;
+      }
+      return false;
+    };
+
+    if (effectiveTierId === 'APEX_LEGENDARY') {
+      if (floor < 3) {
+        effectiveTierId = 'UNCOMMON_MANUAL';
+        fallbackUsed = 'requires_floor_3';
+      } else {
+        const allTechs = [...(JD.TECH.techniques || []), ...(JD.TECH.mantras || [])];
+        const legPool = allTechs.filter(t => t && t.legendary && !t.innateOnly && !(g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) && !isManualOwned(t.id));
+        const themedLeg = legPool.filter(t => t.path === 'ANY' || sanctumPaths.includes(t.path));
+        const chosenLeg = (themedLeg.length ? themedLeg : legPool)[0] || null;
+        if (chosenLeg) {
+          W.sect.library = W.sect.library || [];
+          if (!W.sect.library.includes(chosenLeg.id)) W.sect.library.push(chosenLeg.id);
+          if (g.MARTIAL && g.MARTIAL.ensure) {
+            const wm = g.MARTIAL.ensure(W);
+            if (!wm.foundLegends.includes(chosenLeg.id)) wm.foundLegends.push(chosenLeg.id);
+          }
+          const reward = { tierId: 'APEX_LEGENDARY', rarityRank: 5, kind: 'TECH_MANUAL', id: chosenLeg.id, nameTh: chosenLeg.nameTh, qty: 1, legendary: true };
+          return { deepestFloor: floor, chance, roll, secondRoll: rawSecond / totalWeight, requestedTierId: pickedTier.id, tierId: 'APEX_LEGENDARY', triggered: true, reward, fallbackUsed };
+        }
+        effectiveTierId = 'UNCOMMON_MANUAL';
+        fallbackUsed = 'all_legendaries_claimed';
+      }
+    }
+
+    if (effectiveTierId === 'UNCOMMON_MANUAL') {
+      const maxT = Math.min(5, 3 + floor);
+      const manualPool = (JD.TECH.techniques || []).filter(t =>
+        t && !t.legendary && !t.innateOnly && !(g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) &&
+        !/FORBIDDEN/.test(t.cat || '') && (t.tier || 1) >= 3 && (t.tier || 1) <= maxT &&
+        ['Refined', 'Rare', 'Exceptional'].includes(t.grade || '') &&
+        !isManualOwned(t.id)
+      );
+      const themedManuals = manualPool.filter(t => t.path === 'ANY' || sanctumPaths.includes(t.path));
+      const pickList = themedManuals.length ? themedManuals : manualPool;
+      if (pickList.length) {
+        const idx = ((W.day || 0) + (W.explore?.sanctums?.runs || 0)) % pickList.length;
+        const chosenM = pickList[idx];
+        W.sect.library = W.sect.library || [];
+        if (!W.sect.library.includes(chosenM.id)) W.sect.library.push(chosenM.id);
+        const reward = { tierId: 'UNCOMMON_MANUAL', rarityRank: 4, kind: 'TECH_MANUAL', id: chosenM.id, nameTh: chosenM.nameTh, qty: 1, legendary: false };
+        return { deepestFloor: floor, chance, roll, secondRoll: rawSecond / totalWeight, requestedTierId: pickedTier.id, tierId: 'UNCOMMON_MANUAL', triggered: true, reward, fallbackUsed };
+      }
+      effectiveTierId = 'SUBPATH_CRYSTAL';
+      fallbackUsed = fallbackUsed || 'all_manuals_owned';
+    }
+
+    if (effectiveTierId === 'SUBPATH_CRYSTAL') {
+      W.sect.crystals = W.sect.crystals || {};
+      const unsatSubs = sanctumSubs.filter(sid => (W.sect.crystals['S:' + sid] || 0) < 2);
+      if (unsatSubs.length) {
+        const sid = unsatSubs[((W.day || 0) + floor) % unsatSubs.length];
+        const cKey = 'S:' + sid;
+        W.sect.crystals[cKey] = (W.sect.crystals[cKey] || 0) + 1;
+        out.crystals = out.crystals || {};
+        out.crystals[cKey] = (out.crystals[cKey] || 0) + 1;
+        const subObj = CULT.subList && CULT.subList.find(x => x.sub && x.sub.id === sid);
+        const nameTh = 'ผลึกสายย่อย「' + (subObj ? subObj.sub.nameTh : sid) + '」';
+        const reward = { tierId: 'SUBPATH_CRYSTAL', rarityRank: 3, kind: 'CRYSTAL', id: cKey, subpathId: sid, nameTh, qty: 1, legendary: false };
+        return { deepestFloor: floor, chance, roll, secondRoll: rawSecond / totalWeight, requestedTierId: pickedTier.id, tierId: 'SUBPATH_CRYSTAL', triggered: true, reward, fallbackUsed };
+      }
+      effectiveTierId = 'RECIPE_SCROLL';
+      fallbackUsed = fallbackUsed || 'subpath_crystal_saturated';
+    }
+
+    if (effectiveTierId === 'RECIPE_SCROLL') {
+      W.sect.knownRecipes = W.sect.knownRecipes || [];
+      const maxRecTier = Math.min(5, 3 + floor);
+      const recPool = (JD.ITEMS.recipes || []).filter(r => r && r.id && (r.tier || 1) >= 3 && (r.tier || 1) <= maxRecTier && !W.sect.knownRecipes.includes(r.id));
+      if (recPool.length) {
+        const rPick = recPool[((W.day || 0) + floor) % recPool.length];
+        W.sect.knownRecipes.push(rPick.id);
+        out.recipes = out.recipes || [];
+        if (!out.recipes.includes(rPick.id)) out.recipes.push(rPick.id);
+        const reward = { tierId: 'RECIPE_SCROLL', rarityRank: 2, kind: 'RECIPE_SCROLL', id: rPick.id, nameTh: 'ม้วนตำรับ「' + rPick.nameTh + '」', qty: 1, legendary: false };
+        return { deepestFloor: floor, chance, roll, secondRoll: rawSecond / totalWeight, requestedTierId: pickedTier.id, tierId: 'RECIPE_SCROLL', triggered: true, reward, fallbackUsed };
+      }
+      effectiveTierId = 'RARE_MATERIAL';
+      fallbackUsed = fallbackUsed || 'all_recipes_known';
+    }
+
+    // Tier 1 (or fallback): RARE_MATERIAL (T3-T5 material, bounded quantity 1)
+    const matTier = Math.min(5, 2 + floor);
+    const mats = (JD.ITEMS.materials || []).filter(m => m && m.id && (m.tier || 1) >= Math.max(2, matTier - 1) && (m.tier || 1) <= matTier);
+    const chosenMat = mats.length ? mats[((W.day || 0) + floor) % mats.length] : { id: 'MAT_ORE_METEOR_IRON_4', nameTh: 'แร่เหล็กดาวตก', tier: 4 };
+    out.mats[chosenMat.id] = (out.mats[chosenMat.id] || 0) + 1;
+    const reward = { tierId: 'RARE_MATERIAL', rarityRank: 1, kind: 'MATERIAL', id: chosenMat.id, nameTh: chosenMat.nameTh, qty: 1, legendary: false };
+    return { deepestFloor: floor, chance, roll, secondRoll: rawSecond / totalWeight, requestedTierId: pickedTier.id, tierId: 'RARE_MATERIAL', triggered: true, reward, fallbackUsed };
   };
 
   EX.departSanctum = (W, party, sanctumId) => {
@@ -7215,16 +7364,18 @@
     return ex;
   };
 
-  EX.resolveSanctum = (W, ex, members) => {
+  EX.resolveSanctum = (W, ex, members, opts) => {
+    opts = opts || {};
     if (!W || !ex || ex.done || !Array.isArray(members) || !members.length) return null;
     const sState = EX.ensureSanctums(W);
     const sc = EX.SANCTUMS[ex.sanctumId || ex.region] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
     const alive = members.filter(m => m && !m.dead);
-    const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], catalysts: {}, notes: [], rep: 0, floorsCleared: 0, floorLogs: [] };
+    const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], catalysts: {}, crystals: {}, recipes: [], bonusRewards: [], bonusReward: null, bonusRoll: null, retreated: false, failedFloor: null, notes: [], rep: 0, floorsCleared: 0, floorLogs: [] };
     sState.runs = (sState.runs || 0) + 1;
+    const maxTargetFloor = clamp(ex.maxFloor != null ? ex.maxFloor : (opts.maxFloor != null ? opts.maxFloor : sc.floors.length), 1, sc.floors.length);
 
     for (const fl of sc.floors) {
-      if (!alive.length) break;
+      if (!alive.length || fl.floor > maxTargetFloor) break;
       const lead = alive.slice().sort((a, b) => CULT.power(b) - CULT.power(a))[0];
       const resSetDef = (g.MARTIAL && g.MARTIAL.RESONANCE_SETS && g.MARTIAL.RESONANCE_SETS[fl.subPath]) || { nameTh: 'ชุดสัจธรรม' + fl.subPath };
       const guardian = {
@@ -7244,8 +7395,8 @@
         return sum + CULT.power(m) * (1 + (rs.active ? rs.pieces * 0.06 : 0));
       }, 0) * (tac.dmgMult || 1);
       const bossEffectivePower = fl.basePower * 1.12; // 3-piece boss resonance bonus
-      const winProb = clamp(partyPower / (partyPower + bossEffectivePower * 0.85), 0.12, 0.96);
-      const won = ex.forceClear ? true : (W.rng ? W.rng.next() < winProb : true);
+      const winProb = clamp(partyPower / (partyPower + bossEffectivePower * 0.85), 0.05, 0.96);
+      const won = ex.forceFailFloor === fl.floor ? false : (ex.forceClear ? true : (W.rng ? W.rng.next() < winProb : true));
 
       const fLog = {
         floor: fl.floor,
@@ -7270,8 +7421,9 @@
           sState.catalystsFound = (sState.catalystsFound || 0) + 1;
           fLog.catalystDropped = fl.catalystId;
         }
-        // Mint a piece of T4-T6 gear on floor 2+
-        if (fl.floor >= 2) {
+        // Mint a piece of T4-T6 gear on floor 2+ (capped during repeated farming if sect armory already has >= 6 T4+ pieces)
+        const armoryHighCount = (W.sect && Array.isArray(W.sect.gear)) ? W.sect.gear.filter(g2 => g2 && (g2.tier || 1) >= 4).length : 0;
+        if (fl.floor >= 2 && (armoryHighCount < 6 || (W.rng ? W.rng.chance(0.25) : false))) {
           const allRec = (JD.ITEMS && JD.ITEMS.recipes ? JD.ITEMS.recipes : []).filter(r => r.outType === 'EQUIPMENT' && r.tier === fl.tier);
           if (allRec.length) {
             const rPick = allRec[(W.day + fl.floor) % allRec.length];
@@ -7281,11 +7433,41 @@
         }
         ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ปราบ' + fl.guardianNameTh + ' [ชุดสัจธรรม 3/3 · ' + fl.weaponType + '] สำเร็จ รับ「' + (ECO.REFINEMENT_CATALYSTS[fl.catalystId]?.nameTh || fl.catalystId) + '」');
         alive.forEach(m => HC.experience(m, 'victory', 0.55));
+        if (!ex.forceClear && fl.floor < sc.floors.length) {
+          dmgOne(W, alive, clamp((1 - winProb) * 0.35, 0.04, 0.24), 'ปะทะผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
+          const avgHp = alive.reduce((s, m) => s + (m.h.state.hp / Math.max(1, CULT.hpMax(m))), 0) / alive.length;
+          if (avgHp < 0.38) {
+            out.retreated = true;
+            out.retreatFloor = fl.floor;
+            out.retreatReason = 'low-hp';
+            ex.journal.push('ชั้น ' + fl.floor + ': บาดเจ็บสะสม ถอยกลับพร้อมของรางวัลที่เก็บได้');
+            break;
+          }
+        }
       } else {
+        out.retreated = true;
+        out.failedFloor = fl.floor;
+        out.retreatReason = 'defeated';
         dmgOne(W, alive, 0.25, 'พ่ายต่อผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
         ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ต้านพลังชุดสัจธรรมของ' + fl.guardianNameTh + ' ไม่ไหว ต้องถอยกลับ');
         break;
       }
+    }
+
+    // Separate single bonus-reward roll based on deepest floor cleared (4% F1 / 8% F2 / 12% F3, cap 1 per expedition)
+    const bonusOpts = Object.assign({}, opts, {
+      bonusRoll: opts.bonusRoll != null ? opts.bonusRoll : ex.bonusRollOverride,
+      tierRoll: opts.tierRoll != null ? opts.tierRoll : ex.bonusTierRollOverride,
+      forceBonusTier: opts.forceBonusTier || ex.forceBonusTier
+    });
+    const bRes = EX.rollSanctumBonusReward(W, sc, out.floorsCleared, alive, out, bonusOpts);
+    out.bonusRoll = bRes;
+    if (bRes && bRes.triggered && bRes.reward) {
+      out.bonusReward = bRes.reward;
+      out.bonusRewards = [bRes.reward];
+      sState.bonusDrops = (sState.bonusDrops || 0) + 1;
+      sState.bonusByTier[bRes.tierId] = (sState.bonusByTier[bRes.tierId] || 0) + 1;
+      ex.journal.push('★ รางวัลโบนัสวิหารโบราณ (ชั้นลึกสุด ' + out.floorsCleared + '): ได้รับ「' + bRes.reward.nameTh + '」');
     }
 
     out.rep = out.floorsCleared * 1.5;
@@ -7308,7 +7490,10 @@
       sanctumId: sc.id,
       sanctumNameTh: sc.nameTh,
       floorsCleared: out.floorsCleared,
+      retreated: out.retreated,
+      failedFloor: out.failedFloor,
       catalysts: Object.assign({}, out.catalysts),
+      bonusReward: out.bonusReward,
       floorLogs: out.floorLogs
     });
     if (sState.history.length > 20) sState.history.length = 20;

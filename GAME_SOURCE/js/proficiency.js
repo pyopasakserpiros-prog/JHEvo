@@ -108,11 +108,15 @@ M.activeBottleneckSkills=(W,n)=>{
  if(tr.ordinal>=9)return EMPTY_ARR;
  const th=[200,520,1350,3400,8500,21000,50000,120000][tr.ordinal-1]||150000;
  if(tr.prog<th*0.65)return EMPTY_ARR;
- const wt=W&&W.t>0?W.t:-1,ac=n._abnCache,sks=n.h&&n.h.skills,skSum=sks?((sks.MOVEMENT||0)+(sks.BLADE||0)+(sks.SWORD||0)+(sks.WATER_ICE||0)+(sks.WOOD_LIFE||0))|0:0;
- if(wt>0&&ac&&ac.t===wt&&ac.ord===tr.ordinal&&ac.ver===n._ver&&ac.skSum===skSum)return ac.out;
+ const def0=CULT.trackDef?CULT.trackDef(tr.subPath):null;
+ const g0=(def0&&def0.realms&&def0.realms[tr.ordinal])?(def0.realms[tr.ordinal].skillGate||{}):{};
+ const pSk=g0.primarySkill?M.skillRead(n,g0.primarySkill):0;
+ const sSk=g0.secondarySkill?M.skillRead(n,g0.secondarySkill):0;
+ const wt=W&&W.t>0?W.t:-1,ac=n._abnCache;
+ if(wt>0&&ac&&ac.t===wt&&ac.sub===tr.subPath&&ac.ord===tr.ordinal&&ac.prog===tr.prog&&ac.ver===n._ver&&ac.pSk===pSk&&ac.sSk===sSk)return ac.out;
  const g=CULT.checkTrackGates(W,n);
  const out=(!g.skillOk&&Array.isArray(g.missingSkills))?g.missingSkills:EMPTY_ARR;
- if(wt>0)n._abnCache={t:wt,ord:tr.ordinal,ver:n._ver,skSum,out};
+ if(wt>0)n._abnCache={t:wt,sub:tr.subPath,ord:tr.ordinal,prog:tr.prog,ver:n._ver,pSk,sSk,out};
  return out;
 };
 M.pickSkillPractice=(W,n)=>{
@@ -120,7 +124,7 @@ M.pickSkillPractice=(W,n)=>{
  const bnSkills=M.activeBottleneckSkills(W,n);
  const bnSig=bnSkills.length?bnSkills.map(x=>x.skill+':'+Math.floor(x.current)+'/'+x.required).join('|'):'';
  const wt=W?W.t:0,eqW=n.equip&&n.equip.WEAPON,psc=n._pspCache;
- if(psc&&wt-psc.t<45&&psc.post===n.post&&psc.eqW===eqW&&psc.bnSig===bnSig)return psc.best;
+ if(wt>0&&psc&&wt>=psc.t&&wt-psc.t<45&&psc.ver===n._ver&&psc.post===n.post&&psc.eqW===eqW&&psc.bnSig===bnSig&&Math.floor(M.skillRead(n,psc.best))===psc.bestLv)return psc.best;
  const drive=bnSkills.length?M.bottleneckSkillDrive(n):0;
  const trReady=bnSkills.length&&CULT.trackReady(n);
  const bnMap={};
@@ -137,10 +141,10 @@ M.pickSkillPractice=(W,n)=>{
   const value=interest*.65+need+role+eqBonus+gateBonus;
   if(value>score){score=value;best=id;}
  }
- n._pspCache={t:wt,post:n.post,eqW,bnSig,best};
+ n._pspCache={t:wt,ver:n._ver,post:n.post,eqW,bnSig,best,bestLv:Math.floor(M.skillRead(n,best))};
  return best;
 };
-AI.ACTS.skillDrill={nameTh:'ฝึกทักษะเฉพาะ',icon:'🎯',color:'#a6c7e8',can:n=>n.h.state.energy>35&&n.h.state.satiety>30,score(n,W,S){const id=M.pickSkillPractice(W,n),info=M.SKILL_INFO[id]||M.SKILL_INFO.MOVEMENT;S.add('ฝึก'+info.nameTh,.25+(HC.eff(n,'interests.'+info.interest)-50)/180+(n.martialIntent&&n.martialIntent.action==='prepare'?.7:0));const bnSkills=M.activeBottleneckSkills(W,n),ms=bnSkills.find(x=>x.skill===id);if(ms){const drive=M.bottleneckSkillDrive(n),s=n.h.state,gObj=n.cognition&&n.cognition.goal,isComp=!!(gObj&&((gObj.id==='crisis'&&W&&W.sect&&(W.sect.shortageDirectives||[]).some(d=>d.id===gObj.targetId&&d.deficit>0))||(gObj.id==='help_friend'&&W&&W.byId&&W.byId[gObj.targetId]&&W.byId[gObj.targetId].h.state.hp<CULT.hpMax(W.byId[gObj.targetId])*0.72)||(gObj.id==='recovery'&&(s.hp<CULT.hpMax(n)*0.75||s.satiety<25||s.rest<20)))),compMult=isComp?0.25:1,needFactor=clamp(Math.min(s.satiety/35,s.rest/25,s.energy/30),0.2,1)*compMult;S.add('ทะลวงคอขวดสายเฉพาะทาง: '+id+' '+Math.floor(ms.current)+'/'+ms.required,(CULT.trackReady(n)?1.25:0.85)*drive*needFactor);}},where(W,n){const skill=M.pickSkillPractice(W,n),isPhysical=groups.weapon.includes(skill)||['MOVEMENT','BODY_REFINING','stealth','survival','BEAST_TAMING'].includes(skill);let st=AI.freeStation(W,n,isPhysical?'dummy':'read',isPhysical?'training_ground':'scripture');if(!st&&isPhysical)st=AI.freeStation(W,n,'spar','training_ground')||AI.freeStation(W,n,'read','scripture');else if(!st)st=AI.freeStation(W,n,'dummy','training_ground');return st?{st,skill}:null;},dur:()=>100,tick(n,W,ctx){M.skillPractice(n,ctx.skill,1/60,1.1);n.h.state.energy=Math.max(0,n.h.state.energy-.055);},done(n,W,ctx){n.merit=(n.merit||0)+.1;if(g.ELEM&&n.cult){const m=n.cult.mantra&&CULT.tech(n.cult.mantra);if(m)g.ELEM.gainMastery(n,m,'practice',W,{sourceId:'drill_'+(ctx&&ctx.skill||'skill'),scale:0.7});}}};
+AI.ACTS.skillDrill={nameTh:'ฝึกทักษะเฉพาะ',icon:'🎯',color:'#a6c7e8',can:n=>n.h.state.energy>35&&n.h.state.satiety>30,score(n,W,S){const id=M.pickSkillPractice(W,n),info=M.SKILL_INFO[id]||M.SKILL_INFO.MOVEMENT;S.add('ฝึก'+info.nameTh,.25+(HC.eff(n,'interests.'+info.interest)-50)/180+(n.martialIntent&&n.martialIntent.action==='prepare'?.7:0));const bnSkills=M.activeBottleneckSkills(W,n),ms=bnSkills.find(x=>x.skill===id);if(ms){const isPhysical=groups.weapon.includes(id)||['MOVEMENT','BODY_REFINING','stealth','survival','BEAST_TAMING'].includes(id);const hasSt=!W||!W.map||AI.freeStation(W,n,isPhysical?'dummy':'read',isPhysical?'training_ground':'scripture')||(isPhysical?(AI.freeStation(W,n,'spar','training_ground')||AI.freeStation(W,n,'read','scripture')):AI.freeStation(W,n,'dummy','training_ground'));if(hasSt){const drive=M.bottleneckSkillDrive(n),s=n.h.state,gObj=n.cognition&&n.cognition.goal,isComp=!!(gObj&&((gObj.id==='crisis'&&W&&W.sect&&(W.sect.shortageDirectives||[]).some(d=>d.id===gObj.targetId&&d.deficit>0))||(gObj.id==='help_friend'&&W&&W.byId&&W.byId[gObj.targetId]&&W.byId[gObj.targetId].h.state.hp<CULT.hpMax(W.byId[gObj.targetId])*0.72)||(gObj.id==='recovery'&&(s.hp<CULT.hpMax(n)*0.75||s.satiety<25||s.rest<20)))),compMult=isComp?0.25:1,needFactor=clamp(Math.min(s.satiety/35,s.rest/25,s.energy/30),0.2,1)*compMult;S.add('ทะลวงคอขวดสายเฉพาะทาง: '+id+' '+Math.floor(ms.current)+'/'+ms.required,(CULT.trackReady(n)?1.25:0.85)*drive*needFactor);}}},where(W,n){const skill=M.pickSkillPractice(W,n),isPhysical=groups.weapon.includes(skill)||['MOVEMENT','BODY_REFINING','stealth','survival','BEAST_TAMING'].includes(skill);let st=AI.freeStation(W,n,isPhysical?'dummy':'read',isPhysical?'training_ground':'scripture');if(!st&&isPhysical)st=AI.freeStation(W,n,'spar','training_ground')||AI.freeStation(W,n,'read','scripture');else if(!st)st=AI.freeStation(W,n,'dummy','training_ground');return st?{st,skill}:null;},dur:()=>100,tick(n,W,ctx){M.skillPractice(n,ctx.skill,1/60,1.1);n.h.state.energy=Math.max(0,n.h.state.energy-.055);},done(n,W,ctx){n.merit=(n.merit||0)+.1;if(g.ELEM&&n.cult){const m=n.cult.mantra&&CULT.tech(n.cult.mantra);if(m)g.ELEM.gainMastery(n,m,'practice',W,{sourceId:'drill_'+(ctx&&ctx.skill||'skill'),scale:0.7});}if(n.cult&&n.cult.track&&CULT.trackReady&&CULT.trackReady(n)&&CULT.checkTrackGates&&CULT.checkTrackGates(W,n).ok&&CULT.trackBreakthrough){CULT.trackBreakthrough(W,n);}}};
 // Training and teaching of additional proficiencies use the same native stations/actions.
 const practiceWhere=AI.ACTS.practice.where;AI.ACTS.practice.where=(W,n)=>{const result=practiceWhere(W,n);if(result){const equipped={FIST:'FIST_PALM'}[M.equippedType(n)]||M.equippedType(n);if(groups.weapon.includes(equipped))result.skill=equipped;const bnSkills=M.activeBottleneckSkills(W,n);if(bnSkills.length){const picked=M.pickSkillPractice(W,n),ms=bnSkills.find(x=>x.skill===picked)||bnSkills[0];if(ms&&(groups.weapon.includes(ms.skill)||['MOVEMENT','BODY_REFINING','SOUL_DIVINE','POISON','WATER_ICE','WOOD_LIFE','stealth','survival'].includes(ms.skill)))result.skill=ms.skill;}if(n.martialIntent&&n.martialIntent.action==='prepare')result.skill=M.pickSkillPractice(W,n);}return result;};
 const pickTeach=AI.pickTeachSkill;AI.pickTeachSkill=(t,s)=>{if(s&&t){const bnSkills=M.activeBottleneckSkills(null,s);for(let i=0;i<bnSkills.length;i++){const sk=bnSkills[i].skill;if(M.skillRead(t,sk)>M.skillRead(s,sk)+2)return sk;}}const best=pickTeach(t,s),newSkill=Object.keys(extra).filter(k=>k!=='WATER_ICE'&&k!=='WOOD_LIFE').sort((a,b)=>M.skillRead(t,b)-M.skillRead(s,b)-M.skillRead(t,a)+M.skillRead(s,a))[0];return M.skillRead(t,newSkill)-M.skillRead(s,newSkill)>M.skillRead(t,best)-M.skillRead(s,best)?newSkill:best;};

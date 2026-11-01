@@ -1983,6 +1983,14 @@
   CULT.defenseMult = npc => { let d = 0; const E = npc.equip || {}; for (const k in E) if (E[k] && E[k].defMult) d += E[k].defMult; return 1 + d; };
 
   /* ----- ทะลวงขั้น ----- */
+  CULT.isAncestralBlessingActive = (npc, now) => {
+    const ab = npc && npc.ancestralBlessing;
+    if (!ab) return false;
+    const tNow = Number.isFinite(now) ? now : (g.STATS && Number.isFinite(g.STATS.now) && g.STATS.now > 0 ? g.STATS.now : null);
+    if (ab.until != null && tNow != null) return ab.until >= tNow;
+    if (ab.untilDay != null && HC.nowDay != null && HC.nowDay > 0) return ab.untilDay >= HC.nowDay;
+    return true;
+  };
   CULT.breakthroughChance = (npc, prep) => {
     ELEM.ensureNpc(npc);
     const c = npc.cult; const st = CULT.PATHS[c.path].stages[c.stage - 1];
@@ -2008,10 +2016,7 @@
       p -= hd / 100 * 0.25 + c.toxic / 100 * 0.15;
     }
     if (g.BN) p += g.BN.chanceMod(npc);
-    // The simulation clock is in W.t (minutes). Pass it through the attempt so
-    // a blessing expires consistently even when no global STATS clock exists.
-    const now = prep && Number.isFinite(prep.now) ? prep.now : (g.STATS && Number.isFinite(g.STATS.now) ? g.STATS.now : null);
-    if (npc.ancestralBlessing && (now == null || npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= now)) p += (npc.ancestralBlessing.breakthroughBonus || 0);
+    if (CULT.isAncestralBlessingActive(npc, prep && Number.isFinite(prep.now) ? prep.now : null)) p += (npc.ancestralBlessing.breakthroughBonus || 0);
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
@@ -2068,7 +2073,7 @@
       }
       const pd = c.stage >= 3 ? 0.012 * (c.stage - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
       if (rng.next() < pd) res.died = true;
-      if (npc.ancestralBlessing && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || npc.ancestralBlessing.untilDay >= (W ? W.day : 0))) {
+      if (CULT.isAncestralBlessingActive(npc, W ? W.t : null) && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || !W || W.day == null || npc.ancestralBlessing.untilDay >= W.day)) {
         res.died = false;
         res.sev = 1;
         res.ancestralProtected = true;
@@ -2114,6 +2119,7 @@
     if (!npc || !npc.cult) return { ok: false, reason: 'ยังไม่เปิดวิถีบำเพ็ญ' };
     const c = npc.cult, req = t.reqTier || t.tier || 5;
     if (CULT.effectiveTechStage(npc) < req) return { ok: false, reason: 'ขั้นบำเพ็ญไม่ถึงเกณฑ์วิชาต้องห้าม (ขั้น ' + req + ')' };
+    if (t.legendary) return { ok: true };
     if (t.path !== 'ANY' && t.path !== c.path) return { ok: false, reason: 'ต่างวิถีหลัก' };
     if (!CULT.isSubCompatible(t, c.sub, false)) return { ok: false, reason: 'ต้องมีสายย่อยตรงกัน' };
     const allowFlag = !!(opts && (opts.allowForbidden || opts.libraryStudy)) || !!npc.allowForbiddenStudy;
@@ -2137,7 +2143,7 @@
       const pathOk = t.path === 'ANY' || t.path === c.path || (!strictPrimary && (t.legendary || allowCrossPath || !CULT.isExclusiveSubpathTech(t)));
       if (!pathOk || !CULT.isSubCompatible(t, c.sub, strictPrimary)) return false;
       if (/_MANTRA$|^QI_MANTRA$/.test(t.cat)) return false;
-      if (/FORBIDDEN/.test(t.cat)) {
+      if (/FORBIDDEN/.test(t.cat) && !t.legendary) {
         if (!opts || !opts.includeForbidden) {
           if (!npc.allowForbiddenStudy && !(opts && opts.allowForbidden)) return false;
         }
@@ -2148,33 +2154,141 @@
   };
   CULT.studyCost = (t, npc) => {
     const base = 90 * (t.tier + 0.5) * (1 + t.tier * 0.25);
-    if (!npc || !npc.h) return base;
-    const comp = ELEM.resolveCompatibility(npc, t, 'TECH_STUDY');
-    const blessMult = (npc.ancestralBlessing && npc.ancestralBlessing.studySpeedMult > 1) ? npc.ancestralBlessing.studySpeedMult : 1;
+    if (!npc || !npc.h) return Math.round(base);
     const tc = (g.MARTIAL && g.MARTIAL.resolveTechCompatibility) ? g.MARTIAL.resolveTechCompatibility(npc, t) : null;
     const pathSubStudyMult = tc ? tc.studySpeedMult : 1;
-    return Math.max(25, Math.round(base / (Math.max(0.50, comp.studySpeedMultiplier * pathSubStudyMult) * blessMult)));
+    return Math.max(25, Math.round(base / Math.max(0.50, pathSubStudyMult)));
   };
   CULT.maxTechs = npc => 2 + (npc.cult ? Math.round(CULT.normalizedStage(npc)) : 0);
 
 
   /* ----- สายบำเพ็ญเฉพาะทางอิสระ (Independent Specialization Tracks - v1.10.3 / v1.10.8) ----- */
   CULT.TRACKS = {};
+  CULT.EXPANSION_TRACK_IDS = new Set();
+  CULT.ADVANCED_TRACKS = {};
+
+  const BASE_SUB_GATE_SKILLS = {
+    SWORD_IMMORTAL: ["SWORD", "MOVEMENT"],
+    FIVE_ELEMENTS: ["FOCUS", "SCRIPTURE"],
+    ELIXIR_DAO: ["ALCHEMY", "MEDICINE"],
+    ASTRAL_ARRAY: ["ARRAY", "TALISMAN"],
+    BLOOD_DEMON: ["BLADE", "POISON"],
+    PHANTOM_SOUL: ["MOVEMENT", "SOUL_DIVINE"],
+    TIME_VOID: ["MOVEMENT", "ARRAY"],
+    SOUND_ZITHER: ["FOCUS", "arts"],
+    YIN_YANG_HARMONY: ["FOCUS", "MEDICINE"],
+    STAR_ARCHER: ["BOW", "MOVEMENT"],
+    TIGER_SOVEREIGN: ["FIST_PALM", "BODY_REFINING"],
+    BLOOD_DRAGON: ["SPEAR", "BODY_REFINING"],
+    VAJRA_BODHI: ["STAFF", "BODY_REFINING"],
+    DEVOURING_FIEND: ["FIST_PALM", "POISON"],
+    SOLAR_FORGE: ["FORGING", "BODY_REFINING"],
+    THUNDER_BODY: ["SPEAR", "MOVEMENT"],
+    JADE_IMMORTAL_BODY: ["BODY_REFINING", "MEDICINE"],
+    TITAN_MOUNTAIN_BODY: ["STAFF", "BODY_REFINING"],
+    STAFF_GUARD: ["STAFF", "BODY_REFINING"],
+    WAR_DEITY: ["SPEAR", "ritual"],
+    MERCY_DEITY: ["MEDICINE", "ritual"],
+    FATE_ORACLE: ["SCRIPTURE", "TALISMAN"],
+    TOTEM_BEAST_GOD: ["BEAST_TAMING", "SPEAR"],
+    UNDERWORLD_JUDGE: ["SOUL_DIVINE", "SCRIPTURE"],
+    OCEAN_SOVEREIGN: ["SPEAR", "WATER_ICE"],
+    HARVEST_EARTH_GOD: ["herbalism", "WOOD_LIFE"],
+    SHADOW_ARCHER: ["BOW", "stealth"]
+  };
+
   CULT.registerTracks = () => {
     if (JD && JD.EXPANSION && Array.isArray(JD.EXPANSION.progressionMapping)) {
       JD.EXPANSION.progressionMapping.forEach(pm => {
         if (pm.subPath && Array.isArray(pm.realms)) {
           CULT.TRACKS[pm.subPath] = pm;
+          CULT.EXPANSION_TRACK_IDS.add(pm.subPath);
         }
+      });
+      if (CULT.TRACKS.SHADOW_ASSASSIN && CULT.TRACKS.SHADOW_ASSASSIN.realms && CULT.TRACKS.SHADOW_ASSASSIN.realms[1] && CULT.TRACKS.SHADOW_ASSASSIN.realms[1].skillGate) {
+        CULT.TRACKS.SHADOW_ASSASSIN.realms[1].skillGate.minPrimarySkill = 30;
+      }
+    }
+    // Register 50-Subpath Specialization Progression Bridge for base subpaths
+    if (Array.isArray(CULT.subList)) {
+      const mMapByPath = {
+        XIAN: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        DEMON: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        HEART_SOUL: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        BODY: [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0],
+        GOD: [1.0, 1.5, 2.0, 2.5, 3.0, 3.3, 3.7, 3.9, 4.0]
+      };
+      const fcpTable = [130, 310, 620, 1180, 2250, 4100, 7400, 13200, 23500];
+      const stoneTable = [55, 78, 125, 210, 350, 580, 950, 1550, 2500];
+      const pMinTable = [15, 30, 40, 50, 60, 70, 80, 88, 95];
+      const sMinTable = [10, 16, 22, 28, 34, 40, 46, 52, 58];
+      CULT.subList.forEach(({ path, sub }) => {
+        if (!sub || !sub.id || CULT.EXPANSION_TRACK_IDS.has(sub.id)) return;
+        const [pSk, sSk] = BASE_SUB_GATE_SKILLS[sub.id] || ["MOVEMENT", "SCRIPTURE"];
+        const mMap = mMapByPath[path] || mMapByPath.XIAN;
+        const maxSt = (CULT.PATHS[path] && CULT.PATHS[path].maxStage) || 9;
+        const realms = [];
+        for (let i = 0; i < 9; i++) {
+          const ord = i + 1;
+          realms.push({
+            ordinal: ord,
+            id: "R_ADV_" + sub.id + "_0" + ord,
+            nameTh: sub.nameTh + " ขั้นที่ " + ord,
+            lifespanMax: 95 + i * 35,
+            functionalCombatPower: fcpTable[i],
+            majorBandEquivalent: mMap[i],
+            skillGate: {
+              primarySkill: pSk,
+              minPrimarySkill: pMinTable[i],
+              secondarySkill: sSk,
+              minSecondarySkill: sMinTable[i]
+            },
+            resourceCost: {
+              stones: stoneTable[i],
+              materialTier: Math.min(7, 1 + Math.floor(i / 2))
+            },
+            capacityMultipliers: {
+              maxQiMult: +(1 + i * 0.06).toFixed(2),
+              vitalityMult: +(1 + i * 0.05).toFixed(2),
+              faithPoolMult: +(1 + i * 0.05).toFixed(2),
+              senseBonus: i * 2
+            },
+            realmBuffs: {
+              combatOffensePct: +(3.0 + i * 2.2).toFixed(1),
+              combatDefensePct: +(2.4 + i * 1.8).toFixed(1),
+              armorPenetrationPct: +(2.0 + i * 1.4).toFixed(1),
+              counterStrikePct: +(1.5 + i * 1.0).toFixed(1),
+              lifestealPct: path === "DEMON" ? +(1.5 + i * 1.1).toFixed(1) : 0,
+              reflectPct: path === "HEART_SOUL" ? +(1.5 + i * 1.2).toFixed(1) : 0,
+              evasionPct: pSk === "MOVEMENT" ? +(2.0 + i * 1.5).toFixed(1) : +(1.0 + i * 0.8).toFixed(1),
+              qiRegenBonusPct: +(2.0 + i * 1.5).toFixed(1)
+            },
+            breakthroughBaseChance: +(0.76 - i * 0.045).toFixed(2)
+          });
+        }
+        CULT.ADVANCED_TRACKS[sub.id] = {
+          subPath: sub.id,
+          trackId: "TRACK_ADV_" + path + "_" + sub.id,
+          sourceMajorPath: path,
+          sourceIndependentRealmCount: 9,
+          targetMajorPath: path,
+          targetMajorStages: maxSt,
+          majorPowerMapping: mMap.slice(),
+          mode: "INDEPENDENT_TRACK",
+          sourceRealmOrdinalsImported: true,
+          realms
+        };
       });
     }
   };
   CULT.registerTracks();
 
+  CULT.isExpansionTrack = subPath => CULT.EXPANSION_TRACK_IDS.has(subPath);
+
   CULT.trackDef = subPath => {
     if (!subPath) return null;
-    if (!CULT.TRACKS[subPath]) CULT.registerTracks();
-    return CULT.TRACKS[subPath] || null;
+    if (!CULT.TRACKS[subPath] && !CULT.ADVANCED_TRACKS[subPath]) CULT.registerTracks();
+    return CULT.TRACKS[subPath] || CULT.ADVANCED_TRACKS[subPath] || null;
   };
 
   CULT.trackOf = npc => {
@@ -2198,12 +2312,28 @@
     };
   };
 
+  CULT.awakenSpecializationTrack = (npc, day) => {
+    if (!npc || !npc.cult || !npc.cult.sub || npc.cult.sub === 'NONE') return null;
+    if (npc.cult.track) return npc.cult.track;
+    const def = CULT.trackDef(npc.cult.sub);
+    if (def) {
+      npc.cult.track = CULT.initTrack(npc.cult.sub, 1, day || 0);
+      CULT.refreshLifespan(npc);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      HC.bump(npc);
+    }
+    return npc.cult.track || null;
+  };
+
   CULT.ensureTrack = (npc, day) => {
     if (!npc || !npc.cult) return null;
     if (g.MARTIAL) g.MARTIAL.normalize(npc);
-    if (!npc.cult.track && CULT.trackDef(npc.cult.sub)) {
-      npc.cult.track = CULT.initTrack(npc.cult.sub, 1, day || 0);
-      CULT.refreshLifespan(npc);
+    if (!npc.cult.track && npc.cult.sub !== 'NONE') {
+      const isExp = CULT.isExpansionTrack(npc.cult.sub);
+      const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(npc) : (npc.cult.stage || 1);
+      if (isExp || effSt >= 4) {
+        CULT.awakenSpecializationTrack(npc, day);
+      }
     }
     return npc.cult.track || null;
   };
@@ -2446,8 +2576,10 @@
     const wt = W && W.t > 0 ? W.t : -1;
     const curActKey = (npc.act ? npc.act.id : "idle") + ":" + ((npc.act && npc.act.ctx && (npc.act.ctx.skill || npc.act.ctx.skillTgt)) || "");
     const tr0 = CULT.trackOf(npc), def0 = tr0 ? CULT.trackDef(tr0.subPath) : null, g0 = (def0 && def0.realms && def0.realms[tr0.ordinal]) ? (def0.realms[tr0.ordinal].skillGate || {}) : {};
-    const skKey = (g0.primarySkill ? Math.floor((npc.h.skills && npc.h.skills[g0.primarySkill]) || 0) : 0) + ":" + (g0.secondarySkill ? Math.floor((npc.h.skills && npc.h.skills[g0.secondarySkill]) || 0) : 0);
-    const stKey = Math.floor((npc.inv && npc.inv.stones) || 0) + ":" + Math.floor(npc.cp || 0) + ":" + (c.stage || 0) + ":" + Math.floor(c.prog || 0) + ":" + (tr0 ? tr0.ordinal + ":" + Math.floor(tr0.prog || 0) : "0") + ":" + skKey;
+    const readSk0 = id => (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(npc, id) : ((npc.h && npc.h.skills && npc.h.skills[id]) || 0);
+    const skKey = (g0.primarySkill ? Math.floor(readSk0(g0.primarySkill) * 10) : 0) + ":" + (g0.secondarySkill ? Math.floor(readSk0(g0.secondarySkill) * 10) : 0);
+    const busySt = (W && W.map && Array.isArray(W.map.stations)) ? W.map.stations.reduce((acc, st) => acc + (st && st.occ ? 1 : 0), 0) : 0;
+    const stKey = Math.floor((npc.inv && npc.inv.stones) || 0) + ":" + Math.floor(npc.cp || 0) + ":" + (c.stage || 0) + ":" + Math.floor(c.prog || 0) + ":" + (tr0 ? tr0.ordinal + ":" + Math.floor(tr0.prog || 0) : "0") + ":" + skKey + ":" + busySt + ":" + (npc.inj ? npc.inj.length : 0) + ":" + Math.floor((s && s.energy) || 0);
     if (wt > 0 && npc._bnInspectCache && npc._bnInspectCache.t === wt && npc._bnInspectCache.ver === npc._ver && npc._bnInspectCache.actKey === curActKey && npc._bnInspectCache.stKey === stKey) {
       return npc._bnInspectCache.out;
     }
@@ -2551,6 +2683,7 @@
           ready: gate.readyToAdvance,
           near: gate.nearThreshold,
           gateOk: false,
+          impossible: feasibleActions.length === 0,
           subPath: tr.subPath,
           ordinal: tr.ordinal,
           nextOrdinal: gate.nextOrdinal,
@@ -2559,6 +2692,7 @@
           missingStones: gate.missingStones,
           primarySkillToTrain: primaryMissingSkill ? primaryMissingSkill.skill : null,
           feasibleActions,
+          recommendedActions: feasibleActions,
           blockedReasons,
           blockerReasonTh: blockerTh,
           isActivelyResolving,
@@ -2643,7 +2777,10 @@
       relevantToNpc: !!(trackInfo || majorInfo) && driveMult >= 0.35 && !competingNeed,
       track: trackInfo,
       major: majorInfo,
+      impossible: primary ? (primary.feasibleActions.length === 0) : false,
       feasibleActions: primary ? primary.feasibleActions : [],
+      recommendedActions: primary ? primary.feasibleActions : [],
+      missingRequirements: trackInfo ? trackInfo.missingSkills.map(m => ({ key: m.skill, skill: m.skill, nameTh: m.nameTh, current: m.current, required: m.required, deficit: m.deficit })) : [],
       blockedReasons: primary ? primary.blockedReasons : [],
       blockerReasonTh: primary ? primary.blockerReasonTh : null,
       isActivelyResolving: primary ? primary.isActivelyResolving : false,
@@ -2670,7 +2807,7 @@
     p += HC.special(npc, 'cultivation.breakthroughBonus');
     const s = npc.h ? npc.h.state : {};
     p -= (s.heartDemon || 0) / 100 * 0.2 + (npc.cult.toxic || 0) / 100 * 0.12;
-    if (npc.ancestralBlessing && (npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= (g.STATS ? g.STATS.now : 0))) {
+    if (CULT.isAncestralBlessingActive(npc, opts && Number.isFinite(opts.now) ? opts.now : null)) {
       p += (npc.ancestralBlessing.breakthroughBonus || 0);
     }
     if (opts) {
@@ -2701,7 +2838,7 @@
         if (W.sect.ledger) W.sect.ledger.push({ t: W.t, type: 'track_bt', id: npc.id, stones: -reqStones });
       }
     }
-    const p = CULT.trackBreakthroughChance(npc, opts);
+    const p = CULT.trackBreakthroughChance(npc, Object.assign({}, opts || {}, { now: (opts && Number.isFinite(opts.now)) ? opts.now : (W && Number.isFinite(W.t) ? W.t : undefined) }));
     tr.attempts = (tr.attempts || 0) + 1;
     const ok = (opts && opts.guarantee) ? true : (W && W.rng ? W.rng.next() < p : Math.random() < p);
     const fromOrd = tr.ordinal;
@@ -2729,7 +2866,7 @@
       HC.bump(npc);
       return { ok: true, p, fromOrdinal: fromOrd, toOrdinal: tr.ordinal, realm: newRealm };
     } else {
-      const blessed = !!(npc.ancestralBlessing && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || npc.ancestralBlessing.untilDay >= (W ? W.day : 0)));
+      const blessed = !!(CULT.isAncestralBlessingActive(npc, W ? W.t : null) && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || !W || W.day == null || npc.ancestralBlessing.untilDay >= W.day));
       if (blessed) npc.ancestralBlessing.injuryShield = false;
       tr.prog = th * ((blessed ? 0.65 : 0.5) + 0.2 * clamp(HC.eff(npc, 'intellect.willpower') / 100 * 0.6 + HC.eff(npc, 'personality.composure') / 100 * 0.4, 0, 1));
       HC.feel(npc, { mood: blessed ? -6 : -12, stress: blessed ? 5 : 12 });

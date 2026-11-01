@@ -1030,8 +1030,10 @@
     const tacB = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(b, a, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
     const resA = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(a) : { active: false, pieces: 0 };
     const resB = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(b) : { active: false, pieces: 0 };
-    const scoreA = CULT.power(a) * (tacA.dmgMult || 1) * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (0.88 + W.rng.next() * 0.24);
-    const scoreB = CULT.power(b) * (tacB.dmgMult || 1) * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (0.88 + W.rng.next() * 0.24);
+    const powA = a.power != null ? a.power : CULT.power(a);
+    const powB = b.power != null ? b.power : CULT.power(b);
+    const scoreA = powA * (tacA.dmgMult || 1) * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
+    const scoreB = powB * (tacB.dmgMult || 1) * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
     const win = scoreA >= scoreB ? a : b;
     const lose = win === a ? b : a;
     const winTac = win === a ? tacA : tacB;
@@ -1047,10 +1049,20 @@
 
   SECT.resolveRivalEnvoyChallenge = (W, champ, rivalSect, opts) => {
     opts = opts || {};
-    if (!W || !champ) return null;
+    if (!W) return null;
+    if (!champ && Array.isArray(W.npcs)) {
+      const avail = W.npcs.filter(n => n && !n.dead && !n.away && !n.exiled && n.cult && !(n.jail > W.t) && !n.sealed);
+      avail.sort((a, b) => CULT.power(b) - CULT.power(a));
+      champ = avail[0] || W.npcs.find(n => n && !n.dead) || null;
+    }
+    if (!champ) return null;
     const sects = (W.world && Array.isArray(W.world.sects)) ? W.world.sects : [];
-    const rival = rivalSect || sects.find(x => x.treaty === 'RIVAL_FEUD' || x.treaty === 'EMBARGO') || sects.slice().sort((a, b) => (a.attitude || 0) - (b.attitude || 0))[0];
+    const rival = (typeof rivalSect === 'string' ? sects.find(x => x.id === rivalSect || x.factionId === rivalSect || x.code === rivalSect) : rivalSect) || sects.find(x => x.treaty === 'RIVAL_FEUD' || x.treaty === 'EMBARGO') || sects.slice().sort((a, b) => (a.attitude || 0) - (b.attitude || 0))[0];
     if (!rival) return null;
+    if (opts.respectCooldown && rival.lastEnvoyDay != null && (W.day || 0) - rival.lastEnvoyDay < (opts.cooldownDays || 15)) {
+      return { ok: false, reason: 'cooldown', rivalSectId: rival.id, cooldownUntilDay: rival.lastEnvoyDay + (opts.cooldownDays || 15) };
+    }
+    rival.lastEnvoyDay = W.day || 0;
     const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'];
     const envoyWeapon = opts.envoyWeapon || wTypes[Math.floor((W.day || 0) + (rival.power || 1)) % wTypes.length];
     const champPow = CULT.power(champ);
@@ -1080,6 +1092,7 @@
       HC.experience(champ, 'victory', 0.7);
     } else {
       W.fame(-1);
+      rival.attitude = clamp((rival.attitude || 0) - 4, -100, 100);
       HC.experience(champ, 'defeat', 0.35);
     }
     if (W.world && W.world.politics) {
@@ -1096,7 +1109,11 @@
         summaryTh: HC.fullName(champ) + (won ? ' เอาชนะ' : ' พ่ายต่อ') + envoyUnit.nameTh + ' จาก' + rival.nameTh + (won ? (' (+' + cpGain + ' CP, +' + stonePrize + ' ศิลา)') : '')
       });
     }
+    if (!opts.quiet && W.log) {
+      W.log('challenge', HC.fullName(champ) + (won ? ' ปราบ' : ' พ่ายต่อ') + envoyUnit.nameTh + ' (' + rival.nameTh + ')', [champ.id]);
+    }
     return {
+      ok: true,
       rivalSectId: rival.id,
       rivalSectNameTh: rival.nameTh,
       envoyNameTh: envoyUnit.nameTh,
@@ -1125,15 +1142,51 @@
     let totalFameGained = 0;
     let grandChamp = null, grandChampPower = -1;
 
+    const alliedSects = (W.world && Array.isArray(W.world.sects)) ? W.world.sects.filter(s =>
+      ['ALLIANCE', 'ALLIANCE_PACT', 'MARTIAL_EXCHANGE'].includes(s.treaty) || (s.attitude || 0) >= 40
+    ) : [];
+
     for (const bId of SECT.ASSEMBLY_BRACKET_IDS) {
       const spec = SECT.ASSEMBLY_BRACKETS[bId];
       let divEntrants = candidates.filter(n => {
         const st = n.cult ? Math.min(7, CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 1;
         return st >= spec.minStage && st <= spec.maxStage;
       });
+      // Invite guest prodigies from allied sects
+      const guestEntrants = [];
+      if (!opts.skipGuests && alliedSects.length) {
+        alliedSects.slice(0, 2).forEach((s, sIdx) => {
+          const guestStage = clamp(spec.minStage + (sIdx % (spec.maxStage - spec.minStage + 1)), spec.minStage, spec.maxStage);
+          const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'];
+          const gWpn = wTypes[Math.floor((W.day || 0) + (s.power || 1) + sIdx) % wTypes.length];
+          const gPow = Math.round(180 * Math.pow(1.35, guestStage - 1) * (0.85 + (s.power || 2) * 0.05));
+          const guest = {
+            id: 'GUEST_' + s.id + '_' + spec.id + '_' + (W.day || 0),
+            isGuest: true,
+            guestSectId: s.id,
+            guestSectNameTh: s.shortTh || s.nameTh,
+            name: 'ยอดฝีมือ' + (s.shortTh || s.nameTh),
+            h: {
+              name: { given: 'ยอดฝีมือ' + (s.shortTh || s.nameTh), family: '' },
+              state: { hp: 1000, satiety: 100, rest: 100, energy: 100 },
+              skills: { [gWpn]: guestStage * 12 },
+              personality: { bravery: 70 },
+              values: { martialPeak: 80 }
+            },
+            inv: { stones: 0 },
+            rank: guestStage >= 5 ? 4 : guestStage >= 3 ? 2 : 1,
+            stage: guestStage,
+            power: gPow,
+            cult: { path: s.majorPath || 'XIAN', stage: guestStage, sub: 'NONE', techs: [] },
+            equip: { WEAPON: { slot: 'WEAPON', gearType: gWpn, nameTh: gWpn, tier: guestStage } }
+          };
+          guestEntrants.push(guest);
+        });
+      }
+      divEntrants = divEntrants.concat(guestEntrants);
       if (!divEntrants.length) continue;
       // Sort by combat power + tactical readiness for seeding
-      divEntrants = divEntrants.slice().sort((a, b) => CULT.power(b) - CULT.power(a));
+      divEntrants = divEntrants.slice().sort((a, b) => ((b.power != null ? b.power : CULT.power(b)) - (a.power != null ? a.power : CULT.power(a))));
       let curRound = divEntrants.slice();
       const bouts = [];
       let runnerUp = curRound.length > 1 ? curRound[1] : null;
@@ -1162,26 +1215,31 @@
       const champ = curRound[0];
       const sig = SECT.signatureVictoryOf(champ);
       // Award Contribution Points (CP), stones, merit, and tailored T3-T6 equipment/recipe
-      champ.cp = (champ.cp || 0) + spec.cpReward;
-      champ.cpEarned = (champ.cpEarned || 0) + spec.cpReward;
-      champ.merit = (champ.merit || 0) + 25 + spec.fameReward * 3;
-      champ.inv = champ.inv || { stones: 0, pills: {}, mats: {}, gear: [] };
-      const stonePay = Math.min(spec.stonePrize, Math.max(20, Math.floor((S.stones || 0) * 0.15)));
-      if (stonePay > 0 && S.stones >= stonePay) {
-        ECO.pay(W, stonePay, 'รางวัลชุมนุมยุทธ์ ' + spec.nameTh);
+      if (!champ.isGuest) {
+        champ.cp = (champ.cp || 0) + spec.cpReward;
+        champ.cpEarned = (champ.cpEarned || 0) + spec.cpReward;
+        champ.merit = (champ.merit || 0) + 25 + spec.fameReward * 3;
+        champ.inv = champ.inv || { stones: 0, pills: {}, mats: {}, gear: [] };
+        const stonePay = Math.min(spec.stonePrize, Math.max(20, Math.floor((S.stones || 0) * 0.15)));
+        if (stonePay > 0 && S.stones >= stonePay) {
+          ECO.pay(W, stonePay, 'รางวัลชุมนุมยุทธ์ ' + spec.nameTh);
+        }
+        champ.inv.stones = (champ.inv.stones || 0) + spec.stonePrize;
+        HC.experience(champ, 'victory', 0.85);
+        if (g.AI && g.AI.mem) g.AI.mem(W, champ, 'คว้าแชมป์ชุมนุมยุทธ์ ' + spec.nameTh + ' ด้วย' + sig.weaponNameTh + '「' + sig.techNameTh + '」', 0.9);
+        totalFameGained += spec.fameReward;
+      } else {
+        totalFameGained += Math.max(1, Math.floor(spec.fameReward * 0.5));
       }
-      champ.inv.stones = (champ.inv.stones || 0) + spec.stonePrize;
-      if (runnerUp && runnerUp.id !== champ.id) {
+      if (runnerUp && runnerUp.id !== champ.id && !runnerUp.isGuest) {
         runnerUp.cp = (runnerUp.cp || 0) + spec.runnerUpCp;
         runnerUp.cpEarned = (runnerUp.cpEarned || 0) + spec.runnerUpCp;
         runnerUp.merit = (runnerUp.merit || 0) + 12;
       }
-      const reward = SECT.tailoredAssemblyReward(W, champ, spec.minGearTier, spec.maxGearTier);
-      HC.experience(champ, 'victory', 0.85);
-      if (g.AI && g.AI.mem) g.AI.mem(W, champ, 'คว้าแชมป์ชุมนุมยุทธ์ ' + spec.nameTh + ' ด้วย' + sig.weaponNameTh + '「' + sig.techNameTh + '」', 0.9);
-      totalFameGained += spec.fameReward;
-      if (CULT.power(champ) > grandChampPower) {
-        grandChampPower = CULT.power(champ);
+      const reward = champ.isGuest ? { item: null, recipe: null } : SECT.tailoredAssemblyReward(W, champ, spec.minGearTier, spec.maxGearTier);
+      const cPow = champ.power != null ? champ.power : CULT.power(champ);
+      if (cPow > grandChampPower) {
+        grandChampPower = cPow;
         grandChamp = champ;
       }
       bracketResults.push({
@@ -2466,7 +2524,7 @@
           // Reconcile mantra
           const effStMantra = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
           const curMantra = n.cult.mantra ? CULT.tech(n.cult.mantra) : null;
-          if (!curMantra || curMantra.path !== targetPath || curMantra.tier > Math.max(effStMantra, targetPath === 'GOD' ? 2 : 1)) {
+          if (!curMantra || (!curMantra.legendary && curMantra.path !== targetPath) || (curMantra.reqTier || curMantra.tier) > Math.max(effStMantra, targetPath === 'GOD' ? 2 : 1)) {
             const bestM = CULT.bestMantra(targetPath, effStMantra, n);
             n.cult.mantra = bestM ? bestM.id : null;
           }
@@ -2476,7 +2534,8 @@
             const kept = [];
             n.cult.techs.forEach(tid => {
               const t = CULT.tech(tid);
-              if (!t || (t.path !== 'ANY' && t.path !== targetPath) || (t.sub && !(CULT.isSubCompatible ? CULT.isSubCompatible(t, n.cult.sub, false) : t.sub === n.cult.sub))) {
+              const compat = (t && g.MARTIAL && g.MARTIAL.isTechCompatible) ? g.MARTIAL.isTechCompatible(n, t) : !!(t && (t.path === 'ANY' || t.path === targetPath || t.legendary) && (!t.sub || (CULT.isSubCompatible ? CULT.isSubCompatible(t, n.cult.sub, false) : t.sub === n.cult.sub)));
+              if (!compat) {
                 reconciled.removedTechs.push(tid);
               } else {
                 kept.push(tid);
@@ -3286,8 +3345,8 @@
       if (!n.inv || !Array.isArray(n.inv.techs) || !n.inv.techs.includes(itemId)) return { ok: false, reason: 'ไม่มีคัมภีร์ในถุงส่วนตัว' };
       const t = CULT.tech(itemId);
       if (!t || t.innateOnly || !n.cult) return { ok: false, reason: 'ต้องเป็นผู้บำเพ็ญจึงจะเรียนคัมภีร์ได้' };
-      if (t.path !== 'ANY' && t.path !== n.cult.path) return { ok: false, reason: 'วิถีไม่ตรงกับคัมภีร์ (' + t.path + ')' };
-      if (t.sub && !(CULT.isSubCompatible ? CULT.isSubCompatible(t, n.cult.sub, false) : t.sub === n.cult.sub)) return { ok: false, reason: 'ต้องมีสายย่อย ' + t.sub };
+      const eGate = (g.MARTIAL && g.MARTIAL.eligible) ? g.MARTIAL.eligible(n, 'T:' + itemId, { allowMantra: true, allowForbidden: true }) : null;
+      if (eGate && !eGate.ok) return { ok: false, reason: eGate.reason || 'ยังไม่ผ่านเกณฑ์ศึกษาคัมภีร์' };
       const effStage = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
       if ((t.reqTier || t.tier || 1) > effStage) return { ok: false, reason: 'ขั้นบำเพ็ญไม่ถึงเกณฑ์ (ต้องการขั้น ' + (t.reqTier || t.tier) + ')' };
       const oldHp = n.h && n.h.state ? n.h.state.hp : null;
@@ -3325,6 +3384,152 @@
     return { ok: false, reason: 'ไม่สามารถใช้งานไอเทมประเภทนี้โดยตรง' };
   };
 
+  /* ---------- Phase 3 (v2.0.7): Edit Hub Diplomacy, Sanctum, and Refinement Controls ---------- */
+  EDITOR.diplomacyState = (W, sectId) => {
+    if (!W || !W.world) return { sects: [], selectedSect: null, activeEvent: null };
+    const sects = W.world.sects || [];
+    let sel = sectId ? sects.find(s => s.id === sectId || s.factionId === sectId || s.code === sectId) : null;
+    if (!sel && sects.length) sel = sects[0];
+    const pol = W.world.politics || { activeEvent: null, stats: {}, events: [] };
+    return {
+      sects,
+      selectedSect: sel,
+      activeEvent: pol.activeEvent,
+      stats: pol.stats,
+      events: pol.events || []
+    };
+  };
+
+  EDITOR.applyDiplomacyAction = (W, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'ไม่พบข้อมูลโลก' };
+    const sects = W.world.sects || [];
+    const s = (opts.sectId && sects.find(x => x.id === opts.sectId || x.factionId === opts.sectId || x.code === opts.sectId)) || sects[0];
+    if (!s) return { ok: false, reason: 'ไม่พบสำนักเป้าหมาย' };
+    const action = opts.action;
+    if (action === 'set_attitude') {
+      const att = clamp(Math.round(Number(opts.attitude) || 0), -100, 100);
+      s.attitude = att;
+      W.log('mission', '[แก้ไขโดยผู้เล่น] ปรับค่าความสัมพันธ์กับ ' + s.nameTh + ' เป็น ' + att, []);
+      return { ok: true, action, sectId: s.id, attitude: att };
+    }
+    if (action === 'sign_treaty') {
+      const tType = opts.treaty || 'TRADE_CARAVAN_ACCORD';
+      const res = g.CONTENT && g.CONTENT.signTreaty ? g.CONTENT.signTreaty(W, s, tType, { force: true, ignoreCooldown: true, free: true }) : { ok: false };
+      W.log('mission', '[แก้ไขโดยผู้เล่น] ลงนามสนธิสัญญา「' + (g.CONTENT?.TREATY_TH?.[tType] || tType) + '」กับ ' + s.nameTh + ' โดยตรง', []);
+      return res;
+    }
+    if (action === 'clear_treaty') {
+      s.treaty = 'NONE';
+      if (W.world && W.world.politics && W.world.politics.treaties) {
+        delete W.world.politics.treaties[s.id];
+      }
+      W.log('mission', '[แก้ไขโดยผู้เล่น] ยกเลิกสนธิสัญญากับ ' + s.nameTh, []);
+      return { ok: true, action, sectId: s.id, treaty: 'NONE' };
+    }
+    if (action === 'reset_cooldowns') {
+      s.lastCaravanDay = null;
+      s.exchangeCooldownUntil = null;
+      s.treatyCooldownUntil = null;
+      s.lastEnvoyDay = null;
+      W.log('mission', '[แก้ไขโดยผู้เล่น] ล้างคูลดาวน์ทางการทูตทั้งหมดของ ' + s.nameTh, []);
+      return { ok: true, action, sectId: s.id };
+    }
+    if (action === 'ally_exchange') {
+      const res = g.CONTENT && g.CONTENT.exchangeWithAlly ? g.CONTENT.exchangeWithAlly(W, s, { force: true, ignoreCooldown: true, free: !!opts.free }) : { ok: false };
+      return res;
+    }
+    if (action === 'trigger_envoy') {
+      const defender = opts.defenderId ? W.byId[opts.defenderId] : null;
+      const res = SECT.resolveRivalEnvoyChallenge(W, defender, s, { forceWin: opts.forceWin });
+      return res;
+    }
+    if (action === 'spawn_political_event') {
+      const ev = g.CONTENT && g.CONTENT.spawnPoliticalEvent ? g.CONTENT.spawnPoliticalEvent(W, opts.eventKind, s) : null;
+      return { ok: !!ev, event: ev };
+    }
+    if (action === 'resolve_political_event') {
+      const lead = opts.actorId ? W.byId[opts.actorId] : null;
+      const res = g.CONTENT && g.CONTENT.resolvePoliticalEvent ? g.CONTENT.resolvePoliticalEvent(W, opts.choice, lead) : { ok: false };
+      return res;
+    }
+    return { ok: false, reason: 'ไม่รองรับคำสั่ง: ' + action };
+  };
+
+  EDITOR.sanctumState = (W, sanctumId) => {
+    if (!W || !W.explore) return { sanctums: [], selectedSanctum: null, catalysts: {}, bonusDrops: 0, bonusByTier: {} };
+    const sState = g.EXPLORE && g.EXPLORE.ensureSanctums ? g.EXPLORE.ensureSanctums(W) : (W.explore.sanctums || {});
+    const sList = Object.values((g.EXPLORE && g.EXPLORE.SANCTUMS) || {});
+    let sel = sanctumId ? sList.find(s => s.id === sanctumId) : null;
+    if (!sel && sList.length) sel = sList[0];
+    const cats = g.ECO && g.ECO.ensureCatalysts ? g.ECO.ensureCatalysts(W) : (W.sect.catalysts || {});
+    return {
+      sanctums: sList,
+      selectedSanctum: sel,
+      clearedFloors: sState.clearedFloors || {},
+      catalysts: cats,
+      bonusDrops: sState.bonusDrops || 0,
+      bonusByTier: sState.bonusByTier || {},
+      history: sState.history || []
+    };
+  };
+
+  EDITOR.applySanctumAction = (W, opts) => {
+    opts = opts || {};
+    if (!W || !W.explore) return { ok: false, reason: 'ไม่พบระบบวิหาร' };
+    const sState = g.EXPLORE && g.EXPLORE.ensureSanctums ? g.EXPLORE.ensureSanctums(W) : (W.explore.sanctums || {});
+    const action = opts.action;
+    if (action === 'set_cleared') {
+      const sId = opts.sanctumId || 'SANCTUM_SWORD_ABYSS';
+      const fl = clamp(Math.floor(Number(opts.floor) || 0), 0, 3);
+      sState.clearedFloors[sId] = fl;
+      W.log('explore', '[แก้ไขโดยผู้เล่น] กำหนดชั้นสูงสุดที่ผ่านของ ' + sId + ' เป็น ' + fl + '/3', []);
+      return { ok: true, action, sanctumId: sId, floor: fl };
+    }
+    if (action === 'instant_run') {
+      const sc = (g.EXPLORE && g.EXPLORE.SANCTUMS && g.EXPLORE.SANCTUMS[opts.sanctumId]) || Object.values(g.EXPLORE.SANCTUMS)[0];
+      const party = (Array.isArray(opts.partyIds) && opts.partyIds.length)
+        ? opts.partyIds.map(id => W.byId[id]).filter(Boolean)
+        : W.npcs.filter(n => n && !n.dead && n.cult).slice(0, 3);
+      if (!party.length) return { ok: false, reason: 'ไม่มีผู้ฝึกตนในสำนัก' };
+      const ex = {
+        id: ++W.world.seq,
+        kind: 'sanctum',
+        region: sc.id,
+        sanctumId: sc.id,
+        placeTh: sc.nameTh,
+        party: party.map(p => p.id),
+        days: 1.5,
+        done: false,
+        target: opts.targetFloor || 3,
+        journal: [],
+        forceClear: opts.forceClear != null ? !!opts.forceClear : true,
+        forceFailFloor: opts.forceFailFloor || null,
+        forceBonusTier: opts.forceBonusTier || null,
+        bonusRollOverride: opts.bonusRollOverride != null ? opts.bonusRollOverride : null,
+        bonusTierRollOverride: opts.bonusTierRollOverride != null ? opts.bonusTierRollOverride : null
+      };
+      const res = g.EXPLORE.resolveSanctum(W, ex, party);
+      W.log('explore', '[แก้ไขโดยผู้เล่น] จำลองการลงวิหาร「' + sc.nameTh + '」สำเร็จ ผ่าน ' + res.floorsCleared + '/3 ชั้น' + (res.bonusReward ? (' ได้รางวัลโบนัส「' + res.bonusReward.nameTh + '」') : ''), party.map(p => p.id));
+      return { ok: true, action, result: res };
+    }
+    if (action === 'refine_gear') {
+      const res = g.ECO && g.ECO.refineGearWithCatalyst
+        ? g.ECO.refineGearWithCatalyst(W, opts.gearUid, opts.catalystId, opts.npcId ? W.byId[opts.npcId] : null, { free: !!opts.free, allowAnyTier: !!opts.allowAnyTier })
+        : { ok: false, reason: 'no-refine-fn' };
+      return res;
+    }
+    if (action === 'spawn_catalysts') {
+      const qty = clamp(Math.floor(Number(opts.qty) || 5), 1, 100);
+      Object.keys(g.ECO.REFINEMENT_CATALYSTS || {}).forEach(cId => {
+        g.ECO.addCatalyst(W, cId, qty);
+      });
+      W.log('craft', '[แก้ไขโดยผู้เล่น] เติมผลึกขัดเกลาทุกชนิดเข้าคลังสำนัก ชนิดละ ' + qty + ' ก้อน', []);
+      return { ok: true, action, qty };
+    }
+    return { ok: false, reason: 'ไม่รองรับคำสั่ง: ' + action };
+  };
+
   SECT.EDITOR = EDITOR;
 
   /* ---------- Ancestral Shrine Legacy Tablets & Fallen Elder Blessings (v2.0.6 Pillar C) ---------- */
@@ -3340,7 +3545,8 @@
     const tablets = SECT.ensureLegacyTablets(W);
     if (tablets.some(t => t.npcId === n.id)) return tablets.find(t => t.npcId === n.id);
     const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : (n.stage || 0);
-    const qualifies = opts.force || (n.rank || 0) >= 4 || effSt >= 4 || n.id === W.sect.masterId;
+    const eqSt = n.cult ? (CULT.equivalentStage ? CULT.equivalentStage(n) : effSt) : effSt;
+    const qualifies = opts.force || (n.rank || 0) >= 4 || effSt >= 4 || eqSt >= 4 || n.id === W.sect.masterId || n.id === W.sect.deputyId;
     if (!qualifies) return null;
     const sig = SECT.signatureVictoryOf ? SECT.signatureVictoryOf(n) : { subpath: n.cult?.sub || 'NONE', subpathNameTh: '', techId: null, techNameTh: 'เคล็ดวิชาบรรพชน', weaponType: 'SWORD' };
     const nameTh = (n.h && n.h.name) ? (n.h.name.family + n.h.name.given) : (n.name || 'ผู้อาวุโสบรรพชน');

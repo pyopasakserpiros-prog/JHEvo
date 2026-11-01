@@ -2820,11 +2820,13 @@
       }
     } else if (template.targetKind === 'TECH_MANUAL') {
       if ((W.sect.library || []).includes(tid)) return true;
+      if (W.sect.crystals && (W.sect.crystals['T:' + tid] || 0) > 0) return true;
       if (W.world.martial && Array.isArray(W.world.martial.foundLegends) && W.world.martial.foundLegends.includes(tid)) return true;
       for (const n of (W.npcs || [])) {
         if (!n || n.dead) continue;
-        if (n.cult && (n.cult.techs.includes(tid) || n.cult.mantra === tid)) return true;
+        if (n.cult && (n.cult.techs.includes(tid) || n.cult.mantra === tid || (Array.isArray(n.cult.unlockedMantras) && n.cult.unlockedMantras.includes(tid)))) return true;
         if (n.inv && Array.isArray(n.inv.techs) && n.inv.techs.includes(tid)) return true;
+        if (n.inv && n.inv.crystals && (n.inv.crystals['T:' + tid] || 0) > 0) return true;
       }
     }
     return false;

@@ -807,6 +807,7 @@
     if (!opts.free) {
       W.sect.catalysts[cat.id] = Math.max(0, (W.sect.catalysts[cat.id] || 1) - 1);
       if (W.sect.catalysts[cat.id] <= 0) delete W.sect.catalysts[cat.id];
+      W.sect._hasCatalysts = Object.values(W.sect.catalysts).some(v => v > 0);
     }
     const newQ = Math.min(cat.maxQuality, +(oldQ + cat.qualityBoost).toFixed(2));
     const ratio = newQ / Math.max(0.5, oldQ);
@@ -828,14 +829,15 @@
   };
 
   ECO.findCatalystRefinementCandidate = (W, npc) => {
-    if (!W || !W.sect || !W.sect._hasCatalysts || !npc || npc.dead || !npc.cult) return null;
-    const isForgeOfficer = npc.post === 'forge' || npc.assist === 'forge';
-    const isEligible = (npc.rank || 0) >= 3 || isForgeOfficer || npc.id === W.sect.masterId;
-    if (!isEligible) return null;
+    if (!W || !W.sect || !npc || npc.dead || !npc.cult) return null;
     const cats = W.sect.catalysts;
     if (!cats || typeof cats !== 'object') return null;
     const availCats = Object.values(ECO.REFINEMENT_CATALYSTS).filter(c => (cats[c.id] || 0) > 0);
+    W.sect._hasCatalysts = availCats.length > 0;
     if (!availCats.length) return null;
+    const isForgeOfficer = npc.post === 'forge' || npc.assist === 'forge';
+    const isEligible = (npc.rank || 0) >= 2 || isForgeOfficer || npc.id === W.sect.masterId;
+    if (!isEligible) return null;
     availCats.sort((a, b) => b.tier - a.tier);
     const cat = availCats[0];
     // 1. Check NPC's own equipped T4-T6 gear first
@@ -847,6 +849,18 @@
         const q = Number.isFinite(eq.q) ? eq.q : 1.0;
         if (gt >= cat.minGearTier && gt <= (cat.maxGearTier || 7) && q + 0.02 < cat.maxQuality) {
           return { gear: eq, gearUid: eq.uid || eq.id, catalystId: cat.id, cat, ownerNpcId: npc.id, source: 'equipped' };
+        }
+      }
+    }
+    // 1b. Check NPC's personal bag T4-T6 gear
+    if (npc.inv && Array.isArray(npc.inv.gear)) {
+      for (let i = 0; i < npc.inv.gear.length; i++) {
+        const eq = npc.inv.gear[i];
+        if (!eq || !eq.slot) continue;
+        const gt = eq.tier || 1;
+        const q = Number.isFinite(eq.q) ? eq.q : 1.0;
+        if (gt >= cat.minGearTier && gt <= (cat.maxGearTier || 7) && q + 0.02 < cat.maxQuality) {
+          return { gear: eq, gearUid: eq.uid || eq.id, catalystId: cat.id, cat, ownerNpcId: npc.id, source: 'personal_bag' };
         }
       }
     }

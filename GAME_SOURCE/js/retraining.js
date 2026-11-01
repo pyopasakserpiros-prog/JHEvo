@@ -29,7 +29,7 @@ M.retrain=(W,n,key,opts)=>{
  if(quote.source==='crystal')M.consumeCrystalUnit(n,key);else CPE.S(W).techSales+=quote.fee;
  const old=n.cult,from=old.path+'/'+old.sub,before=old.stage,k=quote.knowledge;
  n.cult={path:k.path,sub:k.id,stage:quote.newStage,prog:0,mantra:(CULT.bestMantra(k.path,quote.newStage,n)||{}).id||null,techs:Array.from(new Set(old.techs||[])),learning:null,toxic:old.toxic||0,lifeBonus:old.lifeBonus||0,since:W.day,attempts:0,secl:null,rate:0,pillT:0,tm:old.tm||{}};
- if(CULT.trackDef(k.id))n.cult.track=CULT.initTrack(k.id,1,W.day);
+ if(CULT.isExpansionTrack?CULT.isExpansionTrack(k.id):(CULT.EXPANSION_TRACK_IDS&&CULT.EXPANSION_TRACK_IDS.has(k.id)))n.cult.track=CULT.initTrack(k.id,1,W.day);
  if(M.reconcileInnate)M.reconcileInnate(n,W);
  if(M.reconcilePassives)M.reconcilePassives(n);
  n.buffs=[];n.sx=[];n.castFx=null;n._pickCache=null;if(M.invalidateMartialCaches)M.invalidateMartialCaches(n);

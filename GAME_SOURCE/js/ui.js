@@ -477,7 +477,7 @@
         UI.editNpcId = (UI.G.R && UI.G.R.selected && W.byId[UI.G.R.selected] && !W.byId[UI.G.R.selected].dead) ? UI.G.R.selected : W.sect.masterId;
       }
       UI.editDraft = null;
-      show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['backup', '💾 สำรองก่อนแก้']], arg || 'char', true);
+      show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], arg || 'char', true);
     }
     else if (kind === 'menu') show('menu', UI.G.W ? '⚙️ เมนู' : '📂 โหลดเกมที่บันทึก', UI.G.W ? [['main', 'เกม'], ['set', 'ตั้งค่า'], ['tools', 'ผู้สังเกตการณ์'], ['about', 'เกี่ยวกับ']] : [], arg || 'main');
     UI.render();
@@ -488,7 +488,7 @@
     UI.editNpcId = id;
     UI.editDraft = null;
     if (subTab === 'spawn') UI.spawnDest = 'npc';
-    show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['backup', '💾 สำรองก่อนแก้']], subTab || 'char', true);
+    show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], subTab || 'char', true);
     UI.render();
   };
   UI.openNpc = (id, tab) => {
@@ -620,6 +620,113 @@
     else if (a === "spawn-page") {
       UI.spawnPage = Math.max(1, (UI.spawnPage || 1) + (+arg || 0));
       UI.render();
+    }
+    else if (a === 'edit-dip-attitude') {
+      const sectId = UI.editDipSectId;
+      const attEl = $("shBody") && $("shBody").querySelector("#editDipAttitude");
+      const att = attEl ? +attEl.value : 0;
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'set_attitude', sectId, attitude: att });
+      UI.toast(res.ok ? ('ปรับค่าไมตรีเป็น ' + res.attitude + ' แล้ว') : res.reason);
+      UI.render();
+    }
+    else if (a === 'edit-dip-treaty') {
+      const sectId = UI.editDipSectId;
+      const tEl = $("shBody") && $("shBody").querySelector("#editDipTreatySel");
+      const treaty = tEl ? tEl.value : 'TRADE_CARAVAN_ACCORD';
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'sign_treaty', sectId, treaty });
+      UI.toast(res.ok ? ('ลงนามสนธิสัญญาสำเร็จ') : res.reason);
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-dip-cleartreaty') {
+      const sectId = UI.editDipSectId;
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'clear_treaty', sectId });
+      UI.toast(res.ok ? 'ยกเลิกสนธิสัญญาแล้ว' : res.reason);
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-dip-resetcd') {
+      const sectId = UI.editDipSectId;
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'reset_cooldowns', sectId });
+      UI.toast(res.ok ? 'ล้างคูลดาวน์ทั้งหมดแล้ว' : res.reason);
+      UI.render();
+    }
+    else if (a === 'edit-dip-exchange') {
+      const sectId = UI.editDipSectId;
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'ally_exchange', sectId, free: true });
+      UI.toast(res.ok ? ('แลกเปลี่ยนพันธมิตรสำเร็จ! ' + res.summaryTh) : ('ไม่สำเร็จ: ' + res.reason));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-dip-envoy') {
+      const sectId = UI.editDipSectId;
+      const forceWin = arg === 'win' ? true : arg === 'loss' ? false : null;
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'trigger_envoy', sectId, forceWin });
+      if (res && res.ok) {
+        UI.toast(res.won ? ('🏆 เอาชนะทูตท้าประลองสำเร็จ! (+' + res.cpAwarded + ' CP)') : 'พ่ายต่อทูตท้าประลอง');
+      } else {
+        UI.toast('ไม่สามารถเรียกทูตได้ในขณะนี้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-dip-spawnevent') {
+      const sectId = UI.editDipSectId;
+      const evSel = $("shBody") && $("shBody").querySelector("#editDipSpawnEventKind");
+      const eventKind = evSel ? evSel.value : 'SPECIALTY_CARAVAN';
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'spawn_political_event', sectId, eventKind });
+      UI.toast(res.ok ? ('จุดประกายเหตุการณ์: ' + res.event.titleTh) : 'ไม่สามารถสร้างเหตุการณ์ได้');
+      UI.render();
+    }
+    else if (a === 'edit-dip-resolveevent') {
+      const choice = String(arg || 'ACCEPT');
+      const res = SECT.EDITOR.applyDiplomacyAction(W, { action: 'resolve_political_event', choice });
+      UI.toast(res.ok ? res.summaryTh : ('คลี่คลายไม่สำเร็จ: ' + res.reason));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-sanctum-setfloor') {
+      const sanctumId = UI.editSanctumId;
+      const flSel = $("shBody") && $("shBody").querySelector("#editSanctumFloorSel");
+      const floor = flSel ? +flSel.value : 0;
+      const res = SECT.EDITOR.applySanctumAction(W, { action: 'set_cleared', sanctumId, floor });
+      UI.toast(res.ok ? ('กำหนดชั้นสูงสุดที่ผ่านเป็น ' + res.floor + '/3 แล้ว') : res.reason);
+      UI.render();
+    }
+    else if (a === 'edit-sanctum-run') {
+      const sanctumId = UI.editSanctumId;
+      const forceClear = arg === 'clear';
+      const res = SECT.EDITOR.applySanctumAction(W, { action: 'instant_run', sanctumId, forceClear, targetFloor: 3 });
+      if (res.ok) {
+        const out = res.result;
+        const bText = out.bonusReward ? (' · โบนัส: ' + out.bonusReward.nameTh) : '';
+        UI.toast('จำลองลงวิหารสำเร็จ! ผ่าน ' + out.floorsCleared + '/3 ชั้น' + bText);
+      } else {
+        UI.toast('ไม่สำเร็จ: ' + res.reason);
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-sanctum-refine') {
+      const gearEl = $("shBody") && $("shBody").querySelector("#editRefineGearSel");
+      const catEl = $("shBody") && $("shBody").querySelector("#editRefineCatSel");
+      if (!gearEl || !catEl) { UI.toast('กรุณาเลือกอุปกรณ์และผลึกขัดเกลา'); return; }
+      const [gearUid, npcId] = gearEl.value.split('|');
+      const catalystId = catEl.value;
+      const res = SECT.EDITOR.applySanctumAction(W, { action: 'refine_gear', gearUid, catalystId, npcId: npcId || null, free: false });
+      if (res.ok) {
+        UI.toast('✨ ขัดเกลา ' + res.gear.nameTh + ' สำเร็จ! คุณภาพ: ' + Math.round(res.oldQuality * 100) + '% → ' + Math.round(res.newQuality * 100) + '%');
+      } else {
+        UI.toast('ขัดเกลาไม่สำเร็จ: ' + res.reason);
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-sanctum-spawncat') {
+      const res = SECT.EDITOR.applySanctumAction(W, { action: 'spawn_catalysts', qty: 5 });
+      UI.toast(res.ok ? 'เติมผลึกขัดเกลาทุกชนิดเข้าคลังสำนักแล้ว (+5 ก้อน)' : res.reason);
+      UI.render();
+      UI.updateHud(true);
     }
     else if (a === 'equip-personal') {
       const [npcId, uid] = String(arg || '').split('|');
@@ -1518,8 +1625,8 @@
             blockReason = 'กำลังศึกษาวิชาอื่นอยู่';
           } else if (reqTier > (SECT.canLearnTier ? SECT.canLearnTier(W, selNpc) : 1)) {
             blockReason = '🔒 สิทธิ์หอคัมภีร์ไม่ถึงขั้น ' + reqTier;
-          } else if (t.path && t.path !== 'ANY' && t.path !== selNpc.cult.path) {
-            blockReason = '🔒 วิถีไม่ตรงกัน (ต้องการ ' + t.path + ')';
+          } else if (g.MARTIAL && g.MARTIAL.eligible && !g.MARTIAL.eligible(selNpc, 'T:' + tid, { allowMantra: true, libraryStudy: true }).ok) {
+            blockReason = '🔒 ' + (g.MARTIAL.eligible(selNpc, 'T:' + tid, { allowMantra: true, libraryStudy: true }).reason || 'ยังไม่ผ่านเกณฑ์ศึกษา');
           } else if ((selNpc.cp || 0) < fee) {
             blockReason = '🔒 แต้ม คป. ไม่พอ (ต้องการ ' + fee + ' คป.)';
           } else {
@@ -3247,7 +3354,7 @@
         const bf = (n.buffs || []).filter(b => b.until > W.t), sx = (n.sx || []).filter(x => x.until > W.t);
         const fb = (g.FISHING && g.FISHING.activeFoodBuff) ? g.FISHING.activeFoodBuff(W, n) : null;
         if (bf.length) h += '<div style="margin-top:6px">💊 ' + bf.map(b => '<span class="chip b">' + esc(b.name) + ' (' + Math.max(0, Math.round(b.until - W.t)) + ' นาที)</span>').join('') + '</div>';
-        if (n.ancestralBlessing && (!n.ancestralBlessing.untilDay || n.ancestralBlessing.untilDay >= W.day)) {
+        if (CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W.t) : (n.ancestralBlessing && (!n.ancestralBlessing.untilDay || n.ancestralBlessing.untilDay >= W.day))) {
           const ab = n.ancestralBlessing;
           h += '<div style="margin-top:6px">🕯️ <span class="chip g">พรบรรพชน「' + esc(ab.elderNameTh) + '」</span> <span class="muted" style="font-size:11.5px">ทะลวงขั้น +' + Math.round((ab.breakthroughBonus || 0) * 100) + '% · เรียนวิชา ×' + (ab.studySpeedMult || 1).toFixed(2) + (ab.injuryShield ? ' · คุ้มครองตบะย้อนกลับ' : '') + '</span></div>';
         }
@@ -3453,6 +3560,8 @@
     if (subEl) d.cult.sub = subEl.value;
     if (stageEl) d.cult.stage = +stageEl.value;
     if (xpEl) d.cult.xp = +xpEl.value;
+    const trOrdEl = body.querySelector("#editTrackOrdinal");
+    if (trOrdEl) d.cult.trackOrdinal = +trOrdEl.value;
 
     const stEl = body.querySelector("#editStones");
     const cpEl = body.querySelector("#editCp");
@@ -3589,6 +3698,7 @@
       h += "<div class=\"edit-field\"><label>สายย่อย</label><select id=\"editCultSub\" class=\"edit-live-input\"><option value=\"NONE\">พื้นฐาน (ยังไม่เลือกสายย่อย)</option>" + validSubs.map(s => "<option value=\"" + s.id + "\"" + (curSub === s.id ? " selected" : "") + ">" + esc(s.nameTh) + "</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>ขั้นตบะ (0–" + maxStage + ")</label><input id=\"editCultStage\" class=\"edit-live-input\" type=\"number\" min=\"0\" max=\"" + maxStage + "\" value=\"" + curStage + "\"></div>";
       h += "<div class=\"edit-field\"><label>แต้มตบะสะสม (XP)</label><input id=\"editCultXp\" class=\"edit-live-input\" type=\"number\" min=\"0\" max=\"500000\" value=\"" + curXp + "\"></div>";
+      h += "<div class=\"edit-field\"><label>บันไดขั้นเฉพาะทาง (Ordinal 1–9 หรือ 0 = ปิด)</label><input id=\"editTrackOrdinal\" class=\"edit-live-input\" type=\"number\" min=\"0\" max=\"9\" value=\"" + (n && n.cult && n.cult.track ? n.cult.track.ordinal : 0) + "\"></div>";
       h += "<div class=\"edit-field\"><label>ศิลาส่วนตัว</label><input id=\"editStones\" class=\"edit-live-input\" type=\"number\" min=\"0\" max=\"999999\" value=\"" + Math.round((d.economy && d.economy.stones !== undefined) ? d.economy.stones : (n.inv.stones || 0)) + "\"></div>";
       h += "<div class=\"edit-field\"><label>แต้มคุณูปการ (คป.)</label><input id=\"editCp\" class=\"edit-live-input\" type=\"number\" min=\"0\" max=\"999999\" value=\"" + Math.round((d.economy && d.economy.cp !== undefined) ? d.economy.cp : (n.cp || 0)) + "\"></div>";
       h += "<div class=\"edit-field\"><label>ผลงานสะสม (Merit)</label><input id=\"editMerit\" class=\"edit-live-input\" type=\"number\" min=\"0\" max=\"999999\" value=\"" + Math.round((d.economy && d.economy.merit !== undefined) ? d.economy.merit : (n.merit || 0)) + "\"></div>";
@@ -3720,6 +3830,116 @@
       h += "</div>";
     } else if (tab === "bag" && n) {
       h += renderPersonalBagSection(W, n);
+    } else if (tab === "dip") {
+      const dipData = SECT.EDITOR.diplomacyState(W, UI.editDipSectId);
+      const selSect = dipData.selectedSect;
+      if (selSect) UI.editDipSectId = selSect.id;
+      h += "<h3>📜 จัดการการทูตและสำนักในยุทธภพ (Edit Hub Diplomacy)</h3><div class=\"card\">";
+      h += "<div class=\"muted\" style=\"margin-bottom:6px\">เลือกสำนักเป้าหมายเพื่อปรับค่าความสัมพันธ์ ลงนามหรือยกเลิกสนธิสัญญา ล้างคูลดาวน์ ส่งกองคาราวานแลกเปลี่ยน หรือจำลองศึกทูตประลองได้โดยตรง</div>";
+      h += "<div class=\"edit-grid\">";
+      h += "<div class=\"edit-field\"><label>เลือกสำนักในยุทธภพ</label><select id=\"editDipSectSel\">" + dipData.sects.map(s => "<option value=\"" + s.id + "\"" + (selSect && selSect.id === s.id ? " selected" : "") + ">" + esc(s.nameTh) + " (" + esc(CONTENT.TREATY_TH[s.treaty] || s.treaty) + " · สัมพันธ์ " + s.attitude + ")</option>").join("") + "</select></div>";
+      if (selSect) {
+        h += "<div class=\"edit-field\"><label>ระดับไมตรี / ปรปักษ์ (-100 ถึง 100)</label><div style=\"display:flex;gap:6px\"><input id=\"editDipAttitude\" type=\"number\" min=\"-100\" max=\"100\" value=\"" + selSect.attitude + "\" style=\"width:100px\"><button class=\"btn pri\" data-do=\"edit-dip-attitude\">ปรับค่าไมตรี</button></div></div>";
+        h += "<div class=\"edit-field\"><label>ลงนามสนธิสัญญาโดยตรง</label><div style=\"display:flex;gap:6px;flex-wrap:wrap\"><select id=\"editDipTreatySel\">" + Object.entries(CONTENT.TREATY_TH).map(([k, v]) => "<option value=\"" + k + "\"" + (selSect.treaty === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select><button class=\"btn pri\" data-do=\"edit-dip-treaty\">ลงนามทันที</button><button class=\"btn dan\" data-do=\"edit-dip-cleartreaty\">ยกเลิกสัญญา</button></div></div>";
+        h += "<div class=\"edit-field\"><label>คูลดาวน์ทางการทูต</label><div style=\"display:flex;gap:6px;align-items:center;flex-wrap:wrap\"><span class=\"chip\">คาราวานล่าสุด: " + (selSect.lastCaravanDay != null ? ("วันที่ " + selSect.lastCaravanDay) : "ยังไม่มี") + "</span><span class=\"chip\">ทูตล่าสุด: " + (selSect.lastEnvoyDay != null ? ("วันที่ " + selSect.lastEnvoyDay) : "ยังไม่มี") + "</span><button class=\"btn\" data-do=\"edit-dip-resetcd\">🔄 ล้างคูลดาวน์ทั้งหมด</button></div></div>";
+      }
+      h += "</div></div>";
+
+      if (selSect) {
+        h += "<h3>1. ปฏิบัติการทางการทูตและคาราวานพันธมิตร</h3><div class=\"card\"><div style=\"display:flex;gap:8px;flex-wrap:wrap\">";
+        h += "<button class=\"btn pri\" data-do=\"edit-dip-exchange\">🚚 ส่งคาราวานแลกเปลี่ยนทันที (รับผลึกสายย่อย+ตำรับ)</button>";
+        h += "<button class=\"btn\" data-do=\"edit-dip-envoy\" data-arg=\"normal\">⚔️ เรียกทูตคู่ปรับมาประลอง (สู้จริงตามพลัง)</button>";
+        h += "<button class=\"btn\" data-do=\"edit-dip-envoy\" data-arg=\"win\">⚔️ บังคับสำนักเราชนะทูต (+45 CP, +60 ศิลา)</button>";
+        h += "<button class=\"btn dan\" data-do=\"edit-dip-envoy\" data-arg=\"loss\">⚔️ บังคับสำนักเราแพ้ทูต</button>";
+        h += "</div></div>";
+      }
+
+      // Political Event Hub
+      h += "<h3>2. วิกฤตและเหตุการณ์การเมือง (Political Events Hub)</h3><div class=\"card\">";
+      if (dipData.activeEvent) {
+        const ev = dipData.activeEvent;
+        h += "<b>⚡ กำลังเกิดเหตุการณ์: " + esc(ev.titleTh) + "</b><div class=\"muted\" style=\"margin-top:2px\">" + esc(ev.descTh) + "</div>";
+        h += "<div style=\"display:flex;gap:6px;margin-top:8px;flex-wrap:wrap\">";
+        if (ev.kind === "SPECIALTY_CARAVAN") {
+          h += "<button class=\"btn pri\" data-do=\"edit-dip-resolveevent\" data-arg=\"ACCEPT\">ยอมรับการแลกเปลี่ยน</button><button class=\"btn dan\" data-do=\"edit-dip-resolveevent\" data-arg=\"DECLINE\">ปฏิเสธ</button>";
+        } else if (ev.kind === "TRIBUTE_DEMAND") {
+          h += "<button class=\"btn\" data-do=\"edit-dip-resolveevent\" data-arg=\"PARLEY\">เจรจาทางการทูต</button><button class=\"btn pri\" data-do=\"edit-dip-resolveevent\" data-arg=\"PAY\">ยอมจ่ายค่าคุ้มครอง</button><button class=\"btn dan\" data-do=\"edit-dip-resolveevent\" data-arg=\"DEFY\">ยืนหยัดปฏิเสธ</button>";
+        } else if (ev.kind === "DOCTRINE_SUMMIT") {
+          h += "<button class=\"btn pri\" data-do=\"edit-dip-resolveevent\" data-arg=\"ATTEND\">ส่งตัวแทนร่วมชุมนุม</button><button class=\"btn\" data-do=\"edit-dip-resolveevent\" data-arg=\"SKIP\">งดเข้าร่วม</button>";
+        } else {
+          h += "<button class=\"btn dan\" data-do=\"edit-dip-resolveevent\" data-arg=\"ASSERT\">แสดงกำลังคุ้มครอง</button><button class=\"btn pri\" data-do=\"edit-dip-resolveevent\" data-arg=\"COMPROMISE\">ตกลงแบ่งปัน</button>";
+        }
+        h += "</div>";
+      } else {
+        h += "<div class=\"muted\" style=\"margin-bottom:6px\">ขณะนี้ไม่มีเหตุการณ์การเมืองค้างอยู่ — สามารถจุดประกายเหตุการณ์เพื่อทดสอบได้ทันที:</div>";
+        h += "<div style=\"display:flex;gap:6px;flex-wrap:wrap;align-items:center\"><select id=\"editDipSpawnEventKind\"><option value=\"SPECIALTY_CARAVAN\">ขบวนแลกเปลี่ยนของวิเศษ (SPECIALTY_CARAVAN)</option><option value=\"TRIBUTE_DEMAND\">คำขาดเรียกค่าคุ้มครอง (TRIBUTE_DEMAND)</option><option value=\"DOCTRINE_SUMMIT\">เทียบเชิญชุมนุมมรรคา (DOCTRINE_SUMMIT)</option><option value=\"BORDER_HERB_DISPUTE\">ข้อพิพาททรัพยากรชายแดน (BORDER_HERB_DISPUTE)</option></select><button class=\"btn pri\" data-do=\"edit-dip-spawnevent\">⚡ จุดประกายเหตุการณ์</button></div>";
+      }
+      h += "</div>";
+    } else if (tab === "sanctum") {
+      const sData = SECT.EDITOR.sanctumState(W, UI.editSanctumId);
+      const selSanctum = sData.selectedSanctum;
+      if (selSanctum) UI.editSanctumId = selSanctum.id;
+      const cats = sData.catalysts;
+      h += "<h3>🏛️ จัดการวิหารโบราณและรางวัลโบนัส (Edit Hub Sanctums)</h3><div class=\"card\">";
+      h += "<div class=\"edit-grid\">";
+      h += "<div class=\"edit-field\"><label>เลือกวิหารโบราณ</label><select id=\"editSanctumSel\">" + sData.sanctums.map(sc => "<option value=\"" + sc.id + "\"" + (selSanctum && selSanctum.id === sc.id ? " selected" : "") + ">" + sc.icon + " " + esc(sc.nameTh) + " (ผ่าน " + (sData.clearedFloors[sc.id] || 0) + "/3 ชั้น)</option>").join("") + "</select></div>";
+      if (selSanctum) {
+        h += "<div class=\"edit-field\"><label>กำหนดชั้นสูงสุดที่ผ่านด่าน (0–3)</label><div style=\"display:flex;gap:6px\"><select id=\"editSanctumFloorSel\">" + [0, 1, 2, 3].map(fl => "<option value=\"" + fl + "\"" + ((sData.clearedFloors[selSanctum.id] || 0) === fl ? " selected" : "") + ">ชั้น " + fl + (fl === 0 ? " (ยังไม่เคยผ่าน)" : " / 3") + "</option>").join("") + "</select><button class=\"btn pri\" data-do=\"edit-sanctum-setfloor\">บันทึกชั้น</button></div></div>";
+      }
+      h += "</div>";
+
+      if (selSanctum) {
+        h += "<div style=\"margin-top:8px\"><div class=\"muted\" style=\"margin-bottom:4px\">ผู้พิทักษ์ประจำวิหาร:</div>";
+        selSanctum.floors.forEach(fl => {
+          h += "<div style=\"padding:2px 0;font-size:12px\"><b>ชั้น " + fl.floor + " (" + esc(fl.nameTh) + "):</b> " + esc(fl.guardianNameTh) + " [พลัง " + fl.basePower + " · T" + fl.tier + " · " + fl.weaponType + "] — ผลึกการันตี: <span class=\"chip g\">" + esc(ECO.REFINEMENT_CATALYSTS[fl.catalystId]?.nameTh || fl.catalystId) + "</span></div>";
+        });
+        h += "</div>";
+
+        h += "<div style=\"margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)\"><b>จำลองการลงสำรวจวิหารทันที (Instant Run):</b><div style=\"display:flex;gap:6px;margin-top:4px;flex-wrap:wrap\">";
+        h += "<button class=\"btn pri\" data-do=\"edit-sanctum-run\" data-arg=\"clear\">🏛️ ผ่านฉลุย 3 ชั้น (Force Clear — รับผลึกการันตี + สุ่มโบนัส)</button>";
+        h += "<button class=\"btn\" data-do=\"edit-sanctum-run\" data-arg=\"sim\">⚔️ สู้จริงตามพลัง (อาจถอยทัพตามพลังชีวิต)</button>";
+        h += "</div></div>";
+      }
+      h += "</div>";
+
+      // Bonus Drop Stats
+      h += "<h3>🎲 สถิติการดรอปรางวัลโบนัสวิหาร (Bonus Drop Metrics)</h3><div class=\"card\">";
+      h += "<div>ดรอปโบนัสสำเร็จแล้วทั้งหมด: <b>" + sData.bonusDrops + "</b> ครั้ง (โอกาส 4% ชั้น1 / 8% ชั้น2 / 12% ชั้น3 · สูงสุด 1 ชิ้น/รอบ)</div>";
+      h += "<div style=\"display:flex;gap:6px;flex-wrap:wrap;margin-top:6px\">" + EXPLORE.SANCTUM_BONUS_TIERS.map(t => "<span class=\"chip " + (t.id === "APEX_LEGENDARY" ? "g" : t.id === "UNCOMMON_MANUAL" ? "v" : "b") + "\">" + t.rarityLabel + " (" + t.weight + "%): " + (sData.bonusByTier[t.id] || 0) + " ครั้ง</span>").join("") + "</div>";
+      h += "</div>";
+
+      // Refinement Hub
+      h += "<h3>✨ หลอมขัดเกลาศาสตราด้วยผลึกโบราณ (Refinement Hub)</h3><div class=\"card\">";
+      h += "<div style=\"display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px\"><div><b>ผลึกในคลัง:</b> " + Object.values(ECO.REFINEMENT_CATALYSTS).map(c => "<span class=\"chip g\">" + esc(c.nameTh) + " ×" + (cats[c.id] || 0) + "</span>").join(" ") + "</div><button class=\"btn\" data-do=\"edit-sanctum-spawncat\">✨ เติมผลึกเข้าคลัง (+5 ชิ้นทุกชนิด)</button></div>";
+
+      // Collect all T4-T6 refinable gear
+      const refinableGear = [];
+      (W.sect.gear || []).forEach(g2 => {
+        if (g2 && (g2.tier || 1) >= 4) refinableGear.push({ gear: g2, ownerName: "คลังสำนัก", ownerId: null });
+      });
+      W.npcs.forEach(mem => {
+        if (mem.equip) {
+          for (const sl of ["WEAPON", "ARMOR", "ACCESSORY"]) {
+            const eq = mem.equip[sl];
+            if (eq && (eq.tier || 1) >= 4) refinableGear.push({ gear: eq, ownerName: mem.h.name.given + " (สวมใส่อยู่)", ownerId: mem.id });
+          }
+        }
+        if (mem.inv && Array.isArray(mem.inv.gear)) {
+          mem.inv.gear.forEach(eq => {
+            if (eq && (eq.tier || 1) >= 4) refinableGear.push({ gear: eq, ownerName: mem.h.name.given + " (ในถุง)", ownerId: mem.id });
+          });
+        }
+      });
+
+      if (!refinableGear.length) {
+        h += "<div class=\"muted\">ยังไม่พบอุปกรณ์ T4–T6 ในสำนัก สามารถเสกไอเทมในแท็บ \"เสกไอเทม\" ก่อนนำมาขัดเกลา</div>";
+      } else {
+        h += "<div class=\"edit-grid\"><div class=\"edit-field\"><label>เลือกอุปกรณ์ที่จะขัดเกลา</label><select id=\"editRefineGearSel\">" + refinableGear.map(r => "<option value=\"" + (r.gear.uid || r.gear.id) + "|" + (r.ownerId || "") + "\">" + esc(r.gear.nameTh) + " [T" + r.gear.tier + " · " + r.gear.slot + " · คุณภาพ " + Math.round((r.gear.q || 1) * 100) + "%] — " + esc(r.ownerName) + "</option>").join("") + "</select></div>";
+        h += "<div class=\"edit-field\"><label>เลือกผลึกขัดเกลา</label><select id=\"editRefineCatSel\">" + Object.values(ECO.REFINEMENT_CATALYSTS).map(c => "<option value=\"" + c.id + "\">" + esc(c.nameTh) + " (เพิ่มคุณภาพ +" + Math.round(c.qualityBoost * 100) + "% / เพดาน " + Math.round(c.maxQuality * 100) + "%) [มี " + (cats[c.id] || 0) + "]</option>").join("") + "</select></div>";
+        h += "</div>";
+        h += "<div style=\"margin-top:6px\"><button class=\"btn pri\" data-do=\"edit-sanctum-refine\">✨ ขัดเกลาคุณภาพอุปกรณ์ทันที</button></div>";
+      }
+      h += "</div>";
     } else if (tab === "backup") {
       const slots = UI.slotInfo();
       h += "<h3>💾 สำรองข้อมูลก่อนแก้ไขหรือเสกของ</h3><div class=\"card\"><div class=\"muted\">แนะนำให้บันทึกเกมลงช่องบันทึกหรือส่งออกเป็นไฟล์ JSON ก่อนปรับแก้ค่าสถานะขนาดใหญ่ การกดปุ่ม \"ย้อนคืนการแก้ไขล่าสุด\" จะย้อนคืนเฉพาะค่าสถานะตัวละครโดยไม่ย้อนเวลาของโลกที่เดินไปแล้ว</div>";

@@ -579,12 +579,16 @@
     EMBARGO:'คว่ำบาตร/ปรปักษ์'
   };
   C.TREATY_TH=TREATY_TH;
+  C.SECT_TREATIES=TREATY_TH;
 
   C.signTreaty=(W,sectOrId,treatyType,opts)=>{
     opts=opts||{};
     C.ensure(W);
     const s=typeof sectOrId==='string'?W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId;
     if(!s||!TREATY_TH[treatyType]) return {ok:false,reason:'invalid-sect-or-treaty'};
+    if(!opts.force && !opts.ignoreCooldown && s.treatyCooldownUntil!=null && (W.day||0)<s.treatyCooldownUntil && s.treaty===treatyType) {
+      return {ok:false,reason:'cooldown',cooldownUntilDay:s.treatyCooldownUntil};
+    }
     const minAtt={TRADE_PACT:15,TRADE_CARAVAN_ACCORD:15,NON_AGGRESSION:5,MARTIAL_EXCHANGE:25,ALLIANCE:45,ALLIANCE_PACT:40,RIVAL_FEUD:-100,NONE:-100,EMBARGO:-100}[treatyType];
     if(!opts.force && s.attitude<minAtt) return {ok:false,reason:'insufficient-attitude',attitude:s.attitude,required:minAtt};
     const cost=opts.free?0:({TRADE_PACT:40,TRADE_CARAVAN_ACCORD:35,NON_AGGRESSION:30,MARTIAL_EXCHANGE:50,ALLIANCE:80,ALLIANCE_PACT:75,RIVAL_FEUD:0,NONE:0,EMBARGO:0}[treatyType]||0);
@@ -592,6 +596,7 @@
 
     s.treaty=treatyType;
     s.contact=W.day;
+    s.treatyCooldownUntil=(W.day||0)+(opts.cooldownDays!=null?opts.cooldownDays:10);
     const pol=W.world.politics;
     if(treatyType==='NONE') {
       delete pol.treaties[s.id];
@@ -622,6 +627,10 @@
     if(!s) return {ok:false,reason:'no-ally-sect'};
     const isAllied=['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) || s.attitude>=30;
     if(!opts.force && !isAllied) return {ok:false,reason:'not-allied',treaty:s.treaty,attitude:s.attitude};
+    const cdDays=opts.cooldownDays!=null?opts.cooldownDays:15;
+    if(!opts.force && !opts.ignoreCooldown && s.lastCaravanDay!=null && (W.day||0)-s.lastCaravanDay<cdDays) {
+      return {ok:false,reason:'cooldown',cooldownUntilDay:s.lastCaravanDay+cdDays};
+    }
     const cost=opts.free?0:(opts.stoneCost!=null?opts.stoneCost:45);
     if(cost>0 && !ECO.pay(W,cost,'แลกเปลี่ยนคัมภีร์และผลึกพันธมิตรกับ'+s.nameTh)) return {ok:false,reason:'insufficient-stones',cost};
 
@@ -644,15 +653,20 @@
     }
     s.attitude=clamp((s.attitude||0)+4,-100,100);
     s.contact=W.day;
+    s.lastCaravanDay=W.day||0;
+    s.exchangeCooldownUntil=(W.day||0)+cdDays;
     const pol=W.world.politics;
+    if(pol.treaties && pol.treaties[s.id]) pol.treaties[s.id].lastExchangeDay=W.day||0;
     pol.stats.allyExchanges=(pol.stats.allyExchanges||0)+1;
     const summaryTh='แลกเปลี่ยนพันธมิตรกับ'+s.nameTh+' ได้รับผลึกสายย่อย「'+subPick.nameTh+'」'+(recipeGranted?(' และตำรับ「'+ECO.recipeById[recipeGranted].nameTh+'」'):'');
     pol.events.push({day:W.day,kind:'ALLY_EXCHANGE',sectId:s.id,treaty:s.treaty,outcome:'EXCHANGED',crystalKey,recipeId:recipeGranted,summaryTh});
     if(pol.events.length>40) pol.events.splice(0,pol.events.length-40);
     if(!opts.quiet) W.log('mission',summaryTh,[]);
-    return {ok:true,sectId:s.id,crystalKey,subpathId:subPick.id,recipeId:recipeGranted,cost,summaryTh};
+    return {ok:true,sectId:s.id,crystalKey,subpathId:subPick.id,recipeId:recipeGranted,cost,cooldownUntilDay:s.exchangeCooldownUntil,summaryTh};
   };
-  if(SECT) SECT.exchangeWithAlly=C.exchangeWithAlly;
+  C.negotiateTreaty=C.signTreaty;
+  C.dispatchDiplomaticCaravan=C.exchangeWithAlly;
+  if(SECT) { SECT.exchangeWithAlly=C.exchangeWithAlly; SECT.signTreaty=C.signTreaty; }
 
   C.spawnPoliticalEvent=(W,kind,sectOrId)=>{
     C.ensure(W);
@@ -849,6 +863,10 @@
       }
     } else if(W.day>0 && W.day%18===0) {
       C.spawnPoliticalEvent(W);
+    }
+    if(W.day>0 && W.day%45===0 && SECT && SECT.resolveRivalEnvoyChallenge) {
+      const rival=(W.world.sects||[]).find(x=>(x.treaty==='RIVAL_FEUD'||x.treaty==='EMBARGO'||(x.attitude||0)<=-25) && (W.day-(x.lastEnvoyDay||-99)>=30));
+      if(rival) SECT.resolveRivalEnvoyChallenge(W,null,rival,{respectCooldown:true});
     }
   };
 

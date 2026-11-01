@@ -471,6 +471,7 @@
   C.chooseSkill = chooseSkill;
   function lowestAlly(W, f, a) { const side = C.sideOf(f, a.id) === 'A' ? f.A : f.B; let w = null, m = 2; side.forEach(id => { const u = C.unit(W, id); if (!C.alive(u) || u.id === a.id) return; const r = hpFrac(u); if (r < m) { m = r; w = u; } }); return w; }
   function useSkill(W, f, a, d, p, ctx) {
+    ctx = ctx || (a && a.act && a.act.ctx) || {};
     const SK = SKs(), ST = STs(), sa = ST.get(a);
     const elemInter = g.ELEM ? g.ELEM.resolveCombatInteraction(a, d, p) : null;
     p = Object.assign({}, p, {
@@ -658,7 +659,8 @@
       if (!C.alive(t)) return;
       for (let i = 0; i < (p.hits || 1); i++) {
         if (!C.alive(t)) break;
-        const r = C.strike(W, f, a, t, { M: p.M * mas * (p.aoe && t !== d ? 0.8 : 1), synDmgMult: p.synDmgMult || 1, accAdd: p.elementAccAdd || 0, type: p.type, pen: p.pen, label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true, arch: p.arch, skill: p });
+        const wpnAcc = (!a.foe && g.MARTIAL && g.MARTIAL.weaponCompatibility) ? (g.MARTIAL.weaponCompatibility(a, p.tech || p.id).accDelta || 0) : 0;
+        const r = C.strike(W, f, a, t, { M: p.M * mas * (p.aoe && t !== d ? 0.8 : 1), synDmgMult: p.synDmgMult || 1, accAdd: (p.elementAccAdd || 0) + wpnAcc, type: p.type, pen: p.pen, label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true, arch: p.arch, skill: p });
         if (r.hit) { dealt += r.dmg; applyRiders(W, f, a, t, p, r); }
       }
     });

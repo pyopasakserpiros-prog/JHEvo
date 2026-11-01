@@ -762,9 +762,9 @@
       if (!trInfo || !trInfo.active || trInfo.gateOk) {
         return { step: 'ready', stepTitle: 'ผ่านเงื่อนไขคอขวดสายเฉพาะทางแล้ว', missingPrereq: null, actions: ['cultivate'] };
       }
-      const acts = trInfo.feasibleActions.length ? trInfo.feasibleActions : ['skillDrill', 'practice'];
+      const acts = trInfo.feasibleActions.slice();
       return {
-        step: trInfo.primarySkillToTrain ? 'train_gate_skill' : 'acquire_gate_stones',
+        step: !acts.length ? 'blocked_impossible' : (trInfo.primarySkillToTrain ? 'train_gate_skill' : 'acquire_gate_stones'),
         stepTitle: trInfo.statusTh || goal.title,
         missingPrereq: trInfo.blockerReasonTh || (trInfo.missingSkills.length ? trInfo.missingSkills.map(m => m.skill + ' ' + Math.floor(m.current) + '/' + m.required).join(', ') : ('STONES ' + Math.floor(trInfo.missingStones.currentPersonal) + '/' + trInfo.missingStones.required)),
         actions: acts
@@ -1277,7 +1277,7 @@
     if ((s.heartDemon || 0) >= 45 && (id === 'pray' || id === 'consolidate' || id === 'personalPillUse') && (!n.cult || n.cult.path !== 'DEMON' || s.heartDemon >= 68)) {
       push('สงบจิตมารที่รบกวนตบะ', 0.62);
     }
-    if (id === 'forge' && W.sect && W.sect._hasCatalysts && !(W.sect.orders && W.sect.orders.forge) && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n)) {
+    if (id === 'forge' && W.sect && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n)) {
       push('ขัดเกลาศาสตรา T4–T6 ด้วยผลึกโบราณ', 0.52);
     }
     if (mc.hasTrackBnWindow) {
@@ -2121,7 +2121,7 @@
 
     // 4. Ancestral Shrine Legacy Tablets
     if (W.sect && Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length && n.cult) {
-      if (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t)) {
+      if (CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W.t) : (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t))) {
         activeCircumstances.push({
           kind: 'ancestral_blessing_active',
           summaryTh: 'ได้รับพรบรรพชนจาก「' + n.ancestralBlessing.elderNameTh + '」(เร่งศึกษา ×' + n.ancestralBlessing.studySpeedMult + ' · ทะลวง +' + Math.round(n.ancestralBlessing.breakthroughBonus * 100) + '%)',

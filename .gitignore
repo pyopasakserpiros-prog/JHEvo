@@ -1,9 +1,9 @@
+node_modules/
+**/test/results/
+__pycache__/
+*.pyc
+.DS_Store
 .agent_cmd
 .agent_out
 .agent_status
 *.zip
-inspect_gemini/
-test/results/
-**/test/results/
-.DS_Store
-node_modules/

@@ -296,7 +296,18 @@ M.passiveSlotInfo=n=>{
  };
 };
 M.maxPassiveSlots=n=>M.passiveSlotInfo(n).max;
-for(const _id of ['ART190_BODY_012','ART190_BODY_031','ART190_BODY_036']){const _bt=CULT.tech(_id);if(_bt){delete _bt.weaponTypes;delete _bt.weapon;}}
+for(const _id of [
+ 'ART190_BODY_003','ART190_BODY_008','ART190_BODY_012','ART190_BODY_017','ART190_BODY_025','ART190_BODY_031','ART190_BODY_036',
+ 'MP_FIST_BAJI_SHOULDER_T3','MP_FIST_TEMPEST_KICK_T4',
+ 'INNATE_ELIXIR_DAO_CAULDRON','INNATE_YIN_YANG_TAIJI_WHEEL','INNATE_TIGER_SOVEREIGN_FEROCITY','INNATE_VAJRA_BODHI_GOLDEN_BELL',
+ 'INNATE_MERCY_DEITY_LOTUS_GRACE','INNATE_SHADOW_ASSASSIN_NIGHT_VEIL','INNATE_VENOM_GU_HEART_PARASITE','INNATE_ZEN_VOID_HEART_MIRROR',
+ 'INNATE_FIVE_ELEMENTS_CORE','INNATE_ASTRAL_ARRAY_CORE','INNATE_BLOOD_DEMON_CORE','INNATE_PHANTOM_SOUL_CORE','INNATE_TIME_VOID_CORE',
+ 'INNATE_FROST_MOON_IMMORTAL_CORE','INNATE_BLOOD_DRAGON_CORE','INNATE_DEVOURING_FIEND_CORE','INNATE_SOLAR_FORGE_CORE',
+ 'INNATE_THUNDER_BODY_CORE','INNATE_JADE_IMMORTAL_BODY_CORE','INNATE_TITAN_MOUNTAIN_BODY_CORE','INNATE_WOOD_SPRING_BODY_CORE',
+ 'INNATE_FATE_ORACLE_CORE','INNATE_TOTEM_BEAST_GOD_CORE','INNATE_UNDERWORLD_JUDGE_CORE','INNATE_OCEAN_SOVEREIGN_CORE',
+ 'INNATE_HARVEST_EARTH_GOD_CORE','INNATE_MEDICINE_BODHI_GOD_CORE','INNATE_NETHER_GHOST_KING_CORE',
+ 'INNATE_HEAVEN_DEVOURING_DEMON_CORE','INNATE_DREAM_ILLUSION_WEAVER_CORE'
+]){const _bt=CULT.tech(_id);if(_bt){delete _bt.weaponTypes;delete _bt.weapon;delete _bt.requiresWeapon;}}
 M.classifyTechniqueAccess=tOrId=>{
  const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
  if(!t)return {accessClass:'INVALID',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ไม่พบข้อมูลวิชา'};
@@ -335,6 +346,7 @@ M.resolveTechCompatibility=(n,tOrId)=>{
  parts.push(wpn.reasonTh);
  return {
   ok:M.isTechCompatible(n,t),
+  learnable:M.isTechCompatible(n,t),
   accessClass:cls.accessClass,
   pathExact,
   subExact,

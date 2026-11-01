@@ -412,7 +412,7 @@
     tick(n, W, ctx) {
       const learning = n.cult && n.cult.learning;
       if (!learning) return 'done';
-      const ancMult = (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t) && n.ancestralBlessing.studySpeedMult) ? n.ancestralBlessing.studySpeedMult : 1;
+      const ancMult = (CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W ? W.t : null) : (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t))) && n.ancestralBlessing.studySpeedMult ? n.ancestralBlessing.studySpeedMult : 1;
       learning.got = Math.min(learning.need, learning.got + learning.need * (ctx.rate || 0.005) * ancMult);
       (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 30, 1.1);
       const teacher = W.byId[ctx.teacherId]; if (teacher && !teacher.dead) { (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(teacher, 'SCRIPTURE', 1 / 60, 0.8); teacher.merit = (teacher.merit || 0) + 0.005; }
