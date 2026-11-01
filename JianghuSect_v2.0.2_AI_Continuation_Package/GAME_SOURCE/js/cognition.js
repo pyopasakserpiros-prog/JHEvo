@@ -577,14 +577,17 @@
     if (!W || !W.sect || !M || !n || !n.cult) return null;
     if (n._lastGearSwapAt && W.t - n._lastGearSwapAt < 720) return null;
     let best = null, bestDelta = 0;
-    // 1. Check personal bag first (free immediate equip if useful-now)
+    // 1. Check personal bag first (free immediate equip if useful-now or completes resonance set)
     const bagGear = (n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : [];
     for (const eq of bagGear) {
       if (!eq || !eq.slot) continue;
-      const cl = M.classifyGearForNpc(W, n, eq, 0);
-      if (cl.category === 'useful-now' && cl.deltaScore > bestDelta) {
-        bestDelta = cl.deltaScore;
-        best = { source: 'bag', gear: eq, price: 0, deltaScore: cl.deltaScore, reasons: cl.suit.reasons, reasonTh: cl.reasonTh };
+      const cl = M.classifyGearForNpc(null, n, eq, 0);
+      const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
+      const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
+      const effDelta = cl.deltaScore + resBonus;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+        bestDelta = effDelta;
+        best = { source: 'bag', gear: eq, price: 0, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
     }
     if (best) return best;
@@ -594,10 +597,13 @@
       if (!eq || !eq.slot || (eq.minStage || 1) > effSt) continue;
       if (!SECT.canAccessItem(W, n, eq)) continue;
       const price = (g.CPE && g.CPE.gearPrice) ? g.CPE.gearPrice(W, eq) : 20;
-      const cl = M.classifyGearForNpc(W, n, eq, price);
-      if (cl.category === 'useful-now' && cl.deltaScore > bestDelta) {
-        bestDelta = cl.deltaScore;
-        best = { source: 'shop', gear: eq, price, deltaScore: cl.deltaScore, reasons: cl.suit.reasons, reasonTh: cl.reasonTh };
+      const cl = M.classifyGearForNpc(null, n, eq, price);
+      const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
+      const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
+      const effDelta = cl.deltaScore + resBonus;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+        bestDelta = effDelta;
+        best = { source: 'shop', gear: eq, price, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
     }
     return best;
@@ -810,12 +816,17 @@
 
     // Auto-equip personal bag gear if it is an immediate useful upgrade
     if (n.cult && n.inv && Array.isArray(n.inv.gear) && n.inv.gear.length && !(n.act && n.act.id === 'fight') && SECT.EDITOR && SECT.EDITOR.equipPersonalGear) {
-      for (const eq of n.inv.gear.slice()) {
-        const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(W, n, eq, 0) : null;
-        if (cl && cl.category === 'useful-now') {
-          SECT.EDITOR.equipPersonalGear(W, n.id, eq.uid || eq.id);
-          n._lastGearSwapAt = W.t;
-          break;
+      const gLen = n.inv.gear.length, gLast = n.inv.gear[gLen - 1], cSt = n.cult.stage;
+      if (n._bagChkLen !== gLen || n._bagChkLast !== gLast || n._bagChkSt !== cSt) {
+        n._bagChkLen = gLen; n._bagChkLast = gLast; n._bagChkSt = cSt;
+        for (const eq of n.inv.gear.slice()) {
+          const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(null, n, eq, 0) : null;
+          if (cl && cl.category === 'useful-now') {
+            SECT.EDITOR.equipPersonalGear(W, n.id, eq.uid || eq.id);
+            n._lastGearSwapAt = W.t;
+            n._bagChkLen = -1;
+            break;
+          }
         }
       }
     }
@@ -1018,7 +1029,9 @@
     const out = [], push = (why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }, s = n.h.state, c = n.cognition;
     let mc = n._cogModCtx;
     const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, curGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, cpNow = n.cp || 0;
-    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow) {
+    const postsRef = W.sect && W.sect.posts;
+    const pSig = postsRef ? (postsRef.commander || '') + '|' + (postsRef.alchemy || '') + '|' + (postsRef.forge || '') + '|' + (postsRef.treasury || '') + '|' + (postsRef.healer || '') + '|' + (postsRef.martial || '') + '|' + (postsRef.scripture || '') + '|' + (postsRef.mission || '') + '|' + (postsRef.guard || '') + '|' + (postsRef.registry || '') + '|' + (postsRef.discipline || '') + '|' + (W.sect.masterId || '') + '|' + (W.sect.deputyId || '') : '';
+    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pSig !== pSig) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -1043,9 +1056,48 @@
         if (curGoal.id === 'scripture' && cpNow < price) goalShopPen = -disc0 * (100 / 140);
       }
       const defCache = {};
+      const poMods = {};
+      if (safe0) {
+        const plans = W.sect.officePlans;
+        if (plans) {
+          for (const post in plans) {
+            const plan = plans[post];
+            if (!plan || plan.expiresAt <= W.t || !plan.actions) continue;
+            const authorizedId = (W.sect.delegations && W.sect.delegations[post] && W.sect.delegations[post].until > W.t)
+              ? W.sect.delegations[post].delegateId
+              : (post === 'master' ? W.sect.masterId : post === 'deputy' ? W.sect.deputyId : W.sect.posts[post]);
+            if (authorizedId !== plan.by) continue;
+            const owner = W.byId[plan.by];
+            if (!COG.available(owner, W)) continue;
+            const defObj = owner.id !== n.id ? (defCache[owner.id] || (defCache[owner.id] = COG.deferenceToward(W, n, owner))) : { deference: 50 };
+            const val = clamp(0.08 + duty0 * 0.16 + (defObj.deference / 100) * 0.08, -2, 2);
+            const why = 'ข้อเสนอฝ่าย: ' + plan.title;
+            for (let i = 0; i < plan.actions.length; i++) {
+              const actId = plan.actions[i];
+              (poMods[actId] || (poMods[actId] = [])).push([why, val]);
+            }
+          }
+        }
+        const orders = W.sect.officeOrders;
+        if (orders) {
+          for (const post in orders) {
+            const ord = orders[post];
+            if (!ord || ord.expiresAt <= W.t || (ord.targetNpcId && ord.targetNpcId !== n.id) || !ord.actions) continue;
+            const officer = W.byId[ord.by];
+            if (!COG.available(officer, W) || !COG.hasAuthority(W, officer, post)) continue;
+            const def = defCache[officer.id] || (defCache[officer.id] = COG.deferenceToward(W, n, officer));
+            const compliance = clamp(0.15 + duty0 * 0.25 + def.deference / 250 + def.fear / 300 - (def.resentment / 400), 0.05, 0.65);
+            const why = 'คำสั่ง' + (OFFICE[post]?.[0] || 'ฝ่าย') + ': ' + ord.title;
+            for (let i = 0; i < ord.actions.length; i++) {
+              const actId = ord.actions[i];
+              (poMods[actId] || (poMods[actId] = [])).push([why, compliance]);
+            }
+          }
+        }
+      }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow,
+        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pSig, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -1079,35 +1131,10 @@
     if (c && c.cluePrep && c.cluePrep.until > W.t && c.cluePrep.recommendedAction === id) {
       push('เตรียมความพร้อมเพื่อสืบเบาะแส', 0.28);
     }
-    // Office plans & actionable orders with live authority check and cached deference
-    if (mc.safe) {
-      const plans = W.sect.officePlans;
-      if (plans) {
-        for (const post in plans) {
-          const plan = plans[post];
-          if (!plan || plan.expiresAt <= W.t || !plan.actions || !plan.actions.includes(id)) continue;
-          const authorizedId = (W.sect.delegations && W.sect.delegations[post] && W.sect.delegations[post].until > W.t)
-            ? W.sect.delegations[post].delegateId
-            : (post === 'master' ? W.sect.masterId : post === 'deputy' ? W.sect.deputyId : W.sect.posts[post]);
-          if (authorizedId !== plan.by) continue;
-          const owner = W.byId[plan.by];
-          if (!COG.available(owner, W)) continue;
-          const defObj = owner.id !== n.id ? (mc.defCache[owner.id] || (mc.defCache[owner.id] = COG.deferenceToward(W, n, owner))) : { deference: 50 };
-          push('ข้อเสนอฝ่าย: ' + plan.title, 0.08 + duty * 0.16 + (defObj.deference / 100) * 0.08);
-        }
-      }
-      const orders = W.sect.officeOrders;
-      if (orders) {
-        for (const post in orders) {
-          const ord = orders[post];
-          if (!ord || ord.expiresAt <= W.t || (ord.targetNpcId && ord.targetNpcId !== n.id) || !ord.actions || !ord.actions.includes(id)) continue;
-          const officer = W.byId[ord.by];
-          if (!COG.available(officer, W) || !COG.hasAuthority(W, officer, post)) continue;
-          const def = mc.defCache[officer.id] || (mc.defCache[officer.id] = COG.deferenceToward(W, n, officer));
-          const compliance = clamp(0.15 + duty * 0.25 + def.deference / 250 + def.fear / 300 - (def.resentment / 400), 0.05, 0.65);
-          push('คำสั่ง' + (OFFICE[post]?.[0] || 'ฝ่าย') + ': ' + ord.title, compliance);
-        }
-      }
+    // Office plans & actionable orders (cached per tick + live post signature)
+    const poList = mc.poMods && mc.poMods[id];
+    if (poList) {
+      for (let i = 0; i < poList.length; i++) out.push(poList[i]);
     }
     const hour = mc.hour, night = mc.night, discipline = mc.disc;
     if (night && (id === 'duty' || id === 'farm' || id === 'mine' || id === 'forage')) push('ยามดึกควรพัก', -0.25 * discipline);
@@ -1479,7 +1506,7 @@
     if (!M || !M.classifyGearForNpc) return null;
     for (const eq of n.inv.gear) {
       if (!eq) continue;
-      const cl = M.classifyGearForNpc(W, n, eq, 0);
+      const cl = M.classifyGearForNpc(null, n, eq, 0);
       if (cl.category === 'gift-worthy' && cl.targetNpcId) {
         const rec = W.byId[cl.targetNpcId];
         if (rec && COG.available(rec, W) && !rec.hidden) {

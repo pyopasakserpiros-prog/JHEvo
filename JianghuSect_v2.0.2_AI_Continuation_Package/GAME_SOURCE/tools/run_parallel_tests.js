@@ -62,7 +62,23 @@ function checkSyntax(file) {
 
 (async () => {
   const started = Date.now();
-  await Promise.all(Array.from({ length: maxWorkers }, () => worker()));
+  const soloSuites = new Set(["browser_mobile_perf"]);
+  const parallelIndices = [];
+  const soloIndices = [];
+  tests.forEach((t, idx) => (soloSuites.has(t) ? soloIndices : parallelIndices).push(idx));
+  let pPtr = 0;
+  async function pWorker() {
+    while (pPtr < parallelIndices.length) {
+      const idx = parallelIndices[pPtr++];
+      results[idx] = await runOne(tests[idx]);
+      process.stdout.write(`${results[idx].status} ${results[idx].test} (${results[idx].durationSec.toFixed(2)}s)\n`);
+    }
+  }
+  await Promise.all(Array.from({ length: maxWorkers }, () => pWorker()));
+  for (const idx of soloIndices) {
+    results[idx] = await runOne(tests[idx]);
+    process.stdout.write(`${results[idx].status} ${results[idx].test} (${results[idx].durationSec.toFixed(2)}s)\n`);
+  }
   const jsFiles = ['data', 'js', 'tools', 'test'].flatMap(dir =>
     fs.readdirSync(path.join(root, dir)).filter(name => name.endsWith('.js')).map(name => path.join(root, dir, name))
   );

@@ -182,6 +182,12 @@
         addAll('วิชาเฉพาะสายย่อยติดตัว', innate.f, 'f');
         addAll('วิชาเฉพาะสายย่อยติดตัว (แต้ม %)', innate.pp, 'f');
       }
+      const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
+      if (resSet && resSet.active) {
+        const resLab = 'สัจธรรมชุดอุปกรณ์「' + resSet.nameTh + '」(' + resSet.pieces + '/3 ชิ้น)';
+        addAll(resLab, resSet.p, 'p');
+        addAll(resLab, resSet.f, 'f');
+      }
     }
     // ใจสู้/พิเศษ
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; add('atk', 'ใจสู้/พรสวรรค์', 'p', mind); add('matk', 'ใจสู้/พรสวรรค์', 'p', mind);
@@ -301,6 +307,11 @@
         addAll(innate.p, false);
         addAll(innate.f, true);
         if (innate.pp) addAll(innate.pp, true);
+      }
+      const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
+      if (resSet && resSet.active) {
+        addAll(resSet.p, false);
+        addAll(resSet.f, true);
       }
     }
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; addP('atk', mind); addP('matk', mind);

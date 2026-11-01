@@ -49237,6 +49237,272 @@ EXP_V204.newRecipes.forEach(r => {
     t.elementProfile = { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} };
   }
 });
+
+// 8) v2.0.5 Pillar A: 14 3-Piece Equipment Resonance Sets (WEAPON + ARMOR + ACCESSORY across T3-T7)
+D.RESONANCE_SETS = [
+  {
+    id: 'RES_ASTRAL_SWORD_IMMORTAL',
+    nameTh: 'ชุดสัจธรรมกระบี่ดาราเหมันต์',
+    path: 'XIAN',
+    subpaths: ['SWORD_IMMORTAL', 'MIND_SWORD_TELEKINESIS', 'FROST_MOON_IMMORTAL'],
+    elementFamily: ['ASTRAL', 'WATER_ICE', 'WIND'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SWORD', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['RING', 'CHARM', 'NECKLACE'] },
+    bonus2: { p: { atk: 0.08, matk: 0.08 }, f: { crit: 5, pen: 6 }, descTh: '2 ชิ้น: โจมตีกาย/วิชา +8%, อัตราคริ +5%, เจาะเกราะ +6%' },
+    bonus3: {
+      p: { atk: 0.15, matk: 0.15, eva: 0.06 },
+      f: { crit: 10, critDmg: 18, pen: 12, cast: 8 },
+      rider: { status: 'mdefbreak', chance: 0.35, dur: 10, bonusDmgMult: 1.08, descTh: 'ปราณกระบี่ดาราทะลวงม่านวิชา (โอกาส 35% ม่านวิชาแตก + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +15%, หลบหลีก +6%, คริ +10%, แรงคริ +18%, เจาะเกราะ +12% และโอกาสทลายม่านวิชา'
+    }
+  },
+  {
+    id: 'RES_PURE_SWORD_SAINT',
+    nameTh: 'ชุดปราชญ์กระบี่ไร้ลักษณ์',
+    path: 'XIAN',
+    subpaths: ['PURE_SWORD_SAINT', 'HEART_BLADE_MEDITATION'],
+    elementFamily: ['EXPLICIT_NON_ELEMENTAL', 'NEUTRAL', 'EARTH_METAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SWORD', 'BLADE', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['RING', 'BRACELET', 'CHARM'] },
+    bonus2: { p: { atk: 0.09, acc: 0.08 }, f: { pen: 8, crit: 4 }, descTh: '2 ชิ้น: โจมตีกาย +9%, แม่นยำ +8%, เจาะเกราะ +8%, คริ +4%' },
+    bonus3: {
+      p: { atk: 0.16, matk: 0.10, acc: 0.12 },
+      f: { pen: 16, crit: 9, critDmg: 20, cast: 6 },
+      rider: { status: 'armorbreak', chance: 0.38, dur: 10, bonusDmgMult: 1.09, descTh: 'คมไร้ลักษณ์ผ่าเกราะ (โอกาส 38% เกราะแตก + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: โจมตีกาย +16%, วิชา +10%, แม่นยำ +12%, เจาะเกราะ +16%, แรงคริ +20% และโอกาสผ่าเกราะ'
+    }
+  },
+  {
+    id: 'RES_CLOUD_DRAGON_SPEAR',
+    nameTh: 'ชุดมังกรเมฆาทะลวงสุญตา',
+    path: 'XIAN',
+    subpaths: ['CLOUD_DRAGON_SPEAR', 'VOID_SPEAR_MIND', 'TIME_VOID'],
+    elementFamily: ['WIND', 'ASTRAL', 'LIGHTNING', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'STAFF', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['NECKLACE', 'RING', 'CHARM'] },
+    bonus2: { p: { atk: 0.07, matk: 0.07, eva: 0.06 }, f: { move: 8, pen: 6 }, descTh: '2 ชิ้น: โจมตีกาย/วิชา +7%, หลบหลีก +6%, ความเร็ว +8, เจาะเกราะ +6%' },
+    bonus3: {
+      p: { atk: 0.14, matk: 0.14, eva: 0.12 },
+      f: { move: 15, cast: 10, pen: 14, crit: 6 },
+      rider: { status: 'haste', selfBuff: true, chance: 0.40, dur: 8, bonusDmgMult: 1.08, descTh: 'ทวนมังกรเหินเมฆา (โอกาส 40% ลมหนุนเร่งสปีด + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +14%, หลบหลีก +12%, ความเร็ว +15, ร่าย +10, เจาะเกราะ +14% และเร่งความเร็วเมื่อโจมตี'
+    }
+  },
+  {
+    id: 'RES_CELESTIAL_BOW_ZITHER',
+    nameTh: 'ชุดศรดาราพิณสวรรค์',
+    path: 'XIAN',
+    subpaths: ['STAR_ARCHER', 'ZITHER_HEART_BOW', 'SOUND_ZITHER', 'SUN_BOW_DEITY'],
+    elementFamily: ['ASTRAL', 'LIGHT_YANG', 'WIND', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['BOW', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['RING', 'BRACELET', 'CHARM'] },
+    bonus2: { p: { acc: 0.10, atk: 0.07, matk: 0.07 }, f: { crit: 5, cast: 6 }, descTh: '2 ชิ้น: แม่นยำ +10%, โจมตีกาย/วิชา +7%, คริ +5%, ร่าย +6' },
+    bonus3: {
+      p: { acc: 0.18, atk: 0.14, matk: 0.14 },
+      f: { crit: 11, critDmg: 22, pen: 12, cast: 10 },
+      rider: { status: 'blind', chance: 0.35, dur: 8, bonusDmgMult: 1.09, descTh: 'ศรแสงดาราสะกดเนตร (โอกาส 35% ตาพร่า + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: แม่นยำ +18%, โจมตีกาย/วิชา +14%, คริ +11%, แรงคริ +22%, เจาะเกราะ +12% และโอกาสทำให้ศัตรูตาพร่า'
+    }
+  },
+  {
+    id: 'RES_FIVE_ELEMENTS_ELIXIR',
+    nameTh: 'ชุดเบญจธาตุเต๋าโอสถอมฤต',
+    path: 'XIAN',
+    subpaths: ['FIVE_ELEMENTS', 'ELIXIR_DAO', 'ASTRAL_ARRAY', 'YIN_YANG_HARMONY'],
+    elementFamily: ['WOOD_LIFE', 'FIRE', 'WATER_ICE', 'EARTH_METAL', 'ASTRAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['FOCUS', 'STAFF'], ARMOR: ['ROBE'], ACCESSORY: ['NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { matk: 0.09, mdef: 0.09, hp: 0.06 }, f: { cast: 6 }, descTh: '2 ชิ้น: โจมตีวิชา +9%, ป้องกันวิชา +9%, เลือด +6%, ร่าย +6' },
+    bonus3: {
+      p: { matk: 0.17, mdef: 0.16, hp: 0.12 },
+      f: { cast: 12, acc: 8 },
+      rider: { status: 'leech', chance: 0.38, dur: 8, bonusDmgMult: 1.07, descTh: 'ปราณเบญจธาตุหมุนเวียน (โอกาส 38% ดูดซับพลังชีวิต + ดาเมจ ×1.07)' },
+      descTh: '3 ชิ้น: โจมตีวิชา +17%, ป้องกันวิชา +16%, เลือด +12%, ร่าย +12 และฟื้นฟูเลือดเมื่อโจมตี'
+    }
+  },
+  {
+    id: 'RES_VAJRA_TITAN_BASTION',
+    nameTh: 'ชุดวัชระยักษ์แบกขุนเขา',
+    path: 'BODY',
+    subpaths: ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'STAFF_GUARD', 'JADE_IMMORTAL_BODY', 'WOOD_SPRING_BODY'],
+    elementFamily: ['EARTH_METAL', 'WOOD_LIFE', 'LIGHT_YANG', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['STAFF', 'FIST', 'FOCUS'], ARMOR: ['HEAVY', 'ROBE', 'LIGHT'], ACCESSORY: ['NECKLACE', 'BRACELET', 'RING'] },
+    bonus2: { p: { def: 0.12, hp: 0.10, mdef: 0.06 }, f: {}, descTh: '2 ชิ้น: ป้องกัน +12%, เลือด +10%, ป้องกันวิชา +6%' },
+    bonus3: {
+      p: { def: 0.22, hp: 0.18, mdef: 0.12, atk: 0.08 },
+      f: { pen: 8 },
+      rider: { status: 'guardUp', selfBuff: true, chance: 0.36, dur: 8, bonusDmgMult: 1.06, descTh: 'กายาวัชระสะท้านปฐพี (โอกาส 36% ตั้งรับแกร่งขึ้น + ดาเมจ ×1.06)' },
+      descTh: '3 ชิ้น: ป้องกัน +22%, เลือด +18%, ป้องกันวิชา +12%, โจมตี +8% และโอกาสปลุกเกราะตั้งรับ'
+    }
+  },
+  {
+    id: 'RES_OVERLORD_SOLAR_FORGE',
+    nameTh: 'ชุดราชันย์ดาบสุริยันผ่าขุนเขา',
+    path: 'BODY',
+    subpaths: ['OVERLORD_HEAVY_BLADE', 'SOLAR_FORGE', 'TIGER_SOVEREIGN', 'DEVOURING_FIEND'],
+    elementFamily: ['FIRE', 'EARTH_METAL', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['BLADE', 'FIST', 'STAFF'], ARMOR: ['HEAVY', 'LIGHT'], ACCESSORY: ['RING', 'BRACELET', 'NECKLACE'] },
+    bonus2: { p: { atk: 0.10, def: 0.06 }, f: { pen: 7, critDmg: 10 }, descTh: '2 ชิ้น: โจมตีกาย +10%, ป้องกัน +6%, เจาะเกราะ +7%, แรงคริ +10%' },
+    bonus3: {
+      p: { atk: 0.19, def: 0.12, hp: 0.10 },
+      f: { pen: 15, crit: 6, critDmg: 22 },
+      rider: { status: 'burn', chance: 0.36, dur: 10, bonusDmgMult: 1.10, descTh: 'เพลิงสุริยันผ่าเกราะ (โอกาส 36% เผาไหม้ศัตรู + ดาเมจ ×1.10)' },
+      descTh: '3 ชิ้น: โจมตีกาย +19%, ป้องกัน +12%, เลือด +10%, เจาะเกราะ +15%, แรงคริ +22% และโอกาสเผาไหม้'
+    }
+  },
+  {
+    id: 'RES_THUNDER_DRAGON_VANGUARD',
+    nameTh: 'ชุดมังกรอสนีทวนศึกทลายทัพ',
+    path: 'BODY',
+    subpaths: ['THUNDER_BODY', 'BLOOD_DRAGON', 'WAR_SPEAR_SOVEREIGN', 'IRON_BOW_SENTINEL'],
+    elementFamily: ['LIGHTNING', 'BLOOD_DEMON', 'EARTH_METAL', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'FIST', 'BOW', 'STAFF'], ARMOR: ['HEAVY', 'LIGHT'], ACCESSORY: ['RING', 'BRACELET', 'NECKLACE'] },
+    bonus2: { p: { atk: 0.09, hp: 0.07 }, f: { crit: 5, cast: 5 }, descTh: '2 ชิ้น: โจมตีกาย +9%, เลือด +7%, คริ +5%, ร่าย +5' },
+    bonus3: {
+      p: { atk: 0.17, hp: 0.14, def: 0.10 },
+      f: { crit: 10, critDmg: 18, pen: 12, cast: 9 },
+      rider: { status: 'critUp', selfBuff: true, chance: 0.38, dur: 8, bonusDmgMult: 1.09, descTh: 'อสนีโลหิตคำราม (โอกาส 38% อสนีสะสมเพิ่มคริ + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: โจมตีกาย +17%, เลือด +14%, ป้องกัน +10%, คริ +10%, เจาะเกราะ +12% และเร่งคริติคอลเมื่อโจมตี'
+    }
+  },
+  {
+    id: 'RES_DIVINE_WAR_ARHAT',
+    nameTh: 'ชุดเทพสงครามอรหันต์ทองคำ',
+    path: 'GOD',
+    subpaths: ['WAR_DEITY', 'GOLDEN_ARHAT_STAFF', 'TOTEM_BEAST_GOD', 'UNDERWORLD_JUDGE'],
+    elementFamily: ['LIGHT_YANG', 'EARTH_METAL', 'YIN_SHADOW', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'STAFF', 'BLADE', 'FIST', 'FOCUS'], ARMOR: ['HEAVY', 'ROBE', 'LIGHT'], ACCESSORY: ['NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { atk: 0.07, matk: 0.07, def: 0.08, mdef: 0.08 }, f: {}, descTh: '2 ชิ้น: โจมตีกาย/วิชา +7%, ป้องกันกาย/วิชา +8%' },
+    bonus3: {
+      p: { atk: 0.14, matk: 0.14, def: 0.15, mdef: 0.15, hp: 0.10 },
+      f: { pen: 10, acc: 8 },
+      rider: { status: 'holyAura', selfBuff: true, chance: 0.36, dur: 10, bonusDmgMult: 1.08, descTh: 'รัศมีเทพพิทักษ์ธรรม (โอกาส 36% รัศมีคุ้มกาย + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +14%, ป้องกันกาย/วิชา +15%, เลือด +10%, เจาะเกราะ +10% และปลุกรัศมีคุ้มกาย'
+    }
+  },
+  {
+    id: 'RES_MERCY_HARVEST_ORACLE',
+    nameTh: 'ชุดเทพเมตตาพยากรณ์สมุทร',
+    path: 'GOD',
+    subpaths: ['MERCY_DEITY', 'MEDICINE_BODHI_GOD', 'HARVEST_EARTH_GOD', 'OCEAN_SOVEREIGN', 'FATE_ORACLE'],
+    elementFamily: ['WOOD_LIFE', 'WATER_ICE', 'LIGHT_YANG', 'ASTRAL', 'EARTH_METAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['FOCUS', 'STAFF', 'SPEAR'], ARMOR: ['ROBE', 'HEAVY'], ACCESSORY: ['NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { mdef: 0.10, hp: 0.09, matk: 0.07 }, f: { cast: 6 }, descTh: '2 ชิ้น: ป้องกันวิชา +10%, เลือด +9%, โจมตีวิชา +7%, ร่าย +6' },
+    bonus3: {
+      p: { mdef: 0.18, hp: 0.16, matk: 0.14, def: 0.08 },
+      f: { cast: 12, eva: 8 },
+      rider: { status: 'weaken', chance: 0.35, dur: 10, bonusDmgMult: 1.07, descTh: 'บัญชาสวรรค์สยบมาร (โอกาส 35% ลดพลังโจมตีศัตรู + ดาเมจ ×1.07)' },
+      descTh: '3 ชิ้น: ป้องกันวิชา +18%, เลือด +16%, โจมตีวิชา +14%, ป้องกัน +8% และโอกาสบั่นทอนกำลังศัตรู'
+    }
+  },
+  {
+    id: 'RES_SHADOW_ASHURA_SLAYER',
+    nameTh: 'ชุดเงาอสูรดาบสังหารไร้ลักษณ์',
+    path: 'DEMON',
+    subpaths: ['SHADOW_ASSASSIN', 'ASHURA_SLAUGHTER_BLADE', 'SHADOW_ARCHER', 'PHANTOM_SOUL'],
+    elementFamily: ['YIN_SHADOW', 'BLOOD_DEMON', 'WIND', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['BLADE', 'BOW', 'FIST', 'FOCUS'], ARMOR: ['LIGHT'], ACCESSORY: ['RING', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { atk: 0.09, eva: 0.08 }, f: { crit: 6, move: 8 }, descTh: '2 ชิ้น: โจมตีกาย +9%, หลบหลีก +8%, คริ +6%, ความเร็ว +8' },
+    bonus3: {
+      p: { atk: 0.17, eva: 0.15, matk: 0.08 },
+      f: { crit: 12, critDmg: 26, pen: 12, move: 14 },
+      rider: { status: 'bleed', chance: 0.40, dur: 10, bonusDmgMult: 1.10, descTh: 'คมเงาอสูรเชือดโลหิต (โอกาส 40% เลือดไหล + ดาเมจ ×1.10)' },
+      descTh: '3 ชิ้น: โจมตีกาย +17%, หลบหลีก +15%, คริ +12%, แรงคริ +26%, เจาะเกราะ +12% และโอกาสทำให้เลือดไหล'
+    }
+  },
+  {
+    id: 'RES_BLOOD_ASURA_DEVOURER',
+    nameTh: 'ชุดมารโลหิตกลืนสวรรค์',
+    path: 'DEMON',
+    subpaths: ['BLOOD_DEMON', 'BLOOD_SPEAR_ASURA', 'HEAVEN_DEVOURING_DEMON', 'VENOM_GU_SOVEREIGN', 'NETHER_GHOST_KING'],
+    elementFamily: ['BLOOD_DEMON', 'YIN_SHADOW', 'WOOD_LIFE', 'FIRE'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'BLADE', 'FIST', 'FOCUS', 'STAFF'], ARMOR: ['LIGHT', 'HEAVY', 'ROBE'], ACCESSORY: ['RING', 'NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { atk: 0.08, matk: 0.08, hp: 0.06 }, f: { pen: 7 }, descTh: '2 ชิ้น: โจมตีกาย/วิชา +8%, เลือด +6%, เจาะเกราะ +7%' },
+    bonus3: {
+      p: { atk: 0.16, matk: 0.16, hp: 0.12 },
+      f: { pen: 15, crit: 7, critDmg: 18 },
+      rider: { status: 'poison', chance: 0.38, dur: 10, bonusDmgMult: 1.09, descTh: 'พิษโลหิตอสูรกลืนวิญญาณ (โอกาส 38% ติดพิษ/โลหิต + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +16%, เลือด +12%, เจาะเกราะ +15%, แรงคริ +18% และโอกาสแพร่พิษโลหิต'
+    }
+  },
+  {
+    id: 'RES_ZEN_VOID_MIND',
+    nameTh: 'ชุดปราชญ์เซนสุญตาสะท้อนจิต',
+    path: 'HEART_SOUL',
+    subpaths: ['ZEN_VOID_MIND', 'DREAM_ILLUSION_WEAVER', 'CALLIGRAPHY_PAINTING_SAGE'],
+    elementFamily: ['ASTRAL', 'LIGHT_YANG', 'YIN_SHADOW', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['FOCUS', 'STAFF'], ARMOR: ['ROBE', 'LIGHT'], ACCESSORY: ['CHARM', 'NECKLACE', 'BRACELET'] },
+    bonus2: { p: { matk: 0.09, mdef: 0.10 }, f: { cast: 8, eva: 5 }, descTh: '2 ชิ้น: โจมตีวิชา +9%, ป้องกันวิชา +10%, ร่าย +8, หลบหลีก +5' },
+    bonus3: {
+      p: { matk: 0.17, mdef: 0.18, def: 0.08 },
+      f: { cast: 15, eva: 10, acc: 10 },
+      rider: { status: 'silence', chance: 0.30, dur: 6, bonusDmgMult: 1.08, descTh: 'จิตว่างสะกดคัมภีร์ (โอกาส 30% ผนึกวิชาศัตรู + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีวิชา +17%, ป้องกันวิชา +18%, ป้องกัน +8%, ร่าย +15 และโอกาสผนึกวิชาศัตรู'
+    }
+  },
+  {
+    id: 'RES_PRIMORDIAL_MARTIAL_SOVEREIGN',
+    nameTh: 'ชุดยุทธภพไร้ลักษณ์สะท้านภพ',
+    path: 'ANY',
+    subpaths: ['PURE_SWORD_SAINT', 'OVERLORD_HEAVY_BLADE', 'WAR_SPEAR_SOVEREIGN', 'IRON_BOW_SENTINEL', 'STAFF_GUARD', 'TIGER_SOVEREIGN', 'HEART_BLADE_MEDITATION', 'ASHURA_SLAUGHTER_BLADE'],
+    elementFamily: ['EXPLICIT_NON_ELEMENTAL', 'NEUTRAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: {
+      WEAPON: ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS'],
+      ARMOR: ['HEAVY', 'LIGHT', 'ROBE'],
+      ACCESSORY: ['RING', 'NECKLACE', 'BRACELET', 'CHARM']
+    },
+    bonus2: { p: { atk: 0.09, def: 0.08, hp: 0.07 }, f: { pen: 7, crit: 4 }, descTh: '2 ชิ้น: โจมตีกาย +9%, ป้องกัน +8%, เลือด +7%, เจาะเกราะ +7%, คริ +4%' },
+    bonus3: {
+      p: { atk: 0.18, def: 0.14, hp: 0.14, acc: 0.10 },
+      f: { pen: 15, crit: 8, critDmg: 20, move: 8 },
+      rider: { status: 'armorbreak', chance: 0.40, dur: 10, bonusDmgMult: 1.10, descTh: 'เจตจำนงยุทธ์ไร้ธาตุ (โอกาส 40% ทลายเกราะ + ดาเมจ ×1.10)' },
+      descTh: '3 ชิ้น: โจมตีกาย +18%, ป้องกัน +14%, เลือด +14%, แม่นยำ +10%, เจาะเกราะ +15% และทลายเกราะศัตรู'
+    }
+  }
+];
+
+// Tag T3-T7 equipment items with matching resonanceSetIds for fast lookup and inspection
+JD.ITEMS.items.forEach(it => {
+  if (!it || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(it.slot) || (it.tier || 1) < 3) return;
+  const gType = it.gearType || D.classify(it.slot, it.nameTh);
+  const elKey = it.elementalRole === 'EXPLICIT_NON_ELEMENTAL' ? 'EXPLICIT_NON_ELEMENTAL' : (it.element || 'NEUTRAL');
+  const matched = [];
+  for (const rs of D.RESONANCE_SETS) {
+    const slotTypes = rs.slots && rs.slots[it.slot];
+    if (!slotTypes || !slotTypes.includes(gType)) continue;
+    if (rs.elementFamily.includes(elKey) || (elKey === 'NEUTRAL' && rs.elementFamily.includes('EXPLICIT_NON_ELEMENTAL'))) {
+      matched.push(rs.id);
+    }
+  }
+  if (matched.length) {
+    it.resonanceSetIds = matched;
+    if (!it.resonanceSetId) it.resonanceSetId = matched[0];
+  }
+});
+
 })(typeof globalThis!=='undefined'?globalThis:this);
 
 </script>
@@ -65256,9 +65522,260 @@ EXP_V204.newRecipes.forEach(r => {
     W.log('decision', m.h.name.given + ' ประกาศจัดงานเลี้ยงที่ลานกลาง (ใช้ ' + cost + ' ศิลา) เพื่อสร้างขวัญกำลังใจ', [m.id]);
     W.npcs.forEach(n => { if (!n.dead) { n.sat = Math.min(100, (n.sat || 60) + 3); } });
   };
-  SECT.tournament = (W, m) => {
-    W.sect.tournament = { start: W.t + 24 * 60, state: 'announce', rounds: 0, entrants: [], winnerId: null, prize: Math.round(80 + W.sect.policy.generosity) };
-    W.log('decision', m.h.name.given + ' ประกาศจัดประลองยุทธ์สำนักในอีก 1 วัน รางวัล ' + W.sect.tournament.prize + ' ศิลา', [m.id]);
+  /* ---------- Grand Sect Martial Assembly & Peak Trial Arena (v2.0.5 Pillar C) ---------- */
+  SECT.ASSEMBLY_BRACKETS = {
+    JUNIOR: { id: 'JUNIOR', nameTh: 'รุ่นเยาว์·หลอมปราณ (T1–T2)', minStage: 1, maxStage: 2, cpReward: 50, runnerUpCp: 22, stonePrize: 60, minGearTier: 3, maxGearTier: 3, fameReward: 2 },
+    CORE: { id: 'CORE', nameTh: 'รุ่นแกนหลัก·แก่นทองคำ (T3–T4)', minStage: 3, maxStage: 4, cpReward: 100, runnerUpCp: 45, stonePrize: 120, minGearTier: 3, maxGearTier: 5, fameReward: 4 },
+    ELDER_PEAK: { id: 'ELDER_PEAK', nameTh: 'รุ่นผู้อาวุโส·ยอดเขายุทธ์ (T5–T7)', minStage: 5, maxStage: 7, cpReward: 180, runnerUpCp: 85, stonePrize: 220, minGearTier: 5, maxGearTier: 6, fameReward: 6 }
+  };
+  SECT.ASSEMBLY_BRACKET_IDS = ['JUNIOR', 'CORE', 'ELDER_PEAK'];
+
+  SECT.signatureVictoryOf = n => {
+    if (!n) return { weaponType: 'FIST', weaponNameTh: 'หมัดฝ่ามือ', techId: null, techNameTh: 'เพลงหมัดพื้นฐาน', moveNameTh: 'หมัดปะทะ', subpath: 'NONE', subpathNameTh: 'ปุถุชน' };
+    const wType = (g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(n) : 'FIST';
+    const wNameTh = (JD.MARTIAL && JD.MARTIAL.types && JD.MARTIAL.types[wType]) || wType;
+    const c = n.cult;
+    const subInfo = (c && c.sub && c.sub !== 'NONE') ? CULT.subInfo(c.path, c.sub) : null;
+    const subNameTh = subInfo ? subInfo.nameTh : (c ? c.sub : 'ปุถุชน');
+    let bestMove = null;
+    if (g.SK && g.SK.list) {
+      const moves = g.SK.list(n).filter(m => m && (m.M > 0 || m.arch === 'channel'));
+      if (moves.length) {
+        moves.sort((a, b) => ((b.tier || 1) * 10 + (b.M || 1)) - ((a.tier || 1) * 10 + (a.M || 1)));
+        bestMove = moves[0];
+      }
+    }
+    const techObj = bestMove ? (CULT.tech(bestMove.tech || bestMove.id) || bestMove) : (c && c.mantra ? CULT.tech(c.mantra) : null);
+    return {
+      weaponType: wType,
+      weaponNameTh: wNameTh,
+      techId: techObj ? techObj.id : null,
+      techNameTh: techObj ? techObj.nameTh : 'กระบวนท่าสำนัก',
+      moveNameTh: bestMove ? bestMove.nameTh : (techObj ? techObj.nameTh : 'กระบวนท่าพื้นฐาน'),
+      subpath: c ? c.sub : 'NONE',
+      subpathNameTh: subNameTh
+    };
+  };
+
+  SECT.tailoredAssemblyReward = (W, n, minTier, maxTier) => {
+    if (!n || !n.cult) return { item: null, recipe: null };
+    const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
+    const targetMaxTier = clamp(Math.max(minTier, Math.min(maxTier, effSt + 1)), 3, 6);
+    const targetMinTier = clamp(minTier, 3, targetMaxTier);
+    const allGear = (JD.ITEMS && JD.ITEMS.items ? JD.ITEMS.items : []).filter(it =>
+      it && ['WEAPON', 'ARMOR', 'ACCESSORY'].includes(it.slot) && (it.tier || 1) >= targetMinTier && (it.tier || 1) <= targetMaxTier
+    );
+    let bestItem = null, bestScore = -Infinity;
+    for (const it of allGear) {
+      const suit = (g.MARTIAL && g.MARTIAL.gearSuitability) ? g.MARTIAL.gearSuitability(n, it, 0) : { score: (it.tier || 3) * 20 };
+      const sc = Number.isFinite(suit.score) ? suit.score : ((it.tier || 3) * 10);
+      if (sc > bestScore) { bestScore = sc; bestItem = it; }
+    }
+    if (!bestItem && allGear.length) bestItem = allGear[0];
+    let minted = null, matchedRecipe = null;
+    if (bestItem) {
+      const allRecipes = (JD.ITEMS && JD.ITEMS.recipes) ? JD.ITEMS.recipes : [];
+      matchedRecipe = allRecipes.find(r => (r.outItemId === bestItem.id || r.itemId === bestItem.id)) ||
+        allRecipes.find(r => r.tier >= targetMinTier && r.tier <= targetMaxTier && ['FORGING', 'ARRAY', 'TALISMAN'].includes(r.craft)) || null;
+      minted = ECO.mintGear(matchedRecipe || bestItem, 1.08);
+      n.inv = n.inv || { stones: 0, pills: {}, mats: {}, gear: [] };
+      n.inv.gear = n.inv.gear || [];
+      const curEq = n.equip && n.equip[minted.slot];
+      const curScore = (curEq && g.MARTIAL && g.MARTIAL.gearSuitability) ? g.MARTIAL.gearSuitability(n, curEq, 0).score : -Infinity;
+      const newScore = (g.MARTIAL && g.MARTIAL.gearSuitability) ? g.MARTIAL.gearSuitability(n, minted, 0).score : 100;
+      if ((minted.minStage || 1) <= effSt && (!curEq || newScore > curScore)) {
+        if (curEq) n.inv.gear.push(curEq);
+        n.equip = n.equip || {};
+        n.equip[minted.slot] = minted;
+        if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(n);
+      } else {
+        n.inv.gear.push(minted);
+      }
+      if (matchedRecipe) {
+        n.recipes = n.recipes || [];
+        if (!n.recipes.includes(matchedRecipe.id)) n.recipes.push(matchedRecipe.id);
+        n.inv.recipes = n.inv.recipes || [];
+        if (!n.inv.recipes.includes(matchedRecipe.id)) n.inv.recipes.push(matchedRecipe.id);
+        if (W && W.sect) W.sect.recipeTier = Math.max(W.sect.recipeTier || 2, matchedRecipe.tier || 3);
+      }
+    }
+    return { item: minted, recipe: matchedRecipe };
+  };
+
+  SECT.simulateAssemblyBout = (W, a, b) => {
+    const tacA = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(a, b, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+    const tacB = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(b, a, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+    const resA = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(a) : { active: false, pieces: 0 };
+    const resB = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(b) : { active: false, pieces: 0 };
+    const scoreA = CULT.power(a) * (tacA.dmgMult || 1) * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (0.88 + W.rng.next() * 0.24);
+    const scoreB = CULT.power(b) * (tacB.dmgMult || 1) * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (0.88 + W.rng.next() * 0.24);
+    const win = scoreA >= scoreB ? a : b;
+    const lose = win === a ? b : a;
+    const winTac = win === a ? tacA : tacB;
+    const sig = SECT.signatureVictoryOf(win);
+    return {
+      winner: win,
+      loser: lose,
+      tacticalRelation: winTac.relation || 'NEUTRAL',
+      tacticalNoteTh: winTac.noteTh || '',
+      signature: sig
+    };
+  };
+
+  SECT.assembly = (W, m, opts) => {
+    opts = opts || {};
+    const S = W.sect;
+    S.assemblyHistory = S.assemblyHistory || [];
+    const host = m || W.byId[S.masterId] || W.npcs.find(n => !n.dead);
+    if (opts.announceOnly) {
+      return SECT.tournament(W, host, opts);
+    }
+    const candidates = W.npcs.filter(n => !n.dead && !n.exiled && n.cult && (opts.includeAway || !n.away));
+    const bracketResults = [];
+    let totalFameGained = 0;
+    let grandChamp = null, grandChampPower = -1;
+
+    for (const bId of SECT.ASSEMBLY_BRACKET_IDS) {
+      const spec = SECT.ASSEMBLY_BRACKETS[bId];
+      let divEntrants = candidates.filter(n => {
+        const st = n.cult ? n.cult.stage : 1;
+        return st >= spec.minStage && st <= spec.maxStage;
+      });
+      if (!divEntrants.length) continue;
+      // Sort by combat power + tactical readiness for seeding
+      divEntrants = divEntrants.slice().sort((a, b) => CULT.power(b) - CULT.power(a));
+      let curRound = divEntrants.slice();
+      const bouts = [];
+      let runnerUp = curRound.length > 1 ? curRound[1] : null;
+      while (curRound.length > 1) {
+        const nextRound = [];
+        for (let i = 0; i < curRound.length; i += 2) {
+          if (i + 1 >= curRound.length) {
+            nextRound.push(curRound[i]);
+            continue;
+          }
+          const bout = SECT.simulateAssemblyBout(W, curRound[i], curRound[i + 1]);
+          bouts.push({
+            aId: curRound[i].id,
+            bId: curRound[i + 1].id,
+            winnerId: bout.winner.id,
+            loserId: bout.loser.id,
+            tacticalRelation: bout.tacticalRelation,
+            signatureTechName: bout.signature.techNameTh,
+            weaponType: bout.signature.weaponType
+          });
+          runnerUp = bout.loser;
+          nextRound.push(bout.winner);
+        }
+        curRound = nextRound;
+      }
+      const champ = curRound[0];
+      const sig = SECT.signatureVictoryOf(champ);
+      // Award Contribution Points (CP), stones, merit, and tailored T3-T6 equipment/recipe
+      champ.cp = (champ.cp || 0) + spec.cpReward;
+      champ.cpEarned = (champ.cpEarned || 0) + spec.cpReward;
+      champ.merit = (champ.merit || 0) + 25 + spec.fameReward * 3;
+      champ.inv = champ.inv || { stones: 0, pills: {}, mats: {}, gear: [] };
+      const stonePay = Math.min(spec.stonePrize, Math.max(20, Math.floor((S.stones || 0) * 0.15)));
+      if (stonePay > 0 && S.stones >= stonePay) {
+        ECO.pay(W, stonePay, 'รางวัลชุมนุมยุทธ์ ' + spec.nameTh);
+      }
+      champ.inv.stones = (champ.inv.stones || 0) + spec.stonePrize;
+      if (runnerUp && runnerUp.id !== champ.id) {
+        runnerUp.cp = (runnerUp.cp || 0) + spec.runnerUpCp;
+        runnerUp.cpEarned = (runnerUp.cpEarned || 0) + spec.runnerUpCp;
+        runnerUp.merit = (runnerUp.merit || 0) + 12;
+      }
+      const reward = SECT.tailoredAssemblyReward(W, champ, spec.minGearTier, spec.maxGearTier);
+      HC.experience(champ, 'victory', 0.85);
+      if (g.AI && g.AI.mem) g.AI.mem(W, champ, 'คว้าแชมป์ชุมนุมยุทธ์ ' + spec.nameTh + ' ด้วย' + sig.weaponNameTh + '「' + sig.techNameTh + '」', 0.9);
+      totalFameGained += spec.fameReward;
+      if (CULT.power(champ) > grandChampPower) {
+        grandChampPower = CULT.power(champ);
+        grandChamp = champ;
+      }
+      bracketResults.push({
+        bracketId: spec.id,
+        nameTh: spec.nameTh,
+        minStage: spec.minStage,
+        maxStage: spec.maxStage,
+        entrantCount: divEntrants.length,
+        boutCount: bouts.length,
+        bouts,
+        championId: champ.id,
+        championName: HC.fullName(champ),
+        runnerUpId: runnerUp ? runnerUp.id : null,
+        runnerUpName: runnerUp ? HC.fullName(runnerUp) : null,
+        subpath: sig.subpath,
+        subpathNameTh: sig.subpathNameTh,
+        weaponType: sig.weaponType,
+        weaponNameTh: sig.weaponNameTh,
+        signatureTechId: sig.techId,
+        signatureTechName: sig.techNameTh,
+        signatureMoveName: sig.moveNameTh,
+        cpAwarded: spec.cpReward,
+        runnerUpCp: spec.runnerUpCp,
+        stonePrize: spec.stonePrize,
+        rewardItemId: reward.item ? reward.item.id : null,
+        rewardItemNameTh: reward.item ? reward.item.nameTh : null,
+        rewardItemTier: reward.item ? reward.item.tier : null,
+        rewardRecipeId: reward.recipe ? reward.recipe.id : null,
+        rewardRecipeNameTh: reward.recipe ? reward.recipe.nameTh : null
+      });
+    }
+
+    if (!bracketResults.length) {
+      return { ok: false, reason: 'no-eligible-entrants', brackets: [] };
+    }
+
+    if (opts.primaryWinnerId && W.byId[opts.primaryWinnerId]) {
+      grandChamp = W.byId[opts.primaryWinnerId];
+    }
+    const grandSig = SECT.signatureVictoryOf(grandChamp);
+    W.fame(totalFameGained);
+    const cal = g.SIM && g.SIM.calendar ? g.SIM.calendar(W.t) : { year: Math.floor((W.day || 0) / 360) + 1, season: W.season || 0 };
+    const record = {
+      id: 'ASM_' + (W.day || 0) + '_' + (S.assemblyHistory.length + 1),
+      day: W.day || 0,
+      year: cal.year,
+      season: cal.season,
+      hostId: host ? host.id : null,
+      championId: grandChamp.id,
+      championName: HC.fullName(grandChamp),
+      championSubpath: grandSig.subpath,
+      championSubpathNameTh: grandSig.subpathNameTh,
+      championWeapon: grandSig.weaponType,
+      championWeaponNameTh: grandSig.weaponNameTh,
+      signatureTechId: grandSig.techId,
+      signatureTechName: grandSig.techNameTh,
+      fameGained: totalFameGained,
+      brackets: bracketResults,
+      summaryTh: 'ชุมนุมยุทธ์ใหญ่ปีที่ ' + cal.year + ': ' + bracketResults.map(b => b.nameTh + ' แชมป์คือ ' + b.championName + ' (' + b.weaponNameTh + '·' + b.signatureTechName + ', +' + b.cpAwarded + ' CP' + (b.rewardItemNameTh ? ', รับ「' + b.rewardItemNameTh + '」' : '') + ')').join(' | ')
+    };
+    S.assemblyHistory.unshift(record);
+    if (S.assemblyHistory.length > 24) S.assemblyHistory.length = 24;
+    W.log('tournament', '🏆 ' + record.summaryTh, bracketResults.map(b => b.championId));
+    return { ok: true, assembly: record, brackets: bracketResults, champion: grandChamp };
+  };
+
+  SECT.tournament = (W, m, opts) => {
+    opts = opts || {};
+    const host = m || W.byId[W.sect.masterId];
+    W.sect.assemblyHistory = W.sect.assemblyHistory || [];
+    W.sect.tournament = {
+      start: W.t + 24 * 60,
+      state: 'announce',
+      isGrandAssembly: true,
+      brackets: SECT.ASSEMBLY_BRACKET_IDS.slice(),
+      rounds: 0,
+      entrants: [],
+      winnerId: null,
+      prize: Math.round(80 + (W.sect.policy ? W.sect.policy.generosity : 50))
+    };
+    if (host) {
+      W.log('decision', host.h.name.given + ' ประกาศจัดชุมนุมประลองยุทธ์สำนัก 3 รุ่น (T1–T2, T3–T4, T5–T7) ในอีก 1 วัน รางวัลรวมศิลา แต้มคุณูปการ (CP) และศาสตราประจำสาย', [host.id]);
+    }
+    return W.sect.tournament;
   };
   SECT.seclusion = (W, m) => {
     const d = 12 + W.rng.int(0, 12);
@@ -68651,6 +69168,120 @@ EXP_V204.newRecipes.forEach(r => {
   function hpFrac(u) { return clamp(C.hp(u) / Math.max(1, C.hpMax(u)), 0, 1); }
   function shieldOf(u) { const x = STs().statusOf(u, 'shield'); if (x && x.amt > 0) return x; if (u && u.shieldBp > 0) return { k: 'shield', amt: u.shieldBp }; return null; }
 
+  /* ---------- Weapon Reach, Kiting & Guard-Shatter Tactical Engine (v2.0.5 Pillar B) ---------- */
+  C.resolveWeaponTactics = (a, d, o, f) => {
+    o = o || {};
+    const SK = SKs(), ST = STs();
+    if (!a || !d || !SK || !SK.weaponTacticalProfile) {
+      return { relation: 'NEUTRAL', dmgMult: 1, accAdd: 0, critAdd: 0, penAdd: 0, shieldBreakMult: 1, shatterGuard: false, noteTh: '' };
+    }
+    const pa = SK.weaponTacticalProfile(a);
+    const pd = SK.weaponTacticalProfile(d);
+    const rawDist = (Number.isFinite(a.x) && Number.isFinite(d.x) && (a.x !== d.x || a.y !== d.y)) ? Math.hypot(a.x - d.x, a.y - d.y) : 2.1;
+    const dist = o.dist != null ? o.dist : rawDist;
+    const moveArch = o.arch || (o.skill && o.skill.arch) || '';
+    const isGapCloserMove = ['charge', 'evade', 'flurry', 'pierce'].includes(moveArch) || !!(o.isGapCloser);
+    const aHasLightness = pa.hasLightness || isGapCloserMove;
+    const dHasLightness = pd.hasLightness || (ST && ST.has(d, 'evadeUp'));
+    const dShielded = !!shieldOf(d) || (ST && ST.has(d, 'guardUp')) || pd.hasDefenseTech;
+
+    let relation = 'NEUTRAL', dmgMult = 1, accAdd = 0, critAdd = 0, penAdd = 0, shieldBreakMult = 1, shatterGuard = false, noteTh = '';
+
+    // 1. Long-reach polearms (SPEAR, STAFF) vs short-reach weapons (FIST, BLADE, SWORD)
+    if (pa.reachClass === 'LONG_POLEARM' && (pd.reachClass === 'SHORT_SWIFT' || pd.reachClass === 'HEAVY_BREAKER')) {
+      const firstStrikeWindow = !f || !f._firstStrikeUsed || !f._firstStrikeUsed[a.id];
+      if (dHasLightness && (ST.has(d, 'evadeUp') || d._gapClosedOn === a.id)) {
+        relation = 'POLEARM_COUNTERED_BY_LIGHTNESS';
+        dmgMult = 0.96;
+        noteTh = 'วิชาตัวเบาของ ' + C.name(d) + ' พุ่งฝ่าระยะ' + (pa.weaponType === 'SPEAR' ? 'หอก' : 'พลอง') + 'สลายความได้เปรียบเปิดศึก';
+      } else if (firstStrikeWindow || dist >= 1.85) {
+        relation = 'POLEARM_FIRST_STRIKE';
+        dmgMult = pa.spec.firstStrikeMult || 1.12;
+        accAdd += pa.spec.firstStrikeAcc || 10;
+        if (f) { f._firstStrikeUsed = f._firstStrikeUsed || {}; f._firstStrikeUsed[a.id] = true; }
+        noteTh = C.name(a) + ' อาศัยระยะ' + (pa.weaponType === 'SPEAR' ? 'ทวนยาว' : 'พลองยาว') + 'ชิงลงมือก่อนอาวุธสั้น';
+      }
+    }
+
+    // 2. Ranged weapons (BOW, FOCUS) kiting distance advantage vs melee until closed on by dash/leap
+    if (pa.reachClass === 'RANGED_KITE') {
+      const closedOn = (a._closedOnBy === d.id) || (dist < 1.45 && dHasLightness);
+      if (!closedOn && dist >= 1.65) {
+        relation = 'RANGED_KITING_ADVANTAGE';
+        dmgMult *= (pa.spec.kiteDmgMult || 1.12);
+        critAdd += (pa.spec.kiteCritAdd || 5);
+        accAdd += (pa.spec.kiteAccAdd || 8);
+        noteTh = C.name(a) + ' รักษาระยะห่างยิงสกัดด้วย' + (pa.weaponType === 'BOW' ? 'ธนู' : 'สื่อปราณ');
+      } else if (closedOn) {
+        relation = 'RANGED_CLOSED_ON';
+        dmgMult *= 0.94;
+        noteTh = C.name(a) + ' ถูกประชิดตัว เสียเปรียบระยะยิงสกัด';
+      }
+    }
+
+    // 3. Melee fighter using gap-closer / lightness art to counter RANGED_KITE or LONG_POLEARM
+    if ((pa.reachClass === 'SHORT_SWIFT' || pa.reachClass === 'HEAVY_BREAKER') && (pd.reachClass === 'RANGED_KITE' || pd.reachClass === 'LONG_POLEARM')) {
+      if (aHasLightness) {
+        d._closedOnBy = a.id;
+        a._gapClosedOn = d.id;
+        if (relation === 'NEUTRAL') {
+          relation = pd.reachClass === 'RANGED_KITE' ? 'DASH_CLOSE_COUNTER' : 'GAP_CLOSER_COUNTER';
+          dmgMult *= (pa.spec.gapCloserMult || 1.10);
+          accAdd += (pa.spec.gapCloserAcc || 8);
+          noteTh = C.name(a) + ' ใช้วิชาตัวเบา/ท่าพุ่งประชิดทะลวงระยะของ ' + C.name(d);
+        }
+      }
+    }
+
+    // 4. Heavy weapons (BLADE, FIST Vajra/Titan/Body) guard-shatter bonus against shields & DEFENSIVE_TECHNIQUE
+    if (pa.reachClass === 'HEAVY_BREAKER' && dShielded) {
+      relation = 'HEAVY_GUARD_SHATTER';
+      dmgMult *= (pa.spec.guardShatterDmgMult || 1.15);
+      penAdd += (pa.spec.guardShatterPenAdd || 14);
+      shieldBreakMult = pa.spec.shieldBreakMult || 1.45;
+      shatterGuard = true;
+      noteTh = C.name(a) + ' ใช้' + (pa.weaponType === 'BLADE' ? 'ดาบหนัก' : 'หมัดวัชระ') + 'ทลายโล่และกระบวนท่าตั้งรับของ ' + C.name(d);
+    }
+
+    return {
+      relation,
+      attackerReach: pa.reachClass,
+      defenderReach: pd.reachClass,
+      attackerWeapon: pa.weaponType,
+      defenderWeapon: pd.weaponType,
+      dmgMult: Math.round(dmgMult * 1000) / 1000,
+      accAdd,
+      critAdd,
+      penAdd,
+      shieldBreakMult,
+      shatterGuard,
+      noteTh
+    };
+  };
+
+  C.explainTactics = (u, target) => {
+    const SK = SKs();
+    const prof = (SK && SK.weaponTacticalProfile) ? SK.weaponTacticalProfile(u) : null;
+    if (!prof) return null;
+    const vs = target ? C.resolveWeaponTactics(u, target, { dist: (Number.isFinite(u.x) && Number.isFinite(target.x)) ? Math.hypot(u.x - target.x, u.y - target.y) : 2.0 }) : null;
+    const res = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet && !u.foe) ? g.MARTIAL.evaluateResonanceSet(u) : null;
+    return {
+      weaponType: prof.weaponType,
+      reachClass: prof.reachClass,
+      engageRange: prof.engageRange,
+      nameTh: prof.nameTh,
+      stanceTh: prof.stanceTh,
+      counteredByTh: prof.counteredByTh,
+      descTh: prof.descTh,
+      hasLightness: prof.hasLightness,
+      hasDefenseTech: prof.hasDefenseTech,
+      lastTacticalEvent: u.lastTacticalEvent || null,
+      lastResonanceTrigger: u.lastResonanceTrigger || null,
+      resonanceSet: res,
+      matchup: vs
+    };
+  };
+
   /* Bounded Passive Procs (with strict internal cooldown and anti-recursion guard) */
   function runPassiveProcs(W, f, actor, target, triggerKind, dmgDealt) {
     if (f && f._inProc) return;
@@ -68721,12 +69352,31 @@ EXP_V204.newRecipes.forEach(r => {
     // ท่าสวนกลับ: ปัดทิ้งแล้วสวน (ป้องกันลูปสะท้อน/สวนซ้ำ)
     if (!o.noCounter) { const cs = ST.statusOf(d, 'counter'); if (cs && !d.dead) { ST.clearStatus(d, x => x.k === 'counter'); d.fx = { t: W.t, text: '↩ ปัดสวน!' }; C.strike(W, f, d, a, { M: cs.M, type: cs.type, pen: cs.pen, forced: true, noCounter: true, noReflect: true, noProc: true }); return { hit: false, countered: true }; } }
     const tb = (!a.foe && g.MARTIAL && g.MARTIAL.combatTargetBonus) ? g.MARTIAL.combatTargetBonus(a, d) : null;
+    const tac = C.resolveWeaponTactics ? C.resolveWeaponTactics(a, d, o, f) : null;
+    const resSet = (!a.foe && g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(a) : null;
+    const resRiderMult = (resSet && resSet.active && resSet.pieces >= 3 && resSet.rider && resSet.rider.bonusDmgMult) ? resSet.rider.bonusDmgMult : 1;
+    if (tac && tac.relation !== 'NEUTRAL') {
+      a.lastTacticalEvent = { t: W.t, relation: tac.relation, noteTh: tac.noteTh, targetId: d.id };
+      if (f && Array.isArray(f.log) && f.log.length < 40 && (!f._lastTacLogAt || W.t - f._lastTacLogAt >= 3)) {
+        f._lastTacLogAt = W.t;
+        f.log.push({ t: W.t, relation: tac.relation, text: tac.noteTh, a: a.id, d: d.id });
+      }
+    }
+    if (tac && tac.shatterGuard) {
+      const sh = shieldOf(d);
+      if (sh && sh.amt > 0) {
+        sh.amt = Math.max(0, Math.round(sh.amt * (o.isSkill ? 0.35 : 0.55)));
+        if (sh.amt <= 0) ST.clearStatus(d, x => x.k === 'shield');
+      }
+      if (ST.has(d, 'guardUp')) ST.clearStatus(d, x => x.k === 'guardUp');
+      ST.addStatus(d, 'armorbreak', 8);
+    }
     const type = o.type || (sa.atk >= sa.matk ? 'p' : 'm'), A0 = type === 'p' ? sa.atk : sa.matk;
-    const penTot = (sa.pen || 0) + (o.pen || 0) + (tb ? tb.penAdd : 0);
+    const penTot = (sa.pen || 0) + (o.pen || 0) + (tb ? tb.penAdd : 0) + (tac ? tac.penAdd : 0);
     let D = (type === 'p' ? sd.def : sd.mdef) * (o.dotHalf ? 0.5 : 1) * (1 - clamp(penTot / 100, 0, 0.82));
-    const critChance = ((sa.crit || 0) + (o.critAdd || 0) + (tb ? tb.critAdd : 0)) / 100;
+    const critChance = ((sa.crit || 0) + (o.critAdd || 0) + (tb ? tb.critAdd : 0) + (tac ? tac.critAdd : 0)) / 100;
     const crit = !o.noCrit && W.rng.chance(clamp(critChance, 0, 0.90));
-    let frac = 0.2 * (A0 / (A0 + 0.8 * Math.max(0, D))) * (o.M || 1) * (o.synDmgMult || 1) * (tb ? tb.dmgMult : 1) * (0.85 + W.rng.next() * 0.3);
+    let frac = 0.2 * (A0 / (A0 + 0.8 * Math.max(0, D))) * (o.M || 1) * (o.synDmgMult || 1) * (tb ? tb.dmgMult : 1) * (tac ? tac.dmgMult : 1) * resRiderMult * (0.85 + W.rng.next() * 0.3);
     if (crit) frac *= ((sa.critDmg || 150) + (o.critDmgAdd || 0) + (tb ? tb.critDmgAdd : 0)) / 100;
     // Major Path Offensive/Defensive Combat Identities
     if (!a.foe && a.cult) {
@@ -68769,11 +69419,31 @@ EXP_V204.newRecipes.forEach(r => {
       d.lastReflect = reflected;
       C.applyDamage(W, f, d, a, reflected, 'สะท้อนจิต');
     }
+    let resonanceTriggered = false;
     if (!o.noProc && dmg > 0) {
+      if (resSet && resSet.active && resSet.pieces >= 3 && resSet.rider) {
+        const rd = resSet.rider;
+        const icdOk = !a._resRiderCd || W.t >= a._resRiderCd;
+        if (icdOk && W.rng.chance(rd.chance || 0.35)) {
+          a._resRiderCd = W.t + 5;
+          resonanceTriggered = true;
+          const tgt = rd.selfBuff ? a : d;
+          if (C.alive(tgt)) {
+            if (rd.status === 'burn' || rd.status === 'bleed' || rd.status === 'poison') {
+              ST.addStatus(tgt, rd.status, rd.dur || 10, { per: 0.012, src: a.id });
+            } else if (rd.status === 'leech') {
+              C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + Math.max(1, Math.round(dmg * 0.12))));
+            } else {
+              ST.addStatus(tgt, rd.status, rd.dur || 8);
+            }
+          }
+          a.lastResonanceTrigger = { t: W.t, setId: resSet.setId, nameTh: resSet.nameTh, status: rd.status, descTh: rd.descTh, targetId: d.id };
+        }
+      }
       runPassiveProcs(W, f, a, d, 'onHit', dmg);
       runPassiveProcs(W, f, d, a, 'onStruck', dmg);
     }
-    return { hit: true, dmg, crit, killed, lifesteal, reflected };
+    return { hit: true, dmg, crit, killed, lifesteal, reflected, tacticalRelation: tac ? tac.relation : 'NEUTRAL', resonanceTriggered };
   };
   /* ---------- เลือกท่า ---------- */
   function chooseSkill(W, f, a, d, ctx) {
@@ -68829,8 +69499,23 @@ EXP_V204.newRecipes.forEach(r => {
       }
       if (p.arch === 'evade') sc = (ST.has(a, 'evadeUp') ? 0 : (hpR < 0.5 ? (0.5 - hpR) * 5 : 0) + (en.length > 2 ? 0.8 : 0) + caut);
       if (p.arch === 'forbid') sc += (hpR < 0.4 ? 2.2 : 0.4) + aggr + (tdp > self * 1.5 ? 1.2 : 0);
-      // Tactical role bonuses for multi-move techniques
+      // Tactical role bonuses & Counter-Weapon AI (v2.0.5 Pillar B)
       if (p.shatterShield && targetShielded) sc += 3.2;
+      if (SK.weaponTacticalProfile) {
+        const pa = SK.weaponTacticalProfile(a), pd = SK.weaponTacticalProfile(d);
+        if ((pd.reachClass === 'RANGED_KITE' || pd.reachClass === 'LONG_POLEARM') && ['charge', 'evade', 'flurry'].includes(p.arch)) {
+          sc += 1.45; // Prioritize gap-closers & lightness techniques against polearms and ranged kiters
+        }
+        if (pa.reachClass === 'HEAVY_BREAKER' && (targetShielded || pd.hasDefenseTech) && ['strike', 'execute', 'pierce', 'burst'].includes(p.arch)) {
+          sc += 1.65; // Heavy weapon prioritizes guard-shattering strikes against shielded/defensive foes
+        }
+        if (pa.reachClass === 'LONG_POLEARM' && (pd.reachClass === 'SHORT_SWIFT' || pd.reachClass === 'HEAVY_BREAKER') && ['pierce', 'sweep', 'control'].includes(p.arch)) {
+          sc += 0.95; // Polearm prioritizes reach control & first-strike thrusts
+        }
+        if (pa.reachClass === 'RANGED_KITE' && a._closedOnBy !== d.id && ['snipe', 'barrage', 'blast', 'channel'].includes(p.arch)) {
+          sc += 1.15; // Ranged weapon capitalizes on kiting window
+        }
+      }
       if (p.aiRole === 'anti_armor' && td.def > td.mdef * 1.1) sc += 0.7;
       if (p.aiRole === 'finisher' && hpFrac(d) < 0.45) sc += 1.1;
       if (p.aiRole === 'opener' && hpFrac(d) > 0.75) sc += 0.6;
@@ -68957,7 +69642,7 @@ EXP_V204.newRecipes.forEach(r => {
     }
     const hm = C.hpMax(a);
     if (p.arch === 'guard' || p.arch === 'shield') { ST.addStatus(a, 'guardUp', 12); if (p.shield > 0 || !p.qiRestorePct) ST.addStatus(a, 'shield', 12, { amt: hm * (p.shield || 0.15) }); return; }
-    if (p.arch === 'evade') { ST.addStatus(a, 'evadeUp', 14); return; }
+    if (p.arch === 'evade') { ST.addStatus(a, 'evadeUp', 14); if (d) { d._closedOnBy = a.id; a._gapClosedOn = d.id; } return; }
     if (p.arch === 'counter') { ST.addStatus(a, 'counter', 10, { M: p.M, type: p.type, pen: p.pen }); return; }
     if (p.arch === 'heal') {
       const ally = lowestAlly(W, f, a), tgt = (ally && hpFrac(ally) < hpFrac(a) - 0.05) ? ally : a;
@@ -69038,7 +69723,7 @@ EXP_V204.newRecipes.forEach(r => {
       if (!C.alive(t)) return;
       for (let i = 0; i < (p.hits || 1); i++) {
         if (!C.alive(t)) break;
-        const r = C.strike(W, f, a, t, { M: p.M * mas * (p.aoe && t !== d ? 0.8 : 1), synDmgMult: p.synDmgMult || 1, accAdd: p.elementAccAdd || 0, type: p.type, pen: p.pen, label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true });
+        const r = C.strike(W, f, a, t, { M: p.M * mas * (p.aoe && t !== d ? 0.8 : 1), synDmgMult: p.synDmgMult || 1, accAdd: p.elementAccAdd || 0, type: p.type, pen: p.pen, label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true, arch: p.arch, skill: p });
         if (r.hit) { dealt += r.dmg; applyRiders(W, f, a, t, p, r); }
       }
     });
@@ -69178,7 +69863,9 @@ EXP_V204.newRecipes.forEach(r => {
     let t = C.unit(W, ctx.target);
     if (!C.alive(t)) { const en = C.enemies(W, f, n.id); if (!en.length) return; en.sort((a, b) => Math.hypot(a.x - n.x, a.y - n.y) - Math.hypot(b.x - n.x, b.y - n.y)); t = en[0]; ctx.target = t.id; n.path = null; }
     const d = Math.hypot(t.x - n.x, t.y - n.y);
-    if (d > 1.7) { moveToward(W, n, t.x, t.y, true); n.face = t.x >= n.x ? 1 : -1; return; }
+    const wProf = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(n) : null;
+    const engageLim = (wProf && n._closedOnBy !== t.id) ? (wProf.engageRange || 1.7) : 1.7;
+    if (d > engageLim) { moveToward(W, n, t.x, t.y, true); n.face = t.x >= n.x ? 1 : -1; return; }
     n.face = t.x >= n.x ? 1 : -1; n.path = null;
     if (--ctx.cd > 0) return;
     if (g.CPE && g.CPE.fightUse(W, n, ctx)) { ctx.cd = 2; return; }
@@ -69187,7 +69874,7 @@ EXP_V204.newRecipes.forEach(r => {
   C.leave = (W, n) => {
     if (n.act && n.act.ctx && n.act.ctx.channeling) delete n.act.ctx.channeling;
     if (n.sx && n.sx.length) { n.sx = []; STs().dirty(n); }
-    n.run = false; n.fleeTo = null; n.yield = false; n.fled = false; n.path = null; n.lastHurtBy = null;
+    n.run = false; n.fleeTo = null; n.yield = false; n.fled = false; n.path = null; n.lastHurtBy = null; n._closedOnBy = null; n._gapClosedOn = null;
     n.act = { id: 'idle', stage: 'do', left: 15, total: 15, ctx: {}, why: [] };
   };
 
@@ -69341,6 +70028,9 @@ EXP_V204.newRecipes.forEach(r => {
     AI.mem(W, win, 'ชนะเลิศประลองยุทธ์สำนัก', 1);
     W.log('tournament', win.h.name.given + ' ชนะเลิศประลองยุทธ์สำนัก ได้รางวัล ' + T.prize + ' ศิลา', [win.id]);
     const m = W.byId[W.sect.masterId];
+    if (SECT && SECT.assembly) {
+      SECT.assembly(W, m, { fromTournament: T, primaryWinnerId: win.id });
+    }
     if (m && win.rank <= 3 && HC.eff(m, 'interests.teaching') > 45 && W.rng.chance(0.3) && !win.mentor) { win.mentor = m.id; (m.h.life.family.disciples = m.h.life.family.disciples || []).push(win.id); win.h.life.family.master = m.id; W.log('disciple', m.h.name.given + ' รับ ' + win.h.name.given + ' เป็นศิษย์เอก', [m.id, win.id]); }
   };
 
@@ -77860,6 +78550,146 @@ EXP_V204.newRecipes.forEach(r => {
     }
     return L;
   };
+
+  /* ---------- Weapon Reach & Tactical Counter-Stance Authority (v2.0.5 Pillar B) ---------- */
+  SK.HEAVY_FIST_SUBPATHS = ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'TIGER_SOVEREIGN', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'SOLAR_FORGE', 'THUNDER_BODY', 'HEAVEN_DEVOURING_DEMON', 'GOLDEN_ARHAT_STAFF'];
+  SK.WEAPON_TACTICS = {
+    SPEAR: {
+      weaponType: 'SPEAR',
+      reachClass: 'LONG_POLEARM',
+      engageRange: 2.35,
+      nameTh: 'ทวนยาวชิงจังหวะเปิดศึก',
+      stanceTh: 'ตั้งทวนสกัดระยะประชิด',
+      firstStrikeMult: 1.12,
+      firstStrikeAcc: 10,
+      counteredByTh: 'วิชาตัวเบา (LIGHTNESS_ART / MOVEMENT_TECHNIQUE) หรือท่าพุ่งทะลวงประชิด',
+      descTh: 'ได้เปรียบชิงลงมือก่อน (+12% ดาเมจ, +10 แม่นยำ) เมื่อปะทะอาวุธสั้น เว้นแต่ศัตรูใช้วิชาตัวเบาหรือท่าพุ่งประชิดแก้ทาง'
+    },
+    STAFF: {
+      weaponType: 'STAFF',
+      reachClass: 'LONG_POLEARM',
+      engageRange: 2.25,
+      nameTh: 'พลองยาวกวาดสกัดระยะ',
+      stanceTh: 'ควงพลองคุมวงรอบทิศ',
+      firstStrikeMult: 1.10,
+      firstStrikeAcc: 8,
+      counteredByTh: 'วิชาตัวเบา (LIGHTNESS_ART / MOVEMENT_TECHNIQUE) หรือท่าพุ่งทะลวงประชิด',
+      descTh: 'ได้เปรียบชิงลงมือก่อน (+10% ดาเมจ, +8 แม่นยำ) ต่ออาวุธสั้น เว้นแต่ถูกวิชาตัวเบาพุ่งทะลวงเข้าวงใน'
+    },
+    BOW: {
+      weaponType: 'BOW',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.85,
+      nameTh: 'เกาทัณฑ์ยิงสกัดทิ้งระยะ',
+      stanceTh: 'ล่าถอยยิงสกัดระยะไกล (Kiting)',
+      kiteDmgMult: 1.14,
+      kiteCritAdd: 6,
+      kiteAccAdd: 10,
+      counteredByTh: 'ท่าพุ่งทะลวง (charge/evade) หรือวิชาตัวเบาประชิดตัว',
+      descTh: 'รักษาความได้เปรียบระยะไกล (+14% ดาเมจ, +6% คริ) จนกว่าจะถูกท่าพุ่งประชิดหรือวิชาตัวเบาเข้าถึงตัว'
+    },
+    FOCUS: {
+      weaponType: 'FOCUS',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.65,
+      nameTh: 'สื่อปราณคุมระยะค่ายกล',
+      stanceTh: 'โคจรปราณทิ้งระยะร่ายวิชา (Kiting)',
+      kiteDmgMult: 1.12,
+      kiteCritAdd: 5,
+      kiteAccAdd: 8,
+      counteredByTh: 'ท่าพุ่งทะลวง (charge/evade) หรือวิชาตัวเบาประชิดตัว',
+      descTh: 'ได้เปรียบเมื่อรักษาระยะห่างร่ายวิชา (+12% ดาเมจ, +5% คริ) จนกว่าศัตรูจะพุ่งเข้าประชิดตัว'
+    },
+    BLADE: {
+      weaponType: 'BLADE',
+      reachClass: 'HEAVY_BREAKER',
+      engageRange: 1.75,
+      nameTh: 'ดาบหนักผ่าเกราะทลายโล่',
+      stanceTh: 'ฟาดฟันหนักหน่วงทลายปราการ',
+      shieldBreakMult: 1.45,
+      guardShatterDmgMult: 1.15,
+      guardShatterPenAdd: 14,
+      counteredByTh: 'ศาสตรายาวคุมระยะ (SPEAR/STAFF) หรือการยิงสกัดระยะไกล',
+      descTh: 'ได้เปรียบทลายโล่และวิชาตั้งรับ (DEFENSIVE_TECHNIQUE) รุนแรงขึ้น (+15% ดาเมจ, +14% เจาะเกราะ, ทำลายโล่ ×1.45)'
+    },
+    FIST: {
+      weaponType: 'FIST',
+      reachClass: 'SHORT_SWIFT',
+      engageRange: 1.7,
+      nameTh: 'หมัดฝ่ามือประชิด/วัชระทลายเกราะ',
+      stanceTh: 'คลุกวงใน/หมัดหนักทลายโล่',
+      shieldBreakMult: 1.40,
+      guardShatterDmgMult: 1.14,
+      guardShatterPenAdd: 12,
+      gapCloserMult: 1.10,
+      counteredByTh: 'ศาสตรายาวหากไร้เคล็ดวิชาตัวเบาช่วยพุ่งเข้าวงใน',
+      descTh: 'สายกายา/วัชระได้รับโบนัสทลายโล่และวิชาตั้งรับ; สายว่องไวคลุกวงในแก้ทางอาวุธยาวและระยะไกล'
+    },
+    SWORD: {
+      weaponType: 'SWORD',
+      reachClass: 'SHORT_SWIFT',
+      engageRange: 1.8,
+      nameTh: 'กระบี่พลิ้วไหวทะลวงช่องว่าง',
+      stanceTh: 'กระบี่เร็วฝ่าวงล้อมประชิดตัว',
+      gapCloserMult: 1.10,
+      gapCloserAcc: 8,
+      counteredByTh: 'ศาสตรายาวชิงจังหวะแรกหากไม่มีวิชาตัวเบาหนุน',
+      descTh: 'คล่องตัวสูง ประสานวิชาตัวเบาพุ่งฝ่าระยะหอกและธนูเพื่อชิงความได้เปรียบระยะประชิด (+10% ดาเมจเมื่อแก้ทาง)'
+    }
+  };
+
+  SK.hasLightnessOrGapCloser = u => {
+    if (!u || u.foe) return false;
+    if (g.STATS && g.STATS.has(u, 'evadeUp')) return true;
+    const c = u.cult;
+    if (!c || !Array.isArray(c.techs)) return false;
+    for (let i = 0; i < c.techs.length; i++) {
+      const t = CULT.tech(c.techs[i]);
+      if (!t) continue;
+      if (t.cat === 'MOVEMENT_TECHNIQUE' || t.cat === 'LIGHTNESS_ART' || (t.cat === 'AUXILIARY_ART' && t.role === 'MOVEMENT_STEALTH_RECON')) return true;
+    }
+    return false;
+  };
+
+  SK.hasDefensiveTech = u => {
+    if (!u || u.foe) return false;
+    if (g.STATS && (g.STATS.has(u, 'guardUp') || g.STATS.has(u, 'shield'))) return true;
+    const c = u.cult;
+    if (!c || !Array.isArray(c.techs)) return false;
+    for (let i = 0; i < c.techs.length; i++) {
+      const t = CULT.tech(c.techs[i]);
+      if (t && t.cat === 'DEFENSIVE_TECHNIQUE') return true;
+    }
+    return false;
+  };
+
+  SK.weaponTacticalProfile = u => {
+    if (!u || u.foe) {
+      return { weaponType: 'FIST', reachClass: 'SHORT_SWIFT', engageRange: 1.7, isHeavyFist: false, hasLightness: false, hasDefenseTech: false, spec: SK.WEAPON_TACTICS.FIST };
+    }
+    const wType = (g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(u) : 'FIST';
+    const sub = u.cult ? u.cult.sub : 'NONE';
+    const path = u.cult ? u.cult.path : 'NONE';
+    const isHeavyFist = wType === 'FIST' && (path === 'BODY' || SK.HEAVY_FIST_SUBPATHS.includes(sub));
+    const baseSpec = SK.WEAPON_TACTICS[wType] || SK.WEAPON_TACTICS.FIST;
+    const reachClass = isHeavyFist ? 'HEAVY_BREAKER' : baseSpec.reachClass;
+    const hasLightness = SK.hasLightnessOrGapCloser(u);
+    const hasDefenseTech = SK.hasDefensiveTech(u);
+    return {
+      weaponType: wType,
+      reachClass,
+      engageRange: baseSpec.engageRange || 1.7,
+      isHeavyFist,
+      hasLightness,
+      hasDefenseTech,
+      nameTh: isHeavyFist ? 'หมัดวัชระทลายปราการ' : baseSpec.nameTh,
+      stanceTh: isHeavyFist ? 'หมัดหนักทลายโล่และเกราะคุ้มกาย' : baseSpec.stanceTh,
+      counteredByTh: baseSpec.counteredByTh,
+      descTh: baseSpec.descTh,
+      spec: baseSpec
+    };
+  };
+
   g.SK = SK;
   if (typeof module === 'object' && module.exports) module.exports = SK;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -78051,6 +78881,12 @@ EXP_V204.newRecipes.forEach(r => {
         addAll('วิชาเฉพาะสายย่อยติดตัว', innate.f, 'f');
         addAll('วิชาเฉพาะสายย่อยติดตัว (แต้ม %)', innate.pp, 'f');
       }
+      const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
+      if (resSet && resSet.active) {
+        const resLab = 'สัจธรรมชุดอุปกรณ์「' + resSet.nameTh + '」(' + resSet.pieces + '/3 ชิ้น)';
+        addAll(resLab, resSet.p, 'p');
+        addAll(resLab, resSet.f, 'f');
+      }
     }
     // ใจสู้/พิเศษ
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; add('atk', 'ใจสู้/พรสวรรค์', 'p', mind); add('matk', 'ใจสู้/พรสวรรค์', 'p', mind);
@@ -78170,6 +79006,11 @@ EXP_V204.newRecipes.forEach(r => {
         addAll(innate.p, false);
         addAll(innate.f, true);
         if (innate.pp) addAll(innate.pp, true);
+      }
+      const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
+      if (resSet && resSet.active) {
+        addAll(resSet.p, false);
+        addAll(resSet.f, true);
       }
     }
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; addP('atk', mind); addP('matk', mind);
@@ -81099,6 +81940,8 @@ const M=g.MARTIAL={
  BASE_PASSIVE_SLOTS:D.BASE_PASSIVE_SLOTS||3,
  PASSIVE_SLOT_BONUSES:D.PASSIVE_SLOT_BONUSES||{},
  SYNERGIES:D.SYNERGIES||[],
+ RESONANCE_SETS:D.RESONANCE_SETS||[],
+ RESONANCE_BY_ID:Object.fromEntries((D.RESONANCE_SETS||[]).map(s=>[s.id,s])),
  INNATE_TECHNIQUES:D.innateTechniques||[],
  INNATE_BY_SUB:Object.fromEntries((D.innateTechniques||[]).map(t=>[t.innateSubpath,t]))
 };
@@ -81172,6 +82015,7 @@ M.invalidateMartialCaches=n=>{
  n._innStatsCache=null;
  n._actTechsCache=null;
  n._synCache=null;
+ n._resSetCache=null;
  n._innRec=null;
  n._qiMaxCache=null;
  if(ST&&ST.dirty)ST.dirty(n);
@@ -81646,6 +82490,111 @@ M.skillSynergy=(n,p)=>{
  };
 };
 
+/* ---------- 3-Piece Equipment Resonance Set Authority (v2.0.5 Pillar A) ---------- */
+const EMPTY_RESONANCE_SET=Object.freeze({active:false,pieces:0,setId:null,nameTh:'',set:null,matchedSlots:[],avgTier:0,tierScale:1,p:{},f:{},rider:null,isSubpathMatch:false,summaryTh:'ไม่มีชุดสัจธรรมที่ทำงาน'});
+
+M.itemMatchesResonanceSet=(n,it,rs)=>{
+ if(!it||!rs||!rs.slots)return false;
+ const slot=it.slot;
+ if(!['WEAPON','ARMOR','ACCESSORY'].includes(slot))return false;
+ if((it.tier||1)<(rs.minTier||3))return false;
+ if(it.resonanceSetId===rs.id||(Array.isArray(it.resonanceSetIds)&&it.resonanceSetIds.includes(rs.id)))return true;
+ const gType=M.gearType(it);
+ const allowedTypes=rs.slots[slot];
+ if(!allowedTypes||!allowedTypes.includes(gType))return false;
+ const elKey=it.elementalRole==='EXPLICIT_NON_ELEMENTAL'?'EXPLICIT_NON_ELEMENTAL':(it.element||'NEUTRAL');
+ if(Array.isArray(rs.elementFamily)&&(rs.elementFamily.includes(elKey)||(elKey==='NEUTRAL'&&rs.elementFamily.includes('EXPLICIT_NON_ELEMENTAL'))))return true;
+ if(n&&n.cult&&Array.isArray(rs.subpaths)&&rs.subpaths.includes(n.cult.sub))return true;
+ return false;
+};
+
+M.evaluateResonanceSet=(n,overrideEquip)=>{
+ if(!n||n.foe||!n.cult||!Array.isArray(M.RESONANCE_SETS)||!M.RESONANCE_SETS.length)return EMPTY_RESONANCE_SET;
+ const c=n.cult,eq=overrideEquip||(n.equip||{});
+ if(!overrideEquip){
+  const rc=n._resSetCache;
+  if(rc&&rc.path===c.path&&rc.sub===c.sub&&rc.eqW===eq.WEAPON&&rc.eqA===eq.ARMOR&&rc.eqX===eq.ACCESSORY&&rc.ver===(n._passVer||0)){
+   return rc.out;
+  }
+ }
+ const slots=['WEAPON','ARMOR','ACCESSORY'];
+ const usable={};
+ for(const sl of slots){
+  const it=eq[sl];
+  if(it&&(!M.gearUsable||M.gearUsable(n,it))&&(it.tier||1)>=3)usable[sl]=it;
+ }
+ const usableCount=Object.keys(usable).length;
+ if(usableCount<2){
+  if(!overrideEquip)n._resSetCache={path:c.path,sub:c.sub,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,ver:n._passVer||0,out:EMPTY_RESONANCE_SET};
+  return EMPTY_RESONANCE_SET;
+ }
+ let bestSet=null,bestSlots=[],bestScore=-1;
+ for(const rs of M.RESONANCE_SETS){
+  const matched=[];
+  for(const sl of slots){
+   if(usable[sl]&&M.itemMatchesResonanceSet(n,usable[sl],rs))matched.push(sl);
+  }
+  if(matched.length<2)continue;
+  const subMatch=Array.isArray(rs.subpaths)&&rs.subpaths.includes(c.sub);
+  const pathMatch=rs.path==='ANY'||rs.path===c.path;
+  const score=matched.length*100+(subMatch?35:0)+(pathMatch?12:0);
+  if(score>bestScore){
+   bestScore=score;
+   bestSet=rs;
+   bestSlots=matched;
+  }
+ }
+ if(!bestSet||bestSlots.length<2){
+  if(!overrideEquip)n._resSetCache={path:c.path,sub:c.sub,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,ver:n._passVer||0,out:EMPTY_RESONANCE_SET};
+  return EMPTY_RESONANCE_SET;
+ }
+ const pieces=bestSlots.length;
+ const sumTier=bestSlots.reduce((s,sl)=>s+(usable[sl].tier||3),0);
+ const avgTier=Math.round((sumTier/pieces)*10)/10;
+ const tierScale=Math.round((1+Math.max(0,avgTier-3)*0.12)*100)/100;
+ const subMatch=Array.isArray(bestSet.subpaths)&&bestSet.subpaths.includes(c.sub);
+ const subScale=subMatch?1.10:1.0;
+ const totalScale=tierScale*subScale;
+ const rawBonus=pieces>=3?bestSet.bonus3:bestSet.bonus2;
+ const p={},f={};
+ for(const k in (rawBonus.p||{}))p[k]=Math.round(rawBonus.p[k]*totalScale*1000)/1000;
+ for(const k in (rawBonus.f||{}))f[k]=Math.round(rawBonus.f[k]*totalScale*10)/10;
+ const rider=pieces>=3&&bestSet.bonus3.rider?Object.assign({},bestSet.bonus3.rider,{setId:bestSet.id,setNameTh:bestSet.nameTh}):null;
+ const out={
+  active:true,
+  pieces,
+  setId:bestSet.id,
+  nameTh:bestSet.nameTh,
+  set:bestSet,
+  matchedSlots:bestSlots,
+  avgTier,
+  tierScale:Math.round(totalScale*100)/100,
+  p,
+  f,
+  rider,
+  isSubpathMatch:subMatch,
+  summaryTh:bestSet.nameTh+' ('+pieces+'/3 ชิ้น · T'+Math.round(avgTier)+') — '+(rawBonus.descTh||'')
+ };
+ if(!overrideEquip)n._resSetCache={path:c.path,sub:c.sub,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,ver:n._passVer||0,out};
+ return out;
+};
+
+M.resonanceUpgradePreview=(n,it)=>{
+ if(!n||!n.cult||!it||!['WEAPON','ARMOR','ACCESSORY'].includes(it.slot)||(it.tier||1)<3)return {completes:false,curPieces:0,nextPieces:0,setId:null,nameTh:''};
+ const curRes=M.evaluateResonanceSet(n);
+ const nextEq=Object.assign({},n.equip||{},{[it.slot]:it});
+ const nextRes=M.evaluateResonanceSet(n,nextEq);
+ if(nextRes.active&&nextRes.pieces>(curRes.active&&curRes.setId===nextRes.setId?curRes.pieces:0)){
+  return {completes:true,curPieces:curRes.active?curRes.pieces:0,nextPieces:nextRes.pieces,setId:nextRes.setId,nameTh:nextRes.nameTh,isSubpathMatch:nextRes.isSubpathMatch,set:nextRes.set};
+ }
+ // Also check if this is the 1st piece of the NPC's primary subpath resonance set
+ const primarySet=M.RESONANCE_SETS.find(rs=>Array.isArray(rs.subpaths)&&rs.subpaths.includes(n.cult.sub)&&M.itemMatchesResonanceSet(n,it,rs));
+ if(primarySet){
+  return {completes:false,curPieces:curRes.active?curRes.pieces:0,nextPieces:1,setId:primarySet.id,nameTh:primarySet.nameTh,isSubpathMatch:true,set:primarySet};
+ }
+ return {completes:false,curPieces:curRes.active?curRes.pieces:0,nextPieces:0,setId:null,nameTh:''};
+};
+
 /* ---------- Target-Conditional Combat Passive Authority ---------- */
 const EMPTY_TARGET_BONUS=Object.freeze({critAdd:0,critDmgAdd:0,penAdd:0,dmgMult:1});
 M.combatTargetBonus=(attacker,target)=>{
@@ -81808,6 +82757,18 @@ M.gearSuitability=(n,it,price)=>{
  // Bonus if equipment triggers a subpath synergy
  const synMatch=M.SYNERGIES.some(syn=>syn.subpath===c.sub&&((it.slot==='WEAPON'&&syn.weaponTypes&&syn.weaponTypes.includes(type))||(it.slot==='ARMOR'&&syn.armorTypes&&syn.armorTypes.includes(type))));
  if(synMatch){fit+=0.18;reasons.push('ปลดล็อกการประสานสายย่อย');}
+ // Bonus if equipment advances or completes a 2-piece or 3-piece Resonance Set
+ const resPrev=M.resonanceUpgradePreview?M.resonanceUpgradePreview(n,it):null;
+ if(resPrev&&resPrev.nextPieces>=3){
+  fit+=resPrev.isSubpathMatch?0.44:0.34;
+  reasons.push('ครบชุดสัจธรรม 3/3 ชิ้น「'+resPrev.nameTh+'」');
+ }else if(resPrev&&resPrev.nextPieces===2){
+  fit+=resPrev.isSubpathMatch?0.26:0.18;
+  reasons.push('ประสานชุดสัจธรรม 2/3 ชิ้น「'+resPrev.nameTh+'」');
+ }else if(resPrev&&resPrev.nextPieces===1&&resPrev.isSubpathMatch){
+  fit+=0.11;
+  reasons.push('ชิ้นส่วนชุดสัจธรรมประจำสาย「'+resPrev.nameTh+'」');
+ }
  const elemCompat=g.ELEM?g.ELEM.resolveCompatibility(n,it,'equipment'):null;
  if(elemCompat&&elemCompat.mode!=='EXPLICIT_NON_ELEMENTAL'){
   fit*=elemCompat.equipmentSuitabilityMult;
@@ -81862,9 +82823,9 @@ M.classifyGearForNpc=(W,n,it,price)=>{
  }
  return {category:'surplus',deltaScore:newScore-curScore,suit,curSuit,reasonTh:cur?'ไม่ดีกว่า「'+cur.nameTh+'」ที่สวมใส่อยู่':'ไม่เหมาะกับแนวทางปัจจุบัน'};
 };
-M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n)};};
+M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n),resonanceSet:M.evaluateResonanceSet(n)};};
 // Mint/catalog boundary types also cover historical recipe-only equipment.
-const oldMint=ECO.mintGear;ECO.mintGear=(r,q)=>{const it=oldMint(r,q),source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
+const oldMint=ECO.mintGear;ECO.mintGear=(r,q)=>{const it=oldMint(r,q),source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.resonanceSetId&&!it.resonanceSetId)it.resonanceSetId=source.resonanceSetId;if(source.resonanceSetIds&&!it.resonanceSetIds)it.resonanceSetIds=source.resonanceSetIds.slice();if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
 })(typeof globalThis!=='undefined'?globalThis:this);
 
 </script>
@@ -83268,14 +84229,17 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (!W || !W.sect || !M || !n || !n.cult) return null;
     if (n._lastGearSwapAt && W.t - n._lastGearSwapAt < 720) return null;
     let best = null, bestDelta = 0;
-    // 1. Check personal bag first (free immediate equip if useful-now)
+    // 1. Check personal bag first (free immediate equip if useful-now or completes resonance set)
     const bagGear = (n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : [];
     for (const eq of bagGear) {
       if (!eq || !eq.slot) continue;
-      const cl = M.classifyGearForNpc(W, n, eq, 0);
-      if (cl.category === 'useful-now' && cl.deltaScore > bestDelta) {
-        bestDelta = cl.deltaScore;
-        best = { source: 'bag', gear: eq, price: 0, deltaScore: cl.deltaScore, reasons: cl.suit.reasons, reasonTh: cl.reasonTh };
+      const cl = M.classifyGearForNpc(null, n, eq, 0);
+      const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
+      const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
+      const effDelta = cl.deltaScore + resBonus;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+        bestDelta = effDelta;
+        best = { source: 'bag', gear: eq, price: 0, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
     }
     if (best) return best;
@@ -83285,10 +84249,13 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       if (!eq || !eq.slot || (eq.minStage || 1) > effSt) continue;
       if (!SECT.canAccessItem(W, n, eq)) continue;
       const price = (g.CPE && g.CPE.gearPrice) ? g.CPE.gearPrice(W, eq) : 20;
-      const cl = M.classifyGearForNpc(W, n, eq, price);
-      if (cl.category === 'useful-now' && cl.deltaScore > bestDelta) {
-        bestDelta = cl.deltaScore;
-        best = { source: 'shop', gear: eq, price, deltaScore: cl.deltaScore, reasons: cl.suit.reasons, reasonTh: cl.reasonTh };
+      const cl = M.classifyGearForNpc(null, n, eq, price);
+      const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
+      const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
+      const effDelta = cl.deltaScore + resBonus;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+        bestDelta = effDelta;
+        best = { source: 'shop', gear: eq, price, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
     }
     return best;
@@ -83501,12 +84468,17 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
     // Auto-equip personal bag gear if it is an immediate useful upgrade
     if (n.cult && n.inv && Array.isArray(n.inv.gear) && n.inv.gear.length && !(n.act && n.act.id === 'fight') && SECT.EDITOR && SECT.EDITOR.equipPersonalGear) {
-      for (const eq of n.inv.gear.slice()) {
-        const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(W, n, eq, 0) : null;
-        if (cl && cl.category === 'useful-now') {
-          SECT.EDITOR.equipPersonalGear(W, n.id, eq.uid || eq.id);
-          n._lastGearSwapAt = W.t;
-          break;
+      const gLen = n.inv.gear.length, gLast = n.inv.gear[gLen - 1], cSt = n.cult.stage;
+      if (n._bagChkLen !== gLen || n._bagChkLast !== gLast || n._bagChkSt !== cSt) {
+        n._bagChkLen = gLen; n._bagChkLast = gLast; n._bagChkSt = cSt;
+        for (const eq of n.inv.gear.slice()) {
+          const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(null, n, eq, 0) : null;
+          if (cl && cl.category === 'useful-now') {
+            SECT.EDITOR.equipPersonalGear(W, n.id, eq.uid || eq.id);
+            n._lastGearSwapAt = W.t;
+            n._bagChkLen = -1;
+            break;
+          }
         }
       }
     }
@@ -83709,7 +84681,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     const out = [], push = (why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }, s = n.h.state, c = n.cognition;
     let mc = n._cogModCtx;
     const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, curGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, cpNow = n.cp || 0;
-    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow) {
+    const postsRef = W.sect && W.sect.posts;
+    const pSig = postsRef ? (postsRef.commander || '') + '|' + (postsRef.alchemy || '') + '|' + (postsRef.forge || '') + '|' + (postsRef.treasury || '') + '|' + (postsRef.healer || '') + '|' + (postsRef.martial || '') + '|' + (postsRef.scripture || '') + '|' + (postsRef.mission || '') + '|' + (postsRef.guard || '') + '|' + (postsRef.registry || '') + '|' + (postsRef.discipline || '') + '|' + (W.sect.masterId || '') + '|' + (W.sect.deputyId || '') : '';
+    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pSig !== pSig) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -83734,9 +84708,48 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         if (curGoal.id === 'scripture' && cpNow < price) goalShopPen = -disc0 * (100 / 140);
       }
       const defCache = {};
+      const poMods = {};
+      if (safe0) {
+        const plans = W.sect.officePlans;
+        if (plans) {
+          for (const post in plans) {
+            const plan = plans[post];
+            if (!plan || plan.expiresAt <= W.t || !plan.actions) continue;
+            const authorizedId = (W.sect.delegations && W.sect.delegations[post] && W.sect.delegations[post].until > W.t)
+              ? W.sect.delegations[post].delegateId
+              : (post === 'master' ? W.sect.masterId : post === 'deputy' ? W.sect.deputyId : W.sect.posts[post]);
+            if (authorizedId !== plan.by) continue;
+            const owner = W.byId[plan.by];
+            if (!COG.available(owner, W)) continue;
+            const defObj = owner.id !== n.id ? (defCache[owner.id] || (defCache[owner.id] = COG.deferenceToward(W, n, owner))) : { deference: 50 };
+            const val = clamp(0.08 + duty0 * 0.16 + (defObj.deference / 100) * 0.08, -2, 2);
+            const why = 'ข้อเสนอฝ่าย: ' + plan.title;
+            for (let i = 0; i < plan.actions.length; i++) {
+              const actId = plan.actions[i];
+              (poMods[actId] || (poMods[actId] = [])).push([why, val]);
+            }
+          }
+        }
+        const orders = W.sect.officeOrders;
+        if (orders) {
+          for (const post in orders) {
+            const ord = orders[post];
+            if (!ord || ord.expiresAt <= W.t || (ord.targetNpcId && ord.targetNpcId !== n.id) || !ord.actions) continue;
+            const officer = W.byId[ord.by];
+            if (!COG.available(officer, W) || !COG.hasAuthority(W, officer, post)) continue;
+            const def = defCache[officer.id] || (defCache[officer.id] = COG.deferenceToward(W, n, officer));
+            const compliance = clamp(0.15 + duty0 * 0.25 + def.deference / 250 + def.fear / 300 - (def.resentment / 400), 0.05, 0.65);
+            const why = 'คำสั่ง' + (OFFICE[post]?.[0] || 'ฝ่าย') + ': ' + ord.title;
+            for (let i = 0; i < ord.actions.length; i++) {
+              const actId = ord.actions[i];
+              (poMods[actId] || (poMods[actId] = [])).push([why, compliance]);
+            }
+          }
+        }
+      }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow,
+        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pSig, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -83770,35 +84783,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (c && c.cluePrep && c.cluePrep.until > W.t && c.cluePrep.recommendedAction === id) {
       push('เตรียมความพร้อมเพื่อสืบเบาะแส', 0.28);
     }
-    // Office plans & actionable orders with live authority check and cached deference
-    if (mc.safe) {
-      const plans = W.sect.officePlans;
-      if (plans) {
-        for (const post in plans) {
-          const plan = plans[post];
-          if (!plan || plan.expiresAt <= W.t || !plan.actions || !plan.actions.includes(id)) continue;
-          const authorizedId = (W.sect.delegations && W.sect.delegations[post] && W.sect.delegations[post].until > W.t)
-            ? W.sect.delegations[post].delegateId
-            : (post === 'master' ? W.sect.masterId : post === 'deputy' ? W.sect.deputyId : W.sect.posts[post]);
-          if (authorizedId !== plan.by) continue;
-          const owner = W.byId[plan.by];
-          if (!COG.available(owner, W)) continue;
-          const defObj = owner.id !== n.id ? (mc.defCache[owner.id] || (mc.defCache[owner.id] = COG.deferenceToward(W, n, owner))) : { deference: 50 };
-          push('ข้อเสนอฝ่าย: ' + plan.title, 0.08 + duty * 0.16 + (defObj.deference / 100) * 0.08);
-        }
-      }
-      const orders = W.sect.officeOrders;
-      if (orders) {
-        for (const post in orders) {
-          const ord = orders[post];
-          if (!ord || ord.expiresAt <= W.t || (ord.targetNpcId && ord.targetNpcId !== n.id) || !ord.actions || !ord.actions.includes(id)) continue;
-          const officer = W.byId[ord.by];
-          if (!COG.available(officer, W) || !COG.hasAuthority(W, officer, post)) continue;
-          const def = mc.defCache[officer.id] || (mc.defCache[officer.id] = COG.deferenceToward(W, n, officer));
-          const compliance = clamp(0.15 + duty * 0.25 + def.deference / 250 + def.fear / 300 - (def.resentment / 400), 0.05, 0.65);
-          push('คำสั่ง' + (OFFICE[post]?.[0] || 'ฝ่าย') + ': ' + ord.title, compliance);
-        }
-      }
+    // Office plans & actionable orders (cached per tick + live post signature)
+    const poList = mc.poMods && mc.poMods[id];
+    if (poList) {
+      for (let i = 0; i < poList.length; i++) out.push(poList[i]);
     }
     const hour = mc.hour, night = mc.night, discipline = mc.disc;
     if (night && (id === 'duty' || id === 'farm' || id === 'mine' || id === 'forage')) push('ยามดึกควรพัก', -0.25 * discipline);
@@ -84170,7 +85158,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (!M || !M.classifyGearForNpc) return null;
     for (const eq of n.inv.gear) {
       if (!eq) continue;
-      const cl = M.classifyGearForNpc(W, n, eq, 0);
+      const cl = M.classifyGearForNpc(null, n, eq, 0);
       if (cl.category === 'gift-worthy' && cl.targetNpcId) {
         const rec = W.byId[cl.targetNpcId];
         if (rec && COG.available(rec, W) && !rec.hidden) {
@@ -85571,7 +86559,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta);
     W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); };
     W.makeNpc = o => SIM.addNpc(W, o);
-    W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [] };
+    W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [], assemblyHistory: [] };
     SECT.POST_IDS.forEach(p => W.sect.posts[p] = null);
     EXPED.initWorld(W); EXPLORE.init(W);
     // ---- เจ้าสำนัก ----
@@ -97774,8 +98762,15 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const cult = { XIAN: 0, BODY: 0, GOD: 0, DEMON: 0, HEART_SOUL: 0, none: 0 }; alive.forEach(n => { const k = n.cult && cult[n.cult.path] != null ? n.cult.path : 'none'; cult[k]++; });
       h += '<h3>วิถีที่เดิน</h3><div class="card"><span class="chip b">เซียน ' + cult.XIAN + '</span><span class="chip r">กายา ' + cult.BODY + '</span><span class="chip g">เทพศรัทธา ' + cult.GOD + '</span><span class="chip v">มารอสูร ' + cult.DEMON + '</span><span class="chip b">จิต·เซน ' + cult.HEART_SOUL + '</span><span class="chip">ปุถุชน ' + cult.none + '</span></div>';
       if (S.research) h += '<h3>งานวิจัย</h3><div class="card">ตำรับระดับ ' + S.research.tier + ' ' + bar('ความคืบหน้า', S.research.progress / S.research.need * 100, { wide: true, txt: Math.round(S.research.progress / S.research.need * 100) + '%' }) + '</div>';
-      if (S.tournament) h += '<div class="card">🏆 ประลองยุทธ์: ' + (S.tournament.state === 'announce' ? 'ประกาศแล้ว จะเริ่มอีก ' + Math.max(0, Math.round((S.tournament.start - W.t) / 60)) + ' ชม.' : 'กำลังแข่ง เหลือ ' + (S.tournament.alive || []).length + ' คน') + '</div>';
+      if (S.tournament) h += '<div class="card">🏆 ชุมนุมประลองยุทธ์สำนัก: ' + (S.tournament.state === 'announce' ? 'ประกาศแล้ว จะเริ่มอีก ' + Math.max(0, Math.round((S.tournament.start - W.t) / 60)) + ' ชม.' : 'กำลังแข่ง เหลือ ' + (S.tournament.alive || []).length + ' คน') + '</div>';
       if (S.festival && S.festival.until > W.t) h += '<div class="card">🎎 งานเลี้ยงกำลังจัดอยู่</div>';
+      const asmHist = (S.assemblyHistory || []).slice(0, 4);
+      if (asmHist.length) {
+        h += '<h3>🏆 ทำเนียบแชมป์ชุมนุมยุทธ์สำนัก & ยอดเขายุทธ์</h3><div class="card">' + asmHist.map(a => {
+          const brHtml = (a.brackets || []).map(b => '<div style="font-size:11.5px;padding:2px 0">• <b>' + esc(b.nameTh) + ':</b> ' + esc(b.championName) + ' <span class="chip g">' + esc(b.weaponNameTh) + ' · ' + esc(b.signatureTechName) + '</span> <span class="muted">(+' + b.cpAwarded + ' CP' + (b.rewardItemNameTh ? ' · รับ「' + esc(b.rewardItemNameTh) + '」' : '') + ')</span></div>').join('');
+          return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><b>ปีที่ ' + a.year + ' (วันที่ ' + a.day + ') — แชมป์เปี้ยนสูงสุด: ' + esc(a.championName) + '</b> <span class="chip b">+' + (a.fameGained || 0) + ' ชื่อเสียงสำนัก</span></div>' + brHtml + '</div>';
+        }).join('') + '</div>';
+      }
       const sf = (S.fallen || []).slice(-5).reverse(); if (sf.length) h += '<h3>ผู้ล่วงลับล่าสุด</h3><div class="card">' + sf.map(f => '<div class="muted">☠ ' + esc(f.name) + ' — ' + esc(f.why) + ' (' + dayStamp(f.day * 1440) + ')</div>').join('') + '</div>';
     } else if (tab === 'policy') {
       h += '<div class="muted" style="margin-bottom:6px">นโยบายของสำนักคือผลรวมของ <b>ตัวตนเจ้าสำนัก 78% · รองเจ้าสำนัก 14% · ผู้อาวุโส 8%</b> และค่อย ๆ เปลี่ยนไปเดือนละ 20% เมื่อเปลี่ยนผู้นำ</div><h3>ท่าทีของสำนักตอนนี้</h3><div class="card">';
@@ -99364,6 +100359,20 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         if (bf.length) h += '<div style="margin-top:6px">💊 ' + bf.map(b => '<span class="chip b">' + esc(b.name) + ' (' + Math.max(0, Math.round(b.until - W.t)) + ' นาที)</span>').join('') + '</div>';
         if (fb) h += '<div style="margin-top:6px">🍲 <span class="chip ok">' + esc(fb.nameTh) + ' (' + Math.max(0, Math.round(fb.until - W.t)) + ' นาที)</span> <span class="muted" style="font-size:11.5px">' + esc(fb.descTh || '') + '</span></div>';
         if (sx.length) h += '<div style="margin-top:6px">' + sx.map(x => { const S = g.SK.STATUS[x.k]; return S ? '<span class="chip">' + S.icon + ' ' + esc(S.nameTh) + '</span>' : ''; }).join('') + '</div>';
+        if (g.COMBAT && g.COMBAT.explainTactics) {
+          const tacInfo = g.COMBAT.explainTactics(n);
+          if (tacInfo) {
+            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a);font-size:12px"><b>🎯 เชิงยุทธ์ระยะอาวุธ:</b> <span class="chip b">' + esc(tacInfo.nameTh) + ' (' + esc(tacInfo.reachClass) + ')</span><div class="muted" style="margin-top:2px">' + esc(tacInfo.descTh || '') + ' · แพ้ทาง/แก้ทาง: ' + esc(tacInfo.counteredByTh || '') + '</div>';
+            if (tacInfo.lastTacticalEvent && tacInfo.lastTacticalEvent.noteTh) {
+              h += '<div style="color:var(--gold);font-size:11.5px;margin-top:2px">⚡ จังหวะยุทธ์ล่าสุด: ' + esc(tacInfo.lastTacticalEvent.noteTh) + '</div>';
+            }
+            if (tacInfo.resonanceSet && tacInfo.resonanceSet.active) {
+              const rs = tacInfo.resonanceSet;
+              h += '<div style="margin-top:4px"><span class="chip g">✦ สัจธรรมชุดอุปกรณ์ ' + rs.pieces + '/3</span> <b>' + esc(rs.nameTh) + '</b><div class="muted" style="font-size:11.5px">' + esc(rs.summaryTh) + (rs.rider ? ' · ' + esc(rs.rider.descTh) : '') + '</div></div>';
+            }
+            h += '</div>';
+          }
+        }
         h += '</div>';
         const sl = g.SK.list(n);
         if (sl.length) {

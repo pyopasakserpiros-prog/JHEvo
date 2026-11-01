@@ -103,6 +103,120 @@
   function hpFrac(u) { return clamp(C.hp(u) / Math.max(1, C.hpMax(u)), 0, 1); }
   function shieldOf(u) { const x = STs().statusOf(u, 'shield'); if (x && x.amt > 0) return x; if (u && u.shieldBp > 0) return { k: 'shield', amt: u.shieldBp }; return null; }
 
+  /* ---------- Weapon Reach, Kiting & Guard-Shatter Tactical Engine (v2.0.5 Pillar B) ---------- */
+  C.resolveWeaponTactics = (a, d, o, f) => {
+    o = o || {};
+    const SK = SKs(), ST = STs();
+    if (!a || !d || !SK || !SK.weaponTacticalProfile) {
+      return { relation: 'NEUTRAL', dmgMult: 1, accAdd: 0, critAdd: 0, penAdd: 0, shieldBreakMult: 1, shatterGuard: false, noteTh: '' };
+    }
+    const pa = SK.weaponTacticalProfile(a);
+    const pd = SK.weaponTacticalProfile(d);
+    const rawDist = (Number.isFinite(a.x) && Number.isFinite(d.x) && (a.x !== d.x || a.y !== d.y)) ? Math.hypot(a.x - d.x, a.y - d.y) : 2.1;
+    const dist = o.dist != null ? o.dist : rawDist;
+    const moveArch = o.arch || (o.skill && o.skill.arch) || '';
+    const isGapCloserMove = ['charge', 'evade', 'flurry', 'pierce'].includes(moveArch) || !!(o.isGapCloser);
+    const aHasLightness = pa.hasLightness || isGapCloserMove;
+    const dHasLightness = pd.hasLightness || (ST && ST.has(d, 'evadeUp'));
+    const dShielded = !!shieldOf(d) || (ST && ST.has(d, 'guardUp')) || pd.hasDefenseTech;
+
+    let relation = 'NEUTRAL', dmgMult = 1, accAdd = 0, critAdd = 0, penAdd = 0, shieldBreakMult = 1, shatterGuard = false, noteTh = '';
+
+    // 1. Long-reach polearms (SPEAR, STAFF) vs short-reach weapons (FIST, BLADE, SWORD)
+    if (pa.reachClass === 'LONG_POLEARM' && (pd.reachClass === 'SHORT_SWIFT' || pd.reachClass === 'HEAVY_BREAKER')) {
+      const firstStrikeWindow = !f || !f._firstStrikeUsed || !f._firstStrikeUsed[a.id];
+      if (dHasLightness && (ST.has(d, 'evadeUp') || d._gapClosedOn === a.id)) {
+        relation = 'POLEARM_COUNTERED_BY_LIGHTNESS';
+        dmgMult = 0.96;
+        noteTh = 'วิชาตัวเบาของ ' + C.name(d) + ' พุ่งฝ่าระยะ' + (pa.weaponType === 'SPEAR' ? 'หอก' : 'พลอง') + 'สลายความได้เปรียบเปิดศึก';
+      } else if (firstStrikeWindow || dist >= 1.85) {
+        relation = 'POLEARM_FIRST_STRIKE';
+        dmgMult = pa.spec.firstStrikeMult || 1.12;
+        accAdd += pa.spec.firstStrikeAcc || 10;
+        if (f) { f._firstStrikeUsed = f._firstStrikeUsed || {}; f._firstStrikeUsed[a.id] = true; }
+        noteTh = C.name(a) + ' อาศัยระยะ' + (pa.weaponType === 'SPEAR' ? 'ทวนยาว' : 'พลองยาว') + 'ชิงลงมือก่อนอาวุธสั้น';
+      }
+    }
+
+    // 2. Ranged weapons (BOW, FOCUS) kiting distance advantage vs melee until closed on by dash/leap
+    if (pa.reachClass === 'RANGED_KITE') {
+      const closedOn = (a._closedOnBy === d.id) || (dist < 1.45 && dHasLightness);
+      if (!closedOn && dist >= 1.65) {
+        relation = 'RANGED_KITING_ADVANTAGE';
+        dmgMult *= (pa.spec.kiteDmgMult || 1.12);
+        critAdd += (pa.spec.kiteCritAdd || 5);
+        accAdd += (pa.spec.kiteAccAdd || 8);
+        noteTh = C.name(a) + ' รักษาระยะห่างยิงสกัดด้วย' + (pa.weaponType === 'BOW' ? 'ธนู' : 'สื่อปราณ');
+      } else if (closedOn) {
+        relation = 'RANGED_CLOSED_ON';
+        dmgMult *= 0.94;
+        noteTh = C.name(a) + ' ถูกประชิดตัว เสียเปรียบระยะยิงสกัด';
+      }
+    }
+
+    // 3. Melee fighter using gap-closer / lightness art to counter RANGED_KITE or LONG_POLEARM
+    if ((pa.reachClass === 'SHORT_SWIFT' || pa.reachClass === 'HEAVY_BREAKER') && (pd.reachClass === 'RANGED_KITE' || pd.reachClass === 'LONG_POLEARM')) {
+      if (aHasLightness) {
+        d._closedOnBy = a.id;
+        a._gapClosedOn = d.id;
+        if (relation === 'NEUTRAL') {
+          relation = pd.reachClass === 'RANGED_KITE' ? 'DASH_CLOSE_COUNTER' : 'GAP_CLOSER_COUNTER';
+          dmgMult *= (pa.spec.gapCloserMult || 1.10);
+          accAdd += (pa.spec.gapCloserAcc || 8);
+          noteTh = C.name(a) + ' ใช้วิชาตัวเบา/ท่าพุ่งประชิดทะลวงระยะของ ' + C.name(d);
+        }
+      }
+    }
+
+    // 4. Heavy weapons (BLADE, FIST Vajra/Titan/Body) guard-shatter bonus against shields & DEFENSIVE_TECHNIQUE
+    if (pa.reachClass === 'HEAVY_BREAKER' && dShielded) {
+      relation = 'HEAVY_GUARD_SHATTER';
+      dmgMult *= (pa.spec.guardShatterDmgMult || 1.15);
+      penAdd += (pa.spec.guardShatterPenAdd || 14);
+      shieldBreakMult = pa.spec.shieldBreakMult || 1.45;
+      shatterGuard = true;
+      noteTh = C.name(a) + ' ใช้' + (pa.weaponType === 'BLADE' ? 'ดาบหนัก' : 'หมัดวัชระ') + 'ทลายโล่และกระบวนท่าตั้งรับของ ' + C.name(d);
+    }
+
+    return {
+      relation,
+      attackerReach: pa.reachClass,
+      defenderReach: pd.reachClass,
+      attackerWeapon: pa.weaponType,
+      defenderWeapon: pd.weaponType,
+      dmgMult: Math.round(dmgMult * 1000) / 1000,
+      accAdd,
+      critAdd,
+      penAdd,
+      shieldBreakMult,
+      shatterGuard,
+      noteTh
+    };
+  };
+
+  C.explainTactics = (u, target) => {
+    const SK = SKs();
+    const prof = (SK && SK.weaponTacticalProfile) ? SK.weaponTacticalProfile(u) : null;
+    if (!prof) return null;
+    const vs = target ? C.resolveWeaponTactics(u, target, { dist: (Number.isFinite(u.x) && Number.isFinite(target.x)) ? Math.hypot(u.x - target.x, u.y - target.y) : 2.0 }) : null;
+    const res = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet && !u.foe) ? g.MARTIAL.evaluateResonanceSet(u) : null;
+    return {
+      weaponType: prof.weaponType,
+      reachClass: prof.reachClass,
+      engageRange: prof.engageRange,
+      nameTh: prof.nameTh,
+      stanceTh: prof.stanceTh,
+      counteredByTh: prof.counteredByTh,
+      descTh: prof.descTh,
+      hasLightness: prof.hasLightness,
+      hasDefenseTech: prof.hasDefenseTech,
+      lastTacticalEvent: u.lastTacticalEvent || null,
+      lastResonanceTrigger: u.lastResonanceTrigger || null,
+      resonanceSet: res,
+      matchup: vs
+    };
+  };
+
   /* Bounded Passive Procs (with strict internal cooldown and anti-recursion guard) */
   function runPassiveProcs(W, f, actor, target, triggerKind, dmgDealt) {
     if (f && f._inProc) return;
@@ -173,12 +287,31 @@
     // ท่าสวนกลับ: ปัดทิ้งแล้วสวน (ป้องกันลูปสะท้อน/สวนซ้ำ)
     if (!o.noCounter) { const cs = ST.statusOf(d, 'counter'); if (cs && !d.dead) { ST.clearStatus(d, x => x.k === 'counter'); d.fx = { t: W.t, text: '↩ ปัดสวน!' }; C.strike(W, f, d, a, { M: cs.M, type: cs.type, pen: cs.pen, forced: true, noCounter: true, noReflect: true, noProc: true }); return { hit: false, countered: true }; } }
     const tb = (!a.foe && g.MARTIAL && g.MARTIAL.combatTargetBonus) ? g.MARTIAL.combatTargetBonus(a, d) : null;
+    const tac = C.resolveWeaponTactics ? C.resolveWeaponTactics(a, d, o, f) : null;
+    const resSet = (!a.foe && g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(a) : null;
+    const resRiderMult = (resSet && resSet.active && resSet.pieces >= 3 && resSet.rider && resSet.rider.bonusDmgMult) ? resSet.rider.bonusDmgMult : 1;
+    if (tac && tac.relation !== 'NEUTRAL') {
+      a.lastTacticalEvent = { t: W.t, relation: tac.relation, noteTh: tac.noteTh, targetId: d.id };
+      if (f && Array.isArray(f.log) && f.log.length < 40 && (!f._lastTacLogAt || W.t - f._lastTacLogAt >= 3)) {
+        f._lastTacLogAt = W.t;
+        f.log.push({ t: W.t, relation: tac.relation, text: tac.noteTh, a: a.id, d: d.id });
+      }
+    }
+    if (tac && tac.shatterGuard) {
+      const sh = shieldOf(d);
+      if (sh && sh.amt > 0) {
+        sh.amt = Math.max(0, Math.round(sh.amt * (o.isSkill ? 0.35 : 0.55)));
+        if (sh.amt <= 0) ST.clearStatus(d, x => x.k === 'shield');
+      }
+      if (ST.has(d, 'guardUp')) ST.clearStatus(d, x => x.k === 'guardUp');
+      ST.addStatus(d, 'armorbreak', 8);
+    }
     const type = o.type || (sa.atk >= sa.matk ? 'p' : 'm'), A0 = type === 'p' ? sa.atk : sa.matk;
-    const penTot = (sa.pen || 0) + (o.pen || 0) + (tb ? tb.penAdd : 0);
+    const penTot = (sa.pen || 0) + (o.pen || 0) + (tb ? tb.penAdd : 0) + (tac ? tac.penAdd : 0);
     let D = (type === 'p' ? sd.def : sd.mdef) * (o.dotHalf ? 0.5 : 1) * (1 - clamp(penTot / 100, 0, 0.82));
-    const critChance = ((sa.crit || 0) + (o.critAdd || 0) + (tb ? tb.critAdd : 0)) / 100;
+    const critChance = ((sa.crit || 0) + (o.critAdd || 0) + (tb ? tb.critAdd : 0) + (tac ? tac.critAdd : 0)) / 100;
     const crit = !o.noCrit && W.rng.chance(clamp(critChance, 0, 0.90));
-    let frac = 0.2 * (A0 / (A0 + 0.8 * Math.max(0, D))) * (o.M || 1) * (o.synDmgMult || 1) * (tb ? tb.dmgMult : 1) * (0.85 + W.rng.next() * 0.3);
+    let frac = 0.2 * (A0 / (A0 + 0.8 * Math.max(0, D))) * (o.M || 1) * (o.synDmgMult || 1) * (tb ? tb.dmgMult : 1) * (tac ? tac.dmgMult : 1) * resRiderMult * (0.85 + W.rng.next() * 0.3);
     if (crit) frac *= ((sa.critDmg || 150) + (o.critDmgAdd || 0) + (tb ? tb.critDmgAdd : 0)) / 100;
     // Major Path Offensive/Defensive Combat Identities
     if (!a.foe && a.cult) {
@@ -221,11 +354,31 @@
       d.lastReflect = reflected;
       C.applyDamage(W, f, d, a, reflected, 'สะท้อนจิต');
     }
+    let resonanceTriggered = false;
     if (!o.noProc && dmg > 0) {
+      if (resSet && resSet.active && resSet.pieces >= 3 && resSet.rider) {
+        const rd = resSet.rider;
+        const icdOk = !a._resRiderCd || W.t >= a._resRiderCd;
+        if (icdOk && W.rng.chance(rd.chance || 0.35)) {
+          a._resRiderCd = W.t + 5;
+          resonanceTriggered = true;
+          const tgt = rd.selfBuff ? a : d;
+          if (C.alive(tgt)) {
+            if (rd.status === 'burn' || rd.status === 'bleed' || rd.status === 'poison') {
+              ST.addStatus(tgt, rd.status, rd.dur || 10, { per: 0.012, src: a.id });
+            } else if (rd.status === 'leech') {
+              C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + Math.max(1, Math.round(dmg * 0.12))));
+            } else {
+              ST.addStatus(tgt, rd.status, rd.dur || 8);
+            }
+          }
+          a.lastResonanceTrigger = { t: W.t, setId: resSet.setId, nameTh: resSet.nameTh, status: rd.status, descTh: rd.descTh, targetId: d.id };
+        }
+      }
       runPassiveProcs(W, f, a, d, 'onHit', dmg);
       runPassiveProcs(W, f, d, a, 'onStruck', dmg);
     }
-    return { hit: true, dmg, crit, killed, lifesteal, reflected };
+    return { hit: true, dmg, crit, killed, lifesteal, reflected, tacticalRelation: tac ? tac.relation : 'NEUTRAL', resonanceTriggered };
   };
   /* ---------- เลือกท่า ---------- */
   function chooseSkill(W, f, a, d, ctx) {
@@ -281,8 +434,23 @@
       }
       if (p.arch === 'evade') sc = (ST.has(a, 'evadeUp') ? 0 : (hpR < 0.5 ? (0.5 - hpR) * 5 : 0) + (en.length > 2 ? 0.8 : 0) + caut);
       if (p.arch === 'forbid') sc += (hpR < 0.4 ? 2.2 : 0.4) + aggr + (tdp > self * 1.5 ? 1.2 : 0);
-      // Tactical role bonuses for multi-move techniques
+      // Tactical role bonuses & Counter-Weapon AI (v2.0.5 Pillar B)
       if (p.shatterShield && targetShielded) sc += 3.2;
+      if (SK.weaponTacticalProfile) {
+        const pa = SK.weaponTacticalProfile(a), pd = SK.weaponTacticalProfile(d);
+        if ((pd.reachClass === 'RANGED_KITE' || pd.reachClass === 'LONG_POLEARM') && ['charge', 'evade', 'flurry'].includes(p.arch)) {
+          sc += 1.45; // Prioritize gap-closers & lightness techniques against polearms and ranged kiters
+        }
+        if (pa.reachClass === 'HEAVY_BREAKER' && (targetShielded || pd.hasDefenseTech) && ['strike', 'execute', 'pierce', 'burst'].includes(p.arch)) {
+          sc += 1.65; // Heavy weapon prioritizes guard-shattering strikes against shielded/defensive foes
+        }
+        if (pa.reachClass === 'LONG_POLEARM' && (pd.reachClass === 'SHORT_SWIFT' || pd.reachClass === 'HEAVY_BREAKER') && ['pierce', 'sweep', 'control'].includes(p.arch)) {
+          sc += 0.95; // Polearm prioritizes reach control & first-strike thrusts
+        }
+        if (pa.reachClass === 'RANGED_KITE' && a._closedOnBy !== d.id && ['snipe', 'barrage', 'blast', 'channel'].includes(p.arch)) {
+          sc += 1.15; // Ranged weapon capitalizes on kiting window
+        }
+      }
       if (p.aiRole === 'anti_armor' && td.def > td.mdef * 1.1) sc += 0.7;
       if (p.aiRole === 'finisher' && hpFrac(d) < 0.45) sc += 1.1;
       if (p.aiRole === 'opener' && hpFrac(d) > 0.75) sc += 0.6;
@@ -409,7 +577,7 @@
     }
     const hm = C.hpMax(a);
     if (p.arch === 'guard' || p.arch === 'shield') { ST.addStatus(a, 'guardUp', 12); if (p.shield > 0 || !p.qiRestorePct) ST.addStatus(a, 'shield', 12, { amt: hm * (p.shield || 0.15) }); return; }
-    if (p.arch === 'evade') { ST.addStatus(a, 'evadeUp', 14); return; }
+    if (p.arch === 'evade') { ST.addStatus(a, 'evadeUp', 14); if (d) { d._closedOnBy = a.id; a._gapClosedOn = d.id; } return; }
     if (p.arch === 'counter') { ST.addStatus(a, 'counter', 10, { M: p.M, type: p.type, pen: p.pen }); return; }
     if (p.arch === 'heal') {
       const ally = lowestAlly(W, f, a), tgt = (ally && hpFrac(ally) < hpFrac(a) - 0.05) ? ally : a;
@@ -490,7 +658,7 @@
       if (!C.alive(t)) return;
       for (let i = 0; i < (p.hits || 1); i++) {
         if (!C.alive(t)) break;
-        const r = C.strike(W, f, a, t, { M: p.M * mas * (p.aoe && t !== d ? 0.8 : 1), synDmgMult: p.synDmgMult || 1, accAdd: p.elementAccAdd || 0, type: p.type, pen: p.pen, label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true });
+        const r = C.strike(W, f, a, t, { M: p.M * mas * (p.aoe && t !== d ? 0.8 : 1), synDmgMult: p.synDmgMult || 1, accAdd: p.elementAccAdd || 0, type: p.type, pen: p.pen, label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true, arch: p.arch, skill: p });
         if (r.hit) { dealt += r.dmg; applyRiders(W, f, a, t, p, r); }
       }
     });
@@ -630,7 +798,9 @@
     let t = C.unit(W, ctx.target);
     if (!C.alive(t)) { const en = C.enemies(W, f, n.id); if (!en.length) return; en.sort((a, b) => Math.hypot(a.x - n.x, a.y - n.y) - Math.hypot(b.x - n.x, b.y - n.y)); t = en[0]; ctx.target = t.id; n.path = null; }
     const d = Math.hypot(t.x - n.x, t.y - n.y);
-    if (d > 1.7) { moveToward(W, n, t.x, t.y, true); n.face = t.x >= n.x ? 1 : -1; return; }
+    const wProf = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(n) : null;
+    const engageLim = (wProf && n._closedOnBy !== t.id) ? (wProf.engageRange || 1.7) : 1.7;
+    if (d > engageLim) { moveToward(W, n, t.x, t.y, true); n.face = t.x >= n.x ? 1 : -1; return; }
     n.face = t.x >= n.x ? 1 : -1; n.path = null;
     if (--ctx.cd > 0) return;
     if (g.CPE && g.CPE.fightUse(W, n, ctx)) { ctx.cd = 2; return; }
@@ -639,7 +809,7 @@
   C.leave = (W, n) => {
     if (n.act && n.act.ctx && n.act.ctx.channeling) delete n.act.ctx.channeling;
     if (n.sx && n.sx.length) { n.sx = []; STs().dirty(n); }
-    n.run = false; n.fleeTo = null; n.yield = false; n.fled = false; n.path = null; n.lastHurtBy = null;
+    n.run = false; n.fleeTo = null; n.yield = false; n.fled = false; n.path = null; n.lastHurtBy = null; n._closedOnBy = null; n._gapClosedOn = null;
     n.act = { id: 'idle', stage: 'do', left: 15, total: 15, ctx: {}, why: [] };
   };
 
@@ -793,6 +963,9 @@
     AI.mem(W, win, 'ชนะเลิศประลองยุทธ์สำนัก', 1);
     W.log('tournament', win.h.name.given + ' ชนะเลิศประลองยุทธ์สำนัก ได้รางวัล ' + T.prize + ' ศิลา', [win.id]);
     const m = W.byId[W.sect.masterId];
+    if (SECT && SECT.assembly) {
+      SECT.assembly(W, m, { fromTournament: T, primaryWinnerId: win.id });
+    }
     if (m && win.rank <= 3 && HC.eff(m, 'interests.teaching') > 45 && W.rng.chance(0.3) && !win.mentor) { win.mentor = m.id; (m.h.life.family.disciples = m.h.life.family.disciples || []).push(win.id); win.h.life.family.master = m.id; W.log('disciple', m.h.name.given + ' รับ ' + win.h.name.given + ' เป็นศิษย์เอก', [m.id, win.id]); }
   };
 

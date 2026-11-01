@@ -915,9 +915,260 @@
     W.log('decision', m.h.name.given + ' ประกาศจัดงานเลี้ยงที่ลานกลาง (ใช้ ' + cost + ' ศิลา) เพื่อสร้างขวัญกำลังใจ', [m.id]);
     W.npcs.forEach(n => { if (!n.dead) { n.sat = Math.min(100, (n.sat || 60) + 3); } });
   };
-  SECT.tournament = (W, m) => {
-    W.sect.tournament = { start: W.t + 24 * 60, state: 'announce', rounds: 0, entrants: [], winnerId: null, prize: Math.round(80 + W.sect.policy.generosity) };
-    W.log('decision', m.h.name.given + ' ประกาศจัดประลองยุทธ์สำนักในอีก 1 วัน รางวัล ' + W.sect.tournament.prize + ' ศิลา', [m.id]);
+  /* ---------- Grand Sect Martial Assembly & Peak Trial Arena (v2.0.5 Pillar C) ---------- */
+  SECT.ASSEMBLY_BRACKETS = {
+    JUNIOR: { id: 'JUNIOR', nameTh: 'รุ่นเยาว์·หลอมปราณ (T1–T2)', minStage: 1, maxStage: 2, cpReward: 50, runnerUpCp: 22, stonePrize: 60, minGearTier: 3, maxGearTier: 3, fameReward: 2 },
+    CORE: { id: 'CORE', nameTh: 'รุ่นแกนหลัก·แก่นทองคำ (T3–T4)', minStage: 3, maxStage: 4, cpReward: 100, runnerUpCp: 45, stonePrize: 120, minGearTier: 3, maxGearTier: 5, fameReward: 4 },
+    ELDER_PEAK: { id: 'ELDER_PEAK', nameTh: 'รุ่นผู้อาวุโส·ยอดเขายุทธ์ (T5–T7)', minStage: 5, maxStage: 7, cpReward: 180, runnerUpCp: 85, stonePrize: 220, minGearTier: 5, maxGearTier: 6, fameReward: 6 }
+  };
+  SECT.ASSEMBLY_BRACKET_IDS = ['JUNIOR', 'CORE', 'ELDER_PEAK'];
+
+  SECT.signatureVictoryOf = n => {
+    if (!n) return { weaponType: 'FIST', weaponNameTh: 'หมัดฝ่ามือ', techId: null, techNameTh: 'เพลงหมัดพื้นฐาน', moveNameTh: 'หมัดปะทะ', subpath: 'NONE', subpathNameTh: 'ปุถุชน' };
+    const wType = (g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(n) : 'FIST';
+    const wNameTh = (JD.MARTIAL && JD.MARTIAL.types && JD.MARTIAL.types[wType]) || wType;
+    const c = n.cult;
+    const subInfo = (c && c.sub && c.sub !== 'NONE') ? CULT.subInfo(c.path, c.sub) : null;
+    const subNameTh = subInfo ? subInfo.nameTh : (c ? c.sub : 'ปุถุชน');
+    let bestMove = null;
+    if (g.SK && g.SK.list) {
+      const moves = g.SK.list(n).filter(m => m && (m.M > 0 || m.arch === 'channel'));
+      if (moves.length) {
+        moves.sort((a, b) => ((b.tier || 1) * 10 + (b.M || 1)) - ((a.tier || 1) * 10 + (a.M || 1)));
+        bestMove = moves[0];
+      }
+    }
+    const techObj = bestMove ? (CULT.tech(bestMove.tech || bestMove.id) || bestMove) : (c && c.mantra ? CULT.tech(c.mantra) : null);
+    return {
+      weaponType: wType,
+      weaponNameTh: wNameTh,
+      techId: techObj ? techObj.id : null,
+      techNameTh: techObj ? techObj.nameTh : 'กระบวนท่าสำนัก',
+      moveNameTh: bestMove ? bestMove.nameTh : (techObj ? techObj.nameTh : 'กระบวนท่าพื้นฐาน'),
+      subpath: c ? c.sub : 'NONE',
+      subpathNameTh: subNameTh
+    };
+  };
+
+  SECT.tailoredAssemblyReward = (W, n, minTier, maxTier) => {
+    if (!n || !n.cult) return { item: null, recipe: null };
+    const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
+    const targetMaxTier = clamp(Math.max(minTier, Math.min(maxTier, effSt + 1)), 3, 6);
+    const targetMinTier = clamp(minTier, 3, targetMaxTier);
+    const allGear = (JD.ITEMS && JD.ITEMS.items ? JD.ITEMS.items : []).filter(it =>
+      it && ['WEAPON', 'ARMOR', 'ACCESSORY'].includes(it.slot) && (it.tier || 1) >= targetMinTier && (it.tier || 1) <= targetMaxTier
+    );
+    let bestItem = null, bestScore = -Infinity;
+    for (const it of allGear) {
+      const suit = (g.MARTIAL && g.MARTIAL.gearSuitability) ? g.MARTIAL.gearSuitability(n, it, 0) : { score: (it.tier || 3) * 20 };
+      const sc = Number.isFinite(suit.score) ? suit.score : ((it.tier || 3) * 10);
+      if (sc > bestScore) { bestScore = sc; bestItem = it; }
+    }
+    if (!bestItem && allGear.length) bestItem = allGear[0];
+    let minted = null, matchedRecipe = null;
+    if (bestItem) {
+      const allRecipes = (JD.ITEMS && JD.ITEMS.recipes) ? JD.ITEMS.recipes : [];
+      matchedRecipe = allRecipes.find(r => (r.outItemId === bestItem.id || r.itemId === bestItem.id)) ||
+        allRecipes.find(r => r.tier >= targetMinTier && r.tier <= targetMaxTier && ['FORGING', 'ARRAY', 'TALISMAN'].includes(r.craft)) || null;
+      minted = ECO.mintGear(matchedRecipe || bestItem, 1.08);
+      n.inv = n.inv || { stones: 0, pills: {}, mats: {}, gear: [] };
+      n.inv.gear = n.inv.gear || [];
+      const curEq = n.equip && n.equip[minted.slot];
+      const curScore = (curEq && g.MARTIAL && g.MARTIAL.gearSuitability) ? g.MARTIAL.gearSuitability(n, curEq, 0).score : -Infinity;
+      const newScore = (g.MARTIAL && g.MARTIAL.gearSuitability) ? g.MARTIAL.gearSuitability(n, minted, 0).score : 100;
+      if ((minted.minStage || 1) <= effSt && (!curEq || newScore > curScore)) {
+        if (curEq) n.inv.gear.push(curEq);
+        n.equip = n.equip || {};
+        n.equip[minted.slot] = minted;
+        if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(n);
+      } else {
+        n.inv.gear.push(minted);
+      }
+      if (matchedRecipe) {
+        n.recipes = n.recipes || [];
+        if (!n.recipes.includes(matchedRecipe.id)) n.recipes.push(matchedRecipe.id);
+        n.inv.recipes = n.inv.recipes || [];
+        if (!n.inv.recipes.includes(matchedRecipe.id)) n.inv.recipes.push(matchedRecipe.id);
+        if (W && W.sect) W.sect.recipeTier = Math.max(W.sect.recipeTier || 2, matchedRecipe.tier || 3);
+      }
+    }
+    return { item: minted, recipe: matchedRecipe };
+  };
+
+  SECT.simulateAssemblyBout = (W, a, b) => {
+    const tacA = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(a, b, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+    const tacB = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(b, a, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+    const resA = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(a) : { active: false, pieces: 0 };
+    const resB = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(b) : { active: false, pieces: 0 };
+    const scoreA = CULT.power(a) * (tacA.dmgMult || 1) * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (0.88 + W.rng.next() * 0.24);
+    const scoreB = CULT.power(b) * (tacB.dmgMult || 1) * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (0.88 + W.rng.next() * 0.24);
+    const win = scoreA >= scoreB ? a : b;
+    const lose = win === a ? b : a;
+    const winTac = win === a ? tacA : tacB;
+    const sig = SECT.signatureVictoryOf(win);
+    return {
+      winner: win,
+      loser: lose,
+      tacticalRelation: winTac.relation || 'NEUTRAL',
+      tacticalNoteTh: winTac.noteTh || '',
+      signature: sig
+    };
+  };
+
+  SECT.assembly = (W, m, opts) => {
+    opts = opts || {};
+    const S = W.sect;
+    S.assemblyHistory = S.assemblyHistory || [];
+    const host = m || W.byId[S.masterId] || W.npcs.find(n => !n.dead);
+    if (opts.announceOnly) {
+      return SECT.tournament(W, host, opts);
+    }
+    const candidates = W.npcs.filter(n => !n.dead && !n.exiled && n.cult && (opts.includeAway || !n.away));
+    const bracketResults = [];
+    let totalFameGained = 0;
+    let grandChamp = null, grandChampPower = -1;
+
+    for (const bId of SECT.ASSEMBLY_BRACKET_IDS) {
+      const spec = SECT.ASSEMBLY_BRACKETS[bId];
+      let divEntrants = candidates.filter(n => {
+        const st = n.cult ? n.cult.stage : 1;
+        return st >= spec.minStage && st <= spec.maxStage;
+      });
+      if (!divEntrants.length) continue;
+      // Sort by combat power + tactical readiness for seeding
+      divEntrants = divEntrants.slice().sort((a, b) => CULT.power(b) - CULT.power(a));
+      let curRound = divEntrants.slice();
+      const bouts = [];
+      let runnerUp = curRound.length > 1 ? curRound[1] : null;
+      while (curRound.length > 1) {
+        const nextRound = [];
+        for (let i = 0; i < curRound.length; i += 2) {
+          if (i + 1 >= curRound.length) {
+            nextRound.push(curRound[i]);
+            continue;
+          }
+          const bout = SECT.simulateAssemblyBout(W, curRound[i], curRound[i + 1]);
+          bouts.push({
+            aId: curRound[i].id,
+            bId: curRound[i + 1].id,
+            winnerId: bout.winner.id,
+            loserId: bout.loser.id,
+            tacticalRelation: bout.tacticalRelation,
+            signatureTechName: bout.signature.techNameTh,
+            weaponType: bout.signature.weaponType
+          });
+          runnerUp = bout.loser;
+          nextRound.push(bout.winner);
+        }
+        curRound = nextRound;
+      }
+      const champ = curRound[0];
+      const sig = SECT.signatureVictoryOf(champ);
+      // Award Contribution Points (CP), stones, merit, and tailored T3-T6 equipment/recipe
+      champ.cp = (champ.cp || 0) + spec.cpReward;
+      champ.cpEarned = (champ.cpEarned || 0) + spec.cpReward;
+      champ.merit = (champ.merit || 0) + 25 + spec.fameReward * 3;
+      champ.inv = champ.inv || { stones: 0, pills: {}, mats: {}, gear: [] };
+      const stonePay = Math.min(spec.stonePrize, Math.max(20, Math.floor((S.stones || 0) * 0.15)));
+      if (stonePay > 0 && S.stones >= stonePay) {
+        ECO.pay(W, stonePay, 'รางวัลชุมนุมยุทธ์ ' + spec.nameTh);
+      }
+      champ.inv.stones = (champ.inv.stones || 0) + spec.stonePrize;
+      if (runnerUp && runnerUp.id !== champ.id) {
+        runnerUp.cp = (runnerUp.cp || 0) + spec.runnerUpCp;
+        runnerUp.cpEarned = (runnerUp.cpEarned || 0) + spec.runnerUpCp;
+        runnerUp.merit = (runnerUp.merit || 0) + 12;
+      }
+      const reward = SECT.tailoredAssemblyReward(W, champ, spec.minGearTier, spec.maxGearTier);
+      HC.experience(champ, 'victory', 0.85);
+      if (g.AI && g.AI.mem) g.AI.mem(W, champ, 'คว้าแชมป์ชุมนุมยุทธ์ ' + spec.nameTh + ' ด้วย' + sig.weaponNameTh + '「' + sig.techNameTh + '」', 0.9);
+      totalFameGained += spec.fameReward;
+      if (CULT.power(champ) > grandChampPower) {
+        grandChampPower = CULT.power(champ);
+        grandChamp = champ;
+      }
+      bracketResults.push({
+        bracketId: spec.id,
+        nameTh: spec.nameTh,
+        minStage: spec.minStage,
+        maxStage: spec.maxStage,
+        entrantCount: divEntrants.length,
+        boutCount: bouts.length,
+        bouts,
+        championId: champ.id,
+        championName: HC.fullName(champ),
+        runnerUpId: runnerUp ? runnerUp.id : null,
+        runnerUpName: runnerUp ? HC.fullName(runnerUp) : null,
+        subpath: sig.subpath,
+        subpathNameTh: sig.subpathNameTh,
+        weaponType: sig.weaponType,
+        weaponNameTh: sig.weaponNameTh,
+        signatureTechId: sig.techId,
+        signatureTechName: sig.techNameTh,
+        signatureMoveName: sig.moveNameTh,
+        cpAwarded: spec.cpReward,
+        runnerUpCp: spec.runnerUpCp,
+        stonePrize: spec.stonePrize,
+        rewardItemId: reward.item ? reward.item.id : null,
+        rewardItemNameTh: reward.item ? reward.item.nameTh : null,
+        rewardItemTier: reward.item ? reward.item.tier : null,
+        rewardRecipeId: reward.recipe ? reward.recipe.id : null,
+        rewardRecipeNameTh: reward.recipe ? reward.recipe.nameTh : null
+      });
+    }
+
+    if (!bracketResults.length) {
+      return { ok: false, reason: 'no-eligible-entrants', brackets: [] };
+    }
+
+    if (opts.primaryWinnerId && W.byId[opts.primaryWinnerId]) {
+      grandChamp = W.byId[opts.primaryWinnerId];
+    }
+    const grandSig = SECT.signatureVictoryOf(grandChamp);
+    W.fame(totalFameGained);
+    const cal = g.SIM && g.SIM.calendar ? g.SIM.calendar(W.t) : { year: Math.floor((W.day || 0) / 360) + 1, season: W.season || 0 };
+    const record = {
+      id: 'ASM_' + (W.day || 0) + '_' + (S.assemblyHistory.length + 1),
+      day: W.day || 0,
+      year: cal.year,
+      season: cal.season,
+      hostId: host ? host.id : null,
+      championId: grandChamp.id,
+      championName: HC.fullName(grandChamp),
+      championSubpath: grandSig.subpath,
+      championSubpathNameTh: grandSig.subpathNameTh,
+      championWeapon: grandSig.weaponType,
+      championWeaponNameTh: grandSig.weaponNameTh,
+      signatureTechId: grandSig.techId,
+      signatureTechName: grandSig.techNameTh,
+      fameGained: totalFameGained,
+      brackets: bracketResults,
+      summaryTh: 'ชุมนุมยุทธ์ใหญ่ปีที่ ' + cal.year + ': ' + bracketResults.map(b => b.nameTh + ' แชมป์คือ ' + b.championName + ' (' + b.weaponNameTh + '·' + b.signatureTechName + ', +' + b.cpAwarded + ' CP' + (b.rewardItemNameTh ? ', รับ「' + b.rewardItemNameTh + '」' : '') + ')').join(' | ')
+    };
+    S.assemblyHistory.unshift(record);
+    if (S.assemblyHistory.length > 24) S.assemblyHistory.length = 24;
+    W.log('tournament', '🏆 ' + record.summaryTh, bracketResults.map(b => b.championId));
+    return { ok: true, assembly: record, brackets: bracketResults, champion: grandChamp };
+  };
+
+  SECT.tournament = (W, m, opts) => {
+    opts = opts || {};
+    const host = m || W.byId[W.sect.masterId];
+    W.sect.assemblyHistory = W.sect.assemblyHistory || [];
+    W.sect.tournament = {
+      start: W.t + 24 * 60,
+      state: 'announce',
+      isGrandAssembly: true,
+      brackets: SECT.ASSEMBLY_BRACKET_IDS.slice(),
+      rounds: 0,
+      entrants: [],
+      winnerId: null,
+      prize: Math.round(80 + (W.sect.policy ? W.sect.policy.generosity : 50))
+    };
+    if (host) {
+      W.log('decision', host.h.name.given + ' ประกาศจัดชุมนุมประลองยุทธ์สำนัก 3 รุ่น (T1–T2, T3–T4, T5–T7) ในอีก 1 วัน รางวัลรวมศิลา แต้มคุณูปการ (CP) และศาสตราประจำสาย', [host.id]);
+    }
+    return W.sect.tournament;
   };
   SECT.seclusion = (W, m) => {
     const d = 12 + W.rng.int(0, 12);

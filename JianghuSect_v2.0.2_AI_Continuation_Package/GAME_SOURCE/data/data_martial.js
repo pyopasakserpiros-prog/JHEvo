@@ -40673,4 +40673,270 @@ EXP_V204.newRecipes.forEach(r => {
     t.elementProfile = { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} };
   }
 });
+
+// 8) v2.0.5 Pillar A: 14 3-Piece Equipment Resonance Sets (WEAPON + ARMOR + ACCESSORY across T3-T7)
+D.RESONANCE_SETS = [
+  {
+    id: 'RES_ASTRAL_SWORD_IMMORTAL',
+    nameTh: 'ชุดสัจธรรมกระบี่ดาราเหมันต์',
+    path: 'XIAN',
+    subpaths: ['SWORD_IMMORTAL', 'MIND_SWORD_TELEKINESIS', 'FROST_MOON_IMMORTAL'],
+    elementFamily: ['ASTRAL', 'WATER_ICE', 'WIND'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SWORD', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['RING', 'CHARM', 'NECKLACE'] },
+    bonus2: { p: { atk: 0.08, matk: 0.08 }, f: { crit: 5, pen: 6 }, descTh: '2 ชิ้น: โจมตีกาย/วิชา +8%, อัตราคริ +5%, เจาะเกราะ +6%' },
+    bonus3: {
+      p: { atk: 0.15, matk: 0.15, eva: 0.06 },
+      f: { crit: 10, critDmg: 18, pen: 12, cast: 8 },
+      rider: { status: 'mdefbreak', chance: 0.35, dur: 10, bonusDmgMult: 1.08, descTh: 'ปราณกระบี่ดาราทะลวงม่านวิชา (โอกาส 35% ม่านวิชาแตก + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +15%, หลบหลีก +6%, คริ +10%, แรงคริ +18%, เจาะเกราะ +12% และโอกาสทลายม่านวิชา'
+    }
+  },
+  {
+    id: 'RES_PURE_SWORD_SAINT',
+    nameTh: 'ชุดปราชญ์กระบี่ไร้ลักษณ์',
+    path: 'XIAN',
+    subpaths: ['PURE_SWORD_SAINT', 'HEART_BLADE_MEDITATION'],
+    elementFamily: ['EXPLICIT_NON_ELEMENTAL', 'NEUTRAL', 'EARTH_METAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SWORD', 'BLADE', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['RING', 'BRACELET', 'CHARM'] },
+    bonus2: { p: { atk: 0.09, acc: 0.08 }, f: { pen: 8, crit: 4 }, descTh: '2 ชิ้น: โจมตีกาย +9%, แม่นยำ +8%, เจาะเกราะ +8%, คริ +4%' },
+    bonus3: {
+      p: { atk: 0.16, matk: 0.10, acc: 0.12 },
+      f: { pen: 16, crit: 9, critDmg: 20, cast: 6 },
+      rider: { status: 'armorbreak', chance: 0.38, dur: 10, bonusDmgMult: 1.09, descTh: 'คมไร้ลักษณ์ผ่าเกราะ (โอกาส 38% เกราะแตก + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: โจมตีกาย +16%, วิชา +10%, แม่นยำ +12%, เจาะเกราะ +16%, แรงคริ +20% และโอกาสผ่าเกราะ'
+    }
+  },
+  {
+    id: 'RES_CLOUD_DRAGON_SPEAR',
+    nameTh: 'ชุดมังกรเมฆาทะลวงสุญตา',
+    path: 'XIAN',
+    subpaths: ['CLOUD_DRAGON_SPEAR', 'VOID_SPEAR_MIND', 'TIME_VOID'],
+    elementFamily: ['WIND', 'ASTRAL', 'LIGHTNING', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'STAFF', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['NECKLACE', 'RING', 'CHARM'] },
+    bonus2: { p: { atk: 0.07, matk: 0.07, eva: 0.06 }, f: { move: 8, pen: 6 }, descTh: '2 ชิ้น: โจมตีกาย/วิชา +7%, หลบหลีก +6%, ความเร็ว +8, เจาะเกราะ +6%' },
+    bonus3: {
+      p: { atk: 0.14, matk: 0.14, eva: 0.12 },
+      f: { move: 15, cast: 10, pen: 14, crit: 6 },
+      rider: { status: 'haste', selfBuff: true, chance: 0.40, dur: 8, bonusDmgMult: 1.08, descTh: 'ทวนมังกรเหินเมฆา (โอกาส 40% ลมหนุนเร่งสปีด + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +14%, หลบหลีก +12%, ความเร็ว +15, ร่าย +10, เจาะเกราะ +14% และเร่งความเร็วเมื่อโจมตี'
+    }
+  },
+  {
+    id: 'RES_CELESTIAL_BOW_ZITHER',
+    nameTh: 'ชุดศรดาราพิณสวรรค์',
+    path: 'XIAN',
+    subpaths: ['STAR_ARCHER', 'ZITHER_HEART_BOW', 'SOUND_ZITHER', 'SUN_BOW_DEITY'],
+    elementFamily: ['ASTRAL', 'LIGHT_YANG', 'WIND', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['BOW', 'FOCUS'], ARMOR: ['LIGHT', 'ROBE'], ACCESSORY: ['RING', 'BRACELET', 'CHARM'] },
+    bonus2: { p: { acc: 0.10, atk: 0.07, matk: 0.07 }, f: { crit: 5, cast: 6 }, descTh: '2 ชิ้น: แม่นยำ +10%, โจมตีกาย/วิชา +7%, คริ +5%, ร่าย +6' },
+    bonus3: {
+      p: { acc: 0.18, atk: 0.14, matk: 0.14 },
+      f: { crit: 11, critDmg: 22, pen: 12, cast: 10 },
+      rider: { status: 'blind', chance: 0.35, dur: 8, bonusDmgMult: 1.09, descTh: 'ศรแสงดาราสะกดเนตร (โอกาส 35% ตาพร่า + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: แม่นยำ +18%, โจมตีกาย/วิชา +14%, คริ +11%, แรงคริ +22%, เจาะเกราะ +12% และโอกาสทำให้ศัตรูตาพร่า'
+    }
+  },
+  {
+    id: 'RES_FIVE_ELEMENTS_ELIXIR',
+    nameTh: 'ชุดเบญจธาตุเต๋าโอสถอมฤต',
+    path: 'XIAN',
+    subpaths: ['FIVE_ELEMENTS', 'ELIXIR_DAO', 'ASTRAL_ARRAY', 'YIN_YANG_HARMONY'],
+    elementFamily: ['WOOD_LIFE', 'FIRE', 'WATER_ICE', 'EARTH_METAL', 'ASTRAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['FOCUS', 'STAFF'], ARMOR: ['ROBE'], ACCESSORY: ['NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { matk: 0.09, mdef: 0.09, hp: 0.06 }, f: { cast: 6 }, descTh: '2 ชิ้น: โจมตีวิชา +9%, ป้องกันวิชา +9%, เลือด +6%, ร่าย +6' },
+    bonus3: {
+      p: { matk: 0.17, mdef: 0.16, hp: 0.12 },
+      f: { cast: 12, acc: 8 },
+      rider: { status: 'leech', chance: 0.38, dur: 8, bonusDmgMult: 1.07, descTh: 'ปราณเบญจธาตุหมุนเวียน (โอกาส 38% ดูดซับพลังชีวิต + ดาเมจ ×1.07)' },
+      descTh: '3 ชิ้น: โจมตีวิชา +17%, ป้องกันวิชา +16%, เลือด +12%, ร่าย +12 และฟื้นฟูเลือดเมื่อโจมตี'
+    }
+  },
+  {
+    id: 'RES_VAJRA_TITAN_BASTION',
+    nameTh: 'ชุดวัชระยักษ์แบกขุนเขา',
+    path: 'BODY',
+    subpaths: ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'STAFF_GUARD', 'JADE_IMMORTAL_BODY', 'WOOD_SPRING_BODY'],
+    elementFamily: ['EARTH_METAL', 'WOOD_LIFE', 'LIGHT_YANG', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['STAFF', 'FIST', 'FOCUS'], ARMOR: ['HEAVY', 'ROBE', 'LIGHT'], ACCESSORY: ['NECKLACE', 'BRACELET', 'RING'] },
+    bonus2: { p: { def: 0.12, hp: 0.10, mdef: 0.06 }, f: {}, descTh: '2 ชิ้น: ป้องกัน +12%, เลือด +10%, ป้องกันวิชา +6%' },
+    bonus3: {
+      p: { def: 0.22, hp: 0.18, mdef: 0.12, atk: 0.08 },
+      f: { pen: 8 },
+      rider: { status: 'guardUp', selfBuff: true, chance: 0.36, dur: 8, bonusDmgMult: 1.06, descTh: 'กายาวัชระสะท้านปฐพี (โอกาส 36% ตั้งรับแกร่งขึ้น + ดาเมจ ×1.06)' },
+      descTh: '3 ชิ้น: ป้องกัน +22%, เลือด +18%, ป้องกันวิชา +12%, โจมตี +8% และโอกาสปลุกเกราะตั้งรับ'
+    }
+  },
+  {
+    id: 'RES_OVERLORD_SOLAR_FORGE',
+    nameTh: 'ชุดราชันย์ดาบสุริยันผ่าขุนเขา',
+    path: 'BODY',
+    subpaths: ['OVERLORD_HEAVY_BLADE', 'SOLAR_FORGE', 'TIGER_SOVEREIGN', 'DEVOURING_FIEND'],
+    elementFamily: ['FIRE', 'EARTH_METAL', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['BLADE', 'FIST', 'STAFF'], ARMOR: ['HEAVY', 'LIGHT'], ACCESSORY: ['RING', 'BRACELET', 'NECKLACE'] },
+    bonus2: { p: { atk: 0.10, def: 0.06 }, f: { pen: 7, critDmg: 10 }, descTh: '2 ชิ้น: โจมตีกาย +10%, ป้องกัน +6%, เจาะเกราะ +7%, แรงคริ +10%' },
+    bonus3: {
+      p: { atk: 0.19, def: 0.12, hp: 0.10 },
+      f: { pen: 15, crit: 6, critDmg: 22 },
+      rider: { status: 'burn', chance: 0.36, dur: 10, bonusDmgMult: 1.10, descTh: 'เพลิงสุริยันผ่าเกราะ (โอกาส 36% เผาไหม้ศัตรู + ดาเมจ ×1.10)' },
+      descTh: '3 ชิ้น: โจมตีกาย +19%, ป้องกัน +12%, เลือด +10%, เจาะเกราะ +15%, แรงคริ +22% และโอกาสเผาไหม้'
+    }
+  },
+  {
+    id: 'RES_THUNDER_DRAGON_VANGUARD',
+    nameTh: 'ชุดมังกรอสนีทวนศึกทลายทัพ',
+    path: 'BODY',
+    subpaths: ['THUNDER_BODY', 'BLOOD_DRAGON', 'WAR_SPEAR_SOVEREIGN', 'IRON_BOW_SENTINEL'],
+    elementFamily: ['LIGHTNING', 'BLOOD_DEMON', 'EARTH_METAL', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'FIST', 'BOW', 'STAFF'], ARMOR: ['HEAVY', 'LIGHT'], ACCESSORY: ['RING', 'BRACELET', 'NECKLACE'] },
+    bonus2: { p: { atk: 0.09, hp: 0.07 }, f: { crit: 5, cast: 5 }, descTh: '2 ชิ้น: โจมตีกาย +9%, เลือด +7%, คริ +5%, ร่าย +5' },
+    bonus3: {
+      p: { atk: 0.17, hp: 0.14, def: 0.10 },
+      f: { crit: 10, critDmg: 18, pen: 12, cast: 9 },
+      rider: { status: 'critUp', selfBuff: true, chance: 0.38, dur: 8, bonusDmgMult: 1.09, descTh: 'อสนีโลหิตคำราม (โอกาส 38% อสนีสะสมเพิ่มคริ + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: โจมตีกาย +17%, เลือด +14%, ป้องกัน +10%, คริ +10%, เจาะเกราะ +12% และเร่งคริติคอลเมื่อโจมตี'
+    }
+  },
+  {
+    id: 'RES_DIVINE_WAR_ARHAT',
+    nameTh: 'ชุดเทพสงครามอรหันต์ทองคำ',
+    path: 'GOD',
+    subpaths: ['WAR_DEITY', 'GOLDEN_ARHAT_STAFF', 'TOTEM_BEAST_GOD', 'UNDERWORLD_JUDGE'],
+    elementFamily: ['LIGHT_YANG', 'EARTH_METAL', 'YIN_SHADOW', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'STAFF', 'BLADE', 'FIST', 'FOCUS'], ARMOR: ['HEAVY', 'ROBE', 'LIGHT'], ACCESSORY: ['NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { atk: 0.07, matk: 0.07, def: 0.08, mdef: 0.08 }, f: {}, descTh: '2 ชิ้น: โจมตีกาย/วิชา +7%, ป้องกันกาย/วิชา +8%' },
+    bonus3: {
+      p: { atk: 0.14, matk: 0.14, def: 0.15, mdef: 0.15, hp: 0.10 },
+      f: { pen: 10, acc: 8 },
+      rider: { status: 'holyAura', selfBuff: true, chance: 0.36, dur: 10, bonusDmgMult: 1.08, descTh: 'รัศมีเทพพิทักษ์ธรรม (โอกาส 36% รัศมีคุ้มกาย + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +14%, ป้องกันกาย/วิชา +15%, เลือด +10%, เจาะเกราะ +10% และปลุกรัศมีคุ้มกาย'
+    }
+  },
+  {
+    id: 'RES_MERCY_HARVEST_ORACLE',
+    nameTh: 'ชุดเทพเมตตาพยากรณ์สมุทร',
+    path: 'GOD',
+    subpaths: ['MERCY_DEITY', 'MEDICINE_BODHI_GOD', 'HARVEST_EARTH_GOD', 'OCEAN_SOVEREIGN', 'FATE_ORACLE'],
+    elementFamily: ['WOOD_LIFE', 'WATER_ICE', 'LIGHT_YANG', 'ASTRAL', 'EARTH_METAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['FOCUS', 'STAFF', 'SPEAR'], ARMOR: ['ROBE', 'HEAVY'], ACCESSORY: ['NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { mdef: 0.10, hp: 0.09, matk: 0.07 }, f: { cast: 6 }, descTh: '2 ชิ้น: ป้องกันวิชา +10%, เลือด +9%, โจมตีวิชา +7%, ร่าย +6' },
+    bonus3: {
+      p: { mdef: 0.18, hp: 0.16, matk: 0.14, def: 0.08 },
+      f: { cast: 12, eva: 8 },
+      rider: { status: 'weaken', chance: 0.35, dur: 10, bonusDmgMult: 1.07, descTh: 'บัญชาสวรรค์สยบมาร (โอกาส 35% ลดพลังโจมตีศัตรู + ดาเมจ ×1.07)' },
+      descTh: '3 ชิ้น: ป้องกันวิชา +18%, เลือด +16%, โจมตีวิชา +14%, ป้องกัน +8% และโอกาสบั่นทอนกำลังศัตรู'
+    }
+  },
+  {
+    id: 'RES_SHADOW_ASHURA_SLAYER',
+    nameTh: 'ชุดเงาอสูรดาบสังหารไร้ลักษณ์',
+    path: 'DEMON',
+    subpaths: ['SHADOW_ASSASSIN', 'ASHURA_SLAUGHTER_BLADE', 'SHADOW_ARCHER', 'PHANTOM_SOUL'],
+    elementFamily: ['YIN_SHADOW', 'BLOOD_DEMON', 'WIND', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['BLADE', 'BOW', 'FIST', 'FOCUS'], ARMOR: ['LIGHT'], ACCESSORY: ['RING', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { atk: 0.09, eva: 0.08 }, f: { crit: 6, move: 8 }, descTh: '2 ชิ้น: โจมตีกาย +9%, หลบหลีก +8%, คริ +6%, ความเร็ว +8' },
+    bonus3: {
+      p: { atk: 0.17, eva: 0.15, matk: 0.08 },
+      f: { crit: 12, critDmg: 26, pen: 12, move: 14 },
+      rider: { status: 'bleed', chance: 0.40, dur: 10, bonusDmgMult: 1.10, descTh: 'คมเงาอสูรเชือดโลหิต (โอกาส 40% เลือดไหล + ดาเมจ ×1.10)' },
+      descTh: '3 ชิ้น: โจมตีกาย +17%, หลบหลีก +15%, คริ +12%, แรงคริ +26%, เจาะเกราะ +12% และโอกาสทำให้เลือดไหล'
+    }
+  },
+  {
+    id: 'RES_BLOOD_ASURA_DEVOURER',
+    nameTh: 'ชุดมารโลหิตกลืนสวรรค์',
+    path: 'DEMON',
+    subpaths: ['BLOOD_DEMON', 'BLOOD_SPEAR_ASURA', 'HEAVEN_DEVOURING_DEMON', 'VENOM_GU_SOVEREIGN', 'NETHER_GHOST_KING'],
+    elementFamily: ['BLOOD_DEMON', 'YIN_SHADOW', 'WOOD_LIFE', 'FIRE'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['SPEAR', 'BLADE', 'FIST', 'FOCUS', 'STAFF'], ARMOR: ['LIGHT', 'HEAVY', 'ROBE'], ACCESSORY: ['RING', 'NECKLACE', 'CHARM', 'BRACELET'] },
+    bonus2: { p: { atk: 0.08, matk: 0.08, hp: 0.06 }, f: { pen: 7 }, descTh: '2 ชิ้น: โจมตีกาย/วิชา +8%, เลือด +6%, เจาะเกราะ +7%' },
+    bonus3: {
+      p: { atk: 0.16, matk: 0.16, hp: 0.12 },
+      f: { pen: 15, crit: 7, critDmg: 18 },
+      rider: { status: 'poison', chance: 0.38, dur: 10, bonusDmgMult: 1.09, descTh: 'พิษโลหิตอสูรกลืนวิญญาณ (โอกาส 38% ติดพิษ/โลหิต + ดาเมจ ×1.09)' },
+      descTh: '3 ชิ้น: โจมตีกาย/วิชา +16%, เลือด +12%, เจาะเกราะ +15%, แรงคริ +18% และโอกาสแพร่พิษโลหิต'
+    }
+  },
+  {
+    id: 'RES_ZEN_VOID_MIND',
+    nameTh: 'ชุดปราชญ์เซนสุญตาสะท้อนจิต',
+    path: 'HEART_SOUL',
+    subpaths: ['ZEN_VOID_MIND', 'DREAM_ILLUSION_WEAVER', 'CALLIGRAPHY_PAINTING_SAGE'],
+    elementFamily: ['ASTRAL', 'LIGHT_YANG', 'YIN_SHADOW', 'EXPLICIT_NON_ELEMENTAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: { WEAPON: ['FOCUS', 'STAFF'], ARMOR: ['ROBE', 'LIGHT'], ACCESSORY: ['CHARM', 'NECKLACE', 'BRACELET'] },
+    bonus2: { p: { matk: 0.09, mdef: 0.10 }, f: { cast: 8, eva: 5 }, descTh: '2 ชิ้น: โจมตีวิชา +9%, ป้องกันวิชา +10%, ร่าย +8, หลบหลีก +5' },
+    bonus3: {
+      p: { matk: 0.17, mdef: 0.18, def: 0.08 },
+      f: { cast: 15, eva: 10, acc: 10 },
+      rider: { status: 'silence', chance: 0.30, dur: 6, bonusDmgMult: 1.08, descTh: 'จิตว่างสะกดคัมภีร์ (โอกาส 30% ผนึกวิชาศัตรู + ดาเมจ ×1.08)' },
+      descTh: '3 ชิ้น: โจมตีวิชา +17%, ป้องกันวิชา +18%, ป้องกัน +8%, ร่าย +15 และโอกาสผนึกวิชาศัตรู'
+    }
+  },
+  {
+    id: 'RES_PRIMORDIAL_MARTIAL_SOVEREIGN',
+    nameTh: 'ชุดยุทธภพไร้ลักษณ์สะท้านภพ',
+    path: 'ANY',
+    subpaths: ['PURE_SWORD_SAINT', 'OVERLORD_HEAVY_BLADE', 'WAR_SPEAR_SOVEREIGN', 'IRON_BOW_SENTINEL', 'STAFF_GUARD', 'TIGER_SOVEREIGN', 'HEART_BLADE_MEDITATION', 'ASHURA_SLAUGHTER_BLADE'],
+    elementFamily: ['EXPLICIT_NON_ELEMENTAL', 'NEUTRAL'],
+    minTier: 3,
+    maxTier: 7,
+    slots: {
+      WEAPON: ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS'],
+      ARMOR: ['HEAVY', 'LIGHT', 'ROBE'],
+      ACCESSORY: ['RING', 'NECKLACE', 'BRACELET', 'CHARM']
+    },
+    bonus2: { p: { atk: 0.09, def: 0.08, hp: 0.07 }, f: { pen: 7, crit: 4 }, descTh: '2 ชิ้น: โจมตีกาย +9%, ป้องกัน +8%, เลือด +7%, เจาะเกราะ +7%, คริ +4%' },
+    bonus3: {
+      p: { atk: 0.18, def: 0.14, hp: 0.14, acc: 0.10 },
+      f: { pen: 15, crit: 8, critDmg: 20, move: 8 },
+      rider: { status: 'armorbreak', chance: 0.40, dur: 10, bonusDmgMult: 1.10, descTh: 'เจตจำนงยุทธ์ไร้ธาตุ (โอกาส 40% ทลายเกราะ + ดาเมจ ×1.10)' },
+      descTh: '3 ชิ้น: โจมตีกาย +18%, ป้องกัน +14%, เลือด +14%, แม่นยำ +10%, เจาะเกราะ +15% และทลายเกราะศัตรู'
+    }
+  }
+];
+
+// Tag T3-T7 equipment items with matching resonanceSetIds for fast lookup and inspection
+JD.ITEMS.items.forEach(it => {
+  if (!it || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(it.slot) || (it.tier || 1) < 3) return;
+  const gType = it.gearType || D.classify(it.slot, it.nameTh);
+  const elKey = it.elementalRole === 'EXPLICIT_NON_ELEMENTAL' ? 'EXPLICIT_NON_ELEMENTAL' : (it.element || 'NEUTRAL');
+  const matched = [];
+  for (const rs of D.RESONANCE_SETS) {
+    const slotTypes = rs.slots && rs.slots[it.slot];
+    if (!slotTypes || !slotTypes.includes(gType)) continue;
+    if (rs.elementFamily.includes(elKey) || (elKey === 'NEUTRAL' && rs.elementFamily.includes('EXPLICIT_NON_ELEMENTAL'))) {
+      matched.push(rs.id);
+    }
+  }
+  if (matched.length) {
+    it.resonanceSetIds = matched;
+    if (!it.resonanceSetId) it.resonanceSetId = matched[0];
+  }
+});
+
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -438,6 +438,146 @@
     }
     return L;
   };
+
+  /* ---------- Weapon Reach & Tactical Counter-Stance Authority (v2.0.5 Pillar B) ---------- */
+  SK.HEAVY_FIST_SUBPATHS = ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'TIGER_SOVEREIGN', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'SOLAR_FORGE', 'THUNDER_BODY', 'HEAVEN_DEVOURING_DEMON', 'GOLDEN_ARHAT_STAFF'];
+  SK.WEAPON_TACTICS = {
+    SPEAR: {
+      weaponType: 'SPEAR',
+      reachClass: 'LONG_POLEARM',
+      engageRange: 2.35,
+      nameTh: 'ทวนยาวชิงจังหวะเปิดศึก',
+      stanceTh: 'ตั้งทวนสกัดระยะประชิด',
+      firstStrikeMult: 1.12,
+      firstStrikeAcc: 10,
+      counteredByTh: 'วิชาตัวเบา (LIGHTNESS_ART / MOVEMENT_TECHNIQUE) หรือท่าพุ่งทะลวงประชิด',
+      descTh: 'ได้เปรียบชิงลงมือก่อน (+12% ดาเมจ, +10 แม่นยำ) เมื่อปะทะอาวุธสั้น เว้นแต่ศัตรูใช้วิชาตัวเบาหรือท่าพุ่งประชิดแก้ทาง'
+    },
+    STAFF: {
+      weaponType: 'STAFF',
+      reachClass: 'LONG_POLEARM',
+      engageRange: 2.25,
+      nameTh: 'พลองยาวกวาดสกัดระยะ',
+      stanceTh: 'ควงพลองคุมวงรอบทิศ',
+      firstStrikeMult: 1.10,
+      firstStrikeAcc: 8,
+      counteredByTh: 'วิชาตัวเบา (LIGHTNESS_ART / MOVEMENT_TECHNIQUE) หรือท่าพุ่งทะลวงประชิด',
+      descTh: 'ได้เปรียบชิงลงมือก่อน (+10% ดาเมจ, +8 แม่นยำ) ต่ออาวุธสั้น เว้นแต่ถูกวิชาตัวเบาพุ่งทะลวงเข้าวงใน'
+    },
+    BOW: {
+      weaponType: 'BOW',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.85,
+      nameTh: 'เกาทัณฑ์ยิงสกัดทิ้งระยะ',
+      stanceTh: 'ล่าถอยยิงสกัดระยะไกล (Kiting)',
+      kiteDmgMult: 1.14,
+      kiteCritAdd: 6,
+      kiteAccAdd: 10,
+      counteredByTh: 'ท่าพุ่งทะลวง (charge/evade) หรือวิชาตัวเบาประชิดตัว',
+      descTh: 'รักษาความได้เปรียบระยะไกล (+14% ดาเมจ, +6% คริ) จนกว่าจะถูกท่าพุ่งประชิดหรือวิชาตัวเบาเข้าถึงตัว'
+    },
+    FOCUS: {
+      weaponType: 'FOCUS',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.65,
+      nameTh: 'สื่อปราณคุมระยะค่ายกล',
+      stanceTh: 'โคจรปราณทิ้งระยะร่ายวิชา (Kiting)',
+      kiteDmgMult: 1.12,
+      kiteCritAdd: 5,
+      kiteAccAdd: 8,
+      counteredByTh: 'ท่าพุ่งทะลวง (charge/evade) หรือวิชาตัวเบาประชิดตัว',
+      descTh: 'ได้เปรียบเมื่อรักษาระยะห่างร่ายวิชา (+12% ดาเมจ, +5% คริ) จนกว่าศัตรูจะพุ่งเข้าประชิดตัว'
+    },
+    BLADE: {
+      weaponType: 'BLADE',
+      reachClass: 'HEAVY_BREAKER',
+      engageRange: 1.75,
+      nameTh: 'ดาบหนักผ่าเกราะทลายโล่',
+      stanceTh: 'ฟาดฟันหนักหน่วงทลายปราการ',
+      shieldBreakMult: 1.45,
+      guardShatterDmgMult: 1.15,
+      guardShatterPenAdd: 14,
+      counteredByTh: 'ศาสตรายาวคุมระยะ (SPEAR/STAFF) หรือการยิงสกัดระยะไกล',
+      descTh: 'ได้เปรียบทลายโล่และวิชาตั้งรับ (DEFENSIVE_TECHNIQUE) รุนแรงขึ้น (+15% ดาเมจ, +14% เจาะเกราะ, ทำลายโล่ ×1.45)'
+    },
+    FIST: {
+      weaponType: 'FIST',
+      reachClass: 'SHORT_SWIFT',
+      engageRange: 1.7,
+      nameTh: 'หมัดฝ่ามือประชิด/วัชระทลายเกราะ',
+      stanceTh: 'คลุกวงใน/หมัดหนักทลายโล่',
+      shieldBreakMult: 1.40,
+      guardShatterDmgMult: 1.14,
+      guardShatterPenAdd: 12,
+      gapCloserMult: 1.10,
+      counteredByTh: 'ศาสตรายาวหากไร้เคล็ดวิชาตัวเบาช่วยพุ่งเข้าวงใน',
+      descTh: 'สายกายา/วัชระได้รับโบนัสทลายโล่และวิชาตั้งรับ; สายว่องไวคลุกวงในแก้ทางอาวุธยาวและระยะไกล'
+    },
+    SWORD: {
+      weaponType: 'SWORD',
+      reachClass: 'SHORT_SWIFT',
+      engageRange: 1.8,
+      nameTh: 'กระบี่พลิ้วไหวทะลวงช่องว่าง',
+      stanceTh: 'กระบี่เร็วฝ่าวงล้อมประชิดตัว',
+      gapCloserMult: 1.10,
+      gapCloserAcc: 8,
+      counteredByTh: 'ศาสตรายาวชิงจังหวะแรกหากไม่มีวิชาตัวเบาหนุน',
+      descTh: 'คล่องตัวสูง ประสานวิชาตัวเบาพุ่งฝ่าระยะหอกและธนูเพื่อชิงความได้เปรียบระยะประชิด (+10% ดาเมจเมื่อแก้ทาง)'
+    }
+  };
+
+  SK.hasLightnessOrGapCloser = u => {
+    if (!u || u.foe) return false;
+    if (g.STATS && g.STATS.has(u, 'evadeUp')) return true;
+    const c = u.cult;
+    if (!c || !Array.isArray(c.techs)) return false;
+    for (let i = 0; i < c.techs.length; i++) {
+      const t = CULT.tech(c.techs[i]);
+      if (!t) continue;
+      if (t.cat === 'MOVEMENT_TECHNIQUE' || t.cat === 'LIGHTNESS_ART' || (t.cat === 'AUXILIARY_ART' && t.role === 'MOVEMENT_STEALTH_RECON')) return true;
+    }
+    return false;
+  };
+
+  SK.hasDefensiveTech = u => {
+    if (!u || u.foe) return false;
+    if (g.STATS && (g.STATS.has(u, 'guardUp') || g.STATS.has(u, 'shield'))) return true;
+    const c = u.cult;
+    if (!c || !Array.isArray(c.techs)) return false;
+    for (let i = 0; i < c.techs.length; i++) {
+      const t = CULT.tech(c.techs[i]);
+      if (t && t.cat === 'DEFENSIVE_TECHNIQUE') return true;
+    }
+    return false;
+  };
+
+  SK.weaponTacticalProfile = u => {
+    if (!u || u.foe) {
+      return { weaponType: 'FIST', reachClass: 'SHORT_SWIFT', engageRange: 1.7, isHeavyFist: false, hasLightness: false, hasDefenseTech: false, spec: SK.WEAPON_TACTICS.FIST };
+    }
+    const wType = (g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(u) : 'FIST';
+    const sub = u.cult ? u.cult.sub : 'NONE';
+    const path = u.cult ? u.cult.path : 'NONE';
+    const isHeavyFist = wType === 'FIST' && (path === 'BODY' || SK.HEAVY_FIST_SUBPATHS.includes(sub));
+    const baseSpec = SK.WEAPON_TACTICS[wType] || SK.WEAPON_TACTICS.FIST;
+    const reachClass = isHeavyFist ? 'HEAVY_BREAKER' : baseSpec.reachClass;
+    const hasLightness = SK.hasLightnessOrGapCloser(u);
+    const hasDefenseTech = SK.hasDefensiveTech(u);
+    return {
+      weaponType: wType,
+      reachClass,
+      engageRange: baseSpec.engageRange || 1.7,
+      isHeavyFist,
+      hasLightness,
+      hasDefenseTech,
+      nameTh: isHeavyFist ? 'หมัดวัชระทลายปราการ' : baseSpec.nameTh,
+      stanceTh: isHeavyFist ? 'หมัดหนักทลายโล่และเกราะคุ้มกาย' : baseSpec.stanceTh,
+      counteredByTh: baseSpec.counteredByTh,
+      descTh: baseSpec.descTh,
+      spec: baseSpec
+    };
+  };
+
   g.SK = SK;
   if (typeof module === 'object' && module.exports) module.exports = SK;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

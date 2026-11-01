@@ -9,6 +9,8 @@ const M=g.MARTIAL={
  BASE_PASSIVE_SLOTS:D.BASE_PASSIVE_SLOTS||3,
  PASSIVE_SLOT_BONUSES:D.PASSIVE_SLOT_BONUSES||{},
  SYNERGIES:D.SYNERGIES||[],
+ RESONANCE_SETS:D.RESONANCE_SETS||[],
+ RESONANCE_BY_ID:Object.fromEntries((D.RESONANCE_SETS||[]).map(s=>[s.id,s])),
  INNATE_TECHNIQUES:D.innateTechniques||[],
  INNATE_BY_SUB:Object.fromEntries((D.innateTechniques||[]).map(t=>[t.innateSubpath,t]))
 };
@@ -82,6 +84,7 @@ M.invalidateMartialCaches=n=>{
  n._innStatsCache=null;
  n._actTechsCache=null;
  n._synCache=null;
+ n._resSetCache=null;
  n._innRec=null;
  n._qiMaxCache=null;
  if(ST&&ST.dirty)ST.dirty(n);
@@ -556,6 +559,111 @@ M.skillSynergy=(n,p)=>{
  };
 };
 
+/* ---------- 3-Piece Equipment Resonance Set Authority (v2.0.5 Pillar A) ---------- */
+const EMPTY_RESONANCE_SET=Object.freeze({active:false,pieces:0,setId:null,nameTh:'',set:null,matchedSlots:[],avgTier:0,tierScale:1,p:{},f:{},rider:null,isSubpathMatch:false,summaryTh:'ไม่มีชุดสัจธรรมที่ทำงาน'});
+
+M.itemMatchesResonanceSet=(n,it,rs)=>{
+ if(!it||!rs||!rs.slots)return false;
+ const slot=it.slot;
+ if(!['WEAPON','ARMOR','ACCESSORY'].includes(slot))return false;
+ if((it.tier||1)<(rs.minTier||3))return false;
+ if(it.resonanceSetId===rs.id||(Array.isArray(it.resonanceSetIds)&&it.resonanceSetIds.includes(rs.id)))return true;
+ const gType=M.gearType(it);
+ const allowedTypes=rs.slots[slot];
+ if(!allowedTypes||!allowedTypes.includes(gType))return false;
+ const elKey=it.elementalRole==='EXPLICIT_NON_ELEMENTAL'?'EXPLICIT_NON_ELEMENTAL':(it.element||'NEUTRAL');
+ if(Array.isArray(rs.elementFamily)&&(rs.elementFamily.includes(elKey)||(elKey==='NEUTRAL'&&rs.elementFamily.includes('EXPLICIT_NON_ELEMENTAL'))))return true;
+ if(n&&n.cult&&Array.isArray(rs.subpaths)&&rs.subpaths.includes(n.cult.sub))return true;
+ return false;
+};
+
+M.evaluateResonanceSet=(n,overrideEquip)=>{
+ if(!n||n.foe||!n.cult||!Array.isArray(M.RESONANCE_SETS)||!M.RESONANCE_SETS.length)return EMPTY_RESONANCE_SET;
+ const c=n.cult,eq=overrideEquip||(n.equip||{});
+ if(!overrideEquip){
+  const rc=n._resSetCache;
+  if(rc&&rc.path===c.path&&rc.sub===c.sub&&rc.eqW===eq.WEAPON&&rc.eqA===eq.ARMOR&&rc.eqX===eq.ACCESSORY&&rc.ver===(n._passVer||0)){
+   return rc.out;
+  }
+ }
+ const slots=['WEAPON','ARMOR','ACCESSORY'];
+ const usable={};
+ for(const sl of slots){
+  const it=eq[sl];
+  if(it&&(!M.gearUsable||M.gearUsable(n,it))&&(it.tier||1)>=3)usable[sl]=it;
+ }
+ const usableCount=Object.keys(usable).length;
+ if(usableCount<2){
+  if(!overrideEquip)n._resSetCache={path:c.path,sub:c.sub,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,ver:n._passVer||0,out:EMPTY_RESONANCE_SET};
+  return EMPTY_RESONANCE_SET;
+ }
+ let bestSet=null,bestSlots=[],bestScore=-1;
+ for(const rs of M.RESONANCE_SETS){
+  const matched=[];
+  for(const sl of slots){
+   if(usable[sl]&&M.itemMatchesResonanceSet(n,usable[sl],rs))matched.push(sl);
+  }
+  if(matched.length<2)continue;
+  const subMatch=Array.isArray(rs.subpaths)&&rs.subpaths.includes(c.sub);
+  const pathMatch=rs.path==='ANY'||rs.path===c.path;
+  const score=matched.length*100+(subMatch?35:0)+(pathMatch?12:0);
+  if(score>bestScore){
+   bestScore=score;
+   bestSet=rs;
+   bestSlots=matched;
+  }
+ }
+ if(!bestSet||bestSlots.length<2){
+  if(!overrideEquip)n._resSetCache={path:c.path,sub:c.sub,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,ver:n._passVer||0,out:EMPTY_RESONANCE_SET};
+  return EMPTY_RESONANCE_SET;
+ }
+ const pieces=bestSlots.length;
+ const sumTier=bestSlots.reduce((s,sl)=>s+(usable[sl].tier||3),0);
+ const avgTier=Math.round((sumTier/pieces)*10)/10;
+ const tierScale=Math.round((1+Math.max(0,avgTier-3)*0.12)*100)/100;
+ const subMatch=Array.isArray(bestSet.subpaths)&&bestSet.subpaths.includes(c.sub);
+ const subScale=subMatch?1.10:1.0;
+ const totalScale=tierScale*subScale;
+ const rawBonus=pieces>=3?bestSet.bonus3:bestSet.bonus2;
+ const p={},f={};
+ for(const k in (rawBonus.p||{}))p[k]=Math.round(rawBonus.p[k]*totalScale*1000)/1000;
+ for(const k in (rawBonus.f||{}))f[k]=Math.round(rawBonus.f[k]*totalScale*10)/10;
+ const rider=pieces>=3&&bestSet.bonus3.rider?Object.assign({},bestSet.bonus3.rider,{setId:bestSet.id,setNameTh:bestSet.nameTh}):null;
+ const out={
+  active:true,
+  pieces,
+  setId:bestSet.id,
+  nameTh:bestSet.nameTh,
+  set:bestSet,
+  matchedSlots:bestSlots,
+  avgTier,
+  tierScale:Math.round(totalScale*100)/100,
+  p,
+  f,
+  rider,
+  isSubpathMatch:subMatch,
+  summaryTh:bestSet.nameTh+' ('+pieces+'/3 ชิ้น · T'+Math.round(avgTier)+') — '+(rawBonus.descTh||'')
+ };
+ if(!overrideEquip)n._resSetCache={path:c.path,sub:c.sub,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,ver:n._passVer||0,out};
+ return out;
+};
+
+M.resonanceUpgradePreview=(n,it)=>{
+ if(!n||!n.cult||!it||!['WEAPON','ARMOR','ACCESSORY'].includes(it.slot)||(it.tier||1)<3)return {completes:false,curPieces:0,nextPieces:0,setId:null,nameTh:''};
+ const curRes=M.evaluateResonanceSet(n);
+ const nextEq=Object.assign({},n.equip||{},{[it.slot]:it});
+ const nextRes=M.evaluateResonanceSet(n,nextEq);
+ if(nextRes.active&&nextRes.pieces>(curRes.active&&curRes.setId===nextRes.setId?curRes.pieces:0)){
+  return {completes:true,curPieces:curRes.active?curRes.pieces:0,nextPieces:nextRes.pieces,setId:nextRes.setId,nameTh:nextRes.nameTh,isSubpathMatch:nextRes.isSubpathMatch,set:nextRes.set};
+ }
+ // Also check if this is the 1st piece of the NPC's primary subpath resonance set
+ const primarySet=M.RESONANCE_SETS.find(rs=>Array.isArray(rs.subpaths)&&rs.subpaths.includes(n.cult.sub)&&M.itemMatchesResonanceSet(n,it,rs));
+ if(primarySet){
+  return {completes:false,curPieces:curRes.active?curRes.pieces:0,nextPieces:1,setId:primarySet.id,nameTh:primarySet.nameTh,isSubpathMatch:true,set:primarySet};
+ }
+ return {completes:false,curPieces:curRes.active?curRes.pieces:0,nextPieces:0,setId:null,nameTh:''};
+};
+
 /* ---------- Target-Conditional Combat Passive Authority ---------- */
 const EMPTY_TARGET_BONUS=Object.freeze({critAdd:0,critDmgAdd:0,penAdd:0,dmgMult:1});
 M.combatTargetBonus=(attacker,target)=>{
@@ -718,6 +826,18 @@ M.gearSuitability=(n,it,price)=>{
  // Bonus if equipment triggers a subpath synergy
  const synMatch=M.SYNERGIES.some(syn=>syn.subpath===c.sub&&((it.slot==='WEAPON'&&syn.weaponTypes&&syn.weaponTypes.includes(type))||(it.slot==='ARMOR'&&syn.armorTypes&&syn.armorTypes.includes(type))));
  if(synMatch){fit+=0.18;reasons.push('ปลดล็อกการประสานสายย่อย');}
+ // Bonus if equipment advances or completes a 2-piece or 3-piece Resonance Set
+ const resPrev=M.resonanceUpgradePreview?M.resonanceUpgradePreview(n,it):null;
+ if(resPrev&&resPrev.nextPieces>=3){
+  fit+=resPrev.isSubpathMatch?0.44:0.34;
+  reasons.push('ครบชุดสัจธรรม 3/3 ชิ้น「'+resPrev.nameTh+'」');
+ }else if(resPrev&&resPrev.nextPieces===2){
+  fit+=resPrev.isSubpathMatch?0.26:0.18;
+  reasons.push('ประสานชุดสัจธรรม 2/3 ชิ้น「'+resPrev.nameTh+'」');
+ }else if(resPrev&&resPrev.nextPieces===1&&resPrev.isSubpathMatch){
+  fit+=0.11;
+  reasons.push('ชิ้นส่วนชุดสัจธรรมประจำสาย「'+resPrev.nameTh+'」');
+ }
  const elemCompat=g.ELEM?g.ELEM.resolveCompatibility(n,it,'equipment'):null;
  if(elemCompat&&elemCompat.mode!=='EXPLICIT_NON_ELEMENTAL'){
   fit*=elemCompat.equipmentSuitabilityMult;
@@ -772,7 +892,7 @@ M.classifyGearForNpc=(W,n,it,price)=>{
  }
  return {category:'surplus',deltaScore:newScore-curScore,suit,curSuit,reasonTh:cur?'ไม่ดีกว่า「'+cur.nameTh+'」ที่สวมใส่อยู่':'ไม่เหมาะกับแนวทางปัจจุบัน'};
 };
-M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n)};};
+M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n),resonanceSet:M.evaluateResonanceSet(n)};};
 // Mint/catalog boundary types also cover historical recipe-only equipment.
-const oldMint=ECO.mintGear;ECO.mintGear=(r,q)=>{const it=oldMint(r,q),source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
+const oldMint=ECO.mintGear;ECO.mintGear=(r,q)=>{const it=oldMint(r,q),source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.resonanceSetId&&!it.resonanceSetId)it.resonanceSetId=source.resonanceSetId;if(source.resonanceSetIds&&!it.resonanceSetIds)it.resonanceSetIds=source.resonanceSetIds.slice();if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
 })(typeof globalThis!=='undefined'?globalThis:this);
