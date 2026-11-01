@@ -4,6 +4,9 @@ Focused skills for this project's vanilla HTML/JavaScript simulation game. Insta
 
 | Skill | Apply when |
 |---|---|
+| `game-data-integrity` | Enforce and validate schemas, unique IDs, weapon affinities, elements, effects, and debug editor compatibility. |
+| `procedural-gen` | Creating reproducible seeded content through the existing simulation RNG authority. |
+| `game-ui-ux` | Improving the current browser UI for mobile layouts, safe areas and touch controls. |
 | `combat-design` | Designing combat roles, tradeoffs, readable counters and tuning. |
 | `progression-design` | Adding major paths, subpaths, mastery and unlock pacing. |
 | `economy-balancing` | Connecting recipes, prices, resource sinks and anti-exploit checks. |
@@ -14,12 +17,10 @@ Focused skills for this project's vanilla HTML/JavaScript simulation game. Insta
 | `qa-test-matrix` | Mapping feature requirements to scenario and regression tests. |
 | `web-testing` | Applying deterministic scenarios and browser smoke checks using existing runners. |
 | `web-performance` | Profiling browser simulation/rendering costs, allocations and GC pressure. |
-| `procedural-gen` | Creating reproducible seeded content through the existing simulation RNG authority. |
-| `game-ui-ux` | Improving the current browser UI for mobile layouts, safe areas and touch controls. |
 
-Skills live at `.agents/skills/<skill-name>/SKILL.md`, the portable project-level Agent Skills location. Read the applicable skills alongside the project's `AGENTS.md` and active patch prompt. They provide workflow guidance; repository instructions, actual code and tests remain authoritative when project-specific requirements differ.
+Skills live at `.agents/skills/<skill-name>/SKILL.md` and `.codex/skills/<skill-name>/SKILL.md`, the portable project-level Agent Skills location. Read the applicable skills alongside the project's `AGENTS.md` and active patch prompt. They provide workflow guidance; repository instructions, actual code and tests remain authoritative when project-specific requirements differ.
 
-The first ten skills come from Everything Game Dev Code (MIT); `procedural-gen` and `game-ui-ux` come from `gamedev-skills/awesome-gamedev-agent-skills` (Apache-2.0). Their files and license texts are retained, unmodified, with hashes and source commit in the two `UPSTREAM*.json` manifests. These additions are for targeted future content-generation and mobile-UI work; they do not imply a full design-system or input rewrite.
+The first ten skills come from Everything Game Dev Code (MIT); `procedural-gen` and `game-ui-ux` come from `gamedev-skills/awesome-gamedev-agent-skills` (Apache-2.0); and `game-data-integrity` is project-authored for JianghuSect data integrity. Their files and license texts are retained.
 
 ## Context-efficient use
 
