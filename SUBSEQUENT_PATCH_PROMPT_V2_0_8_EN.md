@@ -1,6 +1,8 @@
 # Subsequent Patch Prompt (v2.0.8): 3 New Cultivation Paths (`MECH_PUPPET`, `KARMA_SAMSARA`, `BEAST_SOVEREIGN`), Universal Spirit Beast Pet System, 18 Expansion Subpaths, Archetype Techniques & Ecosystem Integration
 
 You are continuing development on **JianghuSect** for patch **v2.0.8**.
+> **Author's updated direction — read section 24 before fixing scope:** six subpaths per new path is an initial design reference, not a fixed count or ceiling. Research independently, add genuinely distinct subpaths when justified, improve this prompt using your own judgment, and report the final scope, decisions, validation and recommended next work. References to 18 new / 68 total subpaths and related technique counts below are initial planning assumptions, not immutable acceptance counts.
+
 Before writing code, inspect the actual codebase in `GAME_SOURCE/`, run the existing test suite (`node test/run_all.js` / `node tools/run_parallel_tests.js`), and verify all invariants and existing features against the live implementation.
 
 ---
@@ -429,3 +431,257 @@ Use behavior tests and a short scenario matrix, not only registry counts. Priori
 Before final delivery produce a detailed report and include it in the returned ZIP. Explain **what you built or changed, why, what alternative you considered, numerical choices and tradeoffs, source facts versus your own inventions, all changes beyond the original prompt, and evidence from actual verification**. Add a decision log for proposals adopted/adapted/rejected, plus a prioritized continuation list with severity, player impact, prerequisites and acceptance criteria. State explicitly what remains unfinished, intentionally deferred or unverified; do not label a stub or registry entry as a completed lifecycle.
 
 Return a downloadable ZIP containing the runnable game, matching complete source/data/assets/build tools, full test source, reports, this retained combined prompt and a **separate detailed English next-patch prompt** grounded in the delivered state. Update `START_HERE_FOR_AI.md` to identify the new baseline, historical documents and the one active continuation prompt. Validate archive integrity and source/bundle consistency. Avoid duplicate conflicting active prompts, stale package labels, credentials, caches and transient output. Keep the original sections above as historical design input, and explain any deliberate deviations rather than silently rewriting their intent.
+
+---
+
+# Internet-Researched Reference Extension for the v2.0.8 Implementer
+
+## 17. Purpose, Evidence and How to Use This Extension
+
+**Research date: 1 November 2026.** This extension was requested by the author to help the next coding AI research, compare and improve the proposed paths, subpaths, beast companions and techniques. It adds reference material; it does not implement the patch or claim that these proposals have been balanced or tested. Sections 1–16 are retained unchanged. Treat the design proposals below as optional inputs to the critique and decision process already authorized in section 1. Existing hard invariants and acceptance requirements remain applicable.
+
+Use these evidence labels:
+
+- **SOURCE FACT**: a narrowly stated observation supported by a page actually retrieved and read during this research. This does not establish every claim on that page.
+- **DESIGN PROPOSAL**: original fictional mechanics, Thai technique names, progression ideas and numerical examples developed for JianghuSect. Sources inspire them; sources do not prescribe their balance or certify their historical authenticity.
+- **CODE OBSERVATION**: inspected in the current v2.0.7 checkout at `aff2717a2281c1e9c59e3ee649fd8d53648bd94e`; recheck against the implementation you actually receive.
+
+**CODE OBSERVATION:** `GAME_SOURCE/test/load.js` currently exposes five major path registries, 50 subpaths and 110 species. `SK.ARCH` has 23 keys: `strike`, `flurry`, `sweep`, `pierce`, `burst`, `dot`, `control`, `drain`, `counter`, `guard`, `heal`, `evade`, `forbid`, `support`, `summon`, `channel`, `snipe`, `barrage`, `charge`, `execute`, `blast`, `shield`, `buff`. These are real runtime categories, not interchangeable labels. Comments in `skills.js` define `cd`/`wind` in game minutes: do not paste real-time seconds into those fields without checking the conversion.
+
+### 17.1 Source register and limitations
+
+All links below were successfully retrieved and their relevant text inspected. Publication dates and access dates are different: a page accessed in 2026 is not necessarily a 2026 publication. Undated pages are marked accordingly. Community pages are secondary aids, not historical proof. Game pages describe design precedents, not permission to copy names, assets or exact implementations.
+
+| Ref | Direct source, author/organization and date | Relevant source fact | Evidence type and limitation |
+| --- | --- | --- | --- |
+| R1 | [Mohism](https://plato.stanford.edu/entries/mohism/), Chris Fraser, Stanford Encyclopedia of Philosophy; first published 2002, substantive revision 1 September 2024 | Mohist thought emphasizes impartial concern, social benefit and opposition to aggression; Mohists also specialized in defensive warfare and fortifications. | Scholarly secondary synthesis. Supports a craft/defense ethos, not historical soul-powered robots or an assassin sect. |
+| R2 | [Lieh Tzŭ, Book 5](https://en.wikisource.org/wiki/Taoist_teachings_from_the_book_of_Lieh_Tz%C5%AD/Book_5), Lionel Giles translation of *Liezi*, in the 1912 volume | The Yen Shih/Yan Shi story describes an artificial performer assembled from materials including leather and wood; removing particular artificial organs disables functions. | Translated literary primary text hosted by Wikisource. A narrative about craftsmanship, not archaeological evidence that a functional ancient android existed. Translation vocabulary and historical dating require care. |
+| R3 | [AN 6.63, Nibbedhika Sutta](https://www.accesstoinsight.org/tipitaka/an/an06/an06.063.than.html), translated by Thanissaro Bhikkhu; translation copyright 1997, site revision 30 November 2013 | The text identifies intention with kamma and discusses its causes, diversity and results. | Translated religious primary text. Does not describe a damage-reflection combat meter or make combat strength evidence of guilt. |
+| R4 | [SN 36.21, Sivaka Sutta](https://www.accesstoinsight.org/tipitaka/sn/sn36/sn36.021.than.html), translated by Thanissaro Bhikkhu; translation copyright 2005 | The discourse discusses several origins of painful feeling and rejects the claim that everything experienced is caused by past action. | Translated religious primary text; this older page notes that an updated edition exists. Use the explicit passage narrowly, not as a complete account of Buddhist causality or medicine. |
+| R5 | [Bhavacakra](https://en.wikipedia.org/wiki/Bhavacakra), Wikipedia contributors; living article, no fixed publication date recorded | A common wheel-of-life presentation includes six realms and the three poisons; five-realm presentations also exist. | Community secondary overview, used for iconographic orientation. Do not present this as one universally uniform Buddhist taxonomy. |
+| R6 | [Ranger](https://www.guildwars2.com/en/the-game/professions/ranger/), ArenaNet; undated live profession page | Rangers acquire juvenile animal companions in exploration; pet species have distinct skills. | First-party game description. Supports species identity and discovery as precedents; does not supply detailed current pet caps, cooldowns or balance values. |
+| R7 | [Engineer](https://www.guildwars2.com/en/the-game/professions/engineer/), ArenaNet; undated live profession page | Engineers use specialized weapon/utility kits and deploy turrets, including support-oriented inventions. | First-party game description. A precedent for a finite toolkit with combat and support roles, not evidence about Chinese history. |
+| R8 | [End of Dragons](https://www.guildwars2.com/en/end-of-dragons/), ArenaNet; live expansion page, exact page revision undated | Mechanist is described as fighting alongside a jade-tech battle mech. The Siege Turtle has separate driver and weapon-operator roles. | First-party design precedent for companion coordination and role separation. It does not establish JianghuSect fusion rules or autonomous AI behavior. |
+| R9 | [The 2020 Five Domains Model: Including Human–Animal Interactions in Assessments of Animal Welfare](https://www.mdpi.com/2076-2615/10/10/1870), Mellor et al., *Animals* 10(10):1870, 14 October 2020, DOI `10.3390/ani10101870` | The model considers nutrition, physical environment, health, behavioural interactions and mental state, including human–animal relationships. | Peer-reviewed conceptual/review framework. Useful inspiration for meaningful care; not a numerical pet-game model or evidence about fictional spirit beasts. |
+| R10 | [Position Statements](https://avsab.org/resources/position-statements/), American Veterinary Society of Animal Behavior; 2025 board clarification referencing its 2021 Humane Dog Training statement | AVSAB recommends reward-based dog training and opposes aversive methods. | Professional position statement grounded in animal-behaviour evidence. Scope is real dogs; extrapolation to magical species is fictional design, not scientific validation. |
+| R11 | [Gu (poison)](https://en.wikipedia.org/wiki/Gu_(poison)), Wikipedia contributors; living article, no fixed publication date recorded | Gu appears in historical/literary accounts involving poison, illness, sorcery and creatures; its meanings are broader than an insect familiar. | Community secondary survey of beliefs and texts. Reports folklore, not proof of supernatural poisoning or a verified biological recipe. |
+| R12 | [Four Symbols](https://en.wikipedia.org/wiki/Four_Symbols), Wikipedia contributors; living article, no fixed publication date recorded | The directional set includes Azure Dragon/East/Wood, Vermilion Bird/South/Fire, White Tiger/West/Metal and Black Tortoise/North/Water. | Community secondary overview. Chinese five-phase correspondences do not map one-to-one onto JianghuSect's combined elemental categories. |
+
+**Cross-source interpretation:** R1 and R2 support different things: Mohist social/military philosophy versus a literary artificial-human story. Do not combine them into a claim that historical Mohists built Yan Shi's automaton. R3 and R4 together make a simplistic “all suffering proves past wickedness” meter a poor adaptation. R5 is one iconographic tradition; its six-realm model should not be attributed directly to every passage in R3. R6–R8 suggest distinct companion/toolkit roles; R9–R10 add care and learning considerations. None proves that extra bodies plus large multipliers will balance in this game.
+
+**Access limitations:** Guild Wars 2 community-wiki Pet/Soulbeast/Mechanist pages returned HTTP 403, so their detailed mechanics were not verified. The Chinese Text Project page returned a verification/interstitial page rather than the requested *Liezi* text; R2 was read instead. Incorrect museum/Gutenberg targets and unavailable news URLs were discarded rather than cited as evidence. No full novel texts were verified: the novel titles in section 5 remain suggested inspirations, not researched proof of particular mechanics or chapter events. Do not fill these gaps with invented quotations, chapter numbers or supposedly canonical ability names.
+
+## 18. Lore Direction, Naming and Boundaries Between Existing Paths
+
+### 18.1 Mechanism: a school of preparation, maintenance and responsibility
+
+**SOURCE FACT:** R1 connects Mohist practitioners with defensive engineering and the social consequences of warfare; R2 offers a literary model of separable artificial functions. **DESIGN PROPOSAL:** give `MECH_PUPPET` a recognizable workshop tradition: modular spirit cores, inspection rituals, repair duties, defensive city contracts and disagreement over autonomous weapons. A humble bronze porter that saves workers can establish the path more effectively than starting with a cosmic killing machine.
+
+Use wood, lacquer, bronze, articulated joints, spirit-thread conduits and engraved cores as visual vocabulary. Overheat, remote control, soul storage and elemental engines are fantasy additions. A construct is an artifact with integrity, charge and control requirements; a bonded beast is a living individual with condition and trust. A mechanical tiger is not automatically a capturable species, and a beast wearing mechanical armor does not become a second full pet plus a free construct.
+
+### 18.2 Karma: intentional commitments and observable consequences
+
+**SOURCE FACT:** R3 stresses intention; R4 resists a single explanation for every painful experience. **DESIGN PROPOSAL:** combat “debt” records eligible recent harm or a declared vow breach, not a character's absolute moral worth. The strongest fictional identity is choosing whether to retaliate, protect or relinquish a claim. A counterattacker who forgoes a killing blow to shield another person should be mechanically intelligible, not merely a different-colored damage dealer.
+
+The source references do not authenticate the proposed eight stage names as historical attainment ranks. Consider original, clearly fictional high-stage names such as `มหาวัฏจักรเหตุผล` or `จิตเหนือห่วงกรรม` if the original rank names imply that Buddhahood is a combat upgrade. This is an editorial option for the author/implementer, not a required religious naming rule. Treat “past-life echoes” as a fictional memory motif; do not claim a scientific model of reincarnation.
+
+### 18.3 Beasts: partnership, species ecology and command choices
+
+**SOURCE FACT:** R6 gives species-specific companion abilities a clear game precedent; R9–R10 support attention to care and positive interactions in real animals. **DESIGN PROPOSAL:** turn the universal pet into a relationship with useful tasks, while `BEAST_SOVEREIGN` specializes in the quality or coordination of that relationship. Reject an automatic assumption that every bond requires cruelty or that more creatures are always better.
+
+Use R12 as a motif palette, not a rigid species replacement table. A dragon lineage need not always mean FIRE; a tortoise guardian need not always mean EARTH. The game merges `EARTH_METAL` and `WATER_ICE`, so document a deliberate adaptation rather than silently calling that mapping traditional. R11 can inform fictional sealed-hive/poison imagery; do not include real poison-making instructions or present folklore as biology. A Gu colony may be designed as a fictional collective pet without asserting that historical Gu was always such a colony.
+
+### 18.4 Avoid duplicating existing subpath identities
+
+**CODE OBSERVATION:** the baseline already includes `ASTRAL_ARRAY`, `MIND_SWORD_TELEKINESIS`, `PHANTOM_SOUL`, `FATE_ORACLE`, `UNDERWORLD_JUDGE`, `MERCY_DEITY`, `ZEN_VOID_MIND`, `TOTEM_BEAST_GOD`, `TIGER_SOVEREIGN` and `VENOM_GU_SOVEREIGN`.
+
+| Potential overlap | Suggested new boundary |
+| --- | --- |
+| Flying blade puppets vs telekinetic swords | Puppet orbiters allocate finite prepared hardware and lose charge/integrity; telekinetic sword identity remains mind-directed weapon mastery. |
+| Mechanism arrays vs astral formations | Constructs have assembled components and maintenance; formations retain their existing spatial/elemental authority. Reuse integrations without creating a replacement array system. |
+| Karma vs fate oracle/judge | Karma consumes an encounter's recorded causes or explicit vows; oracle/judge retains its existing prediction/authority fantasy. |
+| Lotus purifier vs mercy/medicine paths | Lotus trades away retaliation potential for relief; it should not become the best unconditional healer at no cost. |
+| Beast warrior vs tiger/blood-dragon body | A real partner's availability, trust and recovery determine fusion; the body cultivator's own transformation remains independent. |
+| Beast sovereign vs totem beast deity | Living individually owned partners versus the existing deity/totem identity; an ancestral projection is not a newly owned legendary specimen. |
+| Gu hive vs `VENOM_GU_SOVEREIGN` | Hive mastery invests in the condition and deployment of a persistent colony; preserve the older path's poison/Gu cultivation identity and learnability restrictions. |
+
+## 19. Reference Matrix for All 18 New Subpaths
+
+**Everything in this section is a DESIGN PROPOSAL.** Source IDs indicate the inspiration, not that a source contains the proposed ability. Thai titles are new working names, not quotations. Use each signature to refine the corresponding innate in section 6; the second move is an optional supporting technique, not an extra mandatory content quota. `SK.ARCH` labels below are existing categories. Set actual costs, durations, gates and targeting after inspecting `SK`/`COMBAT`; a label alone does not implement an effect.
+
+### 19.1 Six mechanism subpaths
+
+| Subpath and references | Proposed signature; optional supporting technique | Decision, autonomous use and counterplay |
+| --- | --- | --- |
+| `HEAVENLY_GOLEM` — R1, R2 | **ตรึงฐานเทวะศิลา — Rooted Bronze Bastion** (`guard`/`shield`): anchor a prepared chassis to redirect a bounded share of nearby ally harm. **คลายหลักสะท้านดิน — Unpinning Earth Pulse** (`sweep`): spend the remaining guard reserve on a short pulse. | Anchor when an ally is threatened and position can be held. Attacking consumes the same reserve and ends anchoring; ranged enemies can reposition. Avoid permanently rooting the owner in distant off-map fights. |
+| `THOUSAND_THREAD_ASSASSIN` — R2, R7, fictional spirit-thread extension | **เส้นไหมทิ้งเงาถอนกาย — Thread-Cut Retreat** (`evade`/`control`): release a prepared tether to retreat while briefly snaring a pursuer. **เข็มเดียวผูกพันกล — One Needle, Many Joints** (`pierce`): an aimed strike against a tethered target. | AI chooses escape or finisher using the same preparation charge. Limit tether range and duration; a broken tether loses the finisher. Do not confer universal armor penetration merely because the target was touched. |
+| `BEAST_CHIMERA_MECH` — R2, R8 | **บังเหียนพยัคฆ์ทองสัมฤทธิ์ — Bronze Tiger Harness** (`buff`): select mobile pursuit or braced armor on one machine/eligible equipped partner. **เปลี่ยนแกนพ่นปราณ — Refit the Breath Core** (`blast`): spend charge on one equipped elemental discharge. | Change loadout before a likely encounter or at a defined safe opportunity; do not switch to every resistance each tick. Living pets retain their own condition/trust. No free second attack stream from the harness. |
+| `CELESTIAL_BALLISTA` — R1, R7 | **สามจังหวะเกาทัณฑ์ดารา — Three-Beat Star Ballista** (`channel`/`barrage`): aim, lock and fire one bounded salvo. **ถอนรางคุ้มแนวหลัง — Covering Rail Withdrawal** (`support`/`evade`): abandon the lock to protect retreat. | Prefer a stationary exposed threat with a viable firing lane; abort when unsafe. Movement, obstruction or interruption counters the setup. Extra projectile visuals share the salvo's total budget. |
+| `SOUL_VESSEL_AVATAR` — R2 | **กายว่างรับเคราะห์หนึ่งครา — One Empty Vessel** (`guard`): expend a prepared decoy to intercept one qualifying hit. **หวนเส้นวิญญาณ — Recall the Soul Thread** (`support`): recover control after disengagement at a real repair cost. | Prepare before danger, use only above a meaningful threat threshold. Decoy stock, recovery debt and a lockout prevent resurrection chains. Cannot recover an expended charge by swapping gear or saving/reloading. |
+| `FLYING_BLADE_ORBITER` — R7, fictional adaptation | **วงจักรแบ่งคมคุ้มกาย — Divided Blade Orbit** (`guard`/`flurry`): allocate a fixed formation between guard and assault. **กระบี่คืนรัง — Returning Blade Nest** (`counter`): recall offensive blades into a brief defensive window. | AI increases guard against an incoming burst, offense against an opening. Recall creates offensive downtime. Store a small formation state, not a physics/pathfinding actor per blade. |
+
+### 19.2 Six karma subpaths
+
+| Subpath and references | Proposed signature; optional supporting technique | Decision, autonomous use and counterplay |
+| --- | --- | --- |
+| `REVERSED_RETRIBUTION` — R3, R4 | **กระจกเหตุผลคืนวิบาก — Mirror of Returned Cause** (`counter`): spend capped eligible damage history against its actual source. **วางหนี้สงบใจ — Lay the Debt to Rest** (`shield`): surrender that stored retaliation for protection. | AI compares immediate threat with the value of waiting; cannot both reflect and shield from the same credit. Opponent can wait out the claim. Reflected damage never generates new reflection credit. |
+| `SIX_PATHS_WHEEL` — R5 | **กงล้อหกภพเลือกทาง — Deliberate Six-Realm Turn** (`buff`): move to one stance from the wheel below. **พักกงล้อคืนสมดุล — Still the Wheel** (`support`): end a stance to clear its strain instead of gaining another buff. | Select for current need with transition cost and minimum dwell time. One stance at a time; no cycling through six on-cast rewards in one tick. Defaults should be robust when the AI cannot predict an encounter. |
+| `FATE_SEVERING_THREAD` — R3, fictional causal-thread extension | **ตัดวาสนาหนึ่งสาย — Sever One Fortune** (`control`): dispel or shorten one eligible temporary enhancement. **ปมกรรมเผยช่อง — Exposed Causal Knot** (`pierce`): exploit a short opening after successful severance. | AI inspects dispellable status value; avoids wasting it on an unbuffed target. Fixed cooldown/cost, target resistance and eligibility rules provide counterplay. Never delete learned skills, equipment ownership or permanent lineage. |
+| `LOTUS_MERCY_PURIFIER` — R3, R4 | **หนี้สิ้นที่ปทุม — Debt Ends at the Lotus** (`heal`/`support`): spend one causal reserve on recovery or cleansing. **ดอกบัวรับเคราะห์ — Lotus Receives the Blow** (`shield`): spend it preventively. | Choose an actually injured/debuffed ally or an imminent threatened one. No simultaneous full heal, cleanse, shield and retaliation. Cleansing cannot erase the cost of the owner's forbidden technique. |
+| `ASURA_JUDGMENT_BLADE` — R5, fictional adjudication mechanic | **พิพากษารอยคมล่าสุด — Verdict of Recent Harm** (`execute`): a telegraphed judgment against an enemy who recently harmed an ally. **ทวนคำสัตย์ทัณฑ์ — Spear of the Kept Vow** (`charge`): commit to protecting one ally for a short interval. | Target recent effective harm, not high power or DEMON identity. An opponent can disengage or avoid the marked ally. Failed commitments have bounded costs; do not reward provoking weak allies into being hit. |
+| `PAST_LIFE_MIRROR` — R3, R5, explicitly fictional memory echo | **หนึ่งก้าวเงาชาติก่อน — One Step of the Former Self** (`evade`): reuse a recorded legal movement endpoint within a short window. **คมเงาสืบเหตุ — Echo of One Cause** (`strike`): replay one eligible simple attack at reduced budget. | Store one compact action descriptor, not a second full NPC or world snapshot. Choose movement or attack utility; never echo an echo, capture, unique reward, summon or decoy revival. Invalid endpoints fail safely. |
+
+**Six-realm stance palette (fictional gameplay mapping, not doctrine):** Deva = protective clarity with lower burst; Asura = committed pressure with weaker retreat; Human = economical adaptable recovery without an apex bonus; Animal = tracking/mobility with lower technique precision; Preta = resource-denial opportunity with reduced direct damage; Naraka = short endurance window followed by strain. Let stance names evoke R5 without calling animals or any real people morally inferior. All six need a readable downside and an actual use case. Start with modest modifiers; the wheel's identity should come from timing, not six stacked passives.
+
+### 19.3 Six beast sovereign subpaths
+
+| Subpath and references | Proposed signature; optional supporting technique | Decision, autonomous use and counterplay |
+| --- | --- | --- |
+| `MYRIAD_BEAST_PACK` — R6, R8 | **โอบวงฝูงร่วมใจ — Pack of One Intent** (`barrage`): coordinate selected available partners within one shared command budget. **สัญญาณถอนฝูง — Signal the Pack Home** (`support`): disengage injured partners and surrender formation pressure. | AI weighs readiness, local danger and command cost. Disruption, fatigue and divided tasks weaken coordination. More pets give options, not automatically more full-strength actions. “Alpha” can be a game command role without claiming a universal wolf-dominance model. |
+| `PRIMORDIAL_BLOOD_MUTATOR` — R6, R12 | **ปลุกลายโลหิตบรรพกาล — Awaken the Ancestral Pattern** (`buff`): activate one earned lineage trait. **ลมหายใจสืบสาย — Breath of the Lineage** (`blast`): one species-compatible elemental discharge. | Outside combat, AI saves for a feasible documented growth route; in combat, it uses breath against a suitable target. Nutrition, training and recovery matter. No arbitrary species swap or guaranteed dragon ancestry from generic cores. |
+| `SYMBIOTIC_BEAST_WARRIOR` — R6, fictional fusion | **หนึ่งกายสองลมหายใจ — One Body, Two Breaths** (`buff`/`forbid`): replace a deployed partner with a temporary fused contribution. **ถอนร่างคงพันธะ — Unfuse, Keep the Bond** (`support`): end fusion early to avoid exhaustion. | Fuse only with an eligible, healthy, consenting-in-fiction partner and adequate reserve. Owner-only targeting during fusion must be explicit. The pet loses its separate attacks/intercepts while fused; injuries and fatigue survive separation. |
+| `COLOSSUS_SHIELD_TAMER` — R8, R9, R12 | **กระดองค้ำขุนเขา — Mountain-Shell Covenant** (`guard`/`shield`): commit a guardian's finite stamina/health to a chosen ward. **ย้ายแนวปราการ — Move the Living Rampart** (`support`): change ward at a real transition cost. | AI protects the highest immediate danger, not always its owner. Distance, exhausted reserve and recovery create openings. A mount travelling with cargo cannot also guard a distant assembly bout. |
+| `SWARM_GU_HIVE_MASTER` — R11, fictional collective ecology | **เมฆปีกกินปราณ — Hollow-Wing Feeding Cloud** (`dot`/`drain`): deploy a persistent colony with capped density. **หุบรังรักษาแม่กู่ — Fold the Hive, Preserve the Queen** (`guard`): recover at the cost of field pressure. | AI withdraws a depleted colony and budgets food. Cleanse/area suppression counters the field, but map those effects through actual elemental rules. One colony UID and bounded density replace thousands of insect actors. Dot/drain cannot trigger another swarm cast. |
+| `CELESTIAL_ASTRAL_FAIRY_TAMER` — R6, R9, R12, fictional auspicious motifs | **เงาจันทร์กระเรียนคุ้มใจ — Moon-Crane Shelter** (`heal`/`support`): dedicate one partner to a chosen restorative service. **ฟังพฤกษาพบรอยยา — Listen for the Hidden Herb** (exploration action, not a new combat archetype): assign a suitable trained companion to scouting. | AI chooses healing, recovery or exploration according to current need and availability. No permanent simultaneous healing/luck/breakthrough/treasure multipliers. Scouting needs travel/time and can fail without generating rare resources from nothing. |
+
+### 19.4 Complete each proposed move before declaring it implemented
+
+For every adopted signature/support technique, record: ID, Thai display name, source-inspired motif, existing archetype, weapon requirements, stage/tier/mastery gates, costs, windup, cooldown, legal targets, state read/written, magnitude cap, failure behavior, AI utility, counterplay and one meaningful verification scenario. A passive innate may unlock a rule rather than masquerade as a castable attack. A noncombat technique should enter the existing job/action workflow, not be forced into `SK.ARCH` merely to increase registry counts.
+
+Relate these options to section 6's ~48-technique target: complete three coherent core toolkits and 18 distinct innate identities, then choose supporting moves that fill demonstrated gaps. Do not add all 36 names above on top of the original list merely to inflate content. State explicitly whether a proposal replaced, refined or supplemented an existing ID; keep manuals, innate access and cross-path prerequisites consistent.
+
+## 20. Companion Care, Ecology and Growth Reference
+
+### 20.1 Compact care model with meaningful consequences
+
+**SOURCE FACT:** R9 separates nutrition, environment, health, behaviour and mental state; R10 specifically recommends reward-based training for dogs. **DESIGN PROPOSAL:** use a compact simulation inspired by these ideas, not a literal veterinary model. Keep no more independent gauges than the game can explain and maintain. For example, derive readiness from nutrition, rest, injury and trust; expose the limiting factor instead of several unexplained multipliers.
+
+| Concern | Suggested game expression | Consequence and integration |
+| --- | --- | --- |
+| Nutrition | Family-based food compatibility and bounded rations | Consume actual sect/owner stock; incompatible food cannot produce full training progress. Add useful hunger warnings before severe consequences. |
+| Environment | Appropriate reserve shelter, space and terrain tolerance | Existing facilities can provide care capacity; avoid a new building requirement for every species. Adequate shelter can speed rest without granting permanent combat power. |
+| Health/rest | Injury plus exertion/recovery | Medicine treats a real condition; rest takes simulation time. Dismiss, transfer, evolve and save/load cannot reset the bill. |
+| Behaviour/training | One lesson/task focus and temperament | Rewards, safe repetition and appropriate challenge improve a chosen skill. Failed lessons cost time and consumed rewards; not every failure causes rebellion. |
+| Trust/relationship | Shared milestones and quality of handling | Trust affects cooperation or panic recovery within bounds; it is not an infinite multiplier or an excuse to overwrite the creature's identity. |
+
+Offer automation through a finite caretaker role: it reserves stock, visits eligible reserves and handles affordable routine care. A short reason such as “resting: injured foreleg” or “feeding delayed: no suitable rations” is more helpful than demanding a player click Feed on every pet. Use seeded simulation scheduling and low-frequency care batches. No elapsed-real-time starvation when loading a save.
+
+### 20.2 Species-family reference palette
+
+**DESIGN PROPOSAL:** start from the 110 existing species and assign reusable family defaults. The following are content examples, not verified entries or claims that every animal behaves identically. Choose actual species IDs only after checking the registry.
+
+| Family/motif | Useful role and learned task | Cost, boundary or distinctive problem |
+| --- | --- | --- |
+| Wolf/hound | Tracking or coordinated pursuit | Trail time and exertion; cannot track elsewhere and fight here simultaneously. |
+| Boar/bear | Short interception or heavy hauling | Higher ration/space demand; limited sustained pursuit. |
+| Tortoise/shelled guardian | Ward and safe transport | Slow redeployment; finite guard stamina. |
+| Hawk/roc | Scout or one diving strike | Weather/terrain eligibility and recovery; flight does not imply universal map access. |
+| Serpent | Ambush or species-appropriate toxin | Condition-dependent use; toxin amount/charges are finite and do not become free market poison stock. |
+| Insect colony | Persistent field pressure or a designated gathering task | Colony density and nourishment; one owned collective, no insect-by-insect ownership explosion. |
+| Crane/auspicious herb companion | Recovery support or herb detection | Choose the service, spend time and energy, and respect exploration reward limits. |
+| Dragon/tiger/bird/tortoise ancestral motifs | Distinct rare lineage capstones | R12 informs imagery only. Apex access requires authored routes, rarity conservation and achievable but costly milestones. |
+
+### 20.3 Growth should preserve attachment and produce choices
+
+Distinguish **training mastery**, **cultivation tier growth** and **species/lineage transformation**. A well-trained low-tier tracker can remain valuable without becoming a dragon. A higher tier can improve survivability and skill quality while leaving diet, temperament and personal history recognizable. Transformation needs an explicit route: eligible lineage + preparation + materials + milestone + cost + defined failure/recovery result. Recheck max-tier, unique and reserve-capacity constraints before spending anything.
+
+Suggested earned milestones: first safe expedition together; successful guardian intervention followed by recovery; consistent training of one command; nonlethal rescue; completing a species-compatible exploration task. Milestones must use attributable events with a once-only claim; deliberate ally damage and repeated heal loops do not farm them.
+
+Optional narrative hooks: a scar that changes preferred training, an inherited familiar that initially trusts the caretaker more than its new owner, a low-tier creature that refuses a dangerous expedition, or a construct specialist who chooses to build a brace for an injured partner. These are scenario seeds, not mandatory new subsystems. Defer breeding unless its lineage, capacity and rarity economics can actually be completed.
+
+### 20.4 Living partner, construct, swarm, echo and projection are different
+
+| Entity | Persistent authority | When unavailable | Forbidden duplication |
+| --- | --- | --- | --- |
+| Bonded living beast | One UID, owner/location and lifecycle state | Reserve, injured, exhausted, transferred, dead or fused | Wild hostile copy, two owners, capture plus corpse rewards |
+| Mechanical construct | Owner's prepared artifact/chassis record | Broken, uncharged, unprepared or out of control range | Treating each component or visual blade as a free independent pet |
+| Gu colony | One collective UID plus bounded condition/density | Withdrawn, depleted or recovering | Thousands of independently ticking pet records |
+| Former-life echo | Short-lived eligible action descriptor | Expired, invalid target/location or echo-ineligible action | Full duplicate NPC inventory, RNG stream, rewards or pet ownership |
+| Ancestral projection | Temporary combat effect with cost and expiry | Duration ends or encounter policy removes it | A permanent legendary pet, tamable specimen or extra unique loot source |
+
+## 21. Make Costs, Equipment and Daily Life Support the New Identities
+
+**DESIGN PROPOSALS:** select a few loops that already fit the simulation rather than introducing three detached currencies with no economy.
+
+| Path | Everyday action loop | Items and sinks | Breakthrough preparation |
+| --- | --- | --- | --- |
+| Mechanism | Gather/salvage eligible non-unique material -> forge module -> prepare loadout -> deploy -> repair | Spirit-core charge, repair materials, workshop labor; no free full refund from dismantling | Existing `FORGING`/`ARRAY` proficiency, a functional relevant module and paid preparation, with stage-appropriate alternatives |
+| Karma | Study/meditate or fulfill a declared service -> prepare a finite seal -> choose response in encounter -> recover | Scripture/seal materials and preparation time; combat debt itself is encounter-local and not a tradable commodity | Relevant scripture/composure/technique milestones using existing progression authorities; avoid a game-wide moral reputation rewrite |
+| Beast | Find a viable partner -> acquire lawfully -> establish care -> train one role -> undertake a suitable task -> recover | Feed, shelter capacity, caretaker labor, medicine and earned evolution materials | Appropriate bond/training and taming skill; an obtainable early companion route, not a mandatory rare species lottery |
+
+Equipment should **change a choice**, not simply add all multipliers: a golem anchor improves guard while hindering movement; a ballista sight helps a sustained lock but not retreat; a karmic rosary raises a storage ceiling without generating debt; a training whistle improves eligible handling without restoring fatigue; a fitted living-beast harness trades protection against exertion. These are proposals; check the existing equipment/effect authority before adding any slot or effect.
+
+**CODE OBSERVATION:** `martial.js` distinguishes weapon preferences from armor preferences; the original prompt sometimes lists `HEAVY`, `LIGHT`, `ROBE`, `RING`, `BRACELET` and `NECKLACE` alongside weapons. Audit the actual item slot/type taxonomy and explicitly map intent. Do not assume a robe satisfies an attack's weapon predicate or silently fall back to an unrestricted attack.
+
+Three-piece resonance sets can specialize: **prepared defense vs mobile assault**, **retaliation vs release**, **distributed command vs one-partner investment**. Their full-set bonus should reinforce that decision with a declared cost. Do not make a set remove the very drawback that keeps a subpath fair.
+
+Connect actual NPC life to opportunities: a workshop-minded disciple may prefer mechanism preparation; a scripture-oriented defender may choose restorative karma responses; a hunter may value a tracker without changing major path; an overworked officer may deliberately maintain one reserve companion through sect care instead of acquiring three. Role relevance, personality, affordability and changed circumstances should drive choices. Pet ownership alone must not erase existing jobs, relationships and cultivation goals.
+
+## 22. Quantitative Design Experiments and Integration Questions
+
+These are **unvalidated starting experiments**, not sourced balance facts. Keep numbers provisional until representative combat, autonomous progression and economy checks run.
+
+1. **One contribution budget.** Compare a no-pet owner, ordinary one-pet owner, multi-pet sovereign and fused sovereign at equivalent total progression/investment, not just equal owner stats plus free extra pets. Track owner damage, partner damage, effective mitigation, healing, command uptime, upkeep and recovery separately.
+2. **Multi-pet allocation example.** If an owner has command budget `B`, distribute it among eligible partners with nonnegative weights whose sum is at most 1. Three partners might receive `.5B/.3B/.2B`, not `B` each. They can differ in role and timing. This is a candidate scheduling abstraction; do not apply it again as an unintended damage penalty if power already includes it.
+3. **Avoid independent proc multiplication.** The early prompt's 35% maximum sync chance would give about `1 - .65^4 = 82.1%` probability of at least one sync across four independent eligible rolls, before multi-hit attacks or extra triggers. That arithmetic assumes independent rolls; it is not a measurement of the current game. Prefer one owner-level eligible event and bounded allocation, or explicitly justify another model.
+4. **Resolve slot ambiguity once.** “Base 1, path unlocks, +2 pack bonus” can exceed the stated 3–4 intent if naively added. Pick one canonical cap function, with clear progression and reserve limits. An illustrative proposal is ordinary cap 1; sovereign progression 1 -> 2 -> 3; pack raises late cap to 4, not an additional unbounded +2. Label the final decision and test it across retraining, fusion, edit and reload.
+5. **Separate damage from credit.** Karma credit should come from one eligible effective-harm event, after declared shield/interception handling. Exclude overkill, duplicate linked damage, deliberate friendly harm and reflected/echoed damage. If credit is spent on healing, it cannot also fund judgment. Make event provenance and expiry visible in debugging.
+6. **Avoid free immortality stacks.** Resolve guardian interception, prepared vessel substitution, ordinary death prevention and fusion in a fixed documented order. Each consumes its own real resource once. Changing path, dismissing a pet or loading a save cannot restore a consumed defense.
+7. **Shared combat semantics.** Live combat, wild encounters, expeditions and simplified invited-assembly bouts must use compatible readiness and contribution rules. A compact power estimate should include the same liabilities, not only all upside. Avoid simulating full care ticks inside each simplified bout.
+8. **Progression translation.** Major path stages 1–8, specialization ordinals 1–9, technique tiers 1–7 and pet tiers 1–7 are different axes. Publish a small mapping table derived from existing equivalent-stage rules. Never assume tier 7 pet ownership should instantly unlock ordinal 9 or all tier 7 techniques.
+9. **Performance experiment.** Compare no-pet baseline, 80 ordinary owners with eligible pets, and a documented mixed population including multi-pet, fusion, swarm and constructs. Include reserve-care scheduling, fight event bursts and UI inspection. Report actual browser/hardware, population, sim speed and measurements; the 3ms target is a requirement to verify, not a result to inherit from v2.0.7.
+
+**Identifier review before implementation:** choose `SIX_PATHS_WHEEL` as one canonical ID and document any import aliases for the earlier misspelled `SIX_PATHS_REINCARCARNATION`; resolve `MOUNT_CHARGER` versus `ASTRAL_MOUNT`; distinguish roles from species; resolve `satiety` versus hunger direction; use the existing game's RNG and clock units consistently. Aliases must not create duplicate subpaths or active slots.
+
+## 23. Prioritized Adoption and Evidence Checklist for the Coding AI
+
+This reference extension intentionally leaves implementation choices to the coding AI. A sensible order for evaluation is:
+
+1. **Identity and authority:** finalize the 18-row mechanic matrix, canonical IDs, ownership/state representation, progression mapping and boundaries with the existing paths.
+2. **Universal companion vertical slice:** one ordinary cultivator acquires a low-tier existing specimen, consumes real feed, trains one role, deploys/retires it, recovers and continues after save/load without duplication. Beast-sovereign progression should extend that working lifecycle.
+3. **One complete representative of each new path:** anchored golem with repair; karma with one causal credit and an exclusive release/retaliate choice; one genuine partner with independent/fused modes. Exercise real autonomous choices and resource costs.
+4. **Remaining subpaths and techniques:** fill distinct tactical gaps, wire AI use, actual equipment/gates and readable Thai descriptions. Verify the promised 68-subpath coverage without equating registry presence with implemented gameplay.
+5. **Economy, encounter representations and scale:** inspect upkeep, capture/transfer uniqueness, assembly equivalence, burst proc limits, reserve care and performance under the stated populations.
+
+Suggested additional acceptance stories that test the researched proposals:
+
+- A hungry but uninjured tracker is offered appropriate feed; stock is consumed once, readiness improves only by the declared rule, and unrelated NPCs do not receive its tracking benefit.
+- A long-raised low-tier companion remains useful at a specialized task; buying a higher tier is a choice with upkeep, not a required replacement of every personal bond.
+- A karma defender spends credit to cleanse an ally; the same credit is then unavailable for retaliation. A DEMON-path enemy who has not produced an eligible cause is not judged guilty by path ID.
+- The six-realm user changes from one useful stance to another, pays the transition cost, and cannot retain the previous stance's full benefits. Five-realm historical variants do not accidentally become a seventh runtime stance.
+- An anchored golem chooses between maintaining protection and spending its reserve on a pulse. An interrupted ballista loses its lock. A fused pet cannot simultaneously perform a guardian interception.
+- A Gu colony's field pressure and recovery are visible, bounded and persisted; no insect-level process explosion or recursive drain/proc chain occurs.
+- A former-life echo cannot duplicate a unique reward, companion or death-prevention charge. A projection cannot be captured or inherited as a permanent legendary pet.
+- A caretaker runs out of suitable feed; owners receive a specific unmet-care reason and revise plans. Essential sect jobs continue instead of every owner endlessly retrying feeding each tick.
+
+For the delivery report, keep a short adoption log: **proposal -> adopt/adapt/defer/reject -> reason -> affected runtime authority -> evidence**. Cite R1–R12 only for their stated source facts and cite actual code/tests for implementation claims. Explain invented lore and changed numbers in your own words. Preserve this extension in the combined continuation prompt so the next AI can distinguish researched background, design advice, actual shipped behavior and work still unfinished.
+
+## 24. Author's Updated Mandate: Flexible Subpath Counts, Independent Judgment and Final Report
+
+**This section records the author's subsequent explicit instruction and takes precedence over earlier fixed-count planning language.** It does not relax protected-core invariants, save correctness, meaningful verification or honest disclosure.
+
+### 24.1 Six subpaths is a starting reference, not a ceiling
+
+The three new major paths do **not** have to contain exactly six subpaths each. They need not have equal counts. If research and design reveal more than six genuinely diverse expressions of a path, you are authorized to create more than six. Do not limit a rich path merely to preserve symmetry, and do not pad another path with near-duplicates to make their counts match.
+
+Judge a proposed extra subpath by whether it introduces a distinct cultivation identity, tactical or everyday decision, progression/resource loop, technique identity and viable autonomous NPC behavior. A renamed elemental attack or a numerical variation alone is weak justification. Research candidates; compare them with all existing and planned subpaths; adopt the stronger concepts and explain the decision. The 18-row reference matrix above is a useful seed catalog, not an exhaustive list of permissible designs.
+
+Consequently, **18 new subpaths, 68 total subpaths, six innates per path and approximately 48 new techniques are provisional planning figures**. Derive the final totals from the implemented registries. Provide an appropriate signature/innate identity and complete progression/integration for every adopted subpath, with a technique roster sized to actual gameplay needs. Update documentation, UI choices, data coverage, progression tracks and acceptance checks to match that final roster. Preserve all existing subpaths; do not delete baseline content merely to meet a count. Report actual totals and coverage rather than claiming the original numbers prove completion.
+
+### 24.2 Research, think and improve the design yourself
+
+You are expected to conduct your **own internet research and codebase investigation**, evaluate these references critically and develop your own design reasoning. Do not treat this prompt, its named inspirations, its ability sketches or its numerical examples as unquestionable instructions. If you discover a more diverse, coherent, playable, balanced or technically sound alternative, you may adopt it directly within the patch's authorized goals. Explain why it improves the result and how it integrates with existing systems.
+
+Distinguish source facts, interpretation, original invention and measured behavior. Verify accessible sources rather than repeating unsupported lore or fabricated citations. If a particular source is unavailable, state that limitation and seek usable alternatives; do not pretend it was read. The research supplied here is a starting point, not a substitute for your own investigation. Keep additions focused on the new paths, their subpaths, companions, related techniques and the systems needed to make them work; creative freedom is not a reason to perform an unrelated rewrite.
+
+### 24.3 Required completion report and next-work recommendations
+
+When finished, include a substantive report in the delivered package. At minimum, record:
+
+1. **What was actually done:** final paths/subpaths and counts; companion lifecycle; techniques; progression; NPC behavior; crafting/economy; equipment; combat/expeditions/assembly; normal UI and Edit Hub; and the files/systems affected. Separate implemented behavior from registered data, scaffolding and unimplemented ideas.
+2. **Why:** research sources actually used; original design contributions; alternatives considered; additions beyond six subpaths; proposals adopted, improved, replaced or rejected; numerical choices and important tradeoffs. Explicitly reconcile material deviations from earlier sections.
+3. **What was verified:** actual commands, outcomes, scenario coverage and measured performance, including failures, skipped checks and limits. Do not label untested interactions or registry-only entries complete.
+4. **What still needs fixing or improving:** known defects, incomplete integrations, weak balance areas, usability problems, performance concerns, missing content and deferred ideas. For each significant item, give severity/priority, player impact, likely affected systems, prerequisites and an observable acceptance criterion.
+5. **What the next patch should do:** a prioritized practical continuation plan grounded in the delivered state, plus the separate detailed English next-patch prompt required above. Identify the actual new baseline and avoid leaving conflicting active handoffs.
+
+Do not claim all work is complete merely because the original content counts were reached. Deliver a coherent playable result, report its real boundaries, and leave the next implementer enough evidence to know what to change next.
