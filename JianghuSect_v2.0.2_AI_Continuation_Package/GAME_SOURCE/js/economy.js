@@ -478,6 +478,8 @@
     const need = ECO.needSummary(W);
     const pol = W.sect.policy;
     const best = [];
+    const gearCounts = {};
+    for (let i = 0; i < W.sect.gear.length; i++) { const gid = W.sect.gear[i].id; if (gid) gearCounts[gid] = (gearCounts[gid] || 0) + 1; }
     ECO.recipesFor(W, crafts).forEach(r => {
       const skillOk = head ? ((head.h.skills[r.craft] || 0) + 25 >= r.minMastery || W.npcs.some(n => !n.dead && !n.away && (n.h.skills[r.craft] || 0) + 20 >= r.minMastery && ECO.craftEligible(W, n, r, hall))) : true;
       if (!skillOk) return;
@@ -496,9 +498,9 @@
         if (r.discoverable && have < 2 && ECO.inputsOk(W, r)) s += 0.55;
         if (have > 12) s -= 1;
       } else if (r.outType === 'EQUIPMENT') {
-        const gcount = W.sect.gear.filter(x => x.id === (r.outItemId || r.id)).length;
+        const gcount = gearCounts[r.outItemId || r.id] || 0;
         const gapW = Math.max(0, need.noWeapon - need.gearWeapon), gapA = Math.max(0, need.noArmor - need.gearArmor), gapAcc = Math.max(0, (need.noAccessory || 0) - (need.gearAccessory || 0));
-        const slot = ECO.mintGear(r).slot;
+        const slot = (r.outItemId && ECO.itemById[r.outItemId] && ECO.itemById[r.outItemId].slot) || ECO.mintGear(r).slot;
         s += (slot === 'WEAPON' ? gapW * 0.25 : slot === 'ARMOR' ? gapA * 0.25 : Math.min(1.3, 0.2 + gapAcc * 0.16)) - gcount * 0.15;
         if (r.discoverable && gcount < 2 && ECO.inputsOk(W, r)) s += 0.6;
         why = 'อุปกรณ์ขาดแคลน';

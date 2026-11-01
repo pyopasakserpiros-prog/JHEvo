@@ -296,9 +296,9 @@
       titleTh: 'วิถีกระบี่เหินเมฆา',
       descTh: 'สำนักมุ่งเน้นเพลงกระบี่อันคมกริบและปราณกระบี่พิสุทธิ์ ทรงอานุภาพทั้งระยะประชิดและการควบคุมกระบี่บิน',
       path: 'XIAN',
-      subs: ['SWORD_IMMORTAL', 'MIND_SWORD_TELEKINESIS', 'YIN_YANG_HARMONY'],
-      techs: ['ART190_XIAN_001', 'ART190_XIAN_031', 'PASS_SWORD_FAMILIAR_T1', 'ART190_XIAN_013', 'MP_SWORD_POISE', 'ART190_XIAN_002', 'PASS_SWORD_EDGE_T3', 'PASS_SWORD_INTENT_T3', 'ART190_XIAN_016', 'ART190_XIAN_038', 'ART190_XIAN_009', 'PASS_SWORD_HEART_CLARITY_T5'],
-      crystals: { 'S:SWORD_IMMORTAL': 2, 'S:YIN_YANG_HARMONY': 1 }
+      subs: ['SWORD_IMMORTAL', 'PURE_SWORD_SAINT', 'MIND_SWORD_TELEKINESIS', 'YIN_YANG_HARMONY'],
+      techs: ['ART190_XIAN_001', 'ART190_XIAN_031', 'PASS_SWORD_FAMILIAR_T1', 'MP_SWORD_PURE_THRUST_T1', 'ART190_XIAN_013', 'MP_SWORD_POISE', 'MP_SWORD_FLOWING_PARRY_T2', 'ART190_XIAN_002', 'PASS_SWORD_EDGE_T3', 'PASS_SWORD_INTENT_T3', 'MP_SWORD_SHADOWLESS_SWIFT_T3', 'ART190_XIAN_016', 'ART190_XIAN_038', 'MP_SWORD_TENDON_SEVER_T4', 'ART190_XIAN_009', 'PASS_SWORD_HEART_CLARITY_T5'],
+      crystals: { 'S:SWORD_IMMORTAL': 2, 'S:PURE_SWORD_SAINT': 1, 'S:YIN_YANG_HARMONY': 1 }
     },
     blade: {
       id: 'blade',
@@ -306,9 +306,9 @@
       titleTh: 'วิถีดาบผ่าพิภพ',
       descTh: 'สำนักสายพลังกาย ดาบหนัก ดาบใหญ่ และการทำลายล้างไร้ขอบเขต ฟันขาดทุกปราการด้วยพละกำลังมหาศาล',
       path: 'BODY',
-      subs: ['TIGER_SOVEREIGN', 'SOLAR_FORGE', 'BLOOD_DEMON'],
-      techs: ['PASS_BLADE_FOUNDATION_T1', 'ART190_BODY_001', 'ART190_BODY_021', 'PASS_BLADE_HEAVY_CLEAVE_T3', 'ART190_BODY_012', 'ART190_BODY_006', 'ART190_XIAN_018', 'PASS_BLADE_BLOOD_EDGE_T5', 'ART190_BODY_004', 'ART190_BODY_027'],
-      crystals: { 'S:TIGER_SOVEREIGN': 2, 'S:SOLAR_FORGE': 1 }
+      subs: ['TIGER_SOVEREIGN', 'OVERLORD_HEAVY_BLADE', 'ASHURA_SLAUGHTER_BLADE', 'SOLAR_FORGE', 'BLOOD_DEMON'],
+      techs: ['PASS_BLADE_FOUNDATION_T1', 'ART190_BODY_001', 'MP_BLADE_SWIFT_DRAW_T1', 'ART190_BODY_021', 'MP_BLADE_IRON_CLEAVER_T2', 'PASS_BLADE_HEAVY_CLEAVE_T3', 'MP_BLADE_CROSS_EXECUTION_T3', 'ART190_BODY_012', 'ART190_BODY_006', 'MP_BLADE_FROST_CRESCENT_T4', 'ART190_XIAN_018', 'PASS_BLADE_BLOOD_EDGE_T5', 'ART190_BODY_004', 'ART190_BODY_027', 'MP_BLADE_MOUNTAIN_SPLITTER_T5'],
+      crystals: { 'S:TIGER_SOVEREIGN': 2, 'S:OVERLORD_HEAVY_BLADE': 1, 'S:SOLAR_FORGE': 1 }
     },
     spear: {
       id: 'spear',
@@ -316,9 +316,9 @@
       titleTh: 'วิถีทวนทะลวงเมฆา',
       descTh: 'สำนักสายทวนและหอกยาว เน้นระยะการรบที่ได้เปรียบ ทะลวงแนวรบ ค่ายกลทัพ และป้องกันรอบด้าน',
       path: 'BODY',
-      subs: ['BLOOD_DRAGON', 'WAR_DEITY', 'STAFF_GUARD'],
-      techs: ['PASS_SPEAR_REACH_T1', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART190_BODY_002', 'MP_SPEAR_LINE', 'SRC110_NW_ART_126', 'ART190_GOD_032', 'ART190_BODY_026', 'PASS_SPEAR_DRAGON_SPINE_T3', 'ART190_GOD_006', 'ART190_BODY_039', 'ART190_XIAN_029', 'PASS_SPEAR_PIERCING_AURA_T5'],
-      crystals: { 'S:BLOOD_DRAGON': 2, 'S:WAR_DEITY': 1 }
+      subs: ['BLOOD_DRAGON', 'WAR_SPEAR_SOVEREIGN', 'CLOUD_DRAGON_SPEAR', 'WAR_DEITY', 'STAFF_GUARD'],
+      techs: ['PASS_SPEAR_REACH_T1', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART190_BODY_002', 'MP_SPEAR_LINE', 'MP_SPEAR_MILITARY_DRILL_T1', 'SRC110_NW_ART_126', 'ART190_GOD_032', 'MP_SPEAR_IRON_BREAKER_T3', 'ART190_BODY_026', 'PASS_SPEAR_DRAGON_SPINE_T3', 'ART190_GOD_006', 'MP_SPEAR_PHALANX_WALL_T4', 'ART190_BODY_039', 'ART190_XIAN_029', 'PASS_SPEAR_PIERCING_AURA_T5'],
+      crystals: { 'S:BLOOD_DRAGON': 2, 'S:WAR_SPEAR_SOVEREIGN': 1, 'S:WAR_DEITY': 1 }
     },
     fist: {
       id: 'fist',
@@ -327,7 +327,7 @@
       descTh: 'สำนักหมัดมวย ฝ่ามือ และกายทองคำวัชระ ทรงพลังประชิดตัว ความทนทานสูงสุด และสะท้อนการโจมตี',
       path: 'BODY',
       subs: ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'THUNDER_BODY'],
-      techs: ['ART190_BODY_001', 'ART190_BODY_021', 'ART190_BODY_003', 'ART190_BODY_013', 'ART190_BODY_032', 'ART190_BODY_015', 'ART190_BODY_004', 'ART190_BODY_018', 'ART190_BODY_027', 'ART190_BODY_009', 'ART190_BODY_029'],
+      techs: ['ART190_BODY_001', 'MP_FIST_IRON_JAB_T1', 'ART190_BODY_021', 'MP_FIST_JOINT_LOCK_CLAW_T2', 'ART190_BODY_003', 'ART190_BODY_013', 'MP_FIST_BAJI_SHOULDER_T3', 'ART190_BODY_032', 'ART190_BODY_015', 'MP_FIST_TEMPEST_KICK_T4', 'ART190_BODY_004', 'ART190_BODY_018', 'ART190_BODY_027', 'ART190_BODY_009', 'ART190_BODY_029', 'MP_FIST_SHOCKWAVE_PALM_T5'],
       crystals: { 'S:VAJRA_BODHI': 2, 'S:TITAN_MOUNTAIN_BODY': 1 }
     },
     alchemy: {
@@ -337,7 +337,7 @@
       descTh: 'สำนักมุ่งเน้นการหลอมโอสถ โคจรปราณเบญจธาตุ และยันต์ค่ายกลสวรรค์ เพิ่มอายุขัยและฟื้นฟูชีพจร',
       path: 'XIAN',
       subs: ['ELIXIR_DAO', 'FIVE_ELEMENTS', 'ASTRAL_ARRAY'],
-      techs: ['ART190_XIAN_021', 'ART190_XIAN_051', 'ART190_XIAN_003', 'ART190_XIAN_033', 'ART190_XIAN_063', 'PASS_MERIDIAN_DISCIPLINE_T2', 'ART190_XIAN_015', 'ART190_XIAN_045', 'ART190_XIAN_027', 'ART190_XIAN_057', 'ART190_XIAN_039', 'ART190_XIAN_069'],
+      techs: ['ART190_XIAN_021', 'ART190_XIAN_051', 'MP_FOCUS_IRON_FAN_T1', 'ART190_XIAN_003', 'ART190_XIAN_033', 'ART190_XIAN_063', 'PASS_MERIDIAN_DISCIPLINE_T2', 'MP_FOCUS_ACUPOINT_NEEDLE_T2', 'ART190_XIAN_015', 'ART190_XIAN_045', 'MP_FOCUS_ABACUS_TACTIC_T3', 'ART190_XIAN_027', 'ART190_XIAN_057', 'ART190_XIAN_039', 'ART190_XIAN_069'],
       crystals: { 'S:ELIXIR_DAO': 2, 'S:FIVE_ELEMENTS': 1 }
     },
     bow: {
@@ -346,9 +346,29 @@
       titleTh: 'วิถีเกาทัณฑ์ทะลวงมิติ',
       descTh: 'สำนักสายธนูและเกาทัณฑ์ ยิงสังหารศัตรูจากระยะไกล ปราณดาราทะลวงมิติ และศรเงาปลิดวิญญาณ',
       path: 'XIAN',
-      subs: ['STAR_ARCHER', 'SHADOW_ARCHER'],
-      techs: ['PASS_BOW_STILLNESS_T1', 'MP_BOW_BASIC', 'INNATE_STAR_ARCHER_ASTRAL_LOCK', 'MP_BOW_RAIN', 'MP_BOW_FOCUS', 'MP_BOW_PIERCE_CLOUD', 'PASS_BOW_HAWK_EYE_T3', 'MP_BOW_SHADOW_SNIPE', 'MP_BOW_METEOR_STORM'],
-      crystals: { 'S:STAR_ARCHER': 2, 'S:SHADOW_ARCHER': 1 }
+      subs: ['STAR_ARCHER', 'SHADOW_ARCHER', 'IRON_BOW_SENTINEL', 'SUN_BOW_DEITY', 'ZITHER_HEART_BOW'],
+      techs: ['PASS_BOW_STILLNESS_T1', 'MP_BOW_BASIC', 'MP_BOW_IRON_DRAW_T1', 'INNATE_STAR_ARCHER_ASTRAL_LOCK', 'MP_BOW_RAIN', 'MP_BOW_RAPID_VOLLEY_T2', 'MP_BOW_SUN_RAY_T2', 'MP_BOW_FOCUS', 'MP_BOW_PIERCE_CLOUD', 'PASS_BOW_HAWK_EYE_T3', 'MP_BOW_ARMOR_BODKIN_T3', 'MP_BOW_SHADOW_SNIPE', 'MP_BOW_PARTING_SHOT_T4', 'MP_BOW_METEOR_STORM', 'MP_BOW_SIEGE_BALLISTA_T5'],
+      crystals: { 'S:STAR_ARCHER': 2, 'S:SHADOW_ARCHER': 1, 'S:SUN_BOW_DEITY': 1 }
+    },
+    staff: {
+      id: 'staff',
+      nameTh: 'สำนักพลองโพธิ์วัชระ',
+      titleTh: 'วิถีพลองค้ำจุนฟ้าดิน',
+      descTh: 'สำนักสายพลองและกระบองยาว ผสานปราณคุ้มกายตั้งรับเหนียวแน่น กวาดล้างศัตรูเป็นหมู่คณะ และสะกดทัพหน้า',
+      path: 'BODY',
+      subs: ['STAFF_GUARD', 'VAJRA_BODHI', 'GOLDEN_ARHAT_STAFF'],
+      techs: ['MP_STAFF_SWEEP', 'MP_STAFF_SWEEP_BASIC_T1', 'MP_STAFF_VINE_SWEEP_T1', 'MP_STAFF_GUARD', 'MP_STAFF_IRON_REVOLVE_T2', 'MP_STAFF_POLE_VAULT_T2', 'MP_STAFF_GOLDEN_LIGHT_T2', 'MP_STAFF_CRUSHING_BLOW_T3', 'PASS_STAFF_KINETIC_LEVER_T3', 'MP_STAFF_SOLAR_ANVIL_T3', 'MP_STAFF_ARHAT_EIGHTEEN_T4', 'MP_STAFF_UNDERWORLD_GAVEL_T4', 'MP_STAFF_MOUNTAIN_ANCHOR_T5', 'MP_STAFF_ZEN_LOTUS_T5'],
+      crystals: { 'S:STAFF_GUARD': 2, 'S:GOLDEN_ARHAT_STAFF': 1 }
+    },
+    focus: {
+      id: 'focus',
+      nameTh: 'สำนักศาสตราอาคมดารา',
+      titleTh: 'วิถีค่ายกลและจิตตานุภาพ',
+      descTh: 'สำนักสายศาสตราอาคม พัด พิณ กระจกวิญญาณ และค่ายกลดารา ควบคุมสนามรบและโจมตีด้วยพลังจิตวิญญาณ',
+      path: 'HEART_SOUL',
+      subs: ['ASTRAL_ARRAY', 'CALLIGRAPHY_PAINTING_SAGE', 'SOUND_ZITHER'],
+      techs: ['MP_FOCUS_IRON_FAN_T1', 'MP_FOCUS_ACUPOINT_NEEDLE_T2', 'MP_FOCUS_ABACUS_TACTIC_T3', 'MP_FOCUS_SOUL_BELL_T3', 'PASS_FOCUS_SCHOLAR_POISE_T4', 'MP_HYB_BOW_FOCUS_ZITHER_T4', 'MP_FOCUS_SONIC_ZITHER_T5', 'MP_FOCUS_ASTRAL_BANNER_T5', 'MP_FOCUS_CELESTIAL_ZITHER_T5', 'MP_HYB_BLADE_FOCUS_FLYING_T5', 'MP_FOCUS_GRANDMASTER_FAN_T6', 'MP_FOCUS_CAULDRON_FIRE_T6', 'MP_FOCUS_FATE_MIRROR_T6', 'MP_FOCUS_PRIMORDIAL_BRUSH_T7'],
+      crystals: { 'S:ASTRAL_ARRAY': 2, 'S:CALLIGRAPHY_PAINTING_SAGE': 1 }
     }
   };
 
@@ -1640,6 +1660,7 @@
       win.inv.crystals[normKey] = (win.inv.crystals[normKey] || 0) + 1;
       const reason = 'มอบผลึกสืบทอดสายย่อย「' + subObj.sub.nameTh + '」ให้ศิษย์วิถี ' + subObj.path;
       const giftRow = { day: W.day, kind: 'CRYSTAL', itemId: subId, nameTh: 'ผลึกสายย่อย「' + subObj.sub.nameTh + '」', qty: 1, actorId: evaluator.id, recipientId: win.id, reason };
+      S.giftHistory = S.giftHistory || [];
       S.giftHistory.push(giftRow);
       if (S.giftHistory.length > 60) S.giftHistory.splice(0, S.giftHistory.length - 60);
       giftedItems.push(giftRow);

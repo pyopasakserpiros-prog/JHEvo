@@ -159,19 +159,21 @@ M._unusedOldProbTable=opts=>{
 M.techKey=id=>'T:'+id;M.subKey=id=>'S:'+id;
 const branches=Object.values(CULT.PATHS).flatMap(p=>p.subPaths.map(s=>({id:s.id,path:p.id,nameTh:s.nameTh,tier:JD.MARTIAL.subPaths.some(x=>x.id===s.id)?2:1})));
 const subById=Object.fromEntries(branches.map(s=>[s.id,s]));
+const _kCache = Object.create(null);
 M.knowledge=key=>{
  if(typeof key!=='string')return null;
+ const hit = _kCache[key]; if (hit !== undefined) return hit;
  if(key.startsWith('T:')){
   const id=key.slice(2);
   if(M.isInnateTech&&M.isInnateTech(id))return null;
   const t=CULT.tech(id);
-  return t?{kind:'tech',id:t.id,path:t.path,sub:t.sub,tier:t.reqTier||t.tier,grade:t.grade||'Common',legendary:!!t.legendary,cat:t.cat,nameTh:t.nameTh}:null;
+  return (_kCache[key] = t?Object.freeze({kind:'tech',id:t.id,path:t.path,sub:t.sub,tier:t.reqTier||t.tier,grade:t.grade||'Common',legendary:!!t.legendary,cat:t.cat,nameTh:t.nameTh}):null);
  }
  if(key.startsWith('S:')){
   const s=subById[key.slice(2)];
-  return s?Object.assign({kind:'sub'},s):null;
+  return (_kCache[key] = s?Object.freeze(Object.assign({kind:'sub'},s)):null);
  }
- return null;
+ return (_kCache[key] = null);
 };
 const cleanCounts=map=>{const out={};for(const [key,qty] of Object.entries(map||{}))if(M.knowledge(key)&&Number.isInteger(qty)&&qty>0)out[key]=Math.min(999,qty);return out;};
 M.drainKnowledgeOverflow=W=>{const overflow=W.sect.knowledgeOverflow;if(!overflow)return;W.sect.crystals=W.sect.crystals||{};for(const key of Object.keys(overflow)){const qty=overflow[key];if(!M.knowledge(key)||!Number.isSafeInteger(qty)||qty<=0){delete overflow[key];continue;}const put=Math.min(qty,Math.max(0,999-(W.sect.crystals[key]||0)));if(put){W.sect.crystals[key]=(W.sect.crystals[key]||0)+put;if(put===qty)delete overflow[key];else overflow[key]=qty-put;}}};
@@ -223,8 +225,12 @@ M.studyFee=(W,key)=>{const k=M.knowledge(key);if(!k)return Infinity;return k.kin
 M.crystalPrice=(W,key)=>{
  const k=M.knowledge(key);if(!k)return Infinity;
  if(known(W,k))return Math.floor(M.studyFee(W,key)*.5);
+ const cpk=W.t>0?(W.day+':'+key+':'+W.npcs.length+':'+CPE.S(W).price):null;
+ if(cpk&&W._crysPriceMap&&W._crysPriceMap[cpk]!==undefined)return W._crysPriceMap[cpk];
  const demand=W.npcs.reduce((s,n)=>s+(!n.dead&&M.eligible(n,key).ok?1:0),0),base=k.kind==='sub'?100+50*k.tier*k.tier:28*Math.pow(k.tier,2.1)*(k.legendary?2.2:1);
- return Math.max(2,Math.round(base*clamp(1+demand*.025,1,1.35)*clamp(CPE.S(W).price,.6,1.6)));
+ const res=Math.max(2,Math.round(base*clamp(1+demand*.025,1,1.35)*clamp(CPE.S(W).price,.6,1.6)));
+ if(cpk){if(!W._crysPriceMap||W._crysPriceDay!==W.day){W._crysPriceMap=Object.create(null);W._crysPriceDay=W.day;}W._crysPriceMap[cpk]=res;}
+ return res;
 };
 M.crystalReward=(W,key)=>Math.max(0,Math.floor(M.crystalPrice(W,key)*.4));
 function removeUnit(n,key){
@@ -629,7 +635,7 @@ M.daily=W=>{
 };
 const oldShop=CPE.shopItems;CPE.shopItems=W=>oldShop(W).concat(Object.entries(W.sect.crystals||{}).filter(x=>x[1]>0&&M.knowledge(x[0])).map(([key,n])=>({kind:'crystal',key,n,price:M.crystalPrice(W,key)})));
 const oldBuy=CPE.buy;CPE.buy=(W,n,p)=>p&&p.kind==='crystal'?M.buyCrystal(W,n,p.key,p.price).ok:oldBuy(W,n,p);
-const oldPick=CPE.pickPurchase;CPE.pickPurchase=(W,n)=>{let best=oldPick(W,n),score=best?best.s:0;for(const [key,qty] of Object.entries(W.sect.crystals||{})){if(!qty||!(M.canAcquireKnowledge?M.canAcquireKnowledge(W,n,key):M.eligible(n,key).ok)||(n.inv.crystals&&n.inv.crystals[key]||0)>0)continue;const price=M.crystalPrice(W,key),fit=M.knowledgeFit(n,key),s=.65+fit/110-price/Math.max(40,n.cp||0)*.5;if(price<=(n.cp||0)*.9&&fit>=50&&s>score){best={kind:'crystal',key,price,why:'ผลึกตรงวิถี · ใช้ครั้งเดียว',s};score=s;}}return best;};
+const oldPick=CPE.pickPurchase;CPE.pickPurchase=(W,n)=>{const cp=n.cp||0;if(cp<4)return null;if(W.t>0&&n._fullPickCache&&n._fullPickCache.t===W.t&&n._fullPickCache.cp===cp&&n._fullPickCache.hp===n.h.state.hp&&n._fullPickCache.gearLen===W.sect.gear.length)return n._fullPickCache.val;let best=oldPick(W,n),score=best?best.s:0;for(const [key,qty] of Object.entries(W.sect.crystals||{})){if(!qty||!(M.canAcquireKnowledge?M.canAcquireKnowledge(W,n,key):M.eligible(n,key).ok)||(n.inv.crystals&&n.inv.crystals[key]||0)>0)continue;const price=M.crystalPrice(W,key);if(price>cp*.9)continue;const fit=M.knowledgeFit(n,key),s=.65+fit/110-price/Math.max(40,cp)*.5;if(fit>=50&&s>score){best={kind:'crystal',key,price,why:'ผลึกตรงวิถี · ใช้ครั้งเดียว',s};score=s;}}if(W.t>0)n._fullPickCache={t:W.t,cp,hp:n.h.state.hp,gearLen:W.sect.gear.length,val:best};return best;};
 const oldName=ECO.name;ECO.name=id=>M.knowledge(id)?M.crystalName(id):oldName(id);
 AI.ACTS.specialize={nameTh:'ศึกษาคัมภีร์สายย่อย',icon:'📜',color:'#a7c8f0',can:(n,W)=>!!M.pickSubStudy(W,n),score(n,W,S){const p=M.pickSubStudy(W,n);if(p)S.add('เลือกสายที่ถนัดถาวร',.9+M.knowledgeFit(n,p.key)/150);},where:(W,n)=>{const st=AI.freeStation(W,n,'read','scripture');return st?{st}:null;},dur:()=>240,done(n,W){const p=M.pickSubStudy(W,n);if(p)M.studySubpath(W,n,p.id);}};
 const daily=g.CONTENT.daily;g.CONTENT.daily=W=>{daily(W);M.daily(W);};

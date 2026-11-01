@@ -11,7 +11,8 @@
   AI.hour = hourOf;
   const isNight = h => h >= 21 || h < 5;
   const E = (n, p) => HC.eff(n, p);
-  function Sc() { return { u: 0, why: [], add(l, v) { this.u += v; if (Math.abs(v) > 0.06) this.why.push([l, Math.round(v * 100) / 100]); return this; } }; }
+  function ScoreAcc() { this.u = 0; this.why = []; } ScoreAcc.prototype.add = function(l, v) { this.u += v; if (Math.abs(v) > 0.06) this.why.push([l, Math.round(v * 100) / 100]); return this; }; function Sc() { return new ScoreAcc(); }
+  if (!HC._fastTrainWrapped) { HC._fastTrainWrapped = true; const _tb = HC.trainBody, _tm = HC.trainMind, _gw = HC.gainWisdom; HC.trainBody = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, x0 = npc.h.physiology[id], g2 = _tb(npc, id, load); if ((x0 | 0) === (npc.h.physiology[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } if (d0) npc._d = d0; } return g2; }; HC.trainMind = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, x0 = npc.h.intellect[id], g2 = _tm(npc, id, load); if ((x0 | 0) === (npc.h.intellect[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.' + id]; } if (d0) npc._d = d0; } return g2; }; HC.gainWisdom = (npc, amt) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, x0 = npc.h.intellect.wisdom; _gw(npc, amt); if ((x0 | 0) === (npc.h.intellect.wisdom | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.wisdom']; } if (d0) npc._d = d0; } }; }
   const VALUE_TH = { familyClan: 'พวกพ้อง', sectDuty: 'หน้าที่ต่อสำนัก', martialPeak: 'วิถียุทธ์', knowledgeCraft: 'ความรู้', freedom: 'อิสรภาพ', wealthResource: 'ทรัพย์', powerStatus: 'อำนาจ', honorLegacy: 'เกียรติยศ' };
   AI.VALUE_TH = VALUE_TH;
   function valueTerm(n, vf, S) {
@@ -29,7 +30,7 @@
   INT_IDS.forEach(id => { INT_PATHS[id] = 'interests.' + id; });
   INT_IDS.forEach(id => { INT_LABEL[id] = 'ชอบ' + HC.nameOf('interests.' + id); });
   function interestTerm(n, id, S, w) { if (!id) return; const v = E(n, INT_PATHS[id] || ('interests.' + id)); S.add(INT_LABEL[id] || ('ชอบ' + HC.nameOf('interests.' + id)), (v - 48) / 100 * (w || 1.15)); }
-  function dutyWeight(n) { return clamp(0.3 + E(n, 'personality.discipline') / 160 + E(n, 'personality.loyalty') / 220 + E(n, 'values.sectDuty') / 260, 0.2, 1.4); }
+  function dutyWeight(n) { if (n._dw !== undefined && n._dwVer === n._ver && n._dwDay === HC.nowDay) return n._dw; const v = clamp(0.3 + E(n, 'personality.discipline') / 160 + E(n, 'personality.loyalty') / 220 + E(n, 'values.sectDuty') / 260, 0.2, 1.4); n._dw = v; n._dwVer = n._ver; n._dwDay = HC.nowDay; return v; }
   AI.dutyWeight = dutyWeight;
 
   /* ---------- สถานี ---------- */
@@ -95,9 +96,14 @@
     return true;
   };
   AI.walkSpeed = (W, n) => {
-    const d = (g.MARTIAL && g.MARTIAL.derived) ? g.MARTIAL.derived(n) : HC.derived(n);
-    let v = d.walkSpeed * CULT.speedMult(n) * MAP.speedAt(W.map, n.x, n.y);
-    if (n.inj && n.inj.length) v *= 0.75; if (n.h.state.energy < 20) v *= 0.8; if (n.run) v *= 1.5;
+    const injLen = n.inj ? n.inj.length : 0, bLen = n.buffs ? n.buffs.length : 0, sxLen = n.sx ? n.sx.length : 0, cSt = n.cult ? n.cult.stage : 0, pVer = n._passVer || 0;
+    let wb = n._wsBase;
+    if (!wb || wb.ver !== n._ver || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.sxLen !== sxLen || bLen > 0 || sxLen > 0) {
+      const d = (g.MARTIAL && g.MARTIAL.derived) ? g.MARTIAL.derived(n) : HC.derived(n);
+      wb = n._wsBase = { ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, sxLen, v: d.walkSpeed * CULT.speedMult(n) };
+    }
+    let v = wb.v * MAP.speedAt(W.map, n.x, n.y);
+    if (injLen) v *= 0.75; if (n.h.state.energy < 20) v *= 0.8; if (n.run) v *= 1.5;
     if (W.weather && W.weather.kind === 'snow') v *= 0.9; if (W.weather && W.weather.kind === 'rain') v *= 0.95;
     return v;
   };
@@ -126,13 +132,13 @@
   A.sleep = {
     nameTh: 'นอนหลับ', icon: '😴', color: '#6a7bd1',
     can: (n, W) => {
-      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+      const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0);
       if (eqStage >= 2 && n.h.state.rest >= 85 && !(n.inj && n.inj.length)) return false;
       return true;
     },
     score(n, W, S) {
       const s = n.h.state, h = hourOf(W);
-      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+      const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0);
 
       // ผู้ฝึกตนระดับเทียบเคียงยิ่งสูง ยิ่งควบคุมสมาธิและวิญญาณได้ดี ไม่ง่วงง่าย
       const sleepUrgeMult = 1 / (1 + eqStage * 0.7);
@@ -263,7 +269,7 @@
       const c = n.cult, s = n.h.state;
       const r = CULT.rate(n, ctx.mult || 1) / 60;
       CULT.gain(n, r); if (c.pillT > 0) c.pillT--;
-      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1);
+      const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1));
       const eDrain = Math.max(0, (c.path === 'BODY' ? 0.13 : c.path === 'DEMON' ? 0.045 : c.path === 'HEART_SOUL' ? 0.02 : 0.015) - eqStage * 0.01);
       const rDrain = Math.max(0, (c.path === 'HEART_SOUL' ? 0.032 : c.path === 'DEMON' ? 0.025 : 0.02) - eqStage * 0.015);
       s.energy = Math.max(0, s.energy - eDrain);
@@ -1094,16 +1100,18 @@
   /* ความต้องการ + ผลคงที่ของร่างกายทุกนาที */
   function getNeedsRates(n) {
     const cStage = n.cult ? n.cult.stage : 0;
-    const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (cStage || 0);
+    const cTr = n.cult && n.cult.track ? n.cult.track.ordinal : 0;
     const passVer = n._passVer || 0;
     const eqA = n.equip ? n.equip.ARMOR : null;
     const vit = n.h.physiology.vitality;
     const nd = n._nd;
-    if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.eqStage === eqStage && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit) return nd;
+    if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit) return nd;
+    const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (cStage || 0);
     const next = {
       day: HC.nowDay,
       ver: n._ver,
       cStage,
+      cTr,
       eqStage,
       passVer,
       eqA,

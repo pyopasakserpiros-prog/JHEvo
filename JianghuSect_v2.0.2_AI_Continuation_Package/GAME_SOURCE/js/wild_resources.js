@@ -289,11 +289,11 @@
   function pickBestResourceNode(W, n) {
     if (!W.wildResources || !W.wildResources.nodes.length) return null;
     const now = W.t;
+    const beginner = CULT.worldRank(n) <= 1 || CULT.power(n) < 100;
     const candidates = W.wildResources.nodes.filter(node => {
       if (node.remaining <= 0) return false;
       if (node.claimedBy && node.claimedBy !== n.id && now < node.claimUntil) return false;
-      const basic = BASIC_HERB_WEIGHTS.some(b => b.id === node.materialId);
-      const beginner = CULT.worldRank(n) <= 1 || CULT.power(n) < 100;
+      const basic = node.category === 'BASIC_HERB' || BASIC_HERB_WEIGHTS.some(b => b.id === node.materialId);
       if ((basic || beginner) && !MAP.isInSafeBelt(node.x + .5, node.y + .5)) return false;
       return true;
     });

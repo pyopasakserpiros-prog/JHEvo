@@ -256,14 +256,16 @@
       if (p.arch === 'drain') sc += (1 - hpR) * 1.6;
       if (p.arch === 'burst') sc += (hpFrac(d) > 0.35 ? 0.4 : -0.6) + aggr;
       if (p.arch === 'counter') sc = (ST.has(a, 'counter') ? 0 : 1.1 + caut) * (hpR < 0.9 ? 1.2 : 0.8) + (tdp > self * 0.8 ? 0.6 : 0);
-      if (p.arch === 'guard') sc = (ST.has(a, 'guardUp') ? 0 : (1 - hpR) * 4.2 + caut * 1.4 - 0.5);
+      if (p.arch === 'guard' || p.arch === 'shield') sc = (ST.has(a, 'guardUp') ? 0 : (1 - hpR) * 4.2 + caut * 1.4 - 0.5);
+      if (p.arch === 'execute') sc += (hpFrac(d) < 0.45 ? 1.4 : -0.2) + aggr * 0.6;
+      if (p.arch === 'snipe' || p.arch === 'charge') sc += clamp(td.def / Math.max(1, td.mdef), 0.5, 1.8) * 0.35;
       if (p.arch === 'heal') {
         const ally = lowestAlly(W, f, a);
         const lowestRatio = ally ? Math.min(hpR, hpFrac(ally)) : hpR;
         sc = lowestRatio < 0.72 ? (0.72 - lowestRatio) * 11 : 0;
         if (lowestRatio < 0.38) sc += 3.5;
       }
-      if (p.arch === 'support') {
+      if (p.arch === 'support' || p.arch === 'buff') {
         const allies = C.alliesOf(W, f, a.id);
         const buffKind = (p.support && p.support.kind) || 'morale';
         const needBuff = allies.some(u => !ST.has(u, buffKind));
@@ -386,8 +388,8 @@
     const label = p.moves && p.moves.length ? W.rng.pick(p.moves) : p.nameTh;
     a.fx = { t: W.t, text: p.icon + ' ' + label };
     // One lightweight visual event per actual activation; text/damage feedback stays independent.
-    const tech = p.tech && CULT.tech(p.tech), target = p.self || p.team || ['heal', 'support', 'summon'].includes(p.arch) ? a : d || a;
-    const isForbid = p.arch === 'forbid' || !!(tech && tech.cat === 'FORBIDDEN_ART');
+    const tech = p.tech && CULT.tech(p.tech), target = p.self || p.team || ['heal', 'support', 'buff', 'summon'].includes(p.arch) ? a : d || a;
+    const isForbid = p.arch === 'forbid' || !!(tech && (tech.cat === 'FORBIDDEN_ART' || tech.cat === 'FORBIDDEN_TECHNIQUE'));
     const fxMotif = p.fxKind || (tech && tech.fxKind) || (isForbid ? 'forbidden' : 'normal');
     a.castFx = {
       t: W.t,
@@ -406,7 +408,7 @@
       if (d.shieldBp) d.shieldBp = 0;
     }
     const hm = C.hpMax(a);
-    if (p.arch === 'guard') { ST.addStatus(a, 'guardUp', 12); if (p.shield > 0 || !p.qiRestorePct) ST.addStatus(a, 'shield', 12, { amt: hm * (p.shield || 0.15) }); return; }
+    if (p.arch === 'guard' || p.arch === 'shield') { ST.addStatus(a, 'guardUp', 12); if (p.shield > 0 || !p.qiRestorePct) ST.addStatus(a, 'shield', 12, { amt: hm * (p.shield || 0.15) }); return; }
     if (p.arch === 'evade') { ST.addStatus(a, 'evadeUp', 14); return; }
     if (p.arch === 'counter') { ST.addStatus(a, 'counter', 10, { M: p.M, type: p.type, pen: p.pen }); return; }
     if (p.arch === 'heal') {
@@ -418,7 +420,7 @@
       tgt.fx = { t: W.t, text: '💚 +' + healAmt };
       return;
     }
-    if (p.arch === 'support') {
+    if (p.arch === 'support' || p.arch === 'buff') {
       const allies = C.alliesOf(W, f, a.id);
       const buffKind = (p.support && p.support.kind) || 'morale';
       const dur = (p.support && p.support.dur) || 14;

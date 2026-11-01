@@ -13,6 +13,7 @@
 
   CPE.S = W => {
     const S = W.sect;
+    if (S.cp && S.cp._ready && Array.isArray(S.cp.freeLib)) return S.cp;
     if (!S.cp) S.cp = { minted: 0, burned: 0, circulation: 0, retired: 0, arbitrageBlocked: 0, price: 1, markup: 1, welfare: 0.5, log: [], dayMint: 0, dayBurn: 0, welfareGiven: 0, donated: 0, sales: 0, techSales: 0, studyFees: 0, studyServices: 0, trainingFees: 0, trainingServices: 0, recipeFees: 0, recipeAuthorizations: 0, freeLib: S.library ? S.library.filter(id => { const t = CULT.tech(id); return t && t.tier <= 1 && !t.overhaulPack; }) : [], hist: [] };
     if (S.cp.circulation == null) S.cp.circulation = 0;
     if (S.cp.retired == null) S.cp.retired = 0;
@@ -28,6 +29,7 @@
     ['minted', 'burned', 'circulation', 'retired', 'arbitrageBlocked', 'dayMint', 'dayBurn', 'welfareGiven', 'donated', 'sales', 'techSales', 'recipeFees', 'recipeAuthorizations'].forEach(k => { if (!Number.isFinite(S.cp[k])) S.cp[k] = 0; });
     if (!Number.isFinite(S.cp.price)) S.cp.price = 1;
     if (!Number.isFinite(S.cp.markup)) S.cp.markup = 1;
+    if (Array.isArray(S.cp.freeLib) && S.cp.freeLib.length) S.cp._ready = true;
     return S.cp;
   };
   CPE.init = W => { CPE.S(W); W.npcs.forEach(n => { if (n.cp == null) n.cp = 40; }); };
@@ -291,11 +293,13 @@
       const inHysteresis = n._lastGearSwapAt != null && (W.t - n._lastGearSwapAt) < 1440;
       const multReq = inHysteresis ? 1.38 : 1.2, flatReq = inHysteresis ? 16 : 8;
       const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
-      ["WEAPON", "ARMOR", "ACCESSORY"].forEach(slot => {
-        const cur = n.equip && n.equip[slot], cs = cur ? g.MARTIAL.gearSuitability(n, cur).score : 0;
+      if (W.sect.gear.length > 0) ["WEAPON", "ARMOR", "ACCESSORY"].forEach(slot => {
+        let cs = null;
         W.sect.gear.forEach(gr => {
           if (gr.slot !== slot || (gr.minStage || 1) > effSt + 1) return;
           const price = CPE.gearPrice(W, gr);
+          if (price > cp * 0.9) return;
+          if (cs === null) { const cur = n.equip && n.equip[slot]; cs = cur ? g.MARTIAL.gearSuitability(n, cur).score : 0; }
           const fit = g.MARTIAL.gearSuitability(n, gr, price), gs = fit.score;
           const isGoalTarget = n.cognition?.goal?.id === "gear_upgrade" && n.cognition.goal.targetId === (gr.uid || gr.id);
           if (gs > cs * multReq + flatReq || (isGoalTarget && gs > cs + 6)) {
@@ -655,6 +659,7 @@
         needs.push(R.vigor);
         needScore += Math.max(0, 30 - s.energy) * 0.4;
       }
+      if (!needs.length) return null;
       const meritBonus = n.rank * 4 + Math.min(20, (n.merit || 0) * 0.15);
       const flatBonus = (g.COG && g.COG.flatteryBonus) ? g.COG.flatteryBonus(tr, n) : 0;
       const relScore = SECT.relationScore(tr, n) + flatBonus * 1.4;
@@ -663,7 +668,7 @@
       return { n, needs, needScore, relScore, decisionScore, meritBonus };
     });
 
-    const needy = evaluated.filter(e => e.needs.length > 0);
+    const needy = evaluated.filter(Boolean);
     needy.sort((a, b) => b.decisionScore - a.decisionScore);
 
     needy.forEach(item => {

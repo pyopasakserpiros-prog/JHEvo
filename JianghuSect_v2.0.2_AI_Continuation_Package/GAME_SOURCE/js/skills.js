@@ -24,7 +24,14 @@
     forbid: { nameTh: 'วิชาต้องห้าม', icon: '🔥', e: 1.8, cd: 40, wind: 10, hits: 1, cost: 1.8, off: true, recoil: 0.12, desc: 'พลังสังหารสูงสุด แต่เสียเลือดตนเองและเปิดเกราะ 12 นาที' },
     support: { nameTh: 'ท่าหนุนทัพ', icon: '✨', e: 0, cd: 22, wind: 4, hits: 0, cost: 1.2, team: true, desc: 'ปลุกขวัญและเสริมแกร่งฝ่ายตนเอง (เพิ่มโจมตี/ป้องกัน/เร่งสปีดแก่พวกพ้อง)' },
     summon: { nameTh: 'วิชาอัญเชิญ', icon: '👥', e: 0, cd: 34, wind: 5, hits: 0, cost: 1.7, team: true, desc: 'อัญเชิญร่างจำลองหรือเทพอสูรเข้าร่วมรบชั่วคราว มีพลังชีวิตและช่วยต่อสู้' },
-    channel: { nameTh: 'วิชาร่ายต่อเนื่อง', icon: '🌀', e: 1.5, cd: 20, wind: 2, hits: 1, cost: 1.4, off: true, channel: true, desc: 'เพ่งจิตร่ายวิชาต่อเนื่องทีละรอบ ปลดปล่อยความเสียหายสะสม แต่ถูกขัดจังหวะได้' }
+    channel: { nameTh: 'วิชาร่ายต่อเนื่อง', icon: '🌀', e: 1.5, cd: 20, wind: 2, hits: 1, cost: 1.4, off: true, channel: true, desc: 'เพ่งจิตร่ายวิชาต่อเนื่องทีละรอบ ปลดปล่อยความเสียหายสะสม แต่ถูกขัดจังหวะได้' },
+    snipe: { nameTh: 'ท่าเล็งสังหาร', icon: '🏹', e: 1.28, cd: 12, wind: 5, hits: 1, cost: 1.1, off: true, penAdd: 18, desc: 'ยิงแม่นยำระยะไกล เจาะเกราะและคริติคอลสูง' },
+    barrage: { nameTh: 'ท่าระดมยิง', icon: '🌧️', e: 1.15, cd: 13, wind: 5, hits: 3, cost: 1.25, off: true, aoe: true, desc: 'ระดมโจมตีต่อเนื่องครอบคลุมพื้นที่' },
+    charge: { nameTh: 'ท่าพุ่งทะลวง', icon: '🐎', e: 1.22, cd: 11, wind: 4, hits: 1, cost: 1.05, off: true, penAdd: 15, desc: 'พุ่งเข้าปะทะอย่างรวดเร็ว ทะลวงแนวป้องกัน' },
+    execute: { nameTh: 'ท่าปลิดชีพ', icon: '⚔️', e: 1.38, cd: 16, wind: 6, hits: 1, cost: 1.35, off: true, penAdd: 20, desc: 'สังหารเป้าหมายที่บาดเจ็บอย่างเด็ดขาด' },
+    blast: { nameTh: 'ท่าระเบิดปราณ', icon: '🔮', e: 1.25, cd: 14, wind: 5, hits: 1, cost: 1.3, off: true, aoe: true, desc: 'ปลดปล่อยคลื่นปราณระเบิดทำลายล้าง' },
+    shield: { nameTh: 'ท่าเกราะคุ้มกาย', icon: '🔰', e: 0, cd: 20, wind: 3, hits: 0, cost: 1.0, self: true, desc: 'สร้างม่านปราณดูดซับความเสียหายและเพิ่มป้องกัน' },
+    buff: { nameTh: 'ท่าเร่งปราณหนุนศึก', icon: '✨', e: 0, cd: 22, wind: 4, hits: 0, cost: 1.15, team: true, desc: 'เสริมพลังรบและความเร็วแก่ตนเองและพวกพ้อง' }
   };
   /* ธาตุ → ผลแทรก (rider) ถ้าท่านั้นเป็นท่าโจมตี โอกาส 38% และผลหลักของท่าควบคุม */
   SK.ELEM = {
@@ -84,7 +91,22 @@
     ZEN_VOID_MIND: { counter: 3.5, guard: 3, heal: 2, support: 2, control: 1.5 },
     CALLIGRAPHY_PAINTING_SAGE: { channel: 3, control: 2.5, support: 2.5, sweep: 2, strike: 1 },
     DREAM_ILLUSION_WEAVER: { control: 3.5, summon: 2.5, channel: 2.5, evade: 2, strike: 1 },
-    MIND_SWORD_TELEKINESIS: { pierce: 3.5, flurry: 3, strike: 2.5, channel: 2, burst: 1.5 }
+    MIND_SWORD_TELEKINESIS: { pierce: 3.5, flurry: 3, strike: 2.5, channel: 2, burst: 1.5 },
+    STAR_ARCHER: { snipe: 3.5, barrage: 3, pierce: 2.5, strike: 2 },
+    SHADOW_ARCHER: { snipe: 3.5, dot: 3, evade: 2.5, pierce: 2 },
+    STAFF_GUARD: { guard: 3.5, sweep: 3, counter: 2.5, control: 2 },
+    CLOUD_DRAGON_SPEAR: {"pierce":3.5,"sweep":2.5,"flurry":2,"charge":2,"strike":1.5},
+    PURE_SWORD_SAINT: {"pierce":3,"flurry":3,"strike":2.5,"counter":2,"execute":1.5},
+    WAR_SPEAR_SOVEREIGN: {"pierce":3.5,"sweep":2.5,"charge":2.5,"strike":2,"guard":1.5},
+    IRON_BOW_SENTINEL: {"snipe":3.5,"pierce":3,"barrage":2.5,"strike":2,"guard":1},
+    OVERLORD_HEAVY_BLADE: {"strike":3.5,"sweep":3,"execute":2.5,"burst":2,"pierce":1.5},
+    SUN_BOW_DEITY: {"snipe":3.5,"pierce":3,"barrage":2.5,"support":2,"burst":1.5},
+    GOLDEN_ARHAT_STAFF: {"sweep":3,"guard":3,"counter":2.5,"support":2,"strike":2},
+    BLOOD_SPEAR_ASURA: {"pierce":3.5,"drain":3,"charge":2.5,"sweep":2,"burst":2},
+    ASHURA_SLAUGHTER_BLADE: {"execute":3.5,"flurry":3,"strike":2.5,"pierce":2,"evade":1.5},
+    ZITHER_HEART_BOW: {"snipe":3,"control":3,"channel":2.5,"barrage":2,"support":1.5},
+    HEART_BLADE_MEDITATION: {"execute":3.5,"snipe":3,"pierce":2.5,"strike":2,"counter":1.5},
+    VOID_SPEAR_MIND: {"pierce":3.5,"channel":2.5,"control":2.5,"sweep":2,"counter":1.5}
   };
   function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); }
   function rnd(h, k) { let x = (h ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0; return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
@@ -105,7 +127,7 @@
       parentNameTh: t.nameTh,
       nameTh: m.nameTh,
       stageReq: m.stageReq || 1,
-      reqMastery: m.reqMastery || 0,
+      reqMastery: m.reqMastery || m.minMastery || 0,
       reqCultStage: m.reqCultStage || t.reqTier || tier,
       tier,
       grade: t.grade || 'Common',
@@ -120,9 +142,9 @@
       cd: m.cd || A.cd,
       wind: m.wind || A.wind,
       hits: m.hits != null ? m.hits : A.hits,
-      M: m.M != null ? m.M : 1.2,
-      costPct: m.costPct != null ? m.costPct : Math.round(4 * A.cost * (1 + 0.45 * (tier - 1)) * 10) / 10,
-      pen: m.pen != null ? m.pen : (A.penAdd || 0),
+      M: m.M != null ? m.M : (m.mult != null ? m.mult : 1.2),
+      costPct: m.costPct != null ? m.costPct : (m.qiCost != null ? Math.round(m.qiCost * 0.45 * 10) / 10 : Math.round(4 * A.cost * (1 + 0.45 * (tier - 1)) * 10) / 10),
+      pen: m.pen != null ? m.pen : (m.penAdd != null ? m.penAdd : (A.penAdd || 0)),
       critAdd: m.critAdd || 0,
       aoe: m.aoe != null ? !!m.aoe : !!A.aoe,
       steal: m.steal != null ? m.steal : (A.steal || 0),
@@ -132,12 +154,12 @@
       self: !!(m.self || A.self),
       team: !!(m.team || A.team),
       channel: m.channel || null,
-      shield: m.shield || (arch === 'guard' ? Math.round((0.14 + 0.035 * (tier - 1)) * 100) / 100 : 0),
+      shield: m.shield || ((arch === 'guard' || arch === 'shield') ? Math.round((0.14 + 0.035 * (tier - 1)) * 100) / 100 : 0),
       heal: m.heal || (arch === 'heal' ? Math.round((0.16 + 0.04 * (tier - 1)) * 100) / 100 : 0),
-      support: m.support || (arch === 'support' ? { kind: 'morale', dur: 12 + tier * 2 } : null),
+      support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: (m.sx && m.sx.k) || 'morale', dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
       summon: m.summon || null,
-      rider: m.rider !== undefined ? m.rider : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null),
-      ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? el.ctrl : null),
+      rider: m.rider !== undefined ? m.rider : ((m.sx && m.sx.k && !A.self && !A.team) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null)),
+      ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? ((m.sx && m.sx.k) || el.ctrl) : null),
       shatterShield: !!m.shatterShield,
       qiRestorePct: m.qiRestorePct || 0,
       drawback: m.drawback || null,
@@ -156,8 +178,10 @@
     if (!t || t.passive || t.cat === 'PASSIVE') return null; if (cache[t.id]) return cache[t.id];
     const h = hash(t.id); let arch;
     if (t.combatArch && SK.ARCH[t.combatArch]) arch = t.combatArch;
-    else if (t.cat === 'FORBIDDEN_ART') arch = 'forbid';
-    else if (t.cat === 'LIGHTNESS_ART' || (t.cat === 'AUXILIARY_ART' && t.role === 'MOVEMENT_STEALTH_RECON')) arch = 'evade';
+    else if (t.cat === 'FORBIDDEN_ART' || t.cat === 'FORBIDDEN_TECHNIQUE') arch = 'forbid';
+    else if (t.cat === 'DEFENSIVE_TECHNIQUE') arch = (t.moveDefs && t.moveDefs[0] && SK.ARCH[t.moveDefs[0].arch]) ? t.moveDefs[0].arch : 'guard';
+    else if (t.cat === 'SUPPORT_TECHNIQUE') arch = (t.moveDefs && t.moveDefs[0] && SK.ARCH[t.moveDefs[0].arch]) ? t.moveDefs[0].arch : 'support';
+    else if (t.cat === 'MOVEMENT_TECHNIQUE' || t.cat === 'LIGHTNESS_ART' || (t.cat === 'AUXILIARY_ART' && t.role === 'MOVEMENT_STEALTH_RECON')) arch = 'evade';
     else if (t.cat === 'AUXILIARY_ART' && t.role === 'HEAL_SUPPORT_TRAINING') {
       const isBuff = /ปลุกขวัญ|อวยพร|หนุน|ประสาน|คุ้มกัน|กำลังใจ|ศรัทธา|เชื่อมใจ/.test(t.nameTh || '');
       arch = isBuff ? 'support' : 'heal';
@@ -256,7 +280,7 @@
     const cStage = n && n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : (n && n.tier ? n.tier : 1);
     let best = 1;
     for (const st of t.stages) {
-      const reqMas = st.reqMastery || 0;
+      const reqMas = st.reqMastery || st.minMastery || 0;
       const reqCult = st.reqCultStage || t.reqTier || t.tier || 1;
       if (pts >= reqMas && cStage >= reqCult) {
         best = Math.max(best, st.stage || 1);
@@ -284,7 +308,7 @@
       const cStage = n && n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : (n && n.tier ? n.tier : 1);
       return t.moveDefs
         .map((m, idx) => ({ m, idx }))
-        .filter(({ m }) => (m.stageReq || 1) <= uStage && (m.reqMastery || 0) <= pts && (!m.reqCultStage || cStage >= m.reqCultStage))
+        .filter(({ m }) => (m.stageReq || 1) <= uStage && (m.reqMastery || m.minMastery || 0) <= pts && (!m.reqCultStage || cStage >= m.reqCultStage))
         .map(({ m, idx }) => Object.assign({ moveIndex: idx }, SK.moveProfile(t, m)))
         .filter(Boolean);
     }

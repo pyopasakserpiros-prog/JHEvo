@@ -669,7 +669,7 @@
             const hx = Math.abs(nx - gx), hy = Math.abs(ny - gy);
             hDist = (hx + hy) - 0.5858 * (hx < hy ? hx : hy);
           }
-          heap.push(ng + 0.8 * hDist, nk);
+          heap.push(ng + 1.35 * hDist, nk);
         }
       }
     }

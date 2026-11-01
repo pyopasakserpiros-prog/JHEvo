@@ -26,7 +26,7 @@ M.pathSkillAffinity=(n,path,sub)=>{const profile=M.PROFILES[sub],preferred=profi
 M.weaponSkill=(n,type)=>M.skillRead(n,({FIST:'FIST_PALM'}[type||M.equippedType(n)]||type||M.equippedType(n)));
 M.skillEffects=n=>{
  const eqW=n.equip&&n.equip.WEAPON,cPath=n.cult&&n.cult.path,sk=n.h.skills,ms=n.martialSkills,sec=n._skillEffectsCache;
- const skSig=(sk.ritual||0)+(sk.SCRIPTURE||0)*2+(sk.SOUL_DIVINE||0)*3+(sk.MOVEMENT||0)*5+(sk.BODY_REFINING||0)*7+(sk.POISON||0)*11+(sk.MEDICINE||0)*13+(sk.BEAST_TAMING||0)*17+(sk.SWORD||0)*19+(sk.BLADE||0)*23+(sk.SPEAR||0)*29+(sk.FIST_PALM||0)*31+(ms?(ms.BOW||0)*37+(ms.STAFF||0)*41+(ms.FOCUS||0)*43:0);
+ const skSig=((sk.ritual||0)*4|0)+((sk.SCRIPTURE||0)*4|0)*2+((sk.SOUL_DIVINE||0)*4|0)*3+((sk.MOVEMENT||0)*4|0)*5+((sk.BODY_REFINING||0)*4|0)*7+((sk.POISON||0)*4|0)*11+((sk.MEDICINE||0)*4|0)*13+((sk.BEAST_TAMING||0)*4|0)*17+((sk.SWORD||0)*4|0)*19+((sk.BLADE||0)*4|0)*23+((sk.SPEAR||0)*4|0)*29+((sk.FIST_PALM||0)*4|0)*31+(ms?((ms.BOW||0)*4|0)*37+((ms.STAFF||0)*4|0)*41+((ms.FOCUS||0)*4|0)*43:0);
  if(sec&&sec.eqW===eqW&&sec.cPath===cPath&&sec.ver===n._ver&&sec.skSig===skSig)return sec.out;
  const v=id=>M.skillRead(n,id),weapon=M.weaponSkill(n),p={matk:(.8+.45*weapon/100-1)+v('SOUL_DIVINE')*.0015,acc:weapon*.0015,move:v('MOVEMENT')*.0018,eva:v('MOVEMENT')*.001+v('stealth')*.0013,hp:v('BODY_REFINING')*.0015,def:v('BODY_REFINING')*.0014+v('TALISMAN')*.0007,mdef:v('SOUL_DIVINE')*.0013+v('ARRAY')*.0009+v('TALISMAN')*.0005},f={crit:v('stealth')*.025};
  const out={p,f,beastDamage:1/(1+v('BEAST_TAMING')*.004),poisonPower:1+v('POISON')*.004,cultivation:1+v('ritual')*(cPath==='GOD'?.0035:.001),medicine:1+v('MEDICINE')*.004,study:1+v('SCRIPTURE')*.003,music:1+v('arts')*.005};

@@ -1,3 +1,8 @@
 .agent_cmd
 .agent_out
 .agent_status
+*.zip
+inspect_gemini/
+test/results/
+.DS_Store
+node_modules/

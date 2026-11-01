@@ -53,6 +53,7 @@
     MIND_SWORD_TELEKINESIS: { p: { matk: .16, acc: .1, def: -.06 }, f: { pen: 20, crit: 8, critDmg: 18 } }
   };
 
+  Object.assign(SUBFX, (JD.EXPANSION && JD.EXPANSION.subStats) || {}, (JD.MARTIAL && JD.MARTIAL.subStats) || {});
   ST.SUBFX = SUBFX;
 
   /* ---------- อุปกรณ์: ค่าสเตตัสต่อชิ้น (คำนวณเมื่อใช้ครั้งแรก เก็บไว้ในชิ้นนั้น) ---------- */
@@ -137,8 +138,9 @@
       let techT = 0;
       (g.MARTIAL ? g.MARTIAL.activeTechs(n) : c.techs).forEach(id => { const t = CULT.tech(id); if (!t) return; techT += t.cat === 'COMBAT_TECHNIQUE' ? t.tier : 0;
         if (g.MARTIAL && !g.MARTIAL.conditionMatches(n, t)) return;
-        if (t.cat === 'LIGHTNESS_ART') { add('move', 'วิชาเบาตัว「' + t.nameTh + '」', 'f', 3 + 2 * t.tier); add('eva', 'วิชาเบาตัว「' + t.nameTh + '」', 'p', 0.02 * t.tier); }
-        else if (t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') add('mdef', 'วิชาเสริม「' + t.nameTh + '」', 'p', 0.012 * t.tier); });
+        if (t.cat === 'LIGHTNESS_ART' || t.cat === 'MOVEMENT_TECHNIQUE') { add('move', 'วิชาเบาตัว「' + t.nameTh + '」', 'f', 3 + 2 * t.tier); add('eva', 'วิชาเบาตัว「' + t.nameTh + '」', 'p', 0.02 * t.tier); }
+        else if (t.cat === 'DEFENSIVE_TECHNIQUE') { add('def', 'วิชาตั้งรับ「' + t.nameTh + '」', 'p', 0.018 * t.tier); add('mdef', 'วิชาตั้งรับ「' + t.nameTh + '」', 'p', 0.015 * t.tier); }
+        else if ((t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') || t.cat === 'SUPPORT_TECHNIQUE') add('mdef', 'วิชาเสริม「' + t.nameTh + '」', 'p', 0.015 * t.tier); });
       const tf = Math.min(0.3, 0.03 * techT); add('atk', 'วิชาต่อสู้ที่เรียน (Σระดับ ' + techT + ')', 'p', tf); add('matk', 'วิชาต่อสู้ที่เรียน', 'p', tf);
       if (c.track) {
         const trRealm = CULT.trackRealm(n);
@@ -254,8 +256,9 @@
         const t = CULT.tech(techs[i]); if (!t) continue;
         if (t.cat === 'COMBAT_TECHNIQUE') techT += t.tier;
         else if (g.MARTIAL && !g.MARTIAL.conditionMatches(n, t)) continue;
-        else if (t.cat === 'LIGHTNESS_ART') { addF('move', 3 + 2 * t.tier); addP('eva', 0.02 * t.tier); }
-        else if (t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') addP('mdef', 0.012 * t.tier);
+        else if (t.cat === 'LIGHTNESS_ART' || t.cat === 'MOVEMENT_TECHNIQUE') { addF('move', 3 + 2 * t.tier); addP('eva', 0.02 * t.tier); }
+        else if (t.cat === 'DEFENSIVE_TECHNIQUE') { addP('def', 0.018 * t.tier); addP('mdef', 0.015 * t.tier); }
+        else if ((t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') || t.cat === 'SUPPORT_TECHNIQUE') addP('mdef', 0.015 * t.tier);
       }
       const tf = Math.min(0.3, 0.03 * techT); addP('atk', tf); addP('matk', tf);
       if (c.track) {

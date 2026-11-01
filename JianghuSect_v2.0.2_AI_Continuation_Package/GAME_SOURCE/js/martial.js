@@ -58,7 +58,19 @@ const profiles={
  MIND_SWORD_TELEKINESIS:[{reflex:24,spiritualFoundation:20},{SWORD:.20,ARRAY:.22},'late',['SWORD','FOCUS'],['ROBE']],
  STAR_ARCHER:[{reflex:24,dexterity:20},{hunting:.28,survival:.20},'late',['BOW'],['LIGHT']],
  SHADOW_ARCHER:[{agility:24,reflex:22,explosiveness:18},{hunting:.30,POISON:.18,survival:.18},'early',['BOW'],['LIGHT']],
- STAFF_GUARD:[{toughness:26,endurance:24,speed:-6},{mining:.28,FORGING:.18},'early',['STAFF'],['HEAVY']]
+ STAFF_GUARD:[{toughness:26,endurance:24,speed:-6},{mining:.28,FORGING:.18},'early',['STAFF'],['HEAVY']],
+ CLOUD_DRAGON_SPEAR:[{"reflex":22,"agility":20,"speed":14},{"SPEAR":0.26,"survival":0.16},"late",["SPEAR"],["LIGHT","ROBE"]],
+ PURE_SWORD_SAINT:[{"reflex":24,"dexterity":22,"agility":12},{"SWORD":0.28,"BLADE":0.18},"steady",["SWORD","BLADE"],["LIGHT","ROBE"]],
+ WAR_SPEAR_SOVEREIGN:[{"strength":24,"endurance":20,"reflex":16},{"SPEAR":0.28,"STAFF":0.18,"hunting":0.18,"FORGING":0.12},"steady",["SPEAR","STAFF"],["HEAVY","LIGHT"]],
+ IRON_BOW_SENTINEL:[{"strength":22,"dexterity":22,"toughness":16},{"BOW":0.28,"hunting":0.24,"FORGING":0.12},"early",["BOW"],["HEAVY","LIGHT"]],
+ OVERLORD_HEAVY_BLADE:[{"strength":28,"explosiveness":22,"endurance":14},{"BLADE":0.28,"mining":0.18,"FORGING":0.14},"early",["BLADE"],["HEAVY"]],
+ SUN_BOW_DEITY:[{"dexterity":22,"reflex":20,"spiritualFoundation":18},{"BOW":0.26,"ritual":0.2,"hunting":0.15},"steady",["BOW"],["LIGHT","ROBE"]],
+ GOLDEN_ARHAT_STAFF:[{"toughness":22,"vitality":20,"endurance":18},{"STAFF":0.26,"FIST_PALM":0.18,"ritual":0.18},"steady",["STAFF","FIST"],["HEAVY","ROBE"]],
+ BLOOD_SPEAR_ASURA:[{"strength":22,"explosiveness":24,"vitality":16},{"SPEAR":0.28,"hunting":0.22},"early",["SPEAR","BLADE"],["HEAVY","LIGHT"]],
+ ASHURA_SLAUGHTER_BLADE:[{"explosiveness":26,"agility":22,"strength":18},{"BLADE":0.3,"survival":0.18,"stealth":0.14},"early",["BLADE","FIST"],["LIGHT"]],
+ ZITHER_HEART_BOW:[{"dexterity":24,"spiritualFoundation":20,"reflex":18},{"BOW":0.25,"FOCUS":0.22,"arts":0.25},"late",["BOW","FOCUS"],["ROBE","LIGHT"]],
+ HEART_BLADE_MEDITATION:[{"reflex":26,"dexterity":24,"spiritualFoundation":16},{"BLADE":0.26,"FOCUS":0.2,"SCRIPTURE":0.16},"late",["BLADE","FOCUS"],["LIGHT","ROBE"]],
+ VOID_SPEAR_MIND:[{"spiritualFoundation":24,"reflex":20,"meridianCapacity":18},{"SPEAR":0.25,"STAFF":0.2,"ARRAY":0.18},"late",["SPEAR","STAFF"],["ROBE","LIGHT"]]
 };
 M.PATHS=paths;M.PROFILES=profiles;
 
@@ -479,7 +491,7 @@ M.elementalEfficiency=(n,p,target)=>{
 };
 
 /* ---------- Technique / Subpath / Equipment Synergy Authority ---------- */
-M.evaluateSynergies=n=>{
+M.activeSynergies=M.evaluateSynergies=n=>{
  if(!n||!n.cult||!n.cult.sub||n.cult.sub==='NONE'){const e=[];e.active=e;return e;}
  const c=n.cult,eq=n.equip||{};
  const sc=n._synCache;
@@ -762,5 +774,5 @@ M.classifyGearForNpc=(W,n,it,price)=>{
 };
 M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n)};};
 // Mint/catalog boundary types also cover historical recipe-only equipment.
-const oldMint=ECO.mintGear;ECO.mintGear=(r,q)=>{const it=oldMint(r,q),source=ECO.itemById[r&&r.outItemId]||r||{};it.gearType=source.gearType||D.classify(it.slot,it.nameTh);if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;return it;};
+const oldMint=ECO.mintGear;ECO.mintGear=(r,q)=>{const it=oldMint(r,q),source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
 })(typeof globalThis!=='undefined'?globalThis:this);

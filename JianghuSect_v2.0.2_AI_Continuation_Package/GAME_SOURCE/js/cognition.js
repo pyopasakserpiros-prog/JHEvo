@@ -740,7 +740,7 @@
 
   function complete(W, n, goal) {
     if (!goal || goal.expiresAt <= W.t || W.t - (goal.lastProgress ?? goal.createdAt) > 3 * 1440) return true;
-    if (goal.id === 'scripture') return !n.cult || n.cult.techs.includes(goal.targetId) || !W.sect.library.includes(goal.targetId) || !CULT.learnable(n, W.sect.library).includes(goal.targetId);
+    if (goal.id === 'scripture') return !n.cult || n.cult.techs.includes(goal.targetId) || !W.sect.library.includes(goal.targetId) || !CULT.learnable(n, [goal.targetId]).length;
     if (goal.id === 'gear_upgrade') {
       if (!n.cult) return true;
       const cur = n.equip && n.equip[goal.slot || 'WEAPON'];
@@ -907,7 +907,7 @@
       }
       // Help injured friend goal (check empathy first, and relationScore before hpMax!)
       if (E(n, 'personality.empathy') >= 48) {
-        const injuredFriend = W.npcs.find(x => x && x.id !== n.id && !x.dead && !x.away && SECT.relationScore(n, x) >= 25 && x.h.state.hp < CULT.hpMax(x) * 0.55);
+        const relMap = n.h.mind.relations || {}; const injuredFriend = W.npcs.find(x => x && x.id !== n.id && !x.dead && !x.away && relMap[x.id] && SECT.relationScore(n, x) >= 25 && x.h.state.hp < CULT.hpMax(x) * 0.55);
         if (injuredFriend) {
           add('help_friend', 'หาโอสถช่วยรักษา ' + injuredFriend.h.name.given, 0.25 + (E(n, 'personality.empathy') + Math.max(0, SECT.relationScore(n, injuredFriend))) / 180, injuredFriend.id);
         }
@@ -922,7 +922,7 @@
       // Mentor disciple goal
       if (n.rank >= 3 && E(n, 'social.teaching') >= 42) {
         const discId = (n.h.life.family.disciples || []).find(id => W.byId[id] && !W.byId[id].dead && !W.byId[id].away);
-        const junior = discId ? W.byId[discId] : W.npcs.find(x => !x.dead && !x.away && x.rank < n.rank && x.cult && n.cult && x.cult.path === n.cult.path && SECT.relationScore(n, x) >= 15);
+        const relMap2 = n.h.mind.relations || {}; const junior = discId ? W.byId[discId] : W.npcs.find(x => !x.dead && !x.away && x.rank < n.rank && x.cult && n.cult && x.cult.path === n.cult.path && relMap2[x.id] && SECT.relationScore(n, x) >= 15);
         if (junior) {
           const rel = n.h.mind.relations[junior.id] || {};
           add('mentor_disciple', 'ชี้แนะวิชาแก่ ' + junior.h.name.given, 0.22 + (E(n, 'social.teaching') + E(n, 'interests.teaching')) / 190, junior.id, { startTaught: n.stats?.taughtCount || 0, startRelN: rel.n || 0 });
@@ -930,7 +930,7 @@
       }
       // Peaceful social bond goal
       if (asp && asp.id === 'peaceful_companion') {
-        const friend = W.npcs.find(x => x && x.id !== n.id && !x.dead && !x.away && SECT.relationScore(n, x) >= 10);
+        const relMap3 = n.h.mind.relations || {}; const friend = W.npcs.find(x => x && x.id !== n.id && !x.dead && !x.away && relMap3[x.id] && SECT.relationScore(n, x) >= 10);
         if (friend) {
           const rel = n.h.mind.relations[friend.id] || {};
           add('social_bond', 'กระชับมิตรไมตรีกับ ' + friend.h.name.given, 0.35 + E(n, 'values.familyClan') / 180, friend.id, { startRelN: rel.n || 0, startRelA: rel.a || 0 });
@@ -1007,21 +1007,56 @@
   /* ============================================================================
    * 6. UTILITY MODIFIERS & TRUE PROGRESS VERIFICATION
    * ============================================================================ */
+  const ROLE_RELEVANT_ACTS = {
+    commander: ['duty', 'practice', 'guard'], provision: ['cook', 'farm'], herbal: ['farm', 'forage'],
+    wildwarden: ['guard', 'wildHunt'], steward: ['duty'], alchemy: ['brew', 'brewBasic'],
+    forge: ['forge'], scripture: ['study', 'guidedStudy'], martial: ['practice', 'pair'],
+    guard: ['guard'], healer: ['duty', 'shareMedicine'], mission: ['duty'], treasury: ['duty'],
+    registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty']
+  };
   COG.modifiers = (W, n, id) => {
     const out = [], push = (why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }, s = n.h.state, c = n.cognition;
     let mc = n._cogModCtx;
-    const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty;
-    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist) {
+    const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, curGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, cpNow = n.cp || 0;
+    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow) {
       const r0 = COG.role(W, n);
+      const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
+      const disc0 = E(n, 'personality.discipline') / 100;
+      const safe0 = safe(n);
+      let goalActs = null, goalVal = 0, goalShopPen = 0;
+      if (safe0 && curGoal) {
+        const t = curGoal.id === 'scripture' ? CULT.tech(curGoal.targetId) : null;
+        const price = curGoal.id === 'scripture' ? (t ? g.CPE.techPrice(W, t) : 0) : curGoal.id === 'gear_upgrade' ? (curGoal.price || 0) : 0;
+        goalActs = curGoal.id === 'scripture' ? (cpNow >= price ? ['study', 'guidedStudy'] : INCOME)
+          : curGoal.id === 'gear_upgrade' ? (cpNow >= price ? ['shop'] : INCOME)
+          : curGoal.id === 'service' ? ['duty']
+          : curGoal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge']
+          : curGoal.id === 'rival' ? TRAIN
+          : curGoal.id === 'breakthrough' ? ['cultivate', 'breakthrough', 'shop', 'pray', 'paidTraining']
+          : curGoal.id === 'help_friend' ? ['shareMedicine', 'giftItem', 'personalBrew', 'shop']
+          : curGoal.id === 'mentor_disciple' ? ['pair', 'duty']
+          : curGoal.id === 'social_bond' ? ['pair', 'leisure', 'giftItem']
+          : curGoal.id === 'investigate_clue' ? ['investigateClueLocal', 'meetVisitor', 'practice', 'study', 'cultivate']
+          : curGoal.id === 'crisis' ? (curGoal.targetId === 'meal' ? ['cook', 'farm'] : curGoal.targetId === 'grain' ? ['farm'] : curGoal.source === 'alchemy' ? ['brew', 'brewBasic'] : ['forage', 'donate', 'mine'])
+          : REST;
+        goalVal = 0.35 + E(n, 'intellect.planning') / 180 + disc0 / 2.5;
+        if (curGoal.id === 'scripture' && cpNow < price) goalShopPen = -disc0 * (100 / 140);
+      }
+      const defCache = {};
+      const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist,
-        safe: safe(n), r: r0,
-        duty: (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300,
-        disc: E(n, 'personality.discipline') / 100,
-        defCache: {}
+        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow,
+        safe: safe0, r: r0, duty: duty0, disc: disc0,
+        dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
+        relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
+        goalActs, goalVal, goalShopPen, defCache,
+        hour: hour0, night: hour0 >= 21 || hour0 < 5,
+        socEvening: (hour0 >= 17 && hour0 < 21) ? E(n, 'temperament.sociability') / 300 : 0,
+        freeVal: E(n, 'values.freedom') / 100,
+        weatherPen: (['rain', 'snow'].includes(W.weather?.kind)) ? (-0.12 - E(n, 'personality.caution') / 800) : 0
       };
     }
-    const r = mc.r, goal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null;
+    const r = mc.r, goal = curGoal;
     if (!mc.safe) {
       if (['heal', 'sleep', 'eat', 'personalPillUse', 'shop'].includes(id)) push('ร่างกายเร่งด่วนสำคัญกว่างานหรือความชอบ', 2.4);
       if (['wildHunt', 'paidTraining', 'practice', 'personalBrew', 'duty', 'flatter', 'giftItem'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
@@ -1029,84 +1064,62 @@
     }
     const duty = mc.duty;
     if (r.id !== 'member') {
-      if (id === 'duty') push('หน้าที่ของ' + r.title, (0.1 + duty * 0.55 + roleNeed(W, n) * duty) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1));
-      const relevant = {
-        commander: ['duty', 'practice', 'guard'], provision: ['cook', 'farm'], herbal: ['farm', 'forage'],
-        wildwarden: ['guard', 'wildHunt'], steward: ['duty'], alchemy: ['brew', 'brewBasic'],
-        forge: ['forge'], scripture: ['study', 'guidedStudy'], martial: ['practice', 'pair'],
-        guard: ['guard'], healer: ['duty', 'shareMedicine'], mission: ['duty'], treasury: ['duty'],
-        registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty']
-      }[r.id] || [];
-      if (relevant.includes(id)) push('งานในความรับผิดชอบ', duty * 0.25);
+      if (id === 'duty') push('หน้าที่ของ' + r.title, mc.dutyActVal);
+      if (mc.relActs && mc.relActs.includes(id)) push('งานในความรับผิดชอบ', duty * 0.25);
     }
-    // Aspiration subtle alignment
     const aspId = c?.aspiration?.id;
-    if (aspId === 'peaceful_companion' && ['pair', 'leisure'].includes(id)) push('วิถีชีวิต: รักความสงบและมิตรภาพ', 0.18);
-    if (aspId === 'martial_master' && ['practice', 'skillDrill'].includes(id)) push('ปณิธาน: ขัดเกลาวิชายุทธ์', 0.18);
-    if (aspId === 'benevolent_healer' && ['shareMedicine', 'heal'].includes(id)) push('ปณิธาน: ช่วยเหลือผู้บาดเจ็บ', 0.22);
+    if (aspId === 'peaceful_companion' && (id === 'pair' || id === 'leisure')) push('วิถีชีวิต: รักความสงบและมิตรภาพ', 0.18);
+    else if (aspId === 'martial_master' && (id === 'practice' || id === 'skillDrill')) push('ปณิธาน: ขัดเกลาวิชายุทธ์', 0.18);
+    else if (aspId === 'benevolent_healer' && (id === 'shareMedicine' || id === 'heal')) push('ปณิธาน: ช่วยเหลือผู้บาดเจ็บ', 0.22);
 
     if (goal) {
-      const t = goal.id === 'scripture' ? CULT.tech(goal.targetId) : null;
-      const price = goal.id === 'scripture' ? (t ? g.CPE.techPrice(W, t) : 0) : goal.id === 'gear_upgrade' ? (goal.price || 0) : 0;
-      let actions = goal.id === 'scripture' ? ((n.cp || 0) >= price ? ['study', 'guidedStudy'] : INCOME)
-        : goal.id === 'gear_upgrade' ? ((n.cp || 0) >= price ? ['shop'] : INCOME)
-        : goal.id === 'service' ? ['duty']
-        : goal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge']
-        : goal.id === 'rival' ? TRAIN
-        : goal.id === 'breakthrough' ? ['cultivate', 'breakthrough', 'shop', 'pray', 'paidTraining']
-        : goal.id === 'help_friend' ? ['shareMedicine', 'giftItem', 'personalBrew', 'shop']
-        : goal.id === 'mentor_disciple' ? ['pair', 'duty']
-        : goal.id === 'social_bond' ? ['pair', 'leisure', 'giftItem']
-        : goal.id === 'investigate_clue' ? ['investigateClueLocal', 'meetVisitor', 'practice', 'study', 'cultivate']
-        : goal.id === 'crisis' ? (goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic'] : ['forage', 'donate', 'mine'])
-        : REST;
-      if (actions.includes(id)) push('เป้าหมาย: ' + goal.title, 0.35 + E(n, 'intellect.planning') / 180 + E(n, 'personality.discipline') / 250);
-      if (id === 'shop' && goal.id === 'scripture' && (n.cp || 0) < price) push('เก็บแต้มไว้เรียนวิชาที่ตั้งใจ', -E(n, 'personality.discipline') / 140);
+      if (mc.goalActs && mc.goalActs.includes(id)) push('เป้าหมาย: ' + goal.title, mc.goalVal);
+      if (id === 'shop' && mc.goalShopPen) push('เก็บแต้มไว้เรียนวิชาที่ตั้งใจ', mc.goalShopPen);
     }
     if (c && c.cluePrep && c.cluePrep.until > W.t && c.cluePrep.recommendedAction === id) {
       push('เตรียมความพร้อมเพื่อสืบเบาะแส', 0.28);
     }
-
     // Office plans & actionable orders with live authority check and cached deference
-    const plans = W.sect.officePlans;
-    if (plans) {
-      for (const post in plans) {
-        const plan = plans[post];
-        if (!plan || plan.expiresAt <= W.t || !plan.actions || !plan.actions.includes(id)) continue;
-        const authorizedId = (W.sect.delegations && W.sect.delegations[post] && W.sect.delegations[post].until > W.t)
-          ? W.sect.delegations[post].delegateId
-          : (post === 'master' ? W.sect.masterId : post === 'deputy' ? W.sect.deputyId : W.sect.posts[post]);
-        if (authorizedId !== plan.by) continue;
-        const owner = W.byId[plan.by];
-        if (!COG.available(owner, W)) continue;
-        const defObj = owner.id !== n.id ? (mc.defCache[owner.id] || (mc.defCache[owner.id] = COG.deferenceToward(W, n, owner))) : { deference: 50 };
-        push('ข้อเสนอฝ่าย: ' + plan.title, 0.08 + duty * 0.16 + (defObj.deference / 100) * 0.08);
+    if (mc.safe) {
+      const plans = W.sect.officePlans;
+      if (plans) {
+        for (const post in plans) {
+          const plan = plans[post];
+          if (!plan || plan.expiresAt <= W.t || !plan.actions || !plan.actions.includes(id)) continue;
+          const authorizedId = (W.sect.delegations && W.sect.delegations[post] && W.sect.delegations[post].until > W.t)
+            ? W.sect.delegations[post].delegateId
+            : (post === 'master' ? W.sect.masterId : post === 'deputy' ? W.sect.deputyId : W.sect.posts[post]);
+          if (authorizedId !== plan.by) continue;
+          const owner = W.byId[plan.by];
+          if (!COG.available(owner, W)) continue;
+          const defObj = owner.id !== n.id ? (mc.defCache[owner.id] || (mc.defCache[owner.id] = COG.deferenceToward(W, n, owner))) : { deference: 50 };
+          push('ข้อเสนอฝ่าย: ' + plan.title, 0.08 + duty * 0.16 + (defObj.deference / 100) * 0.08);
+        }
+      }
+      const orders = W.sect.officeOrders;
+      if (orders) {
+        for (const post in orders) {
+          const ord = orders[post];
+          if (!ord || ord.expiresAt <= W.t || (ord.targetNpcId && ord.targetNpcId !== n.id) || !ord.actions || !ord.actions.includes(id)) continue;
+          const officer = W.byId[ord.by];
+          if (!COG.available(officer, W) || !COG.hasAuthority(W, officer, post)) continue;
+          const def = mc.defCache[officer.id] || (mc.defCache[officer.id] = COG.deferenceToward(W, n, officer));
+          const compliance = clamp(0.15 + duty * 0.25 + def.deference / 250 + def.fear / 300 - (def.resentment / 400), 0.05, 0.65);
+          push('คำสั่ง' + (OFFICE[post]?.[0] || 'ฝ่าย') + ': ' + ord.title, compliance);
+        }
       }
     }
-    const orders = W.sect.officeOrders;
-    if (orders) {
-      for (const post in orders) {
-        const ord = orders[post];
-        if (!ord || ord.expiresAt <= W.t || (ord.targetNpcId && ord.targetNpcId !== n.id) || !ord.actions || !ord.actions.includes(id)) continue;
-        const officer = W.byId[ord.by];
-        if (!COG.available(officer, W) || !COG.hasAuthority(W, officer, post)) continue;
-        const def = mc.defCache[officer.id] || (mc.defCache[officer.id] = COG.deferenceToward(W, n, officer));
-        const compliance = clamp(0.15 + duty * 0.25 + def.deference / 250 + def.fear / 300 - (def.resentment / 400), 0.05, 0.65);
-        push('คำสั่ง' + (OFFICE[post]?.[0] || 'ฝ่าย') + ': ' + ord.title, compliance);
-      }
-    }
-
-    const hour = (W.t % 1440) / 60, night = hour >= 21 || hour < 5, discipline = mc.disc;
-    if (night && ['duty', 'farm', 'mine', 'forage'].includes(id)) push('ยามดึกควรพัก', -0.25 * discipline);
+    const hour = mc.hour, night = mc.night, discipline = mc.disc;
+    if (night && (id === 'duty' || id === 'farm' || id === 'mine' || id === 'forage')) push('ยามดึกควรพัก', -0.25 * discipline);
     if (hour >= 8 && hour < 17 && id === 'duty') push('ช่วงเวลาปฏิบัติหน้าที่', 0.15 + 0.15 * discipline);
-    if (hour >= 17 && hour < 21 && ['pair', 'leisure'].includes(id)) push('ยามเย็นอยากผ่อนคลาย', E(n, 'temperament.sociability') / 300);
+    if (mc.socEvening && (id === 'pair' || id === 'leisure')) push('ยามเย็นอยากผ่อนคลาย', mc.socEvening);
     if (s.stress > 60) {
-      if (REST.includes(id)) push('ผ่อนคลายความเครียด', (s.stress - 60) / 70 * (0.5 + E(n, 'values.freedom') / 100));
+      if (REST.includes(id)) push('ผ่อนคลายความเครียด', (s.stress - 60) / 70 * (0.5 + mc.freeVal));
       if (id === 'duty') push('เหนื่อยล้าแต่ยังชั่งใจเรื่องหน้าที่', -(s.stress - 60) / 120 * (1 - duty));
     }
-    if ((n.grief || 0) > 0 && ['pray', 'leisure'].includes(id)) push('กำลังโศกเศร้าและต้องการสงบใจ', Math.min(0.6, n.grief / 10));
+    if ((n.grief || 0) > 0 && (id === 'pray' || id === 'leisure')) push('กำลังโศกเศร้าและต้องการสงบใจ', Math.min(0.6, n.grief / 10));
     if (s.anger > 45 && id === 'pair') push('อารมณ์ร้อนอยากพูดคุยหรือระบาย', Math.min(0.3, (s.anger - 45) / 180));
-    if (['farm', 'mine', 'wildHunt', 'forage'].includes(id) && ['rain', 'snow'].includes(W.weather?.kind)) push('อากาศทำให้งานกลางแจ้งไม่น่าสบาย', -0.12 - E(n, 'personality.caution') / 800);
+    if (mc.weatherPen && (id === 'farm' || id === 'mine' || id === 'wildHunt' || id === 'forage')) push('อากาศทำให้งานกลางแจ้งไม่น่าสบาย', mc.weatherPen);
     return out;
   };
 

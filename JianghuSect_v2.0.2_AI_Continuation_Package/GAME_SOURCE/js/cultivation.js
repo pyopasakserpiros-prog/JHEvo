@@ -247,6 +247,7 @@
         weights: { [norm.element]: 1.0 }
       };
     }
+    if (def.elementalRole === 'EXPLICIT_NON_ELEMENTAL') return NEUTRAL_PROFILE;
     if (def.elementProfile && typeof def.elementProfile === "object") {
       const ep = def.elementProfile;
       if (!ELEM.VALID_MODES.includes(ep.mode)) {
@@ -313,7 +314,8 @@
     return c;
   }
   function resetNpcCache(npc) {
-    NPC_ELEM_CACHE.set(npc, { ready: true, compat: Object.create(null), cap: Object.create(null), effMast: Object.create(null) });
+    const h = npc && npc.h;
+    NPC_ELEM_CACHE.set(npc, { ready: true, rootRef: h ? h.root : null, sysRef: npc && npc.ext ? npc.ext.elementalSystem : null, traitsLen: h && Array.isArray(h.traits) ? h.traits.length : 0, compat: Object.create(null), cap: Object.create(null), effMast: Object.create(null), pathScores: null });
   }
   ELEM.getProfile = def => {
     if (!def) return NEUTRAL_PROFILE;
@@ -761,8 +763,8 @@
         && Number.isFinite(access[el].affinity) && Array.isArray(access[el].sources));
   }
 
-  const ASTRAL_SUBS = new Set(['ASTRAL_ARRAY', 'TIME_VOID', 'FATE_ORACLE', 'MIND_SWORD_TELEKINESIS', 'STAR_ARCHER']);
-  const BLOOD_SUBS = new Set(['BLOOD_DEMON', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'HEAVEN_DEVOURING_DEMON']);
+  const ASTRAL_SUBS = new Set(['ASTRAL_ARRAY', 'TIME_VOID', 'FATE_ORACLE', 'MIND_SWORD_TELEKINESIS', 'STAR_ARCHER', 'VOID_SPEAR_MIND']);
+  const BLOOD_SUBS = new Set(['BLOOD_DEMON', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'HEAVEN_DEVOURING_DEMON', 'BLOOD_SPEAR_ASURA']);
 
   ELEM.syncSpecialAccess = npc => {
     if (!npc || !npc.h) return null;
@@ -825,6 +827,7 @@
     if (!npc || !npc.h) return null;
     const _ec = NPC_ELEM_CACHE.get(npc);
     const h = npc.h;
+    if (!opts && _ec && _ec.ready && _ec.rootRef === h.root && _ec.sysRef === (npc.ext && npc.ext.elementalSystem) && _ec.traitsLen === (Array.isArray(h.traits) ? h.traits.length : 0)) return npc.ext.elementalSystem;
     const rootReady = ELEM.isCanonicalRootObject(h.root);
     const sysReady = npc.ext && elementalSystemIsReady(npc.ext.elementalSystem);
     const activeCapTraitIds = ['TR_ROOT_CAPACITY_DUAL', 'TR_ROOT_CAPACITY_TRIPLE', 'TR_ROOT_CAPACITY_FOURFOLD'];
@@ -907,7 +910,7 @@
     return sys;
   };
   ELEM.ensureNpcElementalState = ELEM.ensureNpc;
-  ELEM.invalidateNpcCache = resetNpcCache;
+  ELEM.invalidateNpcCache = npc => { NPC_ELEM_CACHE.delete(npc); };
 
   ELEM.setRootProfile = (npc, spec) => {
     if (!npc || !npc.h) return { ok: false, errors: ['ไม่พบตัวละครสำหรับแก้ไขรากวิญญาณ'], reason: 'ไม่พบตัวละครสำหรับแก้ไขรากวิญญาณ' };
@@ -1669,6 +1672,8 @@
     DREAM_ILLUSION_WEAVER: { aff: { SOUL_DIVINE: .8, YIN_SHADOW: .5, WIND: .4 }, p: { 'intellect.intuition': .7, 'personality.creativity': .6, 'personality.curiosity': .5 } },
     MIND_SWORD_TELEKINESIS: { aff: { SWORD: .9, SOUL_DIVINE: .8, ASTRAL: .4 }, p: { 'intellect.focus': .8, 'intellect.willpower': .6, 'values.martialPeak': .5 } }
   };
+  Object.assign(SUBPREF, (JD.EXPANSION && JD.EXPANSION.subPreferences) || {}, (JD.MARTIAL && JD.MARTIAL.subPreferences) || {});
+  CULT.SUBPREF = SUBPREF;
   CULT.subList = [];
   Object.keys(CULT.PATHS).forEach(pid => CULT.PATHS[pid].subPaths.forEach(s => CULT.subList.push({ path: pid, sub: s })));
 
@@ -1679,6 +1684,9 @@
   /** คะแนนความอยากเดินสายย่อย (ทำไมคนนี้เลือกวิถีนี้ — อธิบายได้ รวมรากวิญญาณและธาตุ) */
   CULT.pathScores = (npc, bias) => {
     ELEM.ensureNpc(npc);
+    const _ec = getNpcCache(npc);
+    const cPath = npc.cult ? npc.cult.path : '', cSub = npc.cult ? npc.cult.sub : '', cSt = npc.cult ? npc.cult.stage : 0;
+    if (!bias && _ec.pathScores && _ec.psVer === npc._ver && _ec.psPath === cPath && _ec.psSub === cSub && _ec.psSt === cSt) return _ec.pathScores;
     const out = [];
     const body = (HC.eff(npc, 'physiology.strength') + HC.eff(npc, 'physiology.toughness') + HC.eff(npc, 'physiology.endurance')) / 3;
     const qi = (HC.eff(npc, 'physiology.meridianCapacity') + HC.eff(npc, 'physiology.spiritualFoundation') + HC.eff(npc, 'intellect.comprehension')) / 3;
@@ -1707,7 +1715,9 @@
       if (g.MARTIAL && g.MARTIAL.pathSkillAffinity) s += g.MARTIAL.pathSkillAffinity(npc, path, sub.id);
       out.push({ path, sub: sub.id, score: s, elemScore: +elemScore.toFixed(2), elemTier: elemComp.tier });
     });
-    return out.sort((a, b) => b.score - a.score);
+    out.sort((a, b) => b.score - a.score);
+    if (!bias) { _ec.pathScores = out; _ec.psVer = npc._ver; _ec.psPath = cPath; _ec.psSub = cSub; _ec.psSt = cSt; }
+    return out;
   };
   CULT.choosePath = (npc, rng, bias) => {
     const sc = CULT.pathScores(npc, bias);
