@@ -17,7 +17,7 @@ The install command uses the normal Termux package manager and installs only mis
 
 Use your existing Antigravity launcher from this project root. The official CLI command is `agy`; community Termux ports may use different wrappers. Do not reinstall a working CLI merely because its launcher has a different name. In the official interactive CLI, use `/skills reload` or start a new conversation after adding skills. A skill such as `web-testing` becomes available as `/web-testing`. Wrapper/older-version behavior can differ; check its help if commands are absent.
 
-Antigravity's current documentation supports the same `.agents/skills/<name>/SKILL.md` location used by Codex. There is no need to duplicate all skills globally or download another bundle. The routing/context guidance is in `AGENTS.md`; explicitly direct a wrapper that does not discover that file to read it. If already using a `GEMINI.md`, preserve its instructions and reference `AGENTS.md` there rather than replacing it or copying the whole patch prompt into every turn.
+Antigravity's current documentation supports the same `.agents/skills/<name>/SKILL.md` location used by Codex. There is no need to duplicate all skills globally or download another bundle. The routing/context guidance is in `AGENTS.md`; explicitly direct a wrapper that does not discover that file to read it. If already using a `GEMINI.md`, preserve its instructions and reference `AGENTS.md` there rather than replacing it or copying the whole patch prompt into every turn. After updating a previously downloaded checkout, use `git pull` in that clone, then run `/skills reload` from an Antigravity CLI session rooted at the checkout; do not make another clone.
 
 ## Develop and inspect locally
 

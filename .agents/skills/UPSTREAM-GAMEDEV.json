@@ -1,0 +1,19 @@
+{
+  "upstream": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills",
+  "commit": "19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9",
+  "license": "Apache-2.0",
+  "installed": {
+    "procedural-gen/SKILL.md": {
+      "source": "skills/disciplines/procedural-gen/SKILL.md",
+      "sha256": "4bd422eff2c28dbb12e0edf7ef68f3e98bcbbdf4d430815ba6da2d0692630cc4"
+    },
+    "game-ui-ux/SKILL.md": {
+      "source": "skills/disciplines/game-ui-ux/SKILL.md",
+      "sha256": "54816447c4d07f9ab65782ebb7138dd0927c9cd84a3647e8806f2a86a3a094ff"
+    },
+    "LICENSE-APACHE-2.0": {
+      "source": "LICENSE",
+      "sha256": "6f82dcfeb95a1c0a0452180a3b16f21bf82111780018fed59d95a052b5b75f6c"
+    }
+  }
+}

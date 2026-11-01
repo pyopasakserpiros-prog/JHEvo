@@ -8,6 +8,8 @@ Follow the current user task; this patch handoff is context, not authorization t
 
 | Work | First skill |
 | --- | --- |
+| Seeded world/content generation and reproducible weighted choices | `procedural-gen` |
+| Existing browser-game layout, HUD, touch targets and responsive UI | `game-ui-ux` |
 | Combat rules and counters | `combat-design` |
 | Paths, realms, mastery and gates | `progression-design` |
 | Crafting, prices, stock and exploit loops | `economy-balancing` |
@@ -23,4 +25,4 @@ Search `GAME_SOURCE/js`, `data` and `test` with bounded `rg -n --max-columns 240
 
 Reuse repository runners and tests. Develop against focused affected scenarios, then run required integration/regression checks at the appropriate completion boundary. Capture verbose logs to a file and report exit status, meaningful failures and actual test counts. Rerun after a relevant change or unresolved failure; reuse valid evidence for unchanged work. Environment startup/browser details, when available, are in `/workspace/.jhevo-cloud/`.
 
-Upstream skills are guidance, subject to project constraints: preserve the 40-script global-module architecture, protected human core, seeded RNG, save ownership and simulation clock semantics. Skill examples do not authorize an engine/module-system migration or scheduler change. The `<3ms` target is average simulation tick time for the documented 80-NPC scenario, not the total rendering frame budget. Claim real-device or cross-browser coverage only when actually exercised.
+Upstream skills are guidance, subject to project constraints: preserve the 40-script global-module architecture, protected human core, seeded `W.rng`, save ownership and simulation clock semantics. Use the existing RNG authority for stateful generation; never add an independent simulation RNG or silently migrate existing random callers. Validate generated records against the existing registries before runtime use. The generated standalone HTML is a derived artifact; preserve the existing build/test path and offline behavior. Apply responsive/safe-area/touch guidance within the current DOM/canvas design: do not introduce a UI framework, menu-stack rewrite, event bus or input-remapping system unless the task specifically requires it. Skill examples do not authorize an engine/module-system migration or scheduler change. The `<3ms` target is average simulation tick time for the documented 80-NPC scenario, not the total rendering frame budget. Claim real-device or cross-browser coverage only when actually exercised.

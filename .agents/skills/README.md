@@ -14,8 +14,12 @@ Focused skills for this project's vanilla HTML/JavaScript simulation game. Insta
 | `qa-test-matrix` | Mapping feature requirements to scenario and regression tests. |
 | `web-testing` | Applying deterministic scenarios and browser smoke checks using existing runners. |
 | `web-performance` | Profiling browser simulation/rendering costs, allocations and GC pressure. |
+| `procedural-gen` | Creating reproducible seeded content through the existing simulation RNG authority. |
+| `game-ui-ux` | Improving the current browser UI for mobile layouts, safe areas and touch controls. |
 
 Skills live at `.agents/skills/<skill-name>/SKILL.md`, the portable project-level Agent Skills location. Read the applicable skills alongside the project's `AGENTS.md` and active patch prompt. They provide workflow guidance; repository instructions, actual code and tests remain authoritative when project-specific requirements differ.
+
+The first ten skills come from Everything Game Dev Code (MIT); `procedural-gen` and `game-ui-ux` come from `gamedev-skills/awesome-gamedev-agent-skills` (Apache-2.0). Their files and license texts are retained, unmodified, with hashes and source commit in the two `UPSTREAM*.json` manifests. These additions are for targeted future content-generation and mobile-UI work; they do not imply a full design-system or input rewrite.
 
 ## Context-efficient use
 
@@ -29,6 +33,6 @@ Reviewed sources on 2 November 2026:
 
 - [Everything Game Dev Code](https://github.com/MRCalderon3D/everything-game-dev-code/tree/1d83212e5084fe3b8000a8ae3c62bf972ad19f78): selected ten compact, Markdown-only skills; upstream files are unmodified, with hashes in `UPSTREAM.json` and the MIT license alongside them.
 - [OpenAI skills catalog](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431): reviewed the Playwright CLI skill. Its additional CLI workflow is unnecessary for the existing repository harness. The formerly named `develop-web-game` path returned 404 in this catalog revision; it was not installed.
-- [Game development agent skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills/tree/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9): reviewed utility-AI and performance skills. Their longer cross-engine examples are less focused for this legacy JavaScript simulation than the selected short skills.
+- [Game development agent skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills/tree/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9): selected `procedural-gen` for seed discipline, content validation and reproducibility, and `game-ui-ux` for responsive/mobile principles. Its utility-AI and performance alternatives were reviewed but overlap with installed skills or do not fit this legacy JavaScript simulation as closely.
 
 The upstream `web-js-ts-standards` skill was reviewed but not installed: its mandatory ES-module/global-removal approach conflicts with the protected script architecture. No external skill framework, hooks, packages or telemetry services are required by this installation. Related upstream agent/command names are reference pointers, not installed tools. Native discovery depends on the Codex client and opening a session inside this repository; if new skills are not shown, restart the session there. Files being present does not prove this chat's tool catalog has refreshed.
