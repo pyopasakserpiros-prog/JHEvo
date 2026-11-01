@@ -296,6 +296,65 @@ M.passiveSlotInfo=n=>{
  };
 };
 M.maxPassiveSlots=n=>M.passiveSlotInfo(n).max;
+for(const _id of ['ART190_BODY_012','ART190_BODY_031','ART190_BODY_036']){const _bt=CULT.tech(_id);if(_bt){delete _bt.weaponTypes;delete _bt.weapon;}}
+M.classifyTechniqueAccess=tOrId=>{
+ const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
+ if(!t)return {accessClass:'INVALID',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ไม่พบข้อมูลวิชา'};
+ if(t.innateOnly||M.isInnateTech(t))return {accessClass:'EXCLUSIVE_INNATE',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'วิชาเฉพาะสายย่อยติดตัว (ตื่นรู้ตามสายย่อย ไม่ใช่คัมภีร์หอคัมภีร์)'};
+ if(t.legendary)return {accessClass:'UNIVERSAL_LEGENDARY',learnableAcrossPaths:true,learnableAcrossSubpaths:true,reasonTh:'คัมภีร์ระดับตำนาน ศึกษาและสำแดงอานุภาพได้ทุกวิถีและสายย่อย'};
+ if(/FORBIDDEN/.test(t.cat||'')||(t.sub&&['VENOM_GU_SOVEREIGN','CORPSE_PUPPET_MASTER'].includes(t.sub)&&/GU_|CORPSE_|PARASITE/.test(t.id||'')))return {accessClass:'EXCLUSIVE_PARASITE_FORBIDDEN',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ต้องใช้กู่พิษ ซากศพ หรือพิธีกรรมต้องห้ามเฉพาะทาง'};
+ if(typeof t.id==='string'&&t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&t.sub))return {accessClass:'EXCLUSIVE_SUBPATH_PASSIVE',learnableAcrossPaths:false,learnableAcrossSubpaths:!t.sub,reasonTh:'รากฐานวิชาติดตัวเฉพาะสายบำเพ็ญ'};
+ return {accessClass:'CROSS_PATH_MANUAL',learnableAcrossPaths:true,learnableAcrossSubpaths:true,reasonTh:'คัมภีร์ยุทธภพ เปิดกว้างให้ศึกษาข้ามสายย่อยและวิถีได้ (ปรับความเร็วเรียนและอานุภาพตามความสอดคล้อง)'};
+};
+M.weaponCompatibility=(n,tOrId)=>{
+ const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
+ if(!t||!t.weaponTypes||!t.weaponTypes.length)return {state:'UNRESTRICTED',mult:1,qiCostMult:1,accDelta:0,canUse:true,reasonTh:'ไม่จำกัดศาสตรา'};
+ const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
+ if(t.weaponTypes.includes(eqType))return {state:'MATCHED',mult:1.15,qiCostMult:1,accDelta:4,canUse:true,reasonTh:'อาวุธตรงตามเคล็ดวิชา (×1.15)'};
+ if(t.requiresWeapon)return {state:'BLOCKED_REQUIRED_WEAPON',mult:0,qiCostMult:1,accDelta:-99,canUse:false,reasonTh:'ต้องสวมใส่อาวุธ '+t.weaponTypes.join('/')};
+ const severe=(t.weaponTypes.includes('BOW')&&eqType!=='BOW')||(eqType==='BOW'&&['SWORD','BLADE','SPEAR','STAFF','FIST'].some(w=>t.weaponTypes.includes(w)));
+ if(severe)return {state:'SEVERE_MISMATCH',mult:0.65,qiCostMult:1.25,accDelta:-12,canUse:true,reasonTh:'อาวุธขัดแย้งกับท่วงท่าวิชา (×0.65 · แม่นยำลด · กินปราณเพิ่ม)'};
+ return {state:'ADAPTED_WEAPON',mult:0.65,qiCostMult:1.10,accDelta:-4,canUse:true,reasonTh:'ดัดแปลงใช้อาวุธต่างชนิด (×0.65)'};
+};
+M.resolveTechCompatibility=(n,tOrId)=>{
+ const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
+ if(!n||!n.cult||!t)return {ok:false,studySpeedMult:1,combatPowerMult:1,qiCostMult:1,weaponMult:1,accessClass:'INVALID',summaryTh:'ไม่พร้อมคำนวณ'};
+ const c=n.cult,cls=M.classifyTechniqueAccess(t),wpn=M.weaponCompatibility(n,t);
+ const pathExact=t.path==='ANY'||t.path===c.path;
+ const subExact=!t.sub||t.sub===c.sub;
+ const pathStudy=pathExact?1.0:(t.legendary?0.94:0.80);
+ const subStudy=subExact?(t.sub?1.12:1.0):(t.legendary?0.98:0.90);
+ const pathCombat=pathExact?1.0:(t.legendary?0.96:0.88);
+ const subCombat=subExact?(t.sub?1.08:1.0):(t.legendary?1.0:0.94);
+ const studySpeedMult=+(pathStudy*subStudy).toFixed(3);
+ const combatPowerMult=+(pathCombat*subCombat).toFixed(3);
+ const qiCostMult=+(wpn.qiCostMult*(pathExact?1:1.12)).toFixed(3);
+ const parts=[];
+ parts.push(pathExact?'ตรงวิถีหลัก':(t.legendary?'ตำนานข้ามวิถี':'ต่างวิถีหลัก'));
+ if(t.sub)parts.push(subExact?'ตรงสายย่อย (+12% เรียน/+8% รบ)':'ข้ามสายย่อย');
+ parts.push(wpn.reasonTh);
+ return {
+  ok:M.isTechCompatible(n,t),
+  accessClass:cls.accessClass,
+  pathExact,
+  subExact,
+  studySpeedMult,
+  combatPowerMult,
+  qiCostMult,
+  weaponCompatibility:wpn,
+  weaponMult:wpn.mult,
+  summaryTh:parts.join(' · ')+' (เรียน ×'+studySpeedMult.toFixed(2)+' · รบ ×'+combatPowerMult.toFixed(2)+')'
+ };
+};
+M.auditTechniqueCatalog=()=>{
+ const all=[...(JD.TECH.techniques||[]),...(JD.TECH.mantras||[])];
+ const counts={total:all.length,techniques:JD.TECH.techniques.length,mantras:JD.TECH.mantras.length,byClass:{}};
+ for(const t of all){
+  const cl=M.classifyTechniqueAccess(t).accessClass;
+  counts.byClass[cl]=(counts.byClass[cl]||0)+1;
+ }
+ return counts;
+};
 M.isTechCompatible=(n,t)=>{
  if(!n||!n.cult||!t)return false;
  const c=n.cult;
@@ -303,8 +362,10 @@ M.isTechCompatible=(n,t)=>{
  if(M.isInnateTech(t)){
   return c.path===t.path&&c.sub===t.innateSubpath&&(t.reqTier||t.tier||1)<=effSt;
  }
+ const isExcl=CULT.isExclusiveSubpathTech?CULT.isExclusiveSubpathTech(t):(t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&!!t.sub));
+ const pathOk=t.path==='ANY'||t.path===c.path||(!isExcl&&(t.legendary||!t.id.startsWith('MP_')));
  const subOk=CULT.isSubCompatible?CULT.isSubCompatible(t,c.sub,false):(!t.sub||t.sub===c.sub);
- return (t.path==='ANY'||t.path===c.path)&&subOk&&(t.reqTier||t.tier)<=effSt;
+ return pathOk&&subOk&&(t.reqTier||t.tier)<=effSt;
 };
 M.passiveFamilyOf=t=>t?(t.passiveFamily||('FAM_'+t.id)):null;
 

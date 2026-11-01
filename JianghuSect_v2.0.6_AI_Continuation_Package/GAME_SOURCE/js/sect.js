@@ -719,7 +719,7 @@
     // 2) รองเจ้าสำนัก
     if (!S.deputyId || !W.byId[S.deputyId] || W.byId[S.deputyId].dead || W.byId[S.deputyId].exiled) {
       S.deputyId = null;
-      const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== m.id && n.cult && n.cult.stage >= 3);
+      const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== m.id && n.cult && (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) >= 3);
       if (cands.length && W.rng.chance(0.5)) {
         cands.sort((a, b) => (SECT.relationScore(m, b) * (1 - S.policy.meritocracy / 100) + (b.cult.stage * 8 + SECT.relevance('mission', b) * .3) * (S.policy.meritocracy / 100 + .3)) - (SECT.relationScore(m, a) * (1 - S.policy.meritocracy / 100) + (a.cult.stage * 8 + SECT.relevance('mission', a) * .3) * (S.policy.meritocracy / 100 + .3)));
         const d = cands[0]; if (d.post) { S.posts[d.post] = null; d.post = null; }
@@ -866,7 +866,7 @@
     const coreCap = W.map && W.map.byId && W.map.byId.dorm_core ? Math.max(8, W.map.byId.dorm_core.stations.length) : 8;
     const cap = { inner: innerCap, core: coreCap };
     const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank <= 2).map(n => {
-      const stage = n.cult ? n.cult.stage : 0;
+      const stage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
       const need = n.rank === 0 ? 1 : n.rank === 1 ? 2 : 3;
       const days = W.day - (n.joinDay || 0);
       const can = n.rank === 0 ? days >= 20 && (stage >= 1 || days >= 60) : stage >= need && days >= 40 + n.rank * 60 && n.merit >= (n.rank === 1 ? 60 : 160);
@@ -907,6 +907,25 @@
     if (!cd('discipleOf')) opts.push({ k: 'discipleOf', u: (e('social.teaching') + e('personality.empathy') + e('values.honorLegacy')) / 300 - (m.h.life.family.disciples.length > 1 ? .4 : 0), run: () => SECT.takePersonalDisciple(W, m) });
     // ตรวจทุจริต
     if (!cd('audit')) opts.push({ k: 'audit', u: (e('personality.caution') + e('personality.integrity') + (100 - e('personality.trustfulness'))) / 300 - .2 + (S.suspicion || 0) / 100, run: () => SECT.audit(W, m) });
+    // การทูตและคาราวานพันธมิตร (v2.0.6 Pillar A)
+    if (!cd('diplomacy') && g.CONTENT && W.world && Array.isArray(W.world.sects) && W.world.sects.length && S.stones >= 300) {
+      const allyCaravanSect = W.world.sects.find(x => (x.treaty === 'ALLIANCE' || x.treaty === 'ALLIANCE_PACT' || x.treaty === 'TRADE_PACT' || x.treaty === 'TRADE_CARAVAN_ACCORD') && W.day - (x.lastCaravanDay ?? -99) >= 15);
+      const treatyCand = !allyCaravanSect ? W.world.sects.find(x => (!x.treaty || x.treaty === 'NONE') && (x.attitude || 0) >= 18) : null;
+      if (allyCaravanSect || treatyCand) {
+        opts.push({
+          k: 'diplomacy',
+          u: (e('social.charisma') + e('values.wealthResource') + e('personality.ambition')) / 320 + (pol.focus.commerce || 0) * 0.25,
+          run: () => {
+            if (allyCaravanSect && g.CONTENT.exchangeWithAlly) {
+              const result = g.CONTENT.exchangeWithAlly(W, allyCaravanSect.id);
+              if (result.ok) allyCaravanSect.lastCaravanDay = W.day;
+            } else if (treatyCand && g.CONTENT.signTreaty) {
+              g.CONTENT.signTreaty(W, treatyCand.id, (treatyCand.attitude || 0) >= 40 ? 'ALLIANCE_PACT' : 'TRADE_CARAVAN_ACCORD');
+            }
+          }
+        });
+      }
+    }
     if (!opts.length) return;
     opts.forEach(o => { if (g.COG) o.u += g.COG.officeBias(W, m, o.k); o.u += W.rng.float(-.08, .08); });
     opts.sort((a, b) => b.u - a.u);
@@ -1026,6 +1045,73 @@
     };
   };
 
+  SECT.resolveRivalEnvoyChallenge = (W, champ, rivalSect, opts) => {
+    opts = opts || {};
+    if (!W || !champ) return null;
+    const sects = (W.world && Array.isArray(W.world.sects)) ? W.world.sects : [];
+    const rival = rivalSect || sects.find(x => x.treaty === 'RIVAL_FEUD' || x.treaty === 'EMBARGO') || sects.slice().sort((a, b) => (a.attitude || 0) - (b.attitude || 0))[0];
+    if (!rival) return null;
+    const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'];
+    const envoyWeapon = opts.envoyWeapon || wTypes[Math.floor((W.day || 0) + (rival.power || 1)) % wTypes.length];
+    const champPow = CULT.power(champ);
+    const envoyPower = opts.envoyPower != null ? opts.envoyPower : Math.max(40, Math.round(champPow * clamp(0.78 + (rival.power || 2) * 0.06, 0.72, 1.12)));
+    const envoyUnit = {
+      id: 'ENVOY_' + rival.id + '_' + (W.day || 0),
+      foe: true,
+      nameTh: 'ทูตท้าประลอง' + (rival.shortTh || rival.nameTh),
+      power: envoyPower,
+      tier: Math.max(2, Math.min(7, (CULT.effectiveTechStage ? CULT.effectiveTechStage(champ) : (champ.cult?.stage || 2)))),
+      equip: { WEAPON: { slot: 'WEAPON', gearType: envoyWeapon, nameTh: envoyWeapon } }
+    };
+    const tac = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(champ, envoyUnit, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+    const resSet = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(champ) : { active: false, pieces: 0 };
+    const effChamp = champPow * (tac.dmgMult || 1) * (1 + (resSet.active ? resSet.pieces * 0.05 : 0)) * (0.9 + (W.rng ? W.rng.next() * 0.22 : 0.1));
+    const effEnvoy = envoyPower * (0.88 + (W.rng ? W.rng.next() * 0.2 : 0.1));
+    const won = opts.forceWin != null ? !!opts.forceWin : (effChamp >= effEnvoy);
+    const cpGain = won ? 45 : 15;
+    const stonePrize = won ? 60 : 0;
+    champ.cp = (champ.cp || 0) + cpGain;
+    champ.cpEarned = (champ.cpEarned || 0) + cpGain;
+    champ.merit = (champ.merit || 0) + (won ? 20 : 6);
+    if (won) {
+      W.fame(4);
+      ECO.earn(W, stonePrize, 'ชนะทูตท้าประลองจาก' + rival.nameTh);
+      rival.attitude = clamp((rival.attitude || 0) + 5, -100, 100);
+      HC.experience(champ, 'victory', 0.7);
+    } else {
+      W.fame(-1);
+      HC.experience(champ, 'defeat', 0.35);
+    }
+    if (W.world && W.world.politics) {
+      const pol = W.world.politics;
+      pol.stats = pol.stats || {};
+      pol.stats.envoyChallenges = (pol.stats.envoyChallenges || 0) + 1;
+      pol.events = pol.events || [];
+      pol.events.push({
+        day: W.day || 0,
+        kind: 'ENVOY_CHALLENGE',
+        sectId: rival.id,
+        treaty: rival.treaty || 'NONE',
+        outcome: won ? 'VICTORY' : 'DEFEAT',
+        summaryTh: HC.fullName(champ) + (won ? ' เอาชนะ' : ' พ่ายต่อ') + envoyUnit.nameTh + ' จาก' + rival.nameTh + (won ? (' (+' + cpGain + ' CP, +' + stonePrize + ' ศิลา)') : '')
+      });
+    }
+    return {
+      rivalSectId: rival.id,
+      rivalSectNameTh: rival.nameTh,
+      envoyNameTh: envoyUnit.nameTh,
+      envoyWeapon,
+      envoyPower,
+      defenderId: champ.id,
+      defenderName: HC.fullName(champ),
+      won,
+      tacticalRelation: tac.relation || 'NEUTRAL',
+      cpAwarded: cpGain,
+      stonePrize,
+      summaryTh: HC.fullName(champ) + (won ? ' ปราบ' : ' ประมือกับ') + envoyUnit.nameTh + ' (' + rival.nameTh + ')'
+    };
+  };
+
   SECT.assembly = (W, m, opts) => {
     opts = opts || {};
     const S = W.sect;
@@ -1042,7 +1128,7 @@
     for (const bId of SECT.ASSEMBLY_BRACKET_IDS) {
       const spec = SECT.ASSEMBLY_BRACKETS[bId];
       let divEntrants = candidates.filter(n => {
-        const st = n.cult ? n.cult.stage : 1;
+        const st = n.cult ? Math.min(7, CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 1;
         return st >= spec.minStage && st <= spec.maxStage;
       });
       if (!divEntrants.length) continue;
@@ -1156,6 +1242,9 @@
       brackets: bracketResults,
       summaryTh: 'ชุมนุมยุทธ์ใหญ่ปีที่ ' + cal.year + ': ' + bracketResults.map(b => b.nameTh + ' แชมป์คือ ' + b.championName + ' (' + b.weaponNameTh + '·' + b.signatureTechName + ', +' + b.cpAwarded + ' CP' + (b.rewardItemNameTh ? ', รับ「' + b.rewardItemNameTh + '」' : '') + ')').join(' | ')
     };
+    if (!opts.skipEnvoy && W.world && Array.isArray(W.world.sects) && W.world.sects.length) {
+      record.envoyChallenge = SECT.resolveRivalEnvoyChallenge(W, grandChamp, opts.rivalSect, opts);
+    }
     S.assemblyHistory.unshift(record);
     if (S.assemblyHistory.length > 24) S.assemblyHistory.length = 24;
     W.log('tournament', '🏆 ' + record.summaryTh, bracketResults.map(b => b.championId));
@@ -1792,7 +1881,7 @@
     const flat = (evaluator && g.COG && g.COG.flatteryBonus) ? g.COG.flatteryBonus(evaluator, n) : 0;
     const eye = evaluator ? (HC.eff(evaluator, 'intellect.judgement') * 0.55 + HC.eff(evaluator, 'intellect.readPeople') * 0.45) : 55;
     const noise = (W.rng && W.rng.gauss) ? W.rng.gauss(0, Math.max(1.2, (100 - eye) / 14)) : 0;
-    const stage = n.cult ? (n.cult.stage || 0) : 0;
+    const stage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult.stage || 0)) : 0;
     const roleBonus = (n.post && roleBoosts[n.post]) ? roleBoosts[n.post] : 0;
     const rankBonus = n.rank * 4;
     const meritScore = Math.min(30, (n.merit || 0) * 0.12);
@@ -3237,6 +3326,89 @@
   };
 
   SECT.EDITOR = EDITOR;
+
+  /* ---------- Ancestral Shrine Legacy Tablets & Fallen Elder Blessings (v2.0.6 Pillar C) ---------- */
+  SECT.ensureLegacyTablets = W => {
+    if (!W || !W.sect) return [];
+    if (!Array.isArray(W.sect.legacyTablets)) W.sect.legacyTablets = [];
+    return W.sect.legacyTablets;
+  };
+
+  SECT.inscribeLegacyTablet = (W, n, why, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect || !n) return null;
+    const tablets = SECT.ensureLegacyTablets(W);
+    if (tablets.some(t => t.npcId === n.id)) return tablets.find(t => t.npcId === n.id);
+    const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : (n.stage || 0);
+    const qualifies = opts.force || (n.rank || 0) >= 4 || effSt >= 4 || n.id === W.sect.masterId;
+    if (!qualifies) return null;
+    const sig = SECT.signatureVictoryOf ? SECT.signatureVictoryOf(n) : { subpath: n.cult?.sub || 'NONE', subpathNameTh: '', techId: null, techNameTh: 'เคล็ดวิชาบรรพชน', weaponType: 'SWORD' };
+    const nameTh = (n.h && n.h.name) ? (n.h.name.family + n.h.name.given) : (n.name || 'ผู้อาวุโสบรรพชน');
+    const tablet = {
+      id: 'TAB_' + (n.id || ('ELDER_' + (tablets.length + 1))),
+      npcId: n.id,
+      nameTh,
+      titleTh: SECT.title ? SECT.title(n) : 'ผู้อาวุโส',
+      rank: n.rank || 4,
+      path: n.cult ? n.cult.path : (n.path || 'XIAN'),
+      sub: n.cult ? n.cult.sub : (n.sub || 'NONE'),
+      subpathNameTh: sig.subpathNameTh || (n.cult ? n.cult.sub : 'NONE'),
+      stage: n.cult ? n.cult.stage : (n.stage || 4),
+      effectiveStage: Math.max(4, effSt),
+      signatureTechId: sig.techId,
+      signatureTechNameTh: sig.techNameTh,
+      inscribedDay: W.day || 0,
+      causeTh: why || 'ละสังขารตามอายุขัย',
+      breakthroughBonus: +(0.04 + Math.min(0.08, Math.max(4, effSt) * 0.01)).toFixed(3),
+      comprehensionBonus: +(0.08 + Math.min(0.14, Math.max(4, effSt) * 0.018)).toFixed(3),
+      injuryProtection: true,
+      prayersCount: 0
+    };
+    tablets.unshift(tablet);
+    if (tablets.length > 36) tablets.length = 36;
+    if (!opts.quiet && W.log) {
+      W.log('sect', '🕯️ จารึกป้ายวิญญาณบรรพชนของ「' + nameTh + '」(' + tablet.subpathNameTh + ') ประดิษฐานในศาลบรรพชน', [n.id]);
+    }
+    return tablet;
+  };
+
+  SECT.prayAtAncestralShrine = (W, n, tabletId) => {
+    if (!W || !W.sect || !n || n.dead) return null;
+    const tablets = SECT.ensureLegacyTablets(W);
+    if (!tablets.length) return null;
+    let tab = tabletId ? tablets.find(t => t.id === tabletId || t.npcId === tabletId) : null;
+    if (!tab && n.cult) {
+      tab = tablets.find(t => t.sub && t.sub !== 'NONE' && t.sub === n.cult.sub) ||
+            tablets.find(t => t.path === n.cult.path) ||
+            tablets[0];
+    }
+    if (!tab) tab = tablets[0];
+    tab.prayersCount = (tab.prayersCount || 0) + 1;
+    const pathMatch = !!(n.cult && tab.path === n.cult.path);
+    const subMatch = !!(n.cult && tab.sub && tab.sub !== 'NONE' && tab.sub === n.cult.sub);
+    const mult = subMatch ? 1.35 : pathMatch ? 1.0 : 0.65;
+    const btBonus = +(tab.breakthroughBonus * mult).toFixed(3);
+    const studySpeedMult = +(1 + tab.comprehensionBonus * mult).toFixed(3);
+    n.ancestralBlessing = {
+      tabletId: tab.id,
+      elderId: tab.npcId,
+      elderNameTh: tab.nameTh,
+      path: tab.path,
+      sub: tab.sub,
+      pathMatch,
+      subMatch,
+      breakthroughBonus: btBonus,
+      studySpeedMult,
+      injuryShield: !!(pathMatch || subMatch),
+      grantedDay: W.day || 0,
+      untilDay: (W.day || 0) + 14,
+      until: (W.t || 0) + 14 * 1440
+    };
+    n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - (subMatch ? 12 : pathMatch ? 8 : 4));
+    n.h.state.stress = Math.max(0, (n.h.state.stress || 0) - 8);
+    HC.bump(n);
+    return n.ancestralBlessing;
+  };
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;

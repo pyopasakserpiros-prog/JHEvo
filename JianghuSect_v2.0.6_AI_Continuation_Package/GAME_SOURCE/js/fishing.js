@@ -1838,7 +1838,7 @@
         s.mood = Math.min(100, s.mood + 0.08);
         s.novelty = Math.min(100, s.novelty + 0.07);
         s.energy = Math.max(10, s.energy - 0.025);
-        { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, +(fk.skill + 0.015).toFixed(3)); }
+        { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, Math.round((fk.skill + 0.015) * 1000) / 1000); }
         (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'survival', 1 / 180, 0.6);
 
         // ทุก ๆ 45 นาทีของการตกปลา ทอยโอกาสปลากินเบ็ดตามทักษะและความอุดมสมบูรณ์ของแหล่งน้ำ
@@ -1894,7 +1894,7 @@
           AI.vf(n, { freedom: 0.03 });
         }
         if (ctx.mode === 'fish') {
-          { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, +(fk.skill + 0.01).toFixed(3)); }
+          { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, Math.round((fk.skill + 0.01) * 1000) / 1000); }
           if (W.t % 65 === 0) {
             const f = FISHING.ensure(W);
             const zid = ctx.zoneId || (ctx.st && ctx.st.zoneId) || 'spirit_pond';
@@ -1944,8 +1944,8 @@
   if (AI && AI.needs) {
     const origNeeds = AI.needs;
     AI.needs = function (W, n) {
-      origNeeds.apply(this, arguments);
-      FISHING.tickFoodBuff(W, n);
+      origNeeds(W, n);
+      if (n.foodBuff) FISHING.tickFoodBuff(W, n);
     };
   }
 

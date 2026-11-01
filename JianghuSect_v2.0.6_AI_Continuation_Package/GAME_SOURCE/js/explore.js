@@ -6996,7 +6996,7 @@
     return true;
   };
   const origResolve = X.resolve;
-  X.resolve = (W, ex, members) => { if (ex.kind === 'delve' || ex.kind === 'realm') return EX.resolve(W, ex, members); return origResolve(W, ex, members); };
+  X.resolve = (W, ex, members) => { if (ex.kind === 'sanctum') return EX.resolveSanctum(W, ex, members); if (ex.kind === 'delve' || ex.kind === 'realm') return EX.resolve(W, ex, members); return origResolve(W, ex, members); };
 
   EX.resolve = (W, ex, members) => {
     if (ex.done || ex.settlement || !members.length) return;
@@ -7081,6 +7081,12 @@
     const e = dex(W), rng = W.rng, pw = PW(n); const opts = [{ k: 'orig', w: 0.9 }];
     if (pw >= 18 && e.cave && W.day - (e.cave.last || -99) >= 4 && !W.world.expeds.some(x => !x.done && x.kind === 'delve')) opts.push({ k: 'delve', w: 0.3 + Math.max(0, (E(n, 'interests.exploring') - 40) / 45) + Math.max(0, (E(n, 'interests.combat') - 50) / 90) + (E(n, 'temperament.sensationSeeking') - 45) / 160 + (e.cave.maxDepth < e.cave.cap ? 0.15 : 0) });
     if (EX.canGo(W) && pw >= 30) { const wd = EX.WORLD_BY_ID[e.gate.world]; const df = clamp(pw * 3 / foePower(wd.d), 0.15, 1.5); opts.push({ k: 'realm', w: 1.7 * (0.5 + Math.max(0, (E(n, 'destiny.luck') - 40) / 60) + Math.max(0, (E(n, 'temperament.sensationSeeking') - 40) / 70) + (E(n, 'personality.courage') - 40) / 150 + (E(n, 'interests.exploring') - 40) / 90) * df }); }
+    if (pw >= 95 && n.rank >= 2 && !W.world.expeds.some(x => !x.done && x.kind === 'sanctum')) {
+      const hasRefinableT4 = !!(n.equip && Object.values(n.equip).some(eq => eq && (eq.tier || 1) >= 4 && (eq.q || 1) < 1.65));
+      const resInc = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(n).pieces < 3 : false;
+      const sanctumUrge = 0.28 + Math.max(0, (E(n, 'values.martialPeak') - 45) / 80) + Math.max(0, (E(n, 'interests.exploring') - 45) / 90) + (hasRefinableT4 ? 0.35 : 0) + (resInc ? 0.25 : 0);
+      opts.push({ k: 'sanctum', w: sanctumUrge });
+    }
     opts.forEach(o => o.w = Math.max(0.05, o.w));
     const pick = rng.weighted(opts, o => o.w).k; if (pick === 'orig') return false;
     const approver = SECT.holder(W, 'mission') || W.byId[W.sect.masterId];
@@ -7093,6 +7099,12 @@
     cands.forEach(c => { const r = n.h.mind.relations[c.id]; c._s = AI.compat(n, c) + (r ? r.a / 100 : 0) + PW(c) / 300 + rng.next() * 0.3; }); cands.sort((a, b) => b._s - a._s);
     for (const c of cands) { if (party.length > Math.min(want, 3)) break; const acc = clamp(0.4 + c._s * 0.4 + (E(c, 'personality.courage') - 50) / 200 + (E(c, 'interests.exploring') - 45) / 200, 0.05, 0.9); if (c._s > 0.05 && rng.next() < acc) party.push(c); }
     if (party.length < 2 && pw < 90) { n.lastTrip = W.day - 8; return true; }
+    if (pick === 'sanctum') {
+      const cPath = n.cult ? n.cult.path : 'XIAN';
+      const sId = cPath === 'BODY' ? 'SANCTUM_BLOOD_VAJRA' : (cPath === 'GOD' || cPath === 'DEMON') ? 'SANCTUM_ASTRAL_DIVINE' : 'SANCTUM_SWORD_ABYSS';
+      EX.departSanctum(W, party, sId);
+      return true;
+    }
     EX.depart(W, party, pick); return true;
   };
 
@@ -7112,6 +7124,197 @@
     }
     const cv = e.cave; Object.keys(cv.guard).forEach(f => { if (cv.guard[f] && day - cv.guard[f] > 70 && f !== '10') { cv.guard[f] = 0; } });
     e.relics.forEach(id => { const r = EX.RELICS[id]; if (r.fx === 'fame') W.fame(r.val); else if (r.fx === 'stones') ECO.earn(W, r.val, 'ของวิเศษ: ' + r.nameTh); else if (r.fx === 'grain') ECO.add(W, 'grain', r.val); else if (r.fx === 'qi') W.npcs.forEach(n => { if (!n.dead && !n.away && n.cult) CULT.gain(n, CULT.threshold(n) * 0.0015); }); });
+  };
+
+  /* ======================= วิหารโบราณหลายชั้นและผู้พิทักษ์ชุดสัจธรรม (v2.0.6 Pillar B) ======================= */
+  EX.SANCTUMS = {
+    SANCTUM_SWORD_ABYSS: {
+      id: 'SANCTUM_SWORD_ABYSS',
+      nameTh: 'วิหารกระบี่สุญตาบรรพกาล',
+      icon: '🏛️',
+      descTh: 'วิหารโบราณ 3 ชั้นที่ผู้พิทักษ์สวมชุดสัจธรรมวิถีเซียนและจิตวิญญาณ',
+      minPower: 120,
+      floors: [
+        { floor: 1, nameTh: 'ระเบียงศิลากระบี่เมฆา', guardianNameTh: 'หุ่นศิลาเซียนกระบี่', subPath: 'SWORD_IMMORTAL', weaponType: 'SWORD', tier: 4, basePower: 135, catalystId: 'CAT_RESONANCE_JADE_4', stones: 90 },
+        { floor: 2, nameTh: 'ห้องโถงจิตกระบี่ไร้ลักษณ์', guardianNameTh: 'เงาวิญญาณกระบี่จิตตานุภาพ', subPath: 'MIND_SWORD_TELEKINESIS', weaponType: 'FOCUS', tier: 5, basePower: 225, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 150 },
+        { floor: 3, nameTh: 'แท่นบรรพกาลกาลอวกาศ', guardianNameTh: 'ประมุขโบราณกาลสุญตา', subPath: 'TIME_VOID', weaponType: 'SWORD', tier: 6, basePower: 340, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 240 }
+      ]
+    },
+    SANCTUM_BLOOD_VAJRA: {
+      id: 'SANCTUM_BLOOD_VAJRA',
+      nameTh: 'มหาวิหารวัชระโลหิต',
+      icon: '⛩️',
+      descTh: 'วิหารศึก 3 ชั้นของผู้พิทักษ์สายหลอมกายาและดาบสังหารอาชูร่า',
+      minPower: 130,
+      floors: [
+        { floor: 1, nameTh: 'ลานศิลาวัชระทองคำ', guardianNameTh: 'ผู้พิทักษ์วัชระโพธิ์', subPath: 'VAJRA_BODHI', weaponType: 'STAFF', tier: 4, basePower: 145, catalystId: 'CAT_RESONANCE_JADE_4', stones: 95 },
+        { floor: 2, nameTh: 'โถงดาบโลหิตอาชูร่า', guardianNameTh: 'ขุนพลดาบสังหารอาชูร่า', subPath: 'ASHURA_SLAUGHTER_BLADE', weaponType: 'BLADE', tier: 5, basePower: 240, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 165 },
+        { floor: 3, nameTh: 'บัลลังก์มังกรโลหิตบรรพกาล', guardianNameTh: 'ราชันมังกรโลหิตนิรันดร์', subPath: 'BLOOD_DRAGON', weaponType: 'SPEAR', tier: 6, basePower: 360, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 260 }
+      ]
+    },
+    SANCTUM_ASTRAL_DIVINE: {
+      id: 'SANCTUM_ASTRAL_DIVINE',
+      nameTh: 'แท่นบูชาดาราเทวะ',
+      icon: '🕍',
+      descTh: 'แท่นบูชาโบราณ 3 ชั้นที่รวมค่ายกลดารา เทพสงคราม และมารกลืนสวรรค์',
+      minPower: 140,
+      floors: [
+        { floor: 1, nameTh: 'วงกตค่ายกลดารา', guardianNameTh: 'ผู้คุมค่ายกลดาราสวรรค์', subPath: 'ASTRAL_ARRAY', weaponType: 'FOCUS', tier: 4, basePower: 150, catalystId: 'CAT_RESONANCE_JADE_4', stones: 100 },
+        { floor: 2, nameTh: 'วิหารทวนเทพสงคราม', guardianNameTh: 'อวตารเทพสงครามพิชิตศึก', subPath: 'WAR_DEITY', weaponType: 'SPEAR', tier: 5, basePower: 250, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 175 },
+        { floor: 3, nameTh: 'ห้วงเหวมารกลืนสวรรค์', guardianNameTh: 'จอมมารกลืนสวรรค์บรรพกาล', subPath: 'HEAVEN_DEVOURING_DEMON', weaponType: 'BLADE', tier: 6, basePower: 380, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 280 }
+      ]
+    }
+  };
+  X.MISSIONS.sanctum = { nameTh: 'สำรวจวิหารโบราณหลายชั้น', icon: '🏛️' };
+
+  EX.ensureSanctums = W => {
+    const e = dex(W);
+    if (!e.sanctums) e.sanctums = { clearedFloors: {}, runs: 0, catalystsFound: 0, history: [] };
+    return e.sanctums;
+  };
+
+  EX.departSanctum = (W, party, sanctumId) => {
+    if (!W || !Array.isArray(party) || !party.length) return null;
+    EX.ensureSanctums(W);
+    const sc = EX.SANCTUMS[sanctumId] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
+    const b = (W.map && W.map.byId && (W.map.byId.gate_zone || W.map.byId.cave)) || { door: { x: 118, y: 130 } };
+    const days = 1.5;
+    const food = party.length * 3;
+    const taken = Math.min(food, ECO.count(W, 'meal'));
+    ECO.take(W, 'meal', taken);
+    const ex = {
+      id: ++W.world.seq,
+      kind: 'sanctum',
+      region: sc.id,
+      sanctumId: sc.id,
+      placeTh: sc.nameTh,
+      party: party.map(p => p.id),
+      t0: W.t,
+      ret: W.t + Math.round(days * 1440),
+      days,
+      journal: [],
+      carry: [],
+      supplies: taken,
+      done: false,
+      state: 'leaving',
+      target: sc.floors.length,
+      px: b.door.x,
+      py: b.door.y
+    };
+    W.world.expeds.push(ex);
+    party.forEach(p => {
+      AI.interruptFor(W, p);
+      p.expId = ex.id;
+      p.lastTrip = W.day;
+      p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
+      p.travel = { to: 'spot', ex: ex.id, x: b.door.x, y: b.door.y + 1 };
+      p.path = null;
+      p.run = false;
+    });
+    W.log('explore', party.map(p => p.h.name.given).join('、') + ' ออกเดินทางสำรวจวิหารโบราณ「' + sc.nameTh + '」', party.map(p => p.id));
+    return ex;
+  };
+
+  EX.resolveSanctum = (W, ex, members) => {
+    if (!W || !ex || ex.done || !Array.isArray(members) || !members.length) return null;
+    const sState = EX.ensureSanctums(W);
+    const sc = EX.SANCTUMS[ex.sanctumId || ex.region] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
+    const alive = members.filter(m => m && !m.dead);
+    const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], catalysts: {}, notes: [], rep: 0, floorsCleared: 0, floorLogs: [] };
+    sState.runs = (sState.runs || 0) + 1;
+
+    for (const fl of sc.floors) {
+      if (!alive.length) break;
+      const lead = alive.slice().sort((a, b) => CULT.power(b) - CULT.power(a))[0];
+      const resSetDef = (g.MARTIAL && g.MARTIAL.RESONANCE_SETS && g.MARTIAL.RESONANCE_SETS[fl.subPath]) || { nameTh: 'ชุดสัจธรรม' + fl.subPath };
+      const guardian = {
+        id: 'GUARD_' + sc.id + '_F' + fl.floor,
+        foe: true,
+        nameTh: fl.guardianNameTh,
+        power: fl.basePower,
+        tier: fl.tier,
+        subPath: fl.subPath,
+        resonanceSetId: resSetDef.id || ('RES_' + fl.subPath),
+        resonancePieces: 3,
+        equip: { WEAPON: { slot: 'WEAPON', gearType: fl.weaponType, nameTh: fl.weaponType, tier: fl.tier } }
+      };
+      const tac = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(lead, guardian, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+      const partyPower = alive.reduce((sum, m) => {
+        const rs = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(m) : { active: false, pieces: 0 };
+        return sum + CULT.power(m) * (1 + (rs.active ? rs.pieces * 0.06 : 0));
+      }, 0) * (tac.dmgMult || 1);
+      const bossEffectivePower = fl.basePower * 1.12; // 3-piece boss resonance bonus
+      const winProb = clamp(partyPower / (partyPower + bossEffectivePower * 0.85), 0.12, 0.96);
+      const won = ex.forceClear ? true : (W.rng ? W.rng.next() < winProb : true);
+
+      const fLog = {
+        floor: fl.floor,
+        floorNameTh: fl.nameTh,
+        guardianNameTh: fl.guardianNameTh,
+        guardianSubPath: fl.subPath,
+        guardianResonanceSetTh: resSetDef.nameTh,
+        guardianWeapon: fl.weaponType,
+        tacticalRelation: tac.relation || 'NEUTRAL',
+        won,
+        catalystDropped: null
+      };
+      out.floorLogs.push(fLog);
+
+      if (won) {
+        out.floorsCleared++;
+        out.stones += fl.stones;
+        sState.clearedFloors[sc.id] = Math.max(sState.clearedFloors[sc.id] || 0, fl.floor);
+        if (ECO.addCatalyst) {
+          ECO.addCatalyst(W, fl.catalystId, 1);
+          out.catalysts[fl.catalystId] = (out.catalysts[fl.catalystId] || 0) + 1;
+          sState.catalystsFound = (sState.catalystsFound || 0) + 1;
+          fLog.catalystDropped = fl.catalystId;
+        }
+        // Mint a piece of T4-T6 gear on floor 2+
+        if (fl.floor >= 2) {
+          const allRec = (JD.ITEMS && JD.ITEMS.recipes ? JD.ITEMS.recipes : []).filter(r => r.outType === 'EQUIPMENT' && r.tier === fl.tier);
+          if (allRec.length) {
+            const rPick = allRec[(W.day + fl.floor) % allRec.length];
+            const gr = ECO.mintGear(rPick, 1.18 + fl.floor * 0.04);
+            out.gear.push(gr);
+          }
+        }
+        ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ปราบ' + fl.guardianNameTh + ' [ชุดสัจธรรม 3/3 · ' + fl.weaponType + '] สำเร็จ รับ「' + (ECO.REFINEMENT_CATALYSTS[fl.catalystId]?.nameTh || fl.catalystId) + '」');
+        alive.forEach(m => HC.experience(m, 'victory', 0.55));
+      } else {
+        dmgOne(W, alive, 0.25, 'พ่ายต่อผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
+        ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ต้านพลังชุดสัจธรรมของ' + fl.guardianNameTh + ' ไม่ไหว ต้องถอยกลับ');
+        break;
+      }
+    }
+
+    out.rep = out.floorsCleared * 1.5;
+    ex.done = true;
+    ex.out = out;
+    if (alive.length) X.handover(W, ex, alive, out);
+    alive.forEach(m => {
+      m.away = false;
+      m.hidden = false;
+      m.x = (ex.px || 118) + 0.5;
+      m.y = (ex.py || 130) + 1.5;
+      m.travel = null;
+      m.expId = null;
+      m.path = null;
+      m.run = false;
+      m.merit = (m.merit || 0) + 8 + out.floorsCleared * 5;
+    });
+    sState.history.unshift({
+      day: W.day || 0,
+      sanctumId: sc.id,
+      sanctumNameTh: sc.nameTh,
+      floorsCleared: out.floorsCleared,
+      catalysts: Object.assign({}, out.catalysts),
+      floorLogs: out.floorLogs
+    });
+    if (sState.history.length > 20) sState.history.length = 20;
+    W.fame(out.rep);
+    W.log('explore', '🏛️ คณะสำรวจกลับจาก「' + sc.nameTh + '」ผ่านด่าน ' + out.floorsCleared + '/3 ชั้น', members.map(m => m.id));
+    return out;
   };
 
   g.EXPLORE = EX;

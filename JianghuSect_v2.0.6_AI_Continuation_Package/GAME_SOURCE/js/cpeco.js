@@ -223,7 +223,7 @@
         if (!t) return;
         const isSpawned = Array.isArray(n.inv.spawnedTechs) && n.inv.spawnedTechs.includes(id);
         if (isSpawned) n.inv.spawnedTechs.splice(n.inv.spawnedTechs.indexOf(id), 1);
-        if (!W.sect.library.includes(id)) { W.sect.library.push(id); if (!isSpawned) total += CPE.techReward(W, id); scrolls++; }
+        if (!W.sect.library.includes(id)) { W.sect.library.push(id); if (g.COG && g.COG.recordHallAddition) g.COG.recordHallAddition(W, 'library', id, n.id); if (!isSpawned) total += CPE.techReward(W, id); scrolls++; }
         n.inv.techs = (n.inv.techs || []).filter(x => x !== id);
       });
       recipes.forEach(id => {
@@ -263,9 +263,9 @@
     if (W.t > 0 && n._pickCache && n._pickCache.t === W.t && n._pickCache.cp === cp && n._pickCache.hp === n.h.state.hp && n._pickCache.gearLen === W.sect.gear.length) return n._pickCache.val;
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
-    const consider = (it, s, why) => { if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
+    const consider = (it, s, why) => { if (it.price == null) it.price = CPE.priceOf(W, it.key); if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
     Object.keys(W.sect.stock).forEach(k => {
-      if (!ECO.isPill(k) || W.sect.stock[k] <= 0) return; const e = effOf(k), price = CPE.priceOf(W, k), it = { kind: 'pill', key: k, price };
+      if (W.sect.stock[k] <= 0 || !ECO.isPill(k)) return; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
       const info = ECO.pillInfo(k);
       if (BASIC_IDS.includes(k)) { const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); return; }
       if (!info || (e.compatiblePath && (!c || e.compatiblePath !== c.path))) return;
@@ -276,7 +276,7 @@
       if (e.clearHeartDemon && n.h.state.heartDemon > 32 && have(k) < 1) consider(it, 0.7 + n.h.state.heartDemon / 120, 'ระงับจิตมาร');
       if (e.insight && c && have(k) < 1 && (c.learning || E(n, 'personality.curiosity') > 65)) consider(it, 0.65 + E(n, 'personality.curiosity') / 250, 'เพิ่มความเข้าใจคัมภีร์');
       if (!c) return;
-      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && c.bn) consider(it, 3.5, 'โอสถทะลวงขั้น'); return; }
+      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && have(k) < 1 && (c.bn || c.prog >= CULT.threshold(n) * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น'); return; }
       if (e.cbBuff) {
         const combatInt = E(n, 'interests.combat') || 50;
         const courage = E(n, 'personality.courage') || 50;
@@ -309,10 +309,27 @@
         });
       });
     }
+    if (c && c.track && CULT.checkTrackGates && (CULT.trackReady(n) || c.track.prog >= CULT.trackThreshold(n) * 0.65)) {
+      const tg = CULT.checkTrackGates(W, n);
+      if (!tg.resourceOk && tg.missingStones && tg.missingStones.deficit > 0 && W.sect && (W.sect.stones || 0) >= 10 && cp >= 8) {
+        const grantStones = Math.min(tg.missingStones.deficit, Math.floor(W.sect.stones * 0.25), Math.floor(cp * 2.5));
+        if (grantStones >= 5) {
+          const grantPrice = Math.max(4, Math.ceil(grantStones / 2.5));
+          consider({ kind: 'stone_grant', key: 'STONE_GRANT', nameTh: 'เบิกศิลาวิญญาณ ×' + grantStones, stones: grantStones, price: grantPrice }, 2.75, 'สะสมศิลาวิญญาณเพื่อทะลวงสายเฉพาะทาง');
+        }
+      }
+    }
     if (W.t > 0) n._pickCache = { t: W.t, cp, hp: n.h.state.hp, gearLen: W.sect.gear.length, val: best };
     return (n._pcVal = best);
   };
   CPE.buy = (W, n, p) => {
+    if (p && p.kind === 'stone_grant' && Number.isFinite(p.price) && p.price > 0 && Number.isFinite(p.stones) && p.stones > 0) {
+      if (!W.sect || (W.sect.stones || 0) < p.stones) return false;
+      if (!CPE.spend(W, n, p.price, 'แลกศิลาวิญญาณทะลวงสายเฉพาะทาง')) return false;
+      W.sect.stones -= p.stones;
+      n.inv.stones = (n.inv.stones || 0) + p.stones;
+      return true;
+    }
     if (!p || !Number.isFinite(p.price) || p.price <= 0 || !['pill','gear'].includes(p.kind)) return false;
     const quote=p.kind==='pill'?CPE.priceOf(W,p.key):CPE.gearPrice(W,p.gear || {});
     if(p.price!==quote || (p.kind==='pill' && (!ECO.isPill(p.key) || !ECO.pillInfo(p.key)))) return false;
@@ -345,7 +362,7 @@
   A.shop = {
     nameTh: 'ร้านค้าสำนัก', icon: '🛒', color: '#e0b84a',
     can: (n, W) => (n.cp || 0) >= 4 && !!CPE.pickPurchase(W, n),
-    score(n, W, S) { const p = CPE.pickPurchase(W, n); if (!p) return S.add('ไม่มีของที่อยากได้', -3); S.add('อยากได้ ' + (p.kind === 'gear' ? p.gear.nameTh : ECO.name(p.key)) + ' (' + p.price + ' คป. · ' + p.why + ')', 0.55 + p.s * 0.35 + (E(n, 'values.wealthResource') - 50) / 300); },
+    score(n, W, S) { const p = CPE.pickPurchase(W, n); if (!p) return S.add('ไม่มีของที่อยากได้', -3); S.add('อยากได้ ' + (p.kind === 'gear' ? p.gear.nameTh : p.nameTh || ECO.name(p.key)) + ' (' + p.price + ' คป. · ' + p.why + ')', 0.55 + p.s * 0.35 + (E(n, 'values.wealthResource') - 50) / 300); },
     where: (W, n) => { const s = AI.freeStation(W, n, 'browse', 'market'); return s ? { st: s } : null; },
     dur: () => 25,
     done(n, W) { CPE.buy(W, n, CPE.pickPurchase(W, n)); }
@@ -395,7 +412,8 @@
     tick(n, W, ctx) {
       const learning = n.cult && n.cult.learning;
       if (!learning) return 'done';
-      learning.got = Math.min(learning.need, learning.got + learning.need * (ctx.rate || 0.005));
+      const ancMult = (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t) && n.ancestralBlessing.studySpeedMult) ? n.ancestralBlessing.studySpeedMult : 1;
+      learning.got = Math.min(learning.need, learning.got + learning.need * (ctx.rate || 0.005) * ancMult);
       (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 30, 1.1);
       const teacher = W.byId[ctx.teacherId]; if (teacher && !teacher.dead) { (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(teacher, 'SCRIPTURE', 1 / 60, 0.8); teacher.merit = (teacher.merit || 0) + 0.005; }
       n.h.state.energy = Math.max(10, n.h.state.energy - 0.012); n.h.state.rest = Math.max(10, n.h.state.rest - 0.006);
@@ -474,7 +492,8 @@
       return ntc.out;
     }
     const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage, SECT.canLearnTier(W, n));
-    let ids = CULT.learnable(n, W.sect.library).map(id => CULT.tech(id)).filter(t => (t.reqTier || t.tier) <= cap);
+    const libPool = (g.COG && g.COG.visibleLibraryFor) ? g.COG.visibleLibraryFor(W, n) : W.sect.library;
+    let ids = CULT.learnable(n, libPool).map(id => CULT.tech(id)).filter(t => (t.reqTier || t.tier) <= cap);
     ids = ids.filter(t => CPE.techPrice(W, t) <= (n.cp || 0));
     let out = null;
     if (ids.length) {
@@ -822,20 +841,44 @@
     dur:()=>20,
     done(n,W) { for (const p of [...(n.inv.craftedPills||[])]) if(p.intent==='donate') { const result=ECO.donatePersonalProduct(W,n,p.id); if(result.ok) W.log('finance',n.h.name.given+' บริจาคโอสถส่วนตัว ได้ '+Math.round(result.reward)+' คป.',[n.id]); } }
   };
+  function neededPersonalPillEffect(n) {
+    if (!n || !n.inv) return null;
+    const hasCr = !!(n.inv.craftedPills && n.inv.craftedPills.length);
+    let hasP = false;
+    if (n.inv.pills) { for (const _k in n.inv.pills) { hasP = true; break; } }
+    if (!hasCr && !hasP) return null;
+    if (n.inj && n.inj.length > 0) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healInjury) || pickPill(n, 'healInjury')) return 'healInjury';
+    }
+    if (n.h.state.hp < CULT.hpMax(n) * 0.8) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healHealth) || pickPill(n, 'healHealth')) return 'healHealth';
+    }
+    if (n.cult && (n.cult.toxic || 0) >= 35) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.clearToxic) || pickPill(n, 'clearToxic')) return 'clearToxic';
+    }
+    if ((n.h.state.heartDemon || 0) >= 40 && (!n.cult || n.cult.path !== 'DEMON' || n.h.state.heartDemon >= 65)) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.clearHeartDemon) || pickPill(n, 'clearHeartDemon')) return 'clearHeartDemon';
+    }
+    return null;
+  }
   A.personalPillUse = {
     nameTh:'ใช้โอสถส่วนตัว',icon:'💊',color:'#7fd1b9',
     can(n) {
-      if (!n.inv || n.h.state.hp >= CULT.hpMax(n) * 0.8) return false;
-      const hasCrafted = (n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healHealth);
-      if (hasCrafted) return true;
-      return !!pickPill(n, 'healHealth');
+      return !!neededPersonalPillEffect(n);
     },
-    score(n,W,S) { S.add('บาดเจ็บและมีโอสถส่วนตัว',2.4); },
+    score(n,W,S) {
+      const eff = neededPersonalPillEffect(n);
+      if (eff === 'healInjury') S.add('รักษาอาการบาดเจ็บด้วยโอสถส่วนตัว', 2.45);
+      else if (eff === 'clearToxic') S.add('ขับพิษโอสถสะสมด้วยโอสถส่วนตัว', 2.1);
+      else if (eff === 'clearHeartDemon') S.add('ระงับจิตมารด้วยโอสถส่วนตัว', 2.15);
+      else S.add('บาดเจ็บและมีโอสถส่วนตัว', 2.4);
+    },
     where(W,n) { return {pos:{x:n.x,y:n.y}}; },dur:()=>1,
     done(n,W) {
-      const list = n.inv.craftedPills || [], i = list.findIndex(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healHealth);
+      const eff = neededPersonalPillEffect(n) || 'healHealth';
+      const list = n.inv.craftedPills || [], i = list.findIndex(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect[eff]);
       if (i >= 0) return CPE.consumeCrafted(W, n, list[i]);
-      const k = pickPill(n, 'healHealth');
+      const k = pickPill(n, eff);
       if (k) consume(W, n, k);
     }
   };

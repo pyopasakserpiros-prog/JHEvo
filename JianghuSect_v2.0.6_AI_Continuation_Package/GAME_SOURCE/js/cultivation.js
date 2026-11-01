@@ -1878,9 +1878,17 @@
   CULT.rate = (npc, env) => {
     const c = npc.cult; if (!c) return 0;
     let staticBase;
-    const rc = npc._cultRateBase, ritVal = npc.h.skills.ritual || 0, focVal = npc.h.intellect.focus || 0;
-    if (rc && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra && rc.rit === ritVal && rc.foc === focVal) {
-      staticBase = rc.val;
+    let rc = npc._cultRateBase;
+    const ritVal = npc.h.skills.ritual || 0, focVal = npc.h.intellect.focus || 0;
+    if (rc && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra) {
+      if (rc.rit === ritVal && rc.foc === focVal && rc.fullVal !== undefined) {
+        staticBase = rc.fullVal;
+      } else {
+        const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
+        const ritMult = g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1;
+        rc.rit = ritVal; rc.foc = focVal;
+        staticBase = rc.fullVal = rc.val * ritMult * focus;
+      }
     } else {
       ELEM.ensureNpc(npc);
       const d = HC.derived(npc);
@@ -1905,13 +1913,15 @@
       const subElemMult = subObj ? ELEM.resolveCompatibility(npc, subObj, 'CULTIVATION_TICK').cultivationMultiplier : 1.0;
       const elemRateFactor = clamp(0.60 * mantraElemMult + 0.40 * subElemMult, 0.72, 1.38);
 
-      const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
       const sp = 1 + HC.special(npc, 'cultivation.rateBonus');
       const passRate = (g.MARTIAL && g.MARTIAL.passiveStats ? g.MARTIAL.passiveStats(npc).cultRatePct : 0) || 0;
       const innRate = (g.MARTIAL && g.MARTIAL.innateStats ? g.MARTIAL.innateStats(npc).cultRatePct : 0) || 0;
       const manRate = (m && m.mantraBonus && m.mantraBonus.cultRatePct) || 0;
-      staticBase = base * (g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1) * mantraK * elemRateFactor * focus * sp * (1 + passRate + innRate + manRate);
-      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, rit: ritVal, foc: focVal, val: staticBase };
+      const rawStatic = base * mantraK * elemRateFactor * sp * (1 + passRate + innRate + manRate);
+      const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
+      const ritMult = g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1;
+      staticBase = rawStatic * ritMult * focus;
+      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, val: rawStatic, rit: ritVal, foc: focVal, fullVal: staticBase };
     }
     const rest = npc.h.state.rest < 30 ? 0.6 : npc.h.state.rest < 55 ? 0.85 : 1;
     let toxic, dev;
@@ -1998,6 +2008,7 @@
       p -= hd / 100 * 0.25 + c.toxic / 100 * 0.15;
     }
     if (g.BN) p += g.BN.chanceMod(npc);
+    if (npc.ancestralBlessing && (npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= (g.STATS ? g.STATS.now : 0))) p += (npc.ancestralBlessing.breakthroughBonus || 0);
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
@@ -2054,6 +2065,13 @@
       }
       const pd = c.stage >= 3 ? 0.012 * (c.stage - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
       if (rng.next() < pd) res.died = true;
+      if (npc.ancestralBlessing && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || npc.ancestralBlessing.untilDay >= (W ? W.day : 0))) {
+        res.died = false;
+        res.sev = 1;
+        res.ancestralProtected = true;
+        npc.ancestralBlessing.injuryShield = false;
+        npc.h.state.hp = Math.max(npc.h.state.hp, Math.round(CULT.hpMax(npc) * 0.55));
+      }
       HC.experience(npc, 'heart_demon', 0.5);
       if (rng.chance(0.18)) { npc.h.physiology.meridianIntegrity = Math.max(8, npc.h.physiology.meridianIntegrity - rng.float(1, 4)); }
     }
@@ -2064,12 +2082,26 @@
 
   /* ----- เรียนวิชา (รวมถึงวิชาต้องห้ามภายใต้เงื่อนไขเข้มงวด) ----- */
   // Accepts either (tech, npcSub, strictPrimarySub) or (npcSub, tech, strictPrimarySub)
+  CULT.isExclusiveSubpathTech = t => {
+    if (!t) return false;
+    if (t.innateOnly || (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t))) return true;
+    if (t.legendary) return false;
+    if (typeof t.id === 'string' && t.id.startsWith('MP_')) return true;
+    if ((t.passive || t.cat === 'PASSIVE') && t.sub) return true;
+    if (/FORBIDDEN/.test(t.cat || '')) return true;
+    if (t.sub && ['VENOM_GU_SOVEREIGN', 'CORPSE_PUPPET_MASTER'].includes(t.sub) && /GU_|CORPSE_|PARASITE/.test(t.id || '')) return true;
+    return false;
+  };
+
   CULT.isSubCompatible = (a, b, strictPrimarySub) => {
     const tech = (a && typeof a === 'object') ? a : (b && typeof b === 'object' ? b : null);
     const npcSub = typeof a === 'string' ? a : (typeof b === 'string' ? b : null);
     if (!tech || !tech.sub) return true;
     if (tech.sub === npcSub) return true;
-    if (!strictPrimarySub && Array.isArray(tech.compatibleSubs) && tech.compatibleSubs.includes(npcSub)) return true;
+    if (strictPrimarySub) return false;
+    if (tech.legendary) return true;
+    if (Array.isArray(tech.compatibleSubs) && tech.compatibleSubs.includes(npcSub)) return true;
+    if (!CULT.isExclusiveSubpathTech(tech)) return true;
     return false;
   };
 
@@ -2095,9 +2127,12 @@
     const c = npc.cult; if (!c) return [];
     const effSt = CULT.effectiveTechStage(npc);
     const strictPrimary = !!(opts && opts.strictPrimarySub);
+    const allowCrossPath = !!(opts && opts.allowCrossPath);
     return library.filter(id => {
       const t = TECH_BY_ID[id];
-      if (!t || t.innateOnly || (t.reqTier || t.tier) > effSt || (t.path !== 'ANY' && t.path !== c.path) || !CULT.isSubCompatible(t, c.sub, strictPrimary) || c.techs.includes(id)) return false;
+      if (!t || t.innateOnly || (t.reqTier || t.tier) > effSt || c.techs.includes(id)) return false;
+      const pathOk = t.path === 'ANY' || t.path === c.path || (!strictPrimary && (t.legendary || allowCrossPath || !CULT.isExclusiveSubpathTech(t)));
+      if (!pathOk || !CULT.isSubCompatible(t, c.sub, strictPrimary)) return false;
       if (/_MANTRA$|^QI_MANTRA$/.test(t.cat)) return false;
       if (/FORBIDDEN/.test(t.cat)) {
         if (!opts || !opts.includeForbidden) {
@@ -2112,7 +2147,10 @@
     const base = 90 * (t.tier + 0.5) * (1 + t.tier * 0.25);
     if (!npc || !npc.h) return base;
     const comp = ELEM.resolveCompatibility(npc, t, 'TECH_STUDY');
-    return Math.max(30, Math.round(base / Math.max(0.55, comp.studySpeedMultiplier)));
+    const blessMult = (npc.ancestralBlessing && npc.ancestralBlessing.studySpeedMult > 1) ? npc.ancestralBlessing.studySpeedMult : 1;
+    const tc = (g.MARTIAL && g.MARTIAL.resolveTechCompatibility) ? g.MARTIAL.resolveTechCompatibility(npc, t) : null;
+    const pathSubStudyMult = tc ? tc.studySpeedMult : 1;
+    return Math.max(25, Math.round(base / (Math.max(0.50, comp.studySpeedMultiplier * pathSubStudyMult) * blessMult)));
   };
   CULT.maxTechs = npc => 2 + (npc.cult ? Math.round(CULT.normalizedStage(npc)) : 0);
 
@@ -2212,62 +2250,407 @@
 
   CULT.checkTrackGates = (W, npc, targetOrd) => {
     const tr = CULT.trackOf(npc);
-    if (!tr) return { ok: false, reason: 'ไม่มีสายบำเพ็ญเฉพาะทาง', reasons: ['ไม่มีสายบำเพ็ญเฉพาะทาง'] };
+    if (!tr) return { ok: false, reason: "ไม่มีสายบำเพ็ญเฉพาะทาง", reasons: ["ไม่มีสายบำเพ็ญเฉพาะทาง"], missingSkills: [], missingStones: { required: 0, currentPersonal: 0, currentSect: 0, deficit: 0, canUseSect: false } };
     const def = CULT.trackDef(tr.subPath);
-    if (!def) return { ok: false, reason: 'ไม่พบข้อมูลสายบำเพ็ญ', reasons: ['ไม่พบข้อมูลสายบำเพ็ญ'] };
+    if (!def) return { ok: false, reason: "ไม่พบข้อมูลสายบำเพ็ญ", reasons: ["ไม่พบข้อมูลสายบำเพ็ญ"], missingSkills: [], missingStones: { required: 0, currentPersonal: 0, currentSect: 0, deficit: 0, canUseSect: false } };
     const nextOrd = targetOrd != null ? targetOrd : tr.ordinal + 1;
     if (nextOrd > def.realms.length) {
-      return { ok: false, reason: 'บรรลุขั้นสูงสุดของสายแล้ว (ขั้น 9)', reasons: ['บรรลุขั้นสูงสุดของสายแล้ว'], maxReached: true };
+      return { ok: false, reason: "บรรลุขั้นสูงสุดของสายแล้ว (ขั้น 9)", reasons: ["บรรลุขั้นสูงสุดของสายแล้ว"], maxReached: true, missingSkills: [], missingStones: { required: 0, currentPersonal: 0, currentSect: 0, deficit: 0, canUseSect: false } };
     }
+    if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(npc);
     const nextRealm = def.realms[nextOrd - 1];
     const gate = nextRealm.skillGate || {};
     const reasons = [];
+    const missingSkills = [];
     const h = npc.h || {};
     const skills = h.skills || {};
+    const readSk = id => (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(npc, id) : (skills[id] || 0);
+    const nameSk = id => (g.MARTIAL && g.MARTIAL.SKILL_INFO && g.MARTIAL.SKILL_INFO[id] ? g.MARTIAL.SKILL_INFO[id].nameTh : (HC.nameOf && HC.nameOf("skills." + id)) || id);
     let skillOk = true;
     if (gate.primarySkill) {
-      const curPrimary = skills[gate.primarySkill] || 0;
+      const curPrimary = readSk(gate.primarySkill);
       const reqPrimary = gate.minPrimarySkill || 0;
       if (curPrimary < reqPrimary) {
         skillOk = false;
-        reasons.push('ทักษะ ' + gate.primarySkill + ' ไม่ถึงเกณฑ์ (' + Math.round(curPrimary) + '/' + reqPrimary + ')');
+        reasons.push("ทักษะ " + gate.primarySkill + " ไม่ถึงเกณฑ์ (" + Math.round(curPrimary) + "/" + reqPrimary + ")");
+        missingSkills.push({
+          skill: gate.primarySkill,
+          nameTh: nameSk(gate.primarySkill),
+          current: curPrimary,
+          required: reqPrimary,
+          deficit: +(reqPrimary - curPrimary).toFixed(2),
+          role: "primary"
+        });
       }
     }
     if (gate.secondarySkill) {
-      const curSec = skills[gate.secondarySkill] || 0;
+      const curSec = readSk(gate.secondarySkill);
       const reqSec = gate.minSecondarySkill || 0;
       if (curSec < reqSec) {
         skillOk = false;
-        reasons.push('ทักษะ ' + gate.secondarySkill + ' ไม่ถึงเกณฑ์ (' + Math.round(curSec) + '/' + reqSec + ')');
+        reasons.push("ทักษะ " + gate.secondarySkill + " ไม่ถึงเกณฑ์ (" + Math.round(curSec) + "/" + reqSec + ")");
+        missingSkills.push({
+          skill: gate.secondarySkill,
+          nameTh: nameSk(gate.secondarySkill),
+          current: curSec,
+          required: reqSec,
+          deficit: +(reqSec - curSec).toFixed(2),
+          role: "secondary"
+        });
       }
     }
+    if (missingSkills.length > 1) missingSkills.sort((a, b) => b.deficit - a.deficit);
     const cost = nextRealm.resourceCost || {};
     const reqStones = cost.stones || 0;
     const havePersonal = (npc.inv && npc.inv.stones != null) ? npc.inv.stones : 0;
     const haveSect = (W && W.sect && W.sect.stones != null) ? W.sect.stones : 0;
-    let stonesSource = 'none';
+    const canUseSect = !!(npc.rank >= 2 || (W && W.sect && W.sect.policy && W.sect.policy.subsidizeSpecialization));
+    let stonesSource = "none";
     let resourceOk = false;
     if (havePersonal >= reqStones) {
-      stonesSource = 'personal';
+      stonesSource = "personal";
       resourceOk = true;
-    } else if (haveSect >= reqStones && (npc.rank >= 2 || (W && W.sect && W.sect.policy && W.sect.policy.subsidizeSpecialization))) {
-      stonesSource = 'sect';
+    } else if (haveSect >= reqStones && canUseSect) {
+      stonesSource = "sect";
       resourceOk = true;
     } else {
-      reasons.push('ศิลาวิญญาณไม่เพียงพอ (ต้องการ ' + reqStones + ' ก้อน มี ' + Math.round(havePersonal) + ')');
+      reasons.push("ศิลาวิญญาณไม่เพียงพอ (ต้องการ " + reqStones + " ก้อน มี " + Math.round(havePersonal) + ")");
     }
+    const th = CULT.trackThreshold(npc);
+    const prog = tr.prog || 0;
     return {
       ok: reasons.length === 0,
       reasons,
-      reason: reasons.join(' · '),
+      reason: reasons.join(" · "),
       skillOk,
       resourceOk,
       stonesRequired: reqStones,
       stonesSource,
+      missingSkills,
+      missingStones: {
+        required: reqStones,
+        currentPersonal: havePersonal,
+        currentSect: haveSect,
+        deficit: resourceOk ? 0 : Math.max(0, reqStones - havePersonal),
+        canUseSect
+      },
+      progress: prog,
+      threshold: th,
+      progressRatio: (Number.isFinite(th) && th > 0) ? clamp(prog / th, 0, 1) : 1,
+      readyToAdvance: prog >= th,
+      nearThreshold: prog >= th * 0.65,
       currentOrdinal: tr.ordinal,
       nextOrdinal: nextOrd,
       nextRealm
     };
+  };
+
+  CULT.skillResolutionCandidates = skillId => {
+    const M = g.MARTIAL;
+    const isWpn = M && M.SKILL_GROUPS && M.SKILL_GROUPS.weapon.includes(skillId);
+    const isMartial = isWpn || ["MOVEMENT", "BODY_REFINING", "SOUL_DIVINE", "POISON", "WATER_ICE", "WOOD_LIFE", "stealth", "survival"].includes(skillId);
+    const acts = ["skillDrill"];
+    if (isMartial) acts.push("practice");
+    if (skillId === "SCRIPTURE" || skillId === "ARRAY" || skillId === "TALISMAN") acts.push("study", "guidedStudy");
+    else if (skillId === "ALCHEMY" || skillId === "POISON") acts.push("brewBasic", "personalBrew", "brew");
+    else if (skillId === "FORGING") acts.push("forge");
+    else if (skillId === "herbalism") acts.push("farm", "forage", "gatherWildResource");
+    else if (skillId === "mining") acts.push("mine");
+    else if (skillId === "cooking") acts.push("cook");
+    else if (skillId === "ritual") acts.push("pray", "cultivate");
+    else if (skillId === "arts") acts.push("leisure");
+    else if (skillId === "survival" || skillId === "BEAST_TAMING") acts.push("wildHunt", "forage", "guard");
+    acts.push("pair");
+    return acts;
+  };
+
+  CULT.findQualifiedSkillTeacher = (W, student, skillId) => {
+    if (!W || !Array.isArray(W.npcs) || !student || !skillId) return null;
+    const readSk = (u, id) => (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(u, id) : ((u.h && u.h.skills && u.h.skills[id]) || 0);
+    const cur = readSk(student, skillId);
+    let best = null, bestVal = cur + 2;
+    for (let i = 0; i < W.npcs.length; i++) {
+      const o = W.npcs[i];
+      if (!o || o === student || o.dead || o.away || o.exiled || o.sealed || (o.jail && o.jail > W.t)) continue;
+      if (o.rank < 2 || o.rank <= student.rank) continue;
+      if (g.AI && g.AI.isProtectedAction && g.AI.isProtectedAction(W, o, "teach")) continue;
+      const lv = readSk(o, skillId);
+      if (lv > bestVal) { bestVal = lv; best = o; }
+    }
+    return best;
+  };
+
+  CULT.isResolutionActionFeasible = (W, npc, actId, targetSkill) => {
+    if (!W || !npc || !g.AI || !g.AI.ACTS) return { ok: false, reasonTh: "ไม่พบระบบกิจกรรม" };
+    if (actId === "pair") {
+      if (npc.cool && npc.cool.pair > W.t) return { ok: false, reasonTh: "เพิ่งพบปะหรือชวนผู้อื่นไปเมื่อครู่" };
+      const teacher = targetSkill ? CULT.findQualifiedSkillTeacher(W, npc, targetSkill) : null;
+      if (!teacher) return { ok: false, reasonTh: "ไม่มีอาจารย์หรือศิษย์พี่ที่เชี่ยวชาญทักษะ " + (targetSkill || "") + " ว่างชี้แนะ" };
+      const st = g.AI.freeStation(W, npc, "dummy", "training_ground");
+      if (!st) return { ok: false, reasonTh: "ลานฝึกยุทธ์ไม่มีพื้นที่ว่างสำหรับรับการชี้แนะ" };
+      return { ok: true, teacherId: teacher.id };
+    }
+    const act = g.AI.ACTS[actId];
+    if (!act) return { ok: false, reasonTh: "ไม่มีกิจกรรม " + actId };
+    if (npc.cool && npc.cool[actId] > W.t) return { ok: false, reasonTh: "อยู่ระหว่างพักรอบกิจกรรม " + (act.nameTh || actId) };
+    if (act.can && !act.can(npc, W)) return { ok: false, reasonTh: "ยังไม่ผ่านเงื่อนไขของ " + (act.nameTh || actId) };
+    if (actId === "skillDrill") {
+      const M = g.MARTIAL;
+      const sk = targetSkill || (M && M.pickSkillPractice ? M.pickSkillPractice(W, npc) : "MOVEMENT");
+      const isPhysical = (M && M.SKILL_GROUPS && M.SKILL_GROUPS.weapon.includes(sk)) || ["MOVEMENT", "BODY_REFINING", "stealth", "survival", "BEAST_TAMING"].includes(sk);
+      const st = g.AI.freeStation(W, npc, isPhysical ? "dummy" : "read", isPhysical ? "training_ground" : "scripture") ||
+        (isPhysical ? (g.AI.freeStation(W, npc, "spar", "training_ground") || g.AI.freeStation(W, npc, "read", "scripture")) : g.AI.freeStation(W, npc, "dummy", "training_ground"));
+      if (!st) return { ok: false, reasonTh: "ไม่มีแท่นฝึกว่างในลานฝึกยุทธ์หรือหอคัมภีร์" };
+      return { ok: true };
+    }
+    if (actId === "practice") {
+      const st = g.AI.freeStation(W, npc, "dummy", "training_ground");
+      if (!st) return { ok: false, reasonTh: "หุ่นฝึกในลานฝึกยุทธ์ถูกใช้งานเต็มทั้งหมด" };
+      return { ok: true };
+    }
+    if (actId === "study" || actId === "guidedStudy") {
+      const st = g.AI.freeStation(W, npc, "read", "scripture");
+      if (!st) return { ok: false, reasonTh: "โต๊ะอ่านคัมภีร์ในหอคัมภีร์เต็มทั้งหมด" };
+      return { ok: true };
+    }
+    if (actId === "mine") {
+      const st = g.AI.freeStation(W, npc, "mine", "mine");
+      if (!st) return { ok: false, reasonTh: "เหมืองแร่ไม่มีจุดขุดว่าง" };
+      return { ok: true };
+    }
+    if (actId === "farm") {
+      const st = g.AI.freeStation(W, npc, "farm", "herb_garden") || g.AI.freeStation(W, npc, "farm", "farm");
+      if (!st) return { ok: false, reasonTh: "แปลงสมุนไพรและไร่นาเต็มทั้งหมด" };
+      return { ok: true };
+    }
+    if (actId === "shop") {
+      const st = g.AI.freeStation(W, npc, "browse", "market");
+      if (!st) return { ok: false, reasonTh: "ตลาดสำนักไม่มีจุดแลกเปลี่ยนว่าง" };
+      return { ok: true };
+    }
+    if (act.where) {
+      const w = act.where(W, npc);
+      if (!w) return { ok: false, reasonTh: "ไม่มีสถานีหรือเป้าหมายว่างสำหรับ " + (act.nameTh || actId) };
+    }
+    return { ok: true };
+  };
+
+  CULT.inspectProgressionBottleneck = (W, npc) => {
+    if (!npc || !npc.cult || npc.dead) {
+      return { active: false, kind: null, track: null, major: null, feasibleActions: [], blockedReasons: [], explanationTh: "", explanationEn: "" };
+    }
+    const c = npc.cult, s = npc.h.state;
+    const wt = W && W.t > 0 ? W.t : -1;
+    const curActKey = (npc.act ? npc.act.id : "idle") + ":" + ((npc.act && npc.act.ctx && (npc.act.ctx.skill || npc.act.ctx.skillTgt)) || "");
+    const tr0 = CULT.trackOf(npc), def0 = tr0 ? CULT.trackDef(tr0.subPath) : null, g0 = (def0 && def0.realms && def0.realms[tr0.ordinal]) ? (def0.realms[tr0.ordinal].skillGate || {}) : {};
+    const skKey = (g0.primarySkill ? Math.floor((npc.h.skills && npc.h.skills[g0.primarySkill]) || 0) : 0) + ":" + (g0.secondarySkill ? Math.floor((npc.h.skills && npc.h.skills[g0.secondarySkill]) || 0) : 0);
+    const stKey = Math.floor((npc.inv && npc.inv.stones) || 0) + ":" + Math.floor(npc.cp || 0) + ":" + (c.stage || 0) + ":" + Math.floor(c.prog || 0) + ":" + (tr0 ? tr0.ordinal + ":" + Math.floor(tr0.prog || 0) : "0") + ":" + skKey;
+    if (wt > 0 && npc._bnInspectCache && npc._bnInspectCache.t === wt && npc._bnInspectCache.ver === npc._ver && npc._bnInspectCache.actKey === curActKey && npc._bnInspectCache.stKey === stKey) {
+      return npc._bnInspectCache.out;
+    }
+    const driveMult = clamp(
+      0.42 +
+      (HC.eff(npc, "personality.ambition") - 45) / 105 +
+      (HC.eff(npc, "values.martialPeak") - 45) / 125 +
+      (HC.eff(npc, "personality.discipline") - 45) / 155 -
+      (HC.eff(npc, "values.freedom") - 55) / 220,
+      0.25,
+      1.65
+    );
+    const hpMax = CULT.hpMax(npc);
+    const gObj = npc.cognition && npc.cognition.goal ? npc.cognition.goal : null;
+    const activeCrisis = !!(gObj && gObj.id === "crisis" && W && W.sect && (W.sect.shortageDirectives || []).some(d => d.id === gObj.targetId && d.deficit > 0));
+    const activeHelpFriend = !!(gObj && gObj.id === "help_friend" && W && W.byId && W.byId[gObj.targetId] && !W.byId[gObj.targetId].dead && W.byId[gObj.targetId].h.state.hp < CULT.hpMax(W.byId[gObj.targetId]) * 0.72);
+    const competingNeed =
+      (s.hp < hpMax * 0.4 || (npc.inj && npc.inj.length)) ? "บาดเจ็บ/พลังชีวิตต่ำ ต้องรักษาตัวก่อน"
+      : s.satiety < 24 ? "กำลังหิว ต้องกินอาหารก่อน"
+      : s.rest < 14 ? "อ่อนล้ามาก ต้องพักผ่อนก่อน"
+      : ((c.toxic || 0) >= 60) ? "พิษโอสถสะสมสูง ต้องขับพิษก่อน"
+      : ((s.heartDemon || 0) >= 65 && c.path !== "DEMON") ? "จิตมารรบกวนหนัก ต้องสงบจิตใจก่อน"
+      : (npc.act && npc.act.id === "duty") ? "กำลังปฏิบัติหน้าที่ตำแหน่งในสำนัก"
+      : (npc.act && npc.act.id === "guard") ? "กำลังเข้าเวรเฝ้ายาม"
+      : activeCrisis ? "กำลังช่วยสำนักแก้วิกฤตขาดแคลนเร่งด่วน"
+      : activeHelpFriend ? "กำลังช่วยเหลือสหายที่บาดเจ็บ"
+      : null;
+
+    let trackInfo = null;
+    const tr = CULT.trackOf(npc);
+    if (tr && tr.ordinal < 9) {
+      const gate = CULT.checkTrackGates(W, npc);
+      if (!gate.ok && (gate.readyToAdvance || gate.nearThreshold)) {
+        const feasibleActions = [];
+        const blockedReasons = [];
+        const primaryMissingSkill = gate.missingSkills.length ? gate.missingSkills[0] : null;
+        if (!gate.skillOk && gate.missingSkills.length) {
+          for (let i = 0; i < gate.missingSkills.length; i++) {
+            const ms = gate.missingSkills[i];
+            const cands = CULT.skillResolutionCandidates(ms.skill);
+            for (let j = 0; j < cands.length; j++) {
+              const actId = cands[j];
+              if (feasibleActions.includes(actId)) continue;
+              const chk = CULT.isResolutionActionFeasible(W, npc, actId, ms.skill);
+              if (chk.ok) feasibleActions.push(actId);
+              else if (chk.reasonTh && !blockedReasons.includes(chk.reasonTh)) blockedReasons.push(chk.reasonTh);
+            }
+          }
+        }
+        if (!gate.resourceOk && gate.missingStones.deficit > 0) {
+          const stoneActs = ["shop", "outsideTrade", "mine", "forage", "gatherWildResource", "donate", "errand", "farm"];
+          for (let j = 0; j < stoneActs.length; j++) {
+            const actId = stoneActs[j];
+            if (feasibleActions.includes(actId)) continue;
+            const chk = CULT.isResolutionActionFeasible(W, npc, actId, null);
+            if (chk.ok) feasibleActions.push(actId);
+            else if (chk.reasonTh && !blockedReasons.includes(chk.reasonTh)) blockedReasons.push(chk.reasonTh);
+          }
+        }
+        const curActId = npc.act ? npc.act.id : "idle";
+        const curSkill = (npc.act && npc.act.ctx && (npc.act.ctx.skill || npc.act.ctx.skillTgt)) || null;
+        const trainedSkillObj = gate.missingSkills.find(m => m.skill === curSkill) || ((curActId === "pair" && npc.act?.ctx?.pair?.type === "teach" && !curSkill) ? primaryMissingSkill : null);
+        const isTrainingTargetSkill = !!(trainedSkillObj && (curActId === "skillDrill" || curActId === "practice" || (curActId === "pair" && npc.act?.ctx?.pair?.type === "teach")));
+        const isGatheringStones = !!(!gate.resourceOk && ["mine", "forage", "gatherWildResource", "outsideTrade", "shop", "donate", "errand"].includes(curActId));
+        const isActivelyResolving = isTrainingTargetSkill || isGatheringStones;
+        const gatePartsEn = [];
+        const gatePartsTh = [];
+        for (let i = 0; i < gate.missingSkills.length; i++) {
+          const ms = gate.missingSkills[i];
+          gatePartsEn.push(ms.skill + " " + Math.floor(ms.current) + "/" + ms.required);
+          gatePartsTh.push("ทักษะ" + ms.nameTh + " (" + ms.skill + " " + Math.floor(ms.current) + "/" + ms.required + ")");
+        }
+        if (!gate.resourceOk && gate.missingStones.deficit > 0) {
+          gatePartsEn.push("STONES " + Math.floor(gate.missingStones.currentPersonal) + "/" + gate.missingStones.required);
+          gatePartsTh.push("ศิลาวิญญาณ " + Math.floor(gate.missingStones.currentPersonal) + "/" + gate.missingStones.required);
+        }
+        const blockerTh = feasibleActions.length === 0 ? (blockedReasons[0] || "ไม่มีสถานี อาจารย์ หรือทรัพยากรที่เข้าถึงได้ในขณะนี้") : null;
+        let statusTh, statusEn;
+        if (isTrainingTargetSkill && trainedSkillObj) {
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — กำลังฝึก " + trainedSkillObj.nameTh + " (" + trainedSkillObj.skill + ")";
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — currently training " + trainedSkillObj.skill + ".";
+        } else if (isGatheringStones) {
+          const actNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[curActId] ? g.AI.ACTS[curActId].nameTh : curActId);
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — กำลังจัดหาทรัพยากร (" + actNameTh + ")";
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — currently acquiring resources (" + curActId + ").";
+        } else if (competingNeed) {
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — ชะลอชั่วคราวเพราะ" + competingNeed;
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — deferred due to competing priority (" + curActId + ").";
+        } else if (blockerTh) {
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — ยังดำเนินการไม่ได้: " + blockerTh;
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — blocked: " + blockerTh;
+        } else {
+          const nextAct = feasibleActions[0];
+          const nextNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[nextAct] ? g.AI.ACTS[nextAct].nameTh : nextAct);
+          const curNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[curActId] ? g.AI.ACTS[curActId].nameTh : curActId);
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — ปัจจุบัน: " + curNameTh + " (เตรียม " + nextNameTh + ")";
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — next feasible action: " + nextAct + ".";
+        }
+        trackInfo = {
+          active: true,
+          ready: gate.readyToAdvance,
+          near: gate.nearThreshold,
+          gateOk: false,
+          subPath: tr.subPath,
+          ordinal: tr.ordinal,
+          nextOrdinal: gate.nextOrdinal,
+          nextRealmNameTh: gate.nextRealm ? gate.nextRealm.nameTh : "",
+          missingSkills: gate.missingSkills,
+          missingStones: gate.missingStones,
+          primarySkillToTrain: primaryMissingSkill ? primaryMissingSkill.skill : null,
+          feasibleActions,
+          blockedReasons,
+          blockerReasonTh: blockerTh,
+          isActivelyResolving,
+          statusTh,
+          statusEn
+        };
+      }
+    }
+
+    let majorInfo = null;
+    const maxSt = CULT.maxStage(npc);
+    const thMajor = CULT.threshold(npc);
+    const eqStage = CULT.equivalentStage(npc);
+    const effTechSt = CULT.effectiveTechStage(npc);
+    if (c.stage < maxSt && Number.isFinite(thMajor) && (c.bn || c.prog >= thMajor * 0.75)) {
+      const ready = c.prog >= thMajor;
+      const pillKey = g.BN ? g.BN.pillKey(c) : ("P:BT_" + c.path + "_" + c.stage);
+      const hasPill = !!(g.BN && g.BN.heldPill(npc)) || (c.btBonus || 0) >= 0.1;
+      const trObj = g.BN ? g.BN.treasureOf(c) : null;
+      const needTreasure = !!(trObj && c.treasure !== trObj.id);
+      const needFoundation = !!(c.bn && c.bn.plan === "wait" && (c.found || 0) < 0.08);
+      const needTech = (c.techs ? c.techs.length : 0) < Math.min(2, effTechSt) && W && W.sect && Array.isArray(W.sect.library) && CULT.learnable(npc, W.sect.library).length > 0;
+      const feasibleActions = [];
+      const blockedReasons = [];
+      const cands = [];
+      if (ready && (!c.bn || c.bn.plan === "go")) cands.push("breakthrough");
+      if (needFoundation) cands.push("consolidate", "pray");
+      if (!hasPill) {
+        if (W && W.sect && W.sect.stock && W.sect.stock[pillKey] > 0) cands.push("shop");
+        cands.push("personalBrew", "brewBasic", "brew", "forage", "gatherWildResource");
+      }
+      if (needTreasure) cands.push("errand", "outsideTrade");
+      if (needTech) cands.push("study", "guidedStudy");
+      if (!ready) cands.push("cultivate", "paidTraining");
+      for (let i = 0; i < cands.length; i++) {
+        const actId = cands[i];
+        if (feasibleActions.includes(actId)) continue;
+        const chk = CULT.isResolutionActionFeasible(W, npc, actId, null);
+        if (chk.ok) feasibleActions.push(actId);
+        else if (chk.reasonTh && !blockedReasons.includes(chk.reasonTh)) blockedReasons.push(chk.reasonTh);
+      }
+      const curActId = npc.act ? npc.act.id : "idle";
+      const isActivelyResolving = feasibleActions.includes(curActId) || curActId === "breakthrough" || curActId === "consolidate";
+      const unmetListTh = [];
+      if (needFoundation) unmetListTh.push("ฐานปราณตกผลึก (" + Math.round((c.found || 0) * 100) + "/8%)");
+      if (!hasPill) unmetListTh.push("โอสถทะลวงขั้น (" + pillKey + ")");
+      if (needTreasure) unmetListTh.push("สมบัติประจำด่าน " + trObj.nameTh);
+      if (needTech) unmetListTh.push("คัมภีร์วิชาระดับเทียบเคียงขั้น " + effTechSt);
+      if (!ready) unmetListTh.push("ตบะ " + Math.round(c.prog) + "/" + thMajor);
+      const blockerTh = feasibleActions.length === 0 ? (blockedReasons[0] || "ไม่มีสถานีหรือทรัพยากรที่พร้อมใช้") : null;
+      const curNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[curActId] ? g.AI.ACTS[curActId].nameTh : curActId);
+      const statusTh = "คอขวดวิถีหลัก (" + CULT.stageName(npc) + " · เทียบเคียงขั้น " + eqStage.toFixed(1) + "): " +
+        (unmetListTh.length ? "ต้องการ " + unmetListTh.join(" · ") : "พร้อมทะลวงขั้น") +
+        (isActivelyResolving ? " — กำลังทำ " + curNameTh : blockerTh ? " — ติดขัด: " + blockerTh : " — ปัจจุบัน: " + curNameTh);
+      majorInfo = {
+        active: true,
+        ready,
+        near: c.prog >= thMajor * 0.75,
+        equivalentStage: eqStage,
+        effectiveTechStage: effTechSt,
+        plan: c.bn ? c.bn.plan : null,
+        needFoundation,
+        needPill: !hasPill,
+        pillKey,
+        needTreasure,
+        treasure: trObj,
+        needTech,
+        feasibleActions,
+        blockedReasons,
+        blockerReasonTh: blockerTh,
+        isActivelyResolving,
+        statusTh
+      };
+    }
+
+    const primary = trackInfo || majorInfo;
+    const out = {
+      active: !!(trackInfo || majorInfo),
+      kind: trackInfo ? "track" : majorInfo ? "major" : null,
+      driveMult,
+      competingNeed,
+      relevantToNpc: !!(trackInfo || majorInfo) && driveMult >= 0.35 && !competingNeed,
+      track: trackInfo,
+      major: majorInfo,
+      feasibleActions: primary ? primary.feasibleActions : [],
+      blockedReasons: primary ? primary.blockedReasons : [],
+      blockerReasonTh: primary ? primary.blockerReasonTh : null,
+      isActivelyResolving: primary ? primary.isActivelyResolving : false,
+      explanationTh: trackInfo ? trackInfo.statusTh : majorInfo ? majorInfo.statusTh : "",
+      explanationEn: trackInfo ? trackInfo.statusEn : ""
+    };
+    if (wt > 0) {
+      npc._bnInspectCache = { t: wt, ver: npc._ver, actKey: curActKey, stKey, out };
+    }
+    return out;
   };
 
   CULT.trackBreakthroughChance = (npc, opts) => {
@@ -2284,6 +2667,9 @@
     p += HC.special(npc, 'cultivation.breakthroughBonus');
     const s = npc.h ? npc.h.state : {};
     p -= (s.heartDemon || 0) / 100 * 0.2 + (npc.cult.toxic || 0) / 100 * 0.12;
+    if (npc.ancestralBlessing && (npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= (g.STATS ? g.STATS.now : 0))) {
+      p += (npc.ancestralBlessing.breakthroughBonus || 0);
+    }
     if (opts) {
       p += (opts.pill || 0) + (opts.env || 0) + (opts.guide || 0) + (opts.bonus || 0);
     }
@@ -2340,9 +2726,11 @@
       HC.bump(npc);
       return { ok: true, p, fromOrdinal: fromOrd, toOrdinal: tr.ordinal, realm: newRealm };
     } else {
-      tr.prog = th * (0.5 + 0.2 * clamp(HC.eff(npc, 'intellect.willpower') / 100 * 0.6 + HC.eff(npc, 'personality.composure') / 100 * 0.4, 0, 1));
-      HC.feel(npc, { mood: -12, stress: 12 });
-      npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + 8, 0, 100);
+      const blessed = !!(npc.ancestralBlessing && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || npc.ancestralBlessing.untilDay >= (W ? W.day : 0)));
+      if (blessed) npc.ancestralBlessing.injuryShield = false;
+      tr.prog = th * ((blessed ? 0.65 : 0.5) + 0.2 * clamp(HC.eff(npc, 'intellect.willpower') / 100 * 0.6 + HC.eff(npc, 'personality.composure') / 100 * 0.4, 0, 1));
+      HC.feel(npc, { mood: blessed ? -6 : -12, stress: blessed ? 5 : 12 });
+      npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + (blessed ? 3 : 8), 0, 100);
       if (W && W.log) {
         W.log('breakthrough', npc.h.name.given + ' ทะลวงสายเฉพาะทาง ' + def.realms[fromOrd - 1].nameTh + ' ไม่สำเร็จ (โอกาส ' + Math.round(p * 100) + '%)', [npc.id]);
       }

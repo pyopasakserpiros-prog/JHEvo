@@ -180,6 +180,7 @@
     msgs.push(m >= 0.99 ? 'โอสถเหมาะกับขั้นนี้' : m < 0.5 ? 'โอสถไม่เหมาะ ผลน้อย' : 'ผลลดลง');
     HC.bump(npc); return { info, msgs };
   };
+  BN.inspectBottleneck = (W, n) => CULT.inspectProgressionBottleneck ? CULT.inspectProgressionBottleneck(W, n) : null;
   g.BN = BN;
   if (typeof module === 'object' && module.exports) module.exports = BN;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

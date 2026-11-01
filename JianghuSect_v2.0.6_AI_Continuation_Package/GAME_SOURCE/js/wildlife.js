@@ -381,14 +381,14 @@
     nameTh: 'ล่าอสูรใกล้สำนัก',
     icon: '🐺',
     color: '#b67862',
-    can: (n, W) => !!(W.wildlife && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > CULT.hpMax(n) * 0.6 && W.wildlife.beasts.some(b => !b.dead && !b.gone && !b.fighting && CULT.power(n) >= b.power * 0.8)),
+    can: (n, W) => { if (!(W.wildlife && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > CULT.hpMax(n) * 0.6)) return false; const npw = CULT.power(n); return W.wildlife.beasts.some(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8); },
     score(n, W, S) {
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
       S.add('ต้องการวัตถุดิบ', 0.35);
       if (n.rank <= 2) S.add('ฝึกฝนความกล้า', 0.2);
     },
     where(W, n) {
-      const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && CULT.power(n) >= b.power * 0.8);
+      const npw = CULT.power(n); const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8);
       candidates.sort((a,b)=>g.COG?g.COG.huntValue(W,n,b)-g.COG.huntValue(W,n,a):Math.hypot(n.x-a.x,n.y-a.y)-Math.hypot(n.x-b.x,n.y-b.y));
       const b = candidates[0];
       return b ? { pos: { x: b.x, y: b.y }, beastId: b.id } : null;

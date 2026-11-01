@@ -452,7 +452,7 @@
     while ($('toasts').children.length > 4) $('toasts').removeChild($('toasts').firstChild);
     setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = 0; setTimeout(() => el.remove(), 450); }, 5200);
   };
-  UI.onLog = e => { if (TOAST_TYPES.includes(e.type) && !UI.G.muted) { if (e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (UI.G.speed <= 16)) UI.toast(e.text, e.type, e.ids[0]); } };
+  UI.onLog = e => { if (TOAST_TYPES.includes(e.type) && !UI.G.muted) { const sp = UI.G.speed; if (e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (sp > 0 && sp <= 16)) { const now = performance.now(); if (sp === 0 && now - (UI._lastBatchToast || 0) < 40) return; UI._lastBatchToast = now; UI.toast(e.text, e.type, e.ids[0]); } } };
 
   /* ---------- แผ่นข้อมูล ---------- */
   UI.close = () => { UI.sheet = null; UI.tab = null; $('sheet').classList.remove('show'); document.querySelectorAll('#hudBottom button').forEach(b => b.classList.remove('on')); if (!UI.G.W) $('start').classList.remove('hidden'); UI.updateHud(true); };
@@ -2013,6 +2013,10 @@
     if (inside.length) h += '<h3>อยู่ข้างใน (' + inside.length + ')</h3>' + inside.map(n => '<div class="prow" data-npc="' + n.id + '">' + portraitHtml(n, 36) + '<div class="pi"><div class="nm">' + esc(HC.fullName(n)) + '</div><div class="sub">' + esc(actText(n)) + '</div></div></div>').join('');
     if (around.length) h += '<h3>อยู่บริเวณนี้ (' + around.length + ')</h3>' + around.map(n => '<div class="prow" data-npc="' + n.id + '">' + portraitHtml(n, 36) + '<div class="pi"><div class="nm">' + esc(HC.fullName(n)) + '</div><div class="sub">' + esc(actText(n)) + '</div></div></div>').join('');
     if (b.type === 'alchemy' || b.type === 'forge') { const o = W.sect.orders && W.sect.orders[b.id]; const r = o ? ECO.recipeById[o.rid] : null; h += '<h3>คำสั่งผลิตปัจจุบัน</h3><div class="card">' + (r ? esc(r.outNameTh) + ' — ' + esc(o.why || '') : 'ไม่มี') + '</div>'; }
+    if (b.id === 'ancestral' || b.id === 'shrine' || b.type === 'ancestral') {
+      const tablets = (SECT.ensureLegacyTablets ? SECT.ensureLegacyTablets(W) : (W.sect.legacyTablets || []));
+      h += '<h3>🕯️ ป้ายวิญญาณมรดกบรรพชน (' + tablets.length + ')</h3><div class="card">' + (tablets.length ? tablets.map(t => '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>🕯️ ' + esc(t.nameTh) + '</b> <span class="chip g">' + esc(t.subpathNameTh || t.path) + '</span><div class="muted" style="font-size:11.5px">วิชาเอก: ' + esc(t.signatureTechNameTh || '-') + ' · พรทะลวงขั้น +' + Math.round((t.breakthroughBonus || 0) * 100) + '% · เร่งเข้าใจคัมภีร์ +' + Math.round((t.comprehensionBonus || 0) * 100) + '% · สักการะแล้ว ' + (t.prayersCount || 0) + ' ครั้ง</div></div>').join('') : '<span class="muted">ยังไม่มีป้ายวิญญาณมรดกของผู้อาวุโสระดับสูง</span>') + '</div>';
+    }
     return h;
   };
 
@@ -2095,7 +2099,7 @@
       h += '<h3>🏯 ขั้วอำนาจและสำนักเพื่อนบ้าน (' + W.world.sects.length + ')</h3>';
       h += W.world.sects.map(s => {
         const trLabel = (C && C.TREATY_TH && C.TREATY_TH[s.treaty || 'NONE']) || (s.treaty || 'NONE');
-        const trChip = s.treaty === 'ALLIANCE' ? 'ok' : s.treaty === 'TRADE_PACT' ? 'g' : s.treaty === 'NON_AGGRESSION' ? 'b' : s.treaty === 'EMBARGO' ? 'r' : '';
+        const trChip = ['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(s.treaty) ? 'ok' : ['TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) ? 'g' : s.treaty === 'NON_AGGRESSION' ? 'b' : ['EMBARGO','RIVAL_FEUD'].includes(s.treaty) ? 'r' : '';
         const specs = Array.isArray(s.specialtyMatIds) ? s.specialtyMatIds.map(id => esc(ECO.name(id))).join(' · ') : '';
         return '<div class="card"><b>' + esc(s.icon || '🏯') + ' ' + esc(s.nameTh) + '</b> <span class="chip">' + esc(s.style) + '</span>' + (s.alignmentLabelTh ? ' <span class="chip v">' + esc(s.alignmentLabelTh) + '</span>' : '') + ' <span class="chip ' + trChip + '">📜 ' + esc(trLabel) + '</span>' + bar('ท่าทีต่อเรา', s.attitude + 100, { max: 200, txt: Math.round(s.attitude), wide: true, color: s.attitude > 20 ? '#5fd38a' : s.attitude < -20 ? '#e0584a' : '#e8c43a' }) + '<div class="muted">กำลัง ' + s.power + ' · อิทธิพล ' + (s.influence || 70) + (s.leaderNameTh ? ' · ประมุข: ' + esc(s.leaderNameTh) : '') + ' · ติดต่อล่าสุด ' + (s.contact ? 'วันที่ ' + s.contact : 'ยังไม่เคย') + '</div>' + (specs ? '<div class="muted">สินค้า/ทรัพยากรเฉพาะถิ่น: ' + specs + '</div>' : '') + '</div>';
       }).join('');
@@ -2496,6 +2500,17 @@
     h += '<h3>📖 สมุดบันทึกแดนหมื่นพิภพ</h3><div class="muted" style="margin-bottom:6px">แต่ละโลกมี “กองของ” ที่สุ่มเจอ ไม่จำเป็นต้องเจอครบ ช่อง ??? คือสิ่งที่ยังไม่เคยพบ</div>';
     h += EXP.WORLDS.map(w => { const c = e.codex.worlds[w.id], seen = !!c; const got = w.loot.filter(l => e.codex.found[l.id]).length; return '<div class="card"><b>' + (seen ? w.icon + ' ' + esc(w.nameTh) : '❓ โลกที่ยังไม่เคยเห็น') + '</b> ' + (seen ? '<span class="chip">เข้าแล้ว ' + (c.visits || 0) + ' ครั้ง</span><span class="chip b">ของที่พบ ' + got + '/' + w.loot.length + '</span>' : '') + (seen ? '<div class="muted">' + esc(w.desc) + '</div><div>' + w.loot.map(l => e.codex.found[l.id] ? '<span class="chip ' + (l[5] >= 4 ? 'g' : l[5] >= 3 ? 'v' : 'ok') + '">' + esc(l[2]) + ' ×' + e.codex.found[l.id].n + '</span>' : '<span class="chip" style="opacity:.5">???</span>').join('') + '</div>' : '') + '</div>'; }).join('');
     h += '<h3>🕳️ ของที่พบในถ้ำ</h3><div class="card">' + EXP.CAVE_BANDS.map(b => '<div class="muted">' + esc(b.nameTh) + ' (ชั้น ' + b.from + '–' + b.to + ')</div><div>' + b.loot.map(l => e.codex.found[l.id] ? '<span class="chip ok">' + esc(l[2]) + ' ×' + e.codex.found[l.id].n + '</span>' : '<span class="chip" style="opacity:.5">???</span>').join('') + '</div>').join('') + '</div>';
+    if (EXP.SANCTUMS) {
+      const sState = EXP.ensureSanctums ? EXP.ensureSanctums(W) : { clearedFloors: {}, catalystsFound: 0 };
+      const cats = ECO.ensureCatalysts ? ECO.ensureCatalysts(W) : {};
+      h += '<h3>🏛️ วิหารโบราณหลายชั้นและหินขัดเกลาชุดสัจธรรม</h3><div class="card">';
+      h += Object.values(EXP.SANCTUMS).map(sc => '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + sc.icon + ' ' + esc(sc.nameTh) + '</b> <span class="chip ok">ผ่านด่าน ' + (sState.clearedFloors[sc.id] || 0) + '/3 ชั้น</span><div class="muted" style="font-size:11.5px">' + esc(sc.descTh) + '</div></div>').join('');
+      const catList = Object.values(ECO.REFINEMENT_CATALYSTS || {});
+      if (catList.length) {
+        h += '<div style="margin-top:6px"><b>✨ ศิลาขัดเกลาศาสตราในคลัง:</b> ' + catList.map(c => '<span class="chip g">' + esc(c.nameTh) + ' ×' + (cats[c.id] || 0) + '</span>').join(' ') + '</div>';
+      }
+      h += '</div>';
+    }
     if (e.codex.notes.length) h += '<h3>บันทึกการค้นพบ</h3><div class="card">' + e.codex.notes.slice().reverse().slice(0, 20).map(n => '<div class="logrow"><span class="tm">' + dayStamp(n.d * 1440) + '</span>' + esc(n.text) + '</div>').join('') + '</div>';
     return h;
   };
@@ -3096,7 +3111,8 @@
         const t = CULT.tech(id);
         if (!t) return '';
         const ex = g.ELEM ? g.ELEM.explainCompatibility(n, t, 'COMBAT_SKILL') : null;
-        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(t.cat || 'วิชา') + ')</span></div>' + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
+        const tc = (M && M.resolveTechCompatibility) ? M.resolveTechCompatibility(n, t) : null;
+        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(t.cat || 'วิชา') + ')</span></div>' + (tc ? '<div class="muted" style="font-size:11px;color:#b8d8ff">⚖ ' + esc(tc.summaryTh) + '</div>' : '') + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่ได้เรียนรู้วิชาใด</div>';
@@ -3119,7 +3135,7 @@
       const trR = CULT.trackRealm(n);
       const trTh = CULT.trackThreshold(n);
       const trGate = CULT.checkTrackGates(W, n);
-      h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)"><b>🌿 ขั้นสายเฉพาะ: ' + esc(trR ? trR.nameTh : '') + ' (ลำดับ ' + tr.ordinal + '/9)</b>' + (trTh !== Infinity ? bar('ความก้าวหน้าสายเฉพาะ', tr.prog / trTh * 100, { wide: true, txt: Math.round(tr.prog) + '/' + trTh, color: '#7fd1b9' }) : '') + '<div class="muted" style="font-size:11.5px">เทียบเคียงขั้นหลัก: <b>' + (trR ? trR.majorBandEquivalent.toFixed(1) : '') + '</b> · พลังรบเฉพาะทางเทียบเคียง: <b>' + (trR ? trR.functionalCombatPower : '') + ' CP</b></div><div style="font-size:12px;margin-top:4px">' + (tr.ordinal >= 9 ? '<span class="chip ok">บรรลุขั้น 9 สูงสุดแล้ว</span>' : trGate.ok ? '<span class="chip ok">✔ ผ่านเกณฑ์ทักษะและศิลา พร้อมทะลวงขั้นถัดไป</span>' : '<span class="chip r">🔒 ' + esc(trGate.reason) + '</span>') + '</div></div>';
+      h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)"><b>🌿 ขั้นสายเฉพาะ: ' + esc(trR ? trR.nameTh : '') + ' (ลำดับ ' + tr.ordinal + '/9)</b>' + (trTh !== Infinity ? bar('ความก้าวหน้าสายเฉพาะ', tr.prog / trTh * 100, { wide: true, txt: Math.round(tr.prog) + '/' + trTh, color: '#7fd1b9' }) : '') + '<div class="muted" style="font-size:11.5px">เทียบเคียงขั้นหลัก: <b>' + (trR ? trR.majorBandEquivalent.toFixed(1) : '') + '</b> · พลังรบเฉพาะทางเทียบเคียง: <b>' + (trR ? trR.functionalCombatPower : '') + ' CP</b></div><div style="font-size:12px;margin-top:4px">' + (tr.ordinal >= 9 ? '<span class="chip ok">บรรลุขั้น 9 สูงสุดแล้ว</span>' : trGate.ok ? '<span class="chip ok">✔ ผ่านเกณฑ์ทักษะและศิลา พร้อมทะลวงขั้นถัดไป</span>' : '<span class="chip r">🔒 ' + esc(trGate.reason) + '</span>' + (CULT.inspectProgressionBottleneck ? (() => { const bni = CULT.inspectProgressionBottleneck(W, n); return (bni && bni.track && bni.track.active) ? '<div class="muted" style="margin-top:3px;color:var(--gold)">⚡ ' + esc(bni.track.statusTh) + '<br><span style="font-size:11px">' + esc(bni.track.statusEn) + '</span></div>' : ''; })() : '')) + '</div></div>';
     } else {
       h += '<div class="muted" style="margin-top:6px">ยังไม่ได้เปิดขั้นสายเฉพาะทาง (ต้องใช้คัมภีร์หรือผลึกสายย่อย)</div>';
     }
@@ -3191,6 +3207,21 @@
           h += '<div class="muted" style="font-size:11.5px">↳ ขั้นตอนย่อย: ' + esc(mind.goal.stepTitle) + '</div>';
         }
         if (!n.dead && mind.goal?.blocked) h += '<div class="muted" style="color:var(--gold)">⚠ เงื่อนไขที่ติดขัด: ' + esc(mind.goal.blocked) + '</div>';
+        if (!n.dead && mind.bottleneck && mind.bottleneck.active) {
+          h += '<div class="muted" style="margin-top:4px;color:var(--gold);font-size:11.5px">🚧 <b>การคลี่คลายคอขวด:</b> ' + esc(mind.bottleneck.explanationTh) + (mind.bottleneck.explanationEn ? ' <span class="muted">(' + esc(mind.bottleneck.explanationEn) + ')</span>' : '') + '</div>';
+        }
+        if (!n.dead && mind.situational) {
+          const sit = mind.situational;
+          if (sit.activeCircumstances && sit.activeCircumstances.length) {
+            h += '<div class="muted" style="margin-top:4px;font-size:11.5px">🧭 <b>การรับรู้และตอบสนองต่อสถานการณ์:</b> ' + sit.activeCircumstances.map(a => esc(a.summaryTh) + (a.isAddressingNow ? ' <span class="chip ok">กำลังทำ</span>' : '')).join(' · ') + '</div>';
+          }
+          if (sit.competingPriorities && sit.competingPriorities.length) {
+            h += '<div class="muted" style="margin-top:3px;font-size:11.5px">⚖️ <b>ความสำคัญที่แข่งกันอยู่:</b> ' + sit.competingPriorities.map(esc).join(' · ') + '</div>';
+          }
+          if (sit.practicalBlockers && sit.practicalBlockers.length) {
+            h += '<div class="muted" style="margin-top:3px;color:var(--gold);font-size:11.5px">⛔ <b>ข้อจำกัดในทางปฏิบัติ:</b> ' + sit.practicalBlockers.map(esc).join(' · ') + '</div>';
+          }
+        }
         if (!n.dead && mind.suspendedGoal) h += '<div class="muted" style="font-size:11.5px">⏸ แผนที่พักไว้ชั่วคราว: ' + esc(mind.suspendedGoal.title) + ' (' + esc(mind.suspendedGoal.reason) + ')</div>';
         if (!n.dead && mind.commitment) {
           const partner = W.byId[mind.commitment.partnerId];
@@ -3216,6 +3247,10 @@
         const bf = (n.buffs || []).filter(b => b.until > W.t), sx = (n.sx || []).filter(x => x.until > W.t);
         const fb = (g.FISHING && g.FISHING.activeFoodBuff) ? g.FISHING.activeFoodBuff(W, n) : null;
         if (bf.length) h += '<div style="margin-top:6px">💊 ' + bf.map(b => '<span class="chip b">' + esc(b.name) + ' (' + Math.max(0, Math.round(b.until - W.t)) + ' นาที)</span>').join('') + '</div>';
+        if (n.ancestralBlessing && (!n.ancestralBlessing.untilDay || n.ancestralBlessing.untilDay >= W.day)) {
+          const ab = n.ancestralBlessing;
+          h += '<div style="margin-top:6px">🕯️ <span class="chip g">พรบรรพชน「' + esc(ab.elderNameTh) + '」</span> <span class="muted" style="font-size:11.5px">ทะลวงขั้น +' + Math.round((ab.breakthroughBonus || 0) * 100) + '% · เรียนวิชา ×' + (ab.studySpeedMult || 1).toFixed(2) + (ab.injuryShield ? ' · คุ้มครองตบะย้อนกลับ' : '') + '</span></div>';
+        }
         if (fb) h += '<div style="margin-top:6px">🍲 <span class="chip ok">' + esc(fb.nameTh) + ' (' + Math.max(0, Math.round(fb.until - W.t)) + ' นาที)</span> <span class="muted" style="font-size:11.5px">' + esc(fb.descTh || '') + '</span></div>';
         if (sx.length) h += '<div style="margin-top:6px">' + sx.map(x => { const S = g.SK.STATUS[x.k]; return S ? '<span class="chip">' + S.icon + ' ' + esc(S.nameTh) + '</span>' : ''; }).join('') + '</div>';
         if (g.COMBAT && g.COMBAT.explainTactics) {

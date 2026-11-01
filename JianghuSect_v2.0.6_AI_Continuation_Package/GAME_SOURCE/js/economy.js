@@ -749,6 +749,122 @@
     return report;
   };
 
+  /* ---------- Sanctum Refinement Catalysts & Resonance Gear Upgrading (v2.0.6 Pillar B) ---------- */
+  ECO.REFINEMENT_CATALYSTS = {
+    CAT_RESONANCE_JADE_4: { id: 'CAT_RESONANCE_JADE_4', nameTh: 'หยกสัจธรรมประสานปราณ', tier: 4, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.14, maxQuality: 1.65, value: 180, descTh: 'ผลึกหยกโบราณจากวิหารศักดิ์สิทธิ์ ใช้ขัดเกลาศาสตราชุดสัจธรรมระดับ T4–T6 ให้มีคุณภาพสูงขึ้น' },
+    CAT_ASTRAL_ESSENCE_5: { id: 'CAT_ASTRAL_ESSENCE_5', nameTh: 'แก่นดาราบรรพกาล', tier: 5, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.20, maxQuality: 1.75, value: 320, descTh: 'แก่นปราณดาราจากผู้พิทักษ์ชั้นลึก ใช้หลอมยกระดับคุณภาพศาสตรา T4–T6' },
+    CAT_PRIMORDIAL_FLAME_6: { id: 'CAT_PRIMORDIAL_FLAME_6', nameTh: 'เพลิงต้นกำเนิดสวรรค์', tier: 6, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.28, maxQuality: 1.85, value: 520, descTh: 'เพลิงศักดิ์สิทธิ์ขั้นสูงสุดจากแท่นบูชาโบราณ ใช้ขัดเกลาศาสตรา T4–T6 สู่ขีดสุด' }
+  };
+
+  ECO.ensureCatalysts = W => {
+    if (!W || !W.sect) return {};
+    if (!W.sect.catalysts || typeof W.sect.catalysts !== 'object') W.sect.catalysts = {};
+    return W.sect.catalysts;
+  };
+
+  ECO.catalystCount = (W, catId) => {
+    const cats = ECO.ensureCatalysts(W);
+    return Math.max(0, Math.floor(cats[catId] || 0));
+  };
+
+  ECO.addCatalyst = (W, catId, qty) => {
+    if (!W || !W.sect || !ECO.REFINEMENT_CATALYSTS[catId] || !Number.isFinite(qty) || qty <= 0) return 0;
+    const cats = ECO.ensureCatalysts(W);
+    cats[catId] = Math.floor((cats[catId] || 0) + qty);
+    W.sect._hasCatalysts = true;
+    return cats[catId];
+  };
+
+  ECO.refineGearWithCatalyst = (W, gearOrUid, catId, npc, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+    const cat = ECO.REFINEMENT_CATALYSTS[catId || 'CAT_RESONANCE_JADE_4'] || Object.values(ECO.REFINEMENT_CATALYSTS).find(c => ECO.catalystCount(W, c.id) > 0);
+    if (!cat) return { ok: false, reason: 'invalid-catalyst' };
+    if (!opts.free && ECO.catalystCount(W, cat.id) <= 0) return { ok: false, reason: 'insufficient-catalyst' };
+
+    let gear = (gearOrUid && typeof gearOrUid === 'object') ? gearOrUid : null;
+    if (!gear && typeof gearOrUid === 'string') {
+      if (npc && npc.equip) {
+        for (const k of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+          if (npc.equip[k] && (npc.equip[k].uid === gearOrUid || npc.equip[k].id === gearOrUid)) { gear = npc.equip[k]; break; }
+        }
+      }
+      if (!gear && npc && npc.inv && Array.isArray(npc.inv.gear)) {
+        gear = npc.inv.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+      }
+      if (!gear && Array.isArray(W.sect.gear)) {
+        gear = W.sect.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+      }
+    }
+    if (!gear || !gear.slot) return { ok: false, reason: 'gear-not-found' };
+    const gTier = gear.tier || 1;
+    if (!opts.allowAnyTier && (gTier < cat.minGearTier || gTier > (cat.maxGearTier || 7))) {
+      return { ok: false, reason: 'invalid-gear-tier', tier: gTier, requiredMin: cat.minGearTier };
+    }
+    const oldQ = Number.isFinite(gear.q) ? gear.q : 1.0;
+    if (oldQ >= cat.maxQuality) return { ok: false, reason: 'max-quality-reached', quality: oldQ };
+
+    if (!opts.free) {
+      W.sect.catalysts[cat.id] = Math.max(0, (W.sect.catalysts[cat.id] || 1) - 1);
+      if (W.sect.catalysts[cat.id] <= 0) delete W.sect.catalysts[cat.id];
+    }
+    const newQ = Math.min(cat.maxQuality, +(oldQ + cat.qualityBoost).toFixed(2));
+    const ratio = newQ / Math.max(0.5, oldQ);
+    gear.q = newQ;
+    if (gear.combatMult) gear.combatMult = +(gear.combatMult * ratio).toFixed(4);
+    if (gear.defMult) gear.defMult = +(gear.defMult * ratio).toFixed(4);
+    gear.refinedCount = (gear.refinedCount || 0) + 1;
+    gear.lastCatalystId = cat.id;
+    delete gear.st;
+    if (g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
+    if (npc) {
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      HC.bump(npc);
+    }
+    if (!opts.quiet && W.log) {
+      W.log('craft', '✨ ขัดเกลาศาสตรา「' + gear.nameTh + '」ด้วย「' + cat.nameTh + '」คุณภาพเพิ่มเป็น ' + oldQ.toFixed(2) + ' → ' + newQ.toFixed(2), npc ? [npc.id] : []);
+    }
+    return { ok: true, gear, catalystId: cat.id, oldQuality: oldQ, newQuality: newQ };
+  };
+
+  ECO.findCatalystRefinementCandidate = (W, npc) => {
+    if (!W || !W.sect || !W.sect._hasCatalysts || !npc || npc.dead || !npc.cult) return null;
+    const isForgeOfficer = npc.post === 'forge' || npc.assist === 'forge';
+    const isEligible = (npc.rank || 0) >= 3 || isForgeOfficer || npc.id === W.sect.masterId;
+    if (!isEligible) return null;
+    const cats = W.sect.catalysts;
+    if (!cats || typeof cats !== 'object') return null;
+    const availCats = Object.values(ECO.REFINEMENT_CATALYSTS).filter(c => (cats[c.id] || 0) > 0);
+    if (!availCats.length) return null;
+    availCats.sort((a, b) => b.tier - a.tier);
+    const cat = availCats[0];
+    // 1. Check NPC's own equipped T4-T6 gear first
+    if (npc.equip) {
+      for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+        const eq = npc.equip[slot];
+        if (!eq) continue;
+        const gt = eq.tier || 1;
+        const q = Number.isFinite(eq.q) ? eq.q : 1.0;
+        if (gt >= cat.minGearTier && gt <= (cat.maxGearTier || 7) && q + 0.02 < cat.maxQuality) {
+          return { gear: eq, gearUid: eq.uid || eq.id, catalystId: cat.id, cat, ownerNpcId: npc.id, source: 'equipped' };
+        }
+      }
+    }
+    // 2. If Forge officer, can also refine T4-T6 gear in sect armory
+    if (isForgeOfficer && Array.isArray(W.sect.gear)) {
+      for (let i = 0; i < W.sect.gear.length; i++) {
+        const eq = W.sect.gear[i];
+        if (!eq || !eq.slot) continue;
+        const gt = eq.tier || 1;
+        const q = Number.isFinite(eq.q) ? eq.q : 1.0;
+        if (gt >= cat.minGearTier && gt <= (cat.maxGearTier || 7) && q + 0.02 < cat.maxQuality) {
+          return { gear: eq, gearUid: eq.uid || eq.id, catalystId: cat.id, cat, ownerNpcId: null, source: 'sect_armory' };
+        }
+      }
+    }
+    return null;
+  };
+
   g.ECO = ECO;
   if (typeof module === 'object' && module.exports) module.exports = ECO;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

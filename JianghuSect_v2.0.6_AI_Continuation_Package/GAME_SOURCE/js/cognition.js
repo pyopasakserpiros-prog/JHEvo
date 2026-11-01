@@ -362,21 +362,62 @@
     };
   };
 
-  // Update NPC's bounded perception of library/shop/shortages on realistic cadence
+  COG.recordHallAddition = (W, kind, itemId, actorId) => {
+    if (!W || !W.sect || !itemId) return;
+    const map = W.sect._recentHallAdditions || (W.sect._recentHallAdditions = {});
+    map[kind + ':' + itemId] = { at: W.t || 0, actorId: actorId || null };
+    if (actorId && W.byId && W.byId[actorId]) {
+      COG.perceive(W, W.byId[actorId], true);
+    }
+  };
+
+  COG.isAwareOf = (W, n, kind, itemId) => {
+    if (!W || !W.sect || !n || n.dead || n.away) return false;
+    if (kind === 'library_tech' || kind === 'library') {
+      if (!Array.isArray(W.sect.library) || !W.sect.library.includes(itemId)) return false;
+      const rec = W.sect._recentHallAdditions && W.sect._recentHallAdditions['library:' + itemId];
+      if (!rec || (W.t || 0) <= 0 || (W.t - rec.at) >= 180) return true;
+      if (rec.actorId === n.id) return true;
+      const roleId = COG.role(W, n).id;
+      if (['scripture', 'master', 'deputy'].includes(roleId)) return true;
+      if (n.act && ['study', 'guidedStudy', 'donate', 'duty', 'shop'].includes(n.act.id)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      if (k && Array.isArray(k.visibleTechIds) && k.visibleTechIds.includes(itemId)) return true;
+      return false;
+    }
+    if (kind === 'tablet') {
+      return Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length > 0;
+    }
+    if (kind === 'catalyst') {
+      return !!(W.sect.catalysts && Object.values(W.sect.catalysts).some(v => v > 0));
+    }
+    return true;
+  };
+
+  COG.visibleLibraryFor = (W, n) => {
+    if (!W || !W.sect || !Array.isArray(W.sect.library)) return [];
+    if (!W.sect._recentHallAdditions) return W.sect.library;
+    return W.sect.library.filter(id => COG.isAwareOf(W, n, 'library_tech', id));
+  };
+
+  // Update NPC's bounded perception of library/shop/shortages/tablets/catalysts on realistic cadence
   COG.perceive = (W, n, force) => {
     if (!W || !W.sect || !n) return null;
     const c = COG.ensure(n);
-    const k = c.knowledge || (c.knowledge = { updatedAt: -9999, visibleTechIds: [], visibleGearIds: [], knownShortageIds: [], estimates: {} });
+    const k = c.knowledge || (c.knowledge = { updatedAt: -9999, visibleTechIds: [], visibleGearIds: [], knownShortageIds: [], knownTabletIds: [], knownCatalysts: [], estimates: {} });
     const nearInfoHub = n.act && ['study', 'guidedStudy', 'shop', 'duty', 'donate'].includes(n.act.id);
-    if (!force && !nearInfoHub && W.t - (k.updatedAt || -9999) < 240) return k;
+    if (!force && W.t - (k.updatedAt || -9999) < (nearInfoHub ? 45 : 240)) return k;
     const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult?.stage || 1), SECT.canLearnTier(W, n));
     k.updatedAt = W.t;
-    k.visibleTechIds = n.cult ? (W.sect.library || []).filter(id => {
+    const rawLib = force || nearInfoHub ? (W.sect.library || []) : COG.visibleLibraryFor(W, n);
+    k.visibleTechIds = n.cult ? rawLib.filter(id => {
       const t = CULT.tech(id);
-      return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path);
+      return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path || t.legendary);
     }).slice(0, 24) : [];
     k.visibleGearIds = (W.sect.gear || []).filter(eq => eq && SECT.canAccessItem(W, n, eq)).map(eq => eq.uid || eq.id).slice(0, 16);
     k.knownShortageIds = (W.sect.shortageDirectives || []).filter(d => d.deficit > 0).map(d => d.id).slice(0, 8);
+    k.knownTabletIds = (W.sect.legacyTablets || []).map(t => t.id).slice(0, 12);
+    k.knownCatalysts = Object.keys(W.sect.catalysts || {}).filter(id => (W.sect.catalysts[id] || 0) > 0);
     return k;
   };
 
@@ -637,8 +678,17 @@
     const tgtNpc = goal.targetId && W.byId ? W.byId[goal.targetId] : null;
     const rel = tgtNpc && n.h.mind.relations ? n.h.mind.relations[tgtNpc.id] : null;
     const shortDir = (W.sect.shortageDirectives || []).find(d => d.id === goal.targetId);
+    let bnSkillSum = 0;
+    if (goal.id === 'track_bottleneck' && n.cult && n.cult.track && CULT.checkTrackGates) {
+      const tg = CULT.checkTrackGates(W, n);
+      if (tg && Array.isArray(tg.missingSkills)) {
+        for (let i = 0; i < tg.missingSkills.length; i++) bnSkillSum += tg.missingSkills[i].current || 0;
+      }
+    }
     return {
       cp: n.cp || 0,
+      stones: (n.inv && n.inv.stones) || 0,
+      bnSkillSum,
       price,
       stage: n.cult ? n.cult.stage : 0,
       prog: n.cult ? n.cult.prog : 0,
@@ -703,12 +753,33 @@
       }
       return { step: 'gather_input', stepTitle: 'รวบรวมวัตถุดิบสำหรับ「' + r.outNameTh + '」', missingPrereq: 'ขาดวัตถุดิบหรือแต้มแลกส่วนผสม', actions: ['forage', 'farm', 'mine', 'personalBrew', 'donate'] };
     }
+    if (goal.id === 'track_bottleneck') {
+      if (n.inj && n.inj.some(i => (i.sev || 1) >= 2)) {
+        return { step: 'recover_injury', stepTitle: 'รักษาอาการบาดเจ็บหนักก่อนฝึกทะลวงคอขวดต่อ', missingPrereq: 'อาการบาดเจ็บหนักขัดขวางการฝึกฝน', actions: ['heal', 'personalPillUse', 'shop'] };
+      }
+      const bn = (CULT.inspectProgressionBottleneck && n.cult) ? CULT.inspectProgressionBottleneck(W, n) : null;
+      const trInfo = bn && bn.track;
+      if (!trInfo || !trInfo.active || trInfo.gateOk) {
+        return { step: 'ready', stepTitle: 'ผ่านเงื่อนไขคอขวดสายเฉพาะทางแล้ว', missingPrereq: null, actions: ['cultivate'] };
+      }
+      const acts = trInfo.feasibleActions.length ? trInfo.feasibleActions : ['skillDrill', 'practice'];
+      return {
+        step: trInfo.primarySkillToTrain ? 'train_gate_skill' : 'acquire_gate_stones',
+        stepTitle: trInfo.statusTh || goal.title,
+        missingPrereq: trInfo.blockerReasonTh || (trInfo.missingSkills.length ? trInfo.missingSkills.map(m => m.skill + ' ' + Math.floor(m.current) + '/' + m.required).join(', ') : ('STONES ' + Math.floor(trInfo.missingStones.currentPersonal) + '/' + trInfo.missingStones.required)),
+        actions: acts
+      };
+    }
     if (goal.id === 'breakthrough') {
       if (n.cult && CULT.ready(n)) {
         if (n.h.state.hp < CULT.hpMax(n) * 0.7 || (n.inj && n.inj.length)) {
           return { step: 'prepare_body', stepTitle: 'ฟื้นฟูร่างกายให้พร้อมก่อนปิดด่านทะลวงขั้น', missingPrereq: 'ร่างกายยังไม่สมบูรณ์สำหรับทะลวงขั้น', actions: ['heal', 'personalPillUse', 'sleep'] };
         }
-        return { step: 'seclude', stepTitle: 'เข้าปิดด่านทะลวงสู่ขั้นถัดไป', missingPrereq: null, actions: ['breakthrough', 'shop', 'pray'] };
+        const bn = CULT.inspectProgressionBottleneck ? CULT.inspectProgressionBottleneck(W, n) : null;
+        if (bn && bn.major && bn.major.plan === 'wait' && bn.major.feasibleActions.length) {
+          return { step: 'consolidate_gate', stepTitle: bn.major.statusTh || 'เตรียมฐานปราณและโอสถก่อนทะลวงขั้น', missingPrereq: bn.major.blockerReasonTh || null, actions: bn.major.feasibleActions };
+        }
+        return { step: 'seclude', stepTitle: 'เข้าปิดด่านทะลวงสู่ขั้นถัดไป', missingPrereq: null, actions: ['breakthrough', 'consolidate', 'shop', 'pray'] };
       }
       return { step: 'accumulate_qi', stepTitle: 'บำเพ็ญสั่งสมปราณให้ถึงคอขวด', missingPrereq: n.cult ? ('ตบะ ' + Math.round(n.cult.prog) + '/' + CULT.threshold(n)) : null, actions: ['cultivate', 'paidTraining', 'shop', 'pray'] };
     }
@@ -757,6 +828,7 @@
     }
     if (goal.id === 'rival') return !W.byId[goal.targetId] || W.byId[goal.targetId].dead || W.byId[goal.targetId].exiled || CULT.power(n) > CULT.power(W.byId[goal.targetId]) * 1.15;
     if (goal.id === 'craft') return !ECO.recipeById[goal.targetId] || (n.stats?.crafted || 0) > (goal.startCrafted ?? 0);
+    if (goal.id === 'track_bottleneck') return !n.cult || !n.cult.track || n.cult.track.ordinal > (goal.startOrdinal ?? n.cult.track.ordinal) || !!(CULT.checkTrackGates && CULT.checkTrackGates(W, n).ok);
     if (goal.id === 'breakthrough') return !n.cult || n.cult.stage > (goal.startStage ?? n.cult.stage);
     if (goal.id === 'service') return (W.sect.lastDuty[n.id] || 0) > goal.createdAt || COG.role(W, n).id !== goal.targetId;
     if (goal.id === 'crisis') return !(W.sect.shortageDirectives || []).some(d => d.id === goal.targetId && d.deficit > 0);
@@ -791,6 +863,7 @@
     }
     if (goal.id === 'rival') return !!(W.byId[goal.targetId] && !W.byId[goal.targetId].dead && CULT.power(n) > CULT.power(W.byId[goal.targetId]) * 1.15);
     if (goal.id === 'craft') return (n.stats?.crafted || 0) > (goal.startCrafted ?? 0);
+    if (goal.id === 'track_bottleneck') return !!(n.cult && n.cult.track && (n.cult.track.ordinal > (goal.startOrdinal ?? 99) || (CULT.checkTrackGates && CULT.checkTrackGates(W, n).ok)));
     if (goal.id === 'breakthrough') return !!(n.cult && n.cult.stage > (goal.startStage ?? 99));
     if (goal.id === 'service') return (W.sect.lastDuty[n.id] || 0) > goal.createdAt;
     if (goal.id === 'crisis') return !(W.sect.shortageDirectives || []).some(d => d.id === goal.targetId && d.deficit > 0);
@@ -810,9 +883,52 @@
 
   COG.prepare = (W, n) => {
     const c = COG.ensure(n), r = COG.role(W, n);
+    if (c.lastRoleId && c.lastRoleId !== r.id) {
+      c.lastRoleId = r.id;
+      c.nextReview = 0;
+      if (r.id !== 'member' && c.goal && ['social_bond'].includes(c.goal.id) && (E(n, 'values.sectDuty') + E(n, 'personality.loyalty')) >= 95) {
+        c.goal.expiresAt = W.t;
+      }
+    } else {
+      c.lastRoleId = r.id;
+    }
     c.office = r;
     const asp = COG.ensureAspiration(W, n);
     COG.perceive(W, n, false);
+
+    // Auto-use compatible personal crystals or personal manuals in bag when safe and not fighting
+    if (n.cult && n.inv && !(n.act && n.act.id === 'fight')) {
+      let hasCrys = false;
+      if (n.inv.crystals) { for (const _k in n.inv.crystals) { hasCrys = true; break; } }
+      const tKeys = (n.inv.techs && n.inv.techs.length) ? n.inv.techs : null;
+      if ((hasCrys || tKeys) && safe(n)) {
+        const cKeys = hasCrys ? Object.keys(n.inv.crystals) : [];
+        const kSig = cKeys.length + ':' + (tKeys ? tKeys.length : 0) + ':' + n.cult.stage + ':' + (n.cult.sub || '');
+        if (n._bagKnowSig !== kSig) {
+          n._bagKnowSig = kSig;
+          if (cKeys.length && g.MARTIAL && g.MARTIAL.eligible && g.MARTIAL.useCrystal) {
+            for (const key of cKeys) {
+              if ((n.inv.crystals[key] || 0) > 0 && g.MARTIAL.eligible(n, key).ok && g.MARTIAL.knowledgeFit(n, key) >= 48) {
+                g.MARTIAL.useCrystal(W, n, key);
+                n._bagKnowSig = '';
+                break;
+              }
+            }
+          }
+          if (tKeys && tKeys.length && SECT.EDITOR && SECT.EDITOR.usePersonalItem) {
+            const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
+            for (const tid of tKeys.slice()) {
+              const tObj = CULT.tech(tid);
+              if (tObj && (tObj.reqTier || tObj.tier || 1) <= effSt && CULT.learnable(n, [tid]).length > 0 && (W.sect.library.includes(tid) || E(n, 'personality.loyalty') < 52)) {
+                SECT.EDITOR.usePersonalItem(W, n.id, 'TECH_MANUAL', tid);
+                n._bagKnowSig = '';
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
 
     // Auto-equip personal bag gear if it is an immediate useful upgrade
     if (n.cult && n.inv && Array.isArray(n.inv.gear) && n.inv.gear.length && !(n.act && n.act.id === 'fight') && SECT.EDITOR && SECT.EDITOR.equipPersonalGear) {
@@ -897,7 +1013,9 @@
       return c;
     }
 
-    if (W.t < (c.nextReview || 0)) return c;
+    const hasUrgentTrackBn = !!(n.cult && n.cult.track && CULT.trackReady && CULT.trackReady(n) && CULT.checkTrackGates && !CULT.checkTrackGates(W, n).ok && W.t - (c._lastUrgentBnAt || -999) >= 60);
+    if (W.t < (c.nextReview || 0) && !hasUrgentTrackBn) return c;
+    if (hasUrgentTrackBn) c._lastUrgentBnAt = W.t;
     c.nextReview = W.t + 180;
 
     const options = [];
@@ -951,8 +1069,17 @@
         if (n.cult.bn || CULT.ready(n)) {
           add('breakthrough', 'เตรียมตัวก้าวข้ามขอบเขต', 0.3 + E(n, 'values.martialPeak') / 80 + E(n, 'personality.ambition') / 180, null, { startStage: n.cult.stage });
         }
+        if (n.cult.track && n.cult.track.ordinal < 9 && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.70)) {
+          const tg = CULT.checkTrackGates(W, n);
+          if (!tg.ok) {
+            const drive = (g.MARTIAL && g.MARTIAL.bottleneckSkillDrive) ? g.MARTIAL.bottleneckSkillDrive(n) : 1;
+            const tgtSk = tg.missingSkills && tg.missingSkills[0] ? tg.missingSkills[0].skill : 'STONES';
+            add('track_bottleneck', 'แก้คอขวดสายเฉพาะทาง (' + (tg.reason || tgtSk) + ')', (tg.readyToAdvance ? 0.65 : 0.42) + drive * 0.95, tgtSk, { startOrdinal: n.cult.track.ordinal });
+          }
+        }
         const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage, SECT.canLearnTier(W, n));
-        const eligible = CULT.learnable(n, W.sect.library).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
+        const visibleLib = COG.visibleLibraryFor(W, n);
+        const eligible = CULT.learnable(n, visibleLib).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
         let bestTech = null, bestPref = -1e9;
         for (let i = 0; i < eligible.length; i++) {
           const p = COG.techPreference(n, eligible[i]);
@@ -997,6 +1124,7 @@
         expiresAt: W.t + 7 * 1440,
         lastProgress: W.t,
         startStage: chosen.startStage ?? null,
+        startOrdinal: chosen.startOrdinal ?? null,
         startCrafted: chosen.startCrafted ?? null,
         startTaught: chosen.startTaught ?? null,
         startRelN: chosen.startRelN ?? null,
@@ -1025,13 +1153,14 @@
     guard: ['guard'], healer: ['duty', 'shareMedicine'], mission: ['duty'], treasury: ['duty'],
     registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty']
   };
-  COG.modifiers = (W, n, id) => {
-    const out = [], push = (why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }, s = n.h.state, c = n.cognition;
+  COG.modifiers = (W, n, id, SAcc) => {
+    const out = SAcc ? null : [], push = SAcc ? ((why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) SAcc.add(why, clamp(x, -2, 2)); }) : ((why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }), s = n.h.state, c = n.cognition;
     let mc = n._cogModCtx;
-    const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, curGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, cpNow = n.cp || 0;
-    const postsRef = W.sect && W.sect.posts;
-    const pSig = postsRef ? (postsRef.commander || '') + '|' + (postsRef.alchemy || '') + '|' + (postsRef.forge || '') + '|' + (postsRef.treasury || '') + '|' + (postsRef.healer || '') + '|' + (postsRef.martial || '') + '|' + (postsRef.scripture || '') + '|' + (postsRef.mission || '') + '|' + (postsRef.guard || '') + '|' + (postsRef.registry || '') + '|' + (postsRef.discipline || '') + '|' + (W.sect.masterId || '') + '|' + (W.sect.deputyId || '') : '';
-    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pSig !== pSig) {
+    if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
+      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
+      const postsRef = W.sect && W.sect.posts;
+      const pCmd = postsRef ? postsRef.commander : null, pAlc = postsRef ? postsRef.alchemy : null, pFrg = postsRef ? postsRef.forge : null, pMas = W.sect ? W.sect.masterId : null;
+      if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -1045,7 +1174,8 @@
           : curGoal.id === 'service' ? ['duty']
           : curGoal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge']
           : curGoal.id === 'rival' ? TRAIN
-          : curGoal.id === 'breakthrough' ? ['cultivate', 'breakthrough', 'shop', 'pray', 'paidTraining']
+          : curGoal.id === 'track_bottleneck' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions) || ['skillDrill', 'practice', 'pair', 'shop', 'mine', 'forage'])
+          : curGoal.id === 'breakthrough' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions.concat(['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray'])) || ['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray', 'paidTraining'])
           : curGoal.id === 'help_friend' ? ['shareMedicine', 'giftItem', 'personalBrew', 'shop']
           : curGoal.id === 'mentor_disciple' ? ['pair', 'duty']
           : curGoal.id === 'social_bond' ? ['pair', 'leisure', 'giftItem']
@@ -1097,7 +1227,7 @@
       }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pSig, poMods,
+        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -1105,13 +1235,22 @@
         hour: hour0, night: hour0 >= 21 || hour0 < 5,
         socEvening: (hour0 >= 17 && hour0 < 21) ? E(n, 'temperament.sociability') / 300 : 0,
         freeVal: E(n, 'values.freedom') / 100,
+        hasSevInj: !!(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)),
+        hasTrackBnWindow: !!(safe0 && n.cult && n.cult.track && n.cult.track.ordinal < 9 && !(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)) && !(curGoal && (curGoal.id === 'crisis' || curGoal.id === 'help_friend' || curGoal.id === 'recovery')) && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.65)),
         weatherPen: (['rain', 'snow'].includes(W.weather?.kind)) ? (-0.12 - E(n, 'personality.caution') / 800) : 0
       };
+      }
+      if (SAcc && mc) mc._decTick = W.t;
     }
-    const r = mc.r, goal = curGoal;
+    const r = mc.r, goal = mc.goalRef;
     if (!mc.safe) {
-      if (['heal', 'sleep', 'eat', 'personalPillUse', 'shop'].includes(id)) push('ร่างกายเร่งด่วนสำคัญกว่างานหรือความชอบ', 2.4);
-      if (['wildHunt', 'paidTraining', 'practice', 'personalBrew', 'duty', 'flatter', 'giftItem'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
+      const lowHp = s.hp / CULT.hpMax(n) < 0.35;
+      const lowFood = s.satiety < 20;
+      const lowRest = s.rest < 8;
+      if ((lowRest && id === 'sleep') || (lowFood && id === 'eat') || (lowHp && ['heal', 'personalPillUse', 'shop', 'sleep'].includes(id))) {
+        push('ร่างกายเร่งด่วนสำคัญกว่างานหรือความชอบ', 2.4);
+      }
+      if (['wildHunt', 'paidTraining', 'practice', 'skillDrill', 'personalBrew', 'duty', 'flatter', 'giftItem'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
       return out;
     }
     const duty = mc.duty;
@@ -1128,13 +1267,36 @@
       if (mc.goalActs && mc.goalActs.includes(id)) push('เป้าหมาย: ' + goal.title, mc.goalVal);
       if (id === 'shop' && mc.goalShopPen) push('เก็บแต้มไว้เรียนวิชาที่ตั้งใจ', mc.goalShopPen);
     }
+    if (mc.hasSevInj) {
+      if (id === 'heal' || id === 'personalPillUse') push('รักษาบาดแผลหนักที่ขัดขวางการฝึก/ทำงาน', 1.35);
+      else if (id === 'shop' && W.sect && W.sect.stock && (W.sect.stock['P:BASIC_WOUND'] > 0)) push('ซื้อโอสถสมานแผลรักษาอาการบาดเจ็บ', 0.85);
+    }
+    if (n.cult && (n.cult.toxic || 0) >= 45 && (id === 'personalPillUse' || id === 'shop' || id === 'personalBrew')) {
+      push('ขับพิษโอสถสะสมในเส้นลมปราณ', 0.62);
+    }
+    if ((s.heartDemon || 0) >= 45 && (id === 'pray' || id === 'consolidate' || id === 'personalPillUse') && (!n.cult || n.cult.path !== 'DEMON' || s.heartDemon >= 68)) {
+      push('สงบจิตมารที่รบกวนตบะ', 0.62);
+    }
+    if (id === 'forge' && W.sect && W.sect._hasCatalysts && !(W.sect.orders && W.sect.orders.forge) && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n)) {
+      push('ขัดเกลาศาสตรา T4–T6 ด้วยผลึกโบราณ', 0.52);
+    }
+    if (mc.hasTrackBnWindow) {
+      const bn = mc._bn !== undefined ? mc._bn : (mc._bn = CULT.inspectProgressionBottleneck ? CULT.inspectProgressionBottleneck(W, n) : null);
+      if (bn && bn.track && bn.track.active && !bn.track.gateOk && bn.track.feasibleActions.includes(id)) {
+        const nf = clamp(Math.min(s.satiety / 35, s.rest / 25, s.energy / 28), 0.2, 1);
+        push('เร่งแก้คอขวดสายเฉพาะทาง', (bn.track.ready ? 0.68 : 0.45) * bn.driveMult * nf);
+      }
+    }
     if (c && c.cluePrep && c.cluePrep.until > W.t && c.cluePrep.recommendedAction === id) {
       push('เตรียมความพร้อมเพื่อสืบเบาะแส', 0.28);
     }
     // Office plans & actionable orders (cached per tick + live post signature)
     const poList = mc.poMods && mc.poMods[id];
     if (poList) {
-      for (let i = 0; i < poList.length; i++) out.push(poList[i]);
+      for (let i = 0; i < poList.length; i++) {
+        if (SAcc) SAcc.add(poList[i][0], poList[i][1]);
+        else out.push(poList[i]);
+      }
     }
     const hour = mc.hour, night = mc.night, discipline = mc.disc;
     if (night && (id === 'duty' || id === 'farm' || id === 'mine' || id === 'forage')) push('ยามดึกควรพัก', -0.25 * discipline);
@@ -1160,6 +1322,19 @@
     }
   };
 
+  COG.isContinuingProductiveWork = (W, n, id) => {
+    if (!W || !n || !safe(n)) return false;
+    const lastAct = n.recent && n.recent.length ? n.recent[n.recent.length - 1] : null;
+    if (lastAct !== id) return false;
+    if (id === 'study' && n.cult && n.cult.learning && n.cult.learning.got > 0 && n.cult.learning.got < n.cult.learning.need) return true;
+    if ((id === 'skillDrill' || id === 'practice') && n.cult && n.cult.track && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.65) && CULT.checkTrackGates && !CULT.checkTrackGates(W, n).skillOk && !(n.inj && n.inj.some(i => i.sev >= 2))) return true;
+    if (id === 'consolidate' && n.cult && n.cult.bn && n.cult.bn.plan === 'wait' && (n.cult.found || 0) < 0.08) return true;
+    if (id === 'heal' && ((n.inj && n.inj.length > 0) || n.h.state.hp < CULT.hpMax(n) * 0.78)) return true;
+    const gObj = n.cognition && n.cognition.goal;
+    if (gObj && gObj.id === 'crisis' && ((gObj.targetId === 'meal' && (id === 'cook' || id === 'farm')) || (gObj.targetId === 'grain' && id === 'farm'))) return true;
+    return false;
+  };
+
   // Decompose or suspend on block rather than blindly destroying valid multi-step goals
   COG.blocked = (W, n, id) => {
     const c = n.cognition;
@@ -1167,6 +1342,7 @@
     const gId = c.goal.id;
     const isGoalAct = (gId === "scripture" && (id === "study" || id === "guidedStudy")) ||
       (gId === "gear_upgrade" && id === "shop") ||
+      (gId === "track_bottleneck" && ["skillDrill", "practice", "pair", "shop", "mine", "forage"].includes(id)) ||
       (gId === "breakthrough" && (id === "cultivate" || id === "breakthrough" || id === "paidTraining")) ||
       (gId === "craft" && (id === "personalBrew" || id === "brew" || id === "brewBasic" || id === "forge")) ||
       (gId === "service" && id === "duty") ||
@@ -1216,6 +1392,18 @@
     if (goal.id === 'service') {
       const planActs = (W.sect.officePlans && W.sect.officePlans[goal.targetId]?.actions) || ['duty'];
       return actionId === 'duty' || planActs.includes(actionId);
+    }
+    if (goal.id === 'track_bottleneck') {
+      if (!['skillDrill', 'practice', 'pair', 'study', 'guidedStudy', 'shop', 'outsideTrade', 'mine', 'forage', 'gatherWildResource', 'donate', 'errand', 'heal', 'personalPillUse'].includes(actionId)) return false;
+      if (CULT.checkTrackGates && n.cult && n.cult.track) {
+        const tg = CULT.checkTrackGates(W, n);
+        if (tg.ok) return true;
+        let curSum = 0;
+        for (let i = 0; i < (tg.missingSkills || []).length; i++) curSum += tg.missingSkills[i].current || 0;
+        if (curSum > (snap.bnSkillSum || 0)) return true;
+      }
+      if (((n.inv && n.inv.stones) || 0) > (snap.stones || 0) || (n.cp || 0) > (snap.cp || 0)) return true;
+      return ['skillDrill', 'practice', 'pair', 'mine', 'forage'].includes(actionId);
     }
     if (goal.id === 'rival') {
       return TRAIN.includes(actionId) || actionId === 'pair' || actionId === 'wildHunt';
@@ -1868,6 +2056,125 @@
   /* ============================================================================
    * 9. READ-ONLY EXPLANATION FOR UI & INSPECTION (PURE — ZERO RNG, ZERO MUTATION)
    * ============================================================================ */
+  COG.evaluateSituationalAwareness = (W, n) => {
+    if (!W || !n || !n.h) return { activeCircumstances: [], excludedCircumstances: [], competingPriorities: [], practicalBlockers: [] };
+    const activeCircumstances = [];
+    const excludedCircumstances = [];
+    const competingPriorities = [];
+    const practicalBlockers = [];
+    const s = n.h.state, curAct = n.act ? n.act.id : 'idle';
+    const hpMax = CULT.hpMax(n);
+    const r = COG.role(W, n);
+    const goal = n.cognition && n.cognition.goal && !complete(W, n, n.cognition.goal) ? n.cognition.goal : null;
+
+    // 1. Vital & Health Needs
+    if (s.hp < hpMax * 0.4 || (n.inj && n.inj.length)) {
+      const sev = (n.inj && n.inj.length) ? Math.max(...n.inj.map(i => i.sev || 1)) : 1;
+      const isHealing = ['heal', 'personalPillUse', 'sleep'].includes(curAct);
+      activeCircumstances.push({ kind: 'injury_or_low_hp', summaryTh: 'บาดเจ็บ/พลังชีวิตต่ำ (ระดับความรุนแรง ' + sev + ')', targetActions: ['heal', 'personalPillUse'], isAddressingNow: isHealing });
+      if (!safe(n) || sev >= 2) competingPriorities.push('ต้องรักษาอาการบาดเจ็บก่อนทำงานหรือฝึกยุทธ์หนัก');
+    }
+    if (s.satiety < 24) {
+      competingPriorities.push('ความหิวเร่งด่วน (' + Math.round(s.satiety) + '/100)');
+      activeCircumstances.push({ kind: 'hunger', summaryTh: 'หิวโหย ต้องรับประทานอาหาร', targetActions: ['eat'], isAddressingNow: curAct === 'eat' });
+    }
+    if (s.rest < 14) {
+      competingPriorities.push('ความอ่อนล้าเร่งด่วน (' + Math.round(s.rest) + '/100)');
+      activeCircumstances.push({ kind: 'exhaustion', summaryTh: 'อ่อนล้าสะสม ต้องนอนพักผ่อน', targetActions: ['sleep'], isAddressingNow: curAct === 'sleep' });
+    }
+
+    // 2. Progression Bottleneck
+    const bn = (n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null;
+    if (bn && bn.active) {
+      if (bn.competingNeed) {
+        excludedCircumstances.push({ kind: 'bottleneck_deferred', reasonTh: 'ชะลอการแก้คอขวดชั่วคราวเพราะ' + bn.competingNeed });
+      } else {
+        activeCircumstances.push({
+          kind: bn.kind === 'track' ? 'track_bottleneck' : 'major_bottleneck',
+          summaryTh: bn.explanationTh,
+          targetActions: bn.feasibleActions.slice(0, 4),
+          isAddressingNow: !!bn.isActivelyResolving
+        });
+      }
+      if (bn.blockerReasonTh) practicalBlockers.push(bn.blockerReasonTh);
+      else if (Array.isArray(bn.blockedReasons)) {
+        for (let i = 0; i < Math.min(2, bn.blockedReasons.length); i++) practicalBlockers.push(bn.blockedReasons[i]);
+      }
+    }
+
+    // 3. Library Manuals & Bounded Awareness
+    if (W.sect && Array.isArray(W.sect.library) && W.sect.library.length && n.cult) {
+      const hiddenFromNpc = W.sect.library.filter(id => !COG.isAwareOf(W, n, 'library_tech', id));
+      if (hiddenFromNpc.length) {
+        excludedCircumstances.push({ kind: 'unperceived_manual', reasonTh: 'ยังไม่รับรู้คัมภีร์ใหม่ในหอคัมภีร์ (' + hiddenFromNpc.length + ' เล่ม) เนื่องจากยังไม่ได้แวะหอคัมภีร์หรือศูนย์ข่าวสาร' });
+      }
+      const nextT = g.AI && g.AI.nextTechToStudy ? g.AI.nextTechToStudy(W, n) : null;
+      if (nextT) {
+        activeCircumstances.push({
+          kind: 'accessible_technique',
+          summaryTh: 'รับรู้คัมภีร์ที่เรียนได้「' + nextT.nameTh + '」',
+          targetActions: ['study', 'guidedStudy'],
+          isAddressingNow: curAct === 'study' || curAct === 'guidedStudy'
+        });
+      }
+    }
+
+    // 4. Ancestral Shrine Legacy Tablets
+    if (W.sect && Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length && n.cult) {
+      if (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t)) {
+        activeCircumstances.push({
+          kind: 'ancestral_blessing_active',
+          summaryTh: 'ได้รับพรบรรพชนจาก「' + n.ancestralBlessing.elderNameTh + '」(เร่งศึกษา ×' + n.ancestralBlessing.studySpeedMult + ' · ทะลวง +' + Math.round(n.ancestralBlessing.breakthroughBonus * 100) + '%)',
+          targetActions: ['cultivate', 'study', 'breakthrough'],
+          isAddressingNow: ['cultivate', 'study', 'breakthrough'].includes(curAct)
+        });
+      } else {
+        const tabs = W.sect.legacyTablets;
+        const match = tabs.some(t => t.sub === n.cult.sub || t.path === n.cult.path || t.npcId === n.mentor);
+        const needBlessing = !!(n.cult.bn || CULT.ready(n) || (n.cult.track && CULT.trackReady && CULT.trackReady(n)) || n.cult.learning || (s.heartDemon || 0) >= 35);
+        if (match && needBlessing) {
+          activeCircumstances.push({
+            kind: 'ancestral_blessing_opportunity',
+            summaryTh: 'มีป้ายวิญญาณบรรพชนตรงสายพร้อมขอพรหนุนการทะลวงขั้น/ศึกษาวิชา',
+            targetActions: ['pray'],
+            isAddressingNow: curAct === 'pray'
+          });
+        } else {
+          excludedCircumstances.push({
+            kind: 'ancestral_tablet_not_needed',
+            reasonTh: match ? 'มีป้ายวิญญาณบรรพชนแต่ยังไม่ติดคอขวดหรือเรียนวิชาสำคัญ' : 'ป้ายวิญญาณบรรพชนในศาลต่างวิถีและยังไม่มีความจำเป็นเร่งด่วน'
+          });
+        }
+      }
+    }
+
+    // 5. Sanctum Catalyst Gear Refinement
+    if (ECO.findCatalystRefinementCandidate) {
+      const rc = ECO.findCatalystRefinementCandidate(W, n);
+      if (rc) {
+        activeCircumstances.push({
+          kind: 'catalyst_refinement_ready',
+          summaryTh: 'มีผลึกโบราณ「' + rc.cat.nameTh + '」พร้อมขัดเกลา「' + rc.gear.nameTh + '」',
+          targetActions: ['forge'],
+          isAddressingNow: curAct === 'forge'
+        });
+      }
+    }
+
+    // 6. Office Duties & Sect Crises
+    if (r.id !== 'member') {
+      competingPriorities.push('หน้าที่ประจำตำแหน่ง: ' + r.title);
+    }
+    if (W.threat && (W.threat.raid || W.threat.alert > 0)) {
+      competingPriorities.push(W.threat.raid ? 'สำนักกำลังถูกโจมตี ต้องป้องกันสำนัก' : 'สำนักอยู่ในภาวะเฝ้าระวังภัยคุกคาม');
+    }
+    if (goal && goal.blocked) {
+      practicalBlockers.push(goal.blockReason || goal.missingPrereq || 'ติดเงื่อนไขเป้าหมาย');
+    }
+
+    return { activeCircumstances, excludedCircumstances, competingPriorities, practicalBlockers };
+  };
+
   COG.explain = (W, n) => {
     const c = n.cognition, r = COG.role(W, n), goal = c?.goal && !complete(W, n, c.goal) ? c.goal : null, last = c?.trace?.at(-1);
     const aspRanked = COG.evaluateAspirations(W, n);
@@ -1931,6 +2238,8 @@
       estimates,
       actionId: last?.actionId || n.act?.id || null,
       reasons: (last?.reasons || n.why || []).map(x => x.slice()),
+      bottleneck: (n && n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null,
+      situational: COG.evaluateSituationalAwareness(W, n),
       officeDecision: c?.officeDecision ? { ...c.officeDecision } : null
     };
   };

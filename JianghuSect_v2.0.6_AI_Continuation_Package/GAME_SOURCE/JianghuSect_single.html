@@ -63270,9 +63270,17 @@ JD.ITEMS.items.forEach(it => {
   CULT.rate = (npc, env) => {
     const c = npc.cult; if (!c) return 0;
     let staticBase;
-    const rc = npc._cultRateBase, ritVal = npc.h.skills.ritual || 0, focVal = npc.h.intellect.focus || 0;
-    if (rc && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra && rc.rit === ritVal && rc.foc === focVal) {
-      staticBase = rc.val;
+    let rc = npc._cultRateBase;
+    const ritVal = npc.h.skills.ritual || 0, focVal = npc.h.intellect.focus || 0;
+    if (rc && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra) {
+      if (rc.rit === ritVal && rc.foc === focVal && rc.fullVal !== undefined) {
+        staticBase = rc.fullVal;
+      } else {
+        const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
+        const ritMult = g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1;
+        rc.rit = ritVal; rc.foc = focVal;
+        staticBase = rc.fullVal = rc.val * ritMult * focus;
+      }
     } else {
       ELEM.ensureNpc(npc);
       const d = HC.derived(npc);
@@ -63297,13 +63305,15 @@ JD.ITEMS.items.forEach(it => {
       const subElemMult = subObj ? ELEM.resolveCompatibility(npc, subObj, 'CULTIVATION_TICK').cultivationMultiplier : 1.0;
       const elemRateFactor = clamp(0.60 * mantraElemMult + 0.40 * subElemMult, 0.72, 1.38);
 
-      const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
       const sp = 1 + HC.special(npc, 'cultivation.rateBonus');
       const passRate = (g.MARTIAL && g.MARTIAL.passiveStats ? g.MARTIAL.passiveStats(npc).cultRatePct : 0) || 0;
       const innRate = (g.MARTIAL && g.MARTIAL.innateStats ? g.MARTIAL.innateStats(npc).cultRatePct : 0) || 0;
       const manRate = (m && m.mantraBonus && m.mantraBonus.cultRatePct) || 0;
-      staticBase = base * (g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1) * mantraK * elemRateFactor * focus * sp * (1 + passRate + innRate + manRate);
-      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, rit: ritVal, foc: focVal, val: staticBase };
+      const rawStatic = base * mantraK * elemRateFactor * sp * (1 + passRate + innRate + manRate);
+      const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
+      const ritMult = g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1;
+      staticBase = rawStatic * ritMult * focus;
+      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, val: rawStatic, rit: ritVal, foc: focVal, fullVal: staticBase };
     }
     const rest = npc.h.state.rest < 30 ? 0.6 : npc.h.state.rest < 55 ? 0.85 : 1;
     let toxic, dev;
@@ -63390,6 +63400,7 @@ JD.ITEMS.items.forEach(it => {
       p -= hd / 100 * 0.25 + c.toxic / 100 * 0.15;
     }
     if (g.BN) p += g.BN.chanceMod(npc);
+    if (npc.ancestralBlessing && (npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= (g.STATS ? g.STATS.now : 0))) p += (npc.ancestralBlessing.breakthroughBonus || 0);
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
@@ -63446,6 +63457,13 @@ JD.ITEMS.items.forEach(it => {
       }
       const pd = c.stage >= 3 ? 0.012 * (c.stage - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
       if (rng.next() < pd) res.died = true;
+      if (npc.ancestralBlessing && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || npc.ancestralBlessing.untilDay >= (W ? W.day : 0))) {
+        res.died = false;
+        res.sev = 1;
+        res.ancestralProtected = true;
+        npc.ancestralBlessing.injuryShield = false;
+        npc.h.state.hp = Math.max(npc.h.state.hp, Math.round(CULT.hpMax(npc) * 0.55));
+      }
       HC.experience(npc, 'heart_demon', 0.5);
       if (rng.chance(0.18)) { npc.h.physiology.meridianIntegrity = Math.max(8, npc.h.physiology.meridianIntegrity - rng.float(1, 4)); }
     }
@@ -63456,12 +63474,26 @@ JD.ITEMS.items.forEach(it => {
 
   /* ----- เรียนวิชา (รวมถึงวิชาต้องห้ามภายใต้เงื่อนไขเข้มงวด) ----- */
   // Accepts either (tech, npcSub, strictPrimarySub) or (npcSub, tech, strictPrimarySub)
+  CULT.isExclusiveSubpathTech = t => {
+    if (!t) return false;
+    if (t.innateOnly || (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t))) return true;
+    if (t.legendary) return false;
+    if (typeof t.id === 'string' && t.id.startsWith('MP_')) return true;
+    if ((t.passive || t.cat === 'PASSIVE') && t.sub) return true;
+    if (/FORBIDDEN/.test(t.cat || '')) return true;
+    if (t.sub && ['VENOM_GU_SOVEREIGN', 'CORPSE_PUPPET_MASTER'].includes(t.sub) && /GU_|CORPSE_|PARASITE/.test(t.id || '')) return true;
+    return false;
+  };
+
   CULT.isSubCompatible = (a, b, strictPrimarySub) => {
     const tech = (a && typeof a === 'object') ? a : (b && typeof b === 'object' ? b : null);
     const npcSub = typeof a === 'string' ? a : (typeof b === 'string' ? b : null);
     if (!tech || !tech.sub) return true;
     if (tech.sub === npcSub) return true;
-    if (!strictPrimarySub && Array.isArray(tech.compatibleSubs) && tech.compatibleSubs.includes(npcSub)) return true;
+    if (strictPrimarySub) return false;
+    if (tech.legendary) return true;
+    if (Array.isArray(tech.compatibleSubs) && tech.compatibleSubs.includes(npcSub)) return true;
+    if (!CULT.isExclusiveSubpathTech(tech)) return true;
     return false;
   };
 
@@ -63487,9 +63519,12 @@ JD.ITEMS.items.forEach(it => {
     const c = npc.cult; if (!c) return [];
     const effSt = CULT.effectiveTechStage(npc);
     const strictPrimary = !!(opts && opts.strictPrimarySub);
+    const allowCrossPath = !!(opts && opts.allowCrossPath);
     return library.filter(id => {
       const t = TECH_BY_ID[id];
-      if (!t || t.innateOnly || (t.reqTier || t.tier) > effSt || (t.path !== 'ANY' && t.path !== c.path) || !CULT.isSubCompatible(t, c.sub, strictPrimary) || c.techs.includes(id)) return false;
+      if (!t || t.innateOnly || (t.reqTier || t.tier) > effSt || c.techs.includes(id)) return false;
+      const pathOk = t.path === 'ANY' || t.path === c.path || (!strictPrimary && (t.legendary || allowCrossPath || !CULT.isExclusiveSubpathTech(t)));
+      if (!pathOk || !CULT.isSubCompatible(t, c.sub, strictPrimary)) return false;
       if (/_MANTRA$|^QI_MANTRA$/.test(t.cat)) return false;
       if (/FORBIDDEN/.test(t.cat)) {
         if (!opts || !opts.includeForbidden) {
@@ -63504,7 +63539,10 @@ JD.ITEMS.items.forEach(it => {
     const base = 90 * (t.tier + 0.5) * (1 + t.tier * 0.25);
     if (!npc || !npc.h) return base;
     const comp = ELEM.resolveCompatibility(npc, t, 'TECH_STUDY');
-    return Math.max(30, Math.round(base / Math.max(0.55, comp.studySpeedMultiplier)));
+    const blessMult = (npc.ancestralBlessing && npc.ancestralBlessing.studySpeedMult > 1) ? npc.ancestralBlessing.studySpeedMult : 1;
+    const tc = (g.MARTIAL && g.MARTIAL.resolveTechCompatibility) ? g.MARTIAL.resolveTechCompatibility(npc, t) : null;
+    const pathSubStudyMult = tc ? tc.studySpeedMult : 1;
+    return Math.max(25, Math.round(base / (Math.max(0.50, comp.studySpeedMultiplier * pathSubStudyMult) * blessMult)));
   };
   CULT.maxTechs = npc => 2 + (npc.cult ? Math.round(CULT.normalizedStage(npc)) : 0);
 
@@ -63604,62 +63642,407 @@ JD.ITEMS.items.forEach(it => {
 
   CULT.checkTrackGates = (W, npc, targetOrd) => {
     const tr = CULT.trackOf(npc);
-    if (!tr) return { ok: false, reason: 'ไม่มีสายบำเพ็ญเฉพาะทาง', reasons: ['ไม่มีสายบำเพ็ญเฉพาะทาง'] };
+    if (!tr) return { ok: false, reason: "ไม่มีสายบำเพ็ญเฉพาะทาง", reasons: ["ไม่มีสายบำเพ็ญเฉพาะทาง"], missingSkills: [], missingStones: { required: 0, currentPersonal: 0, currentSect: 0, deficit: 0, canUseSect: false } };
     const def = CULT.trackDef(tr.subPath);
-    if (!def) return { ok: false, reason: 'ไม่พบข้อมูลสายบำเพ็ญ', reasons: ['ไม่พบข้อมูลสายบำเพ็ญ'] };
+    if (!def) return { ok: false, reason: "ไม่พบข้อมูลสายบำเพ็ญ", reasons: ["ไม่พบข้อมูลสายบำเพ็ญ"], missingSkills: [], missingStones: { required: 0, currentPersonal: 0, currentSect: 0, deficit: 0, canUseSect: false } };
     const nextOrd = targetOrd != null ? targetOrd : tr.ordinal + 1;
     if (nextOrd > def.realms.length) {
-      return { ok: false, reason: 'บรรลุขั้นสูงสุดของสายแล้ว (ขั้น 9)', reasons: ['บรรลุขั้นสูงสุดของสายแล้ว'], maxReached: true };
+      return { ok: false, reason: "บรรลุขั้นสูงสุดของสายแล้ว (ขั้น 9)", reasons: ["บรรลุขั้นสูงสุดของสายแล้ว"], maxReached: true, missingSkills: [], missingStones: { required: 0, currentPersonal: 0, currentSect: 0, deficit: 0, canUseSect: false } };
     }
+    if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(npc);
     const nextRealm = def.realms[nextOrd - 1];
     const gate = nextRealm.skillGate || {};
     const reasons = [];
+    const missingSkills = [];
     const h = npc.h || {};
     const skills = h.skills || {};
+    const readSk = id => (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(npc, id) : (skills[id] || 0);
+    const nameSk = id => (g.MARTIAL && g.MARTIAL.SKILL_INFO && g.MARTIAL.SKILL_INFO[id] ? g.MARTIAL.SKILL_INFO[id].nameTh : (HC.nameOf && HC.nameOf("skills." + id)) || id);
     let skillOk = true;
     if (gate.primarySkill) {
-      const curPrimary = skills[gate.primarySkill] || 0;
+      const curPrimary = readSk(gate.primarySkill);
       const reqPrimary = gate.minPrimarySkill || 0;
       if (curPrimary < reqPrimary) {
         skillOk = false;
-        reasons.push('ทักษะ ' + gate.primarySkill + ' ไม่ถึงเกณฑ์ (' + Math.round(curPrimary) + '/' + reqPrimary + ')');
+        reasons.push("ทักษะ " + gate.primarySkill + " ไม่ถึงเกณฑ์ (" + Math.round(curPrimary) + "/" + reqPrimary + ")");
+        missingSkills.push({
+          skill: gate.primarySkill,
+          nameTh: nameSk(gate.primarySkill),
+          current: curPrimary,
+          required: reqPrimary,
+          deficit: +(reqPrimary - curPrimary).toFixed(2),
+          role: "primary"
+        });
       }
     }
     if (gate.secondarySkill) {
-      const curSec = skills[gate.secondarySkill] || 0;
+      const curSec = readSk(gate.secondarySkill);
       const reqSec = gate.minSecondarySkill || 0;
       if (curSec < reqSec) {
         skillOk = false;
-        reasons.push('ทักษะ ' + gate.secondarySkill + ' ไม่ถึงเกณฑ์ (' + Math.round(curSec) + '/' + reqSec + ')');
+        reasons.push("ทักษะ " + gate.secondarySkill + " ไม่ถึงเกณฑ์ (" + Math.round(curSec) + "/" + reqSec + ")");
+        missingSkills.push({
+          skill: gate.secondarySkill,
+          nameTh: nameSk(gate.secondarySkill),
+          current: curSec,
+          required: reqSec,
+          deficit: +(reqSec - curSec).toFixed(2),
+          role: "secondary"
+        });
       }
     }
+    if (missingSkills.length > 1) missingSkills.sort((a, b) => b.deficit - a.deficit);
     const cost = nextRealm.resourceCost || {};
     const reqStones = cost.stones || 0;
     const havePersonal = (npc.inv && npc.inv.stones != null) ? npc.inv.stones : 0;
     const haveSect = (W && W.sect && W.sect.stones != null) ? W.sect.stones : 0;
-    let stonesSource = 'none';
+    const canUseSect = !!(npc.rank >= 2 || (W && W.sect && W.sect.policy && W.sect.policy.subsidizeSpecialization));
+    let stonesSource = "none";
     let resourceOk = false;
     if (havePersonal >= reqStones) {
-      stonesSource = 'personal';
+      stonesSource = "personal";
       resourceOk = true;
-    } else if (haveSect >= reqStones && (npc.rank >= 2 || (W && W.sect && W.sect.policy && W.sect.policy.subsidizeSpecialization))) {
-      stonesSource = 'sect';
+    } else if (haveSect >= reqStones && canUseSect) {
+      stonesSource = "sect";
       resourceOk = true;
     } else {
-      reasons.push('ศิลาวิญญาณไม่เพียงพอ (ต้องการ ' + reqStones + ' ก้อน มี ' + Math.round(havePersonal) + ')');
+      reasons.push("ศิลาวิญญาณไม่เพียงพอ (ต้องการ " + reqStones + " ก้อน มี " + Math.round(havePersonal) + ")");
     }
+    const th = CULT.trackThreshold(npc);
+    const prog = tr.prog || 0;
     return {
       ok: reasons.length === 0,
       reasons,
-      reason: reasons.join(' · '),
+      reason: reasons.join(" · "),
       skillOk,
       resourceOk,
       stonesRequired: reqStones,
       stonesSource,
+      missingSkills,
+      missingStones: {
+        required: reqStones,
+        currentPersonal: havePersonal,
+        currentSect: haveSect,
+        deficit: resourceOk ? 0 : Math.max(0, reqStones - havePersonal),
+        canUseSect
+      },
+      progress: prog,
+      threshold: th,
+      progressRatio: (Number.isFinite(th) && th > 0) ? clamp(prog / th, 0, 1) : 1,
+      readyToAdvance: prog >= th,
+      nearThreshold: prog >= th * 0.65,
       currentOrdinal: tr.ordinal,
       nextOrdinal: nextOrd,
       nextRealm
     };
+  };
+
+  CULT.skillResolutionCandidates = skillId => {
+    const M = g.MARTIAL;
+    const isWpn = M && M.SKILL_GROUPS && M.SKILL_GROUPS.weapon.includes(skillId);
+    const isMartial = isWpn || ["MOVEMENT", "BODY_REFINING", "SOUL_DIVINE", "POISON", "WATER_ICE", "WOOD_LIFE", "stealth", "survival"].includes(skillId);
+    const acts = ["skillDrill"];
+    if (isMartial) acts.push("practice");
+    if (skillId === "SCRIPTURE" || skillId === "ARRAY" || skillId === "TALISMAN") acts.push("study", "guidedStudy");
+    else if (skillId === "ALCHEMY" || skillId === "POISON") acts.push("brewBasic", "personalBrew", "brew");
+    else if (skillId === "FORGING") acts.push("forge");
+    else if (skillId === "herbalism") acts.push("farm", "forage", "gatherWildResource");
+    else if (skillId === "mining") acts.push("mine");
+    else if (skillId === "cooking") acts.push("cook");
+    else if (skillId === "ritual") acts.push("pray", "cultivate");
+    else if (skillId === "arts") acts.push("leisure");
+    else if (skillId === "survival" || skillId === "BEAST_TAMING") acts.push("wildHunt", "forage", "guard");
+    acts.push("pair");
+    return acts;
+  };
+
+  CULT.findQualifiedSkillTeacher = (W, student, skillId) => {
+    if (!W || !Array.isArray(W.npcs) || !student || !skillId) return null;
+    const readSk = (u, id) => (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(u, id) : ((u.h && u.h.skills && u.h.skills[id]) || 0);
+    const cur = readSk(student, skillId);
+    let best = null, bestVal = cur + 2;
+    for (let i = 0; i < W.npcs.length; i++) {
+      const o = W.npcs[i];
+      if (!o || o === student || o.dead || o.away || o.exiled || o.sealed || (o.jail && o.jail > W.t)) continue;
+      if (o.rank < 2 || o.rank <= student.rank) continue;
+      if (g.AI && g.AI.isProtectedAction && g.AI.isProtectedAction(W, o, "teach")) continue;
+      const lv = readSk(o, skillId);
+      if (lv > bestVal) { bestVal = lv; best = o; }
+    }
+    return best;
+  };
+
+  CULT.isResolutionActionFeasible = (W, npc, actId, targetSkill) => {
+    if (!W || !npc || !g.AI || !g.AI.ACTS) return { ok: false, reasonTh: "ไม่พบระบบกิจกรรม" };
+    if (actId === "pair") {
+      if (npc.cool && npc.cool.pair > W.t) return { ok: false, reasonTh: "เพิ่งพบปะหรือชวนผู้อื่นไปเมื่อครู่" };
+      const teacher = targetSkill ? CULT.findQualifiedSkillTeacher(W, npc, targetSkill) : null;
+      if (!teacher) return { ok: false, reasonTh: "ไม่มีอาจารย์หรือศิษย์พี่ที่เชี่ยวชาญทักษะ " + (targetSkill || "") + " ว่างชี้แนะ" };
+      const st = g.AI.freeStation(W, npc, "dummy", "training_ground");
+      if (!st) return { ok: false, reasonTh: "ลานฝึกยุทธ์ไม่มีพื้นที่ว่างสำหรับรับการชี้แนะ" };
+      return { ok: true, teacherId: teacher.id };
+    }
+    const act = g.AI.ACTS[actId];
+    if (!act) return { ok: false, reasonTh: "ไม่มีกิจกรรม " + actId };
+    if (npc.cool && npc.cool[actId] > W.t) return { ok: false, reasonTh: "อยู่ระหว่างพักรอบกิจกรรม " + (act.nameTh || actId) };
+    if (act.can && !act.can(npc, W)) return { ok: false, reasonTh: "ยังไม่ผ่านเงื่อนไขของ " + (act.nameTh || actId) };
+    if (actId === "skillDrill") {
+      const M = g.MARTIAL;
+      const sk = targetSkill || (M && M.pickSkillPractice ? M.pickSkillPractice(W, npc) : "MOVEMENT");
+      const isPhysical = (M && M.SKILL_GROUPS && M.SKILL_GROUPS.weapon.includes(sk)) || ["MOVEMENT", "BODY_REFINING", "stealth", "survival", "BEAST_TAMING"].includes(sk);
+      const st = g.AI.freeStation(W, npc, isPhysical ? "dummy" : "read", isPhysical ? "training_ground" : "scripture") ||
+        (isPhysical ? (g.AI.freeStation(W, npc, "spar", "training_ground") || g.AI.freeStation(W, npc, "read", "scripture")) : g.AI.freeStation(W, npc, "dummy", "training_ground"));
+      if (!st) return { ok: false, reasonTh: "ไม่มีแท่นฝึกว่างในลานฝึกยุทธ์หรือหอคัมภีร์" };
+      return { ok: true };
+    }
+    if (actId === "practice") {
+      const st = g.AI.freeStation(W, npc, "dummy", "training_ground");
+      if (!st) return { ok: false, reasonTh: "หุ่นฝึกในลานฝึกยุทธ์ถูกใช้งานเต็มทั้งหมด" };
+      return { ok: true };
+    }
+    if (actId === "study" || actId === "guidedStudy") {
+      const st = g.AI.freeStation(W, npc, "read", "scripture");
+      if (!st) return { ok: false, reasonTh: "โต๊ะอ่านคัมภีร์ในหอคัมภีร์เต็มทั้งหมด" };
+      return { ok: true };
+    }
+    if (actId === "mine") {
+      const st = g.AI.freeStation(W, npc, "mine", "mine");
+      if (!st) return { ok: false, reasonTh: "เหมืองแร่ไม่มีจุดขุดว่าง" };
+      return { ok: true };
+    }
+    if (actId === "farm") {
+      const st = g.AI.freeStation(W, npc, "farm", "herb_garden") || g.AI.freeStation(W, npc, "farm", "farm");
+      if (!st) return { ok: false, reasonTh: "แปลงสมุนไพรและไร่นาเต็มทั้งหมด" };
+      return { ok: true };
+    }
+    if (actId === "shop") {
+      const st = g.AI.freeStation(W, npc, "browse", "market");
+      if (!st) return { ok: false, reasonTh: "ตลาดสำนักไม่มีจุดแลกเปลี่ยนว่าง" };
+      return { ok: true };
+    }
+    if (act.where) {
+      const w = act.where(W, npc);
+      if (!w) return { ok: false, reasonTh: "ไม่มีสถานีหรือเป้าหมายว่างสำหรับ " + (act.nameTh || actId) };
+    }
+    return { ok: true };
+  };
+
+  CULT.inspectProgressionBottleneck = (W, npc) => {
+    if (!npc || !npc.cult || npc.dead) {
+      return { active: false, kind: null, track: null, major: null, feasibleActions: [], blockedReasons: [], explanationTh: "", explanationEn: "" };
+    }
+    const c = npc.cult, s = npc.h.state;
+    const wt = W && W.t > 0 ? W.t : -1;
+    const curActKey = (npc.act ? npc.act.id : "idle") + ":" + ((npc.act && npc.act.ctx && (npc.act.ctx.skill || npc.act.ctx.skillTgt)) || "");
+    const tr0 = CULT.trackOf(npc), def0 = tr0 ? CULT.trackDef(tr0.subPath) : null, g0 = (def0 && def0.realms && def0.realms[tr0.ordinal]) ? (def0.realms[tr0.ordinal].skillGate || {}) : {};
+    const skKey = (g0.primarySkill ? Math.floor((npc.h.skills && npc.h.skills[g0.primarySkill]) || 0) : 0) + ":" + (g0.secondarySkill ? Math.floor((npc.h.skills && npc.h.skills[g0.secondarySkill]) || 0) : 0);
+    const stKey = Math.floor((npc.inv && npc.inv.stones) || 0) + ":" + Math.floor(npc.cp || 0) + ":" + (c.stage || 0) + ":" + Math.floor(c.prog || 0) + ":" + (tr0 ? tr0.ordinal + ":" + Math.floor(tr0.prog || 0) : "0") + ":" + skKey;
+    if (wt > 0 && npc._bnInspectCache && npc._bnInspectCache.t === wt && npc._bnInspectCache.ver === npc._ver && npc._bnInspectCache.actKey === curActKey && npc._bnInspectCache.stKey === stKey) {
+      return npc._bnInspectCache.out;
+    }
+    const driveMult = clamp(
+      0.42 +
+      (HC.eff(npc, "personality.ambition") - 45) / 105 +
+      (HC.eff(npc, "values.martialPeak") - 45) / 125 +
+      (HC.eff(npc, "personality.discipline") - 45) / 155 -
+      (HC.eff(npc, "values.freedom") - 55) / 220,
+      0.25,
+      1.65
+    );
+    const hpMax = CULT.hpMax(npc);
+    const gObj = npc.cognition && npc.cognition.goal ? npc.cognition.goal : null;
+    const activeCrisis = !!(gObj && gObj.id === "crisis" && W && W.sect && (W.sect.shortageDirectives || []).some(d => d.id === gObj.targetId && d.deficit > 0));
+    const activeHelpFriend = !!(gObj && gObj.id === "help_friend" && W && W.byId && W.byId[gObj.targetId] && !W.byId[gObj.targetId].dead && W.byId[gObj.targetId].h.state.hp < CULT.hpMax(W.byId[gObj.targetId]) * 0.72);
+    const competingNeed =
+      (s.hp < hpMax * 0.4 || (npc.inj && npc.inj.length)) ? "บาดเจ็บ/พลังชีวิตต่ำ ต้องรักษาตัวก่อน"
+      : s.satiety < 24 ? "กำลังหิว ต้องกินอาหารก่อน"
+      : s.rest < 14 ? "อ่อนล้ามาก ต้องพักผ่อนก่อน"
+      : ((c.toxic || 0) >= 60) ? "พิษโอสถสะสมสูง ต้องขับพิษก่อน"
+      : ((s.heartDemon || 0) >= 65 && c.path !== "DEMON") ? "จิตมารรบกวนหนัก ต้องสงบจิตใจก่อน"
+      : (npc.act && npc.act.id === "duty") ? "กำลังปฏิบัติหน้าที่ตำแหน่งในสำนัก"
+      : (npc.act && npc.act.id === "guard") ? "กำลังเข้าเวรเฝ้ายาม"
+      : activeCrisis ? "กำลังช่วยสำนักแก้วิกฤตขาดแคลนเร่งด่วน"
+      : activeHelpFriend ? "กำลังช่วยเหลือสหายที่บาดเจ็บ"
+      : null;
+
+    let trackInfo = null;
+    const tr = CULT.trackOf(npc);
+    if (tr && tr.ordinal < 9) {
+      const gate = CULT.checkTrackGates(W, npc);
+      if (!gate.ok && (gate.readyToAdvance || gate.nearThreshold)) {
+        const feasibleActions = [];
+        const blockedReasons = [];
+        const primaryMissingSkill = gate.missingSkills.length ? gate.missingSkills[0] : null;
+        if (!gate.skillOk && gate.missingSkills.length) {
+          for (let i = 0; i < gate.missingSkills.length; i++) {
+            const ms = gate.missingSkills[i];
+            const cands = CULT.skillResolutionCandidates(ms.skill);
+            for (let j = 0; j < cands.length; j++) {
+              const actId = cands[j];
+              if (feasibleActions.includes(actId)) continue;
+              const chk = CULT.isResolutionActionFeasible(W, npc, actId, ms.skill);
+              if (chk.ok) feasibleActions.push(actId);
+              else if (chk.reasonTh && !blockedReasons.includes(chk.reasonTh)) blockedReasons.push(chk.reasonTh);
+            }
+          }
+        }
+        if (!gate.resourceOk && gate.missingStones.deficit > 0) {
+          const stoneActs = ["shop", "outsideTrade", "mine", "forage", "gatherWildResource", "donate", "errand", "farm"];
+          for (let j = 0; j < stoneActs.length; j++) {
+            const actId = stoneActs[j];
+            if (feasibleActions.includes(actId)) continue;
+            const chk = CULT.isResolutionActionFeasible(W, npc, actId, null);
+            if (chk.ok) feasibleActions.push(actId);
+            else if (chk.reasonTh && !blockedReasons.includes(chk.reasonTh)) blockedReasons.push(chk.reasonTh);
+          }
+        }
+        const curActId = npc.act ? npc.act.id : "idle";
+        const curSkill = (npc.act && npc.act.ctx && (npc.act.ctx.skill || npc.act.ctx.skillTgt)) || null;
+        const trainedSkillObj = gate.missingSkills.find(m => m.skill === curSkill) || ((curActId === "pair" && npc.act?.ctx?.pair?.type === "teach" && !curSkill) ? primaryMissingSkill : null);
+        const isTrainingTargetSkill = !!(trainedSkillObj && (curActId === "skillDrill" || curActId === "practice" || (curActId === "pair" && npc.act?.ctx?.pair?.type === "teach")));
+        const isGatheringStones = !!(!gate.resourceOk && ["mine", "forage", "gatherWildResource", "outsideTrade", "shop", "donate", "errand"].includes(curActId));
+        const isActivelyResolving = isTrainingTargetSkill || isGatheringStones;
+        const gatePartsEn = [];
+        const gatePartsTh = [];
+        for (let i = 0; i < gate.missingSkills.length; i++) {
+          const ms = gate.missingSkills[i];
+          gatePartsEn.push(ms.skill + " " + Math.floor(ms.current) + "/" + ms.required);
+          gatePartsTh.push("ทักษะ" + ms.nameTh + " (" + ms.skill + " " + Math.floor(ms.current) + "/" + ms.required + ")");
+        }
+        if (!gate.resourceOk && gate.missingStones.deficit > 0) {
+          gatePartsEn.push("STONES " + Math.floor(gate.missingStones.currentPersonal) + "/" + gate.missingStones.required);
+          gatePartsTh.push("ศิลาวิญญาณ " + Math.floor(gate.missingStones.currentPersonal) + "/" + gate.missingStones.required);
+        }
+        const blockerTh = feasibleActions.length === 0 ? (blockedReasons[0] || "ไม่มีสถานี อาจารย์ หรือทรัพยากรที่เข้าถึงได้ในขณะนี้") : null;
+        let statusTh, statusEn;
+        if (isTrainingTargetSkill && trainedSkillObj) {
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — กำลังฝึก " + trainedSkillObj.nameTh + " (" + trainedSkillObj.skill + ")";
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — currently training " + trainedSkillObj.skill + ".";
+        } else if (isGatheringStones) {
+          const actNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[curActId] ? g.AI.ACTS[curActId].nameTh : curActId);
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — กำลังจัดหาทรัพยากร (" + actNameTh + ")";
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — currently acquiring resources (" + curActId + ").";
+        } else if (competingNeed) {
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — ชะลอชั่วคราวเพราะ" + competingNeed;
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — deferred due to competing priority (" + curActId + ").";
+        } else if (blockerTh) {
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — ยังดำเนินการไม่ได้: " + blockerTh;
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — blocked: " + blockerTh;
+        } else {
+          const nextAct = feasibleActions[0];
+          const nextNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[nextAct] ? g.AI.ACTS[nextAct].nameTh : nextAct);
+          const curNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[curActId] ? g.AI.ACTS[curActId].nameTh : curActId);
+          statusTh = "ติดคอขวดสายเฉพาะทาง: ขาด" + gatePartsTh.join(" และ ") + " — ปัจจุบัน: " + curNameTh + " (เตรียม " + nextNameTh + ")";
+          statusEn = "Specialization breakthrough blocked: " + gatePartsEn.join(", ") + " — next feasible action: " + nextAct + ".";
+        }
+        trackInfo = {
+          active: true,
+          ready: gate.readyToAdvance,
+          near: gate.nearThreshold,
+          gateOk: false,
+          subPath: tr.subPath,
+          ordinal: tr.ordinal,
+          nextOrdinal: gate.nextOrdinal,
+          nextRealmNameTh: gate.nextRealm ? gate.nextRealm.nameTh : "",
+          missingSkills: gate.missingSkills,
+          missingStones: gate.missingStones,
+          primarySkillToTrain: primaryMissingSkill ? primaryMissingSkill.skill : null,
+          feasibleActions,
+          blockedReasons,
+          blockerReasonTh: blockerTh,
+          isActivelyResolving,
+          statusTh,
+          statusEn
+        };
+      }
+    }
+
+    let majorInfo = null;
+    const maxSt = CULT.maxStage(npc);
+    const thMajor = CULT.threshold(npc);
+    const eqStage = CULT.equivalentStage(npc);
+    const effTechSt = CULT.effectiveTechStage(npc);
+    if (c.stage < maxSt && Number.isFinite(thMajor) && (c.bn || c.prog >= thMajor * 0.75)) {
+      const ready = c.prog >= thMajor;
+      const pillKey = g.BN ? g.BN.pillKey(c) : ("P:BT_" + c.path + "_" + c.stage);
+      const hasPill = !!(g.BN && g.BN.heldPill(npc)) || (c.btBonus || 0) >= 0.1;
+      const trObj = g.BN ? g.BN.treasureOf(c) : null;
+      const needTreasure = !!(trObj && c.treasure !== trObj.id);
+      const needFoundation = !!(c.bn && c.bn.plan === "wait" && (c.found || 0) < 0.08);
+      const needTech = (c.techs ? c.techs.length : 0) < Math.min(2, effTechSt) && W && W.sect && Array.isArray(W.sect.library) && CULT.learnable(npc, W.sect.library).length > 0;
+      const feasibleActions = [];
+      const blockedReasons = [];
+      const cands = [];
+      if (ready && (!c.bn || c.bn.plan === "go")) cands.push("breakthrough");
+      if (needFoundation) cands.push("consolidate", "pray");
+      if (!hasPill) {
+        if (W && W.sect && W.sect.stock && W.sect.stock[pillKey] > 0) cands.push("shop");
+        cands.push("personalBrew", "brewBasic", "brew", "forage", "gatherWildResource");
+      }
+      if (needTreasure) cands.push("errand", "outsideTrade");
+      if (needTech) cands.push("study", "guidedStudy");
+      if (!ready) cands.push("cultivate", "paidTraining");
+      for (let i = 0; i < cands.length; i++) {
+        const actId = cands[i];
+        if (feasibleActions.includes(actId)) continue;
+        const chk = CULT.isResolutionActionFeasible(W, npc, actId, null);
+        if (chk.ok) feasibleActions.push(actId);
+        else if (chk.reasonTh && !blockedReasons.includes(chk.reasonTh)) blockedReasons.push(chk.reasonTh);
+      }
+      const curActId = npc.act ? npc.act.id : "idle";
+      const isActivelyResolving = feasibleActions.includes(curActId) || curActId === "breakthrough" || curActId === "consolidate";
+      const unmetListTh = [];
+      if (needFoundation) unmetListTh.push("ฐานปราณตกผลึก (" + Math.round((c.found || 0) * 100) + "/8%)");
+      if (!hasPill) unmetListTh.push("โอสถทะลวงขั้น (" + pillKey + ")");
+      if (needTreasure) unmetListTh.push("สมบัติประจำด่าน " + trObj.nameTh);
+      if (needTech) unmetListTh.push("คัมภีร์วิชาระดับเทียบเคียงขั้น " + effTechSt);
+      if (!ready) unmetListTh.push("ตบะ " + Math.round(c.prog) + "/" + thMajor);
+      const blockerTh = feasibleActions.length === 0 ? (blockedReasons[0] || "ไม่มีสถานีหรือทรัพยากรที่พร้อมใช้") : null;
+      const curNameTh = (g.AI && g.AI.ACTS && g.AI.ACTS[curActId] ? g.AI.ACTS[curActId].nameTh : curActId);
+      const statusTh = "คอขวดวิถีหลัก (" + CULT.stageName(npc) + " · เทียบเคียงขั้น " + eqStage.toFixed(1) + "): " +
+        (unmetListTh.length ? "ต้องการ " + unmetListTh.join(" · ") : "พร้อมทะลวงขั้น") +
+        (isActivelyResolving ? " — กำลังทำ " + curNameTh : blockerTh ? " — ติดขัด: " + blockerTh : " — ปัจจุบัน: " + curNameTh);
+      majorInfo = {
+        active: true,
+        ready,
+        near: c.prog >= thMajor * 0.75,
+        equivalentStage: eqStage,
+        effectiveTechStage: effTechSt,
+        plan: c.bn ? c.bn.plan : null,
+        needFoundation,
+        needPill: !hasPill,
+        pillKey,
+        needTreasure,
+        treasure: trObj,
+        needTech,
+        feasibleActions,
+        blockedReasons,
+        blockerReasonTh: blockerTh,
+        isActivelyResolving,
+        statusTh
+      };
+    }
+
+    const primary = trackInfo || majorInfo;
+    const out = {
+      active: !!(trackInfo || majorInfo),
+      kind: trackInfo ? "track" : majorInfo ? "major" : null,
+      driveMult,
+      competingNeed,
+      relevantToNpc: !!(trackInfo || majorInfo) && driveMult >= 0.35 && !competingNeed,
+      track: trackInfo,
+      major: majorInfo,
+      feasibleActions: primary ? primary.feasibleActions : [],
+      blockedReasons: primary ? primary.blockedReasons : [],
+      blockerReasonTh: primary ? primary.blockerReasonTh : null,
+      isActivelyResolving: primary ? primary.isActivelyResolving : false,
+      explanationTh: trackInfo ? trackInfo.statusTh : majorInfo ? majorInfo.statusTh : "",
+      explanationEn: trackInfo ? trackInfo.statusEn : ""
+    };
+    if (wt > 0) {
+      npc._bnInspectCache = { t: wt, ver: npc._ver, actKey: curActKey, stKey, out };
+    }
+    return out;
   };
 
   CULT.trackBreakthroughChance = (npc, opts) => {
@@ -63676,6 +64059,9 @@ JD.ITEMS.items.forEach(it => {
     p += HC.special(npc, 'cultivation.breakthroughBonus');
     const s = npc.h ? npc.h.state : {};
     p -= (s.heartDemon || 0) / 100 * 0.2 + (npc.cult.toxic || 0) / 100 * 0.12;
+    if (npc.ancestralBlessing && (npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= (g.STATS ? g.STATS.now : 0))) {
+      p += (npc.ancestralBlessing.breakthroughBonus || 0);
+    }
     if (opts) {
       p += (opts.pill || 0) + (opts.env || 0) + (opts.guide || 0) + (opts.bonus || 0);
     }
@@ -63732,9 +64118,11 @@ JD.ITEMS.items.forEach(it => {
       HC.bump(npc);
       return { ok: true, p, fromOrdinal: fromOrd, toOrdinal: tr.ordinal, realm: newRealm };
     } else {
-      tr.prog = th * (0.5 + 0.2 * clamp(HC.eff(npc, 'intellect.willpower') / 100 * 0.6 + HC.eff(npc, 'personality.composure') / 100 * 0.4, 0, 1));
-      HC.feel(npc, { mood: -12, stress: 12 });
-      npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + 8, 0, 100);
+      const blessed = !!(npc.ancestralBlessing && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || npc.ancestralBlessing.untilDay >= (W ? W.day : 0)));
+      if (blessed) npc.ancestralBlessing.injuryShield = false;
+      tr.prog = th * ((blessed ? 0.65 : 0.5) + 0.2 * clamp(HC.eff(npc, 'intellect.willpower') / 100 * 0.6 + HC.eff(npc, 'personality.composure') / 100 * 0.4, 0, 1));
+      HC.feel(npc, { mood: blessed ? -6 : -12, stress: blessed ? 5 : 12 });
+      npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + (blessed ? 3 : 8), 0, 100);
       if (W && W.log) {
         W.log('breakthrough', npc.h.name.given + ' ทะลวงสายเฉพาะทาง ' + def.realms[fromOrd - 1].nameTh + ' ไม่สำเร็จ (โอกาส ' + Math.round(p * 100) + '%)', [npc.id]);
       }
@@ -64598,6 +64986,122 @@ JD.ITEMS.items.forEach(it => {
     return report;
   };
 
+  /* ---------- Sanctum Refinement Catalysts & Resonance Gear Upgrading (v2.0.6 Pillar B) ---------- */
+  ECO.REFINEMENT_CATALYSTS = {
+    CAT_RESONANCE_JADE_4: { id: 'CAT_RESONANCE_JADE_4', nameTh: 'หยกสัจธรรมประสานปราณ', tier: 4, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.14, maxQuality: 1.65, value: 180, descTh: 'ผลึกหยกโบราณจากวิหารศักดิ์สิทธิ์ ใช้ขัดเกลาศาสตราชุดสัจธรรมระดับ T4–T6 ให้มีคุณภาพสูงขึ้น' },
+    CAT_ASTRAL_ESSENCE_5: { id: 'CAT_ASTRAL_ESSENCE_5', nameTh: 'แก่นดาราบรรพกาล', tier: 5, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.20, maxQuality: 1.75, value: 320, descTh: 'แก่นปราณดาราจากผู้พิทักษ์ชั้นลึก ใช้หลอมยกระดับคุณภาพศาสตรา T4–T6' },
+    CAT_PRIMORDIAL_FLAME_6: { id: 'CAT_PRIMORDIAL_FLAME_6', nameTh: 'เพลิงต้นกำเนิดสวรรค์', tier: 6, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.28, maxQuality: 1.85, value: 520, descTh: 'เพลิงศักดิ์สิทธิ์ขั้นสูงสุดจากแท่นบูชาโบราณ ใช้ขัดเกลาศาสตรา T4–T6 สู่ขีดสุด' }
+  };
+
+  ECO.ensureCatalysts = W => {
+    if (!W || !W.sect) return {};
+    if (!W.sect.catalysts || typeof W.sect.catalysts !== 'object') W.sect.catalysts = {};
+    return W.sect.catalysts;
+  };
+
+  ECO.catalystCount = (W, catId) => {
+    const cats = ECO.ensureCatalysts(W);
+    return Math.max(0, Math.floor(cats[catId] || 0));
+  };
+
+  ECO.addCatalyst = (W, catId, qty) => {
+    if (!W || !W.sect || !ECO.REFINEMENT_CATALYSTS[catId] || !Number.isFinite(qty) || qty <= 0) return 0;
+    const cats = ECO.ensureCatalysts(W);
+    cats[catId] = Math.floor((cats[catId] || 0) + qty);
+    W.sect._hasCatalysts = true;
+    return cats[catId];
+  };
+
+  ECO.refineGearWithCatalyst = (W, gearOrUid, catId, npc, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+    const cat = ECO.REFINEMENT_CATALYSTS[catId || 'CAT_RESONANCE_JADE_4'] || Object.values(ECO.REFINEMENT_CATALYSTS).find(c => ECO.catalystCount(W, c.id) > 0);
+    if (!cat) return { ok: false, reason: 'invalid-catalyst' };
+    if (!opts.free && ECO.catalystCount(W, cat.id) <= 0) return { ok: false, reason: 'insufficient-catalyst' };
+
+    let gear = (gearOrUid && typeof gearOrUid === 'object') ? gearOrUid : null;
+    if (!gear && typeof gearOrUid === 'string') {
+      if (npc && npc.equip) {
+        for (const k of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+          if (npc.equip[k] && (npc.equip[k].uid === gearOrUid || npc.equip[k].id === gearOrUid)) { gear = npc.equip[k]; break; }
+        }
+      }
+      if (!gear && npc && npc.inv && Array.isArray(npc.inv.gear)) {
+        gear = npc.inv.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+      }
+      if (!gear && Array.isArray(W.sect.gear)) {
+        gear = W.sect.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+      }
+    }
+    if (!gear || !gear.slot) return { ok: false, reason: 'gear-not-found' };
+    const gTier = gear.tier || 1;
+    if (!opts.allowAnyTier && (gTier < cat.minGearTier || gTier > (cat.maxGearTier || 7))) {
+      return { ok: false, reason: 'invalid-gear-tier', tier: gTier, requiredMin: cat.minGearTier };
+    }
+    const oldQ = Number.isFinite(gear.q) ? gear.q : 1.0;
+    if (oldQ >= cat.maxQuality) return { ok: false, reason: 'max-quality-reached', quality: oldQ };
+
+    if (!opts.free) {
+      W.sect.catalysts[cat.id] = Math.max(0, (W.sect.catalysts[cat.id] || 1) - 1);
+      if (W.sect.catalysts[cat.id] <= 0) delete W.sect.catalysts[cat.id];
+    }
+    const newQ = Math.min(cat.maxQuality, +(oldQ + cat.qualityBoost).toFixed(2));
+    const ratio = newQ / Math.max(0.5, oldQ);
+    gear.q = newQ;
+    if (gear.combatMult) gear.combatMult = +(gear.combatMult * ratio).toFixed(4);
+    if (gear.defMult) gear.defMult = +(gear.defMult * ratio).toFixed(4);
+    gear.refinedCount = (gear.refinedCount || 0) + 1;
+    gear.lastCatalystId = cat.id;
+    delete gear.st;
+    if (g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
+    if (npc) {
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      HC.bump(npc);
+    }
+    if (!opts.quiet && W.log) {
+      W.log('craft', '✨ ขัดเกลาศาสตรา「' + gear.nameTh + '」ด้วย「' + cat.nameTh + '」คุณภาพเพิ่มเป็น ' + oldQ.toFixed(2) + ' → ' + newQ.toFixed(2), npc ? [npc.id] : []);
+    }
+    return { ok: true, gear, catalystId: cat.id, oldQuality: oldQ, newQuality: newQ };
+  };
+
+  ECO.findCatalystRefinementCandidate = (W, npc) => {
+    if (!W || !W.sect || !W.sect._hasCatalysts || !npc || npc.dead || !npc.cult) return null;
+    const isForgeOfficer = npc.post === 'forge' || npc.assist === 'forge';
+    const isEligible = (npc.rank || 0) >= 3 || isForgeOfficer || npc.id === W.sect.masterId;
+    if (!isEligible) return null;
+    const cats = W.sect.catalysts;
+    if (!cats || typeof cats !== 'object') return null;
+    const availCats = Object.values(ECO.REFINEMENT_CATALYSTS).filter(c => (cats[c.id] || 0) > 0);
+    if (!availCats.length) return null;
+    availCats.sort((a, b) => b.tier - a.tier);
+    const cat = availCats[0];
+    // 1. Check NPC's own equipped T4-T6 gear first
+    if (npc.equip) {
+      for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+        const eq = npc.equip[slot];
+        if (!eq) continue;
+        const gt = eq.tier || 1;
+        const q = Number.isFinite(eq.q) ? eq.q : 1.0;
+        if (gt >= cat.minGearTier && gt <= (cat.maxGearTier || 7) && q + 0.02 < cat.maxQuality) {
+          return { gear: eq, gearUid: eq.uid || eq.id, catalystId: cat.id, cat, ownerNpcId: npc.id, source: 'equipped' };
+        }
+      }
+    }
+    // 2. If Forge officer, can also refine T4-T6 gear in sect armory
+    if (isForgeOfficer && Array.isArray(W.sect.gear)) {
+      for (let i = 0; i < W.sect.gear.length; i++) {
+        const eq = W.sect.gear[i];
+        if (!eq || !eq.slot) continue;
+        const gt = eq.tier || 1;
+        const q = Number.isFinite(eq.q) ? eq.q : 1.0;
+        if (gt >= cat.minGearTier && gt <= (cat.maxGearTier || 7) && q + 0.02 < cat.maxQuality) {
+          return { gear: eq, gearUid: eq.uid || eq.id, catalystId: cat.id, cat, ownerNpcId: null, source: 'sect_armory' };
+        }
+      }
+    }
+    return null;
+  };
+
   g.ECO = ECO;
   if (typeof module === 'object' && module.exports) module.exports = ECO;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -65326,7 +65830,7 @@ JD.ITEMS.items.forEach(it => {
     // 2) รองเจ้าสำนัก
     if (!S.deputyId || !W.byId[S.deputyId] || W.byId[S.deputyId].dead || W.byId[S.deputyId].exiled) {
       S.deputyId = null;
-      const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== m.id && n.cult && n.cult.stage >= 3);
+      const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== m.id && n.cult && (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) >= 3);
       if (cands.length && W.rng.chance(0.5)) {
         cands.sort((a, b) => (SECT.relationScore(m, b) * (1 - S.policy.meritocracy / 100) + (b.cult.stage * 8 + SECT.relevance('mission', b) * .3) * (S.policy.meritocracy / 100 + .3)) - (SECT.relationScore(m, a) * (1 - S.policy.meritocracy / 100) + (a.cult.stage * 8 + SECT.relevance('mission', a) * .3) * (S.policy.meritocracy / 100 + .3)));
         const d = cands[0]; if (d.post) { S.posts[d.post] = null; d.post = null; }
@@ -65473,7 +65977,7 @@ JD.ITEMS.items.forEach(it => {
     const coreCap = W.map && W.map.byId && W.map.byId.dorm_core ? Math.max(8, W.map.byId.dorm_core.stations.length) : 8;
     const cap = { inner: innerCap, core: coreCap };
     const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank <= 2).map(n => {
-      const stage = n.cult ? n.cult.stage : 0;
+      const stage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
       const need = n.rank === 0 ? 1 : n.rank === 1 ? 2 : 3;
       const days = W.day - (n.joinDay || 0);
       const can = n.rank === 0 ? days >= 20 && (stage >= 1 || days >= 60) : stage >= need && days >= 40 + n.rank * 60 && n.merit >= (n.rank === 1 ? 60 : 160);
@@ -65514,6 +66018,25 @@ JD.ITEMS.items.forEach(it => {
     if (!cd('discipleOf')) opts.push({ k: 'discipleOf', u: (e('social.teaching') + e('personality.empathy') + e('values.honorLegacy')) / 300 - (m.h.life.family.disciples.length > 1 ? .4 : 0), run: () => SECT.takePersonalDisciple(W, m) });
     // ตรวจทุจริต
     if (!cd('audit')) opts.push({ k: 'audit', u: (e('personality.caution') + e('personality.integrity') + (100 - e('personality.trustfulness'))) / 300 - .2 + (S.suspicion || 0) / 100, run: () => SECT.audit(W, m) });
+    // การทูตและคาราวานพันธมิตร (v2.0.6 Pillar A)
+    if (!cd('diplomacy') && g.CONTENT && W.world && Array.isArray(W.world.sects) && W.world.sects.length && S.stones >= 300) {
+      const allyCaravanSect = W.world.sects.find(x => (x.treaty === 'ALLIANCE' || x.treaty === 'ALLIANCE_PACT' || x.treaty === 'TRADE_PACT' || x.treaty === 'TRADE_CARAVAN_ACCORD') && W.day - (x.lastCaravanDay ?? -99) >= 15);
+      const treatyCand = !allyCaravanSect ? W.world.sects.find(x => (!x.treaty || x.treaty === 'NONE') && (x.attitude || 0) >= 18) : null;
+      if (allyCaravanSect || treatyCand) {
+        opts.push({
+          k: 'diplomacy',
+          u: (e('social.charisma') + e('values.wealthResource') + e('personality.ambition')) / 320 + (pol.focus.commerce || 0) * 0.25,
+          run: () => {
+            if (allyCaravanSect && g.CONTENT.exchangeWithAlly) {
+              const result = g.CONTENT.exchangeWithAlly(W, allyCaravanSect.id);
+              if (result.ok) allyCaravanSect.lastCaravanDay = W.day;
+            } else if (treatyCand && g.CONTENT.signTreaty) {
+              g.CONTENT.signTreaty(W, treatyCand.id, (treatyCand.attitude || 0) >= 40 ? 'ALLIANCE_PACT' : 'TRADE_CARAVAN_ACCORD');
+            }
+          }
+        });
+      }
+    }
     if (!opts.length) return;
     opts.forEach(o => { if (g.COG) o.u += g.COG.officeBias(W, m, o.k); o.u += W.rng.float(-.08, .08); });
     opts.sort((a, b) => b.u - a.u);
@@ -65633,6 +66156,73 @@ JD.ITEMS.items.forEach(it => {
     };
   };
 
+  SECT.resolveRivalEnvoyChallenge = (W, champ, rivalSect, opts) => {
+    opts = opts || {};
+    if (!W || !champ) return null;
+    const sects = (W.world && Array.isArray(W.world.sects)) ? W.world.sects : [];
+    const rival = rivalSect || sects.find(x => x.treaty === 'RIVAL_FEUD' || x.treaty === 'EMBARGO') || sects.slice().sort((a, b) => (a.attitude || 0) - (b.attitude || 0))[0];
+    if (!rival) return null;
+    const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'];
+    const envoyWeapon = opts.envoyWeapon || wTypes[Math.floor((W.day || 0) + (rival.power || 1)) % wTypes.length];
+    const champPow = CULT.power(champ);
+    const envoyPower = opts.envoyPower != null ? opts.envoyPower : Math.max(40, Math.round(champPow * clamp(0.78 + (rival.power || 2) * 0.06, 0.72, 1.12)));
+    const envoyUnit = {
+      id: 'ENVOY_' + rival.id + '_' + (W.day || 0),
+      foe: true,
+      nameTh: 'ทูตท้าประลอง' + (rival.shortTh || rival.nameTh),
+      power: envoyPower,
+      tier: Math.max(2, Math.min(7, (CULT.effectiveTechStage ? CULT.effectiveTechStage(champ) : (champ.cult?.stage || 2)))),
+      equip: { WEAPON: { slot: 'WEAPON', gearType: envoyWeapon, nameTh: envoyWeapon } }
+    };
+    const tac = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(champ, envoyUnit, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+    const resSet = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(champ) : { active: false, pieces: 0 };
+    const effChamp = champPow * (tac.dmgMult || 1) * (1 + (resSet.active ? resSet.pieces * 0.05 : 0)) * (0.9 + (W.rng ? W.rng.next() * 0.22 : 0.1));
+    const effEnvoy = envoyPower * (0.88 + (W.rng ? W.rng.next() * 0.2 : 0.1));
+    const won = opts.forceWin != null ? !!opts.forceWin : (effChamp >= effEnvoy);
+    const cpGain = won ? 45 : 15;
+    const stonePrize = won ? 60 : 0;
+    champ.cp = (champ.cp || 0) + cpGain;
+    champ.cpEarned = (champ.cpEarned || 0) + cpGain;
+    champ.merit = (champ.merit || 0) + (won ? 20 : 6);
+    if (won) {
+      W.fame(4);
+      ECO.earn(W, stonePrize, 'ชนะทูตท้าประลองจาก' + rival.nameTh);
+      rival.attitude = clamp((rival.attitude || 0) + 5, -100, 100);
+      HC.experience(champ, 'victory', 0.7);
+    } else {
+      W.fame(-1);
+      HC.experience(champ, 'defeat', 0.35);
+    }
+    if (W.world && W.world.politics) {
+      const pol = W.world.politics;
+      pol.stats = pol.stats || {};
+      pol.stats.envoyChallenges = (pol.stats.envoyChallenges || 0) + 1;
+      pol.events = pol.events || [];
+      pol.events.push({
+        day: W.day || 0,
+        kind: 'ENVOY_CHALLENGE',
+        sectId: rival.id,
+        treaty: rival.treaty || 'NONE',
+        outcome: won ? 'VICTORY' : 'DEFEAT',
+        summaryTh: HC.fullName(champ) + (won ? ' เอาชนะ' : ' พ่ายต่อ') + envoyUnit.nameTh + ' จาก' + rival.nameTh + (won ? (' (+' + cpGain + ' CP, +' + stonePrize + ' ศิลา)') : '')
+      });
+    }
+    return {
+      rivalSectId: rival.id,
+      rivalSectNameTh: rival.nameTh,
+      envoyNameTh: envoyUnit.nameTh,
+      envoyWeapon,
+      envoyPower,
+      defenderId: champ.id,
+      defenderName: HC.fullName(champ),
+      won,
+      tacticalRelation: tac.relation || 'NEUTRAL',
+      cpAwarded: cpGain,
+      stonePrize,
+      summaryTh: HC.fullName(champ) + (won ? ' ปราบ' : ' ประมือกับ') + envoyUnit.nameTh + ' (' + rival.nameTh + ')'
+    };
+  };
+
   SECT.assembly = (W, m, opts) => {
     opts = opts || {};
     const S = W.sect;
@@ -65649,7 +66239,7 @@ JD.ITEMS.items.forEach(it => {
     for (const bId of SECT.ASSEMBLY_BRACKET_IDS) {
       const spec = SECT.ASSEMBLY_BRACKETS[bId];
       let divEntrants = candidates.filter(n => {
-        const st = n.cult ? n.cult.stage : 1;
+        const st = n.cult ? Math.min(7, CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 1;
         return st >= spec.minStage && st <= spec.maxStage;
       });
       if (!divEntrants.length) continue;
@@ -65763,6 +66353,9 @@ JD.ITEMS.items.forEach(it => {
       brackets: bracketResults,
       summaryTh: 'ชุมนุมยุทธ์ใหญ่ปีที่ ' + cal.year + ': ' + bracketResults.map(b => b.nameTh + ' แชมป์คือ ' + b.championName + ' (' + b.weaponNameTh + '·' + b.signatureTechName + ', +' + b.cpAwarded + ' CP' + (b.rewardItemNameTh ? ', รับ「' + b.rewardItemNameTh + '」' : '') + ')').join(' | ')
     };
+    if (!opts.skipEnvoy && W.world && Array.isArray(W.world.sects) && W.world.sects.length) {
+      record.envoyChallenge = SECT.resolveRivalEnvoyChallenge(W, grandChamp, opts.rivalSect, opts);
+    }
     S.assemblyHistory.unshift(record);
     if (S.assemblyHistory.length > 24) S.assemblyHistory.length = 24;
     W.log('tournament', '🏆 ' + record.summaryTh, bracketResults.map(b => b.championId));
@@ -66399,7 +66992,7 @@ JD.ITEMS.items.forEach(it => {
     const flat = (evaluator && g.COG && g.COG.flatteryBonus) ? g.COG.flatteryBonus(evaluator, n) : 0;
     const eye = evaluator ? (HC.eff(evaluator, 'intellect.judgement') * 0.55 + HC.eff(evaluator, 'intellect.readPeople') * 0.45) : 55;
     const noise = (W.rng && W.rng.gauss) ? W.rng.gauss(0, Math.max(1.2, (100 - eye) / 14)) : 0;
-    const stage = n.cult ? (n.cult.stage || 0) : 0;
+    const stage = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult.stage || 0)) : 0;
     const roleBonus = (n.post && roleBoosts[n.post]) ? roleBoosts[n.post] : 0;
     const rankBonus = n.rank * 4;
     const meritScore = Math.min(30, (n.merit || 0) * 0.12);
@@ -67845,6 +68438,89 @@ JD.ITEMS.items.forEach(it => {
 
   SECT.EDITOR = EDITOR;
 
+  /* ---------- Ancestral Shrine Legacy Tablets & Fallen Elder Blessings (v2.0.6 Pillar C) ---------- */
+  SECT.ensureLegacyTablets = W => {
+    if (!W || !W.sect) return [];
+    if (!Array.isArray(W.sect.legacyTablets)) W.sect.legacyTablets = [];
+    return W.sect.legacyTablets;
+  };
+
+  SECT.inscribeLegacyTablet = (W, n, why, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect || !n) return null;
+    const tablets = SECT.ensureLegacyTablets(W);
+    if (tablets.some(t => t.npcId === n.id)) return tablets.find(t => t.npcId === n.id);
+    const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : (n.stage || 0);
+    const qualifies = opts.force || (n.rank || 0) >= 4 || effSt >= 4 || n.id === W.sect.masterId;
+    if (!qualifies) return null;
+    const sig = SECT.signatureVictoryOf ? SECT.signatureVictoryOf(n) : { subpath: n.cult?.sub || 'NONE', subpathNameTh: '', techId: null, techNameTh: 'เคล็ดวิชาบรรพชน', weaponType: 'SWORD' };
+    const nameTh = (n.h && n.h.name) ? (n.h.name.family + n.h.name.given) : (n.name || 'ผู้อาวุโสบรรพชน');
+    const tablet = {
+      id: 'TAB_' + (n.id || ('ELDER_' + (tablets.length + 1))),
+      npcId: n.id,
+      nameTh,
+      titleTh: SECT.title ? SECT.title(n) : 'ผู้อาวุโส',
+      rank: n.rank || 4,
+      path: n.cult ? n.cult.path : (n.path || 'XIAN'),
+      sub: n.cult ? n.cult.sub : (n.sub || 'NONE'),
+      subpathNameTh: sig.subpathNameTh || (n.cult ? n.cult.sub : 'NONE'),
+      stage: n.cult ? n.cult.stage : (n.stage || 4),
+      effectiveStage: Math.max(4, effSt),
+      signatureTechId: sig.techId,
+      signatureTechNameTh: sig.techNameTh,
+      inscribedDay: W.day || 0,
+      causeTh: why || 'ละสังขารตามอายุขัย',
+      breakthroughBonus: +(0.04 + Math.min(0.08, Math.max(4, effSt) * 0.01)).toFixed(3),
+      comprehensionBonus: +(0.08 + Math.min(0.14, Math.max(4, effSt) * 0.018)).toFixed(3),
+      injuryProtection: true,
+      prayersCount: 0
+    };
+    tablets.unshift(tablet);
+    if (tablets.length > 36) tablets.length = 36;
+    if (!opts.quiet && W.log) {
+      W.log('sect', '🕯️ จารึกป้ายวิญญาณบรรพชนของ「' + nameTh + '」(' + tablet.subpathNameTh + ') ประดิษฐานในศาลบรรพชน', [n.id]);
+    }
+    return tablet;
+  };
+
+  SECT.prayAtAncestralShrine = (W, n, tabletId) => {
+    if (!W || !W.sect || !n || n.dead) return null;
+    const tablets = SECT.ensureLegacyTablets(W);
+    if (!tablets.length) return null;
+    let tab = tabletId ? tablets.find(t => t.id === tabletId || t.npcId === tabletId) : null;
+    if (!tab && n.cult) {
+      tab = tablets.find(t => t.sub && t.sub !== 'NONE' && t.sub === n.cult.sub) ||
+            tablets.find(t => t.path === n.cult.path) ||
+            tablets[0];
+    }
+    if (!tab) tab = tablets[0];
+    tab.prayersCount = (tab.prayersCount || 0) + 1;
+    const pathMatch = !!(n.cult && tab.path === n.cult.path);
+    const subMatch = !!(n.cult && tab.sub && tab.sub !== 'NONE' && tab.sub === n.cult.sub);
+    const mult = subMatch ? 1.35 : pathMatch ? 1.0 : 0.65;
+    const btBonus = +(tab.breakthroughBonus * mult).toFixed(3);
+    const studySpeedMult = +(1 + tab.comprehensionBonus * mult).toFixed(3);
+    n.ancestralBlessing = {
+      tabletId: tab.id,
+      elderId: tab.npcId,
+      elderNameTh: tab.nameTh,
+      path: tab.path,
+      sub: tab.sub,
+      pathMatch,
+      subMatch,
+      breakthroughBonus: btBonus,
+      studySpeedMult,
+      injuryShield: !!(pathMatch || subMatch),
+      grantedDay: W.day || 0,
+      untilDay: (W.day || 0) + 14,
+      until: (W.t || 0) + 14 * 1440
+    };
+    n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - (subMatch ? 12 : pathMatch ? 8 : 4));
+    n.h.state.stress = Math.max(0, (n.h.state.stress || 0) - 8);
+    HC.bump(n);
+    return n.ancestralBlessing;
+  };
+
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -67866,7 +68542,7 @@ JD.ITEMS.items.forEach(it => {
   const isNight = h => h >= 21 || h < 5;
   const E = (n, p) => HC.eff(n, p);
   function ScoreAcc() { this.u = 0; this.why = []; } ScoreAcc.prototype.add = function(l, v) { this.u += v; if (Math.abs(v) > 0.06) this.why.push([l, Math.round(v * 100) / 100]); return this; }; function Sc() { return new ScoreAcc(); }
-  if (!HC._fastTrainWrapped) { HC._fastTrainWrapped = true; const _tb = HC.trainBody, _tm = HC.trainMind, _gw = HC.gainWisdom; HC.trainBody = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, x0 = npc.h.physiology[id], g2 = _tb(npc, id, load); if ((x0 | 0) === (npc.h.physiology[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } if (d0) npc._d = d0; } return g2; }; HC.trainMind = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, x0 = npc.h.intellect[id], g2 = _tm(npc, id, load); if ((x0 | 0) === (npc.h.intellect[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.' + id]; } if (d0) npc._d = d0; } return g2; }; HC.gainWisdom = (npc, amt) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, x0 = npc.h.intellect.wisdom; _gw(npc, amt); if ((x0 | 0) === (npc.h.intellect.wisdom | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.wisdom']; } if (d0) npc._d = d0; } }; }
+  if (!HC._fastTrainWrapped) { HC._fastTrainWrapped = true; const _tb = HC.trainBody, _tm = HC.trainMind, _gw = HC.gainWisdom; HC.trainBody = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.physiology[id], g2 = _tb(npc, id, load); if ((x0 | 0) === (npc.h.physiology[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } return g2; }; HC.trainMind = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect[id], g2 = _tm(npc, id, load); if ((x0 | 0) === (npc.h.intellect[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } return g2; }; HC.gainWisdom = (npc, amt) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect.wisdom; _gw(npc, amt); if ((x0 | 0) === (npc.h.intellect.wisdom | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.wisdom']; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } }; }
   const VALUE_TH = { familyClan: 'พวกพ้อง', sectDuty: 'หน้าที่ต่อสำนัก', martialPeak: 'วิถียุทธ์', knowledgeCraft: 'ความรู้', freedom: 'อิสรภาพ', wealthResource: 'ทรัพย์', powerStatus: 'อำนาจ', honorLegacy: 'เกียรติยศ' };
   AI.VALUE_TH = VALUE_TH;
   function valueTerm(n, vf, S) {
@@ -68223,6 +68899,20 @@ JD.ITEMS.items.forEach(it => {
       const cl = SECT.holder(W, 'martial'); if (cl && hourOf(W) > 8 && hourOf(W) < 12) S.add('หลักสูตรหอยุทธ์ช่วงเช้า', 0.35);
       if (n.h.state.energy < 45) S.add('เหนื่อย', -0.5);
       S.add('ความกล้า', (E(n, 'personality.courage') - 50) / 300);
+      if (g.MARTIAL && g.MARTIAL.activeBottleneckSkills) {
+        const bnSk = g.MARTIAL.activeBottleneckSkills(W, n);
+        if (bnSk.length) {
+          const ms = bnSk[0];
+          if ((g.MARTIAL.SKILL_GROUPS && g.MARTIAL.SKILL_GROUPS.weapon.includes(ms.skill)) || ['MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'WATER_ICE', 'WOOD_LIFE', 'stealth', 'survival'].includes(ms.skill)) {
+            const drive = g.MARTIAL.bottleneckSkillDrive ? g.MARTIAL.bottleneckSkillDrive(n) : 1;
+            const gObj = n.cognition && n.cognition.goal;
+            const isComp = !!(gObj && ((gObj.id === 'crisis' && W && W.sect && (W.sect.shortageDirectives || []).some(d => d.id === gObj.targetId && d.deficit > 0)) || (gObj.id === 'help_friend' && W && W.byId && W.byId[gObj.targetId] && W.byId[gObj.targetId].h.state.hp < CULT.hpMax(W.byId[gObj.targetId]) * 0.72) || (gObj.id === 'recovery' && (n.h.state.hp < CULT.hpMax(n) * 0.75 || n.h.state.satiety < 25 || n.h.state.rest < 20))));
+            const compMult = isComp ? 0.25 : 1;
+            const nf = clamp(Math.min(n.h.state.satiety / 35, n.h.state.rest / 25, n.h.state.energy / 30), 0.2, 1) * compMult;
+            S.add('ฝึก ' + ms.nameTh + ' แก้คอขวดสายเฉพาะทาง (' + ms.skill + ' ' + Math.floor(ms.current) + '/' + ms.required + ')', (CULT.trackReady(n) ? 1.15 : 0.78) * drive * nf);
+          }
+        }
+      }
     },
     where: (W, n) => { const s = AI.freeStation(W, n, 'dummy', 'training_ground'); return s ? { st: s, skill: martialChoice(n) } : null; },
     dur: n => 90 + Math.round(E(n, 'personality.discipline') * 0.6),
@@ -68270,7 +68960,8 @@ JD.ITEMS.items.forEach(it => {
       if (c && c.learning) {
         const learnT = CULT.tech(c.learning.id);
         const elemLearnMult = (learnT && g.ELEM) ? g.ELEM.resolveCompatibility(n, learnT, 'learning').studySpeedMult : 1;
-        c.learning.got += (0.7 + E(n, 'intellect.learningSpeed') / 100 + E(n, 'intellect.comprehension') / 250) * elemLearnMult * (n.insightT > 0 ? 1.45 : 1) * (g.MARTIAL ? g.MARTIAL.lifeMult(n, 'SCRIPTURE') * g.MARTIAL.skillEffects(n).study : 1);
+        const ancMult = (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t) && n.ancestralBlessing.studySpeedMult) ? n.ancestralBlessing.studySpeedMult : 1;
+        c.learning.got += (0.7 + E(n, 'intellect.learningSpeed') / 100 + E(n, 'intellect.comprehension') / 250) * elemLearnMult * ancMult * (n.insightT > 0 ? 1.45 : 1) * (g.MARTIAL ? g.MARTIAL.lifeMult(n, 'SCRIPTURE') * g.MARTIAL.skillEffects(n).study : 1);
         if (c.learning.got >= c.learning.need) { const oldHp = n.h && n.h.state ? n.h.state.hp : null, oldQi = n.h && n.h.state ? n.h.state.qi : null; const t = CULT.tech(c.learning.id); if (!c.techs.includes(c.learning.id)) c.techs.push(c.learning.id); c.learning = null; const nonPass = c.techs.filter(id => { const x = CULT.tech(id); return x && !x.passive && x.cat !== 'PASSIVE' && !x.innateOnly; }); while (nonPass.length > CULT.maxTechs(n)) { const dropId = nonPass.shift(); const idx = c.techs.indexOf(dropId); if (idx >= 0) c.techs.splice(idx, 1); } if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(n); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); if (g.MARTIAL && g.MARTIAL.syncResourceCaps) g.MARTIAL.syncResourceCaps(n, oldHp, oldQi); const tName = t ? t.nameTh : ''; W.log('learn', n.h.name.given + ' เรียนรู้วิชา「' + tName + '」สำเร็จ', [n.id]); AI.mem(W, n, 'เรียนรู้ ' + tName, 0.6); HC.experience(n, 'craft_success', 0.6); return 'done'; }
       }
       const restMult = (n._nd && n._nd.restDrainMult != null) ? n._nd.restDrainMult : 1;
@@ -68299,24 +68990,71 @@ JD.ITEMS.items.forEach(it => {
   };
 
   function craftAct(hall, stKind, crafts, interestId, title, icon) {
+    const canOrder = (n, W) => {
+      const o = W.sect.orders && W.sect.orders[hall];
+      if (!o) return false;
+      const r = ECO.recipeById[o.rid];
+      if (!r || !ECO.craftEligible(W, n, r, hall) || !ECO.inputsOk(W, r)) return false;
+      return (n.h.skills[r.craft] || 0) + 20 >= r.minMastery;
+    };
     return {
       nameTh: title, icon, color: '#7fb069',
-      can: (n, W) => { const o = W.sect.orders && W.sect.orders[hall]; if (!o) return false; const r = ECO.recipeById[o.rid]; if (!ECO.craftEligible(W, n, r, hall) || !ECO.inputsOk(W, r)) return false; return (n.h.skills[r.craft] || 0) + 20 >= r.minMastery; },
+      can: (n, W) => canOrder(n, W) || (hall === 'forge' && W.sect && W.sect._hasCatalysts && n.h.state.energy > 28 && !(n.inj && n.inj.some(i => i.sev >= 2)) && !!(ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n))),
       score(n, W, S) {
-        const o = W.sect.orders[hall]; const r = ECO.recipeById[o.rid];
-        interestTerm(n, interestId, S, 1.1);
-        S.add('ฝีมือ', (n.h.skills[r.craft] || 0) / 220);
-        valueTerm(n, { knowledgeCraft: .9, sectDuty: .4 }, S);
-        if (SECT.holder(W, hall === 'alchemy' ? 'alchemy' : 'forge') === n) S.add('หน้าที่หัวหน้าหอ', 0.9 * dutyWeight(n));
-        else if (n.assist === (hall === 'alchemy' ? 'alchemy' : 'forge')) S.add('หน้าที่ผู้ช่วยหอ', 0.7 * dutyWeight(n));
-        S.add('คำสั่งผลิต: ' + (o.why || 'ตามแผนหอ'), 0.25);
-        S.add('พรสวรรค์ผลิต', (E(n, 'aptitudes.crafting') - 50) / 220);
+        const o = W.sect.orders && W.sect.orders[hall];
+        const r = o && canOrder(n, W) ? ECO.recipeById[o.rid] : null;
+        if (r) {
+          interestTerm(n, interestId, S, 1.1);
+          S.add('ฝีมือ', (n.h.skills[r.craft] || 0) / 220);
+          valueTerm(n, { knowledgeCraft: .9, sectDuty: .4 }, S);
+          if (SECT.holder(W, hall === 'alchemy' ? 'alchemy' : 'forge') === n) S.add('หน้าที่หัวหน้าหอ', 0.9 * dutyWeight(n));
+          else if (n.assist === (hall === 'alchemy' ? 'alchemy' : 'forge')) S.add('หน้าที่ผู้ช่วยหอ', 0.7 * dutyWeight(n));
+          S.add('คำสั่งผลิต: ' + (o.why || 'ตามแผนหอ'), 0.25);
+          S.add('พรสวรรค์ผลิต', (E(n, 'aptitudes.crafting') - 50) / 220);
+        } else if (hall === 'forge' && ECO.findCatalystRefinementCandidate) {
+          const rc = ECO.findCatalystRefinementCandidate(W, n);
+          if (rc) {
+            S.add('ขัดเกลาศาสตรา「' + rc.gear.nameTh + '」ด้วย' + rc.cat.nameTh, 0.92 + (E(n, 'values.martialPeak') - 45) / 180 + (E(n, 'interests.forging') - 45) / 200);
+          }
+        }
       },
-      where: (W, n) => { const o = W.sect.orders[hall]; const r = ECO.recipeById[o.rid]; const kind = (hall === 'forge' && (r.craft === 'ARRAY' || r.craft === 'TALISMAN')) ? 'array' : stKind; const s = AI.freeStation(W, n, kind, hall); return s ? { st: s, rid: o.rid } : null; },
-      dur: (n, W, ctx) => { const r = ECO.recipeById[ctx.rid]; return r ? Math.round(ECO.craftHours(r, n.h.skills[r.craft] || 0) * 60 * (1 - 0.06 * ((W.map.byId[hall].level) - 1))) : 0; },
-      start(n, W, ctx) { const r = ECO.recipeById[ctx.rid]; return ECO.craftEligible(W, n, r, hall) && (n.h.skills[r.craft] || 0) + 20 >= r.minMastery && ECO.reserveInputs(W, r, ctx, n); },
+      where: (W, n) => {
+        const o = W.sect.orders && W.sect.orders[hall];
+        const r = o && canOrder(n, W) ? ECO.recipeById[o.rid] : null;
+        if (r) {
+          const kind = (hall === 'forge' && (r.craft === 'ARRAY' || r.craft === 'TALISMAN')) ? 'array' : stKind;
+          const s = AI.freeStation(W, n, kind, hall);
+          return s ? { st: s, rid: o.rid } : null;
+        }
+        if (hall === 'forge' && ECO.findCatalystRefinementCandidate) {
+          const rc = ECO.findCatalystRefinementCandidate(W, n);
+          if (rc) {
+            const s = AI.freeStation(W, n, stKind, hall);
+            return s ? { st: s, catalystRefine: true, gearUid: rc.gearUid, catalystId: rc.catalystId } : null;
+          }
+        }
+        return null;
+      },
+      dur: (n, W, ctx) => {
+        if (ctx && ctx.catalystRefine) return 45;
+        const r = ECO.recipeById[ctx.rid];
+        return r ? Math.round(ECO.craftHours(r, n.h.skills[r.craft] || 0) * 60 * (1 - 0.06 * ((W.map.byId[hall].level) - 1))) : 45;
+      },
+      start(n, W, ctx) {
+        if (ctx && ctx.catalystRefine) return !!(ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n));
+        const r = ECO.recipeById[ctx.rid];
+        return !!r && ECO.craftEligible(W, n, r, hall) && (n.h.skills[r.craft] || 0) + 20 >= r.minMastery && ECO.reserveInputs(W, r, ctx, n);
+      },
       tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); n.h.state.rest -= 0.02; AI.vf(n, { knowledgeCraft: 0.05, sectDuty: 0.02 }); if (W.t % 45 === 0) HC.trainBody(n, 'dexterity', 0.8); },
       done(n, W, ctx) {
+        if (ctx && ctx.catalystRefine) {
+          const refRes = ECO.refineGearWithCatalyst ? ECO.refineGearWithCatalyst(W, ctx.gearUid, ctx.catalystId, n) : null;
+          if (refRes && refRes.ok) {
+            n.merit = (n.merit || 0) + 2.5;
+            AI.mem(W, n, 'ขัดเกลาศาสตรา ' + refRes.gear.nameTh + ' ด้วยผลึกโบราณ', 0.5);
+          }
+          return;
+        }
         const r = ECO.recipeById[ctx.rid]; const res = ECO.finishCraft(W, n, r, ctx); if (res.rejected) return;
         if (res.ok) {
           if (r.tier >= 2 && res.q >= 1.15) {
@@ -68399,7 +69137,7 @@ JD.ITEMS.items.forEach(it => {
       AI.vf(n, { sectDuty: 0.02, wealthResource: 0.05 });
       if (n.h.state.energy < 14) return 'done';
     },
-    done(n, W, ctx) { n.merit += 0.5 + (ctx.got || 0) * 0.05; }
+    done(n, W, ctx) { n.merit += 0.5 + (ctx.got || 0) * 0.05; if (n.cult && n.cult.track && CULT.checkTrackGates && !CULT.checkTrackGates(W, n).resourceOk) { n.inv.stones = (n.inv.stones || 0) + Math.min(18, Math.max(5, (ctx.got || 1) * 6)); } }
   };
   A.cook = {
     nameTh: 'ทำอาหาร', icon: '🍳', color: '#e07a5f',
@@ -68450,12 +69188,13 @@ JD.ITEMS.items.forEach(it => {
 
   A.guard = {
     nameTh: 'เฝ้ายาม', icon: '🛡️', color: '#6b9ac4',
-    can: (n, W) => n.rank <= 3 && n.h.state.energy > 40 && n.rank >= 1,
+    can: (n, W) => n.rank >= 1 && n.h.state.energy > 35 && (n.rank <= 3 || ['guard', 'wildwarden', 'commander'].includes(n.post) || !!(W.sect && W.sect.guardRoster && W.sect.guardRoster.includes(n.id)) || !!(W.threat && (W.threat.raid || W.threat.alert > 0))),
     score(n, W, S) {
-      const gc = SECT.holder(W, 'guard'); const h = hourOf(W);
       const gcOrder = W.sect.guardRoster && W.sect.guardRoster.includes(n.id);
+      const isDefPost = ['guard', 'wildwarden', 'commander'].includes(n.post);
       if (gcOrder) S.add('ได้รับมอบหมายเข้าเวร', 1.7 * dutyWeight(n));
-      else if (W.threat && W.threat.alert > 0) S.add('สำนักอยู่ในภาวะเฝ้าระวัง', 1.0 * dutyWeight(n));
+      else if (W.threat && (W.threat.raid || W.threat.alert > 0)) S.add('สำนักอยู่ในภาวะเฝ้าระวังภัยคุกคาม', (W.threat.raid ? 1.55 : 1.05) * (isDefPost ? 1.3 : 1) * dutyWeight(n));
+      else if (isDefPost) S.add('ตรวจเวรยามตามตำแหน่ง', 0.55 * dutyWeight(n));
       else return S.add('ไม่ถึงเวร', -3);
       S.add('ความกล้า', (E(n, 'personality.courage') - 50) / 250);
     },
@@ -68469,8 +69208,10 @@ JD.ITEMS.items.forEach(it => {
     can: (n, W) => true,
     score(n, W, S) {
       const hpR = n.h.state.hp / CULT.hpMax(n);
-      if (hpR > 0.8 && !(n.inj && n.inj.length)) return S.add('แข็งแรงดี', -3);
-      S.add('บาดเจ็บ', (1 - hpR) * 2.6 + (n.inj ? n.inj.length * 0.5 : 0));
+      const hasInj = !!(n.inj && n.inj.length);
+      if (hpR > 0.8 && !hasInj) return S.add('แข็งแรงดี', -3);
+      const sevMax = hasInj ? Math.max(...n.inj.map(i => i.sev || 1)) : 0;
+      S.add('บาดเจ็บ', (1 - hpR) * 2.6 + (hasInj ? n.inj.length * 0.55 + (sevMax >= 2 ? 0.75 : 0.25) : 0));
       S.add('ทนเจ็บ', -(E(n, 'physiology.painTolerance') - 50) / 300);
     },
     where: (W, n) => { const s = AI.freeStation(W, n, 'patient', 'infirmary'); return s ? { st: s } : null; },
@@ -68493,10 +69234,40 @@ JD.ITEMS.items.forEach(it => {
   A.pray = {
     nameTh: 'สักการะบรรพชน', icon: '🕯️', color: '#d9c7a0',
     can: () => true,
-    score(n, W, S) { S.add('กตัญญู', (E(n, 'personality.loyalty') - 52) / 180); valueTerm(n, { honorLegacy: 1, familyClan: .4 }, S); S.add('จิตใจว้าวุ่น', (n.h.state.stress - 40) / 150); interestTerm(n, 'worship', S, .6); },
-    where: (W, n) => { const s = AI.freeStation(W, n, 'pray', 'ancestral'); return s ? { st: s } : null; },
+    score(n, W, S) {
+      S.add('กตัญญู', (E(n, 'personality.loyalty') - 52) / 180);
+      valueTerm(n, { honorLegacy: 1, familyClan: .4 }, S);
+      S.add('จิตใจว้าวุ่น', (n.h.state.stress - 40) / 150);
+      if ((n.h.state.heartDemon || 0) >= 35 && (!n.cult || n.cult.path !== 'DEMON' || n.h.state.heartDemon >= 65)) {
+        S.add('สงบจิตมารในใจ', clamp((n.h.state.heartDemon - 30) / 90, 0.15, 0.65));
+      }
+      interestTerm(n, 'worship', S, .6);
+      if (n.ancestralBlessing && n.ancestralBlessing.until != null && W.t > n.ancestralBlessing.until) {
+        n.ancestralBlessing = null;
+      }
+      if (W.sect && Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length && n.cult && !(n.ancestralBlessing && n.ancestralBlessing.untilDay >= W.day)) {
+        const aware = !g.COG || !g.COG.isAwareOf || g.COG.isAwareOf(W, n, 'tablet');
+        if (aware) {
+          const tabs = W.sect.legacyTablets;
+          const subMatch = tabs.some(t => t.sub && t.sub !== 'NONE' && t.sub === n.cult.sub);
+          const pathMatch = subMatch || tabs.some(t => t.path === n.cult.path);
+          const mentorMatch = tabs.some(t => t.npcId && (t.npcId === n.mentor || (n.h.mind.relations && n.h.mind.relations[t.npcId] && n.h.mind.relations[t.npcId].a >= 45)));
+          const needBt = !!(n.cult.bn || CULT.ready(n) || (n.cult.track && CULT.trackReady && CULT.trackReady(n)));
+          const needStudy = !!(n.cult.learning || (n.cognition && n.cognition.goal && n.cognition.goal.id === 'scripture'));
+          const highHd = (n.h.state.heartDemon || 0) >= 35;
+          const devout = E(n, 'values.honorLegacy') >= 62 || E(n, 'personality.loyalty') >= 65;
+          if (needBt || needStudy || highHd || mentorMatch || (subMatch && devout)) {
+            const matchMult = subMatch ? 1.35 : pathMatch ? 1.05 : 0.65;
+            const baseUrgency = needBt ? 0.58 : needStudy ? 0.42 : mentorMatch ? 0.38 : 0.25;
+            S.add('ขอพรป้ายวิญญาณบรรพชน' + (subMatch ? ' (ตรงสายย่อย)' : pathMatch ? ' (ตรงวิถี)' : ''), +(baseUrgency * matchMult).toFixed(2));
+          }
+        }
+      }
+    },
+    where: (W, n) => { const s = AI.freeStation(W, n, 'pray', 'ancestral') || AI.freeStation(W, n, 'worship', 'shrine'); return s ? { st: s } : null; },
     dur: () => 40,
-    tick(n) { n.h.state.stress = Math.max(0, n.h.state.stress - 0.12); n.h.state.heartDemon = Math.max(0, n.h.state.heartDemon - 0.05); AI.vf(n, { honorLegacy: 0.18 }); }
+    tick(n) { n.h.state.stress = Math.max(0, n.h.state.stress - 0.12); n.h.state.heartDemon = Math.max(0, n.h.state.heartDemon - 0.05); AI.vf(n, { honorLegacy: 0.18 }); },
+    done(n, W) { if (SECT && SECT.prayAtAncestralShrine) SECT.prayAtAncestralShrine(W, n); }
   };
   A.leisure = {
     nameTh: 'พักผ่อนสำราญ', icon: '🍵', color: '#f2b5d4',
@@ -68736,10 +69507,16 @@ JD.ITEMS.items.forEach(it => {
     opts.push({ t: 'chat', w: 1.2 + (goal && goal.id === 'social_bond' && goal.targetId === o.id ? 1.2 : 0) });
     if (E(n, 'interests.combat') > 52 && o.rank >= 1 && n.rank >= 1 && !(n.inj && n.inj.length)) opts.push({ t: 'spar', w: (E(n, 'interests.combat') - 40) / 25 * (1 + (r.v || 0) / 40) + (E(n, 'personality.aggression') - 40) / 50 + (goal && goal.id === 'rival' && goal.targetId === o.id ? 1.5 : 0) });
     if (n.rank >= 3 && o.rank < n.rank && E(n, 'social.teaching') > 40 && n.cult && o.cult && o.cult.path === n.cult.path) opts.push({ t: 'teach', w: (E(n, 'interests.teaching') - 30) / 25 + (o.id === (n.h.life.family.disciples || [])[0] ? 1.5 : 0) + (goal && goal.id === 'mentor_disciple' && goal.targetId === o.id ? 1.8 : 0) });
+    const bnSkSeek = (g.MARTIAL && g.MARTIAL.activeBottleneckSkills) ? g.MARTIAL.activeBottleneckSkills(W, n) : [];
+    if (bnSkSeek.length && o.rank >= 2 && o.rank > n.rank && (g.MARTIAL ? g.MARTIAL.skillRead(o, bnSkSeek[0].skill) : (o.h.skills[bnSkSeek[0].skill] || 0)) > bnSkSeek[0].current + 2) {
+      opts.push({ t: 'seek_teach', w: 2.2 * (g.MARTIAL.bottleneckSkillDrive ? g.MARTIAL.bottleneckSkillDrive(n) : 1), skill: bnSkSeek[0].skill });
+    }
     if ((r.l || 0) > 25 && E(n, 'interests.romance') > 45 || ((r.a || 0) > 45 && E(n, 'interests.romance') > 60 && E(o, 'interests.romance') > 45 && Math.abs(n.h.birthDay - o.h.birthDay) < 360 * 14)) opts.push({ t: 'date', w: 0.8 + (r.l || 0) / 40 });
     const defToO = g.COG && g.COG.deferenceToward ? g.COG.deferenceToward(W, n, o) : { fear: 0, deference: 0 };
     if ((r.v || 0) > 35 && (r.a || 0) < -10 && E(n, 'personality.aggression') > 45 && defToO.fear < 45) opts.push({ t: 'argue', w: 0.5 + (r.v - 30) / 30 + (E(n, 'personality.aggression') - 45) / 40 });
-    type = W.rng.weighted(opts, x => x.w).t;
+    const chosenOpt = W.rng.weighted(opts, x => x.w);
+    type = chosenOpt.t;
+    if (type === 'seek_teach') return AI.proposePair(W, o, n, 'teach', chosenOpt.skill);
     return AI.proposePair(W, n, o, type);
   };
   AI.acceptProb = (W, b, a, type) => {
@@ -68756,7 +69533,7 @@ JD.ITEMS.items.forEach(it => {
     if (b.act && b.act.id === 'duty') p -= 0.35 * dutyWeight(b); if (b.act && b.act.id === 'cultivate') p -= 0.35;
     return clamp(p, 0.02, 0.97);
   };
-  AI.proposePair = (W, a, b, type) => {
+  AI.proposePair = (W, a, b, type, forcedSkill) => {
     if (AI.isProtectedAction(W, b, type) || W.rng.next() > AI.acceptProb(W, b, a, type)) {
       // ถูกปฏิเสธ
       const r = SECT.rel(a, b.id); if (type === 'date') { r.l = Math.max(0, r.l - 3); HC.feel(a, { mood: -6 }); AI.mem(W, a, b.h.name.given + ' ปฏิเสธคำชวน', 0.35, b.id); } else if (type === 'spar') { r.a -= 0.5; }
@@ -68774,8 +69551,9 @@ JD.ITEMS.items.forEach(it => {
     const data = { type, partner: b.id, role: 'a', ready: false, left: dur, rounds: 0 };
     if (g.COG && g.COG.startCommitment) g.COG.startCommitment(W, a, b, type, dur);
     AI.interruptFor(W, b);
-    AI.begin(W, a, 'pair', { st: s1, pair: data });
-    AI.begin(W, b, 'pair', { st: s2, pair: { type, partner: a.id, role: 'b', ready: false, left: dur, rounds: 0 } });
+    const skTgt = forcedSkill || (type === 'teach' && b.cult ? AI.pickTeachSkill(a, b) : null);
+    AI.begin(W, a, 'pair', { st: s1, pair: data, skillTgt: skTgt });
+    AI.begin(W, b, 'pair', { st: s2, pair: { type, partner: a.id, role: 'b', ready: false, left: dur, rounds: 0 }, skillTgt: skTgt, skill: skTgt });
     return true;
   };
   AI.pairTick = (W, n) => {
@@ -68875,7 +69653,8 @@ JD.ITEMS.items.forEach(it => {
     for (const k in n.equip) { if (n.equip[k]) W.sect.gear.push(n.equip[k]); } n.equip = {};
     if (n.inv && Array.isArray(n.inv.gear)) { for (const g2 of n.inv.gear) { if (g2) W.sect.gear.push(g2); } n.inv.gear = []; }
     if (g.VC && g.VC.syncUniqueArtifacts) g.VC.syncUniqueArtifacts(W);
-    W.sect.fallen = (W.sect.fallen || []); W.sect.fallen.push({ id: n.id, name: n.h.name.family + n.h.name.given, day: W.day, why, rank: n.rank });
+    W.sect.fallen = (W.sect.fallen || []); W.sect.fallen.push({ id: n.id, name: n.h.name.family + n.h.name.given, day: W.day, why, rank: n.rank, path: n.cult ? n.cult.path : null, sub: n.cult ? n.cult.sub : null, stage: n.cult ? n.cult.stage : 0 });
+    if (SECT && SECT.inscribeLegacyTablet) SECT.inscribeLegacyTablet(W, n, why);
   };
 
   /* ---------- วงจรกิจกรรม ---------- */
@@ -68914,14 +69693,20 @@ JD.ITEMS.items.forEach(it => {
       if (n.cool[id] && n.cool[id] > W.t) continue;
       if (a.can && !a.can(n, W)) continue;
       const S = Sc(); a.score(n, W, S);
-      if (g.COG) g.COG.modifiers(W,n,id).forEach(x => S.add(x[0],x[1]));
-      // กันแกว่ง: ซ้ำบ่อยลดคะแนน
+      if (g.COG) g.COG.modifiers(W, n, id, S);
+      // กันแกว่ง: ซ้ำบ่อยลดคะแนน ยกเว้นงานที่กำลังทำต่อเนื่องเพื่อบรรลุเป้าหมายจริง
       let rep = 0; for (const r of n.recent) if (r === id) rep++;
-      if (rep) S.add('ทำบ่อยแล้ว', -0.16 * rep * (1 - E(n, 'personality.discipline') / 200));
+      if (rep) {
+        if (n.recent[n.recent.length - 1] === id && g.COG && g.COG.isContinuingProductiveWork && g.COG.isContinuingProductiveWork(W, n, id)) {
+          S.add('ทำต่อเนื่องให้สำเร็จ', 0.24);
+        } else {
+          S.add('ทำบ่อยแล้ว', -0.16 * rep * (1 - E(n, 'personality.discipline') / 200));
+        }
+      }
       cands.push({ id, S });
     }
     // กิจกรรมคู่ (พบปะ)
-    if (!(n.cool.pair > W.t)) { const S = Sc(); A.pair.score(n, W, S); if(g.COG)g.COG.modifiers(W,n,'pair').forEach(x=>S.add(x[0],x[1])); cands.push({ id: 'pair', S }); }
+    if (!(n.cool.pair > W.t)) { const S = Sc(); A.pair.score(n, W, S); if (g.COG) g.COG.modifiers(W, n, 'pair', S); cands.push({ id: 'pair', S }); }
     // ผู้ตัดสินเลือก: softmax ตามนิสัย
     const temp = g.COG ? g.COG.choiceTemperature(n) : clamp(0.12 + E(n, 'temperament.sensationSeeking') / 600 + E(n, 'personality.creativity') / 900 - E(n, 'personality.discipline') / 700 + E(n, 'temperament.emotionalReactivity') / 1000, 0.05, 0.4);
     cands.sort((x, y) => y.S.u - x.S.u);
@@ -68934,9 +69719,9 @@ JD.ITEMS.items.forEach(it => {
       const rest = cands.slice(6).filter(c => c.S.u > -0.5);
       for (let i = 0; i < Math.min(2, rest.length); i++) order.push(rest[i]);
     }
+    n.lastScores = cands.slice(0, 7).map(x => ({ id: x.id, u: Math.round(x.S.u * 100) / 100 }));
     for (const c of order) {
       const why = c.S.why.slice().sort((p, q) => Math.abs(q[1]) - Math.abs(p[1])).slice(0, 4);
-      n.lastScores = cands.slice(0, 7).map(x => ({ id: x.id, u: Math.round(x.S.u * 100) / 100 }));
       if (c.id === 'pair') { if (AI.socialStart(W, n)) { n.why = why; if(g.COG)g.COG.chosen(W,n,'pair',why); return true; } n.cool.pair = W.t + 45; continue; }
       const a = A[c.id]; const w = a.where ? a.where(W, n) : { pos: { x: n.x, y: n.y } };
       if (!w) {
@@ -69001,7 +69786,14 @@ JD.ITEMS.items.forEach(it => {
     }
     if (id !== 'pair' && id !== 'festival') { s.social = Math.max(0, s.social - nr.socD); s.loneliness = clamp(s.loneliness + (s.social < 35 ? 0.012 : -0.004), 0, 100); }
     s.novelty = Math.max(0, s.novelty - nr.novD);
-    for (let i = 0; i < VAL_IDS.length; i++) { const k = VAL_IDS[i]; if (f[k] > 0) f[k] = Math.max(0, f[k] - 0.0042); }
+    if (f.familyClan > 0) f.familyClan = Math.max(0, f.familyClan - 0.0042);
+    if (f.sectDuty > 0) f.sectDuty = Math.max(0, f.sectDuty - 0.0042);
+    if (f.martialPeak > 0) f.martialPeak = Math.max(0, f.martialPeak - 0.0042);
+    if (f.knowledgeCraft > 0) f.knowledgeCraft = Math.max(0, f.knowledgeCraft - 0.0042);
+    if (f.freedom > 0) f.freedom = Math.max(0, f.freedom - 0.0042);
+    if (f.wealthResource > 0) f.wealthResource = Math.max(0, f.wealthResource - 0.0042);
+    if (f.powerStatus > 0) f.powerStatus = Math.max(0, f.powerStatus - 0.0042);
+    if (f.honorLegacy > 0) f.honorLegacy = Math.max(0, f.honorLegacy - 0.0042);
     // อารมณ์เลื่อนเข้าหาพื้นฐาน
     const base = nr.optBase - s.stress * 0.25 - Math.max(0, 30 - s.satiety) * 0.3 - Math.max(0, 30 - s.rest) * 0.2 + (n.sat != null ? (n.sat - 55) * 0.12 : 0);
     s.mood += (base - s.mood) * 0.002;
@@ -77807,7 +78599,7 @@ JD.ITEMS.items.forEach(it => {
     return true;
   };
   const origResolve = X.resolve;
-  X.resolve = (W, ex, members) => { if (ex.kind === 'delve' || ex.kind === 'realm') return EX.resolve(W, ex, members); return origResolve(W, ex, members); };
+  X.resolve = (W, ex, members) => { if (ex.kind === 'sanctum') return EX.resolveSanctum(W, ex, members); if (ex.kind === 'delve' || ex.kind === 'realm') return EX.resolve(W, ex, members); return origResolve(W, ex, members); };
 
   EX.resolve = (W, ex, members) => {
     if (ex.done || ex.settlement || !members.length) return;
@@ -77892,6 +78684,12 @@ JD.ITEMS.items.forEach(it => {
     const e = dex(W), rng = W.rng, pw = PW(n); const opts = [{ k: 'orig', w: 0.9 }];
     if (pw >= 18 && e.cave && W.day - (e.cave.last || -99) >= 4 && !W.world.expeds.some(x => !x.done && x.kind === 'delve')) opts.push({ k: 'delve', w: 0.3 + Math.max(0, (E(n, 'interests.exploring') - 40) / 45) + Math.max(0, (E(n, 'interests.combat') - 50) / 90) + (E(n, 'temperament.sensationSeeking') - 45) / 160 + (e.cave.maxDepth < e.cave.cap ? 0.15 : 0) });
     if (EX.canGo(W) && pw >= 30) { const wd = EX.WORLD_BY_ID[e.gate.world]; const df = clamp(pw * 3 / foePower(wd.d), 0.15, 1.5); opts.push({ k: 'realm', w: 1.7 * (0.5 + Math.max(0, (E(n, 'destiny.luck') - 40) / 60) + Math.max(0, (E(n, 'temperament.sensationSeeking') - 40) / 70) + (E(n, 'personality.courage') - 40) / 150 + (E(n, 'interests.exploring') - 40) / 90) * df }); }
+    if (pw >= 95 && n.rank >= 2 && !W.world.expeds.some(x => !x.done && x.kind === 'sanctum')) {
+      const hasRefinableT4 = !!(n.equip && Object.values(n.equip).some(eq => eq && (eq.tier || 1) >= 4 && (eq.q || 1) < 1.65));
+      const resInc = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(n).pieces < 3 : false;
+      const sanctumUrge = 0.28 + Math.max(0, (E(n, 'values.martialPeak') - 45) / 80) + Math.max(0, (E(n, 'interests.exploring') - 45) / 90) + (hasRefinableT4 ? 0.35 : 0) + (resInc ? 0.25 : 0);
+      opts.push({ k: 'sanctum', w: sanctumUrge });
+    }
     opts.forEach(o => o.w = Math.max(0.05, o.w));
     const pick = rng.weighted(opts, o => o.w).k; if (pick === 'orig') return false;
     const approver = SECT.holder(W, 'mission') || W.byId[W.sect.masterId];
@@ -77904,6 +78702,12 @@ JD.ITEMS.items.forEach(it => {
     cands.forEach(c => { const r = n.h.mind.relations[c.id]; c._s = AI.compat(n, c) + (r ? r.a / 100 : 0) + PW(c) / 300 + rng.next() * 0.3; }); cands.sort((a, b) => b._s - a._s);
     for (const c of cands) { if (party.length > Math.min(want, 3)) break; const acc = clamp(0.4 + c._s * 0.4 + (E(c, 'personality.courage') - 50) / 200 + (E(c, 'interests.exploring') - 45) / 200, 0.05, 0.9); if (c._s > 0.05 && rng.next() < acc) party.push(c); }
     if (party.length < 2 && pw < 90) { n.lastTrip = W.day - 8; return true; }
+    if (pick === 'sanctum') {
+      const cPath = n.cult ? n.cult.path : 'XIAN';
+      const sId = cPath === 'BODY' ? 'SANCTUM_BLOOD_VAJRA' : (cPath === 'GOD' || cPath === 'DEMON') ? 'SANCTUM_ASTRAL_DIVINE' : 'SANCTUM_SWORD_ABYSS';
+      EX.departSanctum(W, party, sId);
+      return true;
+    }
     EX.depart(W, party, pick); return true;
   };
 
@@ -77923,6 +78727,197 @@ JD.ITEMS.items.forEach(it => {
     }
     const cv = e.cave; Object.keys(cv.guard).forEach(f => { if (cv.guard[f] && day - cv.guard[f] > 70 && f !== '10') { cv.guard[f] = 0; } });
     e.relics.forEach(id => { const r = EX.RELICS[id]; if (r.fx === 'fame') W.fame(r.val); else if (r.fx === 'stones') ECO.earn(W, r.val, 'ของวิเศษ: ' + r.nameTh); else if (r.fx === 'grain') ECO.add(W, 'grain', r.val); else if (r.fx === 'qi') W.npcs.forEach(n => { if (!n.dead && !n.away && n.cult) CULT.gain(n, CULT.threshold(n) * 0.0015); }); });
+  };
+
+  /* ======================= วิหารโบราณหลายชั้นและผู้พิทักษ์ชุดสัจธรรม (v2.0.6 Pillar B) ======================= */
+  EX.SANCTUMS = {
+    SANCTUM_SWORD_ABYSS: {
+      id: 'SANCTUM_SWORD_ABYSS',
+      nameTh: 'วิหารกระบี่สุญตาบรรพกาล',
+      icon: '🏛️',
+      descTh: 'วิหารโบราณ 3 ชั้นที่ผู้พิทักษ์สวมชุดสัจธรรมวิถีเซียนและจิตวิญญาณ',
+      minPower: 120,
+      floors: [
+        { floor: 1, nameTh: 'ระเบียงศิลากระบี่เมฆา', guardianNameTh: 'หุ่นศิลาเซียนกระบี่', subPath: 'SWORD_IMMORTAL', weaponType: 'SWORD', tier: 4, basePower: 135, catalystId: 'CAT_RESONANCE_JADE_4', stones: 90 },
+        { floor: 2, nameTh: 'ห้องโถงจิตกระบี่ไร้ลักษณ์', guardianNameTh: 'เงาวิญญาณกระบี่จิตตานุภาพ', subPath: 'MIND_SWORD_TELEKINESIS', weaponType: 'FOCUS', tier: 5, basePower: 225, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 150 },
+        { floor: 3, nameTh: 'แท่นบรรพกาลกาลอวกาศ', guardianNameTh: 'ประมุขโบราณกาลสุญตา', subPath: 'TIME_VOID', weaponType: 'SWORD', tier: 6, basePower: 340, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 240 }
+      ]
+    },
+    SANCTUM_BLOOD_VAJRA: {
+      id: 'SANCTUM_BLOOD_VAJRA',
+      nameTh: 'มหาวิหารวัชระโลหิต',
+      icon: '⛩️',
+      descTh: 'วิหารศึก 3 ชั้นของผู้พิทักษ์สายหลอมกายาและดาบสังหารอาชูร่า',
+      minPower: 130,
+      floors: [
+        { floor: 1, nameTh: 'ลานศิลาวัชระทองคำ', guardianNameTh: 'ผู้พิทักษ์วัชระโพธิ์', subPath: 'VAJRA_BODHI', weaponType: 'STAFF', tier: 4, basePower: 145, catalystId: 'CAT_RESONANCE_JADE_4', stones: 95 },
+        { floor: 2, nameTh: 'โถงดาบโลหิตอาชูร่า', guardianNameTh: 'ขุนพลดาบสังหารอาชูร่า', subPath: 'ASHURA_SLAUGHTER_BLADE', weaponType: 'BLADE', tier: 5, basePower: 240, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 165 },
+        { floor: 3, nameTh: 'บัลลังก์มังกรโลหิตบรรพกาล', guardianNameTh: 'ราชันมังกรโลหิตนิรันดร์', subPath: 'BLOOD_DRAGON', weaponType: 'SPEAR', tier: 6, basePower: 360, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 260 }
+      ]
+    },
+    SANCTUM_ASTRAL_DIVINE: {
+      id: 'SANCTUM_ASTRAL_DIVINE',
+      nameTh: 'แท่นบูชาดาราเทวะ',
+      icon: '🕍',
+      descTh: 'แท่นบูชาโบราณ 3 ชั้นที่รวมค่ายกลดารา เทพสงคราม และมารกลืนสวรรค์',
+      minPower: 140,
+      floors: [
+        { floor: 1, nameTh: 'วงกตค่ายกลดารา', guardianNameTh: 'ผู้คุมค่ายกลดาราสวรรค์', subPath: 'ASTRAL_ARRAY', weaponType: 'FOCUS', tier: 4, basePower: 150, catalystId: 'CAT_RESONANCE_JADE_4', stones: 100 },
+        { floor: 2, nameTh: 'วิหารทวนเทพสงคราม', guardianNameTh: 'อวตารเทพสงครามพิชิตศึก', subPath: 'WAR_DEITY', weaponType: 'SPEAR', tier: 5, basePower: 250, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 175 },
+        { floor: 3, nameTh: 'ห้วงเหวมารกลืนสวรรค์', guardianNameTh: 'จอมมารกลืนสวรรค์บรรพกาล', subPath: 'HEAVEN_DEVOURING_DEMON', weaponType: 'BLADE', tier: 6, basePower: 380, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 280 }
+      ]
+    }
+  };
+  X.MISSIONS.sanctum = { nameTh: 'สำรวจวิหารโบราณหลายชั้น', icon: '🏛️' };
+
+  EX.ensureSanctums = W => {
+    const e = dex(W);
+    if (!e.sanctums) e.sanctums = { clearedFloors: {}, runs: 0, catalystsFound: 0, history: [] };
+    return e.sanctums;
+  };
+
+  EX.departSanctum = (W, party, sanctumId) => {
+    if (!W || !Array.isArray(party) || !party.length) return null;
+    EX.ensureSanctums(W);
+    const sc = EX.SANCTUMS[sanctumId] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
+    const b = (W.map && W.map.byId && (W.map.byId.gate_zone || W.map.byId.cave)) || { door: { x: 118, y: 130 } };
+    const days = 1.5;
+    const food = party.length * 3;
+    const taken = Math.min(food, ECO.count(W, 'meal'));
+    ECO.take(W, 'meal', taken);
+    const ex = {
+      id: ++W.world.seq,
+      kind: 'sanctum',
+      region: sc.id,
+      sanctumId: sc.id,
+      placeTh: sc.nameTh,
+      party: party.map(p => p.id),
+      t0: W.t,
+      ret: W.t + Math.round(days * 1440),
+      days,
+      journal: [],
+      carry: [],
+      supplies: taken,
+      done: false,
+      state: 'leaving',
+      target: sc.floors.length,
+      px: b.door.x,
+      py: b.door.y
+    };
+    W.world.expeds.push(ex);
+    party.forEach(p => {
+      AI.interruptFor(W, p);
+      p.expId = ex.id;
+      p.lastTrip = W.day;
+      p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
+      p.travel = { to: 'spot', ex: ex.id, x: b.door.x, y: b.door.y + 1 };
+      p.path = null;
+      p.run = false;
+    });
+    W.log('explore', party.map(p => p.h.name.given).join('、') + ' ออกเดินทางสำรวจวิหารโบราณ「' + sc.nameTh + '」', party.map(p => p.id));
+    return ex;
+  };
+
+  EX.resolveSanctum = (W, ex, members) => {
+    if (!W || !ex || ex.done || !Array.isArray(members) || !members.length) return null;
+    const sState = EX.ensureSanctums(W);
+    const sc = EX.SANCTUMS[ex.sanctumId || ex.region] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
+    const alive = members.filter(m => m && !m.dead);
+    const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], catalysts: {}, notes: [], rep: 0, floorsCleared: 0, floorLogs: [] };
+    sState.runs = (sState.runs || 0) + 1;
+
+    for (const fl of sc.floors) {
+      if (!alive.length) break;
+      const lead = alive.slice().sort((a, b) => CULT.power(b) - CULT.power(a))[0];
+      const resSetDef = (g.MARTIAL && g.MARTIAL.RESONANCE_SETS && g.MARTIAL.RESONANCE_SETS[fl.subPath]) || { nameTh: 'ชุดสัจธรรม' + fl.subPath };
+      const guardian = {
+        id: 'GUARD_' + sc.id + '_F' + fl.floor,
+        foe: true,
+        nameTh: fl.guardianNameTh,
+        power: fl.basePower,
+        tier: fl.tier,
+        subPath: fl.subPath,
+        resonanceSetId: resSetDef.id || ('RES_' + fl.subPath),
+        resonancePieces: 3,
+        equip: { WEAPON: { slot: 'WEAPON', gearType: fl.weaponType, nameTh: fl.weaponType, tier: fl.tier } }
+      };
+      const tac = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(lead, guardian, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+      const partyPower = alive.reduce((sum, m) => {
+        const rs = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(m) : { active: false, pieces: 0 };
+        return sum + CULT.power(m) * (1 + (rs.active ? rs.pieces * 0.06 : 0));
+      }, 0) * (tac.dmgMult || 1);
+      const bossEffectivePower = fl.basePower * 1.12; // 3-piece boss resonance bonus
+      const winProb = clamp(partyPower / (partyPower + bossEffectivePower * 0.85), 0.12, 0.96);
+      const won = ex.forceClear ? true : (W.rng ? W.rng.next() < winProb : true);
+
+      const fLog = {
+        floor: fl.floor,
+        floorNameTh: fl.nameTh,
+        guardianNameTh: fl.guardianNameTh,
+        guardianSubPath: fl.subPath,
+        guardianResonanceSetTh: resSetDef.nameTh,
+        guardianWeapon: fl.weaponType,
+        tacticalRelation: tac.relation || 'NEUTRAL',
+        won,
+        catalystDropped: null
+      };
+      out.floorLogs.push(fLog);
+
+      if (won) {
+        out.floorsCleared++;
+        out.stones += fl.stones;
+        sState.clearedFloors[sc.id] = Math.max(sState.clearedFloors[sc.id] || 0, fl.floor);
+        if (ECO.addCatalyst) {
+          ECO.addCatalyst(W, fl.catalystId, 1);
+          out.catalysts[fl.catalystId] = (out.catalysts[fl.catalystId] || 0) + 1;
+          sState.catalystsFound = (sState.catalystsFound || 0) + 1;
+          fLog.catalystDropped = fl.catalystId;
+        }
+        // Mint a piece of T4-T6 gear on floor 2+
+        if (fl.floor >= 2) {
+          const allRec = (JD.ITEMS && JD.ITEMS.recipes ? JD.ITEMS.recipes : []).filter(r => r.outType === 'EQUIPMENT' && r.tier === fl.tier);
+          if (allRec.length) {
+            const rPick = allRec[(W.day + fl.floor) % allRec.length];
+            const gr = ECO.mintGear(rPick, 1.18 + fl.floor * 0.04);
+            out.gear.push(gr);
+          }
+        }
+        ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ปราบ' + fl.guardianNameTh + ' [ชุดสัจธรรม 3/3 · ' + fl.weaponType + '] สำเร็จ รับ「' + (ECO.REFINEMENT_CATALYSTS[fl.catalystId]?.nameTh || fl.catalystId) + '」');
+        alive.forEach(m => HC.experience(m, 'victory', 0.55));
+      } else {
+        dmgOne(W, alive, 0.25, 'พ่ายต่อผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
+        ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ต้านพลังชุดสัจธรรมของ' + fl.guardianNameTh + ' ไม่ไหว ต้องถอยกลับ');
+        break;
+      }
+    }
+
+    out.rep = out.floorsCleared * 1.5;
+    ex.done = true;
+    ex.out = out;
+    if (alive.length) X.handover(W, ex, alive, out);
+    alive.forEach(m => {
+      m.away = false;
+      m.hidden = false;
+      m.x = (ex.px || 118) + 0.5;
+      m.y = (ex.py || 130) + 1.5;
+      m.travel = null;
+      m.expId = null;
+      m.path = null;
+      m.run = false;
+      m.merit = (m.merit || 0) + 8 + out.floorsCleared * 5;
+    });
+    sState.history.unshift({
+      day: W.day || 0,
+      sanctumId: sc.id,
+      sanctumNameTh: sc.nameTh,
+      floorsCleared: out.floorsCleared,
+      catalysts: Object.assign({}, out.catalysts),
+      floorLogs: out.floorLogs
+    });
+    if (sState.history.length > 20) sState.history.length = 20;
+    W.fame(out.rep);
+    W.log('explore', '🏛️ คณะสำรวจกลับจาก「' + sc.nameTh + '」ผ่านด่าน ' + out.floorsCleared + '/3 ชั้น', members.map(m => m.id));
+    return out;
   };
 
   g.EXPLORE = EX;
@@ -78114,6 +79109,7 @@ JD.ITEMS.items.forEach(it => {
     msgs.push(m >= 0.99 ? 'โอสถเหมาะกับขั้นนี้' : m < 0.5 ? 'โอสถไม่เหมาะ ผลน้อย' : 'ผลลดลง');
     HC.bump(npc); return { info, msgs };
   };
+  BN.inspectBottleneck = (W, n) => CULT.inspectProgressionBottleneck ? CULT.inspectProgressionBottleneck(W, n) : null;
   g.BN = BN;
   if (typeof module === 'object' && module.exports) module.exports = BN;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -79425,7 +80421,7 @@ JD.ITEMS.items.forEach(it => {
         if (!t) return;
         const isSpawned = Array.isArray(n.inv.spawnedTechs) && n.inv.spawnedTechs.includes(id);
         if (isSpawned) n.inv.spawnedTechs.splice(n.inv.spawnedTechs.indexOf(id), 1);
-        if (!W.sect.library.includes(id)) { W.sect.library.push(id); if (!isSpawned) total += CPE.techReward(W, id); scrolls++; }
+        if (!W.sect.library.includes(id)) { W.sect.library.push(id); if (g.COG && g.COG.recordHallAddition) g.COG.recordHallAddition(W, 'library', id, n.id); if (!isSpawned) total += CPE.techReward(W, id); scrolls++; }
         n.inv.techs = (n.inv.techs || []).filter(x => x !== id);
       });
       recipes.forEach(id => {
@@ -79465,9 +80461,9 @@ JD.ITEMS.items.forEach(it => {
     if (W.t > 0 && n._pickCache && n._pickCache.t === W.t && n._pickCache.cp === cp && n._pickCache.hp === n.h.state.hp && n._pickCache.gearLen === W.sect.gear.length) return n._pickCache.val;
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
-    const consider = (it, s, why) => { if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
+    const consider = (it, s, why) => { if (it.price == null) it.price = CPE.priceOf(W, it.key); if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
     Object.keys(W.sect.stock).forEach(k => {
-      if (!ECO.isPill(k) || W.sect.stock[k] <= 0) return; const e = effOf(k), price = CPE.priceOf(W, k), it = { kind: 'pill', key: k, price };
+      if (W.sect.stock[k] <= 0 || !ECO.isPill(k)) return; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
       const info = ECO.pillInfo(k);
       if (BASIC_IDS.includes(k)) { const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); return; }
       if (!info || (e.compatiblePath && (!c || e.compatiblePath !== c.path))) return;
@@ -79478,7 +80474,7 @@ JD.ITEMS.items.forEach(it => {
       if (e.clearHeartDemon && n.h.state.heartDemon > 32 && have(k) < 1) consider(it, 0.7 + n.h.state.heartDemon / 120, 'ระงับจิตมาร');
       if (e.insight && c && have(k) < 1 && (c.learning || E(n, 'personality.curiosity') > 65)) consider(it, 0.65 + E(n, 'personality.curiosity') / 250, 'เพิ่มความเข้าใจคัมภีร์');
       if (!c) return;
-      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && c.bn) consider(it, 3.5, 'โอสถทะลวงขั้น'); return; }
+      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && have(k) < 1 && (c.bn || c.prog >= CULT.threshold(n) * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น'); return; }
       if (e.cbBuff) {
         const combatInt = E(n, 'interests.combat') || 50;
         const courage = E(n, 'personality.courage') || 50;
@@ -79511,10 +80507,27 @@ JD.ITEMS.items.forEach(it => {
         });
       });
     }
+    if (c && c.track && CULT.checkTrackGates && (CULT.trackReady(n) || c.track.prog >= CULT.trackThreshold(n) * 0.65)) {
+      const tg = CULT.checkTrackGates(W, n);
+      if (!tg.resourceOk && tg.missingStones && tg.missingStones.deficit > 0 && W.sect && (W.sect.stones || 0) >= 10 && cp >= 8) {
+        const grantStones = Math.min(tg.missingStones.deficit, Math.floor(W.sect.stones * 0.25), Math.floor(cp * 2.5));
+        if (grantStones >= 5) {
+          const grantPrice = Math.max(4, Math.ceil(grantStones / 2.5));
+          consider({ kind: 'stone_grant', key: 'STONE_GRANT', nameTh: 'เบิกศิลาวิญญาณ ×' + grantStones, stones: grantStones, price: grantPrice }, 2.75, 'สะสมศิลาวิญญาณเพื่อทะลวงสายเฉพาะทาง');
+        }
+      }
+    }
     if (W.t > 0) n._pickCache = { t: W.t, cp, hp: n.h.state.hp, gearLen: W.sect.gear.length, val: best };
     return (n._pcVal = best);
   };
   CPE.buy = (W, n, p) => {
+    if (p && p.kind === 'stone_grant' && Number.isFinite(p.price) && p.price > 0 && Number.isFinite(p.stones) && p.stones > 0) {
+      if (!W.sect || (W.sect.stones || 0) < p.stones) return false;
+      if (!CPE.spend(W, n, p.price, 'แลกศิลาวิญญาณทะลวงสายเฉพาะทาง')) return false;
+      W.sect.stones -= p.stones;
+      n.inv.stones = (n.inv.stones || 0) + p.stones;
+      return true;
+    }
     if (!p || !Number.isFinite(p.price) || p.price <= 0 || !['pill','gear'].includes(p.kind)) return false;
     const quote=p.kind==='pill'?CPE.priceOf(W,p.key):CPE.gearPrice(W,p.gear || {});
     if(p.price!==quote || (p.kind==='pill' && (!ECO.isPill(p.key) || !ECO.pillInfo(p.key)))) return false;
@@ -79547,7 +80560,7 @@ JD.ITEMS.items.forEach(it => {
   A.shop = {
     nameTh: 'ร้านค้าสำนัก', icon: '🛒', color: '#e0b84a',
     can: (n, W) => (n.cp || 0) >= 4 && !!CPE.pickPurchase(W, n),
-    score(n, W, S) { const p = CPE.pickPurchase(W, n); if (!p) return S.add('ไม่มีของที่อยากได้', -3); S.add('อยากได้ ' + (p.kind === 'gear' ? p.gear.nameTh : ECO.name(p.key)) + ' (' + p.price + ' คป. · ' + p.why + ')', 0.55 + p.s * 0.35 + (E(n, 'values.wealthResource') - 50) / 300); },
+    score(n, W, S) { const p = CPE.pickPurchase(W, n); if (!p) return S.add('ไม่มีของที่อยากได้', -3); S.add('อยากได้ ' + (p.kind === 'gear' ? p.gear.nameTh : p.nameTh || ECO.name(p.key)) + ' (' + p.price + ' คป. · ' + p.why + ')', 0.55 + p.s * 0.35 + (E(n, 'values.wealthResource') - 50) / 300); },
     where: (W, n) => { const s = AI.freeStation(W, n, 'browse', 'market'); return s ? { st: s } : null; },
     dur: () => 25,
     done(n, W) { CPE.buy(W, n, CPE.pickPurchase(W, n)); }
@@ -79597,7 +80610,8 @@ JD.ITEMS.items.forEach(it => {
     tick(n, W, ctx) {
       const learning = n.cult && n.cult.learning;
       if (!learning) return 'done';
-      learning.got = Math.min(learning.need, learning.got + learning.need * (ctx.rate || 0.005));
+      const ancMult = (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t) && n.ancestralBlessing.studySpeedMult) ? n.ancestralBlessing.studySpeedMult : 1;
+      learning.got = Math.min(learning.need, learning.got + learning.need * (ctx.rate || 0.005) * ancMult);
       (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 30, 1.1);
       const teacher = W.byId[ctx.teacherId]; if (teacher && !teacher.dead) { (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(teacher, 'SCRIPTURE', 1 / 60, 0.8); teacher.merit = (teacher.merit || 0) + 0.005; }
       n.h.state.energy = Math.max(10, n.h.state.energy - 0.012); n.h.state.rest = Math.max(10, n.h.state.rest - 0.006);
@@ -79676,7 +80690,8 @@ JD.ITEMS.items.forEach(it => {
       return ntc.out;
     }
     const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage, SECT.canLearnTier(W, n));
-    let ids = CULT.learnable(n, W.sect.library).map(id => CULT.tech(id)).filter(t => (t.reqTier || t.tier) <= cap);
+    const libPool = (g.COG && g.COG.visibleLibraryFor) ? g.COG.visibleLibraryFor(W, n) : W.sect.library;
+    let ids = CULT.learnable(n, libPool).map(id => CULT.tech(id)).filter(t => (t.reqTier || t.tier) <= cap);
     ids = ids.filter(t => CPE.techPrice(W, t) <= (n.cp || 0));
     let out = null;
     if (ids.length) {
@@ -80024,20 +81039,44 @@ JD.ITEMS.items.forEach(it => {
     dur:()=>20,
     done(n,W) { for (const p of [...(n.inv.craftedPills||[])]) if(p.intent==='donate') { const result=ECO.donatePersonalProduct(W,n,p.id); if(result.ok) W.log('finance',n.h.name.given+' บริจาคโอสถส่วนตัว ได้ '+Math.round(result.reward)+' คป.',[n.id]); } }
   };
+  function neededPersonalPillEffect(n) {
+    if (!n || !n.inv) return null;
+    const hasCr = !!(n.inv.craftedPills && n.inv.craftedPills.length);
+    let hasP = false;
+    if (n.inv.pills) { for (const _k in n.inv.pills) { hasP = true; break; } }
+    if (!hasCr && !hasP) return null;
+    if (n.inj && n.inj.length > 0) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healInjury) || pickPill(n, 'healInjury')) return 'healInjury';
+    }
+    if (n.h.state.hp < CULT.hpMax(n) * 0.8) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healHealth) || pickPill(n, 'healHealth')) return 'healHealth';
+    }
+    if (n.cult && (n.cult.toxic || 0) >= 35) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.clearToxic) || pickPill(n, 'clearToxic')) return 'clearToxic';
+    }
+    if ((n.h.state.heartDemon || 0) >= 40 && (!n.cult || n.cult.path !== 'DEMON' || n.h.state.heartDemon >= 65)) {
+      if ((n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.clearHeartDemon) || pickPill(n, 'clearHeartDemon')) return 'clearHeartDemon';
+    }
+    return null;
+  }
   A.personalPillUse = {
     nameTh:'ใช้โอสถส่วนตัว',icon:'💊',color:'#7fd1b9',
     can(n) {
-      if (!n.inv || n.h.state.hp >= CULT.hpMax(n) * 0.8) return false;
-      const hasCrafted = (n.inv.craftedPills || []).some(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healHealth);
-      if (hasCrafted) return true;
-      return !!pickPill(n, 'healHealth');
+      return !!neededPersonalPillEffect(n);
     },
-    score(n,W,S) { S.add('บาดเจ็บและมีโอสถส่วนตัว',2.4); },
+    score(n,W,S) {
+      const eff = neededPersonalPillEffect(n);
+      if (eff === 'healInjury') S.add('รักษาอาการบาดเจ็บด้วยโอสถส่วนตัว', 2.45);
+      else if (eff === 'clearToxic') S.add('ขับพิษโอสถสะสมด้วยโอสถส่วนตัว', 2.1);
+      else if (eff === 'clearHeartDemon') S.add('ระงับจิตมารด้วยโอสถส่วนตัว', 2.15);
+      else S.add('บาดเจ็บและมีโอสถส่วนตัว', 2.4);
+    },
     where(W,n) { return {pos:{x:n.x,y:n.y}}; },dur:()=>1,
     done(n,W) {
-      const list = n.inv.craftedPills || [], i = list.findIndex(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect.healHealth);
+      const eff = neededPersonalPillEffect(n) || 'healHealth';
+      const list = n.inv.craftedPills || [], i = list.findIndex(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect[eff]);
       if (i >= 0) return CPE.consumeCrafted(W, n, list[i]);
-      const k = pickPill(n, 'healHealth');
+      const k = pickPill(n, eff);
       if (k) consume(W, n, k);
     }
   };
@@ -80774,7 +81813,7 @@ JD.ITEMS.items.forEach(it => {
   C.factions=factions; C.factionById=factionById;
 
   const METRIC_KEYS=['gathered','hunted','formulas','manuals','expeditions','formulasKept','formulasDonated','formulasTraded','formulasCopied','formulasAuthorized','organsHarvested','organsDamaged','organsRefined','organsDonated','experimentsRun','experimentsSucceeded','treatiesSigned','politicalEvents'];
-  const POLITICS_STAT_KEYS=['treatiesSigned','tradeShipments','tributesPaid','crisesResolved','jointDefenses'];
+  const POLITICS_STAT_KEYS=['treatiesSigned','tradeShipments','tributesPaid','crisesResolved','jointDefenses','allyExchanges','envoyChallenges'];
 
   C.ensure=W=>{
     if(g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
@@ -81316,8 +82355,12 @@ JD.ITEMS.items.forEach(it => {
   const TREATY_TH={
     NONE:'ไม่มีสนธิสัญญา',
     TRADE_PACT:'สัญญาการค้าข้ามสำนัก',
+    TRADE_CARAVAN_ACCORD:'ข้อตกลงกองคาราวานข้ามสำนัก',
     NON_AGGRESSION:'สนธิสัญญาไม่รุกราน',
+    MARTIAL_EXCHANGE:'สัญญาส่งทูตแลกเปลี่ยนวิชายุทธ์',
     ALLIANCE:'พันธมิตรยุทธภพ',
+    ALLIANCE_PACT:'มหาพันธมิตรร่วมสาบาน',
+    RIVAL_FEUD:'คู่ปรับท้าประลองยุทธภพ',
     EMBARGO:'คว่ำบาตร/ปรปักษ์'
   };
   C.TREATY_TH=TREATY_TH;
@@ -81327,9 +82370,9 @@ JD.ITEMS.items.forEach(it => {
     C.ensure(W);
     const s=typeof sectOrId==='string'?W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId;
     if(!s||!TREATY_TH[treatyType]) return {ok:false,reason:'invalid-sect-or-treaty'};
-    const minAtt={TRADE_PACT:15,NON_AGGRESSION:5,ALLIANCE:45,NONE:-100,EMBARGO:-100}[treatyType];
+    const minAtt={TRADE_PACT:15,TRADE_CARAVAN_ACCORD:15,NON_AGGRESSION:5,MARTIAL_EXCHANGE:25,ALLIANCE:45,ALLIANCE_PACT:40,RIVAL_FEUD:-100,NONE:-100,EMBARGO:-100}[treatyType];
     if(!opts.force && s.attitude<minAtt) return {ok:false,reason:'insufficient-attitude',attitude:s.attitude,required:minAtt};
-    const cost=opts.free?0:({TRADE_PACT:40,NON_AGGRESSION:30,ALLIANCE:80,NONE:0,EMBARGO:0}[treatyType]||0);
+    const cost=opts.free?0:({TRADE_PACT:40,TRADE_CARAVAN_ACCORD:35,NON_AGGRESSION:30,MARTIAL_EXCHANGE:50,ALLIANCE:80,ALLIANCE_PACT:75,RIVAL_FEUD:0,NONE:0,EMBARGO:0}[treatyType]||0);
     if(cost>0 && !ECO.pay(W,cost,'ทำ'+TREATY_TH[treatyType]+'กับ'+s.nameTh)) return {ok:false,reason:'insufficient-stones',cost};
 
     s.treaty=treatyType;
@@ -81340,13 +82383,13 @@ JD.ITEMS.items.forEach(it => {
     } else {
       pol.treaties[s.id]={type:treatyType,signedDay:W.day,expiresDay:W.day+(opts.durationDays||90)};
     }
-    const attDelta={ALLIANCE:10,TRADE_PACT:6,NON_AGGRESSION:4,NONE:0,EMBARGO:-15}[treatyType]||0;
+    const attDelta={ALLIANCE:10,ALLIANCE_PACT:12,MARTIAL_EXCHANGE:8,TRADE_PACT:6,TRADE_CARAVAN_ACCORD:7,NON_AGGRESSION:4,NONE:0,RIVAL_FEUD:-12,EMBARGO:-15}[treatyType]||0;
     s.attitude=clamp(s.attitude+attDelta,-100,100);
     if(W.market && W.market.mult && Array.isArray(s.specialtyMatIds)) {
       s.specialtyMatIds.forEach(mId=>{
         const cur=W.market.mult[mId]||1;
-        if(treatyType==='TRADE_PACT'||treatyType==='ALLIANCE') W.market.mult[mId]=Math.round(clamp(cur*0.9,0.65,1.7)*100)/100;
-        else if(treatyType==='EMBARGO') W.market.mult[mId]=Math.round(clamp(cur*1.2,0.65,1.9)*100)/100;
+        if(['TRADE_PACT','TRADE_CARAVAN_ACCORD','ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(treatyType)) W.market.mult[mId]=Math.round(clamp(cur*0.9,0.65,1.7)*100)/100;
+        else if(treatyType==='EMBARGO'||treatyType==='RIVAL_FEUD') W.market.mult[mId]=Math.round(clamp(cur*1.18,0.65,1.9)*100)/100;
       });
     }
     pol.stats.treatiesSigned++;
@@ -81356,6 +82399,45 @@ JD.ITEMS.items.forEach(it => {
     if(!opts.quiet) W.log('mission','สำนักลงนาม「'+TREATY_TH[treatyType]+'」กับ'+s.nameTh,[]);
     return {ok:true,sectId:s.id,treaty:treatyType,cost,attitude:s.attitude};
   };
+
+  C.exchangeWithAlly=(W,sectOrId,opts)=>{
+    opts=opts||{};
+    C.ensure(W);
+    const s=typeof sectOrId==='string'?W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId||(W.world.sects||[]).find(x=>['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(x.treaty));
+    if(!s) return {ok:false,reason:'no-ally-sect'};
+    const isAllied=['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) || s.attitude>=30;
+    if(!opts.force && !isAllied) return {ok:false,reason:'not-allied',treaty:s.treaty,attitude:s.attitude};
+    const cost=opts.free?0:(opts.stoneCost!=null?opts.stoneCost:45);
+    if(cost>0 && !ECO.pay(W,cost,'แลกเปลี่ยนคัมภีร์และผลึกพันธมิตรกับ'+s.nameTh)) return {ok:false,reason:'insufficient-stones',cost};
+
+    const targetPath=s.majorPath||'XIAN';
+    const subPool=(CULT.PATHS[targetPath]&&CULT.PATHS[targetPath].subPaths)||CULT.subList.map(x=>x.sub);
+    const subPick=subPool[Math.floor((W.day||0)+(s.power||1))%subPool.length]||subPool[0];
+    const crystalKey='S:'+subPick.id;
+    W.sect.crystals=W.sect.crystals||{};
+    W.sect.crystals[crystalKey]=(W.sect.crystals[crystalKey]||0)+1;
+
+    let recipeGranted=null;
+    const unownedRec=D.recipes.find(r=>!W.sect.knownRecipes.includes(r.id));
+    if(unownedRec && (['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(s.treaty)||opts.includeRecipe)) {
+      W.sect.knownRecipes.push(unownedRec.id);
+      recipeGranted=unownedRec.id;
+      W.world.contentMetrics.formulas++;
+    }
+    if(Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) {
+      ECO.add(W,s.specialtyMatIds[0],2);
+    }
+    s.attitude=clamp((s.attitude||0)+4,-100,100);
+    s.contact=W.day;
+    const pol=W.world.politics;
+    pol.stats.allyExchanges=(pol.stats.allyExchanges||0)+1;
+    const summaryTh='แลกเปลี่ยนพันธมิตรกับ'+s.nameTh+' ได้รับผลึกสายย่อย「'+subPick.nameTh+'」'+(recipeGranted?(' และตำรับ「'+ECO.recipeById[recipeGranted].nameTh+'」'):'');
+    pol.events.push({day:W.day,kind:'ALLY_EXCHANGE',sectId:s.id,treaty:s.treaty,outcome:'EXCHANGED',crystalKey,recipeId:recipeGranted,summaryTh});
+    if(pol.events.length>40) pol.events.splice(0,pol.events.length-40);
+    if(!opts.quiet) W.log('mission',summaryTh,[]);
+    return {ok:true,sectId:s.id,crystalKey,subpathId:subPick.id,recipeId:recipeGranted,cost,summaryTh};
+  };
+  if(SECT) SECT.exchangeWithAlly=C.exchangeWithAlly;
 
   C.spawnPoliticalEvent=(W,kind,sectOrId)=>{
     C.ensure(W);
@@ -81524,7 +82606,7 @@ JD.ITEMS.items.forEach(it => {
     // 2. Every 10 days, active TRADE_PACT / ALLIANCE partners deliver specialty materials
     if(W.day>0 && W.day%10===0) {
       (W.world.sects||[]).forEach((s,idx)=>{
-        if(s.treaty!=='TRADE_PACT' && s.treaty!=='ALLIANCE') return;
+        if(!['TRADE_PACT','TRADE_CARAVAN_ACCORD','ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(s.treaty)) return;
         if(!Array.isArray(s.specialtyMatIds)||!s.specialtyMatIds.length) return;
         const matId=s.specialtyMatIds[(W.day+idx)%s.specialtyMatIds.length];
         const shipCost=12;
@@ -82238,6 +83320,65 @@ M.passiveSlotInfo=n=>{
  };
 };
 M.maxPassiveSlots=n=>M.passiveSlotInfo(n).max;
+for(const _id of ['ART190_BODY_012','ART190_BODY_031','ART190_BODY_036']){const _bt=CULT.tech(_id);if(_bt){delete _bt.weaponTypes;delete _bt.weapon;}}
+M.classifyTechniqueAccess=tOrId=>{
+ const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
+ if(!t)return {accessClass:'INVALID',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ไม่พบข้อมูลวิชา'};
+ if(t.innateOnly||M.isInnateTech(t))return {accessClass:'EXCLUSIVE_INNATE',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'วิชาเฉพาะสายย่อยติดตัว (ตื่นรู้ตามสายย่อย ไม่ใช่คัมภีร์หอคัมภีร์)'};
+ if(t.legendary)return {accessClass:'UNIVERSAL_LEGENDARY',learnableAcrossPaths:true,learnableAcrossSubpaths:true,reasonTh:'คัมภีร์ระดับตำนาน ศึกษาและสำแดงอานุภาพได้ทุกวิถีและสายย่อย'};
+ if(/FORBIDDEN/.test(t.cat||'')||(t.sub&&['VENOM_GU_SOVEREIGN','CORPSE_PUPPET_MASTER'].includes(t.sub)&&/GU_|CORPSE_|PARASITE/.test(t.id||'')))return {accessClass:'EXCLUSIVE_PARASITE_FORBIDDEN',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ต้องใช้กู่พิษ ซากศพ หรือพิธีกรรมต้องห้ามเฉพาะทาง'};
+ if(typeof t.id==='string'&&t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&t.sub))return {accessClass:'EXCLUSIVE_SUBPATH_PASSIVE',learnableAcrossPaths:false,learnableAcrossSubpaths:!t.sub,reasonTh:'รากฐานวิชาติดตัวเฉพาะสายบำเพ็ญ'};
+ return {accessClass:'CROSS_PATH_MANUAL',learnableAcrossPaths:true,learnableAcrossSubpaths:true,reasonTh:'คัมภีร์ยุทธภพ เปิดกว้างให้ศึกษาข้ามสายย่อยและวิถีได้ (ปรับความเร็วเรียนและอานุภาพตามความสอดคล้อง)'};
+};
+M.weaponCompatibility=(n,tOrId)=>{
+ const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
+ if(!t||!t.weaponTypes||!t.weaponTypes.length)return {state:'UNRESTRICTED',mult:1,qiCostMult:1,accDelta:0,canUse:true,reasonTh:'ไม่จำกัดศาสตรา'};
+ const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
+ if(t.weaponTypes.includes(eqType))return {state:'MATCHED',mult:1.15,qiCostMult:1,accDelta:4,canUse:true,reasonTh:'อาวุธตรงตามเคล็ดวิชา (×1.15)'};
+ if(t.requiresWeapon)return {state:'BLOCKED_REQUIRED_WEAPON',mult:0,qiCostMult:1,accDelta:-99,canUse:false,reasonTh:'ต้องสวมใส่อาวุธ '+t.weaponTypes.join('/')};
+ const severe=(t.weaponTypes.includes('BOW')&&eqType!=='BOW')||(eqType==='BOW'&&['SWORD','BLADE','SPEAR','STAFF','FIST'].some(w=>t.weaponTypes.includes(w)));
+ if(severe)return {state:'SEVERE_MISMATCH',mult:0.65,qiCostMult:1.25,accDelta:-12,canUse:true,reasonTh:'อาวุธขัดแย้งกับท่วงท่าวิชา (×0.65 · แม่นยำลด · กินปราณเพิ่ม)'};
+ return {state:'ADAPTED_WEAPON',mult:0.65,qiCostMult:1.10,accDelta:-4,canUse:true,reasonTh:'ดัดแปลงใช้อาวุธต่างชนิด (×0.65)'};
+};
+M.resolveTechCompatibility=(n,tOrId)=>{
+ const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
+ if(!n||!n.cult||!t)return {ok:false,studySpeedMult:1,combatPowerMult:1,qiCostMult:1,weaponMult:1,accessClass:'INVALID',summaryTh:'ไม่พร้อมคำนวณ'};
+ const c=n.cult,cls=M.classifyTechniqueAccess(t),wpn=M.weaponCompatibility(n,t);
+ const pathExact=t.path==='ANY'||t.path===c.path;
+ const subExact=!t.sub||t.sub===c.sub;
+ const pathStudy=pathExact?1.0:(t.legendary?0.94:0.80);
+ const subStudy=subExact?(t.sub?1.12:1.0):(t.legendary?0.98:0.90);
+ const pathCombat=pathExact?1.0:(t.legendary?0.96:0.88);
+ const subCombat=subExact?(t.sub?1.08:1.0):(t.legendary?1.0:0.94);
+ const studySpeedMult=+(pathStudy*subStudy).toFixed(3);
+ const combatPowerMult=+(pathCombat*subCombat).toFixed(3);
+ const qiCostMult=+(wpn.qiCostMult*(pathExact?1:1.12)).toFixed(3);
+ const parts=[];
+ parts.push(pathExact?'ตรงวิถีหลัก':(t.legendary?'ตำนานข้ามวิถี':'ต่างวิถีหลัก'));
+ if(t.sub)parts.push(subExact?'ตรงสายย่อย (+12% เรียน/+8% รบ)':'ข้ามสายย่อย');
+ parts.push(wpn.reasonTh);
+ return {
+  ok:M.isTechCompatible(n,t),
+  accessClass:cls.accessClass,
+  pathExact,
+  subExact,
+  studySpeedMult,
+  combatPowerMult,
+  qiCostMult,
+  weaponCompatibility:wpn,
+  weaponMult:wpn.mult,
+  summaryTh:parts.join(' · ')+' (เรียน ×'+studySpeedMult.toFixed(2)+' · รบ ×'+combatPowerMult.toFixed(2)+')'
+ };
+};
+M.auditTechniqueCatalog=()=>{
+ const all=[...(JD.TECH.techniques||[]),...(JD.TECH.mantras||[])];
+ const counts={total:all.length,techniques:JD.TECH.techniques.length,mantras:JD.TECH.mantras.length,byClass:{}};
+ for(const t of all){
+  const cl=M.classifyTechniqueAccess(t).accessClass;
+  counts.byClass[cl]=(counts.byClass[cl]||0)+1;
+ }
+ return counts;
+};
 M.isTechCompatible=(n,t)=>{
  if(!n||!n.cult||!t)return false;
  const c=n.cult;
@@ -82245,8 +83386,10 @@ M.isTechCompatible=(n,t)=>{
  if(M.isInnateTech(t)){
   return c.path===t.path&&c.sub===t.innateSubpath&&(t.reqTier||t.tier||1)<=effSt;
  }
+ const isExcl=CULT.isExclusiveSubpathTech?CULT.isExclusiveSubpathTech(t):(t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&!!t.sub));
+ const pathOk=t.path==='ANY'||t.path===c.path||(!isExcl&&(t.legendary||!t.id.startsWith('MP_')));
  const subOk=CULT.isSubCompatible?CULT.isSubCompatible(t,c.sub,false):(!t.sub||t.sub===c.sub);
- return (t.path==='ANY'||t.path===c.path)&&subOk&&(t.reqTier||t.tier)<=effSt;
+ return pathOk&&subOk&&(t.reqTier||t.tier)<=effSt;
 };
 M.passiveFamilyOf=t=>t?(t.passiveFamily||('FAM_'+t.id)):null;
 
@@ -82847,25 +83990,26 @@ const oldMint=ECO.mintGear;ECO.mintGear=(r,q)=>{const it=oldMint(r,q),source=ECO
 'use strict';
 const {MARTIAL:M,HC,STATS:ST,AI,CULT,U}=g,clamp=U.clamp;
 const extra={BOW:'ฝีมือธนู',STAFF:'ฝีมือพลอง',FOCUS:'ฝีมือสื่อปราณ'};
+const elemGateSkills={WATER_ICE:{id:'WATER_ICE',nameTh:'ปราณเหมันต์วารี',aff:'WATER',interest:'meditation',baseSkill:'SOUL_DIVINE'},WOOD_LIFE:{id:'WOOD_LIFE',nameTh:'ปราณพฤกษาชีวิต',aff:'WOOD',interest:'herbs',baseSkill:'herbalism'}};
 const groups={weapon:['SWORD','BLADE','SPEAR','FIST_PALM','BOW','STAFF','FOCUS'],cultivation:['MOVEMENT','BODY_REFINING','SOUL_DIVINE','POISON','SCRIPTURE','ritual'],production:['ALCHEMY','FORGING','ARRAY','TALISMAN','MEDICINE','herbalism','mining','cooking','construction'],exploration:['BEAST_TAMING','stealth','survival'],social:['trading','administration','diplomacy','arts']};
 M.SKILL_GROUPS=groups;M.SKILL_GROUP_NAMES={weapon:'อาวุธ',cultivation:'บำเพ็ญและเคล็ดภายใน',production:'การผลิตและการแพทย์',exploration:'สำรวจและอสูร',social:'สังคมและการจัดการ'};
 M.SKILL_IDS=HC.SKILL_IDS.concat(Object.keys(extra));
 const effects={
  SWORD:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้กระบี่',BLADE:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้ดาบ',SPEAR:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้หอก',FIST_PALM:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้สนับหรือมือเปล่า',BOW:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้ธนู',STAFF:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้พลอง',FOCUS:'เพิ่มพลังวิชา/ความแม่นยำและเจาะเกราะเมื่อใช้สื่อปราณ',
- ALCHEMY:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมโอสถ',FORGING:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมอุปกรณ์',ARRAY:'เพิ่มโอกาสสร้างค่ายกลและป้องกันวิชาในการรบ',TALISMAN:'เพิ่มโอกาสสร้างยันต์และเกราะในการรบ',BEAST_TAMING:'ลดความเสียหายจากอสูรจริง',POISON:'เพิ่มความแรงแผลพิษ/โลหิตจากวิชา',MEDICINE:'เพิ่มการฟื้นตัวของผู้ป่วยเมื่อเป็นหมอและโอกาสชำแหละอวัยวะ',SCRIPTURE:'เพิ่มความเร็วศึกษาวิชาและโอกาสถอดจารึก',MOVEMENT:'เพิ่มความเร็วเคลื่อนที่และหลบหลีก',BODY_REFINING:'เพิ่มพลังชีวิตและป้องกัน',SOUL_DIVINE:'เพิ่มโจมตีวิชาและป้องกันวิชา',herbalism:'เพิ่มจำนวน/ระดับสมุนไพรและข้าวที่เก็บได้',mining:'เพิ่มจำนวน/ระดับแร่ที่ขุดได้',cooking:'เพิ่มอาหารจากข้าวหนึ่งหน่วย',trading:'เพิ่มรายได้จากการค้าเดินทาง',administration:'ลดค่าใช้จ่ายดูแลสำนักและช่วยความเร็วขยายอาคาร',diplomacy:'เพิ่มผลเจรจาความสัมพันธ์/สนธิสัญญา',stealth:'เพิ่มหลบหลีกและคริติคอล',survival:'เพิ่มโอกาสผ่านอันตราย/หนีและลดอุบัติเหตุ',arts:'เพิ่มการคลายเครียดและขวัญใจจากดนตรี',construction:'ลดเวลาขยายอาคารจริง',ritual:'เพิ่มอัตราบำเพ็ญ โดยเฉพาะวิถีเทพ'};
-const interests={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:'arrays',BEAST_TAMING:'beasts',MEDICINE:'medicine',SCRIPTURE:'scholarship',MOVEMENT:'exploring',BODY_REFINING:'combat',SOUL_DIVINE:'worship',POISON:'alchemy',herbalism:'herbs',mining:'labor',cooking:'cuisine',trading:'trade',administration:'leading',diplomacy:'socializing',stealth:'intrigue',survival:'exploring',arts:'arts',construction:'building',ritual:'worship'};
+ ALCHEMY:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมโอสถ',FORGING:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมอุปกรณ์',ARRAY:'เพิ่มโอกาสสร้างค่ายกลและป้องกันวิชาในการรบ',TALISMAN:'เพิ่มโอกาสสร้างยันต์และเกราะในการรบ',BEAST_TAMING:'ลดความเสียหายจากอสูรจริง',POISON:'เพิ่มความแรงแผลพิษ/โลหิตจากวิชา',MEDICINE:'เพิ่มการฟื้นตัวของผู้ป่วยเมื่อเป็นหมอและโอกาสชำแหละอวัยวะ',SCRIPTURE:'เพิ่มความเร็วศึกษาวิชาและโอกาสถอดจารึก',MOVEMENT:'เพิ่มความเร็วเคลื่อนที่และหลบหลีก',BODY_REFINING:'เพิ่มพลังชีวิตและป้องกัน',SOUL_DIVINE:'เพิ่มโจมตีวิชาและป้องกันวิชา',herbalism:'เพิ่มจำนวน/ระดับสมุนไพรและข้าวที่เก็บได้',mining:'เพิ่มจำนวน/ระดับแร่ที่ขุดได้',cooking:'เพิ่มอาหารจากข้าวหนึ่งหน่วย',trading:'เพิ่มรายได้จากการค้าเดินทาง',administration:'ลดค่าใช้จ่ายดูแลสำนักและช่วยความเร็วขยายอาคาร',diplomacy:'เพิ่มผลเจรจาความสัมพันธ์/สนธิสัญญา',stealth:'เพิ่มหลบหลีกและคริติคอล',survival:'เพิ่มโอกาสผ่านอันตราย/หนีและลดอุบัติเหตุ',arts:'เพิ่มการคลายเครียดและขวัญใจจากดนตรี',construction:'ลดเวลาขยายอาคารจริง',ritual:'เพิ่มอัตราบำเพ็ญ โดยเฉพาะวิถีเทพ',WATER_ICE:'ความชำนาญปราณเหมันต์และวารีสำหรับสายเฉพาะทาง',WOOD_LIFE:'ความชำนาญปราณพฤกษาและพลังชีวิตสำหรับสายเฉพาะทาง'};
+const interests={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:'arrays',BEAST_TAMING:'beasts',MEDICINE:'medicine',SCRIPTURE:'scholarship',MOVEMENT:'exploring',BODY_REFINING:'combat',SOUL_DIVINE:'worship',POISON:'alchemy',herbalism:'herbs',mining:'labor',cooking:'cuisine',trading:'trade',administration:'leading',diplomacy:'socializing',stealth:'intrigue',survival:'exploring',arts:'arts',construction:'building',ritual:'worship',WATER_ICE:'meditation',WOOD_LIFE:'herbs'};
 M.SKILL_INFO=Object.fromEntries(M.SKILL_IDS.map(id=>[id,{id,nameTh:extra[id]||HC.nameOf('skills.'+id),group:Object.keys(groups).find(k=>groups[k].includes(id)),effect:effects[id],route:groups.weapon.includes(id)?'ฝึกหอยุทธ์/ใช้อาวุธจริง/รับการสอน':'งานที่เกี่ยวข้อง/ฝึกทักษะเฉพาะ/รับการสอน',interest:interests[id]||'combat'}]));
 
 M.ensureSkills=(n,rng)=>{
  if(!n||!n.h)return;
  n.h.skills=n.h.skills||{};
  const exp=(n.h.birthDay!=null&&HC.nowDay!=null)?clamp(((HC.nowDay-n.h.birthDay)/360-12)/30,0.05,1):0.4;
- for(const id of ['BOW','STAFF','FOCUS']){
+ for(const id of ['BOW','STAFF','FOCUS','WATER_ICE','WOOD_LIFE']){
   if(n.h.skills[id]==null){
    if(n.martialSkills&&n.martialSkills[id]!=null){
     n.h.skills[id]=clamp(n.martialSkills[id],0,100);
    }else{
-    const affKey={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE'}[id];
+    const affKey={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',WATER_ICE:'WATER',WOOD_LIFE:'WOOD'}[id];
     const aff=(n.h.affinities&&n.h.affinities[affKey])||30;
     const intr=(n.h.interests&&n.h.interests.combat)||40;
     const v=(aff*0.5+intr*0.5-25)*0.55*exp+2;
@@ -82876,7 +84020,8 @@ M.ensureSkills=(n,rng)=>{
 };
 
 M.skillRead=(n,id)=>{
- if(!n||!n.h||!n.h.skills||!M.SKILL_INFO[id])return 0;
+ if(!n||!n.h||!n.h.skills||(!M.SKILL_INFO[id]&&!elemGateSkills[id]))return 0;
+ if(elemGateSkills[id]&&n.h.skills[id]==null){n.h.skills[id]=clamp(n.h.skills[elemGateSkills[id].baseSkill]||15,0,100);}
  if(n.h.skills[id]==null&&n.martialSkills&&n.martialSkills[id]!=null){
   n.h.skills[id]=clamp(n.martialSkills[id],0,100);
  }
@@ -82884,7 +84029,7 @@ M.skillRead=(n,id)=>{
 };
 
 M.skillSet=(n,id,val)=>{
- if(!n||!n.h||!M.SKILL_INFO[id])return 0;
+ if(!n||!n.h||(!M.SKILL_INFO[id]&&!elemGateSkills[id]))return 0;
  n.h.skills=n.h.skills||{};
  const clamped=clamp(Number.isFinite(val)?val:0,0,100);
  n.h.skills[id]=clamped;
@@ -82894,22 +84039,23 @@ M.skillSet=(n,id,val)=>{
 };
 
 M.skillAdd=(n,id,amt)=>{
- if(!n||!n.h||!M.SKILL_INFO[id]||!Number.isFinite(amt))return M.skillRead(n,id);
+ if(!n||!n.h||(!M.SKILL_INFO[id]&&!elemGateSkills[id])||!Number.isFinite(amt))return M.skillRead(n,id);
  return M.skillSet(n,id,M.skillRead(n,id)+amt);
 };
 
+const _dirtySkillSet=new Set([...groups.weapon,'SOUL_DIVINE','MOVEMENT','stealth','BODY_REFINING','TALISMAN','ARRAY']);
 M.skillPractice=(n,id,hours,quality)=>{
- if(!M.SKILL_INFO[id]||!Number.isFinite(hours)||hours<=0||!Number.isFinite(quality==null?1:quality)||(quality!=null&&quality<=0))return 0;
+ if((!M.SKILL_INFO[id]&&!elemGateSkills[id])||!Number.isFinite(hours)||hours<=0||!Number.isFinite(quality==null?1:quality)||(quality!=null&&quality<=0))return 0;
  const q=clamp(quality==null?1:quality,.1,3)*(M.lifeMult?M.lifeMult(n,id):1);let gain;
  if(!extra[id])gain=HC.practice(n,id,hours,q);
  else{
   M.ensureSkills(n);
-  const level=M.skillRead(n,id),aff={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE'}[id],rate=(.35+(HC.eff(n,'affinities.'+aff)||30)/100*.9)*(.6+HC.eff(n,'intellect.learningSpeed')/100*.8)*(.8+HC.eff(n,'interests.combat')/250)*q;
+  const level=M.skillRead(n,id),aff={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',WATER_ICE:'WATER',WOOD_LIFE:'WOOD'}[id],rate=(.35+(HC.eff(n,'affinities.'+aff)||30)/100*.9)*(.6+HC.eff(n,'intellect.learningSpeed')/100*.8)*(.8+HC.eff(n,'interests.combat')/250)*q;
   gain=hours*.075*rate*Math.pow(Math.max(.08,1-level/105),1.6);
   n.h.skills[id]=Math.min(100,level+gain);
   if(n.martialSkills&&n.martialSkills[id]!=null)delete n.martialSkills[id];
  }
- if(gain&&(hours>=0.1||((groups.weapon.includes(id)||['SOUL_DIVINE','MOVEMENT','stealth','BODY_REFINING','TALISMAN','ARRAY'].includes(id))&&Math.floor(M.skillRead(n,id)*4)!==Math.floor((M.skillRead(n,id)-gain)*4))))ST.dirty(n);return gain||0;
+ const newLv=n.h.skills[id];if(gain&&(hours>=0.1||(_dirtySkillSet.has(id)&&((newLv*4)|0)!==(((newLv-gain)*4)|0))))ST.dirty(n);return gain||0;
 };
 M.isBeast=u=>!!u&&!!u.foe&&(u.kind==='beast'||!!u.wild&&!!u.speciesId);
 M.gearUsable=(n,it)=>!!it&&(!n.cult||(it.minStage||1)<=(CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage)+1);
@@ -82932,24 +84078,59 @@ M.activeTechs=n=>{
  if(M.reconcileInnate)M.reconcileInnate(n);
  const out=c.techs.filter(id=>{
   const t=CULT.tech(id);
+  if(!t||M.isInnateTech(t)||(t.reqTier||t.tier)>effSt)return false;
+  const isExcl=CULT.isExclusiveSubpathTech?CULT.isExclusiveSubpathTech(t):(t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&!!t.sub));
+  const pathOk=t.path==='ANY'||t.path===c.path||(!isExcl&&(t.legendary||!t.id.startsWith('MP_')));
   const subOk=CULT.isSubCompatible?CULT.isSubCompatible(t,c.sub,false):(!t.sub||t.sub===c.sub);
-  return !!t&&!M.isInnateTech(t)&&(t.path==='ANY'||t.path===c.path)&&subOk&&(t.reqTier||t.tier)<=effSt;
+  return pathOk&&subOk;
  });
  n._actTechsCache={path:c.path,sub:c.sub,st:effSt,tl,t0,tL,ver:n._passVer||0,out};
  return out;
 };
+M.bottleneckSkillDrive=n=>clamp(0.42+(HC.eff(n,'personality.ambition')-45)/105+(HC.eff(n,'values.martialPeak')-45)/125+(HC.eff(n,'personality.discipline')-45)/155-(HC.eff(n,'values.freedom')-55)/220,0.25,1.65);
+const EMPTY_ARR=Object.freeze([]);
+M.activeBottleneckSkills=(W,n)=>{
+ if(!n||!n.cult||!n.cult.track||!CULT.checkTrackGates)return EMPTY_ARR;
+ const tr=n.cult.track;
+ if(tr.ordinal>=9)return EMPTY_ARR;
+ const th=[200,520,1350,3400,8500,21000,50000,120000][tr.ordinal-1]||150000;
+ if(tr.prog<th*0.65)return EMPTY_ARR;
+ const wt=W&&W.t>0?W.t:-1,ac=n._abnCache,sks=n.h&&n.h.skills,skSum=sks?((sks.MOVEMENT||0)+(sks.BLADE||0)+(sks.SWORD||0)+(sks.WATER_ICE||0)+(sks.WOOD_LIFE||0))|0:0;
+ if(wt>0&&ac&&ac.t===wt&&ac.ord===tr.ordinal&&ac.ver===n._ver&&ac.skSum===skSum)return ac.out;
+ const g=CULT.checkTrackGates(W,n);
+ const out=(!g.skillOk&&Array.isArray(g.missingSkills))?g.missingSkills:EMPTY_ARR;
+ if(wt>0)n._abnCache={t:wt,ord:tr.ordinal,ver:n._ver,skSum,out};
+ return out;
+};
 M.pickSkillPractice=(W,n)=>{
  const intent=n.martialIntent;if(intent&&intent.action==='prepare'&&intent.targetKey){const k=M.knowledge&&M.knowledge(intent.targetKey),profile=k&&M.PROFILES[k.id];if(profile){const id={FIST:'FIST_PALM'}[profile[3][0]]||profile[3][0];if(M.skillRead(n,id)<75)return id;}}
+ const bnSkills=M.activeBottleneckSkills(W,n);
+ const bnSig=bnSkills.length?bnSkills.map(x=>x.skill+':'+Math.floor(x.current)+'/'+x.required).join('|'):'';
  const wt=W?W.t:0,eqW=n.equip&&n.equip.WEAPON,psc=n._pspCache;
- if(psc&&wt-psc.t<60&&psc.post===n.post&&psc.eqW===eqW)return psc.best;
- let best=null,score=-Infinity;for(const id of M.SKILL_IDS){const info=M.SKILL_INFO[id],interest=HC.eff(n,'interests.'+info.interest),need=(100-M.skillRead(n,id))*.25,role=(n.post==='healer'&&id==='MEDICINE'||n.post==='steward'&&id==='construction'||n.post==='treasury'&&id==='administration')?20:0;const value=interest*.65+need+role+(groups.weapon.includes(id)&&id===({FIST:'FIST_PALM'}[M.equippedType(n)]||M.equippedType(n))?18:0);if(value>score){score=value;best=id;}}
- n._pspCache={t:wt,post:n.post,eqW,best};
+ if(psc&&wt-psc.t<45&&psc.post===n.post&&psc.eqW===eqW&&psc.bnSig===bnSig)return psc.best;
+ const drive=bnSkills.length?M.bottleneckSkillDrive(n):0;
+ const trReady=bnSkills.length&&CULT.trackReady(n);
+ const bnMap={};
+ for(let i=0;i<bnSkills.length;i++){
+  const ms=bnSkills[i];
+  bnMap[ms.skill]=((trReady?68:46)*(i===0?1:0.82))*drive+Math.min(28,ms.deficit*0.95);
+ }
+ let best=null,score=-Infinity;
+ const allIds=bnMap.WATER_ICE?M.SKILL_IDS.concat(['WATER_ICE']):bnMap.WOOD_LIFE?M.SKILL_IDS.concat(['WOOD_LIFE']):M.SKILL_IDS;
+ for(const id of allIds){
+  const info=M.SKILL_INFO[id]||elemGateSkills[id],interest=HC.eff(n,'interests.'+info.interest),need=(100-M.skillRead(n,id))*.25,role=(n.post==='healer'&&id==='MEDICINE'||n.post==='steward'&&id==='construction'||n.post==='treasury'&&id==='administration')?20:0;
+  const eqBonus=(groups.weapon.includes(id)&&id===({FIST:'FIST_PALM'}[M.equippedType(n)]||M.equippedType(n)))?18:0;
+  const gateBonus=bnMap[id]||0;
+  const value=interest*.65+need+role+eqBonus+gateBonus;
+  if(value>score){score=value;best=id;}
+ }
+ n._pspCache={t:wt,post:n.post,eqW,bnSig,best};
  return best;
 };
-AI.ACTS.skillDrill={nameTh:'ฝึกทักษะเฉพาะ',icon:'🎯',color:'#a6c7e8',can:n=>n.h.state.energy>35&&n.h.state.satiety>30,score(n,W,S){const id=M.pickSkillPractice(W,n);S.add('ฝึก'+M.SKILL_INFO[id].nameTh,.25+(HC.eff(n,'interests.'+M.SKILL_INFO[id].interest)-50)/180+(n.martialIntent&&n.martialIntent.action==='prepare'?.7:0));},where(W,n){const skill=M.pickSkillPractice(W,n),weapon=groups.weapon.includes(skill),st=AI.freeStation(W,n,weapon?'dummy':'read',weapon?'training_ground':'scripture');return st?{st,skill}:null;},dur:()=>100,tick(n,W,ctx){M.skillPractice(n,ctx.skill,1/60,1.1);n.h.state.energy=Math.max(0,n.h.state.energy-.055);},done(n,W,ctx){n.merit=(n.merit||0)+.1;if(g.ELEM&&n.cult){const m=n.cult.mantra&&CULT.tech(n.cult.mantra);if(m)g.ELEM.gainMastery(n,m,'practice',W,{sourceId:'drill_'+(ctx&&ctx.skill||'skill'),scale:0.7});}}};
+AI.ACTS.skillDrill={nameTh:'ฝึกทักษะเฉพาะ',icon:'🎯',color:'#a6c7e8',can:n=>n.h.state.energy>35&&n.h.state.satiety>30,score(n,W,S){const id=M.pickSkillPractice(W,n),info=M.SKILL_INFO[id]||M.SKILL_INFO.MOVEMENT;S.add('ฝึก'+info.nameTh,.25+(HC.eff(n,'interests.'+info.interest)-50)/180+(n.martialIntent&&n.martialIntent.action==='prepare'?.7:0));const bnSkills=M.activeBottleneckSkills(W,n),ms=bnSkills.find(x=>x.skill===id);if(ms){const drive=M.bottleneckSkillDrive(n),s=n.h.state,gObj=n.cognition&&n.cognition.goal,isComp=!!(gObj&&((gObj.id==='crisis'&&W&&W.sect&&(W.sect.shortageDirectives||[]).some(d=>d.id===gObj.targetId&&d.deficit>0))||(gObj.id==='help_friend'&&W&&W.byId&&W.byId[gObj.targetId]&&W.byId[gObj.targetId].h.state.hp<CULT.hpMax(W.byId[gObj.targetId])*0.72)||(gObj.id==='recovery'&&(s.hp<CULT.hpMax(n)*0.75||s.satiety<25||s.rest<20)))),compMult=isComp?0.25:1,needFactor=clamp(Math.min(s.satiety/35,s.rest/25,s.energy/30),0.2,1)*compMult;S.add('ทะลวงคอขวดสายเฉพาะทาง: '+id+' '+Math.floor(ms.current)+'/'+ms.required,(CULT.trackReady(n)?1.25:0.85)*drive*needFactor);}},where(W,n){const skill=M.pickSkillPractice(W,n),isPhysical=groups.weapon.includes(skill)||['MOVEMENT','BODY_REFINING','stealth','survival','BEAST_TAMING'].includes(skill);let st=AI.freeStation(W,n,isPhysical?'dummy':'read',isPhysical?'training_ground':'scripture');if(!st&&isPhysical)st=AI.freeStation(W,n,'spar','training_ground')||AI.freeStation(W,n,'read','scripture');else if(!st)st=AI.freeStation(W,n,'dummy','training_ground');return st?{st,skill}:null;},dur:()=>100,tick(n,W,ctx){M.skillPractice(n,ctx.skill,1/60,1.1);n.h.state.energy=Math.max(0,n.h.state.energy-.055);},done(n,W,ctx){n.merit=(n.merit||0)+.1;if(g.ELEM&&n.cult){const m=n.cult.mantra&&CULT.tech(n.cult.mantra);if(m)g.ELEM.gainMastery(n,m,'practice',W,{sourceId:'drill_'+(ctx&&ctx.skill||'skill'),scale:0.7});}}};
 // Training and teaching of additional proficiencies use the same native stations/actions.
-const practiceWhere=AI.ACTS.practice.where;AI.ACTS.practice.where=(W,n)=>{const result=practiceWhere(W,n);if(result){const equipped={FIST:'FIST_PALM'}[M.equippedType(n)]||M.equippedType(n);if(groups.weapon.includes(equipped))result.skill=equipped;if(n.martialIntent&&n.martialIntent.action==='prepare')result.skill=M.pickSkillPractice(W,n);}return result;};
-const pickTeach=AI.pickTeachSkill;AI.pickTeachSkill=(t,s)=>{const best=pickTeach(t,s),newSkill=Object.keys(extra).sort((a,b)=>M.skillRead(t,b)-M.skillRead(s,b)-M.skillRead(t,a)+M.skillRead(s,a))[0];return M.skillRead(t,newSkill)-M.skillRead(s,newSkill)>M.skillRead(t,best)-M.skillRead(s,best)?newSkill:best;};
+const practiceWhere=AI.ACTS.practice.where;AI.ACTS.practice.where=(W,n)=>{const result=practiceWhere(W,n);if(result){const equipped={FIST:'FIST_PALM'}[M.equippedType(n)]||M.equippedType(n);if(groups.weapon.includes(equipped))result.skill=equipped;const bnSkills=M.activeBottleneckSkills(W,n);if(bnSkills.length){const picked=M.pickSkillPractice(W,n),ms=bnSkills.find(x=>x.skill===picked)||bnSkills[0];if(ms&&(groups.weapon.includes(ms.skill)||['MOVEMENT','BODY_REFINING','SOUL_DIVINE','POISON','WATER_ICE','WOOD_LIFE','stealth','survival'].includes(ms.skill)))result.skill=ms.skill;}if(n.martialIntent&&n.martialIntent.action==='prepare')result.skill=M.pickSkillPractice(W,n);}return result;};
+const pickTeach=AI.pickTeachSkill;AI.pickTeachSkill=(t,s)=>{if(s&&t){const bnSkills=M.activeBottleneckSkills(null,s);for(let i=0;i<bnSkills.length;i++){const sk=bnSkills[i].skill;if(M.skillRead(t,sk)>M.skillRead(s,sk)+2)return sk;}}const best=pickTeach(t,s),newSkill=Object.keys(extra).filter(k=>k!=='WATER_ICE'&&k!=='WOOD_LIFE').sort((a,b)=>M.skillRead(t,b)-M.skillRead(s,b)-M.skillRead(t,a)+M.skillRead(s,a))[0];return M.skillRead(t,newSkill)-M.skillRead(s,newSkill)>M.skillRead(t,best)-M.skillRead(s,best)?newSkill:best;};
 })(typeof globalThis!=='undefined'?globalThis:this);
 
 </script>
@@ -83156,7 +84337,9 @@ M.eligible=(n,key,opts)=>{
   return {ok:false,reason:'วิชาเฉพาะสายย่อยติดตัวไม่สามารถเรียนรู้จากคัมภีร์หรือผลึกภายนอก'};
  }
  const k=M.knowledge(key),c=n&&n.cult;if(!k||!c)return {ok:false,reason:'ยังไม่เปิดวิถีบำเพ็ญ'};
- if(k.path!=='ANY'&&k.path!==c.path)return {ok:false,reason:'ต่างวิถีหลัก'};
+ const tCheck=k.kind==='tech'?CULT.tech(k.id):null;
+ const allowCross=!!(tCheck&&(tCheck.legendary||!(CULT.isExclusiveSubpathTech&&CULT.isExclusiveSubpathTech(tCheck))));
+ if(k.path!=='ANY'&&k.path!==c.path&&(k.kind==='sub'||!allowCross))return {ok:false,reason:'ต่างวิถีหลัก'};
  const effStage=CULT.effectiveTechStage?CULT.effectiveTechStage(n):c.stage;
  if(effStage<k.tier)return {ok:false,reason:'ขั้นบำเพ็ญไม่ถึง'};
  if(k.kind==='sub'){
@@ -83273,6 +84456,7 @@ M.donateManual=(W,n,id,kind)=>{
  bag.splice(bag.indexOf(id),1);
  if(!duplicate){
   lib.push(id);
+  if(g.COG&&g.COG.recordHallAddition)g.COG.recordHallAddition(W,'library',id,n&&n.id);
  }else{
   if(isSub){
    W.sect.surplusSubManuals=W.sect.surplusSubManuals||[];
@@ -83569,9 +84753,15 @@ M.discover=(W,out,opts)=>{
  else {out.knowledge=out.knowledge||[];out.knowledge.push(drop);}
  return drop;
 };
-M.knowledgeFit=(n,key)=>{const k=M.knowledge(key);if(!k||!n.cult||k.path!==n.cult.path&&k.path!=='ANY')return -100;
+M.knowledgeFit=(n,key)=>{const k=M.knowledge(key);if(!k||!n.cult)return -100;
+ const t=k.kind==='tech'?CULT.tech(k.id):null;
+ const allowCross=!!(t&&(t.legendary||!(CULT.isExclusiveSubpathTech&&CULT.isExclusiveSubpathTech(t))));
+ if(k.path!=='ANY'&&k.path!==n.cult.path&&(k.kind==='sub'||!allowCross))return -100;
  if(k.kind==='sub'){const score=CULT.pathScores(n).filter(s=>s.path===n.cult.path),best=score[0];const own=score.find(s=>s.sub===k.id);return own&&best?clamp(80+(own.score-best.score)*2,0,100):30;}
- const t=CULT.tech(k.id);if(k.sub&&!(CULT.isSubCompatible?CULT.isSubCompatible(t,n.cult.sub,false):k.sub===n.cult.sub))return -50;const matching=!t.weaponTypes||M.conditionMatches(n,t),elemScore=g.ELEM?g.ELEM.resolveCompatibility(n,t,'learning').score*0.45:0;return 60+(matching?20:-15)+elemScore+(t.legendary?25:0)+(HC.eff(n,'personality.curiosity')-50)*.15;
+ if(k.sub&&!(CULT.isSubCompatible?CULT.isSubCompatible(t,n.cult.sub,false):k.sub===n.cult.sub))return -50;
+ const crossPen=(k.path!=='ANY'&&k.path!==n.cult.path)?(t.legendary?-4:-12):0;
+ const matching=!t.weaponTypes||M.conditionMatches(n,t),elemScore=g.ELEM?g.ELEM.resolveCompatibility(n,t,'learning').score*0.45:0;
+ return 60+crossPen+(matching?20:-15)+elemScore+(t.legendary?25:0)+(HC.eff(n,'personality.curiosity')-50)*.15;
 };
 M.crystalDecision=(W,n,key)=>{
  const fit=M.knowledgeFit(n,key),e=M.eligible(n,key),loyalty=HC.eff(n,'personality.loyalty'),wealth=HC.eff(n,'values.wealthResource');
@@ -84073,21 +85263,62 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     };
   };
 
-  // Update NPC's bounded perception of library/shop/shortages on realistic cadence
+  COG.recordHallAddition = (W, kind, itemId, actorId) => {
+    if (!W || !W.sect || !itemId) return;
+    const map = W.sect._recentHallAdditions || (W.sect._recentHallAdditions = {});
+    map[kind + ':' + itemId] = { at: W.t || 0, actorId: actorId || null };
+    if (actorId && W.byId && W.byId[actorId]) {
+      COG.perceive(W, W.byId[actorId], true);
+    }
+  };
+
+  COG.isAwareOf = (W, n, kind, itemId) => {
+    if (!W || !W.sect || !n || n.dead || n.away) return false;
+    if (kind === 'library_tech' || kind === 'library') {
+      if (!Array.isArray(W.sect.library) || !W.sect.library.includes(itemId)) return false;
+      const rec = W.sect._recentHallAdditions && W.sect._recentHallAdditions['library:' + itemId];
+      if (!rec || (W.t || 0) <= 0 || (W.t - rec.at) >= 180) return true;
+      if (rec.actorId === n.id) return true;
+      const roleId = COG.role(W, n).id;
+      if (['scripture', 'master', 'deputy'].includes(roleId)) return true;
+      if (n.act && ['study', 'guidedStudy', 'donate', 'duty', 'shop'].includes(n.act.id)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      if (k && Array.isArray(k.visibleTechIds) && k.visibleTechIds.includes(itemId)) return true;
+      return false;
+    }
+    if (kind === 'tablet') {
+      return Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length > 0;
+    }
+    if (kind === 'catalyst') {
+      return !!(W.sect.catalysts && Object.values(W.sect.catalysts).some(v => v > 0));
+    }
+    return true;
+  };
+
+  COG.visibleLibraryFor = (W, n) => {
+    if (!W || !W.sect || !Array.isArray(W.sect.library)) return [];
+    if (!W.sect._recentHallAdditions) return W.sect.library;
+    return W.sect.library.filter(id => COG.isAwareOf(W, n, 'library_tech', id));
+  };
+
+  // Update NPC's bounded perception of library/shop/shortages/tablets/catalysts on realistic cadence
   COG.perceive = (W, n, force) => {
     if (!W || !W.sect || !n) return null;
     const c = COG.ensure(n);
-    const k = c.knowledge || (c.knowledge = { updatedAt: -9999, visibleTechIds: [], visibleGearIds: [], knownShortageIds: [], estimates: {} });
+    const k = c.knowledge || (c.knowledge = { updatedAt: -9999, visibleTechIds: [], visibleGearIds: [], knownShortageIds: [], knownTabletIds: [], knownCatalysts: [], estimates: {} });
     const nearInfoHub = n.act && ['study', 'guidedStudy', 'shop', 'duty', 'donate'].includes(n.act.id);
-    if (!force && !nearInfoHub && W.t - (k.updatedAt || -9999) < 240) return k;
+    if (!force && W.t - (k.updatedAt || -9999) < (nearInfoHub ? 45 : 240)) return k;
     const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult?.stage || 1), SECT.canLearnTier(W, n));
     k.updatedAt = W.t;
-    k.visibleTechIds = n.cult ? (W.sect.library || []).filter(id => {
+    const rawLib = force || nearInfoHub ? (W.sect.library || []) : COG.visibleLibraryFor(W, n);
+    k.visibleTechIds = n.cult ? rawLib.filter(id => {
       const t = CULT.tech(id);
-      return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path);
+      return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path || t.legendary);
     }).slice(0, 24) : [];
     k.visibleGearIds = (W.sect.gear || []).filter(eq => eq && SECT.canAccessItem(W, n, eq)).map(eq => eq.uid || eq.id).slice(0, 16);
     k.knownShortageIds = (W.sect.shortageDirectives || []).filter(d => d.deficit > 0).map(d => d.id).slice(0, 8);
+    k.knownTabletIds = (W.sect.legacyTablets || []).map(t => t.id).slice(0, 12);
+    k.knownCatalysts = Object.keys(W.sect.catalysts || {}).filter(id => (W.sect.catalysts[id] || 0) > 0);
     return k;
   };
 
@@ -84348,8 +85579,17 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     const tgtNpc = goal.targetId && W.byId ? W.byId[goal.targetId] : null;
     const rel = tgtNpc && n.h.mind.relations ? n.h.mind.relations[tgtNpc.id] : null;
     const shortDir = (W.sect.shortageDirectives || []).find(d => d.id === goal.targetId);
+    let bnSkillSum = 0;
+    if (goal.id === 'track_bottleneck' && n.cult && n.cult.track && CULT.checkTrackGates) {
+      const tg = CULT.checkTrackGates(W, n);
+      if (tg && Array.isArray(tg.missingSkills)) {
+        for (let i = 0; i < tg.missingSkills.length; i++) bnSkillSum += tg.missingSkills[i].current || 0;
+      }
+    }
     return {
       cp: n.cp || 0,
+      stones: (n.inv && n.inv.stones) || 0,
+      bnSkillSum,
       price,
       stage: n.cult ? n.cult.stage : 0,
       prog: n.cult ? n.cult.prog : 0,
@@ -84414,12 +85654,33 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       }
       return { step: 'gather_input', stepTitle: 'รวบรวมวัตถุดิบสำหรับ「' + r.outNameTh + '」', missingPrereq: 'ขาดวัตถุดิบหรือแต้มแลกส่วนผสม', actions: ['forage', 'farm', 'mine', 'personalBrew', 'donate'] };
     }
+    if (goal.id === 'track_bottleneck') {
+      if (n.inj && n.inj.some(i => (i.sev || 1) >= 2)) {
+        return { step: 'recover_injury', stepTitle: 'รักษาอาการบาดเจ็บหนักก่อนฝึกทะลวงคอขวดต่อ', missingPrereq: 'อาการบาดเจ็บหนักขัดขวางการฝึกฝน', actions: ['heal', 'personalPillUse', 'shop'] };
+      }
+      const bn = (CULT.inspectProgressionBottleneck && n.cult) ? CULT.inspectProgressionBottleneck(W, n) : null;
+      const trInfo = bn && bn.track;
+      if (!trInfo || !trInfo.active || trInfo.gateOk) {
+        return { step: 'ready', stepTitle: 'ผ่านเงื่อนไขคอขวดสายเฉพาะทางแล้ว', missingPrereq: null, actions: ['cultivate'] };
+      }
+      const acts = trInfo.feasibleActions.length ? trInfo.feasibleActions : ['skillDrill', 'practice'];
+      return {
+        step: trInfo.primarySkillToTrain ? 'train_gate_skill' : 'acquire_gate_stones',
+        stepTitle: trInfo.statusTh || goal.title,
+        missingPrereq: trInfo.blockerReasonTh || (trInfo.missingSkills.length ? trInfo.missingSkills.map(m => m.skill + ' ' + Math.floor(m.current) + '/' + m.required).join(', ') : ('STONES ' + Math.floor(trInfo.missingStones.currentPersonal) + '/' + trInfo.missingStones.required)),
+        actions: acts
+      };
+    }
     if (goal.id === 'breakthrough') {
       if (n.cult && CULT.ready(n)) {
         if (n.h.state.hp < CULT.hpMax(n) * 0.7 || (n.inj && n.inj.length)) {
           return { step: 'prepare_body', stepTitle: 'ฟื้นฟูร่างกายให้พร้อมก่อนปิดด่านทะลวงขั้น', missingPrereq: 'ร่างกายยังไม่สมบูรณ์สำหรับทะลวงขั้น', actions: ['heal', 'personalPillUse', 'sleep'] };
         }
-        return { step: 'seclude', stepTitle: 'เข้าปิดด่านทะลวงสู่ขั้นถัดไป', missingPrereq: null, actions: ['breakthrough', 'shop', 'pray'] };
+        const bn = CULT.inspectProgressionBottleneck ? CULT.inspectProgressionBottleneck(W, n) : null;
+        if (bn && bn.major && bn.major.plan === 'wait' && bn.major.feasibleActions.length) {
+          return { step: 'consolidate_gate', stepTitle: bn.major.statusTh || 'เตรียมฐานปราณและโอสถก่อนทะลวงขั้น', missingPrereq: bn.major.blockerReasonTh || null, actions: bn.major.feasibleActions };
+        }
+        return { step: 'seclude', stepTitle: 'เข้าปิดด่านทะลวงสู่ขั้นถัดไป', missingPrereq: null, actions: ['breakthrough', 'consolidate', 'shop', 'pray'] };
       }
       return { step: 'accumulate_qi', stepTitle: 'บำเพ็ญสั่งสมปราณให้ถึงคอขวด', missingPrereq: n.cult ? ('ตบะ ' + Math.round(n.cult.prog) + '/' + CULT.threshold(n)) : null, actions: ['cultivate', 'paidTraining', 'shop', 'pray'] };
     }
@@ -84468,6 +85729,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     }
     if (goal.id === 'rival') return !W.byId[goal.targetId] || W.byId[goal.targetId].dead || W.byId[goal.targetId].exiled || CULT.power(n) > CULT.power(W.byId[goal.targetId]) * 1.15;
     if (goal.id === 'craft') return !ECO.recipeById[goal.targetId] || (n.stats?.crafted || 0) > (goal.startCrafted ?? 0);
+    if (goal.id === 'track_bottleneck') return !n.cult || !n.cult.track || n.cult.track.ordinal > (goal.startOrdinal ?? n.cult.track.ordinal) || !!(CULT.checkTrackGates && CULT.checkTrackGates(W, n).ok);
     if (goal.id === 'breakthrough') return !n.cult || n.cult.stage > (goal.startStage ?? n.cult.stage);
     if (goal.id === 'service') return (W.sect.lastDuty[n.id] || 0) > goal.createdAt || COG.role(W, n).id !== goal.targetId;
     if (goal.id === 'crisis') return !(W.sect.shortageDirectives || []).some(d => d.id === goal.targetId && d.deficit > 0);
@@ -84502,6 +85764,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     }
     if (goal.id === 'rival') return !!(W.byId[goal.targetId] && !W.byId[goal.targetId].dead && CULT.power(n) > CULT.power(W.byId[goal.targetId]) * 1.15);
     if (goal.id === 'craft') return (n.stats?.crafted || 0) > (goal.startCrafted ?? 0);
+    if (goal.id === 'track_bottleneck') return !!(n.cult && n.cult.track && (n.cult.track.ordinal > (goal.startOrdinal ?? 99) || (CULT.checkTrackGates && CULT.checkTrackGates(W, n).ok)));
     if (goal.id === 'breakthrough') return !!(n.cult && n.cult.stage > (goal.startStage ?? 99));
     if (goal.id === 'service') return (W.sect.lastDuty[n.id] || 0) > goal.createdAt;
     if (goal.id === 'crisis') return !(W.sect.shortageDirectives || []).some(d => d.id === goal.targetId && d.deficit > 0);
@@ -84521,9 +85784,52 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
   COG.prepare = (W, n) => {
     const c = COG.ensure(n), r = COG.role(W, n);
+    if (c.lastRoleId && c.lastRoleId !== r.id) {
+      c.lastRoleId = r.id;
+      c.nextReview = 0;
+      if (r.id !== 'member' && c.goal && ['social_bond'].includes(c.goal.id) && (E(n, 'values.sectDuty') + E(n, 'personality.loyalty')) >= 95) {
+        c.goal.expiresAt = W.t;
+      }
+    } else {
+      c.lastRoleId = r.id;
+    }
     c.office = r;
     const asp = COG.ensureAspiration(W, n);
     COG.perceive(W, n, false);
+
+    // Auto-use compatible personal crystals or personal manuals in bag when safe and not fighting
+    if (n.cult && n.inv && !(n.act && n.act.id === 'fight')) {
+      let hasCrys = false;
+      if (n.inv.crystals) { for (const _k in n.inv.crystals) { hasCrys = true; break; } }
+      const tKeys = (n.inv.techs && n.inv.techs.length) ? n.inv.techs : null;
+      if ((hasCrys || tKeys) && safe(n)) {
+        const cKeys = hasCrys ? Object.keys(n.inv.crystals) : [];
+        const kSig = cKeys.length + ':' + (tKeys ? tKeys.length : 0) + ':' + n.cult.stage + ':' + (n.cult.sub || '');
+        if (n._bagKnowSig !== kSig) {
+          n._bagKnowSig = kSig;
+          if (cKeys.length && g.MARTIAL && g.MARTIAL.eligible && g.MARTIAL.useCrystal) {
+            for (const key of cKeys) {
+              if ((n.inv.crystals[key] || 0) > 0 && g.MARTIAL.eligible(n, key).ok && g.MARTIAL.knowledgeFit(n, key) >= 48) {
+                g.MARTIAL.useCrystal(W, n, key);
+                n._bagKnowSig = '';
+                break;
+              }
+            }
+          }
+          if (tKeys && tKeys.length && SECT.EDITOR && SECT.EDITOR.usePersonalItem) {
+            const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
+            for (const tid of tKeys.slice()) {
+              const tObj = CULT.tech(tid);
+              if (tObj && (tObj.reqTier || tObj.tier || 1) <= effSt && CULT.learnable(n, [tid]).length > 0 && (W.sect.library.includes(tid) || E(n, 'personality.loyalty') < 52)) {
+                SECT.EDITOR.usePersonalItem(W, n.id, 'TECH_MANUAL', tid);
+                n._bagKnowSig = '';
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
 
     // Auto-equip personal bag gear if it is an immediate useful upgrade
     if (n.cult && n.inv && Array.isArray(n.inv.gear) && n.inv.gear.length && !(n.act && n.act.id === 'fight') && SECT.EDITOR && SECT.EDITOR.equipPersonalGear) {
@@ -84608,7 +85914,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       return c;
     }
 
-    if (W.t < (c.nextReview || 0)) return c;
+    const hasUrgentTrackBn = !!(n.cult && n.cult.track && CULT.trackReady && CULT.trackReady(n) && CULT.checkTrackGates && !CULT.checkTrackGates(W, n).ok && W.t - (c._lastUrgentBnAt || -999) >= 60);
+    if (W.t < (c.nextReview || 0) && !hasUrgentTrackBn) return c;
+    if (hasUrgentTrackBn) c._lastUrgentBnAt = W.t;
     c.nextReview = W.t + 180;
 
     const options = [];
@@ -84662,8 +85970,17 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         if (n.cult.bn || CULT.ready(n)) {
           add('breakthrough', 'เตรียมตัวก้าวข้ามขอบเขต', 0.3 + E(n, 'values.martialPeak') / 80 + E(n, 'personality.ambition') / 180, null, { startStage: n.cult.stage });
         }
+        if (n.cult.track && n.cult.track.ordinal < 9 && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.70)) {
+          const tg = CULT.checkTrackGates(W, n);
+          if (!tg.ok) {
+            const drive = (g.MARTIAL && g.MARTIAL.bottleneckSkillDrive) ? g.MARTIAL.bottleneckSkillDrive(n) : 1;
+            const tgtSk = tg.missingSkills && tg.missingSkills[0] ? tg.missingSkills[0].skill : 'STONES';
+            add('track_bottleneck', 'แก้คอขวดสายเฉพาะทาง (' + (tg.reason || tgtSk) + ')', (tg.readyToAdvance ? 0.65 : 0.42) + drive * 0.95, tgtSk, { startOrdinal: n.cult.track.ordinal });
+          }
+        }
         const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage, SECT.canLearnTier(W, n));
-        const eligible = CULT.learnable(n, W.sect.library).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
+        const visibleLib = COG.visibleLibraryFor(W, n);
+        const eligible = CULT.learnable(n, visibleLib).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
         let bestTech = null, bestPref = -1e9;
         for (let i = 0; i < eligible.length; i++) {
           const p = COG.techPreference(n, eligible[i]);
@@ -84708,6 +86025,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         expiresAt: W.t + 7 * 1440,
         lastProgress: W.t,
         startStage: chosen.startStage ?? null,
+        startOrdinal: chosen.startOrdinal ?? null,
         startCrafted: chosen.startCrafted ?? null,
         startTaught: chosen.startTaught ?? null,
         startRelN: chosen.startRelN ?? null,
@@ -84736,13 +86054,14 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     guard: ['guard'], healer: ['duty', 'shareMedicine'], mission: ['duty'], treasury: ['duty'],
     registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty']
   };
-  COG.modifiers = (W, n, id) => {
-    const out = [], push = (why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }, s = n.h.state, c = n.cognition;
+  COG.modifiers = (W, n, id, SAcc) => {
+    const out = SAcc ? null : [], push = SAcc ? ((why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) SAcc.add(why, clamp(x, -2, 2)); }) : ((why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }), s = n.h.state, c = n.cognition;
     let mc = n._cogModCtx;
-    const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, curGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, cpNow = n.cp || 0;
-    const postsRef = W.sect && W.sect.posts;
-    const pSig = postsRef ? (postsRef.commander || '') + '|' + (postsRef.alchemy || '') + '|' + (postsRef.forge || '') + '|' + (postsRef.treasury || '') + '|' + (postsRef.healer || '') + '|' + (postsRef.martial || '') + '|' + (postsRef.scripture || '') + '|' + (postsRef.mission || '') + '|' + (postsRef.guard || '') + '|' + (postsRef.registry || '') + '|' + (postsRef.discipline || '') + '|' + (W.sect.masterId || '') + '|' + (W.sect.deputyId || '') : '';
-    if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pSig !== pSig) {
+    if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
+      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
+      const postsRef = W.sect && W.sect.posts;
+      const pCmd = postsRef ? postsRef.commander : null, pAlc = postsRef ? postsRef.alchemy : null, pFrg = postsRef ? postsRef.forge : null, pMas = W.sect ? W.sect.masterId : null;
+      if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -84756,7 +86075,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           : curGoal.id === 'service' ? ['duty']
           : curGoal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge']
           : curGoal.id === 'rival' ? TRAIN
-          : curGoal.id === 'breakthrough' ? ['cultivate', 'breakthrough', 'shop', 'pray', 'paidTraining']
+          : curGoal.id === 'track_bottleneck' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions) || ['skillDrill', 'practice', 'pair', 'shop', 'mine', 'forage'])
+          : curGoal.id === 'breakthrough' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions.concat(['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray'])) || ['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray', 'paidTraining'])
           : curGoal.id === 'help_friend' ? ['shareMedicine', 'giftItem', 'personalBrew', 'shop']
           : curGoal.id === 'mentor_disciple' ? ['pair', 'duty']
           : curGoal.id === 'social_bond' ? ['pair', 'leisure', 'giftItem']
@@ -84808,7 +86128,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pSig, poMods,
+        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -84816,13 +86136,22 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         hour: hour0, night: hour0 >= 21 || hour0 < 5,
         socEvening: (hour0 >= 17 && hour0 < 21) ? E(n, 'temperament.sociability') / 300 : 0,
         freeVal: E(n, 'values.freedom') / 100,
+        hasSevInj: !!(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)),
+        hasTrackBnWindow: !!(safe0 && n.cult && n.cult.track && n.cult.track.ordinal < 9 && !(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)) && !(curGoal && (curGoal.id === 'crisis' || curGoal.id === 'help_friend' || curGoal.id === 'recovery')) && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.65)),
         weatherPen: (['rain', 'snow'].includes(W.weather?.kind)) ? (-0.12 - E(n, 'personality.caution') / 800) : 0
       };
+      }
+      if (SAcc && mc) mc._decTick = W.t;
     }
-    const r = mc.r, goal = curGoal;
+    const r = mc.r, goal = mc.goalRef;
     if (!mc.safe) {
-      if (['heal', 'sleep', 'eat', 'personalPillUse', 'shop'].includes(id)) push('ร่างกายเร่งด่วนสำคัญกว่างานหรือความชอบ', 2.4);
-      if (['wildHunt', 'paidTraining', 'practice', 'personalBrew', 'duty', 'flatter', 'giftItem'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
+      const lowHp = s.hp / CULT.hpMax(n) < 0.35;
+      const lowFood = s.satiety < 20;
+      const lowRest = s.rest < 8;
+      if ((lowRest && id === 'sleep') || (lowFood && id === 'eat') || (lowHp && ['heal', 'personalPillUse', 'shop', 'sleep'].includes(id))) {
+        push('ร่างกายเร่งด่วนสำคัญกว่างานหรือความชอบ', 2.4);
+      }
+      if (['wildHunt', 'paidTraining', 'practice', 'skillDrill', 'personalBrew', 'duty', 'flatter', 'giftItem'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
       return out;
     }
     const duty = mc.duty;
@@ -84839,13 +86168,36 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       if (mc.goalActs && mc.goalActs.includes(id)) push('เป้าหมาย: ' + goal.title, mc.goalVal);
       if (id === 'shop' && mc.goalShopPen) push('เก็บแต้มไว้เรียนวิชาที่ตั้งใจ', mc.goalShopPen);
     }
+    if (mc.hasSevInj) {
+      if (id === 'heal' || id === 'personalPillUse') push('รักษาบาดแผลหนักที่ขัดขวางการฝึก/ทำงาน', 1.35);
+      else if (id === 'shop' && W.sect && W.sect.stock && (W.sect.stock['P:BASIC_WOUND'] > 0)) push('ซื้อโอสถสมานแผลรักษาอาการบาดเจ็บ', 0.85);
+    }
+    if (n.cult && (n.cult.toxic || 0) >= 45 && (id === 'personalPillUse' || id === 'shop' || id === 'personalBrew')) {
+      push('ขับพิษโอสถสะสมในเส้นลมปราณ', 0.62);
+    }
+    if ((s.heartDemon || 0) >= 45 && (id === 'pray' || id === 'consolidate' || id === 'personalPillUse') && (!n.cult || n.cult.path !== 'DEMON' || s.heartDemon >= 68)) {
+      push('สงบจิตมารที่รบกวนตบะ', 0.62);
+    }
+    if (id === 'forge' && W.sect && W.sect._hasCatalysts && !(W.sect.orders && W.sect.orders.forge) && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n)) {
+      push('ขัดเกลาศาสตรา T4–T6 ด้วยผลึกโบราณ', 0.52);
+    }
+    if (mc.hasTrackBnWindow) {
+      const bn = mc._bn !== undefined ? mc._bn : (mc._bn = CULT.inspectProgressionBottleneck ? CULT.inspectProgressionBottleneck(W, n) : null);
+      if (bn && bn.track && bn.track.active && !bn.track.gateOk && bn.track.feasibleActions.includes(id)) {
+        const nf = clamp(Math.min(s.satiety / 35, s.rest / 25, s.energy / 28), 0.2, 1);
+        push('เร่งแก้คอขวดสายเฉพาะทาง', (bn.track.ready ? 0.68 : 0.45) * bn.driveMult * nf);
+      }
+    }
     if (c && c.cluePrep && c.cluePrep.until > W.t && c.cluePrep.recommendedAction === id) {
       push('เตรียมความพร้อมเพื่อสืบเบาะแส', 0.28);
     }
     // Office plans & actionable orders (cached per tick + live post signature)
     const poList = mc.poMods && mc.poMods[id];
     if (poList) {
-      for (let i = 0; i < poList.length; i++) out.push(poList[i]);
+      for (let i = 0; i < poList.length; i++) {
+        if (SAcc) SAcc.add(poList[i][0], poList[i][1]);
+        else out.push(poList[i]);
+      }
     }
     const hour = mc.hour, night = mc.night, discipline = mc.disc;
     if (night && (id === 'duty' || id === 'farm' || id === 'mine' || id === 'forage')) push('ยามดึกควรพัก', -0.25 * discipline);
@@ -84871,6 +86223,19 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     }
   };
 
+  COG.isContinuingProductiveWork = (W, n, id) => {
+    if (!W || !n || !safe(n)) return false;
+    const lastAct = n.recent && n.recent.length ? n.recent[n.recent.length - 1] : null;
+    if (lastAct !== id) return false;
+    if (id === 'study' && n.cult && n.cult.learning && n.cult.learning.got > 0 && n.cult.learning.got < n.cult.learning.need) return true;
+    if ((id === 'skillDrill' || id === 'practice') && n.cult && n.cult.track && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.65) && CULT.checkTrackGates && !CULT.checkTrackGates(W, n).skillOk && !(n.inj && n.inj.some(i => i.sev >= 2))) return true;
+    if (id === 'consolidate' && n.cult && n.cult.bn && n.cult.bn.plan === 'wait' && (n.cult.found || 0) < 0.08) return true;
+    if (id === 'heal' && ((n.inj && n.inj.length > 0) || n.h.state.hp < CULT.hpMax(n) * 0.78)) return true;
+    const gObj = n.cognition && n.cognition.goal;
+    if (gObj && gObj.id === 'crisis' && ((gObj.targetId === 'meal' && (id === 'cook' || id === 'farm')) || (gObj.targetId === 'grain' && id === 'farm'))) return true;
+    return false;
+  };
+
   // Decompose or suspend on block rather than blindly destroying valid multi-step goals
   COG.blocked = (W, n, id) => {
     const c = n.cognition;
@@ -84878,6 +86243,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     const gId = c.goal.id;
     const isGoalAct = (gId === "scripture" && (id === "study" || id === "guidedStudy")) ||
       (gId === "gear_upgrade" && id === "shop") ||
+      (gId === "track_bottleneck" && ["skillDrill", "practice", "pair", "shop", "mine", "forage"].includes(id)) ||
       (gId === "breakthrough" && (id === "cultivate" || id === "breakthrough" || id === "paidTraining")) ||
       (gId === "craft" && (id === "personalBrew" || id === "brew" || id === "brewBasic" || id === "forge")) ||
       (gId === "service" && id === "duty") ||
@@ -84927,6 +86293,18 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (goal.id === 'service') {
       const planActs = (W.sect.officePlans && W.sect.officePlans[goal.targetId]?.actions) || ['duty'];
       return actionId === 'duty' || planActs.includes(actionId);
+    }
+    if (goal.id === 'track_bottleneck') {
+      if (!['skillDrill', 'practice', 'pair', 'study', 'guidedStudy', 'shop', 'outsideTrade', 'mine', 'forage', 'gatherWildResource', 'donate', 'errand', 'heal', 'personalPillUse'].includes(actionId)) return false;
+      if (CULT.checkTrackGates && n.cult && n.cult.track) {
+        const tg = CULT.checkTrackGates(W, n);
+        if (tg.ok) return true;
+        let curSum = 0;
+        for (let i = 0; i < (tg.missingSkills || []).length; i++) curSum += tg.missingSkills[i].current || 0;
+        if (curSum > (snap.bnSkillSum || 0)) return true;
+      }
+      if (((n.inv && n.inv.stones) || 0) > (snap.stones || 0) || (n.cp || 0) > (snap.cp || 0)) return true;
+      return ['skillDrill', 'practice', 'pair', 'mine', 'forage'].includes(actionId);
     }
     if (goal.id === 'rival') {
       return TRAIN.includes(actionId) || actionId === 'pair' || actionId === 'wildHunt';
@@ -85579,6 +86957,125 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   /* ============================================================================
    * 9. READ-ONLY EXPLANATION FOR UI & INSPECTION (PURE — ZERO RNG, ZERO MUTATION)
    * ============================================================================ */
+  COG.evaluateSituationalAwareness = (W, n) => {
+    if (!W || !n || !n.h) return { activeCircumstances: [], excludedCircumstances: [], competingPriorities: [], practicalBlockers: [] };
+    const activeCircumstances = [];
+    const excludedCircumstances = [];
+    const competingPriorities = [];
+    const practicalBlockers = [];
+    const s = n.h.state, curAct = n.act ? n.act.id : 'idle';
+    const hpMax = CULT.hpMax(n);
+    const r = COG.role(W, n);
+    const goal = n.cognition && n.cognition.goal && !complete(W, n, n.cognition.goal) ? n.cognition.goal : null;
+
+    // 1. Vital & Health Needs
+    if (s.hp < hpMax * 0.4 || (n.inj && n.inj.length)) {
+      const sev = (n.inj && n.inj.length) ? Math.max(...n.inj.map(i => i.sev || 1)) : 1;
+      const isHealing = ['heal', 'personalPillUse', 'sleep'].includes(curAct);
+      activeCircumstances.push({ kind: 'injury_or_low_hp', summaryTh: 'บาดเจ็บ/พลังชีวิตต่ำ (ระดับความรุนแรง ' + sev + ')', targetActions: ['heal', 'personalPillUse'], isAddressingNow: isHealing });
+      if (!safe(n) || sev >= 2) competingPriorities.push('ต้องรักษาอาการบาดเจ็บก่อนทำงานหรือฝึกยุทธ์หนัก');
+    }
+    if (s.satiety < 24) {
+      competingPriorities.push('ความหิวเร่งด่วน (' + Math.round(s.satiety) + '/100)');
+      activeCircumstances.push({ kind: 'hunger', summaryTh: 'หิวโหย ต้องรับประทานอาหาร', targetActions: ['eat'], isAddressingNow: curAct === 'eat' });
+    }
+    if (s.rest < 14) {
+      competingPriorities.push('ความอ่อนล้าเร่งด่วน (' + Math.round(s.rest) + '/100)');
+      activeCircumstances.push({ kind: 'exhaustion', summaryTh: 'อ่อนล้าสะสม ต้องนอนพักผ่อน', targetActions: ['sleep'], isAddressingNow: curAct === 'sleep' });
+    }
+
+    // 2. Progression Bottleneck
+    const bn = (n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null;
+    if (bn && bn.active) {
+      if (bn.competingNeed) {
+        excludedCircumstances.push({ kind: 'bottleneck_deferred', reasonTh: 'ชะลอการแก้คอขวดชั่วคราวเพราะ' + bn.competingNeed });
+      } else {
+        activeCircumstances.push({
+          kind: bn.kind === 'track' ? 'track_bottleneck' : 'major_bottleneck',
+          summaryTh: bn.explanationTh,
+          targetActions: bn.feasibleActions.slice(0, 4),
+          isAddressingNow: !!bn.isActivelyResolving
+        });
+      }
+      if (bn.blockerReasonTh) practicalBlockers.push(bn.blockerReasonTh);
+      else if (Array.isArray(bn.blockedReasons)) {
+        for (let i = 0; i < Math.min(2, bn.blockedReasons.length); i++) practicalBlockers.push(bn.blockedReasons[i]);
+      }
+    }
+
+    // 3. Library Manuals & Bounded Awareness
+    if (W.sect && Array.isArray(W.sect.library) && W.sect.library.length && n.cult) {
+      const hiddenFromNpc = W.sect.library.filter(id => !COG.isAwareOf(W, n, 'library_tech', id));
+      if (hiddenFromNpc.length) {
+        excludedCircumstances.push({ kind: 'unperceived_manual', reasonTh: 'ยังไม่รับรู้คัมภีร์ใหม่ในหอคัมภีร์ (' + hiddenFromNpc.length + ' เล่ม) เนื่องจากยังไม่ได้แวะหอคัมภีร์หรือศูนย์ข่าวสาร' });
+      }
+      const nextT = g.AI && g.AI.nextTechToStudy ? g.AI.nextTechToStudy(W, n) : null;
+      if (nextT) {
+        activeCircumstances.push({
+          kind: 'accessible_technique',
+          summaryTh: 'รับรู้คัมภีร์ที่เรียนได้「' + nextT.nameTh + '」',
+          targetActions: ['study', 'guidedStudy'],
+          isAddressingNow: curAct === 'study' || curAct === 'guidedStudy'
+        });
+      }
+    }
+
+    // 4. Ancestral Shrine Legacy Tablets
+    if (W.sect && Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length && n.cult) {
+      if (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t)) {
+        activeCircumstances.push({
+          kind: 'ancestral_blessing_active',
+          summaryTh: 'ได้รับพรบรรพชนจาก「' + n.ancestralBlessing.elderNameTh + '」(เร่งศึกษา ×' + n.ancestralBlessing.studySpeedMult + ' · ทะลวง +' + Math.round(n.ancestralBlessing.breakthroughBonus * 100) + '%)',
+          targetActions: ['cultivate', 'study', 'breakthrough'],
+          isAddressingNow: ['cultivate', 'study', 'breakthrough'].includes(curAct)
+        });
+      } else {
+        const tabs = W.sect.legacyTablets;
+        const match = tabs.some(t => t.sub === n.cult.sub || t.path === n.cult.path || t.npcId === n.mentor);
+        const needBlessing = !!(n.cult.bn || CULT.ready(n) || (n.cult.track && CULT.trackReady && CULT.trackReady(n)) || n.cult.learning || (s.heartDemon || 0) >= 35);
+        if (match && needBlessing) {
+          activeCircumstances.push({
+            kind: 'ancestral_blessing_opportunity',
+            summaryTh: 'มีป้ายวิญญาณบรรพชนตรงสายพร้อมขอพรหนุนการทะลวงขั้น/ศึกษาวิชา',
+            targetActions: ['pray'],
+            isAddressingNow: curAct === 'pray'
+          });
+        } else {
+          excludedCircumstances.push({
+            kind: 'ancestral_tablet_not_needed',
+            reasonTh: match ? 'มีป้ายวิญญาณบรรพชนแต่ยังไม่ติดคอขวดหรือเรียนวิชาสำคัญ' : 'ป้ายวิญญาณบรรพชนในศาลต่างวิถีและยังไม่มีความจำเป็นเร่งด่วน'
+          });
+        }
+      }
+    }
+
+    // 5. Sanctum Catalyst Gear Refinement
+    if (ECO.findCatalystRefinementCandidate) {
+      const rc = ECO.findCatalystRefinementCandidate(W, n);
+      if (rc) {
+        activeCircumstances.push({
+          kind: 'catalyst_refinement_ready',
+          summaryTh: 'มีผลึกโบราณ「' + rc.cat.nameTh + '」พร้อมขัดเกลา「' + rc.gear.nameTh + '」',
+          targetActions: ['forge'],
+          isAddressingNow: curAct === 'forge'
+        });
+      }
+    }
+
+    // 6. Office Duties & Sect Crises
+    if (r.id !== 'member') {
+      competingPriorities.push('หน้าที่ประจำตำแหน่ง: ' + r.title);
+    }
+    if (W.threat && (W.threat.raid || W.threat.alert > 0)) {
+      competingPriorities.push(W.threat.raid ? 'สำนักกำลังถูกโจมตี ต้องป้องกันสำนัก' : 'สำนักอยู่ในภาวะเฝ้าระวังภัยคุกคาม');
+    }
+    if (goal && goal.blocked) {
+      practicalBlockers.push(goal.blockReason || goal.missingPrereq || 'ติดเงื่อนไขเป้าหมาย');
+    }
+
+    return { activeCircumstances, excludedCircumstances, competingPriorities, practicalBlockers };
+  };
+
   COG.explain = (W, n) => {
     const c = n.cognition, r = COG.role(W, n), goal = c?.goal && !complete(W, n, c.goal) ? c.goal : null, last = c?.trace?.at(-1);
     const aspRanked = COG.evaluateAspirations(W, n);
@@ -85642,6 +87139,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       estimates,
       actionId: last?.actionId || n.act?.id || null,
       reasons: (last?.reasons || n.why || []).map(x => x.slice()),
+      bottleneck: (n && n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null,
+      situational: COG.evaluateSituationalAwareness(W, n),
       officeDecision: c?.officeDecision ? { ...c.officeDecision } : null
     };
   };
@@ -86036,14 +87535,14 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     nameTh: 'ล่าอสูรใกล้สำนัก',
     icon: '🐺',
     color: '#b67862',
-    can: (n, W) => !!(W.wildlife && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > CULT.hpMax(n) * 0.6 && W.wildlife.beasts.some(b => !b.dead && !b.gone && !b.fighting && CULT.power(n) >= b.power * 0.8)),
+    can: (n, W) => { if (!(W.wildlife && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > CULT.hpMax(n) * 0.6)) return false; const npw = CULT.power(n); return W.wildlife.beasts.some(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8); },
     score(n, W, S) {
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
       S.add('ต้องการวัตถุดิบ', 0.35);
       if (n.rank <= 2) S.add('ฝึกฝนความกล้า', 0.2);
     },
     where(W, n) {
-      const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && CULT.power(n) >= b.power * 0.8);
+      const npw = CULT.power(n); const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8);
       candidates.sort((a,b)=>g.COG?g.COG.huntValue(W,n,b)-g.COG.huntValue(W,n,a):Math.hypot(n.x-a.x,n.y-a.y)-Math.hypot(n.x-b.x,n.y-b.y));
       const b = candidates[0];
       return b ? { pos: { x: b.x, y: b.y }, beastId: b.id } : null;
@@ -94139,7 +95638,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         s.mood = Math.min(100, s.mood + 0.08);
         s.novelty = Math.min(100, s.novelty + 0.07);
         s.energy = Math.max(10, s.energy - 0.025);
-        { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, +(fk.skill + 0.015).toFixed(3)); }
+        { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, Math.round((fk.skill + 0.015) * 1000) / 1000); }
         (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'survival', 1 / 180, 0.6);
 
         // ทุก ๆ 45 นาทีของการตกปลา ทอยโอกาสปลากินเบ็ดตามทักษะและความอุดมสมบูรณ์ของแหล่งน้ำ
@@ -94195,7 +95694,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           AI.vf(n, { freedom: 0.03 });
         }
         if (ctx.mode === 'fish') {
-          { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, +(fk.skill + 0.01).toFixed(3)); }
+          { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, Math.round((fk.skill + 0.01) * 1000) / 1000); }
           if (W.t % 65 === 0) {
             const f = FISHING.ensure(W);
             const zid = ctx.zoneId || (ctx.st && ctx.st.zoneId) || 'spirit_pond';
@@ -94245,8 +95744,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   if (AI && AI.needs) {
     const origNeeds = AI.needs;
     AI.needs = function (W, n) {
-      origNeeds.apply(this, arguments);
-      FISHING.tickFoodBuff(W, n);
+      origNeeds(W, n);
+      if (n.foodBuff) FISHING.tickFoodBuff(W, n);
     };
   }
 
@@ -97759,7 +99258,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     while ($('toasts').children.length > 4) $('toasts').removeChild($('toasts').firstChild);
     setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = 0; setTimeout(() => el.remove(), 450); }, 5200);
   };
-  UI.onLog = e => { if (TOAST_TYPES.includes(e.type) && !UI.G.muted) { if (e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (UI.G.speed <= 16)) UI.toast(e.text, e.type, e.ids[0]); } };
+  UI.onLog = e => { if (TOAST_TYPES.includes(e.type) && !UI.G.muted) { const sp = UI.G.speed; if (e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (sp > 0 && sp <= 16)) { const now = performance.now(); if (sp === 0 && now - (UI._lastBatchToast || 0) < 40) return; UI._lastBatchToast = now; UI.toast(e.text, e.type, e.ids[0]); } } };
 
   /* ---------- แผ่นข้อมูล ---------- */
   UI.close = () => { UI.sheet = null; UI.tab = null; $('sheet').classList.remove('show'); document.querySelectorAll('#hudBottom button').forEach(b => b.classList.remove('on')); if (!UI.G.W) $('start').classList.remove('hidden'); UI.updateHud(true); };
@@ -99320,6 +100819,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (inside.length) h += '<h3>อยู่ข้างใน (' + inside.length + ')</h3>' + inside.map(n => '<div class="prow" data-npc="' + n.id + '">' + portraitHtml(n, 36) + '<div class="pi"><div class="nm">' + esc(HC.fullName(n)) + '</div><div class="sub">' + esc(actText(n)) + '</div></div></div>').join('');
     if (around.length) h += '<h3>อยู่บริเวณนี้ (' + around.length + ')</h3>' + around.map(n => '<div class="prow" data-npc="' + n.id + '">' + portraitHtml(n, 36) + '<div class="pi"><div class="nm">' + esc(HC.fullName(n)) + '</div><div class="sub">' + esc(actText(n)) + '</div></div></div>').join('');
     if (b.type === 'alchemy' || b.type === 'forge') { const o = W.sect.orders && W.sect.orders[b.id]; const r = o ? ECO.recipeById[o.rid] : null; h += '<h3>คำสั่งผลิตปัจจุบัน</h3><div class="card">' + (r ? esc(r.outNameTh) + ' — ' + esc(o.why || '') : 'ไม่มี') + '</div>'; }
+    if (b.id === 'ancestral' || b.id === 'shrine' || b.type === 'ancestral') {
+      const tablets = (SECT.ensureLegacyTablets ? SECT.ensureLegacyTablets(W) : (W.sect.legacyTablets || []));
+      h += '<h3>🕯️ ป้ายวิญญาณมรดกบรรพชน (' + tablets.length + ')</h3><div class="card">' + (tablets.length ? tablets.map(t => '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>🕯️ ' + esc(t.nameTh) + '</b> <span class="chip g">' + esc(t.subpathNameTh || t.path) + '</span><div class="muted" style="font-size:11.5px">วิชาเอก: ' + esc(t.signatureTechNameTh || '-') + ' · พรทะลวงขั้น +' + Math.round((t.breakthroughBonus || 0) * 100) + '% · เร่งเข้าใจคัมภีร์ +' + Math.round((t.comprehensionBonus || 0) * 100) + '% · สักการะแล้ว ' + (t.prayersCount || 0) + ' ครั้ง</div></div>').join('') : '<span class="muted">ยังไม่มีป้ายวิญญาณมรดกของผู้อาวุโสระดับสูง</span>') + '</div>';
+    }
     return h;
   };
 
@@ -99402,7 +100905,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       h += '<h3>🏯 ขั้วอำนาจและสำนักเพื่อนบ้าน (' + W.world.sects.length + ')</h3>';
       h += W.world.sects.map(s => {
         const trLabel = (C && C.TREATY_TH && C.TREATY_TH[s.treaty || 'NONE']) || (s.treaty || 'NONE');
-        const trChip = s.treaty === 'ALLIANCE' ? 'ok' : s.treaty === 'TRADE_PACT' ? 'g' : s.treaty === 'NON_AGGRESSION' ? 'b' : s.treaty === 'EMBARGO' ? 'r' : '';
+        const trChip = ['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(s.treaty) ? 'ok' : ['TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) ? 'g' : s.treaty === 'NON_AGGRESSION' ? 'b' : ['EMBARGO','RIVAL_FEUD'].includes(s.treaty) ? 'r' : '';
         const specs = Array.isArray(s.specialtyMatIds) ? s.specialtyMatIds.map(id => esc(ECO.name(id))).join(' · ') : '';
         return '<div class="card"><b>' + esc(s.icon || '🏯') + ' ' + esc(s.nameTh) + '</b> <span class="chip">' + esc(s.style) + '</span>' + (s.alignmentLabelTh ? ' <span class="chip v">' + esc(s.alignmentLabelTh) + '</span>' : '') + ' <span class="chip ' + trChip + '">📜 ' + esc(trLabel) + '</span>' + bar('ท่าทีต่อเรา', s.attitude + 100, { max: 200, txt: Math.round(s.attitude), wide: true, color: s.attitude > 20 ? '#5fd38a' : s.attitude < -20 ? '#e0584a' : '#e8c43a' }) + '<div class="muted">กำลัง ' + s.power + ' · อิทธิพล ' + (s.influence || 70) + (s.leaderNameTh ? ' · ประมุข: ' + esc(s.leaderNameTh) : '') + ' · ติดต่อล่าสุด ' + (s.contact ? 'วันที่ ' + s.contact : 'ยังไม่เคย') + '</div>' + (specs ? '<div class="muted">สินค้า/ทรัพยากรเฉพาะถิ่น: ' + specs + '</div>' : '') + '</div>';
       }).join('');
@@ -99803,6 +101306,17 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     h += '<h3>📖 สมุดบันทึกแดนหมื่นพิภพ</h3><div class="muted" style="margin-bottom:6px">แต่ละโลกมี “กองของ” ที่สุ่มเจอ ไม่จำเป็นต้องเจอครบ ช่อง ??? คือสิ่งที่ยังไม่เคยพบ</div>';
     h += EXP.WORLDS.map(w => { const c = e.codex.worlds[w.id], seen = !!c; const got = w.loot.filter(l => e.codex.found[l.id]).length; return '<div class="card"><b>' + (seen ? w.icon + ' ' + esc(w.nameTh) : '❓ โลกที่ยังไม่เคยเห็น') + '</b> ' + (seen ? '<span class="chip">เข้าแล้ว ' + (c.visits || 0) + ' ครั้ง</span><span class="chip b">ของที่พบ ' + got + '/' + w.loot.length + '</span>' : '') + (seen ? '<div class="muted">' + esc(w.desc) + '</div><div>' + w.loot.map(l => e.codex.found[l.id] ? '<span class="chip ' + (l[5] >= 4 ? 'g' : l[5] >= 3 ? 'v' : 'ok') + '">' + esc(l[2]) + ' ×' + e.codex.found[l.id].n + '</span>' : '<span class="chip" style="opacity:.5">???</span>').join('') + '</div>' : '') + '</div>'; }).join('');
     h += '<h3>🕳️ ของที่พบในถ้ำ</h3><div class="card">' + EXP.CAVE_BANDS.map(b => '<div class="muted">' + esc(b.nameTh) + ' (ชั้น ' + b.from + '–' + b.to + ')</div><div>' + b.loot.map(l => e.codex.found[l.id] ? '<span class="chip ok">' + esc(l[2]) + ' ×' + e.codex.found[l.id].n + '</span>' : '<span class="chip" style="opacity:.5">???</span>').join('') + '</div>').join('') + '</div>';
+    if (EXP.SANCTUMS) {
+      const sState = EXP.ensureSanctums ? EXP.ensureSanctums(W) : { clearedFloors: {}, catalystsFound: 0 };
+      const cats = ECO.ensureCatalysts ? ECO.ensureCatalysts(W) : {};
+      h += '<h3>🏛️ วิหารโบราณหลายชั้นและหินขัดเกลาชุดสัจธรรม</h3><div class="card">';
+      h += Object.values(EXP.SANCTUMS).map(sc => '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + sc.icon + ' ' + esc(sc.nameTh) + '</b> <span class="chip ok">ผ่านด่าน ' + (sState.clearedFloors[sc.id] || 0) + '/3 ชั้น</span><div class="muted" style="font-size:11.5px">' + esc(sc.descTh) + '</div></div>').join('');
+      const catList = Object.values(ECO.REFINEMENT_CATALYSTS || {});
+      if (catList.length) {
+        h += '<div style="margin-top:6px"><b>✨ ศิลาขัดเกลาศาสตราในคลัง:</b> ' + catList.map(c => '<span class="chip g">' + esc(c.nameTh) + ' ×' + (cats[c.id] || 0) + '</span>').join(' ') + '</div>';
+      }
+      h += '</div>';
+    }
     if (e.codex.notes.length) h += '<h3>บันทึกการค้นพบ</h3><div class="card">' + e.codex.notes.slice().reverse().slice(0, 20).map(n => '<div class="logrow"><span class="tm">' + dayStamp(n.d * 1440) + '</span>' + esc(n.text) + '</div>').join('') + '</div>';
     return h;
   };
@@ -100403,7 +101917,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         const t = CULT.tech(id);
         if (!t) return '';
         const ex = g.ELEM ? g.ELEM.explainCompatibility(n, t, 'COMBAT_SKILL') : null;
-        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(t.cat || 'วิชา') + ')</span></div>' + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
+        const tc = (M && M.resolveTechCompatibility) ? M.resolveTechCompatibility(n, t) : null;
+        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(t.cat || 'วิชา') + ')</span></div>' + (tc ? '<div class="muted" style="font-size:11px;color:#b8d8ff">⚖ ' + esc(tc.summaryTh) + '</div>' : '') + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่ได้เรียนรู้วิชาใด</div>';
@@ -100426,7 +101941,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const trR = CULT.trackRealm(n);
       const trTh = CULT.trackThreshold(n);
       const trGate = CULT.checkTrackGates(W, n);
-      h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)"><b>🌿 ขั้นสายเฉพาะ: ' + esc(trR ? trR.nameTh : '') + ' (ลำดับ ' + tr.ordinal + '/9)</b>' + (trTh !== Infinity ? bar('ความก้าวหน้าสายเฉพาะ', tr.prog / trTh * 100, { wide: true, txt: Math.round(tr.prog) + '/' + trTh, color: '#7fd1b9' }) : '') + '<div class="muted" style="font-size:11.5px">เทียบเคียงขั้นหลัก: <b>' + (trR ? trR.majorBandEquivalent.toFixed(1) : '') + '</b> · พลังรบเฉพาะทางเทียบเคียง: <b>' + (trR ? trR.functionalCombatPower : '') + ' CP</b></div><div style="font-size:12px;margin-top:4px">' + (tr.ordinal >= 9 ? '<span class="chip ok">บรรลุขั้น 9 สูงสุดแล้ว</span>' : trGate.ok ? '<span class="chip ok">✔ ผ่านเกณฑ์ทักษะและศิลา พร้อมทะลวงขั้นถัดไป</span>' : '<span class="chip r">🔒 ' + esc(trGate.reason) + '</span>') + '</div></div>';
+      h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)"><b>🌿 ขั้นสายเฉพาะ: ' + esc(trR ? trR.nameTh : '') + ' (ลำดับ ' + tr.ordinal + '/9)</b>' + (trTh !== Infinity ? bar('ความก้าวหน้าสายเฉพาะ', tr.prog / trTh * 100, { wide: true, txt: Math.round(tr.prog) + '/' + trTh, color: '#7fd1b9' }) : '') + '<div class="muted" style="font-size:11.5px">เทียบเคียงขั้นหลัก: <b>' + (trR ? trR.majorBandEquivalent.toFixed(1) : '') + '</b> · พลังรบเฉพาะทางเทียบเคียง: <b>' + (trR ? trR.functionalCombatPower : '') + ' CP</b></div><div style="font-size:12px;margin-top:4px">' + (tr.ordinal >= 9 ? '<span class="chip ok">บรรลุขั้น 9 สูงสุดแล้ว</span>' : trGate.ok ? '<span class="chip ok">✔ ผ่านเกณฑ์ทักษะและศิลา พร้อมทะลวงขั้นถัดไป</span>' : '<span class="chip r">🔒 ' + esc(trGate.reason) + '</span>' + (CULT.inspectProgressionBottleneck ? (() => { const bni = CULT.inspectProgressionBottleneck(W, n); return (bni && bni.track && bni.track.active) ? '<div class="muted" style="margin-top:3px;color:var(--gold)">⚡ ' + esc(bni.track.statusTh) + '<br><span style="font-size:11px">' + esc(bni.track.statusEn) + '</span></div>' : ''; })() : '')) + '</div></div>';
     } else {
       h += '<div class="muted" style="margin-top:6px">ยังไม่ได้เปิดขั้นสายเฉพาะทาง (ต้องใช้คัมภีร์หรือผลึกสายย่อย)</div>';
     }
@@ -100498,6 +102013,21 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           h += '<div class="muted" style="font-size:11.5px">↳ ขั้นตอนย่อย: ' + esc(mind.goal.stepTitle) + '</div>';
         }
         if (!n.dead && mind.goal?.blocked) h += '<div class="muted" style="color:var(--gold)">⚠ เงื่อนไขที่ติดขัด: ' + esc(mind.goal.blocked) + '</div>';
+        if (!n.dead && mind.bottleneck && mind.bottleneck.active) {
+          h += '<div class="muted" style="margin-top:4px;color:var(--gold);font-size:11.5px">🚧 <b>การคลี่คลายคอขวด:</b> ' + esc(mind.bottleneck.explanationTh) + (mind.bottleneck.explanationEn ? ' <span class="muted">(' + esc(mind.bottleneck.explanationEn) + ')</span>' : '') + '</div>';
+        }
+        if (!n.dead && mind.situational) {
+          const sit = mind.situational;
+          if (sit.activeCircumstances && sit.activeCircumstances.length) {
+            h += '<div class="muted" style="margin-top:4px;font-size:11.5px">🧭 <b>การรับรู้และตอบสนองต่อสถานการณ์:</b> ' + sit.activeCircumstances.map(a => esc(a.summaryTh) + (a.isAddressingNow ? ' <span class="chip ok">กำลังทำ</span>' : '')).join(' · ') + '</div>';
+          }
+          if (sit.competingPriorities && sit.competingPriorities.length) {
+            h += '<div class="muted" style="margin-top:3px;font-size:11.5px">⚖️ <b>ความสำคัญที่แข่งกันอยู่:</b> ' + sit.competingPriorities.map(esc).join(' · ') + '</div>';
+          }
+          if (sit.practicalBlockers && sit.practicalBlockers.length) {
+            h += '<div class="muted" style="margin-top:3px;color:var(--gold);font-size:11.5px">⛔ <b>ข้อจำกัดในทางปฏิบัติ:</b> ' + sit.practicalBlockers.map(esc).join(' · ') + '</div>';
+          }
+        }
         if (!n.dead && mind.suspendedGoal) h += '<div class="muted" style="font-size:11.5px">⏸ แผนที่พักไว้ชั่วคราว: ' + esc(mind.suspendedGoal.title) + ' (' + esc(mind.suspendedGoal.reason) + ')</div>';
         if (!n.dead && mind.commitment) {
           const partner = W.byId[mind.commitment.partnerId];
@@ -100523,6 +102053,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         const bf = (n.buffs || []).filter(b => b.until > W.t), sx = (n.sx || []).filter(x => x.until > W.t);
         const fb = (g.FISHING && g.FISHING.activeFoodBuff) ? g.FISHING.activeFoodBuff(W, n) : null;
         if (bf.length) h += '<div style="margin-top:6px">💊 ' + bf.map(b => '<span class="chip b">' + esc(b.name) + ' (' + Math.max(0, Math.round(b.until - W.t)) + ' นาที)</span>').join('') + '</div>';
+        if (n.ancestralBlessing && (!n.ancestralBlessing.untilDay || n.ancestralBlessing.untilDay >= W.day)) {
+          const ab = n.ancestralBlessing;
+          h += '<div style="margin-top:6px">🕯️ <span class="chip g">พรบรรพชน「' + esc(ab.elderNameTh) + '」</span> <span class="muted" style="font-size:11.5px">ทะลวงขั้น +' + Math.round((ab.breakthroughBonus || 0) * 100) + '% · เรียนวิชา ×' + (ab.studySpeedMult || 1).toFixed(2) + (ab.injuryShield ? ' · คุ้มครองตบะย้อนกลับ' : '') + '</span></div>';
+        }
         if (fb) h += '<div style="margin-top:6px">🍲 <span class="chip ok">' + esc(fb.nameTh) + ' (' + Math.max(0, Math.round(fb.until - W.t)) + ' นาที)</span> <span class="muted" style="font-size:11.5px">' + esc(fb.descTh || '') + '</span></div>';
         if (sx.length) h += '<div style="margin-top:6px">' + sx.map(x => { const S = g.SK.STATUS[x.k]; return S ? '<span class="chip">' + S.icon + ' ' + esc(S.nameTh) + '</span>' : ''; }).join('') + '</div>';
         if (g.COMBAT && g.COMBAT.explainTactics) {

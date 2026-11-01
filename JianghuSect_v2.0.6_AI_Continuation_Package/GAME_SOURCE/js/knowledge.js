@@ -199,7 +199,9 @@ M.eligible=(n,key,opts)=>{
   return {ok:false,reason:'วิชาเฉพาะสายย่อยติดตัวไม่สามารถเรียนรู้จากคัมภีร์หรือผลึกภายนอก'};
  }
  const k=M.knowledge(key),c=n&&n.cult;if(!k||!c)return {ok:false,reason:'ยังไม่เปิดวิถีบำเพ็ญ'};
- if(k.path!=='ANY'&&k.path!==c.path)return {ok:false,reason:'ต่างวิถีหลัก'};
+ const tCheck=k.kind==='tech'?CULT.tech(k.id):null;
+ const allowCross=!!(tCheck&&(tCheck.legendary||!(CULT.isExclusiveSubpathTech&&CULT.isExclusiveSubpathTech(tCheck))));
+ if(k.path!=='ANY'&&k.path!==c.path&&(k.kind==='sub'||!allowCross))return {ok:false,reason:'ต่างวิถีหลัก'};
  const effStage=CULT.effectiveTechStage?CULT.effectiveTechStage(n):c.stage;
  if(effStage<k.tier)return {ok:false,reason:'ขั้นบำเพ็ญไม่ถึง'};
  if(k.kind==='sub'){
@@ -316,6 +318,7 @@ M.donateManual=(W,n,id,kind)=>{
  bag.splice(bag.indexOf(id),1);
  if(!duplicate){
   lib.push(id);
+  if(g.COG&&g.COG.recordHallAddition)g.COG.recordHallAddition(W,'library',id,n&&n.id);
  }else{
   if(isSub){
    W.sect.surplusSubManuals=W.sect.surplusSubManuals||[];
@@ -612,9 +615,15 @@ M.discover=(W,out,opts)=>{
  else {out.knowledge=out.knowledge||[];out.knowledge.push(drop);}
  return drop;
 };
-M.knowledgeFit=(n,key)=>{const k=M.knowledge(key);if(!k||!n.cult||k.path!==n.cult.path&&k.path!=='ANY')return -100;
+M.knowledgeFit=(n,key)=>{const k=M.knowledge(key);if(!k||!n.cult)return -100;
+ const t=k.kind==='tech'?CULT.tech(k.id):null;
+ const allowCross=!!(t&&(t.legendary||!(CULT.isExclusiveSubpathTech&&CULT.isExclusiveSubpathTech(t))));
+ if(k.path!=='ANY'&&k.path!==n.cult.path&&(k.kind==='sub'||!allowCross))return -100;
  if(k.kind==='sub'){const score=CULT.pathScores(n).filter(s=>s.path===n.cult.path),best=score[0];const own=score.find(s=>s.sub===k.id);return own&&best?clamp(80+(own.score-best.score)*2,0,100):30;}
- const t=CULT.tech(k.id);if(k.sub&&!(CULT.isSubCompatible?CULT.isSubCompatible(t,n.cult.sub,false):k.sub===n.cult.sub))return -50;const matching=!t.weaponTypes||M.conditionMatches(n,t),elemScore=g.ELEM?g.ELEM.resolveCompatibility(n,t,'learning').score*0.45:0;return 60+(matching?20:-15)+elemScore+(t.legendary?25:0)+(HC.eff(n,'personality.curiosity')-50)*.15;
+ if(k.sub&&!(CULT.isSubCompatible?CULT.isSubCompatible(t,n.cult.sub,false):k.sub===n.cult.sub))return -50;
+ const crossPen=(k.path!=='ANY'&&k.path!==n.cult.path)?(t.legendary?-4:-12):0;
+ const matching=!t.weaponTypes||M.conditionMatches(n,t),elemScore=g.ELEM?g.ELEM.resolveCompatibility(n,t,'learning').score*0.45:0;
+ return 60+crossPen+(matching?20:-15)+elemScore+(t.legendary?25:0)+(HC.eff(n,'personality.curiosity')-50)*.15;
 };
 M.crystalDecision=(W,n,key)=>{
  const fit=M.knowledgeFit(n,key),e=M.eligible(n,key),loyalty=HC.eff(n,'personality.loyalty'),wealth=HC.eff(n,'values.wealthResource');
