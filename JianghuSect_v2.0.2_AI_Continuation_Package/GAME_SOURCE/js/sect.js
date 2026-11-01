@@ -2406,14 +2406,16 @@
     // 4B. Equipment Recipes & Standalone Equipment
     const seenEqIds = new Set((g.VC && Array.isArray(g.VC.LEGENDARY_WEAPONS)) ? g.VC.LEGENDARY_WEAPONS.map(w => w.id) : []);
     (JD.ITEMS.recipes || []).filter(r => r.outType === "EQUIPMENT").forEach(r => {
-      if (!r || !r.id || seenEqIds.has(r.id)) return;
+      const canonicalId = r.outItemId || r.id;
+      if (!r || !r.id || seenEqIds.has(canonicalId) || seenEqIds.has(r.id)) return;
+      seenEqIds.add(canonicalId);
       seenEqIds.add(r.id);
       const minted = ECO.mintGear ? ECO.mintGear(r, 1) : null;
       const slot = (minted && minted.slot) || (r.effect && r.effect.slot) || "WEAPON";
       const gearType = (minted && (minted.weaponType || minted.armorType || minted.gearType)) || (r.effect && (r.effect.weaponType || r.effect.armorType)) || "";
       const fxIds = (minted && Array.isArray(minted.fx)) ? minted.fx.map(x => x.id).filter(Boolean) : [];
       out.push(enrichCatalogEntry({
-        key: "EQUIPMENT:" + r.id, kind: "EQUIPMENT", id: r.id, outItemId: r.outItemId || null, nameTh: r.outNameTh || r.nameTh,
+        key: "EQUIPMENT:" + canonicalId, kind: "EQUIPMENT", id: canonicalId, recipeId: r.id, outItemId: r.outItemId || null, nameTh: r.outNameTh || r.nameTh,
         tier: r.tier || 1, grade: r.grade || (r.tier >= 6 ? "Rare" : r.tier >= 4 ? "Uncommon" : "Common"),
         slot, gearType, compatiblePath: r.compatiblePath || "ANY", minStage: r.minStage || 0,
         element: (minted && minted.element) || r.element || "NEUTRAL",
@@ -2421,6 +2423,23 @@
         effectIds: fxIds, sourceRegistry: "JD.ITEMS.recipes(EQUIPMENT)",
         stackable: false, hasQuality: true, canSect: true, canNpc: true,
         descTh: "ยุทโธปกรณ์ช่อง " + slot + (gearType ? " (" + gearType + ")" : "") + " ระดับ " + (r.tier || 1)
+      }));
+    });
+    (JD.ITEMS.items || []).filter(it => (it.out === "EQUIPMENT" || it.slot) && !seenEqIds.has(it.id)).forEach(it => {
+      seenEqIds.add(it.id);
+      const minted = ECO.mintGear ? ECO.mintGear(it, 1) : null;
+      const slot = (minted && minted.slot) || it.slot || "WEAPON";
+      const gearType = (minted && (minted.weaponType || minted.armorType || minted.gearType)) || it.gearType || "";
+      const fxIds = (minted && Array.isArray(minted.fx)) ? minted.fx.map(x => x.id).filter(Boolean) : [];
+      out.push(enrichCatalogEntry({
+        key: "EQUIPMENT:" + it.id, kind: "EQUIPMENT", id: it.id, recipeId: it.recipeId || null, outItemId: it.id, nameTh: it.nameTh,
+        tier: it.tier || 1, grade: it.grade || (it.tier >= 6 ? "Rare" : it.tier >= 4 ? "Uncommon" : "Common"),
+        slot, gearType, compatiblePath: it.compatiblePath || "ANY", minStage: it.minStage || 0,
+        element: (minted && minted.element) || it.element || "NEUTRAL",
+        elementProfile: (minted && minted.elementProfile) || it.elementProfile || null,
+        effectIds: fxIds, sourceRegistry: "JD.ITEMS.items(EQUIPMENT)",
+        stackable: false, hasQuality: true, canSect: true, canNpc: true,
+        descTh: "ยุทโธปกรณ์ช่อง " + slot + (gearType ? " (" + gearType + ")" : "") + " ระดับ " + (it.tier || 1)
       }));
     });
 
@@ -2570,7 +2589,8 @@
       return EDITOR.equipPersonalGear(W, n.id, sp.uids[0]);
     }
     if ((action === "teach" || action === "set_mantra") && opts.kind === "TECH_MANUAL") {
-      const t = CULT.tech(opts.id);
+      const rawTechId = String(opts.id).startsWith("T:") ? opts.id.slice(2) : opts.id;
+      const t = CULT.tech(rawTechId);
       if (!t || t.innateOnly) return { ok: false, reason: "ไม่พบคัมภีร์วิชา: " + opts.id };
       if (!n.cult) return { ok: false, reason: "ตัวละครยังเป็นปุถุชน ต้องเปิดวิถีบำเพ็ญก่อน" };
       const isMantra = /_MANTRA$|^QI_MANTRA$/.test(t.cat || "");
@@ -2646,10 +2666,36 @@
         npc.inv.spawnedMats[id] = (npc.inv.spawnedMats[id] || 0) + qty;
       }
     } else if (kind === 'PILL' || kind === 'CRAFTED_PILL') {
-      const pillId = String(id).startsWith('P:') ? id : ('P:' + id);
-      const info = ECO.pillInfo(pillId);
+      let pillId = id;
+      let info = ECO.pillInfo(pillId);
+      if (!info && !String(id).startsWith('P:')) {
+        pillId = 'P:' + id;
+        info = ECO.pillInfo(pillId);
+      }
+      if (!info && String(id).startsWith('P:')) {
+        pillId = String(id).slice(2);
+        info = ECO.pillInfo(pillId);
+      }
+      if (!info && ECO.recipeById && ECO.recipeById[id]) {
+        const r = ECO.recipeById[id];
+        pillId = r.outItemId || ('P:' + r.id);
+        info = ECO.pillInfo(pillId) || ECO.pillInfo('P:' + r.id);
+      }
+      if (!info && ECO.recipeByOutItemId && ECO.recipeByOutItemId[id]) {
+        const r = ECO.recipeByOutItemId[id];
+        pillId = r.outItemId || ('P:' + r.id);
+        info = ECO.pillInfo(pillId) || ECO.pillInfo('P:' + r.id);
+      }
+      if (!info && ECO.itemById && ECO.itemById[id]) {
+        const it = ECO.itemById[id];
+        pillId = it.id;
+        info = ECO.pillInfo(pillId);
+      }
       if (!info) return { ok: false, reason: 'ไม่พบโอสถ: ' + id };
-      itemNameTh = info.nameTh || ECO.name(pillId);
+      if (String(pillId).startsWith('P:') && ECO.recipeById && ECO.recipeById[pillId.slice(2)] && ECO.recipeById[pillId.slice(2)].outItemId) {
+        pillId = ECO.recipeById[pillId.slice(2)].outItemId;
+      }
+      itemNameTh = info.nameTh || info.name || ECO.name(pillId);
       if (dest === 'sect') {
         ECO.add(W, pillId, qty, quality);
         W.sect.spawnedPills = W.sect.spawnedPills || {};
@@ -2662,7 +2708,7 @@
     } else if (kind === "EQUIPMENT") {
       const legDef = g.VC && g.VC.LEGENDARY_WEAPON_BY_ID && g.VC.LEGENDARY_WEAPON_BY_ID[id];
       const itDef = !legDef && ECO.itemById && ECO.itemById[id];
-      const r = ECO.recipeById[id] || (itDef && itDef.recipeId && ECO.recipeById[itDef.recipeId]) || itDef;
+      const r = ECO.recipeById[id] || (itDef && itDef.recipeId && ECO.recipeById[itDef.recipeId]) || (ECO.recipeByOutItemId && ECO.recipeByOutItemId[id]) || itDef;
       if (!legDef && (!r || (r.outType && r.outType !== "EQUIPMENT" && r.out !== "EQUIPMENT"))) return { ok: false, reason: "ไม่พบแม่แบบอุปกรณ์: " + id };
       const cap = legDef ? 1 : Math.min(qty, 25);
       itemNameTh = legDef ? legDef.nameTh : (r.outNameTh || r.nameTh);
@@ -2685,18 +2731,19 @@
         }
       }
     } else if (kind === 'TECH_MANUAL') {
-      if (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(id)) return { ok: false, reason: 'วิชาเฉพาะสายย่อยติดตัวไม่สามารถเสกเป็นคัมภีร์ได้ (จะตื่นรู้เองเมื่อเดินสายย่อยนั้น)' };
-      const t = CULT.tech(id);
+      const rawTechId = String(id).startsWith('T:') ? id.slice(2) : id;
+      if (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(rawTechId)) return { ok: false, reason: 'วิชาเฉพาะสายย่อยติดตัวไม่สามารถเสกเป็นคัมภีร์ได้ (จะตื่นรู้เองเมื่อเดินสายย่อยนั้น)' };
+      const t = CULT.tech(rawTechId);
       if (!t || t.innateOnly) return { ok: false, reason: 'ไม่พบคัมภีร์วิชา: ' + id };
       itemNameTh = 'คัมภีร์「' + t.nameTh + '」';
       if (dest === 'sect') {
         W.sect.library = W.sect.library || [];
-        if (!W.sect.library.includes(id)) W.sect.library.push(id);
+        if (!W.sect.library.includes(t.id)) W.sect.library.push(t.id);
       } else {
         npc.inv.techs = npc.inv.techs || [];
-        if (!npc.inv.techs.includes(id)) npc.inv.techs.push(id);
+        if (!npc.inv.techs.includes(t.id)) npc.inv.techs.push(t.id);
         npc.inv.spawnedTechs = npc.inv.spawnedTechs || [];
-        if (!npc.inv.spawnedTechs.includes(id)) npc.inv.spawnedTechs.push(id);
+        if (!npc.inv.spawnedTechs.includes(t.id)) npc.inv.spawnedTechs.push(t.id);
       }
     } else if (kind === 'CRYSTAL') {
       const strId = String(id);
@@ -2747,17 +2794,17 @@
         if (!npc.inv.spawnedSubManuals.includes(id)) npc.inv.spawnedSubManuals.push(id);
       }
     } else if (kind === 'RECIPE_SCROLL') {
-      const r = ECO.recipeById[id];
+      const r = ECO.recipeById[id] || (ECO.itemById && ECO.itemById[id] && ECO.recipeById[ECO.itemById[id].recipeId]) || (ECO.recipeByOutItemId && ECO.recipeByOutItemId[id]);
       if (!r) return { ok: false, reason: 'ไม่พบม้วนตำรับ: ' + id };
       itemNameTh = 'ม้วนตำรับ「' + r.nameTh + '」';
       if (dest === 'sect') {
         W.sect.knownRecipes = W.sect.knownRecipes || [];
-        if (!W.sect.knownRecipes.includes(id)) W.sect.knownRecipes.push(id);
+        if (!W.sect.knownRecipes.includes(r.id)) W.sect.knownRecipes.push(r.id);
       } else {
         npc.inv.recipes = npc.inv.recipes || [];
-        if (!npc.inv.recipes.includes(id)) npc.inv.recipes.push(id);
+        if (!npc.inv.recipes.includes(r.id)) npc.inv.recipes.push(r.id);
         npc.inv.spawnedRecipes = npc.inv.spawnedRecipes || [];
-        if (!npc.inv.spawnedRecipes.includes(id)) npc.inv.spawnedRecipes.push(id);
+        if (!npc.inv.spawnedRecipes.includes(r.id)) npc.inv.spawnedRecipes.push(r.id);
       }
     } else if (kind === 'ORGAN') {
       if (!g.CONTENT || !g.CONTENT.organById || !g.CONTENT.organById[id]) {

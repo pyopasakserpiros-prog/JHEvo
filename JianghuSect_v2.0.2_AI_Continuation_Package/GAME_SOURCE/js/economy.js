@@ -5,11 +5,14 @@
   const U = g.U || require('./util.js'), HC = g.HC, JD = g.JD, CULT = g.CULT;
   const clamp = U.clamp;
   const ECO = {};
-  const matById = {}, recipeById = {}, itemById = {};
+  const matById = {}, recipeById = {}, recipeByOutItemId = {}, itemById = {};
   JD.ITEMS.materials.forEach(m => matById[m.id] = m);
-  JD.ITEMS.recipes.forEach(r => recipeById[r.id] = r);
+  JD.ITEMS.recipes.forEach(r => {
+    recipeById[r.id] = r;
+    if (r.outItemId) recipeByOutItemId[r.outItemId] = r;
+  });
   JD.ITEMS.items.forEach(i => itemById[i.id] = i);
-  ECO.matById = matById; ECO.recipeById = recipeById; ECO.itemById = itemById;
+  ECO.matById = matById; ECO.recipeById = recipeById; ECO.recipeByOutItemId = recipeByOutItemId; ECO.itemById = itemById;
 
   ECO.GRAIN_PRICE = 3; ECO.MEAL_PER_GRAIN = 3;
 
@@ -17,21 +20,37 @@
   ECO.name = id => {
     if (id === 'grain') return 'ข้าวสาร'; if (id === 'meal') return 'อาหารพร้อมกิน'; if (id === 'stones') return 'ศิลาวิญญาณ';
     if (matById[id]) return matById[id].nameTh;
-    if (id.startsWith('P:')) { const r = recipeById[id.slice(2)]; return r ? r.outNameTh : id; }
+    if (id.startsWith('P:')) {
+      const raw = id.slice(2);
+      const r = recipeById[raw] || recipeByOutItemId[raw];
+      if (r) return r.outNameTh || r.nameTh;
+      if (itemById[raw]) return itemById[raw].nameTh;
+      return id;
+    }
     if (id.startsWith('FORMULA:')) { const r = recipeById[id.slice(8)]; return r ? 'ม้วนตำรับ' + r.nameTh : id; }
     if (itemById[id]) return itemById[id].nameTh;
+    if (recipeById[id]) return recipeById[id].outNameTh || recipeById[id].nameTh;
+    if (recipeByOutItemId[id]) return recipeByOutItemId[id].outNameTh || recipeByOutItemId[id].nameTh;
     if (g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[id]) return g.CONTENT.organById[id].nameTh;
     return id;
   };
   ECO.base = id => {
     if (id === 'grain') return ECO.GRAIN_PRICE; if (id === 'meal') return 1.2;
     if (matById[id]) return matById[id].value;
-    if (id.startsWith('P:')) { const r = recipeById[id.slice(2)]; return r ? 14 * Math.pow(2.05, r.tier - 1) : 10; }
+    if (id.startsWith('P:')) {
+      const raw = id.slice(2);
+      const r = recipeById[raw] || recipeByOutItemId[raw];
+      if (r) return 14 * Math.pow(2.05, r.tier - 1);
+      if (itemById[raw]) return itemById[raw].value || 10;
+      return 10;
+    }
     if (itemById[id]) return itemById[id].value;
+    if (recipeById[id]) { const r = recipeById[id]; return 14 * Math.pow(2.05, r.tier - 1); }
+    if (recipeByOutItemId[id]) { const r = recipeByOutItemId[id]; return 14 * Math.pow(2.05, r.tier - 1); }
     return 5;
   };
   ECO.price = (W, id) => ECO.base(id) * ((W.market && W.market.mult[id]) || 1);
-  ECO.isPill = id => typeof id === 'string' && (id.startsWith('P:') || !!(itemById[id] && itemById[id].out === 'PILL'));
+  ECO.isPill = id => typeof id === 'string' && (id.startsWith('P:') || !!(itemById[id] && itemById[id].out === 'PILL') || !!(recipeById[id] && recipeById[id].outType === 'PILL') || !!(recipeByOutItemId[id] && recipeByOutItemId[id].outType === 'PILL'));
   ECO.category = id => matById[id] ? matById[id].category : (ECO.isPill(id) ? 'PILL' : 'OTHER');
 
   function invalidateStockIntel(W) {
@@ -362,18 +381,45 @@
   ECO.pillInfo = key => {
     if (typeof key !== 'string') return null;
     if (_pillInfoCache.has(key)) return _pillInfoCache.get(key);
-    if (key.startsWith('P:')) { const r = recipeById[key.slice(2)]; const res = r ? { tier: r.tier, effect: r.effect || {}, name: r.outNameTh } : null; _pillInfoCache.set(key, res); return res; }
-    const it = itemById[key]; if (!it || it.out !== 'PILL') { _pillInfoCache.set(key, null); return null; }
-    const e = {}; (it.effects || []).forEach(x => {
-      const p = x.params || {};
-      if (x.effectId === 'EFX_CULTIVATION_ACCELERATOR') { e.cultivationProgress = 18 * it.tier; e.rateBoost = p.cultivationBoostRatio; }
-      else if (x.effectId === 'EFX_MASS_VITAL_HEAL') { e.healHealth = (p.healAmount || 30); if (p.curesMeridianWound) e.healInjury = 40; }
-      else if (x.effectId === 'EFX_CALM_MIND') e.clearHeartDemon = p.heartDemonReduction || 20;
-      else if (x.effectId === 'EFX_LEARNING_INSIGHT') e.insight = p.masteryGainMultiplier || 1.3;
-      else if (x.effectId === 'EFX_MERIDIAN_TOXIN_PURGE') e.clearToxic = p.purgePotency || 30;
-      else if (x.effectId === 'EFX_PURIFY_HOSTILE_STATUS') e.clearHeartDemon = 12;
-    });
-    const res = { tier: it.tier, effect: e, name: it.nameTh }; _pillInfoCache.set(key, res); return res;
+    if (key.startsWith('P:')) {
+      const raw = key.slice(2);
+      const r = recipeById[raw] || recipeByOutItemId[raw];
+      if (r) {
+        const res = { tier: r.tier, effect: r.effect || {}, name: r.outNameTh || r.nameTh };
+        _pillInfoCache.set(key, res);
+        return res;
+      }
+      if (itemById[raw] && itemById[raw].out === 'PILL') {
+        const res = ECO.pillInfo(raw);
+        _pillInfoCache.set(key, res);
+        return res;
+      }
+      _pillInfoCache.set(key, null);
+      return null;
+    }
+    const it = itemById[key];
+    if (it && it.out === 'PILL') {
+      const e = {}; (it.effects || []).forEach(x => {
+        const p = x.params || {};
+        if (x.effectId === 'EFX_CULTIVATION_ACCELERATOR') { e.cultivationProgress = 18 * it.tier; e.rateBoost = p.cultivationBoostRatio; }
+        else if (x.effectId === 'EFX_MASS_VITAL_HEAL') { e.healHealth = (p.healAmount || 30); if (p.curesMeridianWound) e.healInjury = 40; }
+        else if (x.effectId === 'EFX_CALM_MIND') e.clearHeartDemon = p.heartDemonReduction || 20;
+        else if (x.effectId === 'EFX_LEARNING_INSIGHT') e.insight = p.masteryGainMultiplier || 1.3;
+        else if (x.effectId === 'EFX_MERIDIAN_TOXIN_PURGE') e.clearToxic = p.purgePotency || 30;
+        else if (x.effectId === 'EFX_PURIFY_HOSTILE_STATUS') e.clearHeartDemon = 12;
+      });
+      const res = { tier: it.tier, effect: e, name: it.nameTh };
+      _pillInfoCache.set(key, res);
+      return res;
+    }
+    const r = recipeById[key] || recipeByOutItemId[key];
+    if (r && r.outType === 'PILL') {
+      const res = { tier: r.tier, effect: r.effect || {}, name: r.outNameTh || r.nameTh };
+      _pillInfoCache.set(key, res);
+      return res;
+    }
+    _pillInfoCache.set(key, null);
+    return null;
   };
   ECO.applyPill = (W, npc, key) => {
     const info = ECO.pillInfo(key); if (!info) return null;
