@@ -184,7 +184,7 @@
       (pe.courage || 45) * 0.10 +
       (so.charisma || 45) * 0.10
     );
-    const martialSkill = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BODY_REFINING || 0, sk.LIGHTFOOT || 0);
+    const martialSkill = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0, sk.LIGHTFOOT || 0);
     const craftSkill = Math.max(sk.ALCHEMY || 0, sk.FORGING || 0, sk.MEDICINE || 0, sk.HERB_LORE || 0, sk.SCRIPTURE || 0);
     const civicSkill = Math.max(sk.farming || 0, sk.cooking || 0, sk.mining || 0, sk.herbalism || 0, sk.administration || 0, sk.trading || 0, sk.survival || 0, sk.construction || 0);
     const stage = n.cult ? (n.cult.stage || 0) : 0;
@@ -372,6 +372,17 @@
     }
   };
 
+  SECT.ARCHETYPE_WEAPON = {
+    sword:   { family: 'SWORD', skill: 'SWORD', starterWeapon: 'MP_SWORD_1', masterWeapon: 'MP_SWORD_2' },
+    blade:   { family: 'BLADE', skill: 'BLADE', starterWeapon: 'MP_BLADE_1', masterWeapon: 'MP_BLADE_2' },
+    spear:   { family: 'SPEAR', skill: 'SPEAR', starterWeapon: 'MP_SPEAR_1', masterWeapon: 'MP_SPEAR_2' },
+    fist:    { family: 'FIST', skill: 'FIST_PALM', starterWeapon: 'MP_FIST_1', masterWeapon: 'MP_FIST_2' },
+    alchemy: { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' },
+    bow:     { family: 'BOW', skill: 'BOW', starterWeapon: 'MP_BOW_1', masterWeapon: 'MP_BOW_2' },
+    staff:   { family: 'STAFF', skill: 'STAFF', starterWeapon: 'MP_STAFF_1', masterWeapon: 'MP_STAFF_2' },
+    focus:   { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' }
+  };
+
   SECT.officeState = (W, id) => {
     if (!SECT.POSTS[id]) return { enabled: false, reason: SECT.PLANNED_POSTS[id]?.requires || 'ยังไม่มีระบบรองรับตำแหน่งนี้' };
     if (id === 'disciples') {
@@ -443,7 +454,7 @@
   /* ---------- ตำแหน่ง ---------- */
   SECT.relevance = (post, n) => {
     const e = p => HC.eff(n, p), sk = n.h.skills;
-    const martial = Math.max(sk.SWORD, sk.BLADE, sk.SPEAR, sk.FIST_PALM, sk.BODY_REFINING);
+    const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0);
     const stage = n.cult ? n.cult.stage : 0;
     switch (post) {
       case 'commander': return e('social.leadership') * .3 + e('intellect.judgement') * .25 + e('personality.courage') * .2 + e('personality.loyalty') * .15 + stage * 4;
@@ -2145,7 +2156,7 @@
     intellect: { min: 1, max: 100, keys: ['reasoning', 'comprehension', 'memory', 'workingMemory', 'learningSpeed', 'thinkingSpeed', 'focus', 'spatial', 'numeracy', 'verbal', 'planning', 'judgement', 'inventiveness', 'intuition', 'perceptiveness', 'readPeople', 'wisdom', 'willpower'] },
     social: { min: 0, max: 100, keys: ['charisma', 'leadership', 'persuasion', 'deception', 'intimidation', 'teaching', 'hospitality'] },
     affinities: { min: 0, max: 100, keys: ['FIRE', 'WATER_ICE', 'LIGHTNING', 'WIND', 'EARTH_METAL', 'WOOD_LIFE', 'YIN_SHADOW', 'LIGHT_YANG', 'SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE'] },
-    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE', 'herbalism', 'mining', 'cooking', 'trading', 'administration', 'diplomacy', 'stealth', 'survival', 'arts', 'construction', 'ritual'] }
+    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE', 'herbalism', 'mining', 'cooking', 'trading', 'administration', 'diplomacy', 'stealth', 'survival', 'arts', 'construction', 'ritual'] }
   };
 
   EDITOR.memberEditState = (W, nOrId) => {

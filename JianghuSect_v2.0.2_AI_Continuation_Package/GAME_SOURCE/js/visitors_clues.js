@@ -3769,11 +3769,7 @@
     if (!n || n.dead) return 0;
     let score = 0, count = 0;
     if (node.skill) {
-      const skVal = Math.max(
-        (M && M.skillRead) ? M.skillRead(n, node.skill) : 0,
-        (n.h && n.h.skills && Number.isFinite(n.h.skills[node.skill])) ? n.h.skills[node.skill] : 0,
-        (n.martialSkills && Number.isFinite(n.martialSkills[node.skill])) ? n.martialSkills[node.skill] : 0
-      );
+      const skVal = (M && M.skillRead) ? M.skillRead(n, node.skill) : ((n.h && n.h.skills && Number.isFinite(n.h.skills[node.skill])) ? n.h.skills[node.skill] : 0);
       score += skVal + (n.cult ? n.cult.stage * 4 : 0);
       count++;
     }
@@ -4934,8 +4930,8 @@
         intellect: { perceptiveness: 72, comprehension: 72, focus: 72, willpower: 72 },
         personality: { courage: 72, composure: 70 }
       });
-      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'ARRAY', 'SOUL_DIVINE'].forEach(sk => { n.h.skills[sk] = 75; });
-      n.martialSkills = { BOW: 75, STAFF: 75, FOCUS: 75 };
+      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'FOCUS', 'ARRAY', 'SOUL_DIVINE'].forEach(sk => { n.h.skills[sk] = 75; });
+      if (M && M.ensureSkills) M.ensureSkills(n);
       g.HC.touch(n);
     });
 

@@ -3746,8 +3746,8 @@
   /* ---------- หน้าเริ่มเกม ---------- */
   UI.showStart = (seed) => {
     const st = $('start'); st.classList.remove('hidden'); seed = seed || String(Math.floor(Math.random() * 90000 + 10000));
-    const cands = SIM.candidates(seed);
     UI.selectedArchetype = UI.selectedArchetype || 'sword';
+    const cands = SIM.candidates(seed, UI.selectedArchetype);
     const archs = (g.SECT && g.SECT.ARCHETYPES) ? Object.values(g.SECT.ARCHETYPES) : [];
     const curArch = (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[UI.selectedArchetype]) || archs[0] || { nameTh: 'สำนักกระบี่เซียน', titleTh: 'วิถีกระบี่เหินเมฆา', descTh: '', subs: [], techs: [] };
 

@@ -92,8 +92,8 @@ assert(Object.keys(SECT.PLANNED_POSTS).length >= 4, 'PLANNED_POSTS must retain a
   console.log('PASS 4: Daily update self-heals existing dead master saves');
 }
 
-// 6. Test 6 Sect Archetypes
-const archetypes = ['sword', 'blade', 'spear', 'fist', 'alchemy', 'bow'];
+// 6. Test 8 Sect Archetypes
+const archetypes = ['sword', 'blade', 'spear', 'fist', 'alchemy', 'bow', 'staff', 'focus'];
 for (const archId of archetypes) {
   const W = SIM.create('arch-test-' + archId, { masterIdx: 0, archetype: archId });
   const S = W.sect;

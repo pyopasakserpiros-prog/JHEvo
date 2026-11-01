@@ -191,7 +191,7 @@ M.ensure=W=>{
  if(!wm.byGrade||typeof wm.byGrade!=='object')wm.byGrade={};
  if(!wm.bySource||typeof wm.bySource!=='object')wm.bySource={};
  if(!Array.isArray(wm.foundLegends))wm.foundLegends=[];
- for(const n of W.npcs){M.normalize(n);n.martialSkills=n.martialSkills||{};n.inv=n.inv||{};if(!n.inv.crystals)n.inv.crystals={};if(!n.inv.subManuals)n.inv.subManuals=[];}
+ for(const n of W.npcs){M.normalize(n);if(M.ensureSkills)M.ensureSkills(n);n.inv=n.inv||{};if(!n.inv.crystals)n.inv.crystals={};if(!n.inv.subManuals)n.inv.subManuals=[];}
  return wm;
 };
 M.eligible=(n,key,opts)=>{

@@ -63349,7 +63349,7 @@ JD.ITEMS.items.forEach(it => {
     let cp = st.combatPower;
     if (npc.cult) { const si = CULT.subInfo(npc.cult.path, npc.cult.sub); cp *= si.combatBonus; }
     const f_body = 0.7 + d.physicalIndex / 100 * 0.6;
-    const sk = npc.h.skills; const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BODY_REFINING || 0, sk.SOUL_DIVINE || 0, sk.POISON || 0);
+    const sk = npc.h.skills; const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0, sk.SOUL_DIVINE || 0, sk.POISON || 0);
     const f_skill = 0.75 + martial / 100 * 0.5;
     let techSum = 0; (npc.cult ? npc.cult.techs : []).forEach(id => { const t = TECH_BY_ID[id]; if (t) techSum += t.tier; });
     const f_tech = 1 + Math.min(0.4, 0.04 * techSum);
@@ -64791,7 +64791,7 @@ JD.ITEMS.items.forEach(it => {
       (pe.courage || 45) * 0.10 +
       (so.charisma || 45) * 0.10
     );
-    const martialSkill = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BODY_REFINING || 0, sk.LIGHTFOOT || 0);
+    const martialSkill = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0, sk.LIGHTFOOT || 0);
     const craftSkill = Math.max(sk.ALCHEMY || 0, sk.FORGING || 0, sk.MEDICINE || 0, sk.HERB_LORE || 0, sk.SCRIPTURE || 0);
     const civicSkill = Math.max(sk.farming || 0, sk.cooking || 0, sk.mining || 0, sk.herbalism || 0, sk.administration || 0, sk.trading || 0, sk.survival || 0, sk.construction || 0);
     const stage = n.cult ? (n.cult.stage || 0) : 0;
@@ -64979,6 +64979,17 @@ JD.ITEMS.items.forEach(it => {
     }
   };
 
+  SECT.ARCHETYPE_WEAPON = {
+    sword:   { family: 'SWORD', skill: 'SWORD', starterWeapon: 'MP_SWORD_1', masterWeapon: 'MP_SWORD_2' },
+    blade:   { family: 'BLADE', skill: 'BLADE', starterWeapon: 'MP_BLADE_1', masterWeapon: 'MP_BLADE_2' },
+    spear:   { family: 'SPEAR', skill: 'SPEAR', starterWeapon: 'MP_SPEAR_1', masterWeapon: 'MP_SPEAR_2' },
+    fist:    { family: 'FIST', skill: 'FIST_PALM', starterWeapon: 'MP_FIST_1', masterWeapon: 'MP_FIST_2' },
+    alchemy: { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' },
+    bow:     { family: 'BOW', skill: 'BOW', starterWeapon: 'MP_BOW_1', masterWeapon: 'MP_BOW_2' },
+    staff:   { family: 'STAFF', skill: 'STAFF', starterWeapon: 'MP_STAFF_1', masterWeapon: 'MP_STAFF_2' },
+    focus:   { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' }
+  };
+
   SECT.officeState = (W, id) => {
     if (!SECT.POSTS[id]) return { enabled: false, reason: SECT.PLANNED_POSTS[id]?.requires || 'ยังไม่มีระบบรองรับตำแหน่งนี้' };
     if (id === 'disciples') {
@@ -65050,7 +65061,7 @@ JD.ITEMS.items.forEach(it => {
   /* ---------- ตำแหน่ง ---------- */
   SECT.relevance = (post, n) => {
     const e = p => HC.eff(n, p), sk = n.h.skills;
-    const martial = Math.max(sk.SWORD, sk.BLADE, sk.SPEAR, sk.FIST_PALM, sk.BODY_REFINING);
+    const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0);
     const stage = n.cult ? n.cult.stage : 0;
     switch (post) {
       case 'commander': return e('social.leadership') * .3 + e('intellect.judgement') * .25 + e('personality.courage') * .2 + e('personality.loyalty') * .15 + stage * 4;
@@ -66752,7 +66763,7 @@ JD.ITEMS.items.forEach(it => {
     intellect: { min: 1, max: 100, keys: ['reasoning', 'comprehension', 'memory', 'workingMemory', 'learningSpeed', 'thinkingSpeed', 'focus', 'spatial', 'numeracy', 'verbal', 'planning', 'judgement', 'inventiveness', 'intuition', 'perceptiveness', 'readPeople', 'wisdom', 'willpower'] },
     social: { min: 0, max: 100, keys: ['charisma', 'leadership', 'persuasion', 'deception', 'intimidation', 'teaching', 'hospitality'] },
     affinities: { min: 0, max: 100, keys: ['FIRE', 'WATER_ICE', 'LIGHTNING', 'WIND', 'EARTH_METAL', 'WOOD_LIFE', 'YIN_SHADOW', 'LIGHT_YANG', 'SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE'] },
-    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE', 'herbalism', 'mining', 'cooking', 'trading', 'administration', 'diplomacy', 'stealth', 'survival', 'arts', 'construction', 'ritual'] }
+    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE', 'herbalism', 'mining', 'cooking', 'trading', 'administration', 'diplomacy', 'stealth', 'survival', 'arts', 'construction', 'ritual'] }
   };
 
   EDITOR.memberEditState = (W, nOrId) => {
@@ -67967,8 +67978,8 @@ JD.ITEMS.items.forEach(it => {
   const A = {}; AI.ACTS = A;
   const idleOk = n => !n.act || n.act.id === 'idle';
   function martialChoice(n) {
-    const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON'];
-    let best = ids[0], bs = -1; ids.forEach(k => { const s = (E(n, 'affinities.' + k) || 0) * 0.9 + (n.h.skills[k] || 0) * 0.6 + (n.cult && n.cult.sub && /SWORD/.test(n.cult.sub) && k === 'SWORD' ? 25 : 0) + (n.cult && n.cult.path === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (n.cult && n.cult.path === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + (n.cult && n.cult.sub === 'VENOM_GU_SOVEREIGN' && k === 'POISON' ? 28 : 0); if (s > bs) { bs = s; best = k; } });
+    const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON'];
+    let best = ids[0], bs = -1; ids.forEach(k => { const s = (E(n, 'affinities.' + k) || 0) * 0.9 + ((n.h && n.h.skills && n.h.skills[k]) || 0) * 0.6 + (n.cult && n.cult.sub && /SWORD/.test(n.cult.sub) && k === 'SWORD' ? 25 : 0) + (n.cult && n.cult.path === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (n.cult && n.cult.path === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + (n.cult && n.cult.sub === 'VENOM_GU_SOVEREIGN' && k === 'POISON' ? 28 : 0); if (s > bs) { bs = s; best = k; } });
     return best;
   }
 
@@ -68801,7 +68812,7 @@ JD.ITEMS.items.forEach(it => {
     } else { if (od.left <= 0) return 'done'; }
     return;
   };
-  AI.pickTeachSkill = (t, s) => { const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ALCHEMY', 'FORGING', 'SCRIPTURE', 'MEDICINE']; ids.sort((a, b) => ((t.h.skills[b] || 0) - (s.h.skills[b] || 0) + (E(s, 'affinities.' + b) || 0) * .3) - ((t.h.skills[a] || 0) - (s.h.skills[a] || 0) + (E(s, 'affinities.' + a) || 0) * .3)); return ids[0]; };
+  AI.pickTeachSkill = (t, s) => { const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ALCHEMY', 'FORGING', 'SCRIPTURE', 'MEDICINE']; ids.sort((a, b) => (((t.h && t.h.skills && t.h.skills[b]) || 0) - ((s.h && s.h.skills && s.h.skills[b]) || 0) + (E(s, 'affinities.' + b) || 0) * .3) - (((t.h && t.h.skills && t.h.skills[a]) || 0) - ((s.h && s.h.skills && s.h.skills[a]) || 0) + (E(s, 'affinities.' + a) || 0) * .3)); return ids[0]; };
   AI.pairEnd = (W, a, b, d) => {
     if (g.COG && g.COG.resolveCommitment) g.COG.resolveCommitment(W, a, b, 'completed', d);
     if (d.type === 'spar') { g.COMBAT.sparEnd(W, a, b, d); }
@@ -82844,12 +82855,60 @@ const effects={
  ALCHEMY:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมโอสถ',FORGING:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมอุปกรณ์',ARRAY:'เพิ่มโอกาสสร้างค่ายกลและป้องกันวิชาในการรบ',TALISMAN:'เพิ่มโอกาสสร้างยันต์และเกราะในการรบ',BEAST_TAMING:'ลดความเสียหายจากอสูรจริง',POISON:'เพิ่มความแรงแผลพิษ/โลหิตจากวิชา',MEDICINE:'เพิ่มการฟื้นตัวของผู้ป่วยเมื่อเป็นหมอและโอกาสชำแหละอวัยวะ',SCRIPTURE:'เพิ่มความเร็วศึกษาวิชาและโอกาสถอดจารึก',MOVEMENT:'เพิ่มความเร็วเคลื่อนที่และหลบหลีก',BODY_REFINING:'เพิ่มพลังชีวิตและป้องกัน',SOUL_DIVINE:'เพิ่มโจมตีวิชาและป้องกันวิชา',herbalism:'เพิ่มจำนวน/ระดับสมุนไพรและข้าวที่เก็บได้',mining:'เพิ่มจำนวน/ระดับแร่ที่ขุดได้',cooking:'เพิ่มอาหารจากข้าวหนึ่งหน่วย',trading:'เพิ่มรายได้จากการค้าเดินทาง',administration:'ลดค่าใช้จ่ายดูแลสำนักและช่วยความเร็วขยายอาคาร',diplomacy:'เพิ่มผลเจรจาความสัมพันธ์/สนธิสัญญา',stealth:'เพิ่มหลบหลีกและคริติคอล',survival:'เพิ่มโอกาสผ่านอันตราย/หนีและลดอุบัติเหตุ',arts:'เพิ่มการคลายเครียดและขวัญใจจากดนตรี',construction:'ลดเวลาขยายอาคารจริง',ritual:'เพิ่มอัตราบำเพ็ญ โดยเฉพาะวิถีเทพ'};
 const interests={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:'arrays',BEAST_TAMING:'beasts',MEDICINE:'medicine',SCRIPTURE:'scholarship',MOVEMENT:'exploring',BODY_REFINING:'combat',SOUL_DIVINE:'worship',POISON:'alchemy',herbalism:'herbs',mining:'labor',cooking:'cuisine',trading:'trade',administration:'leading',diplomacy:'socializing',stealth:'intrigue',survival:'exploring',arts:'arts',construction:'building',ritual:'worship'};
 M.SKILL_INFO=Object.fromEntries(M.SKILL_IDS.map(id=>[id,{id,nameTh:extra[id]||HC.nameOf('skills.'+id),group:Object.keys(groups).find(k=>groups[k].includes(id)),effect:effects[id],route:groups.weapon.includes(id)?'ฝึกหอยุทธ์/ใช้อาวุธจริง/รับการสอน':'งานที่เกี่ยวข้อง/ฝึกทักษะเฉพาะ/รับการสอน',interest:interests[id]||'combat'}]));
-M.skillRead=(n,id)=>!n||!n.h||!M.SKILL_INFO[id]?0:clamp(Number.isFinite(extra[id]?n.martialSkills&&n.martialSkills[id]:n.h.skills[id])?(extra[id]?n.martialSkills[id]:n.h.skills[id]):0,0,100);
+
+M.ensureSkills=(n,rng)=>{
+ if(!n||!n.h)return;
+ n.h.skills=n.h.skills||{};
+ const exp=(n.h.birthDay!=null&&HC.nowDay!=null)?clamp(((HC.nowDay-n.h.birthDay)/360-12)/30,0.05,1):0.4;
+ for(const id of ['BOW','STAFF','FOCUS']){
+  if(n.h.skills[id]==null){
+   if(n.martialSkills&&n.martialSkills[id]!=null){
+    n.h.skills[id]=clamp(n.martialSkills[id],0,100);
+   }else{
+    const affKey={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE'}[id];
+    const aff=(n.h.affinities&&n.h.affinities[affKey])||30;
+    const intr=(n.h.interests&&n.h.interests.combat)||40;
+    const v=(aff*0.5+intr*0.5-25)*0.55*exp+2;
+    n.h.skills[id]=clamp(Math.round(v*10)/10,0,85);
+   }
+  }
+ }
+};
+
+M.skillRead=(n,id)=>{
+ if(!n||!n.h||!n.h.skills||!M.SKILL_INFO[id])return 0;
+ if(n.h.skills[id]==null&&n.martialSkills&&n.martialSkills[id]!=null){
+  n.h.skills[id]=clamp(n.martialSkills[id],0,100);
+ }
+ return clamp(Number.isFinite(n.h.skills[id])?n.h.skills[id]:0,0,100);
+};
+
+M.skillSet=(n,id,val)=>{
+ if(!n||!n.h||!M.SKILL_INFO[id])return 0;
+ n.h.skills=n.h.skills||{};
+ const clamped=clamp(Number.isFinite(val)?val:0,0,100);
+ n.h.skills[id]=clamped;
+ if(n.martialSkills&&n.martialSkills[id]!=null)delete n.martialSkills[id];
+ if(ST&&ST.dirty)ST.dirty(n);
+ return clamped;
+};
+
+M.skillAdd=(n,id,amt)=>{
+ if(!n||!n.h||!M.SKILL_INFO[id]||!Number.isFinite(amt))return M.skillRead(n,id);
+ return M.skillSet(n,id,M.skillRead(n,id)+amt);
+};
+
 M.skillPractice=(n,id,hours,quality)=>{
  if(!M.SKILL_INFO[id]||!Number.isFinite(hours)||hours<=0||!Number.isFinite(quality==null?1:quality)||(quality!=null&&quality<=0))return 0;
  const q=clamp(quality==null?1:quality,.1,3)*(M.lifeMult?M.lifeMult(n,id):1);let gain;
  if(!extra[id])gain=HC.practice(n,id,hours,q);
- else{const level=M.skillRead(n,id),aff={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE'}[id],rate=(.35+(HC.eff(n,'affinities.'+aff)||30)/100*.9)*(.6+HC.eff(n,'intellect.learningSpeed')/100*.8)*(.8+HC.eff(n,'interests.combat')/250)*q;gain=hours*.075*rate*Math.pow(Math.max(.08,1-level/105),1.6);n.martialSkills=n.martialSkills||{};n.martialSkills[id]=Math.min(100,level+gain);}
+ else{
+  M.ensureSkills(n);
+  const level=M.skillRead(n,id),aff={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE'}[id],rate=(.35+(HC.eff(n,'affinities.'+aff)||30)/100*.9)*(.6+HC.eff(n,'intellect.learningSpeed')/100*.8)*(.8+HC.eff(n,'interests.combat')/250)*q;
+  gain=hours*.075*rate*Math.pow(Math.max(.08,1-level/105),1.6);
+  n.h.skills[id]=Math.min(100,level+gain);
+  if(n.martialSkills&&n.martialSkills[id]!=null)delete n.martialSkills[id];
+ }
  if(gain&&(hours>=0.1||((groups.weapon.includes(id)||['SOUL_DIVINE','MOVEMENT','stealth','BODY_REFINING','TALISMAN','ARRAY'].includes(id))&&Math.floor(M.skillRead(n,id)*4)!==Math.floor((M.skillRead(n,id)-gain)*4))))ST.dirty(n);return gain||0;
 };
 M.isBeast=u=>!!u&&!!u.foe&&(u.kind==='beast'||!!u.wild&&!!u.speciesId);
@@ -82858,8 +82917,8 @@ M.equippedType=n=>M.gearUsable(n,n.equip&&n.equip.WEAPON)?M.gearType(n.equip.WEA
 M.pathSkillAffinity=(n,path,sub)=>{const profile=M.PROFILES[sub],preferred=profile?profile[3]:M.PATHS[path].weapons;return Math.max(...preferred.map(type=>M.weaponSkill(n,type)))*.18;};
 M.weaponSkill=(n,type)=>M.skillRead(n,({FIST:'FIST_PALM'}[type||M.equippedType(n)]||type||M.equippedType(n)));
 M.skillEffects=n=>{
- const eqW=n.equip&&n.equip.WEAPON,cPath=n.cult&&n.cult.path,sk=n.h.skills,ms=n.martialSkills,sec=n._skillEffectsCache;
- const skSig=((sk.ritual||0)*4|0)+((sk.SCRIPTURE||0)*4|0)*2+((sk.SOUL_DIVINE||0)*4|0)*3+((sk.MOVEMENT||0)*4|0)*5+((sk.BODY_REFINING||0)*4|0)*7+((sk.POISON||0)*4|0)*11+((sk.MEDICINE||0)*4|0)*13+((sk.BEAST_TAMING||0)*4|0)*17+((sk.SWORD||0)*4|0)*19+((sk.BLADE||0)*4|0)*23+((sk.SPEAR||0)*4|0)*29+((sk.FIST_PALM||0)*4|0)*31+(ms?((ms.BOW||0)*4|0)*37+((ms.STAFF||0)*4|0)*41+((ms.FOCUS||0)*4|0)*43:0);
+ const eqW=n.equip&&n.equip.WEAPON,cPath=n.cult&&n.cult.path,sk=n.h.skills,sec=n._skillEffectsCache;
+ const skSig=((sk.ritual||0)*4|0)+((sk.SCRIPTURE||0)*4|0)*2+((sk.SOUL_DIVINE||0)*4|0)*3+((sk.MOVEMENT||0)*4|0)*5+((sk.BODY_REFINING||0)*4|0)*7+((sk.POISON||0)*4|0)*11+((sk.MEDICINE||0)*4|0)*13+((sk.BEAST_TAMING||0)*4|0)*17+((sk.SWORD||0)*4|0)*19+((sk.BLADE||0)*4|0)*23+((sk.SPEAR||0)*4|0)*29+((sk.FIST_PALM||0)*4|0)*31+((sk.BOW||0)*4|0)*37+((sk.STAFF||0)*4|0)*41+((sk.FOCUS||0)*4|0)*43;
  if(sec&&sec.eqW===eqW&&sec.cPath===cPath&&sec.ver===n._ver&&sec.skSig===skSig)return sec.out;
  const v=id=>M.skillRead(n,id),weapon=M.weaponSkill(n),p={matk:(.8+.45*weapon/100-1)+v('SOUL_DIVINE')*.0015,acc:weapon*.0015,move:v('MOVEMENT')*.0018,eva:v('MOVEMENT')*.001+v('stealth')*.0013,hp:v('BODY_REFINING')*.0015,def:v('BODY_REFINING')*.0014+v('TALISMAN')*.0007,mdef:v('SOUL_DIVINE')*.0013+v('ARRAY')*.0009+v('TALISMAN')*.0005},f={crit:v('stealth')*.025};
  const out={p,f,beastDamage:1/(1+v('BEAST_TAMING')*.004),poisonPower:1+v('POISON')*.004,cultivation:1+v('ritual')*(cPath==='GOD'?.0035:.001),medicine:1+v('MEDICINE')*.004,study:1+v('SCRIPTURE')*.003,music:1+v('arts')*.005};
@@ -83089,7 +83148,7 @@ M.ensure=W=>{
  if(!wm.byGrade||typeof wm.byGrade!=='object')wm.byGrade={};
  if(!wm.bySource||typeof wm.bySource!=='object')wm.bySource={};
  if(!Array.isArray(wm.foundLegends))wm.foundLegends=[];
- for(const n of W.npcs){M.normalize(n);n.martialSkills=n.martialSkills||{};n.inv=n.inv||{};if(!n.inv.crystals)n.inv.crystals={};if(!n.inv.subManuals)n.inv.subManuals=[];}
+ for(const n of W.npcs){M.normalize(n);if(M.ensureSkills)M.ensureSkills(n);n.inv=n.inv||{};if(!n.inv.crystals)n.inv.crystals={};if(!n.inv.subManuals)n.inv.subManuals=[];}
  return wm;
 };
 M.eligible=(n,key,opts)=>{
@@ -83746,7 +83805,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (!n || !n.h) return [{ id: 'peaceful_companion', score: 1, reasonTh: 'ใช้ชีวิตเรียบง่าย' }];
     const r = COG.role(W, n);
     const sk = n.h.skills || {};
-    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, (n.martialSkills && n.martialSkills.BOW) || 0, (n.martialSkills && n.martialSkills.STAFF) || 0, (n.martialSkills && n.martialSkills.FOCUS) || 0);
+    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0);
     const scores = [
       {
         id: 'martial_master',
@@ -86507,24 +86566,83 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   SIM.buildNpc = (W, rng, o) => {
     HC.nowDay = W.day;
     const npc = HC.generate(rng, { id: o.id, day: W.day, sex: o.sex, ageYears: o.ageYears, quality: o.quality || 0, archetype: o.archetype, rootGrade: o.rootGrade, _fromTierRoll: !!o._fromTierRoll, skillExp: o.skillExp, trainedness: o.trainedness, traitCount: o.traitCount, customRoots: o.customRoots, forceRootCount: o.forceRootCount, forceElements: o.forceElements, forceGrades: o.forceGrades });
+    if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(npc, rng);
     if (g.ELEM && g.ELEM.ensureNpcElementalState) g.ELEM.ensureNpcElementalState(npc);
     Object.assign(npc, { x: 0, y: 0, px: 0, py: 0, face: 1, dir: 0, rank: o.rank || 0, post: null, assist: null, merit: o.merit || 0, sat: 60, mentor: null, bed: null, joinDay: W.day - (o.tenure || 0), inv: { stones: Math.round(20 + (o.rank || 0) * 40 * (0.5 + rng.next())), pills: {}, mats: {} }, equip: {}, inj: [], cool: {}, recent: [], act: { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }, path: null, pi: 0, hidden: false, away: false, dead: false, stats: {}, why: [], travel: null });
-    if (typeof o.stage === 'function' || o.stage > 0) SIM.awaken(W, rng, npc, o.stage);
-    else if (o.stage == null && o.awakenChance != null) { if (rng.chance(o.awakenChance)) SIM.awaken(W, rng, npc, 1); }
+
+    // Archetype founding alignment for weapon skill & starter weapon
+    if (o.archetypeKey && g.SECT && g.SECT.ARCHETYPE_WEAPON) {
+      const wInfo = g.SECT.ARCHETYPE_WEAPON[o.archetypeKey];
+      if (wInfo) {
+        if (o.founderIndex === 0) {
+          npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 70);
+          const wItem = g.ECO && (g.ECO.itemById[wInfo.masterWeapon] || g.ECO.itemById[wInfo.starterWeapon]);
+          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(wItem, 1.15);
+        } else if (o.founderIndex != null && o.founderIndex > 0) {
+          npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 35);
+          const wItem = g.ECO && g.ECO.itemById[wInfo.starterWeapon];
+          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(wItem, 1.0);
+        }
+      }
+    }
+
+    if (typeof o.stage === 'function' || o.stage > 0) SIM.awaken(W, rng, npc, o.stage, o);
+    else if (o.stage == null && o.awakenChance != null) { if (rng.chance(o.awakenChance)) SIM.awaken(W, rng, npc, 1, o); }
     npc.h.state.hp = CULT.hpMax(npc);
     npc.h.state.qi = CULT.qiMax(npc);
     return npc;
   };
-  SIM.awaken = (W, rng, npc, stage) => {
-    const chosen = CULT.awaken(npc, rng, null, W.day);
-    if (W._founding !== false) { npc.cult.sub = chosen.sub; if (CULT.trackDef(chosen.sub)) npc.cult.track = CULT.initTrack(chosen.sub, 1, W.day); }
-    const c = npc.cult; if (typeof stage === 'function') stage = stage(c.path); c.stage = Math.min(stage, CULT.maxStage(npc));
+  SIM.awaken = (W, rng, npc, stage, o) => {
+    o = o || {};
+    const archKey = o.archetypeKey;
+    const archDef = archKey && g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey];
+
+    if (archDef && o.archetypeKey && W._founding !== false) {
+      if (g.ELEM && g.ELEM.ensureNpc) g.ELEM.ensureNpc(npc);
+      const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % archDef.subs.length;
+      const chosenSub = archDef.subs[subIdx] || archDef.subs[0];
+      const subEntry = g.CULT && g.CULT.subList && g.CULT.subList.find(x => x.sub.id === chosenSub);
+      const memberPath = subEntry ? subEntry.path : archDef.path;
+      const mant = CULT.bestMantra(memberPath, 1, npc);
+      npc.cult = { path: memberPath, sub: chosenSub, stage: 1, prog: 0, mantra: mant ? mant.id : null, techs: [], learning: null, toxic: 0, lifeBonus: 0, since: W.day, attempts: 0, secl: null, rate: 0, pillT: 0 };
+      if (CULT.trackDef(chosenSub)) npc.cult.track = CULT.initTrack(chosenSub, 1, W.day);
+      if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(npc);
+      CULT.refreshLifespan(npc);
+      HC.bump(npc);
+    } else {
+      const chosen = CULT.awaken(npc, rng, null, W.day);
+      if (W._founding !== false) { npc.cult.sub = chosen.sub; if (CULT.trackDef(chosen.sub)) npc.cult.track = CULT.initTrack(chosen.sub, 1, W.day); }
+    }
+
+    const c = npc.cult;
+    if (typeof stage === 'function') stage = stage(c.path);
+    c.stage = Math.min(stage, CULT.maxStage(npc));
     c.prog = Math.round(CULT.threshold(npc) * (0.1 + rng.next() * 0.6));
-    const m = CULT.bestMantra(c.path, c.stage, npc); if (m) c.mantra = m.id;
+    const m = CULT.bestMantra(c.path, c.stage, npc);
+    if (m) c.mantra = m.id;
+
     const lib = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly).map(t => t.id);
-    const cand = CULT.learnable(npc, lib, { strictPrimarySub: !!W._founding }).map(CULT.tech).filter(t => t.tier <= c.stage);
+    let cand = [];
+    if (archDef && o.archetypeKey && W._founding !== false && Array.isArray(archDef.techs) && archDef.techs.length) {
+      cand = archDef.techs.map(CULT.tech).filter(t => {
+        if (!t) return false;
+        if (t.martialRare) return false;
+        if (t.path !== 'ANY' && t.path !== c.path) return false;
+        const subOk = CULT.isSubCompatible ? CULT.isSubCompatible(t, c.sub, false) : (!t.sub || t.sub === c.sub);
+        if (!subOk) return false;
+        if (t.innateOnly && t.sub !== c.sub) return false;
+        return (t.reqTier || t.tier) <= c.stage;
+      });
+    }
+    if (!cand.length) {
+      cand = CULT.learnable(npc, lib, { strictPrimarySub: !!W._founding }).map(CULT.tech).filter(t => (t.reqTier || t.tier) <= c.stage);
+    }
     const want = Math.min(CULT.maxTechs(npc) - 1, c.stage);
-    for (let i = 0; i < want && cand.length; i++) { const t = rng.weighted(cand, x => 1 + x.power / 60 + (x.sub === c.sub ? 2 : 0)); c.techs.push(t.id); cand.splice(cand.indexOf(t), 1); }
+    for (let i = 0; i < want && cand.length; i++) {
+      const t = rng.weighted(cand, x => 1 + x.power / 60 + (x.sub === c.sub ? 2 : 0));
+      c.techs.push(t.id);
+      cand.splice(cand.indexOf(t), 1);
+    }
     if (g.MARTIAL && g.MARTIAL.reconcileInnate) g.MARTIAL.reconcileInnate(npc, W);
     if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(npc);
     if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(npc);
@@ -86535,12 +86653,39 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     n.x = cx + .5; n.y = cy + .5;
   };
   SIM.CANDIDATE_COUNT = 3;
-  SIM.masterOpts = (seed, i) => { const r = new U.RNG(String(seed) + ':master:' + i); return { r, o: { id: 'n_master', sex: r.chance(0.7) ? 'M' : 'F', ageYears: r.int(44, 62), quality: 1.1, skillExp: 0.95, trainedness: 0.9, traitCount: 2, rank: 6, stage: path => (path === 'XIAN' || path === 'DEMON' || path === 'HEART_SOUL') ? 3 : 2, tenure: 4000, merit: 500 } }; };
+  SIM.masterOpts = (seed, i, archKey) => {
+    const r = new U.RNG(String(seed) + ':master:' + i);
+    const arch = archKey && g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey];
+    const archPath = arch ? arch.path : 'XIAN';
+    const opts = {
+      id: 'n_master',
+      sex: r.chance(0.7) ? 'M' : 'F',
+      ageYears: r.int(44, 62),
+      quality: 1.1,
+      skillExp: 0.95,
+      trainedness: 0.9,
+      traitCount: 2,
+      rank: 6,
+      stage: path => ((path || archPath) === 'XIAN' || (path || archPath) === 'DEMON' || (path || archPath) === 'HEART_SOUL') ? 3 : 2,
+      tenure: 4000,
+      merit: 500
+    };
+    if (archKey) {
+      opts.archetypeKey = archKey;
+      opts.isFounder = true;
+      opts.founderIndex = 0;
+    }
+    return { r, o: opts };
+  };
   /** ผู้สมัครตำแหน่งเจ้าสำนัก 3 คน — ให้ผู้เล่นเลือกก่อนเริ่ม (นิสัยต่างกัน → สำนักต่างกัน) */
-  SIM.candidates = seed => {
-    const W = { day: 360 }; const out = [];
+  SIM.candidates = (seed, archKey) => {
+    archKey = archKey || 'sword';
+    const W = { day: 360, _founding: true };
+    const out = [];
     for (let i = 0; i < SIM.CANDIDATE_COUNT; i++) {
-      const { r, o } = SIM.masterOpts(seed, i); const npc = SIM.buildNpc(W, r, o); HC.nowDay = W.day;
+      const { r, o } = SIM.masterOpts(seed, i, archKey);
+      const npc = SIM.buildNpc(W, r, o);
+      HC.nowDay = W.day;
       const st = SECT.styleOf(npc);
       out.push({ idx: i, npc, name: HC.fullName(npc), identity: HC.identity(npc), style: st, path: npc.cult.path + '/' + npc.cult.sub, age: HC.ageText(npc) });
     }
@@ -86562,14 +86707,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [], assemblyHistory: [] };
     SECT.POST_IDS.forEach(p => W.sect.posts[p] = null);
     EXPED.initWorld(W); EXPLORE.init(W);
-    // ---- เจ้าสำนัก ----
-    const mi = opts.masterIdx != null ? opts.masterIdx : 0; const mo = SIM.masterOpts(seed, mi);
-    const master = SIM.buildNpc(W, mo.r, mo.o); SIM.register(W, master); W.sect.masterId = master.id;
-    // ---- ศิษย์ตามลำดับ ----
-    for (let i = 0; i < 2; i++) { const n = SIM.buildNpc(W, rng, { sex: i === 0 ? (master.h.sex === 'M' ? 'F' : 'M') : rng.chance(0.5) ? 'M' : 'F', ageYears: rng.int(16, 23), quality: 0.5 + rng.gauss(0, 0.3), skillExp: 0.25, trainedness: 0.55, rank: 1, stage: 1, tenure: rng.int(200, 700), merit: 40 }); SIM.register(W, n); n.mentor = master.id; master.h.life.family.disciples.push(n.id); n.h.life.family.master = master.id; }
-    // ---- ห้องสมุด/คลัง/ตำรับ ----
-    const archKey = opts.archetype || opts.sectArchetype || 'sword';
-    const arch = (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey]) || (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES.sword);
+    // ---- ห้องสมุด/คลัง/ตำรับ และ Archetype ----
+    const archKey = opts.archetype || opts.sectArchetype || null;
+    const arch = (archKey && g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey]) || (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES.sword);
     if (arch) {
       W.sect.archetype = arch.id;
       if (!opts.sectName) W.sect.name = arch.nameTh;
@@ -86579,6 +86719,36 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       W.sect.unlockedSubs = arch.subs.slice();
     } else {
       W.sect.library = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier <= 2).map(t => t.id).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3).slice(0, 12).map(t => t.id)).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3 && (t.path === 'DEMON' || t.path === 'HEART_SOUL')).map(t => t.id)).concat(JD.TECH.techniques.filter(t => t.starterPassive && !t.innateOnly).map(t => t.id));
+    }
+    // ---- เจ้าสำนัก ----
+    const mi = opts.masterIdx != null ? opts.masterIdx : 0;
+    const mo = SIM.masterOpts(seed, mi, archKey);
+    const master = SIM.buildNpc(W, mo.r, mo.o);
+    SIM.register(W, master);
+    W.sect.masterId = master.id;
+    // ---- ศิษย์ตามลำดับ ----
+    for (let i = 0; i < 2; i++) {
+      const discOpts = {
+        sex: i === 0 ? (master.h.sex === 'M' ? 'F' : 'M') : rng.chance(0.5) ? 'M' : 'F',
+        ageYears: rng.int(16, 23),
+        quality: 0.5 + rng.gauss(0, 0.3),
+        skillExp: 0.25,
+        trainedness: 0.55,
+        rank: 1,
+        stage: 1,
+        tenure: rng.int(200, 700),
+        merit: 40
+      };
+      if (archKey) {
+        discOpts.archetypeKey = archKey;
+        discOpts.isFounder = true;
+        discOpts.founderIndex = i + 1;
+      }
+      const n = SIM.buildNpc(W, rng, discOpts);
+      SIM.register(W, n);
+      n.mentor = master.id;
+      master.h.life.family.disciples.push(n.id);
+      n.h.life.family.master = master.id;
     }
     W._founding = false;
     const S = W.sect; S.stock.grain = 150; S.stock.meal = 30;
@@ -86896,7 +87066,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       W.wildlife.beasts = W.wildlife.beasts.map(b => W.foeById[b.id] || b);
       if (s.wildResources) W.wildResources = s.wildResources;
       if (s.fishing) W.fishing = s.fishing;
-      W.npcs = s.npcs; W.byId = {}; W.npcs.forEach(n => { W.byId[n.id] = n; });
+      W.npcs = s.npcs; W.byId = {}; W.npcs.forEach(n => { W.byId[n.id] = n; if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(n); });
       const M = W.map; M.extraSt = [];
       s.map.buildings.forEach(sb => { const b = M.byId[sb.id]; if (b) { b.level = sb.level; b.hp = sb.hp; b.building = sb.building; } });
       s.map.extra.forEach(e => { const b = M.buildings.find(x => x.n === e.bid); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
@@ -90725,11 +90895,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (!n || n.dead) return 0;
     let score = 0, count = 0;
     if (node.skill) {
-      const skVal = Math.max(
-        (M && M.skillRead) ? M.skillRead(n, node.skill) : 0,
-        (n.h && n.h.skills && Number.isFinite(n.h.skills[node.skill])) ? n.h.skills[node.skill] : 0,
-        (n.martialSkills && Number.isFinite(n.martialSkills[node.skill])) ? n.martialSkills[node.skill] : 0
-      );
+      const skVal = (M && M.skillRead) ? M.skillRead(n, node.skill) : ((n.h && n.h.skills && Number.isFinite(n.h.skills[node.skill])) ? n.h.skills[node.skill] : 0);
       score += skVal + (n.cult ? n.cult.stage * 4 : 0);
       count++;
     }
@@ -91890,8 +92056,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         intellect: { perceptiveness: 72, comprehension: 72, focus: 72, willpower: 72 },
         personality: { courage: 72, composure: 70 }
       });
-      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'ARRAY', 'SOUL_DIVINE'].forEach(sk => { n.h.skills[sk] = 75; });
-      n.martialSkills = { BOW: 75, STAFF: 75, FOCUS: 75 };
+      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'FOCUS', 'ARRAY', 'SOUL_DIVINE'].forEach(sk => { n.h.skills[sk] = 75; });
+      if (M && M.ensureSkills) M.ensureSkills(n);
       g.HC.touch(n);
     });
 
@@ -100887,8 +101053,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   /* ---------- หน้าเริ่มเกม ---------- */
   UI.showStart = (seed) => {
     const st = $('start'); st.classList.remove('hidden'); seed = seed || String(Math.floor(Math.random() * 90000 + 10000));
-    const cands = SIM.candidates(seed);
     UI.selectedArchetype = UI.selectedArchetype || 'sword';
+    const cands = SIM.candidates(seed, UI.selectedArchetype);
     const archs = (g.SECT && g.SECT.ARCHETYPES) ? Object.values(g.SECT.ARCHETYPES) : [];
     const curArch = (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[UI.selectedArchetype]) || archs[0] || { nameTh: 'สำนักกระบี่เซียน', titleTh: 'วิถีกระบี่เหินเมฆา', descTh: '', subs: [], techs: [] };
 

@@ -124,8 +124,8 @@
   const A = {}; AI.ACTS = A;
   const idleOk = n => !n.act || n.act.id === 'idle';
   function martialChoice(n) {
-    const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON'];
-    let best = ids[0], bs = -1; ids.forEach(k => { const s = (E(n, 'affinities.' + k) || 0) * 0.9 + (n.h.skills[k] || 0) * 0.6 + (n.cult && n.cult.sub && /SWORD/.test(n.cult.sub) && k === 'SWORD' ? 25 : 0) + (n.cult && n.cult.path === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (n.cult && n.cult.path === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + (n.cult && n.cult.sub === 'VENOM_GU_SOVEREIGN' && k === 'POISON' ? 28 : 0); if (s > bs) { bs = s; best = k; } });
+    const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON'];
+    let best = ids[0], bs = -1; ids.forEach(k => { const s = (E(n, 'affinities.' + k) || 0) * 0.9 + ((n.h && n.h.skills && n.h.skills[k]) || 0) * 0.6 + (n.cult && n.cult.sub && /SWORD/.test(n.cult.sub) && k === 'SWORD' ? 25 : 0) + (n.cult && n.cult.path === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (n.cult && n.cult.path === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + (n.cult && n.cult.sub === 'VENOM_GU_SOVEREIGN' && k === 'POISON' ? 28 : 0); if (s > bs) { bs = s; best = k; } });
     return best;
   }
 
@@ -958,7 +958,7 @@
     } else { if (od.left <= 0) return 'done'; }
     return;
   };
-  AI.pickTeachSkill = (t, s) => { const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ALCHEMY', 'FORGING', 'SCRIPTURE', 'MEDICINE']; ids.sort((a, b) => ((t.h.skills[b] || 0) - (s.h.skills[b] || 0) + (E(s, 'affinities.' + b) || 0) * .3) - ((t.h.skills[a] || 0) - (s.h.skills[a] || 0) + (E(s, 'affinities.' + a) || 0) * .3)); return ids[0]; };
+  AI.pickTeachSkill = (t, s) => { const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ALCHEMY', 'FORGING', 'SCRIPTURE', 'MEDICINE']; ids.sort((a, b) => (((t.h && t.h.skills && t.h.skills[b]) || 0) - ((s.h && s.h.skills && s.h.skills[b]) || 0) + (E(s, 'affinities.' + b) || 0) * .3) - (((t.h && t.h.skills && t.h.skills[a]) || 0) - ((s.h && s.h.skills && s.h.skills[a]) || 0) + (E(s, 'affinities.' + a) || 0) * .3)); return ids[0]; };
   AI.pairEnd = (W, a, b, d) => {
     if (g.COG && g.COG.resolveCommitment) g.COG.resolveCommitment(W, a, b, 'completed', d);
     if (d.type === 'spar') { g.COMBAT.sparEnd(W, a, b, d); }

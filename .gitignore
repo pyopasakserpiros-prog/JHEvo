@@ -4,5 +4,6 @@
 *.zip
 inspect_gemini/
 test/results/
+**/test/results/
 .DS_Store
 node_modules/

@@ -94,7 +94,7 @@
     if (!n || !n.h) return [{ id: 'peaceful_companion', score: 1, reasonTh: 'ใช้ชีวิตเรียบง่าย' }];
     const r = COG.role(W, n);
     const sk = n.h.skills || {};
-    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, (n.martialSkills && n.martialSkills.BOW) || 0, (n.martialSkills && n.martialSkills.STAFF) || 0, (n.martialSkills && n.martialSkills.FOCUS) || 0);
+    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0);
     const scores = [
       {
         id: 'martial_master',

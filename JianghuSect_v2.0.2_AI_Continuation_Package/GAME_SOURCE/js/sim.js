@@ -16,24 +16,83 @@
   SIM.buildNpc = (W, rng, o) => {
     HC.nowDay = W.day;
     const npc = HC.generate(rng, { id: o.id, day: W.day, sex: o.sex, ageYears: o.ageYears, quality: o.quality || 0, archetype: o.archetype, rootGrade: o.rootGrade, _fromTierRoll: !!o._fromTierRoll, skillExp: o.skillExp, trainedness: o.trainedness, traitCount: o.traitCount, customRoots: o.customRoots, forceRootCount: o.forceRootCount, forceElements: o.forceElements, forceGrades: o.forceGrades });
+    if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(npc, rng);
     if (g.ELEM && g.ELEM.ensureNpcElementalState) g.ELEM.ensureNpcElementalState(npc);
     Object.assign(npc, { x: 0, y: 0, px: 0, py: 0, face: 1, dir: 0, rank: o.rank || 0, post: null, assist: null, merit: o.merit || 0, sat: 60, mentor: null, bed: null, joinDay: W.day - (o.tenure || 0), inv: { stones: Math.round(20 + (o.rank || 0) * 40 * (0.5 + rng.next())), pills: {}, mats: {} }, equip: {}, inj: [], cool: {}, recent: [], act: { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }, path: null, pi: 0, hidden: false, away: false, dead: false, stats: {}, why: [], travel: null });
-    if (typeof o.stage === 'function' || o.stage > 0) SIM.awaken(W, rng, npc, o.stage);
-    else if (o.stage == null && o.awakenChance != null) { if (rng.chance(o.awakenChance)) SIM.awaken(W, rng, npc, 1); }
+
+    // Archetype founding alignment for weapon skill & starter weapon
+    if (o.archetypeKey && g.SECT && g.SECT.ARCHETYPE_WEAPON) {
+      const wInfo = g.SECT.ARCHETYPE_WEAPON[o.archetypeKey];
+      if (wInfo) {
+        if (o.founderIndex === 0) {
+          npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 70);
+          const wItem = g.ECO && (g.ECO.itemById[wInfo.masterWeapon] || g.ECO.itemById[wInfo.starterWeapon]);
+          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(wItem, 1.15);
+        } else if (o.founderIndex != null && o.founderIndex > 0) {
+          npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 35);
+          const wItem = g.ECO && g.ECO.itemById[wInfo.starterWeapon];
+          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(wItem, 1.0);
+        }
+      }
+    }
+
+    if (typeof o.stage === 'function' || o.stage > 0) SIM.awaken(W, rng, npc, o.stage, o);
+    else if (o.stage == null && o.awakenChance != null) { if (rng.chance(o.awakenChance)) SIM.awaken(W, rng, npc, 1, o); }
     npc.h.state.hp = CULT.hpMax(npc);
     npc.h.state.qi = CULT.qiMax(npc);
     return npc;
   };
-  SIM.awaken = (W, rng, npc, stage) => {
-    const chosen = CULT.awaken(npc, rng, null, W.day);
-    if (W._founding !== false) { npc.cult.sub = chosen.sub; if (CULT.trackDef(chosen.sub)) npc.cult.track = CULT.initTrack(chosen.sub, 1, W.day); }
-    const c = npc.cult; if (typeof stage === 'function') stage = stage(c.path); c.stage = Math.min(stage, CULT.maxStage(npc));
+  SIM.awaken = (W, rng, npc, stage, o) => {
+    o = o || {};
+    const archKey = o.archetypeKey;
+    const archDef = archKey && g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey];
+
+    if (archDef && o.archetypeKey && W._founding !== false) {
+      if (g.ELEM && g.ELEM.ensureNpc) g.ELEM.ensureNpc(npc);
+      const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % archDef.subs.length;
+      const chosenSub = archDef.subs[subIdx] || archDef.subs[0];
+      const subEntry = g.CULT && g.CULT.subList && g.CULT.subList.find(x => x.sub.id === chosenSub);
+      const memberPath = subEntry ? subEntry.path : archDef.path;
+      const mant = CULT.bestMantra(memberPath, 1, npc);
+      npc.cult = { path: memberPath, sub: chosenSub, stage: 1, prog: 0, mantra: mant ? mant.id : null, techs: [], learning: null, toxic: 0, lifeBonus: 0, since: W.day, attempts: 0, secl: null, rate: 0, pillT: 0 };
+      if (CULT.trackDef(chosenSub)) npc.cult.track = CULT.initTrack(chosenSub, 1, W.day);
+      if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(npc);
+      CULT.refreshLifespan(npc);
+      HC.bump(npc);
+    } else {
+      const chosen = CULT.awaken(npc, rng, null, W.day);
+      if (W._founding !== false) { npc.cult.sub = chosen.sub; if (CULT.trackDef(chosen.sub)) npc.cult.track = CULT.initTrack(chosen.sub, 1, W.day); }
+    }
+
+    const c = npc.cult;
+    if (typeof stage === 'function') stage = stage(c.path);
+    c.stage = Math.min(stage, CULT.maxStage(npc));
     c.prog = Math.round(CULT.threshold(npc) * (0.1 + rng.next() * 0.6));
-    const m = CULT.bestMantra(c.path, c.stage, npc); if (m) c.mantra = m.id;
+    const m = CULT.bestMantra(c.path, c.stage, npc);
+    if (m) c.mantra = m.id;
+
     const lib = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly).map(t => t.id);
-    const cand = CULT.learnable(npc, lib, { strictPrimarySub: !!W._founding }).map(CULT.tech).filter(t => t.tier <= c.stage);
+    let cand = [];
+    if (archDef && o.archetypeKey && W._founding !== false && Array.isArray(archDef.techs) && archDef.techs.length) {
+      cand = archDef.techs.map(CULT.tech).filter(t => {
+        if (!t) return false;
+        if (t.martialRare) return false;
+        if (t.path !== 'ANY' && t.path !== c.path) return false;
+        const subOk = CULT.isSubCompatible ? CULT.isSubCompatible(t, c.sub, false) : (!t.sub || t.sub === c.sub);
+        if (!subOk) return false;
+        if (t.innateOnly && t.sub !== c.sub) return false;
+        return (t.reqTier || t.tier) <= c.stage;
+      });
+    }
+    if (!cand.length) {
+      cand = CULT.learnable(npc, lib, { strictPrimarySub: !!W._founding }).map(CULT.tech).filter(t => (t.reqTier || t.tier) <= c.stage);
+    }
     const want = Math.min(CULT.maxTechs(npc) - 1, c.stage);
-    for (let i = 0; i < want && cand.length; i++) { const t = rng.weighted(cand, x => 1 + x.power / 60 + (x.sub === c.sub ? 2 : 0)); c.techs.push(t.id); cand.splice(cand.indexOf(t), 1); }
+    for (let i = 0; i < want && cand.length; i++) {
+      const t = rng.weighted(cand, x => 1 + x.power / 60 + (x.sub === c.sub ? 2 : 0));
+      c.techs.push(t.id);
+      cand.splice(cand.indexOf(t), 1);
+    }
     if (g.MARTIAL && g.MARTIAL.reconcileInnate) g.MARTIAL.reconcileInnate(npc, W);
     if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(npc);
     if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(npc);
@@ -44,12 +103,39 @@
     n.x = cx + .5; n.y = cy + .5;
   };
   SIM.CANDIDATE_COUNT = 3;
-  SIM.masterOpts = (seed, i) => { const r = new U.RNG(String(seed) + ':master:' + i); return { r, o: { id: 'n_master', sex: r.chance(0.7) ? 'M' : 'F', ageYears: r.int(44, 62), quality: 1.1, skillExp: 0.95, trainedness: 0.9, traitCount: 2, rank: 6, stage: path => (path === 'XIAN' || path === 'DEMON' || path === 'HEART_SOUL') ? 3 : 2, tenure: 4000, merit: 500 } }; };
+  SIM.masterOpts = (seed, i, archKey) => {
+    const r = new U.RNG(String(seed) + ':master:' + i);
+    const arch = archKey && g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey];
+    const archPath = arch ? arch.path : 'XIAN';
+    const opts = {
+      id: 'n_master',
+      sex: r.chance(0.7) ? 'M' : 'F',
+      ageYears: r.int(44, 62),
+      quality: 1.1,
+      skillExp: 0.95,
+      trainedness: 0.9,
+      traitCount: 2,
+      rank: 6,
+      stage: path => ((path || archPath) === 'XIAN' || (path || archPath) === 'DEMON' || (path || archPath) === 'HEART_SOUL') ? 3 : 2,
+      tenure: 4000,
+      merit: 500
+    };
+    if (archKey) {
+      opts.archetypeKey = archKey;
+      opts.isFounder = true;
+      opts.founderIndex = 0;
+    }
+    return { r, o: opts };
+  };
   /** ผู้สมัครตำแหน่งเจ้าสำนัก 3 คน — ให้ผู้เล่นเลือกก่อนเริ่ม (นิสัยต่างกัน → สำนักต่างกัน) */
-  SIM.candidates = seed => {
-    const W = { day: 360 }; const out = [];
+  SIM.candidates = (seed, archKey) => {
+    archKey = archKey || 'sword';
+    const W = { day: 360, _founding: true };
+    const out = [];
     for (let i = 0; i < SIM.CANDIDATE_COUNT; i++) {
-      const { r, o } = SIM.masterOpts(seed, i); const npc = SIM.buildNpc(W, r, o); HC.nowDay = W.day;
+      const { r, o } = SIM.masterOpts(seed, i, archKey);
+      const npc = SIM.buildNpc(W, r, o);
+      HC.nowDay = W.day;
       const st = SECT.styleOf(npc);
       out.push({ idx: i, npc, name: HC.fullName(npc), identity: HC.identity(npc), style: st, path: npc.cult.path + '/' + npc.cult.sub, age: HC.ageText(npc) });
     }
@@ -71,14 +157,9 @@
     W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [], assemblyHistory: [] };
     SECT.POST_IDS.forEach(p => W.sect.posts[p] = null);
     EXPED.initWorld(W); EXPLORE.init(W);
-    // ---- เจ้าสำนัก ----
-    const mi = opts.masterIdx != null ? opts.masterIdx : 0; const mo = SIM.masterOpts(seed, mi);
-    const master = SIM.buildNpc(W, mo.r, mo.o); SIM.register(W, master); W.sect.masterId = master.id;
-    // ---- ศิษย์ตามลำดับ ----
-    for (let i = 0; i < 2; i++) { const n = SIM.buildNpc(W, rng, { sex: i === 0 ? (master.h.sex === 'M' ? 'F' : 'M') : rng.chance(0.5) ? 'M' : 'F', ageYears: rng.int(16, 23), quality: 0.5 + rng.gauss(0, 0.3), skillExp: 0.25, trainedness: 0.55, rank: 1, stage: 1, tenure: rng.int(200, 700), merit: 40 }); SIM.register(W, n); n.mentor = master.id; master.h.life.family.disciples.push(n.id); n.h.life.family.master = master.id; }
-    // ---- ห้องสมุด/คลัง/ตำรับ ----
-    const archKey = opts.archetype || opts.sectArchetype || 'sword';
-    const arch = (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey]) || (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES.sword);
+    // ---- ห้องสมุด/คลัง/ตำรับ และ Archetype ----
+    const archKey = opts.archetype || opts.sectArchetype || null;
+    const arch = (archKey && g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES[archKey]) || (g.SECT && g.SECT.ARCHETYPES && g.SECT.ARCHETYPES.sword);
     if (arch) {
       W.sect.archetype = arch.id;
       if (!opts.sectName) W.sect.name = arch.nameTh;
@@ -88,6 +169,36 @@
       W.sect.unlockedSubs = arch.subs.slice();
     } else {
       W.sect.library = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier <= 2).map(t => t.id).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3).slice(0, 12).map(t => t.id)).concat(JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && t.tier === 3 && (t.path === 'DEMON' || t.path === 'HEART_SOUL')).map(t => t.id)).concat(JD.TECH.techniques.filter(t => t.starterPassive && !t.innateOnly).map(t => t.id));
+    }
+    // ---- เจ้าสำนัก ----
+    const mi = opts.masterIdx != null ? opts.masterIdx : 0;
+    const mo = SIM.masterOpts(seed, mi, archKey);
+    const master = SIM.buildNpc(W, mo.r, mo.o);
+    SIM.register(W, master);
+    W.sect.masterId = master.id;
+    // ---- ศิษย์ตามลำดับ ----
+    for (let i = 0; i < 2; i++) {
+      const discOpts = {
+        sex: i === 0 ? (master.h.sex === 'M' ? 'F' : 'M') : rng.chance(0.5) ? 'M' : 'F',
+        ageYears: rng.int(16, 23),
+        quality: 0.5 + rng.gauss(0, 0.3),
+        skillExp: 0.25,
+        trainedness: 0.55,
+        rank: 1,
+        stage: 1,
+        tenure: rng.int(200, 700),
+        merit: 40
+      };
+      if (archKey) {
+        discOpts.archetypeKey = archKey;
+        discOpts.isFounder = true;
+        discOpts.founderIndex = i + 1;
+      }
+      const n = SIM.buildNpc(W, rng, discOpts);
+      SIM.register(W, n);
+      n.mentor = master.id;
+      master.h.life.family.disciples.push(n.id);
+      n.h.life.family.master = master.id;
     }
     W._founding = false;
     const S = W.sect; S.stock.grain = 150; S.stock.meal = 30;
@@ -405,7 +516,7 @@
       W.wildlife.beasts = W.wildlife.beasts.map(b => W.foeById[b.id] || b);
       if (s.wildResources) W.wildResources = s.wildResources;
       if (s.fishing) W.fishing = s.fishing;
-      W.npcs = s.npcs; W.byId = {}; W.npcs.forEach(n => { W.byId[n.id] = n; });
+      W.npcs = s.npcs; W.byId = {}; W.npcs.forEach(n => { W.byId[n.id] = n; if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(n); });
       const M = W.map; M.extraSt = [];
       s.map.buildings.forEach(sb => { const b = M.byId[sb.id]; if (b) { b.level = sb.level; b.hp = sb.hp; b.building = sb.building; } });
       s.map.extra.forEach(e => { const b = M.buildings.find(x => x.n === e.bid); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
