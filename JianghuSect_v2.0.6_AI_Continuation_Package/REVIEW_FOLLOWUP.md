@@ -1,10 +1,17 @@
-# v2.0.6 follow-up review
+# v2.0.6 follow-up review and fixes
 
-The original ZIP omitted the suite registered as `test/diplomacy_sanctum_ancestral_suite.js`. The replacement is a focused smoke suite, not a reconstruction of Gemini's missing test. It verifies that a sect master signs a trade accord and exchanges with an allied sect, recording the exchange day; it also checks shrine blessing, sanctum departure, bottleneck inspection, and that treaty, exchange cooldown, blessing, and expedition state survive save/load. It does not prove every claimed feature is complete.
+## Findings fixed
 
-Fixed `SECT.masterDecision` to invoke existing `CONTENT.signTreaty` and `CONTENT.exchangeWithAlly` APIs rather than absent functions. A successful exchange records `lastCaravanDay`; day zero is handled correctly. The alliance threshold was aligned with `signTreaty` (40). Rebuilt standalone HTML.
+- `SECT.masterDecision` used nonexistent diplomacy API names. It now calls the implemented `CONTENT.signTreaty` and `CONTENT.exchangeWithAlly`; successful trade records the cooldown, day zero is handled correctly, and the agreement threshold matches treaty signing.
+- The compatibility panel calculated path/subpath combat fit, but real combat only applied weapon fit. `MARTIAL.skillEfficiency` now applies the path/subpath combat factor independently of equipment matching, and `SK.qiCost` applies the corresponding qi-cost factor. Regression checks cover cross-path combat scaling and composition with bow/sword fit.
+- Breakthrough blessings compared their expiration against a nonexistent `STATS.now` clock. `CULT.breakthrough` now passes the simulation's `W.t` into the chance calculation; active and expired blessing behavior are covered.
+- The previously absent `test/diplomacy_sanctum_ancestral_suite.js` is now included as a focused production-code suite. It checks diplomacy agreement and exchange, shrine blessing, three-floor sanctum completion and rewards, return of expedition members, bottleneck inspection, blessing effects/expiry, and save/load persistence.
+- Rebuilt `JianghuSect_single.html` from the source.
 
-Regression: 79/79 groups passed, 0 failed and 0 timed out using Node 24, local HTTP, and installed Chromium through a Playwright adapter; the adapter maps file URLs to local HTTP. This does not establish direct file:// behavior. Browser mobile performance test passed on this run. Full audit of technique compatibility and combat effectiveness, full sanctum floor completion/rewards, ancestor tablet creation on elder death and blessing effects on study/breakthrough, diplomatic balance and envoy dispatch, and long-run NPC decision-making remains outstanding. The smoke checks do not validate those complete lifecycles. The historical report's named APIs and coverage claims need separate reconciliation with the actual code; passing these groups does not certify them.
+## Verification
 
+`node test/run_all.js`: **79/79 groups passed**, including browser UI and mobile performance groups. Browser checks ran in headless Chromium via a temporary local-HTTP adapter because this environment blocks direct `file://` navigation. Mobile performance check reported 0.795 ms/tick and 314.3x the tested cap for its 80-NPC stress case. Focused checks also passed for `martial_paths.js`, `diplomacy_sanctum_ancestral_suite.js`, `unified_weapon_skills_and_archetypes_suite.js`, `elemental_overhaul_suite.js`, and `standalone.js`.
 
-Latest focused verification after adding save/load assertions: `node test/core_lock.js`, `node test/standalone.js`, `node test/diplomacy_sanctum_ancestral_suite.js`, and `node test/npc_life_authority_overhaul.js` passed; standalone was rebuilt. The 79-group full run passed before these additional assertions; it has not been rerun after this test-only extension.
+## Review limits
+
+These fixes close the concrete integration defects found in the audit; they do not certify balance for every legendary/manual combination. NPC cognition and life-authority regressions passed, but no statistical multi-seed gameplay balance campaign was run.

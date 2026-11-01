@@ -2008,13 +2008,16 @@
       p -= hd / 100 * 0.25 + c.toxic / 100 * 0.15;
     }
     if (g.BN) p += g.BN.chanceMod(npc);
-    if (npc.ancestralBlessing && (npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= (g.STATS ? g.STATS.now : 0))) p += (npc.ancestralBlessing.breakthroughBonus || 0);
+    // The simulation clock is in W.t (minutes). Pass it through the attempt so
+    // a blessing expires consistently even when no global STATS clock exists.
+    const now = prep && Number.isFinite(prep.now) ? prep.now : (g.STATS && Number.isFinite(g.STATS.now) ? g.STATS.now : null);
+    if (npc.ancestralBlessing && (now == null || npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= now)) p += (npc.ancestralBlessing.breakthroughBonus || 0);
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
   CULT.breakthrough = (W, npc, prep) => {
     const c = npc.cult, rng = W.rng;
-    const p = CULT.breakthroughChance(npc, prep);
+    const p = CULT.breakthroughChance(npc, Object.assign({}, prep || {}, { now: W.t }));
     c.attempts++;
     const ok = rng.next() < p;
     const res = { ok, p, injured: false, died: false, stageFrom: c.stage };

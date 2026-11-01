@@ -541,10 +541,17 @@ M.conditionMatches=(n,t)=>{
 };
 M.skillEfficiency=(n,p)=>{
  const t=CULT.tech(p.tech||p.id)||p;
- if(!t.weaponTypes&&!t.armorTypes)return 1;
- if(M.conditionMatches(n,t))return 1.15;
- if(t.requiresWeapon||p.requiresWeapon)return 0;
- return 0.65;
+ let equipmentMult=1;
+ if(t.weaponTypes||t.armorTypes){
+  if(M.conditionMatches(n,t))equipmentMult=1.15;
+  else if(t.requiresWeapon||p.requiresWeapon)return 0;
+  else equipmentMult=0.65;
+ }
+ // The compatibility panel previously showed cross-path/subpath penalties,
+ // while real skill damage only applied equipment compatibility. Keep the
+ // weapon factor above and apply the independent cultivation-fit factor here.
+ const fit=(M.resolveTechCompatibility&&n&&n.cult)?M.resolveTechCompatibility(n,t):null;
+ return equipmentMult*(fit&&Number.isFinite(fit.combatPowerMult)?fit.combatPowerMult:1);
 };
 M.elementalEfficiency=(n,p,target)=>{
  if(!n||!g.ELEM||!p)return {damageMult:1,costMult:1,accBonus:0,controlChanceMult:1,counterRelation:'NEUTRAL'};

@@ -63400,13 +63400,16 @@ JD.ITEMS.items.forEach(it => {
       p -= hd / 100 * 0.25 + c.toxic / 100 * 0.15;
     }
     if (g.BN) p += g.BN.chanceMod(npc);
-    if (npc.ancestralBlessing && (npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= (g.STATS ? g.STATS.now : 0))) p += (npc.ancestralBlessing.breakthroughBonus || 0);
+    // The simulation clock is in W.t (minutes). Pass it through the attempt so
+    // a blessing expires consistently even when no global STATS clock exists.
+    const now = prep && Number.isFinite(prep.now) ? prep.now : (g.STATS && Number.isFinite(g.STATS.now) ? g.STATS.now : null);
+    if (npc.ancestralBlessing && (now == null || npc.ancestralBlessing.until == null || npc.ancestralBlessing.until >= now)) p += (npc.ancestralBlessing.breakthroughBonus || 0);
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
   CULT.breakthrough = (W, npc, prep) => {
     const c = npc.cult, rng = W.rng;
-    const p = CULT.breakthroughChance(npc, prep);
+    const p = CULT.breakthroughChance(npc, Object.assign({}, prep || {}, { now: W.t }));
     c.attempts++;
     const ok = rng.next() < p;
     const res = { ok, p, injured: false, died: false, stageFrom: c.stage };
@@ -79506,7 +79509,9 @@ JD.ITEMS.items.forEach(it => {
     const passMult = (g.MARTIAL && g.MARTIAL.passiveStats ? g.MARTIAL.passiveStats(n).qiCostMult : 1) || 1;
     const innMult = (g.MARTIAL && g.MARTIAL.innateStats ? g.MARTIAL.innateStats(n).qiCostMult : 1) || 1;
     const synMult = (g.MARTIAL && g.MARTIAL.skillSynergy ? g.MARTIAL.skillSynergy(n, p).qiCostMult : 1) || 1;
-    return Math.max(0, Math.round(g.CULT.qiMax(n) * (p.costPct || 0) / 100 * clamp(passMult * innMult * synMult, 0.35, 1.5)));
+    const fitMult = (g.MARTIAL && g.MARTIAL.resolveTechCompatibility && n && n.cult)
+      ? g.MARTIAL.resolveTechCompatibility(n, p.tech || p.id).qiCostMult : 1;
+    return Math.max(0, Math.round(g.CULT.qiMax(n) * (p.costPct || 0) / 100 * clamp(passMult * innMult * synMult * fitMult, 0.35, 1.5)));
   };
   SK.masteryBase = (n, p) => {
     const c = n && n.cult, techId = p.tech || p.id;
@@ -83565,10 +83570,17 @@ M.conditionMatches=(n,t)=>{
 };
 M.skillEfficiency=(n,p)=>{
  const t=CULT.tech(p.tech||p.id)||p;
- if(!t.weaponTypes&&!t.armorTypes)return 1;
- if(M.conditionMatches(n,t))return 1.15;
- if(t.requiresWeapon||p.requiresWeapon)return 0;
- return 0.65;
+ let equipmentMult=1;
+ if(t.weaponTypes||t.armorTypes){
+  if(M.conditionMatches(n,t))equipmentMult=1.15;
+  else if(t.requiresWeapon||p.requiresWeapon)return 0;
+  else equipmentMult=0.65;
+ }
+ // The compatibility panel previously showed cross-path/subpath penalties,
+ // while real skill damage only applied equipment compatibility. Keep the
+ // weapon factor above and apply the independent cultivation-fit factor here.
+ const fit=(M.resolveTechCompatibility&&n&&n.cult)?M.resolveTechCompatibility(n,t):null;
+ return equipmentMult*(fit&&Number.isFinite(fit.combatPowerMult)?fit.combatPowerMult:1);
 };
 M.elementalEfficiency=(n,p,target)=>{
  if(!n||!g.ELEM||!p)return {damageMult:1,costMult:1,accBonus:0,controlChanceMult:1,counterRelation:'NEUTRAL'};

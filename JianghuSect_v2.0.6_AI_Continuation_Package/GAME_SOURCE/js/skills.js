@@ -387,7 +387,9 @@
     const passMult = (g.MARTIAL && g.MARTIAL.passiveStats ? g.MARTIAL.passiveStats(n).qiCostMult : 1) || 1;
     const innMult = (g.MARTIAL && g.MARTIAL.innateStats ? g.MARTIAL.innateStats(n).qiCostMult : 1) || 1;
     const synMult = (g.MARTIAL && g.MARTIAL.skillSynergy ? g.MARTIAL.skillSynergy(n, p).qiCostMult : 1) || 1;
-    return Math.max(0, Math.round(g.CULT.qiMax(n) * (p.costPct || 0) / 100 * clamp(passMult * innMult * synMult, 0.35, 1.5)));
+    const fitMult = (g.MARTIAL && g.MARTIAL.resolveTechCompatibility && n && n.cult)
+      ? g.MARTIAL.resolveTechCompatibility(n, p.tech || p.id).qiCostMult : 1;
+    return Math.max(0, Math.round(g.CULT.qiMax(n) * (p.costPct || 0) / 100 * clamp(passMult * innMult * synMult * fitMult, 0.35, 1.5)));
   };
   SK.masteryBase = (n, p) => {
     const c = n && n.cult, techId = p.tech || p.id;
