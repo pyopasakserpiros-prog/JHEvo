@@ -1,19 +1,13 @@
-# JianghuSect — v2.0.11 Patch Complete
+# JianghuSect Evolution — v2.0.14
 
-JianghuSect Evolution (JHEvo) is a browser-based cultivation and sect-management game. The `main` branch contains Patch v2.0.11.
+Playable cultivation and sect-management game. This working branch integrates the user's v2.0.13 source from the Gemini branch archive, followed by v2.0.14.
 
-**For an AI asked to continue development from this repository:** start with [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md), then carry out the pending [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md). The brief and reports are included here so they do not need to be copied into a separate prompt.
+- Play: [standalone HTML](GAME_SOURCE/JianghuSect_single.html)
+- Source and tests: [GAME_SOURCE](GAME_SOURCE/)
+- Current implementation and validation: [v2.0.14 report](PATCH_IMPLEMENTATION_REPORT_V2_0_14.md)
+- AI instructions: [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), [AGENTS.md](AGENTS.md)
 
-- **Playable standalone game:** [`GAME_SOURCE/JianghuSect_single.html`](./GAME_SOURCE/JianghuSect_single.html)
-- **Full source and tests:** [`GAME_SOURCE/`](./GAME_SOURCE/)
-- **Current patch report:** [`PATCH_IMPLEMENTATION_REPORT_V2_0_11.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_11.md)
-- **Next-patch implementation brief:** [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md) (pending implementation; includes independent verification and design requirements)
-- **Build coverage research:** [`WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md`](./WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md) and [`WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md`](./WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md)
-- **Previous patch report:** [`PATCH_IMPLEMENTATION_REPORT_V2_0_10.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_10.md)
-- **Earlier patch report:** [`PATCH_IMPLEMENTATION_REPORT.md`](./PATCH_IMPLEMENTATION_REPORT.md) (v2.0.9)
-- **Patch v2.0.10 specification:** [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md) (completed specification; retain as historical context)
-- **Future roadmap:** [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md)
-- **AI entry point and guardrails:** [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md), [`AGENTS.md`](./AGENTS.md)
+Earlier v2.0.10–v2.0.12 prompts and coverage documents are historical references; inspect implemented source before proposing more work.
 
 ## v2.0.11 highlights
 

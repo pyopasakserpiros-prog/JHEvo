@@ -322,6 +322,24 @@
             const d = rng.pick(b.drops); out.mats[d] = (out.mats[d] || 0) + Math.round((1 + (rng.chance(0.4) ? 1 : 0)) * Math.max(...alive.map(n => g.MARTIAL.lifeMult(n, 'hunting'))));
             if (rng.chance(0.5)) { const d2 = rng.pick(b.drops); out.mats[d2] = (out.mats[d2] || 0) + 1; }
           }
+          if (ECO.rollProceduralGear && rng.chance(0.14 + reg.danger * 0.03)) {
+            const pGear = ECO.rollProceduralGear(W, { maxTier: clamp(reg.danger + 1, 1, 4), source: 'expedition_hunt' });
+            pGear.personalLoot = true;
+            out.gear.push(pGear);
+            ex.journal.push('ได้ศาสตราสุ่ม「' + pGear.nameTh + '」จากซากศึก');
+          }
+          if (rng.chance(0.12 + reg.danger * 0.02)) {
+            const stTier = clamp(1 + Math.floor(rng.next() * Math.min(4, reg.danger + 1)), 1, 4);
+            const stId = 'ITEM_REPAIR_STONE_' + stTier;
+            out.mats[stId] = (out.mats[stId] || 0) + 1;
+          }
+          alive.forEach(m => {
+            if (m.equip && ECO.wearGear) {
+              for (const sl of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+                if (m.equip[sl] && m.equip[sl].procedural) ECO.wearGear(m.equip[sl], 0.35, W, m);
+              }
+            }
+          });
           const dmgFrac = clamp((1 - p) * 0.55 + rng.next() * 0.1, 0.02, 0.6);
           const v = rng.pick(alive); const dm = CULT.hpMax(v) * dmgFrac; v.h.state.hp = Math.max(1, v.h.state.hp - dm); totalDmg += dmgFrac;
           if (dmgFrac > 0.25) AI.injure(W, v, dmgFrac > 0.45 ? 2 : 1, 'ถูก' + b.nameTh + 'ทำร้าย');
@@ -497,7 +515,15 @@
     ], x => Math.max(0.05, x.w)).k;
     if (kind === 'herb') { const hs = JD.ITEMS.materials.filter(m => !m.sourcePack && m.category === 'HERB' && m.tier <= reg.danger + 2); const m = rng.pick(hs); const n = 1 + rng.int(0, 2); out.mats[m.id] = (out.mats[m.id] || 0) + n; ex.journal.push('พบสมุนไพรหายาก「' + m.nameTh + '」'); out.notes.push(v.h.name.given + ' พบ' + m.nameTh); }
     else if (kind === 'pill') { const ps = Object.keys(W.sect.stock).length ? ECO.recipesFor(W, ['ALCHEMY']).filter(r => r.outType === 'PILL' && r.tier <= reg.danger + 1) : []; if (ps.length) { const r = rng.pick(ps); const key = r.outItemId || 'P:' + r.id; out.pills[key] = (out.pills[key] || 0) + 1 + rng.int(0, 1); ex.journal.push('พบโอสถในซากโบราณ'); out.notes.push(v.h.name.given + ' พบ' + (r.outNameTh)); } }
-    else if (kind === 'gear') { const rs = ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.tier <= reg.danger + 2); if (rs.length) { const r = rng.pick(rs); const gear = ECO.mintGear(r, 1.1 + rng.next() * 0.3); gear.nameTh = (gear.nameTh || 'ศาสตรา') + ' (ของโบราณ)'; gear.q = 1.2; out.gear.push(gear); ex.journal.push('ขุดพบ' + gear.nameTh); out.notes.push(v.h.name.given + ' ขุดพบ' + gear.nameTh); } }
+    else if (kind === 'gear') {
+      if (ECO.rollProceduralGear && rng.chance(0.65)) {
+        const gear = ECO.rollProceduralGear(W, { maxTier: clamp(reg.danger + 1, 1, 4), source: 'expedition_fortune' });
+        out.gear.push(gear); ex.journal.push('ขุดพบ' + gear.nameTh); out.notes.push(v.h.name.given + ' ขุดพบ' + gear.nameTh);
+      } else {
+        const rs = ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.tier <= reg.danger + 2);
+        if (rs.length) { const r = rng.pick(rs); const gear = ECO.mintGear(W, r, 1.1 + rng.next() * 0.3); gear.nameTh = (gear.nameTh || 'ศาสตรา') + ' (ของโบราณ)'; gear.q = 1.2; out.gear.push(gear); ex.journal.push('ขุดพบ' + gear.nameTh); out.notes.push(v.h.name.given + ' ขุดพบ' + gear.nameTh); }
+      }
+    }
     else if (kind === 'scroll') { const drop = g.MARTIAL.discover(W, out, { tier: Math.max(2, reg.danger + 2), rank, danger: reg.danger, source: 'expedition' }); if (drop) { ex.journal.push('พบองค์ความรู้หายาก'); out.notes.push(v.h.name.given + ' พบองค์ความรู้หายาก'); } }
     else if (kind === 'master') { const sk = AI.pickTeachSkill(v, v); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(v, sk, 6, 2.2); if (v.cult) CULT.gain(v, CULT.threshold(v) * 0.08); HC.experience(v, 'insight', 0.9); ex.journal.push('พบผู้เฒ่าลึกลับชี้แนะ'); out.notes.push(v.h.name.given + ' ได้รับการชี้แนะจากผู้เฒ่าลึกลับ'); }
     else if (kind === 'spring') { if (v.cult) { CULT.gain(v, CULT.threshold(v) * 0.15); } v.h.state.hp = CULT.hpMax(v); HC.trainBody(v, 'vitality' in {} ? '' : 'endurance', 4); HC.experience(v, 'insight', 0.5); ex.journal.push('พบสระปราณธรรมชาติ'); out.notes.push(v.h.name.given + ' พบสระปราณลับ ตบะก้าวหน้า'); }
@@ -514,10 +540,16 @@
     alive.forEach(a => (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, 'trading', 1.2, 1));
     out.rep += 0.1;
   };
+  // Only an envoy actually participating can contribute; never stack per member.
+  X.envoyBonus = party => Math.min(2, (party || []).reduce((best, n) => {
+    if (!n || n.dead || !n.cult || n.cult.path !== 'STRATEGY_GOVERNANCE' || n.cult.sub !== 'DIPLOMATIC_ENVOY') return best;
+    const sk = g.MARTIAL ? g.MARTIAL.skillRead(n, 'diplomacy') : 0;
+    return Math.max(best, Math.max(0, sk) / 50);
+  }, 0));
   X.diplomacyResult = (W, ex, alive, out) => {
     const s = W.rng.weighted(W.world.sects, x => 1 + Math.max(0, 50 - x.attitude) / 50); const lead = alive[0]; if (!lead) return;
     const skill = alive.reduce((m, a) => Math.max(m, E(a, 'social.charisma') * .5 + E(a, 'personality.empathy') * .3 + (a.h.skills.diplomacy || 0) * .4), 0);
-    const delta = Math.round((skill - 45) / 4 + W.rng.gauss(0, 4) - (s.style === 'ทะนง' ? 3 : 0) + (W.sect.policy.openness - 50) / 15);
+    const delta = Math.round((skill - 45) / 4 + W.rng.gauss(0, 4) - (s.style === 'ทะนง' ? 3 : 0) + (W.sect.policy.openness - 50) / 15 + X.envoyBonus(alive));
     s.attitude = clamp(s.attitude + delta, -100, 100); s.contact = W.day;
     ex.journal.push('เยือน' + s.nameTh + ' ท่าทีเปลี่ยน ' + (delta >= 0 ? '+' : '') + delta);
     if (delta > 6 && W.rng.chance(.4)) { const drop = g.MARTIAL.discover(W, out, { tier: 3, source: 'diplomacy' }); if (drop) out.notes.push('แลกเปลี่ยนองค์ความรู้กับ' + s.nameTh); }
@@ -601,7 +633,23 @@
     Object.keys(out.pills || {}).forEach(k => {
       donation.stockBefore[k] = ECO.count(W, k); ECO.add(W, k, out.pills[k]); donation.pills[k] = out.pills[k];
     });
-    (out.gear || []).forEach(gr => { W.sect.gear.push(gr); donation.gear.push(gr); });
+    (out.gear || []).forEach(gr => {
+      if (!gr) return;
+      if (!gr.uid && ECO.nextGearUid) gr.uid = ECO.nextGearUid(W, gr.id);
+      const owner = gr.personalLoot ? hoarder() : null;
+      if (owner && gr.personalLoot && rng.chance(clamp(keepFrac + 0.35, 0.25, 0.75))) {
+        owner.inv = owner.inv || {};
+        owner.inv.gear = owner.inv.gear || [];
+        owner.inv.gear.push(gr);
+        if (g.CPE && g.CPE.evaluatePersonalBagGear) g.CPE.evaluatePersonalBagGear(W, owner);
+      } else {
+        gr.listedAtDay = W.day;
+        gr.listedTick = W.t;
+        gr.donatedRewarded = true;
+        W.sect.gear.push(gr);
+        donation.gear.push(gr);
+      }
+    });
     (out.techs || []).forEach(id => {
       if (W.sect.library.includes(id)) return;
       const owner = hoarder(), honesty = E(owner, 'personality.integrity'), loyalty = E(owner, 'personality.loyalty');

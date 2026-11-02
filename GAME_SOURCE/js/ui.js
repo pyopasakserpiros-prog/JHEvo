@@ -870,6 +870,22 @@
       UI.toast(res.ok ? ('สวมใส่ ' + res.equipped.nameTh + ' แล้ว') : res.reason);
       UI.render();
     }
+    else if (a === 'repair-gear') {
+      const [npcId, uid] = String(arg || '').split('|');
+      const n = W.byId[npcId];
+      const res = (ECO && ECO.repairGear) ? ECO.repairGear(W, uid, null, n) : { ok: false, reason: 'ไม่พบระบบซ่อมศาสตรา' };
+      UI.toast(res.ok ? ('🔧 ซ่อม ' + res.gear.nameTh + ' สำเร็จ (' + res.newDur + '/' + res.newMaxDur + ')') : ('ซ่อมไม่สำเร็จ: ' + res.reason));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'retire-gear') {
+      const [npcId, uid] = String(arg || '').split('|');
+      const n = W.byId[npcId];
+      const res = (ECO && ECO.retireGear) ? ECO.retireGear(W, n, uid) : { ok: false, reason: 'ไม่พบระบบปลดระวาง' };
+      UI.toast(res.ok ? ('♻️ ปลดระวาง ' + res.gear.nameTh + ' แยกชิ้นส่วนเข้าคลังแล้ว') : ('ปลดระวางไม่สำเร็จ: ' + res.reason));
+      UI.render();
+      UI.updateHud(true);
+    }
     else if (a === 'unequip-bag') {
       const [npcId, slot] = String(arg || '').split('|');
       const res = SECT.EDITOR.unequipGear(W, npcId, slot, false);
@@ -1860,8 +1876,10 @@
         }).join('') + '<div class="sub" style="margin-top:4px">' + (SECT.holder(W, 'registry') ? 'ผู้อาวุโสหอทะเบียนเป็นผู้พิจารณา' : 'เจ้าสำนักเป็นผู้พิจารณาเอง') + ' (ประเมินจากรูปลักษณ์และทักษะที่สังเกตได้ ไม่ทราบพรสวรรค์ซ่อนเร้น)</div></div>';
       }
       h += '<h3>จำนวนตามระดับ</h3><div class="card">' + SECT.RANKS.slice().reverse().map(r => '<span class="chip" style="border-color:' + r.color + '">' + r.nameTh + ' ' + byRank[r.id] + '</span>').join('') + '</div>';
-      const cult = { XIAN: 0, BODY: 0, GOD: 0, DEMON: 0, HEART_SOUL: 0, MECH_PUPPET: 0, KARMA_SAMSARA: 0, BEAST_SOVEREIGN: 0, SAGE_SUPPORT: 0, none: 0 }; alive.forEach(n => { const k = n.cult && cult[n.cult.path] != null ? n.cult.path : 'none'; cult[k]++; });
-      h += '<h3>วิถีที่เดิน (9 วิถีหลัก)</h3><div class="card"><span class="chip b">เซียน ' + cult.XIAN + '</span><span class="chip r">กายา ' + cult.BODY + '</span><span class="chip g">เทพศรัทธา ' + cult.GOD + '</span><span class="chip v">มารอสูร ' + cult.DEMON + '</span><span class="chip b">จิต·เซน ' + cult.HEART_SOUL + '</span><span class="chip g">กลจักรหุ่นเชิด ' + cult.MECH_PUPPET + '</span><span class="chip v">กรรมวัฏ ' + cult.KARMA_SAMSARA + '</span><span class="chip r">ราชันย์อสูร ' + cult.BEAST_SOVEREIGN + '</span><span class="chip ok">ปราชญ์หนุนนำ ' + cult.SAGE_SUPPORT + '</span><span class="chip">ปุถุชน ' + cult.none + '</span></div>';
+      const cult = Object.fromEntries(Object.keys(CULT.PATHS).map(k => [k, 0])); cult.none = 0;
+      alive.forEach(n => { const k = n.cult && cult[n.cult.path] != null ? n.cult.path : 'none'; cult[k]++; });
+      h += '<h3>วิถีที่เดิน (' + Object.keys(CULT.PATHS).length + ' วิถีหลัก)</h3><div class="card">' + Object.values(CULT.PATHS).map(p => '<span class="chip">' + esc(p.shortTh || p.nameTh) + ' ' + cult[p.id] + '</span>').join('') + '<span class="chip">ปุถุชน ' + cult.none + '</span></div>';
+      if (SECT.governanceSummary) { const gov = SECT.governanceSummary(W); h += '<div class="card">การบริหารสำนัก: ลดค่าดูแล ' + Math.round((gov.upkeepReduction || 0) * 100) + '% · ประสิทธิภาพก่อสร้างเพิ่ม ' + Math.round((gov.constructionSpeedBonus || 0) * 100) + '%</div>'; }
       if (S.research) h += '<h3>งานวิจัย</h3><div class="card">ตำรับระดับ ' + S.research.tier + ' ' + bar('ความคืบหน้า', S.research.progress / S.research.need * 100, { wide: true, txt: Math.round(S.research.progress / S.research.need * 100) + '%' }) + '</div>';
       if (S.tournament) h += '<div class="card">🏆 ชุมนุมประลองยุทธ์สำนัก: ' + (S.tournament.state === 'announce' ? 'ประกาศแล้ว จะเริ่มอีก ' + Math.max(0, Math.round((S.tournament.start - W.t) / 60)) + ' ชม.' : 'กำลังแข่ง เหลือ ' + (S.tournament.alive || []).length + ' คน') + '</div>';
       if (S.festival && S.festival.until > W.t) h += '<div class="card">🎎 งานเลี้ยงกำลังจัดอยู่</div>';
@@ -2802,12 +2820,26 @@
   function gearEffectSummaryTh(eq) {
     if (!eq) return "";
     const parts = [];
+    if (eq.procedural) parts.push("ศาสตราสุ่ม [" + (eq.gradeTh || eq.grade || ("T" + (eq.tier || 1))) + "]");
+    const maxD = eq.maxDur == null ? 100 : eq.maxDur, curD = eq.dur == null ? maxD : eq.dur;
+    if (eq.procedural || curD < 100 || maxD < 100) {
+      parts.push("ทนทาน " + Math.round(curD) + "/" + Math.round(maxD) + (eq.retired ? " (ชำรุดถาวร)" : eq.broken || (eq.procedural && curD <= 0) ? " (ชำรุด)" : ""));
+    }
+    if (eq.element && eq.element !== "NEUTRAL") {
+      const elMap = (ECO && ECO.PROCEDURAL_POOLS && ECO.PROCEDURAL_POOLS.elements) || {};
+      const elName = (elMap[eq.element] && elMap[eq.element].nameTh) || eq.element;
+      const secName = eq.secondaryElement ? ((elMap[eq.secondaryElement] && elMap[eq.secondaryElement].nameTh) || eq.secondaryElement) : null;
+      parts.push("ธาตุ: " + elName + (secName ? "+" + secName : ""));
+    }
     if (eq.combatMult) parts.push("กำลังรบ +" + Math.round(eq.combatMult * 100) + "%");
     if (eq.defMult) parts.push("ป้องกัน +" + Math.round(eq.defMult * 100) + "%");
-    if (eq.stats && typeof eq.stats === "object") {
-      Object.entries(eq.stats).forEach(([k, v]) => {
+    const stObj = (eq.st && typeof eq.st === "object") ? eq.st : ((eq.stats && typeof eq.stats === "object") ? eq.stats : (g.STATS && g.STATS.gearStats ? g.STATS.gearStats(eq) : null));
+    if (stObj && typeof stObj === "object") {
+      Object.entries(stObj).forEach(([k, v]) => {
+        if (!v) return;
         const inf = g.STATS && g.STATS.INFO && g.STATS.INFO[k];
-        parts.push((inf ? inf.nameTh : k) + " +" + (Math.abs(v) < 1 ? Math.round(v * 100) + "%" : Math.round(v)));
+        const isPct = ["crit", "critDmg", "pen"].includes(k);
+        parts.push((inf ? inf.nameTh : k) + " " + (v >= 0 ? "+" : "") + Math.round(v * 10) / 10 + (isPct ? "%" : ""));
       });
     }
     if (Array.isArray(eq.effects) && eq.effects.length) {
@@ -2845,8 +2877,10 @@
         value: g.CPE && g.CPE.gearPrice ? g.CPE.gearPrice(W, eq) : (eq.tier || 1) * 25,
         spawned: !!eq.playerSpawned,
         descTh: gearEffectSummaryTh(eq),
-        moreTh: "ช่องสวมใส่: " + slot + " · คุณภาพ: " + Math.round(qVal * 100) + "% · ขั้นขั้นต่ำ: " + (eq.minStage || 1) + (eq.literarySource ? " · ที่มา: " + eq.literarySource : ""),
-        canUnequip: true
+        moreTh: "ช่องสวมใส่: " + slot + " · UID: " + (eq.uid || eq.id) + " · ทนทาน: " + Math.round(eq.dur == null ? 100 : eq.dur) + "/" + Math.round(eq.maxDur == null ? 100 : eq.maxDur) + " · คุณภาพ: " + Math.round(qVal * 100) + "% · ขั้นขั้นต่ำ: " + (eq.minStage || 1) + (eq.literarySource ? " · ที่มา: " + eq.literarySource : ""),
+        canUnequip: true,
+        canRepair: !!(eq.procedural && (eq.maxDur == null ? 100 : eq.maxDur) > 20 && (eq.dur == null ? 100 : eq.dur) < (eq.maxDur == null ? 100 : eq.maxDur)),
+        canRetire: !!(eq.procedural && ((eq.dur != null && eq.dur <= 0 && (eq.maxDur || 100) <= 20) || eq.retired))
       });
     });
     // 2. Unequipped Personal Gear
@@ -3149,6 +3183,12 @@
     }
     if (it.canEquip) {
       btns += "<button type=\"button\" class=\"btn pri\" data-do=\"equip-personal\" data-arg=\"" + n.id + "|" + it.id + "\">สวมใส่</button>";
+    }
+    if (it.canRepair || (it.eq && it.eq.procedural && (it.eq.maxDur == null ? 100 : it.eq.maxDur) > 20 && (it.eq.dur == null ? 100 : it.eq.dur) < (it.eq.maxDur == null ? 100 : it.eq.maxDur))) {
+      btns += "<button type=\"button\" class=\"btn\" data-do=\"repair-gear\" data-arg=\"" + n.id + "|" + it.id + "\">🔧 ซ่อมศาสตรา</button>";
+    }
+    if (it.canRetire || (it.eq && it.eq.procedural && ((it.eq.dur != null && it.eq.dur <= 0 && (it.eq.maxDur || 100) <= 20) || it.eq.retired))) {
+      btns += "<button type=\"button\" class=\"btn dan\" data-do=\"retire-gear\" data-arg=\"" + n.id + "|" + it.id + "\">♻️ ปลดระวาง</button>";
     }
     if (it.canOpenContainer) {
       btns += "<button type=\"button\" class=\"btn pri\" data-do=\"open-bag-container\" data-arg=\"" + n.id + "\">🎁 เปิดหีบปริศนา</button>";
@@ -4174,21 +4214,21 @@
       h += "<h3>✨ หลอมขัดเกลาศาสตราด้วยผลึกโบราณ (Refinement Hub)</h3><div class=\"card\">";
       h += "<div style=\"display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px\"><div><b>ผลึกในคลัง:</b> " + Object.values(ECO.REFINEMENT_CATALYSTS).map(c => "<span class=\"chip g\">" + esc(c.nameTh) + " ×" + (cats[c.id] || 0) + "</span>").join(" ") + "</div><button class=\"btn\" data-do=\"edit-sanctum-spawncat\">✨ เติมผลึกเข้าคลัง (+5 ชิ้นทุกชนิด)</button></div>";
 
-      // Collect all T4-T6 refinable gear
+      // Collect all T3-T7 refinable gear
       const refinableGear = [];
       (W.sect.gear || []).forEach(g2 => {
-        if (g2 && (g2.tier || 1) >= 4) refinableGear.push({ gear: g2, ownerName: "คลังสำนัก", ownerId: null });
+        if (g2 && (g2.tier || 1) >= 3) refinableGear.push({ gear: g2, ownerName: "คลังสำนัก", ownerId: null });
       });
       W.npcs.forEach(mem => {
         if (mem.equip) {
           for (const sl of ["WEAPON", "ARMOR", "ACCESSORY"]) {
             const eq = mem.equip[sl];
-            if (eq && (eq.tier || 1) >= 4) refinableGear.push({ gear: eq, ownerName: mem.h.name.given + " (สวมใส่อยู่)", ownerId: mem.id });
+            if (eq && (eq.tier || 1) >= 3) refinableGear.push({ gear: eq, ownerName: mem.h.name.given + " (สวมใส่อยู่)", ownerId: mem.id });
           }
         }
         if (mem.inv && Array.isArray(mem.inv.gear)) {
           mem.inv.gear.forEach(eq => {
-            if (eq && (eq.tier || 1) >= 4) refinableGear.push({ gear: eq, ownerName: mem.h.name.given + " (ในถุง)", ownerId: mem.id });
+            if (eq && (eq.tier || 1) >= 3) refinableGear.push({ gear: eq, ownerName: mem.h.name.given + " (ในถุง)", ownerId: mem.id });
           });
         }
       });

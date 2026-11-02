@@ -507,8 +507,23 @@
   /* ============================================================================
    * 4. DELIBERATE TECHNIQUE & EQUIPMENT EVALUATION
    * ============================================================================ */
+  const TP_CACHE = new WeakMap();
+  const BLT_CACHE = new WeakMap();
   COG.techPreference = (n, t) => {
     if (!t || !n) return -999;
+    let tpc = null;
+    if (t.id && n.cult && n.h) {
+      const eqW = n.equip ? n.equip.WEAPON : null, eqA = n.equip ? n.equip.ARMOR : null, pLen = n.pets ? n.pets.length : 0;
+      const emVer = (n.ext && n.ext.elementalSystem && n.ext.elementalSystem._mVer) || 0;
+      tpc = TP_CACHE.get(n);
+      if (!tpc || tpc.ver !== n._ver || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
+        tpc = { ver: n._ver, emVer, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null) };
+        TP_CACHE.set(n, tpc);
+      } else {
+        const hit = tpc.map[t.id];
+        if (hit !== undefined) return hit;
+      }
+    }
     const rational = E(n, 'personality.rationality') / 100, M = g.MARTIAL, isPass = !!(t && (t.passive || t.cat === 'PASSIVE'));
     const openPass = isPass && M && M.activePassives && M.maxPassiveSlots && M.activePassives(n).length < M.maxPassiveSlots(n) ? 1.45 : 0;
     const condMatch = M ? (M.conditionMatches(n, t) ? 0.8 : (t.requiresWeapon ? -1.8 : -0.8)) : 0;
@@ -544,8 +559,44 @@
       const cCompat = g.ELEM.resolveCompatibility(n, t, isPass ? 'passive' : 'combat');
       elemFit = (cCompat.combatMultiplier - 1) * 3.8 + (cCompat.studySpeedMult - 1) * 1.4;
     }
-    const subMatch = (t.sub && (t.sub === n.cult?.sub || (Array.isArray(t.compatibleSubs) && t.compatibleSubs.includes(n.cult?.sub)))) ? 3 : 0;
-    return condMatch + openPass + roleFit + elemFit + rational * Math.log2(Math.max(1, t.power || 1)) + (1 - rational) * (subMatch + (t.path === n.cult?.path ? 1 : 0)) + E(n, 'personality.curiosity') / 100 * (t.tier || 1) * 0.2;
+    const isPrimarySub = !!(t.sub && n.cult && t.sub === n.cult.sub);
+    const isCompatSub = !!(n.cult && Array.isArray(t.compatibleSubs) && t.compatibleSubs.includes(n.cult.sub));
+    const subMatch = isPrimarySub ? 3.6 : isCompatSub ? 2.4 : 0;
+    let buildFit = isPrimarySub ? 1.15 : isCompatSub ? 0.45 : 0;
+    if (M && n.cult) {
+      const subDef = CULT.sub ? CULT.sub(n) : null;
+      const subW = (subDef && subDef.elementProfile && subDef.elementProfile.weights) || null;
+      const tEl = (t.elementProfile && t.elementProfile.primary) || t.element;
+      if (tEl && ((subDef && subDef.element === tEl) || (subW && subW[tEl] > 0))) {
+        buildFit += (subDef && subDef.element === tEl) ? 0.95 : 0.65;
+      }
+      const profWpn = (M.PROFILES && M.PROFILES[n.cult.sub] && M.PROFILES[n.cult.sub][3]) || (M.PATHS && M.PATHS[n.cult.path] && M.PATHS[n.cult.path].weapons) || [];
+      const wTypes = Array.isArray(t.weaponTypes) ? t.weaponTypes : [];
+      const hasWeaponEquipped = !!(n.equip && n.equip.WEAPON);
+      if (wTypes.length) {
+        if (profWpn[0] && wTypes.includes(profWpn[0])) buildFit += (hasWeaponEquipped ? 0.75 : 1.35);
+        else if (profWpn.some(w => wTypes.includes(w))) buildFit += (hasWeaponEquipped ? 0.50 : 1.10);
+        else if (hasWeaponEquipped && wTypes.includes(M.gearType(n.equip.WEAPON))) {
+          buildFit += 0.45; // Improvise around currently held fallback weapon
+        }
+      } else if (t.v212Pack && t.element === 'NEUTRAL') {
+        buildFit += 0.30; // Universal adaptive bridge passive
+      }
+      if (n.pets && n.pets.length && CULT.activePets) {
+        const pet = CULT.activePets(n)[0] || null;
+        if (pet) {
+          const arch = t.combatArch || (t.id && skProfCache[t.id] && skProfCache[t.id].arch) || '';
+          const pRole = pet.role || 'FEROCIOUS_ASSAULT';
+          if (pRole === 'IRON_GUARDIAN' && ['snipe', 'barrage', 'channel', 'control', 'support', 'heal'].includes(arch)) buildFit += 0.28;
+          else if (pRole === 'FEROCIOUS_ASSAULT' && ['charge', 'flurry', 'strike', 'shield', 'heal', 'buff'].includes(arch)) buildFit += 0.28;
+          else if (pRole === 'VENOM_SWARM' && ['dot', 'control', 'drain'].includes(arch)) buildFit += 0.28;
+          else if (pRole === 'MYSTIC_SUPPORT' && ['burst', 'pierce', 'execute', 'strike'].includes(arch)) buildFit += 0.28;
+        }
+      }
+    }
+    const res = condMatch + openPass + roleFit + elemFit + buildFit + rational * Math.log2(Math.max(1, t.power || 1)) + (1 - rational) * (subMatch + (t.path === n.cult?.path ? 1 : 0)) + E(n, 'personality.curiosity') / 100 * (t.tier || 1) * 0.2;
+    if (tpc && t.id) tpc.map[t.id] = res;
+    return res;
   };
 
   COG.evaluateTech = (W, n, tOrId) => {
@@ -562,8 +613,18 @@
     if (elemExplain && elemExplain.mode !== 'EXPLICIT_NON_ELEMENTAL') {
       reasons.push('ความเข้ากันธาตุ: ' + elemExplain.summaryTh);
     }
-    if (M && M.conditionMatches(n, t)) reasons.push('ตรงกับศาสตรา/เกราะที่ถือ');
-    else if (t.weaponTypes || t.armorTypes) reasons.push(t.requiresWeapon ? 'ต้องมีอาวุธเฉพาะจึงใช้ได้' : 'อาวุธปัจจุบันยังไม่ตรงสาย (ลดประสิทธิภาพ)');
+    const profWpn = (M && M.PROFILES && M.PROFILES[n.cult.sub] && M.PROFILES[n.cult.sub][3]) || [];
+    if (M && M.conditionMatches(n, t)) {
+      if (Array.isArray(t.weaponTypes) && profWpn.some(w => t.weaponTypes.includes(w))) reasons.push('ตรงกับศาสตราประจำสายที่ถืออยู่');
+      else reasons.push('พลิกแพลงใช้ตามศาสตรา/เกราะที่ถืออยู่');
+    } else if (Array.isArray(t.weaponTypes) && profWpn.some(w => t.weaponTypes.includes(w))) {
+      reasons.push('ตรงศาสตราประจำสายย่อย (' + profWpn.join('/') + ')');
+    } else if (t.weaponTypes || t.armorTypes) {
+      reasons.push(t.requiresWeapon ? 'ต้องมีอาวุธเฉพาะจึงใช้ได้' : 'วิชาพลิกแพลงเชื่อมสาย (ใช้อาวุธสำรองได้)');
+    }
+    if (CULT.activePets && (CULT.activePets(n)[0]||null)) {
+      reasons.push('ประสานบทบาทสัตว์อสูรคู่สัญญา (' + ((CULT.activePets(n)[0]||null).role || 'FEROCIOUS_ASSAULT') + ')');
+    }
     if (isPass) {
       const slots = M ? M.maxPassiveSlots(n) : 3;
       const active = M ? M.activePassives(n) : [];
@@ -612,11 +673,115 @@
     return M.reconcilePassives(n);
   };
 
+  // Pure, zero-RNG evaluation of an NPC's weapon/manual build state and improvisation fallbacks
+  COG.evaluateBuildImprovisation = (W, n) => {
+    const M = g.MARTIAL;
+    if (!W || !W.sect || !M || !n || !n.cult) {
+      return { mode: 'none', hasPreferredWeapon: false, preferredWeapons: [], equippedWeaponType: null, summaryTh: 'ยังไม่ได้เปิดวิถีบำเพ็ญ', reasons: [], targetActions: [] };
+    }
+    const c = n.cult;
+    const subDef = CULT.sub ? CULT.sub(n) : null;
+    const profWpn = (M.PROFILES && M.PROFILES[c.sub] && M.PROFILES[c.sub][3]) || (M.PATHS && M.PATHS[c.path] && M.PATHS[c.path].weapons) || [];
+    const subElems = Object.keys((subDef && subDef.elementProfile && subDef.elementProfile.weights) || {});
+    if (!subElems.length && subDef && subDef.element) subElems.push(subDef.element);
+    const eqWpn = n.equip && n.equip.WEAPON;
+    const eqType = eqWpn ? M.gearType(eqWpn) : null;
+    const hasPreferredWeapon = !!(eqType && profWpn.includes(eqType));
+    const hasPrimaryWeapon = !!(eqType && profWpn[0] === eqType);
+    const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
+    const allGearPool = ((n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : []).concat(W.sect.gear || []).filter(g2 => g2 && g2.slot === 'WEAPON' && (g2.minStage || 1) <= effSt);
+    const availPrefGear = allGearPool.filter(g2 => profWpn.includes(M.gearType(g2)));
+    const availFallbackGear = allGearPool.filter(g2 => !profWpn.includes(M.gearType(g2)));
+    const knownForgeRecs = (ECO && ECO.recipesFor) ? ECO.recipesFor(W, ['FORGING', 'ARRAY', 'TALISMAN']).filter(r => {
+      const outIt = r.outItemId && ECO.itemById && ECO.itemById[r.outItemId];
+      const gt = r.gearType || (outIt && outIt.gearType);
+      return gt && profWpn.includes(gt) && (r.tier || 1) <= effSt + 1;
+    }) : [];
+    const craftablePrefRec = knownForgeRecs.find(r => ECO.inputsOk(W, r)) || knownForgeRecs[0] || null;
+    const learnableIds = CULT.learnable(n, W.sect.library || []);
+    const learnableTechs = learnableIds.map(id => CULT.tech(id)).filter(Boolean);
+    const prefTechs = learnableTechs.filter(t => Array.isArray(t.weaponTypes) && t.weaponTypes.some(w => profWpn.includes(w)) && subElems.includes(t.elementProfile?.primary || t.element));
+    const fallbackTechs = learnableTechs.filter(t => !prefTechs.includes(t));
+    const pet = CULT.activePets ? (CULT.activePets(n)[0]||null) : null;
+    const threatHigh = !!(W.threat && (W.threat.raid || W.threat.alert > 0));
+    const reasons = [];
+    const targetActions = [];
+    let mode = 'optimal';
+    let summaryTh = 'ศาสตราและคัมภีร์สอดคล้องกับสายย่อย ' + (subDef ? subDef.nameTh : c.sub);
+
+    if (!hasPreferredWeapon) {
+      if (availPrefGear.length > 0) {
+        mode = 'upgrade_to_preferred';
+        summaryTh = eqWpn
+          ? 'ถืออาวุธสำรอง「' + eqWpn.nameTh + '」และพบศาสตราตรงสาย「' + availPrefGear[0].nameTh + '」พร้อมเปลี่ยน'
+          : 'พบศาสตราประจำสาย「' + availPrefGear[0].nameTh + '」พร้อมสวมใส่';
+        reasons.push('เปลี่ยนจากอาวุธสำรองเป็นศาสตราประจำสายย่อย (' + profWpn.join('/') + ')');
+        targetActions.push('shop');
+      } else if (!eqWpn && availFallbackGear.length > 0) {
+        mode = 'improvise_weapon';
+        summaryTh = 'ยังไม่มีศาสตราหลัก (' + profWpn.join('/') + ') จึงพลิกแพลงใช้อาวุธสำรอง「' + availFallbackGear[0].nameTh + '」ไปก่อน';
+        reasons.push('พลิกแพลงใช้อาวุธสำรองระหว่างรอศาสตราประจำสาย');
+        targetActions.push('shop');
+      } else if (craftablePrefRec) {
+        mode = 'improvise_craft_weapon';
+        summaryTh = 'ยังไม่มีศาสตราประจำสายในคลัง เตรียมหลอม「' + (craftablePrefRec.outNameTh || craftablePrefRec.nameTh) + '」ด้วยตนเอง';
+        reasons.push('วางแผนตีศาสตราประจำสายจากตำรับโรงหลอม');
+        targetActions.push('forge');
+      } else if (eqWpn) {
+        mode = 'improvise_weapon';
+        summaryTh = 'พลิกแพลงใช้อาวุธสำรอง「' + eqWpn.nameTh + '」ประคองการรบและฝึกฝน';
+        reasons.push('พลิกแพลงใช้อาวุธสำรองตามที่มีในสำนัก');
+        targetActions.push('practice', 'forge');
+      } else {
+        mode = 'improvise_unarmed';
+        summaryTh = 'ยังไม่มีศาสตราประจำสาย (' + profWpn.join('/') + ') อาศัยปราณและวิชาพื้นฐานประคองตัว';
+        reasons.push('ใช้วิชาพื้นฐานและรอโรงหลอมผลิตศาสตรา');
+        targetActions.push('forge', 'study');
+      }
+    }
+    if (prefTechs.length === 0 && fallbackTechs.length > 0) {
+      if (mode === 'optimal') mode = 'improvise_manual';
+      reasons.push('เลือกคัมภีร์ธาตุรอง/วิชาเชื่อมสาย「' + fallbackTechs[0].nameTh + '」ทดแทนคัมภีร์หลัก');
+      if (!targetActions.includes('study')) targetActions.push('study');
+      if (mode === 'improvise_manual') {
+        summaryTh = 'หอคัมภีร์ยังไม่มีวิชาตรงธาตุ/อาวุธหลัก จึงพลิกแพลงศึกษา「' + fallbackTechs[0].nameTh + '」แทน';
+      }
+    }
+    if (pet) {
+      reasons.push('ประสานจังหวะรบกับสัตว์อสูรคู่สัญญา「' + pet.nameTh + '」(' + (pet.role || 'FEROCIOUS_ASSAULT') + ')');
+    }
+    if (threatHigh) {
+      reasons.push('ปรับสมดุลเน้นวิชาป้องกัน/ฟื้นฟูเนื่องจากสำนักอยู่ในภาวะเฝ้าระวังภัย');
+    }
+    return {
+      mode,
+      hasPreferredWeapon,
+      hasPrimaryWeapon,
+      preferredWeapons: profWpn.slice(),
+      profileElements: subElems.slice(),
+      equippedWeaponType: eqType,
+      availablePreferredGearId: availPrefGear[0] ? (availPrefGear[0].uid || availPrefGear[0].id) : null,
+      availableFallbackGearId: availFallbackGear[0] ? (availFallbackGear[0].uid || availFallbackGear[0].id) : null,
+      craftablePreferredRecipeId: craftablePrefRec ? craftablePrefRec.id : null,
+      preferredManualCount: prefTechs.length,
+      fallbackManualCount: fallbackTechs.length,
+      petRole: pet ? (pet.role || 'FEROCIOUS_ASSAULT') : null,
+      threatPosture: threatHigh ? 'defensive_alert' : 'normal',
+      summaryTh,
+      reasons,
+      targetActions
+    };
+  };
+
   // Find best desirable gear upgrade in sect armory/shop or personal bag with hysteresis
   COG.bestGearUpgrade = (W, n) => {
     const M = g.MARTIAL;
     if (!W || !W.sect || !M || !n || !n.cult) return null;
-    if (n._lastGearSwapAt && W.t - n._lastGearSwapAt < 720) return null;
+    const profWpn = (M.PROFILES && M.PROFILES[n.cult.sub] && M.PROFILES[n.cult.sub][3]) || (M.PATHS && M.PATHS[n.cult.path] && M.PATHS[n.cult.path].weapons) || [];
+    const curWpn = n.equip && n.equip.WEAPON;
+    const curWpnIsFallback = !!(curWpn && !profWpn.includes(M.gearType(curWpn)));
+    const minCooldown = curWpnIsFallback ? 180 : 720;
+    if (n._lastGearSwapAt && W.t - n._lastGearSwapAt < minCooldown) return null;
     let best = null, bestDelta = 0;
     // 1. Check personal bag first (free immediate equip if useful-now or completes resonance set)
     const bagGear = (n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : [];
@@ -1014,7 +1179,7 @@
     }
 
     const hasUrgentTrackBn = !!(n.cult && n.cult.track && CULT.trackReady && CULT.trackReady(n) && CULT.checkTrackGates && !CULT.checkTrackGates(W, n).ok && W.t - (c._lastUrgentBnAt || -999) >= 60);
-    if (W.t < (c.nextReview || 0) && !hasUrgentTrackBn) return c;
+    if (W.t < (c.nextReview || 0) && !hasUrgentTrackBn && safe(n)) return c;
     if (hasUrgentTrackBn) c._lastUrgentBnAt = W.t;
     c.nextReview = W.t + 180;
 
@@ -1079,13 +1244,21 @@
         }
         const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage, SECT.canLearnTier(W, n));
         const visibleLib = COG.visibleLibraryFor(W, n);
-        const eligible = CULT.learnable(n, visibleLib).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
-        let bestTech = null, bestPref = -1e9;
-        for (let i = 0; i < eligible.length; i++) {
-          const p = COG.techPreference(n, eligible[i]);
-          if (p > bestPref) { bestPref = p; bestTech = eligible[i]; }
+        const eqW0 = n.equip ? n.equip.WEAPON : null;
+        let blc = BLT_CACHE.get(n);
+        let bestTech = null;
+        if (blc && blc.libLen === visibleLib.length && blc.cap === cap && blc.sub === n.cult.sub && blc.tl === n.cult.techs.length && blc.ver === n._ver && blc.eqW === eqW0 && (!blc.bestTech || !n.cult.techs.includes(blc.bestTech.id))) {
+          bestTech = blc.bestTech;
+        } else {
+          const eligible = CULT.learnable(n, visibleLib).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
+          let bestPref = -1e9;
+          for (let i = 0; i < eligible.length; i++) {
+            const p = COG.techPreference(n, eligible[i]);
+            if (p > bestPref) { bestPref = p; bestTech = eligible[i]; }
+          }
+          BLT_CACHE.set(n, { libLen: visibleLib.length, cap, sub: n.cult.sub, tl: n.cult.techs.length, ver: n._ver, eqW: eqW0, bestTech });
         }
-        eligible[0] = bestTech;
+        const eligible = [bestTech];
         if (eligible[0]) {
           const fc = COG.forecast(W, n, 'affordability', { price: g.CPE.techPrice(W, eligible[0]) });
           if (!fc || fc.ok || fc.daysNeeded <= 35) {
@@ -1884,6 +2057,29 @@
     let v = 0;
     if (e.healHealth || e.healInjury) v += (E(n, 'personality.empathy') - 50) / 150;
     if (e.cbBuff) v += (E(n, 'values.martialPeak') - 50) / 220;
+    if (r.outType === 'EQUIPMENT' && g.MARTIAL && W && Array.isArray(W.npcs)) {
+      const outIt = r.outItemId && ECO.itemById && ECO.itemById[r.outItemId];
+      const gt = r.gearType || (outIt && outIt.gearType);
+      if (gt) {
+        if (W._wpnNeedDay !== W.day || !W._wpnNeedMap) {
+          const map = Object.create(null);
+          for (let i = 0; i < W.npcs.length; i++) {
+            const m = W.npcs[i];
+            if (!m || m.dead || m.away || !m.cult) continue;
+            const pw = (g.MARTIAL.PROFILES && g.MARTIAL.PROFILES[m.cult.sub] && g.MARTIAL.PROFILES[m.cult.sub][3]) || null;
+            if (!pw || !pw.length) continue;
+            const curW = m.equip && m.equip.WEAPON;
+            if (!curW || !pw.includes(g.MARTIAL.gearType(curW))) {
+              for (let j = 0; j < pw.length; j++) map[pw[j]] = (map[pw[j]] || 0) + 1;
+            }
+          }
+          W._wpnNeedDay = W.day;
+          W._wpnNeedMap = map;
+        }
+        const needCount = W._wpnNeedMap[gt] || 0;
+        if (needCount > 0) v += Math.min(0.42, needCount * 0.16);
+      }
+    }
     v += (E(n, 'personality.ambition') - E(n, 'personality.caution')) / 500 * Math.max(0, r.tier - 1);
     v += (E(n, 'values.wealthResource') - 50) / 500 * clamp((ECO.outputValue(W, r) - ECO.inputCost(W, r)) / 100, -1, 1);
     return clamp(v, -0.6, 0.6);
@@ -1970,6 +2166,7 @@
       COG.officeDecision(W, n, 'ช่วยงานภายใต้ผู้มีอำนาจ', [r.responsibility]);
       return;
     }
+    if (SECT.governancePractice) SECT.governancePractice(W, n, r.id);
     if (['alchemy', 'forge'].includes(r.id)) {
       const o = ECO.pickOrder(W, r.id, n);
       W.sect.orders[r.id] = o.recipe ? { rid: o.recipe.id, why: o.why, by: n.id } : null;
@@ -2149,7 +2346,7 @@
       }
     }
 
-    // 5. Sanctum Catalyst Gear Refinement
+    // 5. Sanctum Catalyst Gear Refinement & Build Improvisation
     if (ECO.findCatalystRefinementCandidate) {
       const rc = ECO.findCatalystRefinementCandidate(W, n);
       if (rc) {
@@ -2158,6 +2355,18 @@
           summaryTh: 'มีผลึกโบราณ「' + rc.cat.nameTh + '」พร้อมขัดเกลา「' + rc.gear.nameTh + '」',
           targetActions: ['forge'],
           isAddressingNow: curAct === 'forge'
+        });
+      }
+    }
+    if (n.cult && COG.evaluateBuildImprovisation) {
+      const imp = COG.evaluateBuildImprovisation(W, n);
+      if (imp && imp.mode && imp.mode !== 'optimal' && imp.mode !== 'none') {
+        activeCircumstances.push({
+          kind: 'build_improvisation',
+          mode: imp.mode,
+          summaryTh: imp.summaryTh,
+          targetActions: imp.targetActions.slice(0, 3),
+          isAddressingNow: imp.targetActions.includes(curAct)
         });
       }
     }
@@ -2241,6 +2450,7 @@
       reasons: (last?.reasons || n.why || []).map(x => x.slice()),
       bottleneck: (n && n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null,
       situational: COG.evaluateSituationalAwareness(W, n),
+      buildImprovisation: COG.evaluateBuildImprovisation ? COG.evaluateBuildImprovisation(W, n) : null,
       officeDecision: c?.officeDecision ? { ...c.officeDecision } : null
     };
   };

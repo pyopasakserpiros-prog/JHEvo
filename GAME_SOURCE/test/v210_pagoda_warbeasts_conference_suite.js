@@ -24,15 +24,16 @@ function makePathParty(W) {
 {
   const W = g.SIM.create('v210_pagoda_suite');
   const { paths, party } = makePathParty(W);
-  assert.strictEqual(g.EXPLORE.NINE_DAO_PAGODA.floors.length, 9);
+  const floorCount = paths.length;
+  assert.strictEqual(g.EXPLORE.NINE_DAO_PAGODA.floors.length, floorCount);
   assert.deepStrictEqual(g.EXPLORE.NINE_DAO_PAGODA.floors.map(f => f.path), paths);
-  assert.strictEqual(g.MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 9);
-  const ex = g.EXPLORE.departNineDaoPagoda(W, party, { maxFloor: 9 });
+  assert.strictEqual(g.MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, floorCount);
+  const ex = g.EXPLORE.departNineDaoPagoda(W, party, { maxFloor: floorCount });
   assert(ex && ex.kind === 'nine_dao_pagoda', 'any path can enter the Pagoda');
   const result = g.EXPLORE.resolveNineDaoPagoda(W, ex, party, { forceClear: true });
-  assert.strictEqual(result.floorsCleared, 9);
+  assert.strictEqual(result.floorsCleared, floorCount);
   assert.deepStrictEqual(Object.keys(W.world.nineDaoPagoda.unlockedSets).sort(), paths.slice().sort());
-  assert.strictEqual(W.sect.gear.filter(it => it.source === 'NINE_DAO_PAGODA').length, 27);
+  assert.strictEqual(W.sect.gear.filter(it => it.source === 'NINE_DAO_PAGODA').length, floorCount * 3);
   for (let i = 0; i < paths.length; i++) {
     const n = party[i], setId = 'RES_NINE_DAO_' + paths[i];
     assert.strictEqual(W.sect.daoInsights[paths[i]], 1, paths[i] + ' should receive a Dao insight');
@@ -42,8 +43,8 @@ function makePathParty(W) {
     const resonance = g.MARTIAL.evaluateResonanceSet(n, equip);
     assert(resonance.active && resonance.pieces === 3 && resonance.setId === setId, paths[i] + ' resonance set should activate');
   }
-  const repeat = g.EXPLORE.resolveNineDaoPagoda(W, { id: 999, kind: 'nine_dao_pagoda', target: 9, journal: [], done: false }, party, { forceClear: true });
-  assert(repeat && W.sect.gear.filter(it => it.source === 'NINE_DAO_PAGODA').length === 27, 'set pieces must not duplicate on repeat runs');
+  const repeat = g.EXPLORE.resolveNineDaoPagoda(W, { id: 999, kind: 'nine_dao_pagoda', target: floorCount, journal: [], done: false }, party, { forceClear: true });
+  assert(repeat && W.sect.gear.filter(it => it.source === 'NINE_DAO_PAGODA').length === floorCount * 3, 'set pieces must not duplicate on repeat runs');
 }
 
 // Seasonal element rotation, root affinity bonuses, and elemental catalysts.

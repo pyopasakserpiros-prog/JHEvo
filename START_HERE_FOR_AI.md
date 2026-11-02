@@ -1,8 +1,6 @@
 # Jianghu Evolution (JHEvo) — AI Developer Entry Point (READ THIS FIRST)
 
-This repository contains the **Patch v2.0.11** implementation of **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_11.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_11.md) for implemented systems, the v2.0.8–v2.0.10 design audit, and verification results before planning further work. The current branch is `main`.
-
----
+The current working source is **v2.0.14**, based on the user's v2.0.13 Gemini archive. Read [PATCH_IMPLEMENTATION_REPORT_V2_0_14.md](PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) first. Older numbered prompts are historical; do not automatically repeat them.
 
 ## 🧭 Priority Execution Order for AI Agents (Gemini, Codex, Antigravity, Claude)
 
@@ -10,9 +8,9 @@ To maximize accuracy and avoid wasting context tokens, follow this exact reading
 
 ### Step 1: Read Project Guardrails & Current Baseline
 1. Read [`AGENTS.md`](./AGENTS.md) for non-negotiable architectural locks (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags in `index.html`, matching module order in `test/load.js`, Thai localization `nameTh`).
-2. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_11.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_11.md) to see what is already implemented, what the design audit changed, and which checks remain.
+2. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_14.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) to see what is already implemented, what the design audit changed, and which checks remain.
 3. Consult [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md) for candidate follow-up work. The v2.0.10 prompt is retained as historical context, not as an instruction to reimplement it.
-4. For the next requested implementation, use [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md), with its linked weapon/build coverage reports as references. It requires a mandatory preflight and complete reads of seven domain skills before source review or implementation; v2.0.12 is not yet implemented.
+4. Historical design context only: [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md), with its linked weapon/build coverage reports as references. It requires a mandatory preflight and complete reads of seven domain skills before source review or implementation; verify the actual current source before reusing any suggestions.
 
 ### Step 2: Load Only the Relevant Master Skills (`.agents/skills/<skill>/SKILL.md`)
 Do **not** guess internal APIs. Before editing any module in `GAME_SOURCE/`, open the matching bespoke JianghuSect skill(s) by priority:

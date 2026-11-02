@@ -150,18 +150,23 @@
       if (pills.length) { const id = W.rng.pick(pills); addStock(W, stock, id, 1, subtype === 'medicine' ? 4 : 2); }
     }
     if ((subtype === 'rare' || subtype === 'caravan') && W.rng.chance(0.35)) {
-      if (g.MARTIAL && g.MARTIAL.techCatalog) {
-        const pool = (g.CULT && g.CULT.techList ? g.CULT.techList : []).filter(t => t && !t.innateOnly && t.tier <= (subtype === 'rare' ? 5 : 3));
-        if (pool.length) {
-          const t = W.rng.pick(pool);
-          addStock(W, stock, 'T:' + t.id, 1, 2);
-        }
+      const pool = (g.JD && g.JD.TECH && Array.isArray(g.JD.TECH.techniques) ? g.JD.TECH.techniques : []).filter(t => t && !t.innateOnly && t.tier <= (subtype === 'rare' ? 5 : 3));
+      if (pool.length) {
+        const t = W.rng.pick(pool);
+        addStock(W, stock, 'TECH_MANUAL:' + t.id, 1, 2);
       }
     }
     if (subtype === 'medicine' && g.CONTENT && g.CONTENT.rareOrgans && W.rng.chance(0.3)) {
       const org = W.rng.pick(g.CONTENT.rareOrgans);
       if (org) addStock(W, stock, org.id, 1, 2);
     }
+    const stonePool = subtype === 'rare'
+      ? ['ITEM_REPAIR_STONE_3', 'ITEM_REPAIR_STONE_4']
+      : subtype === 'caravan'
+        ? ['ITEM_REPAIR_STONE_2', 'ITEM_REPAIR_STONE_3']
+        : ['ITEM_REPAIR_STONE_1', 'ITEM_REPAIR_STONE_2'];
+    const stPick = W.rng.pick(stonePool);
+    if (stPick && EXT.isTradable(stPick)) addStock(W, stock, stPick, 1, subtype === 'rare' ? 2 : 3);
     return stock;
   }
   function buildWants(W, stock, subtype) {
@@ -232,13 +237,21 @@
     Object.keys(stock).forEach(id => { if (!EXT.isTradable(id) || !Number.isSafeInteger(stock[id]) || stock[id] <= 0) delete stock[id]; });
     Object.keys(wants).forEach(id => { if (!EXT.isTradable(id) || !Number.isSafeInteger(wants[id]) || wants[id] <= 0 || stock[id] > 0) delete wants[id]; });
     const defaultStones = subtype === 'rare' ? W.rng.int(1200, 3000) : subtype === 'caravan' ? W.rng.int(550, 1400) : W.rng.int(280, 850);
+    const gearStock = Array.isArray(options.gearStock) ? options.gearStock.slice() : [];
+    if (!options.stock && !options.gearStock && ECO && ECO.rollProceduralGear && (subtype === 'caravan' || subtype === 'rare' || W.rng.chance(0.55))) {
+      const gCount = subtype === 'rare' ? 2 : 1;
+      const maxGTier = subtype === 'rare' ? 4 : subtype === 'caravan' ? 3 : 2;
+      for (let gi = 0; gi < gCount; gi++) {
+        gearStock.push(ECO.rollProceduralGear(W, { maxTier: maxGTier, minTier: subtype === 'rare' ? 2 : 1, source: 'merchant:' + subtype }));
+      }
+    }
     const visitor = {
       id: options.id || ('trader_' + seq), kind: 'trader', subtype,
       nameTh: options.nameTh || W.rng.pick(nameList),
       arriveDay: W.day,
       untilDay: Number.isFinite(options.untilDay) ? options.untilDay : W.day + clamp(Math.round(options.stayDays || 2), 1, 4),
       stones: Number.isFinite(options.stones) ? Math.max(0, Math.round(options.stones)) : defaultStones,
-      stock, wants, sectTradeDay: null, sectBuyDone: false, tradeCount: 0
+      stock, gearStock, wants, sectTradeDay: null, sectBuyDone: false, tradeCount: 0
     };
     W.world.visitors.push(visitor);
     stats.visits++;
@@ -301,6 +314,27 @@
           add(id, 1, 16 + eligibleCount, 'ศิษย์ในสำนัก ' + eligibleCount + ' คนตรงเกณฑ์ศึกษาและยังไม่มีในหอคัมภีร์');
         } else if (known && eligibleCount > 0 && ((W.sect.crystals && W.sect.crystals[cleanKey]) || 0) < 1) {
           add(id, 1, 9, 'ผลึกช่วยร่นเวลาศึกษาสำหรับศิษย์ที่ตรงสาย');
+        }
+      }
+      if (id.startsWith('TECH_MANUAL:') || id.startsWith('TM:')) {
+        const tid = id.replace(/^(TECH_MANUAL:|TM:)/, '');
+        if (!(W.sect.library || []).includes(tid)) {
+          const learners = npcs.filter(n => n.cult && CULT.learnable(n, [tid]).length > 0).length;
+          if (learners > 0) add(id, 1, 16 + learners, 'คัมภีร์วิชาที่ศิษย์ ' + learners + ' คนกำลังต้องการ');
+        }
+      }
+      if (id.startsWith('RECIPE_SCROLL:') || id.startsWith('FORMULA:') || id.startsWith('R:')) {
+        const rid = id.replace(/^(RECIPE_SCROLL:|FORMULA:|R:)/, '');
+        if (!(W.sect.knownRecipes || []).includes(rid)) {
+          add(id, 1, 15, 'ม้วนตำรับหลอมศาสตรา/โอสถที่สำนักยังไม่มี');
+        }
+      }
+      if (id.startsWith('EQ:')) {
+        const eqId = id.slice(3);
+        const it = ECO.itemById && ECO.itemById[eqId];
+        if (it && g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
+          const upgraders = npcs.filter(n => n.cult && g.MARTIAL.classifyGearForNpc(W, n, it, 0).category === 'useful-now').length;
+          if (upgraders > 0) add(id, Math.min(upgraders, v.stock[id] || 1), 15 + upgraders, 'ศาสตรา/อุปกรณ์ตรงสายสำหรับศิษย์ ' + upgraders + ' คน');
         }
       }
       // Member needs for emergency pills
@@ -397,6 +431,13 @@
           else {
             W.sect.surplusRecipes = W.sect.surplusRecipes || [];
             W.sect.surplusRecipes.push(rid);
+          }
+        } else if (need.id.startsWith('EQ:')) {
+          const eqId = need.id.slice(3);
+          const it = ECO.itemById && ECO.itemById[eqId];
+          if (it) {
+            W.sect.gear = W.sect.gear || [];
+            for (let gi = 0; gi < qty; gi++) W.sect.gear.push(ECO.mintGear(it, 1.0));
           }
         } else if (g.CONTENT && g.CONTENT.organById && (g.CONTENT.organById[need.id] || (need.id.startsWith('ORGAN:') && g.CONTENT.organById[need.id.slice(6)]))) {
           const oid = need.id.startsWith('ORGAN:') ? need.id.slice(6) : need.id;
@@ -572,7 +613,78 @@
       }
     }
 
+    // 3. Sell stale unsold equipment from W.sect.gear (Step 3 & 4 of Sect Trading Cycle: permanently leaves world)
+    const staleRes = EXT.sellStaleSectGear(W, v, { skill });
+    result.sold += staleRes.sold;
+    result.sellRevenue += staleRes.revenue;
+
     return result;
+  };
+
+  EXT.sellStaleSectGear = (W, v, opts) => {
+    opts = opts || {};
+    const out = { sold: 0, revenue: 0, soldUids: [], receipts: [] };
+    if (!W || !W.sect || !Array.isArray(W.sect.gear) || !W.sect.gear.length || !v || v.stones <= 0) return out;
+    const graceDays = opts.graceDays != null ? opts.graceDays : 6;
+    const maxSell = opts.maxSell != null ? opts.maxSell : 3;
+    const skill = opts.skill != null ? opts.skill : treasurySkill(W);
+    W.sect.soldGearReceipts = Array.isArray(W.sect.soldGearReceipts) ? W.sect.soldGearReceipts : [];
+
+    // Identify gear targeted by any active member's cognition goal
+    const wantedUids = new Set();
+    for (const n of (W.npcs || [])) {
+      if (!n || n.dead || n.away || n.exiled) continue;
+      if (n.cognition && n.cognition.goal && n.cognition.goal.id === 'gear_upgrade' && n.cognition.goal.targetId) {
+        wantedUids.add(n.cognition.goal.targetId);
+      }
+    }
+
+    for (let i = W.sect.gear.length - 1; i >= 0 && out.sold < maxSell; i--) {
+      const eq = W.sect.gear[i];
+      if (!eq || !eq.slot) continue;
+      if (eq.playerSpawned) continue; // Anti-minting: player-spawned gear never generates Spirit Stones
+      if (eq.legendary || (g.VC && g.VC.LEGENDARY_WEAPON_BY_ID && g.VC.LEGENDARY_WEAPON_BY_ID[eq.id])) continue;
+      if (eq.uid && wantedUids.has(eq.uid)) continue;
+      const listedAt = eq.listedAtDay != null ? eq.listedAtDay : 0;
+      const ageDays = (W.day || 0) - listedAt;
+      if (ageDays < graceDays) continue;
+
+      const maxD = eq.maxDur == null ? 100 : eq.maxDur, curD = eq.dur == null ? maxD : eq.dur;
+      const condK = clamp(curD / 100, 0.25, 1) * clamp(0.7 + 0.3 * (maxD / 100), 0.5, 1);
+      const baseVal = eq.value || Math.round(25 * Math.pow(1.9, (eq.tier || 1) - 1));
+      const unit = Math.max(4, Math.round(baseVal * (eq.q || 1) * condK * (0.74 + skill / 900)));
+      if (v.stones < unit) continue;
+
+      // Remove from W.sect.gear permanently (do NOT add to v.stock or v.gearStock)
+      W.sect.gear.splice(i, 1);
+      v.stones -= unit;
+      ECO.earn(W, unit, 'ขายศาสตราค้างคลังให้' + v.nameTh + ': ' + eq.nameTh);
+      out.sold += 1;
+      out.revenue += unit;
+      if (eq.uid) out.soldUids.push(eq.uid);
+
+      const receipt = {
+        uid: eq.uid || ('sold_' + W.day + '_' + out.sold),
+        id: eq.id,
+        nameTh: eq.nameTh,
+        slot: eq.slot,
+        tier: eq.tier || 1,
+        price: unit,
+        day: W.day,
+        listedAtDay: listedAt,
+        donatedBy: eq.donatedBy || null,
+        traderId: v.id,
+        traderName: v.nameTh
+      };
+      W.sect.soldGearReceipts.push(receipt);
+      if (W.sect.soldGearReceipts.length > 60) W.sect.soldGearReceipts.splice(0, W.sect.soldGearReceipts.length - 60);
+      out.receipts.push(receipt);
+
+      record(W, v, 'sect-sell', 'EQ:' + eq.id, 1, unit, unit, null, 'ระบายศาสตราค้างร้านค้าสำนักเกิน ' + graceDays + ' วัน');
+      W.log('finance', 'สำนักขายศาสตราค้างคลัง「' + eq.nameTh + '」ให้' + v.nameTh + ' ได้รับ ' + unit + ' ศิลา (ออกจากโลกจำลองถาวร)', [], { txKind: 'sale', itemId: eq.id, itemUid: eq.uid, qty: 1, reason: 'ขายศาสตราค้างคลังภายนอก' });
+    }
+    if (out.sold > 0 && SECT && SECT.notifyStockChanged) SECT.notifyStockChanged(W);
+    return out;
   };
 
   function pillNeed(n, id) {
@@ -603,6 +715,53 @@
         }
         if (need > 0 && price > 0 && (n.inv.stones || 0) >= price && v.stones <= Number.MAX_SAFE_INTEGER - price) {
           choose({ side: 'buy', itemId: id, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority: 1.0 + need, reason });
+        }
+      }
+      for (const id of Object.keys(v.stock || {})) {
+        if (!EXT.isTradable(id) || !(v.stock[id] > 0)) continue;
+        if (id.startsWith('EQ:') && n.cult && g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
+          const eqId = id.slice(3);
+          const it = ECO.itemById && ECO.itemById[eqId];
+          const price = EXT.quotePrice(W, id, 'member-buy');
+          if (it && price > 0 && (n.inv.stones || 0) >= price) {
+            const cls = g.MARTIAL.classifyGearForNpc(W, n, it, 0);
+            if (cls && cls.category === 'useful-now') {
+              choose({ side: 'buy-gear', itemId: id, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority: 1.35 + Math.min(1.2, (cls.deltaScore || 10) / 80), reason: 'ซื้อศาสตรา/อุปกรณ์ตรงสายบำเพ็ญ' });
+            }
+          }
+        } else if ((id.startsWith('TECH_MANUAL:') || id.startsWith('TM:')) && n.cult) {
+          const tid = id.replace(/^(TECH_MANUAL:|TM:)/, '');
+          const tObj = CULT.tech(tid);
+          const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
+          const price = EXT.quotePrice(W, id, 'member-buy');
+          if (tObj && (tObj.reqTier || tObj.tier || 1) <= effSt + 1 && price > 0 && (n.inv.stones || 0) >= price && !n.cult.techs.includes(tid) && !(W.sect.library || []).includes(tid) && CULT.learnable(n, [tid]).length > 0) {
+            const rawPref = g.COG && g.COG.techPreference ? g.COG.techPreference(n, tObj) : 6;
+            const pref = (rawPref && typeof rawPref === 'object') ? Number(rawPref.score) : Number(rawPref);
+            if (Number.isFinite(pref) && pref > 3.2) {
+              choose({ side: 'buy-manual', itemId: id, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority: 1.25 + Math.min(1.0, pref / 12), reason: 'ซื้อคัมภีร์วิชาตรงสายบำเพ็ญ' });
+            }
+          }
+        } else if (ECO.REPAIR_STONES && ECO.REPAIR_STONES[id] && n.equip) {
+          const needRepair = ['WEAPON', 'ARMOR', 'ACCESSORY'].some(sl => {
+            const eq = n.equip[sl];
+            return eq && eq.procedural && (eq.maxDur || 100) > 20 && (eq.dur == null ? 100 : eq.dur) <= (eq.maxDur || 100) * 0.6;
+          });
+          const haveStone = Object.keys(ECO.REPAIR_STONES).some(sid => ((n.inv.mats && n.inv.mats[sid]) || 0) > 0);
+          const price = EXT.quotePrice(W, id, 'member-buy');
+          if (needRepair && !haveStone && price > 0 && (n.inv.stones || 0) >= price) {
+            choose({ side: 'buy-stone', itemId: id, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority: 1.42, reason: 'ซื้อหินซ่อมศาสตราไว้ซ่อมบำรุงอุปกรณ์ประจำตัว' });
+          }
+        }
+      }
+      if (Array.isArray(v.gearStock) && v.gearStock.length > 0 && n.cult && g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
+        for (const gr of v.gearStock) {
+          if (!gr || !gr.slot) continue;
+          const price = Math.max(8, Math.round((gr.value || 35) * 1.15));
+          if ((n.inv.stones || 0) < price) continue;
+          const cls = g.MARTIAL.classifyGearForNpc(W, n, gr, 0);
+          if (cls && cls.category === 'useful-now') {
+            choose({ side: 'buy-proc-gear', itemId: 'EQ:' + gr.id, gearUid: gr.uid, itemNameTh: gr.nameTh, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority: 1.38 + Math.min(1.2, (cls.deltaScore || 10) / 80), reason: 'ซื้อศาสตราสุ่มตรงสายจากพ่อค้า' });
+          }
         }
       }
       for (const id of Object.keys(n.inv.mats || {})) {
@@ -637,7 +796,55 @@
       v.stock[id]--; if (!v.stock[id]) delete v.stock[id];
       n.inv.stones -= total; v.stones += total;
       n.inv.pills = n.inv.pills || {}; n.inv.pills[id] = (n.inv.pills[id] || 0) + 1;
-      record(W, v, 'member-buy', id, 1, fresh.price, total, n);
+      record(W, v, 'member-buy', id, 1, fresh.price, total, n, fresh.reason);
+    } else if (fresh.side === 'buy-gear') {
+      if (!(v.stock[id] > 0) || (n.inv.stones || 0) < total || !EXT.isTradable(id)) return false;
+      const eqId = id.slice(3);
+      const it = ECO.itemById && ECO.itemById[eqId];
+      if (!it) return false;
+      v.stock[id]--; if (!v.stock[id]) delete v.stock[id];
+      n.inv.stones -= total; v.stones += total;
+      const minted = ECO.mintGear(it, 1.0);
+      n.equip = n.equip || {};
+      if (n.equip[minted.slot]) {
+        n.inv.gear = n.inv.gear || [];
+        n.inv.gear.push(n.equip[minted.slot]);
+      }
+      n.equip[minted.slot] = minted;
+      n._lastGearSwapAt = W.t || 0;
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      record(W, v, 'member-buy', id, 1, fresh.price, total, n, fresh.reason);
+    } else if (fresh.side === 'buy-proc-gear') {
+      if (!Array.isArray(v.gearStock) || (n.inv.stones || 0) < total) return false;
+      const gIdx = v.gearStock.findIndex(x => x && x.uid === fresh.gearUid);
+      if (gIdx < 0) return false;
+      const bought = v.gearStock.splice(gIdx, 1)[0];
+      n.inv.stones -= total; v.stones += total;
+      n.equip = n.equip || {};
+      if (n.equip[bought.slot]) {
+        n.inv.gear = n.inv.gear || [];
+        n.inv.gear.push(n.equip[bought.slot]);
+      }
+      n.equip[bought.slot] = bought;
+      n._lastGearSwapAt = W.t || 0;
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      record(W, v, 'member-buy', id, 1, fresh.price, total, n, fresh.reason);
+    } else if (fresh.side === 'buy-stone') {
+      if (!(v.stock[id] > 0) || (n.inv.stones || 0) < total) return false;
+      v.stock[id]--; if (!v.stock[id]) delete v.stock[id];
+      n.inv.stones -= total; v.stones += total;
+      n.inv.mats = n.inv.mats || {}; n.inv.mats[id] = (n.inv.mats[id] || 0) + 1;
+      record(W, v, 'member-buy', id, 1, fresh.price, total, n, fresh.reason);
+    } else if (fresh.side === 'buy-manual') {
+      if (!(v.stock[id] > 0) || (n.inv.stones || 0) < total || !EXT.isTradable(id)) return false;
+      const tid = id.replace(/^(TECH_MANUAL:|TM:)/, '');
+      v.stock[id]--; if (!v.stock[id]) delete v.stock[id];
+      n.inv.stones -= total; v.stones += total;
+      W.sect.library = W.sect.library || [];
+      if (!W.sect.library.includes(tid)) W.sect.library.push(tid);
+      n.inv.techs = n.inv.techs || [];
+      if (!n.inv.techs.includes(tid)) n.inv.techs.push(tid);
+      record(W, v, 'member-buy', id, 1, fresh.price, total, n, fresh.reason);
     } else if (fresh.side === 'sell') {
       if (!EXT.isTradable(id) || !(n.inv.mats && n.inv.mats[id] > 0) || !(v.wants && v.wants[id] > 0) || v.stones < total) return false;
       n.inv.mats[id]--; if (!n.inv.mats[id]) delete n.inv.mats[id];
@@ -651,7 +858,9 @@
       v.stones -= total; n.inv.stones = (n.inv.stones || 0) + total;
       record(W, v, 'member-sell', id, 1, fresh.price, total, n);
     } else return false;
-    if (total >= 10) W.log('finance', n.h.name.given + (fresh.side === 'buy' ? ' ซื้อ' : ' ขาย') + ECO.name(id) + (fresh.side === 'buy' ? ' จาก' : ' ให้') + v.nameTh + ' ' + total + ' ศิลา', [n.id], { txKind: fresh.side === 'buy' ? 'purchase' : 'sale', itemId: id, qty: 1, actorId: n.id });
+    const isBuy = String(fresh.side || '').startsWith('buy');
+    const dispName = fresh.itemNameTh || ECO.name(id);
+    if (total >= 10) W.log('finance', n.h.name.given + (isBuy ? ' ซื้อ' : ' ขาย') + dispName + (isBuy ? ' จาก' : ' ให้') + v.nameTh + ' ' + total + ' ศิลา', [n.id], { txKind: isBuy ? 'purchase' : 'sale', itemId: id, qty: 1, actorId: n.id });
     return true;
   };
 
@@ -662,7 +871,8 @@
     score(n, W, S) {
       const q = EXT.memberQuote(W, n);
       if (!q) return S.add('ไม่มีข้อเสนอที่เหมาะสม', -3);
-      S.add(q.side === 'buy' ? 'ต้องการ' + ECO.name(q.itemId) : 'ขาย' + ECO.name(q.itemId), 0.8 + q.priority * 0.65);
+      const isBuy = String(q.side || '').startsWith('buy');
+      S.add((isBuy ? 'ต้องการ' : 'ขาย') + (q.itemNameTh || ECO.name(q.itemId)), 0.8 + q.priority * 0.65);
       S.add('ชอบค้าขาย', (E(n, 'interests.trade') - 45) / 220);
       S.add('ต่อรองเป็น', (n.h.skills.trading || 0) / 350);
     },

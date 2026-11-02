@@ -177,7 +177,7 @@ console.log('Testing Wuxia Inventory Grid/List, Sect Stock & Shop UI...');
     const page = await ctx.newPage();
     page.on('pageerror', e => pageErrors.push(e.message));
     page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text()); });
-    await page.goto('file://' + path.join(root, 'JianghuSect_single.html'));
+    await page.goto(await require('../tools/browser_test_url').url(path.join(root, 'JianghuSect_single.html')));
     await page.waitForSelector('[data-pick="0"]');
     await page.click('[data-pick="0"]');
     await page.waitForTimeout(120);

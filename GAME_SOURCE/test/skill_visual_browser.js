@@ -3,7 +3,7 @@ const assert=require('assert'),path=require('path');
 const { chromium } = (() => { try { return require('playwright'); } catch (_) { return require('../tools/cdp_playwright.js'); } })();
 (async()=>{const browser=await chromium.launch();try{
  const c=await browser.newContext({viewport:{width:412,height:860},isMobile:true,hasTouch:true});const page=await c.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('file://'+path.resolve(__dirname,'../index.html'));await page.click('[data-pick="0"]');
+ await page.goto(await require('../tools/browser_test_url').url(path.resolve(__dirname,'../index.html')));await page.click('[data-pick="0"]');
  const r=await page.evaluate(()=>{
   G.speed=0;const R=G.R,W=G.W,rngBefore=JSON.stringify(G.W.rng.getState());R.setWorld(W);R.updateCastEffects(1000);
   const n=W.npcs[0];R.alpha=1;R.focus(n.x,n.y,2);n.castFx={t:W.t,seq:1,kind:'normal',x:n.x+1,y:n.y};R.updateCastEffects(1016);

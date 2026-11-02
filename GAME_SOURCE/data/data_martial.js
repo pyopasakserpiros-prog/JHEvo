@@ -44152,6 +44152,1280 @@ EXP_V208.newResonanceSets.forEach(rs => {
   }
 })();
 
+
+
+/* ---------- Patch v2.0.12: Weapon, Element & Cultivation Build Depth ---------- */
+(function applyV212WeaponBuildDepth() {
+  const JD = globalThis.JD;
+  if (!JD || !JD.CULT || !JD.MARTIAL || !JD.TECH || !JD.ITEMS) return;
+  const D = JD.MARTIAL;
+
+  // 1. Broaden compatibleSubs on existing v2.0.8 & base techniques where lore and weapon/element identity match
+  const compatAdditions = {
+    MP_BASE_MECH_PUPPET: ['HEAVENLY_GOLEM', 'THOUSAND_THREAD_ASSASSIN', 'BEAST_CHIMERA_MECH', 'CELESTIAL_BALLISTA', 'SOUL_VESSEL_AVATAR', 'FLYING_BLADE_ORBITER', 'ASTRAL_CLOCKWORK_PRIME'],
+    MP_BASE_KARMA_SAMSARA: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'LOTUS_MERCY_PURIFIER', 'ASURA_JUDGMENT_BLADE', 'PAST_LIFE_MIRROR', 'BODHI_VOW_GUARDIAN'],
+    MP_BASE_BEAST_SOVEREIGN: ['MYRIAD_BEAST_PACK', 'PRIMORDIAL_BLOOD_MUTATOR', 'SYMBIOTIC_BEAST_WARRIOR', 'COLOSSUS_SHIELD_TAMER', 'SWARM_GU_HIVE_MASTER', 'CELESTIAL_ASTRAL_FAIRY_TAMER', 'ABYSSAL_DRAGON_TOTEM'],
+    MP_BASE_SAGE_SUPPORT: ['GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY', 'QIMEN_TALISMAN_PATRON', 'SOUL_LANTERN_SHEPHERD', 'WAR_BANNER_CHORISTER', 'WOOD_SPIRIT_SYMBIONT'],
+    ART_SAGE_SUP_009: ['DIVINE_NECTAR_APOTHECARY', 'WOOD_SPIRIT_SYMBIONT', 'SOUL_LANTERN_SHEPHERD', 'GOLDEN_NEEDLE_SAINT', 'QIMEN_TALISMAN_PATRON'],
+    ART_SAGE_SUP_010: ['CELESTIAL_ZITHER_ENVOY', 'QIMEN_TALISMAN_PATRON', 'SOUL_LANTERN_SHEPHERD', 'WAR_BANNER_CHORISTER', 'GOLDEN_NEEDLE_SAINT'],
+    ART_CROSS_V208_001: ['CELESTIAL_BALLISTA', 'FLYING_BLADE_ORBITER', 'STAR_ARCHER', 'IRON_BOW_SENTINEL'],
+    ART_CROSS_V208_002: ['BEAST_CHIMERA_MECH', 'HEAVENLY_GOLEM', 'WAR_BANNER_CHORISTER', 'WAR_SPEAR_SOVEREIGN'],
+    ART_CROSS_V208_003: ['GOLDEN_NEEDLE_SAINT', 'THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'LOTUS_MERCY_PURIFIER'],
+    ART_CROSS_V208_004: ['ASURA_JUDGMENT_BLADE', 'FATE_SEVERING_THREAD', 'REVERSED_RETRIBUTION', 'PAST_LIFE_MIRROR'],
+    ART_CROSS_V208_005: ['BODHI_VOW_GUARDIAN', 'SIX_PATHS_WHEEL', 'LOTUS_MERCY_PURIFIER', 'COLOSSUS_SHIELD_TAMER'],
+    ART_CROSS_V208_006: ['SYMBIOTIC_BEAST_WARRIOR', 'PRIMORDIAL_BLOOD_MUTATOR', 'TIGER_SOVEREIGN', 'BLOOD_DRAGON'],
+    ART_CROSS_V208_007: ['MYRIAD_BEAST_PACK', 'CELESTIAL_ASTRAL_FAIRY_TAMER', 'SWARM_GU_HIVE_MASTER', 'CELESTIAL_BALLISTA'],
+    ART_CROSS_V208_008: ['CELESTIAL_ZITHER_ENVOY', 'SOUND_ZITHER', 'ZITHER_HEART_BOW', 'SOUL_LANTERN_SHEPHERD'],
+    ART_CROSS_V208_009: ['DIVINE_NECTAR_APOTHECARY', 'WOOD_SPIRIT_SYMBIONT', 'LOTUS_MERCY_PURIFIER', 'CELESTIAL_ASTRAL_FAIRY_TAMER'],
+    ART_CROSS_V208_010: ['QIMEN_TALISMAN_PATRON', 'ASTRAL_CLOCKWORK_PRIME', 'BODHI_VOW_GUARDIAN', 'FLYING_BLADE_ORBITER'],
+    ART_CROSS_V208_011: ['ASTRAL_CLOCKWORK_PRIME', 'SOUL_VESSEL_AVATAR', 'DIVINE_NECTAR_APOTHECARY', 'SWARM_GU_HIVE_MASTER'],
+    ART_CROSS_V208_012: ['SIX_PATHS_WHEEL', 'LOTUS_MERCY_PURIFIER', 'PAST_LIFE_MIRROR', 'BODHI_VOW_GUARDIAN', 'SOUL_LANTERN_SHEPHERD', 'CELESTIAL_ASTRAL_FAIRY_TAMER']
+  };
+  for (const [tid, subs] of Object.entries(compatAdditions)) {
+    for (const list of [JD.TECH.techniques, D.techniques]) {
+      const t = list && list.find(x => x.id === tid);
+      if (t) {
+        const cur = new Set(t.compatibleSubs || []);
+        if (t.sub) cur.add(t.sub);
+        subs.forEach(s => cur.add(s));
+        t.compatibleSubs = Array.from(cur);
+      }
+    }
+  }
+
+  // Also expand RES_NINE_DAO_* elementFamily & weapon slots so all subpaths of each path can resonate with their Pagoda set
+  const pagodaExpand = {
+    RES_NINE_DAO_XIAN: { weapons: ['SWORD', 'FOCUS', 'BOW', 'SPEAR', 'BLADE', 'STAFF'], elems: ['EARTH_METAL', 'WIND', 'WATER_ICE', 'WOOD_LIFE', 'ASTRAL', 'LIGHT_YANG', 'YIN_SHADOW', 'BLOOD_DEMON'] },
+    RES_NINE_DAO_BODY: { weapons: ['FIST', 'STAFF', 'BLADE', 'SPEAR', 'BOW', 'FOCUS'], elems: ['FIRE', 'EARTH_METAL', 'LIGHTNING', 'WOOD_LIFE', 'BLOOD_DEMON', 'WATER_ICE', 'LIGHT_YANG'] },
+    RES_NINE_DAO_GOD: { weapons: ['SPEAR', 'FOCUS', 'BOW', 'STAFF', 'BLADE', 'FIST'], elems: ['LIGHT_YANG', 'FIRE', 'ASTRAL', 'WOOD_LIFE', 'YIN_SHADOW', 'WATER_ICE', 'EARTH_METAL'] },
+    RES_NINE_DAO_DEMON: { weapons: ['BLADE', 'FIST', 'SWORD', 'SPEAR', 'FOCUS', 'STAFF', 'BOW'], elems: ['YIN_SHADOW', 'BLOOD_DEMON', 'WOOD_LIFE', 'FIRE', 'WATER_ICE'] },
+    RES_NINE_DAO_HEART_SOUL: { weapons: ['FOCUS', 'BOW', 'SWORD', 'BLADE', 'SPEAR', 'STAFF'], elems: ['ASTRAL', 'LIGHT_YANG', 'EARTH_METAL', 'YIN_SHADOW', 'WIND'] },
+    RES_NINE_DAO_MECH_PUPPET: { weapons: ['FOCUS', 'SPEAR', 'BLADE', 'STAFF', 'BOW', 'SWORD', 'FIST'], elems: ['LIGHTNING', 'EARTH_METAL', 'ASTRAL', 'FIRE', 'YIN_SHADOW', 'WOOD_LIFE'] },
+    RES_NINE_DAO_KARMA_SAMSARA: { weapons: ['SWORD', 'FOCUS', 'STAFF', 'BLADE', 'SPEAR', 'FIST'], elems: ['YIN_SHADOW', 'LIGHT_YANG', 'ASTRAL', 'WOOD_LIFE', 'FIRE', 'WATER_ICE', 'EARTH_METAL'] },
+    RES_NINE_DAO_BEAST_SOVEREIGN: { weapons: ['SPEAR', 'BLADE', 'STAFF', 'FIST', 'BOW', 'FOCUS'], elems: ['WOOD_LIFE', 'WIND', 'FIRE', 'EARTH_METAL', 'LIGHTNING', 'LIGHT_YANG', 'BLOOD_DEMON'] },
+    RES_NINE_DAO_SAGE_SUPPORT: { weapons: ['FOCUS', 'STAFF', 'BOW', 'SWORD', 'SPEAR'], elems: ['WOOD_LIFE', 'LIGHT_YANG', 'WIND', 'ASTRAL', 'FIRE', 'WATER_ICE'] }
+  };
+  for (const rs of D.RESONANCE_SETS) {
+    const exp = pagodaExpand[rs.id];
+    if (exp) {
+      rs.elementFamily = exp.elems.slice();
+      rs.slots.WEAPON = exp.weapons.slice();
+    }
+  }
+
+  // 2. Helper to build v2.0.12 weapons & recipes with authentic tier stats & material chains
+  const tierWeaponBase = {
+    1: { minStage: 1, value: 36, minMastery: 14, days: 4, atk: 18, matk: 18, crit: 4, pen: 4.5, cast: 6 },
+    2: { minStage: 1, value: 88, minMastery: 26, days: 5, atk: 40, matk: 40, crit: 5, pen: 6, cast: 8 },
+    3: { minStage: 2, value: 196, minMastery: 38, days: 6, atk: 85, matk: 85, crit: 6, pen: 7.5, cast: 10 },
+    4: { minStage: 3, value: 345, minMastery: 50, days: 8, atk: 165, matk: 165, crit: 7.5, pen: 9, cast: 12 },
+    5: { minStage: 4, value: 580, minMastery: 64, days: 10, atk: 295, matk: 295, crit: 9, pen: 11, cast: 15 },
+    6: { minStage: 4, value: 960, minMastery: 78, days: 12, atk: 480, matk: 480, crit: 11, pen: 13.5, cast: 18 }
+  };
+  const defaultMatsByTier = {
+    1: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }],
+    2: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }, { matId: 'MAT_HERB_JADE_LOTUS_2', count: 1 }],
+    3: [{ matId: 'MAT_ORE_STAR_COPPER_3', count: 2 }, { matId: 'MAT_BP_PYTHON_SCALE_3', count: 1 }],
+    4: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_BP_EARTH_CORE_4', count: 1 }],
+    5: [{ matId: 'MAT_ORE_METEOR_IRON_5', count: 2 }, { matId: 'MAT_BP_ROC_FEATHER_5', count: 1 }],
+    6: [{ matId: 'MAT_ORE_DIVINE_GOLD_6', count: 2 }, { matId: 'MAT_BP_TIGER_BONE_6', count: 1 }]
+  };
+
+  const weaponSpecs = [
+    // Zither / Sound / Wind-Light FOCUS (SOUND_ZITHER, CELESTIAL_ZITHER_ENVOY, ZITHER_HEART_BOW)
+    { id: 'ITEM_V212_EQ_001', recId: 'REC_V212_EQ_001', nameTh: 'พิณไผ่เขียวรับลมอรุณ', gearType: 'FOCUS', tier: 1, minStage: 1, elem: 'WIND', secElem: 'LIGHT_YANG', paths: ['XIAN', 'SAGE_SUPPORT', 'HEART_SOUL', 'ANY'], mats: [{ matId: 'MAT_HERB_DEW_GRASS_1', count: 2 }, { matId: 'MAT_BP_WOLF_HAIR_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_002', recId: 'REC_V212_EQ_002', nameTh: 'ขลุ่ยหยกขาวประสานสำเนียง', gearType: 'FOCUS', tier: 2, minStage: 1, elem: 'LIGHT_YANG', secElem: 'WIND', paths: ['XIAN', 'SAGE_SUPPORT', 'HEART_SOUL', 'ANY'], mats: [{ matId: 'MAT_ORE_JADE_SLATE_2', count: 2 }, { matId: 'MAT_HERB_MIST_ORCHID_2', count: 1 }] },
+    { id: 'ITEM_V212_EQ_003', recId: 'REC_V212_EQ_003', nameTh: 'พิณเจ็ดสายวายุสวรรค์', gearType: 'FOCUS', tier: 5, minStage: 4, elem: 'WIND', secElem: 'LIGHT_YANG', paths: ['XIAN', 'SAGE_SUPPORT', 'HEART_SOUL', 'ANY'], discoverable: true, mats: [{ matId: 'MAT_BP_ROC_FEATHER_5', count: 2 }, { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1 }] },
+
+    // Underworld Judge (GOD / UNDERWORLD_JUDGE: STAFF & FOCUS, YIN_SHADOW & FIRE)
+    { id: 'ITEM_V212_EQ_004', recId: 'REC_V212_EQ_004', nameTh: 'ป้ายเหล็กดำศาลยมโลก', gearType: 'FOCUS', tier: 1, minStage: 1, elem: 'YIN_SHADOW', secElem: 'FIRE', paths: ['GOD', 'KARMA_SAMSARA', 'DEMON', 'ANY'], mats: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_ORE_CINNABAR_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_005', recId: 'REC_V212_EQ_005', nameTh: 'พลองโซ่ตรวนเพลิงกรรม', gearType: 'STAFF', tier: 2, minStage: 1, elem: 'FIRE', secElem: 'YIN_SHADOW', paths: ['GOD', 'KARMA_SAMSARA', 'DEMON', 'ANY'], mats: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }, { matId: 'MAT_ORE_CINNABAR_1', count: 2 }] },
+    { id: 'ITEM_V212_EQ_006', recId: 'REC_V212_EQ_006', nameTh: 'พู่กันพิพากษาบัญชีเป็นตาย', gearType: 'FOCUS', tier: 6, minStage: 3, elem: 'YIN_SHADOW', secElem: 'FIRE', paths: ['GOD', 'KARMA_SAMSARA', 'HEART_SOUL', 'ANY'], discoverable: true },
+
+    // Dream Illusion Weaver (HEART_SOUL / DREAM_ILLUSION_WEAVER: FOCUS, YIN_SHADOW & WIND)
+    { id: 'ITEM_V212_EQ_007', recId: 'REC_V212_EQ_007', nameTh: 'กระดิ่งเงินหมอกฝันสนธยา', gearType: 'FOCUS', tier: 1, minStage: 1, elem: 'YIN_SHADOW', secElem: 'WIND', paths: ['HEART_SOUL', 'XIAN', 'DEMON', 'ANY'], mats: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 1 }, { matId: 'MAT_BP_WOLF_HAIR_1', count: 2 }] },
+    { id: 'ITEM_V212_EQ_008', recId: 'REC_V212_EQ_008', nameTh: 'โถกำยานผีเสื้อเริงฝัน', gearType: 'FOCUS', tier: 3, minStage: 2, elem: 'YIN_SHADOW', secElem: 'WIND', paths: ['HEART_SOUL', 'XIAN', 'ANY'], discoverable: true, mats: [{ matId: 'MAT_ORE_STAR_COPPER_3', count: 1 }, { matId: 'MAT_HERB_MIST_ORCHID_2', count: 2 }] },
+    { id: 'ITEM_V212_EQ_009', recId: 'REC_V212_EQ_009', nameTh: 'กระจกจันทรามายาฝันเก้าชั้น', gearType: 'FOCUS', tier: 6, minStage: 5, elem: 'YIN_SHADOW', secElem: 'WIND', paths: ['HEART_SOUL', 'XIAN', 'DEMON', 'ANY'], discoverable: true },
+
+    // Sun Bow Deity (GOD / SUN_BOW_DEITY: BOW, LIGHT_YANG & FIRE)
+    { id: 'ITEM_V212_EQ_010', recId: 'REC_V212_EQ_010', nameTh: 'คันศรไม้สุริยันเบิกอรุณ', gearType: 'BOW', tier: 1, minStage: 1, elem: 'LIGHT_YANG', secElem: 'FIRE', paths: ['GOD', 'XIAN', 'BODY', 'ANY'], mats: [{ matId: 'MAT_HERB_CINDER_LEAF_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_011', recId: 'REC_V212_EQ_011', nameTh: 'เกาทัณฑ์ทองคำเพลิงเทวัญ', gearType: 'BOW', tier: 4, minStage: 2, elem: 'FIRE', secElem: 'LIGHT_YANG', paths: ['GOD', 'MECH_PUPPET', 'ANY'], discoverable: true },
+    { id: 'ITEM_V212_EQ_012', recId: 'REC_V212_EQ_012', nameTh: 'มหาธนูอีกาทองคำผ่าสุริยัน', gearType: 'BOW', tier: 6, minStage: 3, elem: 'LIGHT_YANG', secElem: 'FIRE', paths: ['GOD', 'XIAN', 'ANY'], discoverable: true },
+
+    // Ocean Sovereign (GOD / OCEAN_SOVEREIGN: SPEAR & FOCUS, WATER_ICE & WIND)
+    { id: 'ITEM_V212_EQ_013', recId: 'REC_V212_EQ_013', nameTh: 'ฉมวกเกลียวคลื่นสมุทร', gearType: 'SPEAR', tier: 1, minStage: 1, elem: 'WATER_ICE', secElem: 'WIND', paths: ['GOD', 'BODY', 'BEAST_SOVEREIGN', 'ANY'], mats: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_HERB_DEW_GRASS_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_014', recId: 'REC_V212_EQ_014', nameTh: 'สังข์มุกวายุเรียกคลื่น', gearType: 'FOCUS', tier: 3, minStage: 2, elem: 'WATER_ICE', secElem: 'WIND', paths: ['GOD', 'XIAN', 'SAGE_SUPPORT', 'ANY'], discoverable: true },
+    { id: 'ITEM_V212_EQ_015', recId: 'REC_V212_EQ_015', nameTh: 'ตรีศูลราชันย์สมุทรเก้าบาดาล', gearType: 'SPEAR', tier: 6, minStage: 3, elem: 'WATER_ICE', secElem: 'WIND', paths: ['GOD', 'BODY', 'BEAST_SOVEREIGN', 'ANY'], discoverable: true },
+
+    // Void Spear Mind (HEART_SOUL / VOID_SPEAR_MIND: SPEAR & STAFF, ASTRAL & YIN_SHADOW)
+    { id: 'ITEM_V212_EQ_016', recId: 'REC_V212_EQ_016', nameTh: 'ทวนไม้ไผ่เงาดาวสุญตา', gearType: 'SPEAR', tier: 1, minStage: 1, elem: 'ASTRAL', secElem: 'YIN_SHADOW', paths: ['HEART_SOUL', 'XIAN', 'ANY'], mats: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 1 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 2 }] },
+    { id: 'ITEM_V212_EQ_017', recId: 'REC_V212_EQ_017', nameTh: 'พลองศิลาดาราแหวกความว่าง', gearType: 'STAFF', tier: 4, minStage: 3, elem: 'ASTRAL', secElem: 'YIN_SHADOW', paths: ['HEART_SOUL', 'KARMA_SAMSARA', 'MECH_PUPPET', 'ANY'], discoverable: true },
+    { id: 'ITEM_V212_EQ_018', recId: 'REC_V212_EQ_018', nameTh: 'ทวนจิตดาราสุญตาทะลวงภพ', gearType: 'SPEAR', tier: 6, minStage: 5, elem: 'ASTRAL', secElem: 'YIN_SHADOW', paths: ['HEART_SOUL', 'XIAN', 'MECH_PUPPET', 'ANY'], discoverable: true },
+
+    // Blood Spear Asura & Blood Dragon (SPEAR, BLOOD_DEMON & FIRE)
+    { id: 'ITEM_V212_EQ_019', recId: 'REC_V212_EQ_019', nameTh: 'หอกกระดูกอาบโลหิตอสูร', gearType: 'SPEAR', tier: 1, minStage: 1, elem: 'BLOOD_DEMON', secElem: 'FIRE', paths: ['DEMON', 'BODY', 'BEAST_SOVEREIGN', 'KARMA_SAMSARA', 'ANY'], mats: [{ matId: 'MAT_BP_WOLF_FANG_1', count: 2 }, { matId: 'MAT_ORE_CINNABAR_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_020', recId: 'REC_V212_EQ_020', nameTh: 'ทวนศึกโลหิตอสุราผลาญทัพ', gearType: 'SPEAR', tier: 3, minStage: 2, elem: 'BLOOD_DEMON', secElem: 'FIRE', paths: ['DEMON', 'BODY', 'KARMA_SAMSARA', 'ANY'], discoverable: true, mats: [{ matId: 'MAT_HERB_BLOOD_GINSENG_3', count: 2 }, { matId: 'MAT_ORE_STAR_COPPER_3', count: 1 }] },
+    { id: 'ITEM_V212_EQ_021', recId: 'REC_V212_EQ_021', nameTh: 'ทวนมารมังกรโลหิตสะท้านอเวจี', gearType: 'SPEAR', tier: 6, minStage: 4, elem: 'BLOOD_DEMON', secElem: 'FIRE', paths: ['DEMON', 'BODY', 'BEAST_SOVEREIGN', 'KARMA_SAMSARA', 'ANY'], discoverable: true },
+
+    // Nether Ghost King (FOCUS & STAFF, YIN_SHADOW & WATER_ICE)
+    { id: 'ITEM_V212_EQ_022', recId: 'REC_V212_EQ_022', nameTh: 'โคมกระดูกขาวเรียกพรายน้ำแข็ง', gearType: 'FOCUS', tier: 1, minStage: 1, elem: 'YIN_SHADOW', secElem: 'WATER_ICE', paths: ['DEMON', 'KARMA_SAMSARA', 'GOD', 'ANY'], mats: [{ matId: 'MAT_BP_WOLF_HAIR_1', count: 2 }, { matId: 'MAT_HERB_DEW_GRASS_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_023', recId: 'REC_V212_EQ_023', nameTh: 'คฑากะโหลกเหมันต์อเวจี', gearType: 'STAFF', tier: 3, minStage: 2, elem: 'YIN_SHADOW', secElem: 'WATER_ICE', paths: ['DEMON', 'KARMA_SAMSARA', 'GOD', 'ANY'], discoverable: true },
+    { id: 'ITEM_V212_EQ_024', recId: 'REC_V212_EQ_024', nameTh: 'คฑาราชันย์ภูตเหมันต์เก้าขุม', gearType: 'STAFF', tier: 6, minStage: 5, elem: 'YIN_SHADOW', secElem: 'WATER_ICE', paths: ['DEMON', 'KARMA_SAMSARA', 'GOD', 'ANY'], discoverable: true },
+
+    // Swarm Gu Hive Master & Celestial Fairy Tamer (WOOD_LIFE / YIN_SHADOW / LIGHT_YANG FOCUS & BOW)
+    { id: 'ITEM_V212_EQ_025', recId: 'REC_V212_EQ_025', nameTh: 'ขลุ่ยไม้ไผ่พิษเรียกกู่', gearType: 'FOCUS', tier: 1, minStage: 1, elem: 'WOOD_LIFE', secElem: 'YIN_SHADOW', paths: ['BEAST_SOVEREIGN', 'DEMON', 'SAGE_SUPPORT', 'ANY'], mats: [{ matId: 'MAT_HERB_DEW_GRASS_1', count: 2 }, { matId: 'MAT_BP_BEAST_MEAT_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_026', recId: 'REC_V212_EQ_026', nameTh: 'คันศรเถาวัลย์หนามเจ็ดพิษ', gearType: 'BOW', tier: 2, minStage: 1, elem: 'WOOD_LIFE', secElem: 'YIN_SHADOW', paths: ['BEAST_SOVEREIGN', 'DEMON', 'SAGE_SUPPORT', 'ANY'], mats: [{ matId: 'MAT_HERB_JADE_LOTUS_2', count: 2 }, { matId: 'MAT_BP_BOAR_HIDE_2', count: 1 }] },
+    { id: 'ITEM_V212_EQ_027', recId: 'REC_V212_EQ_027', nameTh: 'โถหยกจักรพรรดิกู่หมื่นพิษ', gearType: 'FOCUS', tier: 5, minStage: 4, elem: 'WOOD_LIFE', secElem: 'YIN_SHADOW', paths: ['BEAST_SOVEREIGN', 'DEMON', 'SAGE_SUPPORT', 'ANY'], discoverable: true },
+    { id: 'ITEM_V212_EQ_028', recId: 'REC_V212_EQ_028', nameTh: 'คันศรแสงดาวภูตพฤกษา', gearType: 'BOW', tier: 5, minStage: 4, elem: 'WOOD_LIFE', secElem: 'LIGHT_YANG', paths: ['BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'XIAN', 'ANY'], discoverable: true },
+
+    // Wood Spring Body, Totem Beast God, Myriad Beast Pack (WOOD_LIFE FIST & STAFF)
+    { id: 'ITEM_V212_EQ_029', recId: 'REC_V212_EQ_029', nameTh: 'สนับหมัดรากพฤกษาน้ำพุหยก', gearType: 'FIST', tier: 1, minStage: 1, elem: 'WOOD_LIFE', secElem: 'WATER_ICE', paths: ['BODY', 'BEAST_SOVEREIGN', 'GOD', 'ANY'], mats: [{ matId: 'MAT_HERB_DEW_GRASS_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_030', recId: 'REC_V212_EQ_030', nameTh: 'สนับกรงเล็บเทพอสูรพงไพร', gearType: 'FIST', tier: 4, minStage: 2, elem: 'WOOD_LIFE', secElem: 'EARTH_METAL', paths: ['BODY', 'BEAST_SOVEREIGN', 'GOD', 'ANY'], discoverable: true },
+    { id: 'ITEM_V212_EQ_031', recId: 'REC_V212_EQ_031', nameTh: 'พลองต้นไม้โลกค้ำจุนปฐพี', gearType: 'STAFF', tier: 6, minStage: 4, elem: 'WOOD_LIFE', secElem: 'WATER_ICE', paths: ['BODY', 'SAGE_SUPPORT', 'BEAST_SOVEREIGN', 'GOD', 'ANY'], discoverable: true },
+
+    // Thunder Body, Astral Clockwork Prime, Flying Blade Orbiter (LIGHTNING SPEAR & FOCUS)
+    { id: 'ITEM_V212_EQ_032', recId: 'REC_V212_EQ_032', nameTh: 'ทวนเหล็กสายฟ้าผ่าเมฆา', gearType: 'SPEAR', tier: 1, minStage: 1, elem: 'LIGHTNING', secElem: 'EARTH_METAL', paths: ['BODY', 'MECH_PUPPET', 'GOD', 'XIAN', 'ANY'], mats: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { id: 'ITEM_V212_EQ_033', recId: 'REC_V212_EQ_033', nameTh: 'ลูกกลมฟันเฟืองอสนีดารา', gearType: 'FOCUS', tier: 2, minStage: 1, elem: 'LIGHTNING', secElem: 'ASTRAL', paths: ['MECH_PUPPET', 'XIAN', 'ANY'], mats: [{ matId: 'MAT_ORE_JADE_SLATE_2', count: 2 }, { matId: 'MAT_BP_BOAR_CORE_2', count: 1 }] },
+    { id: 'ITEM_V212_EQ_034', recId: 'REC_V212_EQ_034', nameTh: 'แกนนาฬิกาดาราจักรอัสนีสวรรค์', gearType: 'FOCUS', tier: 6, minStage: 5, elem: 'LIGHTNING', secElem: 'ASTRAL', paths: ['MECH_PUPPET', 'XIAN', 'HEART_SOUL', 'ANY'], discoverable: true }
+  ];
+
+  for (const w of weaponSpecs) {
+    const tb = tierWeaponBase[w.tier];
+    const isFocus = w.gearType === 'FOCUS';
+    const isHybrid = w.gearType === 'STAFF' || w.gearType === 'BOW' || w.gearType === 'SWORD' || w.gearType === 'SPEAR';
+    const st = {
+      atk: isFocus ? Math.round(tb.atk * 0.45) : isHybrid ? Math.round(tb.atk * 0.92) : tb.atk,
+      matk: isFocus ? Math.round(tb.matk * 1.15) : isHybrid ? Math.round(tb.matk * 0.88) : Math.round(tb.matk * 0.45),
+      crit: tb.crit,
+      pen: tb.pen,
+      cast: isFocus ? tb.cast + 4 : tb.cast
+    };
+    const ep = w.secElem
+      ? { mode: 'INTRINSIC_WEIGHTED', primary: w.elem, weights: { [w.elem]: 0.65, [w.secElem]: 0.35 } }
+      : { mode: 'INTRINSIC_SINGLE', primary: w.elem, weights: { [w.elem]: 1 } };
+    const itemObj = {
+      id: w.id,
+      recipeId: w.recId,
+      nameTh: w.nameTh,
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      subType: w.gearType,
+      gearType: w.gearType,
+      tier: w.tier,
+      minStage: w.minStage != null ? w.minStage : tb.minStage,
+      value: tb.value,
+      durability: 100,
+      craft: 'FORGING',
+      compatiblePath: w.paths,
+      element: w.elem,
+      elementProfile: ep,
+      v212Pack: true,
+      st
+    };
+    if (!JD.ITEMS.items.some(x => x.id === itemObj.id)) {
+      JD.ITEMS.items.push(itemObj);
+    }
+    const recObj = {
+      id: w.recId,
+      nameTh: 'ตำรับหลอม' + w.nameTh,
+      craft: 'FORGING',
+      tier: w.tier,
+      minMastery: tb.minMastery,
+      days: tb.days,
+      inputs: w.mats || defaultMatsByTier[w.tier],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: w.id,
+      outItemId: w.id,
+      outNameTh: w.nameTh,
+      yield: 1,
+      gearType: w.gearType,
+      discoverable: !!w.discoverable,
+      element: w.elem,
+      elementProfile: ep,
+      v212Pack: true
+    };
+    if (!JD.ITEMS.recipes.some(x => x.id === recObj.id)) {
+      JD.ITEMS.recipes.push(recObj);
+    }
+  }
+
+  // 3. New Martial Techniques (Active & Passive) closing all Stage-1, Mid, High, and Explicit Subpath gaps
+  const mkSt = (nameTh) => [
+    { stage: 1, nameTh: nameTh + ' · ขั้นต้น', reqMastery: 0, reqCultStage: 1, passiveBonus: { p: { atk: 0.02, matk: 0.02, mdef: 0.02 } } },
+    { stage: 2, nameTh: nameTh + ' · ขั้นกลาง', reqMastery: 25, reqCultStage: 2, passiveBonus: { p: { atk: 0.04, matk: 0.04, def: 0.03 }, f: { crit: 3, cast: 3 } } },
+    { stage: 3, nameTh: nameTh + ' · ขั้นสมบูรณ์', reqMastery: 60, reqCultStage: 4, passiveBonus: { p: { atk: 0.06, matk: 0.06, def: 0.05, hp: 0.05 }, f: { crit: 5, pen: 5, cast: 5 } } }
+  ];
+
+  const techSpecs = [
+    // XIAN: SOUND_ZITHER & PHANTOM_SOUL
+    { id: 'ART_V212_XIAN_ZITHER_T1', nameTh: 'ลำนำพิณสายลมแรกผลิ', path: 'XIAN', sub: 'SOUND_ZITHER', subs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY', 'ZITHER_HEART_BOW'], tier: 1, wpn: ['FOCUS', 'BOW'], elem: 'WIND', secElem: 'LIGHT_YANG', arch: 'channel', buff: 'swiftWind', m1: 'ดีดสายวายุขับหมอก', m2: 'คลื่นเสียงอรุณสะกดใจ' },
+    { id: 'ART_V212_XIAN_ZITHER_T3', nameTh: 'เพลงพิณเจ็ดสำเนียงสะกดเมฆา', path: 'XIAN', sub: 'SOUND_ZITHER', subs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY'], tier: 3, wpn: ['FOCUS', 'BOW'], elem: 'WIND', secElem: 'LIGHT_YANG', arch: 'control', ctrl: 'silence', buff: 'swiftWind', m1: 'เจ็ดสายพิณตัดคลื่นปราณ', m2: 'เสียงสวรรค์ก้องหุบเขา' },
+    { id: 'ART_V212_XIAN_ZITHER_T6', nameTh: 'มหาคีตเวทย์พิณสวรรค์สะท้านเก้าภพ', path: 'XIAN', sub: 'SOUND_ZITHER', subs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY', 'ZITHER_HEART_BOW'], tier: 6, wpn: ['FOCUS', 'BOW'], elem: 'LIGHT_YANG', secElem: 'WIND', arch: 'burst', aoe: true, buff: 'nirvanaGrace', m1: 'หนึ่งทำนองดับจิตมาร', m2: 'เก้าสำเนียงสวรรค์พิพากษา' },
+    { id: 'ART_V212_XIAN_PHANTOM_T6', nameTh: 'คัมภีร์มีดบินเงาวิญญาณล่องจันทร์', path: 'XIAN', sub: 'PHANTOM_SOUL', subs: ['PHANTOM_SOUL', 'SHADOW_ASSASSIN', 'DREAM_ILLUSION_WEAVER'], tier: 6, wpn: ['FOCUS', 'BLADE'], elem: 'YIN_SHADOW', secElem: 'WIND', arch: 'pierce', ctrl: 'blind', m1: 'เงาจันทร์ซ่อนคมไร้ลักษณ์', m2: 'วิญญาณเร้นลับสะบั้นชีพจร' },
+
+    // BODY: THUNDER_BODY & WOOD_SPRING_BODY
+    { id: 'ART_V212_BODY_THUNDER_T1', nameTh: 'เพลงทวนสายฟ้าฟาดปฐพีขั้นต้น', path: 'BODY', sub: 'THUNDER_BODY', subs: ['THUNDER_BODY', 'WAR_SPEAR_SOVEREIGN', 'TIGER_SOVEREIGN'], tier: 1, wpn: ['SPEAR', 'FIST'], elem: 'LIGHTNING', secElem: 'EARTH_METAL', arch: 'pierce', m1: 'หอกสายฟ้าแลบทะลวงเกราะ', m2: 'หมัดอสนีสะท้านกระดูก' },
+    { id: 'ART_V212_BODY_THUNDER_T3', nameTh: 'หมัดทวนอสนีคำรนทะลวงทัพ', path: 'BODY', sub: 'THUNDER_BODY', subs: ['THUNDER_BODY', 'WAR_SPEAR_SOVEREIGN'], tier: 3, wpn: ['SPEAR', 'FIST'], elem: 'LIGHTNING', secElem: 'EARTH_METAL', arch: 'burst', ctrl: 'stun', buff: 'fervorMight', m1: 'สายฟ้าฟาดเก้าจังหวะ', m2: 'กายาอัสนีระเบิดศึก' },
+    { id: 'ART_V212_BODY_THUNDER_T6', nameTh: 'มหาคัมภีร์กายาอัสนีบาตทลายทัณฑ์สวรรค์', path: 'BODY', sub: 'THUNDER_BODY', subs: ['THUNDER_BODY', 'VAJRA_BODHI', 'WAR_SPEAR_SOVEREIGN'], tier: 6, wpn: ['SPEAR', 'FIST', 'STAFF'], elem: 'LIGHTNING', secElem: 'EARTH_METAL', arch: 'burst', aoe: true, buff: 'aegisWard', m1: 'กลืนสายฟ้าทัณฑ์หลอมกายา', m2: 'หอกอัสนีสวรรค์พิฆาตมาร' },
+
+    // GOD: UNDERWORLD_JUDGE, SUN_BOW_DEITY, OCEAN_SOVEREIGN
+    { id: 'ART_V212_GOD_JUDGE_T1', nameTh: 'โองการป้ายยมโลกตัดสินบาป', path: 'GOD', sub: 'UNDERWORLD_JUDGE', subs: ['UNDERWORLD_JUDGE', 'REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL'], tier: 1, wpn: ['STAFF', 'FOCUS'], elem: 'YIN_SHADOW', secElem: 'FIRE', arch: 'control', m1: 'เคาะป้ายยมโลกเรียกวิญญาณ', m2: 'โซ่ตรวนสะกดผู้มีบาป' },
+    { id: 'ART_V212_GOD_JUDGE_T3', nameTh: 'พู่กันเพลิงกรรมพิพากษาวิญญาณ', path: 'GOD', sub: 'UNDERWORLD_JUDGE', subs: ['UNDERWORLD_JUDGE', 'ASURA_JUDGMENT_BLADE'], tier: 3, wpn: ['FOCUS', 'STAFF'], elem: 'FIRE', secElem: 'YIN_SHADOW', arch: 'strike', m1: 'ขีดเขียนนามในสมุดเป็นตาย', m2: 'เพลิงกรรมอเวจีเผาผลาญ' },
+    { id: 'ART_V212_GOD_JUDGE_T5', nameTh: 'มหาตราประทับพญายมสะบั้นวิบาก', path: 'GOD', sub: 'UNDERWORLD_JUDGE', subs: ['UNDERWORLD_JUDGE', 'SIX_PATHS_WHEEL'], tier: 5, wpn: ['STAFF', 'FOCUS'], elem: 'YIN_SHADOW', secElem: 'FIRE', arch: 'burst', aoe: true, m1: 'ตราพญายมเปิดขุมนรก', m2: 'พิพากษาหนี้เลือดสามภพ' },
+    { id: 'ART_V212_GOD_SUN_BOW_T1', nameTh: 'ศรแสงอรุณขับไล่ความมืด', path: 'GOD', sub: 'SUN_BOW_DEITY', subs: ['SUN_BOW_DEITY', 'STAR_ARCHER', 'WAR_DEITY'], tier: 1, wpn: ['BOW', 'SPEAR'], elem: 'LIGHT_YANG', secElem: 'FIRE', arch: 'snipe', m1: 'ง้างศรรับแสงตะวัน', m2: 'ลูกศรทองคำทะลวงหมอกมาร' },
+    { id: 'ART_V212_GOD_SUN_BOW_T3', nameTh: 'เพลงธนูเพลิงสุริยันเผาผลาญมาร', path: 'GOD', sub: 'SUN_BOW_DEITY', subs: ['SUN_BOW_DEITY', 'WAR_DEITY'], tier: 3, wpn: ['BOW', 'SPEAR', 'FOCUS'], elem: 'FIRE', secElem: 'LIGHT_YANG', arch: 'barrage', aoe: true, buff: 'fervorMight', m1: 'ฝนศรเพลิงสุริยัน', m2: 'อีกาทองคำโฉบสังหาร' },
+    { id: 'ART_V212_GOD_SUN_BOW_T6', nameTh: 'มหาศรเทวะดับตะวันเก้าดวง', path: 'GOD', sub: 'SUN_BOW_DEITY', subs: ['SUN_BOW_DEITY', 'STAR_ARCHER'], tier: 6, wpn: ['BOW', 'SPEAR'], elem: 'LIGHT_YANG', secElem: 'FIRE', arch: 'burst', m1: 'ศรเดียวผ่าเมฆาเก้าชั้น', m2: 'รัศมีเทวะสุริยันล้างอธรรม' },
+    { id: 'ART_V212_GOD_OCEAN_T2', nameTh: 'เพลงทวนสมุทรครามแหวกคลื่น', path: 'GOD', sub: 'OCEAN_SOVEREIGN', subs: ['OCEAN_SOVEREIGN', 'CLOUD_DRAGON_SPEAR'], tier: 2, wpn: ['SPEAR', 'FOCUS'], elem: 'WATER_ICE', secElem: 'WIND', arch: 'sweep', m1: 'ฉมวกคลื่นซัดแนวหน้า', m2: 'น้ำวนสมุทรดึงรั้ง' },
+    { id: 'ART_V212_GOD_OCEAN_T6', nameTh: 'มหาตรีศูลจ้าวสมุทรกลืนสวรรค์', path: 'GOD', sub: 'OCEAN_SOVEREIGN', subs: ['OCEAN_SOVEREIGN', 'ABYSSAL_DRAGON_TOTEM', 'MERCY_DEITY'], tier: 6, wpn: ['SPEAR', 'FOCUS'], elem: 'WATER_ICE', secElem: 'WIND', arch: 'burst', aoe: true, buff: 'aegisWard', m1: 'ตรีศูลเปิดมหาสมุทรบาดาล', m2: 'คลื่นยักษ์เก้าทัพถล่มปราการ' },
+
+    // DEMON: NETHER_GHOST_KING & BLOOD_SPEAR_ASURA
+    { id: 'ART_V212_DEMON_GHOST_T1', nameTh: 'คฑาพรายกระดูกเรียกวิญญาณเยือกแข็ง', path: 'DEMON', sub: 'NETHER_GHOST_KING', subs: ['NETHER_GHOST_KING', 'PHANTOM_SOUL', 'UNDERWORLD_JUDGE'], tier: 1, wpn: ['FOCUS', 'STAFF'], elem: 'YIN_SHADOW', secElem: 'WATER_ICE', arch: 'control', m1: 'ไอเย็นยมโลกสะกดก้าว', m2: 'โซ่พรายกระชากขวัญ' },
+    { id: 'ART_V212_DEMON_GHOST_T6', nameTh: 'มหาคัมภีร์ราชันย์ภูตเปิดประตูยมโลก', path: 'DEMON', sub: 'NETHER_GHOST_KING', subs: ['NETHER_GHOST_KING', 'UNDERWORLD_JUDGE', 'SOUL_VESSEL_AVATAR'], tier: 6, wpn: ['STAFF', 'FOCUS'], elem: 'YIN_SHADOW', secElem: 'WATER_ICE', arch: 'summon', aoe: true, m1: 'เปิดประตูผีหมื่นวิญญาณ', m2: 'บัลลังก์เหมันต์อเวจีกลืนจิต' },
+    { id: 'ART_V212_DEMON_BLOOD_SPEAR_T1', nameTh: 'เพลงทวนโลหิตอสุราแทงทะลวงศึก', path: 'DEMON', sub: 'BLOOD_SPEAR_ASURA', subs: ['BLOOD_SPEAR_ASURA', 'BLOOD_DRAGON', 'ASURA_JUDGMENT_BLADE', 'ASHURA_SLAUGHTER_BLADE'], tier: 1, wpn: ['SPEAR', 'BLADE'], elem: 'BLOOD_DEMON', secElem: 'FIRE', arch: 'pierce', m1: 'แทงทวนสูบโลหิตแรก', m2: 'คมหอกฉีกเกราะผลาญปราณ' },
+    { id: 'ART_V212_DEMON_BLOOD_SPEAR_T6', nameTh: 'มหาทวนมารอสุราผลาญสวรรค์', path: 'DEMON', sub: 'BLOOD_SPEAR_ASURA', subs: ['BLOOD_SPEAR_ASURA', 'HEAVEN_DEVOURING_DEMON', 'ASURA_JUDGMENT_BLADE'], tier: 6, wpn: ['SPEAR', 'BLADE'], elem: 'BLOOD_DEMON', secElem: 'FIRE', arch: 'burst', buff: 'fervorMight', m1: 'ทวนโลหิตผ่าสมรภูมิ', m2: 'อสุราคลั่งกลืนกินสามภพ' },
+
+    // HEART_SOUL: VOID_SPEAR_MIND & DREAM_ILLUSION_WEAVER
+    { id: 'ART_V212_SOUL_VOID_SPEAR_T1', nameTh: 'ทวนจิตเงาดาราแทงความว่าง', path: 'HEART_SOUL', sub: 'VOID_SPEAR_MIND', subs: ['VOID_SPEAR_MIND', 'TIME_VOID', 'CLOUD_DRAGON_SPEAR'], tier: 1, wpn: ['SPEAR', 'STAFF'], elem: 'ASTRAL', secElem: 'YIN_SHADOW', arch: 'pierce', m1: 'แทงทะลุเงามิติ', m2: 'ปลายทวนสั่นคลอนทะเลจิต' },
+    { id: 'ART_V212_SOUL_VOID_SPEAR_T6', nameTh: 'มหาทวนจิตสุญตาทะลวงเก้าดารา', path: 'HEART_SOUL', sub: 'VOID_SPEAR_MIND', subs: ['VOID_SPEAR_MIND', 'TIME_VOID', 'MIND_SWORD_TELEKINESIS'], tier: 6, wpn: ['SPEAR', 'STAFF'], elem: 'ASTRAL', secElem: 'YIN_SHADOW', arch: 'burst', m1: 'หนึ่งทวนดับดารา', m2: 'ความว่างเปล่ากลืนกินศาสตรา' },
+    { id: 'ART_V212_SOUL_DREAM_T1', nameTh: 'ระฆังหมอกฝันสะกดใจขั้นต้น', path: 'HEART_SOUL', sub: 'DREAM_ILLUSION_WEAVER', subs: ['DREAM_ILLUSION_WEAVER', 'PHANTOM_SOUL', 'ZITHER_HEART_BOW'], tier: 1, wpn: ['FOCUS', 'SWORD'], elem: 'YIN_SHADOW', secElem: 'WIND', arch: 'control', m1: 'สั่นกระดิ่งพรางสติ', m2: 'สายลมฝันลวงทิศทาง' },
+    { id: 'ART_V212_SOUL_DREAM_T6', nameTh: 'มหากาพย์มายาฝันนิรันดร์กลืนสามภพ', path: 'HEART_SOUL', sub: 'DREAM_ILLUSION_WEAVER', subs: ['DREAM_ILLUSION_WEAVER', 'PAST_LIFE_MIRROR'], tier: 6, wpn: ['FOCUS', 'SWORD'], elem: 'YIN_SHADOW', secElem: 'WIND', arch: 'control', aoe: true, ctrl: 'blind', m1: 'ฝันซ้อนฝันพันราตรี', m2: 'กระจกจันทราสะท้อนภาพลวง' },
+
+    // MECH_PUPPET: BALLISTA, ORBITER, THREAD, CLOCKWORK
+    { id: 'ART_V212_MECH_BALLISTA_T1', nameTh: 'ศรกลจักรทะลวงค่ายขั้นต้น', path: 'MECH_PUPPET', sub: 'CELESTIAL_BALLISTA', subs: ['CELESTIAL_BALLISTA', 'FLYING_BLADE_ORBITER', 'THOUSAND_THREAD_ASSASSIN'], tier: 1, wpn: ['BOW', 'FOCUS', 'SWORD'], elem: 'ASTRAL', secElem: 'WIND', arch: 'snipe', m1: 'ยิงศรเฟืองกลเจาะเกราะ', m2: 'ใบมีดบินหมุนวนสกัดกั้น' },
+    { id: 'ART_V212_MECH_ORBITER_T5', nameTh: 'ค่ายกลใบมีดบินอัสนีแปดทิศ', path: 'MECH_PUPPET', sub: 'FLYING_BLADE_ORBITER', subs: ['FLYING_BLADE_ORBITER', 'ASTRAL_CLOCKWORK_PRIME', 'CELESTIAL_BALLISTA', 'THOUSAND_THREAD_ASSASSIN'], tier: 5, wpn: ['SWORD', 'BLADE', 'FOCUS', 'BOW'], elem: 'LIGHTNING', secElem: 'EARTH_METAL', arch: 'flurry', aoe: true, buff: 'swiftWind', m1: 'ปล่อยกงจักรใบมีดสายฟ้า', m2: 'ตาข่ายเส้นไหมกลสังหาร' },
+
+    // KARMA_SAMSARA: ASURA_JUDGMENT_BLADE, PAST_LIFE_MIRROR, FATE_SEVERING_THREAD, LOTUS_MERCY_PURIFIER, BODHI_VOW_GUARDIAN, SIX_PATHS_WHEEL
+    { id: 'ART_V212_KARMA_ASURA_T1', nameTh: 'เพลงดาบเพลิงวิบากตัดหนี้เลือด', path: 'KARMA_SAMSARA', sub: 'ASURA_JUDGMENT_BLADE', subs: ['ASURA_JUDGMENT_BLADE', 'REVERSED_RETRIBUTION', 'BLOOD_SPEAR_ASURA'], tier: 1, wpn: ['BLADE', 'SWORD', 'SPEAR'], elem: 'FIRE', secElem: 'BLOOD_DEMON', arch: 'strike', m1: 'ฟันดาบตัดสินหนี้แค้น', m2: 'เปลวไฟวิบากเผาเกราะ' },
+    { id: 'ART_V212_KARMA_MIRROR_T1', nameTh: 'คันฉ่องเงาวารีส่องอดีตชาติ', path: 'KARMA_SAMSARA', sub: 'PAST_LIFE_MIRROR', subs: ['PAST_LIFE_MIRROR', 'FATE_SEVERING_THREAD', 'LOTUS_MERCY_PURIFIER'], tier: 1, wpn: ['FOCUS', 'SWORD', 'STAFF'], elem: 'YIN_SHADOW', secElem: 'WATER_ICE', arch: 'control', buff: 'clarityLotus', m1: 'ส่องเงากรรมในอดีต', m2: 'ด้ายชะตาสะท้อนคลื่นจิต' },
+    { id: 'ART_V212_KARMA_MIRROR_T6', nameTh: 'มหาคันฉ่องอดีตชาติสะท้อนเงาเหมันต์', path: 'KARMA_SAMSARA', sub: 'PAST_LIFE_MIRROR', subs: ['PAST_LIFE_MIRROR', 'FATE_SEVERING_THREAD', 'SIX_PATHS_WHEEL', 'BODHI_VOW_GUARDIAN'], tier: 6, wpn: ['FOCUS', 'SWORD', 'STAFF'], elem: 'YIN_SHADOW', secElem: 'WATER_ICE', arch: 'burst', aoe: true, buff: 'aegisWard', m1: 'กระจกหกภพสะท้อนวิบาก', m2: 'ตัดสายใยสังสารวัฏนิรันดร์' },
+
+    // BEAST_SOVEREIGN: SWARM_GU_HIVE_MASTER, CELESTIAL_ASTRAL_FAIRY_TAMER, COLOSSUS_SHIELD_TAMER, SYMBIOTIC_BEAST_WARRIOR
+    { id: 'ART_V212_BEAST_SWARM_T1', nameTh: 'ฝูงแมลงกู่เขี้ยวหยกสูบปราณ', path: 'BEAST_SOVEREIGN', sub: 'SWARM_GU_HIVE_MASTER', subs: ['SWARM_GU_HIVE_MASTER', 'CELESTIAL_ASTRAL_FAIRY_TAMER', 'VENOM_GU_SOVEREIGN'], tier: 1, wpn: ['FOCUS', 'BOW', 'BLADE', 'STAFF'], elem: 'WOOD_LIFE', secElem: 'YIN_SHADOW', arch: 'dot', m1: 'เป่าขลุ่ยเรียกฝูงกู่พิษ', m2: 'ละอองเกสรภูตสะกดปราณ' },
+    { id: 'ART_V212_BEAST_SWARM_T5', nameTh: 'มหารังกู่ทองคำและภูตดาราครองไพร', path: 'BEAST_SOVEREIGN', sub: 'SWARM_GU_HIVE_MASTER', subs: ['SWARM_GU_HIVE_MASTER', 'CELESTIAL_ASTRAL_FAIRY_TAMER', 'COLOSSUS_SHIELD_TAMER', 'SYMBIOTIC_BEAST_WARRIOR'], tier: 5, wpn: ['FOCUS', 'BOW', 'STAFF', 'SPEAR'], elem: 'WOOD_LIFE', secElem: 'LIGHT_YANG', arch: 'summon', aoe: true, buff: 'vitalRegen', m1: 'คลื่นฝูงแมลงทองกลืนค่ายกล', m2: 'ภูตพฤกษาดาราคุ้มครองทัพ' },
+
+    // SAGE_SUPPORT: T1 & T6 multi-subpath support techniques
+    { id: 'ART_V212_SAGE_HARMONY_T1', nameTh: 'คีตเวทย์เข็มเงินและธงศึกปฐมบท', path: 'SAGE_SUPPORT', sub: 'CELESTIAL_ZITHER_ENVOY', subs: ['GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY', 'QIMEN_TALISMAN_PATRON', 'SOUL_LANTERN_SHEPHERD', 'WAR_BANNER_CHORISTER', 'WOOD_SPIRIT_SYMBIONT'], tier: 1, wpn: ['FOCUS', 'STAFF', 'SPEAR', 'SWORD', 'BOW'], elem: 'LIGHT_YANG', secElem: 'WOOD_LIFE', arch: 'heal', isSupport: true, heal: 0.24, shield: 0.16, buff: 'vitalRegen', m1: 'เข็มเงินและสายพิณประสานปราณ', m2: 'โบกธงจุดโคมคุ้มครองหมู่' },
+    { id: 'ART_V212_SAGE_SANCTUARY_T2', nameTh: 'เคล็ดโคมยันต์และน้ำค้างทิพย์คุ้มทัพ', path: 'SAGE_SUPPORT', sub: 'SOUL_LANTERN_SHEPHERD', subs: ['GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY', 'QIMEN_TALISMAN_PATRON', 'SOUL_LANTERN_SHEPHERD', 'WAR_BANNER_CHORISTER', 'WOOD_SPIRIT_SYMBIONT'], tier: 2, wpn: ['FOCUS', 'STAFF', 'SPEAR', 'SWORD', 'BOW'], elem: 'WOOD_LIFE', secElem: 'LIGHT_YANG', arch: 'support', isSupport: true, heal: 0.22, shield: 0.20, buff: 'aegisWard', m1: 'กางม่านยันต์น้ำค้างทิพย์', m2: 'ลำนำกลองศึกชำระจิตมาร' },
+    { id: 'ART_V212_SAGE_APEX_T7', nameTh: 'มหาคัมภีร์อมตะเสินหนงชุบชีวาเก้าสวรรค์', path: 'SAGE_SUPPORT', sub: 'DIVINE_NECTAR_APOTHECARY', subs: ['GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY', 'QIMEN_TALISMAN_PATRON', 'SOUL_LANTERN_SHEPHERD', 'WAR_BANNER_CHORISTER', 'WOOD_SPIRIT_SYMBIONT'], tier: 7, wpn: ['FOCUS', 'STAFF', 'SWORD', 'SPEAR', 'BOW'], elem: 'WOOD_LIFE', secElem: 'LIGHT_YANG', arch: 'heal', isSupport: true, aoe: true, heal: 0.42, shield: 0.28, buff: 'nirvanaGrace', m1: 'น้ำอมฤตเก้าสวรรค์ชุบชีวิต', m2: 'คีตเวทย์อมตะคุ้มครองทั้งสำนัก' }
+  ];
+
+  const gradeByTier = { 1: 'Common', 2: 'Refined', 3: 'Rare', 4: 'Exceptional', 5: 'Exceptional', 6: 'Legendary', 7: 'Legendary' };
+  const powerByTier = { 1: 54, 2: 96, 3: 138, 4: 184, 5: 235, 6: 292, 7: 348 };
+
+  for (const ts of techSpecs) {
+    const ep = ts.secElem
+      ? { mode: 'INTRINSIC_WEIGHTED', primary: ts.elem, weights: { [ts.elem]: 0.65, [ts.secElem]: 0.35 } }
+      : { mode: 'INTRINSIC_SINGLE', primary: ts.elem, weights: { [ts.elem]: 1 } };
+    const mMult1 = ts.isSupport ? 0 : +(1.15 + ts.tier * 0.08).toFixed(2);
+    const mMult2 = ts.isSupport ? 0 : +(1.32 + ts.tier * 0.11).toFixed(2);
+    const tObj = {
+      id: ts.id,
+      nameTh: ts.nameTh,
+      path: ts.path,
+      sub: ts.sub,
+      compatibleSubs: ts.subs,
+      cat: ts.isSupport ? 'SUPPORT_TECHNIQUE' : 'COMBAT_TECHNIQUE',
+      role: ts.isSupport ? 'HEAL_SUPPORT_TRAINING' : 'COMBAT_OFFENSE',
+      combatArch: ts.arch,
+      tier: ts.tier,
+      reqTier: ts.tier,
+      grade: gradeByTier[ts.tier] || 'Rare',
+      legendary: false,
+      sourcePack: 'V212_BUILD_DEPTH',
+      v212Pack: true,
+      power: powerByTier[ts.tier] || 120,
+      element: ts.elem,
+      elementProfile: ep,
+      weaponTypes: ts.wpn,
+      grantBuff: ts.buff || undefined,
+      stages: mkSt(ts.nameTh),
+      moves: [ts.m1, ts.m2],
+      moveDefs: [
+        {
+          id: ts.id + '_M1',
+          parentId: ts.id,
+          nameTh: ts.m1,
+          arch: ts.arch,
+          stageReq: 1,
+          M: mMult1,
+          hits: ts.isSupport ? 0 : (ts.arch === 'flurry' || ts.arch === 'barrage' ? 3 : 1),
+          heal: ts.heal || 0,
+          shield: ts.shield || 0,
+          ctrl: ts.ctrl || undefined,
+          grantBuff: ts.buff || undefined,
+          cd: 11 + ts.tier,
+          wind: 4
+        },
+        {
+          id: ts.id + '_M2',
+          parentId: ts.id,
+          nameTh: ts.m2,
+          arch: ts.arch,
+          stageReq: 2,
+          reqMastery: 25,
+          M: mMult2,
+          hits: ts.isSupport ? 0 : 1,
+          aoe: !!ts.aoe,
+          heal: ts.heal ? +(ts.heal * 1.2).toFixed(2) : 0,
+          shield: ts.shield ? +(ts.shield * 1.2).toFixed(2) : 0,
+          ctrl: ts.ctrl || undefined,
+          grantBuff: ts.buff || undefined,
+          cd: 14 + ts.tier,
+          wind: 4
+        }
+      ]
+    };
+    if (!D.techniques.some(x => x.id === tObj.id)) D.techniques.push(tObj);
+    if (!JD.TECH.techniques.some(x => x.id === tObj.id)) JD.TECH.techniques.push(tObj);
+  }
+
+  // Adaptive cross-weapon passive for improvisation & transitional builds
+  const adaptivePassive = {
+    id: 'PASS_V212_ADAPTIVE_ARSENAL_T2',
+    nameTh: 'เคล็ดพลิกแพลงศาสตราไร้ลักษณ์',
+    path: 'ANY',
+    cat: 'PASSIVE',
+    role: 'PASSIVE',
+    tier: 2,
+    reqTier: 2,
+    grade: 'Refined',
+    sourcePack: 'V212_BUILD_DEPTH',
+    v212Pack: true,
+    power: 92,
+    element: 'NEUTRAL',
+    elementalRole: 'EXPLICIT_NON_ELEMENTAL',
+    elementProfile: { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} },
+    weaponTypes: ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS'],
+    passiveFamily: 'FAM_V212_ADAPTIVE_ARSENAL',
+    passive: {
+      p: { atk: 0.07, matk: 0.07, def: 0.07, acc: 0.08 },
+      f: { crit: 4, pen: 6, cast: 5 },
+      qiMaxPct: 0.08,
+      proc: { kind: 'onHit', icdTicks: 5, qiRestorePct: 0.03 }
+    }
+  };
+  if (!D.techniques.some(x => x.id === adaptivePassive.id)) D.techniques.push(adaptivePassive);
+  if (!JD.TECH.techniques.some(x => x.id === adaptivePassive.id)) JD.TECH.techniques.push(adaptivePassive);
+
+  // New Subpath Synergies for underserved builds
+  const v212Synergies = [
+    { id: 'SYN_V212_UNDERWORLD_JUDGE', subpath: 'UNDERWORLD_JUDGE', weaponTypes: ['STAFF', 'FOCUS'], armorTypes: ['HEAVY', 'ROBE'], archs: ['control', 'strike', 'burst'], bonus: { dmgMult: 1.15, penAdd: 12, cleanseHeartDemon: 4 } },
+    { id: 'SYN_V212_OCEAN_SOVEREIGN', subpath: 'OCEAN_SOVEREIGN', weaponTypes: ['SPEAR', 'FOCUS'], armorTypes: ['ROBE', 'HEAVY'], archs: ['sweep', 'control', 'burst'], bonus: { dmgMult: 1.14, shieldMult: 1.18, qiRestorePct: 0.04 } },
+    { id: 'SYN_V212_VOID_SPEAR_MIND', subpath: 'VOID_SPEAR_MIND', weaponTypes: ['SPEAR', 'STAFF'], armorTypes: ['ROBE', 'LIGHT'], archs: ['pierce', 'control', 'burst'], bonus: { dmgMult: 1.16, penAdd: 14, critAdd: 8 } },
+    { id: 'SYN_V212_ASURA_JUDGMENT', subpath: 'ASURA_JUDGMENT_BLADE', weaponTypes: ['BLADE', 'SWORD', 'SPEAR'], armorTypes: ['HEAVY', 'LIGHT'], archs: ['strike', 'burst', 'execute'], bonus: { dmgMult: 1.16, critDmgAdd: 16, penAdd: 10 } },
+    { id: 'SYN_V212_SWARM_GU_HIVE', subpath: 'SWARM_GU_HIVE_MASTER', weaponTypes: ['FOCUS', 'BOW', 'BLADE'], armorTypes: ['ROBE', 'LIGHT'], archs: ['dot', 'summon', 'control'], bonus: { dmgMult: 1.15, qiCostMult: 0.88, extraSupportDur: 4 } }
+  ];
+  for (const s of v212Synergies) {
+    if (!D.SYNERGIES.some(x => x.id === s.id)) D.SYNERGIES.push(s);
+  }
+})();
+
+
+// ============================================================================
+// Patch v2.0.13 Part 2: CRAFT_CREATION (10th Major Path: Alchemy, Forging & Artifact Creation)
+// ============================================================================
+(function applyV213CraftCreationPath() {
+  const JD = globalThis.JD;
+  if (!JD || !JD.CULT || !JD.MARTIAL || !JD.TECH || !JD.ITEMS) return;
+  const D = JD.MARTIAL;
+  if (JD.CULT.paths && JD.CULT.paths.CRAFT_CREATION) return;
+
+  const craftSubPaths = [
+    {
+      id: 'PILL_FURNACE_IMMORTAL',
+      path: 'CRAFT_CREATION',
+      nameTh: 'สายเซียนเตาโอสถเก้าทวาร',
+      resourceTh: 'เตาหลอมโอสถสามขาและเปลวเพลิงโอสถบริสุทธิ์',
+      strengthTh: 'บำเพ็ญตบะผ่านการหลอมโอสถ ควบคุมไฟเตาโอสถโจมตีด้วยปราณเพลิงและไอยารักษาพวกพ้อง พร้อมเพิ่มโอกาสสำเร็จและคุณภาพโอสถสูงสุด',
+      weaknessTh: 'ต้องพึ่งพาการหมุนเวียนปราณไฟเตาหลอมอย่างต่อเนื่อง',
+      combatBonus: 1.12,
+      defenseBonus: 1.18,
+      breakthroughMod: 1.06,
+      element: 'FIRE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'FIRE', weights: { FIRE: 0.65, WOOD_LIFE: 0.35 } }
+    },
+    {
+      id: 'POISON_VENOM_CAULDRON',
+      path: 'CRAFT_CREATION',
+      nameTh: 'สายหม้อหลอมพิษพันสมุนไพร',
+      resourceTh: 'หม้อหลอมหยกดำและสมุนไพรพิษเจ็ดชนิด',
+      strengthTh: 'สกัดกากโอสถและสมุนไพรพิษเป็นหมอกปราณกัดกร่อนเกราะและชีพจรศัตรู แปรเปลี่ยนพิษสะสมเป็นพลังตบะและการโจมตี',
+      weaknessTh: 'ปราณพิษมีความผันผวนสูงหากขาดสมาธิควบคุม',
+      combatBonus: 1.16,
+      defenseBonus: 1.12,
+      breakthroughMod: 1.04,
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.60, YIN_SHADOW: 0.40 } }
+    },
+    {
+      id: 'HEAVENLY_ANVIL_SMITH',
+      path: 'CRAFT_CREATION',
+      nameTh: 'สายปรมาจารย์ทั่งสวรรค์ร้อยหลอม',
+      resourceTh: 'ค้อนศึกเหล็กไหลและทั่งตีเหล็กร้อยหลอม',
+      strengthTh: 'ใช้การตีเหล็กทุกค้อนแทนการเดินปราณ ฟาดค้อนและศาสตราหนักทลายเกราะและโล่ศัตรู พร้อมลดการสึกหรอของอุปกรณ์และเพิ่มคุณภาพงานหลอม',
+      weaknessTh: 'ท่วงท่าหนักหน่วงเน้นพลังปะทะมากกว่าความคล่องตัว',
+      combatBonus: 1.18,
+      defenseBonus: 1.22,
+      breakthroughMod: 1.05,
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.65, FIRE: 0.35 } }
+    },
+    {
+      id: 'SPIRIT_SWORD_ARTIFICER',
+      path: 'CRAFT_CREATION',
+      nameTh: 'สายช่างหลอมกระบี่วิญญาณเร้นคม',
+      resourceTh: 'สระชุบคมกระบี่สายฟ้าและโลหิตวิญญาณศาสตรา',
+      strengthTh: 'ปลุกจิตวิญญาณในกระบี่และทวนที่หลอมขึ้นเอง ยิ่งอุปกรณ์มีคุณภาพสูงยิ่งเพิ่มอัตราคริติคอล เจาะเกราะ และความเร็วโจมตี',
+      weaknessTh: 'อานุภาพลดลงหากไม่ได้ถือครองศาสตราที่ผ่านการชุบคม',
+      combatBonus: 1.22,
+      defenseBonus: 1.10,
+      breakthroughMod: 1.04,
+      element: 'LIGHTNING',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHTNING', weights: { LIGHTNING: 0.60, EARTH_METAL: 0.40 } }
+    },
+    {
+      id: 'RUNE_ARRAY_ENGRAVER',
+      path: 'CRAFT_CREATION',
+      nameTh: 'สายจ้าวอักขระยันต์และค่ายกลศาสตรา',
+      resourceTh: 'สิ่วหยกสลักอักขระดาราและหมึกวิญญาณชาด',
+      strengthTh: 'สลักอักขระยันต์และค่ายกลลงบนศาสตราและชุดเกราะ ยิงคลื่นอักขระสะกดศัตรูและกางม่านคุ้มกันปราการฉีเหมิน',
+      weaknessTh: 'ต้องใช้ปราณจิตในการคุมอักขระหลายชั้นพร้อมกัน',
+      combatBonus: 1.14,
+      defenseBonus: 1.20,
+      breakthroughMod: 1.05,
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.65, LIGHT_YANG: 0.35 } }
+    },
+    {
+      id: 'DIVINE_FLAME_SMELTER',
+      path: 'CRAFT_CREATION',
+      nameTh: 'สายจ้าวอัคคีหลอมฟ้ากลืนแร่',
+      resourceTh: 'แก่นเพลิงสุริยันและแร่เหล็กดาวตก',
+      strengthTh: 'ผสานไฟเตาโอสถและไฟโรงหลอมเป็นหนึ่งเดียว ระเบิดปราณเพลิงสุริยันเผาผลาญเป็นวงกว้าง บำเพ็ญได้รวดเร็วทั้งยามปรุงยาและตีเหล็ก',
+      weaknessTh: 'ใช้พลังงานและปราณต่อกระบวนท่าสูง',
+      combatBonus: 1.20,
+      defenseBonus: 1.15,
+      breakthroughMod: 1.04,
+      element: 'FIRE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'FIRE', weights: { FIRE: 0.65, LIGHT_YANG: 0.35 } }
+    }
+  ];
+
+  const craftPath = {
+    id: 'CRAFT_CREATION',
+    nameTh: 'วิถีรังสรรค์โอสถและศาสตราเทวะ',
+    shortTh: 'วิถีรังสรรค์',
+    icon: '⚒️',
+    color: '#f29f4b',
+    maxStage: 8,
+    resourceUsed: 'ไฟเตาหลอมโอสถ ทั่งสวรรค์ร้อยหลอม แร่ปราณ และสมุนไพรวิญญาณ',
+    coreMechanicTh: 'หลอมสรรพสิ่งบำเพ็ญตบะ (Crucible & Anvil Dao Cultivation): เปลี่ยนทักษะการปรุงโอสถและหลอมศาสตราเป็นความเร็วบำเพ็ญและอานุภาพรบ ทุกครั้งที่ผลิตโอสถหรือตีอุปกรณ์จะได้รับตบะโดยตรง พร้อมลดการสึกหรอของอุปกรณ์ในศึก',
+    supremeRiskTh: 'เตาหลอมปราณระเบิดย้อนชีพจร (Furnace Backlash — สูญเสียปราณและเกิดแผลไฟลวกภายในชั่วคราว)',
+    element: 'FIRE',
+    elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'FIRE', weights: { FIRE: 0.55, EARTH_METAL: 0.45 } },
+    stages: [
+      { stage: 1, nameTh: 'ขั้นที่ 1 • จุดไฟเตาหลอมปราณ', lifespanMax: 100, combatPower: 122, breakthroughBaseChance: 0.79, tribulationLayers: 0, resourceReq: 'ถ่านเพลิงปราณและแร่เหล็กดำสามัญ' },
+      { stage: 2, nameTh: 'ขั้นที่ 2 • ร้อยหลอมชุบชีพจร', lifespanMax: 138, combatPower: 260, breakthroughBaseChance: 0.69, tribulationLayers: 0, resourceReq: 'เหล็กเย็นหลอมปราณและบัวหยก' },
+      { stage: 3, nameTh: 'ขั้นที่ 3 • รวมใจเตาโอสถและทั่งเหล็ก', lifespanMax: 198, combatPower: 550, breakthroughBaseChance: 0.57, tribulationLayers: 1, resourceReq: 'เตาหลอมหยกเพลิงคู่ทั่งทอง' },
+      { stage: 4, nameTh: 'ขั้นที่ 4 • ปลุกวิญญาณศาสตราโอสถ', lifespanMax: 290, combatPower: 1160, breakthroughBaseChance: 0.46, tribulationLayers: 2, resourceReq: 'ถ่านเพลิงสุริยันพันปี' },
+      { stage: 5, nameTh: 'ขั้นที่ 5 • หลอมเพลิงสาม昧แท้จริง', lifespanMax: 435, combatPower: 2420, breakthroughBaseChance: 0.36, tribulationLayers: 4, resourceReq: 'ค้อนเทวะสลักอักขระเสินหนง-โอวเหย่' },
+      { stage: 6, nameTh: 'ขั้นที่ 6 • จารึกกฎเกณฑ์ฟ้าดิน', lifespanMax: 650, combatPower: 4860, breakthroughBaseChance: 0.27, tribulationLayers: 5, resourceReq: 'หัวใจเพลิงต้นกำเนิดฟ้าดิน' },
+      { stage: 7, nameTh: 'ขั้นที่ 7 • ปรมาจารย์รังสรรค์เทวะ', lifespanMax: 990, combatPower: 9700, breakthroughBaseChance: 0.18, tribulationLayers: 7, resourceReq: 'ตราประทับเทพรังสรรค์บรรพกาล' },
+      { stage: 8, nameTh: 'ขั้นที่ 8 • อมตะผู้สร้างหมื่นศาสตราเก้าโอสถ', lifespanMax: 1820, combatPower: 24400, breakthroughBaseChance: 0.12, tribulationLayers: 8, resourceReq: 'เตาหลอมจักรวาลบรรพกาล' }
+    ],
+    subPaths: craftSubPaths.slice()
+  };
+
+  JD.CULT.paths.CRAFT_CREATION = craftPath;
+  craftSubPaths.forEach(s => {
+    if (!D.subPaths.some(x => x.id === s.id)) D.subPaths.push(s);
+  });
+
+  Object.assign(D.SUBPATH_ALIASES, {
+    ALCHEMIST_IMMORTAL: 'PILL_FURNACE_IMMORTAL',
+    BLACKSMITH_SAINT: 'HEAVENLY_ANVIL_SMITH',
+    SWORD_FORGER: 'SPIRIT_SWORD_ARTIFICER'
+  });
+
+  const craftSubStats = {
+    PILL_FURNACE_IMMORTAL: { p: { matk: 0.16, mdef: 0.14, hp: 0.12 }, f: { cast: 12, acc: 10 } },
+    POISON_VENOM_CAULDRON: { p: { matk: 0.18, atk: 0.08, mdef: 0.10 }, f: { pen: 16, cast: 10 } },
+    HEAVENLY_ANVIL_SMITH: { p: { atk: 0.18, def: 0.20, hp: 0.14 }, f: { pen: 14, critDmg: 15 } },
+    SPIRIT_SWORD_ARTIFICER: { p: { atk: 0.16, matk: 0.12, acc: 0.12 }, f: { crit: 10, critDmg: 22, pen: 14 } },
+    RUNE_ARRAY_ENGRAVER: { p: { matk: 0.15, def: 0.14, mdef: 0.16 }, f: { cast: 15, acc: 12 } },
+    DIVINE_FLAME_SMELTER: { p: { atk: 0.15, matk: 0.16, def: 0.12, hp: 0.10 }, f: { crit: 8, critDmg: 18, pen: 12 } }
+  };
+  Object.assign(D.subStats, craftSubStats);
+  if (JD.EXPANSION && JD.EXPANSION.subStats) Object.assign(JD.EXPANSION.subStats, craftSubStats);
+
+  const craftSubPrefs = {
+    PILL_FURNACE_IMMORTAL: { aff: { ALCHEMY: 1.0, MEDICINE: 0.8, FIRE: 0.6 }, p: { 'interests.alchemy': 0.9, 'values.knowledgeCraft': 0.7 } },
+    POISON_VENOM_CAULDRON: { aff: { ALCHEMY: 0.9, POISON: 0.9, WOOD_LIFE: 0.6 }, p: { 'interests.alchemy': 0.7, 'intellect.inventiveness': 0.7 } },
+    HEAVENLY_ANVIL_SMITH: { aff: { FORGING: 1.0, EARTH_METAL: 0.7, BODY_REFINING: 0.6 }, p: { 'interests.forging': 0.9, 'physiology.strength': 0.7 } },
+    SPIRIT_SWORD_ARTIFICER: { aff: { FORGING: 0.9, SWORD: 0.8, LIGHTNING: 0.6 }, p: { 'interests.forging': 0.8, 'values.martialPeak': 0.6 } },
+    RUNE_ARRAY_ENGRAVER: { aff: { TALISMAN: 0.9, ARRAY: 0.9, FORGING: 0.6 }, p: { 'intellect.inventiveness': 0.8, 'interests.arrays': 0.8 } },
+    DIVINE_FLAME_SMELTER: { aff: { FORGING: 0.9, ALCHEMY: 0.9, FIRE: 0.8 }, p: { 'interests.forging': 0.7, 'interests.alchemy': 0.7 } }
+  };
+  Object.assign(D.subPreferences, craftSubPrefs);
+  if (JD.EXPANSION && JD.EXPANSION.subPreferences) Object.assign(JD.EXPANSION.subPreferences, craftSubPrefs);
+
+  D.PASSIVE_SLOT_BONUSES = D.PASSIVE_SLOT_BONUSES || {};
+  Object.assign(D.PASSIVE_SLOT_BONUSES, {
+    RUNE_ARRAY_ENGRAVER: { slots: 1, reasonTh: 'จ้าวอักขระยันต์และค่ายกลศาสตรา (+1 ช่องวิชาติดตัว)' },
+    PILL_FURNACE_IMMORTAL: { slots: 1, reasonTh: 'เซียนเตาโอสถเก้าทวาร (+1 ช่องวิชาติดตัว)' },
+    HEAVENLY_ANVIL_SMITH: { slots: 1, reasonTh: 'ปรมาจารย์ทั่งสวรรค์ร้อยหลอม (+1 ช่องวิชาติดตัว)' }
+  });
+
+  const craftSkillPairs = {
+    PILL_FURNACE_IMMORTAL: ['ALCHEMY', 'MEDICINE'],
+    POISON_VENOM_CAULDRON: ['ALCHEMY', 'POISON'],
+    HEAVENLY_ANVIL_SMITH: ['FORGING', 'mining'],
+    SPIRIT_SWORD_ARTIFICER: ['FORGING', 'SWORD'],
+    RUNE_ARRAY_ENGRAVER: ['TALISMAN', 'ARRAY'],
+    DIVINE_FLAME_SMELTER: ['FORGING', 'ALCHEMY']
+  };
+  const mMap8 = [1, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8];
+  const fcpTable = [132, 315, 630, 1200, 2280, 4150, 7500, 13400, 23800];
+  const stoneTable = [55, 78, 125, 210, 350, 580, 950, 1550, 2500];
+  const pMinTable = [15, 28, 38, 48, 58, 68, 78, 86, 94];
+  const sMinTable = [10, 16, 22, 28, 34, 40, 46, 52, 58];
+  const realmSuffixes = ['ขั้นต้นติดเตา', 'ขั้นสองคัดสรรวัตถุดิบ', 'ขั้นสามคุมไฟหลอมแก่น', 'ขั้นสี่ชุบชีพจรปราณ', 'ขั้นห้าประทับอักขระวิญญาณ', 'ขั้นหกกำเนิดจิตศาสตราโอสถ', 'ขั้นเจ็ดสะท้อนกฎเกณฑ์สวรรค์', 'ขั้นแปดรังสรรค์ไร้เทียมทาน', 'ขั้นเก้าบรรลุเต๋าผู้สร้างสูงสุด'];
+
+  if (JD.EXPANSION && Array.isArray(JD.EXPANSION.progressionMapping)) {
+    for (const sp of craftSubPaths) {
+      if (JD.EXPANSION.progressionMapping.some(x => x.subPath === sp.id)) continue;
+      const [pSk, sSk] = craftSkillPairs[sp.id] || ['FORGING', 'ALCHEMY'];
+      const realms = [];
+      for (let i = 0; i < 9; i++) {
+        const ord = i + 1;
+        realms.push({
+          ordinal: ord,
+          id: 'R_EXP_' + sp.id + '_0' + ord,
+          nameTh: sp.nameTh.replace(/^สาย/, '') + ' · ' + realmSuffixes[i],
+          lifespanMax: 100 + i * 38,
+          functionalCombatPower: fcpTable[i],
+          majorBandEquivalent: mMap8[i],
+          skillGate: { primarySkill: pSk, minPrimarySkill: pMinTable[i], secondarySkill: sSk, minSecondarySkill: sMinTable[i] },
+          resourceCost: { stones: stoneTable[i], materialTier: Math.min(7, 1 + Math.floor(i / 2)) },
+          capacityMultipliers: { maxQiMult: +(1 + i * 0.07).toFixed(2), vitalityMult: +(1 + i * 0.06).toFixed(2), faithPoolMult: +(1 + i * 0.05).toFixed(2), senseBonus: i * 2 },
+          realmBuffs: {
+            combatOffensePct: +(2.8 + i * 2.1).toFixed(1),
+            combatDefensePct: +(3.0 + i * 2.2).toFixed(1),
+            armorPenetrationPct: +(2.0 + i * 1.5).toFixed(1),
+            counterStrikePct: +(1.5 + i * 1.0).toFixed(1),
+            lifestealPct: 0,
+            reflectPct: +(1.2 + i * 1.0).toFixed(1),
+            evasionPct: +(1.2 + i * 1.0).toFixed(1),
+            qiRegenBonusPct: +(3.0 + i * 2.0).toFixed(1)
+          },
+          breakthroughBaseChance: +(0.78 - i * 0.042).toFixed(2)
+        });
+      }
+      JD.EXPANSION.progressionMapping.push({
+        subPath: sp.id,
+        trackId: 'TRACK_EXP_CRAFT_CREATION_' + sp.id,
+        sourceMajorPath: 'CRAFT_CREATION',
+        sourceIndependentRealmCount: 9,
+        targetMajorPath: 'CRAFT_CREATION',
+        targetMajorStages: 8,
+        majorPowerMapping: mMap8.slice(),
+        mode: 'INDEPENDENT_TRACK',
+        sourceRealmOrdinalsImported: true,
+        realms
+      });
+    }
+  }
+
+  const mkStages = (nameTh, pBonus) => [
+    { stage: 1, nameTh: nameTh + ' · ขั้นต้น', reqMastery: 0, reqCultStage: 1, passiveBonus: { p: { atk: 0.02, matk: 0.02, def: 0.02 } } },
+    { stage: 2, nameTh: nameTh + ' · ขั้นกลาง', reqMastery: 25, reqCultStage: 3, passiveBonus: pBonus || { p: { atk: 0.04, matk: 0.04, def: 0.04 }, f: { pen: 4 } } },
+    { stage: 3, nameTh: nameTh + ' · ขั้นสมบูรณ์', reqMastery: 65, reqCultStage: 5, passiveBonus: { p: { atk: 0.06, matk: 0.06, def: 0.06 }, f: { crit: 4, pen: 6 } } }
+  ];
+
+  const allCraftSubs = craftSubPaths.map(s => s.id);
+
+  // 6 Exclusive Innate Subpath Techniques for CRAFT_CREATION
+  const craftInnateDefs = [
+    {
+      id: 'INNATE_PILL_FURNACE_FIRE',
+      sub: 'PILL_FURNACE_IMMORTAL',
+      nameTh: 'ปราณเตาโอสถเก้าทวารหลอมชีวา',
+      arch: 'heal',
+      elem: 'FIRE',
+      buffId: 'vitalRegen',
+      heal: 0.28,
+      shield: 0.16,
+      ib: { p: { matk: 0.10, mdef: 0.10, hp: 0.08 }, f: { cast: 10 }, cultRatePct: 0.12, life: { ALCHEMY: 0.32, MEDICINE: 0.22 } }
+    },
+    {
+      id: 'INNATE_POISON_VENOM_MIST',
+      sub: 'POISON_VENOM_CAULDRON',
+      nameTh: 'หมอกพิษโอสถกลืนชีพจรพันสมุนไพร',
+      arch: 'dot',
+      elem: 'WOOD_LIFE',
+      M: 1.38,
+      dot: 0.92,
+      dotKind: 'poison',
+      ib: { p: { matk: 0.12, atk: 0.06 }, f: { pen: 12, acc: 10 }, cultRatePct: 0.10, life: { ALCHEMY: 0.26, POISON: 0.30, herbalism: 0.20 } }
+    },
+    {
+      id: 'INNATE_HEAVENLY_ANVIL_STRIKE',
+      sub: 'HEAVENLY_ANVIL_SMITH',
+      nameTh: 'ค้อนทั่งสวรรค์ร้อยหลอมสะท้านปฐพี',
+      arch: 'strike',
+      elem: 'EARTH_METAL',
+      M: 1.56,
+      buffId: 'aegisWard',
+      shield: 0.22,
+      ib: { p: { atk: 0.12, def: 0.14, hp: 0.08 }, f: { pen: 12, critDmg: 14 }, cultRatePct: 0.12, life: { FORGING: 0.34, mining: 0.24 } }
+    },
+    {
+      id: 'INNATE_SPIRIT_SWORD_RESONANCE',
+      sub: 'SPIRIT_SWORD_ARTIFICER',
+      nameTh: 'จิตวิญญาณกระบี่หลอมอสนีผ่าเมฆา',
+      arch: 'pierce',
+      elem: 'LIGHTNING',
+      M: 1.62,
+      buffId: 'fervorMight',
+      ib: { p: { atk: 0.12, matk: 0.10 }, f: { crit: 8, critDmg: 18, pen: 12 }, cultRatePct: 0.10, life: { FORGING: 0.30, SWORD: 0.22 } }
+    },
+    {
+      id: 'INNATE_RUNE_ARRAY_AEGIS',
+      sub: 'RUNE_ARRAY_ENGRAVER',
+      nameTh: 'อักขระดาราจารึกศาสตราคุ้มทัพ',
+      arch: 'shield',
+      elem: 'ASTRAL',
+      buffId: 'aegisWard',
+      shield: 0.30,
+      heal: 0.15,
+      ib: { p: { matk: 0.10, def: 0.12, mdef: 0.12 }, f: { cast: 12, acc: 10 }, cultRatePct: 0.12, life: { TALISMAN: 0.30, ARRAY: 0.30, FORGING: 0.18 } }
+    },
+    {
+      id: 'INNATE_DIVINE_FLAME_CRUCIBLE',
+      sub: 'DIVINE_FLAME_SMELTER',
+      nameTh: 'เพลิงต้นกำเนิดหลอมแร่และโอสถสวรรค์',
+      arch: 'burst',
+      elem: 'FIRE',
+      M: 1.65,
+      buffId: 'fervorMight',
+      ib: { p: { atk: 0.11, matk: 0.12, def: 0.08 }, f: { crit: 6, critDmg: 16, pen: 10 }, cultRatePct: 0.14, life: { FORGING: 0.28, ALCHEMY: 0.28 } }
+    }
+  ];
+
+  for (const d of craftInnateDefs) {
+    const isOff = d.M && d.M > 0;
+    const tObj = {
+      id: d.id,
+      nameTh: d.nameTh,
+      path: 'CRAFT_CREATION',
+      sub: d.sub,
+      innateSubpath: d.sub,
+      innateOnly: true,
+      noManual: true,
+      noCrystal: true,
+      acquisition: 'SUBPATH_INNATE',
+      cat: isOff ? 'COMBAT_TECHNIQUE' : (d.arch === 'shield' ? 'DEFENSIVE_TECHNIQUE' : 'SUPPORT_TECHNIQUE'),
+      combatArch: d.arch,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      power: 118,
+      element: d.elem,
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: d.elem, weights: { [d.elem]: 1 } },
+      grantBuff: d.buffId,
+      innateBonus: d.ib,
+      stages: mkStages(d.nameTh),
+      moves: [d.nameTh + ' · ปฐมบท', d.nameTh + ' · สัมฤทธิ์ผล'],
+      moveDefs: isOff ? [
+        { id: d.id + '_M1', nameTh: d.nameTh + ' · ปฐมบท', arch: d.arch, type: d.sub === 'HEAVENLY_ANVIL_SMITH' || d.sub === 'SPIRIT_SWORD_ARTIFICER' ? 'p' : 'm', stageReq: 1, M: d.M, dot: d.dot || 0, dotKind: d.dotKind, pen: 18, grantBuff: d.buffId, cd: 10, wind: 3, hits: 1 },
+        { id: d.id + '_M2', nameTh: d.nameTh + ' · สัมฤทธิ์ผล', arch: d.arch, type: d.sub === 'HEAVENLY_ANVIL_SMITH' || d.sub === 'SPIRIT_SWORD_ARTIFICER' ? 'p' : 'm', stageReq: 2, reqMastery: 22, M: +(d.M * 1.28).toFixed(2), dot: d.dot ? +(d.dot * 1.25).toFixed(2) : 0, dotKind: d.dotKind, pen: 26, aoe: true, grantBuff: d.buffId, cd: 15, wind: 4, hits: 1 }
+      ] : [
+        { id: d.id + '_M1', nameTh: d.nameTh + ' · ปฐมบท', arch: d.arch, type: 'm', stageReq: 1, M: 0, heal: d.heal || 0, shield: d.shield || 0, grantBuff: d.buffId, cd: 12, wind: 3, hits: 0 },
+        { id: d.id + '_M2', nameTh: d.nameTh + ' · สัมฤทธิ์ผล', arch: d.arch, type: 'm', stageReq: 2, reqMastery: 22, M: 0, heal: (d.heal || 0.14) * 1.25, shield: (d.shield || 0.14) * 1.25, grantBuff: d.buffId, aoe: true, cd: 16, wind: 4, hits: 0 }
+      ]
+    };
+    if (!D.innateTechniques.some(x => x.id === tObj.id)) D.innateTechniques.push(tObj);
+    if (!JD.TECH.techniques.some(x => x.id === tObj.id)) JD.TECH.techniques.push(tObj);
+  }
+
+  // Learnable CRAFT_CREATION techniques (T1..T7) + Cross-Path (path: 'ANY') production-martial techniques
+  const craftTechs = [
+    {
+      id: 'MP_BASE_CRAFT_CREATION',
+      nameTh: 'พื้นฐานปราณเตาหลอมและทั่งสวรรค์',
+      path: 'CRAFT_CREATION',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'strike',
+      martialBootstrap: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      power: 52,
+      element: 'FIRE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW'],
+      armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+      grantBuff: 'qiConduit',
+      stages: mkStages('พื้นฐานปราณเตาหลอมและทั่งสวรรค์'),
+      moves: ['เปลวไฟเตาหลอมซัดปราณ', 'ค้อนเหล็กตีทบสะท้านจุด'],
+      moveDefs: [
+        { id: 'MP_BASE_CRAFT_M1', nameTh: 'เปลวไฟเตาหลอมซัดปราณ', arch: 'strike', type: 'm', stageReq: 1, M: 1.28, pen: 12, grantBuff: 'qiConduit', cd: 8, wind: 3, hits: 1 },
+        { id: 'MP_BASE_CRAFT_M2', nameTh: 'ค้อนเหล็กตีทบสะท้านจุด', arch: 'pierce', type: 'p', stageReq: 2, reqMastery: 18, M: 1.52, pen: 20, rider: 'armorbreak', cd: 11, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_001',
+      nameTh: 'เพลิงโอสถเก้าทวารซัดปราณ',
+      path: 'CRAFT_CREATION',
+      sub: 'PILL_FURNACE_IMMORTAL',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'strike',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Refined',
+      power: 72,
+      element: 'FIRE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SPEAR', 'FIST'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'vitalRegen',
+      stages: mkStages('เพลิงโอสถเก้าทวารซัดปราณ'),
+      moves: ['สะบัดพัดเร่งไฟเตาโอสถ', 'ไอยาอัคคีสมานชีพจร'],
+      moveDefs: [
+        { id: 'ART_CRAFT_001_M1', nameTh: 'สะบัดพัดเร่งไฟเตาโอสถ', arch: 'strike', type: 'm', stageReq: 1, M: 1.35, pen: 14, rider: 'burn', cd: 8, wind: 3, hits: 1 },
+        { id: 'ART_CRAFT_001_M2', nameTh: 'ไอยาอัคคีสมานชีพจร', arch: 'heal', type: 'm', stageReq: 2, reqMastery: 18, M: 0, heal: 0.24, grantBuff: 'vitalRegen', cd: 13, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_002',
+      nameTh: 'เพลงค้อนทั่งเหล็กดำสะท้านผา',
+      path: 'CRAFT_CREATION',
+      sub: 'HEAVENLY_ANVIL_SMITH',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'strike',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Refined',
+      power: 74,
+      element: 'EARTH_METAL',
+      weaponTypes: ['STAFF', 'BLADE', 'FIST', 'SPEAR', 'SWORD'],
+      armorTypes: ['HEAVY', 'LIGHT'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('เพลงค้อนทั่งเหล็กดำสะท้านผา'),
+      moves: ['ทุบแร่เหล็กดำทลายโล่', 'ตีทบร้อยชั้นตั้งปราการ'],
+      moveDefs: [
+        { id: 'ART_CRAFT_002_M1', nameTh: 'ทุบแร่เหล็กดำทลายโล่', arch: 'strike', type: 'p', stageReq: 1, M: 1.40, pen: 18, shatterShield: true, rider: 'armorbreak', cd: 8, wind: 3, hits: 1 },
+        { id: 'ART_CRAFT_002_M2', nameTh: 'ตีทบร้อยชั้นตั้งปราการ', arch: 'guard', type: 'p', stageReq: 2, reqMastery: 18, M: 0, shield: 0.24, grantBuff: 'aegisWard', cd: 14, wind: 3, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_003',
+      nameTh: 'หมอกพิษหม้อหลอมเจ็ดสมุนไพร',
+      path: 'CRAFT_CREATION',
+      sub: 'POISON_VENOM_CAULDRON',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'dot',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Refined',
+      power: 74,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['FOCUS', 'BLADE', 'BOW', 'STAFF'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      stages: mkStages('หมอกพิษหม้อหลอมเจ็ดสมุนไพร'),
+      moves: ['โปรยผงโอสถพิษกัดกร่อน', 'ควันหม้อหลอมกลืนปราณ'],
+      moveDefs: [
+        { id: 'ART_CRAFT_003_M1', nameTh: 'โปรยผงโอสถพิษกัดกร่อน', arch: 'dot', type: 'm', stageReq: 1, M: 1.12, dot: 0.85, dotKind: 'poison', pen: 16, cd: 9, wind: 3, hits: 1 },
+        { id: 'ART_CRAFT_003_M2', nameTh: 'ควันหม้อหลอมกลืนปราณ', arch: 'drain', type: 'm', stageReq: 2, reqMastery: 18, M: 1.45, steal: 0.45, rider: 'weaken', cd: 12, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_004',
+      nameTh: 'เพลงกระบี่ชุบคมสายฟ้าเตาหลอม',
+      path: 'CRAFT_CREATION',
+      sub: 'SPIRIT_SWORD_ARTIFICER',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'pierce',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Refined',
+      power: 75,
+      element: 'LIGHTNING',
+      weaponTypes: ['SWORD', 'SPEAR', 'BLADE'],
+      armorTypes: ['LIGHT', 'HEAVY'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('เพลงกระบี่ชุบคมสายฟ้าเตาหลอม'),
+      moves: ['ชุบคมอสนีทะลวงเกราะ', 'ประกายไฟทั่งสวรรค์เรียงร้อย'],
+      moveDefs: [
+        { id: 'ART_CRAFT_004_M1', nameTh: 'ชุบคมอสนีทะลวงเกราะ', arch: 'pierce', type: 'p', stageReq: 1, M: 1.42, pen: 20, critAdd: 8, cd: 8, wind: 3, hits: 1 },
+        { id: 'ART_CRAFT_004_M2', nameTh: 'ประกายไฟทั่งสวรรค์เรียงร้อย', arch: 'flurry', type: 'p', stageReq: 2, reqMastery: 18, M: 0.84, hits: 3, pen: 18, grantBuff: 'fervorMight', cd: 12, wind: 4 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_005',
+      nameTh: 'ค่ายกลศรยันต์ดาราจารึกศาสตรา',
+      path: 'CRAFT_CREATION',
+      sub: 'RUNE_ARRAY_ENGRAVER',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'barrage',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Refined',
+      power: 74,
+      element: 'ASTRAL',
+      weaponTypes: ['FOCUS', 'BOW', 'SWORD'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('ค่ายกลศรยันต์ดาราจารึกศาสตรา'),
+      moves: ['ยิงอักขระดาราตรึงเงา', 'กางม่านยันต์ศาสตราคุ้มกาย'],
+      moveDefs: [
+        { id: 'ART_CRAFT_005_M1', nameTh: 'ยิงอักขระดาราตรึงเงา', arch: 'barrage', type: 'm', stageReq: 1, M: 1.24, hits: 2, pen: 16, rider: 'slow', cd: 9, wind: 3 },
+        { id: 'ART_CRAFT_005_M2', nameTh: 'กางม่านยันต์ศาสตราคุ้มกาย', arch: 'shield', type: 'm', stageReq: 2, reqMastery: 18, M: 0, shield: 0.26, grantBuff: 'aegisWard', cd: 14, wind: 3, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_006',
+      nameTh: 'ทวนเพลิงสุริยันหลอมแร่สวรรค์',
+      path: 'CRAFT_CREATION',
+      sub: 'DIVINE_FLAME_SMELTER',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'burst',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 144,
+      element: 'FIRE',
+      weaponTypes: ['SPEAR', 'STAFF', 'FIST', 'BLADE'],
+      armorTypes: ['HEAVY', 'ROBE'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('ทวนเพลิงสุริยันหลอมแร่สวรรค์'),
+      moves: ['หอกเพลิงหลอมละลายเกราะ', 'เตาหลอมสุริยันระเบิดภพ'],
+      moveDefs: [
+        { id: 'ART_CRAFT_006_M1', nameTh: 'หอกเพลิงหลอมละลายเกราะ', arch: 'pierce', type: 'p', stageReq: 1, M: 1.52, pen: 24, rider: 'burn', cd: 10, wind: 4, hits: 1 },
+        { id: 'ART_CRAFT_006_M2', nameTh: 'เตาหลอมสุริยันระเบิดภพ', arch: 'burst', type: 'm', stageReq: 2, reqMastery: 28, M: 2.05, pen: 28, aoe: true, grantBuff: 'fervorMight', cd: 15, wind: 5, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_007',
+      nameTh: 'เตาโอสถเก้ามังกรชุบชีวาอมฤต',
+      path: 'CRAFT_CREATION',
+      sub: 'PILL_FURNACE_IMMORTAL',
+      compatibleSubs: ['PILL_FURNACE_IMMORTAL', 'POISON_VENOM_CAULDRON', 'DIVINE_FLAME_SMELTER', 'RUNE_ARRAY_ENGRAVER'],
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'heal',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 242,
+      element: 'FIRE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SPEAR', 'BOW'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'nirvanaGrace',
+      stages: mkStages('เตาโอสถเก้ามังกรชุบชีวาอมฤต'),
+      moves: ['มังกรเพลิงโอสถชำระพิษ', 'หลอมโอสถกลางศึกชุบชีวิตหมู่'],
+      moveDefs: [
+        { id: 'ART_CRAFT_007_M1', nameTh: 'มังกรเพลิงโอสถชำระพิษ', arch: 'heal', type: 'm', stageReq: 1, M: 0, heal: 0.34, shield: 0.20, grantBuff: 'vitalRegen', cd: 14, wind: 4, hits: 0 },
+        { id: 'ART_CRAFT_007_M2', nameTh: 'หลอมโอสถกลางศึกชุบชีวิตหมู่', arch: 'heal', type: 'm', stageReq: 2, reqMastery: 40, M: 0, heal: 0.38, shield: 0.24, grantBuff: 'nirvanaGrace', aoe: true, cd: 18, wind: 5, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_008',
+      nameTh: 'ทั่งสวรรค์พันชั่งทลายปราการ',
+      path: 'CRAFT_CREATION',
+      sub: 'HEAVENLY_ANVIL_SMITH',
+      compatibleSubs: ['HEAVENLY_ANVIL_SMITH', 'SPIRIT_SWORD_ARTIFICER', 'DIVINE_FLAME_SMELTER'],
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'strike',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 248,
+      element: 'EARTH_METAL',
+      weaponTypes: ['STAFF', 'BLADE', 'FIST', 'SPEAR', 'SWORD'],
+      armorTypes: ['HEAVY', 'LIGHT'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('ทั่งสวรรค์พันชั่งทลายปราการ'),
+      moves: ['ค้อนยักษ์พันชั่งถล่มขุนเขา', 'เกราะเหล็กไหลสะท้อนศึก'],
+      moveDefs: [
+        { id: 'ART_CRAFT_008_M1', nameTh: 'ค้อนยักษ์พันชั่งถล่มขุนเขา', arch: 'strike', type: 'p', stageReq: 1, M: 1.95, pen: 32, shatterShield: true, rider: 'armorbreak', cd: 12, wind: 4, hits: 1 },
+        { id: 'ART_CRAFT_008_M2', nameTh: 'เกราะเหล็กไหลสะท้อนศึก', arch: 'counter', type: 'p', stageReq: 2, reqMastery: 40, M: 1.65, shield: 0.28, grantBuff: 'aegisWard', cd: 16, wind: 3, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_009',
+      nameTh: 'หมื่นศาสตราวิญญาณอสนีประสานคม',
+      path: 'CRAFT_CREATION',
+      sub: 'SPIRIT_SWORD_ARTIFICER',
+      compatibleSubs: ['SPIRIT_SWORD_ARTIFICER', 'HEAVENLY_ANVIL_SMITH', 'RUNE_ARRAY_ENGRAVER'],
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'burst',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 252,
+      element: 'LIGHTNING',
+      weaponTypes: ['SWORD', 'SPEAR', 'BLADE', 'BOW', 'FOCUS'],
+      armorTypes: ['LIGHT', 'HEAVY'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('หมื่นศาสตราวิญญาณอสนีประสานคม'),
+      moves: ['เรียกจิตศาสตรานับร้อยพุ่งสังหาร', 'สายฟ้าชุบคมผ่าสวรรค์'],
+      moveDefs: [
+        { id: 'ART_CRAFT_009_M1', nameTh: 'เรียกจิตศาสตรานับร้อยพุ่งสังหาร', arch: 'flurry', type: 'p', stageReq: 1, M: 0.96, hits: 3, pen: 26, critAdd: 10, cd: 12, wind: 4 },
+        { id: 'ART_CRAFT_009_M2', nameTh: 'สายฟ้าชุบคมผ่าสวรรค์', arch: 'burst', type: 'p', stageReq: 2, reqMastery: 42, M: 2.35, pen: 34, critAdd: 14, aoe: true, grantBuff: 'fervorMight', cd: 17, wind: 5, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_010',
+      nameTh: 'มหาพิษหม้อหลอมกลืนสวรรค์',
+      path: 'CRAFT_CREATION',
+      sub: 'POISON_VENOM_CAULDRON',
+      compatibleSubs: ['POISON_VENOM_CAULDRON', 'PILL_FURNACE_IMMORTAL'],
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'dot',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 245,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['FOCUS', 'BLADE', 'BOW', 'STAFF'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      stages: mkStages('มหาพิษหม้อหลอมกลืนสวรรค์'),
+      moves: ['เปิดเตาปล่อยหมอกพิษหมื่นสมุนไพร', 'หลอมพิษศัตรูคืนเป็นปราณตน'],
+      moveDefs: [
+        { id: 'ART_CRAFT_010_M1', nameTh: 'เปิดเตาปล่อยหมอกพิษหมื่นสมุนไพร', arch: 'dot', type: 'm', stageReq: 1, M: 1.48, dot: 1.15, dotKind: 'poison', pen: 26, aoe: true, cd: 13, wind: 4, hits: 1 },
+        { id: 'ART_CRAFT_010_M2', nameTh: 'หลอมพิษศัตรูคืนเป็นปราณตน', arch: 'drain', type: 'm', stageReq: 2, reqMastery: 40, M: 1.85, steal: 0.55, qiRestorePct: 0.06, cd: 15, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_011',
+      nameTh: 'มหาค่ายกลอักขระดาราบัญชาศาสตรา',
+      path: 'CRAFT_CREATION',
+      sub: 'RUNE_ARRAY_ENGRAVER',
+      compatibleSubs: ['RUNE_ARRAY_ENGRAVER', 'SPIRIT_SWORD_ARTIFICER', 'PILL_FURNACE_IMMORTAL'],
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'control',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 246,
+      element: 'ASTRAL',
+      weaponTypes: ['FOCUS', 'BOW', 'SWORD', 'STAFF'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('มหาค่ายกลอักขระดาราบัญชาศาสตรา'),
+      moves: ['อักขระดาราผนึกเคลื่อนไหว', 'ค่ายกลศาสตราดาวตกถล่มทัพ'],
+      moveDefs: [
+        { id: 'ART_CRAFT_011_M1', nameTh: 'อักขระดาราผนึกเคลื่อนไหว', arch: 'control', type: 'm', stageReq: 1, M: 1.45, ctrl: 'stun', pen: 24, grantBuff: 'aegisWard', cd: 14, wind: 4, hits: 1 },
+        { id: 'ART_CRAFT_011_M2', nameTh: 'ค่ายกลศาสตราดาวตกถล่มทัพ', arch: 'barrage', type: 'm', stageReq: 2, reqMastery: 42, M: 1.42, hits: 3, aoe: true, pen: 28, cd: 16, wind: 5 }
+      ]
+    },
+    {
+      id: 'ART_CRAFT_012',
+      nameTh: 'มหาคัมภีร์รังสรรค์โอสถและศาสตราเทวะบรรพกาล',
+      path: 'CRAFT_CREATION',
+      sub: 'DIVINE_FLAME_SMELTER',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'burst',
+      tier: 7,
+      reqTier: 7,
+      grade: 'Exceptional',
+      power: 356,
+      element: 'FIRE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW'],
+      armorTypes: ['ROBE', 'HEAVY', 'LIGHT'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('มหาคัมภีร์รังสรรค์โอสถและศาสตราเทวะบรรพกาล'),
+      moves: ['เตาหลอมฟ้าดินกลืนหมื่นศาสตรา', 'โอสถเทวะและทั่งสวรรค์พิพากษาภพ'],
+      moveDefs: [
+        { id: 'ART_CRAFT_012_M1', nameTh: 'เตาหลอมฟ้าดินกลืนหมื่นศาสตรา', arch: 'sweep', type: 'm', stageReq: 1, M: 1.95, pen: 32, aoe: true, heal: 0.22, grantBuff: 'fervorMight', cd: 14, wind: 4, hits: 1 },
+        { id: 'ART_CRAFT_012_M2', nameTh: 'โอสถเทวะและทั่งสวรรค์พิพากษาภพ', arch: 'burst', type: 'm', stageReq: 2, reqMastery: 50, M: 2.85, pen: 40, critAdd: 16, aoe: true, grantBuff: 'nirvanaGrace', cd: 20, wind: 5, hits: 1 }
+      ]
+    },
+    {
+      id: 'PASS_CRAFT_001',
+      nameTh: 'เคล็ดหัวใจเตาโอสถและทั่งเหล็ก',
+      path: 'CRAFT_CREATION',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'PASSIVE',
+      role: 'PASSIVE',
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      power: 98,
+      element: 'FIRE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW'],
+      passiveFamily: 'FAM_CRAFT_CRUCIBLE_HEART',
+      passive: {
+        p: { atk: 0.08, matk: 0.08, def: 0.08, mdef: 0.08 },
+        f: { pen: 6, cast: 6 },
+        qiMaxPct: 0.10,
+        cultRatePct: 0.14,
+        life: { ALCHEMY: 0.25, FORGING: 0.25, TALISMAN: 0.18, ARRAY: 0.18 },
+        proc: { kind: 'onHit', icdTicks: 5, qiRestorePct: 0.04, hpRestorePct: 0.03 }
+      }
+    },
+    {
+      id: 'PASS_CRAFT_002',
+      nameTh: 'กายาหลอมศาสตราและโอสถทิพย์ไร้บุบสลาย',
+      path: 'CRAFT_CREATION',
+      compatibleSubs: allCraftSubs.slice(),
+      cat: 'PASSIVE',
+      role: 'PASSIVE',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 188,
+      element: 'EARTH_METAL',
+      weaponTypes: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW'],
+      passiveFamily: 'FAM_CRAFT_IMMORTAL_FORGE_BODY',
+      passive: {
+        p: { atk: 0.12, matk: 0.12, def: 0.14, mdef: 0.14, hp: 0.12 },
+        f: { crit: 6, critDmg: 14, pen: 10, cast: 8 },
+        qiCostMult: 0.88,
+        cultRatePct: 0.18,
+        life: { FORGING: 0.32, ALCHEMY: 0.30, mining: 0.22, herbalism: 0.22 },
+        proc: { kind: 'combatTick', icdTicks: 5, hpRestorePct: 0.045, qiRestorePct: 0.05, addStatus: 'guardUp', dur: 8 }
+      }
+    },
+    // --- 4 Cross-Path Production-Martial Techniques (path: 'ANY') adaptable by all cultivation paths ---
+    {
+      id: 'ART_CROSS_CRAFT_001',
+      nameTh: 'ฝ่ามือเพลิงโอสถสำรอกปราณ',
+      path: 'ANY',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'strike',
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      power: 102,
+      element: 'FIRE',
+      weaponTypes: ['FOCUS', 'STAFF', 'FIST'],
+      armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+      grantBuff: 'vitalRegen',
+      stages: mkStages('ฝ่ามือเพลิงโอสถสำรอกปราณ'),
+      moves: ['ฝ่ามือไฟเตาโอสถเผาชีพจร', 'ลมหายใจโอสถคืนกำลัง'],
+      moveDefs: [
+        { id: 'ART_CROSS_CRAFT_001_M1', nameTh: 'ฝ่ามือไฟเตาโอสถเผาชีพจร', arch: 'strike', type: 'm', stageReq: 1, M: 1.38, pen: 16, rider: 'burn', cd: 9, wind: 3, hits: 1 },
+        { id: 'ART_CROSS_CRAFT_001_M2', nameTh: 'ลมหายใจโอสถคืนกำลัง', arch: 'heal', type: 'm', stageReq: 2, reqMastery: 20, M: 0, heal: 0.22, grantBuff: 'vitalRegen', cd: 14, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_CRAFT_002',
+      nameTh: 'เพลงศาสตราชุบเพลิงร้อยหลอม',
+      path: 'ANY',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'pierce',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 144,
+      element: 'EARTH_METAL',
+      weaponTypes: ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST'],
+      armorTypes: ['HEAVY', 'LIGHT'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('เพลงศาสตราชุบเพลิงร้อยหลอม'),
+      moves: ['คมศาสตราชุบไฟเตาหลอม', 'ร้อยค้อนตีทบทลายเกราะ'],
+      moveDefs: [
+        { id: 'ART_CROSS_CRAFT_002_M1', nameTh: 'คมศาสตราชุบไฟเตาหลอม', arch: 'pierce', type: 'p', stageReq: 1, M: 1.48, pen: 22, rider: 'armorbreak', cd: 10, wind: 3, hits: 1 },
+        { id: 'ART_CROSS_CRAFT_002_M2', nameTh: 'ร้อยค้อนตีทบทลายเกราะ', arch: 'strike', type: 'p', stageReq: 2, reqMastery: 25, M: 1.75, pen: 28, shatterShield: true, grantBuff: 'fervorMight', cd: 13, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_CRAFT_003',
+      nameTh: 'ค่ายกลยันต์ศาสตราคุ้มทัพ',
+      path: 'ANY',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      combatArch: 'shield',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 188,
+      element: 'ASTRAL',
+      weaponTypes: ['FOCUS', 'BOW', 'SWORD', 'STAFF'],
+      armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('ค่ายกลยันต์ศาสตราคุ้มทัพ'),
+      moves: ['ประทับยันต์เกราะเหล็กไหล', 'ค่ายกลศาสตราสะท้อนคม'],
+      moveDefs: [
+        { id: 'ART_CROSS_CRAFT_003_M1', nameTh: 'ประทับยันต์เกราะเหล็กไหล', arch: 'shield', type: 'm', stageReq: 1, M: 0, shield: 0.28, grantBuff: 'aegisWard', cd: 14, wind: 3, hits: 0 },
+        { id: 'ART_CROSS_CRAFT_003_M2', nameTh: 'ค่ายกลศาสตราสะท้อนคม', arch: 'counter', type: 'm', stageReq: 2, reqMastery: 30, M: 1.55, pen: 22, grantBuff: 'aegisWard', cd: 15, wind: 3, hits: 1 }
+      ]
+    },
+    {
+      id: 'PASS_CROSS_CRAFT_004',
+      nameTh: 'เคล็ดวิถีช่างและหมอโอสถบำเพ็ญปราณ',
+      path: 'ANY',
+      cat: 'PASSIVE',
+      role: 'PASSIVE',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 138,
+      element: 'FIRE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW'],
+      passiveFamily: 'FAM_CROSS_ARTISAN_CULTIVATION',
+      passive: {
+        p: { atk: 0.08, matk: 0.08, def: 0.08, mdef: 0.08 },
+        f: { pen: 6, cast: 6 },
+        qiMaxPct: 0.10,
+        cultRatePct: 0.12,
+        life: { ALCHEMY: 0.24, FORGING: 0.24, TALISMAN: 0.18, ARRAY: 0.18 },
+        proc: { kind: 'onHit', icdTicks: 6, qiRestorePct: 0.04 }
+      }
+    }
+  ];
+
+  for (const t of craftTechs) {
+    t.elementalRole = 'ELEMENTAL';
+    t.elementProfile = { mode: 'INTRINSIC_SINGLE', primary: t.element || 'FIRE', weights: { [t.element || 'FIRE']: 1 } };
+    if (!D.techniques.some(x => x.id === t.id)) D.techniques.push(t);
+    if (!JD.TECH.techniques.some(x => x.id === t.id)) {
+      if (t.martialBootstrap) {
+        const baseIdx = JD.TECH.techniques.findIndex(x => x.id === 'MP_BASE_SAGE_SUPPORT');
+        if (baseIdx >= 0) JD.TECH.techniques.splice(baseIdx + 1, 0, t);
+        else JD.TECH.techniques.push(t);
+      } else {
+        JD.TECH.techniques.push(t);
+      }
+    }
+  }
+
+  const craftMantras = [
+    {
+      id: 'MANTRA_CRAFT_001',
+      nameTh: 'เคล็ดลมหายใจไฟเตาหลอมและทั่งตีเหล็ก',
+      path: 'CRAFT_CREATION',
+      cat: 'MANTRA',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      power: 68,
+      element: 'FIRE',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'FIRE', weights: { FIRE: 1 } },
+      mantraBonus: { cultRatePct: 0.10, p: { atk: 0.06, matk: 0.06, def: 0.06 }, life: { ALCHEMY: 0.18, FORGING: 0.18 } },
+      stages: mkStages('เคล็ดลมหายใจไฟเตาหลอมและทั่งตีเหล็ก')
+    },
+    {
+      id: 'MANTRA_CRAFT_002',
+      nameTh: 'คัมภีร์ปราณโอสถและศาสตราประสานใจ',
+      path: 'CRAFT_CREATION',
+      cat: 'MANTRA',
+      tier: 3,
+      reqTier: 2,
+      grade: 'Rare',
+      power: 148,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      mantraBonus: { cultRatePct: 0.16, p: { atk: 0.10, matk: 0.10, def: 0.10, mdef: 0.10 }, f: { pen: 8, cast: 8 }, life: { ALCHEMY: 0.25, FORGING: 0.25, TALISMAN: 0.20, ARRAY: 0.20 } },
+      stages: mkStages('คัมภีร์ปราณโอสถและศาสตราประสานใจ')
+    },
+    {
+      id: 'MANTRA_CRAFT_003',
+      nameTh: 'มหาคัมภีร์เต๋ารังสรรค์หมื่นศาสตราเก้าโอสถ',
+      path: 'CRAFT_CREATION',
+      cat: 'MANTRA',
+      tier: 6,
+      reqTier: 5,
+      grade: 'Exceptional',
+      legendary: false,
+      power: 328,
+      element: 'FIRE',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'FIRE', weights: { FIRE: 1 } },
+      mantraBonus: { cultRatePct: 0.24, p: { atk: 0.16, matk: 0.16, def: 0.16, mdef: 0.16, hp: 0.14 }, f: { crit: 8, pen: 14, cast: 14 }, life: { ALCHEMY: 0.35, FORGING: 0.35, TALISMAN: 0.28, ARRAY: 0.28 } },
+      stages: mkStages('มหาคัมภีร์เต๋ารังสรรค์หมื่นศาสตราเก้าโอสถ'),
+      moveDefs: [
+        { id: 'MANTRA_CRAFT_003_M1', nameTh: 'เพลิงต้นกำเนิดหลอมโอสถและศาสตราเทวะ', arch: 'burst', type: 'm', stageReq: 1, M: 2.25, pen: 32, aoe: true, grantBuff: 'fervorMight', cd: 18, wind: 4, hits: 1 }
+      ]
+    }
+  ];
+  for (const m of craftMantras) {
+    if (!JD.TECH.mantras.some(x => x.id === m.id)) JD.TECH.mantras.push(m);
+  }
+
+  // Signature Equipment & Recipes for CRAFT_CREATION
+  const craftItems = [
+    { id: 'EQ_CRAFT_CAULDRON_FOCUS_5', nameTh: 'เตาโอสถหยกเพลิงเก้ามังกรเสินหนง', out: 'EQUIPMENT', type: 'EQUIPMENT', slot: 'WEAPON', subType: 'FOCUS', gearType: 'FOCUS', tier: 5, minStage: 4, value: 920, baseValue: 920, compatiblePath: ['CRAFT_CREATION', 'SAGE_SUPPORT', 'XIAN', 'ANY'], element: 'FIRE', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'FIRE', weights: { FIRE: 1 } }, resonanceSetId: 'RES_CRAFT_DIVINE_ARTISAN', st: { matk: 345, mdef: 210, cast: 18, pen: 12 }, descTh: 'เตาโอสถหยกเพลิงขนาดพกพาที่ใช้ควบแน่นเพลิงโอสถโจมตีและปรุงยาไปพร้อมกัน' },
+    { id: 'EQ_CRAFT_ANVIL_HAMMER_5', nameTh: 'ค้อนศึกทั่งสวรรค์โอวเหย่จื่อ', out: 'EQUIPMENT', type: 'EQUIPMENT', slot: 'WEAPON', subType: 'STAFF', gearType: 'STAFF', tier: 5, minStage: 4, value: 930, baseValue: 930, compatiblePath: ['CRAFT_CREATION', 'BODY', 'MECH_PUPPET', 'ANY'], element: 'EARTH_METAL', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } }, resonanceSetId: 'RES_CRAFT_DIVINE_ARTISAN', st: { atk: 355, def: 230, pen: 16, critDmg: 22 }, descTh: 'ค้อนตีศาสตราเหล็กไหลที่ทั้งใช้ตีอุปกรณ์ระดับสูงและทุบทลายเกราะศัตรูในสมรภูมิ' },
+    { id: 'EQ_CRAFT_FORGE_ARMOR_5', nameTh: 'เกราะไหมอัคคีเกล็ดเหล็กไหลร้อยหลอม', out: 'EQUIPMENT', type: 'EQUIPMENT', slot: 'ARMOR', gearType: 'HEAVY', tier: 5, minStage: 4, value: 900, baseValue: 900, compatiblePath: ['CRAFT_CREATION', 'BODY', 'MECH_PUPPET', 'ANY'], element: 'FIRE', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'FIRE', weights: { FIRE: 1 } }, resonanceSetId: 'RES_CRAFT_DIVINE_ARTISAN', st: { def: 350, mdef: 280, hp: 460, pen: 8 }, descTh: 'ชุดเกราะที่ถักทอจากไหมทนไฟเตาหลอมและแผ่นเหล็กไหลร้อยหลอม' },
+    { id: 'EQ_CRAFT_RUNE_RING_5', nameTh: 'แหวนตราเทพรังสรรค์โอสถศาสตรา', out: 'EQUIPMENT', type: 'EQUIPMENT', slot: 'ACCESSORY', gearType: 'RING', tier: 5, minStage: 4, value: 890, baseValue: 890, compatiblePath: ['CRAFT_CREATION', 'ANY'], element: 'ASTRAL', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'ASTRAL', weights: { ASTRAL: 1 } }, resonanceSetId: 'RES_CRAFT_DIVINE_ARTISAN', st: { atk: 120, matk: 120, hp: 320, crit: 8, cast: 14 }, descTh: 'แหวนสลักอักขระผู้สร้างที่ช่วยควบแน่นปราณขณะปรุงยาและตีเหล็ก' }
+  ];
+  for (const it of craftItems) {
+    if (!JD.ITEMS.items.some(x => x.id === it.id)) JD.ITEMS.items.push(it);
+  }
+
+  const craftRecipes = [
+    { id: 'REC_EQ_CRAFT_CAULDRON_FOCUS_5', nameTh: 'ตำราหลอมเตาโอสถหยกเพลิงเก้ามังกร', craft: 'FORGING', outItemId: 'EQ_CRAFT_CAULDRON_FOCUS_5', outType: 'EQUIPMENT', outNameTh: 'เตาโอสถหยกเพลิงเก้ามังกรเสินหนง', tier: 5, minMastery: 50, days: 12, inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_HERB_DRAGON_GRASS_4', count: 1 }], element: 'FIRE', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'FIRE', weights: { FIRE: 1 } }, yield: 1 },
+    { id: 'REC_EQ_CRAFT_ANVIL_HAMMER_5', nameTh: 'ตำราหลอมค้อนศึกทั่งสวรรค์โอวเหย่จื่อ', craft: 'FORGING', outItemId: 'EQ_CRAFT_ANVIL_HAMMER_5', outType: 'EQUIPMENT', outNameTh: 'ค้อนศึกทั่งสวรรค์โอวเหย่จื่อ', tier: 5, minMastery: 50, days: 12, inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_BP_EARTH_CORE_4', count: 1 }], element: 'EARTH_METAL', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } }, yield: 1 },
+    { id: 'REC_EQ_CRAFT_FORGE_ARMOR_5', nameTh: 'ตำราหลอมเกราะไหมอัคคีเกล็ดเหล็กไหล', craft: 'FORGING', outItemId: 'EQ_CRAFT_FORGE_ARMOR_5', outType: 'EQUIPMENT', outNameTh: 'เกราะไหมอัคคีเกล็ดเหล็กไหลร้อยหลอม', tier: 5, minMastery: 50, days: 12, inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_BP_SCORPION_STING_4', count: 1 }], element: 'FIRE', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'FIRE', weights: { FIRE: 1 } }, yield: 1 },
+    { id: 'REC_EQ_CRAFT_RUNE_RING_5', nameTh: 'ตำราสลักแหวนตราเทพรังสรรค์', craft: 'FORGING', outItemId: 'EQ_CRAFT_RUNE_RING_5', outType: 'EQUIPMENT', outNameTh: 'แหวนตราเทพรังสรรค์โอสถศาสตรา', tier: 5, minMastery: 50, days: 12, inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1 }, { matId: 'MAT_HERB_DRAGON_GRASS_4', count: 2 }], element: 'ASTRAL', elementalRole: 'ELEMENTAL', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'ASTRAL', weights: { ASTRAL: 1 } }, yield: 1 }
+  ];
+  for (const r of craftRecipes) {
+    if (!JD.ITEMS.recipes.some(x => x.id === r.id)) JD.ITEMS.recipes.push(r);
+  }
+
+  // Resonance Sets for CRAFT_CREATION (Baseline + Nine-Dao Pagoda)
+  const craftResSet = {
+    id: 'RES_CRAFT_DIVINE_ARTISAN',
+    nameTh: 'สัจธรรมเทพรังสรรค์โอสถและศาสตรา',
+    path: 'CRAFT_CREATION',
+    minTier: 3,
+    slots: { WEAPON: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW'], ARMOR: ['HEAVY', 'LIGHT', 'ROBE'], ACCESSORY: ['RING', 'CHARM', 'BRACELET', 'NECKLACE'] },
+    elementFamily: ['FIRE', 'EARTH_METAL', 'WOOD_LIFE', 'LIGHTNING', 'ASTRAL', 'LIGHT_YANG', 'YIN_SHADOW'],
+    subpaths: allCraftSubs.slice(),
+    bonus2: { p: { atk: 0.10, matk: 0.10, def: 0.10, mdef: 0.10 }, f: { pen: 8, cast: 8 }, descTh: '2 ชิ้น: โจมตี/วิชา/ป้องกัน +10%, เจาะเกราะ +8%, ร่ายไว +8' },
+    bonus3: {
+      p: { atk: 0.18, matk: 0.18, def: 0.18, mdef: 0.18, hp: 0.14 },
+      f: { crit: 8, critDmg: 16, pen: 14, cast: 14 },
+      rider: { chance: 0.40, status: 'burn', selfBuff: false, dur: 10, bonusDmgMult: 1.14, descTh: 'ปลดปล่อยเพลิงเตาหลอมและคมศาสตราเผาผลาญเป้าหมาย' },
+      descTh: '3 ชิ้น: โจมตี/วิชา/ป้องกัน +18%, เลือด +14%, เจาะเกราะ +14% และปลดปล่อยเพลิงเตาหลอม'
+    }
+  };
+  if (!D.RESONANCE_SETS.some(x => x.id === craftResSet.id)) D.RESONANCE_SETS.push(craftResSet);
+
+  const craftPagodaSet = {
+    id: 'RES_NINE_DAO_CRAFT_CREATION',
+    nameTh: 'ชุดสัจธรรมเตาหลอมและทั่งเทวะเก้าชั้น',
+    path: 'CRAFT_CREATION',
+    subpaths: allCraftSubs.slice(),
+    minTier: 4,
+    maxTier: 7,
+    elementFamily: ['FIRE', 'EARTH_METAL', 'WOOD_LIFE', 'LIGHTNING', 'ASTRAL', 'LIGHT_YANG', 'YIN_SHADOW'],
+    slots: { WEAPON: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW'], ARMOR: ['HEAVY', 'LIGHT', 'ROBE'], ACCESSORY: ['RING', 'CHARM', 'BRACELET', 'NECKLACE'] },
+    bonus2: { p: { atk: 0.08, matk: 0.08, def: 0.08 }, f: { crit: 4, pen: 5 }, descTh: '2 ชิ้น: เปิดวงจรสัจธรรมรังสรรค์และเพิ่มพลังต่อสู้' },
+    bonus3: {
+      p: { atk: 0.15, matk: 0.15, def: 0.14, mdef: 0.14 },
+      f: { crit: 8, critDmg: 14, pen: 12, cast: 10 },
+      rider: { status: 'armorbreak', selfBuff: false, chance: 0.35, dur: 8, bonusDmgMult: 1.10, descTh: 'ค้อนสวรรค์และเพลิงโอสถทลายเกราะศัตรู' },
+      descTh: '3 ชิ้น: ปลดปล่อยพลังประสานประจำวิถีรังสรรค์'
+    }
+  };
+  if (!D.RESONANCE_SETS.some(x => x.id === craftPagodaSet.id)) D.RESONANCE_SETS.push(craftPagodaSet);
+
+  const craftSynergies = [
+    { id: 'SYN_CRAFT_PILL_FURNACE', nameTh: 'เตาโอสถเก้าทวารประสานเพลิง', subpath: 'PILL_FURNACE_IMMORTAL', weaponTypes: ['FOCUS', 'STAFF'], armorTypes: ['ROBE', 'LIGHT'], archs: ['strike', 'heal', 'support', 'burst'], bonus: { dmgMult: 1.14, healMult: 1.24, qiCostMult: 0.86, qiRestorePct: 0.04 }, descTh: 'เซียนเตาโอสถถือสื่อปราณ/พลอง: ท่าโจมตี +14% ฟื้นฟู +24% ลดใช้ปราณ 14%' },
+    { id: 'SYN_CRAFT_POISON_CAULDRON', nameTh: 'หม้อหลอมพิษพันสมุนไพรกลืนปราณ', subpath: 'POISON_VENOM_CAULDRON', weaponTypes: ['FOCUS', 'BLADE', 'BOW'], armorTypes: ['ROBE', 'LIGHT'], archs: ['dot', 'drain', 'strike', 'burst'], bonus: { dotMult: 1.25, dmgMult: 1.14, penAdd: 10, qiRestorePct: 0.04 }, descTh: 'หม้อหลอมพิษถือสื่อปราณ/ดาบ/ธนู: พิษต่อเนื่อง +25% ดาเมจ +14% เจาะเกราะ +10%' },
+    { id: 'SYN_CRAFT_HEAVENLY_ANVIL', nameTh: 'ทั่งสวรรค์ร้อยหลอมทลายเกราะ', subpath: 'HEAVENLY_ANVIL_SMITH', weaponTypes: ['STAFF', 'BLADE', 'FIST'], armorTypes: ['HEAVY', 'LIGHT'], archs: ['strike', 'pierce', 'guard', 'counter'], bonus: { dmgMult: 1.16, shieldMult: 1.22, penAdd: 12 }, descTh: 'ปรมาจารย์ทั่งสวรรค์ถือพลอง/ค้อน/ดาบ/หมัด: ดาเมจ +16% โล่ +22% เจาะเกราะ +12%' },
+    { id: 'SYN_CRAFT_SPIRIT_SWORD', nameTh: 'กระบี่วิญญาณชุบคมอสนี', subpath: 'SPIRIT_SWORD_ARTIFICER', weaponTypes: ['SWORD', 'SPEAR', 'BLADE'], armorTypes: ['LIGHT', 'HEAVY'], archs: ['pierce', 'flurry', 'burst', 'strike'], bonus: { dmgMult: 1.16, critAdd: 8, critDmgAdd: 18, penAdd: 10 }, descTh: 'ช่างหลอมกระบี่วิญญาณถือกระบี่/ทวน/ดาบ: ดาเมจ +16% คริ +8% แรงคริ +18% เจาะเกราะ +10%' },
+    { id: 'SYN_CRAFT_RUNE_ARRAY', nameTh: 'อักขระดาราจารึกศาสตรา', subpath: 'RUNE_ARRAY_ENGRAVER', weaponTypes: ['FOCUS', 'BOW', 'SWORD'], armorTypes: ['ROBE', 'LIGHT'], archs: ['barrage', 'control', 'shield', 'support'], bonus: { dmgMult: 1.14, shieldMult: 1.22, qiCostMult: 0.88, extraSupportDur: 5 }, descTh: 'จ้าวอักขระยันต์ถือสื่อปราณ/ธนู/กระบี่: ดาเมจ +14% โล่ +22% ลดใช้ปราณ 12%' },
+    { id: 'SYN_CRAFT_DIVINE_FLAME', nameTh: 'เพลิงต้นกำเนิดหลอมฟ้าดิน', subpath: 'DIVINE_FLAME_SMELTER', weaponTypes: ['SPEAR', 'STAFF', 'FIST'], armorTypes: ['HEAVY', 'ROBE'], archs: ['pierce', 'burst', 'sweep', 'strike'], bonus: { dmgMult: 1.16, critDmgAdd: 16, penAdd: 12 }, descTh: 'จ้าวอัคคีหลอมฟ้าถือทวน/พลอง/หมัด: ดาเมจ +16% แรงคริ +16% เจาะเกราะ +12%' }
+  ];
+  for (const s of craftSynergies) {
+    if (!D.SYNERGIES.some(x => x.id === s.id)) D.SYNERGIES.push(s);
+  }
+})();
+
 // Tag T3-T7 equipment items with matching resonanceSetIds for fast lookup and inspection
 JD.ITEMS.items.forEach(it => {
   if (!it || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(it.slot) || (it.tier || 1) < 3) return;
@@ -44170,5 +45444,463 @@ JD.ITEMS.items.forEach(it => {
     if (!it.resonanceSetId) it.resonanceSetId = matched[0];
   }
 });
+
+
+// ============================================================================
+// Patch v2.0.13: Procedural Equipment Templates, Forging Substitutions & 4 Repair Stones
+// ============================================================================
+(function applyV213ProceduralGearAndRepair() {
+  const repairStones = [
+    {
+      id: 'ITEM_REPAIR_STONE_1',
+      nameTh: 'หินลับศาสตราหยาบ',
+      tier: 1,
+      category: 'ORE',
+      out: 'MATERIAL',
+      repairStone: true,
+      repairQuality: 1,
+      maxDurReduction: 25,
+      minMaxDur: 20,
+      value: 18,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      descTh: 'หินลับศาสตราขั้นต้น ซ่อมแซมความทนทานศาสตราสุ่มเต็มความจุใหม่ แต่ลดความทนทานสูงสุดลง 25 แต้มต่อครั้ง (ไม่ต่ำกว่า 20)'
+    },
+    {
+      id: 'ITEM_REPAIR_STONE_2',
+      nameTh: 'หินซ่อมศาสตราเหล็กดำ',
+      tier: 2,
+      category: 'ORE',
+      out: 'MATERIAL',
+      repairStone: true,
+      repairQuality: 2,
+      maxDurReduction: 20,
+      minMaxDur: 20,
+      value: 44,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      descTh: 'หินซ่อมศาสตราหลอมเหล็กดำ ซ่อมความทนทานเต็มความจุใหม่ แต่ลดความทนทานสูงสุดลง 20 แต้มต่อครั้ง (ไม่ต่ำกว่า 20)'
+    },
+    {
+      id: 'ITEM_REPAIR_STONE_3',
+      nameTh: 'หินหลอมซ่อมปราณหยก',
+      tier: 3,
+      category: 'ORE',
+      out: 'MATERIAL',
+      repairStone: true,
+      repairQuality: 3,
+      maxDurReduction: 15,
+      minMaxDur: 20,
+      value: 98,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      descTh: 'หินหยกสื่อปราณสำหรับซ่อมศาสตรา ซ่อมความทนทานเต็มความจุใหม่ แต่ลดความทนทานสูงสุดลง 15 แต้มต่อครั้ง (ไม่ต่ำกว่า 20)'
+    },
+    {
+      id: 'ITEM_REPAIR_STONE_4',
+      nameTh: 'หินทิพย์ประสานศาสตรา',
+      tier: 4,
+      category: 'ORE',
+      out: 'MATERIAL',
+      repairStone: true,
+      repairQuality: 4,
+      maxDurReduction: 10,
+      minMaxDur: 20,
+      value: 215,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      descTh: 'หินซ่อมศาสตราชั้นเลิศที่สุด ซ่อมความทนทานเต็มความจุใหม่ และลดความทนทานสูงสุดเพียง 10 แต้มต่อครั้ง (100 → 90 → 80 ... ไม่ต่ำกว่า 20)'
+    }
+  ];
+
+  for (const st of repairStones) {
+    if (!JD.ITEMS.materials.some(x => x.id === st.id)) JD.ITEMS.materials.push(st);
+    if (!JD.ITEMS.items.some(x => x.id === st.id)) JD.ITEMS.items.push(Object.assign({}, st));
+  }
+
+  const repairRecipes = [
+    {
+      id: 'REC_REPAIR_STONE_1',
+      nameTh: 'ตำรับหลอมหินลับศาสตราหยาบ',
+      outNameTh: 'หินลับศาสตราหยาบ',
+      outItemId: 'ITEM_REPAIR_STONE_1',
+      outType: 'MATERIAL',
+      craft: 'FORGING',
+      tier: 1,
+      minStage: 1,
+      minMastery: 5,
+      facilityLevel: 1,
+      compatiblePath: 'ANY',
+      yield: 1,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      inputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }]
+    },
+    {
+      id: 'REC_REPAIR_STONE_2',
+      nameTh: 'ตำรับหลอมหินซ่อมศาสตราเหล็กดำ',
+      outNameTh: 'หินซ่อมศาสตราเหล็กดำ',
+      outItemId: 'ITEM_REPAIR_STONE_2',
+      outType: 'MATERIAL',
+      craft: 'FORGING',
+      tier: 2,
+      minStage: 1,
+      minMastery: 18,
+      facilityLevel: 1,
+      compatiblePath: 'ANY',
+      yield: 1,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      inputs: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 1 }, { matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }]
+    },
+    {
+      id: 'REC_REPAIR_STONE_3',
+      nameTh: 'ตำรับหลอมหินซ่อมปราณหยก',
+      outNameTh: 'หินหลอมซ่อมปราณหยก',
+      outItemId: 'ITEM_REPAIR_STONE_3',
+      outType: 'MATERIAL',
+      craft: 'FORGING',
+      tier: 3,
+      minStage: 2,
+      minMastery: 34,
+      facilityLevel: 2,
+      compatiblePath: 'ANY',
+      yield: 1,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      inputs: [{ matId: 'MAT_ORE_STAR_COPPER_3', count: 1 }, { matId: 'MAT_ORE_JADE_SLATE_2', count: 1 }]
+    },
+    {
+      id: 'REC_REPAIR_STONE_4',
+      nameTh: 'ตำรับหลอมหินทิพย์ประสานศาสตรา',
+      outNameTh: 'หินทิพย์ประสานศาสตรา',
+      outItemId: 'ITEM_REPAIR_STONE_4',
+      outType: 'MATERIAL',
+      craft: 'FORGING',
+      tier: 4,
+      minStage: 3,
+      minMastery: 50,
+      facilityLevel: 2,
+      compatiblePath: 'ANY',
+      yield: 1,
+      element: 'EARTH_METAL',
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1 }, { matId: 'MAT_ORE_STAR_COPPER_3', count: 1 }]
+    }
+  ];
+
+  for (const rr of repairRecipes) {
+    if (!JD.ITEMS.recipes.some(x => x.id === rr.id)) JD.ITEMS.recipes.push(rr);
+  }
+
+  const coreOreOptions = [
+    { matId: 'MAT_ORE_BLACK_IRON_1', count: 2, tierCap: 2, tierShift: 0, qShift: 0.00, elementBias: 'EARTH_METAL', statBias: 'def', noteTh: 'เหล็กดำสามัญ (T1–T2 · โครงสร้างมาตรฐาน)' },
+    { matId: 'MAT_ORE_CINNABAR_1', count: 2, tierCap: 2, tierShift: 0.1, qShift: 0.03, elementBias: 'FIRE', statBias: 'atk', noteTh: 'แร่ชาดปราณแดง (T1–T2 · โน้มเอียงธาตุอัคคี +โจมตี)' },
+    { matId: 'MAT_ORE_COLD_STEEL_2', count: 2, tierCap: 3, tierShift: 0.85, qShift: 0.08, elementBias: 'WATER_ICE', statBias: 'crit', noteTh: 'เหล็กเย็นหลอมปราณ (T2–T3 · โน้มเอียงวารี-น้ำแข็ง +คริ)' },
+    { matId: 'MAT_ORE_JADE_SLATE_2', count: 2, tierCap: 3, tierShift: 0.85, qShift: 0.08, elementBias: 'WOOD_LIFE', statBias: 'matk', noteTh: 'ศิลาหยกสื่อปราณ (T2–T3 · โน้มเอียงพฤกษา-ชีวิต +โจมตีวิชา)' },
+    { matId: 'MAT_ORE_STAR_COPPER_3', count: 2, tierCap: 4, tierShift: 1.65, qShift: 0.14, elementBias: 'ASTRAL', statBias: 'cast', noteTh: 'ทองแดงดารา (T2–T4 · โน้มเอียงดารา-มิติ +ร่ายไว)' },
+    { matId: 'MAT_ORE_MAGNET_LODESTONE_3', count: 2, tierCap: 4, tierShift: 1.65, qShift: 0.14, elementBias: 'EARTH_METAL', statBias: 'pen', noteTh: 'ศิลาแม่เหล็กดูดปราณ (T2–T4 · โน้มเอียงปฐพี-โลหะ +เจาะเกราะ)' },
+    { matId: 'MAT_ORE_THUNDER_SCORCH_COPPER_3', count: 2, tierCap: 4, tierShift: 1.70, qShift: 0.15, elementBias: 'LIGHTNING', statBias: 'critDmg', noteTh: 'ทองแดงอสนีไหม้ (T2–T4 · โน้มเอียงอัสนี +แรงคริ)' },
+    { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1, tierCap: 4, tierShift: 2.35, qShift: 0.22, elementBias: 'LIGHT_YANG', statBias: 'all', noteTh: 'แร่เงินหยกปฐพี (T3–T4 · คุณภาพสูง +ออปชั่นเพิ่ม)' },
+    { matId: 'MAT_ORE_THUNDER_JADE_4', count: 1, tierCap: 4, tierShift: 2.35, qShift: 0.22, elementBias: 'LIGHTNING', statBias: 'crit', noteTh: 'หยกอสนีคราม (T3–T4 · โน้มเอียงอัสนีเข้มข้น +อัตราคริ)' },
+    { matId: 'MAT_ORE_QUICKSAND_SPIRIT_GOLD_4', count: 1, tierCap: 4, tierShift: 2.35, qShift: 0.22, elementBias: 'WIND', statBias: 'eva', noteTh: 'ทองวิญญาณทรายดูด (T3–T4 · โน้มเอียงวายุ +หลบหลีก/ความเร็ว)' }
+  ];
+
+  const secondaryCatalystOptions = [
+    { matId: 'MAT_BP_WOLF_FANG_1', count: 1, qShift: 0.02, affixShift: 0.10, elementBias: 'WIND', statBias: 'atk', noteTh: 'เขี้ยวหมาป่าวายุ (+ความคม/วายุ)' },
+    { matId: 'MAT_BP_WOLF_PELT_1', count: 1, qShift: 0.02, affixShift: 0.10, elementBias: 'NEUTRAL', statBias: 'def', noteTh: 'หนังอสูรสามัญ (+ความเหนียว/ป้องกัน)' },
+    { matId: 'MAT_BP_BOAR_CORE_2', count: 1, qShift: 0.06, affixShift: 0.22, elementBias: 'EARTH_METAL', statBias: 'hp', noteTh: 'แก่นอสูรหลอมปราณ (+พลังชีวิต/ปฐพี)' },
+    { matId: 'MAT_BP_BOAR_HIDE_2', count: 1, qShift: 0.06, affixShift: 0.20, elementBias: 'EARTH_METAL', statBias: 'def', noteTh: 'เกราะหนังเหล็กหมูป่า (+ป้องกันกายภาพ)' },
+    { matId: 'MAT_BP_PYTHON_SCALE_3', count: 1, qShift: 0.11, affixShift: 0.35, elementBias: 'WOOD_LIFE', statBias: 'mdef', noteTh: 'เกล็ดอสูรระดับลี้ลับ (+ต้านทานวิชา/พฤกษา)' },
+    { matId: 'MAT_BP_PYTHON_GALL_3', count: 1, qShift: 0.12, affixShift: 0.38, elementBias: 'YIN_SHADOW', statBias: 'pen', noteTh: 'ดีงูพิษมรกต (+เจาะเกราะ/เงาหยิน)' },
+    { matId: 'MAT_FORM_YIN_CRYSTAL_3', count: 1, qShift: 0.12, affixShift: 0.40, elementBias: 'YIN_SHADOW', statBias: 'matk', noteTh: 'ผลึกหยิน (+ปราณหยิน/โจมตีวิชา)' },
+    { matId: 'MAT_FORM_SWORD_TALISMAN_3', count: 1, qShift: 0.12, affixShift: 0.40, elementBias: 'EARTH_METAL', statBias: 'crit', noteTh: 'ยันต์กระบี่ (+คมศาสตรา/คริติคอล)' },
+    { matId: 'MAT_BP_SCORPION_STING_4', count: 1, qShift: 0.18, affixShift: 0.55, elementBias: 'FIRE', statBias: 'critDmg', noteTh: 'เหล็กในเพลิงสุริยัน (+เพลิงสุริยัน/แรงคริ)' },
+    { matId: 'MAT_BP_BEAR_HEART_4', count: 1, qShift: 0.18, affixShift: 0.55, elementBias: 'WATER_ICE', statBias: 'hp', noteTh: 'หัวใจหมีเหมันต์ (+ปราณเหมันต์/พลังชีวิต)' },
+    { matId: 'MAT_BP_EARTH_CORE_4', count: 1, qShift: 0.20, affixShift: 0.60, elementBias: 'EARTH_METAL', statBias: 'def', noteTh: 'แก่นอสูรระดับปฐพี (+ปราการปฐพี/ป้องกัน)' },
+    { matId: 'MAT_FORM_BLOOD_FIEND_CRYSTAL_4', count: 1, qShift: 0.20, affixShift: 0.62, elementBias: 'BLOOD_DEMON', statBias: 'atk', noteTh: 'ผลึกอสูรโลหิต (+โลหิตมาร/โจมตีดุดัน)' },
+    { matId: 'MAT_FORM_LIGHTNING_CRYSTAL_4', count: 1, qShift: 0.20, affixShift: 0.62, elementBias: 'LIGHTNING', statBias: 'cast', noteTh: 'ผลึกอสนี (+สายฟ้า/ความเร็วร่าย)' },
+    { matId: 'MAT_FORM_EARTH_FLAME_CORE_4', count: 1, qShift: 0.20, affixShift: 0.62, elementBias: 'FIRE', statBias: 'matk', noteTh: 'แกนเพลิงพิภพ (+อัคคีพิภพ/โจมตีวิชา)' },
+    { matId: 'MAT_FORM_SOUL_WOOD_PILLAR_4', count: 1, qShift: 0.20, affixShift: 0.62, elementBias: 'WOOD_LIFE', statBias: 'mdef', noteTh: 'เสาไม้วิญญาณ (+พฤกษาวิญญาณ/ป้องกันวิชา)' }
+  ];
+
+  const procSpecs = [
+    { key: 'SWORD', slot: 'WEAPON', subType: 'SWORD', nameTh: 'กระบี่หลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'BLADE', slot: 'WEAPON', subType: 'BLADE', nameTh: 'ดาบหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'SPEAR', slot: 'WEAPON', subType: 'SPEAR', nameTh: 'ทวนหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'FIST', slot: 'WEAPON', subType: 'FIST', nameTh: 'สนับมือหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'BOW', slot: 'WEAPON', subType: 'BOW', nameTh: 'คันศรหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'STAFF', slot: 'WEAPON', subType: 'STAFF', nameTh: 'พลองหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { key: 'FOCUS', slot: 'WEAPON', subType: 'FOCUS', nameTh: 'ศาสตราสื่อปราณหลอมสุ่ม', defaultInputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { key: 'HEAVY', slot: 'ARMOR', subType: 'HEAVY', nameTh: 'เกราะหนักหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { key: 'LIGHT', slot: 'ARMOR', subType: 'LIGHT', nameTh: 'เกราะเบาหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { key: 'ROBE', slot: 'ARMOR', subType: 'ROBE', nameTh: 'อาภรณ์ปราณหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { key: 'RING', slot: 'ACCESSORY', subType: 'RING', nameTh: 'แหวนปราณหลอมสุ่ม', defaultInputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 1 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'NECKLACE', slot: 'ACCESSORY', subType: 'NECKLACE', nameTh: 'จี้หยกหลอมสุ่ม', defaultInputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 1 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] },
+    { key: 'BRACELET', slot: 'ACCESSORY', subType: 'BRACELET', nameTh: 'กำไลปราณหลอมสุ่ม', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 1 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'CHARM', slot: 'ACCESSORY', subType: 'CHARM', nameTh: 'ป้ายหยกพกหลอมสุ่ม', defaultInputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 1 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }] }
+  ];
+
+  for (const sp of procSpecs) {
+    const itemId = 'ITEM_PROC_' + sp.key;
+    const recId = 'REC_PROC_' + sp.key;
+    const itemObj = {
+      id: itemId,
+      nameTh: sp.nameTh,
+      slot: sp.slot,
+      gearType: sp.subType,
+      subType: sp.slot === 'WEAPON' ? sp.subType : undefined,
+      out: 'EQUIPMENT',
+      tier: 1,
+      minStage: 1,
+      value: 36,
+      proceduralTemplate: true,
+      element: 'NEUTRAL',
+      elementalRole: 'EXPLICIT_NON_ELEMENTAL',
+      elementProfile: { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} },
+      descTh: 'แม่พิมพ์ศาสตราหลอมสุ่ม (T1–T4) ที่แปรเปลี่ยนชื่อ ธาตุ ระดับ และออปชั่นตามวัตถุดิบที่ใช้หลอม'
+    };
+    if (!JD.ITEMS.items.some(x => x.id === itemId)) JD.ITEMS.items.push(itemObj);
+
+    const recObj = {
+      id: recId,
+      nameTh: 'ตำรับหลอมสุ่ม' + sp.nameTh.replace('หลอมสุ่มสำนัก', '').replace('หลอมสุ่ม', ''),
+      outNameTh: sp.nameTh,
+      outItemId: itemId,
+      outType: 'EQUIPMENT',
+      craft: 'FORGING',
+      slot: sp.slot,
+      gearType: sp.subType,
+      proceduralOut: true,
+      proceduralSlot: sp.slot,
+      proceduralGearType: sp.subType,
+      tier: 1,
+      minStage: 1,
+      minMastery: 8,
+      facilityLevel: 1,
+      compatiblePath: 'ANY',
+      element: 'NEUTRAL',
+      elementalRole: 'EXPLICIT_NON_ELEMENTAL',
+      elementProfile: { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} },
+      inputs: sp.defaultInputs,
+      slotOptions: [
+        { slotIndex: 0, role: 'core', nameTh: 'แร่โครงสร้างหลัก (กำหนดเพดานขั้น T1–T4 และฐานคุณภาพ)', options: coreOreOptions },
+        { slotIndex: 1, role: 'secondary', nameTh: 'แก่นอสูร/ผลึกธาตุเสริม (กำหนดธาตุแฝงและโอกาสสุ่มออปชั่น)', options: secondaryCatalystOptions }
+      ]
+    };
+    if (!JD.ITEMS.recipes.some(x => x.id === recId)) JD.ITEMS.recipes.push(recObj);
+  }
+})();
+
+// ============================================================================
+// Patch v2.0.14: production specializations, array/talisman Dao and governance Dao.
+// These are source registrations: runtime derives identity, stats and track indexes
+// from the same records before loading any simulation module.
+// ============================================================================
+(function applyV214Specializations() {
+  D.pathProfiles = D.pathProfiles || {};
+  D.subProfiles = D.subProfiles || {};
+  D.professionSpecializations = D.professionSpecializations || {};
+  const ep = element => ({ mode: 'INTRINSIC_SINGLE', primary: element, weights: { [element]: 1 } });
+  const validAffinityKeys = new Set(Object.values(JD.CORE.affinityKeys).flat());
+  const eightMap = [1, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8];
+  const powers = [120, 255, 540, 1140, 2380, 4800, 9600, 24000];
+  const lifespans = [100, 138, 198, 290, 435, 650, 990, 1820];
+  const chances = [.79, .69, .57, .46, .36, .27, .18, .12];
+  const pathSpecs = [
+    {
+      id: 'ARRAY_TALISMAN', nameTh: 'วิถีค่ายกลและอักขระยันต์', shortTh: 'ค่ายกลยันต์', icon: '☯', color: '#64c3ce', element: 'ASTRAL',
+      statWeights: { atk: .70, matk: 1.20, def: 1.04, mdef: 1.24 },
+      resourceUsed: 'หมึกชาด หยกค่ายกล และสมาธิในการเชื่อมจุดปราณ',
+      coreMechanicTh: 'บ่มเพาะจากการวางค่ายกลและเขียนยันต์ ใช้ผนึกควบคุมศัตรูและม่านคุ้มกัน ประสิทธิภาพแปรตามทักษะที่ฝึกจริง',
+      supremeRiskTh: 'อักขระขาดตอนทำให้ปราณสะท้อน ต้องพักสมาธิก่อนตั้งค่ายใหม่',
+      names: ['สัมผัสเส้นปราณดิน', 'จารอักขระตั้งหลัก', 'เชื่อมสามจุดค่ายกล', 'ประสานแปดประตู', 'ผนึกจิตในยันต์', 'อ่านลายฟ้าดิน', 'ตั้งค่ายครอบขุนเขา', 'มหาค่ายกลหมื่นอักขระ'],
+      profile: { body: { dexterity: 24, spiritualFoundation: 24, meridianCapacity: 20 }, p: { matk: .08, atk: -.08 }, life: { ARRAY: .28, TALISMAN: .28, SCRIPTURE: .12 }, curve: 'late', weapons: ['FOCUS', 'STAFF', 'SWORD'], armor: ['ROBE', 'LIGHT'] }
+    },
+    {
+      id: 'STRATEGY_GOVERNANCE', nameTh: 'วิถีพิชัยยุทธ์และอภิบาลสรรพชน', shortTh: 'พิชัยอภิบาล', icon: '⚑', color: '#d4bb78', element: 'LIGHT_YANG',
+      statWeights: { atk: .88, matk: .92, def: 1.10, mdef: 1.16 },
+      resourceUsed: 'ตำราพิชัย บัญชีเสบียง และประสบการณ์ดูแลผู้คน',
+      coreMechanicTh: 'ฝึกตนผ่านการวางแผน การจัดการ การค้า และการเจรจา เสริมการประสานหมู่และการส่งกำลังมากกว่าพลังโจมตีเดี่ยว',
+      supremeRiskTh: 'คำสั่งซับซ้อนเกินกำลังทำให้เสียจังหวะและปราณสมาธิ',
+      names: ['อ่านแผนที่ค่าย', 'จัดระเบียบเสบียง', 'ประสานใจหมู่', 'วางแผนร้อยกระบวน', 'ตั้งหลักอภิบาล', 'บัญชาทัพพันธง', 'ประสานเมืองและสำนัก', 'มหาปราชญ์พิชัยอภิบาล'],
+      profile: { body: { endurance: 20, vitality: 20, reflex: 16, spiritualFoundation: 18 }, p: { def: .08, mdef: .08, atk: -.06 }, life: { administration: .28, diplomacy: .18, trading: .20, SCRIPTURE: .14 }, curve: 'steady', weapons: ['STAFF', 'FOCUS', 'SPEAR', 'SWORD'], armor: ['LIGHT', 'ROBE', 'HEAVY'] }
+    }
+  ];
+  for (const spec of pathSpecs) {
+    const { names, profile, ...path } = spec;
+    path.maxStage = 8;
+    path.elementProfile = ep(spec.element);
+    path.stages = names.map((nameTh, i) => ({ stage: i + 1, nameTh: 'ขั้นที่ ' + (i + 1) + ' • ' + nameTh, lifespanMax: lifespans[i], combatPower: powers[i], breakthroughBaseChance: chances[i], tribulationLayers: Math.max(0, i - 1), resourceReq: spec.resourceUsed }));
+    path.subPaths = [];
+    JD.CULT.paths[path.id] = path;
+    D.pathProfiles[path.id] = profile;
+  }
+
+  // One source record per specialization. Combat penalties make each tradeoff real.
+  const subs = [
+    { id: 'EARTH_VEIN_WARDEN', path: 'ARRAY_TALISMAN', nameTh: 'สายผู้พิทักษ์ค่ายกลชีพจรดิน', element: 'EARTH_METAL', skills: ['ARRAY', 'construction'],
+      strengthTh: 'ยึดจุดค่ายกลเป็นแนวคุ้มกัน สร้างโล่และทนแรงปะทะ', weaknessTh: 'เคลื่อนที่และร่ายช้าเมื่อเทียบกับผู้เขียนยันต์จู่โจม',
+      stats: { p: { def: .18, mdef: .12, atk: -.08 }, f: { move: -9, cast: -5 } }, body: { toughness: 22, endurance: 20 }, life: { ARRAY: .32, construction: .24 }, curve: 'late', weapons: ['STAFF', 'FOCUS'], armor: ['HEAVY', 'ROBE'], prefs: { 'intellect.spatial': .9, 'interests.building': .7 },
+      moves: [{ nameTh: 'ปักหมุดหยกตรึงชีพจร', arch: 'control', M: 1.12, ctrl: 'slow', pen: 10 }, { nameTh: 'กำแพงแปดทิศคุ้มค่าย', arch: 'shield', M: 0, shield: .30, grantBuff: 'aegisWard' }] },
+    { id: 'SEAL_SCRIPT_EXORCIST', path: 'ARRAY_TALISMAN', nameTh: 'สายยันต์ผนึกชำระมาร', element: 'LIGHT_YANG', skills: ['TALISMAN', 'SCRIPTURE'],
+      strengthTh: 'อ่านรอยปราณแล้วปิดช่องร่ายศัตรู มีสมาธิคุ้มกันวิชาจิต', weaknessTh: 'รับศาสตราประชิดไม่เก่งและขาดพลังระเบิด',
+      stats: { p: { mdef: .18, def: -.10 }, f: { acc: 16, cast: 9, critDmg: -12 } }, body: { spiritualFoundation: 24, dexterity: 18 }, life: { TALISMAN: .30, SCRIPTURE: .26 }, curve: 'steady', weapons: ['FOCUS', 'SWORD'], armor: ['ROBE'], prefs: { 'intellect.focus': .8, 'interests.scholarship': .8 },
+      moves: [{ nameTh: 'ยันต์ปิดประตูเสียงปราณ', arch: 'control', M: 1.16, ctrl: 'silence', pen: 12 }, { nameTh: 'ตราแสงกระจ่างชำระใจ', arch: 'support', M: 0, shield: .16, grantBuff: 'clarityLotus' }] },
+    { id: 'THUNDER_TALISMAN_ADEPT', path: 'ARRAY_TALISMAN', nameTh: 'สายยันต์อัสนีทะลวงทัพ', element: 'LIGHTNING', skills: ['TALISMAN', 'ARRAY'],
+      strengthTh: 'ร่ายยันต์สายฟ้าเจาะแนวและขัดจังหวะด้วยอัสนี', weaknessTh: 'ปราณป้องกันบางและกระบวนท่าระดับสูงใช้ปราณมาก',
+      stats: { p: { matk: .18, def: -.12, mdef: -.06 }, f: { pen: 14, cast: 12 } }, body: { dexterity: 22, reflex: 20 }, life: { TALISMAN: .34, ARRAY: .18 }, curve: 'early', weapons: ['FOCUS', 'BOW'], armor: ['LIGHT', 'ROBE'], prefs: { 'intellect.thinkingSpeed': .8, 'interests.arrays': .8 },
+      moves: [{ nameTh: 'สะบัดยันต์สายฟ้าเจาะเกราะ', arch: 'pierce', M: 1.32, pen: 22 }, { nameTh: 'อัสนีห้าตราผ่ากองทัพ', arch: 'burst', M: 1.80, ctrl: 'stun', pen: 24, aoe: true, costPct: 9 }] },
+    { id: 'MIRAGE_ARRAY_WEAVER', path: 'ARRAY_TALISMAN', nameTh: 'สายค่ายกลมายาพรางเงา', element: 'YIN_SHADOW', skills: ['ARRAY', 'stealth'],
+      strengthTh: 'บิดทิศทางและบังสายตา เปิดช่องถอนตัวจากวงล้อม', weaknessTh: 'พลังทำลายตรงต่ำและรับการโจมตีที่หลบไม่พ้นได้ไม่ดี',
+      stats: { p: { eva: .20, atk: -.12, def: -.08 }, f: { move: 12, acc: 10 } }, body: { agility: 22, reflex: 20 }, life: { ARRAY: .30, stealth: .28 }, curve: 'late', weapons: ['FOCUS', 'SWORD', 'BOW'], armor: ['LIGHT', 'ROBE'], prefs: { 'intellect.spatial': .8, 'interests.intrigue': .7 },
+      moves: [{ nameTh: 'ม่านหมอกสี่ประตูบังเนตร', arch: 'control', M: 1.08, ctrl: 'blind' }, { nameTh: 'เงาลวงแปดทิศเปิดทาง', arch: 'support', M: 0, shield: .14, grantBuff: 'swiftWind' }] },
+    { id: 'BATTLEFIELD_STRATEGIST', path: 'STRATEGY_GOVERNANCE', nameTh: 'สายกุนซือธงศึก', element: 'FIRE', skills: ['administration', 'SCRIPTURE'],
+      strengthTh: 'อ่านแนวรบ ชี้จุดอ่อนและเร่งขวัญกำลังใจยามเปิดศึก', weaknessTh: 'ความแข็งแรงประชิดต่ำ ต้องอาศัยจังหวะบัญชา',
+      stats: { p: { atk: -.08, def: -.06 }, f: { acc: 20, pen: 10, cast: 8 } }, body: { reflex: 20, spiritualFoundation: 18 }, life: { administration: .28, SCRIPTURE: .24 }, curve: 'steady', weapons: ['SPEAR', 'FOCUS'], armor: ['LIGHT', 'ROBE'], prefs: { 'intellect.planning': .9, 'social.leadership': .8 },
+      moves: [{ nameTh: 'ชี้ธงตัดแนวอ่อน', arch: 'pierce', type: 'p', M: 1.22, pen: 20, rider: 'exposed' }, { nameTh: 'กลองเร่งทัพเปลี่ยนกระบวน', arch: 'support', M: 0, grantBuff: 'fervorMight' }] },
+    { id: 'SECT_STEWARD', path: 'STRATEGY_GOVERNANCE', nameTh: 'สายผู้ดูแลรากฐานสำนัก', element: 'EARTH_METAL', skills: ['administration', 'construction'],
+      strengthTh: 'วางระเบียบคลังและแนวคุ้มกัน ให้สำนักตั้งรับได้ต่อเนื่อง', weaknessTh: 'โจมตีต่ำและเคลื่อนย้ายกำลังได้ช้า',
+      stats: { p: { hp: .12, def: .16, atk: -.14, matk: -.08 }, f: { move: -8 } }, body: { endurance: 22, toughness: 18 }, life: { administration: .34, construction: .26 }, curve: 'steady', weapons: ['STAFF', 'FOCUS'], armor: ['HEAVY', 'ROBE'], prefs: { 'intellect.numeracy': .9, 'interests.leading': .8 },
+      moves: [{ nameTh: 'พลองรักษาประตูคลัง', arch: 'strike', type: 'p', M: 1.18, rider: 'weaken' }, { nameTh: 'บัญชาแนวคุ้มคลังเสบียง', arch: 'guard', M: 0, shield: .28, grantBuff: 'aegisWard' }] },
+    { id: 'DIPLOMATIC_ENVOY', path: 'STRATEGY_GOVERNANCE', nameTh: 'สายทูตประสานพันธมิตร', element: 'LIGHT_YANG', skills: ['diplomacy', 'trading'],
+      strengthTh: 'อ่านผู้คน เจรจาและรักษาความสงบ พร้อมสะกดแรงปะทะชั่วคราว', weaknessTh: 'ขาดพลังโจมตีและเกราะกายยามถูกบีบเข้าประชิด',
+      stats: { p: { mdef: .16, atk: -.14, def: -.08 }, f: { acc: 14, cast: 10 } }, body: { spiritualFoundation: 20, vitality: 18 }, life: { diplomacy: .36, trading: .22 }, curve: 'late', weapons: ['FOCUS', 'SWORD'], armor: ['ROBE', 'LIGHT'], prefs: { 'social.persuasion': .9, 'intellect.readPeople': .8 },
+      moves: [{ nameTh: 'คำเตือนทูตสะกดเจตนาศึก', arch: 'control', M: 1.06, ctrl: 'weaken' }, { nameTh: 'ตราสัญญาคืนสมาธิ', arch: 'support', M: 0, qiRestorePct: .08, grantBuff: 'clarityLotus' }] },
+    { id: 'CARAVAN_QUARTERMASTER', path: 'STRATEGY_GOVERNANCE', nameTh: 'สายผู้จัดเสบียงคาราวาน', element: 'WIND', skills: ['trading', 'survival'],
+      strengthTh: 'เตรียมเสบียงและเส้นทางล่าถอย รักษาปราณสำหรับเดินทางไกล', weaknessTh: 'พลังระเบิดและการยืนปะทะกับศัตรูหนักต่ำ',
+      stats: { p: { def: -.08, matk: -.08 }, f: { move: 16, eva: 14, critDmg: -12 } }, body: { endurance: 24, agility: 16 }, life: { trading: .32, survival: .28, cooking: .12 }, curve: 'early', weapons: ['BOW', 'STAFF'], armor: ['LIGHT'], prefs: { 'intellect.planning': .8, 'interests.trade': .9 },
+      moves: [{ nameTh: 'ศรสกัดทางปล้นเสบียง', arch: 'pierce', type: 'p', M: 1.20, ctrl: 'slow', pen: 12 }, { nameTh: 'ธงนำทางถอนคาราวาน', arch: 'support', M: 0, qiRestorePct: .08, grantBuff: 'swiftWind' }] },
+    { id: 'CIVIL_TEACHING_MENTOR', path: 'STRATEGY_GOVERNANCE', nameTh: 'สายอาจารย์อภิบาลศิษย์', element: 'WOOD_LIFE', skills: ['SCRIPTURE', 'administration'],
+      strengthTh: 'ถ่ายทอดตำราและประคองขวัญศิษย์ ให้ฝึกตนอย่างมีสมาธิและฟื้นตัวจากความกดดัน', weaknessTh: 'โจมตีและเจาะเกราะต่ำ ต้องใช้เวลาประสานใจผู้ร่วมทาง',
+      stats: { p: { hp: .10, mdef: .14, atk: -.12, matk: -.06 }, f: { cast: 8, pen: -6 } }, body: { spiritualFoundation: 22, recoveryRate: 20 }, life: { SCRIPTURE: .34, administration: .22, arts: .14 }, curve: 'late', weapons: ['STAFF', 'FOCUS'], armor: ['ROBE', 'LIGHT'], prefs: { 'social.teaching': .9, 'interests.teaching': .9 },
+      moves: [{ nameTh: 'คำสอนตั้งมั่นสะท้อนความกลัว', arch: 'support', M: 0, shield: .16, grantBuff: 'clarityLotus' }, { nameTh: 'ลำนำปลอบขวัญศิษย์ร่วมทาง', arch: 'heal', M: 0, heal: .22, grantBuff: 'vitalRegen' }] },
+    { id: 'SPIRIT_FEAST_HEALER', path: 'CRAFT_CREATION', nameTh: 'สายครัวทิพย์ฟื้นชีวา', element: 'WOOD_LIFE', skills: ['cooking', 'MEDICINE'],
+      strengthTh: 'ปรุงอาหารสมานกายและฟื้นกำลัง พร้อมพยุงชีวิตยามศึก', weaknessTh: 'ไม่เร่งการบ่มเพาะเท่าสายสำรับเต๋า และโจมตีตรงต่ำ',
+      stats: { p: { hp: .14, mdef: .10, atk: -.14 }, f: { cast: 8, pen: -6 } }, body: { vitality: 22, recoveryRate: 24 }, life: { cooking: .36, MEDICINE: .24 }, curve: 'steady', weapons: ['FOCUS', 'STAFF'], armor: ['ROBE', 'LIGHT'], prefs: { 'interests.cuisine': .9, 'social.hospitality': .8 },
+      profession: { skill: 'cooking', craft: 'COOKING', role: 'RECOVERY_FOOD' },
+      moves: [{ nameTh: 'ไอน้ำซุปหยกสมานชีพ', arch: 'heal', M: 0, heal: .24, grantBuff: 'vitalRegen' }, { nameTh: 'ข้าวทิพย์ประคองใจกลางศึก', arch: 'support', M: 0, heal: .18, qiRestorePct: .10, grantBuff: 'qiConduit' }] },
+    { id: 'JADE_MEAL_PREPARER', path: 'CRAFT_CREATION', nameTh: 'สายสำรับหยกเตรียมบำเพ็ญ', element: 'WATER_ICE', skills: ['cooking', 'ALCHEMY'],
+      strengthTh: 'ปรับสมดุลวัตถุดิบเป็นอาหารเตรียมสมาธิและการทะลวงขั้น', weaknessTh: 'ฟื้นกายฉุกเฉินได้น้อยกว่าครัวฟื้นชีวาและป้องกันกายบาง',
+      stats: { p: { mdef: .14, matk: .08, def: -.12 }, f: { cast: 10, crit: -4 } }, body: { meridianCapacity: 22, spiritualFoundation: 22 }, life: { cooking: .34, ALCHEMY: .24, herbalism: .14 }, curve: 'late', weapons: ['FOCUS', 'SWORD'], armor: ['ROBE'], prefs: { 'interests.cuisine': .9, 'intellect.focus': .8 },
+      profession: { skill: 'cooking', craft: 'COOKING', role: 'CULTIVATION_FOOD' },
+      moves: [{ nameTh: 'ชาหยกหมุนเวียนลมหายใจ', arch: 'support', M: 0, qiRestorePct: .12, grantBuff: 'qiConduit' }, { nameTh: 'สำรับห้ารสตั้งจิตกระจ่าง', arch: 'support', M: 0, shield: .14, grantBuff: 'clarityLotus' }] },
+    { id: 'CELESTIAL_ARMOR_ARTISAN', path: 'CRAFT_CREATION', nameTh: 'สายช่างเกราะไหมเหล็กสวรรค์', element: 'EARTH_METAL', skills: ['FORGING', 'construction'],
+      strengthTh: 'ตีเกราะและชุบแผ่นคุ้มกาย เพิ่มการป้องกันและความทนทานของชุดเกราะ', weaknessTh: 'ถ่วงการเคลื่อนไหวและให้พลังโจมตีน้อยกว่าช่างอาวุธ',
+      stats: { p: { def: .20, mdef: .12, atk: -.10 }, f: { move: -10, cast: -4 } }, body: { dexterity: 22, toughness: 24 }, life: { FORGING: .32, construction: .22 }, curve: 'steady', weapons: ['STAFF', 'FIST'], armor: ['HEAVY', 'LIGHT'], prefs: { 'interests.forging': .9, 'intellect.spatial': .7 },
+      profession: { skill: 'FORGING', craft: 'FORGING', role: 'ARMOR', slots: ['ARMOR'] },
+      moves: [{ nameTh: 'ค้อนย้ำตะเข็บสกัดคม', arch: 'strike', type: 'p', M: 1.22, rider: 'weaken' }, { nameTh: 'ถักเกราะไหมเหล็กคุ้มชีพ', arch: 'shield', M: 0, shield: .32, grantBuff: 'aegisWard' }] }
+  ];
+  const stages = nameTh => [
+    { stage: 1, nameTh: nameTh + ' · ขั้นต้น', reqMastery: 0, reqCultStage: 1 },
+    { stage: 2, nameTh: nameTh + ' · ประสานปราณ', reqMastery: 25, reqCultStage: 3 },
+    { stage: 3, nameTh: nameTh + ' · สัมฤทธิ์ผล', reqMastery: 65, reqCultStage: 5 }
+  ];
+  const registerTech = (t, innate) => {
+    t.v214 = true;
+    t.elementalRole = 'ELEMENTAL';
+    t.elementProfile = ep(t.element);
+    t.moveDefs = (t.moveDefs || []).map(m => Object.assign({ parentId: t.id, type: 'm', stageReq: 1, reqMastery: 0, cd: 11, wind: 3, hits: m.M > 0 ? 1 : 0, costPct: 5 }, m));
+    t.moves = t.moveDefs.map(m => m.nameTh);
+    t.stages = stages(t.nameTh);
+    D.techniques.push(t);
+    JD.TECH.techniques.push(t);
+    if (innate) D.innateTechniques.push(t);
+  };
+  for (const spec of subs) {
+    const { stats, body, life, curve, weapons, armor, prefs, moves, skills, profession, ...sub } = spec;
+    Object.assign(sub, { combatBonus: 1.02, defenseBonus: 1.04, cultivationBonus: 1, breakthroughMod: 1, descTh: sub.strengthTh + ' ข้อจำกัด: ' + sub.weaknessTh,
+      resourceTh: JD.CULT.paths[sub.path].resourceUsed, primarySkill: skills[0], secondarySkills: [skills[1]], skillWeights: { [skills[0]]: .65, [skills[1]]: .35 }, elementProfile: ep(sub.element), v214: true });
+    if (sub.path === 'STRATEGY_GOVERNANCE') sub.governanceRole = { BATTLEFIELD_STRATEGIST: 'command', SECT_STEWARD: 'steward', DIPLOMATIC_ENVOY: 'diplomacy', CARAVAN_QUARTERMASTER: 'logistics', CIVIL_TEACHING_MENTOR: 'teaching' }[sub.id];
+    JD.CULT.paths[sub.path].subPaths.push(sub);
+    D.subPaths.push(sub);
+    D.subStats[sub.id] = JD.EXPANSION.subStats[sub.id] = stats;
+    D.subPreferences[sub.id] = JD.EXPANSION.subPreferences[sub.id] = { aff: Object.fromEntries(Object.entries({ [skills[0]]: 1, [skills[1]]: .7, [sub.element]: .4 }).filter(([key]) => validAffinityKeys.has(key))), p: prefs };
+    D.subProfiles[sub.id] = [body, life, curve, weapons, armor];
+    if (profession) D.professionSpecializations[sub.id] = Object.assign({ subPath: sub.id, nameTh: sub.nameTh }, profession.role === 'ARMOR' ? { defenseBonusMax: .08, durabilityBonusMax: 12 } : { buffDuration: 180, foodCooldown: 360, foodFreshness: 1440 }, profession);
+    const realms = Array.from({ length: 9 }, (_, i) => ({
+      ordinal: i + 1, id: 'R_V214_' + sub.id + '_' + (i + 1), nameTh: sub.nameTh + ' · ' + ['ตั้งต้น', 'ฝึกมือ', 'คุมจังหวะ', 'ประสานปราณ', 'หลอมแก่น', 'เข้าถึงวิถี', 'กฎเกณฑ์', 'ปรมาจารย์', 'สำเร็จเต๋า'][i],
+      lifespanMax: 100 + i * 38, functionalCombatPower: [130, 310, 620, 1180, 2250, 4100, 7400, 13200, 23500][i], majorBandEquivalent: eightMap[i],
+      skillGate: { primarySkill: skills[0], minPrimarySkill: [15, 28, 38, 48, 58, 68, 78, 86, 94][i], secondarySkill: skills[1], minSecondarySkill: 10 + i * 6 },
+      resourceCost: { stones: [55, 78, 125, 210, 350, 580, 950, 1550, 2500][i], materialTier: Math.min(7, 1 + Math.floor(i / 2)) },
+      capacityMultipliers: { maxQiMult: +(1 + i * .07).toFixed(2), vitalityMult: +(1 + i * .06).toFixed(2), senseBonus: i * 2 },
+      realmBuffs: { combatOffensePct: +(2 + i * 1.7).toFixed(1), combatDefensePct: +(3 + i * 2).toFixed(1), armorPenetrationPct: +(1 + i).toFixed(1), counterStrikePct: 1 + i, lifestealPct: 0, reflectPct: 0, evasionPct: 1 + i, qiRegenBonusPct: 3 + i * 2 },
+      breakthroughBaseChance: +(.78 - i * .042).toFixed(2)
+    }));
+    JD.EXPANSION.progressionMapping.push({ subPath: sub.id, trackId: 'TRACK_V214_' + sub.path + '_' + sub.id, sourceMajorPath: sub.path, sourceIndependentRealmCount: 9, targetMajorPath: sub.path, targetMajorStages: 8, majorPowerMapping: eightMap.slice(), mode: 'INDEPENDENT_TRACK', sourceRealmOrdinalsImported: true, realms });
+
+    // Each branch receives two independently learnable arts, an exclusive innate
+    // art and a productive passive. All use existing combat/buff handlers.
+    moves.forEach((move, i) => registerTech({ id: 'ART_V214_' + sub.id + '_T' + (i ? 4 : 1), nameTh: move.nameTh, path: sub.path, sub: sub.id,
+      cat: move.M > 0 ? 'COMBAT_TECHNIQUE' : (move.arch === 'heal' || move.arch === 'support' ? 'SUPPORT_TECHNIQUE' : 'DEFENSIVE_TECHNIQUE'),
+      combatArch: move.arch, tier: i ? 4 : 1, reqTier: i ? 4 : 1, grade: i ? 'Exceptional' : 'Common', power: i ? 185 : 58, element: sub.element, weaponTypes: weapons.slice(), armorTypes: armor.slice(),
+      moveDefs: [Object.assign({ id: 'ART_V214_' + sub.id + '_T' + (i ? 4 : 1) + '_M1', cd: i ? 15 : 9 }, move)] }));
+    const innateMove = Object.assign({}, moves[0], { id: 'INNATE_V214_' + sub.id + '_M1', cd: 13 });
+    if (innateMove.M > 0) innateMove.M = 1.10;
+    if (innateMove.heal) innateMove.heal = .16;
+    if (innateMove.qiRestorePct) innateMove.qiRestorePct = .06;
+    registerTech({ id: 'INNATE_V214_' + sub.id, nameTh: 'ปราณประจำวิถี' + sub.nameTh.replace(/^สาย/, ''), path: sub.path, sub: sub.id, innateSubpath: sub.id, innateOnly: true, noManual: true, noCrystal: true, acquisition: 'SUBPATH_INNATE', cat: innateMove.M > 0 ? 'COMBAT_TECHNIQUE' : 'SUPPORT_TECHNIQUE', combatArch: innateMove.arch,
+      tier: 1, reqTier: 1, grade: 'Exceptional', power: 88, element: sub.element, weaponTypes: weapons.slice(), armorTypes: armor.slice(), innateBonus: { life: Object.fromEntries(Object.entries(life).map(([k,v]) => [k, +(v * .5).toFixed(2)])), cultRatePct: .06 }, moveDefs: [innateMove] }, true);
+    registerTech({ id: 'PASS_V214_' + sub.id, nameTh: 'เคล็ดชำนาญ' + sub.nameTh.replace(/^สาย/, ''), path: sub.path, sub: sub.id, cat: 'PASSIVE', passiveFamily: 'FAM_V214_' + sub.id, tier: 2, reqTier: 2, grade: 'Refined', power: 95, element: sub.element, weaponTypes: weapons.slice(), armorTypes: armor.slice(), passive: { life: Object.fromEntries(Object.entries(life).map(([k,v]) => [k, +(v * .6).toFixed(2)])), p: { mdef: .05 }, f: { acc: 5 } } });
+  }
+
+  // Share existing equipment traditions instead of creating stronger baseline sets.
+  // Membership grants the ordinary subpath match; slot and tier rules still apply.
+  const sharedSets = {
+    EARTH_VEIN_WARDEN: 'RES_VAJRA_TITAN_BASTION',
+    SEAL_SCRIPT_EXORCIST: 'RES_ZEN_VOID_MIND',
+    THUNDER_TALISMAN_ADEPT: 'RES_CELESTIAL_BOW_ZITHER',
+    MIRAGE_ARRAY_WEAVER: 'RES_ZEN_VOID_MIND',
+    BATTLEFIELD_STRATEGIST: 'RES_DIVINE_WAR_ARHAT',
+    SECT_STEWARD: 'RES_VAJRA_TITAN_BASTION',
+    DIPLOMATIC_ENVOY: 'RES_ZEN_VOID_MIND',
+    CARAVAN_QUARTERMASTER: 'RES_CELESTIAL_BOW_ZITHER',
+    CIVIL_TEACHING_MENTOR: 'RES_SAGE_HARMONY_SANCTUARY',
+    SPIRIT_FEAST_HEALER: 'RES_CRAFT_DIVINE_ARTISAN',
+    JADE_MEAL_PREPARER: 'RES_CRAFT_DIVINE_ARTISAN',
+    CELESTIAL_ARMOR_ARTISAN: 'RES_CRAFT_DIVINE_ARTISAN'
+  };
+  for (const [sub, setId] of Object.entries(sharedSets)) {
+    const set = D.RESONANCE_SETS.find(s => s.id === setId);
+    if (!set.subpaths.includes(sub)) set.subpaths.push(sub);
+  }
+  const craftPagoda = D.RESONANCE_SETS.find(s => s.id === 'RES_NINE_DAO_CRAFT_CREATION');
+  for (const sub of subs.filter(s => s.path === 'CRAFT_CREATION')) craftPagoda.subpaths.push(sub.id);
+  for (const spec of pathSpecs) {
+    const formation = spec.id === 'ARRAY_TALISMAN';
+    D.RESONANCE_SETS.push({
+      id: 'RES_NINE_DAO_' + spec.id,
+      nameTh: formation ? 'ชุดสัจธรรมหมื่นอักขระแปดประตู' : 'ชุดสัจธรรมพิชัยอภิบาลพันธง',
+      path: spec.id, subpaths: JD.CULT.paths[spec.id].subPaths.map(s => s.id), minTier: 4, maxTier: 7,
+      elementFamily: [...new Set(JD.CULT.paths[spec.id].subPaths.map(s => s.element))],
+      slots: { WEAPON: [...new Set(JD.CULT.paths[spec.id].subPaths.flatMap(s => D.subProfiles[s.id][3]))], ARMOR: ['ROBE', 'LIGHT', 'HEAVY'], ACCESSORY: ['CHARM', 'RING', 'BRACELET', 'NECKLACE'] },
+      bonus2: { p: formation ? { matk: .07, mdef: .08 } : { def: .07, mdef: .08 }, f: { acc: 8, cast: 4 }, descTh: '2 ชิ้น: ตั้งหลักประสานปราณและคุ้มกันสมาธิ' },
+      bonus3: {
+        p: formation ? { matk: .13, mdef: .14, def: .08 } : { hp: .12, def: .12, mdef: .14 },
+        f: { acc: 14, cast: 8, pen: 6 },
+        rider: { status: formation ? 'slow' : 'weaken', chance: .30, dur: 8, bonusDmgMult: 1.06, descTh: formation ? 'ตราค่ายกลรั้งก้าวศัตรู' : 'อ่านแนวศึกกดกำลังศัตรู' },
+        descTh: '3 ชิ้น: ประสานสัจธรรมประจำวิถีและควบคุมจังหวะศึก'
+      }
+    });
+  }
+
+  // Shared low/mid/high manuals keep both paths viable from awakening onward.
+  for (const spec of pathSpecs) {
+    const bootstrap = { id: 'MP_BASE_' + spec.id, nameTh: 'ปฐมบท' + spec.shortTh, path: spec.id, cat: 'COMBAT_TECHNIQUE', combatArch: 'strike', martialBootstrap: true, tier: 1, reqTier: 1, grade: 'Common', power: 52, element: spec.element, weaponTypes: spec.profile.weapons.slice(), armorTypes: spec.profile.armor.slice(), moveDefs: [{ id: 'MP_BASE_' + spec.id + '_M1', nameTh: 'คลื่นปราณ' + spec.shortTh, arch: 'strike', M: 1.18, cd: 8, pen: 10 }] };
+    registerTech(bootstrap);
+    D.curriculum.push(bootstrap);
+    [1, 3, 6].forEach((tier, i) => JD.TECH.mantras.push({ id: 'MANTRA_V214_' + spec.id + '_T' + tier, nameTh: ['เคล็ดตั้งต้น', 'คัมภีร์ประสานใจ', 'มหาคัมภีร์บรรลุเต๋า'][i] + spec.shortTh, path: spec.id, cat: 'MANTRA', tier, reqTier: tier, grade: ['Common', 'Rare', 'Exceptional'][i], power: [65, 145, 320][i], element: spec.element, elementalRole: 'ELEMENTAL', elementProfile: ep(spec.element), mantraBonus: { cultRatePct: [.08, .14, .22][i], p: { mdef: [.04, .08, .12][i], def: [.02, .06, .10][i] }, life: Object.fromEntries(Object.entries(spec.profile.life).map(([k,v]) => [k, +(v * (.45 + i * .25)).toFixed(2)])) }, stages: stages(spec.shortTh), v214: true }));
+  }
+  JD.CULT.paths.CRAFT_CREATION.nameTh = 'วิถีรังสรรค์โอสถ ศาสตรา และโภชน์ปราณ';
+  for (const sub of subs.filter(s => s.path === 'CRAFT_CREATION')) JD.TECH.mantras.push({ id: 'MANTRA_V214_' + sub.id, nameTh: 'เคล็ดลมหายใจ' + sub.nameTh.replace(/^สาย/, ''), path: 'CRAFT_CREATION', sub: sub.id, cat: 'MANTRA', tier: 2, reqTier: 2, grade: 'Refined', power: 105, element: sub.element, elementalRole: 'ELEMENTAL', elementProfile: ep(sub.element), mantraBonus: { cultRatePct: .10, life: { [sub.skills[0]]: .20, [sub.skills[1]]: .12 } }, stages: stages(sub.nameTh), v214: true });
+})();
 
 })(typeof globalThis!=='undefined'?globalThis:this);

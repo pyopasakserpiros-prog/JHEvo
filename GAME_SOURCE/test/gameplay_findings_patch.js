@@ -40,6 +40,9 @@ test('natural outdoor resource pool excludes manufactured formation flags', () =
 // 2. Gradual gathering duration and extraction efficiency
 test('gathering duration and extraction efficiency scale gradually with skill', () => {
   const { W, n } = setup('test-gradual-scaling');
+  // Isolate skill-only scaling from the randomly assigned cultivation path's
+  // legitimate five-minute gathering benefit.
+  n.cult = null;
   n.h.skills.herbalism = 0;
   n.h.skills.mining = 0;
   const dur0 = AI.ACTS.gatherWildResource.dur(n);

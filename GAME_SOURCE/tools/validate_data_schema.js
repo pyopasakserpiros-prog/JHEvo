@@ -105,7 +105,7 @@ const techniques = Array.isArray(JD.MARTIAL?.techniques)
   : Object.values(JD.MARTIAL?.techniques || {});
 check(techniques.length > 0, 'JD.MARTIAL.techniques must not be empty');
 
-const validPaths = new Set(['ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'HEART_SOUL', 'CONFUCIAN', 'EXTERNAL']);
+const validPaths = new Set([...Object.keys(JD.CULT.paths), 'ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'CONFUCIAN', 'EXTERNAL']);
 
 for (const tech of techniques) {
   check(tech.id && typeof tech.id === 'string', `Technique missing valid id: ${JSON.stringify(tech)}`);

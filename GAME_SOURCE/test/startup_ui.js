@@ -12,7 +12,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
     const page = await context.newPage(), errors = [];
     page.on('pageerror', error => errors.push(error.message));
     try {
-      await page.goto('file://' + path.resolve(__dirname, '../index.html'));
+      await page.goto(await require('../tools/browser_test_url').url(path.resolve(__dirname, '../index.html')));
       await page.waitForSelector('[data-pick="0"]');
       await run(page);
       assert.deepStrictEqual(errors, [], 'Startup actions must not throw browser errors');

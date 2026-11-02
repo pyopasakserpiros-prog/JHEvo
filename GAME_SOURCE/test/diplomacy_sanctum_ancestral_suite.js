@@ -91,6 +91,9 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   AI.cancelAct(W, n);
 
   // 1e. Emergency preemption: injured/starving NPC prioritizes survival over bottleneck training
+  // A fresh emergency must bypass ordinary goal-review throttling even with no prior goal.
+  n.cognition.goal = null;
+  n.cognition.nextReview = W.t + 180;
   n.h.state.hp = Math.floor(CULT.hpMax(n) * 0.25);
   n.inj = [{ part: 'อก', why: 'บอบช้ำ', sev: 2, until: W.t + 500 }];
   W.t += 1;
@@ -453,7 +456,9 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
 {
   const W = SIM.create('area2d-technique-catalog-audit');
   const allTechs = [...JD.TECH.techniques, ...JD.TECH.mantras];
-  assert.equal(allTechs.length, 722, 'Total catalog must have 722 techniques and mantras');
+  assert.equal(allTechs.filter(t => !t.v214).length, 784, 'All 784 imported techniques and mantras must remain available');
+  assert.equal(new Set(allTechs.map(t => t.id)).size, allTechs.length, 'Expanded technique and mantra IDs must remain unique');
+  allTechs.forEach(t => assert.strictEqual(CULT.tech(t.id), t, 'Runtime registry must resolve every catalog entry: ' + t.id));
   const legendaries = allTechs.filter(t => t.legendary);
   assert.equal(legendaries.length, 22, 'Must have 22 legendary techniques and mantras');
 

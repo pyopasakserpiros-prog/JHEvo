@@ -8,7 +8,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
   try {
     const context = await browser.newContext({ viewport: { width: 412, height: 860 }, isMobile: true, hasTouch: true });
     const page = await context.newPage();
-    await page.goto('file://' + path.resolve(__dirname, '../index.html'));
+    await page.goto(await require('../tools/browser_test_url').url(path.resolve(__dirname, '../index.html')));
     await page.click('[data-pick="0"]');
     const result = await page.evaluate(() => {
       G.speed = 0;

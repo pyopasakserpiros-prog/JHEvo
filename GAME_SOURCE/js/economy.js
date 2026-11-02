@@ -12,12 +12,13 @@
     if (r.outItemId) recipeByOutItemId[r.outItemId] = r;
   });
   JD.ITEMS.items.forEach(i => itemById[i.id] = i);
-  ECO.matById = matById; ECO.recipeById = recipeById; ECO.recipeByOutItemId = recipeByOutItemId; ECO.itemById = itemById;
+  ECO.matById = matById; ECO.matMap = matById; ECO.recipeById = recipeById; ECO.recipeByOutItemId = recipeByOutItemId; ECO.itemById = itemById;
 
   ECO.GRAIN_PRICE = 3; ECO.MEAL_PER_GRAIN = 3;
 
   /* ---------- ชื่อ/มูลค่า ---------- */
   ECO.name = id => {
+    if (typeof id !== 'string') return String(id || '');
     if (id === 'grain') return 'ข้าวสาร'; if (id === 'meal') return 'อาหารพร้อมกิน'; if (id === 'stones') return 'ศิลาวิญญาณ';
     if (matById[id]) return matById[id].nameTh;
     if (id.startsWith('P:')) {
@@ -27,7 +28,32 @@
       if (itemById[raw]) return itemById[raw].nameTh;
       return id;
     }
-    if (id.startsWith('FORMULA:')) { const r = recipeById[id.slice(8)]; return r ? 'ม้วนตำรับ' + r.nameTh : id; }
+    if (id.startsWith('EQ:')) {
+      const raw = id.slice(3);
+      if (itemById[raw]) return itemById[raw].nameTh;
+      return raw;
+    }
+    if (id.startsWith('TECH_MANUAL:')) {
+      const raw = id.slice(12);
+      const t = g.CULT && g.CULT.tech ? g.CULT.tech(raw) : null;
+      return t ? 'คัมภีร์' + t.nameTh : raw;
+    }
+    if (id.startsWith('SUB_MANUAL:')) {
+      const raw = id.slice(11);
+      const s = g.CULT && g.CULT.subById ? g.CULT.subById[raw] : null;
+      return s ? 'เคล็ดสายย่อย' + s.nameTh : raw;
+    }
+    if (id.startsWith('RECIPE_SCROLL:') || id.startsWith('FORMULA:')) {
+      const raw = id.startsWith('RECIPE_SCROLL:') ? id.slice(14) : id.slice(8);
+      const r = recipeById[raw];
+      return r ? 'ม้วนตำรับ' + r.nameTh : raw;
+    }
+    if (id.startsWith('CRYSTAL:')) {
+      const raw = id.slice(8);
+      const tid = raw.startsWith('T:') ? raw.slice(2) : raw;
+      const t = g.CULT && g.CULT.tech ? g.CULT.tech(tid) : null;
+      return t ? 'ผลึกมรดก' + t.nameTh : raw;
+    }
     if (itemById[id]) return itemById[id].nameTh;
     if (recipeById[id]) return recipeById[id].outNameTh || recipeById[id].nameTh;
     if (recipeByOutItemId[id]) return recipeByOutItemId[id].outNameTh || recipeByOutItemId[id].nameTh;
@@ -35,6 +61,7 @@
     return id;
   };
   ECO.base = id => {
+    if (typeof id !== 'string') return 5;
     if (id === 'grain') return ECO.GRAIN_PRICE; if (id === 'meal') return 1.2;
     if (matById[id]) return matById[id].value;
     if (id.startsWith('P:')) {
@@ -43,6 +70,20 @@
       if (r) return 14 * Math.pow(2.05, r.tier - 1);
       if (itemById[raw]) return itemById[raw].value || 10;
       return 10;
+    }
+    if (id.startsWith('EQ:')) {
+      const raw = id.slice(3);
+      if (itemById[raw]) return itemById[raw].value || 25;
+      return 35;
+    }
+    if (id.startsWith('TECH_MANUAL:')) {
+      const t = g.CULT && g.CULT.tech ? g.CULT.tech(id.slice(12)) : null;
+      return t ? Math.round(35 * Math.pow(1.9, (t.tier || 1) - 1)) : 45;
+    }
+    if (id.startsWith('RECIPE_SCROLL:') || id.startsWith('FORMULA:')) {
+      const raw = id.startsWith('RECIPE_SCROLL:') ? id.slice(14) : id.slice(8);
+      const r = recipeById[raw];
+      return r ? Math.round(28 * Math.pow(1.9, (r.tier || 1) - 1)) : 35;
     }
     if (itemById[id]) return itemById[id].value;
     if (recipeById[id]) { const r = recipeById[id]; return 14 * Math.pow(2.05, r.tier - 1); }
@@ -68,13 +109,16 @@
     if (ECO.isPill(id)) { const map = W.sect.pillQuality || (W.sect.pillQuality = {}), old = Number.isFinite(map[id]) ? map[id] : 1, q = Number.isFinite(quality) ? clamp(quality, 0.7, 1.5) : 1; map[id] = (before * old + n * q) / total; }
     if (id === '__proto__' || id === 'constructor' || id === 'prototype') Object.defineProperty(W.sect.stock, id, { value: total, writable: true, enumerable: true, configurable: true });
     else W.sect.stock[id] = total;
+    W._stockSeq = (W._stockSeq || 0) + 1;
     return true;
   };
   ECO.take = (W, id, n) => {
     if (typeof id !== 'string' || !id || !Number.isFinite(n) || n < 0) return false;
     const have = ECO.count(W, id); if (have < n) return false;
+    if (id === 'meal' && n > 0) consumeMealSpecialties(W, n);
     if (have > n) W.sect.stock[id] = have - n; else { delete W.sect.stock[id]; if (W.sect.pillQuality) delete W.sect.pillQuality[id]; }
     if (W.sect && W.sect.stockTracker && n > 0) W.sect.stockTracker.recordUsage(id, n, W.day);
+    W._stockSeq = (W._stockSeq || 0) + 1;
     return true;
   };
   ECO.pay = (W, amt, why) => { if (W.sect.stones < amt) return false; W.sect.stones -= amt; W.sect.ledger.push({ t: W.t, amt: -amt, why }); trimLedger(W); return true; };
@@ -115,9 +159,93 @@
     }
     return Array.from(totals, ([matId, count]) => ({ matId, count }));
   }
-  ECO.inputsOk = (W, r, mult) => {
+  ECO.resolveCraftMaterials = (W, r, opts, npc) => {
+    opts = opts || {};
+    if (!r || !W || !W.sect) return null;
+    if (!r.proceduralOut || !Array.isArray(r.slotOptions) || !r.slotOptions.length) {
+      const inputs = recipeInputs(r, 1);
+      if (!inputs || !inputs.every(i => ECO.count(W, i.matId) >= i.count)) return null;
+      return { inputs, chosenOptions: [], materialMods: null };
+    }
+    const stock = W.sect.stock || {};
+    const chosenMats = Array.isArray(opts.chosenMats) ? opts.chosenMats : (opts.chosenBySlot || null);
+    const chosenOptions = [];
+    const totals = new Map();
+    const maxStage = npc && npc.cult ? clamp((CULT.effectiveTechStage ? CULT.effectiveTechStage(npc) : npc.cult.stage) + 1, 1, 4) : 4;
+    const preferEl = (opts.preferElement) || (npc && npc.cult && g.CULT && g.CULT.sub && g.CULT.sub(npc) && g.CULT.sub(npc).element) || null;
+
+    for (let sIdx = 0; sIdx < r.slotOptions.length; sIdx++) {
+      const slotDef = r.slotOptions[sIdx];
+      const options = Array.isArray(slotDef && slotDef.options) ? slotDef.options : [];
+      if (!options.length) return null;
+      let picked = null;
+      const requestedId = chosenMats && chosenMats[sIdx];
+      if (requestedId) {
+        const reqOpt = options.find(o => o.matId === requestedId);
+        if (reqOpt) {
+          const already = totals.get(reqOpt.matId) || 0;
+          if ((stock[reqOpt.matId] || 0) >= already + reqOpt.count) picked = reqOpt;
+          else if (opts.strictChosen) return null;
+        } else if (opts.strictChosen) {
+          return null;
+        }
+      }
+      if (!picked) {
+        let bestScore = -Infinity;
+        for (let j = 0; j < options.length; j++) {
+          const o = options[j];
+          const already = totals.get(o.matId) || 0;
+          const have = stock[o.matId] || 0;
+          if (have < already + o.count) continue;
+          const mat = matById[o.matId] || { tier: 1 };
+          const mTier = mat.tier || 1;
+          const tierFit = mTier <= maxStage ? mTier * 10 : (maxStage * 10 - (mTier - maxStage) * 14);
+          const elBonus = (preferEl && o.elementBias === preferEl) ? 8 : 0;
+          const abundance = Math.min(12, have - (already + o.count));
+          const sc = tierFit + elBonus + abundance * 0.5;
+          if (sc > bestScore) {
+            bestScore = sc;
+            picked = o;
+          }
+        }
+      }
+      if (!picked) return null;
+      chosenOptions.push(picked);
+      totals.set(picked.matId, (totals.get(picked.matId) || 0) + picked.count);
+    }
+    const inputs = Array.from(totals, ([matId, count]) => ({ matId, count }));
+    let tierCap = 2, tierShift = 0, qShift = 0, affixShift = 0;
+    const elementBiases = [], statBiases = [], matIds = [];
+    for (const co of chosenOptions) {
+      if (co.tierCap) tierCap = Math.max(tierCap, co.tierCap);
+      if (co.tierShift) tierShift += co.tierShift;
+      if (co.qShift) qShift += co.qShift;
+      if (co.affixShift) affixShift += co.affixShift;
+      if (co.elementBias && co.elementBias !== 'NEUTRAL') elementBiases.push(co.elementBias);
+      if (co.statBias) statBiases.push(co.statBias);
+      matIds.push(co.matId);
+    }
+    return {
+      inputs,
+      chosenOptions,
+      materialMods: {
+        tierCap: clamp(tierCap, 1, 4),
+        tierShift,
+        qShift,
+        affixShift,
+        elementBiases,
+        statBiases,
+        matIds
+      }
+    };
+  };
+
+  ECO.inputsOk = (W, r, mult, opts) => {
     const m = mult == null ? 1 : mult;
     if (!r || typeof r.id !== "string" || !Array.isArray(r.inputs) || !r.inputs.length || !Number.isFinite(m) || m <= 0) return false;
+    if (r.proceduralOut && Array.isArray(r.slotOptions) && m === 1) {
+      return !!ECO.resolveCraftMaterials(W, r, opts);
+    }
     const inp = r.inputs, n = inp.length, stock = W.sect.stock;
     if (n === 1) {
       const i0 = inp[0];
@@ -137,7 +265,7 @@
   };
   ECO.inputCost = (W, r) => r.inputs.reduce((s, i) => s + ECO.price(W, i.matId) * i.count, 0);
   ECO.outputValue = (W, r) => {
-    if (r.outItemId) return itemById[r.outItemId].value * 0.8;
+    if (r.outItemId && itemById[r.outItemId]) return itemById[r.outItemId].value * 0.8;
     if (r.outType === 'PILL') return ECO.base('P:' + r.id) * 0.9;
     return 20 * Math.pow(1.9, r.tier - 1);
   };
@@ -152,24 +280,32 @@
     const paid = ledger.open[receipt.id];
     return paid && paid.rid === r.id && paid.npcId === npc.id && receipt.rid === paid.rid && receipt.npcId === paid.npcId ? paid : null;
   }
-  function registerCraft(W, npc, r, ctx, inputs) {
+  function registerCraft(W, npc, r, ctx, inputs, materialMods) {
     const ledger = craftTransactions(W), npcId = npc ? npc.id : null;
     if (!Number.isSafeInteger(ledger.seq) || ledger.seq < 0 || ledger.seq >= Number.MAX_SAFE_INTEGER) return false;
     if (npcId != null) Object.keys(ledger.open).forEach(id => { if (ledger.open[id].npcId === npcId) delete ledger.open[id]; });
-    const id = String(++ledger.seq), paid = { id, rid: r.id, npcId, inputs };
+    const id = String(++ledger.seq), paid = { id, rid: r.id, npcId, inputs, materialMods: materialMods || null };
     ledger.open[id] = paid;
-    if (ctx) ctx.craftReceipt = { id, rid: r.id, npcId, state: 'reserved' };
+    if (ctx) ctx.craftReceipt = { id, rid: r.id, npcId, state: 'reserved', materialMods: materialMods || null };
     return true;
   }
   ECO.reserveInputs = (W, r, ctx, npc) => {
     if (ctx && (typeof ctx !== 'object' || Array.isArray(ctx) || !npc || npc.id == null)) return false;
     if (ctx && ctx.craftReceipt) return !!matchingReceipt(W, npc, r, ctx);
-    const inputs = recipeInputs(r, 1);
-    if (!inputs || !inputs.every(i => ECO.count(W, i.matId) >= i.count)) return false;
+    let inputs = null, materialMods = null;
+    if (r && r.proceduralOut && Array.isArray(r.slotOptions)) {
+      const resolved = ECO.resolveCraftMaterials(W, r, ctx && ctx.craftOpts, npc);
+      if (!resolved) return false;
+      inputs = resolved.inputs;
+      materialMods = resolved.materialMods;
+    } else {
+      inputs = recipeInputs(r, 1);
+      if (!inputs || !inputs.every(i => ECO.count(W, i.matId) >= i.count)) return false;
+    }
     const ledger = craftTransactions(W);
     if (!Number.isSafeInteger(ledger.seq) || ledger.seq < 0 || ledger.seq >= Number.MAX_SAFE_INTEGER) return false;
     inputs.forEach(i => ECO.take(W, i.matId, i.count));
-    return registerCraft(W, npc, r, ctx, inputs);
+    return registerCraft(W, npc, r, ctx, inputs, materialMods);
   };
   ECO.adoptLegacyCraft = (W, npc, r, ctx) => {
     if (!npc || npc.id == null || !ctx || typeof ctx !== 'object' || ctx.rid !== (r && r.id)) return false;
@@ -181,7 +317,7 @@
     Object.keys(ledger.open).forEach(id => {
       const paid = ledger.open[id]; if (paid.npcId == null) return;
       const n = W.byId[paid.npcId], ac = n && n.act, receipt = ac && ac.ctx && ac.ctx.craftReceipt;
-      if (!n || n.dead || !ac || !['brew', 'forge', 'brewBasic'].includes(ac.id) || !receipt || receipt.id !== id || receipt.state !== 'reserved') delete ledger.open[id];
+      if (!n || n.dead || !ac || !['brew', 'forge', 'brewBasic', 'cook'].includes(ac.id) || !receipt || receipt.id !== id || receipt.state !== 'reserved') delete ledger.open[id];
     });
   };
   function settleCraft(W, npc, r, ctx) {
@@ -192,15 +328,44 @@
     if (ctx) ctx.craftReceipt.state = 'settled';
     return paid;
   }
+  // Metadata is read at runtime: loading this module precedes martial/proficiency modules.
+  ECO.profession = npc => {
+    const c = npc && npc.cult, defs = JD.MARTIAL && JD.MARTIAL.professionSpecializations;
+    return c && c.path === 'CRAFT_CREATION' && defs ? defs[c.sub] || null : null;
+  };
+  ECO.applyArmorArtisan = (npc, gear) => {
+    const spec = ECO.profession(npc);
+    if (!spec || spec.role !== 'ARMOR' || !gear || gear.slot !== 'ARMOR' || gear.artisan) return false;
+    const skill = clamp(npc.h.skills.FORGING || 0, 0, 100), bonus = skill / 100 * 0.08;
+    if (bonus <= 0) return false;
+    const stats = g.STATS && g.STATS.gearStats(gear);
+    if (stats) for (const key of ['def', 'mdef']) if (Number.isFinite(stats[key])) stats[key] = Math.round(stats[key] * (1 + bonus) * 10) / 10;
+    gear.defMult = (gear.defMult || 0) * (1 + bonus);
+    const extraDur = Math.round(skill * 0.12);
+    gear.maxDur = (gear.maxDur || 100) + extraDur;
+    gear.dur = Math.min(gear.maxDur, (gear.dur || 100) + extraDur);
+    gear.artisan = { sub: npc.cult.sub, skill, defenseBonus: bonus, durabilityBonus: extraDur };
+    return true;
+  };
   ECO.successChance = (npc, r) => {
     const skill = npc.h.skills[r.craft] != null ? npc.h.skills[r.craft] : 0;
     const elemBonus = (g.ELEM && r && r.element && r.element !== 'NEUTRAL') ? g.ELEM.resolveCompatibility(npc, r, 'crafting').craftSuccessBonus * 0.35 : 0;
     return clamp(0.55 + (skill - r.minMastery) / 110 + HC.eff(npc, 'physiology.dexterity') / 500 + HC.eff(npc, 'intellect.focus') / 600 + HC.special(npc, 'craft.successBonus') + (g.MARTIAL ? (g.MARTIAL.lifeMult(npc, r.craft) - 1) * .35 : 0) + elemBonus, 0.15, 0.98);
   };
   let gearSeq = 0;
+  ECO.nextGearUid = (W, prefix) => {
+    const pfx = typeof prefix === 'string' && prefix ? prefix : 'eq';
+    if (W && W.sect) {
+      W.sect.gearUidSeq = (Number.isSafeInteger(W.sect.gearUidSeq) && W.sect.gearUidSeq >= 0 ? W.sect.gearUidSeq : gearSeq) + 1;
+      gearSeq = Math.max(gearSeq, W.sect.gearUidSeq);
+      return 'uid_' + pfx + '_' + W.sect.gearUidSeq;
+    }
+    return 'uid_' + pfx + '_' + (++gearSeq);
+  };
   ECO.mintGear = (a, b, c, d) => {
-    let itemOrRecipe = a, q = b, playerSpawned = !!c;
+    let W = null, itemOrRecipe = a, q = b, playerSpawned = !!c;
     if (a && a.sect && a.npcs) {
+      W = a;
       itemOrRecipe = b;
       q = c;
       playerSpawned = !!d;
@@ -210,17 +375,41 @@
       const it = itemOrRecipe.slot ? itemOrRecipe : itemById[itemOrRecipe.outItemId];
       const wp = it.slot === 'WEAPON', ar = it.slot === 'ARMOR';
       const cm = (wp ? 0.05 : ar ? 0.015 : 0.014) * it.tier * q, dm = (ar ? 0.05 : wp ? 0.012 : 0.012) * it.tier * q;
-      const gOut = { id: it.id, nameTh: it.nameTh, slot: it.slot, tier: it.tier, element: it.element || 'NEUTRAL', elementProfile: it.elementProfile || null, q: Math.round(q * 100) / 100, combatMult: cm, defMult: dm, dur: 100, minStage: it.minStage || 1, value: it.value };
+      const gOut = { uid: ECO.nextGearUid(W, it.id), id: it.id, nameTh: it.nameTh, slot: it.slot, tier: it.tier, element: it.element || 'NEUTRAL', elementProfile: it.elementProfile || null, q: Math.round(q * 100) / 100, combatMult: cm, defMult: dm, dur: 100, maxDur: 100, repairCount: 0, minStage: it.minStage || 1, value: it.value };
       if (playerSpawned) gOut.playerSpawned = true;
       return gOut;
     }
     const r = itemOrRecipe, e = r.effect || {};
     const slot = /กระบี่|ศาสตรา|ทวน|ดาบ|หอก|ค้อน|ง้าว/.test(r.outNameTh) || (e.combatMult || 0) > (e.defenseMult || 0) * 1.8 ? 'WEAPON' : (e.defenseMult || 0) > (e.combatMult || 0) * 1.8 ? 'ARMOR' : 'ACCESSORY';
-    const gOut = { id: r.id, nameTh: r.outNameTh, slot, tier: r.tier, element: r.element || 'NEUTRAL', elementProfile: r.elementProfile || null, q: Math.round(q * 100) / 100, combatMult: (e.combatMult || 0) * q, defMult: (e.defenseMult || 0) * q, dur: 100, minStage: e.minStageReq || 1, value: 20 * Math.pow(1.9, r.tier - 1) };
+    const gOut = { uid: ECO.nextGearUid(W, r.id), id: r.id, nameTh: r.outNameTh, slot, tier: r.tier, element: r.element || 'NEUTRAL', elementProfile: r.elementProfile || null, q: Math.round(q * 100) / 100, combatMult: (e.combatMult || 0) * q, defMult: (e.defenseMult || 0) * q, dur: 100, maxDur: 100, repairCount: 0, minStage: e.minStageReq || 1, value: 20 * Math.pow(1.9, r.tier - 1) };
     if (playerSpawned) gOut.playerSpawned = true;
     return gOut;
   };
   /** ผลผลิตที่ได้จากการผลิตสำเร็จ: เข้าคลังสำนัก */
+  /** มอบแต้มตบะบำเพ็ญจากการหลอมโอสถ/สร้างอุปกรณ์สำเร็จ (โดยเฉพาะวิถีรังสรรค์ CRAFT_CREATION และผู้มีวิชา PASS_CROSS_CRAFT_004) */
+  ECO.grantCraftCultivation = (W, npc, r, opts) => {
+    if (!npc || !npc.cult || !g.CULT || !g.CULT.gain) return 0;
+    opts = opts || {};
+    const c = npc.cult;
+    const isCraftPath = c.path === 'CRAFT_CREATION';
+    const hasCrossPass = Array.isArray(c.techs) && c.techs.includes('PASS_CROSS_CRAFT_004');
+    const tier = (r && r.tier) || opts.tier || 1;
+    const q = Number.isFinite(opts.q) ? opts.q : 1.0;
+    const craftId = (r && r.craft) || opts.craft || 'FORGING';
+    const skill = (npc.h && npc.h.skills && npc.h.skills[craftId]) || 0;
+    const rate = g.CULT.rate ? g.CULT.rate(npc, 1.35) : 1.0;
+    const mult = isCraftPath ? 1.0 : (hasCrossPass ? 0.55 : 0.25);
+    const pts = Math.round(((8 + tier * 7.5 + skill * 0.16) * q * (0.7 + 0.3 * Math.min(2.2, rate))) * mult * 10) / 10;
+    if (pts > 0) {
+      g.CULT.gain(npc, pts, W, 'craft_cultivation');
+      if (isCraftPath) {
+        npc.h.state.heartDemon = Math.max(0, (npc.h.state.heartDemon || 0) - 1.5);
+      }
+      npc.lastCraftCultivation = { t: W ? W.t : 0, day: W ? W.day : 0, pts, recipeId: r ? r.id : (opts.recipeId || 'CRAFT'), craft: craftId };
+    }
+    return pts;
+  };
+
   ECO.finishCraft = (W, npc, r, ctx) => {
     const paid = settleCraft(W, npc, r, ctx);
     if (!paid) return { ok: false, rejected: true, text: 'ไม่มีวัตถุดิบที่จองไว้สำหรับงานนี้' };
@@ -238,11 +427,35 @@
       const n = (r.yield || 1) + (W.rng.chance(clamp((skill - r.minMastery) / 120, 0, 0.5)) ? 1 : 0) + (r.starter ? 1 : 0);
       const key = r.outItemId ? r.outItemId : 'P:' + r.id;
       ECO.add(W, key, n, q); out.text = ECO.name(key) + ' ×' + n; out.key = key; out.n = n;
+    } else if (r.outType === 'MATERIAL' && r.outItemId) {
+      const n = (r.yield || 1) + (W.rng.chance(clamp((skill - r.minMastery) / 160, 0, 0.35)) ? 1 : 0);
+      ECO.add(W, r.outItemId, n);
+      out.text = ECO.name(r.outItemId) + ' ×' + n; out.key = r.outItemId; out.n = n;
     } else if (r.outType === 'EQUIPMENT') {
-      const gear = ECO.mintGear(r, q); gear.q = Math.round(q * 100) / 100;
-      W.sect.gear.push(gear); invalidateStockIntel(W); out.text = gear.nameTh + ' (คุณภาพ ' + gear.q + ')'; out.gear = gear;
+      let gear = null;
+      if (r.proceduralOut && ECO.rollProceduralGear) {
+        gear = ECO.rollProceduralGear(W, {
+          slot: r.proceduralSlot || r.slot,
+          gearType: r.proceduralGearType || r.gearType,
+          recipeId: r.id,
+          npc,
+          skill,
+          baseQ: q,
+          materialMods: paid.materialMods,
+          chosenInputs: paid.inputs,
+          source: 'forge'
+        });
+      } else {
+        gear = ECO.mintGear(W, r, q);
+        gear.q = Math.round(q * 100) / 100;
+      }
+      ECO.applyArmorArtisan(npc, gear);
+      gear.listedAtDay = W.day;
+      gear.listedTick = W.t;
+      W.sect.gear.push(gear); invalidateStockIntel(W); out.text = gear.nameTh + ' (T' + gear.tier + ' · คุณภาพ ' + gear.q + ')'; out.gear = gear;
     } else { out.text = r.outNameTh; }
     npc.stats = npc.stats || {}; npc.stats.crafted = (npc.stats.crafted || 0) + 1;
+    out.cultivationGained = ECO.grantCraftCultivation(W, npc, r, { q });
     return out;
   };
   // Personal production uses owned inputs first, purchasing only the missing units.
@@ -287,7 +500,9 @@
     npc.inv.craftedPills = npc.inv.craftedPills || [];
     npc.inv.personalCraftSeq = (npc.inv.personalCraftSeq || 0) + 1;
     const product = { id: String(npc.inv.personalCraftSeq), key, qty, q, purchasedCost: quote.cost, ownValue: quote.ownValue, intent: intent === 'donate' ? 'donate' : 'keep' };
-    npc.inv.craftedPills.push(product); return { ok: true, product };
+    npc.inv.craftedPills.push(product);
+    const cultPts = ECO.grantCraftCultivation(W, npc, r, { q });
+    return { ok: true, product, cultivationGained: cultPts };
   };
   ECO.donatePersonalProduct = (W, npc, id, qty) => {
     if (id && typeof id === "object" && id.kind === "PILL") {
@@ -505,6 +720,81 @@
     const grain = Math.min(ECO.count(W, 'grain'), Math.ceil(hours * (1.5 + skill / 60)));
     if (grain <= 0) return 0;
     ECO.take(W, 'grain', grain); const meals = Math.round(grain * ECO.MEAL_PER_GRAIN * (0.95 + skill / 400)); ECO.add(W, 'meal', meals); return meals;
+  };
+
+  const COOK_RECIPE = { id: 'COOK_MEAL_BATCH', craft: 'cooking', tier: 1, inputs: [{ matId: 'grain', count: 1 }] };
+  ECO.reserveCooking = (W, npc, ctx) => {
+    if (!ctx || !npc) return false;
+    if (ctx.craftReceipt) return !!matchingReceipt(W, npc, COOK_RECIPE, ctx);
+    const skill = clamp(npc.h.skills.cooking || 0, 0, 100);
+    // Preserve five former half-hour yields, now as one paid completed batch.
+    const per = Math.ceil(0.5 * (1.5 + skill / 60));
+    const grain = Math.min(ECO.count(W, 'grain'), per * 5);
+    if (grain < 1) return false;
+    const ledger = craftTransactions(W);
+    if (!Number.isSafeInteger(ledger.seq) || ledger.seq < 0 || ledger.seq >= Number.MAX_SAFE_INTEGER) return false;
+    ECO.take(W, 'grain', grain);
+    ctx.cookingSkill = skill;
+    ctx.cookingProfession = npc.cult && npc.cult.sub;
+    return registerCraft(W, npc, COOK_RECIPE, ctx, [{ matId: 'grain', count: grain }]);
+  };
+  function mealSpecialties(W) {
+    const batches = W.sect.mealSpecialties;
+    if (!Array.isArray(batches)) return [];
+    let remaining = ECO.count(W, 'meal');
+    W.sect.mealSpecialties = batches.filter(b => b && ['RECOVERY_FOOD', 'CULTIVATION_FOOD'].includes(b.role) && Number.isFinite(b.servings) && b.servings > 0 && Number.isFinite(b.potency) && b.potency >= 0 && b.potency <= 1 && Number.isFinite(b.until) && b.until > W.t && b.until <= W.t + 1440).slice(-24).filter(b => {
+      b.servings = Math.min(b.servings, remaining); remaining -= b.servings; return b.servings > 0;
+    });
+    return W.sect.mealSpecialties;
+  }
+  function consumeMealSpecialties(W, count) {
+    const batches = mealSpecialties(W);
+    for (const batch of batches) { const used = Math.min(count, batch.servings); batch.servings -= used; count -= used; if (count <= 0) break; }
+    if (W.sect.mealSpecialties) W.sect.mealSpecialties = batches.filter(b => b.servings > 0);
+  }
+  ECO.finishCooking = (W, npc, ctx) => {
+    const paid = settleCraft(W, npc, COOK_RECIPE, ctx);
+    if (!paid) return { ok: false, rejected: true };
+    const skill = clamp(ctx.cookingSkill || 0, 0, 100), per = Math.ceil(0.5 * (1.5 + skill / 60));
+    const grain = paid.inputs[0].count;
+    const full = Math.floor(grain / per), partial = grain % per;
+    const meals = full * Math.round(per * ECO.MEAL_PER_GRAIN * (0.95 + skill / 400)) + Math.round(partial * ECO.MEAL_PER_GRAIN * (0.95 + skill / 400));
+    const batches = mealSpecialties(W);
+    ECO.add(W, 'meal', meals);
+    const spec = ECO.profession(npc);
+    if (spec && ctx.cookingProfession === npc.cult.sub && ['RECOVERY_FOOD', 'CULTIVATION_FOOD'].includes(spec.role)) {
+      batches.push({ role: spec.role, servings: meals, potency: skill / 100, until: W.t + 1440 });
+      W.sect.mealSpecialties = batches.slice(-24);
+    }
+    const cultivationGained = ECO.grantCraftCultivation(W, npc, COOK_RECIPE, { q: 1 });
+    return { ok: true, meals, cultivationGained };
+  };
+  ECO.reserveMeal = (W, ctx) => {
+    if (!ctx || ctx.mealConsumed) return false;
+    const batches = mealSpecialties(W), batch = batches[0];
+    const specialty = batch && { role: batch.role, potency: batch.potency, until: batch.until };
+    if (!ECO.take(W, 'meal', 1)) return false;
+    ctx.mealConsumed = true; ctx.mealSpecialty = specialty || null;
+    return true;
+  };
+  ECO.finishMeal = (W, npc, ctx) => {
+    if (!ctx || !ctx.mealConsumed || ctx.mealFinished) return false;
+    ctx.mealFinished = true;
+    const meal = ctx.mealSpecialty;
+    if (!meal || meal.until <= W.t || (npc.specialMealCooldownUntil || 0) > W.t || !g.STATS) return false;
+    const potency = clamp(meal.potency, 0, 1), state = npc.h.state;
+    let buff;
+    if (meal.role === 'RECOVERY_FOOD') {
+      state.hp = Math.min(CULT.hpMax(npc), state.hp + CULT.hpMax(npc) * (0.015 + potency * 0.02));
+      state.rest = Math.min(100, state.rest + 3 + potency * 3);
+      buff = { nameTh: 'สำรับทิพย์ฟื้นกาย', p: { def: 0.02 + potency * 0.03 } };
+    } else if (meal.role === 'CULTIVATION_FOOD') {
+      state.qi = Math.min(CULT.qiMax(npc), state.qi + CULT.qiMax(npc) * (0.02 + potency * 0.03));
+      buff = { nameTh: 'สำรับหยกเตรียมปราณ', p: { mdef: 0.02 + potency * 0.03 }, cultRateBonus: 0.03 + potency * 0.03 };
+    } else return false;
+    g.STATS.addBuff(npc, Object.assign({ id: 'professionMeal', kind: 'food', icon: '🍲', dur: 180 }, buff), W.t);
+    npc.specialMealCooldownUntil = W.t + 360;
+    return true;
   };
 
   /* ---------- คำสั่งผลิตของหัวหน้าหอ ---------- */
@@ -766,11 +1056,11 @@
     CAT_RESONANCE_JADE_4: { id: 'CAT_RESONANCE_JADE_4', nameTh: 'หยกสัจธรรมประสานปราณ', tier: 4, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.14, maxQuality: 1.65, value: 180, descTh: 'ผลึกหยกโบราณจากวิหารศักดิ์สิทธิ์ ใช้ขัดเกลาศาสตราชุดสัจธรรมระดับ T4–T6 ให้มีคุณภาพสูงขึ้น' },
     CAT_ASTRAL_ESSENCE_5: { id: 'CAT_ASTRAL_ESSENCE_5', nameTh: 'แก่นดาราบรรพกาล', tier: 5, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.20, maxQuality: 1.75, value: 320, descTh: 'แก่นปราณดาราจากผู้พิทักษ์ชั้นลึก ใช้หลอมยกระดับคุณภาพศาสตรา T4–T6' },
     CAT_PRIMORDIAL_FLAME_6: { id: 'CAT_PRIMORDIAL_FLAME_6', nameTh: 'เพลิงต้นกำเนิดสวรรค์', tier: 6, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.28, maxQuality: 1.85, value: 520, descTh: 'เพลิงศักดิ์สิทธิ์ขั้นสูงสุดจากแท่นบูชาโบราณ ใช้ขัดเกลาศาสตรา T4–T6 สู่ขีดสุด' },
-    CAT_PRIMORDIAL_METAL: { id: 'CAT_PRIMORDIAL_METAL', nameTh: 'แก่นโลหะบรรพกาล', element: 'EARTH_METAL', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นโลหะจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
-    CAT_PRIMORDIAL_WOOD: { id: 'CAT_PRIMORDIAL_WOOD', nameTh: 'แก่นไม้กำเนิดชีพ', element: 'WOOD_LIFE', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นไม้ปราณจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
-    CAT_PRIMORDIAL_WATER: { id: 'CAT_PRIMORDIAL_WATER', nameTh: 'แก่นวารีเยือกแข็ง', element: 'WATER_ICE', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นวารีจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
-    CAT_PRIMORDIAL_FIRE: { id: 'CAT_PRIMORDIAL_FIRE', nameTh: 'แก่นเพลิงชาดบรรพกาล', element: 'FIRE', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นเพลิงจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
-    CAT_PRIMORDIAL_EARTH: { id: 'CAT_PRIMORDIAL_EARTH', nameTh: 'แก่นปฐพีหยกเร้น', element: 'EARTH_METAL', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นปฐพีจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' }
+    CAT_PRIMORDIAL_METAL: { id: 'CAT_PRIMORDIAL_METAL', nameTh: 'แก่นโลหะบรรพกาล', element: 'EARTH_METAL', resonantElements: ['EARTH_METAL', 'LIGHTNING'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นโลหะและอัสนีจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' },
+    CAT_PRIMORDIAL_WOOD: { id: 'CAT_PRIMORDIAL_WOOD', nameTh: 'แก่นไม้กำเนิดชีพ', element: 'WOOD_LIFE', resonantElements: ['WOOD_LIFE', 'WIND'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นไม้และวายุจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' },
+    CAT_PRIMORDIAL_WATER: { id: 'CAT_PRIMORDIAL_WATER', nameTh: 'แก่นวารีเยือกแข็ง', element: 'WATER_ICE', resonantElements: ['WATER_ICE', 'YIN_SHADOW'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นวารีและเงาหยินจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' },
+    CAT_PRIMORDIAL_FIRE: { id: 'CAT_PRIMORDIAL_FIRE', nameTh: 'แก่นเพลิงชาดบรรพกาล', element: 'FIRE', resonantElements: ['FIRE', 'LIGHT_YANG'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นเพลิงและแสงหยางจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' },
+    CAT_PRIMORDIAL_EARTH: { id: 'CAT_PRIMORDIAL_EARTH', nameTh: 'แก่นปฐพีหยกเร้น', element: 'EARTH_METAL', resonantElements: ['EARTH_METAL', 'ASTRAL', 'BLOOD_DEMON'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นปฐพีและดาราจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' }
   };
 
   ECO.ensureCatalysts = W => {
@@ -826,36 +1116,67 @@
       if (W.sect.catalysts[cat.id] <= 0) delete W.sect.catalysts[cat.id];
       W.sect._hasCatalysts = Object.values(W.sect.catalysts).some(v => v > 0);
     }
-    const newQ = Math.min(cat.maxQuality, +(oldQ + cat.qualityBoost).toFixed(2));
+    const catElems = Array.isArray(cat.resonantElements) ? cat.resonantElements : (cat.element ? [cat.element] : []);
+    const gEl = gear.element || (gear.elementProfile && gear.elementProfile.primary) || 'NEUTRAL';
+    const gWeights = (gear.elementProfile && gear.elementProfile.weights) || {};
+    const elementResonant = catElems.length > 0 && (catElems.includes(gEl) || catElems.some(e => gWeights[e] > 0));
+    let attunedElement = gear.attunedElement || null;
+    if (catElems.length > 0 && (gEl === 'NEUTRAL' || gear.elementalRole === 'EXPLICIT_NON_ELEMENTAL')) {
+      const subDef = npc && npc.cult && g.CULT && g.CULT.sub ? g.CULT.sub(npc) : null;
+      const subEl = subDef && subDef.element;
+      attunedElement = (subEl && catElems.includes(subEl)) ? subEl : cat.element;
+      gear.attunedElement = attunedElement;
+    }
+    const effectiveBoost = cat.qualityBoost + (elementResonant ? 0.04 : 0);
+    const newQ = Math.min(cat.maxQuality, +(oldQ + effectiveBoost).toFixed(2));
     const ratio = newQ / Math.max(0.5, oldQ);
     gear.q = newQ;
     if (gear.combatMult) gear.combatMult = +(gear.combatMult * ratio).toFixed(4);
     if (gear.defMult) gear.defMult = +(gear.defMult * ratio).toFixed(4);
     gear.refinedCount = (gear.refinedCount || 0) + 1;
+    if (elementResonant) gear.elementalResonanceCount = (gear.elementalResonanceCount || 0) + 1;
     gear.lastCatalystId = cat.id;
-    delete gear.st;
-    if (g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
+    if (!gear.st && g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
+    if (gear.st && typeof gear.st === 'object') {
+      for (const sk of Object.keys(gear.st)) {
+        if (!['crit', 'critDmg', 'pen', 'move', 'cast'].includes(sk)) {
+          gear.st[sk] = Math.round(gear.st[sk] * ratio * 10) / 10;
+        }
+      }
+    }
     if (npc) {
+      if (ECO.grantCraftCultivation) ECO.grantCraftCultivation(W, npc, null, { tier: gTier, q: newQ, craft: 'FORGING', recipeId: cat.id });
       if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
       HC.bump(npc);
     }
     if (!opts.quiet && W.log) {
       W.log('craft', '✨ ขัดเกลาศาสตรา「' + gear.nameTh + '」ด้วย「' + cat.nameTh + '」คุณภาพเพิ่มเป็น ' + oldQ.toFixed(2) + ' → ' + newQ.toFixed(2), npc ? [npc.id] : []);
     }
-    return { ok: true, gear, catalystId: cat.id, oldQuality: oldQ, newQuality: newQ };
+    return { ok: true, gear, catalystId: cat.id, oldQuality: oldQ, newQuality: newQ, elementResonant, attunedElement: gear.attunedElement || null };
   };
 
   ECO.findCatalystRefinementCandidate = (W, npc) => {
     if (!W || !W.sect || !npc || npc.dead || !npc.cult) return null;
     const cats = W.sect.catalysts;
     if (!cats || typeof cats !== 'object') return null;
+    let hasAnyCat = false; for (const _ck in cats) { if (cats[_ck] > 0) { hasAnyCat = true; break; } }
+    if (!hasAnyCat) { W.sect._hasCatalysts = false; return null; }
     const availCats = Object.values(ECO.REFINEMENT_CATALYSTS).filter(c => (cats[c.id] || 0) > 0);
     W.sect._hasCatalysts = availCats.length > 0;
     if (!availCats.length) return null;
     const isForgeOfficer = npc.post === 'forge' || npc.assist === 'forge';
     const isEligible = (npc.rank || 0) >= 2 || isForgeOfficer || npc.id === W.sect.masterId;
     if (!isEligible) return null;
-    availCats.sort((a, b) => b.tier - a.tier);
+    const subDef = npc.cult && g.CULT && g.CULT.sub ? g.CULT.sub(npc) : null;
+    const prefEl = (npc.equip && npc.equip.WEAPON && npc.equip.WEAPON.element && npc.equip.WEAPON.element !== 'NEUTRAL')
+      ? npc.equip.WEAPON.element
+      : (subDef && subDef.element) || null;
+    availCats.sort((a, b) => {
+      const aMatch = prefEl && ((a.element === prefEl) || (Array.isArray(a.resonantElements) && a.resonantElements.includes(prefEl))) ? 1 : 0;
+      const bMatch = prefEl && ((b.element === prefEl) || (Array.isArray(b.resonantElements) && b.resonantElements.includes(prefEl))) ? 1 : 0;
+      if (bMatch !== aMatch) return bMatch - aMatch;
+      return b.tier - a.tier;
+    });
     const cat = availCats[0];
     // 1. Check NPC's own equipped T4-T6 gear first
     if (npc.equip) {
@@ -894,6 +1215,593 @@
       }
     }
     return null;
+  };
+
+
+  /* ---------- Patch v2.0.13: Procedural Equipment Engine, Repair Stones & Durability Lifecycle ---------- */
+  ECO.REPAIR_STONES = {
+    ITEM_REPAIR_STONE_1: { id: 'ITEM_REPAIR_STONE_1', nameTh: 'หินลับศาสตราหยาบ', tier: 1, quality: 1, maxDurReduction: 25, minMaxDur: 20, value: 18 },
+    ITEM_REPAIR_STONE_2: { id: 'ITEM_REPAIR_STONE_2', nameTh: 'หินซ่อมศาสตราเหล็กดำ', tier: 2, quality: 2, maxDurReduction: 20, minMaxDur: 20, value: 44 },
+    ITEM_REPAIR_STONE_3: { id: 'ITEM_REPAIR_STONE_3', nameTh: 'หินหลอมซ่อมปราณหยก', tier: 3, quality: 3, maxDurReduction: 15, minMaxDur: 20, value: 98 },
+    ITEM_REPAIR_STONE_4: { id: 'ITEM_REPAIR_STONE_4', nameTh: 'หินทิพย์ประสานศาสตรา', tier: 4, quality: 4, maxDurReduction: 10, minMaxDur: 20, value: 215 }
+  };
+
+  ECO.PROCEDURAL_POOLS = {
+    baseForms: {
+      SWORD: ['กระบี่เหล็กกล้า', 'กระบี่คมวายุ', 'กระบี่หยกขาว', 'กระบี่จันทร์เสี้ยว', 'กระบี่เจ็ดดาว'],
+      BLADE: ['ดาบสันหนา', 'ดาบโค้งวงเดือน', 'ดาบผ่าขุนเขา', 'กริชคู่เร้นเงา', 'ดาบพยัคฆ์คำราม'],
+      SPEAR: ['ทวนยาวศึก', 'หอกปลายเงิน', 'ทวนเกล็ดมังกร', 'ง้าวศึกทะลวงทัพ', 'หอกซัดอสนี'],
+      FIST: ['สนับมือเหล็กดำ', 'กรงเล็บพยัคฆ์', 'ปลอกแขนวัชระ', 'สนับมือหยกม่วง', 'กรงเล็บเหยี่ยวศึก'],
+      BOW: ['คันศรไม้ไผ่ม่วง', 'ธนูเขาสัตว์อสูร', 'คันศรเอ็นมังกร', 'ธนูศึกทะลวงเมฆ', 'คันศรจันทรา'],
+      STAFF: ['พลองไม้แก่นเหล็ก', 'กระบองคิ้วขาว', 'พลองศิลาดำ', 'ค้อนศึกสะท้านผา', 'พลองพิทักษ์ด่าน'],
+      FOCUS: ['พัดหยกสื่อปราณ', 'พิณสายไหมเงิน', 'ขลุ่ยหยกเขียว', 'พู่กันอาคมชาด', 'ระฆังสำริดสะกดจิต'],
+      HEAVY: ['เกราะเกล็ดเหล็กดำ', 'เกราะศึกพิทักษ์ด่าน', 'เกราะแผ่นศิลา', 'เกราะอกพยัคฆ์', 'เกราะเหล็กหลอมปราณ'],
+      LIGHT: ['เกราะหนังอสูร', 'เสื้อเกราะไหมเหนียว', 'ชุดรัดกุมเร้นเงา', 'เกราะเบาขนเหยี่ยว', 'ชุดหนังเกล็ดงู'],
+      ROBE: ['อาภรณ์ไหมเมฆา', 'ชุดคลุมนักพรตหยก', 'จีวรปราณบริสุทธิ์', 'อาภรณ์ดาราพยากรณ์', 'ชุดคลุมไหมจันทร์'],
+      RING: ['แหวนหยกผนึกปราณ', 'แหวนสำริดโบราณ', 'แหวนเงินสลักอักขระ', 'แหวนเหล็กไหล'],
+      NECKLACE: ['สร้อยลูกประคำหยก', 'จี้ห้อยคอศิลาปราณ', 'สร้อยเขี้ยวอสูร', 'จี้หยกคุ้มชีพ'],
+      BRACELET: ['กำไลหยกประสานชีพจร', 'กำไลเงินร้อยอักขระ', 'กำไลเหล็กเย็น', 'สายรัดข้อมือปราณ'],
+      CHARM: ['ป้ายหยกพกเอว', 'ถุงหอมสมุนไพรปราณ', 'ตราพกสำนักโบราณ', 'แผ่นยันต์หยกคุ้มกาย']
+    },
+    gradesByTier: {
+      1: { grade: 'Common', gradeTh: 'สามัญ', prefixes: ['สามัญ', 'ฝึกหัด', 'เหล็กดิบ', 'พื้นฐาน'] },
+      2: { grade: 'Refined', gradeTh: 'หลอมปราณีต', prefixes: ['หลอมปราณีต', 'ขัดเงา', 'ซ้อนคม', 'ร้อยหลอม'] },
+      3: { grade: 'Rare', gradeTh: 'ล้ำค่า', prefixes: ['ปราณควบแน่น', 'ล้ำค่า', 'จารึกอักขระ', 'วิญญาณแฝง'] },
+      4: { grade: 'Exceptional', gradeTh: 'ยอดฝีมือ', prefixes: ['เอกอุ', 'ชั้นยอด', 'หลอมแก่นแท้', 'ปรมาจารย์'] }
+    },
+    elements: {
+      NEUTRAL: { id: 'NEUTRAL', nameTh: 'ไร้ธาตุ', tagTh: 'ปราณบริสุทธิ์' },
+      FIRE: { id: 'FIRE', nameTh: 'อัคคี', tagTh: 'เพลิงชาด' },
+      WATER_ICE: { id: 'WATER_ICE', nameTh: 'วารี-น้ำแข็ง', tagTh: 'เหมันต์เยือก' },
+      WIND: { id: 'WIND', nameTh: 'วายุ', tagTh: 'สายลมกรด' },
+      EARTH_METAL: { id: 'EARTH_METAL', nameTh: 'ปฐพี-โลหะ', tagTh: 'ศิลาเหล็ก' },
+      WOOD_LIFE: { id: 'WOOD_LIFE', nameTh: 'พฤกษา-ชีวิต', tagTh: 'มรกตชีวา' },
+      LIGHTNING: { id: 'LIGHTNING', nameTh: 'อัสนี', tagTh: 'อสนีคราม' },
+      LIGHT_YANG: { id: 'LIGHT_YANG', nameTh: 'แสง-หยาง', tagTh: 'สุริยันทอง' },
+      YIN_SHADOW: { id: 'YIN_SHADOW', nameTh: 'หยิน-เงา', tagTh: 'เงารัตติกาล' },
+      BLOOD_DEMON: { id: 'BLOOD_DEMON', nameTh: 'โลหิต-มาร', tagTh: 'โลหิตอสูร' },
+      ASTRAL: { id: 'ASTRAL', nameTh: 'ดารา-มิติ', tagTh: 'ดาราพร่าง' }
+    },
+    affixes: [
+      { id: 'ferocious_atk', suffixTh: 'ขย้ำพยัคฆ์', stat: 'atk', scale: 0.22, slots: ['WEAPON', 'ACCESSORY'] },
+      { id: 'profound_matk', suffixTh: 'สะท้อนปราณ', stat: 'matk', scale: 0.22, slots: ['WEAPON', 'ACCESSORY'] },
+      { id: 'bastion_def', suffixTh: 'พิทักษ์ผา', stat: 'def', scale: 0.24, slots: ['ARMOR', 'ACCESSORY', 'WEAPON'] },
+      { id: 'ward_mdef', suffixTh: 'กันอาคม', stat: 'mdef', scale: 0.24, slots: ['ARMOR', 'ACCESSORY'] },
+      { id: 'vital_hp', suffixTh: 'อายุวัฒนะ', stat: 'hp', scale: 0.36, slots: ['ARMOR', 'ACCESSORY'] },
+      { id: 'lethal_crit', suffixTh: 'ผ่าจุดตาย', stat: 'crit', flatByTier: [2.0, 3.4, 5.0, 6.8], slots: ['WEAPON', 'ACCESSORY'] },
+      { id: 'savage_critdmg', suffixTh: 'สังหารเด็ดขาด', stat: 'critDmg', flatByTier: [7, 12, 18, 25], slots: ['WEAPON', 'ACCESSORY'] },
+      { id: 'piercing_pen', suffixTh: 'ทะลวงเกราะ', stat: 'pen', flatByTier: [3.0, 5.0, 7.5, 10.5], slots: ['WEAPON', 'ACCESSORY'] },
+      { id: 'swift_cast', suffixTh: 'ร่ายสายฟ้า', stat: 'cast', flatByTier: [3.0, 5.0, 7.5, 10.5], slots: ['WEAPON', 'ARMOR', 'ACCESSORY'] },
+      { id: 'gale_eva', suffixTh: 'เร้นเมฆา', stat: 'eva', scale: 0.16, slots: ['ARMOR', 'ACCESSORY'] },
+      { id: 'hawk_acc', suffixTh: 'เนตรเหยี่ยว', stat: 'acc', scale: 0.18, slots: ['WEAPON', 'ACCESSORY'] },
+      { id: 'stride_move', suffixTh: 'ก้าวท่องลม', stat: 'move', flatByTier: [2.5, 4.0, 5.5, 7.5], slots: ['ARMOR', 'ACCESSORY'] }
+    ]
+  };
+
+  const PROC_BASE_SCALE = [28, 62, 130, 270];
+  const ALL_GEAR_TYPES = {
+    WEAPON: ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'],
+    ARMOR: ['HEAVY', 'LIGHT', 'ROBE'],
+    ACCESSORY: ['RING', 'NECKLACE', 'BRACELET', 'CHARM']
+  };
+  const ALL_ELEMENTS = ['NEUTRAL', 'FIRE', 'WATER_ICE', 'WIND', 'EARTH_METAL', 'WOOD_LIFE', 'LIGHTNING', 'LIGHT_YANG', 'YIN_SHADOW', 'BLOOD_DEMON', 'ASTRAL'];
+
+  ECO.rollProceduralGear = (W, spec) => {
+    spec = spec || {};
+    const rng = (spec.rng && typeof spec.rng.next === 'function') ? spec.rng : (W && W.rng ? W.rng : new U.RNG(String(spec.seed || 'proc_gear')));
+    const slot = ['WEAPON', 'ARMOR', 'ACCESSORY'].includes(spec.slot)
+      ? spec.slot
+      : rng.pick(['WEAPON', 'ARMOR', 'ACCESSORY']);
+    const validTypes = ALL_GEAR_TYPES[slot];
+    const gearType = (spec.gearType && validTypes.includes(spec.gearType))
+      ? spec.gearType
+      : rng.pick(validTypes);
+
+    const mods = spec.materialMods || {};
+    const tierCap = clamp(spec.maxTier || mods.tierCap || 4, 1, 4);
+    const minTier = clamp(spec.minTier || 1, 1, tierCap);
+    let tier = spec.tier;
+    if (!Number.isFinite(tier)) {
+      const skillBonus = Number.isFinite(spec.skill) ? spec.skill / 90 : 0;
+      const rawTier = 1 + (mods.tierShift || 0) + skillBonus * 0.65 + (rng.next() - 0.35) * 1.15;
+      tier = clamp(Math.round(rawTier), minTier, tierCap);
+    } else {
+      tier = clamp(Math.round(tier), 1, 4);
+    }
+
+    const baseQ = Number.isFinite(spec.baseQ) ? spec.baseQ : (0.88 + rng.next() * 0.28 + (tier - 1) * 0.04);
+    const q = Math.round(clamp(baseQ + (mods.qShift || 0), 0.72, 1.55) * 100) / 100;
+
+    // Roll Element (Single, Dual, or Neutral)
+    let primaryEl = spec.element || null;
+    if (!primaryEl || !ECO.PROCEDURAL_POOLS.elements[primaryEl]) {
+      const biases = Array.isArray(mods.elementBiases) ? mods.elementBiases.filter(e => ECO.PROCEDURAL_POOLS.elements[e]) : [];
+      if (biases.length > 0 && rng.chance(0.76)) {
+        primaryEl = biases[Math.floor(rng.next() * biases.length)];
+      } else {
+        primaryEl = ALL_ELEMENTS[Math.floor(rng.next() * ALL_ELEMENTS.length)];
+      }
+    }
+    let secondaryEl = null;
+    const biases2 = Array.isArray(mods.elementBiases) ? mods.elementBiases.filter(e => e !== primaryEl && e !== 'NEUTRAL' && ECO.PROCEDURAL_POOLS.elements[e]) : [];
+    if (primaryEl !== 'NEUTRAL' && (biases2.length > 0 ? rng.chance(0.45) : (tier >= 3 && rng.chance(0.22)))) {
+      secondaryEl = biases2.length > 0 ? biases2[0] : ALL_ELEMENTS.filter(e => e !== 'NEUTRAL' && e !== primaryEl)[Math.floor(rng.next() * (ALL_ELEMENTS.length - 2))];
+    }
+
+    const elementRole = primaryEl === 'NEUTRAL' ? 'EXPLICIT_NON_ELEMENTAL' : 'ELEMENTAL';
+    const elementProfile = primaryEl === 'NEUTRAL'
+      ? { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} }
+      : secondaryEl
+        ? { mode: 'DUAL', primary: primaryEl, secondary: secondaryEl, weights: { [primaryEl]: 0.7, [secondaryEl]: 0.3 } }
+        : { mode: 'SINGLE', primary: primaryEl, weights: { [primaryEl]: 1.0 } };
+
+    // Roll Affixes (1 to 3 depending on tier and secondary material affixShift)
+    const affixCount = clamp(1 + (tier >= 3 ? 1 : 0) + (rng.next() < (0.18 + (mods.affixShift || 0) * 0.65 + (tier === 4 ? 0.35 : 0)) ? 1 : 0), 1, 3);
+    const candidateAffixes = ECO.PROCEDURAL_POOLS.affixes.filter(a => a.slots.includes(slot));
+    const statBiases = Array.isArray(mods.statBiases) ? mods.statBiases : [];
+    const pickedAffixes = [];
+    const usedIds = new Set();
+    for (let ai = 0; ai < affixCount && candidateAffixes.length > pickedAffixes.length; ai++) {
+      const avail = candidateAffixes.filter(a => !usedIds.has(a.id));
+      const picked = rng.weighted(avail, a => 1 + (statBiases.includes(a.stat) || statBiases.includes('all') ? 2.6 : 0));
+      if (picked) {
+        usedIds.add(picked.id);
+        pickedAffixes.push(picked);
+      }
+    }
+
+    // Compute concrete stats (st) and combatMult / defMult
+    const baseScale = PROC_BASE_SCALE[tier - 1] * q;
+    const st = {};
+    if (slot === 'WEAPON') {
+      const isFocus = gearType === 'FOCUS';
+      st[isFocus ? 'matk' : 'atk'] = baseScale * (0.54 + rng.next() * 0.08);
+      st[isFocus ? 'atk' : 'matk'] = baseScale * (0.12 + rng.next() * 0.05);
+    } else if (slot === 'ARMOR') {
+      st.def = baseScale * (gearType === 'HEAVY' ? 0.62 : gearType === 'LIGHT' ? 0.46 : 0.38);
+      st.mdef = baseScale * (gearType === 'ROBE' ? 0.44 : 0.28);
+      st.hp = baseScale * (0.48 + rng.next() * 0.08);
+    } else {
+      st.hp = baseScale * 0.28;
+      st.atk = baseScale * 0.14;
+      st.matk = baseScale * 0.14;
+    }
+
+    const typedBase = {
+      SWORD: { crit: 2.5 + tier * 0.5, acc: baseScale * 0.08 },
+      BLADE: { atk: baseScale * 0.14, critDmg: 4 + tier * 1.5 },
+      BOW: { acc: baseScale * 0.18, crit: 2 + tier * 0.5 },
+      SPEAR: { pen: 4 + tier * 1.2, atk: baseScale * 0.08 },
+      STAFF: { def: baseScale * 0.16, hp: baseScale * 0.14 },
+      FIST: { cast: 4 + tier, crit: 1.5 + tier * 0.4 },
+      FOCUS: { matk: baseScale * 0.16, cast: 3 + tier },
+      HEAVY: { def: baseScale * 0.18, move: -3 },
+      LIGHT: { eva: baseScale * 0.16, move: 4 },
+      ROBE: { mdef: baseScale * 0.20, cast: 4 },
+      RING: { crit: 2 + tier * 0.5, pen: 2 + tier * 0.5 },
+      NECKLACE: { hp: baseScale * 0.30, def: baseScale * 0.10 },
+      BRACELET: { cast: 3.5 + tier, acc: baseScale * 0.12 },
+      CHARM: { mdef: baseScale * 0.16, eva: baseScale * 0.10 }
+    }[gearType] || {};
+    for (const k in typedBase) st[k] = (st[k] || 0) + typedBase[k];
+
+    const rolledAffixes = [];
+    for (const af of pickedAffixes) {
+      const rollFactor = 0.88 + rng.next() * 0.28;
+      const val = af.flatByTier
+        ? +(af.flatByTier[tier - 1] * rollFactor * (0.9 + q * 0.1)).toFixed(1)
+        : +(baseScale * (af.scale || 0.18) * rollFactor).toFixed(1);
+      st[af.stat] = (st[af.stat] || 0) + val;
+      rolledAffixes.push({ id: af.id, suffixTh: af.suffixTh, stat: af.stat, val });
+    }
+    for (const k in st) st[k] = Math.round(st[k] * 10) / 10;
+
+    const wp = slot === 'WEAPON', ar = slot === 'ARMOR';
+    const combatMult = +(((wp ? 0.052 : ar ? 0.016 : 0.018) * tier * q) * (1 + pickedAffixes.length * 0.03)).toFixed(4);
+    const defMult = +(((ar ? 0.052 : wp ? 0.014 : 0.016) * tier * q) * (1 + pickedAffixes.length * 0.03)).toFixed(4);
+
+    // Construct Coherent Thai Name
+    const forms = ECO.PROCEDURAL_POOLS.baseForms[gearType] || ['ศาสตราหลอม'];
+    const baseForm = forms[Math.floor(rng.next() * forms.length)];
+    const gradeInfo = ECO.PROCEDURAL_POOLS.gradesByTier[tier] || ECO.PROCEDURAL_POOLS.gradesByTier[1];
+    const prefix = gradeInfo.prefixes[Math.floor(rng.next() * gradeInfo.prefixes.length)];
+    const elInfo = ECO.PROCEDURAL_POOLS.elements[primaryEl] || ECO.PROCEDURAL_POOLS.elements.NEUTRAL;
+    const secElInfo = secondaryEl ? ECO.PROCEDURAL_POOLS.elements[secondaryEl] : null;
+    const elTag = secElInfo ? (elInfo.tagTh + 'ผสาน' + secElInfo.nameTh) : elInfo.tagTh;
+    const primaryAffix = rolledAffixes[0];
+    const nameTh = baseForm + prefix + 'แห่ง' + elTag + (primaryAffix ? ('·' + primaryAffix.suffixTh) : '');
+
+    const templateId = 'ITEM_PROC_' + gearType;
+    const uid = ECO.nextGearUid(W, templateId);
+    const baseVal = Math.round((26 * Math.pow(1.92, tier - 1)) * q * (1 + rolledAffixes.length * 0.08));
+
+    const gear = {
+      uid,
+      id: templateId,
+      nameTh,
+      slot,
+      gearType,
+      subType: slot === 'WEAPON' ? gearType : undefined,
+      tier,
+      minStage: tier,
+      grade: gradeInfo.grade,
+      gradeTh: gradeInfo.gradeTh,
+      procedural: true,
+      element: primaryEl,
+      secondaryElement: secondaryEl || null,
+      elementalRole: elementRole,
+      elementProfile,
+      q,
+      combatMult,
+      defMult,
+      st,
+      affixes: rolledAffixes,
+      dur: 100,
+      maxDur: 100,
+      repairCount: 0,
+      broken: false,
+      retired: false,
+      value: baseVal,
+      origin: {
+        source: spec.source || 'procedural',
+        day: W ? W.day : 0,
+        recipeId: spec.recipeId || null,
+        crafterId: spec.npc ? spec.npc.id : null,
+        materials: Array.isArray(spec.chosenInputs) ? spec.chosenInputs.map(x => x.matId) : (mods.matIds || [])
+      }
+    };
+    if (spec.playerSpawned) gear.playerSpawned = true;
+    // Tag with resonanceSetIds if tier >= 3
+    if (tier >= 3 && JD.MARTIAL && Array.isArray(JD.MARTIAL.RESONANCE_SETS)) {
+      const matched = [];
+      for (const rs of JD.MARTIAL.RESONANCE_SETS) {
+        const slotTypes = rs.slots && rs.slots[slot];
+        if (!slotTypes || !slotTypes.includes(gearType)) continue;
+        if (rs.elementFamily.includes(primaryEl) || (primaryEl === 'NEUTRAL' && rs.elementFamily.includes('EXPLICIT_NON_ELEMENTAL'))) {
+          matched.push(rs.id);
+        }
+      }
+      if (matched.length) {
+        gear.resonanceSetIds = matched;
+        gear.resonanceSetId = matched[0];
+      }
+    }
+    return gear;
+  };
+
+  ECO.previewProceduralCraft = (W, recipeOrId, opts, npc) => {
+    const r = typeof recipeOrId === 'string' ? recipeById[recipeOrId] : recipeOrId;
+    if (!r || !r.proceduralOut) return null;
+    const resolved = ECO.resolveCraftMaterials(W, r, opts, npc);
+    if (!resolved) {
+      return {
+        ok: false,
+        recipeId: r.id,
+        nameTh: r.nameTh,
+        reasonTh: 'วัตถุดิบในคลังสำนักไม่เพียงพอสำหรับแม่พิมพ์นี้'
+      };
+    }
+    const mods = resolved.materialMods || {};
+    const skill = npc && npc.h && npc.h.skills ? (npc.h.skills.FORGING || 0) : 25;
+    const minTier = 1;
+    const maxTier = clamp(mods.tierCap || 2, 1, 4);
+    const estTier = clamp(Math.round(1 + (mods.tierShift || 0) + (skill / 90) * 0.65), minTier, maxTier);
+    const minQ = +(clamp(0.85 + (mods.qShift || 0) - 0.08, 0.72, 1.55)).toFixed(2);
+    const maxQ = +(clamp(0.95 + (skill - r.minMastery) / 160 + (mods.qShift || 0) + 0.12, minQ, 1.55)).toFixed(2);
+    const elBiases = (mods.elementBiases && mods.elementBiases.length) ? mods.elementBiases : ['สุ่มทุกธาตุ'];
+    const statBiases = (mods.statBiases && mods.statBiases.length) ? mods.statBiases : ['สมดุล'];
+    return {
+      ok: true,
+      recipeId: r.id,
+      nameTh: r.nameTh,
+      slot: r.proceduralSlot || r.slot,
+      gearType: r.proceduralGearType || r.gearType,
+      inputs: resolved.inputs,
+      chosenOptions: resolved.chosenOptions,
+      tierRange: [minTier, maxTier],
+      expectedTier: estTier,
+      qualityRange: [minQ, maxQ],
+      elementBiases: elBiases,
+      statBiases,
+      summaryTh: 'คาดการณ์ระดับ T' + minTier + '–T' + maxTier + ' (เด่น T' + estTier + ') · คุณภาพ ' + minQ + '–' + maxQ + ' · โน้มเอียงธาตุ: ' + elBiases.join('/')
+    };
+  };
+
+  ECO.craftProceduralNow = (W, npc, recipeOrId, opts) => {
+    const r = typeof recipeOrId === 'string' ? recipeById[recipeOrId] : recipeOrId;
+    if (!W || !W.sect || !r || !r.proceduralOut) return { ok: false, reason: 'invalid-recipe' };
+    const crafter = npc || W.byId[W.sect.posts && W.sect.posts.forge] || W.byId[W.sect.masterId] || W.npcs.find(n => !n.dead);
+    if (!crafter) return { ok: false, reason: 'no-crafter' };
+    const resolved = ECO.resolveCraftMaterials(W, r, opts, crafter);
+    if (!resolved) return { ok: false, reason: 'insufficient-inputs' };
+    resolved.inputs.forEach(i => ECO.take(W, i.matId, i.count));
+    const skill = (crafter.h && crafter.h.skills && crafter.h.skills.FORGING) || 25;
+    const baseQ = clamp(0.88 + (skill - r.minMastery) / 160 + W.rng.gauss(0, 0.05), 0.72, 1.50);
+    const gear = ECO.rollProceduralGear(W, {
+      slot: r.proceduralSlot || r.slot,
+      gearType: r.proceduralGearType || r.gearType,
+      recipeId: r.id,
+      npc: crafter,
+      skill,
+      baseQ,
+      materialMods: resolved.materialMods,
+      chosenInputs: resolved.inputs,
+      source: 'forge'
+    });
+    ECO.applyArmorArtisan(crafter, gear);
+    (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(crafter, 'FORGING', ECO.craftHours(r, skill), 1.1);
+    gear.listedAtDay = W.day;
+    gear.listedTick = W.t;
+    if (opts && opts.toNpcBag && crafter.inv) {
+      crafter.inv.gear = crafter.inv.gear || [];
+      crafter.inv.gear.push(gear);
+    } else {
+      W.sect.gear.push(gear);
+      invalidateStockIntel(W);
+    }
+    const cultPts = ECO.grantCraftCultivation ? ECO.grantCraftCultivation(W, crafter, r, { q: gear.q, tier: gear.tier, craft: r.craft || 'FORGING' }) : 0;
+    if (W.log && !(opts && opts.quiet)) {
+      W.log('craft', (crafter.h && crafter.h.name ? crafter.h.name.given : 'ช่างหลอม') + ' หลอมศาสตราสุ่มสำเร็จ:「' + gear.nameTh + '」(T' + gear.tier + ' · คุณภาพ ' + gear.q + ' · ทนทาน ' + gear.dur + '/' + gear.maxDur + ')', [crafter.id]);
+    }
+    return { ok: true, gear, inputs: resolved.inputs, materialMods: resolved.materialMods, cultivationGained: cultPts };
+  };
+
+  ECO.wearGear = (it, amount, W, ownerNpc) => {
+    if (!it || typeof it !== 'object') return false;
+    const wear = Number.isFinite(amount) && amount > 0 ? amount : 0;
+    if (wear <= 0) return false;
+    if (it.maxDur == null) it.maxDur = 100;
+    if (it.dur == null) it.dur = it.maxDur;
+    const prevDur = it.dur;
+    it.dur = Math.max(0, Math.round((it.dur - wear) * 100) / 100);
+    if (it.procedural) {
+      if (it.dur <= 0) {
+        it.dur = 0;
+        it.broken = true;
+        if (it.maxDur <= 20) it.retired = true;
+      }
+    } else {
+      it.dur = Math.max(1, it.dur);
+    }
+    if (ownerNpc && ((prevDur > 0 && it.dur <= 0) || Math.floor(prevDur / 10) !== Math.floor(it.dur / 10))) {
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(ownerNpc);
+      if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(ownerNpc);
+    }
+    return it.dur <= 0;
+  };
+
+  ECO.repairGear = (W, gearOrUid, stoneId, npc, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+    let gear = (gearOrUid && typeof gearOrUid === 'object') ? gearOrUid : null;
+    if (!gear && typeof gearOrUid === 'string') {
+      if (npc && npc.equip) {
+        for (const sl of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+          if (npc.equip[sl] && (npc.equip[sl].uid === gearOrUid || npc.equip[sl].id === gearOrUid)) { gear = npc.equip[sl]; break; }
+        }
+      }
+      if (!gear && npc && npc.inv && Array.isArray(npc.inv.gear)) {
+        gear = npc.inv.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+      }
+      if (!gear && Array.isArray(W.sect.gear)) {
+        gear = W.sect.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+      }
+      if (!gear && Array.isArray(W.npcs)) {
+        for (const n of W.npcs) {
+          if (!n || n.dead) continue;
+          for (const sl of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+            if (n.equip && n.equip[sl] && (n.equip[sl].uid === gearOrUid || n.equip[sl].id === gearOrUid)) { gear = n.equip[sl]; npc = npc || n; break; }
+          }
+          if (gear) break;
+          if (n.inv && Array.isArray(n.inv.gear)) {
+            const hit = n.inv.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+            if (hit) { gear = hit; npc = npc || n; break; }
+          }
+        }
+      }
+    }
+    if (!gear || !gear.slot) return { ok: false, reason: 'gear-not-found' };
+
+    let stone = stoneId ? ECO.REPAIR_STONES[stoneId] : null;
+    if (!stone) {
+      const order = ['ITEM_REPAIR_STONE_4', 'ITEM_REPAIR_STONE_3', 'ITEM_REPAIR_STONE_2', 'ITEM_REPAIR_STONE_1'];
+      for (const sid of order) {
+        const havePersonal = npc && npc.inv && npc.inv.mats && (npc.inv.mats[sid] || 0) > 0;
+        const haveSect = ECO.count(W, sid) > 0;
+        if (opts.free || havePersonal || haveSect) {
+          stone = ECO.REPAIR_STONES[sid];
+          break;
+        }
+      }
+    }
+    if (!stone) return { ok: false, reason: 'no-repair-stone' };
+
+    const curMax = Number.isFinite(gear.maxDur) ? gear.maxDur : 100;
+    const curDur = Number.isFinite(gear.dur) ? gear.dur : curMax;
+    const minMax = stone.minMaxDur || 20;
+
+    if (gear.retired || curMax <= minMax) {
+      if (curDur <= 0 && curMax <= minMax) gear.retired = true;
+      return { ok: false, reason: 'max-dur-exhausted', dur: curDur, maxDur: curMax, minMaxDur: minMax };
+    }
+    if (curDur >= curMax) {
+      return { ok: false, reason: 'already-full', dur: curDur, maxDur: curMax };
+    }
+    const newMaxDur = Math.max(minMax, curMax - stone.maxDurReduction);
+    if (curDur >= newMaxDur && !opts.forceInefficient) {
+      return { ok: false, reason: 'dur-above-new-max', dur: curDur, maxDur: curMax, newMaxDur };
+    }
+
+    if (!opts.free) {
+      const havePersonal = npc && npc.inv && npc.inv.mats && (npc.inv.mats[stone.id] || 0) > 0;
+      if (havePersonal) {
+        npc.inv.mats[stone.id] -= 1;
+        if (npc.inv.mats[stone.id] <= 0) delete npc.inv.mats[stone.id];
+      } else if (!ECO.take(W, stone.id, 1)) {
+        return { ok: false, reason: 'no-repair-stone', stoneId: stone.id };
+      }
+    }
+
+    gear.maxDur = newMaxDur;
+    gear.dur = newMaxDur;
+    gear.broken = false;
+    gear.retired = false;
+    gear.repairCount = (gear.repairCount || 0) + 1;
+    gear.lastRepairedDay = W.day;
+    gear.lastRepairStoneId = stone.id;
+
+    if (npc) {
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(npc);
+      if (HC.bump) HC.bump(npc);
+    }
+    if (!opts.quiet && W.log) {
+      W.log('craft', '🔧 ซ่อมบำรุง「' + gear.nameTh + '」ด้วย「' + stone.nameTh + '」ความทนทาน ' + Math.round(curDur) + '/' + curMax + ' → ' + newMaxDur + '/' + newMaxDur + ' (ลดเพดานทนทาน -' + (curMax - newMaxDur) + ')', npc ? [npc.id] : []);
+    }
+    return {
+      ok: true,
+      gear,
+      stoneId: stone.id,
+      stoneNameTh: stone.nameTh,
+      oldDur: curDur,
+      oldMaxDur: curMax,
+      newDur: gear.dur,
+      newMaxDur: gear.maxDur,
+      maxDurReduction: curMax - newMaxDur,
+      repairCount: gear.repairCount
+    };
+  };
+
+  ECO.retireGear = (W, npc, gearOrUid, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+    let gear = (gearOrUid && typeof gearOrUid === 'object') ? gearOrUid : null;
+    let holder = npc || null, loc = null, slotKey = null;
+    const match = g2 => g2 && (g2 === gear || (typeof gearOrUid === 'string' && (g2.uid === gearOrUid || g2.id === gearOrUid)));
+
+    if (holder && holder.equip) {
+      for (const sl of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+        if (match(holder.equip[sl])) { gear = holder.equip[sl]; loc = 'equip'; slotKey = sl; break; }
+      }
+    }
+    if (!loc && holder && holder.inv && Array.isArray(holder.inv.gear)) {
+      const idx = holder.inv.gear.findIndex(match);
+      if (idx >= 0) { gear = holder.inv.gear[idx]; loc = 'bag'; slotKey = idx; }
+    }
+    if (!loc && Array.isArray(W.sect.gear)) {
+      const idx = W.sect.gear.findIndex(match);
+      if (idx >= 0) { gear = W.sect.gear[idx]; loc = 'sect'; slotKey = idx; }
+    }
+    if (!gear) return { ok: false, reason: 'gear-not-found' };
+
+    gear.dur = 0;
+    gear.broken = true;
+    gear.retired = true;
+    if (loc === 'equip' && holder) {
+      delete holder.equip[slotKey];
+    } else if (loc === 'bag' && holder && holder.inv && Array.isArray(holder.inv.gear)) {
+      holder.inv.gear.splice(slotKey, 1);
+    } else if (loc === 'sect' && Array.isArray(W.sect.gear)) {
+      W.sect.gear.splice(slotKey, 1);
+    }
+    const salvageMat = (gear.tier || 1) >= 3 ? 'MAT_ORE_COLD_STEEL_2' : 'MAT_ORE_BLACK_IRON_1';
+    ECO.add(W, salvageMat, 1);
+    if (holder) {
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(holder);
+      if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(holder);
+    }
+    if (!opts.quiet && W.log) {
+      W.log('economy', '♻️ ปลดระวางศาสตราชำรุดถาวร「' + gear.nameTh + '」แยกชิ้นส่วนคืนเป็น「' + ECO.name(salvageMat) + '」×1 เข้าคลังสำนัก', holder ? [holder.id] : []);
+    }
+    return { ok: true, gear, salvageMat };
+  };
+
+  ECO.ensureUniqueGearUids = W => {
+    if (!W || !W.sect) return;
+    if (!Number.isSafeInteger(W.sect.gearUidSeq) || W.sect.gearUidSeq < 0) W.sect.gearUidSeq = gearSeq;
+    if (!Array.isArray(W.sect.soldGearReceipts)) W.sect.soldGearReceipts = [];
+    const soldUids = new Set(W.sect.soldGearReceipts.map(r => r && r.uid).filter(Boolean));
+    const seenUids = new Set();
+    const seenRefs = new WeakSet();
+
+    const extractSeq = uid => {
+      if (typeof uid !== 'string') return 0;
+      const m = uid.match(/_(\d+)$/);
+      return m ? parseInt(m[1], 10) || 0 : 0;
+    };
+
+    const normalizeItem = it => {
+      if (!it || typeof it !== 'object') return null;
+      let target = it;
+      if (seenRefs.has(it)) {
+        target = Object.assign({}, it);
+        if (it.st) target.st = Object.assign({}, it.st);
+        if (Array.isArray(it.affixes)) target.affixes = it.affixes.map(a => Object.assign({}, a));
+        delete target.uid;
+      }
+      seenRefs.add(target);
+      if (target.uid && soldUids.has(target.uid)) return null;
+      const seqNum = extractSeq(target.uid);
+      if (seqNum > W.sect.gearUidSeq) W.sect.gearUidSeq = seqNum;
+      if (!target.uid || seenUids.has(target.uid)) {
+        target.uid = ECO.nextGearUid(W, target.id || 'eq');
+      }
+      seenUids.add(target.uid);
+      if (target.maxDur == null) target.maxDur = 100;
+      if (target.dur == null) target.dur = target.maxDur;
+      if (target.repairCount == null) target.repairCount = 0;
+      if (target.procedural) {
+        target.broken = target.dur <= 0;
+        if (target.dur <= 0 && target.maxDur <= 20) target.retired = true;
+      }
+      return target;
+    };
+
+    const allNpcs = (W.npcs || []).concat((W.sect && Array.isArray(W.sect.queue)) ? W.sect.queue : []);
+    for (const n of allNpcs) {
+      if (!n) continue;
+      if (n.equip && typeof n.equip === 'object') {
+        for (const sl of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+          if (n.equip[sl]) {
+            const norm = normalizeItem(n.equip[sl]);
+            if (norm) n.equip[sl] = norm;
+            else delete n.equip[sl];
+          }
+        }
+      }
+      if (n.inv && Array.isArray(n.inv.gear)) {
+        const nextBag = [];
+        for (let i = 0; i < n.inv.gear.length; i++) {
+          const norm = normalizeItem(n.inv.gear[i]);
+          if (norm) nextBag.push(norm);
+        }
+        n.inv.gear = nextBag;
+      }
+    }
+    if (Array.isArray(W.sect.gear)) {
+      const nextSectGear = [];
+      for (let i = 0; i < W.sect.gear.length; i++) {
+        const norm = normalizeItem(W.sect.gear[i]);
+        if (norm) {
+          if (norm.listedAtDay == null) norm.listedAtDay = W.day || 0;
+          nextSectGear.push(norm);
+        }
+      }
+      W.sect.gear = nextSectGear;
+    }
+    if (W.world && Array.isArray(W.world.visitors)) {
+      for (const v of W.world.visitors) {
+        if (v && Array.isArray(v.gearStock)) {
+          const nextVGear = [];
+          for (let i = 0; i < v.gearStock.length; i++) {
+            const norm = normalizeItem(v.gearStock[i]);
+            if (norm) nextVGear.push(norm);
+          }
+          v.gearStock = nextVGear;
+        }
+      }
+    }
+    gearSeq = Math.max(gearSeq, W.sect.gearUidSeq);
   };
 
   g.ECO = ECO;

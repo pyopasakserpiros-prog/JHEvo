@@ -27,22 +27,25 @@ console.log('=== Running Patch v2.0.8 + Support/Heal/Buff Path Expansion Suite =
 {
   const expectedPaths = [
     'XIAN', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL',
-    'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT'
+    'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION'
   ];
   const actualPaths = Object.keys(CULT.PATHS);
-  assert.strictEqual(actualPaths.length, 9, 'Must have 9 major cultivation paths');
-  for (const pid of expectedPaths) {
+  assert(actualPaths.length >= expectedPaths.length, 'All baseline paths must remain registered');
+  for (const pid of actualPaths) {
     assert(CULT.PATHS[pid], `Path ${pid} must exist in CULT.PATHS`);
     assert(Array.isArray(CULT.THRESH[pid]), `CULT.THRESH[${pid}] must be an array`);
   }
 
-  // Verify 4 new 8-stage paths have 7 subpaths each (total 78 subpaths)
-  const new8StagePaths = ['MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT'];
+  expectedPaths.forEach(pid => assert(CULT.PATHS[pid], 'Baseline path ' + pid + ' remains available'));
+  // Every eight-stage path participates, while the four original expansions retain their seven branches.
+  const original8StagePaths = new Set(['MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT']);
+  const new8StagePaths = actualPaths.filter(pid => CULT.PATHS[pid].maxStage === 8);
   for (const pid of new8StagePaths) {
     const pDef = CULT.PATHS[pid];
     assert.strictEqual(pDef.maxStage, 8, `${pid} must have maxStage 8`);
     assert.strictEqual(pDef.stages.length, 8, `${pid} must have 8 stages`);
-    assert.strictEqual(pDef.subPaths.length, 7, `${pid} must have 7 subpaths`);
+    if (original8StagePaths.has(pid)) assert.strictEqual(pDef.subPaths.length, 7, `${pid} must retain 7 original subpaths`);
+    assert(pDef.subPaths.length > 0, `${pid} must have subpaths`);
     for (const sp of pDef.subPaths) {
       assert(MARTIAL.PROFILES[sp.id], `MARTIAL.PROFILES[${sp.id}] must exist`);
       assert(STATS.SUBFX[sp.id], `STATS.SUBFX[${sp.id}] must exist`);
@@ -90,7 +93,7 @@ console.log('=== Running Patch v2.0.8 + Support/Heal/Buff Path Expansion Suite =
     npc.cult.stage = 2;
     assert.strictEqual(MARTIAL.gearUsable(npc, t7Gear), false, `${pid} stage 2 must NOT be able to equip minStage 7 gear`);
   }
-  console.log('  PASS 1: All 9 paths, 78 subpaths, 9-realm tracks, and stage equivalence verified');
+  console.log('  PASS 1: All registered paths, subpaths, 9-realm tracks, and stage equivalence verified');
 }
 
 // 2. Cross-Path, Path-Specific, Weapon-Bound & Element-Bound Techniques + 18 Resonance Sets
@@ -113,14 +116,14 @@ console.log('=== Running Patch v2.0.8 + Support/Heal/Buff Path Expansion Suite =
     }
   }
 
-  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 18, 'The baseline 18 equipment resonance sets must remain available');
-  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 9, 'Nine Dao paths must each receive a Pagoda resonance set');
-  assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 27, 'The 18 baseline plus 9 Pagoda sets must be registered');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 19, 'The baseline 19 equipment resonance sets must remain available');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, Object.keys(CULT.PATHS).length, 'Every Dao path must receive a Pagoda resonance set');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 19 + Object.keys(CULT.PATHS).length, 'The baseline and every Pagoda set must be registered');
   for (const rId of ["RES_MECH_AUTOMATON_CITADEL","RES_KARMA_SAMSARA_WHEEL","RES_BEAST_SOVEREIGN_PACT","RES_SAGE_HARMONY_SANCTUARY"]) {
     const rSet = MARTIAL.RESONANCE_SETS.find(s => s.id === rId);
     assert(rSet, `Resonance set ${rId} must exist`);
   }
-  console.log('  PASS 2: Cross-path techniques, weapon/element bindings, 18 baseline resonance sets, and 9 Pagoda sets verified');
+  console.log('  PASS 2: Cross-path techniques, weapon/element bindings, baseline resonance sets, and all-path Pagoda sets verified');
 }
 
 // 3. Universal Spirit Beast Pet System (Taming, Population Conservation, Cap 1 vs 2..4, Combat & Evolution)

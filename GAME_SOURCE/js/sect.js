@@ -187,7 +187,7 @@
     const martialSkill = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0, sk.LIGHTFOOT || 0);
     const craftSkill = Math.max(sk.ALCHEMY || 0, sk.FORGING || 0, sk.MEDICINE || 0, sk.HERB_LORE || 0, sk.SCRIPTURE || 0);
     const civicSkill = Math.max(sk.farming || 0, sk.cooking || 0, sk.mining || 0, sk.herbalism || 0, sk.administration || 0, sk.trading || 0, sk.survival || 0, sk.construction || 0);
-    const stage = n.cult ? (n.cult.stage || 0) : 0;
+    const stage = CULT.equivalentStage(n);
     const injPenalty = Array.isArray(n.inj) ? n.inj.length * 6 : 0;
     const healthScore = clamp((st.energy == null ? 80 : st.energy) * 0.5 + 50 - injPenalty, 10, 100);
 
@@ -297,7 +297,7 @@
       descTh: 'สำนักมุ่งเน้นเพลงกระบี่อันคมกริบและปราณกระบี่พิสุทธิ์ ทรงอานุภาพทั้งระยะประชิดและการควบคุมกระบี่บิน',
       path: 'XIAN',
       subs: ['SWORD_IMMORTAL', 'PURE_SWORD_SAINT', 'MIND_SWORD_TELEKINESIS', 'YIN_YANG_HARMONY'],
-      techs: ['ART190_XIAN_001', 'ART190_XIAN_031', 'PASS_SWORD_FAMILIAR_T1', 'MP_SWORD_PURE_THRUST_T1', 'ART190_XIAN_013', 'MP_SWORD_POISE', 'MP_SWORD_FLOWING_PARRY_T2', 'ART190_XIAN_002', 'PASS_SWORD_EDGE_T3', 'PASS_SWORD_INTENT_T3', 'MP_SWORD_SHADOWLESS_SWIFT_T3', 'ART190_XIAN_016', 'ART190_XIAN_038', 'MP_SWORD_TENDON_SEVER_T4', 'ART190_XIAN_009', 'PASS_SWORD_HEART_CLARITY_T5'],
+      techs: ['ART190_XIAN_001', 'ART190_XIAN_031', 'PASS_SWORD_FAMILIAR_T1', 'MP_SWORD_PURE_THRUST_T1', 'ART190_XIAN_013', 'MP_SWORD_POISE', 'MP_SWORD_FLOWING_PARRY_T2', 'ART190_XIAN_002', 'PASS_SWORD_EDGE_T3', 'PASS_SWORD_INTENT_T3', 'MP_SWORD_SHADOWLESS_SWIFT_T3', 'ART190_XIAN_016', 'ART190_XIAN_038', 'MP_SWORD_TENDON_SEVER_T4', 'ART190_XIAN_009', 'PASS_SWORD_HEART_CLARITY_T5', 'ART_V212_XIAN_ZITHER_T1', 'ART_V212_XIAN_PHANTOM_T6', 'PASS_V212_ADAPTIVE_ARSENAL_T2', 'ART_V212_XIAN_ZITHER_T3', 'ART_V212_SAGE_HARMONY_T1'],
       crystals: { 'S:SWORD_IMMORTAL': 2, 'S:PURE_SWORD_SAINT': 1, 'S:YIN_YANG_HARMONY': 1 }
     },
     blade: {
@@ -307,7 +307,7 @@
       descTh: 'สำนักสายพลังกาย ดาบหนัก ดาบใหญ่ และการทำลายล้างไร้ขอบเขต ฟันขาดทุกปราการด้วยพละกำลังมหาศาล',
       path: 'BODY',
       subs: ['TIGER_SOVEREIGN', 'OVERLORD_HEAVY_BLADE', 'ASHURA_SLAUGHTER_BLADE', 'SOLAR_FORGE', 'BLOOD_DEMON'],
-      techs: ['PASS_BLADE_FOUNDATION_T1', 'ART190_BODY_001', 'MP_BLADE_SWIFT_DRAW_T1', 'ART190_BODY_021', 'MP_BLADE_IRON_CLEAVER_T2', 'PASS_BLADE_HEAVY_CLEAVE_T3', 'MP_BLADE_CROSS_EXECUTION_T3', 'ART190_BODY_012', 'ART190_BODY_006', 'MP_BLADE_FROST_CRESCENT_T4', 'ART190_XIAN_018', 'PASS_BLADE_BLOOD_EDGE_T5', 'ART190_BODY_004', 'ART190_BODY_027', 'MP_BLADE_MOUNTAIN_SPLITTER_T5'],
+      techs: ['PASS_BLADE_FOUNDATION_T1', 'ART190_BODY_001', 'MP_BLADE_SWIFT_DRAW_T1', 'ART190_BODY_021', 'MP_BLADE_IRON_CLEAVER_T2', 'PASS_BLADE_HEAVY_CLEAVE_T3', 'MP_BLADE_CROSS_EXECUTION_T3', 'ART190_BODY_012', 'ART190_BODY_006', 'MP_BLADE_FROST_CRESCENT_T4', 'ART190_XIAN_018', 'PASS_BLADE_BLOOD_EDGE_T5', 'ART190_BODY_004', 'ART190_BODY_027', 'MP_BLADE_MOUNTAIN_SPLITTER_T5', 'ART_V212_DEMON_BLOOD_SPEAR_T1', 'ART_V212_KARMA_ASURA_T1', 'PASS_V212_ADAPTIVE_ARSENAL_T2'],
       crystals: { 'S:TIGER_SOVEREIGN': 2, 'S:OVERLORD_HEAVY_BLADE': 1, 'S:SOLAR_FORGE': 1 }
     },
     spear: {
@@ -317,7 +317,7 @@
       descTh: 'สำนักสายทวนและหอกยาว เน้นระยะการรบที่ได้เปรียบ ทะลวงแนวรบ ค่ายกลทัพ และป้องกันรอบด้าน',
       path: 'BODY',
       subs: ['BLOOD_DRAGON', 'WAR_SPEAR_SOVEREIGN', 'CLOUD_DRAGON_SPEAR', 'WAR_DEITY', 'STAFF_GUARD'],
-      techs: ['PASS_SPEAR_REACH_T1', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART190_BODY_002', 'MP_SPEAR_LINE', 'MP_SPEAR_MILITARY_DRILL_T1', 'SRC110_NW_ART_126', 'ART190_GOD_032', 'MP_SPEAR_IRON_BREAKER_T3', 'ART190_BODY_026', 'PASS_SPEAR_DRAGON_SPINE_T3', 'ART190_GOD_006', 'MP_SPEAR_PHALANX_WALL_T4', 'ART190_BODY_039', 'ART190_XIAN_029', 'PASS_SPEAR_PIERCING_AURA_T5'],
+      techs: ['PASS_SPEAR_REACH_T1', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART190_BODY_002', 'MP_SPEAR_LINE', 'MP_SPEAR_MILITARY_DRILL_T1', 'SRC110_NW_ART_126', 'ART190_GOD_032', 'MP_SPEAR_IRON_BREAKER_T3', 'ART190_BODY_026', 'PASS_SPEAR_DRAGON_SPINE_T3', 'ART190_GOD_006', 'MP_SPEAR_PHALANX_WALL_T4', 'ART190_BODY_039', 'ART190_XIAN_029', 'PASS_SPEAR_PIERCING_AURA_T5', 'ART_V212_BODY_THUNDER_T1', 'ART_V212_BODY_THUNDER_T3', 'ART_V212_DEMON_BLOOD_SPEAR_T1', 'ART_V212_SOUL_VOID_SPEAR_T1'],
       crystals: { 'S:BLOOD_DRAGON': 2, 'S:WAR_SPEAR_SOVEREIGN': 1, 'S:WAR_DEITY': 1 }
     },
     fist: {
@@ -327,7 +327,7 @@
       descTh: 'สำนักหมัดมวย ฝ่ามือ และกายทองคำวัชระ ทรงพลังประชิดตัว ความทนทานสูงสุด และสะท้อนการโจมตี',
       path: 'BODY',
       subs: ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'THUNDER_BODY'],
-      techs: ['ART190_BODY_001', 'MP_FIST_IRON_JAB_T1', 'ART190_BODY_021', 'MP_FIST_JOINT_LOCK_CLAW_T2', 'ART190_BODY_003', 'ART190_BODY_013', 'MP_FIST_BAJI_SHOULDER_T3', 'ART190_BODY_032', 'ART190_BODY_015', 'MP_FIST_TEMPEST_KICK_T4', 'ART190_BODY_004', 'ART190_BODY_018', 'ART190_BODY_027', 'ART190_BODY_009', 'ART190_BODY_029', 'MP_FIST_SHOCKWAVE_PALM_T5'],
+      techs: ['ART190_BODY_001', 'MP_FIST_IRON_JAB_T1', 'ART190_BODY_021', 'MP_FIST_JOINT_LOCK_CLAW_T2', 'ART190_BODY_003', 'ART190_BODY_013', 'MP_FIST_BAJI_SHOULDER_T3', 'ART190_BODY_032', 'ART190_BODY_015', 'MP_FIST_TEMPEST_KICK_T4', 'ART190_BODY_004', 'ART190_BODY_018', 'ART190_BODY_027', 'ART190_BODY_009', 'ART190_BODY_029', 'MP_FIST_SHOCKWAVE_PALM_T5', 'ART_V212_BODY_THUNDER_T1', 'ART_V212_BODY_THUNDER_T3', 'ART_V212_BODY_THUNDER_T6'],
       crystals: { 'S:VAJRA_BODHI': 2, 'S:TITAN_MOUNTAIN_BODY': 1 }
     },
     alchemy: {
@@ -347,7 +347,7 @@
       descTh: 'สำนักสายธนูและเกาทัณฑ์ ยิงสังหารศัตรูจากระยะไกล ปราณดาราทะลวงมิติ และศรเงาปลิดวิญญาณ',
       path: 'XIAN',
       subs: ['STAR_ARCHER', 'SHADOW_ARCHER', 'IRON_BOW_SENTINEL', 'SUN_BOW_DEITY', 'ZITHER_HEART_BOW'],
-      techs: ['PASS_BOW_STILLNESS_T1', 'MP_BOW_BASIC', 'MP_BOW_IRON_DRAW_T1', 'INNATE_STAR_ARCHER_ASTRAL_LOCK', 'MP_BOW_RAIN', 'MP_BOW_RAPID_VOLLEY_T2', 'MP_BOW_SUN_RAY_T2', 'MP_BOW_FOCUS', 'MP_BOW_PIERCE_CLOUD', 'PASS_BOW_HAWK_EYE_T3', 'MP_BOW_ARMOR_BODKIN_T3', 'MP_BOW_SHADOW_SNIPE', 'MP_BOW_PARTING_SHOT_T4', 'MP_BOW_METEOR_STORM', 'MP_BOW_SIEGE_BALLISTA_T5'],
+      techs: ['PASS_BOW_STILLNESS_T1', 'MP_BOW_BASIC', 'MP_BOW_IRON_DRAW_T1', 'INNATE_STAR_ARCHER_ASTRAL_LOCK', 'MP_BOW_RAIN', 'MP_BOW_RAPID_VOLLEY_T2', 'MP_BOW_SUN_RAY_T2', 'MP_BOW_FOCUS', 'MP_BOW_PIERCE_CLOUD', 'PASS_BOW_HAWK_EYE_T3', 'MP_BOW_ARMOR_BODKIN_T3', 'MP_BOW_SHADOW_SNIPE', 'MP_BOW_PARTING_SHOT_T4', 'MP_BOW_METEOR_STORM', 'MP_BOW_SIEGE_BALLISTA_T5', 'ART_V212_GOD_SUN_BOW_T1', 'ART_V212_GOD_SUN_BOW_T3', 'ART_V212_GOD_SUN_BOW_T6', 'ART_V212_MECH_BALLISTA_T1'],
       crystals: { 'S:STAR_ARCHER': 2, 'S:SHADOW_ARCHER': 1, 'S:SUN_BOW_DEITY': 1 }
     },
     staff: {
@@ -357,7 +357,7 @@
       descTh: 'สำนักสายพลองและกระบองยาว ผสานปราณคุ้มกายตั้งรับเหนียวแน่น กวาดล้างศัตรูเป็นหมู่คณะ และสะกดทัพหน้า',
       path: 'BODY',
       subs: ['STAFF_GUARD', 'VAJRA_BODHI', 'GOLDEN_ARHAT_STAFF'],
-      techs: ['MP_STAFF_SWEEP', 'MP_STAFF_SWEEP_BASIC_T1', 'MP_STAFF_VINE_SWEEP_T1', 'MP_STAFF_GUARD', 'MP_STAFF_IRON_REVOLVE_T2', 'MP_STAFF_POLE_VAULT_T2', 'MP_STAFF_GOLDEN_LIGHT_T2', 'MP_STAFF_CRUSHING_BLOW_T3', 'PASS_STAFF_KINETIC_LEVER_T3', 'MP_STAFF_SOLAR_ANVIL_T3', 'MP_STAFF_ARHAT_EIGHTEEN_T4', 'MP_STAFF_UNDERWORLD_GAVEL_T4', 'MP_STAFF_MOUNTAIN_ANCHOR_T5', 'MP_STAFF_ZEN_LOTUS_T5'],
+      techs: ['MP_STAFF_SWEEP_BASIC_T1', 'MP_STAFF_VINE_SWEEP_T1', 'MP_STAFF_IRON_REVOLVE_T2', 'MP_STAFF_POLE_VAULT_T2', 'MP_STAFF_GOLDEN_LIGHT_T2', 'MP_STAFF_CRUSHING_BLOW_T3', 'PASS_STAFF_KINETIC_LEVER_T3', 'MP_STAFF_SOLAR_ANVIL_T3', 'MP_STAFF_ARHAT_EIGHTEEN_T4', 'MP_STAFF_UNDERWORLD_GAVEL_T4', 'MP_STAFF_MOUNTAIN_ANCHOR_T5', 'MP_STAFF_ZEN_LOTUS_T5', 'ART_V212_GOD_JUDGE_T1', 'ART_V212_SOUL_VOID_SPEAR_T1', 'ART_V212_DEMON_GHOST_T1'],
       crystals: { 'S:STAFF_GUARD': 2, 'S:GOLDEN_ARHAT_STAFF': 1 }
     },
     focus: {
@@ -367,7 +367,7 @@
       descTh: 'สำนักสายศาสตราอาคม พัด พิณ กระจกวิญญาณ และค่ายกลดารา ควบคุมสนามรบและโจมตีด้วยพลังจิตวิญญาณ',
       path: 'HEART_SOUL',
       subs: ['CALLIGRAPHY_PAINTING_SAGE', 'ZEN_VOID_MIND', 'DREAM_ILLUSION_WEAVER', 'ASTRAL_ARRAY'],
-      techs: ['MP_FOCUS_IRON_FAN_T1', 'MP_FOCUS_ACUPOINT_NEEDLE_T2', 'MP_FOCUS_ABACUS_TACTIC_T3', 'MP_FOCUS_SOUL_BELL_T3', 'PASS_FOCUS_SCHOLAR_POISE_T4', 'MP_HYB_BOW_FOCUS_ZITHER_T4', 'MP_FOCUS_SONIC_ZITHER_T5', 'MP_FOCUS_ASTRAL_BANNER_T5', 'MP_FOCUS_CELESTIAL_ZITHER_T5', 'MP_HYB_BLADE_FOCUS_FLYING_T5', 'MP_FOCUS_GRANDMASTER_FAN_T6', 'MP_FOCUS_CAULDRON_FIRE_T6', 'MP_FOCUS_FATE_MIRROR_T6', 'MP_FOCUS_PRIMORDIAL_BRUSH_T7'],
+      techs: ['MP_FOCUS_IRON_FAN_T1', 'MP_FOCUS_ACUPOINT_NEEDLE_T2', 'MP_FOCUS_ABACUS_TACTIC_T3', 'MP_FOCUS_SOUL_BELL_T3', 'PASS_FOCUS_SCHOLAR_POISE_T4', 'MP_HYB_BOW_FOCUS_ZITHER_T4', 'MP_FOCUS_SONIC_ZITHER_T5', 'MP_FOCUS_ASTRAL_BANNER_T5', 'MP_FOCUS_CELESTIAL_ZITHER_T5', 'MP_HYB_BLADE_FOCUS_FLYING_T5', 'MP_FOCUS_GRANDMASTER_FAN_T6', 'MP_FOCUS_CAULDRON_FIRE_T6', 'MP_FOCUS_FATE_MIRROR_T6', 'MP_FOCUS_PRIMORDIAL_BRUSH_T7', 'ART_V212_SOUL_DREAM_T1', 'ART_V212_SOUL_DREAM_T6', 'ART_V212_XIAN_ZITHER_T1', 'ART_V212_XIAN_ZITHER_T6'],
       crystals: { 'S:CALLIGRAPHY_PAINTING_SAGE': 2, 'S:ZEN_VOID_MIND': 1 }
     },
     god: {
@@ -377,7 +377,7 @@
       descTh: 'สำนักสายพลังศรัทธาและเทพบรรพกาล ร่างเทพทองคำ แสงสุริยัน และปราณสายฟ้าทัณฑ์ ทรงอานุภาพพลังทำลายกว้างขวาง',
       path: 'GOD',
       subs: ['WAR_DEITY', 'MERCY_DEITY', 'SUN_BOW_DEITY', 'OCEAN_SOVEREIGN', 'GOLDEN_ARHAT_STAFF'],
-      techs: ['MP_BASE_GOD', 'ART190_GOD_001', 'ART190_GOD_002', 'ART190_GOD_003', 'ART190_GOD_006', 'ART190_GOD_011', 'ART190_GOD_021', 'ART190_GOD_031', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART_CROSS_V208_006'],
+      techs: ['MP_BASE_GOD', 'ART190_GOD_001', 'ART190_GOD_002', 'ART190_GOD_003', 'ART190_GOD_006', 'ART190_GOD_011', 'ART190_GOD_021', 'ART190_GOD_031', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART_CROSS_V208_006', 'ART_V212_GOD_JUDGE_T1', 'ART_V212_GOD_JUDGE_T3', 'ART_V212_GOD_JUDGE_T5', 'ART_V212_GOD_SUN_BOW_T1', 'ART_V212_GOD_SUN_BOW_T3', 'ART_V212_GOD_OCEAN_T2', 'ART_V212_GOD_OCEAN_T6'],
       crystals: { 'S:WAR_DEITY': 2, 'S:MERCY_DEITY': 1, 'S:SUN_BOW_DEITY': 1 }
     },
     demon: {
@@ -387,7 +387,7 @@
       descTh: 'สำนักสายมารและอสูรโลหิต กลืนกินพลังศัตรู รวดเร็วดั่งเงาพราย สังหารฉับพลัน และฟื้นฟูกายาจากโลหิต',
       path: 'DEMON',
       subs: ['HEAVEN_DEVOURING_DEMON', 'SHADOW_ASSASSIN', 'NETHER_GHOST_KING', 'VENOM_GU_SOVEREIGN', 'ASHURA_SLAUGHTER_BLADE'],
-      techs: ['MP_BASE_DEMON', 'ART_V112_DEMON_NIGHT_CLOAK_T1', 'ART_DEMON_SHADOW_STRIKE_T1', 'ART_V210_CHAIN_SHADOW_DAGGER', 'ART190_BODY_006', 'ART_V112_DEMON_SILENT_DAGGER_T3', 'ART_CROSS_V208_005'],
+      techs: ['MP_BASE_DEMON', 'ART_V112_DEMON_NIGHT_CLOAK_T1', 'ART_DEMON_SHADOW_STRIKE_T1', 'ART_V210_CHAIN_SHADOW_DAGGER', 'ART190_BODY_006', 'ART_V112_DEMON_SILENT_DAGGER_T3', 'ART_CROSS_V208_005', 'ART_V212_DEMON_GHOST_T1', 'ART_V212_DEMON_GHOST_T6', 'ART_V212_DEMON_BLOOD_SPEAR_T1', 'ART_V212_DEMON_BLOOD_SPEAR_T6'],
       crystals: { 'S:HEAVEN_DEVOURING_DEMON': 2, 'S:SHADOW_ASSASSIN': 1, 'S:NETHER_GHOST_KING': 1 }
     },
     mech: {
@@ -397,7 +397,7 @@
       descTh: 'สำนักผู้สร้างหุ่นเชิดกลไก ค่ายกลป้อมปราการ เกราะกลไก และศาสตราบิน บัญชาสมรภูมิด้วยกลศาสตร์และจิตควบคุม',
       path: 'MECH_PUPPET',
       subs: ['HEAVENLY_GOLEM', 'THOUSAND_THREAD_ASSASSIN', 'CELESTIAL_BALLISTA', 'ASTRAL_CLOCKWORK_PRIME', 'SOUL_VESSEL_AVATAR'],
-      techs: ['MP_BASE_MECH_PUPPET', 'ART_MECH_PUPPET_001', 'ART_MECH_PUPPET_002', 'ART_MECH_PUPPET_003', 'ART_MECH_PUPPET_004', 'ART_CROSS_V208_001', 'ART_CROSS_V208_007', 'INNATE_THOUSAND_THREAD_SOUL'],
+      techs: ['MP_BASE_MECH_PUPPET', 'ART_MECH_PUPPET_001', 'ART_MECH_PUPPET_002', 'ART_MECH_PUPPET_003', 'ART_MECH_PUPPET_004', 'ART_CROSS_V208_001', 'ART_CROSS_V208_007', 'INNATE_THOUSAND_THREAD_SOUL', 'ART_V212_MECH_BALLISTA_T1', 'ART_V212_MECH_ORBITER_T5', 'PASS_V212_ADAPTIVE_ARSENAL_T2'],
       crystals: { 'S:HEAVENLY_GOLEM': 2, 'S:THOUSAND_THREAD_ASSASSIN': 1, 'S:CELESTIAL_BALLISTA': 1 }
     },
     karma: {
@@ -407,7 +407,7 @@
       descTh: 'สำนักผู้คุมด้ายชะตากรรม บัญชีกรรมเกิดดับ และปราณวัฏจักรหกภพ สะท้อนดาเมจตามหนี้กรรมและคืนชีพจากเถ้าถ่าน',
       path: 'KARMA_SAMSARA',
       subs: ['SIX_PATHS_WHEEL', 'REVERSED_RETRIBUTION', 'FATE_SEVERING_THREAD', 'LOTUS_MERCY_PURIFIER', 'PAST_LIFE_MIRROR'],
-      techs: ['MP_BASE_KARMA_SAMSARA', 'ART_KARMA_SAMSARA_001', 'ART_KARMA_SAMSARA_002', 'ART_KARMA_SAMSARA_003', 'ART_KARMA_SAMSARA_004', 'ART_CROSS_V208_004', 'ART_CROSS_V208_008', 'INNATE_SIX_PATHS_WHEEL'],
+      techs: ['MP_BASE_KARMA_SAMSARA', 'ART_KARMA_SAMSARA_001', 'ART_KARMA_SAMSARA_002', 'ART_KARMA_SAMSARA_003', 'ART_KARMA_SAMSARA_004', 'ART_CROSS_V208_004', 'ART_CROSS_V208_008', 'INNATE_SIX_PATHS_WHEEL', 'ART_V212_KARMA_ASURA_T1', 'ART_V212_KARMA_MIRROR_T1', 'ART_V212_KARMA_MIRROR_T6', 'ART_V212_GOD_JUDGE_T1'],
       crystals: { 'S:SIX_PATHS_WHEEL': 2, 'S:REVERSED_RETRIBUTION': 1, 'S:FATE_SEVERING_THREAD': 1 }
     },
     beast: {
@@ -417,7 +417,7 @@
       descTh: 'สำนักผู้ทำพันธสัญญาเทพอสูร หลอมรวมสายเลือด ผสานร่างอสูร และบัญชาฝูงสัตว์วิญญาณรบเคียงบ่าเคียงไหล่',
       path: 'BEAST_SOVEREIGN',
       subs: ['MYRIAD_BEAST_PACK', 'PRIMORDIAL_BLOOD_MUTATOR', 'SYMBIOTIC_BEAST_WARRIOR', 'COLOSSUS_SHIELD_TAMER', 'ABYSSAL_DRAGON_TOTEM'],
-      techs: ['MP_BASE_BEAST_SOVEREIGN', 'ART_BEAST_SOV_001', 'ART_BEAST_SOV_002', 'ART_BEAST_SOV_003', 'ART_BEAST_SOV_004', 'ART_CROSS_V208_003', 'ART_CROSS_V208_009', 'INNATE_MYRIAD_PACK_COMMAND'],
+      techs: ['MP_BASE_BEAST_SOVEREIGN', 'ART_BEAST_SOV_001', 'ART_BEAST_SOV_002', 'ART_BEAST_SOV_003', 'ART_BEAST_SOV_004', 'ART_CROSS_V208_003', 'ART_CROSS_V208_009', 'INNATE_MYRIAD_PACK_COMMAND', 'ART_V212_BEAST_SWARM_T1', 'ART_V212_BEAST_SWARM_T5', 'PASS_V212_ADAPTIVE_ARSENAL_T2'],
       crystals: { 'S:MYRIAD_BEAST_PACK': 2, 'S:PRIMORDIAL_BLOOD_MUTATOR': 1, 'S:SYMBIOTIC_BEAST_WARRIOR': 1 }
     },
     sage: {
@@ -427,10 +427,29 @@
       descTh: 'สำนักยอดวิชาเยียวยา สกัดจุดเข็มทอง บรรเลงพิณคลายมาร ปรุงน้ำทิพย์ และกางเกราะค่ายกลเสริมพลังทั่วสำนัก',
       path: 'SAGE_SUPPORT',
       subs: ['GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY', 'WAR_BANNER_CHORISTER', 'QIMEN_TALISMAN_PATRON'],
-      techs: ['MP_BASE_SAGE_SUPPORT', 'ART_SAGE_SUP_001', 'ART_SAGE_SUP_002', 'ART_SAGE_SUP_003', 'ART_SAGE_SUP_004', 'ART_CROSS_V208_002', 'ART_CROSS_V208_010', 'INNATE_GOLDEN_NEEDLE_PULSE', 'INNATE_CELESTIAL_ZITHER_CHORD'],
+      techs: ['MP_BASE_SAGE_SUPPORT', 'ART_SAGE_SUP_001', 'ART_SAGE_SUP_002', 'ART_SAGE_SUP_003', 'ART_SAGE_SUP_004', 'ART_CROSS_V208_002', 'ART_CROSS_V208_010', 'INNATE_GOLDEN_NEEDLE_PULSE', 'INNATE_CELESTIAL_ZITHER_CHORD', 'ART_V212_SAGE_HARMONY_T1', 'ART_V212_SAGE_SANCTUARY_T2', 'ART_V212_SAGE_APEX_T7', 'ART_V212_XIAN_ZITHER_T1'],
       crystals: { 'S:GOLDEN_NEEDLE_SAINT': 2, 'S:CELESTIAL_ZITHER_ENVOY': 1, 'S:DIVINE_NECTAR_APOTHECARY': 1 }
+    },
+    artisan: {
+      id: 'artisan',
+      nameTh: 'สำนักรังสรรค์โอสถและศาสตราเทวะ',
+      titleTh: 'วิถีรังสรรค์โอสถและศาสตราเทวะ',
+      descTh: 'สำนักปรมาจารย์เตาโอสถและทั่งตีเหล็กสวรรค์ ใช้การปรุงโอสถ การตีศาสตรา และการจารึกอักขระเป็นหัวใจของการบำเพ็ญตบะ',
+      path: 'CRAFT_CREATION',
+      subs: ['PILL_FURNACE_IMMORTAL', 'HEAVENLY_ANVIL_SMITH', 'SPIRIT_SWORD_ARTIFICER', 'RUNE_ARRAY_ENGRAVER', 'DIVINE_FLAME_SMELTER', 'POISON_VENOM_CAULDRON'],
+      techs: ['MP_BASE_CRAFT_CREATION', 'ART_CRAFT_001', 'ART_CRAFT_002', 'ART_CRAFT_003', 'ART_CRAFT_004', 'ART_CRAFT_005', 'ART_CRAFT_006', 'PASS_CRAFT_001', 'ART_CROSS_CRAFT_001', 'ART_CROSS_CRAFT_002', 'PASS_CROSS_CRAFT_004', 'PASS_V212_ADAPTIVE_ARSENAL_T2'],
+      crystals: { 'S:PILL_FURNACE_IMMORTAL': 2, 'S:HEAVENLY_ANVIL_SMITH': 1, 'S:SPIRIT_SWORD_ARTIFICER': 1 }
     }
   };
+
+  SECT.FOUNDATION_CURRICULUM = [
+    'MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL',
+    'MP_BASE_MECH_PUPPET', 'MP_BASE_KARMA_SAMSARA', 'MP_BASE_BEAST_SOVEREIGN', 'MP_BASE_SAGE_SUPPORT', 'MP_BASE_CRAFT_CREATION',
+    'ART_V212_XIAN_ZITHER_T1', 'ART_V212_BODY_THUNDER_T1', 'ART_V212_GOD_JUDGE_T1', 'ART_V212_GOD_SUN_BOW_T1',
+    'ART_V212_DEMON_GHOST_T1', 'ART_V212_DEMON_BLOOD_SPEAR_T1', 'ART_V212_SOUL_VOID_SPEAR_T1', 'ART_V212_SOUL_DREAM_T1',
+    'ART_V212_MECH_BALLISTA_T1', 'ART_V212_KARMA_ASURA_T1', 'ART_V212_KARMA_MIRROR_T1', 'ART_V212_BEAST_SWARM_T1',
+    'ART_V212_SAGE_HARMONY_T1', 'PASS_V212_ADAPTIVE_ARSENAL_T2'
+  ];
 
   SECT.ARCHETYPE_WEAPON = {
     sword:   { family: 'SWORD', skill: 'SWORD', starterWeapon: 'MP_SWORD_1', masterWeapon: 'MP_SWORD_2' },
@@ -446,7 +465,8 @@
     mech:    { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' },
     karma:   { family: 'STAFF', skill: 'STAFF', starterWeapon: 'MP_STAFF_1', masterWeapon: 'MP_STAFF_2' },
     beast:   { family: 'FIST', skill: 'FIST_PALM', starterWeapon: 'MP_FIST_1', masterWeapon: 'MP_FIST_2' },
-    sage:    { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' }
+    sage:    { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' },
+    artisan: { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' }
   };
 
   SECT.officeState = (W, id) => {
@@ -521,7 +541,7 @@
   SECT.relevance = (post, n) => {
     const e = p => HC.eff(n, p), sk = n.h.skills;
     const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0);
-    const stage = n.cult ? n.cult.stage : 0;
+    const stage = CULT.equivalentStage(n);
     switch (post) {
       case 'commander': return e('social.leadership') * .3 + e('intellect.judgement') * .25 + e('personality.courage') * .2 + e('personality.loyalty') * .15 + stage * 4;
       case 'provision': return (sk.cooking || 0) * .35 + e('intellect.planning') * .25 + e('intellect.numeracy') * .15 + e('personality.discipline') * .25;
@@ -550,12 +570,69 @@
   SECT.alive = n => n && !n.dead;
   SECT.isOfficerAvailable = (W, n) => Boolean(n && !n.dead && !n.exiled && !n.away && !n.sealed && !n.sealedBt && !(n.jail > W.t) && !(n.punished > W.t));
 
+  const GOVERNANCE_ROLES = {
+    treasury: { primary: 'administration', secondary: 'trading', nameTh: 'จัดบัญชีและลดรายจ่าย' },
+    steward: { primary: 'construction', secondary: 'administration', nameTh: 'กำกับการก่อสร้าง' },
+    mission: { primary: 'trading', secondary: 'survival', nameTh: 'วางแผนขนส่งและเสบียง' },
+    provision: { primary: 'administration', secondary: 'cooking', nameTh: 'รักษาคลังเสบียง' }
+  };
+  // Inspection must never hydrate state, practice skills, cache, or advance RNG.
+  SECT.governanceSummary = W => {
+    const contributors = {};
+    const S = W && W.sect;
+    if (!S || !W.byId || !Array.isArray(W.npcs)) return { upkeepReduction: 0, constructionSpeedBonus: 0, logisticsEfficiency: 0, contributors };
+    const read = (n, key) => Number.isFinite(n.h && n.h.skills && n.h.skills[key]) ? clamp(n.h.skills[key], 0, 100) : 0;
+    const available = n => SECT.isOfficerAvailable(W, n) && W.npcs.includes(n);
+    Object.keys(GOVERNANCE_ROLES).forEach(role => {
+      const cfg = GOVERNANCE_ROLES[role], holder = W.byId[(S.posts || {})[role]];
+      const delegation = (S.delegations || {})[role];
+      const delegate = delegation && delegation.holderId === (holder && holder.id) && delegation.until > W.t && !available(holder) ? W.byId[delegation.delegateId] : null;
+      const candidates = [available(holder) ? holder : delegate, W.byId[S.masterId], W.byId[S.deputyId]];
+      let best = null;
+      candidates.forEach(n => {
+        if (!available(n)) return;
+        const primary = read(n, cfg.primary), secondary = read(n, cfg.secondary);
+        if (primary < 25) return;
+        const path = n.cult && n.cult.path;
+        const sub = path === 'STRATEGY_GOVERNANCE' ? CULT.subInfo(path, n.cult.sub) : null;
+        const specialty = sub && sub.governanceRole;
+        const matches = specialty === role || (specialty === 'logistics' && (role === 'mission' || role === 'provision')) || (specialty === 'steward' && role === 'treasury');
+        const specialist = path === 'STRATEGY_GOVERNANCE' ? 1.05 + (matches ? 0.10 : 0) : 1;
+        const score = clamp((primary * 0.7 + secondary * 0.3) / 100 * specialist, 0, 1);
+        if (!best || score > best.score) best = { npcId: n.id, nameTh: cfg.nameTh, primarySkill: cfg.primary, secondarySkill: cfg.secondary, specialty: specialty || null, score };
+      });
+      if (best) contributors[role] = best;
+    });
+    const score = role => contributors[role] ? contributors[role].score : 0;
+    return {
+      upkeepReduction: +(score('treasury') * 0.08).toFixed(4),
+      constructionSpeedBonus: +(score('steward') * 0.12).toFixed(4),
+      logisticsEfficiency: +(Math.max(score('mission'), score('provision')) * 0.20).toFixed(4),
+      contributors
+    };
+  };
+
+  // Called only after a real authorized office duty; timestamps survive save/load.
+  SECT.governancePractice = (W, n, role) => {
+    const cfg = GOVERNANCE_ROLES[role];
+    if (!cfg || !W || !W.sect || !n || !SECT.isOfficerAvailable(W, n) || !W.npcs.includes(n) || !g.MARTIAL || !g.MARTIAL.skillPractice) return false;
+    const S = W.sect, delegation = (S.delegations || {})[role];
+    const delegated = delegation && delegation.delegateId === n.id && delegation.until > W.t && delegation.holderId === (S.posts || {})[role] && !SECT.isOfficerAvailable(W, W.byId[delegation.holderId]);
+    const appointed = (S.posts || {})[role] === n.id || (role === 'master' && S.masterId === n.id) || (role === 'deputy' && S.deputyId === n.id);
+    if (!appointed && !delegated) return false;
+    if (Number.isFinite(n.governancePracticeAt) && W.t - n.governancePracticeAt < 120) return false;
+    g.MARTIAL.skillPractice(n, cfg.primary, 0.35, 1.05);
+    g.MARTIAL.skillPractice(n, cfg.secondary, 0.15, 1.0);
+    n.governancePracticeAt = W.t;
+    return true;
+  };
+
   SECT.appointScore = (W, post, n, by) => {
     const pol = W.sect.policy, rel = by ? SECT.relationScore(by, n) : 0;
     const flat = (by && g.COG && g.COG.flatteryBonus) ? g.COG.flatteryBonus(by, n) : 0;
     const merit = SECT.relevance(post, n) + (n.rank >= 3 ? 8 : 0) + (n.merit || 0) * 0.03;
     const meritK = 0.35 + pol.meritocracy / 100 * 0.65;
-    return merit * meritK + (rel + flat * 1.2) * (1 - meritK) * 0.55 + (n.cult ? n.cult.stage * 2 : 0) - (n.h.state.heartDemon > 40 ? 6 : 0);
+    return merit * meritK + (rel + flat * 1.2) * (1 - meritK) * 0.55 + (CULT.equivalentStage(n) * 2) - (n.h.state.heartDemon > 40 ? 6 : 0);
   };
   SECT.relationScore = (a, b) => { const r = a.h.mind.relations[b.id]; return r ? r.a * 0.6 + r.t * 0.2 + r.r * 0.2 : 0; };
   SECT.eligible = (W, post, n) => {
@@ -566,7 +643,7 @@
       return n.rank >= 1 && n.rank <= 4 && (n.cult ? n.cult.stage >= 1 : n.rank >= 2);
     }
     const small = W.npcs.length < 14;
-    return n.rank >= (small ? 1 : 2) && !n.post && (n.cult ? n.cult.stage >= (small ? 1 : 2) : n.rank >= 3);
+    return n.rank >= (small ? 1 : 2) && !n.post && (n.cult ? CULT.equivalentStage(n) >= (small ? 1 : 2) : n.rank >= 3);
   };
   SECT.appoint = (W, post, n, why) => {
     if (!SECT.officeState(W, post).enabled) return false;
@@ -787,7 +864,7 @@
       S.deputyId = null;
       const cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== m.id && n.cult && (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) >= 3);
       if (cands.length && W.rng.chance(0.5)) {
-        cands.sort((a, b) => (SECT.relationScore(m, b) * (1 - S.policy.meritocracy / 100) + (b.cult.stage * 8 + SECT.relevance('mission', b) * .3) * (S.policy.meritocracy / 100 + .3)) - (SECT.relationScore(m, a) * (1 - S.policy.meritocracy / 100) + (a.cult.stage * 8 + SECT.relevance('mission', a) * .3) * (S.policy.meritocracy / 100 + .3)));
+        cands.sort((a, b) => (SECT.relationScore(m, b) * (1 - S.policy.meritocracy / 100) + (CULT.equivalentStage(b) * 8 + SECT.relevance('mission', b) * .3) * (S.policy.meritocracy / 100 + .3)) - (SECT.relationScore(m, a) * (1 - S.policy.meritocracy / 100) + (CULT.equivalentStage(a) * 8 + SECT.relevance('mission', a) * .3) * (S.policy.meritocracy / 100 + .3)));
         const d = cands[0]; if (d.post) { S.posts[d.post] = null; d.post = null; }
         d.rank = 5; S.deputyId = d.id; d.sat = Math.min(100, (d.sat || 60) + 15); HC.experience(d, 'promoted', 1.2);
         W.log('appoint', d.h.name.given + ' ได้เป็นรองเจ้าสำนัก', [d.id]);
@@ -1608,7 +1685,8 @@
 
     if (!ECO.pay(W, best.cost, 'ขยาย' + best.b.nameTh)) return;
     const builder = SECT.holder(W, 'steward') || m, buildSkill = g.MARTIAL ? g.MARTIAL.skillRead(builder, 'construction') : 0, management = g.MARTIAL ? g.MARTIAL.skillRead(builder, 'administration') : 0;
-    best.b.building = { until: W.t + Math.round(8 * 1440 / (1 + buildSkill * .004 + management * .0015)), to: best.b.level + 1 };
+    const governance = SECT.governanceSummary(W);
+    best.b.building = { until: W.t + Math.round(8 * 1440 / ((1 + buildSkill * .004 + management * .0015) * (1 + governance.constructionSpeedBonus))), to: best.b.level + 1 };
     if (g.MARTIAL) g.MARTIAL.skillPractice(builder, 'construction', 1.5, 1.1);
     const fd = S.facilityDemand[best.id];
     if (fd) {
@@ -2108,7 +2186,7 @@
     const giftedItems = [];
     const maxGifts = opts.maxGifts != null ? opts.maxGifts : 4;
 
-    // 1. Equipment distribution from W.sect.gear
+    // 1. Equipment distribution from W.sect.gear (respecting suitability, weapon preferences, and member-shop window)
     if (Array.isArray(S.gear) && S.gear.length > 0) {
       const alive = W.npcs.filter(n => !n.dead && !n.exiled && !n.away && n.cult);
       const roleBoosts = { guard: 16, commander: 18, martial: 14, mission: 12, wildwarden: 14, discipline: 10 };
@@ -2116,10 +2194,17 @@
 
       for (let i = S.gear.length - 1; i >= 0 && giftedItems.length < maxGifts; i--) {
         const eq = S.gear[i];
-        if (!eq || !eq.slot) continue;
+        if (!eq || !eq.slot || eq.retired || eq.broken || (eq.procedural && eq.dur != null && eq.dur <= 0)) continue;
+        // Donated items stay in W.sect.gear during the member-shop purchase window unless forced or filling an empty T1 slot
+        const inShopWindow = !opts.forceDistribute && eq.donatedBy != null && (W.day - (eq.listedAtDay != null ? eq.listedAtDay : W.day)) < 6;
         const cands = alive.filter(n => {
           if (!SECT.canAccessItem(W, n, eq)) return false;
+          if (eq.donatedBy === n.id && !opts.forceDistribute) return false;
           const cur = n.equip && n.equip[eq.slot];
+          if (inShopWindow && (cur || (eq.tier || 1) > 1)) return false;
+          if (g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
+            return g.MARTIAL.classifyGearForNpc(W, n, eq, 0).category === 'useful-now';
+          }
           const curVal = cur ? (cur.combatMult || cur.defMult || (cur.tier || 0) * 0.03) : -1;
           const newVal = eq.combatMult || eq.defMult || (eq.tier || 1) * 0.03;
           return newVal > curVal + 0.005;
@@ -2128,17 +2213,23 @@
         cands.sort((a, b) => {
           const aEmpty = !(a.equip && a.equip[eq.slot]) ? 12 : 0;
           const bEmpty = !(b.equip && b.equip[eq.slot]) ? 12 : 0;
-          return (recipientScoreForItem(W, evaluator, b, eq, roleBoosts) + bEmpty) - (recipientScoreForItem(W, evaluator, a, eq, roleBoosts) + aEmpty);
+          const aDelta = (g.MARTIAL && g.MARTIAL.classifyGearForNpc) ? (g.MARTIAL.classifyGearForNpc(W, a, eq, 0).deltaScore || 0) * 0.15 : 0;
+          const bDelta = (g.MARTIAL && g.MARTIAL.classifyGearForNpc) ? (g.MARTIAL.classifyGearForNpc(W, b, eq, 0).deltaScore || 0) * 0.15 : 0;
+          return (recipientScoreForItem(W, evaluator, b, eq, roleBoosts) + bEmpty + bDelta) - (recipientScoreForItem(W, evaluator, a, eq, roleBoosts) + aEmpty + aDelta);
         });
         const win = cands[0];
         S.gear.splice(i, 1);
         win.equip = win.equip || { WEAPON: null, ARMOR: null, ACCESSORY: null };
         const prev = win.equip[eq.slot];
-        if (prev) S.gear.push(prev);
+        if (prev) {
+          win.inv = win.inv || {};
+          win.inv.gear = win.inv.gear || [];
+          win.inv.gear.push(prev);
+        }
         win.equip[eq.slot] = eq;
         HC.bump(win);
         if (g.STATS && g.STATS.dirty) g.STATS.dirty(win);
-        const reason = prev ? 'อัปเกรดแทน「' + prev.nameTh + '」ตามผลงานและหน้าที่' : 'จัดสรรยุทโธปกรณ์ให้ศิษย์ที่ยังขาดแคลน';
+        const reason = prev ? 'อัปเกรดแทน「' + prev.nameTh + '」ตามความเหมาะสมและผลงาน' : 'จัดสรรยุทโธปกรณ์ให้ศิษย์ที่ยังขาดแคลน';
         const giftRow = { day: W.day, kind: 'EQUIPMENT', itemId: eq.id, itemUid: eq.uid, nameTh: eq.nameTh, qty: 1, actorId: evaluator.id, recipientId: win.id, reason };
         S.giftHistory = S.giftHistory || [];
         S.giftHistory.push(giftRow);
@@ -2299,7 +2390,7 @@
     // 3. Elders and members vote
     const voters = W.npcs.filter(n => !n.dead && !n.exiled && n.id !== S.masterId && (n.rank >= 4 || n.rank >= 1));
     const score = c => {
-      const stage = c.cult ? c.cult.stage : 0;
+      const stage = CULT.equivalentStage(c);
       let tot = 0;
       voters.forEach(v => {
         if (v.id === c.id) { tot += 25; return; }
@@ -2343,10 +2434,13 @@
     ECO.earn(W, tribute, 'ค่าคุ้มครองและของกำนัลจากชุมชนรอบเขา');
     ECO.monthlyMarket(W);
     {
-      const popN = W.npcs.filter(n => !n.dead).length, upkeep = Math.round((1 - (g.MARTIAL ? g.MARTIAL.skillRead(SECT.holder(W, 'treasury') || W.byId[S.masterId], 'administration') * .001 : 0)) * (popN * 7 + W.map.buildings.reduce((s2, b) => s2 + b.level * 15, 0) * clamp((popN + 8) / 45, 0.3, 1)));
+      const governance = SECT.governanceSummary(W);
+      const treasurer = SECT.holder(W, 'treasury') || W.byId[S.masterId];
+      const legacyAdmin = SECT.isOfficerAvailable(W, treasurer) && g.MARTIAL ? clamp(g.MARTIAL.skillRead(treasurer, 'administration'), 0, 100) : 0;
+      const popN = W.npcs.filter(n => !n.dead).length, upkeep = Math.round((1 - legacyAdmin * .001) * (1 - governance.upkeepReduction) * (popN * 7 + W.map.buildings.reduce((s2, b) => s2 + b.level * 15, 0) * clamp((popN + 8) / 45, 0.3, 1)));
       ECO.pay(W, Math.min(upkeep, Math.max(0, S.stones)), 'ค่าบำรุงรักษาสำนัก');
-      const gr = ECO.count(W, 'grain'), lim = popN * 25; if (gr > lim) { const rot = Math.floor((gr - lim) * 0.15); if (rot > 0) ECO.take(W, 'grain', rot); }
-      const ml = ECO.count(W, 'meal'), ml2 = popN * 8; if (ml > ml2) { const rot = Math.floor((ml - ml2) * 0.25); if (rot > 0) ECO.take(W, 'meal', rot); }
+      const gr = ECO.count(W, 'grain'), lim = popN * 25; if (gr > lim) { const rot = Math.floor((gr - lim) * 0.15 * (1 - governance.logisticsEfficiency)); if (rot > 0) ECO.take(W, 'grain', rot); }
+      const ml = ECO.count(W, 'meal'), ml2 = popN * 8; if (ml > ml2) { const rot = Math.floor((ml - ml2) * 0.25 * (1 - governance.logisticsEfficiency)); if (rot > 0) ECO.take(W, 'meal', rot); }
     }
     W.npcs.forEach(n => { if (n.dead) return; const tgt = SECT.satTarget(W, n); n.sat = (n.sat == null ? tgt : n.sat + (tgt - n.sat) * 0.35); n.grief = Math.max(0, (n.grief || 0) - 2); });
     W.avgSat = W.npcs.filter(n => !n.dead).reduce((s, n) => s + n.sat, 0) / Math.max(1, W.npcs.filter(n => !n.dead).length);
@@ -3270,8 +3364,16 @@
       const cap = legDef ? 1 : Math.min(qty, 25);
       itemNameTh = legDef ? legDef.nameTh : (r.outNameTh || r.nameTh);
       for (let i = 0; i < cap; i++) {
-        const gear = legDef ? g.VC.mintLegendaryWeapon(W, id, "spawn") : ECO.mintGear(r, quality);
+        let gear = null;
+        if (legDef) {
+          gear = g.VC.mintLegendaryWeapon(W, id, "spawn");
+        } else if (((itDef && itDef.proceduralTemplate) || (r && r.proceduralOut)) && ECO.rollProceduralGear) {
+          gear = ECO.rollProceduralGear(W, { slot: (itDef || r).slot, gearType: (itDef || r).gearType, baseQ: quality, playerSpawned: true, source: 'editor_spawn' });
+        } else {
+          gear = ECO.mintGear(W, r, quality, true);
+        }
         gear.playerSpawned = true; W.sect.spawnSeq = (W.sect.spawnSeq || 0) + 1; gear.uid = "eq_sp_" + W.sect.spawnSeq;
+        gear.listedAtDay = W.day; gear.listedTick = W.t;
         mintedUids.push(gear.uid);
         if (dest === 'sect') {
           W.sect.gear = W.sect.gear || [];
@@ -3454,19 +3556,35 @@
     const idx = list.findIndex(g2 => g2 && (g2.uid === gearUidOrId || g2.id === gearUidOrId));
     if (idx < 0) return { ok: false, reason: 'ไม่พบอุปกรณ์ในถุงส่วนตัว' };
     const eq = list[idx];
+    if (eq.retired || (eq.procedural && eq.dur != null && eq.dur <= 0 && (eq.maxDur || 100) <= 20)) {
+      if (ECO && ECO.retireGear) ECO.retireGear(W, n, eq);
+      return { ok: false, reason: 'อุปกรณ์ชำรุดถาวร (ปลดระวางแยกชิ้นส่วนแล้ว)' };
+    }
     list.splice(idx, 1);
     if (!list.length) delete n.inv.gear;
+    if (!eq.uid && ECO && ECO.nextGearUid) eq.uid = ECO.nextGearUid(W, eq.id);
+    eq.listedAtDay = W.day;
+    eq.listedTick = W.t;
+    eq.donatedBy = n.id;
     W.sect.gear = W.sect.gear || [];
     W.sect.gear.push(eq);
     SECT.notifyStockChanged(W, eq.id);
     const spawned = !!eq.playerSpawned;
-    const reward = spawned ? 0 : Math.max(8, Math.round((eq.tier || 1) * 14));
+    const blocked = spawned || !!eq.donatedRewarded || !!eq.boughtFromSectShop;
+    const shopPrice = (g.CPE && g.CPE.gearPrice) ? g.CPE.gearPrice(W, eq) : Math.max(8, Math.round((eq.tier || 1) * 14));
+    const maxD = eq.maxDur == null ? 100 : eq.maxDur, curD = eq.dur == null ? maxD : eq.dur;
+    const condK = clamp(curD / 100, 0.25, 1) * clamp(0.7 + 0.3 * (maxD / 100), 0.5, 1);
+    const rawReward = Math.max(3, Math.round((eq.tier || 1) * 12 * (eq.q || 1) * condK));
+    const reward = blocked ? 0 : Math.max(2, Math.min(rawReward, Math.floor(shopPrice * 0.62)));
+    eq.donatedRewarded = true;
     if (reward > 0 && g.CPE && g.CPE.mint) {
       g.CPE.mint(W, n, reward, 'บริจาคอุปกรณ์「' + eq.nameTh + '」', false);
       g.CPE.S(W).donated = (g.CPE.S(W).donated || 0) + reward;
+    } else if (blocked && g.CPE && g.CPE.S) {
+      g.CPE.S(W).arbitrageBlocked = (g.CPE.S(W).arbitrageBlocked || 0) + 1;
     }
-    W.log('finance', n.h.name.given + ' ส่งมอบอุปกรณ์「' + eq.nameTh + '」เข้าคลังแสงสำนัก ได้ ' + reward + ' คป.' + (spawned ? ' (ไอเทมเสก)' : ''), [n.id]);
-    return { ok: true, item: eq, reward, playerSpawned: spawned };
+    W.log('finance', n.h.name.given + ' ส่งมอบอุปกรณ์「' + eq.nameTh + '」เข้าคลังแสงสำนัก ได้ ' + reward + ' คป.' + (spawned ? ' (ไอเทมเสก)' : (blocked ? ' (เคยรับรางวัล/ซื้อจากร้านแล้ว)' : '')), [n.id], { txKind: 'donation', itemId: eq.id, itemUid: eq.uid, qty: 1, actorId: n.id });
+    return { ok: true, item: eq, reward, playerSpawned: spawned, arbitrageBlocked: blocked };
   };
 
   EDITOR.usePersonalItem = (W, npcId, kind, itemId) => {
@@ -4196,7 +4314,7 @@
     if (!n || !n.cult) return 'support';
     if (n.cult.path === 'SAGE_SUPPORT' || n.post === 'healer' || ['GOLDEN_NEEDLE_SAINT', 'DIVINE_NECTAR_APOTHECARY', 'MEDICINE_BODHI_GOD', 'LOTUS_MERCY_PURIFIER'].includes(n.cult.sub)) return 'healer';
     if (n.cult.path === 'BODY' || n.cult.path === 'BEAST_SOVEREIGN') return 'guardian';
-    if (n.cult.path === 'MECH_PUPPET' || ((n.h && n.h.skills && n.h.skills.ARRAY) || 0) >= 35) return 'array';
+    if (n.cult.path === 'MECH_PUPPET' || n.cult.path === 'CRAFT_CREATION' || ['ASTRAL_ARRAY', 'QIMEN_TALISMAN_PATRON', 'FATE_ORACLE', 'CALLIGRAPHY_PAINTING_SAGE', 'RUNE_ARRAY_ENGRAVER'].includes(n.cult.sub) || ((n.h && n.h.skills && n.h.skills.ARRAY) || 0) >= 35 || ((n.h && n.h.skills && n.h.skills.TALISMAN) || 0) >= 40) return 'array';
     return 'support';
   };
   const chooseTribulationHelpers = (W, candidate) => {
@@ -4217,7 +4335,15 @@
   };
   const availableTribulationMedicine = W => {
     if (!W || !g.ECO || !g.ECO.count) return null;
-    return TRIBULATION_RECOVERY_PILLS.find(id => g.ECO.count(W, id) >= 1) || null;
+    const prio = TRIBULATION_RECOVERY_PILLS.find(id => g.ECO.count(W, id) >= 1);
+    if (prio) return prio;
+    const stockKeys = Object.keys((W.sect && W.sect.stock) || {});
+    for (const k of stockKeys) {
+      if ((W.sect.stock[k] || 0) < 1 || !g.ECO.isPill || !g.ECO.isPill(k)) continue;
+      const info = g.ECO.pillInfo && g.ECO.pillInfo(k);
+      if (info && (info.tier || 1) >= 2 && info.effect && ((info.effect.healHealth || 0) >= 25 || info.effect.healInjury || info.effect.breakthroughBonus)) return k;
+    }
+    return null;
   };
   const tribulationChance = (W, candidate, helpers, medicineId) => {
     const base = g.CULT && g.CULT.breakthroughChance ? g.CULT.breakthroughChance(candidate, { now: W.t }) : 0.5;
