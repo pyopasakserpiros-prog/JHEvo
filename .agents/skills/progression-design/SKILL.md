@@ -5,85 +5,110 @@ origin: jianghusect-custom
 category: cultivation-progression
 ---
 
-# JianghuSect Progression: 9 Cultivation Paths, 78 Subpaths, Bottlenecks & Spirit Beasts
+# JianghuSect Progression: 9 Paths, 78 Subpaths, Stage Equivalence, Spirit Beasts & Realms
 
 ## Purpose
-Provide the definitive architecture and balancing rules for character and sect progression in **JianghuSect Evolution (JHEvo)** (`js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js`, `js/proficiency.js`, `data/data_cult.js`, `data/data_bt.js`, `data/data_beasts.js`).
+Provide the deep-dive, source-verified progression specification for **JianghuSect Evolution (JHEvo)** (`GAME_SOURCE/js/cultivation.js`, `GAME_SOURCE/js/bottleneck.js`, `GAME_SOURCE/js/retraining.js`, `GAME_SOURCE/js/sect.js`, `GAME_SOURCE/js/explore.js`, `GAME_SOURCE/js/expedition.js`).
 
 Use this skill whenever:
-- Modifying or balancing the **9 Major Cultivation Paths** or **78 Subpaths**
-- Touching stage scaling, breakthrough gates, bottleneck diagnosis, or realm specialization tracks
-- Working on the Universal Spirit Beast Companion system (taming, feeding, multi-pet capacity, breeding, bloodline awakening, or reserve menagerie)
-- Adjusting sect starting archetypes (`SECT.ARCHETYPES`), ancestral shrine blessings, or cross-sect progression
+- Modifying the **9 Major Cultivation Paths**, **78 Subpaths**, or **14 Starting Sect Archetypes (`SECT.ARCHETYPES`)**
+- Implementing universal dungeons/trials (such as the **Nine-Dao Trial Pagoda** or **Five-Elemental Secret Realms** in `js/explore.js`)
+- Extending the **Spirit Beast Companion, Breeding, War-Beast Gate Defense, or Spirit Mount Caravan** systems
+- Tuning bottlenecks (`js/bottleneck.js`), 9-realm specialization tracks (`npc.cult.track`), or cross-sect manual retraining (`js/retraining.js`)
 
 ---
 
-## 1. The 9 Major Cultivation Paths & Stage Equivalence
+## 1. The 9 Major Cultivation Paths & Stage Equivalence Contract
 
-JianghuSect features **9 Major Cultivation Paths**, all of which must remain first-class citizens with full stage equivalence:
+Every progression system, dungeon floor, equipment requirement, and tournament rule MUST treat all **9 Major Cultivation Paths** with complete equity:
 
-| Path ID | Thai Name | Stages | Subpaths | Core Fantasy & Progression Hook |
-| :--- | :--- | :---: | :---: | :--- |
-| `XIAN` | วิถีเซียน (ปราณอมตะ) | 9 | 12 | Qi condensation, Golden Core, Nascent Soul, flying sword & elemental mastery |
-| `BODY` | วิถีกายา (หลอมกายา) | 5 | 10 | Tempering flesh, bone, blood, and marrow; high physical resilience & burst |
-| `GOD` | วิถีเทพ (เทวะศรัทธา) | 4 | 9 | Incense faith, divine authority, shrine vessel, and celestial judgment |
-| `DEMON` | วิถีมาร (มารสวรรค์) | 9 | 10 | Rapid unorthodox power, blood/gu/shadow arts, managing `heartDemon` & toxicity |
-| `HEART_SOUL` | วิถีจิตวิญญาณ (มรรคาจิต) | 9 | 9 | Soul sea expansion, zither/chess/calligraphy/painting enlightenment, illusion & array |
-| `MECH_PUPPET` | วิถีกลจักรเชิดหุ่น | 8 | 7 | Construct readiness, puppet overdrive, soul-core forging, and decoy vessels |
-| `KARMA_SAMSARA` | วิถีกรรมวัฏสังสารวัฏ | 8 | 7 | Causal debt ledger, Six-Realm Wheel stances, fate weaving, and samsara echo |
-| `BEAST_SOVEREIGN`| วิถีราชันย์อสูร | 8 | 7 | Sovereign soul-pact, multi-pet pack command (2–4 active beasts), bloodline resonance |
-| `SAGE_SUPPORT` | วิถีปราชญ์โอสถคีตเวทย์ | 8 | 7 | Acupoint saint, celestial zither, nectar apothecary, talisman patron, ally healing/buffs |
+| Path ID | Stages | Subpaths | Specialist Facility / State Object | Core Subpath Examples |
+| :--- | :---: | :---: | :--- | :--- |
+| `XIAN` | 9 | 12 | `meditation_hall` / `npc.cult` | `SWORD_IMMORTAL`, `FIVE_ELEMENTS`, `ELIXIR_DAO`, `ASTRAL_ARRAY`, `TIME_VOID`, `YIN_YANG_HARMONY` |
+| `BODY` | 5 | 10 | `training_ground` / `npc.cult` | `TIGER_SOVEREIGN`, `BLOOD_DRAGON`, `VAJRA_BODHI`, `SOLAR_FORGE`, `THUNDER_BODY`, `TITAN_MOUNTAIN_BODY` |
+| `GOD` | 4 | 9 | `shrine` / `npc.cult` | `WAR_DEITY`, `MERCY_DEITY`, `FATE_ORACLE`, `TOTEM_BEAST_GOD`, `UNDERWORLD_JUDGE`, `OCEAN_SOVEREIGN` |
+| `DEMON` | 9 | 10 | `ruin` / `npc.h.state.heartDemon` | `BLOOD_DEMON`, `PHANTOM_SOUL`, `DEVOURING_FIEND`, `SHADOW_ASSASSIN`, `VENOM_GU_SOVEREIGN`, `NETHER_GHOST_KING` |
+| `HEART_SOUL` | 9 | 9 | `spirit_pond` / `tea_garden` | `SOUND_ZITHER`, `ZEN_VOID_MIND`, `CALLIGRAPHY_PAINTING_SAGE`, `DREAM_ILLUSION_WEAVER`, `MIND_SWORD_TELEKINESIS` |
+| `MECH_PUPPET` | 8 | 7 | `mech_workshop` / `npc.mechState` | `HEAVENLY_GOLEM`, `IRON_COLOSSUS`, `CLOCKWORK_ARTILLERY`, `SOUL_PUPPET_THREAD`, `FORTRESS_BASTION_ARCHITECT` |
+| `KARMA_SAMSARA` | 8 | 7 | `ancestral` / `npc.karmaState` | `SIX_REALM_SOVEREIGN`, `ASURA_JUDGMENT_BLADE`, `LOTUS_MERCY_PURIFIER`, `REVERSED_RETRIBUTION`, `FATE_SEVERING_THREAD` |
+| `BEAST_SOVEREIGN`| 8 | 7 | `beast_menagerie` / `npc.pets` | `MYRIAD_BEAST_KING`, `DRAGON_TIGER_SYMBIONT`, `SWARM_GU_HIVE_MASTER`, `PRIMAL_TOTEM_CHIEFTAIN`, `ASTRAL_MOUNT_CAVALRY` |
+| `SAGE_SUPPORT` | 8 | 7 | `harmonic_pavilion` / `W.sect.supportDoctrine` | `GOLDEN_NEEDLE_SAINT`, `CELESTIAL_ZITHER_ENVOY`, `DIVINE_NECTAR_APOTHECARY`, `QIMEN_TALISMAN_PATRON`, `SOUL_LANTERN_SHEPHERD` |
 
-### Mandatory Stage Equivalence APIs (`js/cultivation.js`)
-Because paths have **4, 5, 8, or 9 stages**, **NEVER compare raw `npc.cult.stage` across different paths** when checking gear `minStage`, technique `reqTier`, facility unlocks, or world rank! Always use:
-1. **`CULT.normalizedStage(path, stage)`**: Maps any path's stage onto a normalized `0..1` progression ratio.
-2. **`CULT.equivalentStage(npc)`**: Maps an NPC's current path/stage onto the canonical **1..9 Xian-equivalent realm scale**.
-3. **`CULT.effectiveTechStage(npc, tech)`**: Evaluates whether an NPC meets a technique's stage requirement across any path.
-4. **`CULT.worldRank(npc)`**: Computes global martial/cultivation standing across all 9 paths.
-
----
-
-## 2. Bottlenecks, Specialization Tracks & Retraining
-
-### 2.1 Bottleneck Resolution (`js/bottleneck.js` & `CULT.inspectProgressionBottleneck`)
-- When `npc.cult.prog >= 100`, an NPC enters a realm or track bottleneck (`npc.cult.bn`).
-- `CULT.inspectProgressionBottleneck(W, npc)` returns structured diagnostics (`blockerReasonTh`, `blockedReasons`, required pills/materials/comprehension/merit) consumed by both the UI and `COG` (`js/cognition.js`) so the NPC autonomously seeks the missing prerequisite (e.g., crafting a breakthrough pill, praying at the Ancestral Shrine, or studying with a mentor).
-
-### 2.2 9-Realm Specialization Tracks (`CULT.initTrack`, `CULT.checkTrackGates`, `CULT.trackBreakthrough`)
-- Every subpath has a multi-ordinal specialization track (`npc.cult.track`).
-- Advancing ordinals requires meeting track gates (`CULT.checkTrackGates(W, npc)`), which grant permanent passive bonuses and unlock signature techniques.
-
-### 2.3 Martial Retraining & Cross-Sect Inheritance (`js/retraining.js`)
-- Cultivators can retrain incompatible techniques or integrate cross-sect manuals (`W.sect.library`) without corrupting innate subpath techniques or exceeding slot caps.
+### Mandatory Stage Equivalence Functions (`js/cultivation.js`)
+Because stage counts vary (`4`, `5`, `8`, or `9`), **never compare raw `npc.cult.stage` directly across paths**:
+1. **`CULT.normalizedStage(path, stage)`**: Returns `0..1` progress within that path's total stages.
+2. **`CULT.equivalentStage(npc)`**: Maps any path's stage onto the canonical **1..9 Xian-equivalent realm scale** (e.g., `GOD` stage 4 → equivalent stage 9; `BODY` stage 5 → equivalent stage 9; `8-stage` paths stage 8 → equivalent stage 9).
+3. **`CULT.effectiveTechStage(npc, tech)`**: Used for technique learning/equipping eligibility and support scaling.
+4. **`CULT.worldRank(npc)`**: Unified power/realm ranking across the Jianghu world.
 
 ---
 
-## 3. Universal Spirit Beast Companion & Breeding System (`js/cultivation.js`)
+## 2. 14 Starting Sect Archetypes (`SECT.ARCHETYPES` & `SECT.ARCHETYPE_WEAPON` in `js/sect.js`)
 
-1. **Universal Pet Capacity (`CULT.maxActivePets(npc)`)**:
-   - Any cultivator on any path can tame and field **1 active spirit beast** (`npc.pet` / `npc.pets[0]`).
-   - `BEAST_SOVEREIGN` cultivators unlock **2 to 4 active pack slots** (`npc.pets`) as their equivalent stage advances.
-   - Overflow or resting beasts are housed in the sect's **Reserve Menagerie (`W.sect.menagerie`)**, managed by `beast_menagerie` specialist facility.
-2. **Spirit Beast Breeding (`CULT.breedBeasts(W, parentA, parentB, opts)`)**:
-   - Combines two compatible parent beasts from active slots or `W.sect.menagerie`.
-   - Deterministic genetic inheritance via `W.rng`: blends species affinities, inherits/mutates bloodline traits, and rolls a chance to awaken **+1 Tier (up to Tier 7)** boosted by `beast_menagerie` facility level and handler `BEAST_TAMING` skill.
-3. **Bloodline Awakening (`CULT.awakenBloodline(W, npc, pet, catalystId)`)**:
-   - Uses beast cores/catalysts to elevate a companion's bloodline purity, combat multiplier, and shared sovereign aura.
-4. **Menagerie Tick (`CULT.menagerieTick(W)`)**:
-   - Restores fatigue, heals HP, and increments bond/loyalty for beasts resting in `W.sect.menagerie`.
+Players can found a sect aligned with any of the 9 paths via 14 archetypes:
+- **Weapon/Xian/Body/Heart-Soul**: `sword`, `blade`, `spear`, `fist`, `alchemy`, `bow`, `staff`, `focus`
+- **Dedicated Path Archetypes**: `god` (`GOD`), `demon` (`DEMON`), `mech` (`MECH_PUPPET`), `karma` (`KARMA_SAMSARA`), `beast` (`BEAST_SOVEREIGN`), `sage` (`SAGE_SUPPORT`)
+- Each entry in `SECT.ARCHETYPE_WEAPON[key]` defines `{ skill, starterWeapon, masterWeapon }` so `SIM.buildNpc` equips the Sect Master (`founderIndex === 0`, skill `70`, `masterWeapon` `1.15x`) and founding elders (`founderIndex > 0`, skill `35`, `starterWeapon` `1.0x`) on Day 1.
 
 ---
 
-## 4. Verification Checklist
+## 3. Spirit Beast Companion, Breeding, War-Beast & Mount Lifecycle
 
-Run these suites from `GAME_SOURCE/` whenever modifying progression, cultivation paths, bottlenecks, or spirit beasts:
+### 3.1 Data Structures (`npc.pets`, `npc.pet`, `W.sect.beasts` / `W.sect.menagerie`)
+Each Spirit Beast object contains:
+```javascript
+{
+  uid: 'PET_...',
+  speciesId: '...',
+  nameTh: '...',
+  family: 'FELINE' | 'CANINE' | 'SERPENT' | 'AVIAN' | 'UNGULATE' | 'CHELONIAN' | 'INSECTOID' | 'DRACONIC',
+  role: 'VANGUARD_BRUISER' | 'FERAL_STRIKER' | 'VENOM_CONTROLLER' | 'GUARDIAN_SHELL' | 'MOUNT_CHARGER' | 'SPIRIT_CONDUIT',
+  tier: 1..7,
+  level: 1..9,
+  element: 'FIRE' | 'WATER_ICE' | 'LIGHTNING' | 'WIND' | 'EARTH_METAL' | 'WOOD_LIFE' | 'YIN_SHADOW' | 'LIGHT_YANG',
+  bloodlineTrait: 'ALPHA_FANG' | 'IRON_CARAPACE' | 'VENOM_GLAND' | 'GALE_STRIDE' | 'SPIRIT_SIPHON' | 'SOVEREIGN_AWAKENED',
+  purity: 0..100,
+  bond: 0..100,
+  loyalty: 0..100,
+  fatigue: 0..100,
+  hunger: 0..100,
+  hp: Number,
+  hpMax: Number,
+  active: true,
+  sovereignAwakened: Boolean
+}
+```
+
+### 3.2 Core Beast APIs (`js/cultivation.js`)
+- **Active Slot Cap (`CULT.maxActivePets(npc)`)**: Returns `1` for general cultivators, and `2..4` for `BEAST_SOVEREIGN` cultivators based on `CULT.equivalentStage(npc)`.
+- **Breeding (`CULT.breedBeasts(W, parentA, parentB, opts)`)**: Blends parent species, element, purity, and bloodline traits; rolls Tier-up (`+1` tier up to `T7`) boosted by `W.sect.specialistFacilities.beast_menagerie.level`.
+- **Bloodline Awakening (`CULT.awakenBloodline(W, npc, pet, catalyst)`)**: Upgrades `purity`, unlocks `SOVEREIGN_AWAKENED`, and calls `CULT.evolvePet`.
+- **Sect Defense War-Beasts & Mount Caravans (v2.0.10 Hooks)**:
+  - Reserve beasts in `W.sect.beasts` can be assigned to `W.sect.gateBeasts` to fight alongside sect guards during raids (`EXPED.spawnRaid`).
+  - Beasts with `role === 'MOUNT_CHARGER'` or `family === 'AVIAN'` / `'UNGULATE'` act as Spirit Mounts in `EXPED.createParty`, cutting travel time by `25%` and boosting caravan loot capacity by `40%`.
+
+---
+
+## 4. Universal Dungeons, Trials & Secret Realms (`js/explore.js`)
+
+When adding or extending world trials (such as `EX.resolveSanctum`, `EX.NINE_DAO_PAGODA`, or `EX.ELEMENTAL_REALMS`):
+1. **No Path Lockouts**: Any party of cultivators from any of the 9 paths must be able to enter and clear every floor/realm using `CULT.equivalentStage(npc)` and `COMBAT.evaluateFormationSynergy(party)`.
+2. **Dao / Elemental Resonance Bonuses**: Grant bonus comprehension, `CULT.gainWisdom`, elemental mastery (`ELEM.gainMastery`), or catalyst/resonance drops when a party member's `cult.path` or `ELEM` spiritual root matches the floor/realm affinity.
+
+---
+
+## 5. Verification Checklist
+
+Run these suites from `GAME_SOURCE/` after any progression, path, beast, or sanctum/pagoda change:
 ```bash
+node tools/validate_data_schema.js
 node test/martial_paths.js
 node test/demon_heartsoul_paths.js
 node test/bottleneck.js
 node test/specialization_tracks.js
 node test/martial_retraining.js
 node test/successor_and_archetypes_suite.js
+node test/diplomacy_sanctum_ancestral_suite.js
 node test/edithub_crosssect_progression_suite.js
 node test/v208_paths_and_beast_pets_suite.js
 node test/v209_facilities_party_synergy_suite.js

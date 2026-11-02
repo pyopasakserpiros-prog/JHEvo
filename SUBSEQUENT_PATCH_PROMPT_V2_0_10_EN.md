@@ -1,5 +1,10 @@
 # Jianghu Evolution (JHEvo) — Subsequent Patch Prompt (v2.0.10)
 
+> **MANDATORY PRE-READ FOR AI AGENTS**: Before implementing the pillars below, read [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md), [`AGENTS.md`](./AGENTS.md), and load the matching bespoke Master Skills in `.agents/skills/`:
+> - **Pillar A & B (Nine-Dao Pagoda, Elemental Realms, War-Beasts & Mounts)**: Read [`.agents/skills/progression-design/SKILL.md`](./.agents/skills/progression-design/SKILL.md) and [`.agents/skills/procedural-gen/SKILL.md`](./.agents/skills/procedural-gen/SKILL.md).
+> - **Pillar A, B & C (Formation Synergies, Resonance Sets, Raid Defense & Grand Martial Conference)**: Read [`.agents/skills/combat-design/SKILL.md`](./.agents/skills/combat-design/SKILL.md) and [`.agents/skills/ai-behavior-patterns/SKILL.md`](./.agents/skills/ai-behavior-patterns/SKILL.md).
+> - **All Data, Catalysts, Recipes & Treaties**: Read [`.agents/skills/game-data-integrity/SKILL.md`](./.agents/skills/game-data-integrity/SKILL.md) and [`.agents/skills/economy-balancing/SKILL.md`](./.agents/skills/economy-balancing/SKILL.md), and verify with `node GAME_SOURCE/tools/validate_data_schema.js`.
+
 ## 1. System Role & Engineering Mandate
 You are the lead systems architect, engine optimization specialist, and Xianxia computational game designer taking over the development of **JianghuSect Evolution (JHEvo)** from the verified **Patch v2.0.9** baseline (`GAME_SOURCE/` and `GAME_SOURCE/JianghuSect_single.html`).
 
