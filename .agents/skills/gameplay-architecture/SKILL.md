@@ -1,86 +1,72 @@
 ---
 name: gameplay-architecture
 description: Master the system architecture, 40-script-tag load invariant, global namespace (g.*), single-state object (W), tick/hour/day simulation lifecycle (js/sim.js), sect facilities (js/sect.js), and single-file build pipeline (tools/build_single.js) of JianghuSect Evolution.
-origin: jianghusect-custom
-category: engine-architecture
 ---
 
-# JianghuSect Engine Architecture: Module Graph, Invariants & Simulation Loop
+# JianghuSect Evolution — System Architecture & Simulation Lifecycle Blueprint (`js/sim.js`, `js/sect.js`, `index.html`, `test/load.js`)
 
-## Purpose
-Define the non-negotiable architectural invariants, module load order, state ownership (`W`), and simulation tick flow of **JianghuSect Evolution (JHEvo)**.
-
-Use this skill whenever:
-- Touching multiple engine modules (`js/*`, `data/*`) or planning a new patch feature
-- Adding new sect facilities, policies, doctrines, or world events
-- Rebuilding `GAME_SOURCE/JianghuSect_single.html` via `node tools/build_single.js`
-- Debugging cross-module initialization, circular dependencies, or global namespace (`g.*`) exports
+This skill governs the global module architecture, the 40-script-tag load invariant, the single authoritative world state (`W`), the tick/hour/day/month simulation loop (`js/sim.js`), sect facility expansion (`SIM.expandStations`), and the single-file offline build pipeline (`tools/build_single.js`).
 
 ---
 
-## 1. Non-Negotiable Architectural Invariants
+## 1. The 40-Script-Tag Load Order Invariant (`index.html` & `test/load.js`)
 
-1. **Immutable `human_core.js` Lock**:
-   - `GAME_SOURCE/js/human_core.js` MUST NEVER BE MODIFIED.
-   - `HC.FINGERPRINT === '155:2f9c9dd7'` and SHA-256 `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542` are verified by `test/core_lock.js`.
-2. **Exact 40 `<script>` Tag Load Invariant**:
-   - `GAME_SOURCE/index.html` and `GAME_SOURCE/test/load.js` load an exact, deterministic sequence of **40 `<script>` tags** (data files first, then core utilities, then domain modules, then `ui.js`, `render.js`, `main.js`).
-   - **NEVER add or remove `<script>` tags** in `index.html` or create new external `.js` files in `js/` or `data/`—always extend the existing modules!
-3. **Dual Browser/CommonJS IIFE Pattern**:
-   - Every module wraps its code in `(function (g) { 'use strict'; ... })(typeof globalThis !== 'undefined' ? globalThis : this);`
-   - Attaches its namespace to `g.<MODULE>` (e.g., `g.U`, `g.HC`, `g.CULT`, `g.ECO`, `g.SECT`, `g.AI`, `g.COG`, `g.COMBAT`, `g.SIM`, `g.UI`, `g.RENDER`).
-   - Works identically in a browser (`index.html` / `JianghuSect_single.html` with zero bundler dependencies) and in Node.js (`test/load.js`).
-4. **Single Source of Truth (`W`)**:
-   - All runtime world state lives inside the single world object `W` (`W.t`, `W.day`, `W.rng`, `W.map`, `W.sect`, `W.npcs`, `W.byId`, `W.fights`, `W.market`, `W.world`, `W.logs`).
-   - Never store mutable world state in module-level globals that survive across `SIM.create()` or `SIM.load()` calls!
+JianghuSect Evolution uses zero external bundlers. Every file is an IIFE `(function (g) { 'use strict'; ... })(typeof globalThis !== 'undefined' ? globalThis : this);` attaching its namespace to `g`.
+
+### 1.1 Exact Load Sequence (`test/load.js` line 4 & `index.html`)
+1. **11 Data Modules (`g.JD`):**
+   `data/data_core.js` → `data/data_cult.js` → `data/data_items.js` → `data/data_bt.js` → `data/data_cb.js` → `data/data_cp.js` → `data/data_tech.js` → `data/data_beasts.js` → `data/data_expansion.js` → `data/data_martial.js` → `data/data_ecology.js`
+2. **26 Core Simulation & Domain Modules (`test/load.js`):**
+   `js/util.js` (`U`) → `js/human_core.js` (`HC`) → `js/world_map.js` (`MAP`) → `js/cultivation.js` (`CULT`, `ELEM`) → `js/economy.js` (`ECO`) → `js/sect.js` (`SECT`) → `js/ai.js` (`AI`) → `js/combat.js` (`COMBAT`) → `js/expedition.js` (`EXPED`) → `js/explore.js` (`EXPLORE`) → `js/bottleneck.js` (`BN`) → `js/skills.js` (`SK`) → `js/stats.js` (`STATS`) → `js/cpeco.js` (`CPE`) → `js/external_market.js` (`EXT`) → `js/content.js` (`CONTENT`) → `js/martial.js` (`MARTIAL`) → `js/proficiency.js` (`PROF`) → `js/knowledge.js` (`KNOW`) → `js/retraining.js` (`RETRAIN`) → `js/cognition.js` (`COG`) → `js/wildlife.js` (`WILD`) → `js/wild_resources.js` (`WILD_RES`) → `js/sim.js` (`SIM`) → `js/visitors_clues.js` (`VC`) → `js/fishing.js` (`FISHING`)
+3. **3 Browser-Only Modules (`index.html` only):**
+   `js/render.js` (`Render`) → `js/ui.js` (`UI`) → `js/main.js` (`G`)
+
+> **Strict Invariant:** Never add or remove `<script>` tags in `index.html` or `test/load.js` (`test_overhaul_pack.js` enforces `scriptTags.length === 40`). Always extend existing modules in place.
 
 ---
 
-## 2. Module Ownership Map (`GAME_SOURCE/`)
+## 2. Single Source of Truth (`W`) & World Creation (`SIM.create` lines 146–218)
 
-| Layer | Files | Global Exports & Responsibility |
-| :--- | :--- | :--- |
-| **Data (`data/`)** | `data_core.js`, `data_cult.js`, `data_martial.js`, `data_items.js`, `data_expansion.js`, `data_cp.js`, `data_bt.js`, `data_cb.js`, `data_beasts.js`, `data_ecology.js`, `data_tech.js` | Populates `g.JD` (`JD.CORE`, `JD.CULT`, `JD.MARTIAL`, `JD.ITEMS`, `JD.BEASTS`, etc.). Pure static definitions. |
-| **Foundation** | `js/util.js`, `js/human_core.js` | `g.U` (PRNG `U.RNG`, math/string helpers), `g.HC` (12-layer human stat/modifier engine). |
-| **Progression & Combat** | `js/cultivation.js`, `js/bottleneck.js`, `js/proficiency.js`, `js/retraining.js`, `js/martial.js`, `js/skills.js`, `js/stats.js`, `js/combat.js` | `g.CULT`, `g.ELEM`, `g.BN`, `g.PROF`, `g.RETRAIN`, `g.MARTIAL`, `g.SKILLS`, `g.STATS`, `g.COMBAT`. |
-| **World & Ecology** | `js/world_map.js`, `js/wildlife.js`, `js/wild_resources.js`, `js/fishing.js`, `js/explore.js`, `js/expedition.js`, `js/visitors_clues.js` | `g.MAP` (240×192 grid, buildings, stations), `g.WILD`, `g.WILD_RES`, `g.FISHING`, `g.EX`, `g.EXPED`, `g.VC`. |
-| **Economy & Sect** | `js/economy.js`, `js/cpeco.js`, `js/external_market.js`, `js/content.js`, `js/sect.js`, `js/knowledge.js` | `g.ECO`, `g.CPE`, `g.EXT_MKT`, `g.CONTENT`, `g.SECT` (14 archetypes, offices, diplomacy, ancestral shrine, 3 specialist facilities), `g.KNOW`. |
-| **NPC Brain** | `js/cognition.js`, `js/ai.js` | `g.COG` (aspirations, goals, bounded awareness), `g.AI` (utility scoring, needs, pathfinding, station reservation). |
-| **Simulation & UI** | `js/sim.js`, `js/ui.js`, `js/render.js`, `js/main.js` | `g.SIM` (clock, tick loop, save/load), `g.UI` (DOM panels, sheets, Edit Hub), `g.RENDER` (Canvas 2D map & entity rendering). |
+### 2.1 Calendar & Time (`js/sim.js` lines 10–13)
+- `1 tick = 1 game minute`, `1440 ticks = 1 day`, `30 days = 1 month`, `360 days = 1 year (4 seasons × 90 days)`.
+- `SIM.calendar(t)` returns `{ day, year, month, dom, season, hour, minute }`.
+
+### 2.2 Authoritative `W` State Structure (`SIM.create`)
+- **Top-Level Fields:** `v`, `seed`, `rng` (`new U.RNG(seed + ':world')`), `t`, `day`, `season`, `speed`, `npcs`, `byId`, `logs`, `logSeq`, `seqN`, `fights`, `foes`, `foeById`, `duelQueue`, `graveyard`, `gone`, `deaths`, `avgSat`, `avgMood`, `weather`, `market`, `sect`, `world`, `threat`, `explore`, `wildlife`, `wildResources`, `fishing`, `map`.
+- **Sect State (`W.sect`):** `name`, `archetype`, `masterId`, `deputyId`, `posts`, `policy`, `stock`, `gear`, `stones`, `ledger`, `recipeTier`, `library`, `crystals`, `unlockedSubs`, `fame`, `cd`, `lastDuty`, `orders`, `guardRoster`, `buyList`, `reserveDirectives`, `shortageDirectives`, `welfareHistory`, `assemblyHistory`, `catalysts`, `menagerie`, `reservePets`, `supportDoctrine`, `specialistFacilities`.
 
 ---
 
-## 3. Simulation Tick Cadence (`js/sim.js` — `SIM.tick`)
+## 3. Simulation Lifecycle (`SIM.tick`, `SIM.hourly`, `SIM.dailyUpdate`, `SIM.monthly`)
 
-In JianghuSect, **1 tick = 1 game minute** (`1440 ticks = 1 day`, `360 days = 1 year`):
-- **Every Tick (1 min)**:
-  - Advances `W.t` and updates `W.day = Math.floor(W.t / 1440)` and `HC.nowDay = W.day`.
-  - Runs `AI.step(W, npc)` for every living NPC (`AI.needs`, `AI.interrupt` every 5 mins, movement, or activity `tick`).
-  - Steps active fights (`COMBAT.tickFights`), wildlife movement, and active expeditions.
-- **Every Hour (`W.t % 60 === 0`)**:
-  - `AI.healTick(W, npc)`, facility upkeep, specialist facility ticks (`CULT.menagerieTick`), external market arrivals/departures, and threat/raid checks.
-- **Every Day (`W.t % 1440 === 0`)**:
-  - Daily sect ledger, welfare/salary distribution, natural ecology/fishing pool recovery, diplomacy updates, and age/lifespan checks.
+### 3.1 Per-Tick Loop (`SIM.tick(W)` lines 290–308)
+1. `g.STATS.now = W.t; W.t++;`
+2. If `Math.floor(W.t / 1440) !== W.day`, advance `W.day`, update `HC.nowDay = d`, and run `SIM.dailyUpdate(W)`.
+3. Iterate `W.npcs`:
+   - Skip `n.dead`.
+   - If `n.travel`: update `n.px = n.x; n.py = n.y`, run `AI.needs(W, n)`, `EXPED.travelStep(W, n)`, and if `n.away && n.exiled`, call `SIM.retire(W, n)`.
+   - If `!n.away`: execute `AI.step(W, n)`.
+4. Run `WILD.tick(W)`, `WILD_RES.tick(W)`, `EXPED.raidTick(W)` (if `W.foes.length`), `WILD.clampCombat(W)`, and `COMBAT.tick(W)`.
+5. Every 60 ticks (`W.t % 60 === 0`), run `SIM.hourly(W)`.
+
+### 3.2 Hourly Loop (`SIM.hourly(W)` lines 325–375)
+- Purges expired timed buffs (`STATS.purgeExpired(n, W.t)`), applies `vitalRegen` buff (`+5% hpMax`), cools down/recharges `MECH_PUPPET` constructs (`ms.heat`, `ms.charge`, `ms.integrity`), ticks `AI.healTick`, `STATS.recover`, `CPE.autoUse`, and weapon durability loss in combat (`-0.5 dur`).
+- Completes finished building upgrades (`W.t >= b.building.until` → `SIM.finishBuilding(W, b)`), tracks facility station congestion (`W.sect.facilityDemand`), runs `EXPED.hourly(W)`, and distributes sect armory gear every 6 hours (`W.t % 360 === 0`).
+
+### 3.3 Daily & Monthly Loop (`SIM.dailyUpdate(W)` lines 454–511)
+- Rolls seasonal weather (`clear`, `cloud`, `rain`, `snow`, `fog`), checks natural old-age mortality (`age > life * 0.92`), buries dead NPCs after 4 days into `W.graveyard`, triggers `SECT.succession` if Master is dead, updates `SIM.guardRoster` & `SIM.assistants`, and runs:
+  `SECT.daily(W)` → `COG.syncOfficeAuthority(W)` → `COG.reconcileLoadout(W, n)` → `EXPED.daily(W)` → `EXPLORE.daily(W)` → `BN.daily(W)` → `CPE.daily(W)` → `CONTENT.daily(W)` → `EXT.daily(W)` → `FISHING.daily(W)`.
+- Handles orphaned pets of dead NPCs (moves to `W.sect.reservePets`), feeds hungry pets (`CULT.feedPet`), repairs `MECH_PUPPET` constructs, checks 9-Realm Track breakthroughs (`CULT.checkTrackGates` → `CULT.trackBreakthrough`), advances `SIM.researchTick(W)`, and buys emergency grain if food `< pop * 1.5`.
+- On day-of-month 1 (`cal.dom === 1`), runs `SIM.monthly(W)` (`SECT.monthly`, `EXPED.caravan`, mortal cultivation awakening rolls).
+
+### 3.4 Facility Expansion & Dormitory Cap (`SIM.expandStations` lines 397–446)
+- **Authoritative Dormitory Bed Progression:** Only `SECT.HOUSING_IDS` (`dorm`, `elder_quarters`, `guest_quarters`) add `bed` stations (`56 + 28 + 16 = 100` max beds at L5). Non-housing buildings **never** add `bed` stations.
 
 ---
 
-## 4. Standalone Build Pipeline (`tools/build_single.js`)
-
-Whenever any file in `GAME_SOURCE/js/`, `GAME_SOURCE/data/`, `GAME_SOURCE/css/`, or `GAME_SOURCE/index.html` is modified:
-```bash
-cd GAME_SOURCE && node tools/build_single.js
-```
-This inlines all CSS, 40 JS scripts, and base64 assets (`assets/wuxia_item_atlas.png`) into `GAME_SOURCE/JianghuSect_single.html` so the user can open the game directly in any browser without a web server.
-
----
-
-## 5. Verification Checklist
-
-```bash
-node GAME_SOURCE/tools/build_single.js
-node GAME_SOURCE/test/core_lock.js
-node GAME_SOURCE/test/standalone.js
-node GAME_SOURCE/test/runtime_timing.js
-node GAME_SOURCE/test/speed_controls.js
-node GAME_SOURCE/test/time_controls.js
-```
+## 4. Single-File Build Pipeline (`tools/build_single.js`)
+- Always rebuild `GAME_SOURCE/JianghuSect_single.html` after any code or data edit:
+  ```bash
+  cd GAME_SOURCE && node tools/build_single.js
+  ```
+- Verifies all 40 scripts inline cleanly into a standalone offline HTML bundle.

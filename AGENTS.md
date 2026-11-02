@@ -31,11 +31,11 @@ Always load only the skills relevant to the subsystem you are touching:
 7. **[`game-data-integrity`](./.agents/skills/game-data-integrity/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: Adding/modifying items, recipes (`REC_*` / `ITEM_*` Dual-ID), martial arts, weapon affinities, `elementProfile`, combat effects, and 100% Edit Hub spawner resolution.
 
-### Tier 2 — Architecture, Save, Performance & QA Guardrail Skills
-8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** — 40-script-tag load invariant, `W` state authority, `SIM.tick` lifecycle, and `tools/build_single.js`.
-9. **[`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md)** — `SIM.save` / `SIM.load` round-trip integrity, legacy save migration, receipt idempotency, and transient cache stripping.
-10. **[`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md)** & **[`web-performance`](./.agents/skills/web-performance/SKILL.md)** — Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_ver`, `_passVer`, `earliestExpiry`, and Canvas frustum culling.
-11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** — 83-suite regression matrix (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
+### Tier 2 — Deep-Dive Architecture, Save, Performance & QA Guardrail Skills
+8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** *(Deep-Dive Master)* — Exact 40-script-tag load sequence (`index.html` & `test/load.js`), `W` single source of truth, `SIM.tick` / `SIM.hourly` / `SIM.dailyUpdate` / `SIM.monthly` lifecycle, `SIM.expandStations` dormitory bed cap (`100` max), and `tools/build_single.js`.
+9. **[`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md)** *(Deep-Dive Master)* — `SIM.serialize` / `SIM.deserialize` (`js/sim.js` lines 534–620), automatic `_` transient cache stripping, `W._saveExtras` forward compatibility, pointer rebinding, legacy craft receipt adoption, and dead-reference pruning.
+10. **[`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md)** & **[`web-performance`](./.agents/skills/web-performance/SKILL.md)** *(Deep-Dive Master)* — Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_stVer`, `_passVer`, `_eqSetCache`, `_stEarliestBuffExp`, `SIM_BUDGET_MS = 12`, `16×16` Canvas terrain chunk caching (`buildChunk`), and `measureCached`.
+11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 83-suite regression matrix (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
 
 ---
 

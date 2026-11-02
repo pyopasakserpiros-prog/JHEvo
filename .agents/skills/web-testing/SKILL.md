@@ -1,72 +1,64 @@
 ---
 name: web-testing
 description: Write and execute headless Node.js VM tests (test/load.js) and Chromium CDP browser tests (tools/cdp_playwright.js) for JianghuSect Evolution.
-origin: jianghusect-custom
-category: testing-harness
 ---
 
-# JianghuSect Testing Harness: Node VM (`test/load.js`) & Headless CDP (`tools/cdp_playwright.js`)
+# JianghuSect Evolution — Headless Node VM, JSDOM & Chromium CDP Testing Blueprint (`test/load.js`, `tools/cdp_playwright.js`)
 
-## Purpose
-Guide AI agents in writing fast, deterministic unit/integration tests using JianghuSect's dual-mode test harness (`GAME_SOURCE/test/load.js` for instant Node.js VM execution and `GAME_SOURCE/tools/cdp_playwright.js` for real browser DOM/Canvas verification).
-
-Use this skill whenever:
-- Creating or debugging test files in `GAME_SOURCE/test/`
-- Testing DOM interactions, Edit Hub controls, Inventory Grid rendering, or Canvas gestures
-- Running tests in constrained environments (such as Termux Android vs desktop CI with Chromium)
+This skill covers how to test both headless simulation logic (`test/load.js`) and browser DOM/Canvas UI (`js/ui.js`, `js/render.js`, `js/main.js`) in **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**, including Termux/Android headless environments.
 
 ---
 
-## 1. Tier 1: Fast Node.js VM Harness (`GAME_SOURCE/test/load.js`)
+## 1. Headless Node.js Simulation Harness (`GAME_SOURCE/test/load.js`)
 
-Over 90% of JianghuSect's systems (including `UI` builders, `SIM`, `HC`, `CULT`, `ELEM`, `COMBAT`, `AI`, `COG`, `ECO`, `CPE`, `SECT`, `MAP`, `FISHING`, `EXPLORE`) can be tested in milliseconds in pure Node.js without launching a browser!
-
-### How `test/load.js` Works
-- Reads the exact **40 `<script>` tags** from `GAME_SOURCE/index.html`, stubs minimal DOM/Canvas globals (`document`, `window`, `localStorage`, `HTMLCanvasElement`), and loads all 40 modules into `globalThis`.
-- Exports `{ g, SIM, HC, CULT, ELEM, ECO, CPE, SECT, AI, COG, COMBAT, MAP, UI, U, JD, ... }`.
-
-### Standard Node Test Pattern
+`test/load.js` loads all 11 data files and 26 simulation JS modules into `globalThis` in exact `<script>` order:
 ```javascript
 'use strict';
-const assert = require('assert');
 const g = require('./load.js');
-const { SIM, HC, CULT, ECO, SECT, AI, COG, COMBAT, UI } = g;
+const assert = require('assert');
 
-// 1. Create a deterministic world with a fixed seed
-const W = SIM.create(202609, { archetype: 'sage' });
-assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7');
-
-// 2. Advance ticks deterministically
-for (let i = 0; i < 60; i++) SIM.tick(W);
-
-// 3. Assert state invariants and save/load round-trip
-const saved = SIM.save(W);
-const W2 = SIM.load(saved);
-assert.strictEqual(W2.t, W.t);
-console.log('PASS my_new_suite');
+const W = g.SIM.create('seed_123', { masterIdx: 0, archetype: 'sword' });
+for (let i = 0; i < 1440; i++) g.SIM.tick(W); // Simulate 1 full game day (1,440 minutes)
+assert.strictEqual(W.day, Math.floor(W.t / 1440));
 ```
+- **Deterministic Seeding:** Always pass a fixed string seed (`'seed_123'`) to `g.SIM.create(seed, opts)` so tests are 100% reproducible.
 
 ---
 
-## 2. Tier 2: Headless Chromium CDP Harness (`GAME_SOURCE/tools/cdp_playwright.js`)
+## 2. Testing `js/ui.js` & `js/render.js` in Node.js (Lightweight DOM Mock)
 
-For tests that verify live browser layout, computed CSS styles, touch/mouse gesture cancellation, or Canvas pixel output (`startup_ui.js`, `input_cancellation.js`, `browser_mobile_perf.js`, `skill_visual_browser.js`, `outside_visual_browser.js`):
-- Uses `tools/cdp_playwright.js` (a zero-dependency Chrome DevTools Protocol client that auto-discovers system `chromium`/`google-chrome` and serves `GAME_SOURCE/` over a local ephemeral HTTP server).
-- **Environment Awareness**:
-  - In environments where Chromium is installed, CDP suites run end-to-end automatically.
-  - In Android Termux CLI where no headless Chromium binary is present, always put pure logic assertions *before* `cdp.launch()` so all data/builder/state logic is verified first, or run pure Node suites directly.
+When testing `js/ui.js` (such as `UI.rEdit`, `UI.rSect`, `UI.rWorld`, `UI.linkify`, `UI.resolveItemAtlasCell`) without launching a full browser, follow the pattern in `test/test_player_edit_hub.js` and `test/test_wuxia_sprite_atlas_grid.js`:
+
+```javascript
+const g = require('./load.js');
+// Provide minimal DOM stubs if not already present:
+if (!g.document) {
+  const els = {};
+  g.document = {
+    getElementById: id => els[id] || (els[id] = {
+      id, innerHTML: '', textContent: '', style: {}, dataset: {},
+      classList: { add(){}, remove(){}, toggle(){} },
+      addEventListener(){}, querySelectorAll: () => []
+    }),
+    querySelectorAll: () => [],
+    createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ({ fillRect(){}, clearRect(){}, drawImage(){}, beginPath(){}, arc(){}, fill(){}, stroke(){}, measureText: () => ({ width: 10 }) }) })
+  };
+  g.window = g;
+  g.performance = g.performance || { now: () => Date.now() };
+  require('../js/render.js');
+  require('../js/ui.js');
+}
+```
+- Initialize `g.UI.G = { W, R: { invalidate(){}, focus(){}, zoomAt(){}, selected: null, cam: { x: 0, y: 0, z: 1 } }, speed: 1, acc: 0, opts: { invViewMode: 'grid' } };`.
+- Call `g.UI.open('edit')` or `g.UI.rEdit()` and inspect `g.document.getElementById('shBody').innerHTML` or invoke `g.SECT.EDITOR.*` directly.
 
 ---
 
-## 3. Essential Commands
+## 3. Headless Chromium CDP Browser Testing (`tools/cdp_playwright.js`)
 
-```bash
-# Run a single suite in < 1 second:
-node GAME_SOURCE/test/v209_facilities_party_synergy_suite.js
-
-# Run the data & combat schema validator:
-node GAME_SOURCE/tools/validate_data_schema.js
-
-# Rebuild standalone HTML after any code change:
-cd GAME_SOURCE && node tools/build_single.js
-```
+When full browser layout, computed CSS styles (`getBoundingClientRect()`), Canvas pixel rendering, or touch/pointer event verification is needed:
+- `GAME_SOURCE/tools/cdp_playwright.js` provides a zero-dependency WebSocket Chrome DevTools Protocol (CDP) client that connects to headless Chromium (`chromium --headless --remote-debugging-port=9222`).
+- Use `GAME_SOURCE/tools/audit_ui_headless.js` to verify:
+  - Zero uncaught `pageerror` or `console.error` exceptions on boot (`index.html` and `JianghuSect_single.html`).
+  - Zero horizontal/vertical overflow across mobile (`390×844`, `412×915`) and desktop (`1280×800`) viewports.
+  - All drawers (`people`, `sect`, `log`, `world`, `edit`, `menu`, `npc`, `building`) open and switch tabs cleanly.
