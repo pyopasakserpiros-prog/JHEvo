@@ -16,18 +16,19 @@ All AI assistants (Antigravity, Codex CLI, Gemini, Cursor, Claude Code) must fol
 Always load only the skills relevant to the subsystem you are touching:
 
 ### Tier 1 — Deep-Dive Core Gameplay Skills (Read First for Feature Work)
-1. **[`progression-design`](./.agents/skills/progression-design/SKILL.md)** *(200+ lines)*
+1. **[`progression-design`](./.agents/skills/progression-design/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: 9 Major Cultivation Paths, 78 Subpaths, Stage Equivalence (`CULT.equivalentStage`), 14 Starting Sect Archetypes, Spirit Beast Companions/Breeding/War-Beasts/Mount Caravans, and Universal Dungeons (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`).
-2. **[`combat-design`](./.agents/skills/combat-design/SKILL.md)** *(200+ lines)*
+2. **[`combat-design`](./.agents/skills/combat-design/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: Exact `COMBAT.strike` damage formula, 12 composite stats (`STATS.KEYS`), 8 timed buffs (`STATS.BUFF_CATALOG` with strict `until` expiration), 7 weapon classes, 18 Equipment Resonance Sets, Formation Synergies (`COMBAT.evaluateFormationSynergy`), and Grand Martial Conferences (`SECT.WORLD_MARTIAL_CONFERENCE`).
-3. **[`ai-behavior-patterns`](./.agents/skills/ai-behavior-patterns/SKILL.md)** *(217 lines)*
+3. **[`ai-behavior-patterns`](./.agents/skills/ai-behavior-patterns/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: NPC Psychological Utility AI (`js/ai.js` `ScoreAcc` / `S.add` Thai reasons in `npc.why`), Goal-Driven Cognition (`js/cognition.js` `COG` aspirations, goals, 18 sect offices, zero-RNG rule), 12-Layer `HC` stats (`js/human_core.js`), and station reservation (`AI.freeStation`, `AI.reserve`, `AI.release`).
-4. **[`game-data-integrity`](./.agents/skills/game-data-integrity/SKILL.md)** *(167 lines)*
+4. **[`procedural-gen`](./.agents/skills/procedural-gen/SKILL.md)** *(Deep-Dive Master)*
+   - **Use for**: Ancient Sanctums (`EX.resolveSanctum`, `EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS` in `js/explore.js`), Expeditions & Caravans (`EXPED.caravan`, Spirit Mount Caravans `MOUNT_CHARGER`/`AVIAN`/`UNGULATE`), Sect Gate Raids & War-Beasts (`EXPED.spawnRaid`, `EXPED.rally`, `W.sect.gateBeasts` in `js/expedition.js`), Seeded `U.RNG`, `240×192` World Map, Southern Spirit River, and Fishing Monte Carlo loot tables.
+5. **[`game-data-integrity`](./.agents/skills/game-data-integrity/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: Adding/modifying items, recipes (`REC_*` / `ITEM_*` Dual-ID), martial arts, weapon affinities, `elementProfile`, combat effects, and 100% Edit Hub spawner resolution.
 
 ### Tier 2 — Domain System Skills (Read When Touching Specific Subsystems)
-5. **[`economy-balancing`](./.agents/skills/economy-balancing/SKILL.md)** — Sect Stock (`W.sect.stock`), Spirit Stones, CP Ledger (`js/cpeco.js`), crafting, recipe scrolls (`FORMULA:*`), external market, and `VASSAL_TREATY` tribute flows.
-6. **[`procedural-gen`](./.agents/skills/procedural-gen/SKILL.md)** — Seeded `U.RNG`, `240×192` World Map & Southern Spirit River, fishing Monte Carlo loot tables, 33 unique legendaries, wildlife ecology, and Ancient Sanctums.
+6. **[`economy-balancing`](./.agents/skills/economy-balancing/SKILL.md)** — Sect Stock (`W.sect.stock`), Spirit Stones, CP Ledger (`js/cpeco.js`), crafting, recipe scrolls (`FORMULA:*`), external market, and `VASSAL_TREATY` tribute flows.
 7. **[`game-ui-ux`](./.agents/skills/game-ui-ux/SKILL.md)** — Wuxia UI drawers (`js/ui.js`), NPC inspection tabs, 72-cell Item Icon Atlas (`wuxia_item_atlas.png`), Grid/List inventory, Edit Hub controls, and Canvas 2D rendering (`js/render.js`).
 
 ### Tier 3 — Architecture, Save, Performance & QA Guardrail Skills
