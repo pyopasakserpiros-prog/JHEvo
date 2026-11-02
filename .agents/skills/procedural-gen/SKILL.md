@@ -1,173 +1,81 @@
 ---
 name: procedural-gen
-description: >
-  Generate game content procedurally — seeded deterministic RNG, value/Perlin/
-  Simplex noise for terrain and heightmaps, grid dungeon generation (rooms +
-  corridors, BSP, random walk, wave function collapse), and weighted loot/drop
-  tables. Engine-neutral algorithms. Use when the user mentions procedural
-  generation, perlin/simplex noise, random seed, dungeon generator, WFC,
-  heightmap/terrain, or loot tables.
+description: Master JianghuSect Evolution's deterministic PRNG (U.RNG), 240x192 World Map & Southern Spirit River generation (js/world_map.js), Wildlife & Wild Resource ecology (js/wildlife.js, js/wild_resources.js), River Fishing Monte Carlo loot tables (js/fishing.js), and Ancient Sanctum exploration (js/explore.js).
+origin: jianghusect-custom
+category: world-procgen-ecology
 ---
 
-# Procedural generation
+# JianghuSect Procedural Generation: Seeded World Map, Ecology, Fishing & Sanctums
 
-Generate levels, terrain, and loot from compact rules and a seed. The throughline
-of good procgen is **determinism**: a single seed reproduces the same world, so
-bugs are repeatable and players can share seeds. This skill owns the core
-algorithms — noise, seeded RNG, dungeon layout, weighted tables; genres like
-`roguelike` and `survival-crafting` consume it.
+## Purpose
+Enforce deterministic procedural generation, spatial reachability, ecological conservation, and calibrated loot probability tables across **JianghuSect Evolution (JHEvo)** (`js/util.js`, `js/world_map.js`, `js/wildlife.js`, `js/wild_resources.js`, `js/fishing.js`, `js/explore.js`, `js/visitors_clues.js`).
 
-## When to use
+Use this skill whenever:
+- Modifying the **240×192 World Map**, sect buildings, stations, bridges, or terrain passability (`js/world_map.js`)
+- Touching **Southern Spirit River Fishing**, mysterious containers, or unique legendary artifact drop pools (`js/fishing.js`)
+- Adjusting **On-Map Wildlife & Wild Resource Nodes** (`js/wildlife.js`, `js/wild_resources.js`, `data/data_ecology.js`)
+- Extending **Ancient Sanctums, Ruins, Clues, or Outside Expeditions** (`js/explore.js`, `js/expedition.js`, `js/visitors_clues.js`)
 
-- Use to generate maps, dungeons, terrain heightmaps, item drops, or any content
-  you do not want to author by hand.
-- Use when results must be **reproducible from a seed** (debugging, daily
-  challenges, shareable worlds).
-- Use to pick weighted random outcomes (loot rarity, spawn tables).
+---
 
-**When *not* to use:** for the engine's tile API to *paint* the result, use
-`godot-tilemap` or `unity-tilemap-2d`. For routing AI through the generated map,
-use `game-ai`. For carefully hand-paced levels, use `level-design` — procgen and
-authored design are complementary, not interchangeable.
+## 1. Strict Seeded Determinism (`U.RNG`)
 
-## Core workflow
+1. **Zero `Math.random()` in Gameplay/World Logic**:
+   - Always use the world's seeded PRNG instance `W.rng` (or a child `U.RNG(seed)` derived deterministically from `W.seed`, `W.day`, or node coordinates).
+   - Core methods on `U.RNG`: `rng.next()` (`0..1`), `rng.int(min, max)`, `rng.chance(p)`, `rng.pick(array)`, `rng.weighted(array, weightFn)`.
+2. **Reproducible Replay & Monte Carlo Audits**:
+   - Given the same seed, world generation, sanctum exploration replays (`test/exploration_replay.js`), and 100,000-trial loot simulations must produce deterministic, reproducible distributions.
 
-1. **Own your randomness.** Create one seeded RNG instance and pass it
-   everywhere. Never call the global/static random in generation code — it makes
-   results irreproducible and order-dependent.
-2. **Pick the technique for the content.** Continuous terrain/heightmaps → noise.
-   Discrete rooms/corridors → space partitioning or agent-based carving.
-   Outcomes with rarities → weighted tables.
-3. **Generate into a plain data grid/array first**, decoupled from rendering.
-   Generation fills `int[][]` or a dict; a separate pass draws it.
-4. **Validate before shipping the result to the player.** Is every room
-   reachable? Is the spawn safe? Is there a path to the exit? Reject or repair
-   layouts that fail; do not hand the player a broken map.
-5. **Tune with the seed fixed** so each parameter change is visible in isolation,
-   then sweep seeds to check the distribution, not just one lucky map.
+---
 
-## Patterns
+## 2. 240×192 World Map & Southern Spirit River (`js/world_map.js`)
 
-### 1. Seeded, deterministic RNG (the foundation)
+1. **Map Geometry & Passability Invariants**:
+   - Grid size is **`240 × 192`** tiles (`MAP.W = 240`, `MAP.H = 192`).
+   - The **Southern Spirit River (แม่น้ำวิญญาณทิศใต้)** spans the southern region with impassable deep water tiles, crossed by **3 bridges** connecting the sect to the southern wilds.
+   - All **26 fishing stations** (`kind: 'fish'`) along the riverbanks and docks must remain path-reachable (`MAP.findPath`) from the sect plaza!
+2. **Buildings & Stations (`W.map.buildings`, `W.map.stations`, `W.map.byId`)**:
+   - Every sect facility registers its interactive stations (`meditate`, `lift`, `dummy`, `spar`, `study`, `cauldron`, `anvil`, `array`, `farm`, `mine`, `cook`, `eat`, `bed`, `pray`, `worship`, `music`, `relax`, `fish`, etc.) with valid door coordinates (`b.door`) and interior flags (`s.inside`).
 
-```python
-import random
-rng = random.Random(seed)        # a dedicated instance — NOT the global random.*
-room_count = rng.randint(5, 12)  # same seed -> same sequence, every run
-# RIGHT: thread `rng` through every function that makes a choice.
-# WRONG: calling random.randint(...) (global state) — order-dependent, unseedable.
+---
+
+## 3. Southern Spirit River Fishing & Monte Carlo Loot (`js/fishing.js`)
+
+1. **10-Species Fish Catalog & Bounded Zone Depletion**:
+   - 10 distinct fish species (`FISH_*`) across tiers with bounded zone pools that deplete as NPCs fish (`AI.ACTS.riverFish`) and recover naturally each day.
+2. **Exact Probability Tables**:
+   - **Catch Roll**: `~90%` Fish (`89.94%`), `~10%` Mysterious Container (`10.05%`).
+   - **Container Opening Roll**: `~50%` Trash (`49.89%`), `~49.65%` Ordinary Reward, `~0.45%` Unique Legendary Artifact (`0.446%`).
+3. **Unique Legendary Non-Duplication (`W.world.claimedLegendaries` / `VC.syncUniqueArtifacts`)**:
+   - All **33 unique legendary artifacts** can only be claimed **once per world**. Once claimed (in sect stock, NPC bag/equip, or history), they are excluded from future drops; if the legendary pool is exhausted, rolls fall back cleanly to high-tier ordinary rewards without crashing or duplicating.
+
+---
+
+## 4. Wildlife Ecology & Wild Resource Nodes (`js/wildlife.js`, `js/wild_resources.js`)
+
+1. **Coherent Biome Regions**:
+   - Herbs, ore veins, and spirit beasts spawn in biome-appropriate regions (`data/data_ecology.js`) matching their elemental and tier profiles.
+2. **Claim & Reservation Hygiene**:
+   - When an NPC targets a wild resource node (`WILD_RES`), the claim must be released (`WILD_RES.releaseClaim(W, npc)`) if the NPC is interrupted, cancels, or dies.
+3. **Live Capture Conservation (`BEAST_SOVEREIGN` & Universal Taming)**:
+   - Capturing a wild spirit beast alive removes the entity cleanly from `W.wildlife` and transfers it to `npc.pets` or `W.sect.menagerie` without duplicating loot or leaving ghost map markers.
+
+---
+
+## 5. Verification Checklist
+
+Run these suites from `GAME_SOURCE/` after any map, ecology, fishing, or exploration change:
+```bash
+node test/fishing_river_suite.js
+node test/wild_resources.js
+node test/wildlife_batches.js
+node test/wildlife_spawn_integrity.js
+node test/onmap_wildlife.js
+node test/beast_ecology.js
+node test/ecology_expansion.js
+node test/coherent_regions_recipes.js
+node test/explore.js
+node test/exploration_replay.js
+node test/visitors_clues_weapons_suite.js
+node test/legendary_spawn_gate.js
 ```
-
-Engine equivalents: Godot 4.7 `var rng := RandomNumberGenerator.new(); rng.seed = s`
-(save `rng.state` to resume a sequence mid-way); Unity 6.3
-`new Unity.Mathematics.Random(seed)` (a `uint`, must be non-zero) or
-`new System.Random(seed)`. Avoid `UnityEngine.Random.InitState` for generation:
-it seeds the one global generator that every other script also draws from.
-Store the seed in the save file so a world can be regenerated.
-
-### 2. Fractal (fBm) noise for heightmaps
-
-```python
-# Sum several octaves: each higher octave has higher frequency, lower amplitude.
-def fbm(noise, x, y, octaves=5, lacunarity=2.0, gain=0.5):
-    total, amp, freq, norm = 0.0, 1.0, 1.0, 0.0
-    for _ in range(octaves):
-        total += amp * noise(x * freq, y * freq)   # noise() returns ~0..1
-        norm  += amp                                # track total amplitude
-        amp   *= gain                               # each octave contributes less
-        freq  *= lacunarity                         # ...at a higher frequency
-    return total / norm                             # normalize back into 0..1
-
-# Redistribute to carve flat valleys / sharpen peaks: higher exp -> more lowland.
-elevation = pow(fbm(noise, nx, ny), 2.2)
-```
-
-Use a real noise library (`FastNoiseLite`, `opensimplex`,
-`Unity.Mathematics.noise`, or `Mathf.PerlinNoise`) — do not implement gradient
-noise yourself. Seed **elevation and moisture with different seeds** so a
-biome lookup over both fields isn't perfectly correlated. Full biome lookup and
-island shaping are in `references/noise.md`.
-
-### 3. Weighted loot table (rarity-correct selection)
-
-```python
-# Roll proportional to weight: common drops far more often than legendary.
-def weighted_pick(rng, table):           # table: list of (item, weight)
-    total = sum(w for _, w in table)
-    roll = rng.uniform(0, total)          # a point on the cumulative line
-    upto = 0.0
-    for item, w in table:
-        upto += w
-        if roll < upto:                   # first bucket the roll falls into
-            return item
-    return next(i for i, w in reversed(table) if w > 0)  # roll == total (float edge)
-
-loot = weighted_pick(rng, [("common", 70), ("rare", 25), ("legendary", 5)])
-```
-
-Weights need not sum to 100 — they are relative, and a weight of 0 never drops.
-Built-ins do the same job: Python `rng.choices(items, weights)`, Godot
-`rng.rand_weighted(PackedFloat32Array(weights))` (returns an index). To prevent
-bad streaks, use a "pity"/bag system (see `references/dungeon-generation.md`
-notes on distributions).
-
-### 4. Rooms-and-corridors dungeon (sketch)
-
-```python
-# 1. Place non-overlapping rooms; 2. connect them; 3. carve into the grid.
-rooms = []
-for _ in range(attempts):
-    r = Rect(rng.randint(1, W-w-1), rng.randint(1, H-h-1), w, h)
-    if not any(r.intersects(o.expand(1)) for o in rooms):  # keep a 1-tile gap
-        rooms.append(r)
-for a, b in zip(rooms, rooms[1:]):       # connect each room to the next
-    carve_l_corridor(grid, a.center, b.center, rng)   # horizontal then vertical
-```
-
-The complete generator (BSP partitioning, L-corridors, reachability check, and
-random-walk caves) is in `references/dungeon-generation.md`.
-
-## Pitfalls
-
-- **Using the global RNG** inside generation makes worlds unreproducible and
-  breaks the moment call order changes. Always pass a seeded instance.
-- **Correlated noise fields**: sampling elevation and moisture from the *same*
-  seed/offset produces biomes that line up in bands. Offset or reseed each field.
-- **Octave artifacts**: adding octaves without renormalizing pushes values out of
-  `0..1`; divide by the summed amplitude (and beware library output ranges — some
-  return `-1..1`, some `0..1`).
-- **No connectivity check**: rooms or caves can end up isolated. Flood-fill from
-  the spawn and discard/reconnect unreachable regions before play.
-- **Unbounded placement loops**: "keep trying until N rooms fit" can spin forever
-  on a small grid. Cap attempts and accept fewer rooms.
-- **Seeding once globally, then relying on frame timing**: any non-deterministic
-  input (time, physics, hash randomization) leaking into generation destroys
-  reproducibility. A common hidden one: `rng.choice(list(some_set))` over
-  strings in Python, whose set order changes per process. Sort first.
-- **Seeds that stop matching after an update.** Library RNGs promise the same
-  sequence only on the same version: Python guarantees only `random()` across
-  versions (not `randint`/`choice`), .NET says `System.Random` may change
-  between major versions, and Godot calls its PCG32 an implementation detail.
-  If shared seeds, daily challenges or seed-only saves must survive updates,
-  ship your own small PRNG (PCG32, xorshift, SplitMix64) with a test that pins
-  its first outputs — or save the generated result instead of the seed.
-- **Flat noise at integer coordinates**: Perlin noise is 0 at every integer
-  lattice point, so sampling raw `noise(x, y)` (e.g. `Mathf.PerlinNoise`) at
-  whole tile coordinates returns the same value everywhere. Scale by a
-  non-integer frequency (`x / width * f`); libraries with a frequency setting,
-  such as FastNoiseLite, apply it for you.
-
-## References
-
-- `references/noise.md` — octaves/lacunarity/gain, redistribution, island
-  shaping, two-axis biome lookup, blue-noise object scatter.
-- `references/dungeon-generation.md` — BSP, rooms+corridors, random-walk caves,
-  cellular-automata smoothing, wave function collapse, connectivity validation,
-  distribution/pity tables.
-
-## Related skills
-
-- `godot-tilemap`, `unity-tilemap-2d` — paint the generated grid into the engine.
-- `game-ai` — pathfinding over the generated graph.
-- `level-design` — pacing and hand-authored structure that procgen complements.
-- `roguelike`, `survival-crafting` — genres that compose this skill.

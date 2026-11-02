@@ -1,34 +1,19 @@
-# Installed Codex game development skills
+# JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills
 
-Focused skills for this project's vanilla HTML/JavaScript simulation game. Installed from `MRCalderon3D/everything-game-dev-code` at commit `1d83212e5084fe3b8000a8ae3c62bf972ad19f78` under its MIT license. Original `SKILL.md` files are retained. These cross-engine guidance skills do not change the game's runtime or select another engine.
+All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`). They encode the exact module APIs, invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags), data schemas, and verification suites of the game.
 
-| Skill | Apply when |
-|---|---|
-| `combat-design` | Designing combat roles, tradeoffs, readable counters and tuning. |
-| `progression-design` | Adding major paths, subpaths, mastery and unlock pacing. |
-| `economy-balancing` | Connecting recipes, prices, resource sinks and anti-exploit checks. |
-| `gameplay-architecture` | A feature crosses modules or needs clear state ownership. |
-| `ai-behavior-patterns` | Adding NPC decisions, actions, explanations and fallbacks. |
-| `save-system-patterns` | Changing serialized game state, upgrades or recovery. |
-| `performance-budgeting` | Adding simulation work or increasing population/effects. |
-| `qa-test-matrix` | Mapping feature requirements to scenario and regression tests. |
-| `web-testing` | Applying deterministic scenarios and browser smoke checks using existing runners. |
-| `web-performance` | Profiling browser simulation/rendering costs, allocations and GC pressure. |
-
-Skills live at `.agents/skills/<skill-name>/SKILL.md`, the portable project-level Agent Skills location. Read the applicable skills alongside the project's `AGENTS.md` and active patch prompt. They provide workflow guidance; repository instructions, actual code and tests remain authoritative when project-specific requirements differ.
-
-## Context-efficient use
-
-Codex's [official skill documentation](https://developers.openai.com/codex/skills/) describes progressive disclosure: names/descriptions are discovered first; full instructions load when selected. Use the routing table in `AGENTS.md` and read only relevant skills. Adding skills alone does not establish a measured token saving. This setup aims to reduce unrelated context, repeated investigation and failed iterations; no percentage saving has been measured.
-
-The eight original skills cover design and planning. The two added web skills cover implementation-level browser verification and profiling. Use `web-testing` for executing browser/scenario work and `qa-test-matrix` for coverage planning; use `web-performance` for bottleneck work and `performance-budgeting` for budgeting a proposed feature. They need not all load together. Reuse the existing Node test harness, Playwright/system Chromium adapter and HTTP server instructions rather than installing a second runner by default.
-
-## Online review and selection
-
-Reviewed sources on 2 November 2026:
-
-- [Everything Game Dev Code](https://github.com/MRCalderon3D/everything-game-dev-code/tree/1d83212e5084fe3b8000a8ae3c62bf972ad19f78): selected ten compact, Markdown-only skills; upstream files are unmodified, with hashes in `UPSTREAM.json` and the MIT license alongside them.
-- [OpenAI skills catalog](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431): reviewed the Playwright CLI skill. Its additional CLI workflow is unnecessary for the existing repository harness. The formerly named `develop-web-game` path returned 404 in this catalog revision; it was not installed.
-- [Game development agent skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills/tree/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9): reviewed utility-AI and performance skills. Their longer cross-engine examples are less focused for this legacy JavaScript simulation than the selected short skills.
-
-The upstream `web-js-ts-standards` skill was reviewed but not installed: its mandatory ES-module/global-removal approach conflicts with the protected script architecture. No external skill framework, hooks, packages or telemetry services are required by this installation. Related upstream agent/command names are reference pointers, not installed tools. Native discovery depends on the Codex client and opening a session inside this repository; if new skills are not shown, restart the session there. Files being present does not prove this chat's tool catalog has refreshed.
+| Skill | Core Modules Covered | Apply When |
+| :--- | :--- | :--- |
+| [`game-data-integrity`](./game-data-integrity/SKILL.md) | `data/*`, `tools/validate_data_schema.js` | Adding/auditing items, recipes (`REC_*`/`ITEM_*`), martial arts, weapons, elements, buffs, or Edit Hub spawnability. |
+| [`ai-behavior-patterns`](./ai-behavior-patterns/SKILL.md) | `js/ai.js`, `js/cognition.js`, `js/human_core.js` | Designing/tuning NPC Utility AI (`ScoreAcc`/`S.add`), `npc.why` Thai reasons, `COG` aspirations/goals, 18 sect offices, or station locks. |
+| [`combat-design`](./combat-design/SKILL.md) | `js/combat.js`, `js/martial.js`, `js/stats.js`, `js/skills.js` | Designing combat rounds, 7 weapon types, 10 elements (`ELEM`), 8 timed buffs (`until`), 18 resonance sets, or formation synergies. |
+| [`progression-design`](./progression-design/SKILL.md) | `js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js` | Extending the 9 Major Paths, 78 Subpaths, stage equivalence (`CULT.equivalentStage`), 9-realm tracks, or Spirit Beast taming/breeding. |
+| [`economy-balancing`](./economy-balancing/SKILL.md) | `js/economy.js`, `js/cpeco.js`, `js/external_market.js` | Balancing Spirit Stones, CP ledger (`CPE`), crafting, recipe scrolls (`FORMULA:*`), welfare/donation policies, or merchants. |
+| [`gameplay-architecture`](./gameplay-architecture/SKILL.md) | `index.html`, `js/sim.js`, `js/sect.js`, `tools/build_single.js` | Touching multiple modules, `W` state ownership, tick/hour/day simulation loop, 14 starting archetypes, or 3 specialist facilities. |
+| [`game-ui-ux`](./game-ui-ux/SKILL.md) | `js/ui.js`, `js/render.js`, `css/style.css`, `docs/ITEM_ICON_ATLAS_MAP.json` | Building Wuxia UI sheets, NPC inspection tabs, 72-cell Item Icon Atlas, Grid/List inventory, Edit Hub, or mobile touch gestures. |
+| [`procedural-gen`](./procedural-gen/SKILL.md) | `js/world_map.js`, `js/fishing.js`, `js/wildlife.js`, `js/explore.js` | Modifying `U.RNG`, 240×192 map & Southern Spirit River, fishing Monte Carlo loot tables, unique legendaries, or Ancient Sanctums. |
+| [`save-system-patterns`](./save-system-patterns/SKILL.md) | `js/sim.js`, `test/save_integrity.js`, `test/legacy_save.js` | Modifying serialized state on `W` or `npc`, legacy save migrations, receipt idempotency, or stripping transient caches (`_c`, `_d`, `_cs`). |
+| [`performance-budgeting`](./performance-budgeting/SKILL.md) | `js/sim.js`, `js/ai.js`, `js/stats.js`, `js/human_core.js` | Preserving the `< 3.0 ms/tick` (80-NPC) budget via `_ver`, `_passVer`, `earliestExpiry`, and `_nd` caches. |
+| [`web-performance`](./web-performance/SKILL.md) | `js/render.js`, `js/ui.js`, `js/main.js` | Optimizing 60 FPS Canvas 2D frustum culling, sprite caching, skill visual effect pools, and throttled DOM refreshes at 80x speed. |
+| [`qa-test-matrix`](./qa-test-matrix/SKILL.md) | `test/run_all.js`, `tools/run_parallel_tests.js` | Mapping code changes to the 83 regression test suites, syntax checks, and release gates. |
+| [`web-testing`](./web-testing/SKILL.md) | `test/load.js`, `tools/cdp_playwright.js` | Writing fast Node.js VM unit/integration tests and headless Chromium CDP browser tests. |

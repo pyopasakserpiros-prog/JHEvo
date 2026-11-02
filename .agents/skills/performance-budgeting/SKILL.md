@@ -1,61 +1,66 @@
 ---
 name: performance-budgeting
-description: Set and manage frame, load, memory, streaming, or bandwidth budgets before performance debt becomes structural.
-origin: everything-game-dev-code
-category: engineering-common
+description: Maintain JianghuSect Evolution's strict simulation performance budget (< 3.0 ms/tick for 80 NPCs, supporting 80x+ speed) through versioned caching (_ver, _passVer, earliestExpiry), allocation discipline, and tick throttling.
+origin: jianghusect-custom
+category: engine-performance
 ---
 
-# Performance Budgeting
+# JianghuSect Simulation Performance Budgeting (< 3.0 ms/tick @ 80 NPCs)
 
 ## Purpose
-Set and manage frame, load, memory, streaming, or bandwidth budgets before performance debt becomes structural.
+Keep **JianghuSect Evolution (JHEvo)** fast, responsive, and memory-stable during long multi-year simulations and high-speed (`10x`–`80x+`) playback (`js/sim.js`, `js/ai.js`, `js/stats.js`, `js/cognition.js`, `js/human_core.js`).
 
-## Use When
-- target hardware is defined
-- performance problems are emerging
-- content scale is increasing
+Use this skill whenever:
+- Adding per-tick or per-hour logic in `js/sim.js`, `js/ai.js`, `js/combat.js`, or `js/cultivation.js`
+- Modifying stat calculation (`STATS.combatStats`, `STATS.rating`, `HC.eff`, `HC.derived`)
+- Adding new cognitive checks in `COG.prepare` or `COG.modifiers`
+- Auditing tick times with `test/perf.js`, `test/soak.js`, or `test/browser_mobile_perf.js`
 
-## Inputs
-- target platforms
-- feature set
-- technical architecture
-- content assumptions
+---
 
-## Process
-1. set budgets by platform and major runtime mode
-2. allocate budget ownership by system or content class
-3. choose representative benchmark scenarios
-4. review regressions at milestone checkpoints
-5. link descopes or optimization work to measured overages
+## 1. Hard Performance Targets
 
-## Outputs
-- budget sheet
-- owner-by-budget map
-- benchmark scenarios
-- regression review cadence
+- **80-NPC Simulation Tick Budget**: **< 3.0 ms/tick** average in headless Chromium / Node.js (current v2.0.9 baseline: **~2.95 ms/tick**, supporting **84.7x** real-time speed).
+- **Zero Memory Leaks over 360-Day Soak**: Bounded log arrays (`W.logs`), bounded NPC memory traces (`npc.h.mind.memories`, `npc.cognition.trace`), and zero orphaned closures.
 
-## Quality Bar
-- budgets are set per system (frame time, memory, draw calls, asset sizes) against the weakest target device
-- every budget has an owner and a repeatable measurement method
-- regressions are caught by measurement at integration time, not discovered in QA
-- budget exceptions are negotiated and recorded, not silently absorbed
+---
 
-## Common Failure Modes
-- budgets defined as totals with no per-system allocation, so no one owns overruns
-- profiling only on developer hardware, missing the real target floor
-- performance treated as a polish-phase task instead of a standing budget
-- one-off optimizations that decay because no measurement guards them
+## 2. Core Caching Mechanisms You MUST Preserve
 
-## Related Agents
-- performance-reviewer
-- producer
-- technical-artist
+### 2.1 `HC` Versioned Stat Cache (`npc._ver`, `npc._c`, `npc._d`)
+- `HC.eff(npc, path)` and `HC.derived(npc)` cache their computed values on `npc._c` and `npc._d` keyed by `(HC.nowDay, npc._ver)`.
+- **Rule**: Never increment `npc._ver` (or call `HC.bump(npc)`) on sub-integer per-tick training gains! Always use the wrapped `HC.trainBody`, `HC.trainMind`, and `HC.gainWisdom` in `js/ai.js`, which only bump `npc._ver` when `(oldVal | 0) !== (newVal | 0)`.
 
-## Related Commands
-- perf-budget
-- verify
-- release-check
+### 2.2 Composite Combat Stats & Buff Expiry Cache (`npc._cs`, `npc._passVer`, `earliestExpiry`)
+- `STATS.combatStats(npc, nowT)` caches the full combat stat block on `npc._cs`.
+- When timed buffs are active in `npc.buffs`, `npc._cs` records `earliestExpiry = Math.min(...buffs.map(b => b.until))`.
+- On subsequent calls where `nowT < earliestExpiry` and `npc._ver` / `npc._passVer` haven't changed, `STATS.combatStats` returns `npc._cs` in **O(1) time** without re-scanning equipment, techniques, or buffs!
 
-## Notes
-- Keep this skill aligned with the relevant rules layer and current project documentation.
-- If engine-specific constraints materially change the workflow, hand off to the matching engine skill or engine-specific reviewer.
+### 2.3 Per-Day Physiological Needs Rate Cache (`npc._nd` in `js/ai.js`)
+- `getNeedsRates(npc)` caches metabolic drain, rest drain multiplier (`restDrainMult`), `qiMax`, and `hpMax` on `npc._nd` keyed by `(HC.nowDay, cStage, cTr, passVer, eqA, vit)`.
+- This keeps `AI.needs(W, npc)` (which runs every minute for every living NPC) a fast arithmetic update.
+
+---
+
+## 3. Anti-Patterns to Avoid in Hot Paths
+
+1. **No O(N²) NPC Scans Every Minute**:
+   - Do not loop over all `W.npcs` inside a per-minute `AI.step(W, n)` hook unless gated by a Modulo Stagger (e.g., `if ((W.t + n.n) % 15 === 0)`) or triggered only on state transitions (`AI.decide`).
+2. **No Full-Map (240×192) Scans in `can()` or `score()`**:
+   - Always query pre-indexed station lists (`W.map.byId[buildingKey].stations`) via `AI.freeStation`.
+3. **Bounded History & Trace Arrays**:
+   - Whenever pushing to `npc.recent`, `npc.inj`, `npc.cognition.trace`, or `W.logs`, enforce a strict `.shift()` or `.slice(-MAX)` cap.
+
+---
+
+## 4. Verification Checklist
+
+Run these performance and soak suites from `GAME_SOURCE/`:
+```bash
+node test/perf.js
+node test/runtime_timing.js
+node test/soak.js
+node test/cp_soak.js
+node test/long_simulation.js
+node test/cultivator_sleep_scaling_suite.js
+```
