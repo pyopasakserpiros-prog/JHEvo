@@ -13,7 +13,7 @@ To maximize accuracy and avoid wasting context tokens, follow this exact reading
 4. Consult [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md) or [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md) only when relevant as historical design context; do not repeat completed work.
 
 ### Step 2: Load Only the Relevant Master Skills (`.agents/skills/<skill>/SKILL.md`)
-Do **not** guess internal APIs. Before editing any module in `GAME_SOURCE/`, open the matching bespoke JianghuSect skill(s) by priority:
+Do **not** guess internal APIs. Choose skills only for the source files and behavior you actually plan to change; do not read the whole skills catalog. Read each selected canonical `.agents/skills/<skill>/SKILL.md` once (do not also read its `.codex/` mirror). If your scope changes, load the newly relevant skill then:
 
 | Priority | When Your Task Touches... | Read This Skill First |
 | :---: | :--- | :--- |
