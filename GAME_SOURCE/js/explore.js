@@ -6996,7 +6996,13 @@
     return true;
   };
   const origResolve = X.resolve;
-  X.resolve = (W, ex, members) => { if (ex.kind === 'sanctum') return EX.resolveSanctum(W, ex, members); if (ex.kind === 'delve' || ex.kind === 'realm') return EX.resolve(W, ex, members); return origResolve(W, ex, members); };
+  X.resolve = (W, ex, members) => {
+    if (ex.kind === 'sanctum') return EX.resolveSanctum(W, ex, members);
+    if (ex.kind === 'nine_dao_pagoda') return EX.resolveNineDaoPagoda(W, ex, members);
+    if (ex.kind === 'elemental_realm') return EX.resolveElementalRealm(W, ex, members);
+    if (ex.kind === 'delve' || ex.kind === 'realm') return EX.resolve(W, ex, members);
+    return origResolve(W, ex, members);
+  };
 
   EX.resolve = (W, ex, members) => {
     if (ex.done || ex.settlement || !members.length) return;
@@ -7081,6 +7087,9 @@
     const e = dex(W), rng = W.rng, pw = PW(n); const opts = [{ k: 'orig', w: 0.9 }];
     if (pw >= 18 && e.cave && W.day - (e.cave.last || -99) >= 4 && !W.world.expeds.some(x => !x.done && x.kind === 'delve')) opts.push({ k: 'delve', w: 0.3 + Math.max(0, (E(n, 'interests.exploring') - 40) / 45) + Math.max(0, (E(n, 'interests.combat') - 50) / 90) + (E(n, 'temperament.sensationSeeking') - 45) / 160 + (e.cave.maxDepth < e.cave.cap ? 0.15 : 0) });
     if (EX.canGo(W) && pw >= 30) { const wd = EX.WORLD_BY_ID[e.gate.world]; const df = clamp(pw * 3 / foePower(wd.d), 0.15, 1.5); opts.push({ k: 'realm', w: 1.7 * (0.5 + Math.max(0, (E(n, 'destiny.luck') - 40) / 60) + Math.max(0, (E(n, 'temperament.sensationSeeking') - 40) / 70) + (E(n, 'personality.courage') - 40) / 150 + (E(n, 'interests.exploring') - 40) / 90) * df }); }
+    if (pw >= 30 && !W.world.expeds.some(x => !x.done && x.kind === 'nine_dao_pagoda')) opts.push({ k: 'nine_dao_pagoda', w: 0.48 + Math.max(0, (E(n, 'values.martialPeak') - 45) / 120) + Math.max(0, (E(n, 'interests.exploring') - 45) / 140) });
+    const activeElementRealm = EX.elementalRealmAt(W.day);
+    if (pw >= 24 && activeElementRealm && !W.world.expeds.some(x => !x.done && x.kind === 'elemental_realm')) opts.push({ k: 'elemental_realm', w: 0.36 + (EX.rootMatchesElement(n, activeElementRealm.element) ? 0.45 : 0) + Math.max(0, (E(n, 'interests.exploring') - 45) / 150) });
     if (pw >= 95 && n.rank >= 2 && !W.world.expeds.some(x => !x.done && x.kind === 'sanctum')) {
       const hasRefinableT4 = !!(n.equip && Object.values(n.equip).some(eq => eq && (eq.tier || 1) >= 4 && (eq.q || 1) < 1.65));
       const resInc = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(n).pieces < 3 : false;
@@ -7105,6 +7114,8 @@
       EX.departSanctum(W, party, sId);
       return true;
     }
+    if (pick === 'nine_dao_pagoda') { EX.departNineDaoPagoda(W, party, { maxFloor: 9 }); return true; }
+    if (pick === 'elemental_realm') { EX.departElementalRealm(W, party, { realmId: activeElementRealm.id }); return true; }
     EX.depart(W, party, pick); return true;
   };
 
@@ -7516,6 +7527,181 @@
     W.log('explore', '🏛️ คณะสำรวจกลับจาก「' + sc.nameTh + '」ผ่านด่าน ' + out.floorsCleared + '/3 ชั้น', members.map(m => m.id));
     return out;
   };
+
+  /* ======================= v2.0.10: Universal Pagoda & Elemental Realms ======================= */
+  EX.NINE_DAO_PAGODA = Object.freeze({
+    id: 'NINE_DAO_PAGODA', nameTh: 'เจดีย์เก้าวิถีทดสอบสัจธรรม', icon: '🗼',
+    floors: Object.freeze([
+      { floor: 1, path: 'XIAN', nameTh: 'ชั้นกระบี่และเวหา', guardianNameTh: 'เงากระบี่เมฆา', basePower: 110, stones: 45 },
+      { floor: 2, path: 'BODY', nameTh: 'ชั้นกายาวัชระ', guardianNameTh: 'หุ่นวัชระทลายผา', basePower: 145, stones: 55 },
+      { floor: 3, path: 'GOD', nameTh: 'ชั้นเทวบัญชา', guardianNameTh: 'เทวรูปสุริยัน', basePower: 185, stones: 65 },
+      { floor: 4, path: 'DEMON', nameTh: 'ชั้นห้วงอเวจี', guardianNameTh: 'มารเงากลืนจิต', basePower: 230, stones: 75 },
+      { floor: 5, path: 'HEART_SOUL', nameTh: 'ชั้นสัจธรรมดวงจิต', guardianNameTh: 'มายาจิตไร้ลักษณ์', basePower: 280, stones: 85 },
+      { floor: 6, path: 'MECH_PUPPET', nameTh: 'ชั้นกลจักรศาสตรา', guardianNameTh: 'ขุนพลจักรกลศิลา', basePower: 335, stones: 95 },
+      { floor: 7, path: 'KARMA_SAMSARA', nameTh: 'ชั้นกงล้อสังสารวัฏ', guardianNameTh: 'ผู้พิพากษาหกภพ', basePower: 395, stones: 110 },
+      { floor: 8, path: 'BEAST_SOVEREIGN', nameTh: 'ชั้นหมื่นอสูรประจัญ', guardianNameTh: 'ราชันอสูรเฝ้าประตู', basePower: 460, stones: 125 },
+      { floor: 9, path: 'SAGE_SUPPORT', nameTh: 'ชั้นมหาโอสถสวรรค์', guardianNameTh: 'ปราชญ์คีตเวทย์บรรพกาล', basePower: 530, stones: 150 }
+    ])
+  });
+  // EARTH_METAL is the engine's canonical shared Earth/Metal root element.
+  EX.ELEMENTAL_REALMS = Object.freeze([
+    { id: 'REALM_METAL', nameTh: 'แดนโลหะบรรพกาล', elementNameTh: 'โลหะ', element: 'EARTH_METAL', catalystId: 'CAT_PRIMORDIAL_METAL', guardianNameTh: 'ผู้พิทักษ์แก่นโลหะ', basePower: 180 },
+    { id: 'REALM_WOOD', nameTh: 'แดนพฤกษากำเนิดชีพ', elementNameTh: 'ไม้', element: 'WOOD_LIFE', catalystId: 'CAT_PRIMORDIAL_WOOD', guardianNameTh: 'ภูตพฤกษาวิญญาณ', basePower: 185 },
+    { id: 'REALM_WATER', nameTh: 'แดนวารีเหมันต์', elementNameTh: 'น้ำ', element: 'WATER_ICE', catalystId: 'CAT_PRIMORDIAL_WATER', guardianNameTh: 'มังกรวารีเยือกแข็ง', basePower: 190 },
+    { id: 'REALM_FIRE', nameTh: 'แดนเพลิงชาด', elementNameTh: 'ไฟ', element: 'FIRE', catalystId: 'CAT_PRIMORDIAL_FIRE', guardianNameTh: 'วิหคเพลิงชาด', basePower: 195 },
+    { id: 'REALM_EARTH', nameTh: 'แดนปฐพีหยกเร้น', elementNameTh: 'ดิน', element: 'EARTH_METAL', catalystId: 'CAT_PRIMORDIAL_EARTH', guardianNameTh: 'ยักษ์ปฐพีหยก', basePower: 200 }
+  ]);
+  EX.ensureTrials = W => {
+    if (!W || !W.world || !W.sect) return null;
+    if (!W.world.nineDaoPagoda || typeof W.world.nineDaoPagoda !== 'object') W.world.nineDaoPagoda = { runs: 0, unlockedSets: {}, history: [] };
+    const pagoda = W.world.nineDaoPagoda;
+    if (!Number.isFinite(pagoda.runs) || pagoda.runs < 0) pagoda.runs = 0;
+    if (!pagoda.unlockedSets || typeof pagoda.unlockedSets !== 'object') pagoda.unlockedSets = {};
+    if (!Array.isArray(pagoda.history)) pagoda.history = [];
+    if (!W.world.elementalRealms || typeof W.world.elementalRealms !== 'object') W.world.elementalRealms = { runs: 0, history: [] };
+    if (!Number.isFinite(W.world.elementalRealms.runs) || W.world.elementalRealms.runs < 0) W.world.elementalRealms.runs = 0;
+    if (!Array.isArray(W.world.elementalRealms.history)) W.world.elementalRealms.history = [];
+    if (!W.sect.daoInsights || typeof W.sect.daoInsights !== 'object') W.sect.daoInsights = {};
+    return { pagoda, realms: W.world.elementalRealms };
+  };
+  EX.elementalRealmAt = day => EX.ELEMENTAL_REALMS[Math.floor(Math.max(0, Number(day) || 0) / 90) % EX.ELEMENTAL_REALMS.length];
+  EX.createTrialExpedition = (W, party, kind, opts) => {
+    opts = opts || {};
+    if (!W || !Array.isArray(party) || !party.length || party.some(n => !n || n.dead || n.away || n.travel || n.expId)) return null;
+    EX.ensureTrials(W);
+    const door = (W.map && W.map.byId && (W.map.byId.gate_zone || W.map.byId.cave)) || { door: { x: 118, y: 130 } };
+    const baseDays = opts.days || 1.5;
+    const trip = g.EXPED && g.EXPED.createParty ? g.EXPED.createParty(W, party, { kind, baseDays, baseCapacity: 20 + party.length * 12 }) : { ok: true, members: party, days: baseDays, mounts: [], durationMultiplier: 1, capacityMultiplier: 1, baseCarryCapacity: 20 + party.length * 12, carryCapacity: 20 + party.length * 12 };
+    if (!trip.ok) return null;
+    party = trip.members;
+    const days = trip.days == null ? baseDays : trip.days;
+    const ex = { id: ++W.world.seq, kind, region: opts.regionId || kind.toUpperCase(), realmId: opts.realmId || null, party: party.map(n => n.id), t0: W.t, ret: W.t + Math.round(days * 1440), days, baseDays, mount: trip.mounts || [], hasMount: !!trip.hasMount, durationMultiplier: trip.durationMultiplier || 1, capacityMultiplier: trip.capacityMultiplier || 1, baseCarryCapacity: trip.baseCarryCapacity, carryCapacity: trip.carryCapacity, journal: [], carry: [], supplies: 0, done: false, state: 'leaving', target: opts.target || 9, px: door.door.x, py: door.door.y };
+    W.world.expeds.push(ex);
+    for (const n of party) {
+      AI.interruptFor(W, n); n.expId = ex.id; n.lastTrip = W.day;
+      n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
+      n.travel = { to: 'exit', ex: ex.id }; n.path = null; n.run = false;
+    }
+    return ex;
+  };
+  EX.departNineDaoPagoda = (W, party, opts) => {
+    opts = opts || {};
+    const maxFloor = clamp(Math.floor(Number(opts.maxFloor || 9)), 1, 9);
+    return EX.createTrialExpedition(W, party, 'nine_dao_pagoda', { target: maxFloor, regionId: EX.NINE_DAO_PAGODA.id, days: 1.5 });
+  };
+  EX.departElementalRealm = (W, party, opts) => {
+    opts = opts || {};
+    const realm = opts.realmId ? EX.ELEMENTAL_REALMS.find(x => x.id === opts.realmId) : EX.elementalRealmAt(W && W.day);
+    if (!realm) return null;
+    return EX.createTrialExpedition(W, party, 'elemental_realm', { target: 3, realmId: realm.id, regionId: realm.id, days: 1.25 });
+  };
+  EX.hasResonancePiece = (W, uid) => {
+    if ((W.sect.gear || []).some(x => x && x.uid === uid)) return true;
+    for (const n of W.npcs || []) {
+      if (!n) continue;
+      if ((n.inv && Array.isArray(n.inv.gear) && n.inv.gear.some(x => x && x.uid === uid)) ||
+          (n.equip && ['WEAPON','ARMOR','ACCESSORY'].some(k => n.equip[k] && n.equip[k].uid === uid))) return true;
+    }
+    return false;
+  };
+  EX.pagodaSetPieces = (path, day) => {
+    const setId = 'RES_NINE_DAO_' + path;
+    const set = g.MARTIAL && g.MARTIAL.RESONANCE_BY_ID && g.MARTIAL.RESONANCE_BY_ID[setId];
+    if (!set) return [];
+    const slots = [
+      { slot: 'WEAPON', gearType: (set.slots.WEAPON || ['SWORD'])[0] },
+      { slot: 'ARMOR', gearType: (set.slots.ARMOR || ['ROBE'])[0] },
+      { slot: 'ACCESSORY', gearType: (set.slots.ACCESSORY || ['CHARM'])[0] }
+    ];
+    return slots.map(s => ({ uid: 'PAGODA_' + path + '_' + s.slot, id: 'PAGODA_' + path + '_' + s.slot, nameTh: set.nameTh + '·' + ({ WEAPON: 'อาวุธ', ARMOR: 'อาภรณ์', ACCESSORY: 'เครื่องราง' }[s.slot]), slot: s.slot, gearType: s.gearType, tier: 5, q: 1.1, resonanceSetId: setId, ownerPath: path, source: 'NINE_DAO_PAGODA', acquiredDay: day || 0, combatMult: 1.12, defMult: 1.08, st: s.slot === 'WEAPON' ? { atk: 12, matk: 12, pen: 4 } : s.slot === 'ARMOR' ? { def: 12, mdef: 10, hp: 0.08 } : { crit: 4, cast: 4 } }));
+  };
+  EX.rootMatchesElement = (n, element) => {
+    const root = n && n.h && n.h.root;
+    if (!root || !element) return false;
+    if (root.primaryElement === element || (Array.isArray(root.elements) && root.elements.includes(element))) return true;
+    const prof = g.ELEM && g.ELEM.getProfile ? g.ELEM.getProfile(root) : null;
+    return !!(prof && (prof.primary === element || (prof.weights && prof.weights[element] > 0)));
+  };
+  EX.resolveTrial = (W, ex, members, opts, mode) => {
+    opts = opts || {};
+    if (!W || !ex || ex.done || !Array.isArray(members) || !members.length) return null;
+    const state = EX.ensureTrials(W), alive = members.filter(n => n && !n.dead), isPagoda = mode === 'pagoda';
+    const pagodaState = state.pagoda;
+    const realm = isPagoda ? null : (EX.ELEMENTAL_REALMS.find(r => r.id === ex.realmId) || EX.elementalRealmAt(W.day));
+    const floors = isPagoda ? EX.NINE_DAO_PAGODA.floors : [1,2,3].map(floor => ({ floor, nameTh: realm.nameTh + ' · ด่าน ' + floor, guardianNameTh: realm.guardianNameTh, basePower: realm.basePower * (1 + (floor - 1) * 0.34), stones: 65 + floor * 15 }));
+    const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], catalysts: {}, crystals: {}, recipes: [], bonusRewards: [], notes: [], rep: 0, floorsCleared: 0, floorLogs: [], formationSynergies: [] };
+    const target = clamp(Math.floor(ex.maxFloor || ex.target || floors.length), 1, floors.length);
+    const formSyn = g.COMBAT && g.COMBAT.evaluateFormationSynergy ? g.COMBAT.evaluateFormationSynergy(alive) : { powerMultiplier: 1, synergies: [] };
+    out.formationSynergies = formSyn.synergies || [];
+    const gainedInsights = new Set(); let lastAffinityCount = 0;
+    for (const floor of floors) {
+      if (floor.floor > target || !alive.length) break;
+      let partyPower = 0, affinityCount = 0;
+      for (const n of alive) {
+        const eqStage = CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult.stage || 1);
+        const rs = g.MARTIAL && g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : { active: false, pieces: 0 };
+        const affinity = !!(realm && EX.rootMatchesElement(n, realm.element));
+        if (affinity) affinityCount++;
+        const matchingPath = isPagoda && n.cult && n.cult.path === floor.path;
+        const matchBonus = matchingPath ? 1.08 : affinity ? 1.15 : 1;
+        partyPower += CULT.power(n) * (1 + Math.max(0, Math.min(9, eqStage) - 1) * 0.012) * (rs.active ? 1 + rs.pieces * 0.035 : 1) * matchBonus;
+      }
+      lastAffinityCount = affinityCount;
+      partyPower *= formSyn.powerMultiplier || 1;
+      const winProb = clamp(partyPower / (partyPower + floor.basePower * 1.12 * 0.82), 0.05, 0.96);
+      const won = opts.forceFailFloor === floor.floor ? false : (opts.forceClear ? true : (W.rng ? W.rng.next() < winProb : true));
+      const log = { floor: floor.floor, nameTh: floor.nameTh, guardianNameTh: floor.guardianNameTh, path: floor.path || null, element: realm && realm.element, affinityCount, formationSynergies: formSyn.synergies || [], won };
+      out.floorLogs.push(log);
+      if (!won) { ex.journal.push('พ่ายต่อบททดสอบ「' + floor.nameTh + '」'); break; }
+      out.floorsCleared++; out.stones += floor.stones || 0;
+      if (isPagoda) {
+        for (const n of alive) {
+          if (!n.cult || n.cult.path !== floor.path) continue;
+          HC.gainWisdom(n, 0.65); CULT.gain(n, Math.max(0.5, CULT.threshold(n) * 0.004));
+          gainedInsights.add(floor.path); W.sect.daoInsights[floor.path] = (W.sect.daoInsights[floor.path] || 0) + 1;
+          if (!pagodaState.unlockedSets[floor.path]) {
+            pagodaState.unlockedSets[floor.path] = W.day || 0;
+            for (const piece of EX.pagodaSetPieces(floor.path, W.day)) if (!EX.hasResonancePiece(W, piece.uid)) out.gear.push(piece);
+            log.resonanceSetUnlocked = 'RES_NINE_DAO_' + floor.path;
+          }
+        }
+      } else {
+        for (const n of alive) {
+          if (!EX.rootMatchesElement(n, realm.element)) continue;
+          if (g.ELEM.gainMastery) g.ELEM.gainMastery(W, n, realm.element, 0.35, 'elemental_realm_' + realm.id);
+          HC.gainWisdom(n, 0.12);
+        }
+        if (g.ECO && g.ECO.addCatalyst && g.ECO.addCatalyst(W, realm.catalystId, 1)) out.catalysts[realm.catalystId] = (out.catalysts[realm.catalystId] || 0) + 1;
+      }
+      if (g.CPE && g.CPE.mint) alive.forEach(n => g.CPE.mint(W, n, 2 + floor.floor, isPagoda ? 'ผ่านด่านเจดีย์เก้าวิถี' : 'ผ่านแดนปฐมภูมิเบญจธาตุ', true));
+      ex.journal.push('ผ่านบททดสอบ「' + floor.nameTh + '」' + (isPagoda && floor.path ? ' และตระหนักในวิถี ' + floor.path : realm ? ' ได้รับแก่นธาตุ ' + realm.elementNameTh : ''));
+    }
+    ex.done = true; ex.out = out;
+    const realmState = state.realms;
+    if (isPagoda) {
+      pagodaState.runs++;
+      pagodaState.history.unshift({ day: W.day || 0, floorsCleared: out.floorsCleared, insights: Array.from(gainedInsights), formationSynergies: out.formationSynergies });
+      if (pagodaState.history.length > 20) pagodaState.history.length = 20;
+    } else {
+      realmState.runs++;
+      realmState.history.unshift({ day: W.day || 0, realmId: realm.id, element: realm.element, floorsCleared: out.floorsCleared, affinityCount: lastAffinityCount });
+      if (realmState.history.length > 20) realmState.history.length = 20;
+    }
+    out.rep = out.floorsCleared * 2;
+    if (alive.length && g.EXPED && g.EXPED.handover) g.EXPED.handover(W, ex, alive, out);
+    for (const n of alive) {
+      n.away = false; n.hidden = false; n.travel = null; n.expId = null; n.path = null; n.run = false;
+      n.x = (ex.px || 118) + 0.5; n.y = (ex.py || 130) + 1.5;
+      n.merit = (n.merit || 0) + 5 + out.floorsCleared * 3;
+    }
+    W.fame(out.rep);
+    W.log('explore', (isPagoda ? '🗼 เจดีย์เก้าวิถี' : '🌋 ' + realm.nameTh) + ' สำเร็จ ' + out.floorsCleared + '/' + target + ' ด่าน', alive.map(n => n.id));
+    return out;
+  };
+  EX.resolveNineDaoPagoda = (W, ex, members, opts) => EX.resolveTrial(W, ex, members, opts, 'pagoda');
+  EX.resolveElementalRealm = (W, ex, members, opts) => EX.resolveTrial(W, ex, members, opts, 'elemental');
+  const priorExploreDailyV210 = EX.daily;
+  EX.daily = W => { if (priorExploreDailyV210) priorExploreDailyV210(W); EX.ensureTrials(W); };
 
   g.EXPLORE = EX;
   if (typeof module === 'object' && module.exports) module.exports = EX;

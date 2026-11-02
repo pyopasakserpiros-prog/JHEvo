@@ -1,31 +1,28 @@
-# JianghuSect — Verified v2.0.9 Baseline, v2.0.10 Handoff
+# JianghuSect — v2.0.10 Patch Complete
 
-AI implementer: read [`START_HERE_FOR_AI.md`](file:///data/data/com.termux/files/home/jhevo-work/START_HERE_FOR_AI.md) and [`AGENTS.md`](file:///data/data/com.termux/files/home/jhevo-work/AGENTS.md) to begin work.
+JianghuSect Evolution (JHEvo) is a browser-based cultivation and sect-management game. The working tree is on branch `main`; Patch v2.0.10 is implemented locally and has not been pushed or published.
 
-- **Playable Standalone**: Open [`GAME_SOURCE/JianghuSect_single.html`](file:///data/data/com.termux/files/home/jhevo-work/GAME_SOURCE/JianghuSect_single.html) directly in any modern browser.
-- **Complete Source & Data**: [`GAME_SOURCE/`](file:///data/data/com.termux/files/home/jhevo-work/GAME_SOURCE/).
-- **Current Baseline Report (v2.0.9)**: [`PATCH_IMPLEMENTATION_REPORT.md`](file:///data/data/com.termux/files/home/jhevo-work/PATCH_IMPLEMENTATION_REPORT.md).
-- **Upcoming Blueprint & Ideas**: [`FUTURE_ROADMAP_AND_IDEAS.md`](file:///data/data/com.termux/files/home/jhevo-work/FUTURE_ROADMAP_AND_IDEAS.md).
-- **Next Patch Task (v2.0.10)**: [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](file:///data/data/com.termux/files/home/jhevo-work/SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md).
-- **AI Skills**: 13 customized skills in `.agents/skills/` and `.codex/skills/`.
+- **Playable standalone game:** [`GAME_SOURCE/JianghuSect_single.html`](./GAME_SOURCE/JianghuSect_single.html)
+- **Full source and tests:** [`GAME_SOURCE/`](./GAME_SOURCE/)
+- **Current patch report:** [`PATCH_IMPLEMENTATION_REPORT_V2_0_10.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_10.md)
+- **Previous patch report:** [`PATCH_IMPLEMENTATION_REPORT.md`](./PATCH_IMPLEMENTATION_REPORT.md) (v2.0.9)
+- **Patch v2.0.10 specification:** [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md) (completed specification; retain as historical context)
+- **Future roadmap:** [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md)
+- **AI entry point and guardrails:** [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md), [`AGENTS.md`](./AGENTS.md)
 
-### v2.0.9 Key Features
-1. **14 Starting Sect Archetypes**: Covering all 9 major cultivation paths (`sword`, `blade`, `spear`, `fist`, `alchemy`, `bow`, `staff`, `focus`, `god`, `demon`, `mech`, `karma`, `beast`, `sage`).
-2. **Universal Spirit Beast Breeding & Bloodline Awakening**: Dual-parent genetic blending across species, tiers (up to T7), traits, and reserve menagerie resting.
-3. **Formation & Ensemble Support Aura System**: Multi-path party synergies in Ancient Sanctums and Sect Raid Defenses.
-4. **Support & Medical Triage Doctrine**: Autonomous triage prioritization (`ELDER_FIRST`, `SEVEREST_FIRST`, `VANGUARD_FIRST`, `BALANCED`).
-5. **3 Specialist Sect Facilities**: `mech_workshop`, `beast_menagerie`, `harmonic_pavilion`.
+## v2.0.10 highlights
 
-### Verification Commands
-- **Data Integrity Auditor**:
-  ```bash
-  node GAME_SOURCE/tools/validate_data_schema.js
-  ```
-- **Automated Regression Suite (82 suites + syntax check)**:
-  ```bash
-  node GAME_SOURCE/test/run_all.js
-  ```
-- **Build Single-File HTML**:
-  ```bash
-  node GAME_SOURCE/tools/build_single.js
-  ```
+- Nine-path Nine-Dao Trial Pagoda, with path-specific resonance rewards and repeat-run duplicate protection.
+- Five rotating elemental realms with affinity effects and primordial refinement catalysts.
+- Sect gate war-beasts, bloodline combat traits, and trained spirit mounts that reduce travel time and raise expedition capacity.
+- All-sect martial conferences and vassal treaties with recurring spirit-stone and herb tribute.
+- Thai UI and progression support, saved state, and a dedicated integration suite.
+
+## Verification
+
+- Data schema validation: passed with 0 errors.
+- Patch-specific integration suite: passed.
+- Full regression runner: **84/84 groups passed** after installing the matching Playwright Chromium. The 80-NPC mobile benchmark measured 0.62 ms/tick (403.4× measured cap) in this cloud run.
+- The protected `human_core.js` SHA-256 and exact 40-script-tag invariant remain intact.
+
+See the current report for exact checks, environment limitations, and recommended follow-up work.

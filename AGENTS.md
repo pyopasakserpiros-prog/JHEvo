@@ -1,7 +1,7 @@
 # Implementation entry point
 
 1. **First**: Read [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md) and follow its prioritized **Task-to-Skill Routing Matrix**.
-2. **Active Task**: Execute **Patch v2.0.10** from the verified **v2.0.9** baseline according to [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md) and [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md).
+2. **Current Baseline**: Patch v2.0.10 is implemented on local branch `main`. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_10.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_10.md) before planning follow-up work; the original [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md) is the completed specification, not a request to repeat the patch.
 3. **Mandatory Skill Loading**: Before modifying any file in `GAME_SOURCE/`, read the matching Master Skill in `.agents/skills/<skill>/SKILL.md` (mirrored in `.codex/skills/<skill>/SKILL.md`).
 
 ---
@@ -19,7 +19,7 @@ Always load only the skills relevant to the subsystem you are touching:
 1. **[`progression-design`](./.agents/skills/progression-design/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: 9 Major Cultivation Paths, 78 Subpaths, Stage Equivalence (`CULT.equivalentStage`), 14 Starting Sect Archetypes, Spirit Beast Companions/Breeding/War-Beasts/Mount Caravans, and Universal Dungeons (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`).
 2. **[`combat-design`](./.agents/skills/combat-design/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Exact `COMBAT.strike` damage formula, 12 composite stats (`STATS.KEYS`), 8 timed buffs (`STATS.BUFF_CATALOG` with strict `until` expiration), 7 weapon classes, 18 Equipment Resonance Sets, Formation Synergies (`COMBAT.evaluateFormationSynergy`), and Grand Martial Conferences (`SECT.WORLD_MARTIAL_CONFERENCE`).
+   - **Use for**: Exact `COMBAT.strike` damage formula, 12 composite stats (`STATS.KEYS`), 8 timed buffs (`STATS.BUFF_CATALOG` with strict `until` expiration), 7 weapon classes, 27 Equipment Resonance Sets, Formation Synergies (`COMBAT.evaluateFormationSynergy`), and Grand Martial Conferences (`SECT.WORLD_MARTIAL_CONFERENCE`).
 3. **[`ai-behavior-patterns`](./.agents/skills/ai-behavior-patterns/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: NPC Psychological Utility AI (`js/ai.js` `ScoreAcc` / `S.add` Thai reasons in `npc.why`), Goal-Driven Cognition (`js/cognition.js` `COG` aspirations, goals, 18 sect offices, zero-RNG rule), 12-Layer `HC` stats (`js/human_core.js`), and station reservation (`AI.freeStation`, `AI.reserve`, `AI.release`).
 4. **[`procedural-gen`](./.agents/skills/procedural-gen/SKILL.md)** *(Deep-Dive Master)*
@@ -32,10 +32,10 @@ Always load only the skills relevant to the subsystem you are touching:
    - **Use for**: Adding/modifying items, recipes (`REC_*` / `ITEM_*` Dual-ID), martial arts, weapon affinities, `elementProfile`, combat effects, and 100% Edit Hub spawner resolution.
 
 ### Tier 2 — Deep-Dive Architecture, Save, Performance & QA Guardrail Skills
-8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** *(Deep-Dive Master)* — Exact 40-script-tag load sequence (`index.html` & `test/load.js`), `W` single source of truth, `SIM.tick` / `SIM.hourly` / `SIM.dailyUpdate` / `SIM.monthly` lifecycle, `SIM.expandStations` dormitory bed cap (`100` max), and `tools/build_single.js`.
+8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** *(Deep-Dive Master)* — Exact 40-script-tag invariant in `index.html`, matching source-module order in `test/load.js`, `W` single source of truth, simulation lifecycle, `SIM.expandStations` dormitory bed cap (`100` max), and `tools/build_single.js`.
 9. **[`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md)** *(Deep-Dive Master)* — `SIM.serialize` / `SIM.deserialize` (`js/sim.js` lines 534–620), automatic `_` transient cache stripping, `W._saveExtras` forward compatibility, pointer rebinding, legacy craft receipt adoption, and dead-reference pruning.
 10. **[`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md)** & **[`web-performance`](./.agents/skills/web-performance/SKILL.md)** *(Deep-Dive Master)* — Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_stVer`, `_passVer`, `_eqSetCache`, `_stEarliestBuffExp`, `SIM_BUDGET_MS = 12`, `16×16` Canvas terrain chunk caching (`buildChunk`), and `measureCached`.
-11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 83-suite regression matrix (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
+11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 84-group regression matrix (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
 
 ---
 
@@ -49,5 +49,5 @@ node test/run_all.js
 
 ## 3. Non-Negotiable Constraints
 - **Core Lock:** Never modify `GAME_SOURCE/js/human_core.js` (`HC.FINGERPRINT === '155:2f9c9dd7'`, SHA-256 locked).
-- **40 Script Tags:** Never add or remove `<script>` tags in `GAME_SOURCE/index.html` or `GAME_SOURCE/test/load.js`.
+- **Script Load Order:** Keep exactly 40 `<script>` tags in `GAME_SOURCE/index.html`; preserve the corresponding data and simulation module load order in `GAME_SOURCE/test/load.js` (which is a CommonJS loader, not an HTML file).
 - **Thai Localization:** All user-facing items, martial arts, recipes, techniques, and `S.add` AI reasons MUST include Thai (`nameTh`).

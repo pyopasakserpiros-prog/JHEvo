@@ -614,6 +614,13 @@
       UI.render();
       UI.updateHud(true);
     }
+    else if (a === 'edit-gate-beast') {
+      const parts = String(arg || '').split('|');
+      const res = SECT.EDITOR.applyPetAction(W, { action: parts[0] === 'add' ? 'assign_gate_beast' : 'release_gate_beast', npcId: UI.editNpcId, beastUid: parts.slice(1).join('|') });
+      UI.toast(res.ok ? (res.assigned ? 'จัดสัตว์อสูรเข้ากองพิทักษ์ประตูแล้ว' : 'นำสัตว์อสูรออกจากกองพิทักษ์ประตูแล้ว') : res.reason);
+      UI.render();
+      UI.updateHud(true);
+    }
     else if (a === 'edit-cast-buff') {
       const bfEl = $("shBody") && $("shBody").querySelector("#editBuffKeySel");
       const durEl = $("shBody") && $("shBody").querySelector("#editBuffDuration");
@@ -3941,6 +3948,14 @@
           h += "<div class=\"logrow\" style=\"align-items:center;gap:6px\"><div style=\"flex:1\"><b>" + (pt.sovereignAwakened ? "👑 " : "🐾 ") + esc(pt.nameTh) + "</b> <span class=\"chip " + (pt.active ? "ok" : "") + "\">" + (pt.active ? "ออกรบ" : "สำรอง") + " · T" + pt.tier + " · ขั้นเติบโต " + (pt.growthStage || 1) + "/4</span><div class=\"muted\" style=\"font-size:11px\">ความภักดี " + Math.round(pt.loyalty || 0) + "% · ความอิ่ม " + Math.round(pt.satisfaction || 0) + "% · Bond XP " + Math.round(pt.bondXp || 0) + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\"><button class=\"btn\" data-do=\"edit-pet-feed\" data-arg=\"" + pt.uid + "\">🍖 ให้อาหาร</button><button class=\"btn pri\" data-do=\"edit-pet-awaken\" data-arg=\"" + pt.uid + "\">👑 ปลุกราชันย์</button><button class=\"btn dan\" data-do=\"edit-pet-release\" data-arg=\"" + pt.uid + "\">ปลดปล่อย</button></div></div>";
         });
       }
+      h += "<h4 style='margin-top:12px'>🛡️ กองอสูรพิทักษ์ประตู (สูงสุด 4 ตัว)</h4><div class='muted'>เลือกอสูรสำรองของสำนักให้ร่วมป้องกันเมื่อมีการบุก</div>";
+      if (pData.menagerie && pData.menagerie.length) {
+        pData.menagerie.forEach(beast => {
+          const uid = beast.uid || beast.id || '';
+          const assigned = (pData.gateBeasts || []).includes(uid);
+          h += "<div class='logrow' style='align-items:center;gap:6px'><div style='flex:1'><b>🐾 " + esc(beast.nameTh || 'อสูรสำนัก') + "</b> <span class='chip " + (assigned ? 'ok' : '') + "'>" + (assigned ? 'พิทักษ์ประตู' : 'สำรอง') + " · T" + (beast.tier || 1) + " · " + esc(beast.bloodlineTrait || beast.trait || 'ไร้สายเลือดพิเศษ') + "</span></div><button class='btn " + (assigned ? '' : 'pri') + "' data-do='edit-gate-beast' data-arg='" + (assigned ? 'remove|' : 'add|') + esc(uid) + "'>" + (assigned ? 'นำออกจากกอง' : 'จัดเข้ากอง') + "</button></div>";
+        });
+      } else h += "<div class='muted' style='margin-top:6px'>คอกสัตว์สำนักยังไม่มีสัตว์อสูรสำรอง</div>";
       h += "</div>";
 
       h += "<h3>2. ✨ ร่ายวิชาฟื้นฟูและบัฟหนุนนำ (Self & Ally Healing + Timed Buffs)</h3><div class=\"card\">";

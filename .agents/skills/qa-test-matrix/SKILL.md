@@ -1,6 +1,6 @@
 ---
 name: qa-test-matrix
-description: Master JianghuSect Evolution's 83-suite automated regression test matrix (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), 150-file JS syntax sweep, and milestone acceptance gates.
+description: Master JianghuSect Evolution's 84-group automated regression test matrix (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), 154-file JS syntax sweep, and milestone acceptance gates.
 ---
 
 # JianghuSect Evolution — Automated QA & 83-Suite Regression Matrix Blueprint (`test/run_all.js`, `tools/validate_data_schema.js`)

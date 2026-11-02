@@ -290,6 +290,11 @@
       ks.lastHarmAt = W.t;
     }
     let hp = C.hp(d) - dmg;
+    if (hp <= 0 && d.isGateBeast && d.bloodlineTrait === 'SOVEREIGN_AWAKENED' && !d.sovereignGuardUsed) {
+      d.sovereignGuardUsed = true;
+      hp = Math.max(1, Math.round(hm * 0.22));
+      d.fx = { t: W.t, text: '👑 สายเลือดราชันย์คุ้มชีพ' };
+    }
     if (hp <= hm * 0.12 && !d.foe && d.cult && d.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
       f._mechDecoyUsed = f._mechDecoyUsed || {};
       const ms = CULT.ensureMechState(d);
@@ -380,6 +385,12 @@
     const crit = !o.noCrit && W.rng.chance(clamp(critChance, 0, 0.90));
     let frac = 0.2 * (A0 / (A0 + 0.8 * Math.max(0, D))) * (o.M || 1) * (o.synDmgMult || 1) * (tb ? tb.dmgMult : 1) * (tac ? tac.dmgMult : 1) * resRiderMult * (0.85 + W.rng.next() * 0.3);
     if (crit) frac *= ((sa.critDmg || 150) + (o.critDmgAdd || 0) + (tb ? tb.critDmgAdd : 0)) / 100;
+    if (a.isGateBeast) {
+      if (a.bloodlineTrait === 'ALPHA_FANG') frac *= 1.18;
+      else if (a.bloodlineTrait === 'SOVEREIGN_AWAKENED') frac *= 1.10;
+    }
+    if (d.isGateBeast && d.bloodlineTrait === 'IRON_CARAPACE') frac *= 0.72;
+    else if (d.isGateBeast && d.bloodlineTrait === 'SOVEREIGN_AWAKENED') frac *= 0.90;
     // Major Path Offensive/Defensive Combat Identities
     if (!a.foe && a.cult) {
       if (a.cult.path === 'XIAN' && o.isSkill && (a.h.state.qi || 0) >= CULT.qiMax(a) * 0.5) {
@@ -442,6 +453,10 @@
     d.fx = { t: W.t, text: (crit ? '✦' : '') + '-' + Math.max(1, Math.round(dmg)) };
     if (!a.foe) { a.h.state.energy = Math.max(0, a.h.state.energy - 0.15); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, (g.MARTIAL ? ({ FIST: 'FIST_PALM' }[g.MARTIAL.equippedType(a)] || g.MARTIAL.equippedType(a)) : g.AI.pickTeachSkill(a, a)), 1 / 90, 1.1); HC.trainBody(a, 'reflex', 0.1); a.lastHurt = null; }
     const killed = C.applyDamage(W, f, a, d, dmg);
+    if (!o.noProc && a.isGateBeast && a.bloodlineTrait === 'VENOM_GLAND' && C.alive(d)) {
+      ST.addStatus(d, 'poison', 12, { per: 0.012, src: a.id });
+      d.lastGateBeastVenom = { t: W.t, sourceId: a.id };
+    }
     let lifesteal = 0, reflected = 0;
     if (!a.foe && !a.dead && a.cult && a.cult.path === 'DEMON' && dmg > 0) {
       const trA = CULT.trackRealm(a);

@@ -765,7 +765,12 @@
   ECO.REFINEMENT_CATALYSTS = {
     CAT_RESONANCE_JADE_4: { id: 'CAT_RESONANCE_JADE_4', nameTh: 'หยกสัจธรรมประสานปราณ', tier: 4, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.14, maxQuality: 1.65, value: 180, descTh: 'ผลึกหยกโบราณจากวิหารศักดิ์สิทธิ์ ใช้ขัดเกลาศาสตราชุดสัจธรรมระดับ T4–T6 ให้มีคุณภาพสูงขึ้น' },
     CAT_ASTRAL_ESSENCE_5: { id: 'CAT_ASTRAL_ESSENCE_5', nameTh: 'แก่นดาราบรรพกาล', tier: 5, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.20, maxQuality: 1.75, value: 320, descTh: 'แก่นปราณดาราจากผู้พิทักษ์ชั้นลึก ใช้หลอมยกระดับคุณภาพศาสตรา T4–T6' },
-    CAT_PRIMORDIAL_FLAME_6: { id: 'CAT_PRIMORDIAL_FLAME_6', nameTh: 'เพลิงต้นกำเนิดสวรรค์', tier: 6, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.28, maxQuality: 1.85, value: 520, descTh: 'เพลิงศักดิ์สิทธิ์ขั้นสูงสุดจากแท่นบูชาโบราณ ใช้ขัดเกลาศาสตรา T4–T6 สู่ขีดสุด' }
+    CAT_PRIMORDIAL_FLAME_6: { id: 'CAT_PRIMORDIAL_FLAME_6', nameTh: 'เพลิงต้นกำเนิดสวรรค์', tier: 6, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.28, maxQuality: 1.85, value: 520, descTh: 'เพลิงศักดิ์สิทธิ์ขั้นสูงสุดจากแท่นบูชาโบราณ ใช้ขัดเกลาศาสตรา T4–T6 สู่ขีดสุด' },
+    CAT_PRIMORDIAL_METAL: { id: 'CAT_PRIMORDIAL_METAL', nameTh: 'แก่นโลหะบรรพกาล', element: 'EARTH_METAL', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นโลหะจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
+    CAT_PRIMORDIAL_WOOD: { id: 'CAT_PRIMORDIAL_WOOD', nameTh: 'แก่นไม้กำเนิดชีพ', element: 'WOOD_LIFE', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นไม้ปราณจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
+    CAT_PRIMORDIAL_WATER: { id: 'CAT_PRIMORDIAL_WATER', nameTh: 'แก่นวารีเยือกแข็ง', element: 'WATER_ICE', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นวารีจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
+    CAT_PRIMORDIAL_FIRE: { id: 'CAT_PRIMORDIAL_FIRE', nameTh: 'แก่นเพลิงชาดบรรพกาล', element: 'FIRE', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นเพลิงจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' },
+    CAT_PRIMORDIAL_EARTH: { id: 'CAT_PRIMORDIAL_EARTH', nameTh: 'แก่นปฐพีหยกเร้น', element: 'EARTH_METAL', tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นปฐพีจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพศาสตราและอุปกรณ์' }
   };
 
   ECO.ensureCatalysts = W => {

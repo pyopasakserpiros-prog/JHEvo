@@ -113,12 +113,14 @@ console.log('=== Running Patch v2.0.8 + Support/Heal/Buff Path Expansion Suite =
     }
   }
 
-  assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 18, 'Must have 18 equipment resonance sets covering all 78 subpaths');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 18, 'The baseline 18 equipment resonance sets must remain available');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 9, 'Nine Dao paths must each receive a Pagoda resonance set');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 27, 'The 18 baseline plus 9 Pagoda sets must be registered');
   for (const rId of ["RES_MECH_AUTOMATON_CITADEL","RES_KARMA_SAMSARA_WHEEL","RES_BEAST_SOVEREIGN_PACT","RES_SAGE_HARMONY_SANCTUARY"]) {
     const rSet = MARTIAL.RESONANCE_SETS.find(s => s.id === rId);
     assert(rSet, `Resonance set ${rId} must exist`);
   }
-  console.log('  PASS 2: Cross-path techniques (path: ANY), weapon/element bindings, and 18 Resonance Sets verified');
+  console.log('  PASS 2: Cross-path techniques, weapon/element bindings, 18 baseline resonance sets, and 9 Pagoda sets verified');
 }
 
 // 3. Universal Spirit Beast Pet System (Taming, Population Conservation, Cap 1 vs 2..4, Combat & Evolution)

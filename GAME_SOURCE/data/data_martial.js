@@ -44106,6 +44106,42 @@ EXP_V208.newResonanceSets.forEach(rs => {
     D.RESONANCE_SETS.push(sageResSet);
   }
 
+  // v2.0.10: Universal Nine-Dao Pagoda sets. Pieces are awarded by the
+  // matching floor and use the same combat/equipment resonance authority as
+  // every other three-piece set.
+  const pagodaSets = [
+    { path: 'XIAN', subpaths: ['SWORD_IMMORTAL','FIVE_ELEMENTS','ELIXIR_DAO','ASTRAL_ARRAY','BLOOD_DEMON','PHANTOM_SOUL','TIME_VOID','SOUND_ZITHER','YIN_YANG_HARMONY','FROST_MOON_IMMORTAL','STAR_ARCHER','CLOUD_DRAGON_SPEAR','PURE_SWORD_SAINT'], nameTh: 'ชุดกระบี่สัจธรรมเก้าวิถี', weapon: ['SWORD','FOCUS'], armor: ['ROBE','LIGHT'], accessory: ['CHARM','RING'], elem: 'EARTH_METAL', stats: { matk: 0.14, acc: 0.10, cast: 8 }, rider: 'mdefbreak' },
+    { path: 'BODY', subpaths: ['TIGER_SOVEREIGN','BLOOD_DRAGON','VAJRA_BODHI','DEVOURING_FIEND','SOLAR_FORGE','THUNDER_BODY','JADE_IMMORTAL_BODY','TITAN_MOUNTAIN_BODY','WOOD_SPRING_BODY','STAFF_GUARD','WAR_SPEAR_SOVEREIGN','IRON_BOW_SENTINEL','OVERLORD_HEAVY_BLADE'], nameTh: 'ชุดกายาวัชระพิทักษ์เก้าชั้น', weapon: ['FIST','STAFF','BLADE'], armor: ['HEAVY','LIGHT'], accessory: ['RING','BRACELET'], elem: 'FIRE', stats: { atk: 0.14, def: 0.16, hp: 0.12 }, rider: 'armorbreak' },
+    { path: 'GOD', subpaths: ['WAR_DEITY','MERCY_DEITY','FATE_ORACLE','TOTEM_BEAST_GOD','UNDERWORLD_JUDGE','OCEAN_SOVEREIGN','HARVEST_EARTH_GOD','MEDICINE_BODHI_GOD','SUN_BOW_DEITY','GOLDEN_ARHAT_STAFF'], nameTh: 'ชุดเทวบัญชาสุริยันเก้ารัศมี', weapon: ['SPEAR','FOCUS','BOW'], armor: ['ROBE','HEAVY'], accessory: ['CHARM','NECKLACE'], elem: 'LIGHT_YANG', stats: { matk: 0.14, mdef: 0.14, hp: 0.12 }, rider: 'stun' },
+    { path: 'DEMON', subpaths: ['SHADOW_ASSASSIN','VENOM_GU_SOVEREIGN','NETHER_GHOST_KING','HEAVEN_DEVOURING_DEMON','SHADOW_ARCHER','BLOOD_SPEAR_ASURA','ASHURA_SLAUGHTER_BLADE'], nameTh: 'ชุดอเวจีโลหิตเก้าภพ', weapon: ['BLADE','FIST','SWORD'], armor: ['LIGHT','ROBE'], accessory: ['RING','CHARM'], elem: 'YIN_SHADOW', stats: { atk: 0.16, matk: 0.10, eva: 0.08 }, rider: 'burn' },
+    { path: 'HEART_SOUL', subpaths: ['ZEN_VOID_MIND','CALLIGRAPHY_PAINTING_SAGE','DREAM_ILLUSION_WEAVER','MIND_SWORD_TELEKINESIS','ZITHER_HEART_BOW','HEART_BLADE_MEDITATION','VOID_SPEAR_MIND'], nameTh: 'ชุดจิตสุญตาสัจธรรมไร้เสียง', weapon: ['FOCUS','BOW','SWORD'], armor: ['ROBE','LIGHT'], accessory: ['CHARM','BRACELET'], elem: 'ASTRAL', stats: { matk: 0.16, mdef: 0.14, acc: 0.10 }, rider: 'blind' },
+    { path: 'MECH_PUPPET', subpaths: ['HEAVENLY_GOLEM','THOUSAND_THREAD_ASSASSIN','BEAST_CHIMERA_MECH','CELESTIAL_BALLISTA','SOUL_VESSEL_AVATAR','FLYING_BLADE_ORBITER','ASTRAL_CLOCKWORK_PRIME'], nameTh: 'ชุดกลจักรวิญญาณเก้าฟันเฟือง', weapon: ['FOCUS','SPEAR','BLADE'], armor: ['HEAVY','ROBE'], accessory: ['BRACELET','RING'], elem: 'LIGHTNING', stats: { atk: 0.12, matk: 0.12, def: 0.14 }, rider: 'armorbreak' },
+    { path: 'KARMA_SAMSARA', subpaths: ['REVERSED_RETRIBUTION','SIX_PATHS_WHEEL','FATE_SEVERING_THREAD','LOTUS_MERCY_PURIFIER','ASURA_JUDGMENT_BLADE','PAST_LIFE_MIRROR','BODHI_VOW_GUARDIAN'], nameTh: 'ชุดกงล้อกรรมเก้าวัฏ', weapon: ['SWORD','FOCUS','STAFF'], armor: ['ROBE','HEAVY'], accessory: ['CHARM','NECKLACE'], elem: 'YIN_SHADOW', stats: { matk: 0.14, mdef: 0.14, hp: 0.10 }, rider: 'bleed' },
+    { path: 'BEAST_SOVEREIGN', subpaths: ['MYRIAD_BEAST_PACK','PRIMORDIAL_BLOOD_MUTATOR','SYMBIOTIC_BEAST_WARRIOR','COLOSSUS_SHIELD_TAMER','SWARM_GU_HIVE_MASTER','CELESTIAL_ASTRAL_FAIRY_TAMER','ABYSSAL_DRAGON_TOTEM'], nameTh: 'ชุดราชันย์หมื่นอสูรเก้าบรรพต', weapon: ['SPEAR','BLADE','STAFF'], armor: ['HEAVY','LIGHT'], accessory: ['RING','BRACELET'], elem: 'WOOD_LIFE', stats: { atk: 0.16, def: 0.12, hp: 0.12 }, rider: 'poison' },
+    { path: 'SAGE_SUPPORT', subpaths: ['GOLDEN_NEEDLE_SAINT','CELESTIAL_ZITHER_ENVOY','DIVINE_NECTAR_APOTHECARY','QIMEN_TALISMAN_PATRON','SOUL_LANTERN_SHEPHERD','WAR_BANNER_CHORISTER','WOOD_SPIRIT_SYMBIONT'], nameTh: 'ชุดปราชญ์คีตเวทย์เก้าประสาน', weapon: ['FOCUS','STAFF','BOW'], armor: ['ROBE','LIGHT'], accessory: ['CHARM','NECKLACE'], elem: 'WOOD_LIFE', stats: { matk: 0.12, mdef: 0.16, hp: 0.12 }, rider: 'holyAura' }
+  ];
+  for (const p of pagodaSets) {
+    const id = 'RES_NINE_DAO_' + p.path;
+    if (D.RESONANCE_SETS.some(x => x.id === id)) continue;
+    D.RESONANCE_SETS.push({
+      id,
+      nameTh: p.nameTh,
+      path: p.path,
+      subpaths: p.subpaths,
+      minTier: 4,
+      maxTier: 7,
+      elementFamily: [p.elem],
+      slots: { WEAPON: p.weapon, ARMOR: p.armor, ACCESSORY: p.accessory },
+      bonus2: { p: Object.fromEntries(Object.entries(p.stats).map(([k,v]) => [k, v * 0.55])), f: { crit: 4, pen: 5 }, descTh: '2 ชิ้น: เปิดวงจรสัจธรรมและเพิ่มพลังต่อสู้' },
+      bonus3: {
+        p: p.stats,
+        f: { crit: 8, critDmg: 14, pen: 10, cast: 8 },
+        rider: p.rider ? { status: p.rider, selfBuff: p.path === 'SAGE_SUPPORT', chance: 0.30, dur: 8, bonusDmgMult: 1.07, descTh: 'วิถีประสานสะท้อนพลังสู่คู่ต่อสู้' } : null,
+        descTh: '3 ชิ้น: ปลดปล่อยพลังประสานประจำวิถี'
+      }
+    });
+  }
+
   const sageSynergies = [
     { id: 'SYN_SAGE_NEEDLE_FOCUS', subpath: 'GOLDEN_NEEDLE_SAINT', weaponTypes: ['FOCUS', 'SWORD'], armorTypes: ['ROBE', 'LIGHT'], archs: ['heal', 'buff', 'support', 'pierce', 'control'], bonus: { healMult: 1.25, shieldMult: 1.18, qiCostMult: 0.85, cleanseHeartDemon: 5, extraSupportDur: 6 } },
     { id: 'SYN_SAGE_ZITHER_WIND', subpath: 'CELESTIAL_ZITHER_ENVOY', weaponTypes: ['FOCUS', 'BOW'], armorTypes: ['ROBE', 'LIGHT'], archs: ['support', 'buff', 'heal', 'channel'], bonus: { healMult: 1.18, shieldMult: 1.18, windDelta: -1, extraSupportDur: 6, qiRestorePct: 0.05 } },

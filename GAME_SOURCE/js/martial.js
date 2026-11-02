@@ -736,9 +736,10 @@ M.evaluateResonanceSet=(n,overrideEquip)=>{
    if(usable[sl]&&M.itemMatchesResonanceSet(n,usable[sl],rs))matched.push(sl);
   }
   if(matched.length<2)continue;
+  const explicitPieces=matched.reduce((count,sl)=>count+(usable[sl].resonanceSetId===rs.id?1:0),0);
   const subMatch=Array.isArray(rs.subpaths)&&rs.subpaths.includes(c.sub);
   const pathMatch=rs.path==='ANY'||rs.path===c.path;
-  const score=matched.length*100+(subMatch?35:0)+(pathMatch?12:0);
+  const score=matched.length*100+explicitPieces*60+(subMatch?35:0)+(pathMatch?12:0);
   if(score>bestScore){
    bestScore=score;
    bestSet=rs;

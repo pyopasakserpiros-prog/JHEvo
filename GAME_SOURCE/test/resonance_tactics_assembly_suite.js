@@ -21,9 +21,11 @@ assert.strictEqual(
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
 console.log('  PASS: human_core.js byte-for-byte lock verified (155:2f9c9dd7)');
 
-// 1. Pillar A: Equipment Resonance Sets (14 Sets, 50 Subpaths, T3-T7)
+// 1. Pillar A: Baseline + Nine-Dao equipment resonance sets (27 Sets, 78 Subpaths, T3-T7)
 assert(Array.isArray(MARTIAL.RESONANCE_SETS), 'MARTIAL.RESONANCE_SETS must be an array');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 18, 'Must have exactly 18 resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 18, 'Must preserve all 18 baseline resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 9, 'Must register all nine Pagoda resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 27, 'Must have 27 baseline plus Pagoda resonance sets');
 
 const coveredSubpaths = new Set();
 for (const set of MARTIAL.RESONANCE_SETS) {
@@ -46,7 +48,7 @@ for (const p of Object.keys(CULT.PATHS)) {
   }
 }
 assert.strictEqual(totalKnownSubpaths, 78, 'Total subpaths in system must be 78');
-console.log('  PASS: 14 Resonance Sets verified covering all 50 subpaths');
+console.log('  PASS: 27 resonance sets verified covering all 78 subpaths');
 
 // Test evaluateResonanceSet functionality
 const W = SIM.create('test-resonance-suite');

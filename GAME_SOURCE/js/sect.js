@@ -1091,15 +1091,18 @@
     return { item: minted, recipe: matchedRecipe };
   };
 
-  SECT.simulateAssemblyBout = (W, a, b) => {
+  SECT.simulateAssemblyBout = (W, a, b, opts) => {
+    opts = opts || {};
     const tacA = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(a, b, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
     const tacB = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(b, a, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
     const resA = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(a) : { active: false, pieces: 0 };
     const resB = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(b) : { active: false, pieces: 0 };
+    const formA = opts.useFormation && g.COMBAT && g.COMBAT.evaluateFormationSynergy ? g.COMBAT.evaluateFormationSynergy(opts.formationPartyA || a.conferenceParty || [a]) : { synergies: [], powerMultiplier: 1 };
+    const formB = opts.useFormation && g.COMBAT && g.COMBAT.evaluateFormationSynergy ? g.COMBAT.evaluateFormationSynergy(opts.formationPartyB || b.conferenceParty || [b]) : { synergies: [], powerMultiplier: 1 };
     const powA = a.power != null ? a.power : CULT.power(a);
     const powB = b.power != null ? b.power : CULT.power(b);
-    const scoreA = powA * (tacA.dmgMult || 1) * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
-    const scoreB = powB * (tacB.dmgMult || 1) * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
+    const scoreA = powA * (tacA.dmgMult || 1) * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (formA.powerMultiplier || 1) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
+    const scoreB = powB * (tacB.dmgMult || 1) * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (formB.powerMultiplier || 1) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
     const win = scoreA >= scoreB ? a : b;
     const lose = win === a ? b : a;
     const winTac = win === a ? tacA : tacB;
@@ -1109,6 +1112,10 @@
       loser: lose,
       tacticalRelation: winTac.relation || 'NEUTRAL',
       tacticalNoteTh: winTac.noteTh || '',
+      resonanceA: resA.active ? { setId: resA.setId, pieces: resA.pieces } : null,
+      resonanceB: resB.active ? { setId: resB.setId, pieces: resB.pieces } : null,
+      formationA: formA.synergies || [],
+      formationB: formB.synergies || [],
       signature: sig
     };
   };
@@ -1148,6 +1155,8 @@
     const won = opts.forceWin != null ? !!opts.forceWin : (effChamp >= effEnvoy);
     const cpGain = won ? 45 : 15;
     const stonePrize = won ? 60 : 0;
+    const wasRival = rival.treaty === 'RIVAL_FEUD' || rival.treaty === 'EMBARGO' || (rival.attitude || 0) <= -40;
+    let vassalTreaty = null;
     champ.cp = (champ.cp || 0) + cpGain;
     champ.cpEarned = (champ.cpEarned || 0) + cpGain;
     champ.merit = (champ.merit || 0) + (won ? 20 : 6);
@@ -1156,6 +1165,7 @@
       ECO.earn(W, stonePrize, 'ชนะทูตท้าประลองจาก' + rival.nameTh);
       rival.attitude = clamp((rival.attitude || 0) + 5, -100, 100);
       HC.experience(champ, 'victory', 0.7);
+      if (wasRival && g.CONTENT && g.CONTENT.forceVassalTreaty) vassalTreaty = g.CONTENT.forceVassalTreaty(W, rival, { majorDispute: true, winnerId: champ.id, cause: 'RIVAL_ENVOY_CHALLENGE' });
     } else {
       W.fame(-1);
       rival.attitude = clamp((rival.attitude || 0) - 4, -100, 100);
@@ -1191,6 +1201,7 @@
       tacticalRelation: tac.relation || 'NEUTRAL',
       cpAwarded: cpGain,
       stonePrize,
+      vassalTreaty,
       summaryTh: HC.fullName(champ) + (won ? ' ปราบ' : ' ประมือกับ') + envoyUnit.nameTh + ' (' + rival.nameTh + ')'
     };
   };
@@ -3691,6 +3702,7 @@
       karmaState,
       activeBuffs,
       menagerie,
+      gateBeasts: (W && W.sect && Array.isArray(W.sect.gateBeasts)) ? W.sect.gateBeasts : [],
       breedingRecords,
       supportDoctrine,
       specialistFacilities,
@@ -3706,6 +3718,11 @@
     const n = W.byId[opts.npcId || (W.sect && W.sect.masterId)];
     if (!n) return { ok: false, reason: 'ไม่พบตัวละครเป้าหมาย' };
     const action = opts.action;
+
+    if (action === 'assign_gate_beast' || action === 'release_gate_beast') {
+      if (!g.EXPED || !g.EXPED.assignGateBeast) return { ok: false, reason: 'ระบบกองอสูรพิทักษ์ยังไม่พร้อม' };
+      return g.EXPED.assignGateBeast(W, opts.beastUid || opts.petUid, action === 'assign_gate_beast' && opts.assigned !== false);
+    }
 
     if (action === 'spawn_pet') {
       const beasts = (CULT.allBeastSpecies ? CULT.allBeastSpecies() : ((JD && JD.BEASTS && JD.BEASTS.beasts) || []));
@@ -3982,6 +3999,169 @@
     HC.bump(n);
     return n.ancestralBlessing;
   };
+
+  /* ======================= v2.0.10: All-Jianghu Martial Conference ======================= */
+  SECT.WORLD_MARTIAL_CONFERENCE = {
+    INTERVAL_DAYS: 1080,
+    BRACKETS: [
+      { id: 'JUNIOR', nameTh: 'รุ่นเยาว์', min: 1, max: 3, cp: 70 },
+      { id: 'CORE', nameTh: 'รุ่นแกนหลัก', min: 4, max: 6, cp: 130 },
+      { id: 'ELDER_PEAK', nameTh: 'รุ่นยอดฝีมือ', min: 7, max: 9, cp: 220 }
+    ]
+  };
+  const WMC = SECT.WORLD_MARTIAL_CONFERENCE;
+  WMC.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.worldMartialConference || typeof W.sect.worldMartialConference !== 'object') W.sect.worldMartialConference = { lastDay: 0, nextDay: WMC.INTERVAL_DAYS, total: 0, history: [] };
+    const st = W.sect.worldMartialConference;
+    if (!Number.isFinite(st.lastDay) || st.lastDay < 0) st.lastDay = 0;
+    if (!Array.isArray(st.history)) st.history = [];
+    if (!Number.isFinite(st.nextDay) || st.nextDay <= 0) st.nextDay = WMC.INTERVAL_DAYS;
+    if (!Number.isFinite(st.total) || st.total < 0) st.total = 0;
+    return st;
+  };
+  const wmcStageFor = (path, target) => {
+    const def = CULT.PATHS && CULT.PATHS[path];
+    const max = def ? def.maxStage : 9;
+    let best = 1, delta = Infinity;
+    for (let stage = 1; stage <= max; stage++) {
+      const eq = CULT.equivalentStage({ cult: { path, stage } });
+      if (Math.abs(eq - target) < delta) { best = stage; delta = Math.abs(eq - target); }
+    }
+    return best;
+  };
+  WMC.makeGuest = (W, sect, bracket) => {
+    const path = (CULT.PATHS && CULT.PATHS[sect.majorPath]) ? sect.majorPath : 'XIAN';
+    const eqTarget = (bracket.min + bracket.max) / 2;
+    const stage = wmcStageFor(path, eqTarget);
+    const eqStage = CULT.equivalentStage({ cult: { path, stage } });
+    const types = ['SWORD','BLADE','SPEAR','FIST','BOW','STAFF','FOCUS'];
+    const weapon = types[Math.floor((W.day || 0) + (sect.power || 1) * 17 + bracket.min) % types.length];
+    const setPieces = g.EXPLORE && g.EXPLORE.pagodaSetPieces ? g.EXPLORE.pagodaSetPieces(path, W.day) : [];
+    const equip = { WEAPON: { slot: 'WEAPON', gearType: weapon, tier: Math.max(4, Math.min(7, stage)), nameTh: weapon } };
+    for (const piece of setPieces) equip[piece.slot] = piece;
+    const name = 'ยอดฝีมือ' + (sect.shortTh || sect.nameTh || 'สำนักยุทธภพ');
+    const pow = Math.round(175 * Math.pow(1.37, eqStage - 1) * (0.84 + Math.max(0, sect.power || 1) * 0.08));
+    return {
+      id: 'WMC_' + (W.day || 0) + '_' + sect.id + '_' + bracket.id,
+      isGuest: true, guestSectId: sect.id, guestSectNameTh: sect.shortTh || sect.nameTh,
+      name, nameTh: name, h: { name: { given: name, family: '' }, state: { hp: 1000, satiety: 100, rest: 100, energy: 100 }, skills: { [weapon]: stage * 12 }, personality: { courage: 70, bravery: 70, caution: 30 }, values: { martialPeak: 80 }, root: { primaryElement: 'EARTH_METAL', elements: ['EARTH_METAL'], weights: { EARTH_METAL: 1 } } },
+      cult: { path, stage, sub: 'NONE', techs: [] }, pets: [], inv: { stones: 0 }, rank: stage >= 6 ? 4 : stage >= 3 ? 2 : 1,
+      power: pow, equip, conferenceEquivalentStage: eqStage
+    };
+  };
+  WMC.makeFormationParty = (W, fighter, sect, bracket) => {
+    const strategies = [
+      ['BODY', 'BEAST_SOVEREIGN'],
+      ['XIAN', 'HEART_SOUL'],
+      ['MECH_PUPPET', 'SAGE_SUPPORT'],
+      ['KARMA_SAMSARA', 'SAGE_SUPPORT']
+    ];
+    const key = String(sect && sect.id || 'PLAYER') + '|' + String(fighter && fighter.id || '') + '|' + String(bracket && bracket.id || '');
+    let hash = 0; for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
+    const supportPaths = strategies[Math.abs(hash) % strategies.length];
+    const basePath = fighter && fighter.cult && fighter.cult.path;
+    const paths = Array.from(new Set([basePath].concat(supportPaths).filter(path => CULT.PATHS && CULT.PATHS[path]))).slice(0, 3);
+    const party = [fighter];
+    for (const path of paths) {
+      if (path === basePath) continue;
+      const proxySect = Object.assign({}, sect || {}, { id: (sect && sect.id || 'PLAYER') + '_FORMATION_' + path, majorPath: path });
+      const helper = WMC.makeGuest(W, proxySect, bracket);
+      helper.name = helper.nameTh = 'ผู้ร่วมค่ายกล' + (CULT.PATHS[path].nameTh || path);
+      party.push(helper);
+    }
+    return party;
+  };
+  WMC.run = (W, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect || !W.world) return { ok: false, reason: 'no-world', brackets: [] };
+    const state = WMC.ensure(W), candidates = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away && n.cult);
+    if (!candidates.length) return { ok: false, reason: 'no-eligible-local-entrants', brackets: [] };
+    const guests = Array.isArray(W.world.sects) ? W.world.sects : [];
+    const results = [], bracketChampions = [];
+    let localFame = 0, entrantTotal = 0;
+    for (const spec of WMC.BRACKETS) {
+      const local = candidates.filter(n => {
+        const eq = CULT.equivalentStage ? CULT.equivalentStage(n) : n.cult.stage || 1;
+        return eq >= spec.min && eq <= spec.max;
+      });
+      const entrants = local.slice();
+      for (const sect of guests) entrants.push(WMC.makeGuest(W, sect, spec));
+      if (!entrants.length) continue;
+      entrantTotal += entrants.length;
+      entrants.sort((a,b) => (b.power != null ? b.power : CULT.power(b)) - (a.power != null ? a.power : CULT.power(a)));
+      let round = entrants, runnerUp = null;
+      const bouts = [];
+      while (round.length > 1) {
+        const next = [];
+        for (let i = 0; i < round.length; i += 2) {
+          if (i + 1 >= round.length) { next.push(round[i]); continue; }
+          const a = round[i], b = round[i + 1];
+          const bout = SECT.simulateAssemblyBout(W, a, b, { useFormation: true, formationPartyA: WMC.makeFormationParty(W, a, a.isGuest ? guests.find(s => s.id === a.guestSectId) : { id: 'PLAYER' }, spec), formationPartyB: WMC.makeFormationParty(W, b, b.isGuest ? guests.find(s => s.id === b.guestSectId) : { id: 'PLAYER' }, spec) });
+          runnerUp = bout.loser; next.push(bout.winner);
+          bouts.push({ aId: a.id, bId: b.id, winnerId: bout.winner.id, loserId: bout.loser.id, tacticalRelation: bout.tacticalRelation, resonanceA: bout.resonanceA, resonanceB: bout.resonanceB, formationA: bout.formationA, formationB: bout.formationB });
+        }
+        round = next;
+      }
+      const champ = round[0], champPower = champ.power != null ? champ.power : CULT.power(champ);
+      const sig = SECT.signatureVictoryOf(champ);
+      if (!champ.isGuest) {
+        const cp = spec.cp;
+        if (g.CPE && g.CPE.mint) g.CPE.mint(W, champ, cp, 'แชมป์ชุมนุมยุทธภพระดับ' + spec.nameTh, true);
+        else { champ.cp = (champ.cp || 0) + cp; champ.cpEarned = (champ.cpEarned || 0) + cp; }
+        champ.merit = (champ.merit || 0) + 28;
+        HC.experience(champ, 'victory', 0.6);
+        localFame += spec.id === 'ELDER_PEAK' ? 8 : spec.id === 'CORE' ? 5 : 3;
+      } else {
+        const sect = guests.find(s => s.id === champ.guestSectId);
+        if (sect) sect.continentalPrestige = (sect.continentalPrestige || 0) + 4;
+      }
+      if (runnerUp && !runnerUp.isGuest) { runnerUp.cp = (runnerUp.cp || 0) + Math.floor(spec.cp * 0.30); runnerUp.cpEarned = (runnerUp.cpEarned || 0) + Math.floor(spec.cp * 0.30); runnerUp.merit = (runnerUp.merit || 0) + 10; }
+      const result = { bracketId: spec.id, nameTh: spec.nameTh, minEquivalentStage: spec.min, maxEquivalentStage: spec.max, entrantCount: entrants.length, boutCount: bouts.length, bouts, championId: champ.id, championName: HC.fullName(champ), championSectId: champ.isGuest ? champ.guestSectId : 'PLAYER', championSectNameTh: champ.isGuest ? champ.guestSectNameTh : W.sect.name, championPower: champPower, runnerUpId: runnerUp ? runnerUp.id : null, weaponType: sig.weaponType, signatureTechName: sig.techNameTh };
+      results.push(result); bracketChampions.push({ champ, power: champPower, result });
+    }
+    if (!results.length) return { ok: false, reason: 'no-brackets', brackets: [] };
+    bracketChampions.sort((a,b) => b.power - a.power);
+    const overall = bracketChampions[0], winner = overall.champ;
+    let award = null;
+    if (!winner.isGuest) {
+      W.fame(24 + localFame);
+      W.sect.continentalPrestige = (W.sect.continentalPrestige || 0) + 20;
+      W.sect.imperialDecrees = (W.sect.imperialDecrees || 0) + 1;
+      if (ECO && ECO.earn) ECO.earn(W, 360, 'รางวัลชนะเลิศชุมนุมยุทธภพ');
+      award = { sectId: 'PLAYER', continentalPrestige: 20, imperialDecrees: 1, spiritStones: 360 };
+    } else {
+      const sect = guests.find(s => s.id === winner.guestSectId);
+      if (sect) {
+        sect.continentalPrestige = (sect.continentalPrestige || 0) + 20;
+        sect.imperialDecrees = (sect.imperialDecrees || 0) + 1;
+        award = { sectId: sect.id, continentalPrestige: 20, imperialDecrees: 1, spiritStones: 0 };
+      }
+      W.fame(Math.max(2, localFame));
+    }
+    const record = {
+      id: 'WMC_' + (W.day || 0) + '_' + (state.total + 1), day: W.day || 0,
+      year: Math.floor((W.day || 0) / 360) + 1, invitedSectIds: guests.map(s => s.id), entrantCount: entrantTotal,
+      championId: winner.id, championName: HC.fullName(winner), championSectId: winner.isGuest ? winner.guestSectId : 'PLAYER',
+      championSectNameTh: winner.isGuest ? winner.guestSectNameTh : W.sect.name, brackets: results, award,
+      summaryTh: 'ชุมนุมยุทธภพปีที่ ' + (Math.floor((W.day || 0) / 360) + 1) + ' · ' + results.map(r => r.nameTh + ' แชมป์ ' + r.championName).join(' / ')
+    };
+    state.lastDay = W.day || 0; state.total++;
+    state.nextDay = Math.max(state.nextDay, state.lastDay + WMC.INTERVAL_DAYS);
+    state.history.unshift(record); if (state.history.length > 12) state.history.length = 12;
+    W.log('tournament', '🏆 ' + record.summaryTh + (award && award.imperialDecrees ? ' · ได้รับราชโองการพระราชทาน' : ''), results.map(r => r.championId).filter(id => W.byId[id]));
+    return { ok: true, conference: record, brackets: results, champion: winner };
+  };
+  WMC.tick = W => {
+    const state = WMC.ensure(W);
+    if (!state || (W.day || 0) < WMC.INTERVAL_DAYS || (W.day || 0) % WMC.INTERVAL_DAYS !== 0 || state.lastDay === W.day) return null;
+    const result = WMC.run(W);
+    if (result.ok) { state.lastDay = W.day; state.nextDay = W.day + WMC.INTERVAL_DAYS; }
+    return result;
+  };
+  SECT.runWorldMartialConference = WMC.run;
+  const sectDailyV210 = SECT.daily;
+  SECT.daily = W => { const result = sectDailyV210 ? sectDailyV210(W) : undefined; WMC.tick(W); return result; };
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;

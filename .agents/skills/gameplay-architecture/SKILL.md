@@ -9,11 +9,11 @@ This skill governs the global module architecture, the 40-script-tag load invari
 
 ---
 
-## 1. The 40-Script-Tag Load Order Invariant (`index.html` & `test/load.js`)
+## 1. The 40-Script-Tag Invariant and Matching Node Load Order
 
 JianghuSect Evolution uses zero external bundlers. Every file is an IIFE `(function (g) { 'use strict'; ... })(typeof globalThis !== 'undefined' ? globalThis : this);` attaching its namespace to `g`.
 
-### 1.1 Exact Load Sequence (`test/load.js` line 4 & `index.html`)
+### 1.1 Exact Source Load Sequence (`test/load.js` line 4 & `index.html`)
 1. **11 Data Modules (`g.JD`):**
    `data/data_core.js` → `data/data_cult.js` → `data/data_items.js` → `data/data_bt.js` → `data/data_cb.js` → `data/data_cp.js` → `data/data_tech.js` → `data/data_beasts.js` → `data/data_expansion.js` → `data/data_martial.js` → `data/data_ecology.js`
 2. **26 Core Simulation & Domain Modules (`test/load.js`):**
@@ -21,7 +21,7 @@ JianghuSect Evolution uses zero external bundlers. Every file is an IIFE `(funct
 3. **3 Browser-Only Modules (`index.html` only):**
    `js/render.js` (`Render`) → `js/ui.js` (`UI`) → `js/main.js` (`G`)
 
-> **Strict Invariant:** Never add or remove `<script>` tags in `index.html` or `test/load.js` (`test_overhaul_pack.js` enforces `scriptTags.length === 40`). Always extend existing modules in place.
+> **Strict Invariant:** `index.html` must retain exactly 40 `<script>` tags. `test/load.js` is a CommonJS loader rather than HTML; preserve its matching data/simulation module order when changing module organization. The v2.0.8 path suite checks the HTML tag count. Extend existing modules in place.
 
 ---
 
