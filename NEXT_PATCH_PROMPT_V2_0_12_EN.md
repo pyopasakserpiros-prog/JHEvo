@@ -12,10 +12,13 @@ Treat the stated requirements and examples as a **floor, not a ceiling**. Go bey
 
 ## Required entry points
 
+Complete this preflight **before inspecting the affected source/data in depth, planning implementation, or editing any game file**. Do not skip a step because you believe you already know the system. Record briefly in the implementation report which required skills and source contracts you used.
+
 1. Read [START_HERE_FOR_AI.md](./START_HERE_FOR_AI.md), [AGENTS.md](./AGENTS.md), [PATCH_IMPLEMENTATION_REPORT_V2_0_11.md](./PATCH_IMPLEMENTATION_REPORT_V2_0_11.md), and [FUTURE_ROADMAP_AND_IDEAS.md](./FUTURE_ROADMAP_AND_IDEAS.md). The v2.0.10 prompt is historical, not a request to reimplement it.
 2. Read [WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md](./WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md) and [WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md](./WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md). Treat their all-library fixture, primary-element filter and other limitations explicitly.
-3. Load only the repository skills relevant to your work, including `.agents/skills/game-data-integrity/SKILL.md`, `progression-design`, `combat-design`, `economy-balancing`, `ai-behavior-patterns`, `save-system-patterns`, and `qa-test-matrix` as applicable. Check the actual implementation, not only skill descriptions.
-4. Run `node docs/audits/weapon_coverage_snapshot.js` to regenerate diagnostic rows on demand. Inspect focused rows or summaries needed to investigate a finding; do not dump or read the entire generated table by default. Improve or replace the method if needed and document differences. This snapshot is a diagnostic, not an acceptance test.
+3. **Mandatory skill gate:** read the complete skill files in `.agents/skills/` for `game-data-integrity`, `progression-design`, `combat-design`, `economy-balancing`, `ai-behavior-patterns`, `save-system-patterns`, and `qa-test-matrix` before touching implementation. This patch explicitly spans all seven domains. If you add UI, procedural loot, or another system, also read `game-ui-ux`, `procedural-gen`, or the matching skill before editing that subsystem. Follow `START_HERE_FOR_AI.md` for any additional required skill; the list here does not override it.
+4. After the skill gate, inspect the actual functions and data contracts named by those skills. Do not treat a skill summary or this prompt as a substitute for source inspection.
+5. Run `node docs/audits/weapon_coverage_snapshot.js` to regenerate diagnostic rows on demand. Inspect focused rows or summaries needed to investigate a finding; do not dump or read the entire generated table by default. Improve or replace the method if needed and document differences. This snapshot is a diagnostic, not an acceptance test.
 
 ## Workstream A — Evidence-driven build coverage and progression
 
