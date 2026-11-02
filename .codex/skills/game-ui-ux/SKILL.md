@@ -1,167 +1,75 @@
 ---
 name: game-ui-ux
-description: >
-  Design and build game UI/UX — HUDs, menus, and overlays — that survive every screen: anchor-
-  based responsive layout, resolution/aspect scaling and safe areas, keyboard/gamepad focus
-  navigation, a screen/menu state stack, and event-driven (not polled) HUD updates. Engine-
-  neutral patterns that pair with the detected engine's UI skill. Use when the user mentions
-  HUD, health bar, main menu, pause menu, settings screen, UI layout, anchors, UI scaling,
-  aspect ratio, safe area, controller/keyboard menu navigation, or wiring UI to game state.
+description: Design, build, and maintain JianghuSect Evolution's Wuxia DOM/Canvas UI (js/ui.js, js/render.js, css/style.css), 72-cell Item Icon Atlas, Grid/List responsive inventory, NPC inspection sheet tabs, Edit Hub spawner/cross-sect controls, and mobile touch gestures.
+origin: jianghusect-custom
+category: ui-ux-rendering
 ---
 
-# Game UI/UX
+# JianghuSect Wuxia UI/UX: Sheets, 72-Cell Icon Atlas, Edit Hub & Canvas Render
 
-Build HUDs and menus that stay correct on a phone, an ultrawide monitor, and a TV across a
-gamepad and a mouse. This skill owns the engine-neutral UI architecture — responsive layout,
-scaling, focus navigation, screen flow, and how UI talks to game state — and defers the
-concrete widget API to the engine UI skill.
+## Purpose
+Provide the complete UI/UX and rendering specification for **JianghuSect Evolution (JHEvo)** (`js/ui.js`, `js/render.js`, `css/style.css`, `docs/ITEM_ICON_ATLAS_MAP.json`, `assets/wuxia_item_atlas.png`).
 
-## When to use
+Use this skill whenever:
+- Adding or updating UI drawers, modal sheets, HUD controls, or the Startup Archetype selector (`js/ui.js`)
+- Modifying the **NPC Inspection Sheet** tabs (`ข้อมูลทั่วไป`, `วิถีบำเพ็ญ`, `วิชาและศาสตรา`, `จิตใจและความคิด`, `สัมภาระ`, `ความสัมพันธ์`)
+- Touching the **Wuxia Inventory Grid/List** views (Personal Bag, Sect Stock, Sect Shop, External Market) or the **72-Cell Item Icon Atlas**
+- Extending the **Edit Hub (Debug/Creator Spawner)** for items, scriptures, spirit beasts, NPCs, or specialist facilities
+- Optimizing Canvas 2D map rendering (`js/render.js`), camera pan/zoom gestures, or mobile safe-area layout
 
-- Use when building a HUD (health/ammo/score), a menu (main/pause/settings), an inventory or
-  shop screen, or any overlay, and you want it to scale and navigate correctly.
-- Use to fix UI that breaks at other resolutions/aspect ratios, ignores notches/safe areas,
-  can't be used with a controller, or is wired to game state by per-frame polling.
-- Use to structure screen flow (title → game → pause → settings) as a stack, not flag soup.
+---
 
-**When *not* to use:** for the engine's concrete UI nodes/components and styling, use
-`godot-ui-control` or Unity UI (UGUI/UI Toolkit). For *visual* punch (button pop, damage
-numbers, shake) use `game-feel`. For branching conversation UI use `dialogue-systems`. For
-translating UI strings, that is localization (see `references/` and `input-systems` for
-rebinding screens). For card/board layout specifics, the `card-game` genre composes this skill.
+## 1. UI Architecture & State Discipline (`GAME_SOURCE/js/ui.js`)
 
-## Core workflow
+1. **Event-Driven & Throttled DOM Refresh**:
+   - The simulation can run at up to **80x+ speed**. Never rebuild full DOM sheets (`innerHTML`) on every simulation tick!
+   - Update only active/open drawers on throttled intervals or explicit user interaction, and preserve scroll position and active tab state (`UI.state.npcTab`, `UI.state.invViewMode`) across refreshes.
+2. **Thai-First Wuxia Typography & Readability**:
+   - Every user-facing label, tooltip, badge, and log message must use clear, evocative Xianxia/Wuxia Thai (`nameTh`, `descTh`).
+   - Never leak raw internal IDs (like `ITEM190_PILL_001` or `undefined`) into visible DOM text—always resolve names via `ECO.name(id)`, `CULT.tech(id)?.nameTh`, or `HC.nameOf(path)`.
+3. **Responsive Safe-Area & Touch Ergonomics**:
+   - Support both Desktop (mouse wheel zoom, drag pan, wide drawers) and Mobile portrait/landscape (`env(safe-area-inset-*)`, pinch-to-zoom, tap selection, input cancellation when dragging).
 
-1. **Pick a layout model: anchors + containers, never absolute pixels.** Anchor elements to
-   edges/corners/center and let containers (rows, columns, grids) flow children. Absolute
-   `(x, y)` positions break at the first new resolution.
-2. **Choose a scaling strategy** for the whole UI: a reference resolution that scales to fit
-   (most games), plus a policy for extra width/height on other aspect ratios (letterbox,
-   expand, or anchor HUD corners outward).
-3. **Respect the safe area.** Inset critical UI from screen edges so notches, rounded corners,
-   and TV overscan don't clip it.
-4. **Make every screen keyboard/gamepad navigable.** Set an initial focused control per screen,
-   define focus order/neighbors, and show a clear focus highlight. Mouse and focus must coexist.
-5. **Model screens as a stack.** Push (pause over game), pop (resume), with input + visibility
-   handed to the top screen. This makes overlays and "back" trivial.
-6. **Drive the HUD from events, not polling.** The HUD subscribes to `health_changed`,
-   `score_changed`, etc. and updates only when they fire — it does not read game state every
-   frame.
-7. **Verify across screens and devices.** Resize the window, switch aspect ratios, unplug the
-   mouse and navigate by gamepad only, and confirm focus, scaling, and safe-area insets. Report
-   what you actually observed at which resolutions.
+---
 
-## Patterns
+## 2. 72-Cell Wuxia Item Icon Atlas & Grid/List Inventory
 
-### 1. Anchors + containers, not absolute coordinates
+1. **Atlas Mapping (`docs/ITEM_ICON_ATLAS_MAP.json` & `assets/wuxia_item_atlas.png`)**:
+   - The 72-cell sprite atlas (`9 columns × 8 rows`, cells `0..71`, including cells `64..71` for Southern Spirit River fish, mysterious containers, and cooked dishes) provides visual icons for every item category.
+   - Ensure every new item, pill, material, weapon, armor, talisman, or fish resolves to a valid atlas cell key without fallback gaps.
+2. **Dual View Mode (Grid vs. Classic List)**:
+   - Personal Bag, Sect Stock, and Sect Shop support toggling between **Wuxia Icon Grid** (responsive page geometries) and **Classic List** mode, persisting the player's preference in `localStorage` (with safe fallback when `localStorage` is unavailable in headless Node).
 
-```gdscript
-# Godot 4.7. Anchor a HUD label to the TOP-LEFT; let a container flow a row of hearts.
-func _ready() -> void:
-    $Score.set_anchors_preset(Control.PRESET_TOP_LEFT)   # sticks to the corner at any size
-    # An HBoxContainer auto-lays-out children left-to-right; never position hearts by hand.
-    for i in lives:
-        $Hearts.add_child(make_heart())                   # HBoxContainer spaces them for you
-# Unity 6.3 LTS uGUI: set RectTransform anchors to the corner; use a HorizontalLayoutGroup.
-# RIGHT: anchors + layout groups. WRONG: rect.anchoredPosition = new Vector2(640, 360) (1080p-only).
+---
+
+## 3. NPC Inspection Sheet Tabs (`npc_sheet_tabs_suite.js`)
+
+When adding new character mechanics (e.g., new cultivation path states like `mechState`, `karmaState`, `pets`, timed `buffs`, or `COG.explain` thoughts), wire them cleanly into the appropriate NPC Sheet tab in `js/ui.js`:
+- **Overview & Physiology**: 12-layer `HC` stats, age/lifespan, active injuries (`npc.inj`), and current activity with Thai reasons (`npc.why`).
+- **Cultivation & Path**: Path/Subpath, stage & equivalent stage, bottleneck diagnostics (`CULT.inspectProgressionBottleneck`), 9-realm specialization track, and Spirit Beast companions (`npc.pet` / `npc.pets`).
+- **Martial & Gear**: Equipped 7-slot gear, active 18-set resonance bonuses, learned techniques, and elemental mastery (`ELEM`).
+- **Mind & Cognition**: Output of `COG.explain(W, npc)`—office role, long-term aspiration (`aspiration`), active/suspended multi-step goal (`goal`), situational awareness, and deference to Sect Master.
+
+---
+
+## 4. Edit Hub (Creator / Debug Spawner) Contract
+
+The Edit Hub in `js/ui.js` allows players and testers to spawn any item, recipe scroll, martial manual, spirit beast, or facility upgrade:
+- **100% Catalog Coverage**: Every item in `JD.ITEMS`, every recipe (`REC_*` and `ITEM_*` Dual-ID), every technique in `JD.MARTIAL` (including cross-sect manuals across all 9 paths), and every spirit beast must be discoverable and spawnable via the Edit Hub.
+- **Cross-Sect & Specialist Facility Controls**: Provide direct Edit Hub toggles to unlock/upgrade `mech_workshop`, `beast_menagerie`, `harmonic_pavilion`, and test support doctrines.
+
+---
+
+## 5. Verification Checklist
+
+Run these suites from `GAME_SOURCE/` after any UI, atlas, sheet, or Edit Hub change:
+```bash
+node tools/validate_data_schema.js
+node test/ui_content.js
+node test/npc_sheet_tabs_suite.js
+node test/inventory_grid_ui_suite.js
+node test/phase2_edit_hub_inventory.js
+node test/edit_spawner_id_resolution_test.js
+node test/edithub_crosssect_progression_suite.js
+node test/skill_visual_events.js
 ```
-
-### 2. Scale to a reference resolution (one UI, many screens)
-
-```text
-# Godot 4.7 — Project Settings > Display > Window > Stretch:
-#   Mode = "canvas_items", Aspect = "expand", reference size e.g. 1920x1080.
-#   UI scales to the window; "expand" reveals extra space you anchor HUD corners into.
-# Unity 6.3 LTS — Canvas > CanvasScaler:
-#   UI Scale Mode = "Scale With Screen Size", Reference Resolution = 1920x1080,
-#   Match = 0.5 (blend width/height) — pick 1.0 if your HUD is height-critical.
-# Unity 6.3 LTS — UI Toolkit: the same three settings live on the PanelSettings asset
-#   (Scale Mode = Scale With Screen Size, Reference Resolution, Screen Match Mode/Match).
-```
-
-### 3. Safe-area inset for notches / overscan
-
-```gdscript
-# Godot 4.7. Inset a MarginContainer to the OS safe rect. Only Android and iOS report a real
-# safe area; elsewhere Godot returns the screen's usable rect, so desktop margins are ~0.
-func _apply_safe_area() -> void:
-    var safe := Rect2(DisplayServer.get_display_safe_area())           # screen pixels
-    var win := Rect2(Rect2i(DisplayServer.window_get_position(), DisplayServer.window_get_size()))
-    var inner := safe.intersection(win)
-    var to_ui := get_viewport_rect().size / win.size    # window pixels -> UI units under stretch
-    $Margin.add_theme_constant_override("margin_left", int((inner.position.x - win.position.x) * to_ui.x))
-    $Margin.add_theme_constant_override("margin_top", int((inner.position.y - win.position.y) * to_ui.y))
-    $Margin.add_theme_constant_override("margin_right", int((win.end.x - inner.end.x) * to_ui.x))
-    $Margin.add_theme_constant_override("margin_bottom", int((win.end.y - inner.end.y) * to_ui.y))
-# Unity 6.3 LTS: read Screen.safeArea (Rect in pixels) and set a panel's anchorMin/anchorMax to
-# safeArea.position / (position+size) normalized by Screen.width/height.
-```
-
-### 4. Gamepad/keyboard focus (UI is unusable on a controller without it)
-
-```gdscript
-# Godot 4.7. Give each screen a default focus; Godot guesses neighbors from layout, so set
-# them only where its guess is wrong (grids, wrap-around, skipping a disabled row).
-func _on_screen_shown() -> void:
-    $PlayButton.grab_focus()                               # always focus SOMETHING on open
-    $PlayButton.focus_neighbor_bottom = $SettingsButton.get_path()
-    $SettingsButton.focus_neighbor_top = $PlayButton.get_path()
-# Unity 6.3 LTS uGUI: EventSystem.SetSelectedGameObject(playButton) on enable; set each Selectable's
-# Navigation (Explicit or Automatic). With the Input System package, the EventSystem needs an
-# InputSystemUIInputModule, not the old StandaloneInputModule. UI Toolkit: call Focus() on the
-# first focusable element. RIGHT: a control is focused on open. WRONG: nothing
-# selected → the gamepad does nothing and the player is stuck.
-```
-
-### 5. Event-driven HUD (decouple UI from game logic)
-
-```gdscript
-# RIGHT: HUD reacts to a signal; it updates only when health actually changes.
-func _ready() -> void:
-    player.health_changed.connect(_on_health_changed)     # emitted by gameplay
-func _on_health_changed(current: int, max_health: int) -> void:
-    $HealthBar.value = float(current) / max_health
-# WRONG: func _process(dt): $HealthBar.value = player.hp / player.max_hp  # polls every frame,
-# couples UI to the player's internals, and runs work even when nothing changed.
-```
-
-## Pitfalls
-
-- **Absolute pixel positions / a single design resolution.** Looks right on your monitor, broken
-  everywhere else. Anchor to edges/center and flow with containers.
-- **No aspect-ratio policy.** 16:9-only layouts crop or letterbox badly on ultrawide and phones.
-  Decide expand vs letterbox and anchor HUD to corners that move outward.
-- **Ignoring the safe area.** HUD under a notch or lost to TV overscan. Inset critical elements.
-- **No initial focus / no focus neighbors.** The game is unplayable on a gamepad; players land
-  on a menu with nothing selected. Always focus one control and define navigation.
-- **Polling game state in `_process`/`Update`.** Couples UI to internals and wastes work. Push
-  updates via signals/events.
-- **Tiny fixed font sizes.** Unreadable on a TV-at-distance or a small phone. Scale text with the
-  UI and offer a text-size option. Xbox Accessibility Guideline 101 sets floors of 26 px at 1080p
-  on console/TV and 18 px at 1080p on PC, and asks for scaling up to 200% without losing content.
-- **Menu flow as boolean flags** (`isPaused`, `inSettings`, …) becomes unmanageable. Use a
-  screen stack with push/pop.
-- **Hardcoded English strings baked into layout.** Translations overflow buttons. Externalize
-  strings and let containers size to content (see `references/`).
-- **Mouse-only or focus-only.** Support both; switching input device should not strand the user.
-- **Unity uGUI menu ignores the gamepad or throws on start** after switching Active Input
-  Handling to the Input System: the scene still has a `StandaloneInputModule`. Replace it with
-  `InputSystemUIInputModule` (the Inspector offers a one-click swap). UI Toolkit in Unity 6 reads
-  the project-wide UI actions directly and needs no module.
-- **A corner-anchored uGUI element grows off-screen** when its size changes (longer translated
-  text, a bigger text-size setting): its pivot was left at (0.5, 0.5), so it grows in every
-  direction. Set the pivot to the anchored corner or edge as well.
-
-## References
-
-- For stretch/scale modes per engine, the safe-area math, a complete focus-navigation and
-  screen-stack pattern, diegetic vs non-diegetic UI, accessibility (text size, contrast,
-  colorblind-safe state), and localization-ready layout, read `references/layout-and-flow.md`.
-
-## Related skills
-
-- `godot-ui-control`, Unity UI (UGUI/UI Toolkit) — the concrete widgets, themes, and styling.
-- `game-feel` — button pops, transitions, and HUD juice that ride on top of this layout.
-- `dialogue-systems` — conversation/choice UI that lives inside this UI shell.
-- `input-systems` — device switching, rebinding screens, and accessible controls.
-- `rpg`, `card-game`, `tower-defense`, `visual-novel` — UI-heavy genres that compose this skill.
