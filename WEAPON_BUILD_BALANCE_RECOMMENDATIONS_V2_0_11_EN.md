@@ -1,6 +1,6 @@
 # Weapon, element, technique and build coverage: v2.0.11 research report
 
-This is a design investigation for the next implementer, not a content manifest or proof that every build is balanced. Reproduce it against the actual checkout; inspect the engine and disagree where evidence supports a better choice. The detailed Thai catalog tables are in [WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md](./WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md); every major stage of every current path/subpath has a reproducible diagnostic row in [weapon_coverage_v211.csv](./docs/audits/weapon_coverage_v211.csv). Regenerate with `node docs/audits/weapon_coverage_snapshot.js > /tmp/jhevo-coverage.csv` from the repository root.
+This is a design investigation for the next implementer, not a content manifest or proof that every build is balanced. Reproduce it against the actual checkout; inspect the engine and disagree where evidence supports a better choice. The detailed Thai catalog tables are in [WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md](./WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md). A 572-row stage diagnostic can be generated on demand with `node docs/audits/weapon_coverage_snapshot.js`; direct output to a temporary file and inspect only the paths/stages being investigated rather than loading the complete table into context.
 
 ## Definitions, evidence, and limits
 

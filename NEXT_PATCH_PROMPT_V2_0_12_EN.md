@@ -13,9 +13,9 @@ Treat the stated requirements and examples as a **floor, not a ceiling**. Go bey
 ## Required entry points
 
 1. Read [START_HERE_FOR_AI.md](./START_HERE_FOR_AI.md), [AGENTS.md](./AGENTS.md), [PATCH_IMPLEMENTATION_REPORT_V2_0_11.md](./PATCH_IMPLEMENTATION_REPORT_V2_0_11.md), and [FUTURE_ROADMAP_AND_IDEAS.md](./FUTURE_ROADMAP_AND_IDEAS.md). The v2.0.10 prompt is historical, not a request to reimplement it.
-2. Read [WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md](./WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md), [WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md](./WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md), and the reproducible [per-stage CSV](./docs/audits/weapon_coverage_v211.csv). Treat their all-library fixture, primary-element filter and other limitations explicitly.
+2. Read [WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md](./WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md) and [WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md](./WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md). Treat their all-library fixture, primary-element filter and other limitations explicitly.
 3. Load only the repository skills relevant to your work, including `.agents/skills/game-data-integrity/SKILL.md`, `progression-design`, `combat-design`, `economy-balancing`, `ai-behavior-patterns`, `save-system-patterns`, and `qa-test-matrix` as applicable. Check the actual implementation, not only skill descriptions.
-4. Re-run `node docs/audits/weapon_coverage_snapshot.js > /tmp/jhevo-coverage.csv` as a starting point; improve or replace its methodology if needed and document differences. This snapshot is a diagnostic, not an acceptance test.
+4. Run `node docs/audits/weapon_coverage_snapshot.js` to regenerate diagnostic rows on demand. Inspect focused rows or summaries needed to investigate a finding; do not dump or read the entire generated table by default. Improve or replace the method if needed and document differences. This snapshot is a diagnostic, not an acceptance test.
 
 ## Workstream A — Evidence-driven build coverage and progression
 

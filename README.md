@@ -8,7 +8,7 @@ JianghuSect Evolution (JHEvo) is a browser-based cultivation and sect-management
 - **Full source and tests:** [`GAME_SOURCE/`](./GAME_SOURCE/)
 - **Current patch report:** [`PATCH_IMPLEMENTATION_REPORT_V2_0_11.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_11.md)
 - **Next-patch implementation brief:** [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md) (pending implementation; includes independent verification and design requirements)
-- **Build coverage research:** [`WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md`](./WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md)
+- **Build coverage research:** [`WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md`](./WEAPON_BUILD_BALANCE_RECOMMENDATIONS_V2_0_11_EN.md) and [`WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md`](./WEAPON_PATH_COVERAGE_AUDIT_V2_0_11.md)
 - **Previous patch report:** [`PATCH_IMPLEMENTATION_REPORT_V2_0_10.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_10.md)
 - **Earlier patch report:** [`PATCH_IMPLEMENTATION_REPORT.md`](./PATCH_IMPLEMENTATION_REPORT.md) (v2.0.9)
 - **Patch v2.0.10 specification:** [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md) (completed specification; retain as historical context)
