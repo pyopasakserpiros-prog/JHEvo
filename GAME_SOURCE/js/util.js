@@ -67,11 +67,11 @@
 
   /* binary min-heap สำหรับ A* */
   class MinHeap {
-    constructor() { this.k = []; this.v = []; }
-    get size() { return this.k.length; }
-    clear() { this.k.length = 0; this.v.length = 0; }
+    constructor() { this.k = new Float64Array(65536); this.v = new Int32Array(65536); this._sz = 0; }
+    get size() { return this._sz; }
+    clear() { this._sz = 0; }
     push(key, val) {
-      const k = this.k, v = this.v; let i = k.length; k.push(key); v.push(val);
+      const k = this.k, v = this.v; let i = this._sz++;
       while (i > 0) {
         const p = (i - 1) >> 1;
         if (k[p] <= key) break;
@@ -81,15 +81,14 @@
       k[i] = key; v[i] = val;
     }
     pop() {
-      const k = this.k, v = this.v; const top = v[0]; const lk = k.pop(), lv = v.pop();
-      const n = k.length;
+      const k = this.k, v = this.v, top = v[0], n = --this._sz;
       if (n > 0) {
+        const lk = k[n], lv = v[n];
         let i = 0;
         for (;;) {
           const l = (i << 1) + 1, r = l + 1;
           if (l >= n) break;
-          let m = l;
-          if (r < n && k[r] < k[l]) m = r;
+          const m = (r < n && k[r] < k[l]) ? r : l;
           if (lk <= k[m]) break;
           k[i] = k[m]; v[i] = v[m];
           i = m;

@@ -264,29 +264,29 @@
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
     const consider = (it, s, why) => { if (it.price == null) it.price = CPE.priceOf(W, it.key); if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
-    Object.keys(W.sect.stock).forEach(k => {
-      if (W.sect.stock[k] <= 0 || !ECO.isPill(k)) return; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
+    for (const k in W.sect.stock) {
+      if (W.sect.stock[k] <= 0 || (k.charCodeAt(0) !== 80 && !ECO.isPill(k))) continue; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
       const info = ECO.pillInfo(k);
-      if (BASIC_IDS.includes(k)) { const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); return; }
-      if (!info || (e.compatiblePath && (!c || e.compatiblePath !== c.path))) return;
+      if (BASIC_IDS.includes(k)) { const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); continue; }
+      if (!info || (e.compatiblePath && (!c || e.compatiblePath !== c.path))) continue;
       const hpRatio = n.h.state.hp / Math.max(1, CULT.hpMax(n));
       if (e.healHealth && hpRatio < 0.72 && have(k) < 1) consider(it, 0.65 + (1 - hpRatio) * 1.5, 'โอสถรักษาระดับสูง');
       if (e.healInjury && n.inj && n.inj.length && have(k) < 1) consider(it, 1.1 + Math.min(0.8, n.inj.length * 0.2), 'รักษาบาดแผลหนัก');
       if (e.clearToxic && c && (c.toxic || 0) > 25 && have(k) < 1) consider(it, 0.8 + c.toxic / 100, 'ถอนพิษสะสม');
       if (e.clearHeartDemon && n.h.state.heartDemon > 32 && have(k) < 1) consider(it, 0.7 + n.h.state.heartDemon / 120, 'ระงับจิตมาร');
       if (e.insight && c && have(k) < 1 && (c.learning || E(n, 'personality.curiosity') > 65)) consider(it, 0.65 + E(n, 'personality.curiosity') / 250, 'เพิ่มความเข้าใจคัมภีร์');
-      if (!c) return;
-      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && have(k) < 1 && (c.bn || c.prog >= CULT.threshold(n) * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น'); return; }
+      if (!c) continue;
+      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && have(k) < 1 && (c.bn || c.prog >= CULT.threshold(n) * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น'); continue; }
       if (e.cbBuff) {
         const combatInt = E(n, 'interests.combat') || 50;
         const courage = E(n, 'personality.courage') || 50;
         if (have(k) < 1 && (n.rank >= 1 || combatInt > 45 || courage > 55)) {
           consider(it, 0.45 + (combatInt / 180), 'ยาเตรียมศึก');
         }
-        return;
+        continue;
       }
       if (e.cultivationProgress && info.tier <= c.stage + 1 && c.prog < CULT.threshold(n) * 0.85 && (c.toxic || 0) < (c.path === 'DEMON' ? 50 : 35)) consider(it, 0.5 + e.cultivationProgress / 160 + (E(n, 'personality.ambition') - 50) / 250, 'เร่งตบะ');
-    });
+    }
     const savingForTech = n.cognition?.goal?.id === "scripture" && n.cognition.goal.targetId ? CULT.tech(n.cognition.goal.targetId) : null;
     const reserveTechCp = savingForTech ? CPE.techPrice(W, savingForTech) : 0;
     if (c && (!savingForTech || cp > reserveTechCp * 1.15)) {

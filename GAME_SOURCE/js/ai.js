@@ -131,7 +131,8 @@
         if (ids.includes(bn[i].skill) || ['WATER_ICE', 'WOOD_LIFE', 'stealth', 'survival'].includes(bn[i].skill)) return bn[i].skill;
       }
     }
-    let best = ids[0], bs = -1; ids.forEach(k => { const s = (E(n, 'affinities.' + k) || 0) * 0.9 + ((n.h && n.h.skills && n.h.skills[k]) || 0) * 0.6 + (n.cult && n.cult.sub && /SWORD/.test(n.cult.sub) && k === 'SWORD' ? 25 : 0) + (n.cult && n.cult.path === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (n.cult && n.cult.path === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + (n.cult && n.cult.sub === 'VENOM_GU_SOVEREIGN' && k === 'POISON' ? 28 : 0); if (s > bs) { bs = s; best = k; } });
+    const profWpn = (n.cult && g.MARTIAL && g.MARTIAL.PROFILES && g.MARTIAL.PROFILES[n.cult.sub] && g.MARTIAL.PROFILES[n.cult.sub][3]) ? g.MARTIAL.PROFILES[n.cult.sub][3] : [];
+    let best = ids[0], bs = -1; ids.forEach(k => { const wKey = k === 'FIST_PALM' ? 'FIST' : k; const s = (E(n, 'affinities.' + k) || 0) * 0.9 + ((n.h && n.h.skills && n.h.skills[k]) || 0) * 0.6 + (profWpn.includes(wKey) ? 24 : 0) + (n.cult && n.cult.sub && /SWORD/.test(n.cult.sub) && k === 'SWORD' ? 25 : 0) + (n.cult && n.cult.path === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (n.cult && n.cult.path === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + (n.cult && (n.cult.sub === 'VENOM_GU_SOVEREIGN' || n.cult.sub === 'SWARM_GU_HIVE_MASTER') && k === 'POISON' ? 28 : 0); if (s > bs) { bs = s; best = k; } });
     return best;
   }
 
@@ -181,7 +182,7 @@
     },
     tick(n, W, ctx) {
       const s = n.h.state; const mult = ctx.out ? 0.6 : 1;
-      const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+      const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0);
       const recMult = 1 + eqStage * 0.22;
       s.rest = Math.min(100, s.rest + 0.2 * mult * (0.8 + E(n, 'physiology.recoveryRate') / 250) * recMult);
       s.energy = Math.min(100, s.energy + 0.14 * (1 + eqStage * 0.15));
@@ -252,6 +253,30 @@
         if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
         return null;
       }
+      if (c.path === 'MECH_PUPPET') {
+        const sFrg = AI.freeStation(W, n, 'anvil', 'forge') || AI.freeStation(W, n, 'array', 'forge') || AI.freeStation(W, n, 'dummy', 'training_ground');
+        if (sFrg) return { st: sFrg, mult: 1.42 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.72, room: true };
+        return null;
+      }
+      if (c.path === 'KARMA_SAMSARA') {
+        const sKm = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'worship', 'shrine') || AI.freeStation(W, n, 'pray', 'ancestral');
+        if (sKm) return { st: sKm, mult: 1.48 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
+      if (c.path === 'BEAST_SOVEREIGN') {
+        const sBs = AI.freeStation(W, n, 'relax', 'spirit_pond') || AI.freeStation(W, n, 'farm', 'herb_garden') || AI.freeStation(W, n, 'dummy', 'training_ground');
+        if (sBs) return { st: sBs, mult: 1.42 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.72, room: true };
+        return null;
+      }
+      if (c.path === 'SAGE_SUPPORT') {
+        const sSg = AI.freeStation(W, n, 'music', 'tea_garden') || AI.freeStation(W, n, 'farm', 'herb_garden') || AI.freeStation(W, n, 'meditate', 'meditation_hall');
+        if (sSg) return { st: sSg, mult: 1.48 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
       const kind = c.path === 'XIAN' ? 'meditate' : c.path === 'BODY' ? 'lift' : 'worship';
       const bk = c.path === 'XIAN' ? 'meditation_hall' : c.path === 'BODY' ? 'training_ground' : 'shrine';
       const s = AI.freeStation(W, n, kind, bk);
@@ -307,6 +332,39 @@
           HC.trainMind(n, 'comprehension', 1.0);
           HC.gainWisdom(n, 0.006);
         }
+      } else if (c.path === 'MECH_PUPPET') {
+        if (n.mechState) {
+          const mwLv = (W.sect && W.sect.specialistFacilities && W.sect.specialistFacilities.mech_workshop) ? W.sect.specialistFacilities.mech_workshop.level : 1;
+          n.mechState.heat = Math.max(0, (n.mechState.heat || 0) - (0.5 + mwLv * 0.2));
+          n.mechState.charge = Math.min(100, (n.mechState.charge || 0) + (0.4 + mwLv * 0.15));
+          if (n.mechState.integrity < 100) {
+            n.mechState.integrity = Math.min(100, (n.mechState.integrity || 100) + (0.25 + mwLv * 0.15));
+            n.mechState.constructReadiness = Math.round(n.mechState.integrity);
+          }
+          n.mechState.overclockReady = n.mechState.charge >= 50;
+        }
+        if (W.t % 25 === 0) {
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'FORGING', 0.06, 1.1);
+          HC.trainBody(n, 'dexterity', 0.8);
+        }
+      } else if (c.path === 'KARMA_SAMSARA') {
+        s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.03);
+        if (W.t % 25 === 0) {
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 0.07, 1.1);
+          HC.gainWisdom(n, 0.006);
+        }
+      } else if (c.path === 'BEAST_SOVEREIGN') {
+        if (W.t % 25 === 0) {
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'BEAST_TAMING', 0.08, 1.15);
+          if (Array.isArray(n.pets)) n.pets.forEach(pt => { if (pt) { pt.fatigue = Math.max(0, (pt.fatigue || 0) - 1.5); pt.bond = Math.min(100, (pt.bond || 60) + 0.2); pt.loyalty = Math.round(pt.bond); if (pt.hpMax) pt.hp = pt.hpMax; } });
+        }
+      } else if (c.path === 'SAGE_SUPPORT') {
+        s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.04);
+        s.stress = Math.max(0, (s.stress || 0) - 0.02);
+        if (W.t % 25 === 0) {
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'MEDICINE', 0.08, 1.15);
+          HC.gainWisdom(n, 0.005);
+        }
       } else if (W.t % 30 === 0) {
         HC.trainMind(n, 'focus', 1); HC.gainWisdom(n, 0.004);
       }
@@ -343,7 +401,7 @@
       S.add('โอกาสสำเร็จ ' + Math.round(p * 100) + '%', (p - 0.45) * 2.2 * (0.6 + (E(n, 'personality.courage') - 30) / 120) - (E(n, 'personality.caution') - 50) / 90 * (1 - p));
       S.add('ทะเยอทะยาน', (E(n, 'personality.ambition') - 50) / 120);
     },
-    where(W, n) { const c = n.cult; const kind = (c.path === 'XIAN' || c.path === 'HEART_SOUL') ? 'meditate' : c.path === 'BODY' ? 'lift' : c.path === 'DEMON' ? 'explore' : 'worship'; const bk = (c.path === 'XIAN' || c.path === 'HEART_SOUL') ? 'meditation_hall' : c.path === 'BODY' ? 'training_ground' : c.path === 'DEMON' ? 'ruin' : 'shrine'; let s = AI.freeStation(W, n, kind, bk); if (!s && (c.path === 'DEMON' || c.path === 'HEART_SOUL')) s = AI.freeStation(W, n, 'meditate', 'meditation_hall'); return s ? { st: s } : (n.bed != null ? { st: W.map.stations[n.bed], room: true } : null); },
+    where(W, n) { const c = n.cult; const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT'].includes(c.path); const kind = isMed ? 'meditate' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'lift' : c.path === 'MECH_PUPPET' ? 'anvil' : c.path === 'DEMON' ? 'explore' : 'worship'; const bk = isMed ? 'meditation_hall' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'training_ground' : c.path === 'MECH_PUPPET' ? 'forge' : c.path === 'DEMON' ? 'ruin' : 'shrine'; let s = AI.freeStation(W, n, kind, bk); if (!s) s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond'); return s ? { st: s } : (n.bed != null ? { st: W.map.stations[n.bed], room: true } : null); },
     dur: n => 180 + n.cult.stage * 40,
     start(n, W, ctx) {
       // ขอโอสถทะลวงจากคลังตามสิทธิ (ขึ้นกับเจ้าสำนัก/ความสัมพันธ์)
@@ -711,6 +769,74 @@
     },
     inside: true
   };
+  AI.findSupportBlessTarget = (W, n) => {
+    if (!W || !n || !n.cult) return null;
+    const tNow = W.t || 0;
+    const isSage = n.cult.path === 'SAGE_SUPPORT';
+    const doctrine = (g.SECT && g.SECT.ensureSupportDoctrine) ? g.SECT.ensureSupportDoctrine(W) : null;
+    const priority = doctrine ? doctrine.triagePriority : 'BALANCED';
+    const minHpThresh = doctrine ? (doctrine.minHpThreshold / 100) : 0.85;
+    const cacheKey = tNow + ':' + (isSage ? 1 : 0) + ':' + priority + ':' + minHpThresh;
+    if (W._supportBlessCache && W._supportBlessCache.key === cacheKey) return W._supportBlessCache.val;
+    let best = null, bestScore = 0;
+    for (let i = 0; i < W.npcs.length; i++) {
+      const o = W.npcs[i];
+      if (!o || o.dead || o.away || o.exiled || !o.h || !o.h.state) continue;
+      const hm = (o._nd && o._nd.hpMax) || CULT.hpMax(o);
+      const hpRatio = o.h.state.hp / Math.max(1, hm);
+      const hasInj = Array.isArray(o.inj) && o.inj.length > 0;
+      const needBt = !!(o.cult && (o.cult.bn || CULT.ready(o)));
+      const hasBuff = !!(o.buffs && o.buffs.length > 0 && o.buffs[0].until > tNow);
+      let sc = 0;
+      if (hpRatio < minHpThresh) sc += (minHpThresh - hpRatio) * 4.0;
+      if (hasInj) sc += 1.8 + o.inj.length * 0.8;
+      if (needBt && !hasBuff) sc += 1.5;
+      if ((o.h.state.stress || 0) > 45 || (o.h.state.heartDemon || 0) > 35) sc += 1.0;
+      if (!hasBuff && (n.cult.path === 'SAGE_SUPPORT')) sc += 0.8;
+
+      if (priority === 'ELDER_FIRST' && o.rank >= 4) {
+        sc += 3.5;
+      } else if (priority === 'SEVEREST_FIRST') {
+        if (hpRatio < 0.5) sc += (0.5 - hpRatio) * 6.0;
+        if (hasInj) sc += o.inj.length * 2.5;
+      } else if (priority === 'VANGUARD_FIRST') {
+        const isVanguard = o.post === 'commander' || o.post === 'guard' || o.post === 'wildwarden' || (o.cult && o.cult.path === 'BODY');
+        if (isVanguard) sc += 3.2;
+      }
+
+      if (sc > bestScore) { bestScore = sc; best = o; }
+    }
+    W._supportBlessCache = { key: cacheKey, val: best };
+    return best;
+  };
+  A.supportBless = {
+    u(n, W) { if (!this.can(n, W)) return 0; let tot = 0; this.score(n, W, { add: (_, v) => { tot += v; } }); return tot; },
+    nameTh: 'เดินปราณเยียวยาและหนุนพลัง', icon: '🪷', color: '#6ddfb5', cooldown: 180,
+    can: (n, W) => !!(n.cult && (n.cult.path === 'SAGE_SUPPORT' || n.post === 'healer' || ['LOTUS_MERCY_PURIFIER', 'MERCY_DEITY', 'ELIXIR_DAO', 'MEDICINE_BODHI_GOD', 'CELESTIAL_ASTRAL_FAIRY_TAMER'].includes(n.cult.sub)) && n.h.state.energy > 30 && (!n._lastSupportBlessAt || W.t - n._lastSupportBlessAt >= 180) && AI.findSupportBlessTarget(W, n)),
+    score(n, W, S) {
+      const tgt = AI.findSupportBlessTarget(W, n);
+      if (!tgt) return;
+      const isSage = n.cult && n.cult.path === 'SAGE_SUPPORT';
+      S.add('เมตตาเยียวยาและหนุนพลัง (' + tgt.h.name.given + ')', (isSage ? 1.15 : 0.75) + (E(n, 'personality.empathy') - 45) / 140);
+      if (n.post === 'healer') S.add('หน้าที่หมอประจำสำนัก', 0.55);
+    },
+    where(W, n) {
+      const tgt = AI.findSupportBlessTarget(W, n);
+      if (!tgt) return null;
+      const s = AI.freeStation(W, n, 'treat', 'infirmary') || AI.freeStation(W, n, 'music', 'tea_garden') || AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'stroll', 'plaza');
+      return s ? { st: s, targetId: tgt.id } : null;
+    },
+    dur: () => 35,
+    tick(n) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); },
+    done(n, W, ctx) {
+      n._lastSupportBlessAt = W.t;
+      const tgt = (ctx && ctx.targetId && W.byId[ctx.targetId]) || AI.findSupportBlessTarget(W, n) || n;
+      if (CULT.castHealOrBuff) {
+        const res = CULT.castHealOrBuff(W, n, tgt, { now: W.t });
+        if (res && res.ok) n.merit = (n.merit || 0) + 0.8;
+      }
+    }
+  };
   A.pray = {
     nameTh: 'สักการะบรรพชน', icon: '🕯️', color: '#d9c7a0',
     can: () => true,
@@ -961,7 +1087,7 @@
   AI.vf = (n, d) => { const f = n.h.fulfil; for (const k in d) f[k] = Math.min(100, f[k] + d[k]); };
 
   /* การปกป้องงานสำคัญจากการถูกรบกวนโดยคำชวนทั่วไป */
-  AI.PROTECTED_ACTS = new Set(['sleep', 'eat', 'heal', 'breakthrough', 'fight', 'sentence', 'hide', 'pair', 'brew', 'forge', 'brewBasic', 'personalBrew', 'paidTraining', 'guidedStudy', 'retrain', 'specialize', 'wildHunt', 'guard']);
+  AI.PROTECTED_ACTS = new Set(['sleep', 'eat', 'heal', 'supportBless', 'breakthrough', 'fight', 'sentence', 'hide', 'pair', 'brew', 'forge', 'brewBasic', 'personalBrew', 'paidTraining', 'guidedStudy', 'retrain', 'specialize', 'wildHunt', 'guard']);
   AI.isProtectedAction = (W, n, inviteType) => {
     if (!n || !n.act || !n.act.id || n.act.id === 'idle') return false;
     const id = n.act.id;
@@ -1246,7 +1372,7 @@
     const cTr = n.cult && n.cult.track ? n.cult.track.ordinal : 0;
     const passVer = n._passVer || 0;
     const eqA = n.equip ? n.equip.ARMOR : null;
-    const vit = n.h.physiology.vitality;
+    const vit = Math.round(n.h.physiology.vitality);
     const nd = n._nd;
     if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit) return nd;
     const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (cStage || 0);
@@ -1311,7 +1437,7 @@
     if (id !== 'sleep' && id !== 'heal') { const hm = nr.hpMax; if (s.hp < hm && s.satiety > 15) s.hp = Math.min(hm, s.hp + hm * nr.recK); }
     if (s.hp <= 0 && !n.dead) { AI.kill(W, n, n.lastHurtBy ? 'บาดเจ็บสาหัส' : 'อาการทรุด'); }
     // ปราณฟื้น
-    if (n.cult && id !== 'cultivate' && s.qi < nr.qiMax) s.qi = Math.min(nr.qiMax, s.qi + 0.12);
+    if (n.cult && id !== 'cultivate' && s.qi < nr.qiMax) s.qi = Math.min(nr.qiMax, s.qi + ((n.buffs && n.buffs.length && g.STATS && g.STATS.hasBuff && g.STATS.hasBuff(n, 'qiConduit', W.t)) ? 0.22 : 0.12));
   };
 
   AI.interrupt = (W, n) => { // ตรวจเหตุขัดจังหวะ (ทุก 5 นาที)
@@ -1320,7 +1446,7 @@
     if (id === 'breakthrough' || id === 'fight' || id === 'sentence') return false;
     const hm = n._nd ? n._nd.hpMax : CULT.hpMax(n);
     if (s.satiety < (id === 'sleep' ? 8 : 24) && id !== 'eat' && ECO.count(W, 'meal') > 0) return true;
-    const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0;
+    const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0);
     if (id === 'sleep' && s.rest < (eqStage >= 1 ? 50 : 70) && isNight(hourOf(W))) return false;
     if (s.hp < hm * 0.35 && id !== 'heal' && id !== 'sleep' && id !== 'eat') return true;
     if (s.rest < 6 && id !== 'sleep' && id !== 'eat' && id !== 'heal') return true;

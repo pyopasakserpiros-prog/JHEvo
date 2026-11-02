@@ -444,7 +444,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
 {
   const W = SIM.create('area2d-technique-catalog-audit');
   const allTechs = [...JD.TECH.techniques, ...JD.TECH.mantras];
-  assert.equal(allTechs.length, 630, 'Total catalog must have 630 techniques and mantras');
+  assert.equal(allTechs.length, 722, 'Total catalog must have 722 techniques and mantras');
   const legendaries = allTechs.filter(t => t.legendary);
   assert.equal(legendaries.length, 22, 'Must have 22 legendary techniques and mantras');
 

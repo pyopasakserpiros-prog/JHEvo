@@ -122,10 +122,11 @@
     score(n, W, S) { S.add('ติดคอขวด ต้องเตรียมตัว', 1.7); S.add('ความอดทน', (E(n, 'personality.discipline') - 50) / 120); S.add('ฐานยังไม่มั่น', ((0.1 - (n.cult.found || 0)) * 3)); },
     where(W, n) {
       const c = n.cult;
-      const kind = (c.path === 'XIAN' || c.path === 'HEART_SOUL') ? 'meditate' : c.path === 'BODY' ? 'lift' : c.path === 'DEMON' ? 'explore' : 'worship';
-      const bk = (c.path === 'XIAN' || c.path === 'HEART_SOUL') ? 'meditation_hall' : c.path === 'BODY' ? 'training_ground' : c.path === 'DEMON' ? 'ruin' : 'shrine';
+      const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT'].includes(c.path);
+      const kind = isMed ? 'meditate' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'lift' : c.path === 'MECH_PUPPET' ? 'anvil' : c.path === 'DEMON' ? 'explore' : 'worship';
+      const bk = isMed ? 'meditation_hall' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'training_ground' : c.path === 'MECH_PUPPET' ? 'forge' : c.path === 'DEMON' ? 'ruin' : 'shrine';
       let s = AI.freeStation(W, n, kind, bk);
-      if (!s && (c.path === 'DEMON' || c.path === 'HEART_SOUL')) s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond');
+      if (!s) s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond');
       if (s) return { st: s };
       return n.bed != null ? { st: W.map.stations[n.bed] } : null;
     },

@@ -199,7 +199,7 @@ console.log('=== Running Edit Hub Diplomacy & Sanctums, 50-Subpath Progression &
       allSubpaths.push(...pathDef.subPaths);
     }
   }
-  assert.equal(allSubpaths.length, 50, `Must have exactly 50 subpaths, found ${allSubpaths.length}`);
+  assert.equal(allSubpaths.length, 78, `Must have exactly 78 subpaths, found ${allSubpaths.length}`);
 
   // 3b. Verify CULT.trackDef works for ALL 50 subpaths
   for (const sub of allSubpaths) {

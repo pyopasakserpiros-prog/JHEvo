@@ -40920,6 +40920,3202 @@ D.RESONANCE_SETS = [
   }
 ];
 
+
+/* =========================================================================
+ * PATCH v2.0.8 EXPANSION: 3 NEW MAJOR PATHS (MECH_PUPPET, KARMA_SAMSARA, BEAST_SOVEREIGN),
+ * 21 EXPANSION SUBPATHS (INCLUDING 3 RESEARCHED CREATIVE SUBPATHS),
+ * 9-REALM SPECIALIZATION TRACKS, 60 TECHNIQUES/MANTRAS, ITEMS, RECIPES & RESONANCE SETS
+ * ========================================================================= */
+const EXP_V208 = (function() {
+  const newMajorPaths = {
+    MECH_PUPPET: {
+      id: 'MECH_PUPPET',
+      nameTh: 'วิถีกลจักรเชิดหุ่นและวิญญาณศาสตรา',
+      shortTh: 'วิถีกลจักร',
+      icon: '⚙️',
+      color: '#d9a97c',
+      maxStage: 8,
+      resourceUsed: 'ผลึกแกนจักรกลและแร่เหล็กไหลพันปี',
+      coreMechanicTh: 'ความพ้องวิญญาณกลจักร (Automaton Resonance): จัดเตรียมโครงสร้างหุ่นเชิด บริหารประจุแกนกลไกและความร้อน แบ่งรับความเสียหายผ่านเกราะหุ่นกลและสั่งการประสานโจมตี',
+      supremeRiskTh: 'กลไกคลั่งสะท้อนวิญญาณ (Automaton Backlash — เส้นไหมวิญญาณขาดสะบั้นหรือแกนปฏิกรณ์โอเวอร์ฮีต)',
+      element: 'EARTH_METAL',
+      elementProfile: {
+        mode: 'INTRINSIC_WEIGHTED',
+        primary: 'EARTH_METAL',
+        weights: { EARTH_METAL: 0.55, FIRE: 0.25, ASTRAL: 0.20 }
+      },
+      stages: [
+        { stage: 1, nameTh: 'ขั้นที่ 1 • ก่อกลไก', lifespanMax: 95, combatPower: 125, breakthroughBaseChance: 0.76, tribulationLayers: 0, resourceReq: 'แร่เหล็กดำและเฟืองไม้ปราณ' },
+        { stage: 2, nameTh: 'ขั้นที่ 2 • สานเส้นไหมวิญญาณ', lifespanMax: 130, combatPower: 265, breakthroughBaseChance: 0.66, tribulationLayers: 0, resourceReq: 'เส้นไหมเหล็กเย็นและโอสถสานไหมกล' },
+        { stage: 3, nameTh: 'ขั้นที่ 3 • แกนจักรกลทองคำ', lifespanMax: 185, combatPower: 560, breakthroughBaseChance: 0.54, tribulationLayers: 1, resourceReq: 'แกนจักรกลทองคำปฐมกาล' },
+        { stage: 4, nameTh: 'ขั้นที่ 4 • ผสานร่างหุ่นเชิด', lifespanMax: 270, combatPower: 1180, breakthroughBaseChance: 0.44, tribulationLayers: 2, resourceReq: 'ศิลาเหล็กไหลวิญญาณศาสตรา' },
+        { stage: 5, nameTh: 'ขั้นที่ 5 • เจตจำนงวิญญาณเหล็ก', lifespanMax: 410, combatPower: 2450, breakthroughBaseChance: 0.34, tribulationLayers: 4, resourceReq: 'พิมพ์เขียวนครกลจักรเร้นลับ' },
+        { stage: 6, nameTh: 'ขั้นที่ 6 • นครกลจักรเร้นลับ', lifespanMax: 610, combatPower: 4900, breakthroughBaseChance: 0.25, tribulationLayers: 5, resourceReq: 'หัวใจหุ่นเทวะแปดทิศ' },
+        { stage: 7, nameTh: 'ขั้นที่ 7 • หุ่นเทวะแปดทิศ', lifespanMax: 920, combatPower: 9800, breakthroughBaseChance: 0.16, tribulationLayers: 7, resourceReq: 'แกนเอกภพจักรกลนิรันดร์' },
+        { stage: 8, nameTh: 'ขั้นที่ 8 • ราชันย์กลจักรนิรันดร์', lifespanMax: 1650, combatPower: 24500, breakthroughBaseChance: 0.10, tribulationLayers: 8, resourceReq: 'ตราผู้สร้างจักรวาลหลู่ปาน' }
+      ],
+      subPaths: []
+    },
+    KARMA_SAMSARA: {
+      id: 'KARMA_SAMSARA',
+      nameTh: 'วิถีกรรมวัฏและสังสารวัฏ',
+      shortTh: 'วิถีกรรมวัฏ',
+      icon: '☸️',
+      color: '#fcc419',
+      maxStage: 8,
+      resourceUsed: 'ลูกประคำชะตากรรมและน้ำค้างสังสารวัฏเก้าภพ',
+      coreMechanicTh: 'ตาชั่งเวรกรรมและวิบากสะท้อน (Karmic Ledger & Six-Realm Wheel): บันทึกเหตุแห่งความเสียหายจริงในศึก เพื่อเลือกตอบสนองระหว่างการสะท้อนวิบากกรรม การตัดวาสนา หรือการสละหนี้กรรมเยียวยาพวกพ้อง',
+      supremeRiskTh: 'วิบากกรรมรุมล้อม / ติดในภพชาติมายา (Karmic Tribulation — แรงอาฆาตย้อนรอยและจิตสับสนในสังสารวัฏ)',
+      element: 'LIGHT_YANG',
+      elementProfile: {
+        mode: 'INTRINSIC_WEIGHTED',
+        primary: 'LIGHT_YANG',
+        weights: { LIGHT_YANG: 0.50, YIN_SHADOW: 0.30, ASTRAL: 0.20 }
+      },
+      stages: [
+        { stage: 1, nameTh: 'ขั้นที่ 1 • หยั่งรู้ผลกรรม', lifespanMax: 100, combatPower: 122, breakthroughBaseChance: 0.78, tribulationLayers: 0, resourceReq: 'ลูกประคำไม้โพธิ์สามัญ' },
+        { stage: 2, nameTh: 'ขั้นที่ 2 • เชื่อมด้ายชะตา', lifespanMax: 135, combatPower: 260, breakthroughBaseChance: 0.68, tribulationLayers: 0, resourceReq: 'ด้ายชะตาวิญญาณ' },
+        { stage: 3, nameTh: 'ขั้นที่ 3 • ตาชั่งวิบาก', lifespanMax: 190, combatPower: 545, breakthroughBaseChance: 0.56, tribulationLayers: 1, resourceReq: 'ตราชั่งวิบากกรรมทองสัมฤทธิ์' },
+        { stage: 4, nameTh: 'ขั้นที่ 4 • สังสารหกภพ', lifespanMax: 280, combatPower: 1150, breakthroughBaseChance: 0.45, tribulationLayers: 2, resourceReq: 'ลูกประคำกงล้อหกภพ' },
+        { stage: 5, nameTh: 'ขั้นที่ 5 • กงล้อกรรมวัฏ', lifespanMax: 420, combatPower: 2400, breakthroughBaseChance: 0.35, tribulationLayers: 4, resourceReq: 'กรรไกรหยกตัดวาสนา' },
+        { stage: 6, nameTh: 'ขั้นที่ 6 • ตัดขาดวาสนา', lifespanMax: 630, combatPower: 4800, breakthroughBaseChance: 0.26, tribulationLayers: 5, resourceReq: 'ดอกบัวแก้วโพธิสัตว์นิรโทษ' },
+        { stage: 7, nameTh: 'ขั้นที่ 7 • ร่างโพธิสัตว์นิรโทษ', lifespanMax: 950, combatPower: 9600, breakthroughBaseChance: 0.17, tribulationLayers: 7, resourceReq: 'ธรรมจักรเหนือวัฏสงสาร' },
+        { stage: 8, nameTh: 'ขั้นที่ 8 • มหาวัฏจักรเหตุผลนิรันดร์', lifespanMax: 1750, combatPower: 24200, breakthroughBaseChance: 0.11, tribulationLayers: 8, resourceReq: 'แก่นสัจธรรมสังสารวัฏ' }
+      ],
+      subPaths: []
+    },
+    BEAST_SOVEREIGN: {
+      id: 'BEAST_SOVEREIGN',
+      nameTh: 'วิถีราชันย์อสูรและพันธสัญญาวิญญาณ',
+      shortTh: 'วิถีราชันย์อสูร',
+      icon: '🐾',
+      color: '#51cf66',
+      maxStage: 8,
+      resourceUsed: 'แก่นโลหิตหมื่นอสูร โอสถวิวัฒน์สายเลือด และตราพันธสัญญาวิญญาณ',
+      coreMechanicTh: 'พันธสัญญาวิญญาณและบัญชาฝูงอสูร (Symbiotic Beast Pact & Pack Command): เปิดมิติวิญญาณเลี้ยงอสูรคู่สัญญาหลายตน (2–4 ตน) ประสานโจมตี หลอมรวมสายเลือด หรือให้อสูรปราการรับเคราะห์แทน',
+      supremeRiskTh: 'อสูรคลั่งกลืนจิตนาย / สายเลือดอสูรย้อนกลับ (Feral Bloodline Backlash — จิตอสูรบรรพกาลครอบงำสติสัมปชัญญะ)',
+      element: 'WOOD_LIFE',
+      elementProfile: {
+        mode: 'INTRINSIC_WEIGHTED',
+        primary: 'WOOD_LIFE',
+        weights: { WOOD_LIFE: 0.45, WIND: 0.25, EARTH_METAL: 0.15, FIRE: 0.15 }
+      },
+      stages: [
+        { stage: 1, nameTh: 'ขั้นที่ 1 • สื่อจิตอสูร', lifespanMax: 98, combatPower: 126, breakthroughBaseChance: 0.77, tribulationLayers: 0, resourceReq: 'อาหารปราณล่อจิตอสูร' },
+        { stage: 2, nameTh: 'ขั้นที่ 2 • ประทับตราพันธสัญญา', lifespanMax: 132, combatPower: 268, breakthroughBaseChance: 0.67, tribulationLayers: 0, resourceReq: 'ตราปลอกคอพันธสัญญาอสูร' },
+        { stage: 3, nameTh: 'ขั้นที่ 3 • เปิดมิติเลี้ยงอสูร', lifespanMax: 188, combatPower: 565, breakthroughBaseChance: 0.55, tribulationLayers: 1, resourceReq: 'ศิลาเปิดมิติวิญญาณอสูร' },
+        { stage: 4, nameTh: 'ขั้นที่ 4 • หลอมโลหิตร่วมใจ', lifespanMax: 275, combatPower: 1190, breakthroughBaseChance: 0.44, tribulationLayers: 2, resourceReq: 'หยาดโลหิตบรรพกาลหมื่นอสูร' },
+        { stage: 5, nameTh: 'ขั้นที่ 5 • ปลุกสายเลือดบรรพกาล', lifespanMax: 415, combatPower: 2480, breakthroughBaseChance: 0.34, tribulationLayers: 4, resourceReq: 'ตราโองการราชันย์หมื่นอสูร' },
+        { stage: 6, nameTh: 'ขั้นที่ 6 • บัญชาทัพหมื่นอสูร', lifespanMax: 620, combatPower: 4950, breakthroughBaseChance: 0.25, tribulationLayers: 5, resourceReq: 'หัวใจเทพอสูรจตุรทิศ' },
+        { stage: 7, nameTh: 'ขั้นที่ 7 • กายาเทพอสูรจำแลง', lifespanMax: 940, combatPower: 9900, breakthroughBaseChance: 0.16, tribulationLayers: 7, resourceReq: 'มงกุฎมหาจักรพรรดิหมื่นอสูร' },
+        { stage: 8, nameTh: 'ขั้นที่ 8 • มหาจักรพรรดิราชันย์หมื่นอสูร', lifespanMax: 1700, combatPower: 24800, breakthroughBaseChance: 0.10, tribulationLayers: 8, resourceReq: 'แก่นเต๋าจ้าวสรรพสัตว์บรรพกาล' }
+      ],
+      subPaths: []
+    }
+  };
+
+  const newSubPaths = [
+    // --- MECH_PUPPET (7 Subpaths: 6 Baseline + 1 Creative Researched Subpath) ---
+    {
+      id: 'HEAVENLY_GOLEM',
+      path: 'MECH_PUPPET',
+      nameTh: 'สายมหาเทวะศิลาจักรกล',
+      resourceTh: 'ศิลาเหล็กไหลดำและแกนสัมฤทธิ์ปราการม่อจื่อ',
+      strengthTh: 'ตรึงฐานเทวะศิลารับความเสียหายแทนพวกพ้องและปลดปล่อยคลื่นกระแทกสะเทือนปฐพี',
+      weaknessTh: 'เคลื่อนที่ช้าลงเมื่อตั้งปราการตรึงฐาน และต้องใช้แร่ซ่อมแซมความทนทานหุ่น',
+      combatBonus: 1.12,
+      defenseBonus: 1.32,
+      breakthroughMod: 0.96,
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1.0 } }
+    },
+    {
+      id: 'THOUSAND_THREAD_ASSASSIN',
+      path: 'MECH_PUPPET',
+      nameTh: 'สายเส้นไหมเชิดเงาสังหาร',
+      resourceTh: 'เส้นไหมเงินวิญญาณและเข็มพิษกลไกตระกูลถัง',
+      strengthTh: 'วางกับดักเส้นไหมตรึงร่างแล้วเลือกใช้แรงตึงเส้นไหมสังหารจุดตายหรือดีดตัวถอยฉาก',
+      weaknessTh: 'หากเส้นไหมขาดหรือเป้าหมายหลุดระยะจะได้เปรียบลดลง',
+      combatBonus: 1.28,
+      defenseBonus: 0.94,
+      breakthroughMod: 0.95,
+      element: 'YIN_SHADOW',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'YIN_SHADOW', weights: { YIN_SHADOW: 0.6, EARTH_METAL: 0.4 } }
+    },
+    {
+      id: 'BEAST_CHIMERA_MECH',
+      path: 'MECH_PUPPET',
+      nameTh: 'สายพยัคฆ์เหล็กกลืนปราณ',
+      resourceTh: 'โครงกระดูกพยัคฆ์สัมฤทธิ์และแกนเตาหลอมธาตุ',
+      strengthTh: 'สับเปลี่ยนแกนกลไกพยัคฆ์เหล็กและสวมเกราะกลไกเสริมพลังให้สัตว์อสูรคู่สัญญา',
+      weaknessTh: 'การเร่งเตาหลอมปราณพ่นธาตุสร้างความร้อนสะสมสูง ต้องระบายความร้อนเป็นระยะ',
+      combatBonus: 1.24,
+      defenseBonus: 1.10,
+      breakthroughMod: 0.95,
+      element: 'FIRE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'FIRE', weights: { FIRE: 0.55, EARTH_METAL: 0.45 } }
+    },
+    {
+      id: 'CELESTIAL_BALLISTA',
+      path: 'MECH_PUPPET',
+      nameTh: 'สายเกาทัณฑ์จักรกลดารา',
+      resourceTh: 'รางเกาทัณฑ์ดาราและศรกลไกเจาะเกราะ',
+      strengthTh: 'ตั้งฐานเล็งล็อกเป้าหมายด้วยเกาทัณฑ์กลเก้าดารา ยิงถล่มระยะไกลทะลวงเกราะหนัก',
+      weaknessTh: 'หากถูกประชิดตัวหรือเสียจังหวะเล็งต้องถอนรางถอยตั้งหลักใหม่',
+      combatBonus: 1.27,
+      defenseBonus: 0.92,
+      breakthroughMod: 0.96,
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.65, WIND: 0.35 } }
+    },
+    {
+      id: 'SOUL_VESSEL_AVATAR',
+      path: 'MECH_PUPPET',
+      nameTh: 'สายหุ่นเชิดกายทิพย์นิรันดร์',
+      resourceTh: 'ไม้วิญญาณพันปีและตราประทับหุ่นตัวแทน (ตามตำนานช่างเหยียนซือ)',
+      strengthTh: 'จัดเตรียมหุ่นกายว่างรับเคราะห์แทนชีวิต 1 ครั้งเมื่อเจอศึกหนัก พร้อมดึงเส้นวิญญาณฟื้นตัว',
+      weaknessTh: 'เมื่อหุ่นตัวแทนแตกสลายจะมีหนี้ซ่อมแซมและติดคูลดาวน์ฟื้นฟูแกนวิญญาณ',
+      combatBonus: 1.15,
+      defenseBonus: 1.24,
+      breakthroughMod: 1.02,
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.6, EARTH_METAL: 0.4 } }
+    },
+    {
+      id: 'FLYING_BLADE_ORBITER',
+      path: 'MECH_PUPPET',
+      nameTh: 'สายกงล้อศาสตราพันกระบี่',
+      resourceTh: 'กงล้อแม่เหล็กปราณและใบมีดบินเหล็กไหล',
+      strengthTh: 'จัดสรรค่ายกลใบมีดบินหมุนวนรอบกาย สลับสัดส่วนระหว่างม่านโล่ใบมีดและพายุใบมีดสังหาร',
+      weaknessTh: 'การเรียกใบมีดกลับรังเพื่อตั้งรับจะลดความแรงโจมตีชั่วขณะ',
+      combatBonus: 1.26,
+      defenseBonus: 1.06,
+      breakthroughMod: 0.95,
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.65, LIGHTNING: 0.35 } }
+    },
+    {
+      id: 'ASTRAL_CLOCKWORK_PRIME',
+      path: 'MECH_PUPPET',
+      nameTh: 'สายสมองกลดาราพยากรณ์',
+      resourceTh: 'ลูกคิดดาราจักรกลและเฟืองหยกคำนวณวิถี (สร้างสรรค์พิเศษ v2.0.8)',
+      strengthTh: 'คำนวณวิถีโจมตีล่วงหน้าด้วยสมองกลดารา เพิ่มความแม่นยำ ความเร็วร่าย และระบายความร้อนกลไกอัตโนมัติ',
+      weaknessTh: 'ต้องใช้สมาธิและปราณควบคุมค่ายกลคำนวณสูง',
+      combatBonus: 1.22,
+      defenseBonus: 1.12,
+      breakthroughMod: 1.04,
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.7, LIGHTNING: 0.3 } }
+    },
+
+    // --- KARMA_SAMSARA (7 Subpaths: 6 Baseline + 1 Creative Researched Subpath) ---
+    {
+      id: 'REVERSED_RETRIBUTION',
+      path: 'KARMA_SAMSARA',
+      nameTh: 'สายวิบากสะท้อนกรรม',
+      resourceTh: 'กระจกทองสัมฤทธิ์ส่องกรรมและลูกประคำสะท้อนวิบาก',
+      strengthTh: 'บันทึกความเสียหายจริงที่ได้รับเป็นหนี้กรรม เลือกสะท้อนคืนใส่ผู้ก่อเหตุหรือแปรเป็นโล่คุ้มกาย',
+      weaknessTh: 'หนี้กรรมมีเวลาหมดอายุและไม่สะท้อนซ้ำซ้อนเป็นวงจรไม่รู้จบ',
+      combatBonus: 1.18,
+      defenseBonus: 1.22,
+      breakthroughMod: 0.98,
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.6, YIN_SHADOW: 0.4 } }
+    },
+    {
+      id: 'SIX_PATHS_WHEEL',
+      path: 'KARMA_SAMSARA',
+      nameTh: 'สายสังสารหกภพภูมิ',
+      resourceTh: 'ศิลาจารึกภวจักรและน้ำค้างหกภพ',
+      strengthTh: 'หมุนกงล้อเลือกตั้งมั่นใน 1 ภพภูมิ (เทวา อสูร มนุษย์ เดรัจฉาน เปรต นรก) ปรับสมดุลรุก-รับตามสถานการณ์',
+      weaknessTh: 'แต่ละภพภูมิมีข้อแลกเปลี่ยนชัดเจนและมีระยะเวลาตั้งมั่นก่อนเปลี่ยนภพถัดไป',
+      combatBonus: 1.22,
+      defenseBonus: 1.14,
+      breakthroughMod: 0.96,
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.4, LIGHT_YANG: 0.3, YIN_SHADOW: 0.3 } }
+    },
+    {
+      id: 'FATE_SEVERING_THREAD',
+      path: 'KARMA_SAMSARA',
+      nameTh: 'สายด้ายชะตาตัดวาสนา',
+      resourceTh: 'กรรไกรหยกตัดชะตาและเส้นด้ายแดงแห่งเหตุผล',
+      strengthTh: 'ตัดบ่วงวาสนาและบัฟชั่วคราวของศัตรู เปิดช่องโหว่ปมกรรมให้แทงทะลวงเกราะวิชา',
+      weaknessTh: 'ใช้ได้ผลดีที่สุดต่อศัตรูที่มีบัฟหรือม่านคุ้มกัน แต่ไม่ลบวิชาถาวร',
+      combatBonus: 1.25,
+      defenseBonus: 1.02,
+      breakthroughMod: 0.97,
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.65, WIND: 0.35 } }
+    },
+    {
+      id: 'LOTUS_MERCY_PURIFIER',
+      path: 'KARMA_SAMSARA',
+      nameTh: 'สายปทุมโปรดสัตว์ชำระบาป',
+      resourceTh: 'บัวขาวบริสุทธิ์และน้ำอมฤตชำระกรรม',
+      strengthTh: 'สละหนี้กรรมที่บันทึกไว้เพื่อชำระล้างสถานะร้ายและฟื้นฟูพลังชีวิตหรือสร้างม่านบัวคุ้มภัยให้พวกพ้อง',
+      weaknessTh: 'เมื่อใช้หนี้กรรมเพื่อเมตตาบำบัดแล้ว จะไม่สามารถนำหนี้ก้อนเดียวกันไปฟาดฟันล้างแค้นได้',
+      combatBonus: 1.06,
+      defenseBonus: 1.28,
+      breakthroughMod: 1.06,
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.6, LIGHT_YANG: 0.4 } }
+    },
+    {
+      id: 'ASURA_JUDGMENT_BLADE',
+      path: 'KARMA_SAMSARA',
+      nameTh: 'สายดาบพิพากษาอสูรทัณฑ์',
+      resourceTh: 'ดาบอาญาแห่งวิบากและเพลิงทัณฑ์อสูร',
+      strengthTh: 'พิพากษาศัตรูที่เพิ่งทำร้ายพวกพ้องหรือมีหนี้กรรมสะสมในศึก รุนแรงเด็ดขาดในจังหวะลงทัณฑ์',
+      weaknessTh: 'ต้องรอจังหวะที่ศัตรูก่อเหตุทำร้ายจริง ไม่สามารถพิพากษามั่วซั่วเพียงเพราะชาติกำเนิด',
+      combatBonus: 1.30,
+      defenseBonus: 0.95,
+      breakthroughMod: 0.94,
+      element: 'FIRE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'FIRE', weights: { FIRE: 0.55, BLOOD_DEMON: 0.45 } }
+    },
+    {
+      id: 'PAST_LIFE_MIRROR',
+      path: 'KARMA_SAMSARA',
+      nameTh: 'สายกระจกสะท้อนชาติภพ',
+      resourceTh: 'กระจกเงาอดีตชาติและผลึกความทรงจำข้ามภพ',
+      strengthTh: 'บันทึกท่วงท่าก่อนหน้าเพื่อเรียกเงาอดีตชาติซ้ำรอยเท้าหลบหลีกหรือโจมตีซ้ำด้วยปราณสะท้อน',
+      weaknessTh: 'เงาอดีตชาติแสดงผลในงบพลังที่ลดลงและไม่สามารถสะท้อนซ้ำเงาตัวเองได้',
+      combatBonus: 1.21,
+      defenseBonus: 1.12,
+      breakthroughMod: 0.99,
+      element: 'YIN_SHADOW',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'YIN_SHADOW', weights: { YIN_SHADOW: 0.6, WATER_ICE: 0.4 } }
+    },
+    {
+      id: 'BODHI_VOW_GUARDIAN',
+      path: 'KARMA_SAMSARA',
+      nameTh: 'สายมหาปณิธานโพธิสัตว์คุ้มภพ',
+      resourceTh: 'ศิลาคำสัตย์โพธิญาณและระฆังทองคำอธิษฐาน (สร้างสรรค์พิเศษ v2.0.8)',
+      strengthTh: 'ตั้งคำสัตย์คุ้มครองสหายร่วมรบ แบ่งเบาความเสียหายและเปลี่ยนความเสียสละเป็นปราณหยางคุ้มกันทั้งหมู่คณะ',
+      weaknessTh: 'ต้องรักษากำลังใจและวินัยให้มั่นคง ห้ามทอดทิ้งพวกพ้องกลางศึก',
+      combatBonus: 1.14,
+      defenseBonus: 1.26,
+      breakthroughMod: 1.05,
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.7, EARTH_METAL: 0.3 } }
+    },
+
+    // --- BEAST_SOVEREIGN (7 Subpaths: 6 Baseline + 1 Creative Researched Subpath) ---
+    {
+      id: 'MYRIAD_BEAST_PACK',
+      path: 'BEAST_SOVEREIGN',
+      nameTh: 'สายจ้าวฝูงหมื่นอสูรรุมสังหาร',
+      resourceTh: 'เขาสัญญาณจ่าฝูงและตราบัญชาหมื่นอสูร',
+      strengthTh: 'ขยายขีดจำกัดอสูรคู่สัญญาออกรบสูงสุด 4 ตน จัดสรรงบบัญชาการรุมขย้ำและโอบล้อมศัตรู',
+      weaknessTh: 'ต้องดูแลเสบียงและความเหนื่อยล้าของฝูงอสูรหลายตน',
+      combatBonus: 1.25,
+      defenseBonus: 1.06,
+      breakthroughMod: 0.96,
+      element: 'WIND',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WIND', weights: { WIND: 0.6, WOOD_LIFE: 0.4 } }
+    },
+    {
+      id: 'PRIMORDIAL_BLOOD_MUTATOR',
+      path: 'BEAST_SOVEREIGN',
+      nameTh: 'สายกลายพันธุ์สายเลือดบรรพกาล',
+      resourceTh: 'โอสถปลุกสายเลือดราชันย์และไขกระดูกเทพอสูรจตุรทิศ',
+      strengthTh: 'ทุ่มเทยกระดับและปลุกสายเลือดบรรพกาลให้อสูรคู่สัญญาหลัก แข็งแกร่งเหนือชั้นและใช้ลมหายใจธาตุแท้ได้',
+      weaknessTh: 'ใช้ทรัพยากรวิวัฒน์สายเลือดสูงและเน้นคุณภาพของอสูรเอกมากกว่าจำนวน',
+      combatBonus: 1.28,
+      defenseBonus: 1.08,
+      breakthroughMod: 0.94,
+      element: 'FIRE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'FIRE', weights: { FIRE: 0.55, ASTRAL: 0.45 } }
+    },
+    {
+      id: 'SYMBIOTIC_BEAST_WARRIOR',
+      path: 'BEAST_SOVEREIGN',
+      nameTh: 'สายนักรบผสานร่างอสูรคลั่ง',
+      resourceTh: 'โลหิตประสานใจและสนับกรงเล็บพยัคฆ์อสูร',
+      strengthTh: 'ผสานร่างวิญญาณอสูรคู่สัญญาเข้ากับกายเนื้อชั่วคราว รวมพลังรบและธาตุเข้าด้วยกันอย่างดุดัน',
+      weaknessTh: 'ระหว่างผสานร่าง อสูรจะไม่แยกตีอิสระและเมื่อคลายร่างจะได้รับความล้าสะสมร่วมกัน',
+      combatBonus: 1.30,
+      defenseBonus: 1.12,
+      breakthroughMod: 0.95,
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.55, BLOOD_DEMON: 0.45 } }
+    },
+    {
+      id: 'COLOSSUS_SHIELD_TAMER',
+      path: 'BEAST_SOVEREIGN',
+      nameTh: 'สายปราการอสูรยักษ์พิทักษ์สำนัก',
+      resourceTh: 'เกราะกระดองเต่ามังกรและหญ้าศิลาปฐพี',
+      strengthTh: 'ฝึกอสูรเกราะหนักเป็นปราการมีชีวิต รับความเสียหายแทนนายและสหายในสัดส่วนที่ปลอดภัยพร้อมสะท้อนแรงปะทะ',
+      weaknessTh: 'ความคล่องตัวต่ำและอสูรปราการต้องใช้เวลาพักฟื้นหลังรับศึกหนัก',
+      combatBonus: 1.10,
+      defenseBonus: 1.34,
+      breakthroughMod: 0.99,
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.65, WATER_ICE: 0.35 } }
+    },
+    {
+      id: 'SWARM_GU_HIVE_MASTER',
+      path: 'BEAST_SOVEREIGN',
+      nameTh: 'สายราชันย์รังกู่และฝูงแมลงพิษสวรรค์',
+      resourceTh: 'โถหยกเลี้ยงรังกู่และน้ำหวานสมุนไพรพิษ',
+      strengthTh: 'เลี้ยงฝูงแมลงวิญญาณเป็นหนึ่งหน่วยรังกู่รวมศูนย์ กัดกร่อนเกราะศัตรูและดูดซับปราณกลับมาหล่อเลี้ยงรัง',
+      weaknessTh: 'หากความหนาแน่นของรังกู่ลดลงต้องใช้เวลาหุบรังฟื้นฟู',
+      combatBonus: 1.24,
+      defenseBonus: 1.08,
+      breakthroughMod: 0.95,
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.6, YIN_SHADOW: 0.4 } }
+    },
+    {
+      id: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+      path: 'BEAST_SOVEREIGN',
+      nameTh: 'สายพันธะสัตว์เทพดาราและภูตพฤกษา',
+      resourceTh: 'น้ำค้างดาราและผลไม้ทิพย์สวนสวรรค์',
+      strengthTh: 'ผูกพันธะกับสัตว์มงคลและภูตพฤกษา เลือกเน้นการเยียวยาฟื้นฟู สงบจิตมาร หรือช่วยสำรวจค้นหาสมุนไพรหายาก',
+      weaknessTh: 'พลังสังหารดิบต่ำกว่าสายอสูรสงคราม',
+      combatBonus: 1.12,
+      defenseBonus: 1.22,
+      breakthroughMod: 1.07,
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.55, WOOD_LIFE: 0.45 } }
+    },
+    {
+      id: 'ABYSSAL_DRAGON_TOTEM',
+      path: 'BEAST_SOVEREIGN',
+      nameTh: 'สายราชันย์มังกรสมุทรและอสูรอัสนี',
+      resourceTh: 'มุกมังกรสมุทรและขนนกสายฟ้าเทพอสูร (สร้างสรรค์พิเศษ v2.0.8)',
+      strengthTh: 'ควบคุมอสูรสายมังกรวารีและวิหคสายฟ้า ปลดปล่อยคลื่นอสนีวารีทะลวงเกราะและข่มขวัญสัตว์อสูรทั่วสมรภูมิ',
+      weaknessTh: 'ต้องมีค่าความชำนาญฝึกอสูรและรากฐานปราณที่มั่นคง',
+      combatBonus: 1.29,
+      defenseBonus: 1.10,
+      breakthroughMod: 0.96,
+      element: 'LIGHTNING',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHTNING', weights: { LIGHTNING: 0.55, WATER_ICE: 0.45 } }
+    }
+  ];
+
+  // Subpath Stats (SUBFX) & Preferences (SUBPREF)
+  const allSubStats = {
+    HEAVENLY_GOLEM: { p: { def: 0.22, hp: 0.14, mdef: 0.10, eva: -0.06 }, f: { pen: 6 } },
+    THOUSAND_THREAD_ASSASSIN: { p: { atk: 0.12, eva: 0.14 }, f: { crit: 9, critDmg: 22, acc: 10, move: 10 } },
+    BEAST_CHIMERA_MECH: { p: { atk: 0.12, matk: 0.10, def: 0.08 }, f: { pen: 10, crit: 5 } },
+    CELESTIAL_BALLISTA: { p: { atk: 0.14, acc: 0.14 }, f: { pen: 16, crit: 8, critDmg: 16 } },
+    SOUL_VESSEL_AVATAR: { p: { hp: 0.16, mdef: 0.14, def: 0.10 }, f: { eva: 8, cast: 6 } },
+    FLYING_BLADE_ORBITER: { p: { atk: 0.11, matk: 0.11, def: 0.06 }, f: { crit: 7, pen: 12, cast: 8 } },
+    ASTRAL_CLOCKWORK_PRIME: { p: { matk: 0.14, acc: 0.14, mdef: 0.08 }, f: { cast: 14, crit: 6, pen: 10 } },
+
+    REVERSED_RETRIBUTION: { p: { def: 0.14, mdef: 0.16, matk: 0.08 }, f: { crit: 5 } },
+    SIX_PATHS_WHEEL: { p: { atk: 0.10, matk: 0.10, def: 0.08, mdef: 0.08 }, f: { cast: 8, acc: 8 } },
+    FATE_SEVERING_THREAD: { p: { matk: 0.14, acc: 0.12 }, f: { pen: 18, crit: 8, cast: 8 } },
+    LOTUS_MERCY_PURIFIER: { p: { hp: 0.16, mdef: 0.18, def: 0.10 }, f: { cast: 10 } },
+    ASURA_JUDGMENT_BLADE: { p: { atk: 0.16, matk: 0.08 }, f: { crit: 9, critDmg: 24, pen: 14 } },
+    PAST_LIFE_MIRROR: { p: { eva: 0.15, matk: 0.11, mdef: 0.08 }, f: { move: 10, cast: 10 } },
+    BODHI_VOW_GUARDIAN: { p: { hp: 0.18, def: 0.16, mdef: 0.14 }, f: { acc: 6 } },
+
+    MYRIAD_BEAST_PACK: { p: { atk: 0.12, matk: 0.08, eva: 0.08 }, f: { move: 12, cast: 8, crit: 6 } },
+    PRIMORDIAL_BLOOD_MUTATOR: { p: { atk: 0.14, matk: 0.12, hp: 0.08 }, f: { critDmg: 18, pen: 12 } },
+    SYMBIOTIC_BEAST_WARRIOR: { p: { atk: 0.16, hp: 0.12, def: 0.08 }, f: { crit: 7, pen: 12, move: 8 } },
+    COLOSSUS_SHIELD_TAMER: { p: { def: 0.22, hp: 0.18, mdef: 0.10 }, f: { move: -4 } },
+    SWARM_GU_HIVE_MASTER: { p: { matk: 0.14, eva: 0.10, mdef: 0.08 }, f: { pen: 14, acc: 10 } },
+    CELESTIAL_ASTRAL_FAIRY_TAMER: { p: { hp: 0.14, mdef: 0.16, matk: 0.10 }, f: { cast: 12, eva: 8 } },
+    ABYSSAL_DRAGON_TOTEM: { p: { atk: 0.13, matk: 0.13, hp: 0.10 }, f: { pen: 14, crit: 8, critDmg: 16 } }
+  };
+
+  const allSubPrefs = {
+    HEAVENLY_GOLEM: { aff: { FORGING: 0.9, EARTH_METAL: 0.8, BODY_REFINING: 0.5 }, p: { 'personality.discipline': 0.5, 'interests.forging': 0.6 } },
+    THOUSAND_THREAD_ASSASSIN: { aff: { TALISMAN: 0.7, MOVEMENT: 0.7, YIN_SHADOW: 0.6 }, p: { 'physiology.dexterity': 0.7, 'intellect.planning': 0.5 } },
+    BEAST_CHIMERA_MECH: { aff: { FORGING: 0.8, BEAST_TAMING: 0.7, FIRE: 0.5 }, p: { 'intellect.inventiveness': 0.7, 'interests.forging': 0.5 } },
+    CELESTIAL_BALLISTA: { aff: { BOW: 0.9, FORGING: 0.7, ASTRAL: 0.5 }, p: { 'intellect.perceptiveness': 0.6, 'intellect.spatial': 0.5 } },
+    SOUL_VESSEL_AVATAR: { aff: { SOUL_DIVINE: 0.8, FORGING: 0.7, WOOD_LIFE: 0.5 }, p: { 'personality.caution': 0.6, 'intellect.willpower': 0.5 } },
+    FLYING_BLADE_ORBITER: { aff: { SWORD: 0.8, ARRAY: 0.7, EARTH_METAL: 0.6 }, p: { 'intellect.focus': 0.6, 'physiology.reflex': 0.5 } },
+    ASTRAL_CLOCKWORK_PRIME: { aff: { ARRAY: 0.9, FORGING: 0.7, ASTRAL: 0.7 }, p: { 'intellect.reasoning': 0.7, 'intellect.numeracy': 0.6 } },
+
+    REVERSED_RETRIBUTION: { aff: { SCRIPTURE: 0.8, SOUL_DIVINE: 0.6, LIGHT_YANG: 0.5 }, p: { 'personality.composure': 0.6, 'personality.integrity': 0.5 } },
+    SIX_PATHS_WHEEL: { aff: { SCRIPTURE: 0.8, STAFF: 0.6, SOUL_DIVINE: 0.6 }, p: { 'intellect.wisdom': 0.7, 'intellect.comprehension': 0.5 } },
+    FATE_SEVERING_THREAD: { aff: { SWORD: 0.7, SCRIPTURE: 0.7, ASTRAL: 0.6 }, p: { 'intellect.intuition': 0.6, 'personality.rationality': 0.5 } },
+    LOTUS_MERCY_PURIFIER: { aff: { MEDICINE: 0.9, SCRIPTURE: 0.8, WOOD_LIFE: 0.6 }, p: { 'personality.empathy': 0.8, 'social.hospitality': 0.5 } },
+    ASURA_JUDGMENT_BLADE: { aff: { BLADE: 0.8, SPEAR: 0.6, FIRE: 0.6 }, p: { 'personality.integrity': 0.5, 'personality.courage': 0.6 } },
+    PAST_LIFE_MIRROR: { aff: { SOUL_DIVINE: 0.8, TALISMAN: 0.6, YIN_SHADOW: 0.6 }, p: { 'intellect.memory': 0.7, 'intellect.intuition': 0.6 } },
+    BODHI_VOW_GUARDIAN: { aff: { STAFF: 0.7, SCRIPTURE: 0.8, LIGHT_YANG: 0.7 }, p: { 'personality.loyalty': 0.7, 'personality.empathy': 0.6 } },
+
+    MYRIAD_BEAST_PACK: { aff: { BEAST_TAMING: 1.0, SPEAR: 0.6, WIND: 0.5 }, p: { 'social.leadership': 0.6, 'interests.beasts': 0.8 } },
+    PRIMORDIAL_BLOOD_MUTATOR: { aff: { BEAST_TAMING: 0.9, ALCHEMY: 0.7, FIRE: 0.5 }, p: { 'intellect.inventiveness': 0.6, 'interests.beasts': 0.7 } },
+    SYMBIOTIC_BEAST_WARRIOR: { aff: { BEAST_TAMING: 0.9, FIST_PALM: 0.7, BODY_REFINING: 0.6 }, p: { 'personality.courage': 0.7, 'interests.beasts': 0.7 } },
+    COLOSSUS_SHIELD_TAMER: { aff: { BEAST_TAMING: 0.9, STAFF: 0.6, EARTH_METAL: 0.7 }, p: { 'physiology.toughness': 0.6, 'interests.beasts': 0.7 } },
+    SWARM_GU_HIVE_MASTER: { aff: { BEAST_TAMING: 0.8, POISON: 0.9, WOOD_LIFE: 0.5 }, p: { 'intellect.planning': 0.6, 'physiology.immunity': 0.5 } },
+    CELESTIAL_ASTRAL_FAIRY_TAMER: { aff: { BEAST_TAMING: 0.9, MEDICINE: 0.7, LIGHT_YANG: 0.6 }, p: { 'personality.empathy': 0.7, 'interests.herbs': 0.6 } },
+    ABYSSAL_DRAGON_TOTEM: { aff: { BEAST_TAMING: 0.9, SPEAR: 0.7, LIGHTNING: 0.7 }, p: { 'personality.ambition': 0.6, 'interests.beasts': 0.8 } }
+  };
+
+  // Build 9-Realm Specialization Tracks for all 21 new subpaths
+  const realmNamesBySub = {
+    HEAVENLY_GOLEM: ['หล่อแกนศิลา', 'ร้อยข้อต่อสัมฤทธิ์', 'ตั้งฐานปราการเหล็ก', 'ปลุกชีพหุ่นยักษ์', 'เกราะเทวะสะท้อนศึก', 'ค่ายกลขุนเขาเคลื่อน', 'หุ่นบรรพกาลค้ำฟ้า', 'ป้อมปราการไร้พ่าย', 'มหาเทวะศิลานิรันดร์'],
+    THOUSAND_THREAD_ASSASSIN: ['ปั่นไหมปราณ', 'ซ่อนเข็มเงา', 'ขึงตาข่ายสังหาร', 'เชิดหุ่นไร้เสียง', 'เส้นไหมตัดชีพจร', 'พันธนาการเก้าเงา', 'หุ่นสังหารไร้ลักษณ์', 'หมื่นเส้นไหมสะบั้นฟ้า', 'จ้าวเชิดเงาไร้รอย'],
+    BEAST_CHIMERA_MECH: ['ประกอบโครงพยัคฆ์', 'ฝังเตาหลอมปราณ', 'ติดเกราะเขี้ยวเหล็ก', 'ผสานแกนธาตุพ่นไฟ', 'ปลุกวิญญาณสมิงกล', 'หุ้มเกราะอสูรคู่สัญญา', 'พยัคฆ์กลคำรามฟ้า', 'สมิงจักรกลแปดทิศ', 'ราชันย์สมิงเหล็กนิรันดร์'],
+    CELESTIAL_BALLISTA: ['ขึ้นสายเกาทัณฑ์กล', 'สลักรางศรดารา', 'ตั้งฐานยิงสกัด', 'ค่ายกลศรต่อเนื่อง', 'เนตรเหยี่ยวคำนวณวิถี', 'ระดมยิงเก้าดารา', 'ศรจักรกลทะลวงเมฆ', 'ปืนใหญ่ดาราถล่มทัพ', 'จ้าวเกาทัณฑ์ดาราจักร'],
+    SOUL_VESSEL_AVATAR: ['แกะสลักไม้灵', 'จารึกอักขระแทนกาย', 'เชื่อมสายใยชีวิต', 'ฝากเสี้ยววิญญาณ', 'หุ่นกายว่างรับเคราะห์', 'สลับร่างหลีกทัณฑ์', 'หุ่นทิพย์แฝดสวรรค์', 'กายทิพย์ไร้บุบสลาย', 'ปรมาจารย์หุ่นวิญญาณอมตะ'],
+    FLYING_BLADE_ORBITER: ['หลอมใบมีดบิน', 'ตั้งวงโคจรแม่เหล็ก', 'กงล้อมีดคุ้มกาย', 'แยกค่ายกลรุกรับ', 'พายุใบมีดหมุนวน', 'กระบี่กลคืนรัง', 'วงจักรสังหารแปดทิศ', 'พันศาสตราโคจรรอบฟ้า', 'ราชันย์กงล้อศาสตรานิรันดร์'],
+    ASTRAL_CLOCKWORK_PRIME: ['วางเฟืองคำนวณ', 'เดินเข็มทิศดารา', 'ลูกคิดกลหยั่งรู้', 'ประสานค่ายกลเวลา', 'สมองกลไร้คลาดเคลื่อน', 'ระบายปราณสมดุล', 'คำนวณหมื่นกระบวนท่า', 'จักรกลดาราพยากรณ์', 'เอกภพสมองกลนิรันดร์'],
+
+    REVERSED_RETRIBUTION: ['สดับเสียงวิบาก', 'ตั้งกระจกส่องเหตุ', 'กักเก็บแรงอาฆาต', 'แปรหนี้เป็นเกราะ', 'สะท้อนคมศาสตรา', 'ตาชั่งคืนสนอง', 'กระจกเวรกรรมเก้าชั้น', 'วิบากสะท้อนสะท้านภพ', 'จ้าวแห่งกระจกวิบากกรรม'],
+    SIX_PATHS_WHEEL: ['เข้าใจกฎหกภพ', 'ตั้งท่ามนุษย์สมดุล', 'ปลุกไฟอสูรและเทวา', 'หมุนกงล้อเดรัจฉานและเปรต', 'ข้ามพ้นไฟนรกภูมิ', 'สับเปลี่ยนหกภพดั่งใจ', 'กงล้อสังสารหมุนเวียน', 'รวมหกภพเป็นหนึ่ง', 'ปรมาจารย์กงล้อสังสารวัฏ'],
+    FATE_SEVERING_THREAD: ['มองเห็นด้ายชะตา', 'สัมผัสปมวาสนา', 'ลับคมกรรไกรหยก', 'ตัดบ่วงพลังเสริม', 'เปิดแผลปมกรรม', 'สะบั้นโชคลาภศัตรู', 'ด้ายแดงขาดสะบั้น', 'ไร้พันธะวาสนาผูกมัด', 'ราชันย์ตัดชะตาฟ้าดิน'],
+    LOTUS_MERCY_PURIFIER: ['ปลูกเมล็ดบัวขาว', 'น้ำค้างชำระมลทิน', 'สละหนี้กรรมไถ่ถอน', 'กลีบบัวคุ้มครองกัลยาณมิตร', 'รัศมีปทุมสงบมาร', 'เชื่อมสายใยเมตตา', 'ดอกบัวแก้วเจ็ดสี', 'มหาปทุมชำระหมื่นบาป', 'โพธิสัตว์ปทุมนิรโทษ'],
+    ASURA_JUDGMENT_BLADE: ['เพ่งมองรอยบาป', 'หลอมคมดาบอาญา', 'จดจำผู้ก่อเวร', 'ลงทัณฑ์ผู้ทำร้ายสหาย', 'เพลิงพิพากษาผลาญเกราะ', 'คำตัดสินไร้ปราณี', 'ดาบอสูรทัณฑ์สะบั้นวิญญาณ', 'อาญาสวรรค์และอเวจี', 'ราชันย์ดาบพิพากษากรรม'],
+    PAST_LIFE_MIRROR: ['เพ่งกระจกอดีต', 'บันทึกเงาก้าวเดิน', 'ย้อนรอยเท้าเมื่อวาน', 'เรียกเงาชาติภพเดิม', 'คมดาบสะท้อนอดีต', 'หลบหลีกผ่านห้วงความทรงจำ', 'กระจกเงาพันชาติ', 'อดีตและปัจจุบันบรรจบ', 'จ้าวกระจกสะท้อนชาติภพ'],
+    BODHI_VOW_GUARDIAN: ['เปล่งคำสัตย์แรก', 'ตั้งปณิธานคุ้มภัย', 'แบกรับเคราะห์แทนหมู่คณะ', 'ระฆังทองปลุกขวัญ', 'เกราะปณิธานไม่คลอนแคลน', 'เปลี่ยนความทุกข์เป็นพลังบุญ', 'รัศมีโพธิญาณคุ้มสำนัก', 'มหาปณิธานค้ำจุนโลกา', 'ธรรมราชาผู้รักษาคำสัตย์'],
+
+    MYRIAD_BEAST_PACK: ['ฝึกเสียงนกหวีดเรียกฝูง', 'ตั้งแถวหมาป่าวายุ', 'เปิดมิติคู่สัญญาที่สอง', 'ประสานเขี้ยวเล็บขย้ำ', 'จ่าฝูงบัญชาการรบ', 'เปิดมิติคู่สัญญาที่สาม', 'ค่ายกลหมื่นอสูรล้อมศึก', 'เปิดมิติคู่สัญญาที่สี่', 'มหาจ้าวฝูงหมื่นอสูร'],
+    PRIMORDIAL_BLOOD_MUTATOR: ['คัดกรองหยาดโลหิต', 'สกัดโอสถปลุกสายเลือด', 'ชำระไขกระดูกอสูร', 'ปลุกลายเส้นบรรพกาล', 'วิวัฒน์ข้ามระดับชั้น', 'ลมหายใจเทพอสูรตื่นรู้', 'สายเลือดจตุรเทพสถิต', 'กลายพันธุ์สู่เผ่าพันธุ์ตำนาน', 'ปรมาจารย์สายเลือดบรรพกาล'],
+    SYMBIOTIC_BEAST_WARRIOR: ['เคียงบ่าเคียงไหล่อสูร', 'เชื่อมชีพจรนายและบ่าว', 'ยืมแรงพยัคฆ์หมี', 'หลอมรวมกรงเล็บปราณ', 'หนึ่งกายสองลมหายใจ', 'เกราะขนอสูรหุ้มกาย', 'อวตารนักรบอสูรคลั่ง', 'ผสานวิญญาณไร้รอยต่อ', 'ราชันย์นักรบผสานอสูร'],
+    COLOSSUS_SHIELD_TAMER: ['ฝึกอสูรเกราะศิลา', 'ผูกสัญญาเกราะเต่าดำ', 'ตั้งแนวปราการมีชีวิต', 'แบ่งเบาความเสียหายหมู่คณะ', 'กระดองค้ำขุนเขาสะท้อนศึก', 'ย้ายแนวปราการคุ้มภัย', 'อสูรยักษ์แบกปฐพี', 'ป้อมปราการอสูรไร้พ่าย', 'มหาปราการอสูรพิทักษ์ภพ'],
+    SWARM_GU_HIVE_MASTER: ['เพาะเลี้ยงโถแมลงปราณ', 'คัดเลือกแม่พันธุ์กู่', 'สร้างรังไหมในตันเถียน', 'ปล่อยเมฆแมลงกัดกร่อน', 'ดูดซับปราณบำรุงรัง', 'หุบรังรักษาแม่กู่', 'ฝูงกู่ทองคำกลืนเกราะ', 'หมื่นแมลงพิษไร้พรมแดน', 'ราชันย์รังกู่สวรรค์นิรันดร์'],
+    CELESTIAL_ASTRAL_FAIRY_TAMER: ['สื่อใจสัตว์มงคล', 'พันธะกระเรียนหยกและกวางดาว', 'ดอมดมกลิ่นสมุนไพรเร้นลับ', 'แสงจันทร์สมานบาดแผล', 'เสียงร้องขับไล่จิตมาร', 'ส่งภูตพฤกษาออกสำรวจ', 'รัศมีดาราอวยพรทะลวงด่าน', 'สวนสวรรค์สถิตวิญญาณ', 'เซียนพันธะสัตว์เทพดารา'],
+    ABYSSAL_DRAGON_TOTEM: ['สะกดเกล็ดอสรพิษวารี', 'ฝึกเหยี่ยวสายฟ้าทะยาน', 'หลอมตราโทเทมมังกรสมุทร', 'เรียกคลื่นอสนีคำราม', 'ปลุกสายเลือดมังกรคราม', 'ปีกสายฟ้าแหวกเมฆา', 'มหาสมุทรและอสนีประสาน', 'จำแลงเงามังกรเก้าเศียร', 'ราชันย์มังกรสมุทรอสนีสวรรค์']
+  };
+
+  const gateSkillsBySub = {
+    HEAVENLY_GOLEM: ['FORGING', 'BODY_REFINING'],
+    THOUSAND_THREAD_ASSASSIN: ['TALISMAN', 'MOVEMENT'],
+    BEAST_CHIMERA_MECH: ['FORGING', 'BEAST_TAMING'],
+    CELESTIAL_BALLISTA: ['BOW', 'FORGING'],
+    SOUL_VESSEL_AVATAR: ['SOUL_DIVINE', 'FORGING'],
+    FLYING_BLADE_ORBITER: ['SWORD', 'ARRAY'],
+    ASTRAL_CLOCKWORK_PRIME: ['ARRAY', 'FORGING'],
+
+    REVERSED_RETRIBUTION: ['SCRIPTURE', 'SOUL_DIVINE'],
+    SIX_PATHS_WHEEL: ['SCRIPTURE', 'STAFF'],
+    FATE_SEVERING_THREAD: ['SWORD', 'SCRIPTURE'],
+    LOTUS_MERCY_PURIFIER: ['MEDICINE', 'SCRIPTURE'],
+    ASURA_JUDGMENT_BLADE: ['BLADE', 'SCRIPTURE'],
+    PAST_LIFE_MIRROR: ['SOUL_DIVINE', 'TALISMAN'],
+    BODHI_VOW_GUARDIAN: ['STAFF', 'SCRIPTURE'],
+
+    MYRIAD_BEAST_PACK: ['BEAST_TAMING', 'SPEAR'],
+    PRIMORDIAL_BLOOD_MUTATOR: ['BEAST_TAMING', 'ALCHEMY'],
+    SYMBIOTIC_BEAST_WARRIOR: ['BEAST_TAMING', 'FIST_PALM'],
+    COLOSSUS_SHIELD_TAMER: ['BEAST_TAMING', 'STAFF'],
+    SWARM_GU_HIVE_MASTER: ['BEAST_TAMING', 'POISON'],
+    CELESTIAL_ASTRAL_FAIRY_TAMER: ['BEAST_TAMING', 'MEDICINE'],
+    ABYSSAL_DRAGON_TOTEM: ['BEAST_TAMING', 'SPEAR']
+  };
+
+  const fcpTable = [135, 320, 640, 1220, 2320, 4250, 7650, 13600, 24500];
+  const stoneTable = [58, 82, 130, 215, 360, 595, 980, 1600, 2600];
+  const pMinTable = [15, 28, 38, 48, 58, 68, 78, 86, 94];
+  const sMinTable = [10, 16, 22, 28, 34, 40, 46, 52, 58];
+  const mMap8 = [1.0, 1.9, 2.8, 3.7, 4.6, 5.5, 6.4, 7.2, 8.0];
+
+  const newTracks = newSubPaths.map(sub => {
+    const [pSk, sSk] = gateSkillsBySub[sub.id] || ['BEAST_TAMING', 'SCRIPTURE'];
+    const rNames = realmNamesBySub[sub.id] || [];
+    const realms = [];
+    for (let i = 0; i < 9; i++) {
+      const ord = i + 1;
+      realms.push({
+        ordinal: ord,
+        id: 'R208_' + sub.id + '_0' + ord,
+        nameTh: rNames[i] || (sub.nameTh + ' ขั้นที่ ' + ord),
+        lifespanMax: 100 + i * 180,
+        functionalCombatPower: fcpTable[i],
+        majorBandEquivalent: mMap8[i],
+        skillGate: {
+          primarySkill: pSk,
+          minPrimarySkill: pMinTable[i],
+          secondarySkill: sSk,
+          minSecondarySkill: sMinTable[i]
+        },
+        resourceCost: {
+          stones: stoneTable[i],
+          materialTier: Math.min(7, 1 + Math.floor(i / 2))
+        },
+        capacityMultipliers: {
+          maxQiMult: +(1 + i * 0.35).toFixed(2),
+          vitalityMult: +(1 + i * 0.25).toFixed(2),
+          faithPoolMult: +(1 + i * 0.22).toFixed(2),
+          senseBonus: i * 4
+        },
+        realmBuffs: {
+          combatOffensePct: +(3.2 + i * 2.8).toFixed(1),
+          combatDefensePct: +(2.6 + i * 2.2).toFixed(1),
+          armorPenetrationPct: +(2.5 + i * 2.0).toFixed(1),
+          counterStrikePct: +(2.0 + i * 1.5).toFixed(1),
+          lifestealPct: sub.id === 'SWARM_GU_HIVE_MASTER' ? +(1.5 + i * 1.0).toFixed(1) : 0,
+          reflectPct: (sub.id === 'REVERSED_RETRIBUTION' || sub.id === 'COLOSSUS_SHIELD_TAMER') ? +(1.8 + i * 1.2).toFixed(1) : 0,
+          evasionPct: +(1.6 + i * 1.4).toFixed(1),
+          qiRegenBonusPct: +(2.0 + i * 1.8).toFixed(1)
+        },
+        breakthroughBaseChance: +(0.75 - i * 0.07).toFixed(2)
+      });
+    }
+    return {
+      subPath: sub.id,
+      trackId: 'TRACK_' + sub.path + '_' + sub.id,
+      sourceMajorPath: sub.path,
+      sourceIndependentRealmCount: 9,
+      targetMajorPath: sub.path,
+      targetMajorStages: 8,
+      majorPowerMapping: mMap8.slice(),
+      mode: 'INDEPENDENT_TRACK',
+      sourceRealmOrdinalsImported: true,
+      realms
+    };
+  });
+
+  // 21 Innate Subpath Techniques (1 per new subpath)
+  const newInnateTechniques = [
+    // MECH_PUPPET Innates (7)
+    {
+      id: 'INNATE_HEAVENLY_GOLEM_CORE',
+      nameTh: 'ตรึงฐานเทวะศิลาปราการม่อจื่อ',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'HEAVENLY_GOLEM',
+      innateSubpath: 'HEAVENLY_GOLEM',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'EARTH_METAL',
+      power: 94,
+      innateBonus: { p: { def: 0.10, hp: 0.08 }, f: { pen: 5 }, life: { FORGING: 0.15 } },
+      descTh: 'วิชาติดตัวสายมหาเทวะศิลาจักรกล: ตรึงฐานปราการดูดซับความเสียหายและปล่อยคลื่นกระแทกคลายหลัก',
+      moves: ['ตรึงฐานเทวะศิลา', 'คลายหลักสะท้านดิน'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'ปราการสัมฤทธิ์', reqMastery: 0, passiveBonus: { p: { def: 0.04 } } },
+        { stage: 2, id: 'ST2', nameTh: 'เทวะศิลาสะท้านภพ', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { def: 0.06, hp: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_HEAVENLY_GOLEM_M1', parentId: 'INNATE_HEAVENLY_GOLEM_CORE', stageReq: 1, reqMastery: 0, nameTh: 'ตรึงฐานเทวะศิลา', arch: 'guard', type: 'p', M: 0, shield: 0.24, cd: 16, wind: 3, costPct: 4.0 },
+        { id: 'INNATE_HEAVENLY_GOLEM_M2', parentId: 'INNATE_HEAVENLY_GOLEM_CORE', stageReq: 2, reqMastery: 20, nameTh: 'คลายหลักสะท้านดิน', arch: 'sweep', type: 'p', M: 1.45, hits: 1, aoe: true, cd: 14, wind: 4, costPct: 5.0, pen: 18 }
+      ]
+    },
+    {
+      id: 'INNATE_THOUSAND_THREAD_SOUL',
+      nameTh: 'เส้นไหมทิ้งเงาและเข็มผูกพันกล',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'THOUSAND_THREAD_ASSASSIN',
+      innateSubpath: 'THOUSAND_THREAD_ASSASSIN',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'YIN_SHADOW',
+      power: 95,
+      innateBonus: { p: { atk: 0.07, eva: 0.08 }, pp: { crit: 6, pen: 8 } },
+      descTh: 'วิชาติดตัวสายเส้นไหมเชิดเงาสังหาร: ขึงเส้นไหมตรึงเป้าหมายแล้วเลือกพุ่งแทงจุดตายหรือตัดไหมถอยฉาก',
+      moves: ['เข็มเดียวผูกพันกล', 'เส้นไหมทิ้งเงาถอนกาย'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'ไหมเงาร้อยข้อต่อ', reqMastery: 0, passiveBonus: { p: { eva: 0.04 } } },
+        { stage: 2, id: 'ST2', nameTh: 'สังหารไร้ร่องรอย', reqMastery: 20, reqCultStage: 3, passiveBonus: { pp: { crit: 5, critDmg: 12 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_THOUSAND_THREAD_M1', parentId: 'INNATE_THOUSAND_THREAD_SOUL', stageReq: 1, reqMastery: 0, nameTh: 'เข็มเดียวผูกพันกล', arch: 'pierce', type: 'p', M: 1.48, hits: 1, cd: 10, wind: 3, costPct: 4.0, pen: 28, critAdd: 10 },
+        { id: 'INNATE_THOUSAND_THREAD_M2', parentId: 'INNATE_THOUSAND_THREAD_SOUL', stageReq: 2, reqMastery: 20, nameTh: 'เส้นไหมทิ้งเงาถอนกาย', arch: 'evade', type: 'p', M: 0, cd: 16, wind: 2, costPct: 3.5 }
+      ]
+    },
+    {
+      id: 'INNATE_BEAST_CHIMERA_CORE',
+      nameTh: 'บังเหียนพยัคฆ์ทองสัมฤทธิ์และแกนพ่นปราณ',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'BEAST_CHIMERA_MECH',
+      innateSubpath: 'BEAST_CHIMERA_MECH',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'FIRE',
+      power: 94,
+      innateBonus: { p: { atk: 0.07, matk: 0.07, def: 0.05 }, life: { FORGING: 0.12, BEAST_TAMING: 0.12 } },
+      descTh: 'วิชาติดตัวสายพยัคฆ์เหล็กกลืนปราณ: ปรับแต่งแกนพยัคฆ์กลและหุ้มเกราะกลไกเสริมพลังให้สัตว์อสูรคู่สัญญา',
+      moves: ['บังเหียนพยัคฆ์ทองสัมฤทธิ์', 'เปลี่ยนแกนพ่นปราณอัคคี'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'เตาหลอมพยัคฆ์กล', reqMastery: 0, passiveBonus: { p: { atk: 0.04 } } },
+        { stage: 2, id: 'ST2', nameTh: 'สมิงเหล็กคำราม', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { matk: 0.05, def: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_BEAST_CHIMERA_M1', parentId: 'INNATE_BEAST_CHIMERA_CORE', stageReq: 1, reqMastery: 0, nameTh: 'บังเหียนพยัคฆ์ทองสัมฤทธิ์', arch: 'buff', type: 'm', M: 0, cd: 18, wind: 3, costPct: 4.0, support: { kind: 'morale', dur: 14 } },
+        { id: 'INNATE_BEAST_CHIMERA_M2', parentId: 'INNATE_BEAST_CHIMERA_CORE', stageReq: 2, reqMastery: 20, nameTh: 'เปลี่ยนแกนพ่นปราณอัคคี', arch: 'blast', type: 'm', M: 1.52, hits: 1, aoe: true, cd: 13, wind: 4, costPct: 5.0, pen: 16 }
+      ]
+    },
+    {
+      id: 'INNATE_CELESTIAL_BALLISTA_EYE',
+      nameTh: 'สามจังหวะเกาทัณฑ์ดาราและถอนรางคุ้มแนว',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'CELESTIAL_BALLISTA',
+      innateSubpath: 'CELESTIAL_BALLISTA',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'ASTRAL',
+      power: 96,
+      weaponTypes: ['BOW', 'FOCUS'],
+      innateBonus: { p: { atk: 0.08, acc: 0.10 }, pp: { crit: 6, pen: 10 } },
+      descTh: 'วิชาติดตัวสายเกาทัณฑ์จักรกลดารา: เล็งล็อกเป้าและยิงระดมศรกลดาราด้วยความแม่นยำสูงสุด',
+      moves: ['สามจังหวะเกาทัณฑ์ดารา', 'ถอนรางคุ้มแนวหลัง'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'รางศรคำนวณดาว', reqMastery: 0, passiveBonus: { p: { acc: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'ศรกลทะลวงดารา', reqMastery: 20, reqCultStage: 3, passiveBonus: { pp: { pen: 8, critDmg: 14 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_CELESTIAL_BALLISTA_M1', parentId: 'INNATE_CELESTIAL_BALLISTA_EYE', stageReq: 1, reqMastery: 0, nameTh: 'สามจังหวะเกาทัณฑ์ดารา', arch: 'barrage', type: 'p', M: 1.25, hits: 3, aoe: true, cd: 12, wind: 4, costPct: 4.5, pen: 20 },
+        { id: 'INNATE_CELESTIAL_BALLISTA_M2', parentId: 'INNATE_CELESTIAL_BALLISTA_EYE', stageReq: 2, reqMastery: 20, nameTh: 'ศรเดียวดับดารา', arch: 'snipe', type: 'p', M: 1.68, hits: 1, cd: 14, wind: 4, costPct: 5.0, pen: 32, critAdd: 15 }
+      ]
+    },
+    {
+      id: 'INNATE_SOUL_VESSEL_LINK',
+      nameTh: 'กายว่างรับเคราะห์หนึ่งคราและหวนเส้นวิญญาณ',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'SOUL_VESSEL_AVATAR',
+      innateSubpath: 'SOUL_VESSEL_AVATAR',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'WOOD_LIFE',
+      power: 92,
+      innateBonus: { p: { hp: 0.09, mdef: 0.09, def: 0.06 } },
+      descTh: 'วิชาติดตัวสายหุ่นเชิดกายทิพย์นิรันดร์: ใช้หุ่นตัวแทนที่เตรียมไว้รับความเสียหายวิกฤต 1 ครั้งต่อศึก',
+      moves: ['กายว่างรับเคราะห์หนึ่งครา', 'หวนเส้นวิญญาณสมานแกน'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'หุ่นไม้รับเคราะห์', reqMastery: 0, passiveBonus: { p: { hp: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'กายทิพย์สลับเงา', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { mdef: 0.06, def: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_SOUL_VESSEL_M1', parentId: 'INNATE_SOUL_VESSEL_LINK', stageReq: 1, reqMastery: 0, nameTh: 'กายว่างรับเคราะห์หนึ่งครา', arch: 'shield', type: 'm', M: 0, shield: 0.25, cd: 18, wind: 3, costPct: 4.5 },
+        { id: 'INNATE_SOUL_VESSEL_M2', parentId: 'INNATE_SOUL_VESSEL_LINK', stageReq: 2, reqMastery: 20, nameTh: 'หวนเส้นวิญญาณสมานแกน', arch: 'heal', type: 'm', M: 0, heal: 0.22, cd: 22, wind: 4, costPct: 5.0 }
+      ]
+    },
+    {
+      id: 'INNATE_FLYING_BLADE_WHEEL',
+      nameTh: 'วงจักรแบ่งคมคุ้มกายและกระบี่คืนรัง',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'FLYING_BLADE_ORBITER',
+      innateSubpath: 'FLYING_BLADE_ORBITER',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'EARTH_METAL',
+      power: 95,
+      innateBonus: { p: { atk: 0.07, matk: 0.07, def: 0.05 }, pp: { crit: 5, pen: 8 } },
+      descTh: 'วิชาติดตัวสายกงล้อศาสตราพันกระบี่: ควบคุมฝูงใบมีดบินหมุนวนสลับรุกและรับรอบตัว',
+      moves: ['วงจักรแบ่งคมคุ้มกาย', 'กระบี่กลคืนรังสวนกลับ'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'กงล้อมีดคู่', reqMastery: 0, passiveBonus: { p: { atk: 0.04 } } },
+        { stage: 2, id: 'ST2', nameTh: 'ค่ายกลพันใบมีด', reqMastery: 20, reqCultStage: 3, passiveBonus: { pp: { pen: 6, crit: 4 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_FLYING_BLADE_M1', parentId: 'INNATE_FLYING_BLADE_WHEEL', stageReq: 1, reqMastery: 0, nameTh: 'วงจักรแบ่งคมคุ้มกาย', arch: 'flurry', type: 'p', M: 0.56, hits: 3, cd: 9, wind: 3, costPct: 4.0, pen: 15 },
+        { id: 'INNATE_FLYING_BLADE_M2', parentId: 'INNATE_FLYING_BLADE_WHEEL', stageReq: 2, reqMastery: 20, nameTh: 'กระบี่กลคืนรังสวนกลับ', arch: 'counter', type: 'p', M: 1.55, hits: 1, cd: 15, wind: 3, costPct: 4.0, pen: 18 }
+      ]
+    },
+    {
+      id: 'INNATE_ASTRAL_CLOCKWORK_MATRIX',
+      nameTh: 'ลูกคิดดาราคำนวณหมื่นกลไก',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'ASTRAL_CLOCKWORK_PRIME',
+      innateSubpath: 'ASTRAL_CLOCKWORK_PRIME',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'ASTRAL',
+      power: 95,
+      innateBonus: { p: { matk: 0.08, acc: 0.09 }, f: { cast: 10 }, life: { ARRAY: 0.15, FORGING: 0.10 } },
+      descTh: 'วิชาติดตัวสายสมองกลดาราพยากรณ์: คำนวณจุดอ่อนศัตรูล่วงหน้าและระบายความร้อนแกนกลไก',
+      moves: ['เข็มทิศดาราชี้จุดตาย', 'สมองกลปรับสมดุลปราณ'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'เฟืองหยกคำนวณ', reqMastery: 0, passiveBonus: { f: { cast: 5 } } },
+        { stage: 2, id: 'ST2', nameTh: 'พยากรณ์หมื่นวิถี', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { matk: 0.06, acc: 0.06 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_ASTRAL_CLOCKWORK_M1', parentId: 'INNATE_ASTRAL_CLOCKWORK_MATRIX', stageReq: 1, reqMastery: 0, nameTh: 'เข็มทิศดาราชี้จุดตาย', arch: 'snipe', type: 'm', M: 1.50, hits: 1, cd: 11, wind: 3, costPct: 4.0, pen: 24, critAdd: 12 },
+        { id: 'INNATE_ASTRAL_CLOCKWORK_M2', parentId: 'INNATE_ASTRAL_CLOCKWORK_MATRIX', stageReq: 2, reqMastery: 20, nameTh: 'สมองกลปรับสมดุลปราณ', arch: 'support', type: 'm', M: 0, cd: 18, wind: 3, costPct: 4.0, qiRestorePct: 0.15, support: { kind: 'haste', dur: 14 } }
+      ]
+    },
+
+    // KARMA_SAMSARA Innates (7)
+    {
+      id: 'INNATE_REVERSED_RETRIBUTION_MIRROR',
+      nameTh: 'กระจกเหตุผลคืนวิบากและวางหนี้สงบใจ',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'REVERSED_RETRIBUTION',
+      innateSubpath: 'REVERSED_RETRIBUTION',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'LIGHT_YANG',
+      power: 94,
+      innateBonus: { p: { def: 0.08, mdef: 0.10, matk: 0.06 } },
+      descTh: 'วิชาติดตัวสายวิบากสะท้อนกรรม: ใช้หนี้กรรมที่บันทึกไว้สะท้อนคืนใส่ผู้ก่อเหตุหรือแปรเป็นโล่สงบใจ',
+      moves: ['กระจกเหตุผลคืนวิบาก', 'วางหนี้สงบใจคุ้มกาย'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'บันทึกเหตุแห่งทุกข์', reqMastery: 0, passiveBonus: { p: { mdef: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'วิบากคืนสนองเที่ยงธรรม', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { def: 0.06, matk: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_REVERSED_RETRIBUTION_M1', parentId: 'INNATE_REVERSED_RETRIBUTION_MIRROR', stageReq: 1, reqMastery: 0, nameTh: 'กระจกเหตุผลคืนวิบาก', arch: 'counter', type: 'm', M: 1.55, hits: 1, cd: 14, wind: 3, costPct: 4.0, pen: 16 },
+        { id: 'INNATE_REVERSED_RETRIBUTION_M2', parentId: 'INNATE_REVERSED_RETRIBUTION_MIRROR', stageReq: 2, reqMastery: 20, nameTh: 'วางหนี้สงบใจคุ้มกาย', arch: 'shield', type: 'm', M: 0, shield: 0.24, cd: 16, wind: 3, costPct: 4.0 }
+      ]
+    },
+    {
+      id: 'INNATE_SIX_PATHS_WHEEL',
+      nameTh: 'กงล้อหกภพเลือกทางและพักกงล้อคืนสมดุล',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'SIX_PATHS_WHEEL',
+      innateSubpath: 'SIX_PATHS_WHEEL',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'ASTRAL',
+      power: 95,
+      innateBonus: { p: { atk: 0.06, matk: 0.06, def: 0.06, mdef: 0.06 }, life: { SCRIPTURE: 0.15 } },
+      descTh: 'วิชาติดตัวสายสังสารหกภพภูมิ: หมุนกงล้อเลือกตั้งมั่นในภพภูมิที่เหมาะกับสถานการณ์รบ',
+      moves: ['กงล้อหกภพเลือกทาง', 'พักกงล้อคืนสมดุล'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'หมุนภวจักร', reqMastery: 0, passiveBonus: { p: { matk: 0.04 } } },
+        { stage: 2, id: 'ST2', nameTh: 'รู้แจ้งหกภพภูมิ', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { def: 0.05, mdef: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_SIX_PATHS_M1', parentId: 'INNATE_SIX_PATHS_WHEEL', stageReq: 1, reqMastery: 0, nameTh: 'กงล้อหกภพเลือกทาง', arch: 'sweep', type: 'm', M: 1.32, hits: 1, aoe: true, cd: 11, wind: 4, costPct: 4.5 },
+        { id: 'INNATE_SIX_PATHS_M2', parentId: 'INNATE_SIX_PATHS_WHEEL', stageReq: 2, reqMastery: 20, nameTh: 'พักกงล้อคืนสมดุล', arch: 'support', type: 'm', M: 0, cd: 18, wind: 3, costPct: 3.5, qiRestorePct: 0.14, support: { kind: 'holyAura', dur: 14 } }
+      ]
+    },
+    {
+      id: 'INNATE_FATE_SEVERING_SCISSORS',
+      nameTh: 'ตัดวาสนาหนึ่งสายและปมกรรมเผยช่อง',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'FATE_SEVERING_THREAD',
+      innateSubpath: 'FATE_SEVERING_THREAD',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'ASTRAL',
+      power: 96,
+      innateBonus: { p: { matk: 0.08, acc: 0.08 }, pp: { pen: 10, crit: 5 } },
+      descTh: 'วิชาติดตัวสายด้ายชะตาตัดวาสนา: สลายบัฟคุ้มกันของศัตรูและแทงทะลวงปมกรรมที่เปิดออก',
+      moves: ['ตัดวาสนาหนึ่งสาย', 'ปมกรรมเผยช่องทะลวง'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'เนตรเห็นด้ายแดง', reqMastery: 0, passiveBonus: { pp: { pen: 6 } } },
+        { stage: 2, id: 'ST2', nameTh: 'กรรไกรสะบั้นวาสนา', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { matk: 0.06 }, pp: { crit: 5 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_FATE_SEVERING_M1', parentId: 'INNATE_FATE_SEVERING_SCISSORS', stageReq: 1, reqMastery: 0, nameTh: 'ตัดวาสนาหนึ่งสาย', arch: 'control', type: 'm', M: 1.15, hits: 1, cd: 14, wind: 4, costPct: 4.5, shatterShield: true },
+        { id: 'INNATE_FATE_SEVERING_M2', parentId: 'INNATE_FATE_SEVERING_SCISSORS', stageReq: 2, reqMastery: 20, nameTh: 'ปมกรรมเผยช่องทะลวง', arch: 'pierce', type: 'm', M: 1.56, hits: 1, cd: 12, wind: 4, costPct: 4.5, pen: 30 }
+      ]
+    },
+    {
+      id: 'INNATE_LOTUS_MERCY_HEART',
+      nameTh: 'หนี้สิ้นที่ปทุมและดอกบัวรับเคราะห์',
+      cat: 'SUPPORT_TECHNIQUE',
+      role: 'HEAL_SUPPORT_TRAINING',
+      path: 'KARMA_SAMSARA',
+      sub: 'LOTUS_MERCY_PURIFIER',
+      innateSubpath: 'LOTUS_MERCY_PURIFIER',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'WOOD_LIFE',
+      power: 92,
+      innateBonus: { p: { hp: 0.10, mdef: 0.10 }, life: { MEDICINE: 0.18, SCRIPTURE: 0.12 } },
+      descTh: 'วิชาติดตัวสายปทุมโปรดสัตว์ชำระบาป: สละหนี้กรรมเพื่อเยียวยาบาดแผลและชำระล้างพิษร้ายให้พวกพ้อง',
+      moves: ['หนี้สิ้นที่ปทุม', 'ดอกบัวรับเคราะห์คุ้มภัย'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'บัวขาวชำระใจ', reqMastery: 0, passiveBonus: { p: { hp: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'มหาปทุมโปรดสัตว์', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { mdef: 0.07 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_LOTUS_MERCY_M1', parentId: 'INNATE_LOTUS_MERCY_HEART', stageReq: 1, reqMastery: 0, nameTh: 'หนี้สิ้นที่ปทุม', arch: 'heal', type: 'm', M: 0, heal: 0.25, cd: 18, wind: 4, costPct: 4.5 },
+        { id: 'INNATE_LOTUS_MERCY_M2', parentId: 'INNATE_LOTUS_MERCY_HEART', stageReq: 2, reqMastery: 20, nameTh: 'ดอกบัวรับเคราะห์คุ้มภัย', arch: 'shield', type: 'm', M: 0, shield: 0.24, cd: 18, wind: 3, costPct: 4.5 }
+      ]
+    },
+    {
+      id: 'INNATE_ASURA_JUDGMENT_GAZE',
+      nameTh: 'พิพากษารอยคมล่าสุดและทวนคำสัตย์ทัณฑ์',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'ASURA_JUDGMENT_BLADE',
+      innateSubpath: 'ASURA_JUDGMENT_BLADE',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'FIRE',
+      power: 97,
+      innateBonus: { p: { atk: 0.10, matk: 0.06 }, pp: { crit: 6, critDmg: 15, pen: 8 } },
+      descTh: 'วิชาติดตัวสายดาบพิพากษาอสูรทัณฑ์: ฟาดดาบพิพากษาศัตรูที่ก่อเหตุทำร้ายเราหรือพวกพ้องอย่างรุนแรง',
+      moves: ['พิพากษารอยคมล่าสุด', 'ทวนคำสัตย์ทัณฑ์อสูร'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'เนตรอสูรตรวจบาป', reqMastery: 0, passiveBonus: { p: { atk: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'ดาบอาญาไร้พ่าย', reqMastery: 20, reqCultStage: 3, passiveBonus: { pp: { critDmg: 15, pen: 6 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_ASURA_JUDGMENT_M1', parentId: 'INNATE_ASURA_JUDGMENT_GAZE', stageReq: 1, reqMastery: 0, nameTh: 'พิพากษารอยคมล่าสุด', arch: 'execute', type: 'p', M: 1.62, hits: 1, cd: 14, wind: 4, costPct: 5.0, pen: 24, critAdd: 12 },
+        { id: 'INNATE_ASURA_JUDGMENT_M2', parentId: 'INNATE_ASURA_JUDGMENT_GAZE', stageReq: 2, reqMastery: 20, nameTh: 'ทวนคำสัตย์ทัณฑ์อสูร', arch: 'charge', type: 'p', M: 1.45, hits: 1, cd: 11, wind: 3, costPct: 4.0, pen: 18 }
+      ]
+    },
+    {
+      id: 'INNATE_PAST_LIFE_ECHO',
+      nameTh: 'หนึ่งก้าวเงาชาติก่อนและคมเงาสืบเหตุ',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'PAST_LIFE_MIRROR',
+      innateSubpath: 'PAST_LIFE_MIRROR',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'YIN_SHADOW',
+      power: 94,
+      innateBonus: { p: { eva: 0.09, matk: 0.07 }, f: { move: 8, cast: 8 } },
+      descTh: 'วิชาติดตัวสายกระจกสะท้อนชาติภพ: เรียกเงาอดีตชาติช่วยหลบหลีกและฟาดคมเงาสืบต่อจากกระบวนท่าก่อนหน้า',
+      moves: ['หนึ่งก้าวเงาชาติก่อน', 'คมเงาสืบเหตุ'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'เงาสะท้อนวานซืน', reqMastery: 0, passiveBonus: { p: { eva: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'กระจกจำแลงชาติภพ', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { matk: 0.06 }, f: { cast: 6 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_PAST_LIFE_M1', parentId: 'INNATE_PAST_LIFE_ECHO', stageReq: 1, reqMastery: 0, nameTh: 'หนึ่งก้าวเงาชาติก่อน', arch: 'evade', type: 'm', M: 0, cd: 16, wind: 2, costPct: 3.5 },
+        { id: 'INNATE_PAST_LIFE_M2', parentId: 'INNATE_PAST_LIFE_ECHO', stageReq: 2, reqMastery: 20, nameTh: 'คมเงาสืบเหตุ', arch: 'strike', type: 'm', M: 1.48, hits: 1, cd: 10, wind: 3, costPct: 4.0, pen: 15 }
+      ]
+    },
+    {
+      id: 'INNATE_BODHI_VOW_AEGIS',
+      nameTh: 'ระฆังทองมหาปณิธานคุ้มภพ',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'BODHI_VOW_GUARDIAN',
+      innateSubpath: 'BODHI_VOW_GUARDIAN',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'LIGHT_YANG',
+      power: 94,
+      innateBonus: { p: { hp: 0.10, def: 0.09, mdef: 0.09 }, life: { SCRIPTURE: 0.14 } },
+      descTh: 'วิชาติดตัวสายมหาปณิธานโพธิสัตว์คุ้มภพ: เปล่งเสียงระฆังคำสัตย์กางเกราะปราณหยางคุ้มกันตนเองและพวกพ้อง',
+      moves: ['ระฆังคำสัตย์คุ้มหมู่คณะ', 'ฝ่ามือปณิธานสยบมาร'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'ศิลาคำสัตย์', reqMastery: 0, passiveBonus: { p: { def: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'โพธิญาณไม่หวั่นไหว', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { hp: 0.06, mdef: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_BODHI_VOW_M1', parentId: 'INNATE_BODHI_VOW_AEGIS', stageReq: 1, reqMastery: 0, nameTh: 'ระฆังคำสัตย์คุ้มหมู่คณะ', arch: 'guard', type: 'm', M: 0, shield: 0.24, cd: 16, wind: 3, costPct: 4.0 },
+        { id: 'INNATE_BODHI_VOW_M2', parentId: 'INNATE_BODHI_VOW_AEGIS', stageReq: 2, reqMastery: 20, nameTh: 'ฝ่ามือปณิธานสยบมาร', arch: 'strike', type: 'm', M: 1.45, hits: 1, cd: 11, wind: 4, costPct: 4.2, pen: 16 }
+      ]
+    },
+
+    // BEAST_SOVEREIGN Innates (7)
+    {
+      id: 'INNATE_MYRIAD_PACK_COMMAND',
+      nameTh: 'โอบวงฝูงร่วมใจและสัญญาณถอนฝูง',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'MYRIAD_BEAST_PACK',
+      innateSubpath: 'MYRIAD_BEAST_PACK',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'WIND',
+      power: 96,
+      innateBonus: { p: { atk: 0.08, eva: 0.06 }, f: { move: 8 }, life: { BEAST_TAMING: 0.22 } },
+      descTh: 'วิชาติดตัวสายจ้าวฝูงหมื่นอสูรรุมสังหาร: เพิ่มช่องอสูรคู่สัญญาออกรบสูงสุด 4 ตน และสั่งฝูงอสูรประสานรุมขย้ำ',
+      moves: ['โอบวงฝูงร่วมใจ', 'สัญญาณถอนฝูงตั้งหลัก'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'จ่าฝูงเขี้ยวลม', reqMastery: 0, passiveBonus: { p: { atk: 0.04 } } },
+        { stage: 2, id: 'ST2', nameTh: 'บัญชาทัพหมื่นเขี้ยว', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { atk: 0.06, eva: 0.04 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_MYRIAD_PACK_M1', parentId: 'INNATE_MYRIAD_PACK_COMMAND', stageReq: 1, reqMastery: 0, nameTh: 'โอบวงฝูงร่วมใจ', arch: 'barrage', type: 'p', M: 1.24, hits: 3, aoe: true, cd: 11, wind: 4, costPct: 4.5, pen: 16 },
+        { id: 'INNATE_MYRIAD_PACK_M2', parentId: 'INNATE_MYRIAD_PACK_COMMAND', stageReq: 2, reqMastery: 20, nameTh: 'สัญญาณถอนฝูงตั้งหลัก', arch: 'support', type: 'm', M: 0, cd: 18, wind: 3, costPct: 4.0, support: { kind: 'haste', dur: 14 } }
+      ]
+    },
+    {
+      id: 'INNATE_PRIMORDIAL_BLOOD_AWAKEN',
+      nameTh: 'ปลุกลายโลหิตบรรพกาลและลมหายใจสืบสาย',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'PRIMORDIAL_BLOOD_MUTATOR',
+      innateSubpath: 'PRIMORDIAL_BLOOD_MUTATOR',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'FIRE',
+      power: 97,
+      innateBonus: { p: { atk: 0.08, matk: 0.08, hp: 0.06 }, life: { BEAST_TAMING: 0.20, ALCHEMY: 0.14 } },
+      descTh: 'วิชาติดตัวสายกลายพันธุ์สายเลือดบรรพกาล: ยกระดับพลังรบของอสูรคู่สัญญาหลักและปลดปล่อยลมหายใจเทพอสูร',
+      moves: ['ปลุกลายโลหิตบรรพกาล', 'ลมหายใจสืบสายเทพอสูร'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'โลหิตอสูรตื่นรู้', reqMastery: 0, passiveBonus: { p: { matk: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'สายเลือดจตุรเทพ', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { atk: 0.06 }, pp: { critDmg: 14 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_PRIMORDIAL_BLOOD_M1', parentId: 'INNATE_PRIMORDIAL_BLOOD_AWAKEN', stageReq: 1, reqMastery: 0, nameTh: 'ปลุกลายโลหิตบรรพกาล', arch: 'buff', type: 'm', M: 0, cd: 18, wind: 3, costPct: 4.0, support: { kind: 'morale', dur: 15 } },
+        { id: 'INNATE_PRIMORDIAL_BLOOD_M2', parentId: 'INNATE_PRIMORDIAL_BLOOD_AWAKEN', stageReq: 2, reqMastery: 20, nameTh: 'ลมหายใจสืบสายเทพอสูร', arch: 'blast', type: 'm', M: 1.58, hits: 1, aoe: true, cd: 13, wind: 4, costPct: 5.0, pen: 20 }
+      ]
+    },
+    {
+      id: 'INNATE_SYMBIOTIC_CLAW_FUSION',
+      nameTh: 'หนึ่งกายสองลมหายใจและกรงเล็บผสานอสูร',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'SYMBIOTIC_BEAST_WARRIOR',
+      innateSubpath: 'SYMBIOTIC_BEAST_WARRIOR',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'EARTH_METAL',
+      power: 97,
+      innateBonus: { p: { atk: 0.10, hp: 0.08, def: 0.06 }, life: { BEAST_TAMING: 0.18 } },
+      descTh: 'วิชาติดตัวสายนักรบผสานร่างอสูรคลั่ง: ผสานร่างกับอสูรคู่สัญญา รวมสเตตัสเข้าสู่กายเนื้อและฉีกกระชากศัตรู',
+      moves: ['กรงเล็บผสานวิญญาณอสูร', 'หนึ่งกายสองลมหายใจ'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'ประสานกรงเล็บ', reqMastery: 0, passiveBonus: { p: { atk: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'อวตารอสูรสงคราม', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { atk: 0.06, hp: 0.06 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_SYMBIOTIC_CLAW_M1', parentId: 'INNATE_SYMBIOTIC_CLAW_FUSION', stageReq: 1, reqMastery: 0, nameTh: 'กรงเล็บผสานวิญญาณอสูร', arch: 'flurry', type: 'p', M: 0.58, hits: 3, cd: 9, wind: 3, costPct: 4.0, pen: 18 },
+        { id: 'INNATE_SYMBIOTIC_CLAW_M2', parentId: 'INNATE_SYMBIOTIC_CLAW_FUSION', stageReq: 2, reqMastery: 20, nameTh: 'หนึ่งกายสองลมหายใจ', arch: 'burst', type: 'p', M: 1.72, hits: 1, cd: 18, wind: 5, costPct: 5.5, pen: 24 }
+      ]
+    },
+    {
+      id: 'INNATE_COLOSSUS_MOUNTAIN_SHELL',
+      nameTh: 'กระดองค้ำขุนเขาและย้ายแนวปราการ',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'COLOSSUS_SHIELD_TAMER',
+      innateSubpath: 'COLOSSUS_SHIELD_TAMER',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'EARTH_METAL',
+      power: 93,
+      innateBonus: { p: { def: 0.12, hp: 0.10, mdef: 0.06 }, life: { BEAST_TAMING: 0.18 } },
+      descTh: 'วิชาติดตัวสายปราการอสูรยักษ์พิทักษ์สำนัก: ให้อสูรเกราะหนักกางม่านกระดองรับความเสียหายแทนและสะท้อนแรงกระแทก',
+      moves: ['กระดองค้ำขุนเขา', 'ย้ายแนวปราการมีชีวิต'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'เกราะอสูรพิทักษ์', reqMastery: 0, passiveBonus: { p: { def: 0.06 } } },
+        { stage: 2, id: 'ST2', nameTh: 'เต่ามังกรแบกผา', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { def: 0.06, hp: 0.06 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_COLOSSUS_SHELL_M1', parentId: 'INNATE_COLOSSUS_MOUNTAIN_SHELL', stageReq: 1, reqMastery: 0, nameTh: 'กระดองค้ำขุนเขา', arch: 'guard', type: 'p', M: 0, shield: 0.26, cd: 16, wind: 3, costPct: 4.0 },
+        { id: 'INNATE_COLOSSUS_SHELL_M2', parentId: 'INNATE_COLOSSUS_MOUNTAIN_SHELL', stageReq: 2, reqMastery: 20, nameTh: 'ย้ายแนวปราการมีชีวิต', arch: 'counter', type: 'p', M: 1.50, hits: 1, cd: 15, wind: 3, costPct: 4.0 }
+      ]
+    },
+    {
+      id: 'INNATE_SWARM_GU_PARASITE',
+      nameTh: 'เมฆปีกกินปราณและหุบรังรักษาแม่กู่',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'SWARM_GU_HIVE_MASTER',
+      innateSubpath: 'SWARM_GU_HIVE_MASTER',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'WOOD_LIFE',
+      power: 95,
+      innateBonus: { p: { matk: 0.09, eva: 0.07 }, pp: { pen: 10 }, life: { BEAST_TAMING: 0.15, POISON: 0.18 } },
+      descTh: 'วิชาติดตัวสายราชันย์รังกู่และฝูงแมลงพิษสวรรค์: ปล่อยฝูงกู่กัดกร่อนเกราะและดูดซับปราณศัตรู',
+      moves: ['เมฆปีกกินปราณ', 'หุบรังรักษาแม่กู่'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'รังไหมกู่พิษ', reqMastery: 0, passiveBonus: { p: { matk: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'ราชันย์ฝูงแมลงทอง', reqMastery: 20, reqCultStage: 3, passiveBonus: { pp: { pen: 8 }, p: { eva: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_SWARM_GU_M1', parentId: 'INNATE_SWARM_GU_PARASITE', stageReq: 1, reqMastery: 0, nameTh: 'เมฆปีกกินปราณ', arch: 'dot', type: 'm', M: 1.15, dot: 0.95, dotKind: 'poison', hits: 1, cd: 12, wind: 4, costPct: 4.0 },
+        { id: 'INNATE_SWARM_GU_M2', parentId: 'INNATE_SWARM_GU_PARASITE', stageReq: 2, reqMastery: 20, nameTh: 'หุบรังรักษาแม่กู่', arch: 'drain', type: 'm', M: 1.38, steal: 0.48, hits: 1, cd: 14, wind: 4, costPct: 4.5 }
+      ]
+    },
+    {
+      id: 'INNATE_ASTRAL_FAIRY_BLESSING',
+      nameTh: 'เงาจันทร์กระเรียนคุ้มใจและฟังพฤกษาพบรอยยา',
+      cat: 'SUPPORT_TECHNIQUE',
+      role: 'HEAL_SUPPORT_TRAINING',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+      innateSubpath: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'LIGHT_YANG',
+      power: 93,
+      innateBonus: { p: { hp: 0.09, mdef: 0.10, matk: 0.06 }, life: { BEAST_TAMING: 0.16, herbalism: 0.20, MEDICINE: 0.14 } },
+      descTh: 'วิชาติดตัวสายพันธะสัตว์เทพดาราและภูตพฤกษา: ประสานพลังสัตว์มงคลเยียวยาพวกพ้องและค้นหาสมุนไพรวิเศษ',
+      moves: ['เงาจันทร์กระเรียนคุ้มใจ', 'พรภูตพฤกษาสมานปราณ'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'พันธะภูตพฤกษา', reqMastery: 0, passiveBonus: { p: { mdef: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'สัตว์เทพดาราอวยพร', reqMastery: 20, reqCultStage: 3, passiveBonus: { p: { hp: 0.06, matk: 0.05 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_ASTRAL_FAIRY_M1', parentId: 'INNATE_ASTRAL_FAIRY_BLESSING', stageReq: 1, reqMastery: 0, nameTh: 'เงาจันทร์กระเรียนคุ้มใจ', arch: 'heal', type: 'm', M: 0, heal: 0.24, cd: 18, wind: 4, costPct: 4.5 },
+        { id: 'INNATE_ASTRAL_FAIRY_M2', parentId: 'INNATE_ASTRAL_FAIRY_BLESSING', stageReq: 2, reqMastery: 20, nameTh: 'พรภูตพฤกษาสมานปราณ', arch: 'support', type: 'm', M: 0, cd: 18, wind: 3, costPct: 4.0, qiRestorePct: 0.14, support: { kind: 'holyAura', dur: 14 } }
+      ]
+    },
+    {
+      id: 'INNATE_ABYSSAL_DRAGON_ROAR',
+      nameTh: 'คำรามมังกรสมุทรและกรงเล็บอสนีคราม',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'ABYSSAL_DRAGON_TOTEM',
+      innateSubpath: 'ABYSSAL_DRAGON_TOTEM',
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      noManual: true,
+      noCrystal: true,
+      martialRare: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Exceptional',
+      element: 'LIGHTNING',
+      power: 97,
+      innateBonus: { p: { atk: 0.08, matk: 0.08, hp: 0.06 }, pp: { pen: 10, crit: 5 }, life: { BEAST_TAMING: 0.20 } },
+      descTh: 'วิชาติดตัวสายราชันย์มังกรสมุทรและอสูรอัสนี: ปลุกอำนาจมังกรสมุทรและเหยี่ยวสายฟ้าฟาดฟันศัตรู',
+      moves: ['กรงเล็บอสนีครามแหวกคลื่น', 'คำรามมังกรสมุทรสะกดภพ'],
+      stages: [
+        { stage: 1, id: 'ST1', nameTh: 'เกล็ดมังกรอสนี', reqMastery: 0, passiveBonus: { p: { atk: 0.05 } } },
+        { stage: 2, id: 'ST2', nameTh: 'จ้าวสมุทรสายฟ้า', reqMastery: 20, reqCultStage: 3, passiveBonus: { pp: { pen: 8, crit: 5 } } }
+      ],
+      moveDefs: [
+        { id: 'INNATE_ABYSSAL_DRAGON_M1', parentId: 'INNATE_ABYSSAL_DRAGON_ROAR', stageReq: 1, reqMastery: 0, nameTh: 'กรงเล็บอสนีครามแหวกคลื่น', arch: 'pierce', type: 'p', M: 1.52, hits: 1, cd: 11, wind: 4, costPct: 4.5, pen: 26 },
+        { id: 'INNATE_ABYSSAL_DRAGON_M2', parentId: 'INNATE_ABYSSAL_DRAGON_ROAR', stageReq: 2, reqMastery: 20, nameTh: 'คำรามมังกรสมุทรสะกดภพ', arch: 'sweep', type: 'm', M: 1.44, hits: 1, aoe: true, cd: 14, wind: 4, costPct: 5.0, pen: 18 }
+      ]
+    }
+  ];
+
+  // 33 Learnable Techniques (3 MP_BASE_ + 10 MECH_PUPPET + 10 KARMA_SAMSARA + 10 BEAST_SOVEREIGN)
+  const newTechniques = [
+    // 3 Base Curriculum Techniques
+    {
+      id: 'MP_BASE_MECH_PUPPET',
+      nameTh: 'เคล็ดพื้นฐานกลจักรเชิดหุ่น',
+      path: 'MECH_PUPPET',
+      sub: null,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      combatArch: 'strike',
+      element: 'EARTH_METAL',
+      power: 32,
+      moves: ['หมัดเฟืองเหล็กปะทะ', 'ชักใยหุ่นไม้ตั้งรับ'],
+      martialBootstrap: true
+    },
+    {
+      id: 'MP_BASE_KARMA_SAMSARA',
+      nameTh: 'เคล็ดพื้นฐานตาชั่งกรรมวัฏ',
+      path: 'KARMA_SAMSARA',
+      sub: null,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      combatArch: 'strike',
+      element: 'LIGHT_YANG',
+      power: 32,
+      moves: ['ฝ่ามือส่องเหตุผล', 'ปัดเป่าแรงอาฆาต'],
+      martialBootstrap: true
+    },
+    {
+      id: 'MP_BASE_BEAST_SOVEREIGN',
+      nameTh: 'เคล็ดพื้นฐานสื่อจิตหมื่นอสูร',
+      path: 'BEAST_SOVEREIGN',
+      sub: null,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      combatArch: 'strike',
+      element: 'WOOD_LIFE',
+      power: 32,
+      moves: ['เขี้ยวเล็บประสานใจ', 'ผิวปากเรียกขวัญอสูร'],
+      martialBootstrap: true
+    },
+
+    // --- 10 Core Techniques for MECH_PUPPET ---
+    {
+      id: 'ART_MECH_PUPPET_001',
+      nameTh: 'หมัดค้อนกลจักรทุบพสุธา',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'HEAVENLY_GOLEM',
+      compatibleSubs: ['HEAVENLY_GOLEM', 'BEAST_CHIMERA_MECH'],
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      combatArch: 'strike',
+      element: 'EARTH_METAL',
+      power: 46,
+      weaponTypes: ['FIST', 'STAFF'],
+      moves: ['ค้อนกลทุบศิลา', 'แรงอัดเฟืองเหล็กทลายเกราะ'],
+      moveDefs: [
+        { id: 'ART_MECH_001_M1', parentId: 'ART_MECH_PUPPET_001', stageReq: 1, reqMastery: 0, nameTh: 'ค้อนกลทุบศิลา', arch: 'strike', type: 'p', M: 1.32, hits: 1, cd: 9, wind: 4, costPct: 3.5, pen: 15 },
+        { id: 'ART_MECH_001_M2', parentId: 'ART_MECH_PUPPET_001', stageReq: 2, reqMastery: 15, nameTh: 'แรงอัดเฟืองเหล็กทลายเกราะ', arch: 'charge', type: 'p', M: 1.48, hits: 1, cd: 11, wind: 4, costPct: 4.2, pen: 22 }
+      ],
+      stages: [{ stage: 1, id: 'ST1', nameTh: 'ค้อนเหล็กขั้นต้น', reqMastery: 0 }, { stage: 2, id: 'ST2', nameTh: 'แรงอัดสะเทือนดิน', reqMastery: 15 }]
+    },
+    {
+      id: 'ART_MECH_PUPPET_002',
+      nameTh: 'ระดมยิงห่าธนูกลเก้าดารา',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'CELESTIAL_BALLISTA',
+      compatibleSubs: ['CELESTIAL_BALLISTA', 'ASTRAL_CLOCKWORK_PRIME'],
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      combatArch: 'barrage',
+      element: 'ASTRAL',
+      power: 78,
+      weaponTypes: ['BOW', 'FOCUS'],
+      moves: ['กลไกศร连珠', 'ห่าศรกลเก้าดารา'],
+      moveDefs: [
+        { id: 'ART_MECH_002_M1', parentId: 'ART_MECH_PUPPET_002', stageReq: 1, reqMastery: 0, nameTh: 'กลไกศรต่อเนื่อง', arch: 'barrage', type: 'p', M: 1.20, hits: 3, aoe: true, cd: 12, wind: 4, costPct: 4.5, pen: 16 },
+        { id: 'ART_MECH_002_M2', parentId: 'ART_MECH_PUPPET_002', stageReq: 2, reqMastery: 18, nameTh: 'ศรเดียวเจาะแกนดาว', arch: 'snipe', type: 'p', M: 1.62, hits: 1, cd: 13, wind: 4, costPct: 5.0, pen: 28, critAdd: 12 }
+      ],
+      stages: [{ stage: 1, id: 'ST1', nameTh: 'รางศรกลไก', reqMastery: 0 }, { stage: 2, id: 'ST2', nameTh: 'เก้าดาราล็อกเป้า', reqMastery: 18 }]
+    },
+    {
+      id: 'ART_MECH_PUPPET_003',
+      nameTh: 'ม่านเส้นไหมเหล็กกักวิญญาณ',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'THOUSAND_THREAD_ASSASSIN',
+      compatibleSubs: ['THOUSAND_THREAD_ASSASSIN', 'SOUL_VESSEL_AVATAR'],
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      combatArch: 'control',
+      element: 'EARTH_METAL',
+      power: 80,
+      weaponTypes: ['FOCUS', 'SWORD'],
+      moves: ['ขึงไหมเหล็กตัดทาง', 'บ่วงไหมบาดลึก'],
+      moveDefs: [
+        { id: 'ART_MECH_003_M1', parentId: 'ART_MECH_PUPPET_003', stageReq: 1, reqMastery: 0, nameTh: 'ขึงไหมเหล็กตัดทาง', arch: 'control', type: 'p', M: 1.05, hits: 1, cd: 15, wind: 4, costPct: 4.2 },
+        { id: 'ART_MECH_003_M2', parentId: 'ART_MECH_PUPPET_003', stageReq: 2, reqMastery: 18, nameTh: 'บ่วงไหมบาดลึก', arch: 'dot', type: 'p', M: 1.15, dot: 0.85, dotKind: 'bleed', hits: 1, cd: 13, wind: 4, costPct: 4.5 }
+      ],
+      stages: [{ stage: 1, id: 'ST1', nameTh: 'ตาข่ายไหมเงิน', reqMastery: 0 }, { stage: 2, id: 'ST2', nameTh: 'ไหมคมเฉือนกระดูก', reqMastery: 18 }]
+    },
+    {
+      id: 'ART_MECH_PUPPET_004',
+      nameTh: 'โล่ประกายศิลาจักรกลสะท้อน',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'HEAVENLY_GOLEM',
+      compatibleSubs: ['HEAVENLY_GOLEM', 'SOUL_VESSEL_AVATAR'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'guard',
+      element: 'EARTH_METAL',
+      power: 115,
+      moves: ['กางแผ่นเกราะสัมฤทธิ์', 'กำแพงศิลาจักรกล']
+    },
+    {
+      id: 'ART_MECH_PUPPET_005',
+      nameTh: 'กงล้อใบมีดหมุนวนสังหาร',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'FLYING_BLADE_ORBITER',
+      compatibleSubs: ['FLYING_BLADE_ORBITER', 'THOUSAND_THREAD_ASSASSIN'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'flurry',
+      element: 'EARTH_METAL',
+      power: 122,
+      weaponTypes: ['SWORD', 'BLADE', 'FOCUS'],
+      moves: ['กงล้อใบมีดฉีกเงา', 'พายุจักรกลกวาดลาน']
+    },
+    {
+      id: 'ART_MECH_PUPPET_006',
+      nameTh: 'คอร์จักรกลระเบิดสะท้านสวรรค์',
+      cat: 'FORBIDDEN_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'BEAST_CHIMERA_MECH',
+      compatibleSubs: ['BEAST_CHIMERA_MECH', 'HEAVENLY_GOLEM'],
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      combatArch: 'forbid',
+      element: 'FIRE',
+      power: 240,
+      weaponTypes: ['FOCUS', 'FIST', 'BLADE'],
+      moves: ['เร่งเตาปฏิกรณ์ถึงขีดสุด', 'แกนจักรกลระเบิดทำลายล้าง']
+    },
+    {
+      id: 'ART_MECH_PUPPET_007',
+      nameTh: 'สลับร่างหุ่นเงารับเคราะห์',
+      cat: 'MOVEMENT_TECHNIQUE',
+      role: 'MOVEMENT_STEALTH_RECON',
+      path: 'MECH_PUPPET',
+      sub: 'SOUL_VESSEL_AVATAR',
+      compatibleSubs: ['SOUL_VESSEL_AVATAR', 'THOUSAND_THREAD_ASSASSIN'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'evade',
+      element: 'YIN_SHADOW',
+      power: 110,
+      moves: ['ดีดสลับหุ่นไม้', 'เงาหุ่นลวงตา']
+    },
+    {
+      id: 'ART_MECH_PUPPET_008',
+      nameTh: 'ไอพ่นเร่งปราณจักรกลทะยาน',
+      cat: 'SUPPORT_TECHNIQUE',
+      role: 'HEAL_SUPPORT_TRAINING',
+      path: 'MECH_PUPPET',
+      sub: 'ASTRAL_CLOCKWORK_PRIME',
+      compatibleSubs: ['ASTRAL_CLOCKWORK_PRIME', 'BEAST_CHIMERA_MECH', 'FLYING_BLADE_ORBITER'],
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      combatArch: 'support',
+      element: 'WIND',
+      power: 155,
+      moves: ['เปิดวาล์วเร่งปราณ', 'เฟืองวายุหนุนทัพ']
+    },
+    {
+      id: 'ART_MECH_PUPPET_009',
+      nameTh: 'สว่านทวนเกลียวเหล็กทะลวงเกราะ',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'BEAST_CHIMERA_MECH',
+      compatibleSubs: ['BEAST_CHIMERA_MECH', 'HEAVENLY_GOLEM', 'CELESTIAL_BALLISTA'],
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      combatArch: 'pierce',
+      element: 'EARTH_METAL',
+      power: 168,
+      weaponTypes: ['SPEAR', 'BLADE'],
+      moves: ['เกลียวสว่านเจาะภูผา', 'ทวนกลทะลวงค่าย']
+    },
+    {
+      id: 'ART_MECH_PUPPET_010',
+      nameTh: 'หุ่นพิทักษ์ประสานค่ายกล',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'MECH_PUPPET',
+      sub: 'SOUL_VESSEL_AVATAR',
+      compatibleSubs: ['SOUL_VESSEL_AVATAR', 'HEAVENLY_GOLEM', 'ASTRAL_CLOCKWORK_PRIME'],
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      combatArch: 'summon',
+      element: 'EARTH_METAL',
+      power: 225,
+      weaponTypes: ['FOCUS', 'STAFF'],
+      moves: ['ปลุกหุ่นยามออกศึก', 'ค่ายกลหุ่นศิลาพิทักษ์']
+    },
+
+    // --- 10 Core Techniques for KARMA_SAMSARA ---
+    {
+      id: 'ART_KARMA_SAMSARA_001',
+      nameTh: 'กงล้อสังสารวัฏหมุนเวียน',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'SIX_PATHS_WHEEL',
+      compatibleSubs: ['SIX_PATHS_WHEEL', 'REVERSED_RETRIBUTION'],
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      combatArch: 'sweep',
+      element: 'LIGHT_YANG',
+      power: 45,
+      weaponTypes: ['FOCUS', 'STAFF'],
+      moves: ['กงล้อธรรมหมุนรอบ', 'คลื่นสังสารกวาดมาร']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_002',
+      nameTh: 'คมดาบวิบากกรรมตามสนอง',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'ASURA_JUDGMENT_BLADE',
+      compatibleSubs: ['ASURA_JUDGMENT_BLADE', 'REVERSED_RETRIBUTION'],
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      combatArch: 'execute',
+      element: 'BLOOD_DEMON',
+      power: 82,
+      weaponTypes: ['BLADE', 'SWORD'],
+      moves: ['ดาบตัดสินหนี้เลือด', 'วิบากกรรมตามทัน']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_003',
+      nameTh: 'ด้ายกรรมตัดขาดวาสนา',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'FATE_SEVERING_THREAD',
+      compatibleSubs: ['FATE_SEVERING_THREAD', 'PAST_LIFE_MIRROR'],
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      combatArch: 'pierce',
+      element: 'ASTRAL',
+      power: 80,
+      weaponTypes: ['SWORD', 'FOCUS'],
+      moves: ['สะบั้นสายวาสนา', 'เข็มชะตาทะลวงม่าน']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_004',
+      nameTh: 'ปทุมเมตตาชำระบาป',
+      cat: 'AUXILIARY_ART',
+      role: 'HEAL_SUPPORT_TRAINING',
+      path: 'KARMA_SAMSARA',
+      sub: 'LOTUS_MERCY_PURIFIER',
+      compatibleSubs: ['LOTUS_MERCY_PURIFIER', 'BODHI_VOW_GUARDIAN'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'heal',
+      element: 'WOOD_LIFE',
+      power: 118,
+      weaponTypes: ['FOCUS', 'STAFF'],
+      moves: ['โปรยกลีบบัวทิพย์', 'แสงปทุมชำระพิษ']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_005',
+      nameTh: 'ปราณอสูรพิโรธทัณฑ์นรก',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'ASURA_JUDGMENT_BLADE',
+      compatibleSubs: ['ASURA_JUDGMENT_BLADE', 'SIX_PATHS_WHEEL'],
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      combatArch: 'flurry',
+      element: 'FIRE',
+      power: 165,
+      weaponTypes: ['SPEAR', 'BLADE', 'FIST'],
+      moves: ['เพลิงทัณฑ์อสูร', 'หอกวิบากกระหน่ำแทง']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_006',
+      nameTh: 'กระจกกรรมสะท้อนคมศาสตรา',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'REVERSED_RETRIBUTION',
+      compatibleSubs: ['REVERSED_RETRIBUTION', 'PAST_LIFE_MIRROR'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'counter',
+      element: 'LIGHT_YANG',
+      power: 120,
+      moves: ['ตั้งกระจกส่องกรรม', 'สะท้อนเหตุคืนผล']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_007',
+      nameTh: 'ห่วงโซ่ชะตากรรมล่ามวิญญาณ',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'FATE_SEVERING_THREAD',
+      compatibleSubs: ['FATE_SEVERING_THREAD', 'BODHI_VOW_GUARDIAN'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'control',
+      element: 'EARTH_METAL',
+      power: 116,
+      weaponTypes: ['FOCUS', 'STAFF'],
+      moves: ['โซ่ตรวนแห่งวิบาก', 'ผนึกก้าวสังสาร']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_008',
+      nameTh: 'เสียงสวดแผ่เมตตาสงบใจมาร',
+      cat: 'SUPPORT_TECHNIQUE',
+      role: 'HEAL_SUPPORT_TRAINING',
+      path: 'KARMA_SAMSARA',
+      sub: 'BODHI_VOW_GUARDIAN',
+      compatibleSubs: ['BODHI_VOW_GUARDIAN', 'LOTUS_MERCY_PURIFIER'],
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      combatArch: 'support',
+      element: 'LIGHT_YANG',
+      power: 158,
+      weaponTypes: ['STAFF', 'FOCUS'],
+      moves: ['บทสวดระงับเวร', 'รัศมีธรรมคุ้มทัพ']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_009',
+      nameTh: 'ฝ่ามือกรรมวิบากถล่มสวรรค์',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'SIX_PATHS_WHEEL',
+      compatibleSubs: ['SIX_PATHS_WHEEL', 'REVERSED_RETRIBUTION', 'ASURA_JUDGMENT_BLADE'],
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      combatArch: 'burst',
+      element: 'LIGHT_YANG',
+      power: 235,
+      weaponTypes: ['FIST', 'STAFF'],
+      moves: ['รวมวิบากหกภพ', 'ฝ่ามือธรรมจักรทลายฟ้า']
+    },
+    {
+      id: 'ART_KARMA_SAMSARA_010',
+      nameTh: 'กลืนบาปเสริมพลังทิพย์',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'KARMA_SAMSARA',
+      sub: 'PAST_LIFE_MIRROR',
+      compatibleSubs: ['PAST_LIFE_MIRROR', 'REVERSED_RETRIBUTION'],
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      combatArch: 'drain',
+      element: 'YIN_SHADOW',
+      power: 162,
+      weaponTypes: ['FOCUS'],
+      moves: ['สูบแรงอาฆาต', 'แปรบาปเป็นปราณคุ้มกาย']
+    },
+
+    // --- 10 Core Techniques for BEAST_SOVEREIGN ---
+    {
+      id: 'ART_BEAST_SOV_001',
+      nameTh: 'เขี้ยวคู่ขย้ำประสานเงา',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'MYRIAD_BEAST_PACK',
+      compatibleSubs: ['MYRIAD_BEAST_PACK', 'SYMBIOTIC_BEAST_WARRIOR'],
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      combatArch: 'charge',
+      element: 'WIND',
+      power: 48,
+      weaponTypes: ['SPEAR', 'BLADE', 'FIST'],
+      moves: ['นายและอสูรพุ่งขย้ำ', 'เขี้ยวคู่ฉีกเงา']
+    },
+    {
+      id: 'ART_BEAST_SOV_002',
+      nameTh: 'โองการราชันย์สั่งฝูงอสูรคลั่ง',
+      cat: 'SUPPORT_TECHNIQUE',
+      role: 'HEAL_SUPPORT_TRAINING',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'MYRIAD_BEAST_PACK',
+      compatibleSubs: ['MYRIAD_BEAST_PACK', 'PRIMORDIAL_BLOOD_MUTATOR'],
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      combatArch: 'buff',
+      element: 'FIRE',
+      power: 82,
+      weaponTypes: ['FOCUS', 'STAFF'],
+      moves: ['เป่าเขาสัญญาณศึก', 'ปลุกโลหิตฝูงอสูร']
+    },
+    {
+      id: 'ART_BEAST_SOV_003',
+      nameTh: 'สั่งฝูงอสูรขย้ำสังหารหมู่',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'MYRIAD_BEAST_PACK',
+      compatibleSubs: ['MYRIAD_BEAST_PACK', 'ABYSSAL_DRAGON_TOTEM'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'barrage',
+      element: 'WIND',
+      power: 124,
+      weaponTypes: ['BOW', 'SPEAR'],
+      moves: ['ฝูงอสูรล้อมกรอบ', 'เขี้ยวเล็บพายุสังหาร']
+    },
+    {
+      id: 'ART_BEAST_SOV_004',
+      nameTh: 'เกราะเกล็ดอสูรบรรพกาลรับเคราะห์',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      role: 'COMBAT_DEFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'COLOSSUS_SHIELD_TAMER',
+      compatibleSubs: ['COLOSSUS_SHIELD_TAMER', 'SYMBIOTIC_BEAST_WARRIOR'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'guard',
+      element: 'EARTH_METAL',
+      power: 118,
+      weaponTypes: ['STAFF', 'SPEAR'],
+      moves: ['เกราะเกล็ดเต่าดำ', 'ปราการอสูรค้ำฟ้า']
+    },
+    {
+      id: 'ART_BEAST_SOV_005',
+      nameTh: 'ผสานร่างอวตารราชันย์อสูร',
+      cat: 'FORBIDDEN_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'SYMBIOTIC_BEAST_WARRIOR',
+      compatibleSubs: ['SYMBIOTIC_BEAST_WARRIOR', 'PRIMORDIAL_BLOOD_MUTATOR'],
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      combatArch: 'forbid',
+      element: 'BLOOD_DEMON',
+      power: 245,
+      weaponTypes: ['FIST', 'BLADE'],
+      moves: ['หลอมรวมโลหิตอสูร', 'อวตารราชันย์พยัคฆ์คลั่ง']
+    },
+    {
+      id: 'ART_BEAST_SOV_006',
+      nameTh: 'คลื่นฝูงแมลงกู่กลืนปราณ',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'SWARM_GU_HIVE_MASTER',
+      compatibleSubs: ['SWARM_GU_HIVE_MASTER'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'dot',
+      element: 'WOOD_LIFE',
+      power: 120,
+      weaponTypes: ['FOCUS'],
+      moves: ['ปล่อยฝูงแมลงทอง', 'กู่พิษกัดกร่อนชีพจร']
+    },
+    {
+      id: 'ART_BEAST_SOV_007',
+      nameTh: 'คำรามราชันย์สะกดขวัญหมื่นสัตว์',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'PRIMORDIAL_BLOOD_MUTATOR',
+      compatibleSubs: ['PRIMORDIAL_BLOOD_MUTATOR', 'ABYSSAL_DRAGON_TOTEM', 'MYRIAD_BEAST_PACK'],
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      combatArch: 'control',
+      element: 'EARTH_METAL',
+      power: 162,
+      moves: ['เสียงคำรามสะท้านไพร', 'แรงกดดันราชันย์อสูร']
+    },
+    {
+      id: 'ART_BEAST_SOV_008',
+      nameTh: 'ลมหายใจภูตพฤกษาสมานวิญญาณ',
+      cat: 'AUXILIARY_ART',
+      role: 'HEAL_SUPPORT_TRAINING',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+      compatibleSubs: ['CELESTIAL_ASTRAL_FAIRY_TAMER'],
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      combatArch: 'heal',
+      element: 'WOOD_LIFE',
+      power: 118,
+      weaponTypes: ['FOCUS', 'SWORD'],
+      moves: ['ละอองพฤกษาเยียวยา', 'สัตว์เทพชำระพิษ']
+    },
+    {
+      id: 'ART_BEAST_SOV_009',
+      nameTh: 'กรงเล็บสายฟ้าเหยี่ยวสวรรค์โฉบสังหาร',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'ABYSSAL_DRAGON_TOTEM',
+      compatibleSubs: ['ABYSSAL_DRAGON_TOTEM', 'MYRIAD_BEAST_PACK'],
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      combatArch: 'pierce',
+      element: 'LIGHTNING',
+      power: 172,
+      weaponTypes: ['SPEAR', 'BOW'],
+      moves: ['เหยี่ยวอสนีโฉบสังหาร', 'กรงเล็บสายฟ้าผ่าเกราะ']
+    },
+    {
+      id: 'ART_BEAST_SOV_010',
+      nameTh: 'อัญเชิญเงาเทพอสูรบรรพกาล',
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'COMBAT_OFFENSE',
+      path: 'BEAST_SOVEREIGN',
+      sub: 'PRIMORDIAL_BLOOD_MUTATOR',
+      compatibleSubs: ['PRIMORDIAL_BLOOD_MUTATOR', 'ABYSSAL_DRAGON_TOTEM', 'COLOSSUS_SHIELD_TAMER'],
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      combatArch: 'summon',
+      element: 'ASTRAL',
+      power: 230,
+      weaponTypes: ['STAFF', 'FOCUS'],
+      moves: ['อัญเชิญเงาเทพอสูร', 'จตุรเทพสถิตสมรภูมิ']
+    }
+  ];
+
+  // 6 New Mantras (2 per new path)
+  const newMantras = [
+    {
+      id: 'MANTRA_MECH_PUPPET_1',
+      nameTh: 'เคล็ดเดินปราณเฟืองทองสัมฤทธิ์',
+      cat: 'QI_MANTRA',
+      path: 'MECH_PUPPET',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      element: 'EARTH_METAL',
+      power: 26,
+      mantraBonus: { p: { def: 0.05, atk: 0.04 }, qiMaxPct: 0.08, cultRatePct: 0.06, life: { FORGING: 0.10 } },
+      moves: ['โคจรปราณแกนเฟือง', 'หล่อเลี้ยงเส้นไหมกล']
+    },
+    {
+      id: 'MANTRA_MECH_PUPPET_4',
+      nameTh: 'คัมภีร์วิญญาณศาสตรานครกลจักร',
+      cat: 'QI_MANTRA',
+      path: 'MECH_PUPPET',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      element: 'ASTRAL',
+      power: 98,
+      mantraBonus: { p: { def: 0.10, atk: 0.09, matk: 0.09 }, qiMaxPct: 0.16, cultRatePct: 0.14, life: { FORGING: 0.18, ARRAY: 0.12 } },
+      moves: ['เตาปฏิกรณ์ดาราหมุนเวียน', 'ร้อยใจคนและหุ่นเป็นหนึ่ง']
+    },
+    {
+      id: 'MANTRA_KARMA_SAMSARA_1',
+      nameTh: 'เคล็ดปราณประคำหยั่งรู้เหตุผล',
+      cat: 'QI_MANTRA',
+      path: 'KARMA_SAMSARA',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      element: 'LIGHT_YANG',
+      power: 26,
+      mantraBonus: { p: { mdef: 0.06, matk: 0.04 }, qiMaxPct: 0.08, cultRatePct: 0.07, life: { SCRIPTURE: 0.10 } },
+      moves: ['นับลูกประคำสงบจิต', 'เพ่งมองสายใยเหตุผล']
+    },
+    {
+      id: 'MANTRA_KARMA_SAMSARA_4',
+      nameTh: 'มหาคัมภีร์กงล้อสังสารวัฏหกภพ',
+      cat: 'QI_MANTRA',
+      path: 'KARMA_SAMSARA',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      element: 'LIGHT_YANG',
+      power: 98,
+      mantraBonus: { p: { mdef: 0.12, matk: 0.10, hp: 0.08 }, qiMaxPct: 0.16, cultRatePct: 0.15, life: { SCRIPTURE: 0.18, MEDICINE: 0.12 } },
+      moves: ['หมุนกงล้อหกภพในตันเถียน', 'ชำระวิบากบรรลุโพธิญาณ']
+    },
+    {
+      id: 'MANTRA_BEAST_SOVEREIGN_1',
+      nameTh: 'เคล็ดปราณเชื่อมจิตอสูรคู่สัญญา',
+      cat: 'QI_MANTRA',
+      path: 'BEAST_SOVEREIGN',
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      element: 'WOOD_LIFE',
+      power: 26,
+      mantraBonus: { p: { atk: 0.05, hp: 0.05 }, qiMaxPct: 0.08, cultRatePct: 0.06, life: { BEAST_TAMING: 0.14 } },
+      moves: ['แบ่งปันลมปราณสู่อสูร', 'เปิดโพรงวิญญาณเลี้ยงสัตว์']
+    },
+    {
+      id: 'MANTRA_BEAST_SOVEREIGN_4',
+      nameTh: 'มหาคัมภีร์ราชันย์หมื่นอสูรร่วมใจ',
+      cat: 'QI_MANTRA',
+      path: 'BEAST_SOVEREIGN',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Rare',
+      element: 'WOOD_LIFE',
+      power: 98,
+      mantraBonus: { p: { atk: 0.10, matk: 0.08, hp: 0.10 }, qiMaxPct: 0.16, cultRatePct: 0.14, life: { BEAST_TAMING: 0.25 } },
+      moves: ['มิติหมื่นอสูรหมุนเวียน', 'หลอมโลหิตนายและอสูรเป็นหนึ่ง']
+    }
+  ];
+
+  // New Items & Recipes for Mechanism, Karma, and Beast Taming
+  const newItems = [
+    {
+      id: 'ITEM_MECH_GOLEM_HAMMER_3',
+      recipeId: 'REC_MECH_GOLEM_HAMMER_3',
+      nameTh: 'พลองค้อนกลจักรเทวะศิลา',
+      slot: 'WEAPON',
+      gearType: 'STAFF',
+      tier: 3,
+      minStage: 2,
+      value: 165,
+      craft: 'FORGING',
+      out: 'EQUIPMENT',
+      compatiblePath: ['MECH_PUPPET', 'BODY', 'ANY'],
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } }
+    },
+    {
+      id: 'ITEM_MECH_BALLISTA_BOW_4',
+      recipeId: 'REC_MECH_BALLISTA_BOW_4',
+      nameTh: 'เกาทัณฑ์กลเก้าดาราทะลวงเกราะ',
+      slot: 'WEAPON',
+      gearType: 'BOW',
+      tier: 4,
+      minStage: 3,
+      value: 340,
+      craft: 'FORGING',
+      out: 'EQUIPMENT',
+      compatiblePath: ['MECH_PUPPET', 'XIAN', 'ANY'],
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'ASTRAL', weights: { ASTRAL: 1 } }
+    },
+    {
+      id: 'ITEM_MECH_CORE_CHARM_4',
+      recipeId: 'REC_MECH_CORE_CHARM_4',
+      nameTh: 'แกนปฏิกรณ์หุ่นเชิดหลู่ปาน',
+      slot: 'ACCESSORY',
+      gearType: 'CHARM',
+      tier: 4,
+      minStage: 3,
+      value: 320,
+      craft: 'FORGING',
+      out: 'EQUIPMENT',
+      compatiblePath: ['MECH_PUPPET', 'ANY'],
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } }
+    },
+    {
+      id: 'ITEM_KARMA_ROSARY_3',
+      recipeId: 'REC_KARMA_ROSARY_3',
+      nameTh: 'ลูกประคำตาชั่งวิบากหกภพ',
+      slot: 'ACCESSORY',
+      gearType: 'NECKLACE',
+      tier: 3,
+      minStage: 2,
+      value: 160,
+      craft: 'TALISMAN',
+      out: 'EQUIPMENT',
+      compatiblePath: ['KARMA_SAMSARA', 'HEART_SOUL', 'GOD', 'ANY'],
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }
+    },
+    {
+      id: 'ITEM_KARMA_MIRROR_FOCUS_4',
+      recipeId: 'REC_KARMA_MIRROR_FOCUS_4',
+      nameTh: 'กระจกส่องวิบากสะท้อนภพ',
+      slot: 'WEAPON',
+      gearType: 'FOCUS',
+      tier: 4,
+      minStage: 3,
+      value: 335,
+      craft: 'FORGING',
+      out: 'EQUIPMENT',
+      compatiblePath: ['KARMA_SAMSARA', 'HEART_SOUL', 'ANY'],
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }
+    },
+    {
+      id: 'ITEM_BEAST_PACT_RING_3',
+      recipeId: 'REC_BEAST_PACT_RING_3',
+      nameTh: 'แหวนมิติพันธสัญญาหมื่นอสูร',
+      slot: 'ACCESSORY',
+      gearType: 'RING',
+      tier: 3,
+      minStage: 2,
+      value: 170,
+      craft: 'BEAST_TAMING',
+      out: 'EQUIPMENT',
+      compatiblePath: ['BEAST_SOVEREIGN', 'ANY'],
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 1 } }
+    },
+    {
+      id: 'ITEM_BEAST_SOVEREIGN_SPEAR_4',
+      recipeId: 'REC_BEAST_SOVEREIGN_SPEAR_4',
+      nameTh: 'ทวนเขี้ยวราชันย์อสูรบัญชาทัพ',
+      slot: 'WEAPON',
+      gearType: 'SPEAR',
+      tier: 4,
+      minStage: 3,
+      value: 350,
+      craft: 'FORGING',
+      out: 'EQUIPMENT',
+      compatiblePath: ['BEAST_SOVEREIGN', 'BODY', 'ANY'],
+      element: 'WIND',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'WIND', weights: { WIND: 1 } }
+    },
+    {
+      id: 'ITEM_PILL_BEAST_EVOLVE_4',
+      recipeId: 'REC_PILL_BEAST_EVOLVE_4',
+      nameTh: 'โอสถวิวัฒน์สายเลือดเทพอสูร',
+      cat: 'PILL',
+      out: 'PILL',
+      slot: null,
+      tier: 4,
+      minStage: 2,
+      value: 260,
+      craft: 'ALCHEMY',
+      element: 'FIRE',
+      elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'FIRE', weights: { FIRE: 1 } }
+    }
+  ];
+
+  const newRecipes = [
+    {
+      id: 'REC_MECH_GOLEM_HAMMER_3',
+      nameTh: 'ตำรับสร้างพลองค้อนกลจักรเทวะศิลา',
+      craft: 'FORGING',
+      tier: 3,
+      minMastery: 32,
+      days: 6,
+      inputs: [{ matId: 'MAT_ORE_STAR_COPPER_3', count: 2 }, { matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: 'ITEM_MECH_GOLEM_HAMMER_3',
+      outItemId: 'ITEM_MECH_GOLEM_HAMMER_3',
+      outNameTh: 'พลองค้อนกลจักรเทวะศิลา',
+      yield: 1,
+      gearType: 'STAFF',
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } }
+    },
+    {
+      id: 'REC_MECH_BALLISTA_BOW_4',
+      nameTh: 'ตำรับสร้างเกาทัณฑ์กลเก้าดารา',
+      craft: 'FORGING',
+      tier: 4,
+      minMastery: 44,
+      days: 8,
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_BP_PYTHON_TENDON_3', count: 2 }],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: 'ITEM_MECH_BALLISTA_BOW_4',
+      outItemId: 'ITEM_MECH_BALLISTA_BOW_4',
+      outNameTh: 'เกาทัณฑ์กลเก้าดาราทะลวงเกราะ',
+      yield: 1,
+      gearType: 'BOW',
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'ASTRAL', weights: { ASTRAL: 1 } }
+    },
+    {
+      id: 'REC_MECH_CORE_CHARM_4',
+      nameTh: 'ตำรับหลอมแกนปฏิกรณ์หุ่นเชิดหลู่ปาน',
+      craft: 'FORGING',
+      tier: 4,
+      minMastery: 42,
+      days: 8,
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_ORE_MAGNET_LODESTONE_3', count: 1 }],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: 'ITEM_MECH_CORE_CHARM_4',
+      outItemId: 'ITEM_MECH_CORE_CHARM_4',
+      outNameTh: 'แกนปฏิกรณ์หุ่นเชิดหลู่ปาน',
+      yield: 1,
+      gearType: 'CHARM',
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } }
+    },
+    {
+      id: 'REC_KARMA_ROSARY_3',
+      nameTh: 'ตำรับร้อยลูกประคำตาชั่งวิบาก',
+      craft: 'TALISMAN',
+      tier: 3,
+      minMastery: 32,
+      days: 6,
+      inputs: [{ matId: 'MAT_HERB_JADE_LOTUS_2', count: 2 }, { matId: 'MAT_ORE_JADE_SLATE_2', count: 2 }],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: 'ITEM_KARMA_ROSARY_3',
+      outItemId: 'ITEM_KARMA_ROSARY_3',
+      outNameTh: 'ลูกประคำตาชั่งวิบากหกภพ',
+      yield: 1,
+      gearType: 'NECKLACE',
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }
+    },
+    {
+      id: 'REC_KARMA_MIRROR_FOCUS_4',
+      nameTh: 'ตำรับหลอมกระจกส่องวิบากสะท้อนภพ',
+      craft: 'FORGING',
+      tier: 4,
+      minMastery: 44,
+      days: 8,
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_HERB_BLOOD_GINSENG_3', count: 1 }],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: 'ITEM_KARMA_MIRROR_FOCUS_4',
+      outItemId: 'ITEM_KARMA_MIRROR_FOCUS_4',
+      outNameTh: 'กระจกส่องวิบากสะท้อนภพ',
+      yield: 1,
+      gearType: 'FOCUS',
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }
+    },
+    {
+      id: 'REC_BEAST_PACT_RING_3',
+      nameTh: 'ตำรับสร้างแหวนมิติพันธสัญญาหมื่นอสูร',
+      craft: 'FORGING',
+      tier: 3,
+      minMastery: 30,
+      days: 6,
+      inputs: [{ matId: 'MAT_BP_BOAR_CORE_2', count: 2 }, { matId: 'MAT_ORE_STAR_COPPER_3', count: 1 }],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: 'ITEM_BEAST_PACT_RING_3',
+      outItemId: 'ITEM_BEAST_PACT_RING_3',
+      outNameTh: 'แหวนมิติพันธสัญญาหมื่นอสูร',
+      yield: 1,
+      gearType: 'RING',
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 1 } }
+    },
+    {
+      id: 'REC_BEAST_SOVEREIGN_SPEAR_4',
+      nameTh: 'ตำรับตีทวนเขี้ยวราชันย์อสูร',
+      craft: 'FORGING',
+      tier: 4,
+      minMastery: 45,
+      days: 8,
+      inputs: [{ matId: 'MAT_BP_EARTH_CORE_4', count: 1 }, { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }],
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      itemId: 'ITEM_BEAST_SOVEREIGN_SPEAR_4',
+      outItemId: 'ITEM_BEAST_SOVEREIGN_SPEAR_4',
+      outNameTh: 'ทวนเขี้ยวราชันย์อสูรบัญชาทัพ',
+      yield: 1,
+      gearType: 'SPEAR',
+      element: 'WIND',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'WIND', weights: { WIND: 1 } }
+    },
+    {
+      id: 'REC_PILL_BEAST_EVOLVE_4',
+      nameTh: 'ตำรับโอสถวิวัฒน์สายเลือดเทพอสูร',
+      craft: 'ALCHEMY',
+      tier: 4,
+      minMastery: 42,
+      days: 8,
+      inputs: [{ matId: 'MAT_HERB_DRAGON_GRASS_4', count: 2 }, { matId: 'MAT_BP_EARTH_CORE_4', count: 1 }],
+      out: 'PILL',
+      outType: 'PILL',
+      itemId: 'ITEM_PILL_BEAST_EVOLVE_4',
+      outItemId: 'ITEM_PILL_BEAST_EVOLVE_4',
+      outNameTh: 'โอสถวิวัฒน์สายเลือดเทพอสูร',
+      effect: { cultivationProgress: 45, healHealth: 35, beastEvolutionBoost: 1 },
+      yield: 2,
+      element: 'FIRE',
+      elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'FIRE', weights: { FIRE: 1 } }
+    }
+  ];
+
+  const newResonanceSets = [
+    {
+      id: 'RES_MECH_AUTOMATON_CITADEL',
+      nameTh: 'ชุดกลจักรเทวะปราการหลู่ปาน',
+      path: 'MECH_PUPPET',
+      subpaths: ['HEAVENLY_GOLEM', 'THOUSAND_THREAD_ASSASSIN', 'BEAST_CHIMERA_MECH', 'CELESTIAL_BALLISTA', 'SOUL_VESSEL_AVATAR', 'FLYING_BLADE_ORBITER', 'ASTRAL_CLOCKWORK_PRIME'],
+      elementFamily: ['EARTH_METAL', 'ASTRAL', 'FIRE', 'YIN_SHADOW', 'WOOD_LIFE', 'EXPLICIT_NON_ELEMENTAL'],
+      minTier: 3,
+      maxTier: 7,
+      slots: {
+        WEAPON: ['STAFF', 'BOW', 'FOCUS', 'SWORD', 'BLADE', 'FIST', 'SPEAR'],
+        ARMOR: ['HEAVY', 'LIGHT', 'ROBE'],
+        ACCESSORY: ['CHARM', 'RING', 'BRACELET', 'NECKLACE']
+      },
+      bonus2: { p: { atk: 0.08, matk: 0.08, def: 0.10 }, f: { pen: 7 }, descTh: '2 ชิ้น: โจมตีกาย/วิชา +8%, ป้องกัน +10%, เจาะเกราะ +7%' },
+      bonus3: {
+        p: { atk: 0.16, matk: 0.16, def: 0.18, hp: 0.12 },
+        f: { pen: 14, crit: 8, cast: 8 },
+        rider: { status: 'armorbreak', chance: 0.38, dur: 10, bonusDmgMult: 1.09, descTh: 'ฟันเฟืองกลจักรบดเกราะ (โอกาส 38% เกราะแตก + ดาเมจ ×1.09)' },
+        descTh: '3 ชิ้น: โจมตีกาย/วิชา +16%, ป้องกัน +18%, เลือด +12%, เจาะเกราะ +14% และโอกาสบดขยี้เกราะศัตรู'
+      }
+    },
+    {
+      id: 'RES_KARMA_SAMSARA_WHEEL',
+      nameTh: 'ชุดกงล้อวิบากกรรมหกภพภูมิ',
+      path: 'KARMA_SAMSARA',
+      subpaths: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'LOTUS_MERCY_PURIFIER', 'ASURA_JUDGMENT_BLADE', 'PAST_LIFE_MIRROR', 'BODHI_VOW_GUARDIAN'],
+      elementFamily: ['LIGHT_YANG', 'YIN_SHADOW', 'ASTRAL', 'WOOD_LIFE', 'FIRE', 'EXPLICIT_NON_ELEMENTAL'],
+      minTier: 3,
+      maxTier: 7,
+      slots: {
+        WEAPON: ['FOCUS', 'STAFF', 'SWORD', 'BLADE', 'SPEAR', 'FIST'],
+        ARMOR: ['ROBE', 'LIGHT', 'HEAVY'],
+        ACCESSORY: ['NECKLACE', 'CHARM', 'RING', 'BRACELET']
+      },
+      bonus2: { p: { matk: 0.09, mdef: 0.10, hp: 0.08 }, f: { cast: 6 }, descTh: '2 ชิ้น: โจมตีวิชา +9%, ป้องกันวิชา +10%, เลือด +8%, ร่าย +6' },
+      bonus3: {
+        p: { matk: 0.17, atk: 0.12, mdef: 0.18, hp: 0.14 },
+        f: { cast: 12, pen: 12, crit: 8 },
+        rider: { status: 'weaken', chance: 0.38, dur: 10, bonusDmgMult: 1.09, descTh: 'ตาชั่งวิบากกดข่มมาร (โอกาส 38% อ่อนแรง + ดาเมจ ×1.09)' },
+        descTh: '3 ชิ้น: โจมตีวิชา +17%, ป้องกันวิชา +18%, เลือด +14%, ร่าย +12 และโอกาสกดข่มกำลังศัตรูด้วยวิบากกรรม'
+      }
+    },
+    {
+      id: 'RES_BEAST_SOVEREIGN_PACT',
+      nameTh: 'ชุดพันธสัญญาราชันย์หมื่นอสูร',
+      path: 'BEAST_SOVEREIGN',
+      subpaths: ['MYRIAD_BEAST_PACK', 'PRIMORDIAL_BLOOD_MUTATOR', 'SYMBIOTIC_BEAST_WARRIOR', 'COLOSSUS_SHIELD_TAMER', 'SWARM_GU_HIVE_MASTER', 'CELESTIAL_ASTRAL_FAIRY_TAMER', 'ABYSSAL_DRAGON_TOTEM'],
+      elementFamily: ['WOOD_LIFE', 'WIND', 'FIRE', 'EARTH_METAL', 'LIGHTNING', 'LIGHT_YANG', 'EXPLICIT_NON_ELEMENTAL'],
+      minTier: 3,
+      maxTier: 7,
+      slots: {
+        WEAPON: ['SPEAR', 'FIST', 'BLADE', 'BOW', 'STAFF', 'FOCUS', 'SWORD'],
+        ARMOR: ['LIGHT', 'HEAVY', 'ROBE'],
+        ACCESSORY: ['RING', 'CHARM', 'BRACELET', 'NECKLACE']
+      },
+      bonus2: { p: { atk: 0.09, matk: 0.08, hp: 0.09 }, f: { move: 6 }, descTh: '2 ชิ้น: โจมตีกาย +9%, วิชา +8%, เลือด +9%, ความเร็ว +6' },
+      bonus3: {
+        p: { atk: 0.17, matk: 0.15, hp: 0.16, def: 0.12 },
+        f: { move: 12, crit: 9, critDmg: 18, pen: 12 },
+        rider: { status: 'bleed', chance: 0.40, dur: 10, bonusDmgMult: 1.10, descTh: 'เขี้ยวราชันย์อสูรประสานขย้ำ (โอกาส 40% เลือดไหล + ดาเมจ ×1.10)' },
+        descTh: '3 ชิ้น: โจมตีกาย +17%, วิชา +15%, เลือด +16%, ป้องกัน +12% และประสานคมเขี้ยวอสูรคู่สัญญา'
+      }
+    }
+  ];
+
+  const newSynergies = [
+    { id: 'SYN_V208_GOLEM', subpath: 'HEAVENLY_GOLEM', weaponTypes: ['STAFF', 'FIST'], armorTypes: ['HEAVY'], archs: ['guard', 'shield', 'sweep', 'strike'], bonus: { shieldMult: 1.20, dmgMult: 1.12 } },
+    { id: 'SYN_V208_THREAD', subpath: 'THOUSAND_THREAD_ASSASSIN', weaponTypes: ['FOCUS', 'SWORD'], archs: ['pierce', 'control', 'dot', 'evade'], bonus: { dmgMult: 1.14, critAdd: 8, penAdd: 10 } },
+    { id: 'SYN_V208_BALLISTA', subpath: 'CELESTIAL_BALLISTA', weaponTypes: ['BOW', 'FOCUS'], archs: ['barrage', 'snipe', 'pierce'], bonus: { dmgMult: 1.15, penAdd: 12, critDmgAdd: 15 } },
+    { id: 'SYN_V208_KARMA_RET', subpath: 'REVERSED_RETRIBUTION', weaponTypes: ['FOCUS', 'STAFF'], archs: ['counter', 'shield', 'strike'], bonus: { shieldMult: 1.18, dmgMult: 1.14, cleanseHeartDemon: 4 } },
+    { id: 'SYN_V208_KARMA_LOTUS', subpath: 'LOTUS_MERCY_PURIFIER', weaponTypes: ['FOCUS', 'STAFF'], archs: ['heal', 'support', 'shield'], bonus: { healMult: 1.22, shieldMult: 1.18, cleanseHeartDemon: 6 } },
+    { id: 'SYN_V208_BEAST_PACK', subpath: 'MYRIAD_BEAST_PACK', weaponTypes: ['SPEAR', 'BOW', 'FOCUS'], archs: ['barrage', 'charge', 'buff'], bonus: { dmgMult: 1.15, critAdd: 8, extraSupportDur: 4 } },
+    { id: 'SYN_V208_BEAST_WARRIOR', subpath: 'SYMBIOTIC_BEAST_WARRIOR', weaponTypes: ['FIST', 'BLADE', 'SPEAR'], archs: ['flurry', 'burst', 'strike', 'forbid'], bonus: { dmgMult: 1.16, critDmgAdd: 16, penAdd: 10 } }
+  ];
+
+  return {
+    newMajorPaths,
+    newSubPaths,
+    allSubStats,
+    allSubPrefs,
+    newTracks,
+    newInnateTechniques,
+    newTechniques,
+    newMantras,
+    newItems,
+    newRecipes,
+    newResonanceSets,
+    newSynergies
+  };
+})();
+
+// Register 3 new major paths into JD.CULT.paths
+Object.entries(EXP_V208.newMajorPaths).forEach(([k, v]) => {
+  if (!JD.CULT.paths[k]) {
+    JD.CULT.paths[k] = v;
+  }
+});
+
+// Register 21 new subpaths into JD.CULT.paths & JD.MARTIAL.subPaths
+EXP_V208.newSubPaths.forEach(s => {
+  if (!D.subPaths.some(x => x.id === s.id)) D.subPaths.push(s);
+  const p = JD.CULT.paths[s.path];
+  if (p && !p.subPaths.some(x => x.id === s.id)) p.subPaths.push(s);
+});
+
+// Subpath alias map forSIX_PATHS_REINCARCARNATION -> SIX_PATHS_WHEEL
+D.SUBPATH_ALIASES = Object.assign(D.SUBPATH_ALIASES || {}, {
+  SIX_PATHS_REINCARCARNATION: 'SIX_PATHS_WHEEL',
+  SIX_PATHS_REINCARNATION: 'SIX_PATHS_WHEEL'
+});
+
+// Register SubStats & SubPreferences
+JD.EXPANSION.subStats = Object.assign(JD.EXPANSION.subStats || {}, EXP_V208.allSubStats);
+D.subStats = Object.assign(D.subStats || {}, EXP_V208.allSubStats);
+JD.EXPANSION.subPreferences = Object.assign(JD.EXPANSION.subPreferences || {}, EXP_V208.allSubPrefs);
+D.subPreferences = Object.assign(D.subPreferences || {}, EXP_V208.allSubPrefs);
+
+// Register 21 new 9-Realm specialization tracks into JD.EXPANSION.progressionMapping
+if (Array.isArray(JD.EXPANSION.progressionMapping)) {
+  EXP_V208.newTracks.forEach(tr => {
+    if (!JD.EXPANSION.progressionMapping.some(x => (x.subPath || x.subPathId) === tr.subPath)) {
+      JD.EXPANSION.progressionMapping.push(tr);
+    }
+  });
+}
+
+// Register 21 new Innate Subpath Techniques
+EXP_V208.newInnateTechniques.forEach(t => {
+  if (!t.elementProfile) {
+    t.elementProfile = { mode: 'INTRINSIC_SINGLE', primary: t.element || 'NEUTRAL', weights: t.element ? { [t.element]: 1 } : {} };
+  }
+  if (!D.innateTechniques.some(x => x.id === t.id)) D.innateTechniques.push(t);
+  if (!JD.TECH.techniques.some(x => x.id === t.id)) JD.TECH.techniques.push(t);
+});
+
+// Register 33 new Learnable Techniques & 6 new Mantras
+EXP_V208.newTechniques.forEach(t => {
+  if (!t.elementProfile) {
+    t.elementProfile = { mode: 'INTRINSIC_SINGLE', primary: t.element || 'NEUTRAL', weights: t.element ? { [t.element]: 1 } : {} };
+  }
+  if (!D.techniques.some(x => x.id === t.id)) D.techniques.push(t);
+  if (!JD.TECH.techniques.some(x => x.id === t.id)) {
+    if (t.martialBootstrap) {
+      const baseIdx = JD.TECH.techniques.findIndex(x => x.id === 'MP_BASE_HEART_SOUL');
+      if (baseIdx >= 0) JD.TECH.techniques.splice(baseIdx + 1, 0, t);
+      else JD.TECH.techniques.push(t);
+    } else {
+      JD.TECH.techniques.push(t);
+    }
+  }
+});
+EXP_V208.newMantras.forEach(m => {
+  if (!m.elementProfile) {
+    m.elementProfile = { mode: 'INTRINSIC_SINGLE', primary: m.element || 'NEUTRAL', weights: m.element ? { [m.element]: 1 } : {} };
+  }
+  if (!JD.TECH.mantras.some(x => x.id === m.id)) JD.TECH.mantras.push(m);
+});
+
+// Register Synergies, Items, Recipes, and Resonance Sets
+EXP_V208.newSynergies.forEach(syn => {
+  if (!D.SYNERGIES.some(x => x.id === syn.id)) D.SYNERGIES.push(syn);
+});
+EXP_V208.newItems.forEach(it => {
+  if (!JD.ITEMS.items.some(x => x.id === it.id)) JD.ITEMS.items.push(it);
+});
+EXP_V208.newRecipes.forEach(r => {
+  if (!JD.ITEMS.recipes.some(x => x.id === r.id)) JD.ITEMS.recipes.push(r);
+});
+EXP_V208.newResonanceSets.forEach(rs => {
+  if (!D.RESONANCE_SETS.some(x => x.id === rs.id)) D.RESONANCE_SETS.push(rs);
+});
+
+
+
+/* ---------- Patch v2.0.8 Expansion Part 2: SAGE_SUPPORT (9th Major Path: Healing, Buff & Support) & Cross-Path Arsenal ---------- */
+(function applyV208SageSupport() {
+  const JD = globalThis.JD;
+  if (!JD || !JD.CULT || !JD.MARTIAL || !JD.TECH || !JD.ITEMS) return;
+  const D = JD.MARTIAL;
+  if (JD.CULT.paths && JD.CULT.paths.SAGE_SUPPORT) return;
+
+  const sageSubPaths = [
+    {
+      id: 'GOLDEN_NEEDLE_SAINT',
+      path: 'SAGE_SUPPORT',
+      nameTh: 'สายปราชญ์เข็มทองเปิดชีพจร',
+      resourceTh: 'เข็มทองเก้าดาราและตำราฝังเข็มหวงตี้เน่ยจิง',
+      strengthTh: 'ฝังเข็มทองเปิดจุดชีพจรสำคัญ ฟื้นฟูบาดแผลฉับพลันและมอบบัฟเปิดชีพจรยุทธ์เร่งพลังให้ตนเองหรือพวกพ้อง',
+      weaknessTh: 'ต้องใช้ความแม่นยำและสมาธิในการเล็งจุดชีพจรสูง',
+      combatBonus: 1.08,
+      defenseBonus: 1.16,
+      breakthroughMod: 1.05,
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.65, WOOD_LIFE: 0.35 } }
+    },
+    {
+      id: 'CELESTIAL_ZITHER_ENVOY',
+      path: 'SAGE_SUPPORT',
+      nameTh: 'สายทูตพิณสวรรค์คีตเวทย์',
+      resourceTh: 'พิณหยกเจ็ดสายและโน้ตคีตเวทย์โบราณ',
+      strengthTh: 'บรรเลงพิณเจ็ดสายส่งคลื่นเสียงมอบบัฟความเร็ว ความแม่นยำ และการหมุนเวียนปราณแก่ทั้งกองทัพ',
+      weaknessTh: 'พลังทำลายเดี่ยวไม่สูงเท่าสายสังหารโดยตรง',
+      combatBonus: 1.10,
+      defenseBonus: 1.14,
+      breakthroughMod: 1.04,
+      element: 'WIND',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WIND', weights: { WIND: 0.65, LIGHT_YANG: 0.35 } }
+    },
+    {
+      id: 'DIVINE_NECTAR_APOTHECARY',
+      path: 'SAGE_SUPPORT',
+      nameTh: 'สายหมอเทวดาน้ำค้างทิพย์',
+      resourceTh: 'คนโทหยกน้ำค้างทิพย์และสมุนไพรวิญญาณร้อยชนิด',
+      strengthTh: 'กลั่นน้ำค้างทิพย์เยียวยาบาดแผลต่อเนื่อง ชะล้างพิษร้าย และฟื้นฟูพลังชีวิตหมู่คณะอย่างทรงพลัง',
+      weaknessTh: 'เน้นการยื้อศึกและฟื้นฟูมากกว่าการบุกทะลวงฉับพลัน',
+      combatBonus: 1.04,
+      defenseBonus: 1.24,
+      breakthroughMod: 1.06,
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 1.0 } }
+    },
+    {
+      id: 'QIMEN_TALISMAN_PATRON',
+      path: 'SAGE_SUPPORT',
+      nameTh: 'สายปรมาจารย์ยันต์ฉีเหมินคุ้มทัพ',
+      resourceTh: 'ยันต์ฉีเหมินแปดประตูและจานค่ายกลดารา',
+      strengthTh: 'กางค่ายกลและยันต์ฉีเหมินสร้างโล่ดูดซับความเสียหายและมอบบัฟปราการคุ้มกายระดับสูง',
+      weaknessTh: 'ใช้ปราณในการกางม่านคุ้มกันค่อนข้างสูง',
+      combatBonus: 1.06,
+      defenseBonus: 1.26,
+      breakthroughMod: 1.04,
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.65, EARTH_METAL: 0.35 } }
+    },
+    {
+      id: 'SOUL_LANTERN_SHEPHERD',
+      path: 'SAGE_SUPPORT',
+      nameTh: 'สายผู้ถือโคมวิญญาณคุ้มชีพ',
+      resourceTh: 'โคมบัวทิพย์ส่องวิญญาณและเพลิงหยางบริสุทธิ์',
+      strengthTh: 'จุดโคมบัวทิพย์มอบบัฟคุ้มชีพกันตาย 1 ครั้งก่อนหมดเวลา และชำระล้างจิตมารให้กระจ่างใส',
+      weaknessTh: 'บัฟคุ้มชีพมีคูลดาวน์และสลายตัวทันทีเมื่อทำงานช่วยชีวิตสำเร็จ',
+      combatBonus: 1.05,
+      defenseBonus: 1.22,
+      breakthroughMod: 1.06,
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.70, WOOD_LIFE: 0.30 } }
+    },
+    {
+      id: 'WAR_BANNER_CHORISTER',
+      path: 'SAGE_SUPPORT',
+      nameTh: 'สายขุนพลธงศึกปลุกขวัญสวรรค์',
+      resourceTh: 'ธงศึกแม่ทัพสวรรค์และกลองศึกสะท้านภพ',
+      strengthTh: 'โบกสะบัดธงศึกแนวหน้า มอบบัฟโจมตี อัตราคริ และเจาะเกราะแก่ตนเองและพวกพ้องทั้งแนวรบ',
+      weaknessTh: 'ต้องยืนคุมจังหวะในแนวรบทำให้มีโอกาสถูกศัตรูเพ่งเล็ง',
+      combatBonus: 1.16,
+      defenseBonus: 1.14,
+      breakthroughMod: 1.02,
+      element: 'FIRE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'FIRE', weights: { FIRE: 0.60, LIGHT_YANG: 0.40 } }
+    },
+    {
+      id: 'WOOD_SPIRIT_SYMBIONT',
+      path: 'SAGE_SUPPORT',
+      nameTh: 'สายทูตพฤกษาวิญญาณค้ำชูโลก',
+      resourceTh: 'กิ่งต้นไม้โลกและเมล็ดพันธุ์พฤกษาสวรรค์',
+      strengthTh: 'เชื่อมโยงรากพฤกษาวิญญาณดูดซับพลังศัตรูมาแปรเปลี่ยนเป็นคลื่นฟื้นฟูต่อเนื่องและเกราะไม้แก่พวกพ้อง',
+      weaknessTh: 'แพ้ทางเพลิงผลาญรุนแรงหากไม่ได้กางม่านน้ำค้างคุ้มกัน',
+      combatBonus: 1.08,
+      defenseBonus: 1.20,
+      breakthroughMod: 1.05,
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.70, WATER_ICE: 0.30 } }
+    }
+  ];
+
+  const sagePath = {
+    id: 'SAGE_SUPPORT',
+    nameTh: 'วิถีปราชญ์โอสถและคีตเวทย์หนุนนำ',
+    shortTh: 'วิถีปราชญ์หนุนนำ',
+    icon: '🪷',
+    color: '#6ddfb5',
+    maxStage: 8,
+    resourceUsed: 'น้ำค้างทิพย์ร้อยสมุนไพร เข็มทองเก้าดารา และสายพิณหยกสวรรค์',
+    coreMechanicTh: 'หัตถ์เทวะเยียวยาและคีตเวทย์หนุนทัพ (Divine Restoration & Harmonic Timed Buffs): ฟื้นฟูพลังชีวิตและปราณแก่ตนเองหรือพวกพ้อง ชำระล้างพิษและบาดแผล พร้อมมอบบัฟเสริมแกร่ง 8 รูปแบบที่มีเวลาคงอยู่ชัดเจน',
+    supremeRiskTh: 'ชีพจรปราณย้อนกลับจากการฝืนชุบชีวิต (Meridian Overdrain Backlash — สูญเสียปราณและอ่อนล้าชั่วคราว)',
+    element: 'WOOD_LIFE',
+    elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.60, LIGHT_YANG: 0.40 } },
+    stages: [
+      { stage: 1, nameTh: 'ขั้นที่ 1 • เปิดชีพจรหยั่งรู้', lifespanMax: 102, combatPower: 120, breakthroughBaseChance: 0.79, tribulationLayers: 0, resourceReq: 'สมุนไพรปราณและเข็มเงินสามัญ' },
+      { stage: 2, nameTh: 'ขั้นที่ 2 • เข็มเงินประสานปราณ', lifespanMax: 140, combatPower: 255, breakthroughBaseChance: 0.69, tribulationLayers: 0, resourceReq: 'เข็มเงินประสานปราณและบัววิญญาณ' },
+      { stage: 3, nameTh: 'ขั้นที่ 3 • หลอมน้ำค้างทิพย์', lifespanMax: 200, combatPower: 540, breakthroughBaseChance: 0.57, tribulationLayers: 1, resourceReq: 'คนโทหยกน้ำค้างทิพย์เสินหนง' },
+      { stage: 4, nameTh: 'ขั้นที่ 4 • คีตเวทย์ก้องหุบเขา', lifespanMax: 295, combatPower: 1140, breakthroughBaseChance: 0.46, tribulationLayers: 2, resourceReq: 'สายพิณหยกเจ็ดสำเนียงสวรรค์' },
+      { stage: 5, nameTh: 'ขั้นที่ 5 • ค่ายกลดาราคุ้มทัพ', lifespanMax: 440, combatPower: 2380, breakthroughBaseChance: 0.36, tribulationLayers: 4, resourceReq: 'กล่องเข็มทองเก้าดาราจักรพรรดิเหลือง' },
+      { stage: 6, nameTh: 'ขั้นที่ 6 • หัตถ์เทวะชุบวิญญาณ', lifespanMax: 660, combatPower: 4780, breakthroughBaseChance: 0.27, tribulationLayers: 5, resourceReq: 'โคมบัวทิพย์ชุบวิญญาณนิรันดร์' },
+      { stage: 7, nameTh: 'ขั้นที่ 7 • มหาปราชญ์โอสถสวรรค์', lifespanMax: 1000, combatPower: 9550, breakthroughBaseChance: 0.18, tribulationLayers: 7, resourceReq: 'แก่นพฤกษาสวรรค์ค้ำจุนหมื่นชีวิต' },
+      { stage: 8, nameTh: 'ขั้นที่ 8 • อมตะเมตตาค้ำจุนฟ้าดิน', lifespanMax: 1850, combatPower: 24000, breakthroughBaseChance: 0.12, tribulationLayers: 8, resourceReq: 'ตราอมตะเมตตาเสินหนง' }
+    ],
+    subPaths: sageSubPaths.slice()
+  };
+
+  JD.CULT.paths.SAGE_SUPPORT = sagePath;
+  sageSubPaths.forEach(s => {
+    if (!D.subPaths.some(x => x.id === s.id)) D.subPaths.push(s);
+  });
+
+  // Alias map covering all alternate names
+  Object.assign(D.SUBPATH_ALIASES, {
+    IRON_COLOSSUS: 'HEAVENLY_GOLEM',
+    THOUSAND_THREAD_PUPPETEER: 'THOUSAND_THREAD_ASSASSIN',
+    SPIRIT_ARTILLERY_ENGINEER: 'CELESTIAL_BALLISTA',
+    CLOCKWORK_SWARM_WEAVER: 'FLYING_BLADE_ORBITER',
+    FORTRESS_BASTION_ARCHITECT: 'BEAST_CHIMERA_MECH',
+    RED_THREAD_ARBITER: 'FATE_SEVERING_THREAD',
+    PAST_LIFE_CHRONICLER: 'PAST_LIFE_MIRROR',
+    SYMBIOTIC_FANG_FUSION: 'SYMBIOTIC_BEAST_WARRIOR',
+    MOUNT_CHARGER: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+    ASTRAL_MOUNT: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+    PRIMORDIAL_BLOOD_AWAKENER: 'PRIMORDIAL_BLOOD_MUTATOR',
+    SWARM_INSECT_EMPEROR: 'SWARM_GU_HIVE_MASTER'
+  });
+
+  const sageSubStats = {
+    GOLDEN_NEEDLE_SAINT: { p: { mdef: 0.14, def: 0.10, acc: 0.12 }, f: { cast: 14, pen: 10 } },
+    CELESTIAL_ZITHER_ENVOY: { p: { matk: 0.10, mdef: 0.14, eva: 0.10 }, f: { cast: 18, move: 10 } },
+    DIVINE_NECTAR_APOTHECARY: { p: { hp: 0.20, mdef: 0.16, def: 0.10 }, f: { cast: 10 } },
+    QIMEN_TALISMAN_PATRON: { p: { def: 0.18, mdef: 0.20, hp: 0.12 }, f: { cast: 10 } },
+    SOUL_LANTERN_SHEPHERD: { p: { mdef: 0.20, hp: 0.16, def: 0.10 }, f: { eva: 8, cast: 10 } },
+    WAR_BANNER_CHORISTER: { p: { atk: 0.12, matk: 0.10, def: 0.14, hp: 0.12 }, f: { crit: 6, move: 8 } },
+    WOOD_SPIRIT_SYMBIONT: { p: { hp: 0.18, def: 0.14, mdef: 0.14, matk: 0.08 }, f: { cast: 8 } }
+  };
+  Object.assign(D.subStats, sageSubStats);
+  if (JD.EXPANSION && JD.EXPANSION.subStats) Object.assign(JD.EXPANSION.subStats, sageSubStats);
+
+  const sageSubPrefs = {
+    GOLDEN_NEEDLE_SAINT: { aff: { MEDICINE: 0.9, ALCHEMY: 0.7, LIGHT_YANG: 0.5 }, p: { 'personality.empathy': 0.7, 'intellect.perceptiveness': 0.6 } },
+    CELESTIAL_ZITHER_ENVOY: { aff: { SOUL_DIVINE: 0.8, WIND: 0.7, TALISMAN: 0.5 }, p: { 'interests.arts': 0.8, 'social.charisma': 0.6 } },
+    DIVINE_NECTAR_APOTHECARY: { aff: { MEDICINE: 1.0, ALCHEMY: 0.8, WOOD_LIFE: 0.7 }, p: { 'personality.empathy': 0.8, 'interests.medicine': 0.8 } },
+    QIMEN_TALISMAN_PATRON: { aff: { TALISMAN: 0.9, ARRAY: 0.8, ASTRAL: 0.5 }, p: { 'intellect.planning': 0.7, 'personality.caution': 0.6 } },
+    SOUL_LANTERN_SHEPHERD: { aff: { SOUL_DIVINE: 0.9, MEDICINE: 0.7, LIGHT_YANG: 0.6 }, p: { 'personality.composure': 0.7, 'personality.empathy': 0.7 } },
+    WAR_BANNER_CHORISTER: { aff: { SPEAR: 0.7, STAFF: 0.7, FIRE: 0.5 }, p: { 'social.leadership': 0.8, 'personality.courage': 0.7 } },
+    WOOD_SPIRIT_SYMBIONT: { aff: { WOOD_LIFE: 0.9, MEDICINE: 0.7, ALCHEMY: 0.6 }, p: { 'interests.herbs': 0.8, 'personality.empathy': 0.6 } }
+  };
+  Object.assign(D.subPreferences, sageSubPrefs);
+  if (JD.EXPANSION && JD.EXPANSION.subPreferences) Object.assign(JD.EXPANSION.subPreferences, sageSubPrefs);
+
+  const skillPairs = {
+    GOLDEN_NEEDLE_SAINT: ['MEDICINE', 'FOCUS'],
+    CELESTIAL_ZITHER_ENVOY: ['arts', 'FOCUS'],
+    DIVINE_NECTAR_APOTHECARY: ['MEDICINE', 'ALCHEMY'],
+    QIMEN_TALISMAN_PATRON: ['TALISMAN', 'ARRAY'],
+    SOUL_LANTERN_SHEPHERD: ['SOUL_DIVINE', 'MEDICINE'],
+    WAR_BANNER_CHORISTER: ['SPEAR', 'ritual'],
+    WOOD_SPIRIT_SYMBIONT: ['herbalism', 'MEDICINE']
+  };
+  const mMap8 = [1, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8];
+  const fcpTable = [130, 310, 620, 1180, 2250, 4100, 7400, 13200, 23500];
+  const stoneTable = [55, 78, 125, 210, 350, 580, 950, 1550, 2500];
+  const pMinTable = [15, 30, 40, 50, 60, 70, 80, 88, 95];
+  const sMinTable = [10, 16, 22, 28, 34, 40, 46, 52, 58];
+  const realmSuffixes = ['ขั้นต้นหยั่งราก', 'ขั้นสองประสานปราณ', 'ขั้นสามหลอมแก่น', 'ขั้นสี่ทะลวงชีพจร', 'ขั้นห้าสำแดงสัจธรรม', 'ขั้นหกครองอาณาเขต', 'ขั้นเจ็ดก้าวข้ามขีดจำกัด', 'ขั้นแปดบรรลุธรรมญาณ', 'ขั้นเก้าสมบูรณ์สูงสุด'];
+  if (JD.EXPANSION && Array.isArray(JD.EXPANSION.progressionMapping)) {
+    for (const sp of sageSubPaths) {
+      if (JD.EXPANSION.progressionMapping.some(x => x.subPath === sp.id)) continue;
+      const [pSk, sSk] = skillPairs[sp.id] || ['MEDICINE', 'FOCUS'];
+      const realms = [];
+      for (let i = 0; i < 9; i++) {
+        const ord = i + 1;
+        realms.push({
+          ordinal: ord,
+          id: 'R_EXP_' + sp.id + '_0' + ord,
+          nameTh: sp.nameTh.replace(/^สาย/, '') + ' · ' + realmSuffixes[i],
+          lifespanMax: 100 + i * 38,
+          functionalCombatPower: fcpTable[i],
+          majorBandEquivalent: mMap8[i],
+          skillGate: { primarySkill: pSk, minPrimarySkill: pMinTable[i], secondarySkill: sSk, minSecondarySkill: sMinTable[i] },
+          resourceCost: { stones: stoneTable[i], materialTier: Math.min(7, 1 + Math.floor(i / 2)) },
+          capacityMultipliers: { maxQiMult: +(1 + i * 0.07).toFixed(2), vitalityMult: +(1 + i * 0.06).toFixed(2), faithPoolMult: +(1 + i * 0.06).toFixed(2), senseBonus: i * 2 },
+          realmBuffs: {
+            combatOffensePct: +(2.4 + i * 1.8).toFixed(1),
+            combatDefensePct: +(3.2 + i * 2.4).toFixed(1),
+            armorPenetrationPct: +(1.5 + i * 1.2).toFixed(1),
+            counterStrikePct: +(1.5 + i * 1.0).toFixed(1),
+            lifestealPct: 0,
+            reflectPct: +(1.2 + i * 1.0).toFixed(1),
+            evasionPct: +(1.5 + i * 1.1).toFixed(1),
+            qiRegenBonusPct: +(3.0 + i * 2.0).toFixed(1)
+          },
+          breakthroughBaseChance: +(0.78 - i * 0.042).toFixed(2)
+        });
+      }
+      JD.EXPANSION.progressionMapping.push({
+        subPath: sp.id,
+        trackId: 'TRACK_EXP_SAGE_SUPPORT_' + sp.id,
+        sourceMajorPath: 'SAGE_SUPPORT',
+        sourceIndependentRealmCount: 9,
+        targetMajorPath: 'SAGE_SUPPORT',
+        targetMajorStages: 8,
+        majorPowerMapping: mMap8.slice(),
+        mode: 'INDEPENDENT_TRACK',
+        sourceRealmOrdinalsImported: true,
+        realms
+      });
+    }
+  }
+
+  // Add weaponTypes & armorTypes to existing EXP_V208 techniques where appropriate
+  const expWeaponMap = {
+    ART_MECH_PUP_001: { weaponTypes: ['STAFF', 'SPEAR', 'FIST'], armorTypes: ['HEAVY'] },
+    ART_MECH_PUP_002: { weaponTypes: ['FOCUS', 'BLADE', 'SWORD'], armorTypes: ['LIGHT', 'ROBE'] },
+    ART_MECH_PUP_003: { weaponTypes: ['SPEAR', 'STAFF', 'FOCUS'], armorTypes: ['HEAVY', 'LIGHT'] },
+    ART_MECH_PUP_004: { weaponTypes: ['BOW', 'FOCUS'], requiresWeapon: true, armorTypes: ['LIGHT', 'HEAVY'] },
+    ART_MECH_PUP_005: { weaponTypes: ['FOCUS', 'STAFF'], armorTypes: ['ROBE', 'HEAVY'] },
+    ART_MECH_PUP_006: { weaponTypes: ['SWORD', 'BLADE', 'FOCUS'], armorTypes: ['LIGHT', 'ROBE'] },
+    ART_MECH_PUP_007: { weaponTypes: ['FOCUS', 'SWORD'], armorTypes: ['ROBE', 'LIGHT'] },
+    ART_KARMA_001: { weaponTypes: ['STAFF', 'FOCUS', 'FIST'], armorTypes: ['ROBE', 'HEAVY'] },
+    ART_KARMA_002: { weaponTypes: ['STAFF', 'FOCUS'], armorTypes: ['ROBE', 'HEAVY'] },
+    ART_KARMA_003: { weaponTypes: ['SWORD', 'BLADE', 'FOCUS'], armorTypes: ['LIGHT', 'ROBE'] },
+    ART_KARMA_004: { weaponTypes: ['FOCUS', 'STAFF'], armorTypes: ['ROBE'], grantBuff: 'vitalRegen' },
+    ART_KARMA_005: { weaponTypes: ['BLADE', 'SWORD', 'SPEAR'], requiresWeapon: true, armorTypes: ['HEAVY', 'LIGHT'] },
+    ART_KARMA_006: { weaponTypes: ['FOCUS', 'SWORD'], armorTypes: ['ROBE', 'LIGHT'] },
+    ART_KARMA_007: { weaponTypes: ['STAFF', 'FOCUS'], armorTypes: ['HEAVY', 'ROBE'], grantBuff: 'aegisWard' },
+    ART_BEAST_SOV_001: { weaponTypes: ['SPEAR', 'BOW', 'STAFF', 'FOCUS'], armorTypes: ['LIGHT', 'HEAVY'] },
+    ART_BEAST_SOV_002: { weaponTypes: ['SPEAR', 'BOW', 'FIST'], armorTypes: ['LIGHT', 'HEAVY'], grantBuff: 'fervorMight' },
+    ART_BEAST_SOV_003: { weaponTypes: ['FIST', 'SPEAR', 'FOCUS'], armorTypes: ['HEAVY', 'LIGHT'] },
+    ART_BEAST_SOV_004: { weaponTypes: ['FIST', 'BLADE', 'SPEAR'], armorTypes: ['LIGHT', 'HEAVY'], grantBuff: 'fervorMight' },
+    ART_BEAST_SOV_005: { weaponTypes: ['STAFF', 'SPEAR', 'FIST'], armorTypes: ['HEAVY'], grantBuff: 'aegisWard' },
+    ART_BEAST_SOV_006: { weaponTypes: ['FOCUS', 'BOW', 'BLADE'], armorTypes: ['ROBE', 'LIGHT'] },
+    ART_BEAST_SOV_007: { weaponTypes: ['SPEAR', 'STAFF', 'FOCUS'], armorTypes: ['HEAVY', 'ROBE'] }
+  };
+  for (const [tid, spec] of Object.entries(expWeaponMap)) {
+    const t = JD.TECH.techniques.find(x => x.id === tid);
+    if (t) Object.assign(t, spec);
+  }
+
+  const mkStages = (nameTh, pBonus) => [
+    { stage: 1, nameTh: nameTh + ' · ขั้นต้น', reqMastery: 0, reqCultStage: 1, passiveBonus: { p: { mdef: 0.02, hp: 0.02 } } },
+    { stage: 2, nameTh: nameTh + ' · ขั้นกลาง', reqMastery: 25, reqCultStage: 3, passiveBonus: pBonus || { p: { mdef: 0.04, hp: 0.04 }, f: { cast: 4 } } },
+    { stage: 3, nameTh: nameTh + ' · ขั้นสมบูรณ์', reqMastery: 65, reqCultStage: 5, passiveBonus: { p: { mdef: 0.06, def: 0.05, hp: 0.06 }, f: { cast: 8 } } }
+  ];
+
+  const innateDefs = [
+    { id: 'INNATE_GOLDEN_NEEDLE_PULSE', sub: 'GOLDEN_NEEDLE_SAINT', nameTh: 'เข็มทองจักรพรรดิเปิดเก้าชีพจร', arch: 'heal', elem: 'LIGHT_YANG', buffId: 'meridianUnblock', heal: 0.28, ib: { p: { mdef: 0.08, acc: 0.08 }, f: { cast: 10 }, life: { MEDICINE: 0.20 } } },
+    { id: 'INNATE_CELESTIAL_ZITHER_CHORD', sub: 'CELESTIAL_ZITHER_ENVOY', nameTh: 'ลำนำพิณสวรรค์เจ็ดสายประสานใจ', arch: 'support', elem: 'WIND', buffId: 'swiftWind', heal: 0.16, ib: { p: { matk: 0.07, eva: 0.08 }, f: { cast: 12, move: 8 }, life: { arts: 0.22 } } },
+    { id: 'INNATE_DIVINE_NECTAR_DEW', sub: 'DIVINE_NECTAR_APOTHECARY', nameTh: 'หยดน้ำค้างทิพย์ร้อยสมุนไพรชุบชีวา', arch: 'heal', elem: 'WOOD_LIFE', buffId: 'vitalRegen', heal: 0.34, ib: { p: { hp: 0.12, mdef: 0.08 }, f: { cast: 6 }, life: { MEDICINE: 0.24, ALCHEMY: 0.18 } } },
+    { id: 'INNATE_QIMEN_TALISMAN_WARD', sub: 'QIMEN_TALISMAN_PATRON', nameTh: 'ค่ายกลยันต์ฉีเหมินแปดประตูคุ้มทัพ', arch: 'shield', elem: 'ASTRAL', buffId: 'aegisWard', shield: 0.28, ib: { p: { def: 0.10, mdef: 0.12 }, f: { cast: 8 }, life: { TALISMAN: 0.22, ARRAY: 0.18 } } },
+    { id: 'INNATE_SOUL_LANTERN_GRACE', sub: 'SOUL_LANTERN_SHEPHERD', nameTh: 'โคมบัวทิพย์ส่องวิญญาณนิรันดร์', arch: 'support', elem: 'LIGHT_YANG', buffId: 'nirvanaGrace', heal: 0.22, shield: 0.20, ib: { p: { mdef: 0.12, hp: 0.10 }, f: { eva: 6 }, life: { SOUL_DIVINE: 0.20, MEDICINE: 0.16 } } },
+    { id: 'INNATE_WAR_BANNER_HYMN', sub: 'WAR_BANNER_CHORISTER', nameTh: 'ธงศึกสวรรค์ปลุกขวัญผู้กล้า', arch: 'buff', elem: 'FIRE', buffId: 'fervorMight', shield: 0.16, ib: { p: { atk: 0.08, def: 0.08, hp: 0.08 }, f: { crit: 5, move: 6 }, life: { ritual: 0.20 } } },
+    { id: 'INNATE_WOOD_SPIRIT_CANOPY', sub: 'WOOD_SPIRIT_SYMBIONT', nameTh: 'ร่มเงาพฤกษาโลกาดูดซับปราณ', arch: 'heal', elem: 'WOOD_LIFE', buffId: 'vitalRegen', heal: 0.26, shield: 0.18, ib: { p: { hp: 0.10, def: 0.08, mdef: 0.08 }, f: { cast: 6 }, life: { herbalism: 0.24, MEDICINE: 0.16 } } }
+  ];
+
+  for (const d of innateDefs) {
+    const tObj = {
+      id: d.id,
+      nameTh: d.nameTh,
+      path: 'SAGE_SUPPORT',
+      sub: d.sub,
+      innateSubpath: d.sub,
+      innateOnly: true,
+      acquisition: 'SUBPATH_INNATE',
+      cat: d.arch === 'shield' ? 'DEFENSIVE_TECHNIQUE' : 'SUPPORT_TECHNIQUE',
+      combatArch: d.arch,
+      tier: 2,
+      reqTier: 2,
+      grade: 'Exceptional',
+      power: 120,
+      element: d.elem,
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: d.elem, weights: { [d.elem]: 1 } },
+      grantBuff: d.buffId,
+      innateBonus: d.ib,
+      stages: mkStages(d.nameTh),
+      moves: [d.nameTh + ' · ท่าที่ 1', d.nameTh + ' · ท่าที่ 2'],
+      moveDefs: [
+        { id: d.id + '_M1', nameTh: d.nameTh + ' · ปฐมบท', arch: d.arch, stageReq: 1, M: 0, heal: d.heal || 0, shield: d.shield || 0, grantBuff: d.buffId, cd: 12, wind: 4, hits: 0 },
+        { id: d.id + '_M2', nameTh: d.nameTh + ' · สัมฤทธิ์ผล', arch: d.arch, stageReq: 2, reqMastery: 25, M: 0, heal: (d.heal || 0.15) * 1.25, shield: (d.shield || 0.12) * 1.25, grantBuff: d.buffId, aoe: true, cd: 16, wind: 5, hits: 0 }
+      ]
+    };
+    if (!D.innateTechniques.some(x => x.id === tObj.id)) D.innateTechniques.push(tObj);
+    if (!JD.TECH.techniques.some(x => x.id === tObj.id)) JD.TECH.techniques.push(tObj);
+  }
+
+  const learnableTechs = [
+    {
+      id: 'MP_BASE_SAGE_SUPPORT',
+      nameTh: 'พื้นฐานปราณเยียวยาและคีตเวทย์',
+      path: 'SAGE_SUPPORT',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'heal',
+      martialBootstrap: true,
+      tier: 1,
+      reqTier: 1,
+      grade: 'Common',
+      power: 48,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SWORD'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'vitalRegen',
+      stages: mkStages('พื้นฐานปราณเยียวยาและคีตเวทย์'),
+      moves: ['เดินปราณสมานแผล', 'สายลมอ่อนโยนหนุนกาย'],
+      moveDefs: [
+        { id: 'MP_BASE_SAGE_SUPPORT_M1', nameTh: 'เดินปราณสมานแผล', arch: 'heal', stageReq: 1, M: 0, heal: 0.20, grantBuff: 'vitalRegen', cd: 12, wind: 4, hits: 0 },
+        { id: 'MP_BASE_SAGE_SUPPORT_M2', nameTh: 'สายลมอ่อนโยนหนุนกาย', arch: 'support', stageReq: 2, reqMastery: 20, M: 0, heal: 0.15, grantBuff: 'qiConduit', cd: 14, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_001',
+      nameTh: 'วิชาเข็มทองเปิดจุดชีพจรเทวะ',
+      path: 'SAGE_SUPPORT',
+      sub: 'GOLDEN_NEEDLE_SAINT',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'heal',
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      power: 96,
+      element: 'LIGHT_YANG',
+      weaponTypes: ['FOCUS', 'SWORD'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'meridianUnblock',
+      stages: mkStages('วิชาเข็มทองเปิดจุดชีพจรเทวะ'),
+      moves: ['เข็มแรกสลายพิษร้าย', 'เข็มสองเปิดชีพจรยุทธ์'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_001_M1', nameTh: 'เข็มแรกสลายพิษร้าย', arch: 'heal', stageReq: 1, M: 0, heal: 0.26, grantBuff: 'meridianUnblock', cd: 12, wind: 4, hits: 0 },
+        { id: 'ART_SAGE_SUP_001_M2', nameTh: 'เข็มสองเปิดชีพจรยุทธ์', arch: 'buff', stageReq: 2, reqMastery: 25, M: 0, heal: 0.20, grantBuff: 'fervorMight', cd: 15, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_002',
+      nameTh: 'ลำนำพิณเจ็ดสายวายุทะยานฟ้า',
+      path: 'SAGE_SUPPORT',
+      sub: 'CELESTIAL_ZITHER_ENVOY',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'support',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 138,
+      element: 'WIND',
+      weaponTypes: ['FOCUS', 'BOW'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'swiftWind',
+      stages: mkStages('ลำนำพิณเจ็ดสายวายุทะยานฟ้า'),
+      moves: ['ทำนองวายุพัดเมฆา', 'ทำนองสายพิณเร่งปราณ'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_002_M1', nameTh: 'ทำนองวายุพัดเมฆา', arch: 'support', stageReq: 1, M: 0, grantBuff: 'swiftWind', cd: 14, wind: 4, hits: 0 },
+        { id: 'ART_SAGE_SUP_002_M2', nameTh: 'ทำนองสายพิณเร่งปราณ', arch: 'buff', stageReq: 2, reqMastery: 30, M: 0, heal: 0.16, grantBuff: 'qiConduit', cd: 16, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_003',
+      nameTh: 'เคล็ดน้ำค้างทิพย์เสินหนงชุบชีวิต',
+      path: 'SAGE_SUPPORT',
+      sub: 'DIVINE_NECTAR_APOTHECARY',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'heal',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 185,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['FOCUS', 'STAFF'],
+      armorTypes: ['ROBE'],
+      grantBuff: 'vitalRegen',
+      stages: mkStages('เคล็ดน้ำค้างทิพย์เสินหนงชุบชีวิต'),
+      moves: ['พิรุณทิพย์ชะล้างบาดแผล', 'บุปผาผลิบานกลางสมรภูมิ'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_003_M1', nameTh: 'พิรุณทิพย์ชะล้างบาดแผล', arch: 'heal', stageReq: 1, M: 0, heal: 0.35, grantBuff: 'vitalRegen', cd: 14, wind: 4, hits: 0 },
+        { id: 'ART_SAGE_SUP_003_M2', nameTh: 'บุปผาผลิบานกลางสมรภูมิ', arch: 'heal', stageReq: 2, reqMastery: 35, M: 0, heal: 0.30, shield: 0.18, grantBuff: 'vitalRegen', aoe: true, cd: 18, wind: 5, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_004',
+      nameTh: 'ค่ายกลยันต์ฉีเหมินปราการทองคำ',
+      path: 'SAGE_SUPPORT',
+      sub: 'QIMEN_TALISMAN_PATRON',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      combatArch: 'shield',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 190,
+      element: 'ASTRAL',
+      weaponTypes: ['FOCUS', 'STAFF'],
+      armorTypes: ['ROBE', 'HEAVY'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('ค่ายกลยันต์ฉีเหมินปราการทองคำ'),
+      moves: ['ประทับยันต์แปดทิศ', 'ม่านดาราฉีเหมินไร้พ่าย'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_004_M1', nameTh: 'ประทับยันต์แปดทิศ', arch: 'shield', stageReq: 1, M: 0, shield: 0.28, grantBuff: 'aegisWard', cd: 14, wind: 3, hits: 0 },
+        { id: 'ART_SAGE_SUP_004_M2', nameTh: 'ม่านดาราฉีเหมินไร้พ่าย', arch: 'guard', stageReq: 2, reqMastery: 35, M: 0, shield: 0.34, heal: 0.14, grantBuff: 'aegisWard', cd: 18, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_005',
+      nameTh: 'โคมบัวทิพย์คุ้มวิญญาณข้ามภพ',
+      path: 'SAGE_SUPPORT',
+      sub: 'SOUL_LANTERN_SHEPHERD',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'support',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 240,
+      element: 'LIGHT_YANG',
+      weaponTypes: ['FOCUS', 'STAFF'],
+      armorTypes: ['ROBE'],
+      grantBuff: 'nirvanaGrace',
+      stages: mkStages('โคมบัวทิพย์คุ้มวิญญาณข้ามภพ'),
+      moves: ['จุดโคมบัวคุ้มครองชีพ', 'แสงทิพย์ชำระจิตมาร'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_005_M1', nameTh: 'จุดโคมบัวคุ้มครองชีพ', arch: 'support', stageReq: 1, M: 0, heal: 0.24, shield: 0.22, grantBuff: 'nirvanaGrace', cd: 18, wind: 4, hits: 0 },
+        { id: 'ART_SAGE_SUP_005_M2', nameTh: 'แสงทิพย์ชำระจิตมาร', arch: 'heal', stageReq: 2, reqMastery: 40, M: 0, heal: 0.32, grantBuff: 'clarityLotus', cd: 18, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_006',
+      nameTh: 'ลำนำกลองศึกธงสวรรค์พิชิตมาร',
+      path: 'SAGE_SUPPORT',
+      sub: 'WAR_BANNER_CHORISTER',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'buff',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 245,
+      element: 'FIRE',
+      weaponTypes: ['SPEAR', 'STAFF', 'FOCUS'],
+      armorTypes: ['HEAVY', 'LIGHT'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('ลำนำกลองศึกธงสวรรค์พิชิตมาร'),
+      moves: ['สะบัดธงปลุกโลหิตผู้กล้า', 'ทวนธงศึกทะลวงทัพ'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_006_M1', nameTh: 'สะบัดธงปลุกโลหิตผู้กล้า', arch: 'buff', stageReq: 1, M: 0, shield: 0.16, grantBuff: 'fervorMight', cd: 15, wind: 4, hits: 0 },
+        { id: 'ART_SAGE_SUP_006_M2', nameTh: 'ทวนธงศึกทะลวงทัพ', arch: 'charge', stageReq: 2, reqMastery: 40, M: 1.55, grantBuff: 'fervorMight', cd: 14, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_007',
+      nameTh: 'มหาเวทย์พฤกษาโลกาคืนชีวิต',
+      path: 'SAGE_SUPPORT',
+      sub: 'WOOD_SPIRIT_SYMBIONT',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'drain',
+      tier: 6,
+      reqTier: 6,
+      grade: 'Legendary',
+      legendary: false,
+      power: 310,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['STAFF', 'FOCUS'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'vitalRegen',
+      stages: mkStages('มหาเวทย์พฤกษาโลกาคืนชีวิต'),
+      moves: ['รากพฤกษาสูบปราณหล่อเลี้ยงทัพ', 'มหาพฤกษาสวรรค์คุ้มครองหมื่นชีวิต'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_007_M1', nameTh: 'รากพฤกษาสูบปราณหล่อเลี้ยงทัพ', arch: 'drain', stageReq: 1, M: 1.48, steal: 0.55, heal: 0.22, grantBuff: 'vitalRegen', cd: 14, wind: 4, hits: 1 },
+        { id: 'ART_SAGE_SUP_007_M2', nameTh: 'มหาพฤกษาสวรรค์คุ้มครองหมื่นชีวิต', arch: 'heal', stageReq: 2, reqMastery: 45, M: 0, heal: 0.42, shield: 0.25, grantBuff: 'nirvanaGrace', aoe: true, cd: 20, wind: 5, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_008',
+      nameTh: 'ดัชนีเข็มแสงสกัดจุดสะท้านทรวง',
+      path: 'SAGE_SUPPORT',
+      sub: 'GOLDEN_NEEDLE_SAINT',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'control',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 142,
+      element: 'LIGHT_YANG',
+      weaponTypes: ['FOCUS', 'SWORD'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'clarityLotus',
+      stages: mkStages('ดัชนีเข็มแสงสกัดจุดสะท้านทรวง'),
+      moves: ['เข็มทองสกัดจุดใบ้', 'เข็มแสงทะลวงเส้นปราณ'],
+      moveDefs: [
+        { id: 'ART_SAGE_SUP_008_M1', nameTh: 'เข็มทองสกัดจุดใบ้', arch: 'control', stageReq: 1, M: 1.28, ctrl: 'silence', grantBuff: 'clarityLotus', cd: 14, wind: 4, hits: 1 },
+        { id: 'ART_SAGE_SUP_008_M2', nameTh: 'เข็มแสงทะลวงเส้นปราณ', arch: 'pierce', stageReq: 2, reqMastery: 30, M: 1.45, penAdd: 28, grantBuff: 'meridianUnblock', cd: 13, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_SAGE_SUP_009',
+      nameTh: 'กายาน้ำค้างทิพย์ร้อยสมุนไพร',
+      path: 'SAGE_SUPPORT',
+      cat: 'PASSIVE',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 135,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['FOCUS', 'STAFF'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      passiveFamily: 'FAM_SAGE_NECTAR_BODY',
+      passive: {
+        p: { hp: 0.14, mdef: 0.14, def: 0.10 },
+        f: { cast: 8 },
+        qiMaxPct: 0.14,
+        cultRatePct: 0.12,
+        life: { MEDICINE: 0.22, ALCHEMY: 0.18 },
+        proc: { kind: 'combatTick', icdTicks: 5, hpRestorePct: 0.045, qiRestorePct: 0.05, addStatus: 'holyAura', dur: 8 }
+      }
+    },
+    {
+      id: 'ART_SAGE_SUP_010',
+      nameTh: 'จิตปราชญ์คีตเวทย์ประสานดารา',
+      path: 'SAGE_SUPPORT',
+      cat: 'PASSIVE',
+      tier: 5,
+      reqTier: 5,
+      grade: 'Exceptional',
+      power: 225,
+      element: 'LIGHT_YANG',
+      weaponTypes: ['FOCUS', 'BOW', 'STAFF'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      passiveFamily: 'FAM_SAGE_HARMONY_MIND',
+      passive: {
+        p: { matk: 0.14, mdef: 0.18, def: 0.12, eva: 0.08 },
+        f: { cast: 14, move: 8 },
+        qiCostMult: 0.86,
+        cultRatePct: 0.15,
+        life: { TALISMAN: 0.20, arts: 0.22 },
+        proc: { kind: 'onHit', icdTicks: 5, hpRestorePct: 0.04, addStatus: 'morale', dur: 10 }
+      }
+    },
+    // --- 12 Cross-Path & Universal Techniques (path: 'ANY') bridging the 4 new paths with all other paths ---
+    {
+      id: 'ART_CROSS_V208_001',
+      nameTh: 'ค่ายกลเกาทัณฑ์กลไกจูกัดถล่มทัพ',
+      path: 'ANY',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'barrage',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 144,
+      element: 'EARTH_METAL',
+      weaponTypes: ['BOW', 'FOCUS'],
+      armorTypes: ['LIGHT', 'HEAVY'],
+      stages: mkStages('ค่ายกลเกาทัณฑ์กลไกจูกัดถล่มทัพ'),
+      moves: ['ระดมยิงศรกลไกสิบดอก', 'ลูกศรเหล็กไหลเจาะค่ายกล'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_001_M1', nameTh: 'ระดมยิงศรกลไกสิบดอก', arch: 'barrage', stageReq: 1, M: 1.22, hits: 3, aoe: true, cd: 13, wind: 4 },
+        { id: 'ART_CROSS_V208_001_M2', nameTh: 'ลูกศรเหล็กไหลเจาะค่ายกล', arch: 'snipe', stageReq: 2, reqMastery: 25, M: 1.50, penAdd: 24, cd: 14, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_002',
+      nameTh: 'เพลงทวนพยัคฆ์จักรกลผ่าสมรภูมิ',
+      path: 'ANY',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'charge',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 188,
+      element: 'FIRE',
+      weaponTypes: ['SPEAR', 'STAFF'],
+      requiresWeapon: true,
+      armorTypes: ['HEAVY', 'LIGHT'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('เพลงทวนพยัคฆ์จักรกลผ่าสมรภูมิ'),
+      moves: ['พยัคฆ์เหล็กทะยานประจัญบาน', 'ทวนเพลิงกวาดล้างแปดทิศ'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_002_M1', nameTh: 'พยัคฆ์เหล็กทะยานประจัญบาน', arch: 'charge', stageReq: 1, M: 1.42, penAdd: 18, grantBuff: 'fervorMight', cd: 12, wind: 4, hits: 1 },
+        { id: 'ART_CROSS_V208_002_M2', nameTh: 'ทวนเพลิงกวาดล้างแปดทิศ', arch: 'sweep', stageReq: 2, reqMastery: 30, M: 1.32, aoe: true, grantBuff: 'fervorMight', cd: 15, wind: 5, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_003',
+      nameTh: 'ดัชนีไหมเงินสกัดจุดเปิดชีพจร',
+      path: 'ANY',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'heal',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 140,
+      element: 'LIGHT_YANG',
+      weaponTypes: ['FOCUS', 'SWORD', 'FIST'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'meridianUnblock',
+      stages: mkStages('ดัชนีไหมเงินสกัดจุดเปิดชีพจร'),
+      moves: ['ไหมเงินเชื่อมชีพจรฟื้นปราณ', 'ดัชนีทองสกัดจุดศัตรู'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_003_M1', nameTh: 'ไหมเงินเชื่อมชีพจรฟื้นปราณ', arch: 'heal', stageReq: 1, M: 0, heal: 0.25, grantBuff: 'meridianUnblock', cd: 13, wind: 4, hits: 0 },
+        { id: 'ART_CROSS_V208_003_M2', nameTh: 'ดัชนีทองสกัดจุดศัตรู', arch: 'control', stageReq: 2, reqMastery: 25, M: 1.32, ctrl: 'stun', grantBuff: 'meridianUnblock', cd: 15, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_004',
+      nameTh: 'เพลงดาบวิบากกรรมสะบั้นวาสนา',
+      path: 'ANY',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'execute',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 192,
+      element: 'YIN_SHADOW',
+      weaponTypes: ['BLADE', 'SWORD'],
+      requiresWeapon: true,
+      armorTypes: ['HEAVY', 'LIGHT'],
+      stages: mkStages('เพลงดาบวิบากกรรมสะบั้นวาสนา'),
+      moves: ['ดาบแรกตัดบ่วงกรรม', 'ดาบสองพิพากษาสังสารวัฏ'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_004_M1', nameTh: 'ดาบแรกตัดบ่วงกรรม', arch: 'pierce', stageReq: 1, M: 1.38, penAdd: 22, shatterShield: true, cd: 12, wind: 4, hits: 1 },
+        { id: 'ART_CROSS_V208_004_M2', nameTh: 'ดาบสองพิพากษาสังสารวัฏ', arch: 'execute', stageReq: 2, reqMastery: 30, M: 1.65, penAdd: 28, cd: 16, wind: 5, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_005',
+      nameTh: 'พลองโพธิสัตว์ค้ำจุนหกภพ',
+      path: 'ANY',
+      cat: 'DEFENSIVE_TECHNIQUE',
+      combatArch: 'guard',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 186,
+      element: 'LIGHT_YANG',
+      weaponTypes: ['STAFF'],
+      requiresWeapon: true,
+      armorTypes: ['HEAVY', 'ROBE'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('พลองโพธิสัตว์ค้ำจุนหกภพ'),
+      moves: ['ตั้งพลองทองคำรับเคราะห์', 'หมุนพลองปัดเป่าวิบาก'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_005_M1', nameTh: 'ตั้งพลองทองคำรับเคราะห์', arch: 'guard', stageReq: 1, M: 0, shield: 0.28, grantBuff: 'aegisWard', cd: 15, wind: 3, hits: 0 },
+        { id: 'ART_CROSS_V208_005_M2', nameTh: 'หมุนพลองปัดเป่าวิบาก', arch: 'counter', stageReq: 2, reqMastery: 30, M: 1.45, grantBuff: 'aegisWard', cd: 16, wind: 3, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_006',
+      nameTh: 'หมัดกรงเล็บราชันย์อสูรคลั่ง',
+      path: 'ANY',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'flurry',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 145,
+      element: 'BLOOD_DEMON',
+      weaponTypes: ['FIST'],
+      armorTypes: ['LIGHT', 'HEAVY'],
+      grantBuff: 'fervorMight',
+      stages: mkStages('หมัดกรงเล็บราชันย์อสูรคลั่ง'),
+      moves: ['กรงเล็บพยัคฆ์ฉีกกระชาก', 'คำรามสูบโลหิตบรรพกาล'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_006_M1', nameTh: 'กรงเล็บพยัคฆ์ฉีกกระชาก', arch: 'flurry', stageReq: 1, M: 1.24, hits: 3, grantBuff: 'fervorMight', cd: 11, wind: 4 },
+        { id: 'ART_CROSS_V208_006_M2', nameTh: 'คำรามสูบโลหิตบรรพกาล', arch: 'drain', stageReq: 2, reqMastery: 25, M: 1.38, steal: 0.45, grantBuff: 'fervorMight', cd: 14, wind: 4, hits: 1 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_007',
+      nameTh: 'ศรวิญญาณอสูรเหยี่ยวดารา',
+      path: 'ANY',
+      cat: 'COMBAT_TECHNIQUE',
+      combatArch: 'snipe',
+      tier: 4,
+      reqTier: 4,
+      grade: 'Exceptional',
+      power: 190,
+      element: 'WIND',
+      weaponTypes: ['BOW'],
+      requiresWeapon: true,
+      armorTypes: ['LIGHT'],
+      grantBuff: 'swiftWind',
+      stages: mkStages('ศรวิญญาณอสูรเหยี่ยวดารา'),
+      moves: ['ศรเหยี่ยวถลาลมทะลวงใจ', 'ปีกวายุหนุนก้าวไร้เงา'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_007_M1', nameTh: 'ศรเหยี่ยวถลาลมทะลวงใจ', arch: 'snipe', stageReq: 1, M: 1.48, penAdd: 22, critAdd: 12, grantBuff: 'swiftWind', cd: 13, wind: 4, hits: 1 },
+        { id: 'ART_CROSS_V208_007_M2', nameTh: 'ปีกวายุหนุนก้าวไร้เงา', arch: 'evade', stageReq: 2, reqMastery: 30, M: 0, grantBuff: 'swiftWind', cd: 16, wind: 2, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_008',
+      nameTh: 'คีตเวทย์พิณหยกชะล้างจิตมาร',
+      path: 'ANY',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'heal',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 138,
+      element: 'WATER_ICE',
+      weaponTypes: ['FOCUS', 'BOW'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'clarityLotus',
+      stages: mkStages('คีตเวทย์พิณหยกชะล้างจิตมาร'),
+      moves: ['สายน้ำเย็นชะล้างความขุ่นมัว', 'เสียงพิณบัวหิมะคุ้มครองใจ'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_008_M1', nameTh: 'สายน้ำเย็นชะล้างความขุ่นมัว', arch: 'heal', stageReq: 1, M: 0, heal: 0.24, grantBuff: 'clarityLotus', cd: 14, wind: 4, hits: 0 },
+        { id: 'ART_CROSS_V208_008_M2', nameTh: 'เสียงพิณบัวหิมะคุ้มครองใจ', arch: 'support', stageReq: 2, reqMastery: 25, M: 0, heal: 0.18, shield: 0.16, grantBuff: 'clarityLotus', cd: 16, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_009',
+      nameTh: 'ปราณน้ำค้างทิพย์หมื่นพฤกษาฟื้นกาย',
+      path: 'ANY',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'heal',
+      tier: 2,
+      reqTier: 2,
+      grade: 'Refined',
+      power: 98,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['FOCUS', 'STAFF'],
+      armorTypes: ['ROBE', 'LIGHT'],
+      grantBuff: 'vitalRegen',
+      stages: mkStages('ปราณน้ำค้างทิพย์หมื่นพฤกษาฟื้นกาย'),
+      moves: ['หยาดน้ำค้างสมานชีพจร', 'ละอองพฤกษาฟื้นฟูหมู่คณะ'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_009_M1', nameTh: 'หยาดน้ำค้างสมานชีพจร', arch: 'heal', stageReq: 1, M: 0, heal: 0.24, grantBuff: 'vitalRegen', cd: 12, wind: 4, hits: 0 },
+        { id: 'ART_CROSS_V208_009_M2', nameTh: 'ละอองพฤกษาฟื้นฟูหมู่คณะ', arch: 'heal', stageReq: 2, reqMastery: 20, M: 0, heal: 0.22, grantBuff: 'vitalRegen', aoe: true, cd: 16, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_010',
+      nameTh: 'ค่ายกลยันต์ทองคุ้มทัพแปดทิศ',
+      path: 'ANY',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'support',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 140,
+      element: 'EARTH_METAL',
+      weaponTypes: ['FOCUS', 'SWORD', 'STAFF'],
+      armorTypes: ['ROBE', 'HEAVY'],
+      grantBuff: 'aegisWard',
+      stages: mkStages('ค่ายกลยันต์ทองคุ้มทัพแปดทิศ'),
+      moves: ['ยันต์ทองแปดทิศคุ้มกาย', 'ค่ายกลศิลาเหล็กหนุนทัพ'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_010_M1', nameTh: 'ยันต์ทองแปดทิศคุ้มกาย', arch: 'support', stageReq: 1, M: 0, shield: 0.20, grantBuff: 'aegisWard', cd: 14, wind: 4, hits: 0 },
+        { id: 'ART_CROSS_V208_010_M2', nameTh: 'ค่ายกลศิลาเหล็กหนุนทัพ', arch: 'buff', stageReq: 2, reqMastery: 25, M: 0, shield: 0.24, grantBuff: 'fervorMight', cd: 16, wind: 4, hits: 0 }
+      ]
+    },
+    {
+      id: 'ART_CROSS_V208_011',
+      nameTh: 'เคล็ดประสานชีพจรกลจักรและน้ำค้างทิพย์',
+      path: 'ANY',
+      cat: 'PASSIVE',
+      tier: 3,
+      reqTier: 3,
+      grade: 'Rare',
+      power: 136,
+      element: 'WOOD_LIFE',
+      weaponTypes: ['FOCUS', 'STAFF', 'SPEAR'],
+      passiveFamily: 'FAM_CROSS_MECH_NECTAR',
+      passive: {
+        p: { def: 0.10, mdef: 0.10, hp: 0.10, matk: 0.08 },
+        f: { cast: 8, acc: 8 },
+        qiMaxPct: 0.10,
+        life: { MEDICINE: 0.15, FORGING: 0.15, BEAST_TAMING: 0.15 },
+        proc: { kind: 'combatTick', icdTicks: 6, hpRestorePct: 0.035, qiRestorePct: 0.04 }
+      }
+    },
+    {
+      id: 'ART_CROSS_V208_012',
+      nameTh: 'มหาเวทย์ตำนาน: จักรวาลหกภพและหมื่นชีวิตผสานใจ',
+      path: 'ANY',
+      cat: 'SUPPORT_TECHNIQUE',
+      combatArch: 'support',
+      tier: 6,
+      reqTier: 6,
+      grade: 'Legendary',
+      legendary: false,
+      power: 320,
+      element: 'ASTRAL',
+      weaponTypes: ['FOCUS', 'STAFF', 'SWORD', 'SPEAR'],
+      armorTypes: ['ROBE', 'HEAVY', 'LIGHT'],
+      grantBuff: 'nirvanaGrace',
+      stages: mkStages('มหาเวทย์ตำนาน: จักรวาลหกภพและหมื่นชีวิตผสานใจ'),
+      moves: ['แสงดาราชุบชีวิตหมื่นสรรพสิ่ง', 'ธรรมจักรประสานใจไร้พ่าย'],
+      moveDefs: [
+        { id: 'ART_CROSS_V208_012_M1', nameTh: 'แสงดาราชุบชีวิตหมื่นสรรพสิ่ง', arch: 'heal', stageReq: 1, M: 0, heal: 0.36, shield: 0.22, grantBuff: 'nirvanaGrace', aoe: true, cd: 18, wind: 4, hits: 0 },
+        { id: 'ART_CROSS_V208_012_M2', nameTh: 'ธรรมจักรประสานใจไร้พ่าย', arch: 'buff', stageReq: 2, reqMastery: 45, M: 0, heal: 0.25, shield: 0.25, grantBuff: 'fervorMight', aoe: true, cd: 20, wind: 4, hits: 0 }
+      ]
+    }
+  ];
+
+  for (const t of learnableTechs) {
+    t.elementProfile = { mode: 'INTRINSIC_SINGLE', primary: t.element || 'WOOD_LIFE', weights: { [t.element || 'WOOD_LIFE']: 1 } };
+    if (!D.techniques.some(x => x.id === t.id)) D.techniques.push(t);
+    if (!JD.TECH.techniques.some(x => x.id === t.id)) {
+      if (t.martialBootstrap) {
+        const baseIdx = JD.TECH.techniques.findIndex(x => x.id === 'MP_BASE_BEAST_SOVEREIGN');
+        if (baseIdx >= 0) JD.TECH.techniques.splice(baseIdx + 1, 0, t);
+        else JD.TECH.techniques.push(t);
+      } else {
+        JD.TECH.techniques.push(t);
+      }
+    }
+  }
+
+  const sageMantras = [
+    {
+      id: 'MANTRA_SAGE_SUP_001',
+      nameTh: 'คัมภีร์หวงตี้เข็มทองและน้ำค้างทิพย์',
+      path: 'SAGE_SUPPORT',
+      cat: 'MANTRA',
+      tier: 3,
+      reqTier: 2,
+      grade: 'Rare',
+      power: 145,
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 1 } },
+      mantraBonus: { p: { hp: 0.12, mdef: 0.12, def: 0.08 }, f: { cast: 8 }, life: { MEDICINE: 0.22, ALCHEMY: 0.18 } },
+      stages: mkStages('คัมภีร์หวงตี้เข็มทองและน้ำค้างทิพย์')
+    },
+    {
+      id: 'MANTRA_SAGE_SUP_002',
+      nameTh: 'มหาคัมภีร์อมตะเมตตาคีตเวทย์ค้ำฟ้า',
+      path: 'SAGE_SUPPORT',
+      cat: 'MANTRA',
+      tier: 6,
+      reqTier: 5,
+      grade: 'Legendary',
+      legendary: false,
+      power: 325,
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } },
+      mantraBonus: { p: { hp: 0.20, mdef: 0.22, def: 0.16, matk: 0.14 }, f: { cast: 16, move: 10 }, life: { MEDICINE: 0.30, arts: 0.25, TALISMAN: 0.22 } },
+      stages: mkStages('มหาคัมภีร์อมตะเมตตาคีตเวทย์ค้ำฟ้า'),
+      moveDefs: [
+        { id: 'MANTRA_SAGE_SUP_002_M1', nameTh: 'ปราณอมตะเมตตาชุบชีวาทั้งสำนัก', arch: 'heal', stageReq: 1, M: 0, heal: 0.38, shield: 0.24, grantBuff: 'nirvanaGrace', aoe: true, cd: 18, wind: 4, hits: 0 }
+      ]
+    }
+  ];
+  for (const m of sageMantras) {
+    if (!JD.TECH.mantras.some(x => x.id === m.id)) JD.TECH.mantras.push(m);
+  }
+
+  const sageItems = [
+    { id: 'EQ_SAGE_ZITHER_NEEDLE_5', nameTh: 'พิณเข็มทองเจ็ดดาราเสินหนง', type: 'EQUIPMENT', slot: 'WEAPON', gearType: 'FOCUS', tier: 5, minStage: 4, baseValue: 920, compatiblePath: ['SAGE_SUPPORT', 'XIAN', 'HEART_SOUL'], element: 'LIGHT_YANG', elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }, resonanceSetId: 'RES_SAGE_HARMONY_SANCTUARY', st: { matk: 340, mdef: 210, cast: 18, acc: 95 }, descTh: 'พิณหยกซ่อนเข็มทองเก้าเล่ม ใช้บรรเลงคีตเวทย์หนุนทัพและฝังเข็มฟื้นฟูระยะไกล' },
+    { id: 'EQ_SAGE_DEW_ROBE_5', nameTh: 'อาภรณ์น้ำค้างทิพย์ฉีเหมิน', type: 'EQUIPMENT', slot: 'ARMOR', gearType: 'ROBE', tier: 5, minStage: 4, baseValue: 900, compatiblePath: ['SAGE_SUPPORT', 'GOD', 'XIAN'], element: 'WOOD_LIFE', elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 1 } }, resonanceSetId: 'RES_SAGE_HARMONY_SANCTUARY', st: { def: 260, mdef: 360, hp: 440, cast: 12 }, descTh: 'อาภรณ์ถักทอจากไหมพฤกษาสวรรค์ แผ่คลื่นฟื้นฟูและลดความเสียหายแก่ผู้สวมใส่' },
+    { id: 'EQ_SAGE_LANTERN_CHARM_5', nameTh: 'โคมหยกบัวทิพย์คุ้มวิญญาณ', type: 'EQUIPMENT', slot: 'ACCESSORY', gearType: 'CHARM', tier: 5, minStage: 4, baseValue: 880, compatiblePath: ['SAGE_SUPPORT', 'ANY'], element: 'LIGHT_YANG', elementProfile: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }, resonanceSetId: 'RES_SAGE_HARMONY_SANCTUARY', st: { hp: 360, mdef: 220, cast: 14, eva: 70 }, descTh: 'โคมหยกศักดิ์สิทธิ์ที่ช่วยยืดระยะเวลาบัฟและปกป้องดวงจิตจากจิตมาร' }
+  ];
+  for (const it of sageItems) {
+    if (!JD.ITEMS.items.some(x => x.id === it.id)) JD.ITEMS.items.push(it);
+  }
+
+  const sageRecipes = [
+    { id: 'REC_EQ_SAGE_ZITHER_NEEDLE_5', nameTh: 'ตำราหลอมพิณเข็มทองเจ็ดดารา', craft: 'FORGING', outItemId: 'EQ_SAGE_ZITHER_NEEDLE_5', outType: 'EQUIPMENT', outNameTh: 'พิณเข็มทองเจ็ดดาราเสินหนง', tier: 5, minMastery: 50, days: 12, inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_HERB_DRAGON_GRASS_4', count: 1 }], element: 'LIGHT_YANG', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }, yield: 1 },
+    { id: 'REC_EQ_SAGE_DEW_ROBE_5', nameTh: 'ตำราตัดเย็บอาภรณ์น้ำค้างทิพย์', craft: 'FORGING', outItemId: 'EQ_SAGE_DEW_ROBE_5', outType: 'EQUIPMENT', outNameTh: 'อาภรณ์น้ำค้างทิพย์ฉีเหมิน', tier: 5, minMastery: 50, days: 12, inputs: [{ matId: 'MAT_HERB_DRAGON_GRASS_4', count: 2 }, { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1 }], element: 'WOOD_LIFE', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 1 } }, yield: 1 },
+    { id: 'REC_EQ_SAGE_LANTERN_CHARM_5', nameTh: 'ตำราสลักโคมหยกบัวทิพย์', craft: 'FORGING', outItemId: 'EQ_SAGE_LANTERN_CHARM_5', outType: 'EQUIPMENT', outNameTh: 'โคมหยกบัวทิพย์คุ้มวิญญาณ', tier: 5, minMastery: 50, days: 12, inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1 }, { matId: 'MAT_HERB_DRAGON_GRASS_4', count: 2 }], element: 'LIGHT_YANG', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } }, yield: 1 }
+  ];
+  for (const r of sageRecipes) {
+    if (!JD.ITEMS.recipes.some(x => x.id === r.id)) JD.ITEMS.recipes.push(r);
+  }
+
+  const sageResSet = {
+    id: 'RES_SAGE_HARMONY_SANCTUARY',
+    nameTh: 'สัจธรรมวิหารปราชญ์โอสถและคีตเวทย์',
+    path: 'SAGE_SUPPORT',
+    minTier: 3,
+    slots: { WEAPON: ['FOCUS', 'STAFF', 'SPEAR', 'SWORD', 'BOW'], ARMOR: ['ROBE', 'LIGHT', 'HEAVY'], ACCESSORY: ['CHARM', 'BRACELET', 'NECKLACE', 'RING'] },
+    elementFamily: ['WOOD_LIFE', 'LIGHT_YANG', 'WIND', 'ASTRAL', 'FIRE'],
+    subpaths: ['GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY', 'QIMEN_TALISMAN_PATRON', 'SOUL_LANTERN_SHEPHERD', 'WAR_BANNER_CHORISTER', 'WOOD_SPIRIT_SYMBIONT'],
+    bonus2: { p: { mdef: 0.12, hp: 0.12, def: 0.08 }, f: { cast: 10 }, descTh: '2 ชิ้น: ป้องกันวิชา +12%, พลังชีวิต +12%, ป้องกัน +8%, ร่ายวิชา +10' },
+    bonus3: {
+      p: { mdef: 0.22, hp: 0.22, def: 0.16, matk: 0.14 },
+      f: { cast: 18, move: 10 },
+      rider: { chance: 0.45, status: 'holyAura', selfBuff: true, dur: 10, bonusDmgMult: 1.12, descTh: 'แผ่รัศมีคุ้มกายและฟื้นฟูพลังชีวิตเมื่อลงมือ' },
+      descTh: '3 ชิ้น: ป้องกันวิชา +22%, พลังชีวิต +22%, ร่ายวิชา +18 และปลดปล่อยรัศมีคุ้มกายหนุนทัพ'
+    }
+  };
+  if (!D.RESONANCE_SETS.some(x => x.id === sageResSet.id)) {
+    D.RESONANCE_SETS.push(sageResSet);
+  }
+
+  const sageSynergies = [
+    { id: 'SYN_SAGE_NEEDLE_FOCUS', subpath: 'GOLDEN_NEEDLE_SAINT', weaponTypes: ['FOCUS', 'SWORD'], armorTypes: ['ROBE', 'LIGHT'], archs: ['heal', 'buff', 'support', 'pierce', 'control'], bonus: { healMult: 1.25, shieldMult: 1.18, qiCostMult: 0.85, cleanseHeartDemon: 5, extraSupportDur: 6 } },
+    { id: 'SYN_SAGE_ZITHER_WIND', subpath: 'CELESTIAL_ZITHER_ENVOY', weaponTypes: ['FOCUS', 'BOW'], armorTypes: ['ROBE', 'LIGHT'], archs: ['support', 'buff', 'heal', 'channel'], bonus: { healMult: 1.18, shieldMult: 1.18, windDelta: -1, extraSupportDur: 6, qiRestorePct: 0.05 } },
+    { id: 'SYN_SAGE_NECTAR_ROBE', subpath: 'DIVINE_NECTAR_APOTHECARY', weaponTypes: ['FOCUS', 'STAFF'], armorTypes: ['ROBE'], archs: ['heal', 'support', 'shield'], bonus: { healMult: 1.32, shieldMult: 1.22, qiRestorePct: 0.06, cleanseHeartDemon: 6 } }
+  ];
+  for (const s of sageSynergies) {
+    if (!D.SYNERGIES.some(x => x.id === s.id)) D.SYNERGIES.push(s);
+  }
+})();
+
 // Tag T3-T7 equipment items with matching resonanceSetIds for fast lookup and inspection
 JD.ITEMS.items.forEach(it => {
   if (!it || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(it.slot) || (it.tier || 1) < 3) return;

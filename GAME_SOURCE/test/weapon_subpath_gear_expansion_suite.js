@@ -22,7 +22,7 @@ assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 1
 
 // 1. Verify Subpath Expansion (50 total subpaths across 5 major paths)
 const paths = Object.keys(CULT.PATHS);
-assert.strictEqual(paths.length, 5, 'Must have 5 major cultivation paths');
+assert.strictEqual(paths.length, 9, 'Must have 9 major cultivation paths');
 let totalSubpaths = 0;
 for (const p of paths) {
   const subs = CULT.PATHS[p].subPaths || [];
@@ -35,7 +35,7 @@ for (const p of paths) {
     assert(MARTIAL.INNATE_BY_SUB && MARTIAL.INNATE_BY_SUB[s], `INNATE_BY_SUB missing for subpath ${s}`);
   }
 }
-assert.strictEqual(totalSubpaths, 50, `Expected 50 subpaths, found ${totalSubpaths}`);
+assert.strictEqual(totalSubpaths, 78, `Expected 78 subpaths, found ${totalSubpaths}`);
 
 const expectedNewSubs = [
   'CLOUD_DRAGON_SPEAR', 'PURE_SWORD_SAINT', 'WAR_SPEAR_SOVEREIGN',
@@ -53,8 +53,8 @@ for (const sub of expectedNewSubs) {
 const techniques = JD.TECH.techniques;
 const mantras = JD.TECH.mantras;
 assert(Array.isArray(techniques), 'JD.TECH.techniques must be an array');
-assert.strictEqual(techniques.length, 554, `Expected 554 techniques, found ${techniques.length}`);
-assert.strictEqual(mantras.length, 76, `Expected 76 mantras, found ${mantras.length}`);
+assert.strictEqual(techniques.length, 638, `Expected 638 techniques, found ${techniques.length}`);
+assert.strictEqual(mantras.length, 84, `Expected 84 mantras, found ${mantras.length}`);
 
 const weaponTypes = ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS'];
 const countsByWeapon = {};
@@ -81,7 +81,7 @@ assert(neutralCount >= 50, `Expected >= 50 non-elemental/neutral techniques, fou
 // 3. Verify Equipment Matrix (353 items)
 const items = JD.ITEMS.items;
 assert(Array.isArray(items), 'JD.ITEMS.items must be an array');
-assert.strictEqual(items.length, 353, `Expected 353 items, found ${items.length}`);
+assert.strictEqual(items.length, 364, `Expected 364 items, found ${items.length}`);
 
 const itemById = {};
 const itemsByGearType = {};
@@ -104,7 +104,7 @@ for (const gt of allGearTypes) {
 // 4. Verify Recipe Matrix (476 recipes)
 const recipes = JD.ITEMS.recipes;
 assert(Array.isArray(recipes), 'JD.ITEMS.recipes must be an array');
-assert.strictEqual(recipes.length, 476, `Expected 476 recipes, found ${recipes.length}`);
+assert.strictEqual(recipes.length, 515, `Expected 515 recipes, found ${recipes.length}`);
 
 for (const rec of recipes) {
   assert(rec.id && rec.nameTh && rec.craft && rec.tier, `Recipe ${rec.id || 'unknown'} must specify id, nameTh, craft, tier`);

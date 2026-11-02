@@ -1636,7 +1636,11 @@
     BODY: [230, 800, 3200, 12000],
     GOD: [300, 1200, 5200],
     DEMON: [240, 650, 1680, 4200, 10400, 25500, 61500, 142000],
-    HEART_SOUL: [250, 680, 1750, 4400, 10800, 26500, 63500, 146000]
+    HEART_SOUL: [250, 680, 1750, 4400, 10800, 26500, 63500, 146000],
+    MECH_PUPPET: [245, 670, 1720, 4350, 10700, 26200, 63000],
+    KARMA_SAMSARA: [250, 680, 1740, 4400, 10800, 26400, 63500],
+    BEAST_SOVEREIGN: [245, 675, 1730, 4380, 10750, 26300, 63200],
+    SAGE_SUPPORT: [245, 670, 1720, 4350, 10700, 26200, 63000]
   };
   const SUBPREF = {
     SWORD_IMMORTAL: { aff: { SWORD: 1, MOVEMENT: .5 }, p: { 'personality.courage': .4, 'values.martialPeak': .4 } },
@@ -1698,7 +1702,11 @@
       BODY: body * 0.8 + HC.eff(npc, 'interests.combat') * 0.4 + HC.eff(npc, 'physiology.vitality') * 0.2 - 6,
       GOD: faith * 0.8 + HC.eff(npc, 'personality.empathy') * 0.2 - 5,
       DEMON: demon * 0.85 + HC.eff(npc, 'aptitudes.combat') * 0.35 + (55 - HC.eff(npc, 'personality.integrity')) * 0.25 - 6,
-      HEART_SOUL: soul * 0.85 + HC.eff(npc, 'aptitudes.comprehension') * 0.4 + HC.eff(npc, 'interests.meditation') * 0.2 - 5
+      HEART_SOUL: soul * 0.85 + HC.eff(npc, 'aptitudes.comprehension') * 0.4 + HC.eff(npc, 'interests.meditation') * 0.2 - 5,
+      MECH_PUPPET: ((HC.eff(npc, 'intellect.inventiveness') + HC.eff(npc, 'physiology.dexterity') + HC.eff(npc, 'affinities.FORGING') + HC.eff(npc, 'affinities.ARRAY')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.crafting') * 0.38 - 6,
+      KARMA_SAMSARA: ((HC.eff(npc, 'intellect.wisdom') + HC.eff(npc, 'personality.composure') + HC.eff(npc, 'affinities.SCRIPTURE') + HC.eff(npc, 'affinities.SOUL_DIVINE')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.comprehension') * 0.36 - 6,
+      BEAST_SOVEREIGN: ((HC.eff(npc, 'interests.beasts') + HC.eff(npc, 'affinities.BEAST_TAMING') + HC.eff(npc, 'social.leadership') + HC.eff(npc, 'personality.courage')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.command') * 0.38 - 6,
+      SAGE_SUPPORT: ((HC.eff(npc, 'affinities.MEDICINE') + HC.eff(npc, 'affinities.ALCHEMY') + HC.eff(npc, 'personality.empathy') + HC.eff(npc, 'interests.arts')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.cultivation') * 0.36 - 6
     };
     const rootCount = (npc.h && npc.h.root && npc.h.root.rootCount) || 1;
     CULT.subList.forEach(({ path, sub }) => {
@@ -1726,7 +1734,40 @@
     return pick;
   };
   CULT.BASE_SUB = Object.freeze({ id: 'NONE', nameTh: 'พื้นฐาน (ยังไม่เลือกสายย่อย)', combatBonus: 1, defenseBonus: 1, breakthroughMod: 1, cultivationBonus: 1 });
-  CULT.subInfo = (path, sub) => (CULT.PATHS[path] && CULT.PATHS[path].subPaths.find(s => s.id === sub)) || CULT.BASE_SUB;
+  CULT.SUB_ALIASES = Object.assign({
+    CELESTIAL_PUPPET_MASTER: 'HEAVENLY_GOLEM', HEAVENLY_PUPPETEER: 'HEAVENLY_GOLEM',
+    IRON_COLOSSUS: 'HEAVENLY_GOLEM', MECHANICAL_FORTRESS_MASTER: 'HEAVENLY_GOLEM', FORTRESS_BASTION_ARCHITECT: 'HEAVENLY_GOLEM',
+    THOUSAND_PUPPET_LORD: 'THOUSAND_THREAD_ASSASSIN', THOUSAND_THREAD_PUPPETEER: 'THOUSAND_THREAD_ASSASSIN',
+    SPIRIT_WEAPON_FORGER: 'FLYING_BLADE_ORBITER', CLOCKWORK_SWARM_WEAVER: 'FLYING_BLADE_ORBITER',
+    SPIRIT_ARTILLERY_ENGINEER: 'CELESTIAL_BALLISTA',
+    CELESTIAL_CLOCKWORK_ARCHITECT: 'ASTRAL_CLOCKWORK_PRIME',
+    KARMIC_FLAME_ARHAT: 'REVERSED_RETRIBUTION', RED_LOTUS_KARMA_FLAME: 'REVERSED_RETRIBUTION', CAUSAL_JUSTICIAR: 'REVERSED_RETRIBUTION',
+    SIX_REALMS_TRANSCENDENT: 'SIX_PATHS_WHEEL',
+    RED_THREAD_ARBITER: 'FATE_SEVERING_THREAD', FATE_THREAD_WEAVER: 'FATE_SEVERING_THREAD',
+    PAST_LIFE_CHRONICLER: 'PAST_LIFE_MIRROR',
+    SAMSARA_NIRVANA_SHEPHERD: 'LOTUS_MERCY_PURIFIER',
+    SAMSARA_BUDDHA_HEART: 'BODHI_VOW_GUARDIAN',
+    MYRIAD_BEAST_EMPEROR: 'MYRIAD_BEAST_PACK', TEN_THOUSAND_BEAST_KING: 'MYRIAD_BEAST_PACK', PRIMORDIAL_MYRIAD_BEAST_EMPEROR: 'MYRIAD_BEAST_PACK',
+    PRIMORDIAL_BLOOD_AWAKENER: 'PRIMORDIAL_BLOOD_MUTATOR', CHIMERA_BLOODLINE_FUSIONIST: 'PRIMORDIAL_BLOOD_MUTATOR',
+    SYMBIOTIC_FANG_FUSION: 'SYMBIOTIC_BEAST_WARRIOR',
+    SWARM_INSECT_EMPEROR: 'SWARM_GU_HIVE_MASTER',
+    TOTEMIC_WAR_CHIEFTAIN: 'ABYSSAL_DRAGON_TOTEM',
+    ANCIENT_SUN_GOD: 'SUN_BOW_DEITY', STAR_LORD_GOD: 'FATE_ORACLE', OCEAN_GOD: 'OCEAN_SOVEREIGN', THUNDER_LORD_GOD: 'WAR_DEITY',
+    ACUPUNCTURE_SAINT: 'GOLDEN_NEEDLE_SAINT'
+  }, (JD.MARTIAL && JD.MARTIAL.SUBPATH_ALIASES) || {});
+  CULT.resolveSubId = sub => (sub && CULT.SUB_ALIASES && CULT.SUB_ALIASES[sub]) || (sub && JD.MARTIAL && JD.MARTIAL.SUBPATH_ALIASES && JD.MARTIAL.SUBPATH_ALIASES[sub]) || sub;
+  const _SUB_INFO_MAP = Object.create(null);
+  for (const _pk of Object.keys(CULT.PATHS)) {
+    const _sps = CULT.PATHS[_pk].subPaths || [];
+    for (let _i = 0; _i < _sps.length; _i++) {
+      _SUB_INFO_MAP[_pk + ':' + _sps[_i].id] = _sps[_i];
+    }
+  }
+  CULT.subInfo = (path, sub) => {
+    if (!sub || sub === 'NONE') return CULT.BASE_SUB;
+    const cSub = CULT.resolveSubId(sub);
+    return _SUB_INFO_MAP[path + ':' + cSub] || (CULT.PATHS[path] && CULT.PATHS[path].subPaths.find(s => s.id === cSub)) || CULT.BASE_SUB;
+  };
   CULT.stageInfo = (npc) => {
     const c = npc.cult; if (!c) return { nameTh: 'ปุถุชน (ยังไม่เปิดเส้นลมปราณ)', stage: 0, lifespanMax: 70, combatPower: 25, breakthroughBaseChance: 1 };
     const stArr = CULT.PATHS[c.path].stages;
@@ -1744,6 +1785,7 @@
     const c = npc.cult, st = Math.max(1, c.stage || 1);
     if (c.path === "BODY") return [1, 2.5, 4.5, 6.8, 9][Math.min(4, st - 1)] || st;
     if (c.path === "GOD") return [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
+    if (c.path === "MECH_PUPPET" || c.path === "KARMA_SAMSARA" || c.path === "BEAST_SOVEREIGN" || c.path === "SAGE_SUPPORT") return [1, 2.1, 3.2, 4.4, 5.5, 6.7, 7.8, 9][Math.min(7, st - 1)] || st;
     return st;
   };
   CULT.equivalentStage = entity => {
@@ -1754,6 +1796,7 @@
     let ns = st;
     if (c.path === "BODY") ns = [1, 2.5, 4.5, 6.8, 9][Math.min(4, st - 1)] || st;
     else if (c.path === "GOD") ns = [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
+    else if (c.path === "MECH_PUPPET" || c.path === "KARMA_SAMSARA" || c.path === "BEAST_SOVEREIGN" || c.path === "SAGE_SUPPORT") ns = [1, 2.1, 3.2, 4.4, 5.5, 6.7, 7.8, 9][Math.min(7, st - 1)] || st;
     if (c.track) {
       const r = (CULT.trackRealm ? CULT.trackRealm(c.track.subPath, c.track.ordinal) : null);
       if (r && Number.isFinite(r.majorBandEquivalent)) {
@@ -1771,6 +1814,7 @@
     let mapped = st;
     if (c.path === "BODY") mapped = [1, 2, 4, 6, 7][Math.min(4, st - 1)] || st;
     else if (c.path === "GOD") mapped = [1, 3, 5, 7][Math.min(3, st - 1)] || st;
+    else if (c.path === "MECH_PUPPET" || c.path === "KARMA_SAMSARA" || c.path === "BEAST_SOVEREIGN" || c.path === "SAGE_SUPPORT") mapped = [1, 2, 3, 4, 5, 6, 7, 7][Math.min(7, st - 1)] || st;
     return Math.max(st, mapped, trOrd);
   };
   CULT.worldRankFromRaw = raw => {
@@ -1808,7 +1852,7 @@
   CULT.hpMult = npc => {
     if (!npc || !npc.cult) return 1;
     const ns = CULT.normalizedStage(npc);
-    const pathAdd = npc.cult.path === "BODY" ? 0.09 * (ns - 1) : npc.cult.path === "GOD" ? 0.11 * (ns - 1) : 0;
+    const pathAdd = npc.cult.path === "BODY" ? 0.09 * (ns - 1) : npc.cult.path === "GOD" ? 0.11 * (ns - 1) : npc.cult.path === "BEAST_SOVEREIGN" ? 0.07 * (ns - 1) : (npc.cult.path === "MECH_PUPPET" || npc.cult.path === "KARMA_SAMSARA" || npc.cult.path === "SAGE_SUPPORT") ? 0.05 * (ns - 1) : 0;
     return 1 + 0.42 * (ns - 1) + 0.25 + pathAdd;
   };
   CULT.hpMax = npc => {
@@ -1903,6 +1947,18 @@
       } else if (c.path === 'HEART_SOUL') {
         const soulApt = (HC.eff(npc, 'intellect.comprehension') * 0.35 + HC.eff(npc, 'intellect.willpower') * 0.25 + HC.eff(npc, 'personality.composure') * 0.25 + HC.eff(npc, 'physiology.spiritualFoundation') * 0.15) / 54;
         base = 0.98 * clamp(soulApt, 0.4, 2.35) * (0.9 + 0.15 * root.cultivationMult);
+      } else if (c.path === 'MECH_PUPPET') {
+        const mechApt = (HC.eff(npc, 'intellect.inventiveness') * 0.35 + HC.eff(npc, 'physiology.dexterity') * 0.25 + HC.eff(npc, 'affinities.FORGING') * 0.25 + HC.eff(npc, 'aptitudes.crafting') * 0.15) / 54;
+        base = 0.98 * clamp(mechApt, 0.4, 2.35) * (0.88 + 0.16 * root.cultivationMult);
+      } else if (c.path === 'KARMA_SAMSARA') {
+        const karmaApt = (HC.eff(npc, 'intellect.wisdom') * 0.35 + HC.eff(npc, 'personality.composure') * 0.30 + HC.eff(npc, 'affinities.SCRIPTURE') * 0.20 + HC.eff(npc, 'intellect.willpower') * 0.15) / 54;
+        base = 0.99 * clamp(karmaApt, 0.4, 2.35) * (0.9 + 0.15 * root.cultivationMult);
+      } else if (c.path === 'BEAST_SOVEREIGN') {
+        const beastApt = (HC.eff(npc, 'affinities.BEAST_TAMING') * 0.40 + HC.eff(npc, 'interests.beasts') * 0.25 + HC.eff(npc, 'physiology.vitality') * 0.20 + HC.eff(npc, 'aptitudes.command') * 0.15) / 54;
+        base = 0.98 * clamp(beastApt, 0.4, 2.35) * (0.88 + 0.16 * root.cultivationMult);
+      } else if (c.path === 'SAGE_SUPPORT') {
+        const sageApt = (HC.eff(npc, 'affinities.MEDICINE') * 0.35 + HC.eff(npc, 'affinities.ALCHEMY') * 0.25 + HC.eff(npc, 'personality.empathy') * 0.25 + HC.eff(npc, 'physiology.spiritualFoundation') * 0.15) / 54;
+        base = 1.00 * clamp(sageApt, 0.4, 2.38) * (0.90 + 0.16 * root.cultivationMult);
       } else {
         base = 0.94 * clamp((HC.eff(npc, 'social.charisma') * 0.35 + HC.eff(npc, 'intellect.willpower') * 0.35 + HC.eff(npc, 'aptitudes.cultivation') * 0.30) / 54, 0.38, 2.35) * (0.88 + 0.18 * root.cultivationMult);
       }
@@ -1938,7 +1994,18 @@
       dev = 1 - clamp(hd / 200, 0, 0.4);
     }
     const pill = c.pillT > 0 ? 1 + (c.pillBoost || 0) : 1;
-    return staticBase * rest * toxic * dev * pill * (env || 1);
+    let buffMult = 1;
+    if (npc.buffs && npc.buffs.length > 0) {
+      const tNow = (g.STATS && g.STATS.now) || 0;
+      for (let i = 0; i < npc.buffs.length; i++) {
+        const b = npc.buffs[i];
+        if (b && b.until > tNow && (b.id === 'meridianUnblock' || b.id === 'clarityLotus' || b.cultRateBonus > 0)) {
+          buffMult = 1.15;
+          break;
+        }
+      }
+    }
+    return staticBase * rest * toxic * dev * pill * buffMult * (env || 1);
   };
   CULT.gain = (npc, pts, W, sourceTag) => {
     const c = npc.cult; if (!c) return;
@@ -1967,7 +2034,7 @@
     let cp = st.combatPower;
     if (npc.cult) { const si = CULT.subInfo(npc.cult.path, npc.cult.sub); cp *= si.combatBonus; }
     const f_body = 0.7 + d.physicalIndex / 100 * 0.6;
-    const sk = npc.h.skills; const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0, sk.SOUL_DIVINE || 0, sk.POISON || 0);
+    const sk = npc.h.skills; const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0, sk.SOUL_DIVINE || 0, sk.POISON || 0, sk.BEAST_TAMING || 0, sk.FORGING || 0, sk.ARRAY || 0, sk.SCRIPTURE || 0);
     const f_skill = 0.75 + martial / 100 * 0.5;
     let techSum = 0; (npc.cult ? npc.cult.techs : []).forEach(id => { const t = TECH_BY_ID[id]; if (t) techSum += t.tier; });
     const f_tech = 1 + Math.min(0.4, 0.04 * techSum);
@@ -1977,7 +2044,8 @@
       : (1 - 0.3 * (s.heartDemon || 0) / 100);
     const f_state = (0.35 + 0.65 * clamp(s.hp / hpMax, 0, 1)) * (0.75 + 0.25 * s.energy / 100) * hdFactor;
     const f_mind = 0.9 + HC.eff(npc, 'personality.courage') / 100 * 0.12 + HC.eff(npc, 'aptitudes.combat') / 100 * 0.18;
-    cp = cp * f_body * f_skill * f_tech * (1 + eq) * HC.special(npc, 'combat.powerMult') * f_state * f_mind;
+    const petMult = (CULT.petCombatMultiplier && (!opts || !opts.noPets)) ? CULT.petCombatMultiplier(npc) : 1;
+    cp = cp * f_body * f_skill * f_tech * (1 + eq) * HC.special(npc, 'combat.powerMult') * f_state * f_mind * petMult;
     return Math.max(3, cp);
   };
   CULT.defenseMult = npc => { let d = 0; const E = npc.equip || {}; for (const k in E) if (E[k] && E[k].defMult) d += E[k].defMult; return 1 + d; };
@@ -2017,6 +2085,8 @@
     }
     if (g.BN) p += g.BN.chanceMod(npc);
     if (CULT.isAncestralBlessingActive(npc, prep && Number.isFinite(prep.now) ? prep.now : null)) p += (npc.ancestralBlessing.breakthroughBonus || 0);
+    if (CULT.petBreakthroughBonus) p += CULT.petBreakthroughBonus(npc);
+    if (g.STATS && g.STATS.hasBuff && (g.STATS.hasBuff(npc, "meridianUnblock", prep && prep.now) || g.STATS.hasBuff(npc, "clarityLotus", prep && prep.now))) p += 0.05;
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
@@ -2044,6 +2114,50 @@
         h.physiology.vitality = Math.min(99, h.physiology.vitality + 0.7);
         h.state.heartDemon = Math.max(0, (h.state.heartDemon || 0) - 5);
         HC.gainWisdom(npc, 0.8);
+      } else if (c.path === 'MECH_PUPPET') {
+        h.intellect.inventiveness = Math.min(99, (h.intellect.inventiveness || 50) + 0.8);
+        h.physiology.dexterity = Math.min(99, (h.physiology.dexterity || 50) + 0.6);
+        const ms = CULT.ensureMechState ? CULT.ensureMechState(npc) : null;
+        if (ms) {
+          ms.puppetTier = c.stage;
+          ms.integrity = 100;
+          ms.constructReadiness = 100;
+          ms.charge = 100;
+          ms.heat = 0;
+          ms.overclockReady = true;
+          ms.decoyAvailable = true;
+          ms.vesselDecoyReady = true;
+        }
+        HC.gainWisdom(npc, 0.9);
+      } else if (c.path === 'KARMA_SAMSARA') {
+        h.state.heartDemon = Math.max(0, (h.state.heartDemon || 0) - 12);
+        const ks = CULT.ensureKarmaState ? CULT.ensureKarmaState(npc) : null;
+        if (ks) {
+          ks.meritStacks = clamp((ks.meritStacks || 1) + 1, 1, 99);
+          ks.echoReady = true;
+        }
+        HC.gainWisdom(npc, 1.2);
+      } else if (c.path === 'BEAST_SOVEREIGN') {
+        h.physiology.vitality = Math.min(99, (h.physiology.vitality || 50) + 0.8);
+        if (CULT.ensurePets) {
+          const pets = CULT.ensurePets(npc);
+          pets.forEach(pt => {
+            if (!pt) return;
+            pt.level = Math.min(9, (pt.level || 1) + 1);
+            pt.bond = clamp((pt.bond || 65) + 6, 0, 100);
+            pt.loyalty = pt.bond;
+            pt.fatigue = 0;
+            pt.injured = false;
+            if (c.stage >= 6 && pt.tier < 6) pt.tier = Math.min(7, pt.tier + 1);
+          });
+          CULT.ensurePets(npc);
+        }
+        HC.gainWisdom(npc, 0.8);
+      } else if (c.path === 'SAGE_SUPPORT') {
+        h.intellect.comprehension = Math.min(99, (h.intellect.comprehension || 50) + 0.7);
+        h.physiology.spiritualFoundation = Math.min(99, (h.physiology.spiritualFoundation || 50) + 0.7);
+        h.state.heartDemon = Math.max(0, (h.state.heartDemon || 0) - 10);
+        HC.gainWisdom(npc, 1.1);
       } else {
         HC.gainWisdom(npc, 0.8);
       }
@@ -2070,6 +2184,22 @@
         npc.h.state.qi = 0;
         npc.h.state.rest = Math.max(5, (npc.h.state.rest || 50) - 25);
         npc.h.state.stress = clamp((npc.h.state.stress || 0) + 12, 0, 100);
+      } else if (c.path === 'MECH_PUPPET') {
+        res.supremeRisk = 'AUTOMATON_CORE_OVERHEAT_BACKLASH';
+        if (npc.mechState) { npc.mechState.integrity = Math.max(15, (npc.mechState.integrity || 100) - 35); npc.mechState.heat = Math.min(100, (npc.mechState.heat || 0) + 40); }
+        npc.h.state.stress = clamp((npc.h.state.stress || 0) + 10, 0, 100);
+      } else if (c.path === 'KARMA_SAMSARA') {
+        res.supremeRisk = 'KARMIC_TRIBULATION_CONFUSION';
+        npc.h.state.heartDemon = clamp((npc.h.state.heartDemon || 0) + 10, 0, 100);
+        npc.h.state.stress = clamp((npc.h.state.stress || 0) + 12, 0, 100);
+      } else if (c.path === 'BEAST_SOVEREIGN') {
+        res.supremeRisk = 'FERAL_BLOODLINE_BACKLASH';
+        npc.h.state.heartDemon = clamp((npc.h.state.heartDemon || 0) + 9, 0, 100);
+        if (Array.isArray(npc.pets)) npc.pets.forEach(pt => { if (pt && pt.active) pt.fatigue = clamp((pt.fatigue || 0) + 25, 0, 100); });
+      } else if (c.path === 'SAGE_SUPPORT') {
+        res.supremeRisk = 'MERIDIAN_OVERDRAIN_BACKLASH';
+        npc.h.state.qi = Math.max(0, Math.round((npc.h.state.qi || 0) * 0.25));
+        npc.h.state.energy = Math.max(10, (npc.h.state.energy || 50) - 20);
       }
       const pd = c.stage >= 3 ? 0.012 * (c.stage - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
       if (rng.next() < pd) res.died = true;
@@ -2216,7 +2346,11 @@
         DEMON: [1, 2, 3, 4, 5, 6, 7, 8, 9],
         HEART_SOUL: [1, 2, 3, 4, 5, 6, 7, 8, 9],
         BODY: [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0],
-        GOD: [1.0, 1.5, 2.0, 2.5, 3.0, 3.3, 3.7, 3.9, 4.0]
+        GOD: [1.0, 1.5, 2.0, 2.5, 3.0, 3.3, 3.7, 3.9, 4.0],
+        MECH_PUPPET: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+        KARMA_SAMSARA: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+        BEAST_SOVEREIGN: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+        SAGE_SUPPORT: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0]
       };
       const fcpTable = [130, 310, 620, 1180, 2250, 4100, 7400, 13200, 23500];
       const stoneTable = [55, 78, 125, 210, 350, 580, 950, 1550, 2500];
@@ -2287,8 +2421,9 @@
 
   CULT.trackDef = subPath => {
     if (!subPath) return null;
-    if (!CULT.TRACKS[subPath] && !CULT.ADVANCED_TRACKS[subPath]) CULT.registerTracks();
-    return CULT.TRACKS[subPath] || CULT.ADVANCED_TRACKS[subPath] || null;
+    const cSub = CULT.resolveSubId ? CULT.resolveSubId(subPath) : subPath;
+    if (!CULT.TRACKS[cSub] && !CULT.ADVANCED_TRACKS[cSub]) CULT.registerTracks();
+    return CULT.TRACKS[cSub] || CULT.ADVANCED_TRACKS[cSub] || null;
   };
 
   CULT.trackOf = npc => {
@@ -2973,6 +3108,892 @@
       ratio,
       bandDelta,
       assessmentTh
+    };
+  };
+
+
+  /* =========================================================================
+   * 3) ระบบสัตว์เลี้ยงอสูรคู่สัญญา (UNIVERSAL SPIRIT BEAST PET SYSTEM v2.0.8)
+   *    + ระบบหุ่นเชิดกลจักร (MECH_PUPPET) + ระบบตาชั่งวิบากกรรม (KARMA_SAMSARA)
+   * ========================================================================= */
+  const PET_ROLES = Object.freeze({
+    FEROCIOUS_ASSAULT: { id: 'FEROCIOUS_ASSAULT', nameTh: 'จู่โจมดุดัน', icon: '🐺', atkBonus: 0.09, defBonus: 0.02, moveBonus: 4, descTh: 'เน้นประสานเขี้ยวเล็บจู่โจมและเจาะเกราะศัตรู' },
+    IRON_GUARDIAN: { id: 'IRON_GUARDIAN', nameTh: 'ปราการพิทักษ์', icon: '🐢', atkBonus: 0.02, defBonus: 0.11, hpBonus: 0.08, descTh: 'กางเกราะรับความเสียหายแทนนายและสะท้อนแรงปะทะ' },
+    MYSTIC_SUPPORT: { id: 'MYSTIC_SUPPORT', nameTh: 'ภูตทิพย์หนุนปราณ', icon: '🦌', matkBonus: 0.06, mdefBonus: 0.08, healBonus: 0.10, descTh: 'ฟื้นฟูพลังชีวิต ชำระสถานะร้าย และหนุนการทะลวงด่าน' },
+    VENOM_SWARM: { id: 'VENOM_SWARM', nameTh: 'ฝูงพิษกัดกร่อน', icon: '🦂', atkBonus: 0.05, matkBonus: 0.07, penBonus: 8, descTh: 'ปล่อยพิษกัดกร่อนเกราะและดูดซับปราณศัตรู' },
+    MOUNT_CHARGER: { id: 'MOUNT_CHARGER', nameTh: 'พาหนะศึกทะลวงทัพ', icon: '🐎', atkBonus: 0.06, defBonus: 0.05, moveBonus: 12, descTh: 'เพิ่มความเร็วเดินทาง พุ่งชาร์จทะลวงแนวหน้า และช่วยสำรวจ' }
+  });
+  const PET_ROLE_ALIASES = Object.freeze({
+    ASTRAL_MOUNT: 'MOUNT_CHARGER',
+    MOUNT: 'MOUNT_CHARGER',
+    ASSAULT: 'FEROCIOUS_ASSAULT',
+    GUARDIAN: 'IRON_GUARDIAN',
+    SUPPORT: 'MYSTIC_SUPPORT',
+    SWARM: 'VENOM_SWARM'
+  });
+
+  const BLOODLINE_TRAITS = Object.freeze({
+    ALPHA_FANG: { id: 'ALPHA_FANG', nameTh: 'เขี้ยวจ่าฝูงวายุ', atkPct: 0.06, critAdd: 4 },
+    IRON_CARAPACE: { id: 'IRON_CARAPACE', nameTh: 'กระดองเหล็กไหล', defPct: 0.08, hpPct: 0.06 },
+    VENOM_GLAND: { id: 'VENOM_GLAND', nameTh: 'ต่อมพิษเจ็ดราตรี', matkPct: 0.06, penAdd: 6 },
+    AUSPICIOUS_SPIRIT: { id: 'AUSPICIOUS_SPIRIT', nameTh: 'จิตวิญญาณมงคล', mdefPct: 0.07, btBonus: 0.04 },
+    SOVEREIGN_AWAKENED: { id: 'SOVEREIGN_AWAKENED', nameTh: 'สายเลือดเทพอสูรบรรพกาล', atkPct: 0.14, matkPct: 0.14, defPct: 0.12, hpPct: 0.12, critAdd: 6, penAdd: 10, btBonus: 0.06 }
+  });
+
+  CULT.PET_ROLES = PET_ROLES;
+  CULT.PET_ROLE_ALIASES = PET_ROLE_ALIASES;
+  CULT.BLOODLINE_TRAITS = BLOODLINE_TRAITS;
+
+  CULT.normalizePetRole = raw => {
+    if (!raw) return 'FEROCIOUS_ASSAULT';
+    const u = String(raw).trim().toUpperCase();
+    const mapped = PET_ROLE_ALIASES[u] || u;
+    return PET_ROLES[mapped] ? mapped : 'FEROCIOUS_ASSAULT';
+  };
+
+  CULT.allBeastSpecies = () => {
+    if (!CULT._speciesCache) {
+      const list = (JD.BEASTS && Array.isArray(JD.BEASTS.species) ? JD.BEASTS.species : []).concat((JD.BEASTS && Array.isArray(JD.BEASTS.kings)) ? JD.BEASTS.kings : []);
+      const seen = new Set();
+      CULT._speciesCache = list.filter(s => {
+        if (!s || !s.id || seen.has(s.id)) return false;
+        seen.add(s.id);
+        return true;
+      });
+      CULT._speciesById = Object.fromEntries(CULT._speciesCache.map(s => [s.id, s]));
+    }
+    return CULT._speciesCache;
+  };
+
+  CULT.beastSpeciesById = id => {
+    if (!CULT._speciesById) CULT.allBeastSpecies();
+    return (CULT._speciesById && CULT._speciesById[id]) || null;
+  };
+
+  CULT.inferSpeciesFamily = sp => {
+    if (!sp) return 'CANINE';
+    const id = String(sp.id || '').toUpperCase();
+    const nm = String(sp.nameTh || '');
+    if (/WOLF|CANINE|HOUND|FOX|หมาป่า|สุนัข|จิ้งจอก/.test(id + nm)) return 'CANINE';
+    if (/TIGER|FELINE|LION|LEOPARD|พยัคฆ์|เสือ|แมว/.test(id + nm)) return 'FELINE';
+    if (/BOAR|BEAR|URSINE|หมูป่า|หมี/.test(id + nm)) return 'URSINE_BOAR';
+    if (/TORTOISE|TURTLE|SHELL|CRAB|เต่า|ปู|กระดอง/.test(id + nm)) return 'SHELL_GUARDIAN';
+    if (/PYTHON|SERPENT|SNAKE|VIPER|งู|เหลือม|อสรพิษ/.test(id + nm)) return 'SERPENT';
+    if (/SCORPION|ARTHROPOD|BEETLE|SPIDER|INSECT|CENTIPEDE|แมง|แมลง|ด้วง|ตะขาบ|กู่/.test(id + nm)) return 'ARTHROPOD_SWARM';
+    if (/ROC|HAWK|AVIAN|CRANE|EAGLE|FALCON|เหยี่ยว|อินทรี|กระเรียน|วิหค|นก/.test(id + nm)) return 'AVIAN';
+    if (/STAG|KIRIN|QILIN|UNGULATE|PLANT|TREANT|กวาง|กิเลน|พฤกษา|ภูต/.test(id + nm)) return 'AUSPICIOUS_FAIRY';
+    if (/DRAGON|DRAKE|LEVIATHAN|TAOTIE|MYTHIC|มังกร|เทพอสูร/.test(id + nm)) return 'DRAGON_MYTHIC';
+    return 'CANINE';
+  };
+
+  CULT.defaultRoleForSpecies = sp => {
+    const fam = CULT.inferSpeciesFamily(sp);
+    if (fam === 'SHELL_GUARDIAN' || fam === 'URSINE_BOAR') return 'IRON_GUARDIAN';
+    if (fam === 'ARTHROPOD_SWARM' || fam === 'SERPENT') return 'VENOM_SWARM';
+    if (fam === 'AUSPICIOUS_FAIRY') return 'MYSTIC_SUPPORT';
+    if (fam === 'AVIAN') return 'MOUNT_CHARGER';
+    return 'FEROCIOUS_ASSAULT';
+  };
+
+  CULT.defaultTraitForSpecies = sp => {
+    const fam = CULT.inferSpeciesFamily(sp);
+    if ((sp && sp.tier >= 6) || fam === 'DRAGON_MYTHIC') return 'SOVEREIGN_AWAKENED';
+    if (fam === 'SHELL_GUARDIAN' || fam === 'URSINE_BOAR') return 'IRON_CARAPACE';
+    if (fam === 'ARTHROPOD_SWARM' || fam === 'SERPENT') return 'VENOM_GLAND';
+    if (fam === 'AUSPICIOUS_FAIRY') return 'AUSPICIOUS_SPIRIT';
+    return 'ALPHA_FANG';
+  };
+
+  // Canonical Active Pet Capacity Rule (Section 4.3 & Section 22.4):
+  // - Standard paths (and mortals with taming): 1 active pet
+  // - BEAST_SOVEREIGN: Stage 1-2 -> 1; Stage 3-5 -> 2; Stage 6-8 -> 3
+  // - MYRIAD_BEAST_PACK subpath: +1 extra pack slot (Stage 1-2 -> 2; Stage 3-5 -> 3; Stage 6-8 -> 4, hard-capped at 4)
+  CULT.maxActivePets = npc => {
+    if (!npc) return 1;
+    const c = npc.cult;
+    if (!c || c.path !== 'BEAST_SOVEREIGN') return 1;
+    const effSt = Math.max(c.stage || 1, CULT.effectiveTechStage ? CULT.effectiveTechStage(npc) : 1);
+    let cap = effSt >= 6 ? 3 : effSt >= 3 ? 2 : 1;
+    if (c.sub === 'MYRIAD_BEAST_PACK') cap = Math.min(4, cap + 1);
+    return cap;
+  };
+
+  CULT.maxReservePets = npc => {
+    if (!npc) return 3;
+    return (npc.cult && npc.cult.path === 'BEAST_SOVEREIGN') ? 6 : 3;
+  };
+
+  CULT.ensurePets = npc => {
+    if (!npc || npc.foe) return [];
+    if (!Array.isArray(npc.pets)) npc.pets = [];
+    const maxAct = CULT.maxActivePets(npc);
+    let actCount = 0;
+    for (let i = 0; i < npc.pets.length; i++) {
+      const p = npc.pets[i];
+      if (!p) continue;
+      p.role = CULT.normalizePetRole(p.role);
+      p.tier = clamp(Math.floor(p.tier || 1), 1, 7);
+      p.level = clamp(Math.floor(p.level || 1), 1, 9);
+      p.bond = clamp(Number.isFinite(p.bond) ? p.bond : (Number.isFinite(p.loyalty) ? p.loyalty : 65), 0, 100);
+      p.hunger = clamp(Number.isFinite(p.hunger) ? p.hunger : (Number.isFinite(p.satisfaction) ? p.satisfaction : 85), 0, 100);
+      p.fatigue = clamp(Number.isFinite(p.fatigue) ? p.fatigue : 10, 0, 100);
+      p.loyalty = p.bond;
+      p.satisfaction = p.hunger;
+      p.bondXp = Number.isFinite(p.bondXp) ? p.bondXp : (p.exp || 0);
+      p.exp = p.bondXp;
+      p.hpMax = Math.max(60, Math.round(80 * Math.pow(1.45, (p.tier || 1) - 1) * (1 + ((p.level || 1) - 1) * 0.1)));
+      if (!Number.isFinite(p.hp) || p.hp > p.hpMax) p.hp = p.hpMax;
+      if (p.sovereignAwakened || p.bloodlineTrait === 'SOVEREIGN_AWAKENED') {
+        p.bloodlineTrait = 'SOVEREIGN_AWAKENED';
+        p.trait = 'SOVEREIGN_AWAKENED';
+        p.sovereignAwakened = true;
+        p.growthStage = 4;
+      } else {
+        p.growthStage = Math.min(3, Math.max(1, Math.ceil((p.level || 1) / 3)));
+      }
+      if (p.injured && p.active) p.active = false;
+      if (p.active) {
+        if (actCount < maxAct) actCount++;
+        else p.active = false;
+      }
+    }
+    return npc.pets;
+  };
+  CULT.reconcileActivePetCap = CULT.ensurePets;
+
+  CULT.activePets = npc => {
+    if (!npc || npc.foe || !Array.isArray(npc.pets) || !npc.pets.length) return [];
+    const maxAct = CULT.maxActivePets(npc);
+    const out = [];
+    for (let i = 0; i < npc.pets.length && out.length < maxAct; i++) {
+      const p = npc.pets[i];
+      if (p && p.active && !p.dead && !p.injured && (p.fatigue || 0) < 95) out.push(p);
+    }
+    return out;
+  };
+
+  CULT.createPetRecord = (W, npc, speciesOrId, opts) => {
+    opts = opts || {};
+    const sp = typeof speciesOrId === 'string' ? CULT.beastSpeciesById(speciesOrId) : speciesOrId;
+    const fallbackSp = sp || CULT.beastSpeciesById('BEAST_MIST_WOLF') || (CULT.allBeastSpecies()[0]);
+    if (!fallbackSp) return null;
+    if (W) {
+      W.sect = W.sect || {};
+      W.sect.petSeq = (W.sect.petSeq || 0) + 1;
+    }
+    const seq = (W && W.sect && W.sect.petSeq) ? W.sect.petSeq : Math.floor(Math.random() * 9000 + 1000);
+    const tier = clamp(opts.tier != null ? opts.tier : (fallbackSp.tier || 1), 1, 7);
+    const isSovAwakened = !!(opts.sovereignAwakened || opts.bloodlineTrait === 'SOVEREIGN_AWAKENED');
+    const growthSt = clamp(opts.growthStage != null ? opts.growthStage : (isSovAwakened ? 4 : 1), 1, 4);
+    const level = clamp(opts.level != null ? opts.level : (isSovAwakened ? 9 : Math.max(1, (growthSt - 1) * 3 + 1)), 1, 9);
+    const role = CULT.normalizePetRole(opts.role || CULT.defaultRoleForSpecies(fallbackSp));
+    const trait = isSovAwakened ? 'SOVEREIGN_AWAKENED' : (opts.bloodlineTrait || opts.trait || CULT.defaultTraitForSpecies(fallbackSp));
+    const el = opts.element || fallbackSp.element || 'WIND';
+    const bondVal = clamp(opts.bond != null ? opts.bond : (opts.loyalty != null ? opts.loyalty : 70), 0, 100);
+    const hungerVal = clamp(opts.hunger != null ? opts.hunger : (opts.satisfaction != null ? opts.satisfaction : 90), 0, 100);
+    const xpVal = Math.max(0, Math.round(opts.bondXp != null ? opts.bondXp : (opts.exp || 0)));
+    const hpMax = Math.max(60, Math.round(80 * Math.pow(1.45, tier - 1) * (1 + (level - 1) * 0.1)));
+    return {
+      uid: opts.uid || ('PET_' + (npc ? npc.id : 'SECT') + '_' + seq),
+      ownerId: npc ? npc.id : null,
+      speciesId: fallbackSp.id,
+      nameTh: opts.nameTh || fallbackSp.nameTh,
+      family: CULT.inferSpeciesFamily(fallbackSp),
+      tier,
+      level,
+      growthStage: isSovAwakened ? 4 : Math.min(3, Math.max(1, Math.ceil(level / 3))),
+      exp: xpVal,
+      bondXp: xpVal,
+      bond: bondVal,
+      loyalty: bondVal,
+      hunger: hungerVal,
+      satisfaction: hungerVal,
+      fatigue: clamp(opts.fatigue != null ? opts.fatigue : 5, 0, 100),
+      hpMax,
+      hp: hpMax,
+      injured: !!opts.injured,
+      role,
+      element: el,
+      bloodlineTrait: trait,
+      trait,
+      sovereignAwakened: isSovAwakened,
+      task: opts.task || 'COMBAT',
+      active: opts.active != null ? !!opts.active : true,
+      provenance: opts.provenance || 'wild_tame',
+      acquiredDay: (W && W.day) || 0
+    };
+  };
+
+  // Multi-pet command budget allocation (Section 22.2):
+  // Instead of naive linear stacking, active pets share a command allocation weight vector:
+  // 1 pet: [1.0], 2 pets: [0.65, 0.55] (sum 1.20), 3 pets: [0.55, 0.45, 0.35] (sum 1.35), 4 pets: [0.50, 0.40, 0.32, 0.28] (sum 1.50)
+  const COMMAND_WEIGHTS = Object.freeze({
+    1: [1.0],
+    2: [0.65, 0.55],
+    3: [0.55, 0.45, 0.35],
+    4: [0.50, 0.40, 0.32, 0.28]
+  });
+
+  CULT.petPowerSingle = (npc, pet) => {
+    if (!pet || pet.dead) return 0;
+    const sp = CULT.beastSpeciesById(pet.speciesId);
+    const baseCp = sp ? (sp.cp || 90) : (85 * Math.pow(1.85, (pet.tier || 1) - 1));
+    const tierScale = Math.pow(1.38, Math.max(0, (pet.tier || 1) - (sp ? sp.tier : 1)));
+    const lvScale = 1 + ((pet.level || 1) - 1) * 0.08;
+    const bondScale = 0.70 + (clamp(pet.bond || 50, 0, 100) / 100) * 0.50;
+    const readiness = ((pet.hunger || 80) < 20 ? 0.65 : 1.0) * ((pet.fatigue || 0) > 80 ? 0.65 : 1.0) * (pet.injured ? 0.35 : 1.0);
+    let pathMult = 1.0;
+    if (npc && npc.cult && npc.cult.path === 'BEAST_SOVEREIGN') {
+      pathMult = 1.28;
+      if (npc.cult.sub === 'PRIMORDIAL_BLOOD_MUTATOR') pathMult = 1.48;
+      else if (npc.cult.sub === 'SYMBIOTIC_BEAST_WARRIOR') pathMult = 1.36;
+    }
+    if (pet.bloodlineTrait === 'SOVEREIGN_AWAKENED') pathMult *= 1.18;
+    if (pet.mechArmored) pathMult *= 1.12;
+    return Math.round(baseCp * tierScale * lvScale * bondScale * readiness * pathMult);
+  };
+
+  CULT.petStatBonuses = npc => {
+    if (!npc || npc.foe) return null;
+    const active = CULT.activePets(npc);
+    if (!active.length && (!npc.cult || npc.cult.path !== 'MECH_PUPPET')) return null;
+    const p = {}, f = {};
+    if (active.length) {
+      const weights = COMMAND_WEIGHTS[Math.min(4, active.length)] || COMMAND_WEIGHTS[1];
+      const isSov = !!(npc.cult && npc.cult.path === 'BEAST_SOVEREIGN');
+      const sovScale = isSov ? (npc.cult.sub === 'PRIMORDIAL_BLOOD_MUTATOR' && active.length === 1 ? 1.55 : 1.30) : 1.0;
+      const isFused = !!(npc._beastFusedUntil && g.STATS && g.STATS.now < npc._beastFusedUntil);
+      const fuseMult = isFused ? 1.35 : 1.0;
+      for (let i = 0; i < active.length; i++) {
+        const pet = active[i];
+        const w = (weights[i] || 0.25) * sovScale * fuseMult * (0.65 + (pet.bond || 60) / 200);
+        const rDef = PET_ROLES[pet.role] || PET_ROLES.FEROCIOUS_ASSAULT;
+        const tScale = 0.75 + (pet.tier || 1) * 0.12 + (pet.level || 1) * 0.02;
+        if (rDef.atkBonus) p.atk = (p.atk || 0) + rDef.atkBonus * w * tScale;
+        if (rDef.matkBonus) p.matk = (p.matk || 0) + rDef.matkBonus * w * tScale;
+        if (rDef.defBonus) p.def = (p.def || 0) + rDef.defBonus * w * tScale;
+        if (rDef.mdefBonus) p.mdef = (p.mdef || 0) + rDef.mdefBonus * w * tScale;
+        if (rDef.hpBonus) p.hp = (p.hp || 0) + rDef.hpBonus * w * tScale;
+        if (rDef.moveBonus) f.move = (f.move || 0) + rDef.moveBonus * w;
+        if (rDef.penBonus) f.pen = (f.pen || 0) + rDef.penBonus * w;
+        const tr = BLOODLINE_TRAITS[pet.bloodlineTrait];
+        if (tr) {
+          if (tr.atkPct) p.atk = (p.atk || 0) + tr.atkPct * w;
+          if (tr.matkPct) p.matk = (p.matk || 0) + tr.matkPct * w;
+          if (tr.defPct) p.def = (p.def || 0) + tr.defPct * w;
+          if (tr.hpPct) p.hp = (p.hp || 0) + tr.hpPct * w;
+          if (tr.mdefPct) p.mdef = (p.mdef || 0) + tr.mdefPct * w;
+          if (tr.critAdd) f.crit = (f.crit || 0) + tr.critAdd * w;
+          if (tr.penAdd) f.pen = (f.pen || 0) + tr.penAdd * w;
+        }
+        if (pet.mechArmored) {
+          p.def = (p.def || 0) + 0.06 * w;
+          f.pen = (f.pen || 0) + 4 * w;
+        }
+      }
+    }
+    // MECH_PUPPET Construct Loadout Readiness Bonus
+    if (npc.cult && npc.cult.path === 'MECH_PUPPET') {
+      const ms = CULT.ensureMechState(npc);
+      if (ms.integrity > 20 && ms.charge > 10) {
+        const eff = (ms.integrity / 100);
+        p.def = (p.def || 0) + (ms.mode === 'BASTION' ? 0.14 : 0.07) * eff;
+        p.atk = (p.atk || 0) + (ms.mode === 'OVERDRIVE' ? 0.12 : 0.06) * eff;
+        p.matk = (p.matk || 0) + (ms.mode === 'OVERDRIVE' ? 0.12 : 0.06) * eff;
+      }
+    }
+    return { p, f, activeCount: active.length };
+  };
+
+  CULT.petCombatMultiplier = npc => {
+    if (!npc || npc.foe) return 1.0;
+    const active = CULT.activePets(npc);
+    let mult = 1.0;
+    if (active.length) {
+      const weights = COMMAND_WEIGHTS[Math.min(4, active.length)] || COMMAND_WEIGHTS[1];
+      const isSov = !!(npc.cult && npc.cult.path === 'BEAST_SOVEREIGN');
+      for (let i = 0; i < active.length; i++) {
+        const pt = active[i];
+        const w = weights[i] || 0.25;
+        const contrib = (0.06 + (pt.tier || 1) * 0.022 + (pt.level || 1) * 0.004) * (0.7 + (pt.bond || 60) / 200) * w * (isSov ? 1.35 : 1.0);
+        mult += contrib;
+      }
+    }
+    if (npc.cult && npc.cult.path === 'MECH_PUPPET' && npc.mechState && npc.mechState.integrity > 25) {
+      mult += 0.08 * (npc.mechState.integrity / 100);
+    }
+    return clamp(mult, 1.0, 1.85);
+  };
+
+  CULT.petBreakthroughBonus = npc => {
+    if (!npc || !Array.isArray(npc.pets)) return 0;
+    const active = CULT.activePets(npc);
+    let b = 0;
+    for (let i = 0; i < active.length; i++) {
+      const pt = active[i];
+      if (pt.role === 'MYSTIC_SUPPORT' || pt.bloodlineTrait === 'AUSPICIOUS_SPIRIT' || pt.bloodlineTrait === 'SOVEREIGN_AWAKENED') {
+        b += 0.03 + (pt.tier || 1) * 0.008;
+      }
+    }
+    if (npc.cult && npc.cult.sub === 'CELESTIAL_ASTRAL_FAIRY_TAMER' && active.length) b += 0.06;
+    return clamp(b, 0, 0.16);
+  };
+
+  // Tame / Bind a beast (from wild encounter or Edit Hub)
+  CULT.bindPet = (W, npc, speciesOrBeast, opts) => {
+    opts = opts || {};
+    if (!npc || npc.dead) return { ok: false, reason: 'ไม่พบตัวละครเป้าหมาย' };
+    const pets = CULT.ensurePets(npc);
+    const maxAct = CULT.maxActivePets(npc);
+    const maxRes = CULT.maxReservePets(npc);
+    if (pets.length >= maxAct + maxRes && !opts.force) {
+      return { ok: false, reason: 'จำนวนสัตว์อสูรคู่สัญญาเต็มขีดจำกัดแล้ว (' + (maxAct + maxRes) + ' ตน)' };
+    }
+    const spId = typeof speciesOrBeast === 'string' ? speciesOrBeast : (speciesOrBeast && (speciesOrBeast.speciesId || speciesOrBeast.id));
+    const sp = CULT.beastSpeciesById(spId) || (typeof speciesOrBeast === 'object' ? speciesOrBeast : null) || (CULT.allBeastSpecies && CULT.allBeastSpecies()[0]);
+    if (!sp) return { ok: false, reason: 'ไม่พบสายพันธุ์สัตว์อสูร: ' + spId };
+
+    // Conservation check: if capturing a live wild beast instance, mark it captured/gone so it cannot also be killed or captured twice
+    if (speciesOrBeast && typeof speciesOrBeast === 'object' && speciesOrBeast.wild) {
+      if (speciesOrBeast.capturedBy || speciesOrBeast.dead || speciesOrBeast.gone) {
+        return { ok: false, reason: 'สัตว์อสูรตนนี้ถูกจับหรือจากไปแล้ว' };
+      }
+      speciesOrBeast.capturedBy = npc.id;
+      speciesOrBeast.gone = true;
+      speciesOrBeast.dead = false;
+    }
+
+    let curActive = CULT.activePets(npc);
+    const newTier = clamp(opts.tier != null ? opts.tier : (sp.tier || 1), 1, 7);
+    if (curActive.length >= maxAct && opts.replaceWeakest) {
+      const weakest = curActive.slice().sort((a, b) => (a.tier || 1) - (b.tier || 1))[0];
+      if (weakest && newTier > (weakest.tier || 1)) {
+        weakest.active = false;
+        curActive = CULT.activePets(npc);
+      }
+    }
+    const shouldActive = opts.active != null ? (!!opts.active && curActive.length < maxAct) : (curActive.length < maxAct);
+    const petRec = CULT.createPetRecord(W, npc, sp, Object.assign({}, opts, { active: shouldActive }));
+    pets.push(petRec);
+    CULT.ensurePets(npc);
+    HC.bump(npc);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(npc);
+    return { ok: true, pet: petRec, activePets: CULT.activePets(npc).length, maxActive: maxAct };
+  };
+
+  // Attempt taming a wild beast with real skill/tier gate and feed item support
+  CULT.attemptTameBeast = (W, npc, beastOrSpecies, opts) => {
+    opts = opts || {};
+    if (!npc || npc.dead) return { ok: false, reason: 'ตัวละครไม่พร้อมฝึกอสูร' };
+    if (opts.forceSuccess) opts.force = true;
+    const spId = typeof beastOrSpecies === 'string' ? beastOrSpecies : (beastOrSpecies && (beastOrSpecies.speciesId || beastOrSpecies.id));
+    const sp = CULT.beastSpeciesById(spId) || (typeof beastOrSpecies === 'object' ? beastOrSpecies : null) || (CULT.allBeastSpecies && CULT.allBeastSpecies()[0]);
+    if (!sp) return { ok: false, reason: 'ไม่พบข้อมูลสัตว์อสูร' };
+    const isSov = !!(npc.cult && npc.cult.path === 'BEAST_SOVEREIGN');
+    const effSt = npc.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(npc) : npc.cult.stage) : 1;
+    const tamingSk = (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(npc, 'BEAST_TAMING') : ((npc.h && npc.h.skills && npc.h.skills.BEAST_TAMING) || 0);
+    const maxTamableTier = Math.min(7, effSt + (isSov ? 2 : (tamingSk >= 45 ? 1 : 0)));
+    if ((sp.tier || 1) > maxTamableTier && !opts.force) {
+      return { ok: false, reason: 'ตบะหรือทักษะฝึกอสูรยังไม่ถึงเกณฑ์สำหรับอสูรระดับ T' + sp.tier };
+    }
+    let chance = 0.38 + (tamingSk / 160) + (effSt - (sp.tier || 1)) * 0.12 + (isSov ? 0.25 : 0);
+    // Check for spirit feed item in personal or sect stock
+    if (npc.inv && npc.inv.pills && npc.inv.pills['P:REC140_BST_SPIRIT_FEED_1'] > 0) {
+      npc.inv.pills['P:REC140_BST_SPIRIT_FEED_1']--;
+      if (npc.inv.pills['P:REC140_BST_SPIRIT_FEED_1'] <= 0) delete npc.inv.pills['P:REC140_BST_SPIRIT_FEED_1'];
+      chance += 0.22;
+    } else if (W && W.sect && W.sect.stock && W.sect.stock['MAT_BP_BEAST_MEAT_1'] > 0 && opts.useSectBait) {
+      g.ECO.take(W, 'MAT_BP_BEAST_MEAT_1', 1);
+      chance += 0.12;
+    }
+    chance = clamp(chance, 0.08, 0.96);
+    const rollOk = opts.force || (W && W.rng ? W.rng.next() < chance : Math.random() < chance);
+    if (g.MARTIAL && g.MARTIAL.skillPractice) g.MARTIAL.skillPractice(npc, 'BEAST_TAMING', 0.5, 1.2);
+    if (!rollOk) {
+      npc.h.state.energy = Math.max(5, (npc.h.state.energy || 50) - 8);
+      return { ok: false, failedRoll: true, chance, reason: 'สัตว์อสูรดิ้นหลุดพันธสัญญา (โอกาส ' + Math.round(chance * 100) + '%)' };
+    }
+    if (beastOrSpecies && typeof beastOrSpecies === 'object') {
+      beastOrSpecies.captured = true;
+      beastOrSpecies.capturedBy = npc.id;
+      beastOrSpecies.gone = true;
+      if (W && W.wildlife) {
+        W.wildlife.captures = (W.wildlife.captures || 0) + 1;
+        if (Array.isArray(W.wildlife.beasts)) {
+          const bIdx = W.wildlife.beasts.indexOf(beastOrSpecies);
+          if (bIdx >= 0) W.wildlife.beasts.splice(bIdx, 1);
+        }
+      }
+    }
+    const res = CULT.bindPet(W, npc, beastOrSpecies, { provenance: 'wild_tame', force: !!opts.force });
+    if (res.ok && W && W.log && !opts.quiet) {
+      W.log('explore', '🐾 ' + npc.h.name.given + ' ทำพันธสัญญาสยบ「' + res.pet.nameTh + '」(T' + res.pet.tier + ') เป็นอสูรคู่สัญญาสำเร็จ!', [npc.id]);
+    }
+    return res;
+  };
+
+  // Feed / Care for a pet using real inventory/sect provisions
+  CULT.feedPet = (W, npc, petUid, opts) => {
+    opts = opts || {};
+    if (!npc || !Array.isArray(npc.pets)) return { ok: false, reason: 'ไม่มีสัตว์อสูรคู่สัญญา' };
+    const pet = petUid ? npc.pets.find(p => p && p.uid === petUid) : npc.pets[0];
+    if (!pet) return { ok: false, reason: 'ไม่พบสัตว์อสูรเป้าหมาย' };
+    let fedSource = 'free';
+    if (!opts.free && W && W.sect) {
+      if (npc.inv && npc.inv.mats && npc.inv.mats['MAT_BP_BEAST_MEAT_1'] > 0) {
+        npc.inv.mats['MAT_BP_BEAST_MEAT_1']--;
+        if (npc.inv.mats['MAT_BP_BEAST_MEAT_1'] <= 0) delete npc.inv.mats['MAT_BP_BEAST_MEAT_1'];
+        fedSource = 'personal_meat';
+      } else if (g.ECO && g.ECO.count(W, 'MAT_BP_BEAST_MEAT_1') > 0) {
+        g.ECO.take(W, 'MAT_BP_BEAST_MEAT_1', 1);
+        fedSource = 'sect_meat';
+      } else if (g.ECO && g.ECO.count(W, 'meal') > 0) {
+        g.ECO.take(W, 'meal', 1);
+        fedSource = 'sect_meal';
+      } else if (g.ECO && g.ECO.count(W, 'grain') > 0) {
+        g.ECO.take(W, 'grain', 1);
+        fedSource = 'sect_grain';
+      } else {
+        return { ok: false, reason: 'ขาดแคลนเนื้อปราณหรือเสบียงสำหรับเลี้ยงอสูร' };
+      }
+    }
+    pet.hunger = clamp((pet.hunger || 50) + 45, 0, 100);
+    pet.satisfaction = pet.hunger;
+    pet.fatigue = Math.max(0, (pet.fatigue || 0) - 25);
+    pet.bond = clamp((pet.bond || 50) + 4, 0, 100);
+    pet.loyalty = pet.bond;
+    pet.bondXp = (pet.bondXp || pet.exp || 0) + 15;
+    pet.exp = pet.bondXp;
+    if (pet.hpMax) pet.hp = pet.hpMax;
+    if (pet.injured && (opts.healInjury || fedSource === 'personal_meat' || opts.free)) pet.injured = false;
+    CULT.ensurePets(npc);
+    HC.bump(npc);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, pet, fedSource };
+  };
+
+  // Evolve / Awaken Pet Bloodline
+  CULT.evolvePet = (W, npc, petUid, opts) => {
+    opts = opts || {};
+    if (!npc || !Array.isArray(npc.pets)) return { ok: false, reason: 'ไม่มีสัตว์อสูรคู่สัญญา' };
+    const pet = petUid ? npc.pets.find(p => p && p.uid === petUid) : npc.pets[0];
+    if (!pet) return { ok: false, reason: 'ไม่พบสัตว์อสูรเป้าหมาย' };
+    if (!opts.free) {
+      const stoneCost = (pet.tier || 1) * 80;
+      if ((npc.inv && npc.inv.stones || 0) >= stoneCost) {
+        npc.inv.stones -= stoneCost;
+      } else if (W && W.sect && (W.sect.stones || 0) >= stoneCost) {
+        g.ECO.pay(W, stoneCost, 'วิวัฒน์สายเลือดอสูร ' + pet.nameTh);
+      } else {
+        return { ok: false, reason: 'ศิลาวิญญาณไม่เพียงพอสำหรับการวิวัฒน์สายเลือด (' + stoneCost + ' ก้อน)' };
+      }
+    }
+    if (opts.awakenSovereign) {
+      pet.tier = 7;
+      pet.level = 9;
+      pet.growthStage = 4;
+      pet.bond = 100;
+      pet.loyalty = 100;
+      pet.hunger = 100;
+      pet.satisfaction = 100;
+      pet.fatigue = 0;
+      pet.injured = false;
+      pet.bloodlineTrait = 'SOVEREIGN_AWAKENED';
+      pet.trait = 'SOVEREIGN_AWAKENED';
+      pet.sovereignAwakened = true;
+    } else {
+      if (pet.level < 9) {
+        pet.level = Math.min(9, (pet.level || 1) + (opts.levels || 2));
+      } else if (pet.tier < 7) {
+        pet.tier = Math.min(7, (pet.tier || 1) + 1);
+        pet.level = 1;
+      }
+      if (pet.tier >= 6) {
+        pet.bloodlineTrait = 'SOVEREIGN_AWAKENED';
+        pet.trait = 'SOVEREIGN_AWAKENED';
+        pet.sovereignAwakened = true;
+      }
+      pet.bond = clamp((pet.bond || 60) + 8, 0, 100);
+      pet.loyalty = pet.bond;
+    }
+    CULT.ensurePets(npc);
+    HC.bump(npc);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(npc);
+    return { ok: true, pet };
+  };
+
+  
+  /* ---------- Spirit Beast Breeding & Bloodline Awakening (v2.0.9) ---------- */
+  CULT.ensureMenagerie = W => {
+    if (!W || !W.sect) return [];
+    if (!Array.isArray(W.sect.beasts)) W.sect.beasts = [];
+    if (!Array.isArray(W.sect.breedingRecords)) W.sect.breedingRecords = [];
+    return W.sect.beasts;
+  };
+
+  CULT.breedBeasts = (W, parentA, parentB, opts) => {
+    opts = opts || {};
+    if (!W) return { ok: false, reason: "ไม่พบข้อมูลโลก" };
+    if (!parentA || !parentB) return { ok: false, reason: "ต้องระบุสัตว์อสูรพ่อพันธุ์และแม่พันธุ์" };
+    if (parentA.uid && parentB.uid && parentA.uid === parentB.uid) {
+      return { ok: false, reason: "ไม่สามารถผสมพันธุ์กับตัวเองได้" };
+    }
+    CULT.ensureMenagerie(W);
+    const facs = (g.SECT && g.SECT.ensureSpecialistFacilities) ? g.SECT.ensureSpecialistFacilities(W) : null;
+    const menagerieLv = (facs && facs.beast_menagerie) ? facs.beast_menagerie.level : 1;
+
+    const satA = parentA.satisfaction != null ? parentA.satisfaction : (parentA.hunger || 80);
+    const satB = parentB.satisfaction != null ? parentB.satisfaction : (parentB.hunger || 80);
+    if (satA < 35 || satB < 35) {
+      return { ok: false, reason: "สัตว์อสูรหิวโหยหรือความพึงพอใจต่ำเกินไป (ต้องการอย่างน้อย 35)" };
+    }
+    const fatigueA = parentA.fatigue || 0;
+    const fatigueB = parentB.fatigue || 0;
+    if (fatigueA > 75 || fatigueB > 75) {
+      return { ok: false, reason: "สัตว์อสูรเหนื่อยล้าเกินไป ควรให้พักผ่อนก่อน" };
+    }
+
+    const breeder = opts.breederId && W.byId && W.byId[opts.breederId] ? W.byId[opts.breederId] : (parentA.ownerId && W.byId[parentA.ownerId] ? W.byId[parentA.ownerId] : null);
+    const tamingSk = (breeder && g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(breeder, "BEAST_TAMING") : (breeder && breeder.h && breeder.h.skills ? (breeder.h.skills.BEAST_TAMING || 0) : 30);
+
+    const rng = (W.rng && typeof W.rng.next === "function") ? W.rng : Math;
+    const roll = () => (rng.next ? rng.next() : rng());
+
+    const spA = CULT.beastSpeciesById(parentA.speciesId || parentA.id) || parentA;
+    const spB = CULT.beastSpeciesById(parentB.speciesId || parentB.id) || parentB;
+    const pickSpecies = roll() < 0.5 ? spA : spB;
+
+    const baseTier = Math.max(parentA.tier || 1, parentB.tier || 1);
+    let childTier = baseTier;
+    const awakenChance = clamp(0.12 + (menagerieLv - 1) * 0.12 + (tamingSk / 220), 0.10, 0.70);
+    const awakened = (opts.forceAwaken || (roll() < awakenChance)) && childTier < 7;
+    if (awakened) childTier++;
+
+    const traitA = parentA.bloodlineTrait || parentA.trait;
+    const traitB = parentB.bloodlineTrait || parentB.trait;
+    let childTrait = roll() < 0.5 ? traitA : traitB;
+    if (awakened || roll() < 0.22) {
+      const rareTraits = ["SOVEREIGN_AWAKENED", "PRIMORDIAL_BLOOD", "CHIMERA_MUTATION", "AUSPICIOUS_SPIRIT"];
+      childTrait = rareTraits[Math.floor(roll() * rareTraits.length)];
+    }
+
+    const childRole = roll() < 0.5 ? (parentA.role || "FEROCIOUS_ASSAULT") : (parentB.role || "FEROCIOUS_ASSAULT");
+    const childOpts = {
+      tier: childTier,
+      role: childRole,
+      bloodlineTrait: childTrait,
+      trait: childTrait,
+      sovereignAwakened: childTrait === "SOVEREIGN_AWAKENED" || parentA.sovereignAwakened || parentB.sovereignAwakened,
+      bond: 75,
+      satisfaction: 90,
+      hunger: 90,
+      fatigue: 0,
+      provenance: "sect_breeding",
+      parentAId: parentA.uid || parentA.id,
+      parentBId: parentB.uid || parentB.id
+    };
+    const child = CULT.createPetRecord(W, breeder, pickSpecies, childOpts);
+    child.nameTh = (awakened ? "ลูกอสูรศักดิ์สิทธิ์" : "ลูกอสูร") + (pickSpecies.nameTh || "วิญญาณ");
+
+    parentA.fatigue = clamp((parentA.fatigue || 0) + 20, 0, 100);
+    parentB.fatigue = clamp((parentB.fatigue || 0) + 20, 0, 100);
+
+    if (opts.bindToBreeder && breeder && CULT.activePets(breeder).length < CULT.maxActivePets(breeder)) {
+      child.ownerId = breeder.id;
+      child.active = true;
+      breeder.pets = breeder.pets || [];
+      breeder.pets.push(child);
+      HC.bump(breeder);
+    } else {
+      child.ownerId = null;
+      child.active = false;
+      W.sect.beasts.push(child);
+    }
+
+    const record = {
+      day: W.day || 0,
+      parentANameTh: parentA.nameTh,
+      parentBNameTh: parentB.nameTh,
+      childUid: child.uid,
+      childNameTh: child.nameTh,
+      childTier,
+      childTrait,
+      awakened,
+      breederNameTh: breeder ? breeder.h.name.given : "ศิษย์สำนัก"
+    };
+    W.sect.breedingRecords.unshift(record);
+    if (W.sect.breedingRecords.length > 30) W.sect.breedingRecords.length = 30;
+
+    if (W.log) {
+      W.log("explore", "🐾 ผสมพันธุ์สัตว์อสูรสำเร็จ! ได้กำเนิด「" + child.nameTh + "」(T" + childTier + " · " + childTrait + ")" + (awakened ? " ★ ปลุกสายเลือดชั้นสูง!" : ""), breeder ? [breeder.id] : []);
+    }
+    return { ok: true, child, awakened, record };
+  };
+
+  CULT.awakenBloodline = (W, npc, petUid, opts) => {
+    opts = opts || {};
+    if (!npc || !Array.isArray(npc.pets)) return { ok: false, reason: "ไม่มีสัตว์อสูรคู่สัญญา" };
+    const pet = petUid ? npc.pets.find(p => p && p.uid === petUid) : npc.pets[0];
+    if (!pet) return { ok: false, reason: "ไม่พบสัตว์อสูรเป้าหมาย" };
+    if (pet.tier >= 7 && pet.sovereignAwakened) {
+      return { ok: false, reason: "สัตว์อสูรตนนี้ปลุกสายเลือดขั้นสูงสุดสมบูรณ์แล้ว" };
+    }
+    if (pet.tier < 7) pet.tier++;
+    pet.growthStage = 4;
+    pet.sovereignAwakened = true;
+    pet.bloodlineTrait = "SOVEREIGN_AWAKENED";
+    pet.trait = "SOVEREIGN_AWAKENED";
+    pet.bond = clamp((pet.bond || 70) + 20, 0, 100);
+    pet.bondXp = (pet.bondXp || 0) + 600;
+    if (CULT.evolvePet) CULT.evolvePet(W, npc, pet.uid, { free: true, awakenSovereign: true });
+    HC.bump(npc);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    if (W && W.log) {
+      W.log("breakthrough", "🌟 อสูรคู่สัญญา「" + pet.nameTh + "」ของ " + npc.h.name.given + " ปลุกสายเลือดเทพอสูรบรรพกาลสำเร็จ! (T" + pet.tier + ")", [npc.id]);
+    }
+    return { ok: true, pet };
+  };
+
+  CULT.menagerieTick = W => {
+    if (!W || !W.sect) return;
+    const facs = W.sect.specialistFacilities;
+    const menagerieLv = (facs && facs.beast_menagerie) ? facs.beast_menagerie.level : 1;
+    const hasGrain = (g.ECO && g.ECO.count) ? g.ECO.count(W, "grain") > 20 : false;
+    if (Array.isArray(W.sect.beasts)) {
+      W.sect.beasts.forEach(b => {
+        if (!b) return;
+        b.fatigue = Math.max(0, (b.fatigue || 0) - (2 + menagerieLv));
+        if (hasGrain) {
+          b.hunger = Math.min(100, (b.hunger || 80) + 1);
+          b.satisfaction = Math.min(100, (b.satisfaction || 80) + 1);
+        }
+      });
+    }
+  };
+
+  /* ---------- MECH_PUPPET Construct State Authority ---------- */
+  CULT.ensureMechState = npc => {
+    if (!npc) return null;
+    if (!npc.mechState) {
+      npc.mechState = {
+        chassis: (npc.cult && npc.cult.sub) || 'HEAVENLY_GOLEM',
+        integrity: 100,
+        constructReadiness: 100,
+        charge: 100,
+        overclockReady: true,
+        heat: 0,
+        mode: 'BALANCED',
+        vesselDecoyReady: true,
+        decoyAvailable: true,
+        puppetTier: (npc.cult && npc.cult.stage) || 1,
+        recoverDebt: 0
+      };
+    }
+    const ms = npc.mechState;
+    if (ms.integrity == null && ms.constructReadiness != null) ms.integrity = ms.constructReadiness;
+    if (ms.constructReadiness == null) ms.constructReadiness = ms.integrity != null ? ms.integrity : 100;
+    ms.integrity = clamp(Math.round(ms.integrity), 0, 100);
+    ms.constructReadiness = ms.integrity;
+    if (ms.decoyAvailable !== undefined) ms.vesselDecoyReady = !!ms.decoyAvailable;
+    else ms.decoyAvailable = !!ms.vesselDecoyReady;
+    if (ms.overclockReady === undefined) ms.overclockReady = (ms.charge || 0) >= 50;
+    if (!ms.puppetTier) ms.puppetTier = (npc.cult && npc.cult.stage) || 1;
+    return ms;
+  };
+
+  CULT.repairConstruct = (W, npc, opts) => {
+    opts = opts || {};
+    if (!npc || !npc.cult || npc.cult.path !== 'MECH_PUPPET') return { ok: false, reason: 'ไม่ใช่วิถีกลจักรเชิดหุ่น' };
+    const ms = CULT.ensureMechState(npc);
+    if (!opts.free && W && W.sect) {
+      const oreId = 'MAT_ORE_BLACK_IRON_1';
+      if (npc.inv && npc.inv.mats && npc.inv.mats[oreId] > 0) {
+        npc.inv.mats[oreId]--;
+      } else if (g.ECO && g.ECO.count(W, oreId) > 0) {
+        g.ECO.take(W, oreId, 1);
+      } else if ((npc.inv && npc.inv.stones || 0) >= 15) {
+        npc.inv.stones -= 15;
+      } else if ((W.sect.stones || 0) >= 15) {
+        g.ECO.pay(W, 15, 'ซ่อมบำรุงหุ่นกลของ ' + npc.h.name.given);
+      } else {
+        return { ok: false, reason: 'ขาดแคลนแร่เหล็กหรือศิลาสำหรับซ่อมบำรุงหุ่นกล' };
+      }
+    }
+    ms.integrity = 100;
+    ms.constructReadiness = 100;
+    ms.charge = 100;
+    ms.overclockReady = true;
+    ms.heat = 0;
+    ms.recoverDebt = 0;
+    ms.decoyAvailable = true;
+    ms.vesselDecoyReady = true;
+    HC.bump(npc);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, mechState: ms };
+  };
+
+  /* ---------- KARMA_SAMSARA Causal Ledger & Six-Realm Wheel Authority ---------- */
+  const SIX_REALM_STANCES = Object.freeze({
+    DEVA: { id: 'DEVA', nameTh: 'ภพเทวา (กระจ่างคุ้มภัย)', mdefPct: 0.12, defPct: 0.08, atkPct: -0.04 },
+    ASURA: { id: 'ASURA', nameTh: 'ภพอสูร (พิโรธสังหาร)', atkPct: 0.14, matkPct: 0.10, defPct: -0.06 },
+    HUMAN: { id: 'HUMAN', nameTh: 'ภพมนุษย์ (สมดุลสายกลาง)', atkPct: 0.06, matkPct: 0.06, defPct: 0.06, mdefPct: 0.06 },
+    ANIMAL: { id: 'ANIMAL', nameTh: 'ภพเดรัจฉาน (สัญชาตญาณว่องไว)', moveAdd: 14, evaPct: 0.10, accPct: -0.04 },
+    PRETA: { id: 'PRETA', nameTh: 'ภพเปรต (สูบกลืนปราณ)', drainAdd: 0.15, matkPct: 0.08, defPct: -0.05 },
+    NARAKA: { id: 'NARAKA', nameTh: 'ภพนรก (ทัณฑ์วิบาก)', penAdd: 16, critDmgAdd: 20, hpDrain: 0.02 }
+  });
+  CULT.SIX_REALM_STANCES = SIX_REALM_STANCES;
+
+  CULT.ensureKarmaState = npc => {
+    if (!npc) return null;
+    if (!npc.karmaState) {
+      npc.karmaState = {
+        stance: 'HUMAN',
+        activeRealmStance: 'HUMAN',
+        debtPool: 0,
+        karmicDebt: 0,
+        meritStacks: 1,
+        echoReady: true,
+        maxDebt: Math.max(50, Math.round((CULT.hpMaxLegacy ? CULT.hpMaxLegacy(npc) : (HC.derived(npc).hpMax * CULT.hpMult(npc))) * 0.45)),
+        lastHarmSourceId: null,
+        lastHarmAt: 0,
+        vowTargetId: null,
+        echoMoveId: null
+      };
+    }
+    const ks = npc.karmaState;
+    ks.maxDebt = Math.max(50, Math.round((CULT.hpMaxLegacy ? CULT.hpMaxLegacy(npc) : (HC.derived(npc).hpMax * CULT.hpMult(npc))) * 0.45));
+    if (ks.debtPool == null && ks.karmicDebt != null) ks.debtPool = ks.karmicDebt;
+    ks.debtPool = clamp(Math.round(ks.debtPool || 0), 0, ks.maxDebt);
+    ks.karmicDebt = ks.debtPool;
+    if (!ks.stance && ks.activeRealmStance) ks.stance = ks.activeRealmStance;
+    if (ks.stance === 'BEAST') ks.stance = 'ANIMAL';
+    ks.activeRealmStance = ks.stance || 'HUMAN';
+    if (ks.echoReady === undefined) ks.echoReady = true;
+    return ks;
+  };
+
+
+  /* ---------- Universal Self & Ally Healing + Timed Buff Authority (v2.0.8) ---------- */
+  CULT.castHealOrBuff = (W, caster, target, opts) => {
+    opts = opts || {};
+    if (!caster || caster.dead) return { ok: false, reason: 'ผู้ร่ายไม่อยู่ในสภาพพร้อมใช้ปราณ' };
+    const tgt = target || caster;
+    if (!tgt || tgt.dead) return { ok: false, reason: 'เป้าหมายไม่อยู่ในสภาพรับปราณ' };
+    const tNow = (opts.now != null) ? opts.now : (W && Number.isFinite(W.t) ? W.t : (g.STATS && Number.isFinite(g.STATS.now) ? g.STATS.now : 0));
+    if (g.STATS) g.STATS.now = tNow;
+
+    // Pick best heal/support/buff skill from caster's unlocked moves or default SAGE_SUPPORT technique
+    let chosenSkill = opts.skill ? (typeof opts.skill === 'string' ? CULT.tech(opts.skill) : opts.skill) : null;
+    if (!chosenSkill && g.SK && g.SK.list) {
+      const moves = g.SK.list(caster).filter(m => ['heal', 'support', 'buff', 'shield', 'guard'].includes(m.arch) || m.grantBuff || m.heal > 0);
+      if (moves.length) {
+        const hurtRatio = (tgt.h && tgt.h.state ? tgt.h.state.hp : 100) / Math.max(1, CULT.hpMax(tgt));
+        moves.sort((a, b) => {
+          const scoreA = (hurtRatio < 0.75 ? (a.heal || 0) * 5 : 0) + (a.grantBuff ? 2 : 0) + (a.shield || 0) * 2 + (a.tier || 1) * 0.2;
+          const scoreB = (hurtRatio < 0.75 ? (b.heal || 0) * 5 : 0) + (b.grantBuff ? 2 : 0) + (b.shield || 0) * 2 + (b.tier || 1) * 0.2;
+          return scoreB - scoreA;
+        });
+        chosenSkill = moves[0];
+      }
+    }
+
+    const c = caster.cult;
+    const effSt = c ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(caster) : c.stage) : 1;
+    const isSage = !!(c && c.path === 'SAGE_SUPPORT');
+    const medSk = (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(caster, 'MEDICINE') : ((caster.h && caster.h.skills && caster.h.skills.MEDICINE) || 0);
+    const hpavLv = (W && W.sect && W.sect.specialistFacilities && W.sect.specialistFacilities.harmonic_pavilion) ? W.sect.specialistFacilities.harmonic_pavilion.level : 1;
+    const facBonus = 1 + Math.max(0, hpavLv - 1) * 0.15;
+    const scale = (1 + effSt * 0.08 + medSk * 0.004) * (isSage ? 1.25 : 1.0) * facBonus;
+
+    // Qi cost check (unless free)
+    const qiMaxCaster = CULT.qiMax(caster);
+    const qiCost = (opts.free || opts.force) ? 0 : Math.min(Math.round(qiMaxCaster * 0.12), Math.max(4, Math.round(8 + effSt * 3)));
+    if (!opts.free && caster.h && caster.h.state && caster.h.state.qi != null && caster.h.state.qi < qiCost) {
+      return { ok: false, reason: 'ปราณไม่เพียงพอสำหรับเดินปราณรักษา/หนุนพลัง' };
+    }
+    if (caster.h && caster.h.state && caster.h.state.qi != null) {
+      caster.h.state.qi = Math.max(0, caster.h.state.qi - qiCost);
+    }
+
+    const baseHealPct = opts.healPct != null ? opts.healPct : ((chosenSkill && chosenSkill.heal) ? chosenSkill.heal : (isSage ? 0.28 : 0.18));
+    const hm = CULT.hpMax(tgt);
+    const beforeHp = (tgt.h && tgt.h.state) ? tgt.h.state.hp : hm;
+    const healAmt = Math.max(1, Math.round(hm * baseHealPct * scale));
+    if (tgt.h && tgt.h.state) {
+      tgt.h.state.hp = Math.min(hm, beforeHp + healAmt);
+      const qmTgt = CULT.qiMax(tgt);
+      if (qmTgt > 0) {
+        tgt.h.state.qi = Math.min(qmTgt, (tgt.h.state.qi == null ? qmTgt : tgt.h.state.qi) + Math.round(qmTgt * 0.18));
+      }
+      tgt.h.state.stress = Math.max(0, (tgt.h.state.stress || 0) - (isSage ? 10 : 5));
+      if (isSage || medSk >= 25 || opts.cleanse) {
+        tgt.h.state.heartDemon = Math.max(0, (tgt.h.state.heartDemon || 0) - 6);
+        if (tgt.cult && tgt.cult.toxic > 0) tgt.cult.toxic = Math.max(0, tgt.cult.toxic - 10);
+        if (g.STATS && g.STATS.clearStatus && Array.isArray(tgt.sx) && tgt.sx.length) {
+          g.STATS.clearStatus(tgt, x => x && ['poison', 'bleed', 'burn', 'slow', 'weaken', 'blind', 'armorbreak', 'mdefbreak', 'silence', 'stun', 'exposed'].includes(x.k));
+        }
+      }
+    }
+
+    // Heal 1 injury severity if caster is SAGE_SUPPORT or has MEDICINE >= 35 or opts.cureInjury
+    let curedInjury = false;
+    if (Array.isArray(tgt.inj) && tgt.inj.length > 0 && (isSage || medSk >= 35 || opts.cureInjury)) {
+      tgt.inj[0].sev = (tgt.inj[0].sev || 1) - 1;
+      if (tgt.inj[0].sev <= 0) tgt.inj.shift();
+      curedInjury = true;
+    }
+
+    // Determine which buff to grant
+    let buffId = opts.buffId || opts.buffKey || (chosenSkill && chosenSkill.grantBuff) || null;
+    if (!buffId) {
+      const sub = c ? c.sub : '';
+      if (sub === 'GOLDEN_NEEDLE_SAINT') buffId = 'meridianUnblock';
+      else if (sub === 'CELESTIAL_ZITHER_ENVOY' || sub === 'SOUND_ZITHER') buffId = 'swiftWind';
+      else if (sub === 'DIVINE_NECTAR_APOTHECARY' || sub === 'WOOD_SPIRIT_SYMBIONT' || sub === 'ELIXIR_DAO') buffId = 'vitalRegen';
+      else if (sub === 'QIMEN_TALISMAN_PATRON') buffId = 'aegisWard';
+      else if (sub === 'SOUL_LANTERN_SHEPHERD') buffId = 'nirvanaGrace';
+      else if (sub === 'WAR_BANNER_CHORISTER' || sub === 'WAR_DEITY') buffId = 'fervorMight';
+      else if (c && (c.path === 'HEART_SOUL' || sub === 'LOTUS_MERCY_PURIFIER')) buffId = 'clarityLotus';
+      else buffId = 'vitalRegen';
+    }
+
+    const dur = clamp(Math.round((opts.dur != null ? opts.dur : (opts.duration != null ? opts.duration : (isSage ? 90 : 60))) * (opts.dur != null || opts.duration != null ? 1 : facBonus)), 1, 2880);
+    let appliedBuff = null;
+    if (g.STATS && g.STATS.applyNamedBuff) {
+      appliedBuff = g.STATS.applyNamedBuff(tgt, buffId, dur, tNow, { casterId: caster.id, techId: chosenSkill ? chosenSkill.id : 'SAGE_BLESS' });
+    }
+
+    if (g.MARTIAL && g.MARTIAL.skillPractice) {
+      g.MARTIAL.skillPractice(caster, 'MEDICINE', 0.25, 1.15);
+    }
+    if (chosenSkill && g.SK && g.SK.gainMastery) {
+      g.SK.gainMastery(W, caster, chosenSkill.tech || chosenSkill.id, 1);
+    }
+    HC.bump(caster);
+    if (tgt !== caster) HC.bump(tgt);
+    if (g.STATS && g.STATS.dirty) { g.STATS.dirty(caster); g.STATS.dirty(tgt); }
+
+    const skillNameTh = chosenSkill ? chosenSkill.nameTh : 'ปราณเยียวยาหนุนนำ';
+    if (W && W.log && !opts.quiet) {
+      const selfCast = caster.id === tgt.id;
+      W.log('care', '🪷 ' + caster.h.name.given + ' ใช้วิชา「' + skillNameTh + '」' + (selfCast ? 'ฟื้นฟูตนเอง' : ('เยียวยาและหนุนพลังให้ ' + tgt.h.name.given)) + ' (+' + healAmt + ' HP' + (appliedBuff ? ' · บัฟ「' + appliedBuff.name + '」' + dur + ' นาที' : '') + ')', selfCast ? [caster.id] : [caster.id, tgt.id]);
+    }
+    return {
+      ok: true,
+      casterId: caster.id,
+      targetId: tgt.id,
+      selfCast: caster.id === tgt.id,
+      skillId: chosenSkill ? chosenSkill.id : null,
+      skillNameTh,
+      healAmt,
+      hpBefore: beforeHp,
+      hpAfter: tgt.h && tgt.h.state ? tgt.h.state.hp : hm,
+      curedInjury,
+      buff: appliedBuff,
+      dur,
+      expiresAt: tNow + dur
     };
   };
 

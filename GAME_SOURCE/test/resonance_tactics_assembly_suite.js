@@ -23,7 +23,7 @@ console.log('  PASS: human_core.js byte-for-byte lock verified (155:2f9c9dd7)');
 
 // 1. Pillar A: Equipment Resonance Sets (14 Sets, 50 Subpaths, T3-T7)
 assert(Array.isArray(MARTIAL.RESONANCE_SETS), 'MARTIAL.RESONANCE_SETS must be an array');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 14, 'Must have exactly 14 resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 18, 'Must have exactly 18 resonance sets');
 
 const coveredSubpaths = new Set();
 for (const set of MARTIAL.RESONANCE_SETS) {
@@ -45,7 +45,7 @@ for (const p of Object.keys(CULT.PATHS)) {
     assert(coveredSubpaths.has(s.id), `Subpath ${s.id} not covered by any resonance set!`);
   }
 }
-assert.strictEqual(totalKnownSubpaths, 50, 'Total subpaths in system must be 50');
+assert.strictEqual(totalKnownSubpaths, 78, 'Total subpaths in system must be 78');
 console.log('  PASS: 14 Resonance Sets verified covering all 50 subpaths');
 
 // Test evaluateResonanceSet functionality

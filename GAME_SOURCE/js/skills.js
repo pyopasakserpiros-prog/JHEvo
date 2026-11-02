@@ -54,7 +54,15 @@
     armorbreak: { nameTh: 'เกราะแตก', icon: '🧩', pmods: { def: -.15, mdef: -.05 } }, mdefbreak: { nameTh: 'ม่านวิชาแตก', icon: '🔮', pmods: { mdef: -.2 } },
     critUp: { nameTh: 'อสนีสะสม', icon: '⚡', mods: { crit: 10 } }, haste: { nameTh: 'ลมหนุน', icon: '🍃', mods: { cast: 15, move: 10 } }, leech: { nameTh: 'พฤกษาเกาะ', icon: '🌿' },
     guardUp: { nameTh: 'ตั้งรับ', icon: '🛡️', pmods: { def: .4, mdef: .25 } }, evadeUp: { nameTh: 'เงาพลิ้ว', icon: '💨', pmods: { eva: .5 }, mods: { move: 20 } },
-    counter: { nameTh: 'ตั้งท่าสวนกลับ', icon: '↩️' }, shield: { nameTh: 'โล่พลัง', icon: '🔰' }, exposed: { nameTh: 'เปิดเกราะ', icon: '💢', pmods: { def: -.25, mdef: -.25 } }, morale: { nameTh: 'ขวัญกำลังใจ', icon: '🚩', pmods: { atk: .15, matk: .15 } }, holyAura: { nameTh: 'รัศมีคุ้มกาย', icon: '✨', pmods: { def: .2, mdef: .2 } }, channeling: { nameTh: 'กำลังร่ายต่อเนื่อง', icon: '🌀' }
+    counter: { nameTh: 'ตั้งท่าสวนกลับ', icon: '↩️' }, shield: { nameTh: 'โล่พลัง', icon: '🔰' }, exposed: { nameTh: 'เปิดเกราะ', icon: '💢', pmods: { def: -.25, mdef: -.25 } }, morale: { nameTh: 'ขวัญกำลังใจ', icon: '🚩', pmods: { atk: .15, matk: .15 } }, holyAura: { nameTh: 'รัศมีคุ้มกาย', icon: '✨', pmods: { def: .2, mdef: .2 } }, channeling: { nameTh: 'กำลังร่ายต่อเนื่อง', icon: '🌀' },
+    vitalRegen: { nameTh: 'ปราณน้ำค้างฟื้นฟู', icon: '🌿', hot: true, isBuff: true, pmods: { hp: .10, def: .06 } },
+    fervorMight: { nameTh: 'โลหิตศึกฮึกเหิม', icon: '🔥', isBuff: true, pmods: { atk: .16, matk: .16 }, mods: { crit: 8, critDmg: 22, pen: 10 } },
+    aegisWard: { nameTh: 'ปราการฉีเหมินคุ้มกาย', icon: '🛡️', isBuff: true, pmods: { def: .22, mdef: .22, hp: .08 } },
+    swiftWind: { nameTh: 'วายุพิณทะยานฟ้า', icon: '🍃', isBuff: true, pmods: { eva: .18 }, mods: { move: 18, cast: 14, acc: 10 } },
+    qiConduit: { nameTh: 'ชีพจรปราณหมุนเวียน', icon: '💠', isBuff: true, pmods: { matk: .14, mdef: .12 }, mods: { cast: 18 } },
+    clarityLotus: { nameTh: 'บัวทิพย์กระจ่างใจ', icon: '🪷', isBuff: true, pmods: { mdef: .16, acc: .12 }, mods: { crit: 6 } },
+    meridianUnblock: { nameTh: 'เข็มทองเปิดชีพจรยุทธ์', icon: '🪡', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { cast: 12, move: 10, pen: 8 } },
+    nirvanaGrace: { nameTh: 'โคมวิญญาณคุ้มชีพ', icon: '🏮', isBuff: true, pmods: { def: .14, mdef: .14, hp: .12 } }
   };
   const SUBW = {
     SWORD_IMMORTAL: { strike: 3, pierce: 3, flurry: 2, burst: 1.5, dot: .5 },
@@ -106,7 +114,46 @@
     ASHURA_SLAUGHTER_BLADE: {"execute":3.5,"flurry":3,"strike":2.5,"pierce":2,"evade":1.5},
     ZITHER_HEART_BOW: {"snipe":3,"control":3,"channel":2.5,"barrage":2,"support":1.5},
     HEART_BLADE_MEDITATION: {"execute":3.5,"snipe":3,"pierce":2.5,"strike":2,"counter":1.5},
-    VOID_SPEAR_MIND: {"pierce":3.5,"channel":2.5,"control":2.5,"sweep":2,"counter":1.5}
+    VOID_SPEAR_MIND: {"pierce":3.5,"channel":2.5,"control":2.5,"sweep":2,"counter":1.5},
+    IRON_COLOSSUS: {"guard":3.5,"strike":3,"sweep":2.5,"counter":2,"pierce":1.5},
+    THOUSAND_THREAD_PUPPETEER: {"control":3.5,"flurry":3,"summon":2.5,"channel":2,"pierce":1.5},
+    SPIRIT_ARTILLERY_ENGINEER: {"snipe":3.5,"barrage":3.5,"blast":2.5,"pierce":2},
+    CLOCKWORK_SWARM_WEAVER: {"barrage":3.5,"flurry":3,"dot":2.5,"summon":2,"sweep":1.5},
+    SOUL_VESSEL_AVATAR: {"summon":3.5,"guard":3,"counter":2.5,"strike":2,"channel":1.5},
+    FORTRESS_BASTION_ARCHITECT: {"shield":3.5,"guard":3,"support":2.5,"blast":2,"control":1.5},
+    ASTRAL_CLOCKWORK_PRIME: {"channel":3.5,"blast":3,"control":2.5,"support":2,"snipe":1.5},
+    RED_THREAD_ARBITER: {"control":3.5,"counter":3,"pierce":2.5,"channel":2,"strike":1.5},
+    SIX_PATHS_WHEEL: {"channel":3.5,"blast":3,"control":2.5,"counter":2,"sweep":1.5},
+    ASURA_JUDGMENT_BLADE: {"execute":3.5,"strike":3,"burst":2.5,"pierce":2,"counter":1.5},
+    LOTUS_MERCY_PURIFIER: {"heal":3.5,"shield":3,"support":2.5,"guard":2,"blast":1},
+    PAST_LIFE_CHRONICLER: {"summon":3.5,"channel":3,"support":2.5,"control":2,"strike":1.5},
+    REVERSED_RETRIBUTION: {"counter":3.5,"guard":3,"drain":2.5,"execute":2,"strike":1.5},
+    BODHI_VOW_GUARDIAN: {"guard":3.5,"shield":3.5,"heal":2.5,"counter":2,"support":2},
+    MYRIAD_BEAST_PACK: {"summon":3.5,"flurry":3,"sweep":2.5,"support":2,"charge":1.5},
+    SYMBIOTIC_FANG_FUSION: {"flurry":3.5,"strike":3,"drain":2.5,"execute":2,"charge":2},
+    COLOSSUS_SHIELD_TAMER: {"guard":3.5,"shield":3,"counter":2.5,"sweep":2,"strike":1.5},
+    MOUNT_CHARGER: {"charge":3.5,"pierce":3,"sweep":2.5,"strike":2,"evade":1.5},
+    PRIMORDIAL_BLOOD_AWAKENER: {"burst":3.5,"support":3,"summon":2.5,"drain":2,"strike":2},
+    SWARM_INSECT_EMPEROR: {"dot":3.5,"barrage":3,"drain":2.5,"control":2,"sweep":1.5},
+    ABYSSAL_DRAGON_TOTEM: {"burst":3.5,"sweep":3,"pierce":2.5,"summon":2.5,"charge":2},
+    HEAVENLY_GOLEM: {"guard":3.5,"strike":3,"sweep":2.5,"counter":2,"pierce":1.5},
+    THOUSAND_THREAD_ASSASSIN: {"control":3.5,"flurry":3,"summon":2.5,"channel":2,"pierce":1.5},
+    BEAST_CHIMERA_MECH: {"strike":3.5,"sweep":3,"guard":2.5,"burst":2,"charge":1.5},
+    CELESTIAL_BALLISTA: {"snipe":3.5,"barrage":3.5,"blast":2.5,"pierce":2},
+    FLYING_BLADE_ORBITER: {"barrage":3.5,"flurry":3,"dot":2.5,"summon":2,"sweep":1.5},
+    FATE_SEVERING_THREAD: {"control":3.5,"counter":3,"pierce":2.5,"channel":2,"strike":1.5},
+    PAST_LIFE_MIRROR: {"summon":3.5,"channel":3,"support":2.5,"control":2,"strike":1.5},
+    PRIMORDIAL_BLOOD_MUTATOR: {"burst":3.5,"support":3,"summon":2.5,"drain":2,"strike":2},
+    SYMBIOTIC_BEAST_WARRIOR: {"flurry":3.5,"strike":3,"drain":2.5,"execute":2,"charge":2},
+    SWARM_GU_HIVE_MASTER: {"dot":3.5,"barrage":3,"drain":2.5,"control":2,"sweep":1.5},
+    CELESTIAL_ASTRAL_FAIRY_TAMER: {"heal":3.5,"support":3,"summon":2.5,"shield":2,"channel":1.5},
+    GOLDEN_NEEDLE_SAINT: {"heal":3.5,"buff":3,"support":2.5,"control":2,"pierce":1.5},
+    CELESTIAL_ZITHER_ENVOY: {"support":3.5,"buff":3.5,"heal":2.5,"channel":2,"blast":1.5},
+    DIVINE_NECTAR_APOTHECARY: {"heal":4,"support":3,"shield":2.5,"guard":2},
+    QIMEN_TALISMAN_PATRON: {"shield":3.5,"guard":3.5,"support":2.5,"counter":2},
+    SOUL_LANTERN_SHEPHERD: {"support":3.5,"heal":3.5,"shield":2.5,"guard":2},
+    WAR_BANNER_CHORISTER: {"buff":3.5,"support":3,"charge":2.5,"sweep":2,"strike":1.5},
+    WOOD_SPIRIT_SYMBIONT: {"heal":3.5,"drain":3,"support":2.5,"shield":2,"dot":1.5}
   };
   function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); }
   function rnd(h, k) { let x = (h ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0; return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
@@ -156,7 +203,8 @@
       channel: m.channel || null,
       shield: m.shield || ((arch === 'guard' || arch === 'shield') ? Math.round((0.14 + 0.035 * (tier - 1)) * 100) / 100 : 0),
       heal: m.heal || (arch === 'heal' ? Math.round((0.16 + 0.04 * (tier - 1)) * 100) / 100 : 0),
-      support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: (m.sx && m.sx.k) || 'morale', dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
+      grantBuff: m.grantBuff || t.grantBuff || null,
+      support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: m.grantBuff || t.grantBuff || (m.sx && m.sx.k) || 'morale', dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
       summon: m.summon || null,
       rider: m.rider !== undefined ? m.rider : ((m.sx && m.sx.k && !A.self && !A.team) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null)),
       ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? ((m.sx && m.sx.k) || el.ctrl) : null),
@@ -207,6 +255,10 @@
     const el = SK.ELEM[t.element] || SK.ELEM.NEUTRAL;
     let type = 'm'; const P = t.path;
     if (P === 'BODY') type = 'p';
+    else if (P === 'BEAST_SOVEREIGN') type = (t.sub === 'SWARM_GU_HIVE_MASTER' || t.sub === 'SWARM_INSECT_EMPEROR' || t.sub === 'PRIMORDIAL_BLOOD_MUTATOR' || t.sub === 'PRIMORDIAL_BLOOD_AWAKENER' || t.sub === 'CELESTIAL_ASTRAL_FAIRY_TAMER') ? (rnd(h, 3) < 0.45 ? 'p' : 'm') : 'p';
+    else if (P === 'MECH_PUPPET') type = (t.sub === 'HEAVENLY_GOLEM' || t.sub === 'IRON_COLOSSUS' || t.sub === 'CELESTIAL_BALLISTA' || t.sub === 'SPIRIT_ARTILLERY_ENGINEER' || t.sub === 'FLYING_BLADE_ORBITER' || t.sub === 'CLOCKWORK_SWARM_WEAVER') ? 'p' : (rnd(h, 3) < 0.5 ? 'p' : 'm');
+    else if (P === 'KARMA_SAMSARA') type = (t.sub === 'ASURA_JUDGMENT_BLADE' || t.sub === 'REVERSED_RETRIBUTION') ? 'p' : 'm';
+    else if (P === 'SAGE_SUPPORT') type = (t.sub === 'WAR_BANNER_CHORISTER') ? 'p' : 'm';
     else if (P === 'GOD') type = (t.sub === 'WAR_DEITY' || t.sub === 'TOTEM_BEAST_GOD') ? 'p' : 'm';
     else if (P === 'DEMON') type = (t.sub === 'SHADOW_ASSASSIN' ? (rnd(h, 3) < 0.85 ? 'p' : 'm') : t.sub === 'HEAVEN_DEVOURING_DEMON' ? (rnd(h, 3) < 0.5 ? 'p' : 'm') : 'm');
     else if (P === 'HEART_SOUL') type = (t.sub === 'MIND_SWORD_TELEKINESIS' && rnd(h, 3) < 0.35) ? 'p' : 'm';
@@ -217,9 +269,10 @@
     if (arch === 'dot') prof.dotKind = ({ FIRE: 'burn', BLOOD_DEMON: 'bleed', WOOD_LIFE: 'poison' })[t.element] || (rnd(h, 5) < 0.5 ? 'poison' : 'bleed');
     if (arch === 'guard') prof.shield = Math.round((0.14 + 0.035 * (tier - 1)) * 100) / 100;
     if (arch === 'heal') prof.heal = Math.round((0.16 + 0.04 * (tier - 1)) * 100) / 100;
-    if (arch === 'support') {
+    prof.grantBuff = t.grantBuff || null;
+    if (arch === 'support' || arch === 'buff') {
       prof.support = {
-        kind: (t.sub === 'WAR_DEITY' || t.element === 'LIGHTNING') ? 'morale' : (t.element === 'WIND' ? 'haste' : 'holyAura'),
+        kind: t.grantBuff || ((t.sub === 'WAR_DEITY' || t.element === 'LIGHTNING') ? 'morale' : (t.element === 'WIND' ? 'haste' : 'holyAura')),
         dur: 12 + tier * 2
       };
     }
@@ -228,7 +281,7 @@
         dur: 14 + tier * 2,
         hpPct: Math.round((0.35 + 0.05 * (tier - 1)) * 100) / 100,
         statPct: Math.round((0.50 + 0.05 * (tier - 1)) * 100) / 100,
-        nameSuffix: (t.sub === 'TOTEM_BEAST_GOD' ? 'เทพอสูร' : t.sub === 'PHANTOM_SOUL' ? 'ร่างเงามายา' : t.sub === 'NETHER_GHOST_KING' ? 'ภูตยมโลก' : t.sub === 'DREAM_ILLUSION_WEAVER' ? 'ร่างมายาฝัน' : 'ร่างอวตาร')
+        nameSuffix: (t.path === 'MECH_PUPPET' ? 'หุ่นกลศึก' : t.path === 'BEAST_SOVEREIGN' ? 'อสูรคู่สัญญา' : t.path === 'KARMA_SAMSARA' ? 'เงาอดีตชาติ' : t.sub === 'TOTEM_BEAST_GOD' ? 'เทพอสูร' : t.sub === 'PHANTOM_SOUL' ? 'ร่างเงามายา' : t.sub === 'NETHER_GHOST_KING' ? 'ภูตยมโลก' : t.sub === 'DREAM_ILLUSION_WEAVER' ? 'ร่างมายาฝัน' : 'ร่างอวตาร')
       };
     }
     if (arch === 'channel') {
@@ -442,7 +495,7 @@
   };
 
   /* ---------- Weapon Reach & Tactical Counter-Stance Authority (v2.0.5 Pillar B) ---------- */
-  SK.HEAVY_FIST_SUBPATHS = ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'TIGER_SOVEREIGN', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'SOLAR_FORGE', 'THUNDER_BODY', 'HEAVEN_DEVOURING_DEMON', 'GOLDEN_ARHAT_STAFF'];
+  SK.HEAVY_FIST_SUBPATHS = ['VAJRA_BODHI', 'TITAN_MOUNTAIN_BODY', 'TIGER_SOVEREIGN', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'SOLAR_FORGE', 'THUNDER_BODY', 'HEAVEN_DEVOURING_DEMON', 'GOLDEN_ARHAT_STAFF', 'HEAVENLY_GOLEM', 'BEAST_CHIMERA_MECH', 'IRON_COLOSSUS', 'SYMBIOTIC_BEAST_WARRIOR', 'SYMBIOTIC_FANG_FUSION', 'COLOSSUS_SHIELD_TAMER', 'PRIMORDIAL_BLOOD_MUTATOR', 'PRIMORDIAL_BLOOD_AWAKENER'];
   SK.WEAPON_TACTICS = {
     SPEAR: {
       weaponType: 'SPEAR',

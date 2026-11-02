@@ -612,14 +612,28 @@
     return null;
   };
   let gScore = null, came = null, stamp = null, closed = null, curStamp = 0, sharedHeap = null;
+  const _pcBySeed = new Map();
   MAP.findPath = function (M, sx, sy, gx, gy) {
     sx = Math.floor(sx); sy = Math.floor(sy); gx = Math.floor(gx); gy = Math.floor(gy);
-    const s = MAP.nearestFree(M, sx, sy), t = MAP.nearestFree(M, gx, gy);
-    if (!s || !t) return null;
-    sx = s.x; sy = s.y; gx = t.x; gy = t.y;
+    if (!(sx >= 0 && sy >= 0 && sx < W && sy < H && M.block[sy * W + sx] === 0)) {
+      const s = MAP.nearestFree(M, sx, sy);
+      if (!s) return null;
+      sx = s.x; sy = s.y;
+    }
+    if (!(gx >= 0 && gy >= 0 && gx < W && gy < H && M.block[gy * W + gx] === 0)) {
+      const t = MAP.nearestFree(M, gx, gy);
+      if (!t) return null;
+      gx = t.x; gy = t.y;
+    }
     if (sx === gx && sy === gy) return [[gx, gy]];
     const key = ((sx << 24) | (sy << 16) | (gx << 8) | gy) >>> 0;
-    let pc = M._pc; if (!pc) pc = M._pc = new Map();
+    let pc = M._pc;
+    if (!pc) {
+      const skey = M.seed || 1;
+      pc = _pcBySeed.get(skey);
+      if (!pc) { pc = new Map(); _pcBySeed.set(skey, pc); }
+      M._pc = pc;
+    }
     if (pc.has(key)) return pc.get(key);
     const sInWall = sx > 22 && sx < 218 && sy > 18 && sy < 131;
     const gInWall = gx > 22 && gx < 218 && gy > 18 && gy < 131;
@@ -661,14 +675,14 @@
           stamp[nk] = curStamp; gScore[nk] = ng; came[nk] = k;
           let hDist;
           const nInWall = nx > 22 && nx < 218 && ny > 18 && ny < 131;
-          if (nInWall !== gInWall) {
-            const dx1 = Math.abs(nx - 118), dy1 = Math.abs(ny - 132);
-            const dx2 = Math.abs(118 - gx), dy2 = Math.abs(132 - gy);
-            hDist = ((dx1 + dy1) - 0.5858 * (dx1 < dy1 ? dx1 : dy1)) + ((dx2 + dy2) - 0.5858 * (dx2 < dy2 ? dx2 : dy2));
-          } else {
-            const hx = Math.abs(nx - gx), hy = Math.abs(ny - gy);
-            hDist = (hx + hy) - 0.5858 * (hx < hy ? hx : hy);
+          if (nInWall !== gInWall) continue;
+          let hx = Math.abs(nx - gx), hy = Math.abs(ny - gy);
+          if (!gInWall && nx > 22 && nx < 218 && ((ny >= 131 && gy <= 18) || (ny <= 18 && gy >= 131))) {
+            const detourWest = (nx - 21) + Math.abs(gx - 21);
+            const detourEast = (219 - nx) + Math.abs(219 - gx);
+            hx = detourWest < detourEast ? detourWest : detourEast;
           }
+          hDist = (hx + hy) - 0.5858 * (hx < hy ? hx : hy);
           heap.push(ng + 1.35 * hDist, nk);
         }
       }
@@ -709,6 +723,38 @@
       if (M.inb(nx, ny) && M.terrain[ny * M.W + nx] === T.WATER) return true;
     }
     return false;
+  };
+
+  MAP.isReachableFromGate = function (M, x, y) {
+    x = Math.floor(x); y = Math.floor(y);
+    if (!M || !M.inb(x, y) || M.block[y * W + x] !== 0 || M.cost[y * W + x] === 0) return false;
+    let reach = M._gateReach;
+    if (!reach) {
+      const total = W * H;
+      reach = M._gateReach = new Uint8Array(total);
+      const q = new Int32Array(total);
+      let head = 0, tail = 0;
+      const s0 = MAP.nearestFree(M, 118, 132);
+      if (s0) {
+        const sk = s0.y * W + s0.x;
+        reach[sk] = 1;
+        q[tail++] = sk;
+      }
+      const cost = M.cost;
+      while (head < tail) {
+        const k = q[head++], cx = k % W, cy = (k / W) | 0;
+        for (let d = 0; d < 8; d++) {
+          const dx = DX8[d], dy = DY8[d], nx = cx + dx, ny = cy + dy;
+          if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+          const nk = ny * W + nx;
+          if (reach[nk] || cost[nk] === 0) continue;
+          if (dx !== 0 && dy !== 0 && (cost[cy * W + nx] === 0 || cost[ny * W + cx] === 0)) continue;
+          reach[nk] = 1;
+          q[tail++] = nk;
+        }
+      }
+    }
+    return reach[y * W + x] === 1;
   };
 
   g.MAP = MAP;

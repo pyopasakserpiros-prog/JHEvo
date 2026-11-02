@@ -1645,6 +1645,11 @@
     }
 
     // 3. จัดการปลาที่อยู่ในกระเป๋า: กินเมื่อหิว / เก็บไว้ปรุงยา / ขายให้พ่อค้าพเนจร / บริจาคเข้าคลังสำนัก
+    let hasAnyFish = false;
+    for (let i = 0; i < SPECIES.length; i++) {
+      if ((n.inv.mats[SPECIES[i].id] || 0) > 0) { hasAnyFish = true; break; }
+    }
+    if (!hasAnyFish) return;
     const loyalty = E(n, 'personality.loyalty');
     const wealth = E(n, 'values.wealthResource');
     const isAlchemist = (n.h.skills.ALCHEMY || 0) >= 18 || n.post === 'alchemy' || n.assist === 'alchemy';
@@ -1819,12 +1824,12 @@
         if (s.stress > 32) S.add('คลายเครียดริมสายน้ำ', (s.stress - 30) / 105);
         if (s.novelty < 48) S.add('เปลี่ยนบรรยากาศริมธารใต้', (50 - s.novelty) / 145);
         if (E(n, 'interests.solitude') > 54) S.add('ชอบความสงบริมน้ำ', (E(n, 'interests.solitude') - 50) / 155);
-        if (n.h.origin && /ประมง|ทะเล|แม่น้ำ/.test((n.h.origin.cls || '') + ' ' + (n.h.origin.region || ''))) {
-          S.add('คุ้นเคยวิถีชาวประมง', 0.32);
+        if (n._fishOriginBonus === undefined) {
+          n._fishOriginBonus = !!(n.h.origin && /ประมง|ทะเล|แม่น้ำ/.test((n.h.origin.cls || '') + ' ' + (n.h.origin.region || '')));
+          n._fishTasteBonus = !!(n.h.tastes && /ปลา|น้ำ/.test((n.h.tastes.food || '') + ' ' + (n.h.tastes.pastime || '')));
         }
-        if (n.h.tastes && /ปลา|น้ำ/.test((n.h.tastes.food || '') + ' ' + (n.h.tastes.pastime || ''))) {
-          S.add('ชื่นชอบเมนูปลาและสายน้ำ', 0.22);
-        }
+        if (n._fishOriginBonus) S.add('คุ้นเคยวิถีชาวประมง', 0.32);
+        if (n._fishTasteBonus) S.add('ชื่นชอบเมนูปลาและสายน้ำ', 0.22);
         S.add('ฝีมือตกปลา', clamp(FISHING.skillOf(W, n) / 260, 0, 0.28));
       },
       where(W, n) {

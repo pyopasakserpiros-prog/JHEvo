@@ -477,7 +477,7 @@
         UI.editNpcId = (UI.G.R && UI.G.R.selected && W.byId[UI.G.R.selected] && !W.byId[UI.G.R.selected].dead) ? UI.G.R.selected : W.sect.masterId;
       }
       UI.editDraft = null;
-      show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], arg || 'char', true);
+      show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['pet', '🐾 สัตว์อสูร/บัฟ/กลไก'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], arg || 'char', true);
     }
     else if (kind === 'menu') show('menu', UI.G.W ? '⚙️ เมนู' : '📂 โหลดเกมที่บันทึก', UI.G.W ? [['main', 'เกม'], ['set', 'ตั้งค่า'], ['tools', 'ผู้สังเกตการณ์'], ['about', 'เกี่ยวกับ']] : [], arg || 'main');
     UI.render();
@@ -488,7 +488,7 @@
     UI.editNpcId = id;
     UI.editDraft = null;
     if (subTab === 'spawn') UI.spawnDest = 'npc';
-    show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], subTab || 'char', true);
+    show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['pet', '🐾 สัตว์อสูร/บัฟ/กลไก'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], subTab || 'char', true);
     UI.render();
   };
   UI.openNpc = (id, tab) => {
@@ -577,6 +577,128 @@
       const res = SECT.EDITOR.undoLastEdit(W);
       UI.toast(res.ok ? ('ย้อนคืนค่าสถานะของ ' + res.nameTh + ' แล้ว') : res.reason);
       UI.editDraft = null;
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-pet-spawn') {
+      const spEl = $("shBody") && $("shBody").querySelector("#editPetSpeciesSel");
+      const tierEl = $("shBody") && $("shBody").querySelector("#editPetTier");
+      const sovEl = $("shBody") && $("shBody").querySelector("#editPetSovereign");
+      const res = SECT.EDITOR.applyPetAction(W, {
+        action: 'spawn_pet',
+        npcId: UI.editNpcId,
+        speciesId: spEl ? spEl.value : 'B01',
+        tier: tierEl ? +tierEl.value : 3,
+        growthStage: (sovEl && sovEl.checked) ? 4 : 2,
+        bondXp: (sovEl && sovEl.checked) ? 500 : 120,
+        sovereignAwakened: !!(sovEl && sovEl.checked)
+      });
+      UI.toast(res.ok ? ('ผูกพันธสัญญาสัตว์อสูร「' + (res.pet ? res.pet.nameTh : '') + '」สำเร็จ') : ('ไม่สำเร็จ: ' + res.reason));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-pet-awaken') {
+      const res = SECT.EDITOR.applyPetAction(W, { action: 'awaken_sovereign', npcId: UI.editNpcId, petUid: arg });
+      UI.toast(res.ok ? ('ปลุกสายเลือดราชันย์อสูร「' + res.pet.nameTh + '」สำเร็จ!') : res.reason);
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-pet-feed') {
+      const res = SECT.EDITOR.applyPetAction(W, { action: 'feed_pet', npcId: UI.editNpcId, petUid: arg });
+      UI.toast(res.ok ? 'ให้อาหารและเพิ่มสายสัมพันธ์สัตว์อสูรแล้ว' : res.reason);
+      UI.render();
+    }
+    else if (a === 'edit-pet-release') {
+      const res = SECT.EDITOR.applyPetAction(W, { action: 'release_pet', npcId: UI.editNpcId, petUid: arg });
+      UI.toast(res.ok ? ('ปลดปล่อย「' + (res.removed ? res.removed.nameTh : '') + '」แล้ว') : res.reason);
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-cast-buff') {
+      const bfEl = $("shBody") && $("shBody").querySelector("#editBuffKeySel");
+      const durEl = $("shBody") && $("shBody").querySelector("#editBuffDuration");
+      const tgtEl = $("shBody") && $("shBody").querySelector("#editBuffTargetSel");
+      const res = SECT.EDITOR.applyPetAction(W, {
+        action: 'cast_heal_buff',
+        npcId: UI.editNpcId,
+        targetId: tgtEl ? tgtEl.value : UI.editNpcId,
+        buffKey: bfEl ? bfEl.value : 'vitalRegen',
+        duration: durEl ? +durEl.value : 180,
+        healPct: 0.30
+      });
+      UI.toast(res.ok ? ('ร่ายวิชาฟื้นฟูและบัฟ「' + (res.buffNameTh || res.buffKey) + '」สำเร็จ (+HP ' + (res.healed || 0) + ')') : res.reason);
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-clear-buffs') {
+      const res = SECT.EDITOR.applyPetAction(W, { action: 'clear_buffs', npcId: UI.editNpcId });
+      UI.toast(res.ok ? 'ล้างบัฟและสถานะชั่วคราวทั้งหมดแล้ว' : res.reason);
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-save-mech') {
+      const rdEl = $("shBody") && $("shBody").querySelector("#editMechReadiness");
+      const ocEl = $("shBody") && $("shBody").querySelector("#editMechOverclock");
+      const dcEl = $("shBody") && $("shBody").querySelector("#editMechDecoy");
+      const res = SECT.EDITOR.applyPetAction(W, {
+        action: 'set_mech_state',
+        npcId: UI.editNpcId,
+        constructReadiness: rdEl ? +rdEl.value : 100,
+        overclockReady: !!(ocEl && ocEl.checked),
+        decoyAvailable: !!(dcEl && dcEl.checked)
+      });
+      UI.toast(res.ok ? 'บันทึกสถานะหุ่นเชิดกลไกแล้ว' : res.reason);
+      UI.render();
+    }
+    else if (a === 'edit-save-karma') {
+      const dbEl = $("shBody") && $("shBody").querySelector("#editKarmaDebt");
+      const stEl = $("shBody") && $("shBody").querySelector("#editKarmaStance");
+      const ecEl = $("shBody") && $("shBody").querySelector("#editKarmaEcho");
+      const res = SECT.EDITOR.applyPetAction(W, {
+        action: 'set_karma_state',
+        npcId: UI.editNpcId,
+        karmicDebt: dbEl ? +dbEl.value : 0,
+        activeRealmStance: stEl ? stEl.value : 'DEVA',
+        echoReady: !!(ecEl && ecEl.checked)
+      });
+      UI.toast(res.ok ? 'บันทึกสถานะหนี้กรรมและวัฏสงสารแล้ว' : res.reason);
+      UI.render();
+    }
+    else if (a === 'edit-pet-breed') {
+      const aSel = $("shBody") && $("shBody").querySelector("#breedParentASel");
+      const bSel = $("shBody") && $("shBody").querySelector("#breedParentBSel");
+      const pData = SECT.EDITOR.petState(W, UI.editNpcId);
+      const allPool = (pData.pets || []).concat(pData.menagerie || []);
+      const pA = allPool.find(p => p.uid === (aSel ? aSel.value : ''));
+      const pB = allPool.find(p => p.uid === (bSel ? bSel.value : ''));
+      const res = SECT.EDITOR.applyPetAction(W, {
+        action: 'breed_pets',
+        npcId: UI.editNpcId,
+        parentA: pA,
+        parentB: pB,
+        breederId: UI.editNpcId
+      });
+      UI.toast(res.ok ? ('ผสมพันธุ์สำเร็จ! กำเนิด「' + (res.child ? res.child.nameTh : '') + '」') : ('ไม่สำเร็จ: ' + res.reason));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'edit-save-doctrine') {
+      const triEl = $("shBody") && $("shBody").querySelector("#editTriagePriority");
+      const hpEl = $("shBody") && $("shBody").querySelector("#editMinHpThresh");
+      const res = SECT.EDITOR.applyPetAction(W, {
+        action: 'set_support_doctrine',
+        triagePriority: triEl ? triEl.value : 'BALANCED',
+        minHpThreshold: hpEl ? +hpEl.value : 65
+      });
+      UI.toast(res.ok ? 'บันทึกนโยบายซัพพอร์ตสำนักแล้ว' : res.reason);
+      UI.render();
+    }
+    else if (a === 'edit-upgrade-facility') {
+      const res = SECT.EDITOR.applyPetAction(W, {
+        action: 'upgrade_specialist_facility',
+        facilityId: arg
+      });
+      UI.toast(res.ok ? ('ยกระดับ' + (res.facility ? res.facility.nameTh : '') + ' สำเร็จ!') : ('ไม่สำเร็จ: ' + res.reason));
       UI.render();
       UI.updateHud(true);
     }
@@ -1725,8 +1847,8 @@
         }).join('') + '<div class="sub" style="margin-top:4px">' + (SECT.holder(W, 'registry') ? 'ผู้อาวุโสหอทะเบียนเป็นผู้พิจารณา' : 'เจ้าสำนักเป็นผู้พิจารณาเอง') + ' (ประเมินจากรูปลักษณ์และทักษะที่สังเกตได้ ไม่ทราบพรสวรรค์ซ่อนเร้น)</div></div>';
       }
       h += '<h3>จำนวนตามระดับ</h3><div class="card">' + SECT.RANKS.slice().reverse().map(r => '<span class="chip" style="border-color:' + r.color + '">' + r.nameTh + ' ' + byRank[r.id] + '</span>').join('') + '</div>';
-      const cult = { XIAN: 0, BODY: 0, GOD: 0, DEMON: 0, HEART_SOUL: 0, none: 0 }; alive.forEach(n => { const k = n.cult && cult[n.cult.path] != null ? n.cult.path : 'none'; cult[k]++; });
-      h += '<h3>วิถีที่เดิน</h3><div class="card"><span class="chip b">เซียน ' + cult.XIAN + '</span><span class="chip r">กายา ' + cult.BODY + '</span><span class="chip g">เทพศรัทธา ' + cult.GOD + '</span><span class="chip v">มารอสูร ' + cult.DEMON + '</span><span class="chip b">จิต·เซน ' + cult.HEART_SOUL + '</span><span class="chip">ปุถุชน ' + cult.none + '</span></div>';
+      const cult = { XIAN: 0, BODY: 0, GOD: 0, DEMON: 0, HEART_SOUL: 0, MECH_PUPPET: 0, KARMA_SAMSARA: 0, BEAST_SOVEREIGN: 0, SAGE_SUPPORT: 0, none: 0 }; alive.forEach(n => { const k = n.cult && cult[n.cult.path] != null ? n.cult.path : 'none'; cult[k]++; });
+      h += '<h3>วิถีที่เดิน (9 วิถีหลัก)</h3><div class="card"><span class="chip b">เซียน ' + cult.XIAN + '</span><span class="chip r">กายา ' + cult.BODY + '</span><span class="chip g">เทพศรัทธา ' + cult.GOD + '</span><span class="chip v">มารอสูร ' + cult.DEMON + '</span><span class="chip b">จิต·เซน ' + cult.HEART_SOUL + '</span><span class="chip g">กลจักรหุ่นเชิด ' + cult.MECH_PUPPET + '</span><span class="chip v">กรรมวัฏ ' + cult.KARMA_SAMSARA + '</span><span class="chip r">ราชันย์อสูร ' + cult.BEAST_SOVEREIGN + '</span><span class="chip ok">ปราชญ์หนุนนำ ' + cult.SAGE_SUPPORT + '</span><span class="chip">ปุถุชน ' + cult.none + '</span></div>';
       if (S.research) h += '<h3>งานวิจัย</h3><div class="card">ตำรับระดับ ' + S.research.tier + ' ' + bar('ความคืบหน้า', S.research.progress / S.research.need * 100, { wide: true, txt: Math.round(S.research.progress / S.research.need * 100) + '%' }) + '</div>';
       if (S.tournament) h += '<div class="card">🏆 ชุมนุมประลองยุทธ์สำนัก: ' + (S.tournament.state === 'announce' ? 'ประกาศแล้ว จะเริ่มอีก ' + Math.max(0, Math.round((S.tournament.start - W.t) / 60)) + ' ชม.' : 'กำลังแข่ง เหลือ ' + (S.tournament.alive || []).length + ' คน') + '</div>';
       if (S.festival && S.festival.until > W.t) h += '<div class="card">🎎 งานเลี้ยงกำลังจัดอยู่</div>';
@@ -3351,9 +3473,10 @@
           const inf = INFO[k], parts = ex.parts[k] || [];
           return '<details style="border-bottom:1px solid var(--line,#3a3f4a);padding:3px 0"><summary style="cursor:pointer;display:flex;justify-content:space-between"><span>' + inf.icon + ' ' + inf.nameTh + '</span><b>' + fmt(k, ex.v[k]) + '</b></summary><div class="muted" style="font-size:12px;padding:2px 0 4px 6px">' + esc(inf.desc) + '<br>' + parts.map(q => '• ' + esc(q[0]) + ' : ' + (q[1] === 'b' ? 'ฐาน ' + Math.round(q[2]) : q[1] === 'p' ? (q[2] >= 0 ? '+' : '') + Math.round(q[2] * 1000) / 10 + '%' : (q[2] >= 0 ? '+' : '') + Math.round(q[2] * 10) / 10)).join('<br>') + '</div></details>';
         }).join('');
-        const bf = (n.buffs || []).filter(b => b.until > W.t), sx = (n.sx || []).filter(x => x.until > W.t);
+        if (g.STATS && g.STATS.purgeExpired) g.STATS.purgeExpired(n, W.t);
+        const bf = (n.buffs || []).filter(b => b && b.until > W.t), sx = (n.sx || []).filter(x => x && x.until > W.t);
         const fb = (g.FISHING && g.FISHING.activeFoodBuff) ? g.FISHING.activeFoodBuff(W, n) : null;
-        if (bf.length) h += '<div style="margin-top:6px">💊 ' + bf.map(b => '<span class="chip b">' + esc(b.name) + ' (' + Math.max(0, Math.round(b.until - W.t)) + ' นาที)</span>').join('') + '</div>';
+        if (bf.length) h += '<div style="margin-top:6px">✨ <b>บัฟและโอสถหนุนนำที่ทำงานอยู่:</b> ' + bf.map(b => '<span class="chip b">' + (b.icon ? b.icon + ' ' : '💊 ') + esc(b.nameTh || b.name || b.id) + ' (เหลือ ' + Math.max(0, Math.round(b.until - W.t)) + ' นาที' + (b.shieldHp > 0 ? ' · เกราะ ' + Math.round(b.shieldHp) : '') + (b.cheatDeath ? ' · คุ้มชีพนิพพาน' : '') + ')</span>').join('') + '</div>';
         if (CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W.t) : (n.ancestralBlessing && (!n.ancestralBlessing.untilDay || n.ancestralBlessing.untilDay >= W.day))) {
           const ab = n.ancestralBlessing;
           h += '<div style="margin-top:6px">🕯️ <span class="chip g">พรบรรพชน「' + esc(ab.elderNameTh) + '」</span> <span class="muted" style="font-size:11.5px">ทะลวงขั้น +' + Math.round((ab.breakthroughBonus || 0) * 100) + '% · เรียนวิชา ×' + (ab.studySpeedMult || 1).toFixed(2) + (ab.injuryShield ? ' · คุ้มครองตบะย้อนกลับ' : '') + '</span></div>';
@@ -3375,6 +3498,27 @@
           }
         }
         h += '</div>';
+        if (CULT.ensurePets) CULT.ensurePets(n);
+        if (Array.isArray(n.pets) && n.pets.length) {
+          const maxP = CULT.maxActivePets ? CULT.maxActivePets(n) : 1;
+          const actP = CULT.activePets ? CULT.activePets(n) : n.pets.filter(p => p && p.active);
+          h += '<h3>🐾 สัตว์อสูรพันธสัญญา (' + actP.length + '/' + maxP + ' ตัวที่ออกรบ · ทั้งหมด ' + n.pets.length + ' ตัว)</h3><div class="card">' + n.pets.map(p => {
+            const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
+            return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><b>' + (p.sovereignAwakened ? '👑 ' : '🐾 ') + esc(p.nameTh) + '</b> <span class="chip ' + (p.active ? 'ok' : '') + '">' + (p.active ? 'ร่วมรบ' : 'พักฟื้น') + ' · T' + (p.tier || 1) + '</span> <span class="chip b">' + esc(gNames[p.growthStage || 1] || 'วัยเยาว์') + '</span><div class="muted" style="font-size:11.5px">ความภักดี ' + Math.round(p.loyalty || 0) + '% · ความอิ่ม/พึงพอใจ ' + Math.round(p.satisfaction || 0) + '% · สายสัมพันธ์ (Bond XP) ' + Math.round(p.bondXp || 0) + '</div></div>';
+          }).join('') + '</div>';
+        }
+        if (n.cult && (n.cult.path === 'MECH_PUPPET' || n.mechState)) {
+          const ms = CULT.ensureMechState ? CULT.ensureMechState(n) : n.mechState;
+          if (ms) {
+            h += '<h3>⚙️ สถานะหุ่นเชิดกลไกและค่ายกล</h3><div class="card">ความพร้อมหุ่นเชิด: <b>' + Math.round(ms.constructReadiness || 0) + '%</b> · ระดับหุ่นเชิด <b>T' + (ms.puppetTier || 1) + '</b> · โอเวอร์คล็อก: <span class="chip ' + (ms.overclockReady ? 'ok' : '') + '">' + (ms.overclockReady ? 'พร้อมปะทุ' : 'รอชาร์จ') + '</span> · หุ่นสลับร่างคุ้มภัย: <span class="chip ' + (ms.decoyAvailable ? 'g' : '') + '">' + (ms.decoyAvailable ? 'พร้อมทำงาน' : 'ใช้ไปแล้ว') + '</span></div>';
+          }
+        }
+        if (n.cult && (n.cult.path === 'KARMA_SAMSARA' || n.karmaState)) {
+          const ks = CULT.ensureKarmaState ? CULT.ensureKarmaState(n) : n.karmaState;
+          if (ks) {
+            h += '<h3>☸️ บัญชีหนี้กรรมและวัฏสงสาร</h3><div class="card">หนี้กรรมสะสม: <b>' + Math.round(ks.karmicDebt || 0) + ' / ' + Math.round(ks.maxDebt || 500) + '</b> · ท่าทีวัฏจักร: <span class="chip v">' + esc(ks.activeRealmStance || 'HUMAN') + '</span> · กุศลหนุนนำ: <b>' + Math.round(ks.meritStacks || 0) + ' ชั้น</b> · กายาอดีตชาติคุ้มชีพ: <span class="chip ' + (ks.echoReady ? 'g' : '') + '">' + (ks.echoReady ? 'พร้อมจุติ' : 'สงบนิ่ง') + '</span></div>';
+          }
+        }
         const sl = g.SK.list(n);
         if (sl.length) {
           h += '<h3>วิชาต่อสู้และกระบวนท่าที่ใช้ได้ (' + sl.length + ')</h3><div class="card">' + sl.map(p => {
@@ -3779,6 +3923,88 @@
       const prev = SECT.EDITOR.previewCharacterEdit(W, n.id, d);
       h += "<div class=\"card\" id=\"editLivePreview\">" + (prev.ok ? ("<b>ผลคำนวณหลังแก้ไข:</b> " + esc(prev.after.stageName) + " · รากปราณ <b>" + (prev.after.rootCount || 1) + " ราก (" + esc(prev.after.aggregateGrade || "MORTAL") + " · " + esc(prev.after.rarityTitleTh || "") + ")</b> · พลังชีวิตสูงสุด <b>" + prev.after.hpMax + "</b> · ปราณสูงสุด <b>" + prev.after.qiMax + "</b> · พลังรบ <b>" + prev.after.combatPower + "</b> · อัตราบ่มเพาะ <b>" + (prev.after.cultRate || 0) + "/ชม.</b>") : ("<span style=\"color:var(--red)\">⚠️ " + esc(prev.reason) + "</span>")) + "</div>";
       h += "<div style=\"display:flex;gap:8px;margin-top:8px\"><button class=\"btn pri\" style=\"flex:1\" data-do=\"apply-char-edit\">💾 บันทึกการแก้ไขตัวละคร</button></div>";
+    } else if (tab === "pet" && n) {
+      const pData = SECT.EDITOR.petState(W, n.id);
+      const species = pData.speciesCatalog || [];
+      const buffCat = pData.buffCatalog || {};
+      h += "<h3>1. 🐾 จัดการสัตว์อสูรพันธสัญญา (Universal Spirit Beast Companions)</h3><div class=\"card\">";
+      h += "<div class=\"muted\" style=\"margin-bottom:6px\">ผู้ฝึกตนทั่วไปสามารถผูกพันธสัญญาสัตว์อสูรออกรบได้สูงสุด <b>1 ตัว</b> · ส่วนผู้เดิน <b>วิถีราชันย์อสูร (BEAST_SOVEREIGN)</b> สามารถควบคุมฝูงอสูรออกรบพร้อมกันได้สูงสุด <b>2–4 ตัว</b> ตามขั้นตบะ (ปัจจุบันของ " + esc(n.h.name.given) + ": สูงสุด <b>" + pData.maxPets + " ตัว</b>)</div>";
+      h += "<div class=\"edit-grid\">";
+      h += "<div class=\"edit-field\"><label>เลือกสายพันธุ์อสูรวิญญาณ</label><select id=\"editPetSpeciesSel\">" + species.map(sp => "<option value=\"" + sp.id + "\">" + esc(sp.nameTh) + " (T" + sp.tier + " · " + esc(sp.element || "WOOD_LIFE") + ")</option>").join("") + "</select></div>";
+      h += "<div class=\"edit-field\"><label>ระดับอสูร (Tier 1–7)</label><input id=\"editPetTier\" type=\"number\" min=\"1\" max=\"7\" value=\"3\"></div>";
+      h += "<div class=\"edit-field\"><label>ตัวเลือกราชันย์อสูรจุติ</label><label style=\"display:flex;align-items:center;gap:6px;margin-top:6px\"><input type=\"checkbox\" id=\"editPetSovereign\"> 👑 ปลุกขั้นราชันย์อสูรจุติทันที (Sovereign Awakened)</label></div>";
+      h += "</div>";
+      h += "<div style=\"margin-top:8px\"><button class=\"btn pri\" data-do=\"edit-pet-spawn\">🐾 เสกและผูกพันธสัญญาสัตว์อสูร</button></div>";
+      if (pData.pets && pData.pets.length) {
+        h += "<div style=\"margin-top:10px;border-top:1px solid var(--line,#3a3f4a);padding-top:6px\"><b>สัตว์อสูรในพันธสัญญาปัจจุบัน (" + pData.pets.length + " ตัว):</b></div>";
+        pData.pets.forEach(pt => {
+          h += "<div class=\"logrow\" style=\"align-items:center;gap:6px\"><div style=\"flex:1\"><b>" + (pt.sovereignAwakened ? "👑 " : "🐾 ") + esc(pt.nameTh) + "</b> <span class=\"chip " + (pt.active ? "ok" : "") + "\">" + (pt.active ? "ออกรบ" : "สำรอง") + " · T" + pt.tier + " · ขั้นเติบโต " + (pt.growthStage || 1) + "/4</span><div class=\"muted\" style=\"font-size:11px\">ความภักดี " + Math.round(pt.loyalty || 0) + "% · ความอิ่ม " + Math.round(pt.satisfaction || 0) + "% · Bond XP " + Math.round(pt.bondXp || 0) + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\"><button class=\"btn\" data-do=\"edit-pet-feed\" data-arg=\"" + pt.uid + "\">🍖 ให้อาหาร</button><button class=\"btn pri\" data-do=\"edit-pet-awaken\" data-arg=\"" + pt.uid + "\">👑 ปลุกราชันย์</button><button class=\"btn dan\" data-do=\"edit-pet-release\" data-arg=\"" + pt.uid + "\">ปลดปล่อย</button></div></div>";
+        });
+      }
+      h += "</div>";
+
+      h += "<h3>2. ✨ ร่ายวิชาฟื้นฟูและบัฟหนุนนำ (Self & Ally Healing + Timed Buffs)</h3><div class=\"card\">";
+      h += "<div class=\"muted\" style=\"margin-bottom:6px\">ระบบบัฟมีเวลาหมดอายุชัดเจน (ตรวจสอบ <code>until &gt; W.t</code> ทุกทิคและล้างแคชอัตโนมัติเมื่อหมดเวลา ไม่ค้างถาวร)</div>";
+      h += "<div class=\"edit-grid\">";
+      h += "<div class=\"edit-field\"><label>ผู้รับการฟื้นฟู/บัฟ</label><select id=\"editBuffTargetSel\">" + members.map(m2 => "<option value=\"" + m2.id + "\"" + (m2.id === n.id ? " selected" : "") + ">" + esc(HC.fullName(m2)) + " (HP " + Math.round(m2.h.state.hp) + "/" + CULT.hpMax(m2) + ")</option>").join("") + "</select></div>";
+      h += "<div class=\"edit-field\"><label>ชนิดบัฟหนุนนำ (8 รูปแบบ)</label><select id=\"editBuffKeySel\">" + Object.values(buffCat).map(bf => "<option value=\"" + bf.id + "\">" + bf.icon + " " + esc(bf.nameTh) + " — " + esc(bf.descTh) + "</option>").join("") + "</select></div>";
+      h += "<div class=\"edit-field\"><label>ระยะเวลาบัฟ (นาทีในเกม · สูงสุด 1,440)</label><input id=\"editBuffDuration\" type=\"number\" min=\"10\" max=\"1440\" value=\"180\"></div>";
+      h += "</div>";
+      h += "<div style=\"display:flex;gap:6px;margin-top:8px;flex-wrap:wrap\"><button class=\"btn pri\" data-do=\"edit-cast-buff\">✨ ร่ายฟื้นฟู + มอบบัฟทันที</button><button class=\"btn dan\" data-do=\"edit-clear-buffs\">🧹 ล้างบัฟทั้งหมดของตัวละครนี้</button></div>";
+      if (pData.activeBuffs && pData.activeBuffs.length) {
+        h += "<div style=\"margin-top:8px\"><b>บัฟที่ทำงานอยู่ตอนนี้:</b> " + pData.activeBuffs.map(b => "<span class=\"chip b\">" + (b.icon || "✨") + " " + esc(b.nameTh || b.name) + " (เหลือ " + Math.max(0, Math.round(b.until - W.t)) + " นาที)</span>").join(" ") + "</div>";
+      }
+      h += "</div>";
+
+      const ms = pData.mechState || { constructReadiness: 100, overclockReady: true, decoyAvailable: true };
+      const ks = pData.karmaState || { karmicDebt: 0, activeRealmStance: 'DEVA', echoReady: true };
+      h += "<h3>3. ⚙️ กลไกหุ่นเชิด (MECH_PUPPET) & ☸️ บัญชีหนี้กรรม (KARMA_SAMSARA)</h3><div class=\"card\"><div class=\"edit-grid\">";
+      h += "<div class=\"edit-field\"><label>ความพร้อมหุ่นเชิด (Construct Readiness 0–100%)</label><input id=\"editMechReadiness\" type=\"number\" min=\"0\" max=\"100\" value=\"" + Math.round(ms.constructReadiness || 0) + "\"><label style=\"font-size:11px;margin-top:4px;display:flex;gap:4px\"><input type=\"checkbox\" id=\"editMechOverclock\"" + (ms.overclockReady ? " checked" : "") + "> โอเวอร์คล็อกพร้อม</label><label style=\"font-size:11px;display:flex;gap:4px\"><input type=\"checkbox\" id=\"editMechDecoy\"" + (ms.decoyAvailable ? " checked" : "") + "> หุ่นสลับร่างพร้อม</label><button class=\"btn\" style=\"margin-top:4px\" data-do=\"edit-save-mech\">⚙️ บันทึกสถานะหุ่นเชิด</button></div>";
+      h += "<div class=\"edit-field\"><label>หนี้กรรมสะสม (Karmic Debt Ledger)</label><input id=\"editKarmaDebt\" type=\"number\" min=\"0\" max=\"5000\" value=\"" + Math.round(ks.karmicDebt || 0) + "\"><label style=\"font-size:11px;margin-top:4px\">ท่าทีวัฏจักร 6 ภพภูมิ</label><select id=\"editKarmaStance\">" + [["DEVA", "สวรรค์ (DEVA)"], ["ASURA", "อสูรสงคราม (ASURA)"], ["HUMAN", "มนุษย์สมดุล (HUMAN)"], ["PRETA", "เปรตสูบปราณ (PRETA)"], ["NARAKA", "นรกโลกันตร์ (NARAKA)"], ["ANIMAL", "เดรัจฉานสัญชาตญาณ (ANIMAL)"]].map(([k, v]) => "<option value=\"" + k + "\"" + (ks.activeRealmStance === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select><label style=\"font-size:11px;margin-top:4px;display:flex;gap:4px\"><input type=\"checkbox\" id=\"editKarmaEcho\"" + (ks.echoReady ? " checked" : "") + "> กายาอดีตชาติคุ้มชีพพร้อม</label><button class=\"btn\" style=\"margin-top:4px\" data-do=\"edit-save-karma\">☸️ บันทึกสถานะหนี้กรรม</button></div>";
+      h += "</div></div>";
+
+      // 4. Spirit Beast Breeding & Sect Menagerie
+      const allPetPool = (pData.pets || []).concat(pData.menagerie || []);
+      const doc = pData.supportDoctrine || { triagePriority: "BALANCED", minHpThreshold: 65, autoBuffBeforeBattle: true };
+      const facs = pData.specialistFacilities || {};
+
+      h += "<h3>4. 🐣 ระบบผสมพันธุ์สัตว์อสูร & คอกสัตว์วิญญาณสำนัก (Breeding & Menagerie)</h3><div class=\"card\">";
+      h += "<div class=\"muted\" style=\"margin-bottom:6px\">ผสมพันธุ์สัตว์อสูร 2 ตัวเพื่อสืบทอดสายเลือด บทบาท และมีโอกาสปลุกสายเลือดเทพอสูรขั้นสูง (+1 Tier สูงสุด T7) · คอกสัตว์วิญญาณสำนักมีอสูรพักฟื้น <b>" + (pData.menagerie ? pData.menagerie.length : 0) + " ตัว</b></div>";
+      if (allPetPool.length >= 2) {
+        h += "<div class=\"edit-grid\">";
+        h += "<div class=\"edit-field\"><label>พ่อพันธุ์ (Parent A)</label><select id=\"breedParentASel\">" + allPetPool.map((pt, idx) => "<option value=\"" + pt.uid + "\">" + (pt.ownerId ? ("🐾 " + esc(pt.nameTh)) : ("🏯 คอก: " + esc(pt.nameTh))) + " (T" + pt.tier + " · " + esc(pt.bloodlineTrait || "NORMAL") + ")</option>").join("") + "</select></div>";
+        h += "<div class=\"edit-field\"><label>แม่พันธุ์ (Parent B)</label><select id=\"breedParentBSel\">" + allPetPool.map((pt, idx) => "<option value=\"" + pt.uid + "\"" + (idx === 1 ? " selected" : "") + ">" + (pt.ownerId ? ("🐾 " + esc(pt.nameTh)) : ("🏯 คอก: " + esc(pt.nameTh))) + " (T" + pt.tier + " · " + esc(pt.bloodlineTrait || "NORMAL") + ")</option>").join("") + "</select></div>";
+        h += "</div>";
+        h += "<div style=\"margin-top:8px;display:flex;gap:6px\"><button class=\"btn pri\" data-do=\"edit-pet-breed\">🐣 ผสมพันธุ์สัตว์อสูรทันที</button></div>";
+      } else {
+        h += "<div class=\"muted\">ต้องมีสัตว์อสูรในสำนักอย่างน้อย 2 ตัวจึงจะสามารถผสมพันธุ์ได้</div>";
+      }
+      h += "</div>";
+
+      // 5. Sect Support & Medical Triage Doctrine
+      h += "<h3>5. 🪷 นโยบายซัพพอร์ตและการรักษาสำนัก (Sect Support Doctrine)</h3><div class=\"card\">";
+      h += "<div class=\"muted\" style=\"margin-bottom:6px\">กำหนดลำดับความสำคัญในการเดินปราณรักษาและแจกบัฟของศิษย์สาย <b>SAGE_SUPPORT</b> และหมอหลวงประจำสำนัก</div>";
+      h += "<div class=\"edit-grid\">";
+      h += "<div class=\"edit-field\"><label>ลำดับความสำคัญ (Triage Priority)</label><select id=\"editTriagePriority\">" + [
+        ["BALANCED", "สมดุลเมตตา (BALANCED — ช่วยทุกคนตามความเหมาะสม)"],
+        ["ELDER_FIRST", "ผู้อาวุโสก่อน (ELDER_FIRST — เน้นเจ้าสำนักและผู้อาวุโส)"],
+        ["SEVEREST_FIRST", "ผู้บาดเจ็บหนักสุดก่อน (SEVEREST_FIRST — เน้นฉุกเฉิน)"],
+        ["VANGUARD_FIRST", "ทัพหน้าแนวรบก่อน (VANGUARD_FIRST — เน้นนักรบ/ผู้ตรวจการ)"]
+      ].map(([k, v]) => "<option value=\"" + k + "\"" + (doc.triagePriority === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
+      h += "<div class=\"edit-field\"><label>เกณฑ์ HP เริ่มรักษา (Min HP Threshold 20–95%)</label><input id=\"editMinHpThresh\" type=\"number\" min=\"20\" max=\"95\" value=\"" + (doc.minHpThreshold || 65) + "\"></div>";
+      h += "</div>";
+      h += "<div style=\"margin-top:8px\"><button class=\"btn pri\" data-do=\"edit-save-doctrine\">🪷 บันทึกนโยบายซัพพอร์ตสำนัก</button></div>";
+      h += "</div>";
+
+      // 6. Specialist Sect Facilities
+      h += "<h3>6. 🏛️ สิ่งปลูกสร้างเฉพาะทางประจำวิถี (Specialist Sect Facilities)</h3><div class=\"card\">";
+      h += "<div class=\"muted\" style=\"margin-bottom:8px\">สิ่งปลูกสร้างเฉพาะทางช่วยยกระดับความสามารถของวิถีใหม่และทั้งสำนัก</div>";
+      h += "<div class=\"edit-grid\">";
+      Object.keys(facs).forEach(fId => {
+        const fc = facs[fId];
+        h += "<div class=\"edit-field\"><b>" + esc(fc.nameTh) + "</b> <span class=\"chip ok\">ระดับ " + fc.level + "/" + fc.maxLevel + "</span><div class=\"muted\" style=\"font-size:11px;margin:3px 0\">" + esc(fc.descTh) + "</div>" + (fc.level < fc.maxLevel ? ("<button class=\"btn\" data-do=\"edit-upgrade-facility\" data-arg=\"" + fId + "\">🏛️ ยกระดับ (ใช้ " + (fc.costBase * fc.level * fc.level) + " ศิลา)</button>") : "<span class=\"chip\">ระดับสูงสุดแล้ว</span>") + "</div>";
+      });
+      h += "</div></div>";
     } else if (tab === "spawn") {
       const paged = SECT.EDITOR.catalogPaginated(W, {
         search: UI.spawnSearch,

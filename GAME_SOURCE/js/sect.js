@@ -366,9 +366,69 @@
       titleTh: 'วิถีค่ายกลและจิตตานุภาพ',
       descTh: 'สำนักสายศาสตราอาคม พัด พิณ กระจกวิญญาณ และค่ายกลดารา ควบคุมสนามรบและโจมตีด้วยพลังจิตวิญญาณ',
       path: 'HEART_SOUL',
-      subs: ['ASTRAL_ARRAY', 'CALLIGRAPHY_PAINTING_SAGE', 'SOUND_ZITHER'],
+      subs: ['CALLIGRAPHY_PAINTING_SAGE', 'ZEN_VOID_MIND', 'DREAM_ILLUSION_WEAVER', 'ASTRAL_ARRAY'],
       techs: ['MP_FOCUS_IRON_FAN_T1', 'MP_FOCUS_ACUPOINT_NEEDLE_T2', 'MP_FOCUS_ABACUS_TACTIC_T3', 'MP_FOCUS_SOUL_BELL_T3', 'PASS_FOCUS_SCHOLAR_POISE_T4', 'MP_HYB_BOW_FOCUS_ZITHER_T4', 'MP_FOCUS_SONIC_ZITHER_T5', 'MP_FOCUS_ASTRAL_BANNER_T5', 'MP_FOCUS_CELESTIAL_ZITHER_T5', 'MP_HYB_BLADE_FOCUS_FLYING_T5', 'MP_FOCUS_GRANDMASTER_FAN_T6', 'MP_FOCUS_CAULDRON_FIRE_T6', 'MP_FOCUS_FATE_MIRROR_T6', 'MP_FOCUS_PRIMORDIAL_BRUSH_T7'],
-      crystals: { 'S:ASTRAL_ARRAY': 2, 'S:CALLIGRAPHY_PAINTING_SAGE': 1 }
+      crystals: { 'S:CALLIGRAPHY_PAINTING_SAGE': 2, 'S:ZEN_VOID_MIND': 1 }
+    },
+    god: {
+      id: 'god',
+      nameTh: 'สำนักเทพบรรพกาล',
+      titleTh: 'วิถีเทพบรรพกาลและวิญญาณศักดิ์สิทธิ์',
+      descTh: 'สำนักสายพลังศรัทธาและเทพบรรพกาล ร่างเทพทองคำ แสงสุริยัน และปราณสายฟ้าทัณฑ์ ทรงอานุภาพพลังทำลายกว้างขวาง',
+      path: 'GOD',
+      subs: ['WAR_DEITY', 'MERCY_DEITY', 'SUN_BOW_DEITY', 'OCEAN_SOVEREIGN', 'GOLDEN_ARHAT_STAFF'],
+      techs: ['MP_BASE_GOD', 'ART190_GOD_001', 'ART190_GOD_002', 'ART190_GOD_003', 'ART190_GOD_006', 'ART190_GOD_011', 'ART190_GOD_021', 'ART190_GOD_031', 'INNATE_WAR_DEITY_BANNER_SPEAR', 'ART_CROSS_V208_006'],
+      crystals: { 'S:WAR_DEITY': 2, 'S:MERCY_DEITY': 1, 'S:SUN_BOW_DEITY': 1 }
+    },
+    demon: {
+      id: 'demon',
+      nameTh: 'สำนักมารสวรรค์',
+      titleTh: 'วิถีมารกลืนสวรรค์และโลหิตอมตะ',
+      descTh: 'สำนักสายมารและอสูรโลหิต กลืนกินพลังศัตรู รวดเร็วดั่งเงาพราย สังหารฉับพลัน และฟื้นฟูกายาจากโลหิต',
+      path: 'DEMON',
+      subs: ['HEAVEN_DEVOURING_DEMON', 'SHADOW_ASSASSIN', 'NETHER_GHOST_KING', 'VENOM_GU_SOVEREIGN', 'ASHURA_SLAUGHTER_BLADE'],
+      techs: ['MP_BASE_DEMON', 'ART_V112_DEMON_NIGHT_CLOAK_T1', 'ART_DEMON_SHADOW_STRIKE_T1', 'ART_V210_CHAIN_SHADOW_DAGGER', 'ART190_BODY_006', 'ART_V112_DEMON_SILENT_DAGGER_T3', 'ART_CROSS_V208_005'],
+      crystals: { 'S:HEAVEN_DEVOURING_DEMON': 2, 'S:SHADOW_ASSASSIN': 1, 'S:NETHER_GHOST_KING': 1 }
+    },
+    mech: {
+      id: 'mech',
+      nameTh: 'สำนักกลจักรวิญญาณ',
+      titleTh: 'วิถีกลจักรเชิดหุ่นและวิญญาณศาสตรา',
+      descTh: 'สำนักผู้สร้างหุ่นเชิดกลไก ค่ายกลป้อมปราการ เกราะกลไก และศาสตราบิน บัญชาสมรภูมิด้วยกลศาสตร์และจิตควบคุม',
+      path: 'MECH_PUPPET',
+      subs: ['HEAVENLY_GOLEM', 'THOUSAND_THREAD_ASSASSIN', 'CELESTIAL_BALLISTA', 'ASTRAL_CLOCKWORK_PRIME', 'SOUL_VESSEL_AVATAR'],
+      techs: ['MP_BASE_MECH_PUPPET', 'ART_MECH_PUPPET_001', 'ART_MECH_PUPPET_002', 'ART_MECH_PUPPET_003', 'ART_MECH_PUPPET_004', 'ART_CROSS_V208_001', 'ART_CROSS_V208_007', 'INNATE_THOUSAND_THREAD_SOUL'],
+      crystals: { 'S:HEAVENLY_GOLEM': 2, 'S:THOUSAND_THREAD_ASSASSIN': 1, 'S:CELESTIAL_BALLISTA': 1 }
+    },
+    karma: {
+      id: 'karma',
+      nameTh: 'สำนักกรรมวัฏสวรรค์',
+      titleTh: 'วิถีกรรมวัฏและสังสารวัฏ',
+      descTh: 'สำนักผู้คุมด้ายชะตากรรม บัญชีกรรมเกิดดับ และปราณวัฏจักรหกภพ สะท้อนดาเมจตามหนี้กรรมและคืนชีพจากเถ้าถ่าน',
+      path: 'KARMA_SAMSARA',
+      subs: ['SIX_PATHS_WHEEL', 'REVERSED_RETRIBUTION', 'FATE_SEVERING_THREAD', 'LOTUS_MERCY_PURIFIER', 'PAST_LIFE_MIRROR'],
+      techs: ['MP_BASE_KARMA_SAMSARA', 'ART_KARMA_SAMSARA_001', 'ART_KARMA_SAMSARA_002', 'ART_KARMA_SAMSARA_003', 'ART_KARMA_SAMSARA_004', 'ART_CROSS_V208_004', 'ART_CROSS_V208_008', 'INNATE_SIX_PATHS_WHEEL'],
+      crystals: { 'S:SIX_PATHS_WHEEL': 2, 'S:REVERSED_RETRIBUTION': 1, 'S:FATE_SEVERING_THREAD': 1 }
+    },
+    beast: {
+      id: 'beast',
+      nameTh: 'สำนักราชันย์อสูร',
+      titleTh: 'วิถีราชันย์อสูรและพันธสัญญาวิญญาณ',
+      descTh: 'สำนักผู้ทำพันธสัญญาเทพอสูร หลอมรวมสายเลือด ผสานร่างอสูร และบัญชาฝูงสัตว์วิญญาณรบเคียงบ่าเคียงไหล่',
+      path: 'BEAST_SOVEREIGN',
+      subs: ['MYRIAD_BEAST_PACK', 'PRIMORDIAL_BLOOD_MUTATOR', 'SYMBIOTIC_BEAST_WARRIOR', 'COLOSSUS_SHIELD_TAMER', 'ABYSSAL_DRAGON_TOTEM'],
+      techs: ['MP_BASE_BEAST_SOVEREIGN', 'ART_BEAST_SOV_001', 'ART_BEAST_SOV_002', 'ART_BEAST_SOV_003', 'ART_BEAST_SOV_004', 'ART_CROSS_V208_003', 'ART_CROSS_V208_009', 'INNATE_MYRIAD_PACK_COMMAND'],
+      crystals: { 'S:MYRIAD_BEAST_PACK': 2, 'S:PRIMORDIAL_BLOOD_MUTATOR': 1, 'S:SYMBIOTIC_BEAST_WARRIOR': 1 }
+    },
+    sage: {
+      id: 'sage',
+      nameTh: 'สำนักปราชญ์โอสถคีตเวทย์',
+      titleTh: 'วิถีปราชญ์โอสถและคีตเวทย์หนุนนำ',
+      descTh: 'สำนักยอดวิชาเยียวยา สกัดจุดเข็มทอง บรรเลงพิณคลายมาร ปรุงน้ำทิพย์ และกางเกราะค่ายกลเสริมพลังทั่วสำนัก',
+      path: 'SAGE_SUPPORT',
+      subs: ['GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY', 'WAR_BANNER_CHORISTER', 'QIMEN_TALISMAN_PATRON'],
+      techs: ['MP_BASE_SAGE_SUPPORT', 'ART_SAGE_SUP_001', 'ART_SAGE_SUP_002', 'ART_SAGE_SUP_003', 'ART_SAGE_SUP_004', 'ART_CROSS_V208_002', 'ART_CROSS_V208_010', 'INNATE_GOLDEN_NEEDLE_PULSE', 'INNATE_CELESTIAL_ZITHER_CHORD'],
+      crystals: { 'S:GOLDEN_NEEDLE_SAINT': 2, 'S:CELESTIAL_ZITHER_ENVOY': 1, 'S:DIVINE_NECTAR_APOTHECARY': 1 }
     }
   };
 
@@ -380,7 +440,13 @@
     alchemy: { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' },
     bow:     { family: 'BOW', skill: 'BOW', starterWeapon: 'MP_BOW_1', masterWeapon: 'MP_BOW_2' },
     staff:   { family: 'STAFF', skill: 'STAFF', starterWeapon: 'MP_STAFF_1', masterWeapon: 'MP_STAFF_2' },
-    focus:   { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' }
+    focus:   { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' },
+    god:     { family: 'SPEAR', skill: 'SPEAR', starterWeapon: 'MP_SPEAR_1', masterWeapon: 'MP_SPEAR_2' },
+    demon:   { family: 'BLADE', skill: 'BLADE', starterWeapon: 'MP_BLADE_1', masterWeapon: 'MP_BLADE_2' },
+    mech:    { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' },
+    karma:   { family: 'STAFF', skill: 'STAFF', starterWeapon: 'MP_STAFF_1', masterWeapon: 'MP_STAFF_2' },
+    beast:   { family: 'FIST', skill: 'FIST_PALM', starterWeapon: 'MP_FIST_1', masterWeapon: 'MP_FIST_2' },
+    sage:    { family: 'FOCUS', skill: 'FOCUS', starterWeapon: 'MP_FOCUS_1', masterWeapon: 'MP_FOCUS_2' }
   };
 
   SECT.officeState = (W, id) => {
@@ -1623,6 +1689,71 @@
   };
 
   /* ---------- คำสั่งสำรองคลังและจัดการของขาดแคลน (v1.10.6 + Phase 3) ---------- */
+  
+  /* ---------- Support Doctrine & Specialist Facilities (v2.0.9) ---------- */
+  SECT.ensureSupportDoctrine = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.supportDoctrine) {
+      W.sect.supportDoctrine = {
+        triagePriority: 'BALANCED', // 'BALANCED', 'ELDER_FIRST', 'SEVEREST_FIRST', 'VANGUARD_FIRST'
+        minHpThreshold: 65,
+        autoBuffBeforeBattle: true,
+        reserveQiPercent: 20,
+        preferredBuffs: ['vitalRegen', 'aegisWard', 'fervorMight', 'swiftWind', 'clarityLotus']
+      };
+    }
+    return W.sect.supportDoctrine;
+  };
+
+  SECT.setSupportDoctrine = (W, opts) => {
+    const doc = SECT.ensureSupportDoctrine(W);
+    if (!doc || !opts) return doc;
+    if (opts.triagePriority) {
+      const valid = ['BALANCED', 'ELDER_FIRST', 'SEVEREST_FIRST', 'VANGUARD_FIRST'];
+      if (valid.includes(opts.triagePriority)) doc.triagePriority = opts.triagePriority;
+    }
+    if (opts.minHpThreshold != null) doc.minHpThreshold = clamp(Number(opts.minHpThreshold), 20, 95);
+    if (opts.autoBuffBeforeBattle != null) doc.autoBuffBeforeBattle = !!opts.autoBuffBeforeBattle;
+    if (opts.reserveQiPercent != null) doc.reserveQiPercent = clamp(Number(opts.reserveQiPercent), 0, 80);
+    if (Array.isArray(opts.preferredBuffs)) doc.preferredBuffs = opts.preferredBuffs.slice();
+    if (W.log) {
+      W.log('policy', 'ปรับปรุงแนวทางซัพพอร์ตและลำดับการรักษาสำนัก: ' + doc.triagePriority + ' (เกณฑ์ HP ' + doc.minHpThreshold + '%)', []);
+    }
+    return doc;
+  };
+
+  SECT.ensureSpecialistFacilities = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.specialistFacilities) {
+      W.sect.specialistFacilities = {
+        mech_workshop: { level: 1, maxLevel: 3, nameTh: 'โรงประดิษฐ์กลจักรและหุ่นเชิด', costBase: 800, descTh: 'เร่งการฟื้นฟู Construct Readiness ของหุ่นเชิด และสร้างหุ่นพิทักษ์สำนัก' },
+        beast_menagerie: { level: 1, maxLevel: 3, nameTh: 'โรงเพาะเลี้ยงสัตว์วิญญาณ', costBase: 800, descTh: 'เพิ่มอัตราความสำเร็จในการผสมพันธุ์สัตว์วิญญาณ และดูแลอาหาร/ความเหนื่อยล้าอสูรสำนัก' },
+        harmonic_pavilion: { level: 1, maxLevel: 3, nameTh: 'หอคีตเวทย์และค่ายกลหนุนนำ', costBase: 800, descTh: 'เพิ่มประสิทธิภาพการรักษาและระยะเวลาบัฟของสายซัพพอร์ต +15% ต่อระดับ' }
+      };
+    }
+    return W.sect.specialistFacilities;
+  };
+
+  SECT.upgradeSpecialistFacility = (W, id, opts) => {
+    opts = opts || {};
+    const facs = SECT.ensureSpecialistFacilities(W);
+    if (!facs || !facs[id]) return { ok: false, reason: 'ไม่พบสิ่งปลูกสร้างเฉพาะทาง: ' + id };
+    const fac = facs[id];
+    if (fac.level >= fac.maxLevel) return { ok: false, reason: fac.nameTh + ' ระดับสูงสุดแล้ว' };
+    const cost = Math.round(fac.costBase * fac.level * fac.level);
+    if (!opts.free && W.sect.stones < cost) {
+      return { ok: false, reason: 'ศิลาวิญญาณไม่เพียงพอ (ต้องการ ' + cost + ' ศิลา)' };
+    }
+    if (!opts.free) {
+      ECO.pay(W, cost, 'ยกระดับ' + fac.nameTh);
+    }
+    fac.level++;
+    if (W.log) {
+      W.log('sect', '🏛️ ยกระดับ' + fac.nameTh + ' สู่ระดับ ' + fac.level + '/' + fac.maxLevel + ' สำเร็จ!', []);
+    }
+    return { ok: true, facility: fac, cost };
+  };
+
   SECT.ensureDirectives = W => {
     const S = W.sect;
     if (!S) return;
@@ -2376,8 +2507,9 @@
         }
       }
       if (targetPath && c.sub !== undefined && c.sub !== 'NONE') {
+        const resolvedSub = (CULT.resolveSubId ? CULT.resolveSubId(c.sub) : c.sub) || c.sub;
         const validSubs = CULT.PATHS[targetPath].subPaths.map(s => s.id);
-        if (!validSubs.includes(c.sub)) {
+        if (!validSubs.includes(resolvedSub)) {
           errors.push('สายย่อย ' + c.sub + ' ไม่ตรงกับวิถีหลัก ' + targetPath);
         }
       }
@@ -2515,11 +2647,15 @@
 
           const validSubs = pathDef.subPaths.map(s => s.id);
           if (pc.sub !== undefined) {
-            n.cult.sub = validSubs.includes(pc.sub) ? pc.sub : 'NONE';
+            const resolvedSub = (CULT.resolveSubId ? CULT.resolveSubId(pc.sub) : pc.sub) || pc.sub;
+            n.cult.sub = validSubs.includes(resolvedSub) ? resolvedSub : 'NONE';
           } else if (prevPath !== targetPath && !validSubs.includes(n.cult.sub)) {
             n.cult.sub = 'NONE';
             reconciled.notes.push('รีเซ็ตสายย่อยเนื่องจากเปลี่ยนวิถีหลัก');
           }
+          if (CULT.ensurePets) CULT.ensurePets(n);
+          if (CULT.ensureMechState) CULT.ensureMechState(n);
+          if (CULT.ensureKarmaState) CULT.ensureKarmaState(n);
 
           // Reconcile mantra
           const effStMantra = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
@@ -3527,6 +3663,237 @@
       W.log('craft', '[แก้ไขโดยผู้เล่น] เติมผลึกขัดเกลาทุกชนิดเข้าคลังสำนัก ชนิดละ ' + qty + ' ก้อน', []);
       return { ok: true, action, qty };
     }
+    return { ok: false, reason: 'ไม่รองรับคำสั่ง: ' + action };
+  };
+
+  /* ---------- Phase 4 (v2.0.8): Spirit Beast Pets, Mech/Karma State & Timed Buffs Editor ---------- */
+  EDITOR.petState = (W, npcId) => {
+    const n = (W && W.byId && npcId) ? W.byId[npcId] : null;
+    if (!n) return { ok: false, reason: 'ไม่พบตัวละคร' };
+    if (CULT.ensurePets) CULT.ensurePets(n);
+    const maxPets = CULT.maxActivePets ? CULT.maxActivePets(n) : 1;
+    const pets = Array.isArray(n.pets) ? n.pets : [];
+    const activePets = CULT.activePets ? CULT.activePets(n) : pets.filter(p => p && p.active);
+    const mechState = CULT.ensureMechState ? CULT.ensureMechState(n) : (n.mechState || null);
+    const karmaState = CULT.ensureKarmaState ? CULT.ensureKarmaState(n) : (n.karmaState || null);
+    const activeBuffs = (g.STATS && g.STATS.getActiveBuffs) ? g.STATS.getActiveBuffs(n, W ? W.t : undefined) : [];
+    const menagerie = (CULT.ensureMenagerie) ? CULT.ensureMenagerie(W) : ((W && W.sect && W.sect.beasts) || []);
+    const breedingRecords = (W && W.sect && W.sect.breedingRecords) || [];
+    const supportDoctrine = (g.SECT && g.SECT.ensureSupportDoctrine) ? g.SECT.ensureSupportDoctrine(W) : null;
+    const specialistFacilities = (g.SECT && g.SECT.ensureSpecialistFacilities) ? g.SECT.ensureSpecialistFacilities(W) : null;
+    return {
+      ok: true,
+      npcId: n.id,
+      maxPets,
+      pets,
+      activePets,
+      mechState,
+      karmaState,
+      activeBuffs,
+      menagerie,
+      breedingRecords,
+      supportDoctrine,
+      specialistFacilities,
+      speciesCatalog: (CULT.allBeastSpecies ? CULT.allBeastSpecies() : ((JD && JD.BEASTS && JD.BEASTS.beasts) || [])),
+      buffCatalog: (g.STATS && g.STATS.BUFF_CATALOG) ? g.STATS.BUFF_CATALOG : {}
+    };
+  };
+
+  EDITOR.applyPetAction = (W, a1, a2) => {
+    const opts = (typeof a1 === 'string' ? Object.assign({ npcId: a1 }, a2 || {}) : (a1 || {}));
+    if (opts.petId && !opts.petUid) opts.petUid = opts.petId;
+    if (!W || !W.byId) return { ok: false, reason: 'ไม่พบข้อมูลโลก' };
+    const n = W.byId[opts.npcId || (W.sect && W.sect.masterId)];
+    if (!n) return { ok: false, reason: 'ไม่พบตัวละครเป้าหมาย' };
+    const action = opts.action;
+
+    if (action === 'spawn_pet') {
+      const beasts = (CULT.allBeastSpecies ? CULT.allBeastSpecies() : ((JD && JD.BEASTS && JD.BEASTS.beasts) || []));
+      const bDef = beasts.find(b => b.id === opts.speciesId) || beasts[0] || { id: 'B01', nameTh: 'อสูรวิญญาณ', tier: 2, element: 'WOOD_LIFE' };
+      const customBeast = Object.assign({}, bDef, {
+        tier: clamp(Math.floor(Number(opts.tier || bDef.tier || 1)), 1, 7),
+        nameTh: opts.nameTh ? String(opts.nameTh).trim() : bDef.nameTh
+      });
+      const res = CULT.bindPet ? CULT.bindPet(W, n, customBeast, {
+        loyalty: opts.loyalty != null ? Number(opts.loyalty) : 85,
+        satisfaction: opts.satisfaction != null ? Number(opts.satisfaction) : 90,
+        bondXp: opts.bondXp != null ? Number(opts.bondXp) : 0,
+        growthStage: opts.growthStage != null ? Number(opts.growthStage) : 1,
+        sovereignAwakened: !!opts.sovereignAwakened,
+        replaceWeakest: opts.replaceWeakest !== false
+      }) : { ok: false, reason: 'no-bindPet' };
+      if (res.ok && g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      return res;
+    }
+
+    if (action === 'update_pet') {
+      if (CULT.ensurePets) CULT.ensurePets(n);
+      const pet = (n.pets || []).find(p => p && (p.uid === opts.petUid || p.id === opts.petUid)) || (n.pets || [])[0];
+      if (!pet) return { ok: false, reason: 'ไม่พบสัตว์อสูรในพันธสัญญา' };
+      if (opts.nameTh !== undefined && String(opts.nameTh).trim()) pet.nameTh = String(opts.nameTh).trim();
+      if (opts.tier !== undefined) pet.tier = clamp(Math.floor(Number(opts.tier)), 1, 7);
+      if (opts.loyalty !== undefined || opts.bond !== undefined) {
+        const bVal = clamp(Math.round(Number(opts.loyalty !== undefined ? opts.loyalty : opts.bond)), 0, 100);
+        pet.bond = bVal;
+        pet.loyalty = bVal;
+      }
+      if (opts.satisfaction !== undefined || opts.hunger !== undefined) {
+        const hVal = clamp(Math.round(Number(opts.satisfaction !== undefined ? opts.satisfaction : opts.hunger)), 0, 100);
+        pet.hunger = hVal;
+        pet.satisfaction = hVal;
+      }
+      if (opts.bondXp !== undefined || opts.exp !== undefined) {
+        const xVal = Math.max(0, Math.round(Number(opts.bondXp !== undefined ? opts.bondXp : opts.exp)));
+        pet.bondXp = xVal;
+        pet.exp = xVal;
+      }
+      if (opts.level !== undefined) {
+        pet.level = clamp(Math.floor(Number(opts.level)), 1, 9);
+        pet.growthStage = pet.sovereignAwakened ? 4 : Math.min(3, Math.max(1, Math.ceil(pet.level / 3)));
+      }
+      if (opts.growthStage !== undefined) {
+        pet.growthStage = clamp(Math.floor(Number(opts.growthStage)), 1, 4);
+        pet.level = Math.max(pet.level || 1, (pet.growthStage - 1) * 3 + 1);
+      }
+      if (opts.sovereignAwakened !== undefined) {
+        pet.sovereignAwakened = !!opts.sovereignAwakened;
+        if (pet.sovereignAwakened) {
+          pet.bloodlineTrait = 'SOVEREIGN_AWAKENED';
+          pet.growthStage = 4;
+        }
+      }
+      if (opts.active !== undefined) pet.active = !!opts.active;
+      if (CULT.ensurePets) CULT.ensurePets(n);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      HC.bump(n);
+      return { ok: true, action, pet };
+    }
+
+    if (action === 'awaken_sovereign') {
+      if (CULT.ensurePets) CULT.ensurePets(n);
+      const pet = (n.pets || []).find(p => p && (p.uid === opts.petUid || p.id === opts.petUid)) || (n.pets || [])[0];
+      if (!pet) return { ok: false, reason: 'ไม่พบสัตว์อสูรในพันธสัญญา' };
+      pet.bondXp = Math.max(pet.bondXp || 0, 500);
+      pet.loyalty = Math.max(pet.loyalty || 0, 95);
+      pet.satisfaction = Math.max(pet.satisfaction || 0, 95);
+      pet.tier = Math.max(pet.tier || 1, 5);
+      pet.growthStage = 4;
+      pet.sovereignAwakened = true;
+      if (CULT.evolvePet) CULT.evolvePet(W, n, pet.uid);
+      if (CULT.ensurePets) CULT.ensurePets(n);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      HC.bump(n);
+      return { ok: true, action, pet };
+    }
+
+    if (action === 'feed_pet') {
+      if (!CULT.feedPet) return { ok: false, reason: 'ไม่พบระบบให้อาหารสัตว์อสูร' };
+      const res = CULT.feedPet(W, n, opts.petUid, { free: true });
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      return res;
+    }
+
+    if (action === 'release_pet') {
+      if (!Array.isArray(n.pets) || !n.pets.length) return { ok: false, reason: 'ไม่มีสัตว์อสูรให้ปลดปล่อย' };
+      const idx = opts.petUid ? n.pets.findIndex(p => p && (p.uid === opts.petUid || p.id === opts.petUid)) : 0;
+      if (idx < 0) return { ok: false, reason: 'ไม่พบสัตว์อสูรที่ระบุ' };
+      const removed = n.pets.splice(idx, 1)[0];
+      if (CULT.ensurePets) CULT.ensurePets(n);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      HC.bump(n);
+      return { ok: true, action, removed };
+    }
+
+    if (action === 'set_mech_state') {
+      const ms = CULT.ensureMechState ? CULT.ensureMechState(n) : (n.mechState = n.mechState || {});
+      if (opts.constructReadiness !== undefined || opts.integrity !== undefined) {
+        const rVal = clamp(Math.round(Number(opts.constructReadiness !== undefined ? opts.constructReadiness : opts.integrity)), 0, 100);
+        ms.integrity = rVal;
+        ms.constructReadiness = rVal;
+      }
+      if (opts.overclockReady !== undefined) {
+        ms.overclockReady = !!opts.overclockReady;
+        if (ms.overclockReady && (ms.charge || 0) < 50) ms.charge = 100;
+      }
+      if (opts.decoyAvailable !== undefined || opts.vesselDecoyReady !== undefined) {
+        const dVal = !!(opts.decoyAvailable !== undefined ? opts.decoyAvailable : opts.vesselDecoyReady);
+        ms.decoyAvailable = dVal;
+        ms.vesselDecoyReady = dVal;
+      }
+      if (opts.mode !== undefined) ms.mode = String(opts.mode);
+      if (opts.puppetTier !== undefined) ms.puppetTier = clamp(Math.floor(Number(opts.puppetTier)), 1, 8);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      HC.bump(n);
+      return { ok: true, action, mechState: ms };
+    }
+
+    if (action === 'set_karma_state') {
+      const ks = CULT.ensureKarmaState ? CULT.ensureKarmaState(n) : (n.karmaState = n.karmaState || {});
+      if (opts.karmicDebt !== undefined || opts.debtPool !== undefined) {
+        const dVal = clamp(Math.round(Number(opts.karmicDebt !== undefined ? opts.karmicDebt : opts.debtPool)), 0, ks.maxDebt || 5000);
+        ks.debtPool = dVal;
+        ks.karmicDebt = dVal;
+      }
+      if (opts.activeRealmStance !== undefined || opts.stance !== undefined) {
+        const sVal = String(opts.activeRealmStance !== undefined ? opts.activeRealmStance : opts.stance);
+        ks.stance = sVal;
+        ks.activeRealmStance = sVal;
+      }
+      if (opts.meritStacks !== undefined) ks.meritStacks = clamp(Math.round(Number(opts.meritStacks)), 0, 99);
+      if (opts.echoReady !== undefined) ks.echoReady = !!opts.echoReady;
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      HC.bump(n);
+      return { ok: true, action, karmaState: ks };
+    }
+
+    if (action === 'cast_heal_buff') {
+      const target = opts.targetId && W.byId[opts.targetId] ? W.byId[opts.targetId] : n;
+      if (CULT.castHealOrBuff) {
+        return CULT.castHealOrBuff(W, n, target, {
+          buffKey: opts.buffKey || 'vitalRegen',
+          duration: opts.duration != null ? Number(opts.duration) : 180,
+          healPct: opts.healPct != null ? Number(opts.healPct) : 0.28,
+          force: true
+        });
+      }
+      return { ok: false, reason: 'no-castHealOrBuff' };
+    }
+
+    if (action === 'clear_buffs') {
+      if (g.STATS && g.STATS.clearBuff) {
+        g.STATS.clearBuff(n, opts.buffKey || null);
+      } else {
+        n.buffs = [];
+        n.sx = [];
+      }
+      HC.bump(n);
+      return { ok: true, action };
+    }
+
+    if (action === 'breed_pets') {
+      const parentA = opts.parentA || (n.pets && n.pets[0]);
+      const parentB = opts.parentB || (n.pets && n.pets[1]) || (W.sect && W.sect.beasts && W.sect.beasts[0]);
+      if (CULT.breedBeasts) {
+        return CULT.breedBeasts(W, parentA, parentB, opts);
+      }
+      return { ok: false, reason: 'no-breedBeasts' };
+    }
+
+    if (action === 'set_support_doctrine') {
+      if (SECT.setSupportDoctrine) {
+        const doc = SECT.setSupportDoctrine(W, opts);
+        return { ok: true, action, supportDoctrine: doc };
+      }
+      return { ok: false, reason: 'no-setSupportDoctrine' };
+    }
+
+    if (action === 'upgrade_specialist_facility') {
+      if (SECT.upgradeSpecialistFacility) {
+        return SECT.upgradeSpecialistFacility(W, opts.facilityId, opts);
+      }
+      return { ok: false, reason: 'no-upgradeSpecialistFacility' };
+    }
+
     return { ok: false, reason: 'ไม่รองรับคำสั่ง: ' + action };
   };
 

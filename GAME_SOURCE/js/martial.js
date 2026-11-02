@@ -19,7 +19,11 @@ const paths={
  BODY:{body:{strength:34,toughness:30,endurance:26,vitality:22},p:{atk:.08,matk:-.1},life:{mining:.20,FORGING:.08},curve:'early',weapons:['FIST','STAFF','SPEAR'],armor:['HEAVY']},
  GOD:{body:{vitality:20,spiritualFoundation:18,endurance:12},p:{mdef:.12,cast:-.04},life:{MEDICINE:.12,herbalism:.10},curve:'steady',weapons:['SPEAR','FOCUS'],armor:['HEAVY','ROBE']},
  DEMON:{body:{strength:24,explosiveness:26,agility:18},p:{atk:.10,def:-.10},life:{POISON:.17,hunting:.12},curve:'early',weapons:['BLADE','FIST'],armor:['LIGHT']},
- HEART_SOUL:{body:{reflex:18,spiritualFoundation:30,meridianCapacity:16},p:{matk:.13,hp:-.06},life:{SCRIPTURE:.18,ARRAY:.12},curve:'late',weapons:['FOCUS','SWORD'],armor:['ROBE','LIGHT']}
+ HEART_SOUL:{body:{reflex:18,spiritualFoundation:30,meridianCapacity:16},p:{matk:.13,hp:-.06},life:{SCRIPTURE:.18,ARRAY:.12},curve:'late',weapons:['FOCUS','SWORD'],armor:['ROBE','LIGHT']},
+ MECH_PUPPET:{body:{dexterity:26,meridianCapacity:22,reflex:18,endurance:16},p:{atk:.09,matk:.09,def:.10},life:{FORGING:.28,ARRAY:.18,TALISMAN:.14},curve:'steady',weapons:['FOCUS','SPEAR','STAFF','BOW'],armor:['HEAVY','LIGHT']},
+ KARMA_SAMSARA:{body:{spiritualFoundation:26,vitality:22,endurance:18,reflex:14},p:{matk:.12,mdef:.14},life:{SCRIPTURE:.24,MEDICINE:.18,ritual:.20},curve:'late',weapons:['STAFF','FOCUS','BLADE','SWORD'],armor:['ROBE','HEAVY']},
+ BEAST_SOVEREIGN:{body:{strength:24,vitality:26,agility:20,endurance:20},p:{atk:.11,hp:.12,def:.06},life:{BEAST_TAMING:.38,hunting:.24,survival:.18},curve:'early',weapons:['SPEAR','FIST','BOW','STAFF'],armor:['LIGHT','HEAVY']},
+ SAGE_SUPPORT:{body:{spiritualFoundation:26,vitality:26,recoveryRate:24,dexterity:20},p:{matk:.10,mdef:.15,hp:.12},life:{MEDICINE:.38,ALCHEMY:.26,TALISMAN:.22,arts:.20},curve:'steady',weapons:['FOCUS','STAFF','SWORD','SPEAR','BOW'],armor:['ROBE','LIGHT']}
 };
 // [body, productive life skills, curve, preferred weapons, armor]. All current branches have a distinct record.
 const profiles={
@@ -72,7 +76,46 @@ const profiles={
  ASHURA_SLAUGHTER_BLADE:[{"explosiveness":26,"agility":22,"strength":18},{"BLADE":0.3,"survival":0.18,"stealth":0.14},"early",["BLADE","FIST"],["LIGHT"]],
  ZITHER_HEART_BOW:[{"dexterity":24,"spiritualFoundation":20,"reflex":18},{"BOW":0.25,"FOCUS":0.22,"arts":0.25},"late",["BOW","FOCUS"],["ROBE","LIGHT"]],
  HEART_BLADE_MEDITATION:[{"reflex":26,"dexterity":24,"spiritualFoundation":16},{"BLADE":0.26,"FOCUS":0.2,"SCRIPTURE":0.16},"late",["BLADE","FOCUS"],["LIGHT","ROBE"]],
- VOID_SPEAR_MIND:[{"spiritualFoundation":24,"reflex":20,"meridianCapacity":18},{"SPEAR":0.25,"STAFF":0.2,"ARRAY":0.18},"late",["SPEAR","STAFF"],["ROBE","LIGHT"]]
+ VOID_SPEAR_MIND:[{"spiritualFoundation":24,"reflex":20,"meridianCapacity":18},{"SPEAR":0.25,"STAFF":0.2,"ARRAY":0.18},"late",["SPEAR","STAFF"],["ROBE","LIGHT"]],
+ IRON_COLOSSUS:[{toughness:30,strength:24,endurance:22},{FORGING:.35,mining:.22},'steady',['STAFF','SPEAR','FIST'],['HEAVY']],
+ THOUSAND_THREAD_PUPPETEER:[{dexterity:28,reflex:24,spiritualFoundation:18},{FOCUS:.28,TALISMAN:.24,ARRAY:.18},'late',['FOCUS','BLADE'],['LIGHT','ROBE']],
+ SPIRIT_ARTILLERY_ENGINEER:[{dexterity:26,reflex:22,meridianCapacity:18},{BOW:.28,FORGING:.25,ARRAY:.20},'steady',['BOW','FOCUS'],['LIGHT','HEAVY']],
+ CLOCKWORK_SWARM_WEAVER:[{dexterity:26,agility:22,reflex:20},{FORGING:.26,ARRAY:.26,TALISMAN:.18},'early',['FOCUS','BOW'],['LIGHT','ROBE']],
+ SOUL_VESSEL_AVATAR:[{spiritualFoundation:26,vitality:22,toughness:20},{SOUL_DIVINE:.26,FORGING:.22,TALISMAN:.20},'late',['FOCUS','STAFF'],['ROBE','HEAVY']],
+ FORTRESS_BASTION_ARCHITECT:[{toughness:28,endurance:24,meridianCapacity:18},{ARRAY:.34,FORGING:.24,construction:.22},'late',['STAFF','FOCUS','SPEAR'],['HEAVY','ROBE']],
+ ASTRAL_CLOCKWORK_PRIME:[{spiritualFoundation:26,dexterity:24,reflex:22},{ARRAY:.32,FORGING:.26,SCRIPTURE:.18},'late',['FOCUS','SWORD'],['ROBE','LIGHT']],
+ RED_THREAD_ARBITER:[{spiritualFoundation:26,reflex:22,meridianCapacity:18},{SCRIPTURE:.28,TALISMAN:.24,SOUL_DIVINE:.20},'late',['FOCUS','SWORD'],['ROBE','LIGHT']],
+ SIX_PATHS_WHEEL:[{spiritualFoundation:24,vitality:22,endurance:20},{SCRIPTURE:.28,ritual:.26,SOUL_DIVINE:.20},'late',['STAFF','FOCUS'],['ROBE','HEAVY']],
+ ASURA_JUDGMENT_BLADE:[{strength:24,explosiveness:24,spiritualFoundation:18},{BLADE:.28,SWORD:.20,ritual:.18},'early',['BLADE','SWORD','SPEAR'],['HEAVY','LIGHT']],
+ LOTUS_MERCY_PURIFIER:[{vitality:26,recoveryRate:26,spiritualFoundation:20},{MEDICINE:.36,ritual:.24,SCRIPTURE:.20},'steady',['FOCUS','STAFF'],['ROBE']],
+ PAST_LIFE_CHRONICLER:[{spiritualFoundation:28,reflex:20,meridianCapacity:20},{SCRIPTURE:.36,SOUL_DIVINE:.26,arts:.18},'late',['FOCUS','SWORD'],['ROBE']],
+ REVERSED_RETRIBUTION:[{toughness:26,vitality:24,endurance:20},{BODY_REFINING:.24,ritual:.24,SCRIPTURE:.18},'steady',['STAFF','BLADE','FIST'],['HEAVY','ROBE']],
+ BODHI_VOW_GUARDIAN:[{toughness:28,vitality:26,spiritualFoundation:20},{STAFF:.24,MEDICINE:.24,ritual:.26},'late',['STAFF','FOCUS'],['HEAVY','ROBE']],
+ MYRIAD_BEAST_PACK:[{agility:22,reflex:22,vitality:20},{BEAST_TAMING:.38,hunting:.26,survival:.20},'early',['SPEAR','BOW','STAFF'],['LIGHT','HEAVY']],
+ SYMBIOTIC_FANG_FUSION:[{strength:26,agility:24,explosiveness:22},{BEAST_TAMING:.34,FIST_PALM:.26,BODY_REFINING:.20},'early',['FIST','BLADE','SPEAR'],['LIGHT','HEAVY']],
+ COLOSSUS_SHIELD_TAMER:[{toughness:30,vitality:28,endurance:22},{BEAST_TAMING:.34,BODY_REFINING:.26,STAFF:.20},'steady',['STAFF','SPEAR','FIST'],['HEAVY']],
+ MOUNT_CHARGER:[{speed:26,strength:24,agility:22},{BEAST_TAMING:.34,SPEAR:.28,MOVEMENT:.22},'early',['SPEAR','BOW'],['LIGHT','HEAVY']],
+ PRIMORDIAL_BLOOD_AWAKENER:[{vitality:28,strength:24,spiritualFoundation:20},{BEAST_TAMING:.36,ALCHEMY:.24,MEDICINE:.20},'late',['FIST','SPEAR','FOCUS'],['HEAVY','ROBE']],
+ SWARM_INSECT_EMPEROR:[{immunity:28,dexterity:22,reflex:20},{BEAST_TAMING:.34,POISON:.32,herbalism:.20},'steady',['FOCUS','BOW','BLADE'],['ROBE','LIGHT']],
+ ABYSSAL_DRAGON_TOTEM:[{strength:26,vitality:26,spiritualFoundation:22},{BEAST_TAMING:.36,SPEAR:.26,ritual:.20},'late',['SPEAR','STAFF','FIST'],['HEAVY','ROBE']],
+ HEAVENLY_GOLEM:[{toughness:30,strength:24,endurance:22},{FORGING:.35,mining:.22},'steady',['STAFF','SPEAR','FIST'],['HEAVY']],
+ THOUSAND_THREAD_ASSASSIN:[{dexterity:28,reflex:24,spiritualFoundation:18},{FOCUS:.28,TALISMAN:.24,ARRAY:.18},'late',['FOCUS','BLADE','SWORD'],['LIGHT','ROBE']],
+ BEAST_CHIMERA_MECH:[{toughness:26,strength:22,dexterity:20},{FORGING:.32,BEAST_TAMING:.22,ARRAY:.18},'steady',['SPEAR','STAFF','FOCUS'],['HEAVY','LIGHT']],
+ CELESTIAL_BALLISTA:[{dexterity:26,reflex:22,meridianCapacity:18},{BOW:.28,FORGING:.25,ARRAY:.20},'steady',['BOW','FOCUS'],['LIGHT','HEAVY']],
+ FLYING_BLADE_ORBITER:[{dexterity:26,agility:22,reflex:20},{FORGING:.26,ARRAY:.26,SWORD:.20},'early',['SWORD','BLADE','FOCUS'],['LIGHT','ROBE']],
+ FATE_SEVERING_THREAD:[{spiritualFoundation:26,reflex:22,meridianCapacity:18},{SCRIPTURE:.28,TALISMAN:.24,SWORD:.20},'late',['FOCUS','SWORD','BLADE'],['ROBE','LIGHT']],
+ PAST_LIFE_MIRROR:[{spiritualFoundation:28,reflex:20,meridianCapacity:20},{SCRIPTURE:.36,SOUL_DIVINE:.26,arts:.18},'late',['FOCUS','SWORD'],['ROBE','LIGHT']],
+ PRIMORDIAL_BLOOD_MUTATOR:[{vitality:28,strength:24,spiritualFoundation:20},{BEAST_TAMING:.36,ALCHEMY:.24,MEDICINE:.20},'late',['FIST','SPEAR','FOCUS'],['HEAVY','ROBE']],
+ SYMBIOTIC_BEAST_WARRIOR:[{strength:26,agility:24,explosiveness:22},{BEAST_TAMING:.34,FIST_PALM:.26,BODY_REFINING:.20},'early',['FIST','BLADE','SPEAR'],['LIGHT','HEAVY']],
+ SWARM_GU_HIVE_MASTER:[{immunity:28,dexterity:22,reflex:20},{BEAST_TAMING:.34,POISON:.32,herbalism:.20},'steady',['FOCUS','BOW','BLADE'],['ROBE','LIGHT']],
+ CELESTIAL_ASTRAL_FAIRY_TAMER:[{spiritualFoundation:24,vitality:24,agility:20},{BEAST_TAMING:.34,MEDICINE:.24,herbalism:.22},'steady',['FOCUS','STAFF','BOW'],['ROBE','LIGHT']],
+ GOLDEN_NEEDLE_SAINT:[{dexterity:26,spiritualFoundation:24,reflex:20},{MEDICINE:.38,ALCHEMY:.24,FOCUS:.22},'steady',['FOCUS','SWORD'],['ROBE','LIGHT']],
+ CELESTIAL_ZITHER_ENVOY:[{spiritualFoundation:26,dexterity:24,reflex:20},{arts:.36,FOCUS:.26,SOUL_DIVINE:.20},'late',['FOCUS','BOW'],['ROBE','LIGHT']],
+ DIVINE_NECTAR_APOTHECARY:[{vitality:28,recoveryRate:28,spiritualFoundation:22},{MEDICINE:.40,ALCHEMY:.32,herbalism:.26},'steady',['FOCUS','STAFF'],['ROBE']],
+ QIMEN_TALISMAN_PATRON:[{spiritualFoundation:26,toughness:22,endurance:20},{TALISMAN:.36,ARRAY:.32,FOCUS:.20},'late',['FOCUS','STAFF'],['ROBE','HEAVY']],
+ SOUL_LANTERN_SHEPHERD:[{spiritualFoundation:28,vitality:24,endurance:20},{SOUL_DIVINE:.34,MEDICINE:.28,ritual:.24},'late',['FOCUS','STAFF'],['ROBE']],
+ WAR_BANNER_CHORISTER:[{strength:22,vitality:24,endurance:22},{SPEAR:.28,STAFF:.24,ritual:.28},'early',['SPEAR','STAFF','FOCUS'],['HEAVY','LIGHT']],
+ WOOD_SPIRIT_SYMBIONT:[{vitality:28,recoveryRate:26,meridianCapacity:22},{herbalism:.36,MEDICINE:.30,WOOD_LIFE:.24},'steady',['STAFF','FOCUS'],['ROBE','LIGHT']]
 };
 M.PATHS=paths;M.PROFILES=profiles;
 
@@ -87,6 +130,8 @@ M.invalidateMartialCaches=n=>{
  n._resSetCache=null;
  n._innRec=null;
  n._qiMaxCache=null;
+ n._lifeMultCache=null;
+ n._progCache=null;
  if(ST&&ST.dirty)ST.dirty(n);
 };
 
@@ -259,26 +304,33 @@ M.normalize=n=>{
  if(!n||!n.cult)return;
  const c=n.cult,p=CULT.PATHS[c.path];
  if(!p)return;
+ if(c.sub&&c.sub!=='NONE'&&CULT.resolveSubId){
+  const rSub=CULT.resolveSubId(c.sub);
+  if(rSub!==c.sub){c.sub=rSub;if(c.track&&c.track.subPath)c.track.subPath=rSub;}
+ }
  if(c.sub!=='NONE'&&!p.subPaths.some(s=>s.id===c.sub)){
   c.sub='NONE';c.track=null;M.invalidateMartialCaches(n);
  }
  if(c.sub==='NONE'&&c.track){
   c.track=null;M.invalidateMartialCaches(n);
  }
+ if(CULT.reconcileActivePetCap&&n.pets&&n.pets.length)CULT.reconcileActivePetCap(n);
+ if(c.path==='MECH_PUPPET'&&CULT.ensureMechState)CULT.ensureMechState(n);
+ if(c.path==='KARMA_SAMSARA'&&CULT.ensureKarmaState)CULT.ensureKarmaState(n);
  M.reconcileInnate(n);
 };
 const growth=(stage,max,curve)=>{const x=clamp((stage-1)/Math.max(1,max-1),0,1);return .18+.82*(curve==='early'?Math.sqrt(x):curve==='late'?x*x:x);};
 const progressCache=new WeakMap();
 M.progression=(n,stage)=>{
  const c=n.cult;if(!c||!paths[c.path])return {identity:'ปุถุชน',body:{},p:{},f:{},life:{},scale:0};
- const rank=Math.min(CULT.PATHS[c.path].maxStage,stage==null?c.stage:stage),track=c.track?c.track.ordinal||1:1,key=c.path+'|'+c.sub+'|'+rank+'|'+track;
- const cache=progressCache.get(n);if(cache&&cache.key===key)return cache.value;
+ const rank=Math.min(CULT.PATHS[c.path].maxStage,stage==null?c.stage:stage),track=c.track?c.track.ordinal||1:1;
+ const pc=n._progCache;if(pc&&pc.path===c.path&&pc.sub===c.sub&&pc.rank===rank&&pc.track===track)return pc.value;
  const path=paths[c.path],sub=CULT.PATHS[c.path].subPaths.some(s=>s.id===c.sub)?profiles[c.sub]:null,max=CULT.PATHS[c.path].maxStage,ps=growth(rank,max,path.curve),ss=Math.max(growth(rank,max,sub?sub[2]:'steady'),track>1?growth(track,9,sub?sub[2]:'steady')*.85:0);
  const body={},p={},life={};for(const k in path.body)body[k]=path.body[k]*ps;if(sub)for(const k in sub[0])body[k]=(body[k]||0)+sub[0][k]*ss;
  for(const k in path.p)p[k]=path.p[k]*ps;for(const k in path.life)life[k]=1+path.life[k]*ps;if(sub)for(const k in sub[1])life[k]=(life[k]||1)+sub[1][k]*ss;
  Object.keys(body).forEach(k=>body[k]=Math.round(body[k]*10)/10);
  const value={identity:sub?CULT.subInfo(c.path,c.sub).nameTh:'พื้นฐาน (ยังไม่เลือกสายย่อย)',body,p,f:{},life,scale:ss,curve:sub?sub[2]:path.curve};
- progressCache.set(n,{key,value});return value;
+ n._progCache={path:c.path,sub:c.sub,rank,track,value};return value;
 };
 M.eff=(n,path)=>{const value=HC.eff(n,path);return path.startsWith('physiology.')?clamp(value+(M.progression(n).body[path.slice(11)]||0),0,180):value;};
 const derivedCache=new WeakMap();M.derived=n=>{const ver=n._ver||0,c=n.cult,cSt=c?c.stage:0,cSub=c?c.sub:"",cTr=c?c.trackRank:0,mHit=n._mDer;if(mHit&&mHit.ver===ver&&mHit.cSt===cSt&&mHit.cSub===cSub&&mHit.cTr===cTr)return mHit.val;const d=HC.derived(n),prog=M.progression(n),hit=derivedCache.get(n);if(hit&&hit.ver===ver&&hit.prog===prog&&hit.d===d){n._mDer={ver,cSt,cSub,cTr,val:hit.val};return hit.val;}const b=prog.body,val=Object.assign({},d,{hpMax:Math.round(d.hpMax+(b.vitality||0)*1.1+(b.toughness||0)*.5+(b.strength||0)*.2),walkSpeed:d.walkSpeed+((b.speed||0)*.7+(b.agility||0)*.3)/100*.9});derivedCache.set(n,{ver,prog,d,val});n._mDer={ver,cSt,cSub,cTr,val};return val;};
@@ -886,7 +938,7 @@ M.gearSuitability=(n,it,price)=>{
   if(M.weaponSkill){const wsk=M.weaponSkill(n,type);if(wsk>=45){fit+=Math.min(.22,(wsk-40)*.0035);reasons.push('ชำนาญอาวุธ ('+Math.round(wsk)+')');}else if(wsk<20&&!weapons.includes(type)){fit-=.08;}}
  }
  if(it.slot==='ARMOR'){fit=armor.includes(type)?1.25:.85;reasons.push(armor.includes(type)?'เกราะตรงวิถี':'เกราะต่างแนว');}
- const role=c.path==='BODY'?{atk:1.35,matk:.45,def:1.2,mdef:1.1}:c.path==='HEART_SOUL'||c.path==='XIAN'?{atk:.65,matk:1.35,def:1.1,mdef:1}:c.path==='DEMON'?{atk:1.15,matk:1.15,def:.85,mdef:.9}:{atk:1,matk:1.1,def:1,mdef:1.2};
+ const role=c.path==='BODY'?{atk:1.35,matk:.45,def:1.2,mdef:1.1}:c.path==='HEART_SOUL'||c.path==='XIAN'?{atk:.65,matk:1.35,def:1.1,mdef:1}:c.path==='DEMON'?{atk:1.15,matk:1.15,def:.85,mdef:.9}:c.path==='MECH_PUPPET'?{atk:1.15,matk:1.15,def:1.25,mdef:1.1}:c.path==='KARMA_SAMSARA'?{atk:.95,matk:1.28,def:1.12,mdef:1.32}:c.path==='BEAST_SOVEREIGN'?{atk:1.25,matk:.95,def:1.18,mdef:1.05}:c.path==='SAGE_SUPPORT'?{atk:.85,matk:1.30,def:1.18,mdef:1.34}:{atk:1,matk:1.1,def:1,mdef:1.2};
  let power=(s.atk||0)*role.atk+(s.matk||0)*role.matk+(s.def||0)*role.def+(s.mdef||0)*role.mdef+(s.hp||0)*.5+(s.crit||0)*8+(s.critDmg||0)*1.5+(s.pen||0)*6+(s.cast||0)*3+(s.eva||0)*.6+(s.acc||0)*2;
  if(it.combatMult||it.defMult){
   const stageScale=22+c.stage*16;
