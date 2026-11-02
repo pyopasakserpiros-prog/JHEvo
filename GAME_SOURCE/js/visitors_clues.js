@@ -8,7 +8,7 @@
 
   const VC = {
     VERSION: 1,
-    PATCH_VERSION: '1.13.1',
+    PATCH_VERSION: '2.0.16',
     MAX_ACTIVE_GUESTS: 6,
     MAX_BURST_GUESTS: 8,
     MAX_OFFSITE_REGISTRY: 48,
@@ -433,6 +433,114 @@
         }
       ],
       descTh: 'กระบอกทองคำบริสุทธิ์สลักกลไกซับซ้อน ยามสำแดงอานุภาพจะเปล่งแสงเจ็ดสีดั่งนกยูงรำแพน ทว่าพลังที่แท้จริงคือความเชื่อมั่นอันไม่สั่นคลอนของผู้ถือครอง'
+    },
+    {
+      id: 'LEG_WPN_JIUXIAO_PHOENIX_ZITHER',
+      nameTh: 'พิณเทวะหงส์สวรรค์เก้าชั้นฟ้า',
+      chineseName: '九霄环佩凤鸣琴',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Historical Tang Dynasty Guqin Jiuxiao Huanpei (九霄环佩) & Six-Fingered Lyre Demon / Laughing Proud Wanderer zither lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'ZITHER',
+      visualSubtype: 'ZITHER',
+      visualKey: 'vis_jiuxiao_phoenix_zither',
+      presentationMode: 'held_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4880,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ANY'],
+      preferredSubs: ['SOUND_ZITHER', 'SOUL_MUSICIAN', 'ZITHER_HEART_BOW', 'CHANT_RESONANCE', 'CELESTIAL_ZITHER_ENVOY'],
+      fixedStats: { atk: 360, matk: 880, mdef: 275, acc: 240, crit: 12, critDmg: 26, cast: 18, pen: 16 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_JIUXIAO_SONIC_TEMPEST',
+          nameTh: 'หงส์สวรรค์กู่ร้องสะท้านเก้าชั้นฟ้า',
+          descTh: 'เมื่อบรรเลงโจมตี จะส่งคลื่นเสียงหงส์สวรรค์สร้างความเสียหายวิชาเพิ่ม +18% สะกดใบ้หรือชะลอเป้าหมาย และฟื้นฟูขวัญ/ปราณ 4% (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.18, targetStatus: 'silence', selfStatus: 'morale', qiRestorePct: 0.04, dur: 6, icdTicks: 8 }
+        }
+      ],
+      descTh: 'พิณโบราณเจ็ดสายที่เหลาจากแก่นไม้อู๋ถงหงส์อัคคีพันปี ขึงด้วยเส้นไหมมังกรน้ำแข็ง ยามดีดสายจะบังเกิดคลื่นเสียงหงส์สวรรค์สะท้านฟ้าดิน'
+    },
+    {
+      id: 'LEG_WPN_CHUNQIU_JUDGMENT_BRUSH',
+      nameTh: 'พู่กันเทวะชุนชิวพิพากษาสวรรค์',
+      chineseName: '春秋判官神笔',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Classical Spring and Autumn Verdict Brush (《春秋笔法》/判官笔) & Jin Yong — Danqing Sheng / Judge Brush martial lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'BRUSH',
+      visualSubtype: 'BRUSH',
+      visualKey: 'vis_chunqiu_judgment_brush',
+      presentationMode: 'held_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4900,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['ARRAY_TALISMAN', 'SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'KARMA_SAMSARA', 'ANY'],
+      preferredSubs: ['CALLIGRAPHY_PAINTING_SAGE', 'GRAND_FORMATION_ARCHITECT', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'GRAND_STRATEGIST', 'UNDERWORLD_DECREE'],
+      fixedStats: { atk: 380, matk: 860, def: 210, mdef: 265, acc: 255, crit: 11, critDmg: 26, cast: 16, pen: 18 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_CHUNQIU_VERDICT_SEAL',
+          nameTh: 'หนึ่งขีดชุนชิวตัดสินเป็นตาย',
+          descTh: 'เมื่อตวัดพู่กันโจมตี จะจารึกอักขระพิพากษาทะลวงเกราะป้องกันวิชา (+18% ความเสียหายวิชา) และผนึกการเคลื่อนไหวเป้าหมาย (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.18, armorReductionRatio: 0.22, targetStatus: 'armorbreak', selfStatus: 'focusUp', dur: 7, icdTicks: 8 }
+        }
+      ],
+      descTh: 'ด้ามพู่กันสลักจากหยกหนวดมังกรบรรพกาล ขนพู่กันรวบจากขนกิเลนดารา ทุกขีดที่ตวัดกลางอากาศคือโองการค่ายกลและคำพิพากษาแห่งประวัติศาสตร์'
+    },
+    {
+      id: 'LEG_WPN_TIANCAN_FATE_WHIP',
+      nameTh: 'แส้ไหมสวรรค์เทียนฉานพันด้ายชะตา',
+      chineseName: '天蚕千丝缚命鞭',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Classical Wuxia Heavenly Silkworm (《天蚕变》) & Red Thread / Puppet String weapon lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'WHIP',
+      visualSubtype: 'WHIP',
+      visualKey: 'vis_tiancan_fate_whip',
+      presentationMode: 'held',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4860,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['MECH_PUPPET', 'KARMA_SAMSARA', 'DEMON', 'BEAST_SOVEREIGN', 'ANY'],
+      preferredSubs: ['SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'PACK_COMMAND_HUNT', 'THOUSAND_THREAD_PUPPETEER', 'RED_THREAD_ARBITER'],
+      fixedStats: { atk: 690, matk: 620, def: 195, mdef: 215, acc: 245, crit: 13, critDmg: 28, pen: 22, move: 8 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_TIANCAN_PUPPET_SNARE',
+          nameTh: 'ไหมสวรรค์เทียนฉานรัดพันจุดตาย',
+          descTh: 'เมื่อสะบัดแส้หรือขึงด้ายปราณโจมตี จะรัดพันเส้นปราณศัตรูสร้างความเสียหายเพิ่ม +17% ทำให้ติดสถานะเชื่องช้า/เลือดไหล และดูดซับปราณคืน 4% (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.17, targetStatus: 'slow', secondaryStatus: 'bleed', qiRestorePct: 0.04, dur: 7, icdTicks: 8 }
+        }
+      ],
+      descTh: 'แส้และด้ายไหมสวรรค์ที่ถักทอจากใยหนอนไหมสวรรค์เทียนฉานและไหมแดงชะตากรรม ตัดเหล็กดั่งตัดโคลน ยืดหดไร้ร่องรอยดั่งเส้นด้ายแห่งวัฏสงสาร'
     }
   ];
 
@@ -447,7 +555,10 @@
     LEG_WPN_OATHBREAKER_DRAGON_LANCE: { el: 'LIGHTNING', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHTNING', weights: { LIGHTNING: 0.55, WATER_ICE: 0.45 } } },
     LEG_WPN_WRATHFUL_TIGER_GAUNTLETS: { el: 'EARTH_METAL', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.65, FIRE: 0.35 } } },
     LEG_WPN_CONDOR_METEOR_BOW: { el: 'WIND', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WIND', weights: { WIND: 0.60, ASTRAL: 0.40 } } },
-    LEG_WPN_PEACOCK_PLUME_FOCUS: { el: 'LIGHT_YANG', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.55, ASTRAL: 0.45 } } }
+    LEG_WPN_PEACOCK_PLUME_FOCUS: { el: 'LIGHT_YANG', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.55, ASTRAL: 0.45 } } },
+    LEG_WPN_JIUXIAO_PHOENIX_ZITHER: { el: 'WIND', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WIND', weights: { WIND: 0.55, FIRE: 0.45 } } },
+    LEG_WPN_CHUNQIU_JUDGMENT_BRUSH: { el: 'ASTRAL', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.55, LIGHT_YANG: 0.45 } } },
+    LEG_WPN_TIANCAN_FATE_WHIP: { el: 'YIN_SHADOW', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'YIN_SHADOW', weights: { YIN_SHADOW: 0.55, ASTRAL: 0.45 } } }
   };
   LEGENDARY_WEAPONS.forEach(w => {
     const ep = LEG_WPN_EL_PROFILES[w.id];
@@ -456,11 +567,304 @@
       w.elementProfile = ep.profile;
     }
   });
-  VC.LEGENDARY_WEAPONS = LEGENDARY_WEAPONS;
-  VC.LEGENDARY_WEAPON_BY_ID = Object.fromEntries(LEGENDARY_WEAPONS.map(w => [w.id, w]));
+  const LEGENDARY_ARMORS = [
+    {
+      id: 'LEG_ARM_CELESTIAL_CRANE_ROBE',
+      nameTh: 'อาภรณ์ขนนกกระเรียนสวรรค์เก้าเมฆา',
+      chineseName: '九霄鹤羽仙衣',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Classical Daoist Feathered Immortal Robe (《神仙传·鹤氅》) & Wuxia Cloud-Silk Vestment lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'ARMOR',
+      gearType: 'ROBE',
+      subType: 'ROBE',
+      visualSubtype: 'ROBE',
+      visualKey: 'vis_celestial_crane_robe',
+      presentationMode: 'worn_and_aura',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4920,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ARRAY_TALISMAN', 'ANY'],
+      preferredSubs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY', 'CALLIGRAPHY_PAINTING_SAGE', 'GRAND_FORMATION_ARCHITECT', 'SWORD_IMMORTAL'],
+      fixedStats: { hp: 920, def: 340, mdef: 520, matk: 280, eva: 145, cast: 18, move: 14 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_CRANE_CLOUD_AEGIS',
+          nameTh: 'ปีกกระเรียนเก้าเมฆาคุ้มชีพจร',
+          descTh: 'เมื่อถูกรุกโจมตีหรือร่ายวิชา จะกางม่านเมฆากระเรียนดูดซับความเสียหาย (โล่ 18% HP) ฟื้นฟูปราณ 5% และมอบบัฟวายุพิณทะยานฟ้า (คูลดาวน์ 8 นาที)',
+          params: { shieldHpPct: 0.18, qiRestorePct: 0.05, grantBuff: 'swiftWind', dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'อาภรณ์เซียนทอจากขนนกกระเรียนสวรรค์พันปีและไหมเมฆาเก้าชั้นฟ้า เบาหวิวดั่งไร้ตัวตน สะท้อนปราณวิชาและหนุนท่าร่างให้พลิ้วไหวดั่งเซียนเหิน',
+      element: 'WIND',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WIND', weights: { WIND: 0.55, LIGHT_YANG: 0.45 } },
+      v216: true
+    },
+    {
+      id: 'LEG_ARM_SHADOW_KIRIN_CUIRASS',
+      nameTh: 'เกราะอ่อนเกล็ดกิเลนเงาดารา',
+      chineseName: '星影麒麟软甲',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Classical Wuxia Kirin Scale Soft Armor & Star-Shadow Mail lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'ARMOR',
+      gearType: 'LIGHT',
+      subType: 'LIGHT',
+      visualSubtype: 'LIGHT',
+      visualKey: 'vis_shadow_kirin_cuirass',
+      presentationMode: 'worn',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4950,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['DEMON', 'MECH_PUPPET', 'BEAST_SOVEREIGN', 'KARMA_SAMSARA', 'ANY'],
+      preferredSubs: ['SHADOW_ASSASSIN', 'SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'SYMBIOTIC_FANG_FUSION', 'FATE_SEVERING_THREAD'],
+      fixedStats: { hp: 1080, def: 460, mdef: 410, atk: 240, crit: 10, critDmg: 24, eva: 130, move: 12 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_KIRIN_PHANTOM_COUNTER',
+          nameTh: 'เกล็ดกิเลนเงาดาราสะท้อนคม',
+          descTh: 'เมื่อถูกโจมตีหรือออกท่าสังหาร จะปลุกปราณกิเลนเงาสวนกลับ 16% ของความเสียหาย ทำให้ศัตรูเลือดไหล และมอบบัฟโลหิตศึกฮึกเหิม (คูลดาวน์ 8 นาที)',
+          params: { reflectRatio: 0.16, bonusDmgMult: 0.15, targetStatus: 'bleed', grantBuff: 'fervorMight', dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'เกราะอ่อนแนบเนื้อที่ถักทอจากเกล็ดกิเลนดาราและเอ็นอสูรรัตติกาล ยืดหยุ่นไร้เสียงแต่เหนียวแน่นจนคมดาบไม่อาจระคายผิว',
+      element: 'YIN_SHADOW',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'YIN_SHADOW', weights: { YIN_SHADOW: 0.55, ASTRAL: 0.45 } },
+      v216: true
+    },
+    {
+      id: 'LEG_ARM_IMMORTAL_TORTOISE_PLATE',
+      nameTh: 'เกราะหนักกระดองเต่าดำเสวียนอู่ค้ำสวรรค์',
+      chineseName: '玄武镇天重甲',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Mythological Black Tortoise of the North Xuanwu (《北方玄武》) & Indestructible Mountain Armor lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'ARMOR',
+      gearType: 'HEAVY',
+      subType: 'HEAVY',
+      visualSubtype: 'HEAVY',
+      visualKey: 'vis_immortal_tortoise_plate',
+      presentationMode: 'worn_and_aura',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 5000,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['BODY', 'GOD', 'STRATEGY_GOVERNANCE', 'CRAFT_CREATION', 'ANY'],
+      preferredSubs: ['TITAN_MOUNTAIN_BODY', 'VAJRA_BODHI', 'IRON_COLOSSUS', 'IRON_LEGION_MARSHAL', 'COLOSSUS_SHIELD_TAMER'],
+      fixedStats: { hp: 1450, def: 640, mdef: 540, atk: 190, pen: 10 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_XUANWU_UNYIELDING_BASTION',
+          nameTh: 'ปราการเต่าดำเสวียนอู่สะท้านปฐพี',
+          descTh: 'สร้างเกราะปราณเต่าดำดูดซับความเสียหาย (โล่ 24% HP) ล้างสถานะเกราะแตก/มึนงง มอบบัฟปราการฉีเหมินคุ้มกาย และกระแทกแรงปะทะคืน 18% (คูลดาวน์ 8 นาที)',
+          params: { shieldHpPct: 0.24, reflectRatio: 0.18, grantBuff: 'aegisWard', targetStatus: 'slow', dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'เกราะศึกโบราณหลอมจากกระดองเต่าดำเสวียนอู่และเหล็กไหลแกนพิภพ หนักแน่นดั่งขุนเขาไท่ซาน ไม่มีศาสตราใดทะลวงผ่านได้โดยง่าย',
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.60, WATER_ICE: 0.40 } },
+      v216: true
+    }
+  ];
 
-  // Register Legendary Weapons in JD.ITEMS.items and ECO.itemById without adding repeatable recipes
-  LEGENDARY_WEAPONS.forEach(w => {
+  const LEGENDARY_ACCESSORIES = [
+    {
+      id: 'LEG_ACC_SAMSARA_KARMA_RING',
+      nameTh: 'แหวนหยกสังสารวัฏพลิกชะตา',
+      chineseName: '轮回逆命玉戒',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Six-Paths Karmic Ring & Destiny Reversal Relic lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'ACCESSORY',
+      gearType: 'RING',
+      subType: 'RING',
+      visualSubtype: 'RING',
+      visualKey: 'vis_samsara_karma_ring',
+      presentationMode: 'worn_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4880,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['KARMA_SAMSARA', 'DEMON', 'XIAN', 'MECH_PUPPET', 'ANY'],
+      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'RED_THREAD_ARBITER', 'PAST_LIFE_MIRROR'],
+      fixedStats: { atk: 260, matk: 310, hp: 520, crit: 12, critDmg: 26, pen: 16, acc: 140 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_SAMSARA_RING_REVERSAL',
+          nameTh: 'วงแหวนสังสารวัฏย้อนวิบาก',
+          descTh: 'เมื่อโจมตีหรือถูกตี จะแปรเปลี่ยนสถานะร้าย 1 อย่างบนร่างให้เป็นปราณน้ำค้างฟื้นฟู ดูดซับเลือด/ปราณ 6% และสร้างความเสียหายวิบากกรรมเพิ่ม +16% (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.16, hpRestorePct: 0.06, qiRestorePct: 0.06, grantBuff: 'vitalRegen', targetStatus: 'weaken', dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'แหวนหยกสองสีหยินหยางที่สลักอักขระหกภูมิหมุนวนอยู่ภายใน ยามผู้สวมใส่ตกอยู่ในวิกฤต แหวนจะหมุนย้อนทวนเพื่อพลิกวิบากกรรมให้เป็นพลังชีวิต',
+      element: 'ASTRAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.55, YIN_SHADOW: 0.45 } },
+      v216: true
+    },
+    {
+      id: 'LEG_ACC_BODHI_STARLIGHT_BEADS',
+      nameTh: 'ประคำโพธิ์ดาราสว่างกระจ่างจิต',
+      chineseName: '星光菩提念珠',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Sacred 108 Bodhi Seed Rosary & Heart-Mirror Enlightenment lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'ACCESSORY',
+      gearType: 'NECKLACE',
+      subType: 'NECKLACE',
+      visualSubtype: 'NECKLACE',
+      visualKey: 'vis_bodhi_starlight_beads',
+      presentationMode: 'worn_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4900,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['HEART_SOUL', 'SAGE_SUPPORT', 'GOD', 'BODY', 'ANY'],
+      preferredSubs: ['ZEN_VOID_MIND', 'SOUL_LANTERN_SHEPHERD', 'LOTUS_MERCY_PURIFIER', 'MEDICINE_BODHI_GOD', 'VAJRA_BODHI'],
+      fixedStats: { hp: 680, mdef: 360, def: 280, matk: 290, cast: 16, acc: 135 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_BODHI_HEART_LOTUS',
+          nameTh: 'แสงโพธิ์ดาราชำระมารคุ้มชีพ',
+          descTh: 'สลายจิตมาร (-6) ฟื้นฟูพลังชีวิต 8% แก่ผู้สวมใส่และสหาย พร้อมมอบบัฟบัวทิพย์กระจ่างใจและโคมวิญญาณคุ้มชีพ (คูลดาวน์ 8 นาที)',
+          params: { hpRestorePct: 0.08, cleanseHeartDemon: 6, grantBuff: 'clarityLotus', secondaryBuff: 'nirvanaGrace', dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'ประคำเมล็ดโพธิ์โบราณร้อยแปดเม็ดที่อาบแสงดารานับพันปี ทุกเม็ดเปล่งรัศมีธรรมะอันอบอุ่น ปัดเป่าจิตมารและคุ้มครองดวงจิตไม่ให้แตกสลาย',
+      element: 'LIGHT_YANG',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.60, WOOD_LIFE: 0.40 } },
+      v216: true
+    },
+    {
+      id: 'LEG_ACC_TAICHI_HEAVEN_SEAL',
+      nameTh: 'ตราพยัคฆ์หยกไท่จี๋บัญชาสวรรค์',
+      chineseName: '太极天命虎符',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Ancient Imperial Bronze-Jade Tiger Tally (虎符) & Taiji Heaven Mandate Seal lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'ACCESSORY',
+      gearType: 'CHARM',
+      subType: 'CHARM',
+      visualSubtype: 'CHARM',
+      visualKey: 'vis_taichi_heaven_seal',
+      presentationMode: 'worn_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4960,
+      craft: 'ARRAY',
+      durability: 100,
+      compatiblePath: ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'CRAFT_CREATION', 'XIAN', 'ANY'],
+      preferredSubs: ['GRAND_STRATEGIST', 'IMPERIAL_PEACE_SOVEREIGN', 'IRON_LEGION_MARSHAL', 'GRAND_FORMATION_ARCHITECT', 'QIMEN_TALISMAN_PATRON'],
+      fixedStats: { atk: 290, matk: 290, def: 260, mdef: 260, hp: 560, cast: 15, move: 10, pen: 14 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_TAICHI_COMMAND_DECREE',
+          nameTh: 'ตราพยัคฆ์ไท่จี๋เคลื่อนทัพสวรรค์',
+          descTh: 'เมื่อลงมือในศึก จะเปล่งรัศมีตราพยัคฆ์มอบบัฟโองการพยุหะและเข็มทองเปิดชีพจรยุทธ์ ฟื้นปราณ 5% และสร้างความเสียหายประสานเพิ่ม +16% (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.16, qiRestorePct: 0.05, grantBuff: 'tacticalCommand', secondaryBuff: 'meridianUnblock', targetStatus: 'armorbreak', dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'ตราพยัคฆ์หยกขาวสลักลวดลายไท่จี๋ทองคำที่จอมทัพเซียนโบราณใช้เคลื่อนพยุหะแปดทิศ ผู้พกพาจะเปล่งบารมีบัญชาฟ้าดินและประสานพลังรบของพวกพ้องเป็นหนึ่งเดียว',
+      element: 'EARTH_METAL',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.55, LIGHT_YANG: 0.45 } },
+      v216: true
+    },
+    {
+      id: 'LEG_ACC_DRAGON_PHOENIX_BANGLE',
+      nameTh: 'กำไลหยกมังกรหงส์คู่สวรรค์',
+      chineseName: '龙凤呈祥仙玉镯',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Classical Dragon-Phoenix Dual Jade Bangle & Yin-Yang Resonance lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'ACCESSORY',
+      gearType: 'BRACELET',
+      subType: 'BRACELET',
+      visualSubtype: 'BRACELET',
+      visualKey: 'vis_dragon_phoenix_bangle',
+      presentationMode: 'worn_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4940,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['XIAN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'BEAST_SOVEREIGN', 'ANY'],
+      preferredSubs: ['YIN_YANG_HARMONY', 'CELESTIAL_ZITHER_ENVOY', 'PILL_FLAME_SOVEREIGN', 'SYMBIOTIC_FANG_FUSION', 'GOLDEN_NEEDLE_SAINT'],
+      fixedStats: { atk: 270, matk: 320, def: 250, mdef: 290, hp: 610, cast: 18, eva: 120, crit: 10 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_DRAGON_PHOENIX_HARMONY',
+          nameTh: 'มังกรหงส์ประสานชีพจรคู่',
+          descTh: 'เมื่อร่ายวิชาหรือโจมตี จะหมุนเวียนปราณมังกรหงส์ฟื้นฟูเลือด 6% และปราณ 6% มอบบัฟชีพจรปราณหมุนเวียน และเพิ่มความเสียหายวิชา +16% (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.16, hpRestorePct: 0.06, qiRestorePct: 0.06, grantBuff: 'qiConduit', dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'กำไลหยกจักรพรรดิแกะสลักรูปมังกรทะยานและหงส์ร่อนคู่กัน ยามเดินปราณจะเกิดเสียงกังวานสอดประสานหยินหยาง เร่งความเร็วร่ายวิชาและฟื้นฟูตันเถียนอย่างไม่ขาดสาย',
+      element: 'WOOD_LIFE',
+      elementProfile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.55, FIRE: 0.45 } },
+      v216: true
+    }
+  ];
+  const LEGENDARY_RELICS = LEGENDARY_ARMORS.concat(LEGENDARY_ACCESSORIES);
+  const LEGENDARY_EQUIPMENT = LEGENDARY_WEAPONS.concat(LEGENDARY_RELICS);
+  VC.LEGENDARY_ARMORS = LEGENDARY_ARMORS;
+  VC.LEGENDARY_ACCESSORIES = LEGENDARY_ACCESSORIES;
+  VC.LEGENDARY_RELICS = LEGENDARY_RELICS;
+  VC.LEGENDARY_EQUIPMENT = LEGENDARY_EQUIPMENT;
+  VC.LEGENDARY_EQUIPMENT_BY_ID = Object.fromEntries(LEGENDARY_EQUIPMENT.map(e => [e.id, e]));
+
+  VC.LEGENDARY_WEAPONS = LEGENDARY_WEAPONS;
+  VC.LEGENDARY_WEAPON_BY_ID = Object.fromEntries(LEGENDARY_EQUIPMENT.map(w => [w.id, w]));
+
+  // Register Legendary Weapons, Armors & Accessories in JD.ITEMS.items and ECO.itemById without adding repeatable recipes
+  LEGENDARY_EQUIPMENT.forEach(w => {
     if (!JD.ITEMS.items.some(x => x.id === w.id)) {
       JD.ITEMS.items.push(w);
     }
@@ -488,6 +892,8 @@
     }
     const def = ECO.itemById[it.id];
     if (def) {
+      if (def.slot) it.slot = def.slot;
+      if (def.subType) it.subType = def.subType;
       if (def.gearType) it.gearType = def.gearType;
       if (def.visualSubtype) it.visualSubtype = def.visualSubtype;
       if (def.visualKey) it.visualKey = def.visualKey;
@@ -538,6 +944,8 @@
     const def = VC.LEGENDARY_WEAPON_BY_ID[it.id];
     if (def) {
       it.nameTh = def.nameTh;
+      if (def.slot) it.slot = def.slot;
+      if (def.subType) it.subType = def.subType;
       it.gearType = def.gearType;
       it.visualSubtype = def.visualSubtype;
       it.visualKey = def.visualKey;
@@ -555,6 +963,13 @@
   };
   VC._uidSeq = 100;
 
+  VC.mintLegendaryEquipment = (W, id, source) => {
+    const def = VC.LEGENDARY_WEAPON_BY_ID[id] || ECO.itemById[id];
+    if (!def) return null;
+    const it = ECO.mintGear(def, def.q || 1.35);
+    if (source) it.mintSource = source;
+    return it;
+  };
   VC.mintLegendaryWeapon = (W, id, source) => {
     const def = VC.LEGENDARY_WEAPON_BY_ID[id] || ECO.itemById[id];
     if (!def) return null;
@@ -613,10 +1028,18 @@
   /* ---------- Real Combat Effect Execution for Equipped Legendary Weapons ---------- */
   VC.runWeaponProcs = (W, f, attacker, defender, isSkill, strikeResult) => {
     if (!attacker || attacker.foe || attacker.dead || !defender || (f && f._inWpnProc)) return null;
-    const wpn = attacker.equip && attacker.equip.WEAPON;
-    if (!wpn || (M.gearUsable && !M.gearUsable(attacker, wpn))) return null;
-    const fxList = wpn.fx || (VC.LEGENDARY_WEAPON_BY_ID[wpn.id] && VC.LEGENDARY_WEAPON_BY_ID[wpn.id].effects);
-    if (!Array.isArray(fxList) || !fxList.length) return null;
+    const eqSlots = attacker.equip ? [attacker.equip.WEAPON, attacker.equip.ARMOR, attacker.equip.ACCESSORY].filter(Boolean) : [];
+    const usableItems = eqSlots.filter(it => !M.gearUsable || M.gearUsable(attacker, it));
+    if (!usableItems.length) return null;
+    const fxEntries = [];
+    for (const eqIt of usableItems) {
+      const list = eqIt.fx || (VC.LEGENDARY_WEAPON_BY_ID[eqIt.id] && VC.LEGENDARY_WEAPON_BY_ID[eqIt.id].effects);
+      if (Array.isArray(list)) {
+        for (const fx of list) fxEntries.push({ eqIt, fx });
+      }
+    }
+    if (!fxEntries.length) return null;
+    const wpn = usableItems[0];
     if (!strikeResult || typeof strikeResult !== 'object') {
       strikeResult = { dmg: typeof isSkill === 'number' ? isSkill : 100, crit: true };
     }
@@ -629,7 +1052,9 @@
     if (f) f._inWpnProc = true;
     try {
       attacker.wpnProcCds = attacker.wpnProcCds || {};
-      for (const fx of fxList) {
+      for (const entry of fxEntries) {
+        const wpn = entry.eqIt;
+        const fx = entry.fx;
         const eid = fx.effectId;
         const p = fx.params || {};
         const icd = Math.max(2, p.icdTicks || 8);
@@ -762,6 +1187,49 @@
             }
           }
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_JIUXIAO_SONIC_TEMPEST') {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          ST.addStatus(attacker, p.selfStatus || 'morale', p.dur || 6);
+          if (p.qiRestorePct && attacker.cult) {
+            const qm = CULT.qiMax(attacker);
+            attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          }
+          if (COMBAT.alive(defender)) {
+            ST.addStatus(defender, p.targetStatus || 'silence', p.dur || 6);
+            if (strikeResult && strikeResult.dmg > 0) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.18)));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'คลื่นพิณหงส์สวรรค์');
+              strikeResult.dmg += extra;
+            }
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_CHUNQIU_VERDICT_SEAL') {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          if (COMBAT.alive(defender)) {
+            ST.addStatus(defender, p.targetStatus || 'armorbreak', p.dur || 7);
+            if (strikeResult && strikeResult.dmg > 0) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.18)));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'อักขระชุนชิวพิพากษา');
+              strikeResult.dmg += extra;
+            }
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_TIANCAN_PUPPET_SNARE') {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          if (p.qiRestorePct && attacker.cult) {
+            const qm = CULT.qiMax(attacker);
+            attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          }
+          if (COMBAT.alive(defender)) {
+            ST.addStatus(defender, p.targetStatus || 'slow', p.dur || 7);
+            if (p.secondaryStatus) ST.addStatus(defender, p.secondaryStatus, p.dur || 7);
+            if (strikeResult && strikeResult.dmg > 0) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.17)));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'ไหมสวรรค์เทียนฉานรัดจุดตาย');
+              strikeResult.dmg += extra;
+            }
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_DAGOU_REDIRECTION') {
           // Dagou Jade Staff is primarily a defensive/redirection proc when struck (`runWeaponOnStruckProcs`).
           // Only delegate from `runWeaponProcs` when invoked directly in unit tests (`typeof isSkill === 'number'` or no live `strikeResult.hit`).
@@ -779,22 +1247,36 @@
 
   VC.runWeaponOnStruckProcs = (W, f, defender, attacker, strikeResult) => {
     if (!defender || defender.foe || defender.dead || !attacker || (f && f._inWpnDefProc)) return null;
-    const wpn = defender.equip && defender.equip.WEAPON;
-    if (!wpn || (M.gearUsable && !M.gearUsable(defender, wpn))) return null;
-    const fxList = wpn.fx || (VC.LEGENDARY_WEAPON_BY_ID[wpn.id] && VC.LEGENDARY_WEAPON_BY_ID[wpn.id].effects);
-    if (!Array.isArray(fxList) || !fxList.length) return null;
+    const eqSlots = defender.equip ? [defender.equip.WEAPON, defender.equip.ARMOR, defender.equip.ACCESSORY].filter(Boolean) : [];
+    const usableItems = eqSlots.filter(it => !M.gearUsable || M.gearUsable(defender, it));
+    if (!usableItems.length) return null;
+    const fxEntries = [];
+    for (const eqIt of usableItems) {
+      const list = eqIt.fx || (VC.LEGENDARY_WEAPON_BY_ID[eqIt.id] && VC.LEGENDARY_WEAPON_BY_ID[eqIt.id].effects);
+      if (Array.isArray(list)) {
+        for (const fx of list) fxEntries.push({ eqIt, fx });
+      }
+    }
+    if (!fxEntries.length) return null;
     let triggeredProc = null;
     if (f) f._inWpnDefProc = true;
     try {
       defender.wpnProcCds = defender.wpnProcCds || {};
-      for (const fx of fxList) {
-        if (fx.effectId === 'EFX_LEG_DAGOU_REDIRECTION') {
+      for (const entry of fxEntries) {
+        const wpn = entry.eqIt;
+        const fx = entry.fx;
+        if (fx.effectId === 'EFX_LEG_DAGOU_REDIRECTION' || fx.effectId === 'EFX_LEG_KIRIN_PHANTOM_COUNTER' || fx.effectId === 'EFX_LEG_XUANWU_UNYIELDING_BASTION' || fx.effectId === 'EFX_LEG_CRANE_CLOUD_AEGIS') {
           const p = fx.params || {};
           const icd = Math.max(2, p.icdTicks || 8);
           if ((defender.wpnProcCds[fx.effectId] || 0) > W.t) continue;
           defender.wpnProcCds[fx.effectId] = W.t + icd;
           const incomingDmg = (strikeResult && Number.isFinite(strikeResult.dmg)) ? strikeResult.dmg : 60;
-          const redirDmg = Math.max(1, Math.round(incomingDmg * (p.redirectRatio || 0.14)));
+          const redirDmg = Math.max(1, Math.round(incomingDmg * (p.redirectRatio || p.reflectRatio || 0.15)));
+          if (p.shieldHpPct) {
+            const hm = COMBAT.hpMax(defender);
+            ST.addStatus(defender, 'shield', p.dur || 8, { amt: Math.max(15, Math.round(hm * p.shieldHpPct)) }, W.t);
+          }
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(defender, p.grantBuff, p.dur || 8, W.t, { casterId: defender.id });
           if (COMBAT.alive(attacker)) {
             COMBAT.applyDamage(W, f, defender, attacker, redirDmg, 'พลองหยกยืมแรงปัดสวน');
             ST.addStatus(attacker, p.targetStatus || 'slow', p.dur || 7);
@@ -809,6 +1291,7 @@
       if (f) f._inWpnDefProc = false;
     }
   };
+  VC.runRelicProcs = VC.runWeaponProcs;
 
   // Hook COMBAT.strike to invoke legendary weapon offensive and defensive procs
   const origStrike = COMBAT.strike;
@@ -2510,6 +2993,774 @@
           statPath: 'intellect.willpower',
           minVal: 64,
           hintTh: 'อาวุธที่แท้จริงของขนนกยูงคือความเชื่อมั่น ผู้สืบทอดต้องมีจิตใจมั่นคงไม่หวั่นไหว',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    /* --- 2.4 Patch v2.0.15: Four New Legendary Arts & Three New Legendary Weapons --- */
+    {
+      templateId: 'CLUE_LEG_ART_NINE_HEAVENS_GUANG_LING',
+      titleTh: 'โน้ตพิณโบราณกวงหลิงสะท้านเก้าสวรรค์บนผาเมฆา',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_COMBAT_NINE_HEAVENS_GUANG_LING',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'mountain',
+      visitorRoles: ['scholar', 'wanderer'],
+      rumorTextTh: 'นักดนตรีพเนจรเล่าว่าบนยอดผาเมฆามีแท่นศิลาสลักสายพิณโบราณที่ส่งเสียงสอดรับกับสายลมยามค่ำคืน ซ่อนเคล็ด「มหาคีตเวทย์กวงหลิงสะท้านเก้าสวรรค์」ไว้',
+      steps: [
+        {
+          nodeId: 'listen_cliff_harmonics',
+          type: 'search_site',
+          titleTh: 'สดับเสียงสะท้อนของสายลมบนผาเมฆาเพื่อจับทำนองต้นบท',
+          locationId: 'mountain',
+          scope: 'party_any',
+          statPath: 'physiology.hearing',
+          minVal: 50,
+          hintTh: 'ใช้ประสาทการได้ยินแยกแยะคลื่นเสียงธรรมชาติบนยอดผา',
+          onPass: 'resonate_guangling_chords',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'resonate_guangling_chords',
+          type: 'skill_trial',
+          titleTh: 'บรรเลงปราณสอดรับคลื่นเสียงเจ็ดสำเนียงแห่งกวงหลิง',
+          locationId: 'mountain',
+          scope: 'personal',
+          skill: 'ZITHER',
+          statPath: 'intellect.comprehension',
+          minVal: 60,
+          hintTh: 'ใช้ความเข้าใจและฝีมือพิณคีตเวทย์ประสานทำนองโบราณ',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ART_HEAVEN_INSCRIPTION_SEAL',
+      titleTh: 'ศิลาจารึกไร้ตัวอักษรและมหาพู่กันเทวะผนึกสวรรค์',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_AUX_HEAVEN_INSCRIPTION_SEAL',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'ruins',
+      visitorRoles: ['scholar', 'artisan', 'envoy'],
+      rumorTextTh: 'บัณฑิตค่ายกลเผยว่าใต้ซากหอสมุดโบราณมีศิลาไร้ตัวอักษรที่จะเผย「มหาพู่กันเทวะจารึกผนึกสวรรค์」แก่ผู้ที่อ่านรอยตวัดพู่กันในความว่างเปล่าออกเท่านั้น',
+      steps: [
+        {
+          nodeId: 'trace_blank_stele_strokes',
+          type: 'inspect_inscription',
+          titleTh: 'เพ่งพินิจร่องรอยปราณพู่กันที่ซ่อนอยู่ในศิลาไร้ตัวอักษร',
+          locationId: 'sect',
+          scope: 'party_any',
+          skill: 'TALISMAN',
+          statPath: 'intellect.perceptiveness',
+          minVal: 52,
+          stoneCost: 110,
+          hintTh: 'ใช้ทักษะยันต์และศิลาวิญญาณ 110 ก้อนกระตุ้นรอยหมึกโบราณ',
+          onPass: 'inscribe_heaven_seal_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'inscribe_heaven_seal_trial',
+          type: 'skill_trial',
+          titleTh: 'ตวัดพู่กันอาคมวาดโองการผนึกสวรรค์กลางอากาศ',
+          locationId: 'ruins',
+          scope: 'personal',
+          skill: 'BRUSH',
+          statPath: 'intellect.focus',
+          minVal: 60,
+          hintTh: 'ใช้สมาธิแน่วแน่และฝีมือพู่กันอาคมเขียนอักขระสวรรค์โดยไม่ขาดตอน',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ART_SAMSARA_PUPPET_THREADS',
+      titleTh: 'โรงละครหุ่นโบราณและคัมภีร์ด้ายสวรรค์เชิดวัฏสงสาร',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_COMBAT_SAMSARA_PUPPET_THREADS',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'forest',
+      visitorRoles: ['artisan', 'wanderer'],
+      rumorTextTh: 'ช่างกลไกพเนจรเล่าถึงโรงละครหุ่นร้างกลางป่าลึกที่หุ่นไม้ทุกตัวยังคงขยับตามเส้นไหมปราณที่มองไม่เห็นของปรมาจารย์ผู้ล่วงลับ',
+      steps: [
+        {
+          nodeId: 'untangle_invisible_silk',
+          type: 'search_site',
+          titleTh: 'คลี่คลายค่ายกลเส้นไหมไร้สภาพในโรงละครหุ่นร้าง',
+          locationId: 'forest',
+          scope: 'party_any',
+          statPath: 'physiology.dexterity',
+          minVal: 54,
+          hintTh: 'ใช้ความคล่องแคล่วของนิ้วมือปลดสลักเส้นไหมปราณโดยไม่ให้ค่ายกลทำงาน',
+          onPass: 'samsara_thread_mastery_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'samsara_thread_mastery_trial',
+          type: 'skill_trial',
+          titleTh: 'ชักใยหุ่นผู้พิทักษ์ทั้งหกพร้อมกันด้วยด้ายปราณ',
+          locationId: 'forest',
+          scope: 'personal',
+          skill: 'WHIP',
+          statPath: 'intellect.workingMemory',
+          minVal: 60,
+          hintTh: 'ใช้ความจำใช้งานและฝีมือแส้/ด้ายปราณควบคุมเส้นไหมพร้อมกัน',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ART_SHENNONG_MYRIAD_CRUCIBLE',
+      titleTh: 'เตาหลอมศิลาหยกโบราณและมหาคัมภีร์เตาหลอมเสินหนง',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_MANTRA_SHENNONG_MYRIAD_CRUCIBLE',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+      visitorRoles: ['scholar', 'artisan', 'merchant'],
+      rumorTextTh: 'หมอหลวงพเนจรพบบันทึกกล่าวถึงเตาหลอมศิลาหยกในอุทยานสมุนไพรโบราณที่จารึก「มหาคัมภีร์เตาหลอมหมื่นโอสถเสินหนง」ไว้ภายใน',
+      steps: [
+        {
+          nodeId: 'identify_hundred_herbs_ash',
+          type: 'inspect_inscription',
+          titleTh: 'แยกแยะเถ้าสมุนไพรเก้าชนิดที่ตกค้างในเตาหลอมโบราณ',
+          locationId: 'sect',
+          scope: 'party_any',
+          skill: 'ALCHEMY',
+          statPath: 'intellect.comprehension',
+          minVal: 52,
+          hintTh: 'ใช้ความรู้ด้านโอสถวิเคราะห์ลำดับไฟและสมุนไพรโบราณ',
+          onPass: 'ignite_shennong_crucible',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'ignite_shennong_crucible',
+          type: 'spirit_judgment',
+          titleTh: 'เดินปราณหลอมรวมไฟโอสถและปราณพฤกษาในตันเถียน',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'personal',
+          skill: 'MEDICINE',
+          statPath: 'physiology.spiritualFoundation',
+          minVal: 60,
+          hintTh: 'ต้องมีรากฐานปราณและจิตเมตตาของหมอโอสถเพื่อรับสืบทอดคัมภีร์เสินหนง',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_JIUXIAO_PHOENIX_ZITHER',
+      titleTh: 'แท่นศิลาหงส์สวรรค์และพิณเทวะเก้าชั้นฟ้า',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_JIUXIAO_PHOENIX_ZITHER',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+      visitorRoles: ['scholar', 'envoy'],
+      rumorTextTh: 'ทูตสังคีตจากแดนไกลเล่าว่าในศาลาเมฆาของอุทยานสวรรค์มี「พิณเทวะหงส์สวรรค์เก้าชั้นฟ้า」วางอยู่บนแท่นหยก รอผู้ที่เข้าใจเสียงสวรรค์มาดีดสายปลุกวิญญาณพิณ',
+      steps: [
+        {
+          nodeId: 'decipher_phoenix_score',
+          type: 'inspect_inscription',
+          titleTh: 'ถอดความโน้ตพิณอักษรโบราณบนเสาศาลาเมฆา',
+          locationId: 'sect',
+          scope: 'party_any',
+          skill: 'arts',
+          statPath: 'intellect.comprehension',
+          minVal: 50,
+          hintTh: 'ใช้ทักษะศิลปะและความเข้าใจตีความโน้ตพิณหงส์สวรรค์',
+          onPass: 'awaken_jiuxiao_zither',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'awaken_jiuxiao_zither',
+          type: 'skill_trial',
+          titleTh: 'ดีดสายพิณปลุกเจตจำนงหงส์สวรรค์เก้าชั้นฟ้า',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'personal',
+          skill: 'ZITHER',
+          statPath: 'physiology.spiritualFoundation',
+          minVal: 60,
+          hintTh: 'ใช้ฝีมือพิณคีตเวทย์และรากฐานปราณสอดรับเสียงพิณเทวะ',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_CHUNQIU_JUDGMENT_BRUSH',
+      titleTh: 'หอจารึกประวัติศาสตร์และพู่กันเทวะชุนชิว',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_CHUNQIU_JUDGMENT_BRUSH',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'ruins',
+      visitorRoles: ['scholar', 'envoy', 'artisan'],
+      rumorTextTh: 'ปราชญ์พเนจรค้นพบหอจารึกโบราณที่เก็บรักษา「พู่กันเทวะชุนชิวพิพากษาสวรรค์」ซึ่งมีค่ายกลอักขระคุ้มกันอยู่สามชั้น',
+      steps: [
+        {
+          nodeId: 'unlock_archive_formation',
+          type: 'inspect_inscription',
+          titleTh: 'คลายผนึกค่ายกลอักขระหน้าหอจารึกชุนชิว',
+          locationId: 'sect',
+          scope: 'party_any',
+          skill: 'ARRAY',
+          statPath: 'intellect.reasoning',
+          minVal: 52,
+          stoneCost: 120,
+          hintTh: 'ใช้เหตุผลและทักษะค่ายกลพร้อมศิลา 120 ก้อนเปิดผนึกหอจารึก',
+          onPass: 'wield_chunqiu_brush_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'wield_chunqiu_brush_trial',
+          type: 'skill_trial',
+          titleTh: 'จรดพู่กันเทวะชุนชิวเขียนอักษรเที่ยงธรรมบนศิลาทดสอบ',
+          locationId: 'ruins',
+          scope: 'personal',
+          skill: 'BRUSH',
+          statPath: 'personality.integrity',
+          minVal: 58,
+          hintTh: 'ผู้ถือครองต้องมีความซื่อสัตย์เที่ยงธรรมและฝีมือพู่กันอาคมที่มั่นคง',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_TIANCAN_FATE_WHIP',
+      titleTh: 'ถ้ำไหมสวรรค์พันปีและแส้เทียนฉานพันด้ายชะตา',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_TIANCAN_FATE_WHIP',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_01_ANCIENT_CANOPY',
+      visitorRoles: ['wanderer', 'artisan', 'merchant'],
+      rumorTextTh: 'พรานป่าบรรพกาลพบถ้ำรังไหมสีทองในเรือนยอดไม้โบราณซึ่งเป็นที่ซ่อนของ「แส้ไหมสวรรค์เทียนฉานพันด้ายชะตา」',
+      steps: [
+        {
+          nodeId: 'defeat_silkworm_guardian',
+          type: 'guardian_combat',
+          titleTh: 'ปราบอสูรแมงมุมไหมเหล็กผู้เฝ้าถ้ำรังไหมสวรรค์',
+          locationId: 'SRC110_MW_ENV_01_ANCIENT_CANOPY',
+          scope: 'party_all',
+          guardianNameTh: 'พญาแมงมุมไหมเหล็กบรรพกาล',
+          guardianPower: 2550,
+          guardianTier: 6,
+          hintTh: 'เอาชนะอสูรผู้เฝ้าถ้ำไหมสวรรค์',
+          onPass: 'bind_tiancan_whip_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'bind_tiancan_whip_trial',
+          type: 'skill_trial',
+          titleTh: 'เดินปราณหลอมรวมเส้นไหมสวรรค์เทียนฉานเข้ากับปลายนิ้ว',
+          locationId: 'SRC110_MW_ENV_01_ANCIENT_CANOPY',
+          scope: 'personal',
+          skill: 'WHIP',
+          statPath: 'physiology.dexterity',
+          minVal: 60,
+          hintTh: 'ใช้ความคล่องแคล่วและฝีมือแส้/ด้ายปราณควบคุมแส้ไหมสวรรค์',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    /* --- 2.4 Patch v2.0.16: 5 New Legendary Arts/Mantras & 6 Legendary Armors/Accessories (11 Clue Chains) --- */
+    {
+      templateId: 'CLUE_LEG_ART_IMPERIAL_EIGHT_GATES',
+      titleTh: 'แท่นบัญชาการโบราณและเคล็ดพิชัยสงครามแปดพยุหะ',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_AUX_IMPERIAL_EIGHT_GATES',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'ruins',
+      visitorRoles: ['envoy', 'scholar', 'wanderer'],
+      rumorTextTh: 'อดีตเสนาธิการชายแดนค้นพบแท่นศิลาแปดประตูในซากนครโบราณ ซึ่งจารึก「เคล็ดพิชัยสงครามแปดพยุหะอภิบาลหล้า」อันเป็นสุดยอดวิชาบัญชาทัพ',
+      steps: [
+        {
+          nodeId: 'decipher_eight_gates_sandtable',
+          type: 'inspect_inscription',
+          titleTh: 'วิเคราะห์ผังกระบวนทัพแปดประตูบนโต๊ะทรายศิลา',
+          locationId: 'sect',
+          scope: 'party_any',
+          skill: 'ARRAY',
+          statPath: 'intellect.reasoning',
+          minVal: 55,
+          hintTh: 'ใช้ทักษะค่ายกลและเหตุผลถอดรหัสผังแปดพยุหะ',
+          onPass: 'command_stone_legion_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'command_stone_legion_trial',
+          type: 'spirit_judgment',
+          titleTh: 'เคลื่อนป้ายบัญชาการควบคุมค่ายกลทหารศิลาโดยไม่เสียขบวน',
+          locationId: 'ruins',
+          scope: 'personal',
+          statPath: 'personality.discipline',
+          minVal: 60,
+          hintTh: 'ผู้สืบทอดต้องมีวินัยและบารมีบัญชาทัพที่มั่นคง',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ART_SOVEREIGN_HEAVEN_EDICT',
+      titleTh: 'หอสมุดราชวงศ์สาบสูญและมหาคัมภีร์โองการจักรพรรดิ',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_MANTRA_SOVEREIGN_HEAVEN_EDICT',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'ruins',
+      visitorRoles: ['envoy', 'scholar'],
+      rumorTextTh: 'ทูตพเนจรเผยเบาะแสห้องลับใต้หอสมุดหลวงโบราณที่เก็บรักษา「มหาคัมภีร์โองการจักรพรรดิพิชัยสวรรค์」',
+      steps: [
+        {
+          nodeId: 'restore_imperial_chronicle',
+          type: 'inspect_inscription',
+          titleTh: 'เรียงลำดับแผ่นหยกพระราชพงศาวดารให้ครบเก้าหมวด',
+          locationId: 'sect',
+          scope: 'party_any',
+          skill: 'SCRIPTURE',
+          statPath: 'intellect.comprehension',
+          minVal: 56,
+          stoneCost: 120,
+          hintTh: 'ใช้ความรู้คัมภีร์และงบสนับสนุน 120 ศิลาบูรณะแผ่นหยก',
+          onPass: 'sovereign_mandate_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'sovereign_mandate_trial',
+          type: 'spirit_judgment',
+          titleTh: 'รับแรงกดดันปราณราชันย์หน้าแท่นโองการสวรรค์',
+          locationId: 'ruins',
+          scope: 'personal',
+          statPath: 'personality.integrity',
+          minVal: 62,
+          hintTh: 'ต้องมีความเที่ยงธรรมและจิตใจแห่งผู้ปกครองจึงจะรับโองการได้',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ART_JADE_NIRVANA_HARMONY',
+      titleTh: 'ศาลาพิณโอสถเร้นลับและกระบวนท่าเก้าบุปผาชุบชีวา',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_COMBAT_JADE_NIRVANA_HARMONY',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+      visitorRoles: ['herbalist', 'scholar', 'wanderer'],
+      rumorTextTh: 'หมอยาพเนจรได้ยินเสียงพิณประสานกลิ่นหอมน้ำค้างหยกเก้าบุปผาจากซากอุทยานสวรรค์ ซึ่งเป็นที่ซ่อนของ「กระบวนท่าพิณโอสถเก้าบุปผาชุบชีวา」',
+      steps: [
+        {
+          nodeId: 'distill_nine_blossom_dew',
+          type: 'skill_trial',
+          titleTh: 'กลั่นน้ำค้างหยกเก้าบุปผาเปิดผนึกแท่นพิณโอสถ',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'party_any',
+          skill: 'ALCHEMY',
+          statPath: 'intellect.comprehension',
+          minVal: 56,
+          hintTh: 'ใช้ทักษะปรุงโอสถและความเข้าใจกลั่นน้ำค้างหยก',
+          onPass: 'harmonize_meridian_chord',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'harmonize_meridian_chord',
+          type: 'spirit_judgment',
+          titleTh: 'บรรเลงคลื่นปราณเชื่อมจุดชีพจรฟื้นฟูต้นพฤกษาวิญญาณ',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'personal',
+          statPath: 'personality.empathy',
+          minVal: 60,
+          hintTh: 'ผู้สืบทอดต้องเปี่ยมด้วยจิตเมตตาของปราชญ์โอสถและคีตเวทย์',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ART_KUNPENG_ASTRAL_WINGS',
+      titleTh: 'หน้าผาคุนเผิงโต้คลื่นและท่าร่างเหินดาราข้ามขอบฟ้า',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_LIGHT_KUNPENG_ASTRAL_WINGS',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'mountain',
+      visitorRoles: ['wanderer', 'scholar'],
+      rumorTextTh: 'นักพรตพเนจรเล่าถึงรอยปีกพญาวิหคคุนเผิงบนหน้าผาสูงสุดของทิวเขาศิลาคราม ซึ่งจารึก「ท่าร่างคุนเผิงเหินดาราข้ามขอบฟ้า」',
+      steps: [
+        {
+          nodeId: 'ascend_gale_precipice',
+          type: 'body_trial',
+          titleTh: 'ฝ่าพายุวายุเก้าชั้นขึ้นสู่ยอดผาคุนเผิง',
+          locationId: 'mountain',
+          scope: 'party_all',
+          statPath: 'physiology.agility',
+          minVal: 54,
+          hintTh: 'คณะเดินทางต้องมีความคล่องตัวสูงเพื่อไต่ขึ้นยอดผาวายุ',
+          onPass: 'comprehend_kunpeng_leap',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'comprehend_kunpeng_leap',
+          type: 'skill_trial',
+          titleTh: 'ก้าวเหยียบกระแสลมดาราตามรอยปีกคุนเผิง',
+          locationId: 'mountain',
+          scope: 'personal',
+          skill: 'MOVEMENT',
+          statPath: 'physiology.reflex',
+          minVal: 60,
+          hintTh: 'ใช้ทักษะวิชาตัวเบาและปฏิกิริยาฉับไวก้าวข้ามหุบเหวเมฆา',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ART_SAMSARA_KARMA_REVERSAL',
+      titleTh: 'แท่นกงล้อหกภพและวิชาต้องห้ามพลิกผันสังสารวัฏ',
+      category: 'LEGENDARY_ART',
+      targetKind: 'TECH_MANUAL',
+      targetId: 'LEG_FORB_SAMSARA_KARMA_REVERSAL',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'ruins',
+      visitorRoles: ['wanderer', 'scholar', 'envoy'],
+      rumorTextTh: 'ภิกษุจาริกเผยเรื่องราวของแท่นศิลากงล้อหกภพที่หมุนย้อนทวนในซากวิหารโบราณ ซึ่งบันทึก「วิชาต้องห้าม • พลิกผันกงล้อกรรมสังสารวัฏ」',
+      steps: [
+        {
+          nodeId: 'subdue_karmic_specter',
+          type: 'guardian_combat',
+          titleTh: 'ปราบเงาวิบากกรรมผู้เฝ้าแท่นกงล้อหกภพ',
+          locationId: 'ruins',
+          scope: 'party_all',
+          guardianNameTh: 'เงาอสุรากงล้อวิบากกรรม',
+          guardianPower: 2650,
+          guardianTier: 6,
+          hintTh: 'เอาชนะเงาวิบากกรรมหน้าแท่นศิลาหกภพ',
+          onPass: 'invert_samsara_wheel_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'invert_samsara_wheel_trial',
+          type: 'spirit_judgment',
+          titleTh: 'แบกรับแรงสะท้อนหนี้กรรมและหมุนกงล้อศิลาทวนเข็ม',
+          locationId: 'ruins',
+          scope: 'personal',
+          statPath: 'intellect.willpower',
+          minVal: 62,
+          hintTh: 'ต้องมีตบะจิตใจแน่วแน่เพื่อควบคุมวิชาต้องห้ามโดยไม่เสียสติ',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ARM_CELESTIAL_CRANE_ROBE',
+      titleTh: 'ตำหนักเมฆาเร้นลับและอาภรณ์ขนนกกระเรียนสวรรค์',
+      category: 'LEGENDARY_ARMOR',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_ARM_CELESTIAL_CRANE_ROBE',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+      visitorRoles: ['artisan', 'scholar', 'envoy'],
+      rumorTextTh: 'ช่างทอผ้าไหมโบราณเล่าถึง「อาภรณ์ขนนกกระเรียนสวรรค์เก้าเมฆา」ที่เก็บรักษาอยู่ในตำหนักเมฆากลางซากอุทยานสวรรค์',
+      steps: [
+        {
+          nodeId: 'unseal_cloud_loom',
+          type: 'inspect_inscription',
+          titleTh: 'คลายผนึกกี่ทอเมฆาเก้าชั้นในตำหนักเร้นลับ',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'party_any',
+          skill: 'ARRAY',
+          statPath: 'intellect.comprehension',
+          minVal: 55,
+          hintTh: 'ใช้ความเข้าใจและทักษะค่ายกลคลายผนึกกี่ทอเมฆา',
+          onPass: 'crane_feather_affinity_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'crane_feather_affinity_trial',
+          type: 'spirit_judgment',
+          titleTh: 'เดินปราณบริสุทธิ์ให้ขนนกกระเรียนสวรรค์ยอมรับผู้สวมใส่',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'personal',
+          statPath: 'physiology.spiritualFoundation',
+          minVal: 60,
+          hintTh: 'ต้องมีรากฐานปราณวิญญาณบริสุทธิ์เพื่อสวมใส่อาภรณ์เซียน',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ARM_SHADOW_KIRIN_CUIRASS',
+      titleTh: 'ถ้ำกิเลนรัตติกาลและเกราะอ่อนเกล็ดกิเลนเงาดารา',
+      category: 'LEGENDARY_ARMOR',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_ARM_SHADOW_KIRIN_CUIRASS',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'forest',
+      visitorRoles: ['wanderer', 'artisan', 'merchant'],
+      rumorTextTh: 'พรานล่าอสูรพบถ้ำกิเลนเงาดาราในป่าลึก ซึ่งซ่อน「เกราะอ่อนเกล็ดกิเลนเงาดารา」ของจอมยุทธ์รัตติกาลในอดีต',
+      steps: [
+        {
+          nodeId: 'defeat_shadow_kirin_remnant',
+          type: 'guardian_combat',
+          titleTh: 'ปราบเงาอสูรกิเลนรัตติกาลผู้เฝ้าถ้ำดารา',
+          locationId: 'forest',
+          scope: 'party_all',
+          guardianNameTh: 'เงาอสูรกิเลนรัตติกาล',
+          guardianPower: 2550,
+          guardianTier: 6,
+          hintTh: 'เอาชนะเงาอสูรกิเลนในถ้ำป่าลึก',
+          onPass: 'claim_kirin_cuirass_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'claim_kirin_cuirass_trial',
+          type: 'body_trial',
+          titleTh: 'หลอมรวมปราณเงาดาราเข้ากับเกราะอ่อนเกล็ดกิเลน',
+          locationId: 'forest',
+          scope: 'personal',
+          statPath: 'physiology.agility',
+          minVal: 60,
+          hintTh: 'ต้องมีความว่องไวและสรีระที่คล่องแคล่วเพื่อสวมใส่เกราะอ่อนเกล็ดกิเลน',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ARM_IMMORTAL_TORTOISE_PLATE',
+      titleTh: 'แท่นศิลาเต่าดำอุดรและเกราะหนักเสวียนอู่ค้ำสวรรค์',
+      category: 'LEGENDARY_ARMOR',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_ARM_IMMORTAL_TORTOISE_PLATE',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'water',
+      visitorRoles: ['artisan', 'wanderer', 'envoy'],
+      rumorTextTh: 'นักพรตอุดรพบแท่นบูชาเต่าดำเสวียนอู่กลางลุ่มน้ำลึก ซึ่งผนึก「เกราะหนักกระดองเต่าดำเสวียนอู่ค้ำสวรรค์」ไว้ใต้ศิลาพันชั่ง',
+      steps: [
+        {
+          nodeId: 'endure_abyssal_pressure',
+          type: 'body_trial',
+          titleTh: 'ต้านทานแรงกดดันสายน้ำเยือกแข็งหน้าแท่นเสวียนอู่',
+          locationId: 'water',
+          scope: 'party_all',
+          statPath: 'physiology.endurance',
+          minVal: 55,
+          hintTh: 'คณะเดินทางต้องมีความอึดทนทานต่อแรงดันน้ำเย็นจัด',
+          onPass: 'lift_xuanwu_plate_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'lift_xuanwu_plate_trial',
+          type: 'body_trial',
+          titleTh: 'แบกรับน้ำหนักเกราะกระดองเต่าดำเสวียนอู่ขึ้นจากแท่นศิลา',
+          locationId: 'water',
+          scope: 'personal',
+          statPath: 'physiology.toughness',
+          minVal: 62,
+          hintTh: 'ผู้สวมใส่ต้องมีกายาแข็งแกร่งทนทานดั่งขุนเขา',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ACC_SAMSARA_KARMA_RING',
+      titleTh: 'เจดีย์หินริมผาและแหวนหยกสังสารวัฏพลิกชะตา',
+      category: 'LEGENDARY_ACCESSORY',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_ACC_SAMSARA_KARMA_RING',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'mountain',
+      visitorRoles: ['scholar', 'wanderer', 'merchant'],
+      rumorTextTh: 'นักสะสมของโบราณพบบันทึกกล่าวถึงเจดีย์หินริมผาที่เก็บรักษา「แหวนหยกสังสารวัฏพลิกชะตา」',
+      steps: [
+        {
+          nodeId: 'locate_samsara_pagoda',
+          type: 'search_site',
+          titleTh: 'ค้นหาเจดีย์หินโบราณท่ามกลางหมอกผาศิลาคราม',
+          locationId: 'mountain',
+          scope: 'party_any',
+          statPath: 'intellect.perceptiveness',
+          minVal: 52,
+          hintTh: 'ใช้การสังเกตค้นหาเจดีย์หินที่ซ่อนอยู่ในม่านหมอก',
+          onPass: 'accept_karma_ring_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'accept_karma_ring_trial',
+          type: 'spirit_judgment',
+          titleTh: 'ตั้งจิตสงบรับภาพนิมิตอดีตและอนาคตจากแหวนหยกสังสารวัฏ',
+          locationId: 'mountain',
+          scope: 'personal',
+          statPath: 'intellect.judgement',
+          minVal: 60,
+          hintTh: 'ต้องมีวิจารณญาณแน่วแน่ไม่หลงไปกับภาพนิมิตวิบากกรรม',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ACC_BODHI_STARLIGHT_BEADS',
+      titleTh: 'ต้นโพธิ์พันปีและประคำโพธิ์ดาราสว่างกระจ่างจิต',
+      category: 'LEGENDARY_ACCESSORY',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_ACC_BODHI_STARLIGHT_BEADS',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'plains',
+      visitorRoles: ['herbalist', 'scholar', 'envoy'],
+      rumorTextTh: 'สมณะพเนจรเล่าถึงต้นโพธิ์โบราณกลางทุ่งราบเมฆาที่จะเปล่งแสงดาราในคืนเดือนมืด เผยให้เห็น「ประคำโพธิ์ดาราสว่างกระจ่างจิต」',
+      steps: [
+        {
+          nodeId: 'meditate_under_star_bodhi',
+          type: 'inspect_inscription',
+          titleTh: 'เจริญสมาธิอ่านโศลกธรรมใต้ต้นโพธิ์โบราณ',
+          locationId: 'plains',
+          scope: 'party_any',
+          skill: 'SCRIPTURE',
+          statPath: 'intellect.focus',
+          minVal: 54,
+          hintTh: 'ใช้สมาธิและความรู้คัมภีร์ทำความเข้าใจโศลกธรรม',
+          onPass: 'pure_heart_beads_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'pure_heart_beads_trial',
+          type: 'spirit_judgment',
+          titleTh: 'พิสูจน์จิตใจอันสงบเยือกเย็นไร้จิตมารครอบงำ',
+          locationId: 'plains',
+          scope: 'personal',
+          statPath: 'personality.composure',
+          minVal: 60,
+          hintTh: 'ผู้ถือครองประคำโพธิ์ดาราต้องมีความสุขุมเยือกเย็น',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ACC_TAICHI_HEAVEN_SEAL',
+      titleTh: 'แท่นบัญชาทัพโบราณและตราพยัคฆ์หยกไท่จี๋บัญชาสวรรค์',
+      category: 'LEGENDARY_ACCESSORY',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_ACC_TAICHI_HEAVEN_SEAL',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'desert',
+      visitorRoles: ['envoy', 'scholar', 'merchant'],
+      rumorTextTh: 'กองคาราวานทะเลทรายพบซากป้อมบัญชาทัพโบราณที่ฝัง「ตราพยัคฆ์หยกไท่จี๋บัญชาสวรรค์」ของจอมทัพเซียนไว้',
+      steps: [
+        {
+          nodeId: 'defeat_sand_golem_vanguard',
+          type: 'guardian_combat',
+          titleTh: 'ปราบหุ่นเกราะศิลาทรายผู้เฝ้าป้อมบัญชาทัพ',
+          locationId: 'desert',
+          scope: 'party_all',
+          guardianNameTh: 'แม่ทัพหุ่นศิลาทรายไท่จี๋',
+          guardianPower: 2600,
+          guardianTier: 6,
+          hintTh: 'เอาชนะหุ่นศิลาผู้เฝ้าแท่นตราพยัคฆ์',
+          onPass: 'unite_taichi_tally_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'unite_taichi_tally_trial',
+          type: 'spirit_judgment',
+          titleTh: 'ประกบตราพยัคฆ์หยกสองซีกเข้าด้วยกันด้วยปราณสมดุลและภาวะผู้นำ',
+          locationId: 'desert',
+          scope: 'personal',
+          statPath: 'personality.loyalty',
+          minVal: 60,
+          hintTh: 'ผู้ถือตราพยัคฆ์ต้องมีความซื่อสัตย์ภักดีและบารมีผู้นำ',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_ACC_DRAGON_PHOENIX_BANGLE',
+      titleTh: 'ตำหนักหยกคู่และกำไลหยกมังกรหงส์คู่สวรรค์',
+      category: 'LEGENDARY_ACCESSORY',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_ACC_DRAGON_PHOENIX_BANGLE',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+      visitorRoles: ['artisan', 'scholar', 'merchant'],
+      rumorTextTh: 'ช่างแกะหยกชราเล่าถึงตำหนักหยกคู่ในซากอุทยานสวรรค์ที่เก็บรักษา「กำไลหยกมังกรหงส์คู่สวรรค์」อันเป็นสมบัติคู่บารมีของเซียนโบราณ',
+      steps: [
+        {
+          nodeId: 'resonate_dragon_phoenix_pillars',
+          type: 'inspect_inscription',
+          titleTh: 'เดินปราณกระตุ้นเสาหยกมังกรและเสาหยกหงส์ให้กังวานพร้อมกัน',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'party_any',
+          skill: 'ARRAY',
+          statPath: 'intellect.comprehension',
+          minVal: 55,
+          hintTh: 'ใช้ความเข้าใจและทักษะค่ายกลปรับสมดุลเสาหยกคู่',
+          onPass: 'bind_jade_bangle_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'bind_jade_bangle_trial',
+          type: 'spirit_judgment',
+          titleTh: 'ผสานปราณหยินหยางรับกำไลหยกมังกรหงส์เข้าสู่ข้อมือ',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'personal',
+          statPath: 'physiology.meridianCapacity',
+          minVal: 60,
+          hintTh: 'ต้องมีความจุเส้นลมปราณที่กว้างขวางเพื่อรองรับปราณมังกรหงส์',
           onPass: 'REWARD',
           onFail: 'RETRY_LATER'
         }
@@ -4932,7 +6183,7 @@
         intellect: { perceptiveness: 72, comprehension: 72, focus: 72, willpower: 72 },
         personality: { courage: 72, composure: 70 }
       });
-      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'FOCUS', 'ARRAY', 'SOUL_DIVINE'].forEach(sk => { n.h.skills[sk] = 75; });
+      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'ARRAY', 'SOUL_DIVINE', 'TALISMAN'].forEach(sk => { n.h.skills[sk] = 75; });
       if (M && M.ensureSkills) M.ensureSkills(n);
       g.HC.touch(n);
     });
@@ -4944,7 +6195,10 @@
       STAFF: 'MP_SPEAR_5',
       FIST: 'MP_GAUNTLET_5',
       BOW: 'MP_SWORD_5',
-      FOCUS: 'MP_RING_5'
+      FOCUS: 'MP_RING_5',
+      ZITHER: 'EQ_V215_ZITHER_17_T5',
+      BRUSH: 'EQ_V215_BRUSH_17_T5',
+      WHIP: 'EQ_V215_WHIP_17_T5'
     };
 
     const results = [];
@@ -5128,6 +6382,8 @@
     g.SIM.deserialize = function (str) {
       const W = origDeserialize.call(this, str);
       VC.ensure(W, true);
+      if (W && W.sect && W.sect.mentorship && SECT && SECT.MENTORSHIP) SECT.MENTORSHIP.ensure(W);
+      if (W && W.world && W.world.jianghu && SECT && SECT.JIANGHU) SECT.JIANGHU.ensure(W);
       return W;
     };
   }
@@ -5136,12 +6392,12 @@
   VC.validateCatalog = () => {
     const errors = [];
     const seenWpn = new Set();
-    for (const w of LEGENDARY_WEAPONS) {
-      if (!w.id || seenWpn.has(w.id)) errors.push('duplicate or missing weapon id: ' + w.id);
+    for (const w of LEGENDARY_EQUIPMENT) {
+      if (!w.id || seenWpn.has(w.id)) errors.push('duplicate or missing equipment id: ' + w.id);
       seenWpn.add(w.id);
-      if (!M.TYPES[w.gearType]) errors.push('invalid weapon gearType: ' + w.id + ' -> ' + w.gearType);
-      if (!w.visualKey) errors.push('missing visualKey on weapon: ' + w.id);
-      if (!Array.isArray(w.effects) || !w.effects.length) errors.push('missing effects on weapon: ' + w.id);
+      if (!M.TYPES[w.gearType]) errors.push('invalid equipment gearType: ' + w.id + ' -> ' + w.gearType);
+      if (!w.visualKey) errors.push('missing visualKey on equipment: ' + w.id);
+      if (!Array.isArray(w.effects) || !w.effects.length) errors.push('missing effects on equipment: ' + w.id);
     }
 
     const seenTpl = new Set();

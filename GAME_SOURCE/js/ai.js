@@ -1159,7 +1159,7 @@
     let type = 'chat'; const opts = [];
     opts.push({ t: 'chat', w: 1.2 + (goal && goal.id === 'social_bond' && goal.targetId === o.id ? 1.2 : 0) });
     if (E(n, 'interests.combat') > 52 && o.rank >= 1 && n.rank >= 1 && !(n.inj && n.inj.length)) opts.push({ t: 'spar', w: (E(n, 'interests.combat') - 40) / 25 * (1 + (r.v || 0) / 40) + (E(n, 'personality.aggression') - 40) / 50 + (goal && goal.id === 'rival' && goal.targetId === o.id ? 1.5 : 0) });
-    if (n.rank >= 3 && o.rank < n.rank && E(n, 'social.teaching') > 40 && n.cult && o.cult && o.cult.path === n.cult.path) opts.push({ t: 'teach', w: (E(n, 'interests.teaching') - 30) / 25 + (o.id === (n.h.life.family.disciples || [])[0] ? 1.5 : 0) + (goal && goal.id === 'mentor_disciple' && goal.targetId === o.id ? 1.8 : 0) });
+    if (n.rank >= 3 && o.rank < n.rank && E(n, 'social.teaching') > 40 && n.cult && o.cult && (o.cult.path === n.cult.path || o.mentorId === n.id || (Array.isArray(n.apprenticeIds) && n.apprenticeIds.includes(o.id)))) opts.push({ t: 'teach', w: (E(n, 'interests.teaching') - 30) / 25 + (o.id === (n.h.life.family.disciples || [])[0] ? 1.5 : 0) + (goal && goal.id === 'mentor_disciple' && goal.targetId === o.id ? 1.8 : 0) });
     if (bnSkSeek.length && o.rank >= 2 && o.rank > n.rank && (g.MARTIAL ? g.MARTIAL.skillRead(o, bnSkSeek[0].skill) : (o.h.skills[bnSkSeek[0].skill] || 0)) > bnSkSeek[0].current + 2) {
       opts.push({ t: 'seek_teach', w: 2.2 * (g.MARTIAL.bottleneckSkillDrive ? g.MARTIAL.bottleneckSkillDrive(n) : 1), skill: bnSkSeek[0].skill });
     }
@@ -1254,7 +1254,7 @@
     } else { if (od.left <= 0) return 'done'; }
     return;
   };
-  AI.pickTeachSkill = (t, s) => { const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ALCHEMY', 'FORGING', 'SCRIPTURE', 'MEDICINE']; ids.sort((a, b) => (((t.h && t.h.skills && t.h.skills[b]) || 0) - ((s.h && s.h.skills && s.h.skills[b]) || 0) + (E(s, 'affinities.' + b) || 0) * .3) - (((t.h && t.h.skills && t.h.skills[a]) || 0) - ((s.h && s.h.skills && s.h.skills[a]) || 0) + (E(s, 'affinities.' + a) || 0) * .3)); return ids[0]; };
+  AI.pickTeachSkill = (t, s) => { const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ARRAY', 'TALISMAN', 'ALCHEMY', 'FORGING', 'SCRIPTURE', 'MEDICINE']; ids.sort((a, b) => (((t.h && t.h.skills && t.h.skills[b]) || 0) - ((s.h && s.h.skills && s.h.skills[b]) || 0) + (E(s, 'affinities.' + b) || 0) * .3) - (((t.h && t.h.skills && t.h.skills[a]) || 0) - ((s.h && s.h.skills && s.h.skills[a]) || 0) + (E(s, 'affinities.' + a) || 0) * .3)); return ids[0]; };
   AI.pairEnd = (W, a, b, d) => {
     if (g.COG && g.COG.resolveCommitment) g.COG.resolveCommitment(W, a, b, 'completed', d);
     if (b && b.cult && b.cult.track && CULT.trackReady && CULT.trackReady(b) && CULT.checkTrackGates && CULT.checkTrackGates(W, b).ok && CULT.trackBreakthrough) {
@@ -1263,7 +1263,12 @@
     if (d.type === 'spar') { g.COMBAT.sparEnd(W, a, b, d); }
     if (d.type === 'argue') { if (W.rng.chance(0.25 + (E(a, 'personality.aggression') + E(b, 'personality.aggression') - 90) / 300)) { W.duelQueue = W.duelQueue || []; W.duelQueue.push({ a: a.id, b: b.id, kind: 'grudge', serious: false }); W.log('conflict', a.h.name.given + ' กับ ' + b.h.name.given + ' ทะเลาะกันรุนแรงจนต้องดวลกัน', [a.id, b.id]); } else AI.mem(W, a, 'ทะเลาะกับ ' + b.h.name.given, 0.4, b.id); }
     if (d.type === 'date') { AI.mem(W, a, 'ใช้เวลาอันอบอุ่นกับ ' + b.h.name.given, 0.5, b.id); AI.mem(W, b, 'ใช้เวลาอันอบอุ่นกับ ' + a.h.name.given, 0.5, a.id); }
-    if (d.type === 'teach') { AI.mem(W, b, 'ได้รับการสั่งสอนจาก ' + a.h.name.given, 0.4, a.id); }
+    if (d.type === 'teach') {
+      AI.mem(W, b, 'ได้รับการสั่งสอนจาก ' + a.h.name.given, 0.4, a.id);
+      if (g.SECT && g.SECT.MENTORSHIP && g.SECT.MENTORSHIP.coachDisciple) {
+        g.SECT.MENTORSHIP.coachDisciple(W, a, b);
+      }
+    }
   };
 
   /* ---------- บาดเจ็บ/ตาย ---------- */
@@ -1291,6 +1296,10 @@
   };
   AI.kill = (W, n, why) => {
     if (n.dead) return;
+    if (n.cult && !n.qiTransmitted && Array.isArray(n.apprenticeIds) && n.apprenticeIds.length > 0 && g.SECT && g.SECT.MENTORSHIP && g.SECT.MENTORSHIP.transmitQi) {
+      const appId = n.apprenticeIds.find(id => W.byId && W.byId[id] && !W.byId[id].dead);
+      if (appId) g.SECT.MENTORSHIP.transmitQi(W, n, appId, { dyingWish: true, force: true });
+    }
     AI.cancelAct(W, n);
     n.dead = true; n.deathDay = W.day; n.deathWhy = why; n.hidden = false; n.path = null;
     if (n.post) { W.sect.posts[n.post] = null; n.post = null; }

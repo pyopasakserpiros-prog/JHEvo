@@ -24,12 +24,12 @@ console.log('Testing Wuxia Inventory Grid/List, Sect Stock & Shop UI...');
   const map = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'docs', 'ITEM_ICON_ATLAS_MAP.json'), 'utf8'));
   assert(fs.existsSync(atlasPath), 'Wuxia sprite atlas must exist');
   assert.strictEqual(map.width, 512);
-  assert.strictEqual(map.height, 576);
+  assert.strictEqual(map.height, 832);
   assert.strictEqual(map.cols, 8);
-  assert.strictEqual(map.rows, 9);
-  assert.strictEqual(map.totalCells, 72);
-  assert.strictEqual(UI.ITEM_ATLAS_CELLS.length, 72);
-  assert.strictEqual(new Set(UI.ITEM_ATLAS_CELLS.map(x => x.key)).size, 72, 'Atlas keys must be unique');
+  assert.strictEqual(map.rows, 13);
+  assert.strictEqual(map.totalCells, 104);
+  assert.strictEqual(UI.ITEM_ATLAS_CELLS.length, 104);
+  assert.strictEqual(new Set(UI.ITEM_ATLAS_CELLS.map(x => x.key)).size, 104, 'Atlas keys must be unique');
   for (const [id, expected] of [
     ['MAT_FISH_SILVER_CARP_1', 64],
     ['FOOD_STEAMED_SPIRIT_FISH', 69],
@@ -39,7 +39,7 @@ console.log('Testing Wuxia Inventory Grid/List, Sect Stock & Shop UI...');
     const cell = UI.resolveItemAtlasCell({ id, rawKind: 'MATERIAL' });
     assert.strictEqual(cell.cell, expected, `${id} must resolve to atlas cell ${expected}`);
   }
-  console.log('  PASS: 72-cell atlas, unique keys, and fish/container/trash mappings');
+  console.log('  PASS: 104-cell atlas, unique keys, and fish/container/trash mappings');
 }
 
 // 2. Responsive page size and persisted view preference.

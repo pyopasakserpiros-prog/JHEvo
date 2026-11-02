@@ -24,11 +24,12 @@ function runVisitorsCluesWeaponsSuite() {
   assert(g.VC && g.VC.VERSION === 1, 'VC module loaded');
   const catErrs = g.VC.validateCatalog();
   assert.deepStrictEqual(catErrs, [], 'Catalog validation errors: ' + catErrs.join('; '));
-  assert.strictEqual(g.VC.LEGENDARY_WEAPONS.length, 11, 'Must have 11 authored legendary weapons');
-  assert.strictEqual(g.VC.CLUE_TEMPLATES.length, 41, 'Must have 41 authored clue templates');
+  assert.strictEqual(g.VC.LEGENDARY_WEAPONS.length, 14, 'Must have 14 authored legendary weapons');
+  assert.strictEqual(g.VC.CLUE_TEMPLATES.length, 60, 'Must have 60 authored clue templates');
+  assert.strictEqual(g.VC.LEGENDARY_EQUIPMENT.length, 21, 'Must have 21 authored legendary equipment items');
 
   const families = new Set(g.VC.LEGENDARY_WEAPONS.map(w => w.gearType));
-  ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS'].forEach(fam => {
+  ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'].forEach(fam => {
     assert(families.has(fam), 'Legendary weapons must cover weapon family ' + fam);
   });
 
@@ -234,10 +235,10 @@ function runVisitorsCluesWeaponsSuite() {
         n.h.innate[sd.path] = 90;
       });
       Object.keys(n.h.skills || {}).forEach(sk => { n.h.skills[sk] = 90; });
-      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'DAGGER', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ARRAY', 'SCRIPTURE', 'ALCHEMY', 'FORGING', 'HERBALISM', 'MINING', 'BEAST', 'survival', 'construction', 'scholarship', 'governance', 'medicine', 'cooking'].forEach(sk => {
+      ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST_PALM', 'BOW', 'ZITHER', 'BRUSH', 'WHIP', 'DAGGER', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ARRAY', 'TALISMAN', 'SCRIPTURE', 'ALCHEMY', 'FORGING', 'HERBALISM', 'MINING', 'BEAST', 'survival', 'construction', 'scholarship', 'governance', 'medicine', 'cooking', 'arts'].forEach(sk => {
         n.h.skills[sk] = 90;
       });
-      n.martialSkills = { BOW: 90, STAFF: 90, FOCUS: 90 };
+      n.martialSkills = { BOW: 90, STAFF: 90, FOCUS: 90, ZITHER: 90, BRUSH: 90, WHIP: 90 };
       g.HC.touch(n);
       g.CULT.refreshLifespan(n);
       n.h.state.hp = g.CULT.hpMax(n);
@@ -264,8 +265,8 @@ function runVisitorsCluesWeaponsSuite() {
       assert.strictEqual(inst.status, 'claimed', 'Completed all steps and claimed reward for ' + tpl.templateId);
       completedCount++;
     }
-    assert.strictEqual(completedCount, 41, 'All 41 clue templates are reachable and completable end-to-end');
-    assert.strictEqual(Object.keys(W.world.uniqueArtifacts).length, 11, 'All 11 legendary weapons claimed and registered in uniqueArtifacts');
+    assert.strictEqual(completedCount, 60, 'All 60 clue templates are reachable and completable end-to-end');
+    assert.strictEqual(Object.keys(W.world.uniqueArtifacts).length, 21, 'All 21 legendary equipment items claimed and registered in uniqueArtifacts');
   }
 
 
@@ -325,7 +326,7 @@ function runVisitorsCluesWeaponsSuite() {
     }
   }
 
-  console.log('PASS visitors_clues_weapons_suite: 41/41 clue chains, 11/11 legendary weapons, outsider isolation, provenance & idempotency verified');
+  console.log('PASS visitors_clues_weapons_suite: 60/60 clue chains, 21/21 legendary equipment, outsider isolation, provenance & idempotency verified');
 }
 
 if (require.main === module) {

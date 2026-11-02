@@ -135,7 +135,7 @@
     },
     done(n, W, ctx) { const v = ctx.cpValue || 0, c = Object.values(ctx.items || {}).reduce((s, x) => s + x, 0); n.merit += 0.3 + c * 0.03; CPE.mint(W, n, v, 'เก็บสมุนไพร ' + c + ' ต้น', true); CPE.S(W).donated += v; }
   };
-  const HERB_POOL = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_MERIDIAN_FLOWER_3'] };
+  const HERB_POOL = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1', 'MAT_ZITHER_PARASOL_WOOD_1', 'MAT_BRUSH_SPIRIT_WEASEL_HAIR_1', 'MAT_WHIP_IRON_SILKWORM_THREAD_1'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_MERIDIAN_FLOWER_3', 'MAT_ZITHER_ICE_SILK_STRING_3', 'MAT_BRUSH_STARLIGHT_CINNABAR_3', 'MAT_WHIP_SHADOW_PYTHON_TENDON_3'] };
   ECO.herbPool = t => HERB_POOL[t] || HERB_POOL[1];
   CPE.drive = n => clamp((E(n, 'values.wealthResource') * 0.45 + E(n, 'personality.ambition') * 0.3 + E(n, 'personality.discipline') * 0.25) / 100, 0.1, 1);
   function interestTerm(n, id, S, w) { const v = (E(n, 'interests.' + id) - 50) / 100 * w; S.add('สนใจ' + id, v); }
