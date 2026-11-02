@@ -2,7 +2,7 @@
 const assert=require('assert'),G=require('./load'),{SIM,MARTIAL:M,CULT,HC,ECO,STATS:ST,SK,AI}=G;
 assert(M.skillRead&&M.skillPractice&&M.retrain,'shared skills and explicit retraining must exist');
 const W=SIM.create('retraining'),n=W.npcs[0];M.ensure(W);
-assert.equal(Object.keys(M.SKILL_INFO).length,29);assert(HC.SKILL_IDS.every(k=>M.SKILL_INFO[k]));
+assert.equal(Object.keys(M.SKILL_INFO).length,32);assert(HC.SKILL_IDS.every(k=>M.SKILL_INFO[k]));
 for(const k of M.SKILL_IDS){const before=M.skillRead(n,k);assert(M.SKILL_INFO[k].effect&&M.SKILL_INFO[k].route);M.skillPractice(n,k,2,1);assert(M.skillRead(n,k)>before,'real training '+k);}
 assert(!HC.SKILL_IDS.includes('BOW'));assert('BOW' in n.h.skills);assert(M.skillRead(n,'BOW')>0);assert(M.skillRead(n,'not-a-skill')===0);
 // Equipped weapon proficiency replaces the maximum of unrelated weapon skills.

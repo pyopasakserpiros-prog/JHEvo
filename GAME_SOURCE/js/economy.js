@@ -682,8 +682,8 @@
   };
 
   /* ---------- แหล่งผลิตในสำนัก ---------- */
-  const HERBS = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_ANCIENT_MIST_FERN_3', 'MAT_HERB_MERIDIAN_FLOWER_3'] };
-  const ORES = { 1: ['MAT_ORE_BLACK_IRON_1', 'MAT_ORE_CINNABAR_1'], 2: ['MAT_ORE_COLD_STEEL_2', 'MAT_ORE_JADE_SLATE_2'], 3: ['MAT_ORE_STAR_COPPER_3', 'MAT_ORE_MAGNET_LODESTONE_3', 'MAT_ORE_THUNDER_SCORCH_COPPER_3'] };
+  const HERBS = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1', 'MAT_ZITHER_PARASOL_WOOD_1', 'MAT_WHIP_IRON_SILKWORM_THREAD_1'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_ANCIENT_MIST_FERN_3', 'MAT_HERB_MERIDIAN_FLOWER_3', 'MAT_ZITHER_ICE_SILK_STRING_3', 'MAT_WHIP_SHADOW_PYTHON_TENDON_3'] };
+  const ORES = { 1: ['MAT_ORE_BLACK_IRON_1', 'MAT_ORE_CINNABAR_1', 'MAT_BRUSH_SPIRIT_WEASEL_HAIR_1'], 2: ['MAT_ORE_COLD_STEEL_2', 'MAT_ORE_JADE_SLATE_2'], 3: ['MAT_ORE_STAR_COPPER_3', 'MAT_ORE_MAGNET_LODESTONE_3', 'MAT_ORE_THUNDER_SCORCH_COPPER_3', 'MAT_BRUSH_STARLIGHT_CINNABAR_3'] };
   ECO.harvestHerb = (W, npc, hours) => {
     hours *= g.MARTIAL ? g.MARTIAL.lifeMult(npc, 'herbalism') : 1;
     const b = W.map.byId.herb_garden, sk = npc.h.skills.herbalism || 0;
@@ -1234,7 +1234,10 @@
       FIST: ['สนับมือเหล็กดำ', 'กรงเล็บพยัคฆ์', 'ปลอกแขนวัชระ', 'สนับมือหยกม่วง', 'กรงเล็บเหยี่ยวศึก'],
       BOW: ['คันศรไม้ไผ่ม่วง', 'ธนูเขาสัตว์อสูร', 'คันศรเอ็นมังกร', 'ธนูศึกทะลวงเมฆ', 'คันศรจันทรา'],
       STAFF: ['พลองไม้แก่นเหล็ก', 'กระบองคิ้วขาว', 'พลองศิลาดำ', 'ค้อนศึกสะท้านผา', 'พลองพิทักษ์ด่าน'],
-      FOCUS: ['พัดหยกสื่อปราณ', 'พิณสายไหมเงิน', 'ขลุ่ยหยกเขียว', 'พู่กันอาคมชาด', 'ระฆังสำริดสะกดจิต'],
+      FOCUS: ['พัดหยกสื่อปราณ', 'กระจกสำริดส่องปราณ', 'ลูกแก้วดารา', 'ป้ายหยกบัญชาปราณ', 'ตราประทับวิญญาณ'],
+      ZITHER: ['พิณไม้อู๋ถงเจ็ดสาย', 'ขลุ่ยหยกเมฆา', 'พิณสายไหมเงิน', 'ระฆังสำริดสะกดจิต', 'สังข์ปราณวายุ'],
+      BRUSH: ['พู่กันขนพังพอนชาด', 'พู่กันหยกจารึกยันต์', 'สิ่วสลักค่ายกล', 'พู่กันปราชญ์วาดเมฆา', 'พู่กันดาราลิขิต'],
+      WHIP: ['แส้หนังอสูรถักเหล็ก', 'ด้ายไหมปราณเชิดหุ่น', 'แส้เถาวัลย์หนามพิษ', 'โซ่ตรวนล่ามเงา', 'ด้ายแดงสะบั้นจุด'],
       HEAVY: ['เกราะเกล็ดเหล็กดำ', 'เกราะศึกพิทักษ์ด่าน', 'เกราะแผ่นศิลา', 'เกราะอกพยัคฆ์', 'เกราะเหล็กหลอมปราณ'],
       LIGHT: ['เกราะหนังอสูร', 'เสื้อเกราะไหมเหนียว', 'ชุดรัดกุมเร้นเงา', 'เกราะเบาขนเหยี่ยว', 'ชุดหนังเกล็ดงู'],
       ROBE: ['อาภรณ์ไหมเมฆา', 'ชุดคลุมนักพรตหยก', 'จีวรปราณบริสุทธิ์', 'อาภรณ์ดาราพยากรณ์', 'ชุดคลุมไหมจันทร์'],
@@ -1280,7 +1283,7 @@
 
   const PROC_BASE_SCALE = [28, 62, 130, 270];
   const ALL_GEAR_TYPES = {
-    WEAPON: ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'],
+    WEAPON: ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'],
     ARMOR: ['HEAVY', 'LIGHT', 'ROBE'],
     ACCESSORY: ['RING', 'NECKLACE', 'BRACELET', 'CHARM']
   };

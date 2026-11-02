@@ -624,7 +624,7 @@ M.knowledgeFit=(n,key)=>{const k=M.knowledge(key);if(!k||!n.cult)return -100;
  if(k.path!=='ANY'&&k.path!==n.cult.path&&(k.kind==='sub'||!allowCross))return -100;
  if(k.kind==='sub'){const score=CULT.pathScores(n).filter(s=>s.path===n.cult.path),best=score[0];const own=score.find(s=>s.sub===k.id);return own&&best?clamp(80+(own.score-best.score)*2,0,100):30;}
  if(k.sub&&!(CULT.isSubCompatible?CULT.isSubCompatible(t,n.cult.sub,false):k.sub===n.cult.sub))return -50;
- const crossPen=(k.path!=='ANY'&&k.path!==n.cult.path)?(t.legendary?-4:-12):0;
+ const crossPen=(k.path!=='ANY'&&k.path!==n.cult.path)?(t.legendary?0:-12):0;
  const matching=!t.weaponTypes||M.conditionMatches(n,t),elemScore=g.ELEM?g.ELEM.resolveCompatibility(n,t,'learning').score*0.45:0;
  return 60+crossPen+(matching?20:-15)+elemScore+(t.legendary?25:0)+(HC.eff(n,'personality.curiosity')-50)*.15;
 };

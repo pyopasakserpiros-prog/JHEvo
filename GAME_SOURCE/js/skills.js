@@ -31,7 +31,11 @@
     execute: { nameTh: 'ท่าปลิดชีพ', icon: '⚔️', e: 1.38, cd: 16, wind: 6, hits: 1, cost: 1.35, off: true, penAdd: 20, desc: 'สังหารเป้าหมายที่บาดเจ็บอย่างเด็ดขาด' },
     blast: { nameTh: 'ท่าระเบิดปราณ', icon: '🔮', e: 1.25, cd: 14, wind: 5, hits: 1, cost: 1.3, off: true, aoe: true, desc: 'ปลดปล่อยคลื่นปราณระเบิดทำลายล้าง' },
     shield: { nameTh: 'ท่าเกราะคุ้มกาย', icon: '🔰', e: 0, cd: 20, wind: 3, hits: 0, cost: 1.0, self: true, desc: 'สร้างม่านปราณดูดซับความเสียหายและเพิ่มป้องกัน' },
-    buff: { nameTh: 'ท่าเร่งปราณหนุนศึก', icon: '✨', e: 0, cd: 22, wind: 4, hits: 0, cost: 1.15, team: true, desc: 'เสริมพลังรบและความเร็วแก่ตนเองและพวกพ้อง' }
+    buff: { nameTh: 'ท่าเร่งปราณหนุนศึก', icon: '✨', e: 0, cd: 22, wind: 4, hits: 0, cost: 1.15, team: true, desc: 'เสริมพลังรบและความเร็วแก่ตนเองและพวกพ้อง' },
+    command: { nameTh: 'ท่าบัญชาพยุหะ', icon: '🚩', e: 1.28, cd: 18, wind: 4, hits: 1, cost: 1.25, off: true, team: true, penAdd: 18, desc: 'ออกโองการค่ายกลหนุนโล่และบัฟแก่พวกพ้อง พร้อมสั่งประสานโจมตีศัตรู' },
+    harmonize: { nameTh: 'ท่าประสานชีพจรชุบชีวา', icon: '🪷', e: 1.22, cd: 16, wind: 4, hits: 1, cost: 1.25, off: true, team: true, desc: 'ส่งคลื่นปราณโอสถ/คีตเวทย์โจมตีจุดชีพจรศัตรู พร้อมฟื้นฟูเลือด ล้างพิษ และมอบบัฟแก่พวกพ้อง' },
+    blink: { nameTh: 'ท่าก้าวพริบตาข้ามมิติ', icon: '🌌', e: 1.32, cd: 18, wind: 2, hits: 2, cost: 1.15, off: true, self: true, penAdd: 25, desc: 'พับย่นระยะทางเข้าประชิดหรือฉากหลบในพริบตา โจมตีไร้ทางหลบและสร้างเงาดาราหลบสวนกลับ' },
+    karmaReversal: { nameTh: 'ท่าพลิกผันกงล้อกรรม', icon: '☸️', e: 1.65, cd: 24, wind: 5, hits: 1, cost: 1.5, off: true, recoil: 0.08, penAdd: 28, desc: 'แปรเปลี่ยนสถานะผิดปกติบนร่างให้เป็นบัฟคุ้มกาย และสะท้อนหนี้กรรมสังหารศัตรู' }
   };
   /* ธาตุ → ผลแทรก (rider) ถ้าท่านั้นเป็นท่าโจมตี โอกาส 38% และผลหลักของท่าควบคุม */
   SK.ELEM = {
@@ -62,7 +66,11 @@
     qiConduit: { nameTh: 'ชีพจรปราณหมุนเวียน', icon: '💠', isBuff: true, pmods: { matk: .14, mdef: .12 }, mods: { cast: 18 } },
     clarityLotus: { nameTh: 'บัวทิพย์กระจ่างใจ', icon: '🪷', isBuff: true, pmods: { mdef: .16, acc: .12 }, mods: { crit: 6 } },
     meridianUnblock: { nameTh: 'เข็มทองเปิดชีพจรยุทธ์', icon: '🪡', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { cast: 12, move: 10, pen: 8 } },
-    nirvanaGrace: { nameTh: 'โคมวิญญาณคุ้มชีพ', icon: '🏮', isBuff: true, pmods: { def: .14, mdef: .14, hp: .12 } }
+    nirvanaGrace: { nameTh: 'โคมวิญญาณคุ้มชีพ', icon: '🏮', isBuff: true, pmods: { def: .14, mdef: .14, hp: .12 } },
+    tacticalCommand: { nameTh: 'โองการพยุหะ', icon: '🚩', isBuff: true, pmods: { atk: .18, matk: .18, def: .18, mdef: .18 }, mods: { acc: 14, pen: 12 } },
+    astralMirage: { nameTh: 'เงาดาราซ้อนมิติ', icon: '🌌', isBuff: true, pmods: { eva: .35 }, mods: { move: 24, cast: 16, crit: 10 } },
+    karmicAegis: { nameTh: 'วัฏจักรสะท้อนกรรม', icon: '☸️', isBuff: true, pmods: { def: .20, mdef: .20, matk: .12 }, mods: { pen: 12 } },
+    mentorGuidance: { nameTh: 'คำชี้แนะอาจารย์สายตรง', icon: '📜', isBuff: true, pmods: { atk: .10, matk: .10, def: .10, mdef: .10 }, mods: { acc: 10, cast: 10 } }
   };
   const SUBW = {
     SWORD_IMMORTAL: { strike: 3, pierce: 3, flurry: 2, burst: 1.5, dot: .5 },
@@ -159,7 +167,16 @@
     HEAVENLY_ANVIL_SMITH: {"strike":3.5,"pierce":3,"sweep":2.5,"guard":2.5,"burst":2},
     SPIRIT_SWORD_ARTIFICER: {"pierce":3.5,"flurry":3,"strike":2.5,"execute":2,"burst":1.5},
     RUNE_ARRAY_ENGRAVER: {"shield":3.5,"control":3,"blast":2.5,"snipe":2.5,"support":2},
-    DIVINE_FLAME_SMELTER: {"blast":3.5,"burst":3,"sweep":2.5,"pierce":2,"shield":2}
+    DIVINE_FLAME_SMELTER: {"blast":3.5,"burst":3,"sweep":2.5,"pierce":2,"shield":2},
+    GRAND_STRATEGIST: {"command":4,"support":3,"control":2.5,"shield":2,"blast":1.5},
+    IMPERIAL_PEACE_SOVEREIGN: {"command":3.5,"support":3.5,"heal":2.5,"shield":2.5},
+    IRON_LEGION_MARSHAL: {"command":3.5,"charge":3,"pierce":2.5,"guard":2},
+    HEAVENLY_MANDATE_CHANCELLOR: {"command":3.5,"support":3,"control":2.5,"channel":2},
+    BATTLE_ARRAY_TACTICIAN: {"command":3.5,"control":3,"shield":2.5,"sweep":2},
+    GRAND_FORMATION_ARCHITECT: {"control":3.5,"shield":3,"command":2.5,"blast":2.5},
+    THUNDER_TALISMAN_ADEPT: {"blast":3.5,"burst":3,"snipe":2.5,"control":2},
+    SEAL_SCRIPT_EXORCIST: {"control":3.5,"shield":3,"counter":2.5,"pierce":2},
+    ASTRAL_LEVIATHAN_KRAKEN: {"blink":3.5,"evade":3,"burst":2.5,"sweep":2}
   };
   function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); }
   function rnd(h, k) { let x = (h ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0; return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
@@ -216,6 +233,11 @@
       ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? ((m.sx && m.sx.k) || el.ctrl) : null),
       shatterShield: !!m.shatterShield,
       qiRestorePct: m.qiRestorePct || 0,
+      cleanseDebuffs: !!m.cleanseDebuffs,
+      cleanseHeartDemon: m.cleanseHeartDemon || 0,
+      cureInjury: m.cureInjury || 0,
+      secondaryBuff: m.secondaryBuff || null,
+      invertDebuffs: !!m.invertDebuffs,
       drawback: m.drawback || null,
       aiRole: m.aiRole || null,
       fxKind: m.fxKind || t.fxKind || null,
@@ -585,6 +607,41 @@
       gapCloserAcc: 8,
       counteredByTh: 'ศาสตรายาวชิงจังหวะแรกหากไม่มีวิชาตัวเบาหนุน',
       descTh: 'คล่องตัวสูง ประสานวิชาตัวเบาพุ่งฝ่าระยะหอกและธนูเพื่อชิงความได้เปรียบระยะประชิด (+10% ดาเมจเมื่อแก้ทาง)'
+    },
+    ZITHER: {
+      weaponType: 'ZITHER',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.75,
+      nameTh: 'พิณคีตเวทย์ส่งคลื่นเสียงสะกดระยะไกล',
+      stanceTh: 'บรรเลงคีตเวทย์รักษาระยะห่าง (Kiting)',
+      kiteDmgMult: 1.13,
+      kiteCritAdd: 5,
+      kiteAccAdd: 9,
+      counteredByTh: 'ท่าพุ่งทะลวง (charge/evade) หรือวิชาตัวเบาประชิดตัว',
+      descTh: 'แผ่คลื่นเสียงคีตเวทย์โจมตีจากระยะไกล (+13% ดาเมจ, +5% คริ, +9 แม่นยำ) จนกว่าศัตรูจะพุ่งเข้าประชิดตัว'
+    },
+    BRUSH: {
+      weaponType: 'BRUSH',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.65,
+      nameTh: 'พู่กันอาคมวาดอักขระสกัดระยะ',
+      stanceTh: 'ตวัดพู่กันจารึกยันต์คุมระยะ (Kiting)',
+      kiteDmgMult: 1.12,
+      kiteCritAdd: 5,
+      kiteAccAdd: 10,
+      counteredByTh: 'ท่าพุ่งทะลวง (charge/evade) หรือวิชาตัวเบาประชิดตัว',
+      descTh: 'วาดอักขระและซัดยันต์สกัดจากระยะกลาง-ไกล (+12% ดาเมจ, +5% คริ, +10 แม่นยำ) จนกว่าจะถูกประชิดตัว'
+    },
+    WHIP: {
+      weaponType: 'WHIP',
+      reachClass: 'LONG_POLEARM',
+      engageRange: 2.40,
+      nameTh: 'แส้และด้ายปราณกวาดพันธนาการระยะยาว',
+      stanceTh: 'สะบัดแส้และขึงด้ายปราณสกัดการบุก',
+      firstStrikeMult: 1.13,
+      firstStrikeAcc: 10,
+      counteredByTh: 'วิชาตัวเบา (LIGHTNESS_ART / MOVEMENT_TECHNIQUE) หรือท่าพุ่งทะลวงประชิด',
+      descTh: 'ใช้ระยะแส้และเส้นไหมปราณชิงลงมือก่อนอาวุธสั้น (+13% ดาเมจ, +10 แม่นยำ) เว้นแต่ศัตรูใช้วิชาตัวเบาฝ่าวงล้อม'
     }
   };
 

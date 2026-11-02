@@ -19,7 +19,7 @@
     return w;
   }
 
-  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0' };
+  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78' };
   const ROBE_MORTAL = '#cdb292';
   const hash2 = (x, y) => {
     let h = Math.imul(x, 73856093) ^ Math.imul(y, 19349663);
@@ -64,7 +64,16 @@
     legend_little_li_dagger: { kind: 'cast', primary: '#fff59d', secondary: '#90caf9', accent: '#ffffff', shape: 'single_intent_flash', labelTh: 'มหาคัมภีร์จิตมีดบินไร้พลาด' },
     legend_aura_mingyu: { kind: 'aura', primary: '#80deea', secondary: '#e0f7fa', accent: '#b2ebf2', shape: 'jade_frost_lotus_aura', labelTh: 'เคล็ดปราณหยกใสไร้ราคี' },
     legend_aura_nine_yang: { kind: 'aura', primary: '#ffca28', secondary: '#ff7043', accent: '#fff8e1', shape: 'golden_solar_bell_aura', labelTh: 'คัมภีร์เก้าสุริยันคุ้มชีพจร' },
-    legend_aura_dugu: { kind: 'aura', primary: '#b3e5fc', secondary: '#4fc3f7', accent: '#ffffff', shape: 'orbiting_sword_motes_aura', labelTh: 'จิตกระบี่ไร้พ่ายส่องใจ' }
+    legend_aura_dugu: { kind: 'aura', primary: '#b3e5fc', secondary: '#4fc3f7', accent: '#ffffff', shape: 'orbiting_sword_motes_aura', labelTh: 'จิตกระบี่ไร้พ่ายส่องใจ' },
+    legend_guangling_zither: { kind: 'cast', primary: '#80ffdb', secondary: '#ff9e00', accent: '#ffffff', shape: 'nine_heavens_sonic_phoenix', labelTh: 'มหาคีตเวทย์กวงหลิงสะท้านเก้าสวรรค์' },
+    legend_heaven_seal_brush: { kind: 'cast', primary: '#ffd166', secondary: '#ef476f', accent: '#fff8e1', shape: 'heaven_inscription_seal_array', labelTh: 'มหาพู่กันเทวะจารึกผนึกสวรรค์' },
+    legend_samsara_threads: { kind: 'cast', primary: '#ff4d6d', secondary: '#9b5de5', accent: '#ffe5ec', shape: 'samsara_crimson_puppet_web', labelTh: 'ด้ายสวรรค์เชิดวัฏสงสารพันวิญญาณ' },
+    legend_shennong_crucible: { kind: 'cast', primary: '#52b788', secondary: '#ff7b00', accent: '#d8f3dc', shape: 'shennong_emerald_flame_cauldron', labelTh: 'มหาคัมภีร์เตาหลอมหมื่นโอสถเสินหนง' },
+    legend_imperial_eight_gates: { kind: 'cast', primary: '#ffd166', secondary: '#ef476f', accent: '#fff8e1', shape: 'imperial_eight_gates_array', labelTh: 'เคล็ดพิชัยสงครามแปดพยุหะอภิบาลหล้า' },
+    legend_sovereign_edict: { kind: 'cast', primary: '#f4a261', secondary: '#9b5de5', accent: '#feefc3', shape: 'sovereign_heaven_jade_seal', labelTh: 'มหาคัมภีร์โองการจักรพรรดิพิชัยสวรรค์' },
+    legend_jade_nirvana_lotus: { kind: 'cast', primary: '#52b788', secondary: '#ffd166', accent: '#d8f3dc', shape: 'nine_blossom_jade_nirvana', labelTh: 'กระบวนท่าพิณโอสถเก้าบุปผาชุบชีวา' },
+    legend_kunpeng_wings: { kind: 'cast', primary: '#48cae4', secondary: '#7209b7', accent: '#caf0f8', shape: 'kunpeng_astral_wing_step', labelTh: 'ท่าร่างคุนเผิงเหินดาราข้ามขอบฟ้า' },
+    legend_samsara_wheel_reversal: { kind: 'cast', primary: '#9b5de5', secondary: '#f15bb5', accent: '#fee440', shape: 'samsara_inverted_dharma_wheel', labelTh: 'วิชาต้องห้าม • พลิกผันกงล้อกรรมสังสารวัฏ' }
   };
   R.LEGENDARY_MOTIFS = LEGENDARY_MOTIFS;
 
@@ -1490,6 +1499,142 @@
           }
           break;
         }
+        case 'legend_guangling_zither': {
+          const mScale = 1 + (fx.moveIndex || 0) * 0.14;
+          ctx.rotate(fx.angle);
+          for (let s = -3; s <= 3; s++) {
+            ctx.strokeStyle = s === 0 ? spec.secondary : spec.primary;
+            ctx.lineWidth = s === 0 ? 2.2 : 1.1;
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.75, s * 2.2);
+            ctx.quadraticCurveTo(0, s * 2.2 + Math.sin(p * 10 + s) * 3.5, r * 1.15 * mScale, s * 2.6);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(r * 0.45, 0, r * 0.55 * mScale, -1.1, 1.1); ctx.stroke();
+          break;
+        }
+        case 'legend_heaven_seal_brush': {
+          const mScale = 1 + (fx.moveIndex || 0) * 0.14;
+          ctx.save(); ctx.translate(0, 4); ctx.scale(1, 0.56); ctx.rotate(rot);
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          for (let i = 0; i <= 8; i++) {
+            const a = i * Math.PI / 4;
+            const sx = Math.cos(a) * r * 0.95 * mScale, sy = Math.sin(a) * r * 0.95 * mScale;
+            i ? ctx.lineTo(sx, sy) : ctx.moveTo(sx, sy);
+          }
+          ctx.stroke();
+          ctx.restore();
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth = 2.4;
+          ctx.beginPath(); ctx.moveTo(-r * 0.6, -4); ctx.lineTo(r * 0.6, -4); ctx.moveTo(0, -r * 0.65); ctx.lineTo(0, r * 0.45); ctx.stroke();
+          break;
+        }
+        case 'legend_samsara_threads': {
+          const mScale = 1 + (fx.moveIndex || 0) * 0.14;
+          ctx.rotate(fx.angle);
+          for (let i = 0; i < 8; i++) {
+            const a = i * Math.PI / 4 + rot * 0.5;
+            ctx.strokeStyle = i % 2 ? spec.primary : spec.secondary;
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(Math.cos(a + 0.3) * r * 0.6, Math.sin(a + 0.3) * r * 0.6, Math.cos(a) * r * 1.15 * mScale, Math.sin(a) * r * 1.15 * mScale);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.1;
+          ctx.beginPath(); ctx.arc(0, 0, r * 0.68 * mScale, 0, 7); ctx.stroke();
+          break;
+        }
+        case 'legend_shennong_crucible': {
+          ctx.save(); ctx.translate(0, 4); ctx.scale(1, 0.55); ctx.rotate(rot);
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 2.2;
+          ctx.beginPath(); ctx.arc(0, 0, r * 0.92, 0, 7); ctx.stroke();
+          ctx.restore();
+          for (let i = 0; i < 6; i++) {
+            const a = i * Math.PI / 3 + p * 3;
+            ctx.fillStyle = i % 2 ? spec.primary : spec.secondary;
+            ctx.beginPath(); ctx.arc(Math.cos(a) * r * 0.72, Math.sin(a) * r * 0.38 - p * 8, 2.5, 0, 7); ctx.fill();
+          }
+          break;
+        }
+        case 'legend_imperial_eight_gates': {
+          ctx.save(); ctx.translate(0, 4); ctx.scale(1, 0.56); ctx.rotate(rot);
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 2.1;
+          ctx.beginPath();
+          for (let i = 0; i <= 8; i++) {
+            const a = i * Math.PI / 4;
+            const gx = Math.cos(a) * r * 1.05, gy = Math.sin(a) * r * 1.05;
+            i ? ctx.lineTo(gx, gy) : ctx.moveTo(gx, gy);
+          }
+          ctx.stroke();
+          ctx.restore();
+          for (let i = 0; i < 4; i++) {
+            const a = i * Math.PI / 2 + rot * 0.5;
+            const bx = Math.cos(a) * r * 0.78, by2 = 2 + Math.sin(a) * r * 0.42;
+            ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(bx, by2); ctx.lineTo(bx, by2 - 11); ctx.stroke();
+            ctx.fillStyle = spec.secondary;
+            ctx.beginPath(); ctx.moveTo(bx, by2 - 11); ctx.lineTo(bx + 6, by2 - 8.5); ctx.lineTo(bx, by2 - 6); ctx.closePath(); ctx.fill();
+          }
+          break;
+        }
+        case 'legend_sovereign_edict': {
+          ctx.fillStyle = spec.primary;
+          ctx.fillRect(-r * 0.42, -r * 0.42 - 4, r * 0.84, r * 0.65);
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.8;
+          ctx.strokeRect(-r * 0.42, -r * 0.42 - 4, r * 0.84, r * 0.65);
+          for (let i = 0; i < 4; i++) {
+            const a = i * Math.PI / 2 + p * 2.5;
+            ctx.fillStyle = spec.secondary;
+            ctx.fillRect(Math.cos(a) * r * 0.85 - 2, Math.sin(a) * r * 0.45 - 3, 4, 6);
+          }
+          break;
+        }
+        case 'legend_jade_nirvana_lotus': {
+          ctx.save(); ctx.translate(0, 3); ctx.scale(1, 0.58);
+          for (let i = 0; i < 9; i++) {
+            const a = i * Math.PI * 2 / 9 + rot * 0.6;
+            ctx.save(); ctx.rotate(a);
+            ctx.fillStyle = i % 2 ? spec.primary : spec.secondary;
+            ctx.beginPath(); ctx.ellipse(r * 0.52, 0, r * 0.44, r * 0.19, 0, 0, 7); ctx.fill();
+            ctx.restore();
+          }
+          ctx.restore();
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.5;
+          for (let i = -1; i <= 1; i++) {
+            ctx.beginPath(); ctx.moveTo(i * 5, 2); ctx.lineTo(i * 7, -11 - p * 5); ctx.stroke();
+          }
+          break;
+        }
+        case 'legend_kunpeng_wings': {
+          ctx.rotate(fx.angle);
+          for (const dir of [-1, 1]) {
+            ctx.strokeStyle = dir < 0 ? spec.primary : spec.accent;
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(r * 0.45, dir * r * 0.85, -r * 0.55, dir * r * 1.15);
+            ctx.stroke();
+          }
+          ctx.fillStyle = spec.secondary;
+          for (let i = 0; i < 5; i++) {
+            ctx.beginPath(); ctx.arc((i - 2) * 4.5, Math.sin(i + p * 6) * 4, 2.0, 0, 7); ctx.fill();
+          }
+          break;
+        }
+        case 'legend_samsara_wheel_reversal': {
+          ctx.save(); ctx.translate(0, 3); ctx.scale(1, 0.58); ctx.rotate(-p * 3.2);
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 2.2;
+          ctx.beginPath(); ctx.arc(0, 0, r * 0.95, 0, 7); ctx.stroke();
+          for (let i = 0; i < 6; i++) {
+            const a = i * Math.PI / 3;
+            ctx.strokeStyle = i % 2 ? spec.secondary : spec.accent;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * r * 0.95, Math.sin(a) * r * 0.95); ctx.stroke();
+          }
+          ctx.restore();
+          break;
+        }
         case 'legend_little_li_dagger':
         default: {
           ctx.save(); ctx.rotate(fx.angle);
@@ -1586,9 +1731,70 @@
         }
       }
       if (hasLegMantra) {
-        const spec = LEGENDARY_MOTIFS[legMantra.fxKind] || { primary: '#ffd54f' };
-        ctx.strokeStyle = spec.primary; ctx.globalAlpha = 0.58; ctx.lineWidth = 1.1;
-        ctx.beginPath(); ctx.ellipse(0, 1.2, 8.8, 3.6, 0, 0, 7); ctx.stroke();
+        const mKey = legMantra.fxKind;
+        const spec = LEGENDARY_MOTIFS[mKey] || { primary: '#ffd54f', secondary: '#ff9800', accent: '#ffffff' };
+        ctx.strokeStyle = spec.primary; ctx.globalAlpha = 0.68; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.ellipse(0, 1.2, 9.2, 3.8, 0, 0, 7); ctx.stroke();
+        if (mKey === 'legend_taixuan_runes') {
+          for (let i = 0; i < 5; i++) {
+            const a = t * 1.4 + i * Math.PI * 2 / 5;
+            ctx.fillStyle = spec.accent;
+            ctx.fillRect(Math.cos(a) * 9.5 - 1, -7 + Math.sin(a) * 3.5, 2, 2.5);
+          }
+        } else if (mKey === 'legend_six_meridian') {
+          const cols = ['#ff5252', '#ffd740', '#69f0ae', '#40c4ff', '#7c4dff', '#ff4081'];
+          for (let i = 0; i < 6; i++) {
+            const a = t * 1.8 + i * Math.PI / 3;
+            ctx.fillStyle = cols[i];
+            ctx.beginPath(); ctx.arc(Math.cos(a) * 9.5, -8 + Math.sin(a) * 3.8, 1.3, 0, 7); ctx.fill();
+          }
+        } else if (mKey === 'legend_dragon_elephant') {
+          ctx.strokeStyle = spec.secondary;
+          ctx.beginPath(); ctx.arc(-6, -9, 3.2, 0, 7); ctx.arc(6, -9, 3.2, 0, 7); ctx.stroke();
+        } else if (mKey === 'legend_vajra_bell') {
+          ctx.strokeStyle = spec.primary;
+          ctx.beginPath(); ctx.arc(0, -9, 10.8, Math.PI * 0.95, Math.PI * 2.05); ctx.stroke();
+        } else if (mKey === 'legend_eight_desolations') {
+          for (let i = 0; i < 8; i++) {
+            const a = t * 1.2 + i * Math.PI / 4;
+            ctx.beginPath(); ctx.moveTo(Math.cos(a) * 8, 1 + Math.sin(a) * 3); ctx.lineTo(Math.cos(a) * 11.5, 1 + Math.sin(a) * 4.5); ctx.stroke();
+          }
+        } else if (mKey === 'legend_celestial_mandate') {
+          ctx.strokeStyle = spec.secondary;
+          for (const px2 of [-7, 7]) {
+            ctx.beginPath(); ctx.moveTo(px2, 1); ctx.lineTo(px2, -13); ctx.stroke();
+          }
+        } else if (mKey === 'legend_ashura_blood') {
+          ctx.strokeStyle = spec.primary;
+          ctx.beginPath(); ctx.arc(0, -6, 9.5, 0.2, Math.PI - 0.2); ctx.stroke();
+        } else if (mKey === 'legend_gu_monarch') {
+          for (let i = 0; i < 4; i++) {
+            const a = t * 2 + i * Math.PI / 2;
+            ctx.fillStyle = i % 2 ? spec.primary : spec.secondary;
+            ctx.beginPath(); ctx.arc(Math.cos(a) * 9, -6 + Math.sin(a) * 4, 1.4, 0, 7); ctx.fill();
+          }
+        } else if (mKey === 'legend_nine_yin_mirror') {
+          ctx.strokeStyle = spec.accent;
+          ctx.beginPath(); ctx.arc(0, -14, 4.2, -Math.PI * 0.8, Math.PI * 0.2); ctx.stroke();
+        } else if (mKey === 'legend_little_li_dagger') {
+          const a = t * 2.4;
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(Math.cos(a) * 9 - 2, -11 + Math.sin(a) * 3); ctx.lineTo(Math.cos(a) * 9 + 2, -11 + Math.sin(a) * 3); ctx.stroke();
+        } else if (mKey === 'legend_shennong_crucible') {
+          for (let i = 0; i < 4; i++) {
+            const a = t * 1.6 + i * Math.PI / 2;
+            ctx.fillStyle = i % 2 ? spec.primary : spec.secondary;
+            ctx.beginPath(); ctx.arc(Math.cos(a) * 8.5, -5 - ((t * 5 + i * 3) % 9), 1.5, 0, 7); ctx.fill();
+          }
+        } else if (mKey === 'legend_sovereign_edict') {
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.4;
+          ctx.strokeRect(-4.2, -16.5, 8.4, 4.2);
+          for (let i = 0; i < 4; i++) {
+            const a = t * 1.5 + i * Math.PI / 2;
+            ctx.fillStyle = i % 2 ? spec.primary : spec.secondary;
+            ctx.fillRect(Math.cos(a) * 9.5 - 1.2, -6 + Math.sin(a) * 3.5, 2.4, 3.2);
+          }
+        }
       }
       ctx.restore();
     },
@@ -1936,10 +2142,13 @@
       const hs = b.hairStyle || '';
       const wpnObj = (n && n.equip && n.equip.WEAPON) ? n.equip.WEAPON : null;
       const eqW = wpnObj ? (wpnObj.visualKey || wpnObj.visualSubtype || wpnObj.type || wpnObj.id || '') : '';
-      const eqA = (n && n.equip && n.equip.ARMOR) ? (n.equip.ARMOR.id || '') : '';
+      const armObj = (n && n.equip && n.equip.ARMOR) ? n.equip.ARMOR : null;
+      const accObj = (n && n.equip && n.equip.ACCESSORY) ? n.equip.ACCESSORY : null;
+      const eqA = armObj ? (armObj.visualKey || armObj.id || '') : '';
+      const eqAcc = accObj ? (accObj.visualKey || accObj.id || '') : '';
       const cPath = (n && n.cult) ? n.cult.path : 'MORTAL';
       const wUsable = !!(wpnObj && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
-      const sig = `${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${eqW}|${wUsable ? 1 : 0}|${eqA}`;
+      const sig = `${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${eqW}|${wUsable ? 1 : 0}|${eqA}|${eqAcc}`;
 
       if (this.apCache && n && n.id) {
         const cached = this.apCache.get(n.id);
@@ -1968,7 +2177,9 @@
         weaponSubtype: wpnObj && wpnObj.visualSubtype ? wpnObj.visualSubtype : null,
         weaponPresentation: wpnObj && wpnObj.presentationMode ? wpnObj.presentationMode : 'held',
         weaponUsable: wUsable,
-        hasArmor: !!(n && n.equip && n.equip.ARMOR)
+        hasArmor: !!armObj,
+        armorVisualKey: armObj && armObj.visualKey ? armObj.visualKey : null,
+        accessoryVisualKey: accObj && accObj.visualKey ? accObj.visualKey : null
       };
 
       if (this.apCache && n && n.id) {
@@ -2087,10 +2298,42 @@
       ctx.lineTo(2.5, -13.1 + by);
       ctx.stroke();
 
-      // Armor shoulder/chest trim when armor is equipped
+      // Armor shoulder/chest trim & Legendary Armor/Accessory Visual Overlays
       if (ap.hasArmor) {
-        ctx.fillStyle = 'rgba(210,218,226,0.55)';
-        ctx.fillRect(-3.8 * ap.slim, -12.8 + by, 7.6 * ap.slim, 2.8);
+        ctx.fillStyle = ap.armorVisualKey === 'vis_immortal_tortoise_plate' ? 'rgba(73,80,87,0.82)'
+          : ap.armorVisualKey === 'vis_shadow_kirin_cuirass' ? 'rgba(123,44,191,0.72)'
+          : ap.armorVisualKey === 'vis_celestial_crane_robe' ? 'rgba(144,224,239,0.75)'
+          : 'rgba(210,218,226,0.55)';
+        ctx.fillRect(-4.1 * ap.slim, -13.0 + by, 8.2 * ap.slim, 3.0);
+        if (ap.armorVisualKey === 'vis_celestial_crane_robe') {
+          ctx.strokeStyle = '#90e0ef'; ctx.lineWidth = 0.9;
+          ctx.beginPath(); ctx.arc(0, -10.5 + by, 6.2, Math.PI * 0.85, Math.PI * 2.15); ctx.stroke();
+        } else if (ap.armorVisualKey === 'vis_shadow_kirin_cuirass') {
+          ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 0.85;
+          ctx.beginPath(); ctx.moveTo(-4.4, -12.8 + by); ctx.lineTo(0, -10.2 + by); ctx.lineTo(4.4, -12.8 + by); ctx.stroke();
+        } else if (ap.armorVisualKey === 'vis_immortal_tortoise_plate') {
+          ctx.strokeStyle = '#00f5d4'; ctx.lineWidth = 0.95;
+          ctx.strokeRect(-3.6 * ap.slim, -12.6 + by, 7.2 * ap.slim, 4.2);
+        }
+      }
+      if (ap.accessoryVisualKey) {
+        ctx.save();
+        if (ap.accessoryVisualKey === 'vis_bodhi_starlight_beads') {
+          ctx.fillStyle = '#ffd166';
+          for (let bi = -2; bi <= 2; bi++) {
+            ctx.beginPath(); ctx.arc(bi * 1.3, -11.6 + Math.abs(bi) * 0.4 + by, 0.75, 0, 7); ctx.fill();
+          }
+        } else if (ap.accessoryVisualKey === 'vis_samsara_karma_ring') {
+          ctx.strokeStyle = '#e0aaff'; ctx.lineWidth = 0.9;
+          ctx.beginPath(); ctx.arc(4.8, -8.5 + by, 2.1, 0, 7); ctx.stroke();
+        } else if (ap.accessoryVisualKey === 'vis_taichi_heaven_seal') {
+          ctx.fillStyle = '#f4a261';
+          ctx.fillRect(-3.2, -8.2 + by, 2.2, 2.8);
+        } else if (ap.accessoryVisualKey === 'vis_dragon_phoenix_bangle') {
+          ctx.strokeStyle = '#2ec4b6'; ctx.lineWidth = 1.0;
+          ctx.beginPath(); ctx.arc(-4.5, -8.8 + by, 1.9, 0, 7); ctx.stroke();
+        }
+        ctx.restore();
       }
 
       // Rank Sash & Hanging Jade Pendant (玉佩)
@@ -2337,6 +2580,21 @@
         ctx.fillRect(hx - 1.2, hy - 3.2, 4.2, 2.4);
         ctx.strokeStyle = '#2ec4b6'; ctx.lineWidth = 1.1;
         ctx.beginPath(); ctx.arc(hx + 2, hy - 2, 3.6, -1.2, 1.2); ctx.stroke();
+      } else if (vk === 'vis_jiuxiao_phoenix_zither') {
+        ctx.fillStyle = '#ff9e00';
+        ctx.fillRect(hx - 2.5, hy - 2.2, 8.2, 2.8);
+        ctx.strokeStyle = '#72efdd'; ctx.lineWidth = 0.9;
+        ctx.beginPath(); ctx.moveTo(hx - 2, hy - 1.2); ctx.lineTo(hx + 5.2, hy - 1.2); ctx.moveTo(hx - 2, hy - 0.2); ctx.lineTo(hx + 5.2, hy - 0.2); ctx.stroke();
+      } else if (vk === 'vis_chunqiu_judgment_brush') {
+        ctx.strokeStyle = '#52b788'; ctx.lineWidth = 2.0;
+        ctx.beginPath(); ctx.moveTo(hx - 1.5, hy + 2); ctx.lineTo(hx + (activeCombat ? 7.5 : -3.5), hy - 7.5); ctx.stroke();
+        ctx.fillStyle = '#ef476f';
+        ctx.beginPath(); ctx.arc(hx + (activeCombat ? 8.2 : -4.2), hy - 8.2, 1.9, 0, 7); ctx.fill();
+      } else if (vk === 'vis_tiancan_fate_whip') {
+        ctx.strokeStyle = '#ff4d6d'; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx + 6, hy - 7, hx + (activeCombat ? 11.5 : -4.5), hy - 2.5); ctx.stroke();
+        ctx.strokeStyle = '#9b5de5'; ctx.lineWidth = 1.0;
+        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx + 4, hy - 9, hx + (activeCombat ? 10 : -3.5), hy - 6.5); ctx.stroke();
       }
       ctx.restore();
     },
@@ -2459,6 +2717,34 @@
           ctx.strokeStyle = '#e8f0f8';
           ctx.lineWidth = 1.4;
           ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + 5.5, hy - 4.5); ctx.stroke();
+        } else if (wType === 'ZITHER') {
+          // Guqin / Zither with harmonic strings
+          ctx.fillStyle = '#8d5b4c';
+          ctx.fillRect(hx - 2, hy - 2, 7.5, 2.5);
+          ctx.strokeStyle = '#80ffdb';
+          ctx.lineWidth = 0.8;
+          ctx.beginPath(); ctx.moveTo(hx - 1.5, hy - 0.8); ctx.lineTo(hx + 5, hy - 0.8); ctx.stroke();
+        } else if (wType === 'BRUSH') {
+          // Talisman / Calligraphy Brush with cinnabar tip
+          ctx.strokeStyle = '#52796f';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath(); ctx.moveTo(hx - 1, hy + 1.5); ctx.lineTo(hx + 6.5, hy - 6.5); ctx.stroke();
+          ctx.fillStyle = '#e63946';
+          ctx.beginPath(); ctx.arc(hx + 7.2, hy - 7.2, 1.6, 0, 7); ctx.fill();
+        } else if (wType === 'WHIP') {
+          // Coiled / Sweeping Silk Whip & Spirit Thread
+          ctx.strokeStyle = '#c77dff';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx + 5.5, hy - 6.5, hx + 10.5, hy - 2); ctx.stroke();
+        } else if (wType === 'BOW') {
+          // Curved Warbow
+          ctx.strokeStyle = '#bc6c25';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(hx + 2, hy - 2.5, 5.5, -1.1, 1.1); ctx.stroke();
+        } else if (wType === 'FOCUS') {
+          // Spirit Focus Orb / Fan
+          ctx.fillStyle = '#48cae4';
+          ctx.beginPath(); ctx.arc(hx + 2.5, hy - 2.5, 2.4, 0, 7); ctx.fill();
         } else {
           // Straight Double-Edged Sword (剑)
           ctx.strokeStyle = weapon ? '#e8f2fc' : '#b8c0c8';
@@ -2994,6 +3280,56 @@
       c.fill();
     }
 
+    // 6B. Equipped Weapon / Legendary Weapon Shoulder Silhouette in Portrait
+    if (ap.weaponType && ap.weaponUsable) {
+      c.save();
+      const isLegW = !!ap.weaponVisualKey;
+      c.strokeStyle = isLegW ? '#ffd166' : '#cfd8dc';
+      c.lineWidth = isLegW ? 2.0 : 1.4;
+      if (ap.weaponType === 'ZITHER') {
+        c.fillStyle = isLegW ? '#ff9e00' : '#8d5b4c';
+        c.fillRect(29, 22, 7, 14);
+        c.strokeRect(29, 22, 7, 14);
+      } else if (ap.weaponType === 'BRUSH') {
+        c.beginPath(); c.moveTo(31, 35); c.lineTo(36, 16); c.stroke();
+        c.fillStyle = '#ef476f'; c.beginPath(); c.arc(36.3, 15, 2.1, 0, 7); c.fill();
+      } else if (ap.weaponType === 'WHIP') {
+        c.strokeStyle = isLegW ? '#ff4d6d' : '#c77dff';
+        c.beginPath(); c.arc(32, 28, 5.5, -1.2, 1.8); c.stroke();
+      } else if (ap.weaponType === 'BOW') {
+        c.beginPath(); c.arc(31, 24, 9, -1.1, 1.1); c.stroke();
+      } else {
+        c.beginPath(); c.moveTo(30, 34); c.lineTo(36, 12); c.stroke();
+      }
+      c.restore();
+    }
+    if (ap.armorVisualKey || ap.accessoryVisualKey) {
+      c.save();
+      if (ap.armorVisualKey === "vis_celestial_crane_robe") {
+        c.strokeStyle = "#90e0ef"; c.lineWidth = 1.4;
+        c.beginPath(); c.arc(20, 32, 11, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
+      } else if (ap.armorVisualKey === "vis_shadow_kirin_cuirass") {
+        c.strokeStyle = "#c77dff"; c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(10, 31); c.lineTo(20, 36); c.lineTo(30, 31); c.stroke();
+      } else if (ap.armorVisualKey === "vis_immortal_tortoise_plate") {
+        c.strokeStyle = "#00f5d4"; c.lineWidth = 1.5;
+        c.strokeRect(11, 30, 18, 7);
+      }
+      if (ap.accessoryVisualKey === "vis_bodhi_starlight_beads") {
+        c.fillStyle = "#ffd166";
+        for (let bi = -2; bi <= 2; bi++) { c.beginPath(); c.arc(20 + bi * 2.5, 31 + Math.abs(bi) * 0.6, 1.1, 0, 7); c.fill(); }
+      } else if (ap.accessoryVisualKey === "vis_samsara_karma_ring") {
+        c.strokeStyle = "#e0aaff"; c.lineWidth = 1.2;
+        c.beginPath(); c.arc(8, 28, 3.2, 0, 7); c.stroke();
+      } else if (ap.accessoryVisualKey === "vis_taichi_heaven_seal") {
+        c.fillStyle = "#f4a261"; c.fillRect(6, 30, 4, 5);
+      } else if (ap.accessoryVisualKey === "vis_dragon_phoenix_bangle") {
+        c.strokeStyle = "#2ec4b6"; c.lineWidth = 1.3;
+        c.beginPath(); c.arc(8, 32, 3.0, 0, 7); c.stroke();
+      }
+      c.restore();
+    }
+
     // 7. Rank Coronet / Headpiece
     if (n.rank === 6) {
       c.fillStyle = '#f2cf52';
@@ -3024,6 +3360,40 @@
   };
 
   function ctx_stroke(c) { c.stroke(); }
+
+  R.describeActiveLegendaryVisuals = n => {
+    if (!n || !n.cult) return { weaponVisualKey: null, weaponPresentation: null, armorVisualKey: null, accessoryVisualKey: null, activePassiveAuras: [], activeMantraAura: null, castMotifs: [] };
+    const wpn = n.equip && n.equip.WEAPON;
+    const arm = n.equip && n.equip.ARMOR;
+    const acc = n.equip && n.equip.ACCESSORY;
+    const wUsable = !!(wpn && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpn)));
+    const M = g.MARTIAL;
+    const unequipped = new Set(Array.isArray(n.passiveUnequipped) ? n.passiveUnequipped : []);
+    const pIds = (Array.isArray(n.passiveLoadout) && n.passiveLoadout.length) ? n.passiveLoadout : n.cult.techs;
+    const activePassives = (pIds || [])
+      .filter(id => !unequipped.has(id) && n.cult.techs.includes(id))
+      .map(id => CULT.tech(id))
+      .filter(t => t && (t.passive || t.cat === 'PASSIVE') && (!M || (M.isTechCompatible(n, t) && M.conditionMatches(n, t))))
+      .slice(0, 3);
+    const activePassiveAuras = activePassives.filter(t => t && t.legendary && t.fxKind).map(t => ({ id: t.id, fxKind: t.fxKind, motif: LEGENDARY_MOTIFS[t.fxKind] || null }));
+    const mantraObj = n.cult.mantra ? CULT.tech(n.cult.mantra) : null;
+    const activeMantraAura = (mantraObj && mantraObj.legendary && mantraObj.fxKind)
+      ? { id: mantraObj.id, fxKind: mantraObj.fxKind, motif: LEGENDARY_MOTIFS[mantraObj.fxKind] || null }
+      : null;
+    const castMotifs = (n.cult.techs || [])
+      .map(id => CULT.tech(id))
+      .filter(t => t && t.legendary && t.fxKind && !(t.passive || t.cat === 'PASSIVE'))
+      .map(t => ({ id: t.id, fxKind: t.fxKind, motif: LEGENDARY_MOTIFS[t.fxKind] || null }));
+    return {
+      weaponVisualKey: (wpn && wUsable && wpn.visualKey) ? wpn.visualKey : null,
+      weaponPresentation: (wpn && wUsable && wpn.presentationMode) ? wpn.presentationMode : null,
+      armorVisualKey: (arm && arm.visualKey) ? arm.visualKey : null,
+      accessoryVisualKey: (acc && acc.visualKey) ? acc.visualKey : null,
+      activePassiveAuras,
+      activeMantraAura,
+      castMotifs
+    };
+  };
 
   R.PATH_COL = PATH_COL;
   g.Render = R;

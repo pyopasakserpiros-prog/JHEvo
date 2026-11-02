@@ -262,7 +262,7 @@ check('Item 8: Yitian shield-sever proc, Dagou redirection proc, and weapon bala
   assert(procDagou && procDagou.triggered && procDagou.redirectedDmg > 0, 'Dagou Staff must redirect damage back to attacker');
 
   const bench = g.VC.benchmarkWeaponBalance();
-  assert.strictEqual(bench.length, 11, 'benchmark must cover all 11 legendary weapons');
+  assert.strictEqual(bench.length, 14, 'benchmark must cover all 14 legendary weapons');
   const ratios = bench.map(x => x.powerRatio);
   const spread = Math.max(...ratios) / Math.min(...ratios);
   assert(spread < 2.2, `legendary weapon power ratio spread must be balanced (<2.2), got ${spread}`);
@@ -287,9 +287,10 @@ check('Additional Requirement: Wuxia Item Icon Atlas (64 cells, 11 Legendary Wea
   assert(fs.existsSync(atlasPath), 'docs/ITEM_ICON_ATLAS_MAP.json must exist');
   assert(fs.existsSync(pngPath), 'assets/wuxia_item_atlas.png must exist');
   const meta = JSON.parse(fs.readFileSync(atlasPath, 'utf8'));
-  assert.strictEqual(meta.totalCells, 72, 'atlas must have 72 cells (64 base + 8 fishing/river cells)');
-  assert.strictEqual(meta.legendaryWeaponsCount, 11, 'must have 11 bespoke legendary weapon cells');
-  assert.strictEqual(meta.legendaryTechniquesCount, 22, 'must have 22 bespoke legendary technique cells');
+  assert.strictEqual(meta.totalCells, 104, 'atlas must have 104 cells (64 base + 8 fishing/river + 16 v2.0.15 + 16 v2.0.16 expansion cells)');
+  assert.strictEqual(meta.legendaryWeaponsCount, 14, 'must have 14 bespoke legendary weapon cells');
+  assert.strictEqual(meta.legendaryTechniquesCount, 31, 'must have 31 bespoke legendary technique cells');
+  assert.strictEqual(meta.legendaryRelicsCount, 7, 'must have 7 bespoke legendary armor & accessory cells');
   for (const c of meta.cells) {
     assert.strictEqual(c.borderBleedPixels, 0, `cell ${c.cell} (${c.key}) must have 0 border bleed pixels`);
     assert(c.nonEmptyPixels >= 400, `cell ${c.cell} (${c.key}) must have non-empty artwork`);
@@ -304,7 +305,7 @@ check('Additional Requirement: Wuxia Item Icon Atlas (64 cells, 11 Legendary Wea
     seenLegCells.add(cell.cell);
   }
   const legTechs = g.VC.CLUE_TEMPLATES.filter(t => t.category === 'LEGENDARY_ART').map(t => t.targetId);
-  assert.strictEqual(legTechs.length, 22, 'must have 22 legendary techniques in catalog');
+  assert.strictEqual(legTechs.length, 31, 'must have 31 legendary techniques in catalog');
   for (const tid of legTechs) {
     const cell = g.UI.resolveItemAtlasCell({ kind: 'TECH_MANUAL', id: tid, legendary: true });
     assert(cell && cell.key === tid, `Legendary tech ${tid} must resolve to its dedicated cell`);

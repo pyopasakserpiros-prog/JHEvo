@@ -35,7 +35,7 @@ const items = Object.values(ECO.itemById || {});
 check(items.length > 0, 'ECO.itemById must not be empty');
 
 const itemIds = new Set();
-const validWeaponTypes = new Set(['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS']);
+const validWeaponTypes = new Set(['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP']);
 
 for (const item of items) {
   check(item.id && typeof item.id === 'string', `Item missing valid id: ${JSON.stringify(item)}`);
@@ -105,7 +105,7 @@ const techniques = Array.isArray(JD.MARTIAL?.techniques)
   : Object.values(JD.MARTIAL?.techniques || {});
 check(techniques.length > 0, 'JD.MARTIAL.techniques must not be empty');
 
-const validPaths = new Set([...Object.keys(JD.CULT.paths), 'ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'CONFUCIAN', 'EXTERNAL']);
+const validPaths = new Set([...Object.keys(JD.CULT.paths), 'ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'CONFUCIAN', 'EXTERNAL']);
 
 for (const tech of techniques) {
   check(tech.id && typeof tech.id === 'string', `Technique missing valid id: ${JSON.stringify(tech)}`);

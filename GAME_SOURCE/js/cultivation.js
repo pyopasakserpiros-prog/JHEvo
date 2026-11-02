@@ -1893,6 +1893,20 @@
   JD.TECH.techniques.forEach(t => { TECH_BY_ID[t.id] = t; if (Array.isArray(t.moveDefs)) t.moveDefs.forEach(m => { MOVE_PARENT_BY_ID[m.id] = t; }); });
   JD.TECH.mantras.forEach(t => { TECH_BY_ID[t.id] = t; if (Array.isArray(t.moveDefs)) t.moveDefs.forEach(m => { MOVE_PARENT_BY_ID[m.id] = t; }); });
   CULT.tech = id => TECH_BY_ID[id] || MOVE_PARENT_BY_ID[id];
+  CULT.registerDynamicTech = t => {
+    if (!t || !t.id) return null;
+    TECH_BY_ID[t.id] = t;
+    if (Array.isArray(t.moveDefs)) {
+      t.moveDefs.forEach(m => { if (m && m.id) MOVE_PARENT_BY_ID[m.id] = t; });
+    }
+    if (JD.TECH && Array.isArray(JD.TECH.techniques) && !JD.TECH.techniques.some(x => x.id === t.id)) {
+      JD.TECH.techniques.push(t);
+    }
+    if (JD.MARTIAL && Array.isArray(JD.MARTIAL.techniques) && !JD.MARTIAL.techniques.some(x => x.id === t.id)) {
+      JD.MARTIAL.techniques.push(t);
+    }
+    return t;
+  };
 
   CULT.qiMax = npc => {
     if (!npc || !npc.cult) return 0;
@@ -2044,7 +2058,8 @@
         }
       }
     }
-    return staticBase * rest * toxic * dev * pill * buffMult * (env || 1);
+    const imprintMult = (npc.mentorImprint && Number.isFinite(npc.mentorImprint.cultRateBonus)) ? (1 + npc.mentorImprint.cultRateBonus) : 1;
+    return staticBase * rest * toxic * dev * pill * buffMult * imprintMult * (env || 1);
   };
   CULT.gain = (npc, pts, W, sourceTag) => {
     const c = npc.cult; if (!c) return;
@@ -2127,7 +2142,8 @@
     if (g.BN) p += g.BN.chanceMod(npc);
     if (CULT.isAncestralBlessingActive(npc, prep && Number.isFinite(prep.now) ? prep.now : null)) p += (npc.ancestralBlessing.breakthroughBonus || 0);
     if (CULT.petBreakthroughBonus) p += CULT.petBreakthroughBonus(npc);
-    if (g.STATS && g.STATS.hasBuff && (g.STATS.hasBuff(npc, "meridianUnblock", prep && prep.now) || g.STATS.hasBuff(npc, "clarityLotus", prep && prep.now))) p += 0.05;
+    if (g.STATS && g.STATS.hasBuff && (g.STATS.hasBuff(npc, "meridianUnblock", prep && prep.now) || g.STATS.hasBuff(npc, "clarityLotus", prep && prep.now) || g.STATS.hasBuff(npc, "mentorGuidance", prep && prep.now))) p += 0.06;
+    if (npc.mentorImprint && Number.isFinite(npc.mentorImprint.btBonus)) p += npc.mentorImprint.btBonus;
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
@@ -2285,9 +2301,9 @@
     const tech = (a && typeof a === 'object') ? a : (b && typeof b === 'object' ? b : null);
     const npcSub = typeof a === 'string' ? a : (typeof b === 'string' ? b : null);
     if (!tech || !tech.sub) return true;
+    if (tech.legendary) return true;
     if (tech.sub === npcSub) return true;
     if (strictPrimarySub) return false;
-    if (tech.legendary) return true;
     if (Array.isArray(tech.compatibleSubs) && tech.compatibleSubs.includes(npcSub)) return true;
     if (!CULT.isExclusiveSubpathTech(tech)) return true;
     return false;
@@ -2320,7 +2336,7 @@
     return library.filter(id => {
       const t = TECH_BY_ID[id];
       if (!t || t.innateOnly || (t.reqTier || t.tier) > effSt || c.techs.includes(id)) return false;
-      const pathOk = t.path === 'ANY' || t.path === c.path || (!strictPrimary && (t.legendary || allowCrossPath || !CULT.isExclusiveSubpathTech(t)));
+      const pathOk = t.legendary || t.isSectHeritage || t.path === 'ANY' || t.path === c.path || (!strictPrimary && (allowCrossPath || !CULT.isExclusiveSubpathTech(t)));
       if (!pathOk || !CULT.isSubCompatible(t, c.sub, strictPrimary)) return false;
       if (/_MANTRA$|^QI_MANTRA$/.test(t.cat)) return false;
       if (/FORBIDDEN/.test(t.cat) && !t.legendary) {
@@ -2336,8 +2352,8 @@
     const base = 90 * (t.tier + 0.5) * (1 + t.tier * 0.25);
     if (!npc || !npc.h) return Math.round(base);
     const tc = (g.MARTIAL && g.MARTIAL.resolveTechCompatibility) ? g.MARTIAL.resolveTechCompatibility(npc, t) : null;
-    const pathSubStudyMult = tc ? tc.studySpeedMult : 1;
-    return Math.max(25, Math.round(base / Math.max(0.50, pathSubStudyMult)));
+    const pathSubStudyMult = (tc ? tc.studySpeedMult : 1) * (t && t.isSectHeritage ? 1.25 : 1);
+    return Math.max(20, Math.round(base / Math.max(0.50, pathSubStudyMult)));
   };
   CULT.maxTechs = npc => 2 + (npc.cult ? Math.round(CULT.normalizedStage(npc)) : 0);
 

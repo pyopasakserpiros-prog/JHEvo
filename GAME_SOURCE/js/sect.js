@@ -1213,7 +1213,7 @@
       return { ok: false, reason: 'cooldown', rivalSectId: rival.id, cooldownUntilDay: rival.lastEnvoyDay + (opts.cooldownDays || 15) };
     }
     rival.lastEnvoyDay = W.day || 0;
-    const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'];
+    const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'];
     const envoyWeapon = opts.envoyWeapon || wTypes[Math.floor((W.day || 0) + (rival.power || 1)) % wTypes.length];
     const champPow = CULT.power(champ);
     const envoyPower = opts.envoyPower != null ? opts.envoyPower : Math.max(40, Math.round(champPow * clamp(0.78 + (rival.power || 2) * 0.06, 0.72, 1.12)));
@@ -4481,8 +4481,577 @@
     if (W.log) W.log('sect', '🏮 สำนักเริ่มเตรียมค่ายกลคุ้มภัยด่านเคราะห์สวรรค์ให้ ' + attempt.candidateNameTh + ' · กำหนดพิธีในอีก 3 วัน · โอกาสสำเร็จ ' + Math.round(chance * 100) + '%', [candidate.id].concat(attempt.supportIds));
     return { ok: true, attempt };
   };
+
+  /* ======================= v2.0.16 Pillar B: Universal Mentorship, Qi Transmission & Custom Sect Arts ======================= */
+  const MENTORSHIP = {
+    MAX_APPRENTICES: 3,
+    MIN_MENTOR_STAGE: 3
+  };
+  MENTORSHIP.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.mentorship || typeof W.sect.mentorship !== 'object') {
+      W.sect.mentorship = { bonds: {}, transmissions: [], heritageArts: [], seq: 0 };
+    }
+    const ms = W.sect.mentorship;
+    if (!ms.bonds || typeof ms.bonds !== 'object') ms.bonds = {};
+    if (!Array.isArray(ms.transmissions)) ms.transmissions = [];
+    if (!Array.isArray(ms.heritageArts)) ms.heritageArts = [];
+    if (!Number.isFinite(ms.seq) || ms.seq < 0) ms.seq = 0;
+    // Re-register any synthesized Custom Sect Heritage Arts into CULT / JD.MARTIAL on load
+    if (CULT && CULT.registerDynamicTech) {
+      for (const art of ms.heritageArts) {
+        if (art && art.id) CULT.registerDynamicTech(art);
+      }
+    }
+    return ms;
+  };
+
+  MENTORSHIP.resolveNpc = (W, v) => typeof v === 'string' ? (W && W.byId && W.byId[v]) : v;
+
+  MENTORSHIP.isMentorPair = (a, b) => {
+    if (!a || !b) return false;
+    return a.mentorId === b.id || b.mentorId === a.id ||
+      (Array.isArray(a.apprenticeIds) && a.apprenticeIds.includes(b.id)) ||
+      (Array.isArray(b.apprenticeIds) && b.apprenticeIds.includes(a.id));
+  };
+
+  MENTORSHIP.formBond = (W, mentorOrId, discipleOrId, opts) => {
+    opts = opts || {};
+    const ms = MENTORSHIP.ensure(W);
+    const mentor = MENTORSHIP.resolveNpc(W, mentorOrId);
+    const disciple = MENTORSHIP.resolveNpc(W, discipleOrId);
+    if (!ms || !mentor || !disciple || mentor === disciple || mentor.dead || disciple.dead) {
+      return { ok: false, reason: 'invalid-pair' };
+    }
+    if (!mentor.cult || !disciple.cult) return { ok: false, reason: 'not-cultivator' };
+    const mEq = CULT.equivalentStage ? CULT.equivalentStage(mentor) : (mentor.cult.stage || 1);
+    const dEq = CULT.equivalentStage ? CULT.equivalentStage(disciple) : (disciple.cult.stage || 1);
+    if (!opts.force && mEq < MENTORSHIP.MIN_MENTOR_STAGE && (mentor.rank || 0) < 3) {
+      return { ok: false, reason: 'mentor-stage-too-low' };
+    }
+    if (!opts.force && mEq <= dEq && (mentor.rank || 0) <= (disciple.rank || 0)) {
+      return { ok: false, reason: 'mentor-not-senior' };
+    }
+    mentor.apprenticeIds = Array.isArray(mentor.apprenticeIds) ? mentor.apprenticeIds.filter(id => W.byId && W.byId[id] && !W.byId[id].dead) : [];
+    if (!opts.force && !mentor.apprenticeIds.includes(disciple.id) && mentor.apprenticeIds.length >= MENTORSHIP.MAX_APPRENTICES) {
+      return { ok: false, reason: 'mentor-apprentice-cap' };
+    }
+    disciple.mentorId = mentor.id;
+    disciple.mentor = mentor.id;
+    if (!mentor.apprenticeIds.includes(disciple.id)) mentor.apprenticeIds.push(disciple.id);
+    mentor.h.life = mentor.h.life || {};
+    mentor.h.life.family = mentor.h.life.family || {};
+    mentor.h.life.family.disciples = Array.isArray(mentor.h.life.family.disciples) ? mentor.h.life.family.disciples : [];
+    if (!mentor.h.life.family.disciples.includes(disciple.id)) mentor.h.life.family.disciples.push(disciple.id);
+
+    const samePath = mentor.cult.path === disciple.cult.path;
+    const sameSub = samePath && mentor.cult.sub && mentor.cult.sub !== 'NONE' && mentor.cult.sub === disciple.cult.sub;
+    const resonanceKind = sameSub ? 'DIRECT_SUBPATH_LINEAGE' : samePath ? 'SAME_PATH_LINEAGE' : 'CROSS_DAO_SYNTHESIS';
+    const bondRec = {
+      id: 'MBOND_' + mentor.id + '_' + disciple.id,
+      mentorId: mentor.id,
+      mentorNameTh: HC.fullName(mentor),
+      discipleId: disciple.id,
+      discipleNameTh: HC.fullName(disciple),
+      mentorPath: mentor.cult.path,
+      disciplePath: disciple.cult.path,
+      resonanceKind,
+      sinceDay: W.day || 0,
+      coachingSessions: 0
+    };
+    ms.bonds[disciple.id] = bondRec;
+
+    const rm = SECT.rel(mentor, disciple.id);
+    const rd = SECT.rel(disciple, mentor.id);
+    rm.a = clamp((rm.a || 0) + 18, -100, 100); rm.t = clamp((rm.t ?? 40) + 20, 0, 100); rm.r = clamp((rm.r ?? 30) + 12, 0, 100); rm.bond = 'ศิษย์สายตรง';
+    rd.a = clamp((rd.a || 0) + 20, -100, 100); rd.t = clamp((rd.t ?? 40) + 24, 0, 100); rd.r = clamp((rd.r ?? 30) + 28, 0, 100); rd.g = clamp((rd.g || 0) + 22, 0, 100); rd.bond = 'อาจารย์สายตรง';
+
+    if (g.COG && g.COG.recordAspirationMilestone) {
+      g.COG.recordAspirationMilestone(W, mentor, 'รับ「' + HC.fullName(disciple) + '」เป็นศิษย์สายตรง', 12);
+      g.COG.recordAspirationMilestone(W, disciple, 'กราบ「' + HC.fullName(mentor) + '」เป็นอาจารย์สายตรง', 12);
+    }
+    if (!opts.quiet && W.log) {
+      W.log('disciple', '🍵 ' + HC.fullName(disciple) + ' ยกน้ำชากราบ「' + HC.fullName(mentor) + '」เป็นอาจารย์สายตรง (' + (sameSub ? 'สืบทอดสายย่อยโดยตรง' : samePath ? 'ร่วมวิถีบำเพ็ญ' : 'ผสานสัจธรรมข้ามวิถี') + ')', [mentor.id, disciple.id]);
+    }
+    return { ok: true, bond: bondRec };
+  };
+
+  MENTORSHIP.coachDisciple = (W, mentorOrId, discipleOrId) => {
+    const ms = MENTORSHIP.ensure(W);
+    const mentor = MENTORSHIP.resolveNpc(W, mentorOrId);
+    const disciple = MENTORSHIP.resolveNpc(W, discipleOrId);
+    if (!ms || !mentor || !disciple || mentor.dead || disciple.dead || !mentor.cult || !disciple.cult) {
+      return { ok: false, reason: 'invalid-pair' };
+    }
+    if (disciple.mentorId !== mentor.id) {
+      MENTORSHIP.formBond(W, mentor, disciple, { force: true, quiet: true });
+    }
+    const bond = ms.bonds[disciple.id];
+    if (bond) bond.coachingSessions = (bond.coachingSessions || 0) + 1;
+
+    const skKey = (g.AI && g.AI.pickTeachSkill) ? g.AI.pickTeachSkill(mentor, disciple) : 'SWORD';
+    const teachMult = 1.8 + HC.eff(mentor, 'social.teaching') / 80 + (mentor.cult.path === disciple.cult.path ? 0.35 : 0.20);
+    if (g.MARTIAL && g.MARTIAL.skillPractice) g.MARTIAL.skillPractice(disciple, skKey, 0.25, teachMult);
+    else HC.practice(disciple, skKey, 0.25, teachMult);
+
+    const th = CULT.threshold(disciple);
+    const gainPts = Math.max(4, Math.round(th * 0.06));
+    CULT.gain(disciple, gainPts, W, 'mentor_coaching');
+    if (disciple.cult.learning && disciple.cult.learning.need > 0) {
+      disciple.cult.learning.got = Math.min(disciple.cult.learning.need, (disciple.cult.learning.got || 0) + Math.max(6, Math.round(disciple.cult.learning.need * 0.12)));
+    }
+    disciple.h.state.heartDemon = Math.max(0, (disciple.h.state.heartDemon || 0) - 5);
+    disciple.h.state.stress = Math.max(0, (disciple.h.state.stress || 0) - 6);
+    if (g.STATS && g.STATS.applyNamedBuff) {
+      g.STATS.applyNamedBuff(disciple, 'mentorGuidance', 120, W.t || 0, { casterId: mentor.id });
+    }
+    mentor.stats = mentor.stats || {};
+    mentor.stats.taughtCount = (mentor.stats.taughtCount || 0) + 1;
+    mentor.merit = (mentor.merit || 0) + 2;
+    return { ok: true, skillTaught: skKey, cultGain: gainPts, bond };
+  };
+
+  MENTORSHIP.transmitQi = (W, mentorOrId, discipleOrId, opts) => {
+    opts = opts || {};
+    const ms = MENTORSHIP.ensure(W);
+    const mentor = MENTORSHIP.resolveNpc(W, mentorOrId);
+    let disciple = MENTORSHIP.resolveNpc(W, discipleOrId);
+    if (!disciple && mentor && Array.isArray(mentor.apprenticeIds) && mentor.apprenticeIds.length) {
+      disciple = W.byId && W.byId[mentor.apprenticeIds[0]];
+    }
+    if (!ms || !mentor || !disciple || mentor === disciple || disciple.dead || !mentor.cult || !disciple.cult) {
+      return { ok: false, reason: 'invalid-participants' };
+    }
+    if (mentor.qiTransmitted) return { ok: false, reason: 'already-transmitted' };
+    const mEq = CULT.equivalentStage ? CULT.equivalentStage(mentor) : (mentor.cult.stage || 1);
+    if (!opts.force && mEq < 4) return { ok: false, reason: 'mentor-stage-too-low' };
+
+    mentor.qiTransmitted = true;
+    const th = CULT.threshold(disciple);
+    const surgePts = Math.max(25, Math.round(th * (0.55 + Math.min(0.35, mEq * 0.04))));
+    disciple.cult.prog = (disciple.cult.prog || 0) + surgePts;
+
+    // Pass down 1 of the mentor's mastered non-innate techniques if disciple does not yet know it
+    let inheritedTechId = null;
+    for (const tid of (mentor.cult.techs || [])) {
+      const tObj = CULT.tech(tid);
+      if (tObj && !tObj.innateOnly && !disciple.cult.techs.includes(tid)) {
+        disciple.cult.techs.push(tid);
+        disciple.cult.tm = disciple.cult.tm || {};
+        disciple.cult.tm[tid] = Math.max(disciple.cult.tm[tid] || 0, 35);
+        inheritedTechId = tid;
+        break;
+      }
+    }
+
+    const imprint = {
+      mentorId: mentor.id,
+      mentorNameTh: HC.fullName(mentor),
+      path: mentor.cult.path,
+      sub: mentor.cult.sub || 'NONE',
+      statBonusPct: +(0.06 + Math.min(0.06, mEq * 0.008)).toFixed(3),
+      cultRateBonus: +(0.12 + Math.min(0.10, mEq * 0.012)).toFixed(3),
+      btBonus: +(0.06 + Math.min(0.06, mEq * 0.008)).toFixed(3),
+      inheritedTechId,
+      grantedDay: W.day || 0
+    };
+    disciple.mentorImprint = imprint;
+    disciple.h.state.heartDemon = 0;
+    disciple.h.state.hp = CULT.hpMax(disciple);
+    disciple.h.state.qi = CULT.qiMax(disciple);
+    if (g.STATS && g.STATS.applyNamedBuff) {
+      g.STATS.applyNamedBuff(disciple, 'mentorGuidance', 240, W.t || 0, { casterId: mentor.id });
+      g.STATS.applyNamedBuff(disciple, 'meridianUnblock', 180, W.t || 0, { casterId: mentor.id });
+      g.STATS.dirty(disciple);
+    }
+
+    if (!opts.dyingWish && !opts.preAscension && mentor.cult.stage > 1) {
+      mentor.cult.prog = Math.max(0, (mentor.cult.prog || 0) * 0.4);
+      if (g.STATS) g.STATS.dirty(mentor);
+    }
+
+    const rec = {
+      id: 'QITRANS_' + (++ms.seq),
+      day: W.day || 0,
+      mentorId: mentor.id,
+      mentorNameTh: HC.fullName(mentor),
+      discipleId: disciple.id,
+      discipleNameTh: HC.fullName(disciple),
+      surgePts,
+      inheritedTechId,
+      imprint
+    };
+    ms.transmissions.unshift(rec);
+    if (ms.transmissions.length > 30) ms.transmissions.length = 30;
+    if (!opts.quiet && W.log) {
+      W.log('breakthrough', '✨ พิธีถ่ายทอดพลังตบะ:「' + HC.fullName(mentor) + '」ถ่ายทอดปราณบริสุทธิ์และเจตจำนงยุทธ์ให้ศิษย์สายตรง「' + HC.fullName(disciple) + '」(+ตบะ ' + surgePts + (inheritedTechId ? ' · สืบทอดวิชา ' + (CULT.tech(inheritedTechId)?.nameTh || inheritedTechId) : '') + ')', [mentor.id, disciple.id]);
+    }
+    return { ok: true, transmission: rec, imprint };
+  };
+
+  MENTORSHIP.synthesizeSectArt = (W, creatorOrId, opts) => {
+    opts = opts || {};
+    const ms = MENTORSHIP.ensure(W);
+    const creator = MENTORSHIP.resolveNpc(W, creatorOrId) || (W && W.byId && W.byId[W.sect.masterId]);
+    if (!ms || !creator || creator.dead || !creator.cult) return { ok: false, reason: 'invalid-creator' };
+    const eqSt = CULT.equivalentStage ? CULT.equivalentStage(creator) : (creator.cult.stage || 1);
+    if (!opts.force && eqSt < 5 && (creator.rank || 0) < 4) {
+      return { ok: false, reason: 'creator-stage-too-low' };
+    }
+    const seq = ++ms.seq;
+    const id = opts.id || ('HERITAGE_SECT_ART_' + seq);
+    const wType = (g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(creator) : 'SWORD';
+    const validW = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'].includes(wType) ? wType : 'SWORD';
+    const pathId = creator.cult.path || 'XIAN';
+    const subId = creator.cult.sub || 'NONE';
+    const el = (creator.h && creator.h.root && creator.h.root.primaryElement) || (CULT.PATHS[pathId] && CULT.PATHS[pathId].element) || 'LIGHT_YANG';
+    const cleanEl = ['FIRE', 'WATER_ICE', 'LIGHTNING', 'EARTH_METAL', 'WOOD_LIFE', 'WIND', 'ASTRAL', 'YIN_SHADOW', 'LIGHT_YANG', 'BLOOD_DEMON'].includes(el) ? el : 'LIGHT_YANG';
+    const tier = clamp(Math.round(eqSt), 4, 7);
+    const sectShort = (W.sect && W.sect.name) ? W.sect.name.replace(/^สำนัก/, '') : 'เจียงหู';
+    const wNameTh = (JD.MARTIAL && JD.MARTIAL.types && JD.MARTIAL.types[validW]) || 'ยุทธ์';
+    const nameTh = opts.nameTh || ('คัมภีร์มรดก' + sectShort + '·เพลง' + wNameTh + 'สืบทอดเจตจำนง');
+    const arch = pathId === 'STRATEGY_GOVERNANCE' ? 'command'
+      : pathId === 'SAGE_SUPPORT' ? 'harmonize'
+      : pathId === 'KARMA_SAMSARA' ? 'karmaReversal'
+      : pathId === 'BEAST_SOVEREIGN' ? 'blink'
+      : 'burst';
+
+    const heritageTech = {
+      id,
+      nameTh,
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'ACTIVE',
+      combatArch: arch,
+      path: pathId,
+      sub: null,
+      preferredSubs: subId !== 'NONE' ? [subId] : [],
+      compatiblePaths: [pathId, 'ANY'],
+      tier,
+      reqTier: 1,
+      grade: tier >= 6 ? 'Legendary' : 'Exceptional',
+      legendary: tier >= 7,
+      isSectHeritage: true,
+      creatorId: creator.id,
+      creatorNameTh: HC.fullName(creator),
+      createdDay: W.day || 0,
+      power: tier * 68 + 40,
+      element: cleanEl,
+      elementalRole: 'ELEMENTAL',
+      elementProfile: { mode: 'INTRINSIC_SINGLE', primary: cleanEl, weights: { [cleanEl]: 1 } },
+      weaponTypes: [validW, 'FOCUS'],
+      armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+      requiresWeapon: false,
+      grantBuff: arch === 'command' ? 'tacticalCommand' : arch === 'harmonize' ? 'vitalRegen' : arch === 'blink' ? 'astralMirage' : 'fervorMight',
+      stages: [
+        { stage: 1, id: id + '_S1', nameTh: 'ขั้นต้น • ' + nameTh, reqMastery: 0, reqCultStage: Math.max(1, tier - 2), unlockMoveId: id + '_M1' },
+        { stage: 2, id: id + '_S2', nameTh: 'ขั้นสำเร็จ • ' + nameTh, reqMastery: 45, reqCultStage: Math.max(2, tier - 1), unlockMoveId: id + '_M2' }
+      ],
+      moveDefs: [
+        {
+          id: id + '_M1',
+          parentId: id,
+          stageReq: 1,
+          reqMastery: 0,
+          nameTh: 'ปฐมบทมรดก · ' + nameTh,
+          arch,
+          type: pathId === 'BODY' ? 'p' : 'm',
+          M: +(1.65 + tier * 0.12).toFixed(2),
+          hits: 2,
+          cd: 12,
+          wind: 3,
+          costPct: 6.5,
+          pen: 20,
+          heal: arch === 'harmonize' ? 0.22 : 0,
+          shield: (arch === 'command' || arch === 'blink') ? 0.18 : 0,
+          grantBuff: arch === 'command' ? 'tacticalCommand' : arch === 'harmonize' ? 'vitalRegen' : arch === 'blink' ? 'astralMirage' : 'fervorMight',
+          team: arch === 'command' || arch === 'harmonize',
+          aiRole: 'core'
+        },
+        {
+          id: id + '_M2',
+          parentId: id,
+          stageReq: 2,
+          reqMastery: 45,
+          nameTh: 'ปัจฉิมบทสืบทอด · ' + nameTh,
+          arch,
+          type: pathId === 'BODY' ? 'p' : 'm',
+          M: +(2.15 + tier * 0.15).toFixed(2),
+          hits: 3,
+          cd: 18,
+          wind: 3,
+          costPct: 9.5,
+          pen: 28,
+          aoe: true,
+          heal: arch === 'harmonize' ? 0.28 : 0,
+          shield: 0.20,
+          grantBuff: arch === 'command' ? 'tacticalCommand' : arch === 'harmonize' ? 'clarityLotus' : arch === 'blink' ? 'astralMirage' : 'fervorMight',
+          team: arch === 'command' || arch === 'harmonize',
+          aiRole: 'finisher'
+        }
+      ],
+      moves: ['ปฐมบทมรดก · ' + nameTh, 'ปัจฉิมบทสืบทอด · ' + nameTh],
+      descTh: 'คัมภีร์วิชาประจำสำนักที่บัญญัติขึ้นโดย「' + HC.fullName(creator) + '」ศิษย์ทุกวิถีในสำนักสามารถศึกษาได้เร็วขึ้น +25% พร้อมรับเจตจำนงยุทธ์ของปรมาจารย์ผู้ก่อตั้ง'
+    };
+
+    if (CULT && CULT.registerDynamicTech) CULT.registerDynamicTech(heritageTech);
+    ms.heritageArts.push(heritageTech);
+    if (!W.sect.library.includes(id)) W.sect.library.push(id);
+    if (!creator.cult.techs.includes(id)) creator.cult.techs.push(id);
+    creator.cult.tm = creator.cult.tm || {};
+    creator.cult.tm[id] = 100;
+    W.fame(12);
+    if (g.COG && g.COG.recordAspirationMilestone) {
+      g.COG.recordAspirationMilestone(W, creator, 'บัญญัติคัมภีร์ประจำสำนัก「' + nameTh + '」', 20);
+    }
+    if (!opts.quiet && W.log) {
+      W.log('research', '📜「' + HC.fullName(creator) + '」ผสานความเข้าใจยุทธ์บัญญัติคัมภีร์ประจำสำนักเล่มใหม่:「' + nameTh + '」ประดิษฐานไว้ในหอคัมภีร์!', [creator.id]);
+    }
+    return { ok: true, tech: heritageTech };
+  };
+
+  MENTORSHIP.daily = W => {
+    const ms = MENTORSHIP.ensure(W);
+    if (!ms || !Array.isArray(W.npcs)) return;
+    // Automatically pair unbonded promising juniors with available elders every 5 days
+    if ((W.day || 0) % 5 === 0) {
+      const elders = W.npcs.filter(n => n && !n.dead && !n.away && !n.exiled && n.cult && ((n.rank || 0) >= 3 || (CULT.equivalentStage ? CULT.equivalentStage(n) : n.cult.stage) >= 4) && (!Array.isArray(n.apprenticeIds) || n.apprenticeIds.length < MENTORSHIP.MAX_APPRENTICES));
+      const juniors = W.npcs.filter(n => n && !n.dead && !n.away && !n.exiled && n.cult && !n.mentorId && (n.rank || 0) <= 2);
+      if (elders.length && juniors.length) {
+        const mentor = elders[0];
+        const disc = juniors.find(j => j.cult.path === mentor.cult.path) || juniors[0];
+        if (mentor && disc) MENTORSHIP.formBond(W, mentor, disc);
+      }
+    }
+  };
+  SECT.MENTORSHIP = MENTORSHIP;
+
+  /* ======================= v2.0.16 Pillar C: Living Jianghu, Rumor Tavern & Karma/Nemesis Web ======================= */
+  const JIANGHU = {
+    MAX_RUMORS: 6,
+    MAX_BONDS: 32
+  };
+  const RUMOR_ARCHETYPES = [
+    { kind: 'MIRAGE_SANCTUM', titleTh: 'แดนลับมายาโบราณเปิดผนึกชั่วคราว', regionId: 'ruins', stones: 220, cp: 45, insight: 28, matId: 'MAT_ZITHER_PHOENIX_HEARTWOOD_5', descTh: 'ค่ายกลพรางตาพันปีคลายตัวออก เผยให้เห็นแท่นศิลาและสมุนไพรวิญญาณ' },
+    { kind: 'WANDERING_GRANDMASTER', titleTh: 'ปรมาจารย์เร้นกายเปิดศาลาชี้แนะยุทธ์ ณ โรงเตี๊ยมเมฆา', regionId: 'plains', stones: 140, cp: 55, insight: 42, matId: 'MAT_BRUSH_DRAGON_WHISKER_JADE_5', descTh: 'ยอดฝีมืออาวุโสแวะพักดื่มสุราและเปิดโอกาสให้ผู้รุ่นหลังซักถามข้อติดขัดทางยุทธ์' },
+    { kind: 'ESCORT_COMMISSION', titleTh: 'ขบวนคุ้มกันพันธมิตรขอความช่วยเหลือด่วน', regionId: 'mountain', stones: 280, cp: 65, insight: 22, matId: 'MAT_WHIP_KARMIC_RED_SILK_5', descTh: 'กองคาราวานสำนักพันธมิตรถูกล้อมในช่องเขา ผู้ยื่นมือช่วยจะได้รับน้ำใจไมตรีและรางวัลงาม' },
+    { kind: 'TREASURE_AUCTION', titleTh: 'งานประมูลลับโรงเตี๊ยมยุทธภพแดนใต้', regionId: 'water', stones: 190, cp: 40, insight: 24, matId: 'MAT_ORE_METEOR_IRON_5', descTh: 'วาณิชพเนจรนำวัตถุดิบหลอมศาสตราและข่าวกรองแดนลับมาแลกเปลี่ยน' },
+    { kind: 'NEMESIS_INTEL', titleTh: 'เบาะแสความเคลื่อนไหวของยอดฝีมือคู่ปรับในยุทธภพ', regionId: 'forest', stones: 240, cp: 60, insight: 34, matId: 'MAT_HERB_SNOW_LOTUS_5', descTh: 'สายข่าวโรงเตี๊ยมรายงานตำแหน่งของคู่ปรับยุทธภพที่กำลังฝึกวิชาอยู่ในป่าลึก' }
+  ];
+
+  JIANGHU.ensure = W => {
+    if (!W || !W.world) return null;
+    if (!W.world.jianghu || typeof W.world.jianghu !== 'object') {
+      W.world.jianghu = { rumors: [], karmaBonds: {}, encounters: [], history: [], seq: 0, lastRefreshDay: -99 };
+    }
+    const jh = W.world.jianghu;
+    if (!Array.isArray(jh.rumors)) jh.rumors = [];
+    if (!jh.karmaBonds || typeof jh.karmaBonds !== 'object') jh.karmaBonds = {};
+    if (!Array.isArray(jh.encounters)) jh.encounters = [];
+    if (!Array.isArray(jh.history)) jh.history = [];
+    if (!Number.isFinite(jh.seq) || jh.seq < 0) jh.seq = 0;
+    return jh;
+  };
+
+  JIANGHU.refreshTavernRumors = (W, opts) => {
+    opts = opts || {};
+    const jh = JIANGHU.ensure(W);
+    if (!jh) return [];
+    jh.rumors = jh.rumors.filter(r => r && r.status === 'active' && (r.expiresDay == null || r.expiresDay >= (W.day || 0)));
+    const countToGen = opts.count || Math.max(1, 3 - jh.rumors.length);
+    const created = [];
+    for (let i = 0; i < countToGen && jh.rumors.length < JIANGHU.MAX_RUMORS; i++) {
+      const spec = RUMOR_ARCHETYPES[(jh.seq + i) % RUMOR_ARCHETYPES.length];
+      const id = 'RUMOR_' + (++jh.seq);
+      const rObj = {
+        id,
+        kind: spec.kind,
+        titleTh: spec.titleTh,
+        descTh: spec.descTh,
+        regionId: spec.regionId,
+        createdDay: W.day || 0,
+        expiresDay: (W.day || 0) + 14,
+        status: 'active',
+        rewards: { stones: spec.stones, cp: spec.cp, insight: spec.insight, matId: spec.matId }
+      };
+      jh.rumors.push(rObj);
+      created.push(rObj);
+    }
+    jh.lastRefreshDay = W.day || 0;
+    return created;
+  };
+
+  JIANGHU.recordKarmaBond = (W, npcOrId, kind, opts) => {
+    opts = opts || {};
+    const jh = JIANGHU.ensure(W);
+    const npc = MENTORSHIP.resolveNpc(W, npcOrId) || (W && W.npcs && W.npcs[0]);
+    if (!jh || !npc) return null;
+    const validKind = ['SWORN_ALLY', 'BENEFACTOR', 'RIVAL', 'NEMESIS'].includes(kind) ? kind : 'SWORN_ALLY';
+    const rivalSects = (W.world && Array.isArray(W.world.sects) && W.world.sects.length) ? W.world.sects : [{ id: 'ext_sect_1', nameTh: 'สำนักเมฆาคราม', shortTh: 'เมฆาคราม', majorPath: 'XIAN' }];
+    const extSect = opts.sect || rivalSects[jh.seq % rivalSects.length];
+    const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'];
+    const weaponType = opts.weaponType || wTypes[(jh.seq * 3) % wTypes.length];
+    const eqSt = CULT.equivalentStage ? CULT.equivalentStage(npc) : (npc.cult ? npc.cult.stage : 3);
+    const bondId = opts.id || ('KBOND_' + (++jh.seq));
+    const figureNameTh = opts.nameTh || ((validKind === 'NEMESIS' || validKind === 'RIVAL' ? 'จอมยุทธ์อริ ' : 'สหายยุทธภพ ') + (extSect.shortTh || extSect.nameTh || 'พเนจร') + ' #' + jh.seq);
+
+    const bond = {
+      id: bondId,
+      npcId: npc.id,
+      npcNameTh: HC.fullName(npc),
+      kind: validKind,
+      figureNameTh,
+      sectId: extSect.id,
+      sectNameTh: extSect.nameTh || extSect.shortTh || 'สำนักยุทธภพ',
+      path: opts.path || extSect.majorPath || 'XIAN',
+      weaponType,
+      stage: Math.max(2, Math.round(eqSt)),
+      power: Math.round(CULT.power(npc) * (validKind === 'NEMESIS' ? 1.05 : 0.95)),
+      affinity: (validKind === 'SWORN_ALLY' || validKind === 'BENEFACTOR') ? (opts.affinity || 75) : 15,
+      grudge: (validKind === 'NEMESIS' || validKind === 'RIVAL') ? (opts.grudge || 75) : 0,
+      createdDay: W.day || 0,
+      resolved: false
+    };
+    jh.karmaBonds[bondId] = bond;
+    npc.karmaBonds = Array.isArray(npc.karmaBonds) ? npc.karmaBonds : [];
+    if (!npc.karmaBonds.includes(bondId)) npc.karmaBonds.push(bondId);
+    if (!opts.quiet && W.log) {
+      const icon = (validKind === 'SWORN_ALLY' || validKind === 'BENEFACTOR') ? '🍶' : '⚔️';
+      const label = validKind === 'SWORN_ALLY' ? 'ร่วมดื่มสุราสาบานเป็นสหายร่วมเป็นตายกับ' : validKind === 'BENEFACTOR' ? 'ผูกบุญคุณไมตรีกับ' : validKind === 'RIVAL' ? 'ประมือผูกสัญญาคู่ปรับยุทธภพกับ' : 'ผูกหนี้แค้นคู่อาฆาตกับ';
+      W.log('relation', icon + ' โครงข่ายกรรมยุทธภพ:「' + HC.fullName(npc) + '」' + label + '「' + figureNameTh + '」(' + bond.sectNameTh + ')', [npc.id]);
+    }
+    return bond;
+  };
+
+  JIANGHU.investigateRumor = (W, actorOrParty, rumorId) => {
+    const jh = JIANGHU.ensure(W);
+    if (!jh) return { ok: false, reason: 'no-jianghu' };
+    if (!jh.rumors.length) JIANGHU.refreshTavernRumors(W, { count: 3 });
+    const rumor = rumorId ? jh.rumors.find(r => r.id === rumorId) : jh.rumors.find(r => r.status === 'active');
+    if (!rumor || rumor.status !== 'active') return { ok: false, reason: 'rumor-not-available' };
+
+    const party = Array.isArray(actorOrParty) ? actorOrParty.filter(n => n && !n.dead) : [MENTORSHIP.resolveNpc(W, actorOrParty) || W.npcs.find(n => n && !n.dead)];
+    const leader = party[0];
+    if (!leader) return { ok: false, reason: 'no-leader' };
+
+    rumor.status = 'resolved';
+    rumor.resolvedBy = leader.id;
+    rumor.resolvedDay = W.day || 0;
+    const rw = rumor.rewards || { stones: 180, cp: 45, insight: 25, matId: 'MAT_ORE_METEOR_IRON_5' };
+
+    if (ECO && ECO.earn) ECO.earn(W, rw.stones, 'สำรวจข่าวลือโรงเตี๊ยม: ' + rumor.titleTh);
+    if (rw.matId && ECO && ECO.add) ECO.add(W, rw.matId, 2);
+    for (const m of party) {
+      if (g.CPE && g.CPE.mint) g.CPE.mint(W, m, rw.cp, 'คลี่คลายข่าวลือยุทธภพ', true);
+      else m.cp = (m.cp || 0) + rw.cp;
+      if (m.cult) CULT.gain(m, rw.insight, W, 'jianghu_rumor');
+    }
+
+    const bondKind = rumor.kind === 'NEMESIS_INTEL' ? 'NEMESIS' : rumor.kind === 'ESCORT_COMMISSION' ? 'SWORN_ALLY' : 'BENEFACTOR';
+    const bond = JIANGHU.recordKarmaBond(W, leader, bondKind, { quiet: true });
+    const rec = {
+      id: 'JH_ENC_' + (++jh.seq),
+      day: W.day || 0,
+      rumorId: rumor.id,
+      kind: rumor.kind,
+      titleTh: rumor.titleTh,
+      leaderId: leader.id,
+      leaderNameTh: HC.fullName(leader),
+      rewards: rw,
+      bondId: bond ? bond.id : null
+    };
+    jh.encounters.unshift(rec);
+    jh.history.unshift(rec);
+    if (jh.history.length > 30) jh.history.length = 30;
+    if (W.log) {
+      W.log('explore', '🏮 โรงเตี๊ยมข่าวลือ:「' + HC.fullName(leader) + '」ออกสืบ「' + rumor.titleTh + '」สำเร็จ ได้รับ ' + rw.stones + ' ศิลา, +' + rw.cp + ' คป. และวัตถุดิบหายาก!', [leader.id]);
+    }
+    return { ok: true, rumor, encounter: rec, bond };
+  };
+
+  JIANGHU.triggerAllyAid = (W, bondOrId) => {
+    const jh = JIANGHU.ensure(W);
+    if (!jh) return { ok: false, reason: 'no-jianghu' };
+    const bond = typeof bondOrId === 'string' ? jh.karmaBonds[bondOrId] : (bondOrId || Object.values(jh.karmaBonds).find(b => b && (b.kind === 'SWORN_ALLY' || b.kind === 'BENEFACTOR')));
+    if (!bond) return { ok: false, reason: 'no-ally-bond' };
+    const npc = W.byId && W.byId[bond.npcId];
+    const giftStones = 160;
+    const matPool = ['MAT_ZITHER_PHOENIX_HEARTWOOD_5', 'MAT_BRUSH_DRAGON_WHISKER_JADE_5', 'MAT_WHIP_KARMIC_RED_SILK_5', 'MAT_ORE_METEOR_IRON_5'];
+    const matId = matPool[jh.seq % matPool.length];
+    if (ECO && ECO.earn) ECO.earn(W, giftStones, 'ของขวัญไมตรีจากสหายยุทธภพ ' + bond.figureNameTh);
+    if (ECO && ECO.add) ECO.add(W, matId, 2);
+    if (npc && !npc.dead) {
+      if (g.STATS && g.STATS.applyNamedBuff) g.STATS.applyNamedBuff(npc, 'fervorMight', 90, W.t || 0);
+      CULT.gain(npc, 18, W, 'sworn_ally_aid');
+    }
+    bond.lastAidDay = W.day || 0;
+    if (W.log) {
+      W.log('relation', '🍶 สหายร่วมสาบาน「' + bond.figureNameTh + '」ส่งศิลาวิญญาณ ' + giftStones + ' ก้อนและวัตถุดิบวิญญาณมาหนุนช่วย「' + (npc ? HC.fullName(npc) : bond.npcNameTh) + '」!', npc ? [npc.id] : []);
+    }
+    return { ok: true, bond, giftStones, matId };
+  };
+
+  JIANGHU.triggerNemesisChallenge = (W, bondOrId, opts) => {
+    opts = opts || {};
+    const jh = JIANGHU.ensure(W);
+    if (!jh) return { ok: false, reason: 'no-jianghu' };
+    const bond = typeof bondOrId === 'string' ? jh.karmaBonds[bondOrId] : (bondOrId || Object.values(jh.karmaBonds).find(b => b && (b.kind === 'NEMESIS' || b.kind === 'RIVAL') && !b.resolved));
+    if (!bond) return { ok: false, reason: 'no-nemesis-bond' };
+    const defender = (W.byId && W.byId[bond.npcId] && !W.byId[bond.npcId].dead) ? W.byId[bond.npcId] : W.npcs.find(n => n && !n.dead && n.cult);
+    if (!defender) return { ok: false, reason: 'no-defender' };
+
+    const challenger = {
+      id: 'NEM_' + bond.id,
+      isGuest: true,
+      name: bond.figureNameTh,
+      nameTh: bond.figureNameTh,
+      h: { name: { given: bond.figureNameTh, family: '' }, state: { hp: 1200, satiety: 100, rest: 100, energy: 100 }, skills: { [bond.weaponType || 'SWORD']: bond.stage * 14 }, personality: { courage: 75, aggression: 75, caution: 30 }, values: { martialPeak: 85 }, root: { primaryElement: 'FIRE', elements: ['FIRE'], weights: { FIRE: 1 } } },
+      cult: { path: bond.path || 'XIAN', stage: bond.stage || 4, sub: 'NONE', techs: [] },
+      equip: { WEAPON: { slot: 'WEAPON', gearType: bond.weaponType || 'SWORD', tier: Math.min(7, Math.max(3, bond.stage || 4)), nameTh: bond.weaponType || 'SWORD' } },
+      power: opts.forceWin ? Math.max(10, CULT.power(defender) * 0.65) : (bond.power || CULT.power(defender))
+    };
+
+    const bout = SECT.simulateAssemblyBout ? SECT.simulateAssemblyBout(W, defender, challenger) : { winner: defender, loser: challenger };
+    const won = bout.winner && bout.winner.id === defender.id;
+    if (won) {
+      bond.grudge = Math.max(0, (bond.grudge || 75) - 55);
+      if (bond.grudge <= 20) bond.resolved = true;
+      W.fame(10);
+      if (ECO && ECO.earn) ECO.earn(W, 200, 'ชนะศึกท้าดวลหน้าประตูสำนักเหนือ ' + bond.figureNameTh);
+      if (g.CPE && g.CPE.mint) g.CPE.mint(W, defender, 60, 'ปราบคู่อาฆาตหน้าประตูสำนัก', true);
+      else defender.cp = (defender.cp || 0) + 60;
+      CULT.gain(defender, 28, W, 'nemesis_victory');
+      if (W.log) {
+        W.log('challenge', '⚔️ ศึกชี้ชะตาหน้าประตูสำนัก:「' + HC.fullName(defender) + '」ประลองยุทธ์เอาชนะคู่อาฆาต「' + bond.figureNameTh + '」สะสางหนี้แค้นและประกาศศักดาสำนัก!', [defender.id]);
+      }
+    } else {
+      bond.grudge = clamp((bond.grudge || 75) + 10, 0, 100);
+      defender.h.state.stress = clamp((defender.h.state.stress || 0) + 8, 0, 100);
+      CULT.gain(defender, 12, W, 'nemesis_lesson');
+      if (W.log) {
+        W.log('challenge', '⚔️「' + HC.fullName(defender) + '」รับคำท้าดวลจาก「' + bond.figureNameTh + '」หน้าประตูสำนักและพ่ายแพ้ไปอย่างสูสี ฮึดสู้มุ่งมั่นฝึกปรือฝีมือใหม่', [defender.id]);
+      }
+    }
+    return { ok: true, won, defenderId: defender.id, challengerNameTh: bond.figureNameTh, bond };
+  };
+
+  JIANGHU.daily = W => {
+    const jh = JIANGHU.ensure(W);
+    if (!jh) return;
+    if ((W.day || 0) - (jh.lastRefreshDay || -99) >= 4 || jh.rumors.filter(r => r.status === 'active').length === 0) {
+      JIANGHU.refreshTavernRumors(W, { count: 3 });
+    }
+    if ((W.day || 0) > 0 && (W.day || 0) % 9 === 0 && W.npcs && W.npcs.length) {
+      const activeRumors = jh.rumors.filter(r => r.status === 'active');
+      if (activeRumors.length && W.rng && W.rng.chance(0.45)) {
+        const scout = W.npcs.find(n => n && !n.dead && !n.away && !n.exiled && n.cult && (n.rank || 0) >= 1);
+        if (scout) JIANGHU.investigateRumor(W, scout, activeRumors[0].id);
+      }
+    }
+  };
+  SECT.JIANGHU = JIANGHU;
+
   const sectDailyV210 = SECT.daily;
-  SECT.daily = W => { const result = sectDailyV210 ? sectDailyV210(W) : undefined; WMC.tick(W); SECT.CELESTIAL_TRIBULATION.tick(W); return result; };
+  SECT.daily = W => { const result = sectDailyV210 ? sectDailyV210(W) : undefined; WMC.tick(W); SECT.CELESTIAL_TRIBULATION.tick(W); MENTORSHIP.daily(W); JIANGHU.daily(W); return result; };
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;

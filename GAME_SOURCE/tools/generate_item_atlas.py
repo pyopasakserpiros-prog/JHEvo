@@ -27,7 +27,7 @@ os.makedirs(DOCS_DIR, exist_ok=True)
 
 CELL_SIZE = 64
 COLS = 8
-ROWS = 9
+ROWS = 13
 ATLAS_W = CELL_SIZE * COLS
 ATLAS_H = CELL_SIZE * ROWS
 PAD = 5  # Artwork strictly inside [5..58] so [0..3] and [60..63] are 100% transparent
@@ -122,6 +122,42 @@ CELL_DEFS = [
     {"cell": 69, "key": "FOOD_SPIRIT_FISH_DISH",       "group": "food",      "shape": "fish_dish",   "primary": "#e07a5f", "secondary": "#f4f1de", "accent": "#81b29a", "motif": "steam_herbs"},
     {"cell": 70, "key": "ITEM_MYSTERY_RIVER_CONTAINER","group": "container", "shape": "river_chest", "primary": "#7f5539", "secondary": "#ddb892", "accent": "#48cae4", "motif": "water_seal"},
     {"cell": 71, "key": "TRASH_RIVER_DEBRIS",          "group": "trash",     "shape": "river_trash", "primary": "#5c677d", "secondary": "#979dac", "accent": "#6b705c", "motif": "driftwood"},
+
+    # 72..87: 16 Patch v2.0.15 Expansion Cells (3 Legendary Weapons, 4 Legendary Arts, 4 Weapon Families, 5 Material/Accessory Variants)
+    {"cell": 72, "key": "LEG_WPN_JIUXIAO_PHOENIX_ZITHER",    "group": "legendary_weapon", "shape": "zither",        "primary": "#ff9e00", "secondary": "#fff3b0", "accent": "#72efdd", "motif": "phoenix_strings"},
+    {"cell": 73, "key": "LEG_WPN_CHUNQIU_JUDGMENT_BRUSH",    "group": "legendary_weapon", "shape": "brush",         "primary": "#52b788", "secondary": "#d8f3dc", "accent": "#ef476f", "motif": "verdict_seal"},
+    {"cell": 74, "key": "LEG_WPN_TIANCAN_FATE_WHIP",         "group": "legendary_weapon", "shape": "whip",          "primary": "#ff4d6d", "secondary": "#ffccd5", "accent": "#9b5de5", "motif": "fate_threads"},
+    {"cell": 75, "key": "LEG_COMBAT_NINE_HEAVENS_GUANG_LING","group": "legendary_tech",   "shape": "combat_manual", "primary": "#72efdd", "secondary": "#e0fbfc", "accent": "#ff9e00", "motif": "guangling_waves"},
+    {"cell": 76, "key": "LEG_AUX_HEAVEN_INSCRIPTION_SEAL",   "group": "legendary_tech",   "shape": "diagram_scroll","primary": "#ffd166", "secondary": "#fff3b0", "accent": "#ef476f", "motif": "heaven_brush"},
+    {"cell": 77, "key": "LEG_COMBAT_SAMSARA_PUPPET_THREADS", "group": "legendary_tech",   "shape": "combat_manual", "primary": "#9b5de5", "secondary": "#f15bb5", "accent": "#00bbf9", "motif": "samsara_web"},
+    {"cell": 78, "key": "LEG_MANTRA_SHENNONG_MYRIAD_CRUCIBLE","group": "legendary_tech",  "shape": "tome_scroll",   "primary": "#38b000", "secondary": "#ccff33", "accent": "#ff7b00", "motif": "shennong_cauldron"},
+    {"cell": 79, "key": "WPN_ZITHER_COMMON",                 "group": "weapon",           "shape": "zither",        "primary": "#b08968", "secondary": "#ede0d4", "accent": "#48cae4", "motif": "plain"},
+    {"cell": 80, "key": "WPN_BRUSH_COMMON",                  "group": "weapon",           "shape": "brush",         "primary": "#52796f", "secondary": "#cad2c5", "accent": "#e63946", "motif": "plain"},
+    {"cell": 81, "key": "WPN_WHIP_COMMON",                   "group": "weapon",           "shape": "whip",          "primary": "#9d4edd", "secondary": "#e0aaff", "accent": "#ffd166", "motif": "plain"},
+    {"cell": 82, "key": "WPN_FOCUS_COMMON",                  "group": "weapon",           "shape": "fan_tube",      "primary": "#48cae4", "secondary": "#caf0f8", "accent": "#ffd166", "motif": "plain"},
+    {"cell": 83, "key": "MAT_ZITHER_WOOD_STRING",            "group": "material",         "shape": "herb",          "primary": "#c9a227", "secondary": "#fae588", "accent": "#72efdd", "motif": "harmonic_grain"},
+    {"cell": 84, "key": "MAT_BRUSH_HAIR_CINNABAR",           "group": "material",         "shape": "crystal",       "primary": "#e63946", "secondary": "#ffb3c1", "accent": "#ffd166", "motif": "cinnabar_ink"},
+    {"cell": 85, "key": "MAT_WHIP_SILK_TENDON",              "group": "material",         "shape": "beast_claw",    "primary": "#b5179e", "secondary": "#ffccd5", "accent": "#72efdd", "motif": "silk_coil"},
+    {"cell": 86, "key": "EQP_NECKLACE_BEADS",                "group": "armor",            "shape": "jade_ring",     "primary": "#f4a261", "secondary": "#feefc3", "accent": "#2ec4b6", "motif": "prayer_beads"},
+    {"cell": 87, "key": "EQP_BRACELET_BANGLE",               "group": "armor",            "shape": "jade_ring",     "primary": "#72efdd", "secondary": "#e0fbfc", "accent": "#ffd166", "motif": "wrist_bangle"},
+
+    # 88..103: Patch v2.0.16 Expansion (5 New Legendary Arts/Mantras + 7 Legendary Armors/Accessories + 4 Mentorship/Jianghu Heritage Icons = 16 Cells)
+    {"cell": 88, "key": "LEG_AUX_IMPERIAL_EIGHT_GATES",      "group": "legendary_tech",   "shape": "jade_tablet",   "primary": "#ffd166", "secondary": "#fff3b0", "accent": "#ef476f", "motif": "eight_gates"},
+    {"cell": 89, "key": "LEG_MANTRA_SOVEREIGN_HEAVEN_EDICT", "group": "legendary_tech",   "shape": "stele_scroll",  "primary": "#f4a261", "secondary": "#feefc3", "accent": "#9b5de5", "motif": "sovereign_seal"},
+    {"cell": 90, "key": "LEG_COMBAT_JADE_NIRVANA_HARMONY",   "group": "legendary_tech",   "shape": "cloud_scroll",  "primary": "#52b788", "secondary": "#d8f3dc", "accent": "#ffd166", "motif": "nirvana_lotus"},
+    {"cell": 91, "key": "LEG_LIGHT_KUNPENG_ASTRAL_WINGS",    "group": "legendary_tech",   "shape": "diagram_scroll","primary": "#48cae4", "secondary": "#caf0f8", "accent": "#7209b7", "motif": "kunpeng_wings"},
+    {"cell": 92, "key": "LEG_FORB_SAMSARA_KARMA_REVERSAL",   "group": "legendary_tech",   "shape": "forbidden_tome","primary": "#9b5de5", "secondary": "#f15bb5", "accent": "#fee440", "motif": "samsara_wheel"},
+    {"cell": 93, "key": "LEG_ARM_CELESTIAL_CRANE_ROBE",      "group": "legendary_weapon", "shape": "robe",          "primary": "#90e0ef", "secondary": "#ffffff", "accent": "#ffd166", "motif": "crane_clouds"},
+    {"cell": 94, "key": "LEG_ARM_SHADOW_KIRIN_CUIRASS",      "group": "legendary_weapon", "shape": "armor_plate",   "primary": "#5a189a", "secondary": "#c77dff", "accent": "#ffd166", "motif": "kirin_scales"},
+    {"cell": 95, "key": "LEG_ARM_IMMORTAL_TORTOISE_PLATE",   "group": "legendary_weapon", "shape": "armor_plate",   "primary": "#495057", "secondary": "#adb5bd", "accent": "#00f5d4", "motif": "xuanwu_shell"},
+    {"cell": 96, "key": "LEG_ACC_SAMSARA_KARMA_RING",        "group": "legendary_weapon", "shape": "jade_ring",     "primary": "#9d4edd", "secondary": "#e0aaff", "accent": "#ffd166", "motif": "karma_ring"},
+    {"cell": 97, "key": "LEG_ACC_BODHI_STARLIGHT_BEADS",     "group": "legendary_weapon", "shape": "jade_ring",     "primary": "#ffd166", "secondary": "#fff8e1", "accent": "#06d6a0", "motif": "bodhi_beads"},
+    {"cell": 98, "key": "LEG_ACC_TAICHI_HEAVEN_SEAL",        "group": "legendary_weapon", "shape": "talisman",      "primary": "#f4a261", "secondary": "#ffffff", "accent": "#264653", "motif": "tiger_tally"},
+    {"cell": 99, "key": "LEG_ACC_DRAGON_PHOENIX_BANGLE",     "group": "legendary_weapon", "shape": "jade_ring",     "primary": "#2ec4b6", "secondary": "#cbf3f0", "accent": "#ff5c77", "motif": "dragon_phoenix"},
+    {"cell": 100,"key": "MANUAL_SECT_HERITAGE",              "group": "book",             "shape": "jade_tablet",   "primary": "#ffd166", "secondary": "#fff3b0", "accent": "#2ec4b6", "motif": "sect_heritage"},
+    {"cell": 101,"key": "TOKEN_MENTOR_SEAL",                 "group": "book",             "shape": "talisman",      "primary": "#4ea8de", "secondary": "#caf0f8", "accent": "#ffd166", "motif": "mentor_seal"},
+    {"cell": 102,"key": "SCROLL_JIANGHU_RUMOR",              "group": "book",             "shape": "recipe_roll",   "primary": "#e09f3e", "secondary": "#fff3b0", "accent": "#9e2a2b", "motif": "tavern_rumor"},
+    {"cell": 103,"key": "TOKEN_KARMA_BOND",                  "group": "book",             "shape": "jade_ring",     "primary": "#e63946", "secondary": "#ffccd5", "accent": "#ffd166", "motif": "karma_bond"},
 ]
 
 def hex_rgba(h, a=255):
@@ -208,6 +244,26 @@ def draw_cell_icon(cell_def):
             ey = int(38 + 22 * math.sin(rad))
             d.line([(28, 38), (ex, ey)], fill=p, width=3)
             d.ellipse([ex - 3, ey - 3, ex + 3, ey + 3], fill=s, outline=a)
+    elif shp == "zither":
+        d.rounded_rectangle([14, 22, 50, 42], radius=5, fill=p, outline=s, width=2)
+        d.rectangle([17, 24, 21, 40], fill=a)
+        d.rectangle([44, 24, 47, 40], fill=a)
+        for sy in (26, 29, 32, 35, 38):
+            d.line([(20, sy), (45, sy)], fill=s, width=1)
+        if is_leg:
+            d.arc([20, 13, 44, 33], start=200, end=340, fill=a, width=2)
+    elif shp == "brush":
+        d.line([(16, 48), (38, 26)], fill=p, width=5)
+        d.line([(17, 47), (37, 27)], fill=s, width=2)
+        d.polygon([(35, 29), (49, 15), (44, 28), (39, 31)], fill=a, outline=s)
+        d.ellipse([14, 45, 20, 51], fill=a)
+        if is_leg:
+            d.ellipse([24, 15, 36, 27], outline=a, width=2)
+    elif shp == "whip":
+        d.line([(15, 49), (24, 40)], fill=s, width=4)
+        d.arc([16, 15, 48, 45], start=160, end=355, fill=p, width=4)
+        d.arc([20, 22, 50, 49], start=340, end=170, fill=a, width=3)
+        d.ellipse([28, 26, 36, 34], fill=s, outline=p)
     elif shp in ("stele_scroll", "tome_scroll", "jade_tablet", "mirror_tome", "combat_manual", "diagram_scroll", "cloud_scroll", "forbidden_tome"):
         # Distinct book/tablet/scroll silhouettes + unique emblem per cell index
         if shp == "jade_tablet":
@@ -409,7 +465,7 @@ def main():
         b64_png = base64.b64encode(f.read()).decode("ascii")
 
     meta = {
-        "atlasVersion": "1.12.1",
+        "atlasVersion": "2.0.16",
         "atlasFile": "assets/wuxia_item_atlas.png",
         "width": ATLAS_W,
         "height": ATLAS_H,
@@ -418,9 +474,10 @@ def main():
         "cellSize": CELL_SIZE,
         "marginPx": 4,
         "totalCells": len(cell_records),
-        "legendaryWeaponsCount": 11,
-        "legendaryTechniquesCount": 22,
-        "ordinaryVariantCellsCount": 29,
+        "legendaryWeaponsCount": 14,
+        "legendaryTechniquesCount": 31,
+        "legendaryRelicsCount": 7,
+        "ordinaryVariantCellsCount": 42,
         "fallbackCellsCount": 2,
         "fileSizeBytes": os.path.getsize(atlas_path),
         "dataUri": "data:image/png;base64," + b64_png,

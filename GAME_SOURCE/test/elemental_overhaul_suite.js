@@ -223,9 +223,9 @@ check(loadedNpc && ELEM.isCanonicalRootObject(loadedNpc.h.root), 'new-schema sav
 check(JSON.stringify(loadedNpc.h.root) === JSON.stringify(rootBeforeSave), 'root identity and per-root grades survive save/load exactly');
 
 // 12. Legendary content remains registered after the elemental integration.
-check(G.VC && G.VC.LEGENDARY_WEAPONS && G.VC.LEGENDARY_WEAPONS.length === 11, 'all eleven legendary weapons remain registered');
+check(G.VC && G.VC.LEGENDARY_WEAPONS && G.VC.LEGENDARY_WEAPONS.length === 14, 'all fourteen legendary weapons remain registered');
 const legendaryTechs = G.JD.TECH.techniques.filter(t => t.legendary);
 const legendaryMantras = G.JD.TECH.mantras.filter(t => t.legendary);
-check(legendaryTechs.length === 12 && legendaryMantras.length === 10, 'all twelve legendary techniques and ten legendary mantras remain registered');
+check(legendaryTechs.length === 19 && legendaryMantras.length === 12, 'all nineteen legendary techniques and twelve legendary mantras remain registered');
 
 console.log('PASS elemental_overhaul_suite: ' + checks + '/' + checks + ' focused assertions; root validation, progression, special access, compatibility contexts, equipment synergy and save integrity verified');

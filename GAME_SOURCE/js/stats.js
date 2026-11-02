@@ -71,12 +71,12 @@
     const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '') + (it.uid || '')), f = 1 + 0.12 * tier, s = {};
     const pool = [['crit', () => (2.2 + 2 * rn(h, 5)) * f], ['critDmg', () => (8 + 8 * rn(h, 6)) * f], ['pen', () => (3 + 4 * rn(h, 7)) * f], ['acc', () => base * 0.12], ['cast', () => (3 + 4 * rn(h, 8)) * f], ['eva', () => base * 0.1], ['hp', () => base * 0.45], ['move', () => 3 + 3 * rn(h, 9)], ['mdef', () => base * 0.18], ['def', () => base * 0.18]];
     const pickAff = (n, ex) => { const used = {}; for (let i = 0; i < n; i++) { let k = Math.floor(rn(h, 20 + i) * pool.length), tries = 0; while ((used[pool[k][0]] || (ex && ex.includes(pool[k][0]))) && tries++ < 12) k = (k + 1) % pool.length; used[pool[k][0]] = 1; s[pool[k][0]] = (s[pool[k][0]] || 0) + pool[k][1](); } };
-    if (it.slot === 'WEAPON') { const phys = (it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh)) !== 'FOCUS'; s[phys ? 'atk' : 'matk'] = base * 0.55; s[phys ? 'matk' : 'atk'] = base * 0.1; pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
+    if (it.slot === 'WEAPON') { const gType = it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh); const isMag = ['FOCUS', 'ZITHER', 'BRUSH'].includes(gType); const isHyb = gType === 'WHIP'; s[isMag ? 'matk' : 'atk'] = base * (isHyb ? 0.44 : 0.55); s[isMag ? 'atk' : 'matk'] = base * (isHyb ? 0.34 : 0.1); pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
     else if (it.slot === 'ARMOR') { s.def = base * 0.55; s.mdef = base * 0.28; s.hp = base * 0.5; pickAff(tier >= 4 ? 1 : 0, ['crit', 'critDmg', 'pen']); if (tier >= 4 && rn(h, 3) < 0.5) s.eva = (s.eva || 0) + base * 0.06; }
     else { pickAff(2); const r = rn(h, 4); if (r < 0.3) s.atk = (s.atk || 0) + base * 0.2; else if (r < 0.6) s.matk = (s.matk || 0) + base * 0.2; }
     (it.fx || []).forEach(x => { const p = x.params || {}; if (p.armorReductionRatio) s.pen = (s.pen || 0) + p.armorReductionRatio * 40; });
     const type = it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh);
-    const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
+    const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
     for (const k in typed) s[k] = (s[k] || 0) + typed[k];
     for (const k in s) s[k] = Math.round(s[k] * 10) / 10;
     it.st = s; return s;
@@ -92,7 +92,11 @@
     qiConduit: { id: 'qiConduit', name: 'ชีพจรปราณหมุนเวียน', icon: '💠', kind: 'qi', defaultDur: 60, p: { matk: 0.14, mdef: 0.12 }, f: { cast: 18 }, qiRegenBonus: 0.015, descTh: 'เพิ่มโจมตีวิชา +14%, ป้องกันวิชา +12%, ร่ายวิชา +18 และฟื้นปราณไวขึ้น' },
     clarityLotus: { id: 'clarityLotus', name: 'บัวทิพย์กระจ่างใจ', icon: '🪷', kind: 'clarity', defaultDur: 90, p: { mdef: 0.16, acc: 0.12 }, f: { crit: 6 }, ctrlResist: 0.28, cultRateBonus: 0.15, btBonus: 0.05, descTh: 'ป้องกันวิชา +16%, แม่นยำ +12%, ต้านทานสถานะสะกด +28% และเร่งบำเพ็ญ' },
     meridianUnblock: { id: 'meridianUnblock', name: 'เข็มทองเปิดชีพจรยุทธ์', icon: '🪡', kind: 'acupoint', defaultDur: 75, p: { atk: 0.12, matk: 0.12, def: 0.12, mdef: 0.12 }, f: { cast: 12, move: 10, pen: 8 }, cultRateBonus: 0.15, btBonus: 0.08, descTh: 'เปิดจุดชีพจรเพิ่มโจมตีและป้องกันทุกด้าน +12%, ร่ายไว +12 และหนุนการทะลวงขั้น' },
-    nirvanaGrace: { id: 'nirvanaGrace', name: 'โคมวิญญาณคุ้มชีพ', icon: '🏮', kind: 'ward', defaultDur: 60, p: { def: 0.14, mdef: 0.14, hp: 0.12 }, f: {}, cheatDeath: true, cheatDeathPct: 0.36, descTh: 'เพิ่มป้องกัน +14%, เลือด +12% และคุ้มครองชีวิตทันที 1 ครั้งเมื่อบาดเจ็บปางตาย' }
+    nirvanaGrace: { id: 'nirvanaGrace', name: 'โคมวิญญาณคุ้มชีพ', icon: '🏮', kind: 'ward', defaultDur: 60, p: { def: 0.14, mdef: 0.14, hp: 0.12 }, f: {}, cheatDeath: true, cheatDeathPct: 0.36, descTh: 'เพิ่มป้องกัน +14%, เลือด +12% และคุ้มครองชีวิตทันที 1 ครั้งเมื่อบาดเจ็บปางตาย' },
+    tacticalCommand: { id: 'tacticalCommand', name: 'โองการพยุหะ', icon: '🚩', kind: 'command', defaultDur: 55, p: { atk: 0.18, matk: 0.18, def: 0.18, mdef: 0.18 }, f: { acc: 14, pen: 12 }, descTh: 'โองการพิชัยสงครามเพิ่มโจมตี/ป้องกันทุกด้าน +18%, แม่นยำ +14, เจาะเกราะ +12%' },
+    astralMirage: { id: 'astralMirage', name: 'เงาดาราซ้อนมิติ', icon: '🌌', kind: 'mirage', defaultDur: 45, p: { eva: 0.35 }, f: { move: 24, cast: 16, crit: 10 }, descTh: 'เพิ่มหลบหลีก +35%, เดินทาง +24, ร่ายวิชา +16 และหลบสวนกลับการโจมตีถัดไปอัตโนมัติ' },
+    karmicAegis: { id: 'karmicAegis', name: 'วัฏจักรสะท้อนกรรม', icon: '☸️', kind: 'karma', defaultDur: 50, p: { def: 0.20, mdef: 0.20, matk: 0.12 }, f: { pen: 12 }, reflectPct: 0.22, descTh: 'เพิ่มป้องกัน +20%, โจมตีวิชา +12% และสะท้อนความเสียหายคืนสู่ผู้โจมตี 22%' },
+    mentorGuidance: { id: 'mentorGuidance', name: 'คำชี้แนะอาจารย์สายตรง', icon: '📜', kind: 'lineage', defaultDur: 120, p: { atk: 0.10, matk: 0.10, def: 0.10, mdef: 0.10 }, f: { acc: 10, cast: 10 }, cultRateBonus: 0.18, btBonus: 0.08, descTh: 'คำชี้แนะจากอาจารย์สายตรง เพิ่มสเตตัสรบ +10%, เร่งบำเพ็ญ +18% และโอกาสทะลวงขั้น +8%' }
   });
 
   ST.dirty = u => { if (u) { u._cs = null; u._csBase = null; u._skillEffectsCache = null; } };
@@ -283,6 +287,7 @@
     if (n._beastFusedUntil && n._beastFusedUntil > ST.now) ext = (ext ^ 0x4000) | 0;
     if (n.mechState) ext = (ext ^ (((n.mechState.integrity || 0) >> 4) << 8) ^ (n.mechState.mode === 'SIEGE' ? 256 : n.mechState.mode === 'SWARM' ? 512 : 128)) | 0;
     if (n.karmaState && n.karmaState.stance) ext = (ext ^ (n.karmaState.stance.charCodeAt(0) << 10)) | 0;
+    if (n.mentorImprint) ext = (ext ^ 0x8000) | 0;
     return (((n._passVer || 0) * 16) + hpfBand) ^ (ext << 4);
   }
 
@@ -382,6 +387,12 @@
         addAll('วิชาเฉพาะสายย่อยติดตัว', innate.f, 'f');
         addAll('วิชาเฉพาะสายย่อยติดตัว (แต้ม %)', innate.pp, 'f');
       }
+      const subEq = g.MARTIAL.evaluateSubEquipmentBonus ? g.MARTIAL.evaluateSubEquipmentBonus(n) : null;
+      if (subEq && subEq.active) {
+        const seLab = 'ประสานอุปกรณ์ประจำสายย่อย (' + (subEq.reasonsTh.join(' · ') || (c && c.sub) || '') + ')';
+        addAll(seLab, subEq.p, 'p');
+        addAll(seLab, subEq.f, 'f');
+      }
       const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
       if (resSet && resSet.active) {
         const resLab = 'สัจธรรมชุดอุปกรณ์「' + resSet.nameTh + '」(' + resSet.pieces + '/3 ชิ้น)';
@@ -421,6 +432,13 @@
     // ใจสู้/พิเศษ
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; add('atk', 'ใจสู้/พรสวรรค์', 'p', mind); add('matk', 'ใจสู้/พรสวรรค์', 'p', mind);
     const sp = HC.special(n, 'combat.powerMult') - 1; if (sp) { add('atk', 'คุณสมบัติพิเศษ', 'p', sp); add('matk', 'คุณสมบัติพิเศษ', 'p', sp); }
+    if (n.mentorImprint) {
+      const miLab = 'มรดกถ่ายทอดตบะ「' + (n.mentorImprint.mentorNameTh || 'อาจารย์') + '」';
+      const boost = n.mentorImprint.statBonusPct || 0.08;
+      ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => add(k, miLab, 'p', boost));
+      add('cast', miLab, 'f', 8);
+      add('acc', miLab, 'f', 10);
+    }
     // อุปกรณ์
     const Eq = n.equip || {};
     for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); const lab = '「' + it.nameTh + '」' + (df < 1 ? ' (สึก ' + Math.round(df * 100) + '%)' : ''); for (const key in gs) if (A[key]) add(key, lab, 'f', gs[key] * df); }
@@ -545,6 +563,11 @@
         addAll(innate.f, true);
         if (innate.pp) addAll(innate.pp, true);
       }
+      const subEq = g.MARTIAL.evaluateSubEquipmentBonus ? g.MARTIAL.evaluateSubEquipmentBonus(n) : null;
+      if (subEq && subEq.active) {
+        addAll(subEq.p, false);
+        addAll(subEq.f, true);
+      }
       const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
       if (resSet && resSet.active) {
         addAll(resSet.p, false);
@@ -579,6 +602,12 @@
     }
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; addP('atk', mind); addP('matk', mind);
     const sp = HC.special(n, 'combat.powerMult') - 1; if (sp) { addP('atk', sp); addP('matk', sp); }
+    if (n.mentorImprint) {
+      const boost = n.mentorImprint.statBonusPct || 0.08;
+      ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => addP(k, boost));
+      addF('cast', 8);
+      addF('acc', 10);
+    }
     for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); for (const key in gs) if (key in b) addF(key, gs[key] * df); }
     const hpVal = Math.round(Math.max(1, b.hp * (1 + p.hp) + f.hp));
     const vMove0 = Math.round(clamp(Math.max(30, b.move * (1 + p.move) + f.move), 30, 320));

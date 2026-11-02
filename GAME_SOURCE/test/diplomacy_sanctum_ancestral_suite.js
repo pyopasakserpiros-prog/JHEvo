@@ -279,7 +279,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
 
   // Verify APEX_LEGENDARY on Floor 3 grants an unclaimed legendary once and never duplicates it
   const claimedLegs = new Set();
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 35; i++) {
     const exL = EXPLORE.departSanctum(W, party, 'SANCTUM_SWORD_ABYSS');
     exL.forceClear = true;
     const outL = EXPLORE.resolveSanctum(W, exL, party, { bonusRoll: 0.01, tierRoll: 0.995 });
@@ -287,10 +287,10 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
       assert.equal(claimedLegs.has(outL.bonusReward.id), false, `Legendary ${outL.bonusReward.id} must never drop twice`);
       claimedLegs.add(outL.bonusReward.id);
     } else {
-      assert.equal(outL.bonusRoll.fallbackUsed, 'all_legendaries_claimed', 'Once all 22 legendaries are claimed, APEX_LEGENDARY must safely downgrade');
+      assert.equal(outL.bonusRoll.fallbackUsed, 'all_legendaries_claimed', 'Once all 26 legendaries are claimed, APEX_LEGENDARY must safely downgrade');
     }
   }
-  assert.equal(claimedLegs.size, 22, 'All 22 legendary manuals must be uniquely claimable with 0 duplicates');
+  assert.equal(claimedLegs.size, 31, 'All 31 legendary manuals must be uniquely claimable with 0 duplicates');
 
   // 2b.5 NPC choice to refine T4-T6 gear with catalysts (even when a generic forge order exists!)
   const refiner = party[0];
@@ -456,11 +456,11 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
 {
   const W = SIM.create('area2d-technique-catalog-audit');
   const allTechs = [...JD.TECH.techniques, ...JD.TECH.mantras];
-  assert.equal(allTechs.filter(t => !t.v214).length, 784, 'All 784 imported techniques and mantras must remain available');
+  assert.equal(allTechs.filter(t => !t.v214 && !t.v215 && !t.v216).length, 784, 'All 784 imported techniques and mantras must remain available');
   assert.equal(new Set(allTechs.map(t => t.id)).size, allTechs.length, 'Expanded technique and mantra IDs must remain unique');
   allTechs.forEach(t => assert.strictEqual(CULT.tech(t.id), t, 'Runtime registry must resolve every catalog entry: ' + t.id));
   const legendaries = allTechs.filter(t => t.legendary);
-  assert.equal(legendaries.length, 22, 'Must have 22 legendary techniques and mantras');
+  assert.equal(legendaries.length, 31, 'Must have 31 legendary techniques and mantras');
 
   // 2d.1 Every Legendary manual must be learnable across ALL 5 major paths and subpaths once effectiveTechStage >= reqTier
   const pathsToTest = [
@@ -508,14 +508,15 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
     assert.equal(wc.accDelta, 0);
   }
 
-  // 2d.3 Weapon-dependent moves reflect MATCHED, ADAPTED_WEAPON, SEVERE_MISMATCH, and BLOCKED_REQUIRED_WEAPON in combat
+  // 2d.3 Weapon-dependent moves reflect MATCHED, ADAPTED_WEAPON, SEVERE_MISMATCH, BLOCKED_REQUIRED_WEAPON (on ordinary arts), and LEGENDARY_QI_PROJECTION (on legendary arts)
   const sword = ECO.mintGear(ECO.recipeById.MP_REC_SWORD_1, 1);
   const blade = ECO.mintGear(ECO.recipeById.MP_REC_BLADE_1, 1);
   const bow = ECO.mintGear(ECO.recipeById.MP_REC_BOW_1, 1);
   tester.cult.path = 'XIAN';
   tester.cult.sub = 'SWORD_IMMORTAL';
   tester.cult.stage = 6;
-  const swordTech = CULT.tech('LEG_COMBAT_DUGU_NINE_SWORDS'); // weaponTypes: ['SWORD'], requiresWeapon: false
+  const swordTech = CULT.tech('ART190_XIAN_001');             // Ordinary sword art: weaponTypes: ['SWORD'], requiresWeapon: false
+  const legSwordTech = CULT.tech('LEG_COMBAT_DUGU_NINE_SWORDS'); // Legendary sword art: Universal Qi Projection (×1.00) when non-sword, ×1.15 when sword
   const reqBowTech = CULT.tech('MP_BOW_IRON_DRAW_T1');        // weaponTypes: ['BOW'], requiresWeapon: true
 
   tester.equip.WEAPON = sword;
@@ -531,6 +532,13 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   assert.equal(wcAdapt.accDelta, -4);
   assert.equal(wcAdapt.qiCostMult, 1.10);
 
+  // Verify Legendary Art universal Qi-projection (no mismatch penalty when holding blade or bow)
+  const wcLegProj = M.weaponCompatibility(tester, legSwordTech);
+  assert.equal(wcLegProj.state, 'LEGENDARY_QI_PROJECTION');
+  assert.equal(wcLegProj.mult, 1.0);
+  assert.equal(wcLegProj.accDelta, 0);
+  assert.equal(wcLegProj.qiCostMult, 1.0);
+
   tester.equip.WEAPON = bow;
   const wcSevere = M.weaponCompatibility(tester, swordTech);
   assert.equal(wcSevere.state, 'SEVERE_MISMATCH');
@@ -544,7 +552,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   assert.equal(wcBlocked.canUse, false);
   assert.equal(M.skillEfficiency(tester, SK.profile(reqBowTech)), 0, 'requiresWeapon move must have 0 efficiency when wrong weapon is equipped');
 
-  // Verify real combat C.strike receives wpnAcc delta (+4 matched vs -12 severe mismatch) and Qi cost scales properly
+  // Verify real combat C.strike receives wpnAcc delta (+4 matched vs -12 severe mismatch) and Qi cost scales properly on ordinary weapon arts
   const target = W.npcs[1];
   tester.cult.techs = [swordTech.id];
   const prof = SK.list(tester).find(p => (p.tech || p.id) === swordTech.id);

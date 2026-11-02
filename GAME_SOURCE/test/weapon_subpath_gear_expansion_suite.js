@@ -53,10 +53,10 @@ for (const sub of expectedNewSubs) {
 const techniques = JD.TECH.techniques;
 const mantras = JD.TECH.mantras;
 assert(Array.isArray(techniques), 'JD.TECH.techniques must be an array');
-assert.strictEqual(techniques.length, 747, `Expected 747 techniques, found ${techniques.length}`);
-assert.strictEqual(mantras.length, 96, `Expected 96 mantras, found ${mantras.length}`);
+assert.strictEqual(techniques.length, 790, `Expected 790 techniques, found ${techniques.length}`);
+assert.strictEqual(mantras.length, 98, `Expected 98 mantras, found ${mantras.length}`);
 
-const weaponTypes = ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS'];
+const weaponTypes = ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'];
 const countsByWeapon = {};
 for (const w of weaponTypes) countsByWeapon[w] = 0;
 let neutralCount = 0;
@@ -81,7 +81,7 @@ assert(neutralCount >= 50, `Expected >= 50 non-elemental/neutral techniques, fou
 // 3. Verify Equipment Matrix (353 items)
 const items = JD.ITEMS.items;
 assert(Array.isArray(items), 'JD.ITEMS.items must be an array');
-assert.strictEqual(items.length, 420, `Expected 420 items, found ${items.length}`);
+assert.strictEqual(items.length, 517, `Expected 517 items, found ${items.length}`);
 
 const itemById = {};
 const itemsByGearType = {};
@@ -94,7 +94,7 @@ for (const item of items) {
 }
 
 const allGearTypes = [
-  'SWORD', 'BLADE', 'BOW', 'SPEAR', 'STAFF', 'FIST', 'FOCUS',
+  'SWORD', 'BLADE', 'BOW', 'SPEAR', 'STAFF', 'FIST', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP',
   'HEAVY', 'LIGHT', 'ROBE', 'RING', 'NECKLACE', 'BRACELET', 'CHARM'
 ];
 for (const gt of allGearTypes) {
@@ -104,7 +104,7 @@ for (const gt of allGearTypes) {
 // 4. Verify Recipe Matrix (476 recipes)
 const recipes = JD.ITEMS.recipes;
 assert(Array.isArray(recipes), 'JD.ITEMS.recipes must be an array');
-assert.strictEqual(recipes.length, 578, `Expected 578 recipes, found ${recipes.length}`);
+assert.strictEqual(recipes.length, 665, `Expected 665 recipes, found ${recipes.length}`);
 
 for (const rec of recipes) {
   assert(rec.id && rec.nameTh && rec.craft && rec.tier, `Recipe ${rec.id || 'unknown'} must specify id, nameTh, craft, tier`);
