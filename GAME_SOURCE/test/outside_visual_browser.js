@@ -6,7 +6,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
   try {
     const context = await browser.newContext({ viewport: { width: 412, height: 860 } });
     const page = await context.newPage();
-    await page.goto('file://' + path.resolve(__dirname, '../index.html'));
+    await page.goto(await require('../tools/browser_test_url').url(path.resolve(__dirname, '../index.html')));
     await page.waitForSelector('[data-pick="0"]'); await page.click('[data-pick="0"]');
     const counts = await page.evaluate(() => {
       G.speed = 0;

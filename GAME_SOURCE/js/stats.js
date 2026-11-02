@@ -31,8 +31,10 @@
     KARMA_SAMSARA: { atk: 0.92, matk: 1.24, def: 1.08, mdef: 1.30 },
     BEAST_SOVEREIGN: { atk: 1.18, matk: 0.95, def: 1.16, mdef: 1.02 },
     SAGE_SUPPORT: { atk: 0.85, matk: 1.22, def: 1.15, mdef: 1.34 },
+    CRAFT_CREATION: { atk: 1.12, matk: 1.18, def: 1.18, mdef: 1.18 },
     NONE: { atk: 1, matk: .15, def: .9, mdef: .35 }
   };
+  for (const [id, path] of Object.entries(JD.CULT.paths)) { if (path.statWeights) PATHW[id] = path.statWeights; }
   const SUBFX = {
     SWORD_IMMORTAL: { p: { def: -.08 }, f: { pen: 18, crit: 6, critDmg: 15 } }, FIVE_ELEMENTS: { p: { matk: .08, mdef: .08 }, f: { cast: 5 } },
     ELIXIR_DAO: { p: { mdef: .12, hp: .08 }, f: { cast: -5 } }, ASTRAL_ARRAY: { p: { mdef: .15, acc: .1, atk: -.08 }, f: { cast: 8 } },
@@ -66,7 +68,7 @@
   function rn(h, k) { let x = (h ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0; return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
   ST.gearStats = it => {
     if (it.st) return it.st;
-    const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '')), f = 1 + 0.12 * tier, s = {};
+    const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '') + (it.uid || '')), f = 1 + 0.12 * tier, s = {};
     const pool = [['crit', () => (2.2 + 2 * rn(h, 5)) * f], ['critDmg', () => (8 + 8 * rn(h, 6)) * f], ['pen', () => (3 + 4 * rn(h, 7)) * f], ['acc', () => base * 0.12], ['cast', () => (3 + 4 * rn(h, 8)) * f], ['eva', () => base * 0.1], ['hp', () => base * 0.45], ['move', () => 3 + 3 * rn(h, 9)], ['mdef', () => base * 0.18], ['def', () => base * 0.18]];
     const pickAff = (n, ex) => { const used = {}; for (let i = 0; i < n; i++) { let k = Math.floor(rn(h, 20 + i) * pool.length), tries = 0; while ((used[pool[k][0]] || (ex && ex.includes(pool[k][0]))) && tries++ < 12) k = (k + 1) % pool.length; used[pool[k][0]] = 1; s[pool[k][0]] = (s[pool[k][0]] || 0) + pool[k][1](); } };
     if (it.slot === 'WEAPON') { const phys = (it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh)) !== 'FOCUS'; s[phys ? 'atk' : 'matk'] = base * 0.55; s[phys ? 'matk' : 'atk'] = base * 0.1; pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
@@ -325,6 +327,7 @@
         else if (c.path === 'KARMA_SAMSARA') { add('mdef', lab, 'p', 0.04 * m.tier); add('matk', lab, 'p', 0.035 * m.tier); add('hp', lab, 'p', 0.02 * m.tier); }
         else if (c.path === 'BEAST_SOVEREIGN') { add('atk', lab, 'p', 0.035 * m.tier); add('hp', lab, 'p', 0.035 * m.tier); add('move', lab, 'f', 1.0 * m.tier); }
         else if (c.path === 'SAGE_SUPPORT') { add('mdef', lab, 'p', 0.04 * m.tier); add('hp', lab, 'p', 0.035 * m.tier); add('cast', lab, 'f', 1.2 * m.tier); }
+        else if (c.path === 'CRAFT_CREATION') { add('atk', lab, 'p', 0.03 * m.tier); add('matk', lab, 'p', 0.035 * m.tier); add('def', lab, 'p', 0.03 * m.tier); add('mdef', lab, 'p', 0.03 * m.tier); }
         else { add('mdef', lab, 'p', 0.04 * m.tier); add('hp', lab, 'p', 0.03 * m.tier); add('matk', lab, 'p', 0.02 * m.tier); }
         if (m.mantraBonus) {
           addAll(lab, m.mantraBonus.p || {}, 'p');
@@ -482,6 +485,7 @@
         else if (c.path === 'KARMA_SAMSARA') { addP('mdef', 0.04 * m.tier); addP('matk', 0.035 * m.tier); addP('hp', 0.02 * m.tier); }
         else if (c.path === 'BEAST_SOVEREIGN') { addP('atk', 0.035 * m.tier); addP('hp', 0.035 * m.tier); addF('move', 1.0 * m.tier); }
         else if (c.path === 'SAGE_SUPPORT') { addP('mdef', 0.04 * m.tier); addP('hp', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
+        else if (c.path === 'CRAFT_CREATION') { addP('atk', 0.03 * m.tier); addP('matk', 0.035 * m.tier); addP('def', 0.03 * m.tier); addP('mdef', 0.03 * m.tier); }
         else { addP('mdef', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('matk', 0.02 * m.tier); }
         if (m.mantraBonus) {
           if (m.mantraBonus.p) addAll(m.mantraBonus.p, false);
@@ -652,6 +656,13 @@
     ['atk', 'matk', 'acc', 'eva'].forEach(k => add(k, 'สภาพร่างกาย (เลือด/แรง/จิตมาร)', 'p', cond - 1)); add('cast', 'สภาพร่างกาย', 'f', (cond - 1) * 40);
   }
   function computeFoe(u, A, add, wp) {
+    if (u.isSummon && u.summonStats) {
+      ST.KEYS.forEach(k => {
+        A[k].b = k === 'hp' ? u.hpMax : Number.isFinite(u.summonStats[k]) ? u.summonStats[k] : 0;
+        if (wp) A[k].parts.push(['พลังร่างอัญเชิญจากผู้ร่าย', 'b', A[k].b]);
+      });
+      statusMods(u, add); conditionMods(u, add); return finish(A, wp);
+    }
     const P = u.power || 20, beast = u.kind === 'beast', t = u.tier || 1;
     A.atk.b = P * (beast ? 0.62 : 0.55); A.matk.b = P * (beast ? 0.25 : 0.2); A.def.b = P * (beast ? 0.5 : 0.48) * (0.95 + 0.03 * t); A.mdef.b = P * (beast ? 0.32 : 0.3); A.acc.b = P * 0.55; A.eva.b = P * (beast ? 0.62 : 0.5);
     A.hp.b = u.hpMax; A.crit.b = 5 + t; A.critDmg.b = 150; A.cast.b = 100 + t * 3; A.move.b = 100; A.pen.b = t;
@@ -737,7 +748,7 @@
       const id = k.startsWith('P:CB_') ? k.slice(5) : k.slice(2);
       const info = ECO.pillInfo(k); if (!info) return;
       if (id === 'BERSERK' && !(hard && (E(n, 'personality.aggression') > 55 || n.h.state.hp < CULT.hpMax(n) * 0.5))) return;
-      if (info.tier > c.stage + 1) return;
+      if (info.tier > CULT.equivalentStage(n) + 1) return;
       const s = (pref.some(p => id.includes(p)) ? 2 : 1) + (src === 'own' ? 0.5 : 0) + (info.effect?.cbBuff ? 0.5 : 0) + W.rng.next();
       if (s > bs) { bs = s; best = [k, src]; }
     });
@@ -759,7 +770,7 @@
   if (oTouch) HC.touch = function (n) { if (n) { n._cs = null; n._csBase = null; } return oTouch.apply(this, arguments); };
   // ค่าเริ่มของไอเท็ม: เก็บ effects ไว้ให้คำนวณเจาะเกราะ
   const oMint = ECO.mintGear;
-  ECO.mintGear = (x, q) => { const gear = oMint(x, q); const it = x.outItemId ? ECO.itemById[x.outItemId] : (x.slot ? x : null); if (it && it.effects) gear.fx = it.effects; return gear; };
+  ECO.mintGear = (a, b, c, d) => { const gear = oMint(a, b, c, d); const x = (a && a.sect && a.npcs) ? b : a; const it = x && x.outItemId ? ECO.itemById[x.outItemId] : (x && x.slot ? x : null); if (it && it.effects) gear.fx = it.effects; return gear; };
   g.STATS = ST;
   if (typeof module === 'object' && module.exports) module.exports = ST;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

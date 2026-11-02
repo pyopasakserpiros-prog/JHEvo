@@ -12,7 +12,7 @@ Provide the deep-dive, source-verified engineering specification for **JianghuSe
 
 Use this skill whenever:
 - Modifying `COMBAT.strike`, `COMBAT.fightStep`, `COMBAT.sparRound`, `COMBAT.tournamentTick`, or party combat in `EX.resolveSanctum` / `EXPED.spawnRaid`
-- Adding or tuning the 12 combat stats (`STATS.KEYS`), 8 timed buffs (`STATS.BUFF_CATALOG`), status effects (`u.sx`), or 18 Equipment Resonance Sets (`MARTIAL.evaluateResonanceSet`)
+- Adding or tuning the 12 combat stats (`STATS.KEYS`), 8 timed buffs (`STATS.BUFF_CATALOG`), status effects (`u.sx`), or 27 Equipment Resonance Sets (`MARTIAL.evaluateResonanceSet`)
 - Working on **Formation & Ensemble Synergies (`COMBAT.evaluateFormationSynergy`)**, **Spirit Beast Pack / War-Beast Combat**, or **All-Jianghu Martial Conferences**
 
 ---

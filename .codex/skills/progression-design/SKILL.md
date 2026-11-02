@@ -95,6 +95,12 @@ When adding or extending world trials (such as `EX.resolveSanctum`, `EX.NINE_DAO
 1. **No Path Lockouts**: Any party of cultivators from any of the 9 paths must be able to enter and clear every floor/realm using `CULT.equivalentStage(npc)` and `COMBAT.evaluateFormationSynergy(party)`.
 2. **Dao / Elemental Resonance Bonuses**: Grant bonus comprehension, `CULT.gainWisdom`, elemental mastery (`ELEM.gainMastery`), or catalyst/resonance drops when a party member's `cult.path` or `ELEM` spiritual root matches the floor/realm affinity.
 
+### 4.1 Heavenly Tribulation & Ascension (v2.0.11)
+- Qualify a cultivator at `CULT.maxStage(npc)` and equivalent stage 9; do not hard-code stage 8 or 9 across paths.
+- The Ancestral Shrine starts a saved three-day event with two or three available sect helpers. Success inscribes an ascended legacy and retires the cultivator; it is not a death or an ordinary capped-stage breakthrough.
+- Failed tribulation is recoverable and has a 90-day retry cooldown. Permanent sect cultivation legacy is +1% per ascension, capped at +5%.
+- Resolve participants by saved IDs and release surviving participants on every outcome. If the ascendant is Sect Master, complete succession before `SIM.retire`.
+
 ---
 
 ## 5. Verification Checklist

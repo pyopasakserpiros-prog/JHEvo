@@ -21,9 +21,11 @@ assert.strictEqual(
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
 console.log('  PASS: human_core.js byte-for-byte lock verified (155:2f9c9dd7)');
 
-// 1. Pillar A: Equipment Resonance Sets (14 Sets, 50 Subpaths, T3-T7)
+// 1. Pillar A: Baseline + Nine-Dao equipment resonance sets (31 sets, 96 subpaths, T3-T7)
 assert(Array.isArray(MARTIAL.RESONANCE_SETS), 'MARTIAL.RESONANCE_SETS must be an array');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 18, 'Must have exactly 18 resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 19, 'Must preserve all 19 baseline resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 12, 'Must register all twelve Pagoda resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 31, 'Must have 31 baseline plus Pagoda resonance sets');
 
 const coveredSubpaths = new Set();
 for (const set of MARTIAL.RESONANCE_SETS) {
@@ -37,7 +39,7 @@ for (const set of MARTIAL.RESONANCE_SETS) {
   set.subpaths.forEach(s => coveredSubpaths.add(s));
 }
 
-// Verify that all 50 subpaths are accounted for across resonance sets
+// Every current subpath must retain equipment resonance coverage.
 let totalKnownSubpaths = 0;
 for (const p of Object.keys(CULT.PATHS)) {
   for (const s of CULT.PATHS[p].subPaths || []) {
@@ -45,8 +47,8 @@ for (const p of Object.keys(CULT.PATHS)) {
     assert(coveredSubpaths.has(s.id), `Subpath ${s.id} not covered by any resonance set!`);
   }
 }
-assert.strictEqual(totalKnownSubpaths, 78, 'Total subpaths in system must be 78');
-console.log('  PASS: 14 Resonance Sets verified covering all 50 subpaths');
+assert.strictEqual(totalKnownSubpaths, 96, 'Total subpaths in system must be 96');
+console.log('  PASS: 31 resonance sets verified covering all 96 subpaths');
 
 // Test evaluateResonanceSet functionality
 const W = SIM.create('test-resonance-suite');
@@ -104,6 +106,41 @@ assert(stats && typeof stats.atk === 'number', 'STATS.get must succeed with reso
 const exp = STATS.explain(npc);
 assert(exp && typeof exp === 'object', 'STATS.explain must return explanation with resonance');
 console.log('  PASS: evaluateResonanceSet 2-piece and 3-piece evaluation & STATS integration verified');
+
+// New specializations share real baseline traditions without increasing their bonuses.
+for (const sub of JD.MARTIAL.subPaths.filter(s => s.v214)) {
+  const baseSet = MARTIAL.RESONANCE_SETS.find(s => !s.id.startsWith('RES_NINE_DAO_') && s.subpaths.includes(sub.id));
+  assert(baseSet, 'Existing baseline tradition covers ' + sub.id);
+  const profile = MARTIAL.PROFILES[sub.id];
+  assert(baseSet.slots.WEAPON.some(w => profile[3].includes(w)), 'Baseline weapon fits ' + sub.id);
+  assert(baseSet.slots.ARMOR.some(a => profile[4].includes(a)), 'Baseline armor fits ' + sub.id);
+}
+// Real Pagoda reward pieces activate exactly their own three-piece set for all
+// new-path branches and all three craft specialists; one item still counts once.
+for (const pathId of ['ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'CRAFT_CREATION']) {
+  const pieces = G.EXPLORE.pagodaSetPieces(pathId, 1);
+  assert.strictEqual(pieces.length, 3, 'Three reward pieces for ' + pathId);
+  assert.strictEqual(new Set(pieces.map(p => p.uid)).size, 3, 'Distinct reward identities for ' + pathId);
+  for (const sub of CULT.PATHS[pathId].subPaths.filter(s => s.v214)) {
+    const subject = JSON.parse(JSON.stringify(W.npcs[1]));
+    subject.cult = { path: pathId, sub: sub.id, stage: 5, prog: 0, techs: [] };
+    subject.equip = { WEAPON: pieces[0] };
+    MARTIAL.invalidateMartialCaches(subject);
+    assert.strictEqual(MARTIAL.evaluateResonanceSet(subject).active, false, 'One real piece cannot activate ' + sub.id);
+    subject.equip.ARMOR = pieces[1];
+    MARTIAL.invalidateMartialCaches(subject);
+    assert.strictEqual(MARTIAL.evaluateResonanceSet(subject).pieces, 2, 'Two occupied slots count twice for ' + sub.id);
+    subject.equip.ACCESSORY = pieces[2];
+    MARTIAL.invalidateMartialCaches(subject);
+    const activated = MARTIAL.evaluateResonanceSet(subject);
+    assert.strictEqual(activated.setId, 'RES_NINE_DAO_' + pathId);
+    assert.strictEqual(activated.pieces, 3, 'Three occupied slots count three times for ' + sub.id);
+    assert.strictEqual(activated.isSubpathMatch, true, 'Reward recognizes subpath ' + sub.id);
+    assert(activated.rider, 'Three pieces unlock rider for ' + sub.id);
+  }
+}
+console.log('  PASS: new specialist baseline coverage and exact Pagoda piece activation');
+
 
 // 2. Pillar B: Tactical Weapon AI (7 Weapon Families, Stances, Counter-AI)
 assert(SK.WEAPON_TACTICS, 'SK.WEAPON_TACTICS must exist');

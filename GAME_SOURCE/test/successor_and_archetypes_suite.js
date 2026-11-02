@@ -100,7 +100,9 @@ for (const archId of archetypes) {
   const archDef = SECT.ARCHETYPES[archId];
 
   assert.strictEqual(S.archetype, archId, 'Sect archetype must match ' + archId);
-  assert(S.library.length >= 10 && S.library.length <= 25, 'Library must be curated and concise (' + S.library.length + ' techs), NOT 128!');
+  assert(S.library.length >= 10 && S.library.length < (globalThis.JD.TECH.techniques.length + globalThis.JD.TECH.mantras.length) * .15, 'Library must remain a curated minority of the registered catalog');
+  assert.equal(new Set(S.library).size, S.library.length, 'Starting library has no duplicated unlocks');
+  S.library.forEach(id => assert(CULT.tech(id), 'Starting library references a real technique'));
   
   // Verify all archetype signature techniques are in library
   for (const tid of archDef.techs) {

@@ -11,7 +11,7 @@ This skill covers how to test both headless simulation logic (`test/load.js`) an
 
 ## 1. Headless Node.js Simulation Harness (`GAME_SOURCE/test/load.js`)
 
-`test/load.js` loads all 11 data files and 26 simulation JS modules into `globalThis` in exact `<script>` order:
+`test/load.js` loads all 11 data files and 26 simulation JS modules into `globalThis` in the same source-module order used by `index.html`:
 ```javascript
 'use strict';
 const g = require('./load.js');

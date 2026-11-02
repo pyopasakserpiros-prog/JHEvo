@@ -28,7 +28,7 @@
   C.factions=factions; C.factionById=factionById;
 
   const METRIC_KEYS=['gathered','hunted','formulas','manuals','expeditions','formulasKept','formulasDonated','formulasTraded','formulasCopied','formulasAuthorized','organsHarvested','organsDamaged','organsRefined','organsDonated','experimentsRun','experimentsSucceeded','treatiesSigned','politicalEvents'];
-  const POLITICS_STAT_KEYS=['treatiesSigned','tradeShipments','tributesPaid','crisesResolved','jointDefenses','allyExchanges','envoyChallenges'];
+  const POLITICS_STAT_KEYS=['treatiesSigned','tradeShipments','tributesPaid','crisesResolved','jointDefenses','allyExchanges','envoyChallenges','vassalTreatiesSigned','vassalTributes'];
 
   C.ensure=W=>{
     if(g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
@@ -105,6 +105,10 @@
       }
     });
     W.sect.contentVersion=C.VERSION;
+    if(!Array.isArray(W.sect.gateBeasts)) W.sect.gateBeasts=[];
+    else if(W.sect.gateBeasts.length>4) W.sect.gateBeasts.length=4;
+    if(g.EXPLORE&&g.EXPLORE.ensureTrials) g.EXPLORE.ensureTrials(W);
+    if(g.SECT&&g.SECT.WORLD_MARTIAL_CONFERENCE&&g.SECT.WORLD_MARTIAL_CONFERENCE.ensure) g.SECT.WORLD_MARTIAL_CONFERENCE.ensure(W);
     return m;
   };
 
@@ -576,7 +580,8 @@
     ALLIANCE:'พันธมิตรยุทธภพ',
     ALLIANCE_PACT:'มหาพันธมิตรร่วมสาบาน',
     RIVAL_FEUD:'คู่ปรับท้าประลองยุทธภพ',
-    EMBARGO:'คว่ำบาตร/ปรปักษ์'
+    EMBARGO:'คว่ำบาตร/ปรปักษ์',
+    VASSAL_TREATY:'สนธิสัญญาสำนักบริวารและบรรณาการ'
   };
   C.TREATY_TH=TREATY_TH;
   C.SECT_TREATIES=TREATY_TH;
@@ -589,9 +594,9 @@
     if(!opts.force && !opts.ignoreCooldown && s.treatyCooldownUntil!=null && (W.day||0)<s.treatyCooldownUntil && s.treaty===treatyType) {
       return {ok:false,reason:'cooldown',cooldownUntilDay:s.treatyCooldownUntil};
     }
-    const minAtt={TRADE_PACT:15,TRADE_CARAVAN_ACCORD:15,NON_AGGRESSION:5,MARTIAL_EXCHANGE:25,ALLIANCE:45,ALLIANCE_PACT:40,RIVAL_FEUD:-100,NONE:-100,EMBARGO:-100}[treatyType];
+    const minAtt={TRADE_PACT:15,TRADE_CARAVAN_ACCORD:15,NON_AGGRESSION:5,MARTIAL_EXCHANGE:25,ALLIANCE:45,ALLIANCE_PACT:40,RIVAL_FEUD:-100,NONE:-100,EMBARGO:-100,VASSAL_TREATY:-100}[treatyType];
     if(!opts.force && s.attitude<minAtt) return {ok:false,reason:'insufficient-attitude',attitude:s.attitude,required:minAtt};
-    const cost=opts.free?0:({TRADE_PACT:40,TRADE_CARAVAN_ACCORD:35,NON_AGGRESSION:30,MARTIAL_EXCHANGE:50,ALLIANCE:80,ALLIANCE_PACT:75,RIVAL_FEUD:0,NONE:0,EMBARGO:0}[treatyType]||0);
+    const cost=opts.free?0:({TRADE_PACT:40,TRADE_CARAVAN_ACCORD:35,NON_AGGRESSION:30,MARTIAL_EXCHANGE:50,ALLIANCE:80,ALLIANCE_PACT:75,RIVAL_FEUD:0,NONE:0,EMBARGO:0,VASSAL_TREATY:0}[treatyType]||0);
     if(cost>0 && !ECO.pay(W,cost,'ทำ'+TREATY_TH[treatyType]+'กับ'+s.nameTh)) return {ok:false,reason:'insufficient-stones',cost};
 
     s.treaty=treatyType;
@@ -601,9 +606,9 @@
     if(treatyType==='NONE') {
       delete pol.treaties[s.id];
     } else {
-      pol.treaties[s.id]={type:treatyType,signedDay:W.day,expiresDay:W.day+(opts.durationDays||90)};
+      pol.treaties[s.id]=treatyType==='VASSAL_TREATY'?{type:treatyType,signedDay:W.day}:{type:treatyType,signedDay:W.day,expiresDay:W.day+(opts.durationDays||90)};
     }
-    const attDelta={ALLIANCE:10,ALLIANCE_PACT:12,MARTIAL_EXCHANGE:8,TRADE_PACT:6,TRADE_CARAVAN_ACCORD:7,NON_AGGRESSION:4,NONE:0,RIVAL_FEUD:-12,EMBARGO:-15}[treatyType]||0;
+    const attDelta={ALLIANCE:10,ALLIANCE_PACT:12,MARTIAL_EXCHANGE:8,TRADE_PACT:6,TRADE_CARAVAN_ACCORD:7,NON_AGGRESSION:4,NONE:0,RIVAL_FEUD:-12,EMBARGO:-15,VASSAL_TREATY:0}[treatyType]||0;
     s.attitude=clamp(s.attitude+attDelta,-100,100);
     if(W.market && W.market.mult && Array.isArray(s.specialtyMatIds)) {
       s.specialtyMatIds.forEach(mId=>{
@@ -618,6 +623,24 @@
     if(pol.events.length>40) pol.events.splice(0,pol.events.length-40);
     if(!opts.quiet) W.log('mission','สำนักลงนาม「'+TREATY_TH[treatyType]+'」กับ'+s.nameTh,[]);
     return {ok:true,sectId:s.id,treaty:treatyType,cost,attitude:s.attitude};
+  };
+
+  C.forceVassalTreaty=(W,sectOrId,opts)=>{
+    opts=opts||{}; C.ensure(W);
+    const s=typeof sectOrId==='string'?(W.world.sects||[]).find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId;
+    if(!s) return {ok:false,reason:'invalid-sect'};
+    if(s.treaty==='VASSAL_TREATY') return {ok:true,unchanged:true,sectId:s.id,treaty:s.treaty};
+    const wonMajorDispute=!!opts.majorDispute||s.treaty==='RIVAL_FEUD'||(s.attitude||0)<=-40;
+    if(!opts.force&&!wonMajorDispute) return {ok:false,reason:'requires-major-dispute-victory'};
+    s.treaty='VASSAL_TREATY'; s.contact=W.day||0; s.lastVassalTributeDay=(W.day||0)-((W.day||0)%90);
+    const pol=W.world.politics;
+    pol.treaties[s.id]={type:'VASSAL_TREATY',signedDay:W.day||0,wonByNpcId:opts.winnerId||null,cause:opts.cause||'MAJOR_DISPUTE'};
+    s.attitude=clamp((s.attitude||0)+8,-100,100);
+    pol.stats.vassalTreatiesSigned=(pol.stats.vassalTreatiesSigned||0)+1;
+    pol.events.push({day:W.day||0,kind:'VASSAL_TREATY',sectId:s.id,treaty:'VASSAL_TREATY',outcome:'SIGNED_AFTER_DEFEAT',summaryTh:'สำนัก'+s.nameTh+'ยอมเป็นสำนักบริวารหลังพ่ายแพ้ในการประลองชี้ขาด'});
+    if(pol.events.length>40) pol.events.splice(0,pol.events.length-40);
+    W.log('mission','สำนัก'+s.nameTh+'ยอมทำสนธิสัญญาบริวาร ส่งบรรณาการตามฤดูกาล',opts.winnerId?[opts.winnerId]:[]);
+    return {ok:true,sectId:s.id,treaty:'VASSAL_TREATY',nextTributeDay:Math.ceil(((W.day||0)+1)/90)*90};
   };
 
   C.exchangeWithAlly=(W,sectOrId,opts)=>{
@@ -808,13 +831,25 @@
     const pol=W.world.politics;
     const minReserve=(W.sect.reserveDirectives && W.sect.reserveDirectives.minStoneReserve)||120;
     // 1. Update treaty expirations & automatic embargo thresholds
-    (W.world.sects||[]).forEach(s=>{
+    (W.world.sects||[]).forEach((s,idx)=>{
       const tr=pol.treaties[s.id];
       if(tr && tr.expiresDay && W.day>=tr.expiresDay) {
         delete pol.treaties[s.id];
         if(s.treaty===tr.type) s.treaty='NONE';
       }
-      if(s.attitude<=-60 && s.treaty!=='EMBARGO') {
+      if(s.treaty==='VASSAL_TREATY' && W.day>0 && W.day%90===0 && s.lastVassalTributeDay!==W.day) {
+        const tribute=Math.max(60,Math.round(100+(s.power||1)*35));
+        ECO.earn(W,tribute,'บรรณาการตามฤดูกาลจาก'+s.nameTh);
+        const validSpecialty=(s.specialtyMatIds||[]).find(id=>ECO.matById[id]&&ECO.matById[id].category==='HERB');
+        const herbs=Object.values(ECO.matById||{}).filter(m=>m&&m.category==='HERB'&&(m.tier||1)>=2);
+        const herbId=validSpecialty||(herbs.length?herbs[(W.day/90+idx)%herbs.length].id:null);
+        if(herbId) ECO.add(W,herbId,2);
+        s.lastVassalTributeDay=W.day;
+        pol.stats.vassalTributes=(pol.stats.vassalTributes||0)+1;
+        pol.events.push({day:W.day,kind:'VASSAL_TRIBUTE',sectId:s.id,treaty:'VASSAL_TREATY',outcome:'PAID',stones:tribute,herbId,herbQty:herbId?2:0,summaryTh:'ได้รับบรรณาการ '+tribute+' ศิลา'+(herbId?' และสมุนไพร '+ECO.name(herbId)+' ×2':'')+' จาก'+s.nameTh});
+        if(pol.events.length>40) pol.events.splice(0,pol.events.length-40);
+      }
+      if(s.treaty!=='VASSAL_TREATY' && s.attitude<=-60 && s.treaty!=='EMBARGO') {
         s.treaty='EMBARGO';
         pol.treaties[s.id]={type:'EMBARGO',signedDay:W.day,expiresDay:W.day+60};
       } else if(s.attitude>-35 && s.treaty==='EMBARGO') {
@@ -825,7 +860,7 @@
     // 1b. Every 30 days, if relations are high and treasury has surplus, formalize treaties
     if(W.day>0 && W.day%30===0 && W.sect.stones>=minReserve+100) {
       for(const s of (W.world.sects||[])) {
-        if(s.attitude>=45 && s.treaty!=='ALLIANCE' && W.sect.stones>=minReserve+120) {
+        if(s.attitude>=45 && s.treaty!=='ALLIANCE' && s.treaty!=='VASSAL_TREATY' && W.sect.stones>=minReserve+120) {
           C.signTreaty(W,s,'ALLIANCE'); break;
         } else if(s.attitude>=20 && s.treaty==='NONE' && W.sect.stones>=minReserve+80) {
           C.signTreaty(W,s,s.treatyPref==='NON_AGGRESSION'?'NON_AGGRESSION':'TRADE_PACT'); break;

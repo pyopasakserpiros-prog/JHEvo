@@ -335,7 +335,7 @@ console.log('Testing Southern Spirit River, Fishing, Mysterious Containers & Fis
   p.on('pageerror', e => pageErrors.push(e.message));
   p.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text()); });
 
-  await p.goto('file://' + path.join(root, 'JianghuSect_single.html'));
+  await p.goto(await require('../tools/browser_test_url').url(path.join(root, 'JianghuSect_single.html')));
   await p.waitForSelector('[data-pick="0"]');
   await p.click('[data-pick="0"]');
   await p.waitForTimeout(200);

@@ -111,7 +111,7 @@
     const c = n.cult, k = BN.heldPill(n);
     if (k) { n.inv.pills[k]--; if (n.inv.pills[k] <= 0) delete n.inv.pills[k]; const r = ECO.applyPill(W, n, k); if (r) AI.mem(W, n, 'กิน' + r.info.name + 'ก่อนทะลวงขั้น', 0.6); }
     else if ((c.btBonus || 0) < 0.1 && n.rank >= 2) { // โอสถทั่วไป (ไม่เฉพาะขั้น) จากคลัง
-      for (const key of Object.keys(W.sect.stock)) { const info = ECO.isPill(key) ? ECO.pillInfo(key) : null; if (info && info.effect.breakthroughBonus && !info.effect.btFor && info.tier <= c.stage + 1 && W.sect.stock[key] > 0) { ECO.usePill(W, n, key); break; } }
+      for (const key of Object.keys(W.sect.stock)) { const info = ECO.isPill(key) ? ECO.pillInfo(key) : null; if (info && info.effect.breakthroughBonus && !info.effect.btFor && info.tier <= CULT.effectiveTechStage(n) + 1 && W.sect.stock[key] > 0) { ECO.usePill(W, n, key); break; } }
     }
   };
 
@@ -122,9 +122,11 @@
     score(n, W, S) { S.add('ติดคอขวด ต้องเตรียมตัว', 1.7); S.add('ความอดทน', (E(n, 'personality.discipline') - 50) / 120); S.add('ฐานยังไม่มั่น', ((0.1 - (n.cult.found || 0)) * 3)); },
     where(W, n) {
       const c = n.cult;
-      const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT'].includes(c.path);
-      const kind = isMed ? 'meditate' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'lift' : c.path === 'MECH_PUPPET' ? 'anvil' : c.path === 'DEMON' ? 'explore' : 'worship';
-      const bk = isMed ? 'meditation_hall' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'training_ground' : c.path === 'MECH_PUPPET' ? 'forge' : c.path === 'DEMON' ? 'ruin' : 'shrine';
+      const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE'].includes(c.path);
+      const isCraft = c.path === 'CRAFT_CREATION';
+      const preferAlc = isCraft && ((n.h.skills.ALCHEMY || 0) >= (n.h.skills.FORGING || 0) || c.sub === 'PILL_FURNACE_IMMORTAL' || c.sub === 'POISON_VENOM_CAULDRON');
+      const kind = isMed ? 'meditate' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'lift' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'anvil' : (isCraft && preferAlc) ? 'cauldron' : c.path === 'DEMON' ? 'explore' : 'worship';
+      const bk = isMed ? 'meditation_hall' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'training_ground' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'forge' : (isCraft && preferAlc) ? 'alchemy' : c.path === 'DEMON' ? 'ruin' : 'shrine';
       let s = AI.freeStation(W, n, kind, bk);
       if (!s) s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond');
       if (s) return { st: s };

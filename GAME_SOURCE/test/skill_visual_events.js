@@ -23,5 +23,9 @@ console.log('PASS shared skill visuals: ordinary/forbidden active casts, target 
 {const {W,a,d,f}=encounter('strike'); a.skl[0].tech=JD.TECH.techniques.find(t=>t.cat==='FORBIDDEN_ART').id; C.attack(W,f,a,d); assert.equal(a.castFx.kind,'forbidden','forbidden category stays distinct even with a different active archetype');}
 for(const arch of ['heal','support','summon']){
  const {W,a,d,f}=encounter(arch);Object.assign(a.skl[0],{M:0,team:true,heal:0.3});
+ // Team utility must have a real ally; a lone caster's support score can fall
+ // below the casting threshold after its intended random preference modifier.
+ const ally={...a,id:'fxAlly',hp:50,sx:[],skl:[],act:{id:'fight',ctx:{}}};
+ W.foes.push(ally);W.foeById[ally.id]=ally;f.A.push(ally.id);
  C.attack(W,f,a,d);assert(a.castFx,arch+' activated');assert.equal(a.castFx.x,a.x,arch+' effect stays with caster/team, not enemy');
 }

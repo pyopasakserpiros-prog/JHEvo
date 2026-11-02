@@ -1,6 +1,6 @@
 ---
 name: qa-test-matrix
-description: Master JianghuSect Evolution's 83-suite automated regression test matrix (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), 150-file JS syntax sweep, and milestone acceptance gates.
+description: Master JianghuSect Evolution's 84 automated regression suites plus full JavaScript syntax sweep (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), and milestone acceptance gates.
 ---
 
 # JianghuSect Evolution — Automated QA & 83-Suite Regression Matrix Blueprint (`test/run_all.js`, `tools/validate_data_schema.js`)
@@ -61,7 +61,7 @@ When developing or debugging a specific subsystem, run its targeted test suites 
 ---
 
 ## 3. Writing New Milestone Tests (e.g., `test/test_v210_integrated.js`)
-Every new patch (such as `v2.0.10`) must add a dedicated integration test file in `GAME_SOURCE/test/` and register it in `GAME_SOURCE/test/run_all.js`:
+Every new patch (such as `v2.0.11`) must add a dedicated integration test file in `GAME_SOURCE/test/` and register it in `GAME_SOURCE/test/run_all.js`:
 1. Load the headless VM via `const g = require('./load.js'); const assert = require('assert');`.
 2. Create a deterministic test world via `const W = g.SIM.create('test_v210_seed', { masterIdx: 0 });`.
 3. Assert every new feature pillar (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`, `W.sect.gateBeasts`, Spirit Mount Caravans, `SECT.WORLD_MARTIAL_CONFERENCE`, `VASSAL_TREATY`, and 14 `SECT.SECT_ARCHETYPES`).

@@ -199,7 +199,9 @@ console.log('=== Running Edit Hub Diplomacy & Sanctums, 50-Subpath Progression &
       allSubpaths.push(...pathDef.subPaths);
     }
   }
-  assert.equal(allSubpaths.length, 78, `Must have exactly 78 subpaths, found ${allSubpaths.length}`);
+  const catalogSubIds = CULT.subList.map(entry => entry.sub.id);
+  assert.deepEqual(allSubpaths.map(sub => sub.id).sort(), catalogSubIds.slice().sort(), 'Every registered subpath must be covered by the progression bridge');
+  assert.equal(new Set(catalogSubIds).size, catalogSubIds.length, 'Subpath IDs must be unique across all paths');
 
   // 3b. Verify CULT.trackDef works for ALL 50 subpaths
   for (const sub of allSubpaths) {

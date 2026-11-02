@@ -5,6 +5,15 @@ require('../js/ui.js');const {UI,SIM,JD,ECO,EXT,CONTENT:C}=G;
 const W=SIM.create('ui-content');UI.G={W,R:{},opts:{},acc:13,speed:32};UI.tab='content';
 let html=UI.rWorld();assert(html.includes('พื้นที่')||html.includes('เส้นทาง'));assert(!html.includes('undefined'));assert(!html.includes('NaN'));
 assert(html.includes('🔒'));for(const r of JD.EXPANSION.regions)assert(html.includes(r.nameTh));
+const tribW=SIM.create('ui-tribulation');
+const tribCandidate=tribW.byId[tribW.sect.masterId];tribCandidate.cult.path='XIAN';tribCandidate.cult.stage=G.CULT.maxStage(tribCandidate);
+ECO.add(tribW,'P:REC190_PILL_004',1);UI.G.W=tribW;UI.bldId=tribW.map.byId.ancestral?'ancestral':'shrine';
+html=UI.rBuilding();assert(html.includes('ด่านเคราะห์สวรรค์และจุติ'));assert(html.includes('เริ่มพิธี + ใช้โอสถ'));assert(html.includes('เริ่มพิธี'));
+const priorUiFns={toast:UI.toast,render:UI.render,updateHud:UI.updateHud};let tribToast='';
+UI.toast=msg=>{tribToast=String(msg);};UI.render=()=>{};UI.updateHud=()=>{};
+UI.doAction('begin-tribulation',tribCandidate.id+'|no-medicine');
+assert(tribW.sect.celestialTribulation.active,'Shrine action should begin and persist the preparation');assert.equal(ECO.count(tribW,'P:REC190_PILL_004'),1,'the no-medicine control should preserve stock');assert(tribToast.includes('3 วัน'));
+UI.toast=priorUiFns.toast;UI.render=priorUiFns.render;UI.updateHud=priorUiFns.updateHud;UI.G.W=W;UI.bldId=null;
 // Test personal scroll holder visibility in UI.rContent and UI.rNpc
 const heldRecipe=JD.EXPANSION.recipes[0];
 W.npcs[1].inv.recipes=[heldRecipe.id];

@@ -290,6 +290,11 @@
       ks.lastHarmAt = W.t;
     }
     let hp = C.hp(d) - dmg;
+    if (hp <= 0 && d.isGateBeast && d.bloodlineTrait === 'SOVEREIGN_AWAKENED' && !d.sovereignGuardUsed) {
+      d.sovereignGuardUsed = true;
+      hp = Math.max(1, Math.round(hm * 0.22));
+      d.fx = { t: W.t, text: '👑 สายเลือดราชันย์คุ้มชีพ' };
+    }
     if (hp <= hm * 0.12 && !d.foe && d.cult && d.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
       f._mechDecoyUsed = f._mechDecoyUsed || {};
       const ms = CULT.ensureMechState(d);
@@ -380,6 +385,12 @@
     const crit = !o.noCrit && W.rng.chance(clamp(critChance, 0, 0.90));
     let frac = 0.2 * (A0 / (A0 + 0.8 * Math.max(0, D))) * (o.M || 1) * (o.synDmgMult || 1) * (tb ? tb.dmgMult : 1) * (tac ? tac.dmgMult : 1) * resRiderMult * (0.85 + W.rng.next() * 0.3);
     if (crit) frac *= ((sa.critDmg || 150) + (o.critDmgAdd || 0) + (tb ? tb.critDmgAdd : 0)) / 100;
+    if (a.isGateBeast) {
+      if (a.bloodlineTrait === 'ALPHA_FANG') frac *= 1.18;
+      else if (a.bloodlineTrait === 'SOVEREIGN_AWAKENED') frac *= 1.10;
+    }
+    if (d.isGateBeast && d.bloodlineTrait === 'IRON_CARAPACE') frac *= 0.72;
+    else if (d.isGateBeast && d.bloodlineTrait === 'SOVEREIGN_AWAKENED') frac *= 0.90;
     // Major Path Offensive/Defensive Combat Identities
     if (!a.foe && a.cult) {
       if (a.cult.path === 'XIAN' && o.isSkill && (a.h.state.qi || 0) >= CULT.qiMax(a) * 0.5) {
@@ -415,6 +426,12 @@
       } else if (a.cult.path === 'BEAST_SOVEREIGN') {
         if (a._beastFusedUntil && a._beastFusedUntil > W.t) frac *= 1.14;
         else if (CULT.activePets && CULT.activePets(a).length > 0) frac *= 1.07;
+      } else if (a.cult.path === 'ARRAY_TALISMAN' || a.cult.path === 'STRATEGY_GOVERNANCE') {
+        frac *= 1 + C.pathFormationMastery(a) * 0.08;
+      } else if (a.cult.path === 'CRAFT_CREATION') {
+        const sk = a.h && a.h.skills ? a.h.skills : {};
+        const craftMastery = Math.max(sk.ALCHEMY || 0, sk.FORGING || 0, sk.ARRAY || 0, sk.TALISMAN || 0) + Math.min(sk.ALCHEMY || 0, sk.FORGING || 0) * 0.5;
+        frac *= 1 + clamp(0.06 + craftMastery / 900, 0.06, 0.22);
       }
     }
     if (!d.foe && d.cult) {
@@ -423,6 +440,10 @@
         if (dHpf <= 0.65) frac *= (1 - 0.08 * (1 - dHpf)); // Blood-Qi Flesh Crucible unyielding mitigation
       } else if (d.cult.path === 'GOD') {
         frac *= 0.91; // Divine Aegis Faith Ward
+      } else if (d.cult.path === 'ARRAY_TALISMAN' || d.cult.path === 'STRATEGY_GOVERNANCE') {
+        frac *= 1 - C.pathFormationMastery(d) * 0.06;
+      } else if (d.cult.path === 'CRAFT_CREATION') {
+        frac *= 0.90; // Tempered Crucible & Artifact Ward
       } else if (d.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
         const ms = CULT.ensureMechState(d);
         if (ms.integrity > 10) {
@@ -442,6 +463,26 @@
     d.fx = { t: W.t, text: (crit ? '✦' : '') + '-' + Math.max(1, Math.round(dmg)) };
     if (!a.foe) { a.h.state.energy = Math.max(0, a.h.state.energy - 0.15); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, (g.MARTIAL ? ({ FIST: 'FIST_PALM' }[g.MARTIAL.equippedType(a)] || g.MARTIAL.equippedType(a)) : g.AI.pickTeachSkill(a, a)), 1 / 90, 1.1); HC.trainBody(a, 'reflex', 0.1); a.lastHurt = null; }
     const killed = C.applyDamage(W, f, a, d, dmg);
+    if (!o.isPetAssist && g.ECO && g.ECO.wearGear) {
+      const seriousMult = (f && f.serious) ? 1.0 : 0.35;
+      const aWearMult = (!a.foe && a.cult && a.cult.path === 'CRAFT_CREATION') ? 0.6 : 1.0;
+      const dWearMult = (!d.foe && d.cult && d.cult.path === 'CRAFT_CREATION') ? 0.6 : 1.0;
+      if (!a.foe && a.equip && a.equip.WEAPON && a.equip.WEAPON.procedural && !a.equip.WEAPON.broken) {
+        g.ECO.wearGear(a.equip.WEAPON, 0.28 * seriousMult * aWearMult, W, a);
+      }
+      if (!d.foe && d.equip) {
+        if (d.equip.ARMOR && d.equip.ARMOR.procedural && !d.equip.ARMOR.broken) {
+          g.ECO.wearGear(d.equip.ARMOR, 0.24 * seriousMult * dWearMult, W, d);
+        }
+        if (d.equip.ACCESSORY && d.equip.ACCESSORY.procedural && !d.equip.ACCESSORY.broken) {
+          g.ECO.wearGear(d.equip.ACCESSORY, 0.12 * seriousMult * dWearMult, W, d);
+        }
+      }
+    }
+    if (!o.noProc && a.isGateBeast && a.bloodlineTrait === 'VENOM_GLAND' && C.alive(d)) {
+      ST.addStatus(d, 'poison', 12, { per: 0.012, src: a.id });
+      d.lastGateBeastVenom = { t: W.t, sourceId: a.id };
+    }
     let lifesteal = 0, reflected = 0;
     if (!a.foe && !a.dead && a.cult && a.cult.path === 'DEMON' && dmg > 0) {
       const trA = CULT.trackRealm(a);
@@ -830,7 +871,18 @@
       const side = C.sideOf(f, a.id);
       const sConf = p.summon || { dur: 18, hpPct: 0.4, statPct: 0.55, nameSuffix: 'ร่างอวตาร' };
       const sId = 'SUM_' + a.id + '_' + W.t;
-      const sHp = Math.max(10, Math.round(C.hpMax(a) * sConf.hpPct));
+      const statPct = Number.isFinite(sConf.statPct) ? clamp(sConf.statPct, 0, 1) : 0.55;
+      const hpPct = Number.isFinite(sConf.hpPct) ? clamp(sConf.hpPct, 0.05, 1) : 0.4;
+      const sHp = Math.max(10, Math.round(C.hpMax(a) * hpPct));
+      // Snapshot final caster stats once. The summon receives only its own
+      // later statuses/condition modifiers, never the caster's bonuses twice.
+      const summonStats = { hp: sHp };
+      for (const key of ST.KEYS) {
+        if (key === 'hp') continue;
+        const neutral = key === 'critDmg' ? 150 : (key === 'cast' || key === 'move') ? 100 : 0;
+        const value = Number.isFinite(sa[key]) ? sa[key] : neutral;
+        summonStats[key] = neutral + (value - neutral) * statPct;
+      }
       const sName = sConf.nameSuffix + 'ของ' + C.name(a);
       const summonUnit = {
         id: sId,
@@ -839,7 +891,9 @@
         summonerId: a.id,
         side,
         foe: true,
-        tier: a.cult ? a.cult.stage : (a.tier || 1),
+        tier: a.cult ? Math.max(1, Math.round(CULT.equivalentStage(a))) : (a.tier || 1),
+        power: Math.max(1, Math.round(Math.max(summonStats.atk, summonStats.matk) / 0.55)),
+        summonStats,
         hp: sHp,
         hpMax: sHp,
         speed: 1.0,
@@ -1222,6 +1276,18 @@
 
   
   /* ---------- Party Formation Synergies & Ensemble Auras (v2.0.9) ---------- */
+  // Read-only strength: one specialist leads each aura; headcount cannot stack it.
+  C.pathFormationMastery = unit => {
+    const path = unit && unit.cult && unit.cult.path;
+    if (!unit || unit.dead || unit.fled || unit.yield || (unit.h && unit.h.state && unit.h.state.hp <= 0) || (path !== 'ARRAY_TALISMAN' && path !== 'STRATEGY_GOVERNANCE')) return 0;
+    const sk = (unit.h && unit.h.skills) || {};
+    const sub = CULT.subInfo(path, unit.cult.sub);
+    const primary = sub.primarySkill || (path === 'ARRAY_TALISMAN' ? 'ARRAY' : 'administration');
+    const secondary = (sub.secondarySkills || [])[0] || (path === 'ARRAY_TALISMAN' ? 'TALISMAN' : 'SCRIPTURE');
+    const read = key => Number.isFinite(sk[key]) ? clamp(sk[key], 0, 100) : 0;
+    return clamp(0.25 + (read(primary) * 0.7 + read(secondary) * 0.3) * 0.0075, 0.25, 1);
+  };
+
   C.evaluateFormationSynergy = party => {
     if (!Array.isArray(party) || !party.length) {
       return { synergies: [], powerMultiplier: 1.0, damageMitigation: 0, reflectPct: 0, auraNamesTh: [] };
@@ -1252,7 +1318,7 @@
           hasBodyVanguard = true;
         }
         if (c.path === "SAGE_SUPPORT") hasSageSupport = true;
-        if (c.path === "MECH_PUPPET") hasMechPuppet = true;
+        if (c.path === "MECH_PUPPET" || c.path === "CRAFT_CREATION") hasMechPuppet = true;
         if (c.path === "KARMA_SAMSARA") hasKarmaSamsara = true;
         if (c.path === "XIAN") hasXian = true;
         if (c.path === "HEART_SOUL") hasHeartSoul = true;
@@ -1261,6 +1327,24 @@
         totalBeasts += u.pets.filter(p => p && p.active).length;
       }
     });
+
+    const specialistAura = (path, id, nameTh, powerCap, wardCap) => {
+      let mastery = 0;
+      alive.forEach(u => {
+        if (!u.cult || u.cult.path !== path) return;
+        const sub = CULT.subInfo(path, u.cult.sub);
+        const roleScale = path === 'STRATEGY_GOVERNANCE' && sub.governanceRole !== 'command' ? 0.70 : 1;
+        mastery = Math.max(mastery, C.pathFormationMastery(u) * roleScale);
+      });
+      if (!mastery) return;
+      const power = powerCap * mastery, ward = wardCap * mastery;
+      powerMult *= 1 + power;
+      mitigation += ward;
+      synergies.push({ id, nameTh, effect: 'เสริมอานุภาพ ' + (power * 100).toFixed(1) + '% ลดความเสียหาย ' + (ward * 100).toFixed(1) + '%', mastery: +mastery.toFixed(3) });
+      auras.push(nameTh);
+    };
+    specialistAura('ARRAY_TALISMAN', 'TALISMAN_ARRAY_WARD', 'ค่ายกลยันต์คุ้มทัพ', 0.10, 0.08);
+    specialistAura('STRATEGY_GOVERNANCE', 'STRATEGIC_COMMAND', 'กลยุทธ์บัญชาการประสานทัพ', 0.08, 0.04);
 
     if (hasBodyVanguard) {
       mitigation += 0.15;
@@ -1300,8 +1384,8 @@
 
     return {
       synergies,
-      powerMultiplier: +powerMult.toFixed(3),
-      damageMitigation: +mitigation.toFixed(3),
+      powerMultiplier: +Math.min(1.85, powerMult).toFixed(3),
+      damageMitigation: +Math.min(0.40, mitigation).toFixed(3),
       reflectPct: hasKarmaSamsara ? 0.15 : 0,
       auraNamesTh: auras
     };

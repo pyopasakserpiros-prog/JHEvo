@@ -4,7 +4,7 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '1.12.7', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.14', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
   const SEASON_TH = ['ฤดูใบไม้ผลิ', 'ฤดูร้อน', 'ฤดูใบไม้ร่วง', 'ฤดูหนาว'];
@@ -76,7 +76,7 @@
     if (archDef && o.archetypeKey && W._founding !== false && Array.isArray(archDef.techs) && archDef.techs.length) {
       cand = archDef.techs.map(CULT.tech).filter(t => {
         if (!t) return false;
-        if (t.martialRare) return false;
+        if (t.martialRare || t.v212Pack) return false;
         if (t.path !== 'ANY' && t.path !== c.path) return false;
         const subOk = CULT.isSubCompatible ? CULT.isSubCompatible(t, c.sub, false) : (!t.sub || t.sub === c.sub);
         if (!subOk) return false;
@@ -164,7 +164,7 @@
     if (arch) {
       W.sect.archetype = arch.id;
       if (!opts.sectName) W.sect.name = arch.nameTh;
-      const baseCurriculum = ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL', 'MP_BASE_MECH_PUPPET', 'MP_BASE_KARMA_SAMSARA', 'MP_BASE_BEAST_SOVEREIGN', 'MP_BASE_SAGE_SUPPORT'];
+      const baseCurriculum = (g.SECT && Array.isArray(g.SECT.FOUNDATION_CURRICULUM)) ? g.SECT.FOUNDATION_CURRICULUM : ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL', 'MP_BASE_MECH_PUPPET', 'MP_BASE_KARMA_SAMSARA', 'MP_BASE_BEAST_SOVEREIGN', 'MP_BASE_SAGE_SUPPORT', 'MP_BASE_CRAFT_CREATION'];
       W.sect.library = Array.from(new Set(arch.techs.concat(baseCurriculum)));
       W.sect.crystals = Object.assign({}, arch.crystals);
       W.sect.unlockedSubs = arch.subs.slice();
@@ -210,6 +210,7 @@
     g.CPE.init(W); if (g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W); g.CONTENT.ensure(W); g.MARTIAL.ensure(W);
     if (g.WILD_RES) g.WILD_RES.init(W);
     if (g.FISHING) g.FISHING.ensure(W);
+    if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
     const pl = W.map.byId.plaza; W.npcs.forEach(n => SIM.placeNear(W, n, pl.x + pl.w / 2, pl.y + pl.h / 2, 12));
     W.logs.length = 0; W.logSeq = 0;
     W.log('system', 'ก่อตั้ง「' + S.name + '」 โดยเจ้าสำนัก ' + HC.fullName(master), [master.id]);
@@ -345,7 +346,23 @@
         AI.healTick(W, n);
         g.STATS.recover(n);
         g.CPE.autoUse(W, n);
-        if (n.equip) { for (const k in n.equip) { const it = n.equip[k]; if (it && it.dur != null && n.act.id === 'fight') it.dur = Math.max(0, it.dur - 0.5); } }
+        if (n.equip) {
+          for (const k in n.equip) {
+            const it = n.equip[k];
+            if (!it) continue;
+            if (it.dur != null && n.act.id === 'fight') {
+              if (ECO && ECO.wearGear) ECO.wearGear(it, 0.5, W, n);
+              else it.dur = Math.max(0, it.dur - 0.5);
+            }
+            if (it.procedural && n.act.id !== 'fight') {
+              if (it.retired || (it.dur <= 0 && (it.maxDur || 100) <= 20)) {
+                if (ECO && ECO.retireGear) ECO.retireGear(W, n, it);
+              } else if ((it.dur <= 0 || it.dur <= (it.maxDur || 100) * 0.45) && (it.maxDur || 100) > 20 && ECO && ECO.repairGear) {
+                ECO.repairGear(W, it, null, n);
+              }
+            }
+          }
+        }
       }
     });
     W.map.buildings.forEach(b => { if (b.building && W.t >= b.building.until) SIM.finishBuilding(W, b); });
@@ -568,7 +585,14 @@
       W.wildlife.beasts = W.wildlife.beasts.map(b => W.foeById[b.id] || b);
       if (s.wildResources) W.wildResources = s.wildResources;
       if (s.fishing) W.fishing = s.fishing;
-      W.npcs = s.npcs; W.byId = {}; W.npcs.forEach(n => { W.byId[n.id] = n; if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(n); });
+      W.npcs = s.npcs.map(n => {
+        const base = { id: n.id, h: n.h, mods: n.mods || [], ext: n.ext || {}, _ver: n._ver || 1, _c: null, _d: null };
+        for (const k of Object.keys(n)) {
+          if (!(k in base) && k[0] !== "_") base[k] = n[k];
+        }
+        return base;
+      });
+      W.byId = {}; W.npcs.forEach(n => { W.byId[n.id] = n; if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(n); });
       const M = W.map; M.extraSt = [];
       s.map.buildings.forEach(sb => { const b = M.byId[sb.id]; if (b) { b.level = sb.level; b.hp = sb.hp; b.building = sb.building; } });
       s.map.extra.forEach(e => { const b = M.buildings.find(x => x.n === e.bid); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
@@ -611,6 +635,7 @@
       if (W.sect && Array.isArray(W.sect.queue) && g.SECT && g.SECT.sanitizeQueue) g.SECT.sanitizeQueue(W);
       if (W.sect && Array.isArray(W.sect.queue)) W.sect.queue.forEach(a => { if (g.ELEM) g.ELEM.ensureNpcElementalState(a); if (HC.touch) HC.touch(a); });
       W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if (HC.touch) HC.touch(n); });
+      if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
       return W;
     } catch (error) {
       if (hadDay) HC.nowDay = dayBefore; else delete HC.nowDay;

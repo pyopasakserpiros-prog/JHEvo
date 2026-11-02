@@ -91,6 +91,9 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   AI.cancelAct(W, n);
 
   // 1e. Emergency preemption: injured/starving NPC prioritizes survival over bottleneck training
+  // A fresh emergency must bypass ordinary goal-review throttling even with no prior goal.
+  n.cognition.goal = null;
+  n.cognition.nextReview = W.t + 180;
   n.h.state.hp = Math.floor(CULT.hpMax(n) * 0.25);
   n.inj = [{ part: 'อก', why: 'บอบช้ำ', sev: 2, until: W.t + 500 }];
   W.t += 1;
@@ -378,6 +381,8 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   AI.ACTS.pray.done(disc, W);
   assert(disc.ancestralBlessing && disc.ancestralBlessing.tabletId === tab.id, 'Prayer action must grant ancestralBlessing');
   assert.equal(CULT.isAncestralBlessingActive(disc, W.t), true);
+  const prayerCooldownUntil = disc.ancestralPrayerCooldownUntil;
+  assert.equal(prayerCooldownUntil, W.t + 30 * 1440, 'A new ancestral blessing should have a persisted 30-day regrant cooldown');
 
   // Active blessing boosts ordinary & specialization breakthrough chances
   const blessedOrdBt = CULT.breakthroughChance(disc, { now: W.t });
@@ -403,6 +408,12 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   assert.equal(CULT.isAncestralBlessingActive(disc, W.t), false, 'Blessing must expire strictly by W.t');
   assert.equal(CULT.breakthroughChance(disc, { now: W.t }), baseOrdBt, 'Expired blessing must not boost ordinary breakthrough chance');
   assert.equal(CULT.trackBreakthroughChance(disc, { now: W.t }), baseTrkBt, 'Expired blessing must not boost specialization breakthrough chance');
+  disc.h.state.heartDemon = 60; disc.h.state.stress = 50;
+  const blockedRefresh = SECT.prayAtAncestralShrine(W, disc, tab.id);
+  assert.equal(blockedRefresh, null, 'The 14-day blessing should not refresh until the 30-day cooldown ends');
+  assert.equal(tab.prayersCount, 2, 'A cooldown-blocked blessing should still count as an ordinary shrine prayer');
+  assert.equal(disc.h.state.heartDemon, 48, 'ordinary prayer should still reduce heart demon during the regrant cooldown');
+  assert.equal(disc.h.state.stress, 42, 'ordinary prayer should still relieve stress during the regrant cooldown');
 
   disc.cult.learning.got = 0;
   AI.ACTS.study.tick(disc, W);
@@ -415,6 +426,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   disc.cult.learning = null;
 
   // Injury shield protection when active vs expired
+  W.t = prayerCooldownUntil;
   SECT.prayAtAncestralShrine(W, disc, tab.id);
   assert.equal(disc.ancestralBlessing.injuryShield, true);
   W.rng.next = () => 0.99; // force failure on breakthrough
@@ -423,8 +435,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   assert.equal(failProtected.ancestralProtected, true, 'Active injuryShield must protect against severe backlash on failed breakthrough');
   assert.equal(disc.ancestralBlessing.injuryShield, false, 'injuryShield must be consumed once triggered');
 
-  // Re-pray, then expire W.t (while keeping W.day same) and verify expired shield does NOT protect
-  SECT.prayAtAncestralShrine(W, disc, tab.id);
+  // Expire the consumed shield and verify it does NOT protect a later breakthrough
   W.t = disc.ancestralBlessing.until + 5;
   disc.cult.prog = CULT.threshold(disc);
   const failExpired = CULT.breakthrough(W, disc, {});
@@ -434,6 +445,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   const loaded = SIM.deserialize(SIM.serialize(W));
   assert(loaded.sect.legacyTablets.some(t => t.id === tab.id), 'Legacy tablets must survive save/load');
   assert.equal(loaded.byId[disc.id].ancestralBlessing.tabletId, tab.id, 'ancestralBlessing state must survive save/load');
+  assert.equal(loaded.byId[disc.id].ancestralPrayerCooldownUntil, disc.ancestralPrayerCooldownUntil, 'ancestral prayer cooldown must survive save/load');
   console.log('  PASS Area 2c: Ancestral legacy tablet inscription, prayer, W.t clock consistency, study/guidedStudy, breakthrough shield, and save/load verified');
 }
 
@@ -444,7 +456,9 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
 {
   const W = SIM.create('area2d-technique-catalog-audit');
   const allTechs = [...JD.TECH.techniques, ...JD.TECH.mantras];
-  assert.equal(allTechs.length, 722, 'Total catalog must have 722 techniques and mantras');
+  assert.equal(allTechs.filter(t => !t.v214).length, 784, 'All 784 imported techniques and mantras must remain available');
+  assert.equal(new Set(allTechs.map(t => t.id)).size, allTechs.length, 'Expanded technique and mantra IDs must remain unique');
+  allTechs.forEach(t => assert.strictEqual(CULT.tech(t.id), t, 'Runtime registry must resolve every catalog entry: ' + t.id));
   const legendaries = allTechs.filter(t => t.legendary);
   assert.equal(legendaries.length, 22, 'Must have 22 legendary techniques and mantras');
 

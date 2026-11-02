@@ -20,9 +20,9 @@ assert.strictEqual(
 );
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
 
-// 1. Verify Subpath Expansion (50 total subpaths across 5 major paths)
+// 1. Verify all twelve paths and 96 subpath runtime registrations (v2.0.14).
 const paths = Object.keys(CULT.PATHS);
-assert.strictEqual(paths.length, 9, 'Must have 9 major cultivation paths');
+assert.strictEqual(paths.length, 12, 'Must have 12 major cultivation paths');
 let totalSubpaths = 0;
 for (const p of paths) {
   const subs = CULT.PATHS[p].subPaths || [];
@@ -35,7 +35,7 @@ for (const p of paths) {
     assert(MARTIAL.INNATE_BY_SUB && MARTIAL.INNATE_BY_SUB[s], `INNATE_BY_SUB missing for subpath ${s}`);
   }
 }
-assert.strictEqual(totalSubpaths, 78, `Expected 78 subpaths, found ${totalSubpaths}`);
+assert.strictEqual(totalSubpaths, 96, `Expected 96 subpaths, found ${totalSubpaths}`);
 
 const expectedNewSubs = [
   'CLOUD_DRAGON_SPEAR', 'PURE_SWORD_SAINT', 'WAR_SPEAR_SOVEREIGN',
@@ -49,12 +49,12 @@ for (const sub of expectedNewSubs) {
   assert.strictEqual(CULT.TRACKS[sub].realms.length, 9, `TRACKS for ${sub} must have 9 realm stages`);
 }
 
-// 2. Verify Martial Techniques Matrix (554 techniques, 76 mantras)
+// 2. Preserve 697 baseline techniques/87 mantras plus 50 techniques/9 mantras.
 const techniques = JD.TECH.techniques;
 const mantras = JD.TECH.mantras;
 assert(Array.isArray(techniques), 'JD.TECH.techniques must be an array');
-assert.strictEqual(techniques.length, 638, `Expected 638 techniques, found ${techniques.length}`);
-assert.strictEqual(mantras.length, 84, `Expected 84 mantras, found ${mantras.length}`);
+assert.strictEqual(techniques.length, 747, `Expected 747 techniques, found ${techniques.length}`);
+assert.strictEqual(mantras.length, 96, `Expected 96 mantras, found ${mantras.length}`);
 
 const weaponTypes = ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS'];
 const countsByWeapon = {};
@@ -81,7 +81,7 @@ assert(neutralCount >= 50, `Expected >= 50 non-elemental/neutral techniques, fou
 // 3. Verify Equipment Matrix (353 items)
 const items = JD.ITEMS.items;
 assert(Array.isArray(items), 'JD.ITEMS.items must be an array');
-assert.strictEqual(items.length, 364, `Expected 364 items, found ${items.length}`);
+assert.strictEqual(items.length, 420, `Expected 420 items, found ${items.length}`);
 
 const itemById = {};
 const itemsByGearType = {};
@@ -104,7 +104,7 @@ for (const gt of allGearTypes) {
 // 4. Verify Recipe Matrix (476 recipes)
 const recipes = JD.ITEMS.recipes;
 assert(Array.isArray(recipes), 'JD.ITEMS.recipes must be an array');
-assert.strictEqual(recipes.length, 515, `Expected 515 recipes, found ${recipes.length}`);
+assert.strictEqual(recipes.length, 578, `Expected 578 recipes, found ${recipes.length}`);
 
 for (const rec of recipes) {
   assert(rec.id && rec.nameTh && rec.craft && rec.tier, `Recipe ${rec.id || 'unknown'} must specify id, nameTh, craft, tier`);
@@ -128,4 +128,4 @@ const suitResult = MARTIAL.gearSuitability ? MARTIAL.gearSuitability(mockNpc, sp
 const score = typeof suitResult === 'number' ? suitResult : (suitResult?.score ?? 0);
 assert(score > 0, 'Gear suitability score must be positive for matching subpath weapon');
 
-console.log('PASS weapon_subpath_gear_expansion_suite: 50 subpaths, 554 techniques, 353 items, 476 recipes verified');
+console.log('PASS weapon_subpath_gear_expansion_suite: 96 subpaths, 747 techniques, 96 mantras, 420 items, 578 recipes verified');

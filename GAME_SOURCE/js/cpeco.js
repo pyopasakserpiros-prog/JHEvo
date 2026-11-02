@@ -72,7 +72,7 @@
     const minNoArb = Math.ceil(CPE.reward(W, id, 1) * 1.3) + 2;
     return Math.max(2, minNoArb, raw);
   };
-  CPE.gearPrice = (W, it) => { const c = CPE.S(W); return Math.max(5, Math.round((it.value || 20 * Math.pow(1.9, (it.tier || 1) - 1)) * 0.9 * (it.q || 1) * clamp((it.dur == null ? 100 : it.dur) / 100, 0.3, 1) * c.price * c.markup)); };
+  CPE.gearPrice = (W, it) => { const c = CPE.S(W); const maxD = it.maxDur == null ? 100 : it.maxDur, curD = it.dur == null ? maxD : it.dur; const condK = clamp(curD / 100, 0.25, 1) * clamp(0.7 + 0.3 * (maxD / 100), 0.5, 1); return Math.max(5, Math.round((it.value || 20 * Math.pow(1.9, (it.tier || 1) - 1)) * 0.9 * (it.q || 1) * condK * c.price * c.markup)); };
   CPE.techFree = (W, t) => !t || CPE.S(W).freeLib.includes(t.id);
   CPE.techPrice = (W, t) => CPE.techFree(W, t) ? 0 : Math.round(28 * Math.pow(t.tier, 2.1) * CPE.S(W).price);
   CPE.techReward = (W, id) => { const t = CULT.tech(id); return t ? 28 * Math.pow(t.tier, 2.1) * 0.55 : 0; };
@@ -172,23 +172,60 @@
   };
 
   /* ----- บริจาคของที่สมาชิกเก็บไว้เอง (วัตถุดิบ / คัมภีร์วิชา / ม้วนตำรับ) ----- */
-  const personalMats = n => Object.keys((n.inv && n.inv.mats) || {}).filter(k => (n.inv.mats[k] || 0) > 0);
+  const personalMats = n => Object.keys((n.inv && n.inv.mats) || {}).filter(k => (n.inv.mats[k] || 0) > 0 && !ECO.REPAIR_STONES[k]);
   const personalTechs = (n, W) => Array.from(new Set((n.inv && n.inv.techs) || [])).filter(id => !!CULT.tech(id) && (!W || !W.sect.library.includes(id)));
   const personalRecipes = n => Array.from(new Set((n.inv && n.inv.recipes) || [])).filter(id => !!ECO.recipeById[id]);
+  const personalSurplusGear = (n, W) => {
+    if (!n || !n.inv || !Array.isArray(n.inv.gear) || !n.inv.gear.length) return [];
+    return n.inv.gear.filter(eq => {
+      if (!eq || !eq.slot || eq.retired || (eq.procedural && eq.dur != null && eq.dur <= 0 && (eq.maxDur || 100) <= 20)) return false;
+      if (g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
+        const cls = g.MARTIAL.classifyGearForNpc(W, n, eq, 0);
+        return cls.category === 'surplus' || cls.category === 'gift-worthy';
+      }
+      return true;
+    });
+  };
+  CPE.evaluatePersonalBagGear = (W, n) => {
+    if (!n || n.dead || !n.inv || !Array.isArray(n.inv.gear) || !n.inv.gear.length) return { equipped: 0, retired: 0, surplusCount: 0 };
+    let equipped = 0, retired = 0;
+    for (let i = n.inv.gear.length - 1; i >= 0; i--) {
+      const eq = n.inv.gear[i];
+      if (!eq || !eq.slot) { n.inv.gear.splice(i, 1); continue; }
+      if (eq.retired || (eq.procedural && eq.dur != null && eq.dur <= 0 && (eq.maxDur || 100) <= 20)) {
+        if (ECO && ECO.retireGear) ECO.retireGear(W, n, eq);
+        else n.inv.gear.splice(i, 1);
+        retired++;
+        continue;
+      }
+      if (n.cult && g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
+        const cls = g.MARTIAL.classifyGearForNpc(W, n, eq, 0);
+        if (cls.category === 'useful-now' && SECT && SECT.EDITOR && SECT.EDITOR.equipPersonalGear) {
+          const res = SECT.EDITOR.equipPersonalGear(W, n.id, eq.uid || eq.id);
+          if (res && res.ok) equipped++;
+        }
+      }
+    }
+    const surplus = personalSurplusGear(n, W);
+    return { equipped, retired, surplusCount: surplus.length, surplus };
+  };
   const personalDonateFrac = n => clamp(0.38 + E(n, 'personality.integrity') / 260 + E(n, 'personality.loyalty') / 360 - E(n, 'values.wealthResource') / 520, 0.25, 0.92);
   const hasDonatableMats = n => personalMats(n).some(k => (n.inv.mats[k] || 0) > 1 || personalDonateFrac(n) >= 0.68);
   A.donate = {
     nameTh: 'นำของส่วนตัวบริจาค', icon: '🎁', color: '#c6a4f5',
-    can: (n, W) => (hasDonatableMats(n) || personalTechs(n, W).length > 0 || personalRecipes(n).length > 0) && n.h.state.energy > 15 && n.h.state.satiety > 15,
+    can: (n, W) => (hasDonatableMats(n) || personalTechs(n, W).length > 0 || personalRecipes(n).length > 0 || personalSurplusGear(n, W).length > 0) && n.h.state.energy > 15 && n.h.state.satiety > 15,
     score(n, W, S) {
-      const ids = personalMats(n), techs = personalTechs(n, W), recipes = personalRecipes(n); if (!ids.length && !techs.length && !recipes.length) return;
+      const ids = personalMats(n), techs = personalTechs(n, W), recipes = personalRecipes(n), gears = personalSurplusGear(n, W);
+      if (!ids.length && !techs.length && !recipes.length && !gears.length) return;
       let value = 0, shortage = 0;
       ids.forEach(k => { const q = n.inv.mats[k] || 0, sc = CPE.scarcity(W, k); value += CPE.reward(W, k, q); shortage += Math.max(0, sc - 0.7); });
       techs.forEach(id => { value += CPE.techReward(W, id); });
       recipes.forEach(id => { if (!W.sect.knownRecipes.includes(id)) value += g.CONTENT && g.CONTENT.recipeReward ? g.CONTENT.recipeReward(W, id) : 12 * (ECO.recipeById[id].tier || 1); });
+      gears.forEach(eq => { value += Math.floor(CPE.gearPrice(W, eq) * 0.55); });
       S.add('อยากได้แต้มไว้แลกของ', clamp((150 - (n.cp || 0)) / 150, -0.2, 0.8) * 0.65);
       S.add('ซื่อสัตย์และภักดี', (E(n, 'personality.integrity') - 45) / 180 + (E(n, 'personality.loyalty') - 45) / 220);
       S.add('สำนักกำลังขาดวัตถุดิบ', ids.length ? clamp(shortage / ids.length, 0, 1) * 0.55 : 0);
+      if (gears.length) S.add('บริจาคอุปกรณ์ส่วนเกินเข้าคลังแสง (' + gears.length + ' ชิ้น)', Math.min(0.85, 0.35 + gears.length * 0.2));
       S.add('มูลค่าของที่ถือ', clamp(value / 90, 0, 0.55));
       S.add('หวงทรัพย์ส่วนตัว', -(E(n, 'values.wealthResource') - 50) / 190);
       if (n.act && n.act.id === 'donate') S.add('กำลังจัดการของอยู่', -0.8);
@@ -200,9 +237,11 @@
     },
     dur: n => 25 + Math.round((100 - E(n, 'personality.integrity')) * 0.15),
     done(n, W) {
-      const ids = personalMats(n), techs = personalTechs(n, W), recipes = personalRecipes(n); if (!ids.length && !techs.length && !recipes.length) return;
+      CPE.evaluatePersonalBagGear(W, n);
+      const ids = personalMats(n), techs = personalTechs(n, W), recipes = personalRecipes(n), gears = personalSurplusGear(n, W);
+      if (!ids.length && !techs.length && !recipes.length && !gears.length) return;
       const loyalty = E(n, 'personality.loyalty'), frac = personalDonateFrac(n);
-      let total = 0, units = 0, scrolls = 0, formulas = 0, formulaCp = 0; const accepted = {};
+      let total = 0, units = 0, scrolls = 0, formulas = 0, formulaCp = 0, gearCount = 0, gearCp = 0; const accepted = {};
       ids.forEach(k => {
         const held = n.inv.mats[k] || 0;
         const give = held <= 1 ? (frac >= 0.68 ? held : 0) : Math.min(held - 1, Math.max(1, Math.floor(held * frac)));
@@ -243,12 +282,21 @@
           }
         }
       });
-      if (!units && !scrolls && !formulas) { HC.feel(n, { mood: -0.2 }); return; }
+      gears.forEach(eq => {
+        if (SECT && SECT.EDITOR && SECT.EDITOR.donatePersonalGear) {
+          const gRes = SECT.EDITOR.donatePersonalGear(W, n.id, eq.uid || eq.id);
+          if (gRes && gRes.ok) {
+            gearCount++;
+            gearCp += gRes.reward || 0;
+          }
+        }
+      });
+      if (!units && !scrolls && !formulas && !gearCount) { HC.feel(n, { mood: -0.2 }); return; }
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W);
       if (total > 0) { CPE.mint(W, n, total, 'บริจาควัตถุดิบส่วนตัว', true); CPE.S(W).donated += total; }
-      const grandTotal = total + formulaCp;
+      const grandTotal = total + formulaCp + gearCp;
       const detail = Object.keys(accepted).slice(0, 3).map(k => ECO.name(k) + ' ×' + accepted[k]).join('、');
-      const parts = []; if (units) parts.push('วัตถุดิบ ' + detail + (Object.keys(accepted).length > 3 ? ' และอื่น ๆ' : '')); if (scrolls) parts.push('คัมภีร์ ' + scrolls + ' เล่ม'); if (formulas) parts.push('ม้วนตำรับ ' + formulas + ' ม้วน');
+      const parts = []; if (units) parts.push('วัตถุดิบ ' + detail + (Object.keys(accepted).length > 3 ? ' และอื่น ๆ' : '')); if (scrolls) parts.push('คัมภีร์ ' + scrolls + ' เล่ม'); if (formulas) parts.push('ม้วนตำรับ ' + formulas + ' ม้วน'); if (gearCount) parts.push('ศาสตรา ' + gearCount + ' ชิ้น');
       note(W, n.h.name.given + ' บริจาค' + parts.join(' + ') + ' ได้ ' + Math.round(grandTotal) + ' คป.');
       W.log('finance', n.h.name.given + ' นำของส่วนตัวกลับเข้าคลัง/หอคัมภีร์ แลก ' + Math.round(grandTotal) + ' คป.', [n.id]);
       HC.feel(n, { mood: 1 + loyalty / 100 }); AI.mem(W, n, 'บริจาคของส่วนตัวเข้าคลังสำนัก', 0.25);
@@ -260,7 +308,8 @@
   const effOf = k => { const i = ECO.pillInfo(k); return i ? i.effect : {}; };
   CPE.pickPurchase = (W, n) => {
     const cp = n.cp || 0, c = n.cult; if (cp < 4) return null;
-    if (W.t > 0 && n._pickCache && n._pickCache.t === W.t && n._pickCache.cp === cp && n._pickCache.hp === n.h.state.hp && n._pickCache.gearLen === W.sect.gear.length) return n._pickCache.val;
+    const sSeq = W._stockSeq || 0, hpBand = (n.h.state.hp * 0.5) | 0, injLen = n.inj ? n.inj.length : 0;
+    if (W.t > 0 && n._pickCache && (n._pickCache.t === W.t || (W.t > n._pickCache.t && W.t - n._pickCache.t < 45 && n._pickCache.sSeq === sSeq)) && n._pickCache.path === (c && c.path) && n._pickCache.stage === (c && c.stage) && n._pickCache.cp === cp && n._pickCache.hpBand === hpBand && n._pickCache.gearLen === W.sect.gear.length && n._pickCache.injLen === injLen) return n._pickCache.val;
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
     const consider = (it, s, why) => { if (it.price == null) it.price = CPE.priceOf(W, it.key); if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
@@ -285,12 +334,15 @@
         }
         continue;
       }
-      if (e.cultivationProgress && info.tier <= c.stage + 1 && c.prog < CULT.threshold(n) * 0.85 && (c.toxic || 0) < (c.path === 'DEMON' ? 50 : 35)) consider(it, 0.5 + e.cultivationProgress / 160 + (E(n, 'personality.ambition') - 50) / 250, 'เร่งตบะ');
+      if (e.cultivationProgress && info.tier <= CULT.equivalentStage(n) + 1 && c.prog < CULT.threshold(n) * 0.85 && (c.toxic || 0) < (c.path === 'DEMON' ? 50 : 35)) consider(it, 0.5 + e.cultivationProgress / 160 + (E(n, 'personality.ambition') - 50) / 250, 'เร่งตบะ');
     }
     const savingForTech = n.cognition?.goal?.id === "scripture" && n.cognition.goal.targetId ? CULT.tech(n.cognition.goal.targetId) : null;
     const reserveTechCp = savingForTech ? CPE.techPrice(W, savingForTech) : 0;
     if (c && (!savingForTech || cp > reserveTechCp * 1.15)) {
-      const inHysteresis = n._lastGearSwapAt != null && (W.t - n._lastGearSwapAt) < 1440;
+      const profWpn = (g.MARTIAL && g.MARTIAL.PROFILES && g.MARTIAL.PROFILES[c.sub] && g.MARTIAL.PROFILES[c.sub][3]) || [];
+      const curWpn = n.equip && n.equip.WEAPON;
+      const curIsFallback = !!(curWpn && g.MARTIAL && !profWpn.includes(g.MARTIAL.gearType(curWpn)));
+      const inHysteresis = n._lastGearSwapAt != null && (W.t - n._lastGearSwapAt) < (curIsFallback ? 180 : 1440);
       const multReq = inHysteresis ? 1.38 : 1.2, flatReq = inHysteresis ? 16 : 8;
       const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
       if (W.sect.gear.length > 0) ["WEAPON", "ARMOR", "ACCESSORY"].forEach(slot => {
@@ -319,7 +371,7 @@
         }
       }
     }
-    if (W.t > 0) n._pickCache = { t: W.t, cp, hp: n.h.state.hp, gearLen: W.sect.gear.length, val: best };
+    if (W.t > 0) n._pickCache = { t: W.t, sSeq, path: c && c.path, stage: c && c.stage, cp, hpBand, gearLen: W.sect.gear.length, injLen, val: best };
     return (n._pcVal = best);
   };
   CPE.buy = (W, n, p) => {
@@ -345,17 +397,26 @@
     } else {
       const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
       if (!n.cult || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(p.gear && p.gear.slot) || (p.gear.minStage || 1) > effSt + 1) return false;
-      const i = W.sect.gear.indexOf(p.gear); if (i < 0) return false;
-      if (!CPE.spend(W, n, p.price, 'ซื้อ' + p.gear.nameTh)) return false;
+      const i = W.sect.gear.findIndex(x => x === p.gear || (p.gear.uid && x && x.uid === p.gear.uid)); if (i < 0) return false;
+      const boughtGear = W.sect.gear[i];
+      if (!CPE.spend(W, n, p.price, 'ซื้อ' + boughtGear.nameTh)) return false;
       W.sect.gear.splice(i, 1);
+      boughtGear.boughtFromSectShop = true;
+      boughtGear.lastBuyerId = n.id;
+      boughtGear.boughtAtDay = W.day;
       const oldHp = n.h && n.h.state ? n.h.state.hp : null, oldQi = n.h && n.h.state ? n.h.state.qi : null;
-      const cur = n.equip[p.gear.slot]; if (cur) W.sect.gear.push(cur);
-      n.equip[p.gear.slot] = p.gear; n._lastGearSwapAt = W.t; ST.dirty(n);
+      const cur = n.equip[boughtGear.slot];
+      if (cur) {
+        n.inv = n.inv || {};
+        n.inv.gear = n.inv.gear || [];
+        n.inv.gear.push(cur);
+      }
+      n.equip[boughtGear.slot] = boughtGear; n._lastGearSwapAt = W.t; ST.dirty(n);
       if (g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n);
       else if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n);
       if (g.MARTIAL && g.MARTIAL.syncResourceCaps) g.MARTIAL.syncResourceCaps(n, oldHp, oldQi);
-      if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, p.gear.id);
-      W.log('gear', '[ซื้อสินค้า] ' + n.h.name.given + ' แลกคุณูปการ ' + p.price + ' คป. ซื้อ「' + p.gear.nameTh + '」จากร้านสำนัก', [n.id], { txKind: 'purchase', itemId: p.gear.id, qty: 1, recipientId: n.id });
+      if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, boughtGear.id);
+      W.log('gear', '[ซื้อสินค้า] ' + n.h.name.given + ' แลกคุณูปการ ' + p.price + ' คป. ซื้อ「' + boughtGear.nameTh + '」จากร้านสำนัก', [n.id], { txKind: 'purchase', itemId: boughtGear.id, itemUid: boughtGear.uid, qty: 1, recipientId: n.id });
     }
     c.sales++; HC.feel(n, { mood: 1.5 }); AI.mem(W, n, 'ซื้อ' + (p.kind === 'gear' ? p.gear.nameTh : ECO.name(p.key)) + 'ด้วยแต้มคุณูปการ', 0.25); return true;
   };
@@ -488,7 +549,7 @@
     const c = n.cult; if (!c) return null;
     const cpBand = Math.floor((n.cp || 0) / 2), libLen = W.sect.library ? W.sect.library.length : 0, goalTgt = n.cognition?.goal?.id === 'scripture' ? (n.cognition.goal.targetId || '') : '';
     const ntc = n._nextTechCache;
-    if (ntc && W.t - ntc.t < 15 && ntc.cpBand === cpBand && ntc.st === c.stage && ntc.sub === c.sub && ntc.tl === c.techs.length && ntc.libLen === libLen && ntc.goalTgt === goalTgt && (!ntc.out || !c.techs.includes(ntc.out.id))) {
+    if (ntc && W.t >= ntc.t && W.t - ntc.t < 360 && ntc.cpBand === cpBand && ntc.st === c.stage && ntc.sub === c.sub && ntc.tl === c.techs.length && ntc.libLen === libLen && ntc.goalTgt === goalTgt && ntc.rank === n.rank && (!ntc.out || !c.techs.includes(ntc.out.id))) {
       return ntc.out;
     }
     const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage, SECT.canLearnTier(W, n));
@@ -500,7 +561,7 @@
       if (goalTgt) { const desired = ids.find(t => t.id === goalTgt); if (desired) out = desired; }
       if (!out) { ids.sort((a,b)=>g.COG?g.COG.techPreference(n,b)-g.COG.techPreference(n,a):b.power-a.power); out = ids[0]; }
     }
-    n._nextTechCache = { t: W.t, cpBand, st: c.stage, sub: c.sub, tl: c.techs.length, libLen, goalTgt, out };
+    n._nextTechCache = { t: W.t, cpBand, st: c.stage, sub: c.sub, tl: c.techs.length, libLen, goalTgt, rank: n.rank, out };
     return out;
   };
   const SA = A.study, oStart = SA.start;
@@ -580,6 +641,7 @@
   function pickCrafted(n, effect) { return (n.inv && n.inv.craftedPills || []).find(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect[effect]); }
   CPE.autoUse = (W, n) => {
     if (n.dead || !n.inv || (n.act && n.act.id === 'fight')) return;
+    if (Array.isArray(n.inv.gear) && n.inv.gear.length > 0) CPE.evaluatePersonalBagGear(W, n);
     if (!(n.inv.craftedPills && n.inv.craftedPills.length) && !(n.inv.pills && Object.keys(n.inv.pills).length)) return;
     const s = n.h.state, R = JD.CP.RECOVERY, hm = CULT.hpMax(n);
     const owned = n.inj && n.inj.length && pickCrafted(n, 'healInjury') || s.hp < hm * 0.5 && pickCrafted(n, 'healHealth') || n.cult && n.cult.toxic > 40 && pickCrafted(n, 'clearToxic') || s.heartDemon > 45 && pickCrafted(n, 'clearHeartDemon') || s.energy < 18 && pickCrafted(n, 'energyRestore');
@@ -826,11 +888,11 @@
   A.personalBrew = {
     nameTh: 'ปรุงโอสถส่วนตัว', icon: '⚗️', color: '#8ad7ae',
     can: (n, W) => !!personalCraftChoice(W, n),
-    score(n, W, S) { const c = personalCraftChoice(W,n); if (c) S.add('ผลิตโอสถจากวัตถุดิบส่วนตัว', c.score); },
+    score(n, W, S) { const c = personalCraftChoice(W,n); if (c) S.add('ผลิตโอสถจากวัตถุดิบส่วนตัว', c.score + (n.cult && n.cult.path === 'CRAFT_CREATION' ? 0.55 : 0)); },
     where(W,n) { const c = personalCraftChoice(W,n), st = c && AI.freeStation(W,n,'cauldron','alchemy'); return st ? { st, rid:c.r.id, intent:c.intent } : null; },
     start(n,W,ctx) { return !!ECO.personalCraftQuote(W,n,ECO.recipeById[ctx.rid]); },
     dur(n,W,ctx) { const r=ECO.recipeById[ctx.rid]; return r ? Math.round(ECO.craftHours(r,n.h.skills.ALCHEMY||0)*60) : 0; },
-    tick(n) { n.h.state.energy=Math.max(0,n.h.state.energy-0.04); },
+    tick(n, W) { n.h.state.energy=Math.max(0,n.h.state.energy-0.04); if (n.cult && (n.cult.path === 'CRAFT_CREATION' || (Array.isArray(n.cult.techs) && n.cult.techs.includes('PASS_CROSS_CRAFT_004')))) { const cMult = n.cult.path === 'CRAFT_CREATION' ? 1.35 : 0.65; CULT.gain(n, CULT.rate(n, cMult) / 60, W, 'craft_tick'); } },
     done(n,W,ctx) { const out=ECO.personalCraft(W,n,ECO.recipeById[ctx.rid],ctx.intent); if(out.ok) {n.stats=n.stats||{};n.stats.crafted=(n.stats.crafted||0)+1;} if(out.ok) W.log('craft',n.h.name.given+' ปรุงโอสถส่วนตัวสำเร็จ (คุณภาพ '+Math.round(out.product.q*100)+'%)',[n.id]); }
   };
   A.personalPillDonation = {

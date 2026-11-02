@@ -1045,6 +1045,7 @@
     if (totalGained > 0) {
       resetNpcCache(npc);
       npc._cultRateBase = null;
+      sys._mVer = (sys._mVer || 0) + 1;
     }
     return { gained: +totalGained.toFixed(4), details };
   };
@@ -1221,9 +1222,7 @@
 
   ELEM.resolveCompatibility = (npc, targetDef, context) => {
     context = context || 'COMBAT_SKILL';
-    if (!npc || npc.foe || !npc.h) {
-      return makeNeutralResult(context, 'EXPLICIT_NON_ELEMENTAL');
-    }
+    if (!npc || npc.foe || !npc.h) return NEUTRAL_COMPAT_RESULT;
 
     const prof = ELEM.getProfile(targetDef);
     if (prof.valid && (prof.mode === "EXPLICIT_NON_ELEMENTAL" || prof.mode === "ROOT_AGNOSTIC_UTILITY" || prof.primary === "NEUTRAL")) return NEUTRAL_COMPAT_RESULT;
@@ -1489,10 +1488,14 @@
     let defEl = 'NEUTRAL';
     if (defender) {
       if (defender.foe) {
-        const sp = JD.BEASTS && JD.BEASTS.species && JD.BEASTS.species.find(s => s.id === defender.speciesId || s.nameTh === defender.name);
-        if (sp && sp.element) defEl = sp.element;
-        else if (defender.element && defender.element !== 'NEUTRAL') defEl = defender.element;
-        else if (defender.elementProfile && defender.elementProfile.primary) defEl = defender.elementProfile.primary;
+        if (defender._cachedDefEl) defEl = defender._cachedDefEl;
+        else {
+          const sp = JD.BEASTS && JD.BEASTS.species && JD.BEASTS.species.find(s => s.id === defender.speciesId || s.nameTh === defender.name);
+          if (sp && sp.element) defEl = sp.element;
+          else if (defender.element && defender.element !== 'NEUTRAL') defEl = defender.element;
+          else if (defender.elementProfile && defender.elementProfile.primary) defEl = defender.elementProfile.primary;
+          defender._cachedDefEl = defEl;
+        }
       } else if (defender.cult) {
         const m = defender.cult.mantra && CULT.tech(defender.cult.mantra);
         const sub = CULT.subInfo(defender.cult.path, defender.cult.sub);
@@ -1529,18 +1532,25 @@
     const wpn = attacker && attacker.equip && attacker.equip.WEAPON;
     const weaponProfile = wpn ? ELEM.getProfile(wpn) : null;
     const skillProfile = tDef ? ELEM.getProfile(tDef) : null;
-    const isResonantProfile = profile => !!profile && profile.valid && profile.primary !== 'NEUTRAL'
-      && !['ELEMENT_LINK_ONLY', 'EXPLICIT_NON_ELEMENTAL', 'ROOT_AGNOSTIC_UTILITY'].includes(profile.mode);
-    const normalizedWeights = profile => {
-      const raw = profile.weights || { [profile.primary]: 1 };
-      const pairs = Object.entries(raw)
-        .map(([element, weight]) => [element, Number(weight)])
-        .filter(([element, weight]) => (ELEM.isValidOrdinaryElement(element) || ELEM.isValidSpecialElement(element))
-          && Number.isFinite(weight) && weight > 0);
-      const total = pairs.reduce((sum, pair) => sum + pair[1], 0);
-      return total > 0 ? pairs.map(([element, weight]) => [element, weight / total]) : [[profile.primary, 1]];
-    };
-    if (isResonantProfile(weaponProfile) && isResonantProfile(skillProfile)) {
+    const isResonant = p => !!p && p.valid && p.primary !== 'NEUTRAL' && p.mode !== 'ELEMENT_LINK_ONLY' && p.mode !== 'EXPLICIT_NON_ELEMENTAL' && p.mode !== 'ROOT_AGNOSTIC_UTILITY';
+    if (isResonant(weaponProfile) && isResonant(skillProfile)) {
+      const getNormWeights = profile => {
+        if (profile._normWeights) return profile._normWeights;
+        const raw = profile.weights || { [profile.primary]: 1 };
+        const pairs = [];
+        let total = 0;
+        for (const element in raw) {
+          const weight = Number(raw[element]);
+          if ((ELEM.isValidOrdinaryElement(element) || ELEM.isValidSpecialElement(element)) && Number.isFinite(weight) && weight > 0) {
+            pairs.push([element, weight]);
+            total += weight;
+          }
+        }
+        profile._normWeights = total > 0 ? pairs.map(([el, w]) => [el, w / total]) : [[profile.primary, 1]];
+        return profile._normWeights;
+      };
+      const weaponWeights = getNormWeights(weaponProfile);
+      const techniqueWeights = getNormWeights(skillProfile);
       const relationMultiplier = (weaponElement, skillElement) => {
         if (weaponElement === skillElement) return 1.06;
         const raw = ELEM.EFFICACY_MATRIX[weaponElement] && ELEM.EFFICACY_MATRIX[weaponElement][skillElement];
@@ -1549,8 +1559,6 @@
         if (efficacy <= 0.28) return 0.95;
         return 1.0;
       };
-      const weaponWeights = normalizedWeights(weaponProfile);
-      const techniqueWeights = normalizedWeights(skillProfile);
       let weightedResonance = 0, totalWeight = 0;
       for (const [weaponElement, weaponWeight] of weaponWeights) {
         for (const [skillElement, skillWeight] of techniqueWeights) {
@@ -1640,7 +1648,10 @@
     MECH_PUPPET: [245, 670, 1720, 4350, 10700, 26200, 63000],
     KARMA_SAMSARA: [250, 680, 1740, 4400, 10800, 26400, 63500],
     BEAST_SOVEREIGN: [245, 675, 1730, 4380, 10750, 26300, 63200],
-    SAGE_SUPPORT: [245, 670, 1720, 4350, 10700, 26200, 63000]
+    SAGE_SUPPORT: [245, 670, 1720, 4350, 10700, 26200, 63000],
+    CRAFT_CREATION: [245, 670, 1720, 4350, 10700, 26200, 63000],
+    ARRAY_TALISMAN: [250, 680, 1740, 4400, 10800, 26400, 63500],
+    STRATEGY_GOVERNANCE: [250, 680, 1740, 4400, 10800, 26400, 63500]
   };
   const SUBPREF = {
     SWORD_IMMORTAL: { aff: { SWORD: 1, MOVEMENT: .5 }, p: { 'personality.courage': .4, 'values.martialPeak': .4 } },
@@ -1690,7 +1701,7 @@
     ELEM.ensureNpc(npc);
     const _ec = getNpcCache(npc);
     const cPath = npc.cult ? npc.cult.path : '', cSub = npc.cult ? npc.cult.sub : '', cSt = npc.cult ? npc.cult.stage : 0;
-    if (!bias && _ec.pathScores && _ec.psVer === npc._ver && _ec.psPath === cPath && _ec.psSub === cSub && _ec.psSt === cSt) return _ec.pathScores;
+    if (!bias && _ec.pathScores && _ec.psVer === npc._ver && _ec.psSkillVer === (npc._pathSkillVersion || 0) && _ec.psPath === cPath && _ec.psSub === cSub && _ec.psSt === cSt) return _ec.pathScores;
     const out = [];
     const body = (HC.eff(npc, 'physiology.strength') + HC.eff(npc, 'physiology.toughness') + HC.eff(npc, 'physiology.endurance')) / 3;
     const qi = (HC.eff(npc, 'physiology.meridianCapacity') + HC.eff(npc, 'physiology.spiritualFoundation') + HC.eff(npc, 'intellect.comprehension')) / 3;
@@ -1698,21 +1709,28 @@
     const demon = (HC.eff(npc, 'personality.ambition') + HC.eff(npc, 'personality.aggression') + HC.eff(npc, 'values.powerStatus') + HC.eff(npc, 'affinities.YIN_SHADOW') + HC.eff(npc, 'affinities.POISON')) / 5;
     const soul = (HC.eff(npc, 'intellect.comprehension') + HC.eff(npc, 'intellect.intuition') + HC.eff(npc, 'personality.composure') + HC.eff(npc, 'affinities.SOUL_DIVINE') + HC.eff(npc, 'affinities.SCRIPTURE')) / 5;
     const base = {
-      XIAN: qi * 0.7 + HC.eff(npc, 'aptitudes.cultivation') * 0.5 + 8,
-      BODY: body * 0.8 + HC.eff(npc, 'interests.combat') * 0.4 + HC.eff(npc, 'physiology.vitality') * 0.2 - 6,
-      GOD: faith * 0.8 + HC.eff(npc, 'personality.empathy') * 0.2 - 5,
-      DEMON: demon * 0.85 + HC.eff(npc, 'aptitudes.combat') * 0.35 + (55 - HC.eff(npc, 'personality.integrity')) * 0.25 - 6,
-      HEART_SOUL: soul * 0.85 + HC.eff(npc, 'aptitudes.comprehension') * 0.4 + HC.eff(npc, 'interests.meditation') * 0.2 - 5,
-      MECH_PUPPET: ((HC.eff(npc, 'intellect.inventiveness') + HC.eff(npc, 'physiology.dexterity') + HC.eff(npc, 'affinities.FORGING') + HC.eff(npc, 'affinities.ARRAY')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.crafting') * 0.38 - 6,
-      KARMA_SAMSARA: ((HC.eff(npc, 'intellect.wisdom') + HC.eff(npc, 'personality.composure') + HC.eff(npc, 'affinities.SCRIPTURE') + HC.eff(npc, 'affinities.SOUL_DIVINE')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.comprehension') * 0.36 - 6,
-      BEAST_SOVEREIGN: ((HC.eff(npc, 'interests.beasts') + HC.eff(npc, 'affinities.BEAST_TAMING') + HC.eff(npc, 'social.leadership') + HC.eff(npc, 'personality.courage')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.command') * 0.38 - 6,
-      SAGE_SUPPORT: ((HC.eff(npc, 'affinities.MEDICINE') + HC.eff(npc, 'affinities.ALCHEMY') + HC.eff(npc, 'personality.empathy') + HC.eff(npc, 'interests.arts')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.cultivation') * 0.36 - 6
+      XIAN: qi * 0.7 + HC.eff(npc, 'aptitudes.cultivation') * 0.5,
+      BODY: body * 0.8 + HC.eff(npc, 'interests.combat') * 0.4 + HC.eff(npc, 'physiology.vitality') * 0.2 - 10,
+      GOD: faith * 0.8 + HC.eff(npc, 'personality.empathy') * 0.2 + 10,
+      DEMON: demon * 0.85 + HC.eff(npc, 'aptitudes.combat') * 0.35 + (55 - HC.eff(npc, 'personality.integrity')) * 0.25 - 1.5,
+      HEART_SOUL: soul * 0.85 + HC.eff(npc, 'aptitudes.comprehension') * 0.4 + HC.eff(npc, 'interests.meditation') * 0.2 - 12.5,
+      MECH_PUPPET: ((HC.eff(npc, 'intellect.inventiveness') + HC.eff(npc, 'physiology.dexterity') + HC.eff(npc, 'affinities.FORGING') + HC.eff(npc, 'affinities.ARRAY')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.crafting') * 0.38 - 1.5,
+      KARMA_SAMSARA: ((HC.eff(npc, 'intellect.wisdom') + HC.eff(npc, 'personality.composure') + HC.eff(npc, 'affinities.SCRIPTURE') + HC.eff(npc, 'affinities.SOUL_DIVINE')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.comprehension') * 0.36 - 0.5,
+      BEAST_SOVEREIGN: ((HC.eff(npc, 'interests.beasts') + HC.eff(npc, 'affinities.BEAST_TAMING') + HC.eff(npc, 'social.leadership') + HC.eff(npc, 'personality.courage')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.command') * 0.38 - 1.5,
+      SAGE_SUPPORT: ((HC.eff(npc, 'affinities.MEDICINE') + HC.eff(npc, 'affinities.ALCHEMY') + HC.eff(npc, 'personality.empathy') + HC.eff(npc, 'interests.arts')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.cultivation') * 0.36 - 0.5,
+      CRAFT_CREATION: ((HC.eff(npc, 'affinities.ALCHEMY') + HC.eff(npc, 'affinities.FORGING') + HC.eff(npc, 'intellect.inventiveness') + HC.eff(npc, 'values.knowledgeCraft')) / 4) * 0.85 + HC.eff(npc, 'aptitudes.crafting') * 0.42 + Math.max(npc.h.skills.ALCHEMY || 0, npc.h.skills.FORGING || 0, npc.h.skills.ARRAY || 0, npc.h.skills.TALISMAN || 0) * 0.12 - 3.5,
+      ARRAY_TALISMAN: (HC.eff(npc, 'affinities.ARRAY') + HC.eff(npc, 'affinities.TALISMAN') + HC.eff(npc, 'intellect.spatial') + HC.eff(npc, 'intellect.focus')) * 0.2 + HC.eff(npc, 'aptitudes.comprehension') * 0.4,
+      STRATEGY_GOVERNANCE: (HC.eff(npc, 'intellect.planning') + HC.eff(npc, 'intellect.judgement') + HC.eff(npc, 'social.leadership') + HC.eff(npc, 'interests.leading')) * 0.2 + HC.eff(npc, 'aptitudes.command') * 0.4
     };
     const rootCount = (npc.h && npc.h.root && npc.h.root.rootCount) || 1;
     CULT.subList.forEach(({ path, sub }) => {
       const pref = SUBPREF[sub.id] || (JD.EXPANSION.subPreferences || {})[sub.id] || (JD.MARTIAL.subPreferences || {})[sub.id] || { aff: {}, p: {} };
       let s = base[path] || 0;
-      Object.keys(pref.aff).forEach(k => { s += (HC.eff(npc, 'affinities.' + k) - 30) * pref.aff[k] * 0.45; });
+      Object.keys(pref.aff).forEach(k => {
+        // Legacy content used weapon/astral labels that are not HC affinity keys.
+        const affinity = ({ BOW: 'SWORD', STAFF: 'SPEAR', ASTRAL: 'SCRIPTURE' })[k] || k;
+        s += (HC.eff(npc, 'affinities.' + affinity) - 30) * pref.aff[k] * 0.45;
+      });
       Object.keys(pref.p).forEach(k => { const w = pref.p[k]; s += (w >= 0 ? pval(npc, k) - 50 : 50 - pval(npc, k)) * Math.abs(w) * 0.4; });
       const elemComp = ELEM.resolveCompatibility(npc, sub, 'SUBPATH_SELECT');
       let elemScore = elemComp.aiPreferenceScore * 0.28;
@@ -1724,14 +1742,24 @@
       out.push({ path, sub: sub.id, score: s, elemScore: +elemScore.toFixed(2), elemTier: elemComp.tier });
     });
     out.sort((a, b) => b.score - a.score);
-    if (!bias) { _ec.pathScores = out; _ec.psVer = npc._ver; _ec.psPath = cPath; _ec.psSub = cSub; _ec.psSt = cSt; }
+    if (!bias) { _ec.pathScores = out; _ec.psVer = npc._ver; _ec.psSkillVer = npc._pathSkillVersion || 0; _ec.psPath = cPath; _ec.psSub = cSub; _ec.psSt = cSt; }
     return out;
   };
+  // Every major path contributes one best-fit candidate; adding subpaths cannot
+  // buy extra lottery tickets. Keep finite lower-ranked choices rather than a top-6 cutoff.
+  CULT.majorPathScores = (npc, bias) => {
+    const best = new Map();
+    for (const x of CULT.pathScores(npc, bias)) {
+      if (Number.isFinite(x.score) && (!best.has(x.path) || best.get(x.path).score < x.score)) best.set(x.path, x);
+    }
+    return Array.from(best.values()).sort((a, b) => b.score - a.score);
+  };
   CULT.choosePath = (npc, rng, bias) => {
-    const sc = CULT.pathScores(npc, bias);
-    const top = sc.slice(0, 6);
-    const pick = rng.weighted(top, x => Math.exp((x.score - top[0].score) / 7));
-    return pick;
+    const paths = CULT.majorPathScores(npc, bias);
+    if (!paths.length) throw new Error('ไม่มีวิถีที่มีคะแนนถูกต้อง');
+    const major = rng.weighted(paths, x => Math.exp(Math.max(-50, (x.score - paths[0].score) / 9)));
+    const branches = CULT.pathScores(npc, bias).filter(x => x.path === major.path && Number.isFinite(x.score));
+    return rng.weighted(branches, x => Math.exp(Math.max(-50, (x.score - major.score) / 7)));
   };
   CULT.BASE_SUB = Object.freeze({ id: 'NONE', nameTh: 'พื้นฐาน (ยังไม่เลือกสายย่อย)', combatBonus: 1, defenseBonus: 1, breakthroughMod: 1, cultivationBonus: 1 });
   CULT.SUB_ALIASES = Object.assign({
@@ -1763,6 +1791,7 @@
       _SUB_INFO_MAP[_pk + ':' + _sps[_i].id] = _sps[_i];
     }
   }
+  CULT.sub = npc => (npc && npc.cult && CULT.subInfo) ? CULT.subInfo(npc.cult.path, npc.cult.sub) : null;
   CULT.subInfo = (path, sub) => {
     if (!sub || sub === 'NONE') return CULT.BASE_SUB;
     const cSub = CULT.resolveSubId(sub);
@@ -1780,31 +1809,28 @@
     return CULT.PATHS[npc.cult.path].shortTh + ' · ' + stObj.nameTh.replace(/^ขั้นที่ \d+ • /, '') + ' (' + npc.cult.stage + ')';
   };
   CULT.maxStage = npc => npc.cult ? CULT.PATHS[npc.cult.path].maxStage : 0;
-  CULT.normalizedStage = npc => {
-    if (!npc || !npc.cult) return 0;
-    const c = npc.cult, st = Math.max(1, c.stage || 1);
-    if (c.path === "BODY") return [1, 2.5, 4.5, 6.8, 9][Math.min(4, st - 1)] || st;
-    if (c.path === "GOD") return [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
-    if (c.path === "MECH_PUPPET" || c.path === "KARMA_SAMSARA" || c.path === "BEAST_SOVEREIGN" || c.path === "SAGE_SUPPORT") return [1, 2.1, 3.2, 4.4, 5.5, 6.7, 7.8, 9][Math.min(7, st - 1)] || st;
-    return st;
+  // Track majorBandEquivalent values use the target path's native stage scale.
+  // Interpolate fractional bands before comparing paths on the canonical 1..9 scale.
+  CULT.majorStageEquivalent = (path, stage) => {
+    const max = (CULT.PATHS[path] && CULT.PATHS[path].maxStage) || 9;
+    const st = clamp(Number.isFinite(stage) ? stage : 1, 1, max);
+    const map = path === 'BODY' ? [1, 2.5, 4.5, 6.8, 9] : path === 'GOD' ? [1, 3.2, 6.2, 9] : max === 8 ? [1, 2.1, 3.2, 4.4, 5.5, 6.7, 7.8, 9] : null;
+    if (!map) return st;
+    const index = Math.floor(st) - 1, frac = st - Math.floor(st);
+    return map[index] + ((map[index + 1] || map[index]) - map[index]) * frac;
+  };
+  CULT.normalizedStage = npc => npc && npc.cult ? CULT.majorStageEquivalent(npc.cult.path, npc.cult.stage) : 0;
+  CULT.trackEquivalentStage = (subPath, ordinal) => {
+    const def = CULT.trackDef(subPath), r = def && def.realms && def.realms[ordinal - 1];
+    if (!r || !Number.isFinite(r.majorBandEquivalent)) return clamp(ordinal || 1, 1, 9);
+    return CULT.majorStageEquivalent(def.targetMajorPath || def.sourceMajorPath, r.majorBandEquivalent);
   };
   CULT.equivalentStage = entity => {
     if (!entity) return 0;
     const c = entity.cult || (entity.path && entity.stage ? entity : null);
     if (!c || !c.path) return 0;
-    const st = Math.max(1, c.stage || 1);
-    let ns = st;
-    if (c.path === "BODY") ns = [1, 2.5, 4.5, 6.8, 9][Math.min(4, st - 1)] || st;
-    else if (c.path === "GOD") ns = [1, 3.2, 6.2, 9][Math.min(3, st - 1)] || st;
-    else if (c.path === "MECH_PUPPET" || c.path === "KARMA_SAMSARA" || c.path === "BEAST_SOVEREIGN" || c.path === "SAGE_SUPPORT") ns = [1, 2.1, 3.2, 4.4, 5.5, 6.7, 7.8, 9][Math.min(7, st - 1)] || st;
-    if (c.track) {
-      const r = (CULT.trackRealm ? CULT.trackRealm(c.track.subPath, c.track.ordinal) : null);
-      if (r && Number.isFinite(r.majorBandEquivalent)) {
-        ns = Math.max(ns, r.majorBandEquivalent);
-      } else if (c.track.ordinal) {
-        ns = Math.max(ns, c.track.ordinal);
-      }
-    }
+    let ns = CULT.majorStageEquivalent(c.path, c.stage);
+    if (c.track) ns = Math.max(ns, CULT.trackEquivalentStage(c.track.subPath, c.track.ordinal));
     return ns;
   };
   CULT.effectiveTechStage = npc => {
@@ -1814,7 +1840,7 @@
     let mapped = st;
     if (c.path === "BODY") mapped = [1, 2, 4, 6, 7][Math.min(4, st - 1)] || st;
     else if (c.path === "GOD") mapped = [1, 3, 5, 7][Math.min(3, st - 1)] || st;
-    else if (c.path === "MECH_PUPPET" || c.path === "KARMA_SAMSARA" || c.path === "BEAST_SOVEREIGN" || c.path === "SAGE_SUPPORT") mapped = [1, 2, 3, 4, 5, 6, 7, 7][Math.min(7, st - 1)] || st;
+    else if ((CULT.PATHS[c.path] && CULT.PATHS[c.path].maxStage === 8)) mapped = [1, 2, 3, 4, 5, 6, 7, 7][Math.min(7, st - 1)] || st;
     return Math.max(st, mapped, trOrd);
   };
   CULT.worldRankFromRaw = raw => {
@@ -1838,7 +1864,7 @@
     const roundUp = (rem * 4 > den * 3) ? 1 : 0;
     return Math.max(1, Math.min(4, quotient + roundUp));
   };
-  CULT.threshold = npc => { const c = npc.cult; if (!c) return 0; const t = CULT.THRESH[c.path][c.stage - 1]; return t == null ? Infinity : t; };
+  CULT.threshold = npc => { const c = npc.cult; if (!c) return 0; const t = (CULT.THRESH[c.path] || [])[c.stage - 1]; return t == null ? Infinity : t; };
   CULT.lifespan = npc => {
     const c = npc.cult; if (!c) return Math.round(HC.mortalLifespan(npc));
     let life = CULT.PATHS[c.path].stages[c.stage - 1].lifespanMax + (c.lifeBonus || 0);
@@ -1852,7 +1878,7 @@
   CULT.hpMult = npc => {
     if (!npc || !npc.cult) return 1;
     const ns = CULT.normalizedStage(npc);
-    const pathAdd = npc.cult.path === "BODY" ? 0.09 * (ns - 1) : npc.cult.path === "GOD" ? 0.11 * (ns - 1) : npc.cult.path === "BEAST_SOVEREIGN" ? 0.07 * (ns - 1) : (npc.cult.path === "MECH_PUPPET" || npc.cult.path === "KARMA_SAMSARA" || npc.cult.path === "SAGE_SUPPORT") ? 0.05 * (ns - 1) : 0;
+    const pathAdd = npc.cult.path === "BODY" ? 0.09 * (ns - 1) : npc.cult.path === "GOD" ? 0.11 * (ns - 1) : npc.cult.path === "BEAST_SOVEREIGN" ? 0.07 * (ns - 1) : (npc.cult.path === "MECH_PUPPET" || npc.cult.path === "KARMA_SAMSARA" || npc.cult.path === "SAGE_SUPPORT" || npc.cult.path === "CRAFT_CREATION" || npc.cult.path === "ARRAY_TALISMAN" || npc.cult.path === "STRATEGY_GOVERNANCE") ? 0.05 * (ns - 1) : 0;
     return 1 + 0.42 * (ns - 1) + 0.25 + pathAdd;
   };
   CULT.hpMax = npc => {
@@ -1924,7 +1950,8 @@
     let staticBase;
     let rc = npc._cultRateBase;
     const ritVal = npc.h.skills.ritual || 0, focVal = npc.h.intellect.focus || 0;
-    if (rc && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra) {
+    const professionSig = c.path === 'ARRAY_TALISMAN' ? [npc.h.skills.ARRAY, npc.h.skills.TALISMAN].join(':') : c.path === 'STRATEGY_GOVERNANCE' ? [npc.h.skills.administration, npc.h.skills.diplomacy, npc.h.skills.trading].join(':') : '';
+    if (rc && rc.skillVer === (npc._pathSkillVersion || 0) && rc.professionSig === professionSig && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra) {
       if (rc.rit === ritVal && rc.foc === focVal && rc.fullVal !== undefined) {
         staticBase = rc.fullVal;
       } else {
@@ -1959,6 +1986,18 @@
       } else if (c.path === 'SAGE_SUPPORT') {
         const sageApt = (HC.eff(npc, 'affinities.MEDICINE') * 0.35 + HC.eff(npc, 'affinities.ALCHEMY') * 0.25 + HC.eff(npc, 'personality.empathy') * 0.25 + HC.eff(npc, 'physiology.spiritualFoundation') * 0.15) / 54;
         base = 1.00 * clamp(sageApt, 0.4, 2.38) * (0.90 + 0.16 * root.cultivationMult);
+      } else if (c.path === 'CRAFT_CREATION') {
+        const prodSkill = Math.max(npc.h.skills.ALCHEMY || 0, npc.h.skills.FORGING || 0, npc.h.skills.ARRAY || 0, npc.h.skills.TALISMAN || 0);
+        const craftApt = (Math.max(HC.eff(npc, 'affinities.ALCHEMY'), HC.eff(npc, 'affinities.FORGING')) * 0.30 + HC.eff(npc, 'aptitudes.crafting') * 0.25 + HC.eff(npc, 'intellect.inventiveness') * 0.20 + HC.eff(npc, 'physiology.dexterity') * 0.15 + prodSkill * 0.25) / 54;
+        base = 1.02 * clamp(craftApt, 0.42, 2.45) * (0.90 + 0.16 * root.cultivationMult);
+      } else if (c.path === 'ARRAY_TALISMAN') {
+        const artSkill = Math.max(npc.h.skills.ARRAY || 0, npc.h.skills.TALISMAN || 0);
+        const arrayApt = (Math.max(HC.eff(npc, 'affinities.ARRAY'), HC.eff(npc, 'affinities.TALISMAN')) * 0.30 + HC.eff(npc, 'intellect.planning') * 0.25 + HC.eff(npc, 'intellect.comprehension') * 0.20 + HC.eff(npc, 'aptitudes.crafting') * 0.15 + artSkill * 0.20) / 54;
+        base = 1.00 * clamp(arrayApt, 0.40, 2.40) * (0.90 + 0.16 * root.cultivationMult);
+      } else if (c.path === 'STRATEGY_GOVERNANCE') {
+        const civicSkill = Math.max(npc.h.skills.administration || 0, npc.h.skills.diplomacy || 0, npc.h.skills.trading || 0);
+        const civicApt = (HC.eff(npc, 'intellect.planning') * 0.25 + HC.eff(npc, 'intellect.judgement') * 0.20 + HC.eff(npc, 'social.leadership') * 0.20 + HC.eff(npc, 'values.sectDuty') * 0.15 + civicSkill * 0.25) / 54;
+        base = 0.99 * clamp(civicApt, 0.40, 2.38) * (0.90 + 0.16 * root.cultivationMult);
       } else {
         base = 0.94 * clamp((HC.eff(npc, 'social.charisma') * 0.35 + HC.eff(npc, 'intellect.willpower') * 0.35 + HC.eff(npc, 'aptitudes.cultivation') * 0.30) / 54, 0.38, 2.35) * (0.88 + 0.18 * root.cultivationMult);
       }
@@ -1977,7 +2016,7 @@
       const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
       const ritMult = g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1;
       staticBase = rawStatic * ritMult * focus;
-      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, val: rawStatic, rit: ritVal, foc: focVal, fullVal: staticBase };
+      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, skillVer: npc._pathSkillVersion || 0, professionSig, val: rawStatic, rit: ritVal, foc: focVal, fullVal: staticBase };
     }
     const rest = npc.h.state.rest < 30 ? 0.6 : npc.h.state.rest < 55 ? 0.85 : 1;
     let toxic, dev;
@@ -2000,8 +2039,8 @@
       for (let i = 0; i < npc.buffs.length; i++) {
         const b = npc.buffs[i];
         if (b && b.until > tNow && (b.id === 'meridianUnblock' || b.id === 'clarityLotus' || b.cultRateBonus > 0)) {
-          buffMult = 1.15;
-          break;
+          const bonus = Number.isFinite(b.cultRateBonus) ? b.cultRateBonus : 0.15;
+          buffMult = Math.max(buffMult, 1 + clamp(bonus, 0, 0.30));
         }
       }
     }
@@ -2009,6 +2048,8 @@
   };
   CULT.gain = (npc, pts, W, sourceTag) => {
     const c = npc.cult; if (!c) return;
+    const ascendedCount = W && W.sect && Array.isArray(W.npcs) && W.npcs.includes(npc) && Number.isFinite(W.sect.ascendedLegacyCount) ? Math.max(0, W.sect.ascendedLegacyCount) : 0;
+    if (ascendedCount) pts *= 1 + Math.min(5, ascendedCount) * 0.01;
     const th = CULT.threshold(npc);
     if (c.prog >= th) { c.found = Math.min(0.08, (c.found || 0) + pts * 0.0002); pts *= 0.15; }
     c.prog += pts;
@@ -2158,6 +2199,11 @@
         h.physiology.spiritualFoundation = Math.min(99, (h.physiology.spiritualFoundation || 50) + 0.7);
         h.state.heartDemon = Math.max(0, (h.state.heartDemon || 0) - 10);
         HC.gainWisdom(npc, 1.1);
+      } else if (c.path === 'CRAFT_CREATION') {
+        h.intellect.inventiveness = Math.min(99, (h.intellect.inventiveness || 50) + 0.8);
+        h.physiology.dexterity = Math.min(99, (h.physiology.dexterity || 50) + 0.7);
+        h.state.heartDemon = Math.max(0, (h.state.heartDemon || 0) - 8);
+        HC.gainWisdom(npc, 1.0);
       } else {
         HC.gainWisdom(npc, 0.8);
       }
@@ -2200,6 +2246,10 @@
         res.supremeRisk = 'MERIDIAN_OVERDRAIN_BACKLASH';
         npc.h.state.qi = Math.max(0, Math.round((npc.h.state.qi || 0) * 0.25));
         npc.h.state.energy = Math.max(10, (npc.h.state.energy || 50) - 20);
+      } else if (c.path === 'CRAFT_CREATION') {
+        res.supremeRisk = 'FURNACE_OVERHEAT_BACKLASH';
+        npc.h.state.qi = Math.max(0, Math.round((npc.h.state.qi || 0) * 0.30));
+        npc.h.state.energy = Math.max(10, (npc.h.state.energy || 50) - 22);
       }
       const pd = c.stage >= 3 ? 0.012 * (c.stage - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
       if (rng.next() < pd) res.died = true;
@@ -2350,7 +2400,8 @@
         MECH_PUPPET: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
         KARMA_SAMSARA: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
         BEAST_SOVEREIGN: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
-        SAGE_SUPPORT: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0]
+        SAGE_SUPPORT: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+        CRAFT_CREATION: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0]
       };
       const fcpTable = [130, 310, 620, 1180, 2250, 4100, 7400, 13200, 23500];
       const stoneTable = [55, 78, 125, 210, 350, 580, 950, 1550, 2500];
@@ -2358,8 +2409,8 @@
       const sMinTable = [10, 16, 22, 28, 34, 40, 46, 52, 58];
       CULT.subList.forEach(({ path, sub }) => {
         if (!sub || !sub.id || CULT.EXPANSION_TRACK_IDS.has(sub.id)) return;
-        const [pSk, sSk] = BASE_SUB_GATE_SKILLS[sub.id] || ["MOVEMENT", "SCRIPTURE"];
-        const mMap = mMapByPath[path] || mMapByPath.XIAN;
+        const [pSk, sSk] = sub.primarySkill ? [sub.primarySkill, (sub.secondarySkills || [])[0] || "SCRIPTURE"] : (BASE_SUB_GATE_SKILLS[sub.id] || ["MOVEMENT", "SCRIPTURE"]);
+        const mMap = mMapByPath[path] || ((CULT.PATHS[path] || {}).maxStage === 8 ? mMapByPath.MECH_PUPPET : mMapByPath.XIAN);
         const maxSt = (CULT.PATHS[path] && CULT.PATHS[path].maxStage) || 9;
         const realms = [];
         for (let i = 0; i < 9; i++) {
@@ -3027,7 +3078,7 @@
       if (r) {
         return {
           power: r.functionalCombatPower,
-          band: r.majorBandEquivalent,
+          band: CULT.trackEquivalentStage(tr.subPath, tr.ordinal),
           ordinal: tr.ordinal,
           realmName: r.nameTh,
           subPath: tr.subPath,
@@ -3043,7 +3094,7 @@
       const power = st ? st.combatPower : 25;
       return {
         power,
-        band: c.stage,
+        band: CULT.majorStageEquivalent(c.path, c.stage),
         ordinal: null,
         realmName: st ? st.nameTh : '',
         subPath: c.sub,
@@ -3057,7 +3108,7 @@
       if (r) {
         return {
           power: r.functionalCombatPower,
-          band: r.majorBandEquivalent,
+          band: CULT.trackEquivalentStage(entity.subPath, entity.ordinal),
           ordinal: entity.ordinal,
           realmName: r.nameTh,
           subPath: entity.subPath,
@@ -3070,7 +3121,7 @@
       const power = st ? st.combatPower : 25;
       return {
         power,
-        band: entity.stage,
+        band: CULT.majorStageEquivalent(entity.path, entity.stage),
         ordinal: null,
         realmName: st ? st.nameTh : '',
         majorPath: entity.path,

@@ -184,15 +184,44 @@
     sites.forEach(s => { s.rank = Number(r); s.icon = s.icon || '✨'; s.desc = s.desc || s.nameTh; });
   });
 
+  X.createParty = (W, party, opts) => {
+    opts = opts || {};
+    if (!W || !Array.isArray(party)) return { ok: false, reason: 'invalid-party', members: [] };
+    const members = party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead);
+    if (!members.length || members.length !== party.length || members.some(n => n.away || n.travel || n.expId)) return { ok: false, reason: 'unavailable-member', members: [] };
+    const mounts = [];
+    for (const n of members) {
+      const pets = (Array.isArray(n.pets) ? n.pets : []).concat(n.pet ? [n.pet] : []);
+      const pet = pets.find(p => p && p.active !== false && !p.dead && !p.injured && (p.fatigue || 0) < 95 && ((p.role === 'MOUNT_CHARGER') || p.family === 'AVIAN' || p.family === 'UNGULATE'));
+      if (pet) mounts.push({ ownerId: n.id, uid: pet.uid || pet.id || null, nameTh: pet.nameTh || 'พาหนะวิญญาณ', role: pet.role || null, family: pet.family || null });
+    }
+    const hasMount = mounts.length > 0;
+    const baseDays = Number.isFinite(opts.baseDays) ? Math.max(1, opts.baseDays) : null;
+    const baseCapacity = Number.isFinite(opts.baseCapacity) ? Math.max(1, opts.baseCapacity) : 20 + members.length * 12;
+    return {
+      ok: true, members, mounts, hasMount,
+      durationMultiplier: hasMount ? 0.75 : 1,
+      capacityMultiplier: hasMount ? 1.4 : 1,
+      baseDays,
+      days: baseDays == null ? null : Math.max(0.5, baseDays * (hasMount ? 0.75 : 1)),
+      baseCarryCapacity: baseCapacity,
+      carryCapacity: Math.max(1, Math.floor(baseCapacity * (hasMount ? 1.4 : 1)))
+    };
+  };
+
   X.depart = (W, party, kind, region) => {
     const rng = W.rng; const w = W.world;
-    if (!party.length || party.some(n => n.dead || n.away || n.travel || n.expId)) return null;
+    const assembled = X.createParty(W, party, { kind });
+    if (!assembled.ok) return null;
+    party = assembled.members;
     const lead = party[0];
     const partyRank = Math.max(1, ...party.map(x => CULT.worldRank ? CULT.worldRank(x) : 1));
     const regs = X.REGIONS.filter(r => (kind !== 'trade' && kind !== 'diplomacy' || r.danger <= 2));
     region = region || (g.CONTENT && g.CONTENT.chooseRegion(W, party, kind, regs)) || rng.weighted(regs, r => 1 + (kind === 'fortune' ? r.danger * 0.4 : 0) + (kind === 'gather' ? (E(lead, 'interests.herbs') > 55 ? (r.terrain === 'forest' || r.terrain === 'mountain' ? 1 : 0) : (r.terrain === 'mountain' ? 1 : 0)) : 0) + (kind === 'hunt' ? r.danger * 0.3 : 0));
     if (!region || !X.REGIONS.includes(region)) return null;
-    const days = Math.max(2, Math.round(region.days * (0.7 + rng.next() * 0.6) * (kind === 'trade' ? 1.1 : kind === 'recruit' ? 1.4 : 1)));
+    const baseDays = Math.max(2, Math.round(region.days * (0.7 + rng.next() * 0.6) * (kind === 'trade' ? 1.1 : kind === 'recruit' ? 1.4 : 1)));
+    const trip = X.createParty(W, party, { kind, regionId: region.id, baseDays });
+    const days = trip.days;
     if (g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
     const rd = W.sect && W.sect.reserveDirectives;
     const currentMeals = ECO.count(W, 'meal');
@@ -208,7 +237,7 @@
     if (currentMeals - taken <= safetyReserve) {
       W.log('mission', 'คณะเดินทางเบิกเสบียง ' + taken + ' ชุด ทำให้เสบียงคลังเหลือ ' + (currentMeals - taken) + ' แตะเกณฑ์สำรองฉุกเฉิน (' + safetyReserve + ')', party.map(p => p.id));
     }
-    const ex = { id: ++w.seq, kind, region: region.id, party: party.map(p => p.id), partyRank, t0: W.t, ret: W.t + days * 1440 + rng.int(-300, 300), days, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false };
+    const ex = { id: ++w.seq, kind, region: region.id, party: party.map(p => p.id), partyRank, t0: W.t, ret: W.t + days * 1440 + rng.int(-300, 300), days, baseDays, mount: trip.mounts, hasMount: trip.hasMount, durationMultiplier: trip.durationMultiplier, capacityMultiplier: trip.capacityMultiplier, baseCarryCapacity: trip.baseCarryCapacity, carryCapacity: trip.carryCapacity, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false };
     if (kind === 'fortune') {
       const sites = X.FORTUNE_REGISTRY[partyRank] || X.FORTUNE_REGISTRY[1];
       const matching = sites.filter(s => s.biome === region.terrain || (s.biome === 'ruins' && region.terrain === 'mountain'));
@@ -219,7 +248,12 @@
       ex.fortuneSite = matchSite;
     }
     if (kind === 'trade') {
-      const sell = []; Object.keys(W.sect.stock).forEach(k => { if (ECO.isPill(k) && W.sect.stock[k] > 6 && ECO.pillInfo(k)) { const n = Math.floor((W.sect.stock[k] - 4) / 2); if (n > 0 && ECO.take(W, k, n)) sell.push({ id: k, n }); } });
+      const sell = []; let cargoLeft = ex.carryCapacity;
+      Object.keys(W.sect.stock).forEach(k => {
+        if (cargoLeft <= 0 || !ECO.isPill(k) || W.sect.stock[k] <= 6 || !ECO.pillInfo(k)) return;
+        const n = Math.min(cargoLeft, Math.floor((W.sect.stock[k] - 4) / 2));
+        if (n > 0 && ECO.take(W, k, n)) { sell.push({ id: k, n }); cargoLeft -= n; }
+      });
       ex.carry = sell; if (!sell.length && (W.sect.stones < 1000)) { ex.kind = kind = 'gather'; }
     }
     w.expeds.push(ex);
@@ -288,6 +322,24 @@
             const d = rng.pick(b.drops); out.mats[d] = (out.mats[d] || 0) + Math.round((1 + (rng.chance(0.4) ? 1 : 0)) * Math.max(...alive.map(n => g.MARTIAL.lifeMult(n, 'hunting'))));
             if (rng.chance(0.5)) { const d2 = rng.pick(b.drops); out.mats[d2] = (out.mats[d2] || 0) + 1; }
           }
+          if (ECO.rollProceduralGear && rng.chance(0.14 + reg.danger * 0.03)) {
+            const pGear = ECO.rollProceduralGear(W, { maxTier: clamp(reg.danger + 1, 1, 4), source: 'expedition_hunt' });
+            pGear.personalLoot = true;
+            out.gear.push(pGear);
+            ex.journal.push('ได้ศาสตราสุ่ม「' + pGear.nameTh + '」จากซากศึก');
+          }
+          if (rng.chance(0.12 + reg.danger * 0.02)) {
+            const stTier = clamp(1 + Math.floor(rng.next() * Math.min(4, reg.danger + 1)), 1, 4);
+            const stId = 'ITEM_REPAIR_STONE_' + stTier;
+            out.mats[stId] = (out.mats[stId] || 0) + 1;
+          }
+          alive.forEach(m => {
+            if (m.equip && ECO.wearGear) {
+              for (const sl of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+                if (m.equip[sl] && m.equip[sl].procedural) ECO.wearGear(m.equip[sl], 0.35, W, m);
+              }
+            }
+          });
           const dmgFrac = clamp((1 - p) * 0.55 + rng.next() * 0.1, 0.02, 0.6);
           const v = rng.pick(alive); const dm = CULT.hpMax(v) * dmgFrac; v.h.state.hp = Math.max(1, v.h.state.hp - dm); totalDmg += dmgFrac;
           if (dmgFrac > 0.25) AI.injure(W, v, dmgFrac > 0.45 ? 2 : 1, 'ถูก' + b.nameTh + 'ทำร้าย');
@@ -463,7 +515,15 @@
     ], x => Math.max(0.05, x.w)).k;
     if (kind === 'herb') { const hs = JD.ITEMS.materials.filter(m => !m.sourcePack && m.category === 'HERB' && m.tier <= reg.danger + 2); const m = rng.pick(hs); const n = 1 + rng.int(0, 2); out.mats[m.id] = (out.mats[m.id] || 0) + n; ex.journal.push('พบสมุนไพรหายาก「' + m.nameTh + '」'); out.notes.push(v.h.name.given + ' พบ' + m.nameTh); }
     else if (kind === 'pill') { const ps = Object.keys(W.sect.stock).length ? ECO.recipesFor(W, ['ALCHEMY']).filter(r => r.outType === 'PILL' && r.tier <= reg.danger + 1) : []; if (ps.length) { const r = rng.pick(ps); const key = r.outItemId || 'P:' + r.id; out.pills[key] = (out.pills[key] || 0) + 1 + rng.int(0, 1); ex.journal.push('พบโอสถในซากโบราณ'); out.notes.push(v.h.name.given + ' พบ' + (r.outNameTh)); } }
-    else if (kind === 'gear') { const rs = ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.tier <= reg.danger + 2); if (rs.length) { const r = rng.pick(rs); const gear = ECO.mintGear(r, 1.1 + rng.next() * 0.3); gear.nameTh = (gear.nameTh || 'ศาสตรา') + ' (ของโบราณ)'; gear.q = 1.2; out.gear.push(gear); ex.journal.push('ขุดพบ' + gear.nameTh); out.notes.push(v.h.name.given + ' ขุดพบ' + gear.nameTh); } }
+    else if (kind === 'gear') {
+      if (ECO.rollProceduralGear && rng.chance(0.65)) {
+        const gear = ECO.rollProceduralGear(W, { maxTier: clamp(reg.danger + 1, 1, 4), source: 'expedition_fortune' });
+        out.gear.push(gear); ex.journal.push('ขุดพบ' + gear.nameTh); out.notes.push(v.h.name.given + ' ขุดพบ' + gear.nameTh);
+      } else {
+        const rs = ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.tier <= reg.danger + 2);
+        if (rs.length) { const r = rng.pick(rs); const gear = ECO.mintGear(W, r, 1.1 + rng.next() * 0.3); gear.nameTh = (gear.nameTh || 'ศาสตรา') + ' (ของโบราณ)'; gear.q = 1.2; out.gear.push(gear); ex.journal.push('ขุดพบ' + gear.nameTh); out.notes.push(v.h.name.given + ' ขุดพบ' + gear.nameTh); }
+      }
+    }
     else if (kind === 'scroll') { const drop = g.MARTIAL.discover(W, out, { tier: Math.max(2, reg.danger + 2), rank, danger: reg.danger, source: 'expedition' }); if (drop) { ex.journal.push('พบองค์ความรู้หายาก'); out.notes.push(v.h.name.given + ' พบองค์ความรู้หายาก'); } }
     else if (kind === 'master') { const sk = AI.pickTeachSkill(v, v); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(v, sk, 6, 2.2); if (v.cult) CULT.gain(v, CULT.threshold(v) * 0.08); HC.experience(v, 'insight', 0.9); ex.journal.push('พบผู้เฒ่าลึกลับชี้แนะ'); out.notes.push(v.h.name.given + ' ได้รับการชี้แนะจากผู้เฒ่าลึกลับ'); }
     else if (kind === 'spring') { if (v.cult) { CULT.gain(v, CULT.threshold(v) * 0.15); } v.h.state.hp = CULT.hpMax(v); HC.trainBody(v, 'vitality' in {} ? '' : 'endurance', 4); HC.experience(v, 'insight', 0.5); ex.journal.push('พบสระปราณธรรมชาติ'); out.notes.push(v.h.name.given + ' พบสระปราณลับ ตบะก้าวหน้า'); }
@@ -480,10 +540,16 @@
     alive.forEach(a => (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, 'trading', 1.2, 1));
     out.rep += 0.1;
   };
+  // Only an envoy actually participating can contribute; never stack per member.
+  X.envoyBonus = party => Math.min(2, (party || []).reduce((best, n) => {
+    if (!n || n.dead || !n.cult || n.cult.path !== 'STRATEGY_GOVERNANCE' || n.cult.sub !== 'DIPLOMATIC_ENVOY') return best;
+    const sk = g.MARTIAL ? g.MARTIAL.skillRead(n, 'diplomacy') : 0;
+    return Math.max(best, Math.max(0, sk) / 50);
+  }, 0));
   X.diplomacyResult = (W, ex, alive, out) => {
     const s = W.rng.weighted(W.world.sects, x => 1 + Math.max(0, 50 - x.attitude) / 50); const lead = alive[0]; if (!lead) return;
     const skill = alive.reduce((m, a) => Math.max(m, E(a, 'social.charisma') * .5 + E(a, 'personality.empathy') * .3 + (a.h.skills.diplomacy || 0) * .4), 0);
-    const delta = Math.round((skill - 45) / 4 + W.rng.gauss(0, 4) - (s.style === 'ทะนง' ? 3 : 0) + (W.sect.policy.openness - 50) / 15);
+    const delta = Math.round((skill - 45) / 4 + W.rng.gauss(0, 4) - (s.style === 'ทะนง' ? 3 : 0) + (W.sect.policy.openness - 50) / 15 + X.envoyBonus(alive));
     s.attitude = clamp(s.attitude + delta, -100, 100); s.contact = W.day;
     ex.journal.push('เยือน' + s.nameTh + ' ท่าทีเปลี่ยน ' + (delta >= 0 ? '+' : '') + delta);
     if (delta > 6 && W.rng.chance(.4)) { const drop = g.MARTIAL.discover(W, out, { tier: 3, source: 'diplomacy' }); if (drop) out.notes.push('แลกเปลี่ยนองค์ความรู้กับ' + s.nameTh); }
@@ -513,9 +579,43 @@
     if (!n) ex.journal.push('ตามหาศิษย์ใหม่ แต่ยังไม่พบผู้เหมาะสม');
     out.rep += out.newDisciples * 0.4;
   };
+  X.cargoUnits = out => {
+    if (!out) return 0;
+    let total = (Array.isArray(out.gear) ? out.gear.length * 3 : 0) + (Array.isArray(out.items) ? out.items.length : 0);
+    for (const k of Object.keys(out.mats || {})) total += Math.max(0, Math.floor(out.mats[k] || 0));
+    for (const k of Object.keys(out.pills || {})) total += Math.max(0, Math.floor(out.pills[k] || 0));
+    return total;
+  };
+  X.applyCarryCapacity = (ex, out) => {
+    if (!ex || !out || !Number.isFinite(ex.carryCapacity) || ex.carryCapacity <= 0) return { used: X.cargoUnits(out), overflow: 0 };
+    let remaining = Math.floor(ex.carryCapacity), overflow = 0;
+    const gear = Array.isArray(out.gear) ? out.gear : [];
+    const keptGear = [];
+    for (const item of gear) { if (remaining >= 3) { keptGear.push(item); remaining -= 3; } else overflow += 3; }
+    out.gear = keptGear;
+    for (const field of ['pills', 'items', 'mats']) {
+      if (field === 'items') {
+        const items = Array.isArray(out.items) ? out.items : [], kept = items.slice(0, remaining);
+        overflow += items.length - kept.length; remaining -= kept.length; out.items = kept;
+        continue;
+      }
+      const bag = out[field] || {};
+      const ids = Object.keys(bag).sort((a,b) => (ECO.base(b) || 0) - (ECO.base(a) || 0));
+      for (const id of ids) {
+        const want = Math.max(0, Math.floor(bag[id] || 0)), keep = Math.min(want, remaining);
+        if (keep > 0) bag[id] = keep; else delete bag[id];
+        remaining -= keep; overflow += want - keep;
+      }
+      out[field] = bag;
+    }
+    const used = Math.min(Math.floor(ex.carryCapacity), X.cargoUnits(out));
+    ex.cargoUsed = used; ex.cargoOverflow = (ex.cargoOverflow || 0) + overflow;
+    return { used, overflow };
+  };
   X.handover = (W, ex, alive, out) => {
     const rng = W.rng;
     if (!alive || !alive.length) return { mats: {}, pills: {}, gear: [], techs: [], stones: 0, stockBefore: {}, techsAccepted: true };
+    if (ex && Number.isFinite(ex.carryCapacity)) X.applyCarryCapacity(ex, out);
     const greed = alive.reduce((s, a) => s + clamp((E(a, 'values.wealthResource') + (100 - E(a, 'personality.integrity')) + (100 - E(a, 'personality.loyalty'))) / 3 - 35, 0, 60), 0) / alive.length;
     const keepFrac = clamp(greed / 160 + (W.sect.policy.generosity < 35 ? 0.04 : 0) - (W.sect.policy.generosity > 65 ? 0.03 : 0), 0, 0.4) * (W.sect.policy.strictness > 70 ? 0.5 : 1);
     const donation = out.donation = { mats: {}, pills: {}, gear: [], techs: [], stones: 0, stockBefore: {}, techsAccepted: true };
@@ -533,7 +633,23 @@
     Object.keys(out.pills || {}).forEach(k => {
       donation.stockBefore[k] = ECO.count(W, k); ECO.add(W, k, out.pills[k]); donation.pills[k] = out.pills[k];
     });
-    (out.gear || []).forEach(gr => { W.sect.gear.push(gr); donation.gear.push(gr); });
+    (out.gear || []).forEach(gr => {
+      if (!gr) return;
+      if (!gr.uid && ECO.nextGearUid) gr.uid = ECO.nextGearUid(W, gr.id);
+      const owner = gr.personalLoot ? hoarder() : null;
+      if (owner && gr.personalLoot && rng.chance(clamp(keepFrac + 0.35, 0.25, 0.75))) {
+        owner.inv = owner.inv || {};
+        owner.inv.gear = owner.inv.gear || [];
+        owner.inv.gear.push(gr);
+        if (g.CPE && g.CPE.evaluatePersonalBagGear) g.CPE.evaluatePersonalBagGear(W, owner);
+      } else {
+        gr.listedAtDay = W.day;
+        gr.listedTick = W.t;
+        gr.donatedRewarded = true;
+        W.sect.gear.push(gr);
+        donation.gear.push(gr);
+      }
+    });
     (out.techs || []).forEach(id => {
       if (W.sect.library.includes(id)) return;
       const owner = hoarder(), honesty = E(owner, 'personality.integrity'), loyalty = E(owner, 'personality.loyalty');
@@ -677,9 +793,54 @@
         if (n.rank >= 1 && n.rank < 5 && will < 0.15) HC.experience(n, 'cowardice', 0.3);
       }
     });
+    if (!f.ctx.gateBeastsDeployed) {
+      f.ctx.gateBeastsDeployed = true;
+      const menagerie = CULT.ensureMenagerie ? CULT.ensureMenagerie(W) : (W.sect.beasts || []);
+      const assigned = Array.isArray(W.sect.gateBeasts) ? W.sect.gateBeasts : (W.sect.gateBeasts = []);
+      const eligible = assigned.slice(0, 4).map(uid => menagerie.find(b => b && (b.uid === uid || b.id === uid))).filter(b => b && !b.dead && (b.hp == null || b.hp > 0));
+      f.ctx.gateBeastIds = [];
+      eligible.forEach((beast, i) => {
+        const species = (JD.BEASTS && JD.BEASTS.species || []).find(s => s.id === beast.speciesId || s.id === beast.id) || {};
+        const tier = clamp(Math.floor(beast.tier || species.tier || 1), 1, 7);
+        const level = clamp(Math.floor(beast.level || beast.growthStage || 1), 1, 9);
+        const trait = beast.sovereignAwakened ? 'SOVEREIGN_AWAKENED' : (beast.bloodlineTrait || beast.trait || null);
+        let power = Math.max(30, Number(beast.power) || Number(beast.cp) || Number(species.cp) || 75) * (1 + (tier - 1) * 0.12 + (level - 1) * 0.035);
+        if (trait === 'ALPHA_FANG') power *= 1.12;
+        if (trait === 'IRON_CARAPACE') power *= 1.08;
+        if (trait === 'SOVEREIGN_AWAKENED') power *= 1.18;
+        const hpMax = Math.max(80, Math.round(Number(beast.hpMax) || power * 1.55));
+        const ratio = Number.isFinite(beast.hp) && Number.isFinite(beast.hpMax) && beast.hpMax > 0 ? clamp(beast.hp / beast.hpMax, 0.08, 1) : 1;
+        const id = 'GB_' + f.id + '_' + (++W.foeSeq || (W.foeSeq = 1));
+        const unit = {
+          id, foe: true, isGateBeast: true, sourceBeastUid: beast.uid || beast.id,
+          name: beast.nameTh || species.nameTh || 'อสูรพิทักษ์ประตู', nameTh: beast.nameTh || species.nameTh || 'อสูรพิทักษ์ประตู',
+          tier, level, power, hpMax, hp: Math.round(hpMax * ratio), dead: false, gone: false,
+          kind: 'beast', family: beast.family || species.family, element: beast.element || species.element,
+          bloodlineTrait: trait, sovereignGuardUsed: false, fleeAt: 0,
+          x: MAP.EXIT.x + (i - 1.5) * 1.1, y: MAP.EXIT.y + 2, px: 0, py: 0, face: 1, speed: 0.62 + tier * 0.025, speedBase: 1
+        };
+        W.foes.push(unit); W.foeById[id] = unit; f.A.push(id); COMBAT.enter(W, f, id); f.ctx.gateBeastIds.push(id);
+      });
+      if (eligible.length) W.log('raid', '🐾 กองอสูรพิทักษ์ประตูเข้าร่วมแนวหน้า ' + eligible.length + ' ตัว', []);
+    }
   };
   X.raidEnd = (W, f, ws, win, lose) => {
     const ctx = f.ctx; W.threat.raid = null; W.threat.alert = 1;
+    const gateIds = Array.isArray(ctx.gateBeastIds) ? ctx.gateBeastIds : [];
+    for (const id of gateIds) {
+      const unit = W.foeById && W.foeById[id];
+      if (!unit || !unit.isGateBeast) continue;
+      const beast = (W.sect.beasts || []).find(b => b && (b.uid === unit.sourceBeastUid || b.id === unit.sourceBeastUid));
+      if (beast) {
+        beast.hp = unit.dead ? 0 : Math.max(1, Math.min(beast.hpMax || unit.hpMax, unit.hp || 1));
+        beast.fatigue = clamp((beast.fatigue || 0) + (unit.dead ? 35 : 12), 0, 100);
+        beast.exp = (beast.exp || beast.bondXp || 0) + (unit.dead ? 2 : 8);
+        beast.bondXp = beast.exp;
+        if (unit.dead) { beast.dead = true; W.sect.gateBeasts = (W.sect.gateBeasts || []).filter(uid => uid !== beast.uid && uid !== beast.id); }
+      }
+      W.foes = (W.foes || []).filter(u => u.id !== id);
+      delete W.foeById[id];
+    }
     const foes = f.foes.map(i => W.foeById[i]).filter(Boolean); const slain = foes.filter(u => u.dead).length;
     const defenders = f.A.map(i => W.byId[i]).filter(Boolean);
     if (ws === 'A' || foes.every(u => u.dead || u.fled || u.gone)) {
@@ -699,6 +860,25 @@
     W.foes = (W.foes || []).filter(u => !f.foes.includes(u.id)); f.foes.forEach(i => delete W.foeById[i]);
     foes.forEach(u => { u.gone = true; });
     W.npcs.forEach(n => { if (n.act && n.act.id === 'hide') { AI.release(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; } });
+  };
+
+  X.assignGateBeast = (W, beastUid, assign) => {
+    if (!W || !W.sect || !beastUid) return { ok: false, reason: 'invalid-beast' };
+    const menagerie = CULT.ensureMenagerie ? CULT.ensureMenagerie(W) : (W.sect.beasts || []);
+    const beast = menagerie.find(b => b && (b.uid === beastUid || b.id === beastUid));
+    if (!beast) return { ok: false, reason: 'not-a-reserve-beast' };
+    if (!Array.isArray(W.sect.gateBeasts)) W.sect.gateBeasts = [];
+    const key = beast.uid || beast.id;
+    const has = W.sect.gateBeasts.includes(key);
+    if (assign === false) {
+      W.sect.gateBeasts = W.sect.gateBeasts.filter(uid => uid !== key);
+      return { ok: true, assigned: false, beastUid: key };
+    }
+    if (has) return { ok: true, assigned: true, unchanged: true, beastUid: key };
+    if (W.sect.gateBeasts.length >= 4) return { ok: false, reason: 'gate-vanguard-full', max: 4 };
+    if (beast.dead || (beast.hp != null && beast.hp <= 0)) return { ok: false, reason: 'beast-injured' };
+    W.sect.gateBeasts.push(key);
+    return { ok: true, assigned: true, beastUid: key, nameTh: beast.nameTh || 'อสูรพิทักษ์ประตู' };
   };
   X.raidTick = W => {
     if (!W.foes || !W.foes.length) return;
