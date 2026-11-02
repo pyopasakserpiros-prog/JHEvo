@@ -1,53 +1,61 @@
 ---
 name: web-performance
 description: Optimize JianghuSect Evolution's HTML5 Canvas 2D renderer (js/render.js), DOM UI panels (js/ui.js), and animation loop (js/main.js) for smooth 60 FPS desktop/mobile browser performance even at 80x simulation speed.
-origin: jianghusect-custom
-category: browser-rendering-perf
 ---
 
-# JianghuSect Browser & Canvas 2D Performance (js/render.js, js/ui.js, js/main.js)
+# JianghuSect Evolution — Canvas 2D, DOM & Frame Pacing Blueprint (`js/render.js`, `js/ui.js`, `js/main.js`)
 
-## Purpose
-Keep **JianghuSect Evolution (JHEvo)** running at a smooth frame rate in desktop and mobile browsers by decoupling high-frequency simulation ticks (`SIM.tick`) from 60 Hz visual rendering (`RENDER.draw` and `UI.refresh`).
-
-Use this skill whenever:
-- Modifying `GAME_SOURCE/js/render.js`, `GAME_SOURCE/js/ui.js`, `GAME_SOURCE/js/main.js`, or `GAME_SOURCE/css/style.css`
-- Adding visual skill effects (`W.skillEvents`, `npc.fx`), floating combat text, particles, or map overlays
-- Debugging frame drops when the player zooms out on the `240×192` map or runs at `20x`–`80x` simulation speed
+This skill governs rendering performance across `GAME_SOURCE/js/render.js` (3,030 lines), `GAME_SOURCE/js/ui.js` (4,276 lines), and `GAME_SOURCE/js/main.js` (124 lines), ensuring responsive 60 FPS interaction on desktop and mobile browsers even at high simulation speeds (`16×`–`48×+`).
 
 ---
 
-## 1. Frame & Render Loop Discipline (`js/main.js` & `js/render.js`)
+## 1. Adaptive Frame Pacing & Simulation Decoupling (`js/main.js` lines 38–69)
 
-1. **Decouple Simulation Ticks from `requestAnimationFrame`**:
-   - At high speed (`10x`–`80x`), multiple `SIM.tick(W)` calls execute per animation frame, while `RENDER.draw(W)` runs **at most once per `requestAnimationFrame`**.
-   - Never trigger Canvas redraws or DOM queries inside `SIM.tick`, `AI.step`, or `COMBAT.fightStep`!
-2. **Viewport Frustum Culling on the 240×192 Grid**:
-   - The world map is `240 × 192` tiles (`46,080` tiles).
-   - Always compute the visible tile bounds `(minX, maxX, minY, maxY)` from the camera viewport (`RENDER.cam`) and cull tiles, buildings, stations, wild resources, wildlife, and NPCs outside the viewport before issuing Canvas 2D draw calls (`fillRect`, `drawImage`, `fillText`).
-3. **Sprite & Offscreen Caching**:
-   - Reuse static terrain/chunk offscreen canvases or pre-parsed sprite coordinates (`wuxia_item_atlas.png` 72-cell coordinates) rather than re-parsing strings or creating `new Image()` / `createLinearGradient()` objects per frame.
-4. **Bounded Visual Effect Pools (`W.skillEvents` & `npc.fx`)**:
-   - Cap concurrent floating combat texts and skill visual particles so massive sect raid battles (40+ combatants) do not flood the Canvas 2D context.
-
----
-
-## 2. DOM Update Discipline (`js/ui.js`)
-
-1. **Throttle Open Panel Refreshes**:
-   - Only update the currently open drawer/modal (`UI.state.openPanel`). If no drawer is open, only update lightweight HUD counters (date, speed, sect stones, alert badge) when their values change.
-2. **Preserve Interactive State**:
-   - Never destroy and recreate `<input>`, `<select>`, or scrollable list containers while the user is actively typing, scrolling, or dragging in the Edit Hub or Inventory Grid.
-3. **CSS Hardware Acceleration**:
-   - Use `transform: translate3d(...)` and `opacity` for drawer transitions in `css/style.css`, avoiding layout-thrashing properties (`top`, `left`, `width`, `height`) on per-frame animations.
+- **Simulation Time-Slice (`SIM_BUDGET_MS = 12`):**
+  - `frame(ts)` caps simulation work per animation frame to `12 ms` (`if (performance.now() - t0 >= SIM_BUDGET_MS) break;`), preserving remaining ticks in `G.acc` (`W.runtimeTiming.pendingTicks`) so pointer/touch events remain responsive.
+- **Speed-Adaptive Render Throttling (`js/main.js` lines 61–64):**
+  ```javascript
+  const renderEvery = G.speed === 0 ? 120 : G.speed >= 32 ? 1000 / 30 : G.speed >= 16 ? 1000 / 40 : 0;
+  if (!renderEvery || !G.lastRender || ts - G.lastRender >= renderEvery) {
+    R.draw(ts); drawMini(); G.lastRender = ts;
+  }
+  ```
+  - At `0×` (paused), redraws every `120 ms` (or immediately on camera pan/zoom).
+  - At `16×`, caps Canvas redraws to `40 FPS`; at `32×+`, caps to `30 FPS` to return CPU budget to `SIM.tick`.
+- **Interpolation Alpha (`R.alpha`):**
+  - At `1×–8×`, `R.alpha = Math.min(1, G.acc)` smoothly interpolates NPC positions between `(n.px, n.py)` and `(n.x, n.y)`. At `16×+`, snaps `R.alpha = 1` to avoid motion blur jitter.
 
 ---
 
-## 3. Verification Checklist
+## 2. Canvas 2D Chunk Caching & Frustum Culling (`js/render.js`)
 
+### 2.1 Offscreen Terrain Chunk Cache (`buildChunk` lines 99–220)
+- The `240×192` tile map (`TS = 16` px/tile) is pre-rendered into **`16×16`-tile offscreen `<canvas>` chunks** (`CH = 16`).
+- Chunks are rebuilt lazily only when `W.season` changes or when a chunk enters the camera viewport (`cam.x`, `cam.y`, `cam.z`).
+- Never draw individual terrain tiles directly in `R.draw(ts)`; always `ctx.drawImage` visible chunks intersecting the camera frustum.
+
+### 2.2 Text Measurement & Sprite Caching (`js/render.js` lines 10–20)
+- **`measureCached(ctx, font, text)`:** Caches `ctx.measureText(text).width` in `TW_CACHE` (capped at `2,000` entries) because `ctx.measureText` triggers expensive font layout in mobile browsers.
+- **Lighting & Weather Overlays:** Pre-render radial glow sprites and reuse deterministic particle pools rather than allocating per-frame gradients or particle objects.
+- **Quality Tiers (`G.opts.quality`):** Supports `'auto'`, `'low'`, `'standard'`, and `'high'` plus `G.opts.reducedMotion` to scale particle density, shadows, and ambient animations on low-end mobile GPUs.
+
+---
+
+## 3. DOM & Inventory Rendering Discipline (`js/ui.js`)
+
+1. **HUD Update Throttling (`UI.updateHud(force)` line 429):**
+   - Never update HUD DOM nodes more than once every `250 ms` unless `force === true`.
+   - Selected NPC banner (`#selInfo`) caches its structural state key (`sel.id + ':' + sel.act.id + ':' + sel.rank + ':' + (sel.dead ? 1 : 0)`) on `si.dataset.key` so portraits (`drawPortraits`) and buttons are not recreated when only `#selAct` text changes.
+2. **Single-Pass HTML Construction & Paginated Lists:**
+   - Build drawer HTML in a single string (`let h = ...`) and assign `innerHTML` once per tab render.
+   - Always paginate large lists:
+     - Inventory Grid (`UI.calcGridPageSize()`): `10`–`30` items per page (`cols * rows`) using the single base64 `ITEM_ATLAS_URI` sprite sheet (`background-position` offsets, zero HTTP requests).
+     - Edit Hub Spawner (`SECT.EDITOR.catalogPaginated`): `40` / `80` / `150` items per page out of `1,008` total items.
+
+---
+
+## 4. Verification Checklist
 ```bash
-node GAME_SOURCE/test/perf.js
-node GAME_SOURCE/test/skill_visual_events.js
-node GAME_SOURCE/test/graphics_overhaul_suite.js
-node GAME_SOURCE/test/ui_content.js
+node GAME_SOURCE/test/test_wuxia_sprite_atlas_grid.js
+node GAME_SOURCE/test/test_perf_80x_benchmark.js
 ```

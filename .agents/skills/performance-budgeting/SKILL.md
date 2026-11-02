@@ -1,66 +1,73 @@
 ---
 name: performance-budgeting
 description: Maintain JianghuSect Evolution's strict simulation performance budget (< 3.0 ms/tick for 80 NPCs, supporting 80x+ speed) through versioned caching (_ver, _passVer, earliestExpiry), allocation discipline, and tick throttling.
-origin: jianghusect-custom
-category: engine-performance
 ---
 
-# JianghuSect Simulation Performance Budgeting (< 3.0 ms/tick @ 80 NPCs)
+# JianghuSect Evolution — Simulation Performance Budgeting Blueprint (`< 3.0 ms/tick` at 80 NPCs)
 
-## Purpose
-Keep **JianghuSect Evolution (JHEvo)** fast, responsive, and memory-stable during long multi-year simulations and high-speed (`10x`–`80x+`) playback (`js/sim.js`, `js/ai.js`, `js/stats.js`, `js/cognition.js`, `js/human_core.js`).
-
-Use this skill whenever:
-- Adding per-tick or per-hour logic in `js/sim.js`, `js/ai.js`, `js/combat.js`, or `js/cultivation.js`
-- Modifying stat calculation (`STATS.combatStats`, `STATS.rating`, `HC.eff`, `HC.derived`)
-- Adding new cognitive checks in `COG.prepare` or `COG.modifiers`
-- Auditing tick times with `test/perf.js`, `test/soak.js`, or `test/browser_mobile_perf.js`
+This skill enforces the strict simulation CPU budget of **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**: **`< 3.0 ms/tick` average across 80+ active NPCs**, enabling smooth **48×–80×+** fast-forward speeds on both mobile (Termux/Android) and desktop browsers.
 
 ---
 
-## 1. Hard Performance Targets
+## 1. Frame & Tick Budget Architecture (`js/main.js` & `js/sim.js`)
 
-- **80-NPC Simulation Tick Budget**: **< 3.0 ms/tick** average in headless Chromium / Node.js (current v2.0.9 baseline: **~2.95 ms/tick**, supporting **84.7x** real-time speed).
-- **Zero Memory Leaks over 360-Day Soak**: Bounded log arrays (`W.logs`), bounded NPC memory traces (`npc.h.mind.memories`, `npc.cognition.trace`), and zero orphaned closures.
-
----
-
-## 2. Core Caching Mechanisms You MUST Preserve
-
-### 2.1 `HC` Versioned Stat Cache (`npc._ver`, `npc._c`, `npc._d`)
-- `HC.eff(npc, path)` and `HC.derived(npc)` cache their computed values on `npc._c` and `npc._d` keyed by `(HC.nowDay, npc._ver)`.
-- **Rule**: Never increment `npc._ver` (or call `HC.bump(npc)`) on sub-integer per-tick training gains! Always use the wrapped `HC.trainBody`, `HC.trainMind`, and `HC.gainWisdom` in `js/ai.js`, which only bump `npc._ver` when `(oldVal | 0) !== (newVal | 0)`.
-
-### 2.2 Composite Combat Stats & Buff Expiry Cache (`npc._cs`, `npc._passVer`, `earliestExpiry`)
-- `STATS.combatStats(npc, nowT)` caches the full combat stat block on `npc._cs`.
-- When timed buffs are active in `npc.buffs`, `npc._cs` records `earliestExpiry = Math.min(...buffs.map(b => b.until))`.
-- On subsequent calls where `nowT < earliestExpiry` and `npc._ver` / `npc._passVer` haven't changed, `STATS.combatStats` returns `npc._cs` in **O(1) time** without re-scanning equipment, techniques, or buffs!
-
-### 2.3 Per-Day Physiological Needs Rate Cache (`npc._nd` in `js/ai.js`)
-- `getNeedsRates(npc)` caches metabolic drain, rest drain multiplier (`restDrainMult`), `qiMax`, and `hpMax` on `npc._nd` keyed by `(HC.nowDay, cStage, cTr, passVer, eqA, vit)`.
-- This keeps `AI.needs(W, npc)` (which runs every minute for every living NPC) a fast arithmetic update.
+- **Frame Simulation Budget (`js/main.js` lines 6, 47–57):**
+  - `TICKS_PER_SEC = 4`, `SIM_BUDGET_MS = 12` ms per `requestAnimationFrame`.
+  - Pending ticks accumulate in `G.acc += dt * G.speed * TICKS_PER_SEC`.
+  - The `while (G.acc >= 1)` loop breaks immediately if `performance.now() - t0 >= SIM_BUDGET_MS` so touch/pan gestures never freeze on mobile.
+- **Per-Tick Target:**
+  - At `80 NPCs`, each `SIM.tick(W)` must complete in **`< 3.0 ms`** (validated by `test/test_perf_80x_benchmark.js` and `tools/benchmark_80x.js`).
 
 ---
 
-## 3. Anti-Patterns to Avoid in Hot Paths
+## 2. Versioned Caching Patterns (Zero-Redundant Recomputation)
 
-1. **No O(N²) NPC Scans Every Minute**:
-   - Do not loop over all `W.npcs` inside a per-minute `AI.step(W, n)` hook unless gated by a Modulo Stagger (e.g., `if ((W.t + n.n) % 15 === 0)`) or triggered only on state transitions (`AI.decide`).
-2. **No Full-Map (240×192) Scans in `can()` or `score()`**:
-   - Always query pre-indexed station lists (`W.map.byId[buildingKey].stations`) via `AI.freeStation`.
-3. **Bounded History & Trace Arrays**:
-   - Whenever pushing to `npc.recent`, `npc.inj`, `npc.cognition.trace`, or `W.logs`, enforce a strict `.shift()` or `.slice(-MAX)` cap.
+Never recompute composite stats, passive effects, equipment resonance sets, or elemental power on every tick or combat strike. Always guard with version counters:
+
+### 2.1 `STATS.compute(npc)` Version & Buff-Expiry Cache (`js/stats.js` lines 96–106)
+```javascript
+const ver = (npc._ver || 0) * 31 + (npc.cult ? npc.cult.stage * 7 + npc.cult.techs.length : 0)
+  + (npc.equip && npc.equip.WEAPON ? 3 : 0) + (npc.equip && npc.equip.ARMOR ? 5 : 0)
+  + (npc.equip && npc.equip.ACCESSORY ? 11 : 0) + (npc.inj ? npc.inj.length * 13 : 0)
+  + (npc.buffs ? npc.buffs.length * 17 : 0);
+const nowT = STATS.now || 0;
+const earliestExp = npc._stEarliestBuffExp || 0;
+const buffExpired = earliestExp > 0 && nowT >= earliestExp;
+if (npc._st && npc._stVer === ver && !buffExpired && (nowT === 0 || npc._stTick === undefined || (nowT - npc._stTick) < 60)) {
+  return npc._st;
+}
+```
+- **Rule:** Only call `STATS.dirty(npc)` or `HC.bump(npc)` when an NPC's equipment, cultivation stage, techniques, injuries, or buffs actually change.
+
+### 2.2 Passive & Equipment Resonance Set Caches (`js/martial.js` & `js/combat.js`)
+- `MARTIAL.aggregatePassives(npc)` caches on `npc._pass` keyed by `npc._passVer` (`techs.length` + weapon/armor/accessory IDs + cultivation stage + `_ver`).
+- `COMBAT.evaluateEquipmentSets(npc)` caches on `npc._eqSetCache` keyed by equipped item IDs (`wId|aId|accId`).
+- `ELEM.combatElementPower(npc, el)` caches on `npc._elemPowerCache` keyed by `npc._ver` + stage + root count.
+
+### 2.3 Population & Stock Intelligence Caching (`js/economy.js` lines 614–654)
+- `W._alivePopCount` is cached per tick (`W._alivePopTick === W.t && W._alivePopLen === W.npcs.length`).
+- `ECO.inventoryIntelligence(W)` is cached per day (`evaluatedAt === W.day`) unless `W.sect._stockDirty` is set.
+- `CPE.personalCraftChoice(W, n)` is cached on `n._pcTick === W.t && n._pcVer === n._ver && n._pcMatSum === matSum`.
 
 ---
 
-## 4. Verification Checklist
+## 3. Hot-Path Allocation & Complexity Rules (`js/ai.js`, `js/cognition.js`, `js/combat.js`)
 
-Run these performance and soak suites from `GAME_SOURCE/`:
+1. **No `JSON.stringify` / `JSON.parse` in Tick/Hourly/Daily Loops:**
+   - Only `SIM.serialize` / `SIM.deserialize` and Edit Hub Undo snapshots may use JSON serialization.
+2. **Avoid `Array.prototype.filter/map/reduce` Chains Inside `SIM.tick`:**
+   - In functions called every tick for every NPC (`AI.step`, `AI.needs`, `COMBAT.tick`, `WILD.tick`), use indexed `for (let i = 0; i < arr.length; i++)` loops and early `return`/`continue` guards (`if (n.dead || n.away) continue;`).
+3. **Stagger Heavy Evaluations Across Ticks or Days:**
+   - NPC utility decision-making (`AI.decide`) only runs when an NPC finishes its current action (`n.act.left <= 0`), not every tick.
+   - Heavy sect-wide evaluations (`COG.syncOfficeAuthority`, `CPE.daily`, `SECT.daily`, `ECO.inventoryIntelligence`) run once per day in `SIM.dailyUpdate(W)` or staggered by `(W.t + n.n * 13) % 60 === 0`.
+4. **Cap Unbounded Arrays:**
+   - Always cap history/log arrays: `W.logs` (`<= 1500`, splice 400), `W.sect.ledger` (`<= 400`, splice 200), `n.h.life.bio` (`<= 70`, splice 20), `c.hist` (`<= 60`), `c.log` (`<= 40`), `n.cognition.memory` (`<= 24`), `n.cognition.trace` (`<= 15`).
+
+---
+
+## 4. Performance Verification Suite
+Always run the 80x benchmark after modifying any tick/hourly/AI/combat code:
 ```bash
-node test/perf.js
-node test/runtime_timing.js
-node test/soak.js
-node test/cp_soak.js
-node test/long_simulation.js
-node test/cultivator_sleep_scaling_suite.js
+node GAME_SOURCE/test/test_perf_80x_benchmark.js
+node GAME_SOURCE/tools/benchmark_80x.js
 ```

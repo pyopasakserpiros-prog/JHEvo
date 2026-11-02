@@ -1,72 +1,68 @@
 ---
 name: qa-test-matrix
 description: Master JianghuSect Evolution's 83-suite automated regression test matrix (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), 150-file JS syntax sweep, and milestone acceptance gates.
-origin: jianghusect-custom
-category: qa-verification
 ---
 
-# JianghuSect QA & Regression Test Matrix (83 Suites + Schema Auditor)
+# JianghuSect Evolution — Automated QA & 83-Suite Regression Matrix Blueprint (`test/run_all.js`, `tools/validate_data_schema.js`)
 
-## Purpose
-Ensure every code or data change in **JianghuSect Evolution (JHEvo)** is verified against the complete regression test matrix (`GAME_SOURCE/test/run_all.js`, `GAME_SOURCE/tools/run_parallel_tests.js`, `GAME_SOURCE/tools/validate_data_schema.js`).
-
-Use this skill whenever:
-- Preparing a patch implementation or release handoff
-- Writing a new test suite for a new patch (`test/v2xx_*_suite.js`)
-- Mapping modified files (`js/*`, `data/*`) to their targeted verification suites
+This skill governs the automated verification pipeline of **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**, ensuring zero regressions across all 83+ test suites, 150 JS files, and 1,008+ data definitions.
 
 ---
 
-## 1. The 4-Stage Release Gate
+## 1. Mandatory 4-Step Verification Gate
 
-Before declaring any patch or task complete, verify all 4 stages inside `GAME_SOURCE/`:
+Before committing or pushing any gameplay, data, AI, combat, economy, or UI change, run these commands in order from `/data/data/com.termux/files/home/jhevo-work`:
 
-1. **Stage 1 — Data & Combat Schema Integrity (`tools/validate_data_schema.js`)**:
-   ```bash
-   node tools/validate_data_schema.js
-   ```
-   - Must report **`Errors: 0`** across all items, recipes (`REC_*` / `ITEM_*` Dual-IDs), martial techniques, weapon affinities, elemental profiles, timed/passive effects, and Edit Hub catalog spawnability.
+### Step 1: Human Core Integrity Lock (`js/human_core.js`)
+```bash
+node -e "const g = require('./GAME_SOURCE/test/load.js'); if (g.HC.FINGERPRINT !== '155:2f9c9dd7') throw new Error('HC.FINGERPRINT mismatch');"
+```
+- Must always equal `'155:2f9c9dd7'` (SHA-256 locked).
 
-2. **Stage 2 — Core Lock & Syntax Sweep**:
-   ```bash
-   node test/core_lock.js
-   ```
-   - Verifies `HC.FINGERPRINT === '155:2f9c9dd7'` and checks `--check` syntax across all `.js` files in `data/`, `js/`, `tools/`, and `test/`.
+### Step 2: Data Schema & Cross-Reference Auditor (`tools/validate_data_schema.js`)
+```bash
+node GAME_SOURCE/tools/validate_data_schema.js
+```
+- Audits all `data/data_*.js` files for duplicate IDs, missing `nameTh`, invalid `compatiblePath`, broken `REC_*` / `ITEM_*` Dual-ID links, invalid weapon classes, and orphaned drop table references.
+- **Acceptance Criterion:** `Errors: 0`.
 
-3. **Stage 3 — Standalone Single-File Build**:
-   ```bash
-   node tools/build_single.js
-   node test/standalone.js
-   ```
-   - Rebuilds `GAME_SOURCE/JianghuSect_single.html` and verifies the inlined bundle matches `index.html`.
+### Step 3: Single-File Bundle Rebuild (`tools/build_single.js`)
+```bash
+cd GAME_SOURCE && node tools/build_single.js
+```
+- Inlines CSS and all 40 `<script>` tags from `index.html` into `GAME_SOURCE/JianghuSect_single.html`.
+- **Acceptance Criterion:** Exits `0` and updates `JianghuSect_single.html`.
 
-4. **Stage 4 — Full 83-Suite Regression Matrix**:
-   ```bash
-   node tools/run_parallel_tests.js
-   # or sequential:
-   node test/run_all.js
-   ```
-   - Note: In headless CLI environments without a Chromium binary (e.g., Android Termux), the 7 CDP browser suites (`skill_visual_browser`, `browser_mobile_perf`, `input_cancellation`, `startup_ui`, `outside_visual_browser`, and the browser half of `inventory_grid_ui_suite` & `fishing_river_suite`) will report `No Chromium executable found`; all 76 pure Node.js logic suites and syntax checks must pass **100%**.
+### Step 4: Full Regression Test Matrix (`test/run_all.js` or `tools/run_parallel_tests.js`)
+```bash
+cd GAME_SOURCE && node test/run_all.js
+# Or parallel runner for faster execution on multi-core environments:
+cd GAME_SOURCE && node tools/run_parallel_tests.js
+```
+- **Acceptance Criterion:** `0` failed suites across all registered `test_*.js` files.
 
 ---
 
-## 2. Domain-to-Suite Mapping Matrix
+## 2. Targeted Domain Test Suites (`GAME_SOURCE/test/`)
 
-| Domain Changed | Mandatory Suites to Run Immediately |
+When developing or debugging a specific subsystem, run its targeted test suites first for instant (`< 2s`) feedback:
+
+| Subsystem / Pillar | Targeted Test Suites (`node GAME_SOURCE/test/<file>.js`) |
 | :--- | :--- |
-| **Cultivation & 9 Paths (`js/cultivation.js`, `data_cult.js`)** | `martial_paths`, `demon_heartsoul_paths`, `v208_paths_and_beast_pets_suite`, `v209_facilities_party_synergy_suite`, `successor_and_archetypes_suite`, `specialization_tracks`, `bottleneck` |
-| **Combat, Martial Arts & Buffs (`js/combat.js`, `js/martial.js`, `js/stats.js`)** | `combat_balance`, `combat_passives`, `combat_stats`, `weapon_subpath_gear_expansion_suite`, `resonance_tactics_assembly_suite`, `unified_weapon_skills_and_archetypes_suite`, `elemental_effect_scaling_suite` |
-| **NPC AI & Cognition (`js/ai.js`, `js/cognition.js`)** | `npc_cognition`, `npc_offices`, `npc_command`, `npc_social_help`, `npc_life_authority_overhaul`, `cultivator_sleep_scaling_suite` |
-| **Economy, Crafting & Market (`js/economy.js`, `js/cpeco.js`, `js/external_market.js`)** | `cp_economy`, `cpeco`, `craft_transactions`, `recipe_coverage`, `recipe_scroll_lifecycle`, `external_market`, `external_market_expansion_suite`, `unified_donation_suite`, `welfare_production_policies` |
-| **World Map, Ecology & Fishing (`js/world_map.js`, `js/fishing.js`, `js/wildlife.js`)** | `fishing_river_suite`, `wild_resources`, `wildlife_batches`, `wildlife_spawn_integrity`, `onmap_wildlife`, `beast_ecology`, `explore`, `exploration_replay` |
-| **UI, Atlas & Edit Hub (`js/ui.js`, `js/render.js`)** | `ui_content`, `npc_sheet_tabs_suite`, `inventory_grid_ui_suite`, `phase2_edit_hub_inventory`, `edit_spawner_id_resolution_test`, `edithub_crosssect_progression_suite` |
-| **Save/Load & Core (`js/sim.js`, `js/human_core.js`)** | `core_lock`, `save_integrity`, `legacy_save`, `standalone` |
+| **Latest Integrated Patches (v2.0.5–v2.0.9)** | `test_v205_features.js`, `test_v206_features.js`, `test_v207_features.js`, `test_v208_features.js`, `test_v209_integrated.js` |
+| **Cultivation, 9 Paths, 78 Subpaths & Tracks** | `test_9paths_universal_companions.js`, `test_subpath_9realm_tracks.js`, `test_overhaul_pack.js`, `test_elemental_system.js`, `test_spiritual_root_capacity.js` |
+| **Combat, Resonance Sets, Formations & Buffs** | `test_equipment_sets_formations_sanctums.js`, `test_combat_variety.js`, `test_legendary_33_expansion.js` |
+| **NPC Utility AI, Cognition & 18 Offices** | `test_npc_cognition.js`, `test_autonomous_sect_governance.js`, `test_sect_delegation_hierarchy.js`, `test_sim_ai.js` |
+| **Economy, CP Ledger, Catalysts & Trade** | `test_cp_economy_equilibrium.js`, `test_inventory_intelligence.js`, `test_catalyst_refinement.js`, `test_craft_receipt_idempotency.js`, `test_external_market.js` |
+| **World Map, Fishing, Sanctums & Diplomacy** | `test_world_map_rivers_fishing.js`, `test_cross_sect_diplomacy.js`, `test_political_events_and_Sanctum_catalysts.js`, `test_wildlife_and_resources.js` |
+| **UI, Sprite Atlas, Log Links & Edit Hub** | `test_wuxia_sprite_atlas_grid.js`, `test_player_edit_hub.js`, `test_log_link_integrity.js`, `test_ui_usability.js` |
+| **Save/Load & 80x Performance Budget** | `test_save_migration.js`, `test_perf_80x_benchmark.js` |
 
 ---
 
-## 3. Writing New Patch Test Suites
-
-When implementing a new patch (e.g., `v2.0.10`), always create a dedicated regression suite in `GAME_SOURCE/test/` and append its basename to `const tests=[...]` in `GAME_SOURCE/test/run_all.js`:
-- Load the engine via `require('./load.js')`.
-- Use `const assert = require('assert');` and deterministic world seeds (`SIM.create(12345)`).
-- Test both positive behavior (feature works across all 9 paths), boundary conditions (expiration, caps, zero-resource fallbacks), and save/load round-trip preservation.
+## 3. Writing New Milestone Tests (e.g., `test/test_v210_integrated.js`)
+Every new patch (such as `v2.0.10`) must add a dedicated integration test file in `GAME_SOURCE/test/` and register it in `GAME_SOURCE/test/run_all.js`:
+1. Load the headless VM via `const g = require('./load.js'); const assert = require('assert');`.
+2. Create a deterministic test world via `const W = g.SIM.create('test_v210_seed', { masterIdx: 0 });`.
+3. Assert every new feature pillar (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`, `W.sect.gateBeasts`, Spirit Mount Caravans, `SECT.WORLD_MARTIAL_CONFERENCE`, `VASSAL_TREATY`, and 14 `SECT.SECT_ARCHETYPES`).
+4. Verify a full `const s = g.SIM.serialize(W); const W2 = g.SIM.deserialize(s);` round-trip preserves all new state fields.
