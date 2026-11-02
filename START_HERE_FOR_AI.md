@@ -9,7 +9,7 @@ To maximize accuracy and avoid wasting context tokens, follow this exact reading
 ### Step 1: Read Project Guardrails & Current Baseline
 1. Read [`AGENTS.md`](./AGENTS.md) for non-negotiable architectural locks (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags in `index.html`, matching module order in `test/load.js`, Thai localization `nameTh`).
 2. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_14.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) to see what is already implemented, what the design audit changed, and which checks remain.
-3. Read the active assignment [`NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md`](./NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md) in full. It supersedes historical prompts and roadmap suggestions for the next patch.
+3. Read the active assignment [`NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md`](./NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md) and its companion [`LEGENDARY_CONTENT_REFERENCE.md`](./LEGENDARY_CONTENT_REFERENCE.md) in full. They include new legendary arts, universal legendary-art access and distinctive visuals, and supersede historical prompts and roadmap suggestions for the next patch.
 4. Consult [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md) or [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md) only when relevant as historical design context; do not repeat completed work.
 
 ### Step 2: Load Only the Relevant Master Skills (`.agents/skills/<skill>/SKILL.md`)
