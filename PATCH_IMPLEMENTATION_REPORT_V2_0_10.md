@@ -36,7 +36,7 @@
 - อัปเดต regression เดิมที่ตรวจจำนวนชุด resonance และชุดอุปกรณ์
 - ปรับ `README.md`, `START_HERE_FOR_AI.md`, `AGENTS.md` และคู่มือ skills ให้ชี้ v2.0.10 เป็น baseline ปัจจุบัน อัปเดตจำนวนชุด resonance/กลุ่มทดสอบ และแยก invariant 40 script tags ใน HTML ออกจากลำดับโมดูลของ CommonJS loader ให้ถูกต้อง
 - สร้างเกมไฟล์เดี่ยวใหม่ที่ [`GAME_SOURCE/JianghuSect_single.html`](./GAME_SOURCE/JianghuSect_single.html) (5,523,978 bytes, ประมาณ 5.3 MiB)
-- แพ็กทั้ง repository เป็น [`JHEvo-v2.0.10-complete.zip`](./JHEvo-v2.0.10-complete.zip)
+- ใช้ ZIP archive ที่ GitHub สร้างจากสาขา `main` สำหรับดาวน์โหลดทั้ง repository; ไม่เก็บ ZIP ฉบับเต็มซ้ำไว้ใน repository
 
 เอกสาร v2.0.9 เดิมยังอยู่ใน [`PATCH_IMPLEMENTATION_REPORT.md`](./PATCH_IMPLEMENTATION_REPORT.md); ข้อกำหนดที่ใช้พัฒนาแพตช์นี้ยังเก็บไว้ใน [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md)
 
