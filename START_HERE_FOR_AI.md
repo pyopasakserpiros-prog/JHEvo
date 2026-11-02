@@ -1,6 +1,6 @@
 # Jianghu Evolution (JHEvo) — AI Developer Entry Point (READ THIS FIRST)
 
-The current working source is **v2.0.14**, based on the user's v2.0.13 Gemini archive. Read [PATCH_IMPLEMENTATION_REPORT_V2_0_14.md](PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) first. Older numbered prompts are historical; do not automatically repeat them.
+The current working source is **v2.0.14**, based on the user's v2.0.13 Gemini archive. The active next-patch assignment is [NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md](NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md): read it in full and implement it. Read [PATCH_IMPLEMENTATION_REPORT_V2_0_14.md](PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) for the current baseline. Older numbered prompts are historical; do not automatically repeat them.
 
 ## 🧭 Priority Execution Order for AI Agents (Gemini, Codex, Antigravity, Claude)
 
@@ -9,8 +9,8 @@ To maximize accuracy and avoid wasting context tokens, follow this exact reading
 ### Step 1: Read Project Guardrails & Current Baseline
 1. Read [`AGENTS.md`](./AGENTS.md) for non-negotiable architectural locks (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags in `index.html`, matching module order in `test/load.js`, Thai localization `nameTh`).
 2. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_14.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) to see what is already implemented, what the design audit changed, and which checks remain.
-3. Consult [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md) for candidate follow-up work. The v2.0.10 prompt is retained as historical context, not as an instruction to reimplement it.
-4. Historical design context only: [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md), with its linked weapon/build coverage reports as references. It requires a mandatory preflight and complete reads of seven domain skills before source review or implementation; verify the actual current source before reusing any suggestions.
+3. Read the active assignment [`NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md`](./NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md) in full. It supersedes historical prompts and roadmap suggestions for the next patch.
+4. Consult [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md) or [`NEXT_PATCH_PROMPT_V2_0_12_EN.md`](./NEXT_PATCH_PROMPT_V2_0_12_EN.md) only when relevant as historical design context; do not repeat completed work.
 
 ### Step 2: Load Only the Relevant Master Skills (`.agents/skills/<skill>/SKILL.md`)
 Do **not** guess internal APIs. Before editing any module in `GAME_SOURCE/`, open the matching bespoke JianghuSect skill(s) by priority:

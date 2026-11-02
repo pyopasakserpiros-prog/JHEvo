@@ -3,6 +3,7 @@
 1. **First**: Read [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md) and follow its prioritized **Task-to-Skill Routing Matrix**.
 2. **Current Baseline**: Current working source is v2.0.14, extending the user-provided v2.0.13 archive from branch Gemini. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_14.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) before planning follow-up work; the v2.0.10 prompt is historical context, not a request to repeat that patch.
 3. **Mandatory Skill Loading**: Before modifying any file in `GAME_SOURCE/`, read the matching Master Skill in `.agents/skills/<skill>/SKILL.md` (mirrored in `.codex/skills/<skill>/SKILL.md`).
+4. **Active next patch**: Implement [`NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md`](./NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md). The document includes the user's requirements, a source-checked baseline, suggestions, independent-review requirements, and final deliverables.
 
 ---
 
