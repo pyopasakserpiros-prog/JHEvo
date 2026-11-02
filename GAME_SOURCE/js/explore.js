@@ -7373,8 +7373,23 @@
     const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], catalysts: {}, crystals: {}, recipes: [], bonusRewards: [], bonusReward: null, bonusRoll: null, retreated: false, failedFloor: null, notes: [], rep: 0, floorsCleared: 0, floorLogs: [] };
     sState.runs = (sState.runs || 0) + 1;
     const maxTargetFloor = clamp(ex.maxFloor != null ? ex.maxFloor : (opts.maxFloor != null ? opts.maxFloor : sc.floors.length), 1, sc.floors.length);
+    const formSyn = (g.COMBAT && g.COMBAT.evaluateFormationSynergy) ? g.COMBAT.evaluateFormationSynergy(alive) : { powerMultiplier: 1, damageMitigation: 0, auraNamesTh: [] };
+    if (formSyn.auraNamesTh && formSyn.auraNamesTh.length) {
+      out.notes.push('ค่ายกลประสานพลัง: ' + formSyn.auraNamesTh.join(' · '));
+    }
+    out.formationSynergies = formSyn.synergies || [];
 
     for (const fl of sc.floors) {
+      if (fl.floor > 1) {
+        const supportMember = alive.find(m => m.cult && m.cult.path === 'SAGE_SUPPORT');
+        if (supportMember && g.CULT && g.CULT.castHealOrBuff) {
+          alive.forEach(m => {
+            if (m && !m.dead && m.h && m.h.state && m.h.state.hp < CULT.hpMax(m) * 0.9) {
+              g.CULT.castHealOrBuff(W, supportMember, m, { free: true, healPct: 0.35, buffKey: 'vitalRegen', duration: 300 });
+            }
+          });
+        }
+      }
       if (!alive.length || fl.floor > maxTargetFloor) break;
       const lead = alive.slice().sort((a, b) => CULT.power(b) - CULT.power(a))[0];
       const resSetDef = (g.MARTIAL && g.MARTIAL.RESONANCE_SETS && g.MARTIAL.RESONANCE_SETS[fl.subPath]) || { nameTh: 'ชุดสัจธรรม' + fl.subPath };
@@ -7393,7 +7408,7 @@
       const partyPower = alive.reduce((sum, m) => {
         const rs = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(m) : { active: false, pieces: 0 };
         return sum + CULT.power(m) * (1 + (rs.active ? rs.pieces * 0.06 : 0));
-      }, 0) * (tac.dmgMult || 1);
+      }, 0) * (tac.dmgMult || 1) * (formSyn.powerMultiplier || 1);
       const bossEffectivePower = fl.basePower * 1.12; // 3-piece boss resonance bonus
       const winProb = clamp(partyPower / (partyPower + bossEffectivePower * 0.85), 0.05, 0.96);
       const won = ex.forceFailFloor === fl.floor ? false : (ex.forceClear ? true : (W.rng ? W.rng.next() < winProb : true));

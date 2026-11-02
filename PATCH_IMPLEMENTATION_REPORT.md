@@ -1,62 +1,159 @@
-# Patch Implementation Report — v2.0.7: Edit Hub Diplomacy & Sanctum Controls, 50-Subpath Progression Bridge, and Cross-Sect Assembly
+# รายงานสรุปผลการพัฒนาระบบ Jianghu Evolution (JHEvo) — Patch v2.0.9
 
-## 1. Executive Summary
+> **เวอร์ชัน**: v2.0.9 (Facilities, Formations, Spirit Beast Breeding & 9-Path Archetypes)
+>
+> **วันที่มีผล**: 2 พฤศจิกายน 2026
+>
+> **สถานะการทดสอบ**: **82 / 82 Test Suites PASS (100%)** + **149 / 149 JS Syntax Check PASS**
+>
+> **ประสิทธิภาพ**: Headless Chromium 80-NPC Benchmark: **2.95 ms/tick** (รองรับความเร็วได้สูงสุด **84.7x**)
 
-This release (v2.0.7) implements all objectives outlined in `SUBSEQUENT_PATCH_PROMPT_V2_0_7_EN.md` tailored specifically to the user's design requirement:
-> *"ไม่ทำuiให้ผู้เล่นควบคุม แต่เอาไปทำเป็น edit ใน edit hubแทน ทำให้ใช้งานง่าย นอกนั้นทำเหมือนในพรอมบอกตามแผนที่วางไว้เลย ลุย"*
-> (Do not clutter regular gameplay screens with manual player-control buttons; instead, integrate Diplomacy, Sanctum Boss Clears, and Catalyst Refinement directly into the **Edit Hub** (`UI.rEdit` / `edit` sheet) for maximum ease-of-use and flexibility, while implementing the 50-Subpath Progression Bridge and Cross-Sect Tournament Assembly.)
+## 1. บทสรุปภาพรวมการพัฒนา (Executive Summary)
 
-### Key Deliverables:
-1. **Area 1 — Edit Hub Management for Diplomacy, Sanctums & Refinement**:
-   - Integrated two dedicated tabs (`dip` for Diplomacy/World Politics and `sanctum` for Ancient Sanctums & Refinement) into the Edit Hub (`UI.rEdit`, `UI.open('edit')`, and `$('sheet').onclick`).
-   - Implemented `SECT.EDITOR.diplomacyState(W, sectId)` and `SECT.EDITOR.applyDiplomacyAction(W, opts)`:
-     - `set_attitude`: Clamp attitude between -100 and 100.
-     - `sign_treaty` / `clear_treaty`: Sign or dissolve any treaty (`ALLIANCE`, `TRADE_CARAVAN_ACCORD`, `MARTIAL_EXCHANGE`, `NON_AGGRESSION`, `RIVAL_FEUD`) directly.
-     - `reset_cooldowns`: Instantly clear caravan, treaty, and envoy cooldowns.
-     - `ally_exchange`: Send instant allied caravan exchange (grants specialty subpath crystals, recipes, and materials).
-     - `trigger_envoy`: Dispatch rival envoys to challenge the sect (with normal combat power simulation or `forceWin` / `forceLoss` controls for instant testing).
-     - `spawn_political_event` / `resolve_political_event`: Trigger and resolve geopolitical events (`SPECIALTY_CARAVAN`, `TRIBUTE_DEMAND`, `DOCTRINE_SUMMIT`, `BORDER_HERB_DISPUTE`).
-   - Implemented `SECT.EDITOR.sanctumState(W, sanctumId)` and `SECT.EDITOR.applySanctumAction(W, opts)`:
-     - View sanctum floor guardians, guaranteed catalysts, bonus drop statistics, and recent run history.
-     - `set_cleared`: Set the deepest cleared floor (0..3) directly.
-     - `instant_run`: Simulate a full sanctum expedition with 1-click (`forceClear` for guaranteed 3-floor clear + catalyst awards + bonus-reward roll, or realistic combat simulation with tactical retreat on low HP).
-     - `spawn_catalysts`: Add refinement catalysts (+5 each of `CAT_RESONANCE_JADE_4`, `CAT_ASTRAL_ESSENCE_5`, `CAT_PRIMORDIAL_FLAME_6`) directly to the sect armory.
-     - `refine_gear`: 1-click catalyst refinement for T4–T6 equipment on both sect inventory and NPC-equipped gear.
-   - Enhanced character editing in `UI.rEdit` ('char' tab) and `SECT.EDITOR.applyCharacterEdit` to view and directly set `cult.trackOrdinal` (1–9 or 0 to close).
+ในแพตช์ **v2.0.9** นี้ ได้ดำเนินงานต่อยอดตามแผนงานที่วางไว้ โดยมุ่งเน้นการสร้าง **ความเท่าเทียมกันของทั้ง 9 วิถีบำเพ็ญ**, การพัฒนา **ระบบเพาะพันธุ์และปลุกสายเลือดสัตว์วิญญาณสากล**, การสร้าง **ระบบค่ายกลประสานพลังและคีตเวทย์หนุนนำข้ามวิถี (Formation & Ensemble Synergies)**, การกำหนด **นโยบายซัพพอร์ตและการรักษาสำนัก (Support Doctrine & Medical Triage)**, และการสร้าง **สิ่งปลูกสร้างเฉพาะทางประจำวิถี 3 แห่ง**
 
-2. **Area 2 — Full 50-Subpath Specialization Track Progression Bridge**:
-   - Expanded specialization tracks to cover all 50 subpaths across the 5 major cultivation paths:
-     - 23 expansion subpaths remain in `CULT.TRACKS` / `CULT.EXPANSION_TRACK_IDS`.
-     - 27 base subpaths are mapped in `CULT.ADVANCED_TRACKS` with full 9-realm progression, authentic Thai realm names, skill gates, spirit stone costs, realm buffs, and capacity multipliers.
-   - Preserved `test/martial_retraining.js:13` regression invariant by ensuring `M.retrain` only auto-initializes tracks upon retraining for expansion subpaths (`CULT.isExpansionTrack(k.id)`).
-   - Base subpaths awaken their specialization track at `effectiveTechStage >= 4` via `CULT.ensureTrack(n, day)`, via explicit awakening with `CULT.awakenSpecializationTrack(n, day)`, or via Edit Hub `applyCharacterEdit({ cult: { trackOrdinal: ... } })`.
-   - Unified `CULT.trackDef` to seamlessly resolve definitions across all 50 subpaths so that `CULT.checkTrackGates`, `CULT.trackBreakthrough`, `CULT.inspectProgressionBottleneck`, and `M.activeBottleneckSkills` operate universally for every disciple.
+*(หมายเหตุ: ตามข้อตกลงเรื่องความเท่าเทียม ได้ตัดแนวคิดการสร้างดันเจี้ยนจำเพาะสำหรับ 4 วิถีใหม่ออกไป และได้จัดทำเป็นเอกสารพิมพ์เขียว `FUTURE_ROADMAP_AND_IDEAS.md` เพื่อวางรากฐาน "เจดีย์เก้าวิถีทดสอบสัจธรรม" ที่เปิดให้ทั้ง 9 วิถีเข้าถึงได้อย่างเท่าเทียมกันในอนาคต)*
 
-3. **Area 3 — Cross-Sect Invited Martial Assembly & Envoy Duel Visuals**:
-   - Extended `SECT.assembly` in `js/sect.js` so allied sects (`ALLIANCE`, `ALLIANCE_PACT`, `MARTIAL_EXCHANGE` or high attitude >= 40) send guest prodigies into Junior, Core, and Elder tournament brackets.
-   - Handled combat power simulation and tactical weapon readiness cleanly for both disciple and guest entrants (`SECT.simulateAssemblyBout`).
-   - Guest prodigies participate in bouts, taking stone prizes if they win without consuming disciple CP allocations or tailored sect equipment.
-   - Recorded allied guest participation, guest bout match logs, and rival envoy challenge duels in `W.sect.assemblyHistory`.
+## 2. รายละเอียดระบบที่พัฒนาและเพิ่มเติมใน Patch v2.0.9
 
-4. **Hard Invariants Verified**:
-   - `GAME_SOURCE/js/human_core.js` fingerprint preserved: `155:2f9c9dd7` (`test/core_lock.js` PASS).
-   - 40 scripts maintained in `GAME_SOURCE/index.html` and `GAME_SOURCE/test/load.js`.
-   - Mobile performance budget satisfied: `2.572 ms/tick` (under the `< 3.0ms` limit) in `test/browser_mobile_perf.js`.
-   - Rebuilt standalone `JianghuSect_single.html` via `node tools/build_single.js` and verified with `test/standalone.js`.
-   - Created comprehensive new test suite `test/edithub_crosssect_progression_suite.js` (ALL 5 AREAS PASS).
-   - Registered in `test/run_all.js` and verified 100% test pass rate.
+### 2.1 ชุดวิชาสำนักเริ่มต้นครอบคลุมครบทั้ง 9 วิถีหลัก (14 Starting Sect Archetypes)
 
----
+เพิ่มชุดสำนักเริ่มต้นใน `SECT.ARCHETYPES` และระบบจับคู่ศาสตราเริ่มต้นใน `SECT.ARCHETYPE_WEAPON` (`js/sect.js`) รวมทั้งหมด **14 สำนัก** ครอบคลุมครบทั้ง 9 วิถีหลัก:
 
-## 2. Test Verification Matrix
+ 1. `sword` — **สำนักกระบี่เซียน** (`XIAN` / กระบี่บิน)
 
-| Test Suite | Focus Area | Status |
-| :--- | :--- | :--- |
-| `test/edithub_crosssect_progression_suite.js` | Edit Hub Diplomacy, Sanctums, 50-Subpath Progression & Cross-Sect Assembly | **PASS** |
-| `test/core_lock.js` | Human Core fingerprint preservation (`155:2f9c9dd7`) | **PASS** |
-| `test/specialization_tracks.js` | 9-Realm specialization tracks, dual progression & gates | **PASS** |
-| `test/martial_retraining.js` | Retraining safety & base subpath unawakened invariant | **PASS** |
-| `test/diplomacy_sanctum_ancestral_suite.js` | Diplomacy lifecycle, Sanctum bonus rolls & Ancestral shrines | **PASS** |
-| `test/phase2_edit_hub_inventory.js` | Character editor, item spawner & Edit Hub bag actions | **PASS** |
-| `test/standalone.js` | Standalone bundle: 40 inline scripts, no external runtimes, 24h simulation | **PASS** |
-| `test/browser_mobile_perf.js` | Mobile performance budget (80 NPCs, 2.572 ms/tick < 3.0ms) | **PASS** |
+ 2. `blade` — **สำนักดาบคลั่ง** (`BODY` / ดาบหนัก)
+
+ 3. `spear` — **สำนักทวนมังกร** (`BODY` / ทวนทะลวงเมฆา)
+
+ 4. `fist` — **สำนักหมัดกายทอง** (`BODY` / กายทองคำวัชระ)
+
+ 5. `alchemy` — **สำนักโอสถเต๋า** (`XIAN` / โอสถและเบญจธาตุ)
+
+ 6. `bow` — **สำนักเกาทัณฑ์ดาราสวรรค์** (`XIAN` / ธนูทะลวงมิติ)
+
+ 7. `staff` — **สำนักพลองโพธิ์วัชระ** (`BODY` / พลองค้ำจุนฟ้าดิน)
+
+ 8. `focus` — **สำนักศาสตราอาคมดารา** (`HEART_SOUL` / ค่ายกลและจิตตานุภาพ)
+
+ 9. `god` — **สำนักเทพบรรพกาล** (`GOD` / วิญญาณศักดิ์สิทธิ์และแสงสุริยัน)
+
+10. `demon` — **สำนักมารสวรรค์** (`DEMON` / มารกลืนสวรรค์และโลหิตอมตะ)
+
+11. `mech` — **สำนักกลจักรวิญญาณ** (`MECH_PUPPET` / กลจักรเชิดหุ่นและวิญญาณศาสตรา)
+
+12. `karma` — **สำนักกรรมวัฏสวรรค์** (`KARMA_SAMSARA` / กรรมวัฏและสังสารวัฏ)
+
+13. `beast` — **สำนักราชันย์อสูร** (`BEAST_SOVEREIGN` / พันธสัญญาวิญญาณและฝูงอสูร)
+
+14. `sage` — **สำนักปราชญ์โอสถคีตเวทย์** (`SAGE_SUPPORT` / ปราชญ์โอสถและคีตเวทย์หนุนนำ)
+
+ผู้เล่นสามารถเลือกเล่นสายใดก็ได้ตั้งแต่ Day 1 โดยระบบ `SIM.candidates` และ `SIM.awaken` จะสร้างเจ้าสำนักและศิษย์รุ่นก่อตั้งที่มีวิชา เคล็ดวิชา ผลึกสายย่อย และอาวุธตรงตามวิถีอย่างสมบูรณ์แบบ
+
+### 2.2 ระบบเพาะพันธุ์สัตว์อสูรและปลุกสายเลือดบรรพกาล (Spirit Beast Breeding & Bloodline Awakening)
+
+* **การเพาะพันธุ์สัตว์อสูร (`CULT.breedBeasts`)** ใน `js/cultivation.js`:
+
+  * สามารถนำสัตว์อสูรคู่สัญญาของศิษย์ หรือสัตว์วิญญาณในคอกสำนัก (`W.sect.beasts`) มาจับคู่ผสมพันธุ์ได้
+
+  * ตรวจสอบความพร้อมด้านความอิ่ม (`hunger >= 35`) และความเหนื่อยล้า (`fatigue <= 75`)
+
+  * ถ่ายทอดและผสมผสานสายพันธุ์ ธาตุ บทบาท และสายเลือด (`bloodlineTrait`) จากพ่อพันธุ์แม่พันธุ์
+
+  * โอกาส **ปลุกสายเลือดเทพอสูรขั้นสูง (Awaken Higher Tier)** เพิ่มระดับ `+1 Tier` (สูงสุด T7) คำนวณจากทักษะ `BEAST_TAMING` ของผู้เพาะพันธุ์และระดับของโรงเพาะเลี้ยงสัตว์วิญญาณ
+
+  * บันทึกประวัติการเพาะพันธุ์ใน `W.sect.breedingRecords` สูงสุด 30 รายการ
+
+* **การปลุกสายเลือดเทพอสูร (`CULT.awakenBloodline`)**:
+
+  * ปลดล็อกศักยภาพสายเลือดโบราณ เพิ่ม Tier, เข้าสู่ขั้นเติบโตที่ 4, มอบสถานะ `sovereignAwakened: true`
+
+* **ระบบดูแลสัตว์อสูรสำนัก (`CULT.menagerieTick`)**:
+
+  * ลดความเหนื่อยล้าของสัตว์วิญญาณในคอกสำนักอย่างต่อเนื่อง และให้อาหารอัตโนมัติหากมีเสบียงในคลัง
+
+### 2.3 ระบบค่ายกลประสานพลังและคีตเวทย์หนุนนำ (Formation & Ensemble Support Aura)
+
+เพิ่มฟังก์ชัน `COMBAT.evaluateFormationSynergy(party)` ใน `js/combat.js` และเชื่อมต่อเข้ากับวิหารโบราณ (`EX.resolveSanctum` ใน `js/explore.js`) และศึกป้องกันสำนัก:
+
+1. **ปราการเหล็กแนวหน้า (Iron Vanguard)**: เมื่อมีสาย `BODY` หรือ `BEAST_SOVEREIGN` (พร้อมอสูรพิทักษ์) ช่วยลดความเสียหายที่ทั้งกลุ่มได้รับลง **15%**
+
+2. **คีตเวทย์หนุนนำสวรรค์ (Harmonic Ensemble Support)**: เมื่อมีสาย `SAGE_SUPPORT` เพิ่มพลังโจมตีกลุ่ม **+10%**, ป้องกัน **+8%**, และระหว่างการลงวิหารโบราณ จะร่ายรักษา HP **+35%** และมอบบัฟ `vitalRegen` ให้สมาชิกที่บาดเจ็บระหว่างชั้น
+
+3. **ค่ายกลจักรกลตรึงสมรภูมิ (Construct Bastion)**: เมื่อมีสาย `MECH_PUPPET` เพิ่มดาเมจสนับสนุน **+12%**
+
+4. **กงล้อสะท้อนกรรมวัฏ (Karmic Aegis)**: เมื่อมีสาย `KARMA_SAMSARA` สะท้อนความเสียหาย **15%** กลับสู่ศัตรูตามบัญชีกรรม
+
+5. **ปราณเต๋าหลอมดวงจิต (Dao-Mind Resonance)**: เมื่อมีสาย `XIAN` ร่วมกับ `HEART_SOUL` เพิ่มอานุภาพวิชา **+10%**
+
+6. **สัญชาตญาณฝูงอสูรศักดิ์สิทธิ์ (Beast Pack Rush)**: เมื่อมีสัตว์อสูรออกรบตั้งแต่ 2 ตัวขึ้นไป หรือมีสาย `BEAST_SOVEREIGN` เพิ่มความเร็วและคริติคอล **+8%**
+
+### 2.4 นโยบายซัพพอร์ตและการรักษาสำนัก (Sect Support Doctrine & Medical Triage)
+
+เพิ่มระบบ `SECT.ensureSupportDoctrine` และ `SECT.setSupportDoctrine` ใน `js/sect.js` เชื่อมต่อไปยัง AI ตัดสินใจ `AI.findSupportBlessTarget` ใน `js/ai.js`:
+
+* **ลำดับความสำคัญ (Triage Priority)**:
+
+  * `BALANCED`: สมดุลเมตตา ช่วยเหลือศิษย์ทุกคนตามความเหมาะสม
+
+  * `ELDER_FIRST`: ให้ความสำคัญกับเจ้าสำนัก รองเจ้าสำนัก และผู้อาวุโสก่อน
+
+  * `SEVEREST_FIRST`: ให้ความสำคัญกับผู้ที่บาดเจ็บสาหัสที่สุดหรือเลือดต่ำกว่า 50% ก่อนเป็นอันดับแรก
+
+  * `VANGUARD_FIRST`: ให้ความสำคัญกับนักรบทัพหน้า เวรยาม และผู้ตรวจการก่อนเพื่อรักษากำลังรบ
+
+* **เกณฑ์ HP เริ่มรักษา (Min HP Threshold)**: สามารถตั้งค่าเกณฑ์เลือดได้ตั้งแต่ 20% ถึง 95%
+
+### 2.5 สิ่งปลูกสร้างเฉพาะทางประจำวิถี (Specialist Sect Facilities)
+
+เพิ่มระบบ `SECT.ensureSpecialistFacilities` และ `SECT.upgradeSpecialistFacility` ใน `js/sect.js`:
+
+1. **โรงประดิษฐ์กลจักรและหุ่นเชิด (`mech_workshop`)**: ระดับ 1–3 เร่งการฟื้นฟู Construct Readiness ของสาย `MECH_PUPPET`
+
+2. **โรงเพาะเลี้ยงสัตว์วิญญาณ (`beast_menagerie`)**: ระดับ 1–3 เพิ่มอัตราความสำเร็จในการเพาะพันธุ์และปลุกสายเลือดอสูร
+
+3. **หอคีตเวทย์และค่ายกลหนุนนำ (`harmonic_pavilion`)**: ระดับ 1–3 เพิ่มประสิทธิภาพการรักษาและระยะเวลาบัฟของสายซัพพอร์ต **+15% ต่อระดับ**
+
+## 3. การตรวจสอบเชิงลึกและการแก้ไขบัค (Deep Audit & Bugfix Summary — v2.0.8 & v2.0.9)
+
+จากการตรวจสอบความสมเหตุสมผลและบัคทั่วทั้งระบบ ได้ดำเนินการแก้ไขจุดบกพร่องสำคัญดังนี้:
+
+1. **มาตรฐานรหัสสายย่อยและผลึกสายย่อยในสำนักเริ่มต้น (`js/sect.js`, `js/cultivation.js`)**:
+   * แก้ไขรหัสสายย่อยใน `SECT.ARCHETYPES` ของสำนัก `god`, `mech`, `karma` และ `beast` ให้ตรงกับรหัสมาตรฐานใน `CULT.PATHS` 100% (`GOLDEN_IMMORTAL`, `DIVINE_PUNISHMENT`, `HEAVENLY_GOLEM`, `SPIRIT_WEAPON_PUPPET`, `SIX_REALMS_CYCLE`, `PAST_LIFE_MIRROR`, `DRAGON_TIGER_RIDER`, `MYRIAD_BEAST_TOTEM`) และขยาย `CULT.SUB_ALIASES` เพื่อรองรับเซฟเก่าทั้งหมด
+2. **ความเท่าเทียมของระดับตบะเจ้าสำนักเริ่มต้นและรางวัลทะลวงขั้น (`js/sim.js`, `js/cultivation.js`)**:
+   * แก้ไข `SIM.masterOpts` ให้เจ้าสำนักของวิถี 8 ขั้นทุกวิถี (`MECH_PUPPET`, `KARMA_SAMSARA`, `BEAST_SOVEREIGN`, `SAGE_SUPPORT`) เริ่มต้นที่ขั้น 3 (`effectiveTechStage = 3`) เท่ากับ `XIAN`, `DEMON` และ `HEART_SOUL`
+   * เพิ่มโบนัสเมื่อทะลวงคอขวดสำเร็จ (`CULT.attemptBreakthrough`) สำหรับทั้ง 4 วิถีใหม่
+3. **ความสอดคล้องของข้อมูลสัตว์เลี้ยงอสูรและการโจมตีประสาน (`js/cultivation.js`, `js/sect.js`, `js/combat.js`)**:
+   * ซิงค์ฟิลด์คู่ขนานของสัตว์อสูร (`bond`/`loyalty`, `hunger`/`satisfaction`, `exp`/`bondXp`, `level`/`growthStage`, `bloodlineTrait`/`trait`/`sovereignAwakened`) ทุกจุด เพื่อไม่ให้ค่าที่แก้ไขผ่าน Editor หรือการให้อาหาร/ออกรบถูกเขียนทับ
+   * แก้ไข `C.strike` ให้สัตว์อสูรสายพิษ (`VENOM_SWARM`) และสายย่อย `SWARM_GU_HIVE_MASTER` แสดงผลพิษและได้รับ `bondXp` อย่างถูกต้อง
+4. **กลไกหุ่นกล (`MECH_PUPPET`) และกงล้อกรรม (`KARMA_SAMSARA`) (`js/cultivation.js`, `js/combat.js`, `js/stats.js`)**:
+   * แก้ไขบัคแต้มหนี้กรรม (`debtPool` / `karmicDebt`) ไม่ลดลงหลังระเบิดพลังกรรมใน `useSkill` และ `C.strike`
+   * เชื่อมต่อระดับของโรงประดิษฐ์กลจักร (`mech_workshop`) เข้ากับ `SIM.hourly` และ `A.cultivate.tick` เพื่อช่วยระบายความร้อน ชาร์จพลังงาน และซ่อมแซมความสมบูรณ์ของหุ่นกลนอกการต่อสู้จริง
+5. **ระบบ Heal, Buff, Debuff และหอคีตเวทย์ (`js/stats.js`, `js/cultivation.js`, `js/combat.js`, `js/ai.js`)**:
+   * เพิ่มผลจริงของบัฟ `clarityLotus` (ต้านทานสถานะควบคุม 28%, ลดระยะเวลาถูกควบคุม 25%, เร่งบ่มเพาะ +15%, ทะลวงขั้น +5%), `meridianUnblock` (เร่งบ่มเพาะ +15%, ทะลวงขั้น +8%) และ `qiConduit` (ฟื้นฟูปราณทั้งในและนอกการต่อสู้)
+   * อัปเดต `CULT.castHealOrBuff` ให้ชำระล้างดีบัฟจากการต่อสู้ และคูณประสิทธิภาพการรักษา/ระยะเวลาบัฟตามระดับของหอคีตเวทย์ (`harmonic_pavilion`, +15% ต่อระดับ)
+   * ป้องกัน AI ร่ายบัฟซ้ำใส่เป้าหมายที่มีบัฟเดิมอยู่แล้วใน `chooseSkill` และรักษาบัฟที่ยังไม่หมดเวลาไว้เมื่อจบการต่อสู้ใน `C.leave`
+
+## 4. เอกสารและสิ่งที่ส่งมอบในแพ็กเกจ (Package Deliverables)
+
+ไฟล์ทั้งหมดถูกรวมอยู่ในไฟล์ ZIP เดียว: **`JHEvo-v2.0.9-complete.zip`**
+
+1. **ซอร์สโค้ดเกมฉบับสมบูรณ์ (`GAME_SOURCE/`)**:
+
+   * `GAME_SOURCE/JianghuSect_single.html` (ไฟล์เกมเดี่ยวพร้อมเล่น ขนาด 4,563 KB)
+
+   * โมดูลระบบที่ได้รับการอัปเดต: `js/sect.js`, `js/cultivation.js`, `js/combat.js`, `js/explore.js`, `js/ai.js`, `js/sim.js`, `js/ui.js`
+
+2. **ชุดทดสอบอัตโนมัติ (`test/`)**:
+
+   * `test/v209_facilities_party_synergy_suite.js` (ชุดทดสอบเฉพาะของแพตช์ v2.0.9)
+
+   * `test/run_all.js` (ชุดรันการทดสอบครบทั้ง **82 ชุด** ผ่าน 100%)
+
+3. **เอกสารรายงานและข้อกำหนดแพตช์ถัดไป**:
+
+   * `PATCH_IMPLEMENTATION_REPORT_V2_0_9.md` (รายงานฉบับนี้)
+
+   * `FUTURE_ROADMAP_AND_IDEAS.md` (เอกสารโร้ดแมปและคลังรวบรวมแนวคิดในอนาคต พร้อมพิมพ์เขียวหอคอยเก้าวิถี)
+
+   * `SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md` (พรอมต์ภาษาอังกฤษเชิงเทคนิคสำหรับ AI ที่จะพัฒนาแพตช์ v2.0.10)

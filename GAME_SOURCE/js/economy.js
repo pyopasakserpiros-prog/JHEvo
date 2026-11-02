@@ -609,7 +609,19 @@
   };
 
   ECO.reserveFloor = (W, id) => {
-    const pop = Math.max(1, (W && W.npcs ? W.npcs.filter(n => !n.dead && !n.exiled).length : 1));
+    let pop = 1;
+    if (W && W.npcs) {
+      if (W._alivePopTick === W.t && W._alivePopLen === W.npcs.length && W._alivePopCount > 0) {
+        pop = W._alivePopCount;
+      } else {
+        let c = 0;
+        for (let i = 0; i < W.npcs.length; i++) { const x = W.npcs[i]; if (x && !x.dead && !x.exiled) c++; }
+        pop = Math.max(1, c);
+        W._alivePopTick = W.t;
+        W._alivePopLen = W.npcs.length;
+        W._alivePopCount = pop;
+      }
+    }
     const rd = W && W.sect && W.sect.reserveDirectives ? W.sect.reserveDirectives : {};
     if (id === 'grain') return pop * (rd.minGrainDays || 14);
     if (id === 'meal') return rd.minMealReserve || 20;

@@ -1237,7 +1237,8 @@
         freeVal: E(n, 'values.freedom') / 100,
         hasSevInj: !!(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)),
         hasTrackBnWindow: !!(safe0 && n.cult && n.cult.track && n.cult.track.ordinal < 9 && !(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)) && !(curGoal && (curGoal.id === 'crisis' || curGoal.id === 'help_friend' || curGoal.id === 'recovery')) && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.65)),
-        weatherPen: (['rain', 'snow'].includes(W.weather?.kind)) ? (-0.12 - E(n, 'personality.caution') / 800) : 0
+        weatherPen: (['rain', 'snow'].includes(W.weather?.kind)) ? (-0.12 - E(n, 'personality.caution') / 800) : 0,
+        hasRefineCand: !!(safe0 && n.rank >= 2 && W.sect && W.sect.catalysts && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n))
       };
       }
       if (SAcc && mc) mc._decTick = W.t;
@@ -1277,7 +1278,7 @@
     if ((s.heartDemon || 0) >= 45 && (id === 'pray' || id === 'consolidate' || id === 'personalPillUse') && (!n.cult || n.cult.path !== 'DEMON' || s.heartDemon >= 68)) {
       push('สงบจิตมารที่รบกวนตบะ', 0.62);
     }
-    if (id === 'forge' && W.sect && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n)) {
+    if (id === 'forge' && mc.hasRefineCand) {
       push('ขัดเกลาศาสตรา T4–T6 ด้วยผลึกโบราณ', 0.52);
     }
     if (mc.hasTrackBnWindow) {

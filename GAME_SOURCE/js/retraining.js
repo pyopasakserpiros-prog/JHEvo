@@ -7,7 +7,7 @@ M.retrainingTarget=(n,key)=>{
  const k=M.knowledge(key);if(!n||!n.cult||!k||k.kind!=='sub')return {ok:false,reason:'ต้องมีองค์ความรู้สายย่อยที่ถูกต้อง'};
  if(n.cult.path===k.path&&n.cult.sub===k.id)return {ok:false,reason:'เดินสายนี้อยู่แล้ว'};
  if(n.cult.path===k.path&&n.cult.sub==='NONE')return {ok:false,reason:'ใช้การศึกษาสายเริ่มต้น ไม่ต้องสละขั้น'};
- if(n.cult.stage<k.tier)return {ok:false,reason:'ขั้นเดิมยังไม่ถึงเกณฑ์ความรู้'};
+ const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage;if(effSt<k.tier)return {ok:false,reason:'ขั้นเดิมยังไม่ถึงเกณฑ์ความรู้'};
  return {ok:true,knowledge:k,pathChanged:n.cult.path!==k.path,newStage:M.retrainingStage(n.cult.stage,n.cult.path!==k.path)};
 };
 M.retrainingQuote=(W,n,key,opts)=>{
@@ -30,6 +30,7 @@ M.retrain=(W,n,key,opts)=>{
  const old=n.cult,from=old.path+'/'+old.sub,before=old.stage,k=quote.knowledge;
  n.cult={path:k.path,sub:k.id,stage:quote.newStage,prog:0,mantra:(CULT.bestMantra(k.path,quote.newStage,n)||{}).id||null,techs:Array.from(new Set(old.techs||[])),learning:null,toxic:old.toxic||0,lifeBonus:old.lifeBonus||0,since:W.day,attempts:0,secl:null,rate:0,pillT:0,tm:old.tm||{}};
  if(CULT.isExpansionTrack?CULT.isExpansionTrack(k.id):(CULT.EXPANSION_TRACK_IDS&&CULT.EXPANSION_TRACK_IDS.has(k.id)))n.cult.track=CULT.initTrack(k.id,1,W.day);
+ if(CULT.ensurePets&&n.pets)CULT.ensurePets(n);if(k.path==='MECH_PUPPET'&&CULT.ensureMechState)CULT.ensureMechState(n);if(k.path==='KARMA_SAMSARA'&&CULT.ensureKarmaState)CULT.ensureKarmaState(n);
  if(M.reconcileInnate)M.reconcileInnate(n,W);
  if(M.reconcilePassives)M.reconcilePassives(n);
  n.buffs=[];n.sx=[];n.castFx=null;n._pickCache=null;if(M.invalidateMartialCaches)M.invalidateMartialCaches(n);

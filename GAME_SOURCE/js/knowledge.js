@@ -247,6 +247,9 @@ function applyKnowledge(W,n,k){
  const oldQi=n.h&&n.h.state?n.h.state.qi:null;
  if(k.kind==='sub'){
   n.cult.sub=k.id;n.cult.track=CULT.trackDef(k.id)?CULT.initTrack(k.id,1,W.day):null;
+  if(CULT.ensurePets)CULT.ensurePets(n);
+  if(n.cult.path==='MECH_PUPPET'&&CULT.ensureMechState)CULT.ensureMechState(n);
+  if(n.cult.path==='KARMA_SAMSARA'&&CULT.ensureKarmaState)CULT.ensureKarmaState(n);
   if(M.reconcileInnate)M.reconcileInnate(n,W);
   if(M.reconcilePassives)M.reconcilePassives(n);
   CULT.refreshLifespan(n);

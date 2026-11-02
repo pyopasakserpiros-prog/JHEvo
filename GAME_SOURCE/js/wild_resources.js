@@ -117,7 +117,7 @@
       const t = M.terrain[k];
       if (t === MAP.T.CLIFF || t === MAP.T.WALL || t === MAP.T.WATER) continue;
       // A passable tile can still be isolated behind cliffs/water.
-      if (!MAP.findPath(M, MAP.GATE_IN.x, MAP.GATE_IN.y, x, y)) continue;
+      if (MAP.isReachableFromGate ? !MAP.isReachableFromGate(M, x, y) : !MAP.findPath(M, MAP.GATE_IN.x, MAP.GATE_IN.y, x, y)) continue;
       // Do not overlap exactly with another active resource node
       if (state.nodes.some(n => n.x === x && n.y === y && n.remaining > 0)) continue;
       placedX = x;
@@ -281,8 +281,13 @@
       }
     }
 
-    // Filter out depleted nodes
-    state.nodes = state.nodes.filter(n => n.remaining > 0);
+    // Filter out depleted nodes only when at least one node is depleted
+    for (let i = 0; i < state.nodes.length; i++) {
+      if (state.nodes[i].remaining <= 0) {
+        state.nodes = state.nodes.filter(n => n.remaining > 0);
+        break;
+      }
+    }
   };
 
   /* ---------- AI Action: gatherWildResource ---------- */
@@ -319,6 +324,7 @@
     for (const { node } of scored) {
       const basic = BASIC_HERB_WEIGHTS.some(b => b.id === node.materialId);
       if (basic && MAP.isOutsideWall(W.map, node.x, node.y) && !MAP.isInSafeBelt(node.x, node.y)) continue;
+      if (!basic && MAP.isReachableFromGate && MAP.isReachableFromGate(W.map, node.x, node.y) && MAP.isReachableFromGate(W.map, n.x, n.y)) return node;
       const path = MAP.findPath(W.map, n.x, n.y, node.x, node.y);
       if (!path) continue;
       if (basic && path.some(([x, y]) => MAP.isOutsideWall(W.map, x + .5, y + .5) && !MAP.isInSafeBelt(x + .5, y + .5))) continue;

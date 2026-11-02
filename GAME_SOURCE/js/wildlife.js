@@ -211,7 +211,7 @@
     return b;
   };
 
-  WILD.startFight = (W, n, b) => {
+  WILD.startFight = (W, n, b, opts) => {
     if (!n || n.dead || n.away || n.travel || !b || b.dead || b.gone || b.fighting || n.act.id === 'fight') return false;
     if (!isOutsideWall(W.map, n.x, n.y) || !isOutsideWall(W.map, b.x, b.y) || Math.hypot(n.x - b.x, n.y - b.y) > 3) return false;
     // สัตว์ดุร้ายห้ามเริ่มต่อสู้หรือโจมตีข้ามแนวเก็บสมุนไพรปลอดภัย
@@ -219,12 +219,17 @@
 
     W.foes.push(b);
     W.foeById[b.id] = b;
-    const f = COMBAT.startFight(W, [n.id], [b.id], 'wild', { serious: true, ctx: { beastId: b.id, hunterId: n.id } });
+    const ctx = Object.assign({ beastId: b.id, hunterId: n.id }, opts || {});
+    const f = COMBAT.startFight(W, [n.id], [b.id], 'wild', { serious: true, ctx });
     b.fighting = f.id;
     const z = zones[b.zone];
     const zName = z ? z.nameTh : 'นอกสำนัก';
     W.log('combat', n.h.name.given + ' เผชิญหน้า ' + b.name + ' ใน' + zName, [n.id]);
     return true;
+  };
+
+  WILD.startTameFight = (W, n, b, opts) => {
+    return WILD.startFight(W, n, b, Object.assign({ tameIntent: true }, opts || {}));
   };
 
   WILD.finish = (W, f, winner) => {
@@ -234,7 +239,19 @@
     const b = W.foeById[f.ctx.beastId], n = W.byId[f.ctx.hunterId];
     if (!b) return;
 
-    if (b.dead && winner === 'A' && n && !n.dead) {
+    if (!b.captured && f.ctx && f.ctx.tameIntent && winner === 'A' && n && !n.dead && CULT.attemptTameBeast) {
+      b.hp = Math.min(b.hp || 1, Math.max(1, Math.round(b.hpMax * 0.15)));
+      CULT.attemptTameBeast(W, n, b, { force: !!f.ctx.forceTame });
+    }
+    if (b.captured && n && !n.dead) {
+      b.dead = false;
+      b.gone = true;
+      const z = zones[b.zone];
+      const zName = z ? z.nameTh : 'นอกสำนัก';
+      W.log('combat', n.h.name.given + ' สยบและผูกพันธสัญญาวิญญาณกับ ' + b.name + ' ใน' + zName + ' สำเร็จ (ไม่มีการชำแหละซากซ้ำ)', [n.id]);
+      HC.experience(n, 'combat_win', 0.8);
+      n.merit += Math.max(1, Math.round(b.tier * 1.5));
+    } else if (b.dead && winner === 'A' && n && !n.dead) {
       const allSpecies = (JD.BEASTS.species || []).concat(JD.BEASTS.kings || []);
       const species = allSpecies.find(s => s.id === b.speciesId);
       n.inv.mats = n.inv.mats || {};

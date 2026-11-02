@@ -27,6 +27,10 @@
     GOD: { atk: 1.06, matk: 1.16, def: 1.14, mdef: 1.28 },
     DEMON: { atk: 1.15, matk: 1.15, def: .78, mdef: .92 },
     HEART_SOUL: { atk: .72, matk: 1.28, def: .88, mdef: 1.32 },
+    MECH_PUPPET: { atk: 1.08, matk: 1.12, def: 1.24, mdef: 1.10 },
+    KARMA_SAMSARA: { atk: 0.92, matk: 1.24, def: 1.08, mdef: 1.30 },
+    BEAST_SOVEREIGN: { atk: 1.18, matk: 0.95, def: 1.16, mdef: 1.02 },
+    SAGE_SUPPORT: { atk: 0.85, matk: 1.22, def: 1.15, mdef: 1.34 },
     NONE: { atk: 1, matk: .15, def: .9, mdef: .35 }
   };
   const SUBFX = {
@@ -77,18 +81,207 @@
   };
   ST.gearScore = it => { const s = ST.gearStats(it); return (s.atk || 0) + (s.matk || 0) + (s.def || 0) + (s.mdef || 0) + (s.hp || 0) * 0.5 + (s.eva || 0) * 0.6 + (s.acc || 0) * 0.6 + (s.crit || 0) * 8 + (s.critDmg || 0) * 1.5 + (s.pen || 0) * 6 + (s.cast || 0) * 3 + (s.move || 0) * 2; };
 
-  /* ---------- สถานะ/บัฟ ---------- */
-  ST.dirty = u => { if (u) { u._cs = null; u._csBase = null; u._skillEffectsCache = null; u._lifeMultCache = null; } };
-  ST.addBuff = (n, b) => { n.buffs = (n.buffs || []).filter(x => x.id !== b.id && x.until > ST.now); n.buffs.push({ id: b.id, name: b.name, until: ST.now + b.dur, p: b.p || {}, f: b.f || {} }); ST.dirty(n); };
-  ST.addStatus = (u, k, dur, extra) => { u.sx = (u.sx || []).filter(x => x.until > ST.now); const ex = u.sx.find(x => x.k === k); if (ex) { ex.until = Math.max(ex.until, ST.now + dur); if (extra) Object.assign(ex, extra); } else u.sx.push(Object.assign({ k, until: ST.now + dur }, extra || {})); ST.dirty(u); };
-  ST.has = (u, k) => !!(u.sx && u.sx.some(x => x.k === k && x.until > ST.now));
-  ST.statusOf = (u, k) => (u.sx || []).find(x => x.k === k && x.until > ST.now);
-  ST.clearStatus = (u, filter) => { if (!u.sx) return; u.sx = u.sx.filter(x => !(filter(x))); ST.dirty(u); };
+  /* ---------- สถานะ/บัฟ และการควบคุมเวลาหมดอายุอย่างเข้มงวด (v2.0.8) ---------- */
+  ST.BUFF_CATALOG = Object.freeze({
+    vitalRegen: { id: 'vitalRegen', name: 'ปราณน้ำค้างฟื้นฟู', icon: '🌿', kind: 'regen', defaultDur: 60, p: { hp: 0.10, def: 0.06 }, f: {}, hotPct: 0.035, descTh: 'ฟื้นฟูพลังชีวิตต่อเนื่อง +3.5%/รอบ และเพิ่มพลังชีวิต +10%, ป้องกัน +6%' },
+    fervorMight: { id: 'fervorMight', name: 'โลหิตศึกฮึกเหิม', icon: '🔥', kind: 'offense', defaultDur: 45, p: { atk: 0.16, matk: 0.16 }, f: { crit: 8, critDmg: 22, pen: 10 }, descTh: 'เพิ่มโจมตี/โจมตีวิชา +16%, คริ +8%, แรงคริ +22%, เจาะเกราะ +10%' },
+    aegisWard: { id: 'aegisWard', name: 'ปราการฉีเหมินคุ้มกาย', icon: '🛡️', kind: 'defense', defaultDur: 60, p: { def: 0.22, mdef: 0.22, hp: 0.08 }, f: {}, shieldPct: 0.18, descTh: 'เพิ่มป้องกัน/ป้องกันวิชา +22%, พลังชีวิต +8% และสร้างม่านคุ้มกาย' },
+    swiftWind: { id: 'swiftWind', name: 'วายุพิณทะยานฟ้า', icon: '🍃', kind: 'haste', defaultDur: 50, p: { eva: 0.18 }, f: { move: 18, cast: 14, acc: 10 }, descTh: 'เพิ่มหลบหลีก +18%, ความเร็วเดินทาง +18, ร่ายวิชา +14, แม่นยำ +10' },
+    qiConduit: { id: 'qiConduit', name: 'ชีพจรปราณหมุนเวียน', icon: '💠', kind: 'qi', defaultDur: 60, p: { matk: 0.14, mdef: 0.12 }, f: { cast: 18 }, qiRegenBonus: 0.015, descTh: 'เพิ่มโจมตีวิชา +14%, ป้องกันวิชา +12%, ร่ายวิชา +18 และฟื้นปราณไวขึ้น' },
+    clarityLotus: { id: 'clarityLotus', name: 'บัวทิพย์กระจ่างใจ', icon: '🪷', kind: 'clarity', defaultDur: 90, p: { mdef: 0.16, acc: 0.12 }, f: { crit: 6 }, ctrlResist: 0.28, cultRateBonus: 0.15, btBonus: 0.05, descTh: 'ป้องกันวิชา +16%, แม่นยำ +12%, ต้านทานสถานะสะกด +28% และเร่งบำเพ็ญ' },
+    meridianUnblock: { id: 'meridianUnblock', name: 'เข็มทองเปิดชีพจรยุทธ์', icon: '🪡', kind: 'acupoint', defaultDur: 75, p: { atk: 0.12, matk: 0.12, def: 0.12, mdef: 0.12 }, f: { cast: 12, move: 10, pen: 8 }, cultRateBonus: 0.15, btBonus: 0.08, descTh: 'เปิดจุดชีพจรเพิ่มโจมตีและป้องกันทุกด้าน +12%, ร่ายไว +12 และหนุนการทะลวงขั้น' },
+    nirvanaGrace: { id: 'nirvanaGrace', name: 'โคมวิญญาณคุ้มชีพ', icon: '🏮', kind: 'ward', defaultDur: 60, p: { def: 0.14, mdef: 0.14, hp: 0.12 }, f: {}, cheatDeath: true, cheatDeathPct: 0.36, descTh: 'เพิ่มป้องกัน +14%, เลือด +12% และคุ้มครองชีวิตทันที 1 ครั้งเมื่อบาดเจ็บปางตาย' }
+  });
+
+  ST.dirty = u => { if (u) { u._cs = null; u._csBase = null; u._skillEffectsCache = null; } };
+
+  ST.purgeExpired = (u, now) => {
+    if (!u) return false;
+    const bArr = u.buffs, sArr = u.sx;
+    const bLen = Array.isArray(bArr) ? bArr.length : 0;
+    const sLen = Array.isArray(sArr) ? sArr.length : 0;
+    if (bLen === 0 && sLen === 0) return false;
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    let changed = false;
+    if (bLen > 0) {
+      let needFilterB = false;
+      for (let i = 0; i < bLen; i++) {
+        const b = bArr[i];
+        if (!b || !Number.isFinite(b.until) || b.until <= tNow || b.until > tNow + 43200) { needFilterB = true; break; }
+      }
+      if (needFilterB) {
+        const nextB = [];
+        for (let i = 0; i < bLen; i++) {
+          const b = bArr[i];
+          if (b && Number.isFinite(b.until) && b.until > tNow && b.until <= tNow + 43200) nextB.push(b);
+        }
+        u.buffs = nextB;
+        changed = true;
+      }
+    }
+    if (sLen > 0) {
+      let needFilterS = false;
+      for (let i = 0; i < sLen; i++) {
+        const x = sArr[i];
+        if (!x || !Number.isFinite(x.until) || x.until <= tNow || x.until > tNow + 43200) { needFilterS = true; break; }
+      }
+      if (needFilterS) {
+        const nextS = [];
+        for (let i = 0; i < sLen; i++) {
+          const x = sArr[i];
+          if (x && Number.isFinite(x.until) && x.until > tNow && x.until <= tNow + 43200) nextS.push(x);
+        }
+        u.sx = nextS;
+        changed = true;
+      }
+    }
+    if (changed) ST.dirty(u);
+    return changed;
+  };
+
+  ST.addBuff = (n, b, now) => {
+    if (!n || !b) return null;
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    ST.purgeExpired(n, tNow);
+    const dur = clamp(Math.round(Number(b.dur) || 15), 1, 2880);
+    const until = tNow + dur;
+    n.buffs = (n.buffs || []).filter(x => x.id !== b.id && x.until > tNow);
+    const entry = {
+      id: b.id || 'BUFF',
+      name: b.name || b.nameTh || b.id || 'บัฟเสริมพลัง',
+      icon: b.icon || '✨',
+      kind: b.kind || 'buff',
+      startedAt: tNow,
+      dur,
+      until,
+      p: b.p || {},
+      f: b.f || {},
+      nameTh: b.nameTh || b.name || 'บัฟหนุนพลัง', cultRateBonus: b.cultRateBonus || 0, btBonus: b.btBonus || 0, cheatDeath: !!b.cheatDeath, casterId: b.casterId || null
+    };
+    n.buffs.push(entry);
+    ST.dirty(n);
+    return entry;
+  };
+
+  ST.addStatus = (u, k, dur, extra, now) => {
+    if (!u || !k) return null;
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    ST.purgeExpired(u, tNow);
+    const cleanDur = clamp(Math.round(Number(dur) || 10), 1, 2880);
+    const until = tNow + cleanDur;
+    u.sx = u.sx || [];
+    const ex = u.sx.find(x => x.k === k);
+    if (ex) {
+      ex.until = Math.min(tNow + 2880, Math.max(ex.until, until));
+      ex.dur = cleanDur;
+      if (extra) Object.assign(ex, extra);
+    } else {
+      u.sx.push(Object.assign({ k, startedAt: tNow, dur: cleanDur, until }, extra || {}));
+    }
+    ST.dirty(u);
+    return u.sx.find(x => x.k === k);
+  };
+
+  ST.applyNamedBuff = (u, buffId, dur, now, extra) => {
+    if (!u || !buffId) return null;
+    if (dur && typeof dur === "object") {
+      extra = Object.assign({}, dur, extra || {});
+      now = dur.now != null ? dur.now : now;
+      dur = dur.duration != null ? dur.duration : dur.dur;
+    }
+    const def = ST.BUFF_CATALOG[buffId];
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    const cleanDur = clamp(Math.round(Number(dur) || (def ? def.defaultDur : 30)), 1, 2880);
+    let buffEntry = null;
+    if (def) {
+      buffEntry = ST.addBuff(u, {
+        id: def.id,
+        name: def.name,
+        nameTh: def.nameTh || def.name,
+        icon: def.icon,
+        kind: def.kind,
+        dur: cleanDur,
+        p: Object.assign({}, def.p),
+        f: Object.assign({}, def.f),
+        cultRateBonus: def.cultRateBonus || 0,
+        btBonus: def.btBonus || 0,
+        cheatDeath: !!def.cheatDeath,
+        casterId: extra && extra.casterId
+      }, tNow);
+      if (SK.STATUS[buffId]) {
+        // Mirror short combat status if in fight or if status duration <= 120, keeping status pmods/mods non-duplicated in compute
+        ST.addStatus(u, buffId, cleanDur, Object.assign({ fromBuffCatalog: true, per: def.hotPct || 0 }, extra || {}), tNow);
+      }
+      if (def.shieldPct && !u.foe) {
+        const hm = ST.hpMax(u);
+        ST.addStatus(u, 'shield', Math.min(cleanDur, 24), { amt: Math.round(hm * def.shieldPct) }, tNow);
+      }
+    } else if (SK.STATUS[buffId]) {
+      const S = SK.STATUS[buffId];
+      buffEntry = ST.addBuff(u, {
+        id: buffId,
+        name: S.nameTh || buffId,
+        icon: S.icon || '✨',
+        dur: cleanDur,
+        p: Object.assign({}, S.pmods || {}),
+        f: Object.assign({}, S.mods || {})
+      }, tNow);
+      ST.addStatus(u, buffId, cleanDur, Object.assign({ fromBuffCatalog: true }, extra || {}), tNow);
+    }
+    return buffEntry;
+  };
+
+  ST.hasBuff = (u, id, now) => {
+    if (!u) return false;
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    ST.purgeExpired(u, tNow);
+    return !!((u.buffs && u.buffs.some(b => b.id === id && b.until > tNow)) || (u.sx && u.sx.some(x => x.k === id && x.until > tNow)));
+  };
+
+  ST.getActiveBuffs = (u, now) => {
+    if (!u) return [];
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    ST.purgeExpired(u, tNow);
+    return (u.buffs || []).filter(b => b.until > tNow).map(b => Object.assign({}, b, { remaining: Math.max(0, b.until - tNow) }));
+  };
+
+  ST.has = (u, k, now) => {
+    if (!u || !u.sx) return false;
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    ST.purgeExpired(u, tNow);
+    return u.sx.some(x => x.k === k && x.until > tNow);
+  };
+  ST.statusOf = (u, k, now) => {
+    if (!u || !u.sx) return undefined;
+    const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
+    ST.purgeExpired(u, tNow);
+    return (u.sx || []).find(x => x.k === k && x.until > tNow);
+  };
+  ST.clearStatus = (u, filter) => { if (!u || !u.sx) return; u.sx = u.sx.filter(x => !(filter(x))); ST.dirty(u); };
+  ST.clearBuff = (u, filterOrId) => {
+    if (!u) return;
+    const pred = typeof filterOrId === 'function' ? filterOrId : (b => b.id === filterOrId || b.k === filterOrId);
+    if (Array.isArray(u.buffs)) u.buffs = u.buffs.filter(b => !pred(b));
+    if (Array.isArray(u.sx)) u.sx = u.sx.filter(x => !pred(x));
+    ST.dirty(u);
+  };
 
   function passiveCacheKey(n) {
     if (!n || !n.cult) return 0;
     const hpfBand = (n._hpf == null || n._hpf > 0.8) ? 2 : (n._hpf <= 0.4 ? 0 : (n._hpf <= 0.45 ? 1 : (n._hpf <= 0.5 ? 3 : 4)));
-    return ((n._passVer || 0) * 16) + hpfBand;
+    let ext = 0;
+    if (n.pets && n.pets.length) {
+      for (let i = 0; i < n.pets.length; i++) {
+        const pt = n.pets[i];
+        if (pt && pt.active && (pt.hp == null || pt.hp > 0)) {
+          ext = (ext * 31 + (pt.tier || 1) * 7 + (pt.level || 1) * 3 + ((pt.bond || 0) >> 3) + (pt.sovereignAwakened ? 19 : 0)) | 0;
+        }
+      }
+    }
+    if (n._beastFusedUntil && n._beastFusedUntil > ST.now) ext = (ext ^ 0x4000) | 0;
+    if (n.mechState) ext = (ext ^ (((n.mechState.integrity || 0) >> 4) << 8) ^ (n.mechState.mode === 'SIEGE' ? 256 : n.mechState.mode === 'SWARM' ? 512 : 128)) | 0;
+    if (n.karmaState && n.karmaState.stance) ext = (ext ^ (n.karmaState.stance.charCodeAt(0) << 10)) | 0;
+    return (((n._passVer || 0) * 16) + hpfBand) ^ (ext << 4);
   }
 
   /* ---------- คำนวณ ---------- */
@@ -128,6 +321,10 @@
         else if (c.path === 'BODY') { add('def', lab, 'p', 0.04 * m.tier); add('hp', lab, 'p', 0.03 * m.tier); add('atk', lab, 'p', 0.02 * m.tier); }
         else if (c.path === 'DEMON') { add('atk', lab, 'p', 0.03 * m.tier); add('matk', lab, 'p', 0.03 * m.tier); add('crit', lab, 'f', 0.8 * m.tier); }
         else if (c.path === 'HEART_SOUL') { add('matk', lab, 'p', 0.04 * m.tier); add('mdef', lab, 'p', 0.03 * m.tier); add('cast', lab, 'f', 1.2 * m.tier); }
+        else if (c.path === 'MECH_PUPPET') { add('def', lab, 'p', 0.035 * m.tier); add('atk', lab, 'p', 0.025 * m.tier); add('matk', lab, 'p', 0.025 * m.tier); }
+        else if (c.path === 'KARMA_SAMSARA') { add('mdef', lab, 'p', 0.04 * m.tier); add('matk', lab, 'p', 0.035 * m.tier); add('hp', lab, 'p', 0.02 * m.tier); }
+        else if (c.path === 'BEAST_SOVEREIGN') { add('atk', lab, 'p', 0.035 * m.tier); add('hp', lab, 'p', 0.035 * m.tier); add('move', lab, 'f', 1.0 * m.tier); }
+        else if (c.path === 'SAGE_SUPPORT') { add('mdef', lab, 'p', 0.04 * m.tier); add('hp', lab, 'p', 0.035 * m.tier); add('cast', lab, 'f', 1.2 * m.tier); }
         else { add('mdef', lab, 'p', 0.04 * m.tier); add('hp', lab, 'p', 0.03 * m.tier); add('matk', lab, 'p', 0.02 * m.tier); }
         if (m.mantraBonus) {
           addAll(lab, m.mantraBonus.p || {}, 'p');
@@ -189,6 +386,35 @@
         addAll(resLab, resSet.f, 'f');
       }
     }
+    if (CULT.petStatBonuses && n.pets && n.pets.length) {
+      const pb = CULT.petStatBonuses(n);
+      if (pb && pb.activeCount > 0) {
+        const pLab = 'สัตว์เลี้ยงอสูรคู่สัญญา (' + pb.activeCount + ' ตัว' + (n._beastFusedUntil && n._beastFusedUntil > ST.now ? ' · ผสานวิญญาณ' : '') + ')';
+        addAll(pLab, pb.p || {}, 'p');
+        addAll(pLab, pb.f || {}, 'f');
+      }
+    }
+    if (c && c.path === 'MECH_PUPPET' && CULT.ensureMechState) {
+      const ms = CULT.ensureMechState(n);
+      if (ms.integrity >= 40) {
+        const mLab = 'โครงสร้างหุ่นกล (' + ms.mode + ' · ความสมบูรณ์ ' + Math.round(ms.integrity) + '%)';
+        if (ms.mode === 'SIEGE' || ms.mode === 'OVERDRIVE') { add('atk', mLab, 'p', 0.08); add('matk', mLab, 'p', 0.08); add('pen', mLab, 'f', 8); }
+        else if (ms.mode === 'SWARM') { add('cast', mLab, 'f', 10); add('acc', mLab, 'p', 0.08); add('crit', mLab, 'f', 4); }
+        else { add('def', mLab, 'p', 0.10); add('mdef', mLab, 'p', 0.08); }
+      } else if (ms.integrity < 25) {
+        add('def', 'หุ่นกลชำรุดหนัก', 'p', -0.06);
+      }
+    }
+    if (c && c.path === 'KARMA_SAMSARA' && CULT.ensureKarmaState) {
+      const ks = CULT.ensureKarmaState(n), stc = ks.stance || 'HUMAN';
+      const kLab = 'กงล้อหกภูมิ (' + stc + ')';
+      if (stc === 'DEVA') { add('mdef', kLab, 'p', 0.08); add('cast', kLab, 'f', 8); }
+      else if (stc === 'ASURA') { add('atk', kLab, 'p', 0.08); add('matk', kLab, 'p', 0.08); add('critDmg', kLab, 'f', 12); }
+      else if (stc === 'PRETA') { add('eva', kLab, 'p', 0.08); add('pen', kLab, 'f', 8); }
+      else if (stc === 'NARAKA') { add('crit', kLab, 'f', 5); add('pen', kLab, 'f', 10); }
+      else if (stc === 'ANIMAL' || stc === 'BEAST') { add('hp', kLab, 'p', 0.08); add('move', kLab, 'f', 8); }
+      else { add('def', kLab, 'p', 0.06); add('mdef', kLab, 'p', 0.06); add('acc', kLab, 'p', 0.06); }
+    }
     // ใจสู้/พิเศษ
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; add('atk', 'ใจสู้/พรสวรรค์', 'p', mind); add('matk', 'ใจสู้/พรสวรรค์', 'p', mind);
     const sp = HC.special(n, 'combat.powerMult') - 1; if (sp) { add('atk', 'คุณสมบัติพิเศษ', 'p', sp); add('matk', 'คุณสมบัติพิเศษ', 'p', sp); }
@@ -196,7 +422,8 @@
     const Eq = n.equip || {};
     for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); const lab = '「' + it.nameTh + '」' + (df < 1 ? ' (สึก ' + Math.round(df * 100) + '%)' : ''); for (const key in gs) if (A[key]) add(key, lab, 'f', gs[key] * df); }
     // บัฟโอสถ + สถานะ
-    (n.buffs || []).forEach(b => { if (b.until <= ST.now && ST.now > 0) return; addAll('โอสถ' + b.name, b.p, 'p'); addAll('โอสถ' + b.name, b.f, 'f'); });
+    ST.purgeExpired(n, ST.now);
+    (n.buffs || []).forEach(b => { if (b.until <= ST.now) return; addAll('บัฟ「' + b.name + '」', b.p, 'p'); addAll('บัฟ「' + b.name + '」', b.f, 'f'); });
     statusMods(n, add);
     (n.inj || []).forEach(i => { add('move', 'บาดแผล', 'p', -0.1 * (i.sev || 1)); add('eva', 'บาดแผล', 'p', -0.05 * (i.sev || 1)); });
     conditionMods(n, add);
@@ -204,6 +431,8 @@
   }
   function getBaseFast(n) {
     const c = n.cult, Eq = n.equip || {};
+    if (c && c.path === 'MECH_PUPPET' && !n.mechState && CULT.ensureMechState) CULT.ensureMechState(n);
+    if (c && c.path === 'KARMA_SAMSARA' && !n.karmaState && CULT.ensureKarmaState) CULT.ensureKarmaState(n);
     const cPath = c ? c.path : '', cStage = c ? c.stage : 0, cSub = c ? c.sub : '', cMantra = c ? c.mantra : '', cTechLen = c && c.techs ? c.techs.length : 0;
     const cTechLast = cTechLen > 0 ? c.techs[cTechLen - 1] : '';
     const cTrack = c && c.track ? c.track.ordinal : 0;
@@ -249,6 +478,10 @@
         else if (c.path === 'BODY') { addP('def', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('atk', 0.02 * m.tier); }
         else if (c.path === 'DEMON') { addP('atk', 0.03 * m.tier); addP('matk', 0.03 * m.tier); addF('crit', 0.8 * m.tier); }
         else if (c.path === 'HEART_SOUL') { addP('matk', 0.04 * m.tier); addP('mdef', 0.03 * m.tier); addF('cast', 1.2 * m.tier); }
+        else if (c.path === 'MECH_PUPPET') { addP('def', 0.035 * m.tier); addP('atk', 0.025 * m.tier); addP('matk', 0.025 * m.tier); }
+        else if (c.path === 'KARMA_SAMSARA') { addP('mdef', 0.04 * m.tier); addP('matk', 0.035 * m.tier); addP('hp', 0.02 * m.tier); }
+        else if (c.path === 'BEAST_SOVEREIGN') { addP('atk', 0.035 * m.tier); addP('hp', 0.035 * m.tier); addF('move', 1.0 * m.tier); }
+        else if (c.path === 'SAGE_SUPPORT') { addP('mdef', 0.04 * m.tier); addP('hp', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
         else { addP('mdef', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('matk', 0.02 * m.tier); }
         if (m.mantraBonus) {
           if (m.mantraBonus.p) addAll(m.mantraBonus.p, false);
@@ -314,6 +547,32 @@
         addAll(resSet.f, true);
       }
     }
+    if (CULT.petStatBonuses && n.pets && n.pets.length) {
+      const pb = CULT.petStatBonuses(n);
+      if (pb && pb.activeCount > 0) {
+        if (pb.p) addAll(pb.p, false);
+        if (pb.f) addAll(pb.f, true);
+      }
+    }
+    if (c && c.path === 'MECH_PUPPET' && CULT.ensureMechState) {
+      const ms = CULT.ensureMechState(n);
+      if (ms.integrity >= 40) {
+        if (ms.mode === 'SIEGE' || ms.mode === 'OVERDRIVE') { addP('atk', 0.08); addP('matk', 0.08); addF('pen', 8); }
+        else if (ms.mode === 'SWARM') { addF('cast', 10); addP('acc', 0.08); addF('crit', 4); }
+        else { addP('def', 0.10); addP('mdef', 0.08); }
+      } else if (ms.integrity < 25) {
+        addP('def', -0.06);
+      }
+    }
+    if (c && c.path === 'KARMA_SAMSARA' && CULT.ensureKarmaState) {
+      const ks = CULT.ensureKarmaState(n), stc = ks.stance || 'HUMAN';
+      if (stc === 'DEVA') { addP('mdef', 0.08); addF('cast', 8); }
+      else if (stc === 'ASURA') { addP('atk', 0.08); addP('matk', 0.08); addF('critDmg', 12); }
+      else if (stc === 'PRETA') { addP('eva', 0.08); addF('pen', 8); }
+      else if (stc === 'NARAKA') { addF('crit', 5); addF('pen', 10); }
+      else if (stc === 'ANIMAL' || stc === 'BEAST') { addP('hp', 0.08); addF('move', 8); }
+      else { addP('def', 0.06); addP('mdef', 0.06); addP('acc', 0.06); }
+    }
     const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; addP('atk', mind); addP('matk', mind);
     const sp = HC.special(n, 'combat.powerMult') - 1; if (sp) { addP('atk', sp); addP('matk', sp); }
     for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); for (const key in gs) if (key in b) addF(key, gs[key] * df); }
@@ -335,6 +594,7 @@
     const s = n.h.state;
     const cond = (0.8 + 0.2 * (n._hpf == null ? 1 : n._hpf)) * (0.8 + 0.2 * s.energy / 100) * (1 - 0.3 * s.heartDemon / 100);
     const cm1 = cond - 1;
+    if ((n.buffs && n.buffs.length > 0) || (n.sx && n.sx.length > 0)) ST.purgeExpired(n, ST.now);
     const hasBuffs = n.buffs && n.buffs.length > 0;
     const hasSx = n.sx && n.sx.length > 0;
     let injSev = 0;
@@ -368,7 +628,7 @@
     const addF = (k, v) => { if (!v) return; if (k === 'move') p.move += v / 100; else f[k] += v; };
     const addAll = (o, isF) => { for (const k in o) if (k in b) { if (isF) addF(k, o[k]); else addP(k, o[k]); } };
     if (hasBuffs) for (let i = 0; i < n.buffs.length; i++) { const bf = n.buffs[i]; if (bf.until <= ST.now && ST.now > 0) continue; if (bf.p) addAll(bf.p, false); if (bf.f) addAll(bf.f, true); }
-    if (hasSx) for (let i = 0; i < n.sx.length; i++) { const x = n.sx[i]; if (x.until <= ST.now && ST.now > 0) continue; const S = SK.STATUS[x.k]; if (!S) continue; if (S.mods) addAll(S.mods, true); if (S.pmods) addAll(S.pmods, false); }
+    if (hasSx) for (let i = 0; i < n.sx.length; i++) { const x = n.sx[i]; if (x.until <= ST.now || x.fromBuffCatalog) continue; const S = SK.STATUS[x.k]; if (!S) continue; if (S.mods) addAll(S.mods, true); if (S.pmods) addAll(S.pmods, false); }
     addP('atk', mAtkP); addF('pen', mPenF);
     if (injSev) { addP('move', -0.1 * injSev); addP('eva', -0.05 * injSev); }
     addP('atk', cm1); addP('matk', cm1); addP('acc', cm1); addP('eva', cm1); addF('cast', cm1 * 40);
@@ -383,7 +643,7 @@
     return v;
   }
   function statusMods(u, add) {
-    (u.sx || []).forEach(x => { if (x.until <= ST.now && ST.now > 0) return; const S = SK.STATUS[x.k]; if (!S) return; const lab = 'สถานะ' + S.nameTh; if (S.mods) for (const k in S.mods) add(k, lab, 'f', S.mods[k]); if (S.pmods) for (const k in S.pmods) add(k, lab, 'p', S.pmods[k]); });
+    (u.sx || []).forEach(x => { if (x.until <= ST.now || x.fromBuffCatalog) return; const S = SK.STATUS[x.k]; if (!S) return; const lab = 'สถานะ' + S.nameTh; if (S.mods) for (const k in S.mods) add(k, lab, 'f', S.mods[k]); if (S.pmods) for (const k in S.pmods) add(k, lab, 'p', S.pmods[k]); });
   }
   function conditionMods(u, add) {
     const s = u.foe ? { hp: u.hp, energy: 100, heartDemon: 0 } : u.h.state;
@@ -405,19 +665,36 @@
       v[k] = (k === 'crit' || k === 'critDmg' || k === 'pen') ? Math.round(x * 10) / 10 : Math.round(x); if (wp) parts[k] = a.parts; });
     return { v, parts };
   }
+  function earliestExpiry(u) {
+    let minExp = 0;
+    if (u.buffs && u.buffs.length) {
+      for (let i = 0; i < u.buffs.length; i++) {
+        const u0 = u.buffs[i].until;
+        if (u0 && (!minExp || u0 < minExp)) minExp = u0;
+      }
+    }
+    if (u.sx && u.sx.length) {
+      for (let i = 0; i < u.sx.length; i++) {
+        const u0 = u.sx[i].until;
+        if (u0 && (!minExp || u0 < minExp)) minExp = u0;
+      }
+    }
+    return minExp;
+  }
   ST.get = n => {
+    if ((n.buffs && n.buffs.length > 0) || (n.sx && n.sx.length > 0)) ST.purgeExpired(n, ST.now);
     const c = n._cs, eq = n.equip || {}, pk = n.foe ? '' : passiveCacheKey(n);
-    if (c && ST.now > 0 && ST.now - c.t < 3 && c.eqW === eq.WEAPON && c.eqA === eq.ARMOR && c.eqX === eq.ACCESSORY && c.ver === n._ver && c.sub === (n.cult && n.cult.sub) && c.stage === (n.cult && n.cult.stage) && c.passKey === pk) return c.v;
-    if (n.foe) { const r = compute(n, false); n._cs = { t: ST.now, v: r.v }; return r.v; }
+    if (c && ST.now > 0 && ST.now >= c.t && ST.now - c.t < 3 && (!c.nextExp || ST.now < c.nextExp) && c.eqW === eq.WEAPON && c.eqA === eq.ARMOR && c.eqX === eq.ACCESSORY && c.ver === n._ver && c.sub === (n.cult && n.cult.sub) && c.stage === (n.cult && n.cult.stage) && c.passKey === pk) return c.v;
+    if (n.foe) { const r = compute(n, false); n._cs = { t: ST.now, v: r.v, nextExp: earliestExpiry(n) }; return r.v; }
     n._hpf = clamp(n.h.state.hp / Math.max(1, hpMaxBase(n)), 0, 1);
-    const v = computeFast(n); n._cs = { t: ST.now, v, eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: passiveCacheKey(n) }; return v;
+    const v = computeFast(n); n._cs = { t: ST.now, v, nextExp: earliestExpiry(n), eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: pk }; return v;
   };
   function hpMaxBase(n) { const d = g.MARTIAL ? g.MARTIAL.derived(n) : HC.derived(n); return d.hpMax * CULT.hpMult(n); }
   ST.explain = n => { if (!n.foe) n._hpf = clamp(n.h.state.hp / Math.max(1, hpMaxBase(n)), 0, 1); return compute(n, true); };
   ST.hpMax = n => {
     if (n.foe) return n.hpMax;
-    const c = n._cs; if (c && ST.now > 0 && ST.now - c.t < 3 && c.passKey === passiveCacheKey(n)) return c.v.hp;
     if ((!n.buffs || !n.buffs.length) && (!n.sx || !n.sx.length)) return getBaseFast(n).hpVal;
+    const c = n._cs; if (c && ST.now > 0 && ST.now - c.t < 3 && c.passKey === passiveCacheKey(n)) return c.v.hp;
     return ST.get(n).hp;
   };
   ST.moveMult = n => {

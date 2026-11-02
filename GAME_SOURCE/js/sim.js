@@ -116,7 +116,7 @@
       trainedness: 0.9,
       traitCount: 2,
       rank: 6,
-      stage: path => ((path || archPath) === 'XIAN' || (path || archPath) === 'DEMON' || (path || archPath) === 'HEART_SOUL') ? 3 : 2,
+      stage: path => ((path || archPath) === 'BODY' || (path || archPath) === 'GOD') ? 2 : 3,
       tenure: 4000,
       merit: 500
     };
@@ -145,9 +145,10 @@
   /* ---------- สร้างโลก ---------- */
   SIM.create = (seed, opts) => {
     opts = opts || {};
-    if (g.STATS) g.STATS.now = 0;
     const rng = new U.RNG(String(seed) + ':world');
     const W = { _founding: true, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
+    if (g.STATS) g.STATS.now = W.t;
+    if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
     const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day;
     W.map = MAP.create(W.seed);
     W.market = ECO.newMarket(rng);
@@ -163,7 +164,7 @@
     if (arch) {
       W.sect.archetype = arch.id;
       if (!opts.sectName) W.sect.name = arch.nameTh;
-      const baseCurriculum = ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL'];
+      const baseCurriculum = ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL', 'MP_BASE_MECH_PUPPET', 'MP_BASE_KARMA_SAMSARA', 'MP_BASE_BEAST_SOVEREIGN', 'MP_BASE_SAGE_SUPPORT'];
       W.sect.library = Array.from(new Set(arch.techs.concat(baseCurriculum)));
       W.sect.crystals = Object.assign({}, arch.crystals);
       W.sect.unlockedSubs = arch.subs.slice();
@@ -322,7 +323,31 @@
     if (n.inv) { n.inv.pills = {}; n.inv.mats = {}; n.inv.techs = []; n.inv.recipes = []; }
   };
   SIM.hourly = W => {
-    W.npcs.forEach(n => { if (!n.dead) { AI.healTick(W, n); g.STATS.recover(n); g.CPE.autoUse(W, n); if (n.equip) { for (const k in n.equip) { const it = n.equip[k]; if (it && it.dur != null && n.act.id === 'fight') it.dur = Math.max(0, it.dur - 0.5); } } } });
+    if (g.STATS) g.STATS.now = W.t;
+    W.npcs.forEach(n => {
+      if (!n.dead) {
+        if (g.STATS && g.STATS.purgeExpired) g.STATS.purgeExpired(n, W.t);
+        if (g.STATS && g.STATS.hasBuff && g.STATS.hasBuff(n, 'vitalRegen', W.t)) {
+          const hm = CULT.hpMax(n);
+          n.h.state.hp = Math.min(hm, (n.h.state.hp || hm) + Math.max(1, Math.round(hm * 0.05)));
+        }
+        if (n.cult && n.cult.path === 'MECH_PUPPET' && n.act && n.act.id !== 'fight' && CULT.ensureMechState) {
+          const ms = CULT.ensureMechState(n);
+          const mwLv = (W.sect && W.sect.specialistFacilities && W.sect.specialistFacilities.mech_workshop) ? W.sect.specialistFacilities.mech_workshop.level : 1;
+          ms.heat = Math.max(0, (ms.heat || 0) - (8 + mwLv * 4));
+          ms.charge = Math.min(100, (ms.charge || 0) + (6 + mwLv * 3));
+          if (ms.integrity < 100) {
+            ms.integrity = Math.min(100, ms.integrity + (4 + mwLv * 3));
+            ms.constructReadiness = ms.integrity;
+          }
+          ms.overclockReady = ms.charge >= 50;
+        }
+        AI.healTick(W, n);
+        g.STATS.recover(n);
+        g.CPE.autoUse(W, n);
+        if (n.equip) { for (const k in n.equip) { const it = n.equip[k]; if (it && it.dur != null && n.act.id === 'fight') it.dur = Math.max(0, it.dur - 0.5); } }
+      }
+    });
     W.map.buildings.forEach(b => { if (b.building && W.t >= b.building.until) SIM.finishBuilding(W, b); });
     if (W.map && W.map.buildings && g.SECT && g.SECT.ensureFacilityDemand) {
       g.SECT.ensureFacilityDemand(W);
@@ -442,7 +467,33 @@
     W.npcs.forEach(n => { if (!n.dead && !n.away && g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n); });
     EXPED.daily(W); EXPLORE.daily(W); BN.daily(W); CPE.daily(W); g.CONTENT.daily(W); if (g.EXT) g.EXT.daily(W); if (g.FISHING) g.FISHING.daily(W);
     W.npcs.forEach(n => {
-      if (n.dead || n.away || !n.cult || !n.cult.track) return;
+      if (n.dead) {
+        if (Array.isArray(n.pets) && n.pets.length > 0) {
+          W.sect.reservePets = W.sect.reservePets || [];
+          while (n.pets.length > 0) {
+            const orphan = n.pets.shift();
+            if (orphan) { orphan.active = false; W.sect.reservePets.push(orphan); }
+          }
+        }
+        return;
+      }
+      if (g.STATS && g.STATS.purgeExpired) g.STATS.purgeExpired(n, W.t);
+      if (Array.isArray(n.pets) && n.pets.length > 0) {
+        for (let pi = 0; pi < n.pets.length; pi++) {
+          const pt = n.pets[pi];
+          if (!pt) continue;
+          pt.hunger = Math.max(10, (pt.hunger == null ? 80 : pt.hunger) - 6);
+          pt.fatigue = Math.max(0, (pt.fatigue || 0) - 22);
+          if (pt.hunger < 55 && CULT.feedPet) CULT.feedPet(W, n, pt.uid);
+        }
+      }
+      if (n.cult && n.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
+        const ms = CULT.ensureMechState(n);
+        ms.heat = 0;
+        ms.charge = 100;
+        if (ms.integrity < 75 && CULT.repairConstruct) CULT.repairConstruct(W, n);
+      }
+      if (n.away || !n.cult || !n.cult.track) return;
       if (CULT.trackReady(n)) {
         const gate = CULT.checkTrackGates(W, n);
         if (gate.ok) CULT.trackBreakthrough(W, n);
@@ -481,6 +532,7 @@
 
   /* ---------- บันทึก/โหลด ---------- */
   SIM.serialize = W => {
+    if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) W.npcs[i]._cultRateBase = null; } }
     const M = W.map;
     const snap = { ...(W._saveExtras || {}), schemaVersion: SIM.SAVE_SCHEMA_VERSION, wildlife: W.wildlife, wildResources: W.wildResources, fishing: W.fishing, v: SIM.VERSION, runtimeTiming: W.runtimeTiming, hc: HC.FINGERPRINT, seed: W.seed, t: W.t, speed: W.speed, rng: W.rng.getState(), seqN: W.seqN, logSeq: W.logSeq, deaths: W.deaths, avgSat: W.avgSat, avgMood: W.avgMood, weather: W.weather, market: W.market, sect: W.sect, world: W.world, threat: W.threat, explore: W.explore, npcs: W.npcs, graveyard: W.graveyard, gone: W.gone, logs: W.logs.slice(-600), duelQueue: W.duelQueue, fights: W.fights, foes: W.foes, foeSeq: W.foeSeq, fightSeq: W.fightSeq,
       map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) } };
