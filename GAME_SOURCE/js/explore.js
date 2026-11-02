@@ -7591,7 +7591,9 @@
   };
   EX.departElementalRealm = (W, party, opts) => {
     opts = opts || {};
-    const realm = opts.realmId ? EX.ELEMENTAL_REALMS.find(x => x.id === opts.realmId) : EX.elementalRealmAt(W && W.day);
+    const currentRealm = EX.elementalRealmAt(W && W.day);
+    const realm = opts.realmId ? EX.ELEMENTAL_REALMS.find(x => x.id === opts.realmId) : currentRealm;
+    if (opts.realmId && (!realm || !currentRealm || realm.id !== currentRealm.id)) return null;
     if (!realm) return null;
     return EX.createTrialExpedition(W, party, 'elemental_realm', { target: 3, realmId: realm.id, regionId: realm.id, days: 1.25 });
   };

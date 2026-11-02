@@ -58,6 +58,7 @@ JianghuSect Evolution uses zero external bundlers. Every file is an IIFE `(funct
   `SECT.daily(W)` → `COG.syncOfficeAuthority(W)` → `COG.reconcileLoadout(W, n)` → `EXPED.daily(W)` → `EXPLORE.daily(W)` → `BN.daily(W)` → `CPE.daily(W)` → `CONTENT.daily(W)` → `EXT.daily(W)` → `FISHING.daily(W)`.
 - Handles orphaned pets of dead NPCs (moves to `W.sect.reservePets`), feeds hungry pets (`CULT.feedPet`), repairs `MECH_PUPPET` constructs, checks 9-Realm Track breakthroughs (`CULT.checkTrackGates` → `CULT.trackBreakthrough`), advances `SIM.researchTick(W)`, and buys emergency grain if food `< pop * 1.5`.
 - On day-of-month 1 (`cal.dom === 1`), runs `SIM.monthly(W)` (`SECT.monthly`, `EXPED.caravan`, mortal cultivation awakening rolls).
+- v2.0.11 advances the saved Ancestral Shrine tribulation from the existing `SECT.daily(W)` hook; keep the three-day timer tied to `W.day`, not transient ticks or wall-clock time.
 
 ### 3.4 Facility Expansion & Dormitory Cap (`SIM.expandStations` lines 397–446)
 - **Authoritative Dormitory Bed Progression:** Only `SECT.HOUSING_IDS` (`dorm`, `elder_quarters`, `guest_quarters`) add `bed` stations (`56 + 28 + 16 = 100` max beds at L5). Non-housing buildings **never** add `bed` stations.

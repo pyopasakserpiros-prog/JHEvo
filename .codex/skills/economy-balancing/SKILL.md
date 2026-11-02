@@ -100,6 +100,10 @@ This skill governs the closed-loop economic engine of **JianghuSect Evolution (�
 3. **Vassal Treaty Tribute Flows (`js/sect.js` → `js/economy.js`):**
    - In `SECT.diplomacyDaily(W)`, any rival sect with `treaty === 'VASSAL_TREATY'` pays periodic Spirit Stones (`ECO.earn(W, amt, 'บรรณาการสำนักบริวาร')`), regional materials (`ECO.add`), and Subpath Crystals into `W.sect.stock`.
 
+### 3.1 v2.0.11 Ascension Preparation Cost
+- A Shrine tribulation reserves 500 sect Spirit Stones. A restorative pill is optional and the player chooses whether to consume one of the supported mid-tier recovery pills.
+- A failed attempt does not refund preparation costs, but it cannot kill the candidate; apply the 90-day retry period before another paid attempt.
+
 ---
 
 ## 4. Verification & Balance Checklist

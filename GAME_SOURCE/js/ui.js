@@ -549,6 +549,12 @@
     else if (a === 'locate') { UI.close(); UI.focusNpc(arg); }
     else if (a === 'follow') { UI.close(); UI.focusNpc(arg); G.R.follow = true; G.R.cam.z = Math.max(G.R.cam.z, 2.2); $('fFollow').style.background = 'var(--gold)'; }
     else if (a === 'locb') { const b = W.map.byId[arg]; if (b) { UI.close(); G.R.follow = false; G.R.focus(b.x + b.w / 2, b.y + b.h / 2, 1.3); } }
+    else if (a === 'begin-tribulation') {
+      const parts = String(arg || '').split('|');
+      const result = SECT.beginCelestialTribulation ? SECT.beginCelestialTribulation(W, parts[0], { useMedicine: parts[1] === 'medicine' }) : { ok: false, reasonTh: 'ระบบด่านเคราะห์ยังไม่พร้อม' };
+      UI.toast(result.ok ? ('เริ่มเตรียมค่ายกลคุ้มภัยให้ ' + result.attempt.candidateNameTh + ' แล้ว · พิธีจะเริ่มใน 3 วัน' + (result.attempt.medicineId ? ' · ใช้โอสถฟื้นฟู 1 เม็ด' : '')) : (result.reasonTh || 'ยังเริ่มพิธีไม่ได้'));
+      UI.render(); UI.updateHud(true);
+    }
     else if (a === 'locv') { const v = g.VC && g.VC.findVisitor ? g.VC.findVisitor(W, arg) : null; if (v && Number.isFinite(v.x) && Number.isFinite(v.y)) { UI.close(); G.R.follow = false; G.R.focus(v.x, v.y, Math.max(G.R.cam.z, 1.8)); } else UI.toast('ผู้มาเยือนนี้ไม่ได้อยู่ในเขตสำนักแล้ว'); }
     else if (a === 'toggle-clue-debug') { UI.showClueDebug = !UI.showClueDebug; UI.render(); }
     else if (a === 'open-visitor') { UI.openVisitor(arg); }
@@ -2252,6 +2258,21 @@
     if (b.id === 'ancestral' || b.id === 'shrine' || b.type === 'ancestral') {
       const tablets = (SECT.ensureLegacyTablets ? SECT.ensureLegacyTablets(W) : (W.sect.legacyTablets || []));
       h += '<h3>🕯️ ป้ายวิญญาณมรดกบรรพชน (' + tablets.length + ')</h3><div class="card">' + (tablets.length ? tablets.map(t => '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>🕯️ ' + esc(t.nameTh) + '</b> <span class="chip g">' + esc(t.subpathNameTh || t.path) + '</span><div class="muted" style="font-size:11.5px">วิชาเอก: ' + esc(t.signatureTechNameTh || '-') + ' · พรทะลวงขั้น +' + Math.round((t.breakthroughBonus || 0) * 100) + '% · เร่งเข้าใจคัมภีร์ +' + Math.round((t.comprehensionBonus || 0) * 100) + '% · สักการะแล้ว ' + (t.prayersCount || 0) + ' ครั้ง</div></div>').join('') : '<span class="muted">ยังไม่มีป้ายวิญญาณมรดกของผู้อาวุโสระดับสูง</span>') + '</div>';
+      const tribState = SECT.ensureCelestialTribulation ? SECT.ensureCelestialTribulation(W) : { active: null, history: [] };
+      const legacyBonus = SECT.ascensionCultivationMultiplier ? Math.round((SECT.ascensionCultivationMultiplier(W) - 1) * 100) : 0;
+      h += '<h3>⚡ ด่านเคราะห์สวรรค์และจุติ</h3><div class="card"><div>จุติแล้ว ' + (W.sect.ascendedLegacyCount || 0) + ' ท่าน · พรสืบทอดเร่งการบ่มเพาะ +' + legacyBonus + '% (สูงสุด 5%)</div>';
+      if (tribState.active) {
+        const at = tribState.active;
+        const helpers = (at.supportIds || []).map(id => W.byId[id]).filter(Boolean).map(n => esc(HC.fullName(n))).join('、');
+        h += '<div style="margin-top:5px"><b>กำลังเตรียมพิธีให้ ' + esc(at.candidateNameTh || '') + '</b> · เหลือ ' + Math.max(0, at.resolveDay - W.day) + ' วัน</div><div class="muted">ศิษย์หนุนค่ายกล: ' + (helpers || 'ไม่มี') + ' · โอกาสสำเร็จ ' + Math.round((at.chance || 0) * 100) + '%</div>';
+      } else {
+        const eligible = (W.npcs || []).map(n => ({ n, check: SECT.canBeginCelestialTribulation ? SECT.canBeginCelestialTribulation(W, n) : { ok: false } })).filter(x => x.check.ok);
+        h += '<div class="muted" style="margin:4px 0 8px">ต้องถึงขั้นสูงสุดของวิถี (เทียบเคียงขั้น 9) มีศิษย์ช่วยอย่างน้อย 2 คน และใช้ศิลาสำนัก 500 ศิลา · พิธีใช้เวลา 3 วัน · สามารถเลือกใช้โอสถฟื้นฟูจากคลังได้</div>';
+        h += eligible.length ? eligible.map(({ n, check }) => '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:5px 0;border-top:1px solid var(--line,#3a3f4a)"><span>' + esc(HC.fullName(n)) + ' · ' + esc(n.cult.path) + ' ขั้น ' + n.cult.stage + '/' + CULT.maxStage(n) + '</span><span><button type="button" class="btn pri" data-do="begin-tribulation" data-arg="' + esc(n.id) + '|no-medicine">เริ่มพิธี</button>' + (check.medicineId ? ' <button type="button" class="btn" data-do="begin-tribulation" data-arg="' + esc(n.id) + '|medicine">เริ่มพิธี + ใช้โอสถ</button>' : '') + '</span></div>').join('') : '<span class="muted">ยังไม่มีผู้ฝึกตนที่พร้อมเริ่มพิธี</span>';
+      }
+      const ascHistory = Array.isArray(W.sect.ascendedLegacyHistory) ? W.sect.ascendedLegacyHistory.slice(0, 5) : [];
+      if (ascHistory.length) h += '<div class="muted" style="margin-top:7px">จารึกจุติล่าสุด: ' + ascHistory.map(r => esc(r.candidateNameTh) + ' (' + esc(r.path) + ')').join(' · ') + '</div>';
+      h += '</div>';
     }
     return h;
   };

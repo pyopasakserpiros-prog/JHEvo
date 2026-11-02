@@ -54,6 +54,9 @@ function makePathParty(W) {
   assert.deepStrictEqual([0, 90, 180, 270, 360].map(d => g.EXPLORE.elementalRealmAt(d).id), ['REALM_METAL','REALM_WOOD','REALM_WATER','REALM_FIRE','REALM_EARTH']);
   n.h.root = g.ELEM.buildRootObject(['FIRE'], ['HEAVENLY']);
   const before = g.ELEM.ensureNpc(n).mastery.FIRE || 0;
+  assert.notEqual(g.EXPLORE.elementalRealmAt(W.day).id, 'REALM_FIRE');
+  assert.equal(g.EXPLORE.departElementalRealm(W, [n], { realmId: 'REALM_FIRE' }), null, 'off-cycle realm requests should be rejected');
+  W.day = 270;
   const ex = g.EXPLORE.departElementalRealm(W, [n], { realmId: 'REALM_FIRE' });
   assert(ex && ex.realmId === 'REALM_FIRE');
   const result = g.EXPLORE.resolveElementalRealm(W, ex, [n], { forceClear: true });
@@ -88,6 +91,7 @@ function makePathParty(W) {
   assert.strictEqual(trialTrip.days, 1.125);
   assert.strictEqual(trialTrip.carryCapacity, 44);
   unmountedCultivator.pets = [{ uid: 'MOUNT_V210_REALM', role: 'MOUNT_CHARGER', family: 'AVIAN', active: true }];
+  W.day = 270;
   const realmTrip = g.EXPLORE.departElementalRealm(W, [unmountedCultivator], { realmId: 'REALM_FIRE' });
   assert(realmTrip && realmTrip.hasMount);
   assert.strictEqual(realmTrip.days, 0.9375, 'mount travel reduction should remain 25% on short realm trips');
@@ -144,7 +148,7 @@ function makePathParty(W) {
   assert.strictEqual(W.sect.beasts[0].hpMax, 240, 'raid proxy scaling must not permanently lower reserve-beast health capacity');
 }
 
-// Rival defeat can impose a vassal treaty, then seasonal tribute imports stones and herbs.
+// A formal deep rivalry can settle into a vassal treaty; mere hostility is insufficient.
 {
   const W = g.SIM.create('v210_vassal_suite');
   const champ = W.npcs.find(n => n && !n.dead && n.cult);
@@ -153,6 +157,11 @@ function makePathParty(W) {
   const challenge = g.SECT.resolveRivalEnvoyChallenge(W, champ, rival, { forceWin: true, quiet: true });
   assert(challenge.won && challenge.vassalTreaty && challenge.vassalTreaty.ok);
   assert.strictEqual(rival.treaty, 'VASSAL_TREATY');
+  const merelyHostile = W.world.sects[1];
+  merelyHostile.treaty = 'NONE'; merelyHostile.attitude = -50;
+  const nonDecisiveChallenge = g.SECT.resolveRivalEnvoyChallenge(W, champ, merelyHostile, { forceWin: true, quiet: true });
+  assert(nonDecisiveChallenge.won && !nonDecisiveChallenge.vassalTreaty, 'mere hostility should not make one envoy duel a vassal settlement');
+  assert.strictEqual(merelyHostile.treaty, 'NONE');
   const stones = W.sect.stones;
   W.day = 450;
   g.CONTENT.tickPolitics(W);

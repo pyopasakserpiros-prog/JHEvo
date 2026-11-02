@@ -68,7 +68,7 @@ You are the lead systems architect, engine optimization specialist, and Xianxia 
 
 ### Pillar C: All-Jianghu Grand Martial Conference & Tributary Treaties
 *Reference Specification from `FUTURE_ROADMAP_AND_IDEAS.md` Section 4:*
-1. **Quadrennial Jianghu Martial Assembly (`SECT.WORLD_MARTIAL_CONFERENCE`)**:
+1. **Triennial Jianghu Martial Assembly (`SECT.WORLD_MARTIAL_CONFERENCE`)**:
    - Every 3 game years (Day 1080, 2160...), trigger an all-sect tournament inviting champions from all rival and allied sects in `W.world.sects`.
    - Multi-bracket elimination incorporating tactical relations, resonance sets, and formation synergies.
    - Victorious sect gains continental prestige, massive fame, and imperial decree rewards.
@@ -82,4 +82,4 @@ You are the lead systems architect, engine optimization specialist, and Xianxia 
 2. Rebuilt single-file bundle `GAME_SOURCE/JianghuSect_single.html` via `node tools/build_single.js`.
 3. Comprehensive test suite `test/v210_pagoda_warbeasts_conference_suite.js` registered in `test/run_all.js`.
 4. Verification of 100% test pass rate across all suites.
-5. Complete release ZIP package and comprehensive implementation report.
+5. Comprehensive implementation report. Do not add a duplicate full-project ZIP; use the GitHub branch archive to download the repository.

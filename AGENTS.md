@@ -1,7 +1,7 @@
 # Implementation entry point
 
 1. **First**: Read [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md) and follow its prioritized **Task-to-Skill Routing Matrix**.
-2. **Current Baseline**: Patch v2.0.10 is implemented on local branch `main`. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_10.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_10.md) before planning follow-up work; the original [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md) is the completed specification, not a request to repeat the patch.
+2. **Current Baseline**: Patch v2.0.11 is implemented on branch `main`. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_11.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_11.md) before planning follow-up work; the v2.0.10 prompt is historical context, not a request to repeat that patch.
 3. **Mandatory Skill Loading**: Before modifying any file in `GAME_SOURCE/`, read the matching Master Skill in `.agents/skills/<skill>/SKILL.md` (mirrored in `.codex/skills/<skill>/SKILL.md`).
 
 ---
@@ -35,7 +35,7 @@ Always load only the skills relevant to the subsystem you are touching:
 8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** *(Deep-Dive Master)* — Exact 40-script-tag invariant in `index.html`, matching source-module order in `test/load.js`, `W` single source of truth, simulation lifecycle, `SIM.expandStations` dormitory bed cap (`100` max), and `tools/build_single.js`.
 9. **[`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md)** *(Deep-Dive Master)* — `SIM.serialize` / `SIM.deserialize` (`js/sim.js` lines 534–620), automatic `_` transient cache stripping, `W._saveExtras` forward compatibility, pointer rebinding, legacy craft receipt adoption, and dead-reference pruning.
 10. **[`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md)** & **[`web-performance`](./.agents/skills/web-performance/SKILL.md)** *(Deep-Dive Master)* — Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_stVer`, `_passVer`, `_eqSetCache`, `_stEarliestBuffExp`, `SIM_BUDGET_MS = 12`, `16×16` Canvas terrain chunk caching (`buildChunk`), and `measureCached`.
-11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 84-group regression matrix (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
+11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 84 automated suites plus a full JavaScript syntax sweep (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
 
 ---
 

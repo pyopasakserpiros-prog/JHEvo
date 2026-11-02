@@ -1155,7 +1155,7 @@
     const won = opts.forceWin != null ? !!opts.forceWin : (effChamp >= effEnvoy);
     const cpGain = won ? 45 : 15;
     const stonePrize = won ? 60 : 0;
-    const wasRival = rival.treaty === 'RIVAL_FEUD' || rival.treaty === 'EMBARGO' || (rival.attitude || 0) <= -40;
+    const decisiveRivalry = rival.treaty === 'RIVAL_FEUD' && (rival.attitude || 0) <= -60;
     let vassalTreaty = null;
     champ.cp = (champ.cp || 0) + cpGain;
     champ.cpEarned = (champ.cpEarned || 0) + cpGain;
@@ -1165,7 +1165,7 @@
       ECO.earn(W, stonePrize, 'ชนะทูตท้าประลองจาก' + rival.nameTh);
       rival.attitude = clamp((rival.attitude || 0) + 5, -100, 100);
       HC.experience(champ, 'victory', 0.7);
-      if (wasRival && g.CONTENT && g.CONTENT.forceVassalTreaty) vassalTreaty = g.CONTENT.forceVassalTreaty(W, rival, { majorDispute: true, winnerId: champ.id, cause: 'RIVAL_ENVOY_CHALLENGE' });
+      if (decisiveRivalry && g.CONTENT && g.CONTENT.forceVassalTreaty) vassalTreaty = g.CONTENT.forceVassalTreaty(W, rival, { majorDispute: true, winnerId: champ.id, cause: 'RIVAL_ENVOY_CHALLENGE' });
     } else {
       W.fame(-1);
       rival.attitude = clamp((rival.attitude || 0) - 4, -100, 100);
@@ -3979,25 +3979,30 @@
     const mult = subMatch ? 1.35 : pathMatch ? 1.0 : 0.65;
     const btBonus = +(tab.breakthroughBonus * mult).toFixed(3);
     const studySpeedMult = +(1 + tab.comprehensionBonus * mult).toFixed(3);
-    n.ancestralBlessing = {
-      tabletId: tab.id,
-      elderId: tab.npcId,
-      elderNameTh: tab.nameTh,
-      path: tab.path,
-      sub: tab.sub,
-      pathMatch,
-      subMatch,
-      breakthroughBonus: btBonus,
-      studySpeedMult,
-      injuryShield: !!(pathMatch || subMatch),
-      grantedDay: W.day || 0,
-      untilDay: (W.day || 0) + 14,
-      until: (W.t || 0) + 14 * 1440
-    };
+    let blessing = null;
+    const canGrantBlessing = !Number.isFinite(n.ancestralPrayerCooldownUntil) || (W.t || 0) >= n.ancestralPrayerCooldownUntil;
+    if (canGrantBlessing) {
+      blessing = n.ancestralBlessing = {
+        tabletId: tab.id,
+        elderId: tab.npcId,
+        elderNameTh: tab.nameTh,
+        path: tab.path,
+        sub: tab.sub,
+        pathMatch,
+        subMatch,
+        breakthroughBonus: btBonus,
+        studySpeedMult,
+        injuryShield: !!(pathMatch || subMatch),
+        grantedDay: W.day || 0,
+        untilDay: (W.day || 0) + 14,
+        until: (W.t || 0) + 14 * 1440
+      };
+      n.ancestralPrayerCooldownUntil = (W.t || 0) + 30 * 1440;
+    }
     n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - (subMatch ? 12 : pathMatch ? 8 : 4));
     n.h.state.stress = Math.max(0, (n.h.state.stress || 0) - 8);
     HC.bump(n);
-    return n.ancestralBlessing;
+    return blessing;
   };
 
   /* ======================= v2.0.10: All-Jianghu Martial Conference ======================= */
@@ -4160,8 +4165,198 @@
     return result;
   };
   SECT.runWorldMartialConference = WMC.run;
+
+  /* ======================= v2.0.11: Heavenly Tribulation & Ascension ======================= */
+  SECT.ensureCelestialTribulation = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.celestialTribulation || typeof W.sect.celestialTribulation !== 'object') {
+      W.sect.celestialTribulation = { active: null, history: [], sequence: 0 };
+    }
+    const state = W.sect.celestialTribulation;
+    if (state.active != null && (!state.active || typeof state.active !== 'object' || Array.isArray(state.active))) state.active = null;
+    if (!Array.isArray(state.history)) state.history = [];
+    if (state.history.length > 50) state.history.length = 50;
+    if (!Number.isFinite(state.sequence) || state.sequence < 0) state.sequence = 0;
+    if (!Number.isSafeInteger(W.sect.ascendedLegacyCount) || W.sect.ascendedLegacyCount < 0) W.sect.ascendedLegacyCount = 0;
+    if (!Array.isArray(W.sect.ascendedLegacyHistory)) W.sect.ascendedLegacyHistory = [];
+    if (W.sect.ascendedLegacyHistory.length > 50) W.sect.ascendedLegacyHistory.length = 50;
+    return state;
+  };
+  SECT.ascensionCultivationMultiplier = W => {
+    const count = W && W.sect && Number.isFinite(W.sect.ascendedLegacyCount) ? Math.max(0, W.sect.ascendedLegacyCount) : 0;
+    return +(1 + Math.min(5, count) * 0.01).toFixed(3);
+  };
+  const TRIBULATION_STONE_COST = 500;
+  const TRIBULATION_RETRY_DAYS = 90;
+  const TRIBULATION_HELPER_CAP = 3;
+  const TRIBULATION_RECOVERY_PILLS = ['P:REC190_PILL_004', 'P:REC190_PILL_003', 'P:REC140_ALC_JADE_MARROW_2'];
+  const resolveTribulationNpc = (W, value) => typeof value === 'string' ? (W && W.byId && W.byId[value]) : value;
+  const tribulationAvailable = (W, n) => !!(W && n && W.npcs && W.npcs.includes(n) && n.cult && !n.dead && !n.exiled && !n.away && !n.travel && !n.expId && !n.sealed && !(n.jail > W.t));
+  const tribulationRole = n => {
+    if (!n || !n.cult) return 'support';
+    if (n.cult.path === 'SAGE_SUPPORT' || n.post === 'healer' || ['GOLDEN_NEEDLE_SAINT', 'DIVINE_NECTAR_APOTHECARY', 'MEDICINE_BODHI_GOD', 'LOTUS_MERCY_PURIFIER'].includes(n.cult.sub)) return 'healer';
+    if (n.cult.path === 'BODY' || n.cult.path === 'BEAST_SOVEREIGN') return 'guardian';
+    if (n.cult.path === 'MECH_PUPPET' || ((n.h && n.h.skills && n.h.skills.ARRAY) || 0) >= 35) return 'array';
+    return 'support';
+  };
+  const chooseTribulationHelpers = (W, candidate) => {
+    const available = (W.npcs || []).filter(n => n !== candidate && tribulationAvailable(W, n));
+    const score = n => (g.CULT && g.CULT.power ? g.CULT.power(n) : 0) + (n.rank || 0) * 10;
+    available.sort((a, b) => score(b) - score(a) || String(a.id).localeCompare(String(b.id)));
+    const chosen = [];
+    for (const role of ['healer', 'guardian', 'array']) {
+      const match = available.find(n => !chosen.includes(n) && tribulationRole(n) === role);
+      if (match) chosen.push(match);
+      if (chosen.length >= TRIBULATION_HELPER_CAP) break;
+    }
+    for (const n of available) {
+      if (chosen.length >= TRIBULATION_HELPER_CAP) break;
+      if (!chosen.includes(n)) chosen.push(n);
+    }
+    return chosen;
+  };
+  const availableTribulationMedicine = W => {
+    if (!W || !g.ECO || !g.ECO.count) return null;
+    return TRIBULATION_RECOVERY_PILLS.find(id => g.ECO.count(W, id) >= 1) || null;
+  };
+  const tribulationChance = (W, candidate, helpers, medicineId) => {
+    const base = g.CULT && g.CULT.breakthroughChance ? g.CULT.breakthroughChance(candidate, { now: W.t }) : 0.5;
+    const party = [candidate].concat(helpers);
+    const paths = new Set(party.filter(n => n.cult).map(n => n.cult.path));
+    const roles = new Set(helpers.map(tribulationRole));
+    const formation = g.COMBAT && g.COMBAT.evaluateFormationSynergy ? g.COMBAT.evaluateFormationSynergy(party) : { powerMultiplier: 1 };
+    const helperBonus = Math.min(0.12, helpers.length * 0.04);
+    const roleBonus = (roles.has('guardian') ? 0.04 : 0) + (roles.has('healer') ? 0.04 : 0) + (roles.has('array') ? 0.025 : 0);
+    const diversityBonus = Math.min(0.08, Math.max(0, paths.size - 1) * 0.02);
+    const formationBonus = Math.min(0.05, Math.max(0, ((formation && formation.powerMultiplier) || 1) - 1) * 0.25);
+    return +clamp(0.36 + base * 0.30 + helperBonus + roleBonus + diversityBonus + formationBonus + (medicineId ? 0.06 : 0), 0.45, 0.90).toFixed(3);
+  };
+  const releaseTribulationParticipants = (W, attempt) => {
+    const ids = [attempt && attempt.candidateId].concat(attempt && Array.isArray(attempt.supportIds) ? attempt.supportIds : []).filter(Boolean);
+    for (const id of ids) {
+      const n = W && W.byId && W.byId[id];
+      if (!n || n.celestialTribulationId !== attempt.id) continue;
+      n.away = false;
+      n.celestialTribulationId = null;
+      n.travel = null;
+      n.path = null;
+      n.run = false;
+      if (n.act) n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
+    }
+  };
+  const pushTribulationHistory = (state, record) => {
+    state.history.unshift(record);
+    if (state.history.length > 50) state.history.length = 50;
+  };
+  SECT.CELESTIAL_TRIBULATION = {
+    STONE_COST: TRIBULATION_STONE_COST,
+    PREPARATION_DAYS: 3,
+    RETRY_COOLDOWN_DAYS: TRIBULATION_RETRY_DAYS,
+    ensure: SECT.ensureCelestialTribulation,
+    helpersFor: (W, npc) => chooseTribulationHelpers(W, resolveTribulationNpc(W, npc)),
+    canBegin: (W, npc) => SECT.canBeginCelestialTribulation(W, npc),
+    begin: (W, npc, opts) => SECT.beginCelestialTribulation(W, npc, opts),
+    tick: W => {
+      const state = SECT.ensureCelestialTribulation(W);
+      const attempt = state && state.active;
+      if (!attempt || !Number.isFinite(attempt.resolveDay) || (W.day || 0) < attempt.resolveDay) return null;
+      const candidate = W.byId && W.byId[attempt.candidateId];
+      const helpers = (attempt.supportIds || []).map(id => W.byId && W.byId[id]).filter(n => n && !n.dead && n.celestialTribulationId === attempt.id);
+      if (!candidate || candidate.dead || !W.npcs.includes(candidate)) {
+        releaseTribulationParticipants(W, attempt);
+        attempt.status = 'interrupted';
+        attempt.finishedDay = W.day || 0;
+        pushTribulationHistory(state, { id: attempt.id, candidateId: attempt.candidateId, candidateNameTh: attempt.candidateNameTh, path: attempt.path, day: attempt.finishedDay, status: attempt.status, ascended: false, reason: 'candidate-unavailable' });
+        state.active = null;
+        if (W.log) W.log('sect', 'ด่านเคราะห์สวรรค์ถูกยุติลง เพราะผู้เข้าทดสอบไม่อาจดำเนินพิธีต่อได้', [attempt.candidateId]);
+        return { ok: false, reason: 'candidate-unavailable', attempt };
+      }
+      const result = { ok: true, ascended: false, chance: attempt.chance, attemptId: attempt.id };
+      const success = (W.rng && typeof W.rng.next === 'function' ? W.rng.next() : Math.random()) < attempt.chance;
+      releaseTribulationParticipants(W, attempt);
+      if (success) {
+        const tablet = SECT.inscribeLegacyTablet(W, candidate, 'ผ่านด่านเคราะห์สวรรค์และจุติสู่แดนบน', { force: true });
+        if (tablet) { tablet.ascended = true; tablet.ascensionDay = W.day || 0; }
+        state.active = null;
+        W.sect.ascendedLegacyCount = Math.max(0, W.sect.ascendedLegacyCount || 0) + 1;
+        const record = { id: attempt.id, candidateId: candidate.id, candidateNameTh: attempt.candidateNameTh, path: attempt.path, sub: candidate.cult.sub || 'NONE', day: W.day || 0, status: 'ascended', ascended: true, chance: attempt.chance, supportIds: (attempt.supportIds || []).slice(), medicineId: attempt.medicineId || null, tabletId: tablet && tablet.id || null };
+        pushTribulationHistory(state, record);
+        W.sect.ascendedLegacyHistory.unshift(record);
+        if (W.sect.ascendedLegacyHistory.length > 50) W.sect.ascendedLegacyHistory.length = 50;
+        if (candidate.id === W.sect.masterId) SECT.succession(W, 'เจ้าสำนักจุติสู่แดนบน');
+        candidate.cult.ascended = true;
+        if (g.SIM && g.SIM.retire) g.SIM.retire(W, candidate);
+        if (W.log) W.log('sect', '⚡ ' + attempt.candidateNameTh + ' ฝ่าด่านเคราะห์สวรรค์และจุติสู่แดนบน ทิ้งเจตจำนงไว้ ณ ศาลบรรพชน · พรสืบทอด +' + Math.round((SECT.ascensionCultivationMultiplier(W) - 1) * 100) + '%', [candidate.id]);
+        result.ascended = true;
+        result.record = record;
+        return result;
+      }
+      const hpMax = g.CULT && g.CULT.hpMax ? g.CULT.hpMax(candidate) : (candidate.h.state.hp || 100);
+      candidate.h.state.hp = Math.max(1, Math.min(candidate.h.state.hp || 1, Math.round(hpMax * 0.45)));
+      candidate.h.state.qi = Math.max(0, Math.round((candidate.h.state.qi || 0) * 0.5));
+      candidate.h.state.stress = clamp((candidate.h.state.stress || 0) + 20, 0, 100);
+      candidate.h.state.heartDemon = clamp((candidate.h.state.heartDemon || 0) + 12, 0, 100);
+      candidate.inj = Array.isArray(candidate.inj) ? candidate.inj : [];
+      candidate.inj.push({ part: 'เส้นลมปราณ', why: 'สะท้อนจากด่านเคราะห์สวรรค์', sev: 2, until: W.t + 3 * 1440 });
+      candidate.ascensionCooldownUntilDay = (W.day || 0) + TRIBULATION_RETRY_DAYS;
+      for (const helper of helpers) helper.h.state.stress = clamp((helper.h.state.stress || 0) + 5, 0, 100);
+      candidate.cult.ascensionAttempts = (candidate.cult.ascensionAttempts || 0) + 1;
+      const record = { id: attempt.id, candidateId: candidate.id, candidateNameTh: attempt.candidateNameTh, path: attempt.path, day: W.day || 0, status: 'failed', ascended: false, chance: attempt.chance, supportIds: (attempt.supportIds || []).slice(), medicineId: attempt.medicineId || null };
+      attempt.status = 'failed'; attempt.finishedDay = W.day || 0;
+      pushTribulationHistory(state, record);
+      state.active = null;
+      if (W.log) W.log('sect', '⚡ ' + attempt.candidateNameTh + ' ยังไม่ผ่านด่านเคราะห์สวรรค์; ได้รับบาดเจ็บที่เส้นลมปราณและต้องพักฟื้นก่อนท้าทายอีกครั้ง', [candidate.id]);
+      result.record = record;
+      return result;
+    }
+  };
+  SECT.canBeginCelestialTribulation = (W, npc) => {
+    const state = SECT.ensureCelestialTribulation(W), candidate = resolveTribulationNpc(W, npc);
+    if (!state || !candidate || !tribulationAvailable(W, candidate)) return { ok: false, reason: 'candidate-unavailable', reasonTh: 'ผู้ฝึกตนไม่พร้อมเข้าร่วมพิธี' };
+    if (state.active) return { ok: false, reason: 'tribulation-active', reasonTh: 'มีด่านเคราะห์ที่กำลังเตรียมพิธีอยู่แล้ว' };
+    const max = g.CULT && g.CULT.maxStage ? g.CULT.maxStage(candidate) : 0;
+    const eq = g.CULT && g.CULT.equivalentStage ? g.CULT.equivalentStage(candidate) : 0;
+    if (!max || candidate.cult.stage < max || eq < 9) return { ok: false, reason: 'not-at-peak', reasonTh: 'ต้องบรรลุขั้นสูงสุดของวิถีและมีระดับเทียบเคียงขั้น 9 ก่อน' };
+    if ((candidate.ascensionCooldownUntilDay || 0) > (W.day || 0)) return { ok: false, reason: 'cooldown', reasonTh: 'เส้นลมปราณยังต้องพักฟื้นอีก ' + (candidate.ascensionCooldownUntilDay - (W.day || 0)) + ' วัน' };
+    const helpers = chooseTribulationHelpers(W, candidate);
+    if (helpers.length < 2) return { ok: false, reason: 'insufficient-support', reasonTh: 'ต้องมีศิษย์ที่พร้อมช่วยพิธีอย่างน้อย 2 คน' };
+    if ((W.sect.stones || 0) < TRIBULATION_STONE_COST) return { ok: false, reason: 'insufficient-stones', reasonTh: 'ต้องใช้ศิลาวิญญาณสำนัก ' + TRIBULATION_STONE_COST + ' ศิลา' };
+    return { ok: true, candidate, helpers, medicineId: availableTribulationMedicine(W), cost: TRIBULATION_STONE_COST };
+  };
+  SECT.beginCelestialTribulation = (W, npc, opts) => {
+    opts = opts || {};
+    const check = SECT.canBeginCelestialTribulation(W, npc);
+    if (!check.ok) return check;
+    const candidate = check.candidate, helpers = check.helpers.slice();
+    const medicineId = opts.useMedicine === false ? null : check.medicineId;
+    if (!ECO.pay(W, TRIBULATION_STONE_COST, 'เตรียมค่ายกลด่านเคราะห์สวรรค์')) return { ok: false, reason: 'insufficient-stones', reasonTh: 'ศิลาวิญญาณสำนักไม่เพียงพอ' };
+    if (medicineId && !ECO.take(W, medicineId, 1)) {
+      ECO.earn(W, TRIBULATION_STONE_COST, 'คืนศิลาวิญญาณจากพิธีที่ไม่ได้เริ่ม');
+      return { ok: false, reason: 'medicine-unavailable', reasonTh: 'โอสถฟื้นฟูที่เตรียมไว้ไม่อยู่ในคลังแล้ว' };
+    }
+    const state = SECT.ensureCelestialTribulation(W);
+    const id = 'TRIB_' + (W.day || 0) + '_' + (++state.sequence);
+    const chance = tribulationChance(W, candidate, helpers, medicineId);
+    const attempt = {
+      id, candidateId: candidate.id, candidateNameTh: HC.fullName(candidate), path: candidate.cult.path,
+      supportIds: helpers.map(n => n.id), supportRoles: Object.fromEntries(helpers.map(n => [n.id, tribulationRole(n)])),
+      medicineId, startedDay: W.day || 0, resolveDay: (W.day || 0) + 3, chance, cost: TRIBULATION_STONE_COST, status: 'preparing'
+    };
+    for (const n of [candidate].concat(helpers)) {
+      if (g.AI && g.AI.cancelAct) g.AI.cancelAct(W, n);
+      n.celestialTribulationId = id;
+      n.away = true;
+      n.travel = null;
+      n.path = null;
+      n.run = false;
+      n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
+    }
+    state.active = attempt;
+    if (W.log) W.log('sect', '🏮 สำนักเริ่มเตรียมค่ายกลคุ้มภัยด่านเคราะห์สวรรค์ให้ ' + attempt.candidateNameTh + ' · กำหนดพิธีในอีก 3 วัน · โอกาสสำเร็จ ' + Math.round(chance * 100) + '%', [candidate.id].concat(attempt.supportIds));
+    return { ok: true, attempt };
+  };
   const sectDailyV210 = SECT.daily;
-  SECT.daily = W => { const result = sectDailyV210 ? sectDailyV210(W) : undefined; WMC.tick(W); return result; };
+  SECT.daily = W => { const result = sectDailyV210 ? sectDailyV210(W) : undefined; WMC.tick(W); SECT.CELESTIAL_TRIBULATION.tick(W); return result; };
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;

@@ -851,7 +851,7 @@
       if (n.ancestralBlessing && n.ancestralBlessing.until != null && W.t > n.ancestralBlessing.until) {
         n.ancestralBlessing = null;
       }
-      if (W.sect && Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length && n.cult && !(CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W.t) : (n.ancestralBlessing && n.ancestralBlessing.untilDay >= W.day))) {
+      if (W.sect && Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length && n.cult && !(CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W.t) : (n.ancestralBlessing && n.ancestralBlessing.untilDay >= W.day)) && (!Number.isFinite(n.ancestralPrayerCooldownUntil) || W.t >= n.ancestralPrayerCooldownUntil)) {
         const aware = !g.COG || !g.COG.isAwareOf || g.COG.isAwareOf(W, n, 'tablet');
         if (aware) {
           const tabs = W.sect.legacyTablets;

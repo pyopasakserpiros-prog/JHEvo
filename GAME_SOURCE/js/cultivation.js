@@ -2009,6 +2009,8 @@
   };
   CULT.gain = (npc, pts, W, sourceTag) => {
     const c = npc.cult; if (!c) return;
+    const ascendedCount = W && W.sect && Array.isArray(W.npcs) && W.npcs.includes(npc) && Number.isFinite(W.sect.ascendedLegacyCount) ? Math.max(0, W.sect.ascendedLegacyCount) : 0;
+    if (ascendedCount) pts *= 1 + Math.min(5, ascendedCount) * 0.01;
     const th = CULT.threshold(npc);
     if (c.prog >= th) { c.found = Math.min(0.08, (c.found || 0) + pts * 0.0002); pts *= 0.15; }
     c.prog += pts;

@@ -78,6 +78,10 @@ This skill governs the DOM drawers, HUD, 72-cell Item Sprite Atlas, responsive G
 4. **Pillar D (New Game Modal & Sect Sheet):**
    - Add **14 Starting Sect Archetype (`SECT.SECT_ARCHETYPES`)** selector cards on the New Game / Founder screen (`UI.openFounder` / `SECT.applySectArchetype`) and display the active Sect Archetype banner in `UI.rSect`.
 
+### 3.1 v2.0.11 Ancestral Shrine
+- Display ascension eligibility, the three-day active preparation, selected helpers, chance, recent ascended legacies, and the capped permanent cultivation bonus.
+- Offer separate start controls with and without an available recovery pill; escape dynamic names and IDs in rendered HTML.
+
 ---
 
 ## 4. Security & Performance Guardrails

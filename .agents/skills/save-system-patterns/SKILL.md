@@ -62,10 +62,11 @@ Always run idempotent `ensure*` hooks at the end of `SIM.deserialize`:
 
 ---
 
-## 3. Checklist When Adding New State (e.g., Patch v2.0.10)
+## 3. Checklist When Adding New State (including v2.0.11)
 1. **No Leading Underscore:** Name persistent properties without `_` (e.g., `W.sect.gateBeasts`, `W.sect.sectArchetype`, `W.world.pagoda`, `W.world.elementalRealms`, `W.world.martialConference`).
-2. **Hydrate in `CONTENT.ensure(W)` or `SECT.ensureDirectives(W)`:** Ensure saves created in `v2.0.9` or earlier automatically initialize new `v2.0.10` structures with safe defaults on load.
-3. **Run Save/Load Regression Tests:**
+2. **Hydrate in `SIM.deserialize` or an idempotent `ensure*` hook:** Ensure old saves initialize new state safely. v2.0.11 calls `SECT.ensureCelestialTribulation(W)` during deserialization.
+3. **Ascension event state:** Persist IDs and dates for `W.sect.celestialTribulation`; persist `npc.ancestralPrayerCooldownUntil`; keep aggregate ascension count/history outside the 36-tablet cap. Never serialize object references or underscore-prefixed gameplay state.
+4. **Run Save/Load Regression Tests:**
    ```bash
    node GAME_SOURCE/test/test_save_migration.js
    node GAME_SOURCE/test/test_v209_integrated.js
