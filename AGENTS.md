@@ -1,6 +1,8 @@
 # Implementation entry point
 
-Read `START_HERE_FOR_AI.md` and execute its instructions. The active task is v2.0.10 implementation from the verified v2.0.9 baseline. The detailed specification and advisory design reference are in `SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`.
+1. **First**: Read [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md) and follow its prioritized **Task-to-Skill Routing Matrix**.
+2. **Active Task**: Execute **Patch v2.0.10** from the verified **v2.0.9** baseline according to [`SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md`](./SUBSEQUENT_PATCH_PROMPT_V2_0_10_EN.md) and [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md).
+3. **Mandatory Skill Loading**: Before modifying any file in `GAME_SOURCE/`, read the matching Master Skill in `.agents/skills/<skill>/SKILL.md` (mirrored in `.codex/skills/<skill>/SKILL.md`).
 
 ## Focused skill use and context
 
@@ -32,40 +34,45 @@ Upstream skills are guidance, subject to project constraints: preserve the 40-sc
 
 # JianghuSect AI Agent & Codex Instructions
 
-This repository contains the codebase and data for **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**.
-All AI assistants (Antigravity, Codex CLI, Gemini, Cursor, Claude Code) must follow these project conventions and load the relevant project skills before modifying code.
+This repository contains the complete source and data for **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**.
+All AI assistants (Antigravity, Codex CLI, Gemini, Cursor, Claude Code) must follow the priority routing below.
 
-## 1. Project Directory & Source Location
-- Primary game source: `GAME_SOURCE/`
-- Standalone single-file build: `GAME_SOURCE/JianghuSect_single.html` (rebuilt via `node GAME_SOURCE/tools/build_single.js`)
-- Data files: `GAME_SOURCE/data/`
-- Engine scripts: `GAME_SOURCE/js/`
-- Tools & Validators: `GAME_SOURCE/tools/`
-- Regression Suites (83 suites): `GAME_SOURCE/test/`
+## 1. Priority Skill Routing for Active & Upcoming Work
 
-## 2. Installed Master Skills (100% Tailored for JianghuSect)
-All 13 skills in `.agents/skills/` and `.codex/skills/` are custom-engineered specifically for JianghuSect Evolution's codebase:
-- **`ai-behavior-patterns`**: NPC Brain architecture — `HC` 12-layer psychology (`human_core.js`), `COG` deterministic aspirations/goals/18 sect offices (`cognition.js`), and `AI` Utility scoring (`ScoreAcc` / `S.add` Thai reasons in `npc.why`) & station reservation (`ai.js`).
-- **`game-data-integrity`**: Strict data schemas, unique IDs, Dual-ID (`REC_*`/`ITEM_*`), weapon affinities, elemental profiles, effects, and 100% Edit Hub spawnability (`tools/validate_data_schema.js`).
-- **`combat-design`**: Combat engine (`combat.js`), 7 weapon types, 10 elements (`ELEM`), 8 timed buffs with strict `until` expiration (`stats.js`), 18 resonance sets, formation synergies (`COMBAT.evaluateFormationSynergy`), and spirit beast pack combat.
-- **`progression-design`**: 9 Major Cultivation Paths, 78 Subpaths, stage equivalence (`CULT.equivalentStage`), bottlenecks (`bottleneck.js`), 9-realm tracks, and Spirit Beast taming, breeding (`CULT.breedBeasts`), & bloodline awakening (`cultivation.js`).
-- **`economy-balancing`**: Dual currency (Spirit Stones & CP ledger `cpeco.js`), sect stock vs personal bag (`economy.js`), recipe scrolls (`FORMULA:*`), external market (`external_market.js`), and anti-arbitrage rules.
-- **`gameplay-architecture`**: 40-script-tag load invariant (`index.html` & `test/load.js`), `W` single-state authority, `SIM.tick` cadence (`sim.js`), 14 starting archetypes, and 3 specialist facilities (`sect.js`).
-- **`game-ui-ux`**: Wuxia UI drawers (`ui.js`), NPC inspection tabs, 72-cell Item Icon Atlas (`wuxia_item_atlas.png`), Grid/List inventory, Edit Hub spawner, and Canvas 2D rendering (`render.js`).
-- **`procedural-gen`**: Seeded `U.RNG`, `240×192` world map & Southern Spirit River (`world_map.js`), 10-species fishing & Monte Carlo loot tables (`fishing.js`), unique legendary non-duplication, wildlife ecology, and Ancient Sanctums (`explore.js`).
-- **`save-system-patterns`**: `SIM.save` / `SIM.load` round-trip idempotency, legacy save migration, receipt idempotency, and transient cache stripping (`_c`, `_d`, `_cs`, `_nd`).
-- **`performance-budgeting` & `web-performance`**: Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_ver`, `_passVer`, `earliestExpiry` caches and 60 FPS Canvas frustum culling.
-- **`qa-test-matrix` & `web-testing`**: 83-suite regression harness (`test/run_all.js`, `tools/run_parallel_tests.js`), fast Node VM harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
+Always load only the skills relevant to the subsystem you are touching:
 
-## 3. Data Integrity & Validation Commands
-Whenever modifying items, martial arts, recipes, AI, or combat effects, **always run**:
+### Tier 1 — Deep-Dive Core Gameplay Skills (Read First for Feature Work)
+1. **[`progression-design`](./.agents/skills/progression-design/SKILL.md)** *(200+ lines)*
+   - **Use for**: 9 Major Cultivation Paths, 78 Subpaths, Stage Equivalence (`CULT.equivalentStage`), 14 Starting Sect Archetypes, Spirit Beast Companions/Breeding/War-Beasts/Mount Caravans, and Universal Dungeons (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`).
+2. **[`combat-design`](./.agents/skills/combat-design/SKILL.md)** *(200+ lines)*
+   - **Use for**: Exact `COMBAT.strike` damage formula, 12 composite stats (`STATS.KEYS`), 8 timed buffs (`STATS.BUFF_CATALOG` with strict `until` expiration), 7 weapon classes, 18 Equipment Resonance Sets, Formation Synergies (`COMBAT.evaluateFormationSynergy`), and Grand Martial Conferences (`SECT.WORLD_MARTIAL_CONFERENCE`).
+3. **[`ai-behavior-patterns`](./.agents/skills/ai-behavior-patterns/SKILL.md)** *(217 lines)*
+   - **Use for**: NPC Psychological Utility AI (`js/ai.js` `ScoreAcc` / `S.add` Thai reasons in `npc.why`), Goal-Driven Cognition (`js/cognition.js` `COG` aspirations, goals, 18 sect offices, zero-RNG rule), 12-Layer `HC` stats (`js/human_core.js`), and station reservation (`AI.freeStation`, `AI.reserve`, `AI.release`).
+4. **[`game-data-integrity`](./.agents/skills/game-data-integrity/SKILL.md)** *(167 lines)*
+   - **Use for**: Adding/modifying items, recipes (`REC_*` / `ITEM_*` Dual-ID), martial arts, weapon affinities, `elementProfile`, combat effects, and 100% Edit Hub spawner resolution.
+
+### Tier 2 — Domain System Skills (Read When Touching Specific Subsystems)
+5. **[`economy-balancing`](./.agents/skills/economy-balancing/SKILL.md)** — Sect Stock (`W.sect.stock`), Spirit Stones, CP Ledger (`js/cpeco.js`), crafting, recipe scrolls (`FORMULA:*`), external market, and `VASSAL_TREATY` tribute flows.
+6. **[`procedural-gen`](./.agents/skills/procedural-gen/SKILL.md)** — Seeded `U.RNG`, `240×192` World Map & Southern Spirit River, fishing Monte Carlo loot tables, 33 unique legendaries, wildlife ecology, and Ancient Sanctums.
+7. **[`game-ui-ux`](./.agents/skills/game-ui-ux/SKILL.md)** — Wuxia UI drawers (`js/ui.js`), NPC inspection tabs, 72-cell Item Icon Atlas (`wuxia_item_atlas.png`), Grid/List inventory, Edit Hub controls, and Canvas 2D rendering (`js/render.js`).
+
+### Tier 3 — Architecture, Save, Performance & QA Guardrail Skills
+8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** — 40-script-tag load invariant, `W` state authority, `SIM.tick` lifecycle, and `tools/build_single.js`.
+9. **[`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md)** — `SIM.save` / `SIM.load` round-trip integrity, legacy save migration, receipt idempotency, and transient cache stripping.
+10. **[`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md)** & **[`web-performance`](./.agents/skills/web-performance/SKILL.md)** — Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_ver`, `_passVer`, `earliestExpiry`, and Canvas frustum culling.
+11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** — 83-suite regression matrix (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
+
+---
+
+## 2. Mandatory Validation & Build Commands
+Whenever modifying data, AI, progression, or combat code, **always run**:
 ```bash
 node GAME_SOURCE/tools/validate_data_schema.js
-node GAME_SOURCE/tools/build_single.js
-node GAME_SOURCE/test/run_all.js
+cd GAME_SOURCE && node tools/build_single.js
+node test/run_all.js
 ```
 
-## 4. Critical Constraints
+## 3. Non-Negotiable Constraints
 - **Core Lock:** Never modify `GAME_SOURCE/js/human_core.js` (`HC.FINGERPRINT === '155:2f9c9dd7'`, SHA-256 locked).
-- **40 Script Tags:** Never add or remove `<script>` tags in `GAME_SOURCE/index.html` or `GAME_SOURCE/test/load.js`; extend existing modules.
-- **Thai Localization:** All user-facing items, martial arts, recipes, techniques, and `S.add` AI reasons MUST use Thai (`nameTh`).
+- **40 Script Tags:** Never add or remove `<script>` tags in `GAME_SOURCE/index.html` or `GAME_SOURCE/test/load.js`.
+- **Thai Localization:** All user-facing items, martial arts, recipes, techniques, and `S.add` AI reasons MUST include Thai (`nameTh`).
