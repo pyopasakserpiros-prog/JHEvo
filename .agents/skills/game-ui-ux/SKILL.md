@@ -87,3 +87,6 @@ This skill governs the DOM drawers, HUD, 72-cell Item Sprite Atlas, responsive G
   node test/ui_content.js
   node test/startup_ui.js
   ```
+
+## Patch v2.0.18 Additions: Interactive SVG World Map & Node Inspector (`UI.rWorldMap`)
+- Added `['map', '🗺️ แผนที่ยุทธภพ']` tab to `UI.open('world')` rendering an interactive SVG 5-region map, clickable nodes (`select-world-node`), Node Inspector drawer, 3-Phase Siege launcher (`launch-sect-siege`), Vassal policy/tribute/distress controls, Resource Node garrison controls, Anomaly dispatch, and Four-Symbol Awakening button (`edit-pet-four-symbol`).

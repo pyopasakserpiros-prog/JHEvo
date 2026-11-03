@@ -114,7 +114,7 @@
     nameTh: 'เก็บสมุนไพรหุบเขา', icon: '🌿', color: '#6fbf73',
     can: (n, W) => n.h.state.energy > 35 && n.h.state.satiety > 30 && !(n.inj && n.inj.length) && !!W.map.byId.grove,
     score(n, W, S) {
-      const herbs = ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1', 'MAT_HERB_JADE_LOTUS_2'], sc = herbs.reduce((s, k) => s + CPE.scarcity(W, k), 0) / herbs.length;
+      const sc = (CPE.scarcity(W, 'MAT_HERB_DEW_GRASS_1') + CPE.scarcity(W, 'MAT_HERB_CINDER_LEAF_1') + CPE.scarcity(W, 'MAT_HERB_JADE_LOTUS_2')) / 3;
       const rate = 6 * sc * (0.8 + (n.h.skills.herbalism || 0) / 120);
       S.add('เก็บสมุนไพรแลกคุณูปการ ≈' + Math.round(rate) + '/ชม. (ของ' + (sc > 1.3 ? 'ขาด' : sc < 0.8 ? 'ล้น' : 'พอดี') + ')', clamp(rate / 14, 0, 0.9) * (0.55 + CPE.drive(n) * 0.9));
       interestTerm(n, 'herbs', S, 0.5); S.add('ชอบท่องธรรมชาติ', (E(n, 'interests.exploring') - 50) / 220);
@@ -141,21 +141,41 @@
   function interestTerm(n, id, S, w) { const v = (E(n, 'interests.' + id) - 50) / 100 * w; S.add('สนใจ' + id, v); }
 
   /* ----- หลอมโอสถพื้นฐานให้สำนัก (ทุกคนทำได้ สำนักออกวัตถุดิบ) ----- */
+  function getBasicMask(W) {
+    if (!W || !W.sect) return 0;
+    const seq = W._stockSeq || 0, pop = W.npcs ? W.npcs.length : 0;
+    if (W._pbSeq === seq && W._pbPop === pop && W._pbMask !== undefined) return W._pbMask;
+    const basics = JD.CP.BASIC;
+    let mask = 0;
+    for (let i = 0; i < basics.length; i++) {
+      const r = basics[i];
+      if (!ECO.inputsOk(W, r)) continue;
+      const key = 'P:' + r.id;
+      if (ECO.count(W, key) >= CPE.target(W, key) * 1.6) continue;
+      mask |= (1 << i);
+    }
+    W._pbSeq = seq; W._pbPop = pop; W._pbMask = mask;
+    return mask;
+  }
   function pickBasic(W, n) {
     if (W && W.t > 0 && n._pbTick === W.t) return n._pbVal;
+    const mask = getBasicMask(W);
+    if (mask === 0) {
+      if (W && W.t > 0) n._pbTick = W.t;
+      return (n._pbVal = null);
+    }
     let best = null, bs = -1e9; const sk = n.h.skills.ALCHEMY || 0;
     const basics = JD.CP.BASIC;
     for (let i = 0; i < basics.length; i++) {
+      if ((mask & (1 << i)) === 0) continue;
       const r = basics[i];
       if (r.tier > 1 && sk + 25 < r.minMastery) continue;
-      if (!ECO.inputsOk(W, r)) continue;
       const key = 'P:' + r.id, have = ECO.count(W, key), tgt = CPE.target(W, key);
-      if (have >= tgt * 1.6) continue;
       const s = (tgt - have) / tgt + W.rng.next() * 0.1 - r.tier * 0.05;
       if (s > bs) { bs = s; best = { r, short: s }; }
     }
     if (W && W.t > 0) n._pbTick = W.t;
-    return (n._pbVal = n._pcVal = best);
+    return (n._pbVal = best);
   }
   A.brewBasic = {
     nameTh: 'หลอมโอสถพื้นฐานให้สำนัก', icon: '🧪', color: '#8fd3c8',
@@ -179,9 +199,9 @@
   };
 
   /* ----- บริจาคของที่สมาชิกเก็บไว้เอง (วัตถุดิบ / คัมภีร์วิชา / ม้วนตำรับ) ----- */
-  const personalMats = n => Object.keys((n.inv && n.inv.mats) || {}).filter(k => (n.inv.mats[k] || 0) > 0 && !ECO.REPAIR_STONES[k]);
-  const personalTechs = (n, W) => Array.from(new Set((n.inv && n.inv.techs) || [])).filter(id => !!CULT.tech(id) && (!W || !W.sect.library.includes(id)));
-  const personalRecipes = n => Array.from(new Set((n.inv && n.inv.recipes) || [])).filter(id => !!ECO.recipeById[id]);
+  const personalMats = n => { const m = n && n.inv && n.inv.mats; if (!m) return []; const out = []; for (const k in m) { if (m[k] > 0 && !ECO.REPAIR_STONES[k]) out.push(k); } return out; };
+  const personalTechs = (n, W) => { const a = n && n.inv && n.inv.techs; if (!a || !a.length) return []; return Array.from(new Set(a)).filter(id => !!CULT.tech(id) && (!W || !W.sect.library.includes(id))); };
+  const personalRecipes = n => { const a = n && n.inv && n.inv.recipes; if (!a || !a.length) return []; return Array.from(new Set(a)).filter(id => !!ECO.recipeById[id]); };
   const personalSurplusGear = (n, W) => {
     if (!n || !n.inv || !Array.isArray(n.inv.gear) || !n.inv.gear.length) return [];
     return n.inv.gear.filter(eq => {
@@ -217,10 +237,10 @@
     return { equipped, retired, surplusCount: surplus.length, surplus };
   };
   const personalDonateFrac = n => clamp(0.38 + E(n, 'personality.integrity') / 260 + E(n, 'personality.loyalty') / 360 - E(n, 'values.wealthResource') / 520, 0.25, 0.92);
-  const hasDonatableMats = n => personalMats(n).some(k => (n.inv.mats[k] || 0) > 1 || personalDonateFrac(n) >= 0.68);
+  const hasDonatableMats = n => { const m = n && n.inv && n.inv.mats; if (!m) return false; let f = -1; for (const k in m) { const q = m[k]; if (q > 0 && !ECO.REPAIR_STONES[k]) { if (q > 1) return true; if (f < 0) f = personalDonateFrac(n); if (f >= 0.68) return true; } } return false; };
   A.donate = {
     nameTh: 'นำของส่วนตัวบริจาค', icon: '🎁', color: '#c6a4f5',
-    can: (n, W) => (hasDonatableMats(n) || personalTechs(n, W).length > 0 || personalRecipes(n).length > 0 || personalSurplusGear(n, W).length > 0) && n.h.state.energy > 15 && n.h.state.satiety > 15,
+    can: (n, W) => n.h.state.energy > 15 && n.h.state.satiety > 15 && (hasDonatableMats(n) || personalTechs(n, W).length > 0 || personalRecipes(n).length > 0 || personalSurplusGear(n, W).length > 0),
     score(n, W, S) {
       const ids = personalMats(n), techs = personalTechs(n, W), recipes = personalRecipes(n), gears = personalSurplusGear(n, W);
       if (!ids.length && !techs.length && !recipes.length && !gears.length) return;
@@ -653,7 +673,9 @@
   CPE.autoUse = (W, n) => {
     if (n.dead || !n.inv || (n.act && n.act.id === 'fight')) return;
     if (Array.isArray(n.inv.gear) && n.inv.gear.length > 0) CPE.evaluatePersonalBagGear(W, n);
-    if (!(n.inv.craftedPills && n.inv.craftedPills.length) && !(n.inv.pills && Object.keys(n.inv.pills).length)) return;
+    let hasPills = !!(n.inv.craftedPills && n.inv.craftedPills.length);
+    if (!hasPills && n.inv.pills) { for (const _k in n.inv.pills) { hasPills = true; break; } }
+    if (!hasPills) return;
     const s = n.h.state, R = JD.CP.RECOVERY, hm = CULT.hpMax(n);
     const owned = n.inj && n.inj.length && pickCrafted(n, 'healInjury') || s.hp < hm * 0.5 && pickCrafted(n, 'healHealth') || n.cult && n.cult.toxic > 40 && pickCrafted(n, 'clearToxic') || s.heartDemon > 45 && pickCrafted(n, 'clearHeartDemon') || s.energy < 18 && pickCrafted(n, 'energyRestore');
     if (owned) return CPE.consumeCrafted(W, n, owned);

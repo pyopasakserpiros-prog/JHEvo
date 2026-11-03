@@ -266,3 +266,14 @@ node test/elemental_effect_scaling_suite.js
 node test/v208_paths_and_beast_pets_suite.js
 node test/v209_facilities_party_synergy_suite.js
 ```
+
+## Patch v2.0.18 Additions: 3-Phase Sect Sieges & Four-Symbol Combat Hooks
+- **3-Phase Sect Siege Engine (`EXPED.marshalStrikeForce`, `EXPED.resolveSectSiege`)**:
+  - Phase 1 (`OUTER_GATE_BREACH`): Strike force & war-beasts vs gate sentinels (`WHITE_TIGER` +45% breach, `BLACK_TORTOISE` +25% breach).
+  - Phase 2 (`PROTECTIVE_ARRAY_CLASH`): Evaluates `COMBAT.evaluateFormationSynergy` and `COMBAT.resolveWeaponTactics` against defending elders.
+  - Phase 3 (`PATRIARCH_DUEL`): Final clash against defending Sect Master (`leaderNameTh`).
+- **Four-Symbol Combat Hooks (`js/combat.js`)**:
+  - `WHITE_TIGER`: +35% Gate Beast damage, +15% owner attack, +22 armor pen, and `bleed` + `armorbreak` on pet assist.
+  - `AZURE_DRAGON`: +28% Gate Beast damage, +10% owner attack, and 4% Max Qi restore on pet assist.
+  - `VERMILION_PHOENIX`: +25% Gate Beast damage, `burn` on pet assist, and once-per-fight Nirvana Rebirth (`เพลิงนิพพานหงส์ชาด`, 42% HP restore + 25% shield).
+  - `BLACK_TORTOISE`: 45% damage interception for owner with 22% damage reflection (`สะท้อนเกราะเสวียนอู่`), and -38% Gate Beast damage taken.

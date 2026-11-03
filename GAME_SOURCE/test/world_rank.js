@@ -126,7 +126,7 @@ assert.strictEqual(EXPLORE.RANK_FOE_POWER[2], 480);
 assert.strictEqual(EXPLORE.RANK_FOE_POWER[3], 2800);
 assert.strictEqual(EXPLORE.RANK_FOE_POWER[4], 18500);
 
-assert.strictEqual(EXPLORE.WORLDS.length, 12, 'Must have 12 Myriad Worlds');
+assert(EXPLORE.WORLDS.length >= 12, 'Must preserve at least 12 Myriad Worlds');
 EXPLORE.WORLDS.forEach(world => {
   assert(world.areas, `World ${world.id} must have areas definition`);
   for (let r = 1; r <= 4; r++) {

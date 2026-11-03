@@ -245,3 +245,9 @@ node GAME_SOURCE/test/test_inventory_intelligence.js
 node GAME_SOURCE/test/test_catalyst_refinement.js
 node GAME_SOURCE/test/test_procedural_equipment_system.js
 ```
+
+## Patch v2.0.18 Additions: Contestable Resource Nodes, Vassal Tributes & Free-Trade Treaties
+- **6 Contestable Resource Nodes (`EXPED.RESOURCE_NODE_DEFS`, `EXPED.harvestResourceNodes`)**:
+  - `MINE_CELESTIAL_STONE`, `MINE_STARFALL_CRAG`, `VALLEY_MILLENNIAL_HERB`, `VALLEY_IMMORTAL_MARSH`, `TOLL_JIANGNAN_CROSSWAY`, `TOLL_SOUTHERN_WATERWAY` generating daily/seasonal Spirit Stones and T2-T4 materials (+25% yield when garrisoned by `BLACK_TORTOISE`).
+- **Vassal Tributes & Free-Trade Treaties (`EXPED.collectVassalTributes`, `FREE_TRADE_TREATY`)**:
+  - Seasonal tributes scale by `LENIENT` (0.75x), `STANDARD` (1.0x), or `HARSH` (1.45x); `FREE_TRADE_TREATY` reduces specialty material market prices by 20%.

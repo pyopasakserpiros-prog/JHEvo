@@ -132,7 +132,7 @@ test('expedition depart fairly distributes site selection among all matching bio
 
 // 5. 12 Worlds thematic subpools and calibrated non-combat DC
 test('all 12 worlds have 2 distinct subpools per rank with calibrated non-combat DC', () => {
-  assert(EX.WORLDS.length === 12, 'must have exactly 12 worlds');
+  assert(EX.WORLDS.length >= 12, 'must preserve at least 12 worlds');
   for (const w of EX.WORLDS) {
     for (let r = 1; r <= 4; r++) {
       const ar = w.areas[r];

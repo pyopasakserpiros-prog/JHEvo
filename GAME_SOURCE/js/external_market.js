@@ -380,7 +380,7 @@
     let budget = Math.max(0, S.stones - cashReserve);
 
     // 1. Intelligent External Purchasing
-    const needs = purchaseNeeds(W, v);
+    const needs = (budget > 0 || (!v.sectPostponedLogged && !(S.shortageDirectives && S.shortageDirectives.length > 0))) ? purchaseNeeds(W, v) : [];
     const hasShortage = (S.shortageDirectives || []).length > 0 || needs.length > 0;
     if ((S.stones < cashReserve || budget <= 0) && hasShortage && !v.sectPostponedLogged) {
       v.sectPostponedLogged = true;
@@ -867,9 +867,10 @@
   // Visiting merchants participate in the NPC utility system at the existing market station.
   AI.ACTS.outsideTrade = {
     nameTh: 'ซื้อขายกับพ่อค้าภายนอก', icon: '🪙', color: '#c9a15b',
-    can: (n, W) => !!EXT.memberQuote(W, n),
+    can: (n, W) => !!(n._otQuote = EXT.memberQuote(W, n)),
     score(n, W, S) {
-      const q = EXT.memberQuote(W, n);
+      const q = n._otQuote !== undefined ? n._otQuote : EXT.memberQuote(W, n);
+      n._otQuote = undefined;
       if (!q) return S.add('ไม่มีข้อเสนอที่เหมาะสม', -3);
       const isBuy = String(q.side || '').startsWith('buy');
       S.add((isBuy ? 'ต้องการ' : 'ขาย') + (q.itemNameTh || ECO.name(q.itemId)), 0.8 + q.priority * 0.65);

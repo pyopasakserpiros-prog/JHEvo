@@ -76,3 +76,6 @@ Always run idempotent `ensure*` hooks at the end of `SIM.deserialize`:
    node test/legacy_save.js
    node test/save_integrity.js
    ```
+
+## Patch v2.0.18 Policy Update: No Legacy Save Backwards-Compatibility Required
+- **"ไม่จำเป็นต้องทำให้เซฟเก่าเล่นต่อได้"**: AI is unlocked to design new architectures and data structures freely without worrying about backwards compatibility with saves from previous versions. Within-version `SIM.serialize` / `SIM.deserialize` determinism remains verified.

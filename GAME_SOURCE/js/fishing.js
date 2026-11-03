@@ -760,11 +760,15 @@
     const seasonMult = season === 0 ? 1.20 : season === 1 ? 1.10 : season === 2 ? 1.0 : 0.80;
     const weatherMult = weather === 'rain' ? 1.18 : weather === 'snow' ? 0.85 : 1.0;
 
+    const fourSym = (g.CULT && g.CULT.sectFourSymbolSummary) ? g.CULT.sectFourSymbolSummary(W) : null;
+    const azureMult = (fourSym && fourSym.hasAzureDragon) ? 1.35 : 1.0;
     for (const [zid, z] of Object.entries(f.zones)) {
       const zdef = ZONES[zid];
       if (!zdef) continue;
-      const gain = Math.max(1, Math.round(zdef.dailyRegen * seasonMult * weatherMult));
-      z.stock = Math.min(zdef.maxStock, (z.stock || 0) + gain);
+      const effMax = Math.round(zdef.maxStock * (fourSym && fourSym.hasAzureDragon ? 1.25 : 1.0));
+      z.maxStock = effMax;
+      const gain = Math.max(1, Math.round(zdef.dailyRegen * seasonMult * weatherMult * azureMult));
+      z.stock = Math.min(effMax, (z.stock || 0) + gain);
     }
 
     // NPC จัดการปลา ขยะใต้น้ำ และหีบปริศนาในกระเป๋าช่วงสรุปประจำวัน
@@ -873,13 +877,16 @@
 
     const sk = npc ? FISHING.skillOf(W, npc) : (opts.anglerSkill || 15);
     const species = FISHING.pickSpeciesForZone(W, zid, sk, opts.speciesRoll);
-    const q = FISHING.computeFishQuality(W, npc, species);
+    const fourSym = (g.CULT && g.CULT.sectFourSymbolSummary) ? g.CULT.sectFourSymbolSummary(W) : null;
+    const hasAzure = !!(fourSym && fourSym.hasAzureDragon);
+    const q = clamp(+(FISHING.computeFishQuality(W, npc, species) + (hasAzure ? 0.12 : 0)).toFixed(2), 0.75, 1.55);
+    const qty = hasAzure ? 2 : 1;
 
-    f.stats.fishCaught++;
-    f.stats.bySpecies[species.id] = (f.stats.bySpecies[species.id] || 0) + 1;
+    f.stats.fishCaught += qty;
+    f.stats.bySpecies[species.id] = (f.stats.bySpecies[species.id] || 0) + qty;
 
     if (npc) {
-      FISHING.addFishToBag(npc, species.id, 1, q);
+      FISHING.addFishToBag(npc, species.id, qty, q);
       const fk = FISHING.knowledgeOf(W, npc);
       fk.knownZones[zid] = true;
       fk.knownSpecies[species.id] = (fk.knownSpecies[species.id] || 0) + 1;
@@ -896,6 +903,8 @@
       species,
       tier: species.tier,
       quality: q,
+      qty,
+      azureDragonBonus: hasAzure,
       zoneId: zid,
       roll: rCatch
     };

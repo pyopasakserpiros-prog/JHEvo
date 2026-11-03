@@ -740,13 +740,14 @@
   }
   ST.get = n => {
     if ((n.buffs && n.buffs.length > 0) || (n.sx && n.sx.length > 0)) ST.purgeExpired(n, ST.now);
-    const c = n._cs, eq = n.equip || {}, pk = n.foe ? '' : passiveCacheKey(n);
-    if (c && ST.now > 0 && ST.now >= c.t && ST.now - c.t < 3 && (!c.nextExp || ST.now < c.nextExp) && c.eqW === eq.WEAPON && c.eqA === eq.ARMOR && c.eqX === eq.ACCESSORY && c.ver === n._ver && c.sub === (n.cult && n.cult.sub) && c.stage === (n.cult && n.cult.stage) && c.passKey === pk) return c.v;
+    const c = n._cs, eq = n.equip || {}, pk = n.foe ? '' : passiveCacheKey(n), s0 = n.h && n.h.state, injL = n.inj ? n.inj.length : 0;
+    const ttl = (n.act && n.act.id === 'fight') ? 3 : 30;
+    if (c && ST.now > 0 && ST.now >= c.t && ST.now - c.t < ttl && (!c.nextExp || ST.now < c.nextExp) && c.eqW === eq.WEAPON && c.eqA === eq.ARMOR && c.eqX === eq.ACCESSORY && c.ver === n._ver && c.sub === (n.cult && n.cult.sub) && c.stage === (n.cult && n.cult.stage) && c.passKey === pk && (!s0 || (c.injL === injL && Math.abs(s0.hp - c.hp0) < 4 && Math.abs(s0.energy - c.en0) < 6))) return c.v;
     if (n.foe) { const r = compute(n, false); n._cs = { t: ST.now, v: r.v, nextExp: earliestExpiry(n) }; return r.v; }
-    n._hpf = clamp(n.h.state.hp / Math.max(1, hpMaxBase(n)), 0, 1);
-    const v = computeFast(n); n._cs = { t: ST.now, v, nextExp: earliestExpiry(n), eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: pk }; return v;
+    n._hpf = clamp(s0.hp / Math.max(1, hpMaxBase(n)), 0, 1);
+    const v = computeFast(n); n._cs = { t: ST.now, v, nextExp: earliestExpiry(n), eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: pk, hp0: s0.hp, en0: s0.energy, injL }; return v;
   };
-  function hpMaxBase(n) { const d = g.MARTIAL ? g.MARTIAL.derived(n) : HC.derived(n); return d.hpMax * CULT.hpMult(n); }
+  function hpMaxBase(n) { return getBaseFast(n).b.hp; }
   ST.explain = n => { if (!n.foe) n._hpf = clamp(n.h.state.hp / Math.max(1, hpMaxBase(n)), 0, 1); return compute(n, true); };
   ST.hpMax = n => {
     if (n.foe) return n.hpMax;
@@ -762,7 +763,7 @@
       const vMove = Math.round(clamp(Math.max(30, base.b.move * (1 + base.p.move - 0.1 * injSev) + base.f.move), 30, 320));
       return clamp(vMove / base.b.move, 0.6, 2.2);
     }
-    const v = ST.get(n); const d = g.MARTIAL ? g.MARTIAL.derived(n) : HC.derived(n); const base = 100 * d.walkSpeed / 1.05; return clamp(v.move / base, 0.6, 2.2);
+    const v = ST.get(n); const base = n.foe ? 100 : getBaseFast(n).b.move; return clamp(v.move / base, 0.6, 2.2);
   };
   /* พลังรบรวม (ใช้ในภารกิจ/จัดอันดับ) — ปรับเทียบให้ใกล้ของเดิม (ST.RK) */
   ST.RK = 1.15;

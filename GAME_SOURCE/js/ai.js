@@ -96,11 +96,11 @@
     return true;
   };
   AI.walkSpeed = (W, n) => {
-    const injLen = n.inj ? n.inj.length : 0, bLen = n.buffs ? n.buffs.length : 0, sxLen = n.sx ? n.sx.length : 0, cSt = n.cult ? n.cult.stage : 0, pVer = n._passVer || 0;
+    const injLen = n.inj ? n.inj.length : 0, bLen = n.buffs ? n.buffs.length : 0, sxLen = n.sx ? n.sx.length : 0, cSt = n.cult ? n.cult.stage : 0, pVer = n._passVer || 0, bLast = bLen ? n.buffs[bLen - 1] : null;
     let wb = n._wsBase;
-    if (!wb || wb.ver !== n._ver || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.sxLen !== sxLen || bLen > 0 || sxLen > 0) {
+    if (!wb || wb.ver !== n._ver || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.bLast !== bLast || wb.sxLen !== sxLen || sxLen > 0) {
       const d = (g.MARTIAL && g.MARTIAL.derived) ? g.MARTIAL.derived(n) : HC.derived(n);
-      wb = n._wsBase = { ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, sxLen, v: d.walkSpeed * CULT.speedMult(n) };
+      wb = n._wsBase = { ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, bLast, sxLen, v: d.walkSpeed * CULT.speedMult(n) };
     }
     let v = wb.v * MAP.speedAt(W.map, n.x, n.y);
     if (injLen) v *= 0.75; if (n.h.state.energy < 20) v *= 0.8; if (n.run) v *= 1.5;
@@ -752,7 +752,7 @@
     score(n, W, S) {
       const labor = [.8, 0.65, .25, .05, 0, 0, 0][n.rank];
       S.add('งานประจำศิษย์', labor * 0.75 * dutyWeight(n));
-      const need = Object.keys(W.sect.want || {}).length; S.add('คลังขาดแร่/วัตถุดิบ', Math.min(0.5, need * .05));
+      let need = 0; const sw = W.sect.want; if (sw) { for (const _k in sw) need++; } S.add('คลังขาดแร่/วัตถุดิบ', Math.min(0.5, need * .05));
       S.add('ความอึด', (E(n, 'physiology.endurance') - 50) / 250);
       interestTerm(n, 'labor', S, 0.9); S.add('อยากได้ทรัพย์', (E(n, 'values.wealthResource') - 50) / 250);
       if (W.sect.policy.focus.commerce > 0.28) S.add('นโยบายเน้นการค้า', 0.2);
@@ -1419,6 +1419,24 @@
     ac.total = ac.id === 'pair' ? 9999 : (a.dur ? a.dur(n, W, ctx) : 60); ac.left = ac.total;
   };
 
+  const _FastS = { u: 0, _fast: true, add(_, v) { this.u += v; return this; } };
+  function _buildWhy(W, n, id, recLen, lastRec, repPenBase) {
+    const S = Sc();
+    A[id].score(n, W, S);
+    if (g.COG) g.COG.modifiers(W, n, id, S);
+    if (recLen && id !== 'pair') {
+      const rec = n.recent;
+      let rep = 0; for (let ri = 0; ri < recLen; ri++) if (rec[ri] === id) rep++;
+      if (rep) {
+        if (lastRec === id && g.COG && g.COG.isContinuingProductiveWork && g.COG.isContinuingProductiveWork(W, n, id)) {
+          S.add('ทำต่อเนื่องให้สำเร็จ', 0.24);
+        } else {
+          S.add('ทำบ่อยแล้ว', repPenBase * rep);
+        }
+      }
+    }
+    return S.why.sort((p, q) => Math.abs(q[1]) - Math.abs(p[1])).slice(0, 4);
+  }
   AI.decide = (W, n) => {
     if (g.COG) g.COG.prepare(W, n);
     const cands = [];
@@ -1429,38 +1447,42 @@
       const a = A[id];
       if (n.cool[id] && n.cool[id] > W.t) continue;
       if (a.can && !a.can(n, W)) continue;
-      const S = Sc(); a.score(n, W, S);
-      if (g.COG) g.COG.modifiers(W, n, id, S);
+      _FastS.u = 0;
+      a.score(n, W, _FastS);
+      if (g.COG) g.COG.modifiers(W, n, id, _FastS);
       if (recLen) {
         let rep = 0; for (let ri = 0; ri < recLen; ri++) if (rec[ri] === id) rep++;
         if (rep) {
           if (lastRec === id && g.COG && g.COG.isContinuingProductiveWork && g.COG.isContinuingProductiveWork(W, n, id)) {
-            S.add('ทำต่อเนื่องให้สำเร็จ', 0.24);
+            _FastS.u += 0.24;
           } else {
-            S.add('ทำบ่อยแล้ว', repPenBase * rep);
+            _FastS.u += repPenBase * rep;
           }
         }
       }
-      cands.push({ id, S });
+      cands.push({ id, u: _FastS.u });
     }
     // กิจกรรมคู่ (พบปะ)
-    if (!(n.cool.pair > W.t)) { const S = Sc(); A.pair.score(n, W, S); if (g.COG) g.COG.modifiers(W, n, 'pair', S); cands.push({ id: 'pair', S }); }
+    if (!(n.cool.pair > W.t)) { _FastS.u = 0; A.pair.score(n, W, _FastS); if (g.COG) g.COG.modifiers(W, n, 'pair', _FastS); cands.push({ id: 'pair', u: _FastS.u }); }
     // ผู้ตัดสินเลือก: softmax ตามนิสัย
     const temp = g.COG ? g.COG.choiceTemperature(n) : clamp(0.12 + E(n, 'temperament.sensationSeeking') / 600 + E(n, 'personality.creativity') / 900 - E(n, 'personality.discipline') / 700 + E(n, 'temperament.emotionalReactivity') / 1000, 0.05, 0.4);
-    cands.sort((x, y) => y.S.u - x.S.u);
+    cands.sort((x, y) => y.u - x.u);
     const top = cands.slice(0, 6);
-    const mx = top[0].S.u;
+    const mx = top[0].u;
     const order = []; const pool = top.slice();
-    while (pool.length) { const pick = W.rng.weighted(pool, c => Math.exp((c.S.u - mx) / temp)); order.push(pick); pool.splice(pool.indexOf(pick), 1); }
+    while (pool.length) { const pick = W.rng.weighted(pool, c => Math.exp((c.u - mx) / temp)); order.push(pick); pool.splice(pool.indexOf(pick), 1); }
     // Defect #2 Fix: If all top-6 stations are occupied, allow up to 2 valid fallbacks from remaining candidates
     if (cands.length > 6) {
-      const rest = cands.slice(6).filter(c => c.S.u > -0.5);
+      const rest = cands.slice(6).filter(c => c.u > -0.5);
       for (let i = 0; i < Math.min(2, rest.length); i++) order.push(rest[i]);
     }
-    n.lastScores = cands.slice(0, 7).map(x => ({ id: x.id, u: Math.round(x.S.u * 100) / 100 }));
+    n.lastScores = cands.slice(0, 7).map(x => ({ id: x.id, u: Math.round(x.u * 100) / 100 }));
     for (const c of order) {
-      const why = c.S.why.slice().sort((p, q) => Math.abs(q[1]) - Math.abs(p[1])).slice(0, 4);
-      if (c.id === 'pair') { if (AI.socialStart(W, n)) { n.why = why; if(g.COG)g.COG.chosen(W,n,'pair',why); return true; } n.cool.pair = W.t + 45; continue; }
+      if (c.id === 'pair') {
+        const why = _buildWhy(W, n, 'pair', recLen, lastRec, repPenBase);
+        if (AI.socialStart(W, n)) { n.why = why; if(g.COG)g.COG.chosen(W,n,'pair',why); return true; }
+        n.cool.pair = W.t + 45; continue;
+      }
       const a = A[c.id]; const w = a.where ? a.where(W, n) : { pos: { x: n.x, y: n.y } };
       if (!w) {
         if(g.COG)g.COG.blocked(W,n,c.id);
@@ -1468,6 +1490,7 @@
         n.cool[c.id] = W.t + 25;
         continue;
       }
+      const why = _buildWhy(W, n, c.id, recLen, lastRec, repPenBase);
       if (AI.begin(W, n, c.id, w, why)) { n.why = why; if(g.COG)g.COG.chosen(W,n,c.id,why); return true; }
     }
     n.act = { id: 'idle', stage: 'do', left: 20, total: 20, ctx: {}, why: [] };

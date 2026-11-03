@@ -91,3 +91,6 @@ When writing a new integration test:
    const W2 = g.SIM.deserialize(str);
    assert.strictEqual(W2.t, W.t);
    ```
+
+## Patch v2.0.18 Additions: 97/97 Regression Suite Coverage
+- Restored `v215_equipment_and_legendary_expansion_suite.js`, `v216_mentorship_jianghu_legendary_relics_suite.js`, and `v217_deep_cohesion_and_relic_trinity_suite.js`, and added `v218_world_map_hegemony_beasts_suite.js` (`97/97 PASS` in `test/run_all.js`).

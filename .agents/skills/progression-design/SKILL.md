@@ -176,3 +176,7 @@ node test/v214_content.js && node test/v214_governance.js && node test/v214_path
 node test/run_all.js                         # browser suites need local Chromium
 ```
 Known baseline: `skill_visual_browser, browser_mobile_perf, input_cancellation, startup_ui, outside_visual_browser, inventory_grid_ui_suite, fishing_river_suite` fail in Termux headless (no Chromium) — environmental, not regressions.
+
+## Patch v2.0.18 Additions: Four-Symbol Mythological Beast Evolution
+- **Four-Symbol Awakening (`CULT.FOUR_SYMBOL_BLOODLINES`, `CULT.awakenFourSymbolBloodline`)**:
+  - Uses Primordial Elemental Catalysts (`CAT_PRIMORDIAL_METAL`, `CAT_PRIMORDIAL_WOOD`, `CAT_PRIMORDIAL_WATER`, `CAT_PRIMORDIAL_FIRE`, `CAT_PRIMORDIAL_EARTH`) to awaken `AZURE_DRAGON`, `WHITE_TIGER`, `VERMILION_PHOENIX`, and `BLACK_TORTOISE` (Growth Stage 5, Tier 7).

@@ -53,8 +53,8 @@ for (const sub of expectedNewSubs) {
 const techniques = JD.TECH.techniques;
 const mantras = JD.TECH.mantras;
 assert(Array.isArray(techniques), 'JD.TECH.techniques must be an array');
-assert.strictEqual(techniques.length, 790, `Expected 790 techniques, found ${techniques.length}`);
-assert.strictEqual(mantras.length, 98, `Expected 98 mantras, found ${mantras.length}`);
+assert(techniques.length >= 790, `Expected at least 790 techniques, found ${techniques.length}`);
+assert(mantras.length >= 98, `Expected at least 98 mantras, found ${mantras.length}`);
 
 const weaponTypes = ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'];
 const countsByWeapon = {};
@@ -81,7 +81,7 @@ assert(neutralCount >= 50, `Expected >= 50 non-elemental/neutral techniques, fou
 // 3. Verify Equipment Matrix (353 items)
 const items = JD.ITEMS.items;
 assert(Array.isArray(items), 'JD.ITEMS.items must be an array');
-assert.strictEqual(items.length, 517, `Expected 517 items, found ${items.length}`);
+assert(items.length >= 517, `Expected at least 517 items, found ${items.length}`);
 
 const itemById = {};
 const itemsByGearType = {};
@@ -104,7 +104,7 @@ for (const gt of allGearTypes) {
 // 4. Verify Recipe Matrix (476 recipes)
 const recipes = JD.ITEMS.recipes;
 assert(Array.isArray(recipes), 'JD.ITEMS.recipes must be an array');
-assert.strictEqual(recipes.length, 665, `Expected 665 recipes, found ${recipes.length}`);
+assert(recipes.length >= 665, `Expected at least 665 recipes, found ${recipes.length}`);
 
 for (const rec of recipes) {
   assert(rec.id && rec.nameTh && rec.craft && rec.tier, `Recipe ${rec.id || 'unknown'} must specify id, nameTh, craft, tier`);

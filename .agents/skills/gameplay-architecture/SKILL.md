@@ -427,3 +427,7 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 - [ ] **Data Schema Validation:** Run `node tools/validate_data_schema.js` and verify **0 Errors**.
 - [ ] **Full Test Suite:** Run `node test/run_all.js` and ensure all 83 test suites pass.
 - [ ] **Single-File Compilation:** Run `node tools/build_single.js` and ensure clean generation.
+
+## Patch v2.0.18 Additions: World Map Topology & Hegemony Loop
+- Integrated `EXPED.ensureWorldTopology(W)`, `EXPED.tickHegemony(W)`, and `EXPED.harvestResourceNodes(W)` into `EXPED.daily(W)` and `CONTENT.ensure(W)` while maintaining `1.351 ms/tick` for 80 active NPCs.
+- **Save Policy Update:** Backwards compatibility with older save versions is not required (`"ไม่จำเป็นต้องทำให้เซฟเก่าเล่นต่อได้"`), allowing clean architectural evolution.

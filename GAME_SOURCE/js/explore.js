@@ -167,7 +167,35 @@
       loot: [['formation', 3, 'ชิ้นส่วนจักรกลวิญญาณ', 4, 0, 2], ['ore', 3, 'โลหะกลไก', 4, 0, 2], ['gear', 2, 'อาวุธจักรกล', 4, 0, 3], ['stones', 2, 'เหรียญเฟือง', 100, 260, 1], ['tech', 1, 'พิมพ์เขียวกลศาสตร์', 4, 0, 3], ['relic', 0.35, 'หม้อต้มของหุ่นช่างหลวง', 'cauldron', 0, 4]] },
     { id: 'nightmare', nameTh: 'ดินแดนฝันร้าย', icon: '🌑', d: 4, desc: 'โลกที่สร้างจากความกลัวของผู้คนนับล้าน เข้าไปแล้วต้องเผชิญหน้ากับสิ่งที่กลัวที่สุด',
       enc: [['trial', 4.5, 'เผชิญสิ่งที่กลัวที่สุด'], ['fight', 2.5, 'ปีศาจแห่งความกลัว'], ['hazard', 2, 'ทางเดินที่เปลี่ยนรูปทุกก้าว'], ['rest', 0.8, 'เกาะแสงสว่างกลางความมืด'], ['lore', 1, 'บันทึกของผู้ที่ไม่ได้ออกไป']],
-      loot: [['boon', 3, 'ความกล้าหาญที่แท้จริง', 'mind', 0, 3], ['stones', 2, 'ผลึกความฝัน', 120, 300, 1], ['pill', 1.5, 'โอสถสงบจิต', 4, 0, 3], ['curse', 1.5, 'เงาความกลัวติดตัว', 0, 0, 1], ['relicmat', 0.5, 'เศษความฝันบรรพกาล', 0, 0, 4], ['relic', 0.35, 'ตะเกียงฝ่าฝันร้าย', 'lamp', 0, 4]] }
+      loot: [['boon', 3, 'ความกล้าหาญที่แท้จริง', 'mind', 0, 3], ['stones', 2, 'ผลึกความฝัน', 120, 300, 1], ['pill', 1.5, 'โอสถสงบจิต', 4, 0, 3], ['curse', 1.5, 'เงาความกลัวติดตัว', 0, 0, 1], ['relicmat', 0.5, 'เศษความฝันบรรพกาล', 0, 0, 4], ['relic', 0.35, 'ตะเกียงฝ่าฝันร้าย', 'lamp', 0, 4]] },
+    { id: 'bloodmoon', nameTh: 'พิภพจันทร์โลหิตหมื่นอสูร', icon: '🩸', d: 3.8, desc: 'พิภพที่ดวงจันทร์สีเลือดไม่เคยลับขอบฟ้า ฝูงอสูรโลหิตและเงาหยินออกล่าอย่างบ้าคลั่ง อุดมด้วยชิ้นส่วนอสูรโลหิตและคัมภีร์สังหาร',
+      v222BeastIds: ['BEAST_V222_BLOOD_KIRIN_WOLF', 'BEAST_V222_CRIMSON_CORPSE_BEAR', 'BEAST_V222_MIRAGE_SILK_MOTH', 'BEAST_V222_SHADOW_STALKER_PANTHER', 'BEAST_V222_NETHER_SCORPION_EMPEROR'],
+      v222MatIds: ['MAT_V222_BP_01', 'MAT_V222_BP_02', 'MAT_V222_BP_03', 'MAT_V222_BP_04', 'MAT_V222_BP_09', 'MAT_V222_BP_10', 'MAT_V222_BP_19', 'MAT_V222_BP_20', 'MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_25', 'MAT_V222_BP_26'],
+      v222RecipeIds: ['REC_V222_EQ_01', 'REC_V222_EQ_03', 'REC_V222_EQ_04', 'REC_V222_EQ_05', 'REC_V222_EQ_06', 'REC_V222_EQ_13', 'REC_V222_EQ_18', 'REC_V222_EQ_24'],
+      v222TechIds: ['TECH_V222_01', 'TECH_V222_02', 'TECH_V222_03', 'TECH_V222_04', 'TECH_V222_05', 'TECH_V222_19', 'TECH_V222_20'],
+      enc: [['fight', 4, 'ฝูงหมาป่ากิเลนโลหิตและพยัคฆ์ไขกระดูกสีชาด'], ['hazard', 2.5, 'หมอกโลหิตกัดกร่อนเส้นปราณ'], ['treasure', 2.5, 'แท่นบูชาศาสตราโลหิตโบราณ'], ['trial', 2, 'แรงกดดันจิตสังหารจันทร์สีเลือด'], ['lore', 1.5, 'ศิลาจารึกวิถีมารโลหิต']],
+      loot: [['beast', 4.5, 'ชิ้นส่วนอสูรจันทร์โลหิต', 5, 0, 2], ['stones', 2.5, 'ศิลาโลหิตอสูร', 140, 360, 1], ['gear', 2.5, 'ศาสตราอาบโลหิตอสูร', 5, 0, 3], ['tech', 2, 'คัมภีร์ยุทธ์จันทร์โลหิต', 4, 0, 3], ['boon', 1.5, 'ปราณโลหิตสูบฉีดกายา', 'body', 0, 3], ['relic', 0.35, 'กลองศึกหนังอสูรโลหิต', 'drum', 0, 4]] },
+    { id: 'thunderpeak', nameTh: 'พิภพสายฟ้าเก้าสวรรค์', icon: '⚡', d: 3.6, desc: 'หมู่ยอดเขาแม่เหล็กที่ลอยคว้างกลางเมฆอสนีบาตม่วง ถิ่นอาศัยของอสูรสายฟ้าและวายุความเร็วสูง',
+      v222BeastIds: ['BEAST_V222_THUNDER_ROC_FALCON', 'BEAST_V222_TEMPEST_WIND_SERPENT', 'BEAST_V222_THUNDER_HOOF_QILIN_STAG', 'BEAST_V222_GALE_SABERTOOTH_TIGER'],
+      v222MatIds: ['MAT_V222_BP_05', 'MAT_V222_BP_06', 'MAT_V222_BP_13', 'MAT_V222_BP_14', 'MAT_V222_BP_27', 'MAT_V222_BP_31'],
+      v222RecipeIds: ['REC_V222_EQ_02', 'REC_V222_EQ_08', 'REC_V222_EQ_10', 'REC_V222_EQ_12', 'REC_V222_EQ_15', 'REC_V222_EQ_16'],
+      v222TechIds: ['TECH_V222_11', 'TECH_V222_12', 'TECH_V222_13', 'TECH_V222_14', 'TECH_V222_15', 'TECH_V222_22', 'TECH_V222_23'],
+      enc: [['fight', 3.5, 'เสือดาวปีกอสนีและกระทิงราชันสายฟ้า'], ['hazard', 3, 'ม่านสายฟ้าสวรรค์ฟาดผ่า'], ['gather', 2.5, 'แร่เหล็กสายฟ้าและขนวิหคพายุ'], ['treasure', 2, 'ตำหนักพิณอสนีบนยอดผา'], ['trial', 2, 'รับคมสายฟ้าหลอมชีพจร']],
+      loot: [['beast', 4, 'ชิ้นส่วนอสูรสายฟ้าและวายุ', 5, 0, 2], ['ore', 3, 'ผลึกแร่อสนีม่วง', 4, 0, 2], ['gear', 2.5, 'ศาสตราประจุสายฟ้าสวรรค์', 5, 0, 3], ['tech', 2, 'คัมภีร์วิชาอสนีและวายุ', 4, 0, 3], ['stones', 2, 'ศิลาประกายอัสนี', 130, 340, 1], ['relic', 0.35, 'ระฆังอสนีสะท้านภพ', 'bell', 0, 4]] },
+    { id: 'frostabyss', nameTh: 'พิภพห้วงลึกเหมันต์นิรันดร์', icon: '🧊', d: 3.4, desc: 'มหาสมุทรใต้ชั้นน้ำแข็งหมื่นปีและวังผลึกเหมันต์ที่หงส์ขาวเหมันต์และวาฬสมุทรน้ำแข็งแหวกว่าย',
+      v222BeastIds: ['BEAST_V222_FROST_GLACIER_WYRM', 'BEAST_V222_IRON_WING_GARUDA', 'BEAST_V222_CELESTIAL_LOTUS_CRANE', 'BEAST_V222_ABYSSAL_LEVIATHAN_CRAB'],
+      v222MatIds: ['MAT_V222_BP_07', 'MAT_V222_BP_08', 'MAT_V222_BP_11', 'MAT_V222_BP_12', 'MAT_V222_BP_28', 'MAT_V222_BP_30'],
+      v222RecipeIds: ['REC_V222_EQ_07', 'REC_V222_EQ_11', 'REC_V222_EQ_14', 'REC_V222_EQ_19', 'REC_V222_EQ_20'],
+      v222TechIds: ['TECH_V222_06', 'TECH_V222_07', 'TECH_V222_08', 'TECH_V222_09', 'TECH_V222_10', 'TECH_V222_21'],
+      enc: [['fight', 3.5, 'อสรพิษวิญญาณน้ำแข็งและหมีหนามเหมันต์'], ['hazard', 2.5, 'กระแสน้ำวนเยือกแข็งสะกดวิญญาณ'], ['gather', 3, 'รังหงส์เหมันต์และผลึกน้ำแข็งพันปี'], ['treasure', 2, 'คลังศาสตราวังบาดาลน้ำแข็ง'], ['rest', 1.5, 'โถงผลึกอุ่นปราณใต้สมุทร']],
+      loot: [['beast', 4, 'ชิ้นส่วนอสูรห้วงลึกเหมันต์', 5, 0, 2], ['herb', 3, 'บัวหิมะใต้สมุทร', 4, 0, 2], ['gear', 2.5, 'ศาสตราผลึกน้ำแข็งนิรันดร์', 4, 0, 3], ['tech', 2, 'คัมภีร์เหมันต์และคีตเวทย์', 4, 0, 3], ['stones', 2, 'ศิลาเหมันต์บาดาล', 120, 310, 1], ['relic', 0.35, 'น้ำเต้าเก็บไอเหมันต์', 'gourd', 0, 4]] },
+    { id: 'astralvoid', nameTh: 'พิภพดาราจักรสุญตา', icon: '🌌', d: 4.4, desc: 'วงแหวนอุกกาบาตและวิหารดาราที่ลอยอยู่ในความว่างเปล่าต้นกำเนิด แหล่งรวมอสูรระดับตำนานและมรดกเทพดารา',
+      v222BeastIds: ['BEAST_V222_ASTRAL_NINE_TAIL_FOX', 'BEAST_V222_VOID_DEVOURING_CHIMERA', 'BEAST_V222_SOLAR_GOLD_TORTOISE', 'BEAST_V222_FLAME_MANE_LION_BOAR'],
+      v222MatIds: ['MAT_V222_BP_17', 'MAT_V222_BP_18', 'MAT_V222_BP_21', 'MAT_V222_BP_22', 'MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_33', 'MAT_V222_BP_34', 'MAT_V222_BP_35', 'MAT_V222_BP_36'],
+      v222RecipeIds: ['REC_V222_EQ_09', 'REC_V222_EQ_17', 'REC_V222_EQ_21', 'REC_V222_EQ_22', 'REC_V222_EQ_23', 'REC_V222_EQ_24'],
+      v222TechIds: ['TECH_V222_16', 'TECH_V222_17', 'TECH_V222_18', 'TECH_V222_24'],
+      enc: [['fight', 4, 'จิ้งจอกเก้าหางดาราและอสูรบรรพกาลกลืนดารา'], ['hazard', 3, 'รอยแยกแรงโน้มถ่วงดาราจักร'], ['treasure', 3, 'หอสมบัติดาราจักรโบราณ'], ['trial', 2.5, 'บททดสอบเจตจำนงแห่งดวงดาว'], ['lore', 2, 'แผนผังโคจรดาราจักรต้นกำเนิด']],
+      loot: [['beast', 4, 'ชิ้นส่วนเทพอสูรดาราจักร', 6, 0, 3], ['relicmat', 2, 'แก่นดาราบรรพกาล', 0, 0, 4], ['gear', 2.5, 'ศาสตราดาราจักรสุญตา', 6, 0, 4], ['tech', 2, 'มหาคัมภีร์ดาราและเพลิงสุริยัน', 5, 0, 4], ['stones', 2.5, 'ศิลาดาราสวรรค์', 240, 560, 2], ['relic', 0.4, 'ศิลาปราณบรรพกาลดารา', 'qistone', 0, 4]] }
   ];
   /* Calibrated static foe reference power per rank (not scaled to entrant's current power/gear) */
   EX.RANK_FOE_POWER = Object.freeze({
@@ -189,7 +217,11 @@
     skysea: ['ชายฝั่งเมฆขาว', 'น่านน้ำลอยเวหา', 'ห้วงลึกใต้ก้อนเมฆ', 'ร่องน้ำลึกไร้ก้นบนฟ้า'],
     godwar: ['ชายขอบสนามรบร้าง', 'ค่ายบัญชาการเทพ', 'สมรภูมิสายฟ้าทัณฑ์', 'ใจกลางมหาหลุมอุกกาบาต'],
     clock: ['ชานโรงงานเฟืองหยก', 'ห้องเครื่องจักรไอน้ำปราณ', 'หอคอยสมองกลวิญญาณ', 'แกนขับเคลื่อนโลกจักรกล'],
-    nightmare: ['หมอกควันฝันร้ายตื้น', 'หุบเขาแห่งความหวาดกลัว', 'นครร้างในฝันร้าย', 'ห้วงอเวจีฝันร้ายนิรันดร์']
+    nightmare: ['หมอกควันฝันร้ายตื้น', 'หุบเขาแห่งความหวาดกลัว', 'นครร้างในฝันร้าย', 'ห้วงอเวจีฝันร้ายนิรันดร์'],
+    bloodmoon: ['ชายป่าหนามโลหิต', 'หุบผาเขี้ยวพยัคฆ์สีชาด', 'ทะเลสาบจันทร์โลหิต', 'บัลลังก์ราชันมังกรโลหิต'],
+    thunderpeak: ['เนินหินประกายสายฟ้า', 'สันผาเสือดาวปีกอสนี', 'ยอดเขาพายุกระเรียนสวรรค์', 'แท่นอสนีบาตม่วงเก้าชั้นฟ้า'],
+    frostabyss: ['ทุ่งน้ำแข็งชายฝั่ง', 'ถ้ำผลึกอสรพิษเหมันต์', 'วังน้ำแข็งหงส์ขาว', 'ร่องสมุทรวาฬเหมันต์นิรันดร์'],
+    astralvoid: ['วงแหวนอุกกาบาตชั้นนอก', 'สะพานแสงดาวพเนจร', 'หอดูดาวจิ้งจอกเก้าหาง', 'ใจกลางรอยแยกอสูรกลืนดารา']
   };
 
   const WORLD_SUBPOOLS = {
@@ -6761,6 +6793,81 @@
     ]
   }
 };
+  const v222WorldSubpools = {
+    bloodmoon: {
+      1: [
+        { id: "bloodmoon_r1_thorn", nameTh: "ดงหนามหมาป่าโลหิต", enc: [["fight", 3, "หมาป่ากิเลนโลหิตออกล่า"], ["gather", 3, "คราบเลือดอสูรและสมุนไพรโลหิต"], ["hazard", 2, "เถาหนามดูดเลือด"]], loot: [["beast", 4, "เขี้ยวและหนังกิเลนโลหิต", 3, 0, 2], ["stones", 2.5, "ศิลาเปื้อนโลหิต", 45, 110, 1], ["herb", 2.5, "หญ้าโลหิตอสูร", 2, 0, 1]] },
+        { id: "bloodmoon_r1_crow", nameTh: "สุสานอีกากระดูก", enc: [["fight", 3, "ฝูงอีกากระดูกกลืนวิญญาณ"], ["treasure", 2.5, "หีบศาสตรานักล่าอสูร"], ["lore", 2, "ป้ายหลุมศพจารึกเพลงหมัดโลหิต"]], loot: [["beast", 3.5, "ขนและจะงอยอีกากระดูก", 3, 0, 2], ["gear", 2.5, "สนับมือและดาบโลหิต", 3, 0, 2], ["tech", 1.8, "เคล็ดวิชาหมัดโลหิต", 3, 0, 2]] }
+      ],
+      2: [
+        { id: "bloodmoon_r2_mantis", nameTh: "บึงบัวตั๊กแตนโลหิต", enc: [["fight", 3.5, "ตั๊กแตนบัวโลหิตเจ็ดพิษ"], ["gather", 3, "รังไหมและเคียวบัวโลหิต"], ["hazard", 2.5, "ละอองเกสรโลหิตคลั่ง"]], loot: [["beast", 4, "เคียวและปีกตั๊กแตนบัวโลหิต", 4, 0, 2], ["gear", 2.5, "แส้และดาบมารโลหิต", 3, 0, 2], ["stones", 2.5, "ศิลาบัวสีชาด", 95, 220, 2]] },
+        { id: "bloodmoon_r2_altar", nameTh: "ลานสังเวยจันทร์สีชาด", enc: [["fight", 3, "ผู้พิทักษ์ลานโลหิต"], ["trial", 2.5, "บททดสอบสะกดจิตมารโลหิต"], ["lore", 2.5, "ศิลาจารึกคีตมารโลหิต"]], loot: [["tech", 2.5, "คัมภีร์ดาบและพิณโลหิต", 4, 0, 3], ["beast", 3.5, "แก่นโลหิตอสูร", 4, 0, 2], ["pill", 2, "โอสถบำรุงโลหิต", 3, 0, 2]] }
+      ],
+      3: [
+        { id: "bloodmoon_r3_tiger", nameTh: "หุบผาพยัคฆ์ไขกระดูกโลหิต", enc: [["fight", 4, "พยัคฆ์ไขกระดูกโลหิตคำราม"], ["treasure", 3, "คลังศาสตราพยัคฆ์โลหิต"], ["trial", 2.5, "รับแรงกดดันราชันพยัคฆ์"]], loot: [["beast", 4.5, "ไขกระดูกและหนังพยัคฆ์โลหิต", 5, 0, 3], ["gear", 3, "ศาสตราพยัคฆ์โลหิตขั้นสูง", 5, 0, 3], ["tech", 2.2, "คัมภีร์ทวนและดาบมารโลหิต", 5, 0, 3]] },
+        { id: "bloodmoon_r3_sea", nameTh: "ชายฝั่งสมุทรโลหิต", enc: [["fight", 3.5, "อสูรสมุทรโลหิต"], ["hazard", 3, "คลื่นโลหิตซัดกระหน่ำ"], ["lore", 2.5, "แท่นจารึกแส้มังกรโลหิต"]], loot: [["beast", 4, "ชิ้นส่วนอสูรสมุทรโลหิต", 5, 0, 3], ["stones", 3, "ผลึกสมุทรโลหิต", 240, 540, 3], ["tech", 2.2, "เคล็ดวิชาแส้และกายาโลหิต", 5, 0, 3]] }
+      ],
+      4: [
+        { id: "bloodmoon_r4_dragon", nameTh: "วังบาดาลราชันมังกรสมุทรโลหิต", enc: [["fight", 4.5, "ราชันมังกรสมุทรโลหิตตื่นจากนิทรา"], ["treasure", 3.5, "มรดกราชันมังกรโลหิต"], ["trial", 3, "บททดสอบกลืนกินวิบากโลหิต"]], loot: [["beast", 5, "เขามังกรและเกล็ดย้อนมังกรโลหิต", 6, 0, 4], ["gear", 3, "ทวนและตราประทับราชันโลหิต", 6, 0, 4], ["tech", 2.5, "มหาคัมภีร์โลหิตบรรพกาล", 6, 0, 4], ["stones", 3, "ศิลาบรรพกาลสีชาด", 580, 1450, 4]] },
+        { id: "bloodmoon_r4_eclipse", nameTh: "ใจกลางสุริยุปราคาโลหิต", enc: [["fight", 4, "อวตารอสูรสุริยุปราคา"], ["lore", 3, "จารึกต้นกำเนิดมารโลหิต"], ["treasure", 3, "หีบสมบัติผนึกเก้าโลหิต"]], loot: [["relicmat", 2.5, "แก่นมรดกจันทร์โลหิต", 0, 0, 4], ["beast", 4.5, "หัวใจอสูรบรรพกาล", 6, 0, 4], ["gear", 3, "ศาสตราเทพอสูรโลหิต", 6, 0, 4]] }
+      ]
+    },
+    thunderpeak: {
+      1: [
+        { id: "thunderpeak_r1_wolf", nameTh: "ทุ่งหินหมาป่าเขี้ยววายุ", enc: [["fight", 3, "ฝูงหมาป่าเขี้ยววายุคลั่ง"], ["gather", 3, "แร่สายฟ้าตื้นและเขี้ยววายุ"], ["hazard", 2, "ลมกรดประจุไฟฟ้า"]], loot: [["beast", 4, "เขี้ยวและหนังหมาป่าวายุ", 3, 0, 2], ["ore", 3, "แร่ทองแดงสายฟ้า", 2, 0, 1], ["stones", 2.5, "ศิลาประจุลม", 45, 105, 1]] },
+        { id: "thunderpeak_r1_Echo", nameTh: "ผาหินสะท้อนเสียงฟ้า", enc: [["trial", 2.5, "ฟังเสียงฟ้าร้องจับจังหวะดาบ"], ["lore", 2.5, "รอยดาบสายฟ้าบนผาหิน"], ["treasure", 2, "หีบศาสตราผู้ฝึกตนสายฟ้า"]], loot: [["tech", 2, "เคล็ดวิชาดาบและก้าวสายฟ้า", 3, 0, 2], ["gear", 2.5, "ดาบและเกาทัณฑ์สายฟ้า", 3, 0, 2], ["stones", 2.5, "ศิลาผาอสนี", 50, 115, 1]] }
+      ],
+      2: [
+        { id: "thunderpeak_r2_leopard", nameTh: "ชะง่อนผาเสือดาวปีกอสนี", enc: [["fight", 3.5, "เสือดาวปีกอสนีโฉบจู่โจม"], ["gather", 2.5, "กรงเล็บและปีกสายฟ้า"], ["hazard", 2.5, "ฟ้าผ่าไร้เตือนล่วงหน้า"]], loot: [["beast", 4, "กรงเล็บและปีกเสือดาวอสนี", 4, 0, 2], ["gear", 2.5, "ดาบและอาภรณ์สายฟ้า", 4, 0, 2], ["tech", 2, "เพลงดาบเขี้ยวเสือดาวอสนี", 4, 0, 2]] },
+        { id: "thunderpeak_r2_crane", nameTh: "รังกระเรียนพายุเรียกเมฆ", enc: [["fight", 3, "กระเรียนพายุเรียกเมฆอัสนี"], ["treasure", 2.5, "ขนนกพายุและสายพิณอสนี"], ["lore", 2, "จารึกเพลงศรและพิณสายลม"]], loot: [["beast", 4, "ขนปีกและกระดูกกระเรียนพายุ", 4, 0, 2], ["tech", 2.2, "คัมภีร์ศรสายฟ้าและวายุ", 4, 0, 3], ["stones", 2.5, "ศิลาเมฆาอัสนี", 100, 230, 2]] }
+      ],
+      3: [
+        { id: "thunderpeak_r3_bull", nameTh: "ลานอสนีกระทิงราชัน", enc: [["fight", 4, "กระทิงราชันอสนีม่วงพุ่งชน"], ["trial", 2.5, "ต้านแรงสั่นสะเทือนสายฟ้า"], ["treasure", 2.5, "คลังศาสตราราชันอสนี"]], loot: [["beast", 4.5, "เขาวัชระและหนังกระทิงอสนี", 5, 0, 3], ["gear", 3, "แส้และเกราะหนักสายฟ้า", 5, 0, 3], ["tech", 2.2, "เคล็ดแส้สายฟ้ากระทิงราชัน", 5, 0, 3]] },
+        { id: "thunderpeak_r3_zither", nameTh: "ศาลาพิณสายฟ้าสวรรค์", enc: [["lore", 3, "แท่นศิลาพิณสายฟ้าเก้าชั้นฟ้า"], ["trial", 2.5, "ดีดสายพิณประสานเสียงฟ้าร้อง"], ["treasure", 2.5, "หีบคัมภีร์คีตเวทย์อสนี"]], loot: [["tech", 2.5, "คัมภีร์พิณสายฟ้าและชีพจรอัสนี", 5, 0, 3], ["gear", 2.5, "พิณและกระบี่สายฟ้า", 5, 0, 3], ["stones", 3, "ศิลาอสนีบริสุทธิ์", 240, 520, 3]] }
+      ],
+      4: [
+        { id: "thunderpeak_r4_altar", nameTh: "แท่นทัณฑ์สวรรค์อสนีบาตม่วง", enc: [["fight", 4.5, "อสูรผู้พิทักษ์สายฟ้าเก้าสวรรค์"], ["treasure", 3.5, "มหาสมบัติทัณฑ์สวรรค์"], ["trial", 3, "หลอมกายารับอสนีบาตม่วง"]], loot: [["beast", 5, "แก่นอสนีและชิ้นส่วนราชันสายฟ้า", 6, 0, 4], ["gear", 3, "ศาสตราเทพอสนีเก้าชั้นฟ้า", 6, 0, 4], ["tech", 2.5, "มหาคัมภีร์พิณและชีพจรสายฟ้าสวรรค์", 6, 0, 4], ["stones", 3, "ศิลาอสนีบรรพกาล", 560, 1420, 4]] },
+        { id: "thunderpeak_r4_eye", nameTh: "ใจกลางเนตรพายุนิรันดร์", enc: [["fight", 4, "พญาวิหคพายุสายฟ้า"], ["lore", 3, "จารึกสัจธรรมวายุและอสนี"], ["treasure", 3, "คลังมรดกเจ้าแห่งสายลม"]], loot: [["relicmat", 2.5, "แก่นมรดกอสนีสวรรค์", 0, 0, 4], ["tech", 2.5, "สุดยอดวิชาสายลมและสายฟ้า", 6, 0, 4], ["gear", 3, "ศาสตราวายุอัสนีระดับตำนาน", 6, 0, 4]] }
+      ]
+    },
+    frostabyss: {
+      1: [
+        { id: "frostabyss_r1_shore", nameTh: "ชายฝั่งน้ำแข็งหมีหนาม", enc: [["fight", 3, "หมีหนามน้ำแข็งบรรพกาล"], ["gather", 3, "หนามน้ำแข็งและสมุนไพรเหมันต์"], ["rest", 1.5, "โพรงน้ำแข็งบังลม"]], loot: [["beast", 4, "อุ้งเท้าและเกราะหมีหนามน้ำแข็ง", 3, 0, 2], ["herb", 3, "หญ้าน้ำค้างเยือกแข็ง", 2, 0, 1], ["stones", 2.5, "ศิลาน้ำแข็งใส", 45, 110, 1]] },
+        { id: "frostabyss_r1_gully", nameTh: "ร่องน้ำแข็งสะท้อนเสียงพิณ", enc: [["lore", 2.5, "ผนังน้ำแข็งสลักโน้ตพิณโบราณ"], ["trial", 2, "เดินปราณต้านไอเย็น"], ["treasure", 2, "หีบแช่แข็งของนักพรต"]], loot: [["tech", 2, "ลำนำพิณหงส์เหมันต์และหมัดน้ำแข็ง", 3, 0, 2], ["gear", 2.5, "พิณและสนับมือเหมันต์", 3, 0, 2], ["stones", 2.5, "ศิลาเกล็ดหิมะ", 50, 115, 1]] }
+      ],
+      2: [
+        { id: "frostabyss_r2_serpent", nameTh: "ถ้ำผลึกอสรพิษวิญญาณน้ำแข็ง", enc: [["fight", 3.5, "อสรพิษวิญญาณน้ำแข็งซุ่มโจมตี"], ["gather", 2.5, "เขี้ยวและเกล็ดงูน้ำแข็ง"], ["hazard", 2.5, "ไอเย็นแช่แข็งเส้นเลือด"]], loot: [["beast", 4, "เขี้ยวและเกล็ดอสรพิษน้ำแข็ง", 4, 0, 2], ["gear", 2.5, "กระบี่และเกาทัณฑ์น้ำแข็ง", 4, 0, 2], ["tech", 2, "เพลงกระบี่เงาเกล็ดน้ำแข็ง", 4, 0, 3]] },
+        { id: "frostabyss_r2_mirror", nameTh: "ลานกระจกน้ำแข็งสะท้อนจันทร์", enc: [["trial", 3, "ต่อสู้กับเงาสะท้อนบนลานน้ำแข็ง"], ["lore", 2.5, "จารึกเคล็ดหัวใจเหมันต์"], ["treasure", 2.5, "แท่นหยกเหมันต์"]], loot: [["tech", 2.2, "เคล็ดหัวใจเหมันต์และศรน้ำแข็ง", 4, 0, 3], ["stones", 2.5, "ศิลาจันทร์เหมันต์", 100, 230, 2], ["pill", 2, "โอสถหยกเหมันต์", 3, 0, 2]] }
+      ],
+      3: [
+        { id: "frostabyss_r3_swan", nameTh: "วังน้ำแข็งหงส์ขาวเหมันต์", enc: [["fight", 4, "หงส์ขาวเหมันต์เก้าสวรรค์กางปีก"], ["treasure", 3, "แท่นขนหงส์เหมันต์และน้ำอมฤต"], ["lore", 2.5, "บทเพลงหงส์น้ำแข็งนิรันดร์"]], loot: [["beast", 4.5, "ขนหงส์และหงอนน้ำแข็งหงส์ขาว", 5, 0, 3], ["gear", 3, "อาภรณ์และพิณหงส์เหมันต์", 5, 0, 3], ["tech", 2.2, "คัมภีร์ศรและพิณเหมันต์ขั้นสูง", 5, 0, 3]] },
+        { id: "frostabyss_r3_trench", nameTh: "หุบเหวน้ำลึกไร้แสง", enc: [["fight", 3.5, "อสูรน้ำลึกเหมันต์"], ["hazard", 3, "แรงดันน้ำเยือกแข็งบดขยี้"], ["treasure", 2.5, "ซากเรือโบราณแช่แข็ง"]], loot: [["beast", 4, "ชิ้นส่วนอสูรน้ำลึก", 5, 0, 3], ["stones", 3, "ผลึกเหมันต์ก้นสมุทร", 230, 520, 3], ["gear", 2.5, "ศาสตราเหมันต์โบราณ", 5, 0, 3]] }
+      ],
+      4: [
+        { id: "frostabyss_r4_whale", nameTh: "ร่องสมุทรวาฬเหมันต์นิรันดร์", enc: [["fight", 4.5, "วาฬยักษ์ห้วงลึกเหมันต์แหวกว่าย"], ["treasure", 3.5, "มหาสมบัติใต้ร่องสมุทรน้ำแข็ง"], ["trial", 3, "สดับคลื่นเสียงวาฬเหมันต์บรรลุเต๋า"]], loot: [["beast", 5, "กระดูกครีบและแก่นอำพันวาฬเหมันต์", 6, 0, 4], ["gear", 3, "ศาสตราและเครื่องรางวาฬเหมันต์", 6, 0, 4], ["tech", 2.5, "ฝ่ามือวาฬสมุทรเหมันต์กลืนคลื่น", 6, 0, 4], ["stones", 3, "ศิลาบรรพกาลเหมันต์", 550, 1400, 4]] },
+        { id: "frostabyss_r4_core", nameTh: "แกนน้ำแข็งปฐมกาล", enc: [["fight", 4, "ผู้พิทักษ์แกนน้ำแข็งหมื่นกัลป์"], ["lore", 3, "จารึกปฐมบทแห่งวารีและเหมันต์"], ["treasure", 3, "แท่นผลึกต้นกำเนิดเหมันต์"]], loot: [["relicmat", 2.5, "แก่นมรดกเหมันต์นิรันดร์", 0, 0, 4], ["beast", 4.5, "แก่นปราณอสูรเหมันต์ขั้นสูงสุด", 6, 0, 4], ["tech", 2.5, "มหาคัมภีร์เหมันต์บรรพกาล", 6, 0, 4]] }
+      ]
+    },
+    astralvoid: {
+      1: [
+        { id: "astralvoid_r1_ring", nameTh: "วงแหวนหินดาวตกชั้นนอก", enc: [["fight", 3, "อสูรหินดาวตกและแรดศิลา"], ["gather", 3, "เศษแร่อุกกาบาตและนอแรดศิลา"], ["hazard", 2, "กระแสฝุ่นดาวคมกริบ"]], loot: [["beast", 4, "นอและเกราะแรดศิลาเหล็กไหล", 4, 0, 2], ["ore", 3, "แร่เหล็กดาวตก", 3, 0, 2], ["stones", 2.5, "ศิลาฝุ่นดาว", 60, 140, 1]] },
+        { id: "astralvoid_r1_bridge", nameTh: "สะพานแสงดาราขาดวิ่น", enc: [["trial", 2.5, "ก้าวเดินบนสะพานแสงดาวไร้พึ่งพิง"], ["lore", 2.5, "เสาศิลาจารึกค่ายกลดารา"], ["treasure", 2, "หีบสมบัติผู้เฝ้าสะพานดาว"]], loot: [["tech", 2, "เคล็ดวิชาศรสายลมและดารา", 4, 0, 2], ["gear", 2.5, "ศาสตราแสงดาว", 4, 0, 2], ["stones", 2.5, "ศิลาสะพานดาว", 65, 150, 1]] }
+      ],
+      2: [
+        { id: "astralvoid_r2_toad", nameTh: "แอ่งสุริยันคางคกทองคำ", enc: [["fight", 3.5, "คางคกทองคำกลืนสุริยัน"], ["gather", 3, "ลิ้นทองคำและหนังคางคกสุริยัน"], ["hazard", 2.5, "เปลวเพลิงสุริยันลุกไหม้"]], loot: [["beast", 4, "ลิ้นและหนังคางคกทองคำสุริยัน", 5, 0, 3], ["gear", 2.5, "หมัดและเกราะเพลิงสุริยัน", 4, 0, 3], ["tech", 2.2, "หมัดเพลิงสุริยันหลอมศิลา", 4, 0, 3]] },
+        { id: "astralvoid_r2_forge", nameTh: "เตาหลอมอุกกาบาตร้าง", enc: [["treasure", 3, "เบ้าหลอมศาสตราดาราจักร"], ["lore", 2.5, "พิมพ์เขียวหลอมศาสตราดารา"], ["trial", 2.5, "ควบคุมไฟดาราหน้าเตาโบราณ"]], loot: [["gear", 3, "ศาสตราและเครื่องรางดาราจักร", 5, 0, 3], ["tech", 2.2, "เกาทัณฑ์เพลิงผลาญกัลป์และเตาสุริยัน", 5, 0, 3], ["stones", 3, "ศิลาเพลิงดารา", 130, 290, 2]] }
+      ],
+      3: [
+        { id: "astralvoid_r3_fox", nameTh: "หอดูดาวจิ้งจอกเก้าหางดารา", enc: [["fight", 4, "จิ้งจอกเก้าหางดาราสวรรค์ร่ายมายา"], ["trial", 3, "ฝ่าค่ายกลมายาดวงดาวเก้าชั้น"], ["treasure", 3, "คลังสมบัติหอดูดาวสวรรค์"]], loot: [["beast", 4.5, "เขี้ยวมายาและขนเก้าหางจิ้งจอกดารา", 6, 0, 3], ["gear", 3, "อาภรณ์และแหวนดาราจักร", 5, 0, 3], ["tech", 2.5, "คัมภีร์มายาดาราและคีตเวทย์", 5, 0, 3]] },
+        { id: "astralvoid_r3_array", nameTh: "แท่นค่ายกลเคลื่อนดารา", enc: [["lore", 3, "ผังค่ายกลดาราจักรต้นกำเนิด"], ["fight", 3.5, "หุ่นเทวรูปพิทักษ์ดารา"], ["treasure", 2.5, "หีบหยกดาราสวรรค์"]], loot: [["formation", 3.5, "แกนค่ายกลดาราจักร", 5, 0, 3], ["stones", 3, "ศิลาดาราบริสุทธิ์", 280, 620, 3], ["gear", 2.5, "ศาสตราค่ายกลดารา", 5, 0, 3]] }
+      ],
+      4: [
+        { id: "astralvoid_r4_chimera", nameTh: "ห้วงเหวอสูรบรรพกาลกลืนดารา", enc: [["fight", 4.5, "อสูรบรรพกาลกลืนดาราสำแดงเดช"], ["treasure", 3.5, "มหาสมบัติแกนกลางสุญตา"], ["trial", 3.5, "เผชิญหน้าแรงกลืนกินแห่งความว่างเปล่า"]], loot: [["beast", 5, "เขี้ยวฉีกมิติและเกราะอสูรกลืนดารา", 6, 0, 4], ["gear", 3.5, "ศาสตราและตราประทับกลืนดารา", 6, 0, 4], ["tech", 2.5, "มหาคัมภีร์สุญตาและเตาสุริยันนิรันดร์", 6, 0, 4], ["stones", 3.5, "ศิลาต้นกำเนิดดาราจักร", 650, 1600, 4]] },
+        { id: "astralvoid_r4_throne", nameTh: "บัลลังก์เทพดาราจักรนิรันดร์", enc: [["fight", 4, "เงาจักรพรรดิเทพดารา"], ["lore", 3.5, "มหาคัมภีร์ศิลาแห่งจักรวาล"], ["treasure", 3.5, "คลังศาสตราเทพดารา"]], loot: [["relicmat", 3, "แก่นมรดกเทพดาราจักร", 0, 0, 4], ["gear", 3, "ศาสตราเทพดาราไร้เทียมทาน", 6, 0, 4], ["tech", 2.5, "สุดยอดวิชาดาราจักรสุญตา", 6, 0, 4]] }
+      ]
+    }
+  };
+  Object.assign(WORLD_SUBPOOLS, v222WorldSubpools);
   EX.WORLD_SUBPOOLS = WORLD_SUBPOOLS;
 
   EX.WORLD_BY_ID = {};
@@ -6829,8 +6936,68 @@
   EX.CAVE_BANDS = CAVE_BANDS; EX.CAVE_GUARD = CAVE_GUARD;
   const TIDES = [
     { nameTh: 'ปราณล้นหลาม', loot: 1.35, danger: 1.0 }, { nameTh: 'พายุมิติ', loot: 1.0, danger: 1.25 }, { nameTh: 'ฟ้าใส', loot: 1.0, danger: 0.85 },
-    { nameTh: 'ดวงดาวเรียงตัว', loot: 1.2, danger: 1.1 }, { nameTh: 'ราบเรียบ', loot: 1.0, danger: 1.0 }, { nameTh: 'หมอกมิติหนา', loot: 1.1, danger: 1.15 }
+    { nameTh: 'ดวงดาวเรียงตัว', loot: 1.2, danger: 1.1 }, { nameTh: 'ราบเรียบ', loot: 1.0, danger: 1.0 }, { nameTh: 'หมอกมิติหนา', loot: 1.1, danger: 1.15 },
+    { nameTh: 'จันทร์โลหิตหนุนปราณ', loot: 1.4, danger: 1.2 }, { nameTh: 'อสนีบาตม่วงผ่ามิติ', loot: 1.3, danger: 1.18 },
+    { nameTh: 'เหมันต์เยือกแข็งสะกดจิต', loot: 1.25, danger: 1.08 }, { nameTh: 'ดาราจักรเรียงซ้อน', loot: 1.45, danger: 1.22 }
   ];
+  EX.TIDES = TIDES;
+
+  EX.GATE_TYPES = Object.freeze({
+    GATE_STANDARD: {
+      id: 'GATE_STANDARD', nameTh: 'ประตูมิติศิลาโบราณ', icon: '🌀',
+      lootMult: 1.0, dangerMult: 1.0, preferredWorlds: ['swordyard', 'upside', 'clock', 'mirror'],
+      descTh: 'ประตูมิติมาตรฐานที่เปิดขึ้นบนแท่นศิลาโบราณ กระแสมิติเสถียรและปลอดภัย'
+    },
+    GATE_BLOOD_ECLIPSE: {
+      id: 'GATE_BLOOD_ECLIPSE', nameTh: 'ประตูมิติสุริยุปราคาโลหิต', icon: '🩸',
+      lootMult: 1.35, dangerMult: 1.2, preferredWorlds: ['bloodmoon', 'prison', 'nightmare'],
+      bonusBeastDropChance: 0.45,
+      descTh: 'รอยแยกมิติสีชาดที่ดึงดูดพิภพอสูรโลหิตและคุกบรรพกาล ดรอปชิ้นส่วนอสูรและศาสตราสังหารเพิ่มขึ้นอย่างมาก'
+    },
+    GATE_ASTRAL_CONJUNCTION: {
+      id: 'GATE_ASTRAL_CONJUNCTION', nameTh: 'ประตูมิติดาราจักรบรรจบ', icon: '🌌',
+      lootMult: 1.3, dangerMult: 1.1, preferredWorlds: ['astralvoid', 'thunderpeak', 'godwar', 'hourglass'],
+      bonusTechDropChance: 0.45,
+      descTh: 'ประตูมิติแสงดาราที่เชื่อมสู่พิภพดาราจักรและยอดเขาสายฟ้า เพิ่มโอกาสค้นพบคัมภีร์วิชาและตำรับหลอมศาสตรา'
+    },
+    GATE_PRIMORDIAL_RIFT: {
+      id: 'GATE_PRIMORDIAL_RIFT', nameTh: 'รอยแยกมิติบรรพกาลผันผวน', icon: '⚡',
+      lootMult: 1.5, dangerMult: 1.3, preferredWorlds: ['astralvoid', 'bloodmoon', 'godwar', 'thunderpeak'],
+      bonusGearDropChance: 0.45,
+      descTh: 'รอยแยกมิติที่ฉีกขาดออกด้วยปราณบรรพกาล อันตรายสูงแต่ให้รางวัลศิลาวิญญาณและศาสตราระดับสูงมากมาย'
+    },
+    GATE_HARMONY_PASSAGE: {
+      id: 'GATE_HARMONY_PASSAGE', nameTh: 'ช่องทางมิติเซียนเมฆา', icon: '❄️',
+      lootMult: 1.2, dangerMult: 0.85, preferredWorlds: ['frostabyss', 'eden', 'snow', 'skysea', 'fungi'],
+      bonusHerbDropChance: 0.45,
+      descTh: 'ช่องทางมิติอันเงียบสงบเชื่อมสู่พิภพเหมันต์และสวนสวรรค์ ลดอันตรายและอุดมด้วยสมุนไพรทิพย์และวัตถุดิบเหมันต์'
+    }
+  });
+
+  EX.openDimensionalGate = (W, worldId, gateTypeId) => {
+    EX.init(W);
+    const e = W.explore, rng = W.rng || { int: (a) => a, pick: (arr) => arr[0], weighted: (arr) => arr[0] };
+    const g = e.gate;
+    const gTypes = Object.values(EX.GATE_TYPES);
+    const chosenGateType = (gateTypeId && EX.GATE_TYPES[gateTypeId]) || (rng.pick ? rng.pick(gTypes) : gTypes[0]);
+    let w = worldId ? EX.WORLD_BY_ID[worldId] : null;
+    if (!w) {
+      const pref = EX.WORLDS.filter(x => chosenGateType.preferredWorlds && chosenGateType.preferredWorlds.includes(x.id));
+      w = (pref.length && rng.pick) ? rng.pick(pref) : EX.WORLDS[0];
+    }
+    g.open = true;
+    g.world = w.id;
+    g.gateType = chosenGateType.id;
+    g.gateTypeNameTh = chosenGateType.nameTh;
+    g.tide = rng.int ? rng.int(0, TIDES.length - 1) : 0;
+    g.until = (W.day || 0) + (rng.int ? rng.int(6, 11) : 8);
+    g.openings = (g.openings || 0) + 1;
+    const cd = e.codex.worlds[w.id] = e.codex.worlds[w.id] || { visits: 0, lore: 0 };
+    cd.seen = (cd.seen || 0) + 1;
+    if (W.log) W.log('explore', chosenGateType.icon + ' ' + chosenGateType.nameTh + 'เปิดขึ้นที่ลานประตูมิติ! เชื่อมสู่แดน「' + w.nameTh + '」' + w.icon + ' (' + TIDES[g.tide].nameTh + ') — ' + w.desc, []);
+    if (W.fame) W.fame(0.3);
+    return { gate: g, world: w, gateType: chosenGateType };
+  };
 
   /* ======================= สถานะโลก ======================= */
   EX.init = W => {
@@ -6918,7 +7085,31 @@
     const k = e[0], p1 = e[3], p2 = e[4]; let txt = null;
     const per = alive.reduce((s, m) => Math.max(s, E(m, 'intellect.perceptiveness')), 0);
     if (k === 'stones') { const v = Math.round((p1 + rng.next() * (p2 - p1)) * mult); out.stones += v; txt = e[2] + ' (' + v + ' ศิลา)'; }
-    else if (k === 'herb' || k === 'ore' || k === 'beast' || k === 'formation') { const cat = { herb: 'HERB', ore: 'ORE', beast: 'BEAST_PART', formation: 'FORMATION_PART' }[k]; const themed = site.id === 'snow' && cat === 'HERB' ? JD.ITEMS.materials.filter(m => ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2', 'MAT_HERB_SNOW_LOTUS_5'].includes(m.id) && m.tier <= p1 && m.tier >= Math.max(1, p1 - 2)) : null; const m = themed && themed.length ? rng.weighted(themed, m => 1 / (m.tier * m.tier)) : matOf(cat, p1, rng, Math.max(1, p1 - 2)); if (m) { const q = Math.max(1, Math.round((1 + (per - 40) / 45 + rng.next() * 1.4) * mult)); out.mats[m.id] = (out.mats[m.id] || 0) + q; txt = 'พบ「' + m.nameTh + '」×' + q; } }
+    else if (k === 'herb' || k === 'ore' || k === 'beast' || k === 'formation') {
+      const cat = { herb: 'HERB', ore: 'ORE', beast: 'BEAST_PART', formation: 'FORMATION_PART' }[k];
+      const worldDef = EX.WORLD_BY_ID[site.id];
+      let m = null;
+      if (cat === 'BEAST_PART' && worldDef && Array.isArray(worldDef.v222MatIds) && worldDef.v222MatIds.length) {
+        const v222Cands = worldDef.v222MatIds.map(id => ECO.matById && ECO.matById[id]).filter(x => x && x.tier <= p1 + 1);
+        if (v222Cands.length) m = rng.pick(v222Cands);
+      }
+      if (!m) {
+        const themed = site.id === 'snow' && cat === 'HERB' ? JD.ITEMS.materials.filter(m2 => ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2', 'MAT_HERB_SNOW_LOTUS_5'].includes(m2.id) && m2.tier <= p1 && m2.tier >= Math.max(1, p1 - 2)) : null;
+        m = themed && themed.length ? rng.weighted(themed, m2 => 1 / (m2.tier * m2.tier)) : matOf(cat, p1, rng, Math.max(1, p1 - 2));
+      }
+      if (m) {
+        const q = Math.max(1, Math.round((1 + (per - 40) / 45 + rng.next() * 1.4) * mult));
+        out.mats[m.id] = (out.mats[m.id] || 0) + q;
+        txt = 'พบ「' + m.nameTh + '」×' + q;
+      }
+      if (worldDef && Array.isArray(worldDef.v222RecipeIds) && worldDef.v222RecipeIds.length && rng.chance(0.45)) {
+        W.sect.knownRecipes = W.sect.knownRecipes || [];
+        out.recipes = out.recipes || [];
+        const rPick = rng.pick(worldDef.v222RecipeIds);
+        if (!W.sect.knownRecipes.includes(rPick)) W.sect.knownRecipes.push(rPick);
+        if (!out.recipes.includes(rPick)) out.recipes.push(rPick);
+      }
+    }
     else if (k === 'relicmat') { const m = matOf('HERITAGE_RELIC', 7, rng); if (m) { out.mats[m.id] = (out.mats[m.id] || 0) + 1; txt = e[2] + '「' + m.nameTh + '」'; } }
     else if (k === 'pill') { const ps = ECO.recipesFor(W, ['ALCHEMY']).filter(r => r.outType === 'PILL' && r.tier <= p1 && r.tier >= Math.max(1, p1 - 2)); if (ps.length) { const r = rng.pick(ps); const key = r.outItemId || 'P:' + r.id; out.pills[key] = (out.pills[key] || 0) + 1 + (rng.chance(0.3) ? 1 : 0); txt = e[2] + '「' + r.outNameTh + '」'; } }
     else if (k === 'gear') {
@@ -6930,7 +7121,20 @@
         if (rs.length) { const r = rng.pick(rs); const gear = ECO.mintGear(W, r, 1.05 + rng.next() * 0.35); gear.nameTh = (gear.nameTh || 'ศาสตรา') + ' (' + (site.short || site.nameTh) + ')'; gear.q = 1.2; out.gear.push(gear); txt = e[2] + '「' + gear.nameTh + '」'; }
       }
     }
-    else if (k === 'tech') { const drop = g.MARTIAL.discover(W, out, { tier: p1, rank: site.rank, caveFloor: site.caveFloor, source: site.caveFloor ? 'cave' : 'cave-gate' }); if (drop) txt = e[2] + ' · องค์ความรู้หายาก'; }
+    else if (k === 'tech') {
+      const worldDef = EX.WORLD_BY_ID[site.id];
+      if (worldDef && Array.isArray(worldDef.v222TechIds) && worldDef.v222TechIds.length && rng.chance(0.65)) {
+        W.sect.library = W.sect.library || [];
+        const tId = rng.pick(worldDef.v222TechIds);
+        if (!W.sect.library.includes(tId)) W.sect.library.push(tId);
+        if (!out.techs.includes(tId)) out.techs.push(tId);
+        const tObj = CULT.tech ? CULT.tech(tId) : null;
+        txt = e[2] + ' · คัมภีร์「' + (tObj ? tObj.nameTh : tId) + '」';
+      } else {
+        const drop = g.MARTIAL.discover(W, out, { tier: p1, rank: site.rank, caveFloor: site.caveFloor, source: site.caveFloor ? 'cave' : 'cave-gate' });
+        if (drop) txt = e[2] + ' · องค์ความรู้หายาก';
+      }
+    }
     else if (k === 'boon') { const b = p1; if (b === 'qi' && finder.cult) CULT.gain(finder, CULT.threshold(finder) * 0.14); else if (b === 'body') { HC.trainBody(finder, 'strength', 4); HC.trainBody(finder, 'endurance', 4); } else if (b === 'mind') { HC.trainMind(finder, 'comprehension', 3); HC.trainMind(finder, 'willpower', 3); } else if (b === 'luck') { finder.h.destiny.luck = Math.min(100, finder.h.destiny.luck + 3); HC.touch(finder); } else if (finder.cult) CULT.gain(finder, CULT.threshold(finder) * 0.08); HC.experience(finder, 'insight', 0.8); txt = e[2] + ' (ผู้รับ: ' + nm + ')'; }
     else if (k === 'curse') { finder.h.state.heartDemon = clamp(finder.h.state.heartDemon + 8, 0, 100); HC.feel(finder, { stress: 8, mood: -4 }); if (rng.chance(0.25)) AI.injure(W, finder, 1, 'ถูกพลังมารกัดกร่อน'); txt = e[2] + ' — ' + nm + ' ได้รับผลกระทบ'; }
     else if (k === 'person') { const q = clamp(rng.gauss(1.1, 0.5), 0, 2.5); const nn = W.makeNpc({ quality: q, ageYears: rng.int(16, 30), rank: 0, rootBias: 1, fromExped: true }); if (nn) { nn.x = (ex.px || MAP.EXIT.x) + .5; nn.y = (ex.py || MAP.EXIT.y) + .5; nn.travel = null; nn.h.origin.region = site.nameTh; nn.joinDay = W.day; txt = e[2] + ' ' + nn.h.name.given + ' ขอติดตามเข้าสำนัก'; W.log('recruit', nn.h.name.given + ' ผู้พเนจรจาก' + site.nameTh + ' ตามคณะสำรวจมาเข้าสำนัก', [nn.id]); } }
@@ -7145,10 +7349,11 @@
     e.spots.spring.charge = Math.min(e.spots.spring.max, e.spots.spring.charge + 7 + e.spots.spring.lvl * 2);
     if (g.open && day >= g.until) { g.open = false; g.next = day + rng.int(22, 48); W.log('explore', '🌀 ประตูมิติปิดลงอีกครั้ง — แดน「' + EX.WORLD_BY_ID[g.world].nameTh + '」หายไปจากสายตา', []); }
     else if (!g.open && day >= g.next && !W.threat.raid) {
-      const last = g.world; const w = rng.weighted(EX.WORLDS.filter(x => x.id !== last), x => 1 + (x.d <= 2.6 ? 0.5 : 0));
-      g.open = true; g.world = w.id; g.tide = rng.int(0, TIDES.length - 1); g.until = day + rng.int(6, 11); g.openings++;
-      W.log('explore', '🌀 ประตูมิติเปิดที่ลานประตูมิติ! มองเห็นแดน「' + w.nameTh + '」' + w.icon + ' (' + TIDES[g.tide].nameTh + ') — ' + w.desc, []); W.fame(0.3);
-      const cd = e.codex.worlds[w.id] = e.codex.worlds[w.id] || { visits: 0, lore: 0 }; cd.seen = (cd.seen || 0) + 1;
+      const last = g.world;
+      const gTypes = Object.values(EX.GATE_TYPES);
+      const chosenGT = rng.pick(gTypes);
+      const w = rng.weighted(EX.WORLDS.filter(x => x.id !== last), x => 1 + (x.d <= 2.6 ? 0.4 : 0) + (chosenGT.preferredWorlds && chosenGT.preferredWorlds.includes(x.id) ? 1.2 : 0));
+      EX.openDimensionalGate(W, w.id, chosenGT.id);
     }
     const cv = e.cave; Object.keys(cv.guard).forEach(f => { if (cv.guard[f] && day - cv.guard[f] > 70 && f !== '10') { cv.guard[f] = 0; } });
     e.relics.forEach(id => { const r = EX.RELICS[id]; if (r.fx === 'fame') W.fame(r.val); else if (r.fx === 'stones') ECO.earn(W, r.val, 'ของวิเศษ: ' + r.nameTh); else if (r.fx === 'grain') ECO.add(W, 'grain', r.val); else if (r.fx === 'qi') W.npcs.forEach(n => { if (!n.dead && !n.away && n.cult) CULT.gain(n, CULT.threshold(n) * 0.0015); }); });
@@ -7190,6 +7395,18 @@
         { floor: 1, nameTh: 'วงกตค่ายกลดารา', guardianNameTh: 'ผู้คุมค่ายกลดาราสวรรค์', subPath: 'ASTRAL_ARRAY', weaponType: 'FOCUS', tier: 4, basePower: 150, catalystId: 'CAT_RESONANCE_JADE_4', stones: 100 },
         { floor: 2, nameTh: 'วิหารทวนเทพสงคราม', guardianNameTh: 'อวตารเทพสงครามพิชิตศึก', subPath: 'WAR_DEITY', weaponType: 'SPEAR', tier: 5, basePower: 250, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 175 },
         { floor: 3, nameTh: 'ห้วงเหวมารกลืนสวรรค์', guardianNameTh: 'จอมมารกลืนสวรรค์บรรพกาล', subPath: 'HEAVEN_DEVOURING_DEMON', weaponType: 'BLADE', tier: 6, basePower: 380, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 280 }
+      ]
+    },
+    SANCTUM_MYRIAD_BEAST_TOTEM: {
+      id: 'SANCTUM_MYRIAD_BEAST_TOTEM',
+      nameTh: 'มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ',
+      icon: '🐉',
+      descTh: 'มหาวิหารโบราณ 3 ชั้นที่ผนึกวิญญาณราชันอสูรโลหิต พิณเหมันต์ และอสูรกลืนดารา ดรอปวัตถุดิบอสูรและคัมภีร์ยุทธ์ v2.0.22',
+      minPower: 135,
+      floors: [
+        { floor: 1, nameTh: 'ลานเสาโทเท็มเขี้ยวอสนี', guardianNameTh: 'ขุนพลอสูรเสือดาวปีกอสนี', subPath: 'PACK_COMMAND_HUNT', weaponType: 'WHIP', tier: 4, basePower: 145, catalystId: 'CAT_RESONANCE_JADE_4', stones: 105 },
+        { floor: 2, nameTh: 'โถงสังคีตหงส์น้ำแข็งเก้าเหมันต์', guardianNameTh: 'ทูตพิณหงส์ขาวเหมันต์', subPath: 'CELESTIAL_ZITHER_ENVOY', weaponType: 'ZITHER', tier: 5, basePower: 245, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 170 },
+        { floor: 3, nameTh: 'บัลลังก์อสูรกลืนดาราและมังกรโลหิต', guardianNameTh: 'ราชันอสูรบรรพกาลกลืนดารา', subPath: 'BEAST_BLOOD_FUSION', weaponType: 'FIST', tier: 6, basePower: 370, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 275 }
       ]
     }
   };

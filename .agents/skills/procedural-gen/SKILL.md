@@ -150,3 +150,9 @@ node test/visitors_clues_weapons_suite.js && node test/legendary_spawn_gate.js
 node test/fishing_river_suite.js && node test/wild_resources.js && node test/wildlife_batches.js && node test/onmap_wildlife.js
 ```
 Browser-based suites need local Chromium (fail in headless Termux — environmental).
+
+## Patch v2.0.18 Additions: 5-Region World Map Topology & Timed World Anomalies
+- **5-Region Topological Node Network (`EXPED.WORLD_REGIONS`, `EXPED.ensureWorldTopology`)**:
+  - `CENTRAL_HEARTLAND`, `NORTHERN_PEAKS`, `SOUTHERN_WATERS`, `EASTERN_PLAINS`, `WESTERN_BADLANDS` with connected routes (`EXPED.WORLD_ROUTES`) and 8 canonical neighbor sects (`EXPED.CANONICAL_SECTS`).
+- **Timed Serendipitous World Anomalies (`EXPED.ANOMALY_TEMPLATES`, `EXPED.spawnWorldAnomaly`)**:
+  - `GROTTO_ANCIENT_IMMORTAL`, `BLOOM_CELESTIAL_LOTUS`, `METEOR_ASTRAL_CRATER` with rival sect expedition races (`rivalEtaDay`, `rivalPower`).

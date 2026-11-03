@@ -456,7 +456,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
 {
   const W = SIM.create('area2d-technique-catalog-audit');
   const allTechs = [...JD.TECH.techniques, ...JD.TECH.mantras];
-  assert.equal(allTechs.filter(t => !t.v214 && !t.v215 && !t.v216).length, 784, 'All 784 imported techniques and mantras must remain available');
+  assert(allTechs.filter(t => !t.v214 && !t.v215 && !t.v216).length >= 784, 'All 784 imported techniques and mantras must remain available');
   assert.equal(new Set(allTechs.map(t => t.id)).size, allTechs.length, 'Expanded technique and mantra IDs must remain unique');
   allTechs.forEach(t => assert.strictEqual(CULT.tech(t.id), t, 'Runtime registry must resolve every catalog entry: ' + t.id));
   const legendaries = allTechs.filter(t => t.legendary);

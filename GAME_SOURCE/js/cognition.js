@@ -24,7 +24,13 @@
     guard: ['องครักษ์', 'เฝ้าระวังและรักษาความปลอดภัย'],
     registry: ['หอทะเบียน', 'ดูแลทะเบียนและผู้สมัคร'],
     healer: ['หมอหลวง', 'ดูแลผู้บาดเจ็บและความพร้อมของสถานรักษา'],
-    disciples: ['ศิษย์สืบทอด', 'ศึกษาการบริหารสำนัก ฝึกฝนตน และเตรียมสืบทอดตำแหน่งเจ้าสำนัก']
+    disciples: ['ศิษย์สืบทอด', 'ศึกษาการบริหารสำนัก ฝึกฝนตน และเตรียมสืบทอดตำแหน่งเจ้าสำนัก'],
+    envoy: ['ทูตยุทธภพและกิจการบริวาร', 'เจรจาสนธิสัญญา กำหนดบรรณาการสำนักบริวาร และประสานสมาพันธ์ยุทธภพ'],
+    spymaster: ['เจ้าหอข่าวกรองและเบาะแส', 'สืบข่าวลือโรงเตี๊ยม ตรวจจับวาสนาฟ้าดิน และเฝ้าระวังคลื่นใต้น้ำในสำนัก'],
+    beastmaster: ['เจ้าอุทยานอสูรและพาหนะ', 'ดูแลโรงเพาะเลี้ยงสัตว์วิญญาณ ฟื้นฟูพาหนะ และจัดทัพอสูรพิทักษ์ด่าน'],
+    arraymaster: ['ปรมาจารย์ค่ายกลและปราการ', 'บำรุงรักษาค่ายกลพิทักษ์สำนัก เสริมปราการจุดยุทธศาสตร์ และคุมม่านพลังป้องกัน'],
+    censor: ['ผู้ตรวจการสภาและคลื่นใต้น้ำ', 'ถ่วงดุลก๊กการเมืองภายในสำนัก ตรวจสอบการใช้อำนาจ และระงับคลื่นใต้น้ำ'],
+    quartermaster: ['แม่ทัพยุทธปัจจัยและคาราวาน', 'จัดสรรเสบียงทัพ ควบคุมเส้นทางคาราวานการค้าเสรี และดูแลคลังยุทธปัจจัย']
   };
   COG.OFFICE = OFFICE;
 
@@ -214,7 +220,13 @@
     if (rc && rc.t === W.t && rc.post === n.post && rc.assist === n.assist && rc.isM === (W.sect.masterId === n.id) && rc.isD === (W.sect.deputyId === n.id)) {
       return rc.val;
     }
-    let id = W.sect.masterId === n.id ? 'master' : W.sect.deputyId === n.id ? 'deputy' : (n.post && W.sect.posts[n.post] === n.id ? n.post : Object.keys(SECT.POSTS).find(p => W.sect.posts[p] === n.id));
+    let id = W.sect.masterId === n.id ? 'master' : W.sect.deputyId === n.id ? 'deputy' : (n.post && W.sect.posts && W.sect.posts[n.post] === n.id ? n.post : null);
+    if (!id && W.sect.posts) {
+      const pids = SECT.POST_IDS;
+      for (let i = 0; i < pids.length; i++) {
+        if (W.sect.posts[pids[i]] === n.id) { id = pids[i]; break; }
+      }
+    }
     let acting = false, delegated = false;
     if (!id && W.sect.welfareAuthority?.id === n.id && W.sect.welfareAuthority.acting) {
       id = 'treasury';
@@ -222,14 +234,14 @@
       delegated = true;
     }
     if (!id && W.sect.delegations) {
-      const delPost = Object.keys(W.sect.delegations).find(p => {
+      for (const p in W.sect.delegations) {
         const d = W.sect.delegations[p];
-        return d && d.delegateId === n.id && d.until > W.t;
-      });
-      if (delPost && OFFICE[delPost]) {
-        id = delPost;
-        acting = true;
-        delegated = true;
+        if (d && d.delegateId === n.id && d.until > W.t && OFFICE[p]) {
+          id = p;
+          acting = true;
+          delegated = true;
+          break;
+        }
       }
     }
     if (!id && n.assist && OFFICE[n.assist]) {
@@ -1329,7 +1341,8 @@
     wildwarden: ['guard', 'wildHunt'], steward: ['duty'], alchemy: ['brew', 'brewBasic'],
     forge: ['forge'], scripture: ['study', 'guidedStudy'], martial: ['practice', 'pair'],
     guard: ['guard'], healer: ['duty', 'shareMedicine'], mission: ['duty'], treasury: ['duty'],
-    registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty']
+    registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty'],
+    envoy: ['duty'], spymaster: ['duty', 'investigateClueLocal'], beastmaster: ['duty', 'guard'], arraymaster: ['duty', 'forge'], censor: ['duty'], quartermaster: ['duty']
   };
   COG.modifiers = (W, n, id, SAcc) => {
     const out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = (why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } };
@@ -1337,8 +1350,9 @@
     if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
       const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
       const postsRef = W.sect && W.sect.posts;
+      const safeNow = safe(n), hourBand = ((W.t % 1440) / 60) | 0, planAnchor = W.sect && W.sect.officePlans && W.sect.officePlans.alchemy ? W.sect.officePlans.alchemy.by : null;
       const pCmd = postsRef ? postsRef.commander : null, pAlc = postsRef ? postsRef.alchemy : null, pFrg = postsRef ? postsRef.forge : null, pMas = W.sect ? W.sect.masterId : null;
-      if (!mc || mc.t !== W.t || mc.ver !== n._ver || mc.hp !== s.hp || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
+      if (!mc || (W.t - mc.t >= 15 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.hourBand !== hourBand || mc.ver !== n._ver || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -1405,7 +1419,7 @@
       }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
+        t: W.t, hourBand, planAnchor, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -1413,7 +1427,7 @@
         hour: hour0, night: hour0 >= 21 || hour0 < 5,
         socEvening: (hour0 >= 17 && hour0 < 21) ? E(n, 'temperament.sociability') / 300 : 0,
         freeVal: E(n, 'values.freedom') / 100,
-        hasSevInj: !!(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)),
+        injLen: n.inj ? n.inj.length : 0, hasSevInj: !!(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)),
         hasTrackBnWindow: !!(safe0 && n.cult && n.cult.track && n.cult.track.ordinal < 9 && !(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)) && !(curGoal && (curGoal.id === 'crisis' || curGoal.id === 'help_friend' || curGoal.id === 'recovery')) && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.65)),
         weatherPen: (['rain', 'snow'].includes(W.weather?.kind)) ? (-0.12 - E(n, 'personality.caution') / 800) : 0,
         hasRefineCand: !!(safe0 && n.rank >= 2 && W.sect && W.sect.catalysts && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n))
@@ -2143,6 +2157,37 @@
     if (r.id === 'treasury') {
       title = critical ? 'จัดลำดับซื้อและสำรองของที่ขาด: ' + (critical.nameTh || ECO.name(critical.id)) : 'ตรวจของล้นและเงินสำรองก่อนซื้อขาย';
     }
+    if (r.id === 'envoy') {
+      const lowVassal = (W.world?.allSects || []).find(s => s && s.isVassal && (s.loyalty || 50) < 40);
+      title = lowVassal ? ('ประสานสำนักบริวาร「' + lowVassal.nameTh + '」เพื่อป้องกันการแข็งข้อ') : 'วางแผนการทูตยุทธภพและดูแลบรรณาการสำนักบริวาร';
+      actions = ['duty'];
+      targetId = lowVassal ? lowVassal.id : null;
+    }
+    if (r.id === 'spymaster') {
+      const uc = W.sect?.internalPolitics?.undercurrent || 0;
+      title = uc >= 45 ? ('สอดส่องคลื่นใต้น้ำในสำนัก (' + Math.round(uc) + '/100) และรวบรวมข่าวกรอง') : 'รวบรวมข่าวลือโรงเตี๊ยมและตรวจจับวาสนาฟ้าดิน';
+      actions = ['duty'];
+    }
+    if (r.id === 'beastmaster') {
+      const tired = (W.sect?.beasts || []).find(b => b && !b.dead && ((b.fatigue || 0) >= 50 || (b.hunger || 80) <= 45));
+      title = tired ? ('ฟื้นฟูและให้อาหารสัตว์วิญญาณ「' + (tired.nameTh || tired.id) + '」') : 'ดูแลอุทยานสัตว์วิญญาณและเตรียมพาหนะออกศึก';
+      actions = ['duty', 'guard'];
+      targetId = tired ? (tired.uid || tired.id) : null;
+    }
+    if (r.id === 'arraymaster') {
+      title = 'บำรุงรักษาค่ายกลพิทักษ์สำนักและปราการจุดยุทธศาสตร์';
+      actions = ['duty', 'forge'];
+    }
+    if (r.id === 'censor') {
+      const uc = W.sect?.internalPolitics?.undercurrent || 0;
+      title = uc >= 35 ? ('ไต่สวนความขัดแย้งระหว่างก๊กและระงับคลื่นใต้น้ำ (' + Math.round(uc) + '/100)') : 'ตรวจสอบสมดุลอำนาจและวินัยขุนนางในสภาสำนัก';
+      actions = ['duty'];
+    }
+    if (r.id === 'quartermaster') {
+      title = critical ? ('เร่งจัดสรรยุทธปัจจัยแก้การขาดแคลน ' + (critical.nameTh || ECO.name(critical.id))) : 'กำกับคลังยุทธปัจจัยและเส้นทางคาราวานการค้าเสรี';
+      actions = ['duty'];
+      targetId = critical ? critical.id : null;
+    }
     const plans = W.sect.officePlans || (W.sect.officePlans = {});
     plans[r.id] = { by: n.id, title, targetId, actions, at: W.t, expiresAt: W.t + 1440 };
     // Issue actionable order for urgent shortages/threats
@@ -2221,7 +2266,14 @@
       COG.officeDecision(W, n, 'ดูแลระเบียบและตรวจสอบข้อร้องเรียน', [r.responsibility]);
       return;
     }
-    const status = r.id === 'healer' ? 'ตรวจความจำเป็นของผู้บาดเจ็บ' : r.id === 'guard' ? 'ตรวจความพร้อมในการเฝ้ายาม' : 'ปฏิบัติงานตามตำแหน่ง';
+    if (['envoy', 'spymaster', 'beastmaster', 'arraymaster', 'censor', 'quartermaster'].includes(r.id) && SECT.runOfficerJurisdictionSingle) {
+      const res = SECT.runOfficerJurisdictionSingle(W, r.id, n);
+      if (res && res.summaryTh) {
+        COG.officeDecision(W, n, res.summaryTh, [r.responsibility]);
+        return;
+      }
+    }
+        const status = r.id === 'healer' ? 'ตรวจความจำเป็นของผู้บาดเจ็บ' : r.id === 'guard' ? 'ตรวจความพร้อมในการเฝ้ายาม' : 'ปฏิบัติงานตามตำแหน่ง';
     COG.officeDecision(W, n, status, [r.responsibility]);
   };
 

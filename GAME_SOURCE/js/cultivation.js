@@ -3241,14 +3241,78 @@
     SWARM: 'VENOM_SWARM'
   });
 
+  const FOUR_SYMBOL_BLOODLINES = Object.freeze({
+    AZURE_DRAGON: {
+      id: 'AZURE_DRAGON',
+      nameTh: 'มังกรครามชิงหลง',
+      titleTh: 'มังกรครามชิงหลง (สัตว์เทพทิศบูรพา)',
+      icon: '🐉',
+      direction: 'EAST',
+      element: 'WATER_ICE',
+      secondaryElement: 'WOOD_LIFE',
+      families: ['AQUATIC', 'SERPENT', 'DRAGON_MYTHIC'],
+      catalysts: ['CAT_PRIMORDIAL_WATER', 'CAT_PRIMORDIAL_WOOD'],
+      atkPct: 0.14, matkPct: 0.22, defPct: 0.14, mdefPct: 0.18, hpPct: 0.16, critAdd: 6, penAdd: 10, btBonus: 0.08,
+      perks: { rainfallControl: true, fishingYieldBonus: 0.35, fishingRegenBonus: 0.25, navalSpeedMult: 0.65 },
+      descTh: 'ควบคุมเมฆฝนและกระแสน้ำ เพิ่มผลผลิตตกปลาธารน้ำปราณทักษิณ +35% และเร่งความเร็วเดินทางทางน้ำ +35%'
+    },
+    WHITE_TIGER: {
+      id: 'WHITE_TIGER',
+      nameTh: 'พยัคฆ์ขาวไป๋หู่',
+      titleTh: 'พยัคฆ์ขาวไป๋หู่ (สัตว์เทพทิศประจิม)',
+      icon: '🐅',
+      direction: 'WEST',
+      element: 'EARTH_METAL',
+      secondaryElement: 'WIND',
+      families: ['FELINE', 'CANINE'],
+      catalysts: ['CAT_PRIMORDIAL_METAL'],
+      atkPct: 0.24, matkPct: 0.12, defPct: 0.15, mdefPct: 0.12, hpPct: 0.16, critAdd: 12, penAdd: 18, btBonus: 0.07,
+      perks: { siegeVanguardBonus: 0.35, gateBreachMult: 1.45, physicalBurstMult: 1.22 },
+      descTh: 'พลังโจมตีกายภาพสูงสุด เป็นทัพหน้าทลายประตูและค่ายกลในการตีสำนักคู่อริ (+45% พลังทลายด่าน)'
+    },
+    VERMILION_PHOENIX: {
+      id: 'VERMILION_PHOENIX',
+      nameTh: 'วิหคเพลิงจูเชวี่ย',
+      titleTh: 'วิหคเพลิงจูเชวี่ย (สัตว์เทพทิศทักษิณ)',
+      icon: '🦅',
+      direction: 'SOUTH',
+      element: 'FIRE',
+      secondaryElement: 'LIGHT_YANG',
+      families: ['AVIAN', 'AUSPICIOUS_FAIRY'],
+      catalysts: ['CAT_PRIMORDIAL_FIRE'],
+      atkPct: 0.16, matkPct: 0.24, defPct: 0.12, mdefPct: 0.20, hpPct: 0.15, critAdd: 10, penAdd: 12, btBonus: 0.08,
+      perks: { airReconnaissance: true, dispelFogOfWar: true, earlyRaidWarningDays: 3, mountSpeedMult: 0.60 },
+      descTh: 'ลาดตระเวนเวหา เปิดหมอกแผนที่ยุทธภพทั้งหมด แจ้งเตือนภัยบุกสำนักล่วงหน้า และเร่งความเร็วเดินทาง +40%'
+    },
+    BLACK_TORTOISE: {
+      id: 'BLACK_TORTOISE',
+      nameTh: 'เต่าดำเสวียนอู่',
+      titleTh: 'เต่าดำเสวียนอู่ (สัตว์เทพทิศอุดร)',
+      icon: '🐢',
+      direction: 'NORTH',
+      element: 'EARTH_METAL',
+      secondaryElement: 'YIN_SHADOW',
+      families: ['SHELL_GUARDIAN', 'SHELL', 'URSINE_BOAR', 'URSINE', 'BOAR', 'UNGULATE', 'ARTHROPOD_SWARM', 'CHIMERA'],
+      catalysts: ['CAT_PRIMORDIAL_EARTH'],
+      atkPct: 0.12, matkPct: 0.14, defPct: 0.28, mdefPct: 0.26, hpPct: 0.25, critAdd: 4, penAdd: 8, btBonus: 0.08,
+      perks: { garrisonDefenseMult: 1.45, nodeYieldBonus: 0.25, damageMitigation: 0.20 },
+      descTh: 'ปราการป้องกันไร้เทียมทาน เหมาะประจำการจุดยุทธศาสตร์นอกสำนัก (+45% พลังป้องกันจุดยุทธศาสตร์, +25% ผลผลิต)'
+    }
+  });
+
   const BLOODLINE_TRAITS = Object.freeze({
     ALPHA_FANG: { id: 'ALPHA_FANG', nameTh: 'เขี้ยวจ่าฝูงวายุ', atkPct: 0.06, critAdd: 4 },
     IRON_CARAPACE: { id: 'IRON_CARAPACE', nameTh: 'กระดองเหล็กไหล', defPct: 0.08, hpPct: 0.06 },
     VENOM_GLAND: { id: 'VENOM_GLAND', nameTh: 'ต่อมพิษเจ็ดราตรี', matkPct: 0.06, penAdd: 6 },
     AUSPICIOUS_SPIRIT: { id: 'AUSPICIOUS_SPIRIT', nameTh: 'จิตวิญญาณมงคล', mdefPct: 0.07, btBonus: 0.04 },
-    SOVEREIGN_AWAKENED: { id: 'SOVEREIGN_AWAKENED', nameTh: 'สายเลือดเทพอสูรบรรพกาล', atkPct: 0.14, matkPct: 0.14, defPct: 0.12, hpPct: 0.12, critAdd: 6, penAdd: 10, btBonus: 0.06 }
+    SOVEREIGN_AWAKENED: { id: 'SOVEREIGN_AWAKENED', nameTh: 'สายเลือดเทพอสูรบรรพกาล', atkPct: 0.14, matkPct: 0.14, defPct: 0.12, hpPct: 0.12, critAdd: 6, penAdd: 10, btBonus: 0.06 },
+    AZURE_DRAGON: FOUR_SYMBOL_BLOODLINES.AZURE_DRAGON,
+    WHITE_TIGER: FOUR_SYMBOL_BLOODLINES.WHITE_TIGER,
+    VERMILION_PHOENIX: FOUR_SYMBOL_BLOODLINES.VERMILION_PHOENIX,
+    BLACK_TORTOISE: FOUR_SYMBOL_BLOODLINES.BLACK_TORTOISE
   });
 
+  CULT.FOUR_SYMBOL_BLOODLINES = FOUR_SYMBOL_BLOODLINES;
   CULT.PET_ROLES = PET_ROLES;
   CULT.PET_ROLE_ALIASES = PET_ROLE_ALIASES;
   CULT.BLOODLINE_TRAITS = BLOODLINE_TRAITS;
@@ -3281,6 +3345,7 @@
 
   CULT.inferSpeciesFamily = sp => {
     if (!sp) return 'CANINE';
+    if (sp.family && typeof sp.family === 'string') return sp.family;
     const id = String(sp.id || '').toUpperCase();
     const nm = String(sp.nameTh || '');
     if (/WOLF|CANINE|HOUND|FOX|หมาป่า|สุนัข|จิ้งจอก/.test(id + nm)) return 'CANINE';
@@ -3352,7 +3417,17 @@
       p.exp = p.bondXp;
       p.hpMax = Math.max(60, Math.round(80 * Math.pow(1.45, (p.tier || 1) - 1) * (1 + ((p.level || 1) - 1) * 0.1)));
       if (!Number.isFinite(p.hp) || p.hp > p.hpMax) p.hp = p.hpMax;
-      if (p.sovereignAwakened || p.bloodlineTrait === 'SOVEREIGN_AWAKENED') {
+      if (p.fourSymbol && FOUR_SYMBOL_BLOODLINES[p.fourSymbol]) {
+        p.bloodlineTrait = p.fourSymbol;
+        p.trait = p.fourSymbol;
+        p.sovereignAwakened = true;
+        p.growthStage = 4;
+      } else if (p.bloodlineTrait && FOUR_SYMBOL_BLOODLINES[p.bloodlineTrait]) {
+        p.fourSymbol = p.bloodlineTrait;
+        p.trait = p.bloodlineTrait;
+        p.sovereignAwakened = true;
+        p.growthStage = 4;
+      } else if (p.sovereignAwakened || p.bloodlineTrait === 'SOVEREIGN_AWAKENED') {
         p.bloodlineTrait = 'SOVEREIGN_AWAKENED';
         p.trait = 'SOVEREIGN_AWAKENED';
         p.sovereignAwakened = true;
@@ -3395,7 +3470,7 @@
     const isSovAwakened = !!(opts.sovereignAwakened || opts.bloodlineTrait === 'SOVEREIGN_AWAKENED');
     const growthSt = clamp(opts.growthStage != null ? opts.growthStage : (isSovAwakened ? 4 : 1), 1, 4);
     const level = clamp(opts.level != null ? opts.level : (isSovAwakened ? 9 : Math.max(1, (growthSt - 1) * 3 + 1)), 1, 9);
-    const role = CULT.normalizePetRole(opts.role || CULT.defaultRoleForSpecies(fallbackSp));
+    const role = CULT.normalizePetRole(opts.role || fallbackSp.role || CULT.defaultRoleForSpecies(fallbackSp));
     const trait = isSovAwakened ? 'SOVEREIGN_AWAKENED' : (opts.bloodlineTrait || opts.trait || CULT.defaultTraitForSpecies(fallbackSp));
     const el = opts.element || fallbackSp.element || 'WIND';
     const bondVal = clamp(opts.bond != null ? opts.bond : (opts.loyalty != null ? opts.loyalty : 70), 0, 100);
@@ -3457,7 +3532,8 @@
       if (npc.cult.sub === 'PRIMORDIAL_BLOOD_MUTATOR') pathMult = 1.48;
       else if (npc.cult.sub === 'SYMBIOTIC_BEAST_WARRIOR') pathMult = 1.36;
     }
-    if (pet.bloodlineTrait === 'SOVEREIGN_AWAKENED') pathMult *= 1.18;
+    if (pet.fourSymbol && FOUR_SYMBOL_BLOODLINES[pet.fourSymbol]) pathMult *= 1.32;
+    else if (pet.bloodlineTrait === 'SOVEREIGN_AWAKENED') pathMult *= 1.18;
     if (pet.mechArmored) pathMult *= 1.12;
     return Math.round(baseCp * tierScale * lvScale * bondScale * readiness * pathMult);
   };
@@ -3540,7 +3616,7 @@
     let b = 0;
     for (let i = 0; i < active.length; i++) {
       const pt = active[i];
-      if (pt.role === 'MYSTIC_SUPPORT' || pt.bloodlineTrait === 'AUSPICIOUS_SPIRIT' || pt.bloodlineTrait === 'SOVEREIGN_AWAKENED') {
+      if (pt.role === 'MYSTIC_SUPPORT' || pt.bloodlineTrait === 'AUSPICIOUS_SPIRIT' || pt.bloodlineTrait === 'SOVEREIGN_AWAKENED' || (pt.fourSymbol && FOUR_SYMBOL_BLOODLINES[pt.fourSymbol])) {
         b += 0.03 + (pt.tier || 1) * 0.008;
       }
     }
@@ -3863,6 +3939,198 @@
       W.log("breakthrough", "🌟 อสูรคู่สัญญา「" + pet.nameTh + "」ของ " + npc.h.name.given + " ปลุกสายเลือดเทพอสูรบรรพกาลสำเร็จ! (T" + pet.tier + ")", [npc.id]);
     }
     return { ok: true, pet };
+  };
+
+  /* ---------- Pillar 3 (v2.0.18): Mythological Beast Evolution & Four-Symbol Bloodline Awakening ---------- */
+  CULT.resolveFourSymbolForBeast = (pet, catalystId) => {
+    if (!pet) return null;
+    if (pet.fourSymbol && FOUR_SYMBOL_BLOODLINES[pet.fourSymbol]) return FOUR_SYMBOL_BLOODLINES[pet.fourSymbol];
+    const sp = CULT.beastSpeciesById(pet.speciesId || pet.id);
+    const fam = String(pet.family || (sp && sp.family) || CULT.inferSpeciesFamily(sp || pet)).toUpperCase();
+    const idNm = String((pet.speciesId || '') + ' ' + (pet.nameTh || '') + ' ' + (sp ? sp.nameTh : '')).toUpperCase();
+    if (catalystId) {
+      for (const sym of Object.values(FOUR_SYMBOL_BLOODLINES)) {
+        if (sym.catalysts.includes(catalystId) && sym.families.includes(fam)) return sym;
+      }
+    }
+    if (fam === 'AQUATIC' || fam === 'SERPENT' || fam === 'DRAGON_MYTHIC' || /มังกร|นาคา|วารี|บาดาล|เหลือม|อสรพิษ|มัจฉา|เต่ามังกร/.test(idNm)) {
+      if (!/เต่า|กระดอง/.test(idNm) || /มังกร/.test(idNm)) return FOUR_SYMBOL_BLOODLINES.AZURE_DRAGON;
+    }
+    if (fam === 'FELINE' || fam === 'CANINE' || /พยัคฆ์|เสือ|หมาป่า|ราชสีห์|จิ้งจอก/.test(idNm)) {
+      return FOUR_SYMBOL_BLOODLINES.WHITE_TIGER;
+    }
+    if (fam === 'AVIAN' || /วิหค|หงส์|อินทรี|เหยี่ยว|กระเรียน|นก/.test(idNm)) {
+      return FOUR_SYMBOL_BLOODLINES.VERMILION_PHOENIX;
+    }
+    if (fam === 'SHELL_GUARDIAN' || fam === 'SHELL' || fam === 'URSINE_BOAR' || fam === 'URSINE' || fam === 'BOAR' || /เต่า|กระดอง|เสวียนอู่|หมี|หมูป่า|ปู/.test(idNm)) {
+      return FOUR_SYMBOL_BLOODLINES.BLACK_TORTOISE;
+    }
+    if (catalystId) {
+      for (const sym of Object.values(FOUR_SYMBOL_BLOODLINES)) {
+        if (sym.catalysts.includes(catalystId)) return sym;
+      }
+    }
+    if (fam === 'AUSPICIOUS_FAIRY') return FOUR_SYMBOL_BLOODLINES.VERMILION_PHOENIX;
+    return FOUR_SYMBOL_BLOODLINES.BLACK_TORTOISE;
+  };
+
+  CULT.canAwakenFourSymbol = (W, npc, petOrUid, catalystId, opts) => {
+    opts = opts || {};
+    if (!W) return { ok: false, reason: 'no-world', reasonTh: 'ไม่พบข้อมูลโลก' };
+    let pet = (petOrUid && typeof petOrUid === 'object') ? petOrUid : null;
+    if (!pet && typeof petOrUid === 'string') {
+      if (npc && Array.isArray(npc.pets)) pet = npc.pets.find(p => p && (p.uid === petOrUid || p.id === petOrUid));
+      if (!pet && W.sect && Array.isArray(W.sect.beasts)) pet = W.sect.beasts.find(p => p && (p.uid === petOrUid || p.id === petOrUid));
+      if (!pet && Array.isArray(W.npcs)) {
+        for (const m of W.npcs) {
+          if (m && Array.isArray(m.pets)) {
+            const found = m.pets.find(p => p && (p.uid === petOrUid || p.id === petOrUid));
+            if (found) { pet = found; npc = npc || m; break; }
+          }
+        }
+      }
+    }
+    if (!pet && npc && Array.isArray(npc.pets) && npc.pets.length) pet = npc.pets[0];
+    if (!pet) return { ok: false, reason: 'pet-not-found', reasonTh: 'ไม่พบสัตว์อสูรเป้าหมาย' };
+    if (pet.fourSymbol && FOUR_SYMBOL_BLOODLINES[pet.fourSymbol] && !opts.allowReawaken) {
+      return { ok: false, reason: 'already-awakened-four-symbol', reasonTh: 'สัตว์อสูรตนนี้ปลุกสายเลือดสัตว์เทพจตุรทิศแล้ว (' + FOUR_SYMBOL_BLOODLINES[pet.fourSymbol].nameTh + ')' };
+    }
+    const sym = (opts.symbolId && FOUR_SYMBOL_BLOODLINES[opts.symbolId]) || CULT.resolveFourSymbolForBeast(pet, catalystId);
+    if (!sym) return { ok: false, reason: 'no-matching-symbol', reasonTh: 'ไม่พบสายเลือดจตุรทิศที่สอดคล้อง' };
+
+    const isMature = (pet.growthStage || 1) >= 3 || (pet.level || 1) >= 7 || (pet.tier || 1) >= 5 || pet.sovereignAwakened;
+    if (!opts.force && !isMature) {
+      return { ok: false, reason: 'not-peak-maturity', reasonTh: 'สัตว์อสูรต้องโตเต็มวัยขั้นสูง (ระดับ T5+ หรือ Lv.7+ หรือขั้นเติบโต 3+)' };
+    }
+    const affinity = Math.max(pet.bond || 0, pet.loyalty || 0);
+    if (!opts.force && affinity < 75) {
+      return { ok: false, reason: 'insufficient-affinity', reasonTh: 'ความผูกพัน/ความภักดีต้องไม่ต่ำกว่า 75% (ปัจจุบัน ' + Math.round(affinity) + '%)' };
+    }
+    let chosenCat = catalystId || null;
+    if (!chosenCat) {
+      chosenCat = sym.catalysts.find(cId => g.ECO && g.ECO.catalystCount && g.ECO.catalystCount(W, cId) > 0) || sym.catalysts[0];
+    }
+    if (!sym.catalysts.includes(chosenCat) && !opts.force) {
+      return { ok: false, reason: 'incompatible-catalyst', reasonTh: 'แก่นธาตุปฐมภูมิไม่ตรงกับสายเลือด ' + sym.nameTh + ' (ต้องการ ' + sym.catalysts.join(' หรือ ') + ')' };
+    }
+    const haveCat = (g.ECO && g.ECO.catalystCount) ? g.ECO.catalystCount(W, chosenCat) : ((W.sect && W.sect.catalysts && W.sect.catalysts[chosenCat]) || 0);
+    if (!opts.free && !opts.force && haveCat <= 0) {
+      const catName = (g.ECO && g.ECO.REFINEMENT_CATALYSTS && g.ECO.REFINEMENT_CATALYSTS[chosenCat]) ? g.ECO.REFINEMENT_CATALYSTS[chosenCat].nameTh : chosenCat;
+      return { ok: false, reason: 'missing-catalyst', catalystId: chosenCat, reasonTh: 'ขาดแคลน「' + catName + '」ในคลังสำนัก' };
+    }
+    return { ok: true, pet, npc, symbol: sym, catalystId: chosenCat };
+  };
+
+  CULT.awakenFourSymbolBloodline = (W, npc, petOrUid, catalystId, opts) => {
+    opts = opts || {};
+    const check = CULT.canAwakenFourSymbol(W, npc, petOrUid, catalystId, opts);
+    if (!check.ok) return check;
+    const { pet, symbol: sym, catalystId: usedCat } = check;
+    const owner = check.npc || npc;
+
+    if (!opts.free) {
+      const cats = (g.ECO && g.ECO.ensureCatalysts) ? g.ECO.ensureCatalysts(W) : (W.sect.catalysts = W.sect.catalysts || {});
+      if ((cats[usedCat] || 0) > 0) {
+        cats[usedCat]--;
+        if (cats[usedCat] <= 0) delete cats[usedCat];
+      } else if (!opts.force) {
+        return { ok: false, reason: 'missing-catalyst', reasonTh: 'แก่นธาตุปฐมภูมิไม่เพียงพอ' };
+      }
+    }
+
+    const oldName = pet.nameTh || 'อสูรวิญญาณ';
+    pet.fourSymbol = sym.id;
+    pet.mythicSymbol = sym.id;
+    pet.bloodlineTrait = sym.id;
+    pet.trait = sym.id;
+    pet.sovereignAwakened = true;
+    pet.tier = 7;
+    pet.level = 9;
+    pet.growthStage = 4;
+    pet.element = sym.element;
+    pet.bond = 100;
+    pet.loyalty = 100;
+    pet.hunger = 100;
+    pet.satisfaction = 100;
+    pet.fatigue = 0;
+    pet.injured = false;
+    pet.bondXp = Math.max(pet.bondXp || 0, 1000);
+    pet.exp = pet.bondXp;
+    pet.CatalystUsed = usedCat;
+    pet.awakenedDay = W.day || 0;
+    if (!pet.nameTh || !pet.nameTh.includes(sym.nameTh)) {
+      pet.origNameTh = pet.origNameTh || oldName;
+      pet.nameTh = sym.nameTh + '·' + oldName.replace(/^(ลูกอสูรศักดิ์สิทธิ์|ลูกอสูร)/, '');
+    }
+    pet.hpMax = Math.max(220, Math.round(95 * Math.pow(1.48, 6) * 1.95));
+    pet.hp = pet.hpMax;
+    pet.perks = Object.assign({}, sym.perks);
+
+    if (owner) {
+      CULT.ensurePets(owner);
+      HC.bump(owner);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(owner);
+      if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(owner);
+    }
+    if (W.sect) {
+      W.sect.fourSymbolHistory = Array.isArray(W.sect.fourSymbolHistory) ? W.sect.fourSymbolHistory : [];
+      W.sect.fourSymbolHistory.unshift({
+        day: W.day || 0,
+        petUid: pet.uid,
+        petNameTh: pet.nameTh,
+        symbolId: sym.id,
+        symbolNameTh: sym.nameTh,
+        catalystId: usedCat,
+        ownerId: owner ? owner.id : null,
+        ownerNameTh: owner ? HC.fullName(owner) : 'คอกสำนัก'
+      });
+      if (W.sect.fourSymbolHistory.length > 25) W.sect.fourSymbolHistory.length = 25;
+    }
+    // If Vermilion Phoenix awakens, automatically dispel fog of war across exterior regions
+    if (sym.id === 'VERMILION_PHOENIX' && g.EXPED && g.EXPED.syncMythicBeastPerks) {
+      g.EXPED.syncMythicBeastPerks(W);
+    }
+    if (W.log && !opts.quiet) {
+      const catName = (g.ECO && g.ECO.REFINEMENT_CATALYSTS && g.ECO.REFINEMENT_CATALYSTS[usedCat]) ? g.ECO.REFINEMENT_CATALYSTS[usedCat].nameTh : usedCat;
+      W.log('breakthrough', sym.icon + ' ปาฏิหาริย์บรรพกาล!「' + oldName + '」ดูดซับ「' + catName + '」วิวัฒนาการสายเลือดสู่สัตว์เทพจตุรทิศ「' + sym.titleTh + '」สำเร็จ!', owner ? [owner.id] : []);
+    }
+    return { ok: true, pet, symbol: sym, catalystId: usedCat };
+  };
+  CULT.evolveMythicBeast = CULT.awakenFourSymbolBloodline;
+
+  CULT.sectFourSymbolSummary = W => {
+    const counts = { AZURE_DRAGON: 0, WHITE_TIGER: 0, VERMILION_PHOENIX: 0, BLACK_TORTOISE: 0 };
+    const activeBeasts = [];
+    if (!W) return { counts, activeBeasts, hasAzureDragon: false, hasWhiteTiger: false, hasVermilionPhoenix: false, hasBlackTortoise: false };
+    const scan = (b, ownerId) => {
+      if (!b || b.dead) return;
+      const symId = b.fourSymbol || (FOUR_SYMBOL_BLOODLINES[b.bloodlineTrait] ? b.bloodlineTrait : null);
+      if (symId && counts[symId] !== undefined) {
+        counts[symId]++;
+        activeBeasts.push({ uid: b.uid || b.id, nameTh: b.nameTh, symbolId: symId, ownerId: ownerId || b.ownerId || null, garrisonNodeId: b.garrisonNodeId || null });
+      }
+    };
+    if (W.sect && Array.isArray(W.sect.beasts)) W.sect.beasts.forEach(b => scan(b, null));
+    if (W.sect && Array.isArray(W.sect.reservePets)) W.sect.reservePets.forEach(b => scan(b, null));
+    if (Array.isArray(W.npcs)) {
+      for (let i = 0; i < W.npcs.length; i++) {
+        const n = W.npcs[i];
+        if (!n || n.dead || !Array.isArray(n.pets)) continue;
+        for (let j = 0; j < n.pets.length; j++) scan(n.pets[j], n.id);
+      }
+    }
+    return {
+      counts,
+      activeBeasts,
+      hasAzureDragon: counts.AZURE_DRAGON > 0,
+      hasWhiteTiger: counts.WHITE_TIGER > 0,
+      hasVermilionPhoenix: counts.VERMILION_PHOENIX > 0,
+      hasBlackTortoise: counts.BLACK_TORTOISE > 0,
+      cultivationAuraBonus: counts.AZURE_DRAGON > 0 ? 0.15 : 0,
+      siegeBreachBonus: counts.WHITE_TIGER > 0 ? 0.45 : 0,
+      expeditionSpeedMult: counts.VERMILION_PHOENIX > 0 ? 0.60 : 1.0,
+      garrisonDefenseBonus: counts.BLACK_TORTOISE > 0 ? 0.45 : 0
+    };
   };
 
   CULT.menagerieTick = W => {

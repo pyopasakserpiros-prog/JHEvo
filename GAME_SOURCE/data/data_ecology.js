@@ -10285,6 +10285,416 @@
   }
 ];
 
+
+  /* ============================================================================
+   * Patch v2.0.22: Deep Beast Anatomy System, 18 New Spirit Beasts,
+   * 36 Beast Anatomy Materials (24 Active + 12 Backlog for Future Patches),
+   * & 24 New Equipment Items + 24 Recipes with Rare Keyword Expansion
+   * ============================================================================ */
+  const epSingleV222 = el => ({ mode: 'INTRINSIC_SINGLE', primary: el, weights: { [el]: 1 } });
+  const epLinkV222 = el => ({ mode: 'ELEMENT_LINK_ONLY', primary: el, weights: { [el]: 1 } });
+  const epWeightedV222 = (el1, w1, el2, w2) => ({ mode: 'INTRINSIC_WEIGHTED', primary: el1, weights: { [el1]: w1, [el2]: w2 } });
+
+  // 24 Active Beast Anatomy Materials (used directly in v2.0.22 Equipment Recipes)
+  const v222ActiveBeastMats = [
+    { id: 'MAT_V222_BP_01', nameTh: 'เขี้ยวหมาป่ากิเลนโลหิต', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'mountain', value: 68, anatomy: 'FANG_CLAW', relic: false, element: 'BLOOD_DEMON', elementProfile: epLinkV222('BLOOD_DEMON'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ใช้หลอมสนับมือและดาบสายโลหิต เพิ่มฤทธิ์ดูดเลือดและฉีกเกราะ' },
+    { id: 'MAT_V222_BP_02', nameTh: 'โลหิตหัวใจกิเลนทมิฬ', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'mountain', value: 72, anatomy: 'ESSENCE_BLOOD', relic: false, element: 'BLOOD_DEMON', elementProfile: epLinkV222('BLOOD_DEMON'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ชุบคมศาสตราและหลอมแหวนโลหิตสังเวย เพิ่มพลังปะทุสังหาร' },
+    { id: 'MAT_V222_BP_03', nameTh: 'ขนปีกเหยี่ยวเผิงอสนีสวรรค์', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'mountain', value: 125, anatomy: 'PLUME_WING', relic: false, element: 'LIGHTNING', elementProfile: epLinkV222('LIGHTNING'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ใช้สร้างพู่กันสายฟ้า เกาทัณฑ์อสนี และอาภรณ์เหินเวหา' },
+    { id: 'MAT_V222_BP_04', nameTh: 'กรงเล็บทองคำเหยี่ยวเผิงสายฟ้า', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'mountain', value: 132, anatomy: 'FANG_CLAW', relic: false, element: 'LIGHTNING', elementProfile: epLinkV222('LIGHTNING'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมสนับมืออสนีและทวนสายฟ้าฟาด ทะลวงม่านปราณศัตรู' },
+    { id: 'MAT_V222_BP_05', nameTh: 'เกล็ดย้อนมังกรน้ำแข็งเจ็ดสมุทร', category: 'BEAST_PART', tier: 5, craft: 'FORGING', terrain: 'water', value: 235, anatomy: 'SCALE_SHELL', relic: true, element: 'WATER_ICE', elementProfile: epLinkV222('WATER_ICE'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมเกราะเกล็ดเหมันต์และกระบี่น้ำแข็ง ผนึกความเร็วและปราณศัตรู' },
+    { id: 'MAT_V222_BP_06', nameTh: 'เอ็นมังกรเกล็ดน้ำแข็งพันปี', category: 'BEAST_PART', tier: 5, craft: 'FORGING', terrain: 'water', value: 240, anatomy: 'TENDON_VEIN', relic: true, element: 'WATER_ICE', elementProfile: epLinkV222('WATER_ICE'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ขึงสายธนูและสายพิณเหมันต์เจ็ดสมุทร สะกดจิตและแช่แข็งชีพจร' },
+    { id: 'MAT_V222_BP_07', nameTh: 'ขนหางจิ้งจอกเก้าหางดารา', category: 'BEAST_PART', tier: 5, craft: 'FORGING', terrain: 'forest', value: 230, anatomy: 'PELT_HIDE', relic: true, element: 'ASTRAL', elementProfile: epLinkV222('ASTRAL'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ทออาภรณ์มายาดาราและพู่กันพยากรณ์ สร้างร่างแยกมายาและหยั่งรู้วิชา' },
+    { id: 'MAT_V222_BP_08', nameTh: 'เนตรดาราจิ้งจอกสวรรค์', category: 'BEAST_PART', tier: 5, craft: 'FORGING', terrain: 'forest', value: 245, anatomy: 'INNER_CORE', relic: true, element: 'ASTRAL', elementProfile: epLinkV222('ASTRAL'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ฝังในเครื่องรางและสร้อยประคำดารา เปิดเนตรส่องทะลุการพรางตัวและค่ายกล' },
+    { id: 'MAT_V222_BP_09', nameTh: 'เหล็กในจักรพรรดิแมงป่องหยิน', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'desert', value: 128, anatomy: 'HORN_BONE', relic: false, element: 'YIN_SHADOW', elementProfile: epLinkV222('YIN_SHADOW'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมปลายแส้พิษและมีดสั้นเงาหยิน แพร่พิษกัดกร่อนเส้นปราณ' },
+    { id: 'MAT_V222_BP_10', nameTh: 'ถุงพิษหยินเร้นวิญญาณ', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'desert', value: 135, anatomy: 'VENOM_SAC', relic: false, element: 'YIN_SHADOW', elementProfile: epLinkV222('YIN_SHADOW'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมศาสตราวุธอาบพิษและกำไลสลายพิษ กัดกร่อนสมาธิและขัดจังหวะร่าย' },
+    { id: 'MAT_V222_BP_11', nameTh: 'เขี้ยวดาบพยัคฆ์วายุคลั่ง', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'forest', value: 66, anatomy: 'FANG_CLAW', relic: false, element: 'WIND', elementProfile: epLinkV222('WIND'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ตีดาบวายุคลั่งและกระบี่พายุหมุน ฟาดฟันหลายเป้าหมายพร้อมกัน' },
+    { id: 'MAT_V222_BP_12', nameTh: 'หนังพยัคฆ์ลายเมฆาคลั่ง', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'forest', value: 64, anatomy: 'PELT_HIDE', relic: false, element: 'WIND', elementProfile: epLinkV222('WIND'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ตัดเย็บเกราะเบาวายุพยัคฆ์ เพิ่มความเร็วหลบหลีกและล้างกลิ่นร่องรอย' },
+    { id: 'MAT_V222_BP_13', nameTh: 'กระดองเต่าทองสุริยันอัคคี', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'water', value: 138, anatomy: 'SCALE_SHELL', relic: false, element: 'LIGHT_YANG', elementProfile: epLinkV222('LIGHT_YANG'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ตีเกราะหนักสุริยันและโล่คุ้มชีพ แบ่งเบาความเสียหายและต้านฟ้าทัณฑ์' },
+    { id: 'MAT_V222_BP_14', nameTh: 'แก่นปราณเต่าทองสุริยัน', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'water', value: 142, anatomy: 'INNER_CORE', relic: false, element: 'LIGHT_YANG', elementProfile: epLinkV222('LIGHT_YANG'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมลูกแก้ววิญญาณและพลองสุริยัน ชำระสถานะร้ายและเชื่อมค่ายกล' },
+    { id: 'MAT_V222_BP_15', nameTh: 'อุ้งตีนหมีคลั่งโลหิตผาแดง', category: 'BEAST_PART', tier: 2, craft: 'FORGING', terrain: 'mountain', value: 36, anatomy: 'FANG_CLAW', relic: false, element: 'BLOOD_DEMON', elementProfile: epLinkV222('BLOOD_DEMON'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมสนับมือหมีคลั่งขั้นต้น เพิ่มแรงปะทะและข่มขวัญสัตว์อสูร' },
+    { id: 'MAT_V222_BP_16', nameTh: 'เขากวางกิเลนอสนีคราม', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'forest', value: 70, anatomy: 'HORN_BONE', relic: false, element: 'LIGHTNING', elementProfile: epLinkV222('LIGHTNING'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'สลักปิ่นและกำไลอสนีคราม นำกระแสสายฟ้าชิ่งโจมตีและเร่งการบ่มเพาะ' },
+    { id: 'MAT_V222_BP_17', nameTh: 'ก้ามปูยักษ์เหล็กเหมันต์บาดาล', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'water', value: 68, anatomy: 'FANG_CLAW', relic: false, element: 'WATER_ICE', elementProfile: epLinkV222('WATER_ICE'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมทวนและพลองหนีบศาสตรา ปลดอาวุธและผนึกการเคลื่อนไหวศัตรู' },
+    { id: 'MAT_V222_BP_18', nameTh: 'เส้นไหมผีเสื้อมายาจันทร์เร้น', category: 'BEAST_PART', tier: 2, craft: 'FORGING', terrain: 'forest', value: 38, anatomy: 'TENDON_VEIN', relic: false, element: 'ASTRAL', elementProfile: epLinkV222('ASTRAL'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'ถักสายแส้มายาและผ้าคลุมพรางเงา รบกวนสัญญาณสืบข่าวและลวงตา' },
+    { id: 'MAT_V222_BP_19', nameTh: 'เขี้ยวหมูป่าสิงห์เพลิงโลกันตร์', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'desert', value: 65, anatomy: 'FANG_CLAW', relic: false, element: 'FIRE', elementProfile: epLinkV222('FIRE'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมดาบใหญ่และเกราะอกเพลิงโลกันตร์ ระเบิดพลังเผาผลาญเกราะศัตรู' },
+    { id: 'MAT_V222_BP_20', nameTh: 'เถาหนามอสูรพฤกษาโลหิตพันปี', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'forest', value: 126, anatomy: 'TENDON_VEIN', relic: false, element: 'WOOD_LIFE', elementProfile: epLinkV222('WOOD_LIFE'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมแส้หนามพฤกษาและกับดักรากไม้พันธนาการ ดูดพลังชีวิตและตรึงพื้นที่' },
+    { id: 'MAT_V222_BP_21', nameTh: 'ขนปีกเหล็กพญาครุฑตัดเมฆา', category: 'BEAST_PART', tier: 5, craft: 'FORGING', terrain: 'mountain', value: 238, anatomy: 'PLUME_WING', relic: true, element: 'EARTH_METAL', elementProfile: epLinkV222('EARTH_METAL'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมกระบี่บินและเกาทัณฑ์ครุฑเหล็ก เจาะทะลุเกราะและดึงดูดอาวุธศัตรู' },
+    { id: 'MAT_V222_BP_22', nameTh: 'เขี้ยวเงาเสือดำรัตติกาล', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'forest', value: 130, anatomy: 'FANG_CLAW', relic: false, element: 'YIN_SHADOW', elementProfile: epLinkV222('YIN_SHADOW'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมกริชและสนับมือเงารัตติกาล เปิดจุดอ่อนคริติคอลและตีตราไล่ล่า' },
+    { id: 'MAT_V222_BP_23', nameTh: 'ขนหงอนกระเรียนขาวบัวสวรรค์', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'water', value: 69, anatomy: 'PLUME_WING', relic: false, element: 'LIGHT_YANG', elementProfile: epLinkV222('LIGHT_YANG'), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'สร้างพิณบัวสวรรค์และสร้อยประคำเมตตา ฟื้นฟูหมู่และเชื่อมสายสัมพันธ์สัตว์วิญญาณ' },
+    { id: 'MAT_V222_BP_24', nameTh: 'แก่นอสูรราชันย์กลืนดารา', category: 'BEAST_PART', tier: 6, craft: 'FORGING', terrain: 'ruins', value: 420, anatomy: 'INNER_CORE', relic: true, element: 'BLOOD_DEMON', elementProfile: epWeightedV222('BLOOD_DEMON', 0.6, 'ASTRAL', 0.4), craftingStatus: 'ACTIVE_IN_RECIPES', usesTh: 'หลอมศาสตราและเครื่องรางระดับราชันย์ สลายบัฟศัตรูและต้านแรงกดดันข้ามขั้นตบะ' }
+  ];
+
+  // 12 Reserved Beast Anatomy Materials (Documented in JD.BEASTS.unassignedAnatomyBacklog for Future Patches!)
+  const v222ReservedBeastMats = [
+    { id: 'MAT_V222_BP_25', nameTh: 'ไขกระดูกหมาป่ากิเลนโลหิต', category: 'BEAST_PART', tier: 3, craft: 'ALCHEMY', terrain: 'mountain', value: 70, anatomy: 'HORN_BONE', relic: false, element: 'BLOOD_DEMON', elementProfile: epLinkV222('BLOOD_DEMON'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรโอสถชุบกระดูกโลหิตกิเลน)', plannedUsageTh: 'โอสถหลอมกระดูกสายมารโลหิต / โอสถปลุกสายเลือดอสูรขั้นกลาง' },
+    { id: 'MAT_V222_BP_26', nameTh: 'ถุงลมปราณเหยี่ยวเผิงสายฟ้า', category: 'BEAST_PART', tier: 4, craft: 'TALISMAN', terrain: 'mountain', value: 120, anatomy: 'INNER_CORE', relic: false, element: 'LIGHTNING', elementProfile: epLinkV222('LIGHTNING'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรยันต์เหินเวหาและค่ายกลสายฟ้า)', plannedUsageTh: 'ยันต์เคลื่อนย้ายพริบตาอสนี / เรือเหาะปราณสำนัก' },
+    { id: 'MAT_V222_BP_27', nameTh: 'มุกน้ำแข็งใต้คางมังกรสมุทร', category: 'BEAST_PART', tier: 5, craft: 'ARRAY', terrain: 'water', value: 230, anatomy: 'INNER_CORE', relic: true, element: 'WATER_ICE', elementProfile: epLinkV222('WATER_ICE'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรแกนค่ายกลเหมันต์ปิดสำนัก)', plannedUsageTh: 'แกนค่ายกลพิทักษ์สำนักระดับสูง (ค่ายกลม่านน้ำแข็งหมื่นลี้)' },
+    { id: 'MAT_V222_BP_28', nameTh: 'โลหิตหัวใจจิ้งจอกเก้าหางดารา', category: 'BEAST_PART', tier: 5, craft: 'ALCHEMY', terrain: 'forest', value: 240, anatomy: 'ESSENCE_BLOOD', relic: true, element: 'ASTRAL', elementProfile: epLinkV222('ASTRAL'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรโอสถเปิดเนตรสวรรค์และหยั่งรู้อนาคต)', plannedUsageTh: 'โอสถทิพย์เนตรสวรรค์หยั่งรู้ฟ้าดิน / พิธีกรรมพยากรณ์ชะตายุทธภพ' },
+    { id: 'MAT_V222_BP_29', nameTh: 'เปลือกเกราะแมงป่องหยินร้อยพิษ', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'desert', value: 118, anatomy: 'SCALE_SHELL', relic: false, element: 'YIN_SHADOW', elementProfile: epLinkV222('YIN_SHADOW'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรหุ่นเชิดแมงป่องพิษกลไก)', plannedUsageTh: 'สร้างหุ่นเชิดอสูรพิษเฝ้าด่าน / เกราะเบาซ่อนเงาขั้นสูง' },
+    { id: 'MAT_V222_BP_30', nameTh: 'เอ็นขาหน้าพยัคฆ์เขี้ยวดาบวายุ', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'forest', value: 62, anatomy: 'TENDON_VEIN', relic: false, element: 'WIND', elementProfile: epLinkV222('WIND'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรรองเท้าเหยียบเมฆาและกลไกหน้าไม้)', plannedUsageTh: 'รองเท้าปราณวายุ / สายธนูกลไกยิงต่อเนื่อง' },
+    { id: 'MAT_V222_BP_31', nameTh: 'โลหิตทองคำเต่าสุริยัน', category: 'BEAST_PART', tier: 4, craft: 'ALCHEMY', terrain: 'water', value: 135, anatomy: 'ESSENCE_BLOOD', relic: false, element: 'LIGHT_YANG', elementProfile: epLinkV222('LIGHT_YANG'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรโอสถอายุวัฒนะเต่าทองพันปี)', plannedUsageTh: 'โอสถต่ออายุขัยผู้อาวุโส / หมึกชาดสุริยันเขียนยันต์ระดับ 5' },
+    { id: 'MAT_V222_BP_32', nameTh: 'ดีหมีคลั่งโลหิตผาแดง', category: 'BEAST_PART', tier: 2, craft: 'ALCHEMY', terrain: 'mountain', value: 38, anatomy: 'INNER_CORE', relic: false, element: 'BLOOD_DEMON', elementProfile: epLinkV222('BLOOD_DEMON'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรสุราปราณเดือดและยาคลั่งศึก)', plannedUsageTh: 'หมักสุราปราณโลหิตในโรงเตี๊ยมสำนัก / โอสถระเบิดพละกำลัง' },
+    { id: 'MAT_V222_BP_33', nameTh: 'กีบเท้ากวางกิเลนอสนีคราม', category: 'BEAST_PART', tier: 3, craft: 'FORGING', terrain: 'forest', value: 66, anatomy: 'HORN_BONE', relic: false, element: 'LIGHTNING', elementProfile: epLinkV222('LIGHTNING'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรเกือกม้าศึกและอานสัตว์ขี่อสนี)', plannedUsageTh: 'อุปกรณ์สวมใส่สัตว์ขี่ (Mount Gear) เพิ่มความเร็วเดินทางในแผนที่โลก' },
+    { id: 'MAT_V222_BP_34', nameTh: 'ผงปีกผีเสื้อไหมมายาจันทร์เร้น', category: 'BEAST_PART', tier: 2, craft: 'ALCHEMY', terrain: 'forest', value: 36, anatomy: 'PLUME_WING', relic: false, element: 'ASTRAL', elementProfile: epLinkV222('ASTRAL'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรผงนิทราลวงจิตสำหรับสายลับ)', plannedUsageTh: 'อุปกรณ์สายลับ (spymaster) ใช้ลอบวางยาและอำพรางตัวในสำนักศัตรู' },
+    { id: 'MAT_V222_BP_35', nameTh: 'หัวใจพฤกษาอสูรหนามโลหิต', category: 'BEAST_PART', tier: 4, craft: 'ARRAY', terrain: 'forest', value: 128, anatomy: 'INNER_CORE', relic: false, element: 'WOOD_LIFE', elementProfile: epLinkV222('WOOD_LIFE'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรปุ๋ยวิญญาณเร่งโตสมุนไพรพันปี)', plannedUsageTh: 'ฝังในแปลงสมุนไพรสำนักเพื่อปลูกสมุนไพรระดับ 5–6' },
+    { id: 'MAT_BP_MIST_STAG_ANTLER_3', nameTh: 'เขากวางวิญญาณหมอกมรกต', category: 'BEAST_PART', tier: 3, craft: 'ALCHEMY', terrain: 'forest', value: 78, anatomy: 'HORN_BONE', relic: false, family: 'UNGULATE', sourceBeastIds: ['BEAST_MIST_JADE_STAG', 'BEAST_THUNDER_HORN_STAG_4'], element: 'YIN_SHADOW', elementProfile: epSingleV222('YIN_SHADOW'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'เขากวางหมอกมรกต (จดบันทึกไว้สร้างตำรับโอสถบำรุงจิตและปิ่นหยกในแพตช์ถัดไป)', plannedUsageTh: 'รอสร้างสูตรโอสถสงบจิตและเครื่องรางสายหมอกในแพตช์ถัดไป' },
+    { id: 'MAT_BP_THUNDER_LIZARD_SCALE_4', nameTh: 'เกล็ดกิ้งก่ามังกรสายฟ้า', category: 'BEAST_PART', tier: 4, craft: 'FORGING', terrain: 'desert', value: 165, anatomy: 'SCALE_SHELL', relic: false, family: 'SERPENT', sourceBeastIds: ['BEAST_THUNDER_DRAKE_LIZARD', 'BEAST_ABYSSAL_LEVIATHAN_TURTLE', 'BEAST_THUNDER_HORN_STAG_4'], element: 'LIGHTNING', elementProfile: epSingleV222('LIGHTNING'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'เกล็ดหุ้มสายฟ้า (จดบันทึกไว้สร้างเกราะเกล็ดมังกรสายฟ้าในแพตช์ถัดไป)', plannedUsageTh: 'รอสร้างสูตรเกราะเบาต้านทานสายฟ้าในแพตช์ถัดไป' },
+    { id: 'MAT_FORM_LIFE_ESSENCE_DEW_4', nameTh: 'หยาดน้ำค้างแก่นพฤกษาพันปี', category: 'FORMATION_PART', tier: 4, craft: 'ALCHEMY', terrain: 'forest', value: 175, anatomy: 'ESSENCE_GLAND', relic: false, family: 'PLANT_SPIRIT', sourceBeastIds: ['BEAST_ANCIENT_TREANT_SERPENT_4'], element: 'WOOD_LIFE', elementProfile: epSingleV222('WOOD_LIFE'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'หยาดน้ำค้างพฤกษาพันปี (จดบันทึกไว้สร้างโอสถต่ออายุขัยและค่ายกลฟื้นฟูในแพตช์ถัดไป)', plannedUsageTh: 'รอสร้างสูตรโอสถฟื้นฟูเส้นชีพจรในแพตช์ถัดไป' },
+    { id: 'MAT_BP_FROST_KIRIN_PLUME_5', nameTh: 'ขนแผงคอกิเลนเหมันต์ดาราเร้น', category: 'BEAST_PART', tier: 5, craft: 'FORGING', terrain: 'mountain', value: 360, anatomy: 'WING_PLUME', relic: false, family: 'UNGULATE', sourceBeastIds: ['BEAST_FROST_MIST_KIRIN', 'BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN'], element: 'ASTRAL', elementProfile: epSingleV222('ASTRAL'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'ขนแผงคอกิเลนดารา (จดบันทึกไว้สร้างพู่กันเซียนและผ้าคลุมดาราในแพตช์ถัดไป)', plannedUsageTh: 'รอสร้างสูตรพู่กันดาราและอาภรณ์เซียนเหมันต์ในแพตช์ถัดไป' },
+    { id: 'MAT_FORM_VOID_COMPASS_SHARD_5', nameTh: 'เศษเข็มทิศมิติเหยี่ยวดารา', category: 'FORMATION_PART', tier: 5, craft: 'ARRAY', terrain: 'ruins', value: 375, anatomy: 'INNER_CORE', relic: false, family: 'AVIAN', sourceBeastIds: ['BEAST_ASTRAL_VOID_HAWK_5'], element: 'ASTRAL', elementProfile: epSingleV222('ASTRAL'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'เศษผลึกนำทางมิติ (จดบันทึกไว้สร้างจานค่ายกลเปิดประตูมิติในแพตช์ถัดไป)', plannedUsageTh: 'รอสร้างสูตรเครื่องรางนำทางแดนหมื่นพิภพในแพตช์ถัดไป' },
+    { id: 'MAT_BP_PHOENIX_PLUME_6', nameTh: 'ขนปีกพญาอินทรีสายฟ้าม่วง', category: 'BEAST_PART', tier: 6, craft: 'FORGING', terrain: 'mountain', value: 780, anatomy: 'WING_PLUME', relic: true, family: 'AVIAN', sourceBeastIds: ['BEAST_THUNDER_ROC'], element: 'LIGHTNING', elementProfile: epSingleV222('LIGHTNING'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'ขนปีกพญาอินทรีอสนี (จดบันทึกไว้สร้างศรเทพอสนีและพัดขนนกสายฟ้าในแพตช์ถัดไป)', plannedUsageTh: 'รอสร้างสูตรเกาทัณฑ์และเครื่องรางความเร็วสูงขั้น 6 ในแพตช์ถัดไป' },
+    { id: 'MAT_BP_MYTHIC_GUARDIAN_CORE_6', nameTh: 'แก่นปราณเทพอสูรพิทักษ์บรรพกาล', category: 'BEAST_PART', tier: 6, craft: 'ALCHEMY', terrain: 'ruins', value: 850, anatomy: 'INNER_CORE', relic: true, family: 'CHIMERA', sourceBeastIds: ['BEAST_MYTHIC_TAOTIE_SHADOW', 'BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN'], element: 'WIND', elementProfile: epSingleV222('WIND'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'แก่นเทพอสูรบรรพกาล (จดบันทึกไว้สร้างมหาโอสถทะลวงด่านเซียนในแพตช์ถัดไป)', plannedUsageTh: 'รอสร้างสูตรโอสถราชันอสูรและค่ายกลพิทักษ์สำนักขั้น 6 ในแพตช์ถัดไป' },
+    { id: 'MAT_V222_BP_36', nameTh: 'จะงอยปากเหล็กพญาครุฑตัดเมฆา', category: 'BEAST_PART', tier: 5, craft: 'FORGING', terrain: 'mountain', value: 235, anatomy: 'HORN_BONE', relic: true, element: 'EARTH_METAL', elementProfile: epLinkV222('EARTH_METAL'), craftingStatus: 'RESERVED_FOR_NEXT_PATCH', usesTh: 'วัตถุดิบสำรองสำหรับแพตช์หน้า (รอผูกสูตรหัวลูกศรทะลวงค่ายกลสำนัก)', plannedUsageTh: 'ศาสตราตีค่ายสำนัก (Siege Ballista Bolt) เจาะเกราะค่ายกลระดับแดนศักดิ์สิทธิ์' }
+  ];
+
+  // 18 New Spirit Beast Species (every beast has complete body anatomy + active & backlog drops!)
+  const v222Beasts = [
+    { id: 'BEAST_V222_BLOOD_KIRIN_WOLF', nameTh: 'หมาป่ากิเลนโลหิตทมิฬ', tier: 3, cp: 520, flee: 18, aggro: 78, drops: ['MAT_V222_BP_01', 'MAT_V222_BP_02', 'MAT_V222_BP_25', 'MAT_BP_BEAST_MEAT_1'], terrain: 'mountain', family: 'CANINE', archetype: 'CANINE', element: 'BLOOD_DEMON', visual: { body: '#6e1b26', accent: '#d94b5a', mark: 'crest', scale: 1.22 }, elementProfile: epSingleV222('BLOOD_DEMON') },
+    { id: 'BEAST_V222_THUNDER_ROC_FALCON', nameTh: 'เหยี่ยวเผิงสายฟ้าเก้าเวหา', tier: 4, cp: 1280, flee: 15, aggro: 74, drops: ['MAT_V222_BP_03', 'MAT_V222_BP_04', 'MAT_V222_BP_26', 'MAT_BP_BEAST_MEAT_1'], terrain: 'mountain', family: 'AVIAN', archetype: 'AVIAN', element: 'LIGHTNING', visual: { body: '#2c497f', accent: '#7cd4ff', mark: 'wings', scale: 1.38 }, elementProfile: epSingleV222('LIGHTNING') },
+    { id: 'BEAST_V222_FROST_GLACIER_WYRM', nameTh: 'มังกรเกล็ดน้ำแข็งเจ็ดสมุทร', tier: 5, cp: 3450, flee: 10, aggro: 82, drops: ['MAT_V222_BP_05', 'MAT_V222_BP_06', 'MAT_V222_BP_27'], terrain: 'water', family: 'SERPENT', archetype: 'SERPENT', element: 'WATER_ICE', visual: { body: '#1f5e7a', accent: '#aef0ff', mark: 'crown', scale: 1.56 }, elementProfile: epSingleV222('WATER_ICE') },
+    { id: 'BEAST_V222_ASTRAL_NINE_TAIL_FOX', nameTh: 'จิ้งจอกเก้าหางดาราพยากรณ์', tier: 5, cp: 3320, flee: 22, aggro: 65, drops: ['MAT_V222_BP_07', 'MAT_V222_BP_08', 'MAT_V222_BP_28'], terrain: 'forest', family: 'CANINE', archetype: 'CANINE', element: 'ASTRAL', visual: { body: '#4b367c', accent: '#e2c4ff', mark: 'crown', scale: 1.48 }, elementProfile: epSingleV222('ASTRAL') },
+    { id: 'BEAST_V222_NETHER_SCORPION_EMPEROR', nameTh: 'จักรพรรดิแมงป่องหยินร้อยพิษ', tier: 4, cp: 1340, flee: 12, aggro: 86, drops: ['MAT_V222_BP_09', 'MAT_V222_BP_10', 'MAT_V222_BP_29'], terrain: 'desert', family: 'ARTHROPOD', archetype: 'ARTHROPOD', element: 'YIN_SHADOW', visual: { body: '#2a2236', accent: '#8e6bbf', mark: 'shell', scale: 1.35 }, elementProfile: epSingleV222('YIN_SHADOW') },
+    { id: 'BEAST_V222_GALE_SABERTOOTH_TIGER', nameTh: 'พยัคฆ์เขี้ยวดาบวายุคลั่ง', tier: 3, cp: 540, flee: 20, aggro: 75, drops: ['MAT_V222_BP_11', 'MAT_V222_BP_12', 'MAT_V222_BP_30', 'MAT_BP_BEAST_MEAT_1'], terrain: 'forest', family: 'FELINE', archetype: 'FELINE', element: 'WIND', visual: { body: '#3d6b58', accent: '#9df2c8', mark: 'stripes', scale: 1.24 }, elementProfile: epSingleV222('WIND') },
+    { id: 'BEAST_V222_SOLAR_GOLD_TORTOISE', nameTh: 'เต่าทองสุริยันเกราะอัคคี', tier: 4, cp: 1420, flee: 8, aggro: 60, drops: ['MAT_V222_BP_13', 'MAT_V222_BP_14', 'MAT_V222_BP_31'], terrain: 'water', family: 'SHELL', archetype: 'SHELL', element: 'LIGHT_YANG', visual: { body: '#8f651e', accent: '#ffd966', mark: 'shell', scale: 1.42 }, elementProfile: epSingleV222('LIGHT_YANG') },
+    { id: 'BEAST_V222_CRIMSON_CORPSE_BEAR', nameTh: 'หมีคลั่งโลหิตอสูรผาแดง', tier: 2, cp: 245, flee: 15, aggro: 80, drops: ['MAT_V222_BP_15', 'MAT_V222_BP_32', 'MAT_BP_BEAST_MEAT_1'], terrain: 'mountain', family: 'URSINE', archetype: 'URSINE', element: 'BLOOD_DEMON', visual: { body: '#5c2323', accent: '#c94c4c', mark: 'scar', scale: 1.15 }, elementProfile: epSingleV222('BLOOD_DEMON') },
+    { id: 'BEAST_V222_THUNDER_HOOF_QILIN_STAG', nameTh: 'กวางกิเลนกีบอสนีคราม', tier: 3, cp: 490, flee: 28, aggro: 52, drops: ['MAT_V222_BP_16', 'MAT_V222_BP_33', 'MAT_BP_BEAST_MEAT_1'], terrain: 'forest', family: 'UNGULATE', archetype: 'UNGULATE', element: 'LIGHTNING', visual: { body: '#2b547e', accent: '#8ce0ff', mark: 'antler', scale: 1.20 }, elementProfile: epSingleV222('LIGHTNING') },
+    { id: 'BEAST_V222_ABYSSAL_LEVIATHAN_CRAB', nameTh: 'ปูยักษ์เกราะเหล็กเหมันต์บาดาล', tier: 3, cp: 510, flee: 12, aggro: 68, drops: ['MAT_V222_BP_17', 'MAT_V222_BP_05', 'MAT_BP_BEAST_MEAT_1'], terrain: 'water', family: 'AQUATIC', archetype: 'AQUATIC', element: 'WATER_ICE', visual: { body: '#274c5e', accent: '#7fc8e8', mark: 'shell', scale: 1.25 }, elementProfile: epSingleV222('WATER_ICE') },
+    { id: 'BEAST_V222_MIRAGE_SILK_MOTH', nameTh: 'ผีเสื้อไหมมายาจันทร์เร้น', tier: 2, cp: 215, flee: 35, aggro: 40, drops: ['MAT_V222_BP_18', 'MAT_V222_BP_34'], terrain: 'forest', family: 'ARTHROPOD', archetype: 'ARTHROPOD', element: 'ASTRAL', visual: { body: '#523b78', accent: '#d4b2ff', mark: 'wings', scale: 1.05 }, elementProfile: epSingleV222('ASTRAL') },
+    { id: 'BEAST_V222_FLAME_MANE_LION_BOAR', nameTh: 'หมูป่าสิงห์แผงคอเพลิงโลกันตร์', tier: 3, cp: 530, flee: 14, aggro: 76, drops: ['MAT_V222_BP_19', 'MAT_BP_BOAR_CORE_2', 'MAT_BP_BEAST_MEAT_1'], terrain: 'desert', family: 'BOAR', archetype: 'BOAR', element: 'FIRE', visual: { body: '#8a331e', accent: '#ff944d', mark: 'tusk', scale: 1.24 }, elementProfile: epSingleV222('FIRE') },
+    { id: 'BEAST_V222_VINE_THORN_TREANT_BEAST', nameTh: 'อสูรพฤกษาหนามโลหิตพันปี', tier: 4, cp: 1310, flee: 5, aggro: 72, drops: ['MAT_V222_BP_20', 'MAT_V222_BP_35'], terrain: 'forest', family: 'PLANT_SPIRIT', archetype: 'PLANT_SPIRIT', element: 'WOOD_LIFE', visual: { body: '#2d5236', accent: '#75c987', mark: 'vine', scale: 1.40 }, elementProfile: epSingleV222('WOOD_LIFE') },
+    { id: 'BEAST_V222_IRON_WING_GARUDA', nameTh: 'พญาครุฑปีกเหล็กตัดเมฆา', tier: 5, cp: 3520, flee: 12, aggro: 84, drops: ['MAT_V222_BP_21', 'MAT_V222_BP_36', 'MAT_BP_BEAST_MEAT_1'], terrain: 'mountain', family: 'CHIMERA', archetype: 'CHIMERA', element: 'EARTH_METAL', visual: { body: '#5c584f', accent: '#d6c7a9', mark: 'wings', scale: 1.55 }, elementProfile: epSingleV222('EARTH_METAL') },
+    { id: 'BEAST_V222_SHADOW_STALKER_PANTHER', nameTh: 'เสือดำเงาภูตเร้นรัตติกาล', tier: 4, cp: 1290, flee: 24, aggro: 78, drops: ['MAT_V222_BP_22', 'MAT_V222_BP_10', 'MAT_BP_BEAST_MEAT_1'], terrain: 'forest', family: 'FELINE', archetype: 'FELINE', element: 'YIN_SHADOW', visual: { body: '#1c1b29', accent: '#7965a8', mark: 'crest', scale: 1.32 }, elementProfile: epSingleV222('YIN_SHADOW') },
+    { id: 'BEAST_V222_TEMPEST_WIND_SERPENT', nameTh: 'งูยักษ์เกล็ดวายุทะลวงเมฆ', tier: 2, cp: 230, flee: 26, aggro: 58, drops: ['MAT_V222_BP_11', 'MAT_V222_BP_30'], terrain: 'forest', family: 'SERPENT', archetype: 'SERPENT', element: 'WIND', visual: { body: '#2f6659', accent: '#8ee8d1', mark: 'stripes', scale: 1.10 }, elementProfile: epSingleV222('WIND') },
+    { id: 'BEAST_V222_CELESTIAL_LOTUS_CRANE', nameTh: 'กระเรียนขาวบัวสวรรค์หกทิศ', tier: 3, cp: 485, flee: 30, aggro: 45, drops: ['MAT_V222_BP_23', 'MAT_V222_BP_14', 'MAT_BP_BEAST_MEAT_1'], terrain: 'water', family: 'AVIAN', archetype: 'AVIAN', element: 'LIGHT_YANG', visual: { body: '#d9e4ec', accent: '#ffd97d', mark: 'wings', scale: 1.20 }, elementProfile: epSingleV222('LIGHT_YANG') },
+    { id: 'BEAST_V222_VOID_DEVOURING_CHIMERA', nameTh: 'ราชันย์อสูรกลืนดาราบรรพกาล', tier: 6, cp: 8900, flee: 5, aggro: 94, drops: ['MAT_V222_BP_24', 'MAT_V222_BP_08', 'MAT_V222_BP_28'], terrain: 'ruins', family: 'CHIMERA', archetype: 'CHIMERA', element: 'BLOOD_DEMON', visual: { body: '#3b1528', accent: '#ff5277', mark: 'crown', scale: 1.75 }, elementProfile: epWeightedV222('BLOOD_DEMON', 0.6, 'ASTRAL', 0.4) }
+  ];
+
+  // 24 New Authored Equipment Items + 24 Recipes distributing all Rare Effect Keywords (count 1..2 -> count 3+)
+  const v222EquipmentSpecs = [
+    { id: 'EQ_V222_01_FIST_3', recId: 'REC_V222_EQ_01', nameTh: 'สนับมือเขี้ยวกิเลนโลหิต', slot: 'WEAPON', gearType: 'FIST', subType: 'FIST', tier: 3, minStage: 2, value: 185, el: 'BLOOD_DEMON', mat1: 'MAT_V222_BP_01', mat2: 'MAT_V222_BP_15',
+      effects: [
+        { effectId: 'EFX_VITALITY_STEAL', params: { vitalityStealRatio: 0.26 } },
+        { effectId: 'EFX_BLOOD_SACRIFICE_OVERDRIVE', params: { powerMultiplier: 2.15, lifespanCostYears: 2, healthCost: 14 } }
+      ]
+    },
+    { id: 'EQ_V222_02_FIST_4', recId: 'REC_V222_EQ_02', nameTh: 'สนับมือกรงเล็บเหยี่ยวเผิงอสนี', slot: 'WEAPON', gearType: 'FIST', subType: 'FIST', tier: 4, minStage: 3, value: 320, el: 'LIGHTNING', mat1: 'MAT_V222_BP_04', mat2: 'MAT_V222_BP_16',
+      effects: [
+        { effectId: 'EFX_HEAVENLY_THUNDER_SMITE', params: { thunderPower: 380, antiFiendBonusRatio: 0.52 } },
+        { effectId: 'EFX_SHOCK_CONDUCTION', params: { shockDamage: 72, maxChainTargets: 3 } }
+      ]
+    },
+    { id: 'EQ_V222_03_BLADE_3', recId: 'REC_V222_EQ_03', nameTh: 'ดาบเขี้ยวพยัคฆ์วายุคลั่ง', slot: 'WEAPON', gearType: 'BLADE', subType: 'BLADE', tier: 3, minStage: 2, value: 190, el: 'WIND', mat1: 'MAT_V222_BP_11', mat2: 'MAT_V222_BP_12',
+      effects: [
+        { effectId: 'EFX_WEAKNESS_EXPOSURE', params: { critVulnerabilityBonus: 0.26, counterParryBonus: 0.22 } },
+        { effectId: 'EFX_SWORD_STORM_STRIKE', params: { slashPower: 420, maxTargets: 3, armorPenRatio: 0.28 } }
+      ]
+    },
+    { id: 'EQ_V222_04_BLADE_4', recId: 'REC_V222_EQ_04', nameTh: 'ดาบใหญ่แผงคอเพลิงโลกันตร์', slot: 'WEAPON', gearType: 'BLADE', subType: 'BLADE', tier: 4, minStage: 3, value: 330, el: 'FIRE', mat1: 'MAT_V222_BP_19', mat2: 'MAT_V222_BP_02',
+      effects: [
+        { effectId: 'EFX_ELEMENTAL_ANNIHILATION', params: { elementalPower: 490, durabilityWear: 6 } },
+        { effectId: 'EFX_FORMATION_DISRUPTION', params: { disruptionPotency: 45, integrityDamage: 20 } }
+      ]
+    },
+    { id: 'EQ_V222_05_SWORD_5', recId: 'REC_V222_EQ_05', nameTh: 'กระบี่เกล็ดมังกรเหมันต์เจ็ดสมุทร', slot: 'WEAPON', gearType: 'SWORD', subType: 'SWORD', tier: 5, minStage: 4, value: 540, el: 'WATER_ICE', mat1: 'MAT_V222_BP_05', mat2: 'MAT_V222_BP_17',
+      effects: [
+        { effectId: 'EFX_GRAVITY_QI_SEAL', params: { speedReductionRatio: 0.44, qiThroughputPenalty: 0.32 } },
+        { effectId: 'EFX_SPATIAL_LOCK', params: { lockStrength: 70, blockedMovementTags: ['BLINK', 'FLIGHT_ESCAPE'] } }
+      ]
+    },
+    { id: 'EQ_V222_06_SWORD_5', recId: 'REC_V222_EQ_06', nameTh: 'กระบี่ปีกเหล็กพญาครุฑตัดเมฆา', slot: 'WEAPON', gearType: 'SWORD', subType: 'SWORD', tier: 5, minStage: 4, value: 555, el: 'EARTH_METAL', mat1: 'MAT_V222_BP_21', mat2: 'MAT_V222_BP_11',
+      effects: [
+        { effectId: 'EFX_WEAPON_MAGNET_DISARM', params: { weaponPenaltyRatio: 0.56, disarmChance: 0.66 } },
+        { effectId: 'EFX_TIMED_PARRY', params: { parryMitigationRatio: 0.42, parryCharges: 2 } }
+      ]
+    },
+    { id: 'EQ_V222_07_BOW_4', recId: 'REC_V222_EQ_07', nameTh: 'เกาทัณฑ์ขนปีกเหยี่ยวเผิงสายฟ้า', slot: 'WEAPON', gearType: 'BOW', subType: 'BOW', tier: 4, minStage: 3, value: 335, el: 'LIGHTNING', mat1: 'MAT_V222_BP_03', mat2: 'MAT_V222_BP_06',
+      effects: [
+        { effectId: 'EFX_TRACE_MARK', params: { trackingAccuracy: 0.88, durationDays: 14 } },
+        { effectId: 'EFX_INTERRUPT_CHANNEL', params: { interruptForce: 66 } }
+      ]
+    },
+    { id: 'EQ_V222_08_SPEAR_3', recId: 'REC_V222_EQ_08', nameTh: 'ทวนก้ามปูยักษ์เหล็กเหมันต์', slot: 'WEAPON', gearType: 'SPEAR', subType: 'SPEAR', tier: 3, minStage: 2, value: 195, el: 'WATER_ICE', mat1: 'MAT_V222_BP_17', mat2: 'MAT_V222_BP_15',
+      effects: [
+        { effectId: 'EFX_WEAPON_MAGNET_DISARM', params: { weaponPenaltyRatio: 0.50, disarmChance: 0.58 } },
+        { effectId: 'EFX_GUARDED_DAMAGE_SHARE', params: { shareRatio: 0.36 } }
+      ]
+    },
+    { id: 'EQ_V222_09_STAFF_4', recId: 'REC_V222_EQ_09', nameTh: 'พลองแก่นเต่าทองสุริยัน', slot: 'WEAPON', gearType: 'STAFF', subType: 'STAFF', tier: 4, minStage: 3, value: 340, el: 'LIGHT_YANG', mat1: 'MAT_V222_BP_14', mat2: 'MAT_V222_BP_13',
+      effects: [
+        { effectId: 'EFX_PURIFY_HOSTILE_STATUS', params: { maxDispelTier: 5, maxStatusesRemoved: 2 } },
+        { effectId: 'EFX_STRUCTURAL_IMMUNITY_FLOOR', params: { floorTier: 5, minIntegrityRequired: 65 } }
+      ]
+    },
+    { id: 'EQ_V222_10_ZITHER_5', recId: 'REC_V222_EQ_10', nameTh: 'พิณเอ็นมังกรน้ำแข็งเจ็ดสมุทร', slot: 'WEAPON', gearType: 'ZITHER', subType: 'ZITHER', tier: 5, minStage: 4, value: 560, el: 'WATER_ICE', mat1: 'MAT_V222_BP_06', mat2: 'MAT_V222_BP_23',
+      effects: [
+        { effectId: 'EFX_SILENCE_CAST', params: { silenceTurns: 2, blockedCastTags: ['MANTRA', 'CHANT'] } },
+        { effectId: 'EFX_SOUL_MENTAL_ATTACK', params: { soulDamage: 195, heartDemonDelta: 18, armorBypassRatio: 0.52 } }
+      ]
+    },
+    { id: 'EQ_V222_11_BRUSH_5', recId: 'REC_V222_EQ_11', nameTh: 'พู่กันขนจิ้งจอกเก้าหางดารา', slot: 'WEAPON', gearType: 'BRUSH', subType: 'BRUSH', tier: 5, minStage: 4, value: 550, el: 'ASTRAL', mat1: 'MAT_V222_BP_07', mat2: 'MAT_V222_BP_18',
+      effects: [
+        { effectId: 'EFX_ILLUSION_DECOY', params: { decoyCharges: 2, deceptionScore: 62 } },
+        { effectId: 'EFX_SUPPRESS_POSITIVE_BUFF', params: { suppressStrength: 65, maxBuffsSuppressed: 2 } }
+      ]
+    },
+    { id: 'EQ_V222_12_WHIP_4', recId: 'REC_V222_EQ_12', nameTh: 'แส้เหล็กในจักรพรรดิแมงป่องหยิน', slot: 'WEAPON', gearType: 'WHIP', subType: 'WHIP', tier: 4, minStage: 3, value: 330, el: 'YIN_SHADOW', mat1: 'MAT_V222_BP_09', mat2: 'MAT_V222_BP_20',
+      effects: [
+        { effectId: 'EFX_TOXIN_INFECTION', params: { toxinPotency: 42, toxinKind: 'NEUROTOXIN' } },
+        { effectId: 'EFX_TERRAIN_BIND_TRAP', params: { trapDamage: 260, rootTurns: 2, charges: 2 } }
+      ]
+    },
+    { id: 'EQ_V222_13_FOCUS_6', recId: 'REC_V222_EQ_13', nameTh: 'ลูกแก้วราชันย์อสูรกลืนดารา', slot: 'WEAPON', gearType: 'FOCUS', subType: 'FOCUS', tier: 6, minStage: 5, value: 880, el: 'BLOOD_DEMON', mat1: 'MAT_V222_BP_24', mat2: 'MAT_V222_BP_08',
+      effects: [
+        { effectId: 'EFX_ELEMENTAL_ANNIHILATION', params: { elementalPower: 580, durabilityWear: 6 } },
+        { effectId: 'EFX_MIND_CORROSION', params: { mentalDecayPerTurn: 16, focusPenalty: 0.08 } }
+      ]
+    },
+    { id: 'EQ_V222_14_LIGHT_3', recId: 'REC_V222_EQ_14', nameTh: 'เกราะเบาหนังพยัคฆ์ลายเมฆาคลั่ง', slot: 'ARMOR', gearType: 'LIGHT', tier: 3, minStage: 2, value: 185, el: 'WIND', mat1: 'MAT_V222_BP_12', mat2: 'MAT_V222_BP_18',
+      effects: [
+        { effectId: 'EFX_STEALTH_CONCEALMENT', params: { concealmentScore: 54 } },
+        { effectId: 'EFX_SCENT_TRACE_BREAK', params: { traceBreakPower: 58, falseTrailDays: 2 } }
+      ]
+    },
+    { id: 'EQ_V222_15_LIGHT_4', recId: 'REC_V222_EQ_15', nameTh: 'เกราะเบาเงาเสือดำรัตติกาล', slot: 'ARMOR', gearType: 'LIGHT', tier: 4, minStage: 3, value: 325, el: 'YIN_SHADOW', mat1: 'MAT_V222_BP_22', mat2: 'MAT_V222_BP_10',
+      effects: [
+        { effectId: 'EFX_ILLUSION_MIST_MAZE', params: { accuracyPenalty: 0.32, travelDelayDays: 2 } },
+        { effectId: 'EFX_RECON_SIGNAL_JAM', params: { jammingStrength: 62, intelNoiseBonusPct: 38 } }
+      ]
+    },
+    { id: 'EQ_V222_16_ROBE_5', recId: 'REC_V222_EQ_16', nameTh: 'อาภรณ์ขนจิ้งจอกเก้าหางดารา', slot: 'ARMOR', gearType: 'ROBE', tier: 5, minStage: 4, value: 545, el: 'ASTRAL', mat1: 'MAT_V222_BP_07', mat2: 'MAT_V222_BP_23',
+      effects: [
+        { effectId: 'EFX_SKY_LEVITATION_DRIVE', params: { liftScale: 0.24, speedMultiplier: 1.15 } },
+        { effectId: 'EFX_CULTIVATION_ACCELERATOR', params: { cultivationBoostRatio: 0.30, dailyProgressCap: 10 } }
+      ]
+    },
+    { id: 'EQ_V222_17_ROBE_4', recId: 'REC_V222_EQ_17', nameTh: 'อาภรณ์ไหมผีเสื้อมายาจันทร์เร้น', slot: 'ARMOR', gearType: 'ROBE', tier: 4, minStage: 3, value: 315, el: 'ASTRAL', mat1: 'MAT_V222_BP_18', mat2: 'MAT_V222_BP_20',
+      effects: [
+        { effectId: 'EFX_ILLUSION_DECOY', params: { decoyCharges: 2, deceptionScore: 58 } },
+        { effectId: 'EFX_MERIDIAN_TOXIN_PURGE', params: { purgePotency: 50, supportedToxinTags: ['HEMOTUXIN', 'PILL_TOXICITY'] } }
+      ]
+    },
+    { id: 'EQ_V222_18_HEAVY_4', recId: 'REC_V222_EQ_18', nameTh: 'เกราะหนักกระดองเต่าทองสุริยัน', slot: 'ARMOR', gearType: 'HEAVY', tier: 4, minStage: 3, value: 350, el: 'LIGHT_YANG', mat1: 'MAT_V222_BP_13', mat2: 'MAT_V222_BP_19',
+      effects: [
+        { effectId: 'EFX_GUARDED_DAMAGE_SHARE', params: { shareRatio: 0.38 } },
+        { effectId: 'EFX_REALM_SUPPRESSION_GUARD', params: { maxCrossRealmDelta: 1.5, suppressionReductionRatio: 0.38 } }
+      ]
+    },
+    { id: 'EQ_V222_19_BRACELET_3', recId: 'REC_V222_EQ_19', nameTh: 'กำไลเขากวางกิเลนอสนีคราม', slot: 'ACCESSORY', gearType: 'BRACELET', tier: 3, minStage: 2, value: 180, el: 'LIGHTNING', mat1: 'MAT_V222_BP_16', mat2: 'MAT_V222_BP_04',
+      effects: [
+        { effectId: 'EFX_HEAVENLY_THUNDER_SMITE', params: { thunderPower: 340, antiFiendBonusRatio: 0.48 } },
+        { effectId: 'EFX_FORGING_STABILIZATION', params: { craftSuccessBonus: 0.18, qualityBonusChance: 0.22 } }
+      ]
+    },
+    { id: 'EQ_V222_20_BRACELET_4', recId: 'REC_V222_EQ_20', nameTh: 'กำไลเถาหนามพฤกษาโลหิตพันปี', slot: 'ACCESSORY', gearType: 'BRACELET', tier: 4, minStage: 3, value: 310, el: 'WOOD_LIFE', mat1: 'MAT_V222_BP_20', mat2: 'MAT_V222_BP_23',
+      effects: [
+        { effectId: 'EFX_ECOLOGY_HERB_NURTURE', params: { growthRateMultiplier: 1.38, aromaBeastLureRisk: 0.12 } },
+        { effectId: 'EFX_HERB_POLLINATION', params: { pollinationYieldBonus: 2, qualityUpgradeChance: 0.28 } }
+      ]
+    },
+    { id: 'EQ_V222_21_RING_3', recId: 'REC_V222_EQ_21', nameTh: 'แหวนโลหิตหัวใจกิเลนทมิฬ', slot: 'ACCESSORY', gearType: 'RING', tier: 3, minStage: 2, value: 188, el: 'BLOOD_DEMON', mat1: 'MAT_V222_BP_02', mat2: 'MAT_V222_BP_01',
+      effects: [
+        { effectId: 'EFX_VITALITY_STEAL', params: { vitalityStealRatio: 0.25 } },
+        { effectId: 'EFX_BEAST_INTIMIDATION', params: { beastPowerSuppressionRatio: 0.30, maxBeastTierAffected: 5 } }
+      ]
+    },
+    { id: 'EQ_V222_22_RING_5', recId: 'REC_V222_EQ_22', nameTh: 'แหวนเนตรดาราจิ้งจอกสวรรค์', slot: 'ACCESSORY', gearType: 'RING', tier: 5, minStage: 4, value: 530, el: 'ASTRAL', mat1: 'MAT_V222_BP_08', mat2: 'MAT_V222_BP_07',
+      effects: [
+        { effectId: 'EFX_DETECTION_REVEAL', params: { revealPower: 65, scanRadius: 36 } },
+        { effectId: 'EFX_LEARNING_INSIGHT', params: { masteryGainMultiplier: 1.48, comprehensionBonus: 14 } }
+      ]
+    },
+    { id: 'EQ_V222_23_NECKLACE_4', recId: 'REC_V222_EQ_23', nameTh: 'สร้อยขนหงอนกระเรียนขาวบัวสวรรค์', slot: 'ACCESSORY', gearType: 'NECKLACE', tier: 4, minStage: 3, value: 328, el: 'LIGHT_YANG', mat1: 'MAT_V222_BP_23', mat2: 'MAT_V222_BP_14',
+      effects: [
+        { effectId: 'EFX_MASS_VITAL_HEAL', params: { healAmount: 48, maxRecipients: 2, curesMeridianWound: true } },
+        { effectId: 'EFX_BEAST_BOND_CHANNEL', params: { bondPowerBonusRatio: 0.28, beastFatigueCost: 0, restoresBeastFatigue: 40 } }
+      ]
+    },
+    { id: 'EQ_V222_24_CHARM_6', recId: 'REC_V222_EQ_24', nameTh: 'ตราประทับราชันย์อสูรกลืนดารา', slot: 'ACCESSORY', gearType: 'CHARM', tier: 6, minStage: 5, value: 860, el: 'BLOOD_DEMON', mat1: 'MAT_V222_BP_24', mat2: 'MAT_V222_BP_21',
+      effects: [
+        { effectId: 'EFX_FORMATION_HARMONIZATION', params: { syncBonus: 18, stabilityBonus: 16 } },
+        { effectId: 'EFX_VEIN_ANCHORED', params: { veinThroughputMult: 1.28, peacetimeZeroUpkeep: true } }
+      ]
+    }
+  ];
+
+  const v222SourceByElement = {
+    BLOOD_DEMON: {
+      zones: ["west_grove", "ridge", "legend"],
+      fortuneSpots: ["f1_blood_thorn_hollow", "f3_crimson_slaughter_altar", "f4_abyssal_chimera_maw"],
+      myriadWorlds: ["bloodmoon", "prison"],
+      gateTypes: ["GATE_BLOOD_ECLIPSE", "GATE_PRIMORDIAL_RIFT"],
+      secretRealms: ["REALM_NINE_NETHER_BLOOD_SEA", "REALM_FROST_BLOOD_BEAST_ABYSS"],
+      sanctums: ["SANCTUM_BLOOD_VAJRA", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่าอสูรป่ารัตติกาล/แดนอสูรบรรพกาล · จุดวาสนาโพรงหนามโลหิต & แท่นบูชาโลหิต · แดนหมื่นพิภพจันทร์โลหิตหมื่นอสูร (ประตูมิติสุริยุปราคาโลหิต) · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต"
+    },
+    LIGHTNING: {
+      zones: ["ridge", "east_crag", "north_peak"],
+      fortuneSpots: ["f2_thunder_echo_cliff", "f3_glacier_phoenix_roost", "f4_astral_starfall_observatory"],
+      myriadWorlds: ["thunderpeak", "godwar"],
+      gateTypes: ["GATE_ASTRAL_CONJUNCTION", "GATE_PRIMORDIAL_RIFT"],
+      secretRealms: ["REALM_THUNDER_ZITHER_SANCTUARY", "REALM_EMPEROR_SWORD_TOMB"],
+      sanctums: ["SANCTUM_ASTRAL_DIVINE", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่าสันผาอสูรอัสนี/ผาบูรพา · จุดวาสนาผาอสนีสะท้อนพิณ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ (ประตูมิติดาราจักรบรรจบ) · แดนลับตำหนักพิณอสนีเก้าสวรรค์"
+    },
+    WATER_ICE: {
+      zones: ["north_peak", "east_crag", "legend"],
+      fortuneSpots: ["f1_frost_echo_gully", "f3_glacier_phoenix_roost", "f4_primordial_fountain"],
+      myriadWorlds: ["frostabyss", "snow", "skysea"],
+      gateTypes: ["GATE_HARMONY_PASSAGE", "GATE_ASTRAL_CONJUNCTION"],
+      secretRealms: ["REALM_FROST_BLOOD_BEAST_ABYSS", "REALM_NINE_NETHER_BLOOD_SEA"],
+      sanctums: ["SANCTUM_SWORD_ABYSS", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่ายอดเขาเหมันต์อุดร/แอ่งสมุทรบูรพา · จุดวาสนาหุบเสียงสะท้อนเหมันต์ & รังหงส์น้ำแข็ง · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต"
+    },
+    WIND: {
+      zones: ["meadow", "west_grove", "east_crag"],
+      fortuneSpots: ["f1_frost_echo_gully", "f2_thunder_echo_cliff", "f2_mist_valley"],
+      myriadWorlds: ["thunderpeak", "skysea"],
+      gateTypes: ["GATE_HARMONY_PASSAGE", "GATE_STANDARD"],
+      secretRealms: ["REALM_THUNDER_ZITHER_SANCTUARY", "REALM_EMPEROR_SWORD_TOMB"],
+      sanctums: ["SANCTUM_SWORD_ABYSS", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่าทุ่งหญ้า/ผาบูรพา · จุดวาสนาผาอสนีสะท้อนพิณ & หุบเขาเมฆา · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · แดนลับตำหนักพิณอสนีเก้าสวรรค์"
+    },
+    WOOD_LIFE: {
+      zones: ["meadow", "west_grove", "ridge"],
+      fortuneSpots: ["f1_bamboo_grotto", "f2_venom_lotus_marsh", "f4_primordial_fountain"],
+      myriadWorlds: ["eden", "fungi", "bloodmoon"],
+      gateTypes: ["GATE_HARMONY_PASSAGE", "GATE_BLOOD_ECLIPSE"],
+      secretRealms: ["REALM_PRIMORDIAL_ALCHEMIST_PALACE", "REALM_THUNDER_ZITHER_SANCTUARY"],
+      sanctums: ["SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่าป่าไผ่หมอกครามประจิม · จุดวาสนาบึงบัวพิษหมื่นบุปผา · แดนหมื่นพิภพสวนสวรรค์ล่มสลาย & จันทร์โลหิต · แดนลับตำหนักโอสถเทวะหมื่นกัลป์"
+    },
+    EARTH_METAL: {
+      zones: ["ridge", "east_crag", "legend"],
+      fortuneSpots: ["f2_abandoned_mine", "f3_crimson_slaughter_altar", "f4_astral_starfall_observatory"],
+      myriadWorlds: ["swordyard", "clock", "astralvoid"],
+      gateTypes: ["GATE_STANDARD", "GATE_PRIMORDIAL_RIFT"],
+      secretRealms: ["REALM_EMPEROR_SWORD_TOMB", "REALM_ASTRAL_GOD_RUINS"],
+      sanctums: ["SANCTUM_BLOOD_VAJRA", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่าแนวผาหินใต้สำนัก/หน้าผาบูรพา · จุดวาสนาแท่นบูชาโลหิต & หอดูดาวดาราจักร · แดนหมื่นพิภพดาราจักรสุญตา & ทะเลสุสานกระบี่ · สุสานกระบี่จักรพรรดิบรรพกาล"
+    },
+    LIGHT_YANG: {
+      zones: ["east_crag", "north_peak", "legend"],
+      fortuneSpots: ["f3_flame_crater", "f3_crimson_slaughter_altar", "f4_astral_starfall_observatory"],
+      myriadWorlds: ["astralvoid", "godwar", "hourglass"],
+      gateTypes: ["GATE_ASTRAL_CONJUNCTION", "GATE_PRIMORDIAL_RIFT"],
+      secretRealms: ["REALM_ASTRAL_GOD_RUINS", "REALM_PRIMORDIAL_ALCHEMIST_PALACE"],
+      sanctums: ["SANCTUM_ASTRAL_DIVINE", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่าผาบูรพา/แดนอสูรบรรพกาล · จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพดาราจักรสุญตา · แดนลับซากวิหารดาราจักรเทพโบราณ"
+    },
+    YIN_SHADOW: {
+      zones: ["west_grove", "ridge", "legend"],
+      fortuneSpots: ["f1_blood_thorn_hollow", "f2_venom_lotus_marsh", "f4_abyssal_chimera_maw"],
+      myriadWorlds: ["bloodmoon", "nightmare", "prison"],
+      gateTypes: ["GATE_BLOOD_ECLIPSE", "GATE_PRIMORDIAL_RIFT"],
+      secretRealms: ["REALM_NINE_NETHER_BLOOD_SEA", "REALM_FROST_BLOOD_BEAST_ABYSS"],
+      sanctums: ["SANCTUM_BLOOD_VAJRA", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่าถ้ำเงารัตติกาลประจิม/แดนอสูรบรรพกาล · จุดวาสนาบึงบัวพิษ & หุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพจันทร์โลหิต & ดินแดนฝันร้าย · วังบาดาลสมุทรโลหิตเก้ายมโลก"
+    },
+    ASTRAL: {
+      zones: ["east_crag", "north_peak", "legend"],
+      fortuneSpots: ["f4_void_rift", "f4_astral_starfall_observatory", "f4_abyssal_chimera_maw"],
+      myriadWorlds: ["astralvoid", "mirror", "godwar"],
+      gateTypes: ["GATE_ASTRAL_CONJUNCTION", "GATE_PRIMORDIAL_RIFT"],
+      secretRealms: ["REALM_ASTRAL_GOD_RUINS", "REALM_THUNDER_ZITHER_SANCTUARY"],
+      sanctums: ["SANCTUM_ASTRAL_DIVINE", "SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "เขตล่ายอดเขาเหมันต์อุดร/แดนอสูรบรรพกาล · จุดวาสนาหอดูดาวดาราจักร & รอยแยกห้วงมิติ · แดนหมื่นพิภพดาราจักรสุญตา (ประตูมิติดาราจักรบรรจบ) · ซากวิหารดาราจักรเทพโบราณ"
+    }
+  };
+
+  v222Beasts.forEach(b => {
+    const srcInfo = v222SourceByElement[b.element] || v222SourceByElement.ASTRAL;
+    b.habitatZones = srcInfo.zones.slice();
+    b.fortuneSpots = srcInfo.fortuneSpots.slice();
+    b.myriadWorlds = srcInfo.myriadWorlds.slice();
+    b.gateTypes = srcInfo.gateTypes.slice();
+    b.secretRealms = srcInfo.secretRealms.slice();
+    b.obtainSources = [
+      ...srcInfo.zones.map(z => "WILD_ZONE:" + z),
+      ...srcInfo.fortuneSpots.map(f => "FORTUNE:" + f),
+      ...srcInfo.myriadWorlds.map(w => "MYRIAD_WORLD:" + w),
+      ...srcInfo.secretRealms.map(r => "SECRET_REALM:" + r)
+    ];
+    b.sourceInfoTh = srcInfo.sourceInfoTh;
+    species.push(b);
+  });
+  v222ActiveBeastMats.concat(v222ReservedBeastMats).forEach(m => {
+    m.sourceBeastIds = v222Beasts.filter(b => Array.isArray(b.drops) && b.drops.includes(m.id)).map(b => b.id);
+    const srcInfo = v222SourceByElement[m.element] || v222SourceByElement.ASTRAL;
+    m.fortuneSpots = srcInfo.fortuneSpots.slice();
+    m.myriadWorlds = srcInfo.myriadWorlds.slice();
+    m.gateTypes = srcInfo.gateTypes.slice();
+    m.secretRealms = srcInfo.secretRealms.slice();
+    m.obtainSources = [
+      ...(m.sourceBeastIds || []).map(id => "BEAST_DROP:" + id),
+      ...srcInfo.fortuneSpots.map(f => "FORTUNE:" + f),
+      ...srcInfo.myriadWorlds.map(w => "MYRIAD_WORLD:" + w),
+      ...srcInfo.secretRealms.map(r => "SECRET_REALM:" + r)
+    ];
+    m.sourceInfoTh = srcInfo.sourceInfoTh;
+    materials.push(m);
+  });
+
+  v222EquipmentSpecs.forEach(es => {
+    const it = {
+      id: es.id,
+      recipeId: es.recId,
+      nameTh: es.nameTh,
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: es.slot,
+      gearType: es.gearType,
+      subType: es.subType || undefined,
+      tier: es.tier,
+      minStage: es.minStage,
+      value: es.value,
+      craft: 'FORGING',
+      durability: 100,
+      charges: null,
+      effects: es.effects,
+      element: es.el,
+      elementProfile: epSingleV222(es.el),
+      obtainSources: [
+        "CRAFT:" + es.recId,
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).fortuneSpots.map(f => "FORTUNE:" + f)),
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).myriadWorlds.map(w => "MYRIAD_WORLD:" + w)),
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).secretRealms.map(r => "SECRET_REALM:" + r)),
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).sanctums.map(s => "SANCTUM:" + s))
+      ],
+      sourceInfoTh: "หลอมจากตำรับ「" + es.nameTh + "」หรือค้นพบจาก " + (v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).sourceInfoTh,
+      v222: true
+    };
+    items.push(it);
+    const rec = {
+      id: es.recId,
+      nameTh: 'ตำรับหลอม' + es.nameTh,
+      outNameTh: es.nameTh,
+      outItemId: es.id,
+      outType: 'EQUIPMENT',
+      craft: 'FORGING',
+      slot: es.slot,
+      gearType: es.gearType,
+      tier: es.tier,
+      minStage: es.minStage,
+      minMastery: Math.max(10, es.tier * 12),
+      facilityLevel: Math.min(5, Math.max(1, es.tier - 1)),
+      compatiblePath: 'ANY',
+      inputs: [
+        { matId: es.mat1, count: 2 },
+        { matId: es.mat2, count: 1 }
+      ],
+      element: es.el,
+      elementProfile: epSingleV222(es.el),
+      obtainSources: [
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).fortuneSpots.map(f => "FORTUNE:" + f)),
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).myriadWorlds.map(w => "MYRIAD_WORLD:" + w)),
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).secretRealms.map(r => "SECRET_REALM:" + r)),
+        ...((v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).sanctums.map(s => "SANCTUM:" + s))
+      ],
+      sourceInfoTh: (v222SourceByElement[es.el] || v222SourceByElement.ASTRAL).sourceInfoTh,
+      v222: true
+    };
+    recipes.push(rec);
+  });
+
   const ECOLOGY = {
     VERSION: '1.10.12',
     species,
@@ -10312,5 +10722,59 @@
   JD.ITEMS.materials.push(...materials);
   JD.ITEMS.recipes.push(...recipes);
   JD.ITEMS.items.push(...items);
+
+  // Enrich every Spirit Beast in JD.BEASTS.species with complete Anatomy Breakdown & Material Usage Guide
+  const matLookup = {};
+  (JD.ITEMS.materials || []).forEach(m => { if (m && m.id) matLookup[m.id] = m; });
+  const recByInputMat = {};
+  (JD.ITEMS.recipes || []).forEach(r => {
+    (r.inputs || []).forEach(inp => {
+      if (!recByInputMat[inp.matId]) recByInputMat[inp.matId] = [];
+      recByInputMat[inp.matId].push(r.id);
+    });
+  });
+
+  JD.BEASTS.unassignedAnatomyBacklog = v222ReservedBeastMats.map(m => ({
+    matId: m.id,
+    nameTh: m.nameTh,
+    tier: m.tier,
+    anatomy: m.anatomy,
+    element: m.element,
+    craft: m.craft,
+    status: 'RESERVED_FOR_NEXT_PATCH',
+    usesTh: m.usesTh,
+    plannedUsageTh: m.plannedUsageTh
+  }));
+
+  (JD.BEASTS.species || []).forEach(sp => {
+    if (!sp) return;
+    if (Array.isArray(sp.drops) && sp.drops.length === 1) {
+      const extraDrop = (sp.tier || 1) >= 2 ? "MAT_BP_BOAR_CORE_2" : "MAT_BP_BEAST_MEAT_1";
+      if (!sp.drops.includes(extraDrop)) sp.drops.push(extraDrop);
+    }
+    const dropDetails = (sp.drops || []).map(dId => {
+      const m = matLookup[dId] || {};
+      const usedIn = recByInputMat[dId] || [];
+      return {
+        matId: dId,
+        nameTh: m.nameTh || dId,
+        anatomy: m.anatomy || (dId.includes('MEAT') ? 'SPIRIT_MEAT' : dId.includes('CORE') ? 'INNER_CORE' : dId.includes('PELT') || dId.includes('SHELL') ? 'SCALE_SHELL' : 'FANG_CLAW'),
+        tier: m.tier || sp.tier || 1,
+        craft: m.craft || 'FORGING',
+        usedInRecipeIds: usedIn,
+        craftingStatus: usedIn.length > 0 ? 'ACTIVE_IN_RECIPES' : (m.craftingStatus || 'GENERAL_CRAFT_POOL'),
+        usesTh: m.usesTh || (usedIn.length > 0 ? ('ใช้ในตำรับหลอม/ปรุงยา ' + usedIn.length + ' สูตร') : 'วัตถุดิบชิ้นส่วนอสูรสำรองสำหรับหลอมศาสตรา/ปรุงโอสถในแพตช์ถัดไป')
+      };
+    });
+    sp.anatomyProfile = {
+      complete: true,
+      coreOrgan: 'แก่นปราณอสูรธาตุ ' + (sp.element || 'NEUTRAL') + ' (ระดับ ' + (sp.tier || 1) + ')',
+      offensivePart: dropDetails[0] ? dropDetails[0].nameTh : 'เขี้ยว/กรงเล็บอสูร',
+      defensiveHide: dropDetails[1] ? dropDetails[1].nameTh : 'หนัง/เกล็ดหุ้มปราณ',
+      spiritMeat: 'เนื้อปราณอสูรสำหรับโรงครัวและโอสถบำรุงกายา',
+      dropDetails
+    };
+  });
+
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);

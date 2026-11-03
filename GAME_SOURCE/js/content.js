@@ -70,16 +70,20 @@
         if(!s) return;
         const f= (s.factionId && factionById[s.factionId]) || factions[i % factions.length];
         if(!f) return;
-        s.factionId=f.id;
-        s.code=f.code;
+        s.factionId=s.factionId||f.id;
+        s.code=s.code||f.code;
         s.factionNameTh=f.nameTh;
-        s.shortTh=f.shortTh;
-        s.icon=f.icon;
-        s.alignment=f.alignment;
-        s.alignmentLabelTh=f.alignmentLabelTh;
-        s.majorPath=f.majorPath;
-        s.specialtyTh=f.specialtyTh;
-        s.leaderNameTh=f.leaderNameTh;
+        s.shortTh=s.shortTh||f.shortTh;
+        s.icon=s.icon||f.icon;
+        if(!s.canonicalId){
+          s.alignment=f.alignment;
+          s.alignmentLabelTh=f.alignmentLabelTh;
+          s.majorPath=f.majorPath;
+          s.specialtyTh=f.specialtyTh;
+          s.leaderNameTh=f.leaderNameTh;
+        } else {
+          s.leaderNameTh=(s.figures&&s.figures.master&&s.figures.master.fullNameTh)||s.leaderNameTh||f.leaderNameTh;
+        }
         s.specialtyMatIds=Array.isArray(f.specialtyMatIds)?f.specialtyMatIds.slice():[];
         s.treatyPref=f.treatyPref||'NONE';
         s.doctrineBonus=Object.assign({},f.doctrineBonus||{});
@@ -109,6 +113,7 @@
     else if(W.sect.gateBeasts.length>4) W.sect.gateBeasts.length=4;
     if(g.EXPLORE&&g.EXPLORE.ensureTrials) g.EXPLORE.ensureTrials(W);
     if(g.SECT&&g.SECT.WORLD_MARTIAL_CONFERENCE&&g.SECT.WORLD_MARTIAL_CONFERENCE.ensure) g.SECT.WORLD_MARTIAL_CONFERENCE.ensure(W);
+    if(g.EXPED&&g.EXPED.ensureWorldTopology) g.EXPED.ensureWorldTopology(W);
     return m;
   };
 
@@ -581,7 +586,8 @@
     ALLIANCE_PACT:'มหาพันธมิตรร่วมสาบาน',
     RIVAL_FEUD:'คู่ปรับท้าประลองยุทธภพ',
     EMBARGO:'คว่ำบาตร/ปรปักษ์',
-    VASSAL_TREATY:'สนธิสัญญาสำนักบริวารและบรรณาการ'
+    VASSAL_TREATY:'สนธิสัญญาสำนักบริวารและบรรณาการ',
+    FREE_TRADE_TREATY:'สัญญาเปิดด่านการค้าเสรีไร้ภาษี'
   };
   C.TREATY_TH=TREATY_TH;
   C.SECT_TREATIES=TREATY_TH;
@@ -589,7 +595,7 @@
   C.signTreaty=(W,sectOrId,treatyType,opts)=>{
     opts=opts||{};
     C.ensure(W);
-    const s=typeof sectOrId==='string'?W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId;
+    const s=typeof sectOrId==='string'?(W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)||(W.world.allSects&&W.world.allSects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId))):sectOrId;
     if(!s||!TREATY_TH[treatyType]) return {ok:false,reason:'invalid-sect-or-treaty'};
     if(!opts.force && !opts.ignoreCooldown && s.treatyCooldownUntil!=null && (W.day||0)<s.treatyCooldownUntil && s.treaty===treatyType) {
       return {ok:false,reason:'cooldown',cooldownUntilDay:s.treatyCooldownUntil};

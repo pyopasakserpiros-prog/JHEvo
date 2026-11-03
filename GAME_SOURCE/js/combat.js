@@ -266,16 +266,21 @@
     const sh = shieldOf(d); if (sh) { const ab = Math.min(sh.amt, dmg); sh.amt -= ab; dmg -= ab; if (sh.amt <= 0) STs().clearStatus(d, x => x.k === 'shield'); }
     if (dmg > 0 && !d.foe && d.pets && d.pets.length && CULT.activePets) {
       const actPets = CULT.activePets(d);
-      const guardPet = actPets.find(pt => (pt.role === 'IRON_GUARDIAN' || (d.cult && d.cult.sub === 'COLOSSUS_SHIELD_TAMER')) && (pt.hp == null || pt.hp > 15) && (pt.fatigue || 0) < 90);
+      const guardPet = actPets.find(pt => (pt.fourSymbol === 'BLACK_TORTOISE' || pt.bloodlineTrait === 'BLACK_TORTOISE' || pt.role === 'IRON_GUARDIAN' || (d.cult && d.cult.sub === 'COLOSSUS_SHIELD_TAMER')) && (pt.hp == null || pt.hp > 15) && (pt.fatigue || 0) < 90);
       if (guardPet) {
-        const share = (d.cult && d.cult.sub === 'COLOSSUS_SHIELD_TAMER') ? 0.38 : 0.28;
+        const isBlackTortoise = guardPet.fourSymbol === 'BLACK_TORTOISE' || guardPet.bloodlineTrait === 'BLACK_TORTOISE';
+        const share = isBlackTortoise ? 0.45 : ((d.cult && d.cult.sub === 'COLOSSUS_SHIELD_TAMER') ? 0.38 : 0.28);
         const curPetHp = guardPet.hp != null ? guardPet.hp : (guardPet.hpMax || 100);
         const intercepted = Math.min(dmg * share, Math.max(0, curPetHp - 10));
         if (intercepted >= 1) {
           dmg -= intercepted;
-          guardPet.hp = Math.max(5, Math.round(curPetHp - intercepted * 0.45));
-          guardPet.fatigue = clamp((guardPet.fatigue || 0) + 3.5, 0, 100);
-          d.lastPetIntercept = { t: W.t, petId: guardPet.uid || guardPet.petId, petName: guardPet.nameTh, intercepted: Math.round(intercepted) };
+          guardPet.hp = Math.max(5, Math.round(curPetHp - intercepted * (isBlackTortoise ? 0.28 : 0.45)));
+          guardPet.fatigue = clamp((guardPet.fatigue || 0) + (isBlackTortoise ? 2.0 : 3.5), 0, 100);
+          d.lastPetIntercept = { t: W.t, petId: guardPet.uid || guardPet.petId, petName: guardPet.nameTh, fourSymbol: guardPet.fourSymbol || null, intercepted: Math.round(intercepted) };
+          if (isBlackTortoise && a && !a.dead && note !== 'สะท้อนเกราะเสวียนอู่') {
+            const btRef = Math.max(1, Math.round(intercepted * 0.22));
+            C.applyDamage(W, f, d, a, btRef, 'สะท้อนเกราะเสวียนอู่');
+          }
         }
       }
     }
@@ -290,10 +295,24 @@
       ks.lastHarmAt = W.t;
     }
     let hp = C.hp(d) - dmg;
-    if (hp <= 0 && d.isGateBeast && d.bloodlineTrait === 'SOVEREIGN_AWAKENED' && !d.sovereignGuardUsed) {
+    if (hp <= 0 && d.isGateBeast && (d.fourSymbol === 'VERMILION_PHOENIX' || d.fourSymbol === 'BLACK_TORTOISE' || d.bloodlineTrait === 'SOVEREIGN_AWAKENED' || d.bloodlineTrait === 'VERMILION_PHOENIX' || d.bloodlineTrait === 'BLACK_TORTOISE') && !d.sovereignGuardUsed) {
       d.sovereignGuardUsed = true;
-      hp = Math.max(1, Math.round(hm * 0.22));
-      d.fx = { t: W.t, text: '👑 สายเลือดราชันย์คุ้มชีพ' };
+      const isPhoenix = d.fourSymbol === 'VERMILION_PHOENIX' || d.bloodlineTrait === 'VERMILION_PHOENIX';
+      hp = Math.max(1, Math.round(hm * (isPhoenix ? 0.42 : 0.28)));
+      d.fx = { t: W.t, text: isPhoenix ? '🔥 เพลิงนิพพานหงส์อมตะ!' : '👑 สายเลือดราชันย์คุ้มชีพ' };
+    }
+    if (hp <= hm * 0.15 && !d.foe && d.pets && d.pets.length && CULT.activePets) {
+      f._phoenixRebirthUsed = f._phoenixRebirthUsed || {};
+      const phoenixPet = !f._phoenixRebirthUsed[d.id] && CULT.activePets(d).find(pt => pt && (pt.fourSymbol === 'VERMILION_PHOENIX' || pt.bloodlineTrait === 'VERMILION_PHOENIX'));
+      if (phoenixPet) {
+        f._phoenixRebirthUsed[d.id] = true;
+        hp = Math.max(Math.round(hm * 0.42), hp);
+        STs().addStatus(d, 'shield', 12, { amt: Math.round(hm * 0.25) }, W.t);
+        STs().clearStatus(d, x => ['burn', 'bleed', 'poison'].includes(x.k));
+        d.fx = { t: W.t, text: '🔥 เพลิงนิพพานหงส์ชาดคุ้มชีพ!' };
+        d.lastPhoenixRebirth = { t: W.t, petId: phoenixPet.uid || phoenixPet.id, fightId: f ? f.id : 0 };
+        STs().dirty(d);
+      }
     }
     if (hp <= hm * 0.12 && !d.foe && d.cult && d.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
       f._mechDecoyUsed = f._mechDecoyUsed || {};
@@ -396,11 +415,28 @@
     let frac = 0.2 * (A0 / (A0 + 0.8 * Math.max(0, D))) * (o.M || 1) * (o.synDmgMult || 1) * (tb ? tb.dmgMult : 1) * (tac ? tac.dmgMult : 1) * resRiderMult * (0.85 + W.rng.next() * 0.3);
     if (crit) frac *= ((sa.critDmg || 150) + (o.critDmgAdd || 0) + (tb ? tb.critDmgAdd : 0)) / 100;
     if (a.isGateBeast) {
-      if (a.bloodlineTrait === 'ALPHA_FANG') frac *= 1.18;
+      if (a.fourSymbol === 'WHITE_TIGER' || a.bloodlineTrait === 'WHITE_TIGER') frac *= 1.35;
+      else if (a.fourSymbol === 'AZURE_DRAGON' || a.bloodlineTrait === 'AZURE_DRAGON') frac *= 1.28;
+      else if (a.fourSymbol === 'VERMILION_PHOENIX' || a.bloodlineTrait === 'VERMILION_PHOENIX') frac *= 1.25;
+      else if (a.fourSymbol === 'BLACK_TORTOISE' || a.bloodlineTrait === 'BLACK_TORTOISE') frac *= 1.18;
+      else if (a.bloodlineTrait === 'ALPHA_FANG') frac *= 1.18;
       else if (a.bloodlineTrait === 'SOVEREIGN_AWAKENED') frac *= 1.10;
     }
-    if (d.isGateBeast && d.bloodlineTrait === 'IRON_CARAPACE') frac *= 0.72;
-    else if (d.isGateBeast && d.bloodlineTrait === 'SOVEREIGN_AWAKENED') frac *= 0.90;
+    if (d.isGateBeast) {
+      if (d.fourSymbol === 'BLACK_TORTOISE' || d.bloodlineTrait === 'BLACK_TORTOISE') frac *= 0.62;
+      else if (d.fourSymbol) frac *= 0.82;
+      else if (d.bloodlineTrait === 'IRON_CARAPACE') frac *= 0.72;
+      else if (d.bloodlineTrait === 'SOVEREIGN_AWAKENED') frac *= 0.90;
+    }
+    if (!a.foe && a.pets && a.pets.length && CULT.activePets) {
+      const aPets = CULT.activePets(a);
+      if (aPets.some(pt => pt.fourSymbol === 'WHITE_TIGER' || pt.bloodlineTrait === 'WHITE_TIGER')) frac *= 1.15;
+      else if (aPets.some(pt => pt.fourSymbol === 'AZURE_DRAGON' || pt.bloodlineTrait === 'AZURE_DRAGON')) frac *= 1.10;
+    }
+    if (!d.foe && d.pets && d.pets.length && CULT.activePets) {
+      const dPets = CULT.activePets(d);
+      if (dPets.some(pt => pt.fourSymbol === 'BLACK_TORTOISE' || pt.bloodlineTrait === 'BLACK_TORTOISE')) frac *= 0.82;
+    }
     // Major Path Offensive/Defensive Combat Identities
     if (!a.foe && a.cult) {
       if (a.cult.path === 'XIAN' && o.isSkill && (a.h.state.qi || 0) >= CULT.qiMax(a) * 0.5) {
@@ -554,25 +590,42 @@
           const allocs = CULT.petCommandAllocation ? CULT.petCommandAllocation(a) : actPets.map(p => ({ pet: p, share: 1 / actPets.length }));
           let assistM = 0;
           let hasVenom = !!(a.cult && (a.cult.sub === 'SWARM_GU_HIVE_MASTER' || a.cult.sub === 'SWARM_INSECT_EMPEROR'));
+          let hasWhiteTiger = false, hasPhoenix = false, hasAzureDragon = false;
           for (let pi = 0; pi < allocs.length; pi++) {
             const pt = allocs[pi].pet, sh = allocs[pi].share || (1 / actPets.length);
-            const pMult = (0.18 + 0.035 * (pt.tier || 1) + 0.012 * (pt.level || 1)) * (pt.sovereignAwakened ? 1.25 : 1.0) * sh;
+            const fs = pt.fourSymbol || (CULT.FOUR_SYMBOL_BLOODLINES && CULT.FOUR_SYMBOL_BLOODLINES[pt.bloodlineTrait] ? pt.bloodlineTrait : null);
+            const awkMult = fs ? 1.45 : (pt.sovereignAwakened ? 1.25 : 1.0);
+            const pMult = (0.18 + 0.035 * (pt.tier || 1) + 0.012 * (pt.level || 1)) * awkMult * sh;
             assistM += pMult;
             if (pt.role === 'VENOM_SWARM' || pt.role === 'VENOM_STALKER') hasVenom = true;
+            if (fs === 'WHITE_TIGER') hasWhiteTiger = true;
+            if (fs === 'VERMILION_PHOENIX') hasPhoenix = true;
+            if (fs === 'AZURE_DRAGON') hasAzureDragon = true;
             pt.exp = (pt.exp || pt.bondXp || 0) + 4;
             pt.bondXp = pt.exp;
             pt.fatigue = clamp((pt.fatigue || 0) + 1.2, 0, 100);
             if (pt.exp >= (pt.level || 1) * 25 && (pt.level || 1) < 9) {
               pt.level = (pt.level || 1) + 1;
-              if (!pt.sovereignAwakened) pt.growthStage = Math.min(3, Math.max(1, Math.ceil(pt.level / 3)));
+              if (!pt.sovereignAwakened && !pt.fourSymbol) pt.growthStage = Math.min(3, Math.max(1, Math.ceil(pt.level / 3)));
               ST.dirty(a);
             }
           }
           if (a.cult && a.cult.path === 'BEAST_SOVEREIGN') assistM *= (a.cult.sub === 'MYRIAD_BEAST_PACK' ? 1.38 : 1.22);
-          assistM = clamp(assistM, 0.12, 0.85);
-          const pRes = C.strike(W, f, a, d, { M: assistM, type: 'p', forced: true, noCounter: true, noReflect: true, noProc: true, isPetAssist: true, silent: true });
+          assistM = clamp(assistM, 0.12, 0.95);
+          const pRes = C.strike(W, f, a, d, { M: assistM, type: 'p', pen: hasWhiteTiger ? 22 : 0, forced: true, noCounter: true, noReflect: true, noProc: true, isPetAssist: true, silent: true });
           if (hasVenom && C.alive(d)) {
             ST.addStatus(d, 'poison', 10, { per: 0.012, src: a.id });
+          }
+          if (hasWhiteTiger && C.alive(d)) {
+            ST.addStatus(d, 'bleed', 10, { per: 0.015, src: a.id });
+            ST.addStatus(d, 'armorbreak', 10);
+          }
+          if (hasPhoenix && C.alive(d)) {
+            ST.addStatus(d, 'burn', 10, { per: 0.015, src: a.id });
+          }
+          if (hasAzureDragon && a.cult && a.h && a.h.state) {
+            const qm = CULT.qiMax(a);
+            a.h.state.qi = Math.min(qm, (a.h.state.qi || 0) + qm * 0.04);
           }
           a.lastPetAssist = { t: W.t, count: actPets.length, petNames: actPets.map(x => x.nameTh), dmg: pRes.dmg || 0 };
         }

@@ -156,11 +156,11 @@ M.activeBottleneckSkills=(W,n)=>{
  const g0=(def0&&def0.realms&&def0.realms[tr.ordinal])?(def0.realms[tr.ordinal].skillGate||{}):{};
  const pSk=g0.primarySkill?M.skillRead(n,g0.primarySkill):0;
  const sSk=g0.secondarySkill?M.skillRead(n,g0.secondarySkill):0;
- const wt=W&&W.t>0?W.t:-1,ac=n._abnCache;
- if(wt>0&&ac&&ac.t===wt&&ac.sub===tr.subPath&&ac.ord===tr.ordinal&&ac.prog===tr.prog&&ac.ver===n._ver&&ac.pSk===pSk&&ac.sSk===sSk)return ac.out;
+ const ac=n._abnCache;
+ if(ac&&ac.sub===tr.subPath&&ac.ord===tr.ordinal&&ac.pSk===pSk&&ac.sSk===sSk)return ac.out;
  const g=CULT.checkTrackGates(W,n);
  const out=(!g.skillOk&&Array.isArray(g.missingSkills))?g.missingSkills:EMPTY_ARR;
- if(wt>0)n._abnCache={t:wt,sub:tr.subPath,ord:tr.ordinal,prog:tr.prog,ver:n._ver,pSk,sSk,out};
+ n._abnCache={sub:tr.subPath,ord:tr.ordinal,pSk,sSk,out};
  return out;
 };
 M.pickSkillPractice=(W,n)=>{

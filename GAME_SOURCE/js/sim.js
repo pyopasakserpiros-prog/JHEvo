@@ -4,8 +4,58 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.14', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.23', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
+
+
+  /* ---------- Patch v2.0.21: Mega Wuxia/Xianxia Name & Surname Pool Expansion (125 Surnames + 260 Given Names) ---------- */
+  const EXTRA_FAMILY_SURNAMES = [
+    // แซ่คู่โบราณ (Ancient Compound Surnames)
+    'ตงฟาง', 'มู่หรง', 'ซ่างกวน', 'โอวหยาง', 'ซือหม่า', 'ซือถู', 'ซือคง', 'จูกัด', 'หนานกง', 'เป่ยถัง',
+    'ซีเหมิน', 'เซี่ยโหว', 'กงซุน', 'หวงฝู่', 'ต้วนมู่', 'ตูกู', 'เฮ่อเหลียน', 'เหวินเหริน', 'จงหลี', 'อวี้เหวิน',
+    'ฉางซุน', 'ไป๋หลี่', 'ตงกัว', 'หนานเหมิน', 'หลิงหู', 'ชิวชู่', 'เจ๋อเย่', 'ฮั่นหยาง', 'อวิ๋นกู่', 'เทียนสุ่ย',
+    // แซ่เดี่ยวยุทธภพเพิ่มเติม (Expanded Wuxia Single Surnames)
+    'กู้', 'เย่', 'เฟิง', 'หลง', 'จ้าว', 'หวง', 'สวี', 'หม่า', 'หู', 'กัว',
+    'เหอ', 'เจิ้ง', 'ซ่ง', 'ถาน', 'เติ้ง', 'สวี่', 'ฝู', 'เผิง', 'เจียง', 'ไช่',
+    'พาน', 'ไต้', 'เถา', 'ชี', 'หยวน', 'หลาน', 'โม่', 'ซาง', 'ชิว', 'จี้',
+    'ลั่ว', 'ฮัว', 'หลิว', 'จิน', 'คัง', 'เหยา', 'สยง', 'เมิ่ง', 'ฉาง', 'เนี่ย',
+    'เยียน', 'อวิ๋น', 'เหลย', 'ซู่', 'หง', 'เหวิน', 'จวง', 'เยว่', 'ฟ่าน', 'กง',
+    'เฉิง', 'สิง', 'เผย', 'หรง', 'เซี่ยง'
+  ];
+  const EXPANDED_GIVEN_M = [
+    'เทียนหยา', 'เจี้ยนซิน', 'อู๋จี๋', 'ชิงอวิ๋น', 'เสวียนหมิง', 'ฮ่าวหราน', 'เจิ้นเทียน', 'ปู้ไป่', 'หลิงเซียว', 'จื่อหาน',
+    'เฟยหลง', 'ฉางชิง', 'เย่ไป๋', 'หานซาน', 'จิ่งเทียน', 'อี้เฉิน', 'โม่โฉว', 'ชางไห่', 'ซิงเหอ', 'อวิ๋นฟาน',
+    'เจี้ยนเฉิน', 'หลงหยวน', 'เสวียนอู่', 'ชิงเฟิง', 'ไป๋อวิ๋น', 'จื่อหยาง', 'เทียนหลง', 'หานเฟิง', 'อู๋ซวง', 'จิ่วเซียว',
+    'เมิ่งเฉิน', 'ฉู่เหอ', 'เย่หลาน', 'หลิงเฟิง', 'เจ๋อหยวน', 'อวี้เหิง', 'ชิงซาน', 'เฟิงเหลย', 'เสวียนเย่', 'ไท่ชู',
+    'วั่งซู', 'จิ่งหาน', 'เฉิงเฟิง', 'ซือหยวน', 'รั่วเฉิน', 'ป๋อเหวิน', 'จวินหาว', 'อี้หมิง', 'หงอวิ๋น', 'เจี้ยนหนาน',
+    'ชิงหลง', 'ไป๋หู่', 'จูเชวี่ย', 'เทียนซู', 'เหยียนเจ๋อ', 'กู้เฉิน', 'ลั่วชวน', 'ซูหมิง', 'หานโจว', 'อวิ๋นเซียว',
+    'ตงเฉิน', 'ซีเย่', 'หนานเฟิง', 'เป่ยเฉิน', 'จงหยวน', 'ฉางอัน', 'ไห่ชวน', 'ซานเหอ', 'เทียนอี้', 'เต้าเสวียน',
+    'ชิงซวี', 'อู๋เหิน', 'พั่วจวิน', 'ชีซา', 'ทานหลาง', 'จื่อเว่ย', 'เทียนฝู่', 'ไท่หยาง', 'ไท่อิน', 'อู๋เชวีย',
+    'เจี้ยนอู่', 'ตาวหาน', 'เฉียงเฟิง', 'ฉินหมิง', 'ฉีหยวน', 'ซูหาน', 'ฮว่าอวิ๋น', 'หลิงซู', 'เป่ยหมิง', 'หนานหมิง',
+    'จิ่วโยว', 'ชิงเหลียน', 'จินเผิง', 'อิ๋นเจียว', 'ยวี่หลง', 'อัสนี', 'เมฆา', 'วายุ', 'พิรุณ', 'ดารา'
+  ];
+  const EXPANDED_GIVEN_F = [
+    'ชิงเสวี่ย', 'รั่วสุ่ย', 'หว่านเอ๋อร์', 'จื่อเยียน', 'อวิ๋นซี', 'หลิงหลง', 'ชิงเหลียน', 'เยว่ซิน', 'ซู่อี้', 'ไป๋ลู่',
+    'เสี่ยวหาน', 'ชิงชิง', 'เหมยเซียน', 'อวี้เหยา', 'เฟยเยียน', 'หนิงซวง', 'รั่วหลาน', 'ซินอี๋', 'เมิ่งเหยา', 'ฉู่ฉู่',
+    'เสวี่ยฉี', 'ปี้เหยา', 'ลู่เสวี่ย', 'หว่านชิง', 'จื่อรั่ว', 'เสี่ยวอวี้', 'ชิงเหยา', 'อวิ๋นเมิ่ง', 'เยว่ฉาน', 'ซิงหลาน',
+    'ฮว่านซา', 'หนิงเซียง', 'ไป๋เสวี่ย', 'หงอวี้', 'ชิงซวง', 'หลิงเอ๋อร์', 'เยียนหราน', 'ซูซิน', 'จิ่นซี', 'อวี้หลาน',
+    'ฟางเซียน', 'เหม่ยหลิน', 'ชิงอวี้', 'เสวี่ยเหลียน', 'เยว่หาน', 'หลานซิน', 'ฉีเอ๋อร์', 'เหยาเซียน', 'หนิงอวี้', 'ซูเหยา',
+    'ชิงเกอ', 'อวิ๋นซู', 'เฟยเสวี่ย', 'รั่วซี', 'จื่อหลาน', 'หลิงซวง', 'ซินเยว่', 'เหมยหรู', 'เสวี่ยอิ๋ง', 'หานเยว่',
+    'ชิงหลัว', 'อวี้ซวง', 'ไป๋เหลียน', 'หงเหลียน', 'จื่อเซียว', 'ชิงเฟิ่ง', 'หงเฟิ่ง', 'หลวนเอ๋อร์', 'หนี่ชาง', 'อวิ๋นชาง',
+    'เยว่หยิง', 'ซิงเยว่', 'หมิงจู', 'รั่วอวิ๋น', 'ชิงซี', 'หลิงอวี้', 'ซูหว่าน', 'เจียวเอ๋อร์', 'หานซวง', 'เหมยอวี้',
+    'เสวี่ยเอ๋อร์', 'ชิงหลาน', 'อวิ๋นเหยา', 'จื่อซิน', 'รั่วเสวี่ย', 'เฟยฮวา', 'หลานเยว่', 'ซินหรู', 'อวี้ถิง', 'ชิงเหมย',
+    'บุปผาหยก', 'หิมะแรก', 'จันทร์กระจ่าง', 'สายหมอก', 'บัวสวรรค์', 'หยกขาว', 'ดาราพราย', 'วสันต์หยก', 'พิรุณโปรย', 'เมฆาขาว'
+  ];
+  if (HC && Array.isArray(HC.NAME_FAMILY)) {
+    EXTRA_FAMILY_SURNAMES.forEach(s => {
+      if (!HC.NAME_FAMILY.includes(s)) HC.NAME_FAMILY.push(s);
+    });
+  }
+  SIM.NAME_POOLS = Object.freeze({
+    FAMILY: (HC && Array.isArray(HC.NAME_FAMILY)) ? HC.NAME_FAMILY : EXTRA_FAMILY_SURNAMES,
+    GIVEN_M: EXPANDED_GIVEN_M,
+    GIVEN_F: EXPANDED_GIVEN_F
+  });
 
   const SEASON_TH = ['ฤดูใบไม้ผลิ', 'ฤดูร้อน', 'ฤดูใบไม้ร่วง', 'ฤดูหนาว'];
   SIM.SEASON_TH = SEASON_TH;
@@ -16,6 +66,13 @@
   SIM.buildNpc = (W, rng, o) => {
     HC.nowDay = W.day;
     const npc = HC.generate(rng, { id: o.id, day: W.day, sex: o.sex, ageYears: o.ageYears, quality: o.quality || 0, archetype: o.archetype, rootGrade: o.rootGrade, _fromTierRoll: !!o._fromTierRoll, skillExp: o.skillExp, trainedness: o.trainedness, traitCount: o.traitCount, customRoots: o.customRoots, forceRootCount: o.forceRootCount, forceElements: o.forceElements, forceGrades: o.forceGrades });
+    if (npc && npc.h && npc.h.name && npc.h.genome) {
+      const gm = Math.abs(npc.h.genome | 0);
+      if ((gm % 3) !== 0) {
+        const gPool = npc.h.sex === 'F' ? EXPANDED_GIVEN_F : EXPANDED_GIVEN_M;
+        npc.h.name.given = gPool[gm % gPool.length];
+      }
+    }
     if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(npc, rng);
     if (g.ELEM && g.ELEM.ensureNpcElementalState) g.ELEM.ensureNpcElementalState(npc);
     Object.assign(npc, { x: 0, y: 0, px: 0, py: 0, face: 1, dir: 0, rank: o.rank || 0, post: null, assist: null, merit: o.merit || 0, sat: 60, mentor: null, bed: null, joinDay: W.day - (o.tenure || 0), inv: { stones: Math.round(20 + (o.rank || 0) * 40 * (0.5 + rng.next())), pills: {}, mats: {} }, equip: {}, inj: [], cool: {}, recent: [], act: { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }, path: null, pi: 0, hidden: false, away: false, dead: false, stats: {}, why: [], travel: null });
@@ -545,7 +602,7 @@
       const cur = W.npcs.filter(n => !n.dead && n.assist === h);
       cur.forEach(n => { if (n.post) n.assist = null; });
       const have = W.npcs.filter(n => !n.dead && n.assist === h).length;
-      if (have < 2) { const c = W.npcs.filter(n => !n.dead && !n.away && n.rank >= 1 && n.rank <= 3 && !n.assist && !n.post).sort((a, b) => SECT.relevance(h, b) - SECT.relevance(h, a))[0]; if (c && SECT.relevance(h, c) > 18) c.assist = h; }
+      if (have < 2) { let bestC = null, bestRel = 18; for (let i = 0; i < W.npcs.length; i++) { const n = W.npcs[i]; if (!n.dead && !n.away && n.rank >= 1 && n.rank <= 3 && !n.assist && !n.post) { const rel = SECT.relevance(h, n); if (rel > bestRel) { bestRel = rel; bestC = n; } } } if (bestC) bestC.assist = h; }
     });
   };
   SIM.researchTick = W => {
@@ -642,7 +699,8 @@
       });
       if (W.sect && Array.isArray(W.sect.queue) && g.SECT && g.SECT.sanitizeQueue) g.SECT.sanitizeQueue(W);
       if (W.sect && Array.isArray(W.sect.queue)) W.sect.queue.forEach(a => { if (g.ELEM) g.ELEM.ensureNpcElementalState(a); if (HC.touch) HC.touch(a); });
-      W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if (HC.touch) HC.touch(n); });
+      if (W.sect && Array.isArray(W.sect.beasts) && g.CULT && g.CULT.ensureMenagerie) g.CULT.ensureMenagerie(W);
+      W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if ((Array.isArray(n.pets) || n.pet) && g.CULT && g.CULT.ensurePets) g.CULT.ensurePets(n); if (HC.touch) HC.touch(n); });
       if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
       return W;
     } catch (error) {

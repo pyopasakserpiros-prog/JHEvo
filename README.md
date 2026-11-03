@@ -1,6 +1,6 @@
-# JianghuSect Evolution — v2.0.17
+# JianghuSect Evolution — v2.0.23
 
-Playable cultivation, sect-management, and martial warfare game. This working branch integrates **v2.0.17** (Deep Cohesion, Universal 21-Relic Trinity, 2-Piece/3-Piece Legendary Relic Resonance, Relic Star Attunement, Cross-Path Mentorship, Dying-Wish Qi Transmission, and Sworn Ally Raid Reinforcements).
+Playable cultivation, sect-management, and martial warfare game. Version 2.0.23 updates the UI and corrects save and wildlife issues from the 2.0.22 baseline. See [the 2.0.23 report](PATCH_IMPLEMENTATION_REPORT_V2_0_23.md). This working branch integrates **v2.0.17** (Deep Cohesion, Universal 21-Relic Trinity, 2-Piece/3-Piece Legendary Relic Resonance, Relic Star Attunement, Cross-Path Mentorship, Dying-Wish Qi Transmission, and Sworn Ally Raid Reinforcements).
 
 - Play: [standalone HTML](GAME_SOURCE/JianghuSect_single.html)
 - Source and tests: [GAME_SOURCE](GAME_SOURCE/)

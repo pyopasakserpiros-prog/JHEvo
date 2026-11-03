@@ -47105,6 +47105,390 @@ JD.ITEMS.items.forEach(it => {
   if (!D.legendaryMantras.some(x => x.id === v216LegendaryMantra.id)) D.legendaryMantras.push(v216LegendaryMantra);
   if (!JD.TECH.mantras.some(x => x.id === v216LegendaryMantra.id)) JD.TECH.mantras.push(v216LegendaryMantra);
 
+  // ============================================================================
+  // Patch v2.0.22: 24 Balanced Martial Techniques (18 Active 3-Stage + 6 Passive)
+  // Expanding Underrepresented Weapons (FIST, BLADE, SWORD, ZITHER, BOW, WHIP, SPEAR),
+  // Elements (BLOOD_DEMON, WATER_ICE, LIGHTNING, WIND, FIRE), Rare Combat Keywords
+  // (blink, command, karmaReversal, harmonize, buff, shield, charge, channel, summon,
+  //  slash, evade, forbid, dot, critUp, slow, burn, bleed, weaken, blind, onHit, combatTick),
+  // and World Discovery Sources (Fortuitous Spots, Myriad Worlds, Dimensional Gates, Secret Realms)
+  // ============================================================================
+  D.version = "2.0.22";
+  const v222TechSpecs = [
+    // --- BLOOD_DEMON Actives (5) + Passives (2) = 7 ---
+    {
+      id: "TECH_V222_01", nameTh: "หมัดมารโลหิตกิเลนคลั่ง", path: "BODY", sub: "BLOOD_FURNACE", tier: 3, grade: "Refined",
+      el: "BLOOD_DEMON", el2: "FIRE", w: ["FIST", "BLADE"], arch: "charge",
+      obtainSources: ["FORTUNE:f1_blood_thorn_hollow", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
+      sourceInfoTh: "จุดวาสนาโพรงหนามโลหิตชายเขา · แดนหมื่นพิภพจันทร์โลหิตหมื่นอสูร · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
+      descTh: "วิชาหมัดปราณโลหิตที่จำลองแรงพุ่งชนของหมาป่ากิเลนโลหิต ยิ่งบาดเจ็บยิ่งสูบฉีดปราณสังหารรุนแรง",
+      moves: [
+        { nameTh: "ก้าวโลหิตพุ่งขย้ำคอหอย", arch: "charge", type: "p", M: 1.42, cd: 8, pen: 16, rider: "bleed", sx: { k: "bleed", dur: 6, v: 0.18 }, aiRole: "opener" },
+        { nameTh: "เกราะโลหิตเดือดสะท้อนคม", arch: "shield", type: "p", M: 0, cd: 12, pen: 0, shield: 0.26, grantBuff: "bloodFrenzy", sx: { k: "critUp", dur: 7, v: 0.18 }, self: true, aiRole: "defensive" },
+        { nameTh: "หมัดกิเลนโลหิตผลาญชีพจร", arch: "forbid", type: "p", M: 1.88, cd: 14, pen: 24, lifesteal: 0.25, recoil: 0.05, rider: "bleed", sx: { k: "bleed", dur: 8, v: 0.24 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_02", nameTh: "เพลงดาบมารโลหิตสะบั้นกรรม", path: "DEMON", sub: "ASHURA_SLAUGHTER_BLADE", tier: 4, grade: "Rare",
+      el: "BLOOD_DEMON", el2: "YIN_SHADOW", w: ["BLADE", "SWORD"], arch: "slash",
+      obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_NINE_NETHER_BLOOD_SEA"],
+      sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพจันทร์โลหิตหมื่นอสูร · วังบาดาลสมุทรโลหิตเก้ายมโลก",
+      descTh: "เพลงดาบอาชูร่าที่เปลี่ยนบาดแผลและคำสาปในร่างให้กลายเป็นคมดาบโลหิตผ่าสะบั้นศัตรู",
+      moves: [
+        { nameTh: "ดาบแรกกรีดเงาโลหิต", arch: "slash", type: "p", M: 1.54, cd: 8, pen: 18, rider: "bleed", sx: { k: "bleed", dur: 6, v: 0.20 }, aiRole: "opener" },
+        { nameTh: "ก้าวพริบตาหลบคมในม่านเลือด", arch: "blink", type: "p", M: 1.48, cd: 11, pen: 20, shield: 0.16, grantBuff: "shadowVeil", sx: { k: "critUp", dur: 6, v: 0.20 }, self: true, aiRole: "core" },
+        { nameTh: "ดาบพลิกวิบากกรรมย้อนสังหาร", arch: "karmaReversal", type: "p", M: 2.02, cd: 16, pen: 28, invertDebuffs: true, grantBuff: "bloodFrenzy", sx: { k: "weaken", dur: 8, v: 0.22 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_03", nameTh: "เคล็ดแส้หนวดมังกรสมุทรโลหิต", path: "KARMA_SAMSARA", sub: "FATE_SEVERING_THREAD", tier: 5, grade: "Rare",
+      el: "BLOOD_DEMON", el2: "WATER_ICE", w: ["WHIP", "SPEAR"], arch: "karmaReversal",
+      obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:bloodmoon", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพจันทร์โลหิต · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
+      descTh: "วิชาแส้และทวนยาวที่หลอมรวมปราณมังกรสมุทรโลหิต กระชากวิญญาณและย้อนคำสาปกลับหาผู้ร่าย",
+      moves: [
+        { nameTh: "แส้โลหิตมัดชีพจรสมุทร", arch: "dot", type: "m", M: 1.58, cd: 9, pen: 20, rider: "bleed", sx: { k: "bleed", dur: 7, v: 0.22 }, aiRole: "opener" },
+        { nameTh: "อัญเชิญเงามังกรโลหิตคำราม", arch: "summon", type: "m", M: 1.78, cd: 13, pen: 24, aoe: true, rider: "weaken", sx: { k: "weaken", dur: 8, v: 0.22 }, aiRole: "core" },
+        { nameTh: "โซ่โลหิตพลิกชะตากลืนวิญญาณ", arch: "karmaReversal", type: "m", M: 2.18, cd: 18, pen: 30, invertDebuffs: true, lifesteal: 0.30, grantBuff: "karmicAegis", sx: { k: "blind", dur: 7, v: 0.24 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_04", nameTh: "คีตมารโลหิตกล่อมวิญญาณคลั่ง", path: "HEART_SOUL", sub: "SOUL_MUSICIAN", tier: 4, grade: "Rare",
+      el: "BLOOD_DEMON", el2: "YIN_SHADOW", w: ["ZITHER", "WHIP"], arch: "harmonize",
+      obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:bloodmoon", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพจันทร์โลหิต · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
+      descTh: "บรรเลงสายพิณชุบโลหิตอสูรเพื่อกระตุ้นความฮึกเหิมของพวกพ้องพร้อมฉีกกระชากสมาธิศัตรู",
+      moves: [
+        { nameTh: "สายพิณโลหิตเร่งชีพจรศึก", arch: "harmonize", type: "m", M: 1.45, cd: 10, pen: 18, heal: 0.16, grantBuff: "fervorMight", team: true, sx: { k: "critUp", dur: 7, v: 0.18 }, aiRole: "sustain" },
+        { nameTh: "เสียงเพรียกอีกากระดูกสูบขวัญ", arch: "channel", type: "m", M: 1.66, cd: 12, pen: 22, aoe: true, rider: "blind", sx: { k: "blind", dur: 6, v: 0.20 }, aiRole: "core" },
+        { nameTh: "บทเพลงต้องห้ามสังเวยจันทร์สีชาด", arch: "forbid", type: "m", M: 2.05, cd: 16, pen: 26, aoe: true, recoil: 0.05, grantBuff: "bloodFrenzy", sx: { k: "bleed", dur: 8, v: 0.24 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_05", nameTh: "ทวนมารพยัคฆ์โลหิตบัญชาศึก", path: "BEAST_SOVEREIGN", sub: "PACK_COMMAND_HUNT", tier: 5, grade: "Exceptional",
+      el: "BLOOD_DEMON", el2: "EARTH_METAL", w: ["SPEAR", "FIST", "BLADE"], arch: "command",
+      obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
+      sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพจันทร์โลหิต · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
+      descTh: "เพลงทวนและหมัดราชันอสูรที่ใช้กลิ่นอายพยัคฆ์โลหิตสั่งการฝูงอสูรและศิษย์ร่วมรบพุ่งขยี้แนวหน้า",
+      moves: [
+        { nameTh: "คำรามโลหิตสั่งทัพหน้าบุก", arch: "command", type: "p", M: 1.62, cd: 11, pen: 22, shield: 0.18, grantBuff: "tacticalCommand", team: true, sx: { k: "critUp", dur: 7, v: 0.20 }, aiRole: "opener" },
+        { nameTh: "อัญเชิญพยัคฆ์ไขกระดูกโลหิต", arch: "summon", type: "p", M: 1.82, cd: 14, pen: 25, rider: "bleed", sx: { k: "bleed", dur: 7, v: 0.22 }, aiRole: "core" },
+        { nameTh: "ทวนโลหิตผ่าทัพสังหารราชัน", arch: "charge", type: "p", M: 2.24, cd: 17, pen: 32, shatterShield: true, rider: "weaken", sx: { k: "weaken", dur: 8, v: 0.25 }, aiRole: "finisher" }
+      ]
+    },
+
+    // --- WATER_ICE Actives (5) + Passives (1) = 6 ---
+    {
+      id: "TECH_V222_06", nameTh: "หมัดเกราะหมีหนามน้ำแข็งบรรพกาล", path: "BODY", sub: "VAJRA_BODHI", tier: 3, grade: "Refined",
+      el: "WATER_ICE", el2: "EARTH_METAL", w: ["FIST", "SPEAR"], arch: "shield",
+      obtainSources: ["FORTUNE:f2_thunder_echo_cliff", "MYRIAD_WORLD:frostabyss", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
+      sourceInfoTh: "จุดวาสนาผาอสนีสะท้อนพิณ · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
+      descTh: "โคจรไอเย็นหมีหนามน้ำแข็งห่อหุ้มหมัดและแผ่นหลัง สร้างเกราะน้ำแข็งสะท้อนคมพร้อมทุบศัตรูให้เชื่องช้า",
+      moves: [
+        { nameTh: "เกราะหนามเหมันต์ตั้งรับ", arch: "shield", type: "p", M: 0, cd: 10, pen: 0, shield: 0.30, grantBuff: "frostBarrier", self: true, sx: { k: "slow", dur: 6, v: 0.18 }, aiRole: "defensive" },
+        { nameTh: "กำปั้นภูเขาน้ำแข็งถล่มผา", arch: "charge", type: "p", M: 1.50, cd: 9, pen: 18, rider: "slow", sx: { k: "slow", dur: 7, v: 0.20 }, aiRole: "core" },
+        { nameTh: "หนามน้ำแข็งระเบิดเก้าทิศ", arch: "slash", type: "p", M: 1.86, cd: 13, pen: 22, aoe: true, rider: "weaken", sx: { k: "weaken", dur: 7, v: 0.20 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_07", nameTh: "เพลงกระบี่เงาเกล็ดน้ำแข็งพริบตา", path: "XIAN", sub: "SWORD_IMMORTAL", tier: 4, grade: "Rare",
+      el: "WATER_ICE", el2: "WIND", w: ["SWORD", "BLADE"], arch: "blink",
+      obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:frostabyss", "SECRET_REALM:REALM_EMPEROR_SWORD_TOMB"],
+      sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · สุสานกระบี่จักรพรรดิบรรพกาล",
+      descTh: "เพลงกระบี่และดาบสายเหมันต์ที่เคลื่อนร่างผ่านละอองหิมะในพริบตา ฟันตัดเส้นเอ็นจนศัตรูแข็งค้าง",
+      moves: [
+        { nameTh: "ก้าวพริบตาผ่านเกล็ดหิมะ", arch: "blink", type: "p", M: 1.52, cd: 9, pen: 20, shield: 0.15, grantBuff: "astralMirage", self: true, sx: { k: "critUp", dur: 6, v: 0.18 }, aiRole: "opener" },
+        { nameTh: "พลิ้วกายหลบคมทิ้งเงาเหมันต์", arch: "evade", type: "p", M: 1.38, cd: 10, pen: 18, self: true, rider: "slow", sx: { k: "slow", dur: 7, v: 0.22 }, aiRole: "defensive" },
+        { nameTh: "กระบี่เหมันต์สะบั้นเงาไร้เสียง", arch: "slash", type: "p", M: 1.98, cd: 14, pen: 26, rider: "blind", sx: { k: "blind", dur: 7, v: 0.22 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_08", nameTh: "ศรเหมันต์อสรพิษแช่แข็งวิญญาณ", path: "BEAST_SOVEREIGN", sub: "BEAST_BLOOD_FUSION", tier: 5, grade: "Rare",
+      el: "WATER_ICE", el2: "YIN_SHADOW", w: ["BOW", "WHIP"], arch: "dot",
+      obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:frostabyss", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
+      descTh: "เคล็ดวิชาเกาทัณฑ์และแส้ที่อาบไอเย็นอสรพิษวิญญาณน้ำแข็ง ตรึงเป้าหมายให้หนาวเหน็บถึงดวงจิต",
+      moves: [
+        { nameTh: "ศรเขี้ยวน้ำแข็งฝังไอเย็น", arch: "dot", type: "p", M: 1.56, cd: 8, pen: 20, rider: "slow", sx: { k: "slow", dur: 7, v: 0.22 }, aiRole: "opener" },
+        { nameTh: "อัญเชิญงูน้ำแข็งพันธนาการ", arch: "summon", type: "m", M: 1.76, cd: 12, pen: 24, rider: "weaken", sx: { k: "weaken", dur: 7, v: 0.22 }, aiRole: "core" },
+        { nameTh: "ศรพายุหิมะมืดบอดเก้าชั้น", arch: "channel", type: "p", M: 2.14, cd: 16, pen: 28, aoe: true, rider: "blind", sx: { k: "blind", dur: 8, v: 0.25 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_09", nameTh: "ลำนำพิณหงส์เหมันต์ชโลมปราณ", path: "SAGE_SUPPORT", sub: "CELESTIAL_ZITHER_ENVOY", tier: 3, grade: "Refined",
+      el: "WATER_ICE", el2: "LIGHT_YANG", w: ["ZITHER", "SWORD"], arch: "harmonize",
+      obtainSources: ["FORTUNE:f1_frost_echo_gully", "MYRIAD_WORLD:frostabyss", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
+      sourceInfoTh: "จุดวาสนาหุบเสียงสะท้อนเหมันต์ · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · ตำหนักพิณอสนีเก้าสวรรค์",
+      descTh: "คีตเวทย์สายน้ำค้างเหมันต์ที่ชำระล้างพิษร้อนในเส้นเลือด ฟื้นฟูพลังชีวิตและกางม่านน้ำแข็งคุ้มกันหมู่คณะ",
+      moves: [
+        { nameTh: "สายพิณน้ำค้างแข็งประสานใจ", arch: "harmonize", type: "m", M: 1.36, cd: 10, pen: 15, heal: 0.22, shield: 0.16, grantBuff: "vitalRegen", team: true, sx: { k: "slow", dur: 6, v: 0.18 }, aiRole: "sustain" },
+        { nameTh: "คลื่นเสียงหงส์ขาวหนุนปราณ", arch: "buff", type: "m", M: 0, cd: 12, pen: 0, heal: 0.18, qiRestorePct: 0.12, grantBuff: "clarityLotus", team: true, sx: { k: "critUp", dur: 6, v: 0.16 }, aiRole: "sustain" },
+        { nameTh: "ปีกหงส์เหมันต์สะท้อนวิบาก", arch: "karmaReversal", type: "m", M: 1.84, cd: 15, pen: 22, aoe: true, invertDebuffs: true, grantBuff: "aegisWard", sx: { k: "slow", dur: 7, v: 0.22 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_10", nameTh: "ฝ่ามือวาฬสมุทรเหมันต์กลืนคลื่น", path: "XIAN", sub: "TIDAL_WATER_MIRROR", tier: 6, grade: "Exceptional",
+      el: "WATER_ICE", el2: "ASTRAL", w: ["FIST", "ZITHER", "SPEAR"], arch: "channel",
+      obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:frostabyss", "SECRET_REALM:REALM_NINE_NETHER_BLOOD_SEA"],
+      sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · วังบาดาลสมุทรโลหิตเก้ายมโลก",
+      descTh: "วิชาฝ่ามือและคีตเวทย์ระดับสูงที่จำลองคลื่นเสียงทุ้มลึกของวาฬสมุทรเหมันต์ บดขยี้ค่ายกลและแช่แข็งสนามรบ",
+      moves: [
+        { nameTh: "ควบแน่นคลื่นน้ำวนใต้สมุทร", arch: "channel", type: "m", M: 1.74, cd: 10, pen: 24, aoe: true, rider: "slow", sx: { k: "slow", dur: 8, v: 0.24 }, aiRole: "opener" },
+        { nameTh: "กำแพงน้ำแข็งหมื่นลี้กั้นฟ้า", arch: "shield", type: "m", M: 0, cd: 13, pen: 0, shield: 0.34, heal: 0.16, grantBuff: "aegisWard", team: true, sx: { k: "weaken", dur: 7, v: 0.22 }, aiRole: "defensive" },
+        { nameTh: "วาฬเหมันต์พลิกสมุทรถล่มภพ", arch: "command", type: "m", M: 2.35, cd: 18, pen: 34, aoe: true, shatterShield: true, grantBuff: "tacticalCommand", sx: { k: "blind", dur: 8, v: 0.26 }, aiRole: "finisher" }
+      ]
+    },
+
+    // --- LIGHTNING Actives (4) + Passives (1) = 5 ---
+    {
+      id: "TECH_V222_11", nameTh: "ดาบเขี้ยวเสือดาวอสนีพริบตา", path: "BODY", sub: "LIGHTNING_TEMPERED_BODY", tier: 3, grade: "Refined",
+      el: "LIGHTNING", el2: "WIND", w: ["BLADE", "FIST"], arch: "blink",
+      obtainSources: ["FORTUNE:f2_thunder_echo_cliff", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
+      sourceInfoTh: "จุดวาสนาผาอสนีสะท้อนพิณ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
+      descTh: "เคล็ดดาบและหมัดสายฟ้าที่อาศัยความเร็วพริบตาของเสือดาวปีกอสนี พุ่งฟาดฟันก่อนที่เสียงฟ้าร้องจะตามทัน",
+      moves: [
+        { nameTh: "ก้าวสายฟ้าแลบประชิดเงา", arch: "blink", type: "p", M: 1.46, cd: 8, pen: 18, grantBuff: "thunderStep", self: true, sx: { k: "critUp", dur: 6, v: 0.20 }, aiRole: "opener" },
+        { nameTh: "ฉากหลบประกายแปลบปลาบ", arch: "evade", type: "p", M: 1.32, cd: 9, pen: 16, self: true, sx: { k: "blind", dur: 6, v: 0.18 }, aiRole: "defensive" },
+        { nameTh: "ดาบเขี้ยวอสนีผ่าสะบั้นเกราะ", arch: "slash", type: "p", M: 1.90, cd: 13, pen: 24, rider: "burn", sx: { k: "burn", dur: 7, v: 0.20 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_12", nameTh: "ศรสายฟ้ากระเรียนพายุทะลวงเมฆ", path: "GOD", sub: "THUNDER_PUNISHMENT_ENVOY", tier: 4, grade: "Rare",
+      el: "LIGHTNING", el2: "WIND", w: ["BOW", "SPEAR"], arch: "channel",
+      obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
+      sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
+      descTh: "รวบรวมสายฟ้าสวรรค์เข้าสู่ปลายศรและคมทวน ยิงทะลวงม่านค่ายกลพร้อมเรียกสายฟ้าฟาดซ้ำต่อเนื่อง",
+      moves: [
+        { nameTh: "ประจุสายฟ้าลงปลายศร", arch: "channel", type: "m", M: 1.56, cd: 9, pen: 20, sx: { k: "critUp", dur: 7, v: 0.20 }, aiRole: "opener" },
+        { nameTh: "เรียกกระเรียนอสนีโฉบพิฆาต", arch: "summon", type: "m", M: 1.74, cd: 12, pen: 22, aoe: true, rider: "blind", sx: { k: "blind", dur: 6, v: 0.20 }, aiRole: "core" },
+        { nameTh: "ศรทัณฑ์สวรรค์เก้าสายฟ้าผลาญ", arch: "forbid", type: "m", M: 2.12, cd: 16, pen: 30, aoe: true, recoil: 0.04, rider: "burn", sx: { k: "burn", dur: 8, v: 0.24 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_13", nameTh: "แส้สายฟ้ากระทิงราชันฟาดปฐพี", path: "ARRAY_TALISMAN", sub: "THUNDER_TALISMAN_ADEPT", tier: 5, grade: "Rare",
+      el: "LIGHTNING", el2: "EARTH_METAL", w: ["WHIP", "BLADE", "FIST"], arch: "command",
+      obtainSources: ["FORTUNE:f2_venom_lotus_marsh", "MYRIAD_WORLD:thunderpeak", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "จุดวาสนาบึงบัวพิษหมื่นบุปผา · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
+      descTh: "วิชาแส้และหมัดสายฟ้าที่ปลดปล่อยแรงสั่นสะเทือนของกระทิงราชันอสนี ควบคุมจังหวะรบและทำลายเกราะศัตรู",
+      moves: [
+        { nameTh: "ฟาดแส้อสนีสั่งค่ายกลรุก", arch: "command", type: "m", M: 1.60, cd: 10, pen: 22, shield: 0.18, grantBuff: "tacticalCommand", team: true, sx: { k: "critUp", dur: 7, v: 0.20 }, aiRole: "opener" },
+        { nameTh: "กระทิงอสนีพุ่งชนทลายค่าย", arch: "charge", type: "p", M: 1.82, cd: 13, pen: 26, shatterShield: true, rider: "weaken", sx: { k: "weaken", dur: 7, v: 0.22 }, aiRole: "core" },
+        { nameTh: "ตาข่ายสายฟ้าเผาไหม้เส้นปราณ", arch: "dot", type: "m", M: 2.08, cd: 15, pen: 28, aoe: true, rider: "burn", sx: { k: "burn", dur: 8, v: 0.24 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_14", nameTh: "พิณสายฟ้าคำรามเก้าชั้นฟ้า", path: "XIAN", sub: "SOUND_ZITHER", tier: 6, grade: "Exceptional",
+      el: "LIGHTNING", el2: "ASTRAL", w: ["ZITHER", "SWORD"], arch: "harmonize",
+      obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
+      sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
+      descTh: "ดีดสายพิณเรียกอสนีบาตม่วงจากเก้าชั้นฟ้า ผสานเสียงพิณและคมกระบี่ปลุกพลังรบของทั้งสำนัก",
+      moves: [
+        { nameTh: "ดีดสายอสนีปลุกขวัญกองทัพ", arch: "harmonize", type: "m", M: 1.68, cd: 11, pen: 22, heal: 0.18, shield: 0.18, grantBuff: "fervorMight", team: true, sx: { k: "critUp", dur: 8, v: 0.22 }, aiRole: "sustain" },
+        { nameTh: "เกราะม่านสายฟ้าสะท้อนเวท", arch: "buff", type: "m", M: 0, cd: 13, pen: 0, shield: 0.28, qiRestorePct: 0.14, grantBuff: "aegisWard", team: true, sx: { k: "blind", dur: 7, v: 0.22 }, aiRole: "defensive" },
+        { nameTh: "บทเพลงทัณฑ์สวรรค์ผ่าสะบั้นภพ", arch: "slash", type: "m", M: 2.32, cd: 17, pen: 34, aoe: true, rider: "burn", sx: { k: "burn", dur: 8, v: 0.26 }, aiRole: "finisher" }
+      ]
+    },
+
+    // --- WIND Actives (2) + Passives (1) = 3 ---
+    {
+      id: "TECH_V222_15", nameTh: "ดาบเขี้ยววายุคลั่งตัดพายุ", path: "XIAN", sub: "WIND_SHADOW_ROAMER", tier: 3, grade: "Refined",
+      el: "WIND", el2: "LIGHTNING", w: ["BLADE", "SWORD", "WHIP"], arch: "evade",
+      obtainSources: ["FORTUNE:f2_venom_lotus_marsh", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_EMPEROR_SWORD_TOMB"],
+      sourceInfoTh: "จุดวาสนาบึงบัวพิษหมื่นบุปผา · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · สุสานกระบี่จักรพรรดิบรรพกาล",
+      descTh: "วิชาดาบและกระบี่สายลมที่พลิ้วไหวดั่งหมาป่าเขี้ยววายุ หลบหลีกการโจมตีพร้อมสวนกลับด้วยคมลมนับสิบสาย",
+      moves: [
+        { nameTh: "ก้าวสายลมเร้นเงาไร้รอย", arch: "evade", type: "p", M: 1.35, cd: 8, pen: 16, self: true, grantBuff: "windStride", sx: { k: "critUp", dur: 6, v: 0.18 }, aiRole: "defensive" },
+        { nameTh: "พริบตาวายุตัดเส้นเอ็น", arch: "blink", type: "p", M: 1.54, cd: 10, pen: 18, rider: "bleed", sx: { k: "bleed", dur: 6, v: 0.20 }, aiRole: "core" },
+        { nameTh: "พายุดาบเขี้ยววายุฉีกร่าง", arch: "slash", type: "p", M: 1.92, cd: 13, pen: 24, aoe: true, rider: "slow", sx: { k: "slow", dur: 7, v: 0.20 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_16", nameTh: "ศรสายลมเพรียกวิหคเก้าเวหา", path: "HEART_SOUL", sub: "ZITHER_HEART_BOW", tier: 5, grade: "Rare",
+      el: "WIND", el2: "ASTRAL", w: ["BOW", "ZITHER"], arch: "buff",
+      obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
+      sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพดาราจักรสุญตา · ตำหนักพิณอสนีเก้าสวรรค์",
+      descTh: "ผสานสายธนูและสายพิณเข้ากับกระแสลมชั้นฟ้า ยิงศรวายุนำทางและเร่งความเร็วรุกให้ทั้งขบวนทัพ",
+      moves: [
+        { nameTh: "สายลมหนุนศรเร่งฝีเท้าทัพ", arch: "buff", type: "p", M: 0, cd: 11, pen: 0, shield: 0.18, qiRestorePct: 0.10, grantBuff: "windStride", team: true, sx: { k: "critUp", dur: 7, v: 0.20 }, aiRole: "sustain" },
+        { nameTh: "อัญเชิญวิหควายุโฉบเฉือน", arch: "summon", type: "m", M: 1.76, cd: 13, pen: 24, aoe: true, rider: "blind", sx: { k: "blind", dur: 7, v: 0.22 }, aiRole: "core" },
+        { nameTh: "ศรพายุหมุนย้อนทวนวิบาก", arch: "karmaReversal", type: "p", M: 2.16, cd: 16, pen: 28, invertDebuffs: true, grantBuff: "astralMirage", sx: { k: "bleed", dur: 8, v: 0.24 }, aiRole: "finisher" }
+      ]
+    },
+
+    // --- FIRE Actives (2) + Passives (1) = 3 ---
+    {
+      id: "TECH_V222_17", nameTh: "หมัดเพลิงสุริยันหลอมศิลา", path: "CRAFT_CREATION", sub: "DIVINE_FORGE_FOUNDER", tier: 4, grade: "Rare",
+      el: "FIRE", el2: "EARTH_METAL", w: ["FIST", "BLADE", "SWORD"], arch: "dot",
+      obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_ASTRAL_GOD_RUINS"],
+      sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพดาราจักรสุญตา · ซากวิหารดาราจักรเทพโบราณ",
+      descTh: "วิชาหมัดและคมศาสตราที่หลอมรวมไฟเตาหลอมและเพลิงสุริยัน เผาผลาญเกราะและฝังเปลวไฟเข้าสู่เส้นปราณศัตรู",
+      moves: [
+        { nameTh: "หมัดไฟเตาหลอมฝังเพลิงพิษ", arch: "dot", type: "p", M: 1.52, cd: 8, pen: 18, rider: "burn", sx: { k: "burn", dur: 7, v: 0.22 }, aiRole: "opener" },
+        { nameTh: "กางม่านเพลิงคุ้มกายหน้าทั่ง", arch: "shield", type: "m", M: 0, cd: 12, pen: 0, shield: 0.28, grantBuff: "solarWard", self: true, sx: { k: "weaken", dur: 6, v: 0.18 }, aiRole: "defensive" },
+        { nameTh: "ระเบิดเตาสุริยันต้องห้าม", arch: "forbid", type: "m", M: 2.06, cd: 15, pen: 28, aoe: true, recoil: 0.05, rider: "burn", sx: { k: "burn", dur: 8, v: 0.26 }, aiRole: "finisher" }
+      ]
+    },
+    {
+      id: "TECH_V222_18", nameTh: "เกาทัณฑ์เพลิงผลาญกัลป์สั่งทัพ", path: "STRATEGY_GOVERNANCE", sub: "BATTLE_ARRAY_TACTICIAN", tier: 5, grade: "Exceptional",
+      el: "FIRE", el2: "LIGHT_YANG", w: ["BOW", "SPEAR", "SWORD"], arch: "command",
+      obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_ASTRAL_GOD_RUINS"],
+      sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพดาราจักรสุญตา · ซากวิหารดาราจักรเทพโบราณ",
+      descTh: "ยิงศรสัญญาณเพลิงสุริยันขึ้นสู่ท้องฟ้าเพื่อบัญชาการค่ายกลทั้งกองทัพ พร้อมโปรยห่าฝนเพลิงเผาผลาญศัตรู",
+      moves: [
+        { nameTh: "ศรเพลิงสัญญาณสั่งค่ายกลบุก", arch: "command", type: "p", M: 1.64, cd: 11, pen: 22, shield: 0.20, grantBuff: "tacticalCommand", team: true, sx: { k: "burn", dur: 7, v: 0.22 }, aiRole: "opener" },
+        { nameTh: "เพ่งจิตควบแน่นศรสุริยัน", arch: "channel", type: "p", M: 1.84, cd: 13, pen: 25, aoe: true, rider: "blind", sx: { k: "blind", dur: 7, v: 0.22 }, aiRole: "core" },
+        { nameTh: "ทัพศรเพลิงพุ่งทะลวงค่าย", arch: "charge", type: "p", M: 2.22, cd: 16, pen: 30, aoe: true, shatterShield: true, rider: "burn", sx: { k: "burn", dur: 8, v: 0.25 }, aiRole: "finisher" }
+      ]
+    },
+
+    // --- 6 Passive Techniques with Rare Procs (onHit & combatTick) ---
+    {
+      id: "TECH_V222_19", nameTh: "เคล็ดชีพจรโลหิตอสูรสูบปราณ", path: "DEMON", sub: "BLOOD_SEA_FIEND", tier: 4, grade: "Rare",
+      el: "BLOOD_DEMON", el2: "YIN_SHADOW", w: ["FIST", "BLADE", "WHIP"],
+      obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
+      sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพจันทร์โลหิต · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
+      descTh: "วิชาติดตัวสายโลหิตอสูร ทุกครั้งที่โจมตีโดนเป้าหมายมีโอกาสดูดซับพลังชีวิตและปราณกลับคืนสู่ตันเถียน",
+      passive: {
+        p: { atk: 0.11, matk: 0.09, hp: 0.10 },
+        f: { crit: 5, pen: 8, acc: 10 },
+        qiMaxPct: 0.10,
+        life: { hunting: 0.18, BEAST_TAMING: 0.15 },
+        proc: { kind: "onHit", icdTicks: 5, hpRestorePct: 0.04, qiRestorePct: 0.04, addStatus: "bloodFrenzy", dur: 8 }
+      }
+    },
+    {
+      id: "TECH_V222_20", nameTh: "เคล็ดกายามังกรสมุทรโลหิตหมุนเวียน", path: "BODY", sub: "BLOOD_DRAGON", tier: 5, grade: "Exceptional",
+      el: "BLOOD_DEMON", el2: "WATER_ICE", w: ["FIST", "SPEAR", "BLADE"],
+      obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:bloodmoon", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
+      sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพจันทร์โลหิต · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
+      descTh: "วิชาติดตัวหลอมไขกระดูกมังกรสมุทรโลหิต ฟื้นฟูพลังชีวิตและปราณอย่างต่อเนื่องทุกจังหวะการต่อสู้",
+      passive: {
+        p: { hp: 0.15, def: 0.12, atk: 0.10 },
+        f: { pen: 10, mdef: 20 },
+        qiMaxPct: 0.12,
+        cultRatePct: 0.12,
+        life: { survival: 0.20, hunting: 0.20 },
+        proc: { kind: "combatTick", icdTicks: 5, hpRestorePct: 0.045, qiRestorePct: 0.045, addStatus: "vitalRegen", dur: 8 }
+      }
+    },
+    {
+      id: "TECH_V222_21", nameTh: "เคล็ดหัวใจเหมันต์เยือกแข็งไร้ช่องโหว่", path: "XIAN", sub: "FROST_MOON_IMMORTAL", tier: 4, grade: "Rare",
+      el: "WATER_ICE", el2: "WIND", w: ["SWORD", "ZITHER", "BOW"],
+      obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:frostabyss", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
+      sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
+      descTh: "วิชาติดตัวปราณเหมันต์จันทรา ทุกครั้งที่ปะทะจะปลดปล่อยไอเย็นฟื้นฟูปราณและเสริมความแม่นยำ",
+      passive: {
+        p: { matk: 0.11, mdef: 0.12, eva: 0.08 },
+        f: { acc: 14, cast: 8, crit: 4 },
+        qiMaxPct: 0.12,
+        life: { herbalism: 0.18, ALCHEMY: 0.14 },
+        proc: { kind: "onHit", icdTicks: 5, qiRestorePct: 0.045, hpRestorePct: 0.03, addStatus: "clarityLotus", dur: 8 }
+      }
+    },
+    {
+      id: "TECH_V222_22", nameTh: "เคล็ดชีพจรสายฟ้าสวรรค์สะท้อนศึก", path: "GOD", sub: "THUNDER_PUNISHMENT_ENVOY", tier: 5, grade: "Exceptional",
+      el: "LIGHTNING", el2: "FIRE", w: ["BLADE", "BOW", "WHIP", "SWORD"],
+      obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
+      sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
+      descTh: "วิชาติดตัวชีพจรอสนีบาตม่วง เมื่อโจมตีโดนเป้าหมายจะกระตุ้นกระแสไฟฟ้าฟื้นฟูปราณและเร่งจังหวะรบ",
+      passive: {
+        p: { atk: 0.12, matk: 0.12, def: 0.08 },
+        f: { crit: 6, pen: 10, cast: 8 },
+        qiMaxPct: 0.12,
+        cultRatePct: 0.12,
+        life: { FORGING: 0.18, TALISMAN: 0.18 },
+        proc: { kind: "onHit", icdTicks: 4, qiRestorePct: 0.05, hpRestorePct: 0.035, addStatus: "fervorMight", dur: 8 }
+      }
+    },
+    {
+      id: "TECH_V222_23", nameTh: "เคล็ดลมหายใจวายุเมฆาไร้เหน็ดเหนื่อย", path: "HEART_SOUL", sub: "SOUL_MUSICIAN", tier: 4, grade: "Rare",
+      el: "WIND", el2: "WATER_ICE", w: ["ZITHER", "BOW", "SWORD", "WHIP"],
+      obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
+      sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
+      descTh: "วิชาติดตัวที่ผสานลมหายใจเข้ากับสายลมและเสียงพิณ ฟื้นฟูปราณและพลังชีวิตทุกจังหวะระหว่างการต่อสู้",
+      passive: {
+        p: { matk: 0.10, eva: 0.10, mdef: 0.10 },
+        f: { move: 10, cast: 10, acc: 12 },
+        qiCostMult: 0.88,
+        qiMaxPct: 0.10,
+        life: { SCRIPTURE: 0.20, ARRAY: 0.15 },
+        proc: { kind: "combatTick", icdTicks: 5, qiRestorePct: 0.05, hpRestorePct: 0.035, addStatus: "windStride", dur: 8 }
+      }
+    },
+    {
+      id: "TECH_V222_24", nameTh: "เคล็ดเตาหลอมอัคคีสุริยันนิรันดร์", path: "CRAFT_CREATION", sub: "PILL_FLAME_SOVEREIGN", tier: 5, grade: "Exceptional",
+      el: "FIRE", el2: "LIGHT_YANG", w: ["FIST", "BLADE", "SWORD", "SPEAR"],
+      obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_PRIMORDIAL_ALCHEMIST_PALACE"],
+      sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพดาราจักรสุญตา · ตำหนักโอสถเทวะหมื่นกัลป์",
+      descTh: "วิชาติดตัวที่เปลี่ยนตันเถียนให้เป็นเตาหลอมสุริยัน สูบฉีดปราณไฟฟื้นฟูเลือดและปราณต่อเนื่องในสมรภูมิ",
+      passive: {
+        p: { atk: 0.10, matk: 0.12, hp: 0.12, def: 0.10 },
+        f: { pen: 8, mdef: 22, cast: 8 },
+        qiMaxPct: 0.14,
+        cultRatePct: 0.14,
+        life: { ALCHEMY: 0.24, FORGING: 0.22 },
+        proc: { kind: "combatTick", icdTicks: 5, hpRestorePct: 0.05, qiRestorePct: 0.045, addStatus: "solarWard", dur: 8 }
+      }
+    }
+  ];
+
+  for (const sp of v222TechSpecs) {
+    const isPas = !!sp.passive;
+    const elProf = sp.el2 ? epWeighted(sp.el, 0.65, sp.el2, 0.35) : epSingle(sp.el);
+    const tObj = {
+      id: sp.id,
+      nameTh: sp.nameTh,
+      path: sp.path,
+      sub: sp.sub,
+      cat: isPas ? "PASSIVE" : "COMBAT_TECHNIQUE",
+      role: isPas ? "PASSIVE" : "ACTIVE",
+      combatArch: isPas ? "passive" : sp.arch,
+      tier: sp.tier,
+      reqTier: Math.min(sp.tier, 5),
+      grade: sp.grade,
+      power: sp.tier * 50 + (isPas ? 15 : 30),
+      element: sp.el,
+      elementalRole: "ELEMENTAL",
+      elementProfile: elProf,
+      weaponTypes: sp.w.slice(),
+      armorTypes: ["ROBE", "LIGHT", "HEAVY"],
+      obtainSources: sp.obtainSources.slice(),
+      sourceInfoTh: sp.sourceInfoTh,
+      descTh: sp.descTh,
+      stages: [
+        { stage: 1, id: sp.id + "_S1", nameTh: "ขั้นที่ 1 · " + sp.nameTh, reqMastery: 0, reqCultStage: Math.max(1, sp.tier - 1), mult: 1.0 },
+        { stage: 2, id: sp.id + "_S2", nameTh: "ขั้นที่ 2 · " + sp.nameTh, reqMastery: 35, reqCultStage: sp.tier, mult: 1.15 },
+        { stage: 3, id: sp.id + "_S3", nameTh: "ขั้นที่ 3 · " + sp.nameTh, reqMastery: 70, reqCultStage: Math.min(8, sp.tier + 1), mult: 1.30 }
+      ],
+      v222: true,
+      v222Pack: true
+    };
+    if (isPas) {
+      tObj.passive = sp.passive;
+      tObj.passiveFamily = "FAM_" + sp.id;
+      tObj.moves = [];
+      if (Array.isArray(D.passives)) D.passives.push(tObj);
+      if (Array.isArray(D.passiveTechniques)) D.passiveTechniques.push(tObj);
+    } else {
+      tObj.moveDefs = sp.moves.map((mv, idx) => Object.assign({
+        id: sp.id + "_M" + (idx + 1),
+        parentId: sp.id,
+        stageReq: idx + 1,
+        reqMastery: idx === 0 ? 0 : idx === 1 ? 35 : 70,
+        hits: mv.M > 0 ? (mv.aoe ? 2 : 1) : 0,
+        wind: 2,
+        costPct: +(3.5 + sp.tier * 0.45 + idx * 0.8).toFixed(1),
+        aoe: !!mv.aoe,
+        self: !!mv.self,
+        team: !!mv.team
+      }, mv));
+      tObj.moves = tObj.moveDefs.map(m => m.nameTh);
+    }
+    if (!D.techniques.some(x => x.id === tObj.id)) D.techniques.push(tObj);
+    if (!JD.TECH.techniques.some(x => x.id === tObj.id)) JD.TECH.techniques.push(tObj);
+  }
+
+
 })();
 
 })(typeof globalThis!=='undefined'?globalThis:this);
