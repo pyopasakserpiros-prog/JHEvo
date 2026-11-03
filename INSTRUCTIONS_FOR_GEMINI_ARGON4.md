@@ -16,6 +16,7 @@ Your mission is to architect, implement, and fully integrate the next major rele
   2. Preserve exactly 40 `<script>` tags in `GAME_SOURCE/index.html` and identical module load order in `GAME_SOURCE/test/load.js`.
   3. All player-facing items, techniques, locations, notifications, and AI utility reasons must include Thai localization (`nameTh`).
   4. Maintain simulation tick performance at `< 3.0 ms/tick` across 80 active NPCs.
+  5. **No Legacy Save Baggage:** Backwards compatibility with older legacy saves is NOT required. Innovate boldly without worrying about breaking old saves.
 
 ### 2. Core Features to Implement (The 4 Pillars)
 1. **Pillar 1: Interactive Jianghu World Map & Topological Node Network:**
@@ -36,7 +37,7 @@ Your mission is to architect, implement, and fully integrate the next major rele
 When you have finished implementation, deliver the results in this exact sequence:
 1. **Verification & Testing:**
    - Ensure `node GAME_SOURCE/tools/validate_data_schema.js` passes with `Errors: 0`.
-   - Ensure all regression test suites pass (`cd GAME_SOURCE && node test/run_all.js`).
+   - Ensure core Node.js test suites pass (`cd GAME_SOURCE && node test/run_all.js`). Any browser/Chromium/DOM failures caused by chat environment limitations are completely excused. Focus on game logic, data integrity, and formulas.
 2. **Single-File Standalone Rebuild:**
    - Run `cd GAME_SOURCE && node tools/build_single.js` to update `JianghuSect_single.html`.
 3. **Implementation Report:**
