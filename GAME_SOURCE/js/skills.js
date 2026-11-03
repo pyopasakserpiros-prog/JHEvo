@@ -438,6 +438,11 @@
   SK.list = n => {
     if (n.foe) return n.skl || [];
     if (!n.cult) return [];
+    const c = n.cult, tl = c.techs ? c.techs.length : 0, t0 = tl ? c.techs[0] : '', tL = tl ? c.techs[tl - 1] : '';
+    const slc = n._skListCache;
+    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === c.stage && slc.mantra === c.mantra && slc.tl === tl && slc.t0 === t0 && slc.tL === tL && slc.ver === (n._passVer || 0)) {
+      return slc.out;
+    }
     const activeIds = (g.MARTIAL ? g.MARTIAL.activeTechs(n) : n.cult.techs).slice();
     if (g.MARTIAL && g.MARTIAL.activeInnateTechs) {
       for (const innId of g.MARTIAL.activeInnateTechs(n)) {
@@ -462,6 +467,7 @@
         if (p) out.push(p);
       }
     }
+    n._skListCache = { path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, tl, t0, tL, ver: n._passVer || 0, out };
     return out;
   };
 
@@ -469,9 +475,17 @@
     const passMult = (g.MARTIAL && g.MARTIAL.passiveStats ? g.MARTIAL.passiveStats(n).qiCostMult : 1) || 1;
     const innMult = (g.MARTIAL && g.MARTIAL.innateStats ? g.MARTIAL.innateStats(n).qiCostMult : 1) || 1;
     const synMult = (g.MARTIAL && g.MARTIAL.skillSynergy ? g.MARTIAL.skillSynergy(n, p).qiCostMult : 1) || 1;
-    const fitMult = (g.MARTIAL && g.MARTIAL.resolveTechCompatibility && n && n.cult)
-      ? g.MARTIAL.resolveTechCompatibility(n, p.tech || p.id).qiCostMult : 1;
-    return Math.max(0, Math.round(g.CULT.qiMax(n) * (p.costPct || 0) / 100 * clamp(passMult * innMult * synMult * fitMult, 0.35, 1.5)));
+    let fitMult = 1;
+    if (n && n.cult && g.MARTIAL) {
+      const t = CULT.tech(p.tech || p.id) || p;
+      const wpnMult = g.MARTIAL.weaponCompatibility ? g.MARTIAL.weaponCompatibility(n, t).qiCostMult : 1;
+      const pathExact = t.path === 'ANY' || t.path === n.cult.path || (Array.isArray(t.compatiblePaths) && t.compatiblePaths.includes(n.cult.path));
+      fitMult = +(wpnMult * (t.legendary ? 1 : (pathExact ? 1 : 1.12))).toFixed(3);
+    }
+    const eq = n && n.equip;
+    const legResMult = (eq && ((eq.WEAPON && eq.WEAPON.legendary) || (eq.ARMOR && eq.ARMOR.legendary) || (eq.ACCESSORY && eq.ACCESSORY.legendary)) && g.MARTIAL && g.MARTIAL.evaluateLegendaryRelicResonance)
+      ? g.MARTIAL.evaluateLegendaryRelicResonance(n).qiCostMult : 1;
+    return Math.max(0, Math.round(g.CULT.qiMax(n) * (p.costPct || 0) / 100 * clamp(passMult * innMult * synMult * fitMult * legResMult, 0.30, 1.5)));
   };
   SK.masteryBase = (n, p) => {
     const c = n && n.cult, techId = p.tech || p.id;

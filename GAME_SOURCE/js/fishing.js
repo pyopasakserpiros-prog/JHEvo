@@ -1946,13 +1946,7 @@
       return fb && fb.cultRateMult ? base * fb.cultRateMult : base;
     };
   }
-  if (AI && AI.needs) {
-    const origNeeds = AI.needs;
-    AI.needs = function (W, n) {
-      origNeeds(W, n);
-      if (n.foodBuff) FISHING.tickFoodBuff(W, n);
-    };
-  }
+  // foodBuff ticked directly in AI.needs
 
   if (g.EXT && g.EXT.isTradable) {
     const origIsTradable = g.EXT.isTradable;

@@ -1311,7 +1311,7 @@
       if (!opts.skipGuests && alliedSects.length) {
         alliedSects.slice(0, 2).forEach((s, sIdx) => {
           const guestStage = clamp(spec.minStage + (sIdx % (spec.maxStage - spec.minStage + 1)), spec.minStage, spec.maxStage);
-          const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS'];
+          const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'];
           const gWpn = wTypes[Math.floor((W.day || 0) + (s.power || 1) + sIdx) % wTypes.length];
           const gPow = Math.round(180 * Math.pow(1.35, guestStage - 1) * (0.85 + (s.power || 2) * 0.05));
           const guest = {
@@ -2539,7 +2539,7 @@
     intellect: { min: 1, max: 100, keys: ['reasoning', 'comprehension', 'memory', 'workingMemory', 'learningSpeed', 'thinkingSpeed', 'focus', 'spatial', 'numeracy', 'verbal', 'planning', 'judgement', 'inventiveness', 'intuition', 'perceptiveness', 'readPeople', 'wisdom', 'willpower'] },
     social: { min: 0, max: 100, keys: ['charisma', 'leadership', 'persuasion', 'deception', 'intimidation', 'teaching', 'hospitality'] },
     affinities: { min: 0, max: 100, keys: ['FIRE', 'WATER_ICE', 'LIGHTNING', 'WIND', 'EARTH_METAL', 'WOOD_LIFE', 'YIN_SHADOW', 'LIGHT_YANG', 'SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE'] },
-    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE', 'herbalism', 'mining', 'cooking', 'trading', 'administration', 'diplomacy', 'stealth', 'survival', 'arts', 'construction', 'ritual'] }
+    skills: { min: 0, max: 100, keys: ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'ALCHEMY', 'FORGING', 'ARRAY', 'TALISMAN', 'BEAST_TAMING', 'MEDICINE', 'POISON', 'SCRIPTURE', 'herbalism', 'mining', 'cooking', 'trading', 'administration', 'diplomacy', 'stealth', 'survival', 'arts', 'construction', 'ritual'] }
   };
 
   EDITOR.memberEditState = (W, nOrId) => {
@@ -4158,7 +4158,7 @@
     const eqTarget = (bracket.min + bracket.max) / 2;
     const stage = wmcStageFor(path, eqTarget);
     const eqStage = CULT.equivalentStage({ cult: { path, stage } });
-    const types = ['SWORD','BLADE','SPEAR','FIST','BOW','STAFF','FOCUS'];
+    const types = ['SWORD','BLADE','SPEAR','FIST','BOW','STAFF','FOCUS','ZITHER','BRUSH','WHIP'];
     const weapon = types[Math.floor((W.day || 0) + (sect.power || 1) * 17 + bracket.min) % types.length];
     const setPieces = g.EXPLORE && g.EXPLORE.pagodaSetPieces ? g.EXPLORE.pagodaSetPieces(path, W.day) : [];
     const equip = { WEAPON: { slot: 'WEAPON', gearType: weapon, tier: Math.max(4, Math.min(7, stage)), nameTh: weapon } };
@@ -4178,7 +4178,9 @@
       ['BODY', 'BEAST_SOVEREIGN'],
       ['XIAN', 'HEART_SOUL'],
       ['MECH_PUPPET', 'SAGE_SUPPORT'],
-      ['KARMA_SAMSARA', 'SAGE_SUPPORT']
+      ['KARMA_SAMSARA', 'SAGE_SUPPORT'],
+      ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN'],
+      ['CRAFT_CREATION', 'GOD']
     ];
     const key = String(sect && sect.id || 'PLAYER') + '|' + String(fighter && fighter.id || '') + '|' + String(bracket && bracket.id || '');
     let hash = 0; for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
@@ -4355,7 +4357,10 @@
     const roleBonus = (roles.has('guardian') ? 0.04 : 0) + (roles.has('healer') ? 0.04 : 0) + (roles.has('array') ? 0.025 : 0);
     const diversityBonus = Math.min(0.08, Math.max(0, paths.size - 1) * 0.02);
     const formationBonus = Math.min(0.05, Math.max(0, ((formation && formation.powerMultiplier) || 1) - 1) * 0.25);
-    return +clamp(0.36 + base * 0.30 + helperBonus + roleBonus + diversityBonus + formationBonus + (medicineId ? 0.06 : 0), 0.45, 0.90).toFixed(3);
+    const imprintBonus = (candidate && candidate.mentorImprint) ? 0.04 : 0;
+    const legRes = (g.MARTIAL && g.MARTIAL.evaluateLegendaryRelicResonance && candidate) ? g.MARTIAL.evaluateLegendaryRelicResonance(candidate) : null;
+    const relicBonus = (legRes && legRes.active) ? (legRes.pieces >= 3 ? 0.05 : 0.025) : 0;
+    return +clamp(0.36 + base * 0.30 + helperBonus + roleBonus + diversityBonus + formationBonus + imprintBonus + relicBonus + (medicineId ? 0.06 : 0), 0.45, 0.92).toFixed(3);
   };
   const releaseTribulationParticipants = (W, attempt) => {
     const ids = [attempt && attempt.candidateId].concat(attempt && Array.isArray(attempt.supportIds) ? attempt.supportIds : []).filter(Boolean);
@@ -4409,6 +4414,10 @@
         pushTribulationHistory(state, record);
         W.sect.ascendedLegacyHistory.unshift(record);
         if (W.sect.ascendedLegacyHistory.length > 50) W.sect.ascendedLegacyHistory.length = 50;
+        if (!candidate.qiTransmitted && Array.isArray(candidate.apprenticeIds) && candidate.apprenticeIds.length > 0 && SECT.MENTORSHIP && SECT.MENTORSHIP.transmitQi) {
+          const appId = candidate.apprenticeIds.find(id => W.byId && W.byId[id] && !W.byId[id].dead);
+          if (appId) SECT.MENTORSHIP.transmitQi(W, candidate, appId, { preAscension: true, force: true });
+        }
         if (candidate.id === W.sect.masterId) SECT.succession(W, 'เจ้าสำนักจุติสู่แดนบน');
         candidate.cult.ascended = true;
         if (g.SIM && g.SIM.retire) g.SIM.retire(W, candidate);
@@ -4543,6 +4552,9 @@
     mentor.h.life.family = mentor.h.life.family || {};
     mentor.h.life.family.disciples = Array.isArray(mentor.h.life.family.disciples) ? mentor.h.life.family.disciples : [];
     if (!mentor.h.life.family.disciples.includes(disciple.id)) mentor.h.life.family.disciples.push(disciple.id);
+    disciple.h.life = disciple.h.life || {};
+    disciple.h.life.family = disciple.h.life.family || {};
+    disciple.h.life.family.master = mentor.id;
 
     const samePath = mentor.cult.path === disciple.cult.path;
     const sameSub = samePath && mentor.cult.sub && mentor.cult.sub !== 'NONE' && mentor.cult.sub === disciple.cult.sub;
@@ -4690,6 +4702,10 @@
   };
 
   MENTORSHIP.synthesizeSectArt = (W, creatorOrId, opts) => {
+    if (creatorOrId && typeof creatorOrId === 'object' && !creatorOrId.id && creatorOrId.creatorId) {
+      opts = creatorOrId;
+      creatorOrId = creatorOrId.creatorId;
+    }
     opts = opts || {};
     const ms = MENTORSHIP.ensure(W);
     const creator = MENTORSHIP.resolveNpc(W, creatorOrId) || (W && W.byId && W.byId[W.sect.masterId]);
@@ -4806,7 +4822,7 @@
     if (!opts.quiet && W.log) {
       W.log('research', '📜「' + HC.fullName(creator) + '」ผสานความเข้าใจยุทธ์บัญญัติคัมภีร์ประจำสำนักเล่มใหม่:「' + nameTh + '」ประดิษฐานไว้ในหอคัมภีร์!', [creator.id]);
     }
-    return { ok: true, tech: heritageTech };
+    return { ok: true, tech: heritageTech, art: heritageTech };
   };
 
   MENTORSHIP.daily = W => {
@@ -4852,6 +4868,7 @@
     return jh;
   };
 
+  JIANGHU.generateDailyRumors = (W, count) => JIANGHU.refreshTavernRumors(W, { count: count || 3 });
   JIANGHU.refreshTavernRumors = (W, opts) => {
     opts = opts || {};
     const jh = JIANGHU.ensure(W);
@@ -5011,10 +5028,19 @@
     };
 
     const bout = SECT.simulateAssemblyBout ? SECT.simulateAssemblyBout(W, defender, challenger) : { winner: defender, loser: challenger };
-    const won = bout.winner && bout.winner.id === defender.id;
+    const won = opts.forceWin === true ? true : opts.forceWin === false ? false : !!(bout.winner && bout.winner.id === defender.id);
+    let convertedToAlly = false;
     if (won) {
       bond.grudge = Math.max(0, (bond.grudge || 75) - 55);
-      if (bond.grudge <= 20) bond.resolved = true;
+      if (bond.grudge <= 20) {
+        bond.resolved = true;
+        if (opts.convertToAlly || HC.eff(defender, 'social.charisma') >= 52 || HC.eff(defender, 'personality.integrity') >= 52) {
+          bond.kind = 'SWORN_ALLY';
+          bond.affinity = Math.max(bond.affinity || 0, 78);
+          bond.grudge = 0;
+          convertedToAlly = true;
+        }
+      }
       W.fame(10);
       if (ECO && ECO.earn) ECO.earn(W, 200, 'ชนะศึกท้าดวลหน้าประตูสำนักเหนือ ' + bond.figureNameTh);
       if (g.CPE && g.CPE.mint) g.CPE.mint(W, defender, 60, 'ปราบคู่อาฆาตหน้าประตูสำนัก', true);
@@ -5031,7 +5057,7 @@
         W.log('challenge', '⚔️「' + HC.fullName(defender) + '」รับคำท้าดวลจาก「' + bond.figureNameTh + '」หน้าประตูสำนักและพ่ายแพ้ไปอย่างสูสี ฮึดสู้มุ่งมั่นฝึกปรือฝีมือใหม่', [defender.id]);
       }
     }
-    return { ok: true, won, defenderId: defender.id, challengerNameTh: bond.figureNameTh, bond };
+    return { ok: true, won, convertedToAlly, defenderId: defender.id, challengerNameTh: bond.figureNameTh, bond };
   };
 
   JIANGHU.daily = W => {

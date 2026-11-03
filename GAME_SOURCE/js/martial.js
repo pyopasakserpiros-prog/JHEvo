@@ -344,7 +344,7 @@ M.progression=(n,stage)=>{
  n._progCache={path:c.path,sub:c.sub,rank,track,value};return value;
 };
 M.eff=(n,path)=>{const value=HC.eff(n,path);return path.startsWith('physiology.')?clamp(value+(M.progression(n).body[path.slice(11)]||0),0,180):value;};
-const derivedCache=new WeakMap();M.derived=n=>{const ver=n._ver||0,c=n.cult,cSt=c?c.stage:0,cSub=c?c.sub:"",cTr=c?c.trackRank:0,mHit=n._mDer;if(mHit&&mHit.ver===ver&&mHit.cSt===cSt&&mHit.cSub===cSub&&mHit.cTr===cTr)return mHit.val;const d=HC.derived(n),prog=M.progression(n),hit=derivedCache.get(n);if(hit&&hit.ver===ver&&hit.prog===prog&&hit.d===d){n._mDer={ver,cSt,cSub,cTr,val:hit.val};return hit.val;}const b=prog.body,val=Object.assign({},d,{hpMax:Math.round(d.hpMax+(b.vitality||0)*1.1+(b.toughness||0)*.5+(b.strength||0)*.2),walkSpeed:d.walkSpeed+((b.speed||0)*.7+(b.agility||0)*.3)/100*.9});derivedCache.set(n,{ver,prog,d,val});n._mDer={ver,cSt,cSub,cTr,val};return val;};
+const derivedCache=new WeakMap();M.derived=n=>{const day=HC.nowDay,ver=n._ver||0,c=n.cult,cSt=c?c.stage:0,cSub=c?c.sub:"",cTr=c&&c.track?c.track.ordinal:0,mHit=n._mDer;if(mHit&&mHit.day===day&&mHit.ver===ver&&mHit.cSt===cSt&&mHit.cSub===cSub&&mHit.cTr===cTr)return mHit.val;const d=HC.derived(n),prog=M.progression(n),hit=derivedCache.get(n);if(hit&&hit.day===day&&hit.ver===ver&&hit.prog===prog&&hit.d===d){n._mDer={day,ver,cSt,cSub,cTr,val:hit.val};return hit.val;}const b=prog.body,val=Object.assign({},d,{hpMax:Math.round(d.hpMax+(b.vitality||0)*1.1+(b.toughness||0)*.5+(b.strength||0)*.2),walkSpeed:d.walkSpeed+((b.speed||0)*.7+(b.agility||0)*.3)/100*.9});derivedCache.set(n,{day,ver,prog,d,val});n._mDer={day,ver,cSt,cSub,cTr,val};return val;};
 
 /* ---------- Passive Slot Authority, Exclusivity & Toggle Safety ---------- */
 M.passiveSlotInfo=n=>{
@@ -370,7 +370,7 @@ for(const _id of [
  'INNATE_FATE_ORACLE_CORE','INNATE_TOTEM_BEAST_GOD_CORE','INNATE_UNDERWORLD_JUDGE_CORE','INNATE_OCEAN_SOVEREIGN_CORE',
  'INNATE_HARVEST_EARTH_GOD_CORE','INNATE_MEDICINE_BODHI_GOD_CORE','INNATE_NETHER_GHOST_KING_CORE',
  'INNATE_HEAVEN_DEVOURING_DEMON_CORE','INNATE_DREAM_ILLUSION_WEAVER_CORE'
-]){const _bt=CULT.tech(_id);if(_bt){delete _bt.weaponTypes;delete _bt.weapon;delete _bt.requiresWeapon;}}
+]){const _bt=CULT.tech(_id);if(_bt){delete _bt.weaponTypes;delete _bt.weapon;_bt.requiresWeapon=false;}}
 M.classifyTechniqueAccess=tOrId=>{
  const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
  if(!t)return {accessClass:'INVALID',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ไม่พบข้อมูลวิชา'};
@@ -630,8 +630,13 @@ M.skillEfficiency=(n,p)=>{
   else if(t.requiresWeapon||p.requiresWeapon)return 0;
   else equipmentMult=0.65;
  }
- const fit=(M.resolveTechCompatibility&&n&&n.cult)?M.resolveTechCompatibility(n,t):null;
- return equipmentMult*(fit&&Number.isFinite(fit.combatPowerMult)?fit.combatPowerMult:1);
+ if(!n||!n.cult)return equipmentMult;
+ const c=n.cult;
+ const pathExact=t.path==='ANY'||t.path===c.path||(Array.isArray(t.compatiblePaths)&&t.compatiblePaths.includes(c.path));
+ const subExact=!t.sub||t.sub===c.sub||(Array.isArray(t.preferredSubs)&&t.preferredSubs.includes(c.sub));
+ const pathCombat=t.legendary?(pathExact&&t.path!=='ANY'?1.10:1.0):(pathExact?1.0:0.88);
+ const subCombat=t.legendary?(subExact&&t.sub?1.08:1.0):(subExact?(t.sub?1.08:1.0):0.94);
+ return equipmentMult*+(pathCombat*subCombat).toFixed(3);
 };
 M.elementalEfficiency=(n,p,target)=>{
  if(!n||!g.ELEM||!p)return {damageMult:1,costMult:1,accBonus:0,controlChanceMult:1,counterRelation:'NEUTRAL'};
@@ -717,6 +722,7 @@ M.itemMatchesResonanceSet=(n,it,rs)=>{
  if(!['WEAPON','ARMOR','ACCESSORY'].includes(slot))return false;
  if((it.tier||1)<(rs.minTier||3))return false;
  if(it.resonanceSetId===rs.id||(Array.isArray(it.resonanceSetIds)&&it.resonanceSetIds.includes(rs.id)))return true;
+ if(it.legendary)return true;
  const gType=M.gearType(it);
  const allowedTypes=rs.slots[slot];
  if(!allowedTypes||!allowedTypes.includes(gType))return false;
@@ -812,6 +818,66 @@ M.resonanceUpgradePreview=(n,it)=>{
   return {completes:false,curPieces:curRes.active?curRes.pieces:0,nextPieces:1,setId:primarySet.id,nameTh:primarySet.nameTh,isSubpathMatch:true,set:primarySet};
  }
  return {completes:false,curPieces:curRes.active?curRes.pieces:0,nextPieces:0,setId:null,nameTh:''};
+};
+
+/* ---------- Universal Legendary Relic Set Resonance (2/3 & 3/3 Primordial Trinity - v2.0.17) ---------- */
+const EMPTY_LEG_RESONANCE=Object.freeze({active:false,pieces:0,count:0,nameTh:'',tierLabelTh:'',matchedSlots:[],relicIds:[],attunedStarsTotal:0,p:{},pct:{},f:{},flat:{},qiCostMult:1,procChanceMult:1,trinitySurge:false,summaryTh:'ยังไม่ได้ประสานเซ็ตศาสตราเทพในตำนาน (ต้องการ 2–3 ชิ้น)'});
+M.evaluateLegendaryRelicResonance=(n,overrideEquip)=>{
+ if(!n||n.foe||!n.cult)return EMPTY_LEG_RESONANCE;
+ const eq=overrideEquip||(n.equip||{});
+ const wStars=(eq.WEAPON&&eq.WEAPON.attunedStars)||0,aStars=(eq.ARMOR&&eq.ARMOR.attunedStars)||0,xStars=(eq.ACCESSORY&&eq.ACCESSORY.attunedStars)||0;
+ if(!overrideEquip){
+  const lrc=n._legResCache;
+  if(lrc&&lrc.eqW===eq.WEAPON&&lrc.eqA===eq.ARMOR&&lrc.eqX===eq.ACCESSORY&&lrc.st===n.cult.stage&&lrc.ws===wStars&&lrc.as===aStars&&lrc.xs===xStars&&lrc.ver===(n._passVer||0)){
+   return lrc.out;
+  }
+ }
+ const slots=['WEAPON','ARMOR','ACCESSORY'];
+ const matchedSlots=[],relicIds=[];
+ let stars=0;
+ for(const sl of slots){
+  const it=eq[sl];
+  if(it&&it.legendary&&(!M.gearUsable||M.gearUsable(n,it))){
+   matchedSlots.push(sl);
+   relicIds.push(it.id);
+   stars+=(it.attunedStars||0);
+  }
+ }
+ const pieces=matchedSlots.length;
+ if(pieces<2){
+  if(!overrideEquip)n._legResCache={eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,st:n.cult.stage,ws:wStars,as:aStars,xs:xStars,ver:n._passVer||0,out:EMPTY_LEG_RESONANCE};
+  return EMPTY_LEG_RESONANCE;
+ }
+ const starScale=1+stars*0.03;
+ const isTrinity=pieces>=3;
+ const nameTh=isTrinity?'ไตรรัตนะเทวศาสตราบรรพกาล':'ทวิศาสตราเทวะประสาน';
+ const baseP=isTrinity?{atk:0.16,matk:0.16,def:0.16,mdef:0.16,hp:0.16}:{atk:0.08,matk:0.08,def:0.08,mdef:0.08,hp:0.08};
+ const baseF=isTrinity?{pen:14,crit:10,critDmg:18,cast:12,move:8,acc:14}:{pen:6,crit:5,cast:6,acc:8};
+ const p={},f={};
+ for(const k in baseP)p[k]=+(baseP[k]*starScale).toFixed(3);
+ for(const k in baseF)f[k]=+(baseF[k]*starScale).toFixed(1);
+ const qiCostMult=isTrinity?0.80:0.88;
+ const procChanceMult=isTrinity?1.25:1.15;
+ const out={
+  active:true,
+  pieces,
+  count:pieces,
+  nameTh,
+  tierLabelTh:nameTh+' ('+pieces+'/3 ชิ้น)',
+  matchedSlots,
+  relicIds,
+  attunedStarsTotal:stars,
+  p,
+  pct:p,
+  f,
+  flat:f,
+  qiCostMult,
+  procChanceMult,
+  trinitySurge:isTrinity,
+  summaryTh:nameTh+' ('+pieces+'/3 ชิ้น'+(stars>0?' · ★'+stars:'')+') — '+(isTrinity?'สเตตัสหลัก +16%, ปราณทักษะ -20%, โอกาสเอฟเฟกต์ตำนาน +25% และปลดล็อกคลื่นปราณไตรรัตนะ':'สเตตัสหลัก +8%, ปราณทักษะ -12%, โอกาสเอฟเฟกต์ตำนาน +15%')
+ };
+ if(!overrideEquip)n._legResCache={eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,st:n.cult.stage,ws:wStars,as:aStars,xs:xStars,ver:n._passVer||0,out};
+ return out;
 };
 
 /* ---------- Target-Conditional Combat Passive Authority ---------- */
@@ -954,12 +1020,18 @@ M.SUB_EQUIP_BONUSES={
  FATE_SEVERING_THREAD:{w:['WHIP','FOCUS','SWORD'],a:['ROBE','LIGHT'],wb:{p:{matk:0.10,atk:0.06},f:{acc:10,pen:8},reasonTh:'ใช้ด้ายชะตาและแส้ปราณตัดวาสนา'},ab:{p:{mdef:0.09},f:{eva:5},reasonTh:'สวมอาภรณ์พริ้วหลบเคราะห์กรรม'}},
  CELESTIAL_ARMOR_ARTISAN:{w:['STAFF','FOCUS','BLADE','BRUSH'],a:['HEAVY','LIGHT','ROBE'],wb:{p:{def:0.09,mdef:0.08},f:{acc:6},reasonTh:'ถือค้อนพลอง/พู่กันเขียนผังเกราะ'},ab:{p:{def:0.12,mdef:0.10},f:{},reasonTh:'เข้าถึงแก่นแท้ของเกราะที่สวมใส่'}}
 };
+const EMPTY_SUB_EQ_BONUS=Object.freeze({active:false,matchedCount:0,weaponMatched:false,armorMatched:false,accessoryMatched:false,wType:'FIST',aType:null,xType:null,preferredWeapons:[],preferredArmor:[],p:{},f:{},reasonsTh:[],summaryTh:''});
 M.evaluateSubEquipmentBonus=n=>{
- if(!n||n.foe||!n.cult||!n.cult.sub||n.cult.sub==='NONE')return {active:false,weaponMatched:false,armorMatched:false,wType:'FIST',aType:null,preferredWeapons:[],preferredArmor:[],p:{},f:{},reasonsTh:[]};
+ if(!n||n.foe||!n.cult||!n.cult.sub||n.cult.sub==='NONE')return EMPTY_SUB_EQ_BONUS;
  const subId=n.cult.sub,cPath=n.cult.path,eq=n.equip||{};
+ const sec=n._subEqCache;
+ if(sec&&sec.path===cPath&&sec.sub===subId&&sec.eqW===eq.WEAPON&&sec.eqA===eq.ARMOR&&sec.eqX===eq.ACCESSORY&&sec.st===n.cult.stage&&sec.ver===(n._passVer||0)){
+  return sec.out;
+ }
  const hasUsableWpn=!!(eq.WEAPON&&(!M.gearUsable||M.gearUsable(n,eq.WEAPON)));
  const wType=hasUsableWpn?M.gearType(eq.WEAPON):'FIST';
  const aType=(eq.ARMOR&&(!M.gearUsable||M.gearUsable(n,eq.ARMOR)))?M.gearType(eq.ARMOR):null;
+ const xType=(eq.ACCESSORY&&(!M.gearUsable||M.gearUsable(n,eq.ACCESSORY)))?M.gearType(eq.ACCESSORY):null;
  const spec=M.SUB_EQUIP_BONUSES[subId];
  const prof=profiles[subId];
  const pathProf=paths[cPath]||paths.XIAN;
@@ -967,6 +1039,7 @@ M.evaluateSubEquipmentBonus=n=>{
  const prefA=spec?spec.a:(prof?prof[4]:pathProf.armor);
  const wMatch=hasUsableWpn&&Array.isArray(prefW)&&prefW.includes(wType)||(wType==='FIST'&&!hasUsableWpn&&Array.isArray(prefW)&&prefW.includes('FIST'));
  const aMatch=!!(aType&&Array.isArray(prefA)&&prefA.includes(aType));
+ const xMatch=!!(xType&&['RING','NECKLACE','BRACELET','CHARM'].includes(xType));
  const p={},f={},reasonsTh=[];
  if(wMatch){
   const wb=spec?spec.wb:{p:{atk:0.06,matk:0.06},f:{acc:6,pen:4},reasonTh:'ถือศาสตราตรงสายย่อย ('+(D.types[wType]||wType)+')'};
@@ -980,7 +1053,16 @@ M.evaluateSubEquipmentBonus=n=>{
   for(const k in (ab.f||{}))f[k]=(f[k]||0)+ab.f[k];
   if(ab.reasonTh)reasonsTh.push(ab.reasonTh);
  }
- return {active:wMatch||aMatch,weaponMatched:wMatch,armorMatched:aMatch,wType,aType,preferredWeapons:prefW||[],preferredArmor:prefA||[],p,f,reasonsTh};
+ if(xMatch){
+  const xb=xType==='RING'?{p:{atk:0.03,matk:0.03},f:{crit:3,pen:4}}:xType==='NECKLACE'?{p:{hp:0.05,mdef:0.05},f:{}}:xType==='BRACELET'?{p:{atk:0.04,def:0.04},f:{cast:4}}:{p:{matk:0.05,mdef:0.04},f:{acc:6}};
+  for(const k in (xb.p||{}))p[k]=(p[k]||0)+xb.p[k];
+  for(const k in (xb.f||{}))f[k]=(f[k]||0)+xb.f[k];
+  reasonsTh.push('หนุนเครื่องประดับ ('+(D.types[xType]||xType)+')');
+ }
+ const matchedCount=(wMatch?1:0)+(aMatch?1:0)+(xMatch?1:0);
+ const out={active:wMatch||aMatch||xMatch,matchedCount,weaponMatched:wMatch,armorMatched:aMatch,accessoryMatched:xMatch,wType,aType,xType,preferredWeapons:prefW||[],preferredArmor:prefA||[],p,f,reasonsTh,summaryTh:reasonsTh.join(' · ')};
+ n._subEqCache={path:cPath,sub:subId,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,st:n.cult.stage,ver:n._passVer||0,out};
+ return out;
 };
 M.conditionText=t=>{
  const a=[];
@@ -1021,7 +1103,7 @@ M.gearSuitability=(n,it,price)=>{
   if(M.weaponSkill){const wsk=M.weaponSkill(n,type);if(wsk>=45){fit+=Math.min(.22,(wsk-40)*.0035);reasons.push('ชำนาญอาวุธ ('+Math.round(wsk)+')');}else if(wsk<20&&wIdx<0){fit-=.08;}}
  }
  if(it.slot==='ARMOR'){fit=armor.includes(type)?1.25:.85;reasons.push(armor.includes(type)?'เกราะตรงวิถี':'เกราะต่างแนว');}
- const role=c.path==='BODY'?{atk:1.35,matk:.45,def:1.2,mdef:1.1}:c.path==='HEART_SOUL'||c.path==='XIAN'?{atk:.65,matk:1.35,def:1.1,mdef:1}:c.path==='DEMON'?{atk:1.15,matk:1.15,def:.85,mdef:.9}:c.path==='MECH_PUPPET'?{atk:1.15,matk:1.15,def:1.25,mdef:1.1}:c.path==='KARMA_SAMSARA'?{atk:.95,matk:1.28,def:1.12,mdef:1.32}:c.path==='BEAST_SOVEREIGN'?{atk:1.25,matk:.95,def:1.18,mdef:1.05}:c.path==='SAGE_SUPPORT'?{atk:.85,matk:1.30,def:1.18,mdef:1.34}:c.path==='CRAFT_CREATION'?{atk:1.15,matk:1.25,def:1.22,mdef:1.22}:{atk:1,matk:1.1,def:1,mdef:1.2};
+ const role=c.path==='BODY'?{atk:1.35,matk:.45,def:1.2,mdef:1.1}:c.path==='HEART_SOUL'||c.path==='XIAN'?{atk:.65,matk:1.35,def:1.1,mdef:1}:c.path==='DEMON'?{atk:1.15,matk:1.15,def:.85,mdef:.9}:c.path==='MECH_PUPPET'?{atk:1.15,matk:1.15,def:1.25,mdef:1.1}:c.path==='KARMA_SAMSARA'?{atk:.95,matk:1.28,def:1.12,mdef:1.32}:c.path==='BEAST_SOVEREIGN'?{atk:1.25,matk:.95,def:1.18,mdef:1.05}:c.path==='SAGE_SUPPORT'?{atk:.85,matk:1.30,def:1.18,mdef:1.34}:c.path==='CRAFT_CREATION'?{atk:1.15,matk:1.25,def:1.22,mdef:1.22}:c.path==='ARRAY_TALISMAN'?{atk:0.90,matk:1.32,def:1.15,mdef:1.30}:c.path==='STRATEGY_GOVERNANCE'?{atk:1.12,matk:1.22,def:1.22,mdef:1.22}:{atk:1,matk:1.1,def:1,mdef:1.2};
  let power=(s.atk||0)*role.atk+(s.matk||0)*role.matk+(s.def||0)*role.def+(s.mdef||0)*role.mdef+(s.hp||0)*.5+(s.crit||0)*8+(s.critDmg||0)*1.5+(s.pen||0)*6+(s.cast||0)*3+(s.eva||0)*.6+(s.acc||0)*2;
  if(it.combatMult||it.defMult){
   const stageScale=22+c.stage*16;
@@ -1072,6 +1154,13 @@ M.gearSuitability=(n,it,price)=>{
  // Bonus if equipment triggers a subpath synergy
  const synMatch=M.SYNERGIES.some(syn=>syn.subpath===c.sub&&((it.slot==='WEAPON'&&syn.weaponTypes&&syn.weaponTypes.includes(type))||(it.slot==='ARMOR'&&syn.armorTypes&&syn.armorTypes.includes(type))));
  if(synMatch){fit+=0.18;reasons.push('ปลดล็อกการประสานสายย่อย');}
+ // Bonus if Legendary equipment advances or completes 2/3 or 3/3 Legendary Relic Resonance
+ if(it.legendary&&M.evaluateLegendaryRelicResonance){
+  const curLeg=M.evaluateLegendaryRelicResonance(n);
+  const nextLeg=M.evaluateLegendaryRelicResonance(n,Object.assign({},n.equip||{},{[it.slot]:it}));
+  if(nextLeg.pieces>=3&&curLeg.pieces<3){fit+=0.42;reasons.push('ครบชุดไตรรัตนะเทวศาสตรา 3/3 ชิ้น');}
+  else if(nextLeg.pieces===2&&curLeg.pieces<2){fit+=0.25;reasons.push('ประสานทวิศาสตราเทวะ 2/3 ชิ้น');}
+ }
  // Bonus if equipment advances or completes a 2-piece or 3-piece Resonance Set
  const resPrev=M.resonanceUpgradePreview?M.resonanceUpgradePreview(n,it):null;
  if(resPrev&&resPrev.nextPieces>=3){
@@ -1130,7 +1219,7 @@ M.classifyGearForNpc=(W,n,it,price)=>{
   for(const o of W.npcs){
    if(!o||o.id===n.id||o.dead||o.away||o.exiled||!o.cult)continue;
    const r=rels[o.id];
-   const isClose=o.mentor===n.id||n.mentor===o.id||(n.h.life.family.spouse===o.id)||(r&&(r.a>=42||(r.g||0)>=30||r.bond==='สหาย'||r.bond==='คนรัก'||r.bond==='คู่ครอง'||r.bond==='ศิษย์'));
+   const isClose=o.mentor===n.id||n.mentor===o.id||o.mentorId===n.id||n.mentorId===o.id||(n.h.life.family.spouse===o.id)||(r&&(r.a>=42||(r.g||0)>=30||['สหาย','คนรัก','คู่ครอง','ศิษย์','ศิษย์สายตรง','อาจารย์','อาจารย์สายตรง'].includes(r.bond)));
    if(!isClose)continue;
    const oEffSt=CULT.effectiveTechStage?CULT.effectiveTechStage(o):o.cult.stage;
    if((it.minStage||1)>oEffSt)continue;
@@ -1144,7 +1233,7 @@ M.classifyGearForNpc=(W,n,it,price)=>{
  }
  return {category:'surplus',deltaScore:newScore-curScore,suit,curSuit,reasonTh:cur?'ไม่ดีกว่า「'+cur.nameTh+'」ที่สวมใส่อยู่':'ไม่เหมาะกับแนวทางปัจจุบัน'};
 };
-M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n),subEquipBonus:M.evaluateSubEquipmentBonus(n),resonanceSet:M.evaluateResonanceSet(n)};};
+M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n),subEquipBonus:M.evaluateSubEquipmentBonus(n),resonanceSet:M.evaluateResonanceSet(n),legResonance:M.evaluateLegendaryRelicResonance(n)};};
 // Mint/catalog boundary types also cover historical recipe-only equipment.
 const oldMint=ECO.mintGear;ECO.mintGear=(a,b,c,d)=>{const it=oldMint(a,b,c,d),r=(a&&a.sect&&a.npcs)?b:a,source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=it.gearType||source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.attunedElement&&!it.attunedElement)it.attunedElement=source.attunedElement;if(source.resonanceSetId&&!it.resonanceSetId)it.resonanceSetId=source.resonanceSetId;if(source.resonanceSetIds&&!it.resonanceSetIds)it.resonanceSetIds=source.resonanceSetIds.slice();if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -142,13 +142,20 @@
 
   /* ----- หลอมโอสถพื้นฐานให้สำนัก (ทุกคนทำได้ สำนักออกวัตถุดิบ) ----- */
   function pickBasic(W, n) {
+    if (W && W.t > 0 && n._pbTick === W.t) return n._pbVal;
     let best = null, bs = -1e9; const sk = n.h.skills.ALCHEMY || 0;
-    JD.CP.BASIC.forEach(r => {
-      if (!ECO.inputsOk(W, r)) return; const key = 'P:' + r.id, have = ECO.count(W, key), tgt = CPE.target(W, key);
-      let s = (tgt - have) / tgt; if (have >= tgt * 1.6) return; if (r.tier > 1 && sk + 25 < r.minMastery) return; s += W.rng.next() * 0.1 - r.tier * 0.05;
+    const basics = JD.CP.BASIC;
+    for (let i = 0; i < basics.length; i++) {
+      const r = basics[i];
+      if (r.tier > 1 && sk + 25 < r.minMastery) continue;
+      if (!ECO.inputsOk(W, r)) continue;
+      const key = 'P:' + r.id, have = ECO.count(W, key), tgt = CPE.target(W, key);
+      if (have >= tgt * 1.6) continue;
+      const s = (tgt - have) / tgt + W.rng.next() * 0.1 - r.tier * 0.05;
       if (s > bs) { bs = s; best = { r, short: s }; }
-    });
-    return (n._pcVal = best);
+    }
+    if (W && W.t > 0) n._pbTick = W.t;
+    return (n._pbVal = n._pcVal = best);
   }
   A.brewBasic = {
     nameTh: 'หลอมโอสถพื้นฐานให้สำนัก', icon: '🧪', color: '#8fd3c8',
@@ -308,7 +315,8 @@
   const effOf = k => { const i = ECO.pillInfo(k); return i ? i.effect : {}; };
   CPE.pickPurchase = (W, n) => {
     const cp = n.cp || 0, c = n.cult; if (cp < 4) return null;
-    const sSeq = W._stockSeq || 0, hpBand = (n.h.state.hp * 0.5) | 0, injLen = n.inj ? n.inj.length : 0;
+    const hm0 = n._nd ? n._nd.hpMax : CULT.hpMax(n);
+    const sSeq = W._stockSeq || 0, hpBand = n.h.state.hp >= hm0 * 0.73 ? 8 : ((n.h.state.hp * 0.5) | 0), injLen = n.inj ? n.inj.length : 0;
     if (W.t > 0 && n._pickCache && (n._pickCache.t === W.t || (W.t > n._pickCache.t && W.t - n._pickCache.t < 45 && n._pickCache.sSeq === sSeq)) && n._pickCache.path === (c && c.path) && n._pickCache.stage === (c && c.stage) && n._pickCache.cp === cp && n._pickCache.hpBand === hpBand && n._pickCache.gearLen === W.sect.gear.length && n._pickCache.injLen === injLen) return n._pickCache.val;
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
@@ -372,7 +380,7 @@
       }
     }
     if (W.t > 0) n._pickCache = { t: W.t, sSeq, path: c && c.path, stage: c && c.stage, cp, hpBand, gearLen: W.sect.gear.length, injLen, val: best };
-    return (n._pcVal = best);
+    return best;
   };
   CPE.buy = (W, n, p) => {
     if (p && p.kind === 'stone_grant' && Number.isFinite(p.price) && p.price > 0 && Number.isFinite(p.stones) && p.stones > 0) {
@@ -507,10 +515,13 @@
     },
     where(W, n) {
       const c = n.cult;
-      const kind = (c.path === 'XIAN' || c.path === 'HEART_SOUL') ? 'meditate' : c.path === 'BODY' ? 'lift' : c.path === 'DEMON' ? 'explore' : 'worship';
-      const hall = (c.path === 'XIAN' || c.path === 'HEART_SOUL') ? 'meditation_hall' : c.path === 'BODY' ? 'training_ground' : c.path === 'DEMON' ? 'ruin' : 'shrine';
+      const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE'].includes(c.path);
+      const isBody = ['BODY', 'BEAST_SOVEREIGN'].includes(c.path);
+      const isForge = ['MECH_PUPPET', 'CRAFT_CREATION'].includes(c.path);
+      const kind = isMed ? 'meditate' : isBody ? 'lift' : isForge ? 'anvil' : c.path === 'DEMON' ? 'explore' : 'worship';
+      const hall = isMed ? 'meditation_hall' : isBody ? 'training_ground' : isForge ? 'forge' : c.path === 'DEMON' ? 'ruin' : 'shrine';
       let st = AI.freeStation(W, n, kind, hall);
-      if (!st && (c.path === 'DEMON' || c.path === 'HEART_SOUL')) st = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'dummy', 'training_ground');
+      if (!st) st = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'dummy', 'training_ground') || AI.freeStation(W, n, 'read', 'scripture');
       return st ? { st } : null;
     },
     dur: () => 90,

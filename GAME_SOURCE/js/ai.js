@@ -12,7 +12,7 @@
   const isNight = h => h >= 21 || h < 5;
   const E = (n, p) => HC.eff(n, p);
   function ScoreAcc() { this.u = 0; this.why = []; } ScoreAcc.prototype.add = function(l, v) { this.u += v; if (Math.abs(v) > 0.06) this.why.push([l, Math.round(v * 100) / 100]); return this; }; function Sc() { return new ScoreAcc(); }
-  if (!HC._fastTrainWrapped) { HC._fastTrainWrapped = true; const _tb = HC.trainBody, _tm = HC.trainMind, _gw = HC.gainWisdom; HC.trainBody = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.physiology[id], g2 = _tb(npc, id, load); if ((x0 | 0) === (npc.h.physiology[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } return g2; }; HC.trainMind = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect[id], g2 = _tm(npc, id, load); if ((x0 | 0) === (npc.h.intellect[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } return g2; }; HC.gainWisdom = (npc, amt) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect.wisdom; _gw(npc, amt); if ((x0 | 0) === (npc.h.intellect.wisdom | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.wisdom']; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } }; }
+  if (!HC._fastTrainWrapped) { HC._fastTrainWrapped = true; const _tb = HC.trainBody, _tm = HC.trainMind, _gw = HC.gainWisdom; HC.trainBody = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.physiology[id], g2 = _tb(npc, id, load); if ((x0 | 0) === (npc.h.physiology[id] | 0)) { if (id === 'vitality' || id === 'toughness' || id === 'strength') { if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } const nhp = d0 ? Math.round(70 + HC.eff(npc, 'physiology.vitality') * 1.1 + HC.eff(npc, 'physiology.toughness') * 0.5 + HC.eff(npc, 'physiology.strength') * 0.2) : -1; if (d0 && nhp === d0.hpMax) { npc._ver = v0; npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } else { npc._c = null; npc._d = null; npc._mDer = null; npc._hpMaxCache = null; npc._nd = null; } } else { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } } else if (id === 'vitality' || id === 'toughness' || id === 'strength') { npc._mDer = null; npc._hpMaxCache = null; npc._nd = null; } return g2; }; HC.trainMind = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect[id], g2 = _tm(npc, id, load); if ((x0 | 0) === (npc.h.intellect[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } return g2; }; HC.gainWisdom = (npc, amt) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect.wisdom; _gw(npc, amt); if ((x0 | 0) === (npc.h.intellect.wisdom | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.wisdom']; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } }; }
   const VALUE_TH = { familyClan: 'พวกพ้อง', sectDuty: 'หน้าที่ต่อสำนัก', martialPeak: 'วิถียุทธ์', knowledgeCraft: 'ความรู้', freedom: 'อิสรภาพ', wealthResource: 'ทรัพย์', powerStatus: 'อำนาจ', honorLegacy: 'เกียรติยศ' };
   AI.VALUE_TH = VALUE_TH;
   function valueTerm(n, vf, S) {
@@ -123,16 +123,28 @@
   /* ---------- นิยามกิจกรรม ---------- */
   const A = {}; AI.ACTS = A;
   const idleOk = n => !n.act || n.act.id === 'idle';
+  const MC_AFF_MAP = { BOW: 'SWORD', STAFF: 'SPEAR', FOCUS: 'SOUL_DIVINE', ZITHER: 'SOUL_DIVINE', BRUSH: 'TALISMAN', WHIP: 'SPEAR' };
+  const MC_IDS = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ARRAY', 'TALISMAN'];
   function martialChoice(n, W) {
-    const ids = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON'];
     if (g.MARTIAL && g.MARTIAL.activeBottleneckSkills) {
       const bn = g.MARTIAL.activeBottleneckSkills(W || null, n);
       for (let i = 0; i < bn.length; i++) {
-        if (ids.includes(bn[i].skill) || ['WATER_ICE', 'WOOD_LIFE', 'stealth', 'survival'].includes(bn[i].skill)) return bn[i].skill;
+        if (MC_IDS.includes(bn[i].skill) || ['WATER_ICE', 'WOOD_LIFE', 'stealth', 'survival'].includes(bn[i].skill)) return bn[i].skill;
       }
     }
-    const profWpn = (n.cult && g.MARTIAL && g.MARTIAL.PROFILES && g.MARTIAL.PROFILES[n.cult.sub] && g.MARTIAL.PROFILES[n.cult.sub][3]) ? g.MARTIAL.PROFILES[n.cult.sub][3] : [];
-    let best = ids[0], bs = -1; ids.forEach(k => { const wKey = k === 'FIST_PALM' ? 'FIST' : k; const s = (E(n, 'affinities.' + k) || 0) * 0.9 + ((n.h && n.h.skills && n.h.skills[k]) || 0) * 0.6 + (profWpn.includes(wKey) ? 24 : 0) + (n.cult && n.cult.sub && /SWORD/.test(n.cult.sub) && k === 'SWORD' ? 25 : 0) + (n.cult && n.cult.path === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (n.cult && n.cult.path === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + (n.cult && (n.cult.sub === 'VENOM_GU_SOVEREIGN' || n.cult.sub === 'SWARM_GU_HIVE_MASTER') && k === 'POISON' ? 28 : 0); if (s > bs) { bs = s; best = k; } });
+    const cSub = n.cult ? n.cult.sub : '', cPath = n.cult ? n.cult.path : '';
+    const mcc = n._mcCache;
+    if (mcc && mcc.ver === n._ver && mcc.sub === cSub && mcc.path === cPath) return mcc.best;
+    const profWpn = (n.cult && g.MARTIAL && g.MARTIAL.PROFILES && g.MARTIAL.PROFILES[cSub] && g.MARTIAL.PROFILES[cSub][3]) ? g.MARTIAL.PROFILES[cSub][3] : [];
+    let best = MC_IDS[0], bs = -1;
+    for (let i = 0; i < MC_IDS.length; i++) {
+      const k = MC_IDS[i];
+      const wKey = k === 'FIST_PALM' ? 'FIST' : k;
+      const affKey = MC_AFF_MAP[k] || k;
+      const s = (E(n, 'affinities.' + affKey) || 0) * 0.9 + ((n.h && n.h.skills && n.h.skills[k]) || 0) * 0.6 + (profWpn.includes(wKey) ? 24 : 0) + (cSub && /SWORD/.test(cSub) && k === 'SWORD' ? 25 : 0) + (cPath === 'BODY' && k === 'BODY_REFINING' ? 30 : 0) + (cPath === 'HEART_SOUL' && k === 'SOUL_DIVINE' ? 25 : 0) + ((cSub === 'VENOM_GU_SOVEREIGN' || cSub === 'SWARM_GU_HIVE_MASTER') && k === 'POISON' ? 28 : 0);
+      if (s > bs) { bs = s; best = k; }
+    }
+    n._mcCache = { ver: n._ver, sub: cSub, path: cPath, best };
     return best;
   }
 
@@ -285,6 +297,18 @@
         if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
         return null;
       }
+      if (c.path === 'ARRAY_TALISMAN') {
+        const sAr = AI.freeStation(W, n, 'array', 'forge') || AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'read', 'scripture');
+        if (sAr) return { st: sAr, mult: 1.50 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
+      if (c.path === 'STRATEGY_GOVERNANCE') {
+        const sSt = AI.freeStation(W, n, 'read', 'scripture') || AI.freeStation(W, n, 'work', 'main_hall') || AI.freeStation(W, n, 'meditate', 'meditation_hall');
+        if (sSt) return { st: sSt, mult: 1.50 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
       const kind = c.path === 'XIAN' ? 'meditate' : c.path === 'BODY' ? 'lift' : 'worship';
       const bk = c.path === 'XIAN' ? 'meditation_hall' : c.path === 'BODY' ? 'training_ground' : 'shrine';
       const s = AI.freeStation(W, n, kind, bk);
@@ -381,6 +405,22 @@
           HC.trainBody(n, 'dexterity', 0.8);
           HC.gainWisdom(n, 0.005);
         }
+      } else if (c.path === 'ARRAY_TALISMAN') {
+        s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.035);
+        if (W.t % 25 === 0) {
+          const arSk = (n.h.skills.TALISMAN || 0) > (n.h.skills.ARRAY || 0) ? 'TALISMAN' : 'ARRAY';
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, arSk, 0.08, 1.18);
+          HC.trainMind(n, 'comprehension', 0.9);
+          HC.gainWisdom(n, 0.005);
+        }
+      } else if (c.path === 'STRATEGY_GOVERNANCE') {
+        s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.04);
+        if (W.t % 25 === 0) {
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 0.06, 1.15);
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'administration', 0.06, 1.15);
+          HC.trainMind(n, 'planning', 0.9);
+          HC.gainWisdom(n, 0.006);
+        }
       } else if (W.t % 30 === 0) {
         HC.trainMind(n, 'focus', 1); HC.gainWisdom(n, 0.004);
       }
@@ -389,7 +429,7 @@
       // อาจเกิดจิตมาร/ตื่นรู้เล็กน้อย
       if (W.t % 60 === 0) { if (W.rng.chance(0.0016 * (1 + s.heartDemon / 30))) { AI.insight(W, n); } }
       if (s.energy < 12 || s.rest < 12) return 'done';
-      if (c.path === 'XIAN' || c.path === 'DEMON' || c.path === 'HEART_SOUL') { const qm = (n._nd && n._nd.qiMax) ? n._nd.qiMax : CULT.qiMax(n); s.qi = Math.min(qm, s.qi + 0.4); }
+      { const qm = (n._nd && n._nd.qiMax) ? n._nd.qiMax : CULT.qiMax(n); s.qi = Math.min(qm, (s.qi || 0) + 0.4); }
       AI.vf(n, { martialPeak: 0.045 });
     },
     done(n, W) {
@@ -433,7 +473,7 @@
     tick(n, W) { n.h.state.energy = Math.max(10, n.h.state.energy - 0.01); n.h.state.stress += 0.01; },
     done(n, W, ctx) {
       const c = n.cult; const env = ctx.room ? 0 : 0.05; const pill = c.btBonus || 0; c.btBonus = 0;
-      const guide = n.mentor && W.byId[n.mentor] && !W.byId[n.mentor].dead ? 0.04 : 0;
+      const mId = n.mentorId || n.mentor; const guide = (mId && W.byId[mId] && !W.byId[mId].dead ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0);
       const res = CULT.breakthrough(W, n, { env, pill, guide });
       n.sealedBt = false;
       if (res.ok) { W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage); }
@@ -516,15 +556,18 @@
     dur: n => 100 + Math.round(E(n, 'intellect.focus') * 0.5),
     start(n, W, ctx) { if (n.cult && !n.cult.learning) { const t = AI.nextTechToStudy(W, n); if (t) n.cult.learning = { id: t.id, need: CULT.studyCost(t, n), got: 0 }; } return true; },
     tick(n, W) {
-      const s = n.h.state; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 60, 1); if (E(n, 'affinities.ARRAY') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'ARRAY', 1 / 90, 1); if (E(n, 'affinities.TALISMAN') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'TALISMAN', 1 / 90, 1);
+      const s = n.h.state; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 60, 1); if (W.t % 5 === 0) { if (E(n, 'affinities.ARRAY') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'ARRAY', 5 / 90, 1); if (E(n, 'affinities.TALISMAN') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'TALISMAN', 5 / 90, 1); }
       if (W.t % 40 === 0) { HC.trainMind(n, 'comprehension', 1); HC.trainMind(n, 'memory', 0.8); HC.gainWisdom(n, 0.003); }
       const c = n.cult;
       if (c && c.learning) {
         const learnT = CULT.tech(c.learning.id);
-        const elemLearnMult = (learnT && g.ELEM) ? g.ELEM.resolveCompatibility(n, learnT, 'learning').studySpeedMult : 1;
+        if (c.learning._elemMult == null) {
+          c.learning._elemMult = (learnT && g.ELEM) ? g.ELEM.resolveCompatibility(n, learnT, 'learning').studySpeedMult : 1;
+        }
+        const elemLearnMult = c.learning._elemMult;
         const ancMult = (CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W ? W.t : null) : (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t))) && n.ancestralBlessing.studySpeedMult ? n.ancestralBlessing.studySpeedMult : 1;
         c.learning.got += (0.7 + E(n, 'intellect.learningSpeed') / 100 + E(n, 'intellect.comprehension') / 250) * elemLearnMult * ancMult * (n.insightT > 0 ? 1.45 : 1) * (g.MARTIAL ? g.MARTIAL.lifeMult(n, 'SCRIPTURE') * g.MARTIAL.skillEffects(n).study : 1);
-        if (c.learning.got >= c.learning.need) { const oldHp = n.h && n.h.state ? n.h.state.hp : null, oldQi = n.h && n.h.state ? n.h.state.qi : null; const t = CULT.tech(c.learning.id); if (!c.techs.includes(c.learning.id)) c.techs.push(c.learning.id); c.learning = null; const nonPass = c.techs.filter(id => { const x = CULT.tech(id); return x && !x.passive && x.cat !== 'PASSIVE' && !x.innateOnly; }); while (nonPass.length > CULT.maxTechs(n)) { const dropId = nonPass.shift(); const idx = c.techs.indexOf(dropId); if (idx >= 0) c.techs.splice(idx, 1); } if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(n); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); if (g.MARTIAL && g.MARTIAL.syncResourceCaps) g.MARTIAL.syncResourceCaps(n, oldHp, oldQi); const tName = t ? t.nameTh : ''; W.log('learn', n.h.name.given + ' เรียนรู้วิชา「' + tName + '」สำเร็จ', [n.id]); AI.mem(W, n, 'เรียนรู้ ' + tName, 0.6); HC.experience(n, 'craft_success', 0.6); return 'done'; }
+        if (c.learning.got >= c.learning.need) { const oldHp = n.h && n.h.state ? n.h.state.hp : null, oldQi = n.h && n.h.state ? n.h.state.qi : null; const t = CULT.tech(c.learning.id); if (!c.techs.includes(c.learning.id)) c.techs.push(c.learning.id); c.learning = null; if (CULT.pruneExcessActiveTechs) CULT.pruneExcessActiveTechs(n); if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(n); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); if (g.MARTIAL && g.MARTIAL.syncResourceCaps) g.MARTIAL.syncResourceCaps(n, oldHp, oldQi); const tName = t ? t.nameTh : ''; W.log('learn', n.h.name.given + ' เรียนรู้วิชา「' + tName + '」สำเร็จ', [n.id]); AI.mem(W, n, 'เรียนรู้ ' + tName, 0.6); HC.experience(n, 'craft_success', 0.6); return 'done'; }
       }
       const restMult = (n._nd && n._nd.restDrainMult != null) ? n._nd.restDrainMult : 1;
       s.energy = Math.max(0, s.energy - 0.025); s.rest = Math.max(0, s.rest - 0.03 * restMult); AI.vf(n, { knowledgeCraft: 0.05 });
@@ -544,7 +587,22 @@
     const lib = (W && W.sect && W.sect.library) || [];
     const sig = lib.length + ':' + (lib[lib.length - 1] || '') + ':' + cap + ':' + c.sub + ':' + c.techs.length + ':' + (n.equip && n.equip.WEAPON ? n.equip.WEAPON.id : '');
     if (n._nextTechSig === sig) return n._nextTechVal;
-    const ids = CULT.learnable(n, lib).map(id => CULT.tech(id)).filter(t => t && (t.reqTier || t.tier) <= cap);
+    const activeKnown = c.techs.map(id => CULT.tech(id)).filter(x => x && !x.passive && x.cat !== 'PASSIVE' && !x.innateOnly);
+    const maxAct = CULT.maxTechs(n);
+    let minReplaceScore = -1e9;
+    if (activeKnown.length >= maxAct && CULT.techRetentionScore) {
+      const repl = activeKnown.filter(x => !x.legendary && !x.isSectHeritage);
+      if (!repl.length) minReplaceScore = 1e9;
+      else minReplaceScore = Math.min(...repl.map(x => CULT.techRetentionScore(n, x)));
+    }
+    const ids = CULT.learnable(n, lib).map(id => CULT.tech(id)).filter(t => {
+      if (!t || (t.reqTier || t.tier) > cap) return false;
+      if (t.passive || t.cat === 'PASSIVE' || t.legendary || t.isSectHeritage) return true;
+      if (activeKnown.length >= maxAct && CULT.techRetentionScore) {
+        return CULT.techRetentionScore(n, t) > minReplaceScore + 15;
+      }
+      return true;
+    });
     if (!ids.length) { n._nextTechSig = sig; n._nextTechVal = null; return null; }
     let best = ids[0], bestP = g.COG && g.COG.techPreference ? g.COG.techPreference(n, best) : (best.power * (best.sub === c.sub ? 1.4 : 1));
     for (let i = 1; i < ids.length; i++) {
@@ -653,7 +711,7 @@
     score(n, W, S) {
       const rk = n.rank; const labor = [1, .85, .35, .08, 0, 0, 0][rk];
       const meals = ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3;
-      const pop = Math.max(1, W.npcs.filter(x => x && !x.dead && !x.exiled).length);
+      const pop = W._alivePop || Math.max(1, W.npcs.filter(x => x && !x.dead && !x.exiled).length);
       const food = clamp(1 - meals / (pop * 16), 0, 1);
       S.add('งานประจำศิษย์', labor * 0.9 * dutyWeight(n) * 0.9 * (0.15 + 0.85 * food));
       S.add('เสบียงร่อยหรอ', food * 1.2 * (0.4 + dutyWeight(n) * 0.6) * (rk >= 4 ? 0.2 : 1));
@@ -781,7 +839,7 @@
     nameTh: 'พักรักษาตัว', icon: '🩹', color: '#53c68c',
     can: (n, W) => true,
     score(n, W, S) {
-      const hpR = n.h.state.hp / CULT.hpMax(n);
+      const hpR = n.h.state.hp / (n._nd ? n._nd.hpMax : CULT.hpMax(n));
       const hasInj = !!(n.inj && n.inj.length);
       if (hpR > 0.8 && !hasInj) return S.add('แข็งแรงดี', -3);
       const sevMax = hasInj ? Math.max(...n.inj.map(i => i.sev || 1)) : 0;
@@ -812,8 +870,9 @@
     const doctrine = (g.SECT && g.SECT.ensureSupportDoctrine) ? g.SECT.ensureSupportDoctrine(W) : null;
     const priority = doctrine ? doctrine.triagePriority : 'BALANCED';
     const minHpThresh = doctrine ? (doctrine.minHpThreshold / 100) : 0.85;
-    const cacheKey = tNow + ':' + (isSage ? 1 : 0) + ':' + priority + ':' + minHpThresh;
-    if (W._supportBlessCache && W._supportBlessCache.key === cacheKey) return W._supportBlessCache.val;
+    const cacheSlot = isSage ? '_supportBlessCache1' : '_supportBlessCache0';
+    const cacheKey = tNow + ':' + priority + ':' + minHpThresh;
+    if (W[cacheSlot] && W[cacheSlot].key === cacheKey) return W[cacheSlot].val;
     let best = null, bestScore = 0;
     for (let i = 0; i < W.npcs.length; i++) {
       const o = W.npcs[i];
@@ -842,7 +901,7 @@
 
       if (sc > bestScore) { bestScore = sc; best = o; }
     }
-    W._supportBlessCache = { key: cacheKey, val: best };
+    W[cacheSlot] = { key: cacheKey, val: best };
     return best;
   };
   A.supportBless = {
@@ -1105,7 +1164,7 @@
     else if (r.a < -35 && r.v > 40) nb = 'ศัตรู';
     else if (r.v > 45 && r.r > 40) nb = 'คู่แข่ง';
     else if (r.a < 40 && r.l < 55 && (old === 'สหาย' || old === 'คนรัก')) nb = '';
-    if (x.h.life.family.master === other.id) nb = 'อาจารย์'; else if ((x.h.life.family.disciples || []).includes(other.id)) nb = 'ศิษย์';
+    if (x.mentorId === other.id || x.mentor === other.id || x.h.life.family.master === other.id) nb = x.mentorId === other.id ? 'อาจารย์สายตรง' : 'อาจารย์'; else if ((Array.isArray(x.apprenticeIds) && x.apprenticeIds.includes(other.id)) || (x.h.life.family.disciples || []).includes(other.id)) nb = (Array.isArray(x.apprenticeIds) && x.apprenticeIds.includes(other.id)) ? 'ศิษย์สายตรง' : 'ศิษย์';
     if (nb !== old) {
       r.bond = nb;
       if (nb === 'สหาย' || nb === 'คนรัก' || nb === 'ศัตรู' || nb === 'คู่แข่ง' || nb === 'คู่ครอง') {
@@ -1363,6 +1422,8 @@
   AI.decide = (W, n) => {
     if (g.COG) g.COG.prepare(W, n);
     const cands = [];
+    const rec = n.recent, recLen = rec ? rec.length : 0, lastRec = recLen ? rec[recLen - 1] : null;
+    const repPenBase = recLen ? (-0.16 * (1 - E(n, 'personality.discipline') / 200)) : 0;
     for (const id in A) {
       if (id === 'hide' || id === 'pair') continue;
       const a = A[id];
@@ -1370,13 +1431,14 @@
       if (a.can && !a.can(n, W)) continue;
       const S = Sc(); a.score(n, W, S);
       if (g.COG) g.COG.modifiers(W, n, id, S);
-      // กันแกว่ง: ซ้ำบ่อยลดคะแนน ยกเว้นงานที่กำลังทำต่อเนื่องเพื่อบรรลุเป้าหมายจริง
-      let rep = 0; for (const r of n.recent) if (r === id) rep++;
-      if (rep) {
-        if (n.recent[n.recent.length - 1] === id && g.COG && g.COG.isContinuingProductiveWork && g.COG.isContinuingProductiveWork(W, n, id)) {
-          S.add('ทำต่อเนื่องให้สำเร็จ', 0.24);
-        } else {
-          S.add('ทำบ่อยแล้ว', -0.16 * rep * (1 - E(n, 'personality.discipline') / 200));
+      if (recLen) {
+        let rep = 0; for (let ri = 0; ri < recLen; ri++) if (rec[ri] === id) rep++;
+        if (rep) {
+          if (lastRec === id && g.COG && g.COG.isContinuingProductiveWork && g.COG.isContinuingProductiveWork(W, n, id)) {
+            S.add('ทำต่อเนื่องให้สำเร็จ', 0.24);
+          } else {
+            S.add('ทำบ่อยแล้ว', repPenBase * rep);
+          }
         }
       }
       cands.push({ id, S });
@@ -1414,13 +1476,13 @@
 
   /* ความต้องการ + ผลคงที่ของร่างกายทุกนาที */
   function getNeedsRates(n) {
-    const cStage = n.cult ? n.cult.stage : 0;
-    const cTr = n.cult && n.cult.track ? n.cult.track.ordinal : 0;
+    const nd = n._nd, c = n.cult, p = n.h.physiology;
+    const cStage = c ? c.stage : 0;
+    const cTr = c && c.track ? c.track.ordinal : 0;
     const passVer = n._passVer || 0;
     const eqA = n.equip ? n.equip.ARMOR : null;
-    const vit = Math.round(n.h.physiology.vitality);
-    const nd = n._nd;
-    if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit) return nd;
+    const vit = p.vitality | 0, tuf = p.toughness | 0, str = p.strength | 0;
+    if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit && nd.tuf === tuf && nd.str === str) return nd;
     const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (cStage || 0);
     const next = {
       day: HC.nowDay,
@@ -1431,6 +1493,8 @@
       passVer,
       eqA,
       vit,
+      tuf,
+      str,
       met: 0.82 + (100 - E(n, 'physiology.vitality')) / 300 + (cStage ? 0.06 * cStage : 0),
       socD: 0.016 * (0.5 + E(n, 'temperament.sociability') / 100),
       novD: 0.008 * (0.5 + E(n, 'temperament.sensationSeeking') / 100),
@@ -1484,6 +1548,7 @@
     if (s.hp <= 0 && !n.dead) { AI.kill(W, n, n.lastHurtBy ? 'บาดเจ็บสาหัส' : 'อาการทรุด'); }
     // ปราณฟื้น
     if (n.cult && id !== 'cultivate' && s.qi < nr.qiMax) s.qi = Math.min(nr.qiMax, s.qi + ((n.buffs && n.buffs.length && g.STATS && g.STATS.hasBuff && g.STATS.hasBuff(n, 'qiConduit', W.t)) ? 0.22 : 0.12));
+    if (n.foodBuff && g.FISHING) g.FISHING.tickFoodBuff(W, n);
   };
 
   AI.interrupt = (W, n) => { // ตรวจเหตุขัดจังหวะ (ทุก 5 นาที)

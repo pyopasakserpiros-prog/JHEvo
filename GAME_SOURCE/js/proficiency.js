@@ -62,27 +62,33 @@ const _HC_INTR_MAP={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:
 const _EXTRA_AFF_MAP={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',ZITHER:'SOUL_DIVINE',BRUSH:'TALISMAN',WHIP:'SPEAR',WATER_ICE:'WATER_ICE',WOOD_LIFE:'WOOD_LIFE'};
 M.skillPractice=(n,id,hours,quality)=>{
  if((!M.SKILL_INFO[id]&&!elemGateSkills[id])||!Number.isFinite(hours)||hours<=0||!Number.isFinite(quality==null?1:quality)||(quality!=null&&quality<=0))return 0;
- const q=clamp(quality==null?1:quality,.1,3)*(M.lifeMult?M.lifeMult(n,id):1);let gain;
- const h=n.h,oldLv=Number.isFinite(n.h.skills[id])?n.h.skills[id]:0;
+ const q0=quality==null?1:quality<.1?.1:quality>3?3:quality;let gain;
+ const h=n.h,oldLv=Number.isFinite(h.skills[id])?h.skills[id]:0,c=n.cult,cSt=c?c.stage:0,cSub=c?c.sub:'',pVer=n._passVer||0;
+ let rc=n._skRateCache;
+ if(!rc||rc.ver!==n._ver||rc.day!==HC.nowDay||rc.st!==cSt||rc.sub!==cSub||rc.pver!==pVer){rc=n._skRateCache={ver:n._ver,day:HC.nowDay,st:cSt,sub:cSub,pver:pVer,m:Object.create(null)};}
  if(!extra[id]&&!elemGateSkills[id]){
   if(h.skills[id]==null)return 0;
   const lv=h.skills[id];
-  let rc=n._skRateCache;
-  if(!rc||rc.ver!==n._ver||rc.day!==HC.nowDay){rc=n._skRateCache={ver:n._ver,day:HC.nowDay,m:Object.create(null)};}
   let baseR=rc.m[id];
   if(baseR===undefined){
    const aff=HC.eff(n,'affinities.'+id)||30;
    const learn=HC.eff(n,'intellect.learningSpeed');
    const intrId=_HC_INTR_MAP[id];
    const joy=intrId?h.interests[intrId]:50;
-   baseR=rc.m[id]=(0.35+aff/100*0.9)*(0.6+learn/100*0.8)*(0.8+joy/250);
+   baseR=rc.m[id]=(0.35+aff/100*0.9)*(0.6+learn/100*0.8)*(0.8+joy/250)*(M.lifeMult?M.lifeMult(n,id):1);
   }
-  const rate=baseR*(q||1);
+  const rate=baseR*q0;
   gain=hours*0.075*rate*Math.pow(Math.max(0.08,1-lv/105),1.6);
   h.skills[id]=Math.min(100,lv+gain);
  }else{
-  M.ensureSkills(n);
-  const level=M.skillRead(n,id),aff=_EXTRA_AFF_MAP[id],rate=(.35+(HC.eff(n,'affinities.'+aff)||30)/100*.9)*(.6+HC.eff(n,'intellect.learningSpeed')/100*.8)*(.8+HC.eff(n,'interests.combat')/250)*q;
+  if(h.skills[id]==null)M.ensureSkills(n);
+  const level=Number.isFinite(h.skills[id])?h.skills[id]:M.skillRead(n,id);
+  let baseR=rc.m[id];
+  if(baseR===undefined){
+   const aff=_EXTRA_AFF_MAP[id];
+   baseR=rc.m[id]=(.35+(HC.eff(n,'affinities.'+aff)||30)/100*.9)*(.6+HC.eff(n,'intellect.learningSpeed')/100*.8)*(.8+HC.eff(n,'interests.combat')/250)*(M.lifeMult?M.lifeMult(n,id):1);
+  }
+  const rate=baseR*q0;
   gain=hours*.075*rate*Math.pow(Math.max(.08,1-level/105),1.6);
   n.h.skills[id]=Math.min(100,level+gain);
   if(n.martialSkills&&n.martialSkills[id]!=null)delete n.martialSkills[id];

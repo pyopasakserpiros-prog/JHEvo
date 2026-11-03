@@ -321,10 +321,11 @@
       return { node, s };
     });
     scored.sort((a, b) => b.s - a.s);
+    const npcInsideOrSafe = !MAP.isOutsideWall(W.map, n.x, n.y) || MAP.isInSafeBelt(n.x, n.y);
     for (const { node } of scored) {
       const basic = BASIC_HERB_WEIGHTS.some(b => b.id === node.materialId);
       if (basic && MAP.isOutsideWall(W.map, node.x, node.y) && !MAP.isInSafeBelt(node.x, node.y)) continue;
-      if (!basic && MAP.isReachableFromGate && MAP.isReachableFromGate(W.map, node.x, node.y) && MAP.isReachableFromGate(W.map, n.x, n.y)) return node;
+      if (MAP.isReachableFromGate && MAP.isReachableFromGate(W.map, node.x, node.y) && MAP.isReachableFromGate(W.map, n.x, n.y) && (!basic || npcInsideOrSafe)) return node;
       const path = MAP.findPath(W.map, n.x, n.y, node.x, node.y);
       if (!path) continue;
       if (basic && path.some(([x, y]) => MAP.isOutsideWall(W.map, x + .5, y + .5) && !MAP.isInSafeBelt(x + .5, y + .5))) continue;

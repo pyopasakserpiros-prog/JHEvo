@@ -70,11 +70,11 @@ D.techniques=[
    {id:'MP_BOW_METEOR_M1',parentId:'MP_BOW_METEOR_STORM',stageReq:1,reqMastery:0,nameTh:'ห่าฝนศรดาวตก',arch:'sweep',type:'m',M:1.60,hits:2,cd:16,wind:4,costPct:8.0,pen:35,aoe:true,aiRole:'aoe_pressure'},
    {id:'MP_BOW_METEOR_M2',parentId:'MP_BOW_METEOR_STORM',stageReq:2,reqMastery:45,nameTh:'ดาราสลายมิติ',arch:'burst',type:'m',M:2.65,hits:1,cd:24,wind:5,costPct:11.0,pen:65,critAdd:25,aoe:false,aiRole:'finisher'}
   ]},
- {id:'MP_STAFF_WALL',nameTh:'กำแพงพลองพิทักษ์',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',combatArch:'guard',element:'EARTH_METAL',weaponTypes:['STAFF']},
+ {id:'MP_STAFF_WALL',nameTh:'กำแพงพลองพิทักษ์',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',combatArch:'guard',element:'EARTH_METAL',weaponTypes:['STAFF'],moves:['ควงพลองกางม่านศิลา','เสาพลองค้ำฟ้าสะท้อนศึก'],moveDefs:[{id:'MV_MP_STAFF_WALL_1',parentId:'MP_STAFF_WALL',stageReq:1,reqMastery:0,nameTh:'ควงพลองกางม่านศิลา',arch:'guard',type:'p',M:0,hits:1,cd:12,wind:2,costPct:5.0,shield:0.20,self:true,aiRole:'sustain'},{id:'MV_MP_STAFF_WALL_2',parentId:'MP_STAFF_WALL',stageReq:2,reqMastery:30,nameTh:'เสาพลองค้ำฟ้าสะท้อนศึก',arch:'counter',type:'p',M:1.45,hits:1,cd:14,wind:3,costPct:6.5,pen:15,shield:0.15,aiRole:'core'}]},
  {id:'MP_STAFF_ROOT',nameTh:'หยั่งรากพลองเหล็ก',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_STAFF_ROOT',weaponTypes:['STAFF'],passive:{p:{def:.15},f:{pen:6}}},
- {id:'MP_SPEAR_LINE',nameTh:'ทวนธงรบทะลวงแนว',path:'GOD',sub:'WAR_DEITY',tier:2,grade:'Rare',combatArch:'pierce',element:'LIGHT_YANG',weaponTypes:['SPEAR']},
- {id:'MP_BLADE_SHADOW',nameTh:'คมเงาตัดชีพจร',path:'DEMON',sub:'SHADOW_ASSASSIN',tier:2,grade:'Rare',combatArch:'flurry',element:'YIN_SHADOW',weaponTypes:['BLADE']},
- {id:'MP_FOCUS_SEAL',nameTh:'ตราจิตผนึกคลื่นฝัน',path:'HEART_SOUL',sub:'DREAM_ILLUSION_WEAVER',tier:2,grade:'Rare',combatArch:'control',element:'ASTRAL',weaponTypes:['FOCUS']},
+ {id:'MP_SPEAR_LINE',nameTh:'ทวนธงรบทะลวงแนว',path:'GOD',sub:'WAR_DEITY',tier:2,grade:'Rare',combatArch:'pierce',element:'LIGHT_YANG',weaponTypes:['SPEAR'],moves:['แทงทวนทะลวงค่าย','สะบัดธงรบกวาดแนวหน้า'],moveDefs:[{id:'MV_MP_SPEAR_LINE_1',parentId:'MP_SPEAR_LINE',stageReq:1,reqMastery:0,nameTh:'แทงทวนทะลวงค่าย',arch:'pierce',type:'p',M:1.55,hits:1,cd:10,wind:3,costPct:5.5,pen:25,aiRole:'anti_armor'},{id:'MV_MP_SPEAR_LINE_2',parentId:'MP_SPEAR_LINE',stageReq:2,reqMastery:30,nameTh:'สะบัดธงรบกวาดแนวหน้า',arch:'sweep',type:'p',M:1.35,hits:2,cd:14,wind:4,costPct:7.0,pen:18,aoe:true,aiRole:'aoe_pressure'}]},
+ {id:'MP_BLADE_SHADOW',nameTh:'คมเงาตัดชีพจร',path:'DEMON',sub:'SHADOW_ASSASSIN',tier:2,grade:'Rare',combatArch:'flurry',element:'YIN_SHADOW',weaponTypes:['BLADE'],moves:['ดาบเงาฉับพลัน','เชือดชีพจรไร้เสียง'],moveDefs:[{id:'MV_MP_BLADE_SHADOW_1',parentId:'MP_BLADE_SHADOW',stageReq:1,reqMastery:0,nameTh:'ดาบเงาฉับพลัน',arch:'flurry',type:'p',M:1.25,hits:2,cd:10,wind:2,costPct:5.2,pen:18,critAdd:10,aiRole:'opener'},{id:'MV_MP_BLADE_SHADOW_2',parentId:'MP_BLADE_SHADOW',stageReq:2,reqMastery:30,nameTh:'เชือดชีพจรไร้เสียง',arch:'execute',type:'p',M:1.85,hits:1,cd:15,wind:3,costPct:7.2,pen:28,critAdd:16,rider:'bleed',aiRole:'finisher'}]},
+ {id:'MP_FOCUS_SEAL',nameTh:'ตราจิตผนึกคลื่นฝัน',path:'HEART_SOUL',sub:'DREAM_ILLUSION_WEAVER',tier:2,grade:'Rare',combatArch:'control',element:'ASTRAL',weaponTypes:['FOCUS'],moves:['คลื่นจิตสะกดฝัน','ผนึกวิญญาณนิทรา'],moveDefs:[{id:'MV_MP_FOCUS_SEAL_1',parentId:'MP_FOCUS_SEAL',stageReq:1,reqMastery:0,nameTh:'คลื่นจิตสะกดฝัน',arch:'control',type:'m',M:1.30,hits:1,cd:12,wind:3,costPct:5.8,pen:14,ctrl:'slow',aiRole:'control'},{id:'MV_MP_FOCUS_SEAL_2',parentId:'MP_FOCUS_SEAL',stageReq:2,reqMastery:30,nameTh:'ผนึกวิญญาณนิทรา',arch:'control',type:'m',M:1.65,hits:1,cd:16,wind:4,costPct:7.8,pen:20,ctrl:'silence',aiRole:'control'}]},
  {id:'MP_SWORD_POISE',nameTh:'ตั้งจิตรับคมกระบี่',path:'XIAN',sub:'SWORD_IMMORTAL',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_SWORD_POISE',weaponTypes:['SWORD'],passive:{f:{pen:9,crit:4}}},
  {id:'MP_FIST_BREATH',nameTh:'ลมหายใจพยัคฆ์ไร้ศาสตรา',path:'BODY',sub:'TIGER_SOVEREIGN',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_FIST_BREATH',weaponTypes:['FIST'],passive:{p:{atk:.12},f:{cast:7}}},
  {id:'MP_ROBE_WARD',nameTh:'อาภรณ์ประสานห้าธาตุ',path:'XIAN',sub:'FIVE_ELEMENTS',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_ROBE_WARD',armorTypes:['ROBE'],passive:{p:{mdef:.18},f:{cast:8}}}
@@ -26491,6 +26491,8 @@ const EXP_V204 = {
     {
       "id": "MP_FIST_BAJI_SHOULDER_T3",
       "nameTh": "มวยแปดขั้วกระแทกไหล่ทลายป้อม",
+      "weaponTypes": ["FIST"],
+      "requiresWeapon": false,
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
       "path": "BODY",
@@ -26648,6 +26650,8 @@ const EXP_V204 = {
     {
       "id": "MP_FIST_TEMPEST_KICK_T4",
       "nameTh": "เพลงเตะพายุหมุนไร้เงาเจ็ดชั้น",
+      "weaponTypes": ["FIST"],
+      "requiresWeapon": false,
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
       "path": "ANY",
@@ -42125,6 +42129,8 @@ const EXP_V208 = (function() {
     {
       id: 'MP_BASE_KARMA_SAMSARA',
       nameTh: 'เคล็ดพื้นฐานตาชั่งกรรมวัฏ',
+      weaponTypes: ['FOCUS', 'SWORD', 'STAFF', 'WHIP', 'BRUSH', 'ZITHER'],
+      requiresWeapon: false,
       path: 'KARMA_SAMSARA',
       sub: null,
       tier: 1,
@@ -42141,6 +42147,8 @@ const EXP_V208 = (function() {
     {
       id: 'MP_BASE_BEAST_SOVEREIGN',
       nameTh: 'เคล็ดพื้นฐานสื่อจิตหมื่นอสูร',
+      weaponTypes: ['SPEAR', 'BLADE', 'FIST', 'BOW', 'STAFF', 'WHIP'],
+      requiresWeapon: false,
       path: 'BEAST_SOVEREIGN',
       sub: null,
       tier: 1,
@@ -45909,7 +45917,7 @@ JD.ITEMS.items.forEach(it => {
 // Quantitative Parity, 96-Subpath Equipment Synergies, & Legendary Expansion
 // ============================================================================
 (function applyV215EquipmentAndLegendaryExpansion() {
-  D.version = '2.0.16';
+  D.version = '2.0.17';
   const epSingle = el => ({ mode: 'INTRINSIC_SINGLE', primary: el, weights: { [el]: 1 } });
   const epWeighted = (el1, w1, el2, w2) => ({ mode: 'INTRINSIC_WEIGHTED', primary: el1, weights: { [el1]: w1, [el2]: w2 } });
 

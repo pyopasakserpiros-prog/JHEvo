@@ -1,9 +1,9 @@
 # Implementation entry point
 
 1. **First**: Read [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md) and follow its prioritized **Task-to-Skill Routing Matrix**.
-2. **Current Baseline**: Current working source is v2.0.14, extending the user-provided v2.0.13 archive from branch Gemini. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_14.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_14.md) before planning follow-up work; the v2.0.10 prompt is historical context, not a request to repeat that patch.
+2. **Current Baseline**: Current working source is **v2.0.17**, extending the v2.0.16 archive with unified 10-weapon skill storage on `npc.h.skills`, 12-Path `CULT.recommendPath` parity, full combat wiring for custom stats (`soul_atk`, `aura_potency`, `command_authority`, `construct_atk`), autonomous NPC `BUFF`/`HEAL` casting, the Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT` across `WEAPON`, `ARMOR`, `ACCESSORY`) with 62 Clue Templates, 2-Piece/3-Piece Legendary Relic Resonance (`MARTIAL.evaluateLegendaryRelicResonance`), Relic Star Attunement (`ECO.attuneLegendaryRelic` 1–3 ★), quality-aware CP pricing, realm-scaled Inedia/fasting, cross-path Mentorship & dying-wish Qi transmission, Sworn Ally raid reinforcements, and interactive Mentorship/Jianghu UI controls. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_17.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_17.md) before planning follow-up work.
 3. **Mandatory Skill Loading**: Before modifying any file in `GAME_SOURCE/`, read the matching Master Skill in `.agents/skills/<skill>/SKILL.md` (mirrored in `.codex/skills/<skill>/SKILL.md`).
-4. **Active next patch**: Implement [`NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md`](./NEXT_PATCH_EQUIPMENT_EXPANSION_PROMPT_EN.md). The document includes the user's requirements, a source-checked baseline, suggestions, independent-review requirements, and final deliverables.
+4. **Active next patch**: Implement [`NEXT_PATCH_PROMPT_V2_0_18_EN.md`](./NEXT_PATCH_PROMPT_V2_0_18_EN.md).
 
 ---
 
@@ -18,9 +18,9 @@ Always load only the skills relevant to the subsystem you are touching:
 
 ### Tier 1 — Deep-Dive Core Gameplay & Domain Skills (Read First for Feature Work)
 1. **[`progression-design`](./.agents/skills/progression-design/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: 9 Major Cultivation Paths, 78 Subpaths, Stage Equivalence (`CULT.equivalentStage`), 14 Starting Sect Archetypes, Spirit Beast Companions/Breeding/War-Beasts/Mount Caravans, and Universal Dungeons (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`).
+   - **Use for**: 12 Major Cultivation Paths, 96 Subpaths, Stage Equivalence (`CULT.equivalentStage`), Mentorship & Sect Heritage Arts (`SECT.MENTORSHIP`), 14 Starting Sect Archetypes, Spirit Beast Companions/Breeding/War-Beasts/Mount Caravans, and Universal Dungeons (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`).
 2. **[`combat-design`](./.agents/skills/combat-design/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Exact `COMBAT.strike` damage formula, 12 composite stats (`STATS.KEYS`), 8 timed buffs (`STATS.BUFF_CATALOG` with strict `until` expiration), 7 weapon classes, 27 Equipment Resonance Sets, Formation Synergies (`COMBAT.evaluateFormationSynergy`), and Grand Martial Conferences (`SECT.WORLD_MARTIAL_CONFERENCE`).
+   - **Use for**: Exact `COMBAT.strike` damage formula, 12 composite stats (`STATS.KEYS`), 12 timed buffs (`STATS.BUFF_CATALOG` with strict `until` expiration), 17 equipment types (`10` weapons + `3` armors + `4` accessories), 21 Legendary Equipment items, Legendary Relic Resonance (`M.evaluateLegendaryRelicResonance`), Relic Star Attunement (`ECO.attuneLegendaryRelic`), 27 Equipment Resonance Sets, 96/96 Subpath Synergies (`M.evaluateSubEquipmentBonus`), Universal Legendary Art Access (`M.resolveTechCompatibility`), Formation Synergies (`COMBAT.evaluateFormationSynergy`), and Grand Martial Conferences (`SECT.WORLD_MARTIAL_CONFERENCE`).
 3. **[`ai-behavior-patterns`](./.agents/skills/ai-behavior-patterns/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: NPC Psychological Utility AI (`js/ai.js` `ScoreAcc` / `S.add` Thai reasons in `npc.why`), Goal-Driven Cognition (`js/cognition.js` `COG` aspirations, goals, 18 sect offices, zero-RNG rule), 12-Layer `HC` stats (`js/human_core.js`), and station reservation (`AI.freeStation`, `AI.reserve`, `AI.release`).
 4. **[`procedural-gen`](./.agents/skills/procedural-gen/SKILL.md)** *(Deep-Dive Master)*
@@ -28,7 +28,7 @@ Always load only the skills relevant to the subsystem you are touching:
 5. **[`economy-balancing`](./.agents/skills/economy-balancing/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: Sect Stock (`W.sect.stock`), Spirit Stones (`W.sect.stones`), CP Monetary Ledger (`js/cpeco.js` `CPE.scarcity`/`CPE.priceOf` anti-arbitrage, `CPE.daily` inflation control, `CPE.welfareDaily`), Inventory Intelligence (`ECO.inventoryIntelligence`), Sanctum Refinement Catalysts (`ECO.REFINEMENT_CATALYSTS`), Idempotent Craft Receipts (`W.sect.craftTransactions`), and `VASSAL_TREATY` tribute flows.
 6. **[`game-ui-ux`](./.agents/skills/game-ui-ux/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Wuxia UI drawers (`js/ui.js`), 72-cell Item Icon Atlas (`UI.resolveItemAtlasCell`), Responsive Grid/List Pagination (`UI.calcGridPageSize`), Single-Pass Positional Log Linkifier (`UI.linkify`), NPC/Sect/World sheets, and the 6-tab Edit Hub (`UI.rEdit` + `SECT.EDITOR`).
+   - **Use for**: Wuxia UI drawers (`js/ui.js`), 104-cell Item Icon Atlas (`UI.resolveItemAtlasCell`), Responsive Grid/List Pagination (`UI.calcGridPageSize`), Single-Pass Positional Log Linkifier (`UI.linkify`), NPC/Sect/World sheets, and the 6-tab Edit Hub (`UI.rEdit` + `SECT.EDITOR`).
 7. **[`game-data-integrity`](./.agents/skills/game-data-integrity/SKILL.md)** *(Deep-Dive Master)*
    - **Use for**: Adding/modifying items, recipes (`REC_*` / `ITEM_*` Dual-ID), martial arts, weapon affinities, `elementProfile`, combat effects, and 100% Edit Hub spawner resolution.
 
@@ -36,7 +36,7 @@ Always load only the skills relevant to the subsystem you are touching:
 8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** *(Deep-Dive Master)* — Exact 40-script-tag invariant in `index.html`, matching source-module order in `test/load.js`, `W` single source of truth, simulation lifecycle, `SIM.expandStations` dormitory bed cap (`100` max), and `tools/build_single.js`.
 9. **[`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md)** *(Deep-Dive Master)* — `SIM.serialize` / `SIM.deserialize` (`js/sim.js` lines 534–620), automatic `_` transient cache stripping, `W._saveExtras` forward compatibility, pointer rebinding, legacy craft receipt adoption, and dead-reference pruning.
 10. **[`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md)** & **[`web-performance`](./.agents/skills/web-performance/SKILL.md)** *(Deep-Dive Master)* — Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_stVer`, `_passVer`, `_eqSetCache`, `_stEarliestBuffExp`, `SIM_BUDGET_MS = 12`, `16×16` Canvas terrain chunk caching (`buildChunk`), and `measureCached`.
-11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 84 automated suites plus a full JavaScript syntax sweep (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
+11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 96 automated suites plus a full JavaScript syntax sweep (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
 
 ---
 

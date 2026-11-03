@@ -398,7 +398,7 @@
     nameTh: 'ล่าอสูรใกล้สำนัก',
     icon: '🐺',
     color: '#b67862',
-    can: (n, W) => { if (!(W.wildlife && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > CULT.hpMax(n) * 0.6)) return false; const npw = CULT.power(n); return W.wildlife.beasts.some(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8); },
+    can: (n, W) => { if (!(W.wildlife && W.wildlife.beasts && W.wildlife.beasts.length && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > (n._nd ? n._nd.hpMax : CULT.hpMax(n)) * 0.6)) return false; const npw = CULT.power(n); return W.wildlife.beasts.some(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8); },
     score(n, W, S) {
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
       S.add('ต้องการวัตถุดิบ', 0.35);
