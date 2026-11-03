@@ -189,36 +189,56 @@ The game categorizes all equipment into **17 canonical types**:
 ### Valid Elements (11)
 `NEUTRAL`, `FIRE`, `WATER_ICE`, `WIND`, `EARTH_METAL`, `WOOD_LIFE`, `LIGHTNING`, `LIGHT_YANG`, `YIN_SHADOW`, `BLOOD_DEMON`, `ASTRAL`.
 
+### 3.1 v2.0.15–v2.0.17 Canonical Equipment & Martial Expansion (`data/data_martial.js` lines 45915–47106)
+- **84 Canonical Fixed Weapons & 84 Forging Recipes**:
+  - `EQ_V215_ZITHER_01_T1`..`EQ_V215_ZITHER_28_T7` + `REC_V215_EQ_V215_ZITHER_01_T1`..`28_T7`
+  - `EQ_V215_BRUSH_01_T1`..`EQ_V215_BRUSH_28_T7` + `REC_V215_EQ_V215_BRUSH_01_T1`..`28_T7`
+  - `EQ_V215_WHIP_01_T1`..`EQ_V215_WHIP_28_T7` + `REC_V215_EQ_V215_WHIP_01_T1`..`28_T7`
+- **9 Specialized Crafting Materials**:
+  - Zither: `MAT_ZITHER_PARASOL_WOOD_1` (T1), `MAT_ZITHER_ICE_SILK_STRING_3` (T3), `MAT_ZITHER_PHOENIX_HEARTWOOD_5` (T5)
+  - Brush: `MAT_BRUSH_SPIRIT_WEASEL_HAIR_1` (T1), `MAT_BRUSH_STARLIGHT_CINNABAR_3` (T3), `MAT_BRUSH_DRAGON_WHISKER_JADE_5` (T5)
+  - Whip: `MAT_WHIP_IRON_SILKWORM_THREAD_1` (T1), `MAT_WHIP_SHADOW_PYTHON_TENDON_3` (T3), `MAT_WHIP_KARMIC_RED_SILK_5` (T5)
+- **36 Weapon Techniques (`TECH_V215_*`)**:
+  - 8 Active + 4 Passive per weapon: `TECH_V215_ZITHER_ACT_01`..`08` / `PAS_01`..`04`, `TECH_V215_BRUSH_ACT_01`..`08` / `PAS_01`..`04`, `TECH_V215_WHIP_ACT_01`..`08` / `PAS_01`..`04`.
+- **9 New Legendary Arts & Mantras (T6–T7)**:
+  - `LEG_COMBAT_NINE_HEAVENS_GUANG_LING` (`ZITHER`), `LEG_AUX_HEAVEN_INSCRIPTION_SEAL` (`BRUSH`), `LEG_COMBAT_SAMSARA_PUPPET_THREADS` (`WHIP`), `LEG_MANTRA_SHENNONG_MYRIAD_CRUCIBLE` (`CRAFT_CREATION` mantra)
+  - `LEG_AUX_IMPERIAL_EIGHT_GATES` (`command` arch, `STRATEGY_GOVERNANCE`), `LEG_COMBAT_JADE_NIRVANA_HARMONY` (`harmonize` arch, `SAGE_SUPPORT`), `LEG_LIGHT_KUNPENG_ASTRAL_WINGS` (`blink` arch, `BEAST_SOVEREIGN` / `XIAN`), `LEG_FORB_SAMSARA_KARMA_REVERSAL` (`karmaReversal` arch, `KARMA_SAMSARA`), `LEG_MANTRA_SOVEREIGN_HEAVEN_EDICT` (`STRATEGY_GOVERNANCE` mantra).
+- **96 Complete Subpath Synergies (`M.SYNERGIES`)**:
+  - Every subpath in the game has an active entry in `JD.MARTIAL.synergies` (`SYN_V215_<SUB_ID>` for any subpath not covered by legacy synergies).
+
 ---
 
 ## 4. The Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT`)
 
-In v2.0.17, **21 Legendary Relics** are authored in `GAME_SOURCE/js/visitors_clues.js`:
-- **14 Legendary Weapons (`LEGENDARY_WEAPONS`)**:
-  - `LEG_SWORD_SKY_CLEAVER` (`กระบี่ฟ้าค้ำสวรรค์`)
-  - `LEG_BLADE_NINE_ABYSS` (`ดาบเก้าอเวจีกลืนวิญญาณ`)
-  - `LEG_SPEAR_SOLAR_FLAME` (`ทวนสุริยันต์ผลาญดวงดารา`)
-  - `LEG_FIST_VAJRA_EXTREME` (`สนับหมัดวัชระสุดขั้ว`)
-  - `LEG_BOW_ASTRAL_RAIN` (`เกาทัณฑ์ดาวตกร้อยมิติ`)
-  - `LEG_STAFF_WORLD_PILLAR` (`พลองค้ำสมุทรจักรวาล`)
-  - `LEG_FOCUS_COSMIC_MIRROR` (`กระจกเงาสวรรค์หมื่นภพ`)
-  - `LEG_ZITHER_CELESTIAL_SONG` (`พิณสวรรค์ล่องนภา`)
-  - `LEG_BRUSH_PRIMORDIAL_DAO` (`พู่กันมังกรเขียนสัจธรรม`)
-  - `LEG_WHIP_FATE_DEVOURER` (`แส้เงาอสูรตัดสังสารวัฏ`)
-  - *(plus 4 subpath-specific legendary weapons)*
-- **3 Legendary Armors (`LEGENDARY_RELICS`)**:
-  - `RELIC_ARMOR_HEAVY_TITAN` (`เกราะไททันศิลาบรรพกาล` — HEAVY)
-  - `RELIC_ARMOR_LIGHT_SHADOW` (`อาภรณ์วิญญาณเร้นเงา` — LIGHT)
-  - `RELIC_ARMOR_ROBE_CELESTIAL` (`ชุดคลุมเซียนเก้าเมฆา` — ROBE)
-- **4 Legendary Accessories (`LEGENDARY_RELICS`)**:
-  - `RELIC_ACC_RING_SAMSARA` (`แหวนกรรมวัฏอนันต์` — RING)
-  - `RELIC_ACC_NECKLACE_BODHI` (`สร้อยคอโพธิ์วัชระ` — NECKLACE)
-  - `RELIC_ACC_BRACELET_DRAGON` (`กำไลมังกรสวรรค์` — BRACELET)
-  - `RELIC_ACC_CHARM_PRIMORDIAL` (`ยันต์หยกกำเนิดเต๋า` — CHARM)
+In v2.0.17, **21 Legendary Relics** are authored in `GAME_SOURCE/js/visitors_clues.js` (lines 540–865):
+- **14 Legendary Weapons (`VC.LEGENDARY_WEAPONS`)**:
+  - `LEG_WPN_XUANTIE_HEAVY_SWORD` (`กระบี่หนักเหล็กนิลกาล` — `SWORD`, `EFX_LEG_XUANTIE_CRUSH`)
+  - `LEG_WPN_YITIAN_SWORD` (`กระบี่อิงฟ้าพิฆาตมาร` — `SWORD`, `EFX_LEG_YITIAN_SEVER`)
+  - `LEG_WPN_TULONG_SABER` (`ดาบฆ่ามังกรประกาศิต` — `BLADE`, `EFX_LEG_TULONG_DECREE`)
+  - `LEG_WPN_FULL_MOON_SCIMITAR` (`ดาบโค้งจันทร์เต็มดวง` — `BLADE`, `EFX_LEG_MOON_ARC`)
+  - `LEG_WPN_XIAOLI_HEART_DAGGER` (`มีดสั้นเซียวลี้ทะลวงใจ` — `SWORD`, `EFX_LEG_XIAOLI_TRUE_STRIKE`)
+  - `LEG_WPN_DAGOU_JADE_STAFF` (`ไม้เท้าหยกตีสุนัข` — `STAFF`, `EFX_LEG_DAGOU_REDIRECTION`)
+  - `LEG_WPN_OVERLORD_SPEAR` (`ทวนราชันพิชิตศึก` — `SPEAR`, `EFX_LEG_OVERLORD_COURAGE`)
+  - `LEG_WPN_OATHBREAKER_DRAGON_LANCE` (`ทวนมังกรเงินสะบั้นสัตย์` — `SPEAR`, `EFX_LEG_DRAGON_LANCE_WARD`)
+  - `LEG_WPN_WRATHFUL_TIGER_GAUNTLETS` (`สนับมือพยัคฆ์คลั่งบรรพต` — `FIST`, `EFX_LEG_TIGER_FIST_RESOLVE`)
+  - `LEG_WPN_CONDOR_METEOR_BOW` (`คันศรอินทรีคู่อุกกาบาต` — `BOW`, `EFX_LEG_TWIN_CONDOR_SHOT`)
+  - `LEG_WPN_PEACOCK_PLUME_FOCUS` (`ขนนกยูงสวรรค์เจ็ดสี` — `FOCUS`, `EFX_LEG_PEACOCK_RADIANCE`)
+  - `LEG_WPN_JIUXIAO_PHOENIX_ZITHER` (`พิณสายฟ้าหงส์เก้าสวรรค์` — `ZITHER`, `EFX_LEG_JIUXIAO_SONIC_TEMPEST`)
+  - `LEG_WPN_CHUNQIU_JUDGMENT_BRUSH` (`พู่กันพิพากษาชุนชิว` — `BRUSH`, `EFX_LEG_CHUNQIU_VERDICT_SEAL`)
+  - `LEG_WPN_TIANCAN_FATE_WHIP` (`แส้ไหมสวรรค์พันธนาการชะตา` — `WHIP`, `EFX_LEG_TIANCAN_PUPPET_SNARE`)
+- **3 Legendary Armors (`VC.LEGENDARY_ARMORS`)**:
+  - `LEG_ARM_CELESTIAL_CRANE_ROBE` (`อาภรณ์เซียนกระเรียนเมฆาเก้าชั้น` — `ROBE`, Tier 7, `EFX_LEG_CRANE_CLOUD_AEGIS`)
+  - `LEG_ARM_SHADOW_KIRIN_CUIRASS` (`เกราะอ่อนเกล็ดกิเลนเงาจันทร์` — `LIGHT`, Tier 7, `EFX_LEG_KIRIN_PHANTOM_COUNTER`)
+  - `LEG_ARM_IMMORTAL_TORTOISE_PLATE` (`เกราะหนักกระดองเต่าดำอมตะ` — `HEAVY`, Tier 7, `EFX_LEG_XUANWU_UNYIELDING_BASTION`)
+- **4 Legendary Accessories (`VC.LEGENDARY_ACCESSORIES`)**:
+  - `LEG_ACC_SAMSARA_KARMA_RING` (`แหวนวัฏสงสารพลิกชะตา` — `RING`, Tier 7, `EFX_LEG_SAMSARA_KARMA_RING_REVERSAL` / `EFX_LEG_SAMSARA_RING_REVERSAL`)
+  - `LEG_ACC_BODHI_STARLIGHT_BEADS` (`ลูกประคำโพธิ์ดาราสวรรค์` — `NECKLACE`, Tier 7, `EFX_LEG_BODHI_HEART_LOTUS`)
+  - `LEG_ACC_TAICHI_HEAVEN_SEAL` (`ตราหยกไท่จี๋บัญชาฟ้า` — `CHARM`, Tier 7, `EFX_LEG_TAICHI_COMMAND_DECREE`)
+  - `LEG_ACC_DRAGON_PHOENIX_BANGLE` (`กำไลมังกรหงส์ประสานวิญญาณ` — `BRACELET`, Tier 7, `EFX_LEG_DRAGON_PHOENIX_HARMONY`)
 
 ### Relic Attunement & Resonance Invariant
-- Every legendary relic carries `legendary: true`, custom `fixedStats`, and scales via `ECO.refineResonanceGear` to unlock **1–3 ★ (`attunedStars`)**.
-- Unlocking 2 or 3 pieces activates **`ทวิศาสตราเทวะประสาน`** (+8% stats) or **`ไตรรัตนะเทวศาสตราบรรพกาล`** (+16% stats, trinity surge) in `MARTIAL.evaluateLegendaryRelicResonance`.
+- Every legendary relic carries `legendary: true`, custom `fixedStats`, and scales via `ECO.refineGearWithCatalyst` (`ECO.refineResonanceGear`) to unlock **1–3 ★ (`attunedStars`: `1★` at `q >= 1.48`, `2★` at `q >= 1.62`, `3★` at `q >= 1.75`)**.
+- Unlocking 2 or 3 pieces activates **`ทวิศาสตราเทวะประสาน`** (+8% stats × `starScale`, `-12%` Qi cost, `+15%` proc chance) or **`ไตรรัตนะเทวศาสตราบรรพกาล`** (+16% stats × `starScale`, `-20%` Qi cost, `+25%` proc chance, and `EFX_TRINITY_RELIC_SURGE`) in `MARTIAL.evaluateLegendaryRelicResonance`.
 
 ---
 
@@ -234,7 +254,7 @@ The Debug Editor Catalog (`SECT.EDITOR.catalog(W)`) generates over **2,784 spawn
 7. `crystals`: 96 Subpath Insight Crystals (`SUBPATH_CRYSTAL_<SUB>`).
 8. `beasts`: Spirit beast contract tokens and eggs.
 9. `catalysts`: 8 Sanctum and Realm Refinement Catalysts (`CAT_*`).
-10. `repairStones`: 4 tiers of Repair Stones (`STONE_REPAIR_T1` to `STONE_REPAIR_T4`).
+10. `repairStones`: 4 tiers of Repair Stones (`ITEM_REPAIR_STONE_1` to `ITEM_REPAIR_STONE_4`).
 
 ### Spawner Resolution Contract (`SECT.EDITOR.spawnItem(W, opts)`)
 `opts: { kind, id, qty, dest: 'sect' | 'bag', npcId }`

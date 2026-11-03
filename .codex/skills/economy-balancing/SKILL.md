@@ -1,11 +1,11 @@
 ---
 name: economy-balancing
-description: Master JianghuSect Evolution v2.0.16 sect economy (js/economy.js), Contribution Point ledger & anti-arbitrage (js/cpeco.js), External Market & Stale Gear Liquidation (js/external_market.js), 17 procedural gear templates & slot-based crafting, 4 repair stones & durability/retire lifecycle, 8 Sanctum & Elemental Refinement Catalysts, and specialty meal cooking.
+description: Master JianghuSect Evolution v2.0.17 sect economy (js/economy.js), Contribution Point ledger & anti-arbitrage (js/cpeco.js), External Market & Stale Gear Liquidation (js/external_market.js), 17 procedural gear templates & 84 fixed Zither/Brush/Whip weapons, 4 repair stones & durability/retire lifecycle, 8 Sanctum & Elemental Refinement Catalysts with Relic Star Attunement (1-3 ★), and specialty meal cooking.
 ---
 
-# JianghuSect Evolution v2.0.16 — Economy, Crafting, Durability, CP Ledger & External Trade Blueprint (`js/economy.js`, `js/cpeco.js`, `js/external_market.js`)
+# JianghuSect Evolution v2.0.17 — Economy, Crafting, Durability, CP Ledger & External Trade Blueprint (`js/economy.js`, `js/cpeco.js`, `js/external_market.js`)
 
-This skill governs the closed-loop economic engine of **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.16**: Sect Stock (`W.sect.stock`), Spirit Stones (`W.sect.stones`), Contribution Points (`W.sect.cp` / `npc.cp`), Slot-Based Procedural Forging (`ECO.resolveCraftMaterials`), Durability & Repair Stones (`ECO.REPAIR_STONES`), Specialty Meal Cooking (`W.sect.mealSpecialties`), 8 Refinement Catalysts (`ECO.REFINEMENT_CATALYSTS`), Inventory Intelligence (`ECO.inventoryIntelligence`), and Visiting Merchant Trade (`js/external_market.js`).
+This skill governs the closed-loop economic engine of **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**: Sect Stock (`W.sect.stock`), Spirit Stones (`W.sect.stones`), Contribution Points (`W.sect.cp` / `npc.cp`), Slot-Based Procedural Forging (`ECO.resolveCraftMaterials`), Durability & Repair Stones (`ECO.REPAIR_STONES`), Specialty Meal Cooking (`W.sect.mealSpecialties`), 8 Refinement Catalysts & Relic Star Attunement (`ECO.REFINEMENT_CATALYSTS`, `attunedStars` 1–3 ★), Inventory Intelligence (`ECO.inventoryIntelligence`), and Visiting Merchant Trade (`js/external_market.js`).
 
 ---
 
@@ -64,8 +64,11 @@ This skill governs the closed-loop economic engine of **JianghuSect Evolution (�
   - `ECO.reserveInputs(W, r, ctx, npc, opts)` deducts materials upfront and stores `ctx.craftReceipt = { id, rid: r.id, npcId: npc.id, state: 'reserved' }` in `W.sect.craftTransactions.byId[id]` (retaining `inputs`, `materialMods`, `chosenOptions`).
   - `settleCraft(W, npc, r, ctx)` inside `ECO.finishCraft` marks `entry.state = 'completed'` so save/load mid-craft never double-deducts inputs or double-mints outputs.
 
-### 2.2 Slot-Based Procedural Gear Crafting (`js/economy.js` lines 162–241, 1475–1550)
+### 2.2 Slot-Based Procedural Gear Crafting & Fixed T1–T7 Weapons (`js/economy.js` lines 162–241, 1475–1550; `data/data_martial.js` lines 45920–46180)
 - **17 Procedural Templates & Recipes:** `ITEM_PROC_<TYPE>` and `REC_PROC_<TYPE>` across 10 Weapons (`SWORD`, `BLADE`, `SPEAR`, `FIST`, `BOW`, `STAFF`, `FOCUS`, `ZITHER`, `BRUSH`, `WHIP`), 3 Armors (`HEAVY`, `LIGHT`, `ROBE`), and 4 Accessories (`RING`, `NECKLACE`, `BRACELET`, `CHARM`).
+- **84 Canonical Fixed Zither/Brush/Whip Weapons & 9 Materials (`v2.0.15+`):**
+  - `EQ_V215_ZITHER_01_T1`..`28_T7`, `EQ_V215_BRUSH_01_T1`..`28_T7`, `EQ_V215_WHIP_01_T1`..`28_T7` (4 authored items per tier T1–T7 per weapon type) with corresponding `REC_V215_*` forging recipes.
+  - 9 specialized crafting materials (`MAT_ZITHER_PARASOL_WOOD_1`, `MAT_ZITHER_ICE_SILK_STRING_3`, `MAT_ZITHER_PHOENIX_HEARTWOOD_5`, `MAT_BRUSH_SPIRIT_WEASEL_HAIR_1`, `MAT_BRUSH_STARLIGHT_CINNABAR_3`, `MAT_BRUSH_DRAGON_WHISKER_JADE_5`, `MAT_WHIP_IRON_SILKWORM_THREAD_1`, `MAT_WHIP_SHADOW_PYTHON_TENDON_3`, `MAT_WHIP_KARMIC_RED_SILK_5`), with T1/T3 integrated into `HERB_POOL` (`js/cpeco.js` line 138) and sect garden/mine tables.
 - **Material Resolution (`ECO.resolveCraftMaterials(W, r, opts, npc)`):**
   - Recipes with `r.proceduralOut === true` and `Array.isArray(r.slotOptions)` resolve:
     1. **Core Material (Slot 0):** Determines `tierCap` (`T2`–`T4`), `tierShift` (`(opt.tierCap - 2) * 0.55`), `elementBias`, `statBias`, and `qShift`.
