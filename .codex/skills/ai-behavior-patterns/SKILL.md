@@ -247,6 +247,5 @@ node test/npc_command.js
 node test/npc_social_help.js
 node test/npc_life_authority_overhaul.js
 node test/v212_weapon_build_improvisation_suite.js
-node test/v216_mentorship_jianghu_legendary_relics_suite.js
-node test/v217_deep_cohesion_and_relic_trinity_suite.js
+node test/codex_combined_review.js
 ```
