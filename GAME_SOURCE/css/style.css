@@ -187,3 +187,53 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 #sheet.stock-items .inv-detail-panel{padding:5px}
 #sheet.stock-items .inv-detail-eff{margin-top:2px;padding-top:2px}
 .library-popup{position:fixed;left:10px;right:10px;bottom:calc(72px + var(--safe-b));width:auto;max-width:720px;margin:auto}
+
+/* v2.0.24 — geographic atlas */
+#sheet.world-atlas{top:var(--atlas-top,130px);height:auto;bottom:0}
+#sheet.world-atlas #shBody{padding:7px 9px 12px}
+.atlas-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 6px}
+.atlas-header h2{font-size:16px;line-height:1.2;margin:0;color:#f8e1a0;letter-spacing:.02em}
+.atlas-kicker{font-size:10px;color:#bdcdb7;letter-spacing:.05em}
+.atlas-regions{white-space:nowrap;font-size:11px;color:#d7e6d4}
+.atlas-filters{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:5px;padding-bottom:2px}
+.atlas-filter{flex:0 0 auto;padding:4px 9px;border-radius:20px;border:1px solid #6c8b79;background:#17382f;color:#cce0d1;font-size:11px;min-height:29px}
+.atlas-filter.active{background:#e8c66e;color:#1b291d;border-color:#fff0aa;font-weight:700}
+.atlas-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px;color:#d7e2d4;margin:2px 4px 6px}
+.atlas-legend .righteous,.atlas-place-choice .righteous{color:#a4e9ed}.atlas-legend .demonic,.atlas-place-choice .demonic{color:#ffaaa0}.atlas-legend .neutral,.atlas-place-choice .neutral{color:#f8d481}
+.atlas-shell{position:relative;isolation:isolate;border:1px solid #b5a568;border-radius:13px;box-shadow:0 7px 18px #06130f88;background:#183c32;overflow:hidden}
+.atlas-viewport{position:relative;width:100%;height:clamp(260px,55vh,570px);overflow:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.atlas-viewport::-webkit-scrollbar{display:none}.atlas-viewport:active{cursor:grabbing}
+.atlas-surface{position:relative;aspect-ratio:1/1;min-width:100%;background:#486e54 url('../assets/world_atlas_terrain.jpg') center/100% 100% no-repeat}
+.atlas-marker{position:absolute;z-index:2;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:34px;height:34px;min-width:34px;border:2px solid #e6d17f;border-radius:50%;padding:0;background:linear-gradient(145deg,#264639,#0c251d);box-shadow:0 2px 7px #081a14c9,0 0 0 1px #0d2b20;color:#fff2c6;cursor:pointer}
+.atlas-marker.righteous{border-color:#88deec;background:linear-gradient(145deg,#287284,#103e4b)}
+.atlas-marker.demonic{border-color:#ef8b79;background:linear-gradient(145deg,#8c342c,#401c20)}
+.atlas-marker.neutral{border-color:#e8c875;background:linear-gradient(145deg,#716031,#343b28)}
+.atlas-marker.home{width:40px;height:40px;border-color:#fff1ad;background:#265b47;box-shadow:0 0 0 3px #dfb85a88,0 2px 8px #000a}
+.atlas-marker.event{border-color:#ffb45b;background:#7e3c19;animation:atlas-pulse 2.5s ease-in-out infinite}
+.atlas-marker.cluster{border-color:#efe2a1;background:#173c31;font-weight:700}
+.atlas-marker.selected{outline:3px solid #fff1a3;outline-offset:2px;z-index:4}
+.atlas-marker-icon{font-size:17px;line-height:1;filter:drop-shadow(0 1px 2px #0009)}
+.atlas-marker-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;max-width:125px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:5px;padding:2px 5px;background:#10291eea;border:1px solid #d1bd76aa;color:#fff2c9;font-size:10px;line-height:1.2;pointer-events:none}
+.atlas-map-controls{position:absolute;z-index:6;right:8px;top:8px;display:flex;flex-direction:column;gap:4px}
+.atlas-map-controls button{width:34px;height:34px;padding:0;border:1px solid #dec780;border-radius:8px;background:#102b22ed;color:#ffe5a0;font-weight:700;font-size:20px;box-shadow:0 2px 6px #0008}
+.atlas-scale{position:absolute;right:8px;top:124px;z-index:5;border-radius:5px;padding:2px 5px;background:#112a22d9;color:#fff0bf;font-size:10px}
+.atlas-detail{position:absolute;z-index:8;left:7px;right:7px;bottom:7px;max-height:58%;overflow:auto;overscroll-behavior:contain;padding:10px 11px;background:linear-gradient(155deg,#1e4639fa,#102b23fa);border:1px solid #d2bc77;border-radius:12px;box-shadow:0 8px 24px #07170fd9;color:#edf4df;user-select:text}
+.atlas-detail-heading{display:flex;align-items:center;gap:8px;padding-right:34px}.atlas-detail-icon{font-size:23px}.atlas-detail h3{margin:1px 0 3px;color:#ffe8a9;font-size:14px;line-height:1.3}.atlas-eyebrow{font-size:10px;color:#a7d7bf}.atlas-detail p{margin:5px 0;line-height:1.4;font-size:12px}.atlas-detail-close{position:absolute;right:8px;top:8px;width:30px;height:30px;padding:0;border:1px solid #779884;border-radius:8px;background:#285143;color:#fff}
+.atlas-pills{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0}.atlas-pills span{font-size:10px;padding:2px 6px;border:1px solid #91a98d;border-radius:14px}.atlas-pills .righteous{border-color:#79d5e9;color:#9ee4ee}.atlas-pills .demonic{border-color:#eb8979;color:#ffb4a8}.atlas-pills .neutral{border-color:#e1bc65;color:#ffe2a0}
+.atlas-fact{font-size:11.5px;line-height:1.4;color:#e1ebd7;margin-top:4px}.atlas-note{color:#b8d5c2;font-size:10.5px;line-height:1.35;margin-top:4px}.atlas-travel{padding:6px 8px;margin-top:7px;border-radius:7px;background:#0c261c;border:1px solid #769678;color:#ffe3a3;font-size:12px}.atlas-choice{display:block;margin-top:6px;font-size:11px}.atlas-choice select{margin-top:3px;max-width:100%}.atlas-action{margin:7px 4px 0 0;font-size:12px;padding:6px 10px}
+.atlas-cluster-list h3{padding-right:35px}.atlas-place-choice{display:flex;align-items:center;gap:8px;text-align:left;width:100%;padding:7px;border:0;border-bottom:1px solid #4c6b58;background:transparent;border-radius:0;color:#f7f4de;font-size:12px}.atlas-place-choice small{margin-left:auto;white-space:nowrap}.atlas-place-choice span:nth-child(2){flex:1}
+.atlas-footnote{padding:5px 3px;color:#a9c7b4;font-size:10px;line-height:1.3}
+@keyframes atlas-pulse{50%{box-shadow:0 0 0 5px #ed9a403d,0 2px 7px #000a}}
+@media (min-width:700px){#sheet.world-atlas{width:min(760px,calc(100vw - 24px));bottom:12px}.atlas-viewport{height:clamp(300px,60vh,650px)}}
+@media (max-height:600px){.atlas-viewport{height:260px}.atlas-kicker,.atlas-footnote{display:none}.atlas-header{padding:0 3px 3px}}
+@media (prefers-reduced-motion:reduce){.atlas-marker.event{animation:none}}
+/* Keep the whole continent visible at 100% on both tall and wide screens. */
+#sheet.world-atlas .atlas-shell{width:min(100%,max(260px,55vh));margin-inline:auto}
+#sheet.world-atlas .atlas-viewport{width:100%;height:auto;aspect-ratio:1}
+.atlas-region-title{position:absolute;z-index:1;transform:translate(-50%,-50%);white-space:nowrap;padding:2px 5px;border-radius:5px;background:#143427c9;color:#f5edcf;font-size:10px;line-height:1.2;pointer-events:none;text-shadow:0 1px 2px #000}
+.atlas-marker.edge-left .atlas-marker-label{left:0;transform:none}
+.atlas-marker.edge-right .atlas-marker-label{left:auto;right:0;transform:none}
+.atlas-marker-count{position:absolute;right:-5px;top:-5px;min-width:16px;height:16px;border-radius:12px;border:1px solid #fbdfa1;background:#183d2c;color:#fff;font-size:10px;line-height:14px}
+.atlas-marker-travel{position:absolute;right:-7px;bottom:-7px;width:17px;height:17px;display:grid;place-items:center;border:1px solid #d8c783;border-radius:50%;background:#163b2b;font-size:10px;line-height:1}
+.atlas-alert{display:block;width:100%;margin:0 0 5px;padding:5px 8px;border:1px solid #dc9a6d;border-radius:8px;background:#6c3029;color:#ffe0b3;font-size:11px;text-align:left}
+.atlas-policy{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0}.atlas-policy .btn,.atlas-distress-detail .btn{font-size:11px;padding:4px 7px}.atlas-distress-detail{border:1px solid #c78267;border-radius:7px;padding:6px;margin:5px 0;color:#ffe1c6;font-size:11px}

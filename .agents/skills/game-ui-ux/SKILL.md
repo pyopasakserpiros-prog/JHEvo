@@ -90,3 +90,8 @@ This skill governs the DOM drawers, HUD, 72-cell Item Sprite Atlas, responsive G
 
 ## Patch v2.0.18 Additions: Interactive SVG World Map & Node Inspector (`UI.rWorldMap`)
 - Added `['map', '🗺️ แผนที่ยุทธภพ']` tab to `UI.open('world')` rendering an interactive SVG 5-region map, clickable nodes (`select-world-node`), Node Inspector drawer, 3-Phase Siege launcher (`launch-sect-siege`), Vassal policy/tribute/distress controls, Resource Node garrison controls, Anomaly dispatch, and Four-Symbol Awakening button (`edit-pet-four-symbol`).
+
+## World atlas v2.0.24
+- `UI.rWorldMap`, `UI.buildWorldAtlas` and `UI.bindWorldAtlas` provide an illustrated, zoomable and pannable map with regional clustering, category filters, faction colors, nonmodal details and accessible controls. Preserve the HUD and allow choosing other locations while a detail panel is open.
+- `UI.atlasTravelInfo` derives estimates from actual expedition rules and selected available members. Some expeditions have randomized duration; display a range, not a fabricated exact time. Region-only locations must say that their positions are approximate.
+- Atlas actions dispatch the existing expedition systems; treasure-site selection, vassal distress and dimensional/secret realm links must remain connected to real world state. Verify `test/world_atlas.js`, `test/world_atlas_browser.js`, and `test/world_atlas_standalone.js` after editing.

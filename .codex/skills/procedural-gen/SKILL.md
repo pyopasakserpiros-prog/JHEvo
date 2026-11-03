@@ -150,3 +150,9 @@ node test/visitors_clues_weapons_suite.js && node test/legendary_spawn_gate.js
 node test/fishing_river_suite.js && node test/wild_resources.js && node test/wildlife_batches.js && node test/onmap_wildlife.js
 ```
 Browser-based suites need local Chromium (fail in headless Termux — environmental).
+
+## World atlas v2.0.24
+- The outdoor atlas is built from `EXPED.ensureWorldTopology(W)` by `UI.buildWorldAtlas(W)`. Do not create parallel world ownership or consume RNG while drawing it.
+- Fortune sites, secret-realm sites and wandering legends have only biome/region information in the simulation; their atlas coordinates are deliberately approximate. The dimensional gate is inside the player's sect and leads to separate worlds.
+- Selecting a fortune site calls `EXPED.depart(W, party, 'fortune', region, {siteId})`; validate rank and biome before spending resources or RNG. Strategic resource capture uses `EXPED.departResourceClaim`, resolves on arrival, and may fail against defenders. Always settle expired anomalies and return the expedition members.
+- The generated terrain is `assets/world_atlas_terrain.jpg`. `tools/build_single.js` embeds it in the standalone file; keep the offline asset test passing.

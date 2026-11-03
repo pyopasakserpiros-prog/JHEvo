@@ -156,3 +156,9 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
   - `CENTRAL_HEARTLAND`, `NORTHERN_PEAKS`, `SOUTHERN_WATERS`, `EASTERN_PLAINS`, `WESTERN_BADLANDS` with connected routes (`EXPED.WORLD_ROUTES`) and 8 canonical neighbor sects (`EXPED.CANONICAL_SECTS`).
 - **Timed Serendipitous World Anomalies (`EXPED.ANOMALY_TEMPLATES`, `EXPED.spawnWorldAnomaly`)**:
   - `GROTTO_ANCIENT_IMMORTAL`, `BLOOM_CELESTIAL_LOTUS`, `METEOR_ASTRAL_CRATER` with rival sect expedition races (`rivalEtaDay`, `rivalPower`).
+
+## World atlas v2.0.24
+- The outdoor atlas is built from `EXPED.ensureWorldTopology(W)` by `UI.buildWorldAtlas(W)`. Do not create parallel world ownership or consume RNG while drawing it.
+- Fortune sites, secret-realm sites and wandering legends have only biome/region information in the simulation; their atlas coordinates are deliberately approximate. The dimensional gate is inside the player's sect and leads to separate worlds.
+- Selecting a fortune site calls `EXPED.depart(W, party, 'fortune', region, {siteId})`; validate rank and biome before spending resources or RNG. Strategic resource capture uses `EXPED.departResourceClaim`, resolves on arrival, and may fail against defenders. Always settle expired anomalies and return the expedition members.
+- The generated terrain is `assets/world_atlas_terrain.jpg`. `tools/build_single.js` embeds it in the standalone file; keep the offline asset test passing.

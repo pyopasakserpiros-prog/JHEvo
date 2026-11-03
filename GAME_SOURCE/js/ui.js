@@ -435,7 +435,7 @@
   UI.linkify = linkify;
 
   function actText(n) {
-    if (n.dead) return '☠ เสียชีวิต'; if (n.away) { const ex = UI.G.W.world.expeds.find(e => e.id === n.expId); return '🧭 ออกภารกิจ' + (ex ? '「' + EXPED.MISSIONS[ex.kind].nameTh + '」' : ''); }
+    if (n.dead) return '☠ เสียชีวิต'; if (n.away) { const ex = UI.G.W.world.expeds.find(e => e.id === n.expId), mission = ex && EXPED.MISSIONS[ex.kind]; return '🧭 ออกภารกิจ' + (mission ? '「' + mission.nameTh + '」' : ''); }
     if (n.travel) return n.travel.to === 'exit' ? '🚶 กำลังออกจากสำนัก' : '🚶 กำลังกลับเข้าสำนัก';
     const a = AI.ACTS[n.act.id]; let t = a ? a.icon + ' ' + a.nameTh : n.act.id === 'pair' ? '💬 พบปะ' : n.act.id === 'fight' ? '⚔️ ต่อสู้' : '🚶 เดินเล่น';
     if (n.act.id === 'pair' && n.act.ctx.pair) { const tp = { chat: 'พูดคุย', spar: 'ประลองฝีมือ', teach: 'สอนวิชา', date: 'พบกันตามลำพัง', argue: 'ทะเลาะ' }[n.act.ctx.pair.type]; const o = UI.G.W.byId[n.act.ctx.pair.partner]; t = '💬 ' + (tp || 'พบปะ') + (o ? 'กับ ' + o.h.name.given : ''); }
@@ -1270,6 +1270,58 @@
       }
     }
     else if (a === 'open-world-map') { UI.open('world', 'map'); }
+    else if (a === 'atlas-select') {
+      UI.atlasSelectedId = String(arg || ''); UI.atlasGroupIds = null; UI.render();
+    }
+    else if (a === 'atlas-group') {
+      UI.atlasSelectedId = null; UI.atlasGroupIds = String(arg || '').split('|').filter(Boolean); UI.render();
+    }
+    else if (a === 'atlas-close') { UI.atlasSelectedId = null; UI.atlasGroupIds = null; UI.render(); }
+    else if (a === 'atlas-filter') {
+      const v = UI.atlasView || (UI.atlasView = {zoom:1,x:0.5,y:0.5,filter:'ALL'});
+      v.filter = String(arg || 'ALL'); UI.atlasSelectedId = null; UI.atlasGroupIds = null; UI.render();
+    }
+    else if (a === 'atlas-zoom') {
+      const v = UI.atlasView || (UI.atlasView = {zoom:1,x:0.5,y:0.5,filter:'ALL'});
+      v.zoom = clamp(v.zoom * (arg === 'in' ? 1.4 : 1/1.4), 1, 4); UI.render();
+    }
+    else if (a === 'atlas-home') {
+      const v = UI.atlasView || (UI.atlasView = {zoom:1,x:0.5,y:0.5,filter:'ALL'});
+      v.x = 0.5; v.y = 0.5; UI.render();
+    }
+    else if (a === 'atlas-open-discovery') { UI.open('world', 'disc'); }
+    else if (a === 'atlas-open-realms') { UI.worldSectsSubTab = 'REALMS'; UI.open('world', 'sects'); }
+    else if (a === 'atlas-open-legends') { UI.worldSectsSubTab = 'FACTIONS'; UI.open('world', 'sects'); }
+    else if (a === 'atlas-depart') {
+      const node = UI.buildWorldAtlas(W).nodes.find(n => n.id === arg);
+      const party = node ? UI.atlasParty(W, node) : [];
+      const exploration = g.EXPLORE;
+      let result = null;
+      if (node && party.length) {
+        if (node.kind === 'NEIGHBOR_SECT') {
+          const choice = $('shBody').querySelector('#atlasSiegeChoice');
+          result = EXPED.marshalStrikeForce(W, party, node.sectId, {immediate:false, postResolution:choice ? choice.value : 'SUBJUGATE'});
+        } else if (node.kind === 'RESOURCE_NODE') result = EXPED.departResourceClaim(W, node.id, party);
+        else if (node.kind === 'WORLD_ANOMALY') result = EXPED.departWorldAnomaly(W, party, node.anomalyId || node.id, {immediate:false});
+        else if (node.kind === 'FORTUNE_SITE' || node.kind === 'EXPEDITION_REGION') {
+          const region = EXPED.REGIONS.find(r => r.id === (node.regionId || node.id));
+          const ex = region && EXPED.depart(W, party, node.kind === 'FORTUNE_SITE' ? 'fortune' : 'gather', region, node.siteId ? {siteId:node.siteId} : {});
+          result = ex && {ok:true, expedition:ex};
+        } else if (node.kind === 'SANCTUM') {
+          const ex = exploration && exploration.departSanctum(W, party, node.id); result = ex && {ok:true, expedition:ex};
+        } else if (node.kind === 'PAGODA') {
+          const ex = exploration && exploration.departNineDaoPagoda(W, party); result = ex && {ok:true, expedition:ex};
+        } else if (node.kind === 'ELEMENTAL_REALM') {
+          const ex = exploration && exploration.departElementalRealm(W, party, {realmId:node.id}); result = ex && {ok:true, expedition:ex};
+        }
+      }
+      if (result && result.ok) UI.toast('🧭 ส่งคณะสู่「' + node.nameTh + '」แล้ว · ใช้เวลาประมาณ ' + result.expedition.days + ' วัน');
+      else {
+        const reasons = {'already-en-route':'มีคณะเดินทางไปยังจุดนี้แล้ว', 'already-owned':'จุดนี้เป็นของสำนักเราแล้ว', 'already-vassal':'สำนักนี้เป็นบริวารอยู่แล้ว', 'anomaly-unavailable':'วาสนานี้สิ้นสุดแล้ว', 'unavailable-member':'สมาชิกในคณะไม่พร้อม', 'no-party':'ไม่มีคณะที่พร้อมเดินทาง', 'no-available-disciples':'ไม่มีศิษย์ที่พร้อมเดินทาง'};
+        UI.toast('ยังออกเดินทางไม่ได้: ' + (reasons[result && result.reason] || 'คณะไม่พร้อมหรือสถานที่ยังไม่เปิด'));
+      }
+      UI.render(); UI.updateHud(true);
+    }
     else if (a === 'select-world-node') {
       if (EXPED && EXPED.selectWorldNode) EXPED.selectWorldNode(W, arg);
       UI.render();
@@ -1473,7 +1525,10 @@
     $("sheet").classList.toggle("wide-inv", !!isWideInv);
     $("sheet").classList.toggle("stock-items", UI.sheet === "sect" && UI.tab === "stockItems");
     if (UI.sheet === "sect" && UI.tab === "stockItems") $("sheet").style.setProperty("--stock-top", Math.ceil($("hudTop").getBoundingClientRect().bottom) + "px");
+    $("sheet").classList.toggle("world-atlas", UI.sheet === "world" && UI.tab === "map");
+    if (UI.sheet === "world" && UI.tab === "map") $("sheet").style.setProperty("--atlas-top", Math.ceil($("hudTop").getBoundingClientRect().bottom) + "px");
     body.innerHTML = html; drawPortraits(body); body.scrollTop = keepScroll;
+    if (UI.sheet === 'world' && UI.tab === 'map') UI.bindWorldAtlas(body);
     const ivSel = body.querySelector("#invViewModeSel");
     if (ivSel) ivSel.onchange = () => { UI.setInvViewMode(ivSel.value); UI.render(); };
     body.querySelectorAll('[data-set]').forEach(el => el.onchange = () => { G.opts[el.dataset.set] = el.checked; UI.applyOpts(); if (UI.sheet === 'menu' && UI.tab === 'set') UI.render(); });
@@ -1551,7 +1606,7 @@
     if (spQual) spQual.onchange = () => { UI.spawnQuality = +spQual.value || 1; };
   };
 
-  UI.tick = () => { if (!UI.sheet || UI.sheet === 'menu' && UI.tab !== 'main' || UI.sheet === 'edit') return; const now = performance.now(); if (now - (UI.lastRender || 0) < 1200) return; if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) return; UI.lastRender = now; UI.render(); };
+  UI.tick = () => { if (!UI.sheet || UI.atlasDragging || UI.sheet === 'menu' && UI.tab !== 'main' || UI.sheet === 'edit') return; const now = performance.now(); if (now - (UI.lastRender || 0) < 1200) return; if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) return; UI.lastRender = now; UI.render(); };
 
   /* ----- ผู้คน ----- */
   UI.rPeople = () => {
@@ -2726,135 +2781,283 @@
   };
 
   /* ----- แผนที่ยุทธภพ 5 แคว้น & ยุทธศาสตร์ครองยุทธภพ (v2.0.18) ----- */
+  // The atlas is a view over the simulation, not another world state.  Some
+  // encounters only have a region in the simulation; their pin is explicitly
+  // approximate and is never used to calculate the duration of a mission.
+  UI.atlasParty = (W, node) => {
+    const available = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away && !n.expId && !n.travel).slice().sort((a,b) => CULT.power(b) - CULT.power(a));
+    if (node && node.kind === 'FORTUNE_SITE') {
+      const rank = node.fortuneRank;
+      const eligible = available.filter(n => Math.max(1, CULT.worldRank(n)) <= rank);
+      const lead = eligible.find(n => Math.max(1, CULT.worldRank(n)) === rank);
+      return lead ? [lead].concat(eligible.filter(n => n !== lead).slice(0, 2)) : [];
+    }
+    return available.slice(0, node && node.kind === 'NEIGHBOR_SECT' ? 4 : 3);
+  };
+
+  UI.buildWorldAtlas = W => {
+    const topo = EXPED.ensureWorldTopology(W), exploration = g.EXPLORE;
+    const nodes = Object.values(topo.nodes || {}).map(n => Object.assign({}, n));
+    const anchors = {
+      forest: {macroRegion:'EASTERN_PLAINS', x:70, y:35, regionId:'forest'},
+      plains: {macroRegion:'EASTERN_PLAINS', x:78, y:54, regionId:'plains'},
+      mountain: {macroRegion:'NORTHERN_PEAKS', x:48, y:24, regionId:'mountain'},
+      ruins: {macroRegion:'NORTHERN_PEAKS', x:62, y:19, regionId:'ruins'},
+      water: {macroRegion:'SOUTHERN_WATERS', x:45, y:76, regionId:'water'},
+      desert: {macroRegion:'WESTERN_BADLANDS', x:19, y:51, regionId:'desert'}
+    };
+    Object.keys(EXPED.FORTUNE_REGISTRY || {}).forEach(rank => (EXPED.FORTUNE_REGISTRY[rank] || []).forEach((site, index) => {
+      const a = anchors[site.biome] || anchors.forest;
+      const r = Number(rank), x = clamp(a.x + ((index * 7 + r * 3) % 15) - 7, 5, 95), y = clamp(a.y + ((index * 5 + r * 4) % 13) - 6, 5, 95);
+      nodes.push({ id:'FORTUNE:' + site.id, kind:'FORTUNE_SITE', siteId:site.id, fortuneRank:r, nameTh:site.nameTh, icon:site.icon || '✨',
+        macroRegion:a.macroRegion, terrain:site.biome, regionId:a.regionId, x, y, approximate:true, descTh:site.desc || site.nameTh, pools:site.pools || [] });
+    }));
+    const gate = W.explore && W.explore.gate || {};
+    const world = gate.world && exploration && exploration.WORLD_BY_ID && exploration.WORLD_BY_ID[gate.world];
+    nodes.push({ id:'ATLAS_DIMENSION_GATE', kind:'DIMENSION_GATE', nameTh:'ประตูมิติแดนหมื่นพิภพ', icon:'🌀', macroRegion:'CENTRAL_HEARTLAND',
+      x:54, y:53, terrain:'forest', baseDays:0, gateOpen:!!gate.open, gateWorld:world, gateUntil:gate.until, gateNext:gate.next,
+      descTh:'ประตูภายในสำนักเชื่อมสู่แดนหมื่นพิภพซึ่งอยู่นอกแผนที่โลก ประตูจะเปิดเป็นครั้งคราว' });
+    const regionAnchors = {CENTRAL_HEARTLAND:[55,43], NORTHERN_PEAKS:[52,20], SOUTHERN_WATERS:[40,80], EASTERN_PLAINS:[78,48], WESTERN_BADLANDS:[20,46]};
+    (W.world.wanderingLegends || []).filter(l => l && !l.dead && l.macroRegion).forEach(legend => {
+      const a = regionAnchors[legend.macroRegion] || regionAnchors.CENTRAL_HEARTLAND;
+      let hash = 0;
+      for (const c of String(legend.id)) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
+      nodes.push({ id:'LEGEND:' + legend.id, kind:'WANDERING_LEGEND', legendId:legend.id,
+        nameTh:legend.titleAndNameTh || legend.fullNameTh, icon:'🐉', alignment:legend.alignment,
+        macroRegion:legend.macroRegion, x:clamp(a[0] + (hash % 17) - 8,5,95),
+        y:clamp(a[1] + ((hash >>> 8) % 17) - 8,5,95), approximate:true,
+        descTh:legend.reemergenceOriginTh, power:legend.power, stage:legend.cult && legend.cult.stage,
+        doctrineNameTh:legend.doctrineNameTh, weaponNameTh:legend.weaponNameTh, signatureTechNameTh:legend.signatureTechNameTh });
+    });
+    Object.values(EXPED.SECRET_REALM_TEMPLATES || {}).forEach((tpl, index) => {
+      const a = regionAnchors[tpl.macroRegion] || regionAnchors.CENTRAL_HEARTLAND;
+      const latest = (W.world.secretRealms || []).find(r => r && r.templateId === tpl.id);
+      const current = latest && latest.status === 'OPEN' ? latest : null;
+      nodes.push({ id:'SECRET_SITE:' + tpl.id, kind:'SECRET_REALM_SITE', templateId:tpl.id, realmId:current && current.id,
+        nameTh:tpl.nameTh, icon:tpl.icon || '🌀', macroRegion:tpl.macroRegion, x:clamp(a[0] + (index%3-1)*7,5,95),
+        y:clamp(a[1] + (index%2 ? 6 : -6),5,95), danger:tpl.danger, descTh:tpl.descTh,
+        active:!!current, expiresDay:current && current.expiresDay, latestRealm:latest || null, approximate:true, prizeNameTh:tpl.prizeNameTh });
+    });
+    return { nodes, topology:topo };
+  };
+
+  UI.atlasTravelInfo = (W, node, party) => {
+    if (!node) return null;
+    if (node.kind === 'HOME_SECT' || node.kind === 'DIMENSION_GATE') return {days:0, label:'ภายในสำนัก'};
+    if (node.kind === 'SECRET_REALM_SITE') return {days:null, label:'การแข่งขันดำเนินโดยระบบอัตโนมัติ'};
+    if (node.kind === 'WANDERING_LEGEND') return {days:null, label:'พเนจรอยู่ในภูมิภาคนี้ · ไม่มีจุดหมายเดินทางตรง'};
+    if (node.kind === 'TRADE_HUB') return {days:null, label:'ชุมทางการค้า · ไม่มีภารกิจเดินทางตรง'};
+    if (node.kind === 'SANCTUM') return {days:1.5, label:'1.5 วัน · วิหารใช้เวลาสำรวจคงที่'};
+    const members = Array.isArray(party) ? party : UI.atlasParty(W, node);
+    if (node.kind === 'PAGODA' || node.kind === 'ELEMENTAL_REALM') {
+      const baseDays = node.kind === 'PAGODA' ? 1.5 : 1.25;
+      const trip = members.length && EXPED.createParty(W, members, {kind:node.kind === 'PAGODA' ? 'nine_dao_pagoda' : 'elemental_realm', baseDays, baseCapacity:20+members.length*12});
+      const days = trip && trip.ok ? trip.days : baseDays;
+      return {days, baseDays, label:days + ' วัน' + (trip && trip.hasMount ? ' · รวมสัตว์ขี่' : ' · เวลาเดินทางพื้นฐาน')};
+    }
+    if (node.kind === 'FORTUNE_SITE' || node.kind === 'EXPEDITION_REGION') {
+      const region = EXPED.REGIONS.find(r => r.id === (node.regionId || node.id));
+      if (!region) return {days:null, label:'ไม่มีข้อมูลการเดินทาง'};
+      const low = Math.max(2, Math.round(region.days * 0.7)), high = Math.max(2, Math.round(region.days * 1.3));
+      const trip = members.length && EXPED.createParty(W, members, {kind:'fortune', regionId:region.id, baseDays:low});
+      const mult = trip && trip.ok ? trip.durationMultiplier : 1;
+      const lo = Math.max(0, Math.round((low * mult - 300/1440) * 10) / 10), hi = Math.round((high * mult + 300/1440) * 10) / 10;
+      return {days:null, minDays:lo, maxDays:hi, label:'ประมาณ ' + lo + '–' + hi + ' วัน · สุ่มตามภารกิจและเวลาเดินออกจากสำนัก'};
+    }
+    const t = EXPED.estimateTravelTime(W, members, node.id, {useSectPhoenixAura:true});
+    return {days:t.days, baseDays:t.baseDays, label:t.days + ' วัน' + (t.durationMultiplier < 1 ? ' · รวมโบนัสเดินทาง' : '')};
+  };
+
+  const ATLAS_SECT_EMBLEMS = Object.freeze({
+    FAC_ROARING_TIGER:'🐅', FAC_GOLDEN_SUN:'☀️', FAC_LONGMEN:'💰', FAC_YIN_RAIN:'🌙', FAC_AZURE_PAVILION:'🖌️',
+    FAC_JADE_LOTUS:'🪷', FAC_WHITE_CLOUD:'⚔️', FAC_MIST_DRAGON:'🐉', FAC_GREEN_BAMBOO:'🎋', FAC_IRON_FIST_VALLEY:'✊',
+    FAC_BLACK_SCORPION:'🦂', FAC_WIND_BLADE_POST:'🍃', FAC_CRIMSON_BONE_CAVE:'💀', FAC_THUNDER_PEAK_MONASTERY:'🔔',
+    FAC_MYRIAD_ORIGIN_VILLA:'⚒️', FAC_HEAVENLY_VAJRA_TEMPLE:'🎼', FAC_ASHURA_SLAUGHTER_PALACE:'🔱',
+    FAC_CELESTIAL_SWORD_SACRED:'🗡️', FAC_NETHER_BLOOD_SACRED:'🩸'
+  });
+  const ATLAS_FILTERS = [ ['ALL','ทั้งหมด'], ['SECT','สำนัก'], ['PEOPLE','ยอดคน'], ['FORTUNE','วาสนา'], ['REALM','วิหาร / แดนลับ'], ['RESOURCE','ทรัพยากร'], ['REGION','พื้นที่สำรวจ'] ];
+  function atlasCategory(n) {
+    if (n.kind === 'HOME_SECT' || n.kind === 'NEIGHBOR_SECT') return 'SECT';
+    if (n.kind === 'WANDERING_LEGEND') return 'PEOPLE';
+    if (n.kind === 'WORLD_ANOMALY' || n.kind === 'FORTUNE_SITE') return 'FORTUNE';
+    if (['SANCTUM','PAGODA','ELEMENTAL_REALM','DIMENSION_GATE','SECRET_REALM_SITE'].includes(n.kind)) return 'REALM';
+    if (n.kind === 'RESOURCE_NODE' || n.kind === 'TRADE_HUB') return 'RESOURCE';
+    return 'REGION';
+  }
+  function atlasSymbol(n) {
+    if (n.kind === 'NEIGHBOR_SECT') return ATLAS_SECT_EMBLEMS[n.canonicalId || n.factionId] || n.icon || '🏯';
+    return n.icon || ({EXPEDITION_REGION:'🧭', RESOURCE_NODE:'💎', TRADE_HUB:'🏮'})[n.kind] || '📍';
+  }
+  function atlasSide(n) { return n.alignment === 'RIGHTEOUS' ? 'righteous' : n.alignment === 'DEMONIC' ? 'demonic' : 'neutral'; }
+  function atlasSideTh(n) { return n.alignment === 'RIGHTEOUS' ? 'ฝ่ายธรรมะ' : n.alignment === 'DEMONIC' ? 'ฝ่ายอธรรม' : 'สายกลาง'; }
+  UI.atlasGroups = (nodes, zoom) => {
+    const list = nodes.slice().sort((a,b) => (a.kind === 'HOME_SECT' ? -1 : b.kind === 'HOME_SECT' ? 1 : String(a.id).localeCompare(String(b.id))));
+    const groups = [], radius = 9.2 / Math.max(1, zoom || 1);
+    for (const node of list) {
+      const x = clamp(Number(node.x) || 0, 2, 98), y = clamp(Number(node.y) || 0, 2, 98);
+      let group = groups.find(g => Math.hypot(g.x-x, g.y-y) < radius);
+      if (!group) { group = {x,y,nodes:[]}; groups.push(group); }
+      group.nodes.push(node);
+    }
+    return groups;
+  };
+  function atlasDetail(W, node) {
+    const party = UI.atlasParty(W, node), travel = UI.atlasTravelInfo(W, node, party);
+    const region = EXPED.WORLD_REGIONS[node.macroRegion] || EXPED.WORLD_REGIONS.CENTRAL_HEARTLAND;
+    const active = (W.world.expeds || []).filter(e => e && !e.done && (e.targetNodeId === node.id || e.region === node.id || (node.siteId && e.siteId === node.siteId) || (node.sectId && e.sectId === node.sectId) || (node.anomalyId && e.anomalyId === node.anomalyId)));
+    let h = '<section class="atlas-detail" aria-label="รายละเอียดสถานที่" role="region"><button type="button" class="atlas-detail-close" data-do="atlas-close" aria-label="ปิดรายละเอียด">✕</button>';
+    h += '<div class="atlas-detail-heading"><span class="atlas-detail-icon">' + esc(atlasSymbol(node)) + '</span><div><span class="atlas-eyebrow">' + esc(region.shortTh || region.nameTh) + '</span><h3>' + esc(node.rawNameTh || node.nameTh) + '</h3></div></div>';
+    if (node.kind === 'NEIGHBOR_SECT' || node.kind === 'WANDERING_LEGEND') h += '<div class="atlas-pills"><span class="atlas-side ' + atlasSide(node) + '">' + esc(atlasSideTh(node)) + '</span><span> ' + esc(node.kind === 'WANDERING_LEGEND' ? 'ยอดคนพเนจร' : node.tierNameTh || 'สำนัก') + '</span>' + (node.isVassal ? '<span>🚩 สำนักบริวาร</span>' : '') + '</div>';
+    if (node.descTh) h += '<p>' + esc(node.descTh) + '</p>';
+    if (node.approximate) h += '<p class="atlas-note">📍 ตำแหน่งแสดงบริเวณโดยประมาณในภูมิภาค</p>';
+    if (node.danger != null) h += '<div class="atlas-fact">⚔ ความอันตราย <b>' + esc(node.danger) + '</b></div>';
+    if (node.kind === 'NEIGHBOR_SECT') {
+      h += '<div class="atlas-fact">กำลังสำนัก <b>' + esc(node.power) + '</b> · ท่าที <b>' + esc(node.attitude) + '</b></div>';
+      h += '<div class="atlas-fact">สนธิสัญญา <b>' + esc((g.CONTENT && g.CONTENT.TREATY_TH && g.CONTENT.TREATY_TH[node.treaty]) || (node.treaty === 'NONE' ? 'ยังไม่มี' : node.treaty)) + '</b></div>';
+      if (node.isVassal) h += '<div class="atlas-fact">ความภักดี <b>' + Math.round(node.loyalty == null ? 50 : node.loyalty) + '/100</b></div>';
+      if (node.isVassal) {
+        h += '<div class="atlas-fact">นโยบายบรรณาการ</div><div class="atlas-policy">';
+        [['LENIENT','ผ่อนปรน'],['STANDARD','มาตรฐาน'],['HARSH','เข้มงวด']].forEach(([policy,label]) => {
+          h += '<button class="btn" data-do="set-vassal-policy" data-arg="' + esc(node.sectId) + '|' + policy + '">' + label + '</button>';
+        });
+        h += '</div>';
+        const call = (W.world.vassalDistressCalls || []).find(c => c && !c.resolved && c.sectId === node.sectId);
+        if (call) h += '<div class="atlas-distress-detail">🚨 ' + esc(call.threatNameTh) + ' · ตอบกลับก่อนวันที่ ' + esc(call.expiresDay) + '<div><button class="btn pri" data-do="respond-vassal-distress" data-arg="' + esc(call.id) + '|REINFORCE">🛡️ ช่วยเหลือทันที</button> <button class="btn" data-do="respond-vassal-distress" data-arg="' + esc(call.id) + '|REFUSE">ไม่ช่วย</button></div></div>';
+      }
+    }
+    if (node.kind === 'RESOURCE_NODE') {
+      h += '<div class="atlas-fact">ผู้ครอบครอง <b>' + esc(node.ownerNameTh || 'กองกำลังอิสระ') + '</b></div>';
+      h += '<div class="atlas-fact">รายได้พื้นฐาน <b>' + (node.dailyStones || 0) + ' ศิลา/วัน</b> · กำลังป้องกัน <b>' + ((node.garrison && node.garrison.defensePower) || 0) + '</b></div>';
+      if (Array.isArray(node.mats) && node.mats.length) h += '<div class="atlas-fact">ผลผลิต: ' + node.mats.map(id => esc(ECO.name(id))).join(' · ') + '</div>';
+    }
+    if (node.kind === 'FORTUNE_SITE') {
+      h += '<div class="atlas-fact">ระดับคณะสำรวจ <b>' + node.fortuneRank + '</b> · ' + (party.length ? 'มีคณะระดับนี้พร้อมออกเดินทาง' : 'ยังไม่มีคณะที่มีระดับตรงกับจุดนี้') + '</div>';
+      if (node.pools && node.pools.length) h += '<div class="atlas-fact">สิ่งที่อาจพบ: ' + node.pools.map(p => esc(p.nameTh)).join(' · ') + '</div>';
+    }
+    if (node.kind === 'WANDERING_LEGEND') {
+      h += '<div class="atlas-fact">พลัง <b>' + esc(node.power) + '</b> · ขั้นบ่มเพาะ <b>' + esc(node.stage) + '</b> · ' + esc(node.doctrineNameTh || 'เร้นกาย') + '</div>';
+      if (node.signatureTechNameTh) h += '<div class="atlas-fact">วิชาประจำตัว: ' + esc(node.signatureTechNameTh) + '</div>';
+      if (node.weaponNameTh) h += '<div class="atlas-fact">ศาสตรา: ' + esc(node.weaponNameTh) + '</div>';
+    }
+    if (node.kind === 'WORLD_ANOMALY') h += '<div class="atlas-fact">⏳ เหลือ ' + Math.max(0, (node.expiresDay || 0) - W.day) + ' วัน · ' + esc(node.rivalSectNameTh || 'คู่แข่ง') + ' ถึงวันที่ ' + esc(node.rivalEtaDay || '-') + '</div>';
+    if (node.kind === 'DIMENSION_GATE') {
+      h += '<div class="atlas-fact">' + (node.gateOpen && node.gateWorld ? '🟢 เปิดสู่ ' + esc(node.gateWorld.nameTh) + ' · ปิดวันที่ ' + esc(node.gateUntil) : '🔒 ประตูยังปิด · กำหนดถัดไปวันที่ ' + esc(node.gateNext || 'ยังไม่ทราบ')) + '</div>';
+      h += '<div class="atlas-fact">แดนหมื่นพิภพทั้งหมด ' + ((g.EXPLORE && g.EXPLORE.WORLDS || []).length) + ' แห่งอยู่หลังประตูมิติ</div>';
+    }
+    if (node.kind === 'SECRET_REALM_SITE') {
+      h += '<div class="atlas-fact">' + (node.active ? '🟢 เปิดอยู่ · หมดเขตวันที่ ' + esc(node.expiresDay) : 'ยังไม่เปิด · การชิงมรดกดำเนินตามเหตุการณ์ยุทธภพ') + '</div>';
+      if (node.latestRealm && node.latestRealm.winner) h += '<div class="atlas-fact">ผู้ชนะครั้งล่าสุด: ' + esc(node.latestRealm.winner.nameTh || node.latestRealm.winner.sectNameTh || 'ไม่ระบุ') + '</div>';
+      if (node.prizeNameTh) h += '<div class="atlas-fact">มรดก: ' + esc(node.prizeNameTh) + '</div>';
+    }
+    if (node.kind === 'ELEMENTAL_REALM') {
+      const current = g.EXPLORE && g.EXPLORE.elementalRealmAt(W.day);
+      const open = current && current.id === node.id;
+      h += '<div class="atlas-fact">' + (open ? '🟢 แดนธาตุประจำฤดูกาลนี้' : '🔒 ยังไม่ถึงฤดูกาลของแดนนี้') + '</div>';
+      const def = g.EXPLORE && g.EXPLORE.ELEMENTAL_REALMS.find(r => r.id === node.id);
+      if (def) h += '<div class="atlas-fact">ผู้พิทักษ์: ' + esc(def.guardianNameTh) + ' · ธาตุ ' + esc(def.elementNameTh) + '</div>';
+    }
+    if (node.kind === 'SANCTUM') {
+      const def = g.EXPLORE && g.EXPLORE.SANCTUMS[node.id];
+      if (def) h += '<div class="atlas-fact">' + esc(def.descTh) + ' · ' + def.floors.length + ' ชั้น · กำลังแนะนำ ' + def.minPower + '</div>';
+    }
+    if (active.length) h += '<div class="atlas-fact">🧭 คณะกำลังเดินทาง ' + active.length + ' คณะ</div>';
+    if (travel) h += '<div class="atlas-travel">⏱ ' + esc(travel.label) + '</div>';
+    if (party.length && travel && travel.days !== 0 && !['SECRET_REALM_SITE','TRADE_HUB','WANDERING_LEGEND'].includes(node.kind)) h += '<div class="atlas-note">คณะที่ใช้ประมาณ: ' + party.map(n => esc(HC.fullName(n))).join('、') + '</div>';
+    if (node.kind === 'FORTUNE_SITE') h += '<p class="atlas-note">จุดวาสนานี้ผูกกับการสำรวจภูมิภาค ผลที่พบจะสุ่มจากรายการของจุดนั้น</p>';
+    const canGo = ['NEIGHBOR_SECT','RESOURCE_NODE','WORLD_ANOMALY','FORTUNE_SITE','PAGODA','SANCTUM','ELEMENTAL_REALM','EXPEDITION_REGION'].includes(node.kind) && !(node.kind === 'NEIGHBOR_SECT' && node.isVassal) && !(node.kind === 'RESOURCE_NODE' && node.ownerSectId === 'PLAYER');
+    const realmOpen = node.kind !== 'ELEMENTAL_REALM' || (g.EXPLORE && g.EXPLORE.elementalRealmAt(W.day).id === node.id);
+    if (node.kind === 'NEIGHBOR_SECT' && !node.isVassal) h += '<label class="atlas-choice">หลังชนะ <select id="atlasSiegeChoice"><option value="SUBJUGATE">รับเป็นสำนักบริวาร</option><option value="PILLAGE">ปล้นคลังสมบัติ</option><option value="FREE_TRADE">บังคับเปิดการค้าเสรี</option></select></label>';
+    if (canGo) h += '<button class="btn pri atlas-action" data-do="atlas-depart" data-arg="' + esc(node.id) + '"' + (!party.length || !realmOpen ? ' disabled' : '') + '>' + (node.kind === 'NEIGHBOR_SECT' ? '⚔️ ส่งทัพตีสำนัก' : node.kind === 'RESOURCE_NODE' ? '🚩 ส่งคณะเข้ายึด' : node.kind === 'WORLD_ANOMALY' ? '☄️ ส่งคณะช่วงชิง' : '🧭 ส่งคณะสำรวจ') + '</button>';
+    if (node.kind === 'DIMENSION_GATE') h += '<button class="btn atlas-action" data-do="atlas-open-discovery">ดูข้อมูลแดนหมื่นพิภพ</button>';
+    if (node.kind === 'SECRET_REALM_SITE') h += '<button class="btn atlas-action" data-do="atlas-open-realms">ดูเหตุการณ์แดนลับ</button>';
+    if (node.kind === 'WANDERING_LEGEND') h += '<button class="btn atlas-action" data-do="atlas-open-legends">ดูทำเนียบยอดคน</button>';
+    if (node.kind === 'RESOURCE_NODE' && node.ownerSectId === 'PLAYER') h += '<button class="btn atlas-action" data-do="assign-node-garrison" data-arg="' + esc(node.id) + '">🛡️ จัดกำลังประจำการ</button>';
+    return h + '</section>';
+  }
   UI.rWorldMap = W => {
     if (!EXPED || !EXPED.ensureWorldTopology) return '<div class="muted">ไม่พบระบบแผนที่ยุทธภพ</div>';
-    const topo = EXPED.ensureWorldTopology(W);
-    const fs = (CULT && CULT.sectFourSymbolSummary) ? CULT.sectFourSymbolSummary(W) : {};
-    const selInfo = EXPED.inspectWorldNode(W, topo.selectedNodeId || 'NODE_HOME_SECT');
-    const nodes = Object.values(topo.nodes || {});
-    const playerNodes = Object.values(W.world.resourceNodes || {}).filter(rn => rn && rn.ownerSectId === 'PLAYER');
-    const vassals = (W.world.allSects || []).filter(s => s && (s.isVassal || s.treaty === 'VASSAL_TREATY'));
-    const activeAnoms = (W.world.anomalies || []).filter(a => a && !a.resolved && !a.expired);
-
-    let h = '<div class="card">';
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><b>🗺️ แผนที่ยุทธภพ 5 มหาภูมิภาค & เครือข่ายจุดยุทธศาสตร์ (Jianghu Strategic World Map)</b>';
-    h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
-    if (fs.hasVermilionPhoenix) h += '<span class="chip g">🦅 เนตรสวรรค์หงส์เพลิง: เปิดหมอกทั้ง 5 แคว้น · เดินทางเร็วขึ้น 40%</span>';
-    if (fs.hasAzureDragon) h += '<span class="chip b">🐉 มังกรคราม: เส้นทางน้ำเร็วขึ้น 35% · วังมัจฉา +35%</span>';
-    if (fs.hasWhiteTiger) h += '<span class="chip v">🐅 พยัคฆ์ขาว: ทลายประตูค่าย +45%</span>';
-    if (fs.hasBlackTortoise) h += '<span class="chip ok">🐢 เต่าดำเสวียนอู่: ป้องกันจุดยุทธศาสตร์ +45% · ผลผลิต +25%</span>';
-    h += '</div></div>';
-    h += '<div class="grid2" style="margin-top:6px">';
-    h += '<div>🚩 สำนักบริวารในอาณัติ: <b>' + vassals.length + ' สำนัก</b></div>';
-    h += '<div>💎 จุดยุทธศาสตร์ที่ยึดครอง: <b>' + playerNodes.length + '/6 แห่ง</b></div>';
-    h += '<div>☄️ วาสนาฟ้าดินที่ปรากฏ: <b>' + activeAnoms.length + ' แห่ง</b></div>';
-    h += '<div>🧭 แคว้นที่สำรวจแล้ว: <b>' + Object.values(topo.discoveredRegions || {}).filter(Boolean).length + '/5 แคว้น</b></div>';
-    h += '</div></div>';
-
-    // Interactive SVG Topological Map
-    h += '<div class="card" style="padding:10px;background:#0d131a;border:1px solid #2b3648">';
-    h += '<svg viewBox="0 0 100 100" style="width:100%;max-height:360px;background:radial-gradient(circle at 50% 50%, #16222f 0%, #090e14 100%);border-radius:10px;display:block">';
-    // Region Quadrants Labels
-    Object.values(EXPED.WORLD_REGIONS).forEach(reg => {
-      const revealed = !!(topo.discoveredRegions && topo.discoveredRegions[reg.id]);
-      h += '<circle cx="' + reg.center.x + '" cy="' + reg.center.y + '" r="18" fill="' + reg.color + '" fill-opacity="' + (revealed ? '0.08' : '0.02') + '" stroke="' + reg.color + '" stroke-opacity="0.25" stroke-dasharray="1.5,1.5"/>';
-      h += '<text x="' + reg.center.x + '" y="' + (reg.center.y - 14) + '" fill="' + reg.color + '" font-size="2.7" text-anchor="middle" opacity="0.85">' + esc(reg.icon + ' ' + reg.shortTh + (revealed ? '' : ' (หมอกปกคลุม)')) + '</text>';
+    const atlas = UI.buildWorldAtlas(W), view = UI.atlasView || (UI.atlasView = {zoom:1, x:0.5, y:0.5, filter:'ALL'});
+    const nodes = atlas.nodes.filter(n => view.filter === 'ALL' || atlasCategory(n) === view.filter || n.kind === 'HOME_SECT');
+    const selected = atlas.nodes.find(n => n.id === UI.atlasSelectedId);
+    if (UI.atlasSelectedId && !selected) UI.atlasSelectedId = null;
+    const groups = UI.atlasGroups(nodes, view.zoom), labels = [];
+    const regionCount = Object.values(atlas.topology.discoveredRegions || {}).filter(Boolean).length;
+    let h = '<div class="atlas-header"><div><span class="atlas-kicker">บันทึกภูมิศาสตร์ยุทธภพ</span><h2>🧭 แผนที่ยุทธภพ</h2></div><span class="atlas-regions">สำรวจแล้ว ' + regionCount + '/5 แคว้น</span></div>';
+    h += '<div class="atlas-filters" aria-label="ประเภทสถานที่">' + ATLAS_FILTERS.map(([id,label]) => '<button type="button" class="atlas-filter' + (view.filter === id ? ' active' : '') + '" data-do="atlas-filter" data-arg="' + id + '">' + label + '</button>').join('') + '</div>';
+    h += '<div class="atlas-legend"><span class="righteous">◆ ธรรมะ</span><span class="demonic">◆ อธรรม</span><span class="neutral">◆ สายกลาง</span><span>แตะจุดเพื่อดูข้อมูล · ลากเพื่อเลื่อน</span></div>';
+    const distress = (W.world.vassalDistressCalls || []).find(c => c && !c.resolved);
+    const threatened = distress && atlas.nodes.find(n => n.kind === 'NEIGHBOR_SECT' && n.sectId === distress.sectId);
+    if (distress && threatened) h += '<button class="atlas-alert" data-do="atlas-select" data-arg="' + esc(threatened.id) + '">🚨 ' + esc(distress.sectNameTh) + ' ขอความช่วยเหลือ · แตะเพื่อดู</button>';
+    h += '<div class="atlas-shell"><div class="atlas-viewport" tabindex="0" role="region" aria-label="แผนที่ยุทธภพ ลากเพื่อเลื่อนและใช้ปุ่มซูม"><div class="atlas-surface" style="width:' + (view.zoom * 100) + '%">';
+    [['แดนเหนือ',50,3],['แดนตะวันตก',12,72],['แดนตะวันออก',86,27],['แดนใต้',52,94]].forEach(([name,x,y]) => {
+      h += '<span class="atlas-region-title" style="left:' + x + '%;top:' + y + '%">' + name + '</span>';
     });
-    // Routes
-    (topo.routes || []).forEach(rt => {
-      const n1 = topo.nodes[rt.from], n2 = topo.nodes[rt.to];
-      if (!n1 || !n2) return;
-      h += '<line x1="' + n1.x + '" y1="' + n1.y + '" x2="' + n2.x + '" y2="' + n2.y + '" stroke="#4a607a" stroke-width="0.45" stroke-dasharray="1,1" opacity="0.7"/>';
-    });
-    // Nodes
-    nodes.forEach(nd => {
-      const isSel = selInfo && selInfo.node && selInfo.node.id === nd.id;
-      const strokeCol = isSel ? '#ffd166' : nd.ownerSectId === 'PLAYER' ? '#5fd38a' : nd.kind === 'WORLD_ANOMALY' ? '#ff6b6b' : nd.kind === 'NEIGHBOR_SECT' ? '#f0a030' : '#4fb2f2';
-      const rSize = nd.kind === 'HOME_SECT' ? 3.2 : (nd.kind === 'NEIGHBOR_SECT' || nd.kind === 'WORLD_ANOMALY') ? 2.5 : 2.0;
-      h += '<g style="cursor:pointer" data-do="select-world-node" data-arg="' + esc(nd.id) + '">';
-      h += '<circle cx="' + nd.x + '" cy="' + nd.y + '" r="' + rSize + '" fill="#111923" stroke="' + strokeCol + '" stroke-width="' + (isSel ? '0.9' : '0.55') + '"/>';
-      h += '<text x="' + nd.x + '" y="' + (nd.y + 0.9) + '" font-size="2.6" text-anchor="middle">' + esc(nd.icon || '📍') + '</text>';
-      h += '<text x="' + nd.x + '" y="' + (nd.y + rSize + 2.3) + '" fill="' + (isSel ? '#ffd166' : '#d8e4f0') + '" font-size="2.1" text-anchor="middle">' + esc((nd.rawNameTh || nd.nameTh || '').slice(0, 14)) + '</text>';
-      h += '</g>';
-    });
-    h += '</svg>';
-    h += '<div class="muted" style="font-size:11px;margin-top:6px;text-align:center">แตะที่จุดใดก็ได้บนแผนที่เพื่อตรวจสอบระยะเวลาเดินทาง ค่ายกลป้องกัน สนธิสัญญา และสั่งการทัพ</div>';
-    h += '</div>';
-
-    // Selected Node Inspector
-    if (selInfo && selInfo.node) {
-      const nd = selInfo.node;
-      const tv = selInfo.travel;
-      h += '<h3>🔎 ข้อมูลจุดยุทธศาสตร์ที่เลือก: ' + esc(nd.icon || '📍') + ' ' + esc(nd.nameTh) + '</h3>';
-      h += '<div class="card" style="border-color:var(--gold)">';
-      h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
-      h += '<div><span class="chip b">' + esc(selInfo.macroRegion.nameTh) + '</span> <span class="chip">อันตราย ' + (nd.danger || 0) + '/4</span> <span class="chip ' + (nd.ownerSectId === 'PLAYER' ? 'ok' : '') + '">ผู้ถือครอง: ' + esc(nd.ownerNameTh || '-') + '</span></div>';
-      h += '<div class="muted">⏱️ ระยะเวลาเดินทาง: <b>' + tv.days + ' วัน</b> (ฐาน ' + tv.baseDays + ' วัน' + (tv.hasPhoenixMount ? ' · 🦅 หงส์เพลิง ×0.60' : tv.hasMount ? ' · 🐎 สัตว์ขี่ ×0.75' : '') + ')</div>';
-      h += '</div>';
-      h += '<div class="muted" style="margin-top:4px">' + esc(nd.descTh || '') + '</div>';
-
-      if (nd.kind === 'NEIGHBOR_SECT') {
-        h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)">';
-        h += '<div>กำลังสำนัก: <b>' + nd.power + '</b> · ท่าทีต่อเรา: <b>' + Math.round(nd.attitude || 0) + '</b> · สนธิสัญญา: <b>' + esc((g.CONTENT && g.CONTENT.TREATY_TH && g.CONTENT.TREATY_TH[nd.treaty]) || nd.treaty) + '</b>' + (nd.bannerTh ? ' <span class="chip ok">' + esc(nd.bannerTh) + '</span>' : '') + '</div>';
-        h += '<div class="muted" style="font-size:11.5px;margin-top:2px">บรรณาการประจำสำนัก: ' + esc(nd.tributeDescTh || '-') + '</div>';
-        if (nd.isVassal) {
-          h += '<div style="margin-top:6px">👑 <b>ความภักดีสำนักบริวาร: ' + Math.round(nd.loyalty || 65) + '/100</b> (หากต่ำกว่า 20 จะก่อกบฏฉีกสัญญา!)</div>';
-          h += '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">';
-          h += '<button class="btn" data-do="set-vassal-policy" data-arg="' + esc(nd.sectId) + '|LENIENT">🕊️ ผ่อนปรนบรรณาการ (+ภักดี)</button>';
-          h += '<button class="btn" data-do="set-vassal-policy" data-arg="' + esc(nd.sectId) + '|STANDARD">⚖️ บรรณาการมาตรฐาน</button>';
-          h += '<button class="btn dan" data-do="set-vassal-policy" data-arg="' + esc(nd.sectId) + '|HARSH">🔥 ขูดรีดบรรณาการ (+45% ศิลา / -ภักดี)</button>';
-          h += '<button class="btn pri" data-do="collect-vassal-tribute">💎 เรียกเก็บบรรณาการตามฤดูกาล</button>';
-          h += '</div>';
-        } else {
-          h += '<div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
-          h += '<select id="siegeResolutionSel" style="max-width:240px"><option value="SUBJUGATE">🚩 บังคับสวามิภักดิ์เป็นสำนักบริวาร (Vassalage)</option><option value="PILLAGE">🔥 ปล้นคลังสมบัติและคัมภีร์ (Pillage)</option><option value="FREE_TRADE">🐪 บังคับเปิดด่านการค้าเสรีไร้ภาษี (Free Trade)</option></select>';
-          h += '<button class="btn pri" data-do="launch-sect-siege" data-arg="' + esc(nd.sectId) + '|">⚔️ กรีฑาทัพตีค่าย 3 ด่าน!</button>';
-          h += '</div>';
-        }
-        h += '</div>';
-      } else if (nd.kind === 'RESOURCE_NODE') {
-        h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)">';
-        h += '<div>ผลผลิต: <b>+' + nd.dailyStones + ' ศิลา/วัน (หรือ +' + nd.seasonalStones + ' ศิลา/ฤดูกาล)</b> · พลังป้องกันกองกำลัง: <b>' + (nd.garrison ? nd.garrison.defensePower : 320) + ' CP</b>' + (nd.garrison && nd.garrison.bastionActive ? ' <span class="chip ok">🐢 ปราการเต่าดำเสวียนอู่ (+45% ป้องกัน / +25% ผลผลิต)</span>' : '') + '</div>';
-        h += '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">';
-        if (nd.ownerSectId !== 'PLAYER') {
-          h += '<button class="btn pri" data-do="claim-resource-node" data-arg="' + esc(nd.id) + '">🚩 ส่งกำลังเข้ายึดครองจุดยุทธศาสตร์</button>';
-        } else {
-          h += '<button class="btn pri" data-do="assign-node-garrison" data-arg="' + esc(nd.id) + '">🛡️ จัดศิษย์และอสูรเทพประจำการป้องกัน</button>';
-          h += '<button class="btn" data-do="harvest-resource-nodes">💎 เก็บเกี่ยวรายได้เข้าคลังทันที</button>';
-        }
-        h += '</div></div>';
-      } else if (nd.kind === 'WORLD_ANOMALY') {
-        h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)">';
-        h += '<div>คู่แข่งที่กำลังมุ่งหน้าไป: <b>' + esc(nd.rivalSectNameTh || 'สำนักคู่แข่ง') + '</b> (จะไปถึงในวันที่ ' + (nd.rivalEtaDay || 0) + ')</div>';
-        h += '<div style="margin-top:6px"><button class="btn pri" data-do="dispatch-world-anomaly" data-arg="' + esc(nd.anomalyId || nd.id) + '">☄️ ส่งยอดฝีมือและสัตว์ขี่ช่วงชิงวาสนาทันที!</button></div>';
-        h += '</div>';
-      }
-      h += '</div>';
+    for (const g1 of groups) {
+      const many = g1.nodes.length > 1, n = g1.nodes[0], isHome = n.kind === 'HOME_SECT';
+      const symbol = many && !isHome ? String(g1.nodes.length) : atlasSymbol(n);
+      const side = !many && (n.kind === 'NEIGHBOR_SECT' || n.kind === 'WANDERING_LEGEND') ? atlasSide(n) : isHome ? 'home' : !many && n.kind === 'WORLD_ANOMALY' ? 'event' : '';
+      const marked = selected && g1.nodes.some(x => x.id === selected.id);
+      const priority = !many && (n.kind === 'HOME_SECT' || (n.kind === 'NEIGHBOR_SECT' && n.isAllianceLeader) || marked);
+      const visibleLabel = !many && (priority || view.zoom >= 1.8) && !labels.some(p => Math.abs(p.x-g1.x)<20/view.zoom && Math.abs(p.y-g1.y)<7/view.zoom);
+      if (visibleLabel) labels.push({x:g1.x,y:g1.y});
+      const label = many ? g1.nodes.length + ' สถานที่ในบริเวณนี้' : (n.rawNameTh || n.nameTh || 'สถานที่');
+      const travelling = (W.world.expeds || []).some(e => e && !e.done && g1.nodes.some(x => e.region === x.id || e.targetNodeId === x.id || (x.siteId && e.siteId === x.siteId) || (x.sectId && e.sectId === x.sectId) || (x.anomalyId && e.anomalyId === x.anomalyId)));
+      h += '<button type="button" class="atlas-marker ' + side + (many ? ' cluster' : '') + (marked ? ' selected' : '') + (g1.x < 18 ? ' edge-left' : g1.x > 82 ? ' edge-right' : '') + '" style="left:' + g1.x + '%;top:' + g1.y + '%" data-do="' + (many ? 'atlas-group' : 'atlas-select') + '" data-arg="' + esc(many ? g1.nodes.map(x=>x.id).join('|') : n.id) + '" title="' + esc(label) + '" aria-label="' + esc(label) + '"><span class="atlas-marker-icon">' + esc(symbol) + '</span>' + (many && isHome ? '<span class="atlas-marker-count">' + g1.nodes.length + '</span>' : '') + (travelling ? '<span class="atlas-marker-travel" aria-label="มีคณะเดินทาง">🧭</span>' : '') + (visibleLabel ? '<span class="atlas-marker-label">' + esc(label) + '</span>' : '') + '</button>';
     }
-
-    // Active Timed Anomalies & Vassal Distress Calls bar
-    const activeCall = W.world.politics && W.world.politics.activeDistressCall;
-    if (activeCall && !activeCall.resolved) {
-      h += '<h3>🚨 สัญญาณขอความช่วยเหลือคุ้มครองสำนักบริวาร</h3><div class="card" style="border-color:var(--red)">';
-      h += '<b>สำนักบริวาร「' + esc(activeCall.sectNameTh) + '」กำลังถูก' + esc(activeCall.threatNameTh) + 'โจมตี!</b>';
-      h += '<div style="margin-top:6px;display:flex;gap:6px"><button class="btn pri" data-do="respond-vassal-distress" data-arg="' + esc(activeCall.id) + '|REINFORCE">🛡️ ส่งทัพหนุนไปช่วยคุ้มครอง (+20 ความภักดี)</button><button class="btn dan" data-do="respond-vassal-distress" data-arg="' + esc(activeCall.id) + '|REFUSE">เพิกเฉย (-30 ความภักดี)</button></div>';
-      h += '</div>';
-    }
-
-    h += '<h3>☄️ วาสนาฟ้าดินจำกัดเวลา & จุดยุทธศาสตร์ทรัพยากร</h3><div class="card">';
-    h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
-    h += '<button class="btn pri" data-do="spawn-world-anomaly" data-arg="GROTTO_ANCIENT_IMMORTAL">🏛️ เปิดถ้ำลับเซียนโบราณ</button>';
-    h += '<button class="btn pri" data-do="spawn-world-anomaly" data-arg="BLOOM_CELESTIAL_LOTUS">🪷 บัวสวรรค์หมื่นปีเบ่งบาน</button>';
-    h += '<button class="btn pri" data-do="spawn-world-anomaly" data-arg="METEOR_ASTRAL_CRATER">☄️ อุกกาบาตดาราตก</button>';
+    h += '</div></div><div class="atlas-map-controls"><button type="button" data-do="atlas-zoom" data-arg="in" aria-label="ซูมเข้า">＋</button><button type="button" data-do="atlas-zoom" data-arg="out" aria-label="ซูมออก">−</button><button type="button" data-do="atlas-home" aria-label="กลับสู่สำนัก">⌂</button></div>';
+    h += '<div class="atlas-scale">' + Math.round(view.zoom * 100) + '%</div>';
+    if (UI.atlasGroupIds && UI.atlasGroupIds.length) {
+      const options = UI.atlasGroupIds.map(id => atlas.nodes.find(n => n.id === id)).filter(Boolean);
+      h += '<section class="atlas-detail atlas-cluster-list" role="region" aria-label="เลือกสถานที่"><button class="atlas-detail-close" data-do="atlas-close">✕</button><h3>สถานที่ใกล้กัน (' + options.length + ')</h3>' + options.map(n => '<button class="atlas-place-choice" data-do="atlas-select" data-arg="' + esc(n.id) + '"><span>' + esc(atlasSymbol(n)) + '</span><span>' + esc(n.rawNameTh || n.nameTh) + '</span>' + (n.kind === 'NEIGHBOR_SECT' || n.kind === 'WANDERING_LEGEND' ? '<small class="' + atlasSide(n) + '">' + esc(atlasSideTh(n)) + '</small>' : '') + '</button>').join('') + '</section>';
+    } else if (selected) h += atlasDetail(W, selected);
     h += '</div>';
-    if (activeAnoms.length) {
-      h += activeAnoms.map(a => '<div class="logrow" style="align-items:center;justify-content:space-between"><div><b>' + esc(a.icon) + ' ' + esc(a.nameTh) + '</b> <span class="chip b">' + esc(EXPED.WORLD_REGIONS[a.macroRegion]?.shortTh || a.macroRegion) + '</span> <span class="muted">(คู่แข่ง: ' + esc(a.rivalSectNameTh) + ' ถึงวันที่ ' + a.rivalEtaDay + ')</span></div><button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="dispatch-world-anomaly" data-arg="' + esc(a.id) + '">⚡ ช่วงชิงทันที</button></div>').join('');
-    } else {
-      h += '<div class="muted">ยังไม่มีวาสนาฟ้าดินที่กำลังเปิดอยู่ กดปุ่มด้านบนเพื่อสำรวจพบได้ทันที</div>';
-    }
-    h += '</div>';
-
+    h += '<div class="atlas-footnote">จุดที่ซ้อนกันจะแสดงเป็นตัวเลข แตะเพื่อเลือก · ประตูมิติเชื่อมแดนหมื่นพิภพ</div>';
     return h;
+  };
+
+  UI.bindWorldAtlas = body => {
+    const viewport = body.querySelector('.atlas-viewport'), surface = body.querySelector('.atlas-surface'), view = UI.atlasView;
+    if (!viewport || !surface || !view) return;
+    viewport.scrollLeft = view.x * surface.offsetWidth - viewport.clientWidth / 2;
+    viewport.scrollTop = view.y * surface.offsetHeight - viewport.clientHeight / 2;
+    const remember = () => {
+      view.x = clamp((viewport.scrollLeft + viewport.clientWidth/2) / surface.offsetWidth, 0, 1);
+      view.y = clamp((viewport.scrollTop + viewport.clientHeight/2) / surface.offsetHeight, 0, 1);
+    };
+    viewport.addEventListener('scroll', remember, {passive:true});
+    let pointers = new Map(), last = null, pinch = null, moved = false;
+    viewport.addEventListener('pointerdown', e => {
+      pointers.set(e.pointerId, {x:e.clientX,y:e.clientY});
+      if (!e.target.closest('button')) viewport.setPointerCapture(e.pointerId);
+      UI.atlasDragging = true;
+      if (pointers.size === 1) { last = {x:e.clientX,y:e.clientY}; moved = false; }
+      if (pointers.size === 2) { const [a,b] = [...pointers.values()]; pinch = {distance:Math.hypot(a.x-b.x,a.y-b.y), zoom:view.zoom}; }
+    });
+    viewport.addEventListener('pointermove', e => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, {x:e.clientX,y:e.clientY});
+      if (pointers.size >= 2 && pinch) {
+        const [a,b] = [...pointers.values()], distance = Math.hypot(a.x-b.x,a.y-b.y);
+        const newZoom = clamp(pinch.zoom * distance / Math.max(1,pinch.distance), 1, 4);
+        remember(); view.zoom = newZoom; surface.style.width = (100*newZoom) + '%';
+        viewport.scrollLeft = view.x * surface.offsetWidth - viewport.clientWidth/2;
+        viewport.scrollTop = view.y * surface.offsetHeight - viewport.clientHeight/2;
+        moved = true;
+      } else if (last) {
+        const dx = e.clientX-last.x, dy = e.clientY-last.y;
+        viewport.scrollLeft -= dx; viewport.scrollTop -= dy; last = {x:e.clientX,y:e.clientY};
+        if (Math.abs(dx)+Math.abs(dy)>1) moved = true;
+      }
+    });
+    const finish = e => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.delete(e.pointerId); pinch = null;
+      if (pointers.size) { const p = [...pointers.values()][0]; last = {x:p.x,y:p.y}; return; }
+      remember(); UI.atlasDragging = false;
+      if (moved) UI.render();
+    };
+    viewport.addEventListener('pointerup', finish); viewport.addEventListener('pointercancel', finish);
+    viewport.addEventListener('wheel', e => { e.preventDefault(); remember(); view.zoom = clamp(view.zoom * (e.deltaY < 0 ? 1.25 : 0.8), 1, 4); UI.render(); }, {passive:false});
   };
 
   /* ----- ยุทธภพ ----- */
@@ -2866,6 +3069,7 @@
     if (tab === 'exp') {
       h += '<div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div><b>🗺️ แผนที่ยุทธภพ 5 มหาภูมิภาค & ศึกตีค่ายสำนัก</b><div class="muted">สำรวจจุดยุทธศาสตร์ เหมืองศิลา ด่านภาษี และสั่งการทัพตีค่ายสำนักเพื่อนบ้าน</div></div><button class="btn pri" data-do="open-world-map">🗺️ เปิดแผนที่ยุทธภพ</button></div>';
       const act = W.world.expeds.filter(e => !e.done);
+      const destinations = EXPED.ensureWorldTopology(W).nodes || {};
       h += '<div class="muted" style="margin-bottom:6px">การเดินทาง การสืบข่าวโรงเตี๊ยม และสายสัมพันธ์ยุทธภพ คำนวณจากตบะ โชค การรับรู้ และนิสัยของผู้เดินทางจริง</div>';
       if (SECT.JIANGHU && SECT.JIANGHU.ensure) {
         const jh = SECT.JIANGHU.ensure(W);
@@ -2896,8 +3100,8 @@
           h += '</div>';
         }
       }
-      h += '<h3>กำลังเดินทาง (' + act.length + ')</h3>' + (act.length ? act.map(e => { const ms = e.party.map(i => W.byId[i]).filter(Boolean); const reg = EXPED.REGIONS.find(r => r.id === e.region) || { nameTh: e.placeTh || '?' }; return '<div class="card"><b>' + EXPED.MISSIONS[e.kind].icon + ' ' + EXPED.MISSIONS[e.kind].nameTh + '</b> → ' + esc(reg.nameTh) + '<div>' + ms.map(nameLink).join('、') + '</div><div class="muted">กลับในอีก ~' + Math.max(0, Math.round((e.ret - W.t) / 1440 * 10) / 10) + ' วัน</div></div>'; }).join('') : '<div class="muted">ไม่มี</div>');
-      const done = W.world.expeds.filter(e => e.done && e.out).slice(-5).reverse(); if (done.length) h += '<h3>เพิ่งกลับ</h3>' + done.map(e => { const ms = e.party.map(i => W.byId[i]).filter(Boolean); return '<div class="card"><b>' + EXPED.MISSIONS[e.kind].icon + ' ' + EXPED.MISSIONS[e.kind].nameTh + '</b> ' + ms.map(nameLink).join('、') + '<div class="muted">' + esc(e.journal.slice(-4).join(' → ')) + '</div><div>' + esc(EXPED.summarize(e.out)) + '</div></div>'; }).join('');
+      h += '<h3>กำลังเดินทาง (' + act.length + ')</h3>' + (act.length ? act.map(e => { const ms = e.party.map(i => W.byId[i]).filter(Boolean); const reg = e.fortuneSite || (e.placeTh && {nameTh:e.placeTh}) || EXPED.REGIONS.find(r => r.id === e.region) || destinations[e.targetNodeId || e.region] || {nameTh:'ไม่ทราบจุดหมาย'}; const mission = EXPED.MISSIONS[e.kind] || {icon:'🧭',nameTh:'ภารกิจ'}; return '<div class="card"><b>' + esc(mission.icon) + ' ' + esc(mission.nameTh) + '</b> → ' + esc(reg.rawNameTh || reg.nameTh) + '<div>' + ms.map(nameLink).join('、') + '</div><div class="muted">กลับในอีก ~' + Math.max(0, Math.round((e.ret - W.t) / 1440 * 10) / 10) + ' วัน</div></div>'; }).join('') : '<div class="muted">ไม่มี</div>');
+      const done = W.world.expeds.filter(e => e.done && e.out).slice(-5).reverse(); if (done.length) h += '<h3>เพิ่งกลับ</h3>' + done.map(e => { const ms = e.party.map(i => W.byId[i]).filter(Boolean), mission = EXPED.MISSIONS[e.kind] || {icon:'🧭',nameTh:'ภารกิจ'}; return '<div class="card"><b>' + esc(mission.icon) + ' ' + esc(mission.nameTh) + '</b> ' + ms.map(nameLink).join('、') + '<div class="muted">' + esc(e.journal.slice(-4).join(' → ')) + '</div><div>' + esc(EXPED.summarize(e.out)) + '</div></div>'; }).join('');
     } else if (tab === 'visitors') {
       h += UI.rVisitors();
     } else if (tab === 'clues') {

@@ -7763,6 +7763,8 @@
   };
 
   /* ======================= v2.0.10: Universal Pagoda & Elemental Realms ======================= */
+  X.MISSIONS.nine_dao_pagoda = { nameTh: 'ทดสอบเจดีย์เก้าวิถี', icon: '🗼' };
+  X.MISSIONS.elemental_realm = { nameTh: 'สำรวจแดนธาตุ', icon: '🌌' };
   EX.NINE_DAO_PAGODA = Object.freeze({
     id: 'NINE_DAO_PAGODA', nameTh: 'เจดีย์เก้าวิถีทดสอบสัจธรรม', icon: '🗼',
     floors: Object.freeze([

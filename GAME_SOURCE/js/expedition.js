@@ -288,7 +288,8 @@
     };
   };
 
-  X.depart = (W, party, kind, region) => {
+  X.depart = (W, party, kind, region, opts) => {
+    opts = opts || {};
     const rng = W.rng; const w = W.world;
     const assembled = X.createParty(W, party, { kind });
     if (!assembled.ok) return null;
@@ -298,6 +299,8 @@
     const regs = X.REGIONS.filter(r => (kind !== 'trade' && kind !== 'diplomacy' || r.danger <= 2));
     region = region || (g.CONTENT && g.CONTENT.chooseRegion(W, party, kind, regs)) || rng.weighted(regs, r => 1 + (kind === 'fortune' ? r.danger * 0.4 : 0) + (kind === 'gather' ? (E(lead, 'interests.herbs') > 55 ? (r.terrain === 'forest' || r.terrain === 'mountain' ? 1 : 0) : (r.terrain === 'mountain' ? 1 : 0)) : 0) + (kind === 'hunt' ? r.danger * 0.3 : 0));
     if (!region || !X.REGIONS.includes(region)) return null;
+    const requestedSite = opts.siteId && kind === 'fortune' && (X.FORTUNE_REGISTRY[partyRank] || []).find(s => s.id === opts.siteId);
+    if (opts.siteId && (!requestedSite || !(requestedSite.biome === region.terrain || (requestedSite.biome === 'ruins' && region.terrain === 'mountain')))) return null;
     const baseDays = Math.max(2, Math.round(region.days * (0.7 + rng.next() * 0.6) * (kind === 'trade' ? 1.1 : kind === 'recruit' ? 1.4 : 1)));
     const trip = X.createParty(W, party, { kind, regionId: region.id, baseDays });
     const days = trip.days;
@@ -320,7 +323,7 @@
     if (kind === 'fortune') {
       const sites = X.FORTUNE_REGISTRY[partyRank] || X.FORTUNE_REGISTRY[1];
       const matching = sites.filter(s => s.biome === region.terrain || (s.biome === 'ruins' && region.terrain === 'mountain'));
-      const matchSite = rng.pick(matching.length ? matching : sites);
+      const matchSite = requestedSite || rng.pick(matching.length ? matching : sites);
       const chosenPool = rng.pick(matchSite.pools);
       ex.siteId = matchSite.id;
       ex.poolId = chosenPool.id;
@@ -2037,7 +2040,7 @@
     nodes.NODE_HOME_SECT = {
       id: 'NODE_HOME_SECT',
       kind: 'HOME_SECT',
-      nameTh: (W.sect && W.sect.name) ? ('สำนัก' + W.sect.name) : 'สำนักของเรา (หุบเขาฟ้าประทาน)',
+      nameTh: (W.sect && W.sect.name) ? (/^สำนัก/.test(W.sect.name) ? W.sect.name : 'สำนัก' + W.sect.name) : 'สำนักของเรา (หุบเขาฟ้าประทาน)',
       icon: '🏯',
       macroRegion: 'CENTRAL_HEARTLAND',
       terrain: 'forest',
@@ -2056,7 +2059,13 @@
       desert: { macroRegion: 'WESTERN_BADLANDS', x: 20, y: 54, icon: '🏜️' },
       water: { macroRegion: 'SOUTHERN_WATERS', x: 46, y: 78, icon: '🌊' },
       ruins: { macroRegion: 'NORTHERN_PEAKS', x: 58, y: 16, icon: '🏛️' },
-      REG_SLEEPING_DRAGON_LAKE: { macroRegion: 'SOUTHERN_WATERS', x: 36, y: 84, icon: '🐉' }
+      REG_SLEEPING_DRAGON_LAKE: { macroRegion: 'SOUTHERN_WATERS', x: 36, y: 84, icon: '🐉' },
+      SRC110_MW_ENV_01_ANCIENT_CANOPY: { macroRegion: 'EASTERN_PLAINS', x: 70, y: 26, icon: '🌲' },
+      SRC110_MW_ENV_02_MIASMA_MANGROVE: { macroRegion: 'SOUTHERN_WATERS', x: 30, y: 88, icon: '🌿' },
+      SRC110_MW_ENV_03_FROZEN_HIGHLANDS: { macroRegion: 'NORTHERN_PEAKS', x: 55, y: 10, icon: '❄️' },
+      SRC110_MW_ENV_04_VOLCANIC_CALDERA: { macroRegion: 'WESTERN_BADLANDS', x: 16, y: 30, icon: '🌋' },
+      SRC110_MW_ENV_05_MINERAL_DESERT: { macroRegion: 'WESTERN_BADLANDS', x: 12, y: 58, icon: '🏜️' },
+      SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS: { macroRegion: 'NORTHERN_PEAKS', x: 70, y: 17, icon: '🏛️' }
     };
     (X.REGIONS || []).forEach(r => {
       if (!r || !r.id) return;
@@ -2073,7 +2082,7 @@
         baseDays: r.days || 3,
         ownerSectId: 'NEUTRAL',
         ownerNameTh: 'เขตสำรวจยุทธภพ',
-        descTh: 'พื้นที่สำรวจ ล่าสัตว์อสูร เก็บสมุนไพร และผจญโชควาสนา (อันตรายระดับ ' + (r.danger || 1) + ')'
+        descTh: r.desc || ('พื้นที่สำรวจ ล่าสัตว์อสูร เก็บสมุนไพร และผจญโชควาสนา (อันตรายระดับ ' + (r.danger || 1) + ')')
       };
     });
 
@@ -2110,7 +2119,8 @@
     const sanctumCoords = {
       SANCTUM_SWORD_ABYSS: { macroRegion: 'NORTHERN_PEAKS', x: 35, y: 15, icon: '🗡️', nameTh: 'วิหารกระบี่สุญตาบรรพกาล', danger: 4, baseDays: 4 },
       SANCTUM_BLOOD_VAJRA: { macroRegion: 'NORTHERN_PEAKS', x: 66, y: 20, icon: '⛩️', nameTh: 'มหาวิหารวัชระโลหิต', danger: 4, baseDays: 4 },
-      SANCTUM_ASTRAL_DIVINE: { macroRegion: 'WESTERN_BADLANDS', x: 14, y: 40, icon: '🕍', nameTh: 'แท่นบูชาดาราเทวะ', danger: 4, baseDays: 5 }
+      SANCTUM_ASTRAL_DIVINE: { macroRegion: 'WESTERN_BADLANDS', x: 14, y: 40, icon: '🕍', nameTh: 'แท่นบูชาดาราเทวะ', danger: 4, baseDays: 5 },
+      SANCTUM_MYRIAD_BEAST_TOTEM: { macroRegion: 'NORTHERN_PEAKS', x: 72, y: 27, icon: '🐉', nameTh: 'มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ', danger: 4, baseDays: 1.5 }
     };
     Object.entries(sanctumCoords).forEach(([sid, sc]) => {
       nodes[sid] = {
@@ -2324,6 +2334,7 @@
     const targetSect = X.findSect(W, targetSectOrId);
     if (!targetSect) return { ok: false, reason: 'invalid-target-sect' };
     if (targetSect.isVassal && !opts.force) return { ok: false, reason: 'already-vassal' };
+    if (opts.immediate === false && (W.world.expeds || []).some(e => e && !e.done && e.kind === 'sect_siege' && e.sectId === targetSect.id)) return { ok:false, reason:'already-en-route' };
 
     let members = Array.isArray(party) && party.length
       ? party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead && !n.away)
@@ -2807,6 +2818,28 @@
   };
 
   /* ---------- Pillar 4: Contestable Resource Nodes & Timed Serendipitous World Anomalies ---------- */
+  X.departResourceClaim = (W, nodeId, party) => {
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    const node = W.world.resourceNodes && W.world.resourceNodes[nodeId];
+    if (!node) return { ok: false, reason: 'invalid-resource-node' };
+    if (node.ownerSectId === 'PLAYER') return { ok: false, reason: 'already-owned' };
+    if ((W.world.expeds || []).some(e => e && !e.done && e.kind === 'resource_claim' && e.targetNodeId === nodeId)) return { ok: false, reason: 'already-en-route' };
+    const candidates = Array.isArray(party) && party.length ? party : (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away && !n.expId && !n.travel).sort((a,b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
+    const trip = X.createParty(W, candidates, { baseDays: node.baseDays, regionId: node.id, macroRegion: node.macroRegion, terrain: node.terrain, useSectPhoenixAura: true });
+    if (!trip.ok) return { ok: false, reason: trip.reason || 'no-party' };
+    const members = trip.members;
+    const travel = X.estimateTravelTime(W, members, node.id, { useSectPhoenixAura: true });
+    const ex = { id: ++W.world.seq, kind: 'resource_claim', region: node.id, targetNodeId: node.id,
+      party: members.map(n => n.id), t0: W.t, ret: W.t + Math.round(travel.days * 1440), days: travel.days,
+      baseDays: travel.baseDays, hasMount: travel.hasMount, durationMultiplier: travel.durationMultiplier,
+      journal: ['ออกเดินทางสู่「' + node.nameTh + '」'], carry: [], supplies: 0, done: false, state: 'away' };
+    W.world.expeds.push(ex);
+    members.forEach(n => { AI.interruptFor(W, n); n.expId = ex.id; n.away = true; n.lastTrip = W.day; });
+    W.log('mission', '🚩 ส่งคณะเข้ายึด「' + node.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(n => n.id));
+    return { ok: true, queued: true, expedition: ex, travel };
+  };
+
   X.claimResourceNode = (W, nodeId, party, opts) => {
     opts = opts || {};
     if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
@@ -2850,7 +2883,9 @@
     if (!ex || ex.done) return null;
     ex.done = true;
     members.forEach(m => { m.expId = null; m.away = false; m.hidden = false; m.travel = null; });
-    return X.claimResourceNode(W, ex.targetNodeId || ex.region, members, { forceWin: true });
+    const target = W.world && W.world.resourceNodes && W.world.resourceNodes[ex.targetNodeId || ex.region];
+    if (target && target.ownerSectId === 'PLAYER') return { ok:false, reason:'already-owned' };
+    return X.claimResourceNode(W, ex.targetNodeId || ex.region, members, {});
   };
 
   X.assignNodeGarrison = (W, nodeId, spec) => {
@@ -3000,6 +3035,7 @@
     X.ensureWorldTopology(W);
     const anomaly = typeof anomalyOrId === 'object' ? anomalyOrId : (W.world.anomalies || []).find(a => a && a.id === anomalyOrId);
     if (!anomaly || anomaly.resolved || anomaly.expired) return { ok: false, reason: 'anomaly-unavailable' };
+    if (!opts.immediate && (W.world.expeds || []).some(e => e && !e.done && e.kind === 'world_anomaly' && e.anomalyId === anomaly.id)) return { ok:false, reason:'already-en-route' };
     const members = Array.isArray(party) && party.length
       ? party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead && !n.away)
       : (W.npcs || []).filter(n => n && !n.dead && !n.away && !n.expId).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
@@ -3039,8 +3075,17 @@
     if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
     X.ensureWorldTopology(W);
     const anomaly = typeof anomalyOrId === 'object' ? anomalyOrId : (W.world.anomalies || []).find(a => a && a.id === anomalyOrId);
-    if (!anomaly) return { ok: false, reason: 'anomaly-not-found' };
-    if (anomaly.resolved) return { ok: false, reason: 'already-resolved', claimedBy: anomaly.claimedBy };
+    if (!anomaly || anomaly.resolved || anomaly.expired) {
+      // An event can expire while a party is en route. Always settle the
+      // expedition and release its members even though no reward is available.
+      if (opts.ex && !opts.ex.done) {
+        opts.ex.done = true;
+        const returned = (opts.ex.party || []).map(id => W.byId[id]).filter(n => n && !n.dead && n.expId === opts.ex.id);
+        returned.forEach(n => { n.expId = null; n.away = false; n.hidden = false; n.travel = null; });
+        if (returned.length) W.log('explore', 'คณะเดินทางกลับมาแล้ว วาสนาฟ้าดินสิ้นสุดก่อนเดินทางถึง', returned.map(n => n.id));
+      }
+      return { ok: false, reason: anomaly ? 'already-resolved' : 'anomaly-not-found', claimedBy: anomaly && anomaly.claimedBy };
+    }
 
     const members = Array.isArray(party) && party.length
       ? party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead)
