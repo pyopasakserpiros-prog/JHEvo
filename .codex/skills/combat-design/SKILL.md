@@ -1,19 +1,20 @@
 ---
 name: combat-design
-description: Design, extend, and balance JianghuSect Evolution v2.0.16's combat engine (js/combat.js), 12-path combat hooks, 10 weapon types & tactical reach counters (js/skills.js), 26 move archetypes, composite 12-stat & 12 timed buff system (js/stats.js), durability scaling & combat wear, elemental mastery (ELEM), 31 equipment resonance sets (js/martial.js), formation synergies, and spirit beast pack combat.
+description: Design, extend, and balance JianghuSect Evolution v2.0.17's combat engine (js/combat.js), 12-path combat hooks, 10 weapon types & tactical reach counters (js/skills.js), 26 move archetypes, composite 12-stat & 12 timed buff system (js/stats.js), durability scaling & combat wear, 21-Relic Trinity & Legendary Resonance (js/martial.js), 31 equipment resonance sets, formation synergies, and spirit beast pack combat.
 origin: jianghusect-custom
 category: combat-martial-arts
 ---
 
-# JianghuSect Combat Engine (v2.0.16): Exact Formulas, 12 Combat Stats, 10 Weapon Types, 12 Timed Buffs, 31 Resonance Sets, Formations & 12-Path Combat
+# JianghuSect Combat Engine (v2.0.17): Exact Formulas, 12 Combat Stats, 10 Weapon Types, 12 Timed Buffs, 21 Legendary Relics, 31 Resonance Sets, Formations & 12-Path Combat
 
 ## Purpose
-Provide the deep-dive, source-verified engineering specification for **JianghuSect Evolution v2.0.16** combat (`GAME_SOURCE/js/combat.js`, `GAME_SOURCE/js/stats.js`, `GAME_SOURCE/js/martial.js`, `GAME_SOURCE/js/skills.js`, `GAME_SOURCE/data/data_martial.js`, `GAME_SOURCE/data/data_cb.js`).
+Provide the deep-dive, source-verified engineering specification for **JianghuSect Evolution v2.0.17** combat (`GAME_SOURCE/js/combat.js`, `GAME_SOURCE/js/stats.js`, `GAME_SOURCE/js/martial.js`, `GAME_SOURCE/js/skills.js`, `GAME_SOURCE/data/data_martial.js`, `GAME_SOURCE/data/data_cb.js`, `GAME_SOURCE/js/visitors_clues.js`).
 
 Use this skill whenever:
 - Modifying `COMBAT.strike`, `COMBAT.fightStep`, `COMBAT.sparRound`, `COMBAT.tournamentTick`, or party combat in `EX.resolveSanctum` / `EXPED.spawnRaid`
 - Adding or tuning the 12 combat stats (`STATS.KEYS`), 12 timed buffs (`STATS.BUFF_CATALOG`), 14 status effects (`u.sx`), or 31 Equipment Resonance Sets (`MARTIAL.evaluateResonanceSet`)
-- Working on **10 Weapon Types (`SWORD`, `BLADE`, `SPEAR`, `FIST`, `BOW`, `STAFF`, `FOCUS`, `ZITHER`, `BRUSH`, `WHIP`)**, **26 Move Archetypes (`SK.ARCH`)**, **Equipment Durability Scaling & Combat Wear**, **Formation & Ensemble Synergies (`COMBAT.evaluateFormationSynergy`)**, or **12-Path / Spirit Beast Pack Combat**
+- Working on **Universal Legendary Relic Set Resonance (`MARTIAL.evaluateLegendaryRelicResonance`)**, **Relic Star Attunement (1–3 ★)**, or **21 Legendary Relics (`VC.LEGENDARY_EQUIPMENT`: 14 Weapons + 3 Armors + 4 Accessories)**
+- Working on **10 Weapon Types (`SWORD`, `BLADE`, `SPEAR`, `FIST`, `BOW`, `STAFF`, `FOCUS`, `ZITHER`, `BRUSH`, `WHIP`)**, **26 Move Archetypes (`SK.ARCH`)**, **Accessory Subpath Matching Bonuses (`RING`, `NECKLACE`, `BRACELET`, `CHARM`)**, **Equipment Durability Scaling & Combat Wear**, **Formation & Ensemble Synergies (`COMBAT.evaluateFormationSynergy`)**, or **12-Path / Spirit Beast Pack Combat**
 
 ---
 
@@ -53,7 +54,22 @@ Every unit (`npc` or `foe`) resolves a 12-stat combat block via `STATS.get(unit)
 - `ARRAY_TALISMAN` (วิถีค่ายกลยันต์): loaded from `JD.CULT.paths.ARRAY_TALISMAN.statWeights`
 - `STRATEGY_GOVERNANCE` (วิถีพิชัยยุทธ์): loaded from `JD.CULT.paths.STRATEGY_GOVERNANCE.statWeights`
 
-### 1.2 Equipment Suitability & Durability Stat Scaling (`js/stats.js` lines 444, 611; `js/martial.js` lines 1098–1102)
+### 1.2 Mantra Stat Scaling by Path (`STATS.compute` / `computeFast` lines 325–337, 505–517)
+Active mantra tier contributes path-specific stat scaling (`m.tier`):
+- `XIAN`: `matk: +4% * tier`, `mdef: +3% * tier`
+- `BODY`: `atk: +4% * tier`, `def: +4% * tier`, `hp: +3% * tier`
+- `GOD`: `def: +3.5% * tier`, `mdef: +4% * tier`, `hp: +3.5% * tier`
+- `DEMON`: `atk: +4% * tier`, `matk: +3% * tier`, `crit: +1 * tier`
+- `HEART_SOUL`: `matk: +4% * tier`, `mdef: +4% * tier`
+- `MECH_PUPPET`: `atk: +3% * tier`, `matk: +3% * tier`, `def: +3% * tier`
+- `KARMA_SAMSARA`: `matk: +3.5% * tier`, `mdef: +4% * tier`, `hp: +3% * tier`
+- `BEAST_SOVEREIGN`: `atk: +3.5% * tier`, `hp: +3.5% * tier`, `move: +1.0 * tier`
+- `SAGE_SUPPORT`: `mdef: +4% * tier`, `hp: +3.5% * tier`, `cast: +1.2 * tier`
+- `CRAFT_CREATION`: `atk: +3% * tier`, `matk: +3.5% * tier`, `def: +3% * tier`, `mdef: +3% * tier`
+- `ARRAY_TALISMAN`: `matk: +4% * tier`, `mdef: +3.5% * tier`, `cast: +1.2 * tier`
+- `STRATEGY_GOVERNANCE`: `atk: +3% * tier`, `matk: +3% * tier`, `def: +3.5% * tier`, `mdef: +3.5% * tier`
+
+### 1.3 Equipment Suitability & Durability Stat Scaling (`js/stats.js` lines 444, 611; `js/martial.js` lines 1098–1102)
 - **Usability Gate (`MARTIAL.gearUsable(n, it)`)**: Returns `false` if `!it` or if `it.procedural && Number(it.dur) <= 0`. Broken procedural equipment (`dur <= 0`) contributes **zero stats** until repaired (`ECO.repairGear`) or replaced!
 - **Durability Scaling Factor (`df`)**: For usable equipment, stats scale linearly with durability:
   ```javascript
@@ -89,9 +105,12 @@ All timed buffs live in `npc.buffs` (`STATS.addBuff`) and combat status effects 
 | `karmicAegis` | วัฏจักรสะท้อนกรรม (`☸️`) | 50m | `p: { def: +20%, mdef: +20%, matk: +12% }`, `f: { pen: +12 }`. In `C.strike`: reduces incoming damage by `-15%` (`×0.85`) and reflects `22%` damage (`refPct: 0.22`) |
 | `mentorGuidance` | คำชี้แนะอาจารย์สายตรง (`📜`) | 120m | `p: { atk/matk/def/mdef: +10% }`, `f: { acc: +10, cast: +10 }`, `cultRateBonus: 0.18`, `btBonus: 0.08` |
 
-### Status Effects (`u.sx` via `STATS.addStatus(u, k, dur, extra, now)`)
-- **14 Standard Status Keys (`SK.STATUS`)**: `'shield'`, `'guardUp'`, `'counter'`, `'burn'`, `'bleed'`, `'poison'`, `'slow'`, `'weaken'`, `'blind'`, `'armorbreak'`, `'mdefbreak'`, `'silence'`, `'stun'`, `'exposed'`.
-- **Anti-Recursion Guardrail**: Always pass `{ noCounter: true, noReflect: true, noProc: true }` on counter-strikes, reflected damage, or pet assist strikes to prevent infinite loops!
+### Pre-Fight Pill Preferences (`STATS.preFight` lines 790–799)
+Before difficult battles, NPCs consume stockpiled combat pills based on cultivation path affinity:
+- `BODY`, `BEAST_SOVEREIGN`: `['STONE', 'FURY']`
+- `XIAN`, `HEART_SOUL`, `ARRAY_TALISMAN`, `SAGE_SUPPORT`: `['SPIRIT', 'EYE', 'WIND']`
+- `DEMON`: `['FURY', 'WIND', 'STONE']`
+- Others (`MECH_PUPPET`, `KARMA_SAMSARA`, `CRAFT_CREATION`, `STRATEGY_GOVERNANCE`): `['STONE', 'SPIRIT', 'FURY', 'EYE']`
 
 ---
 
@@ -107,24 +126,48 @@ Every unit's weapon is classified via `MARTIAL.classify(wpn)` into one of **10 w
 | **`HEAVY_BREAKER`**| `BLADE` (`1.75`), Heavy `FIST` (`BODY` path or `SK.HEAVY_FIST_SUBPATHS`) | **Guard-Shatter Advantage** vs `guardUp`/`shield`/`counter` or `LONG_POLEARM`/`STAFF`: `×1.15` dmg (`×1.13` vs polearm), `+14` pen (`+10` vs polearm), `shatterGuard: true` (`×1.45` shield break damage, strips `guardUp`). |
 | **`SHORT_SWIFT`** | `SWORD` (`1.80`), Swift `FIST` (`1.70`) | **Inside-Reach Gap-Closer** vs `LONG_POLEARM` or `RANGED_KITE` at close range (`gap <= 1.25` or dash/pierce/blink): `×1.10` dmg, `+8` acc, `+4` crit (`SWORD`). |
 
-### 3.2 Subpath Weapon/Armor Matching Bonuses (`MARTIAL.SUB_EQUIP_BONUSES` in `js/martial.js` lines 940–984)
-In addition to standard `MARTIAL.suitability`, specific subpaths receive dedicated `SUB_EQUIP_BONUSES` when wielding their signature weapon class (`ZITHER`, `BRUSH`, `WHIP`) or wearing crafted armor (`CELESTIAL_ARMOR_ARTISAN`):
+### 3.2 Subpath Weapon/Armor/Accessory Matching Bonuses (`MARTIAL.SUB_EQUIP_BONUSES` in `js/martial.js` lines 940–1058)
+In addition to standard `MARTIAL.suitability`, `MARTIAL.evaluateSubEquipmentBonus(n)` checks weapon, armor, and **accessory types (`RING`, `NECKLACE`, `BRACELET`, `CHARM`)** against the subpath:
 - **`ZITHER`**: `SOUND_ZITHER`, `SOUL_MUSICIAN`, `ZITHER_HEART_BOW` (`+matk`, `+acc`, `+cast`, `+mdef`).
 - **`BRUSH`**: `CALLIGRAPHY_PAINTING_SAGE`, `SEAL_SCRIPT_EXORCIST`, `THUNDER_TALISMAN_ADEPT`, `GRAND_FORMATION_ARCHITECT` (`+matk`, `+acc`, `+cast`, `+pen`).
 - **`WHIP`**: `SPIRIT_THREAD_PUPPET`, `THOUSAND_THREAD_ASSASSIN`, `FATE_SEVERING_THREAD` (`+atk`, `+matk`, `+acc`, `+crit`, `+pen`).
 - **Armor Artisan**: `CELESTIAL_ARMOR_ARTISAN` receives extra `%def`, `%mdef`, and `%hp` across all armor types (`HEAVY` / `LIGHT` / `ROBE`).
+- **Accessories (`xType`)**:
+  - `RING`: `p: { atk: +3%, matk: +3% }`, `f: { crit: 3, pen: 4 }`
+  - `NECKLACE`: `p: { hp: +5%, mdef: +5% }`
+  - `BRACELET`: `p: { atk: +4%, def: +4% }`, `f: { cast: 4 }`
+  - `CHARM`: `p: { matk: +5%, mdef: +4% }`, `f: { acc: 6 }`
+- Returns: `{ active, matchedCount (1..3), weaponMatched, armorMatched, accessoryMatched, p, f, reasonsTh, summaryTh }`.
 
 ### 3.3 The 26 Move Archetypes (`SK.ARCH` in `js/skills.js` lines 11–39)
 Every martial technique (`tech.arch`) resolves into one of **26 combat move archetypes**:
 - **Offensive & Multi-Hit**: `burst`, `flurry` (3 hits × `0.42`), `pierce` (`penAdd: 35`), `execute` (`execMult` up to `×1.85` on low-HP target), `cleave`, `snipe` (range `3.2`, `+15` acc, `+12` crit), `drain` (`35%` lifesteal), `overload` (`hpCost: 8%` for high burst).
 - **Control & Debuff**: `dot` (`burn`/`bleed`/`poison`), `weaken`, `control` (`stun`/`silence`/`blind`/`slow`), `curse` (`mdefbreak` + `weaken`).
 - **Mobility & Defense**: `dash` (closes gap + strike), `retreat` (opens gap + `eva`), `guard` (`guardUp` + `shield`), `counter` (`counter` stance), `meditate` (restores Qi + HP), `stance` (sustained buff).
-- **Path & Tactical Specialists (including 4 new v2.0.16 archetypes)**:
+- **Path & Tactical Specialists**:
   - `summon` / `construct` / `formation` / `heal`: Summon/mech/array/triage support archetypes.
   - **`command` (`ท่าบัญชาพยุหะ`)**: Grants `tacticalCommand` buff (`+18%` all stats, `+14` acc, `+12` pen) and rallies allies/constructs.
   - **`harmonize` (`ท่าประสานชีพจรชุบชีวา`)**: Restores HP + Qi (`×1.20` for `SAGE_SUPPORT`), cleanses debuffs, and applies `vitalRegen` / `qiConduit`.
   - **`blink` (`ท่าก้าวพริบตาข้ามมิติ`)**: Instant dimensional reposition + applies `astralMirage` buff (`+35%` eva, auto-dodge + `1.45×` counter-strike) + `exposed` strike.
-  - **`karmaReversal` (`ท่าพลิกผันกงล้อกรรม`)**: Strips all negative status effects (`burn`, `bleed`, `poison`, `slow`, `weaken`, `blind`, `armorbreak`, `mdefbreak`, `silence`, `stun`, `exposed`) from the caster, transfers them onto the target, applies `exposed` + `armorbreak` (`14m`) to the target, and grants `karmicAegis` to the caster!
+  - **`karmaReversal` (`ท่าพลิกผันกงล้อกรรม`)**: Strips all negative status effects from the caster, transfers them onto the target, applies `exposed` + `armorbreak` (`14m`) to the target, and grants `karmicAegis` to the caster!
+- **Unarmed Martial Arts Guardrail**: Base and unarmed techniques (`MP_FIST_BAJI_SHOULDER_T3`, `MP_FIST_TEMPEST_KICK_T4`, `MP_BASE_KARMA_SAMSARA`, `MP_BASE_BEAST_SOVEREIGN`, innate cores) set `requiresWeapon: false` so NPCs can execute them even with no weapon equipped.
+
+### 3.4 Universal 21-Relic Trinity & Legendary Resonance (`MARTIAL.evaluateLegendaryRelicResonance` in `js/martial.js` lines 820–880)
+The **21 Legendary Relics (`VC.LEGENDARY_EQUIPMENT`: 14 Weapons + 3 Armors + 4 Accessories)** unlock a universal Primordial Trinity resonance across slots:
+- **Universal Wildcard**: Any equipped legendary gear (`it.legendary === true`) counts as a valid match for **ANY** of the 31 Equipment Resonance Sets (`MARTIAL.itemMatchesResonanceSet`).
+- **2-Piece: `ทวิศาสตราเทวะประสาน` (2/3 Pieces)**:
+  - `p: { atk, matk, def, mdef, hp: +8% * starScale }`
+  - `f: { pen: 6, crit: 5, cast: 6, acc: 8 } * starScale`
+  - `qiCostMult = 0.88` (-12% Qi skill cost)
+  - `procChanceMult = 1.15` (+15% legendary special effect trigger chance)
+- **3-Piece: `ไตรรัตนะเทวศาสตราบรรพกาล` (3/3 Pieces - Full Trinity)**:
+  - `p: { atk, matk, def, mdef, hp: +16% * starScale }`
+  - `f: { pen: 14, crit: 10, critDmg: 18, cast: 12, move: 8, acc: 14 } * starScale`
+  - `qiCostMult = 0.80` (-20% Qi skill cost)
+  - `procChanceMult = 1.25` (+25% legendary special effect chance)
+  - `trinitySurge: true`
+- **Star Attunement Multiplier (`starScale = 1 + stars * 0.03`)**:
+  - `stars` is the sum of `it.attunedStars` (1–3 ★ per relic) unlocked by refining legendary/T6+ gear with Sanctum Catalysts (`ECO.refineResonanceGear` at `newQ >= 1.48 / 1.62 / 1.75`).
 
 ---
 
@@ -141,9 +184,9 @@ When `C.strike(W, f, a, d, o)` executes (`js/combat.js` lines 318–560):
    - If defender `d` has `counter` status and `!o.noCounter`, consumes `counter` and triggers an immediate counter-strike (`M: x.M || 1.2`).
 4. **Elemental Compatibility & Matchup (`ELEM.resolveCombatInteraction`, lines 369–380)**:
    - Evaluates attacker root compatibility (`attackerCompat.combatMultiplier` `0.65..1.35`), multi-element weapon-technique resonance (`weaponResonance` `0.95..1.06`), and multi-element target counter matrix (`targetCounterMult`), yielding `elemMod.damageMult` (`0.58..1.52`) and `elemMod.controlChanceMult` (`0.75..1.25`).
-5. **Weapon Tactics (`C.resolveWeaponTactics`) & 31 Resonance Sets (`MARTIAL.evaluateResonanceSet`, lines 373–394)**:
+5. **Weapon Tactics (`C.resolveWeaponTactics`), 31 Resonance Sets & Legendary Trinity (`MARTIAL.evaluateResonanceSet`, lines 373–394)**:
    - Applies tactical reach multiplier `tac.dmgMult`, `tac.penAdd`, `tac.critAdd`, and `tac.shatterGuard`.
-   - If attacker has `>= 3` pieces of one of the **31 Equipment Resonance Sets** (`resSet.active && resSet.pieces >= 3`), multiplies damage by `resSet.rider.bonusDmgMult` and rolls `resSet.rider.chance` (5-tick internal cooldown `_resRiderCd`) to inflict `resSet.rider.status`.
+   - Resonance sets multiply damage by `resSet.rider.bonusDmgMult` and roll `resSet.rider.chance` (5-tick internal cooldown `_resRiderCd`) to inflict set riders.
 6. **Core Damage Fraction (`frac`, lines 395–404)**:
    ```javascript
    let D = (type === 'p' ? sd.def : sd.mdef) * (o.dotHalf ? 0.5 : 1) * (1 - clamp(penTot / 100, 0, 0.82));
@@ -203,7 +246,7 @@ const syn = COMBAT.evaluateFormationSynergy(partyUnits);
 
 ## 6. Verification Checklist
 
-Run these suites from `GAME_SOURCE/` after any combat, stat, buff, weapon, durability, or formation change:
+Run these suites from `GAME_SOURCE/` after any combat, stat, buff, weapon, durability, relic, or formation change:
 ```bash
 node tools/validate_data_schema.js
 node test/combat_balance.js

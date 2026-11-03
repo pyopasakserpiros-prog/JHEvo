@@ -118,12 +118,18 @@ METAL, WOOD, WATER, FIRE, EARTH (basePower 180–200, 3 floors × `*(1+(floor-1)
 - `X.REGIONS` (forest, plains, mountain, desert, water, ruins), `X.MISSIONS` (fortune, hunt, gather, trade, diplomacy, recruit, bounty); the `mission` elder / Master / Deputy approves (`COG.missionBias`, `COG.officeDecision`).
 - Mounts (`role MOUNT_CHARGER` or family AVIAN/UNGULATE): travel ×0.75, capacity ×1.40 (`X.createParty`). Strategy envoys add ≤ +2 attitude (see `progression-design` §6).
 - Raids: `X.spawnRaid(W, kind, strength)` (`beast|rival|bandit`), `X.rally` (courage/duty/commander leadership), `W.sect.gateBeasts` join defense; `X.raidEnd` callback.
+- **Sworn Ally Raid Reinforcements (v2.0.17 - `js/expedition.js` lines 823–842)**:
+  - When defending against a raid, active Jianghu Karma Bonds (`SWORN_ALLY` or `BENEFACTOR`) deploy up to 2 sworn allies (`ALLY_<raidId>_<seq>`) with matched weapon types and stats to reinforce the sect gate.
 
 ---
 
-## 5. World Map, River Fishing & Legends
+## 5. World Map, River Fishing, 21-Relic Trinity & Living Clues (`js/visitors_clues.js`)
 - `MAP.W=240, MAP.H=192`; Southern Spirit River with 3 bridges and path-reachable `kind:'fish'` stations.
-- `js/fishing.js`: ~90% fish / ~10% container (≈50% trash, ≈49.55% ordinary, ≈0.45% unique legendary); unique pool via `FISHING.buildEligibleLegendaryPool` and `W.world.claimedLegendaries` (strictly non-duplicating; ordinary fallback when exhausted). **Verify the pool size at runtime** — authored legendary weapons alone are now 21 (`VC.LEGENDARY_WEAPONS`), plus armors/accessories/relics in `VC.LEGENDARY_EQUIPMENT`.
+- `js/fishing.js`: ~90% fish / ~10% container (≈50% trash, ≈49.55% ordinary, ≈0.45% unique legendary); unique pool via `FISHING.buildEligibleLegendaryPool` and `W.world.claimedLegendaries` (strictly non-duplicating; ordinary fallback when exhausted).
+- **Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT` - v2.0.17)**:
+  - `LEGENDARY_WEAPONS` (14): covers all 10 weapon types (`SWORD`, `BLADE`, `SPEAR`, `FIST`, `BOW`, `STAFF`, `FOCUS`, `ZITHER`, `BRUSH`, `WHIP`).
+  - `LEGENDARY_RELICS` (7): 3 Armors (`RELIC_ARMOR_HEAVY_TITAN`, `RELIC_ARMOR_LIGHT_SHADOW`, `RELIC_ARMOR_ROBE_CELESTIAL`) + 4 Accessories (`RELIC_ACC_RING_SAMSARA`, `RELIC_ACC_NECKLACE_BODHI`, `RELIC_ACC_BRACELET_DRAGON`, `RELIC_ACC_CHARM_PRIMORDIAL`).
+  - **62 Living Clue Templates (`VC.CLUE_TEMPLATES`)**: Living clue rumors dynamically generate across the Jianghu tavern and wandering visitors, leading to legendary discovery expeditions.
 - Wildlife/resources: `js/wildlife.js`, `js/wild_resources.js` (on-map spawn integrity, ecology).
 
 ---

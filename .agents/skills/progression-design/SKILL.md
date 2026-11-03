@@ -120,13 +120,28 @@ Despite the name there are **12 floors**, one per major path (all paths enter an
 - Qualify at `CULT.maxStage(npc)` with equivalent stage 9 (never hard-code 8/9). Begin from the Ancestral Shrine: `SECT.canBeginCelestialTribulation`, `SECT.beginCelestialTribulation`; state `W.sect.celestialTribulation{active,history≤50,sequence}`.
 - Constants: stone cost **500**, retry cooldown **90 days** (`ascensionCooldownUntilDay`), helper cap **3**, saved 3-day preparation. Helpers by `tribulationRole`: `healer` (SAGE_SUPPORT/healer post/healing subs), `guardian` (BODY/BEAST_SOVEREIGN), `array` (MECH_PUPPET/CRAFT_CREATION/array & talisman subs or ARRAY≥35 / TALISMAN≥40), else `support`; one of each role first, then power.
 - Optional recovery pills: `P:REC190_PILL_004`, `P:REC190_PILL_003`, `P:REC140_ALC_JADE_MARROW_2`.
+- **v2.0.17 Success Modifiers**:
+  - `imprintBonus`: `+0.04` if candidate has `mentorImprint`.
+  - `relicBonus`: `+0.025` for 2-piece / `+0.05` for 3-piece Legendary Relic Resonance (`MARTIAL.evaluateLegendaryRelicResonance`).
+  - Pre-ascension Qi transmission: `candidate.apprenticeIds` receives dying-wish / pre-ascension cultivation and inherited techniques (`SECT.MENTORSHIP.transmitQi`) before retiring.
 - Success: inscribe ascended legacy tablet (`tablet.ascended`), `cult.ascended`, `ascendedLegacyCount++` → permanent sect cultivation `SECT.ascensionCultivationMultiplier = 1 + min(5,count)*0.01` (cap +5%), retire cultivator (not death). Failure: recoverable, `ascensionAttempts++`.
 - Resolve participants by saved IDs; release survivors on every outcome; if ascendant is Sect Master, finish succession **before** `SIM.retire`.
 
+### 9.1 Mentorship & Sect Heritage Arts (`SECT.MENTORSHIP` in `js/sect.js` lines 4530–4850)
+- **Direct Disciple Bonds (`formBond`)**: Registers `mentor.h.life.family.disciples` and `disciple.h.life.family.master`, granting shared path/subpath coaching bonuses.
+- **Master Coaching (`coachDisciple`)**: Mentor spends Qi to grant disciple cultivation XP and imprint techniques (`mentorImprint`), unlocking faster mastery and breakthrough resilience.
+- **Qi Transmission (`transmitQi`)**: Dying-wish or pre-ascension ceremony transferring deep cultivation XP and legacy techniques to a chosen apprentice.
+- **Sect Heritage Art Creation (`synthesizeSectArt`)**: Masters or elders at Stage 4+ combine 2 known techniques to synthesize a permanent Sect Heritage Art (`isSectHeritage: true`, up to 6 arts in sect scripture library).
+
 ---
 
-## 10. Bottlenecks & Retraining
-`js/bottleneck.js` (`BN.chanceMod`, `BN.daily`, tribulation-failure wounds) and `js/retraining.js` (cross-sect manual/foundation retraining) consume `CULT.PATHS`; breakthrough pills with `effect.btFor{path,stage}` require exact native path/stage.
+## 10. Bottlenecks, Active Technique Retention & Retraining
+- `js/bottleneck.js` (`BN.chanceMod`, `BN.daily`, tribulation-failure wounds) and `js/retraining.js` (cross-sect manual/foundation retraining) consume `CULT.PATHS`; breakthrough pills with `effect.btFor{path,stage}` require exact native path/stage.
+- **Active Technique Pruning & Protected Arts (`CULT.pruneExcessActiveTechs` in `js/cultivation.js` lines 2363–2405)**:
+  - Active technique capacity: `CULT.maxTechs(npc) = 2 + Math.round(CULT.normalizedStage(npc))`.
+  - When active techniques exceed capacity, excess techniques are evaluated via `CULT.techRetentionScore(npc, t)`:
+    - **Absolute Retention Immunity (`score = 1e9`)**: `t.legendary`, `t.isSectHeritage`, and `t.innateOnly` are strictly protected and **NEVER pruned**.
+    - Replaceable techniques are scored by `(t.tier || 1) * 120 + (t.power || 0) + subMatch (90) + pathMatch (35) + mastery * 0.8`. Lowest scores are forgotten first.
 
 ---
 
