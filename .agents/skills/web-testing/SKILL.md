@@ -1,11 +1,13 @@
 ---
 name: web-testing
-description: Write and execute headless Node.js VM tests (test/load.js) and Chromium CDP browser tests (tools/cdp_playwright.js) for JianghuSect Evolution.
+description: Write and execute headless Node.js VM tests (test/load.js) and Chromium CDP browser tests (tools/cdp_playwright.js) for JianghuSect Evolution v2.0.17.
+origin: jianghusect-custom
+category: qa-testing
 ---
 
-# JianghuSect Evolution — Headless Node VM, JSDOM & Chromium CDP Testing Blueprint (`test/load.js`, `tools/cdp_playwright.js`)
+# JianghuSect Evolution (v2.0.17) — Headless Node VM, JSDOM & Chromium CDP Testing Blueprint (`test/load.js`, `tools/cdp_playwright.js`)
 
-This skill covers how to test both headless simulation logic (`test/load.js`) and browser DOM/Canvas UI (`js/ui.js`, `js/render.js`, `js/main.js`) in **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**, including Termux/Android headless environments.
+This skill covers how to test both headless simulation logic (`test/load.js`) and browser DOM/Canvas UI (`js/ui.js`, `js/render.js`, `js/main.js`) in **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**, including Termux/Android headless environments.
 
 ---
 
@@ -17,7 +19,7 @@ This skill covers how to test both headless simulation logic (`test/load.js`) an
 const g = require('./load.js');
 const assert = require('assert');
 
-const W = g.SIM.create('seed_123', { masterIdx: 0, archetype: 'sword' });
+const W = g.SIM.create('seed_123', { masterIdx: 0 });
 for (let i = 0; i < 1440; i++) g.SIM.tick(W); // Simulate 1 full game day (1,440 minutes)
 assert.strictEqual(W.day, Math.floor(W.t / 1440));
 ```
@@ -27,7 +29,7 @@ assert.strictEqual(W.day, Math.floor(W.t / 1440));
 
 ## 2. Testing `js/ui.js` & `js/render.js` in Node.js (Lightweight DOM Mock)
 
-When testing `js/ui.js` (such as `UI.rEdit`, `UI.rSect`, `UI.rWorld`, `UI.linkify`, `UI.resolveItemAtlasCell`) without launching a full browser, follow the pattern in `test/test_player_edit_hub.js` and `test/test_wuxia_sprite_atlas_grid.js`:
+When testing `js/ui.js` (such as `UI.rEdit`, `UI.rSect`, `UI.rWorld`, `UI.linkify`, `UI.resolveItemAtlasCell`) without launching a full browser, follow the pattern in `test/inventory_grid_ui_suite.js` and `test/phase2_edit_hub_inventory.js`:
 
 ```javascript
 const g = require('./load.js');
@@ -41,7 +43,13 @@ if (!g.document) {
       addEventListener(){}, querySelectorAll: () => []
     }),
     querySelectorAll: () => [],
-    createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ({ fillRect(){}, clearRect(){}, drawImage(){}, beginPath(){}, arc(){}, fill(){}, stroke(){}, measureText: () => ({ width: 10 }) }) })
+    createElement: () => ({
+      width: 0, height: 0, style: {},
+      getContext: () => ({
+        fillRect(){}, clearRect(){}, drawImage(){}, beginPath(){},
+        arc(){}, fill(){}, stroke(){}, measureText: () => ({ width: 10 })
+      })
+    })
   };
   g.window = g;
   g.performance = g.performance || { now: () => Date.now() };
@@ -58,7 +66,15 @@ if (!g.document) {
 
 When full browser layout, computed CSS styles (`getBoundingClientRect()`), Canvas pixel rendering, or touch/pointer event verification is needed:
 - `GAME_SOURCE/tools/cdp_playwright.js` provides a zero-dependency WebSocket Chrome DevTools Protocol (CDP) client that connects to headless Chromium (`chromium --headless --remote-debugging-port=9222`).
-- Use `GAME_SOURCE/tools/audit_ui_headless.js` to verify:
+- Used to verify:
   - Zero uncaught `pageerror` or `console.error` exceptions on boot (`index.html` and `JianghuSect_single.html`).
   - Zero horizontal/vertical overflow across mobile (`390×844`, `412×915`) and desktop (`1280×800`) viewports.
   - All drawers (`people`, `sect`, `log`, `world`, `edit`, `menu`, `npc`, `building`) open and switch tabs cleanly.
+
+---
+
+## 4. Termux / Android Headless Environment Guardrails
+
+- **Environment Realities:** Standard Termux environments do not ship with desktop Chromium or Playwright browser binaries.
+- **Graceful Execution:** Browser-dependent tests (such as `test/perf.js` or `tools/cdp_playwright.js`) should detect missing browser binaries and exit with an environmental notice rather than breaking test runs.
+- **100% Node Native Support:** All core simulation suites, schema validator (`tools/validate_data_schema.js`), single-file bundler (`tools/build_single.js`), and Node VM frame pacing harness (`test/runtime_timing.js`) run 100% natively in Node.js on Termux without any browser dependencies.

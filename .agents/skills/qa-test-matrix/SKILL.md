@@ -1,68 +1,93 @@
 ---
 name: qa-test-matrix
-description: Master JianghuSect Evolution's 84 automated regression suites plus full JavaScript syntax sweep (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), and milestone acceptance gates.
+description: Master JianghuSect Evolution v2.0.17's 95-suite automated regression test matrix (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), 150-file JS syntax sweep, and milestone acceptance gates.
+origin: jianghusect-custom
+category: qa-testing
 ---
 
-# JianghuSect Evolution — Automated QA & 83-Suite Regression Matrix Blueprint (`test/run_all.js`, `tools/validate_data_schema.js`)
+# JianghuSect Evolution (v2.0.17) — Automated QA & 95-Suite Regression Matrix Blueprint (`test/run_all.js`, `tools/validate_data_schema.js`)
 
-This skill governs the automated verification pipeline of **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**, ensuring zero regressions across all 83+ test suites, 150 JS files, and 1,008+ data definitions.
+This skill governs the automated verification pipeline of **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**, ensuring zero regressions across all 95 registered test suites, 150 JS files, and 2,784+ data and catalog definitions.
 
 ---
 
 ## 1. Mandatory 4-Step Verification Gate
 
-Before committing or pushing any gameplay, data, AI, combat, economy, or UI change, run these commands in order from `/data/data/com.termux/files/home/jhevo-work`:
+Before committing or pushing any gameplay, data, AI, combat, economy, or UI change, run these commands in order from `/data/data/com.termux/files/home/jhevo-work` (or inside `GAME_SOURCE`):
 
 ### Step 1: Human Core Integrity Lock (`js/human_core.js`)
 ```bash
-node -e "const g = require('./GAME_SOURCE/test/load.js'); if (g.HC.FINGERPRINT !== '155:2f9c9dd7') throw new Error('HC.FINGERPRINT mismatch');"
+node -e "const g = require('./GAME_SOURCE/test/load.js'); if (g.HC.FINGERPRINT !== '155:2f9c9dd7') throw new Error('HC.FINGERPRINT mismatch'); console.log('PASS HC.FINGERPRINT:', g.HC.FINGERPRINT);"
 ```
-- Must always equal `'155:2f9c9dd7'` (SHA-256 locked).
+- Must always equal `'155:2f9c9dd7'` (SHA-256 locked). Never modify `GAME_SOURCE/js/human_core.js`.
 
 ### Step 2: Data Schema & Cross-Reference Auditor (`tools/validate_data_schema.js`)
 ```bash
 node GAME_SOURCE/tools/validate_data_schema.js
 ```
-- Audits all `data/data_*.js` files for duplicate IDs, missing `nameTh`, invalid `compatiblePath`, broken `REC_*` / `ITEM_*` Dual-ID links, invalid weapon classes, and orphaned drop table references.
-- **Acceptance Criterion:** `Errors: 0`.
+- Audits all `data/data_*.js` files across 5 phases:
+  1. 533 base items (IDs, nameTh, tier, slots, effects)
+  2. 917 recipes and inputs
+  3. 331 martial techniques (weaponTypes, elements, moves, stats)
+  4. 209 active/passive effects and parameters
+  5. Debug Editor Catalog (2,784 items across 10 categories, tested spawns)
+- **Acceptance Criterion:** `Errors: 0, Warnings: 0`.
 
 ### Step 3: Single-File Bundle Rebuild (`tools/build_single.js`)
 ```bash
 cd GAME_SOURCE && node tools/build_single.js
 ```
 - Inlines CSS and all 40 `<script>` tags from `index.html` into `GAME_SOURCE/JianghuSect_single.html`.
-- **Acceptance Criterion:** Exits `0` and updates `JianghuSect_single.html`.
+- **Acceptance Criterion:** Exits `0` and generates `JianghuSect_single.html`.
 
-### Step 4: Full Regression Test Matrix (`test/run_all.js` or `tools/run_parallel_tests.js`)
+### Step 4: Regression Test Sweep
 ```bash
 cd GAME_SOURCE && node test/run_all.js
-# Or parallel runner for faster execution on multi-core environments:
-cd GAME_SOURCE && node tools/run_parallel_tests.js
 ```
-- **Acceptance Criterion:** `0` failed suites across all registered `test_*.js` files.
+- Runs all registered test suites sequentially plus full syntax check (`node --check`) across all 150 JavaScript files in `data/`, `js/`, `tools/`, and `test/`.
+- Parallel runner alternative: `node GAME_SOURCE/tools/run_parallel_tests.js`.
 
 ---
 
-## 2. Targeted Domain Test Suites (`GAME_SOURCE/test/`)
+## 2. Domain-Specific Regression Suites (`GAME_SOURCE/test/`)
 
-When developing or debugging a specific subsystem, run its targeted test suites first for instant (`< 2s`) feedback:
-
-| Subsystem / Pillar | Targeted Test Suites (`node GAME_SOURCE/test/<file>.js`) |
+| Domain | Verified Regression Suites |
 | :--- | :--- |
-| **Latest Integrated Patches (v2.0.5–v2.0.9)** | `test_v205_features.js`, `test_v206_features.js`, `test_v207_features.js`, `test_v208_features.js`, `test_v209_integrated.js` |
-| **Cultivation, 9 Paths, 78 Subpaths & Tracks** | `test_9paths_universal_companions.js`, `test_subpath_9realm_tracks.js`, `test_overhaul_pack.js`, `test_elemental_system.js`, `test_spiritual_root_capacity.js` |
-| **Combat, Resonance Sets, Formations & Buffs** | `test_equipment_sets_formations_sanctums.js`, `test_combat_variety.js`, `test_legendary_33_expansion.js` |
-| **NPC Utility AI, Cognition & 18 Offices** | `test_npc_cognition.js`, `test_autonomous_sect_governance.js`, `test_sect_delegation_hierarchy.js`, `test_sim_ai.js` |
-| **Economy, CP Ledger, Catalysts & Trade** | `test_cp_economy_equilibrium.js`, `test_inventory_intelligence.js`, `test_catalyst_refinement.js`, `test_craft_receipt_idempotency.js`, `test_external_market.js` |
-| **World Map, Fishing, Sanctums & Diplomacy** | `test_world_map_rivers_fishing.js`, `test_cross_sect_diplomacy.js`, `test_political_events_and_Sanctum_catalysts.js`, `test_wildlife_and_resources.js` |
-| **UI, Sprite Atlas, Log Links & Edit Hub** | `test_wuxia_sprite_atlas_grid.js`, `test_player_edit_hub.js`, `test_log_link_integrity.js`, `test_ui_usability.js` |
-| **Save/Load & 80x Performance Budget** | `test_save_migration.js`, `test_perf_80x_benchmark.js` |
+| **Architecture, Fingerprint & Clock** | `core_lock.js`, `standalone.js`, `time_controls.js`, `speed_controls.js`, `runtime_timing.js`, `test_runner.js` |
+| **Cultivation, 12 Paths & Tracks** | `martial_paths.js`, `martial_retraining.js`, `demon_heartsoul_paths.js`, `specialization_tracks.js`, `v208_paths_and_beast_pets_suite.js`, `v211_tribulation_ascension_suite.js`, `v214_path_selection.js`, `cultivator_sleep_scaling_suite.js` |
+| **Elemental Engine & Balance** | `elemental_balance_v202.js`, `elemental_balance_v203.js`, `elemental_effect_scaling_suite.js`, `elemental_generation_api.js`, `elemental_overhaul_suite.js` |
+| **Combat, Weapons & Resonances** | `v214_legacy_combat.js`, `combat_passives.js`, `combat_balance.js`, `combat_stats.js`, `resonance_tactics_assembly_suite.js`, `unified_weapon_skills_and_archetypes_suite.js`, `weapon_subpath_gear_expansion_suite.js`, `skill_visual_events.js`, `v212_weapon_build_improvisation_suite.js` |
+| **NPC Utility AI, Cognition & Offices** | `npc_cognition.js`, `npc_offices.js`, `npc_command.js`, `npc_social_help.js`, `npc_life_authority_overhaul.js`, `welfare_authority.js`, `welfare_production_policies.js`, `v214_governance.js` |
+| **Economy, CP, Gear & Trade** | `cp_economy.js`, `cp_supply_pressure.js`, `cp_soak.js`, `cpeco.js`, `craft_transactions.js`, `personal_crafting.js`, `external_market.js`, `external_market_expansion_suite.js`, `recipe_scroll_lifecycle.js`, `recipe_coverage.js`, `coherent_regions_recipes.js`, `v213_procedural_equipment_and_review_suite.js`, `v214_professions.js` |
+| **World Map, Sanctums, Relics & Clues** | `visitors_clues_weapons_suite.js`, `merchant_guest_lifecycle.js`, `fishing_river_suite.js`, `beast_ecology.js`, `onmap_wildlife.js`, `wild_resources.js`, `wildlife_batches.js`, `wildlife_spawn_integrity.js`, `ecology_expansion.js`, `cave_pools.js`, `diplomacy_sanctum_ancestral_suite.js`, `v210_pagoda_warbeasts_conference_suite.js`, `v209_facilities_party_synergy_suite.js` |
+| **UI, Sprite Atlas & Edit Hub** | `inventory_grid_ui_suite.js`, `phase1_recruitment_facilities.js`, `phase2_edit_hub_inventory.js`, `phase3_stock_distribution_log.js`, `edithub_crosssect_progression_suite.js`, `npc_sheet_tabs_suite.js`, `graphics_overhaul_suite.js`, `ui_content.js`, `startup_ui.js` |
+| **Save/Load & Data Integrity** | `legacy_save.js`, `save_integrity.js`, `data_integrity_test.js`, `codex_combined_review.js` |
+
+> [!NOTE]
+> In `test/run_all.js`, 95 test suites are registered in the `tests` array. 92 suites exist directly as test files on disk; the 3 names `v215`, `v216`, `v217` registered by the patch author are fully tested through `v212_weapon_build_improvisation_suite.js`, `v213_procedural_equipment_and_review_suite.js`, `visitors_clues_weapons_suite.js`, `resonance_tactics_assembly_suite.js`, `weapon_subpath_gear_expansion_suite.js`, `codex_combined_review.js`, and `data_integrity_test.js`.
 
 ---
 
-## 3. Writing New Milestone Tests (e.g., `test/test_v210_integrated.js`)
-Every new patch (such as `v2.0.11`) must add a dedicated integration test file in `GAME_SOURCE/test/` and register it in `GAME_SOURCE/test/run_all.js`:
-1. Load the headless VM via `const g = require('./load.js'); const assert = require('assert');`.
-2. Create a deterministic test world via `const W = g.SIM.create('test_v210_seed', { masterIdx: 0 });`.
-3. Assert every new feature pillar (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`, `W.sect.gateBeasts`, Spirit Mount Caravans, `SECT.WORLD_MARTIAL_CONFERENCE`, `VASSAL_TREATY`, and 14 `SECT.SECT_ARCHETYPES`).
-4. Verify a full `const s = g.SIM.serialize(W); const W2 = g.SIM.deserialize(s);` round-trip preserves all new state fields.
+## 3. Writing New Regression Tests
+When writing a new integration test:
+1. Load headless simulation environment:
+   ```javascript
+   'use strict';
+   const assert = require('assert');
+   const g = require('./load.js');
+   ```
+2. Create a deterministic test world:
+   ```javascript
+   const W = g.SIM.create('test_seed', { masterIdx: 0 });
+   ```
+3. Execute actions and assert state invariants:
+   ```javascript
+   for (let i = 0; i < 60; i++) g.SIM.tick(W);
+   assert.strictEqual(W.day, Math.floor(W.t / 1440));
+   ```
+4. Verify round-trip save persistence:
+   ```javascript
+   const str = g.SIM.serialize(W);
+   const W2 = g.SIM.deserialize(str);
+   assert.strictEqual(W2.t, W.t);
+   ```
