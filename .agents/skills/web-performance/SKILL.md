@@ -1,11 +1,13 @@
 ---
 name: web-performance
-description: Optimize JianghuSect Evolution's HTML5 Canvas 2D renderer (js/render.js), DOM UI panels (js/ui.js), and animation loop (js/main.js) for smooth 60 FPS desktop/mobile browser performance even at 80x simulation speed.
+description: Optimize JianghuSect Evolution v2.0.17's HTML5 Canvas 2D renderer (js/render.js), DOM UI panels (js/ui.js), and animation loop (js/main.js) for smooth 60 FPS desktop/mobile browser performance even at 80x simulation speed.
+origin: jianghusect-custom
+category: rendering-web-performance
 ---
 
-# JianghuSect Evolution — Canvas 2D, DOM & Frame Pacing Blueprint (`js/render.js`, `js/ui.js`, `js/main.js`)
+# JianghuSect Evolution (v2.0.17) — Canvas 2D, DOM & Frame Pacing Blueprint (`js/render.js`, `js/ui.js`, `js/main.js`)
 
-This skill governs rendering performance across `GAME_SOURCE/js/render.js` (3,030 lines), `GAME_SOURCE/js/ui.js` (4,276 lines), and `GAME_SOURCE/js/main.js` (124 lines), ensuring responsive 60 FPS interaction on desktop and mobile browsers even at high simulation speeds (`16×`–`48×+`).
+This skill governs rendering performance across `GAME_SOURCE/js/render.js`, `GAME_SOURCE/js/ui.js`, and `GAME_SOURCE/js/main.js`, ensuring responsive 60 FPS interaction on desktop and mobile browsers even at high simulation speeds (`16×`–`48×+` and `80×`).
 
 ---
 
@@ -29,9 +31,10 @@ This skill governs rendering performance across `GAME_SOURCE/js/render.js` (3,03
 
 ## 2. Canvas 2D Chunk Caching & Frustum Culling (`js/render.js`)
 
-### 2.1 Offscreen Terrain Chunk Cache (`buildChunk` lines 99–220)
-- The `240×192` tile map (`TS = 16` px/tile) is pre-rendered into **`16×16`-tile offscreen `<canvas>` chunks** (`CH = 16`).
-- Chunks are rebuilt lazily only when `W.season` changes or when a chunk enters the camera viewport (`cam.x`, `cam.y`, `cam.z`).
+### 2.1 16×16 Tile Chunk Caching
+- The `240×192` world map is partitioned into `16×16` tile chunk offscreen canvases.
+- Chunks are only re-rendered when terrain or buildings change, flagged via `R.invalidate()`.
+- Frustum culling computes bounding boxes for each chunk and skips drawing any chunks outside the current camera viewport (`cam.x`, `cam.y`, `cam.z`).
 - Never draw individual terrain tiles directly in `R.draw(ts)`; always `ctx.drawImage` visible chunks intersecting the camera frustum.
 
 ### 2.2 Text Measurement & Sprite Caching (`js/render.js` lines 10–20)
@@ -43,19 +46,22 @@ This skill governs rendering performance across `GAME_SOURCE/js/render.js` (3,03
 
 ## 3. DOM & Inventory Rendering Discipline (`js/ui.js`)
 
-1. **HUD Update Throttling (`UI.updateHud(force)` line 429):**
+1. **HUD Update Throttling (`UI.updateHud(force)` lines 430–450):**
    - Never update HUD DOM nodes more than once every `250 ms` unless `force === true`.
    - Selected NPC banner (`#selInfo`) caches its structural state key (`sel.id + ':' + sel.act.id + ':' + sel.rank + ':' + (sel.dead ? 1 : 0)`) on `si.dataset.key` so portraits (`drawPortraits`) and buttons are not recreated when only `#selAct` text changes.
 2. **Single-Pass HTML Construction & Paginated Lists:**
    - Build drawer HTML in a single string (`let h = ...`) and assign `innerHTML` once per tab render.
    - Always paginate large lists:
      - Inventory Grid (`UI.calcGridPageSize()`): `10`–`30` items per page (`cols * rows`) using the single base64 `ITEM_ATLAS_URI` sprite sheet (`background-position` offsets, zero HTTP requests).
-     - Edit Hub Spawner (`SECT.EDITOR.catalogPaginated`): `40` / `80` / `150` items per page out of `1,008` total items.
+     - Edit Hub Spawner (`SECT.EDITOR.catalogPaginated`): `40` / `80` / `150` items per page out of `2,784` total items across 10 categories.
 
 ---
 
-## 4. Verification Checklist
+## 4. Verification Suites
+Run from `GAME_SOURCE/`:
 ```bash
-node GAME_SOURCE/test/test_wuxia_sprite_atlas_grid.js
-node GAME_SOURCE/test/test_perf_80x_benchmark.js
+node test/graphics_overhaul_suite.js
+node test/runtime_timing.js
+node test/browser_mobile_perf.js
+node test/inventory_grid_ui_suite.js
 ```
