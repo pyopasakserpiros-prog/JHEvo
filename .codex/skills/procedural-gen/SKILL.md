@@ -1,11 +1,11 @@
 ---
 name: procedural-gen
-description: Master JianghuSect Evolution v2.0.16 procedural generation - the Procedural Equipment engine (ECO.rollProceduralGear, 12 affixes, single/dual elements, Thai name builder, unique gear UIDs, durability/repair/retire lifecycle, drop sources), deterministic PRNG (U.RNG), 240x192 World Map & Southern Spirit River (js/world_map.js), Ancient Sanctums, 12-floor Nine-Dao Pagoda & Five-Elemental Realms (js/explore.js), Expeditions, Caravans & Sect Raids (js/expedition.js), River Fishing loot (js/fishing.js), Wildlife/Resource ecology.
+description: Master JianghuSect Evolution v2.0.17 procedural generation - the Procedural Equipment engine (ECO.rollProceduralGear, 12 affixes, single/dual elements, Thai name builder, unique gear UIDs, durability/repair/retire lifecycle, drop sources), 21-Relic Trinity & 84 fixed Zither/Brush/Whip weapons, deterministic PRNG (U.RNG), 240x192 World Map & Southern Spirit River (js/world_map.js), Ancient Sanctums, 12-floor Nine-Dao Pagoda & Five-Elemental Realms (js/explore.js), Expeditions, Caravans & Sect Raids (js/expedition.js), River Fishing loot (js/fishing.js), Wildlife/Resource ecology.
 origin: jianghusect-custom
 category: world-procgen-exploration
 ---
 
-# JianghuSect Procedural Generation (v2.0.16): Random Gear Engine, World, Exploration & Ecology
+# JianghuSect Procedural Generation (v2.0.17): Random Gear Engine, World, Exploration & Ecology
 
 ## Purpose
 Source-verified spec for everything *generated* in JHEvo: **randomised equipment instances** (`GAME_SOURCE/js/economy.js`), plus dungeons/trials, expeditions, raids, fishing, ecology (`js/explore.js`, `js/expedition.js`, `js/world_map.js`, `js/fishing.js`, `js/wildlife.js`, `js/wild_resources.js`, `js/visitors_clues.js`, `js/external_market.js`).
@@ -126,9 +126,12 @@ METAL, WOOD, WATER, FIRE, EARTH (basePower 180–200, 3 floors × `*(1+(floor-1)
 ## 5. World Map, River Fishing, 21-Relic Trinity & Living Clues (`js/visitors_clues.js`)
 - `MAP.W=240, MAP.H=192`; Southern Spirit River with 3 bridges and path-reachable `kind:'fish'` stations.
 - `js/fishing.js`: ~90% fish / ~10% container (≈50% trash, ≈49.55% ordinary, ≈0.45% unique legendary); unique pool via `FISHING.buildEligibleLegendaryPool` and `W.world.claimedLegendaries` (strictly non-duplicating; ordinary fallback when exhausted).
-- **Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT` - v2.0.17)**:
-  - `LEGENDARY_WEAPONS` (14): covers all 10 weapon types (`SWORD`, `BLADE`, `SPEAR`, `FIST`, `BOW`, `STAFF`, `FOCUS`, `ZITHER`, `BRUSH`, `WHIP`).
-  - `LEGENDARY_RELICS` (7): 3 Armors (`RELIC_ARMOR_HEAVY_TITAN`, `RELIC_ARMOR_LIGHT_SHADOW`, `RELIC_ARMOR_ROBE_CELESTIAL`) + 4 Accessories (`RELIC_ACC_RING_SAMSARA`, `RELIC_ACC_NECKLACE_BODHI`, `RELIC_ACC_BRACELET_DRAGON`, `RELIC_ACC_CHARM_PRIMORDIAL`).
+- **Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT` in `js/visitors_clues.js` lines 540–865 - v2.0.17)**:
+  - **14 Legendary Weapons (`VC.LEGENDARY_WEAPONS`)**: `LEG_WPN_XUANTIE_HEAVY_SWORD`, `LEG_WPN_YITIAN_SWORD`, `LEG_WPN_TULONG_SABER`, `LEG_WPN_FULL_MOON_SCIMITAR`, `LEG_WPN_XIAOLI_HEART_DAGGER`, `LEG_WPN_DAGOU_JADE_STAFF`, `LEG_WPN_OVERLORD_SPEAR`, `LEG_WPN_OATHBREAKER_DRAGON_LANCE`, `LEG_WPN_WRATHFUL_TIGER_GAUNTLETS`, `LEG_WPN_CONDOR_METEOR_BOW`, `LEG_WPN_PEACOCK_PLUME_FOCUS`, `LEG_WPN_JIUXIAO_PHOENIX_ZITHER`, `LEG_WPN_CHUNQIU_JUDGMENT_BRUSH`, `LEG_WPN_TIANCAN_FATE_WHIP` (covers all 10 weapon types).
+  - **3 Legendary Armors (`VC.LEGENDARY_ARMORS`)**: `LEG_ARM_CELESTIAL_CRANE_ROBE` (`ROBE`, Tier 7), `LEG_ARM_SHADOW_KIRIN_CUIRASS` (`LIGHT`, Tier 7), `LEG_ARM_IMMORTAL_TORTOISE_PLATE` (`HEAVY`, Tier 7).
+  - **4 Legendary Accessories (`VC.LEGENDARY_ACCESSORIES`)**: `LEG_ACC_SAMSARA_KARMA_RING` (`RING`, Tier 7), `LEG_ACC_BODHI_STARLIGHT_BEADS` (`NECKLACE`, Tier 7), `LEG_ACC_TAICHI_HEAVEN_SEAL` (`CHARM`, Tier 7), `LEG_ACC_DRAGON_PHOENIX_BANGLE` (`BRACELET`, Tier 7).
+  - **Relic Star Attunement (`attunedStars` 1–3 ★)**: Refining a Legendary Relic or T6+ gear via `ECO.refineGearWithCatalyst` unlocks `1★` (`q >= 1.48`), `2★` (`q >= 1.62`), and `3★` (`q >= 1.75`), scaling 2/3 and 3/3 Trinity Resonance (`starScale = 1 + stars * 0.03`).
+  - **84 Canonical Fixed Weapons & 9 Materials (`data/data_martial.js` lines 45920–46180)**: `EQ_V215_ZITHER_01_T1`..`28_T7`, `EQ_V215_BRUSH_01_T1`..`28_T7`, `EQ_V215_WHIP_01_T1`..`28_T7` (4 weapons per tier T1–T7 for each type) + `REC_V215_*` recipes and 9 specialized crafting materials (`MAT_ZITHER_PARASOL_WOOD_1`, `MAT_ZITHER_ICE_SILK_STRING_3`, `MAT_ZITHER_PHOENIX_HEARTWOOD_5`, `MAT_BRUSH_SPIRIT_WEASEL_HAIR_1`, `MAT_BRUSH_STARLIGHT_CINNABAR_3`, `MAT_BRUSH_DRAGON_WHISKER_JADE_5`, `MAT_WHIP_IRON_SILKWORM_THREAD_1`, `MAT_WHIP_SHADOW_PYTHON_TENDON_3`, `MAT_WHIP_KARMIC_RED_SILK_5`).
   - **62 Living Clue Templates (`VC.CLUE_TEMPLATES`)**: Living clue rumors dynamically generate across the Jianghu tavern and wandering visitors, leading to legendary discovery expeditions.
 - Wildlife/resources: `js/wildlife.js`, `js/wild_resources.js` (on-map spawn integrity, ecology).
 

@@ -1,11 +1,11 @@
 ---
 name: progression-design
-description: Structure, extend, and balance JianghuSect Evolution v2.0.16 progression - 12 Major Cultivation Paths (XIAN, BODY, GOD, DEMON, HEART_SOUL, MECH_PUPPET, KARMA_SAMSARA, BEAST_SOVEREIGN, SAGE_SUPPORT, CRAFT_CREATION, ARRAY_TALISMAN, STRATEGY_GOVERNANCE), 96 Subpaths, path selection (CULT.choosePath), Stage Equivalence (4/5/8/9-stage scales), 69 Specialization Tracks, Heavenly Tribulation & Ascension, 12-Floor Nine-Dao Pagoda, Elemental Realms, Bottlenecks, Retraining, and Spirit Beast lifecycle (js/cultivation.js, js/explore.js, js/sect.js).
+description: Structure, extend, and balance JianghuSect Evolution v2.0.17 progression - 12 Major Cultivation Paths (XIAN, BODY, GOD, DEMON, HEART_SOUL, MECH_PUPPET, KARMA_SAMSARA, BEAST_SOVEREIGN, SAGE_SUPPORT, CRAFT_CREATION, ARRAY_TALISMAN, STRATEGY_GOVERNANCE), 96 Subpaths, path selection (CULT.choosePath), Stage Equivalence (4/5/8/9-stage scales), 69 Specialization Tracks, Heavenly Tribulation & Ascension, Mentorship & Sect Heritage Arts (SECT.MENTORSHIP), Living Jianghu & Karma Bonds (SECT.JIANGHU), 12-Floor Nine-Dao Pagoda, Elemental Realms, Bottlenecks, Retraining, and Spirit Beast lifecycle (js/cultivation.js, js/explore.js, js/sect.js).
 origin: jianghusect-custom
 category: cultivation-progression
 ---
 
-# JianghuSect Progression (v2.0.16): 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension & Pagoda
+# JianghuSect Progression (v2.0.17): 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension, Mentorship & Living Jianghu
 
 ## Purpose
 Source-verified progression spec for `GAME_SOURCE/js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js`, `js/sect.js`, `js/explore.js`, `js/expedition.js`, `data/data_cult.js`, `data/data_martial.js`.
@@ -127,11 +127,23 @@ Despite the name there are **12 floors**, one per major path (all paths enter an
 - Success: inscribe ascended legacy tablet (`tablet.ascended`), `cult.ascended`, `ascendedLegacyCount++` → permanent sect cultivation `SECT.ascensionCultivationMultiplier = 1 + min(5,count)*0.01` (cap +5%), retire cultivator (not death). Failure: recoverable, `ascensionAttempts++`.
 - Resolve participants by saved IDs; release survivors on every outcome; if ascendant is Sect Master, finish succession **before** `SIM.retire`.
 
-### 9.1 Mentorship & Sect Heritage Arts (`SECT.MENTORSHIP` in `js/sect.js` lines 4530–4850)
-- **Direct Disciple Bonds (`formBond`)**: Registers `mentor.h.life.family.disciples` and `disciple.h.life.family.master`, granting shared path/subpath coaching bonuses.
-- **Master Coaching (`coachDisciple`)**: Mentor spends Qi to grant disciple cultivation XP and imprint techniques (`mentorImprint`), unlocking faster mastery and breakthrough resilience.
-- **Qi Transmission (`transmitQi`)**: Dying-wish or pre-ascension ceremony transferring deep cultivation XP and legacy techniques to a chosen apprentice.
-- **Sect Heritage Art Creation (`synthesizeSectArt`)**: Masters or elders at Stage 4+ combine 2 known techniques to synthesize a permanent Sect Heritage Art (`isSectHeritage: true`, up to 6 arts in sect scripture library).
+### 9.1 Mentorship, Qi Transmission & Sect Heritage Arts (`SECT.MENTORSHIP` in `js/sect.js` lines 4494–4843)
+- **Direct Disciple Bonds (`MENTORSHIP.formBond(W, mentor, disciple, opts)`)**:
+  - Links `disciple.mentorId = mentor.id` and `mentor.apprenticeIds` (`MAX_APPRENTICES: 3`), boosts mutual relation `+25`, and auto-pairs unbonded elders (`rank >= 3` or `eqSt >= 4`) with juniors every 5 days (`MENTORSHIP.daily`).
+- **Master Coaching (`MENTORSHIP.coachDisciple(W, mentor, disciple, opts)`)**:
+  - Grants `xpGain = Math.round((18 + eqM * 8) * pathBonus)` cultivation XP (`pathBonus = 1.35` if same path), `+8` mastery on a shared technique (`+18` on a mentor-known technique), reduces `heartDemon` by `4`, and applies `mentorGuidance` (`180m`, `+10%` combat stats, `+18%` cultRateBonus, `+8%` btBonus).
+- **Qi Transmission (`MENTORSHIP.transmitQi(W, mentor, disciple, opts)`)**:
+  - Dying-wish or pre-ascension ceremony granting `surgePts = Math.round((65 + eqM * 32) * (dyingWish || preAscension ? 1.45 : 1.0))` cultivation XP, inheriting the mentor's highest-tier technique at `mastery >= 55`, and writing permanent `disciple.mentorImprint` (`p: { atk/matk/def/mdef: +4% }`, `cultRateBonus: +8%`, `btBonus: +4%`, consumed in `STATS.compute` and `SECT.CELESTIAL_TRIBULATION`).
+- **Sect Heritage Art Creation (`MENTORSHIP.synthesizeSectArt(W, creator, opts)`)**:
+  - Requires `equivalentStage >= 5` or `rank >= 4`. Synthesizes a dynamic T4–T7 `COMBAT_TECHNIQUE` (`id: 'HERITAGE_SECT_ART_' + seq`, `isSectHeritage: true`) tailored to the creator's equipped weapon (`SWORD`..`WHIP`), path (`command` / `harmonize` / `karmaReversal` / `blink` / `burst`), and primary element, registering it via `CULT.registerDynamicTech` and adding it to `W.sect.library` (`+25%` study speed for all sect disciples).
+
+### 9.2 Living Jianghu, Rumor Tavern & Karma/Nemesis Web (`SECT.JIANGHU` in `js/sect.js` lines 4845–5078)
+- **Tavern Rumors (`JIANGHU.refreshTavernRumors`, `JIANGHU.investigateRumor`)**:
+  - Rotates up to `MAX_RUMORS: 6` active rumors across 5 archetypes (`MIRAGE_SANCTUM`, `WANDERING_GRANDMASTER`, `ESCORT_COMMISSION`, `TREASURE_AUCTION`, `NEMESIS_INTEL`), rewarding Spirit Stones, CP, cultivation insight, and T5 crafting materials (`MAT_ZITHER_PHOENIX_HEARTWOOD_5`, `MAT_BRUSH_DRAGON_WHISKER_JADE_5`, `MAT_WHIP_KARMIC_RED_SILK_5`, `MAT_ORE_METEOR_IRON_5`, `MAT_HERB_SNOW_LOTUS_5`).
+- **Karma Bonds (`JIANGHU.recordKarmaBond`, `MAX_BONDS: 32`)**:
+  - Tracks `SWORN_ALLY`, `BENEFACTOR`, `RIVAL`, and `NEMESIS` bonds in `W.world.jianghu.karmaBonds` and `npc.karmaBonds`.
+  - **`JIANGHU.triggerAllyAid`**: Sworn allies/benefactors gift `160` Spirit Stones, `2×` T5 materials, `fervorMight` (`90m`), and `+18` cultivation insight, and deploy up to 2 raid defenders (`ALLY_<raidId>_<seq>`) during sect raids (`js/expedition.js` lines 823–842).
+  - **`JIANGHU.triggerNemesisChallenge`**: Resolves a gate duel (`SECT.simulateAssemblyBout`); winning reduces `grudge` (`-55`) and can convert the nemesis into a `SWORN_ALLY` (`affinity: 78`) when `charisma >= 52` or `integrity >= 52`.
 
 ---
 

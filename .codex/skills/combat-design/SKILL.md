@@ -138,6 +138,8 @@ In addition to standard `MARTIAL.suitability`, `MARTIAL.evaluateSubEquipmentBonu
   - `BRACELET`: `p: { atk: +4%, def: +4% }`, `f: { cast: 4 }`
   - `CHARM`: `p: { matk: +5%, mdef: +4% }`, `f: { acc: 6 }`
 - Returns: `{ active, matchedCount (1..3), weaponMatched, armorMatched, accessoryMatched, p, f, reasonsTh, summaryTh }`.
+- **Complete 96-Subpath Technique Synergies (`MARTIAL.SYNERGIES` in `data/data_martial.js` lines 46551–46583)**:
+  - Every one of the **96 subpaths** now has an active synergy entry in `M.SYNERGIES` (`SYN_V215_<SUB_ID>`), granting subpath-matched combat multipliers (`atk`, `matk`, `def`, `mdef`, `crit`, `pen`, `cast`, `acc`) when the NPC equips their subpath's core/innate/signature techniques.
 
 ### 3.3 The 26 Move Archetypes (`SK.ARCH` in `js/skills.js` lines 11–39)
 Every martial technique (`tech.arch`) resolves into one of **26 combat move archetypes**:
@@ -166,6 +168,11 @@ The **21 Legendary Relics (`VC.LEGENDARY_EQUIPMENT`: 14 Weapons + 3 Armors + 4 A
   - `qiCostMult = 0.80` (-20% Qi skill cost)
   - `procChanceMult = 1.25` (+25% legendary special effect chance)
   - `trinitySurge: true`
+- **Trinity Surge Combat Proc (`EFX_TRINITY_RELIC_SURGE` — `ปราณไตรรัตนะสะท้อนสวรรค์` in `js/visitors_clues.js` lines 1242–1269)**:
+  - Triggered in `VC.runWeaponProcs` on skill hit or critical hit when `legRes.trinitySurge === true` (12-tick ICD `_trinitySurgeAt`):
+  - Deals `+18%` bonus damage (`Math.max(12, Math.round(rawDmg * 0.18))`), restores `+6%` max HP and `+6%` max Qi to the attacker, and applies `fervorMight` (`18` ticks).
+- **On-Hit & On-Struck Relic Procs (`VC.runWeaponProcs` & `VC.runWeaponOnStruckProcs` in `js/visitors_clues.js` lines 1138–1365)**:
+  - Evaluates equipped Legendary Weapon (`LEG_WPN_*`), Armor (`LEG_ARM_*`), and Accessory (`LEG_ACC_*`) special effects (`EFX_LEG_*`), scaling trigger probability by `legRes.procChanceMult` (`1.15×` at 2/3, `1.25×` at 3/3).
 - **Star Attunement Multiplier (`starScale = 1 + stars * 0.03`)**:
   - `stars` is the sum of `it.attunedStars` (1–3 ★ per relic) unlocked by refining legendary/T6+ gear with Sanctum Catalysts (`ECO.refineResonanceGear` at `newQ >= 1.48 / 1.62 / 1.75`).
 
