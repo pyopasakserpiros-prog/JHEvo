@@ -1,26 +1,25 @@
-# JianghuSect Evolution — v2.0.14
+# JianghuSect Evolution — v2.0.17
 
-Playable cultivation and sect-management game. This working branch integrates the user's v2.0.13 source from the Gemini branch archive, followed by v2.0.14.
+Playable cultivation, sect-management, and martial warfare game. This working branch integrates **v2.0.17** (Deep Cohesion, Universal 21-Relic Trinity, 2-Piece/3-Piece Legendary Relic Resonance, Relic Star Attunement, Cross-Path Mentorship, Dying-Wish Qi Transmission, and Sworn Ally Raid Reinforcements).
 
 - Play: [standalone HTML](GAME_SOURCE/JianghuSect_single.html)
 - Source and tests: [GAME_SOURCE](GAME_SOURCE/)
-- Current implementation and validation: [v2.0.14 report](PATCH_IMPLEMENTATION_REPORT_V2_0_14.md)
-- AI instructions: [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), [AGENTS.md](AGENTS.md)
+- Current implementation and validation: [v2.0.17 report](PATCH_IMPLEMENTATION_REPORT_V2_0_17.md)
+- Active next patch assignment: [v2.0.18 assignment](NEXT_PATCH_PROMPT_V2_0_18_EN.md)
+- AI developer instructions: [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), [AGENTS.md](AGENTS.md)
 
-Earlier v2.0.10–v2.0.12 prompts and coverage documents are historical references; inspect implemented source before proposing more work.
+## v2.0.17 Highlights
 
-## v2.0.11 highlights
-
-- Heavenly Tribulation & Ascension opens from the Ancestral Shrine for any path at its own maximum stage (equivalent stage 9), with three-day sect preparation, support roles, and optional medicine.
-- Ascension leaves a shrine legacy and a permanent cultivation bonus capped at 5%; failed trials are recoverable and separate from death.
-- Design audit limits ancestral blessing refreshes, enforces the 90-day elemental realm rotation, and reserves vassalization for formal rival feuds.
-- Existing v2.0.10 systems remain, including the universal Pagoda, elemental realms, war-beasts, mounts, and triennial martial conference.
+- **Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT`):** Complete coverage across all 17 equipment types (14 weapons, 3 armors, 4 accessories) with 62 living clue templates.
+- **2-Piece & 3-Piece Legendary Relic Resonance (`MARTIAL.evaluateLegendaryRelicResonance`):** Two-piece ("ทวิศาสตราเทวะประสาน") and three-piece ("ไตรรัตนะเทวศาสตราบรรพกาล") set resonances with stat multipliers, flat damage mitigation, and wildcard set slot.
+- **Relic Star Attunement (`ECO.attuneLegendaryRelic` 1–3 ★):** Infuse high-tier catalysts to awaken 1 to 3 stars, scaling stats up to +30%.
+- **Cross-Path Mentorship & Dying-Wish Qi Transmission (`SECT.MENTORSHIP`):** Master-apprentice coaching, Sect Heritage Arts preservation, and pre-death cultivation inheritance.
+- **Living Jianghu & Karma Bonds (`SECT.JIANGHU`):** Dynamic sworn allies that arrive as reinforcements during hostile sect raids.
+- **Combat Wiring for Custom Stats & Support AI:** `soul_atk`, `aura_potency`, `command_authority`, and `construct_atk` fully integrated into combat formulas; autonomous NPC heals and timed buffs.
 
 ## Verification
 
-- Data schema validation: passed with 0 errors (1,779 warnings).
-- Full regression run: 85/85 results passed (84 suites plus syntax sweep); Chromium mobile/performance checks included.
-- Patch-specific suite, build, design audit, and recommended follow-up: see the v2.0.11 report.
-- The protected `human_core.js` SHA-256 and exact 40-script-tag invariant remain intact.
-
-The GitHub branch archive is the full-repository download; no duplicate project ZIP is stored in the repository.
+- Data schema validation: passed with 0 errors (0 warnings).
+- Full regression matrix: 95 registered test suites + full 150-file syntax sweep pass 100%.
+- Protected `human_core.js` SHA-256 (`155:2f9c9dd7`) and exact 40-script-tag load order invariant intact.
+- Performance budget: `< 3.0 ms/tick` across 80 active NPCs.
