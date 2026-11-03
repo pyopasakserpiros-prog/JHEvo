@@ -127,10 +127,10 @@ This skill governs the closed-loop economic engine of **JianghuSect Evolution (�
 ## 4. Sanctum & Five-Elemental Refinement Catalysts (`js/economy.js` lines 1055–1218)
 
 ### 4.1 Catalyst Catalog (`ECO.REFINEMENT_CATALYSTS`)
-- **3 Sanctum Catalysts (T4–T6 Gear):**
-  - `CAT_RESONANCE_JADE_4` (`หยกสัจธรรมประสานปราณ`, Tier 4, `minGearTier: 4`, `maxGearTier: 6`, `qualityBoost: +0.14`, `maxQuality: 1.65`, `value: 180`)
-  - `CAT_ASTRAL_ESSENCE_5` (`แก่นดาราบรรพกาล`, Tier 5, `minGearTier: 4`, `maxGearTier: 6`, `qualityBoost: +0.20`, `maxQuality: 1.75`, `value: 320`)
-  - `CAT_PRIMORDIAL_FLAME_6` (`เพลิงต้นกำเนิดสวรรค์`, Tier 6, `minGearTier: 4`, `maxGearTier: 6`, `qualityBoost: +0.28`, `maxQuality: 1.85`, `value: 520`)
+- **3 Sanctum Catalysts (T4–T7 Gear - v2.0.17):**
+  - `CAT_RESONANCE_JADE_4` (`หยกสัจธรรมประสานปราณ`, Tier 4, `minGearTier: 4`, `maxGearTier: 7`, `qualityBoost: +0.14`, `maxQuality: 1.65`, `value: 180`)
+  - `CAT_ASTRAL_ESSENCE_5` (`แก่นดาราบรรพกาล`, Tier 5, `minGearTier: 4`, `maxGearTier: 7`, `qualityBoost: +0.20`, `maxQuality: 1.75`, `value: 320`)
+  - `CAT_PRIMORDIAL_FLAME_6` (`เพลิงต้นกำเนิดสวรรค์`, Tier 6, `minGearTier: 4`, `maxGearTier: 7`, `qualityBoost: +0.28`, `maxQuality: 1.85`, `value: 520`)
 - **5 Five-Elemental Realm Catalysts (T3–T7 Gear, `+0.04` Elemental Resonance Bonus):**
   - `CAT_PRIMORDIAL_METAL` (`แก่นโลหะบรรพกาล`, `element: 'EARTH_METAL'`, `resonantElements: ['EARTH_METAL', 'LIGHTNING']`, `minGearTier: 3`, `maxGearTier: 7`, `qualityBoost: +0.16`, `maxQuality: 1.70`, `value: 210`)
   - `CAT_PRIMORDIAL_WOOD` (`แก่นไม้กำเนิดชีพ`, `element: 'WOOD_LIFE'`, `resonantElements: ['WOOD_LIFE', 'WIND']`, `minGearTier: 3`, `maxGearTier: 7`, `qualityBoost: +0.16`, `maxQuality: 1.70`, `value: 210`)
@@ -138,10 +138,20 @@ This skill governs the closed-loop economic engine of **JianghuSect Evolution (�
   - `CAT_PRIMORDIAL_FIRE` (`แก่นเพลิงชาดบรรพกาล`, `element: 'FIRE'`, `resonantElements: ['FIRE', 'LIGHT_YANG']`, `minGearTier: 3`, `maxGearTier: 7`, `qualityBoost: +0.16`, `maxQuality: 1.70`, `value: 210`)
   - `CAT_PRIMORDIAL_EARTH` (`แก่นปฐพีหยกเร้น`, `element: 'EARTH_METAL'`, `resonantElements: ['EARTH_METAL', 'ASTRAL', 'BLOOD_DEMON']`, `minGearTier: 3`, `maxGearTier: 7`, `qualityBoost: +0.16`, `maxQuality: 1.70`, `value: 210`)
 
-### 4.2 Refinement Pipeline (`ECO.refineGearWithCatalyst(W, gearOrUid, catId, npc, opts)`)
+### 4.2 Refinement Pipeline & Legendary Star Attunement (`ECO.refineResonanceGear` / `refineGearWithCatalyst`)
 - Checks `gTier >= cat.minGearTier && gTier <= cat.maxGearTier` and `oldQ < cat.maxQuality`.
 - If `cat.resonantElements` matches the gear's primary/weighted element (`elementResonant === true`), adds `+0.04` to `cat.qualityBoost` and increments `gear.elementalResonanceCount`.
 - If the gear is `NEUTRAL` (`EXPLICIT_NON_ELEMENTAL`) and refined with an elemental catalyst, attunes `gear.attunedElement` to the refiner's subpath element (if resonant) or `cat.element`.
+- **Legendary & T6+ Star Attunement (1–3 ★ - v2.0.17):**
+  - When refining legendary or T6+ gear, higher quality thresholds unlock Relic Stars:
+    ```javascript
+    if (gear.legendary || gTier >= 6) {
+      const prevStars = gear.attunedStars || 0;
+      const nextStars = newQ >= 1.75 ? 3 : newQ >= 1.62 ? 2 : newQ >= 1.48 ? 1 : prevStars;
+      if (nextStars > prevStars) gear.attunedStars = nextStars;
+    }
+    ```
+  - Unlocked stars scale the entire Primordial Trinity resonance bonuses (`starScale = 1 + stars * 0.03`) in `MARTIAL.evaluateLegendaryRelicResonance`.
 - Scales `gear.combatMult`, `gear.defMult`, and non-rate stats in `gear.st` by `ratio = newQ / Math.max(0.5, oldQ)`, grants craft cultivation (`ECO.grantCraftCultivation`), and marks `STATS.dirty(npc)`.
 
 ---
