@@ -32,3 +32,14 @@ node GAME_SOURCE/tools/validate_data_schema.js
 cd GAME_SOURCE && node tools/build_single.js
 node test/run_all.js
 ```
+
+### Step 4: Follow the Mandatory Patch Delivery Protocol (`AGENTS.md` §4)
+Before delivering any completed release or patch:
+1. **Playable Game:** Rebuild `JianghuSect_single.html`.
+2. **Complete Source:** Fully integrate changes in `GAME_SOURCE/`.
+3. **Tests:** Ensure schema passes with 0 errors and all suites in `test/run_all.js` pass (add new test suites for new features).
+4. **Report:** Write `PATCH_IMPLEMENTATION_REPORT_V<X>.md` documenting every new module, formula, schema, and UI change.
+5. **Living Master Skills:** Update all affected Master Skills in `.agents/skills/<skill>/SKILL.md` (and `.codex/skills/`) so skills always match reality.
+6. **Save Safety:** Validate `SIM.serialize` / `SIM.deserialize` migration integrity without state or memory leakage.
+7. **Clean Docs & Hygiene:** Update `README.md`, update `START_HERE_FOR_AI.md`, and clean obsolete historical prompt files.
+

@@ -52,3 +52,31 @@ node test/run_all.js
 - **Core Lock:** Never modify `GAME_SOURCE/js/human_core.js` (`HC.FINGERPRINT === '155:2f9c9dd7'`, SHA-256 locked).
 - **Script Load Order:** Keep exactly 40 `<script>` tags in `GAME_SOURCE/index.html`; preserve the corresponding data and simulation module load order in `GAME_SOURCE/test/load.js` (which is a CommonJS loader, not an HTML file).
 - **Thai Localization:** All user-facing items, martial arts, recipes, techniques, and `S.add` AI reasons MUST include Thai (`nameTh`).
+- **Performance Budget:** Maintain `< 3.0 ms/tick` across 80 active NPCs (supporting 80x+ simulation speed).
+
+---
+
+## 4. Mandatory Patch Delivery Protocol (Standard Operating Procedure)
+Whenever completing any major release, feature expansion, or patch, the AI agent MUST fulfill all 7 core delivery requirements before declaring completion:
+
+1. **Standalone Playable Game (`JianghuSect_single.html`):**
+   - Execute `cd GAME_SOURCE && node tools/build_single.js` to compile the single-file HTML release. It must load and play in modern desktop and mobile browsers with zero console errors.
+2. **Complete, Clean Source Code (`GAME_SOURCE/`):**
+   - All modules, data tables, CSS, and assets must be committed cleanly. No loose, broken, or half-implemented stubs.
+3. **Rigorous Automated Testing & New Test Suites:**
+   - Run `node GAME_SOURCE/tools/validate_data_schema.js` (must pass with `Errors: 0`).
+   - Run `cd GAME_SOURCE && node test/run_all.js` (all suites must pass with zero regressions).
+   - **New Features Rule:** Every newly introduced mechanic, formula, or subsystem must have a dedicated automated test suite in `GAME_SOURCE/test/`.
+4. **Comprehensive Patch Implementation Report (`PATCH_IMPLEMENTATION_REPORT_V<X>.md`):**
+   - Create a thorough technical report detailing: architectural changes, new constants/formulas, schema modifications, UI features, test results, and performance profiling.
+5. **Continuous Master Skill Synchronization (Living Knowledge Base):**
+   - **Crucial Invariant:** Every time a new system, combat formula, cultivation path, economic loop, UI drawer, or procedural table is added or tuned, the agent **MUST immediately update the matching Master Skills in `.agents/skills/<skill>/SKILL.md` (and mirrored in `.codex/skills/<skill>/SKILL.md`)**. Skills must reflect the true, current state of the engine so that future AI agents never guess or duplicate work.
+6. **Save Compatibility & Serialization Hygiene:**
+   - Verify that saves created in previous baseline versions load cleanly via `SIM.deserialize`.
+   - Ensure transient cache keys (`_`-prefixed) are stripped during serialization (`SIM.serialize`), preventing memory leaks and bloated save payloads.
+7. **Clean Repository Hygiene & Documentation Updates:**
+   - Update `README.md` version tag, release notes, and summary.
+   - Update `START_HERE_FOR_AI.md` baseline version and routing matrix.
+   - Clean obsolete historical patch prompts and outdated temporary logs.
+   - If providing a distribution archive (ZIP), ensure it includes the full playable game, complete source, tests, tools, updated skills, and reports.
+
