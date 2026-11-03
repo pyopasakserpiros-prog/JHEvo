@@ -1,128 +1,143 @@
 ---
 name: procedural-gen
-description: Master JianghuSect Evolution's deterministic PRNG (U.RNG), 240x192 World Map & Southern Spirit River generation (js/world_map.js), Ancient Sanctums, Nine-Dao Pagoda & Five-Elemental Realms (js/explore.js), Expeditions, Caravans & Sect Raids (js/expedition.js), River Fishing Monte Carlo loot tables (js/fishing.js), and Wildlife/Resource ecology (js/wildlife.js, js/wild_resources.js).
+description: Master JianghuSect Evolution v2.0.16 procedural generation - the Procedural Equipment engine (ECO.rollProceduralGear, 12 affixes, single/dual elements, Thai name builder, unique gear UIDs, durability/repair/retire lifecycle, drop sources), deterministic PRNG (U.RNG), 240x192 World Map & Southern Spirit River (js/world_map.js), Ancient Sanctums, 12-floor Nine-Dao Pagoda & Five-Elemental Realms (js/explore.js), Expeditions, Caravans & Sect Raids (js/expedition.js), River Fishing loot (js/fishing.js), Wildlife/Resource ecology.
 origin: jianghusect-custom
 category: world-procgen-exploration
 ---
 
-# JianghuSect World, Exploration, Sanctums, Expeditions & Procedural Generation
+# JianghuSect Procedural Generation (v2.0.16): Random Gear Engine, World, Exploration & Ecology
 
 ## Purpose
-Provide the deep-dive, source-verified engineering specification for **JianghuSect Evolution (JHEvo)** world generation, dungeons/trials, outside expeditions, sect raids, river fishing, and ecology (`GAME_SOURCE/js/explore.js`, `GAME_SOURCE/js/expedition.js`, `GAME_SOURCE/js/world_map.js`, `GAME_SOURCE/js/fishing.js`, `GAME_SOURCE/js/wildlife.js`, `GAME_SOURCE/js/wild_resources.js`, `GAME_SOURCE/js/visitors_clues.js`).
+Source-verified spec for everything *generated* in JHEvo: **randomised equipment instances** (`GAME_SOURCE/js/economy.js`), plus dungeons/trials, expeditions, raids, fishing, ecology (`js/explore.js`, `js/expedition.js`, `js/world_map.js`, `js/fishing.js`, `js/wildlife.js`, `js/wild_resources.js`, `js/visitors_clues.js`, `js/external_market.js`).
 
-Use this skill whenever:
-- Adding or modifying **Ancient Sanctums (`EX.SANCTUMS`, `EX.resolveSanctum`)**, **The Nine-Dao Trial Pagoda (`EX.NINE_DAO_PAGODA`)**, **Five-Elemental Secret Realms (`EX.ELEMENTAL_REALMS`)**, the 10-floor **Misty Cave (`EX.CAVE_FLOORS`)**, or the 12 **Dimensional Gate Worlds (`EX.WORLDS`)** in `js/explore.js`
-- Modifying **Outside Expeditions (`EXPED.volunteer`, `EXPED.depart`, `EXPED.createParty`)**, **Spirit Mount Caravans**, or **Sect Raid Spawning & Defense (`EXPED.spawnRaid`, `EXPED.rally`, `EXPED.raidEnd`, `W.sect.gateBeasts`)** in `js/expedition.js`
-- Touching the **240×192 World Map**, **Southern Spirit River**, **Fishing Monte Carlo Loot Tables**, **33 Unique Legendary Artifacts**, or **On-Map Wildlife/Resource Nodes**
+**Rule #1: never write a new random-drop routine. Call `ECO.rollProceduralGear`.** Authored items (`JD.ITEMS.items`, minted by `ECO.mintGear`) and procedural instances are two parallel equipment systems; only procedural ones carry `procedural:true`, affixes and wear/repair state.
 
 ---
 
-## 1. Deterministic PRNG Contract (`U.RNG` in `js/util.js`)
-
-1. **Zero `Math.random()` in Gameplay/World Code**:
-   - Every random roll in `explore.js`, `expedition.js`, `fishing.js`, `wildlife.js`, and `world_map.js` MUST use `W.rng` (or a deterministic child `U.RNG(seed)`).
-   - Core API:
-     - `rng.next()` → float in `[0, 1)`
-     - `rng.int(min, max)` → integer in `[min, max]` inclusive
-     - `rng.chance(prob)` → boolean (`rng.next() < prob`)
-     - `rng.pick(array)` → uniform element selection
-     - `rng.weighted(array, weightFn)` → weighted random selection
-     - `rng.shuffle(array)` → in-place deterministic Fisher–Yates shuffle
-     - `rng.gauss(mean, sd)` → Gaussian normal distribution sample
-2. **Replayability & Auditability**:
-   - Exploration runs record structured floor/encounter logs (`ex.journal`, `out.floorLogs`, `W.sect.sanctums.history`) verified by `test/exploration_replay.js`.
+## 1. Deterministic PRNG Contract (`U.RNG`, `js/util.js`)
+- No `Math.random()` in gameplay/world code. Use `W.rng` (or `new U.RNG(seed)`; `rollProceduralGear` falls back to `spec.rng` → `W.rng` → `U.RNG(spec.seed||'proc_gear')`).
+- API: `next()`, `int(min,max)`, `chance(p)`, `pick(arr)`, `weighted(arr, fn)`, `shuffle(arr)`, `gauss(mean, sd)`.
+- Generated instances persist concrete rolls (`st`, `affixes`, `nameTh`, `element*`, `q`, `uid`) — **never re-roll on load**.
 
 ---
 
-## 2. Exploration, Sanctums, Pagoda & Secret Realms (`GAME_SOURCE/js/explore.js` — `EX` / `EXPLORE`)
+## 2. Procedural Equipment Engine (`js/economy.js`)
 
-### 2.1 Sect Exploration Spots (`EX.SPOTS`) & 10-Floor Cave (`EX.CAVE_FLOORS`)
-- **6 Sect Spots**: `stele` (แท่นศิลาจารึก), `spring` (น้ำพุปราณลับ), `ruin` (ซากเจดีย์ร้าง), `grove` (ป่าสมุนไพรเร้นลับ), `cave` (ถ้ำหมื่นสายหมอก 10 ชั้น), `gate` (ลานประตูมิติสู่แดนหมื่นพิภพ 12 โลก `EX.WORLDS`).
-- **Cave Sampling (`EX.sampleCaveFloor(floor, rng)`)**:
-  - Floors `1..10` each define 3 thematic sub-pools (`config.pools`).
-  - Samples `1` or `2` pools without replacement (`1 + (rng.chance(0.55) ? 1 : 0)`), then picks 1 weighted encounter per pool. Never leaks unvisited pools into discovery logs!
-- **Static Foe Reference Power (`EX.RANK_FOE_POWER`)**:
-  - `{ 1: 95, 2: 480, 3: 2800, 4: 18500 }` — static world calibration (never rubber-banded to player gear).
+### 2.1 Pools & constants (verified v2.0.16, ~lines 1222–1290)
+- `ALL_GEAR_TYPES`: `WEAPON` = SWORD, BLADE, SPEAR, FIST, BOW, STAFF, FOCUS, **ZITHER, BRUSH, WHIP** (10); `ARMOR` = HEAVY, LIGHT, ROBE; `ACCESSORY` = RING, NECKLACE, BRACELET, CHARM → **17 types**, each with a template item `ITEM_PROC_<TYPE>` and recipe `REC_PROC_<TYPE>` (`proceduralOut:true`, `minMastery 8`, `facilityLevel 1`, `compatiblePath 'ANY'`).
+- `PROC_BASE_SCALE = [28, 62, 130, 270]` (tier 1..4). **Random gear is capped at tier 4** (fixed authored gear goes higher).
+- `ALL_ELEMENTS` (11): NEUTRAL, FIRE, WATER_ICE, WIND, EARTH_METAL, WOOD_LIFE, LIGHTNING, LIGHT_YANG, YIN_SHADOW, BLOOD_DEMON, ASTRAL.
+- `ECO.PROCEDURAL_POOLS`: `baseForms[type]` (4–5 Thai base names per type), `gradesByTier` (1 Common/สามัญ, 2 Refined/หลอมปราณีต, 3 Rare/ล้ำค่า, 4 Exceptional/ยอดฝีมือ, each with 4 `prefixes`), `elements[el] = {nameTh, tagTh}`, `affixes[12]`.
 
-### 2.2 Multi-Floor Sanctum / Pagoda Resolution Architecture (`EX.resolveSanctum`)
-Follow the exact resolution pipeline in `EX.resolveSanctum(W, ex, members, opts)` when extending sanctums or building **`EX.NINE_DAO_PAGODA`** and **`EX.ELEMENTAL_REALMS`**:
+### 2.2 The 12 affixes (`ECO.PROCEDURAL_POOLS.affixes`)
+| id | suffixTh | stat | value rule | allowed slots |
+| :--- | :--- | :--- | :--- | :--- |
+| `ferocious_atk` | ขย้ำพยัคฆ์ | atk | `scale 0.22` | WEAPON, ACCESSORY |
+| `profound_matk` | สะท้อนปราณ | matk | `0.22` | WEAPON, ACCESSORY |
+| `bastion_def` | พิทักษ์ผา | def | `0.24` | ARMOR, ACCESSORY, WEAPON |
+| `ward_mdef` | กันอาคม | mdef | `0.24` | ARMOR, ACCESSORY |
+| `vital_hp` | อายุวัฒนะ | hp | `0.36` | ARMOR, ACCESSORY |
+| `lethal_crit` | ผ่าจุดตาย | crit | flat/tier `[2.0,3.4,5.0,6.8]` | WEAPON, ACCESSORY |
+| `savage_critdmg` | สังหารเด็ดขาด | critDmg | `[7,12,18,25]` | WEAPON, ACCESSORY |
+| `piercing_pen` | ทะลวงเกราะ | pen | `[3.0,5.0,7.5,10.5]` | WEAPON, ACCESSORY |
+| `swift_cast` | ร่ายสายฟ้า | cast | `[3.0,5.0,7.5,10.5]` | WEAPON, ARMOR, ACCESSORY |
+| `gale_eva` | เร้นเมฆา | eva | `0.16` | ARMOR, ACCESSORY |
+| `hawk_acc` | เนตรเหยี่ยว | acc | `0.18` | WEAPON, ACCESSORY |
+| `stride_move` | ก้าวท่องลม | move | `[2.5,4.0,5.5,7.5]` | ARMOR, ACCESSORY |
+- Value = `flatByTier[tier-1] * rollFactor * (0.9+q*0.1)` or `baseScale * scale * rollFactor`; `rollFactor = 0.88 + rng*0.28`; rounded to 0.1 and **added** onto `st[stat]`.
+- Slot gating means armor never rolls atk/crit/pen/acc; weapons never roll hp/mdef/eva/move.
 
-1. **Party Formation Synergy Evaluation**:
-   ```javascript
-   const alive = members.filter(m => m && !m.dead);
-   const formSyn = g.COMBAT.evaluateFormationSynergy(alive);
-   // formSyn: { synergies, powerMultiplier, damageMitigation, reflectPct, auraNamesTh }
-   ```
-2. **Between-Floor Support Triage (`fl.floor > 1`)**:
-   - If any living party member is on `SAGE_SUPPORT` path, automatically trigger free party triage between floors via:
-     ```javascript
-     g.CULT.castHealOrBuff(W, supportMember, m, { free: true, healPct: 0.35, buffKey: 'vitalRegen', duration: 300 });
-     ```
-3. **Floor Guardian & Tactical/Resonance Power Calculation**:
-   - Evaluate lead weapon tactics: `const tac = g.COMBAT.resolveWeaponTactics(lead, guardian, { dist: 2.2 });`
-   - Sum party power with 3-piece Equipment Resonance Set bonuses (`MARTIAL.evaluateResonanceSet(m)`) and multiply by `(tac.dmgMult || 1) * (formSyn.powerMultiplier || 1)`.
-   - For **Nine-Dao Trial Pagoda (`EX.NINE_DAO_PAGODA`)**:
-     - 9 Floors corresponding to all **9 Major Paths** (`XIAN`, `BODY`, `GOD`, `DEMON`, `HEART_SOUL`, `MECH_PUPPET`, `KARMA_SAMSARA`, `BEAST_SOVEREIGN`, `SAGE_SUPPORT`).
-     - Any party can clear any floor via `CULT.equivalentStage(m)` and `formSyn.powerMultiplier`; disciples matching the floor's Dao Path receive Dao Resonance Insights (`CULT.gainWisdom`, comprehension/mastery) and 3-piece Resonance Set drops.
-   - For **Five-Elemental Secret Realms (`EX.ELEMENTAL_REALMS`)**:
-     - 5 rotating realms (`EARTH_METAL`, `WOOD_LIFE`, `WATER_ICE`, `FIRE`, `LIGHTNING`/`WIND` or 5 Wu-Xing elements) granting environmental bonuses to matching spiritual roots (`ELEM`) and dropping refinement catalysts (`ECO.REFINEMENT_CATALYSTS[catalystId]` via `ECO.addCatalyst(W, catalystId, 1)`).
-4. **Handover & Return**:
-   - Hand over all collected `out.stones`, `out.mats`, `out.pills`, `out.gear`, `out.techs`, and `out.catalysts` to the sect via `X.handover(W, ex, alive, out)`.
-   - Reset each returning member (`m.away = false`, `m.hidden = false`, `m.travel = null`, `m.expId = null`) and record the run in `W.sect.sanctums.history` (capped at 20 entries).
+### 2.3 `ECO.rollProceduralGear(W, spec)` pipeline
+`spec`: `{slot, gearType, tier, minTier, maxTier, skill, baseQ, element, materialMods, chosenInputs, recipeId, npc, rng, seed, playerSpawned, source}`.
+1. **Slot/type:** valid `spec.slot` else `rng.pick`; `spec.gearType` must be in `ALL_GEAR_TYPES[slot]` else random.
+2. **Tier:** `tierCap = clamp(spec.maxTier || mods.tierCap || 4, 1, 4)`, `minTier = clamp(spec.minTier||1, 1, tierCap)`. If `spec.tier` absent: `raw = 1 + mods.tierShift + (skill/90)*0.65 + (rng-0.35)*1.15` → rounded, clamped `[minTier,tierCap]`.
+3. **Quality:** `baseQ = spec.baseQ ?? 0.88 + rng*0.28 + (tier-1)*0.04`; `q = round(clamp(baseQ + mods.qShift, 0.72, 1.55), 2)`.
+4. **Element:** use `spec.element` if valid; else with `mods.elementBiases` (76% chance pick a bias) else uniform over `ALL_ELEMENTS`. **Secondary** element (≠primary, ≠NEUTRAL): with biases → 45% chance of `biases2[0]`; without → 22% if tier≥3. Profile: NEUTRAL → `{mode:'EXPLICIT_NON_ELEMENTAL'}`; one element → `{mode:'SINGLE', weights:{p:1}}`; two → `{mode:'DUAL', weights:{p:0.7, s:0.3}}`.
+5. **Affix count:** `clamp(1 + (tier≥3) + (rng < 0.18 + affixShift*0.65 + (tier===4?0.35:0)), 1, 3)`; each pick = `rng.weighted` over slot-allowed unused affixes, weight `1 + 2.6` if `mods.statBiases` contains the stat (or `'all'`).
+6. **Stats (`st`):** `baseScale = PROC_BASE_SCALE[tier-1]*q`. WEAPON: primary `atk` = `baseScale*(0.54..0.62)` and `matk` = `*(0.12..0.17)`; **only `FOCUS` swaps them** (matk primary) — ZITHER/BRUSH/WHIP currently roll physical-primary (design note, tune if casters feel weak). ARMOR: `def` (HEAVY .62 / LIGHT .46 / ROBE .38), `mdef` (ROBE .44 else .28), `hp = baseScale*(0.48..0.56)`. ACCESSORY: `hp .28, atk .14, matk .14`. Then **typed bonus** by `gearType` (e.g. SWORD `crit 2.5+0.5t, acc`, BLADE `critDmg`, SPEAR `pen`, HEAVY `def, move -3`, LIGHT `eva, move +4`, ROBE `mdef, cast`, RING `crit, pen`, NECKLACE `hp, def`, BRACELET `cast, acc`, CHARM `mdef, eva`; ZITHER/BRUSH/WHIP/… have none yet), then affixes; all rounded 0.1.
+7. **Multipliers:** `combatMult = (0.052 WEAPON | 0.016 ARMOR | 0.018 ACC) * tier * q * (1 + affixes*0.03)`; `defMult = (0.052 ARMOR | 0.014 WEAPON | 0.016 ACC) * …` (same formula).
+8. **Thai name:** `baseForm + gradePrefix + 'แห่ง' + elTag` (+ `'ผสาน' + secondary.nameTh` for dual; `elTag = element.tagTh`) `+ '·' + firstAffix.suffixTh`. Example: `พู่กันปราชญ์วาดเมฆาปราณควบแน่นแห่งอสนีคราม·ขย้ำพยัคฆ์`.
+9. **Identity & state:** `uid = ECO.nextGearUid(W, 'ITEM_PROC_<TYPE>')` → `uid_<prefix>_<W.sect.gearUidSeq>`; `id='ITEM_PROC_<TYPE>'`, `minStage = tier`, `grade/gradeTh`, `procedural:true`, `dur:100, maxDur:100, repairCount:0, broken:false, retired:false`, `value = round(26*1.92^(tier-1)*q*(1+affixes*0.08))`, `origin{source, day, recipeId, crafterId, materials}`, `playerSpawned` if flagged.
+10. **Resonance tagging (tier ≥ 3):** loops `JD.MARTIAL.RESONANCE_SETS` (31 sets); matches when `slots[slot]` includes `gearType` **and** `elementFamily` includes primary element (or `EXPLICIT_NON_ELEMENTAL` for NEUTRAL) → `resonanceSetIds[]`, `resonanceSetId`.
 
----
+### 2.4 Crafting entry points (forge flow)
+- `ECO.resolveCraftMaterials(W, r, opts, npc)`: recipes with `proceduralOut + slotOptions` pick **one option per slot** (`core` ore sets `tierCap` T2–T4, `elementBias`, `statBias`, `qShift`; `secondary` part adds bias/`affixShift`). Selection: `opts.chosenMats[]` (strict if `strictChosen`) else best score = tier fit (+8 if matches NPC's subpath element) + abundance. Returns `{inputs, chosenOptions, materialMods{tierCap,tierShift,qShift,affixShift,elementBiases[],statBiases[],matIds[]}}` — base `tierCap` is 2.
+- `ECO.finishCraft(W, npc, r, ctx)` (outType EQUIPMENT + `proceduralOut`) → `rollProceduralGear({recipeId, npc, skill, baseQ:q, materialMods, chosenInputs, source:'forge'})` → `ECO.applyArmorArtisan` → push to `W.sect.gear`. Failed craft returns ~40% of inputs per stack.
+- `ECO.previewProceduralCraft(W, recipe, opts, npc)` (UI estimate), `ECO.craftProceduralNow(W, npc, recipe, opts)` (immediate forge: takes inputs, `baseQ = 0.88 + (skill-minMastery)/160 + gauss(0,.05)`, optional `toNpcBag`).
+- **Craft transaction safety:** inputs are reserved via `ECO.reserveInputs` → `registerCraft` (`W.sect.craftTransactions{seq, open{}}` with `materialMods` saved in the receipt) and settled once by `settleCraft`; never consume inputs outside this ledger (save/load idempotency).
+- `ECO.applyArmorArtisan(npc, gear)`: only for armor specialist subpaths (e.g. CELESTIAL_ARMOR_ARTISAN): `+skill/100*8%` def/mdef and `+round(skill*0.12)` maxDur once (`gear.artisan`).
 
-## 3. Outside Expeditions, Spirit Mount Caravans & Sect Raids (`GAME_SOURCE/js/expedition.js` — `EXPED` / `X`)
+### 2.5 Durability, repair & retirement (economic sink)
+- Wear: `ECO.wearGear(it, amount, W, owner)` — non-procedural gear never drops below 1 dur; procedural at 0 → `broken:true`, and `retired:true` if `maxDur ≤ 20`. Sources: combat hit (`js/combat.js` ~479: attacker weapon `0.28`, defender armor `0.24`, accessory `0.12`, × `serious?1:0.35`, ×0.6 for `CRAFT_CREATION` owners, only procedural & not broken) and hourly in-fight wear `0.5` (`js/sim.js` ~353).
+- Repair: `ECO.repairGear(W, gear|uid, stoneId, npc, opts)` with `ECO.REPAIR_STONES` (`ITEM_REPAIR_STONE_1..4`, `maxDurReduction` 25/20/15/10, `minMaxDur` 20, values 18/44/98/215). Repair sets `dur = maxDur = max(20, maxDur - reduction)`, clears broken/retired, `repairCount++`, rejects `already-full`, `dur-above-new-max`, `max-dur-exhausted`. Auto-pick order stone 4→1 (personal bag `inv.mats` first, then sect stock). Idle NPCs auto-repair gear at ≤45% (`js/sim.js` ~360).
+- Retirement: `ECO.retireGear` removes the item and returns 1× `MAT_ORE_COLD_STEEL_2` (tier ≥3) or `MAT_ORE_BLACK_IRON_1` to sect stock. `martial.js` gear-suitability multiplies score by durability and returns −∞ for retired items; `cpeco.js` refuses retired gear in distribution.
+- Save integrity: `ECO.ensureUniqueGearUids(W)` re-issues duplicate/missing uids, skips `W.sect.soldGearReceipts`, restores `maxDur/dur/repairCount`, re-derives `broken/retired`.
 
-### 3.1 Outside Missions & Fortune Registry (`X.REGIONS`, `X.MISSIONS`, `X.FORTUNE_REGISTRY`)
-- **6 Regions (`X.REGIONS`)**: `forest`, `plains`, `mountain`, `desert`, `water` (aquatic beast pool), `ruins`.
-- **7 Mission Types (`X.MISSIONS`)**: `fortune` (uses `X.FORTUNE_REGISTRY[1..4]`), `hunt`, `gather`, `trade`, `diplomacy`, `recruit`, `bounty`.
-- **Office Approval**: The `mission` Elder (`SECT.holder(W, 'mission')`), Sect Master, or Deputy evaluates mission proposals via `COG.missionBias` and records `COG.officeDecision`.
+### 2.6 Drop & source map (all call `rollProceduralGear`)
+| Source | Where | Parameters |
+| :--- | :--- | :--- |
+| Forge | `finishCraft`, `craftProceduralNow` | `materialMods`, skill, `source:'forge'` |
+| Expedition hunt | `js/expedition.js` ~325 | chance `0.14 + danger*0.03`, `maxTier = danger+1`, `personalLoot:true` |
+| Expedition fortune `gear` | `js/expedition.js` ~519 | 65% procedural else `mintGear` ancient; `maxTier = danger+1` |
+| Ruin spot | `js/explore.js` ~6890 | 70%, `maxTier = 1+site.lvl` |
+| Realm/pagoda gear event | `js/explore.js` ~6925 | `maxTier=p1`, `minTier=p1-1`, `source:'explore:<site>'` |
+| Merchants | `js/external_market.js` ~241 | caravan/rare always, others 55%; count 2 for rare else 1; `maxTier` 4/3/2; `minTier` 2 for rare |
+| Edit Hub spawn | `js/sect.js` ~3370 (`EDITOR.spawnItem`) | `{slot, gearType, baseQ: quality, playerSpawned:true, source:'editor_spawn'}` → **0 CP when donated** |
+- Procedural drops stay ≤ T4; never route legendary/unique weapons through this engine (`VC.LEGENDARY_WEAPONS` = 21 authored, minted via `VC.mintLegendaryWeapon`).
 
-### 3.2 Spirit Mount Caravan System (`X.depart` / `X.createParty`)
-When assembling an expedition or trade caravan party:
-- Check if any party member owns a Spirit Beast (`m.pets` or `m.pet`) with `role === 'MOUNT_CHARGER'` or `family === 'AVIAN'` or `family === 'UNGULATE'`.
-- **Mount Modifiers**:
-  - Reduce expedition travel duration by **25%** (`Math.max(1, Math.round(baseDur * 0.75))`).
-  - Increase caravan/expedition loot & cargo capacity by **40%** (`×1.40`).
-
-### 3.3 Sect Raid Spawning, Rally & Gate War-Beasts (`X.spawnRaid`, `X.rally`, `X.raidEnd`)
-1. **Spawning Raiders (`X.spawnRaid(W, kind, strength)`)**:
-   - `kind`: `'beast'` (land-capable species from `JD.BEASTS.species`), `'rival'` (most hostile sect in `W.world.sects`), or `'bandit'`.
-   - Creates fight `const f = COMBAT.startFight(W, [], [], 'raid', { serious: true, cb: X.raidEnd, ctx: { label, kind, total } });`.
-   - Spawns foe units at `MAP.EXIT` (`W.foes`, `W.foeById[id]`, `f.B.push(id)`).
-2. **Rallying Defenders & Gate War-Beasts (`X.rally(W, f)`)**:
-   - Living disciples evaluate `will` (from `courage`, `AI.dutyWeight`, `sectDuty`, rank, HP ratio, and Commander `social.leadership`) and join `f.A` via `COMBAT.join(W, f, n.id, 'A')`.
-   - **Gate Vanguard War-Beasts (`W.sect.gateBeasts`)**: Reserve beasts assigned from `W.sect.beasts` to `W.sect.gateBeasts` enter raid defense alongside guards, absorbing enemy assault charges and triggering their bloodline traits (`ALPHA_FANG`, `IRON_CARAPACE`, `VENOM_GLAND`, `SOVEREIGN_AWAKENED`).
-
----
-
-## 4. 240×192 World Map, Southern Spirit River & Fishing (`js/world_map.js`, `js/fishing.js`)
-
-1. **Map Invariants (`MAP.W = 240`, `MAP.H = 192`)**:
-   - Impassable Southern Spirit River water tiles crossed by **3 bridges**, with **26 path-reachable fishing stations** (`kind: 'fish'`).
-2. **Fishing Monte Carlo & Unique Legendaries (`js/fishing.js`)**:
-   - 10 fish species (`FISH_*`) with daily zone recovery.
-   - Catch distribution: `~90%` Fish, `~10%` Mysterious Container (`~50%` Trash, `~49.55%` Ordinary, `~0.45%` Unique Legendary).
-   - **33 Unique Legendaries (`W.world.claimedLegendaries`)**: Strictly non-duplicating across the entire world lifecycle, with clean ordinary fallback when all 33 are claimed.
+### 2.7 Extension checklist (new gear type / affix / element)
+1. Add type to `ALL_GEAR_TYPES`, `PROCEDURAL_POOLS.baseForms`, `JD.MARTIAL.types` (+ `classify`), `typedBase` table, template item `ITEM_PROC_<T>` and `REC_PROC_<T>` (with `slotOptions`).
+2. Affix: append to `affixes` with valid `slots`, `scale` *or* `flatByTier[4]`; ensure `STATS.gearStats` consumes the stat key.
+3. Element: add to `ALL_ELEMENTS` **and** `PROCEDURAL_POOLS.elements` (else it is filtered out); keep `ELEM` compatibility valid.
+4. Keep `uid`, `dur`, `maxDur`, `procedural`, `origin` present; run `test/v213_procedural_equipment_and_review_suite.js`, `weapon_subpath_gear_expansion_suite.js`, `craft_transactions.js`, `save_integrity.js`.
 
 ---
 
-## 5. Verification Checklist
+## 3. Exploration, Sanctums, Pagoda & Secret Realms (`js/explore.js`)
 
-Run these suites from `GAME_SOURCE/` after any exploration, sanctum, pagoda, expedition, raid, or map change:
+### 3.1 Spots & cave
+- 6 sect spots (`EX.SPOTS`): `stele, spring, ruin, grove, cave (10 floors, EX.CAVE_FLOORS), gate (12 worlds, EX.WORLDS)`.
+- `EX.sampleCaveFloor(floor, rng)`: each floor has 3 pools; samples 1 (or 2 at 55%) pools without replacement, 1 weighted encounter per pool; never leaks unvisited pools.
+- `EX.RANK_FOE_POWER = {1:95, 2:480, 3:2800, 4:18500}` (static calibration, no rubber-banding).
+
+### 3.2 Multi-floor resolution (`EX.resolveSanctum`, reused by pagoda/realms)
+1. `COMBAT.evaluateFormationSynergy(alive)` → `{synergies, powerMultiplier, damageMitigation, reflectPct, auraNamesTh}`.
+2. Between floors (`floor>1`) any `SAGE_SUPPORT` member casts free triage `CULT.castHealOrBuff(W, sup, m, {free:true, healPct:0.35, buffKey:'vitalRegen', duration:300})`.
+3. Guardian power: `COMBAT.resolveWeaponTactics(lead, guardian, {dist:2.2})`, party power + `MARTIAL.evaluateResonanceSet` bonuses × `tac.dmgMult` × `formSyn.powerMultiplier`.
+4. Handover: `X.handover(W, ex, alive, out)` for stones/mats/pills/**gear**/techs/catalysts; release members (`away=false, hidden=false, travel=null, expId=null`); history capped 20 in `W.sect.sanctums.history`.
+
+### 3.3 Nine-Dao Pagoda — **12 floors** (`EX.NINE_DAO_PAGODA`, ~7549)
+One floor per major path (XIAN → BODY → GOD → DEMON → HEART_SOUL → MECH_PUPPET → KARMA_SAMSARA → BEAST_SOVEREIGN → SAGE_SUPPORT → CRAFT_CREATION → ARRAY_TALISMAN → STRATEGY_GOVERNANCE), `basePower` 110 → 750, stones 45 → 215. Any party enters any floor; reward = 3-piece resonance set `RES_NINE_DAO_<PATH>` via `EX.pagodaSetPieces` (tier-5 pieces with `ownerPath`, `source:'NINE_DAO_PAGODA'`). `EX.departNineDaoPagoda(W, party, {maxFloor})` (1.5 days). State `W.world.nineDaoPagoda{runs,unlockedSets,history}`. See `progression-design` §8.
+
+### 3.4 Five Elemental Realms (`EX.ELEMENTAL_REALMS`)
+METAL, WOOD, WATER, FIRE, EARTH (basePower 180–200, 3 floors × `*(1+(floor-1)*0.34)`), rotating every 90 days (`EX.elementalRealmAt(day)`); only the current realm is enterable; matching root (`EX.matchedRealmElement`) gives bonuses; drops `catalystId` (`ECO.addCatalyst`).
+
+---
+
+## 4. Expeditions, Mount Caravans & Raids (`js/expedition.js`)
+- `X.REGIONS` (forest, plains, mountain, desert, water, ruins), `X.MISSIONS` (fortune, hunt, gather, trade, diplomacy, recruit, bounty); the `mission` elder / Master / Deputy approves (`COG.missionBias`, `COG.officeDecision`).
+- Mounts (`role MOUNT_CHARGER` or family AVIAN/UNGULATE): travel ×0.75, capacity ×1.40 (`X.createParty`). Strategy envoys add ≤ +2 attitude (see `progression-design` §6).
+- Raids: `X.spawnRaid(W, kind, strength)` (`beast|rival|bandit`), `X.rally` (courage/duty/commander leadership), `W.sect.gateBeasts` join defense; `X.raidEnd` callback.
+
+---
+
+## 5. World Map, River Fishing & Legends
+- `MAP.W=240, MAP.H=192`; Southern Spirit River with 3 bridges and path-reachable `kind:'fish'` stations.
+- `js/fishing.js`: ~90% fish / ~10% container (≈50% trash, ≈49.55% ordinary, ≈0.45% unique legendary); unique pool via `FISHING.buildEligibleLegendaryPool` and `W.world.claimedLegendaries` (strictly non-duplicating; ordinary fallback when exhausted). **Verify the pool size at runtime** — authored legendary weapons alone are now 21 (`VC.LEGENDARY_WEAPONS`), plus armors/accessories/relics in `VC.LEGENDARY_EQUIPMENT`.
+- Wildlife/resources: `js/wildlife.js`, `js/wild_resources.js` (on-map spawn integrity, ecology).
+
+---
+
+## 6. Verification
 ```bash
-node tools/validate_data_schema.js
-node test/explore.js
-node test/exploration_replay.js
-node test/cave_pools.js
-node test/diplomacy_sanctum_ancestral_suite.js
-node test/fishing_river_suite.js
-node test/wild_resources.js
-node test/wildlife_batches.js
-node test/wildlife_spawn_integrity.js
-node test/onmap_wildlife.js
-node test/beast_ecology.js
-node test/legendary_spawn_gate.js
-node test/v209_facilities_party_synergy_suite.js
+cd GAME_SOURCE
+node tools/validate_data_schema.js     # Errors 0 (v2.0.16: 533 items, 917 recipes, 331 arts)
+node test/v213_procedural_equipment_and_review_suite.js
+node test/weapon_subpath_gear_expansion_suite.js
+node test/craft_transactions.js && node test/save_integrity.js
+node test/explore.js && node test/exploration_replay.js && node test/cave_pools.js
+node test/v210_pagoda_warbeasts_conference_suite.js
+node test/visitors_clues_weapons_suite.js && node test/legendary_spawn_gate.js
+node test/fishing_river_suite.js && node test/wild_resources.js && node test/wildlife_batches.js && node test/onmap_wildlife.js
 ```
+Browser-based suites need local Chromium (fail in headless Termux — environmental).
