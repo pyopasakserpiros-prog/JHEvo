@@ -823,6 +823,33 @@
       });
       if (eligible.length) W.log('raid', '🐾 กองอสูรพิทักษ์ประตูเข้าร่วมแนวหน้า ' + eligible.length + ' ตัว', []);
     }
+    // v2.0.17: Sworn Allies from Jianghu Karma Bonds reinforce the sect during raids
+    if (W.world && W.world.jianghu && f && f.ctx && !f.ctx.swornAlliesDeployed) {
+      const rawBonds = Array.isArray(W.world.jianghu.bonds) ? W.world.jianghu.bonds : Object.values(W.world.jianghu.karmaBonds || {});
+      f.ctx.swornAlliesDeployed = true;
+      f.ctx.swornAllyIds = f.ctx.swornAllyIds || [];
+      const allies = rawBonds.filter(b => b && (b.kind === 'SWORN_ALLY' || b.kind === 'BENEFACTOR') && b.active !== false).slice(0, 2);
+      allies.forEach((ally, idx) => {
+        const tier = clamp(ally.tier || ally.stage || 4, 2, 7);
+        const power = Math.max(120, Math.round(Number(ally.power) || (160 + tier * 85)));
+        const hpMax = Math.max(240, Math.round(power * 1.85));
+        const id = 'ALLY_' + f.id + '_' + (++W.foeSeq || (W.foeSeq = 1));
+        const allyName = ally.figureNameTh || ally.npcNameTh || 'สหายร่วมสาบาน';
+        const unit = {
+          id, foe: true, isSwornAlly: true, sourceBondId: ally.id,
+          name: allyName, nameTh: allyName,
+          tier, level: tier * 2, power, hpMax, hp: hpMax, dead: false, gone: false,
+          kind: 'human', path: ally.path || 'SWORD', weaponType: ally.weaponType || 'SWORD', fleeAt: 0,
+          x: MAP.EXIT.x + (idx - 0.5) * 1.4, y: MAP.EXIT.y + 1.5, px: 0, py: 0, face: 1, speed: 0.72, speedBase: 1
+        };
+        W.foes.push(unit); W.foeById[id] = unit; f.A.push(id); COMBAT.enter(W, f, id); f.ctx.swornAllyIds.push(id);
+        ally.helpCount = (ally.helpCount || 0) + 1;
+        ally.lastInteractionDay = W.day;
+      });
+      if (allies.length) {
+        W.log('raid', '🤝 สหายร่วมสาบานยุทธภพ (' + allies.map(a => a.figureNameTh || a.npcNameTh).join('、') + ') รุดมาช่วยต้านศึกหน้าด่านสำนัก!', []);
+      }
+    }
   };
   X.raidEnd = (W, f, ws, win, lose) => {
     const ctx = f.ctx; W.threat.raid = null; W.threat.alert = 1;
@@ -840,6 +867,11 @@
       }
       W.foes = (W.foes || []).filter(u => u.id !== id);
       delete W.foeById[id];
+    }
+    const allyIds = Array.isArray(ctx.swornAllyIds) ? ctx.swornAllyIds : [];
+    for (const id of allyIds) {
+      W.foes = (W.foes || []).filter(u => u.id !== id);
+      if (W.foeById) delete W.foeById[id];
     }
     const foes = f.foes.map(i => W.foeById[i]).filter(Boolean); const slain = foes.filter(u => u.dead).length;
     const defenders = f.A.map(i => W.byId[i]).filter(Boolean);

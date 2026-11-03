@@ -7245,7 +7245,7 @@
 
     let effectiveTierId = pickedTier.id;
     let fallbackUsed = null;
-    const sanctumPaths = sc && sc.id === 'SANCTUM_BLOOD_VAJRA' ? ['BODY', 'DEMON'] : sc && sc.id === 'SANCTUM_ASTRAL_DIVINE' ? ['XIAN', 'GOD', 'DEMON'] : ['XIAN', 'HEART_SOUL'];
+    const sanctumPaths = sc && sc.id === 'SANCTUM_BLOOD_VAJRA' ? ['BODY', 'DEMON', 'BEAST_SOVEREIGN', 'MECH_PUPPET', 'CRAFT_CREATION'] : sc && sc.id === 'SANCTUM_ASTRAL_DIVINE' ? ['XIAN', 'GOD', 'DEMON', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'KARMA_SAMSARA'] : ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'KARMA_SAMSARA', 'ARRAY_TALISMAN'];
     const sanctumSubs = (sc && Array.isArray(sc.floors)) ? sc.floors.slice(0, floor).map(f => f.subPath).filter(Boolean) : ['SWORD_IMMORTAL'];
 
     // Helper: check if a manual is already owned in library or any living NPC

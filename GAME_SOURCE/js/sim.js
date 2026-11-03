@@ -164,7 +164,7 @@
     if (arch) {
       W.sect.archetype = arch.id;
       if (!opts.sectName) W.sect.name = arch.nameTh;
-      const baseCurriculum = (g.SECT && Array.isArray(g.SECT.FOUNDATION_CURRICULUM)) ? g.SECT.FOUNDATION_CURRICULUM : ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL', 'MP_BASE_MECH_PUPPET', 'MP_BASE_KARMA_SAMSARA', 'MP_BASE_BEAST_SOVEREIGN', 'MP_BASE_SAGE_SUPPORT', 'MP_BASE_CRAFT_CREATION'];
+      const baseCurriculum = (g.SECT && Array.isArray(g.SECT.FOUNDATION_CURRICULUM)) ? g.SECT.FOUNDATION_CURRICULUM : ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL', 'MP_BASE_MECH_PUPPET', 'MP_BASE_KARMA_SAMSARA', 'MP_BASE_BEAST_SOVEREIGN', 'MP_BASE_SAGE_SUPPORT', 'MP_BASE_CRAFT_CREATION', 'MP_BASE_ARRAY_TALISMAN', 'MP_BASE_STRATEGY_GOVERNANCE'];
       W.sect.library = Array.from(new Set(arch.techs.concat(baseCurriculum)));
       W.sect.crystals = Object.assign({}, arch.crystals);
       W.sect.unlockedSubs = arch.subs.slice();
@@ -294,6 +294,14 @@
     const d = Math.floor(W.t / 1440);
     if (d !== W.day) { W.day = d; HC.nowDay = d; SIM.dailyUpdate(W); }
     const npcs = W.npcs;
+    if (true) {
+      let ap = 0;
+      for (let i = 0; i < npcs.length; i++) {
+        const x = npcs[i];
+        if (x && !x.dead && !x.exiled) ap++;
+      }
+      W._alivePop = Math.max(1, ap);
+    }
     for (let i = 0; i < npcs.length; i++) {
       const n = npcs[i]; if (n.dead) continue;
       if (n.travel) { n.px = n.x; n.py = n.y; AI.needs(W, n); if (!n.dead) EXPED.travelStep(W, n); if (n.away && n.exiled) { SIM.retire(W, n); i--; } continue; }

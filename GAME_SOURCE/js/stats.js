@@ -333,6 +333,8 @@
         else if (c.path === 'BEAST_SOVEREIGN') { add('atk', lab, 'p', 0.035 * m.tier); add('hp', lab, 'p', 0.035 * m.tier); add('move', lab, 'f', 1.0 * m.tier); }
         else if (c.path === 'SAGE_SUPPORT') { add('mdef', lab, 'p', 0.04 * m.tier); add('hp', lab, 'p', 0.035 * m.tier); add('cast', lab, 'f', 1.2 * m.tier); }
         else if (c.path === 'CRAFT_CREATION') { add('atk', lab, 'p', 0.03 * m.tier); add('matk', lab, 'p', 0.035 * m.tier); add('def', lab, 'p', 0.03 * m.tier); add('mdef', lab, 'p', 0.03 * m.tier); }
+        else if (c.path === 'ARRAY_TALISMAN') { add('matk', lab, 'p', 0.04 * m.tier); add('mdef', lab, 'p', 0.035 * m.tier); add('cast', lab, 'f', 1.2 * m.tier); }
+        else if (c.path === 'STRATEGY_GOVERNANCE') { add('atk', lab, 'p', 0.03 * m.tier); add('matk', lab, 'p', 0.03 * m.tier); add('def', lab, 'p', 0.035 * m.tier); add('mdef', lab, 'p', 0.035 * m.tier); }
         else { add('mdef', lab, 'p', 0.04 * m.tier); add('hp', lab, 'p', 0.03 * m.tier); add('matk', lab, 'p', 0.02 * m.tier); }
         if (m.mantraBonus) {
           addAll(lab, m.mantraBonus.p || {}, 'p');
@@ -398,6 +400,12 @@
         const resLab = 'สัจธรรมชุดอุปกรณ์「' + resSet.nameTh + '」(' + resSet.pieces + '/3 ชิ้น)';
         addAll(resLab, resSet.p, 'p');
         addAll(resLab, resSet.f, 'f');
+      }
+      const legRes = g.MARTIAL.evaluateLegendaryRelicResonance ? g.MARTIAL.evaluateLegendaryRelicResonance(n) : null;
+      if (legRes && legRes.active) {
+        const legLab = 'สัจธรรมศาสตราเทพ「' + legRes.nameTh + '」(' + legRes.pieces + '/3 ชิ้น)';
+        addAll(legLab, legRes.p, 'p');
+        addAll(legLab, legRes.f, 'f');
       }
     }
     if (CULT.petStatBonuses && n.pets && n.pets.length) {
@@ -504,6 +512,8 @@
         else if (c.path === 'BEAST_SOVEREIGN') { addP('atk', 0.035 * m.tier); addP('hp', 0.035 * m.tier); addF('move', 1.0 * m.tier); }
         else if (c.path === 'SAGE_SUPPORT') { addP('mdef', 0.04 * m.tier); addP('hp', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
         else if (c.path === 'CRAFT_CREATION') { addP('atk', 0.03 * m.tier); addP('matk', 0.035 * m.tier); addP('def', 0.03 * m.tier); addP('mdef', 0.03 * m.tier); }
+        else if (c.path === 'ARRAY_TALISMAN') { addP('matk', 0.04 * m.tier); addP('mdef', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
+        else if (c.path === 'STRATEGY_GOVERNANCE') { addP('atk', 0.03 * m.tier); addP('matk', 0.03 * m.tier); addP('def', 0.035 * m.tier); addP('mdef', 0.035 * m.tier); }
         else { addP('mdef', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('matk', 0.02 * m.tier); }
         if (m.mantraBonus) {
           if (m.mantraBonus.p) addAll(m.mantraBonus.p, false);
@@ -572,6 +582,13 @@
       if (resSet && resSet.active) {
         addAll(resSet.p, false);
         addAll(resSet.f, true);
+      }
+      if ((eqW && eqW.legendary) || (eqA && eqA.legendary) || (eqX && eqX.legendary)) {
+        const legRes = g.MARTIAL.evaluateLegendaryRelicResonance ? g.MARTIAL.evaluateLegendaryRelicResonance(n) : null;
+        if (legRes && legRes.active) {
+          addAll(legRes.p, false);
+          addAll(legRes.f, true);
+        }
       }
     }
     if (CULT.petStatBonuses && n.pets && n.pets.length) {
@@ -750,10 +767,14 @@
   /* พลังรบรวม (ใช้ในภารกิจ/จัดอันดับ) — ปรับเทียบให้ใกล้ของเดิม (ST.RK) */
   ST.RK = 1.15;
   ST.rating = (n, v) => {
-    v = v || ST.get(n); const L = n.foe ? n.power : CULT.stageInfo(n).combatPower, off = Math.max(v.atk, v.matk), aref = L * 0.6;
-    const offE = off * (1 + v.crit / 100 * (v.critDmg / 100 - 1)) * (0.6 + 0.4 * v.cast / 100) * (1 + v.pen / 150) * (0.85 + 0.15 * clamp(v.acc / (L * 0.55), 0.5, 2));
-    const hpE = v.hp * (1 + 0.8 * ((v.def + v.mdef) / 2) / Math.max(1, aref)) * (1 + 0.25 * v.eva / Math.max(1, L * 0.55));
-    return Math.max(3, ST.RK * Math.pow(offE, 0.55) * Math.pow(hpE, 0.45));
+    const computeV = v || ST.get(n);
+    if (!v && n._cs && n._cs.v === computeV && n._cs.rating !== undefined) return n._cs.rating;
+    const L = n.foe ? n.power : CULT.stageInfo(n).combatPower, off = Math.max(computeV.atk, computeV.matk), aref = L * 0.6;
+    const offE = off * (1 + computeV.crit / 100 * (computeV.critDmg / 100 - 1)) * (0.6 + 0.4 * computeV.cast / 100) * (1 + computeV.pen / 150) * (0.85 + 0.15 * clamp(computeV.acc / (L * 0.55), 0.5, 2));
+    const hpE = computeV.hp * (1 + 0.8 * ((computeV.def + computeV.mdef) / 2) / Math.max(1, aref)) * (1 + 0.25 * computeV.eva / Math.max(1, L * 0.55));
+    const rt = Math.max(3, ST.RK * Math.pow(offE, 0.55) * Math.pow(hpE, 0.45));
+    if (!v && n._cs && n._cs.v === computeV) n._cs.rating = rt;
+    return rt;
   };
   ST.recover = n => { if (n.foe || !n.cult) return; const s = n.h.state, q = CULT.qiMax(n); s.qi = Math.min(q, (s.qi == null ? q : s.qi) + q * 0.35); };
 
@@ -771,7 +792,7 @@
     const keys = []; if (n.inv && n.inv.pills) Object.keys(n.inv.pills).forEach(k => { if (isCb(k) && n.inv.pills[k] > 0) keys.push([k, 'own']); });
     if (!keys.length && n.rank >= 1) Object.keys(W.sect.stock).forEach(k => { if (isCb(k) && W.sect.stock[k] > 0) keys.push([k, 'sect']); });
     if (!keys.length) return;
-    const c = n.cult, pref = c.path === 'BODY' ? ['STONE', 'FURY'] : c.path === 'XIAN' ? ['SPIRIT', 'EYE', 'WIND'] : c.path === 'DEMON' ? ['FURY', 'WIND', 'STONE'] : c.path === 'HEART_SOUL' ? ['SPIRIT', 'EYE', 'WIND'] : ['STONE', 'SPIRIT', 'FURY'];
+    const c = n.cult, pref = (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? ['STONE', 'FURY'] : (c.path === 'XIAN' || c.path === 'HEART_SOUL' || c.path === 'ARRAY_TALISMAN' || c.path === 'SAGE_SUPPORT') ? ['SPIRIT', 'EYE', 'WIND'] : c.path === 'DEMON' ? ['FURY', 'WIND', 'STONE'] : ['STONE', 'SPIRIT', 'FURY', 'EYE'];
     let best = null, bs = -1;
     keys.forEach(([k, src]) => {
       const id = k.startsWith('P:CB_') ? k.slice(5) : k.slice(2);

@@ -94,7 +94,7 @@
     if (!n || !n.h) return [{ id: 'peaceful_companion', score: 1, reasonTh: 'ใช้ชีวิตเรียบง่าย' }];
     const r = COG.role(W, n);
     const sk = n.h.skills || {};
-    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0);
+    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0);
     const scores = [
       {
         id: 'martial_master',
@@ -517,7 +517,8 @@
       const emVer = (n.ext && n.ext.elementalSystem && n.ext.elementalSystem._mVer) || 0;
       tpc = TP_CACHE.get(n);
       if (!tpc || tpc.ver !== n._ver || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
-        tpc = { ver: n._ver, emVer, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null) };
+        const elemMap = (tpc && tpc.emVer === emVer && tpc.root === n.h.root && tpc.st === n.cult.stage) ? tpc.elemMap : Object.create(null);
+        tpc = { ver: n._ver, emVer, root: n.h.root, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null), elemMap };
         TP_CACHE.set(n, tpc);
       } else {
         const hit = tpc.map[t.id];
@@ -556,7 +557,11 @@
     }
     let elemFit = 0;
     if (g.ELEM && n.h) {
-      const cCompat = g.ELEM.resolveCompatibility(n, t, isPass ? 'passive' : 'combat');
+      let cCompat = tpc && tpc.elemMap && t.id ? tpc.elemMap[t.id] : undefined;
+      if (!cCompat) {
+        cCompat = g.ELEM.resolveCompatibility(n, t, isPass ? 'passive' : 'combat');
+        if (tpc && tpc.elemMap && t.id) tpc.elemMap[t.id] = cCompat;
+      }
       elemFit = (cCompat.combatMultiplier - 1) * 3.8 + (cCompat.studySpeedMult - 1) * 1.4;
     }
     const isPrimarySub = !!(t.sub && n.cult && t.sub === n.cult.sub);
@@ -1327,7 +1332,7 @@
     registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty']
   };
   COG.modifiers = (W, n, id, SAcc) => {
-    const out = SAcc ? null : [], push = SAcc ? ((why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) SAcc.add(why, clamp(x, -2, 2)); }) : ((why, x) => { if (Number.isFinite(x) && Math.abs(x) > 0.025) out.push([why, clamp(x, -2, 2)]); }), s = n.h.state, c = n.cognition;
+    const out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = (why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } };
     let mc = n._cogModCtx;
     if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
       const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;

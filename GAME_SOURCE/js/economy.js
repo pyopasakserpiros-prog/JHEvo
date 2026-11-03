@@ -106,7 +106,7 @@
   ECO.add = (W, id, n, quality) => {
     if (typeof id !== 'string' || !id || !Number.isFinite(n) || n <= 0) return false;
     const before = ECO.count(W, id), total = before + n; if (!Number.isFinite(total)) return false;
-    if (ECO.isPill(id)) { const map = W.sect.pillQuality || (W.sect.pillQuality = {}), old = Number.isFinite(map[id]) ? map[id] : 1, q = Number.isFinite(quality) ? clamp(quality, 0.7, 1.5) : 1; map[id] = (before * old + n * q) / total; }
+    if (ECO.isPill(id)) { const map = W.sect.pillQuality || (W.sect.pillQuality = {}), old = Number.isFinite(map[id]) ? map[id] : 1, q = Number.isFinite(quality) ? clamp(quality, 0.7, 1.5) : 1; map[id] = (before * old + n * q) / total; W._pillSeq = (W._pillSeq || 0) + 1; }
     if (id === '__proto__' || id === 'constructor' || id === 'prototype') Object.defineProperty(W.sect.stock, id, { value: total, writable: true, enumerable: true, configurable: true });
     else W.sect.stock[id] = total;
     W._stockSeq = (W._stockSeq || 0) + 1;
@@ -118,6 +118,7 @@
     if (id === 'meal' && n > 0) consumeMealSpecialties(W, n);
     if (have > n) W.sect.stock[id] = have - n; else { delete W.sect.stock[id]; if (W.sect.pillQuality) delete W.sect.pillQuality[id]; }
     if (W.sect && W.sect.stockTracker && n > 0) W.sect.stockTracker.recordUsage(id, n, W.day);
+    if (ECO.isPill(id)) W._pillSeq = (W._pillSeq || 0) + 1;
     W._stockSeq = (W._stockSeq || 0) + 1;
     return true;
   };
@@ -151,13 +152,16 @@
   ECO.recipesFor = (W, crafts) => JD.ITEMS.recipes.filter(r => crafts.includes(r.craft) && ECO.recipeKnown(W, r) && !r.basic && r.outType !== 'BEAST_ITEM' && (!r.fishAlchemyRecipe || (W && W.sect && W.sect.stock && (W.sect.stock[r.inputs[0].matId] || 0) > 0)));
   function recipeInputs(r, mult) {
     if (!r || typeof r.id !== 'string' || !Array.isArray(r.inputs) || !r.inputs.length || !Number.isFinite(mult) || mult <= 0) return null;
+    if (mult === 1 && r._normInputs1 && r._normInputsSrc === r.inputs) return r._normInputs1;
     const totals = new Map();
     for (const i of r.inputs) {
       if (!i || typeof i.matId !== 'string' || !i.matId || !Number.isFinite(i.count) || i.count <= 0) return null;
       const count = (totals.get(i.matId) || 0) + i.count * mult; if (!Number.isFinite(count)) return null;
       totals.set(i.matId, count);
     }
-    return Array.from(totals, ([matId, count]) => ({ matId, count }));
+    const out = Array.from(totals, ([matId, count]) => ({ matId, count }));
+    if (mult === 1) { r._normInputs1 = out; r._normInputsSrc = r.inputs; }
+    return out;
   }
   ECO.resolveCraftMaterials = (W, r, opts, npc) => {
     opts = opts || {};
@@ -1053,9 +1057,9 @@
 
   /* ---------- Sanctum Refinement Catalysts & Resonance Gear Upgrading (v2.0.6 Pillar B) ---------- */
   ECO.REFINEMENT_CATALYSTS = {
-    CAT_RESONANCE_JADE_4: { id: 'CAT_RESONANCE_JADE_4', nameTh: 'หยกสัจธรรมประสานปราณ', tier: 4, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.14, maxQuality: 1.65, value: 180, descTh: 'ผลึกหยกโบราณจากวิหารศักดิ์สิทธิ์ ใช้ขัดเกลาศาสตราชุดสัจธรรมระดับ T4–T6 ให้มีคุณภาพสูงขึ้น' },
-    CAT_ASTRAL_ESSENCE_5: { id: 'CAT_ASTRAL_ESSENCE_5', nameTh: 'แก่นดาราบรรพกาล', tier: 5, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.20, maxQuality: 1.75, value: 320, descTh: 'แก่นปราณดาราจากผู้พิทักษ์ชั้นลึก ใช้หลอมยกระดับคุณภาพศาสตรา T4–T6' },
-    CAT_PRIMORDIAL_FLAME_6: { id: 'CAT_PRIMORDIAL_FLAME_6', nameTh: 'เพลิงต้นกำเนิดสวรรค์', tier: 6, minGearTier: 4, maxGearTier: 6, qualityBoost: 0.28, maxQuality: 1.85, value: 520, descTh: 'เพลิงศักดิ์สิทธิ์ขั้นสูงสุดจากแท่นบูชาโบราณ ใช้ขัดเกลาศาสตรา T4–T6 สู่ขีดสุด' },
+    CAT_RESONANCE_JADE_4: { id: 'CAT_RESONANCE_JADE_4', nameTh: 'หยกสัจธรรมประสานปราณ', tier: 4, minGearTier: 4, maxGearTier: 7, qualityBoost: 0.14, maxQuality: 1.65, value: 180, descTh: 'ผลึกหยกโบราณจากวิหารศักดิ์สิทธิ์ ใช้ขัดเกลาศาสตราชุดสัจธรรมระดับ T4–T6 ให้มีคุณภาพสูงขึ้น' },
+    CAT_ASTRAL_ESSENCE_5: { id: 'CAT_ASTRAL_ESSENCE_5', nameTh: 'แก่นดาราบรรพกาล', tier: 5, minGearTier: 4, maxGearTier: 7, qualityBoost: 0.20, maxQuality: 1.75, value: 320, descTh: 'แก่นปราณดาราจากผู้พิทักษ์ชั้นลึก ใช้หลอมยกระดับคุณภาพศาสตรา T4–T6' },
+    CAT_PRIMORDIAL_FLAME_6: { id: 'CAT_PRIMORDIAL_FLAME_6', nameTh: 'เพลิงต้นกำเนิดสวรรค์', tier: 6, minGearTier: 4, maxGearTier: 7, qualityBoost: 0.28, maxQuality: 1.85, value: 520, descTh: 'เพลิงศักดิ์สิทธิ์ขั้นสูงสุดจากแท่นบูชาโบราณ ใช้ขัดเกลาศาสตรา T4–T6 สู่ขีดสุด' },
     CAT_PRIMORDIAL_METAL: { id: 'CAT_PRIMORDIAL_METAL', nameTh: 'แก่นโลหะบรรพกาล', element: 'EARTH_METAL', resonantElements: ['EARTH_METAL', 'LIGHTNING'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นโลหะและอัสนีจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' },
     CAT_PRIMORDIAL_WOOD: { id: 'CAT_PRIMORDIAL_WOOD', nameTh: 'แก่นไม้กำเนิดชีพ', element: 'WOOD_LIFE', resonantElements: ['WOOD_LIFE', 'WIND'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นไม้และวายุจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' },
     CAT_PRIMORDIAL_WATER: { id: 'CAT_PRIMORDIAL_WATER', nameTh: 'แก่นวารีเยือกแข็ง', element: 'WATER_ICE', resonantElements: ['WATER_ICE', 'YIN_SHADOW'], tier: 4, minGearTier: 3, maxGearTier: 7, qualityBoost: 0.16, maxQuality: 1.70, value: 210, descTh: 'แก่นวารีและเงาหยินจากแดนเบญจธาตุ ใช้ขัดเกลาคุณภาพและจูนธาตุศาสตรา' },
@@ -1131,6 +1135,12 @@
     const newQ = Math.min(cat.maxQuality, +(oldQ + effectiveBoost).toFixed(2));
     const ratio = newQ / Math.max(0.5, oldQ);
     gear.q = newQ;
+    if (gear.quality !== undefined || gear.legendary) gear.quality = newQ;
+    if (gear.legendary || gTier >= 6) {
+      const prevStars = gear.attunedStars || 0;
+      const nextStars = newQ >= 1.75 ? 3 : newQ >= 1.62 ? 2 : newQ >= 1.48 ? 1 : prevStars;
+      if (nextStars > prevStars) gear.attunedStars = nextStars;
+    }
     if (gear.combatMult) gear.combatMult = +(gear.combatMult * ratio).toFixed(4);
     if (gear.defMult) gear.defMult = +(gear.defMult * ratio).toFixed(4);
     gear.refinedCount = (gear.refinedCount || 0) + 1;

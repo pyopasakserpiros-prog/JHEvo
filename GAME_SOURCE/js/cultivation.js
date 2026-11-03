@@ -1002,7 +1002,7 @@
 
     const comp = (HC.eff(npc, 'intellect.comprehension') + HC.eff(npc, 'intellect.learningSpeed')) / 200;
     const details = {};
-    let totalGained = 0;
+    let totalGained = 0, crossedBand = false;
 
     for (const [el, w] of Object.entries(prof.weights)) {
       const isSpec = ELEM.isValidSpecialElement(el);
@@ -1036,7 +1036,9 @@
       const rawGain = (baseAmount || 0.15) * w * rootMult * (0.75 + 0.5 * comp) * diminishing;
       const clampedGain = Math.min(ELEM.MAX_DAILY_GAIN - usedToday, Math.max(0, rawGain));
       if (clampedGain > 0.0001) {
-        map[el] = clamp(+(cur + clampedGain).toFixed(4), 0, 100);
+        const nextVal = clamp(+(cur + clampedGain).toFixed(4), 0, 100);
+        if (((nextVal * 4) | 0) !== ((cur * 4) | 0) || cur === 0) crossedBand = true;
+        map[el] = nextVal;
         log.byElement[el] = +(usedToday + clampedGain).toFixed(4);
         details[el] = +clampedGain.toFixed(4);
         totalGained += clampedGain;
@@ -1964,7 +1966,7 @@
     let staticBase;
     let rc = npc._cultRateBase;
     const ritVal = npc.h.skills.ritual || 0, focVal = npc.h.intellect.focus || 0;
-    const professionSig = c.path === 'ARRAY_TALISMAN' ? [npc.h.skills.ARRAY, npc.h.skills.TALISMAN].join(':') : c.path === 'STRATEGY_GOVERNANCE' ? [npc.h.skills.administration, npc.h.skills.diplomacy, npc.h.skills.trading].join(':') : '';
+    const professionSig = c.path === 'ARRAY_TALISMAN' ? ((npc.h.skills.ARRAY | 0) * 256 + (npc.h.skills.TALISMAN | 0)) : c.path === 'STRATEGY_GOVERNANCE' ? ((npc.h.skills.administration | 0) * 65536 + (npc.h.skills.diplomacy | 0) * 256 + (npc.h.skills.trading | 0)) : 0;
     if (rc && rc.skillVer === (npc._pathSkillVersion || 0) && rc.professionSig === professionSig && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra) {
       if (rc.rit === ritVal && rc.foc === focVal && rc.fullVal !== undefined) {
         staticBase = rc.fullVal;
@@ -2017,10 +2019,15 @@
       }
       const m = c.mantra ? TECH_BY_ID[c.mantra] : null;
       const mantraK = m ? 1 + 0.11 * (m.tier - 1) : 0.9;
-      const mantraElemMult = m ? ELEM.resolveCompatibility(npc, m, 'MANTRA_PRACTICE').cultivationMultiplier : 1.0;
-      const subObj = c.sub && c.sub !== 'NONE' ? CULT.subInfo(c.path, c.sub) : CULT.PATHS[c.path];
-      const subElemMult = subObj ? ELEM.resolveCompatibility(npc, subObj, 'CULTIVATION_TICK').cultivationMultiplier : 1.0;
-      const elemRateFactor = clamp(0.60 * mantraElemMult + 0.40 * subElemMult, 0.72, 1.38);
+      let elemRateFactor;
+      if (rc && rc.day === HC.nowDay && rc.path === c.path && rc.sub === c.sub && rc.mantra === c.mantra && rc.root === npc.h.root && rc.elemRateFactor !== undefined) {
+        elemRateFactor = rc.elemRateFactor;
+      } else {
+        const mantraElemMult = m ? ELEM.resolveCompatibility(npc, m, 'MANTRA_PRACTICE').cultivationMultiplier : 1.0;
+        const subObj = c.sub && c.sub !== 'NONE' ? CULT.subInfo(c.path, c.sub) : CULT.PATHS[c.path];
+        const subElemMult = subObj ? ELEM.resolveCompatibility(npc, subObj, 'CULTIVATION_TICK').cultivationMultiplier : 1.0;
+        elemRateFactor = clamp(0.60 * mantraElemMult + 0.40 * subElemMult, 0.72, 1.38);
+      }
 
       const sp = 1 + HC.special(npc, 'cultivation.rateBonus');
       const passRate = (g.MARTIAL && g.MARTIAL.passiveStats ? g.MARTIAL.passiveStats(npc).cultRatePct : 0) || 0;
@@ -2030,7 +2037,7 @@
       const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
       const ritMult = g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1;
       staticBase = rawStatic * ritMult * focus;
-      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, skillVer: npc._pathSkillVersion || 0, professionSig, val: rawStatic, rit: ritVal, foc: focVal, fullVal: staticBase };
+      npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, root: npc.h.root, elemRateFactor, skillVer: npc._pathSkillVersion || 0, professionSig, val: rawStatic, rit: ritVal, foc: focVal, fullVal: staticBase };
     }
     const rest = npc.h.state.rest < 30 ? 0.6 : npc.h.state.rest < 55 ? 0.85 : 1;
     let toxic, dev;
@@ -2356,6 +2363,41 @@
     return Math.max(20, Math.round(base / Math.max(0.50, pathSubStudyMult)));
   };
   CULT.maxTechs = npc => 2 + (npc.cult ? Math.round(CULT.normalizedStage(npc)) : 0);
+  CULT.techRetentionScore = (npc, tOrId) => {
+    const t = typeof tOrId === 'string' ? TECH_BY_ID[tOrId] : tOrId;
+    if (!t) return -1e9;
+    if (t.legendary || t.isSectHeritage || t.innateOnly) return 1e9;
+    const c = npc && npc.cult;
+    const subMatch = c && (t.sub === c.sub || (Array.isArray(t.compatibleSubs) && t.compatibleSubs.includes(c.sub))) ? 90 : 0;
+    const pathMatch = c && (t.path === c.path || t.path === 'ANY') ? 35 : 0;
+    const mas = (c && c.tm && Number.isFinite(c.tm[t.id])) ? c.tm[t.id] : 0;
+    return (t.tier || 1) * 120 + (t.power || 0) + subMatch + pathMatch + mas * 0.8;
+  };
+  CULT.pruneExcessActiveTechs = npc => {
+    if (!npc || !npc.cult || !Array.isArray(npc.cult.techs)) return [];
+    const c = npc.cult;
+    const maxAct = CULT.maxTechs(npc);
+    const activeIds = c.techs.filter(id => {
+      const x = TECH_BY_ID[id];
+      return x && !x.passive && x.cat !== 'PASSIVE' && !x.innateOnly;
+    });
+    if (activeIds.length <= maxAct) return [];
+    // Only non-legendary, non-heritage techniques are eligible to be forgotten
+    const replaceable = activeIds.filter(id => {
+      const x = TECH_BY_ID[id];
+      return x && !x.legendary && !x.isSectHeritage && !x.innateOnly;
+    }).sort((a, b) => CULT.techRetentionScore(npc, a) - CULT.techRetentionScore(npc, b));
+    const dropped = [];
+    while (activeIds.length - dropped.length > maxAct && replaceable.length > 0) {
+      const dropId = replaceable.shift();
+      const idx = c.techs.indexOf(dropId);
+      if (idx >= 0) {
+        c.techs.splice(idx, 1);
+        dropped.push(dropId);
+      }
+    }
+    return dropped;
+  };
 
 
   /* ----- สายบำเพ็ญเฉพาะทางอิสระ (Independent Specialization Tracks - v1.10.3 / v1.10.8) ----- */

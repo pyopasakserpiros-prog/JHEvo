@@ -8,7 +8,7 @@
 
   const VC = {
     VERSION: 1,
-    PATCH_VERSION: '2.0.16',
+    PATCH_VERSION: '2.0.17',
     MAX_ACTIVE_GUESTS: 6,
     MAX_BURST_GUESTS: 8,
     MAX_OFFSITE_REGISTRY: 48,
@@ -1238,6 +1238,33 @@
             if (defRes) triggeredProc = defRes;
           }
         }
+      }
+      // 3/3 Primordial Trinity Relic Surge (ไตรรัตนะเทวศาสตราบรรพกาล)
+      const legRes = (M && M.evaluateLegendaryRelicResonance) ? M.evaluateLegendaryRelicResonance(attacker) : null;
+      if (legRes && legRes.trinitySurge && (isSkill || (strikeResult && strikeResult.crit)) && (!attacker.wpnProcCds.TRINITY_RELIC_SURGE || W.t >= attacker.wpnProcCds.TRINITY_RELIC_SURGE)) {
+        attacker.wpnProcCds.TRINITY_RELIC_SURGE = W.t + 12;
+        const baseDmg = (strikeResult && strikeResult.dmg) ? strikeResult.dmg : 120;
+        const bonusDmg = Math.max(12, Math.round(baseDmg * 0.18));
+        if (COMBAT.alive(defender)) {
+          COMBAT.applyDamage(W, f, attacker, defender, bonusDmg, 'ปราณไตรรัตนะสะท้อนสวรรค์');
+          if (strikeResult && typeof strikeResult.dmg === 'number') strikeResult.dmg += bonusDmg;
+        }
+        const hm = CULT.hpMax(attacker), qm = CULT.qiMax(attacker);
+        attacker.h.state.hp = Math.min(hm, (attacker.h.state.hp || hm) + Math.round(hm * 0.06));
+        attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + Math.round(qm * 0.06));
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(attacker, 'fervorMight', 18, W.t, { casterId: attacker.id });
+        const surgeOut = {
+          triggered: true,
+          t: W.t,
+          weaponId: 'TRINITY_RELIC_SET',
+          effectId: 'EFX_TRINITY_RELIC_SURGE',
+          nameTh: 'ปราณไตรรัตนะสะท้อนสวรรค์',
+          bonusDmg,
+          trinitySurge: true
+        };
+        attacker.lastTrinitySurge = surgeOut;
+        if (!triggeredProc) triggeredProc = surgeOut;
+        else triggeredProc.trinitySurge = surgeOut;
       }
       return triggeredProc;
     } finally {
@@ -6178,6 +6205,7 @@
     [a, b].forEach(n => {
       if (!n.cult) g.SIM.awaken(W, W.rng, n, 5);
       else n.cult.stage = 5;
+      n.h.birthDay = W.day - 110 * 360;
       g.SECT.EDITOR.applyCharacterEdit(W, n.id, {
         physiology: { strength: 75, agility: 70, reflex: 70, endurance: 72, vitality: 72 },
         intellect: { perceptiveness: 72, comprehension: 72, focus: 72, willpower: 72 },

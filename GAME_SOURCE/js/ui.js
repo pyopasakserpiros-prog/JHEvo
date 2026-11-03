@@ -1172,6 +1172,63 @@
         UI.toast('ไม่สามารถเดินทางไปยังจุดตกปลานี้ได้');
       }
     }
+    else if (a === 'refresh-rumors') {
+      if (SECT.JIANGHU && SECT.JIANGHU.refreshTavernRumors) {
+        const list = SECT.JIANGHU.refreshTavernRumors(W, { count: 3 });
+        UI.toast('🍶 โรงเตี๊ยมยุทธภพอัปเดตข่าวลือใหม่ ' + list.length + ' เรื่องแล้ว');
+        UI.render();
+      }
+    }
+    else if (a === 'investigate-tavern-rumor') {
+      const [rumorId, npcId] = String(arg || '').split('|');
+      const actorId = npcId || (G.R && G.R.selected) || W.sect.masterId;
+      const res = (SECT.JIANGHU && SECT.JIANGHU.investigateRumor) ? SECT.JIANGHU.investigateRumor(W, actorId, rumorId) : { ok: false, reason: 'ไม่พบระบบโรงเตี๊ยมยุทธภพ' };
+      UI.toast(res.ok ? ('🍶 ' + res.summaryTh) : ('ไม่สำเร็จ: ' + (res.reason || 'ไม่สามารถออกสืบข่าวได้')));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'ally-aid') {
+      const res = (SECT.JIANGHU && SECT.JIANGHU.triggerAllyAid) ? SECT.JIANGHU.triggerAllyAid(W, arg) : { ok: false, reason: 'ไม่พบพันธมิตร' };
+      UI.toast(res.ok ? res.summaryTh : ('ไม่สำเร็จ: ' + (res.reason || 'พันธมิตรไม่พร้อม')));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'challenge-nemesis') {
+      const [bondId, mode] = String(arg || '').split('|');
+      const forceWin = mode === 'win' ? true : (mode === 'loss' ? false : undefined);
+      const res = (SECT.JIANGHU && SECT.JIANGHU.triggerNemesisChallenge) ? SECT.JIANGHU.triggerNemesisChallenge(W, bondId, { forceWin }) : { ok: false, reason: 'ไม่พบคู่อาฆาต' };
+      UI.toast(res.ok ? res.summaryTh : ('ไม่สำเร็จ: ' + (res.reason || 'ไม่สามารถท้าดวลได้')));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'synthesize-sect-art') {
+      const creatorId = arg || (G.R && G.R.selected) || W.sect.masterId;
+      const res = (SECT.MENTORSHIP && SECT.MENTORSHIP.synthesizeSectArt) ? SECT.MENTORSHIP.synthesizeSectArt(W, { creatorId }) : { ok: false, reason: 'ไม่พบระบบบัญญัติวิชาสำนัก' };
+      UI.toast(res.ok ? ('📜 บัญญัติวิชาประจำสำนัก「' + res.art.nameTh + '」เข้าหอคัมภีร์สำเร็จ!') : ('ยังไม่พร้อม: ' + (res.reason || 'ต้องมีศิษย์ตบะขั้น 4 ขึ้นไป')));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'form-mentor-bond') {
+      const [mentorId, discipleId] = String(arg || '').split('|');
+      const res = (SECT.MENTORSHIP && SECT.MENTORSHIP.formBond) ? SECT.MENTORSHIP.formBond(W, mentorId, discipleId) : { ok: false, reason: 'ไม่พบระบบฝากตัวศิษย์-อาจารย์' };
+      UI.toast(res.ok ? ('🎓 รับศิษย์สายตรงสำเร็จ! (' + res.mentorName + ' → ' + res.discipleName + ')') : ('ไม่สำเร็จ: ' + (res.reason || 'เงื่อนไขไม่ครบ')));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'coach-disciple') {
+      const [mentorId, discipleId] = String(arg || '').split('|');
+      const res = (SECT.MENTORSHIP && SECT.MENTORSHIP.coachDisciple) ? SECT.MENTORSHIP.coachDisciple(W, mentorId, discipleId) : { ok: false, reason: 'ไม่พบระบบชี้แนะวิชา' };
+      UI.toast(res.ok ? ('🎓 ชี้แนะเคล็ดวิชาสำเร็จ! (+XP ' + res.xpGain + (res.imprintedTech ? ' · ถ่ายทอด「' + res.imprintedTech + '」' : '') + ')') : ('ไม่สำเร็จ: ' + (res.reason || 'ไม่สามารถชี้แนะได้')));
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'transmit-qi') {
+      const [mentorId, discipleId] = String(arg || '').split('|');
+      const res = (SECT.MENTORSHIP && SECT.MENTORSHIP.transmitQi) ? SECT.MENTORSHIP.transmitQi(W, mentorId, discipleId, { free: false }) : { ok: false, reason: 'ไม่พบระบบถ่ายทอดปราณ' };
+      UI.toast(res.ok ? ('✨ พิธีถ่ายทอดปราณต้นกำเนิดสำเร็จ! (+XP ' + res.xpTransferred + ' · สืบทอด「' + (res.inheritedTech || 'รากฐานอาจารย์') + '」)') : ('ไม่สำเร็จ: ' + (res.reason || 'เงื่อนไขยังไม่ครบ')));
+      UI.render();
+      UI.updateHud(true);
+    }
     else if (a === 'set-clue-approach') {
       const [instId, appId] = String(arg || '').split('|');
       const cs = g.VC && g.VC.ensure ? g.VC.ensure(W) : null;
@@ -1889,6 +1946,19 @@
       alive.forEach(n => { const k = n.cult && cult[n.cult.path] != null ? n.cult.path : 'none'; cult[k]++; });
       h += '<h3>วิถีที่เดิน (' + Object.keys(CULT.PATHS).length + ' วิถีหลัก)</h3><div class="card">' + Object.values(CULT.PATHS).map(p => '<span class="chip">' + esc(p.shortTh || p.nameTh) + ' ' + cult[p.id] + '</span>').join('') + '<span class="chip">ปุถุชน ' + cult.none + '</span></div>';
       if (SECT.governanceSummary) { const gov = SECT.governanceSummary(W); h += '<div class="card">การบริหารสำนัก: ลดค่าดูแล ' + Math.round((gov.upkeepReduction || 0) * 100) + '% · ประสิทธิภาพก่อสร้างเพิ่ม ' + Math.round((gov.constructionSpeedBonus || 0) * 100) + '%</div>'; }
+      if (SECT.MENTORSHIP && SECT.MENTORSHIP.ensure) {
+        const ms = SECT.MENTORSHIP.ensure(W);
+        const hArts = Array.isArray(ms.heritageArts) ? ms.heritageArts : [];
+        const activePairs = alive.filter(x => x.mentorId && W.byId[x.mentorId] && !W.byId[x.mentorId].dead).length;
+        h += '<h3>🎓 สายสืบทอดอาจารย์-ศิษย์ & วิชาประจำสำนัก (' + hArts.length + '/6 เล่ม)</h3><div class="card">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div>คู่ศิษย์-อาจารย์สายตรงในสำนัก: <b>' + activePairs + ' คู่</b> · การชี้แนะสะสม <b>' + (ms.totalCoachings || 0) + ' ครั้ง</b> · พิธีถ่ายทอดปราณ <b>' + (ms.totalTransmissions || 0) + ' ครั้ง</b></div><button class="btn pri" style="padding:4px 10px;font-size:11.5px" data-do="synthesize-sect-art" data-arg="' + m.id + '">📜 บัญญัติวิชาประจำสำนัก</button></div>';
+        if (hArts.length) {
+          h += '<div style="margin-top:6px">' + hArts.map(a => '<div style="padding:3px 0;border-top:1px dotted var(--line,#3a3f4a)"><span class="chip g">★ มรดกสำนัก T' + (a.tier || 5) + '</span> <b>' + esc(a.nameTh) + '</b> <span class="muted">(ผู้บัญญัติ: ' + esc(a.creatorNameTh || '-') + ' · วิถี ' + esc(a.path || 'ANY') + ')</span><div class="muted" style="font-size:11px">' + esc(a.descTh || '') + '</div></div>').join('') + '</div>';
+        } else {
+          h += '<div class="muted" style="margin-top:4px">ยังไม่มีวิชาที่สำนักบัญญัติขึ้นเอง — เจ้าสำนักหรือผู้อาวุโสขั้น 4 ขึ้นไปสามารถผสาน 2 วิชาเพื่อบัญญัติคัมภีร์มรดกประจำสำนักเข้าหอคัมภีร์ได้</div>';
+        }
+        h += '</div>';
+      }
       if (S.research) h += '<h3>งานวิจัย</h3><div class="card">ตำรับระดับ ' + S.research.tier + ' ' + bar('ความคืบหน้า', S.research.progress / S.research.need * 100, { wide: true, txt: Math.round(S.research.progress / S.research.need * 100) + '%' }) + '</div>';
       if (S.tournament) h += '<div class="card">🏆 ชุมนุมประลองยุทธ์สำนัก: ' + (S.tournament.state === 'announce' ? 'ประกาศแล้ว จะเริ่มอีก ' + Math.max(0, Math.round((S.tournament.start - W.t) / 60)) + ' ชม.' : 'กำลังแข่ง เหลือ ' + (S.tournament.alive || []).length + ' คน') + '</div>';
       if (S.festival && S.festival.until > W.t) h += '<div class="card">🎎 งานเลี้ยงกำลังจัดอยู่</div>';
@@ -2360,7 +2430,36 @@
     const W = UI.G.W, tab = UI.tab; let h = '';
     if (tab === 'exp') {
       const act = W.world.expeds.filter(e => !e.done);
-      h += '<div class="muted" style="margin-bottom:6px">นอกสำนักไม่มีฉากให้เล่น ผลการเดินทางถูกคำนวณจากกำลัง โชค การรับรู้ และนิสัยของผู้เดินทางจริง</div>';
+      h += '<div class="muted" style="margin-bottom:6px">การเดินทาง การสืบข่าวโรงเตี๊ยม และสายสัมพันธ์ยุทธภพ คำนวณจากตบะ โชค การรับรู้ และนิสัยของผู้เดินทางจริง</div>';
+      if (SECT.JIANGHU && SECT.JIANGHU.ensure) {
+        const jh = SECT.JIANGHU.ensure(W);
+        if (!jh.rumors || !jh.rumors.length) SECT.JIANGHU.refreshTavernRumors(W, { count: 3 });
+        const openRumors = (jh.rumors || []).filter(r => r && r.status !== 'resolved' && !r.resolved);
+        const rawBonds = Array.isArray(jh.bonds) ? jh.bonds : Object.values(jh.karmaBonds || {});
+        const bonds = rawBonds.filter(b => b && b.active !== false);
+        const leadActor = (UI.G.R && UI.G.R.selected && W.byId[UI.G.R.selected] && !W.byId[UI.G.R.selected].dead) ? W.byId[UI.G.R.selected] : W.byId[W.sect.masterId];
+        h += '<h3>🍶 โรงเตี๊ยมข่าวลือยุทธภพ (' + openRumors.length + ' ข่าวที่กำลังแพร่สะพัด)</h3><div class="card">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px"><span class="muted">ผู้พร้อมออกสืบข่าว: <b>' + esc(leadActor ? HC.fullName(leadActor) : 'เจ้าสำนัก') + '</b> (คลี่คลายแล้ว ' + ((jh.encounters && jh.encounters.length) || 0) + ' ครั้ง)</span><button class="btn" style="padding:3px 8px;font-size:11px" data-do="refresh-rumors">🔄 ฟังข่าวลือชุดใหม่</button></div>';
+        if (openRumors.length) {
+          h += openRumors.map(r => '<div style="padding:5px 0;border-top:1px solid var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div style="flex:1;min-width:180px"><b>🍶 ' + esc(r.titleTh) + '</b> <span class="chip b">' + esc(r.regionId || r.kind || 'ยุทธภพ') + '</span><div class="muted" style="font-size:11.5px">' + esc(r.descTh || '') + ' (หมดอายุวันที่ ' + r.expiresDay + ')</div></div><button class="btn pri" style="padding:4px 9px;font-size:11.5px" data-do="investigate-tavern-rumor" data-arg="' + esc(r.id) + '|' + (leadActor ? leadActor.id : '') + '">🧭 ส่งไปสืบข่าว</button></div>').join('');
+        } else {
+          h += '<div class="muted">ข่าวลือรอบนี้ถูกคลี่คลายหมดแล้ว กดปุ่มฟังข่าวลือชุดใหม่หรือรอวันถัดไป</div>';
+        }
+        h += '</div>';
+        if (bonds.length) {
+          h += '<h3>☯️ สายสัมพันธ์คุณธรรมและความแค้นในยุทธภพ (' + bonds.length + ' คน)</h3><div class="card">';
+          h += bonds.map(b => {
+            const mem = W.byId[b.npcId || b.memberId];
+            const isAlly = b.kind === 'SWORN_ALLY' || b.kind === 'BENEFACTOR';
+            const figName = b.figureNameTh || b.npcNameTh || 'จอมยุทธ์ยุทธภพ';
+            const btns = isAlly
+              ? '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="ally-aid" data-arg="' + esc(b.id) + '">🤝 ขอรับการหนุนนำ</button>'
+              : '<button class="btn dan" style="padding:3px 8px;font-size:11px" data-do="challenge-nemesis" data-arg="' + esc(b.id) + '|">⚔️ นัดดวลชี้ขาด</button>';
+            return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap"><div><span class="chip ' + (isAlly ? 'ok' : 'r') + '">' + (isAlly ? '🤝 สหายร่วมสาบาน' : '🩸 คู่อาฆาตยุทธภพ') + '</span> <b>' + esc(figName) + '</b> <span class="muted">(' + esc(b.sectNameTh || b.titleTh || b.path) + ' · พลัง ' + b.power + ' CP)</span><div class="muted" style="font-size:11px">ผูกพันกับ: ' + (mem ? nameLink(mem) : esc(b.npcNameTh || b.memberNameTh || '-')) + (isAlly ? ' (พร้อมช่วยรบเมื่อสำนักถูกบุก)' : '') + '</div></div><div>' + btns + '</div></div>';
+          }).join('');
+          h += '</div>';
+        }
+      }
       h += '<h3>กำลังเดินทาง (' + act.length + ')</h3>' + (act.length ? act.map(e => { const ms = e.party.map(i => W.byId[i]).filter(Boolean); const reg = EXPED.REGIONS.find(r => r.id === e.region) || { nameTh: e.placeTh || '?' }; return '<div class="card"><b>' + EXPED.MISSIONS[e.kind].icon + ' ' + EXPED.MISSIONS[e.kind].nameTh + '</b> → ' + esc(reg.nameTh) + '<div>' + ms.map(nameLink).join('、') + '</div><div class="muted">กลับในอีก ~' + Math.max(0, Math.round((e.ret - W.t) / 1440 * 10) / 10) + ' วัน</div></div>'; }).join('') : '<div class="muted">ไม่มี</div>');
       const done = W.world.expeds.filter(e => e.done && e.out).slice(-5).reverse(); if (done.length) h += '<h3>เพิ่งกลับ</h3>' + done.map(e => { const ms = e.party.map(i => W.byId[i]).filter(Boolean); return '<div class="card"><b>' + EXPED.MISSIONS[e.kind].icon + ' ' + EXPED.MISSIONS[e.kind].nameTh + '</b> ' + ms.map(nameLink).join('、') + '<div class="muted">' + esc(e.journal.slice(-4).join(' → ')) + '</div><div>' + esc(EXPED.summarize(e.out)) + '</div></div>'; }).join('');
     } else if (tab === 'visitors') {
@@ -2477,10 +2576,12 @@
     }
 
     if (uniqueArts.length) {
-      h += "<h3>🗡️ ศาสตราวุธระดับตำนานที่ปรากฏในโลกแล้ว (" + uniqueArts.length + "/11)</h3><div class=\"card\">";
+      const totalLegEq = (g.VC.LEGENDARY_EQUIPMENT && g.VC.LEGENDARY_EQUIPMENT.length) || 21;
+      h += "<h3>👑 ศาสตรา เกราะ และเครื่องประดับระดับตำนานที่ปรากฏในโลกแล้ว (" + uniqueArts.length + "/" + totalLegEq + ")</h3><div class=\"card\">";
       h += uniqueArts.map(ua => {
-        const wDef = g.VC.LEGENDARY_WEAPON_BY_ID && g.VC.LEGENDARY_WEAPON_BY_ID[ua.itemId];
-        return "<div class=\"logrow\"><span><span class=\"chip g\">★ ตำนาน T7</span> <b>" + esc(wDef ? wDef.nameTh : ua.itemId) + "</b>" + (wDef && wDef.chineseName ? " <span class=\"muted\">(" + esc(wDef.chineseName) + ")</span>" : "") + "</span><span class=\"muted\">ผู้ถือครอง: <b>" + esc(ua.ownerNameTh || ua.ownerKind) + "</b></span></div>";
+        const wDef = (g.VC.LEGENDARY_EQUIPMENT_BY_ID && g.VC.LEGENDARY_EQUIPMENT_BY_ID[ua.itemId]) || (g.VC.LEGENDARY_WEAPON_BY_ID && g.VC.LEGENDARY_WEAPON_BY_ID[ua.itemId]);
+        const slotLbl = wDef && wDef.slot === "ARMOR" ? "🛡️ เกราะตำนาน" : wDef && wDef.slot === "ACCESSORY" ? "📿 เครื่องประดับตำนาน" : "🗡️ อาวุธตำนาน";
+        return "<div class=\"logrow\"><span><span class=\"chip g\">★ " + slotLbl + " T7</span> <b>" + esc(wDef ? wDef.nameTh : ua.itemId) + "</b>" + (wDef && wDef.chineseName ? " <span class=\"muted\">(" + esc(wDef.chineseName) + ")</span>" : "") + "</span><span class=\"muted\">ผู้ถือครอง: <b>" + esc(ua.ownerNameTh || ua.ownerKind) + "</b></span></div>";
       }).join("");
       h += "</div>";
     }
@@ -3571,6 +3672,18 @@
               const rs = tacInfo.resonanceSet;
               h += '<div style="margin-top:4px"><span class="chip g">✦ สัจธรรมชุดอุปกรณ์ ' + rs.pieces + '/3</span> <b>' + esc(rs.nameTh) + '</b><div class="muted" style="font-size:11.5px">' + esc(rs.summaryTh) + (rs.rider ? ' · ' + esc(rs.rider.descTh) : '') + '</div></div>';
             }
+            if (g.MARTIAL && g.MARTIAL.evaluateLegendaryRelicResonance) {
+              const lr = g.MARTIAL.evaluateLegendaryRelicResonance(n);
+              if (lr && lr.active) {
+                h += '<div style="margin-top:4px"><span class="chip g">👑 ' + esc(lr.tierLabelTh) + '</span>' + (lr.attunedStarsTotal > 0 ? ' <span class="chip v">★ หลอมดาววิญญาณ +' + lr.attunedStarsTotal + '</span>' : '') + '<div class="muted" style="font-size:11.5px">' + esc(lr.summaryTh) + '</div></div>';
+              }
+            }
+            if (g.MARTIAL && g.MARTIAL.evaluateSubEquipmentBonus) {
+              const sb = g.MARTIAL.evaluateSubEquipmentBonus(n);
+              if (sb && sb.matchedCount > 0) {
+                h += '<div style="margin-top:4px"><span class="chip ok">⚔️ อุปกรณ์ตรงสายย่อย ' + sb.matchedCount + '/3 ช่อง</span> <span class="muted" style="font-size:11.5px">' + esc(sb.summaryTh) + '</span></div>';
+              }
+            }
             h += '</div>';
           }
         }
@@ -3641,7 +3754,45 @@
         '<button class="btn" data-do="npc" data-arg="' + n.id + '|tech">⚔️ วิชา/วรยุทธ์ (' + (n.cult ? n.cult.techs.length : 0) + ')</button>' +
         '<button class="btn" data-do="npc" data-arg="' + n.id + '|sub">🌿 สายย่อย/ทะลวงด่าน' + (n.cult && n.cult.track ? ' (ขั้น ' + n.cult.track.ordinal + ')' : '') + '</button>' +
       '</div>';
-      h += '<h3>ในสำนัก</h3><div class="card"><div class="grid2"><div>ระดับ: <b>' + SECT.title(n) + '</b></div><div>เข้าสำนัก: ' + Math.max(0, Math.round(W.day - n.joinDay)) + ' วันก่อน</div><div>ผลงานสะสม: ' + Math.round(n.merit) + '</div><div>พอใจสำนัก: ' + Math.round(n.sat == null ? 60 : n.sat) + '</div><div>ศิลาส่วนตัว: ' + Math.round(n.inv.stones) + '</div><div>โชค: ' + Math.round(n.h.destiny.luck) + '</div></div>' + (n.mentor && W.byId[n.mentor] ? '<div>อาจารย์: ' + nameLink(W.byId[n.mentor]) + '</div>' : '') + (n.h.life.family.spouse && W.byId[n.h.life.family.spouse] ? '<div>คู่ครอง: ' + nameLink(W.byId[n.h.life.family.spouse]) + '</div>' : '') + ((n.h.life.family.disciples || []).length ? '<div>ศิษย์: ' + n.h.life.family.disciples.map(i => W.byId[i]).filter(Boolean).map(nameLink).join('、') + '</div>' : '') + (n.stats && (n.stats.kills || n.stats.sparWin) ? '<div class="muted">สถิติ: สังหาร ' + (n.stats.kills || 0) + ' · ประลองชนะ ' + (n.stats.sparWin || 0) + ' แพ้ ' + (n.stats.sparLoss || 0) + '</div>' : '') + '</div>';
+      const mObj = W.byId[n.mentorId || n.mentor];
+      const discList = Array.from(new Set([].concat(n.disciples || [], (n.h.life.family && n.h.life.family.disciples) || []))).map(i => W.byId[i]).filter(Boolean);
+      h += '<h3>ในสำนัก</h3><div class="card"><div class="grid2"><div>ระดับ: <b>' + SECT.title(n) + '</b></div><div>เข้าสำนัก: ' + Math.max(0, Math.round(W.day - n.joinDay)) + ' วันก่อน</div><div>ผลงานสะสม: ' + Math.round(n.merit) + '</div><div>พอใจสำนัก: ' + Math.round(n.sat == null ? 60 : n.sat) + '</div><div>ศิลาส่วนตัว: ' + Math.round(n.inv.stones) + '</div><div>โชค: ' + Math.round(n.h.destiny.luck) + '</div></div>' + (mObj ? '<div>อาจารย์สายตรง: ' + nameLink(mObj) + '</div>' : '') + (n.h.life.family.spouse && W.byId[n.h.life.family.spouse] ? '<div>คู่ครอง: ' + nameLink(W.byId[n.h.life.family.spouse]) + '</div>' : '') + (discList.length ? '<div>ศิษย์สายตรง (' + discList.length + '): ' + discList.map(nameLink).join('、') + '</div>' : '') + (n.stats && (n.stats.kills || n.stats.sparWin) ? '<div class="muted">สถิติ: สังหาร ' + (n.stats.kills || 0) + ' · ประลองชนะ ' + (n.stats.sparWin || 0) + ' แพ้ ' + (n.stats.sparLoss || 0) + '</div>' : '') + '</div>';
+      if (SECT.MENTORSHIP && n.cult) {
+        h += '<h3>🎓 สายสืบทอดอาจารย์-ศิษย์ & ปราณต้นกำเนิด</h3><div class="card">';
+        if (n.mentorImprint) {
+          h += '<div style="margin-bottom:4px"><span class="chip g">✦ รากฐานที่ได้รับการถ่ายทอด</span> จาก <b>' + esc(n.mentorImprint.mentorNameTh || 'อาจารย์') + '</b> · เร่งบ่มเพาะ +' + Math.round((n.mentorImprint.cultSpeedBonus || 0.12) * 100) + '% · ทะลวงด่าน +' + Math.round((n.mentorImprint.breakthroughBonus || 0.08) * 100) + '%' + (n.mentorImprint.inheritedTechNameTh ? ' · สืบทอด「' + esc(n.mentorImprint.inheritedTechNameTh) + '」' : '') + '</div>';
+        }
+        if (mObj && !mObj.dead) {
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px"><span>อาจารย์ปัจจุบัน: ' + nameLink(mObj) + '</span><div style="display:flex;gap:4px"><button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="coach-disciple" data-arg="' + mObj.id + '|' + n.id + '">🎓 ขอรับการชี้แนะ</button>' + ((mObj.cult && mObj.cult.stage >= 5 && (!n.mentorImprint || !n.mentorImprint.transmitted)) ? '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="transmit-qi" data-arg="' + mObj.id + '|' + n.id + '">✨ รับการถ่ายทอดปราณ</button>' : '') + '</div></div>';
+        } else if (!mObj) {
+          const potMentor = W.npcs.filter(x => !x.dead && !x.exiled && x.id !== n.id && x.cult && x.cult.stage >= (n.cult.stage || 1) + 1 && (x.rank >= 3 || x.cult.stage >= 3) && (!Array.isArray(x.disciples) || x.disciples.length < 3)).sort((a, b) => ((b.cult.path === n.cult.path ? 50 : 0) + b.cult.stage * 10) - ((a.cult.path === n.cult.path ? 50 : 0) + a.cult.stage * 10))[0];
+          if (potMentor) {
+            h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><span>ยังไม่มีอาจารย์สายตรง (แนะนำ: ' + nameLink(potMentor) + ')</span><button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="form-mentor-bond" data-arg="' + potMentor.id + '|' + n.id + '">🙇 ฝากตัวเป็นศิษย์</button></div>';
+          } else {
+            h += '<div class="muted">ยังไม่มีอาจารย์สายตรงที่เหมาะสมในขณะนี้</div>';
+          }
+        }
+        if (discList.length) {
+          h += '<div style="margin-top:6px;border-top:1px dotted var(--line,#3a3f4a);padding-top:4px"><b>ศิษย์ในปกครอง (' + discList.length + '/3):</b></div>';
+          discList.forEach(dNpc => {
+            h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:6px;flex-wrap:wrap"><span>' + nameLink(dNpc) + ' <span class="muted">(' + esc(CULT.stageName(dNpc)) + ')</span></span><div style="display:flex;gap:4px"><button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="coach-disciple" data-arg="' + n.id + '|' + dNpc.id + '">🎓 ชี้แนะวิชา</button>' + (n.cult.stage >= 5 ? '<button class="btn" style="padding:2px 7px;font-size:11px" data-do="transmit-qi" data-arg="' + n.id + '|' + dNpc.id + '">✨ ถ่ายทอดปราณ</button>' : '') + '</div></div>';
+          });
+        }
+        h += '</div>';
+      }
+      if (SECT.JIANGHU && W.world && W.world.jianghu) {
+        const rawB = Array.isArray(W.world.jianghu.bonds) ? W.world.jianghu.bonds : Object.values(W.world.jianghu.karmaBonds || {});
+        const myBonds = rawB.filter(b => b && b.active !== false && (b.npcId === n.id || b.memberId === n.id));
+        if (myBonds.length) {
+          h += '<h3>☯️ สายสัมพันธ์คุณธรรมและความแค้นในยุทธภพ (' + myBonds.length + ')</h3><div class="card">';
+          myBonds.forEach(b => {
+            const isAlly = b.kind === 'SWORN_ALLY' || b.kind === 'BENEFACTOR';
+            const figName = b.figureNameTh || b.npcNameTh || 'จอมยุทธ์ยุทธภพ';
+            h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:6px;flex-wrap:wrap"><div><span class="chip ' + (isAlly ? 'ok' : 'r') + '">' + (isAlly ? '🤝 สหายร่วมสาบาน' : '🩸 คู่อาฆาต') + '</span> <b>' + esc(figName) + '</b> <span class="muted">(' + esc(b.sectNameTh || '') + ' · พลัง ' + b.power + ' CP)</span></div><div>' + (isAlly ? '<button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="ally-aid" data-arg="' + esc(b.id) + '">🤝 ขอแรงหนุน</button>' : '<button class="btn dan" style="padding:2px 7px;font-size:11px" data-do="challenge-nemesis" data-arg="' + esc(b.id) + '|">⚔️ ดวลชี้ขาด</button>') + '</div></div>';
+          });
+          h += '</div>';
+        }
+      }
       const authRecipes = Array.from(new Set(n.recipes || [])).map(id => ECO.recipeById[id]).filter(Boolean);
       if (authRecipes.length) h += '<h3>📖 ตำรับที่ได้รับสิทธิ์ศึกษา</h3><div class="card">' + authRecipes.map(r => '<span class="chip ok">' + esc(r.nameTh) + ' (' + esc(r.outNameTh) + ')</span>').join('') + '</div>';
       h += '<h3>รูปลักษณ์</h3><div class="card muted">' + esc(HC.appearanceText(n)) + '</div>';
