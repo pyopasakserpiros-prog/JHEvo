@@ -37,9 +37,9 @@ node test/run_all.js
 Before delivering any completed release or patch:
 1. **Playable Game:** Rebuild `JianghuSect_single.html`.
 2. **Complete Source:** Fully integrate changes in `GAME_SOURCE/`.
-3. **Tests:** Ensure schema passes with 0 errors and all suites in `test/run_all.js` pass (add new test suites for new features).
+3. **Tests:** Ensure schema passes with 0 errors and core logic suites in `test/run_all.js` pass (browser/Chromium tests are excused if constrained by the AI sandbox). Add new test suites for new features.
 4. **Report:** Write `PATCH_IMPLEMENTATION_REPORT_V<X>.md` documenting every new module, formula, schema, and UI change.
 5. **Living Master Skills:** Update all affected Master Skills in `.agents/skills/<skill>/SKILL.md` (and `.codex/skills/`) so skills always match reality.
-6. **Save Safety:** Validate `SIM.serialize` / `SIM.deserialize` migration integrity without state or memory leakage.
+6. **Save Hygiene (No Legacy Baggage):** Legacy save backwards compatibility is NOT required—innovate freely. Ensure current version saves serialize/deserialize cleanly without cache leaks.
 7. **Clean Docs & Hygiene:** Update `README.md`, update `START_HERE_FOR_AI.md`, and clean obsolete historical prompt files.
 

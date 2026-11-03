@@ -65,15 +65,16 @@ Whenever completing any major release, feature expansion, or patch, the AI agent
    - All modules, data tables, CSS, and assets must be committed cleanly. No loose, broken, or half-implemented stubs.
 3. **Rigorous Automated Testing & New Test Suites:**
    - Run `node GAME_SOURCE/tools/validate_data_schema.js` (must pass with `Errors: 0`).
-   - Run `cd GAME_SOURCE && node test/run_all.js` (all suites must pass with zero regressions).
+   - Run `cd GAME_SOURCE && node test/run_all.js` (core Node.js suites must pass with zero regressions).
+   - **Browser/Environment Exception:** Tests that require real browser rendering, headless Chromium, or CDP (which may fail due to sandbox/environment constraints on Termux or certain AI platforms) are completely excused. Focus on data schema, game logic, and formula suites.
    - **New Features Rule:** Every newly introduced mechanic, formula, or subsystem must have a dedicated automated test suite in `GAME_SOURCE/test/`.
 4. **Comprehensive Patch Implementation Report (`PATCH_IMPLEMENTATION_REPORT_V<X>.md`):**
    - Create a thorough technical report detailing: architectural changes, new constants/formulas, schema modifications, UI features, test results, and performance profiling.
 5. **Continuous Master Skill Synchronization (Living Knowledge Base):**
    - **Crucial Invariant:** Every time a new system, combat formula, cultivation path, economic loop, UI drawer, or procedural table is added or tuned, the agent **MUST immediately update the matching Master Skills in `.agents/skills/<skill>/SKILL.md` (and mirrored in `.codex/skills/<skill>/SKILL.md`)**. Skills must reflect the true, current state of the engine so that future AI agents never guess or duplicate work.
-6. **Save Compatibility & Serialization Hygiene:**
-   - Verify that saves created in previous baseline versions load cleanly via `SIM.deserialize`.
-   - Ensure transient cache keys (`_`-prefixed) are stripped during serialization (`SIM.serialize`), preventing memory leaks and bloated save payloads.
+6. **Save System Hygiene (Unconstrained Forward Evolution):**
+   - **Freedom to Innovate:** Backwards compatibility with older legacy saves is **NOT required**. Do not let legacy save constraints slow down or compromise bold architectural innovations. Prioritize clean, scalable gameplay architecture over legacy save baggage.
+   - **Serialization Hygiene:** Ensure current saves serialize/deserialize cleanly within the active version (`SIM.serialize` / `SIM.deserialize`), and transient cache keys (`_`-prefixed) are stripped to prevent bloated save payloads.
 7. **Clean Repository Hygiene & Documentation Updates:**
    - Update `README.md` version tag, release notes, and summary.
    - Update `START_HERE_FOR_AI.md` baseline version and routing matrix.
