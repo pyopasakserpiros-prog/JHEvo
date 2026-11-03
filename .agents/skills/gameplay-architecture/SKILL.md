@@ -76,8 +76,8 @@ The execution order is strictly deterministic and hard-wired. Any modification t
 
 All simulation state exists inside a single serializable JavaScript object `W`. Modules never store state in local variables across ticks.
 
-### 2.1 Authoritative Schema (`SIM.create` lines 146–218)
-- `W.v`: Engine version string (e.g. `'v2.0.9'`).
+### 2.1 Authoritative Schema (`SIM.create` lines 146–218 - v2.0.17)
+- `W.v`: Engine version string (`'v2.0.17'`).
 - `W.seed`: Deterministic root world seed string.
 - `W.rng`: Root deterministic pseudorandom number generator instance (`new U.RNG(seed + ':world')`).
 - `W.t`: Master timeline integer in simulation minutes (1 tick = 1 minute).
@@ -94,8 +94,11 @@ All simulation state exists inside a single serializable JavaScript object `W`. 
   - `stock`, `gear`, `crystals`: Sect warehouse inventories.
   - `reserveDirectives`, `shortageDirectives`: Autonomous supply chain directives.
   - `legacyTablets`: Ancestral shrine memorial inscriptions.
+  - `ascendedLegacyHistory`: Ascended elder records (capped at 50).
+  - `mentorship`: Direct disciple bonds, coaching logs, and synthesized heritage arts (`SECT.MENTORSHIP`).
   - `supportDoctrine`, `specialistFacilities`: Support AI & specialist building levels.
-- `W.world`: Regional macro-state (`sects`, `politics`, `nodes`, `caravans`).
+- `W.world`: Regional macro-state (`sects`, `politics`, `nodes`, `caravans`):
+  - `jianghu`: Tavern rumors, karma bonds, and sworn allies (`SECT.JIANGHU`).
 - `W.map`: Sect compound spatial grid, building definitions (`W.map.buildings`), and station states.
 
 ### 2.2 Time & Calendar Units (`SIM.calendar`)
