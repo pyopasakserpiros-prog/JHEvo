@@ -47494,4 +47494,1831 @@ JD.ITEMS.items.forEach(it => {
 
 })();
 
+/* ==================== START PATCH v2.0.34 MASSIVE CONTENT & COMPOSABLE EXPANSION ==================== */
+(function applyV234MassiveContentAndComposableExpansion() {
+  const JD = (typeof globalThis !== 'undefined' && globalThis.JD) ? globalThis.JD : null;
+  if (!JD || !JD.CULT || !JD.MARTIAL || !JD.TECH || !JD.ITEMS) return;
+  const D = JD.MARTIAL;
+  if (D._v234Applied) return;
+  D._v234Applied = true;
+
+  function epSingle(el) {
+    if (!el || el === 'NEUTRAL') return { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} };
+    const isSpec = (el === 'ASTRAL' || el === 'BLOOD_DEMON');
+    return { mode: isSpec ? 'SPECIAL_ELEMENT' : 'INTRINSIC_SINGLE', primary: el, weights: { [el]: 1.0 } };
+  }
+  function epWeighted(el1, w1, el2, w2) {
+    return { mode: 'INTRINSIC_WEIGHTED', primary: el1, weights: { [el1]: w1, [el2]: w2 } };
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1. 36 NEW SUBPATHS (3 PER EACH OF THE 12 MAJOR CULTIVATION PATHS: 96 -> 132)
+  // ---------------------------------------------------------------------------
+  const V234_SUBPATHS = [
+    // 1. XIAN (3)
+    {
+      id: 'CELESTIAL_STAR_SWORD', path: 'XIAN', nameTh: 'เซียนกระบี่ดาราจักรผ่าสุญตา', icon: '🌠',
+      el: 'ASTRAL', el2: 'WIND', w: ['SWORD', 'FOCUS'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'SWORD', sSk: 'MOVEMENT', resSet: 'RES_ASTRAL_SWORD_IMMORTAL',
+      stance: 'STAR_SWORD_STANCE', mark: 'starSeal', fusion: 'STARFALL_COLLAPSE',
+      stats: { atk: 12, matk: 16, def: -3, mdef: 8, hp: -10, crit: 9, pen: 11, eva: 7, acc: 10 },
+      prefs: { combat: 1.35, exploring: 1.25, meditation: 1.20, scholarship: 1.15 },
+      descTh: 'โคจรปราณกระบี่ผสานแสงดาวเจ็ดดารา ประทับตราดาราแล้วจุดระเบิดผ่ามิติ (โดดเด่นคริติคอลและเจาะเกราะเวท แลกกับพลังชีวิตพื้นฐานต่ำลง)'
+    },
+    {
+      id: 'KUNLUN_JADE_CAULDRON', path: 'XIAN', nameTh: 'เซียนหม้อหยกคุนหลุนกลั่นปราณ', icon: '🏺',
+      el: 'WATER_ICE', el2: 'WOOD_LIFE', w: ['FOCUS', 'STAFF'], arm: ['ROBE'],
+      pSk: 'ALCHEMY', sSk: 'MEDICINE', resSet: 'RES_FIVE_ELEMENTS_ELIXIR',
+      stance: 'LOTUS_MERCY_STANCE', mark: 'daoMark', fusion: 'GLACIAL_SHATTER',
+      stats: { atk: 4, matk: 15, def: 8, mdef: 16, hp: 35, crit: 4, pen: 6, eva: 5, acc: 8 },
+      prefs: { alchemy: 1.45, herbs: 1.35, meditation: 1.30, healing: 1.25 },
+      descTh: 'กลั่นปราณอมฤตในหม้อหยกคุนหลุน แปลงพิษและสถานะเผาไหม้เป็นเกราะคุ้มกาย พร้อมเสริมฤทธิ์โอสถสองระยะ (โดดเด่นความทนทานเวทและการปรุงยา แลกกับแรงปะทะกายภาพต่ำ)'
+    },
+    {
+      id: 'NINE_HEAVENS_THUNDER_SEAL', path: 'XIAN', nameTh: 'เซียนตราประทับอสนีเก้าสวรรค์', icon: '⚡',
+      el: 'LIGHTNING', el2: 'LIGHT_YANG', w: ['FOCUS', 'SWORD', 'BRUSH'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'TALISMAN', sSk: 'SCRIPTURE', resSet: 'RES_ASTRAL_SWORD_IMMORTAL',
+      stance: 'THUNDER_STEP_STANCE', mark: 'daoMark', fusion: 'OVERLOAD_BLAST',
+      stats: { atk: 8, matk: 19, def: 2, mdef: 10, hp: 10, crit: 10, pen: 12, eva: 6, acc: 12 },
+      prefs: { meditation: 1.30, combat: 1.30, talisman: 1.35, scholarship: 1.20 },
+      descTh: 'ควบแน่นอสนีสวรรค์เป็นตราประทับชิ่งสะท้อนหลายเป้าหมาย จุดปฏิกิริยาอสนีคลั่งและน้ำแข็งนำไฟฟ้า (โดดเด่นดาเมจเวทหมู่และชิ่งสายฟ้า แลกกับใช้ปราณสูง)'
+    },
+
+    // 2. BODY (3)
+    {
+      id: 'METEOR_IRON_FIST', path: 'BODY', nameTh: 'กายาหมัดอุกกาบาตเหล็กไหล', icon: '☄️',
+      el: 'EARTH_METAL', el2: 'FIRE', w: ['FIST', 'BLADE'], arm: ['HEAVY'],
+      pSk: 'FIST_PALM', sSk: 'BODY_REFINING', resSet: 'RES_OVERLORD_SOLAR_FORGE',
+      stance: 'VAJRA_BASTION_STANCE', mark: 'daoMark', fusion: 'GLACIAL_SHATTER',
+      stats: { atk: 20, matk: 2, def: 18, mdef: 6, hp: 65, crit: 7, pen: 14, eva: -6, acc: 8 },
+      prefs: { combat: 1.45, smithing: 1.25, mining: 1.30, training: 1.35 },
+      descTh: 'หลอมหมัดด้วยแร่อุกกาบาตหนักดั่งขุนเขา ทุบทำลายเกราะและจุดระเบิดศิลาเหมันต์แตกสลาย (โดดเด่นพลังโจมตีกายภาพและเจาะเกราะ แลกกับความคล่องตัวต่ำ)'
+    },
+    {
+      id: 'NINE_SUNS_FURNACE_BODY', path: 'BODY', nameTh: 'กายาเตาหลอมเก้าสุริยัน', icon: '☀️',
+      el: 'FIRE', el2: 'LIGHT_YANG', w: ['FIST', 'STAFF', 'SPEAR'], arm: ['HEAVY', 'LIGHT'],
+      pSk: 'BODY_REFINING', sSk: 'FORGING', resSet: 'RES_OVERLORD_SOLAR_FORGE',
+      stance: 'BLOOD_ASURA_STANCE', mark: 'bloodBrand', fusion: 'INFERNO_VORTEX',
+      stats: { atk: 18, matk: 8, def: 14, mdef: 10, hp: 80, crit: 8, pen: 10, eva: 2, acc: 7 },
+      prefs: { combat: 1.40, smithing: 1.35, training: 1.35, fortitude: 1.30 },
+      descTh: 'เปลี่ยนร่างกายเป็นเตาหลอมเก้าสุริยัน เผาผลาญเลือดส่วนหนึ่งเพื่อเร่งปราณและแผ่คลื่นความร้อนเผาศัตรูรอบข้าง (โดดเด่นเลือดสูงและระเบิดพลังโอเวอร์ไดรฟ์)'
+    },
+    {
+      id: 'ABYSSAL_LEVIATHAN_BONE', path: 'BODY', nameTh: 'กายากระดูกมังกรสมุทรบาดาล', icon: '🐋',
+      el: 'WATER_ICE', el2: 'EARTH_METAL', w: ['SPEAR', 'STAFF', 'FIST'], arm: ['HEAVY'],
+      pSk: 'BODY_REFINING', sSk: 'SPEAR', resSet: 'RES_VAJRA_TITAN_BASTION',
+      stance: 'VAJRA_BASTION_STANCE', mark: 'daoMark', fusion: 'GLACIAL_SHATTER',
+      stats: { atk: 14, matk: 6, def: 22, mdef: 16, hp: 95, crit: 4, pen: 8, eva: -4, acc: 6 },
+      prefs: { fortitude: 1.45, combat: 1.30, exploring: 1.25, guarding: 1.40 },
+      descTh: 'เคี่ยวกรำโครงกระดูกด้วยแรงดันก้นสมุทรน้ำแข็ง ดูดซับพิษและเลือดไหลมาสร้างเกราะน้ำแข็งคุ้มกาย (โดดเด่นความถึกและการตั้งรับแนวหน้า)'
+    },
+
+    // 3. GOD (3)
+    {
+      id: 'SOLAR_CHARIOT_SOVEREIGN', path: 'GOD', nameTh: 'เทพบดีราชรถสุริยันพิชิตฟ้า', icon: '🛞',
+      el: 'LIGHT_YANG', el2: 'FIRE', w: ['SPEAR', 'BOW', 'SWORD'], arm: ['HEAVY', 'ROBE'],
+      pSk: 'SPEAR', sSk: 'ritual', resSet: 'RES_DIVINE_WAR_ARHAT',
+      stance: 'STAR_SWORD_STANCE', mark: 'starSeal', fusion: 'KARMIC_PURIFICATION_SMITE',
+      stats: { atk: 16, matk: 16, def: 12, mdef: 12, hp: 50, crit: 9, pen: 11, eva: 5, acc: 12 },
+      prefs: { leadership: 1.40, ritual: 1.35, combat: 1.35, reputation: 1.30 },
+      descTh: 'อัญเชิญรัศมีราชรถสุริยันกวาดล้างสมรภูมิ ชำระล้างคำสาปศัตรูให้ระเบิดเป็นทัณฑ์สวรรค์ (โดดเด่นการรุกผสานกายเวทและบัฟกองทัพ)'
+    },
+    {
+      id: 'STYX_FERRYMAN_JUDGE', path: 'GOD', nameTh: 'เทพนาวาข้ามยมโลกตัดสินวิญญาณ', icon: '🚣',
+      el: 'YIN_SHADOW', el2: 'WATER_ICE', w: ['STAFF', 'BRUSH', 'WHIP'], arm: ['ROBE', 'HEAVY'],
+      pSk: 'SOUL_DIVINE', sSk: 'SCRIPTURE', resSet: 'RES_MERCY_HARVEST_ORACLE',
+      stance: 'SHADOW_REAPER_STANCE', mark: 'daoMark', fusion: 'SUPERCONDUCT_SHATTER',
+      stats: { atk: 9, matk: 19, def: 9, mdef: 18, hp: 42, crit: 8, pen: 13, eva: 6, acc: 11 },
+      prefs: { ritual: 1.40, scholarship: 1.30, meditation: 1.30, judgment: 1.35 },
+      descTh: 'พายนาวาข้ามแม่น้ำยมโลก ผูกโซ่วิญญาณสะท้อนความเสียหายและยืดเวลาคำสาปสะกดขวัญศัตรู (โดดเด่นการควบคุมและโจมตีจิตวิญญาณ)'
+    },
+    {
+      id: 'STORM_THUNDER_EMPEROR', path: 'GOD', nameTh: 'เทพจักรพรรดิพายุสายฟ้าประกาศิต', icon: '🌩️',
+      el: 'LIGHTNING', el2: 'WIND', w: ['SPEAR', 'STAFF', 'BOW'], arm: ['HEAVY', 'LIGHT'],
+      pSk: 'SPEAR', sSk: 'MOVEMENT', resSet: 'RES_DIVINE_WAR_ARHAT',
+      stance: 'THUNDER_STEP_STANCE', mark: 'starSeal', fusion: 'OVERLOAD_BLAST',
+      stats: { atk: 15, matk: 17, def: 8, mdef: 11, hp: 38, crit: 11, pen: 12, eva: 9, acc: 11 },
+      prefs: { combat: 1.40, ritual: 1.30, exploring: 1.25, leadership: 1.25 },
+      descTh: 'บัญชาพายุและสายฟ้าฟาดผ่าแนวหลังศัตรูที่พลังโจมตีสูงสุด พร้อมเร่งความเร็วเคลื่อนพลทั้งทีม (โดดเด่นการล้วงแนวหลังและปฏิกิริยาธาตุสายฟ้า)'
+    },
+
+    // 4. DEMON (3)
+    {
+      id: 'CRIMSON_MOON_EXECUTIONER', path: 'DEMON', nameTh: 'มารเพชฌฆาตจันทร์สีเลือด', icon: '🌙',
+      el: 'BLOOD_DEMON', el2: 'YIN_SHADOW', w: ['BLADE', 'WHIP', 'SWORD'], arm: ['LIGHT'],
+      pSk: 'BLADE', sSk: 'stealth', resSet: 'RES_SHADOW_ASHURA_SLAYER',
+      stance: 'BLOOD_ASURA_STANCE', mark: 'bloodBrand', fusion: 'BLOOD_BOIL_RUPTURE',
+      stats: { atk: 21, matk: 10, def: 4, mdef: 4, hp: 25, crit: 14, pen: 15, eva: 10, acc: 11 },
+      prefs: { combat: 1.45, hunting: 1.35, stealth: 1.35, dominance: 1.30 },
+      descTh: 'ฝังตราประทับโลหิต 5 ชั้นแล้วบั่นคอสังหารเป้าหมายที่เลือดต่ำที่สุด พร้อมระเบิดโลหิตเดือดสูบชีวิต (โดดเด่นการสังหารเดี่ยวและดูดเลือด แลกกับเกราะป้องกันบาง)'
+    },
+    {
+      id: 'MYRIAD_MIASMA_ALCHEMIST', path: 'DEMON', nameTh: 'มารหมื่นพิษหมอกมรณะกลืนปราณ', icon: '☠️',
+      el: 'WOOD_LIFE', el2: 'YIN_SHADOW', w: ['FOCUS', 'WHIP', 'BOW'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'POISON', sSk: 'ALCHEMY', resSet: 'RES_BLOOD_ASURA_DEVOURER',
+      stance: 'SHADOW_REAPER_STANCE', mark: 'venomSeed', fusion: 'MIASMA_DETONATION',
+      stats: { atk: 10, matk: 18, def: 6, mdef: 13, hp: 30, crit: 8, pen: 12, eva: 8, acc: 12 },
+      prefs: { alchemy: 1.40, herbs: 1.35, poison: 1.45, combat: 1.25 },
+      descTh: 'แปรเปลี่ยนพิษสะสมในกายเป็นพลังโจมตีพิษรุนแรง เพาะเมล็ดพิษกู่แล้วจุดไฟระเบิดหมอกพิษสังหารหมู่ (โดดเด่นดาเมจต่อเนื่องและการระเบิดพิษ)'
+    },
+    {
+      id: 'ABYSSAL_SOUL_EATER', path: 'DEMON', nameTh: 'มารกลืนวิญญาณเหวมืดนิรันดร์', icon: '🕳️',
+      el: 'YIN_SHADOW', el2: 'BLOOD_DEMON', w: ['FIST', 'BLADE', 'FOCUS'], arm: ['LIGHT', 'ROBE'],
+      pSk: 'SOUL_DIVINE', sSk: 'FIST_PALM', resSet: 'RES_BLOOD_ASURA_DEVOURER',
+      stance: 'SHADOW_REAPER_STANCE', mark: 'bloodBrand', fusion: 'BLOOD_BOIL_RUPTURE',
+      stats: { atk: 14, matk: 18, def: 5, mdef: 11, hp: 28, crit: 11, pen: 13, eva: 11, acc: 10 },
+      prefs: { combat: 1.35, stealth: 1.30, meditation: 1.25, dominance: 1.35 },
+      descTh: 'กระชากและขโมยบัฟจากศัตรูมาเป็นของตน พร้อมสูบปราณและวิญญาณผู้ถูกตีตราโลหิต (โดดเด่นการขโมยบัฟและตัดกำลังตัวแบกของศัตรู)'
+    },
+
+    // 5. HEART_SOUL (3)
+    {
+      id: 'CELESTIAL_CHESS_SCHOLAR', path: 'HEART_SOUL', nameTh: 'ปราชญ์หมากล้อมดาราบัญชาจิต', icon: '♟️',
+      el: 'ASTRAL', el2: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS', 'ZITHER'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'SCRIPTURE', sSk: 'ARRAY', resSet: 'RES_ZEN_VOID_MIND',
+      stance: 'QIMEN_ARRAY_STANCE', mark: 'starSeal', fusion: 'STARFALL_COLLAPSE',
+      stats: { atk: 5, matk: 18, def: 9, mdef: 17, hp: 32, crit: 9, pen: 11, eva: 8, acc: 15 },
+      prefs: { scholarship: 1.45, strategy: 1.40, meditation: 1.30, arts: 1.30 },
+      descTh: 'วางหมากดาราบนกระดานจิตวิญญาณ ล็อกเป้าศัตรูที่อันตรายที่สุดหรืออ่อนแอที่สุดได้อย่างแม่นยำไร้พลาด (โดดเด่นความแม่นยำและการคุมจังหวะสมรภูมิ)'
+    },
+    {
+      id: 'SEVEN_EMOTIONS_ZITHER', path: 'HEART_SOUL', nameTh: 'คีตเซียนพิณเจ็ดอารมณ์สะกดขวัญ', icon: '🎶',
+      el: 'WIND', el2: 'YIN_SHADOW', w: ['ZITHER', 'BOW', 'SWORD'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'arts', sSk: 'SOUL_DIVINE', resSet: 'RES_CELESTIAL_BOW_ZITHER',
+      stance: 'THUNDER_STEP_STANCE', mark: 'daoMark', fusion: 'INFERNO_VORTEX',
+      stats: { atk: 7, matk: 19, def: 5, mdef: 15, hp: 26, crit: 10, pen: 10, eva: 11, acc: 13 },
+      prefs: { arts: 1.50, socializing: 1.35, meditation: 1.30, combat: 1.20 },
+      descTh: 'บรรเลงพิณเจ็ดอารมณ์ส่งคลื่นเสียงสะกดขวัญและใบ้ศัตรูเป็นกลุ่ม พร้อมเร่งท่วงท่าคอมโบให้พันธมิตร (โดดเด่นการสะกดหมู่และคลื่นเสียงทะลวงแนว)'
+    },
+    {
+      id: 'VOID_LOTUS_CONTEMPLATOR', path: 'HEART_SOUL', nameTh: 'มุนีบัวสุญตาสะท้อนมโนธาตุ', icon: '🪷',
+      el: 'LIGHT_YANG', el2: 'ASTRAL', w: ['STAFF', 'FOCUS', 'BRUSH'], arm: ['ROBE'],
+      pSk: 'SOUL_DIVINE', sSk: 'MEDICINE', resSet: 'RES_ZEN_VOID_MIND',
+      stance: 'LOTUS_MERCY_STANCE', mark: 'daoMark', fusion: 'KARMIC_PURIFICATION_SMITE',
+      stats: { atk: 4, matk: 15, def: 13, mdef: 22, hp: 55, crit: 4, pen: 7, eva: 7, acc: 10 },
+      prefs: { meditation: 1.50, healing: 1.35, scholarship: 1.30, solitude: 1.35 },
+      descTh: 'เจริญสติกลางดอกบัวสุญตา เชื่อมจิตแบ่งเบาความเสียหายให้สหายและแปลงดีบัฟเป็นโล่คุ้มครองจิต (โดดเด่นการป้องกันจิตวิญญาณและคุ้มครองทีม)'
+    },
+
+    // 6. MECH_PUPPET (3)
+    {
+      id: 'THUNDER_CORE_ARTILLERY', path: 'MECH_PUPPET', nameTh: 'กลไกปืนใหญ่อสนีแกนแม่เหล็ก', icon: '🔭',
+      el: 'LIGHTNING', el2: 'EARTH_METAL', w: ['BOW', 'FOCUS', 'STAFF'], arm: ['HEAVY', 'LIGHT'],
+      pSk: 'FORGING', sSk: 'BOW', resSet: 'RES_MECH_AUTOMATON_CITADEL',
+      stance: 'QIMEN_ARRAY_STANCE', mark: 'starSeal', fusion: 'SUPERCONDUCT_SHATTER',
+      stats: { atk: 19, matk: 14, def: 11, mdef: 9, hp: 40, crit: 12, pen: 16, eva: 3, acc: 14 },
+      prefs: { smithing: 1.45, crafting: 1.40, combat: 1.30, Guarding: 1.25 },
+      descTh: 'ติดตั้งปืนใหญ่แกนแม่เหล็กอสนี ยิงลำแสงเจาะทะลุเป็นเส้นตรงและจุดปฏิกิริยาน้ำแข็งนำไฟฟ้าทลายเกราะ (โดดเด่นการยิงทะลวงแนวและเจาะเกราะสูงสุด)'
+    },
+    {
+      id: 'JADE_SPIDER_WEAVER', path: 'MECH_PUPPET', nameTh: 'หุ่นแมงมุมหยกพันสายใยสังหาร', icon: '🕷️',
+      el: 'YIN_SHADOW', el2: 'WOOD_LIFE', w: ['WHIP', 'FOCUS', 'SWORD'], arm: ['LIGHT', 'ROBE'],
+      pSk: 'ARRAY', sSk: 'POISON', resSet: 'RES_MECH_AUTOMATON_CITADEL',
+      stance: 'SHADOW_REAPER_STANCE', mark: 'venomSeed', fusion: 'GU_FIRE_ERUPTION',
+      stats: { atk: 13, matk: 15, def: 10, mdef: 12, hp: 36, crit: 11, pen: 11, eva: 12, acc: 13 },
+      prefs: { crafting: 1.40, stealth: 1.30, exploring: 1.30, combat: 1.25 },
+      descTh: 'บังคับหุ่นแมงมุมหยกถักทอใยปราณตรึงร่างศัตรู พร้อมฝังเมล็ดพิษกลไกและแชร์ดาเมจผ่านสายใยหุ่นเชิด (โดดเด่นการตรึงขาและคอมโบพิษกลไก)'
+    },
+    {
+      id: 'SOLAR_BRONZE_COLOSSUS', path: 'MECH_PUPPET', nameTh: 'หุ่นยักษ์สำริดสุริยันพิทักษ์ค่าย', icon: '🗿',
+      el: 'FIRE', el2: 'EARTH_METAL', w: ['STAFF', 'FIST', 'SPEAR'], arm: ['HEAVY'],
+      pSk: 'FORGING', sSk: 'STAFF', resSet: 'RES_MECH_AUTOMATON_CITADEL',
+      stance: 'VAJRA_BASTION_STANCE', mark: 'daoMark', fusion: 'OVERLOAD_BLAST',
+      stats: { atk: 15, matk: 9, def: 24, mdef: 15, hp: 90, crit: 5, pen: 9, eva: -5, acc: 8 },
+      prefs: { smithing: 1.45, guarding: 1.45, fortitude: 1.40, crafting: 1.35 },
+      descTh: 'หลอมหุ่นยักษ์สำริดสุริยันกางเกราะปราการให้พันธมิตรทั้งแถว และปลดปล่อยคลื่นเตาหลอมสวนกลับเมื่อถูกตี (โดดเด่นเกราะปราการและการตั้งรับระดับป้อมปราการ)'
+    },
+
+    // 7. KARMA_SAMSARA (3)
+    {
+      id: 'CAUSE_EFFECT_LEDGER', path: 'KARMA_SAMSARA', nameTh: 'ผู้ถือสมุดบัญชีเหตุผลแห่งกรรม', icon: '📜',
+      el: 'ASTRAL', el2: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS', 'SWORD'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'SCRIPTURE', sSk: 'SOUL_DIVINE', resSet: 'RES_KARMA_SAMSARA_WHEEL',
+      stance: 'STAR_SWORD_STANCE', mark: 'daoMark', fusion: 'KARMIC_PURIFICATION_SMITE',
+      stats: { atk: 8, matk: 18, def: 10, mdef: 16, hp: 38, crit: 10, pen: 13, eva: 7, acc: 14 },
+      prefs: { scholarship: 1.45, judgment: 1.40, meditation: 1.35, administration: 1.30 },
+      descTh: 'บันทึกทุกการกระทำลงสมุดบัญชีกรรม สะสมตราวิบากครบ 5 ชั้นแล้วพิพากษาชำระหนี้กรรมรุนแรง (โดดเด่นการสะสมตราวิบากและระเบิดดาเมจตามกรรมศัตรู)'
+    },
+    {
+      id: 'NETHER_RIVER_REAPER', path: 'KARMA_SAMSARA', nameTh: 'ยมทูตเคียวโซ่แม่น้ำลืมเลือน', icon: '⛓️',
+      el: 'YIN_SHADOW', el2: 'BLOOD_DEMON', w: ['WHIP', 'BLADE', 'SPEAR'], arm: ['LIGHT', 'HEAVY'],
+      pSk: 'BLADE', sSk: 'SOUL_DIVINE', resSet: 'RES_KARMA_SAMSARA_WHEEL',
+      stance: 'SHADOW_REAPER_STANCE', mark: 'bloodBrand', fusion: 'BLOOD_BOIL_RUPTURE',
+      stats: { atk: 18, matk: 14, def: 8, mdef: 10, hp: 34, crit: 13, pen: 14, eva: 9, acc: 11 },
+      prefs: { combat: 1.40, hunting: 1.35, judgment: 1.35, solitude: 1.25 },
+      descTh: 'เหวี่ยงโซ่ยมโลกผูกมัดศัตรูสองรายให้รับความเสียหายร่วมกัน พร้อมปลิดชีพเป้าหมายที่บาดเจ็บหนัก (โดดเด่นการผูกโซ่สะท้อนดาเมจและท่าสังหาร)'
+    },
+    {
+      id: 'GOLDEN_WHEEL_ARBITER', path: 'KARMA_SAMSARA', nameTh: 'ผู้พิพากษากงล้อทองคำหมุนวัฏฏะ', icon: '☸️',
+      el: 'LIGHT_YANG', el2: 'EARTH_METAL', w: ['STAFF', 'FOCUS', 'BLADE'], arm: ['HEAVY', 'ROBE'],
+      pSk: 'STAFF', sSk: 'SCRIPTURE', resSet: 'RES_KARMA_SAMSARA_WHEEL',
+      stance: 'VAJRA_BASTION_STANCE', mark: 'daoMark', fusion: 'KARMIC_PURIFICATION_SMITE',
+      stats: { atk: 14, matk: 14, def: 17, mdef: 17, hp: 62, crit: 7, pen: 10, eva: 4, acc: 10 },
+      prefs: { meditation: 1.40, guarding: 1.35, judgment: 1.40, combat: 1.30 },
+      descTh: 'หมุนกงล้อทองคำสลับท่าระหว่างเมตตาคุ้มภัยและอสูรพิพากษา สะท้อนความเสียหายและชำระล้างคำสาป (โดดเด่นความสมดุลรุก-รับและการสลับท่า)'
+    },
+
+    // 8. BEAST_SOVEREIGN (3)
+    {
+      id: 'KUNPENG_WIND_RIDER', path: 'BEAST_SOVEREIGN', nameTh: 'ราชันอสูรคุนเผิงเหินเวหา', icon: '🦅',
+      el: 'WIND', el2: 'WATER_ICE', w: ['SPEAR', 'BOW', 'WHIP'], arm: ['LIGHT'],
+      pSk: 'BEAST_TAMING', sSk: 'MOVEMENT', resSet: 'RES_BEAST_SOVEREIGN_PACT',
+      stance: 'THUNDER_STEP_STANCE', mark: 'starSeal', fusion: 'INFERNO_VORTEX',
+      stats: { atk: 17, matk: 11, def: 6, mdef: 9, hp: 32, crit: 12, pen: 12, eva: 14, acc: 12 },
+      prefs: { beasts: 1.45, exploring: 1.45, hunting: 1.35, combat: 1.30 },
+      descTh: 'ผสานปราณอสูรคุนเผิงทะยานฟ้า โฉบโจมตีเป้าหมายพร้อมคลื่นลมพายุกระจายใส่ศัตรูข้างเคียง (โดดเด่นความเร็วหลบหลีกและดาเมจกระจายข้างเคียง)'
+    },
+    {
+      id: 'QILIN_THUNDER_HERALD', path: 'BEAST_SOVEREIGN', nameTh: 'ราชันอสูรกิเลนสายฟ้ามงคล', icon: '🦄',
+      el: 'LIGHTNING', el2: 'LIGHT_YANG', w: ['SPEAR', 'FIST', 'SWORD'], arm: ['HEAVY', 'LIGHT'],
+      pSk: 'BEAST_TAMING', sSk: 'SPEAR', resSet: 'RES_BEAST_SOVEREIGN_PACT',
+      stance: 'THUNDER_STEP_STANCE', mark: 'daoMark', fusion: 'OVERLOAD_BLAST',
+      stats: { atk: 16, matk: 14, def: 13, mdef: 13, hp: 52, crit: 9, pen: 11, eva: 7, acc: 10 },
+      prefs: { beasts: 1.45, combat: 1.35, leadership: 1.30, exploring: 1.30 },
+      descTh: 'อัญเชิญบารมีกิเลนสายฟ้ามงคล พุ่งชนศัตรูให้มึนงงพร้อมประทานพรเร่งปราณให้สหายร่วมวิถี (โดดเด่นการเปิดฉากบุกและบัฟพันธมิตรสายอสูร)'
+    },
+    {
+      id: 'NINE_NETHER_SERPENT_LORD', path: 'BEAST_SOVEREIGN', nameTh: 'ราชันอสรพิษเก้ายมโลก', icon: '🐍',
+      el: 'WATER_ICE', el2: 'YIN_SHADOW', w: ['WHIP', 'BLADE', 'BOW'], arm: ['LIGHT', 'ROBE'],
+      pSk: 'BEAST_TAMING', sSk: 'POISON', resSet: 'RES_BEAST_SOVEREIGN_PACT',
+      stance: 'SHADOW_REAPER_STANCE', mark: 'venomSeed', fusion: 'GU_FIRE_ERUPTION',
+      stats: { atk: 14, matk: 15, def: 8, mdef: 12, hp: 38, crit: 10, pen: 13, eva: 10, acc: 12 },
+      prefs: { beasts: 1.40, poison: 1.40, hunting: 1.35, herbs: 1.25 },
+      descTh: 'เพาะเลี้ยงอสรพิษเหมันต์เก้ายมโลก รัดตรึงศัตรูด้วยพิษเยือกแข็งและระเบิดเมล็ดพิษกู่ต่อเนื่อง (โดดเด่นการสะสมเมล็ดพิษและลดความเร็วศัตรู)'
+    },
+
+    // 9. SAGE_SUPPORT (3)
+    {
+      id: 'IMMORTAL_PEACH_APOTHECARY', path: 'SAGE_SUPPORT', nameTh: 'เซียนโอสถท้อทิพย์ต่อชะตา', icon: '🍑',
+      el: 'WOOD_LIFE', el2: 'LIGHT_YANG', w: ['FOCUS', 'STAFF', 'BRUSH'], arm: ['ROBE'],
+      pSk: 'MEDICINE', sSk: 'ALCHEMY', resSet: 'RES_SAGE_HARMONY_SANCTUARY',
+      stance: 'LOTUS_MERCY_STANCE', mark: 'daoMark', fusion: 'KARMIC_PURIFICATION_SMITE',
+      stats: { atk: 3, matk: 16, def: 11, mdef: 19, hp: 60, crit: 4, pen: 5, eva: 6, acc: 10 },
+      prefs: { healing: 1.55, herbs: 1.45, alchemy: 1.40, kindness: 1.40 },
+      descTh: 'กลั่นน้ำอมฤตผลท้อทิพย์ รักษาพันธมิตรที่เลือดต่ำที่สุดเป็นอันดับแรกและแปลงการรักษาส่วนเกินเป็นเกราะปราณ (โดดเด่นการช่วยชีวิตฉุกเฉินและฟื้นฟูทีม)'
+    },
+    {
+      id: 'EIGHT_TRIGRAMS_BANNER_SAGE', path: 'SAGE_SUPPORT', nameTh: 'ปราชญ์ธงแปดทิศหนุนทัพหลวง', icon: '🚩',
+      el: 'EARTH_METAL', el2: 'LIGHT_YANG', w: ['STAFF', 'SPEAR', 'ZITHER'], arm: ['ROBE', 'HEAVY', 'LIGHT'],
+      pSk: 'ARRAY', sSk: 'MEDICINE', resSet: 'RES_SAGE_HARMONY_SANCTUARY',
+      stance: 'QIMEN_ARRAY_STANCE', mark: 'daoMark', fusion: 'GLACIAL_SHATTER',
+      stats: { atk: 8, matk: 14, def: 18, mdef: 18, hp: 68, crit: 5, pen: 7, eva: 4, acc: 11 },
+      prefs: { leadership: 1.40, guarding: 1.40, healing: 1.35, strategy: 1.35 },
+      descTh: 'ปักธงค่ายกลแปดทิศกลางสมรภูมิ เชื่อมสายใยคุ้มครองแบ่งเบาความเสียหายให้สหายที่เปราะบางที่สุด (โดดเด่นการกางเกราะหมู่และแชร์ดาเมจคุ้มกันทีม)'
+    },
+    {
+      id: 'CELESTIAL_INK_CHRONICLER', path: 'SAGE_SUPPORT', nameTh: 'อาลักษณ์หมึกสวรรค์จารึกบุญญา', icon: '🖌️',
+      el: 'ASTRAL', el2: 'WIND', w: ['BRUSH', 'ZITHER', 'FOCUS'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'SCRIPTURE', sSk: 'arts', resSet: 'RES_SAGE_HARMONY_SANCTUARY',
+      stance: 'LOTUS_MERCY_STANCE', mark: 'starSeal', fusion: 'STARFALL_COLLAPSE',
+      stats: { atk: 6, matk: 17, def: 8, mdef: 16, hp: 36, crit: 8, pen: 9, eva: 9, acc: 14 },
+      prefs: { scholarship: 1.50, arts: 1.45, teaching: 1.40, meditation: 1.30 },
+      descTh: 'ตวัดพู่กันหมึกสวรรค์จารึกพรหมลิขิต เร่งการฟื้นปราณและยืดระยะเวลาบัฟให้พันธมิตรพร้อมลดคูลดาวน์วิชา (โดดเด่นการเร่งจังหวะทีมและการศึกษาคัมภีร์)'
+    },
+
+    // 10. CRAFT_CREATION (3)
+    {
+      id: 'STAR_METEOR_WEAPONSMITH', path: 'CRAFT_CREATION', nameTh: 'ปรมาจารย์ตีศาสตราเหล็กอุกกาบาต', icon: '🔨',
+      el: 'EARTH_METAL', el2: 'ASTRAL', w: ['BLADE', 'SWORD', 'FIST', 'SPEAR'], arm: ['HEAVY', 'LIGHT'],
+      pSk: 'FORGING', sSk: 'BLADE', resSet: 'RES_CRAFT_DIVINE_ARTISAN',
+      stance: 'VAJRA_BASTION_STANCE', mark: 'starSeal', fusion: 'GLACIAL_SHATTER',
+      stats: { atk: 18, matk: 9, def: 16, mdef: 10, hp: 58, crit: 9, pen: 15, eva: 3, acc: 11 },
+      prefs: { smithing: 1.55, mining: 1.45, crafting: 1.40, combat: 1.25 },
+      descTh: 'ตีหลอมศาสตราเหล็กอุกกาบาต เสริมพลังมอดิฟายเออร์ของอาวุธที่สวมใส่และทุบทำลายเกราะศัตรูอย่างแม่นยำ (โดดเด่นการหลอมอาวุธและรีดประสิทธิภาพอุปกรณ์สูงสุด)'
+    },
+    {
+      id: 'NINE_REVOLUTIONS_ALCHEMIST', path: 'CRAFT_CREATION', nameTh: 'ปรมาจารย์โอสถเก้าวัฏจักรกลั่นฟ้า', icon: '⚗️',
+      el: 'FIRE', el2: 'WOOD_LIFE', w: ['FOCUS', 'STAFF', 'BRUSH'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'ALCHEMY', sSk: 'MEDICINE', resSet: 'RES_CRAFT_DIVINE_ARTISAN',
+      stance: 'LOTUS_MERCY_STANCE', mark: 'venomSeed', fusion: 'MIASMA_DETONATION',
+      stats: { atk: 7, matk: 18, def: 10, mdef: 16, hp: 46, crit: 8, pen: 10, eva: 6, acc: 11 },
+      prefs: { alchemy: 1.55, herbs: 1.45, crafting: 1.40, meditation: 1.30 },
+      descTh: 'ควบคุมไฟโอสถเก้าวัฏจักร ยกระดับผลโอสถทุกชนิดและจุดระเบิดปฏิกิริยาไฟ-พฤกษาเผาผลาญศัตรู (โดดเด่นการปรุงโอสถขั้นสูงและปฏิกิริยาเพลิงโอสถ)'
+    },
+    {
+      id: 'PUPPET_RELIC_ARTIFICER', path: 'CRAFT_CREATION', nameTh: 'ปรมาจารย์หลอมศาสตราอาคมและหุ่นทิพย์', icon: '⚙️',
+      el: 'LIGHTNING', el2: 'EARTH_METAL', w: ['FOCUS', 'BOW', 'WHIP', 'BRUSH'], arm: ['LIGHT', 'ROBE', 'HEAVY'],
+      pSk: 'FORGING', sSk: 'TALISMAN', resSet: 'RES_CRAFT_DIVINE_ARTISAN',
+      stance: 'QIMEN_ARRAY_STANCE', mark: 'daoMark', fusion: 'OVERLOAD_BLAST',
+      stats: { atk: 12, matk: 17, def: 13, mdef: 14, hp: 44, crit: 10, pen: 12, eva: 7, acc: 13 },
+      prefs: { crafting: 1.55, smithing: 1.45, talisman: 1.40, exploring: 1.30 },
+      descTh: 'สร้างสิ่งประดิษฐ์อาคมและชาร์จพลังยันต์ซ้ำได้ในสมรภูมิ พร้อมปลดปล่อยวิชาที่ติดมากับศาสตราด้วยอานุภาพสูงขึ้น (โดดเด่นการใช้ไอเทมชาร์จและวิชาประจำศาสตรา)'
+    },
+
+    // 11. ARRAY_TALISMAN (3)
+    {
+      id: 'ASTRAL_STARFALL_ARRAY', path: 'ARRAY_TALISMAN', nameTh: 'ปรมาจารย์ค่ายกลดาราตกสะกดภพ', icon: '🌌',
+      el: 'ASTRAL', el2: 'LIGHTNING', w: ['FOCUS', 'STAFF', 'BRUSH', 'SWORD'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'ARRAY', sSk: 'TALISMAN', resSet: 'RES_FIVE_ELEMENTS_ELIXIR',
+      stance: 'QIMEN_ARRAY_STANCE', mark: 'starSeal', fusion: 'STARFALL_COLLAPSE',
+      stats: { atk: 7, matk: 20, def: 9, mdef: 17, hp: 36, crit: 11, pen: 14, eva: 7, acc: 14 },
+      prefs: { array: 1.55, scholarship: 1.40, meditation: 1.35, combat: 1.30 },
+      descTh: 'กางค่ายกลดาราตกครอบคลุมสนามรบ โจมตีศัตรูทุกตัวที่ติดตราดาราพร้อมกันและทลายเกราะเวท (โดดเด่นการทำลายล้างหมู่ตามตราดารา)'
+    },
+    {
+      id: 'VERMILION_SEAL_TALISMAN', path: 'ARRAY_TALISMAN', nameTh: 'ปรมาจารย์ยันต์ชาดเพลิงสุริยันปราบมาร', icon: '🧧',
+      el: 'FIRE', el2: 'LIGHT_YANG', w: ['BRUSH', 'SWORD', 'BOW', 'FOCUS'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'TALISMAN', sSk: 'SCRIPTURE', resSet: 'RES_CELESTIAL_BOW_ZITHER',
+      stance: 'STAR_SWORD_STANCE', mark: 'daoMark', fusion: 'INFERNO_VORTEX',
+      stats: { atk: 11, matk: 19, def: 7, mdef: 13, hp: 32, crit: 12, pen: 13, eva: 8, acc: 13 },
+      prefs: { talisman: 1.55, ritual: 1.40, combat: 1.35, crafting: 1.35 },
+      descTh: 'ซัดยันต์ชาดเพลิงสุริยันต่อเนื่องดั่งห่าฝน จุดระเบิดพายุเพลิงคลั่งและชำระล้างปราณมาร (โดดเด่นความเร็วในการร่ายยันต์และดาเมจระเบิดธาตุไฟ-หยาง)'
+    },
+    {
+      id: 'LABYRINTH_MIST_FORMATION', path: 'ARRAY_TALISMAN', nameTh: 'ปรมาจารย์ค่ายกลหมอกเขาวงกตเร้นลับ', icon: '🌫️',
+      el: 'WATER_ICE', el2: 'WIND', w: ['STAFF', 'ZITHER', 'FOCUS', 'BRUSH'], arm: ['ROBE', 'LIGHT'],
+      pSk: 'ARRAY', sSk: 'MOVEMENT', resSet: 'RES_ZEN_VOID_MIND',
+      stance: 'QIMEN_ARRAY_STANCE', mark: 'daoMark', fusion: 'SUPERCONDUCT_SHATTER',
+      stats: { atk: 6, matk: 16, def: 12, mdef: 18, hp: 44, crit: 7, pen: 9, eva: 14, acc: 12 },
+      prefs: { array: 1.50, guarding: 1.40, stealth: 1.35, strategy: 1.35 },
+      descTh: 'เนรมิตค่ายกลหมอกเขาวงกตอำพรางพรรคพวก เพิ่มอัตราหลบหลีกและแช่แข็งตรึงขาศัตรูที่หลงเข้ามา (โดดเด่นการพรางตัวทีมและควบคุมพื้นที่)'
+    },
+
+    // 12. STRATEGY_GOVERNANCE (3)
+    {
+      id: 'IMPERIAL_SEAL_CHANCELLOR', path: 'STRATEGY_GOVERNANCE', nameTh: 'มหาเสนาบดีตราหยกบัญชาการสำนัก', icon: '👑',
+      el: 'LIGHT_YANG', el2: 'EARTH_METAL', w: ['BRUSH', 'SWORD', 'STAFF', 'FOCUS'], arm: ['ROBE', 'HEAVY'],
+      pSk: 'SCRIPTURE', sSk: 'ARRAY', resSet: 'RES_DIVINE_WAR_ARHAT',
+      stance: 'QIMEN_ARRAY_STANCE', mark: 'daoMark', fusion: 'KARMIC_PURIFICATION_SMITE',
+      stats: { atk: 11, matk: 16, def: 16, mdef: 16, hp: 56, crit: 7, pen: 10, eva: 5, acc: 13 },
+      prefs: { administration: 1.55, leadership: 1.50, diplomacy: 1.45, scholarship: 1.35 },
+      descTh: 'ชูตราหยกประกาศิตสั่งการทั้งกองทัพให้รุมโจมตีเป้าหมายเดียวกัน พร้อมกางเกราะขวัญกำลังใจคุ้มกันทั้งทีม (โดดเด่นการบริหารสำนักและสั่งการรุมโจมตี)'
+    },
+    {
+      id: 'SHADOW_INTELLIGENCE_MARSHAL', path: 'STRATEGY_GOVERNANCE', nameTh: 'แม่ทัพข่าวกรองเงาจันทร์ซ้อนกล', icon: '🕵️',
+      el: 'YIN_SHADOW', el2: 'WIND', w: ['BOW', 'BLADE', 'WHIP', 'SWORD'], arm: ['LIGHT'],
+      pSk: 'MOVEMENT', sSk: 'BOW', resSet: 'RES_ZEN_VOID_MIND',
+      stance: 'SHADOW_REAPER_STANCE', mark: 'starSeal', fusion: 'SUPERCONDUCT_SHATTER',
+      stats: { atk: 16, matk: 13, def: 7, mdef: 11, hp: 34, crit: 13, pen: 14, eva: 13, acc: 15 },
+      prefs: { strategy: 1.50, stealth: 1.45, exploring: 1.40, diplomacy: 1.30 },
+      descTh: 'วางเครือข่ายข่าวกรองอ่านทางศัตรู ขโมยบัฟและลอบโจมตีศัตรูที่มีพลังโจมตีสูงสุดก่อนที่อีกฝ่ายจะทันลงมือ (โดดเด่นการตัดกำลังตัวหลักของศัตรูและการสำรวจ)'
+    },
+    {
+      id: 'GRAND_LOGISTICS_COMMANDER', path: 'STRATEGY_GOVERNANCE', nameTh: 'แม่ทัพพลาธิการหมื่นลี้เคลื่อนทัพ', icon: '🛡️',
+      el: 'EARTH_METAL', el2: 'WOOD_LIFE', w: ['SPEAR', 'STAFF', 'BOW'], arm: ['HEAVY', 'LIGHT'],
+      pSk: 'SPEAR', sSk: 'MEDICINE', resSet: 'RES_VAJRA_TITAN_BASTION',
+      stance: 'VAJRA_BASTION_STANCE', mark: 'daoMark', fusion: 'GLACIAL_SHATTER',
+      stats: { atk: 14, matk: 11, def: 19, mdef: 15, hp: 72, crit: 6, pen: 9, eva: 4, acc: 11 },
+      prefs: { administration: 1.45, guarding: 1.45, exploring: 1.45, crafting: 1.35 },
+      descTh: 'จัดขบวนพลาธิการไร้พ่าย ลดการสิ้นเปลืองเสบียงในการสำรวจแดนลับ พร้อมฟื้นฟูเลือดและปราณให้กองทัพทุกจังหวะรบ (โดดเด่นความอึดของขบวนทัพและประสิทธิภาพการเดินทาง)'
+    }
+  ];
+
+  const mMapByPath = {
+    XIAN: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    DEMON: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    HEART_SOUL: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    BODY: [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0],
+    GOD: [1.0, 1.5, 2.0, 2.5, 3.0, 3.3, 3.7, 3.9, 4.0],
+    MECH_PUPPET: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+    KARMA_SAMSARA: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+    BEAST_SOVEREIGN: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+    SAGE_SUPPORT: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+    CRAFT_CREATION: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+    ARRAY_TALISMAN: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0],
+    STRATEGY_GOVERNANCE: [1.0, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 7.5, 8.0]
+  };
+  const fcpTable = [145, 330, 660, 1250, 2400, 4350, 7800, 14000, 25000];
+  const stoneTable = [60, 85, 135, 225, 370, 610, 990, 1620, 2650];
+  const pMinTable = [15, 28, 38, 48, 58, 68, 78, 86, 94];
+  const sMinTable = [10, 16, 22, 28, 34, 40, 46, 52, 58];
+  const stageSuffixes = [
+    'แรกตื่นรู้มรรคา', 'หล่อหลอมรากฐาน', 'ควบแน่นแก่นแท้',
+    'ผสานเจตจำนง', 'ทะลวงคอขวดใหญ่', 'สะท้านขวัญยุทธภพ',
+    'เขตแดนปรมาจารย์', 'ก้าวข้ามขีดจำกัด', 'บรรลุสูงสุดแห่งสายย่อย'
+  ];
+
+  D.subPaths = D.subPaths || [];
+  D.subStats = D.subStats || {};
+  D.subPreferences = D.subPreferences || {};
+  D.subProfiles = D.subProfiles || {};
+  D.innateTechniques = D.innateTechniques || [];
+  D.SYNERGIES = D.SYNERGIES || [];
+  D.RESONANCE_SETS = D.RESONANCE_SETS || [];
+  JD.EXPANSION = JD.EXPANSION || {};
+  JD.EXPANSION.subStats = JD.EXPANSION.subStats || {};
+  JD.EXPANSION.subPreferences = JD.EXPANSION.subPreferences || {};
+  JD.EXPANSION.progressionMapping = JD.EXPANSION.progressionMapping || [];
+
+  for (const sp of V234_SUBPATHS) {
+    const offScale = ((sp.stats.atk || 0) + (sp.stats.matk || 0)) / 30;
+    const defScale = ((sp.stats.def || 0) + (sp.stats.mdef || 0)) / 30;
+    const subEntry = {
+      id: sp.id,
+      path: sp.path,
+      nameTh: sp.nameTh,
+      icon: sp.icon,
+      resourceTh: "ผลึกปราณธาตุ " + sp.el + " และคัมภีร์สายย่อย",
+      strengthTh: sp.descTh,
+      weaknessTh: "ต้องอาศัยการวางจังหวะท่วงท่าและตราประทับให้สอดคล้องกับศาสตราประจำสาย",
+      combatBonus: +(0.95 + Math.max(0.05, Math.min(0.32, offScale * 0.25))).toFixed(2),
+      defenseBonus: +(0.92 + Math.max(0.02, Math.min(0.34, defScale * 0.25))).toFixed(2),
+      breakthroughMod: 1.04,
+      cultivationBonus: 1.08,
+      element: sp.el,
+      elementProfile: epWeighted(sp.el, 0.65, sp.el2, 0.35),
+      weaponTypes: sp.w.slice(),
+      armorTypes: sp.arm.slice(),
+      primarySkill: sp.pSk,
+      secondarySkills: [sp.sSk],
+      descTh: sp.descTh,
+      v234: true
+    };
+    if (!D.subPaths.some(x => x.id === sp.id)) D.subPaths.push(subEntry);
+    const pObj = JD.CULT.paths[sp.path];
+    if (pObj && Array.isArray(pObj.subPaths) && !pObj.subPaths.some(x => x.id === sp.id)) {
+      pObj.subPaths.push(subEntry);
+    }
+
+    const structuredStats = {
+      p: {
+        atk: +((sp.stats.atk || 0) * 0.008).toFixed(3),
+        matk: +((sp.stats.matk || 0) * 0.008).toFixed(3),
+        def: +((sp.stats.def || 0) * 0.008).toFixed(3),
+        mdef: +((sp.stats.mdef || 0) * 0.008).toFixed(3),
+        hp: +((sp.stats.hp || 0) * 0.002).toFixed(3),
+        eva: +((sp.stats.eva || 0) * 0.008).toFixed(3)
+      },
+      f: {
+        crit: sp.stats.crit || 0,
+        pen: sp.stats.pen || 0,
+        acc: sp.stats.acc || 0,
+        critDmg: (sp.stats.crit || 4) * 2,
+        cast: 6,
+        move: Math.max(-4, sp.stats.eva || 4)
+      }
+    };
+    const affKey1 = ({ arts: "SCRIPTURE", ritual: "SOUL_DIVINE", stealth: "MOVEMENT" })[sp.pSk] || sp.pSk;
+    const affKey2 = ({ arts: "SCRIPTURE", ritual: "SOUL_DIVINE", stealth: "MOVEMENT" })[sp.sSk] || sp.sSk;
+    const structuredPrefs = {
+      aff: {
+        [affKey1]: 0.9,
+        [affKey2]: 0.6,
+        [sp.el]: 0.7
+      },
+      p: {
+        "intellect.comprehension": 0.6,
+        "personality.composure": 0.5
+      }
+    };
+    D.subStats[sp.id] = structuredStats;
+    JD.EXPANSION.subStats[sp.id] = structuredStats;
+    D.subPreferences[sp.id] = structuredPrefs;
+    JD.EXPANSION.subPreferences[sp.id] = structuredPrefs;
+    D.subProfiles[sp.id] = [
+      structuredStats,
+      structuredPrefs,
+      "steady",
+      sp.w.slice(),
+      sp.arm.slice()
+    ];
+
+    // Add to baseline resonance set and Pagoda resonance set
+    const baseSet = D.RESONANCE_SETS.find(r => r.id === sp.resSet);
+    if (baseSet && Array.isArray(baseSet.subpaths) && !baseSet.subpaths.includes(sp.id)) {
+      baseSet.subpaths.push(sp.id);
+      for (const wt of sp.w) if (Array.isArray(baseSet.weaponTypes) && !baseSet.weaponTypes.includes(wt)) baseSet.weaponTypes.push(wt);
+      for (const at of sp.arm) if (Array.isArray(baseSet.armorTypes) && !baseSet.armorTypes.includes(at)) baseSet.armorTypes.push(at);
+    }
+    const pagodaSet = D.RESONANCE_SETS.find(r => r.id === 'RES_NINE_DAO_' + sp.path);
+    if (pagodaSet && Array.isArray(pagodaSet.subpaths) && !pagodaSet.subpaths.includes(sp.id)) {
+      pagodaSet.subpaths.push(sp.id);
+      for (const wt of sp.w) if (Array.isArray(pagodaSet.weaponTypes) && !pagodaSet.weaponTypes.includes(wt)) pagodaSet.weaponTypes.push(wt);
+      for (const at of sp.arm) if (Array.isArray(pagodaSet.armorTypes) && !pagodaSet.armorTypes.includes(at)) pagodaSet.armorTypes.push(at);
+    }
+
+    // 9-Stage Progression Track
+    if (!JD.EXPANSION.progressionMapping.some(x => (x.subPath || x.subPathId) === sp.id)) {
+      const mMap = mMapByPath[sp.path] || mMapByPath.XIAN;
+      const realms = [];
+      for (let i = 0; i < 9; i++) {
+        const ord = i + 1;
+        realms.push({
+          ordinal: ord,
+          id: 'R_V234_' + sp.id + '_0' + ord,
+          nameTh: sp.nameTh + ' ขั้นที่ ' + ord + ' • ' + stageSuffixes[i],
+          lifespanMax: 100 + i * 165,
+          functionalCombatPower: fcpTable[i],
+          majorBandEquivalent: mMap[i],
+          skillGate: {
+            primarySkill: sp.pSk,
+            minPrimarySkill: pMinTable[i],
+            secondarySkill: sp.sSk,
+            minSecondarySkill: sMinTable[i]
+          },
+          resourceCost: {
+            stones: stoneTable[i],
+            materialTier: Math.min(7, 1 + Math.floor(i / 2))
+          },
+          capacityMultipliers: {
+            maxQiMult: +(1.05 + i * 0.34).toFixed(2),
+            vitalityMult: +(1.04 + i * 0.24).toFixed(2),
+            faithPoolMult: +(1.04 + i * 0.20).toFixed(2),
+            senseBonus: i * 4
+          },
+          realmBuffs: {
+            combatOffensePct: +(3.5 + i * 3.1).toFixed(1),
+            combatDefensePct: +(2.6 + i * 2.2).toFixed(1),
+            armorPenetrationPct: +(2.5 + i * 2.4).toFixed(1),
+            counterStrikePct: +(2.0 + i * 1.8).toFixed(1),
+            lifestealPct: sp.path === 'DEMON' ? +(2.0 + i * 1.5).toFixed(1) : 0,
+            reflectPct: (sp.path === 'KARMA_SAMSARA' || sp.path === 'HEART_SOUL') ? +(2.0 + i * 1.5).toFixed(1) : 0,
+            evasionPct: +(1.8 + i * 1.6).toFixed(1),
+            qiRegenBonusPct: +(2.2 + i * 1.9).toFixed(1)
+          },
+          breakthroughBaseChance: +(0.75 - i * 0.072).toFixed(2)
+        });
+      }
+      JD.EXPANSION.progressionMapping.push({
+        subPath: sp.id,
+        trackId: 'TRACK_V234_' + sp.path + '_' + sp.id,
+        sourceMajorPath: sp.path,
+        sourceIndependentRealmCount: 9,
+        targetMajorPath: sp.path,
+        targetMajorStages: mMap[8],
+        mode: 'INDEPENDENT_TRACK',
+        sourceRealmOrdinalsImported: true,
+        majorPowerMapping: mMap.slice(),
+        realms
+      });
+    }
+
+    // Subpath Synergy
+    const synId = 'SYN_V234_' + sp.id;
+    if (!D.SYNERGIES.some(x => x.id === synId)) {
+      D.SYNERGIES.push({
+        id: synId,
+        nameTh: 'สอดประสานมรรคา · ' + sp.nameTh,
+        subpath: sp.id,
+        weaponTypes: sp.w.slice(),
+        armorTypes: sp.arm.slice(),
+        archs: ['strike', 'pierce', 'burst', 'control', 'wave', 'slash', 'soul'],
+        bonus: { dmgMult: 1.15, dotMult: 1.14, qiCostMult: 0.88, qiRestorePct: 0.035, critAdd: 5, penAdd: 8 },
+        element: sp.el,
+        elementProfile: epWeighted(sp.el, 0.65, sp.el2, 0.35),
+        descTh: 'สอดประสานอาวุธและชุดเกราะประจำสายย่อย「' + sp.nameTh + '」เพิ่มอานุภาพวิชาและปฏิกิริยาธาตุ'
+      });
+    }
+
+    // Exclusive 2-Stage Composable Innate Art (INNATE_V234_<SUB>)
+    const innateId = 'INNATE_V234_' + sp.id;
+    const innateObj = {
+      id: innateId,
+      nameTh: 'วิชาเฉพาะสาย · ' + sp.nameTh,
+      path: sp.path,
+      sub: sp.id,
+      reqPath: sp.path,
+      reqSubpath: sp.id,
+      bonusWeapon: sp.w.slice(),
+      bonusElement: [sp.el, sp.el2],
+      cat: 'INNATE_SUBPATH',
+      role: 'INNATE',
+      innateSubpath: sp.id,
+      isInnate: true,
+      tier: 4,
+      reqTier: 1,
+      grade: 'Exceptional',
+      power: 240,
+      element: sp.el,
+      elementalRole: 'ELEMENTAL',
+      elementProfile: epWeighted(sp.el, 0.65, sp.el2, 0.35),
+      weaponTypes: sp.w.slice(),
+      armorTypes: sp.arm.slice(),
+      obtainSources: ['SUBPATH_INNATE:' + sp.id, 'SECT_LIBRARY', 'PAGODA_TRIAL:' + sp.path],
+      sourceInfoTh: 'วิชาติดตัวเฉพาะสายย่อย「' + sp.nameTh + '」ปลดล็อกอัตโนมัติเมื่อเลือกสายย่อย',
+      descTh: 'วิชาต้นกำเนิดประจำสายย่อย「' + sp.nameTh + '」เปิดท่วงท่าประจำตัว ฝังตราประทับ และจุดระเบิดปฏิกิริยาธาตุ',
+      stages: [
+        {
+          stage: 1,
+          id: innateId + '_S1',
+          nameTh: 'ขั้นที่ 1 · เปิดมรรคา' + sp.nameTh,
+          reqMastery: 0,
+          minMastery: 0,
+          reqCultStage: 1,
+          unlockMoveId: innateId + '_M1',
+          passiveBonus: { p: { atk: 0.05, matk: 0.05 }, pp: { crit: 4, pen: 5 } }
+        },
+        {
+          stage: 2,
+          id: innateId + '_S2',
+          nameTh: 'ขั้นที่ 2 · สำแดงเดช' + sp.nameTh,
+          reqMastery: 20,
+          minMastery: 20,
+          reqCultStage: 2,
+          unlockMoveId: innateId + '_M2',
+          passiveBonus: { p: { atk: 0.08, matk: 0.08 }, pp: { crit: 6, pen: 9 } }
+        }
+      ],
+      moveDefs: [
+        {
+          id: innateId + '_M1',
+          parentId: innateId,
+          stageReq: 1,
+          reqMastery: 0,
+          nameTh: 'กระบวนท่าที่ 1 · ประทับตรา' + sp.nameTh,
+          arch: 'strike',
+          type: 'm',
+          M: 1.48,
+          mult: 1.48,
+          hits: 1,
+          cd: 8,
+          wind: 2,
+          costPct: 4.0,
+          qiCost: 16,
+          pen: 18,
+          penAdd: 18,
+          targetSelector: 'SINGLE_ENEMY',
+          stanceShift: sp.stance,
+          comboPrimer: true,
+          markPrimer: { k: sp.mark, stacks: 2, dur: 10 },
+          aiRole: 'opener'
+        },
+        {
+          id: innateId + '_M2',
+          parentId: innateId,
+          stageReq: 2,
+          reqMastery: 20,
+          reqCultStage: 2,
+          nameTh: 'กระบวนท่าที่ 2 · ระเบิดมรรคา' + sp.nameTh,
+          arch: 'burst',
+          type: 'm',
+          M: 2.02,
+          mult: 2.02,
+          hits: 2,
+          cd: 14,
+          wind: 3,
+          costPct: 6.2,
+          qiCost: 26,
+          pen: 28,
+          penAdd: 28,
+          critAdd: 12,
+          targetSelector: 'MARKED_ENEMIES',
+          comboFinisher: true,
+          markDetonate: { k: sp.mark, perStackMult: 0.25 },
+          elementalFusion: sp.fusion,
+          aiRole: 'finisher'
+        }
+      ],
+      v234: true,
+      v234Pack: true
+    };
+    innateObj.moves = innateObj.moveDefs.map(m => m.nameTh);
+    if (!D.innateTechniques.some(x => x.id === innateId)) D.innateTechniques.push(innateObj);
+    if (!D.techniques.some(x => x.id === innateId)) D.techniques.push(innateObj);
+    if (!JD.TECH.techniques.some(x => x.id === innateId)) JD.TECH.techniques.push(innateObj);
+  }
+
+  // Re-run CULT.registerTracks if CULT is already loaded
+  if (typeof globalThis !== 'undefined' && globalThis.CULT && typeof globalThis.CULT.registerTracks === 'function') {
+    globalThis.CULT.registerTracks();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. 288 NEW LEARNABLE TECHNIQUES & MANTRAS ACROSS ALL 12 PATHS
+  //    Per Path (x12 Paths):
+  //      - 12 Active Multi-Move Combat Techniques (144 total)
+  //      - 4 Composable Passive Techniques (48 total)
+  //      - 3 Movement / Defensive / Support Techniques (36 total)
+  //      - 3 Out-of-Combat / Production / Exploration Auxiliary Techniques (36 total)
+  //      - 2 Core Mantras (24 total)
+  //    Plus the 36 Innate Subpath Arts above = 324 Total New Techniques (27 per path)
+  // ---------------------------------------------------------------------------
+  const PATH_CONFIGS = [
+    {
+      path: 'XIAN', nameTh: 'เซียนอมตะ',
+      subs: ['CELESTIAL_STAR_SWORD', 'KUNLUN_JADE_CAULDRON', 'NINE_HEAVENS_THUNDER_SEAL', 'SWORD_IMMORTAL', 'FIVE_ELEMENTS', 'FROST_MOON_IMMORTAL'],
+      els: ['ASTRAL', 'WATER_ICE', 'LIGHTNING', 'WIND', 'FIRE', 'LIGHT_YANG'],
+      weapons: ['SWORD', 'FOCUS', 'ZITHER', 'BOW', 'BRUSH', 'STAFF'],
+      stances: ['STAR_SWORD_STANCE', 'LOTUS_MERCY_STANCE', 'THUNDER_STEP_STANCE'],
+      marks: ['starSeal', 'daoMark'],
+      fusions: ['STARFALL_COLLAPSE', 'OVERLOAD_BLAST', 'GLACIAL_SHATTER', 'INFERNO_VORTEX'],
+      themeNouns: ['กระบี่ดารา', 'หม้อหยกคุนหลุน', 'ตราอสนีเก้าฟ้า', 'บัวเหมันต์จันทรา', 'พู่กันเมฆาคล้อย', 'พิณสวรรค์สุญตา', 'ศรดาราพยากรณ์', 'ค่ายกลเบญจธาตุ', 'ปราณเซียนไร้ขอบเขต', 'แสงเหนือผ่ามิติ', 'หยกขาวพิสุทธิ์', 'อัสนีม่วงไท่เสวียน']
+    },
+    {
+      path: 'BODY', nameTh: 'หลอมกายา',
+      subs: ['METEOR_IRON_FIST', 'NINE_SUNS_FURNACE_BODY', 'ABYSSAL_LEVIATHAN_BONE', 'TIGER_SOVEREIGN', 'BLOOD_DRAGON', 'VAJRA_BODHI'],
+      els: ['EARTH_METAL', 'FIRE', 'WATER_ICE', 'LIGHTNING', 'BLOOD_DEMON', 'LIGHT_YANG'],
+      weapons: ['FIST', 'BLADE', 'SPEAR', 'STAFF', 'BOW', 'WHIP'],
+      stances: ['VAJRA_BASTION_STANCE', 'BLOOD_ASURA_STANCE', 'THUNDER_STEP_STANCE'],
+      marks: ['daoMark', 'bloodBrand'],
+      fusions: ['GLACIAL_SHATTER', 'INFERNO_VORTEX', 'SUPERCONDUCT_SHATTER', 'BLOOD_BOIL_RUPTURE'],
+      themeNouns: ['หมัดอุกกาบาต', 'เตาหลอมเก้าสุริยัน', 'กระดูกมังกรสมุทร', 'พยัคฆ์ราชันคลั่ง', 'วัชระทองคำไม่บุบสลาย', 'ทวนโลหิตผ่าปฐพี', 'กายาอสนีบาต', 'ปราการยักษ์แบกเขา', 'โล่ศิลาบรรพกาล', 'ฝ่ามือเพลิงหลอมเหล็ก', 'ก้าวสะท้านปฐพี', 'ชีพจรมังกรเหล็กไหล']
+    },
+    {
+      path: 'GOD', nameTh: 'เทวานุภาพ',
+      subs: ['SOLAR_CHARIOT_SOVEREIGN', 'STYX_FERRYMAN_JUDGE', 'STORM_THUNDER_EMPEROR', 'WAR_DEITY', 'MERCY_DEITY', 'FATE_ORACLE'],
+      els: ['LIGHT_YANG', 'YIN_SHADOW', 'LIGHTNING', 'FIRE', 'WATER_ICE', 'ASTRAL'],
+      weapons: ['SPEAR', 'STAFF', 'BOW', 'BRUSH', 'SWORD', 'WHIP'],
+      stances: ['STAR_SWORD_STANCE', 'SHADOW_REAPER_STANCE', 'THUNDER_STEP_STANCE'],
+      marks: ['starSeal', 'daoMark'],
+      fusions: ['KARMIC_PURIFICATION_SMITE', 'OVERLOAD_BLAST', 'SUPERCONDUCT_SHATTER', 'STARFALL_COLLAPSE'],
+      themeNouns: ['ราชรถสุริยัน', 'นาวาข้ามยมโลก', 'จักรพรรดิพายุสายฟ้า', 'ทวนเทพสงคราม', 'รัศมีเทวีเมตตา', 'โองการชะตาสวรรค์', 'ตราพิพากษายมราช', 'คลื่นสมุทรเทพบดี', 'ศรสุริยันพิฆาตมาร', 'พลองทองคำอรหันต์', 'สายฟ้าประกาศิต', 'วิหารเทวานุภาพ']
+    },
+    {
+      path: 'DEMON', nameTh: 'วิถีมาร',
+      subs: ['CRIMSON_MOON_EXECUTIONER', 'MYRIAD_MIASMA_ALCHEMIST', 'ABYSSAL_SOUL_EATER', 'SHADOW_ASSASSIN', 'VENOM_GU_SOVEREIGN', 'HEAVEN_DEVOURING_DEMON'],
+      els: ['BLOOD_DEMON', 'YIN_SHADOW', 'WOOD_LIFE', 'FIRE', 'WATER_ICE', 'WIND'],
+      weapons: ['BLADE', 'WHIP', 'FIST', 'FOCUS', 'BOW', 'SWORD'],
+      stances: ['BLOOD_ASURA_STANCE', 'SHADOW_REAPER_STANCE', 'THUNDER_STEP_STANCE'],
+      marks: ['bloodBrand', 'venomSeed'],
+      fusions: ['BLOOD_BOIL_RUPTURE', 'MIASMA_DETONATION', 'GU_FIRE_ERUPTION', 'INFERNO_VORTEX'],
+      themeNouns: ['เพชฌฆาตจันทร์สีเลือด', 'หมอกพิษหมื่นกัลป์', 'มารกลืนวิญญาณ', 'ดาบอสูรสังหาร', 'แมลงกู่กลืนปราณ', 'โซ่กระดูกยมโลก', 'เงาสังหารไร้รอย', 'ทะเลโลหิตมาร', 'กรงเล็บสูบตบะ', 'เพลิงมารผลาญจิต', 'ศรเงาปลิดวิญญาณ', 'ค่ายกลหมื่นอสูรคลั่ง']
+    },
+    {
+      path: 'HEART_SOUL', nameTh: 'จิตวิญญาณ',
+      subs: ['CELESTIAL_CHESS_SCHOLAR', 'SEVEN_EMOTIONS_ZITHER', 'VOID_LOTUS_CONTEMPLATOR', 'ZEN_VOID_MIND', 'CALLIGRAPHY_PAINTING_SAGE', 'MIND_SWORD_TELEKINESIS'],
+      els: ['ASTRAL', 'WIND', 'LIGHT_YANG', 'YIN_SHADOW', 'WATER_ICE', 'LIGHTNING'],
+      weapons: ['ZITHER', 'BRUSH', 'FOCUS', 'SWORD', 'BOW', 'STAFF'],
+      stances: ['QIMEN_ARRAY_STANCE', 'LOTUS_MERCY_STANCE', 'STAR_SWORD_STANCE'],
+      marks: ['starSeal', 'daoMark'],
+      fusions: ['STARFALL_COLLAPSE', 'KARMIC_PURIFICATION_SMITE', 'INFERNO_VORTEX', 'SUPERCONDUCT_SHATTER'],
+      themeNouns: ['หมากล้อมดารา', 'พิณเจ็ดอารมณ์', 'บัวสุญตาสะท้อนจิต', 'พู่กันวาดภพ', 'กระบี่จิตไร้รูป', 'ม่านมายาความฝัน', 'คลื่นเสียงสะกดวิญญาณ', 'กระจกส่องมโนธาตุ', 'ศรใจประสานพิณ', 'ทวนสุญตาทะลวงจิต', 'สมาธิเซนไร้ลักษณ์', 'อักษรสวรรค์สะกดมาร']
+    },
+    {
+      path: 'MECH_PUPPET', nameTh: 'กลไกหุ่นเชิด',
+      subs: ['THUNDER_CORE_ARTILLERY', 'JADE_SPIDER_WEAVER', 'SOLAR_BRONZE_COLOSSUS', 'HEAVENLY_GOLEM', 'THOUSAND_THREAD_ASSASSIN', 'ASTRAL_CLOCKWORK_PRIME'],
+      els: ['LIGHTNING', 'EARTH_METAL', 'FIRE', 'YIN_SHADOW', 'WOOD_LIFE', 'ASTRAL'],
+      weapons: ['BOW', 'FOCUS', 'STAFF', 'WHIP', 'BLADE', 'SPEAR'],
+      stances: ['QIMEN_ARRAY_STANCE', 'VAJRA_BASTION_STANCE', 'SHADOW_REAPER_STANCE'],
+      marks: ['starSeal', 'venomSeed', 'daoMark'],
+      fusions: ['SUPERCONDUCT_SHATTER', 'OVERLOAD_BLAST', 'GU_FIRE_ERUPTION', 'GLACIAL_SHATTER'],
+      themeNouns: ['ปืนใหญ่อสนีแม่เหล็ก', 'หุ่นแมงมุมหยก', 'หุ่นยักษ์สำริดสุริยัน', 'เส้นด้ายวิญญาณพันสาย', 'หน้าไม้กลไกถล่มป้อม', 'กงล้อฟันเฟืองดารา', 'ใบมีดบินวงโคจร', 'เตาปฏิกรณ์ปราณหยก', 'เกราะกลไกพยัคฆ์เหล็ก', 'เข็มกลไกซ่อนพิษ', 'หุ่นองครักษ์ศิลา', 'ค่ายกลจักรกลสังหาร']
+    },
+    {
+      path: 'KARMA_SAMSARA', nameTh: 'วิบากวัฏสงสาร',
+      subs: ['CAUSE_EFFECT_LEDGER', 'NETHER_RIVER_REAPER', 'GOLDEN_WHEEL_ARBITER', 'REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD'],
+      els: ['ASTRAL', 'LIGHT_YANG', 'YIN_SHADOW', 'BLOOD_DEMON', 'EARTH_METAL', 'WATER_ICE'],
+      weapons: ['BRUSH', 'WHIP', 'STAFF', 'BLADE', 'SWORD', 'FOCUS'],
+      stances: ['STAR_SWORD_STANCE', 'SHADOW_REAPER_STANCE', 'VAJRA_BASTION_STANCE'],
+      marks: ['daoMark', 'bloodBrand', 'starSeal'],
+      fusions: ['KARMIC_PURIFICATION_SMITE', 'BLOOD_BOIL_RUPTURE', 'STARFALL_COLLAPSE', 'GLACIAL_SHATTER'],
+      themeNouns: ['สมุดบัญชีเหตุผล', 'เคียวโซ่แม่น้ำลืมเลือน', 'กงล้อทองคำหมุนวัฏฏะ', 'ดาบตัดเส้นด้ายชะตา', 'กระจกส่องชาติภพ', 'บัวขาวชำระวิบาก', 'ตราชั่งบุญบาป', 'โซ่ตรวนวิบากกรรม', 'ปณิธานโพธิสัตว์', 'คมดาบอสูรพิพากษา', 'วัฏสงสารหกภูมิ', 'ประกาศิตย้อนวิบาก']
+    },
+    {
+      path: 'BEAST_SOVEREIGN', nameTh: 'ราชันอสูร',
+      subs: ['KUNPENG_WIND_RIDER', 'QILIN_THUNDER_HERALD', 'NINE_NETHER_SERPENT_LORD', 'MYRIAD_BEAST_PACK', 'PRIMORDIAL_BLOOD_MUTATOR', 'ABYSSAL_DRAGON_TOTEM'],
+      els: ['WIND', 'LIGHTNING', 'WATER_ICE', 'BLOOD_DEMON', 'WOOD_LIFE', 'EARTH_METAL'],
+      weapons: ['SPEAR', 'WHIP', 'BOW', 'FIST', 'BLADE', 'STAFF'],
+      stances: ['THUNDER_STEP_STANCE', 'BLOOD_ASURA_STANCE', 'VAJRA_BASTION_STANCE'],
+      marks: ['venomSeed', 'bloodBrand', 'daoMark'],
+      fusions: ['INFERNO_VORTEX', 'OVERLOAD_BLAST', 'GU_FIRE_ERUPTION', 'BLOOD_BOIL_RUPTURE'],
+      themeNouns: ['ปีกคุนเผิงเหินเวหา', 'กิเลนสายฟ้ามงคล', 'อสรพิษเก้ายมโลก', 'ฝูงหมาป่ากิเลนโลหิต', 'เกราะเต่ามังกรบรรพกาล', 'รังแมลงกู่หมื่นพิษ', 'โทเท็มมังกรสมุทร', 'กรงเล็บพยัคฆ์เขี้ยววายุ', 'เสียงคำรามราชันอสูร', 'พันธสัญญาโลหิตอสูร', 'พญาครุฑปีกเหล็ก', 'จิ้งจอกเก้าหางดารา']
+    },
+    {
+      path: 'SAGE_SUPPORT', nameTh: 'ปราชญ์เมตตาหนุนนำ',
+      subs: ['IMMORTAL_PEACH_APOTHECARY', 'EIGHT_TRIGRAMS_BANNER_SAGE', 'CELESTIAL_INK_CHRONICLER', 'GOLDEN_NEEDLE_SAINT', 'CELESTIAL_ZITHER_ENVOY', 'DIVINE_NECTAR_APOTHECARY'],
+      els: ['WOOD_LIFE', 'LIGHT_YANG', 'ASTRAL', 'WATER_ICE', 'WIND', 'EARTH_METAL'],
+      weapons: ['FOCUS', 'STAFF', 'BRUSH', 'ZITHER', 'SWORD', 'BOW'],
+      stances: ['LOTUS_MERCY_STANCE', 'QIMEN_ARRAY_STANCE', 'THUNDER_STEP_STANCE'],
+      marks: ['daoMark', 'starSeal'],
+      fusions: ['KARMIC_PURIFICATION_SMITE', 'STARFALL_COLLAPSE', 'GLACIAL_SHATTER', 'INFERNO_VORTEX'],
+      themeNouns: ['โอสถท้อทิพย์ต่อชะตา', 'ธงแปดทิศหนุนทัพ', 'หมึกสวรรค์จารึกบุญ', 'เข็มทองเปิดชีพจร', 'พิณทิพย์ประสานใจ', 'น้ำอมฤตชุบวิญญาณ', 'โคมวิญญาณนำทาง', 'ปราณพฤกษาผลิบาน', 'ม่านแสงโพธิสัตว์', 'บทสวดชำระมาร', 'สายใยปราณคุ้มชีพ', 'พู่กันประทานพร']
+    },
+    {
+      path: 'CRAFT_CREATION', nameTh: 'วิถีสรรค์สร้าง',
+      subs: ['STAR_METEOR_WEAPONSMITH', 'NINE_REVOLUTIONS_ALCHEMIST', 'PUPPET_RELIC_ARTIFICER', 'PILL_FURNACE_IMMORTAL', 'HEAVENLY_ANVIL_SMITH', 'RUNE_ARRAY_ENGRAVER'],
+      els: ['EARTH_METAL', 'FIRE', 'LIGHTNING', 'WOOD_LIFE', 'ASTRAL', 'WATER_ICE'],
+      weapons: ['BLADE', 'FIST', 'FOCUS', 'STAFF', 'SWORD', 'BRUSH'],
+      stances: ['VAJRA_BASTION_STANCE', 'QIMEN_ARRAY_STANCE', 'LOTUS_MERCY_STANCE'],
+      marks: ['starSeal', 'venomSeed', 'daoMark'],
+      fusions: ['GLACIAL_SHATTER', 'MIASMA_DETONATION', 'OVERLOAD_BLAST', 'INFERNO_VORTEX'],
+      themeNouns: ['ค้อนเหล็กอุกกาบาต', 'เตาโอสถเก้าวัฏจักร', 'แกนศาสตราอาคม', 'ทั่งสวรรค์ตีศาสตรา', 'ไฟเทวะหลอมปราณ', 'อักขระสลักคมกระบี่', 'หม้อพิษเบญจพิษ', 'กระทะหยกทิพย์โอชา', 'ชุดเกราะดาราหลอม', 'พู่กันจารึกรูน', 'เบ้าหลอมสุริยัน', 'เข็มกลั่นแก่นสมุนไพร']
+    },
+    {
+      path: 'ARRAY_TALISMAN', nameTh: 'ค่ายกลและยันต์อาคม',
+      subs: ['ASTRAL_STARFALL_ARRAY', 'VERMILION_SEAL_TALISMAN', 'LABYRINTH_MIST_FORMATION', 'EARTH_VEIN_WARDEN', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT'],
+      els: ['ASTRAL', 'FIRE', 'WATER_ICE', 'LIGHTNING', 'EARTH_METAL', 'WIND'],
+      weapons: ['FOCUS', 'BRUSH', 'STAFF', 'SWORD', 'BOW', 'ZITHER'],
+      stances: ['QIMEN_ARRAY_STANCE', 'STAR_SWORD_STANCE', 'THUNDER_STEP_STANCE'],
+      marks: ['starSeal', 'daoMark'],
+      fusions: ['STARFALL_COLLAPSE', 'INFERNO_VORTEX', 'SUPERCONDUCT_SHATTER', 'OVERLOAD_BLAST'],
+      themeNouns: ['ค่ายกลดาราตก', 'ยันต์ชาดเพลิงสุริยัน', 'หมอกเขาวงกตเร้นลับ', 'เสาหลักชีพจรปฐพี', 'ยันต์ปราบมารแปดทิศ', 'อสนีฟ้าทัณฑ์เรียกสายฟ้า', 'ค่ายกลกระจกเงาลวงตา', 'พู่กันชาดเขียนยันต์', 'จานค่ายกลหยกโบราณ', 'ตาข่ายสายฟ้าดักอสูร', 'ผนึกเก้าขุนเขา', 'ประตูกลฉีเหมินตุ้นเจี่ย']
+    },
+    {
+      path: 'STRATEGY_GOVERNANCE', nameTh: 'พิชัยสงครามและรัฐกิจ',
+      subs: ['IMPERIAL_SEAL_CHANCELLOR', 'SHADOW_INTELLIGENCE_MARSHAL', 'GRAND_LOGISTICS_COMMANDER', 'BATTLEFIELD_STRATEGIST', 'SECT_STEWARD', 'DIPLOMATIC_ENVOY'],
+      els: ['LIGHT_YANG', 'YIN_SHADOW', 'EARTH_METAL', 'WIND', 'ASTRAL', 'WOOD_LIFE'],
+      weapons: ['SPEAR', 'BRUSH', 'BOW', 'SWORD', 'STAFF', 'ZITHER'],
+      stances: ['QIMEN_ARRAY_STANCE', 'SHADOW_REAPER_STANCE', 'VAJRA_BASTION_STANCE'],
+      marks: ['daoMark', 'starSeal'],
+      fusions: ['KARMIC_PURIFICATION_SMITE', 'SUPERCONDUCT_SHATTER', 'GLACIAL_SHATTER', 'STARFALL_COLLAPSE'],
+      themeNouns: ['ตราหยกมหาเสนาบดี', 'ข่าวกรองเงาจันทร์', 'พลาธิการหมื่นลี้', 'ธงบัญชาการรบหลวง', 'ค่ายกลพยัคฆ์หมอบมังกรซ่อน', 'สาส์นพันธมิตรเจ็ดแคว้น', 'กองคาราวานเกราะเหล็ก', 'กลศึกปิดฟ้าข้ามทะเล', 'ศรสัญญาณระดมพล', 'ตำราพิชัยสงครามซุนวู', 'ด่านปราการพิทักษ์สำนัก', 'ประกาศิตเจ้าสำนัก']
+    }
+  ];
+
+  const TARGET_SELECTORS_ROTATION = [
+    'SINGLE_ENEMY', 'LOWEST_HP_ENEMY', 'HIGHEST_ATK_ENEMY', 'MARKED_ENEMIES',
+    'SPLASH_NEIGHBORS', 'RICOCHET_CHAIN', 'PIERCE_LINE', 'SINGLE_ENEMY',
+    'LOWEST_HP_ENEMY', 'HIGHEST_ATK_ENEMY', 'SPLASH_NEIGHBORS', 'RICOCHET_CHAIN'
+  ];
+  const ARCH_ROTATION = [
+    'strike', 'pierce', 'sweep', 'burst', 'barrage', 'snipe',
+    'wave', 'slash', 'soul', 'control', 'dot', 'command'
+  ];
+  const RIDER_ROTATION = [
+    'burn', 'chill', 'bleed', 'poison', 'armorbreak', 'mdefbreak',
+    'slow', 'weaken', 'paralyze', 'root', 'curse', 'fear'
+  ];
+  const BUFF_ROTATION = [
+    'fervorMight', 'aegisWard', 'swiftWind', 'clarityLotus', 'bloodFrenzy', 'shadowVeil',
+    'frostBarrier', 'thunderStep', 'windStride', 'solarWard', 'astralMirage', 'tacticalCommand'
+  ];
+  const TRANSMUTE_MODES = ['STEAL_BUFF', 'EXTEND_DEBUFF', 'ABSORB_DOT_TO_SHIELD'];
+  const OVERDRIVE_MODES = ['HP_TO_QI_OVERDRIVE', 'QI_TO_SHIELD_BARRIER', 'TOXICITY_TO_VENOM_POWER'];
+  const OBTAIN_SOURCES_POOL = [
+    ['SECT_LIBRARY', 'FORTUNE:f3_crimson_slaughter_altar', 'MYRIAD_WORLD:swordyard'],
+    ['SECT_LIBRARY', 'FORTUNE:f3_glacier_phoenix_roost', 'MYRIAD_WORLD:snow'],
+    ['SECT_LIBRARY', 'FORTUNE:f4_astral_starfall_observatory', 'MYRIAD_WORLD:astralvoid'],
+    ['SECT_LIBRARY', 'FORTUNE:f4_abyssal_chimera_maw', 'MYRIAD_WORLD:thunderpeak'],
+    ['SECT_LIBRARY', 'PAGODA_TRIAL', 'MYRIAD_WORLD:bloodmoon'],
+    ['SECT_LIBRARY', 'ELEMENTAL_REALM', 'MYRIAD_WORLD:frostabyss']
+  ];
+
+  for (let pIdx = 0; pIdx < PATH_CONFIGS.length; pIdx++) {
+    const pc = PATH_CONFIGS[pIdx];
+
+    // A) 12 Active Multi-Move Combat Techniques per Path (144 total)
+    for (let i = 0; i < 12; i++) {
+      const idxStr = String(i + 1).padStart(2, '0');
+      const tid = 'TECH_V234_' + pc.path + '_ACT_' + idxStr;
+      const subId = pc.subs[i % pc.subs.length];
+      const el1 = pc.els[i % pc.els.length];
+      const el2 = pc.els[(i + 1) % pc.els.length];
+      const w1 = pc.weapons[i % pc.weapons.length];
+      const w2 = pc.weapons[(i + 2) % pc.weapons.length];
+      const tier = 2 + (i % 6); // Tiers 2..7
+      const arch1 = ARCH_ROTATION[i % ARCH_ROTATION.length];
+      const arch2 = ARCH_ROTATION[(i + 3) % ARCH_ROTATION.length];
+      const arch3 = ARCH_ROTATION[(i + 6) % ARCH_ROTATION.length];
+      const sel1 = TARGET_SELECTORS_ROTATION[i % TARGET_SELECTORS_ROTATION.length];
+      const sel2 = TARGET_SELECTORS_ROTATION[(i + 4) % TARGET_SELECTORS_ROTATION.length];
+      const stance = pc.stances[i % pc.stances.length];
+      const markKey = pc.marks[i % pc.marks.length];
+      const fusionKey = pc.fusions[i % pc.fusions.length];
+      const riderKey = RIDER_ROTATION[(pIdx + i) % RIDER_ROTATION.length];
+      const buffKey = BUFF_ROTATION[(pIdx + i) % BUFF_ROTATION.length];
+      const noun = pc.themeNouns[i % pc.themeNouns.length];
+      const isHardRestricted = (i % 3 === 0); // 1/3 hard restricted, 2/3 open with affinity bonus
+
+      const move1 = {
+        id: tid + '_M1',
+        parentId: tid,
+        stageReq: 1,
+        reqMastery: 0,
+        nameTh: 'ท่าที่ 1 · เปิดค่าย' + noun,
+        arch: arch1,
+        type: (i % 2 === 0) ? 'p' : 'm',
+        M: +(1.32 + tier * 0.08).toFixed(2),
+        mult: +(1.32 + tier * 0.08).toFixed(2),
+        hits: 1,
+        cd: 7 + (i % 3),
+        wind: 2,
+        costPct: +(3.2 + tier * 0.35).toFixed(1),
+        qiCost: 12 + tier * 3,
+        pen: 12 + tier * 2,
+        penAdd: 12 + tier * 2,
+        targetSelector: sel1,
+        stanceShift: stance,
+        comboPrimer: true,
+        markPrimer: { k: markKey, stacks: 1 + (i % 2), dur: 10 },
+        rider: riderKey,
+        sx: { k: riderKey, dur: 6, v: 0.18 },
+        aiRole: 'opener'
+      };
+
+      const move2 = {
+        id: tid + '_M2',
+        parentId: tid,
+        stageReq: 2,
+        reqMastery: 30,
+        nameTh: 'ท่าที่ 2 · ผันแปร' + noun,
+        arch: arch2,
+        type: (i % 2 === 0) ? 'm' : 'p',
+        M: +(1.58 + tier * 0.09).toFixed(2),
+        mult: +(1.58 + tier * 0.09).toFixed(2),
+        hits: (sel2 === 'RICOCHET_CHAIN' || sel2 === 'SPLASH_NEIGHBORS') ? 2 : 1,
+        cd: 10 + (i % 4),
+        wind: 2,
+        costPct: +(4.2 + tier * 0.4).toFixed(1),
+        qiCost: 18 + tier * 3,
+        pen: 16 + tier * 2,
+        penAdd: 16 + tier * 2,
+        targetSelector: sel2,
+        grantBuff: buffKey,
+        statusTransmute: TRANSMUTE_MODES[i % TRANSMUTE_MODES.length],
+        sacrificeOverdrive: (i % 4 === 0) ? OVERDRIVE_MODES[(i / 4) % OVERDRIVE_MODES.length] : undefined,
+        tetherLink: (i % 3 === 1) ? { kind: (i % 2 === 0 ? 'ENEMY_MIRROR' : 'ALLY_GUARD'), sharePct: 0.32, dur: 8 } : undefined,
+        aiRole: 'core'
+      };
+
+      const move3 = {
+        id: tid + '_M3',
+        parentId: tid,
+        stageReq: 3,
+        reqMastery: 65,
+        nameTh: 'ท่าที่ 3 · เผด็จศึก' + noun,
+        arch: arch3,
+        type: (i % 3 === 0) ? 'm' : 'p',
+        M: +(1.94 + tier * 0.11).toFixed(2),
+        mult: +(1.94 + tier * 0.11).toFixed(2),
+        hits: 2,
+        cd: 14 + (i % 3),
+        wind: 3,
+        costPct: +(5.5 + tier * 0.45).toFixed(1),
+        qiCost: 24 + tier * 4,
+        pen: 22 + tier * 3,
+        penAdd: 22 + tier * 3,
+        critAdd: 10,
+        aoe: (i % 2 === 0),
+        targetSelector: 'MARKED_ENEMIES',
+        comboFinisher: true,
+        markDetonate: { k: markKey, perStackMult: 0.24 },
+        elementalFusion: fusionKey,
+        aiRole: 'finisher'
+      };
+
+      const tObj = {
+        id: tid,
+        nameTh: 'เคล็ดวิชา' + noun + ' (' + pc.nameTh + ')',
+        path: pc.path,
+        sub: subId,
+        reqPath: isHardRestricted ? pc.path : null,
+        reqSubpath: (i % 6 === 0) ? subId : null,
+        reqWeapon: (i % 4 === 0) ? [w1, w2] : null,
+        reqElement: (i % 5 === 0) ? [el1, el2] : null,
+        bonusPath: pc.path,
+        bonusSubpath: subId,
+        bonusWeapon: [w1, w2],
+        bonusElement: [el1, el2],
+        cat: 'COMBAT_TECHNIQUE',
+        role: 'ACTIVE',
+        combatArch: arch1,
+        tier,
+        reqTier: Math.max(1, tier - 1),
+        grade: tier >= 6 ? 'Legendary' : tier >= 4 ? 'Exceptional' : 'Rare',
+        power: tier * 52 + 35,
+        element: el1,
+        elementalRole: 'ELEMENTAL',
+        elementProfile: epWeighted(el1, 0.65, el2, 0.35),
+        weaponTypes: [w1, w2],
+        armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+        obtainSources: OBTAIN_SOURCES_POOL[i % OBTAIN_SOURCES_POOL.length].slice(),
+        sourceInfoTh: 'หอคัมภีร์สำนัก · แดนหมื่นพิภพ · ด่านทดสอบเจดีย์เก้าวิถี',
+        descTh: 'เคล็ดวิชาต่อสู้สาย「' + pc.nameTh + '」ผสานท่วงท่า「' + stance + '」สะสมตราประทับ「' + markKey + '」และจุดระเบิดปฏิกิริยาธาตุ「' + fusionKey + '」',
+        stages: [
+          { stage: 1, id: tid + '_S1', nameTh: 'ขั้นที่ 1 · ' + noun, reqMastery: 0, reqCultStage: Math.max(1, tier - 1), mult: 1.0 },
+          { stage: 2, id: tid + '_S2', nameTh: 'ขั้นที่ 2 · ' + noun, reqMastery: 30, reqCultStage: tier, mult: 1.16 },
+          { stage: 3, id: tid + '_S3', nameTh: 'ขั้นที่ 3 · ' + noun, reqMastery: 65, reqCultStage: Math.min(8, tier + 1), mult: 1.32 }
+        ],
+        moveDefs: [move1, move2, move3],
+        moves: [move1.nameTh, move2.nameTh, move3.nameTh],
+        v234: true,
+        v234Pack: true
+      };
+      if (!D.techniques.some(x => x.id === tObj.id)) D.techniques.push(tObj);
+      if (!JD.TECH.techniques.some(x => x.id === tObj.id)) JD.TECH.techniques.push(tObj);
+    }
+
+    // B) 4 Composable Passive Techniques per Path (48 total)
+    const PASSIVE_KINDS = ['onHit', 'onCrit', 'combatTick', 'onLowHp'];
+    for (let i = 0; i < 4; i++) {
+      const idxStr = String(i + 1).padStart(2, '0');
+      const tid = 'TECH_V234_' + pc.path + '_PAS_' + idxStr;
+      const subId = pc.subs[i % pc.subs.length];
+      const el1 = pc.els[i % pc.els.length];
+      const el2 = pc.els[(i + 2) % pc.els.length];
+      const w1 = pc.weapons[i % pc.weapons.length];
+      const w2 = pc.weapons[(i + 1) % pc.weapons.length];
+      const tier = 3 + i; // Tiers 3..6
+      const noun = pc.themeNouns[(i + 4) % pc.themeNouns.length];
+      const buffKey = BUFF_ROTATION[(pIdx * 2 + i) % BUFF_ROTATION.length];
+      const pasObj = {
+        id: tid,
+        nameTh: 'เคล็ดวิชาติดตัว · ลมหายใจ' + noun,
+        path: pc.path,
+        sub: subId,
+        bonusPath: pc.path,
+        bonusSubpath: subId,
+        bonusWeapon: [w1, w2],
+        bonusElement: [el1, el2],
+        cat: 'PASSIVE',
+        role: 'PASSIVE',
+        combatArch: 'passive',
+        tier,
+        reqTier: Math.max(1, tier - 1),
+        grade: tier >= 5 ? 'Exceptional' : 'Rare',
+        power: tier * 48 + 20,
+        element: el1,
+        elementalRole: 'ELEMENTAL',
+        elementProfile: epWeighted(el1, 0.70, el2, 0.30),
+        weaponTypes: [w1, w2],
+        armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+        obtainSources: OBTAIN_SOURCES_POOL[(i + 1) % OBTAIN_SOURCES_POOL.length].slice(),
+        sourceInfoTh: 'หอคัมภีร์สำนัก · ด่านทดสอบธาตุ · จุดวาสนา',
+        descTh: 'วิชาติดตัวสาย「' + pc.nameTh + '」ทำงานอัตโนมัติเมื่อเกิดเงื่อนไข (' + PASSIVE_KINDS[i] + ') เพื่อฟื้นฟูปราณและมอบบัฟ「' + buffKey + '」',
+        stages: [
+          { stage: 1, id: tid + '_S1', nameTh: 'ขั้นที่ 1 · ' + noun, reqMastery: 0, reqCultStage: Math.max(1, tier - 1), mult: 1.0 },
+          { stage: 2, id: tid + '_S2', nameTh: 'ขั้นที่ 2 · ' + noun, reqMastery: 35, reqCultStage: tier, mult: 1.15 },
+          { stage: 3, id: tid + '_S3', nameTh: 'ขั้นที่ 3 · ' + noun, reqMastery: 70, reqCultStage: Math.min(8, tier + 1), mult: 1.30 }
+        ],
+        passive: {
+          p: { atk: +(0.08 + i * 0.02).toFixed(2), matk: +(0.08 + i * 0.02).toFixed(2), hp: +(0.09 + i * 0.02).toFixed(2), def: 0.08 },
+          f: { crit: 4 + i, pen: 6 + i * 2, acc: 8 + i * 2 },
+          qiMaxPct: +(0.08 + i * 0.02).toFixed(2),
+          cultRatePct: +(0.08 + i * 0.02).toFixed(2),
+          proc: {
+            kind: PASSIVE_KINDS[i],
+            icdTicks: 5,
+            hpRestorePct: 0.04,
+            qiRestorePct: 0.045,
+            addStatus: buffKey,
+            dur: 8
+          }
+        },
+        passiveFamily: 'FAM_' + tid,
+        moves: [],
+        v234: true,
+        v234Pack: true
+      };
+      if (Array.isArray(D.passives)) D.passives.push(pasObj);
+      if (Array.isArray(D.passiveTechniques)) D.passiveTechniques.push(pasObj);
+      if (!D.techniques.some(x => x.id === pasObj.id)) D.techniques.push(pasObj);
+      if (!JD.TECH.techniques.some(x => x.id === pasObj.id)) JD.TECH.techniques.push(pasObj);
+    }
+
+    // C) 3 Movement / Defensive / Team-Support Techniques per Path (36 total)
+    const SUP_ROLES = [
+      { code: 'MOV', label: 'ท่าร่างเหินเวหา', arch1: 'evade', arch2: 'blink', sel: 'SELF', buff: 'windStride' },
+      { code: 'DEF', label: 'ปราการคุ้มกายา', arch1: 'guard', arch2: 'counter', sel: 'SELF', buff: 'frostBarrier' },
+      { code: 'TEAM', label: 'ค่ายกลหนุนสหาย', arch1: 'heal', arch2: 'buff', sel: 'LOWEST_HP_ALLY', buff: 'aegisWard' }
+    ];
+    for (let i = 0; i < 3; i++) {
+      const sr = SUP_ROLES[i];
+      const idxStr = String(i + 1).padStart(2, '0');
+      const tid = 'TECH_V234_' + pc.path + '_SUP_' + idxStr;
+      const subId = pc.subs[i % pc.subs.length];
+      const el1 = pc.els[(i + 2) % pc.els.length];
+      const el2 = pc.els[(i + 3) % pc.els.length];
+      const w1 = pc.weapons[(i + 1) % pc.weapons.length];
+      const w2 = pc.weapons[(i + 3) % pc.weapons.length];
+      const tier = 3 + i;
+      const noun = pc.themeNouns[(i + 8) % pc.themeNouns.length];
+
+      const m1 = {
+        id: tid + '_M1',
+        parentId: tid,
+        stageReq: 1,
+        reqMastery: 0,
+        nameTh: sr.label + ' · ขั้นต้น (' + noun + ')',
+        arch: sr.arch1,
+        type: 'm',
+        M: sr.code === 'TEAM' ? 0 : 1.25,
+        mult: sr.code === 'TEAM' ? 0 : 1.25,
+        hits: sr.code === 'TEAM' ? 0 : 1,
+        cd: 9,
+        wind: 2,
+        costPct: 3.8,
+        qiCost: 16,
+        pen: 12,
+        shield: 0.22,
+        heal: sr.code === 'TEAM' ? 0.24 : 0.08,
+        self: sr.code !== 'TEAM',
+        team: sr.code === 'TEAM',
+        targetSelector: sr.sel,
+        grantBuff: sr.buff,
+        stanceShift: pc.stances[i % pc.stances.length],
+        tetherLink: sr.code === 'TEAM' ? { kind: 'ALLY_GUARD', sharePct: 0.30, dur: 8 } : undefined,
+        aiRole: sr.code === 'TEAM' ? 'sustain' : 'defensive'
+      };
+      const m2 = {
+        id: tid + '_M2',
+        parentId: tid,
+        stageReq: 2,
+        reqMastery: 40,
+        nameTh: sr.label + ' · ขั้นสมบูรณ์ (' + noun + ')',
+        arch: sr.arch2,
+        type: 'm',
+        M: sr.code === 'TEAM' ? 0 : 1.65,
+        mult: sr.code === 'TEAM' ? 0 : 1.65,
+        hits: sr.code === 'TEAM' ? 0 : 1,
+        cd: 13,
+        wind: 2,
+        costPct: 5.0,
+        qiCost: 22,
+        pen: 18,
+        shield: 0.28,
+        heal: sr.code === 'TEAM' ? 0.30 : 0.12,
+        qiRestorePct: 0.12,
+        self: sr.code !== 'TEAM',
+        team: sr.code === 'TEAM',
+        targetSelector: sr.code === 'TEAM' ? 'ALL_ALLIES' : 'SINGLE_ENEMY',
+        grantBuff: sr.buff,
+        statusTransmute: 'ABSORB_DOT_TO_SHIELD',
+        aiRole: sr.code === 'TEAM' ? 'sustain' : 'defensive'
+      };
+
+      const supObj = {
+        id: tid,
+        nameTh: sr.label + ' · ' + noun,
+        path: pc.path,
+        sub: subId,
+        bonusPath: pc.path,
+        bonusSubpath: subId,
+        bonusWeapon: [w1, w2],
+        bonusElement: [el1, el2],
+        cat: 'DEFENSIVE_TECHNIQUE',
+        role: 'ACTIVE',
+        combatArch: sr.arch1,
+        tier,
+        reqTier: Math.max(1, tier - 1),
+        grade: 'Rare',
+        power: tier * 46 + 25,
+        element: el1,
+        elementalRole: 'ELEMENTAL',
+        elementProfile: epWeighted(el1, 0.65, el2, 0.35),
+        weaponTypes: [w1, w2],
+        armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+        obtainSources: OBTAIN_SOURCES_POOL[(i + 2) % OBTAIN_SOURCES_POOL.length].slice(),
+        sourceInfoTh: 'หอคัมภีร์สำนัก · ด่านทดสอบเจดีย์เก้าวิถี',
+        descTh: 'วิชาท่าร่าง/ป้องกัน/หนุนนำสาย「' + pc.nameTh + '」เน้นการเอาตัวรอด แปลงพิษเป็นเกราะ และเชื่อมสายใยคุ้มกันสหาย',
+        stages: [
+          { stage: 1, id: tid + '_S1', nameTh: 'ขั้นที่ 1 · ' + noun, reqMastery: 0, reqCultStage: Math.max(1, tier - 1), mult: 1.0 },
+          { stage: 2, id: tid + '_S2', nameTh: 'ขั้นที่ 2 · ' + noun, reqMastery: 40, reqCultStage: tier, mult: 1.20 }
+        ],
+        moveDefs: [m1, m2],
+        moves: [m1.nameTh, m2.nameTh],
+        v234: true,
+        v234Pack: true
+      };
+      if (!D.techniques.some(x => x.id === supObj.id)) D.techniques.push(supObj);
+      if (!JD.TECH.techniques.some(x => x.id === supObj.id)) JD.TECH.techniques.push(supObj);
+    }
+
+    // D) 3 Out-of-Combat / Production / Exploration Auxiliary Techniques per Path (36 total)
+    const AUX_DOMAINS = [
+      { code: 'CULT', label: 'เคล็ดเดินปราณเร่งตบะ', bonuses: { cultRate: 0.16, SCRIPTURE: 0.18, meditation: 0.20 } },
+      { code: 'CRAFT', label: 'เคล็ดหลอมสร้างและโอสถ', bonuses: { ALCHEMY: 0.20, FORGING: 0.20, TALISMAN: 0.18, herbalism: 0.18 } },
+      { code: 'EXPLORE', label: 'เคล็ดสำรวจแดนลับและพลาธิการ', bonuses: { EXPLORE: 0.22, survival: 0.20, hunting: 0.18, BEAST_TAMING: 0.16 } }
+    ];
+    for (let i = 0; i < 3; i++) {
+      const ax = AUX_DOMAINS[i];
+      const idxStr = String(i + 1).padStart(2, '0');
+      const tid = 'TECH_V234_' + pc.path + '_AUX_' + idxStr;
+      const subId = pc.subs[i % pc.subs.length];
+      const el1 = pc.els[(i + 3) % pc.els.length];
+      const w1 = pc.weapons[i % pc.weapons.length];
+      const tier = 2 + i * 2; // Tiers 2, 4, 6
+      const noun = pc.themeNouns[(i + 9) % pc.themeNouns.length];
+
+      const auxObj = {
+        id: tid,
+        nameTh: ax.label + ' · ' + noun,
+        path: pc.path,
+        sub: subId,
+        bonusPath: pc.path,
+        bonusSubpath: subId,
+        bonusWeapon: [w1],
+        bonusElement: [el1],
+        cat: 'PASSIVE',
+        role: 'PASSIVE',
+        combatArch: 'passive',
+        isAuxiliaryArt: true,
+        auxiliarySpec: {
+          domain: ax.code,
+          bonuses: Object.assign({}, ax.bonuses)
+        },
+        tier,
+        reqTier: Math.max(1, tier - 1),
+        grade: tier >= 5 ? 'Exceptional' : 'Rare',
+        power: tier * 42 + 18,
+        element: el1,
+        elementalRole: 'ELEMENTAL',
+        elementProfile: epSingle(el1),
+        weaponTypes: [w1, 'FOCUS'],
+        armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+        obtainSources: ['SECT_LIBRARY', 'FORTUNE:f4_astral_starfall_observatory', 'MYRIAD_WORLD:eden'],
+        sourceInfoTh: 'หอคัมภีร์สำนัก · สวนสวรรค์ล่มสลาย · การค้นคว้าของผู้อาวุโส',
+        descTh: 'วิชาเสริมนอกการต่อสู้สาย「' + pc.nameTh + '」ยกระดับการฝึกตน การหลอมสร้าง และการสำรวจแดนลับ พร้อมเสริมค่าสถานะพื้นฐาน',
+        stages: [
+          { stage: 1, id: tid + '_S1', nameTh: 'ขั้นที่ 1 · ' + noun, reqMastery: 0, reqCultStage: 1, mult: 1.0 },
+          { stage: 2, id: tid + '_S2', nameTh: 'ขั้นที่ 2 · ' + noun, reqMastery: 35, reqCultStage: 3, mult: 1.18 }
+        ],
+        passive: {
+          p: { hp: 0.07, mdef: 0.08, matk: 0.06 },
+          f: { acc: 8, move: 6 },
+          qiMaxPct: 0.10,
+          cultRatePct: ax.bonuses.cultRate || 0.08,
+          life: Object.assign({}, ax.bonuses),
+          proc: { kind: 'combatTick', icdTicks: 6, qiRestorePct: 0.04, hpRestorePct: 0.03, addStatus: 'clarityLotus', dur: 6 }
+        },
+        passiveFamily: 'FAM_' + tid,
+        moves: [],
+        v234: true,
+        v234Pack: true
+      };
+      if (Array.isArray(D.passives)) D.passives.push(auxObj);
+      if (Array.isArray(D.passiveTechniques)) D.passiveTechniques.push(auxObj);
+      if (!D.techniques.some(x => x.id === auxObj.id)) D.techniques.push(auxObj);
+      if (!JD.TECH.techniques.some(x => x.id === auxObj.id)) JD.TECH.techniques.push(auxObj);
+    }
+
+    // E) 2 Core Mantras per Path (24 total)
+    for (let i = 0; i < 2; i++) {
+      const idxStr = String(i + 1).padStart(2, '0');
+      const mid = 'MANTRA_V234_' + pc.path + '_' + idxStr;
+      const subId = pc.subs[i % pc.subs.length];
+      const el1 = pc.els[i % pc.els.length];
+      const el2 = pc.els[(i + 1) % pc.els.length];
+      const tier = i === 0 ? 4 : 6;
+      const noun = pc.themeNouns[(i * 5) % pc.themeNouns.length];
+
+      const mantraObj = {
+        id: mid,
+        nameTh: 'คัมภีร์บ่มเพ็ญเพียร · มหาเคล็ด' + noun,
+        path: pc.path,
+        sub: subId,
+        reqPath: pc.path,
+        bonusSubpath: subId,
+        tier,
+        reqStage: i === 0 ? 2 : 4,
+        element: el1,
+        elementalRole: 'ELEMENTAL',
+        elementProfile: epWeighted(el1, 0.65, el2, 0.35),
+        cultSpeedMult: i === 0 ? 1.24 : 1.38,
+        qiMaxMult: i === 0 ? 1.20 : 1.34,
+        breakthroughBonus: i === 0 ? 0.06 : 0.10,
+        stats: {
+          atk: 8 + i * 7,
+          matk: 10 + i * 8,
+          def: 8 + i * 6,
+          mdef: 10 + i * 7,
+          hp: 45 + i * 40,
+          crit: 4 + i * 3,
+          pen: 6 + i * 4
+        },
+        obtainSources: ['SECT_LIBRARY', 'PAGODA_TRIAL:' + pc.path, 'MYRIAD_WORLD:astralvoid'],
+        sourceInfoTh: 'หอคัมภีร์สำนัก · เจดีย์เก้าวิถี · แดนหมื่นพิภพ',
+        descTh: 'มหาคัมภีร์เดินปราณแกนหลักประจำวิถี「' + pc.nameTh + '」เร่งความเร็วการบ่มเพาะ ขยายตันเถียน และเสริมโอกาสทะลวงคอขวด',
+        v234: true,
+        v234Pack: true
+      };
+      if (!JD.TECH.mantras.some(x => x.id === mantraObj.id)) JD.TECH.mantras.push(mantraObj);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. 60 NEW RAW & REFINED MATERIALS (MAT_V234_001 .. MAT_V234_060)
+  //    Spanning Tiers 1..7 and all 10 Elements, wired to gathering/mining/explore
+  // ---------------------------------------------------------------------------
+  const MAT_ELEMENTS = [
+    'FIRE', 'WATER_ICE', 'LIGHTNING', 'WIND', 'EARTH_METAL',
+    'WOOD_LIFE', 'YIN_SHADOW', 'LIGHT_YANG', 'ASTRAL', 'BLOOD_DEMON'
+  ];
+  const MAT_KINDS = [
+    { kind: 'HERB', cat: 'HERB', prefixTh: 'สมุนไพรทิพย์', icon: '🌿', gather: 'herb' },
+    { kind: 'ORE', cat: 'ORE', prefixTh: 'แร่ผลึกปราณ', icon: '💎', gather: 'ore' },
+    { kind: 'BEAST', cat: 'BEAST_PART', prefixTh: 'แก่นอสูรบรรพกาล', icon: '🦴', gather: 'beast' },
+    { kind: 'ESSENCE', cat: 'CATALYST', prefixTh: 'หยาดแก่นธาตุแท้', icon: '💧', gather: 'realm' },
+    { kind: 'RELIC_SHARD', cat: 'ARTIFACT_MAT', prefixTh: 'เศษศาสตราโบราณ', icon: '⚙️', gather: 'ruin' },
+    { kind: 'TALISMAN_INK', cat: 'TALISMAN_MAT', prefixTh: 'ชาดหมึกอักขระ', icon: '🧧', gather: 'stele' }
+  ];
+  const EL_NAMES_TH = {
+    FIRE: 'อัคคีสุริยัน', WATER_ICE: 'เหมันต์เยือกแข็ง', LIGHTNING: 'อสนีม่วงสวรรค์',
+    WIND: 'วายุเมฆาคราม', EARTH_METAL: 'ศิลาเหล็กไหล', WOOD_LIFE: 'พฤกษาอมฤต',
+    YIN_SHADOW: 'เงาหยินรัตติกาล', LIGHT_YANG: 'แสงหยางพิสุทธิ์', ASTRAL: 'ดาราจักรสุญตา',
+    BLOOD_DEMON: 'โลหิตอสูรสีชาด'
+  };
+
+  JD.ITEMS.materials = JD.ITEMS.materials || [];
+  const v234MatIdsByKind = { HERB: [], ORE: [], BEAST: [], ESSENCE: [], RELIC_SHARD: [], TALISMAN_INK: [] };
+
+  for (let i = 0; i < 60; i++) {
+    const idxStr = String(i + 1).padStart(3, '0');
+    const mid = 'MAT_V234_' + idxStr;
+    const mk = MAT_KINDS[i % MAT_KINDS.length];
+    const el = MAT_ELEMENTS[i % MAT_ELEMENTS.length];
+    const tier = 1 + (i % 7); // Tiers 1..7
+    const matObj = {
+      id: mid,
+      nameTh: mk.prefixTh + EL_NAMES_TH[el] + ' (ระดับ ' + tier + ')',
+      icon: mk.icon,
+      tier,
+      cat: mk.cat,
+      kind: mk.kind,
+      out: 'MATERIAL',
+      price: tier * 38 + (i % 5) * 12,
+      element: el,
+      elementProfile: epSingle(el),
+      obtainSources: [
+        'GATHER:' + mk.gather,
+        'REGION:reg_v234_' + (1 + (i % 4)),
+        'MYRIAD_WORLD:' + (['swordyard', 'snow', 'fungi', 'astralvoid', 'bloodmoon', 'thunderpeak', 'frostabyss'][i % 7])
+      ],
+      sourceInfoTh: 'เก็บเกี่ยวในสำนัก · ออกสำรวจภูมิภาค · แดนหมื่นพิภพ',
+      descTh: 'วัตถุดิบหลอมสร้างระดับ ' + tier + ' อัดแน่นด้วยปราณธาตุ「' + EL_NAMES_TH[el] + '」ใช้ปรุงโอสถ หลอมศาสตรา และเขียนยันต์ขั้นสูง',
+      v234: true
+    };
+    v234MatIdsByKind[mk.kind].push(mid);
+    if (!JD.ITEMS.materials.some(x => x.id === mid)) JD.ITEMS.materials.push(matObj);
+    if (!JD.ITEMS.items.some(x => x.id === mid)) JD.ITEMS.items.push(matObj);
+    if (typeof globalThis !== 'undefined' && globalThis.ECO) {
+      if (globalThis.ECO.itemById) globalThis.ECO.itemById[mid] = matObj;
+      if (globalThis.ECO.matMap) globalThis.ECO.matMap[mid] = matObj;
+    }
+  }
+
+  // Wire materials into JD.EXPANSION.regions and EXPLORE.WORLDS so they drop naturally in gameplay
+  if (JD.EXPANSION && Array.isArray(JD.EXPANSION.regions)) {
+    JD.EXPANSION.regions.forEach((reg, idx) => {
+      reg.v234GatherPool = v234MatIdsByKind.HERB.slice(idx * 2, idx * 2 + 4)
+        .concat(v234MatIdsByKind.ORE.slice(idx * 2, idx * 2 + 4));
+    });
+  }
+  if (typeof globalThis !== 'undefined' && globalThis.EXPLORE && Array.isArray(globalThis.EXPLORE.WORLDS)) {
+    globalThis.EXPLORE.WORLDS.forEach((w, idx) => {
+      w.v234MatIds = [
+        v234MatIdsByKind.HERB[idx % 10],
+        v234MatIdsByKind.ORE[idx % 10],
+        v234MatIdsByKind.BEAST[idx % 10],
+        v234MatIdsByKind.ESSENCE[idx % 10],
+        v234MatIdsByKind.RELIC_SHARD[idx % 10],
+        v234MatIdsByKind.TALISMAN_INK[idx % 10]
+      ];
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4. 300 NEW AUTHORED ITEMS & 300 NEW NON-CIRCULAR CRAFTING RECIPES
+  //    - 120 Weapons (12 per each of the 10 weapon types) with grantedSkills,
+  //      skillModifiers, and composable effects
+  //    - 36 Armors (12 HEAVY, 12 LIGHT, 12 ROBE across all 12 paths)
+  //    - 48 Accessories (4 per path across all 12 paths)
+  //    - 48 Multi-Phase & Conditional Pills (4 per path across all 12 paths)
+  //    - 24 Charge-Based Talismans & Formation Discs (2 per path)
+  //    - 24 Training, Crafting & Exploration Auxiliary Tools (2 per path)
+  // ---------------------------------------------------------------------------
+  const WEAPON_TYPES_10 = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'];
+  const WEAPON_NAMES_TH = {
+    SWORD: 'กระบี่', BLADE: 'ดาบ', SPEAR: 'ทวน', FIST: 'สนับมือ', BOW: 'เกาทัณฑ์',
+    STAFF: 'พลอง', FOCUS: 'ศาสตราเวท', ZITHER: 'พิณศึก', BRUSH: 'พู่กันปราณ', WHIP: 'แส้โซ่'
+  };
+  const WEAPON_ICONS = {
+    SWORD: '🗡️', BLADE: '🔪', SPEAR: '🔱', FIST: '🥊', BOW: '🏹',
+    STAFF: '🦯', FOCUS: '🔮', ZITHER: '琴', BRUSH: '🖌️', WHIP: '⛓️'
+  };
+
+  const WEAPON_EFFECT_POOL = [
+    'EFX_V234_MARK_AMPLIFIER', 'EFX_V234_ELEMENTAL_REACTOR', 'EFX_V234_COMBO_MOMENTUM',
+    'EFX_V234_STANCE_FLOW', 'EFX_V234_RICOCHET_CONDUCTOR', 'EFX_V234_EXECUTE_REAPER',
+    'EFX_ARMOR_FRACTURE', 'EFX_BLEEDING', 'EFX_BURNING', 'EFX_CHILL_FREEZE',
+    'EFX_SHOCK_CONDUCTION', 'EFX_TOXIN_INFECTION', 'EFX_VITALITY_STEAL', 'EFX_QI_SIPHON',
+    'EFX_HEAVENLY_THUNDER_SMITE', 'EFX_SOUL_SHOCK', 'EFX_PARALYSIS_ARC', 'EFX_ARMOR_SHATTER',
+    'EFX_POISON_COAT', 'EFX_BURNING_DOT', 'EFX_MIND_CORROSION', 'EFX_HASTE_STEP'
+  ];
+
+  const ARMOR_EFFECT_POOL = [
+    'EFX_V234_EMERGENCY_AEGIS', 'EFX_V234_TETHER_GUARD', 'EFX_V234_DOT_TRANSMUTER',
+    'EFX_BARRIER_SHIELD', 'EFX_TIMED_PARRY', 'EFX_DAMAGE_REFLECT', 'EFX_CONTROL_RESILIENCE',
+    'EFX_GUARDED_DAMAGE_SHARE', 'EFX_REALM_SUPPRESSION_GUARD', 'EFX_REGEN_AURA',
+    'EFX_MIND_SHIELD', 'EFX_QI_RESERVOIR'
+  ];
+
+  const ACC_EFFECT_POOL = [
+    'EFX_V234_BUFF_STEALER', 'EFX_V234_DEBUFF_EXTENDER', 'EFX_V234_OVERDRIVE_SURGE',
+    'EFX_V234_ELEMENTAL_REACTOR', 'EFX_V234_MARK_AMPLIFIER', 'EFX_V234_STANCE_FLOW',
+    'EFX_QI_SIPHON', 'EFX_MIND_SHIELD', 'EFX_CONTROL_RESILIENCE', 'EFX_HASTE_STEP',
+    'EFX_QI_RESERVOIR', 'EFX_REGEN_AURA'
+  ];
+
+  const allNewItems = [];
+  const allNewRecipes = [];
+  let recipeCounter = 0;
+
+  function registerItemAndRecipe(itemObj, matInputs, station) {
+    recipeCounter++;
+    const rIdxStr = String(recipeCounter).padStart(3, '0');
+    const recId = 'REC_V234_' + rIdxStr;
+    itemObj.recipeId = recId;
+    itemObj.v234 = true;
+    allNewItems.push(itemObj);
+
+    const recObj = {
+      id: recId,
+      nameTh: 'ตำราหลอม · ' + itemObj.nameTh,
+      outItemId: itemObj.id,
+      out: itemObj.out || 'EQUIPMENT',
+      slot: itemObj.slot || null,
+      tier: itemObj.tier,
+      station: station || 'FORGE',
+      element: itemObj.element || 'NEUTRAL',
+      inputs: matInputs,
+      discoverable: true,
+      obtainSources: itemObj.obtainSources || ['SECT_WORKSHOP', 'MYRIAD_WORLD:astralvoid'],
+      v234: true
+    };
+    allNewRecipes.push(recObj);
+  }
+
+  // 4A) 120 Weapons (10 weapon types x 12 items = 120)
+  for (let wIdx = 0; wIdx < WEAPON_TYPES_10.length; wIdx++) {
+    const wType = WEAPON_TYPES_10[wIdx];
+    for (let j = 0; j < 12; j++) {
+      const seq = wIdx * 12 + j + 1;
+      const seqStr = String(seq).padStart(3, '0');
+      const itemId = 'EQ_V234_WPN_' + seqStr;
+      const pc = PATH_CONFIGS[j % 12];
+      const subId = pc.subs[wIdx % pc.subs.length];
+      const el = MAT_ELEMENTS[(wIdx + j) % MAT_ELEMENTS.length];
+      const tier = 2 + (j % 6); // Tiers 2..7
+      const grantedTechId = 'TECH_V234_' + pc.path + '_ACT_' + String((wIdx % 12) + 1).padStart(2, '0');
+      const efxId1 = WEAPON_EFFECT_POOL[(seq - 1) % WEAPON_EFFECT_POOL.length];
+      const efxId2 = WEAPON_EFFECT_POOL[(seq + 5) % WEAPON_EFFECT_POOL.length];
+      const riderKey = RIDER_ROTATION[(wIdx + j) % RIDER_ROTATION.length];
+      const markKey = pc.marks[wIdx % pc.marks.length];
+      const fusionKey = pc.fusions[wIdx % pc.fusions.length];
+
+      const wpnItem = {
+        id: itemId,
+        nameTh: WEAPON_NAMES_TH[wType] + EL_NAMES_TH[el] + ' · ' + pc.themeNouns[wIdx % pc.themeNouns.length],
+        icon: WEAPON_ICONS[wType],
+        tier,
+        out: 'EQUIPMENT',
+        slot: 'WEAPON',
+        subType: wType,
+        weaponType: wType,
+        path: pc.path,
+        subpath: subId,
+        reqPath: (j % 4 === 0) ? pc.path : null,
+        bonusPath: pc.path,
+        bonusSubpath: subId,
+        element: el,
+        elementProfile: epSingle(el),
+        price: tier * 180 + j * 25,
+        stats: {
+          atk: 14 + tier * 9 + (wIdx % 3) * 3,
+          matk: 12 + tier * 8 + ((wIdx + 1) % 3) * 3,
+          crit: 4 + Math.floor(tier * 1.2),
+          pen: 6 + tier * 2,
+          acc: 5 + tier
+        },
+        grantedSkills: [grantedTechId],
+        skillModifiers: [
+          {
+            weaponType: wType,
+            element: el,
+            multPct: 0.14,
+            penAdd: 6 + tier,
+            critAdd: 4,
+            cdDelta: -1,
+            addRider: riderKey,
+            addMarkPrimer: { k: markKey, stacks: 1, dur: 8 },
+            addElementalFusion: fusionKey
+          }
+        ],
+        effects: [
+          { effectId: efxId1, params: { bonusPct: 0.14, chance: 0.35, stacks: 1, dur: 6 } },
+          { effectId: efxId2, params: { dmgPct: 0.16, penAdd: 8, lifestealPct: 0.08, qiDrainPct: 0.06 } }
+        ],
+        obtainSources: ['CRAFT:' + itemId, 'MYRIAD_WORLD:swordyard', 'PAGODA_TRIAL:' + pc.path],
+        descTh: 'ศาสตราประจำวิถี「' + pc.nameTh + '」มอบวิชาชั่วคราว「' + grantedTechId + '」ขณะสวมใส่ พร้อมดัดแปลงกระบวนท่าธาตุ' + EL_NAMES_TH[el]
+      };
+
+      const m1 = v234MatIdsByKind.ORE[(wIdx + j) % 10];
+      const m2 = v234MatIdsByKind.RELIC_SHARD[(wIdx + j) % 10];
+      const m3 = v234MatIdsByKind.ESSENCE[(wIdx + j) % 10];
+      registerItemAndRecipe(wpnItem, [
+        { matId: m1, count: 2 + (tier % 3) },
+        { matId: m2, count: 1 + (tier % 2) },
+        { matId: m3, count: 1 }
+      ], 'FORGE');
+    }
+  }
+
+  // 4B) 36 Armors (3 per path across all 12 paths: HEAVY, LIGHT, ROBE)
+  const ARMOR_TYPES_3 = ['HEAVY', 'LIGHT', 'ROBE'];
+  const ARMOR_NAMES_TH = { HEAVY: 'เกราะศึกหนัก', LIGHT: 'เกราะอ่อนคล่องตัว', ROBE: 'อาภรณ์ปราณเซียน' };
+  for (let pIdx = 0; pIdx < 12; pIdx++) {
+    const pc = PATH_CONFIGS[pIdx];
+    for (let aIdx = 0; aIdx < 3; aIdx++) {
+      const seq = pIdx * 3 + aIdx + 1;
+      const seqStr = String(seq).padStart(3, '0');
+      const itemId = 'EQ_V234_ARM_' + seqStr;
+      const aType = ARMOR_TYPES_3[aIdx];
+      const subId = pc.subs[aIdx % pc.subs.length];
+      const el = pc.els[aIdx % pc.els.length];
+      const tier = 3 + (seq % 5); // Tiers 3..7
+      const efx1 = ARMOR_EFFECT_POOL[(seq - 1) % ARMOR_EFFECT_POOL.length];
+      const efx2 = ARMOR_EFFECT_POOL[(seq + 3) % ARMOR_EFFECT_POOL.length];
+
+      const armItem = {
+        id: itemId,
+        nameTh: ARMOR_NAMES_TH[aType] + ' · ' + pc.themeNouns[(aIdx + 2) % pc.themeNouns.length],
+        icon: aType === 'HEAVY' ? '🛡️' : aType === 'LIGHT' ? '🥋' : '👘',
+        tier,
+        out: 'EQUIPMENT',
+        slot: 'ARMOR',
+        subType: aType,
+        armorType: aType,
+        path: pc.path,
+        subpath: subId,
+        bonusPath: pc.path,
+        bonusSubpath: subId,
+        element: el,
+        elementProfile: epSingle(el),
+        price: tier * 165 + seq * 15,
+        stats: {
+          hp: 55 + tier * 28 + (aType === 'HEAVY' ? 35 : 10),
+          def: 12 + tier * 7 + (aType === 'HEAVY' ? 8 : 2),
+          mdef: 12 + tier * 7 + (aType === 'ROBE' ? 9 : 3),
+          eva: aType === 'LIGHT' ? 8 + tier : 3
+        },
+        effects: [
+          { effectId: efx1, params: { shieldPct: 0.24, reflectPct: 0.14, sharePct: 0.28, thresholdHpPct: 0.35 } },
+          { effectId: efx2, params: { healPct: 0.04, qiMaxBonusPct: 0.12, ccResistPct: 0.22 } }
+        ],
+        obtainSources: ['CRAFT:' + itemId, 'MYRIAD_WORLD:godwar', 'PAGODA_TRIAL:' + pc.path],
+        descTh: 'ชุดเกราะประจำสาย「' + pc.nameTh + '」ทำงานอัตโนมัติเมื่อเลือดต่ำเพื่อกางโล่ฉุกเฉินและแปลงพิษเป็นปราณคุ้มกาย'
+      };
+
+      registerItemAndRecipe(armItem, [
+        { matId: v234MatIdsByKind.BEAST[(pIdx + aIdx) % 10], count: 2 },
+        { matId: v234MatIdsByKind.ORE[(pIdx + aIdx + 2) % 10], count: 2 },
+        { matId: v234MatIdsByKind.ESSENCE[(pIdx + aIdx) % 10], count: 1 }
+      ], 'FORGE');
+    }
+  }
+
+  // 4C) 48 Accessories (4 per path across all 12 paths)
+  for (let pIdx = 0; pIdx < 12; pIdx++) {
+    const pc = PATH_CONFIGS[pIdx];
+    for (let k = 0; k < 4; k++) {
+      const seq = pIdx * 4 + k + 1;
+      const seqStr = String(seq).padStart(3, '0');
+      const itemId = 'EQ_V234_ACC_' + seqStr;
+      const subId = pc.subs[k % pc.subs.length];
+      const el = pc.els[k % pc.els.length];
+      const tier = 2 + (seq % 6); // Tiers 2..7
+      const efx1 = ACC_EFFECT_POOL[(seq - 1) % ACC_EFFECT_POOL.length];
+      const efx2 = ACC_EFFECT_POOL[(seq + 4) % ACC_EFFECT_POOL.length];
+      const grantedSupId = 'TECH_V234_' + pc.path + '_SUP_' + String((k % 3) + 1).padStart(2, '0');
+
+      const accItem = {
+        id: itemId,
+        nameTh: 'หยกประดับ' + pc.themeNouns[(k + 5) % pc.themeNouns.length],
+        icon: '📿',
+        tier,
+        out: 'EQUIPMENT',
+        slot: 'ACCESSORY',
+        subType: 'ORNAMENT',
+        path: pc.path,
+        subpath: subId,
+        bonusPath: pc.path,
+        bonusSubpath: subId,
+        element: el,
+        elementProfile: epSingle(el),
+        price: tier * 150 + seq * 12,
+        stats: {
+          atk: 6 + tier * 4,
+          matk: 8 + tier * 5,
+          mdef: 8 + tier * 4,
+          crit: 4 + tier,
+          pen: 5 + tier,
+          acc: 6 + tier
+        },
+        grantedSkills: (k % 2 === 0) ? [grantedSupId] : [],
+        skillModifiers: [
+          {
+            element: el,
+            multPct: 0.10,
+            addGrantBuff: BUFF_ROTATION[(pIdx + k) % BUFF_ROTATION.length]
+          }
+        ],
+        effects: [
+          { effectId: efx1, params: { bonusPct: 0.15, stealChance: 0.35, extendDur: 2 } },
+          { effectId: efx2, params: { qiDrainPct: 0.06, speedPct: 0.12 } }
+        ],
+        obtainSources: ['CRAFT:' + itemId, 'MYRIAD_WORLD:mirror', 'PAGODA_TRIAL:' + pc.path],
+        descTh: 'เครื่องประดับวิญญาณสาย「' + pc.nameTh + '」เสริมปฏิกิริยาธาตุ ขโมยบัฟศัตรู และยืดเวลาตราประทับ'
+      };
+
+      registerItemAndRecipe(accItem, [
+        { matId: v234MatIdsByKind.RELIC_SHARD[(pIdx + k) % 10], count: 2 },
+        { matId: v234MatIdsByKind.ESSENCE[(pIdx + k + 3) % 10], count: 1 }
+      ], 'FORGE');
+    }
+  }
+
+  // 4D) 48 Multi-Phase & Conditional Pills (4 per path across all 12 paths)
+  const LEGACY_PILL_EFFECTS = [
+    'EFX_BURST_QI_SURGE', 'EFX_RAPID_COAGULATION', 'EFX_INSTANT_VITAL_RECOVERY',
+    'EFX_SUSTAINED_REGEN', 'EFX_MERIDIAN_STABILIZE', 'EFX_QI_PURITY_REFINEMENT',
+    'EFX_CULTIVATION_BURST', 'EFX_DANTIAN_EXPANSION', 'EFX_BREAKTHROUGH_BOOST',
+    'EFX_HEART_DEMON_WARD', 'EFX_PURIFY_TOXIN', 'EFX_CLEAR_DEBUFFS',
+    'EFX_POISON_IMMUNITY', 'EFX_MIASMA_BARRIER', 'EFX_BERSERK_OVERDRIVE',
+    'EFX_FINAL_STAND_SHIELD', 'EFX_TENACITY_UNYIELDING', 'EFX_MEDITATION_ACCEL',
+    'EFX_MIND_ENLIGHTEN', 'EFX_BONE_MARROW_TEMPER', 'EFX_BLOODLINE_AWAKEN',
+    'EFX_LIFESPAN_EXTEND', 'EFX_SOUL_NOURISH', 'EFX_INJURY_MEND'
+  ];
+
+  for (let pIdx = 0; pIdx < 12; pIdx++) {
+    const pc = PATH_CONFIGS[pIdx];
+    for (let k = 0; k < 4; k++) {
+      const seq = pIdx * 4 + k + 1;
+      const seqStr = String(seq).padStart(3, '0');
+      const itemId = 'ITEM_V234_PILL_' + seqStr;
+      const el = pc.els[k % pc.els.length];
+      const tier = 2 + (seq % 6); // Tiers 2..7
+      const legEfx1 = LEGACY_PILL_EFFECTS[(seq - 1) % LEGACY_PILL_EFFECTS.length];
+      const legEfx2 = LEGACY_PILL_EFFECTS[(seq + 11) % LEGACY_PILL_EFFECTS.length];
+      const buffP1 = BUFF_ROTATION[(pIdx + k) % BUFF_ROTATION.length];
+      const buffP2 = BUFF_ROTATION[(pIdx + k + 3) % BUFF_ROTATION.length];
+
+      const pillItem = {
+        id: itemId,
+        nameTh: 'โอสถสองระยะ · ' + pc.themeNouns[(k + 3) % pc.themeNouns.length],
+        icon: '💊',
+        tier,
+        out: 'CONSUMABLE',
+        cat: 'PILL',
+        kind: 'PILL',
+        path: pc.path,
+        element: el,
+        elementProfile: epSingle(el),
+        price: tier * 95 + seq * 8,
+        healPct: 0.25 + tier * 0.04,
+        qiPct: 0.28 + tier * 0.04,
+        cultExp: tier * 35,
+        phases: [
+          {
+            phase: 1,
+            nameTh: 'ระยะที่ 1 · ระเบิดฤทธิ์โอสถฉับพลัน',
+            hpHealPct: 0.25 + tier * 0.03,
+            qiRestorePct: 0.30 + tier * 0.03,
+            cultExpAdd: tier * 25,
+            grantBuff: buffP1,
+            buffDur: 60
+          },
+          {
+            phase: 2,
+            nameTh: 'ระยะที่ 2 · ตกผลึกปราณหลังออกฤทธิ์',
+            delayDays: 1,
+            hpDeltaPct: (k % 2 === 0) ? 0.15 : -0.05,
+            qiDeltaPct: 0.25,
+            cultExpAdd: tier * 45,
+            toxicDelta: (k % 3 === 0) ? -8 : 3,
+            grantBuff: buffP2,
+            buffDur: 90
+          }
+        ],
+        effects: [
+          { effectId: 'EFX_V234_MULTI_PHASE_PILL', params: { phaseCount: 2, potencyMult: 1.25 } },
+          { effectId: legEfx1, params: { healPct: 0.25, qiPct: 0.25, bonusPct: 0.15, dur: 60 } },
+          { effectId: legEfx2, params: { expAdd: tier * 25, toxicClear: 10, shieldPct: 0.20 } }
+        ],
+        obtainSources: ['CRAFT:' + itemId, 'MYRIAD_WORLD:eden', 'SECT_ALCHEMY'],
+        descTh: 'โอสถทิพย์สองระยะสาย「' + pc.nameTh + '」ระยะแรกฟื้นฟูเลือด/ปราณและมอบบัฟ「' + buffP1 + '」ทันที ส่วนระยะที่ 2 จะตกผลึกตบะและมอบบัฟ「' + buffP2 + '」ในวันถัดไป'
+      };
+
+      registerItemAndRecipe(pillItem, [
+        { matId: v234MatIdsByKind.HERB[(pIdx + k) % 10], count: 2 + (tier % 2) },
+        { matId: v234MatIdsByKind.ESSENCE[(pIdx + k + 1) % 10], count: 1 }
+      ], 'ALCHEMY');
+    }
+  }
+
+  // 4E) 24 Charge-Based Talismans & Portable Formation Discs (2 per path across all 12 paths)
+  const TALISMAN_LEGACY_EFFECTS = [
+    'EFX_HEAVENLY_THUNDER_SMITE', 'EFX_BARRIER_SHIELD', 'EFX_SOUL_SHOCK',
+    'EFX_PARALYSIS_ARC', 'EFX_ARMOR_SHATTER', 'EFX_BURNING_DOT',
+    'EFX_CHILL_FREEZE', 'EFX_POISON_COAT', 'EFX_MIND_CORROSION',
+    'EFX_DAMAGE_REFLECT', 'EFX_HASTE_STEP', 'EFX_ESCAPE_TELEPORT'
+  ];
+
+  for (let pIdx = 0; pIdx < 12; pIdx++) {
+    const pc = PATH_CONFIGS[pIdx];
+    for (let k = 0; k < 2; k++) {
+      const seq = pIdx * 2 + k + 1;
+      const seqStr = String(seq).padStart(3, '0');
+      const itemId = 'ITEM_V234_TAL_' + seqStr;
+      const el = pc.els[(k + 1) % pc.els.length];
+      const tier = 3 + (seq % 5); // Tiers 3..7
+      const talEfx = TALISMAN_LEGACY_EFFECTS[(seq - 1) % TALISMAN_LEGACY_EFFECTS.length];
+      const fusionKey = pc.fusions[k % pc.fusions.length];
+
+      const talItem = {
+        id: itemId,
+        nameTh: (k === 0 ? 'ยันต์อาคมหลายประจุ · ' : 'จานค่ายกลพกพา · ') + pc.themeNouns[(k + 6) % pc.themeNouns.length],
+        icon: k === 0 ? '🧧' : '🧭',
+        tier,
+        out: 'CONSUMABLE',
+        cat: 'TALISMAN',
+        kind: 'TALISMAN',
+        path: pc.path,
+        element: el,
+        elementProfile: epSingle(el),
+        price: tier * 110 + seq * 10,
+        maxCharges: 3 + (k % 2),
+        charges: 3 + (k % 2),
+        healPct: 0.15,
+        qiPct: 0.20,
+        grantBuff: BUFF_ROTATION[(pIdx + k) % BUFF_ROTATION.length],
+        buffDur: 75,
+        effects: [
+          { effectId: talEfx, params: { dmgMult: 1.45, shieldPct: 0.25, dur: 6 } },
+          { effectId: 'EFX_V234_ELEMENTAL_REACTOR', params: { reaction: fusionKey, bonusMult: 0.22 } }
+        ],
+        obtainSources: ['CRAFT:' + itemId, 'MYRIAD_WORLD:upside', 'SECT_TALISMAN'],
+        descTh: 'ยันต์และจานค่ายกลแบบหลายประจุ (ใช้ได้ ' + (3 + (k % 2)) + ' ครั้งก่อนสลาย) กระตุ้นปฏิกิริยาธาตุ「' + fusionKey + '」และกางม่านอาคม'
+      };
+
+      registerItemAndRecipe(talItem, [
+        { matId: v234MatIdsByKind.TALISMAN_INK[(pIdx + k) % 10], count: 2 },
+        { matId: v234MatIdsByKind.ORE[(pIdx + k + 4) % 10], count: 1 }
+      ], 'TALISMAN');
+    }
+  }
+
+  // 4F) 24 Out-of-Combat Training, Crafting & Exploration Auxiliary Tools (2 per path)
+  const TOOL_LEGACY_EFFECTS = [
+    'EFX_FORGING_STABILIZATION', 'EFX_HERB_POLLINATION', 'EFX_SOIL_PURIFICATION',
+    'EFX_ECOLOGY_HERB_NURTURE', 'EFX_BEAST_INTIMIDATION', 'EFX_SUPPLY_EFFICIENCY',
+    'EFX_CARGO_PRESERVATION', 'EFX_SKY_LEVITATION_DRIVE', 'EFX_MEDITATION_ACCEL',
+    'EFX_MIND_ENLIGHTEN', 'EFX_QI_PURITY_REFINEMENT', 'EFX_HEART_DEMON_WARD'
+  ];
+  const TOOL_NEW_EFFECTS = [
+    'EFX_V234_TRAINING_CATALYST', 'EFX_V234_CRAFT_HARMONIZER', 'EFX_V234_REALM_COMPASS'
+  ];
+
+  for (let pIdx = 0; pIdx < 12; pIdx++) {
+    const pc = PATH_CONFIGS[pIdx];
+    for (let k = 0; k < 2; k++) {
+      const seq = pIdx * 2 + k + 1;
+      const seqStr = String(seq).padStart(3, '0');
+      const itemId = 'ITEM_V234_TOOL_' + seqStr;
+      const el = pc.els[(k + 2) % pc.els.length];
+      const tier = 2 + (seq % 6);
+      const tLegEfx = TOOL_LEGACY_EFFECTS[(seq - 1) % TOOL_LEGACY_EFFECTS.length];
+      const tNewEfx = TOOL_NEW_EFFECTS[(seq - 1) % TOOL_NEW_EFFECTS.length];
+      const grantedAuxId = 'TECH_V234_' + pc.path + '_AUX_' + String((k % 3) + 1).padStart(2, '0');
+
+      const toolItem = {
+        id: itemId,
+        nameTh: (k === 0 ? 'เครื่องมือฝึกตนและหลอมสร้าง · ' : 'เข็มทิศสำรวจแดนลับ · ') + pc.themeNouns[(k + 7) % pc.themeNouns.length],
+        icon: k === 0 ? '🕯️' : '🧭',
+        tier,
+        out: 'EQUIPMENT',
+        slot: 'ACCESSORY',
+        subType: 'AUX_TOOL',
+        isAuxiliaryTool: true,
+        path: pc.path,
+        element: el,
+        elementProfile: epSingle(el),
+        price: tier * 135 + seq * 10,
+        stats: {
+          hp: 25 + tier * 10,
+          mdef: 8 + tier * 4,
+          acc: 6 + tier * 2
+        },
+        grantedSkills: [grantedAuxId],
+        effects: [
+          { effectId: tNewEfx, params: { cultSpeedPct: 0.14, alchemyBonusPct: 0.14, forgingBonusPct: 0.14, exploreBonusPct: 0.16 } },
+          { effectId: tLegEfx, params: { stabilityPct: 0.15, yieldBonusPct: 0.15, efficiencyPct: 0.15, speedBonusPct: 0.14 } }
+        ],
+        obtainSources: ['CRAFT:' + itemId, 'MYRIAD_WORLD:clock', 'SECT_WORKSHOP'],
+        descTh: 'อุปกรณ์เสริมนอกการต่อสู้สาย「' + pc.nameTh + '」มอบวิชาเสริม「' + grantedAuxId + '」เร่งความเร็วการฝึกตน เพิ่มโอกาสหลอมสำเร็จ และลดการสูญเสียเสบียงเมื่อสำรวจแดนลับ'
+      };
+
+      registerItemAndRecipe(toolItem, [
+        { matId: v234MatIdsByKind.RELIC_SHARD[(pIdx + k + 2) % 10], count: 1 },
+        { matId: v234MatIdsByKind.HERB[(pIdx + k + 3) % 10], count: 1 },
+        { matId: v234MatIdsByKind.TALISMAN_INK[(pIdx + k) % 10], count: 1 }
+      ], 'FORGE');
+    }
+  }
+
+  // Register all 300 items & 300 recipes into JD.ITEMS and ECO
+  for (const it of allNewItems) {
+    if (!JD.ITEMS.items.some(x => x.id === it.id)) JD.ITEMS.items.push(it);
+    if (typeof globalThis !== 'undefined' && globalThis.ECO && globalThis.ECO.itemById) {
+      globalThis.ECO.itemById[it.id] = it;
+    }
+  }
+  for (const rc of allNewRecipes) {
+    if (!JD.ITEMS.recipes.some(x => x.id === rc.id)) JD.ITEMS.recipes.push(rc);
+    if (typeof globalThis !== 'undefined' && globalThis.ECO && Array.isArray(globalThis.ECO.recipes)) {
+      if (!globalThis.ECO.recipes.some(x => x.id === rc.id)) globalThis.ECO.recipes.push(rc);
+    }
+  }
+
+  D.v234Summary = {
+    subpathsAdded: V234_SUBPATHS.length,
+    techniquesAdded: 12 * (3 + 12 + 4 + 3 + 3),
+    mantrasAdded: 12 * 2,
+    materialsAdded: 60,
+    itemsAdded: allNewItems.length,
+    recipesAdded: allNewRecipes.length
+  };
+})();
+/* ==================== END PATCH v2.0.34 MASSIVE CONTENT & COMPOSABLE EXPANSION ==================== */
+
 })(typeof globalThis!=='undefined'?globalThis:this);

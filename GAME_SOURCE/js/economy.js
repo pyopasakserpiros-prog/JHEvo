@@ -618,16 +618,36 @@
     }
     const it = itemById[key];
     if (it && it.out === 'PILL') {
-      const e = {}; (it.effects || []).forEach(x => {
+      const e = Object.assign({}, it.effect || {});
+      (it.effects || []).forEach(x => {
         const p = x.params || {};
-        if (x.effectId === 'EFX_CULTIVATION_ACCELERATOR') { e.cultivationProgress = 18 * it.tier; e.rateBoost = p.cultivationBoostRatio; }
-        else if (x.effectId === 'EFX_MASS_VITAL_HEAL') { e.healHealth = (p.healAmount || 30); if (p.curesMeridianWound) e.healInjury = 40; }
-        else if (x.effectId === 'EFX_CALM_MIND') e.clearHeartDemon = p.heartDemonReduction || 20;
-        else if (x.effectId === 'EFX_LEARNING_INSIGHT') e.insight = p.masteryGainMultiplier || 1.3;
-        else if (x.effectId === 'EFX_MERIDIAN_TOXIN_PURGE') e.clearToxic = p.purgePotency || 30;
-        else if (x.effectId === 'EFX_PURIFY_HOSTILE_STATUS') e.clearHeartDemon = 12;
+        if (x.effectId === 'EFX_CULTIVATION_ACCELERATOR') { e.cultivationProgress = (e.cultivationProgress || 0) + 18 * it.tier; e.rateBoost = Math.max(e.rateBoost || 0, p.cultivationBoostRatio || 0.25); }
+        else if (x.effectId === 'EFX_MASS_VITAL_HEAL') { e.healHealth = (e.healHealth || 0) + (p.healAmount || 30); if (p.curesMeridianWound) e.healInjury = 40; }
+        else if (x.effectId === 'EFX_CALM_MIND') e.clearHeartDemon = (e.clearHeartDemon || 0) + (p.heartDemonReduction || 20);
+        else if (x.effectId === 'EFX_LEARNING_INSIGHT') e.insight = Math.max(e.insight || 0, p.masteryGainMultiplier || 1.3);
+        else if (x.effectId === 'EFX_MERIDIAN_TOXIN_PURGE') e.clearToxic = (e.clearToxic || 0) + (p.purgePotency || 30);
+        else if (x.effectId === 'EFX_PURIFY_HOSTILE_STATUS') { e.clearHeartDemon = (e.clearHeartDemon || 0) + 12; e.clearPoison = 25; }
+        else if (x.effectId === 'EFX_CONTROL_RESILIENCE') { e.grantBuff = e.grantBuff || 'clarityLotus'; e.buffDur = 75; }
+        else if (x.effectId === 'EFX_SCENT_TRACE_BREAK') { e.grantBuff = e.grantBuff || 'shadowVeil'; e.buffDur = 60; }
+        else if (x.effectId === 'EFX_BEAST_BOND_CHANNEL') { e.grantBuff = e.grantBuff || 'beastPackFury'; e.buffDur = 75; e.restoreBeastFatigue = p.restoresBeastFatigue || 35; }
+        else if (x.effectId === 'EFX_BLOOD_SACRIFICE_OVERDRIVE') { e.cultivationProgress = (e.cultivationProgress || 0) + 28 * it.tier; e.grantBuff = 'bloodFrenzy'; e.buffDur = 60; e.toxicity = (e.toxicity || 0) + 8; }
+        else if (x.effectId === 'EFX_V234_MULTI_PHASE_ELIXIR') {
+          e.cultivationProgress = (e.cultivationProgress || 0) + (p.phase1Cultivation || 16 * it.tier);
+          e.healHealth = (e.healHealth || 0) + (p.phase1Heal || 20);
+          e.grantBuff = p.phase1Buff || 'qiConduit';
+          e.buffDur = p.phase1Dur || 60;
+          e.phases = p.phases || [
+            { phase: 1, grantBuff: p.phase1Buff || 'qiConduit', cultGain: p.phase1Cultivation || 16 * it.tier },
+            { phase: 2, delayDays: 1, grantBuff: p.phase2Buff || 'alchemicalHarmony', cultGain: p.phase2Cultivation || 12 * it.tier, clearToxic: p.phase2ClearToxic || 10, breakthroughBonus: p.phase2BtBonus || 0.06 }
+          ];
+        } else if (x.effectId === 'EFX_V234_TOXIN_TRANSCENDENCE') {
+          e.grantBuff = 'toxinOverdrive'; e.buffDur = 65; e.cultivationProgress = (e.cultivationProgress || 0) + 20 * it.tier;
+        } else if (x.effectId === 'EFX_V234_MERIDIAN_SURGE') {
+          e.grantBuff = 'meridianUnblock'; e.buffDur = 80; e.breakthroughBonus = Math.max(e.breakthroughBonus || 0, p.btBonus || 0.12);
+        }
       });
-      const res = { tier: it.tier, effect: e, name: it.nameTh };
+      if (it.phases && !e.phases) e.phases = it.phases;
+      const res = { tier: it.tier, effect: e, name: it.nameTh, item: it };
       _pillInfoCache.set(key, res);
       return res;
     }
@@ -660,6 +680,29 @@
     if (e.lifeBonus && c) { c.lifeBonus += e.lifeBonus; CULT.refreshLifespan(npc); }
     if (e.lifespanBonus && c) { c.lifeBonus += e.lifespanBonus; CULT.refreshLifespan(npc); msgs.push('อายุขัย +' + e.lifespanBonus); }
     if (e.insight) npc.insightT = 360;
+    if (e.grantBuff && g.STATS && g.STATS.applyNamedBuff) {
+      g.STATS.applyNamedBuff(npc, e.grantBuff, e.buffDur || 60, g.STATS.now || 0, { casterId: npc.id });
+      msgs.push('บัฟ「' + e.grantBuff + '」');
+    }
+    if (e.restoreBeastFatigue && Array.isArray(npc.pets)) {
+      npc.pets.forEach(pt => { if (pt) pt.fatigue = Math.max(0, (pt.fatigue || 0) - e.restoreBeastFatigue); });
+      msgs.push('ฟื้นกำลังอสูร');
+    }
+    if (Array.isArray(e.phases) && e.phases.length > 1) {
+      npc.ext = npc.ext || {};
+      npc.ext.pendingPillPhases = Array.isArray(npc.ext.pendingPillPhases) ? npc.ext.pendingPillPhases : [];
+      const p2 = e.phases[1];
+      npc.ext.pendingPillPhases.push({
+        pillKey: key,
+        pillNameTh: info.name,
+        triggerDay: ((W && W.day) || 0) + (p2.delayDays || 1),
+        grantBuff: p2.grantBuff || 'alchemicalHarmony',
+        cultGain: p2.cultGain || 15,
+        clearToxic: p2.clearToxic || 8,
+        breakthroughBonus: p2.breakthroughBonus || 0.05
+      });
+      msgs.push('รอฤทธิ์ระยะที่ 2');
+    }
     HC.bump(npc);
     return { info, msgs };
   };
@@ -1815,6 +1858,95 @@
       }
     }
     gearSeq = Math.max(gearSeq, W.sect.gearUidSeq);
+  };
+
+  // v2.0.34: Unified item lookup, multi-phase pill & multi-charge talisman consumption API
+  ECO.getItem = id => (ECO.itemById && ECO.itemById[id]) || null;
+  ECO.addItem = (W, id, qty) => ECO.add(W, id, qty || 1);
+
+  ECO.useConsumableItem = (W, npc, itemId, opts) => {
+    opts = opts || {};
+    const def = ECO.getItem(itemId);
+    if (!def || !npc) return { ok: false, reason: 'item-or-npc-missing' };
+    const st = npc.h && npc.h.state;
+    const dayNow = opts.day != null ? opts.day : ((W && W.day) || 0);
+    const tNow = opts.now != null ? opts.now : ((W && W.now) || 0);
+
+    // Charge-based talisman / formation disc handling
+    npc.ext = npc.ext || {};
+    npc.ext.talismanCharges = npc.ext.talismanCharges || {};
+    let remainingCharges = null;
+    let consumedItem = true;
+    if (typeof def.maxCharges === 'number' && def.maxCharges > 1) {
+      if (npc.ext.talismanCharges[itemId] == null) {
+        if (ECO.count(W, itemId) <= 0) return { ok: false, reason: 'out-of-stock' };
+        npc.ext.talismanCharges[itemId] = def.maxCharges;
+      }
+      npc.ext.talismanCharges[itemId] -= 1;
+      remainingCharges = npc.ext.talismanCharges[itemId];
+      if (remainingCharges > 0) {
+        consumedItem = false;
+      } else {
+        delete npc.ext.talismanCharges[itemId];
+        ECO.take(W, itemId, 1);
+        consumedItem = true;
+      }
+    } else {
+      if (ECO.count(W, itemId) > 0) ECO.take(W, itemId, 1);
+    }
+
+    // Immediate heal / Qi / cultExp / buff
+    if (st) {
+      if (def.healPct) {
+        const hm = CULT.hpMax(npc);
+        st.hp = clamp(Math.round((st.hp || hm) + hm * def.healPct), 1, hm);
+      }
+      if (def.qiPct && npc.cult) {
+        const qm = CULT.qiMax(npc);
+        st.qi = clamp(Math.round((st.qi || 0) + qm * def.qiPct), 0, qm);
+      }
+    }
+    if (def.cultExp && npc.cult) {
+      CULT.gain(npc, def.cultExp);
+    }
+    if (def.grantBuff && g.STATS && g.STATS.applyNamedBuff) {
+      g.STATS.applyNamedBuff(npc, def.grantBuff, def.buffDur || 60, tNow, { casterId: npc.id, source: itemId });
+    }
+
+    // Multi-Phase Pill Phase 1 + Queue Phase 2
+    let multiPhaseQueued = false;
+    if (Array.isArray(def.phases) && def.phases.length >= 2) {
+      const p1 = def.phases[0] || {};
+      const p2 = def.phases[1] || {};
+      if (st && p1.hpHealPct) {
+        const hm = CULT.hpMax(npc);
+        st.hp = clamp(Math.round((st.hp || hm) + hm * p1.hpHealPct), 1, hm);
+      }
+      if (st && p1.qiRestorePct && npc.cult) {
+        const qm = CULT.qiMax(npc);
+        st.qi = clamp(Math.round((st.qi || 0) + qm * p1.qiRestorePct), 0, qm);
+      }
+      if (p1.cultExpAdd && npc.cult) CULT.gain(npc, p1.cultExpAdd);
+      if (p1.grantBuff && g.STATS && g.STATS.applyNamedBuff) {
+        g.STATS.applyNamedBuff(npc, p1.grantBuff, p1.buffDur || 60, tNow, { casterId: npc.id, source: itemId });
+      }
+      npc.ext.multiPhasePills = Array.isArray(npc.ext.multiPhasePills) ? npc.ext.multiPhasePills : [];
+      npc.ext.multiPhasePills.push({
+        itemId: def.id,
+        nameTh: def.nameTh,
+        startedDay: dayNow,
+        delayDays: p2.delayDays || 1,
+        triggerDay: dayNow + (p2.delayDays || 1),
+        triggerMin: 0,
+        phase2: p2,
+        resolved: false
+      });
+      multiPhaseQueued = true;
+    }
+
+    HC.bump(npc);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, itemId: def.id, consumedItem, remainingCharges, multiPhaseQueued };
   };
 
   g.ECO = ECO;

@@ -270,3 +270,20 @@ const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
 - **Genome/Physiological Baseline:** `HC.generate(rng, ...)` generates baseline physiology, state, and genome, ensuring complete compliance with the 12-layer Human Core.
 - **Cultivation & Weapon Synchronization:** Preserves `cult.path`, `cult.stage`, `cult.sub`, `cult.techs`, and equips matching weapons via `ECO.mintGear`.
 - **Zero Fingerprint Mutation:** Never mutates `GAME_SOURCE/js/human_core.js` (`HC.FINGERPRINT === '155:2f9c9dd7'`).
+
+---
+
+## 8. Multi-Tier Foreign Sect Cognition, Unaffiliated Figures & Renegade Pursuit (`js/expedition.js` — `v2.0.30`)
+- **3-Tier Foreign Sect Cognition (`EXPED.ensureJianghuFigures`, `EXPED.tickForeignSectCognitionTiers`):**
+  - Tier 1 (`master`, `deputy`, `successor`, `ancestor`): Supreme sect governance, alliance voting, and succession crises.
+  - Tier 2 (`disciplineElder`, `craftElder`, `warMarshal`): Domain-specific monthly checks — `disciplineElder` tracks defected renegades and issues extradition ultimatums; `craftElder` manages alchemy/forging trade surplus; `warMarshal` leads coalition offensives and siege reinforcements.
+  - Tier 3 (`coreDisciples`): 3 elite disciples per sect participating in martial assemblies and eligible for defection/hydration.
+- **Emergent Unaffiliated Figures (`W.world.wanderingFigures` / `W.wandering`, `EXPED.tickWanderingFigures`, `EXPED.interactWanderingFigure`):**
+  - 4 archetypes (`SWORD_SEEKER`, `HERMIT_DOCTOR`, `UNORTHODOX_BANDIT`, `ROGUE_ARRAYIST`), capped at 4–8 active figures across Jianghu. Can be recruited into `W.npcs` via `EXPED.recruitWanderingFigure` / `EXPED.hydrateFigureToNpc` when `affinity >= 50` or `W.sect.fame >= 80`.
+- **Renegade Pursuit & Vendetta Reclamation (`h.renegadeOrigin`, `EXPED.issueExtraditionUltimatum`, `EXPED.resolveExtraditionUltimatum`, `EXPED.launchVendettaReclamation`):**
+  - Defected figures carry `renegadeOrigin`. Protecting a renegade (`DEFY_PROTECT`) grants `gratitude +50` and `loyalty = 100`. At Stage >= 5, `EXPED.launchVendettaReclamation` reclaims their home sect, installs them as Sect Master, and converts the sect into an Eternal Sworn Ally (`eternalSwornAlly: true`).
+
+### v2.0.30 Deep Audit Additions
+- **3-Tier Promotion Ladder (`EXPED.promoteToSuccessor`, `EXPED.promoteToDeputy`):** When a foreign sect `successor` or `deputy` ascends or dies, the strongest Tier 3 `coreDisciple` promotes to `successor` and the strongest Tier 2 Elder (`warMarshal`, `disciplineElder`, `craftElder`) promotes to `deputy`, backfilling the lower tier slot.
+- **Idle Extradition Ultimatum Auto-Resolution & Assassin Pursuit Clash (`EXPED.tickForeignSectCognitionTiers`, `EXPED.triggerRenegadePursuitClash`):** Expired ultimatums are auto-resolved by the Player Sect Master based on `integrity`, `courage`, `caution`, and treasury reserves; defied sects (`assassinThreat: true`) dispatch Discipline Elder enforcers against the player sect guard roster.
+- **Daily Companion AI & Bereavement (`AI.socialStart`, `AI.pairTick`, `AI.kill`):** NPCs strongly prefer their `companionId` for social/date pair activities, gain dual-cultivation progress and `heartDemon` relief during `AI.pairTick`, and suffer deep grief and `heartDemon` surge if their sworn Taoist Companion dies.

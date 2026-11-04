@@ -144,6 +144,7 @@ M.invalidateMartialCaches=n=>{
  n._qiMaxCache=null;
  n._lifeMultCache=null;
  n._progCache=null;
+ n._skListCache=null;
  if(ST&&ST.dirty)ST.dirty(n);
 };
 
@@ -392,6 +393,7 @@ M.weaponCompatibility=(n,tOrId)=>{
  if(severe)return {state:'SEVERE_MISMATCH',mult:0.65,qiCostMult:1.25,accDelta:-12,canUse:true,reasonTh:'อาวุธขัดแย้งกับท่วงท่าวิชา (×0.65 · แม่นยำลด · กินปราณเพิ่ม)'};
  return {state:'ADAPTED_WEAPON',mult:0.65,qiCostMult:1.10,accDelta:-4,canUse:true,reasonTh:'ดัดแปลงใช้อาวุธต่างชนิด (×0.65)'};
 };
+M.canLearnTech=(n,tOrId)=>M.resolveTechCompatibility(n,tOrId);
 M.resolveTechCompatibility=(n,tOrId)=>{
  const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
  if(!n||!n.cult||!t)return {ok:false,studySpeedMult:1,combatPowerMult:1,qiCostMult:1,weaponMult:1,accessClass:'INVALID',summaryTh:'ไม่พร้อมคำนวณ'};
@@ -441,6 +443,22 @@ M.isTechCompatible=(n,t)=>{
  }
  if(t.legendary||t.isSectHeritage)return (t.reqTier||t.tier||1)<=effSt;
  const isExcl=CULT.isExclusiveSubpathTech?CULT.isExclusiveSubpathTech(t):(t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&!!t.sub));
+ if(t.reqPath&&t.reqPath!=='ANY'){
+  const rp=Array.isArray(t.reqPath)?t.reqPath:[t.reqPath];
+  if(!rp.includes(c.path))return false;
+ }
+ if(t.reqSubpath){
+  const rs=Array.isArray(t.reqSubpath)?t.reqSubpath:[t.reqSubpath];
+  if(!rs.includes(c.sub))return false;
+ }
+ if(t.reqElement&&t.reqElement!=='NEUTRAL'&&t.reqElement!=='ANY'){
+  const reqEls=Array.isArray(t.reqElement)?t.reqElement:[t.reqElement];
+  const rEls=(n.h&&n.h.root&&Array.isArray(n.h.root.elements))?n.h.root.elements:[];
+  const specAcc=(n.ext&&n.ext.elementalSystem&&n.ext.elementalSystem.specialAccess)||{};
+  const subEl=(c.sub&&CULT.subInfo(c.path,c.sub)&&CULT.subInfo(c.path,c.sub).element)||null;
+  const hasEl=reqEls.some(re=>re==='NEUTRAL'||re==='ANY'||rEls.includes(re)||(specAcc[re]&&specAcc[re].unlocked)||subEl===re);
+  if(!hasEl)return false;
+ }
  const pathOk=t.path==='ANY'||t.path===c.path||(!isExcl&&(t.legendary||!t.id.startsWith('MP_')));
  const subOk=CULT.isSubCompatible?CULT.isSubCompatible(t,c.sub,false):(!t.sub||t.sub===c.sub);
  return pathOk&&subOk&&(t.reqTier||t.tier)<=effSt;
@@ -522,7 +540,8 @@ M.activePassives=n=>M.reconcilePassives(n);
 
 M.inactivePassives=n=>{
  if(!n||!n.cult||!Array.isArray(n.cult.techs))return [];
- const active=M.activePassives(n);
+ const grantedPassives=(M.grantedEquipmentTechs?M.grantedEquipmentTechs(n):[]).filter(id=>{const t=CULT.tech(id);return !!(t&&(t.cat==='PASSIVE'||t.passive));});
+ const active=M.activePassives(n).concat(grantedPassives.filter(id=>!M.activePassives(n).includes(id)));
  const activeFamilies=new Set(active.map(id=>M.passiveFamilyOf(CULT.tech(id))));
  const maxSlots=M.maxPassiveSlots(n);
  const unequipped=new Set(Array.isArray(n.passiveUnequipped)?n.passiveUnequipped:[]);
@@ -1235,6 +1254,98 @@ M.classifyGearForNpc=(W,n,it,price)=>{
  return {category:'surplus',deltaScore:newScore-curScore,suit,curSuit,reasonTh:cur?'ไม่ดีกว่า「'+cur.nameTh+'」ที่สวมใส่อยู่':'ไม่เหมาะกับแนวทางปัจจุบัน'};
 };
 M.describe=(W,n)=>{const now=M.progression(n),next=n.cult&&n.cult.stage<CULT.maxStage(n)?M.progression(n,n.cult.stage+1):now,raw=n.cult&&(ST.SUBFX[n.cult.sub]||(JD.EXPANSION.subStats||{})[n.cult.sub])||{p:{},f:{}};return {now,next,subNow:M.subStats(n,raw),subNext:n.cult?M.subStats(n,raw,n.cult.stage+1):{p:{},f:{}},desires:n.cult?((profiles[n.cult.sub]||[null,null,null,paths[n.cult.path].weapons])[3]).map(x=>D.types[x]):[],crystals:Object.entries(n.inv&&n.inv.crystals||{}).filter(x=>x[1]>0),passiveSlots:M.passiveSlotInfo(n),activePassives:M.activePassives(n),inactivePassives:M.inactivePassives(n),innateTechs:M.activeInnateTechs(n),dormantInnate:M.dormantInnateTechs(n),activeSynergies:M.evaluateSynergies(n),subEquipBonus:M.evaluateSubEquipmentBonus(n),resonanceSet:M.evaluateResonanceSet(n),legResonance:M.evaluateLegendaryRelicResonance(n)};};
+/* ---------- Equipment-Granted Temporary Skills & Skill Modifiers Authority (v2.0.34) ----------
+ * Guarantees:
+ * 1. Skills in `item.grantedSkills` are ONLY usable while the item is actively equipped in `n.equip[slot]` and usable (`M.gearUsable(n, it)`).
+ * 2. Granted skills NEVER mutate `n.cult.techs` or `n.passiveLoadout`, so unequipping, trading, donating, or saving/loading NEVER turns a granted skill into a permanent learned skill.
+ * 3. Equipment `skillModifiers` dynamically modify matching moves (`arch`, `element`, `path`, or `techId`).
+ */
+M.grantedEquipmentTechs = n => {
+ if (!n || n.foe || !n.cult || !n.equip) return [];
+ const out = [];
+ const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult.stage || 1);
+ for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+  const it = n.equip[slot];
+  if (!it || (M.gearUsable && !M.gearUsable(n, it))) continue;
+  const src = (it.id && ECO.itemById && ECO.itemById[it.id]) || it;
+  const list = it.grantedSkills || (src && src.grantedSkills);
+  if (!Array.isArray(list) || !list.length) continue;
+  if ((it.minStage || src.minStage || 1) > effSt) continue;
+  const reqP = it.reqPath || src.reqPath || it.compatiblePath || src.compatiblePath;
+  if (reqP) {
+   const cp = Array.isArray(reqP) ? reqP : [reqP];
+   if (!cp.includes('ANY') && !cp.includes(n.cult.path)) continue;
+  }
+  for (const tid of list) {
+   if (typeof tid === 'string' && CULT.tech(tid) && !out.includes(tid)) out.push(tid);
+  }
+ }
+ return out;
+};
+
+M.hasEquipmentSkillModifiers = n => {
+ if (!n || n.foe || !n.equip) return false;
+ for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+  const it = n.equip[slot];
+  if (!it || (M.gearUsable && !M.gearUsable(n, it))) continue;
+  const src = (it.id && ECO.itemById && ECO.itemById[it.id]) || it;
+  const mods = it.skillModifiers || (src && src.skillModifiers);
+  if (Array.isArray(mods) && mods.length > 0) return true;
+ }
+ return false;
+};
+
+M.applyEquipmentSkillModifiers = (n, moveProf) => {
+ if (!n || n.foe || !n.equip || !moveProf) return moveProf;
+ let cloned = null;
+ for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+  const it = n.equip[slot];
+  if (!it || (M.gearUsable && !M.gearUsable(n, it))) continue;
+  const src = (it.id && ECO.itemById && ECO.itemById[it.id]) || it;
+  const mods = it.skillModifiers || (src && src.skillModifiers);
+  if (!Array.isArray(mods) || !mods.length) continue;
+  for (const mod of mods) {
+   if (!mod) continue;
+   if (mod.matchArch && (!Array.isArray(mod.matchArch) ? mod.matchArch !== moveProf.arch : !mod.matchArch.includes(moveProf.arch))) continue;
+   if (mod.matchElement && (!Array.isArray(mod.matchElement) ? mod.matchElement !== moveProf.element : !mod.matchElement.includes(moveProf.element))) continue;
+   if (mod.matchTechId && mod.matchTechId !== moveProf.tech && mod.matchTechId !== moveProf.id) continue;
+   if (!cloned) cloned = Object.assign({}, moveProf);
+   const mAdd = mod.multAdd || mod.multPct || 0;
+   if (mAdd) cloned.M = +((cloned.M || 1) * (1 + mAdd)).toFixed(2);
+   if (mod.hitsAdd && cloned.M > 0) cloned.hits = Math.max(1, (cloned.hits || 1) + mod.hitsAdd);
+   if (mod.cdDelta) cloned.cd = Math.max(3, (cloned.cd || 10) + mod.cdDelta);
+   if (mod.penAdd) cloned.pen = (cloned.pen || 0) + mod.penAdd;
+   if (mod.critAdd) cloned.critAdd = (cloned.critAdd || 0) + mod.critAdd;
+   if (mod.costMult) cloned.costPct = +((cloned.costPct || 4) * mod.costMult).toFixed(1);
+   if (mod.addRider && !cloned.rider) cloned.rider = mod.addRider;
+   if ((mod.grantBuff || mod.addGrantBuff) && !cloned.grantBuff) cloned.grantBuff = mod.grantBuff || mod.addGrantBuff;
+   if (mod.addMarkPrimer && !cloned.markPrimer) cloned.markPrimer = mod.addMarkPrimer;
+   if (mod.addElementalFusion && !cloned.elementalFusion) cloned.elementalFusion = mod.addElementalFusion;
+   if (mod.makeAoe) cloned.aoe = true;
+   if (mod.composablePatch) {
+    cloned.composable = Object.assign({}, cloned.composable || {}, mod.composablePatch);
+   }
+   cloned.modifiedByEquipment = true;
+   cloned.equipmentModified = true;
+  }
+ }
+ return cloned || moveProf;
+};
+
+// Also allow SK.canSelectMove to recognize equipment-granted skills while equipped
+if (g.SK && g.SK.canSelectMove) {
+ const origCanSelect = g.SK.canSelectMove;
+ g.SK.canSelectMove = (n, techOrId, moveIdOrIdx) => {
+  if (origCanSelect(n, techOrId, moveIdOrIdx)) return true;
+  if (!n || !n.cult) return false;
+  const t = typeof techOrId === 'string' ? CULT.tech(techOrId) : techOrId;
+  if (!t || t.passive || t.cat === 'PASSIVE') return false;
+  const granted = M.grantedEquipmentTechs(n);
+  if (!granted.includes(t.id)) return false;
+  return g.SK.allMoves(t).slice(0, 2).some(m => m.id === moveIdOrIdx || m.moveId === moveIdOrIdx || m.moveIndex === moveIdOrIdx);
+ };
+}
+
 // Mint/catalog boundary types also cover historical recipe-only equipment.
-const oldMint=ECO.mintGear;ECO.mintGear=(a,b,c,d)=>{const it=oldMint(a,b,c,d),r=(a&&a.sect&&a.npcs)?b:a,source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=it.gearType||source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.attunedElement&&!it.attunedElement)it.attunedElement=source.attunedElement;if(source.resonanceSetId&&!it.resonanceSetId)it.resonanceSetId=source.resonanceSetId;if(source.resonanceSetIds&&!it.resonanceSetIds)it.resonanceSetIds=source.resonanceSetIds.slice();if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
+const oldMint=ECO.mintGear;ECO.mintGear=(a,b,c,d)=>{const it=oldMint(a,b,c,d),r=(a&&a.sect&&a.npcs)?b:a,source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=it.gearType||source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.attunedElement&&!it.attunedElement)it.attunedElement=source.attunedElement;if(source.resonanceSetId&&!it.resonanceSetId)it.resonanceSetId=source.resonanceSetId;if(source.resonanceSetIds&&!it.resonanceSetIds)it.resonanceSetIds=source.resonanceSetIds.slice();if(source.grantedSkills&&!it.grantedSkills)it.grantedSkills=source.grantedSkills.slice();if(source.skillModifiers&&!it.skillModifiers)it.skillModifiers=JSON.parse(JSON.stringify(source.skillModifiers));if(source.composableEffects&&!it.composableEffects)it.composableEffects=JSON.parse(JSON.stringify(source.composableEffects));if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
 })(typeof globalThis!=='undefined'?globalThis:this);

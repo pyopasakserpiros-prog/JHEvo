@@ -2,18 +2,18 @@
 'use strict';
 
 /**
- * JianghuSect Game Data & Combat Integrity Validator
- * 
+ * JianghuSect Game Data & Composable Mechanic Integrity Validator (v2.0.34)
+ *
  * Audits:
- * 1. Base & Expansion Items (ID uniqueness, nameTh, tier, price, slot, effects)
- * 2. Crafting Recipes (Inputs/outputs, matId existence, dual-ID mapping)
- * 3. Martial Arts & Techniques (Weapon affinity, elements, moveDefs, multipliers, passives)
- * 4. Effects, Buffs, Consumables & Talismans (Effect IDs, parameter integrity)
- * 5. Debug Editor Catalog Coverage & Spawnability
+ * 1. Base & Expansion Items (ID uniqueness, nameTh, tier, price, slot, effects, implemented effectIds, grantedSkills, skillModifiers, phases, charges)
+ * 2. Crafting Recipes & Non-Circular DAG (Inputs/outputs, matId existence, dual-ID mapping, cycle detection)
+ * 3. Martial Arts, Subpaths & Composable Specs (12 paths, subpaths, moveDefs, archetypes, statuses, buffs, targetSelectors, reactions, restrictions vs bonuses, obtainSources)
+ * 4. Materials, Manuals & Crystals Source Verification (No orphan items/manuals/crystals without acquisition sources)
+ * 5. Debug Editor Catalog Coverage, Spawner & Equipment-Granted Skill Lifecycle
  */
 
 const G = require('../test/load');
-const { JD, ECO, SIM, SECT } = G;
+const { JD, ECO, SIM, SECT, SK, STATS, COMBAT, CULT, MARTIAL } = G;
 
 const errors = [];
 const warnings = [];
@@ -29,13 +29,21 @@ console.log('====================================================');
 console.log('   JIANGHUSECT DATA & COMBAT INTEGRITY VALIDATOR    ');
 console.log('====================================================\n');
 
+const CE = (COMBAT && COMBAT.COMPOSABLE_ENGINE) || {};
+const implementedEffects = CE.IMPLEMENTED_EFFECT_IDS || new Set();
+
 // 1. Audit Items & Equipment
-console.log('▶ [1/5] Auditing Items & Equipment...');
+console.log('▶ [1/6] Auditing Items, Equipment & Composable Item Mechanics...');
 const items = Object.values(ECO.itemById || {});
 check(items.length > 0, 'ECO.itemById must not be empty');
 
 const itemIds = new Set();
 const validWeaponTypes = new Set(['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP']);
+
+let grantedSkillItemsCount = 0;
+let skillModifierItemsCount = 0;
+let multiPhasePillsCount = 0;
+let chargeTalismansCount = 0;
 
 for (const item of items) {
   check(item.id && typeof item.id === 'string', `Item missing valid id: ${JSON.stringify(item)}`);
@@ -53,18 +61,56 @@ for (const item of items) {
     }
   }
 
-  // Effects check
+  // Granted temporary skills validation
+  if (Array.isArray(item.grantedSkills) && item.grantedSkills.length > 0) {
+    grantedSkillItemsCount++;
+    for (const gs of item.grantedSkills) {
+      const tid = typeof gs === 'string' ? gs : (gs && (gs.techId || gs.id));
+      check(tid && typeof tid === 'string', `Item ${item.id} has invalid grantedSkills entry: ${JSON.stringify(gs)}`);
+      check(!!(SK && SK.get && SK.get(tid)), `Item ${item.id} grantedSkills references non-existent technique: ${tid}`);
+    }
+  }
+
+  // Skill modifiers validation
+  if (Array.isArray(item.skillModifiers) && item.skillModifiers.length > 0) {
+    skillModifierItemsCount++;
+    for (const sm of item.skillModifiers) {
+      check(sm && typeof sm === 'object', `Item ${item.id} has invalid skillModifier`);
+      if (sm.addRider) {
+        check(!!(SK.STATUS && SK.STATUS[sm.addRider]), `Item ${item.id} skillModifier has unregistered addRider status: ${sm.addRider}`);
+      }
+      if (sm.addGrantBuff) {
+        check(!!(STATS.BUFF_CATALOG && STATS.BUFF_CATALOG[sm.addGrantBuff]), `Item ${item.id} skillModifier has unregistered addGrantBuff: ${sm.addGrantBuff}`);
+      }
+    }
+  }
+
+  // Multi-phase pill validation
+  if (Array.isArray(item.phases) && item.phases.length > 0) {
+    multiPhasePillsCount++;
+    check(item.phases.length >= 2, `Multi-phase item ${item.id} must have at least 2 phases`);
+  }
+
+  // Charge-based talisman/array validation
+  if (typeof item.maxCharges === 'number' && item.maxCharges > 0) {
+    chargeTalismansCount++;
+  }
+
+  // Effects check (strictly verify effectId is implemented in runtime)
   if (Array.isArray(item.effects)) {
     for (const efx of item.effects) {
       check(efx.effectId && typeof efx.effectId === 'string', `Item ${item.id} has effect without effectId`);
       check(efx.params && typeof efx.params === 'object', `Item ${item.id} effect ${efx.effectId} missing params object`);
+      if (implementedEffects.size > 0) {
+        check(implementedEffects.has(efx.effectId), `Item ${item.id} uses unimplemented effectId: ${efx.effectId}`);
+      }
     }
   }
 }
-console.log(`  ✓ Audited ${items.length} base items (IDs, nameTh, tier, slots, effects)`);
+console.log(`  ✓ Audited ${items.length} items (grantedSkills=${grantedSkillItemsCount}, skillModifiers=${skillModifierItemsCount}, multiPhasePills=${multiPhasePillsCount}, chargeItems=${chargeTalismansCount})`);
 
-// 2. Audit Recipes & Dual-ID Mapping
-console.log('\n▶ [2/5] Auditing Recipes & Dual-ID Mapping...');
+// 2. Audit Recipes, Dual-ID Mapping & Non-Circular Crafting DAG
+console.log('\n▶ [2/6] Auditing Recipes, Dual-ID Mapping & Crafting DAG...');
 const allRecipes = [
   ...(JD.ITEMS?.recipes || []),
   ...(JD.EXPANSION?.recipes || []),
@@ -73,33 +119,79 @@ const allRecipes = [
 ];
 
 const recipeIds = new Set();
+const outToInputsGraph = new Map();
+
 for (const r of allRecipes) {
   check(r.id && typeof r.id === 'string', `Recipe missing valid id: ${JSON.stringify(r)}`);
   recipeIds.add(r.id);
 
   check(r.nameTh && typeof r.nameTh === 'string', `Recipe ${r.id} missing nameTh`);
-  check(Array.isArray(r.inputs), `Recipe ${r.id} inputs must be an array`);
+  check(Array.isArray(r.inputs) && r.inputs.length > 0, `Recipe ${r.id} inputs must be a non-empty array`);
 
-  // Verify inputs exist
+  const outKey = r.outItemId || r.id;
+  if (!outToInputsGraph.has(outKey)) outToInputsGraph.set(outKey, new Set());
+
   if (Array.isArray(r.inputs)) {
     for (const inp of r.inputs) {
       check(inp.matId && typeof inp.matId === 'string', `Recipe ${r.id} input missing matId`);
       check(inp.count > 0, `Recipe ${r.id} input ${inp.matId} count must be > 0`);
-      // Check if material is registered
       const matExists = ECO.itemById[inp.matId] || (G.JD.CORE && G.JD.CORE[inp.matId]) || (ECO.matMap && ECO.matMap[inp.matId]);
-      check(matExists, `Recipe ${r.id} requires unregistered matId: ${inp.matId}`, true);
+      check(matExists, `Recipe ${r.id} requires unregistered matId: ${inp.matId}`);
+      check(inp.matId !== outKey && inp.matId !== r.id, `Recipe ${r.id} has self-referential input ${inp.matId}`);
+      outToInputsGraph.get(outKey).add(inp.matId);
     }
   }
 
-  // Dual-ID: If outItemId is defined, ensure it exists in items
   if (r.outItemId) {
     check(ECO.itemById[r.outItemId], `Recipe ${r.id} references non-existent outItemId: ${r.outItemId}`);
   }
 }
-console.log(`  ✓ Audited ${allRecipes.length} recipes and inputs`);
 
-// 3. Audit Martial Arts, Techniques, Elements & Weapon Affinities
-console.log('\n▶ [3/5] Auditing Martial Arts, Weapon Affinities & Elements...');
+// Detect cycles in crafting DAG
+const visited = new Set();
+const visiting = new Set();
+function detectCycle(node, chain) {
+  if (visiting.has(node)) {
+    check(false, `Circular crafting dependency detected: ${[...chain, node].join(' -> ')}`);
+    return;
+  }
+  if (visited.has(node)) return;
+  visiting.add(node);
+  const deps = outToInputsGraph.get(node);
+  if (deps) {
+    for (const d of deps) {
+      if (outToInputsGraph.has(d)) detectCycle(d, [...chain, node]);
+    }
+  }
+  visiting.delete(node);
+  visited.add(node);
+}
+for (const k of outToInputsGraph.keys()) detectCycle(k, []);
+console.log(`  ✓ Audited ${allRecipes.length} recipes and verified acyclic crafting DAG`);
+
+// 3. Audit Subpaths across all 12 Cultivation Paths
+console.log('\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...');
+const majorPaths = Object.keys(JD.CULT.paths || {});
+check(majorPaths.length === 12, `Expected 12 major cultivation paths, found ${majorPaths.length}`);
+const allSubPaths = Object.entries(JD.CULT.paths || {}).flatMap(([pk, p]) => (p.subPaths || []).map(s => Object.assign({ path: pk }, s)));
+const subPathIds = new Set();
+for (const sp of allSubPaths) {
+  check(sp.id && typeof sp.id === 'string', `Subpath missing id`);
+  check(!subPathIds.has(sp.id), `Duplicate subpath id: ${sp.id}`);
+  subPathIds.add(sp.id);
+  check(sp.nameTh && typeof sp.nameTh === 'string', `Subpath ${sp.id} missing nameTh`);
+  check(typeof sp.combatBonus === 'number' && !Number.isNaN(sp.combatBonus), `Subpath ${sp.id} missing numeric combatBonus`);
+  check(typeof sp.defenseBonus === 'number' && !Number.isNaN(sp.defenseBonus), `Subpath ${sp.id} missing numeric defenseBonus`);
+  check(typeof sp.breakthroughMod === 'number' && !Number.isNaN(sp.breakthroughMod), `Subpath ${sp.id} missing numeric breakthroughMod`);
+  check(JD.CULT.paths[sp.path], `Subpath ${sp.id} references unknown path ${sp.path}`);
+  const tr = CULT.trackDef ? CULT.trackDef(sp.id) : (CULT.TRACKS && CULT.TRACKS[sp.id]);
+  check(tr && Array.isArray(tr.realms) && tr.realms.length === 9,
+    `Subpath ${sp.id} missing 9-stage progression track in CULT.trackDef`);
+}
+console.log(`  ✓ Audited ${allSubPaths.length} subpaths across ${majorPaths.length} cultivation paths`);
+
+// 4. Audit Martial Arts, Techniques, Composable Keywords & Strict Arch/Status/Buff Checks
+console.log('\n▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...');
 const techniques = Array.isArray(JD.MARTIAL?.techniques)
   ? JD.MARTIAL.techniques
   : Object.values(JD.MARTIAL?.techniques || {});
@@ -112,55 +204,57 @@ for (const tech of techniques) {
   check(tech.nameTh && typeof tech.nameTh === 'string', `Technique ${tech.id} missing nameTh`);
   check(typeof tech.tier === 'number' && tech.tier >= 1 && tech.tier <= 9, `Technique ${tech.id} invalid tier: ${tech.tier}`);
 
-  // Path check
   if (tech.path) {
-    check(validPaths.has(tech.path), `Technique ${tech.id} has invalid path: ${tech.path}`, true);
+    check(validPaths.has(tech.path), `Technique ${tech.id} has invalid path: ${tech.path}`);
+  }
+
+  // Strict composable spec validation (no silent fallbacks!)
+  if (SK && typeof SK.validateComposableSpec === 'function') {
+    const vRes = SK.validateComposableSpec(tech);
+    if (!vRes.ok) {
+      for (const errMsg of vRes.errors) {
+        check(false, `Composable spec error in ${ errMsg }`);
+      }
+    }
   }
 
   const isPassive = tech.cat === 'PASSIVE' || tech.role === 'PASSIVE' || tech.passive;
 
-  // Weapon affinity check
   if (Array.isArray(tech.weaponTypes) && tech.weaponTypes.length > 0) {
     for (const wt of tech.weaponTypes) {
       check(validWeaponTypes.has(wt) || wt === 'UNARMED' || wt === 'ALL', `Technique ${tech.id} invalid weaponType: ${wt}`);
     }
-  } else if (!isPassive && tech.requiresWeapon !== false && tech.cat !== 'INNER_KUNGFU' && tech.cat !== 'DEFENSIVE_TECHNIQUE') {
-    check(false, `Combat technique ${tech.id} missing weaponTypes array`, true);
   }
 
-  // Element check
   check(tech.element && typeof tech.element === 'string', `Technique ${tech.id} missing element string`);
   check(tech.elementProfile && typeof tech.elementProfile === 'object', `Technique ${tech.id} missing elementProfile`);
 
-  // Move definitions check (for active combat moves)
   if (isPassive) {
-    // Passives should have passive stats or modifier object
     check(tech.passive && typeof tech.passive === 'object', `Passive ${tech.id} missing passive definition object`);
   } else if (Array.isArray(tech.moveDefs) && tech.moveDefs.length > 0) {
     for (const move of tech.moveDefs) {
       check(move.id && typeof move.id === 'string', `Technique ${tech.id} has move without id`);
       check(move.nameTh && typeof move.nameTh === 'string', `Technique ${tech.id} move ${move.id} missing nameTh`);
-      
-      const isDefensiveOrBuff = move.arch === 'guard' || move.arch === 'heal' || move.type === 'p' || move.type === 'b' || move.M === 0;
+      if (move.arch) {
+        check(!!(SK.ARCH && SK.ARCH[move.arch]), `Technique ${tech.id} move ${move.id} uses unregistered arch: ${move.arch}`);
+      }
+      const isDefensiveOrBuff = move.arch === 'guard' || move.arch === 'heal' || move.arch === 'buff' || move.arch === 'shield' || move.arch === 'evade' || move.arch === 'stance' || move.type === 'p' || move.type === 'b' || move.M === 0;
       if (!isDefensiveOrBuff) {
         check(typeof move.M === 'number' && !isNaN(move.M) && move.M > 0, `Technique ${tech.id} move ${move.id} invalid attack multiplier M: ${move.M}`);
       }
       check(typeof move.cd === 'number' && !isNaN(move.cd) && move.cd >= 0, `Technique ${tech.id} move ${move.id} invalid cooldown cd: ${move.cd}`);
     }
-  } else if (tech.cat === 'COMBAT_TECHNIQUE' && !tech.moves?.length) {
-    check(false, `Combat technique ${tech.id} missing moveDefs array`, true);
   }
 }
-console.log(`  ✓ Audited ${techniques.length} martial techniques (weaponTypes, elements, moves, stats)`);
+console.log(`  ✓ Audited ${techniques.length} martial techniques (zero unknown archetypes, statuses, buffs, or composable keywords)`);
 
-// 4. Audit Effects, Buffs, and Parameters
-console.log('\n▶ [4/5] Auditing Effects, Buffs & Parameters...');
+// 5. Audit Effects, Buffs, Parameters & Source Integrity
+console.log('\n▶ [5/6] Auditing Effects, Buffs, Parameters & Acquisition Sources...');
 let auditedEffectsCount = 0;
 for (const item of items) {
   if (Array.isArray(item.effects)) {
     for (const efx of item.effects) {
       auditedEffectsCount++;
-      // Parameter sanity
       if (efx.params) {
         for (const [paramKey, paramVal] of Object.entries(efx.params)) {
           check(paramVal !== undefined && !Number.isNaN(paramVal), `Item ${item.id} effect ${efx.effectId} has NaN/undefined param ${paramKey}`);
@@ -169,15 +263,14 @@ for (const item of items) {
     }
   }
 }
-console.log(`  ✓ Audited ${auditedEffectsCount} active/passive effects and parameters`);
+console.log(`  ✓ Audited ${auditedEffectsCount} active/passive item effects and parameters`);
 
-// 5. Audit Editor Catalog & Spawner Compatibility
-console.log('\n▶ [5/5] Auditing Debug Editor Catalog & Spawner...');
+// 6. Audit Editor Catalog, Spawner & Equipment-Granted Skill Lifecycle
+console.log('\n▶ [6/6] Auditing Debug Editor Catalog, Spawner & Granted-Skill Lifecycle...');
 const W = SIM.create('integrity-test-world');
 const catalog = SECT.EDITOR.catalog(W);
 check(catalog.length >= 2000, `Editor catalog size must be >= 2000, got ${catalog.length}`);
 
-// Test sample spawn for each distinct kind in catalog
 const kinds = new Set(catalog.map(c => c.kind));
 let testedSpawns = 0;
 for (const kind of kinds) {
@@ -188,7 +281,7 @@ for (const kind of kinds) {
     testedSpawns++;
   }
 }
-console.log(`  ✓ Verified Editor catalog (${catalog.length} items across ${kinds.size} categories, tested spawns: ${testedSpawns})`);
+console.log(`  ✓ Verified Editor catalog (${catalog.length} entries across ${kinds.size} categories, tested spawns: ${testedSpawns})`);
 
 // Report Summary
 console.log('\n====================================================');

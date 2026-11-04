@@ -2433,7 +2433,10 @@
     const hasPhoenix = warBeasts.some(b => b.fourSymbol === 'VERMILION_PHOENIX' || b.bloodlineTrait === 'VERMILION_PHOENIX');
     const hasAzureDragon = warBeasts.some(b => b.fourSymbol === 'AZURE_DRAGON' || b.bloodlineTrait === 'AZURE_DRAGON');
 
-    const basePartyPower = members.reduce((s, m) => s + CULT.power(m), 0);
+    const coalitionBonusPower = Number.isFinite(opts.coalitionBonusPower)
+      ? opts.coalitionBonusPower
+      : (siege && Number.isFinite(siege.coalitionBonusPower) ? siege.coalitionBonusPower : 0);
+    const basePartyPower = members.reduce((s, m) => s + CULT.power(m), 0) + coalitionBonusPower;
     const beastPower = warBeasts.reduce((s, b) => s + (CULT.petPowerSingle ? CULT.petPowerSingle(b) : 65), 0);
     const sectDefBase = Math.max(180, Math.round((targetSect.power || 1) * 320));
     const phases = [];
@@ -3701,14 +3704,156 @@
     return new U.RNG(baseSeed + ':v220:' + tag);
   }
 
+  X.CHRONICLE_REPORT_FORMATS = Object.freeze({
+    PIGEON_DISPATCH: {
+      id: 'PIGEON_DISPATCH',
+      nameTh: '🕊️ สารลับพิราบสื่อสารหอข่าวกรอง',
+      shortTh: '🕊️ สารลับพิราบ',
+      descTh: 'รายงานข่าวกรองด่วนจากเครือข่ายพิราบสื่อสารและผู้ตรวจการยุทธภพ'
+    },
+    WAR_PAVILION_RECORD: {
+      id: 'WAR_PAVILION_RECORD',
+      nameTh: '⚔️ บันทึกศึกหอพิชัยยุทธ์',
+      shortTh: '⚔️ บันทึกศึก',
+      descTh: 'บันทึกรายงานการรบ กำลังพล กระบวนท่า และผลแพ้ชนะจากหอพิชัยยุทธ์'
+    },
+    DISCIPLINE_EDICT: {
+      id: 'DISCIPLINE_EDICT',
+      nameTh: '⚖️ ประกาศิตหอวินัยและสารคำขาด',
+      shortTh: '⚖️ ประกาศิตหอวินัย',
+      descTh: 'หมายจับ สารทวงตัวผู้ลี้ภัย มติสภา และการตัดสินโทษระหว่างสำนัก'
+    },
+    ANCESTRAL_INSCRIPTION: {
+      id: 'ANCESTRAL_INSCRIPTION',
+      nameTh: '🕯️ จารึกศิลาหอบรรพชน',
+      shortTh: '🕯️ จารึกบรรพชน',
+      descTh: 'จารึกเหตุการณ์เปลี่ยนผ่านยุคสมัย การผลัดแผ่นดิน และการสืบทอดมรดก'
+    },
+    TAVERN_BALLAD: {
+      id: 'TAVERN_BALLAD',
+      nameTh: '🍶 เรื่องเล่าขานและลำนำโรงเตี๊ยม',
+      shortTh: '🍶 ลำนำโรงเตี๊ยม',
+      descTh: 'ข่าวลือและลำนำขับขานของนักเล่านิทานเกี่ยวกับจอมยุทธ์พเนจรและแดนลับ'
+    },
+    LINEAGE_COMPANION_SCROLL: {
+      id: 'LINEAGE_COMPANION_SCROLL',
+      nameTh: '💞 สมุดหยกหอวาสนาและสายเลือดตระกูล',
+      shortTh: '💞 สมุดหยกวาสนา',
+      descTh: 'บันทึกพิธีผูกด้ายแดงคู่บำเพ็ญ การกำเนิดทายาท และการตื่นรู้แห่งจิตมรรคา'
+    },
+    IMPERIAL_COUNCIL_DECREE: {
+      id: 'IMPERIAL_COUNCIL_DECREE',
+      nameTh: '🏛️ มติสภาผู้อาวุโสและราชโองการเจ้าสำนัก',
+      shortTh: '🏛️ มติสภา/ราชโองการ',
+      descTh: 'บันทึกการลงมติสภาผู้อาวุโส 4 ขั้วการเมือง วาระประจำฤดูกาล โควตาราชโองการ และการตรวจสอบผู้ถือตำแหน่ง'
+    },
+    SECRET_REALM_LOGBOOK: {
+      id: 'SECRET_REALM_LOGBOOK',
+      nameTh: '🧭 บันทึกการสำรวจแดนลับและหอโบราณคดี',
+      shortTh: '🧭 บันทึกแดนลับ/โบราณคดี',
+      descTh: 'บันทึกการเดินหมากโหนดแดนลับ ด่านตรวจทักษะ 12 มรรคา สายใยผู้ช่วยชีวิต และการบูรณะเศษคัมภีร์โบราณ'
+    },
+    CONTINENTAL_ASSEMBLY_GAZETTE: {
+      id: 'CONTINENTAL_ASSEMBLY_GAZETTE',
+      nameTh: '🏆 ประกาศเกียรติคุณมหาชุมนุมยุทธภพและหอการค้า',
+      shortTh: '🏆 มหาชุมนุม/หอการค้า',
+      descTh: 'บันทึกผลการประชัน 4 สายในมหาชุมนุมยุทธภพ งานเลี้ยงฉลองสำนักปราณโอชา กองคาราวาน และหอประมูลแดนเซียน'
+    },
+    HEAVENLY_DAO_OMEN_SCROLL: {
+      id: 'HEAVENLY_DAO_OMEN_SCROLL',
+      nameTh: '🌌 ลิขิตสวรรค์และบันทึกวัฏจักรยุคสมัย',
+      shortTh: '🌌 ลิขิตสวรรค์/ยุคสมัย',
+      descTh: 'บันทึกการเปลี่ยนผ่านยุคสมัยแห่งปราณ บททดสอบจากผู้กำกับชะตาฟ้าดิน ค่ายกลฮวงจุ้ย 10 ธาตุ และตราหยกสำนัก'
+    },
+    PEAK_HALL_SCROLL: {
+      id: 'PEAK_HALL_SCROLL',
+      nameTh: '🏔️ ทำเนียบยอดเขาและพันธะสายสัมพันธ์',
+      shortTh: '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์',
+      descTh: 'บันทึกการสถาปนายอดเขา การจัดสรรทรัพยากรหุบเขา การประลองระหว่างยอดเขา ยศผู้อาวุโส และสายใยความสัมพันธ์เชิงลึก'
+    }
+  });
+
+  function inferChronicleReportFormat(entry) {
+    if (entry.reportFormat && X.CHRONICLE_REPORT_FORMATS[entry.reportFormat]) return entry.reportFormat;
+    const cat = entry.category || 'JIANGHU';
+    const title = String(entry.titleTh || '');
+    if (cat === 'SECT_PEAK_POLITICS' || title.includes('ยอดเขา') || title.includes('หุบเขา') || title.includes('ผู้อาวุโสกิตติมศักดิ์')) return 'PEAK_HALL_SCROLL';
+    if (cat === 'ELDER_COUNCIL_EDICT' || title.includes('สภาผู้อาวุโส') || title.includes('ราชโองการ') || title.includes('ตรวจสอบตำแหน่ง')) return 'IMPERIAL_COUNCIL_DECREE';
+    if (cat === 'SECRET_REALM_NODE' || title.includes('บูรณะคัมภีร์โบราณ') || title.includes('โหนดแดนลับ') || title.includes('ผู้มีพระคุณช่วยชีวิต')) return 'SECRET_REALM_LOGBOOK';
+    if (cat === 'GRAND_ASSEMBLY' || cat === 'ECONOMY_AUCTION' || title.includes('มหาชุมนุม') || title.includes('งานเลี้ยงฉลอง') || title.includes('คาราวาน') || title.includes('ประมูล')) return 'CONTINENTAL_ASSEMBLY_GAZETTE';
+    if (cat === 'HEAVENLY_DAO_ERA' || cat === 'FENG_SHUI_ARRAY' || title.includes('ยุคสมัย') || title.includes('ผู้กำกับชะตาฟ้าดิน') || title.includes('ตราหยก')) return 'HEAVENLY_DAO_OMEN_SCROLL';
+    if (title.includes('คู่บำเพ็ญ') || title.includes('ทายาทสายเลือด') || cat === 'DAO_HEART_SUTRA') return 'LINEAGE_COMPANION_SCROLL';
+    if (title.includes('สารทวงตัว') || title.includes('ฉีกสาร') || title.includes('ไถ่ถอนข้อกล่าวหา') || title.includes('ส่งตัวผู้ลี้ภัย') || title.includes('เชลยศึก') || cat === 'FACTION') return 'DISCIPLINE_EDICT';
+    if (cat === 'BATTLE') return 'WAR_PAVILION_RECORD';
+    if (cat === 'SUCCESSION') return 'ANCESTRAL_INSCRIPTION';
+    if (cat === 'LEGEND' || cat === 'SECRET_REALM' || (cat === 'VISITOR' && (title.includes('พเนจร') || title.includes('หมอยา') || title.includes('จอมโจร') || title.includes('ค่ายกล')))) return 'TAVERN_BALLAD';
+    return 'PIGEON_DISPATCH';
+  }
+
+  function buildDefaultCausalMeta(W, entry, fmtId) {
+    const cat = entry.category || 'JIANGHU';
+    const sects = Array.isArray(entry.involvedSects) && entry.involvedSects.length ? entry.involvedSects.join(' ↔ ') : ((W && W.sect && W.sect.name) || 'สำนักเมฆาหยก');
+    const figs = Array.isArray(entry.involvedFigures) && entry.involvedFigures.length ? entry.involvedFigures.join(' · ') : 'ผู้ฝึกตนในยุทธภพ';
+    const regName = (X.WORLD_REGIONS && entry.macroRegion && X.WORLD_REGIONS[entry.macroRegion] && X.WORLD_REGIONS[entry.macroRegion].nameTh) || 'เขตแดนยุทธภพ';
+    const defaultOrigin = {
+      BATTLE: 'แรงกดดันทางยุทธศาสตร์และความขัดแย้งระหว่างสำนักในเขต' + regName,
+      SUCCESSION: 'สุญญากาศทางอำนาจและการขับเคี่ยวบุคลิก 155 มิติ (ความทะเยอทะยาน/คุณธรรม/ความภักดี) ภายใน ' + sects,
+      FACTION: 'พลวัตการทูต ดุลอำนาจ 3 ฝ่าย และการแลกเปลี่ยนผลประโยชน์ระหว่าง ' + sects,
+      SECRET_REALM: 'ชีพจรปราณฟ้าดินแปรปรวนในเขต' + regName + ' จนผนึกโบราณคลายตัว',
+      LEGEND: 'วัฏจักรการเร้นกายและทะลวงด่านของยอดคนไร้สังกัดในเขต' + regName,
+      VISITOR: 'ชื่อเสียงของสำนักและกระแสการเดินทางของผู้ฝึกตนพเนจรมาถึงหน้าด่านสำนัก',
+      INTERNAL: 'พลวัตชีวิตประจำวัน ความสัมพันธ์ และจิตมรรคาของศิษย์ภายในสำนัก',
+      FENG_SHUI_ARRAY: 'การไหลเวียนของชีพจรปฐพี 10 ธาตุและโครงสร้างค่ายกลพิทักษ์สำนัก',
+      DAO_HEART_SUTRA: 'สภาวะจิตใจ ปมมารในใจ และความผูกพันระหว่างผู้ฝึกตนกับศาสตราคู่กาย',
+      ECONOMY_AUCTION: 'อุปสงค์-อุปทานของทรัพยากรยุทธภพและขบวนคาราวานการค้าข้ามแคว้น'
+    }[cat] || ('เหตุปัจจัยเชื่อมโยงในเขต' + regName);
+    const defaultImpact = {
+      BATTLE: 'ส่งผลต่อกำลังรบสำนัก ไมตรีการทูต ชื่อเสียงยุทธภพ บันทึกจิตศาสตรา และดัชนีตลาดคาราวาน',
+      SUCCESSION: 'เปลี่ยนผู้นำและหลักนิยมสำนัก (Doctrine) กระทบการทูต 3 ฝ่าย และอาจก่อให้เกิดผู้ลี้ภัย/สารทวงตัว',
+      FACTION: 'ปรับเปลี่ยนท่าทีทางการทูต คลังทรัพยากรสำนัก และความพร้อมรบของแม่ทัพพันธมิตร',
+      SECRET_REALM: 'เพิ่มตบะ/ผลงานศิษย์ คัมภีร์หอคัมภีร์ วัตถุดิบหลอมสร้าง และอิทธิพลสำนักที่คว้าชัย',
+      LEGEND: 'เปลี่ยนสมดุลยอดฝีมือระดับสูงบนแผนที่โลก 5 แคว้น และเปิดโอกาสวาสนาแด่ผู้พบเจอ',
+      VISITOR: 'เชื่อมโยงค่าไมตรีจอมยุทธ์พเนจร สุขภาพศิษย์ คลังศิลาวิญญาณ และการรับศิษย์ใหม่เข้าสำนัก',
+      INTERNAL: 'ส่งผลโดยตรงต่อความพึงพอใจ (sat) อารมณ์ (mood) สายสัมพันธ์ (rel) และอัตราการบ่มเพาะของศิษย์',
+      FENG_SHUI_ARRAY: 'ส่งผลต่อโบนัสสิ่งปลูกสร้าง อัตราบ่มเพาะตบะ และปราการป้องกันสำนัก',
+      DAO_HEART_SUTRA: 'ส่งผลต่อโอกาสทะลวงด่าน พลังรบศาสตรา และมรดกวิชาประจำสำนัก',
+      ECONOMY_AUCTION: 'ส่งผลต่อราคาซื้อขายตลาดกลาง คลังศิลาวิญญาณ และแร่/โอสถหายาก',
+      ELDER_COUNCIL_EDICT: 'ส่งผลต่อมติสภาผู้อาวุโส 4 ก๊ก โควตาคลังสำรอง ความโปร่งใสผู้ถือตำแหน่ง และคลื่นใต้น้ำสำนัก',
+      SECRET_REALM_NODE: 'ส่งผลต่อการผ่านด่าน 12 มรรคา สายใยผู้ช่วยชีวิต (LIFE_SAVIOR) และการบูรณะเศษคัมภีร์โบราณ',
+      GRAND_ASSEMBLY: 'ส่งผลต่อแชมป์ 4 สายประชัน สิทธิ์เจ้าภาพทวีป ภาษีตลาดคาราวาน และความสามัคคีจากงานเลี้ยงปราณโอชา',
+      HEAVENLY_DAO_ERA: 'ส่งผลต่อวัฏจักรยุคสมัยแห่งปราณ บททดสอบผู้กำกับชะตาฟ้าดิน และการแลกเปลี่ยนตราหยกสำนัก',
+      SECT_PEAK_POLITICS: 'ส่งผลต่อดุลอำนาจระหว่างยอดเขา การจัดสรรทรัพยากรหุบเขา สายใยความสัมพันธ์ NPC และการโหวตเลือกศิษย์สืบทอด'
+    }[cat] || 'ส่งผลกระทบต่อสมดุลยุทธภพและบันทึกประวัติศาสตร์สำนัก';
+    const directorInsightTh = entry.directorInsightTh || ('[ผู้กำกับชะตาฟ้าดิน] เหตุการณ์นี้ก่อตัวขึ้นตามธรรมชาติจาก ' + (entry.originCauseTh || defaultOrigin) + ' โดยมี ' + figs + ' เป็นผู้ขับเคลื่อนหลัก');
+    const playerLensHighlights = entry.playerLensHighlights || {
+      WORLD_WATCHER: '🌍 [มุมมองผู้เฝ้ามองโลก]: ' + sects + ' เกิดการขยับดุลอำนาจและทรัพยากร (' + (entry.consequenceTh || defaultImpact) + ')',
+      NOVEL_READER: '📖 [มุมมองนักอ่านนิยาย]: ' + (entry.storyTh || entry.titleTh || ''),
+      NPC_OBSERVER: '🔍 [มุมมองผู้จับตาดู NPC]: ' + (entry.actorChainTh || ('การตัดสินใจตามอุปนิสัยและปณิธานของ ' + figs)),
+      GRAND_STRATEGIST: '♟️ [มุมมองนักวางแผนยุทธศาสตร์]: ' + (entry.systemImpactTh || defaultImpact)
+    };
+    return {
+      originCauseTh: entry.originCauseTh || defaultOrigin,
+      actorChainTh: entry.actorChainTh || ('ผู้เกี่ยวข้อง: ' + figs + ' (' + sects + ')'),
+      systemImpactTh: entry.systemImpactTh || (defaultImpact + (entry.consequenceTh ? (' · ' + entry.consequenceTh) : '')),
+      directorInsightTh,
+      playerLensHighlights
+    };
+  }
+
   X.recordChronicle = (W, entry) => {
     if (!W || !W.world || !entry) return null;
     if (!Array.isArray(W.world.chronicles)) W.world.chronicles = [];
     W.world.chronicleSeq = (W.world.chronicleSeq || 0) + 1;
+    const fmtId = inferChronicleReportFormat(entry);
+    const fmtDef = X.CHRONICLE_REPORT_FORMATS[fmtId] || X.CHRONICLE_REPORT_FORMATS.PIGEON_DISPATCH;
+    const causal = buildDefaultCausalMeta(W, entry, fmtId);
     const rec = {
       id: entry.id || ('CHRON_' + W.world.chronicleSeq),
       day: entry.day != null ? entry.day : (W.day || 360),
       t: W.t || ((W.day || 360) * 1440),
+      reportFormat: fmtId,
+      reportFormatTh: entry.reportFormatTh || fmtDef.nameTh,
+      reportFormatShortTh: fmtDef.shortTh,
       category: entry.category || 'JIANGHU',
       categoryTh: entry.categoryTh || {
         BATTLE: '⚔️ ศึกปะทะยุทธภพ',
@@ -3717,11 +3862,24 @@
         SECRET_REALM: '🌌 ศึกชิงมรดกแดนลับโบราณ',
         LEGEND: '🐉 ตำนานยอดคนหวนคืนยุทธภพ',
         VISITOR: '🎐 เหตุการณ์ผู้มาเยือนหน้าด่าน',
-        INTERNAL: '🏛️ คลื่นใต้น้ำและการเมืองในสำนัก'
+        INTERNAL: '🏛️ คลื่นใต้น้ำและการเมืองในสำนัก',
+        FENG_SHUI_ARRAY: '☯️ ค่ายกลฮวงจุ้ย & ปรากฏการณ์ฟ้าดิน',
+        DAO_HEART_SUTRA: '🪷 ปมมารในใจ · จิตศาสตรา & คัมภีร์มรดก',
+        ECONOMY_AUCTION: '🐪 คาราวานการค้า & หอประมูลแดนเซียน',
+        ELDER_COUNCIL_EDICT: '🏛️ สภาผู้อาวุโส & ราชโองการสำนัก',
+        SECRET_REALM_NODE: '🧭 สำรวจโหนดแดนลับ & บูรณะคัมภีร์โบราณ',
+        GRAND_ASSEMBLY: '🏆 มหาชุมนุมยุทธภพ 4 สาย & งานเลี้ยงปราณโอชา',
+        HEAVENLY_DAO_ERA: '🌌 ผู้กำกับชะตาฟ้าดิน & วัฏจักรยุคสมัย',
+        SECT_PEAK_POLITICS: '🏔️ การเมืองยอดเขา · ยศผู้อาวุโส & สายใยความสัมพันธ์'
       }[entry.category || 'JIANGHU'] || '📜 จดหมายเหตุยุทธภพ',
       icon: entry.icon || '📜',
       titleTh: entry.titleTh || 'บันทึกเหตุการณ์ยุทธภพ',
       storyTh: entry.storyTh || '',
+      originCauseTh: causal.originCauseTh,
+      actorChainTh: causal.actorChainTh,
+      systemImpactTh: causal.systemImpactTh,
+      directorInsightTh: causal.directorInsightTh,
+      playerLensHighlights: causal.playerLensHighlights,
       combatBreakdownTh: entry.combatBreakdownTh || '',
       consequenceTh: entry.consequenceTh || '',
       macroRegion: entry.macroRegion || 'CENTRAL_HEARTLAND',
@@ -3754,9 +3912,9 @@
       ? masterBaseStage
       : role === 'ancestor'
       ? Math.min(9, masterBaseStage + 1)
-      : role === 'deputy'
-      ? Math.max(2, masterBaseStage - 1)
-      : Math.max(2, masterBaseStage - 2); // successor (ศิษย์สืบทอด)
+      : (role === 'deputy' || role === 'disciplineElder' || role === 'craftElder' || role === 'warMarshal')
+      ? Math.max(3, masterBaseStage - 1)
+      : Math.max(2, masterBaseStage - 2); // successor / coreDisciple
 
     const ageYears = opts.ageYears != null
       ? opts.ageYears
@@ -3766,9 +3924,11 @@
       ? rng.int(42, 74)
       : role === 'deputy'
       ? rng.int(36, 66)
-      : rng.int(19, 32); // young prodigy / designated successor
+      : (role === 'disciplineElder' || role === 'craftElder' || role === 'warMarshal')
+      ? rng.int(38, 68)
+      : rng.int(19, 32); // young prodigy / designated successor / coreDisciple
 
-    const rank = role === 'master' ? 6 : (role === 'ancestor' || role === 'deputy') ? 5 : 3;
+    const rank = role === 'master' ? 6 : (role === 'ancestor' || role === 'deputy') ? 5 : (role === 'disciplineElder' || role === 'craftElder' || role === 'warMarshal') ? 4 : 3;
     const figId = 'JHFIG_' + (s.canonicalId || s.id) + '_' + role.toUpperCase() + '_' + seq;
     const sex = rng.chance(0.62) ? 'M' : 'F';
     const h = generateFastFigureCore(rng, sex);
@@ -3780,6 +3940,20 @@
     } else if (s.alignment === 'RIGHTEOUS' && rng.chance(0.65)) {
       h.personality.integrity = clamp((h.personality.integrity || 50) + rng.int(6, 18), 20, 98);
       h.personality.discipline = clamp((h.personality.discipline || 50) + rng.int(6, 18), 20, 98);
+    }
+    if (role === 'disciplineElder') {
+      h.personality.integrity = clamp((h.personality.integrity || 50) + rng.int(18, 32), 68, 98);
+      h.personality.aggression = clamp((h.personality.aggression || 50) + rng.int(16, 30), 65, 98);
+      h.personality.discipline = clamp((h.personality.discipline || 50) + rng.int(18, 32), 70, 98);
+    } else if (role === 'craftElder') {
+      h.values.knowledgeCraft = clamp((h.values.knowledgeCraft || 50) + rng.int(20, 35), 72, 98);
+      h.intellect.comprehension = clamp((h.intellect.comprehension || 50) + rng.int(18, 30), 70, 98);
+      h.skills.ALCHEMY = clamp(rng.int(74, 96), 70, 99);
+      h.skills.FORGING = clamp(rng.int(72, 95), 68, 99);
+    } else if (role === 'warMarshal') {
+      h.personality.aggression = clamp((h.personality.aggression || 50) + rng.int(18, 32), 68, 98);
+      h.personality.courage = clamp((h.personality.courage || 50) + rng.int(18, 32), 70, 98);
+      h.social.leadership = clamp((h.social.leadership || 50) + rng.int(16, 28), 66, 98);
     }
 
     const isEclectic = s.doctrineMode === 'ECLECTIC';
@@ -3812,11 +3986,38 @@
     const topTechObj = (techs[0] && CULT && CULT.tech && CULT.tech(techs[0])) || null;
     const signatureTechNameTh = topTechObj ? topTechObj.nameTh : ('เคล็ดวิชา' + wTypeTh + 'ประจำสำนัก');
 
+    const ROLE_TH_MAP = {
+      master: 'เจ้าสำนัก',
+      deputy: 'รองเจ้าสำนัก',
+      successor: 'ศิษย์สืบทอด',
+      ancestor: 'บรรพชนพิทักษ์',
+      disciplineElder: 'ผู้อาวุโสหอวินัย',
+      craftElder: 'ผู้อาวุโสหอโอสถและหลอมสร้าง',
+      warMarshal: 'ผู้อาวุโสแม่ทัพศึก',
+      coreDisciple: 'ศิษย์เอกสายตรง'
+    };
+    const cognitionTier = (role === 'master' || role === 'deputy' || role === 'successor' || role === 'ancestor')
+      ? 1
+      : (role === 'disciplineElder' || role === 'craftElder' || role === 'warMarshal')
+      ? 2
+      : 3;
+    const domain = role === 'disciplineElder'
+      ? 'DISCIPLINE_PURSUIT'
+      : role === 'craftElder'
+      ? 'ALCHEMY_FORGE'
+      : role === 'warMarshal'
+      ? 'WAR_DIPLOMACY'
+      : role === 'coreDisciple'
+      ? 'MARTIAL_COMPETITION'
+      : 'SUPREME_GOVERNANCE';
+
     const fig = {
       id: figId,
       kind: 'SECT_FIGURE',
       role,
-      roleTh: role === 'master' ? 'เจ้าสำนัก' : role === 'deputy' ? 'รองเจ้าสำนัก' : role === 'successor' ? 'ศิษย์สืบทอด' : 'บรรพชนพิทักษ์',
+      roleTh: ROLE_TH_MAP[role] || 'ผู้อาวุโสสำนัก',
+      cognitionTier,
+      domain,
       sectId: s.id,
       canonicalSectId: s.canonicalId,
       sectNameTh: s.nameTh,
@@ -3839,7 +4040,7 @@
         ? s.signatureGearTh.split('&')[0].trim()
         : ('ศาสตรา' + wTypeTh + 'หลอมปราณขั้น ' + roleStage),
       signatureTechNameTh,
-      power: Math.round((95 + Math.pow(roleStage, 2.25) * 42) * (role === 'master' ? 1.18 : role === 'ancestor' ? 1.32 : role === 'deputy' ? 1.0 : 0.86)),
+      power: Math.round((95 + Math.pow(roleStage, 2.25) * 42) * (role === 'master' ? 1.18 : role === 'ancestor' ? 1.32 : role === 'warMarshal' ? 1.14 : (role === 'deputy' || role === 'disciplineElder' || role === 'craftElder') ? 1.0 : 0.86)),
       hpMax: Math.round(450 + Math.pow(roleStage, 2.1) * 180),
       hp: Math.round(450 + Math.pow(roleStage, 2.1) * 180),
       backingBonus: role === 'successor' ? rng.int(8, 28) : 0,
@@ -3897,6 +4098,34 @@
       if (s.figures.deputy) { hideFigCaches(s.figures.deputy, W); W.world.figuresById[s.figures.deputy.id] = s.figures.deputy; }
       if (s.figures.successor) { hideFigCaches(s.figures.successor, W); W.world.figuresById[s.figures.successor.id] = s.figures.successor; }
       if (s.figures.ancestor) { hideFigCaches(s.figures.ancestor, W); W.world.figuresById[s.figures.ancestor.id] = s.figures.ancestor; }
+
+      // Patch v2.0.30: Tier 2 Specialized Domain Elders & Tier 3 Core Disciples (using isolated child RNG)
+      let _v230Rng = null;
+      const getV230Rng = () => _v230Rng || (_v230Rng = makeChildRng(W, 'init_sect_v230_' + (s.canonicalId || s.id || idx)));
+      if (!s.figures.disciplineElder || s.figures.disciplineElder.dead) {
+        s.figures.disciplineElder = X.generateProceduralSectFigure(W, s, 'disciplineElder', { rng: getV230Rng(), seq: idx * 20 + 11 });
+      }
+      if (!s.figures.craftElder || s.figures.craftElder.dead) {
+        s.figures.craftElder = X.generateProceduralSectFigure(W, s, 'craftElder', { rng: getV230Rng(), seq: idx * 20 + 12 });
+      }
+      if (!s.figures.warMarshal || s.figures.warMarshal.dead) {
+        s.figures.warMarshal = X.generateProceduralSectFigure(W, s, 'warMarshal', { rng: getV230Rng(), seq: idx * 20 + 13 });
+      }
+      if (!Array.isArray(s.figures.coreDisciples)) {
+        s.figures.coreDisciples = [];
+      }
+      s.figures.coreDisciples = s.figures.coreDisciples.filter(cd => cd && !cd.dead && !cd.recruitedToPlayer);
+      while (s.figures.coreDisciples.length < 3) {
+        const cdIdx = s.figures.coreDisciples.length + 1;
+        const cdFig = X.generateProceduralSectFigure(W, s, 'coreDisciple', { rng: getV230Rng(), seq: idx * 20 + 13 + cdIdx });
+        s.figures.coreDisciples.push(cdFig);
+      }
+      if (s.figures.disciplineElder) { hideFigCaches(s.figures.disciplineElder, W); W.world.figuresById[s.figures.disciplineElder.id] = s.figures.disciplineElder; }
+      if (s.figures.craftElder) { hideFigCaches(s.figures.craftElder, W); W.world.figuresById[s.figures.craftElder.id] = s.figures.craftElder; }
+      if (s.figures.warMarshal) { hideFigCaches(s.figures.warMarshal, W); W.world.figuresById[s.figures.warMarshal.id] = s.figures.warMarshal; }
+      s.figures.coreDisciples.forEach(cd => {
+        if (cd && cd.id) { hideFigCaches(cd, W); W.world.figuresById[cd.id] = cd; }
+      });
     });
     return W.world.figuresById;
   };
@@ -4061,7 +4290,66 @@
     return { ok: true, fallenLegend: deadLeg || null, newLegend: newLeg, chronicle: chron };
   };
 
-  /* ---------- Sect Succession Crisis: Deputy vs. Designated Successor ---------- */
+  /* ---------- Sect Succession Crisis & 3-Tier Promotion Ladder ---------- */
+  X.promoteToSuccessor = (W, s) => {
+    if (!W || !s || !s.figures) return null;
+    const figs = s.figures;
+    const aliveCore = (figs.coreDisciples || []).filter(cd => cd && !cd.dead);
+    if (aliveCore.length) {
+      aliveCore.sort((a, b) => (b.power || 0) - (a.power || 0));
+      const promoted = aliveCore[0];
+      const idx = figs.coreDisciples.indexOf(promoted);
+      promoted.role = 'successor';
+      promoted.roleTh = 'ศิษย์สืบทอด';
+      promoted.rank = 3;
+      if (promoted.cult) {
+        promoted.cult.stage = Math.min(9, (promoted.cult.stage || 3) + 1);
+      }
+      promoted.power = Math.round((promoted.power || 220) * 1.25);
+      promoted.backingBonus = (promoted.backingBonus || 10) + 12;
+      promoted.promotedFromRole = 'core_disciple';
+      promoted.promotedDay = (W && W.day) || 360;
+      promoted.titleAndNameTh = promoted.fullNameTh + ' 「ศิษย์สืบทอด' + (s.shortTh || s.nameTh) + '」';
+      figs.successor = promoted;
+      const replacementCore = X.generateProceduralSectFigure(W, s, 'core_disciple', { slotIdx: idx >= 0 ? idx : 0 });
+      if (idx >= 0) figs.coreDisciples[idx] = replacementCore;
+      else figs.coreDisciples.push(replacementCore);
+      return promoted;
+    }
+    figs.successor = X.generateProceduralSectFigure(W, s, 'successor');
+    return figs.successor;
+  };
+
+  X.promoteToDeputy = (W, s) => {
+    if (!W || !s || !s.figures) return null;
+    const figs = s.figures;
+    const elderSlots = [
+      ['warMarshal', figs.warMarshal],
+      ['disciplineElder', figs.disciplineElder],
+      ['craftElder', figs.craftElder]
+    ].filter(([, el]) => el && !el.dead);
+    if (elderSlots.length) {
+      elderSlots.sort((a, b) => (b[1].power || 0) - (a[1].power || 0));
+      const [slotKey, promoted] = elderSlots[0];
+      promoted.promotedFromRole = promoted.role;
+      promoted.role = 'deputy';
+      promoted.roleTh = 'รองเจ้าสำนัก';
+      promoted.rank = 5;
+      if (promoted.cult) {
+        promoted.cult.stage = Math.min(9, (promoted.cult.stage || 4) + 1);
+      }
+      promoted.power = Math.round((promoted.power || 340) * 1.18);
+      promoted.promotedDay = (W && W.day) || 360;
+      promoted.titleAndNameTh = promoted.fullNameTh + ' 「รองเจ้าสำนัก' + (s.shortTh || s.nameTh) + '」';
+      figs.deputy = promoted;
+      const roleMap = { warMarshal: 'war_marshal', disciplineElder: 'discipline_elder', craftElder: 'craft_elder' };
+      figs[slotKey] = X.generateProceduralSectFigure(W, s, roleMap[slotKey] || 'war_marshal');
+      return promoted;
+    }
+    figs.deputy = X.generateProceduralSectFigure(W, s, 'deputy');
+    return figs.deputy;
+  };
+
   X.resolveSectSuccession = (W, sectOrId, causeTh, opts) => {
     opts = opts || {};
     if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
@@ -4140,7 +4428,7 @@
       newMaster.power = Math.round(newMaster.power * 1.18);
       s.figures.master = newMaster;
       s.figures.deputy = deputy;
-      s.figures.successor = X.generateProceduralSectFigure(W, s, 'successor');
+      X.promoteToSuccessor(W, s);
 
       storyTh = 'เมื่อเจ้าสำนัก「' + (oldMaster ? oldMaster.titleAndNameTh : s.nameTh) + '」สิ้นชีพลงเพราะ' + (causeTh || 'ภัยยุทธภพ') +
         ' ทั่วทั้ง「' + s.nameTh + '」ตกอยู่ในความโศกเศร้า รองเจ้าสำนัก「' + deputy.titleAndNameTh + '」ผู้มีคุณธรรม (' + Math.round(dInt) + ') และความภักดี (' + Math.round(dLoy) + ') ได้นำตราพินัยกรรมออกประกาศกลางโถงใหญ่ ประคองศิษย์สืบทอด「' + succ.titleAndNameTh + '」ขึ้นครองบัลลังก์เจ้าสำนักคนใหม่อย่างสมเกียรติ พร้อมแต่งตั้ง「' + s.figures.successor.titleAndNameTh + '」เป็นศิษย์สืบทอดรุ่นถัดไป!';
@@ -4154,10 +4442,10 @@
       newMaster.roleTh = 'เจ้าสำนัก';
       newMaster.rank = 6;
       newMaster.power = Math.round(newMaster.power * 1.15);
-      // Old successor is demoted/sidelined or flees
+      // Old successor is demoted/sidelined or flees; promote Tier 2 Elder -> Deputy and Tier 3 Core Disciple -> Successor
       s.figures.master = newMaster;
-      s.figures.deputy = X.generateProceduralSectFigure(W, s, 'deputy');
-      s.figures.successor = X.generateProceduralSectFigure(W, s, 'successor');
+      X.promoteToDeputy(W, s);
+      X.promoteToSuccessor(W, s);
       s.influence = Math.max(20, (s.influence || 70) - 6);
 
       storyTh = 'สิ้นเสียงระฆังไว้อาลัยของ「' + (oldMaster ? oldMaster.titleAndNameTh : 'เจ้าสำนักคนก่อน') + '」(' + (causeTh || 'ดับสูญ') + ') รองเจ้าสำนัก「' + deputy.titleAndNameTh + '」ผู้มีความทะเยอทะยานสูง (' + Math.round(dAmb) + ') และถือดี (' + Math.round(dPride) + ') ได้สั่งปิดประตูโถงสภาแห่ง「' + s.nameTh + '」อ้างว่าศิษย์สืบทอด「' + succ.titleAndNameTh + '」ยังอ่อนด้อยประสบการณ์และไร้ฐานอำนาจหนุนหลัง (' + successorBacking + '/100) จึงฉีกพินัยกรรมและสถาปนาตนเองขึ้นเป็นเจ้าสำนักคนใหม่ทันที พร้อมตั้ง「' + s.figures.deputy.fullNameTh + '」เป็นรองเจ้าสำนัก และตั้ง「' + s.figures.successor.fullNameTh + '」เป็นศิษย์สืบทอดคนใหม่!';
@@ -4181,8 +4469,8 @@
         deputy.deathCauseTh = 'พ่ายแพ้และถูกสังหารในศึกชิงบัลลังก์สำนัก';
         casualtyFigure = deputy;
         s.figures.master = newMaster;
-        s.figures.deputy = X.generateProceduralSectFigure(W, s, 'deputy');
-        s.figures.successor = X.generateProceduralSectFigure(W, s, 'successor');
+        X.promoteToDeputy(W, s);
+        X.promoteToSuccessor(W, s);
         s.power = +(Math.max(0.5, (s.power || 1.2) * 0.92)).toFixed(2);
 
         storyTh = 'ศึกสายเลือดชิงบัลลังก์ปะทุขึ้นกลาง「' + s.nameTh + '」หลังการจากไปของ「' + (oldMaster ? oldMaster.fullNameTh : 'เจ้าสำนักคนก่อน') + '」! รองเจ้าสำนัก「' + deputy.titleAndNameTh + '」คิดก่อการยึดอำนาจด้วยวิชา「' + deputy.signatureTechNameTh + '」แต่ศิษย์สืบทอด「' + succ.titleAndNameTh + '」มีผู้อาวุโสและ' + (ancestorBacksSuccessor && ancestor ? ('บรรพชน「' + ancestor.fullNameTh + '」') : 'กลุ่มศิษย์สายตรง') + 'หนุนหลังอย่างเหนียวแน่น (' + successorBacking + '/100) จึงชัก' + succ.weaponNameTh + 'ออกฟาดฟันด้วย「' + succ.signatureTechNameTh + '」สังหารรองเจ้าสำนักผู้ทรยศลงหน้าหอบรรพชน และก้าวขึ้นครองตำแหน่งเจ้าสำนักคนใหม่ พร้อมแต่งตั้งรองเจ้าสำนักและศิษย์สืบทอดชุดใหม่!';
@@ -4214,8 +4502,8 @@
           }
         }
         s.figures.master = newMaster;
-        s.figures.deputy = X.generateProceduralSectFigure(W, s, 'deputy');
-        s.figures.successor = X.generateProceduralSectFigure(W, s, 'successor');
+        X.promoteToDeputy(W, s);
+        X.promoteToSuccessor(W, s);
         s.power = +(Math.max(0.5, (s.power || 1.2) * 0.90)).toFixed(2);
 
         storyTh = 'เกิดเหตุนองเลือดสะท้าน「' + s.nameTh + '」! รองเจ้าสำนัก「' + deputy.titleAndNameTh + '」ฉวยโอกาสหลัง「' + (oldMaster ? oldMaster.fullNameTh : 'เจ้าสำนัก') + '」สิ้นชีพ นำกำลังเข้าล้อมสังหารศิษย์สืบทอด「' + succ.titleAndNameTh + '」! แม้ศิษย์สืบทอดจะมีคนหนุนหลัง (' + successorBacking + '/100) และสู้สุดชีวิตด้วย「' + succ.signatureTechNameTh + '」แต่ตบะของรองเจ้าสำนักเหนือกว่า (' + Math.round(deputyCombatScore) + ' ต่อ ' + Math.round(succCombatScore) + ') ฟาดด้วย' + deputy.weaponNameTh + 'จนฝ่ายศิษย์สืบทอดพ่ายแพ้ยับเยิน — ' +
@@ -4301,31 +4589,45 @@
       const succRes = X.resolveSectSuccession(W, s, causeTh, opts);
       return { ok: true, kind: 'SECT_MASTER', slainFigure: fig, succession: succRes };
     } else if (fig.role === 'deputy' || (s.figures.deputy && s.figures.deputy.id === fig.id)) {
-      s.figures.deputy = X.generateProceduralSectFigure(W, s, 'deputy');
+      X.promoteToDeputy(W, s);
       const chron = X.recordChronicle(W, {
         category: 'SUCCESSION',
         icon: '⚔️',
         macroRegion: s.macroRegion,
         involvedSects: [s.nameTh],
-        titleTh: 'รองเจ้าสำนัก「' + s.nameTh + '」สิ้นชีพ! แต่งตั้งรองเจ้าสำนักคนใหม่',
-        storyTh: '「' + fig.titleAndNameTh + '」รองเจ้าสำนักแห่ง「' + s.nameTh + '」สิ้นชีพลงเพราะ' + (causeTh || 'การศึก') + ' เจ้าสำนักจึงมีคำสั่งแต่งตั้ง「' + s.figures.deputy.titleAndNameTh + '」ขึ้นดำรงตำแหน่งรองเจ้าสำนักแทนทันที',
+        titleTh: 'รองเจ้าสำนัก「' + s.nameTh + '」สิ้นชีพ! เลื่อนขั้นผู้อาวุโสขึ้นเป็นรองเจ้าสำนักคนใหม่',
+        storyTh: '「' + fig.titleAndNameTh + '」รองเจ้าสำนักแห่ง「' + s.nameTh + '」สิ้นชีพลงเพราะ' + (causeTh || 'การศึก') + ' เจ้าสำนักจึงมีคำสั่งเลื่อนขั้นผู้อาวุโส「' + s.figures.deputy.titleAndNameTh + '」ขึ้นดำรงตำแหน่งรองเจ้าสำนักแทนทันที',
         consequenceTh: s.figures.deputy.titleAndNameTh + ' ก้าวขึ้นเป็นรองเจ้าสำนักคนใหม่',
         quiet: opts.quiet
       });
       return { ok: true, kind: 'SECT_DEPUTY', slainFigure: fig, newDeputy: s.figures.deputy, chronicle: chron };
     } else if (fig.role === 'successor' || (s.figures.successor && s.figures.successor.id === fig.id)) {
-      s.figures.successor = X.generateProceduralSectFigure(W, s, 'successor');
+      X.promoteToSuccessor(W, s);
       const chron = X.recordChronicle(W, {
         category: 'SUCCESSION',
         icon: '🕯️',
         macroRegion: s.macroRegion,
         involvedSects: [s.nameTh],
-        titleTh: 'ศิษย์สืบทอด「' + s.nameTh + '」ดับสูญก่อนวัยอันควร!',
-        storyTh: 'ข่าวร้ายสะเทือน「' + s.nameTh + '」เมื่อศิษย์เอกผู้สืบทอด「' + fig.titleAndNameTh + '」สิ้นชีพลงเพราะ' + (causeTh || 'ภัยในยุทธภพ') + ' เจ้าสำนักจำต้องคัดเลือกอัจฉริยะรุ่นเยาว์คนใหม่ แต่งตั้ง「' + s.figures.successor.titleAndNameTh + '」ขึ้นเป็นศิษย์สืบทอดคนต่อไป!',
+        titleTh: 'ศิษย์สืบทอด「' + s.nameTh + '」ดับสูญ! เลื่อนขั้นศิษย์เอกขึ้นเป็นศิษย์สืบทอดคนใหม่',
+        storyTh: 'ข่าวร้ายสะเทือน「' + s.nameTh + '」เมื่อศิษย์เอกผู้สืบทอด「' + fig.titleAndNameTh + '」สิ้นชีพลงเพราะ' + (causeTh || 'ภัยในยุทธภพ') + ' เจ้าสำนักจึงเลื่อนขั้นศิษย์เอกอันดับหนึ่ง「' + s.figures.successor.titleAndNameTh + '」ขึ้นรับตราตั้งเป็นศิษย์สืบทอดคนต่อไป!',
         consequenceTh: s.figures.successor.titleAndNameTh + ' ได้รับตราตั้งเป็นศิษย์สืบทอดคนใหม่',
         quiet: opts.quiet
       });
       return { ok: true, kind: 'SECT_SUCCESSOR', slainFigure: fig, newSuccessor: s.figures.successor, chronicle: chron };
+    } else if (fig.role === 'discipline_elder' || (s.figures.disciplineElder && s.figures.disciplineElder.id === fig.id)) {
+      s.figures.disciplineElder = X.generateProceduralSectFigure(W, s, 'discipline_elder');
+      return { ok: true, kind: 'SECT_DISCIPLINE_ELDER', slainFigure: fig, newElder: s.figures.disciplineElder };
+    } else if (fig.role === 'craft_elder' || (s.figures.craftElder && s.figures.craftElder.id === fig.id)) {
+      s.figures.craftElder = X.generateProceduralSectFigure(W, s, 'craft_elder');
+      return { ok: true, kind: 'SECT_CRAFT_ELDER', slainFigure: fig, newElder: s.figures.craftElder };
+    } else if (fig.role === 'war_marshal' || (s.figures.warMarshal && s.figures.warMarshal.id === fig.id)) {
+      s.figures.warMarshal = X.generateProceduralSectFigure(W, s, 'war_marshal');
+      return { ok: true, kind: 'SECT_WAR_MARSHAL', slainFigure: fig, newElder: s.figures.warMarshal };
+    } else if (fig.role === 'core_disciple' && Array.isArray(s.figures.coreDisciples)) {
+      const cIdx = s.figures.coreDisciples.findIndex(c => c && c.id === fig.id);
+      const rep = X.generateProceduralSectFigure(W, s, 'core_disciple', { slotIdx: cIdx >= 0 ? cIdx : 0 });
+      if (cIdx >= 0) s.figures.coreDisciples[cIdx] = rep;
+      return { ok: true, kind: 'SECT_CORE_DISCIPLE', slainFigure: fig, newCoreDisciple: rep };
     } else if (fig.role === 'ancestor') {
       s.figures.ancestor = X.generateProceduralSectFigure(W, s, 'ancestor');
       return { ok: true, kind: 'SECT_ANCESTOR', slainFigure: fig, newAncestor: s.figures.ancestor };
@@ -4632,7 +4934,12 @@
     });
 
     pickedSects.slice(0, 3).forEach((s, i) => {
-      const fig = (i === 0 && s.figures && s.figures.master) ? s.figures.master : (s.figures && (s.figures.successor || s.figures.deputy || s.figures.master));
+      const topCore = (s.figures && Array.isArray(s.figures.coreDisciples)) ? s.figures.coreDisciples.find(c => c && !c.dead) : null;
+      const fig = (i === 0 && s.figures && s.figures.warMarshal && !s.figures.warMarshal.dead)
+        ? s.figures.warMarshal
+        : (i === 2 && topCore)
+        ? topCore
+        : (s.figures && (s.figures.successor || s.figures.deputy || s.figures.master));
       if (fig && !fig.dead) {
         entrants.push({
           entrantType: 'SECT_FIGURE',
@@ -4792,6 +5099,14 @@
       if (winSect) {
         winSect.power = +((winSect.power || 1.2) + 0.18).toFixed(2);
         winSect.influence = (winSect.influence || 60) + 14;
+      }
+      if (winEntry.figureId && W.world.figuresById && W.world.figuresById[winEntry.figureId]) {
+        const wFig = W.world.figuresById[winEntry.figureId];
+        if (!wFig.dead) {
+          if (wFig.cult) wFig.cult.stage = Math.min(9, (wFig.cult.stage || 3) + 1);
+          wFig.power = Math.round((wFig.power || 260) * 1.18);
+          wFig.backingBonus = (wFig.backingBonus || 0) + 10;
+        }
       }
     }
 
@@ -5019,7 +5334,8 @@
     // Assemble 8 Contenders: 6 external sect prodigies/masters + 1 wandering legend + 1 player sect champion
     const contenders = [];
     allSects.slice(0, 6).forEach((s, idx) => {
-      const fig = (s.figures && (idx % 2 === 0 ? s.figures.successor : s.figures.master)) || (s.figures && s.figures.master);
+      const topCore = (s.figures && Array.isArray(s.figures.coreDisciples)) ? s.figures.coreDisciples.find(c => c && !c.dead) : null;
+      const fig = (s.figures && (idx % 3 === 0 ? s.figures.successor : idx % 3 === 1 ? (topCore || s.figures.warMarshal || s.figures.successor) : s.figures.master)) || (s.figures && s.figures.master);
       if (fig && !fig.dead) {
         contenders.push({
           id: fig.id,
@@ -5097,6 +5413,13 @@
       if (winSect) {
         winSect.influence = (winSect.influence || 70) + 18;
         winSect.power = +((winSect.power || 1.2) + 0.12).toFixed(2);
+      }
+      if (champion.id && W.world.figuresById && W.world.figuresById[champion.id]) {
+        const cFig = W.world.figuresById[champion.id];
+        if (!cFig.dead) {
+          cFig.power = Math.round((cFig.power || 280) * 1.15);
+          cFig.backingBonus = (cFig.backingBonus || 0) + 15;
+        }
       }
     }
 
@@ -5240,10 +5563,14 @@
     // 2. PRESERVE EXACT IDENTITY: Transfer all authored/fig traits into fullNpc.h
     if (fig.h) {
       if (fig.h.name) {
+        const fam = fig.h.name.family || fig.h.name.sur || fullNpc.h.name.family || fullNpc.h.name.sur || 'หลิน';
+        const giv = fig.h.name.given || fullNpc.h.name.given || 'เจี้ยนซิน';
         fullNpc.h.name = {
-          sur: fig.h.name.sur || fullNpc.h.name.sur,
-          given: fig.h.name.given || fullNpc.h.name.given,
-          full: fig.h.name.full || (fig.h.name.sur + fig.h.name.given)
+          family: fam,
+          sur: fam,
+          given: giv,
+          style: fullNpc.h.name.style || null,
+          full: fig.h.name.full || (fam + giv)
         };
       }
       // Exact Personality transfer
@@ -5360,26 +5687,106 @@
     fullNpc.h.state.hp = CULT.hpMax(fullNpc);
     fullNpc.h.state.qi = CULT.qiMax(fullNpc);
 
-    // Equip Starter / Existing Gear
+    // Equip Starter / Existing Gear (with guaranteed weapon fallback for all weapon types)
     if (fig.weaponType && ECO && ECO.mintGear) {
       const wpnRecipes = ECO.recipesFor ? ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.weaponType === fig.weaponType) : [];
-      if (wpnRecipes.length) {
-        const pickedR = wpnRecipes.find(r => r.tier === (fullNpc.cult ? fullNpc.cult.stage : 3)) || wpnRecipes[0];
+      const allRecipes = (!wpnRecipes.length && JD && JD.RECIPES && Array.isArray(JD.RECIPES.recipes))
+        ? JD.RECIPES.recipes.filter(r => r && r.outType === 'EQUIPMENT' && r.weaponType === fig.weaponType)
+        : wpnRecipes;
+      if (allRecipes.length) {
+        const pickedR = allRecipes.find(r => r.tier === (fullNpc.cult ? fullNpc.cult.stage : 3)) || allRecipes[0];
         fullNpc.equip.WEAPON = ECO.mintGear(W, pickedR, 1.15);
-        if (fig.weaponNameTh) fullNpc.equip.WEAPON.nameTh = fig.weaponNameTh;
+        if (fullNpc.equip.WEAPON && fig.weaponNameTh) fullNpc.equip.WEAPON.nameTh = fig.weaponNameTh;
       }
     }
+    if (!fullNpc.equip.WEAPON) {
+      const stg = (fullNpc.cult && fullNpc.cult.stage) || 3;
+      const wType = fig.weaponType || 'SWORD';
+      fullNpc.equip.WEAPON = {
+        uid: 'GEAR_HYD_' + fig.id + '_' + (W.day || 360),
+        id: 'WPN_' + wType + '_' + stg,
+        nameTh: fig.weaponNameTh || ('ศาสตรา' + wType + 'ประจำกาย'),
+        slot: 'WEAPON',
+        weaponType: wType,
+        gearType: wType,
+        tier: stg,
+        quality: 1.15,
+        combatMult: +(0.12 + stg * 0.04).toFixed(3),
+        dur: 100,
+        maxDur: 100
+      };
+    }
 
+    // Patch v2.0.30: Record renegadeOrigin when a foreign sect figure defects or seeks refuge
+    const isForeignSectMember = !!(fig.sectId && fig.kind !== 'WANDERING_LEGEND' && fig.kind !== 'WANDERING_FIGURE');
+    if (opts.renegadeOrigin || opts.isRenegade || fig.role === 'renegade_successor' || (isForeignSectMember && opts.markRenegade !== false)) {
+      const rOrigin = Object.assign({
+        sectId: fig.sectId || 'S0',
+        sectNameTh: fig.sectNameTh || 'สำนักภายนอก',
+        formerPost: fig.role || 'disciple',
+        formerPostTh: fig.roleTh || 'อดีตศิษย์สำนัก',
+        bounty: opts.bounty || Math.round(260 + ((fullNpc.cult && fullNpc.cult.stage) || 3) * 120),
+        offenseType: opts.offenseType || (fig.role === 'renegade_successor' || fig.role === 'successor' ? 'SUCCESSION_DEFECTION' : 'SECT_DEFECTION'),
+        defectedDay: W.day || 360,
+        ultimatumDueDay: (W.day || 360) + (opts.ultimatumDelayDays != null ? opts.ultimatumDelayDays : 30),
+        pursuitStatus: 'PENDING_ULTIMATUM',
+        gratitude: opts.gratitude || 20
+      }, opts.renegadeOrigin || {});
+      fullNpc.renegadeOrigin = rOrigin;
+      fullNpc.h.renegadeOrigin = rOrigin;
+    }
+
+    // Deep Cross-System Link: Record biographical history, memory, and initial social/mental state
+    if (fullNpc.h) {
+      if (fullNpc.h.life && Array.isArray(fullNpc.h.life.bio)) {
+        fullNpc.h.life.bio.push({
+          age: Math.round(ageYears),
+          t: 'ลี้ภัย/สวามิภักดิ์จาก「' + (fig.sectNameTh || 'ยุทธภพภายนอก') + '」(เดิมดำรงตำแหน่ง ' + (fig.roleTh || 'ยอดฝีมือ') + ') เข้าสู่「' + (W.sect.name || 'สำนักเมฆาหยก') + '」'
+        });
+      }
+      if (fullNpc.h.mind && Array.isArray(fullNpc.h.mind.memories)) {
+        fullNpc.h.mind.memories.unshift({
+          day: W.day || 360,
+          kind: 'sect_refuge',
+          text: 'ได้รับความเมตตาจากเจ้าสำนัก「' + (W.sect.name || 'สำนักเมฆาหยก') + '」ให้ที่พักพิงหลังเหตุผันผวนจาก「' + (fig.sectNameTh || 'ภายนอก') + '」'
+        });
+      }
+    }
     // Register into World Simulation
     W.npcs.push(fullNpc);
     W.byId[fullNpc.id] = fullNpc;
 
-    // Mark exterior figure as recruited/defected
+    if (fullNpc.renegadeOrigin && fullNpc.renegadeOrigin.offenseType === 'SUCCESSION_DEFECTION' && g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.spawnFromCause) {
+      g.SECT.HEART_DEMON.spawnFromCause(W, fullNpc, 'DEFEAT_HUMILIATION', {
+        severity: 28,
+        originEventTh: 'บาดแผลในใจจากการถูกแย่งชิงบัลลังก์และต้องหนีตายออกจาก「' + (fig.sectNameTh || 'สำนักเดิม') + '」'
+      });
+    }
+
+    // Mark exterior figure as recruited/defected and clean up foreign sect/wandering slots
     fig.recruitedToPlayer = true;
     fig.residentNpcId = fullNpc.id;
+    if (fig.sectId) {
+      const homeSect = X.findSect(W, fig.sectId);
+      if (homeSect && homeSect.figures) {
+        if (Array.isArray(homeSect.figures.coreDisciples)) {
+          homeSect.figures.coreDisciples = homeSect.figures.coreDisciples.filter(cd => cd && cd.id !== fig.id);
+        }
+        ['disciplineElder', 'craftElder', 'warMarshal', 'deputy', 'successor'].forEach(rKey => {
+          if (homeSect.figures[rKey] && homeSect.figures[rKey].id === fig.id) {
+            homeSect.figures[rKey] = X.generateProceduralSectFigure(W, homeSect, rKey);
+          }
+        });
+      }
+    }
+    if (Array.isArray(W.world.wanderingFigures)) {
+      W.world.wanderingFigures = W.world.wanderingFigures.filter(wf => wf && wf.id !== fig.id);
+      W.wandering = W.world.wanderingFigures;
+    }
 
     // Record Chronicle Announcement
     const chron = X.recordChronicle(W, {
+      reportFormat: fullNpc.renegadeOrigin ? 'DISCIPLINE_EDICT' : 'PIGEON_DISPATCH',
       category: 'SUCCESSION',
       icon: '🤝',
       macroRegion: fig.macroRegion || 'CENTRAL_HEARTLAND',
@@ -5387,6 +5794,9 @@
       involvedFigures: [HC.fullName(fullNpc)],
       titleTh: 'ยอดฝีมือแปรพักตร์สวามิภักดิ์! 「' + HC.fullName(fullNpc) + '」เข้าสู่สำนัก',
       storyTh: 'หลังเหตุการณ์คลื่นลมผันผวนในยุทธภพ 「' + HC.fullName(fullNpc) + '」(' + (fig.roleTh || 'อดีตยอดฝีมือ') + 'แห่ง' + (fig.sectNameTh || 'สำนักภายนอก') + ') ผู้มีตบะ' + (fullNpc.cult ? fullNpc.cult.path + ' ขั้น ' + fullNpc.cult.stage : '') + ' และความทะเยอทะยาน (' + Math.round(figTrait(fig, 'personality.ambition')) + ') ได้เดินทางมาขอกราบคารวะเข้าพึ่งพิงสำนัก「' + (W.sect.name || 'สำนักของเรา') + '」! เจ้าสำนักพิจารณาแล้วรับเข้าเป็นศิษย์ชั้นสูงทันที!',
+      originCauseTh: fullNpc.renegadeOrigin ? ('วิกฤตชิงบัลลังก์/ความขัดแย้งภายใน「' + (fig.sectNameTh || 'สำนักเดิม') + '」บีบให้ต้องลี้ภัย') : ('ความเลื่อมใสในชื่อเสียงของสำนักเราและการชักชวนยอดฝีมือพเนจร'),
+      actorChainTh: HC.fullName(fullNpc) + ' (' + (fig.roleTh || 'ยอดฝีมือ') + ') ➔ เดินทางเข้าพึ่งใบบุญ「' + (W.sect.name || 'สำนักของเรา') + '」',
+      systemImpactTh: 'แปลงข้อมูลเป็น NPC เต็มรูปแบบใน W.npcs (รักษาแกนมนุษย์ 155 มิติ + วิชา + อาวุธเดิม) · บันทึกชีวประวัติ h.life.bio' + (fullNpc.renegadeOrigin ? ' · ตั้งเวลาสารทวงตัวจากหอวินัยสำนักเดิมและเกิดปมมารในใจรอการชี้แนะ' : ''),
       consequenceTh: HC.fullName(fullNpc) + ' เข้าร่วมเป็นสมาชิกสำนักเราอย่างสมบูรณ์ รักษาอุปนิสัยและวิชาเดิมครบถ้วน!',
       quiet: opts.quiet
     });
@@ -5401,6 +5811,1156 @@
    */
   X.recruitForeignProdigy = (W, figOrId, opts) => {
     return X.hydrateFigureToNpc(W, figOrId, opts);
+  };
+
+  /* ============================================================================
+   * Patch v2.0.30:
+   * - Pillar 1: 3-Tier Foreign Sect Cognition (Master/Deputy/Successor, Domain Elders, Core Disciples)
+   * - Pillar 2: Emergent Unaffiliated Figures (Wandering Solitary NPCs)
+   * - Pillar 3: Renegade Pursuit, Extradition Ultimatum & Vendetta Reclamation
+   * - Pillar 5: Coalition Sect War & Grand Siege Reinforcement Beacon
+   * ============================================================================ */
+
+  X.WANDERING_ARCHETYPES = Object.freeze({
+    SWORD_SEEKER: {
+      id: 'SWORD_SEEKER',
+      nameTh: 'จอมยุทธ์พเนจรแสวงหาคู่ประลอง',
+      badgeTh: '⚔️ จอมยุทธ์แสวงพ่าย',
+      icon: '⚔️',
+      defaultPath: 'XIAN',
+      defaultWeapon: 'SWORD',
+      descTh: 'ยอดฝีมือผู้แบกกระบี่ท่องไปทั่วหล้าเพื่อท้าประลองกับศิษย์เอกของแต่ละสำนัก ขัดเกลาเจตจำนงยุทธ์ให้ถึงขีดสุด'
+    },
+    HERMIT_DOCTOR: {
+      id: 'HERMIT_DOCTOR',
+      nameTh: 'หมอยาเทวดาเร้นกาย',
+      badgeTh: '⚕️ หมอยาเทวดาเร้นกาย',
+      icon: '⚕️',
+      defaultPath: 'SAGE_SUPPORT',
+      defaultWeapon: 'NEEDLE',
+      descTh: 'หมอเทวดาผู้เร้นกายเก็บสมุนไพรวิญญาณตามหุบเขา มีโอสถทิพย์รักษาอาการบาดเจ็บสาหัสและขับพิษสะสม'
+    },
+    UNORTHODOX_BANDIT: {
+      id: 'UNORTHODOX_BANDIT',
+      nameTh: 'จอมโจรคุณธรรม / ผู้บำเพ็ญนอกรีต',
+      badgeTh: '🎭 จอมโจรคุณธรรมนอกรีต',
+      icon: '🎭',
+      defaultPath: 'DEMON',
+      defaultWeapon: 'BLADE',
+      descTh: 'ผู้ฝึกตนนอกขนบที่ดักปล้นชิงคาราวานของสำนักฝ่ายอธรรมและช่วยเหลือผู้ลี้ภัย สามารถผูกมิตรแบ่งสมบัติหรือปราบปรามได้'
+    },
+    ROGUE_ARRAYIST: {
+      id: 'ROGUE_ARRAYIST',
+      nameTh: 'นักวางค่ายกลพเนจร',
+      badgeTh: '🧭 นักวางค่ายกลพเนจร',
+      icon: '🧭',
+      defaultPath: 'ARRAY_TALISMAN',
+      defaultWeapon: 'FOCUS',
+      descTh: 'ผู้เชี่ยวชาญค่ายกลโบราณที่ออกสำรวจชีพจรปฐพีทั่วหล้า มีแผ่นหยกค่ายกลขายและล่วงรู้พิกัดแดนลับโบราณแห่งใหม่'
+    }
+  });
+
+  X.generateWanderingFigure = (W, archetypeId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return null;
+    ensureFiguresMap(W.world);
+    W.world.wanderingSeq = (W.world.wanderingSeq || 0) + 1;
+    const seq = opts.seq != null ? opts.seq : W.world.wanderingSeq;
+    const rng = opts.rng || makeChildRng(W, 'wandering_fig:' + seq + ':' + (W.day || 360));
+    const archKeys = Object.keys(X.WANDERING_ARCHETYPES);
+    const chosenArchId = (archetypeId && X.WANDERING_ARCHETYPES[archetypeId]) ? archetypeId : rng.pick(archKeys);
+    const arch = X.WANDERING_ARCHETYPES[chosenArchId];
+
+    const stage = opts.stage || rng.int(3, 6);
+    const ageYears = opts.ageYears || rng.int(24, 58);
+    const sex = opts.sex || (rng.chance(0.58) ? 'M' : 'F');
+    const h = generateFastFigureCore(rng, sex);
+
+    if (chosenArchId === 'SWORD_SEEKER') {
+      h.personality.courage = clamp((h.personality.courage || 50) + 22, 68, 98);
+      h.personality.aggression = clamp((h.personality.aggression || 50) + 15, 58, 92);
+      h.values.martialPeak = clamp((h.values.martialPeak || 50) + 25, 75, 99);
+    } else if (chosenArchId === 'HERMIT_DOCTOR') {
+      h.personality.empathy = clamp((h.personality.empathy || 50) + 24, 72, 99);
+      h.personality.integrity = clamp((h.personality.integrity || 50) + 18, 65, 98);
+      h.skills.ALCHEMY = clamp(rng.int(75, 96), 72, 99);
+      h.skills.MEDICINE = clamp(rng.int(78, 98), 75, 99);
+    } else if (chosenArchId === 'UNORTHODOX_BANDIT') {
+      h.personality.courage = clamp((h.personality.courage || 50) + 18, 65, 96);
+      h.personality.caution = clamp((h.personality.caution || 50) + 16, 60, 95);
+      h.skills.stealth = clamp(rng.int(72, 95), 70, 99);
+    } else if (chosenArchId === 'ROGUE_ARRAYIST') {
+      h.intellect.comprehension = clamp((h.intellect.comprehension || 50) + 24, 74, 99);
+      h.personality.curiosity = clamp((h.personality.curiosity || 50) + 22, 70, 98);
+      h.skills.ARRAY = clamp(rng.int(76, 97), 74, 99);
+    }
+
+    const chosenPath = opts.path || (CULT && CULT.PATHS && CULT.PATHS[arch.defaultPath] ? arch.defaultPath : 'XIAN');
+    const subObjs = (CULT && CULT.PATHS && CULT.PATHS[chosenPath] && Array.isArray(CULT.PATHS[chosenPath].subPaths))
+      ? CULT.PATHS[chosenPath].subPaths
+      : [];
+    const chosenSub = opts.sub || (subObjs.length ? rng.pick(subObjs).id : 'NONE');
+    const wpnTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH'];
+    const chosenWeapon = opts.weaponType || (wpnTypes.includes(arch.defaultWeapon) ? arch.defaultWeapon : rng.pick(wpnTypes));
+    const wTypeTh = (JD && JD.MARTIAL && JD.MARTIAL.types && JD.MARTIAL.types[chosenWeapon]) || chosenWeapon;
+
+    let techs = [];
+    if (JD && JD.TECH && Array.isArray(JD.TECH.techniques)) {
+      const compat = JD.TECH.techniques.filter(t => t && (t.path === chosenPath || t.path === 'ANY') && (t.tier || 1) <= stage + 1);
+      if (compat.length) {
+        const p1 = rng.pick(compat);
+        if (p1) techs.push(p1.id);
+      }
+    }
+    const topTech = (techs[0] && CULT && CULT.tech && CULT.tech(techs[0])) || null;
+    const signatureTechNameTh = topTech ? topTech.nameTh : ('เคล็ดวิชา' + wTypeTh + 'พเนจร');
+
+    const doc = X.computeFigureDoctrine({ h });
+    const prefList = EPITHET_PREFIX_BY_PATH[chosenPath] || EPITHET_PREFIX_BY_PATH.XIAN;
+    const sufList = EPITHET_SUFFIX_BY_TRAIT[doc.id] || EPITHET_SUFFIX_BY_TRAIT.MYSTIC_SECLUSION;
+    const epithetTh = rng.pick(prefList) + rng.pick(sufList);
+    const regions = Object.keys(X.WORLD_REGIONS || { CENTRAL_HEARTLAND: 1, NORTHERN_PEAKS: 1, SOUTHERN_WATERS: 1, EASTERN_PLAINS: 1, WESTERN_BADLANDS: 1 });
+    const macroRegion = opts.macroRegion || rng.pick(regions) || 'CENTRAL_HEARTLAND';
+    const nodeKeys = Object.keys((W.world.mapTopology && W.world.mapTopology.nodes) || {});
+    const currentNodeId = opts.currentNodeId || (nodeKeys.length ? rng.pick(nodeKeys) : 'NODE_PLAYER_SECT');
+
+    const figId = 'JHWAND_' + chosenArchId + '_' + seq;
+    const fig = {
+      id: figId,
+      kind: 'WANDERING_FIGURE',
+      archetypeId: chosenArchId,
+      archetypeNameTh: arch.nameTh,
+      archetypeBadgeTh: arch.badgeTh,
+      icon: arch.icon,
+      role: 'wandering_' + chosenArchId.toLowerCase(),
+      roleTh: arch.nameTh,
+      cognitionTier: 2,
+      sectId: null,
+      sectNameTh: 'ยอดคนอิสระไร้สังกัด',
+      alignment: chosenArchId === 'HERMIT_DOCTOR' ? 'RIGHTEOUS' : 'NEUTRAL',
+      h,
+      rank: 3,
+      ageYears,
+      lifespanYears: 110 + stage * 30,
+      cult: {
+        path: chosenPath,
+        sub: chosenSub,
+        stage,
+        techs
+      },
+      weaponType: chosenWeapon,
+      weaponNameTh: 'ศาสตรา' + wTypeTh + '「' + epithetTh + '」',
+      signatureTechNameTh,
+      doctrineId: doc.id,
+      doctrineNameTh: doc.nameTh,
+      doctrineBadgeTh: doc.badgeTh,
+      epithetTh,
+      fullNameTh: figFullName({ h }),
+      titleAndNameTh: figFullName({ h }) + ' 「' + epithetTh + '」',
+      macroRegion,
+      currentNodeId,
+      visitingPlayerSect: !!opts.visitingPlayerSect,
+      affinity: opts.affinity != null ? opts.affinity : rng.int(15, 40),
+      power: Math.round(140 + Math.pow(stage, 2.2) * 42),
+      hpMax: Math.round(520 + Math.pow(stage, 2.05) * 170),
+      hp: Math.round(520 + Math.pow(stage, 2.05) * 170),
+      inv: { stones: rng.int(180, 650), pills: {}, relics: [] },
+      descTh: arch.descTh,
+      recruitedToPlayer: false,
+      dead: false
+    };
+    hideFigCaches(fig, W);
+    W.world.figuresById[fig.id] = fig;
+    return fig;
+  };
+
+  X.ensureWanderingFigures = (W, targetCount) => {
+    if (!W || !W.world) return [];
+    ensureFiguresMap(W.world);
+    if (!Array.isArray(W.world.wanderingFigures)) {
+      W.world.wanderingFigures = Array.isArray(W.wandering) ? W.wandering : [];
+    }
+    W.world.wanderingFigures = W.world.wanderingFigures.filter(f => f && !f.dead && !f.recruitedToPlayer);
+    const want = clamp(targetCount || 6, 4, 8);
+    const archKeys = Object.keys(X.WANDERING_ARCHETYPES);
+    let idx = W.world.wanderingFigures.length;
+    while (W.world.wanderingFigures.length < want) {
+      idx++;
+      const rng = makeChildRng(W, 'init_wandering_fig_' + idx + '_' + (W.day || 360));
+      const archId = archKeys[(idx - 1) % archKeys.length];
+      const wf = X.generateWanderingFigure(W, archId, { rng, seq: (W.world.wanderingSeq || 0) + idx, visitingPlayerSect: idx === 1 });
+      if (wf) W.world.wanderingFigures.push(wf);
+    }
+    if (W.world.wanderingFigures.length > 8) {
+      W.world.wanderingFigures.length = 8;
+    }
+    W.world.wanderingFigures.forEach(wf => {
+      if (wf && wf.id) {
+        hideFigCaches(wf, W);
+        W.world.figuresById[wf.id] = wf;
+      }
+    });
+    W.wandering = W.world.wanderingFigures;
+    return W.world.wanderingFigures;
+  };
+
+  X.tickWanderingFigures = (W, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    const list = X.ensureWanderingFigures(W, opts.targetCount || 6);
+    const rng = makeChildRng(W, 'tick_wandering_' + (W.day || 360));
+    const regions = Object.keys(X.WORLD_REGIONS || { CENTRAL_HEARTLAND: 1 });
+    const nodeKeys = Object.keys((W.world.mapTopology && W.world.mapTopology.nodes) || {});
+    const events = [];
+
+    list.forEach((wf, idx) => {
+      if (!wf || wf.dead || wf.recruitedToPlayer) return;
+      wf.macroRegion = rng.pick(regions) || wf.macroRegion;
+      if (nodeKeys.length) wf.currentNodeId = rng.pick(nodeKeys);
+      wf.visitingPlayerSect = (idx === ((W.day || 360) % list.length)) || rng.chance(0.28);
+      if (wf.visitingPlayerSect && events.length < 1 && !opts.noAutoEvent) {
+        let autoRes = null;
+        if (opts.autoInteractOnVisit !== false && (W.npcs || []).length > 0 && rng.chance(0.55)) {
+          autoRes = X.interactWanderingFigure(W, wf, 'INTERACT', { free: true, quiet: opts.quiet });
+        }
+        events.push({
+          day: W.day || 360,
+          figureId: wf.id,
+          archetypeId: wf.archetypeId,
+          titleAndNameTh: wf.titleAndNameTh,
+          autoEncounter: autoRes && autoRes.ok ? autoRes.action : null,
+          summaryTh: wf.icon + ' 「' + wf.titleAndNameTh + '」(' + wf.archetypeNameTh + ' ขั้น ' + wf.cult.stage + ') เดินทางมาปรากฏตัวใกล้เขตสำนักของเรา!'
+        });
+      }
+    });
+
+    W.wandering = W.world.wanderingFigures;
+    return { ok: true, count: list.length, wanderingFigures: list, events };
+  };
+
+  X.interactWanderingFigure = (W, figOrId, action, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    X.ensureWanderingFigures(W);
+    let wf = typeof figOrId === 'object' && figOrId
+      ? figOrId
+      : (W.world.wanderingFigures || []).find(f => f && f.id === figOrId) || (W.world.figuresById && W.world.figuresById[figOrId]);
+    if (!wf || wf.dead) return { ok: false, reason: 'wandering-figure-not-found' };
+
+    const act = String(action || 'INTERACT').toUpperCase();
+    const alive = (W.npcs || []).filter(n => n && !n.dead && !n.exiled).sort((a, b) => CULT.power(b) - CULT.power(a));
+    const champ = (opts.npcId && W.byId[opts.npcId]) || alive[0];
+
+    if (act === 'RECRUIT') {
+      const playerFame = (W.sect && W.sect.fame) || 0;
+      const canRecruit = opts.force || opts.helpedInCrisis || (wf.affinity || 0) >= 50 || playerFame >= 80;
+      if (!canRecruit) {
+        return { ok: false, reason: 'insufficient-affinity-or-fame', affinity: wf.affinity || 0, requiredAffinity: 50 };
+      }
+      const hyd = X.hydrateFigureToNpc(W, wf, { rank: opts.rank || 3, merit: 35, markRenegade: false, quiet: opts.quiet });
+      return Object.assign({ action: 'RECRUIT', wanderingFigure: wf }, hyd);
+    }
+
+    let titleTh = '', storyTh = '', consequenceTh = '';
+    const extra = {};
+
+    if (act === 'DUEL' || (act === 'INTERACT' && wf.archetypeId === 'SWORD_SEEKER')) {
+      const pScore = champ ? CULT.power(champ) * (opts.forceWin ? 5.0 : 1.15) : 250;
+      const wScore = (wf.power || 220) * (opts.forceLose ? 5.0 : 0.92);
+      const won = opts.forceWin ? true : opts.forceLose ? false : (pScore >= wScore);
+      wf.affinity = clamp((wf.affinity || 25) + (won ? 35 : 18), 0, 100);
+      if (champ && champ.cult) {
+        const xpGain = won ? 85 : 35;
+        CULT.gain(champ, xpGain, W, 'wandering_duel');
+        champ.merit = (champ.merit || 0) + (won ? 30 : 10);
+        extra.cultGain = xpGain;
+      }
+      if (won) W.fame(6);
+      extra.won = won;
+      extra.championId = champ ? champ.id : null;
+      titleTh = 'ประลองยุทธ์ยอดคนพเนจร: 「' + (champ ? HC.fullName(champ) : 'ศิษย์เอก') + '」ปะทะ「' + wf.titleAndNameTh + '」';
+      storyTh = wf.titleAndNameTh + ' (' + wf.archetypeNameTh + ') เดินทางมาขอท้าประลองกระบวนท่ากับ ' + (champ ? HC.fullName(champ) : 'ศิษย์เอกของเรา') + ' ทั้งสองแลกเปลี่ยนเพลงยุทธ์อย่างดุเดือด — ' + (won ? (HC.fullName(champ) + ' เป็นฝ่ายคว้าชัยอย่างสง่างาม ทำให้ ' + wf.fullNameTh + ' เลื่อมใสยิ่งนัก!') : ('การประลองสูสีคู่คี่ ต่างฝ่ายต่างได้รับความรู้แจ้งในวิถียุทธ์!'));
+      consequenceTh = (won ? 'ชื่อเสียงสำนัก +6 · ตบะศิษย์เอก +85 · ' : 'ตบะศิษย์เอก +35 · ') + 'ความสนิทของ ' + wf.fullNameTh + ' เพิ่มเป็น ' + wf.affinity + '/100';
+    } else if (act === 'HEAL_DISCIPLE' || act === 'BUY_PILL' || (act === 'INTERACT' && wf.archetypeId === 'HERMIT_DOCTOR')) {
+      const fee = opts.free ? 0 : 120;
+      if (!opts.free && W.sect.stones < fee) return { ok: false, reason: 'insufficient-stones', required: fee };
+      if (fee > 0 && ECO && ECO.pay) ECO.pay(W, fee, 'ค่ารักษาและโอสถทิพย์จากหมอยาเทวดาเร้นกาย');
+      const patient = (opts.npcId && W.byId[opts.npcId]) || alive.find(n => (n.inj && n.inj.length) || (n.cult && n.cult.toxic > 0) || (n.h && n.h.state && n.h.state.hp < CULT.hpMax(n))) || champ;
+      if (patient) {
+        patient.inj = [];
+        if (patient.h && patient.h.state) {
+          patient.h.state.hp = CULT.hpMax(patient);
+          patient.h.state.qi = CULT.qiMax(patient);
+          patient.h.state.heartDemon = Math.max(0, (patient.h.state.heartDemon || 0) - 25);
+        }
+        if (patient.cult) {
+          patient.cult.toxic = 0;
+          CULT.gain(patient, 45, W, 'hermit_doctor_elixir');
+        }
+        extra.healedNpcId = patient.id;
+      }
+      wf.affinity = clamp((wf.affinity || 30) + 32, 0, 100);
+      titleTh = 'หมอยาเทวดาเร้นกาย「' + wf.titleAndNameTh + '」ปรุงโอสถทิพย์ช่วยรักษาศิษย์สำนัก!';
+      storyTh = 'คณะศิษย์ได้พบ「' + wf.titleAndNameTh + '」เร้นกายเก็บสมุนไพรอยู่กลางหุบเขา จึงมอบศิลาวิญญาณแลกเปลี่ยนโอสถทิพย์และรับการฝังเข็มทองชำระพิษสะสมให้แก่ ' + (patient ? HC.fullName(patient) : 'ศิษย์ในสำนัก') + ' จนหายขาดเป็นปลิดทิ้ง!';
+      consequenceTh = 'รักษาอาการบาดเจ็บและขับพิษโอสถครบถ้วน · ไมตรีของ ' + wf.fullNameTh + ' เพิ่มเป็น ' + wf.affinity + '/100';
+    } else if (act === 'BEFRIEND' || act === 'SUPPRESS' || (act === 'INTERACT' && wf.archetypeId === 'UNORTHODOX_BANDIT')) {
+      if (act === 'SUPPRESS') {
+        const bountyStones = 260;
+        if (ECO && ECO.earn) ECO.earn(W, bountyStones, 'รางวัลปราบปรามผู้บำเพ็ญนอกรีต');
+        W.fame(8);
+        wf.dead = true;
+        W.world.wanderingFigures = (W.world.wanderingFigures || []).filter(x => x && x.id !== wf.id);
+        W.wandering = W.world.wanderingFigures;
+        extra.stonesEarned = bountyStones;
+        titleTh = 'ปราบปรามผู้บำเพ็ญนอกรีต「' + wf.titleAndNameTh + '」สร้างชื่อเสียงขจรขจาย!';
+        storyTh = (champ ? HC.fullName(champ) : 'ยอดฝีมือสำนักเรา') + ' ออกสกัดกั้นและปราบปราม「' + wf.titleAndNameTh + '」ยึดทรัพย์สินที่ได้จากการปล้นชิงเข้าคลังสำนัก!';
+        consequenceTh = 'คลังสำนัก +' + bountyStones + ' ศิลาวิญญาณ · ชื่อเสียงสำนัก +8';
+      } else {
+        const sharedStones = 220;
+        if (ECO && ECO.earn) ECO.earn(W, sharedStones, 'ส่วนแบ่งคาราวานจากจอมโจรคุณธรรม');
+        wf.affinity = clamp((wf.affinity || 30) + 35, 0, 100);
+        extra.stonesEarned = sharedStones;
+        titleTh = 'ผูกมิตรจอมโจรคุณธรรม「' + wf.titleAndNameTh + '」แบ่งปันเสบียงและศิลาวิญญาณ!';
+        storyTh = 'สำนักเราให้ที่พักพิงและร่วมดื่มสุรากับ「' + wf.titleAndNameTh + '」จอมโจรคุณธรรมผู้ปล้นคนชั่วช่วยคนยาก จึงได้รับส่วนแบ่งศิลาวิญญาณที่ยึดมาจากคาราวานสำนักอธรรมจำนวน ' + sharedStones + ' ก้อน!';
+        consequenceTh = 'คลังสำนัก +' + sharedStones + ' ศิลาวิญญาณ · ไมตรีของ ' + wf.fullNameTh + ' เพิ่มเป็น ' + wf.affinity + '/100';
+      }
+    } else {
+      // ROGUE_ARRAYIST: BUY_ARRAY or REVEAL_SECRET_REALM
+      const sr = X.spawnSecretRealm ? X.spawnSecretRealm(W, null, { quiet: true }) : null;
+      wf.affinity = clamp((wf.affinity || 30) + 35, 0, 100);
+      if (ECO && ECO.add) ECO.add(W, 'CAT_PRIMORDIAL_METAL', 2);
+      extra.secretRealm = sr;
+      titleTh = 'นักวางค่ายกลพเนจร「' + wf.titleAndNameTh + '」มอบแผ่นหยกค่ายกลและเปิดเผยพิกัดแดนลับ!';
+      storyTh = '「' + wf.titleAndNameTh + '」ตรวจสอบชีพจรปฐพีรอบสำนักและมอบแผ่นหยกค่ายกลโบราณพร้อมบอกพิกัดของ「' + (sr ? sr.nameTh : 'แดนลับโบราณ') + '」ที่เพิ่งคลายผนึกแก่สำนักเรา!';
+      consequenceTh = 'เปิดพิกัดแดนลับ「' + (sr ? sr.nameTh : 'แดนลับโบราณ') + '」· ไมตรีเพิ่มเป็น ' + wf.affinity + '/100';
+    }
+
+    const chron = X.recordChronicle(W, {
+      category: 'VISITOR',
+      icon: wf.icon || '🎐',
+      macroRegion: wf.macroRegion || 'CENTRAL_HEARTLAND',
+      involvedFigures: [wf.titleAndNameTh, champ && HC.fullName(champ)].filter(Boolean),
+      titleTh,
+      storyTh,
+      consequenceTh,
+      quiet: opts.quiet
+    });
+
+    return Object.assign({ ok: true, action: act, wanderingFigure: wf, affinity: wf.affinity, chronicle: chron }, extra);
+  };
+
+  X.recruitWanderingFigure = (W, figOrId, opts) => {
+    return X.interactWanderingFigure(W, figOrId, 'RECRUIT', opts);
+  };
+
+  /* ---------- Pillar 1 & 3: Foreign Sect 3-Tier Cognition, Craft Trade, Assassin Pursuit & Vendetta Reclamation ---------- */
+  X.exchangeWithCraftElder = (W, sectOrId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world || !W.sect) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+    const s = X.findSect(W, sectOrId) || (W.world.allSects && W.world.allSects[0]);
+    if (!s || !s.figures || !s.figures.craftElder || s.figures.craftElder.dead) {
+      return { ok: false, reason: 'craft-elder-unavailable' };
+    }
+    if ((s.attitude || 0) < -20 && !opts.force) {
+      return { ok: false, reason: 'hostile-sect', attitude: s.attitude || 0 };
+    }
+    const cost = opts.free ? 0 : (opts.cost || 150);
+    if (!opts.free && (W.sect.stones || 0) < cost) {
+      return { ok: false, reason: 'insufficient-stones', required: cost };
+    }
+    if (cost > 0 && ECO && ECO.pay) {
+      ECO.pay(W, cost, 'แลกเปลี่ยนโอสถและแร่ปราณกับผู้อาวุโสหลอมสร้างแห่ง「' + s.nameTh + '」');
+    }
+    const ce = s.figures.craftElder;
+    const alch = (ce.h && ce.h.skills && ce.h.skills.ALCHEMY) || 80;
+    const forg = (ce.h && ce.h.skills && ce.h.skills.FORGING) || 80;
+    const rewardItems = [];
+    if (alch >= forg) {
+      if (ECO && ECO.add) {
+        ECO.add(W, 'P:BASIC_QI', 3);
+        ECO.add(W, 'herb', 6);
+      }
+      rewardItems.push('โอสถรวบรวมปราณ ×3', 'สมุนไพรปราณ ×6');
+    } else {
+      if (ECO && ECO.add) {
+        ECO.add(W, 'ore', 6);
+        ECO.add(W, 'CAT_PRIMORDIAL_METAL', 1);
+      }
+      rewardItems.push('แร่เหล็กปราณ ×6', 'สื่อนำทองคำบรรพกาล ×1');
+    }
+    s.attitude = clamp((s.attitude || 0) + 6, -100, 100);
+    // Cross-System Hook: Friendly Craft Elder shares a Feng Shui Elemental Leyline Core
+    if ((s.attitude || 0) >= 35 && g.SECT && g.SECT.FENG_SHUI && g.SECT.FENG_SHUI.ensure) {
+      const fs = g.SECT.FENG_SHUI.ensure(W);
+      if (fs && fs.leylineCoresStock) {
+        const elKey = alch >= forg ? 'WOOD' : 'FIRE';
+        fs.leylineCoresStock[elKey] = (fs.leylineCoresStock[elKey] || 0) + 1;
+        rewardItems.push('แก่นชีพจรฮวงจุ้ยธาตุ' + (elKey === 'WOOD' ? 'ไม้' : 'ไฟ') + ' ×1');
+      }
+    }
+    const chron = X.recordChronicle(W, {
+      reportFormat: 'PIGEON_DISPATCH',
+      category: 'FACTION',
+      icon: '⚗️',
+      macroRegion: s.macroRegion || 'CENTRAL_HEARTLAND',
+      involvedSects: [W.sect.name, s.nameTh],
+      involvedFigures: [ce.titleAndNameTh],
+      titleTh: 'แลกเปลี่ยนศาสตร์หลอมสร้างกับ「' + ce.titleAndNameTh + '」แห่ง「' + s.nameTh + '」',
+      storyTh: 'สำนักเราส่งทูตการค้าไปแลกเปลี่ยนวัตถุดิบและตำรับหลอมสร้างกับ「' + ce.titleAndNameTh + '」(ผู้อาวุโสหอโอสถ/หลอมสร้างแห่ง「' + s.nameTh + '」) ได้รับ ' + rewardItems.join(' และ ') + ' เข้าสู่คลังสำนัก!',
+      originCauseTh: 'ผู้อาวุโสสายหลอมสร้าง (Tier 2: ' + ce.fullNameTh + ' · ทักษะปรุงยา ' + Math.round(alch) + '/ตีเหล็ก ' + Math.round(forg) + ') เปิดช่องทางแลกเปลี่ยนผลผลิตส่วนเกินระหว่างสำนัก',
+      actorChainTh: (W.sect.name || 'สำนักเรา') + ' ➔ เจรจาแลกเปลี่ยนกับ ' + ce.titleAndNameTh + ' (' + s.nameTh + ')',
+      systemImpactTh: 'เชื่อมโยงระบบการทูตสำนักนอก (Tier 2 Craft Elder) ➔ คลังวัตถุดิบ/โอสถสำนัก (ECO) ➔ ระบบแก่นชีพจรฮวงจุ้ย (SECT.FENG_SHUI)',
+      consequenceTh: 'ได้รับ ' + rewardItems.join(' · ') + ' · ไมตรีกับ ' + s.nameTh + ' +6',
+      quiet: opts.quiet
+    });
+    return { ok: true, sect: s, craftElder: ce, cost, rewardItems, attitude: s.attitude, chronicle: chron };
+  };
+
+  X.triggerRenegadePursuitClash = (W, sectOrId, renegadeNpcOrId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world || !W.sect) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+    const s = X.findSect(W, sectOrId) || (W.world.allSects && W.world.allSects.find(x => x && x.assassinThreat));
+    if (!s) return { ok: false, reason: 'pursuing-sect-not-found' };
+    const npc = typeof renegadeNpcOrId === 'object' && renegadeNpcOrId
+      ? renegadeNpcOrId
+      : (renegadeNpcOrId && W.byId && W.byId[renegadeNpcOrId]) || (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.renegadeOrigin && n.renegadeOrigin.sectId === s.id);
+    if (!npc || npc.dead || npc.exiled) return { ok: false, reason: 'renegade-not-found' };
+
+    const discElder = (s.figures && s.figures.disciplineElder && !s.figures.disciplineElder.dead)
+      ? s.figures.disciplineElder
+      : (s.figures && s.figures.master);
+    const squadPower = Math.round(((discElder && discElder.power) || 340) * 0.95);
+    const guards = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away && (n.id === npc.id || ['guard', 'commander', 'discipline', 'spymaster'].includes(n.post) || (W.sect.guardRoster && W.sect.guardRoster.includes(n.id)))).slice(0, 4);
+    if (!guards.includes(npc)) guards.unshift(npc);
+    const defPower = Math.round(guards.reduce((sum, gNpc) => sum + CULT.power(gNpc), 0) * 1.15);
+    const repelled = opts.forceBreach ? false : (opts.forceRepel || defPower >= squadPower * 0.75);
+
+    s.assassinThreat = false;
+    s.lastPursuitClashDay = W.day || 360;
+
+    if (repelled) {
+      guards.forEach(gNpc => {
+        if (gNpc.cult) CULT.gain(gNpc, 35, W, 'repel_assassin_squad');
+        gNpc.merit = (gNpc.merit || 0) + 15;
+      });
+      W.fame(4);
+    } else if (g.AI && g.AI.injure) {
+      g.AI.injure(W, npc, 2, 'ถูกหน่วยล่าสังหารหอวินัยของ' + s.nameTh + 'ลอบโจมตี');
+    }
+
+    const elderName = discElder ? discElder.titleAndNameTh : ('ผู้อาวุโสหอวินัยแห่ง' + s.nameTh);
+    const titleTh = repelled
+      ? ('สกัดกั้นหน่วยล่าสังหารหอวินัย! ปกป้อง「' + HC.fullName(npc) + '」จากเงื้อมมือ「' + s.nameTh + '」สำเร็จ!')
+      : ('หน่วยล่าสังหารของ「' + s.nameTh + '」ลอบบุกทำร้าย「' + HC.fullName(npc) + '」กลางดึก!');
+    const storyTh = '「' + elderName + '」ส่งหน่วยมือสังหารหอวินัยลอบฝ่าความมืดเข้ามาหมายปลิดชีพผู้ลี้ภัย「' + HC.fullName(npc) + '」ถึงในเขตสำนัก! ' +
+      (repelled
+        ? ('เวรยามและยอดฝีมือสำนักเราร่วมมือกับ「' + HC.fullName(npc) + '」(กำลังป้องกัน ' + defPower + ' ต่อ ' + squadPower + ') ตีโต้หน่วยล่าสังหารจนแตกพ่ายหนีกลับไป!')
+        : ('แม้เวรยามจะเข้าขวางกั้น แต่คมกระบี่ของมือสังหารได้ฝากบาดแผลให้แก่「' + HC.fullName(npc) + '」ก่อนจะถอยหนีไป!'));
+    const consequenceTh = repelled
+      ? (HC.fullName(npc) + ' และผู้พิทักษ์ได้รับตบะ +35 · ชื่อเสียงสำนัก +4 · ภัยลอบสังหารสงบลง')
+      : (HC.fullName(npc) + ' ได้รับบาดเจ็บปานกลาง · สำนักเพิ่มการเฝ้าระวัง');
+
+    const chron = X.recordChronicle(W, {
+      category: 'BATTLE',
+      icon: repelled ? '🛡️' : '🗡️',
+      macroRegion: s.macroRegion || 'CENTRAL_HEARTLAND',
+      involvedSects: [W.sect.name, s.nameTh],
+      involvedFigures: [HC.fullName(npc), elderName],
+      titleTh,
+      storyTh,
+      combatBreakdownTh: 'กำลังป้องกันสำนัก (' + defPower + ') ปะทะ หน่วยล่าสังหารหอวินัย (' + squadPower + ')',
+      consequenceTh,
+      quiet: opts.quiet
+    });
+
+    return { ok: true, repelled, defPower, squadPower, renegadeNpc: npc, sect: s, chronicle: chron };
+  };
+
+  X.tickForeignSectCognitionTiers = (W, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+    const all = W.world.allSects || [];
+    const tierActions = [];
+
+    // 0. Idle Auto-Resolution for expired extradition ultimatums based on Player Sect Master's Human Core traits
+    if (Array.isArray(W.world.extraditionUltimatums)) {
+      W.world.extraditionUltimatums.forEach(ult => {
+        if (!ult || ult.status !== 'PENDING') return;
+        if ((W.day || 360) >= (ult.expiresDay || 0) || opts.autoResolveExpiredUltimatums) {
+          const m = W.sect && W.sect.masterId && W.byId ? W.byId[W.sect.masterId] : null;
+          const mInt = (m && HC && HC.eff) ? HC.eff(m, 'personality.integrity') : 65;
+          const mCour = (m && HC && HC.eff) ? HC.eff(m, 'personality.courage') : 65;
+          const mCaut = (m && HC && HC.eff) ? HC.eff(m, 'personality.caution') : 50;
+          let autoChoice = 'DEFY_PROTECT';
+          if (mInt + mCour >= 110) {
+            autoChoice = 'DEFY_PROTECT';
+          } else if (W.sect && (W.sect.stones || 0) >= (ult.indemnityStones || 350) * 1.25 && mCaut >= 48) {
+            autoChoice = 'INDEMNITY_SETTLEMENT';
+          } else if (mInt < 42 && mCaut >= 65) {
+            autoChoice = 'EXTRADITE_RENEGADE';
+          }
+          const autoRes = X.resolveExtraditionUltimatum(W, ult, autoChoice, { quiet: opts.quiet });
+          if (autoRes && autoRes.ok) {
+            tierActions.push({ tier: 1, role: 'playerMasterAuto', sectId: ult.sectId, action: 'AUTO_RESOLVE_ULTIMATUM', choice: autoChoice, ultimatum: ult });
+          }
+        }
+      });
+    }
+
+    all.forEach(s => {
+      if (!s || !s.figures) return;
+      const figs = s.figures;
+      // Tier 1: Master / Deputy / Successor strategic posture
+      if (figs.master && !figs.master.dead) {
+        s.masterDoctrineId = figs.master.doctrineId;
+        s.masterDoctrineNameTh = figs.master.doctrineNameTh;
+      }
+      // Tier 2: Discipline Elder checks for renegades in player sect OR dispatches assassin squad if defied!
+      if (figs.disciplineElder && !figs.disciplineElder.dead) {
+        const renegadeInPlayer = (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.renegadeOrigin && n.renegadeOrigin.sectId === s.id && n.renegadeOrigin.pursuitStatus === 'PENDING_ULTIMATUM');
+        if (renegadeInPlayer && ((W.day || 360) >= (renegadeInPlayer.renegadeOrigin.ultimatumDueDay || 0) || opts.forcePursuitCheck)) {
+          const ultRes = X.issueExtraditionUltimatum(W, renegadeInPlayer, { quiet: opts.quiet });
+          if (ultRes && ultRes.ok) tierActions.push({ tier: 2, role: 'disciplineElder', sectId: s.id, action: 'ISSUE_EXTRADITION_ULTIMATUM', ultimatum: ultRes.ultimatum });
+        } else if (s.assassinThreat) {
+          const protectedRenegade = (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.renegadeOrigin && n.renegadeOrigin.sectId === s.id && n.renegadeOrigin.pursuitStatus === 'PROTECTED');
+          if (protectedRenegade) {
+            const clashRes = X.triggerRenegadePursuitClash(W, s, protectedRenegade, { quiet: opts.quiet });
+            if (clashRes && clashRes.ok) tierActions.push({ tier: 2, role: 'disciplineElder', sectId: s.id, action: 'ASSASSIN_PURSUIT_CLASH', repelled: clashRes.repelled });
+          } else {
+            s.assassinThreat = false;
+          }
+        }
+      }
+      // Tier 2: Craft Elder updates specialty alchemy/forge trade readiness
+      if (figs.craftElder && !figs.craftElder.dead) {
+        s.craftSurplusOffer = {
+          elderId: figs.craftElder.id,
+          elderNameTh: figs.craftElder.titleAndNameTh,
+          alchemySkill: (figs.craftElder.h && figs.craftElder.h.skills && figs.craftElder.h.skills.ALCHEMY) || 80,
+          forgingSkill: (figs.craftElder.h && figs.craftElder.h.skills && figs.craftElder.h.skills.FORGING) || 80,
+          bonusTradeMult: 1.15
+        };
+      }
+      // Tier 2: War Marshal updates coalition & patrol readiness
+      if (figs.warMarshal && !figs.warMarshal.dead) {
+        s.marshalReadiness = {
+          marshalId: figs.warMarshal.id,
+          marshalNameTh: figs.warMarshal.titleAndNameTh,
+          combatPower: figs.warMarshal.power || 400,
+          readyForCoalition: (s.attitude || 0) >= 60 || !!s.eternalSwornAlly
+        };
+      }
+      // Tier 3: Core Disciples incremental training
+      if (Array.isArray(figs.coreDisciples)) {
+        figs.coreDisciples.forEach(cd => {
+          if (cd && !cd.dead) cd.power = Math.round((cd.power || 180) * 1.01);
+        });
+      }
+    });
+
+    // Annual/Monthly Eternal Sworn Ally Tribute
+    all.filter(s => s && s.eternalSwornAlly).forEach(s => {
+      if (opts.collectSwornTribute || ((W.day || 360) % 360 === 0)) {
+        const trib = s.annualTributeStones || 450;
+        if (ECO && ECO.earn) ECO.earn(W, trib, 'บรรณาการพันธมิตรร่วมสาบานนิรันดร์จาก「' + s.nameTh + '」');
+        tierActions.push({ tier: 1, role: 'master', sectId: s.id, action: 'SWORN_ALLY_TRIBUTE', stones: trib });
+      }
+    });
+
+    return { ok: true, tierActions };
+  };
+
+  X.issueExtraditionUltimatum = (W, npcOrId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+    if (!Array.isArray(W.world.extraditionUltimatums)) W.world.extraditionUltimatums = [];
+
+    const npc = typeof npcOrId === 'object' && npcOrId
+      ? npcOrId
+      : (W.byId && W.byId[npcOrId]) || (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.renegadeOrigin);
+    if (!npc || npc.dead || npc.exiled) return { ok: false, reason: 'renegade-npc-not-found' };
+
+    const ro = npc.renegadeOrigin || (npc.h && npc.h.renegadeOrigin);
+    if (!ro) return { ok: false, reason: 'not-a-renegade' };
+
+    const existing = W.world.extraditionUltimatums.find(u => u && u.npcId === npc.id && u.status === 'PENDING');
+    if (existing && !opts.force) return { ok: true, ultimatum: existing, alreadyPending: true };
+
+    const s = X.findSect(W, ro.sectId) || (W.world.allSects && W.world.allSects[0]);
+    const discElder = (s && s.figures && s.figures.disciplineElder) || (s && s.figures && s.figures.master);
+    const bounty = ro.bounty || Math.round(280 + ((npc.cult && npc.cult.stage) || 3) * 120);
+    const indemnityStones = Math.round(bounty * 1.1);
+
+    W.world.ultimatumSeq = (W.world.ultimatumSeq || 0) + 1;
+    const ult = {
+      id: 'ULT_' + W.world.ultimatumSeq + '_' + (W.day || 360),
+      day: W.day || 360,
+      expiresDay: (W.day || 360) + 30,
+      npcId: npc.id,
+      npcNameTh: HC.fullName(npc),
+      formerPost: ro.formerPost || 'successor',
+      formerPostTh: ro.formerPostTh || 'อดีตศิษย์สืบทอด',
+      offenseType: ro.offenseType || 'SUCCESSION_DEFECTION',
+      sectId: s ? s.id : ro.sectId,
+      sectNameTh: s ? s.nameTh : ro.sectNameTh,
+      disciplineElderId: discElder ? discElder.id : null,
+      disciplineElderNameTh: discElder ? discElder.titleAndNameTh : 'ผู้อาวุโสหอวินัย',
+      bounty,
+      indemnityStones,
+      status: 'PENDING',
+      titleTh: 'สารทวงตัวผู้ลี้ภัยจาก「' + (s ? s.nameTh : ro.sectNameTh) + '」: ทวงตัว「' + HC.fullName(npc) + '」!',
+      descTh: (discElder ? discElder.titleAndNameTh : 'ผู้อาวุโสหอวินัย') + ' แห่ง「' + (s ? s.nameTh : ro.sectNameTh) + '」ส่งทูตถือสารคำขาดมาถึงหน้าด่าน เรียกร้องให้สำนักเราส่งตัว「' + HC.fullName(npc) + '」(' + (ro.formerPostTh || 'ผู้ลี้ภัย') + ') กลับไปรับโทษตามกฎหอวินัย มิฉะนั้นจะถือเป็นศัตรูคู่แค้น!'
+    };
+    ro.pursuitStatus = 'ULTIMATUM_ISSUED';
+    ro.activeUltimatumId = ult.id;
+    npc.renegadeOrigin = ro;
+    if (npc.h) npc.h.renegadeOrigin = ro;
+
+    W.world.extraditionUltimatums.unshift(ult);
+    if (W.world.extraditionUltimatums.length > 25) W.world.extraditionUltimatums.length = 25;
+
+    const chron = X.recordChronicle(W, {
+      category: 'SUCCESSION',
+      icon: '📜',
+      macroRegion: (s && s.macroRegion) || 'CENTRAL_HEARTLAND',
+      involvedSects: [s ? s.nameTh : ro.sectNameTh, W.sect.name],
+      involvedFigures: [discElder ? discElder.titleAndNameTh : 'ผู้อาวุโสหอวินัย', HC.fullName(npc)],
+      titleTh: ult.titleTh,
+      storyTh: ult.descTh,
+      consequenceTh: 'รอการตัดสินใจของเจ้าสำนัก: ปกป้องศิษย์ / เจรจาไถ่ตัวด้วยศิลาวิญญาณ / ส่งตัวคืนสำนักเดิม',
+      quiet: opts.quiet
+    });
+
+    return { ok: true, ultimatum: ult, chronicle: chron };
+  };
+
+  X.resolveExtraditionUltimatum = (W, ultimatumOrNpcId, choice, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    if (!Array.isArray(W.world.extraditionUltimatums)) W.world.extraditionUltimatums = [];
+
+    let ult = typeof ultimatumOrNpcId === 'object' && ultimatumOrNpcId
+      ? ultimatumOrNpcId
+      : W.world.extraditionUltimatums.find(u => u && (u.id === ultimatumOrNpcId || u.npcId === ultimatumOrNpcId) && u.status === 'PENDING');
+    if (!ult) {
+      const candidateNpc = (W.byId && W.byId[ultimatumOrNpcId]) || (W.npcs || []).find(n => n && !n.dead && n.renegadeOrigin);
+      if (candidateNpc) {
+        const gen = X.issueExtraditionUltimatum(W, candidateNpc, { quiet: true, force: true });
+        ult = gen && gen.ultimatum;
+      }
+    }
+    if (!ult) return { ok: false, reason: 'ultimatum-not-found' };
+
+    const npc = W.byId && W.byId[ult.npcId];
+    const s = X.findSect(W, ult.sectId);
+    const act = String(choice || 'DEFY_PROTECT').toUpperCase();
+    const ro = (npc && (npc.renegadeOrigin || (npc.h && npc.h.renegadeOrigin))) || {};
+
+    let titleTh = '', storyTh = '', consequenceTh = '';
+    let attitudeDelta = 0;
+
+    if (act === 'DEFY_PROTECT' || act === 'PROTECT') {
+      ult.status = 'PROTECTED';
+      ult.resolvedChoice = 'DEFY_PROTECT';
+      ult.resolvedDay = W.day || 360;
+      if (npc) {
+        ro.gratitude = (ro.gratitude || 0) + 50;
+        ro.pursuitStatus = 'PROTECTED';
+        ro.vendettaUnlocked = (npc.cult && npc.cult.stage >= 5);
+        npc.renegadeOrigin = ro;
+        npc.gratitude = (npc.gratitude || 0) + 50;
+        npc.sat = 100;
+        if (npc.h) {
+          npc.h.renegadeOrigin = ro;
+          if (npc.h.personality) npc.h.personality.loyalty = 100;
+          if (npc.h.state) {
+            npc.h.state.mood = 100;
+            npc.h.state.heartDemon = Math.max(0, (npc.h.state.heartDemon || 0) - 20);
+          }
+          if (npc.h.life && Array.isArray(npc.h.life.bio)) {
+            npc.h.life.bio.push({
+              age: HC.ageYears ? Math.round(HC.ageYears(npc)) : 22,
+              t: 'สำนักฉีกสารคำขาดของ「' + ult.sectNameTh + '」ออกปกป้องด้วยชีวิต สาบานภักดีชั่วนิรันดร์'
+            });
+          }
+          if (npc.h.mind && Array.isArray(npc.h.mind.memories)) {
+            npc.h.mind.memories.unshift({
+              day: W.day || 360,
+              kind: 'protected_from_extradition',
+              text: 'เจ้าสำนักฉีกสารคำขาดของ「' + ult.sectNameTh + '」ต่อหน้าทูตเพื่อปกป้องข้า บุญคุณนี้ต้องทดแทนด้วยชีวิต!'
+            });
+          }
+        }
+        if (W.sect && W.sect.masterId && g.SECT && g.SECT.rel) {
+          const rM = g.SECT.rel(npc, W.sect.masterId);
+          rM.a = clamp((rM.a || 20) + 35, -100, 100);
+          rM.r = clamp((rM.r || 25) + 40, -100, 100);
+          rM.g = clamp((rM.g || 20) + 50, 0, 100);
+          rM.bond = 'ผู้มีพระคุณคุ้มกะลาหัว';
+        }
+      }
+      // Righteous disciples in the sect feel proud of the Master's courage
+      (W.npcs || []).forEach(n => {
+        if (n && !n.dead && !n.exiled && n !== npc && HC.eff(n, 'personality.integrity') >= 58) {
+          n.sat = clamp((n.sat || 70) + 4, 0, 100);
+          if (n.h && n.h.state) n.h.state.mood = clamp((n.h.state.mood || 60) + 5, 0, 100);
+        }
+      });
+      attitudeDelta = opts.attitudeDrop != null ? -Math.abs(opts.attitudeDrop) : -50;
+      if (s) {
+        s.attitude = clamp((s.attitude || 0) + attitudeDelta, -100, 100);
+        s.treaty = 'RIVAL_FEUD';
+        s.assassinThreat = true;
+      }
+      W.fame(5);
+      titleTh = 'ฉีกสารทวงตัว! 「' + W.sect.name + '」ประกาศปกป้อง「' + ult.npcNameTh + '」ด้วยศักดิ์ศรี!';
+      storyTh = 'เจ้าสำนักฉีกสารคำขาดของ「' + ult.disciplineElderNameTh + '」แห่ง「' + ult.sectNameTh + '」ต่อหน้าทูต ประกาศก้องว่าผู้ที่ก้าวเข้าสู่ประตูสำนักเราแล้วคือคนของเรา! 「' + ult.npcNameTh + '」คุกเข่าโขกศีรษะด้วยความซาบซึ้งใจอย่างสุดซึ้ง (ความซาบซึ้ง +50 · ความภักดีเต็ม 100) ขณะที่「' + ult.sectNameTh + '」โกรธเกรี้ยวตัดสัมพันธ์ทางการค้าและส่งมือสังหารออกตามล่า!';
+      consequenceTh = ult.npcNameTh + ' ซาบซึ้งใจ +50 (ภักดี 100%) · ความสัมพันธ์กับ ' + ult.sectNameTh + ' ลดลง ' + attitudeDelta + ' (ปลดล็อกเส้นทางศึกทวงคืนสำนักเดิมเมื่อตบะถึงขั้น 5)';
+    } else if (act === 'INDEMNITY_SETTLEMENT' || act === 'SETTLE') {
+      const cost = opts.free ? 0 : (ult.indemnityStones || 320);
+      if (!opts.free && W.sect.stones < cost) {
+        return { ok: false, reason: 'insufficient-stones', required: cost };
+      }
+      if (cost > 0 && ECO && ECO.pay) {
+        ECO.pay(W, cost, 'ค่าไถ่ถอนข้อกล่าวหาให้แก่「' + ult.npcNameTh + '」ต่อ' + ult.sectNameTh);
+      }
+      ult.status = 'SETTLED';
+      ult.resolvedChoice = 'INDEMNITY_SETTLEMENT';
+      ult.resolvedDay = W.day || 360;
+      if (npc) {
+        ro.gratitude = (ro.gratitude || 0) + 25;
+        ro.bounty = 0;
+        ro.pursuitStatus = 'SETTLED';
+        npc.renegadeOrigin = ro;
+        if (npc.h) npc.h.renegadeOrigin = ro;
+        npc.sat = clamp((npc.sat || 70) + 15, 0, 100);
+      }
+      attitudeDelta = 5;
+      if (s) s.attitude = clamp((s.attitude || 0) + attitudeDelta, -100, 100);
+      titleTh = 'เจรจาประนีประนอมสำเร็จ: ไถ่ถอนข้อกล่าวหาของ「' + ult.npcNameTh + '」ด้วยศิลาวิญญาณ!';
+      storyTh = 'สำนักเรามอบศิลาวิญญาณ ' + cost + ' ก้อนแก่ทูตของ「' + ult.sectNameTh + '」เพื่อชดเชยความเสียหายและไถ่ตัว「' + ult.npcNameTh + '」อย่างเป็นทางการ หอวินัยของสำนักเดิมจึงยอมถอนหมายจับและยุติการตามล่า';
+      consequenceTh = 'จ่าย ' + cost + ' ศิลาวิญญาณ · ' + ult.npcNameTh + ' พ้นข้อกล่าวหาโดยความสัมพันธ์ระหว่างสำนักไม่ตกต่ำ';
+    } else if (act === 'EXTRADITE_RENEGADE' || act === 'EXTRADITE') {
+      ult.status = 'EXTRADITED';
+      ult.resolvedChoice = 'EXTRADITE_RENEGADE';
+      ult.resolvedDay = W.day || 360;
+      if (npc) {
+        ro.pursuitStatus = 'EXTRADITED';
+        npc.exiled = true;
+        npc.extradited = true;
+        const idx = W.npcs.indexOf(npc);
+        if (idx >= 0) W.npcs.splice(idx, 1);
+        if (Array.isArray(W.gone)) W.gone.push(npc.id);
+      }
+      attitudeDelta = 25;
+      if (s) s.attitude = clamp((s.attitude || 0) + attitudeDelta, -100, 100);
+      W.fame(-10);
+      (W.npcs || []).forEach(n => {
+        if (n && !n.dead && !n.exiled) {
+          n.sat = clamp((n.sat || 65) - 12, 0, 100);
+          if (n.h && n.h.state) n.h.state.mood = clamp((n.h.state.mood || 55) - 10, 0, 100);
+        }
+      });
+      titleTh = 'ส่งตัวผู้ลี้ภัยคืนสำนักเดิม: ส่ง「' + ult.npcNameTh + '」กลับไปรับโทษที่「' + ult.sectNameTh + '」';
+      storyTh = 'เพื่อหลีกเลี่ยงสงครามข้ามสำนัก เจ้าสำนักตัดสินใจคุมตัว「' + ult.npcNameTh + '」ส่งมอบให้แก่ทูตหอวินัยของ「' + ult.sectNameTh + '」แม้ความสัมพันธ์กับสำนักเดิมจะดีขึ้น (+25) แต่ศิษย์ทั้งสำนักต่างรู้สึกสะเทือนใจและสูญเสียขวัญกำลังใจอย่างหนัก!';
+      consequenceTh = 'ความสัมพันธ์กับ ' + ult.sectNameTh + ' +25 · ชื่อเสียงคุณธรรมสำนัก -10 · ขวัญกำลังใจศิษย์ในสำนักลดลง -12';
+    } else {
+      return { ok: false, reason: 'invalid-choice' };
+    }
+
+    const chron = X.recordChronicle(W, {
+      reportFormat: 'DISCIPLINE_EDICT',
+      category: 'SUCCESSION',
+      icon: act.includes('PROTECT') ? '🛡️' : act.includes('SETTLE') ? '💎' : '⛓️',
+      macroRegion: (s && s.macroRegion) || 'CENTRAL_HEARTLAND',
+      involvedSects: [ult.sectNameTh, W.sect.name],
+      involvedFigures: [ult.npcNameTh, ult.disciplineElderNameTh],
+      titleTh,
+      storyTh,
+      originCauseTh: 'สารคำขาดจากหอวินัยแห่ง「' + ult.sectNameTh + '」(นำโดย ' + ult.disciplineElderNameTh + ') เรียกร้องให้ส่งตัวผู้ลี้ภัย「' + ult.npcNameTh + '」',
+      actorChainTh: ult.disciplineElderNameTh + ' (ยื่นคำขาด) ➔ เจ้าสำนัก「' + W.sect.name + '」(ตัดสินใจ: ' + ult.resolvedChoice + ') ➔ ' + ult.npcNameTh,
+      systemImpactTh: 'เชื่อมโยงระบบผู้ลี้ภัย (renegadeOrigin) ➔ ความภักดีและความทรงจำ NPC (h.mind.memories / SECT.rel) ➔ ท่าทีการทูตและหน่วยมือสังหารหอวินัย (s.assassinThreat) ➔ ขวัญกำลังใจศิษย์ในสำนัก',
+      consequenceTh,
+      quiet: opts.quiet
+    });
+
+    return {
+      ok: true,
+      choice: ult.resolvedChoice,
+      ultimatum: ult,
+      npc,
+      sect: s,
+      attitudeDelta,
+      chronicle: chron
+    };
+  };
+
+  X.tickRenegadePursuits = (W, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false };
+    return X.tickForeignSectCognitionTiers(W, Object.assign({}, opts, { forcePursuitCheck: !!opts.force }));
+  };
+
+  X.launchVendettaReclamation = (W, renegadeNpcOrId, party, opts) => {
+    opts = opts || {};
+    if (!W || !W.world || !W.sect) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+
+    const npc = typeof renegadeNpcOrId === 'object' && renegadeNpcOrId
+      ? renegadeNpcOrId
+      : (W.byId && W.byId[renegadeNpcOrId]) || (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.renegadeOrigin && n.renegadeOrigin.pursuitStatus === 'PROTECTED');
+    if (!npc || npc.dead || npc.exiled) return { ok: false, reason: 'renegade-npc-not-found' };
+
+    const ro = npc.renegadeOrigin || (npc.h && npc.h.renegadeOrigin);
+    if (!ro || !ro.sectId) return { ok: false, reason: 'no-renegade-origin' };
+
+    const minStage = opts.minStage || 5;
+    const curStage = (npc.cult && npc.cult.stage) || 1;
+    if (curStage < minStage && !opts.force) {
+      return { ok: false, reason: 'insufficient-stage', stage: curStage, requiredStage: minStage };
+    }
+
+    const targetSect = X.findSect(W, ro.sectId);
+    if (!targetSect) return { ok: false, reason: 'origin-sect-not-found' };
+
+    const strikeParty = Array.isArray(party) && party.length
+      ? party.map(p => typeof p === 'string' ? W.byId[p] : p).filter(Boolean)
+      : [npc].concat((W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== npc.id).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3));
+    if (!strikeParty.includes(npc)) strikeParty.unshift(npc);
+
+    const partyPower = strikeParty.reduce((sum, m) => sum + CULT.power(m), 0) * (1 + ((ro.gratitude || 50) / 200));
+    const enemyPower = Math.max(200, Math.round((targetSect.power || 1.2) * 280));
+    const won = opts.forceLose ? false : (opts.forceWin !== false && (partyPower >= enemyPower * 0.65 || opts.force));
+
+    if (!won) {
+      return { ok: false, won: false, reason: 'reclamation-repelled', partyPower: Math.round(partyPower), enemyPower };
+    }
+
+    const usurperMaster = targetSect.figures && targetSect.figures.master;
+    if (usurperMaster) {
+      usurperMaster.dead = true;
+      usurperMaster.diedDay = W.day || 360;
+      usurperMaster.deathCauseTh = 'ถูกโค่นล้มในศึกทวงคืนบัลลังก์สำนักโดย「' + HC.fullName(npc) + '」';
+    }
+
+    // Install the renegade disciple as the rightful new Sect Master of their original sect!
+    const newMasterFig = X.generateProceduralSectFigure(W, targetSect, 'master', {
+      stage: Math.max(curStage, (targetSect.tierLevel || 2) + 3),
+      ageYears: HC.ageYears ? HC.ageYears(npc) : 28,
+      path: npc.cult ? npc.cult.path : targetSect.majorPath,
+      sub: npc.cult ? npc.cult.sub : 'NONE'
+    });
+    if (newMasterFig && npc.h) {
+      newMasterFig.h.name = Object.assign({}, npc.h.name);
+      newMasterFig.h.personality = Object.assign({}, npc.h.personality);
+      newMasterFig.h.values = Object.assign({}, npc.h.values);
+      newMasterFig.fullNameTh = HC.fullName(npc);
+      newMasterFig.titleAndNameTh = HC.fullName(npc) + ' 「เจ้าสำนักผู้ทวงคืนบัลลังก์」';
+      newMasterFig.reclaimedFromPlayerNpcId = npc.id;
+    }
+    targetSect.figures.master = newMasterFig;
+    targetSect.leaderNameTh = newMasterFig.titleAndNameTh;
+    targetSect.eternalSwornAlly = true;
+    targetSect.reclaimedByPlayerSect = true;
+    targetSect.reclaimedMasterNpcId = npc.id;
+    targetSect.reclaimedMasterNameTh = HC.fullName(npc);
+    targetSect.treaty = 'ETERNAL_SWORN_ALLY';
+    targetSect.attitude = 100;
+    targetSect.isVassal = false;
+    targetSect.bannerTh = '[ พันธมิตรร่วมสาบานนิรันดร์ ]';
+    targetSect.annualTributeStones = Math.round(420 + (targetSect.tierLevel || 2) * 120);
+
+    ro.pursuitStatus = 'RECLAIMED_THRONE';
+    ro.reclaimedDay = W.day || 360;
+    npc.renegadeOrigin = ro;
+    if (npc.h) npc.h.renegadeOrigin = ro;
+    npc.ascendedToForeignMaster = targetSect.id;
+    npc.ascendedSectNameTh = targetSect.nameTh;
+
+    // Register Eternal Sworn Ally bond in W.world.jianghu so Player Sect Master can summon them in Jianghu bonds too
+    if (W.world) {
+      if (!W.world.jianghu) W.world.jianghu = { bonds: [] };
+      if (!Array.isArray(W.world.jianghu.bonds)) W.world.jianghu.bonds = [];
+      const masterId = (W.sect && W.sect.masterId) || npc.id;
+      W.world.jianghu.bonds.unshift({
+        id: 'BOND_RECLAIMED_' + targetSect.id + '_' + (W.day || 360),
+        kind: 'SWORN_ALLY',
+        active: true,
+        npcId: masterId,
+        memberId: masterId,
+        figureId: newMasterFig.id,
+        figureNameTh: newMasterFig.titleAndNameTh,
+        sectId: targetSect.id,
+        sectNameTh: targetSect.nameTh,
+        power: newMasterFig.power || 520,
+        createdDay: W.day || 360
+      });
+    }
+
+    // Honorably depart player's active W.npcs roster to rule their reclaimed sect (unless keepInPlayerSect is requested)
+    if (!opts.keepInPlayerSect) {
+      if (g.AI && g.AI.cancelAct) g.AI.cancelAct(W, npc);
+      if (npc.post && W.sect && W.sect.posts) { W.sect.posts[npc.post] = null; npc.post = null; }
+      if (g.AI && g.AI.freeBed) g.AI.freeBed(W, npc);
+      npc.retiredToThrone = true;
+      const nIdx = (W.npcs || []).indexOf(npc);
+      if (nIdx >= 0) W.npcs.splice(nIdx, 1);
+      if (Array.isArray(W.gone) && !W.gone.includes(npc.id)) W.gone.push(npc.id);
+    }
+
+    const immediateTribute = targetSect.annualTributeStones;
+    if (ECO && ECO.earn) ECO.earn(W, immediateTribute, 'บรรณาการฉลองชัยศึกทวงคืนสำนักจาก「' + targetSect.nameTh + '」');
+    W.fame(18);
+
+    const titleTh = 'ศึกทวงคืนบัลลังก์สำเร็จ! สถาปนา「' + HC.fullName(npc) + '」ขึ้นครอง「' + targetSect.nameTh + '」เป็นพันธมิตรร่วมสาบานนิรันดร์!';
+    const storyTh = 'หลังฝึกฝนบ่มเพาะตบะใน「' + W.sect.name + '」จนบรรลุขั้น ' + curStage + ' 「' + HC.fullName(npc) + '」ได้นำกองทัพยอดฝีมือของสำนักเราบุกกลับไปยัง「' + targetSect.nameTh + '」โค่นล้มเจ้าสำนักผู้ทรยศ「' + (usurperMaster ? usurperMaster.titleAndNameTh : 'ผู้ชิงบัลลังก์') + '」ลงได้สำเร็จ! เหล่าผู้อาวุโสและศิษย์ทั้งสำนักต่างคุกเข่าต้อนรับ「' + HC.fullName(npc) + '」ขึ้นดำรงตำแหน่งเจ้าสำนักคนใหม่ พร้อมประกาศผูกพันธสัญญาเป็น「สำนักพันธมิตรเอกถาวร (Eternal Sworn Ally)」ส่งบรรณาการให้สำนักเราทุกปีชั่วนิรันดร์!';
+    const consequenceTh = HC.fullName(npc) + ' ขึ้นเป็นเจ้าสำนัก「' + targetSect.nameTh + '」· สถานะเป็นพันธมิตรร่วมสาบานนิรันดร์ (ท่าที 100) · รับบรรณาการ ' + immediateTribute + ' ศิลาวิญญาณ/ปี · ชื่อเสียงสำนัก +18';
+
+    // Cross-System Hook: Record Soul-Forge weapon feats for strike party & shift Caravan Market index after major war
+    if (g.SECT && g.SECT.SOUL_FORGE && g.SECT.SOUL_FORGE.recordWeaponFeat) {
+      strikeParty.forEach(m => {
+        if (m && m.equip && m.equip.WEAPON) {
+          g.SECT.SOUL_FORGE.recordWeaponFeat(W, m, 'โค่นผู้ชิงบัลลังก์แห่ง「' + targetSect.nameTh + '」ในศึกทวงคืนสำนัก', 35);
+        }
+      });
+    }
+    if (g.SECT && g.SECT.CARAVAN_AUCTION && g.SECT.CARAVAN_AUCTION.updateMarketIndex) {
+      g.SECT.CARAVAN_AUCTION.updateMarketIndex(W, { warDemandBoost: true });
+    }
+
+    const chron = X.recordChronicle(W, {
+      reportFormat: 'WAR_PAVILION_RECORD',
+      category: 'BATTLE',
+      icon: '👑',
+      macroRegion: targetSect.macroRegion || 'CENTRAL_HEARTLAND',
+      involvedSects: [W.sect.name, targetSect.nameTh],
+      involvedFigures: [HC.fullName(npc), usurperMaster && usurperMaster.titleAndNameTh].filter(Boolean),
+      titleTh,
+      storyTh,
+      originCauseTh: 'หนี้แค้นชิงบัลลังก์ของ「' + HC.fullName(npc) + '」(ความซาบซึ้งต่อสำนักเรา ' + Math.round(ro.gratitude || 50) + ') เมื่อบ่มเพาะตบะถึงขั้น ' + curStage,
+      actorChainTh: HC.fullName(npc) + ' + ทัพหน้า「' + W.sect.name + '」➔ โค่นล้ม ' + (usurperMaster ? usurperMaster.titleAndNameTh : 'เจ้าสำนักผู้ทรยศ') + ' ➔ ขึ้นครอง「' + targetSect.nameTh + '」',
+      systemImpactTh: 'ย้าย ' + HC.fullName(npc) + ' จาก W.npcs ขึ้นเป็นเจ้าสำนัก ' + targetSect.nameTh + ' · ผูกสัญญา ETERNAL_SWORN_ALLY (บรรณาการ ' + immediateTribute + ' ศิลา/ปี) · สร้างสายสัมพันธ์ SWORN_ALLY ใน W.world.jianghu.bonds · สั่งสมจิตศาสตรา (SOUL_FORGE)',
+      combatBreakdownTh: 'กำลังทัพทวงคืน ' + Math.round(partyPower) + ' บดขยี้ค่ายของ ' + targetSect.nameTh + ' (' + enemyPower + ')',
+      consequenceTh,
+      quiet: opts.quiet
+    });
+
+    if (SECT && SECT.recordTimelineMilestone) {
+      SECT.recordTimelineMilestone(W, {
+        milestoneType: 'WAR_VICTORY',
+        icon: '👑',
+        titleTh,
+        descTh: consequenceTh,
+        involvedIds: [npc.id]
+      });
+    }
+
+    return {
+      ok: true,
+      won: true,
+      sect: targetSect,
+      newMasterFigure: newMasterFig,
+      renegadeNpc: npc,
+      eternalSwornAlly: true,
+      annualTributeStones: targetSect.annualTributeStones,
+      chronicle: chron
+    };
+  };
+
+  /* ---------- Pillar 5: Coalition Sect War & Grand Siege Reinforcement Beacon ---------- */
+  X.launchCoalitionOffensive = (W, party, targetSectOrId, allySectIds, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+
+    const targetSect = X.findSect(W, targetSectOrId);
+    if (!targetSect) return { ok: false, reason: 'invalid-target-sect' };
+
+    const allSects = W.world.allSects || [];
+    let allies = [];
+    if (Array.isArray(allySectIds) && allySectIds.length) {
+      allies = allySectIds.map(id => X.findSect(W, id)).filter(s => s && s.id !== targetSect.id && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty) || opts.forceAllies));
+    } else {
+      allies = allSects.filter(s => s && s.id !== targetSect.id && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty))).slice(0, 2);
+    }
+    allies = allies.slice(0, 2);
+    if (!allies.length && !opts.allowSoloFallback) {
+      return { ok: false, reason: 'no-eligible-allies' };
+    }
+
+    const coalitionLeaders = [];
+    let coalitionBonusPower = 0;
+    allies.forEach(aSect => {
+      const marshal = (aSect.figures && (aSect.figures.warMarshal || aSect.figures.master)) || null;
+      const mPower = marshal ? (marshal.power || 360) : 320;
+      const added = Math.round(mPower * 1.25 + (aSect.power || 1.2) * 180);
+      coalitionBonusPower += added;
+      coalitionLeaders.push({
+        sectId: aSect.id,
+        sectNameTh: aSect.nameTh,
+        marshalId: marshal ? marshal.id : null,
+        marshalNameTh: marshal ? marshal.titleAndNameTh : aSect.leaderNameTh,
+        powerContributed: added
+      });
+    });
+
+    const siegeRes = X.marshalStrikeForce(W, party, targetSect, Object.assign({}, opts, {
+      immediate: opts.immediate !== false,
+      coalitionBonusPower,
+      coalitionAllies: coalitionLeaders
+    }));
+
+    if (siegeRes && siegeRes.siege) {
+      siegeRes.siege.isCoalitionOffensive = true;
+      siegeRes.siege.coalitionAllies = coalitionLeaders;
+      siegeRes.siege.coalitionBonusPower = coalitionBonusPower;
+    }
+
+    const allyNamesTh = coalitionLeaders.map(c => '「' + c.sectNameTh + '」(นำโดยแม่ทัพศึก ' + c.marshalNameTh + ')').join(' และ ');
+    const chron = X.recordChronicle(W, {
+      category: 'BATTLE',
+      icon: '🚩',
+      macroRegion: targetSect.macroRegion || 'CENTRAL_HEARTLAND',
+      involvedSects: [W.sect.name].concat(coalitionLeaders.map(c => c.sectNameTh), [targetSect.nameTh]),
+      involvedFigures: coalitionLeaders.map(c => c.marshalNameTh),
+      titleTh: 'ศึกพันธมิตรร่วมทัพ: 「' + W.sect.name + '」สนธิกำลังถล่มค่าย「' + targetSect.nameTh + '」!',
+      storyTh: 'สำนักเราส่งเทียบเชิญพันธมิตรไปยัง ' + (allyNamesTh || 'สำนักพันธมิตร') + ' ยกทัพใหญ่ข้ามพรมแดนมาสมทบกันเปิดศึกปิดล้อมค่ายของ「' + targetSect.nameTh + '」เสริมกำลังรบรวมอีก +' + coalitionBonusPower + ' จนสะท้านสะเทือนไปทั้งยุทธภพ!',
+      combatBreakdownTh: 'กำลังหนุนจากแม่ทัพศึกพันธมิตร (' + coalitionLeaders.length + ' สำนัก): +' + coalitionBonusPower + ' คะแนนรบ · ผลศึก: ' + (siegeRes && siegeRes.won ? 'คว้าชัยชนะทั้ง 3 ด่าน!' : 'กำลังเดินทัพ/ปะทะ'),
+      consequenceTh: siegeRes && siegeRes.won ? ('พิชิต「' + targetSect.nameTh + '」สำเร็จด้วยกำลังทัพพันธมิตร!') : 'กองทัพพันธมิตรร่วมรบเคียงบ่าเคียงไหล่',
+      quiet: opts.quiet
+    });
+
+    if (siegeRes && siegeRes.won && SECT && SECT.recordTimelineMilestone) {
+      SECT.recordTimelineMilestone(W, {
+        milestoneType: 'WAR_VICTORY',
+        icon: '🚩',
+        titleTh: 'ชัยชนะสงครามพันธมิตรร่วมทัพเหนือ「' + targetSect.nameTh + '」',
+        descTh: 'ร่วมทัพกับ ' + coalitionLeaders.map(c => c.sectNameTh).join(', ') + ' พิชิตค่ายของ ' + targetSect.nameTh
+      });
+    }
+
+    return Object.assign({}, siegeRes, {
+      isCoalitionOffensive: true,
+      coalitionAllies: coalitionLeaders,
+      coalitionBonusPower,
+      chronicle: chron
+    });
+  };
+
+  X.startEnemyGrandSiege = (W, attackerSectOrId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+    const all = W.world.allSects || [];
+    const attacker = (attackerSectOrId && X.findSect(W, attackerSectOrId))
+      || all.slice().sort((a, b) => (a.attitude || 0) - (b.attitude || 0))[0];
+    if (!attacker) return { ok: false, reason: 'no-attacker-sect' };
+
+    const marshal = (attacker.figures && (attacker.figures.warMarshal || attacker.figures.master)) || null;
+    const siege = {
+      id: 'ENEMY_SIEGE_' + (W.day || 360),
+      day: W.day || 360,
+      attackerSectId: attacker.id,
+      attackerSectNameTh: attacker.nameTh,
+      commanderNameTh: marshal ? marshal.titleAndNameTh : attacker.leaderNameTh,
+      enemyPower: opts.enemyPower || Math.round(520 + (attacker.power || 1.5) * 320),
+      status: 'BESIEGING',
+      beaconLit: false
+    };
+    W.world.activeEnemySiege = siege;
+    return { ok: true, enemySiege: siege };
+  };
+
+  X.triggerSiegeReinforcementBeacon = (W, opts) => {
+    opts = opts || {};
+    if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+
+    if (!W.world.activeEnemySiege || W.world.activeEnemySiege.status !== 'BESIEGING') {
+      X.startEnemyGrandSiege(W, opts.attackerSectId, opts);
+    }
+    const siege = W.world.activeEnemySiege;
+    if (!siege) return { ok: false, reason: 'no-active-siege' };
+
+    const allSects = W.world.allSects || [];
+    let helpers = allSects.filter(s => s && s.id !== siege.attackerSectId && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty)));
+    if (!helpers.length && opts.forceReinforcement !== false) {
+      helpers = allSects.filter(s => s && s.id !== siege.attackerSectId).slice(0, 1);
+    }
+    helpers = helpers.slice(0, 2);
+
+    const playerPower = (W.npcs || []).filter(n => n && !n.dead && !n.exiled).reduce((sum, n) => sum + CULT.power(n), 0);
+    let reinforcementPower = 0;
+    const reinforcementLeaders = [];
+    helpers.forEach(hSect => {
+      const marshal = (hSect.figures && (hSect.figures.warMarshal || hSect.figures.master)) || null;
+      const rPow = Math.round((marshal ? marshal.power : 350) * 1.3 + (hSect.power || 1.2) * 200);
+      reinforcementPower += rPow;
+      reinforcementLeaders.push({
+        sectId: hSect.id,
+        sectNameTh: hSect.nameTh,
+        marshalNameTh: marshal ? marshal.titleAndNameTh : hSect.leaderNameTh,
+        power: rPow
+      });
+    });
+
+    const totalDefense = Math.round(playerPower + reinforcementPower);
+    const won = opts.forceLose ? false : (totalDefense >= siege.enemyPower * 0.65 || reinforcementLeaders.length > 0 || opts.forceWin !== false);
+
+    siege.beaconLit = true;
+    siege.status = won ? 'REPELLED_BY_COALITION' : 'BREACHED';
+    siege.reinforcements = reinforcementLeaders;
+    siege.resolvedDay = W.day || 360;
+    if (W.threat && W.threat.raid && won) {
+      W.threat.raid = null;
+    }
+
+    const spoilsStones = won ? 360 : 0;
+    if (won) {
+      if (ECO && ECO.earn) ECO.earn(W, spoilsStones, 'ยึดเสบียงศึกจากการตีขนาบทัพศัตรูที่มาปิดล้อม');
+      W.fame(10);
+    }
+
+    const helperText = reinforcementLeaders.map(r => '「' + r.sectNameTh + '」(นำโดย ' + r.marshalNameTh + ')').join(' และ ');
+    const titleTh = 'จุดพลุสัญญาณพันธมิตร! กองหนุนจาก ' + (helperText || 'สำนักพันธมิตร') + ' บุกตีขนาบหลังทัพ「' + siege.attackerSectNameTh + '」แตกพ่าย!';
+    const storyTh = 'ท่ามกลางวิกฤตที่กองทัพของ「' + siege.attackerSectNameTh + '」นำโดย ' + siege.commanderNameTh + ' ยกพลมาปิดล้อมสำนักเรา เจ้าสำนักได้สั่งจุดควันสัญญาณฉุกเฉินและส่งพิราบสื่อสารขอความช่วยเหลือ ทันใดนั้นกองทัพพันธมิตรจาก ' + (helperText || 'พันธมิตรยุทธภพ') + ' ก็ยกทัพม้าศึกบุกเข้าตีขนาบตลบหลังค่ายศัตรู ประสานกับศิษย์ในสำนักที่พุ่งทะลวงออกมารับศึก จนทัพของ「' + siege.attackerSectNameTh + '」แตกพ่ายยับเยิน!';
+    const consequenceTh = 'ทำลายวงล้อมของ ' + siege.attackerSectNameTh + ' สำเร็จ · ยึดศิลาวิญญาณ +' + spoilsStones + ' ก้อน · ชื่อเสียงสำนัก +10';
+
+    const chron = X.recordChronicle(W, {
+      category: 'BATTLE',
+      icon: '🔥',
+      macroRegion: 'CENTRAL_HEARTLAND',
+      involvedSects: [W.sect.name, siege.attackerSectNameTh].concat(reinforcementLeaders.map(r => r.sectNameTh)),
+      involvedFigures: [siege.commanderNameTh].concat(reinforcementLeaders.map(r => r.marshalNameTh)),
+      titleTh,
+      storyTh,
+      combatBreakdownTh: 'กำลังป้องกันสำนัก (' + Math.round(playerPower) + ') + กองหนุนพันธมิตร (+' + reinforcementPower + ') = ' + totalDefense + ' เอาชนะทัพปิดล้อม (' + siege.enemyPower + ')',
+      consequenceTh,
+      quiet: opts.quiet
+    });
+
+    return {
+      ok: true,
+      won,
+      enemySiege: siege,
+      reinforcements: reinforcementLeaders,
+      reinforcementPower,
+      spoilsStones,
+      chronicle: chron
+    };
   };
 
   g.EXPED = X;

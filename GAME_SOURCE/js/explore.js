@@ -7988,7 +7988,44 @@
   EX.resolveNineDaoPagoda = (W, ex, members, opts) => EX.resolveTrial(W, ex, members, opts, 'pagoda');
   EX.resolveElementalRealm = (W, ex, members, opts) => EX.resolveTrial(W, ex, members, opts, 'elemental');
   const priorExploreDailyV210 = EX.daily;
-  EX.daily = W => { if (priorExploreDailyV210) priorExploreDailyV210(W); EX.ensureTrials(W); };
+  EX.daily = W => {
+    if (priorExploreDailyV210) priorExploreDailyV210(W);
+    EX.ensureTrials(W);
+    if (W && Array.isArray(W.npcs) && g.CULT && g.CULT.tickMultiPhasePills) {
+      for (const n of W.npcs) {
+        if (n && n.alive !== false) g.CULT.tickMultiPhasePills(W, n);
+      }
+    }
+  };
+
+  // v2.0.34: Evaluate party out-of-combat exploration & logistics bonuses from Auxiliary Arts & Tools
+  EX.partyAuxiliaryModifiers = function (members) {
+    const mods = {
+      speedMult: 1.0,
+      supplySavePct: 0,
+      hazardResistPct: 0,
+      lootYieldMult: 1.0,
+      secretFindBonus: 0
+    };
+    if (!Array.isArray(members) || !members.length) return mods;
+    for (const n of members) {
+      if (!n || n.alive === false) continue;
+      const aux = (g.CULT && g.CULT.auxiliaryArtBonus) ? g.CULT.auxiliaryArtBonus(n, 'EXPLORE') : 0;
+      if (aux > 0) {
+        mods.speedMult += aux * 0.18;
+        mods.supplySavePct += aux * 0.15;
+        mods.hazardResistPct += aux * 0.20;
+        mods.lootYieldMult += aux * 0.16;
+        mods.secretFindBonus += aux * 0.12;
+      }
+    }
+    mods.speedMult = clamp(mods.speedMult, 1.0, 1.65);
+    mods.supplySavePct = clamp(mods.supplySavePct, 0, 0.55);
+    mods.hazardResistPct = clamp(mods.hazardResistPct, 0, 0.60);
+    mods.lootYieldMult = clamp(mods.lootYieldMult, 1.0, 1.60);
+    mods.secretFindBonus = clamp(mods.secretFindBonus, 0, 0.45);
+    return mods;
+  };
 
   g.EXPLORE = EX;
   if (typeof module === 'object' && module.exports) module.exports = EX;

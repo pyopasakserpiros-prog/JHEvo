@@ -4,7 +4,7 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.29', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.34', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
 
@@ -271,6 +271,15 @@
     const pl = W.map.byId.plaza; W.npcs.forEach(n => SIM.placeNear(W, n, pl.x + pl.w / 2, pl.y + pl.h / 2, 12));
     W.logs.length = 0; W.logSeq = 0;
     W.log('system', 'ก่อตั้ง「' + S.name + '」 โดยเจ้าสำนัก ' + HC.fullName(master), [master.id]);
+    if (g.SECT && g.SECT.ensureCompanionsAndBloodlines) g.SECT.ensureCompanionsAndBloodlines(W);
+    if (g.SECT && g.SECT.FENG_SHUI) g.SECT.FENG_SHUI.ensure(W);
+    if (g.SECT && g.SECT.CARAVAN_AUCTION) g.SECT.CARAVAN_AUCTION.ensure(W);
+    if (g.SECT && g.SECT.ELDER_COUNCIL_EDICTS) g.SECT.ELDER_COUNCIL_EDICTS.ensure(W);
+    if (g.SECT && g.SECT.SECRET_REALM_NODES) g.SECT.SECRET_REALM_NODES.ensure(W);
+    if (g.SECT && g.SECT.GRAND_ASSEMBLY_BANQUET) g.SECT.GRAND_ASSEMBLY_BANQUET.ensure(W);
+    if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
+    if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
+    if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
     SIM.dailyUpdate(W, true);
     return W;
   };
@@ -329,9 +338,10 @@
       if (meta.txKind) e.txKind = meta.txKind;
       e.meta = Object.assign({}, meta);
     }
-    const majorType = ['death','succession','marriage','recruit','tournament','expel'].includes(type) ||
-      (type === 'breakthrough' && /ทะลวง.*(สำเร็จ|ล้มเหลว)/.test(text)) ||
-      (type === 'raid' && /(ต้านการบุก|ถูกบุกและปล้น)/.test(text));
+    const majorType = ['death','succession','marriage','recruit','tournament','expel','legacy'].includes(type) ||
+      (type === 'breakthrough' && /ทะลวง.*(สำเร็จ|ล้มเหลว)|กลืนกิน/.test(text)) ||
+      (type === 'raid' && /(ต้านการบุก|ถูกบุกและปล้น)/.test(text)) ||
+      (['research','craft','heal','finance','decision'].includes(type) && /☯️|🌌|🪷|🗡️|📜|🐪|🔨/.test(text));
     if (majorType && W.sect) {
       if (!Array.isArray(W.sect.sectChronicle)) W.sect.sectChronicle = [];
       W.sect.sectChronicle.push({id:e.id, t:e.t, type:e.type, text:e.text, ids:cleanIds.slice(),
@@ -445,10 +455,15 @@
       W.map.buildings.forEach(b => {
         const fd = W.sect.facilityDemand && W.sect.facilityDemand[b.id];
         if (!fd) return;
-        const stList = b.stations.map(id => W.map.stations[id]).filter(Boolean);
-        if (!stList.length) return;
-        const occ = stList.filter(s => s.occ != null).length;
-        const ratio = occ / stList.length;
+        const stIds = b.stations;
+        if (!stIds || !stIds.length) return;
+        let totalSt = 0, occ = 0;
+        for (let si = 0; si < stIds.length; si++) {
+          const stObj = W.map.stations[stIds[si]];
+          if (stObj) { totalSt++; if (stObj.occ != null) occ++; }
+        }
+        if (!totalSt) return;
+        const ratio = occ / totalSt;
         if (ratio >= 0.95) {
           fd.congestedHours = (fd.congestedHours || 0) + 1;
           fd.lastCongestionHour = W.t;
@@ -598,6 +613,17 @@
   };
   SIM.monthly = W => {
     SECT.monthly(W); EXPED.caravan(W);
+    if (EXPED && EXPED.tickWanderingFigures) EXPED.tickWanderingFigures(W);
+    if (EXPED && EXPED.tickForeignSectCognitionTiers) EXPED.tickForeignSectCognitionTiers(W);
+    if (SECT && SECT.tickCompanionsAndOffspring) SECT.tickCompanionsAndOffspring(W);
+    if (SECT && SECT.FENG_SHUI && SECT.FENG_SHUI.tick) SECT.FENG_SHUI.tick(W);
+    if (SECT && SECT.HEART_DEMON && SECT.HEART_DEMON.tick) SECT.HEART_DEMON.tick(W);
+    if (SECT && SECT.CARAVAN_AUCTION && SECT.CARAVAN_AUCTION.tick) SECT.CARAVAN_AUCTION.tick(W);
+    if (SECT && SECT.ELDER_COUNCIL_EDICTS && SECT.ELDER_COUNCIL_EDICTS.tick) SECT.ELDER_COUNCIL_EDICTS.tick(W);
+    if (SECT && SECT.SECRET_REALM_NODES && SECT.SECRET_REALM_NODES.tick) SECT.SECRET_REALM_NODES.tick(W);
+    if (SECT && SECT.GRAND_ASSEMBLY_BANQUET && SECT.GRAND_ASSEMBLY_BANQUET.tick) SECT.GRAND_ASSEMBLY_BANQUET.tick(W);
+    if (SECT && SECT.HEAVENLY_DAO_DIRECTOR && SECT.HEAVENLY_DAO_DIRECTOR.tick) SECT.HEAVENLY_DAO_DIRECTOR.tick(W);
+    if (SECT && SECT.PEAKS && SECT.PEAKS.tick) SECT.PEAKS.tick(W);
     W.npcs.forEach(n => { if (n.dead || n.cult || n.away) return; if (HC.ageYears(n) > 45) return; const tal = HC.derived(n).cultivationTalent; if (W.rng.chance(clamp((tal - 38) / 200, 0.02, 0.35))) { const ch = CULT.awaken(n, W.rng, null, W.day); if (g.MARTIAL && g.MARTIAL.reconcileInnate) g.MARTIAL.reconcileInnate(n, W); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); n.h.state.qi = CULT.qiMax(n); W.log('awaken', n.h.name.given + ' ตื่นรู้ปราณและก้าวเข้าสู่วิถี' + (CULT.PATHS[ch.path].nameTh || ch.path), [n.id]); HC.experience(n, 'insight', 0.8); } });
   };
   SIM.guardRoster = W => {
@@ -711,6 +737,16 @@
       if (W.sect && Array.isArray(W.sect.beasts) && g.CULT && g.CULT.ensureMenagerie) g.CULT.ensureMenagerie(W);
       W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if ((Array.isArray(n.pets) || n.pet) && g.CULT && g.CULT.ensurePets) g.CULT.ensurePets(n); if (HC.touch) HC.touch(n); });
       if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
+      if (g.SECT && g.SECT.ensureCompanionsAndBloodlines) g.SECT.ensureCompanionsAndBloodlines(W);
+      if (g.SECT && g.SECT.FENG_SHUI && !W.sect.fengShui) g.SECT.FENG_SHUI.ensure(W);
+      if (g.SECT && g.SECT.CARAVAN_AUCTION && (!W.world.marketIndex || !W.world.auctionHouse)) g.SECT.CARAVAN_AUCTION.ensure(W);
+      if (g.SECT && g.SECT.ELDER_COUNCIL_EDICTS && !W.sect.edicts) g.SECT.ELDER_COUNCIL_EDICTS.ensure(W);
+      if (g.SECT && g.SECT.SECRET_REALM_NODES && (!W.explore || !W.explore.nodeExpeditions)) g.SECT.SECRET_REALM_NODES.ensure(W);
+      if (g.SECT && g.SECT.GRAND_ASSEMBLY_BANQUET && (!W.world || !W.world.grandAssembly)) g.SECT.GRAND_ASSEMBLY_BANQUET.ensure(W);
+      if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR && (!W.world || !W.world.heavenlyDao)) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
+      if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
+
+      if (W.world && Array.isArray(W.world.wanderingFigures) && g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
       return W;
     } catch (error) {
       if (hadDay) HC.nowDay = dayBefore; else delete HC.nowDay;

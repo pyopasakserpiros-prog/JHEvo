@@ -103,3 +103,14 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 
 ## v2.0.28 ancestor profiles
 `SECT.inscribeLegacyTablet` snapshots known mentor, disciples, merit and up to 12 real related recorded events in `tablet.profile`; `UI.ancestorProfile` displays the snapshot and linked lineage. Existing tablets without snapshots show only available fields; no events are invented. `test/ancestor_profile.js` covers save/load.
+
+## v2.0.30 Interactive Chronicle Timeline & Atmospheric Web Audio Engine
+- **Interactive Chronicle Timeline (`SECT.getHistoricalTimeline`, `UI.rLog`):** Renders chronological sect history milestones (`FOUNDING`, `SUCCESSION`, `ASCENSION`, `WAR_VICTORY`, `LEGENDARY_CRAFT`, `COMPANION_BLOODLINE`) with category filters in `UI.rLog`.
+- **Atmospheric Web Audio Engine (`UI.audio` / `g.SFX`):** 100% offline-first `AudioContext` oscillator synthesis with zero external audio files (`playBell`, `playBladeClash`, `playGuqinChime`, `toggleMute`) and a top HUD mute/unmute button (`#btnAudioToggle`). Verified in `test/v230_expanded_figures_and_pursuit_suite.js`.
+
+### v2.0.30 Deep Audit UI Additions
+- **World Atlas Wandering Figure Pins (`UI.buildWorldAtlas`, `atlasDetail`):** Active `W.world.wanderingFigures` appear as interactive `WANDERING_FIGURE` pins under the `PEOPLE` filter on the World Atlas with direct interaction and recruitment buttons.
+- **NPC Profile Sheet (`UI.rNpc`):** Displays Taoist Companion (`companionId` + dual cultivation action), Clan Bloodline & Parents (`bloodlineTrait`, `parentIds`), and Renegade Origin (`renegadeOrigin` + Vendetta Reclamation button) on the NPC Overview tab.
+
+## Patch v2.0.30 Multi-Format Chronicle & Timeline UI
+- `UI.rLog` supports filtering World Chronicles both by category (`data-do="world-chronicle-cat"`) and by the 6 Wuxia/Xianxia Chronicle Reporting Formats (`data-do="world-chronicle-fmt"`: `PIGEON_DISPATCH`, `WAR_PAVILION_RECORD`, `DISCIPLINE_EDICT`, `ANCESTRAL_INSCRIPTION`, `TAVERN_BALLAD`, `LINEAGE_COMPANION_SCROLL`), rendering `originCauseTh`, `actorChainTh`, and `systemImpactTh` on every card.

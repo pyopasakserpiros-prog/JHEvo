@@ -35,7 +35,18 @@
     command: { nameTh: 'ท่าบัญชาพยุหะ', icon: '🚩', e: 1.28, cd: 18, wind: 4, hits: 1, cost: 1.25, off: true, team: true, penAdd: 18, desc: 'ออกโองการค่ายกลหนุนโล่และบัฟแก่พวกพ้อง พร้อมสั่งประสานโจมตีศัตรู' },
     harmonize: { nameTh: 'ท่าประสานชีพจรชุบชีวา', icon: '🪷', e: 1.22, cd: 16, wind: 4, hits: 1, cost: 1.25, off: true, team: true, desc: 'ส่งคลื่นปราณโอสถ/คีตเวทย์โจมตีจุดชีพจรศัตรู พร้อมฟื้นฟูเลือด ล้างพิษ และมอบบัฟแก่พวกพ้อง' },
     blink: { nameTh: 'ท่าก้าวพริบตาข้ามมิติ', icon: '🌌', e: 1.32, cd: 18, wind: 2, hits: 2, cost: 1.15, off: true, self: true, penAdd: 25, desc: 'พับย่นระยะทางเข้าประชิดหรือฉากหลบในพริบตา โจมตีไร้ทางหลบและสร้างเงาดาราหลบสวนกลับ' },
-    karmaReversal: { nameTh: 'ท่าพลิกผันกงล้อกรรม', icon: '☸️', e: 1.65, cd: 24, wind: 5, hits: 1, cost: 1.5, off: true, recoil: 0.08, penAdd: 28, desc: 'แปรเปลี่ยนสถานะผิดปกติบนร่างให้เป็นบัฟคุ้มกาย และสะท้อนหนี้กรรมสังหารศัตรู' }
+    karmaReversal: { nameTh: 'ท่าพลิกผันกงล้อกรรม', icon: '☸️', e: 1.65, cd: 24, wind: 5, hits: 1, cost: 1.5, off: true, recoil: 0.08, penAdd: 28, desc: 'แปรเปลี่ยนสถานะผิดปกติบนร่างให้เป็นบัฟคุ้มกาย และสะท้อนหนี้กรรมสังหารศัตรู' },
+    wave: { nameTh: 'ท่าคลื่นปราณกวาดซัด', icon: '🌊', e: 1.18, cd: 12, wind: 4, hits: 2, cost: 1.2, off: true, aoe: true, desc: 'แผ่คลื่นเสียงหรือปราณซัดกระหน่ำศัตรูเป็นวงกว้างหลายระลอก' },
+    soul: { nameTh: 'ท่าสั่นคลอนดวงจิต', icon: '👁️', e: 1.32, cd: 13, wind: 4, hits: 1, cost: 1.25, off: true, penAdd: 25, desc: 'โจมตีเข้าสู่ทะเลสำนึกและดวงจิตโดยตรง ทะลวงเกราะกายภาพและบั่นทอนสมาธิ' },
+    slash: { nameTh: 'ท่าฟันสะบั้นคม', icon: '⚔️', e: 1.26, cd: 10, wind: 4, hits: 2, cost: 1.05, off: true, penAdd: 15, desc: 'ตวัดคมศาสตราฟาดฟันฉับไวสองจังหวะ เปิดบาดแผลฉีกขาดรุนแรง' },
+    markPrimer: { nameTh: 'ท่าประทับตราตั้งต้น', icon: '🎯', e: 1.16, cd: 9, wind: 3, hits: 1, cost: 0.95, off: true, desc: 'ฝังตราประทับมรรคา/เมล็ดพิษ/อักขระดาราลงบนเป้าหมายสะสมสูงสุด 5 ชั้น เพื่อรอการจุดระเบิด' },
+    markDetonate: { nameTh: 'ท่าระเบิดตราประทับ', icon: '💥', e: 1.44, cd: 15, wind: 4, hits: 1, cost: 1.35, off: true, penAdd: 20, desc: 'จุดระเบิดตราประทับและแผลต่อเนื่องบนเป้าหมาย สร้างความเสียหายทวีคูณตามจำนวนชั้นและคืนปราณ' },
+    chainRicochet: { nameTh: 'ท่าชิ่งสะท้อนหลายเป้า', icon: '⚡', e: 1.22, cd: 12, wind: 4, hits: 3, cost: 1.2, off: true, aoe: true, desc: 'ส่งปราณหรืออาวุธชิ่งสะท้อนระหว่างศัตรูหลายเป้าหมายต่อเนื่อง ยิ่งเป้าหมายติดสถานะยิ่งแรงขึ้น' },
+    stanceShift: { nameTh: 'ท่าเปลี่ยนท่าร่างสลับขั้ว', icon: '☯️', e: 1.14, cd: 11, wind: 2, hits: 1, cost: 0.85, off: true, self: true, desc: 'สลับท่าร่างยุทธ์เข้าสู่สภาวะสืบเนื่อง เสริมพลังกระบวนท่าถัดไปและลดการใช้ปราณ' },
+    tetherLink: { nameTh: 'ท่าผูกสายใยเชื่อมชะตา', icon: '🔗', e: 1.18, cd: 16, wind: 4, hits: 1, cost: 1.25, off: true, team: true, desc: 'ผูกสายใยปราณคุ้มกันพวกพ้องเพื่อแบ่งรับความเสียหาย หรือล่ามโซ่ชะตาพ่วงความเสียหายระหว่างศัตรู' },
+    elementalFusion: { nameTh: 'ท่าประสานปฏิกิริยาธาตุ', icon: '🌈', e: 1.38, cd: 15, wind: 5, hits: 1, cost: 1.35, off: true, aoe: true, penAdd: 18, desc: 'กระตุ้นปฏิกิริยาธาตุซ้อนทับกับสถานะบนตัวเป้าหมาย ก่อเกิดระเบิดธาตุผสานรุนแรง' },
+    statusTransmute: { nameTh: 'ท่าแปรสภาพสถานะ', icon: '🔄', e: 1.24, cd: 16, wind: 4, hits: 1, cost: 1.25, off: true, desc: 'ช่วงชิงบัฟศัตรู ยืดเวลาสถานะผิดปกติ หรือดูดซับพิษและบาดแผลแปรเปลี่ยนเป็นโล่ปราณ' },
+    sacrificeOverdrive: { nameTh: 'ท่าเผาผลาญแลกพลัง', icon: '🩸', e: 1.68, cd: 22, wind: 5, hits: 1, cost: 1.4, off: true, recoil: 0.06, penAdd: 30, desc: 'แลกเปลี่ยนพลังชีวิต ปราณสำรอง หรือพิษโอสถในกายเพื่อปลดปล่อยอานุภาพทะลวงขีดจำกัด' }
   };
   /* ธาตุ → ผลแทรก (rider) ถ้าท่านั้นเป็นท่าโจมตี โอกาส 38% และผลหลักของท่าควบคุม */
   SK.ELEM = {
@@ -70,7 +81,34 @@
     tacticalCommand: { nameTh: 'โองการพยุหะ', icon: '🚩', isBuff: true, pmods: { atk: .18, matk: .18, def: .18, mdef: .18 }, mods: { acc: 14, pen: 12 } },
     astralMirage: { nameTh: 'เงาดาราซ้อนมิติ', icon: '🌌', isBuff: true, pmods: { eva: .35 }, mods: { move: 24, cast: 16, crit: 10 } },
     karmicAegis: { nameTh: 'วัฏจักรสะท้อนกรรม', icon: '☸️', isBuff: true, pmods: { def: .20, mdef: .20, matk: .12 }, mods: { pen: 12 } },
-    mentorGuidance: { nameTh: 'คำชี้แนะอาจารย์สายตรง', icon: '📜', isBuff: true, pmods: { atk: .10, matk: .10, def: .10, mdef: .10 }, mods: { acc: 10, cast: 10 } }
+    mentorGuidance: { nameTh: 'คำชี้แนะอาจารย์สายตรง', icon: '📜', isBuff: true, pmods: { atk: .10, matk: .10, def: .10, mdef: .10 }, mods: { acc: 10, cast: 10 } },
+    chill: { nameTh: 'หนาวเหน็บเยือกแข็ง', icon: '❄️', mods: { cast: -20, move: -25 }, pmods: { eva: -.12 } },
+    fear: { nameTh: 'ขวัญผวาเสียสติ', icon: '😱', pmods: { atk: -.18, matk: -.18, def: -.12 }, mods: { acc: -15 } },
+    paralyze: { nameTh: 'อัมพาตสายฟ้า', icon: '⚡', mods: { cast: -45, move: -40 }, pmods: { eva: -.25 } },
+    root: { nameTh: 'ตรึงรากพันธนาการ', icon: '🌿', mods: { move: -80 }, pmods: { eva: -.35 } },
+    curse: { nameTh: 'คำสาปสังสารวัฏ', icon: '💀', dot: true, pmods: { def: -.15, mdef: -.18 } },
+    daoMark: { nameTh: 'ตราประทับมรรคา', icon: '🎯', isMark: true, maxStacks: 5, pmods: { def: -.06, mdef: -.06 } },
+    starSeal: { nameTh: 'ตราผนึกดารา', icon: '🌟', isMark: true, maxStacks: 5, mods: { acc: -8, cast: -8 } },
+    venomSeed: { nameTh: 'เมล็ดพิษกู่ฝังใน', icon: '🪲', dot: true, isMark: true, maxStacks: 5, pmods: { def: -.08 } },
+    bloodBrand: { nameTh: 'ตราโลหิตสังเวย', icon: '🩸', isMark: true, maxStacks: 5, pmods: { def: -.08, mdef: -.08 } },
+    tetheredEnemy: { nameTh: 'โซ่ชะตาพ่วงศัตรู', icon: '🔗', isTether: true, pmods: { eva: -.10 } },
+    soulLinkGuard: { nameTh: 'สายใยร่วมเป็นร่วมตาย', icon: '🤝', isBuff: true, isTether: true, pmods: { def: .15, mdef: .15 } },
+    comboReady: { nameTh: 'ตั้งท่าสืบเนื่อง', icon: '⚔️', isBuff: true, pmods: { atk: .14, matk: .14 }, mods: { crit: 10, cast: 12 } },
+    elementalOvercharge: { nameTh: 'ปราณธาตุปะทุ', icon: '🌈', isBuff: true, pmods: { matk: .20, atk: .14 }, mods: { pen: 15, crit: 6 } },
+    qiBarrierShell: { nameTh: 'เกราะปราณกลั่นตัว', icon: '🫧', isBuff: true, pmods: { def: .18, mdef: .22 } },
+    toxinOverdrive: { nameTh: 'พิษโอสถคลั่งพลัง', icon: '🧪', isBuff: true, pmods: { atk: .22, matk: .22, def: -.08 }, mods: { pen: 15, critDmg: 20 } },
+    bloodFrenzy: { nameTh: 'โลหิตคลั่งสังหาร', icon: '🩸', isBuff: true, pmods: { atk: .18, matk: .14, def: -.06 }, mods: { crit: 8, critDmg: 20 } },
+    shadowVeil: { nameTh: 'ม่านเงาเร้นกาย', icon: '🌑', isBuff: true, pmods: { eva: .26, atk: .10 }, mods: { move: 16, crit: 8 } },
+    frostBarrier: { nameTh: 'ปราการน้ำแข็งอุดร', icon: '🧊', isBuff: true, pmods: { def: .24, mdef: .20 }, mods: { cast: 6 } },
+    thunderStep: { nameTh: 'ย่างก้าวอัสนีพริบตา', icon: '⚡', isBuff: true, pmods: { eva: .20, atk: .12 }, mods: { move: 22, cast: 16, crit: 6 } },
+    windStride: { nameTh: 'เหินวายุไร้รอย', icon: '🌪️', isBuff: true, pmods: { eva: .22 }, mods: { move: 20, cast: 14, acc: 10 } },
+    solarWard: { nameTh: 'ม่านเพลิงสุริยัน', icon: '☀️', isBuff: true, pmods: { def: .18, mdef: .18, atk: .12 }, mods: { pen: 8 } },
+    starlightAegis: { nameTh: 'เกราะแสงดาราพิทักษ์', icon: '✨', isBuff: true, pmods: { mdef: .24, def: .16 }, mods: { acc: 14, cast: 10 } },
+    puppetOverclock: { nameTh: 'กลไกเร่งพิกัดสูงสุด', icon: '⚙️', isBuff: true, pmods: { atk: .18, matk: .18, def: .12 }, mods: { cast: 16, pen: 12 } },
+    beastPackFury: { nameTh: 'สัญชาตญาณฝูงอสูรคลั่ง', icon: '🐾', isBuff: true, pmods: { atk: .20, hp: .12 }, mods: { move: 16, crit: 8, pen: 10 } },
+    artisanFocus: { nameTh: 'สมาธิเตาหลอมเทวะ', icon: '🔨', isBuff: true, pmods: { atk: .14, matk: .16, def: .14, mdef: .14 }, mods: { acc: 12, pen: 10 } },
+    alchemicalHarmony: { nameTh: 'ปราณโอสถประสานชีพจร', icon: '⚗️', hot: true, isBuff: true, pmods: { hp: .14, mdef: .16 }, mods: { cast: 12 } },
+    voidPhase: { nameTh: 'เร้นมิติสุญตา', icon: '🌀', isBuff: true, pmods: { eva: .30, matk: .14 }, mods: { move: 18, pen: 14 } }
   };
   const SUBW = {
     SWORD_IMMORTAL: { strike: 3, pierce: 3, flurry: 2, burst: 1.5, dot: .5 },
@@ -229,8 +267,8 @@
       grantBuff: m.grantBuff || t.grantBuff || null,
       support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: m.grantBuff || t.grantBuff || (m.sx && m.sx.k) || 'morale', dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
       summon: m.summon || null,
-      rider: m.rider !== undefined ? m.rider : ((m.sx && m.sx.k && !A.self && !A.team) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null)),
-      ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? ((m.sx && m.sx.k) || el.ctrl) : null),
+      rider: m.rider !== undefined ? m.rider : (m.status && !A.ctrl ? m.status : ((m.sx && m.sx.k && !A.self && !A.team) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null))),
+      ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? (m.status || (m.sx && m.sx.k) || el.ctrl) : null),
       shatterShield: !!m.shatterShield,
       qiRestorePct: m.qiRestorePct || 0,
       cleanseDebuffs: !!m.cleanseDebuffs,
@@ -241,6 +279,15 @@
       drawback: m.drawback || null,
       aiRole: m.aiRole || null,
       fxKind: m.fxKind || t.fxKind || null,
+      composable: m.composable || t.composable || null,
+      reqPath: t.reqPath || (t.path !== 'ANY' ? t.path : null),
+      bonusPath: t.bonusPath || t.compatiblePaths || null,
+      reqSubpath: t.reqSubpath || null,
+      bonusSubpath: t.bonusSubpath || t.preferredSubs || (t.sub ? [t.sub] : null),
+      reqWeapon: t.requiresWeapon ? t.weaponTypes : null,
+      bonusWeapon: t.weaponTypes || null,
+      reqElement: t.reqElement || null,
+      bonusElement: t.bonusElement || (t.element !== 'NEUTRAL' ? t.element : null),
       weaponTypes: t.weaponTypes,
       armorTypes: t.armorTypes,
       requiresWeapon: t.requiresWeapon,
@@ -439,8 +486,12 @@
     if (n.foe) return n.skl || [];
     if (!n.cult) return [];
     const c = n.cult, tl = c.techs ? c.techs.length : 0, t0 = tl ? c.techs[0] : '', tL = tl ? c.techs[tl - 1] : '';
+    const eq = n.equip || {};
+    const eqKey = ((eq.WEAPON && (eq.WEAPON.uid || eq.WEAPON.id) && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, eq.WEAPON))) ? (eq.WEAPON.uid || eq.WEAPON.id) : '') + '|' +
+                  ((eq.ARMOR && (eq.ARMOR.uid || eq.ARMOR.id) && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, eq.ARMOR))) ? (eq.ARMOR.uid || eq.ARMOR.id) : '') + '|' +
+                  ((eq.ACCESSORY && (eq.ACCESSORY.uid || eq.ACCESSORY.id) && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, eq.ACCESSORY))) ? (eq.ACCESSORY.uid || eq.ACCESSORY.id) : '');
     const slc = n._skListCache;
-    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === c.stage && slc.mantra === c.mantra && slc.tl === tl && slc.t0 === t0 && slc.tL === tL && slc.ver === (n._passVer || 0)) {
+    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === c.stage && slc.mantra === c.mantra && slc.tl === tl && slc.t0 === t0 && slc.tL === tL && slc.eqKey === eqKey && slc.ver === (n._passVer || 0)) {
       return slc.out;
     }
     const activeIds = (g.MARTIAL ? g.MARTIAL.activeTechs(n) : n.cult.techs).slice();
@@ -455,19 +506,33 @@
         activeIds.push(mTech.id);
       }
     }
+    const grantedIds = (g.MARTIAL && g.MARTIAL.grantedEquipmentTechs) ? g.MARTIAL.grantedEquipmentTechs(n) : [];
+    for (const gid of grantedIds) {
+      if (!activeIds.includes(gid)) activeIds.push(gid);
+    }
+    const hasSkillMods = g.MARTIAL && g.MARTIAL.hasEquipmentSkillModifiers && g.MARTIAL.hasEquipmentSkillModifiers(n);
     const out = [];
     for (const id of activeIds) {
       const t = CULT.tech(id);
       if (!t || t.passive || t.cat === 'PASSIVE') continue;
+      const isGranted = grantedIds.includes(id) && !(c.techs && c.techs.includes(id));
       if (Array.isArray(t.moveDefs) && t.moveDefs.length) {
-        const moves = SK.unlockedMoves(n, t);
-        for (const mv of moves) out.push(mv);
+        const moves = isGranted ? SK.allMoves(t).slice(0, 2) : SK.unlockedMoves(n, t);
+        for (const mv of moves) {
+          const finalMv = hasSkillMods ? g.MARTIAL.applyEquipmentSkillModifiers(n, mv) : (isGranted ? Object.assign({}, mv, { fromEquipmentGrant: true }) : mv);
+          if (isGranted) finalMv.fromEquipmentGrant = true;
+          out.push(finalMv);
+        }
       } else {
         const p = SK.profile(t);
-        if (p) out.push(p);
+        if (p) {
+          const finalP = hasSkillMods ? g.MARTIAL.applyEquipmentSkillModifiers(n, p) : (isGranted ? Object.assign({}, p, { fromEquipmentGrant: true }) : p);
+          if (isGranted) finalP.fromEquipmentGrant = true;
+          out.push(finalP);
+        }
       }
     }
-    n._skListCache = { path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, tl, t0, tL, ver: n._passVer || 0, out };
+    n._skListCache = { path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, tl, t0, tL, eqKey, ver: n._passVer || 0, out };
     return out;
   };
 
@@ -711,6 +776,93 @@
     };
   };
 
+  /* ---------- Composable Effect & Keyword Authority (v2.0.34) ---------- */
+  SK.COMPOSABLE_KEYWORDS = Object.freeze({
+    TRIGGERS: Object.freeze([
+      'ON_CAST', 'ON_HIT', 'ON_CRIT', 'ON_STRUCK', 'ON_DODGE', 'ON_PARRY',
+      'ON_KILL', 'ON_HEAL', 'ON_SHIELD_BREAK', 'ON_STATUS_APPLY',
+      'ON_LOW_HP', 'ON_STANCE_SWITCH', 'COMBAT_TICK',
+      'OUT_OF_COMBAT_CULTIVATE', 'OUT_OF_COMBAT_CRAFT', 'OUT_OF_COMBAT_EXPLORE',
+      'onHit', 'onStruck', 'combatTick', 'onCrit', 'onDodge', 'onKill', 'onHeal', 'onShieldBreak', 'onLowHp'
+    ]),
+    TARGET_SELECTORS: Object.freeze([
+      'SELF', 'SINGLE_ENEMY', 'LOWEST_HP_ENEMY', 'HIGHEST_ATK_ENEMY',
+      'MARKED_ENEMIES', 'SPLASH_NEIGHBORS', 'RICOCHET_CHAIN', 'PIERCE_LINE',
+      'ALL_ALLIES', 'LOWEST_HP_ALLY', 'SAME_PATH_ALLIES', 'SUMMON_OR_PUPPET'
+    ]),
+    CONDITIONS: Object.freeze([
+      'ALWAYS', 'TARGET_HAS_MARK', 'TARGET_HAS_DEBUFF', 'TARGET_HAS_BUFF',
+      'TARGET_HP_BELOW_PCT', 'TARGET_HP_ABOVE_PCT', 'SELF_HP_BELOW_PCT',
+      'SELF_QI_ABOVE_PCT', 'SELF_HAS_STANCE', 'SELF_HAS_COMBO_READY',
+      'SELF_HAS_TOXICITY', 'SAME_PEAK_ALLY_PRESENT', 'ELEMENT_RESONANCE_ACTIVE'
+    ]),
+    ACTIONS: Object.freeze([
+      'APPLY_MARK', 'DETONATE_MARK', 'STACK_THRESHOLD_BURST',
+      'STANCE_ENTER', 'COMBO_PRIMER', 'COMBO_FINISHER', 'DELAYED_ECHO',
+      'EXTEND_DEBUFF', 'TRANSFER_DEBUFF', 'STEAL_BUFF', 'CONVERT_BUFF_TO_DEBUFF',
+      'ABSORB_DOT_TO_SHIELD', 'ELEMENTAL_FUSION_REACTION',
+      'HP_TO_QI_OVERDRIVE', 'QI_TO_SHIELD_BARRIER', 'OVERHEAT_COOLDOWN_TRADE',
+      'TOXICITY_TO_VENOM_POWER', 'HEART_DEMON_EDGE_SCALING',
+      'SOUL_LINK_SHARE_DMG', 'CHAIN_TETHER_ENEMY', 'PUPPET_SYMBIOSIS_PULSE',
+      'GRANT_BUFF', 'RESTORE_QI_PCT', 'SHATTER_SHIELD', 'BONUS_TRUE_DMG'
+    ]),
+    MARK_KINDS: Object.freeze(['daoMark', 'starSeal', 'venomSeed', 'bloodBrand'])
+  });
+
+  SK.validateComposableSpec = spec => {
+    if (!spec || typeof spec !== 'object') return { ok: true, errors: [] };
+    const errs = [];
+    const KW = SK.COMPOSABLE_KEYWORDS;
+    const CE = (g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE) || {};
+    const validStances = CE.STANCE_CATALOG ? Object.keys(CE.STANCE_CATALOG) : [
+      'STAR_SWORD_STANCE', 'VAJRA_BASTION_STANCE', 'SHADOW_REAPER_STANCE',
+      'LOTUS_MERCY_STANCE', 'THUNDER_STEP_STANCE', 'BLOOD_ASURA_STANCE', 'QIMEN_ARRAY_STANCE'
+    ];
+    const validFusions = CE.FUSION_REACTIONS ? Object.keys(CE.FUSION_REACTIONS) : [
+      'INFERNO_VORTEX', 'OVERLOAD_BLAST', 'SUPERCONDUCT_SHATTER', 'GLACIAL_SHATTER',
+      'MIASMA_DETONATION', 'GU_FIRE_ERUPTION', 'BLOOD_BOIL_RUPTURE', 'STARFALL_COLLAPSE', 'KARMIC_PURIFICATION_SMITE'
+    ];
+    const checkMoveOrSpec = (obj, label) => {
+      if (!obj || typeof obj !== 'object') return;
+      if (obj.arch && !SK.ARCH[obj.arch]) errs.push(label + ': Unknown arch ' + obj.arch);
+      if (obj.rider && !SK.STATUS[obj.rider]) errs.push(label + ': Unknown rider status ' + obj.rider);
+      if (obj.sx && obj.sx.k && !SK.STATUS[obj.sx.k]) errs.push(label + ': Unknown sx.k status ' + obj.sx.k);
+      if (obj.grantBuff && !SK.STATUS[obj.grantBuff] && !(g.STATS && g.STATS.BUFF_CATALOG && g.STATS.BUFF_CATALOG[obj.grantBuff])) {
+        errs.push(label + ': Unknown grantBuff ' + obj.grantBuff);
+      }
+      if (obj.trigger && !KW.TRIGGERS.includes(obj.trigger)) errs.push(label + ': Unknown composable trigger ' + obj.trigger);
+      if (obj.targetSelector && !KW.TARGET_SELECTORS.includes(obj.targetSelector)) errs.push(label + ': Unknown composable targetSelector ' + obj.targetSelector);
+      if (obj.condition && typeof obj.condition === 'string' && !KW.CONDITIONS.includes(obj.condition)) errs.push(label + ': Unknown composable condition ' + obj.condition);
+      if (obj.condition && typeof obj.condition === 'object' && obj.condition.kind && !KW.CONDITIONS.includes(obj.condition.kind)) errs.push(label + ': Unknown composable condition.kind ' + obj.condition.kind);
+      if (obj.action && !KW.ACTIONS.includes(obj.action)) errs.push(label + ': Unknown composable action ' + obj.action);
+      if (Array.isArray(obj.actions)) {
+        for (const act of obj.actions) {
+          const k = typeof act === 'string' ? act : (act && act.kind);
+          if (k && !KW.ACTIONS.includes(k)) errs.push(label + ': Unknown composable action in actions[] ' + k);
+        }
+      }
+      if (obj.markKind && !KW.MARK_KINDS.includes(obj.markKind)) errs.push(label + ': Unknown composable markKind ' + obj.markKind);
+      if (obj.markPrimer && obj.markPrimer.k && !KW.MARK_KINDS.includes(obj.markPrimer.k)) errs.push(label + ': Unknown markPrimer.k ' + obj.markPrimer.k);
+      if (obj.markDetonate && obj.markDetonate.k && !KW.MARK_KINDS.includes(obj.markDetonate.k)) errs.push(label + ': Unknown markDetonate.k ' + obj.markDetonate.k);
+      if (obj.stanceShift && !validStances.includes(obj.stanceShift)) errs.push(label + ': Unknown stanceShift ' + obj.stanceShift);
+      if (obj.elementalFusion && !validFusions.includes(obj.elementalFusion)) errs.push(label + ': Unknown elementalFusion ' + obj.elementalFusion);
+    };
+    const rootLabel = spec.id || 'spec';
+    checkMoveOrSpec(spec, rootLabel);
+    if (Array.isArray(spec.moveDefs)) {
+      for (const mv of spec.moveDefs) checkMoveOrSpec(mv, rootLabel + '.' + (mv.id || 'move'));
+    }
+    if (spec.passive && spec.passive.proc) {
+      const pr = spec.passive.proc;
+      if (pr.kind && !KW.TRIGGERS.includes(pr.kind)) errs.push(rootLabel + '.passive.proc: Unknown trigger kind ' + pr.kind);
+      if (pr.addStatus && !SK.STATUS[pr.addStatus] && !(g.STATS && g.STATS.BUFF_CATALOG && g.STATS.BUFF_CATALOG[pr.addStatus])) {
+        errs.push(rootLabel + '.passive.proc: Unknown addStatus ' + pr.addStatus);
+      }
+    }
+    return { ok: errs.length === 0, errors: errs };
+  };
+
+  SK.get = id => (g.CULT && g.CULT.tech) ? g.CULT.tech(id) : null;
   g.SK = SK;
   if (typeof module === 'object' && module.exports) module.exports = SK;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

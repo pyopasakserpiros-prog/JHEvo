@@ -74,7 +74,26 @@
     if (it.slot === 'WEAPON') { const gType = it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh); const isMag = ['FOCUS', 'ZITHER', 'BRUSH'].includes(gType); const isHyb = gType === 'WHIP'; s[isMag ? 'matk' : 'atk'] = base * (isHyb ? 0.44 : 0.55); s[isMag ? 'atk' : 'matk'] = base * (isHyb ? 0.34 : 0.1); pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
     else if (it.slot === 'ARMOR') { s.def = base * 0.55; s.mdef = base * 0.28; s.hp = base * 0.5; pickAff(tier >= 4 ? 1 : 0, ['crit', 'critDmg', 'pen']); if (tier >= 4 && rn(h, 3) < 0.5) s.eva = (s.eva || 0) + base * 0.06; }
     else { pickAff(2); const r = rn(h, 4); if (r < 0.3) s.atk = (s.atk || 0) + base * 0.2; else if (r < 0.6) s.matk = (s.matk || 0) + base * 0.2; }
-    (it.fx || []).forEach(x => { const p = x.params || {}; if (p.armorReductionRatio) s.pen = (s.pen || 0) + p.armorReductionRatio * 40; });
+    (it.fx || it.effects || []).forEach(x => {
+      const p = x.params || {};
+      const eid = x.effectId || x.id || '';
+      if (p.armorReductionRatio) s.pen = (s.pen || 0) + p.armorReductionRatio * 40;
+      if (eid === 'EFX_BARRIER_SHIELD' || eid === 'EFX_TRIBULATION_SHIELD') { s.def = (s.def || 0) + (p.barrierCapacity || 200) * 0.08; s.mdef = (s.mdef || 0) + (p.barrierCapacity || 200) * 0.08; }
+      else if (eid === 'EFX_STEALTH_CONCEALMENT' || eid === 'EFX_SIDESTEP_EVASION' || eid === 'EFX_ILLUSION_DECOY') { s.eva = (s.eva || 0) + (p.concealmentScore || 40) * 0.45; s.move = (s.move || 0) + 4; }
+      else if (eid === 'EFX_DETECTION_REVEAL' || eid === 'EFX_TRACE_MARK' || eid === 'EFX_INTENT_SENSE' || eid === 'EFX_WEAKNESS_EXPOSURE') { s.acc = (s.acc || 0) + 14; s.crit = (s.crit || 0) + 3.5; }
+      else if (eid === 'EFX_MIND_SHIELD' || eid === 'EFX_CONTROL_RESILIENCE' || eid === 'EFX_CALM_MIND' || eid === 'EFX_REALM_SUPPRESSION_GUARD') { s.mdef = (s.mdef || 0) + base * 0.14; s.hp = (s.hp || 0) + base * 0.15; }
+      else if (eid === 'EFX_HASTE_STEP' || eid === 'EFX_SKY_LEVITATION_DRIVE') { s.move = (s.move || 0) + 6; s.cast = (s.cast || 0) + 5; }
+      else if (eid === 'EFX_QI_RESERVOIR' || eid === 'EFX_FORMATION_HARMONIZATION') { s.matk = (s.matk || 0) + base * 0.10; s.cast = (s.cast || 0) + 4; }
+      else if (eid.startsWith('EFX_V234_')) {
+        if (p.bonusAtkPct) s.atk = (s.atk || 0) + base * p.bonusAtkPct;
+        if (p.bonusMatkPct) s.matk = (s.matk || 0) + base * p.bonusMatkPct;
+        if (p.bonusDefPct) s.def = (s.def || 0) + base * p.bonusDefPct;
+        if (p.bonusMdefPct) s.mdef = (s.mdef || 0) + base * p.bonusMdefPct;
+        if (p.bonusCrit) s.crit = (s.crit || 0) + p.bonusCrit;
+        if (p.bonusPen) s.pen = (s.pen || 0) + p.bonusPen;
+        if (p.bonusCast) s.cast = (s.cast || 0) + p.bonusCast;
+      }
+    });
     const type = it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh);
     const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
     for (const k in typed) s[k] = (s[k] || 0) + typed[k];
@@ -96,7 +115,24 @@
     tacticalCommand: { id: 'tacticalCommand', name: 'โองการพยุหะ', icon: '🚩', kind: 'command', defaultDur: 55, p: { atk: 0.18, matk: 0.18, def: 0.18, mdef: 0.18 }, f: { acc: 14, pen: 12 }, descTh: 'โองการพิชัยสงครามเพิ่มโจมตี/ป้องกันทุกด้าน +18%, แม่นยำ +14, เจาะเกราะ +12%' },
     astralMirage: { id: 'astralMirage', name: 'เงาดาราซ้อนมิติ', icon: '🌌', kind: 'mirage', defaultDur: 45, p: { eva: 0.35 }, f: { move: 24, cast: 16, crit: 10 }, descTh: 'เพิ่มหลบหลีก +35%, เดินทาง +24, ร่ายวิชา +16 และหลบสวนกลับการโจมตีถัดไปอัตโนมัติ' },
     karmicAegis: { id: 'karmicAegis', name: 'วัฏจักรสะท้อนกรรม', icon: '☸️', kind: 'karma', defaultDur: 50, p: { def: 0.20, mdef: 0.20, matk: 0.12 }, f: { pen: 12 }, reflectPct: 0.22, descTh: 'เพิ่มป้องกัน +20%, โจมตีวิชา +12% และสะท้อนความเสียหายคืนสู่ผู้โจมตี 22%' },
-    mentorGuidance: { id: 'mentorGuidance', name: 'คำชี้แนะอาจารย์สายตรง', icon: '📜', kind: 'lineage', defaultDur: 120, p: { atk: 0.10, matk: 0.10, def: 0.10, mdef: 0.10 }, f: { acc: 10, cast: 10 }, cultRateBonus: 0.18, btBonus: 0.08, descTh: 'คำชี้แนะจากอาจารย์สายตรง เพิ่มสเตตัสรบ +10%, เร่งบำเพ็ญ +18% และโอกาสทะลวงขั้น +8%' }
+    mentorGuidance: { id: 'mentorGuidance', name: 'คำชี้แนะอาจารย์สายตรง', icon: '📜', kind: 'lineage', defaultDur: 120, p: { atk: 0.10, matk: 0.10, def: 0.10, mdef: 0.10 }, f: { acc: 10, cast: 10 }, cultRateBonus: 0.18, btBonus: 0.08, descTh: 'คำชี้แนะจากอาจารย์สายตรง เพิ่มสเตตัสรบ +10%, เร่งบำเพ็ญ +18% และโอกาสทะลวงขั้น +8%' },
+    bloodFrenzy: { id: 'bloodFrenzy', name: 'โลหิตคลั่งสังหาร', icon: '🩸', kind: 'offense', defaultDur: 45, p: { atk: 0.18, matk: 0.14, def: -0.06 }, f: { crit: 8, critDmg: 20, pen: 10 }, descTh: 'เร่งโลหิตสังหาร เพิ่มโจมตี +18%, โจมตีวิชา +14%, คริ +8%, แรงคริ +20% (ป้องกัน -6%)' },
+    shadowVeil: { id: 'shadowVeil', name: 'ม่านเงาเร้นกาย', icon: '🌑', kind: 'stealth', defaultDur: 45, p: { eva: 0.26, atk: 0.10 }, f: { move: 16, crit: 8, pen: 8 }, descTh: 'พรางกายในเงามืด เพิ่มหลบหลีก +26%, โจมตี +10%, ความเร็ว +16, คริ +8%' },
+    frostBarrier: { id: 'frostBarrier', name: 'ปราการน้ำแข็งอุดร', icon: '🧊', kind: 'defense', defaultDur: 55, p: { def: 0.24, mdef: 0.20, hp: 0.08 }, f: { cast: 6 }, shieldPct: 0.16, descTh: 'สร้างม่านน้ำแข็งคุ้มกาย เพิ่มป้องกัน +24%, ป้องกันวิชา +20% และดูดซับความเสียหาย' },
+    thunderStep: { id: 'thunderStep', name: 'ย่างก้าวอัสนีพริบตา', icon: '⚡', kind: 'haste', defaultDur: 45, p: { eva: 0.20, atk: 0.12 }, f: { move: 22, cast: 16, crit: 6 }, descTh: 'เคลื่อนร่างไวดั่งสายฟ้า เพิ่มหลบหลีก +20%, เดินทาง +22, ร่ายวิชา +16, โจมตี +12%' },
+    windStride: { id: 'windStride', name: 'เหินวายุไร้รอย', icon: '🌪️', kind: 'haste', defaultDur: 50, p: { eva: 0.22 }, f: { move: 20, cast: 14, acc: 10 }, descTh: 'เหินร่างตามสายลม เพิ่มหลบหลีก +22%, เดินทาง +20, ร่ายไว +14, แม่นยำ +10' },
+    solarWard: { id: 'solarWard', name: 'ม่านเพลิงสุริยัน', icon: '☀️', kind: 'ward', defaultDur: 55, p: { def: 0.18, mdef: 0.18, atk: 0.12 }, f: { pen: 8 }, shieldPct: 0.15, descTh: 'ม่านเพลิงสุริยันคุ้มครองร่าง เพิ่มป้องกัน +18%, โจมตี +12%, เจาะเกราะ +8%' },
+    starlightAegis: { id: 'starlightAegis', name: 'เกราะแสงดาราพิทักษ์', icon: '✨', kind: 'ward', defaultDur: 60, p: { mdef: 0.24, def: 0.16, matk: 0.10 }, f: { acc: 14, cast: 10 }, shieldPct: 0.16, descTh: 'ม่านดาราคุ้มภัย เพิ่มป้องกันวิชา +24%, ป้องกัน +16%, แม่นยำ +14, ร่ายไว +10' },
+    puppetOverclock: { id: 'puppetOverclock', name: 'กลไกเร่งพิกัดสูงสุด', icon: '⚙️', kind: 'overdrive', defaultDur: 45, p: { atk: 0.18, matk: 0.18, def: 0.12 }, f: { cast: 16, pen: 12 }, descTh: 'เร่งแกนกลไกหุ่นเชิด เพิ่มโจมตีและโจมตีวิชา +18%, ป้องกัน +12%, ร่ายไว +16, เจาะเกราะ +12%' },
+    beastPackFury: { id: 'beastPackFury', name: 'สัญชาตญาณฝูงอสูรคลั่ง', icon: '🐾', kind: 'offense', defaultDur: 50, p: { atk: 0.20, hp: 0.12 }, f: { move: 16, crit: 8, pen: 10 }, descTh: 'ปลุกสัญชาตญาณราชันย์อสูร เพิ่มโจมตี +20%, เลือด +12%, ความเร็ว +16, คริ +8%' },
+    artisanFocus: { id: 'artisanFocus', name: 'สมาธิเตาหลอมเทวะ', icon: '🔨', kind: 'craft', defaultDur: 90, p: { atk: 0.14, matk: 0.16, def: 0.14, mdef: 0.14 }, f: { acc: 12, pen: 10 }, cultRateBonus: 0.14, descTh: 'สมาธิหลอมรวมศาสตราและโอสถ เพิ่มสเตตัสรบ +14-16%, แม่นยำ +12 และเร่งการบ่มเพาะ' },
+    soulLinkGuard: { id: 'soulLinkGuard', name: 'สายใยร่วมเป็นร่วมตาย', icon: '🤝', kind: 'tether', defaultDur: 45, p: { def: 0.15, mdef: 0.15, hp: 0.10 }, f: {}, descTh: 'เชื่อมสายใยปราณคุ้มกันพวกพ้อง แบ่งรับความเสียหาย 30% และเพิ่มป้องกัน +15%' },
+    comboReady: { id: 'comboReady', name: 'ตั้งท่าสืบเนื่อง', icon: '⚔️', kind: 'stance', defaultDur: 24, p: { atk: 0.14, matk: 0.14 }, f: { crit: 10, cast: 12 }, descTh: 'เตรียมพร้อมต่อกระบวนท่าถัดไป เพิ่มอานุภาพวิชาถัดไป +28% และลดปราณที่ใช้ลง 30%' },
+    elementalOvercharge: { id: 'elementalOvercharge', name: 'ปราณธาตุปะทุ', icon: '🌈', kind: 'element', defaultDur: 40, p: { matk: 0.20, atk: 0.14 }, f: { pen: 15, crit: 6 }, descTh: 'ปราณธาตุปะทุจากปฏิกิริยาผสาน เพิ่มโจมตีวิชา +20%, โจมตี +14%, เจาะเกราะ +15%' },
+    qiBarrierShell: { id: 'qiBarrierShell', name: 'เกราะปราณกลั่นตัว', icon: '🫧', kind: 'shield', defaultDur: 50, p: { def: 0.18, mdef: 0.22 }, f: {}, shieldPct: 0.20, descTh: 'กลั่นปราณสำรองเป็นม่านคุ้มกาย เพิ่มป้องกันวิชา +22%, ป้องกัน +18% และสร้างโล่ปราณ' },
+    toxinOverdrive: { id: 'toxinOverdrive', name: 'พิษโอสถคลั่งพลัง', icon: '🧪', kind: 'overdrive', defaultDur: 40, p: { atk: 0.22, matk: 0.22, def: -0.08 }, f: { pen: 15, critDmg: 20 }, descTh: 'แปรเปลี่ยนพิษสะสมในกายเป็นพลังทำลายล้าง เพิ่มโจมตี/วิชา +22%, เจาะเกราะ +15%, แรงคริ +20%' },
+    alchemicalHarmony: { id: 'alchemicalHarmony', name: 'ปราณโอสถประสานชีพจร', icon: '⚗️', kind: 'regen', defaultDur: 75, p: { hp: 0.14, mdef: 0.16 }, f: { cast: 12 }, hotPct: 0.04, cultRateBonus: 0.16, btBonus: 0.06, descTh: 'ฤทธิ์โอสถระยะที่สองฟื้นฟูเลือดต่อเนื่อง +4%/รอบ, ป้องกันวิชา +16% และเร่งการบ่มเพาะ +16%' },
+    voidPhase: { id: 'voidPhase', name: 'เร้นมิติสุญตา', icon: '🌀', kind: 'mirage', defaultDur: 35, p: { eva: 0.30, matk: 0.14 }, f: { move: 18, pen: 14 }, descTh: 'แฝงเร้นในรอยแยกมิติ เพิ่มหลบหลีก +30%, โจมตีวิชา +14%, เจาะเกราะ +14%' }
   });
 
   ST.dirty = u => { if (u) { u._cs = null; u._csBase = null; u._skillEffectsCache = null; } };
@@ -773,7 +809,11 @@
     const L = n.foe ? n.power : CULT.stageInfo(n).combatPower, off = Math.max(computeV.atk, computeV.matk), aref = L * 0.6;
     const offE = off * (1 + computeV.crit / 100 * (computeV.critDmg / 100 - 1)) * (0.6 + 0.4 * computeV.cast / 100) * (1 + computeV.pen / 150) * (0.85 + 0.15 * clamp(computeV.acc / (L * 0.55), 0.5, 2));
     const hpE = computeV.hp * (1 + 0.8 * ((computeV.def + computeV.mdef) / 2) / Math.max(1, aref)) * (1 + 0.25 * computeV.eva / Math.max(1, L * 0.55));
-    const rt = Math.max(3, ST.RK * Math.pow(offE, 0.55) * Math.pow(hpE, 0.45));
+    const bloodMult = (!n.foe && n.bloodlineTrait && Number.isFinite(n.bloodlineTrait.combatPowerBonus)) ? (1 + n.bloodlineTrait.combatPowerBonus) : 1;
+    const scarMult = (!n.foe && Array.isArray(n.daoScars) && n.daoScars.length) ? (1 + Math.min(0.24, n.daoScars.reduce((sum, sc) => sum + ((sc && sc.combatPowerBonus) || 0), 0))) : 1;
+    const wsMult = (!n.foe && n.equip && n.equip.WEAPON && n.equip.WEAPON.weaponSpirit && Number.isFinite(n.equip.WEAPON.weaponSpirit.multBonus)) ? (1 + Math.min(0.32, n.equip.WEAPON.weaponSpirit.multBonus)) : 1;
+    const asmMult = (!n.foe && Array.isArray(n.assemblyTitles) && n.assemblyTitles.length) ? (1 + Math.min(0.18, n.assemblyTitles.length * 0.06)) : 1;
+    const rt = Math.max(3, ST.RK * Math.pow(offE, 0.55) * Math.pow(hpE, 0.45) * bloodMult * scarMult * wsMult * asmMult);
     if (!v && n._cs && n._cs.v === computeV) n._cs.rating = rt;
     return rt;
   };
@@ -821,7 +861,20 @@
   if (oTouch) HC.touch = function (n) { if (n) { n._cs = null; n._csBase = null; } return oTouch.apply(this, arguments); };
   // ค่าเริ่มของไอเท็ม: เก็บ effects ไว้ให้คำนวณเจาะเกราะ
   const oMint = ECO.mintGear;
-  ECO.mintGear = (a, b, c, d) => { const gear = oMint(a, b, c, d); const x = (a && a.sect && a.npcs) ? b : a; const it = x && x.outItemId ? ECO.itemById[x.outItemId] : (x && x.slot ? x : null); if (it && it.effects) gear.fx = it.effects; return gear; };
+  ECO.mintGear = (a, b, c, d) => {
+    const gear = oMint(a, b, c, d);
+    const x = (a && a.sect && a.npcs) ? b : a;
+    const it = x && x.outItemId ? ECO.itemById[x.outItemId] : (x && x.id && ECO.itemById[x.id] ? ECO.itemById[x.id] : (x && x.slot ? x : null));
+    if (it) {
+      if (it.effects && !gear.fx) gear.fx = it.effects;
+      if (it.effects && !gear.effects) gear.effects = it.effects;
+      if (it.grantedSkills && !gear.grantedSkills) gear.grantedSkills = it.grantedSkills.slice();
+      if (it.skillModifiers && !gear.skillModifiers) gear.skillModifiers = JSON.parse(JSON.stringify(it.skillModifiers));
+      if (it.composableEffects && !gear.composableEffects) gear.composableEffects = JSON.parse(JSON.stringify(it.composableEffects));
+      if (it.charges != null && gear.charges == null) { gear.charges = it.charges; gear.maxCharges = it.maxCharges || it.charges; }
+    }
+    return gear;
+  };
   g.STATS = ST;
   if (typeof module === 'object' && module.exports) module.exports = ST;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
