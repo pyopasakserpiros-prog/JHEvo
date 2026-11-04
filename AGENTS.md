@@ -1,6 +1,6 @@
 # Project guidance
 
-JianghuSect Evolution is a Thai browser game. Current package: 2.0.29 (runtime patch identifier: 2.0.29). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
+JianghuSect Evolution is a Thai browser game. Current package: 2.0.33 (runtime patch identifier: 2.0.33). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
 
 ## ก่อนเริ่มงาน
 

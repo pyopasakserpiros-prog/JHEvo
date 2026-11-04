@@ -1709,7 +1709,8 @@
     const bRole = COG.role(W, b);
     const rankGap = Math.max(0, (b.rank || 0) - (a.rank || 0));
     const stageGap = Math.max(0, (b.cult?.stage || 0) - (a.cult?.stage || 0));
-    const officeWeight = bRole.id === 'master' ? 32 : bRole.id === 'deputy' ? 24 : bRole.id !== 'member' ? (bRole.acting ? 10 : 18) : 0;
+    const peakMasterWeight = b.peakRole === 'MASTER' ? 24 : b.peakRole === 'DEPUTY' ? 16 : (b.rank >= 4 || b.isElder) ? 14 : 0;
+    const officeWeight = Math.max(peakMasterWeight, bRole.id === 'master' ? 32 : bRole.id === 'deputy' ? 24 : bRole.id !== 'member' ? (bRole.acting ? 10 : 18) : 0);
     const loyalty = E(a, 'personality.loyalty'), discipline = E(a, 'personality.discipline'), pride = E(a, 'personality.pride');
     const bIntim = E(b, 'social.intimidation') + (bRole.id === 'discipline' || bRole.id === 'master' ? 15 : 0);
     const fear = clamp(ri.fear + Math.max(0, (bIntim - E(a, 'personality.courage')) * 0.35) + (rankGap >= 2 && E(b, 'personality.aggression') > 65 ? 12 : 0), 0, 100);
@@ -2225,8 +2226,20 @@
     if (['alchemy', 'forge'].includes(r.id)) {
       const o = ECO.pickOrder(W, r.id, n);
       W.sect.orders[r.id] = o.recipe ? { rid: o.recipe.id, why: o.why, by: n.id } : null;
+      if (r.id === 'forge' && SECT.SOUL_FORGE && (W.day - (n._lastSoulForgeDay || -99)) >= 12) {
+        n._lastSoulForgeDay = W.day;
+        SECT.SOUL_FORGE.awakenWeaponSpirit(W, n, null, { quiet: true });
+      }
       COG.officeDecision(W, n, 'จัดแผนผลิต' + (o.recipe ? ' ' + o.recipe.nameTh : ' รอวัตถุดิบ'), [r.responsibility, o.why || 'ยังไม่มีงานผลิตที่พร้อม']);
       return;
+    }
+    if (r.id === 'scripture' && SECT.SOUL_FORGE && (W.day - (n._lastSutraAnnotateDay || -99)) >= 15) {
+      n._lastSutraAnnotateDay = W.day;
+      SECT.SOUL_FORGE.annotateHeritageSutra(W, n, null, { quiet: true });
+    }
+    if (r.id === 'healer' && SECT.HEART_DEMON && (W.day - (n._lastCounselDay || -99)) >= 7) {
+      n._lastCounselDay = W.day;
+      SECT.HEART_DEMON.counselHeartDemon(W, n, null, null, { quiet: true });
     }
     if (r.id === 'master' && !n.sealed && !n.away) {
       SECT.masterDecision(W, n);

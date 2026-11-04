@@ -2089,12 +2089,33 @@
       }
     }
     const imprintMult = (npc.mentorImprint && Number.isFinite(npc.mentorImprint.cultRateBonus)) ? (1 + npc.mentorImprint.cultRateBonus) : 1;
-    return staticBase * rest * toxic * dev * pill * buffMult * imprintMult * (env || 1);
+    const compId = npc.companionId || (npc.h && npc.h.companionId);
+    const compMult = compId ? (1 + (Number.isFinite(npc.companionSynergyBonus) ? npc.companionSynergyBonus : 0.25)) : 1;
+    const bloodMult = (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.cultRateBonus)) ? (1 + npc.bloodlineTrait.cultRateBonus) : 1;
+    return staticBase * rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * (env || 1);
+  };
+  CULT.hasActiveCompanionInSect = (npc, W) => {
+    if (!npc) return false;
+    const compId = npc.companionId || (npc.h && npc.h.companionId);
+    if (!compId) return false;
+    if (!W || !W.byId) return true;
+    const partner = W.byId[compId];
+    return !!(partner && !partner.dead && !partner.exiled);
   };
   CULT.gain = (npc, pts, W, sourceTag) => {
     const c = npc.cult; if (!c) return;
-    const ascendedCount = W && W.sect && Array.isArray(W.npcs) && W.npcs.includes(npc) && Number.isFinite(W.sect.ascendedLegacyCount) ? Math.max(0, W.sect.ascendedLegacyCount) : 0;
+    const ascendedCount = (W && W.sect && W.sect.ascendedLegacyCount > 0 && W.byId && W.byId[npc.id] === npc) ? W.sect.ascendedLegacyCount : 0;
     if (ascendedCount) pts *= 1 + Math.min(5, ascendedCount) * 0.01;
+    if (CULT.hasActiveCompanionInSect(npc, W) && sourceTag !== 'dual_cult_raw') {
+      const synBonus = Number.isFinite(npc.companionSynergyBonus) ? npc.companionSynergyBonus : 0.25;
+      pts *= (1 + synBonus);
+      if (npc.h && npc.h.state && (npc.h.state.heartDemon || 0) > 0) {
+        npc.h.state.heartDemon = Math.max(0, npc.h.state.heartDemon - 1.5);
+      }
+    }
+    if (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.cultRateBonus) && sourceTag !== 'bloodline_raw') {
+      pts *= (1 + npc.bloodlineTrait.cultRateBonus);
+    }
     const th = CULT.threshold(npc);
     if (c.prog >= th) { c.found = Math.min(0.08, (c.found || 0) + pts * 0.0002); pts *= 0.15; }
     c.prog += pts;
@@ -2131,7 +2152,17 @@
     const f_state = (0.35 + 0.65 * clamp(s.hp / hpMax, 0, 1)) * (0.75 + 0.25 * s.energy / 100) * hdFactor;
     const f_mind = 0.9 + HC.eff(npc, 'personality.courage') / 100 * 0.12 + HC.eff(npc, 'aptitudes.combat') / 100 * 0.18;
     const petMult = (CULT.petCombatMultiplier && (!opts || !opts.noPets)) ? CULT.petCombatMultiplier(npc) : 1;
-    cp = cp * f_body * f_skill * f_tech * (1 + eq) * HC.special(npc, 'combat.powerMult') * f_state * f_mind * petMult;
+    const bloodPowerMult = (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.combatPowerBonus)) ? (1 + npc.bloodlineTrait.combatPowerBonus) : 1;
+    const scarPowerMult = (Array.isArray(npc.daoScars) && npc.daoScars.length)
+      ? (1 + Math.min(0.24, npc.daoScars.reduce((sum, sc) => sum + ((sc && sc.combatPowerBonus) || 0), 0)))
+      : 1;
+    const wSpiritMult = (npc.equip && npc.equip.WEAPON && npc.equip.WEAPON.weaponSpirit && Number.isFinite(npc.equip.WEAPON.weaponSpirit.multBonus))
+      ? (1 + Math.min(0.32, npc.equip.WEAPON.weaponSpirit.multBonus))
+      : 1;
+    const titleMult = (Array.isArray(npc.assemblyTitles) && npc.assemblyTitles.length)
+      ? (1 + Math.min(0.18, npc.assemblyTitles.length * 0.06))
+      : 1;
+    cp = cp * f_body * f_skill * f_tech * (1 + eq) * HC.special(npc, 'combat.powerMult') * f_state * f_mind * petMult * bloodPowerMult * scarPowerMult * wSpiritMult * titleMult;
     return Math.max(3, cp);
   };
   CULT.defenseMult = npc => { let d = 0; const E = npc.equip || {}; for (const k in E) if (E[k] && E[k].defMult) d += E[k].defMult; return 1 + d; };
@@ -2174,6 +2205,16 @@
     if (CULT.petBreakthroughBonus) p += CULT.petBreakthroughBonus(npc);
     if (g.STATS && g.STATS.hasBuff && (g.STATS.hasBuff(npc, "meridianUnblock", prep && prep.now) || g.STATS.hasBuff(npc, "clarityLotus", prep && prep.now) || g.STATS.hasBuff(npc, "mentorGuidance", prep && prep.now))) p += 0.06;
     if (npc.mentorImprint && Number.isFinite(npc.mentorImprint.btBonus)) p += npc.mentorImprint.btBonus;
+    if (npc.companionId || (npc.h && npc.h.companionId)) p += 0.06;
+    if (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.btBonus)) p += npc.bloodlineTrait.btBonus;
+    if (Array.isArray(npc.daoScars) && npc.daoScars.length) {
+      const scarBonus = npc.daoScars.reduce((sum, sc) => sum + (sc && sc.btBonus ? sc.btBonus : 0.05), 0);
+      p += Math.min(0.18, scarBonus);
+    }
+    if (Array.isArray(npc.heartDemons) && npc.heartDemons.length && c.path !== 'DEMON') {
+      const unresolvedPen = npc.heartDemons.filter(k => k && !k.resolved).reduce((sum, k) => sum + (k.btPenalty || 0.06), 0);
+      p -= Math.min(0.18, unresolvedPen);
+    }
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
@@ -2266,7 +2307,8 @@
       res.injured = true; res.sev = sev;
       npc.h.state.hp = Math.max(1, npc.h.state.hp * (sev === 2 ? 0.35 : 0.6));
       HC.feel(npc, { mood: -18, stress: 18 });
-      npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + rng.int(5, 16), 0, 100);
+      const hdGain = (npc.companionId || (npc.h && npc.h.companionId)) ? Math.max(2, Math.round(rng.int(5, 16) * 0.45)) : rng.int(5, 16);
+      npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + hdGain, 0, 100);
       if (c.path === 'DEMON') {
         res.supremeRisk = 'DEMONIC_BACKLASH_FRENZY';
         npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + 8, 0, 100);
@@ -2316,6 +2358,11 @@
         npc.h.state.hp = Math.max(npc.h.state.hp, Math.round(CULT.hpMax(npc) * 0.55));
       }
       HC.experience(npc, 'heart_demon', 0.5);
+      if (W && g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.spawnFromCause && (c.attempts >= 2 || hdGain >= 10)) {
+        g.SECT.HEART_DEMON.spawnFromCause(W, npc, 'DEFEAT_HUMILIATION', {
+          originEventTh: 'ล้มเหลวในการทะลวงด่านขั้นที่ ' + (c.stage + 1) + ' จนเกิดเงามารแห่งความท้อแท้ในจิตใจ'
+        });
+      }
       if (rng.chance(0.18)) { npc.h.physiology.meridianIntegrity = Math.max(8, npc.h.physiology.meridianIntegrity - rng.float(1, 4)); }
     }
     if (!res.ok && g.BN) g.BN.onResult(W, npc, false);

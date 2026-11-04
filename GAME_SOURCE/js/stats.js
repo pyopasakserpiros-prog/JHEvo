@@ -773,7 +773,11 @@
     const L = n.foe ? n.power : CULT.stageInfo(n).combatPower, off = Math.max(computeV.atk, computeV.matk), aref = L * 0.6;
     const offE = off * (1 + computeV.crit / 100 * (computeV.critDmg / 100 - 1)) * (0.6 + 0.4 * computeV.cast / 100) * (1 + computeV.pen / 150) * (0.85 + 0.15 * clamp(computeV.acc / (L * 0.55), 0.5, 2));
     const hpE = computeV.hp * (1 + 0.8 * ((computeV.def + computeV.mdef) / 2) / Math.max(1, aref)) * (1 + 0.25 * computeV.eva / Math.max(1, L * 0.55));
-    const rt = Math.max(3, ST.RK * Math.pow(offE, 0.55) * Math.pow(hpE, 0.45));
+    const bloodMult = (!n.foe && n.bloodlineTrait && Number.isFinite(n.bloodlineTrait.combatPowerBonus)) ? (1 + n.bloodlineTrait.combatPowerBonus) : 1;
+    const scarMult = (!n.foe && Array.isArray(n.daoScars) && n.daoScars.length) ? (1 + Math.min(0.24, n.daoScars.reduce((sum, sc) => sum + ((sc && sc.combatPowerBonus) || 0), 0))) : 1;
+    const wsMult = (!n.foe && n.equip && n.equip.WEAPON && n.equip.WEAPON.weaponSpirit && Number.isFinite(n.equip.WEAPON.weaponSpirit.multBonus)) ? (1 + Math.min(0.32, n.equip.WEAPON.weaponSpirit.multBonus)) : 1;
+    const asmMult = (!n.foe && Array.isArray(n.assemblyTitles) && n.assemblyTitles.length) ? (1 + Math.min(0.18, n.assemblyTitles.length * 0.06)) : 1;
+    const rt = Math.max(3, ST.RK * Math.pow(offE, 0.55) * Math.pow(hpE, 0.45) * bloodMult * scarMult * wsMult * asmMult);
     if (!v && n._cs && n._cs.v === computeV) n._cs.rating = rt;
     return rt;
   };
