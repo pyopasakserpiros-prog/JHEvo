@@ -18,3 +18,5 @@ Package 2.0.25 was imported from the Gemini branch archive. Its runtime patch id
 รายละเอียดผังสายสืบทอดและพงศาวดาร: [v2.0.27 report](PATCH_IMPLEMENTATION_REPORT_V2_0_27.md)
 
 รายละเอียดหน้าบรรพชน: [v2.0.28 report](PATCH_IMPLEMENTATION_REPORT_V2_0_28.md)
+
+ข้อเสนอแพตช์ถัดไปสำหรับ AGY: [สำนักเติบโต–ตกต่ำและบุตรสวรรค์](docs/proposals/next_dynamic_sects_heavenly_talents.md) (ยังเป็นข้อเสนอ ไม่ใช่งานที่พัฒนาแล้ว)
