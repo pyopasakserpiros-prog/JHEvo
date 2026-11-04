@@ -88604,8 +88604,10 @@ JD.ITEMS.items.forEach(it => {
         newMaster.roleTh = 'เจ้าสำนัก';
         newMaster.rank = 6;
         newMaster.power = Math.round(newMaster.power * 1.18);
-        // Defeated successor either dies or escapes as a wandering renegade/refugee!
-        const escaped = (succ.h.personality.caution || 50) >= 42;
+        // Defeated successor either dies, escapes as a wandering renegade, or defects to player sect!
+        const succCaut = (succ.h && succ.h.personality && succ.h.personality.caution) || 50;
+        const succAmb = (succ.h && succ.h.personality && succ.h.personality.ambition) || 50;
+        const escaped = succCaut >= 40;
         if (!escaped) {
           succ.dead = true;
           succ.diedDay = W.day || 360;
@@ -88615,6 +88617,11 @@ JD.ITEMS.items.forEach(it => {
           renegadeSpawned = succ;
           succ.role = 'renegade_successor';
           succ.roleTh = 'อดีตศิษย์สืบทอดผู้ลี้ภัย';
+          // Check if renegade seeks refuge with the player's sect
+          const playerFame = (W.sect && W.sect.fame) || 0;
+          if ((playerFame >= 80 || succCaut >= 55 || succAmb >= 65) && opts.allowPlayerRefuge !== false) {
+            X.hydrateFigureToNpc(W, succ, { rank: 2, merit: 25 });
+          }
         }
         s.figures.master = newMaster;
         s.figures.deputy = X.generateProceduralSectFigure(W, s, 'deputy');
@@ -89269,13 +89276,19 @@ JD.ITEMS.items.forEach(it => {
       if (mEmp >= mCaut - 10) {
         W.fame(3.5);
         W.sect.alignmentDeedScore = clamp((W.sect.alignmentDeedScore || 0) + 6, -100, 100);
+        const refugeeFig = (targetSect.figures && (targetSect.figures.successor || targetSect.figures.deputy)) || null;
+        let recruitedDisciple = null;
+        if (refugeeFig && !refugeeFig.dead && !refugeeFig.recruitedToPlayer) {
+          const hyd = X.hydrateFigureToNpc(W, refugeeFig, { rank: 2, merit: 20 });
+          if (hyd && hyd.ok) recruitedDisciple = hyd.npc;
+        }
         const allTechs = (JD && JD.TECH && JD.TECH.techniques) || [];
         const bonusTech = allTechs.find(t => t && !(W.sect.library || []).includes(t.id));
         if (bonusTech && W.sect.library) W.sect.library.push(bonusTech.id);
         outcome = 'SHELTERED_REFUGEE';
         titleTh = 'ยอดศิษย์ผู้ลี้ภัยศึกยุทธภพหนีตายมาขอพึ่งใบบุญหน้าประตูสำนัก!';
-        storyTh = 'อดีตศิษย์เอกผู้รอดชีวิตจากการกวาดล้างในยุทธภพโซซัดโซเซมาคุกเข่าหน้าประตูสำนัก「' + W.sect.name + '」ด้วยจิตเมตตาของ「' + (master ? HC.fullName(master) : 'เจ้าสำนัก') + '」จึงสั่งเปิดค่ายกลคุ้มครองและรักษาอาการบาดเจ็บ ผู้ลี้ภัยซาบซึ้งคุณธรรมจึงมอบคัมภีร์ยุทธ์ที่ติดตัวมาตอบแทนบุญคุณ!';
-        consequenceTh = 'ชื่อเสียงสำนัก +3.5 · คะแนนคุณธรรมฝ่ายธรรมะ +6' + (bonusTech ? (' · ได้รับคัมภีร์「' + bonusTech.nameTh + '」เข้าหอคัมภีร์') : '');
+        storyTh = 'อดีตยอดฝีมือผู้รอดชีวิตจากการกวาดล้าง「' + (recruitedDisciple ? HC.fullName(recruitedDisciple) : 'ผู้ลี้ภัย') + '」แห่ง「' + targetSect.nameTh + '」โซซัดโซเซมาคุกเข่าหน้าประตูสำนัก「' + W.sect.name + '」ด้วยจิตเมตตาของ「' + (master ? HC.fullName(master) : 'เจ้าสำนัก') + '」จึงสั่งเปิดค่ายกลคุ้มครอง รักษาอาการบาดเจ็บ และรับเข้าเป็นศิษย์ในสำนักทันที! ผู้ลี้ภัยซาบซึ้งคุณธรรมจึงมอบคัมภีร์ยุทธ์ที่ติดตัวมาตอบแทนบุญคุณ!';
+        consequenceTh = 'ชื่อเสียงสำนัก +3.5 · คะแนนคุณธรรมฝ่ายธรรมะ +6' + (recruitedDisciple ? (' · ได้รับ ' + HC.fullName(recruitedDisciple) + ' เข้าร่วมสำนัก') : '') + (bonusTech ? (' · ได้รับคัมภีร์「' + bonusTech.nameTh + '」เข้าหอคัมภีร์') : '');
       } else {
         outcome = 'TURNED_AWAY';
         titleTh = 'ปฏิเสธผู้ลี้ภัยศึกยุทธภพเพื่อรักษาความปลอดภัยของสำนัก';
@@ -89591,6 +89604,213 @@ JD.ITEMS.items.forEach(it => {
     });
 
     return { ok: true, templateId: tpl.id, nameTh: tpl.nameTh, macroRegion: regId, chronicle: chron };
+  };
+
+  /* ============================================================================
+   * Patch v2.0.29: Hierarchical Jianghu Cognition & Exact Identity Hydration
+   * & Enhanced Multi-Category Epic Chronicle Engine
+   * ============================================================================ */
+
+  /**
+   * Hydrates an exterior Jianghu figure into a full, resident sect NPC (`W.npcs`).
+   * Preserves exact personality, traits, cultivation, and equipment without rerolling.
+   */
+  X.hydrateFigureToNpc = (W, figOrId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world || !W.sect) return { ok: false, reason: 'invalid-world' };
+    X.ensureWorldTopology(W);
+    X.ensureJianghuFigures(W);
+
+    let fig = typeof figOrId === 'object' && figOrId ? figOrId : (W.world.figuresById && W.world.figuresById[figOrId]);
+    if (!fig) {
+      const s = X.findSect(W, figOrId);
+      if (s && s.figures && s.figures.master) fig = s.figures.master;
+    }
+    if (!fig) return { ok: false, reason: 'figure-not-found' };
+    if (fig.dead) return { ok: false, reason: 'figure-is-dead' };
+
+    // Check if already in W.npcs
+    const existing = (W.npcs || []).find(n => n && (n.id === fig.id || n._origFigureId === fig.id));
+    if (existing) return { ok: true, npc: existing, alreadyResident: true };
+
+    const rng = makeChildRng(W, 'hydrate_' + fig.id + '_' + (W.day || 360));
+    const sex = fig.h && fig.h.sex ? fig.h.sex : (rng.chance(0.6) ? 'M' : 'F');
+    const ageYears = fig.ageYears || rng.int(22, 45);
+
+    // 1. Generate full resident body/genome/mind baseline using HC.generate
+    const fullNpc = HC.generate(rng, {
+      id: fig.id,
+      day: W.day || 360,
+      sex,
+      ageYears,
+      quality: fig.quality || 0,
+      trainedness: 0.6
+    });
+
+    // 2. PRESERVE EXACT IDENTITY: Transfer all authored/fig traits into fullNpc.h
+    if (fig.h) {
+      if (fig.h.name) {
+        fullNpc.h.name = {
+          sur: fig.h.name.sur || fullNpc.h.name.sur,
+          given: fig.h.name.given || fullNpc.h.name.given,
+          full: fig.h.name.full || (fig.h.name.sur + fig.h.name.given)
+        };
+      }
+      // Exact Personality transfer
+      if (fig.h.personality) {
+        Object.keys(fig.h.personality).forEach(k => {
+          if (typeof fig.h.personality[k] === 'number') fullNpc.h.personality[k] = fig.h.personality[k];
+        });
+      }
+      // Exact Values transfer
+      if (fig.h.values) {
+        Object.keys(fig.h.values).forEach(k => {
+          if (typeof fig.h.values[k] === 'number') fullNpc.h.values[k] = fig.h.values[k];
+        });
+      }
+      // Exact Social & Skills transfer
+      if (fig.h.social) {
+        Object.keys(fig.h.social).forEach(k => {
+          if (typeof fig.h.social[k] === 'number') fullNpc.h.social[k] = fig.h.social[k];
+        });
+      }
+      if (fig.h.intellect) {
+        Object.keys(fig.h.intellect).forEach(k => {
+          if (typeof fig.h.intellect[k] === 'number') fullNpc.h.intellect[k] = fig.h.intellect[k];
+        });
+      }
+      if (fig.h.skills) {
+        Object.keys(fig.h.skills).forEach(k => {
+          if (typeof fig.h.skills[k] === 'number') fullNpc.h.skills[k] = fig.h.skills[k];
+        });
+      }
+      if (fig.h.aptitudes) {
+        Object.keys(fig.h.aptitudes).forEach(k => {
+          if (typeof fig.h.aptitudes[k] === 'number') fullNpc.h.aptitudes[k] = fig.h.aptitudes[k];
+        });
+      }
+    }
+
+    // Ensure weapon skill matching fig.weaponType
+    if (fig.weaponType && fullNpc.h.skills) {
+      const wpnSkillKey = String(fig.weaponType).toLowerCase();
+      fullNpc.h.skills[wpnSkillKey] = Math.max(fullNpc.h.skills[wpnSkillKey] || 0, Math.round(55 + (fig.cult ? fig.cult.stage * 4 : 10)));
+    }
+
+    // 3. Populate Resident State & Sect Membership
+    const assignedRank = opts.rank != null ? opts.rank : (fig.role === 'master' ? 5 : fig.role === 'deputy' ? 4 : 3);
+    Object.assign(fullNpc, {
+      x: MAP.EXIT ? MAP.EXIT.x + 0.5 : 118,
+      y: MAP.EXIT ? MAP.EXIT.y + 0.5 : 70,
+      px: MAP.EXIT ? MAP.EXIT.x + 0.5 : 118,
+      py: MAP.EXIT ? MAP.EXIT.y + 0.5 : 70,
+      face: 1,
+      dir: 0,
+      rank: assignedRank,
+      post: null,
+      assist: null,
+      merit: opts.merit || 25,
+      sat: 70,
+      mentor: null,
+      bed: null,
+      joinDay: W.day || 360,
+      inv: {
+        stones: (fig.inv && fig.inv.stones) ? fig.inv.stones : rng.int(50, 180),
+        pills: {},
+        mats: {}
+      },
+      equip: {},
+      inj: [],
+      cool: {},
+      recent: [],
+      act: { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] },
+      path: null,
+      pi: 0,
+      hidden: false,
+      away: false,
+      dead: false,
+      stats: {},
+      why: [],
+      travel: { to: 'home' },
+      _origFigureId: fig.id,
+      _recruitedFromSectTh: fig.sectNameTh || 'สำนักภายนอก',
+      _renegadeTitleTh: fig.roleTh || 'ยอดฝีมือแปรพักตร์'
+    });
+
+    // 4. Cultivation Path & Techniques Synchronization
+    if (fig.cult) {
+      const pPath = fig.cult.path || 'XIAN';
+      const pStage = fig.cult.stage || 3;
+      const mant = CULT.bestMantra ? CULT.bestMantra(pPath, pStage, fullNpc) : null;
+      fullNpc.cult = {
+        path: pPath,
+        sub: fig.cult.sub || 'NONE',
+        stage: pStage,
+        prog: Math.round(CULT.threshold(fullNpc) * 0.45),
+        mantra: mant ? mant.id : null,
+        techs: Array.isArray(fig.cult.techs) ? fig.cult.techs.slice() : [],
+        learning: null,
+        toxic: 0,
+        lifeBonus: 0,
+        since: (W.day || 360) - ageYears * 360,
+        attempts: 0,
+        secl: null,
+        rate: 0,
+        pillT: 0
+      };
+      if (CULT.trackDef && CULT.trackDef(fullNpc.cult.sub)) {
+        fullNpc.cult.track = CULT.initTrack(fullNpc.cult.sub, 1, W.day || 360);
+      }
+    }
+
+    if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(fullNpc, rng);
+    if (g.ELEM && g.ELEM.ensureNpcElementalState) g.ELEM.ensureNpcElementalState(fullNpc);
+    if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(fullNpc);
+    CULT.refreshLifespan(fullNpc);
+    fullNpc.h.state.hp = CULT.hpMax(fullNpc);
+    fullNpc.h.state.qi = CULT.qiMax(fullNpc);
+
+    // Equip Starter / Existing Gear
+    if (fig.weaponType && ECO && ECO.mintGear) {
+      const wpnRecipes = ECO.recipesFor ? ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.weaponType === fig.weaponType) : [];
+      if (wpnRecipes.length) {
+        const pickedR = wpnRecipes.find(r => r.tier === (fullNpc.cult ? fullNpc.cult.stage : 3)) || wpnRecipes[0];
+        fullNpc.equip.WEAPON = ECO.mintGear(W, pickedR, 1.15);
+        if (fig.weaponNameTh) fullNpc.equip.WEAPON.nameTh = fig.weaponNameTh;
+      }
+    }
+
+    // Register into World Simulation
+    W.npcs.push(fullNpc);
+    W.byId[fullNpc.id] = fullNpc;
+
+    // Mark exterior figure as recruited/defected
+    fig.recruitedToPlayer = true;
+    fig.residentNpcId = fullNpc.id;
+
+    // Record Chronicle Announcement
+    const chron = X.recordChronicle(W, {
+      category: 'SUCCESSION',
+      icon: '🤝',
+      macroRegion: fig.macroRegion || 'CENTRAL_HEARTLAND',
+      involvedSects: [fig.sectNameTh || 'สำนักภายนอก', W.sect.name || 'สำนักของเรา'],
+      involvedFigures: [HC.fullName(fullNpc)],
+      titleTh: 'ยอดฝีมือแปรพักตร์สวามิภักดิ์! 「' + HC.fullName(fullNpc) + '」เข้าสู่สำนัก',
+      storyTh: 'หลังเหตุการณ์คลื่นลมผันผวนในยุทธภพ 「' + HC.fullName(fullNpc) + '」(' + (fig.roleTh || 'อดีตยอดฝีมือ') + 'แห่ง' + (fig.sectNameTh || 'สำนักภายนอก') + ') ผู้มีตบะ' + (fullNpc.cult ? fullNpc.cult.path + ' ขั้น ' + fullNpc.cult.stage : '') + ' และความทะเยอทะยาน (' + Math.round(figTrait(fig, 'personality.ambition')) + ') ได้เดินทางมาขอกราบคารวะเข้าพึ่งพิงสำนัก「' + (W.sect.name || 'สำนักของเรา') + '」! เจ้าสำนักพิจารณาแล้วรับเข้าเป็นศิษย์ชั้นสูงทันที!',
+      consequenceTh: HC.fullName(fullNpc) + ' เข้าร่วมเป็นสมาชิกสำนักเราอย่างสมบูรณ์ รักษาอุปนิสัยและวิชาเดิมครบถ้วน!',
+      quiet: opts.quiet
+    });
+
+    W.log('disciple', '🤝 ต้อนรับศิษย์ใหม่ผู้ลี้ภัยยุทธภพ: ' + HC.fullName(fullNpc) + ' (' + (fig.roleTh || 'ยอดฝีมือ') + 'จาก' + (fig.sectNameTh || 'ภายนอก') + ')', [fullNpc.id]);
+
+    return { ok: true, npc: fullNpc, figure: fig, chronicle: chron };
+  };
+
+  /**
+   * Recruits a defecting/renegade figure or candidate from visitor/succession queue into player sect.
+   */
+  X.recruitForeignProdigy = (W, figOrId, opts) => {
+    return X.hydrateFigureToNpc(W, figOrId, opts);
   };
 
   g.EXPED = X;
@@ -108205,7 +108425,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.28', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.29', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
 
@@ -122339,6 +122559,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       UI.render();
       UI.updateHud(true);
     }
+    else if (a === 'world-chronicle-cat') {
+      UI.worldChronicleCategory = arg || 'all';
+      UI.render();
+    }
   };
 
   UI.toggleLogFilter = cat => {
@@ -122464,6 +122688,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (dipSel) dipSel.onchange = () => { UI.editDipSectId = dipSel.value; UI.render(); };
     const sancSel = body.querySelector("#editSanctumSel");
     if (sancSel) sancSel.onchange = () => { UI.editSanctumId = sancSel.value; UI.render(); };
+
+    // World Chronicle search input
+    const cSearch = body.querySelector('#worldChronicleSearch');
+    if (cSearch) cSearch.oninput = () => { UI.worldChronicleSearch = cSearch.value; UI.render(); const el = $('shBody').querySelector('#worldChronicleSearch'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } };
   };
 
   UI.tick = () => { if (!UI.sheet || UI.atlasDragging || UI.sheet === 'menu' && UI.tab !== 'main' || UI.sheet === 'edit') return; const now = performance.now(); if (now - (UI.lastRender || 0) < 1200) return; if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) return; UI.lastRender = now; UI.render(); };
@@ -123698,15 +123926,42 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     });
     h += '</div>';
 
-    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles.slice(0, 6) : [];
+    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
     if (chrons.length && UI.logFilters.has('all')) {
-      h += '<h3>📜 จดหมายเหตุยุทธภพ & พิราบสื่อสาร (รายงานอรรถรสฉบับเต็ม)</h3><div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.04)">';
-      h += chrons.map(c => '<div style="padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><span class="chip g">' + esc(c.categoryTh || 'จดหมายเหตุ') + '</span> <b>' + esc(c.icon || '📜') + ' ' + esc(c.titleTh) + '</b> <span class="muted" style="font-size:11px">(วันที่ ' + c.day + ')</span></div>' +
-        '<div style="font-size:12px;margin-top:3px;line-height:1.45">' + esc(c.storyTh) + '</div>' +
-        (c.combatBreakdownTh ? '<div class="muted" style="font-size:11px;margin-top:2px">⚔️ ' + esc(c.combatBreakdownTh) + '</div>' : '') +
-        (c.consequenceTh ? '<div style="font-size:11.5px;color:#ffd166;margin-top:2px">➔ ผลลัพธ์: ' + esc(c.consequenceTh) + '</div>' : '') +
-        '</div>').join('');
-      h += '</div>';
+      const cFilter = UI.worldChronicleCategory || 'all';
+      const cSearch = (UI.worldChronicleSearch || '').trim().toLowerCase();
+      const catList = [
+        ['all', 'ทั้งหมด'],
+        ['BATTLE', '⚔️ ศึก/ชิงแดน'],
+        ['SUCCESSION', '👑 วิกฤตบัลลังก์'],
+        ['FACTION', '⚖️ สภา/การเมือง'],
+        ['SECRET_REALM', '🌌 แดนลับ'],
+        ['LEGEND', '🐉 ยอดคน'],
+        ['VISITOR', '🎐 ผู้มาเยือน']
+      ];
+      let filteredChrons = chrons.filter(c => {
+        if (cFilter !== 'all' && c.category !== cFilter) return false;
+        if (cSearch) {
+          const hay = ((c.titleTh || '') + ' ' + (c.storyTh || '') + ' ' + (c.consequenceTh || '') + ' ' + (c.involvedSects || []).join(' ') + ' ' + (c.involvedFigures || []).join(' ')).toLowerCase();
+          if (!hay.includes(cSearch)) return false;
+        }
+        return true;
+      });
+
+      h += '<details class="lineage-chronicle" open><summary>📜 จดหมายเหตุยุทธภพ & พงศาวดารพิราบสื่อสาร (' + filteredChrons.length + '/' + chrons.length + ' ฉบับ)</summary><div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.04);margin-top:6px">';
+      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">' + catList.map(([ck, cv]) => '<button class="btn ' + (cFilter === ck ? 'pri' : '') + '" style="padding:2px 7px;font-size:11px" data-do="world-chronicle-cat" data-arg="' + ck + '">' + cv + '</button>').join('') + '</div>';
+      h += '<div style="margin-bottom:8px"><input id="worldChronicleSearch" type="search" placeholder="ค้นหาเหตุการณ์/ชื่อบุคคล/ชื่อสำนักในยุทธภพ…" value="' + esc(UI.worldChronicleSearch || '') + '" style="font-size:11.5px;padding:4px 8px;width:100%"></div>';
+
+      if (!filteredChrons.length) {
+        h += '<div class="muted">ไม่พบบันทึกจดหมายเหตุยุทธภพที่ตรงกับเงื่อนไขการค้นหา</div>';
+      } else {
+        h += filteredChrons.slice(0, 15).map(c => '<div style="padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><span class="chip g">' + esc(c.categoryTh || 'จดหมายเหตุ') + '</span> <b>' + esc(c.icon || '📜') + ' ' + esc(c.titleTh) + '</b> <span class="muted" style="font-size:11px">(วันที่ ' + c.day + ')</span></div>' +
+          '<div style="font-size:12px;margin-top:3px;line-height:1.45">' + esc(c.storyTh) + '</div>' +
+          (c.combatBreakdownTh ? '<div class="muted" style="font-size:11px;margin-top:2px">⚔️ ' + esc(c.combatBreakdownTh) + '</div>' : '') +
+          (c.consequenceTh ? '<div style="font-size:11.5px;color:#ffd166;margin-top:2px">➔ ผลลัพธ์: ' + esc(c.consequenceTh) + '</div>' : '') +
+          '</div>').join('');
+      }
+      h += '</div></details>';
     }
     let list = W.logs || [];
     if (!UI.logFilters.has('all')) {

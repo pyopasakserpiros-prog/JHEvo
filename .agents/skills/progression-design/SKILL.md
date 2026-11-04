@@ -189,3 +189,6 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 
 ## v2.0.28 ancestor profiles
 `SECT.inscribeLegacyTablet` snapshots known mentor, disciples, merit and up to 12 real related recorded events in `tablet.profile`; `UI.ancestorProfile` displays the snapshot and linked lineage. Existing tablets without snapshots show only available fields; no events are invented. `test/ancestor_profile.js` covers save/load.
+
+## v2.0.29 Exterior Figure Hydration & Defection Recruitment
+Exterior figures (deputies, successors, prodigies) from foreign sects defecting or sheltered during succession disputes/refugee events can be recruited into the player sect via `EXPED.hydrateFigureToNpc(W, figure, opts)`. The hydration pipeline guarantees 100% preservation of their pre-existing cultivation path (`cult.path`, `cult.stage`, `cult.sub`, `cult.techs`), weapon skills, personality, and values without re-rolling into `W.npcs` and `W.byId`. Verified in `test/v229_figure_hydration_and_epic_chronicle_suite.js`.

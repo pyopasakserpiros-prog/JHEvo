@@ -247,5 +247,24 @@ node test/npc_command.js
 node test/npc_social_help.js
 node test/npc_life_authority_overhaul.js
 node test/v212_weapon_build_improvisation_suite.js
+node test/v229_figure_hydration_and_epic_chronicle_suite.js
 node test/codex_combined_review.js
 ```
+
+---
+
+## 7. Exterior Figure Cognition & Exact Identity Hydration Engine (`js/expedition.js` — `v2.0.29`)
+
+### 7.1 Hierarchical Exterior Cognition vs. Resident Simulation
+- Exterior Jianghu Figures (Sect Masters, Deputies, Successors, and Wandering Legends) operate on hierarchical cognition outside the sect: they possess structured traits (`h.name`, `h.personality`, `h.values`, `h.social`, `h.intellect`, `h.skills`, `cult`, `weaponType`, `power`) used for high-level political decisions (succession struggles, faction alliances, secret realm competitions) without executing the per-minute A* pathfinding or station reservation loops of resident NPCs.
+
+### 7.2 Exact Identity Hydration (`X.hydrateFigureToNpc`)
+When an exterior figure defects, flees a succession crisis, or is granted refuge:
+```javascript
+const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
+// res.npc is now an active member in W.npcs and W.byId
+```
+- **Exact Trait Preservation Invariant:** Identity traits in `fig.h` are copied directly to `fullNpc.h` (`personality.ambition`, `integrity`, `aggression`, etc.), preserving their exact psychological DNA without re-rolling.
+- **Genome/Physiological Baseline:** `HC.generate(rng, ...)` generates baseline physiology, state, and genome, ensuring complete compliance with the 12-layer Human Core.
+- **Cultivation & Weapon Synchronization:** Preserves `cult.path`, `cult.stage`, `cult.sub`, `cult.techs`, and equips matching weapons via `ECO.mintGear`.
+- **Zero Fingerprint Mutation:** Never mutates `GAME_SOURCE/js/human_core.js` (`HC.FINGERPRINT === '155:2f9c9dd7'`).

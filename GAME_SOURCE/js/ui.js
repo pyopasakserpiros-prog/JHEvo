@@ -582,6 +582,7 @@
     else if (a === 'chronicle-filter') { UI.chronicleFilter = arg || 'all'; UI.render(); }
     else if (a === 'chronicle-person') { UI.chronicleNpcId = arg || null; UI.chronicleFilter = 'all'; UI.logFilters = new Set(['all']); UI.open('log'); }
     else if (a === 'chronicle-clear-person') { UI.chronicleNpcId = null; UI.render(); }
+    else if (a === 'world-chronicle-cat') { UI.worldChronicleCategory = arg || 'all'; UI.render(); }
     else if (a === 'editnpc') UI.openEditNpc(arg, 'char');
     else if (a === 'spawnnpc') UI.openEditNpc(arg, 'spawn');
     else if (a === 'open-spawn-sect') { UI.spawnDest = 'sect'; UI.open('edit', 'spawn'); }
@@ -1611,6 +1612,17 @@
     if (dipSel) dipSel.onchange = () => { UI.editDipSectId = dipSel.value; UI.render(); };
     const sancSel = body.querySelector("#editSanctumSel");
     if (sancSel) sancSel.onchange = () => { UI.editSanctumId = sancSel.value; UI.render(); };
+
+    // World Chronicle Search
+    const wcSearch = body.querySelector("#worldChronicleSearch");
+    if (wcSearch) {
+      wcSearch.oninput = () => {
+        UI.worldChronicleSearch = wcSearch.value;
+        UI.render();
+        const el = $("shBody").querySelector("#worldChronicleSearch");
+        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+      };
+    }
   };
 
   UI.tick = () => { if (!UI.sheet || UI.atlasDragging || UI.sheet === 'menu' && UI.tab !== 'main' || UI.sheet === 'edit') return; const now = performance.now(); if (now - (UI.lastRender || 0) < 1200) return; if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) return; UI.lastRender = now; UI.render(); };
@@ -2845,15 +2857,42 @@
     });
     h += '</div>';
 
-    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles.slice(0, 6) : [];
+    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
     if (chrons.length && UI.logFilters.has('all')) {
-      h += '<h3>📜 จดหมายเหตุยุทธภพ & พิราบสื่อสาร (รายงานอรรถรสฉบับเต็ม)</h3><div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.04)">';
-      h += chrons.map(c => '<div style="padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><span class="chip g">' + esc(c.categoryTh || 'จดหมายเหตุ') + '</span> <b>' + esc(c.icon || '📜') + ' ' + esc(c.titleTh) + '</b> <span class="muted" style="font-size:11px">(วันที่ ' + c.day + ')</span></div>' +
-        '<div style="font-size:12px;margin-top:3px;line-height:1.45">' + esc(c.storyTh) + '</div>' +
-        (c.combatBreakdownTh ? '<div class="muted" style="font-size:11px;margin-top:2px">⚔️ ' + esc(c.combatBreakdownTh) + '</div>' : '') +
-        (c.consequenceTh ? '<div style="font-size:11.5px;color:#ffd166;margin-top:2px">➔ ผลลัพธ์: ' + esc(c.consequenceTh) + '</div>' : '') +
-        '</div>').join('');
-      h += '</div>';
+      const cFilter = UI.worldChronicleCategory || 'all';
+      const cSearch = (UI.worldChronicleSearch || '').trim().toLowerCase();
+      const catList = [
+        ['all', 'ทั้งหมด'],
+        ['BATTLE', '⚔️ ศึก/ชิงแดน'],
+        ['SUCCESSION', '👑 วิกฤตบัลลังก์'],
+        ['FACTION', '⚖️ สภา/การเมือง'],
+        ['SECRET_REALM', '🌌 แดนลับ'],
+        ['LEGEND', '🐉 ยอดคน'],
+        ['VISITOR', '🎐 ผู้มาเยือน']
+      ];
+      let filteredChrons = chrons.filter(c => {
+        if (cFilter !== 'all' && c.category !== cFilter) return false;
+        if (cSearch) {
+          const hay = ((c.titleTh || '') + ' ' + (c.storyTh || '') + ' ' + (c.consequenceTh || '') + ' ' + (c.involvedSects || []).join(' ') + ' ' + (c.involvedFigures || []).join(' ')).toLowerCase();
+          if (!hay.includes(cSearch)) return false;
+        }
+        return true;
+      });
+
+      h += '<details class="lineage-chronicle" open><summary>📜 จดหมายเหตุยุทธภพ & พงศาวดารพิราบสื่อสาร (' + filteredChrons.length + '/' + chrons.length + ' ฉบับ)</summary><div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.04);margin-top:6px">';
+      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">' + catList.map(([ck, cv]) => '<button class="btn ' + (cFilter === ck ? 'pri' : '') + '" style="padding:2px 7px;font-size:11px" data-do="world-chronicle-cat" data-arg="' + ck + '">' + cv + '</button>').join('') + '</div>';
+      h += '<div style="margin-bottom:8px"><input id="worldChronicleSearch" type="search" placeholder="ค้นหาเหตุการณ์/ชื่อบุคคล/ชื่อสำนักในยุทธภพ…" value="' + esc(UI.worldChronicleSearch || '') + '" style="font-size:11.5px;padding:4px 8px;width:100%"></div>';
+
+      if (!filteredChrons.length) {
+        h += '<div class="muted">ไม่พบบันทึกจดหมายเหตุยุทธภพที่ตรงกับเงื่อนไขการค้นหา</div>';
+      } else {
+        h += filteredChrons.slice(0, 15).map(c => '<div style="padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><span class="chip g">' + esc(c.categoryTh || 'จดหมายเหตุ') + '</span> <b>' + esc(c.icon || '📜') + ' ' + esc(c.titleTh) + '</b> <span class="muted" style="font-size:11px">(วันที่ ' + c.day + ')</span></div>' +
+          '<div style="font-size:12px;margin-top:3px;line-height:1.45">' + esc(c.storyTh) + '</div>' +
+          (c.combatBreakdownTh ? '<div class="muted" style="font-size:11px;margin-top:2px">⚔️ ' + esc(c.combatBreakdownTh) + '</div>' : '') +
+          (c.consequenceTh ? '<div style="font-size:11.5px;color:#ffd166;margin-top:2px">➔ ผลลัพธ์: ' + esc(c.consequenceTh) + '</div>' : '') +
+          '</div>').join('');
+      }
+      h += '</div></details>';
     }
     let list = W.logs || [];
     if (!UI.logFilters.has('all')) {
