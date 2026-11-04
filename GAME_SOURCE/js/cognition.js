@@ -658,6 +658,9 @@
   COG.reconcileLoadout = (W, n) => {
     const M = g.MARTIAL;
     if (!M || !n || !n.cult || !Array.isArray(n.cult.techs)) return [];
+    const lSig = (n._ver || 0) + ':' + n.cult.stage + ':' + (n.cult.sub || '') + ':' + n.cult.techs.length + ':' + (n.passivePinned ? n.passivePinned.length : 0) + ':' + (n.passiveUnequipped ? n.passiveUnequipped.length : 0) + ':' + (n.equip && n.equip.WEAPON ? n.equip.WEAPON.id : '') + ':' + (n.equip && n.equip.ARMOR ? n.equip.ARMOR.id : '');
+    if (n._reconcileLoadoutSig === lSig && Array.isArray(n.passiveLoadout)) return n.passiveLoadout;
+    n._reconcileLoadoutSig = lSig;
     const maxSlots = M.maxPassiveSlots(n);
     const learnedPassives = n.cult.techs.filter(id => {
       const t = CULT.tech(id);
@@ -837,7 +840,8 @@
    * ============================================================================ */
   function safe(n) {
     const s = n.h.state;
-    return s.hp / CULT.hpMax(n) >= 0.35 && s.satiety >= 20 && s.rest >= 8;
+    const sevInj = Array.isArray(n.inj) && n.inj.some(i => (i.sev || 1) >= 2);
+    return !sevInj && s.hp / CULT.hpMax(n) >= 0.35 && s.satiety >= 20 && s.rest >= 8;
   }
   COG.safe = safe;
 
@@ -1341,7 +1345,7 @@
     wildwarden: ['guard', 'wildHunt'], steward: ['duty'], alchemy: ['brew', 'brewBasic'],
     forge: ['forge'], scripture: ['study', 'guidedStudy'], martial: ['practice', 'pair'],
     guard: ['guard'], healer: ['duty', 'shareMedicine'], mission: ['duty'], treasury: ['duty'],
-    registry: ['duty'], discipline: ['duty'], master: ['duty'], deputy: ['duty'],
+    registry: ['duty'], discipline: ['duty'], disciples: ['duty', 'pair'], master: ['duty'], deputy: ['duty'],
     envoy: ['duty'], spymaster: ['duty', 'investigateClueLocal'], beastmaster: ['duty', 'guard'], arraymaster: ['duty', 'forge'], censor: ['duty'], quartermaster: ['duty']
   };
   COG.modifiers = (W, n, id, SAcc) => {
@@ -1437,7 +1441,7 @@
     }
     const r = mc.r, goal = mc.goalRef;
     if (!mc.safe) {
-      const lowHp = s.hp / CULT.hpMax(n) < 0.35;
+      const lowHp = s.hp / CULT.hpMax(n) < 0.35 || mc.hasSevInj;
       const lowFood = s.satiety < 20;
       const lowRest = s.rest < 8;
       if ((lowRest && id === 'sleep') || (lowFood && id === 'eat') || (lowHp && ['heal', 'personalPillUse', 'shop', 'sleep'].includes(id))) {
@@ -1681,7 +1685,8 @@
     let memGratitude = 0, memTrust = 0, memResent = 0;
     for (const m of a.cognition?.memory || []) {
       if (m.subjectId !== bId) continue;
-      const fade = Math.max(0, 1 - ((W ? W.t : 0) - m.at) / (30 * 1440));
+      const nowT = (W && Number.isFinite(W.t)) ? W.t : ((g.STATS && Number.isFinite(g.STATS.now)) ? g.STATS.now : m.at);
+      const fade = clamp(1 - Math.max(0, nowT - m.at) / (30 * 1440), 0, 1);
       if (m.kind === 'received_help') { memGratitude += 18 * m.severity * fade; memTrust += 8 * m.severity * fade; }
       else if (m.kind === 'kept_commitment' || m.kind === 'shared_danger') { memTrust += 10 * m.severity * fade; }
       else if (m.kind === 'broken_commitment') { memTrust -= 14 * m.severity * fade; }
@@ -1778,8 +1783,8 @@
         COG.remember(W, b, { kind: "broken_commitment", subjectId: a.id, severity: 0.55 });
       }
     }
-    if (ca.commitment && ca.commitment.partnerId === b.id) ca.commitment = null;
-    if (cb.commitment && cb.commitment.partnerId === a.id) cb.commitment = null;
+    if (ca.commitment && ca.commitment.partnerId === b.id) { ca.commitment.status = resStatus; ca.commitment = null; }
+    if (cb.commitment && cb.commitment.partnerId === a.id) { cb.commitment.status = resStatus; cb.commitment = null; }
     return resStatus;
   };
 
@@ -1980,7 +1985,7 @@
     const recentRepeat = W.t - hist.lastAt < 6 * 1440 ? hist.count : 0;
 
     // Non-omniscient recipient judgment: uses own pride, trustfulness, readPeople, integrity, and observable repetition
-    const skill = (E(actor, 'social.persuasion') * 0.5 + E(actor, 'social.charisma') * 0.3 + E(actor, 'social.etiquette') * 0.2);
+    const skill = (E(actor, 'social.persuasion') * 0.5 + E(actor, 'social.charisma') * 0.3 + E(actor, 'social.hospitality') * 0.2);
     const discern = (E(target, 'intellect.readPeople') * 0.45 + E(target, 'intellect.judgement') * 0.35 + E(target, 'personality.integrity') * 0.2) + recentRepeat * 14 - (E(target, 'personality.pride') - 50) * 0.35 - (E(target, 'personality.trustfulness') - 50) * 0.25;
     const rT = SECT.rel(target, actor.id), rA = SECT.rel(actor, target.id);
     rT.n = (rT.n || 0) + 1; rT.last = W.t;

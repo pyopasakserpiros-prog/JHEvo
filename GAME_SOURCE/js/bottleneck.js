@@ -64,7 +64,7 @@
     const S = W.sect, mer = S.policy.meritocracy / 100, m = W.byId[S.masterId];
     let s = (n.merit || 0) / 60 * (0.3 + mer) + n.rank * 0.25 + (n.id === S.masterId ? (E(n, 'values.powerStatus') - 40) / 60 : 0);
     s += HC.derived(n).cultivationTalent / 100 * mer;
-    if (m && n.id !== m.id && n.rel && n.rel[m.id]) s += (n.rel[m.id].affinity || 0) / 200 * (1 - mer);
+    if (m && n.id !== m.id) { const rm = SECT.rel(n, m.id); if (rm) s += (rm.a || 0) / 200 * (1 - mer); }
     return s;
   };
   BN.daily = W => {

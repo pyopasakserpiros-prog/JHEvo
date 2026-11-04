@@ -618,7 +618,7 @@
     const M = W.map;
     const snap = { ...(W._saveExtras || {}), schemaVersion: SIM.SAVE_SCHEMA_VERSION, wildlife: W.wildlife, wildResources: W.wildResources, fishing: W.fishing, v: SIM.VERSION, runtimeTiming: W.runtimeTiming, hc: HC.FINGERPRINT, seed: W.seed, t: W.t, speed: W.speed, rng: W.rng.getState(), seqN: W.seqN, logSeq: W.logSeq, deaths: W.deaths, avgSat: W.avgSat, avgMood: W.avgMood, weather: W.weather, market: W.market, sect: W.sect, world: W.world, threat: W.threat, explore: W.explore, npcs: W.npcs, graveyard: W.graveyard, gone: W.gone, logs: W.logs.slice(-600), duelQueue: W.duelQueue, fights: W.fights, foes: W.foes, foeSeq: W.foeSeq, fightSeq: W.fightSeq,
       map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) } };
-    return JSON.stringify(snap, (k, v) => (k[0] === '_' && k !== '_ver') ? undefined : v);
+    return JSON.stringify(snap, (k, v) => ((k[0] === '_' && k !== '_ver') || k === 'jianghuSects' || k === 'inventoryIntelligence') ? undefined : v);
   };
   SIM.deserialize = str => {
     const s = JSON.parse(str);
@@ -663,7 +663,7 @@
       s.map.extra.forEach(e => { const b = M.buildings.find(x => x.n === e.bid); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
       M.stations.forEach(st => { st.occ = null; if (st.owner != null) st.owner = null; });
       M.buildings.forEach(b => { b.inside = []; });
-      W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside && n.hidden) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
+      W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
       W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta); W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); }; W.makeNpc = o => SIM.addNpc(W, o);
       const knownKeys = new Set(['v', 'schemaVersion', 'hc', 'seed', 't', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
       W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));

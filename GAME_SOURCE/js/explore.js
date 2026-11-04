@@ -170,28 +170,28 @@
       loot: [['boon', 3, 'ความกล้าหาญที่แท้จริง', 'mind', 0, 3], ['stones', 2, 'ผลึกความฝัน', 120, 300, 1], ['pill', 1.5, 'โอสถสงบจิต', 4, 0, 3], ['curse', 1.5, 'เงาความกลัวติดตัว', 0, 0, 1], ['relicmat', 0.5, 'เศษความฝันบรรพกาล', 0, 0, 4], ['relic', 0.35, 'ตะเกียงฝ่าฝันร้าย', 'lamp', 0, 4]] },
     { id: 'bloodmoon', nameTh: 'พิภพจันทร์โลหิตหมื่นอสูร', icon: '🩸', d: 3.8, desc: 'พิภพที่ดวงจันทร์สีเลือดไม่เคยลับขอบฟ้า ฝูงอสูรโลหิตและเงาหยินออกล่าอย่างบ้าคลั่ง อุดมด้วยชิ้นส่วนอสูรโลหิตและคัมภีร์สังหาร',
       v222BeastIds: ['BEAST_V222_BLOOD_KIRIN_WOLF', 'BEAST_V222_CRIMSON_CORPSE_BEAR', 'BEAST_V222_MIRAGE_SILK_MOTH', 'BEAST_V222_SHADOW_STALKER_PANTHER', 'BEAST_V222_NETHER_SCORPION_EMPEROR'],
-      v222MatIds: ['MAT_V222_BP_01', 'MAT_V222_BP_02', 'MAT_V222_BP_03', 'MAT_V222_BP_04', 'MAT_V222_BP_09', 'MAT_V222_BP_10', 'MAT_V222_BP_19', 'MAT_V222_BP_20', 'MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_25', 'MAT_V222_BP_26'],
+      v222MatIds: ['MAT_V222_BP_01', 'MAT_V222_BP_02', 'MAT_V222_BP_03', 'MAT_V222_BP_04', 'MAT_V222_BP_09', 'MAT_V222_BP_10', 'MAT_V222_BP_19', 'MAT_V222_BP_20', 'MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_03', 'MAT_V222_BP_02'],
       v222RecipeIds: ['REC_V222_EQ_01', 'REC_V222_EQ_03', 'REC_V222_EQ_04', 'REC_V222_EQ_05', 'REC_V222_EQ_06', 'REC_V222_EQ_13', 'REC_V222_EQ_18', 'REC_V222_EQ_24'],
       v222TechIds: ['TECH_V222_01', 'TECH_V222_02', 'TECH_V222_03', 'TECH_V222_04', 'TECH_V222_05', 'TECH_V222_19', 'TECH_V222_20'],
       enc: [['fight', 4, 'ฝูงหมาป่ากิเลนโลหิตและพยัคฆ์ไขกระดูกสีชาด'], ['hazard', 2.5, 'หมอกโลหิตกัดกร่อนเส้นปราณ'], ['treasure', 2.5, 'แท่นบูชาศาสตราโลหิตโบราณ'], ['trial', 2, 'แรงกดดันจิตสังหารจันทร์สีเลือด'], ['lore', 1.5, 'ศิลาจารึกวิถีมารโลหิต']],
       loot: [['beast', 4.5, 'ชิ้นส่วนอสูรจันทร์โลหิต', 5, 0, 2], ['stones', 2.5, 'ศิลาโลหิตอสูร', 140, 360, 1], ['gear', 2.5, 'ศาสตราอาบโลหิตอสูร', 5, 0, 3], ['tech', 2, 'คัมภีร์ยุทธ์จันทร์โลหิต', 4, 0, 3], ['boon', 1.5, 'ปราณโลหิตสูบฉีดกายา', 'body', 0, 3], ['relic', 0.35, 'กลองศึกหนังอสูรโลหิต', 'drum', 0, 4]] },
     { id: 'thunderpeak', nameTh: 'พิภพสายฟ้าเก้าสวรรค์', icon: '⚡', d: 3.6, desc: 'หมู่ยอดเขาแม่เหล็กที่ลอยคว้างกลางเมฆอสนีบาตม่วง ถิ่นอาศัยของอสูรสายฟ้าและวายุความเร็วสูง',
       v222BeastIds: ['BEAST_V222_THUNDER_ROC_FALCON', 'BEAST_V222_TEMPEST_WIND_SERPENT', 'BEAST_V222_THUNDER_HOOF_QILIN_STAG', 'BEAST_V222_GALE_SABERTOOTH_TIGER'],
-      v222MatIds: ['MAT_V222_BP_05', 'MAT_V222_BP_06', 'MAT_V222_BP_13', 'MAT_V222_BP_14', 'MAT_V222_BP_27', 'MAT_V222_BP_31'],
+      v222MatIds: ['MAT_V222_BP_05', 'MAT_V222_BP_06', 'MAT_V222_BP_13', 'MAT_V222_BP_14', 'MAT_V222_BP_04', 'MAT_V222_BP_16'],
       v222RecipeIds: ['REC_V222_EQ_02', 'REC_V222_EQ_08', 'REC_V222_EQ_10', 'REC_V222_EQ_12', 'REC_V222_EQ_15', 'REC_V222_EQ_16'],
       v222TechIds: ['TECH_V222_11', 'TECH_V222_12', 'TECH_V222_13', 'TECH_V222_14', 'TECH_V222_15', 'TECH_V222_22', 'TECH_V222_23'],
       enc: [['fight', 3.5, 'เสือดาวปีกอสนีและกระทิงราชันสายฟ้า'], ['hazard', 3, 'ม่านสายฟ้าสวรรค์ฟาดผ่า'], ['gather', 2.5, 'แร่เหล็กสายฟ้าและขนวิหคพายุ'], ['treasure', 2, 'ตำหนักพิณอสนีบนยอดผา'], ['trial', 2, 'รับคมสายฟ้าหลอมชีพจร']],
       loot: [['beast', 4, 'ชิ้นส่วนอสูรสายฟ้าและวายุ', 5, 0, 2], ['ore', 3, 'ผลึกแร่อสนีม่วง', 4, 0, 2], ['gear', 2.5, 'ศาสตราประจุสายฟ้าสวรรค์', 5, 0, 3], ['tech', 2, 'คัมภีร์วิชาอสนีและวายุ', 4, 0, 3], ['stones', 2, 'ศิลาประกายอัสนี', 130, 340, 1], ['relic', 0.35, 'ระฆังอสนีสะท้านภพ', 'bell', 0, 4]] },
     { id: 'frostabyss', nameTh: 'พิภพห้วงลึกเหมันต์นิรันดร์', icon: '🧊', d: 3.4, desc: 'มหาสมุทรใต้ชั้นน้ำแข็งหมื่นปีและวังผลึกเหมันต์ที่หงส์ขาวเหมันต์และวาฬสมุทรน้ำแข็งแหวกว่าย',
       v222BeastIds: ['BEAST_V222_FROST_GLACIER_WYRM', 'BEAST_V222_IRON_WING_GARUDA', 'BEAST_V222_CELESTIAL_LOTUS_CRANE', 'BEAST_V222_ABYSSAL_LEVIATHAN_CRAB'],
-      v222MatIds: ['MAT_V222_BP_07', 'MAT_V222_BP_08', 'MAT_V222_BP_11', 'MAT_V222_BP_12', 'MAT_V222_BP_28', 'MAT_V222_BP_30'],
+      v222MatIds: ['MAT_V222_BP_07', 'MAT_V222_BP_08', 'MAT_V222_BP_11', 'MAT_V222_BP_12', 'MAT_V222_BP_06', 'MAT_V222_BP_15'],
       v222RecipeIds: ['REC_V222_EQ_07', 'REC_V222_EQ_11', 'REC_V222_EQ_14', 'REC_V222_EQ_19', 'REC_V222_EQ_20'],
       v222TechIds: ['TECH_V222_06', 'TECH_V222_07', 'TECH_V222_08', 'TECH_V222_09', 'TECH_V222_10', 'TECH_V222_21'],
       enc: [['fight', 3.5, 'อสรพิษวิญญาณน้ำแข็งและหมีหนามเหมันต์'], ['hazard', 2.5, 'กระแสน้ำวนเยือกแข็งสะกดวิญญาณ'], ['gather', 3, 'รังหงส์เหมันต์และผลึกน้ำแข็งพันปี'], ['treasure', 2, 'คลังศาสตราวังบาดาลน้ำแข็ง'], ['rest', 1.5, 'โถงผลึกอุ่นปราณใต้สมุทร']],
       loot: [['beast', 4, 'ชิ้นส่วนอสูรห้วงลึกเหมันต์', 5, 0, 2], ['herb', 3, 'บัวหิมะใต้สมุทร', 4, 0, 2], ['gear', 2.5, 'ศาสตราผลึกน้ำแข็งนิรันดร์', 4, 0, 3], ['tech', 2, 'คัมภีร์เหมันต์และคีตเวทย์', 4, 0, 3], ['stones', 2, 'ศิลาเหมันต์บาดาล', 120, 310, 1], ['relic', 0.35, 'น้ำเต้าเก็บไอเหมันต์', 'gourd', 0, 4]] },
     { id: 'astralvoid', nameTh: 'พิภพดาราจักรสุญตา', icon: '🌌', d: 4.4, desc: 'วงแหวนอุกกาบาตและวิหารดาราที่ลอยอยู่ในความว่างเปล่าต้นกำเนิด แหล่งรวมอสูรระดับตำนานและมรดกเทพดารา',
       v222BeastIds: ['BEAST_V222_ASTRAL_NINE_TAIL_FOX', 'BEAST_V222_VOID_DEVOURING_CHIMERA', 'BEAST_V222_SOLAR_GOLD_TORTOISE', 'BEAST_V222_FLAME_MANE_LION_BOAR'],
-      v222MatIds: ['MAT_V222_BP_17', 'MAT_V222_BP_18', 'MAT_V222_BP_21', 'MAT_V222_BP_22', 'MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_33', 'MAT_V222_BP_34', 'MAT_V222_BP_35', 'MAT_V222_BP_36'],
+      v222MatIds: ['MAT_V222_BP_17', 'MAT_V222_BP_18', 'MAT_V222_BP_21', 'MAT_V222_BP_22', 'MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_19', 'MAT_V222_BP_13', 'MAT_V222_BP_07', 'MAT_V222_BP_08'],
       v222RecipeIds: ['REC_V222_EQ_09', 'REC_V222_EQ_17', 'REC_V222_EQ_21', 'REC_V222_EQ_22', 'REC_V222_EQ_23', 'REC_V222_EQ_24'],
       v222TechIds: ['TECH_V222_16', 'TECH_V222_17', 'TECH_V222_18', 'TECH_V222_24'],
       enc: [['fight', 4, 'จิ้งจอกเก้าหางดาราและอสูรบรรพกาลกลืนดารา'], ['hazard', 3, 'รอยแยกแรงโน้มถ่วงดาราจักร'], ['treasure', 3, 'หอสมบัติดาราจักรโบราณ'], ['trial', 2.5, 'บททดสอบเจตจำนงแห่งดวงดาว'], ['lore', 2, 'แผนผังโคจรดาราจักรต้นกำเนิด']],
@@ -7051,7 +7051,7 @@
     } else if (spot === 'ruin') {
       const sc = per * 0.6 + E(n, 'intellect.intuition') * 0.3 + (luck - 45) / 8 + rng.gauss(0, 12) + (n.h.skills.survival || 0) * 0.2;
       const r = rng.next();
-      if (r < 0.14) { const dm = (50 - E(n, 'personality.courage')) / 100; if (rng.chance(clamp(0.5 + dm, 0.2, 0.8))) { HC.feel(n, { stress: 6 }); n.h.state.heartDemon = clamp(n.h.state.heartDemon + 4, 0, 100); logText = nm + ' เจอวิญญาณเก่าแก่ในซากเจดีย์ ตกใจแทบสิ้นสติ'; } else { HC.experience(n, 'victory', 0.3); logText = nm + ' สยบวิญญาณเฝ้าซากเจดีย์ได้'; } if (rng.chance(0.15)) AI.injure(W, n, 1, 'ถูกวิญญาณทำร้าย'); }
+      if (r < 0.14) { const dm = (50 - E(n, 'personality.courage')) / 100; if (rng.chance(clamp(0.5 + dm, 0.2, 0.8))) { HC.feel(n, { stress: 6 }); n.h.state.heartDemon = clamp(n.h.state.heartDemon + 4, 0, 100); logText = nm + ' เจอวิญญาณเก่าแก่ในซากเจดีย์ ตกใจแทบสิ้นสติ'; } else { HC.experience(n, 'duel_win', 0.3); logText = nm + ' สยบวิญญาณเฝ้าซากเจดีย์ได้'; } if (rng.chance(0.15)) AI.injure(W, n, 1, 'ถูกวิญญาณทำร้าย'); }
       else if (sc > 62 && r < 0.45) { const amt = rng.int(40, 130) + s.lvl * 25; ECO.earn(W, amt, 'ของเก่าในซากเจดีย์'); logText = nm + ' ขุดพบของเก่าในซากเจดีย์ มูลค่า ' + amt + ' ศิลา'; }
       else if (sc > 75 && r < 0.6) {
         const gear = (ECO.rollProceduralGear && rng.chance(0.7))
@@ -7070,7 +7070,7 @@
       const sc = per * 0.5 + (n.h.skills.herbalism || 0) * 0.5 + (luck - 45) / 8 + rng.gauss(0, 12) + s.lvl * 2;
       const tier = Math.min(5, 2 + s.lvl + (sc > 85 ? 1 : 0)); const m = matOf('HERB', sc > 60 ? tier : 3, rng, sc > 60 ? 2 : 1);
       if (m && sc > 38) { const q = 1 + (sc > 70 ? 1 : 0) + (rng.chance(0.25) ? 1 : 0); ECO.add(W, m.id, q); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'herbalism', 1.2, 1); if (sc > 85 && m.tier >= 4) { logText = nm + ' พบ' + m.nameTh + 'ในป่าลับ'; note(W, logText); big.push(1); } }
-      if (rng.chance(0.08)) { const dm = PW(n); if (dm < 25 && rng.chance(0.5)) AI.injure(W, n, 1, 'ถูกสัตว์วิญญาณขวิด'); else HC.experience(n, 'victory', 0.15); }
+      if (rng.chance(0.08)) { const dm = PW(n); if (dm < 25 && rng.chance(0.5)) AI.injure(W, n, 1, 'ถูกสัตว์วิญญาณขวิด'); else HC.experience(n, 'duel_win', 0.15); }
       if (rng.chance(0.012)) { s.lvl++; logText = nm + ' พบมุมลับของป่า สมุนไพรหายากขึ้น'; note(W, logText); }
     }
     if (logText) W.log('explore', logText, [n.id]);
@@ -7152,7 +7152,7 @@
       const bp = (site.rank && EX.RANK_FOE_POWER[site.rank]) ? (EX.RANK_FOE_POWER[site.rank] * (site.tide ? site.tide.danger : 1) * (0.85 + rng.next() * 0.3)) : (foePower(d) * (0.75 + rng.next() * 0.6));
       const p = pw / (pw + bp);
       if (p < 0.4 && rng.chance(0.45 + surv / 220 + avg(m => E(m, 'personality.caution')) / 400)) { ex.journal.push('พบ' + text + ' แต่ถอยหลบได้'); return; }
-      if (rng.next() < clamp((p - 0.22) * 1.7, 0.03, 0.97)) { ex.journal.push('สยบ' + text + ' ได้'); const v = dmgOne(W, alive, clamp((1 - p) * 0.5 + rng.next() * 0.08, 0.02, 0.55), 'ถูก' + text + 'ทำร้าย'); alive.forEach(m => HC.experience(m, 'victory', 0.2)); v.stats = v.stats || {}; v.stats.kills = (v.stats.kills || 0) + 1; lootRoll(W, ex, alive, out, site, d); if (rng.chance(0.35)) lootRoll(W, ex, alive, out, site, d); }
+      if (rng.next() < clamp((p - 0.22) * 1.7, 0.03, 0.97)) { ex.journal.push('สยบ' + text + ' ได้'); const v = dmgOne(W, alive, clamp((1 - p) * 0.5 + rng.next() * 0.08, 0.02, 0.55), 'ถูก' + text + 'ทำร้าย'); alive.forEach(m => HC.experience(m, 'duel_win', 0.2)); v.stats = v.stats || {}; v.stats.kills = (v.stats.kills || 0) + 1; lootRoll(W, ex, alive, out, site, d); if (rng.chance(0.35)) lootRoll(W, ex, alive, out, site, d); }
       else { const v = rng.pick(alive); ex.journal.push('พ่ายต่อ' + text); if (rng.chance(clamp((bp / (pw + bp) - 0.5) * 0.5, 0.01, 0.3) * (1 - E(v, 'destiny.luck') / 300) * (1 - surv / 250))) { out.notes.push(v.h.name.given + ' เสียชีวิตที่' + site.nameTh); ex.deaths = (ex.deaths || 0) + 1; AI.kill(W, v, 'เสียชีวิตขณะสำรวจ' + site.nameTh); alive.splice(alive.indexOf(v), 1); } else { AI.injure(W, v, 2, 'ถูก' + text + 'ทำร้ายสาหัส'); v.h.state.hp = Math.max(1, CULT.hpMax(v) * 0.15); ex.fail = true; } }
     } else if (k === 'treasure' || k === 'gather') {
       const per = best(m => E(m, 'intellect.perceptiveness')), chk = per * 0.7 + (luck - 45) / 6 + rng.gauss(0, 10) + (k === 'gather' ? best(m => (m.h.skills.herbalism || 0) + (m.h.skills.mining || 0)) * 0.25 : 0);
@@ -7186,6 +7186,9 @@
   EX.bandOf = f => CAVE_BANDS.find(b => f >= b.from && f <= b.to) || CAVE_BANDS[2];
   EX.canGo = W => { const g = dex(W).gate; return g.open && g.until - W.day >= 2.2; };
   EX.depart = (W, party, kind) => {
+    if (!W || !Array.isArray(party)) return null;
+    party = party.filter(p => p && !p.dead && !p.away && !p.travel && !p.expId);
+    if (!party.length) return null;
     const rng = W.rng, w = W.world, e = dex(W); const lead = party[0];
     const totalP = party.reduce((s, m) => s + PW(m), 0), bold = party.reduce((s, m) => s + E(m, 'personality.courage'), 0) / party.length;
     let target = 0, days, placeTh, world = null, site, partyRank = 1, exSubpool = null;
@@ -7242,7 +7245,7 @@
         if (gd) {
           const bp = foePower(gd.d) * (cv.guard[f] ? 0.7 : 1) * (0.9 + rng.next() * 0.3), pw = alive.reduce((s, m) => s + PW(m), 0) * (0.85 + rng.next() * 0.3), p = pw / (pw + bp);
           if (p < 0.4 && !cv.guard[f]) { ex.journal.push('ชั้น ' + f + ': พบ' + gd.nameTh + ' แต่แข็งแกร่งเกิน จึงถอย'); reached = f; break; }
-          if (rng.next() < clamp((p - 0.25) * 1.8, 0.03, 0.96)) { ex.journal.push('ชั้น ' + f + ': ล้ม' + gd.nameTh + ' ได้!'); dmgOne(W, alive, clamp((1 - p) * 0.5, 0.05, 0.5), 'ถูก' + gd.nameTh + 'ทำร้าย'); alive.forEach(m => HC.experience(m, 'victory', 0.7));
+          if (rng.next() < clamp((p - 0.25) * 1.8, 0.03, 0.96)) { ex.journal.push('ชั้น ' + f + ': ล้ม' + gd.nameTh + ' ได้!'); dmgOne(W, alive, clamp((1 - p) * 0.5, 0.05, 0.5), 'ถูก' + gd.nameTh + 'ทำร้าย'); alive.forEach(m => HC.experience(m, 'duel_win', 0.7));
             if (!cv.guard[f]) { cv.guard[f] = W.day; out.stones += gd.stones; const r = EX.RELICS[gd.relic]; if (r && !e.relics.includes(gd.relic)) { e.relics.push(gd.relic); cdx.relics.push({ id: gd.relic, d: W.day, from: 'ถ้ำหมื่นสายหมอก' }); out.notes.push('★ ได้ของวิเศษ「' + r.nameTh + '」'); W.log('explore', '★ ' + ex.partyNames + ' ล้ม' + gd.nameTh + 'ที่ชั้น ' + f + ' ได้ของวิเศษ「' + r.nameTh + '」— ' + r.desc, ex.party); note(W, 'ล้ม' + gd.nameTh + ' ได้ ' + r.nameTh); } out.rep += 3; if (f === 5) cv.cap = 10; }
             else { out.stones += Math.round(gd.stones * 0.15); } }
           else { const v = rng.pick(alive); ex.journal.push('ชั้น ' + f + ': พ่ายต่อ' + gd.nameTh); if (rng.chance(0.12 * (1 - E(v, 'destiny.luck') / 250))) { out.notes.push(v.h.name.given + ' เสียชีวิตที่ถ้ำ'); cv.deaths++; AI.kill(W, v, 'เสียชีวิตจากผู้พิทักษ์ถ้ำ'); alive.splice(alive.indexOf(v), 1); } else { AI.injure(W, v, 2, 'ถูก' + gd.nameTh + 'ทำร้ายสาหัส'); v.h.state.hp = Math.max(1, CULT.hpMax(v) * 0.12); } reached = f; break; }
@@ -7561,14 +7564,16 @@
     // Tier 1 (or fallback): RARE_MATERIAL (T3-T5 material, bounded quantity 1)
     const matTier = Math.min(5, 2 + floor);
     const mats = (JD.ITEMS.materials || []).filter(m => m && m.id && (m.tier || 1) >= Math.max(2, matTier - 1) && (m.tier || 1) <= matTier);
-    const chosenMat = mats.length ? mats[((W.day || 0) + floor) % mats.length] : { id: 'MAT_ORE_METEOR_IRON_4', nameTh: 'แร่เหล็กดาวตก', tier: 4 };
+    const chosenMat = mats.length ? mats[((W.day || 0) + floor) % mats.length] : { id: 'MAT_ORE_METEOR_IRON_5', nameTh: 'แร่เหล็กดาวตก', tier: 4 };
     out.mats[chosenMat.id] = (out.mats[chosenMat.id] || 0) + 1;
     const reward = { tierId: 'RARE_MATERIAL', rarityRank: 1, kind: 'MATERIAL', id: chosenMat.id, nameTh: chosenMat.nameTh, qty: 1, legendary: false };
     return { deepestFloor: floor, chance, roll, secondRoll: rawSecond / totalWeight, requestedTierId: pickedTier.id, tierId: 'RARE_MATERIAL', triggered: true, reward, fallbackUsed };
   };
 
   EX.departSanctum = (W, party, sanctumId) => {
-    if (!W || !Array.isArray(party) || !party.length) return null;
+    if (!W || !Array.isArray(party)) return null;
+    party = party.filter(p => p && !p.dead && !p.away && !p.travel && !p.expId);
+    if (!party.length) return null;
     EX.ensureSanctums(W);
     const sc = EX.SANCTUMS[sanctumId] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
     const b = (W.map && W.map.byId && (W.map.byId.gate_zone || W.map.byId.cave)) || { door: { x: 118, y: 130 } };
@@ -7687,12 +7692,12 @@
           const allRec = (JD.ITEMS && JD.ITEMS.recipes ? JD.ITEMS.recipes : []).filter(r => r.outType === 'EQUIPMENT' && r.tier === fl.tier);
           if (allRec.length) {
             const rPick = allRec[(W.day + fl.floor) % allRec.length];
-            const gr = ECO.mintGear(rPick, 1.18 + fl.floor * 0.04);
+            const gr = ECO.mintGear(W, rPick, 1.18 + fl.floor * 0.04);
             out.gear.push(gr);
           }
         }
         ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ปราบ' + fl.guardianNameTh + ' [ชุดสัจธรรม 3/3 · ' + fl.weaponType + '] สำเร็จ รับ「' + (ECO.REFINEMENT_CATALYSTS[fl.catalystId]?.nameTh || fl.catalystId) + '」');
-        alive.forEach(m => HC.experience(m, 'victory', 0.55));
+        alive.forEach(m => HC.experience(m, 'duel_win', 0.55));
         if (!ex.forceClear && fl.floor < sc.floors.length) {
           dmgOne(W, alive, clamp((1 - winProb) * 0.35, 0.04, 0.24), 'ปะทะผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
           const avgHp = alive.reduce((s, m) => s + (m.h.state.hp / Math.max(1, CULT.hpMax(m))), 0) / alive.length;

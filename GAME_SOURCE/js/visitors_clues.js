@@ -1033,11 +1033,14 @@
     if (!usableItems.length) return null;
     const fxEntries = [];
     for (const eqIt of usableItems) {
-      const list = eqIt.fx || (VC.LEGENDARY_WEAPON_BY_ID[eqIt.id] && VC.LEGENDARY_WEAPON_BY_ID[eqIt.id].effects);
+      const def = (VC.LEGENDARY_EQUIPMENT_BY_ID && VC.LEGENDARY_EQUIPMENT_BY_ID[eqIt.id]) || VC.LEGENDARY_WEAPON_BY_ID[eqIt.id];
+      const list = eqIt.fx || (def && def.effects);
       if (Array.isArray(list)) {
         for (const fx of list) fxEntries.push({ eqIt, fx });
       }
     }
+    const legResPre = (M && M.evaluateLegendaryRelicResonance) ? M.evaluateLegendaryRelicResonance(attacker) : null;
+    const cdScale = (legResPre && legResPre.procChanceMult > 1) ? (1 / legResPre.procChanceMult) : 1;
     if (!fxEntries.length) return null;
     const wpn = usableItems[0];
     if (!strikeResult || typeof strikeResult !== 'object') {
@@ -1057,7 +1060,7 @@
         const fx = entry.fx;
         const eid = fx.effectId;
         const p = fx.params || {};
-        const icd = Math.max(2, p.icdTicks || 8);
+        const icd = Math.max(2, Math.round((p.icdTicks || 8) * cdScale));
         if ((attacker.wpnProcCds[eid] || 0) > W.t) continue;
 
         if (eid === 'EFX_LEG_YITIAN_SEVER') {
@@ -1095,6 +1098,11 @@
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_TULONG_DECREE') {
           attacker.wpnProcCds[eid] = W.t + icd;
+          if (strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender) && p.bonusDmgMult) {
+            const extra = Math.max(1, Math.round(strikeResult.dmg * p.bonusDmgMult));
+            COMBAT.applyDamage(W, f, attacker, defender, extra, 'อาญาสิทธิ์ดาบพิฆาตมังกร');
+            strikeResult.dmg += extra;
+          }
           if (COMBAT.alive(defender)) ST.addStatus(defender, p.targetStatus || 'weaken', p.dur || 8);
           ST.addStatus(attacker, p.selfStatus || 'morale', p.dur || 8);
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
@@ -1230,6 +1238,60 @@
             }
           }
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_SAMSARA_RING_REVERSAL') {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          const hm = COMBAT.hpMax(attacker), qm = CULT.qiMax(attacker);
+          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
+          if (p.qiRestorePct && attacker.cult) attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (COMBAT.alive(defender)) {
+            if (p.targetStatus) ST.addStatus(defender, p.targetStatus, p.dur || 8);
+            if (strikeResult && strikeResult.dmg > 0 && p.bonusDmgMult) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * p.bonusDmgMult));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'วงแหวนสังสารวัฏย้อนวิบาก');
+              strikeResult.dmg += extra;
+            }
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_BODHI_HEART_LOTUS') {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          if (p.cleanseHeartDemon && attacker.h && attacker.h.state) {
+            attacker.h.state.heartDemon = Math.max(0, (attacker.h.state.heartDemon || 0) - p.cleanseHeartDemon);
+          }
+          const hm = COMBAT.hpMax(attacker);
+          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (p.secondaryBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.secondaryBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_TAICHI_COMMAND_DECREE') {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          if (p.qiRestorePct && attacker.cult) {
+            const qm = CULT.qiMax(attacker);
+            attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          }
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (p.secondaryBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.secondaryBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (COMBAT.alive(defender)) {
+            if (p.targetStatus) ST.addStatus(defender, p.targetStatus, p.dur || 8);
+            if (strikeResult && strikeResult.dmg > 0 && p.bonusDmgMult) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * p.bonusDmgMult));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'ตราพยัคฆ์ไท่จี๋เคลื่อนทัพสวรรค์');
+              strikeResult.dmg += extra;
+            }
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_DRAGON_PHOENIX_HARMONY') {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          const hm = COMBAT.hpMax(attacker), qm = CULT.qiMax(attacker);
+          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
+          if (p.qiRestorePct && attacker.cult) attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (COMBAT.alive(defender) && strikeResult && strikeResult.dmg > 0 && p.bonusDmgMult) {
+            const extra = Math.max(1, Math.round(strikeResult.dmg * p.bonusDmgMult));
+            COMBAT.applyDamage(W, f, attacker, defender, extra, 'มังกรหงส์ประสานชีพจรคู่');
+            strikeResult.dmg += extra;
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_DAGOU_REDIRECTION') {
           // Dagou Jade Staff is primarily a defensive/redirection proc when struck (`runWeaponOnStruckProcs`).
           // Only delegate from `runWeaponProcs` when invoked directly in unit tests (`typeof isSkill === 'number'` or no live `strikeResult.hit`).
@@ -1279,7 +1341,8 @@
     if (!usableItems.length) return null;
     const fxEntries = [];
     for (const eqIt of usableItems) {
-      const list = eqIt.fx || (VC.LEGENDARY_WEAPON_BY_ID[eqIt.id] && VC.LEGENDARY_WEAPON_BY_ID[eqIt.id].effects);
+      const def = (VC.LEGENDARY_EQUIPMENT_BY_ID && VC.LEGENDARY_EQUIPMENT_BY_ID[eqIt.id]) || VC.LEGENDARY_WEAPON_BY_ID[eqIt.id];
+      const list = eqIt.fx || (def && def.effects);
       if (Array.isArray(list)) {
         for (const fx of list) fxEntries.push({ eqIt, fx });
       }
@@ -4464,7 +4527,8 @@
     if (!v) return v;
     const cs = VC.ensure(W);
     v.role = 'merchant';
-    v.roleTitleTh = 'วาณิชพเนจร (' + (v.subtype || 'general') + ')';
+    const _subTh = ({ general: 'ทั่วไป', medicine: 'สมุนไพร·โอสถ', caravan: 'กองคาราวาน', rare: 'ของหายาก' })[v.subtype || 'general'] || (v.subtype || 'ทั่วไป');
+    v.roleTitleTh = 'วาณิชพเนจร (' + _subTh + ')';
     v.state = 'admitted';
     v.accessLevel = 'market_and_plaza';
     const mkt = W.map && W.map.byId && W.map.byId.market;
@@ -5427,7 +5491,7 @@
     const allDead = party.length === 0;
     if (win) {
       party.forEach(m => {
-        HC.experience(m, 'victory', 0.35);
+        HC.experience(m, 'duel_win', 0.35);
         if (m.cult && m.cult.techs && m.cult.techs.length) {
           (M && M.skillPractice ? M.skillPractice : HC.practice)(m, 'SWORD', 1.2, 1.1);
         }

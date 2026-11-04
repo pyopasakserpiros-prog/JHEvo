@@ -3138,6 +3138,10 @@
     const ageY = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;
     const isF = n.h && n.h.sex === 'F';
     const hs = b.hairStyle || '';
+    const wpnObj = n.equip && n.equip.WEAPON;
+    const armObj = n.equip && n.equip.ARMOR;
+    const accObj = n.equip && n.equip.ACCESSORY;
+    const wUsable = !!(wpnObj && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
     const ap = {
       skin: b.skinHex || '#e8c49c',
       hair: ageY >= 62 ? '#b8bec4' : (b.hairHex || '#222024'),
@@ -3145,7 +3149,12 @@
       long: /ยาว|ปล่อย|ถัก/.test(hs) || (isF && !/สั้น|โกน/.test(hs)),
       bun: /มวย|รวบ|ปิ่น/.test(hs) || (!/โกน/.test(hs) && (n.rank >= 2 || !isF)),
       bald: /โกน|หัวล้าน/.test(hs),
-      hasBeard: !isF && ageY >= 38 && !/เกลี้ยง/.test(b.facialHair || '')
+      hasBeard: !isF && ageY >= 38 && !/เกลี้ยง/.test(b.facialHair || ''),
+      weaponType: (wpnObj && g.MARTIAL && g.MARTIAL.gearType) ? g.MARTIAL.gearType(wpnObj) : null,
+      weaponVisualKey: wpnObj && wpnObj.visualKey ? wpnObj.visualKey : null,
+      weaponUsable: wUsable,
+      armorVisualKey: armObj && armObj.visualKey ? armObj.visualKey : null,
+      accessoryVisualKey: accObj && accObj.visualKey ? accObj.visualKey : null
     };
 
     // 1. Rich Atmospheric Portrait Background with Subtle Halo & Border

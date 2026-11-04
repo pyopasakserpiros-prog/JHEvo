@@ -893,7 +893,7 @@
     if (W.day % 3 === 0) SECT.reviewPromotions(W);
     SECT.processApplicants(W, m);
     // 4) การตัดสินใจเชิงนโยบายของเจ้าสำนัก
-    SECT.masterDecision(W, m);
+    if (m && !m.dead && !m.away && !(m.jail > W.t)) SECT.masterDecision(W, m);
     // 5) หัวหน้าหอสั่งงานของตน
     SECT.hallHeads(W);
   };
@@ -1261,12 +1261,12 @@
       W.fame(4);
       ECO.earn(W, stonePrize, 'ชนะทูตท้าประลองจาก' + rival.nameTh);
       rival.attitude = clamp((rival.attitude || 0) + 5, -100, 100);
-      HC.experience(champ, 'victory', 0.7);
+      HC.experience(champ, 'duel_win', 0.7);
       if (decisiveRivalry && g.CONTENT && g.CONTENT.forceVassalTreaty) vassalTreaty = g.CONTENT.forceVassalTreaty(W, rival, { majorDispute: true, winnerId: champ.id, cause: 'RIVAL_ENVOY_CHALLENGE' });
     } else {
       W.fame(-1);
       rival.attitude = clamp((rival.attitude || 0) - 4, -100, 100);
-      HC.experience(champ, 'defeat', 0.35);
+      HC.experience(champ, 'duel_lose', 0.35);
     }
     if (W.world && W.world.politics) {
       const pol = W.world.politics;
@@ -1399,7 +1399,7 @@
           ECO.pay(W, stonePay, 'รางวัลชุมนุมยุทธ์ ' + spec.nameTh);
         }
         champ.inv.stones = (champ.inv.stones || 0) + spec.stonePrize;
-        HC.experience(champ, 'victory', 0.85);
+        HC.experience(champ, 'duel_win', 0.85);
         if (g.AI && g.AI.mem) g.AI.mem(W, champ, 'คว้าแชมป์ชุมนุมยุทธ์ ' + spec.nameTh + ' ด้วย' + sig.weaponNameTh + '「' + sig.techNameTh + '」', 0.9);
         totalFameGained += spec.fameReward;
       } else {
@@ -1721,7 +1721,7 @@
 
   SECT.startResearch = (W, m) => {
     const S = W.sect; if (S.research) return;
-    if (S.recipeTier >= 6) return;
+    if (S.recipeTier >= 7) return;
     const head = SECT.holder(W, 'scripture');
     const cost = 400 * S.recipeTier;
     if (!ECO.pay(W, cost, 'วิจัยตำรับระดับ ' + (S.recipeTier + 1))) return;
@@ -1792,8 +1792,16 @@
     W.npcs.forEach(o => { if (!o.dead && o.id !== n.id) { const near = SECT.relationScore(o, n); if (near > 30) o.sat = Math.max(0, (o.sat || 60) - sev * 0.8); if (HC.eff(o, 'personality.integrity') > 65 && fair) o.sat = Math.min(100, (o.sat || 60) + 0.6); } });
   };
   SECT.expel = (W, n, why) => {
+    if (g.AI && g.AI.interruptFor) g.AI.interruptFor(W, n);
+    if (g.AI && g.AI.freeBed) g.AI.freeBed(W, n);
     if (n.post) { W.sect.posts[n.post] = null; n.post = null; }
+    n.assist = null;
+    if (W.sect && W.sect.successorId === n.id) W.sect.successorId = null;
+    if (W.sect && W.sect.deputyId === n.id) W.sect.deputyId = null;
     n.exiled = true; n.rank = 0; n.leave = { t: W.t, why: 'ถูกขับ' };
+    n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [['ถูกขับออกจากสำนัก', 9]] };
+    n.why = [['ถูกขับออกจากสำนัก', 9]];
+    if (!n.away) n.travel = { to: 'exit' };
     W.log('expel', n.h.name.given + ' ถูกขับออกจากสำนัก (' + why + ')', [n.id]);
   };
 
@@ -2056,7 +2064,8 @@
         W.sect.buyList.push({ id: d.id, n: Math.min(12, Math.ceil(d.deficit)) });
       }
     });
-    if (ECO.inventoryIntelligence) ECO.inventoryIntelligence(W, true);
+    W.sect._stockDirty = true;
+    if (W.sect.inventoryIntelligence) W.sect.inventoryIntelligence.evaluatedAt = -1;
   };
 
   const BASIC_PILL_SET = new Set((JD.CP && JD.CP.BASIC ? JD.CP.BASIC : []).map(r => 'P:' + r.id));
@@ -2231,13 +2240,13 @@
           return newVal > curVal + 0.005;
         });
         if (!cands.length) continue;
-        cands.sort((a, b) => {
-          const aEmpty = !(a.equip && a.equip[eq.slot]) ? 12 : 0;
-          const bEmpty = !(b.equip && b.equip[eq.slot]) ? 12 : 0;
-          const aDelta = (g.MARTIAL && g.MARTIAL.classifyGearForNpc) ? (g.MARTIAL.classifyGearForNpc(W, a, eq, 0).deltaScore || 0) * 0.15 : 0;
-          const bDelta = (g.MARTIAL && g.MARTIAL.classifyGearForNpc) ? (g.MARTIAL.classifyGearForNpc(W, b, eq, 0).deltaScore || 0) * 0.15 : 0;
-          return (recipientScoreForItem(W, evaluator, b, eq, roleBoosts) + bEmpty + bDelta) - (recipientScoreForItem(W, evaluator, a, eq, roleBoosts) + aEmpty + aDelta);
-        });
+        for (let ci = 0; ci < cands.length; ci++) {
+          const cn = cands[ci];
+          const cEmpty = !(cn.equip && cn.equip[eq.slot]) ? 12 : 0;
+          const cDelta = (g.MARTIAL && g.MARTIAL.classifyGearForNpc) ? (g.MARTIAL.classifyGearForNpc(W, cn, eq, 0).deltaScore || 0) * 0.15 : 0;
+          cn._distScore = recipientScoreForItem(W, evaluator, cn, eq, roleBoosts) + cEmpty + cDelta;
+        }
+        cands.sort((a, b) => b._distScore - a._distScore);
         const win = cands[0];
         S.gear.splice(i, 1);
         win.equip = win.equip || { WEAPON: null, ARMOR: null, ACCESSORY: null };
@@ -2380,7 +2389,7 @@
 
     // 1. If an appointed successor disciple exists and is valid, they ascend immediately!
     let succ = SECT.holder(W, 'disciples') || (S.successorId ? W.byId[S.successorId] : null);
-    if (succ && !succ.dead && !succ.exiled && !succ.away) {
+    if (succ && !succ.dead && !succ.exiled) {
       if (succ.post) { S.posts[succ.post] = null; succ.post = null; }
       if (S.successorId === succ.id) S.successorId = null;
       if (S.deputyId === succ.id) S.deputyId = null;
@@ -2488,7 +2497,16 @@
       if (n.dead || n.away || n.exiled || n.rank >= 5 || n.left) return;
       const low = (n.sat || 60) < 22, stay = (W.day - (n.joinDay || 0)) > 60;
       if (low && stay && W.rng.chance(0.22 + (HC.eff(n, 'values.freedom') - 50) / 300 - (HC.eff(n, 'personality.loyalty') - 50) / 250)) {
+        if (g.AI && g.AI.interruptFor) g.AI.interruptFor(W, n);
+        if (g.AI && g.AI.freeBed) g.AI.freeBed(W, n);
+        if (n.post) { W.sect.posts[n.post] = null; n.post = null; }
+        n.assist = null;
+        if (W.sect && W.sect.successorId === n.id) W.sect.successorId = null;
+        if (W.sect && W.sect.deputyId === n.id) W.sect.deputyId = null;
         n.leave = { t: W.t, why: 'หนีออกจากสำนัก' }; n.exiled = true; n.deserting = true;
+        n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [['หนีออกจากสำนัก', 9]] };
+        n.why = [['หนีออกจากสำนัก', 9]];
+        n.travel = { to: 'exit' };
         W.log('desert', n.h.name.given + ' ผิดหวังกับสำนักและหนีออกไป', [n.id]);
       }
     });
@@ -4284,7 +4302,7 @@
         if (g.CPE && g.CPE.mint) g.CPE.mint(W, champ, cp, 'แชมป์ชุมนุมยุทธภพระดับ' + spec.nameTh, true);
         else { champ.cp = (champ.cp || 0) + cp; champ.cpEarned = (champ.cpEarned || 0) + cp; }
         champ.merit = (champ.merit || 0) + 28;
-        HC.experience(champ, 'victory', 0.6);
+        HC.experience(champ, 'duel_win', 0.6);
         localFame += spec.id === 'ELDER_PEAK' ? 8 : spec.id === 'CORE' ? 5 : 3;
       } else {
         const sect = guests.find(s => s.id === champ.guestSectId);
@@ -6093,19 +6111,19 @@
     opts = opts || {};
     if (!W || !W.sect) return { ok: false, reason: 'invalid-world' };
     const S = W.sect;
-    const lecturer = (lecturerOrId && typeof lecturerOrId === 'object')
+    let lecturer = (lecturerOrId && typeof lecturerOrId === 'object')
       ? lecturerOrId
       : (lecturerOrId && W.byId && W.byId[lecturerOrId])
-      || (S.masterId && W.byId && W.byId[S.masterId])
-      || (W.npcs || []).find(n => n && !n.dead && !n.exiled);
-    if (!lecturer || lecturer.dead) return { ok: false, reason: 'no-lecturer' };
+      || (S.masterId && W.byId && W.byId[S.masterId] && !W.byId[S.masterId].away ? W.byId[S.masterId] : null)
+      || (W.npcs || []).find(n => n && !n.dead && !n.exiled && !n.away);
+    if (!lecturer || lecturer.dead || lecturer.away) return { ok: false, reason: 'no-lecturer' };
 
     const lectStage = lecturer.cult ? (CULT.equivalentStage ? CULT.equivalentStage(lecturer) : lecturer.cult.stage) : 3;
     const teachSkill = HC.eff(lecturer, 'social.teaching') || 55;
     const compSkill = HC.eff(lecturer, 'intellect.comprehension') || 55;
     const baseXp = Math.round(24 + lectStage * 8 + (teachSkill + compSkill) * 0.15);
 
-    const attendees = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== lecturer.id);
+    const attendees = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away && n.id !== lecturer.id);
     const epiphanyNames = [];
     let cleansedCount = 0;
 
@@ -6129,6 +6147,12 @@
           if (CULT.ready && CULT.ready(n) && n.cult.stage < CULT.maxStage(n)) {
             n.cult.stage++;
             n.cult.prog = 0;
+            n.cult.attempts = 0;
+            n.cult.since = W.day;
+            if (CULT.refreshLifespan) CULT.refreshLifespan(n);
+            if (g.BN && g.BN.onResult) g.BN.onResult(W, n, true);
+            if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(n);
+            HC.bump(n);
           }
           epiphanyNames.push(HC.fullName(n));
         }

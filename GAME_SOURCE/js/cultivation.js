@@ -763,8 +763,8 @@
         && Number.isFinite(access[el].affinity) && Array.isArray(access[el].sources));
   }
 
-  const ASTRAL_SUBS = new Set(['ASTRAL_ARRAY', 'TIME_VOID', 'FATE_ORACLE', 'MIND_SWORD_TELEKINESIS', 'STAR_ARCHER', 'VOID_SPEAR_MIND']);
-  const BLOOD_SUBS = new Set(['BLOOD_DEMON', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'HEAVEN_DEVOURING_DEMON', 'BLOOD_SPEAR_ASURA']);
+  const ASTRAL_SUBS = new Set(['ASTRAL_ARRAY', 'TIME_VOID', 'FATE_ORACLE', 'MIND_SWORD_TELEKINESIS', 'STAR_ARCHER', 'VOID_SPEAR_MIND', 'ASTRAL_CLOCKWORK_PRIME', 'PAST_LIFE_MIRROR', 'SEAL_SCRIPT_EXORCIST', 'QIMEN_TALISMAN_PATRON', 'CELESTIAL_ZITHER_ENVOY']);
+  const BLOOD_SUBS = new Set(['BLOOD_DEMON', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'HEAVEN_DEVOURING_DEMON', 'BLOOD_SPEAR_ASURA', 'PRIMORDIAL_BLOOD_MUTATOR']);
 
   ELEM.syncSpecialAccess = npc => {
     if (!npc || !npc.h) return null;
@@ -778,6 +778,7 @@
     const bloodSources = new Set(sourceArray('BLOOD_DEMON'));
 
     if (c) {
+      if (c.path === 'ARRAY_TALISMAN') astralSources.add('PATH:ARRAY_TALISMAN');
       if (ASTRAL_SUBS.has(c.sub)) astralSources.add('SUBPATH:' + c.sub);
       if (c.path === 'DEMON') bloodSources.add('PATH:DEMON');
       if (BLOOD_SUBS.has(c.sub)) bloodSources.add('SUBPATH:' + c.sub);
@@ -1700,6 +1701,7 @@
   }
   /** คะแนนความอยากเดินสายย่อย (ทำไมคนนี้เลือกวิถีนี้ — อธิบายได้ รวมรากวิญญาณและธาตุ) */
   CULT.pathScores = (npc, bias) => {
+    if (!Number.isFinite(HC.nowDay)) HC.nowDay = 360;
     ELEM.ensureNpc(npc);
     const _ec = getNpcCache(npc);
     const cPath = npc.cult ? npc.cult.path : '', cSub = npc.cult ? npc.cult.sub : '', cSt = npc.cult ? npc.cult.stage : 0;
@@ -1783,7 +1785,28 @@
     SWARM_INSECT_EMPEROR: 'SWARM_GU_HIVE_MASTER',
     TOTEMIC_WAR_CHIEFTAIN: 'ABYSSAL_DRAGON_TOTEM',
     ANCIENT_SUN_GOD: 'SUN_BOW_DEITY', STAR_LORD_GOD: 'FATE_ORACLE', OCEAN_GOD: 'OCEAN_SOVEREIGN', THUNDER_LORD_GOD: 'WAR_DEITY',
-    ACUPUNCTURE_SAINT: 'GOLDEN_NEEDLE_SAINT'
+    ACUPUNCTURE_SAINT: 'GOLDEN_NEEDLE_SAINT',
+    SOUL_MUSICIAN: 'SOUND_ZITHER',
+    ILLUSION_MIND: 'DREAM_ILLUSION_WEAVER',
+    CHANT_RESONANCE: 'ZEN_VOID_MIND',
+    GRAND_STRATEGIST: 'BATTLEFIELD_STRATEGIST',
+    GRAND_FORMATION_ARCHITECT: 'EARTH_VEIN_WARDEN',
+    UNDERWORLD_DECREE: 'UNDERWORLD_JUDGE',
+    SPIRIT_THREAD_PUPPET: 'THOUSAND_THREAD_ASSASSIN',
+    PACK_COMMAND_HUNT: 'MYRIAD_BEAST_PACK',
+    REINCARNATION_WARDEN: 'SIX_PATHS_WHEEL',
+    ASTRAL_LEVIATHAN_KRAKEN: 'ABYSSAL_DRAGON_TOTEM',
+    BLOOD_FURNACE: 'DEVOURING_FIEND',
+    BEAST_BLOOD_FUSION: 'SYMBIOTIC_BEAST_WARRIOR',
+    TIDAL_WATER_MIRROR: 'FROST_MOON_IMMORTAL',
+    LIGHTNING_TEMPERED_BODY: 'THUNDER_BODY',
+    THUNDER_PUNISHMENT_ENVOY: 'THUNDER_TALISMAN_ADEPT',
+    WIND_SHADOW_ROAMER: 'SHADOW_ASSASSIN',
+    DIVINE_FORGE_FOUNDER: 'HEAVENLY_ANVIL_SMITH',
+    BATTLE_ARRAY_TACTICIAN: 'BATTLEFIELD_STRATEGIST',
+    BLOOD_SEA_FIEND: 'BLOOD_DEMON',
+    PILL_FLAME_SOVEREIGN: 'PILL_FURNACE_IMMORTAL',
+    IMPERIAL_PEACE_SOVEREIGN: 'SECT_STEWARD'
   }, (JD.MARTIAL && JD.MARTIAL.SUBPATH_ALIASES) || {});
   CULT.resolveSubId = sub => (sub && CULT.SUB_ALIASES && CULT.SUB_ALIASES[sub]) || (sub && JD.MARTIAL && JD.MARTIAL.SUBPATH_ALIASES && JD.MARTIAL.SUBPATH_ALIASES[sub]) || sub;
   const _SUB_INFO_MAP = Object.create(null);
@@ -2097,7 +2120,7 @@
     let cp = st.combatPower;
     if (npc.cult) { const si = CULT.subInfo(npc.cult.path, npc.cult.sub); cp *= si.combatBonus; }
     const f_body = 0.7 + d.physicalIndex / 100 * 0.6;
-    const sk = npc.h.skills; const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.BODY_REFINING || 0, sk.SOUL_DIVINE || 0, sk.POISON || 0, sk.BEAST_TAMING || 0, sk.FORGING || 0, sk.ARRAY || 0, sk.SCRIPTURE || 0);
+    const sk = npc.h.skills; const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0, sk.BODY_REFINING || 0, sk.SOUL_DIVINE || 0, sk.POISON || 0, sk.BEAST_TAMING || 0, sk.FORGING || 0, sk.ALCHEMY || 0, sk.MEDICINE || 0, sk.ARRAY || 0, sk.TALISMAN || 0, sk.SCRIPTURE || 0, sk.administration || 0, sk.diplomacy || 0);
     const f_skill = 0.75 + martial / 100 * 0.5;
     let techSum = 0; (npc.cult ? npc.cult.techs : []).forEach(id => { const t = TECH_BY_ID[id]; if (t) techSum += t.tier; });
     const f_tech = 1 + Math.min(0.4, 0.04 * techSum);
@@ -2273,8 +2296,17 @@
         res.supremeRisk = 'FURNACE_OVERHEAT_BACKLASH';
         npc.h.state.qi = Math.max(0, Math.round((npc.h.state.qi || 0) * 0.30));
         npc.h.state.energy = Math.max(10, (npc.h.state.energy || 50) - 22);
+      } else if (c.path === 'ARRAY_TALISMAN') {
+        res.supremeRisk = 'FORMATION_BACKLASH_DISARRAY';
+        npc.h.state.qi = Math.max(0, Math.round((npc.h.state.qi || 0) * 0.25));
+        npc.h.state.stress = clamp((npc.h.state.stress || 0) + 12, 0, 100);
+      } else if (c.path === 'STRATEGY_GOVERNANCE') {
+        res.supremeRisk = 'MANDATE_STRAIN_BACKLASH';
+        npc.h.state.energy = Math.max(10, (npc.h.state.energy || 50) - 20);
+        npc.h.state.stress = clamp((npc.h.state.stress || 0) + 14, 0, 100);
       }
-      const pd = c.stage >= 3 ? 0.012 * (c.stage - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
+      const eqSt = CULT.equivalentStage ? CULT.equivalentStage(npc) : c.stage;
+      const pd = eqSt >= 3 ? 0.012 * (eqSt - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
       if (rng.next() < pd) res.died = true;
       if (CULT.isAncestralBlessingActive(npc, W ? W.t : null) && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || !W || W.day == null || npc.ancestralBlessing.untilDay >= W.day)) {
         res.died = false;

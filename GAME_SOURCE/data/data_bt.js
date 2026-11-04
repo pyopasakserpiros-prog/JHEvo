@@ -6,8 +6,8 @@
   const JD = g.JD, BT = {};
   const MAT = JD.ITEMS.materials;
   const pick = (cat, tier, i) => { const l = MAT.filter(m => !m.sourcePack && m.category === cat && m.tier === tier); return l.length ? l[(i || 0) % l.length].id : null; };
-  const PATH_LABEL = { XIAN: 'เซียน', BODY: 'กายา', GOD: 'เทพศรัทธา', DEMON: 'มารอสูร', HEART_SOUL: 'จิต·เซน', MECH_PUPPET: 'กลจักรหุ่นเชิด', KARMA_SAMSARA: 'กรรมวัฏสังสาร', BEAST_SOVEREIGN: 'ราชันย์อสูร', SAGE_SUPPORT: 'ปราชญ์โอสถ·คีตเวทย์', CRAFT_CREATION: 'รังสรรค์โอสถ·ศาสตรา' };
-  const PATH_EL = { XIAN: 'WIND', BODY: 'EARTH_METAL', GOD: 'LIGHT_YANG', DEMON: 'YIN_SHADOW', HEART_SOUL: 'LIGHT_YANG', MECH_PUPPET: 'EARTH_METAL', KARMA_SAMSARA: 'LIGHT_YANG', BEAST_SOVEREIGN: 'WOOD_LIFE', SAGE_SUPPORT: 'WOOD_LIFE', CRAFT_CREATION: 'FIRE' };
+  const PATH_LABEL = { XIAN: 'เซียน', BODY: 'กายา', GOD: 'เทพศรัทธา', DEMON: 'มารอสูร', HEART_SOUL: 'จิต·เซน', MECH_PUPPET: 'กลจักรหุ่นเชิด', KARMA_SAMSARA: 'กรรมวัฏสังสาร', BEAST_SOVEREIGN: 'ราชันย์อสูร', SAGE_SUPPORT: 'ปราชญ์โอสถ·คีตเวทย์', CRAFT_CREATION: 'รังสรรค์โอสถ·ศาสตรา', ARRAY_TALISMAN: 'ค่ายกล·ยันต์สวรรค์', STRATEGY_GOVERNANCE: 'พิชัยยุทธ์·ธรรมาภิบาล' };
+  const PATH_EL = { XIAN: 'WIND', BODY: 'EARTH_METAL', GOD: 'LIGHT_YANG', DEMON: 'YIN_SHADOW', HEART_SOUL: 'LIGHT_YANG', MECH_PUPPET: 'EARTH_METAL', KARMA_SAMSARA: 'LIGHT_YANG', BEAST_SOVEREIGN: 'WOOD_LIFE', SAGE_SUPPORT: 'WOOD_LIFE', CRAFT_CREATION: 'FIRE', ARRAY_TALISMAN: 'ASTRAL', STRATEGY_GOVERNANCE: 'EARTH_METAL' };
   const PILLS = {
     XIAN: ['โอสถชำระลมปราณ', 'โอสถเสริมรากฐาน', 'โอสถก่อแก่นทอง', 'โอสถอุ้มทารกวิญญาณ', 'โอสถแปรวิญญาณ', 'โอสถหลอมความว่าง', 'โอสถมหายานวารี', 'โอสถข้ามผ่านสวรรค์'],
     BODY: ['โอสถหลอมเลือดเหล็ก', 'โอสถสำริดหล่อกระดูก', 'โอสถทองอมตะแปรเนื้อ', 'โอสถวัชระทลายพันธนาการ'],
@@ -18,10 +18,12 @@
     KARMA_SAMSARA: ['โอสถหยั่งรู้ผลกรรม', 'โอสถเชื่อมด้ายชะตา', 'โอสถตั้งตาชั่งวิบาก', 'โอสถหมุนกงล้อหกภพ', 'โอสถตัดขาดวาสนา', 'โอสถปทุมนิรโทษ', 'โอสถข้ามวัฏสงสาร'],
     BEAST_SOVEREIGN: ['โอสถสื่อจิตอสูร', 'โอสถประทับตราพันธสัญญา', 'โอสถเปิดมิติเลี้ยงอสูร', 'โอสถหลอมโลหิตร่วมใจ', 'โอสถปลุกสายเลือดบรรพกาล', 'โอสถบัญชาทัพหมื่นอสูร', 'โอสถเทพอสูรจำแลง'],
     SAGE_SUPPORT: ['โอสถเปิดชีพจรหยั่งรู้', 'โอสถเข็มเงินประสานปราณ', 'โอสถกลั่นน้ำค้างสวรรค์', 'โอสถคีตเวทย์ก้องหุบเขา', 'โอสถดาราคุ้มทัพฉีเหมิน', 'โอสถหัตถ์เทวะชุบวิญญาณ', 'โอสถมหาปราชญ์ค้ำจุนฟ้าดิน'],
-    CRAFT_CREATION: ['โอสถจุดไฟเตาหลอมปราณ', 'โอสถร้อยหลอมชุบชีพจร', 'โอสถรวมใจเตาโอสถและทั่งเหล็ก', 'โอสถปลุกวิญญาณศาสตราโอสถ', 'โอสถหลอมเพลิงสาม昧แท้จริง', 'โอสถจารึกกฎเกณฑ์ฟ้าดิน', 'โอสถเทพรังสรรค์หมื่นศาสตรา']
+    CRAFT_CREATION: ['โอสถจุดไฟเตาหลอมปราณ', 'โอสถร้อยหลอมชุบชีพจร', 'โอสถรวมใจเตาโอสถและทั่งเหล็ก', 'โอสถปลุกวิญญาณศาสตราโอสถ', 'โอสถหลอมเพลิงสาม昧แท้จริง', 'โอสถจารึกกฎเกณฑ์ฟ้าดิน', 'โอสถเทพรังสรรค์หมื่นศาสตรา'],
+    ARRAY_TALISMAN: ['โอสถเปิดเนตรค่ายกล', 'โอสถหยั่งชีพจรปฐพี', 'โอสถควบแน่นแก่นอักขระ', 'โอสถตั้งแท่นบัญชายันต์', 'โอสถเชื่อมดาราแปดทิศ', 'โอสถกางเขตแดนฟ้าดิน', 'โอสถจอมค่ายกลสัจธรรม'],
+    STRATEGY_GOVERNANCE: ['โอสถตั้งปณิธานยุทธศาสตร์', 'โอสถประสานใจหมู่ชน', 'โอสถหลอมตราบัญชาทัพ', 'โอสถเปิดค่ายพยุหะแปดประตู', 'โอสถรวมบารมีครองยุทธภพ', 'โอสถพิทักษ์กฎเกณฑ์แผ่นดิน', 'โอสถมหาเสนาบดีค้ำสวรรค์']
   };
-  const TIERS = { XIAN: [1, 2, 3, 4, 5, 6, 7, 7], BODY: [2, 3, 5, 6], GOD: [2, 4, 6], DEMON: [1, 2, 3, 4, 5, 6, 7, 7], HEART_SOUL: [1, 2, 3, 4, 5, 6, 7, 7], MECH_PUPPET: [1, 2, 3, 4, 5, 6, 7], KARMA_SAMSARA: [1, 2, 3, 4, 5, 6, 7], BEAST_SOVEREIGN: [1, 2, 3, 4, 5, 6, 7], SAGE_SUPPORT: [1, 2, 3, 4, 5, 6, 7], CRAFT_CREATION: [1, 2, 3, 4, 5, 6, 7] };
-  const BASE = { XIAN: .12, BODY: .12, GOD: .14, DEMON: .12, HEART_SOUL: .13, MECH_PUPPET: .12, KARMA_SAMSARA: .13, BEAST_SOVEREIGN: .12, SAGE_SUPPORT: .13, CRAFT_CREATION: .13 }, STEP = { XIAN: .025, BODY: .04, GOD: .05, DEMON: .025, HEART_SOUL: .025, MECH_PUPPET: .028, KARMA_SAMSARA: .028, BEAST_SOVEREIGN: .028, SAGE_SUPPORT: .028, CRAFT_CREATION: .028 };
+  const TIERS = { XIAN: [1, 2, 3, 4, 5, 6, 7, 7], BODY: [2, 3, 5, 6], GOD: [2, 4, 6], DEMON: [1, 2, 3, 4, 5, 6, 7, 7], HEART_SOUL: [1, 2, 3, 4, 5, 6, 7, 7], MECH_PUPPET: [1, 2, 3, 4, 5, 6, 7], KARMA_SAMSARA: [1, 2, 3, 4, 5, 6, 7], BEAST_SOVEREIGN: [1, 2, 3, 4, 5, 6, 7], SAGE_SUPPORT: [1, 2, 3, 4, 5, 6, 7], CRAFT_CREATION: [1, 2, 3, 4, 5, 6, 7], ARRAY_TALISMAN: [1, 2, 3, 4, 5, 6, 7], STRATEGY_GOVERNANCE: [1, 2, 3, 4, 5, 6, 7] };
+  const BASE = { XIAN: .12, BODY: .12, GOD: .14, DEMON: .12, HEART_SOUL: .13, MECH_PUPPET: .12, KARMA_SAMSARA: .13, BEAST_SOVEREIGN: .12, SAGE_SUPPORT: .13, CRAFT_CREATION: .13, ARRAY_TALISMAN: .13, STRATEGY_GOVERNANCE: .13 }, STEP = { XIAN: .025, BODY: .04, GOD: .05, DEMON: .025, HEART_SOUL: .025, MECH_PUPPET: .028, KARMA_SAMSARA: .028, BEAST_SOVEREIGN: .028, SAGE_SUPPORT: .028, CRAFT_CREATION: .028, ARRAY_TALISMAN: .028, STRATEGY_GOVERNANCE: .028 };
   BT.PILL_RECIPES = [];
   Object.keys(PILLS).forEach(path => PILLS[path].forEach((name, i) => {
     const s = i + 1, t = TIERS[path][i], inputs = [];
@@ -47,7 +49,7 @@
     BT.PILL_RECIPES.push(r); JD.ITEMS.recipes.push(r);
   }));
   /* สมบัติประจำด่านใหญ่: key = path + ':' + ขั้นปัจจุบัน */
-  const T_EL = { XIAN3: 'EARTH_METAL', XIAN4: 'LIGHT_YANG', XIAN5: 'LIGHT_YANG', XIAN6: 'ASTRAL', XIAN7: 'LIGHTNING', XIAN8: 'ASTRAL', BODY2: 'EARTH_METAL', BODY3: 'FIRE', BODY4: 'EARTH_METAL', GOD2: 'LIGHT_YANG', GOD3: 'FIRE', DEMON3: 'BLOOD_DEMON', DEMON4: 'YIN_SHADOW', DEMON5: 'YIN_SHADOW', DEMON6: 'ASTRAL', DEMON7: 'BLOOD_DEMON', DEMON8: 'ASTRAL', SOUL3: 'LIGHT_YANG', SOUL4: 'WOOD_LIFE', SOUL5: 'LIGHT_YANG', SOUL6: 'ASTRAL', SOUL7: 'WATER_ICE', SOUL8: 'ASTRAL' };
+  const T_EL = { XIAN3: 'EARTH_METAL', XIAN4: 'LIGHT_YANG', XIAN5: 'LIGHT_YANG', XIAN6: 'ASTRAL', XIAN7: 'LIGHTNING', XIAN8: 'ASTRAL', BODY2: 'EARTH_METAL', BODY3: 'FIRE', BODY4: 'EARTH_METAL', GOD2: 'LIGHT_YANG', GOD3: 'FIRE', DEMON3: 'BLOOD_DEMON', DEMON4: 'YIN_SHADOW', DEMON5: 'YIN_SHADOW', DEMON6: 'ASTRAL', DEMON7: 'BLOOD_DEMON', DEMON8: 'ASTRAL', SOUL3: 'LIGHT_YANG', SOUL4: 'WOOD_LIFE', SOUL5: 'LIGHT_YANG', SOUL6: 'ASTRAL', SOUL7: 'WATER_ICE', SOUL8: 'ASTRAL', MECH3: 'EARTH_METAL', MECH4: 'EARTH_METAL', MECH5: 'ASTRAL', MECH6: 'LIGHTNING', MECH7: 'ASTRAL', KARMA3: 'LIGHT_YANG', KARMA4: 'WOOD_LIFE', KARMA5: 'YIN_SHADOW', KARMA6: 'LIGHT_YANG', KARMA7: 'ASTRAL', BEAST3: 'WOOD_LIFE', BEAST4: 'BLOOD_DEMON', BEAST5: 'EARTH_METAL', BEAST6: 'FIRE', BEAST7: 'WOOD_LIFE', SAGE3: 'WATER_ICE', SAGE4: 'WIND', SAGE5: 'LIGHT_YANG', SAGE6: 'LIGHT_YANG', SAGE7: 'WOOD_LIFE', CRAFT3: 'FIRE', CRAFT4: 'FIRE', CRAFT5: 'EARTH_METAL', CRAFT6: 'FIRE', CRAFT7: 'ASTRAL', ARRAY3: 'EARTH_METAL', ARRAY4: 'LIGHTNING', ARRAY5: 'ASTRAL', ARRAY6: 'ASTRAL', ARRAY7: 'ASTRAL', STRAT3: 'EARTH_METAL', STRAT4: 'LIGHT_YANG', STRAT5: 'EARTH_METAL', STRAT6: 'LIGHT_YANG', STRAT7: 'ASTRAL' };
   const T = (id, nameTh, tier, value, hint) => ({ id: 'T:' + id, nameTh, tier, value, hint, element: T_EL[id] || 'NEUTRAL', elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: T_EL[id] || 'NEUTRAL', weights: { [T_EL[id] || 'NEUTRAL']: 1 } } });
   BT.TREASURES = {
     'XIAN:3': T('XIAN3', 'หยกก่อแก่นทอง', 3, 420, 'หยกที่ซับปราณฟ้าดินจนเป็นหนึ่ง ใช้ตั้งแก่นทองคำ'),
@@ -97,7 +99,17 @@
     'CRAFT_CREATION:4': T('CRAFT4', 'ถ่านเพลิงสุริยันพันปี', 4, 945, 'ถ่านเพลิงศักดิ์สิทธิ์ที่ไม่มอดดับ ใช้ปลุกวิญญาณศาสตราและโอสถทิพย์'),
     'CRAFT_CREATION:5': T('CRAFT5', 'ค้อนเทวะสลักอักขระเสินหนง-โอวเหย่', 5, 1990, 'ค้อนศักดิ์สิทธิ์ที่ผสานศาสตร์โอสถเสินหนงและศาสตร์ตีกระบี่โอวเหย่จื่อ'),
     'CRAFT_CREATION:6': T('CRAFT6', 'หัวใจเพลิงต้นกำเนิดฟ้าดิน', 6, 4380, 'แก่นเพลิงต้นกำเนิดที่ใช้หลอมทั้งโอสถเซียนและศาสตราเทวะ'),
-    'CRAFT_CREATION:7': T('CRAFT7', 'ตราประทับเทพรังสรรค์บรรพกาล', 7, 10100, 'ตราแห่งผู้สร้างสรรพสิ่ง เปิดทางสู่ขั้นปรมาจารย์รังสรรค์สูงสุด')
+    'CRAFT_CREATION:7': T('CRAFT7', 'ตราประทับเทพรังสรรค์บรรพกาล', 7, 10100, 'ตราแห่งผู้สร้างสรรพสิ่ง เปิดทางสู่ขั้นปรมาจารย์รังสรรค์สูงสุด'),
+    'ARRAY_TALISMAN:3': T('ARRAY3', 'จานหยกแปดทิศหยั่งชีพจรปฐพี', 3, 445, 'จานหยกโบราณใช้คำนวณจุดตัดชีพจรปฐพีเพื่อก่อรูปแก่นค่ายกล'),
+    'ARRAY_TALISMAN:4': T('ARRAY4', 'พู่กันชาดอสนีจารึกสวรรค์', 4, 945, 'พู่กันขนอสูรสายฟ้าสำหรับวาดยันต์ขั้นแท่นบัญชาค่ายกล'),
+    'ARRAY_TALISMAN:5': T('ARRAY5', 'ธงค่ายกลดาราเจ็ดดารา', 5, 1990, 'ธงศึกทอจากไหมแสงดาวใช้ชักนำปราณดาราลงสู่ค่ายกลใหญ่'),
+    'ARRAY_TALISMAN:6': T('ARRAY6', 'ศิลาแกนมิติปิดกั้นฟ้าดิน', 6, 4380, 'ศิลาดาราจากรอยแยกมิติ ใช้กางเขตแดนค่ายกลระดับเซียน'),
+    'ARRAY_TALISMAN:7': T('ARRAY7', 'แผนผังค่ายกลสัจธรรมจักรวาล', 7, 10100, 'แผนผังต้นกำเนิดแห่งค่ายกลและอักขระทั้งปวงในใต้หล้า'),
+    'STRATEGY_GOVERNANCE:3': T('STRAT3', 'ตราพยัคฆ์สัมฤทธิ์เคลื่อนพล', 3, 445, 'ตราพยัคฆ์โบราณสำหรับรวมจิตใจหมู่ชนและตั้งค่ายพยุหะ'),
+    'STRATEGY_GOVERNANCE:4': T('STRAT4', 'ตำราพิชัยสงครามแปดพยุหะ', 4, 945, 'ม้วนไม้ไผ่จารึกกลยุทธ์แปดประตูของยอดกุนซือยุคโบราณ'),
+    'STRATEGY_GOVERNANCE:5': T('STRAT5', 'กระบี่อาญาสิทธิ์ธรรมาภิบาล', 5, 1990, 'ศาสตราประกาศิตที่ใช้ผดุงวินัยและรวมบารมีครองยุทธภพ'),
+    'STRATEGY_GOVERNANCE:6': T('STRAT6', 'กระถางนว鼎ค้ำจุนแผ่นดิน', 6, 4380, 'กระถางสำริดจำลองเก้าแคว้น ใช้หล่อหลอมชะตาสำนักและบ้านเมือง'),
+    'STRATEGY_GOVERNANCE:7': T('STRAT7', 'ตราหยกโองการสวรรค์พิทักษ์หล้า', 7, 10100, 'ตราหยกสูงสุดแห่งผู้วางรากฐานสันติภาพและระเบียบใต้หล้า')
   };
   g.JD.BT = BT;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

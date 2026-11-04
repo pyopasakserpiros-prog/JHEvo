@@ -10,7 +10,7 @@ const { spawn } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
 const runnerSource = fs.readFileSync(path.join(root, 'test/run_all.js'), 'utf8');
-const match = runnerSource.match(/const tests=\[(.*?)\];/s);
+const match = runnerSource.match(/const tests=\[(.*?)\](?:\.filter\([^;]*\))?;/s);
 if (!match) throw new Error('Could not read suite list from test/run_all.js');
 const tests = [...match[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
 const maxWorkers = Math.max(1, Math.min(6, Number(process.env.TEST_WORKERS) || 2));

@@ -466,7 +466,7 @@
         keepScore += (craftSkill / 50);
         keepScore += (HC.eff(n, 'interests.herbs') - 50) / 80;
         keepScore += (wealthVal - 50) / 100;
-        keepScore += (HC.eff(n, 'personality.prudence') - 50) / 100;
+        keepScore += (HC.eff(n, 'personality.caution') - 50) / 100;
 
         if (keepScore > donateScore && W.rng.chance(0.85)) {
           shouldKeep = true;

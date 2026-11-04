@@ -46197,16 +46197,16 @@ JD.ITEMS.items.forEach(it => {
     { id: 'TECH_V215_BRUSH_ACT_01', nameTh: 'พู่กันแต้มชาดผนึกปราณ', path: 'ARRAY_TALISMAN', sub: 'THUNDER_TALISMAN_ADEPT', tier: 1, grade: 'Common', el: 'FIRE', w: ['BRUSH', 'FOCUS'], arch: 'strike', M: 1.25, cd: 6, pen: 10, aoe: false, status: 'weaken', dur: 4 },
     { id: 'TECH_V215_BRUSH_ACT_02', nameTh: 'ตวัดหมึกวาดค่ายกลศิลา', path: 'ARRAY_TALISMAN', sub: 'SEAL_SCRIPT_EXORCIST', tier: 2, grade: 'Common', el: 'EARTH_METAL', w: ['BRUSH', 'FOCUS'], arch: 'wave', M: 1.34, cd: 7, pen: 12, aoe: true, status: 'slow', dur: 5 },
     { id: 'TECH_V215_BRUSH_ACT_03', nameTh: 'อักขระอสนีฟาดผ่าแปดทิศ', path: 'ARRAY_TALISMAN', sub: 'THUNDER_TALISMAN_ADEPT', tier: 3, grade: 'Refined', el: 'LIGHTNING', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.46, cd: 8, pen: 16, aoe: true, status: 'paralyze', dur: 4 },
-    { id: 'TECH_V215_BRUSH_ACT_04', nameTh: 'ภาพวาดขุนเขาและสายน้ำกักมาร', path: 'SAGE_SUPPORT', sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 4, grade: 'Rare', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], arch: 'wave', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'root', dur: 5 },
+    { id: 'TECH_V215_BRUSH_ACT_04', nameTh: 'ภาพวาดขุนเขาและสายน้ำกักมาร', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 4, grade: 'Rare', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], arch: 'wave', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'root', dur: 5 },
     { id: 'TECH_V215_BRUSH_ACT_05', nameTh: 'พู่กันประกาศิตพิชัยสงคราม', path: 'STRATEGY_GOVERNANCE', sub: 'GRAND_STRATEGIST', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'STAFF', 'FOCUS'], arch: 'strike', M: 1.54, cd: 9, pen: 18, aoe: true, status: 'armorbreak', dur: 5 },
     { id: 'TECH_V215_BRUSH_ACT_06', nameTh: 'จารึกดาราปิดกั้นฟ้าดิน', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.70, cd: 10, pen: 22, aoe: true, status: 'silence', dur: 5 },
     { id: 'TECH_V215_BRUSH_ACT_07', nameTh: 'พู่กันยมทูตขีดเส้นตายวัฏสงสาร', path: 'KARMA_SAMSARA', sub: 'UNDERWORLD_DECREE', tier: 6, grade: 'Exceptional', el: 'YIN_SHADOW', w: ['BRUSH', 'FOCUS'], arch: 'soul', M: 1.84, cd: 11, pen: 26, aoe: false, status: 'curse', dur: 6 },
-    { id: 'TECH_V215_BRUSH_ACT_08', nameTh: 'มหาพู่กันเทวะรังสรรค์หมื่นยันต์', path: 'SAGE_SUPPORT', sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 7, grade: 'Exceptional', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 2.00, cd: 12, pen: 30, aoe: true, status: 'stun', dur: 4 },
+    { id: 'TECH_V215_BRUSH_ACT_08', nameTh: 'มหาพู่กันเทวะรังสรรค์หมื่นยันต์', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 7, grade: 'Exceptional', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 2.00, cd: 12, pen: 30, aoe: true, status: 'stun', dur: 4 },
     // BRUSH Passives (4)
-    { id: 'TECH_V215_BRUSH_PAS_01', nameTh: 'เคล็ดเดินพู่กันมั่นคงดั่งขุนเขา', path: 'SAGE_SUPPORT', sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 1, grade: 'Common', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], passive: { f: { acc: 9, cast: 4 }, p: { matk: 0.05 } } },
+    { id: 'TECH_V215_BRUSH_PAS_01', nameTh: 'เคล็ดเดินพู่กันมั่นคงดั่งขุนเขา', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 1, grade: 'Common', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], passive: { f: { acc: 9, cast: 4 }, p: { matk: 0.05 } } },
     { id: 'TECH_V215_BRUSH_PAS_02', nameTh: 'หมึกปราณซึมลึกทะลวงเกราะ', path: 'ARRAY_TALISMAN', sub: 'SEAL_SCRIPT_EXORCIST', tier: 3, grade: 'Refined', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], passive: { f: { acc: 12, pen: 8, cast: 6 }, p: { matk: 0.08, mdef: 0.05 } } },
     { id: 'TECH_V215_BRUSH_PAS_03', nameTh: 'จิตอักขระประสานค่ายกล', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS', 'STAFF'], passive: { f: { acc: 15, cast: 10, mdef: 26 }, p: { matk: 0.11, def: 0.06, mdef: 0.08 } } },
-    { id: 'TECH_V215_BRUSH_PAS_04', nameTh: 'สัจธรรมพู่กันสวรรค์ลิขิตฟ้า', path: 'SAGE_SUPPORT', sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['BRUSH'], passive: { f: { acc: 18, cast: 12, pen: 12 }, p: { matk: 0.14, mdef: 0.10 } } },
+    { id: 'TECH_V215_BRUSH_PAS_04', nameTh: 'สัจธรรมพู่กันสวรรค์ลิขิตฟ้า', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['BRUSH'], passive: { f: { acc: 18, cast: 12, pen: 12 }, p: { matk: 0.14, mdef: 0.10 } } },
 
     // WHIP Actives (8)
     { id: 'TECH_V215_WHIP_ACT_01', nameTh: 'เพลงแส้อสรพิษฉกเงา', path: 'DEMON', sub: 'VENOM_GU_SOVEREIGN', tier: 1, grade: 'Common', el: 'WOOD_LIFE', w: ['WHIP'], arch: 'slash', M: 1.26, cd: 6, pen: 12, aoe: false, status: 'poison', dur: 4 },
@@ -46460,8 +46460,11 @@ JD.ITEMS.items.forEach(it => {
   const whipNameRe = /แส้|ด้าย|ไหม|หุ่น|เชิด|พันธนาการ|โซ่|อสรพิษ|กู่|แมงมุม|ชะตา|ลอบสังหาร/;
 
   function addWeaponCompat(tech, wType) {
-    if (!Array.isArray(tech.weaponTypes)) {
-      tech.weaponTypes = tech.weapon ? [tech.weapon] : [];
+    if (!Array.isArray(tech.weaponTypes) && !tech.weapon) {
+      if (tech.passive || tech.innate || tech.cat === "PASSIVE" || tech.role === "PASSIVE" || tech.cat === "INNER_KUNGFU" || tech.cat === "DEFENSIVE_TECHNIQUE" || tech.requiresWeapon === false) return;
+      tech.weaponTypes = ["FOCUS", "STAFF", "BOW", "SPEAR", "FIST"];
+    } else if (!Array.isArray(tech.weaponTypes)) {
+      tech.weaponTypes = [tech.weapon];
     }
     if (!tech.weaponTypes.includes(wType)) tech.weaponTypes.push(wType);
   }

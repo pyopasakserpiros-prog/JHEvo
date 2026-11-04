@@ -1663,7 +1663,8 @@
     const wealth = E(n, 'values.wealthResource');
     const isAlchemist = (n.h.skills.ALCHEMY || 0) >= 18 || n.post === 'alchemy' || n.assist === 'alchemy';
     const isCook = (n.h.skills.cooking || 0) >= 12 || E(n, 'interests.cuisine') >= 60;
-    const hasMerchant = W.world && Array.isArray(W.world.visitors) && W.world.visitors.some(v => v && (v.kind === 'trader' || v.role === 'merchant') && v.untilDay >= W.day);
+    const merchantVis = W.world && Array.isArray(W.world.visitors) ? W.world.visitors.find(v => v && (v.kind === 'trader' || v.role === 'merchant') && v.untilDay >= W.day && (!Number.isFinite(v.stones) || v.stones >= 4)) : null;
+    const hasMerchant = !!merchantVis;
 
     for (const sp of SPECIES) {
       const held = n.inv.mats[sp.id] || 0;
@@ -1686,14 +1687,19 @@
       if (actionable <= 0) continue;
 
       // หากเน้นทรัพย์สินและมีพ่อค้าอยู่ในตลาด อาจขายปลาหายากแลกศิลาวิญญาณ
-      if (hasMerchant && sp.tier >= 3 && wealth > loyalty + 12) {
+      if (hasMerchant && merchantVis && sp.tier >= 3 && wealth > loyalty + 12) {
         const sellQty = 1;
-        const stones = Math.max(4, Math.round(ECO.price(W, sp.id) * 0.9 * sellQty));
-        n.inv.mats[sp.id] -= sellQty;
-        if (n.inv.mats[sp.id] <= 0) delete n.inv.mats[sp.id];
-        n.inv.stones = (n.inv.stones || 0) + stones;
-        W.fishing.stats.fishSoldStones += stones;
-        continue;
+        const rawStones = Math.max(4, Math.round(ECO.price(W, sp.id) * 0.9 * sellQty));
+        const stones = Number.isFinite(merchantVis.stones) ? Math.min(rawStones, merchantVis.stones) : rawStones;
+        if (stones >= 4) {
+          if (Number.isFinite(merchantVis.stones)) merchantVis.stones -= stones;
+          if (merchantVis.stock && typeof merchantVis.stock === 'object') merchantVis.stock[sp.id] = (merchantVis.stock[sp.id] || 0) + sellQty;
+          n.inv.mats[sp.id] -= sellQty;
+          if (n.inv.mats[sp.id] <= 0) delete n.inv.mats[sp.id];
+          n.inv.stones = (n.inv.stones || 0) + stones;
+          W.fishing.stats.fishSoldStones += stones;
+          continue;
+        }
       }
 
       // บริจาคปลาส่วนเกินเข้าคลังสำนักเพื่อรับแต้มคุณูปการและเติมเสบียงโรงครัว/หอโอสถ

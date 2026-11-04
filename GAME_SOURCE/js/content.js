@@ -7,7 +7,7 @@
   const C={VERSION:3}, clamp=U.clamp;
   const regionById=Object.fromEntries(D.regions.map(r=>[r.id,r]));
   const premiumPills=D.recipes.filter(r=>r.outType==='PILL');
-  const recipeIds=new Set(D.recipes.map(r=>r.id));
+  const recipeIds=new Set(D.recipes.map(r=>r.id).concat(((g.JD.ITEMS&&g.JD.ITEMS.recipes)||[]).filter(r=>r&&r.discoverable).map(r=>r.id)));
   const techIds=new Set(D.techniques.map(t=>t.id));
   const rareOrgans=D.rareOrgans||[];
   const organById=Object.fromEntries(rareOrgans.map(o=>[o.id,o]));
@@ -65,6 +65,7 @@
     if(!pol.stats || typeof pol.stats!=='object') pol.stats={};
     POLITICS_STAT_KEYS.forEach(k=>{if(!Number.isFinite(pol.stats[k])||pol.stats[k]<0) pol.stats[k]=0;});
 
+    if(g.EXPED&&g.EXPED.ensureWorldTopology&&(!W.world||!W.world.mapTopology||!Array.isArray(W.world.allSects)||W.world.allSects.length<19)) g.EXPED.ensureWorldTopology(W);
     if(Array.isArray(W.world.sects) && factions.length) {
       W.world.sects.forEach((s,i)=>{
         if(!s) return;
@@ -72,7 +73,7 @@
         if(!f) return;
         s.factionId=s.factionId||f.id;
         s.code=s.code||f.code;
-        s.factionNameTh=f.nameTh;
+        s.factionNameTh=s.canonicalId?(s.nameTh||f.nameTh):f.nameTh;
         s.shortTh=s.shortTh||f.shortTh;
         s.icon=s.icon||f.icon;
         if(!s.canonicalId){
@@ -81,10 +82,12 @@
           s.majorPath=f.majorPath;
           s.specialtyTh=f.specialtyTh;
           s.leaderNameTh=f.leaderNameTh;
+          s.specialtyMatIds=Array.isArray(f.specialtyMatIds)?f.specialtyMatIds.slice():[];
         } else {
           s.leaderNameTh=(s.figures&&s.figures.master&&s.figures.master.fullNameTh)||s.leaderNameTh||f.leaderNameTh;
+          const mergedMats=(Array.isArray(s.specialtyMatIds)?s.specialtyMatIds:[]).concat(Array.isArray(f.specialtyMatIds)?f.specialtyMatIds:[]);
+          s.specialtyMatIds=Array.from(new Set(mergedMats));
         }
-        s.specialtyMatIds=Array.isArray(f.specialtyMatIds)?f.specialtyMatIds.slice():[];
         s.treatyPref=f.treatyPref||'NONE';
         s.doctrineBonus=Object.assign({},f.doctrineBonus||{});
         if(!s.treaty) s.treaty=(pol.treaties[s.id] && pol.treaties[s.id].type) || 'NONE';
@@ -111,9 +114,8 @@
     W.sect.contentVersion=C.VERSION;
     if(!Array.isArray(W.sect.gateBeasts)) W.sect.gateBeasts=[];
     else if(W.sect.gateBeasts.length>4) W.sect.gateBeasts.length=4;
-    if(g.EXPLORE&&g.EXPLORE.ensureTrials) g.EXPLORE.ensureTrials(W);
-    if(g.SECT&&g.SECT.WORLD_MARTIAL_CONFERENCE&&g.SECT.WORLD_MARTIAL_CONFERENCE.ensure) g.SECT.WORLD_MARTIAL_CONFERENCE.ensure(W);
-    if(g.EXPED&&g.EXPED.ensureWorldTopology) g.EXPED.ensureWorldTopology(W);
+    if(g.EXPLORE&&g.EXPLORE.ensureTrials&&(!W.explore||!W.explore.trials)) g.EXPLORE.ensureTrials(W);
+    if(g.SECT&&g.SECT.WORLD_MARTIAL_CONFERENCE&&g.SECT.WORLD_MARTIAL_CONFERENCE.ensure&&(!W.sect||!W.sect.conference)) g.SECT.WORLD_MARTIAL_CONFERENCE.ensure(W);
     return m;
   };
 
@@ -568,9 +570,9 @@
     return {ok:true,success,expId:exp.id,usedCatalyst,unlockedRecipeId,prototype,rewardCp,chance};
   };
   C.recipeSynergy=(W,recipeId)=>{
-    C.ensure(W);
     const list=experimentsByRecipeId[recipeId];
     if(!list||!list.length) return null;
+    if(!W||!W.sect||!W.sect.experiments||!Array.isArray(W.sect.experiments.discovered)) C.ensure(W);
     const found=list.find(e=>W.sect.experiments.discovered.includes(e.id));
     return found?found.synergyBonus:null;
   };
@@ -633,7 +635,7 @@
 
   C.forceVassalTreaty=(W,sectOrId,opts)=>{
     opts=opts||{}; C.ensure(W);
-    const s=typeof sectOrId==='string'?(W.world.sects||[]).find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId;
+    const s=typeof sectOrId==='string'?((W.world.sects||[]).find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)||(W.world.allSects&&W.world.allSects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId))):sectOrId;
     if(!s) return {ok:false,reason:'invalid-sect'};
     if(s.treaty==='VASSAL_TREATY') return {ok:true,unchanged:true,sectId:s.id,treaty:s.treaty};
     const wonMajorDispute=!!opts.majorDispute||s.treaty==='RIVAL_FEUD'||(s.attitude||0)<=-40;
@@ -652,7 +654,7 @@
   C.exchangeWithAlly=(W,sectOrId,opts)=>{
     opts=opts||{};
     C.ensure(W);
-    const s=typeof sectOrId==='string'?W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId||(W.world.sects||[]).find(x=>['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(x.treaty));
+    const s=typeof sectOrId==='string'?(W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)||(W.world.allSects&&W.world.allSects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId))):sectOrId||(W.world.sects||[]).find(x=>['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(x.treaty))||(W.world.allSects||[]).find(x=>['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(x.treaty));
     if(!s) return {ok:false,reason:'no-ally-sect'};
     const isAllied=['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) || s.attitude>=30;
     if(!opts.force && !isAllied) return {ok:false,reason:'not-allied',treaty:s.treaty,attitude:s.attitude};

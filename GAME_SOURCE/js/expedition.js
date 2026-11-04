@@ -116,7 +116,7 @@
         id: 'f1_blood_thorn_hollow', nameTh: 'โพรงหนามโลหิตชายเขา', icon: '🩸', biome: 'forest',
         desc: 'โพรงไม้หนามสีชาดที่ซ่อนคราบเลือดอสูรและรอยเล็บกิเลนโลหิตไว้ตามผนังหิน',
         pools: [
-          { id: 'f1_thorn_beast_lair', nameTh: 'รังเก่าหมาป่ากิเลนโลหิต', skill: 'survival', diff: 22, beastParts: ['MAT_V222_BP_01', 'MAT_V222_BP_02', 'MAT_V222_BP_25'], recipeIds: ['REC_V222_EQ_01', 'REC_V222_EQ_04'], stones: 42 },
+          { id: 'f1_thorn_beast_lair', nameTh: 'รังเก่าหมาป่ากิเลนโลหิต', skill: 'survival', diff: 22, beastParts: ['MAT_V222_BP_01', 'MAT_V222_BP_02', 'MAT_V222_BP_03'], recipeIds: ['REC_V222_EQ_01', 'REC_V222_EQ_04'], stones: 42 },
           { id: 'f1_thorn_fist_stele', nameTh: 'รอยหมัดโลหิตบนผาหิน', skill: 'courage', diff: 24, techIds: ['TECH_V222_01'], beastParts: ['MAT_V222_BP_09', 'MAT_V222_BP_10'], stones: 48, insight: true }
         ]
       },
@@ -125,7 +125,7 @@
         desc: 'ร่องหุบเขาริมน้ำตกเยือกแข็งที่สายลมและไอเย็นพัดผ่านช่องหินเกิดเสียงดั่งพิณโบราณ',
         pools: [
           { id: 'f1_frost_chord_creek', nameTh: 'ลำธารน้ำค้างแข็งสะท้อนเสียงพิณ', skill: 'SCRIPTURE', diff: 22, techIds: ['TECH_V222_09'], recipeIds: ['REC_V222_EQ_07', 'REC_V222_EQ_12'], stones: 45, insight: true },
-          { id: 'f1_frost_bear_den', nameTh: 'ถ้ำน้ำแข็งหมีหนามเหมันต์', skill: 'perceptiveness', diff: 23, beastParts: ['MAT_V222_BP_11', 'MAT_V222_BP_12', 'MAT_V222_BP_30'], gearIds: ['EQ_V222_07_ZITHER_3'], stones: 45 }
+          { id: 'f1_frost_bear_den', nameTh: 'ถ้ำน้ำแข็งหมีหนามเหมันต์', skill: 'perceptiveness', diff: 23, beastParts: ['MAT_V222_BP_11', 'MAT_V222_BP_12', 'MAT_V222_BP_15'], gearIds: ['EQ_V222_08_SPEAR_3'], stones: 45 }
         ]
       }
     ],
@@ -155,16 +155,16 @@
         id: 'f2_thunder_echo_cliff', nameTh: 'ผาอสนีสะท้อนพิณ', icon: '⚡', biome: 'mountain',
         desc: 'หน้าผาสูงชันที่สายฟ้าฟาดลงใส่แร่เหล็กและรังเสือดาวอสนีจนเกิดเสียงกังวานไม่ขาดสาย',
         pools: [
-          { id: 'f2_thunder_leopard_ledge', nameTh: 'ชะง่อนผาเสือดาวปีกอสนี', skill: 'courage', diff: 42, beastParts: ['MAT_V222_BP_05', 'MAT_V222_BP_06', 'MAT_V222_BP_27'], techIds: ['TECH_V222_06', 'TECH_V222_11'], recipeIds: ['REC_V222_EQ_02', 'REC_V222_EQ_08'], stones: 95 },
-          { id: 'f2_thunder_crane_perch', nameTh: 'แท่นหินกระเรียนพายุและเขี้ยววายุ', skill: 'perceptiveness', diff: 44, beastParts: ['MAT_V222_BP_13', 'MAT_V222_BP_14', 'MAT_V222_BP_31'], recipeIds: ['REC_V222_EQ_10', 'REC_V222_EQ_15'], gearIds: ['EQ_V222_08_BOW_4'], stones: 105, insight: true }
+          { id: 'f2_thunder_leopard_ledge', nameTh: 'ชะง่อนผาเสือดาวปีกอสนี', skill: 'courage', diff: 42, beastParts: ['MAT_V222_BP_05', 'MAT_V222_BP_06', 'MAT_V222_BP_04'], techIds: ['TECH_V222_06', 'TECH_V222_11'], recipeIds: ['REC_V222_EQ_02', 'REC_V222_EQ_08'], stones: 95 },
+          { id: 'f2_thunder_crane_perch', nameTh: 'แท่นหินกระเรียนพายุและเขี้ยววายุ', skill: 'perceptiveness', diff: 44, beastParts: ['MAT_V222_BP_13', 'MAT_V222_BP_14', 'MAT_V222_BP_16'], recipeIds: ['REC_V222_EQ_10', 'REC_V222_EQ_15'], gearIds: ['EQ_V222_07_BOW_4'], stones: 105, insight: true }
         ]
       },
       {
         id: 'f2_venom_lotus_marsh', nameTh: 'บึงบัวพิษหมื่นบุปผา', icon: '🪷', biome: 'water',
         desc: 'บึงหมอกสีมรกตที่ดอกบัวโลหิตและเถาวัลย์วิญญาณพันกันแน่น อุดมด้วยชิ้นส่วนอสูรพฤกษาและเงาหยิน',
         pools: [
-          { id: 'f2_marsh_mantis_nest', nameTh: 'ดงตั๊กแตนบัวโลหิตและกวางเถาวัลย์', skill: 'herbalism', diff: 41, beastParts: ['MAT_V222_BP_09', 'MAT_V222_BP_10', 'MAT_V222_BP_15', 'MAT_V222_BP_16', 'MAT_V222_BP_32'], recipeIds: ['REC_V222_EQ_13', 'REC_V222_EQ_19'], stones: 90 },
-          { id: 'f2_marsh_crow_shrine', nameTh: 'เจดีย์จมน้ำของอีกากระดูกกลืนวิญญาณ', skill: 'willpower', diff: 44, beastParts: ['MAT_V222_BP_19', 'MAT_V222_BP_20', 'MAT_V222_BP_29'], techIds: ['TECH_V222_13', 'TECH_V222_15'], recipeIds: ['REC_V222_EQ_20'], stones: 100, insight: true }
+          { id: 'f2_marsh_mantis_nest', nameTh: 'ดงตั๊กแตนบัวโลหิตและกวางเถาวัลย์', skill: 'herbalism', diff: 41, beastParts: ['MAT_V222_BP_09', 'MAT_V222_BP_10', 'MAT_V222_BP_15', 'MAT_V222_BP_16', 'MAT_V222_BP_18'], recipeIds: ['REC_V222_EQ_13', 'REC_V222_EQ_19'], stones: 90 },
+          { id: 'f2_marsh_crow_shrine', nameTh: 'เจดีย์จมน้ำของอีกากระดูกกลืนวิญญาณ', skill: 'willpower', diff: 44, beastParts: ['MAT_V222_BP_19', 'MAT_V222_BP_20', 'MAT_V222_BP_09'], techIds: ['TECH_V222_13', 'TECH_V222_15'], recipeIds: ['REC_V222_EQ_20'], stones: 100, insight: true }
         ]
       }
     ],
@@ -194,16 +194,16 @@
         id: 'f3_crimson_slaughter_altar', nameTh: 'แท่นบูชาโลหิตอสูรโบราณ', icon: '🩸', biome: 'desert',
         desc: 'แท่นศิลาโบราณกลางทะเลทรายสีเลือดที่ผนึกซากพยัคฆ์ไขกระดูกโลหิตและแรดศิลาเหล็กไหล',
         pools: [
-          { id: 'f3_altar_blood_marrow', nameTh: 'สระไขกระดูกพยัคฆ์โลหิต', skill: 'courage', diff: 66, beastParts: ['MAT_V222_BP_03', 'MAT_V222_BP_04', 'MAT_V222_BP_26'], techIds: ['TECH_V222_02', 'TECH_V222_04', 'TECH_V222_20'], recipeIds: ['REC_V222_EQ_03', 'REC_V222_EQ_05'], stones: 225, spring: true },
-          { id: 'f3_altar_iron_toad', nameTh: 'ห้องหลอมคางคกทองคำและแรดศิลา', skill: 'mining', diff: 68, beastParts: ['MAT_V222_BP_17', 'MAT_V222_BP_18', 'MAT_V222_BP_33', 'MAT_V222_BP_34'], techIds: ['TECH_V222_17'], recipeIds: ['REC_V222_EQ_09', 'REC_V222_EQ_22'], gearIds: ['EQ_V222_03_BLADE_4'], stones: 240 }
+          { id: 'f3_altar_blood_marrow', nameTh: 'สระไขกระดูกพยัคฆ์โลหิต', skill: 'courage', diff: 66, beastParts: ['MAT_V222_BP_03', 'MAT_V222_BP_04', 'MAT_V222_BP_02'], techIds: ['TECH_V222_02', 'TECH_V222_04', 'TECH_V222_20'], recipeIds: ['REC_V222_EQ_03', 'REC_V222_EQ_05'], stones: 225, spring: true },
+          { id: 'f3_altar_iron_toad', nameTh: 'ห้องหลอมคางคกทองคำและแรดศิลา', skill: 'mining', diff: 68, beastParts: ['MAT_V222_BP_17', 'MAT_V222_BP_18', 'MAT_V222_BP_19', 'MAT_V222_BP_13'], techIds: ['TECH_V222_17'], recipeIds: ['REC_V222_EQ_09', 'REC_V222_EQ_22'], gearIds: ['EQ_V222_03_BLADE_3'], stones: 240 }
         ]
       },
       {
         id: 'f3_glacier_phoenix_roost', nameTh: 'รังหงส์น้ำแข็งเก้าเหมันต์', icon: '🧊', biome: 'mountain',
         desc: 'ยอดเขาน้ำแข็งพันปีที่หงส์ขาวเหมันต์และอสรพิษวิญญาณน้ำแข็งผลัดขนทิ้งวัตถุดิบระดับสูงไว้',
         pools: [
-          { id: 'f3_roost_ice_swan', nameTh: 'แท่นขนหงส์เหมันต์และเกล็ดงูน้ำแข็ง', skill: 'survival', diff: 67, beastParts: ['MAT_V222_BP_07', 'MAT_V222_BP_08', 'MAT_V222_BP_28'], techIds: ['TECH_V222_05', 'TECH_V222_07', 'TECH_V222_19'], recipeIds: ['REC_V222_EQ_11', 'REC_V222_EQ_14'], stones: 230 },
-          { id: 'f3_roost_zither_pavilion', nameTh: 'ศาลาพิณสายฟ้าเยือกแข็ง', skill: 'SCRIPTURE', diff: 69, techIds: ['TECH_V222_14', 'TECH_V222_16'], recipeIds: ['REC_V222_EQ_16'], gearIds: ['EQ_V222_14_LIGHT_4'], stones: 245, insight: true }
+          { id: 'f3_roost_ice_swan', nameTh: 'แท่นขนหงส์เหมันต์และเกล็ดงูน้ำแข็ง', skill: 'survival', diff: 67, beastParts: ['MAT_V222_BP_07', 'MAT_V222_BP_08', 'MAT_V222_BP_06'], techIds: ['TECH_V222_05', 'TECH_V222_07', 'TECH_V222_19'], recipeIds: ['REC_V222_EQ_11', 'REC_V222_EQ_14'], stones: 230 },
+          { id: 'f3_roost_zither_pavilion', nameTh: 'ศาลาพิณสายฟ้าเยือกแข็ง', skill: 'SCRIPTURE', diff: 69, techIds: ['TECH_V222_14', 'TECH_V222_16'], recipeIds: ['REC_V222_EQ_16'], gearIds: ['EQ_V222_14_LIGHT_3'], stones: 245, insight: true }
         ]
       }
     ],
@@ -233,16 +233,16 @@
         id: 'f4_astral_starfall_observatory', nameTh: 'หอดูดาวดาราจักรล่มสลาย', icon: '🌠', biome: 'ruins',
         desc: 'ซากหอดูดาวโบราณที่ลอยคว้างเหนือรอยแยกดาราจักร แหล่งพำนักของจิ้งจอกเก้าหางดาราและวาฬสมุทรเหมันต์',
         pools: [
-          { id: 'f4_obs_star_fox_sanctum', nameTh: 'แท่นศิลาจิ้งจอกเก้าหางดารา', skill: 'SCRIPTURE', diff: 86, beastParts: ['MAT_V222_BP_21', 'MAT_V222_BP_22', 'MAT_V222_BP_35'], techIds: ['TECH_V222_10', 'TECH_V222_12', 'TECH_V222_21', 'TECH_V222_23'], recipeIds: ['REC_V222_EQ_17', 'REC_V222_EQ_21', 'REC_V222_EQ_23'], stones: 490, insight: true },
-          { id: 'f4_obs_astral_armory', nameTh: 'คลังสมบัติเทพดาราจักร', skill: 'perceptiveness', diff: 88, gearIds: ['EQ_V222_17_ROBE_5', 'EQ_V222_21_RING_5'], stones: 520, spring: true }
+          { id: 'f4_obs_star_fox_sanctum', nameTh: 'แท่นศิลาจิ้งจอกเก้าหางดารา', skill: 'SCRIPTURE', diff: 86, beastParts: ['MAT_V222_BP_21', 'MAT_V222_BP_22', 'MAT_V222_BP_07'], techIds: ['TECH_V222_10', 'TECH_V222_12', 'TECH_V222_21', 'TECH_V222_23'], recipeIds: ['REC_V222_EQ_17', 'REC_V222_EQ_21', 'REC_V222_EQ_23'], stones: 490, insight: true },
+          { id: 'f4_obs_astral_armory', nameTh: 'คลังสมบัติเทพดาราจักร', skill: 'perceptiveness', diff: 88, gearIds: ['EQ_V222_17_ROBE_4', 'EQ_V222_22_RING_5'], stones: 520, spring: true }
         ]
       },
       {
         id: 'f4_abyssal_chimera_maw', nameTh: 'หุบเหวอสูรกลืนสวรรค์บรรพกาล', icon: '🕳️', biome: 'ruins',
         desc: 'ปากเหวไร้ก้นบึ้งที่เชื่อมกับคุกมังกรสมุทรโลหิตและอสูรบรรพกาลกลืนดารา เต็มไปด้วยวัตถุดิบระดับตำนาน',
         pools: [
-          { id: 'f4_maw_chimera_core', nameTh: 'รังราชันมังกรโลหิตและอสูรกลืนดารา', skill: 'courage', diff: 88, beastParts: ['MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_36'], techIds: ['TECH_V222_03', 'TECH_V222_08', 'TECH_V222_22'], recipeIds: ['REC_V222_EQ_06', 'REC_V222_EQ_18', 'REC_V222_EQ_24'], stones: 540 },
-          { id: 'f4_maw_primordial_seal', nameTh: 'แท่นผนึกศาสตราและคัมภีร์ห้วงเหว', skill: 'willpower', diff: 90, techIds: ['TECH_V222_18', 'TECH_V222_24'], gearIds: ['EQ_V222_06_SPEAR_6', 'EQ_V222_24_CHARM_6'], stones: 560, insight: true }
+          { id: 'f4_maw_chimera_core', nameTh: 'รังราชันมังกรโลหิตและอสูรกลืนดารา', skill: 'courage', diff: 88, beastParts: ['MAT_V222_BP_23', 'MAT_V222_BP_24', 'MAT_V222_BP_08'], techIds: ['TECH_V222_03', 'TECH_V222_08', 'TECH_V222_22'], recipeIds: ['REC_V222_EQ_06', 'REC_V222_EQ_18', 'REC_V222_EQ_24'], stones: 540 },
+          { id: 'f4_maw_primordial_seal', nameTh: 'แท่นผนึกศาสตราและคัมภีร์ห้วงเหว', skill: 'willpower', diff: 90, techIds: ['TECH_V222_18', 'TECH_V222_24'], gearIds: ['EQ_V222_06_SWORD_5', 'EQ_V222_24_CHARM_6'], stones: 560, insight: true }
         ]
       }
     ]
@@ -430,7 +430,7 @@
           const dmgFrac = clamp((1 - p) * 0.55 + rng.next() * 0.1, 0.02, 0.6);
           const v = rng.pick(alive); const dm = CULT.hpMax(v) * dmgFrac; v.h.state.hp = Math.max(1, v.h.state.hp - dm); totalDmg += dmgFrac;
           if (dmgFrac > 0.25) AI.injure(W, v, dmgFrac > 0.45 ? 2 : 1, 'ถูก' + b.nameTh + 'ทำร้าย');
-          alive.forEach(m => { HC.experience(m, 'victory', 0.2); m.stats = m.stats || {}; m.stats.kills = (m.stats.kills || 0) + (m === v ? 1 : 0); });
+          alive.forEach(m => { HC.experience(m, 'duel_win', 0.2); m.stats = m.stats || {}; m.stats.kills = (m.stats.kills || 0) + (m === v ? 1 : 0); });
         } else {
           const v = rng.pick(alive); const dead = rng.chance(clamp((bp / (pw + bp) - 0.5) * 0.7, 0.01, 0.4) * (1 - E(v, 'destiny.luck') / 300) * (1 - surv / 250));
           ex.journal.push('พ่ายต่อ' + b.nameTh);
@@ -454,7 +454,7 @@
         else if (ev === 'traveler') { const encRes = X.resolveDiscipleSectEncounter(W, alive, null, { quiet: true }); if (encRes && encRes.ok) { ex.journal.push(encRes.summaryTh); out.stones += (encRes.stonesLoot || 0); out.rep += encRes.didClash ? (encRes.won ? 0.5 : -0.1) : 0.25; } else { ex.journal.push('พบนักเดินทางร่วมทาง แลกเปลี่ยนเรื่องราว'); } alive.forEach(a => { HC.feel(a, { mood: 4, novelty: 8 }); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, 'diplomacy', 0.5, 1); }); }
         else {
           const bp = (30 + reg.danger * 70) * (0.6 + rng.next()), pw = alive.reduce((s, m) => s + CULT.power(m), 0);
-          if (pw > bp * 1.2 || rng.chance(clamp(pw / (pw + bp), 0.1, 0.9))) { ex.journal.push('ปราบโจรป่า'); const loot = Math.round(15 + rng.next() * 40 * reg.danger); out.stones += loot; HC.experience(rng.pick(alive), 'victory', 0.3); }
+          if (pw > bp * 1.2 || rng.chance(clamp(pw / (pw + bp), 0.1, 0.9))) { ex.journal.push('ปราบโจรป่า'); const loot = Math.round(15 + rng.next() * 40 * reg.danger); out.stones += loot; HC.experience(rng.pick(alive), 'duel_win', 0.3); }
           else { const loss = Math.min(W.sect.stones * 0.02 + 20, 80); out.stones -= Math.round(loss); ex.journal.push('ถูกโจรปล้น'); const v = rng.pick(alive); AI.injure(W, v, 1, 'ถูกโจรทำร้าย'); }
         }
       }
@@ -572,7 +572,7 @@
           const gId = rng.pick(pool.gearIds);
           const rObj = (ECO.recipeByOutItemId && ECO.recipeByOutItemId[gId]) || (ECO.itemById && ECO.itemById[gId] && ECO.recipeById && ECO.recipeById[ECO.itemById[gId].recipeId]);
           if (rObj && ECO.mintGear) {
-            const minted = ECO.mintGear(rObj, 1.2);
+            const minted = ECO.mintGear(W, rObj, 1.2);
             out.gear.push(minted);
             ex.journal.push('ค้นพบศาสตราโบราณ「' + minted.nameTh + '」');
           }
@@ -597,7 +597,7 @@
           const rs = ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.tier <= pool.gearTier + 1);
           if (rs.length) {
             const r = rng.pick(rs);
-            const gear = ECO.mintGear(r, 1.1 + rng.next() * 0.3);
+            const gear = ECO.mintGear(W, r, 1.1 + rng.next() * 0.3);
             gear.nameTh = (gear.nameTh || 'ศาสตรา') + ' (วาสนาแดนลึก)';
             gear.q = 1.25;
             out.gear.push(gear);
@@ -1004,7 +1004,7 @@
       W.log('raid', '✔ สำนักต้านการบุกของ' + ctx.label + ' สำเร็จ (สังหาร ' + slain + ' ราย)', []); W.fame(3 + slain * 0.3);
       const loot = Math.round(Math.min(260, 25 + ctx.total * 0.08)); ECO.earn(W, loot, 'ยึดของจากผู้บุก');
       foes.forEach(u => { if (u.dead && u.drops) { const d = W.rng.pick(u.drops); ECO.add(W, d, 1 + W.rng.int(0, 1)); } });
-      defenders.forEach(d => { if (!d.dead) { d.merit += 15 + (d.h.state.hp < CULT.hpMax(d) * 0.5 ? 10 : 0); HC.experience(d, 'victory', 0.6); d.sat = Math.min(100, (d.sat || 60) + 6); if (d.cult) CULT.gain(d, CULT.threshold(d) * 0.04); } });
+      defenders.forEach(d => { if (!d.dead) { d.merit += 15 + (d.h.state.hp < CULT.hpMax(d) * 0.5 ? 10 : 0); HC.experience(d, 'duel_win', 0.6); d.sat = Math.min(100, (d.sat || 60) + 6); if (d.cult) CULT.gain(d, CULT.threshold(d) * 0.04); } });
       const best = defenders.filter(d => !d.dead).sort((a, b) => (b.stats && b.stats.kills || 0) - (a.stats && a.stats.kills || 0))[0]; if (best) W.log('raid', best.h.name.given + ' เป็นกำลังสำคัญในการป้องกันสำนัก', [best.id]);
       if (ctx.kind === 'rival') { const r = W.world.sects.slice().sort((a, b) => a.attitude - b.attitude)[0]; if (r) r.attitude = Math.min(100, r.attitude + 8); }
     } else {
@@ -1012,7 +1012,7 @@
       Object.keys(W.sect.stock).forEach(k => { if (W.rng.chance(0.3)) { const n = Math.floor(W.sect.stock[k] * 0.25); if (n > 0) ECO.take(W, k, n); } });
       W.map.buildings.forEach(b => { if (W.rng.chance(0.25)) b.hp = Math.max(30, b.hp - W.rng.int(10, 35)); });
       W.log('raid', '✘ สำนักถูกบุกและปล้น เสียศิลา ' + loss + ' เสียหายหนัก', []); W.fame(-4);
-      W.npcs.forEach(n => { if (!n.dead) { HC.experience(n, 'defeat', 0.3); n.sat = Math.max(0, (n.sat || 60) - 6); } });
+      W.npcs.forEach(n => { if (!n.dead) { HC.experience(n, 'duel_lose', 0.3); n.sat = Math.max(0, (n.sat || 60) - 6); } });
     }
     W.foes = (W.foes || []).filter(u => !f.foes.includes(u.id)); f.foes.forEach(i => delete W.foeById[i]);
     foes.forEach(u => { u.gone = true; });
@@ -1177,7 +1177,7 @@
       baseDays: 7,
       dailyStones: 26,
       seasonalStones: 450,
-      mats: ['MAT_ORE_METEOR_IRON_4', 'MAT_ORE_STAR_COPPER_3'],
+      mats: ['MAT_ORE_METEOR_IRON_5', 'MAT_ORE_STAR_COPPER_3'],
       garrisonPowerBase: 520,
       defaultOwnerFactionId: 'FAC_GOLDEN_SUN',
       descTh: 'หลุมแร่ดาวตกกลางทะเลทรายเพลิง ให้ผลผลิตศิลาวิญญาณและแร่เหล็กดาวตกระดับสูง'
@@ -1213,7 +1213,7 @@
       baseDays: 4,
       dailyStones: 12,
       seasonalStones: 220,
-      mats: ['MAT_HERB_SNOW_LOTUS_4', 'MAT_HERB_DRAGON_GRASS_4', 'MAT_HERB_MIST_ORCHID_2'],
+      mats: ['MAT_HERB_SNOW_LOTUS_5', 'MAT_HERB_DRAGON_GRASS_4', 'MAT_HERB_MIST_ORCHID_2'],
       garrisonPowerBase: 390,
       defaultOwnerFactionId: 'FAC_JADE_LOTUS',
       descTh: 'บึงน้ำทิพย์แดนใต้ที่บัวหิมะและหญ้าเกล็ดมังกรเจริญงอกงาม'
@@ -1282,7 +1282,7 @@
       baseDays: 4,
       durationDays: 14,
       stones: 320,
-      mats: { MAT_HERB_SNOW_LOTUS_4: 3, MAT_HERB_DRAGON_GRASS_4: 3 },
+      mats: { MAT_HERB_SNOW_LOTUS_5: 3, MAT_HERB_DRAGON_GRASS_4: 3 },
       catalystId: 'CAT_PRIMORDIAL_WOOD',
       primordialId: 'CAT_PRIMORDIAL_WATER',
       grantRecipe: true,
@@ -1298,7 +1298,7 @@
       baseDays: 6,
       durationDays: 15,
       stones: 480,
-      mats: { MAT_ORE_METEOR_IRON_4: 4, MAT_ORE_MITHRIL_JADE_4: 2 },
+      mats: { MAT_ORE_METEOR_IRON_5: 4, MAT_ORE_MITHRIL_JADE_4: 2 },
       catalystId: 'CAT_ASTRAL_ESSENCE_5',
       primordialId: 'CAT_PRIMORDIAL_FIRE',
       grantRelicCatalyst: true,
@@ -1367,7 +1367,7 @@
       signatureGearTh: 'กระบี่เมฆขาวตัดนภา & อาภรณ์เซียนเมฆา',
       leaderNameTh: 'ปรมาจารย์ไป๋หยุน',
       powerBase: 2.15,
-      specialtyMatIds: ['MAT_ORE_COLD_STEEL_2', 'MAT_ORE_METEOR_IRON_4'],
+      specialtyMatIds: ['MAT_ORE_COLD_STEEL_2', 'MAT_ORE_METEOR_IRON_5'],
       tributeDescTh: 'ศิลาวิญญาณ + แร่เหล็กดาวตก/เหล็กเย็นและศาสตรากระบี่'
     },
     {
@@ -1388,7 +1388,7 @@
       signatureGearTh: 'พิณหยกบงกชทิพย์ & เข็มทองสกัดจุด',
       leaderNameTh: 'เจ้าหุบเขาชิงเหลียน',
       powerBase: 1.55,
-      specialtyMatIds: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_SNOW_LOTUS_4'],
+      specialtyMatIds: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_SNOW_LOTUS_5'],
       tributeDescTh: 'ศิลาวิญญาณ + บัวหิมะหมื่นปีและโอสถทิพย์ฟื้นฟู'
     },
     {
@@ -1452,7 +1452,7 @@
       signatureGearTh: 'เกาทัณฑ์สุริยันผลาญฟ้า & ทวนทองคำเพลิงเทวะ',
       leaderNameTh: 'มหาปุโรหิตสุริยันจินหยาง',
       powerBase: 2.25,
-      specialtyMatIds: ['MAT_ORE_STAR_COPPER_3', 'MAT_ORE_METEOR_IRON_4'],
+      specialtyMatIds: ['MAT_ORE_STAR_COPPER_3', 'MAT_ORE_METEOR_IRON_5'],
       tributeDescTh: 'ศิลาวิญญาณ + แร่สุริยันและยันต์อัคคีเทวะ'
     },
     {
@@ -1473,7 +1473,7 @@
       signatureGearTh: 'แส้ไหมพิรุณทมิฬ & มีดสั้นเงาปลิดวิญญาณ',
       leaderNameTh: 'ประมุขเงาพิรุณเย่หมิง',
       powerBase: 1.65,
-      specialtyMatIds: ['MAT_HERB_MIST_ORCHID_2', 'MAT_HERB_SNOW_LOTUS_4'],
+      specialtyMatIds: ['MAT_HERB_MIST_ORCHID_2', 'MAT_HERB_SNOW_LOTUS_5'],
       tributeDescTh: 'ศิลาวิญญาณ + สมุนไพรหยินเร้นลับและโอสถถอนพิษ'
     },
     {
@@ -1688,7 +1688,7 @@
       signatureGearTh: 'พิณสวรรค์กงล้อหกภพ & คทาโพธิ์ชำระกรรม',
       leaderNameTh: 'มหาสมณะฝ่าจั้ง',
       powerBase: 3.25,
-      specialtyMatIds: ['MAT_ZITHER_PHOENIX_HEARTWOOD_5', 'MAT_HERB_SNOW_LOTUS_4'],
+      specialtyMatIds: ['MAT_ZITHER_PHOENIX_HEARTWOOD_5', 'MAT_HERB_SNOW_LOTUS_5'],
       tributeDescTh: 'ศิลาวิญญาณชั้นสูง + ไม้แก่นหงส์และคัมภีร์วัฏจักร'
     },
     {
@@ -1709,7 +1709,7 @@
       signatureGearTh: 'ทวนโลหิตซิวหลัวผ่าสวรรค์ & เกราะมารกลืนโลหิต',
       leaderNameTh: 'ราชันย์อสูรซิวหลัว',
       powerBase: 3.35,
-      specialtyMatIds: ['MAT_ORE_METEOR_IRON_4', 'MAT_HERB_BLOOD_GINSENG_3'],
+      specialtyMatIds: ['MAT_ORE_METEOR_IRON_5', 'MAT_HERB_BLOOD_GINSENG_3'],
       tributeDescTh: 'ศิลาวิญญาณชั้นสูง + แร่เหล็กดาวตกและแก่นโลหิตอสูร'
     },
     {
@@ -1732,7 +1732,7 @@
       signatureGearTh: 'กระบี่เซียนเทียนเจี้ยนบัญชาสวรรค์ & อาภรณ์ศักดิ์สิทธิ์เก้าเมฆา',
       leaderNameTh: 'มหาเซียนกระบี่เทียนหยวน',
       powerBase: 4.80,
-      specialtyMatIds: ['MAT_ORE_MITHRIL_JADE_4', 'MAT_ORE_METEOR_IRON_4'],
+      specialtyMatIds: ['MAT_ORE_MITHRIL_JADE_4', 'MAT_ORE_METEOR_IRON_5'],
       tributeDescTh: 'ศิลาวิญญาณระดับเซียน + ผลึกกระบี่สวรรค์และคัมภีร์แดนศักดิ์สิทธิ์'
     },
     {
@@ -1755,7 +1755,7 @@
       signatureGearTh: 'ดาบมารกลืนสวรรค์เก้าโลหิต & แส้กระดูกยมโลก',
       leaderNameTh: 'จอมมารบรรพกาลจิ่วหมิง',
       powerBase: 4.90,
-      specialtyMatIds: ['MAT_WHIP_KARMIC_RED_SILK_5', 'MAT_ORE_METEOR_IRON_4'],
+      specialtyMatIds: ['MAT_WHIP_KARMIC_RED_SILK_5', 'MAT_ORE_METEOR_IRON_5'],
       tributeDescTh: 'ศิลาวิญญาณระดับมารสวรรค์ + ไหมแดงกรรมโลหิตและศาสตรามารบรรพกาล'
     }
   ]);
@@ -1844,7 +1844,7 @@
     s.baseDays = Number.isFinite(s.baseDays) ? s.baseDays : canon.baseDays;
     s.tributeDescTh = s.tributeDescTh || canon.tributeDescTh;
     s.leaderNameTh = s.leaderNameTh || canon.leaderNameTh || (f && f.leaderNameTh) || 'เจ้าสำนัก';
-    s.specialtyMatIds = (Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) ? s.specialtyMatIds : (canon.specialtyMatIds || (f && f.specialtyMatIds) || []).slice();
+    if (Array.isArray(canon.specialtyMatIds) && canon.specialtyMatIds.length) { const merged = canon.specialtyMatIds.concat(Array.isArray(s.specialtyMatIds) ? s.specialtyMatIds : []); s.specialtyMatIds = Array.from(new Set(merged)); } else if (!Array.isArray(s.specialtyMatIds) || !s.specialtyMatIds.length) { s.specialtyMatIds = (f && f.specialtyMatIds ? f.specialtyMatIds : []).slice(); }
     s.nodeId = s.nodeId || ('NODE_SECT_' + canon.codeId);
     if (!Number.isFinite(s.power) || s.power <= 0) s.power = canon.powerBase || effTierSpec.basePower;
     if (!Number.isFinite(s.influence)) s.influence = effTierSpec.influenceBase;
@@ -1969,7 +1969,7 @@
     Object.values(X.RESOURCE_NODE_DEFS).forEach(def => {
       let rn = w.resourceNodes[def.id];
       if (!rn || typeof rn !== 'object') {
-        const ownerSect = w.allSects.find(s => s && s.factionId === def.defaultOwnerFactionId);
+        const ownerSect = w.allSects.find(s => s && (s.factionId === def.defaultOwnerFactionId || s.canonicalId === def.defaultOwnerFactionId));
         rn = w.resourceNodes[def.id] = {
           id: def.id,
           nameTh: def.nameTh,
@@ -2573,7 +2573,7 @@
       const stonesLoot = Math.max(350, Math.round(420 + (s.power || 1) * 240));
       ECO.earn(W, stonesLoot, 'ปล้นคลังสมบัติของ' + s.nameTh);
       const matsLoot = {};
-      const matPool = (Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) ? s.specialtyMatIds : ['MAT_ORE_METEOR_IRON_4', 'MAT_HERB_SNOW_LOTUS_4'];
+      const matPool = (Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) ? s.specialtyMatIds : ['MAT_ORE_METEOR_IRON_5', 'MAT_HERB_SNOW_LOTUS_5'];
       matPool.forEach(mId => {
         if (ECO.matById && ECO.matById[mId]) {
           ECO.add(W, mId, 4);
@@ -2674,15 +2674,15 @@
       });
       // Faction-specific signature tribute bonus
       let bonusItem = null;
-      if (s.factionId === 'FAC_WHITE_CLOUD' && ECO.recipesFor) {
+      if ((s.factionId === 'FAC_WHITE_CLOUD' || s.canonicalId === 'FAC_WHITE_CLOUD') && ECO.recipesFor) {
         const swordRec = (JD.ITEMS && JD.ITEMS.recipes || []).find(r => r.outType === 'EQUIPMENT' && r.gearType === 'SWORD' && r.tier >= 3);
         if (swordRec && ECO.mintGear) {
-          const gr = ECO.mintGear(swordRec, 1.2);
+          const gr = ECO.mintGear(W, swordRec, 1.2);
           gr.nameTh = (gr.nameTh || 'กระบี่เมฆขาว') + ' (บรรณาการ)';
           W.sect.gear.push(gr);
           bonusItem = gr.nameTh;
         }
-      } else if (s.factionId === 'FAC_JADE_LOTUS') {
+      } else if (s.factionId === 'FAC_JADE_LOTUS' || s.canonicalId === 'FAC_JADE_LOTUS') {
         ECO.add(W, 'P:BASIC_HP2', 2);
         bonusItem = 'โอสถฟื้นฟูชั้นสูง ×2';
       }
@@ -2894,10 +2894,22 @@
     X.ensureWorldTopology(W);
     const rn = W.world.resourceNodes && W.world.resourceNodes[nodeId];
     if (!rn) return { ok: false, reason: 'invalid-resource-node' };
-    const disciples = (spec.discipleIds || []).map(id => typeof id === 'string' ? W.byId[id] : id).filter(n => n && !n.dead).slice(0, 3);
+    const disciples = (spec.discipleIds || []).map(id => typeof id === 'string' ? W.byId[id] : id).filter(n => n && !n.dead && !n.exiled).slice(0, 3);
     const menagerie = (CULT && CULT.ensureMenagerie) ? CULT.ensureMenagerie(W) : ((W.sect && W.sect.beasts) || []);
     let beast = spec.beastUid ? menagerie.find(b => b && !b.dead && (b.uid === spec.beastUid || b.id === spec.beastUid)) : null;
     if (!beast && spec.beast && typeof spec.beast === 'object') beast = spec.beast;
+    const discIdSet = new Set(disciples.map(d => d.id));
+    const targetBeastUid = beast ? (beast.uid || beast.id) : null;
+    Object.values(W.world.resourceNodes || {}).forEach(other => {
+      if (!other || other.id === nodeId || !other.garrison) return;
+      if (Array.isArray(other.garrison.discipleIds) && discIdSet.size) {
+        other.garrison.discipleIds = other.garrison.discipleIds.filter(id => !discIdSet.has(id));
+      }
+      if (targetBeastUid && other.garrison.beastUid === targetBeastUid) {
+        other.garrison.beastUid = null;
+        other.garrison.beastNameTh = null;
+      }
+    });
 
     const fsSummary = (CULT && CULT.sectFourSymbolSummary) ? CULT.sectFourSymbolSummary(W) : null;
     const isBlackTortoise = !!(
@@ -2933,6 +2945,7 @@
     const nodesHarvested = [];
     Object.values(W.world.resourceNodes || {}).forEach(rn => {
       if (!rn || rn.ownerSectId !== 'PLAYER') return;
+      if (!opts.force && rn._lastHarvestedDay === (W.day || 0) && (W.day || 0) > 0) return;
       const mult = (rn.garrison && rn.garrison.yieldMultiplier) || 1.0;
       const isSeasonal = !!opts.seasonal;
       const stones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
@@ -2950,6 +2963,7 @@
         }
       }
       rn.lastHarvestDay = W.day || 0;
+      rn._lastHarvestedDay = W.day || 0;
       nodesHarvested.push({ nodeId: rn.id, nameTh: rn.nameTh, stones });
     });
     return { ok: true, totalStones, mats: matsHarvested, nodes: nodesHarvested };
@@ -3149,7 +3163,7 @@
     anomaly.claimedBy = 'PLAYER';
     anomaly.resolvedDay = W.day || 0;
     anomaly.rewards = rewards;
-    members.forEach(m => { m.merit = (m.merit || 0) + 22; HC.experience(m, 'victory', 0.7); });
+    members.forEach(m => { m.merit = (m.merit || 0) + 22; HC.experience(m, 'duel_win', 0.7); });
     W.fame(4.5);
     X.ensureWorldTopology(W);
     W.log('explore', '🌟 ช่วงชิงวาสนาฟ้าดิน「' + anomaly.nameTh + '」สำเร็จก่อน' + anomaly.rivalSectNameTh + '! ได้รับศิลา ' + rewards.stones + ' ก้อน และแก่นวิเศษ ' + rewards.catalysts.join(', '), members.map(m => m.id));
@@ -3300,7 +3314,7 @@
       const stonesLoot = won ? Math.round(35 + (targetSect.tierLevel || 2) * 22) : 0;
       if (won) {
         if (stonesLoot > 0 && ECO && ECO.earn) ECO.earn(W, stonesLoot, 'ปราบศิษย์' + targetSect.nameTh + 'ระหว่างเดินทาง');
-        (members.length ? members : [lead]).forEach(m => { m.merit = (m.merit || 0) + 12; HC.experience(m, 'victory', 0.35); });
+        (members.length ? members : [lead]).forEach(m => { m.merit = (m.merit || 0) + 12; HC.experience(m, 'duel_win', 0.35); });
         W.fame(clashInfo.isOppositeAlignment ? 2.5 : 1.0);
         targetSect.attitude = clamp((targetSect.attitude || 0) - (clashInfo.isOppositeAlignment ? 10 : 6), -100, 100);
       } else {
@@ -3473,9 +3487,13 @@
       if (W.day % 16 === 0 && X.tickAutonomousVisitorsV2) X.tickAutonomousVisitorsV2(W);
       if (W.day % 30 === 0 && X.holdGrandMartialAssembly) X.holdGrandMartialAssembly(W);
       if (W.day % 36 === 0 && X.tickHeavenlyCalamity) X.tickHeavenlyCalamity(W);
-      if (W.day % 28 === 0 && X.spawnSecretRealm) {
-        const sr = X.spawnSecretRealm(W);
-        if (sr && X.resolveSecretRealmRace) X.resolveSecretRealmRace(W, sr);
+      (W.world.secretRealms || []).forEach(sr => {
+        if (sr && sr.status === 'OPEN' && W.day >= (sr.expiresDay || 0) && X.resolveSecretRealmRace) {
+          X.resolveSecretRealmRace(W, sr);
+        }
+      });
+      if (W.day % 28 === 0 && X.spawnSecretRealm && !(W.world.secretRealms || []).some(sr => sr && sr.status === 'OPEN')) {
+        X.spawnSecretRealm(W);
       }
       // Expire or rival-claim overdue anomalies
       (W.world.anomalies || []).forEach(a => {
@@ -3855,18 +3873,19 @@
     all.forEach((s, idx) => {
       if (!s) return;
       if (!s.figures || typeof s.figures !== 'object') s.figures = {};
-      const baseRng = makeChildRng(W, 'init_sect_' + (s.canonicalId || s.id || idx));
+      let _baseRng = null;
+      const getBaseRng = () => _baseRng || (_baseRng = makeChildRng(W, 'init_sect_' + (s.canonicalId || s.id || idx)));
       if (!s.figures.master || s.figures.master.dead) {
-        s.figures.master = X.generateProceduralSectFigure(W, s, 'master', { rng: baseRng, seq: idx * 10 + 1 });
+        s.figures.master = X.generateProceduralSectFigure(W, s, 'master', { rng: getBaseRng(), seq: idx * 10 + 1 });
       }
       if (!s.figures.deputy || s.figures.deputy.dead) {
-        s.figures.deputy = X.generateProceduralSectFigure(W, s, 'deputy', { rng: baseRng, seq: idx * 10 + 2 });
+        s.figures.deputy = X.generateProceduralSectFigure(W, s, 'deputy', { rng: getBaseRng(), seq: idx * 10 + 2 });
       }
       if (!s.figures.successor || s.figures.successor.dead) {
-        s.figures.successor = X.generateProceduralSectFigure(W, s, 'successor', { rng: baseRng, seq: idx * 10 + 3 });
+        s.figures.successor = X.generateProceduralSectFigure(W, s, 'successor', { rng: getBaseRng(), seq: idx * 10 + 3 });
       }
       if ((s.tierLevel || 1) >= 3 && (!s.figures.ancestor || s.figures.ancestor.dead)) {
-        s.figures.ancestor = X.generateProceduralSectFigure(W, s, 'ancestor', { rng: baseRng, seq: idx * 10 + 4 });
+        s.figures.ancestor = X.generateProceduralSectFigure(W, s, 'ancestor', { rng: getBaseRng(), seq: idx * 10 + 4 });
       }
       if (s.figures.master) {
         hideFigCaches(s.figures.master, W);
@@ -4642,7 +4661,7 @@
     }
 
     // Autonomous Player Sect expedition entrant (chosen from top combat-ready disciples/elders)
-    const playerAlive = (W.npcs || []).filter(n => n && !n.dead && !n.exiled).sort((a, b) => CULT.power(b) - CULT.power(a));
+    const playerAlive = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away).sort((a, b) => CULT.power(b) - CULT.power(a));
     if (playerAlive.length) {
       const pLead = playerAlive[0];
       const pTeam = playerAlive.slice(0, Math.min(3, playerAlive.length));
@@ -4937,7 +4956,8 @@
       });
       return { ok: true, action: act, figure: fig, chronicle: chron };
     } else if (act === 'BOOST_STAGE' || act === 'GIFT_PILL') {
-      fig.cult.stage = Math.min(9, (fig.cult.stage || 4) + 1);
+      const maxSt = (CULT && CULT.PATHS && fig.cult && CULT.PATHS[fig.cult.path] && CULT.PATHS[fig.cult.path].maxStage) || 9;
+      fig.cult.stage = Math.min(maxSt, (fig.cult.stage || 4) + 1);
       fig.power = Math.round((fig.power || 300) * 1.32 + 150);
       fig.hpMax = Math.round((fig.hpMax || 800) * 1.25);
       fig.hp = fig.hpMax;

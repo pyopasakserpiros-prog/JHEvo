@@ -336,7 +336,7 @@
   CPE.pickPurchase = (W, n) => {
     const cp = n.cp || 0, c = n.cult; if (cp < 4) return null;
     const hm0 = n._nd ? n._nd.hpMax : CULT.hpMax(n);
-    const sSeq = W._stockSeq || 0, hpBand = n.h.state.hp >= hm0 * 0.73 ? 8 : ((n.h.state.hp * 0.5) | 0), injLen = n.inj ? n.inj.length : 0;
+    const sSeq = (W._pillSeq || 0) * 4096 + ((W.sect && W.sect.crystalsVer) || 0), hpBand = n.h.state.hp >= hm0 * 0.73 ? 8 : ((n.h.state.hp * 0.5) | 0), injLen = n.inj ? n.inj.length : 0;
     if (W.t > 0 && n._pickCache && (n._pickCache.t === W.t || (W.t > n._pickCache.t && W.t - n._pickCache.t < 45 && n._pickCache.sSeq === sSeq)) && n._pickCache.path === (c && c.path) && n._pickCache.stage === (c && c.stage) && n._pickCache.cp === cp && n._pickCache.hpBand === hpBand && n._pickCache.gearLen === W.sect.gear.length && n._pickCache.injLen === injLen) return n._pickCache.val;
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
@@ -460,7 +460,7 @@
 
   /* ----- บริการชี้แนะจากหอคัมภีร์: ใช้แต้มเป็นค่าครูและเผาออกจากระบบ ----- */
   CPE.guidanceTeacher = (W, n) => {
-    const eligible = t => !!(t && t !== n && !t.dead && !t.away && !t.exiled && !(t.guidanceUntil > W.t) && (t.rank > n.rank || (t.cult && n.cult && t.cult.stage > n.cult.stage)));
+    const eligible = t => !!(t && t !== n && !t.dead && !t.away && !t.exiled && !(t.guidanceUntil > W.t) && (t.rank > n.rank || (t.cult && n.cult && (CULT.equivalentStage ? CULT.equivalentStage(t) > CULT.equivalentStage(n) : t.cult.stage > n.cult.stage))));
     const head = SECT.holder(W, 'scripture'); if (eligible(head)) return head;
     const master = W.byId[W.sect.masterId]; if (eligible(master)) return master;
     return W.npcs.find(eligible) || null;
@@ -814,7 +814,7 @@
           const rel = SECT.rel(p.n, tr.id);
           rel.a = Math.max(-100, rel.a - 4);
           rel.t = Math.max(0, (rel.t ?? 40) - 6);
-          HC.experience(p.n, 'unfair_treatment', 0.4);
+          HC.experience(p.n, 'punished_unfair', 0.4);
           if (g.COG && g.COG.remember) g.COG.remember(W, p.n, { kind: "unfair_allocation", subjectId: tr.id, severity: 0.6 });
           if (g.COG && g.COG.submitPetition) g.COG.submitPetition(W, p.n, "complaint", { accusedId: tr.id, reason: "ไม่ได้รับโอสถสวัสดิการทั้งที่บาดเจ็บ" });
           if (W.rng.chance(0.35)) {

@@ -129,6 +129,7 @@ Object.assign(profiles, D.subProfiles || {});
 if(D.pathProfiles){for(const [k,v] of Object.entries(D.pathProfiles))if(!paths[k])paths[k]=v;else if(Array.isArray(v.weapons)){for(const w of v.weapons)if(!paths[k].weapons.includes(w))paths[k].weapons.push(w);}}
 if(D.subProfiles){for(const [k,v] of Object.entries(D.subProfiles))if(!profiles[k])profiles[k]=v;else if(Array.isArray(v[3]))profiles[k][3]=v[3].slice();}
 M.PATHS=paths;M.PROFILES=profiles;
+if(D.SYNERGIES){for(const [sk,pr] of Object.entries(profiles)){const syn=D.SYNERGIES[sk];if(syn){if(Array.isArray(pr[3]))syn.weaponTypes=pr[3].slice();if(Array.isArray(pr[4]))syn.armorTypes=pr[4].slice();}}}
 
 M.invalidateMartialCaches=n=>{
  if(!n)return;

@@ -96,11 +96,13 @@
     return true;
   };
   AI.walkSpeed = (W, n) => {
-    const injLen = n.inj ? n.inj.length : 0, bLen = n.buffs ? n.buffs.length : 0, sxLen = n.sx ? n.sx.length : 0, cSt = n.cult ? n.cult.stage : 0, pVer = n._passVer || 0, bLast = bLen ? n.buffs[bLen - 1] : null;
+    const injLen = n.inj ? n.inj.length : 0, bLen = n.buffs ? n.buffs.length : 0, sxLen = n.sx ? n.sx.length : 0, cSt = n.cult ? n.cult.stage : 0, pVer = n._passVer || 0, bLast = bLen ? n.buffs[bLen - 1] : null, sxLast = sxLen ? n.sx[sxLen - 1] : null;
     let wb = n._wsBase;
-    if (!wb || wb.ver !== n._ver || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.bLast !== bLast || wb.sxLen !== sxLen || sxLen > 0) {
+    if (!wb || wb.ver !== n._ver || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.bLast !== bLast || wb.sxLen !== sxLen || wb.sxLast !== sxLast || (sxLen > 0 && W.t >= (wb.sxExp || 0))) {
       const d = (g.MARTIAL && g.MARTIAL.derived) ? g.MARTIAL.derived(n) : HC.derived(n);
-      wb = n._wsBase = { ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, bLast, sxLen, v: d.walkSpeed * CULT.speedMult(n) };
+      let sxExp = Infinity;
+      if (sxLen > 0) { for (let i = 0; i < sxLen; i++) { const u = n.sx[i] && n.sx[i].until; if (u > W.t && u < sxExp) sxExp = u; } }
+      wb = n._wsBase = { ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, bLast, sxLen, sxLast, sxExp, v: d.walkSpeed * CULT.speedMult(n) };
     }
     let v = wb.v * MAP.speedAt(W.map, n.x, n.y);
     if (injLen) v *= 0.75; if (n.h.state.energy < 20) v *= 0.8; if (n.run) v *= 1.5;
@@ -843,7 +845,7 @@
       const hasInj = !!(n.inj && n.inj.length);
       if (hpR > 0.8 && !hasInj) return S.add('แข็งแรงดี', -3);
       const sevMax = hasInj ? Math.max(...n.inj.map(i => i.sev || 1)) : 0;
-      S.add('บาดเจ็บ', (1 - hpR) * 2.6 + (hasInj ? n.inj.length * 0.55 + (sevMax >= 2 ? 0.75 : 0.25) : 0));
+      S.add('บาดเจ็บ', (1 - hpR) * 2.6 + (hasInj ? n.inj.length * 0.65 + (sevMax >= 2 ? 1.35 : 0.35) : 0));
       S.add('ทนเจ็บ', -(E(n, 'physiology.painTolerance') - 50) / 300);
     },
     where: (W, n) => { const s = AI.freeStation(W, n, 'patient', 'infirmary'); return s ? { st: s } : null; },
@@ -1494,6 +1496,7 @@
       if (AI.begin(W, n, c.id, w, why)) { n.why = why; if(g.COG)g.COG.chosen(W,n,c.id,why); return true; }
     }
     n.act = { id: 'idle', stage: 'do', left: 20, total: 20, ctx: {}, why: [] };
+    n.why = [];
     return false;
   };
 
@@ -1502,10 +1505,10 @@
     const nd = n._nd, c = n.cult, p = n.h.physiology;
     const cStage = c ? c.stage : 0;
     const cTr = c && c.track ? c.track.ordinal : 0;
-    const passVer = n._passVer || 0;
+    const passVer = c && c.techs ? c.techs.length : 0;
     const eqA = n.equip ? n.equip.ARMOR : null;
     const vit = p.vitality | 0, tuf = p.toughness | 0, str = p.strength | 0;
-    if (nd && nd.day === HC.nowDay && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit && nd.tuf === tuf && nd.str === str) return nd;
+    if (nd && nd.day === HC.nowDay && nd.ver === n._ver && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit && nd.tuf === tuf && nd.str === str) return nd;
     const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (cStage || 0);
     const next = {
       day: HC.nowDay,
@@ -1590,14 +1593,14 @@
 
   /* ---------- ขั้นประมวลผลต่อนาทีของ NPC ---------- */
   AI.step = (W, n) => {
-    if (n.dead || n.away) return;
+    if (n.dead || n.away || n.exiled) return;
     n.px = n.x; n.py = n.y;
     AI.needs(W, n);
     if (n.dead) return;
     const ac = n.act;
-    if (!ac) { n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; return; }
+    if (!ac) { n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; n.why = []; return; }
     if (ac.id === 'fight') { g.COMBAT.fightStep(W, n); return; }
-    if ((W.t + n.n) % 5 === 0 && ac.id !== 'idle' && AI.interrupt(W, n)) { AI.interruptFor(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; return; }
+    if ((W.t + n.n) % 5 === 0 && ac.id !== 'idle' && AI.interrupt(W, n)) { AI.interruptFor(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; n.why = []; return; }
     if (ac.id === 'idle') {
       if (ac.left > 0) { ac.left--; if (n.path) AI.stepMove(W, n); return; }
       AI.decide(W, n); return;
@@ -1612,13 +1615,14 @@
     let res;
     if (ac.id === 'pair') res = AI.pairTick(W, n);
     else { ac.left--; if (a.tick) res = a.tick(n, W, ac.ctx); }
-    if (res === 'abort') { AI.release(W, n); n.cool.pair = W.t + 60; n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; return; }
+    if (res === 'abort') { AI.release(W, n); n.cool.pair = W.t + 60; n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; n.why = []; return; }
     if (res === 'done' || (ac.id !== 'pair' && ac.left <= 0)) {
       if (a.done) a.done(n, W, ac.ctx);
       if(g.COG)g.COG.finished(W,n,ac.id);
       if (ac.id !== 'pair') n.cool[ac.id] = W.t + (a.cooldown || 0);
       AI.release(W, n); n.hidden = false;
       n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
+      n.why = [];
       if (ac.id === 'pair') n.cool.pair = W.t + 60;
     }
   };

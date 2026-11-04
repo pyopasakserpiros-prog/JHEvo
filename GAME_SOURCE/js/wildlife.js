@@ -254,7 +254,7 @@
       const z = zones[b.zone];
       const zName = z ? z.nameTh : 'นอกสำนัก';
       W.log('combat', n.h.name.given + ' สยบและผูกพันธสัญญาวิญญาณกับ ' + b.name + ' ใน' + zName + ' สำเร็จ (ไม่มีการชำแหละซากซ้ำ)', [n.id]);
-      HC.experience(n, 'combat_win', 0.8);
+      HC.experience(n, 'duel_win', 0.8);
       n.merit += Math.max(1, Math.round(b.tier * 1.5));
     } else if (b.dead && winner === 'A' && n && !n.dead) {
       const allSpecies = (JD.BEASTS.species || []).concat(JD.BEASTS.kings || []);
@@ -286,7 +286,7 @@
       W.log('combat', n.h.name.given + ' ล่าสังหาร ' + b.name + ' ใน' + zName + ' สำเร็จ ได้รับ ' + dropText, [n.id]);
       if(g.COG)g.COG.remember(W,n,{kind:'hunt_win',zoneId:b.zone,subjectId:b.speciesId,severity:.4});
       W.wildlife.kills = (W.wildlife.kills || 0) + 1;
-      HC.experience(n, 'combat_win', 0.8);
+      HC.experience(n, 'duel_win', 0.8);
       n.merit += Math.max(1, Math.round(b.tier * 1.5));
     } else if (n && !n.dead && (winner === 'B' || n.h.state.hp < CULT.hpMax(n) * 0.35 || f.fled)) {
       const z = zones[b.zone];

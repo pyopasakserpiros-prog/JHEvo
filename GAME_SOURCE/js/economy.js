@@ -139,8 +139,8 @@
   };
 
   /* ---------- ตำรับ ---------- */
-  ECO.recipeKnown = (W, r) => !!r && r.tier <= W.sect.recipeTier && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id));
-  ECO.recipeKnownFor = (W, npc, r) => !!r && r.tier <= W.sect.recipeTier && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id) || !!(npc && npc.inv && Array.isArray(npc.inv.recipes) && npc.inv.recipes.includes(r.id)) || !!(npc && Array.isArray(npc.recipes) && npc.recipes.includes(r.id)));
+  ECO.recipeKnown = (W, r) => !!r && (r.tier <= W.sect.recipeTier || (r.discoverable && (W.sect.knownRecipes || []).includes(r.id))) && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id));
+  ECO.recipeKnownFor = (W, npc, r) => !!r && (r.tier <= W.sect.recipeTier || (r.discoverable && ((W.sect.knownRecipes || []).includes(r.id) || !!(npc && npc.inv && Array.isArray(npc.inv.recipes) && npc.inv.recipes.includes(r.id)) || !!(npc && Array.isArray(npc.recipes) && npc.recipes.includes(r.id))))) && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id) || !!(npc && npc.inv && Array.isArray(npc.inv.recipes) && npc.inv.recipes.includes(r.id)) || !!(npc && Array.isArray(npc.recipes) && npc.recipes.includes(r.id)));
   ECO.craftEligible = (W, npc, r, hall) => {
     if (!ECO.recipeKnownFor(W, npc, r)) return false;
     const paths = Array.isArray(r.compatiblePath) ? r.compatiblePath : [r.compatiblePath || 'ANY'];

@@ -37,7 +37,7 @@
     const sore = (E(l, 'personality.pride') - 50) / 100 + (E(l, 'personality.aggression') - 50) / 200 - (close ? 0.3 : 0);
     SECT.rel(l, w.id).v += Math.max(0, sore) * 5; SECT.rel(l, w.id).r += close ? 2 : 4; SECT.rel(w, l.id).r += close ? 2 : 1;
     HC.feel(w, { mood: 4 }); HC.feel(l, { mood: close ? 1 : -3, stress: sore > 0.2 ? 3 : 0 });
-    HC.experience(w, 'victory', 0.25); HC.experience(l, 'defeat', 0.2);
+    HC.experience(w, 'duel_win', 0.25); HC.experience(l, 'duel_lose', 0.2);
     [a, b].forEach(u => {
       if (u && !u.dead && u.cult && u.cult.path === 'HEART_SOUL') {
         u.h.state.heartDemon = Math.max(0, (u.h.state.heartDemon || 0) - 2.5);
@@ -66,7 +66,7 @@
     const u = C.unit(W, id); if (!u) return;
     if (u.foe && !u.skl) u.skl = SKs().foeSkills(u);
     if (!u.foe && f.serious) STs().preFight(W, u, f.kind === 'raid');
-    if (!u.foe) { AI.interruptFor(W, u); u.hidden = false; u.act = { id: 'fight', stage: 'do', left: 9999, total: 9999, ctx: { fid: f.id, target: null, cd: 0 }, why: [['เข้าต่อสู้', 9]] }; u.path = null; u.run = true; }
+    if (!u.foe) { AI.interruptFor(W, u); u.hidden = false; u.act = { id: 'fight', stage: 'do', left: 9999, total: 9999, ctx: { fid: f.id, target: null, cd: 0 }, why: [['เข้าต่อสู้', 9]] }; u.why = u.act.why; u.path = null; u.run = true; }
     else { u.act = { id: 'fight', ctx: { fid: f.id, target: null, cd: 0 } }; }
   };
   C.join = (W, f, id, side) => { if (f[side].includes(id)) return; f[side].push(id); C.enter(W, f, id); };
@@ -365,7 +365,7 @@
     C.setHp(d, hp);
     const ratio = hp / hm;
     if (ratio < (nonlethal ? yieldThreshold(d) : fleeThreshold(d)) && !d.yield && !d.fled) {
-      if (nonlethal) d.yield = true; else if (W.rng.chance(d.foe ? 0.7 : 0.5)) { d.fled = true; d.fx = { t: W.t, text: 'ถอย!' }; if (!d.foe) { d.run = true; AI.mem(W, d, 'ถอยหนีจากการต่อสู้', 0.5); HC.experience(d, 'flee', 0.4); } }
+      if (nonlethal) d.yield = true; else if (W.rng.chance(d.foe ? 0.7 : 0.5)) { d.fled = true; d.fx = { t: W.t, text: 'ถอย!' }; if (!d.foe) { d.run = true; AI.mem(W, d, 'ถอยหนีจากการต่อสู้', 0.5); HC.experience(d, 'near_death', 0.4); } }
     }
     return false;
   };
@@ -1241,11 +1241,11 @@
     }
     if (victim.foe) {
       W.log('combat', C.name(killer) + ' สังหาร' + victim.name, killer.foe ? [] : [killer.id]);
-      if (!killer.foe) { killer.stats = killer.stats || {}; killer.stats.kills = (killer.stats.kills || 0) + 1; HC.experience(killer, 'victory', 0.6); killer.merit += 3 + victim.tier * 2; }
+      if (!killer.foe) { killer.stats = killer.stats || {}; killer.stats.kills = (killer.stats.kills || 0) + 1; HC.experience(killer, 'duel_win', 0.6); killer.merit += 3 + victim.tier * 2; }
       return;
     }
     AI.kill(W, victim, killer.foe ? 'ถูก' + killer.name + 'สังหาร' : 'ถูก' + killer.h.name.given + 'สังหารในการดวล');
-    if (!killer.foe) { HC.experience(killer, 'killed', 0.8); const r = SECT.rel(killer, victim.id); AI.mem(W, killer, 'ปลิดชีพ ' + victim.h.name.given, 1, victim.id); killer.stats = killer.stats || {}; killer.stats.kills = (killer.stats.kills || 0) + 1; }
+    if (!killer.foe) { HC.experience(killer, 'killed_foe', 0.8); const r = SECT.rel(killer, victim.id); AI.mem(W, killer, 'ปลิดชีพ ' + victim.h.name.given, 1, victim.id); killer.stats = killer.stats || {}; killer.stats.kills = (killer.stats.kills || 0) + 1; }
   };
 
   /* พฤติกรรมต่อนาทีของผู้ต่อสู้ที่เป็น NPC */
@@ -1279,7 +1279,7 @@
     if (n.act && n.act.ctx && n.act.ctx.channeling) delete n.act.ctx.channeling;
     if (n.sx && n.sx.length) { n.sx = n.sx.filter(x => x && x.fromBuffCatalog && x.until > W.t); STs().dirty(n); }
     n.run = false; n.fleeTo = null; n.yield = false; n.fled = false; n.path = null; n.lastHurtBy = null; n._closedOnBy = null; n._gapClosedOn = null;
-    n.act = { id: 'idle', stage: 'do', left: 15, total: 15, ctx: {}, why: [] };
+    n.act = { id: 'idle', stage: 'do', left: 15, total: 15, ctx: {}, why: [] }; n.why = [];
   };
 
   /* พฤติกรรมศัตรู */
@@ -1366,7 +1366,7 @@
     if (!w) { W.log('duel', a.h.name.given + ' กับ ' + b.h.name.given + ' ดวลกันไม่มีผู้ชนะ', [a.id, b.id]); return; }
     if (l && !l.dead) { const sev = C.hp(l) < C.hpMax(l) * 0.2 ? 2 : 1; AI.injure(W, l, sev, 'พ่ายแพ้ในการดวล'); }
     const rl = l && !l.dead ? SECT.rel(l, w.id) : null; if (rl) { rl.v += 8; rl.a -= 4; }
-    HC.experience(w, 'victory', 0.7); if (l && !l.dead) HC.experience(l, 'defeat', 0.7);
+    HC.experience(w, 'duel_win', 0.7); if (l && !l.dead) HC.experience(l, 'duel_lose', 0.7);
     [a, b].forEach(u => {
       if (u && !u.dead && u.cult && u.cult.path === 'HEART_SOUL') {
         u.h.state.heartDemon = Math.max(0, (u.h.state.heartDemon || 0) - 3.5);
@@ -1428,7 +1428,7 @@
   };
   C.tournamentEnd = (W, T) => {
     const win = W.byId[T.alive[0]]; W.sect.tournament = null; if (!win) return;
-    ECO.pay(W, Math.min(T.prize, W.sect.stones), 'รางวัลประลองยุทธ์'); win.inv.stones += T.prize; win.merit += 35; HC.experience(win, 'victory', 1); W.fame(3);
+    ECO.pay(W, Math.min(T.prize, W.sect.stones), 'รางวัลประลองยุทธ์'); win.inv.stones += T.prize; win.merit += 35; HC.experience(win, 'duel_win', 1); W.fame(3);
     AI.mem(W, win, 'ชนะเลิศประลองยุทธ์สำนัก', 1);
     W.log('tournament', win.h.name.given + ' ชนะเลิศประลองยุทธ์สำนัก ได้รางวัล ' + T.prize + ' ศิลา', [win.id]);
     const m = W.byId[W.sect.masterId];
