@@ -50,4 +50,4 @@ node tools/run_parallel_tests.js
 ---
 
 ### ภารกิจและรายการปรับปรุงแพตช์ถัดไป (Active Next Patch):
-- **[รายการปรับแก้และคำสั่งมอบหมายงานแพตช์ v2.0.35 (NEXT_PATCH_PROMPT_V2_0_35.md)](NEXT_PATCH_PROMPT_V2_0_35.md)**: ติดตั้งตัวประเมินเงื่อนไขกลาง `evaluateCondition()`, แก้ปัญหา Case Mismatch ของ Trigger, ระบบท่าร่าง (Stance) คำนวณผลรบจริง, เติมเต็ม 8 Composable Actions ที่ขาดหาย, เชื่อมโยง 40 Data-Only Item Effect IDs เข้าสู่รันไทม์ และระบบเขตแดนสนามรบ (Battlefield Domains)
+- **[มหาคำสั่งมอบหมายงานอัตโนมัติสำหรับโมเดล Gemini แพตช์ v2.0.35 (NEXT_PATCH_PROMPT_V2_0_35.md)](NEXT_PATCH_PROMPT_V2_0_35.md)**: คำสั่งเริ่มงานอัตโนมัติ (Zero-Prompt Autonomous Work Order) ครอบคลุมการสะสางจุดบกพร่องทั้ง 8 เสาหลัก, ตัวประเมินเงื่อนไขกลาง `evaluateCondition()`, แก้ปัญหา Trigger Case & Hooks, ท่าร่างคำนวณจริง, 8 Composable Actions, 40 Item Effect IDs, เขตแดนสนามรบ (Battlefield Domains), พร้อมติดตั้งเครื่องยนต์ผสานมหาธาตุ 2/3/4 ธาตุ (Elemental Fusion Engine) และคลังกลไกสร้างสรรค์เชิงลึก (จุดชีพจร, จิตวิญญาณศาสตรา, เสาโทเทม, ปรากฏการณ์ฟ้าดิน, สถิตร่างสัตว์วิญญาณ, สายสัมพันธ์ชะตา และชีพจรปฐพี) มอบอำนาจการคิดและตัดสินใจเต็มที่แก่ Gemini ด้วยศักยภาพ 1,000,000 Output Tokens
