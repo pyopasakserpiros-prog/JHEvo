@@ -234,3 +234,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .atlas-marker-travel{position:absolute;right:-7px;bottom:-7px;width:17px;height:17px;display:grid;place-items:center;border:1px solid #d8c783;border-radius:50%;background:#163b2b;font-size:10px;line-height:1}
 .atlas-alert{display:block;width:100%;margin:0 0 5px;padding:5px 8px;border:1px solid #dc9a6d;border-radius:8px;background:#6c3029;color:#ffe0b3;font-size:11px;text-align:left}
 .atlas-policy{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0}.atlas-policy .btn,.atlas-distress-detail .btn{font-size:11px;padding:4px 7px}.atlas-distress-detail{border:1px solid #c78267;border-radius:7px;padding:6px;margin:5px 0;color:#ffe1c6;font-size:11px}
+
+/* Compact, non-blocking lineage history in the log and character sheet. */
+.lineage-chronicle{margin:8px 0;padding:9px 11px;border:1px solid #b8a66b;border-radius:12px;background:linear-gradient(145deg,#24483a,#122e26);color:#edf2de}
+.lineage-chronicle summary{cursor:pointer;color:#ffe2a0;font-weight:700;list-style-position:inside;min-height:30px}
+.lineage-entry{padding:7px 2px;border-top:1px solid #72907b66;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.lineage-date{display:inline-block;color:#b9d4bf;font-size:10px;margin-right:4px}

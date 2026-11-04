@@ -1241,21 +1241,21 @@
     else if (a === 'form-mentor-bond') {
       const [mentorId, discipleId] = String(arg || '').split('|');
       const res = (SECT.MENTORSHIP && SECT.MENTORSHIP.formBond) ? SECT.MENTORSHIP.formBond(W, mentorId, discipleId) : { ok: false, reason: 'ไม่พบระบบฝากตัวศิษย์-อาจารย์' };
-      UI.toast(res.ok ? ('🎓 รับศิษย์สายตรงสำเร็จ! (' + res.mentorName + ' → ' + res.discipleName + ')') : ('ไม่สำเร็จ: ' + (res.reason || 'เงื่อนไขไม่ครบ')));
+      UI.toast(res.ok ? ('🎓 รับศิษย์สายตรงสำเร็จ! (' + res.bond.mentorNameTh + ' → ' + res.bond.discipleNameTh + ')') : ('ไม่สำเร็จ: ' + (res.reason || 'เงื่อนไขไม่ครบ')));
       UI.render();
       UI.updateHud(true);
     }
     else if (a === 'coach-disciple') {
       const [mentorId, discipleId] = String(arg || '').split('|');
       const res = (SECT.MENTORSHIP && SECT.MENTORSHIP.coachDisciple) ? SECT.MENTORSHIP.coachDisciple(W, mentorId, discipleId) : { ok: false, reason: 'ไม่พบระบบชี้แนะวิชา' };
-      UI.toast(res.ok ? ('🎓 ชี้แนะเคล็ดวิชาสำเร็จ! (+XP ' + res.xpGain + (res.imprintedTech ? ' · ถ่ายทอด「' + res.imprintedTech + '」' : '') + ')') : ('ไม่สำเร็จ: ' + (res.reason || 'ไม่สามารถชี้แนะได้')));
+      UI.toast(res.ok ? ('🎓 ชี้แนะสำเร็จ! (+ตบะ ' + res.cultGain + ')') : ('ไม่สำเร็จ: ' + (res.reason || 'ไม่สามารถชี้แนะได้')));
       UI.render();
       UI.updateHud(true);
     }
     else if (a === 'transmit-qi') {
       const [mentorId, discipleId] = String(arg || '').split('|');
       const res = (SECT.MENTORSHIP && SECT.MENTORSHIP.transmitQi) ? SECT.MENTORSHIP.transmitQi(W, mentorId, discipleId, { free: false }) : { ok: false, reason: 'ไม่พบระบบถ่ายทอดปราณ' };
-      UI.toast(res.ok ? ('✨ พิธีถ่ายทอดปราณต้นกำเนิดสำเร็จ! (+XP ' + res.xpTransferred + ' · สืบทอด「' + (res.inheritedTech || 'รากฐานอาจารย์') + '」)') : ('ไม่สำเร็จ: ' + (res.reason || 'เงื่อนไขยังไม่ครบ')));
+      UI.toast(res.ok ? ('✨ ถ่ายทอดปราณสำเร็จ! (+ตบะ ' + res.transmission.surgePts + (res.transmission.inheritedTechId ? ' · สืบทอด「' + ((CULT.tech(res.transmission.inheritedTechId) || {}).nameTh || res.transmission.inheritedTechId) + '」' : '') + ')') : ('ไม่สำเร็จ: ' + (res.reason || 'เงื่อนไขยังไม่ครบ')));
       UI.render();
       UI.updateHud(true);
     }
@@ -2704,6 +2704,7 @@
     if (b.id === 'ancestral' || b.id === 'shrine' || b.type === 'ancestral') {
       const tablets = (SECT.ensureLegacyTablets ? SECT.ensureLegacyTablets(W) : (W.sect.legacyTablets || []));
       h += '<h3>🕯️ ป้ายวิญญาณมรดกบรรพชน (' + tablets.length + ')</h3><div class="card">' + (tablets.length ? tablets.map(t => '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>🕯️ ' + esc(t.nameTh) + '</b> <span class="chip g">' + esc(t.subpathNameTh || t.path) + '</span><div class="muted" style="font-size:11.5px">วิชาเอก: ' + esc(t.signatureTechNameTh || '-') + ' · พรทะลวงขั้น +' + Math.round((t.breakthroughBonus || 0) * 100) + '% · เร่งเข้าใจคัมภีร์ +' + Math.round((t.comprehensionBonus || 0) * 100) + '% · สักการะแล้ว ' + (t.prayersCount || 0) + ' ครั้ง</div></div>').join('') : '<span class="muted">ยังไม่มีป้ายวิญญาณมรดกของผู้อาวุโสระดับสูง</span>') + '</div>';
+      h += '<details class="lineage-chronicle"><summary>📜 ประวัติการสืบทอดของสำนัก</summary>' + UI.lineageHistory(W) + '</details>';
       const tribState = SECT.ensureCelestialTribulation ? SECT.ensureCelestialTribulation(W) : { active: null, history: [] };
       const legacyBonus = SECT.ascensionCultivationMultiplier ? Math.round((SECT.ascensionCultivationMultiplier(W) - 1) * 100) : 0;
       h += '<h3>⚡ ด่านเคราะห์สวรรค์และจุติ</h3><div class="card"><div>จุติแล้ว ' + (W.sect.ascendedLegacyCount || 0) + ' ท่าน · พรสืบทอดเร่งการบ่มเพาะ +' + legacyBonus + '% (สูงสุด 5%)</div>';
@@ -2738,6 +2739,13 @@
     return true;
   }
 
+  UI.lineageHistory = (W, npcId) => {
+    const list = ((W.sect && W.sect.mentorship && W.sect.mentorship.history) || []).filter(e => e && (!npcId || e.mentorId === npcId || e.discipleId === npcId)).slice(0, 30);
+    if (!list.length) return '<div class="muted">ยังไม่มีเหตุการณ์สายสืบทอดที่บันทึกไว้</div>';
+    const person = (id, name) => W.byId && W.byId[id] && !W.byId[id].dead && !W.byId[id].exiled ? nameLink(W.byId[id]) : '<b>' + esc(name || 'ไม่ทราบชื่อ') + '</b>';
+    return list.map(e => '<div class="lineage-entry"><span class="lineage-date">วันที่ ' + esc(e.day) + '</span> ' + (e.kind === 'bond' ? '🍵 ' + person(e.discipleId,e.discipleNameTh) + ' ฝากตัวเป็นศิษย์ของ ' + person(e.mentorId,e.mentorNameTh) : '✨ ' + person(e.mentorId,e.mentorNameTh) + ' ถ่ายทอดปราณให้ ' + person(e.discipleId,e.discipleNameTh) + ' · ตบะ +' + esc(e.surgePts) + (e.inheritedTechId ? ' · วิชา「' + esc((CULT.tech(e.inheritedTechId) || {}).nameTh || e.inheritedTechId) + '」' : '') + (e.occasion === 'dying' ? ' · ก่อนสิ้นชีวิต' : e.occasion === 'ascension' ? ' · ก่อนขึ้นสู่แดนเซียน' : '')) + '</div>').join('');
+  };
+
   UI.rLog = () => {
     const W = UI.G.W;
     if (!UI.logFilters) UI.logFilters = new Set([(UI.tab && LOG_GROUPS[UI.tab]) ? UI.tab : 'all']);
@@ -2751,6 +2759,8 @@
       h += '<button type="button" class="chip ' + (active ? 'ok' : '') + '" data-do="logfilter" data-arg="' + k + '" style="cursor:pointer;padding:6px 11px;font-size:12px;' + (active ? 'border-color:var(--gold);font-weight:bold;background:rgba(233,205,133,.18)' : '') + '">' + LOG_GROUPS[k][0] + '</button>';
     }
     h += '</div>';
+
+    if (UI.logFilters.has('all')) h += '<details class="lineage-chronicle"><summary>📜 พงศาวดารสายสืบทอด</summary>' + UI.lineageHistory(W) + '</details>';
 
     h += '<div class="log-subfilter-bar" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">';
     Object.keys(LOG_SUBFILTERS).forEach(sk => {
@@ -4545,12 +4555,13 @@
       h += '<h3>ในสำนัก</h3><div class="card"><div class="grid2"><div>ระดับ: <b>' + SECT.title(n) + '</b></div><div>เข้าสำนัก: ' + Math.max(0, Math.round(W.day - n.joinDay)) + ' วันก่อน</div><div>ผลงานสะสม: ' + Math.round(n.merit) + '</div><div>พอใจสำนัก: ' + Math.round(n.sat == null ? 60 : n.sat) + '</div><div>ศิลาส่วนตัว: ' + Math.round(n.inv.stones) + '</div><div>โชค: ' + Math.round(n.h.destiny.luck) + '</div></div>' + (mObj ? '<div>อาจารย์สายตรง: ' + nameLink(mObj) + '</div>' : '') + (n.h.life.family.spouse && W.byId[n.h.life.family.spouse] ? '<div>คู่ครอง: ' + nameLink(W.byId[n.h.life.family.spouse]) + '</div>' : '') + (discList.length ? '<div>ศิษย์สายตรง (' + discList.length + '): ' + discList.map(nameLink).join('、') + '</div>' : '') + (n.stats && (n.stats.kills || n.stats.sparWin) ? '<div class="muted">สถิติ: สังหาร ' + (n.stats.kills || 0) + ' · ประลองชนะ ' + (n.stats.sparWin || 0) + ' แพ้ ' + (n.stats.sparLoss || 0) + '</div>' : '') + '</div>';
       if (SECT.MENTORSHIP && n.cult) {
         h += '<h3>🎓 สายสืบทอดอาจารย์-ศิษย์ & ปราณต้นกำเนิด</h3><div class="card">';
+        h += '<details class="lineage-chronicle"><summary>📜 ประวัติสายสืบทอดของคนนี้</summary>' + UI.lineageHistory(W, n.id) + '</details>';
         if (n.mentorImprint) {
           const impTech = n.mentorImprint.inheritedTechNameTh || (n.mentorImprint.inheritedTechId && (CULT.tech(n.mentorImprint.inheritedTechId) || {}).nameTh) || '';
           h += '<div style="margin-bottom:4px"><span class="chip g">✦ รากฐานที่ได้รับการถ่ายทอด</span> จาก <b>' + esc(n.mentorImprint.mentorNameTh || 'อาจารย์') + '</b> · เร่งบ่มเพาะ +' + Math.round(((n.mentorImprint.cultSpeedBonus || n.mentorImprint.cultRateBonus || 0.12)) * 100) + '% · ทะลวงด่าน +' + Math.round(((n.mentorImprint.breakthroughBonus || n.mentorImprint.btBonus || 0.08)) * 100) + '%' + (impTech ? ' · สืบทอด「' + esc(impTech) + '」' : '') + '</div>';
         }
         if (mObj && !mObj.dead) {
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px"><span>อาจารย์ปัจจุบัน: ' + nameLink(mObj) + '</span><div style="display:flex;gap:4px"><button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="coach-disciple" data-arg="' + mObj.id + '|' + n.id + '">🎓 ขอรับการชี้แนะ</button>' + ((mObj.cult && mObj.cult.stage >= 5 && (!n.mentorImprint || !n.mentorImprint.transmitted)) ? '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="transmit-qi" data-arg="' + mObj.id + '|' + n.id + '">✨ รับการถ่ายทอดปราณ</button>' : '') + '</div></div>';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px"><span>อาจารย์ปัจจุบัน: ' + nameLink(mObj) + '</span><div style="display:flex;gap:4px"><button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="coach-disciple" data-arg="' + mObj.id + '|' + n.id + '">🎓 ขอรับการชี้แนะ</button>' + ((mObj.cult && !mObj.qiTransmitted && (CULT.equivalentStage ? CULT.equivalentStage(mObj) : mObj.cult.stage) >= 4) ? '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="transmit-qi" data-arg="' + mObj.id + '|' + n.id + '">✨ รับการถ่ายทอดปราณ</button>' : '') + '</div></div>';
         } else if (!mObj) {
           const potMentor = W.npcs.filter(x => !x.dead && !x.exiled && x.id !== n.id && x.cult && x.cult.stage >= (n.cult.stage || 1) + 1 && (x.rank >= 3 || x.cult.stage >= 3) && (!Array.isArray(x.disciples) || x.disciples.length < 3)).sort((a, b) => ((b.cult.path === n.cult.path ? 50 : 0) + b.cult.stage * 10) - ((a.cult.path === n.cult.path ? 50 : 0) + a.cult.stage * 10))[0];
           if (potMentor) {
@@ -4562,7 +4573,7 @@
         if (discList.length) {
           h += '<div style="margin-top:6px;border-top:1px dotted var(--line,#3a3f4a);padding-top:4px"><b>ศิษย์ในปกครอง (' + discList.length + '/3):</b></div>';
           discList.forEach(dNpc => {
-            h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:6px;flex-wrap:wrap"><span>' + nameLink(dNpc) + ' <span class="muted">(' + esc(CULT.stageName(dNpc)) + ')</span></span><div style="display:flex;gap:4px"><button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="coach-disciple" data-arg="' + n.id + '|' + dNpc.id + '">🎓 ชี้แนะวิชา</button>' + (n.cult.stage >= 5 ? '<button class="btn" style="padding:2px 7px;font-size:11px" data-do="transmit-qi" data-arg="' + n.id + '|' + dNpc.id + '">✨ ถ่ายทอดปราณ</button>' : '') + '</div></div>';
+            h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:6px;flex-wrap:wrap"><span>' + nameLink(dNpc) + ' <span class="muted">(' + esc(CULT.stageName(dNpc)) + ')</span></span><div style="display:flex;gap:4px"><button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="coach-disciple" data-arg="' + n.id + '|' + dNpc.id + '">🎓 ชี้แนะวิชา</button>' + (!n.qiTransmitted && (CULT.equivalentStage ? CULT.equivalentStage(n) : n.cult.stage) >= 4 ? '<button class="btn" style="padding:2px 7px;font-size:11px" data-do="transmit-qi" data-arg="' + n.id + '|' + dNpc.id + '">✨ ถ่ายทอดปราณ</button>' : '') + '</div></div>';
           });
         }
         h += '</div>';

@@ -1,4 +1,4 @@
-# JianghuSect Evolution — v2.0.25
+# JianghuSect Evolution — v2.0.26
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
@@ -12,3 +12,5 @@ node tools/run_parallel_tests.js
 ```
 
 Package 2.0.25 was imported from the Gemini branch archive. Its runtime patch identifier remains 2.0.24. The import audit found seven referenced suites missing from the archive (v215–v219, v222, and v225); the full test matrix also reported failures in trade-pact and realm-rank checks. Browser suites require a configured browser. Investigate these before claiming release readiness.
+
+รายละเอียดแพตช์สายสืบทอด: [v2.0.26 report](PATCH_IMPLEMENTATION_REPORT_V2_0_26.md)

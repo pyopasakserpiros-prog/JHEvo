@@ -4571,6 +4571,7 @@
     const ms = W.sect.mentorship;
     if (!ms.bonds || typeof ms.bonds !== 'object') ms.bonds = {};
     if (!Array.isArray(ms.transmissions)) ms.transmissions = [];
+    if (!Array.isArray(ms.history)) ms.history = [];
     if (!Array.isArray(ms.heritageArts)) ms.heritageArts = [];
     if (!Number.isFinite(ms.seq) || ms.seq < 0) ms.seq = 0;
     // Re-register any synthesized Custom Sect Heritage Arts into CULT / JD.MARTIAL on load
@@ -4583,6 +4584,17 @@
   };
 
   MENTORSHIP.resolveNpc = (W, v) => typeof v === 'string' ? (W && W.byId && W.byId[v]) : v;
+
+  MENTORSHIP.recordHistory = (W, kind, mentor, disciple, extra) => {
+    const ms = MENTORSHIP.ensure(W);
+    if (!ms || !mentor || !disciple) return null;
+    const entry = Object.assign({ id:'LINEAGE_' + (++ms.seq), kind, day:W.day || 0,
+      mentorId:mentor.id, mentorNameTh:HC.fullName(mentor), discipleId:disciple.id,
+      discipleNameTh:HC.fullName(disciple) }, extra || {});
+    ms.history.unshift(entry);
+    if (ms.history.length > 200) ms.history.length = 200;
+    return entry;
+  };
 
   MENTORSHIP.isMentorPair = (a, b) => {
     if (!a || !b) return false;
@@ -4600,6 +4612,12 @@
       return { ok: false, reason: 'invalid-pair' };
     }
     if (!mentor.cult || !disciple.cult) return { ok: false, reason: 'not-cultivator' };
+    if (disciple.mentorId === mentor.id && ms.bonds[disciple.id] && ms.bonds[disciple.id].mentorId === mentor.id) return {ok:true, bond:ms.bonds[disciple.id]};
+    const seen = new Set(); let ancestor = mentor;
+    while (ancestor && !seen.has(ancestor.id)) {
+      if (ancestor.id === disciple.id) return {ok:false, reason:'lineage-cycle'};
+      seen.add(ancestor.id); ancestor = W.byId && W.byId[ancestor.mentorId || ancestor.mentor];
+    }
     const mEq = CULT.equivalentStage ? CULT.equivalentStage(mentor) : (mentor.cult.stage || 1);
     const dEq = CULT.equivalentStage ? CULT.equivalentStage(disciple) : (disciple.cult.stage || 1);
     if (!opts.force && mEq < MENTORSHIP.MIN_MENTOR_STAGE && (mentor.rank || 0) < 3) {
@@ -4611,6 +4629,13 @@
     mentor.apprenticeIds = Array.isArray(mentor.apprenticeIds) ? mentor.apprenticeIds.filter(id => W.byId && W.byId[id] && !W.byId[id].dead) : [];
     if (!opts.force && !mentor.apprenticeIds.includes(disciple.id) && mentor.apprenticeIds.length >= MENTORSHIP.MAX_APPRENTICES) {
       return { ok: false, reason: 'mentor-apprentice-cap' };
+    }
+    const previousMentor = W.byId && W.byId[disciple.mentorId || disciple.mentor];
+    if (previousMentor && previousMentor !== mentor) {
+      if (Array.isArray(previousMentor.apprenticeIds)) previousMentor.apprenticeIds = previousMentor.apprenticeIds.filter(id => id !== disciple.id);
+      if (Array.isArray(previousMentor.disciples)) previousMentor.disciples = previousMentor.disciples.filter(id => id !== disciple.id);
+      const family = previousMentor.h && previousMentor.h.life && previousMentor.h.life.family;
+      if (family && Array.isArray(family.disciples)) family.disciples = family.disciples.filter(id => id !== disciple.id);
     }
     disciple.mentorId = mentor.id;
     disciple.mentor = mentor.id;
@@ -4639,6 +4664,7 @@
       coachingSessions: 0
     };
     ms.bonds[disciple.id] = bondRec;
+    MENTORSHIP.recordHistory(W, 'bond', mentor, disciple, {resonanceKind});
 
     const rm = SECT.rel(mentor, disciple.id);
     const rd = SECT.rel(disciple, mentor.id);
@@ -4663,7 +4689,8 @@
       return { ok: false, reason: 'invalid-pair' };
     }
     if (disciple.mentorId !== mentor.id) {
-      MENTORSHIP.formBond(W, mentor, disciple, { force: true, quiet: true });
+      const formed = MENTORSHIP.formBond(W, mentor, disciple, { force: true, quiet: true });
+      if (!formed.ok) return formed;
     }
     const bond = ms.bonds[disciple.id];
     if (bond) bond.coachingSessions = (bond.coachingSessions || 0) + 1;
@@ -4762,6 +4789,7 @@
     };
     ms.transmissions.unshift(rec);
     if (ms.transmissions.length > 30) ms.transmissions.length = 30;
+    MENTORSHIP.recordHistory(W, 'transmission', mentor, disciple, {surgePts, inheritedTechId, occasion:opts.dyingWish ? 'dying' : opts.preAscension ? 'ascension' : 'normal'});
     if (!opts.quiet && W.log) {
       W.log('breakthrough', '✨ พิธีถ่ายทอดพลังตบะ:「' + HC.fullName(mentor) + '」ถ่ายทอดปราณบริสุทธิ์และเจตจำนงยุทธ์ให้ศิษย์สายตรง「' + HC.fullName(disciple) + '」(+ตบะ ' + surgePts + (inheritedTechId ? ' · สืบทอดวิชา ' + (CULT.tech(inheritedTechId)?.nameTh || inheritedTechId) : '') + ')', [mentor.id, disciple.id]);
     }

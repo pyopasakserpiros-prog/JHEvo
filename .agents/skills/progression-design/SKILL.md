@@ -180,3 +180,6 @@ Known baseline: `skill_visual_browser, browser_mobile_perf, input_cancellation, 
 ## Patch v2.0.18 Additions: Four-Symbol Mythological Beast Evolution
 - **Four-Symbol Awakening (`CULT.FOUR_SYMBOL_BLOODLINES`, `CULT.awakenFourSymbolBloodline`)**:
   - Uses Primordial Elemental Catalysts (`CAT_PRIMORDIAL_METAL`, `CAT_PRIMORDIAL_WOOD`, `CAT_PRIMORDIAL_WATER`, `CAT_PRIMORDIAL_FIRE`, `CAT_PRIMORDIAL_EARTH`) to awaken `AZURE_DRAGON`, `WHITE_TIGER`, `VERMILION_PHOENIX`, and `BLACK_TORTOISE` (Growth Stage 5, Tier 7).
+
+## v2.0.26 lineage history
+Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.history` (maximum 200), with saved names and IDs. `UI.lineageHistory` renders the latest 30 in the log and NPC overview. Existing saves do not fabricate historical events. Reassignment clears old active links and cycles are rejected. Verify `node test/lineage_history.js`.
