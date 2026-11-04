@@ -1,11 +1,13 @@
 ---
 name: performance-budgeting
-description: Maintain JianghuSect Evolution v2.0.17's strict simulation performance budget (< 3.0 ms/tick for 80 NPCs, supporting 80x+ speed) through versioned caching (_ver, _passVer, earliestExpiry), allocation discipline, and tick throttling.
+description: Use when investigating JianghuSect simulation speed, NPC tick cost, caches or performance regressions.
 origin: jianghusect-custom
 category: performance-engineering
 ---
 
-# JianghuSect Evolution (v2.0.17) — Simulation Performance Budgeting Blueprint (`< 3.0 ms/tick` at 80 NPCs)
+# JianghuSect Evolution — Simulation Performance Budgeting Blueprint (`< 3.0 ms/tick` at 80 NPCs)
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill enforces the strict simulation CPU budget of **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**: **`< 3.0 ms/tick` average across 80+ active NPCs**, enabling smooth **48×–80×+** fast-forward speeds on both mobile (Termux/Android) and desktop browsers.
 
@@ -28,16 +30,8 @@ This skill enforces the strict simulation CPU budget of **JianghuSect Evolution 
 
 Never recompute composite stats, passive effects, equipment resonance sets, or elemental power on every tick or combat strike. Always guard with version counters:
 
-### 2.1 `STATS.compute(npc)` Version & Buff-Expiry Cache (`js/stats.js` lines 96–115)
-```javascript
-const ver = (npc._ver || 0) * 31 + (npc.cult ? npc.cult.stage * 7 + npc.cult.techs.length : 0)
-  + (npc.equip && npc.equip.WEAPON ? 3 : 0) + (npc.equip && npc.equip.ARMOR ? 5 : 0)
-  + (npc.equip && npc.equip.ACCESSORY ? 7 : 0);
-if (npc._cs && npc._csVer === ver && (!npc._csExpires || npc._csExpires > now)) {
-  return npc._cs;
-}
-```
-- When timed buffs (`npc.buffs`) expire, track `earliestExpiry` so stats recompute only when a buff actually times out or `npc._ver` increments.
+### 2.1 `STATS.get(npc)` cache (`js/stats.js`)
+`STATS.get` checks `n._cs` using time-to-live, earliest buff expiry, equipped item references, version, cultivation, passive cache key, health/energy and injury count. `compute` and `computeFast` are private helpers; inspect the actual invalidation rules before changing them. Do not treat an old `_csVer`/`_csExpires` snippet as the current API.
 
 ### 2.2 Resonance & Passives Caching (`js/martial.js` & `js/elemental.js`)
 - **Equipment Resonance Sets (`MARTIAL.evaluateResonanceSet`):** Cached on `npc._eqSetCache` keyed by `npc._ver` + gear IDs.
@@ -74,4 +68,4 @@ node test/perf.js
 node test/browser_mobile_perf.js
 node test/long_simulation.js
 ```
-*(Note: Browser-based perf suites requiring headless Chromium like `perf.js` gracefully report browser environment status on headless Termux while Node VM runtime timing suites pass 100% natively).*
+*(Note: Browser performance suites require a working browser and may fail when Chromium is unavailable; report the actual result).*

@@ -1,22 +1,24 @@
 ---
 name: progression-design
-description: Structure, extend, and balance JianghuSect Evolution v2.0.17 progression - 12 Major Cultivation Paths (XIAN, BODY, GOD, DEMON, HEART_SOUL, MECH_PUPPET, KARMA_SAMSARA, BEAST_SOVEREIGN, SAGE_SUPPORT, CRAFT_CREATION, ARRAY_TALISMAN, STRATEGY_GOVERNANCE), 96 Subpaths, path selection (CULT.choosePath), Stage Equivalence (4/5/8/9-stage scales), 69 Specialization Tracks, Heavenly Tribulation & Ascension, Mentorship & Sect Heritage Arts (SECT.MENTORSHIP), Living Jianghu & Karma Bonds (SECT.JIANGHU), 12-Floor Nine-Dao Pagoda, Elemental Realms, Bottlenecks, Retraining, and Spirit Beast lifecycle (js/cultivation.js, js/explore.js, js/sect.js).
+description: Use when changing JianghuSect paths, subpaths, cultivation, mentorship, ascension, spirit beasts or trials.
 origin: jianghusect-custom
 category: cultivation-progression
 ---
 
-# JianghuSect Progression (v2.0.17): 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension, Mentorship & Living Jianghu
+# JianghuSect Progression: 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension, Mentorship & Living Jianghu
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
-Source-verified progression spec for `GAME_SOURCE/js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js`, `js/sect.js`, `js/explore.js`, `js/expedition.js`, `data/data_cult.js`, `data/data_martial.js`.
+Progression reference for `GAME_SOURCE/js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js`, `js/sect.js`, `js/explore.js`, `js/expedition.js`, `data/data_cult.js`, `data/data_martial.js`; check historical details against current source.
 
 Use when touching: major paths / subpaths / tracks, path choice scoring, stage equivalence, tribulation & ascension, Pagoda / Elemental Realms, spirit beasts, bottlenecks, retraining, `SECT.ARCHETYPES`.
 
-> **Never hard-code counts.** Enumerate at runtime: `CULT.PATH_IDS` (12 ids), `CULT.PATHS[id].subPaths`, `CULT.TRACKS`, `EX.NINE_DAO_PAGODA.floors.length`. Counts below are the verified v2.0.16 snapshot (`validate_data_schema.js`: 533 items, 917 recipes, 331 arts, Errors 0).
+> **Never hard-code counts.** Enumerate at runtime: `Object.keys(CULT.PATHS)` (12 ids), `CULT.PATHS[id].subPaths`, `CULT.TRACKS`, `EXPLORE.NINE_DAO_PAGODA.floors.length`. Counts below are the verified v2.0.16 snapshot (`validate_data_schema.js`: 533 items, 917 recipes, 331 arts, Errors 0).
 
 ---
 
-## 1. The 12 Major Paths (`CULT.PATH_IDS`, `JD.CULT.paths`)
+## 1. The 12 Major Paths (`Object.keys(CULT.PATHS)`, `JD.CULT.paths`)
 
 | Path ID | Max stage | Element | Subpaths | Subpath IDs |
 | :--- | :---: | :--- | :---: | :--- |
@@ -95,7 +97,7 @@ Functions: `CULT.normalizedStage(npc)` (same map), `CULT.equivalentStage(entity)
 
 ---
 
-## 8. Nine-Dao Pagoda — 12 Floors (`EX.NINE_DAO_PAGODA`, `js/explore.js` ~7549)
+## 8. Nine-Dao Pagoda — 12 Floors (`EXPLORE.NINE_DAO_PAGODA`, `js/explore.js` ~7549)
 Despite the name there are **12 floors**, one per major path (all paths enter any floor; no path lockout):
 
 | F | Path | basePower | stones | F | Path | basePower | stones |
@@ -107,12 +109,12 @@ Despite the name there are **12 floors**, one per major path (all paths enter an
 | 5 | HEART_SOUL | 280 | 85 | 11 | ARRAY_TALISMAN | 675 | 195 |
 | 6 | MECH_PUPPET | 335 | 95 | 12 | STRATEGY_GOVERNANCE | 750 | 215 |
 
-- Reward set per floor: `RES_NINE_DAO_<PATH>` resonance set; `EX.pagodaSetPieces(path, day)` mints 3 tier-5 pieces (`uid 'PAGODA_<PATH>_<SLOT>'`, `combatMult 1.12`, `defMult 1.08`); track unlocked sets in `W.world.nineDaoPagoda.unlockedSets`.
-- API: `EX.departNineDaoPagoda(W, party, {maxFloor})` → `EX.createTrialExpedition(kind 'nine_dao_pagoda', 1.5 days)`, `EX.resolveNineDaoPagoda`, `EX.ensureTrials` (state: `W.world.nineDaoPagoda{runs,unlockedSets,history}`, `W.sect.daoInsights`).
+- Reward set per floor: `RES_NINE_DAO_<PATH>` resonance set; `EXPLORE.pagodaSetPieces(path, day)` mints 3 tier-5 pieces (`uid 'PAGODA_<PATH>_<SLOT>'`, `combatMult 1.12`, `defMult 1.08`); track unlocked sets in `W.world.nineDaoPagoda.unlockedSets`.
+- API: `EXPLORE.departNineDaoPagoda(W, party, {maxFloor})` → `EXPLORE.createTrialExpedition(kind 'nine_dao_pagoda', 1.5 days)`, `EXPLORE.resolveNineDaoPagoda`, `EXPLORE.ensureTrials` (state: `W.world.nineDaoPagoda{runs,unlockedSets,history}`, `W.sect.daoInsights`).
 - New path ⇒ add a floor **and** `RES_NINE_DAO_<PATH>` set, or rewards break.
 
-### 8.1 Elemental Realms (`EX.ELEMENTAL_REALMS`, 5)
-`REALM_METAL/WOOD/WATER/FIRE/EARTH` (basePower 180–200, 3 floors each `basePower*(1+(floor-1)*0.34)`), **rotating every 90 days**: `EX.elementalRealmAt(day) = REALMS[floor(day/90) % 5]`; only the current realm may be entered. Resonant element match via `EX.matchedRealmElement` (EARTH_METAL is the canonical shared Earth/Metal root). `EX.departElementalRealm`, `EX.resolveElementalRealm`.
+### 8.1 Elemental Realms (`EXPLORE.ELEMENTAL_REALMS`, 5)
+`REALM_METAL/WOOD/WATER/FIRE/EARTH` (basePower 180–200, 3 floors each `basePower*(1+(floor-1)*0.34)`), **rotating every 90 days**: `EXPLORE.elementalRealmAt(day) = REALMS[floor(day/90) % 5]`; only the current realm may be entered. Resonant element match via `EXPLORE.matchedRealmElement` (EARTH_METAL is the canonical shared Earth/Metal root). `EXPLORE.departElementalRealm`, `EXPLORE.resolveElementalRealm`.
 
 ---
 
@@ -123,17 +125,17 @@ Despite the name there are **12 floors**, one per major path (all paths enter an
 - **v2.0.17 Success Modifiers**:
   - `imprintBonus`: `+0.04` if candidate has `mentorImprint`.
   - `relicBonus`: `+0.025` for 2-piece / `+0.05` for 3-piece Legendary Relic Resonance (`MARTIAL.evaluateLegendaryRelicResonance`).
-  - Pre-ascension Qi transmission: `candidate.apprenticeIds` receives dying-wish / pre-ascension cultivation and inherited techniques (`SECT.MENTORSHIP.transmitQi`) before retiring.
+  - Pre-ascension Qi transmission: the code selects the first living apprentice from `candidate.apprenticeIds` and calls `SECT.MENTORSHIP.transmitQi` before retirement, when eligible.
 - Success: inscribe ascended legacy tablet (`tablet.ascended`), `cult.ascended`, `ascendedLegacyCount++` → permanent sect cultivation `SECT.ascensionCultivationMultiplier = 1 + min(5,count)*0.01` (cap +5%), retire cultivator (not death). Failure: recoverable, `ascensionAttempts++`.
 - Resolve participants by saved IDs; release survivors on every outcome; if ascendant is Sect Master, finish succession **before** `SIM.retire`.
 
 ### 9.1 Mentorship, Qi Transmission & Sect Heritage Arts (`SECT.MENTORSHIP` in `js/sect.js` lines 4494–4843)
 - **Direct Disciple Bonds (`MENTORSHIP.formBond(W, mentor, disciple, opts)`)**:
-  - Links `disciple.mentorId = mentor.id` and `mentor.apprenticeIds` (`MAX_APPRENTICES: 3`), boosts mutual relation `+25`, and auto-pairs unbonded elders (`rank >= 3` or `eqSt >= 4`) with juniors every 5 days (`MENTORSHIP.daily`).
-- **Master Coaching (`MENTORSHIP.coachDisciple(W, mentor, disciple, opts)`)**:
-  - Grants `xpGain = Math.round((18 + eqM * 8) * pathBonus)` cultivation XP (`pathBonus = 1.35` if same path), `+8` mastery on a shared technique (`+18` on a mentor-known technique), reduces `heartDemon` by `4`, and applies `mentorGuidance` (`180m`, `+10%` combat stats, `+18%` cultRateBonus, `+8%` btBonus).
+  - Links `disciple.mentorId = mentor.id` and `mentor.apprenticeIds` (`MAX_APPRENTICES: 3`), updates multiple relationship values, and auto-pairs unbonded elders (`rank >= 3` or `eqSt >= 4`) with juniors every 5 days (`MENTORSHIP.daily`).
+- **Master Coaching (`MENTORSHIP.coachDisciple(W, mentor, disciple)`)**:
+  - Uses `gainPts = max(4, round(CULT.threshold(disciple) * 0.06))`, practices a selected skill, advances an active learning task when present, reduces heart demon by 5 and stress by 6, and applies `mentorGuidance` for 120 minutes. Returns `{skillTaught, cultGain, bond}`; inspect current source for side effects.
 - **Qi Transmission (`MENTORSHIP.transmitQi(W, mentor, disciple, opts)`)**:
-  - Dying-wish or pre-ascension ceremony granting `surgePts = Math.round((65 + eqM * 32) * (dyingWish || preAscension ? 1.45 : 1.0))` cultivation XP, inheriting the mentor's highest-tier technique at `mastery >= 55`, and writing permanent `disciple.mentorImprint` (`p: { atk/matk/def/mdef: +4% }`, `cultRateBonus: +8%`, `btBonus: +4%`, consumed in `STATS.compute` and `SECT.CELESTIAL_TRIBULATION`).
+  - Sets `surgePts = max(25, round(CULT.threshold(disciple) * (0.55 + min(0.35, equivalentStage * 0.04))))`, transfers the first eligible non-innate technique the disciple does not know, and records `mentorImprint` with stage-dependent `statBonusPct`, `cultRateBonus`, and `btBonus`. The mentor can transmit only once (`qiTransmitted`); inspect `sect.js` for the regular, dying-wish and pre-ascension effects.
 - **Sect Heritage Art Creation (`MENTORSHIP.synthesizeSectArt(W, creator, opts)`)**:
   - Requires `equivalentStage >= 5` or `rank >= 4`. Synthesizes a dynamic T4–T7 `COMBAT_TECHNIQUE` (`id: 'HERITAGE_SECT_ART_' + seq`, `isSectHeritage: true`) tailored to the creator's equipped weapon (`SWORD`..`WHIP`), path (`command` / `harmonize` / `karmaReversal` / `blink` / `burst`), and primary element, registering it via `CULT.registerDynamicTech` and adding it to `W.sect.library` (`+25%` study speed for all sect disciples).
 
@@ -160,7 +162,7 @@ Despite the name there are **12 floors**, one per major path (all paths enter an
 ## 11. Extending Checklist (new path / subpath)
 1. Add path to `JD.CULT.paths` (stages array length = `maxStage`), `elementProfile`; register in `CULT.PATHS`/`PATH_IDS`.
 2. Add `base[path]` formula in `CULT.pathScores`, `SUBPREF`, maxStage map in `majorStageEquivalent`/`effectiveTechStage` (new stage-count scales need explicit maps).
-3. Add track (`registerTracks`), arts/innate/passive/mantra, resonance set `RES_NINE_DAO_<PATH>`, Pagoda floor + `EX.pagodaSetPieces`, UI path catalogs (fixed catalogs previously missed new paths), stat/profile integration.
+3. Add track (`registerTracks`), arts/innate/passive/mantra, resonance set `RES_NINE_DAO_<PATH>`, Pagoda floor + `EXPLORE.pagodaSetPieces`, UI path catalogs (fixed catalogs previously missed new paths), stat/profile integration.
 4. Never edit `js/human_core.js` (`HC.FINGERPRINT === '155:2f9c9dd7'`); keep exactly 40 script tags.
 
 ## 12. Verification

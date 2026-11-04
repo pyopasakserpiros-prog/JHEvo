@@ -1,17 +1,19 @@
 ---
 name: combat-design
-description: Design, extend, and balance JianghuSect Evolution v2.0.17's combat engine (js/combat.js), 12-path combat hooks, 10 weapon types & tactical reach counters (js/skills.js), 26 move archetypes, composite 12-stat & 12 timed buff system (js/stats.js), durability scaling & combat wear, 21-Relic Trinity & Legendary Resonance (js/martial.js), 31 equipment resonance sets, formation synergies, and spirit beast pack combat.
+description: Use when changing JianghuSect combat, stats, weapons, buffs, equipment resonance, formations or battle balance.
 origin: jianghusect-custom
 category: combat-martial-arts
 ---
 
-# JianghuSect Combat Engine (v2.0.17): Exact Formulas, 12 Combat Stats, 10 Weapon Types, 12 Timed Buffs, 21 Legendary Relics, 31 Resonance Sets, Formations & 12-Path Combat
+# JianghuSect Combat Engine: Exact Formulas, 12 Combat Stats, 10 Weapon Types, 12 Timed Buffs, 21 Legendary Relics, 31 Resonance Sets, Formations & 12-Path Combat
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
 Provide the deep-dive, source-verified engineering specification for **JianghuSect Evolution v2.0.17** combat (`GAME_SOURCE/js/combat.js`, `GAME_SOURCE/js/stats.js`, `GAME_SOURCE/js/martial.js`, `GAME_SOURCE/js/skills.js`, `GAME_SOURCE/data/data_martial.js`, `GAME_SOURCE/data/data_cb.js`, `GAME_SOURCE/js/visitors_clues.js`).
 
 Use this skill whenever:
-- Modifying `COMBAT.strike`, `COMBAT.fightStep`, `COMBAT.sparRound`, `COMBAT.tournamentTick`, or party combat in `EX.resolveSanctum` / `EXPED.spawnRaid`
+- Modifying `COMBAT.strike`, `COMBAT.fightStep`, `COMBAT.sparRound`, `COMBAT.tournamentTick`, or party combat in `EXPLORE.resolveSanctum` / `EXPED.spawnRaid`
 - Adding or tuning the 12 combat stats (`STATS.KEYS`), 12 timed buffs (`STATS.BUFF_CATALOG`), 14 status effects (`u.sx`), or 31 Equipment Resonance Sets (`MARTIAL.evaluateResonanceSet`)
 - Working on **Universal Legendary Relic Set Resonance (`MARTIAL.evaluateLegendaryRelicResonance`)**, **Relic Star Attunement (1–3 ★)**, or **21 Legendary Relics (`VC.LEGENDARY_EQUIPMENT`: 14 Weapons + 3 Armors + 4 Accessories)**
 - Working on **10 Weapon Types (`SWORD`, `BLADE`, `SPEAR`, `FIST`, `BOW`, `STAFF`, `FOCUS`, `ZITHER`, `BRUSH`, `WHIP`)**, **26 Move Archetypes (`SK.ARCH`)**, **Accessory Subpath Matching Bonuses (`RING`, `NECKLACE`, `BRACELET`, `CHARM`)**, **Equipment Durability Scaling & Combat Wear**, **Formation & Ensemble Synergies (`COMBAT.evaluateFormationSynergy`)**, or **12-Path / Spirit Beast Pack Combat**
@@ -54,7 +56,7 @@ Every unit (`npc` or `foe`) resolves a 12-stat combat block via `STATS.get(unit)
 - `ARRAY_TALISMAN` (วิถีค่ายกลยันต์): loaded from `JD.CULT.paths.ARRAY_TALISMAN.statWeights`
 - `STRATEGY_GOVERNANCE` (วิถีพิชัยยุทธ์): loaded from `JD.CULT.paths.STRATEGY_GOVERNANCE.statWeights`
 
-### 1.2 Mantra Stat Scaling by Path (`STATS.compute` / `computeFast` lines 325–337, 505–517)
+### 1.2 Mantra Stat Scaling by Path (`STATS.get` / internal `computeFast` lines 325–337, 505–517)
 Active mantra tier contributes path-specific stat scaling (`m.tier`):
 - `XIAN`: `matk: +4% * tier`, `mdef: +3% * tier`
 - `BODY`: `atk: +4% * tier`, `def: +4% * tier`, `hp: +3% * tier`
@@ -75,7 +77,7 @@ Active mantra tier contributes path-specific stat scaling (`m.tier`):
   ```javascript
   const df = clamp((it.dur || 100) / 100, 0.3, 1);
   ```
-- **Suitability Factor (`suitMult`)**: `MARTIAL.suitability(n, it).mult` (`1.20` matched weapon/armor, `1.00` neutral, `0.85` mismatched) multiplies the item's flat stats (`atk`, `matk`, `def`, `mdef`, `hp`, `acc`, `eva`, `crit`).
+- **Equipment suitability:** `MARTIAL.gearSuitability(n, it, price)` evaluates equipment for NPC selection. Do not assume an exported `MARTIAL.suitability` or a fixed stat multiplier; inspect `js/stats.js` and `js/martial.js` for the actual stat and equipment-selection paths.
 - **Combat Power Rating (`STATS.rating(n, v)`)**:
   ```javascript
   const offE = off * (1 + v.crit / 100 * (v.critDmg / 100 - 1)) * (0.6 + 0.4 * v.cast / 100) * (1 + v.pen / 150) * (0.85 + 0.15 * clamp(v.acc / (L * 0.55), 0.5, 2));
@@ -117,7 +119,7 @@ Before difficult battles, NPCs consume stockpiled combat pills based on cultivat
 ## 3. The 10 Weapon Types, Tactical Reach Counter-Engine & 26 Move Archetypes (`js/skills.js` & `js/combat.js`)
 
 ### 3.1 The 10 Weapon Types & 4 Tactical Reach Groups (`SK.WEAPON_TACTICS` in `js/skills.js` lines 528–646)
-Every unit's weapon is classified via `MARTIAL.classify(wpn)` into one of **10 weapon types** (or `'UNARMED'` -> `'FIST'`), which map to **4 Tactical Reach Groups** in `COMBAT.resolveWeaponTactics(W, f, a, d, o)`:
+`MARTIAL.gearType(wpn)` classifies an equipment item. Combat obtains tactical profiles through `SK.weaponTacticalProfile`; these map weapon types to reach groups in `COMBAT.resolveWeaponTactics(a, d, o, f)`. Inspect the current fallback for an unarmed unit in that profile rather than assuming `gearType(null)` returns `FIST`:
 
 | Reach Group | Weapon Types (`baseRange`) | Tactical Counter Rule (`C.resolveWeaponTactics`) |
 | :--- | :--- | :--- |
@@ -127,7 +129,7 @@ Every unit's weapon is classified via `MARTIAL.classify(wpn)` into one of **10 w
 | **`SHORT_SWIFT`** | `SWORD` (`1.80`), Swift `FIST` (`1.70`) | **Inside-Reach Gap-Closer** vs `LONG_POLEARM` or `RANGED_KITE` at close range (`gap <= 1.25` or dash/pierce/blink): `×1.10` dmg, `+8` acc, `+4` crit (`SWORD`). |
 
 ### 3.2 Subpath Weapon/Armor/Accessory Matching Bonuses (`MARTIAL.SUB_EQUIP_BONUSES` in `js/martial.js` lines 940–1058)
-In addition to standard `MARTIAL.suitability`, `MARTIAL.evaluateSubEquipmentBonus(n)` checks weapon, armor, and **accessory types (`RING`, `NECKLACE`, `BRACELET`, `CHARM`)** against the subpath:
+In addition to equipment selection via `MARTIAL.gearSuitability`, `MARTIAL.evaluateSubEquipmentBonus(n)` checks weapon, armor, and **accessory types (`RING`, `NECKLACE`, `BRACELET`, `CHARM`)** against the subpath:
 - **`ZITHER`**: `SOUND_ZITHER`, `SOUL_MUSICIAN`, `ZITHER_HEART_BOW` (`+matk`, `+acc`, `+cast`, `+mdef`).
 - **`BRUSH`**: `CALLIGRAPHY_PAINTING_SAGE`, `SEAL_SCRIPT_EXORCIST`, `THUNDER_TALISMAN_ADEPT`, `GRAND_FORMATION_ARCHITECT` (`+matk`, `+acc`, `+cast`, `+pen`).
 - **`WHIP`**: `SPIRIT_THREAD_PUPPET`, `THOUSAND_THREAD_ASSASSIN`, `FATE_SEVERING_THREAD` (`+atk`, `+matk`, `+acc`, `+crit`, `+pen`).
@@ -174,7 +176,7 @@ The **21 Legendary Relics (`VC.LEGENDARY_EQUIPMENT`: 14 Weapons + 3 Armors + 4 A
 - **On-Hit & On-Struck Relic Procs (`VC.runWeaponProcs` & `VC.runWeaponOnStruckProcs` in `js/visitors_clues.js` lines 1138–1365)**:
   - Evaluates equipped Legendary Weapon (`LEG_WPN_*`), Armor (`LEG_ARM_*`), and Accessory (`LEG_ACC_*`) special effects (`EFX_LEG_*`), scaling trigger probability by `legRes.procChanceMult` (`1.15×` at 2/3, `1.25×` at 3/3).
 - **Star Attunement Multiplier (`starScale = 1 + stars * 0.03`)**:
-  - `stars` is the sum of `it.attunedStars` (1–3 ★ per relic) unlocked by refining legendary/T6+ gear with Sanctum Catalysts (`ECO.refineResonanceGear` at `newQ >= 1.48 / 1.62 / 1.75`).
+  - `stars` is the sum of `it.attunedStars` (1–3 ★ per relic) unlocked by refining legendary/T6+ gear with Sanctum Catalysts (`ECO.refineGearWithCatalyst` at `newQ >= 1.48 / 1.62 / 1.75`).
 
 ---
 
@@ -230,7 +232,7 @@ When `C.strike(W, f, a, d, o)` executes (`js/combat.js` lines 318–560):
 
 ## 5. Party Formation & Ensemble Synergies (`COMBAT.evaluateFormationSynergy`)
 
-Used in **Ancient Sanctums (`EX.resolveSanctum`)**, **12-Floor Nine-Dao Trial Pagoda (`EX.challengeTrialPagoda`)**, **Five-Elemental Realms (`EX.challengeElementalRealm`)**, **Sect Raid Defenses**, and **Team Tournaments** (`js/combat.js` lines 1391–1503):
+Used in **Ancient Sanctums (`EXPLORE.resolveSanctum`)**, **12-Floor Nine-Dao Trial Pagoda (`EXPLORE.departNineDaoPagoda`)**, **Five-Elemental Realms (`EXPLORE.departElementalRealm`)**, **Sect Raid Defenses**, and **Team Tournaments** (`js/combat.js` lines 1391–1503):
 ```javascript
 const syn = COMBAT.evaluateFormationSynergy(partyUnits);
 // Returns: { synergies: [...], powerMultiplier, damageMitigation, reflectPct, auraNamesTh: [...] }

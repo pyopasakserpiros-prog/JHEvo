@@ -1,9 +1,11 @@
 ---
 name: economy-balancing
-description: Master JianghuSect Evolution v2.0.17 sect economy (js/economy.js), Contribution Point ledger & anti-arbitrage (js/cpeco.js), External Market & Stale Gear Liquidation (js/external_market.js), 17 procedural gear templates & 84 fixed Zither/Brush/Whip weapons, 4 repair stones & durability/retire lifecycle, 8 Sanctum & Elemental Refinement Catalysts with Relic Star Attunement (1-3 ★), and specialty meal cooking.
+description: Use when changing JianghuSect inventory, crafting, equipment, contribution points, markets or resource balance.
 ---
 
-# JianghuSect Evolution v2.0.17 — Economy, Crafting, Durability, CP Ledger & External Trade Blueprint (`js/economy.js`, `js/cpeco.js`, `js/external_market.js`)
+# JianghuSect Evolution — Economy, Crafting, Durability, CP Ledger & External Trade Blueprint (`js/economy.js`, `js/cpeco.js`, `js/external_market.js`)
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill governs the closed-loop economic engine of **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**: Sect Stock (`W.sect.stock`), Spirit Stones (`W.sect.stones`), Contribution Points (`W.sect.cp` / `npc.cp`), Slot-Based Procedural Forging (`ECO.resolveCraftMaterials`), Durability & Repair Stones (`ECO.REPAIR_STONES`), Specialty Meal Cooking (`W.sect.mealSpecialties`), 8 Refinement Catalysts & Relic Star Attunement (`ECO.REFINEMENT_CATALYSTS`, `attunedStars` 1–3 ★), Inventory Intelligence (`ECO.inventoryIntelligence`), and Visiting Merchant Trade (`js/external_market.js`).
 
@@ -141,7 +143,7 @@ This skill governs the closed-loop economic engine of **JianghuSect Evolution (�
   - `CAT_PRIMORDIAL_FIRE` (`แก่นเพลิงชาดบรรพกาล`, `element: 'FIRE'`, `resonantElements: ['FIRE', 'LIGHT_YANG']`, `minGearTier: 3`, `maxGearTier: 7`, `qualityBoost: +0.16`, `maxQuality: 1.70`, `value: 210`)
   - `CAT_PRIMORDIAL_EARTH` (`แก่นปฐพีหยกเร้น`, `element: 'EARTH_METAL'`, `resonantElements: ['EARTH_METAL', 'ASTRAL', 'BLOOD_DEMON']`, `minGearTier: 3`, `maxGearTier: 7`, `qualityBoost: +0.16`, `maxQuality: 1.70`, `value: 210`)
 
-### 4.2 Refinement Pipeline & Legendary Star Attunement (`ECO.refineResonanceGear` / `refineGearWithCatalyst`)
+### 4.2 Refinement Pipeline & Legendary Star Attunement (`ECO.refineGearWithCatalyst`)
 - Checks `gTier >= cat.minGearTier && gTier <= cat.maxGearTier` and `oldQ < cat.maxQuality`.
 - If `cat.resonantElements` matches the gear's primary/weighted element (`elementResonant === true`), adds `+0.04` to `cat.qualityBoost` and increments `gear.elementalResonanceCount`.
 - If the gear is `NEUTRAL` (`EXPLICIT_NON_ELEMENTAL`) and refined with an elemental catalyst, attunes `gear.attunedElement` to the refiner's subpath element (if resonant) or `cat.element`.

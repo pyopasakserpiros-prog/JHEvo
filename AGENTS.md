@@ -2,14 +2,44 @@
 
 JianghuSect Evolution is a Thai browser game. Current package: 2.0.29 (runtime patch identifier: 2.0.29). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
 
-For questions about what the game currently contains, read `project_status_and_ai_onboarding.md` first and answer from its current feature inventory. Distinguish implemented features, partial or unverified features, and future ideas; avoid proposing an existing feature as new. For implementation and when exact behavior, correctness, or a discrepancy matters, verify relevant claims against source and tests. Read only the relevant subsystem reference in `.agents/skills/` when needed. Follow the current user request; historical patch prompts are not active assignments.
+## ก่อนเริ่มงาน
 
-- Keep `GAME_SOURCE/js/human_core.js` byte-identical (`HC.FINGERPRINT === '155:2f9c9dd7'`). Preserve the script order in `GAME_SOURCE/index.html` and `GAME_SOURCE/test/load.js`.
-- Keep player-facing text in Thai, use existing game state as the authority, and maintain current save/load behavior. Compatibility with old saves is not required.
-- Rebuild the offline game after source changes: `cd GAME_SOURCE && node tools/build_single.js`.
-- Run relevant tests and `node tools/validate_data_schema.js`; for broad changes use `node tools/run_parallel_tests.js`. Seven test files referenced by the full runner are absent from the supplied baseline; report this honestly. Browser tests require Chromium.
-- Update relevant `.agents/skills/` references and release documentation when systems change. Preserve performance and avoid extra work in simulation hot paths.
+1. อ่าน `AGENTS.md` นี้ และตรวจว่ามี `AGENTS.md` เพิ่มเติมในโฟลเดอร์ที่จะแก้หรือไม่ หากมีให้ปฏิบัติตามส่วนที่เกี่ยวข้องด้วย คำสั่งปัจจุบันของผู้ใช้มีลำดับเหนือเอกสารโครงการ
+2. ตรวจสาขา สถานะไฟล์ และงานที่ผู้อื่นอาจกำลังทำ ก่อนเริ่มและก่อน push ให้ตรวจ `main` ล่าสุด รักษางานของผู้อื่นและอย่า force push ทับงาน หากมีความขัดแย้งให้ตรวจและรวมอย่างระมัดระวัง
+3. เมื่อตอบว่าเกมมีอะไร ให้อ่าน `project_status_and_ai_onboarding.md` ก่อน แยกระบบที่มีแล้ว ส่วนที่ยังตรวจไม่ครบ และแนวคิดในอนาคต เพื่อไม่เสนอสร้างสิ่งที่มีอยู่ซ้ำ เมื่อจะลงมือแก้หรือต้องการรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้อง หากสรุป สกิล และโค้ดขัดกัน ให้ตรวจหลักฐานก่อนตัดสิน
+4. อ่านสกิลเฉพาะระบบที่เกี่ยวข้องจากตารางด้านล่างเท่าที่จำเป็น ข้อเสนอแพตช์หรือพรอมป์เก่าเป็นข้อมูลประกอบ ไม่ใช่งานที่ต้องทำโดยอัตโนมัติ
 
-## Keep the game inventory current
+## เลือกสกิลตามงาน
 
-Whenever development, a bug fix, a balance or data change, or a UI change affects what the game contains, how a feature works, its limitations, or how players access it, update `project_status_and_ai_onboarding.md` in the same change as well as the relevant skills. Include the version, feature and player-visible behavior, relevant connections, limitations, and validation status. Update existing entries instead of adding duplicate descriptions, remove or correct outdated entries, and mark proposed or unverified functionality clearly. Verify changed entries against actual source and appropriate tests; do not imply the whole game was verified. If the work does not affect the inventory, state why in the delivery report. Keep the inventory concise and useful for answering the user without reading the entire codebase.
+สกิลอยู่ใน `.agents/skills/<ชื่อ>/SKILL.md` เป็นข้อมูลอ้างอิงที่อาจล้าสมัย ให้ยืนยันพฤติกรรมจากซอร์สและทดสอบ:
+
+| งาน | สกิลที่เกี่ยวข้อง |
+| --- | --- |
+| วิถี สายย่อย ตบะ ทะลวงด่าน อาจารย์–ศิษย์ สัตว์เลี้ยง แดนทดสอบ | `progression-design` |
+| ต่อสู้ ค่าสถานะ บัฟ อาวุธ และชุดอุปกรณ์ | `combat-design` |
+| การตัดสินใจ บุคลิก ความต้องการ ความสัมพันธ์ และหน้าที่ NPC | `ai-behavior-patterns` |
+| ไอเทม ตำรับ วิชา ธาตุ และข้อมูลตัวเสก | `game-data-integrity` |
+| คลัง การผลิต การค้า และแต้มคุณูปการ | `economy-balancing` |
+| แผนที่ ทรัพยากร สัตว์ป่า ตกปลา การสำรวจ และ RNG | `procedural-gen` |
+| หน้าต่าง UI รายชื่อตัวละคร คลัง แผนที่ และ Edit Hub | `game-ui-ux` |
+| โครงสร้างโมดูล สถานะเกม การสร้างไฟล์เดี่ยว | `gameplay-architecture` |
+| บันทึก/โหลดและข้อมูลชั่วคราว | `save-system-patterns` |
+| ความเร็วจำลองและการวาดหน้าจอ | `performance-budgeting`, `web-performance` |
+| แผนทดสอบและตรวจเบราว์เซอร์ | `qa-test-matrix`, `web-testing` |
+
+## ข้อกำหนดและการพัฒนา
+
+- รักษา `GAME_SOURCE/js/human_core.js` ให้ byte-identical โดยเทียบไฟล์กับฐานที่ถูกต้องแยกต่างหาก; `HC.FINGERPRINT === '155:2f9c9dd7'` ตรวจเส้นทางค่าสถานะ ไม่ใช่แฮชของไฟล์ และรักษาลำดับสคริปต์ใน `GAME_SOURCE/index.html` กับลำดับโหลดใน `GAME_SOURCE/test/load.js` เว้นแต่ผู้ใช้สั่งเปลี่ยนโดยตรง
+- ข้อความที่ผู้เล่นเห็นเป็นภาษาไทย ใช้สถานะเกมจริงเป็นแหล่งข้อมูล และดูแลประสิทธิภาพในเส้นทางจำลองที่ทำงานบ่อย
+- ปรับโค้ด ข้อมูล กลไก และระบบที่เกี่ยวข้องได้ตามความเหมาะสมกับงาน เพื่อให้ฟีเจอร์ทำงานจริง ตรวจผลกระทบต่อระบบอื่นและบันทึกการเปลี่ยนแปลง ความเข้ากันได้กับเซฟเก่าไม่จำเป็น แต่เซฟที่สร้างด้วยเวอร์ชันปัจจุบันต้องบันทึกและโหลดได้ถูกต้อง
+- เมื่อแก้ซอร์สให้สร้างเกมออฟไลน์ใหม่: `cd GAME_SOURCE && node tools/build_single.js`
+- รันทดสอบที่เหมาะกับงานและ `node tools/validate_data_schema.js`; งานที่กระทบกว้างใช้ `node tools/run_parallel_tests.js` ด้วย ตรวจผลจริงและรายงานข้อจำกัดตามตรง ณ ฐาน 2.0.28 มีไฟล์ชุดทดสอบที่อ้างถึงแต่ขาด 7 ไฟล์ และมี 3 กลุ่มที่เคยล้มเหลว (`craft_transactions`, `organs_experiments_politics`, `world_rank`); สถานะอาจเปลี่ยนได้ ต้องตรวจใหม่ ห้ามลบหรือปรับการทดสอบเพียงเพื่อให้ผ่าน ชุดเบราว์เซอร์ต้องมี Chromium
+- ทำความสะอาดไฟล์ชั่วคราวและเอกสารซ้ำที่ตรวจแล้วว่าไม่จำเป็น แต่เก็บเกม ซอร์ส ข้อมูล เครื่องมือ ชุดทดสอบ และเอกสารอ้างอิงที่ยังใช้ ตรวจลิงก์ก่อนลบ
+
+## อัปเดตสรุปเกมทุกครั้งที่เกี่ยวข้อง
+
+เมื่อพัฒนา แก้บัค ปรับข้อมูล บาลานซ์ หรือ UI ที่เปลี่ยนสิ่งที่เกมมี วิธีทำงาน ข้อจำกัด หรือวิธีเข้าถึง ให้อัปเดต `project_status_and_ai_onboarding.md` ในการเปลี่ยนแปลงเดียวกัน พร้อมอัปเดตสกิลที่เกี่ยวข้อง ระบุเวอร์ชัน สิ่งที่ผู้เล่นทำได้ ความเชื่อมโยง ข้อจำกัด และสถานะการตรวจ แก้รายการเดิมแทนการเพิ่มข้อมูลซ้ำ แยกระบบที่มีจริง สิ่งที่ยังไม่ยืนยัน และข้อเสนอในอนาคตให้ชัด ตรวจรายการที่เปลี่ยนกับซอร์สและการทดสอบที่เหมาะสม โดยไม่อ้างว่าตรวจครบทั้งเกม หากงานไม่กระทบสรุปให้ระบุเหตุผลในรายงาน
+
+เมื่อส่งแพตช์ ให้รายงานสิ่งที่เปลี่ยน ผลทดสอบ ข้อจำกัด และอัปเดต README/รายงานที่เกี่ยวข้องให้ตรงกับเวอร์ชันจริง
+
+สำหรับ master skills เฉพาะเกม ให้ตรวจและแก้สกิลที่ได้รับผลกระทบในการเปลี่ยนแปลงเดียวกัน ทั้งชื่อฟังก์ชัน พฤติกรรม สูตร จำนวนข้อมูล คำสั่งทดสอบและข้อจำกัด โดยเทียบกับซอร์สและผลทดสอบจริง หากส่วนใดยังไม่ได้ตรวจให้ระบุไว้ ห้ามเปลี่ยนเลขเวอร์ชันเพื่อสื่อว่าตรวจครบทั้งสกิล และปรับสารบัญ `.agents/skills/README.md` เมื่อขอบเขตหรือวิธีใช้สกิลเปลี่ยน
