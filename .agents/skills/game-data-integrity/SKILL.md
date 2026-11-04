@@ -1,11 +1,13 @@
 ---
 name: game-data-integrity
-description: Enforce and validate data schemas, field definitions, unique IDs, weapon affinities, elemental alignments, combat effects, buffs/debuffs, procedural gear templates, and debug-editor spawnability across all JianghuSect data files (data_items.js, data_martial.js, data_expansion.js, data_core.js, data_beasts.js). Use whenever adding, modifying, or auditing items, martial arts, weapons, pills, recipes, talismans, or drop tables.
+description: Use when changing JianghuSect item, recipe, technique, effect or editor catalog data and their cross-references.
 origin: jianghusect-custom
 category: game-data-schema
 ---
 
-# Game Data & Combat Integrity (v2.0.17): Schemas, Dual-ID Discipline, 10 Weapon Types, 12 Paths, 21 Legendary Relics & Editor Catalog
+# Game Data & Combat Integrity: Schemas, Dual-ID Discipline, 10 Weapon Types, 12 Paths, 21 Legendary Relics & Editor Catalog
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
 Provide the authoritative data schema reference and audit checklist for **JianghuSect Evolution v2.0.17** data files:
@@ -237,7 +239,7 @@ In v2.0.17, **21 Legendary Relics** are authored in `GAME_SOURCE/js/visitors_clu
   - `LEG_ACC_DRAGON_PHOENIX_BANGLE` (`กำไลมังกรหงส์ประสานวิญญาณ` — `BRACELET`, Tier 7, `EFX_LEG_DRAGON_PHOENIX_HARMONY`)
 
 ### Relic Attunement & Resonance Invariant
-- Every legendary relic carries `legendary: true`, custom `fixedStats`, and scales via `ECO.refineGearWithCatalyst` (`ECO.refineResonanceGear`) to unlock **1–3 ★ (`attunedStars`: `1★` at `q >= 1.48`, `2★` at `q >= 1.62`, `3★` at `q >= 1.75`)**.
+- Every legendary relic carries `legendary: true`, custom `fixedStats`, and scales via `ECO.refineGearWithCatalyst` (current public API: `ECO.refineGearWithCatalyst`) to unlock **1–3 ★ (`attunedStars`: `1★` at `q >= 1.48`, `2★` at `q >= 1.62`, `3★` at `q >= 1.75`)**.
 - Unlocking 2 or 3 pieces activates **`ทวิศาสตราเทวะประสาน`** (+8% stats × `starScale`, `-12%` Qi cost, `+15%` proc chance) or **`ไตรรัตนะเทวศาสตราบรรพกาล`** (+16% stats × `starScale`, `-20%` Qi cost, `+25%` proc chance, and `EFX_TRINITY_RELIC_SURGE`) in `MARTIAL.evaluateLegendaryRelicResonance`.
 
 ---

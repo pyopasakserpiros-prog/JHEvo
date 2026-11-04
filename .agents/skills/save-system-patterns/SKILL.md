@@ -1,13 +1,15 @@
 ---
 name: save-system-patterns
-description: Ensure 100% save/load round-trip integrity, legacy save migration (v1.9 through v2.0.17), receipt idempotency, and transient cache stripping in JianghuSect Evolution (js/sim.js).
+description: Use when changing JianghuSect save/load, serialized state, caches or migration behavior.
 origin: jianghusect-custom
 category: save-load-persistence
 ---
 
-# JianghuSect Evolution (v2.0.17) — Save/Load Serialization & Migration Blueprint (`js/sim.js`)
+# JianghuSect Evolution — Save/Load Serialization & Migration Blueprint (`js/sim.js`)
 
-This skill governs `SIM.serialize(W)` and `SIM.deserialize(str)` in `GAME_SOURCE/js/sim.js` (lines 559–653), ensuring 100% round-trip state preservation, transient cache stripping, forward/backward save compatibility, and idempotent mid-action recovery.
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+
+This skill governs `SIM.serialize(W)` and `SIM.deserialize(str)` in `GAME_SOURCE/js/sim.js` (lines 559–653), covering transient cache stripping, current-schema save/load and mid-action recovery. Legacy compatibility is not required unless the user requests it; test the actual affected paths.
 
 ---
 
@@ -25,7 +27,7 @@ This skill governs `SIM.serialize(W)` and `SIM.deserialize(str)` in `GAME_SOURCE
 
 ### 1.2 Transient Cache Stripping Replacer (`js/sim.js` line 564)
 ```javascript
-return JSON.stringify(snap, (k, v) => (k[0] === '_' && k !== '_ver') ? undefined : v);
+return JSON.stringify(snap, (k, v) => ((k[0] === '_' && k !== '_ver') || k === 'jianghuSects' || k === 'inventoryIntelligence') ? undefined : v);
 ```
 - **Crucial Invariant:** Every property key starting with `_` (except `_ver`) is **automatically stripped** during `SIM.serialize(W)`!
   - **Allowed (Transient Caches):** `_st`, `_stVer`, `_stTick`, `_pass`, `_passVer`, `_eqSetCache`, `_elemPowerCache`, `_cultRateBase`, `_stockDirty`, `_hasCatalysts`, `_pcTick`, `_pcVal`, `_alivePopCount`, `_cogModCtx`.

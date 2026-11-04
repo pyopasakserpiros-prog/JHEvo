@@ -1,50 +1,53 @@
 ---
 name: qa-test-matrix
-description: Master JianghuSect Evolution v2.0.17's 95-suite automated regression test matrix (test/run_all.js, tools/run_parallel_tests.js), data schema auditor (tools/validate_data_schema.js), 150-file JS syntax sweep, and milestone acceptance gates.
+description: Use when choosing or interpreting JianghuSect regression, schema, build or browser checks.
 origin: jianghusect-custom
 category: qa-testing
 ---
 
-# JianghuSect Evolution (v2.0.17) — Automated QA & 95-Suite Regression Matrix Blueprint (`test/run_all.js`, `tools/validate_data_schema.js`)
+# JianghuSect Evolution — Automated QA & Regression Matrix (`test/run_all.js`, `tools/validate_data_schema.js`)
 
-This skill governs the automated verification pipeline of **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**, ensuring zero regressions across all 95 registered test suites, 150 JS files, and 2,784+ data and catalog definitions.
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+
+This skill governs the automated verification pipeline of **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**, using the registered suites and schema validator. See the baseline below; do not claim zero regressions without a current run.
 
 ---
 
 ## 1. Mandatory 4-Step Verification Gate
 
-Before committing or pushing any gameplay, data, AI, combat, economy, or UI change, run these commands in order from `/data/data/com.termux/files/home/jhevo-work` (or inside `GAME_SOURCE`):
+Before committing or pushing any gameplay, data, AI, combat, economy, or UI change, run these commands in order from the project root; commands in Steps 3–4 explicitly enter `GAME_SOURCE`:
 
 ### Step 1: Human Core Integrity Lock (`js/human_core.js`)
 ```bash
 node -e "const g = require('./GAME_SOURCE/test/load.js'); if (g.HC.FINGERPRINT !== '155:2f9c9dd7') throw new Error('HC.FINGERPRINT mismatch'); console.log('PASS HC.FINGERPRINT:', g.HC.FINGERPRINT);"
 ```
-- Must always equal `'155:2f9c9dd7'` (SHA-256 locked). Never modify `GAME_SOURCE/js/human_core.js`.
+- Must equal `'155:2f9c9dd7'`. This fingerprint summarizes stat paths; it is not a SHA-256 hash of the file. Check `human_core.js` against the intended baseline separately to establish byte identity.
 
 ### Step 2: Data Schema & Cross-Reference Auditor (`tools/validate_data_schema.js`)
 ```bash
 node GAME_SOURCE/tools/validate_data_schema.js
 ```
 - Audits all `data/data_*.js` files across 5 phases:
-  1. 533 base items (IDs, nameTh, tier, slots, effects)
-  2. 917 recipes and inputs
-  3. 331 martial techniques (weaponTypes, elements, moves, stats)
-  4. 209 active/passive effects and parameters
-  5. Debug Editor Catalog (2,784 items across 10 categories, tested spawns)
+  1. Base items (IDs, nameTh, tier, slots, effects)
+  2. Recipes and inputs
+  3. Martial techniques (weaponTypes, elements, moves, stats)
+  4. Active/passive effects and parameters
+  5. Debug Editor Catalog and representative spawns
+- v2.0.28 auditor output: 557 base items, 955 recipes, 355 `JD.MARTIAL.techniques`, 257 effects and 2,913 catalog entries; counts are scoped to the auditor and may change.
 - **Acceptance Criterion:** `Errors: 0, Warnings: 0`.
 
 ### Step 3: Single-File Bundle Rebuild (`tools/build_single.js`)
 ```bash
-cd GAME_SOURCE && node tools/build_single.js
+(cd GAME_SOURCE && node tools/build_single.js)
 ```
 - Inlines CSS and all 40 `<script>` tags from `index.html` into `GAME_SOURCE/JianghuSect_single.html`.
 - **Acceptance Criterion:** Exits `0` and generates `JianghuSect_single.html`.
 
 ### Step 4: Regression Test Sweep
 ```bash
-cd GAME_SOURCE && node test/run_all.js
+(cd GAME_SOURCE && node test/run_all.js)
 ```
-- Runs all registered test suites sequentially plus full syntax check (`node --check`) across all 150 JavaScript files in `data/`, `js/`, `tools/`, and `test/`.
+- Runs all registered test suites sequentially plus full syntax check (`node --check`) across JavaScript files in `data/`, `js/`, `tools/`, and `test/`.
 - Parallel runner alternative: `node GAME_SOURCE/tools/run_parallel_tests.js`.
 
 ---
@@ -63,8 +66,7 @@ cd GAME_SOURCE && node test/run_all.js
 | **UI, Sprite Atlas & Edit Hub** | `inventory_grid_ui_suite.js`, `phase1_recruitment_facilities.js`, `phase2_edit_hub_inventory.js`, `phase3_stock_distribution_log.js`, `edithub_crosssect_progression_suite.js`, `npc_sheet_tabs_suite.js`, `graphics_overhaul_suite.js`, `ui_content.js`, `startup_ui.js` |
 | **Save/Load & Data Integrity** | `legacy_save.js`, `save_integrity.js`, `data_integrity_test.js`, `codex_combined_review.js` |
 
-> [!NOTE]
-> In `test/run_all.js`, 95 test suites are registered in the `tests` array. 92 suites exist directly as test files on disk; the 3 names `v215`, `v216`, `v217` registered by the patch author are fully tested through `v212_weapon_build_improvisation_suite.js`, `v213_procedural_equipment_and_review_suite.js`, `visitors_clues_weapons_suite.js`, `resonance_tactics_assembly_suite.js`, `weapon_subpath_gear_expansion_suite.js`, `codex_combined_review.js`, and `data_integrity_test.js`.
+**Baseline v2.0.28:** The last full run reported 98/108 groups passing. Seven referenced suites are absent (`v215`–`v219`, `v222`, `v225`); `craft_transactions`, `organs_experiments_politics`, and `world_rank` failed against the baseline. Browser suites require Chromium. Re-run and report actual results; do not claim missing suites passed indirectly or silently filter them out.
 
 ---
 
@@ -92,5 +94,5 @@ When writing a new integration test:
    assert.strictEqual(W2.t, W.t);
    ```
 
-## Patch v2.0.18 Additions: 97/97 Regression Suite Coverage
-- Restored `v215_equipment_and_legendary_expansion_suite.js`, `v216_mentorship_jianghu_legendary_relics_suite.js`, and `v217_deep_cohesion_and_relic_trinity_suite.js`, and added `v218_world_map_hegemony_beasts_suite.js` (`97/97 PASS` in `test/run_all.js`).
+## Historical test results
+Earlier claims of 97/97 are historical and do not establish the status of the current package. Use current runner output and `PATCH_IMPLEMENTATION_REPORT_V2_0_28.md`.

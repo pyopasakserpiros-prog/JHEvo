@@ -1,14 +1,16 @@
 ---
 name: procedural-gen
-description: Master JianghuSect Evolution v2.0.17 procedural generation - the Procedural Equipment engine (ECO.rollProceduralGear, 12 affixes, single/dual elements, Thai name builder, unique gear UIDs, durability/repair/retire lifecycle, drop sources), 21-Relic Trinity & 84 fixed Zither/Brush/Whip weapons, deterministic PRNG (U.RNG), 240x192 World Map & Southern Spirit River (js/world_map.js), Ancient Sanctums, 12-floor Nine-Dao Pagoda & Five-Elemental Realms (js/explore.js), Expeditions, Caravans & Sect Raids (js/expedition.js), River Fishing loot (js/fishing.js), Wildlife/Resource ecology.
+description: Use when changing JianghuSect random equipment, map generation, exploration, trials, fishing or ecology.
 origin: jianghusect-custom
 category: world-procgen-exploration
 ---
 
-# JianghuSect Procedural Generation (v2.0.17): Random Gear Engine, World, Exploration & Ecology
+# JianghuSect Procedural Generation: Random Gear Engine, World, Exploration & Ecology
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
-Source-verified spec for everything *generated* in JHEvo: **randomised equipment instances** (`GAME_SOURCE/js/economy.js`), plus dungeons/trials, expeditions, raids, fishing, ecology (`js/explore.js`, `js/expedition.js`, `js/world_map.js`, `js/fishing.js`, `js/wildlife.js`, `js/wild_resources.js`, `js/visitors_clues.js`, `js/external_market.js`).
+Reference for generated systems in JHEvo: **randomised equipment instances** (`GAME_SOURCE/js/economy.js`), plus dungeons/trials, expeditions, raids, fishing, ecology (`js/explore.js`, `js/expedition.js`, `js/world_map.js`, `js/fishing.js`, `js/wildlife.js`, `js/wild_resources.js`, `js/visitors_clues.js`, `js/external_market.js`). Check historical details against current source.
 
 **Rule #1: never write a new random-drop routine. Call `ECO.rollProceduralGear`.** Authored items (`JD.ITEMS.items`, minted by `ECO.mintGear`) and procedural instances are two parallel equipment systems; only procedural ones carry `procedural:true`, affixes and wear/repair state.
 
@@ -96,21 +98,21 @@ Source-verified spec for everything *generated* in JHEvo: **randomised equipment
 ## 3. Exploration, Sanctums, Pagoda & Secret Realms (`js/explore.js`)
 
 ### 3.1 Spots & cave
-- 6 sect spots (`EX.SPOTS`): `stele, spring, ruin, grove, cave (10 floors, EX.CAVE_FLOORS), gate (12 worlds, EX.WORLDS)`.
-- `EX.sampleCaveFloor(floor, rng)`: each floor has 3 pools; samples 1 (or 2 at 55%) pools without replacement, 1 weighted encounter per pool; never leaks unvisited pools.
-- `EX.RANK_FOE_POWER = {1:95, 2:480, 3:2800, 4:18500}` (static calibration, no rubber-banding).
+- 6 sect spots (`EXPLORE.SPOTS`): `stele, spring, ruin, grove, cave (10 floors, EXPLORE.CAVE_FLOORS), gate (12 worlds, EXPLORE.WORLDS)`.
+- `EXPLORE.sampleCaveFloor(floor, rng)`: each floor has 3 pools; samples 1 (or 2 at 55%) pools without replacement, 1 weighted encounter per pool; never leaks unvisited pools.
+- `EXPLORE.RANK_FOE_POWER = {1:95, 2:480, 3:2800, 4:18500}` (static calibration, no rubber-banding).
 
-### 3.2 Multi-floor resolution (`EX.resolveSanctum`, reused by pagoda/realms)
+### 3.2 Multi-floor resolution (`EXPLORE.resolveSanctum`, reused by pagoda/realms)
 1. `COMBAT.evaluateFormationSynergy(alive)` → `{synergies, powerMultiplier, damageMitigation, reflectPct, auraNamesTh}`.
 2. Between floors (`floor>1`) any `SAGE_SUPPORT` member casts free triage `CULT.castHealOrBuff(W, sup, m, {free:true, healPct:0.35, buffKey:'vitalRegen', duration:300})`.
 3. Guardian power: `COMBAT.resolveWeaponTactics(lead, guardian, {dist:2.2})`, party power + `MARTIAL.evaluateResonanceSet` bonuses × `tac.dmgMult` × `formSyn.powerMultiplier`.
 4. Handover: `X.handover(W, ex, alive, out)` for stones/mats/pills/**gear**/techs/catalysts; release members (`away=false, hidden=false, travel=null, expId=null`); history capped 20 in `W.sect.sanctums.history`.
 
-### 3.3 Nine-Dao Pagoda — **12 floors** (`EX.NINE_DAO_PAGODA`, ~7549)
-One floor per major path (XIAN → BODY → GOD → DEMON → HEART_SOUL → MECH_PUPPET → KARMA_SAMSARA → BEAST_SOVEREIGN → SAGE_SUPPORT → CRAFT_CREATION → ARRAY_TALISMAN → STRATEGY_GOVERNANCE), `basePower` 110 → 750, stones 45 → 215. Any party enters any floor; reward = 3-piece resonance set `RES_NINE_DAO_<PATH>` via `EX.pagodaSetPieces` (tier-5 pieces with `ownerPath`, `source:'NINE_DAO_PAGODA'`). `EX.departNineDaoPagoda(W, party, {maxFloor})` (1.5 days). State `W.world.nineDaoPagoda{runs,unlockedSets,history}`. See `progression-design` §8.
+### 3.3 Nine-Dao Pagoda — **12 floors** (`EXPLORE.NINE_DAO_PAGODA`, ~7549)
+One floor per major path (XIAN → BODY → GOD → DEMON → HEART_SOUL → MECH_PUPPET → KARMA_SAMSARA → BEAST_SOVEREIGN → SAGE_SUPPORT → CRAFT_CREATION → ARRAY_TALISMAN → STRATEGY_GOVERNANCE), `basePower` 110 → 750, stones 45 → 215. Any party enters any floor; reward = 3-piece resonance set `RES_NINE_DAO_<PATH>` via `EXPLORE.pagodaSetPieces` (tier-5 pieces with `ownerPath`, `source:'NINE_DAO_PAGODA'`). `EXPLORE.departNineDaoPagoda(W, party, {maxFloor})` (1.5 days). State `W.world.nineDaoPagoda{runs,unlockedSets,history}`. See `progression-design` §8.
 
-### 3.4 Five Elemental Realms (`EX.ELEMENTAL_REALMS`)
-METAL, WOOD, WATER, FIRE, EARTH (basePower 180–200, 3 floors × `*(1+(floor-1)*0.34)`), rotating every 90 days (`EX.elementalRealmAt(day)`); only the current realm is enterable; matching root (`EX.matchedRealmElement`) gives bonuses; drops `catalystId` (`ECO.addCatalyst`).
+### 3.4 Five Elemental Realms (`EXPLORE.ELEMENTAL_REALMS`)
+METAL, WOOD, WATER, FIRE, EARTH (basePower 180–200, 3 floors × `*(1+(floor-1)*0.34)`), rotating every 90 days (`EXPLORE.elementalRealmAt(day)`); only the current realm is enterable; matching root (`EXPLORE.matchedRealmElement`) gives bonuses; drops `catalystId` (`ECO.addCatalyst`).
 
 ---
 

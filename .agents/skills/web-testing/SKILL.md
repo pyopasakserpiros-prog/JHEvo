@@ -1,11 +1,13 @@
 ---
 name: web-testing
-description: Write and execute headless Node.js VM tests (test/load.js) and Chromium CDP browser tests (tools/cdp_playwright.js) for JianghuSect Evolution v2.0.17.
+description: Use when testing JianghuSect in Node.js or a browser, especially UI and Canvas behavior.
 origin: jianghusect-custom
 category: qa-testing
 ---
 
-# JianghuSect Evolution (v2.0.17) — Headless Node VM, JSDOM & Chromium CDP Testing Blueprint (`test/load.js`, `tools/cdp_playwright.js`)
+# JianghuSect Evolution — Headless Node VM, JSDOM & Chromium CDP Testing Blueprint (`test/load.js`, `tools/cdp_playwright.js`)
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill covers how to test both headless simulation logic (`test/load.js`) and browser DOM/Canvas UI (`js/ui.js`, `js/render.js`, `js/main.js`) in **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**, including Termux/Android headless environments.
 

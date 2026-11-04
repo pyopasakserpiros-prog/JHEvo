@@ -1,15 +1,17 @@
 ---
 name: ai-behavior-patterns
-description: Design, extend, and audit JianghuSect Evolution v2.0.17's NPC Psychological Utility AI (js/ai.js), Goal-Driven Cognition (js/cognition.js), and 12-Layer Human Core (js/human_core.js) — 9 Life Aspirations, 18 Sect Offices with automatic delegation, 13 Multi-Horizon Goals, 12-Path & 10-Weapon training, Build Improvisation, Direct Mentorship & Dying-Wish Qi Transmission, and leak-free station lifecycle.
+description: Use when changing JianghuSect NPC decisions, cognition, aspirations, office roles, relationships or station behavior.
 origin: jianghusect-custom
 category: ai-cognition-behavior
 ---
 
-# JianghuSect Evolution v2.0.17 — Master NPC AI, Cognition & Human Core Blueprint (`js/ai.js`, `js/cognition.js`, `js/human_core.js`)
+# JianghuSect Evolution — Master NPC AI, Cognition & Human Core Blueprint (`js/ai.js`, `js/cognition.js`, `js/human_core.js`)
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This is the authoritative, source-verified engineering blueprint for **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**'s three-tier autonomous NPC mind:
 1. **Tier 1 — 12-Layer Human Core (`GAME_SOURCE/js/human_core.js` — `g.HC`):** 155 psychological, physiological, intellectual, social, and destiny parameters (`HC.FINGERPRINT === '155:2f9c9dd7'`), dynamic emotions, life experiences, and age curves.
-2. **Tier 2 — Goal-Driven Cognition & Sect Governance (`GAME_SOURCE/js/cognition.js` — `g.COG`):** **9 Life Aspirations**, **18 Sect Offices** (`COG.OFFICE`) with automatic delegation/handover, Bounded Non-Omniscient Perception, Zero-RNG Heuristic Forecasting, **Build Improvisation (`COG.evaluateBuildImprovisation`)**, **13 Multi-Horizon Goals** with emergency suspension/resumption, 7-Dimensional Relationships, Direct Mentorship, Altruism, Flattery, Treasury Embezzlement, and Discipline Audits.
+2. **Tier 2 — Goal-Driven Cognition & Sect Governance (`GAME_SOURCE/js/cognition.js` — `g.COG`):** **9 Life Aspirations**, **NPC office and role definitions** (`COG.OFFICE`) with automatic delegation/handover, Bounded Non-Omniscient Perception, Zero-RNG Heuristic Forecasting, **Build Improvisation (`COG.evaluateBuildImprovisation`)**, **13 Multi-Horizon Goals** with emergency suspension/resumption, 7-Dimensional Relationships, Direct Mentorship, Altruism, Flattery, Treasury Embezzlement, and Discipline Audits.
 3. **Tier 3 — Minute-by-Minute Psychological Utility AI (`GAME_SOURCE/js/ai.js` — `g.AI`):** **42+ scored actions (`AI.ACTS`)** across core & expansion modules, **12-Path specialized cultivation**, **10-Weapon martial choice (`MC_IDS`)**, Active Technique Retention guard (`CULT.techRetentionScore`), Direct Mentorship Coaching & Dying-Wish Qi Transmission (`SECT.MENTORSHIP`), `ScoreAcc` Thai reasoning (`npc.why`), Boltzmann softmax choice temperature (`COG.choiceTemperature`), A* pathfinding, and leak-free station reservation.
 
 ---
@@ -17,7 +19,7 @@ This is the authoritative, source-verified engineering blueprint for **JianghuSe
 ## 1. Non-Negotiable Core Invariants
 
 1. **Human Core Fingerprint Lock (`js/human_core.js`):**
-   - **NEVER** modify `GAME_SOURCE/js/human_core.js`. `HC.FINGERPRINT === '155:2f9c9dd7'` is SHA-256 locked and checked in `SIM.deserialize` and `test/core_lock.js`.
+   - Preserve `GAME_SOURCE/js/human_core.js` as directed by `AGENTS.md`. `HC.FINGERPRINT === '155:2f9c9dd7'` is a stat-path fingerprint, not a SHA-256 file hash; check file identity separately.
    - Read effective traits via `HC.eff(npc, 'layer.key')` (aliased as `E(n, p)`), bump version via `HC.bump(npc)` (`npc._ver++`), shift emotions via `HC.feel(npc, { mood, stress, anger, fear })`, and record formative life events via `HC.experience(npc, kind, weight)`.
    - **Fast-Train Cache Preservation (`js/ai.js` line 15):** `HC.trainBody`, `HC.trainMind`, and `HC.gainWisdom` are wrapped once (`HC._fastTrainWrapped`) so sub-integer increments only invalidate the single changed key in `npc._c.v` without wiping `npc._d`, `npc._cs`, or `npc._csBase` unless integer thresholds change `hpMax`.
 2. **Strict Zero-RNG Rule in `js/cognition.js` (`COG`):**
@@ -69,9 +71,9 @@ This is the authoritative, source-verified engineering blueprint for **JianghuSe
   - Matching `prefGoals` receive a **`+0.38` weight boost** during goal selection (`line 1192`).
   - Completing any genuine non-recovery goal (`isGenuineGoalSuccess`) advances `asp.progress` by `+12%` and records a milestone in `asp.milestones` (capped at `8`, `COG.recordAspirationMilestone`).
 
-### 3.2 Section 2: 18 Sect Offices (`COG.OFFICE`), Jurisdiction & Automatic Delegation (`lines 9–29, 209–330`)
-- **18 Office Keys in `COG.OFFICE` (+ `'member'` default):**
-  `commander`, `provision`, `herbal`, `wildwarden`, `steward`, `master`, `deputy`, `martial`, `alchemy`, `forge`, `scripture`, `discipline`, `treasury`, `mission`, `guard`, `registry`, `healer`, **`disciples`** (`ศิษย์สืบทอด`), plus `'member'` (`สมาชิกสำนัก`).
+### 3.2 Section 2: NPC office and role definitions (`COG.OFFICE`), Jurisdiction & Automatic Delegation (`lines 9–29, 209–330`)
+- **24 role keys in `COG.OFFICE`:**
+  `commander`, `provision`, `herbal`, `wildwarden`, `steward`, `master`, `deputy`, `martial`, `alchemy`, `forge`, `scripture`, `discipline`, `treasury`, `mission`, `guard`, `registry`, `healer`, `disciples`, `envoy`, `spymaster`, `beastmaster`, `arraymaster`, `censor`, `quartermaster`. The fallback role `'member'` is not a key in this object; the sect post registry is a separate list.
   - Per-tick role lookup is cached on `n._cogRoleCache` (`lines 213–248`).
 - **Automatic Delegation When Unavailable (`COG.syncOfficeAuthority(W)` lines 263–330):**
   - Checked daily and during `COG.reviewOffices(W)`.
@@ -187,9 +189,9 @@ This is the authoritative, source-verified engineering blueprint for **JianghuSe
   - `guide = (mId && W.byId[mId] && !W.byId[mId].dead ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0)` adds up to **`+9%` breakthrough success chance** when guided by a living mentor AND carrying a `mentorImprint`.
 - **Direct Mentorship Coaching (`AI.updateBond`, `AI.socialStart`, `AI.pairEnd` lines 1167, 1221, 1325–1330):**
   - `AI.updateBond` labels `n.mentorId` / `n.apprenticeIds` as `'อาจารย์สายตรง'` / `'ศิษย์สายตรง'`.
-  - Completing a `'teach'` pair interaction (`AI.pairEnd` line 1328) invokes `SECT.MENTORSHIP.coachDisciple(W, a, b)` (granting cultivation XP, shared technique mastery, `-4` heartDemon, and `mentorGuidance` buff).
+  - Completing a `'teach'` pair interaction invokes `SECT.MENTORSHIP.coachDisciple(W, a, b)` (granting cultivation progress and skill practice, reducing heart demon by 5 and stress by 6, and applying `mentorGuidance`). See `progression-design` for the current formula.
 - **Dying-Wish Qi Transmission (`AI.kill` lines 1358–1361):**
-  - When a cultivator dies (`AI.kill`) with `!n.qiTransmitted` and at least one living direct apprentice in `n.apprenticeIds`, they automatically execute `SECT.MENTORSHIP.transmitQi(W, n, appId, { dyingWish: true, force: true })` before passing away, bequeathing `1.45×` surge XP, their highest-mastery technique, and permanent `mentorImprint`!
+  - The death path can invoke `SECT.MENTORSHIP.transmitQi(W, n, appId, { dyingWish: true, force: true })` for a living apprentice. Transmission uses the disciple's threshold and mentor's equivalent stage, selects the first eligible non-innate unknown technique in the mentor's list, and writes `mentorImprint`; see the implementation for conditions and details.
 
 ### 4.4 Decision Pipeline, Protected Actions & Needs (`js/ai.js` lines 1185–1601)
 1. **`AI.decide(W, n)` (`lines 1422–1475`):**

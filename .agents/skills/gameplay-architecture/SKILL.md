@@ -1,9 +1,11 @@
 ---
 name: gameplay-architecture
-description: Master the system architecture, 40-script-tag load invariant, global namespace (g.*), single-state object (W), tick/hour/day simulation lifecycle (js/sim.js), sect governance & facilities (js/sect.js), and single-file build pipeline (tools/build_single.js) of JianghuSect Evolution.
+description: Use when changing JianghuSect simulation architecture, module loading, world state, sect systems or offline build.
 ---
 
 # JianghuSect Evolution — Macro-Simulation & Sect Governance Architectural Blueprint (`js/sim.js`, `js/sect.js`, `index.html`, `test/load.js`)
+
+> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill is the definitive master specification for JianghuSect Evolution's core engine architecture. It governs the strict 40-script-tag load invariant, the single authoritative world state (`W`), deterministic PRNG simulation lifecycle (`js/sim.js`), comprehensive sect governance, succession, and facility management (`js/sect.js`), strict CA/PA applicant evaluation boundaries, ancestral shrine legacy tablets, and the single-file offline build pipeline (`tools/build_single.js`).
 
@@ -77,7 +79,7 @@ The execution order is strictly deterministic and hard-wired. Any modification t
 All simulation state exists inside a single serializable JavaScript object `W`. Modules never store state in local variables across ticks.
 
 ### 2.1 Authoritative Schema (`SIM.create` lines 146–218 - v2.0.17)
-- `W.v`: Engine version string (`'v2.0.17'`).
+- `W.v`: engine version `SIM.VERSION` (currently `1.10.11`); `SIM.PATCH_VERSION` currently `2.0.28` is separate.
 - `W.seed`: Deterministic root world seed string.
 - `W.rng`: Root deterministic pseudorandom number generator instance (`new U.RNG(seed + ':world')`).
 - `W.t`: Master timeline integer in simulation minutes (1 tick = 1 minute).
