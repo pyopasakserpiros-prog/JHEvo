@@ -579,6 +579,9 @@
   UI.doAction = (a, arg) => {
     const G = UI.G, W = G.W;
     if (a === 'npc') { const p = String(arg || '').split('|'); UI.openNpc(p[0], p[1]); }
+    else if (a === 'chronicle-filter') { UI.chronicleFilter = arg || 'all'; UI.render(); }
+    else if (a === 'chronicle-person') { UI.chronicleNpcId = arg || null; UI.chronicleFilter = 'all'; UI.logFilters = new Set(['all']); UI.open('log'); }
+    else if (a === 'chronicle-clear-person') { UI.chronicleNpcId = null; UI.render(); }
     else if (a === 'editnpc') UI.openEditNpc(arg, 'char');
     else if (a === 'spawnnpc') UI.openEditNpc(arg, 'spawn');
     else if (a === 'open-spawn-sect') { UI.spawnDest = 'sect'; UI.open('edit', 'spawn'); }
@@ -2705,6 +2708,7 @@
       const tablets = (SECT.ensureLegacyTablets ? SECT.ensureLegacyTablets(W) : (W.sect.legacyTablets || []));
       h += '<h3>🕯️ ป้ายวิญญาณมรดกบรรพชน (' + tablets.length + ')</h3><div class="card">' + (tablets.length ? tablets.map(t => '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>🕯️ ' + esc(t.nameTh) + '</b> <span class="chip g">' + esc(t.subpathNameTh || t.path) + '</span><div class="muted" style="font-size:11.5px">วิชาเอก: ' + esc(t.signatureTechNameTh || '-') + ' · พรทะลวงขั้น +' + Math.round((t.breakthroughBonus || 0) * 100) + '% · เร่งเข้าใจคัมภีร์ +' + Math.round((t.comprehensionBonus || 0) * 100) + '% · สักการะแล้ว ' + (t.prayersCount || 0) + ' ครั้ง</div></div>').join('') : '<span class="muted">ยังไม่มีป้ายวิญญาณมรดกของผู้อาวุโสระดับสูง</span>') + '</div>';
       h += '<details class="lineage-chronicle"><summary>📜 ประวัติการสืบทอดของสำนัก</summary>' + UI.lineageHistory(W) + '</details>';
+      h += '<details class="lineage-chronicle"><summary>🌳 ผังอาจารย์–ศิษย์</summary>' + UI.lineageTree(W) + '</details>';
       const tribState = SECT.ensureCelestialTribulation ? SECT.ensureCelestialTribulation(W) : { active: null, history: [] };
       const legacyBonus = SECT.ascensionCultivationMultiplier ? Math.round((SECT.ascensionCultivationMultiplier(W) - 1) * 100) : 0;
       h += '<h3>⚡ ด่านเคราะห์สวรรค์และจุติ</h3><div class="card"><div>จุติแล้ว ' + (W.sect.ascendedLegacyCount || 0) + ' ท่าน · พรสืบทอดเร่งการบ่มเพาะ +' + legacyBonus + '% (สูงสุด 5%)</div>';
@@ -2739,6 +2743,53 @@
     return true;
   }
 
+  UI.lineageTree = (W, npcId) => {
+    const ms = W.sect && W.sect.mentorship || {}, nodes = new Map(), edges = new Map();
+    const add = (mentorId, mentorName, discipleId, discipleName, active) => {
+      if (!mentorId || !discipleId || mentorId === discipleId) return;
+      if (!nodes.has(mentorId)) nodes.set(mentorId, mentorName || 'ไม่ทราบชื่อ');
+      if (!nodes.has(discipleId)) nodes.set(discipleId, discipleName || 'ไม่ทราบชื่อ');
+      const key = mentorId + '|' + discipleId, old = edges.get(key);
+      edges.set(key, {mentorId, discipleId, active:!!active || !!(old && old.active)});
+    };
+    const isActive = (mentorId,discipleId) => {
+      const mentor=W.byId && W.byId[mentorId], disciple=W.byId && W.byId[discipleId];
+      return !!(mentor && disciple && !mentor.dead && !disciple.dead && !mentor.exiled && !disciple.exiled && (W.npcs || []).includes(mentor) && (W.npcs || []).includes(disciple) && (disciple.mentorId || disciple.mentor) === mentorId);
+    };
+    (W.npcs || []).forEach(disciple => {
+      const mentor = W.byId && W.byId[disciple.mentorId || disciple.mentor];
+      if (mentor) add(mentor.id,HC.fullName(mentor),disciple.id,HC.fullName(disciple),isActive(mentor.id,disciple.id));
+    });
+    Object.values(ms.bonds || {}).forEach(b => b && add(b.mentorId,b.mentorNameTh,b.discipleId,b.discipleNameTh,isActive(b.mentorId,b.discipleId)));
+    (ms.history || []).filter(e => e && e.kind === 'bond').forEach(e => add(e.mentorId,e.mentorNameTh,e.discipleId,e.discipleNameTh,isActive(e.mentorId,e.discipleId)));
+    if (!nodes.size) return '<div class="muted">ยังไม่มีสายสืบทอดที่บันทึกไว้</div>';
+    const es = [...edges.values()]; let allowed = new Set(nodes.keys());
+    if (npcId) {
+      allowed = new Set([npcId]); let changed = true;
+      while (changed) { changed=false; es.forEach(e => { if (allowed.has(e.mentorId) || allowed.has(e.discipleId)) for (const id of [e.mentorId,e.discipleId]) if (!allowed.has(id)) {allowed.add(id);changed=true;} }); }
+    }
+    const relevant = es.filter(e => allowed.has(e.mentorId) && allowed.has(e.discipleId));
+    let roots = [...allowed].filter(id => nodes.has(id) && !relevant.some(e => e.discipleId === id));
+    if (!roots.length) roots = [...allowed].filter(id => nodes.has(id)).slice(0,1);
+    let rendered=0;
+    const person = id => W.byId && W.byId[id] && !W.byId[id].dead && !W.byId[id].exiled ? nameLink(W.byId[id]) : esc(nodes.get(id));
+    const draw = (id, seen, depth) => {
+      if (seen.has(id) || depth > 12 || rendered++ >= 200) return '<li class="muted">…</li>';
+      const next = new Set(seen); next.add(id);
+      const children = relevant.filter(e => e.mentorId === id);
+      return '<li><span class="lineage-node">' + person(id) + (id === npcId ? ' <small>· บุคคลนี้</small>' : '') + '</span>' + (children.length ? '<ul>' + children.map(e => '<li><small class="lineage-edge">' + (e.active ? 'ศิษย์ปัจจุบัน' : 'เคยเป็นศิษย์') + '</small><ul>' + draw(e.discipleId,next,depth+1) + '</ul></li>').join('') + '</ul>' : '') + '</li>';
+    };
+    return '<p class="muted">แสดงสายที่มีข้อมูลในปัจจุบันและประวัติที่บันทึกไว้</p><div class="lineage-tree"><ul>' + roots.map(id => draw(id,new Set(),0)).join('') + '</ul></div>';
+  };
+  UI.sectChronicle = (W, category, npcId) => {
+    const cats = {people:['death','marriage','recruit','expel','succession'],cult:['breakthrough'],battle:['raid','tournament']};
+    const all = ((W.sect && W.sect.sectChronicle) || []).slice();
+    const known = new Set(all.map(e => e.id));
+    (W.logs || []).forEach(e => {if (!known.has(e.id) && (cats.people.includes(e.type) || cats.cult.includes(e.type) || cats.battle.includes(e.type))) all.push(e);});
+    const list = all.filter(e => (!category || category === 'all' || (cats[category] || []).includes(e.type)) && (!npcId || (e.ids || []).includes(npcId))).sort((a,b) => b.t-a.t || b.id-a.id).slice(0,100);
+    if (!list.length) return '<div class="muted">ยังไม่มีเหตุการณ์ในเงื่อนไขนี้</div>';
+    return list.map(e => '<div class="lineage-entry"><span class="lineage-date">' + dayStamp(e.t) + '</span> ' + linkify(W,e.text,e.ids) + '</div>').join('');
+  };
   UI.lineageHistory = (W, npcId) => {
     const list = ((W.sect && W.sect.mentorship && W.sect.mentorship.history) || []).filter(e => e && (!npcId || e.mentorId === npcId || e.discipleId === npcId)).slice(0, 30);
     if (!list.length) return '<div class="muted">ยังไม่มีเหตุการณ์สายสืบทอดที่บันทึกไว้</div>';
@@ -2761,6 +2812,13 @@
     h += '</div>';
 
     if (UI.logFilters.has('all')) h += '<details class="lineage-chronicle"><summary>📜 พงศาวดารสายสืบทอด</summary>' + UI.lineageHistory(W) + '</details>';
+    if (UI.logFilters.has('all')) {
+      const filter = UI.chronicleFilter || 'all', id = UI.chronicleNpcId;
+      h += '<details class="lineage-chronicle" open><summary>📖 พงศาวดารสำนัก</summary><div class="chronicle-filters">' + [['all','ทั้งหมด'],['people','👥 ผู้คน'],['cult','✨ ทะลวง'],['battle','⚔️ ศึก']].map(([k,v]) => '<button class="btn ' + (filter === k ? 'pri' : '') + '" data-do="chronicle-filter" data-arg="' + k + '">' + v + '</button>').join('') + '</div>';
+      if (id) h += '<div class="lineage-note">กำลังดูเหตุการณ์ของ ' + esc((W.byId[id] && HC.fullName(W.byId[id])) || 'บุคคลที่เลือก') + ' <button class="btn" data-do="chronicle-clear-person">ดูทุกคน</button></div>';
+      h += '<div class="lineage-note">บันทึกเหตุการณ์สำคัญใหม่และรายการเดิมที่ยังอยู่ในบันทึก</div>' + UI.sectChronicle(W,filter,id) + '</details>';
+      h += '<details class="lineage-chronicle" data-chronicle-tree><summary>🌳 ผังสายสืบทอดของสำนัก</summary>' + UI.lineageTree(W) + '</details>';
+    }
 
     h += '<div class="log-subfilter-bar" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">';
     Object.keys(LOG_SUBFILTERS).forEach(sk => {
@@ -4556,6 +4614,7 @@
       if (SECT.MENTORSHIP && n.cult) {
         h += '<h3>🎓 สายสืบทอดอาจารย์-ศิษย์ & ปราณต้นกำเนิด</h3><div class="card">';
         h += '<details class="lineage-chronicle"><summary>📜 ประวัติสายสืบทอดของคนนี้</summary>' + UI.lineageHistory(W, n.id) + '</details>';
+        h += '<details class="lineage-chronicle"><summary>🌳 ผังอาจารย์–ศิษย์ที่เกี่ยวข้อง</summary>' + UI.lineageTree(W,n.id) + '</details><button class="btn" data-do="chronicle-person" data-arg="' + esc(n.id) + '">📖 ดูพงศาวดารของคนนี้</button>';
         if (n.mentorImprint) {
           const impTech = n.mentorImprint.inheritedTechNameTh || (n.mentorImprint.inheritedTechId && (CULT.tech(n.mentorImprint.inheritedTechId) || {}).nameTh) || '';
           h += '<div style="margin-bottom:4px"><span class="chip g">✦ รากฐานที่ได้รับการถ่ายทอด</span> จาก <b>' + esc(n.mentorImprint.mentorNameTh || 'อาจารย์') + '</b> · เร่งบ่มเพาะ +' + Math.round(((n.mentorImprint.cultSpeedBonus || n.mentorImprint.cultRateBonus || 0.12)) * 100) + '% · ทะลวงด่าน +' + Math.round(((n.mentorImprint.breakthroughBonus || n.mentorImprint.btBonus || 0.08)) * 100) + '%' + (impTech ? ' · สืบทอด「' + esc(impTech) + '」' : '') + '</div>';

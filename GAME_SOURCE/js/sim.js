@@ -4,7 +4,7 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.26', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.27', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
 
@@ -328,6 +328,15 @@
     if (meta && typeof meta === 'object') {
       if (meta.txKind) e.txKind = meta.txKind;
       e.meta = Object.assign({}, meta);
+    }
+    const majorType = ['death','succession','marriage','recruit','tournament','expel'].includes(type) ||
+      (type === 'breakthrough' && /ทะลวง.*(สำเร็จ|ล้มเหลว)/.test(text)) ||
+      (type === 'raid' && /(ต้านการบุก|ถูกบุกและปล้น)/.test(text));
+    if (majorType && W.sect) {
+      if (!Array.isArray(W.sect.sectChronicle)) W.sect.sectChronicle = [];
+      W.sect.sectChronicle.push({id:e.id, t:e.t, type:e.type, text:e.text, ids:cleanIds.slice(),
+        names:cleanIds.map(id => { const n=W.byId && W.byId[id]; return n ? HC.fullName(n) : ''; })});
+      if (W.sect.sectChronicle.length > 600) W.sect.sectChronicle.splice(0, W.sect.sectChronicle.length - 600);
     }
     W.logs.push(e); if (W.logs.length > 1500) W.logs.splice(0, 400);
     if (W.onLog) W.onLog(e);

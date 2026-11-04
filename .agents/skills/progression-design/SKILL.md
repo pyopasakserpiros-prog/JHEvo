@@ -183,3 +183,6 @@ Known baseline: `skill_visual_browser, browser_mobile_perf, input_cancellation, 
 
 ## v2.0.26 lineage history
 Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.history` (maximum 200), with saved names and IDs. `UI.lineageHistory` renders the latest 30 in the log and NPC overview. Existing saves do not fabricate historical events. Reassignment clears old active links and cycles are rejected. Verify `node test/lineage_history.js`.
+
+## v2.0.27 lineage tree and sect chronicle
+`UI.lineageTree` renders current and recorded historical mentor relationships, with bounded depth and cycle handling. `SIM.log` saves selected actual milestones in `W.sect.sectChronicle` (max 600); `UI.sectChronicle` filters categories and people and can also display retained older logs. No fabricated old events. Check `test/lineage_chronicle.js` and `test/lineage_chronicle_browser.js`.

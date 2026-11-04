@@ -240,3 +240,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .lineage-chronicle summary{cursor:pointer;color:#ffe2a0;font-weight:700;list-style-position:inside;min-height:30px}
 .lineage-entry{padding:7px 2px;border-top:1px solid #72907b66;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .lineage-date{display:inline-block;color:#b9d4bf;font-size:10px;margin-right:4px}
+.lineage-tree{overflow-x:auto;max-height:320px;overflow-y:auto;margin-top:6px;padding:4px;color:#e8eddb}
+.lineage-tree ul{list-style:none;padding-left:15px;margin:3px 0;border-left:1px solid #88a985}
+.lineage-tree>ul{padding-left:0;border:0}.lineage-tree li{margin:4px 0;min-width:max-content}
+.lineage-node{display:inline-block;padding:3px 7px;border:1px solid #709982;border-radius:8px;background:#102c22}
+.lineage-node small,.lineage-edge,.lineage-note{font-size:10px;color:#b8d5c2}.chronicle-filters{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0}.chronicle-filters .btn,.lineage-note .btn{padding:4px 7px;font-size:11px}

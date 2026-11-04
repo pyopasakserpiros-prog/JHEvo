@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('assert'),G=require('./load');require('../js/ui');
+const {SIM,SECT,UI,HC}=G;const W=SIM.create('lineage-chronicle'),[a,b,c]=W.npcs;const m=SECT.MENTORSHIP;
+assert(UI.lineageTree(W).includes(b.h.name.given),'existing mentor links are displayed without fabricated history');
+assert(m.formBond(W,a,b,{force:true,quiet:true}).ok);assert(m.formBond(W,b,c,{force:true,quiet:true}).ok);
+assert.strictEqual(typeof UI.lineageTree,'function');let tree=UI.lineageTree(W);for(const n of [a,b,c])assert(tree.includes(n.h.name.given),'tree must contain every generation');
+assert(tree.includes('ศิษย์ปัจจุบัน'));assert(UI.lineageTree(W,c.id).includes(a.h.name.given),'focused tree includes ancestor');
+const rngBefore=W.rng.getState().slice(); W.log('death','การจากไปของ '+HC.fullName(a),[a.id]); assert.deepStrictEqual(W.rng.getState(),rngBefore,'chronicle recording must not consume RNG');W.log('breakthrough','ฝึกประจำวัน',[b.id]);W.log('breakthrough','ทะลวงสู่ขั้นใหม่สำเร็จ',[b.id]);
+assert(W.sect.sectChronicle.some(e=>e.type==='death'));assert(!W.sect.sectChronicle.some(e=>e.text==='ฝึกประจำวัน'));
+assert(UI.sectChronicle(W,'people',a.id).includes('การจากไป'));assert(!UI.sectChronicle(W,'people',b.id).includes('การจากไป'));
+const previous=SIM.create('chronicle-legacy'); assert(!previous.sect.sectChronicle || previous.sect.sectChronicle.length===0,'no invented old milestones');
+const loaded=SIM.deserialize(SIM.serialize(W));assert(loaded.sect.sectChronicle.some(e=>e.type==='death'));assert.strictEqual(loaded.sect.sectChronicle.find(e=>e.type==='death').names[0],HC.fullName(a));assert(UI.lineageTree(loaded).includes(c.h.name.given));
+for(let i=0;i<610;i++) W.log('death','test '+i,[a.id]);assert.strictEqual(W.sect.sectChronicle.length,600);
+console.log('PASS multiple-generation lineage tree, chronicle selection and save/load');
