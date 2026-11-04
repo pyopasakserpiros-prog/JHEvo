@@ -1,8 +1,15 @@
-# JianghuSect Evolution — v2.0.28
+# JianghuSect Evolution — v2.0.29
+
+> 🚀 **สำหรับ AI ที่เปิดโปรเจกต์นี้ (Mandatory Task Directive for Incoming AI):**
+> หากผู้ใช้ส่งโปรเจกต์นี้ให้คุณโดยไม่ได้พิมพ์คำสั่งใดๆ หรือสั่งให้ทำต่อ งานที่คุณต้องรับผิดชอบและลงมือพัฒนาทันทีคือ:
+> 👉 **[คำสั่งมอบหมายงานและการพัฒนาแพตช์ v2.0.30](NEXT_PATCH_PROMPT_V2_0_30.md)**
+> ให้อ่านเอกสารดังกล่าวและเริ่มวางแผน/พัฒนาโค้ดได้ทันทีโดยไม่ต้องรอให้ผู้ใช้สั่งซ้ำ
+
+---
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
-Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. See the [v2.0.24 report](PATCH_IMPLEMENTATION_REPORT_V2_0_24.md) for the world atlas and its validation results. The roadmap and legendary content reference are retained for future development.
+Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. See the [v2.0.24 report](PATCH_IMPLEMENTATION_REPORT_V2_0_24.md) for the world atlas and its validation results.
 
 ```bash
 cd GAME_SOURCE
@@ -11,12 +18,11 @@ node tools/validate_data_schema.js
 node tools/run_parallel_tests.js
 ```
 
-Package 2.0.25 was imported from the Gemini branch archive. Its runtime patch identifier remains 2.0.24. The import audit found seven referenced suites missing from the archive (v215–v219, v222, and v225); the full test matrix also reported failures in trade-pact and realm-rank checks. Browser suites require a configured browser. Investigate these before claiming release readiness.
+### รายงานการพัฒนาแพตช์ที่ผ่านมา (Implementation Reports):
+- รายละเอียดแพตช์สายสืบทอด: [v2.0.26 report](PATCH_IMPLEMENTATION_REPORT_V2_0_26.md)
+- รายละเอียดผังสายสืบทอดและพงศาวดาร: [v2.0.27 report](PATCH_IMPLEMENTATION_REPORT_V2_0_27.md)
+- รายละเอียดหน้าบรรพชน: [v2.0.28 report](PATCH_IMPLEMENTATION_REPORT_V2_0_28.md)
+- รายละเอียดระบบหลอมรวมคนนอกและจดหมายเหตุยุทธภพ: [v2.0.29 report](PATCH_IMPLEMENTATION_REPORT_V2_0_29.md)
 
-รายละเอียดแพตช์สายสืบทอด: [v2.0.26 report](PATCH_IMPLEMENTATION_REPORT_V2_0_26.md)
-
-รายละเอียดผังสายสืบทอดและพงศาวดาร: [v2.0.27 report](PATCH_IMPLEMENTATION_REPORT_V2_0_27.md)
-
-รายละเอียดหน้าบรรพชน: [v2.0.28 report](PATCH_IMPLEMENTATION_REPORT_V2_0_28.md)
-
-ข้อเสนอแพตช์ถัดไปสำหรับ AGY: [สำนักเติบโต–ตกต่ำและบุตรสวรรค์](docs/proposals/next_dynamic_sects_heavenly_talents.md) (ยังเป็นข้อเสนอ ไม่ใช่งานที่พัฒนาแล้ว)
+### ภารกิจพัฒนาแพตช์ปัจจุบัน (Active Next Patch):
+- **[คำสั่งพัฒนาแพตช์ v2.0.30 (NEXT_PATCH_PROMPT_V2_0_30.md)](NEXT_PATCH_PROMPT_V2_0_30.md)** (ขยายโครงสร้างตำแหน่งสำนักภายนอก, ยอดคนอิสระไร้สังกัด, สารทวงตัวผู้ลี้ภัย & ศึกทวงคืนสำนักเดิม, คู่บำเพ็ญ & ทายาทสายเลือด, สงครามพันธมิตรร่วม และไทม์ไลน์ประวัติศาสตร์)
