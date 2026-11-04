@@ -186,3 +186,6 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 
 ## v2.0.27 lineage tree and sect chronicle
 `UI.lineageTree` renders current and recorded historical mentor relationships, with bounded depth and cycle handling. `SIM.log` saves selected actual milestones in `W.sect.sectChronicle` (max 600); `UI.sectChronicle` filters categories and people and can also display retained older logs. No fabricated old events. Check `test/lineage_chronicle.js` and `test/lineage_chronicle_browser.js`.
+
+## v2.0.28 ancestor profiles
+`SECT.inscribeLegacyTablet` snapshots known mentor, disciples, merit and up to 12 real related recorded events in `tablet.profile`; `UI.ancestorProfile` displays the snapshot and linked lineage. Existing tablets without snapshots show only available fields; no events are invented. `test/ancestor_profile.js` covers save/load.

@@ -4119,6 +4119,13 @@
     if (!qualifies) return null;
     const sig = SECT.signatureVictoryOf ? SECT.signatureVictoryOf(n) : { subpath: n.cult?.sub || 'NONE', subpathNameTh: '', techId: null, techNameTh: 'เคล็ดวิชาบรรพชน', weaponType: 'SWORD' };
     const nameTh = (n.h && n.h.name) ? (n.h.name.family + n.h.name.given) : (n.name || 'ผู้อาวุโสบรรพชน');
+    const mentorId = n.mentorId || n.mentor || (n.h && n.h.life && n.h.life.family && n.h.life.family.master) || null;
+    const mentor = mentorId && W.byId && W.byId[mentorId];
+    const discipleIds = Array.from(new Set([].concat(n.apprenticeIds || [], n.disciples || [], (n.h && n.h.life && n.h.life.family && n.h.life.family.disciples) || []))).slice(0, 24);
+    const records = (W.sect.sectChronicle || []).concat(W.logs || []), seenEvents = new Set();
+    const events = records.filter(e => e && Array.isArray(e.ids) && e.ids.includes(n.id) && typeof e.text === 'string')
+      .sort((a,b) => b.t-a.t || b.id-a.id).filter(e => {if (seenEvents.has(e.id)) return false; seenEvents.add(e.id); return true;}).slice(0,12)
+      .map(e => ({id:e.id,t:e.t,type:e.type,text:e.text}));
     const tablet = {
       id: 'TAB_' + (n.id || ('ELDER_' + (tablets.length + 1))),
       npcId: n.id,
@@ -4139,6 +4146,12 @@
       injuryProtection: true,
       prayersCount: 0
     };
+    const history = (W.sect.mentorship && W.sect.mentorship.history) || [];
+    const knownMentor = history.find(e => e && e.kind === 'bond' && e.discipleId === n.id && e.mentorId === mentorId);
+    tablet.profile = {nameTh:n.h && n.h.name ? HC.fullName(n) : nameTh, mentorId, mentorNameTh:mentor ? HC.fullName(mentor) : (knownMentor && knownMentor.mentorNameTh) || null,
+      disciples:discipleIds.map(id => {const d=W.byId && W.byId[id], rec=history.find(e => e && e.kind === 'bond' && e.mentorId === n.id && e.discipleId === id);return {id,nameTh:d ? HC.fullName(d) : (rec && rec.discipleNameTh) || null};}),
+      events, joinDay:Number.isFinite(n.joinDay) ? n.joinDay : null,
+      merit:Number.isFinite(n.merit) ? Math.round(n.merit) : null};
     tablets.unshift(tablet);
     if (tablets.length > 36) tablets.length = 36;
     if (!opts.quiet && W.log) {

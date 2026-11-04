@@ -245,3 +245,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .lineage-tree>ul{padding-left:0;border:0}.lineage-tree li{margin:4px 0;min-width:max-content}
 .lineage-node{display:inline-block;padding:3px 7px;border:1px solid #709982;border-radius:8px;background:#102c22}
 .lineage-node small,.lineage-edge,.lineage-note{font-size:10px;color:#b8d5c2}.chronicle-filters{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0}.chronicle-filters .btn,.lineage-note .btn{padding:4px 7px;font-size:11px}
+.ancestor-card{padding:7px 0;border-bottom:1px solid var(--line,#3a3f4a)}
+.ancestor-card summary{cursor:pointer;line-height:1.5;color:#f5e2ac}
+.ancestor-profile{padding:8px 6px;color:#edf2de;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.ancestor-profile>div{margin-top:4px}.ancestor-events{margin-top:8px}
