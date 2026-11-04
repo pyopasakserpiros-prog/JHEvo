@@ -46,3 +46,8 @@ node tools/run_parallel_tests.js
   - **Items (`ECO.itemById`)**: `917` (`557 -> 917`, +300 authored items + 60 materials).
   - **Recipes**: `1,255` (`955 -> 1,255`, +300 acyclic recipes `REC_V234_*`).
   - **Editor Catalog (`SECT.EDITOR.catalog`)**: `4,221` spawnable entries.
+
+---
+
+### ภารกิจและรายการปรับปรุงแพตช์ถัดไป (Active Next Patch):
+- **[รายการปรับแก้และคำสั่งมอบหมายงานแพตช์ v2.0.35 (NEXT_PATCH_PROMPT_V2_0_35.md)](NEXT_PATCH_PROMPT_V2_0_35.md)**: ติดตั้งตัวประเมินเงื่อนไขกลาง `evaluateCondition()`, แก้ปัญหา Case Mismatch ของ Trigger, ระบบท่าร่าง (Stance) คำนวณผลรบจริง, เติมเต็ม 8 Composable Actions ที่ขาดหาย, เชื่อมโยง 40 Data-Only Item Effect IDs เข้าสู่รันไทม์ และระบบเขตแดนสนามรบ (Battlefield Domains)
