@@ -4,6 +4,10 @@
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. See the [v2.0.24 report](PATCH_IMPLEMENTATION_REPORT_V2_0_24.md) for the world atlas and its validation results.
 
+ผู้พัฒนาและ AI ต้องอ่าน [AGENTS.md](AGENTS.md) ก่อนเริ่มงาน ใช้มุมมองทีมพัฒนาและผู้เล่นตามความเหมาะสม และตรวจข้อมูลจากซอร์สและผลทดสอบจริง ดู [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md)
+
+ผลตรวจการนำเข้าและข้อจำกัดของชุดทดสอบ: [IMPORT_VERIFICATION_V2_0_33.md](IMPORT_VERIFICATION_V2_0_33.md) รายงานผู้พัฒนา 2.0.32 ที่อัปโหลดแยก: [รายงาน 2.0.32](jianghu_sect_v2_0_32_master_development_and_expert_audit_report.md)
+
 ```bash
 cd GAME_SOURCE
 node tools/build_single.js
