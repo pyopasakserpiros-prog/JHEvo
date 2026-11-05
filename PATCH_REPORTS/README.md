@@ -25,6 +25,7 @@
 ---
 
 ## 📚 เอกสารอ้างอิงและข้อเสนอเชิงยุทธศาสตร์ (Strategic References & Proposals)
+* [PROPOSAL_V3_1_0_OFFICE_AUTHORITY_AND_PEAKS_EXPANSION.md](PROPOSAL_V3_1_0_OFFICE_AUTHORITY_AND_PEAKS_EXPANSION.md) — **[ข้อเสนอแนะเชิงสถาปัตยกรรม v3.1.0]** แนวทางการยกเครื่องตำแหน่งบริหาร 24 ตำแหน่งครบองค์ประกอบ และการออกแบบหน้าต่าง UI หุบเขา/ยอดเขาเฉพาะ (Peaks Sanctuary Hub)
 * [PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md](PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md) — **[แผนแม่บทการออกแบบ v3.0.0]** เก็บข้อเสนอราย AI ทั้งสี่ชุด (§1–§10), บทสรุปรวมของ GPT (§11) และ Gemini (§12), Final คอมแบท (§13), ข้อเสนอพงศาวดาร (§14) และบทวิเคราะห์เพิ่มเติม (§15) ส่วนผลพัฒนาและผลทดสอบจริงของ v3.0.0 ให้ดูที่ [PATCH_IMPLEMENTATION_REPORT_V3_0_0.md](PATCH_IMPLEMENTATION_REPORT_V3_0_0.md)
 * [IMPORT_VERIFICATION_V2_0_33.md](IMPORT_VERIFICATION_V2_0_33.md) — รายงานผลตรวจการนำเข้าแพ็กเกจและข้อจำกัดชุดทดสอบ
 * [LEGENDARY_CONTENT_REFERENCE.md](LEGENDARY_CONTENT_REFERENCE.md) — สารบบเนื้อหาระดับตำนานและไอเทมพิเศษ
