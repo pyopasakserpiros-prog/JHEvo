@@ -6,6 +6,8 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 
 ผู้พัฒนาและ AI ต้องอ่าน [AGENTS.md](AGENTS.md) ก่อนเริ่มงาน ใช้มุมมองทีมพัฒนาและผู้เล่นตามความเหมาะสม และตรวจข้อมูลจากซอร์สและผลทดสอบจริง ดู [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md)
 
+**งานแพตช์ถัดไปสำหรับ Gemini Work (Argon 4):** อ่าน [พรอมต์แพตช์ v3.1.0 (Office Authority & Peaks Overhaul)](NEXT_PATCH_PROMPT_V3_1_0.md) และ [ข้อเสนอแนะเชิงสถาปัตยกรรม](PATCH_REPORTS/PROPOSAL_V3_1_0_OFFICE_AUTHORITY_AND_PEAKS_EXPANSION.md) หลัง `AGENTS.md` และสรุปเกม โดยเกมในสาขานี้เป็นฐาน v3.0.0 สมบูรณ์พร้อมส่งมอบ
+
 **สถานะชุดทดสอบ (`v3.0.0`):** ชุดทดสอบทั้งหมด 116 ชุดใน `GAME_SOURCE/test/run_all.js` มีไฟล์ครบทุกชุดแล้ว โดยชุดทดสอบที่ใช้ Node.js ล้วนผ่านครบ **106 / 106 ชุด (100% PASS)** (รวมชุดใหม่ `v300_tactical_combat_and_living_chronicle_suite.js` 57 assertions และชุด `v235_comprehensive_mechanics_and_elemental_fusion_suite.js` 406 assertions) ส่วนอีก 10 ชุดเป็นชุดทดสอบที่ต้องเปิดเบราว์เซอร์ผ่าน Playwright Chromium (รายละเอียดและข้อจำกัดตามสภาพแวดล้อมอยู่ใน [สรุปเกม](project_status_and_ai_onboarding.md) และ [รายงาน v3.0.0](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md))
 
 ```bash

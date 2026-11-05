@@ -125,9 +125,10 @@
 
 > **ข้อควรปฏิบัติสำหรับ AI:**
 > 1. อ่าน `AGENTS.md` และเอกสารนี้ (`project_status_and_ai_onboarding.md`) เพื่อเข้าใจสถานะปัจจุบันของเกม (`v3.0.0`) อย่างถูกต้อง อย่าเสนอสร้างระบบที่มีแล้วในหมวด 2 ซ้ำ
-> 2. ดูรายละเอียดสิ่งที่พัฒนาแล้วใน v3.0.0 ได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md)
-> 3. รักษา `human_core.js` แบบ byte-identical กับฐานและลำดับสคริปต์ตาม `AGENTS.md`; fingerprint ไม่ใช่ hash และเป้าหมายประสิทธิภาพต้องวัดตามสถานการณ์จริง
-> 4. เมื่อแก้ซอร์สให้ build เกมเดี่ยว รัน schema และชุดทดสอบที่เกี่ยวข้องตาม `AGENTS.md` พร้อมรายงานผลจริงและข้อจำกัด
+> 2. งานพัฒนาแพตช์ถัดไป (v3.1.0) ให้ใช้ [NEXT_PATCH_PROMPT_V3_1_0.md](NEXT_PATCH_PROMPT_V3_1_0.md) และข้อเสนอแนะใน [PATCH_REPORTS/PROPOSAL_V3_1_0_OFFICE_AUTHORITY_AND_PEAKS_EXPANSION.md](PATCH_REPORTS/PROPOSAL_V3_1_0_OFFICE_AUTHORITY_AND_PEAKS_EXPANSION.md)
+> 3. ดูรายละเอียดสิ่งที่พัฒนาแล้วใน v3.0.0 ได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md)
+> 4. รักษา `human_core.js` แบบ byte-identical กับฐานและลำดับสคริปต์ตาม `AGENTS.md`; fingerprint ไม่ใช่ hash และเป้าหมายประสิทธิภาพต้องวัดตามสถานการณ์จริง
+> 5. เมื่อแก้ซอร์สให้ build เกมเดี่ยว รัน schema และชุดทดสอบที่เกี่ยวข้องตาม `AGENTS.md` พร้อมรายงานผลจริงและข้อจำกัด
 
 ---
 *เอกสารนี้ได้รับการปรับปรุงสมบูรณ์ตามสถานะแพตช์ v3.0.0 ณ วันที่ 5 พฤศจิกายน 2026*
