@@ -7,6 +7,12 @@
 3. **พัฒนาระบบอื่น ๆ ที่เกี่ยวข้องอย่างสอดคล้องกันรอบด้าน** (คุกใต้ดิน/เชลยศึก, อุทยานสัตว์วิญญาณ, ค่ายกลพิทักษ์สำนัก, การทูต 19 สำนัก) โดยคำนึงถึงผลกระทบลูกโซ่ทั้งระบบ
 **ผู้รับงาน:** Gemini Work / Chat Gemini (Argon 4) หรือทีมพัฒนาอิสระ
 
+> [!CAUTION]
+> ### 🚨 คำสั่งกำชับสำคัญที่สุด: กฎเหล็กการส่งมอบไฟล์ ZIP กลับคืนผู้ใช้
+> **ห้ามทำไฟล์ขาด ห้ามสิทธิ์โฟลเดอร์พัง และห้ามส่งงานโดยยังไม่ได้ทดลองแตกไฟล์ตรวจเองเด็ดขาด!**  
+> ในแพตช์ก่อนหน้าพบปัญหา: 1) ไฟล์ช่วยทดสอบและชุดทดสอบบางส่วนตกหล่น 2) โฟลเดอร์ใน ZIP ไม่มีสิทธิ์ Unix `0755` ทำให้เปิดโฟลเดอร์บน Linux ไม่ได้  
+> **ก่อนส่งมอบงานในรอบนี้ คุณต้องทำตามขั้นตอนตรวจสอบในหมวดที่ 6 อย่างเคร่งครัด 100% (มีโค้ดสคริปต์สร้าง ZIP ที่ถูกต้องเตรียมไว้ให้แล้วในหมวด 6)**
+
 ---
 
 ## 1. เจตนาของผู้ใช้และอำนาจการตัดสินใจอย่างอิสระของ Gemini Work
@@ -110,17 +116,65 @@ Gemini Work ได้รับสิทธิ์ในการพัฒนา�
 ## 6. กฎเหล็กด้านความสมบูรณ์ของแพ็กเกจ ZIP และการตรวจสอบก่อนส่งมอบ (Strict Delivery Gate)
 
 > [!CAUTION]
-> **บทเรียนจากแพตช์ก่อนหน้า:** มีการส่ง ZIP ที่ขาดไฟล์ช่วยทดสอบ (`_harness.js`) หรือโฟลเดอร์ใน ZIP ไม่มีสิทธิ์ Unix Mode (`0755`) ทำให้ผู้ตรวจสอบบน Linux เปิดเข้าไปตรวจไม่ได้  
-> **ในรอบนี้ คุณต้องปฏิบัติตามกฎเหล็กการแพ็กเกจอย่างเคร่งครัด 100%:**
+> **บทเรียนและปัญหาที่เคยเกิดขึ้นในอดีต (ห้ามเกิดซ้ำเด็ดขาด):**
+> 1. ไฟล์ตกหล่นตอนแพ็ก (เช่น ไฟล์ช่วยทดสอบ `_harness.js` หรือไฟล์ชุดทดสอบ)
+> 2. โฟลเดอร์ใน ZIP ไม่มีสิทธิ์ Unix Mode (`0755`) ทำให้ระบบ Linux ตีความเป็น `d---------` (`0000`) จนเปิดเข้าไปตรวจไม่ได้
+> 3. รายงานระบุว่าผ่านหมด แต่ไม่ได้ทดลองรันจากไฟล์ที่แตกออกมาจริง
 
-1. **ห้ามตัดทอนหรือส่งเฉพาะบางไฟล์:**
-   - แพ็กเกจ ZIP ต้องบรรจุโครงสร้างโปรเจกต์ฉบับเต็ม (`JHEvo-main/`) รวมไฟล์เกมออฟไลน์เดี่ยว `JianghuSect_single.html` ที่บิลด์ใหม่, ซอร์สทั้งหมดใน `GAME_SOURCE/`, ชุดทดสอบครบ 116 ชุดใน `GAME_SOURCE/test/`, เครื่องมือทั้งหมดใน `tools/`, โฟลเดอร์สกิล `.agents/skills/`, และเอกสารรายงานทั้งหมด
-2. **กำหนดสิทธิ์ของ Directory Entries และ Files อย่างถูกต้อง:**
-   - เมื่อสร้าง ZIP ด้วย Python หรือเครื่องมือจัดการไฟล์:
-     - ทุก Directory Entry ต้องมีสิทธิ์ `0755` (`drwxr-xr-x`)
-     - ทุก Regular File ต้องมีสิทธิ์ `0644` (`-rw-r--r--`) หรือ `0755` สำหรับสคริปต์
+### เช็กลิสต์ 5 ข้อที่ต้องตรวจให้ครบก่อนกดส่งมอบ:
+1. **บรรจุโครงสร้างโปรเจกต์ฉบับเต็ม (`JHEvo-main/`):**
+   - รวมไฟล์เกมออฟไลน์เดี่ยว `JianghuSect_single.html` ที่บิลด์ใหม่ล่าสุด
+   - ซอร์สโค้ดทั้งหมดใน `GAME_SOURCE/` (`js/`, `data/`, `css/`, `assets/`, `index.html`)
+   - ชุดทดสอบครบ 116 ชุดใน `GAME_SOURCE/test/` (รวม `_harness.js`, `v300_tactical_combat_and_living_chronicle_suite.js`, และชุดทดสอบใหม่ที่เขียนเพิ่ม)
+   - เครื่องมือทั้งหมดใน `GAME_SOURCE/tools/`
+   - โฟลเดอร์สกิล `.agents/skills/` ครบทุกสกิล
+   - เอกสารรายงานผลการพัฒนา `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md`
+2. **กำหนดสิทธิ์ Directory Entries และ Files ให้ถูกต้องเสมอ:**
+   - ใช้สคริปต์ Python แม่แบบด้านล่างนี้ในการสร้าง ZIP เพื่อรับประกันว่าโฟลเดอร์ทุกชั้นได้สิทธิ์ `0755` (`drwxr-xr-x`) และไฟล์ได้ `0644`:
+   ```python
+   import os, zipfile, stat
+
+   src_root = "/path/to/project_root"
+   zip_path = "JHEvo-v3.1.0-checkpoint.zip"
+   prefix = "JHEvo-main"
+   exclude_top = {".git", ".agent_cmd", ".agent_out", ".agent_status", "agent_runner.sh", zip_path, ".checkpoint_temp", ".par_test.log"}
+
+   with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+       root_info = zipfile.ZipInfo(prefix + "/")
+       root_info.create_system = 3
+       root_info.external_attr = (stat.S_IFDIR | 0o755) << 16 | 0x10
+       zf.writestr(root_info, b"")
+
+       for dirpath, dirnames, filenames in os.walk(src_root):
+           rel_dir = os.path.relpath(dirpath, src_root)
+           if rel_dir == ".":
+               dirnames[:] = [d for d in sorted(dirnames) if d not in exclude_top]
+               filenames = [f for f in sorted(filenames) if f not in exclude_top]
+           else:
+               dirnames.sort()
+               filenames.sort()
+               arc_dir = f"{prefix}/{rel_dir}/"
+               d_info = zipfile.ZipInfo(arc_dir)
+               d_info.create_system = 3
+               d_info.external_attr = (stat.S_IFDIR | 0o755) << 16 | 0x10
+               zf.writestr(d_info, b"")
+
+           for fname in filenames:
+               full_path = os.path.join(dirpath, fname)
+               rel_path = os.path.relpath(full_path, src_root)
+               arc_name = f"{prefix}/{rel_path}"
+               st = os.stat(full_path)
+               zinfo = zipfile.ZipInfo.from_file(full_path, arc_name)
+               zinfo.create_system = 3
+               mode = 0o755 if (st.st_mode & 0o111) else 0o644
+               zinfo.external_attr = (stat.S_IFREG | mode) << 16
+               zinfo.compress_type = zipfile.ZIP_DEFLATED
+               with open(full_path, "rb") as f:
+                   zf.writestr(zinfo, f.read())
+   ```
 3. **ขั้นตอนการตรวจรับรองตนเองก่อนส่งมอบ (Mandatory Self-Verification Unpack):**
-   - หลังสร้างไฟล์ ZIP เสร็จสมบูรณ์ ให้ทำการ **ทดลองแตกไฟล์ ZIP ลงในโฟลเดอร์ชั่วคราวใหม่**
+   - หลังสร้างไฟล์ ZIP เสร็จสมบูรณ์ ให้ทำการ **ทดลองแตกไฟล์ ZIP ลงในโฟลเดอร์ชั่วคราวใหม่จริง ๆ**
+   - ตรวจว่าเปิดเข้าไปในโฟลเดอร์ได้โดยไม่มีข้อผิดพลาด Permission Denied
    - ทดสอบรันคำสั่งตรวจสอบความสมบูรณ์จากโฟลเดอร์ที่แตกออกมา:
      ```bash
      cd <unpacked_dir>/JHEvo-main/GAME_SOURCE
@@ -129,9 +183,12 @@ Gemini Work ได้รับสิทธิ์ในการพัฒนา�
      node test/core_lock.js
      node test/v300_tactical_combat_and_living_chronicle_suite.js
      ```
-   - ยืนยันว่าเปิดโฟลเดอร์ได้ทุกโฟลเดอร์ ไม่มีปัญหา Permission Denied และชุดทดสอบ Node.js ผ่านครบ 100% จึงส่งมอบ ZIP ให้ผู้ใช้
-4. **จัดทำรายงานสรุปการส่งมอบ:**
-   - บันทึกรายละเอียดสิ่งที่พัฒนา, ชื่อฟังก์ชันจริง, โครงสร้างตำแหน่งที่เพิ่ม, การเปลี่ยนแปลงใน UI, และผลการทดสอบลงใน `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md`
+   - ยืนยันว่า Node.js suites ผ่านครบ 100% จึงส่งมอบ ZIP ให้ผู้ใช้
+4. **ความสมบูรณ์ของแกนมนุษย์และลำดับสคริปต์:**
+   - ตรวจ `git diff GAME_SOURCE/js/human_core.js` ว่าว่างเปล่า (byte-identical 100% ล็อกลายนิ้วมือ `155:2f9c9dd7`)
+   - ลำดับ `<script>` ใน `index.html` และ `test/load.js` ตรงกันครบถ้วน
+5. **รายงานสิ่งที่ทำได้และข้อจำกัดตามจริงในรายงาน:**
+   - จดบันทึกชื่อฟังก์ชันจริง, โครงสร้างตำแหน่งใหม่, และผลการรันชุดทดสอบจริงลงใน `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md` ห้ามอ้างว่าผ่านหากไม่ได้รันจริง
 
 ---
 *เอกสารนี้จัดทำขึ้นเพื่อส่งต่องานแก่ Gemini Work Argon 4 บนฐาน v3.0.0 สมบูรณ์ ณ วันที่ 5 พฤศจิกายน 2026*
