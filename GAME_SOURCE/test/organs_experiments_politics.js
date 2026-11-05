@@ -167,10 +167,10 @@ assert.strictEqual(D.factions.length, 6, 'Must have 6 curated external sect fact
   // Advance to 10-day shipment day and verify real resource generation/consumption
   W.day = 10;
   const specMat = sTrade.specialtyMatIds[0];
-  const beforeSpec = ECO.count(W, specMat) + ECO.count(W, sTrade.specialtyMatIds[1]);
+  const beforeSpec = sTrade.specialtyMatIds.reduce((s, id) => s + ECO.count(W, id), 0);
   const beforeStones = W.sect.stones;
   C.tickPolitics(W);
-  const afterSpec = ECO.count(W, specMat) + ECO.count(W, sTrade.specialtyMatIds[1]);
+  const afterSpec = sTrade.specialtyMatIds.reduce((s, id) => s + ECO.count(W, id), 0);
   assert.strictEqual(afterSpec, beforeSpec + 2, 'Trade pact delivers 2 units of specialty material on 10-day cycle');
   assert.strictEqual(W.sect.stones, beforeStones - 12, 'Trade pact shipment pays 12 spirit stones');
   assert.strictEqual(W.world.politics.stats.tradeShipments, 1);

@@ -53,27 +53,173 @@
     if (!close && (CULT.power(w) > CULT.power(l) * 1.5 || W.rng.chance(0.15))) W.log('spar', w.h.name.given + ' ประลองชนะ ' + l.h.name.given, [w.id, l.id]);
   };
 
-  /* ---------- การต่อสู้จริง ---------- */
+  /* ---------- การต่อสู้จริง (Patch v3.0.0: Tactical State & Safe Side Resolution) ---------- */
+  C.ensureUnitTac = u => {
+    if (!u) return null;
+    if (!u.tac || typeof u.tac !== 'object') {
+      u.tac = {
+        closedOnBy: null,
+        gapClosedOn: null,
+        procCds: {},
+        reactionCharges: 1,
+        reactionReadyAt: 0,
+        zocReadyAt: 0,
+        targetLockUntil: 0,
+        lastTargetId: null,
+        lastMoveBand: null,
+        pacingUntil: 0,
+        kiteStepCooldownUntil: 0,
+        stuckTicks: 0,
+        coveringAllyId: null,
+        interceptCount: 0,
+        archetype: null
+      };
+    } else {
+      if (!u.tac.procCds || typeof u.tac.procCds !== 'object') u.tac.procCds = {};
+      if (u.tac.reactionCharges == null) u.tac.reactionCharges = 1;
+      if (u.tac.reactionReadyAt == null) u.tac.reactionReadyAt = 0;
+      if (u.tac.zocReadyAt == null) u.tac.zocReadyAt = 0;
+      if (u.tac.targetLockUntil == null) u.tac.targetLockUntil = 0;
+      if (u.tac.pacingUntil == null) u.tac.pacingUntil = 0;
+      if (u.tac.kiteStepCooldownUntil == null) u.tac.kiteStepCooldownUntil = 0;
+      if (u.tac.stuckTicks == null) u.tac.stuckTicks = 0;
+      if (u.tac.interceptCount == null) u.tac.interceptCount = 0;
+    }
+    return u.tac;
+  };
+
+  C.ensureFightTac = (f, now) => {
+    if (!f) return null;
+    const tNow = now != null ? now : ((g.STATS && g.STATS.now) || f.t0 || 0);
+    if (!f.tac || typeof f.tac !== 'object') {
+      f.tac = {
+        combatStartedAt: f.state === 'gather' ? null : tNow,
+        roundStartFired: !!f._roundStartFired,
+        firstStrikeUsed: Object.assign({}, f._firstStrikeUsed || {}),
+        unitFirstStrikeDone: Object.assign({}, f._unitFirstStrikeDone || {}),
+        phoenixRebirthUsed: Object.assign({}, f._phoenixRebirthUsed || {}),
+        mechDecoyUsed: Object.assign({}, f._mechDecoyUsed || {}),
+        phoenixClauseUsed: Object.assign({}, f._phoenixClauseUsed || {}),
+        breachTicks: 0,
+        outcome: null,
+        concluded: false,
+        highlights: [],
+        stats: { intercepts: 0, losBlocks: 0, zocStrikes: 0, interrupts: 0, targetSwitches: 0, reactions: 0 }
+      };
+    } else {
+      if (!f.tac.firstStrikeUsed) f.tac.firstStrikeUsed = {};
+      if (!f.tac.unitFirstStrikeDone) f.tac.unitFirstStrikeDone = {};
+      if (!f.tac.phoenixRebirthUsed) f.tac.phoenixRebirthUsed = {};
+      if (!f.tac.mechDecoyUsed) f.tac.mechDecoyUsed = {};
+      if (!f.tac.phoenixClauseUsed) f.tac.phoenixClauseUsed = {};
+      if (!Array.isArray(f.tac.highlights)) f.tac.highlights = [];
+      if (!f.tac.stats) f.tac.stats = { intercepts: 0, losBlocks: 0, zocStrikes: 0, interrupts: 0, targetSwitches: 0, reactions: 0 };
+    }
+    return f.tac;
+  };
+
+  C.recordTacticalHighlight = (W, f, type, textTh, meta) => {
+    if (!f) return;
+    const ft = C.ensureFightTac(f, W && W.t);
+    const tNow = (W && W.t != null) ? W.t : 0;
+    if (ft.highlights.length < 36) {
+      ft.highlights.push(Object.assign({ t: tNow, type, kind: type, textTh }, meta || {}));
+    }
+    if (Array.isArray(f.log) && f.log.length < 60) {
+      f.log.push({ t: tNow, relation: type, text: textTh, a: meta && meta.actorId, d: meta && meta.targetId, p: meta && meta.protectorId });
+    }
+  };
+
   C.startFight = (W, A, B, kind, opts) => {
     opts = opts || {};
     W.fights = W.fights || []; W.fightSeq = (W.fightSeq || 0) + 1;
-    const f = { id: W.fightSeq, kind, serious: !!opts.serious, A: A.slice(), B: B.slice(), t0: W.t, state: opts.gather ? 'gather' : 'fight', arena: opts.arena || null, cb: opts.cb || null, ctx: opts.ctx || {}, over: false, log: [] };
+    const cbKind = opts.cbKind || (kind === 'raid' ? 'raid' : (kind === 'leadership' || kind === 'grudge' || kind === 'duel') ? 'duel' : kind === 'tourney' ? 'tourney' : kind === 'wild' ? 'wild' : null);
+    const f = {
+      id: W.fightSeq,
+      kind,
+      cbKind,
+      serious: !!opts.serious,
+      A: A.slice(),
+      B: B.slice(),
+      t0: W.t,
+      state: opts.gather ? 'gather' : 'fight',
+      arena: opts.arena || null,
+      cb: opts.cb || null,
+      ctx: opts.ctx || {},
+      over: false,
+      log: []
+    };
+    C.ensureFightTac(f, W.t);
     W.fights.push(f);
     [].concat(A, B).forEach(id => C.enter(W, f, id));
     return f;
   };
   C.enter = (W, f, id) => {
     const u = C.unit(W, id); if (!u) return;
-    if (u.foe && !u.skl) u.skl = SKs().foeSkills(u);
+    const side = (f && Array.isArray(f.A) && f.A.includes(id)) ? 'A' : (f && Array.isArray(f.B) && f.B.includes(id)) ? 'B' : (u.side || null);
+    if (side) u.side = side;
+    C.ensureUnitTac(u);
+    u.tac.closedOnBy = null;
+    u.tac.gapClosedOn = null;
+    u.tac.reactionCharges = 1;
+    u.tac.reactionReadyAt = 0;
+    u.tac.zocReadyAt = 0;
+    u.tac.targetLockUntil = 0;
+    u.tac.lastTargetId = null;
+    u.tac.pacingUntil = 0;
+    u.tac.stuckTicks = 0;
+    u.tac.archetype = C.resolveCognitiveArchetype ? C.resolveCognitiveArchetype(u) : 'BALANCED';
+    if (u.foe && (!u.skl || !u.skl.length)) u.skl = SKs().foeSkills(u);
     if (!u.foe && f.serious) STs().preFight(W, u, f.kind === 'raid');
-    if (!u.foe) { AI.interruptFor(W, u); u.hidden = false; u.act = { id: 'fight', stage: 'do', left: 9999, total: 9999, ctx: { fid: f.id, target: null, cd: 0 }, why: [['เข้าต่อสู้', 9]] }; u.why = u.act.why; u.path = null; u.run = true; }
-    else { u.act = { id: 'fight', ctx: { fid: f.id, target: null, cd: 0 } }; }
+    if (!u.foe) {
+      AI.interruptFor(W, u);
+      u.hidden = false;
+      u.act = { id: 'fight', stage: 'do', left: 9999, total: 9999, ctx: { fid: f.id, target: null, cd: 0, cds: {} }, why: [['เข้าต่อสู้', 9]] };
+      u.why = u.act.why;
+      u.path = null;
+      u.run = true;
+    } else {
+      u.act = { id: 'fight', ctx: { fid: f.id, target: null, cd: 0, cds: {} } };
+    }
   };
-  C.join = (W, f, id, side) => { if (f[side].includes(id)) return; f[side].push(id); C.enter(W, f, id); };
-  C.fightOf = (W, u) => u.act && u.act.ctx && u.act.ctx.fid ? (W.fights || []).find(f => f.id === u.act.ctx.fid) : null;
-  C.sideOf = (f, id) => f.A.includes(id) ? 'A' : 'B';
-  C.enemies = (W, f, id) => (C.sideOf(f, id) === 'A' ? f.B : f.A).map(i => C.unit(W, i)).filter(C.alive);
-  C.alliesOf = (W, f, id) => (C.sideOf(f, id) === 'A' ? f.A : f.B).map(i => C.unit(W, i)).filter(C.alive);
+  C.join = (W, f, id, side) => {
+    if (!f || (side !== 'A' && side !== 'B')) return;
+    const other = side === 'A' ? 'B' : 'A';
+    if (Array.isArray(f[other]) && f[other].includes(id)) return;
+    if (f[side].includes(id)) return;
+    f[side].push(id);
+    const u = C.unit(W, id);
+    if (u) u.side = side;
+    C.enter(W, f, id);
+  };
+  C.fightOf = (W, u) => u && u.act && u.act.ctx && u.act.ctx.fid ? (W.fights || []).find(f => f.id === u.act.ctx.fid) : null;
+  C.sideOf = (f, id) => {
+    if (!f || !id) return null;
+    if (Array.isArray(f.A) && f.A.includes(id)) return 'A';
+    if (Array.isArray(f.B) && f.B.includes(id)) return 'B';
+    return null;
+  };
+  C.isAlly = (f, id1, id2) => {
+    const s1 = C.sideOf(f, id1), s2 = C.sideOf(f, id2);
+    return !!(s1 && s2 && s1 === s2);
+  };
+  C.isHostile = (f, id1, id2) => {
+    const s1 = C.sideOf(f, id1), s2 = C.sideOf(f, id2);
+    return !!(s1 && s2 && s1 !== s2);
+  };
+  C.enemies = (W, f, id) => {
+    const s = C.sideOf(f, id);
+    if (!s) return [];
+    return (s === 'A' ? (f.B || []) : (f.A || [])).map(i => C.unit(W, i)).filter(C.alive);
+  };
+  C.alliesOf = (W, f, id) => {
+    const s = C.sideOf(f, id);
+    if (!s) {
+      const u = C.unit(W, id);
+      return u && C.alive(u) ? [u] : [];
+    }
+    return (s === 'A' ? (f.A || []) : (f.B || [])).map(i => C.unit(W, i)).filter(C.alive);
+  };
 
   function yieldThreshold(u) {
     if (u.foe) return u.fleeAt || 0.2;
@@ -88,11 +234,209 @@
     if (u.foe || !u.cult || !u.cult.techs.length) return null;
     const t = CULT.tech(W.rng.pick(u.cult.techs)); if (!t || !t.moves || !t.moves.length) return null; return W.rng.pick(t.moves);
   }
-  function moveToward(W, u, tx, ty, run) {
-    const dx = tx - u.x, dy = ty - u.y, d = Math.hypot(dx, dy); if (d < 0.01) return;
-    if (u.foe) { const sp = u.speed * (run ? 1.0 : 0.8) * clamp(STs().get(u).move / 100, 0.4, 2); const s = Math.min(d, sp); const nx = u.x + dx / d * s, ny = u.y + dy / d * s; if (!MAP.blocked(W.map, nx, ny)) { u.x = nx; u.y = ny; } else { const ax = u.x + (dx > 0 ? s : -s) * (Math.abs(dx) > Math.abs(dy) ? 1 : 0.2), ay = u.y + (dy > 0 ? s : -s) * (Math.abs(dy) >= Math.abs(dx) ? 1 : 0.2); if (!MAP.blocked(W.map, ax, ay)) { u.x = ax; u.y = ay; } else { u.x += W.rng.gauss(0, 0.3); u.y += W.rng.gauss(0, 0.3); if (MAP.blocked(W.map, u.x, u.y)) { u.x = u.px; u.y = u.py; } } } u.face = dx >= 0 ? 1 : -1; return; }
-    if (!u.path || (W.t + u.n) % 6 === 0) AI.goTo(W, u, Math.floor(tx), Math.floor(ty));
-    AI.stepMove(W, u);
+  /* ---------- Patch v3.0.0: Battlefield Geometry, Safe Displacement, LoS & Zone of Control ---------- */
+  C.distSq = (x1, y1, x2, y2) => {
+    const dx = (x1 || 0) - (x2 || 0), dy = (y1 || 0) - (y2 || 0);
+    return dx * dx + dy * dy;
+  };
+
+  C.unitDist = (a, b) => {
+    if (!a || !b || !Number.isFinite(a.x) || !Number.isFinite(b.x)) return 2.0;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
+  /* Deterministic hash noise in [0, 1) that NEVER touches W.rng */
+  C.tacHash01 = (W, f, uId, tId, salt) => {
+    const str = String((W && W.seed) || 'jh') + ':' + String((f && f.id) || 0) + ':' + String(uId || '') + ':' + String(tId || '') + ':' + String(salt || 0);
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return ((h >>> 0) % 10000) / 10000;
+  };
+
+  /* ตรวจสอบเส้นทางและการกระแทกสิ่งกีดขวางอย่างปลอดภัย */
+  C.projectSafePosition = (W, x0, y0, x1, y1) => {
+    const M = W && W.map;
+    const minX = 1.0, maxX = (M && M.W ? M.W - 1.5 : 238);
+    const minY = 1.0, maxY = (M && M.H ? M.H - 1.5 : 190);
+    const dx = x1 - x0, dy = y1 - y0;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 0.01) return { x: clamp(x0, minX, maxX), y: clamp(y0, minY, maxY), hitObstacle: false };
+    const steps = Math.max(2, Math.ceil(dist / 0.35));
+    let lastX = clamp(x0, minX, maxX), lastY = clamp(y0, minY, maxY);
+    let hitObstacle = false;
+    for (let i = 1; i <= steps; i++) {
+      const r = i / steps;
+      const nx = clamp(x0 + dx * r, minX, maxX);
+      const ny = clamp(y0 + dy * r, minY, maxY);
+      if (M && MAP && MAP.blocked && MAP.blocked(M, nx, ny)) {
+        hitObstacle = true;
+        break;
+      }
+      lastX = nx;
+      lastY = ny;
+    }
+    return { x: +lastX.toFixed(2), y: +lastY.toFixed(2), hitObstacle, wallSlammed: hitObstacle };
+  };
+
+  /* ตรวจสอบ Line-of-Sight ระหว่างผู้โจมตีและเป้าหมาย (ทั้งภูมิประเทศ/อาคาร และยูนิตที่ยืนขวาง) */
+  C.checkLineOfSight = (W, f, a, d, moveSpec) => {
+    if (!a || !d || !Number.isFinite(a.x) || !Number.isFinite(d.x)) {
+      return { clear: true, terrainBlocked: false, blockerUnit: null };
+    }
+    const spec = moveSpec || (SKs() && SKs().resolveMoveSpatialSpec ? SKs().resolveMoveSpatialSpec(null, a) : { requiresLoS: false });
+    if (spec.ignoresObstacles) return { clear: true, terrainBlocked: false, blockerUnit: null };
+    const dx = d.x - a.x, dy = d.y - a.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist <= 1.55) return { clear: true, terrainBlocked: false, blockerUnit: null };
+
+    // 1. Check map terrain / building walls along ray if requiresLoS
+    const M = W && W.map;
+    let terrainBlocked = false;
+    if (spec.requiresLoS && M && MAP && MAP.blocked) {
+      const steps = Math.max(2, Math.min(12, Math.ceil(dist / 0.65)));
+      for (let i = 1; i < steps; i++) {
+        const r = i / steps;
+        const sx = a.x + dx * r, sy = a.y + dy * r;
+        if (MAP.blocked(M, sx, sy)) {
+          terrainBlocked = true;
+          break;
+        }
+      }
+    }
+
+    // 2. Check if a frontline defender of target's side stands directly in the line of fire
+    let blockerUnit = null;
+    if (spec.requiresLoS && f && dist >= 2.0) {
+      const defenders = C.alliesOf(W, f, d.id).filter(u => u && u.id !== d.id && C.alive(u) && C.canUnitIntercept(W, f, u));
+      const lenSq = dx * dx + dy * dy;
+      let bestProj = Infinity;
+      for (const u of defenders) {
+        if (!Number.isFinite(u.x)) continue;
+        const ux = u.x - a.x, uy = u.y - a.y;
+        const tProj = (ux * dx + uy * dy) / lenSq;
+        if (tProj <= 0.12 || tProj >= 0.88) continue;
+        const px = a.x + tProj * dx, py = a.y + tProj * dy;
+        const perpDist = Math.hypot(u.x - px, u.y - py);
+        const blockRad = C.unitZoCRadius(u) * 0.72;
+        if (perpDist <= Math.max(0.65, blockRad) && tProj < bestProj) {
+          bestProj = tProj;
+          blockerUnit = u;
+        }
+      }
+    }
+    return {
+      clear: !terrainBlocked && !blockerUnit,
+      terrainBlocked,
+      blockerUnit
+    };
+  };
+
+  C.unitZoCRadius = u => {
+    if (!u || !C.alive(u)) return 0;
+    const ST = STs();
+    if (ST && (ST.has(u, 'stun') || ST.has(u, 'paralyze') || ST.has(u, 'fear') || ST.has(u, 'cryoStasis'))) return 0;
+    const wp = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(u) : null;
+    if (!wp) return 1.1;
+    if (wp.reachClass === 'RANGED_KITE') return 0;
+    let r = wp.reachClass === 'LONG_POLEARM' ? 1.65 : wp.reachClass === 'HEAVY_BREAKER' ? 1.45 : 1.25;
+    if (u._activeStance === 'VAJRA_BASTION_STANCE' || u._activeStance === 'IRON_VAJRA_GUARD' || (ST && ST.has(u, 'guardUp'))) r += 0.30;
+    if (!u.foe && u.cult && (u.cult.path === 'BODY' || u.cult.path === 'GOD')) r += 0.15;
+    if (u.isGateBeast && (u.fourSymbol === 'BLACK_TORTOISE' || u.bloodlineTrait === 'IRON_CARAPACE')) r += 0.35;
+    return +r.toFixed(2);
+  };
+
+  C.canUnitIntercept = (W, f, u) => {
+    if (!u || !C.alive(u)) return false;
+    const ST = STs();
+    const tNow = (W && W.t != null) ? W.t : 0;
+    if (ST && (ST.has(u, 'stun', tNow) || ST.has(u, 'paralyze', tNow) || ST.has(u, 'root', tNow) || ST.has(u, 'fear', tNow) || ST.has(u, 'cryoStasis', tNow))) return false;
+    if (hpFrac(u) < 0.22) return false;
+    const tac = C.ensureUnitTac(u);
+    if (tac.reactionReadyAt > tNow) return false;
+    if (!u.foe && u.h && u.h.state && (u.h.state.energy || 0) < 6) return false;
+    return true;
+  };
+
+  function moveToward(W, u, tx, ty, run, fOpt) {
+    if (!u || !Number.isFinite(tx) || !Number.isFinite(ty)) return;
+    const ST = STs();
+    const tNow = (W && W.t != null) ? W.t : 0;
+    if (ST && (ST.has(u, 'stun', tNow) || ST.has(u, 'paralyze', tNow) || ST.has(u, 'root', tNow) || ST.has(u, 'grounded', tNow) || ST.has(u, 'cryoStasis', tNow))) {
+      u.path = null;
+      return;
+    }
+    const dx = tx - u.x, dy = ty - u.y, d = Math.hypot(dx, dy);
+    if (d < 0.01) return;
+    const f = fOpt || C.fightOf(W, u);
+    const tac = C.ensureUnitTac(u);
+    const oldX = u.x, oldY = u.y;
+
+    // Zone of Control (ZoC) check: if moving past a hostile frontline guardian without targeting them
+    let zocSlowMult = 1.0;
+    if (f && !u.fled && !u.yield && (f.A.length + f.B.length) > 2) {
+      const curTargetId = u.act && u.act.ctx && u.act.ctx.target;
+      const enemies = C.enemies(W, f, u.id);
+      for (const en of enemies) {
+        if (!en || en.id === curTargetId || Math.abs(u.x - en.x) > 2.6 || Math.abs(u.y - en.y) > 2.6) continue;
+        const zRad = C.unitZoCRadius(en);
+        if (zRad <= 0) continue;
+        const distNow = C.unitDist(u, en);
+        if (distNow <= zRad) {
+          zocSlowMult = Math.min(zocSlowMult, 0.52);
+          const enTac = C.ensureUnitTac(en);
+          if (enTac.zocReadyAt <= tNow && C.canUnitIntercept(W, f, en)) {
+            enTac.zocReadyAt = tNow + 10;
+            const ft = C.ensureFightTac(f, tNow);
+            ft.stats.zocStrikes = (ft.stats.zocStrikes || 0) + 1;
+            en.fx = { t: tNow, text: '🛡️ สกัดกั้น!' };
+            C.recordTacticalHighlight(W, f, 'ZOC_INTERCEPT', C.name(en) + ' คุมพื้นที่สกัดกั้นการเคลื่อนผ่านของ ' + C.name(u), {
+              actorId: en.id, targetId: u.id
+            });
+            C.strike(W, f, en, u, { M: 0.68, type: 'p', noCounter: true, noReflect: true, silent: true, label: 'สกัดกั้น' });
+            if (ST && C.alive(u) && C.tacHash01(W, f, en.id, u.id, tNow) < 0.40) {
+              ST.addStatus(u, 'slow', 6, null, tNow);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    if (u.foe) {
+      const sp = (u.speed || 0.6) * (run ? 1.0 : 0.8) * clamp(ST.get(u).move / 100, 0.35, 2.0) * zocSlowMult;
+      const s = Math.min(d, sp);
+      const nx = u.x + dx / d * s, ny = u.y + dy / d * s;
+      if (!MAP.blocked(W.map, nx, ny)) {
+        u.x = nx; u.y = ny;
+      } else {
+        const ax = u.x + (dx > 0 ? s : -s) * (Math.abs(dx) > Math.abs(dy) ? 1 : 0.25);
+        const ay = u.y + (dy > 0 ? s : -s) * (Math.abs(dy) >= Math.abs(dx) ? 1 : 0.25);
+        if (!MAP.blocked(W.map, ax, ay)) {
+          u.x = ax; u.y = ay;
+        } else {
+          // Deterministic tangential slide without consuming W.rng
+          const perpX = u.x + (-dy / d) * s * 0.75;
+          const perpY = u.y + (dx / d) * s * 0.75;
+          if (!MAP.blocked(W.map, perpX, perpY)) {
+            u.x = perpX; u.y = perpY;
+          }
+        }
+      }
+      u.face = dx >= 0 ? 1 : -1;
+    } else {
+      const gx = Math.floor(tx), gy = Math.floor(ty); if (!u.path || (((W.t + (u.n || 0)) % 6 === 0) && (u._pathGx !== gx || u._pathGy !== gy))) { u._pathGx = gx; u._pathGy = gy; AI.goTo(W, u, gx, gy); }
+      AI.stepMove(W, u);
+      u.face = dx >= 0 ? 1 : -1;
+    }
+
+    if (Math.hypot(u.x - oldX, u.y - oldY) < 0.04) {
+      tac.stuckTicks = (tac.stuckTicks || 0) + 1;
+    } else {
+      tac.stuckTicks = 0;
+    }
   }
   /* =====================================================================
    * ระบบสู้ใหม่ (v1.4 + v1.10 Overhaul): สเตตัสจริง (STATS) + วิชาหลายกระบวนท่า (SK) + วิชาติดตัว (PASSIVE)
@@ -122,44 +466,74 @@
 
     let relation = 'NEUTRAL', dmgMult = 1, accAdd = 0, critAdd = 0, penAdd = 0, shieldBreakMult = 1, shatterGuard = false, noteTh = '';
 
-    // 1. Long-reach polearms (SPEAR, STAFF) vs short-reach weapons (FIST, BLADE, SWORD)
+    const aTac = C.ensureUnitTac(a), dTac = C.ensureUnitTac(d);
+    const fTac = f ? C.ensureFightTac(f) : null;
+    const moveSpec = (o.skill && SK.resolveMoveSpatialSpec) ? SK.resolveMoveSpatialSpec(o.skill, a) : null;
+
+    // 0. Technique-driven range & min-range dynamics (v3.0.0)
+    if (moveSpec && moveSpec.bandIndex >= 4 && dist >= 2.8) {
+      relation = 'FLYING_ART_LONG_RANGE';
+      dmgMult *= 1.10;
+      accAdd += 6;
+      noteTh = C.name(a) + ' ใช้วิชาระยะไกล「' + (o.skill.nameTh || 'กระบี่บิน/ศรปราณ') + '」โจมตีข้ามสมรภูมิ';
+    }
+    if ((pa.weaponType === 'BOW' || (moveSpec && moveSpec.minRangePenalty > 0)) && dist <= 1.15 && (!moveSpec || moveSpec.max > 1.8)) {
+      relation = 'MIN_RANGE_HARASSED';
+      dmgMult *= 0.88;
+      accAdd -= 18;
+      noteTh = C.name(a) + ' ถูกคลุกวงในประชิดตัว เสียเปรียบระยะยิงขั้นต่ำ';
+    }
+
+    // 1. Long-reach polearms (SPEAR, STAFF, WHIP) vs short-reach weapons (FIST, BLADE, SWORD)
     if (pa.reachClass === 'LONG_POLEARM' && (pd.reachClass === 'SHORT_SWIFT' || pd.reachClass === 'HEAVY_BREAKER')) {
-      const firstStrikeWindow = !f || !f._firstStrikeUsed || !f._firstStrikeUsed[a.id];
-      if (dHasLightness && (ST.has(d, 'evadeUp') || d._gapClosedOn === a.id)) {
+      const firstStrikeWindow = fTac ? !fTac.firstStrikeUsed[a.id] : (!f || !f._firstStrikeUsed || !f._firstStrikeUsed[a.id]);
+      const dClosed = dTac.gapClosedOn === a.id || d._gapClosedOn === a.id;
+      if (dHasLightness && ((ST && ST.has(d, 'evadeUp')) || dClosed)) {
         relation = 'POLEARM_COUNTERED_BY_LIGHTNESS';
         dmgMult = 0.96;
         noteTh = 'วิชาตัวเบาของ ' + C.name(d) + ' พุ่งฝ่าระยะ' + (pa.weaponType === 'SPEAR' ? 'หอก' : 'พลอง') + 'สลายความได้เปรียบเปิดศึก';
       } else if (firstStrikeWindow || dist >= 1.85) {
         relation = 'POLEARM_FIRST_STRIKE';
-        dmgMult = pa.spec.firstStrikeMult || 1.12;
+        // In abstract bouts (!f), blend opening first-strike advantage across multi-exchange bout (1.06x) instead of permanent full opening mult unless explicitly testing opening dist
+        const rawMult = pa.spec.firstStrikeMult || 1.12;
+        dmgMult = (!f && o.abstractBout) ? +(1 + (rawMult - 1) * 0.55).toFixed(3) : rawMult;
         accAdd += pa.spec.firstStrikeAcc || 10;
+        if (fTac) fTac.firstStrikeUsed[a.id] = true;
         if (f) { f._firstStrikeUsed = f._firstStrikeUsed || {}; f._firstStrikeUsed[a.id] = true; }
         noteTh = C.name(a) + ' อาศัยระยะ' + (pa.weaponType === 'SPEAR' ? 'ทวนยาว' : pa.weaponType === 'WHIP' ? 'แส้และด้ายปราณ' : 'พลองยาว') + 'ชิงลงมือก่อนอาวุธสั้น';
       }
     }
 
-    // 2. Ranged weapons (BOW, FOCUS) kiting distance advantage vs melee until closed on by dash/leap
+    // 2. Ranged weapons (BOW, FOCUS, ZITHER, BRUSH) kiting distance advantage vs melee until closed on by dash/leap
     if (pa.reachClass === 'RANGED_KITE') {
-      const closedOn = (a._closedOnBy === d.id) || (dist < 1.45 && dHasLightness);
+      const closedOn = (aTac.closedOnBy === d.id) || (a._closedOnBy === d.id) || (dist < 1.45 && (dHasLightness || pd.reachClass === 'SHORT_SWIFT' || pd.reachClass === 'HEAVY_BREAKER'));
       if (!closedOn && dist >= 1.65) {
         relation = 'RANGED_KITING_ADVANTAGE';
-        dmgMult *= (pa.spec.kiteDmgMult || 1.12);
+        const rawKite = pa.spec.kiteDmgMult || 1.12;
+        dmgMult *= (!f && o.abstractBout) ? +(1 + (rawKite - 1) * 0.60).toFixed(3) : rawKite;
         critAdd += (pa.spec.kiteCritAdd || 5);
         accAdd += (pa.spec.kiteAccAdd || 8);
         noteTh = C.name(a) + ' รักษาระยะห่างยิงสกัดด้วย' + (pa.weaponType === 'BOW' ? 'ธนู' : pa.weaponType === 'ZITHER' ? 'พิณคีตเวทย์' : pa.weaponType === 'BRUSH' ? 'พู่กันอาคม' : 'สื่อปราณ');
       } else if (closedOn) {
-        relation = 'RANGED_CLOSED_ON';
-        dmgMult *= 0.94;
-        noteTh = C.name(a) + ' ถูกประชิดตัว เสียเปรียบระยะยิงสกัด';
+        if (moveSpec && moveSpec.max <= 1.55) {
+          relation = 'RANGED_CLOSE_DEFENSE_TECH';
+          dmgMult *= 1.05;
+          noteTh = C.name(a) + ' ใช้วิชาป้องกันตัวระยะประชิดรับมือการบุกคลุกวงใน';
+        } else {
+          relation = 'RANGED_CLOSED_ON';
+          dmgMult *= 0.92;
+          accAdd -= 8;
+          noteTh = C.name(a) + ' ถูกประชิดตัว เสียเปรียบระยะยิงสกัด';
+        }
       }
     }
 
     // 3. Melee fighter using gap-closer / lightness art to counter RANGED_KITE or LONG_POLEARM
     if ((pa.reachClass === 'SHORT_SWIFT' || pa.reachClass === 'HEAVY_BREAKER') && (pd.reachClass === 'RANGED_KITE' || pd.reachClass === 'LONG_POLEARM')) {
       if (aHasLightness) {
-        d._closedOnBy = a.id;
-        a._gapClosedOn = d.id;
-        if (relation === 'NEUTRAL') {
+        dTac.closedOnBy = a.id; d._closedOnBy = a.id;
+        aTac.gapClosedOn = d.id; a._gapClosedOn = d.id;
+        if (relation === 'NEUTRAL' || relation === 'FLYING_ART_LONG_RANGE') {
           relation = pd.reachClass === 'RANGED_KITE' ? 'DASH_CLOSE_COUNTER' : 'GAP_CLOSER_COUNTER';
           dmgMult *= (pa.spec.gapCloserMult || 1.10);
           accAdd += (pa.spec.gapCloserAcc || 8);
@@ -220,23 +594,28 @@
   /* Bounded Passive Procs (with strict internal cooldown, trigger normalization, and condition evaluator) */
   function runPassiveProcs(W, f, actor, target, triggerKind, dmgDealt) {
     if (f && f._inProc) return;
-    if (!actor || actor.foe || actor.dead) return;
+    if (!actor || actor.dead) return;
+    if (actor.foe && !actor.cult && !actor.equip) return;
     if (f) f._inProc = true;
     try {
       const SK = SKs(), ST = STs();
       const normTrigger = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(triggerKind) : triggerKind;
+      const aTac = C.ensureUnitTac(actor);
       if (actor.cult && g.MARTIAL && g.MARTIAL.passiveStats) {
         const ps = g.MARTIAL.passiveStats(actor);
         if (ps && Array.isArray(ps.procs) && ps.procs.length) {
-          actor._procCds = actor._procCds || {};
+          actor._procCds = actor._procCds || aTac.procCds;
           for (const proc of ps.procs) {
             const pKind = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(proc.kind || proc.trigger) : (proc.kind || proc.trigger);
             if (pKind !== normTrigger) continue;
-            if ((actor._procCds[proc.techId] || 0) > W.t) continue;
+            const cdUntil = Math.max(aTac.procCds[proc.techId] || 0, actor._procCds[proc.techId] || 0);
+            if (cdUntil > W.t) continue;
             if (proc.condition && C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.evaluateCondition) {
               if (!C.COMPOSABLE_ENGINE.evaluateCondition(proc.condition, actor, target, { W, f, triggerKind: normTrigger, dmgDealt })) continue;
             }
-            actor._procCds[proc.techId] = W.t + Math.max(1, proc.icdTicks || 6);
+            const nextCd = W.t + Math.max(1, proc.icdTicks || 6);
+            aTac.procCds[proc.techId] = nextCd;
+            actor._procCds[proc.techId] = nextCd;
             if (proc.qiRestorePct && actor.cult && actor.h && actor.h.state) {
               const qm = CULT.qiMax(actor);
               actor.h.state.qi = Math.min(qm, (actor.h.state.qi == null ? qm : actor.h.state.qi) + qm * proc.qiRestorePct);
@@ -346,11 +725,13 @@
       hp = Math.max(1, Math.round(hm * (isPhoenix ? 0.42 : 0.28)));
       d.fx = { t: W.t, text: isPhoenix ? '🔥 เพลิงนิพพานหงส์อมตะ!' : '👑 สายเลือดราชันย์คุ้มชีพ' };
     }
+    const fTac = f ? C.ensureFightTac(f, W.t) : null;
     if (hp <= hm * 0.15 && !d.foe && d.pets && d.pets.length && CULT.activePets) {
-      f._phoenixRebirthUsed = f._phoenixRebirthUsed || {};
-      const phoenixPet = !f._phoenixRebirthUsed[d.id] && CULT.activePets(d).find(pt => pt && (pt.fourSymbol === 'VERMILION_PHOENIX' || pt.bloodlineTrait === 'VERMILION_PHOENIX'));
+      f._phoenixRebirthUsed = f._phoenixRebirthUsed || (fTac ? fTac.phoenixRebirthUsed : {});
+      const usedMap = fTac ? fTac.phoenixRebirthUsed : f._phoenixRebirthUsed;
+      const phoenixPet = !usedMap[d.id] && !f._phoenixRebirthUsed[d.id] && CULT.activePets(d).find(pt => pt && (pt.fourSymbol === 'VERMILION_PHOENIX' || pt.bloodlineTrait === 'VERMILION_PHOENIX'));
       if (phoenixPet) {
-        f._phoenixRebirthUsed[d.id] = true;
+        usedMap[d.id] = true; f._phoenixRebirthUsed[d.id] = true;
         hp = Math.max(Math.round(hm * 0.42), hp);
         STs().addStatus(d, 'shield', 12, { amt: Math.round(hm * 0.25) }, W.t);
         STs().clearStatus(d, x => ['burn', 'bleed', 'poison'].includes(x.k));
@@ -360,10 +741,11 @@
       }
     }
     if (hp <= hm * 0.12 && !d.foe && d.cult && d.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
-      f._mechDecoyUsed = f._mechDecoyUsed || {};
+      f._mechDecoyUsed = f._mechDecoyUsed || (fTac ? fTac.mechDecoyUsed : {});
+      const usedMap = fTac ? fTac.mechDecoyUsed : f._mechDecoyUsed;
       const ms = CULT.ensureMechState(d);
-      if (!f._mechDecoyUsed[d.id] && (d.cult.sub === 'SOUL_VESSEL_AVATAR' || ms.decoyAvailable || ms.vesselDecoyReady || (d.cult.techs && (d.cult.techs.includes('ART_MECH_PUPPET_005') || d.cult.techs.includes('ART_MECH_PUP_005')))) && ms.integrity >= 25) {
-        f._mechDecoyUsed[d.id] = true;
+      if (!usedMap[d.id] && !f._mechDecoyUsed[d.id] && (d.cult.sub === 'SOUL_VESSEL_AVATAR' || ms.decoyAvailable || ms.vesselDecoyReady || (d.cult.techs && (d.cult.techs.includes('ART_MECH_PUPPET_005') || d.cult.techs.includes('ART_MECH_PUP_005')))) && ms.integrity >= 25) {
+        usedMap[d.id] = true; f._mechDecoyUsed[d.id] = true;
         ms.decoyAvailable = false;
         ms.vesselDecoyReady = false;
         ms.integrity = Math.max(5, ms.integrity - 35);
@@ -394,10 +776,11 @@
       d.lastNirvanaSave = { t: W.t, fightId: f ? f.id : 0 };
       STs().dirty(d);
     }
-    if (hp <= 0 && (STs().has(d, 'phoenixCovenant', W.t) || (STs().hasBuff && STs().hasBuff(d, 'phoenixCovenant', W.t)) || d._phoenixClauseReady)) {
-      f._phoenixClauseUsed = f._phoenixClauseUsed || {};
-      if (!f._phoenixClauseUsed[d.id]) {
-        f._phoenixClauseUsed[d.id] = true;
+    if (hp <= 0 && (f.serious || d._phoenixClauseReady || STs().has(d, 'phoenixCovenant', W.t)) && (STs().has(d, 'phoenixCovenant', W.t) || (STs().hasBuff && STs().hasBuff(d, 'phoenixCovenant', W.t)) || d._phoenixClauseReady)) {
+      f._phoenixClauseUsed = f._phoenixClauseUsed || (fTac ? fTac.phoenixClauseUsed : {});
+      const usedMap = fTac ? fTac.phoenixClauseUsed : f._phoenixClauseUsed;
+      if (!usedMap[d.id] && !f._phoenixClauseUsed[d.id]) {
+        usedMap[d.id] = true; f._phoenixClauseUsed[d.id] = true;
         d._phoenixClauseReady = false;
         STs().clearBuff(d, 'phoenixCovenant');
         hp = Math.max(1, Math.round(hm * 0.48));
@@ -424,6 +807,16 @@
         return true;
       }
       if (nonlethal || (!d.foe && !f.serious)) { hp = Math.max(1, hm * 0.04); d.yield = true; }
+      else if (f && f.kind === 'wild' && !d.foe && !(a && a.legendary) && ((d.inj ? d.inj.length : 0) < 3)) {
+        hp = Math.max(1, Math.round(hm * 0.06));
+        C.setHp(d, hp);
+        d.fled = true; d.run = true; f.fled = true;
+        d.fx = { t: W.t, text: 'ล่าถอย!' };
+        AI.injure(W, d, 2, 'บาดเจ็บสาหัสจากการล่าอสูร');
+        AI.mem(W, d, 'บาดเจ็บหนักต้องล่าถอยจากการล่าอสูร', 0.6);
+        HC.experience(d, 'near_death', 0.5);
+        return false;
+      }
       else { C.setHp(d, 0); C.slay(W, f, a || d, d); return true; }
     }
     C.setHp(d, hp);
@@ -433,8 +826,128 @@
     }
     return false;
   };
+  /* ---------- Patch v3.0.0: Active Defensive Interception (LoS Bodyblock & Bodyguard Cover Dash) ---------- */
+  C.resolveDefensiveInterception = (W, f, a, d, o) => {
+    if (!W || !f || !a || !d || !C.alive(a) || !C.alive(d)) return null;
+    if (o && (o.noIntercept || o.forced || o.isPetAssist || o.noProc)) return null;
+    // AoE skills hit multiple targets directly; single-target or line-of-fire skills can be intercepted
+    if (o && o.isAoeMultiTarget && (!o.moveSpec || o.moveSpec.shape !== 'LINE')) return null;
+    const tNow = (W && W.t != null) ? W.t : 0;
+    const moveSpec = (o && o.moveSpec) || ((o && o.skill && SKs() && SKs().resolveMoveSpatialSpec) ? SKs().resolveMoveSpatialSpec(o.skill, a) : { requiresLoS: C.unitDist(a, d) >= 2.2 });
+
+    // 1. Check Line-of-Sight Bodyblock (Tank standing in line of fire for ranged/line attack)
+    if (moveSpec.requiresLoS && C.unitDist(a, d) >= 2.0) {
+      const los = C.checkLineOfSight(W, f, a, d, moveSpec);
+      if (los.blockerUnit && C.alive(los.blockerUnit) && los.blockerUnit.id !== d.id) {
+        const blk = los.blockerUnit;
+        const bTac = C.ensureUnitTac(blk);
+        bTac.reactionReadyAt = tNow + 8;
+        bTac.coveringAllyId = d.id;
+        bTac.interceptCount = (bTac.interceptCount || 0) + 1;
+        const ft = C.ensureFightTac(f, tNow);
+        ft.stats.losBlocks = (ft.stats.losBlocks || 0) + 1;
+        ft.stats.intercepts = (ft.stats.intercepts || 0) + 1;
+        const reasonTh = C.name(blk) + ' ยืนขวางแนวยิง รับการโจมตีแทน ' + C.name(d);
+        blk.fx = { t: tNow, text: '🛡️ ขวางแนวยิง!' };
+        blk.lastInterceptEvent = { t: tNow, kind: 'LOS_COVER', protectedId: d.id, attackerId: a.id, reasonTh };
+        C.recordTacticalHighlight(W, f, 'LOS_COVER', reasonTh, {
+          actorId: a.id, targetId: d.id, protectorId: blk.id
+        });
+        return { interceptor: blk, kind: 'LOS_COVER', dmgMult: 0.78, reasonTh };
+      }
+    }
+
+    // 2. Check Active Bodyguard Dash (Protector dashes in to shield vulnerable/low-HP/bonded ally)
+    const dHpFrac = hpFrac(d);
+    const dRole = C.inferCombatRole ? C.inferCombatRole(d) : 'FIGHTER';
+    const needsCover = dHpFrac <= 0.60 || dRole === 'HEALER' || dRole === 'CASTER' || (d.act && d.act.ctx && d.act.ctx.channeling);
+    if (!needsCover) return null;
+
+    const allies = C.alliesOf(W, f, d.id).filter(u => u && u.id !== d.id && C.alive(u) && C.canUnitIntercept(W, f, u));
+    if (!allies.length) return null;
+
+    let bestGuard = null, bestScore = 0;
+    for (const al of allies) {
+      const distToAlly = C.unitDist(al, d);
+      if (distToAlly > 2.85) continue;
+      if (hpFrac(al) < dHpFrac - 0.05) continue;
+      const alRole = C.inferCombatRole ? C.inferCombatRole(al) : 'FIGHTER';
+      const wp = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(al) : null;
+      let sc = 0;
+      if (alRole === 'TANK' || (wp && (wp.reachClass === 'HEAVY_BREAKER' || wp.reachClass === 'LONG_POLEARM' || wp.hasDefenseTech))) sc += 1.8;
+      if (al.isGateBeast && (al.fourSymbol === 'BLACK_TORTOISE' || al.bloodlineTrait === 'IRON_CARAPACE')) sc += 2.2;
+      if (al.isSwornAlly) sc += 1.6;
+      // Check personal bond (companion, mentor/disciple, destiny thread, high loyalty/affection)
+      let bondLabel = 'สหายร่วมรบ';
+      if (!al.foe && !d.foe) {
+        if (al.companionId === d.id) { sc += 2.5; bondLabel = 'คู่บำเพ็ญ'; }
+        else if (al.mentorId === d.id || al.mentor === d.id) { sc += 2.2; bondLabel = 'อาจารย์'; }
+        else if (d.mentorId === al.id || d.mentor === al.id) { sc += 2.2; bondLabel = 'ศิษย์สายตรง'; }
+        else if (Array.isArray(al.destinyThreads) && al.destinyThreads.some(th => th && (th.type === 'RED_THREAD' || th.type === 'GOLD_THREAD') && (th.aId === d.id || th.bId === d.id))) {
+          sc += 2.0; bondLabel = 'ผู้มีด้ายชะตาผูกพัน';
+        }
+        const rel = SECT && SECT.rel ? SECT.rel(al, d.id) : null;
+        if (rel && ((rel.a || 0) >= 30 || (rel.t || 0) >= 30)) sc += 1.0;
+        sc += (E(al, 'personality.loyalty') - 45) / 80 + (E(al, 'personality.courage') - 45) / 90;
+      }
+      // Awakened Soul Weapon Avatar autonomous guard (Stage >= 3)
+      if (!d.foe && d.weaponSoul && d.weaponSoul.stage >= 3) {
+        sc += 0.5;
+      }
+      sc -= distToAlly * 0.35;
+      if (sc > bestScore && sc >= 1.35) {
+        bestScore = sc;
+        bestGuard = { unit: al, bondLabel, dist: distToAlly };
+      }
+    }
+
+    if (bestGuard) {
+      const gUnit = bestGuard.unit;
+      const gTac = C.ensureUnitTac(gUnit);
+      gTac.reactionCharges = Math.max(0, (gTac.reactionCharges || 1) - 1);
+      gTac.reactionReadyAt = tNow + 10;
+      gTac.coveringAllyId = d.id;
+      gTac.interceptCount = (gTac.interceptCount || 0) + 1;
+      if (!gUnit.foe && gUnit.h && gUnit.h.state) {
+        gUnit.h.state.energy = Math.max(0, (gUnit.h.state.energy || 20) - 2.5);
+      }
+      // Move protector next to protected ally
+      if (Number.isFinite(d.x) && Number.isFinite(a.x)) {
+        const dx = a.x - d.x, dy = a.y - d.y, distAD = Math.max(0.1, Math.hypot(dx, dy));
+        const proj = C.projectSafePosition(W, d.x, d.y, d.x + (dx / distAD) * 0.65, d.y + (dy / distAD) * 0.65);
+        gUnit.x = proj.x;
+        gUnit.y = proj.y;
+      }
+      const ft = C.ensureFightTac(f, tNow);
+      ft.stats.intercepts = (ft.stats.intercepts || 0) + 1;
+      const reasonTh = C.name(gUnit) + ' พุ่งเข้าขวางคมศาสตราคุ้มกัน' + bestGuard.bondLabel + ' ' + C.name(d);
+      gUnit.fx = { t: tNow, text: '🛡️ คุ้มกัน ' + C.name(d) + '!' };
+      gUnit.lastInterceptEvent = { t: tNow, kind: 'BODYGUARD_INTERCEPT', protectedId: d.id, attackerId: a.id, bondLabel: bestGuard.bondLabel, reasonTh };
+      C.recordTacticalHighlight(W, f, 'BODYGUARD_INTERCEPT', reasonTh, {
+        actorId: a.id, targetId: d.id, protectorId: gUnit.id, bondLabel: bestGuard.bondLabel
+      });
+      return { interceptor: gUnit, kind: 'BODYGUARD_INTERCEPT', dmgMult: 0.82, reasonTh };
+    }
+    return null;
+  };
+
   /* หนึ่งการโจมตี: o = {M, type:'p'|'m', pen, dotHalf, forced, noCounter, noProc, crit+} */
   C.strike = (W, f, a, d, o) => {
+    o = o || {};
+    let originalTarget = d;
+    let interceptInfo = null;
+    if (f && !f._inIntercept && !o.noIntercept && !o.isPetAssist) {
+      f._inIntercept = true;
+      try {
+        interceptInfo = C.resolveDefensiveInterception(W, f, a, d, o);
+        if (interceptInfo && interceptInfo.interceptor && C.alive(interceptInfo.interceptor)) {
+          d = interceptInfo.interceptor;
+          o = Object.assign({}, o, { M: (o.M || 1) * (interceptInfo.dmgMult || 0.82) });
+        }
+      } finally {
+        f._inIntercept = false;
+      }
+    }
     const ST = STs(), sa = ST.get(a), sd = ST.get(d), nonlethal = !f.serious;
     const effectiveAcc = Math.max(1, sa.acc + (Number.isFinite(o.accAdd) ? o.accAdd : 0));
     const hitP = o.forced ? 1 : clamp(effectiveAcc / (effectiveAcc + 0.55 * sd.eva), 0.12, 0.97);
@@ -604,7 +1117,7 @@
       else if (!a.foe && d.foe) frac *= 1.10;
     }
     if (ST.has(d, 'poiseBroken', W.t)) frac *= 1.35;
-    frac = clamp(frac, 0.005, 1.85);
+    frac = clamp(frac, o.forced ? 0.0001 : 0.005, 1.85);
     if (nonlethal) frac *= 0.55;
     const hm = C.hpMax(d), beastGuard = !d.foe && g.MARTIAL && g.MARTIAL.isBeast(a) ? g.MARTIAL.skillEffects(d).beastDamage : 1, dmg = hm * frac * beastGuard;
     a.fx = a.fx || {}; if (!o.silent) { a.fx = { t: W.t, text: o.label || (crit ? 'จุดตาย!' : type === 'p' ? W.rng.pick(FX_PHYS) : W.rng.pick(FX_MAG)) }; }
@@ -749,8 +1262,10 @@
         ST.clearBuff(d, 'cryoMirror');
       }
       if (f) {
-        f._unitFirstStrikeDone = f._unitFirstStrikeDone || {};
-        if (!f._unitFirstStrikeDone[a.id]) {
+        const fTac = C.ensureFightTac(f, W.t);
+        f._unitFirstStrikeDone = f._unitFirstStrikeDone || fTac.unitFirstStrikeDone;
+        if (!fTac.unitFirstStrikeDone[a.id] && !f._unitFirstStrikeDone[a.id]) {
+          fTac.unitFirstStrikeDone[a.id] = true;
           f._unitFirstStrikeDone[a.id] = true;
           runPassiveProcs(W, f, a, d, 'onFirstStrike', dmg);
         }
@@ -766,25 +1281,263 @@
       }
       if (C.hp(d) <= C.hpMax(d) * 0.35 && C.alive(d)) runPassiveProcs(W, f, d, a, 'onLowHp', dmg);
     }
-    return { hit: true, dmg, crit, killed, lifesteal, reflected, tacticalRelation: tac ? tac.relation : 'NEUTRAL', resonanceTriggered };
+    return {
+      hit: true, dmg, crit, killed, lifesteal, reflected,
+      actualReceiverId: d.id,
+      originalTargetId: originalTarget ? originalTarget.id : d.id,
+      intercepted: !!interceptInfo,
+      interceptKind: interceptInfo ? interceptInfo.kind : null,
+      tacticalRelation: tac ? tac.relation : 'NEUTRAL',
+      resonanceTriggered
+    };
   };
+  /* ---------- Patch v3.0.0: Cognitive Role Inference, 5 Archetypes & Tactical Priority Score (TPS) ---------- */
+  C.inferCombatRole = u => {
+    if (!u) return "FIGHTER";
+    const tl = (u.cult && Array.isArray(u.cult.techs)) ? u.cult.techs.length : 0;
+    const eqW = u.equip ? u.equip.WEAPON : (u.weaponType || null);
+    const pVer = u._passVer || 0;
+    if (u._roleCache && u._roleCache.pVer === pVer && u._roleCache.tl === tl && u._roleCache.eqW === eqW && u._roleCache.path === (u.cult && u.cult.path)) return u._roleCache.role;
+    const SK = SKs();
+    const list = SK && SK.list ? SK.list(u) : (u.skl || []);
+    let role = "FIGHTER";
+    const hasHeal = list.some(p => p && (p.arch === 'heal' || p.arch === 'harmonize' || p.heal > 0));
+    if (hasHeal || (u.cult && u.cult.path === 'SAGE_SUPPORT')) {
+      role = 'HEALER';
+    } else {
+      const wp = SK && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u) : null;
+      const isTankSub = u.cult && ['BODY', 'GOD'].includes(u.cult.path) && (wp && wp.reachClass !== 'RANGED_KITE');
+      const hasGuard = list.some(p => p && (p.arch === 'guard' || p.arch === 'shield' || p.taunt || p.action === 'APPLY_TAUNT'));
+      if (isTankSub || hasGuard || (u.isGateBeast && (u.fourSymbol === 'BLACK_TORTOISE' || u.bloodlineTrait === 'IRON_CARAPACE'))) role = 'TANK';
+      else if (wp && wp.reachClass === 'RANGED_KITE') role = 'CASTER';
+      else if (u.cult && ['ASTRAL_STAR', 'ARRAY_TALISMAN', 'HEART_SOUL'].includes(u.cult.path)) role = 'CASTER';
+      else if (u.cult && u.cult.path === "DEMON") role = "ASSASSIN";
+    }
+    u._roleCache = { pVer, tl, eqW, path: u.cult && u.cult.path, role };
+    return role;
+  };
+
+  C.resolveCognitiveArchetype = u => {
+    if (!u) return 'HONORABLE_DUELLIST';
+    if (u.kind === 'beast' || u.wild || (u.isGateBeast && !u.fourSymbol)) return 'INSTINCTIVE_BEAST';
+    if (u.foe) {
+      const nm = String(u.name || u.nameTh || '');
+      if (/มือสังหาร|เงา|ลอบ|มาร|โจร/.test(nm)) return 'CUNNING_ASSASSIN';
+      if (/คลั่ง|อสูร|โลหิต/.test(nm)) return 'BLOODTHIRSTY_BERSERKER';
+      if (u.boss || /หัวหน้า|แม่ทัพ|ผู้อาวุโส|ค่ายกล/.test(nm)) return 'GRAND_TACTICIAN';
+      return 'HONORABLE_DUELLIST';
+    }
+    const aggr = E(u, 'personality.aggression');
+    const inte = E(u, 'personality.integrity');
+    const tact = (u.h && u.h.intellect && u.h.intellect.tactics) || E(u, 'personality.rationality') || 50;
+    const path = u.cult && u.cult.path;
+    if (path === 'STRATEGY_GOVERNANCE' || path === 'ARRAY_TALISMAN' || tact >= 72) return 'GRAND_TACTICIAN';
+    if (aggr >= 75 || path === 'DEMON') return (tact >= 58 ? 'CUNNING_ASSASSIN' : 'BLOODTHIRSTY_BERSERKER');
+    if (inte >= 68 || path === 'GOD' || path === 'XIAN') return 'HONORABLE_DUELLIST';
+    return 'CUNNING_ASSASSIN';
+  };
+
+  /* คำนวณคะแนนความสำคัญของเป้าหมาย (Tactical Priority Score - TPS) โดยไม่กิน W.rng */
+  C.computeTargetPriorityScore = (W, f, a, cand, opts) => {
+    if (!a || !cand || !C.alive(cand)) return -9999;
+    opts = opts || {};
+    const ST = STs(), tNow = (W && W.t != null) ? W.t : 0;
+    const aTac = C.ensureUnitTac(a);
+    const arch = aTac.archetype || C.resolveCognitiveArchetype(a);
+    const role = C.inferCombatRole(cand);
+    const dist = Number.isFinite(opts.dist) ? opts.dist : C.unitDist(a, cand);
+    const candHpR = hpFrac(cand);
+    const candDef = (ST.get(cand).def + ST.get(cand).mdef) * 0.5;
+    const isChanneling = !!((cand.act && cand.act.ctx && cand.act.ctx.channeling) || ST.has(cand, 'channeling', tNow));
+    const hasBleedOrMark = !!(cand.sx && cand.sx.some(x => x.until > tNow && (['bleed', 'burn', 'poison'].includes(x.k) || (C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.MARK_KEYS.includes(x.k)))));
+
+    // 1. Active Taunt Check (Forced engagement or heavy priority multiplier)
+    const tauntSx = ST.statusOf(a, 'taunted', tNow) || ST.statusOf(a, 'taunt', tNow);
+    if (tauntSx && tauntSx.taunterId === cand.id) {
+      return 9500 - dist * 10;
+    }
+
+    // 2. Role Base Value weighted by Cognitive Archetype
+    let roleScore = role === 'HEALER' ? 165 : role === 'CASTER' ? 140 : role === 'ASSASSIN' ? 130 : role === 'FIGHTER' ? 105 : 65;
+    if (arch === 'CUNNING_ASSASSIN') {
+      if (role === 'HEALER' || role === 'CASTER') roleScore += 55;
+      if (role === 'TANK') roleScore -= 25;
+    } else if (arch === 'BLOODTHIRSTY_BERSERKER') {
+      roleScore = 100 + (1 - candHpR) * 140 + (hasBleedOrMark ? 45 : 0);
+    } else if (arch === 'HONORABLE_DUELLIST') {
+      const myPow = C.power(a), cPow = C.power(cand);
+      const parity = 1 - Math.min(1, Math.abs(myPow - cPow) / Math.max(20, myPow));
+      roleScore = 110 + parity * 75;
+    } else if (arch === 'GRAND_TACTICIAN') {
+      if (isChanneling) roleScore += 110;
+      if (hasBleedOrMark || (C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.getActiveElementalAuras(cand, tNow).length > 0)) roleScore += 55;
+    } else if (arch === 'INSTINCTIVE_BEAST') {
+      roleScore = 100 + (hasBleedOrMark ? 40 : 0);
+    }
+
+    // 3. Current Threat & Channel Interrupt Priority
+    let threatScore = isChanneling ? 120 : 0;
+    if (cand.lastHurtBy === a.id || a.lastHurtBy === cand.id) threatScore += 28;
+    if (!a.foe && Array.isArray(a.destinyThreads) && a.destinyThreads.some(th => th && th.type === 'BLACK_THREAD' && (th.aId === cand.id || th.bId === cand.id))) {
+      threatScore += 65; // คู่อาฆาตด้ายดำ
+    }
+
+    // 4. Vulnerability Score (Low HP Focus Fire & Low Defense)
+    let vulnScore = (1 - candHpR) * 85 + (candHpR < 0.30 ? 75 : 0) + clamp(120 - candDef * 0.4, 0, 50);
+
+    // 5. Obstruction & Pathing Cost (Preserving the Tank Role in Chokepoints)
+    // If a Tank with active ZoC stands between attacker and a backline target, bypassing the tank incurs a heavy pathing penalty
+    let obstructionPenalty = 0;
+    if (f && role !== 'TANK' && dist > 1.85) {
+      const los = C.checkLineOfSight(W, f, a, cand, { requiresLoS: true });
+      if (los.terrainBlocked) obstructionPenalty += 1.4;
+      if (los.blockerUnit) {
+        // If attacker only has melee/LoS moves, the tank blocking the corridor makes the backliner much harder to reach
+        obstructionPenalty += 1.25;
+      }
+    }
+    // Conversely, if candidate IS the Tank standing right in front of attacker (blocking the way), boost its score so AI clears the blocker!
+    if (role === 'TANK' && dist <= 1.85 && C.unitZoCRadius(cand) > 0) {
+      roleScore += 55;
+    }
+
+    // 6. Hysteresis bonus to prevent erratic every-tick target ping-pong
+    const curTargetBonus = (aTac.lastTargetId === cand.id && aTac.targetLockUntil > tNow) ? 42 : 0;
+    const distWeight = arch === 'INSTINCTIVE_BEAST' ? 0.65 : arch === 'CUNNING_ASSASSIN' ? 0.22 : 0.35;
+    const denom = 1.0 + dist * distWeight + obstructionPenalty;
+    const noise = (C.tacHash01(W, f, a.id, cand.id, Math.floor(tNow / 4)) - 0.5) * 6.0;
+    return ((roleScore + threatScore + vulnScore + curTargetBonus) / denom) + noise;
+  };
+
+  /* ประเมินช่วงระยะของวิชาที่พร้อมใช้ในปัจจุบัน และเลือกเป้าหมายที่ดีที่สุด */
+  C.evaluateTacticalEngagement = (W, f, u, ctx) => {
+    const SK = SKs(), ST = STs(), tNow = (W && W.t != null) ? W.t : 0;
+    if (u && u._sameTickEval && u._sameTickEval.t === tNow && u._sameTickEval.fid === (f && f.id) && u._sameTickEval.out && u._sameTickEval.out.target && C.alive(u._sameTickEval.out.target)) return u._sameTickEval.out;
+    const uTac = C.ensureUnitTac(u);
+    const enemies = C.enemies(W, f, u.id).filter(x => !x.hidden && !x.away && C.alive(x));
+    if (!enemies.length) return { target: null, desiredRange: 1.7, readyMoves: [], canHealAlly: false };
+
+    // Check if unit is forced by active taunt
+    const tauntSx = ST.statusOf(u, 'taunted', tNow) || ST.statusOf(u, 'taunt', tNow);
+    let taunter = (tauntSx && (tauntSx.taunterId || tauntSx.src)) ? enemies.find(e => e.id === (tauntSx.taunterId || tauntSx.src)) : enemies.find(e => ST.has(e, 'taunt', tNow));
+
+    // Gather ready moves & their spatial ranges
+    const list = SK && SK.list ? SK.list(u) : (u.skl || []);
+    const qi = u.foe ? 1e9 : (u.h && u.h.state && u.h.state.qi != null ? u.h.state.qi : 1e9);
+    const cds = (ctx && ctx.cds) || {};
+    const readyMoves = [];
+    let canHealAlly = false;
+    let maxOffRange = 0, minOffRange = Infinity;
+
+    if (!ST.has(u, 'silence', tNow)) {
+      for (const p of list) {
+        if ((cds[p.id] || 0) > tNow) continue;
+        if (p.tech && p.tech !== p.id && (cds['TECH_GCD:' + p.tech] || 0) > tNow) continue;
+        if (!u.foe && g.MARTIAL && g.MARTIAL.skillEfficiency(u, p) <= 0) continue;
+        const cost = u.foe ? 0 : SK.qiCost(u, p);
+        if (qi < cost) continue;
+        const sp = p.range || (SK.resolveMoveSpatialSpec ? SK.resolveMoveSpatialSpec(p, u) : { min: 0, max: 1.8 });
+        if (uTac.pacingUntil > tNow && sp.bandIndex >= 4) continue; // AI Tactical Pacing Rhythm
+        readyMoves.push({ move: p, spec: sp });
+        if (p.arch === 'heal' || p.arch === 'harmonize') {
+          const ally = lowestAlly(W, f, u);
+          const lowR = ally ? Math.min(hpFrac(u), hpFrac(ally)) : hpFrac(u);
+          if (lowR < 0.72) canHealAlly = true;
+        } else if (!p.self && !p.team) {
+          if (sp.max > maxOffRange) maxOffRange = sp.max;
+          if (sp.min < minOffRange) minOffRange = sp.min;
+        }
+      }
+    }
+
+    // Select target: keep locked target unless expired, dead, unreachable/stuck, or critical interrupt/taunt appears
+    let chosen = taunter || null;
+    if (!chosen && enemies.length === 1) {
+      chosen = enemies[0];
+    }
+    if (!chosen) {
+      let bestCand = null, bestTps = -Infinity, curT = null, curTps = -Infinity;
+      const curTid = ctx && ctx.target;
+      for (const en of enemies) {
+        const d = C.unitDist(u, en);
+        const tps = C.computeTargetPriorityScore(W, f, u, en, { dist: d });
+        if (en.id === curTid) { curT = en; curTps = tps; }
+        if (tps > bestTps) {
+          bestTps = tps;
+          bestCand = en;
+        }
+      }
+      if (curT && uTac.targetLockUntil > tNow && uTac.stuckTicks < 4) {
+        // Switch early only if new candidate is significantly higher priority (e.g. channeling ultimate or low HP execute)
+        chosen = (bestCand && bestCand.id !== curT.id && bestTps > curTps + 55) ? bestCand : curT;
+      } else {
+        chosen = bestCand || enemies[0];
+      }
+    }
+
+    if (chosen && ctx) {
+      if (ctx.target && ctx.target !== chosen.id) {
+        const ft = C.ensureFightTac(f, tNow);
+        ft.stats.targetSwitches = (ft.stats.targetSwitches || 0) + 1;
+        const whySwitch = taunter ? 'ถูกยั่วยุดึงความสนใจ'
+          : ((chosen.act && chosen.act.ctx && chosen.act.ctx.channeling) ? 'พุ่งเป้าขัดจังหวะการร่ายวิชา'
+          : (hpFrac(chosen) < 0.30 ? 'มุ่งปิดฉากเป้าหมายที่บาดเจ็บหนัก' : 'ปรับเป้าหมายตามยุทธวิธี'));
+        u.lastTargetSwitch = { t: tNow, fromId: ctx.target, toId: chosen.id, reasonTh: whySwitch };
+        if (ft.stats.targetSwitches <= 8) {
+          C.recordTacticalHighlight(W, f, 'TARGET_SWITCH', C.name(u) + ' เบนเป้าหมายไปหา ' + C.name(chosen) + ' (' + whySwitch + ')', {
+            actorId: u.id, targetId: chosen.id, reasonTh: whySwitch
+          });
+        }
+      }
+      ctx.target = chosen.id;
+      if (uTac.lastTargetId !== chosen.id || uTac.targetLockUntil <= tNow) {
+        if (uTac.lastTargetId !== chosen.id) uTac.stuckTicks = 0;
+        uTac.lastTargetId = chosen.id;
+        uTac.targetLockUntil = tNow + 8;
+      }
+    }
+
+    const wp = (SK && SK.weaponTacticalProfile) ? SK.weaponTacticalProfile(u) : null;
+    const baseEngage = (wp && uTac.closedOnBy !== (chosen && chosen.id)) ? (wp.engageRange || 1.7) : 1.7;
+    const desiredRange = maxOffRange > 0 ? Math.max(baseEngage, maxOffRange) : baseEngage;
+    return {
+      target: chosen,
+      desiredRange,
+      minReadyRange: Number.isFinite(minOffRange) ? minOffRange : 0,
+      readyMoves,
+      canHealAlly
+    };
+  };
+
   /* ---------- เลือกท่า ---------- */
-  function chooseSkill(W, f, a, d, ctx) {
+  function chooseSkill(W, f, a, d, ctx, opts) {
+    opts = opts || {};
     const SK = SKs(), ST = STs(); if (ST.has(a, 'silence')) return null;
     const list = SK.list(a); if (!list.length) return null;
     const sa = ST.get(a), hpR = hpFrac(a), nonlethal = !f.serious, qi = a.foe ? 1e9 : (a.h.state.qi == null ? 1e9 : a.h.state.qi);
-    const en = C.enemies(W, f, a.id), near = en.filter(x => Math.hypot(x.x - d.x, x.y - d.y) < 2.6).length;
+    const en = C.enemies(W, f, a.id), near = en.filter(x => d && Math.hypot(x.x - d.x, x.y - d.y) < 2.6).length;
     const aggr = a.foe ? 0.2 : (E(a, 'personality.aggression') - 50) / 200, caut = a.foe ? 0 : (E(a, 'personality.caution') - 50) / 200;
-    const basicStat = Math.max(sa.atk, sa.matk), td = ST.get(d), tdp = C.power(d), self = C.power(a);
-    const targetShielded = !!shieldOf(d) || ST.has(d, 'guardUp');
+    const basicStat = Math.max(sa.atk, sa.matk), td = d ? ST.get(d) : sa, tdp = d ? C.power(d) : self, self = C.power(a);
+    const targetShielded = d ? (!!shieldOf(d) || ST.has(d, 'guardUp')) : false;
     const paTac = SK.weaponTacticalProfile ? SK.weaponTacticalProfile(a) : null;
-    const pdTac = SK.weaponTacticalProfile ? SK.weaponTacticalProfile(d) : null;
+    const pdTac = (d && SK.weaponTacticalProfile) ? SK.weaponTacticalProfile(d) : null;
+    const aTac = C.ensureUnitTac(a);
+    const curDist = (d && Number.isFinite(a.x) && Number.isFinite(d.x)) ? Math.hypot(a.x - d.x, a.y - d.y) : 1.5;
     let best = null, bs = 1.15; ctx.cds = ctx.cds || {};
     for (const p of list) {
       if ((ctx.cds[p.id] || 0) > W.t) continue;
       if (p.tech && p.tech !== p.id && (ctx.cds['TECH_GCD:' + p.tech] || 0) > W.t) continue;
       if (!a.foe && g.MARTIAL && g.MARTIAL.skillEfficiency(a, p) <= 0) continue;
       const cost = a.foe ? 0 : SK.qiCost(a, p); if (qi < cost) continue;
+      const mSpec = p.range || (SK.resolveMoveSpatialSpec ? SK.resolveMoveSpatialSpec(p, a) : { min: 0, max: 2.0, bandIndex: 1 });
+      // AI Tactical Pacing Rhythm: prevent back-to-back Band 4 spam on foes
+      if (a.foe && aTac.pacingUntil > W.t && mSpec.bandIndex >= 4) continue;
+      // Enforce spatial range boundaries when positions are live on the battlefield
+      const isSelfOrTeam = !!(p.self || p.team || ['heal', 'support', 'buff', 'summon', 'guard', 'shield', 'counter', 'evade', 'stanceShift'].includes(p.arch));
+      if (!isSelfOrTeam && d && Number.isFinite(a.x) && Number.isFinite(d.x) && !opts.ignoreRange) {
+        if (curDist > mSpec.max + 0.45 && !mSpec.isGapCloser) continue;
+        if (mSpec.min >= 1.2 && curDist < mSpec.min * 0.75 && list.length > 1) continue;
+      }
       if (p.arch === 'forbid' && (nonlethal || (hpR > 0.45 && !(tdp > self * 1.5)))) continue;
       if (p.drawback && p.drawback.staminaCost && !a.foe && (a.h.state.energy || 0) < p.drawback.staminaCost + 8) continue;
       const syn = (!a.foe && g.MARTIAL && g.MARTIAL.skillSynergy) ? g.MARTIAL.skillSynergy(a, p) : null;
@@ -896,9 +1649,17 @@
         : ((p.M || 0) > 0 || (p.dot || 0) > 0 || !!p.ctrl);
       if (offensivePayload && elemInter && elemInter.counterRelation === 'COUNTER_ADVANTAGE') sc += 0.38;
       else if (offensivePayload && elemInter && elemInter.counterRelation === 'RESISTED') sc -= 0.25;
+      // v3.0.0 Spatial & Tactical scoring adjustments
+      if (mSpec.isGapCloser && curDist > 1.85) sc += 1.65;
+      if (mSpec.isRetreat && curDist <= 1.35 && paTac && paTac.reachClass === 'RANGED_KITE') sc += 2.10;
+      if (curDist <= 1.30 && paTac && paTac.reachClass === 'RANGED_KITE' && mSpec.max <= 1.65 && (p.knockback || p.ctrl)) sc += 2.25;
+      if (d && ((d.act && d.act.ctx && d.act.ctx.channeling) || ST.has(d, 'channeling')) && (p.ctrl === 'stun' || p.ctrl === 'silence' || p.poiseDamage > 0 || p.action === 'POISE_BREAK')) {
+        sc += 2.80; // Channel interrupt priority
+      }
       // Preserve the existing weapon-type synergy preference for utility/support skills too.
       if (syn && syn.matched) sc += 0.28;
-      sc *= 0.88 + W.rng.next() * 0.24;
+      const noise01 = opts.pureEval ? C.tacHash01(W, f, a.id, p.id, W.t) : (W.rng ? W.rng.next() : 0.5);
+      sc *= 0.92 + noise01 * 0.16;
       if (sc > bs) { bs = sc; best = p; }
     }
     return best;
@@ -1255,12 +2016,45 @@
       summonUnit.fx = { t: W.t, text: '⚡ ปรากฏกาย' };
       return;
     }
+    const mSpec = p.range || (SK.resolveMoveSpatialSpec ? SK.resolveMoveSpatialSpec(p, a) : { min: 0, max: 2.0, bandIndex: 1, shape: 'SINGLE', radius: 0 });
+    const aTac = C.ensureUnitTac(a);
+    aTac.lastMoveBand = mSpec.band;
+    if (mSpec.bandIndex >= 4 || p.arch === 'burst' || p.arch === 'forbid') {
+      aTac.pacingUntil = W.t + (a.foe ? 3 : 2); // AI Tactical Pacing Rhythm
+    }
+    // Gap-closer movement execution: dash into melee range of target
+    if ((mSpec.isGapCloser || p.arch === 'charge' || p.arch === 'blink') && d && Number.isFinite(a.x) && Number.isFinite(d.x)) {
+      const dx = d.x - a.x, dy = d.y - a.y, dist = Math.hypot(dx, dy);
+      if (dist > 1.2) {
+        const destX = d.x - (dx / dist) * 0.9, destY = d.y - (dy / dist) * 0.9;
+        const proj = mSpec.ignoresObstacles
+          ? { x: +destX.toFixed(2), y: +destY.toFixed(2) }
+          : C.projectSafePosition(W, a.x, a.y, destX, destY);
+        a.x = proj.x; a.y = proj.y;
+      }
+      const dTac = C.ensureUnitTac(d);
+      dTac.closedOnBy = a.id; d._closedOnBy = a.id;
+      aTac.gapClosedOn = d.id; a._gapClosedOn = d.id;
+    }
+    // Disengage / Retreat movement execution
+    if (mSpec.isRetreat && d && Number.isFinite(a.x) && Number.isFinite(d.x)) {
+      const dx = a.x - d.x, dy = a.y - d.y, dist = Math.max(0.1, Math.hypot(dx, dy));
+      const proj = C.projectSafePosition(W, a.x, a.y, a.x + (dx / dist) * 1.6, a.y + (dy / dist) * 1.6);
+      a.x = proj.x; a.y = proj.y;
+      aTac.closedOnBy = null; a._closedOnBy = null;
+    }
+
     if (p.arch === 'channel') {
       const ch = p.channel || { ticks: 3, tickM: 0.5, finishM: 1.0, interruptForce: 15 };
       ctx.channeling = {
         skillId: p.id,
         skill: p,
-        targetId: d.id,
+        targetId: d ? d.id : null,
+        lockType: mSpec.lockType || (p.aoe ? 'POINT' : 'UNIT'),
+        lockX: d && Number.isFinite(d.x) ? d.x : a.x,
+        lockY: d && Number.isFinite(d.y) ? d.y : a.y,
+        maxRange: mSpec.max || 4.2,
+        startDist: (d && Number.isFinite(a.x) && Number.isFinite(d.x)) ? Math.hypot(a.x - d.x, a.y - d.y) : 0,
         ticksLeft: ch.ticks,
         totalTicks: ch.ticks,
         tickM: ch.tickM,
@@ -1278,11 +2072,15 @@
       if (preRes && preRes.comboMult) comboMult = preRes.comboMult;
       if (preRes && preRes.handledCompletely) return;
     }
-    // ท่าโจมตี (รองรับ Target Selector แบบยืดหยุ่น)
+    // ท่าโจมตี (รองรับ Target Selector แบบยืดหยุ่น + เคารพผลของ Taunt โดยไม่ยัดเป้าเก่ากลับเข้าหน้าผู้ยั่วยุ)
     const targets = (C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.selectTargets)
       ? C.COMPOSABLE_ENGINE.selectTargets(W, f, a, d, p)
-      : (p.aoe ? C.enemies(W, f, a.id).filter(x => Math.hypot(x.x - d.x, x.y - d.y) < 2.6) : [d]);
-    if (d && !targets.includes(d) && C.alive(d)) targets.unshift(d);
+      : (p.aoe ? C.enemies(W, f, a.id).filter(x => !d || Math.hypot(x.x - d.x, x.y - d.y) < 2.6) : (d ? [d] : []));
+    const tauntActive = ST.statusOf(a, 'taunted', W.t) || ST.statusOf(a, 'taunt', W.t);
+    if (!tauntActive && d && !targets.includes(d) && C.alive(d) && !p.self && !p.team) {
+      targets.unshift(d);
+    }
+    const isAoeMulti = !!(p.aoe || targets.length > 1);
     const mas = masBase * comboMult; let dealt = 0;
     targets.slice(0, 6).forEach((t, tIdx) => {
       if (!C.alive(t)) return;
@@ -1290,7 +2088,7 @@
         if (!C.alive(t)) break;
         const wpnAcc = (!a.foe && g.MARTIAL && g.MARTIAL.weaponCompatibility) ? (g.MARTIAL.weaponCompatibility(a, p.tech || p.id).accDelta || 0) : 0;
         const ricochetScale = p.arch === 'chainRicochet' ? Math.pow(0.92, tIdx) * (t.sx && t.sx.length ? 1.18 : 1.0) : (p.aoe && t !== d ? 0.8 : 1);
-        const r = C.strike(W, f, a, t, { M: p.M * mas * ricochetScale, synDmgMult: p.synDmgMult || 1, accAdd: (p.elementAccAdd || 0) + wpnAcc, type: p.type, pen: p.pen, forced: p.arch === 'blink', label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true, arch: p.arch, skill: p });
+        const r = C.strike(W, f, a, t, { M: p.M * mas * ricochetScale, synDmgMult: p.synDmgMult || 1, accAdd: (p.elementAccAdd || 0) + wpnAcc, type: p.type, pen: p.pen, forced: p.arch === 'blink', label: i === 0 ? label : null, silent: i > 0, critAdd: p.critAdd || 0, critDmgAdd: p.critDmgAdd || 0, isSkill: true, isAoeMultiTarget: isAoeMulti, moveSpec: mSpec, arch: p.arch, skill: p });
         if (r.hit) {
           dealt += r.dmg;
           applyRiders(W, f, a, t, p, r);
@@ -1387,35 +2185,59 @@
     });
     if (keep.length !== u.sx.length) { u.sx = keep; ST.dirty(u); }
   };
-  C.interruptChannel = (W, f, u, reason) => {
-    if (!u.act || !u.act.ctx || !u.act.ctx.channeling) return false;
+  C.interruptChannel = (W, f, u, reason, interrupter) => {
+    if (!u || !u.act || !u.act.ctx || !u.act.ctx.channeling) return false;
     const ch = u.act.ctx.channeling;
     STs().clearStatus(u, x => x.k === 'channeling');
     u.act.ctx.cds = u.act.ctx.cds || {};
-    u.act.ctx.cds[ch.skillId] = W.t + Math.round((ch.skill.cd || 16) * 0.7);
+    u.act.ctx.cds[ch.skillId] = W.t + Math.round(((ch.skill && ch.skill.cd) || 16) * 0.65);
+    const skName = (ch.skill && ch.skill.nameTh) || 'วิชาร่ายต่อเนื่อง';
     delete u.act.ctx.channeling;
     u.fx = { t: W.t, text: '⚡ เสียสมาธิ!' };
+    u.lastInterrupted = { t: W.t, skillId: ch.skillId, skillNameTh: skName, reason: reason || 'ถูกขัดจังหวะ', byId: interrupter ? interrupter.id : null };
+    if (f) {
+      const ft = C.ensureFightTac(f, W.t);
+      ft.stats.interrupts = (ft.stats.interrupts || 0) + 1;
+      C.recordTacticalHighlight(W, f, 'CHANNEL_INTERRUPT', C.name(u) + ' ถูกขัดจังหวะขณะร่าย「' + skName + '」(' + (reason || 'เสียสมาธิ') + ')', {
+        actorId: interrupter ? interrupter.id : null, targetId: u.id, skillNameTh: skName, reasonTh: reason
+      });
+    }
     return true;
   };
   C.resolveChannelTick = (W, f, a, ctx) => {
     if (!ctx.channeling) return;
     const ch = ctx.channeling;
-    const t = C.unit(W, ch.targetId);
+    let t = C.unit(W, ch.targetId);
+    // Support point-locked AoE channeling if target died or moved
+    if (ch.lockType === 'POINT') {
+      const en = C.enemies(W, f, a.id).filter(x => Math.hypot(x.x - (ch.lockX || a.x), x.y - (ch.lockY || a.y)) <= 2.8);
+      if (!C.alive(t)) t = en[0] || null;
+    }
     if (!C.alive(t)) {
       STs().clearStatus(a, x => x.k === 'channeling');
       delete ctx.channeling;
       return;
     }
+    // Check leashed range for unit-locked channeling
+    if (ch.lockType !== 'POINT' && Number.isFinite(ch.maxRange) && Number.isFinite(a.x) && Number.isFinite(t.x)) {
+      const dist = Math.hypot(a.x - t.x, a.y - t.y);
+      const leash = Math.max(ch.maxRange || 4.2, ch.startDist || 0) + 1.65;
+      if (dist > leash) {
+        C.interruptChannel(W, f, a, 'เป้าหมายฉากหลบพ้นรัศมีร่าย');
+        return;
+      }
+    }
     const isFinal = ch.ticksLeft <= 1;
     const mult = isFinal ? ch.finishM : ch.tickM;
     const r = C.strike(W, f, a, t, {
       M: mult,
-      accAdd: ch.skill.elementAccAdd || 0,
-      type: ch.skill.type || 'm',
-      pen: ch.skill.pen || 0,
+      accAdd: (ch.skill && ch.skill.elementAccAdd) || 0,
+      type: (ch.skill && ch.skill.type) || 'm',
+      pen: (ch.skill && ch.skill.pen) || 0,
+      skill: ch.skill,
       label: isFinal ? '💥 ' + ch.skill.nameTh + ' ปะทุ!' : '🌀 คลื่นพลัง (' + (ch.totalTicks - ch.ticksLeft + 1) + '/' + ch.totalTicks + ')'
     });
-    if (r.hit) applyRiders(W, f, a, t, ch.skill, r);
+    if (r.hit && ch.skill) applyRiders(W, f, a, t, ch.skill, r);
     ch.ticksLeft--;
     if (ch.ticksLeft <= 0 || !C.alive(t)) {
       STs().clearStatus(a, x => x.k === 'channeling');
@@ -1426,14 +2248,14 @@
   C.attack = (W, f, a, d) => {
     const ST = STs(); a.fx = a.fx || {};
     const ctx = a.act && a.act.ctx ? a.act.ctx : {};
-    if (ST.has(a, 'stun')) {
-      if (ctx.channeling) C.interruptChannel(W, f, a, 'ติดมึนงง');
+    if (ST.has(a, 'stun') || ST.has(a, 'paralyze') || ST.has(a, 'cryoStasis')) {
+      if (ctx.channeling) C.interruptChannel(W, f, a, 'ติดสถานะมึนงง/สะกดร่าง');
       a.fx = { t: W.t, text: '💫' };
       return 3;
     }
     if (ctx.channeling) {
-      if (ST.has(a, 'silence')) {
-        C.interruptChannel(W, f, a, 'ถูกผนึกวิชา');
+      if (ST.has(a, 'silence') || ST.has(a, 'acupointSealed')) {
+        C.interruptChannel(W, f, a, 'ถูกผนึกวิชา/สกัดจุด');
         return 3;
       }
       C.resolveChannelTick(W, f, a, ctx);
@@ -1442,6 +2264,13 @@
     }
     const sa = ST.get(a), p = chooseSkill(W, f, a, d, ctx);
     if (p) { useSkill(W, f, a, d, p, ctx); return clamp(Math.round(p.wind * 100 / sa.cast), 2, 18); }
+    // Basic attack range check: if out of basic weapon reach, step closer instead of hitting across map with basic attack
+    const wp = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(a) : null;
+    const basicReach = (wp && wp.engageRange) || 1.7;
+    if (d && Number.isFinite(a.x) && Number.isFinite(d.x) && Math.hypot(a.x - d.x, a.y - d.y) > basicReach + 0.65) {
+      moveToward(W, a, d.x, d.y, true, f);
+      return 2;
+    }
     C.strike(W, f, a, d, { M: 1 });
     return clamp(Math.round(400 / sa.cast), 2, 9);
   };
@@ -1476,36 +2305,96 @@
     if (!killer.foe) { HC.experience(killer, 'killed_foe', 0.8); const r = SECT.rel(killer, victim.id); AI.mem(W, killer, 'ปลิดชีพ ' + victim.h.name.given, 1, victim.id); killer.stats = killer.stats || {}; killer.stats.kills = (killer.stats.kills || 0) + 1; }
   };
 
-  /* พฤติกรรมต่อนาทีของผู้ต่อสู้ที่เป็น NPC */
+  /* พฤติกรรมต่อนาทีของผู้ต่อสู้ที่เป็น NPC (Patch v3.0.0: Joint Tactical Engagement & Range-Aware Positioning) */
   C.fightStep = (W, n) => {
     const f = C.fightOf(W, n);
     if (!f || f.over) { C.leave(W, n); return; }
     if (n.dead) return;
+    const ST = STs();
     if (n.yield || n.fled) { // ยอมแพ้/หนี: ถอยออกจากวงและพักรักษา
       if (n.fled && !n.fleeTo) { const b = W.map.byId.infirmary; n.fleeTo = { x: b.door.x, y: b.door.y }; AI.goTo(W, n, n.fleeTo.x, n.fleeTo.y); }
-      if (n.path) AI.stepMove(W, n); return;
+      if (n.path) AI.stepMove(W, n);
+      return;
     }
-    const ctx = n.act.ctx; C.statusTick(W, f, n); if (n.dead || n.yield || n.fled) return;
+    const ctx = n.act.ctx;
+    C.statusTick(W, f, n);
+    if (n.dead || n.yield || n.fled) return;
+    const nTac = C.ensureUnitTac(n);
+    if (nTac.reactionReadyAt <= W.t && nTac.reactionCharges < 1) nTac.reactionCharges = 1;
     runPassiveProcs(W, f, n, null, 'combatTick', 0);
-    if (n.h.state.qi != null && n.cult && !STs().has(n, 'stygianFreeze', W.t)) {
+    if (n.h.state.qi != null && n.cult && !ST.has(n, 'stygianFreeze', W.t)) {
       const qm = CULT.qiMax(n);
-      const hasConduit = STs().hasBuff && STs().hasBuff(n, 'qiConduit', W.t);
-      const stSpec = STs().getActiveStanceSpec ? STs().getActiveStanceSpec(n) : null;
+      const hasConduit = ST.hasBuff && ST.hasBuff(n, 'qiConduit', W.t);
+      const stSpec = ST.getActiveStanceSpec ? ST.getActiveStanceSpec(n) : null;
       const stQiMult = (stSpec && stSpec.qiRegenBonus) ? (1 + stSpec.qiRegenBonus) : 1.0;
       const qRegen = ((n.cult.path === 'XIAN' ? 0.0075 : 0.006) + (hasConduit ? 0.015 : 0)) * stQiMult;
       n.h.state.qi = Math.min(qm, n.h.state.qi + qm * qRegen);
     }
-    if (f.state === 'gather') {
-      const ar = f.arena; if (Math.hypot(n.x - ar.x, n.y - ar.y) > 5 + (f.A.indexOf(n.id) + f.B.indexOf(n.id) + 1) % 3) { if (!n.path) AI.goTo(W, n, Math.floor(ar.x + (C.sideOf(f, n.id) === 'A' ? -3 : 3)), Math.floor(ar.y)); AI.stepMove(W, n); } else n.path = null;
+    // Check stun/paralyze BEFORE any movement so stunned disciples cannot walk (Fixes F5)
+    if (ST.has(n, 'stun', W.t) || ST.has(n, 'paralyze', W.t) || ST.has(n, 'cryoStasis', W.t)) {
+      if (ctx.channeling) C.interruptChannel(W, f, n, 'ติดมึนงง');
+      n.path = null;
+      n.fx = { t: W.t, text: '💫' };
       return;
     }
-    let t = C.unit(W, ctx.target);
-    if (!C.alive(t)) { const en = C.enemies(W, f, n.id); if (!en.length) return; en.sort((a, b) => Math.hypot(a.x - n.x, a.y - n.y) - Math.hypot(b.x - n.x, b.y - n.y)); t = en[0]; ctx.target = t.id; n.path = null; }
+    if (f.state === 'gather') {
+      const ar = f.arena;
+      if (Math.hypot(n.x - ar.x, n.y - ar.y) > 5 + (f.A.indexOf(n.id) + f.B.indexOf(n.id) + 1) % 3) {
+        if (!n.path) AI.goTo(W, n, Math.floor(ar.x + (C.sideOf(f, n.id) === 'A' ? -3 : 3)), Math.floor(ar.y));
+        AI.stepMove(W, n);
+      } else n.path = null;
+      return;
+    }
+
+    // Fast-path when on attack cooldown in range, or walking between 4-tick re-evaluations
+    if (ctx.target && !ctx.channeling) {
+      const fastT = C.unit(W, ctx.target);
+      if (fastT && C.alive(fastT) && !fastT.hidden && !fastT.away) {
+        const fastD = Math.hypot(fastT.x - n.x, fastT.y - n.y);
+        const engR = nTac.cachedEngageRange || 1.7;
+        if (fastD <= engR && ctx.cd > 1) {
+          n.face = fastT.x >= n.x ? 1 : -1;
+          n.path = null;
+          ctx.cd--;
+          return;
+        }
+        if (fastD > engR && (W.t + (n.n || 0)) % 4 !== 0 && nTac.stuckTicks < 4) {
+          moveToward(W, n, fastT.x, fastT.y, true, f);
+          n.face = fastT.x >= n.x ? 1 : -1;
+          return;
+        }
+      }
+    }
+    // Joint evaluation of target & ready technique ranges
+    const eng = C.evaluateTacticalEngagement(W, f, n, ctx);
+    nTac.cachedEngageRange = eng.desiredRange || 1.7;
+    const t = eng.target;
+    if (!t) return;
     const d = Math.hypot(t.x - n.x, t.y - n.y);
-    const wProf = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(n) : null;
-    const engageLim = (wProf && n._closedOnBy !== t.id) ? (wProf.engageRange || 1.7) : 1.7;
-    if (d > engageLim) { moveToward(W, n, t.x, t.y, true); n.face = t.x >= n.x ? 1 : -1; return; }
-    n.face = t.x >= n.x ? 1 : -1; n.path = null;
+
+    // Support / Healer with ready heal does not need to walk into enemy melee before casting heal
+    if (!eng.canHealAlly && !ctx.channeling) {
+      const engageLim = eng.desiredRange || 1.7;
+      if (d > engageLim) {
+        moveToward(W, n, t.x, t.y, true, f);
+        n.face = t.x >= n.x ? 1 : -1;
+        return;
+      }
+      // Ranged kiting step-back when closed on and minReadyRange > d (bounded by kiteStepCooldownUntil to prevent infinite kiting loop)
+      const wProf = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(n) : null;
+      if (wProf && wProf.reachClass === 'RANGED_KITE' && d < 1.15 && eng.minReadyRange >= 1.2 && nTac.kiteStepCooldownUntil <= W.t) {
+        nTac.kiteStepCooldownUntil = W.t + 10;
+        const dx = n.x - t.x, dy = n.y - t.y, dist = Math.max(0.1, Math.hypot(dx, dy));
+        const proj = C.projectSafePosition(W, n.x, n.y, n.x + (dx / dist) * 1.4, n.y + (dy / dist) * 1.4);
+        if (Math.hypot(proj.x - n.x, proj.y - n.y) >= 0.4) {
+          n.x = proj.x; n.y = proj.y;
+          nTac.closedOnBy = null; n._closedOnBy = null;
+        }
+      }
+    }
+
+    n.face = t.x >= n.x ? 1 : -1;
+    n.path = null;
     if (--ctx.cd > 0) return;
     if (g.CPE && g.CPE.fightUse(W, n, ctx)) { ctx.cd = 2; return; }
     ctx.cd = C.attack(W, f, n, t);
@@ -1514,10 +2403,11 @@
     if (n.act && n.act.ctx && n.act.ctx.channeling) delete n.act.ctx.channeling;
     if (n.sx && n.sx.length) { n.sx = n.sx.filter(x => x && x.fromBuffCatalog && x.until > W.t); STs().dirty(n); }
     n.run = false; n.fleeTo = null; n.yield = false; n.fled = false; n.path = null; n.lastHurtBy = null; n._closedOnBy = null; n._gapClosedOn = null;
+    if (n.tac) { n.tac.closedOnBy = null; n.tac.gapClosedOn = null; n.tac.coveringAllyId = null; n.tac.stuckTicks = 0; }
     n.act = { id: 'idle', stage: 'do', left: 15, total: 15, ctx: {}, why: [] }; n.why = [];
   };
 
-  /* พฤติกรรมศัตรู */
+  /* พฤติกรรมศัตรูและผู้ช่วยรบ (foe / gateBeast / swornAlly / summon) */
   C.foeStep = (W, u) => {
     if (u.dead || u.gone) return;
     u.px = u.x; u.py = u.y;
@@ -1528,19 +2418,121 @@
         return;
       }
     }
-    if (u.fled) { moveToward(W, u, MAP.EXIT.x, MAP.EXIT.y, true); if (Math.hypot(u.x - MAP.EXIT.x, u.y - MAP.EXIT.y) < 3) { u.gone = true; } return; }
+    if (u.fled) {
+      moveToward(W, u, MAP.EXIT.x, MAP.EXIT.y, true);
+      if (Math.hypot(u.x - MAP.EXIT.x, u.y - MAP.EXIT.y) < 3) { u.gone = true; }
+      return;
+    }
     const f = u.act && u.act.ctx && u.act.ctx.fid ? (W.fights || []).find(q => q.id === u.act.ctx.fid) : null;
-    if (!f) { u.gone = true; return; }
-    const ctx = u.act.ctx; C.statusTick(W, f, u); if (u.dead) return; if (STs().has(u, 'stun')) return;
-    let t = C.unit(W, ctx.target);
-    if (!C.alive(t) || t.hidden && (W.t % 10 === 0)) { const en = C.enemies(W, f, u.id).filter(x => !x.hidden && !x.away); if (!en.length) { // ไม่มีผู้ป้องกันในสนาม: มุ่งสู่ใจกลางสำนัก
-        const mh = W.map.byId.main_hall; moveToward(W, u, mh.x + mh.w / 2, mh.y + mh.h + 2, false); u.reachedCore = Math.hypot(u.x - (mh.x + mh.w / 2), u.y - (mh.y + mh.h + 2)) < 3; return; }
-      en.sort((a, b) => Math.hypot(a.x - u.x, a.y - u.y) - Math.hypot(b.x - u.x, b.y - u.y)); t = en[0]; ctx.target = t.id; }
+    if (!f || f.over) { if (!u.isGateBeast && !u.isSwornAlly && !u.wild) u.gone = true; return; }
+    const ctx = u.act.ctx;
+    C.statusTick(W, f, u);
+    if (u.dead) return;
+    const ST = STs();
+    if (ST.has(u, 'stun', W.t) || ST.has(u, 'paralyze', W.t) || ST.has(u, 'cryoStasis', W.t)) {
+      if (ctx.channeling) C.interruptChannel(W, f, u, 'ติดมึนงง');
+      return;
+    }
+    const uTac = C.ensureUnitTac(u);
+    if (uTac.reactionReadyAt <= W.t && uTac.reactionCharges < 1) uTac.reactionCharges = 1;
+
+    if (ctx.target && !ctx.channeling) {
+      const fastT = C.unit(W, ctx.target);
+      if (fastT && C.alive(fastT) && !fastT.hidden && !fastT.away) {
+        const fastD = Math.hypot(fastT.x - u.x, fastT.y - u.y);
+        const engR = uTac.cachedEngageRange || 1.7;
+        if (fastD <= engR && ctx.cd > 1) {
+          u.reachedCore = false;
+          u.face = fastT.x >= u.x ? 1 : -1;
+          ctx.cd--;
+          return;
+        }
+        if (fastD > engR && (W.t + (u.n || 0)) % 4 !== 0 && uTac.stuckTicks < 4) {
+          u.reachedCore = false;
+          moveToward(W, u, fastT.x, fastT.y, false, f);
+          return;
+        }
+      }
+    }
+    const eng = C.evaluateTacticalEngagement(W, f, u, ctx);
+    uTac.cachedEngageRange = eng.desiredRange || 1.7;
+    const t = eng.target;
+    if (!t) {
+      // If attacker is on raiding side B and no defenders are currently visible, advance toward Main Hall
+      if (C.sideOf(f, u.id) === 'B' && f.kind === 'raid') {
+        const mh = W.map && W.map.byId && W.map.byId.main_hall;
+        if (mh) {
+          const coreX = mh.x + mh.w / 2, coreY = mh.y + mh.h + 2;
+          moveToward(W, u, coreX, coreY, false, f);
+          u.reachedCore = Math.hypot(u.x - coreX, u.y - coreY) < 3.2;
+        }
+      }
+      return;
+    }
+    u.reachedCore = false;
     const d = Math.hypot(t.x - u.x, t.y - u.y);
-    if (d > 1.7) { moveToward(W, u, t.x, t.y, false); return; }
+    const engageLim = eng.desiredRange || 1.7;
+    if (d > engageLim && !ctx.channeling) {
+      moveToward(W, u, t.x, t.y, false, f);
+      return;
+    }
     u.face = t.x >= u.x ? 1 : -1;
     if (--ctx.cd > 0) return;
     ctx.cd = C.attack(W, f, u, t);
+  };
+
+  /* สร้างสรุปเหตุการณ์ศึกสำหรับเชื่อมเข้าพงศาวดาร (Unified Combat Chronicle Payload) */
+  C.buildFightChroniclePayload = (W, f) => {
+    if (!f) return null;
+    const fTac = C.ensureFightTac(f, W && W.t);
+    const durTicks = Math.max(1, ((W && W.t) || f.t0 || 0) - (fTac.combatStartedAt || f.t0 || 0));
+    const highlights = (fTac.highlights || []).slice(0, 6);
+    const st = fTac.stats || {};
+    const parts = [];
+    if (st.intercepts > 0) parts.push('เข้าคุ้มกัน/ขวางแนวยิง ' + st.intercepts + ' ครั้ง');
+    if (st.zocStrikes > 0) parts.push('สกัดกั้นเขตคุกคาม ' + st.zocStrikes + ' ครั้ง');
+    if (st.interrupts > 0) parts.push('ขัดจังหวะร่ายวิชา ' + st.interrupts + ' ครั้ง');
+    if (st.targetSwitches > 0) parts.push('ปรับเปลี่ยนเป้าหมายเชิงยุทธวิธี ' + st.targetSwitches + ' ครั้ง');
+    const highlightText = highlights.map(h => h.textTh).filter(Boolean).slice(0, 3).join(' · ');
+    return {
+      fightId: f.id,
+      kind: f.kind,
+      winner: f.winner,
+      outcome: fTac.outcome || (f.winner === 'A' ? 'VICTORY_A' : f.winner === 'B' ? 'VICTORY_B' : 'DRAW'),
+      durationTicks: durTicks,
+      stats: Object.assign({}, st),
+      highlights,
+      tacticalSummaryTh: parts.length ? parts.join(' · ') : 'ปะทะแลกเปลี่ยนกระบวนท่าตามระยะ',
+      narrativeHighlightTh: highlightText || ''
+    };
+  };
+
+  C.resolveFightCallback = (W, f, ws, winners, losers) => {
+    if (typeof f.cb === 'function') {
+      f.cb(W, f, ws, winners, losers);
+      return;
+    }
+    const kind = f.cbKind || f.kind;
+    if (kind === 'raid' && g.EXPED && g.EXPED.raidEnd) {
+      g.EXPED.raidEnd(W, f, ws, winners, losers);
+    } else if ((kind === 'duel' || kind === 'leadership' || kind === 'grudge') && C.duelEnd) {
+      C.duelEnd(W, f, ws, winners, losers);
+    } else if (kind === 'tourney' && W.sect && W.sect.tournament) {
+      const T = W.sect.tournament;
+      const x = f.A && f.A[0], y = f.B && f.B[0];
+      const a = W.byId[x], b = W.byId[y];
+      if (a && b) {
+        const win = ws === 'A' ? x : ws === 'B' ? y : (CULT.power(a) >= CULT.power(b) ? x : y);
+        T.nextAlive = T.nextAlive || [];
+        if (!T.nextAlive.includes(win)) T.nextAlive.push(win);
+        const lose = win === x ? b : a;
+        if (W.byId[win] && !W.byId[win].dead) W.byId[win].merit += 4;
+        if (lose && !lose.dead) AI.injure(W, lose, 1, 'บาดเจ็บในการประลอง');
+        T.history = T.history || [];
+        T.history.push(win);
+        if (!T.queue || !T.queue.length) { T.alive = T.nextAlive.slice(); T.queue = []; }
+      }
+    }
   };
 
   /* ---------- วนรอบการต่อสู้ทุกนาที: ตัดสินผล ---------- */
@@ -1548,14 +2540,21 @@
     const fl = W.fights; if (!fl || !fl.length) { C.processQueue(W); C.tournamentTick(W); return; }
     for (const f of fl) {
       if (f.over) continue;
+      const fTac = C.ensureFightTac(f, W.t);
       if (f.state === 'gather') {
         const all = [].concat(f.A, f.B).map(id => C.unit(W, id)).filter(Boolean);
         const near = all.every(u => Math.hypot(u.x - f.arena.x, u.y - f.arena.y) < 8);
-        if (near || W.t - f.t0 > 400) { f.state = 'fight'; all.forEach(u => { u.path = null; }); }
+        if (near || W.t - f.t0 > 240) {
+          f.state = 'fight';
+          fTac.combatStartedAt = W.t;
+          all.forEach(u => { u.path = null; });
+        }
         continue;
       }
-      if (!f._roundStartFired) {
+      if (fTac.combatStartedAt == null) fTac.combatStartedAt = W.t;
+      if (!f._roundStartFired && !fTac.roundStartFired) {
         f._roundStartFired = true;
+        fTac.roundStartFired = true;
         [].concat(f.A, f.B).map(i => C.unit(W, i)).filter(C.alive).forEach(u => runPassiveProcs(W, f, u, null, 'onRoundStart', 0));
       }
       if (C.COMPOSABLE_ENGINE) {
@@ -1564,16 +2563,56 @@
         if (C.COMPOSABLE_ENGINE.decayElementalAuras) C.COMPOSABLE_ENGINE.decayElementalAuras(W, f);
       }
       const a = f.A.map(i => C.unit(W, i)).filter(C.alive), b = f.B.map(i => C.unit(W, i)).filter(C.alive);
-      const timeout = W.t - f.t0 > (f.kind === 'raid' ? 900 : 300);
-      if (!a.length || !b.length || timeout) {
+      const elapsedFight = W.t - (fTac.combatStartedAt || f.t0);
+      const timeout = elapsedFight > (f.kind === 'raid' ? 900 : 300);
+
+      // Raid Inner Sanctum Breach check when no defenders are left or raiders hold the Main Hall
+      if (f.kind === 'raid') {
+        const mh = W.map && W.map.byId && W.map.byId.main_hall;
+        const coreX = mh ? (mh.x + mh.w / 2) : 120, coreY = mh ? (mh.y + mh.h + 2) : 96;
+        const raidersAtCore = b.some(u => u.reachedCore || (Number.isFinite(u.x) && Math.hypot(u.x - coreX, u.y - coreY) < 4.0));
+        const defendersNearCore = a.some(u => Number.isFinite(u.x) && Math.hypot(u.x - coreX, u.y - coreY) < 6.5);
+        if (raidersAtCore && !defendersNearCore) {
+          fTac.breachTicks = (fTac.breachTicks || 0) + 1;
+        } else {
+          fTac.breachTicks = Math.max(0, (fTac.breachTicks || 0) - 1);
+        }
+      }
+
+      const coreBreached = f.kind === 'raid' && (fTac.breachTicks >= 35 || (!a.length && b.length > 0));
+      if (!a.length || !b.length || timeout || coreBreached) {
         [].concat(a, b).forEach(u => runPassiveProcs(W, f, u, null, 'onRoundEnd', 0));
-        f.over = true; f.winner = timeout ? (f.kind === 'raid' ? 'B' : null) : (a.length ? 'A' : 'B'); C.conclude(W, f);
+        f.over = true;
+        if (f.kind === 'raid') {
+          if (!b.length) {
+            f.winner = 'A';
+            fTac.outcome = a.length ? 'RAID_WIPED' : 'PYRRHIC_DEFENSE';
+          } else if (coreBreached || !a.length) {
+            f.winner = 'B';
+            fTac.outcome = 'CORE_BREACHED';
+          } else if (timeout) {
+            // Defenders held the sect gates until raiders' stamina/time expired!
+            f.winner = 'A';
+            fTac.outcome = 'REPELLED_TIMEOUT';
+          }
+        } else {
+          if (!b.length && a.length) { f.winner = 'A'; fTac.outcome = 'VICTORY_A'; }
+          else if (!a.length && b.length) { f.winner = 'B'; fTac.outcome = 'VICTORY_B'; }
+          else if (!a.length && !b.length) { f.winner = null; fTac.outcome = 'MUTUAL_DOWN'; }
+          else { f.winner = null; fTac.outcome = 'TIMEOUT_DRAW'; }
+        }
+        C.conclude(W, f);
       }
     }
     W.fights = fl.filter(f => !f.over || W.t - f.t0 < 5);
     C.processQueue(W); C.tournamentTick(W);
   };
   C.conclude = (W, f) => {
+    if (!f) return;
+    const fTac = C.ensureFightTac(f, W && W.t);
+    if (fTac.concluded) return; // Strict idempotency guard: never pay rewards or record twice
+    fTac.concluded = true;
+    f.chroniclePayload = C.buildFightChroniclePayload(W, f);
     const all = [].concat(f.A, f.B).map(id => C.unit(W, id)).filter(Boolean);
     const ws = f.winner; const winners = ws ? (ws === 'A' ? f.A : f.B).map(i => C.unit(W, i)).filter(u => u && !u.dead) : [];
     const losers = ws ? (ws === 'A' ? f.B : f.A).map(i => C.unit(W, i)).filter(Boolean) : [];
@@ -1599,7 +2638,7 @@
       W.foes = W.foes.filter(x => !x.isSummon || !x.dead);
     }
     if (f.kind === 'wild' && g.WILD) g.WILD.finish(W, f, ws);
-    if (f.cb) f.cb(W, f, ws, winners, losers);
+    C.resolveFightCallback(W, f, ws, winners, losers);
   };
 
   /* ---------- คิวดวลตัวต่อตัว (แค้น/ท้าชิงตำแหน่ง) ---------- */
@@ -1632,24 +2671,39 @@
         CULT.gain(u, 1.5);
       }
     });
-    if (f.kind === 'leadership') {
+    const cPayload = f.chroniclePayload || C.buildFightChroniclePayload(W, f);
+    if (f.kind === "leadership") {
       const S = W.sect, ch = a, m = b;
       if (w === ch) {
-        // ผู้ท้าชนะ → ขึ้นเป็นเจ้าสำนัก
         if (ch.post) { S.posts[ch.post] = null; ch.post = null; } if (S.deputyId === ch.id) S.deputyId = null;
         ch.rank = 6; S.masterId = ch.id; ch.sat = 88; if (!m.dead) { m.rank = 4; m.sat = Math.max(0, (m.sat || 60) - 30); }
         S.policyShift = W.day; W.fame(3);
-        W.log('succession', ch.h.name.given + ' ชนะการท้าชิง ขึ้นเป็นเจ้าสำนักคนใหม่แทน ' + m.h.name.given, [ch.id, m.id]);
-        if (m.dead) W.log('succession', 'เจ้าสำนักเดิมเสียชีวิตจากการดวล', [m.id]);
+        W.log("succession", ch.h.name.given + " ชนะการท้าชิง ขึ้นเป็นเจ้าสำนักคนใหม่แทน " + m.h.name.given, [ch.id, m.id], { combatSummary: cPayload, eventKey: "leadership_duel:" + f.id });
+        if (m.dead) W.log("succession", "เจ้าสำนักเดิมเสียชีวิตจากการดวล", [m.id]);
+        if (g.EXPED && g.EXPED.recordChronicle) {
+          g.EXPED.recordChronicle(W, {
+            category: "SUCCESSION",
+            reportFormat: "ANCESTRAL_INSCRIPTION",
+            icon: "👑",
+            titleTh: "ศึกชิงบัลลังก์เจ้าสำนัก: " + HC.fullName(ch) + " โค่น " + HC.fullName(m),
+            storyTh: HC.fullName(ch) + " เปิดศึกท้าชิงตำแหน่งเจ้าสำนักและเอาชนะ " + HC.fullName(m) + " กลางลานประลอง (" + (cPayload.summaryLineTh || "") + ")",
+            combatBreakdownTh: cPayload.summaryLineTh || "",
+            combatSummary: cPayload,
+            consequenceTh: "ขึ้นดำรงตำแหน่งเจ้าสำนักคนใหม่ · ชื่อเสียงสำนัก +3",
+            involvedSects: [S.name || "สำนักเมฆาหยก"],
+            involvedFigures: [HC.fullName(ch), HC.fullName(m)],
+            npcIds: [ch.id, m.id],
+            quiet: true
+          });
+        }
       } else {
-        // ผู้ท้าแพ้ → โดนลงโทษตามนิสัยเจ้าสำนัก (เข้มงวดสูง = ขังนานขึ้น)
-        W.log('challenge', m.h.name.given + ' ชนะการท้าชิง รักษาตำแหน่งเจ้าสำนักไว้ได้', [m.id, ch.id]);
-        if (!ch.dead) { const days = Math.round(2 + S.policy.strictness / 12); ch.jail = W.t + days * 1440; ch.sat = Math.max(0, (ch.sat || 50) - 12); W.log('punish', ch.h.name.given + ' ถูกคุมขัง ' + days + ' วันฐานท้าชิงตำแหน่ง', [ch.id]); if (S.policy.strictness > 70 && S.policy.generosity < 40 && W.rng.chance(0.4)) { SECT.setRank(W, ch, Math.max(0, ch.rank - 1), 'ท้าชิงล้มเหลว'); } }
+        W.log("challenge", m.h.name.given + " ชนะการท้าชิง รักษาตำแหน่งเจ้าสำนักไว้ได้", [m.id, ch.id], { combatSummary: cPayload, eventKey: "leadership_duel:" + f.id });
+        if (!ch.dead) { const days = Math.round(2 + S.policy.strictness / 12); ch.jail = W.t + days * 1440; ch.sat = Math.max(0, (ch.sat || 50) - 12); W.log("punish", ch.h.name.given + " ถูกคุมขัง " + days + " วันฐานท้าชิงตำแหน่ง", [ch.id]); if (S.policy.strictness > 70 && S.policy.generosity < 40 && W.rng.chance(0.4)) { SECT.setRank(W, ch, Math.max(0, ch.rank - 1), "ท้าชิงล้มเหลว"); } }
         m.merit += 20;
       }
-    } else if (f.kind === 'grudge') {
-      W.log('duel', w.h.name.given + ' ชนะการดวลกับ ' + (l ? l.h.name.given : '?') + (l && l.dead ? ' (อีกฝ่ายเสียชีวิต)' : ''), [w.id, l && l.id]);
-      if (l && l.dead) { /* ปัญหาวินัย */ W.sect.suspicion = (W.sect.suspicion || 0) + 3; if (W.sect.policy.strictness > 55) { w.jail = W.t + 3 * 1440; } }
+    } else if (f.kind === "grudge") {
+      W.log("duel", w.h.name.given + " ชนะการดวลกับ " + (l ? l.h.name.given : "?") + (l && l.dead ? " (อีกฝ่ายเสียชีวิต)" : ""), [w.id, l && l.id], { combatSummary: cPayload, eventKey: "grudge_duel:" + f.id });
+      if (l && l.dead) { W.sect.suspicion = (W.sect.suspicion || 0) + 3; if (W.sect.policy.strictness > 55) { w.jail = W.t + 3 * 1440; } }
       else if (l) { const r = SECT.rel(w, l.id); r.v = Math.max(0, r.v - 15); r.r += 6; }
     }
   };
@@ -2745,13 +3799,29 @@
       }
       case 'DISPLACE_KNOCKBACK':
       case 'DISPLACE_PULL':
-      case 'DISPLACE_VACUUM': {
+      case 'DISPLACE_VACUUM':
+      case 'KNOCKBACK_TARGET':
+      case 'PULL_VACUUM': {
         if (t && Number.isFinite(t.x) && Number.isFinite(a.x)) {
           const dx = t.x - a.x, dy = t.y - a.y, dist = Math.max(0.1, Math.hypot(dx, dy));
-          const step = actionId === 'DISPLACE_KNOCKBACK' ? (params.dist || 1.8) : -(params.dist || 1.4);
-          t.x = +(t.x + (dx / dist) * step).toFixed(2);
-          t.y = +(t.y + (dy / dist) * step).toFixed(2);
-          a.lastDisplacement = { t: tNow, kind: actionId, targetId: t.id };
+          const isKnockback = actionId === 'DISPLACE_KNOCKBACK' || actionId === 'KNOCKBACK_TARGET';
+          const step = isKnockback ? (params.dist || 1.8) : -(params.dist || 1.4);
+          const rawX = t.x + (dx / dist) * step;
+          const rawY = t.y + (dy / dist) * step;
+          const proj = C.projectSafePosition(W, t.x, t.y, rawX, rawY);
+          t.x = proj.x;
+          t.y = proj.y;
+          const tTac = C.ensureUnitTac(t);
+          if (isKnockback) { tTac.closedOnBy = null; t._closedOnBy = null; }
+          if (t.act && t.act.ctx && t.act.ctx.channeling && Math.abs(step) >= 1.0) {
+            C.interruptChannel(W, f, t, isKnockback ? 'ถูกซัดกระเด็นเสียหลัก' : 'ถูกแรงดึงปราณกระชาก', a);
+          }
+          if (proj.hitObstacle && isKnockback && C.alive(t)) {
+            const wallDmg = Math.max(6, Math.round(C.hpMax(t) * 0.06));
+            C.applyDamage(W, f, a, t, wallDmg, 'กระแทกสิ่งกีดขวาง');
+            bonusDmg += wallDmg;
+          }
+          a.lastDisplacement = { t: tNow, kind: actionId, targetId: t.id, hitObstacle: proj.hitObstacle };
         }
         break;
       }
@@ -2913,25 +3983,52 @@
     return { detonatedStacks: stacks, bonusDmg: rawBonus };
   };
 
-  COMPOSABLE_ENGINE.selectTargets = (W, f, a, d, p) => {
+  COMPOSABLE_ENGINE.selectTargets = (W, f, a, d, p, opts) => {
+    if (typeof p === "string") {
+      p = Object.assign({ targetSelector: p, aoe: true, range: opts ? { shape: opts.shape || (p === "ENEMIES_CONE_3" ? "CONE" : "LINE"), max: opts.maxRange || opts.max || 4.5, radius: opts.lineWidth || opts.radius || 1.2 } : null }, opts || {});
+    }
     const comp = (p && p.composable) || {};
     const sel = comp.targetSelector || (p && p.targetSelector) || null;
     const enemies = C.enemies(W, f, a.id).filter(u => C.alive(u));
     const allies = C.alliesOf(W, f, a.id).filter(u => C.alive(u));
+    const mSpec = (p && p.range) || ((p && SKs() && SKs().resolveMoveSpatialSpec) ? SKs().resolveMoveSpatialSpec(p, a) : null);
     // Taunt override for single-target enemy selectors
-    const tauntStatus = STs().statusOf(a, 'taunted', W.t);
+    const tauntStatus = STs().statusOf(a, 'taunted', W.t) || STs().statusOf(a, 'taunt', W.t);
     if (tauntStatus && tauntStatus.taunterId) {
       const taunter = enemies.find(u => u.id === tauntStatus.taunterId);
-      if (taunter && (!sel || sel === 'SINGLE_ENEMY' || sel === 'LOWEST_HP_ENEMY' || sel === 'HIGHEST_ATK_ENEMY')) {
+      if (taunter && !p.aoe && (!sel || sel === 'SINGLE_ENEMY' || sel === 'SINGLE_PRIMARY' || sel === 'LOWEST_HP_ENEMY' || sel === 'HIGHEST_ATK_ENEMY')) {
         return [taunter];
       }
     }
-    if (!sel) {
-      if (p.arch === 'chainRicochet') {
-        return enemies.slice().sort((x, y) => Math.hypot(x.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y)) - Math.hypot(y.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y))).slice(0, 4);
+    const ox = (d && Number.isFinite(d.x)) ? d.x : (a && Number.isFinite(a.x) ? a.x : 0);
+    const oy = (d && Number.isFinite(d.y)) ? d.y : (a && Number.isFinite(a.y) ? a.y : 0);
+    const sortByDistToOrigin = (list, cx, cy) => list.slice().sort((x, y) => Math.hypot((x.x || 0) - cx, (x.y || 0) - cy) - Math.hypot((y.x || 0) - cx, (y.y || 0) - cy));
+
+    if (!sel || sel === 'ENEMIES_CONE_3') {
+      if (sel === 'ENEMIES_CONE_3') { p = Object.assign({}, p, { aoe: true }); }
+      if (p && p.arch === 'chainRicochet') {
+        return sortByDistToOrigin(enemies, ox, oy).slice(0, 4);
       }
-      if (p.aoe) {
-        return enemies.filter(x => !d || Math.hypot(x.x - d.x, x.y - d.y) < 2.8);
+      if (p && p.aoe) {
+        const rad = (mSpec && mSpec.radius > 0) ? mSpec.radius : 2.8;
+        if (mSpec && mSpec.shape === 'CIRCLE_SELF' && Number.isFinite(a.x)) {
+          const hitSelfCircle = enemies.filter(x => !Number.isFinite(x.x) || Math.hypot(x.x - a.x, x.y - a.y) <= rad);
+          return hitSelfCircle.length ? hitSelfCircle : (d ? [d] : enemies.slice(0, 1));
+        }
+        if (mSpec && mSpec.shape === 'CONE' && d && Number.isFinite(a.x) && Number.isFinite(d.x)) {
+          const dirX = d.x - a.x, dirY = d.y - a.y, dirLen = Math.max(0.01, Math.hypot(dirX, dirY));
+          const coneHits = enemies.filter(x => {
+            if (!Number.isFinite(x.x)) return true;
+            const vx = x.x - a.x, vy = x.y - a.y, vLen = Math.hypot(vx, vy);
+            if (vLen > Math.max(rad, mSpec.max || 3.6)) return false;
+            if (vLen < 0.2) return true;
+            const cos = (vx * dirX + vy * dirY) / (vLen * dirLen);
+            return cos >= 0.35; // ~70 deg half-angle fan
+          });
+          return coneHits.length ? coneHits : [d];
+        }
+        const hitTargetCircle = enemies.filter(x => !d || !Number.isFinite(x.x) || Math.hypot(x.x - ox, x.y - oy) <= rad);
+        return hitTargetCircle.length ? hitTargetCircle : (d ? [d] : enemies.slice(0, 1));
       }
       return d ? [d] : enemies.slice(0, 1);
     }
@@ -2945,12 +4042,18 @@
       const matched = allies.filter(u => u.cult && u.cult.path === path);
       return matched.length ? matched : [a];
     }
-    if (sel === 'SUMMON_OR_PUPPET') {
+    if (sel === 'SUMMON_OR_PUPPET' || sel === 'SUMMON_UNITS') {
       const sums = allies.filter(u => u.isSummon || (u.cult && u.cult.path === 'MECH_PUPPET'));
       return sums.length ? sums : [a];
     }
     if (!enemies.length) return d ? [d] : [];
     if (sel === 'ALL_ENEMIES') return enemies;
+    if (sel === 'ROW_FRONT') {
+      return sortByDistToOrigin(enemies, a.x || 0, a.y || 0).slice(0, 2);
+    }
+    if (sel === 'ROW_BACK') {
+      return sortByDistToOrigin(enemies, a.x || 0, a.y || 0).reverse().slice(0, 2);
+    }
     if (sel === 'LOWEST_HP_ENEMY') {
       return enemies.slice().sort((x, y) => (C.hp(x) / Math.max(1, C.hpMax(x))) - (C.hp(y) / Math.max(1, C.hpMax(y)))).slice(0, 1);
     }
@@ -2958,13 +4061,29 @@
       const ST = STs();
       return enemies.slice().sort((x, y) => Math.max(ST.get(y).atk, ST.get(y).matk) - Math.max(ST.get(x).atk, ST.get(x).matk)).slice(0, 1);
     }
+    if (sel === 'MOST_DEBUFFED_ENEMY') {
+      return enemies.slice().sort((x, y) => ((y.sx ? y.sx.length : 0) - (x.sx ? x.sx.length : 0))).slice(0, 1);
+    }
     if (sel === 'MARKED_ENEMIES') {
       const marked = enemies.filter(u => COMPOSABLE_ENGINE.totalMarksOn(u, W.t) > 0 || (u.sx && u.sx.some(s => s.until > W.t && ['burn', 'bleed', 'poison', 'curse'].includes(s.k))));
       return marked.length ? marked : (d ? [d] : enemies.slice(0, 1));
     }
-    if (sel === 'RICOCHET_CHAIN' || sel === 'SPLASH_NEIGHBORS' || sel === 'PIERCE_LINE') {
+    if (sel === 'PIERCE_LINE' && d && Number.isFinite(a.x) && Number.isFinite(d.x)) {
+      const dx = d.x - a.x, dy = d.y - a.y, len = Math.max(0.1, Math.hypot(dx, dy));
+      const maxLen = Math.max(len + 1.2, (mSpec && mSpec.max) || 3.4);
+      const lineTargets = enemies.filter(u => {
+        if (!Number.isFinite(u.x)) return true;
+        const ux = u.x - a.x, uy = u.y - a.y;
+        const proj = (ux * dx + uy * dy) / len;
+        if (proj < -0.2 || proj > maxLen) return false;
+        const perp = Math.abs(ux * dy - uy * dx) / len;
+        return perp <= ((mSpec && mSpec.radius) || 0.95);
+      });
+      return (lineTargets.length ? sortByDistToOrigin(lineTargets, a.x, a.y) : sortByDistToOrigin(enemies, ox, oy)).slice(0, 3);
+    }
+    if (sel === 'RICOCHET_CHAIN' || sel === 'SPLASH_NEIGHBORS' || sel === 'PIERCE_LINE' || sel === 'RANDOM_BOUNCE_3') {
       const limit = sel === 'RICOCHET_CHAIN' ? 4 : 3;
-      return enemies.slice().sort((x, y) => Math.hypot(x.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y)) - Math.hypot(y.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y))).slice(0, limit);
+      return sortByDistToOrigin(enemies, ox, oy).slice(0, limit);
     }
     return d ? [d] : enemies.slice(0, 1);
   };
@@ -3445,8 +4564,84 @@
     }
   };
 
+  /* ---------- Patch v3.0.0: Bounded Deterministic Spatial Heuristic (DSH) for Off-Map / Abstract Combats ---------- */
+  C.evaluateTacticalBoutSummary = (partyA, partyB, opts, maybeOpts) => {
+    if (partyA && partyA.sect && !Array.isArray(partyA)) {
+      partyA = partyB;
+      partyB = opts;
+      opts = maybeOpts || {};
+    } else {
+      opts = opts || {};
+    }
+    const listA = (Array.isArray(partyA) ? partyA : [partyA]).filter(Boolean);
+    const listB = (Array.isArray(partyB) ? partyB : [partyB]).filter(Boolean);
+    if (!listA.length || !listB.length) {
+      return { multA: 1.0, multB: 1.0, tacticalMultiplier: 1.0, advantageDelta: 0, summaryTh: "ปะทะตามระดับพลังตบะ", highlights: ["ปะทะตามระดับพลังตบะ"], frontlineA: 0, backlineA: 0 };
+    }
+    const SK = SKs();
+    const analyzeParty = list => {
+      let frontline = 0, backline = 0, support = 0, avgMaxRange = 0, gapClosers = 0;
+      for (const u of list) {
+        const wp = SK && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u) : { reachClass: 'SHORT_SWIFT', engageRange: 1.7 };
+        const role = C.inferCombatRole ? C.inferCombatRole(u) : 'FIGHTER';
+        const moves = SK && SK.list ? SK.list(u) : (u.skl || []);
+        let uMaxR = wp.engageRange || 1.7;
+        for (const m of moves) {
+          const sp = m.range || (SK && SK.resolveMoveSpatialSpec ? SK.resolveMoveSpatialSpec(m, u) : null);
+          if (sp && sp.max > uMaxR) uMaxR = sp.max;
+          if (sp && sp.isGapCloser) gapClosers++;
+        }
+        avgMaxRange += uMaxR;
+        if (role === 'TANK' || wp.reachClass === 'HEAVY_BREAKER' || wp.reachClass === 'LONG_POLEARM' || wp.hasDefenseTech) frontline++;
+        if (role === 'CASTER' || wp.reachClass === 'RANGED_KITE' || uMaxR >= 3.5) backline++;
+        if (role === 'HEALER') support++;
+      }
+      const n = Math.max(1, list.length);
+      return {
+        count: list.length,
+        frontlineRatio: clamp(frontline / n, 0, 1),
+        backlineRatio: clamp(backline / n, 0, 1),
+        supportRatio: clamp(support / n, 0, 1),
+        avgRange: +(avgMaxRange / n).toFixed(2),
+        hasBalancedFormation: frontline >= 1 && (backline >= 1 || support >= 1),
+        gapClosers
+      };
+    };
+
+    const stA = analyzeParty(listA);
+    const stB = analyzeParty(listB);
+    const leadA = listA[0], leadB = listB[0];
+    const tacAB = C.resolveWeaponTactics(leadA, leadB, { dist: 2.0, abstractBout: true });
+    const tacBA = C.resolveWeaponTactics(leadB, leadA, { dist: 2.0, abstractBout: true });
+
+    let delta = (stA.frontlineRatio - stB.frontlineRatio) * 0.08 +
+                (stA.backlineRatio - stB.backlineRatio) * 0.07 +
+                (stA.supportRatio - stB.supportRatio) * 0.06 +
+                (stA.hasBalancedFormation ? 0.05 : 0) - (stB.hasBalancedFormation ? 0.05 : 0);
+    delta = clamp(delta, -0.20, 0.20);
+    const multA = clamp((tacAB.dmgMult || 1) * (1 + Math.max(0, delta)), 0.80, 1.20);
+    const multB = clamp((tacBA.dmgMult || 1) * (1 + Math.max(0, -delta)), 0.80, 1.20);
+    const notes = [];
+    if (tacAB.noteTh) notes.push(tacAB.noteTh);
+    if (stA.hasBalancedFormation) notes.push("ขบวนทัพประสานแนวหน้าคุ้มกันแนวหลัง");
+    const summaryTh = notes.join(" · ") || "ปะทะแลกกระบวนท่าตามระยะ";
+    return {
+      multA: +multA.toFixed(3),
+      multB: +multB.toFixed(3),
+      tacticalMultiplier: +multA.toFixed(3),
+      advantageDelta: +delta.toFixed(3),
+      tacticalRelation: tacAB.relation || "NEUTRAL",
+      tacticalNoteTh: tacAB.noteTh || "",
+      summaryTh,
+      highlights: notes.length ? notes : [summaryTh],
+      partyStatsA: stA,
+      partyStatsB: stB
+    };
+  };
+
   COMPOSABLE_ENGINE.IMPLEMENTED_EFFECT_IDS = new Set((g.ECO && g.ECO.ALL_RUNTIME_EFFECT_IDS) || []);
   C.COMPOSABLE_ENGINE = COMPOSABLE_ENGINE;
+  C.ELEMENTAL_FUSION = COMPOSABLE_ENGINE;
 
   g.COMBAT = C;
   if (typeof module === 'object' && module.exports) module.exports = C;

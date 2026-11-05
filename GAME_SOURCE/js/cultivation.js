@@ -1046,9 +1046,11 @@
       }
     }
     if (totalGained > 0) {
-      resetNpcCache(npc);
-      npc._cultRateBase = null;
-      sys._mVer = (sys._mVer || 0) + 1;
+      if (crossedBand || totalGained >= 0.25) {
+        sys._mVer = (sys._mVer || 0) + 1;
+        resetNpcCache(npc);
+        npc._cultRateBase = null;
+      }
     }
     return { gained: +totalGained.toFixed(4), details };
   };
@@ -1224,17 +1226,20 @@
   });
 
   ELEM.resolveCompatibility = (npc, targetDef, context) => {
-    context = context || 'COMBAT_SKILL';
+    context = context || "COMBAT_SKILL";
     if (!npc || npc.foe || !npc.h) return NEUTRAL_COMPAT_RESULT;
-
-    const prof = ELEM.getProfile(targetDef);
-    if (prof.valid && (prof.mode === "EXPLICIT_NON_ELEMENTAL" || prof.mode === "ROOT_AGNOSTIC_UTILITY" || prof.primary === "NEUTRAL")) return NEUTRAL_COMPAT_RESULT;
     ELEM.ensureNpc(npc);
     const _ec = getNpcCache(npc);
     const targetKey = (typeof targetDef === "string") ? targetDef : (targetDef && (targetDef.id || targetDef.sub || targetDef.outItemId || targetDef.key || targetDef.nameTh)) || null;
-    if (targetKey) {
-      const hit = _ec.compat[targetKey + ":" + context];
+    const cacheKey = targetKey ? (targetKey + ":" + context) : null;
+    if (cacheKey) {
+      const hit = _ec.compat[cacheKey];
       if (hit) return hit;
+    }
+    const prof = ELEM.getProfile(targetDef);
+    if (prof.valid && (prof.mode === "EXPLICIT_NON_ELEMENTAL" || prof.mode === "ROOT_AGNOSTIC_UTILITY" || prof.primary === "NEUTRAL")) {
+      if (cacheKey) _ec.compat[cacheKey] = NEUTRAL_COMPAT_RESULT;
+      return NEUTRAL_COMPAT_RESULT;
     }
     if (!prof.valid) {
       return {
@@ -1989,26 +1994,29 @@
     let staticBase;
     let rc = npc._cultRateBase;
     const ritVal = npc.h.skills.ritual || 0, focVal = npc.h.intellect.focus || 0;
-    const professionSig = c.path === 'ARRAY_TALISMAN' ? ((npc.h.skills.ARRAY | 0) * 256 + (npc.h.skills.TALISMAN | 0)) : c.path === 'STRATEGY_GOVERNANCE' ? ((npc.h.skills.administration | 0) * 65536 + (npc.h.skills.diplomacy | 0) * 256 + (npc.h.skills.trading | 0)) : 0;
-    if (rc && rc.skillVer === (npc._pathSkillVersion || 0) && rc.professionSig === professionSig && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra) {
-      if (rc.rit === ritVal && rc.foc === focVal && rc.fullVal !== undefined) {
+    const professionSig = c.path === 'CRAFT_CREATION' ? Math.max(npc.h.skills.ALCHEMY || 0, npc.h.skills.FORGING || 0, npc.h.skills.ARRAY || 0, npc.h.skills.TALISMAN || 0) : c.path === 'ARRAY_TALISMAN' ? ((npc.h.skills.ARRAY | 0) * 256 + (npc.h.skills.TALISMAN | 0)) : c.path === 'STRATEGY_GOVERNANCE' ? ((npc.h.skills.administration | 0) * 65536 + (npc.h.skills.diplomacy | 0) * 256 + (npc.h.skills.trading | 0)) : 0;
+    const curSkVer = npc._pathSkillVersion || 0;
+    if (rc && rc.professionSig === professionSig && rc.day === HC.nowDay && rc.ver === npc._ver && rc.pver === (npc._passVer || 0) && rc.path === c.path && rc.sub === c.sub && rc.st === c.stage && rc.mantra === c.mantra) {
+      if (rc.skillVer === curSkVer && rc.rit === ritVal && rc.foc === focVal && rc.fullVal !== undefined) {
         staticBase = rc.fullVal;
       } else {
         const focus = 0.65 + 0.35 * HC.eff(npc, 'intellect.focus') / 100;
         const ritMult = g.MARTIAL ? g.MARTIAL.skillEffects(npc).cultivation : 1;
-        rc.rit = ritVal; rc.foc = focVal;
+        rc.skillVer = curSkVer; rc.rit = ritVal; rc.foc = focVal;
         staticBase = rc.fullVal = rc.val * ritMult * focus;
       }
     } else {
       ELEM.ensureNpc(npc);
-      const d = HC.derived(npc);
-      const talent = clamp(d.cultivationTalent / 62, 0.35, 2.4);
       const root = HC.ROOT_BY_ID[npc.h.root.grade] || HC.ROOT_BY_ID.MORTAL;
+      const cultTalent = (npc._d && npc._d.day === HC.nowDay && npc._d.ver === npc._ver)
+        ? npc._d.cultivationTalent
+        : clamp((HC.eff(npc, "aptitudes.cultivation") * 0.45 + HC.eff(npc, "intellect.comprehension") * 0.15 + HC.eff(npc, "physiology.meridianCapacity") * 0.15 + HC.eff(npc, "physiology.spiritualFoundation") * 0.15 + HC.eff(npc, "physiology.meridianIntegrity") * 0.1) * (0.78 + root.tier * 0.1), 0, 130);
+      const talent = clamp(cultTalent / 62, 0.35, 2.4);
       let base;
       if (c.path === 'XIAN') base = 1.0 * talent * root.cultivationMult;
       else if (c.path === 'BODY') base = 0.9 * clamp((HC.eff(npc, 'physiology.strength') + HC.eff(npc, 'physiology.toughness') + HC.eff(npc, 'physiology.endurance') + HC.eff(npc, 'aptitudes.cultivation')) / 4 / 55, 0.35, 2.2) * (0.8 + 0.4 * root.bodySynergy);
       else if (c.path === 'DEMON') {
-        const demonApt = (d.cultivationTalent * 0.45 + HC.eff(npc, 'personality.ambition') * 0.25 + HC.eff(npc, 'personality.aggression') * 0.15 + Math.max(HC.eff(npc, 'affinities.YIN_SHADOW'), HC.eff(npc, 'affinities.POISON')) * 0.15) / 55;
+        const demonApt = (cultTalent * 0.45 + HC.eff(npc, 'personality.ambition') * 0.25 + HC.eff(npc, 'personality.aggression') * 0.15 + Math.max(HC.eff(npc, 'affinities.YIN_SHADOW'), HC.eff(npc, 'affinities.POISON')) * 0.15) / 55;
         base = 1.05 * clamp(demonApt, 0.4, 2.45) * (0.85 + 0.2 * root.cultivationMult);
       } else if (c.path === 'HEART_SOUL') {
         const soulApt = (HC.eff(npc, 'intellect.comprehension') * 0.35 + HC.eff(npc, 'intellect.willpower') * 0.25 + HC.eff(npc, 'personality.composure') * 0.25 + HC.eff(npc, 'physiology.spiritualFoundation') * 0.15) / 54;
@@ -2063,8 +2071,12 @@
       npc._cultRateBase = { day: HC.nowDay, ver: npc._ver, pver: npc._passVer || 0, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, root: npc.h.root, elemRateFactor, skillVer: npc._pathSkillVersion || 0, professionSig, val: rawStatic, rit: ritVal, foc: focVal, fullVal: staticBase };
     }
     const rest = npc.h.state.rest < 30 ? 0.6 : npc.h.state.rest < 55 ? 0.85 : 1;
-    let toxic, dev;
     const hd = npc.h.state.heartDemon || 0;
+    rc = npc._cultRateBase;
+    if (rc && !(npc.buffs && npc.buffs.length > 0) && rc.lastRest === rest && rc.lastTox === c.toxic && rc.lastHd === hd && rc.lastPillT === (c.pillT > 0 ? c.pillBoost : -1) && (c.path !== "HEART_SOUL" || rc.lastStress === (npc.h.state.stress || 0)) && rc.dynMult !== undefined) {
+      return staticBase * rc.dynMult * (env || 1);
+    }
+    let toxic, dev;
     if (c.path === 'DEMON') {
       toxic = 1 - clamp(c.toxic / (c.sub === 'VENOM_GU_SOVEREIGN' ? 360 : 240), 0, 0.28);
       dev = hd <= 60 ? (1 + (hd / 60) * 0.22) : Math.max(0.55, 1.22 - ((hd - 60) / 40) * 0.65);
@@ -2092,7 +2104,11 @@
     const compId = npc.companionId || (npc.h && npc.h.companionId);
     const compMult = compId ? (1 + (Number.isFinite(npc.companionSynergyBonus) ? npc.companionSynergyBonus : 0.25)) : 1;
     const bloodMult = (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.cultRateBonus)) ? (1 + npc.bloodlineTrait.cultRateBonus) : 1;
-    return staticBase * rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * (env || 1);
+    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult;
+    if (rc && !(npc.buffs && npc.buffs.length > 0)) {
+      rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.dynMult = dynMult;
+    }
+    return staticBase * dynMult * (env || 1);
   };
   CULT.hasActiveCompanionInSect = (npc, W) => {
     if (!npc) return false;
@@ -2123,7 +2139,7 @@
 
     const tr = c.track;
     if (tr) {
-      const trTh = CULT.trackThreshold(npc);
+      const trTh = tr.ordinal >= 9 ? Infinity : (TRACK_THRESH_CURVE[tr.ordinal - 1] || 150000);
       if (trTh !== Infinity) {
         let trPts = pts;
         if (tr.prog >= trTh) trPts *= 0.15;
@@ -2677,7 +2693,13 @@
     return def.realms[(ordinal || 1) - 1] || null;
   };
 
+  const TRACK_THRESH_CURVE = [200, 520, 1350, 3400, 8500, 21000, 50000, 120000];
   CULT.trackThreshold = (npcOrSub, ord) => {
+    if (typeof npcOrSub === 'object' && npcOrSub !== null && ord == null) {
+      const tr = npcOrSub.cult && npcOrSub.cult.track;
+      if (!tr || tr.ordinal >= 9) return Infinity;
+      return TRACK_THRESH_CURVE[tr.ordinal - 1] || 150000;
+    }
     let subPath, ordinal;
     if (typeof npcOrSub === 'object' && npcOrSub !== null) {
       const tr = CULT.trackOf(npcOrSub);
@@ -2691,8 +2713,7 @@
     const def = CULT.trackDef(subPath);
     if (!def || !def.realms) return Infinity;
     if (ordinal >= def.realms.length) return Infinity;
-    const threshCurve = [200, 520, 1350, 3400, 8500, 21000, 50000, 120000];
-    return threshCurve[ordinal - 1] || 150000;
+    return TRACK_THRESH_CURVE[ordinal - 1] || 150000;
   };
 
   CULT.trackReady = npc => {

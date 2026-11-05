@@ -47,7 +47,7 @@ for (const p of Object.keys(CULT.PATHS)) {
     assert(coveredSubpaths.has(s.id), `Subpath ${s.id} not covered by any resonance set!`);
   }
 }
-assert.strictEqual(totalKnownSubpaths, 96, 'Total subpaths in system must be 96');
+assert.strictEqual(totalKnownSubpaths, 132, 'Total subpaths in system must be 132');
 console.log('  PASS: 31 resonance sets verified covering all 96 subpaths');
 
 // Test evaluateResonanceSet functionality

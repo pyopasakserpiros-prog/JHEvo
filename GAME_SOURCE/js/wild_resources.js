@@ -304,7 +304,7 @@
     });
     if (!candidates.length) return null;
 
-    const isWeak = CULT.worldRank(n) <= 1 || CULT.power(n) < 100;
+    const isWeak = beginner;
     // Cultivation beginners prioritize safe work, independently of sect title.
     const scored = candidates.map(node => {
       const dist = Math.hypot(n.x - node.x, n.y - node.y);

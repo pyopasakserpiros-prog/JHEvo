@@ -44,7 +44,7 @@ console.log('=== Running Patch v2.0.8 + Support/Heal/Buff Path Expansion Suite =
     const pDef = CULT.PATHS[pid];
     assert.strictEqual(pDef.maxStage, 8, `${pid} must have maxStage 8`);
     assert.strictEqual(pDef.stages.length, 8, `${pid} must have 8 stages`);
-    if (original8StagePaths.has(pid)) assert.strictEqual(pDef.subPaths.length, 7, `${pid} must retain 7 original subpaths`);
+    if (original8StagePaths.has(pid)) assert.strictEqual(pDef.subPaths.filter(s => !s.v234).length, 7, `${pid} must retain 7 original subpaths`);
     assert(pDef.subPaths.length > 0, `${pid} must have subpaths`);
     for (const sp of pDef.subPaths) {
       assert(MARTIAL.PROFILES[sp.id], `MARTIAL.PROFILES[${sp.id}] must exist`);

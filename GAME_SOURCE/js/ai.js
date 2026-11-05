@@ -12,7 +12,105 @@
   const isNight = h => h >= 21 || h < 5;
   const E = (n, p) => HC.eff(n, p);
   function ScoreAcc() { this.u = 0; this.why = []; } ScoreAcc.prototype.add = function(l, v) { this.u += v; if (Math.abs(v) > 0.06) this.why.push([l, Math.round(v * 100) / 100]); return this; }; function Sc() { return new ScoreAcc(); }
-  if (!HC._fastTrainWrapped) { HC._fastTrainWrapped = true; const _tb = HC.trainBody, _tm = HC.trainMind, _gw = HC.gainWisdom; HC.trainBody = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.physiology[id], g2 = _tb(npc, id, load); if ((x0 | 0) === (npc.h.physiology[id] | 0)) { if (id === 'vitality' || id === 'toughness' || id === 'strength') { if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } const nhp = d0 ? Math.round(70 + HC.eff(npc, 'physiology.vitality') * 1.1 + HC.eff(npc, 'physiology.toughness') * 0.5 + HC.eff(npc, 'physiology.strength') * 0.2) : -1; if (d0 && nhp === d0.hpMax) { npc._ver = v0; npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } else { npc._c = null; npc._d = null; npc._mDer = null; npc._hpMaxCache = null; npc._nd = null; } } else { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['physiology.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } } else if (id === 'vitality' || id === 'toughness' || id === 'strength') { npc._mDer = null; npc._hpMaxCache = null; npc._nd = null; } return g2; }; HC.trainMind = (npc, id, load) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect[id], g2 = _tm(npc, id, load); if ((x0 | 0) === (npc.h.intellect[id] | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.' + id]; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } return g2; }; HC.gainWisdom = (npc, amt) => { const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, x0 = npc.h.intellect.wisdom; _gw(npc, amt); if ((x0 | 0) === (npc.h.intellect.wisdom | 0)) { npc._ver = v0; if (c0) { npc._c = c0; delete c0.v['intellect.wisdom']; } if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0; } }; }
+  if (!HC._fastTrainWrapped) {
+    HC._fastTrainWrapped = true;
+    const _tb = HC.trainBody, _tm = HC.trainMind, _gw = HC.gainWisdom;
+    const _syncVer = (npc, id) => {
+      const v = npc._ver;
+      if (npc._pspCache) npc._pspCache.ver = v;
+      if (npc._skRateCache) npc._skRateCache.ver = v;
+      if (npc._gsc) npc._gsc.ver = v;
+      if (npc._topInt) npc._topInt.ver = v;
+      if (npc._bnInspectCache) npc._bnInspectCache.ver = v;
+      if (npc._retrainPickCache) npc._retrainPickCache.ver = v;
+      if (npc._cogModCtx) npc._cogModCtx.ver = v;
+      if (npc._mcCache) npc._mcCache.ver = v;
+      if (npc._dwVer !== undefined) npc._dwVer = v;
+      if (npc._qiMaxCache && id !== 'meridianCapacity' && id !== 'spiritualFoundation') npc._qiMaxCache.ver = v;
+      if (npc._cultRateBase && npc.cult && npc.cult.path !== 'BODY' && npc.cult.path !== 'BEAST_SOVEREIGN' && id !== 'dexterity' && id !== 'meridianCapacity' && id !== 'spiritualFoundation' && id !== 'meridianIntegrity') npc._cultRateBase.ver = v;
+    };
+    HC.trainBody = (npc, id, load) => {
+      const isHp = id === 'vitality' || id === 'toughness' || id === 'strength';
+      const hp0 = isHp ? Math.round(70 + HC.eff(npc, 'physiology.vitality') * 1.1 + HC.eff(npc, 'physiology.toughness') * 0.5 + HC.eff(npc, 'physiology.strength') * 0.2) : 0;
+      const vit0 = id === 'vitality' ? (HC.eff(npc, 'physiology.vitality') | 0) : 0;
+      const tuf0 = id === 'toughness' ? (npc.h.physiology.toughness | 0) : 0;
+      const str0 = id === 'strength' ? (npc.h.physiology.strength | 0) : 0;
+      const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, nd0 = npc._nd, hpCache0 = npc._hpMaxCache, mDer0 = npc._mDer, x0 = npc.h.physiology[id];
+      const g2 = _tb(npc, id, load);
+      if (c0 && c0.day === HC.nowDay) { c0.ver = npc._ver; delete c0.v['physiology.' + id]; npc._c = c0; }
+      const nhp = isHp ? Math.round(70 + HC.eff(npc, 'physiology.vitality') * 1.1 + HC.eff(npc, 'physiology.toughness') * 0.5 + HC.eff(npc, 'physiology.strength') * 0.2) : 0;
+      const hpSame = !isHp || (nhp === hp0);
+      if ((x0 | 0) === (npc.h.physiology[id] | 0) && hpSame) {
+        npc._ver = v0;
+        if (npc._c) npc._c.ver = v0;
+        if (d0 && d0.ver === v0) npc._d = d0;
+        if (cs0 && cs0.ver === v0) npc._cs = cs0;
+        if (csb0 && csb0.ver === v0) npc._csBase = csb0;
+        if (hpCache0 && hpCache0.ver === v0) npc._hpMaxCache = hpCache0;
+        if (mDer0 && mDer0.ver === v0 && id !== 'speed' && id !== 'agility') npc._mDer = mDer0;
+        if (nd0 && nd0.ver === v0 && id !== 'recoveryRate') npc._nd = nd0;
+      } else {
+        _syncVer(npc, id);
+        if (d0 && d0.day === HC.nowDay && d0.ver === v0 && id !== 'meridianCapacity' && id !== 'spiritualFoundation' && id !== 'meridianIntegrity') {
+          if (isHp) { d0.hpMax = nhp; if (id === 'strength') d0.carry = 20 + HC.eff(npc, 'physiology.strength') * 0.8; }
+          if (id === 'speed' || id === 'agility') d0.walkSpeed = 0.75 + (HC.eff(npc, 'physiology.speed') * 0.7 + HC.eff(npc, 'physiology.agility') * 0.3) / 100 * 0.9;
+          if (id === 'strength' || id === 'speed' || id === 'agility' || id === 'endurance' || id === 'toughness' || id === 'reflex') {
+            d0.physicalIndex = (HC.eff(npc, 'physiology.strength') + HC.eff(npc, 'physiology.speed') + HC.eff(npc, 'physiology.agility') + HC.eff(npc, 'physiology.endurance') + HC.eff(npc, 'physiology.toughness') + HC.eff(npc, 'physiology.reflex')) / 6;
+          }
+          d0.ver = npc._ver; npc._d = d0;
+        }
+        if (hpSame && hpCache0 && hpCache0.day === HC.nowDay && hpCache0.ver === v0) { hpCache0.ver = npc._ver; npc._hpMaxCache = hpCache0; }
+        else npc._hpMaxCache = null;
+        if (csb0 && csb0.day === HC.nowDay && csb0.ver === v0 && (id === 'dexterity' || id === 'immunity' || id === 'recoveryRate' || id === 'balance' || id === 'flexibility' || id === 'painTolerance' || id === 'thermalTolerance')) { csb0.ver = npc._ver; npc._csBase = csb0; if (cs0 && cs0.ver === v0) { cs0.ver = npc._ver; npc._cs = cs0; } }
+        if (hpSame && mDer0 && mDer0.day === HC.nowDay && mDer0.ver === v0 && id !== 'speed' && id !== 'agility') mDer0.ver = npc._ver;
+        else npc._mDer = null;
+        if (nd0 && nd0.day === HC.nowDay && nd0.ver === v0 && id !== 'recoveryRate') {
+          const vitSame = id !== 'vitality' || ((HC.eff(npc, 'physiology.vitality') | 0) === vit0);
+          const tufSame = id !== 'toughness' || ((npc.h.physiology.toughness | 0) === tuf0);
+          const strSame = id !== 'strength' || ((npc.h.physiology.strength | 0) === str0);
+          if (hpSame && vitSame && tufSame && strSame) nd0.ver = npc._ver;
+          else npc._nd = null;
+        } else {
+          npc._nd = null;
+        }
+      }
+      return g2;
+    };
+    HC.trainMind = (npc, id, load) => {
+      const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, nd0 = npc._nd, x0 = npc.h.intellect[id];
+      const g2 = _tm(npc, id, load);
+      if ((x0 | 0) === (npc.h.intellect[id] | 0)) {
+        npc._ver = v0;
+        if (c0) { c0.ver = v0; npc._c = c0; delete c0.v['intellect.' + id]; }
+        if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0;
+      } else {
+        if (c0 && c0.day === HC.nowDay) { c0.ver = npc._ver; delete c0.v['intellect.' + id]; npc._c = c0; }
+        _syncVer(npc, id);
+        if (nd0 && nd0.day === HC.nowDay && nd0.ver === v0) nd0.ver = npc._ver;
+        if (npc._hpMaxCache && npc._hpMaxCache.ver === v0) npc._hpMaxCache.ver = npc._ver;
+        if (npc._mDer && npc._mDer.ver === v0) npc._mDer.ver = npc._ver;
+        if (csb0 && csb0.day === HC.nowDay && csb0.ver === v0 && id !== 'comprehension' && id !== 'willpower' && id !== 'perceptiveness' && id !== 'focus' && id !== 'intuition') { csb0.ver = npc._ver; npc._csBase = csb0; if (cs0 && cs0.ver === v0) { cs0.ver = npc._ver; npc._cs = cs0; } }
+      }
+      return g2;
+    };
+    HC.gainWisdom = (npc, amt) => {
+      const v0 = npc._ver || 0, c0 = npc._c, d0 = npc._d, cs0 = npc._cs, csb0 = npc._csBase, nd0 = npc._nd, x0 = npc.h.intellect.wisdom;
+      _gw(npc, amt);
+      if ((x0 | 0) === (npc.h.intellect.wisdom | 0)) {
+        npc._ver = v0;
+        if (c0) { c0.ver = v0; npc._c = c0; delete c0.v['intellect.wisdom']; }
+        if (d0) npc._d = d0; if (cs0) npc._cs = cs0; if (csb0) npc._csBase = csb0;
+      } else {
+        if (c0 && c0.day === HC.nowDay) { c0.ver = npc._ver; delete c0.v['intellect.wisdom']; npc._c = c0; }
+        if (d0 && d0.day === HC.nowDay) { d0.ver = npc._ver; npc._d = d0; }
+        _syncVer(npc, 'wisdom');
+        if (nd0 && nd0.day === HC.nowDay && nd0.ver === v0) nd0.ver = npc._ver;
+        if (npc._hpMaxCache && npc._hpMaxCache.ver === v0) npc._hpMaxCache.ver = npc._ver;
+        if (npc._mDer && npc._mDer.ver === v0) npc._mDer.ver = npc._ver;
+        if (csb0 && csb0.day === HC.nowDay && csb0.ver === v0) { csb0.ver = npc._ver; npc._csBase = csb0; if (cs0 && cs0.ver === v0) { cs0.ver = npc._ver; npc._cs = cs0; } }
+      }
+    };
+  }
   const VALUE_TH = { familyClan: 'พวกพ้อง', sectDuty: 'หน้าที่ต่อสำนัก', martialPeak: 'วิถียุทธ์', knowledgeCraft: 'ความรู้', freedom: 'อิสรภาพ', wealthResource: 'ทรัพย์', powerStatus: 'อำนาจ', honorLegacy: 'เกียรติยศ' };
   AI.VALUE_TH = VALUE_TH;
   function valueTerm(n, vf, S) {
@@ -107,12 +205,14 @@
   };
   AI.walkSpeed = (W, n) => {
     const injLen = n.inj ? n.inj.length : 0, bLen = n.buffs ? n.buffs.length : 0, sxLen = n.sx ? n.sx.length : 0, cSt = n.cult ? n.cult.stage : 0, pVer = n._passVer || 0, bLast = bLen ? n.buffs[bLen - 1] : null, sxLast = sxLen ? n.sx[sxLen - 1] : null;
+    const p0 = n.h.physiology, spd0 = p0.speed | 0, agi0 = p0.agility | 0, mLen0 = n.mods ? n.mods.length : 0, eqW0 = n.equip && n.equip.WEAPON, eqA0 = n.equip && n.equip.ARMOR, eqX0 = n.equip && n.equip.ACCESSORY;
     let wb = n._wsBase;
-    if (!wb || wb.ver !== n._ver || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.bLast !== bLast || wb.sxLen !== sxLen || wb.sxLast !== sxLast || (sxLen > 0 && W.t >= (wb.sxExp || 0))) {
-      const d = (g.MARTIAL && g.MARTIAL.derived) ? g.MARTIAL.derived(n) : HC.derived(n);
+    if (!wb || wb.spd !== spd0 || wb.agi !== agi0 || wb.mLen !== mLen0 || wb.eqW !== eqW0 || wb.eqA !== eqA0 || wb.eqX !== eqX0 || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.bLast !== bLast || wb.sxLen !== sxLen || wb.sxLast !== sxLast || (sxLen > 0 && W.t >= (wb.sxExp || 0))) {
+      const progB = (g.MARTIAL && g.MARTIAL.progression) ? g.MARTIAL.progression(n).body : {};
+      const baseWs = (0.75 + (E(n, "physiology.speed") * 0.7 + E(n, "physiology.agility") * 0.3) / 100 * 0.9) + ((progB.speed || 0) * 0.7 + (progB.agility || 0) * 0.3) / 100 * 0.9;
       let sxExp = Infinity;
       if (sxLen > 0) { for (let i = 0; i < sxLen; i++) { const u = n.sx[i] && n.sx[i].until; if (u > W.t && u < sxExp) sxExp = u; } }
-      wb = n._wsBase = { ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, bLast, sxLen, sxLast, sxExp, v: d.walkSpeed * CULT.speedMult(n) };
+      wb = n._wsBase = { spd: spd0, agi: agi0, mLen: mLen0, eqW: eqW0, eqA: eqA0, eqX: eqX0, ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, bLast, sxLen, sxLast, sxExp, v: baseWs * CULT.speedMult(n) };
     }
     let v = wb.v * MAP.speedAt(W.map, n.x, n.y);
     if (injLen) v *= 0.75; if (n.h.state.energy < 20) v *= 0.8; if (n.run) v *= 1.5;
@@ -1138,7 +1238,7 @@
   }
   AI.compat = (a, b) => {
     let cm = a._compat;
-    const day = HC.nowDay, va = a._ver, vb = b._ver;
+    const day = HC.nowDay, pa = a.h.personality, pb = b.h.personality, va = (a.mods ? a.mods.length : 0) + ((pa.integrity + pa.empathy + pa.trustfulness + pa.aggression + pa.pride) * 1000 | 0), vb = (b.mods ? b.mods.length : 0) + ((pb.integrity + pb.empathy + pb.trustfulness + pb.aggression + pb.pride) * 1000 | 0);
     if (cm && b.id) {
       const hit = cm[b.id];
       if (hit && hit.day === day && hit.va === va && hit.vb === vb) return hit.v;
@@ -1567,25 +1667,26 @@
   /* ความต้องการ + ผลคงที่ของร่างกายทุกนาที */
   function getNeedsRates(n) {
     const nd = n._nd, c = n.cult, p = n.h.physiology;
-    const cStage = c ? c.stage : 0;
-    const cTr = c && c.track ? c.track.ordinal : 0;
-    const passVer = c && c.techs ? c.techs.length : 0;
-    const eqA = n.equip ? n.equip.ARMOR : null;
-    const vit = p.vitality | 0, tuf = p.toughness | 0, str = p.strength | 0;
-    if (nd && nd.day === HC.nowDay && nd.ver === n._ver && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.vit === vit && nd.tuf === tuf && nd.str === str) return nd;
+    const cStage = c ? c.stage : 0, cTr = c && c.track ? c.track.ordinal : 0, passVer = (n._passVer || 0) + (c && c.techs ? c.techs.length * 1024 : 0), skVer = n._cbSkillVer || 0, eqA = n.equip ? n.equip.ARMOR : null, bLen = n.buffs ? n.buffs.length : 0, bLast = bLen ? n.buffs[bLen - 1] : null;
+    if (nd && nd.ver === n._ver && nd.skVer === skVer && nd.day === HC.nowDay && nd.cStage === cStage && nd.cTr === cTr && nd.passVer === passVer && nd.eqA === eqA && nd.bLen === bLen && nd.bLast === bLast) return nd;
+    const vit = E(n, 'physiology.vitality') | 0, tuf = p.toughness | 0, str = p.strength | 0, mLen = n.mods ? n.mods.length : 0;
     const eqStage = (g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (cStage || 0);
     const next = {
       day: HC.nowDay,
       ver: n._ver,
+      skVer,
       cStage,
       cTr,
       eqStage,
       passVer,
       eqA,
+      bLen,
+      bLast,
+      mLen,
       vit,
       tuf,
       str,
-      met: 0.82 + (100 - E(n, 'physiology.vitality')) / 300 + (cStage ? 0.06 * cStage : 0),
+      met: 0.82 + (100 - (E(n, 'physiology.vitality') | 0)) / 300 + (cStage ? 0.06 * cStage : 0),
       socD: 0.016 * (0.5 + E(n, 'temperament.sociability') / 100),
       novD: 0.008 * (0.5 + E(n, 'temperament.sensationSeeking') / 100),
       optBase: 8 + (E(n, 'temperament.optimism') - 50) * 0.35,
@@ -1642,15 +1743,15 @@
   };
 
   AI.interrupt = (W, n) => { // ตรวจเหตุขัดจังหวะ (ทุก 5 นาที)
-    const s = n.h.state, id = n.act.id;
+    const s = n.h.state, id = n.act.id, cool = n.cool;
     if (n.jail && n.jail > W.t && id !== 'sentence') { AI.interruptFor(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [['ถูกคุมขัง', 9]] }; return true; }
     if (id === 'breakthrough' || id === 'fight' || id === 'sentence') return false;
     const hm = n._nd ? n._nd.hpMax : CULT.hpMax(n);
-    if (s.satiety < (id === 'sleep' ? 8 : 24) && id !== 'eat' && ECO.count(W, 'meal') > 0) return true;
+    if (s.satiety < (id === 'sleep' ? 8 : 24) && id !== 'eat' && !(cool && cool.eat > W.t) && ECO.count(W, 'meal') > 0) { if (AI.freeStation(W, n, 'eat', 'canteen')) return true; if (g.SECT && g.SECT.recordFacilityDemand) g.SECT.recordFacilityDemand(W, 'eat', 'failed_station', n); if (cool) cool.eat = W.t + 25; }
     const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : 0);
     if (id === 'sleep' && s.rest < (eqStage >= 1 ? 50 : 70) && isNight(hourOf(W))) return false;
-    if (s.hp < hm * 0.35 && id !== 'heal' && id !== 'sleep' && id !== 'eat') return true;
-    if (s.rest < 6 && id !== 'sleep' && id !== 'eat' && id !== 'heal') return true;
+    if (s.hp < hm * 0.35 && id !== 'heal' && id !== 'sleep' && id !== 'eat' && !(cool && cool.heal > W.t)) { if (AI.freeStation(W, n, 'patient', 'infirmary')) return true; if (g.SECT && g.SECT.recordFacilityDemand) g.SECT.recordFacilityDemand(W, 'heal', 'failed_station', n); if (cool) cool.heal = W.t + 25; }
+    if (s.rest < 6 && id !== 'sleep' && id !== 'eat' && id !== 'heal' && !(cool && cool.sleep > W.t)) return true;
     if (W.sect.festival && W.sect.festival.until > W.t && id !== 'festival' && id !== 'eat' && id !== 'sleep' && W.sect.festival.startAt === W.t) return true;
     return false;
   };

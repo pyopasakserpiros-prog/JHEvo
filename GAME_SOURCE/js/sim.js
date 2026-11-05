@@ -4,7 +4,7 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.35', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '3.0.0', SAVE_SCHEMA_VERSION: '3.0.0-tactical-chronicle', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
 
@@ -287,7 +287,32 @@
     SIM.dailyUpdate(W, true);
     return W;
   };
-  SIM.register = (W, n) => { n.n = ++W.seqN; W.npcs.push(n); W.byId[n.id] = n; return n; };
+  SIM.snapshotPerson = (W, n, statusOverride) => {
+    if (!W || !W.sect || !n || !n.id || !n.h || !n.h.name) return null;
+    if (!W.sect.historicalPeople || typeof W.sect.historicalPeople !== "object") W.sect.historicalPeople = {};
+    const prev = W.sect.historicalPeople[n.id] || {};
+    const fullName = HC.fullName ? HC.fullName(n) : ((n.h.name.surname || n.h.name.family || "") + (n.h.name.given || ""));
+    const roleTh = (g.SECT && g.SECT.title) ? g.SECT.title(n) : (prev.roleTh || "ศิษย์สำนัก");
+    const statusTh = statusOverride || (n.dead ? ("เสียชีวิตแล้ว" + (n.deathWhy ? " (" + n.deathWhy + ")" : "")) : n.exiled ? "ออกจากสำนักแล้ว" : (prev.statusTh || "สมาชิกสำนัก"));
+    const snap = {
+      id: n.id,
+      given: n.h.name.given || prev.given || n.id,
+      surname: n.h.name.surname || n.h.name.family || prev.surname || "",
+      fullName: fullName || prev.fullName || n.id,
+      formerNames: Array.isArray(n.h.name.formerNames) ? n.h.name.formerNames.slice() : (prev.formerNames || []),
+      roleTh,
+      path: n.cult ? n.cult.path : (prev.path || null),
+      sub: n.cult ? n.cult.sub : (prev.sub || null),
+      stage: n.cult ? n.cult.stage : (prev.stage || 0),
+      dead: !!n.dead,
+      exiled: !!n.exiled,
+      deathDay: n.deathDay != null ? n.deathDay : (prev.deathDay != null ? prev.deathDay : null),
+      statusTh
+    };
+    W.sect.historicalPeople[n.id] = snap;
+    return snap;
+  };
+  SIM.register = (W, n) => { n.n = ++W.seqN; W.npcs.push(n); W.byId[n.id] = n; SIM.snapshotPerson(W, n); return n; };
   SIM.addNpc = (W, o) => {
     o = o || {};
     const id = 'n' + (W.seqN + 1) + '_' + W.rng.int(100, 999);
@@ -337,20 +362,36 @@
 
   SIM.log = (W, type, text, ids, meta) => {
     const cleanIds = (ids || []).filter(Boolean);
-    const e = { id: ++W.logSeq, t: W.t, type, text, ids: cleanIds };
-    if (meta && typeof meta === 'object') {
+    const names = cleanIds.map(id => {
+      const n = W.byId && W.byId[id];
+      if (n) {
+        const hp0 = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+        if (!hp0 || hp0.stage !== (n.cult ? n.cult.stage : 0) || hp0.dead !== !!n.dead || hp0.exiled !== !!n.exiled) SIM.snapshotPerson(W, n);
+        return HC.fullName(n);
+      }
+      const hp = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+      return hp ? hp.fullName : "";
+    });
+    const e = { id: ++W.logSeq, t: W.t, type, text, ids: cleanIds, names };
+    if (meta && typeof meta === "object") {
       if (meta.txKind) e.txKind = meta.txKind;
       e.meta = Object.assign({}, meta);
     }
-    const majorType = ['death','succession','marriage','recruit','tournament','expel','legacy'].includes(type) ||
-      (type === 'breakthrough' && /ทะลวง.*(สำเร็จ|ล้มเหลว)|กลืนกิน/.test(text)) ||
-      (type === 'raid' && /(ต้านการบุก|ถูกบุกและปล้น)/.test(text)) ||
-      (['research','craft','heal','finance','decision'].includes(type) && /☯️|🌌|🪷|🗡️|📜|🐪|🔨/.test(text));
+    const majorType = ["death","succession","marriage","recruit","tournament","expel","legacy","challenge"].includes(type) ||
+      (type === "duel" && (meta && meta.combatSummary)) ||
+      (type === "breakthrough" && /ทะลวง.*(สำเร็จ|ล้มเหลว)|กลืนกิน/.test(text)) ||
+      (type === "raid" && /(ต้านการบุก|ถูกบุกและปล้น|สังหารผู้บุกรุก|ตีฝ่า)/.test(text)) ||
+      (["research","craft","heal","finance","decision"].includes(type) && /☯️|🌌|🪷|🗡️|📜|🐪|🔨/.test(text));
     if (majorType && W.sect) {
       if (!Array.isArray(W.sect.sectChronicle)) W.sect.sectChronicle = [];
-      W.sect.sectChronicle.push({id:e.id, t:e.t, type:e.type, text:e.text, ids:cleanIds.slice(),
-        names:cleanIds.map(id => { const n=W.byId && W.byId[id]; return n ? HC.fullName(n) : ''; })});
-      if (W.sect.sectChronicle.length > 600) W.sect.sectChronicle.splice(0, W.sect.sectChronicle.length - 600);
+      const eventKey = (meta && meta.eventKey) || (type + ":" + text);
+      const last = W.sect.sectChronicle[W.sect.sectChronicle.length - 1];
+      if (!last || last.eventKey !== eventKey || Math.abs((W.t || 0) - (last.t || 0)) > 5) {
+        const chronItem = { id: e.id, t: e.t, type: e.type, text: e.text, ids: cleanIds.slice(), names: names.slice(), eventKey };
+        if (meta && meta.combatSummary) chronItem.combatSummary = meta.combatSummary;
+        W.sect.sectChronicle.push(chronItem);
+        if (W.sect.sectChronicle.length > 600) W.sect.sectChronicle.splice(0, W.sect.sectChronicle.length - 600);
+      }
     }
     W.logs.push(e); if (W.logs.length > 1500) W.logs.splice(0, 400);
     if (W.onLog) W.onLog(e);
@@ -398,7 +439,7 @@
   SIM.retire = (W, n) => {
     AI.cancelAct(W, n); AI.freeBed(W, n); if (n.post) { W.sect.posts[n.post] = null; n.post = null; }
     if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n);
-    const i = W.npcs.indexOf(n); if (i >= 0) W.npcs.splice(i, 1); W.gone.push(n.id);
+    SIM.snapshotPerson(W, n, n.exiled ? "ถูกขับไล่/ออกจากสำนัก" : "ออกจากสำนักแล้ว"); const i = W.npcs.indexOf(n); if (i >= 0) W.npcs.splice(i, 1); W.gone.push(n.id);
     if (n.id === W.sect.deputyId) W.sect.deputyId = null;
     if (g.CPE && g.CPE.retireNpc) g.CPE.retireNpc(W, n, 'ออกจากสำนัก');
     for (const k of Object.keys(n.equip || {})) { if (n.equip[k]) W.sect.gear.push(n.equip[k]); } n.equip = {};
@@ -563,12 +604,44 @@
   /* ---------- รายวัน ---------- */
   SIM.dailyUpdate = (W, silent) => {
     const rng = W.rng; const cal = SIM.calendar(W.t); W.season = cal.season; HC.nowDay = W.day;
+    for (let i = 0; i < W.npcs.length; i++) {
+      const n = W.npcs[i];
+      if (!n || n.dead) continue;
+      if (n._dwVer === n._ver) n._dwDay = W.day;
+      const c = n._c;
+      if (c && c.ver === n._ver && (!n.mods || !n.mods.length || !n.mods.some(m => m.until === W.day))) {
+        const oldBio = c.bio, newBio = HC.bioAge(n);
+        c.day = W.day; c.bio = newBio;
+        if (oldBio >= 22 && oldBio <= 30 && newBio >= 22 && newBio <= 30) {
+          delete c.v["intellect.wisdom"];
+          if (n._d && n._d.ver === n._ver) n._d.day = W.day;
+          if (n._csBase && n._csBase.ver === n._ver) n._csBase.day = W.day;
+          if (n._nd && n._nd.ver === n._ver) n._nd.day = W.day;
+          if (n._wsBase && n._wsBase.ver === n._ver) n._wsBase.day = W.day;
+          if (n._skRateCache && n._skRateCache.ver === n._ver) n._skRateCache.day = W.day;
+          if (n._cultRateBase && n._cultRateBase.ver === n._ver && (!n.cult || n.cult.path !== "KARMA_SAMSARA")) n._cultRateBase.day = W.day;
+          if (n._mDer && n._mDer.ver === n._ver) n._mDer.day = W.day;
+          if (n._hpMaxCache && n._hpMaxCache.ver === n._ver) n._hpMaxCache.day = W.day;
+        } else if (oldBio >= 18 && oldBio <= 30 && newBio >= 18 && newBio <= 30) {
+          for (const k in c.v) {
+            if (k.charCodeAt(0) === 105 && k.startsWith("intellect.")) delete c.v[k];
+          }
+          if (n._nd && n._nd.ver === n._ver) n._nd.day = W.day;
+          if (n._wsBase && n._wsBase.ver === n._ver) n._wsBase.day = W.day;
+          if (n._hpMaxCache && n._hpMaxCache.ver === n._ver) n._hpMaxCache.day = W.day;
+        } else {
+          for (const k in c.v) {
+            if (k.charCodeAt(0) === 112 && k.startsWith("physiology.") || k.charCodeAt(0) === 105 && k.startsWith("intellect.")) delete c.v[k];
+          }
+        }
+      }
+    }
     const wr = rng.next(); const ss = cal.season;
     W.weather = { kind: ss === 3 ? (wr < 0.35 ? 'snow' : wr < 0.65 ? 'cloud' : 'clear') : ss === 0 ? (wr < 0.35 ? 'rain' : wr < 0.65 ? 'cloud' : 'clear') : ss === 1 ? (wr < 0.2 ? 'rain' : wr < 0.4 ? 'cloud' : 'clear') : (wr < 0.25 ? 'fog' : wr < 0.4 ? 'rain' : wr < 0.65 ? 'cloud' : 'clear'), t: W.t };
     W.avgMood = W.npcs.length ? W.npcs.reduce((s, n) => s + (n.dead ? 0 : n.h.state.mood), 0) / Math.max(1, W.npcs.filter(n => !n.dead).length) : 0;
     if (silent) return;
     W.npcs.forEach(n => { if (n.dead) return; const age = HC.ageYears(n), life = n.lifespanMax || CULT.lifespan(n); if (age > life * 0.92) { const p = clamp((age - life * 0.92) / (life * 0.08), 0, 1) * 0.06; if (rng.chance(p)) AI.kill(W, n, 'ชราภาพ'); } });
-    for (let i = W.npcs.length - 1; i >= 0; i--) { const n = W.npcs[i]; if (n.dead && W.day - n.deathDay > 4) { W.npcs.splice(i, 1); W.graveyard.push(n.id); } }
+    for (let i = W.npcs.length - 1; i >= 0; i--) { const n = W.npcs[i]; if (n.dead && W.day - n.deathDay > 4) { SIM.snapshotPerson(W, n, "เสียชีวิตและฝังในสุสานสำนัก"); W.npcs.splice(i, 1); W.graveyard.push(n.id); } }
     if (!W.byId[W.sect.masterId] || W.byId[W.sect.masterId].dead) SECT.succession(W, 'เจ้าสำนักว่าง');
     SIM.guardRoster(W);
     SIM.assistants(W);

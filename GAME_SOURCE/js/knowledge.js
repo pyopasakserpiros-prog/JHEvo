@@ -178,7 +178,8 @@ M.knowledge=key=>{
 const cleanCounts=map=>{const out={};for(const [key,qty] of Object.entries(map||{}))if(M.knowledge(key)&&Number.isInteger(qty)&&qty>0)out[key]=Math.min(999,qty);return out;};
 M.drainKnowledgeOverflow=W=>{const overflow=W.sect.knowledgeOverflow;if(!overflow)return;W.sect.crystals=W.sect.crystals||{};for(const key of Object.keys(overflow)){const qty=overflow[key];if(!M.knowledge(key)||!Number.isSafeInteger(qty)||qty<=0){delete overflow[key];continue;}const put=Math.min(qty,Math.max(0,999-(W.sect.crystals[key]||0)));if(put){W.sect.crystals[key]=(W.sect.crystals[key]||0)+put;if(put===qty)delete overflow[key];else overflow[key]=qty-put;}}};
 M.ensure=W=>{
- const S=W.sect;if(!S.crystals)S.crystals={};M.drainKnowledgeOverflow(W);if(!S.subLibrary)S.subLibrary=[];
+ const S=W.sect;if(W._martialEnsuredDay===W.day&&W._martialEnsuredPop===(W.npcs?W.npcs.length:0)&&S.crystals&&S.subLibrary&&!S.knowledgeOverflow&&W.world&&W.world.martial&&W.world.martial.discovery&&W.world.martial.found)return W.world.martial.found;
+ if(!S.crystals)S.crystals={};M.drainKnowledgeOverflow(W);if(!S.subLibrary)S.subLibrary=[];
  if(!W.world.martial)W.world.martial={discovery:{day:W.day,attempts:0,legendaryAttempts:0,forbiddenAttempts:0},found:{techManual:0,subManual:0,crystal:0,legendary:0,forbidden:0},byTier:{},byGrade:{},bySource:{},foundLegends:[],used:0,donated:0,sold:0};
  const wm=W.world.martial;
  if(!wm.discovery)wm.discovery={day:W.day,attempts:0,legendaryAttempts:0,forbiddenAttempts:0};
@@ -639,15 +640,19 @@ M.pickSubStudy=(W,n)=>(W.sect.subLibrary||[]).map(id=>({id,key:M.subKey(id)})).f
 M.daily=W=>{
  M.ensure(W);
  for(const n of W.npcs){if(n.dead||n.away||n.exiled)continue;
-  if(M.reconcileInnate)M.reconcileInnate(n,W);
-  if(M.reconcilePassives)M.reconcilePassives(n);
-  for(const key of Object.keys(n.inv.crystals)){const d=M.crystalDecision(W,n,key);if(d.action==='use')M.useCrystal(W,n,key);else if(d.action==='donate')M.donateCrystal(W,n,key);}
-  for(const id of [...n.inv.subManuals]){const fit=M.knowledgeFit(n,M.subKey(id));if(fit<50||HC.eff(n,'personality.loyalty')>45||(n.cp||0)<100)M.donateManual(W,n,id,'sub');}
+  if(n._recLoadDay!==W.day||n._recLoadVer!==n._ver){
+   if(M.reconcileInnate)M.reconcileInnate(n,W);
+   if(M.reconcilePassives)M.reconcilePassives(n);
+   n._recLoadDay=W.day;n._recLoadVer=n._ver;
+  }
+  let hasCrys=false;if(n.inv&&n.inv.crystals){for(const _k in n.inv.crystals){hasCrys=true;break;}}
+  if(hasCrys){for(const key of Object.keys(n.inv.crystals)){const d=M.crystalDecision(W,n,key);if(d.action==='use')M.useCrystal(W,n,key);else if(d.action==='donate')M.donateCrystal(W,n,key);}}
+  if(n.inv&&n.inv.subManuals&&n.inv.subManuals.length){for(const id of [...n.inv.subManuals]){const fit=M.knowledgeFit(n,M.subKey(id));if(fit<50||HC.eff(n,'personality.loyalty')>45||(n.cp||0)<100)M.donateManual(W,n,id,'sub');}}
  }
 };
 const oldShop=CPE.shopItems;CPE.shopItems=W=>oldShop(W).concat(Object.entries(W.sect.crystals||{}).filter(x=>x[1]>0&&M.knowledge(x[0])).map(([key,n])=>({kind:'crystal',key,n,price:M.crystalPrice(W,key)})));
 const oldBuy=CPE.buy;CPE.buy=(W,n,p)=>p&&p.kind==='crystal'?M.buyCrystal(W,n,p.key,p.price).ok:oldBuy(W,n,p);
-const oldPick=CPE.pickPurchase;CPE.pickPurchase=(W,n)=>{const cp=n.cp||0;if(cp<4)return null;const hm0=n._nd?n._nd.hpMax:CULT.hpMax(n),sSeq=(W._pillSeq||0)*4096+((W.sect&&W.sect.crystalsVer)||0),hpBand=n.h.state.hp>=hm0*0.73?8:((n.h.state.hp*0.5)|0),injLen=n.inj?n.inj.length:0;if(W.t>0&&n._fullPickCache&&(n._fullPickCache.t===W.t||(W.t>n._fullPickCache.t&&W.t-n._fullPickCache.t<45&&n._fullPickCache.sSeq===sSeq))&&n._fullPickCache.path===(n.cult&&n.cult.path)&&n._fullPickCache.stage===(n.cult&&n.cult.stage)&&n._fullPickCache.cp===cp&&n._fullPickCache.hpBand===hpBand&&n._fullPickCache.gearLen===W.sect.gear.length&&n._fullPickCache.injLen===injLen)return n._fullPickCache.val;let best=oldPick(W,n),score=best?best.s:0;const cMap=W.sect.crystals;if(cMap){for(const key in cMap){const qty=cMap[key];if(!qty||!(M.canAcquireKnowledge?M.canAcquireKnowledge(W,n,key):M.eligible(n,key).ok)||(n.inv.crystals&&n.inv.crystals[key]||0)>0)continue;const price=M.crystalPrice(W,key);if(price>cp*.9)continue;const fit=M.knowledgeFit(n,key),s=.65+fit/110-price/Math.max(40,cp)*.5;if(fit>=50&&s>score){best={kind:'crystal',key,price,why:'ผลึกตรงวิถี · ใช้ครั้งเดียว',s};score=s;}}}if(W.t>0)n._fullPickCache={t:W.t,sSeq,path:n.cult&&n.cult.path,stage:n.cult&&n.cult.stage,cp,hpBand,gearLen:W.sect.gear.length,injLen,val:best};return best;};
+const oldPick=CPE.pickPurchase;CPE.pickPurchase=(W,n)=>{const cp=n.cp||0;if(cp<4)return null;const hm0=n._nd?n._nd.hpMax:CULT.hpMax(n),sSeq=(W._pillSeq||0)*4096+((W.sect&&W.sect.crystalsVer)||0),hpBand=n.h.state.hp>=hm0*0.73?8:((n.h.state.hp*0.5)|0),injLen=n.inj?n.inj.length:0;if(W.t>0&&n._fullPickCache&&(n._fullPickCache.t===W.t||(W.t>n._fullPickCache.t&&W.t-n._fullPickCache.t<180&&n._fullPickCache.sSeq===sSeq&&n._fullPickCache.ver===n._ver))&&n._fullPickCache.path===(n.cult&&n.cult.path)&&n._fullPickCache.stage===(n.cult&&n.cult.stage)&&(W.t===n._fullPickCache.t?n._fullPickCache.cp===cp:(Math.abs(cp-n._fullPickCache.cp)<3&&(cp|0)===(n._fullPickCache.cp|0)))&&n._fullPickCache.hpBand===hpBand&&n._fullPickCache.gearLen===W.sect.gear.length&&n._fullPickCache.injLen===injLen)return n._fullPickCache.val;let best=oldPick(W,n),score=best?best.s:0;const cMap=W.sect.crystals;if(cMap){for(const key in cMap){const qty=cMap[key];if(!qty||(n.inv.crystals&&n.inv.crystals[key]||0)>0)continue;const price=M.crystalPrice(W,key);if(price>cp*.9)continue;if(!(M.canAcquireKnowledge?M.canAcquireKnowledge(W,n,key):M.eligible(n,key).ok))continue;const fit=M.knowledgeFit(n,key),s=.65+fit/110-price/Math.max(40,cp)*.5;if(fit>=50&&s>score){best={kind:'crystal',key,price,why:'ผลึกตรงวิถี · ใช้ครั้งเดียว',s};score=s;}}}if(W.t>0)n._fullPickCache={t:W.t,sSeq,ver:n._ver,path:n.cult&&n.cult.path,stage:n.cult&&n.cult.stage,cp,hpBand,gearLen:W.sect.gear.length,injLen,val:best};return best;};
 const oldName=ECO.name;ECO.name=id=>M.knowledge(id)?M.crystalName(id):oldName(id);
 AI.ACTS.specialize={nameTh:'ศึกษาคัมภีร์สายย่อย',icon:'📜',color:'#a7c8f0',can:(n,W)=>!!M.pickSubStudy(W,n),score(n,W,S){const p=M.pickSubStudy(W,n);if(p)S.add('เลือกสายที่ถนัดถาวร',.9+M.knowledgeFit(n,p.key)/150);},where:(W,n)=>{const st=AI.freeStation(W,n,'read','scripture');return st?{st}:null;},dur:()=>240,done(n,W){const p=M.pickSubStudy(W,n);if(p)M.studySubpath(W,n,p.id);}};
 const daily=g.CONTENT.daily;g.CONTENT.daily=W=>{daily(W);M.daily(W);};

@@ -279,3 +279,16 @@ node test/v209_facilities_party_synergy_suite.js
   - `AZURE_DRAGON`: +28% Gate Beast damage, +10% owner attack, and 4% Max Qi restore on pet assist.
   - `VERMILION_PHOENIX`: +25% Gate Beast damage, `burn` on pet assist, and once-per-fight Nirvana Rebirth (`เพลิงนิพพานหงส์ชาด`, 42% HP restore + 25% shield).
   - `BLACK_TORTOISE`: 45% damage interception for owner with 22% damage reflection (`สะท้อนเกราะเสวียนอู่`), and -38% Gate Beast damage taken.
+
+## Patch v3.0.0 Additions: 5-Band Spatial Range Model, Tactical AI & Unified Bout Summary
+- **5-Band Spatial Range Model (`js/skills.js`)**:
+  - `SK.RANGE_BANDS` (`POINT_BLANK`, `MELEE_REACH`, `EXTENDED_REACH`, `MID_TACTICAL`, `LONG_BALLISTIC`), `SK.ARCH_RANGE_DEFAULTS`, `SK.classifyRangeBand(maxRange)`, and `SK.resolveMoveSpatialSpec(p, u)` (enforces weapon range floor so long weapons like `BOW` and `SPEAR` never collapse to point-blank range).
+  - `SK.weapon(u)` and `SK.foeSkills(u)` ensure wild beasts (`u.wild === true`) default to `'FIST'` / natural beast moves rather than human `'SWORD'` skills.
+- **Line-of-Sight, Zone of Control & Defensive Interception (`js/combat.js`)**:
+  - `COMBAT.checkLineOfSight(W, f, a, d, moveSpec)` and `COMBAT.projectSafePosition(W, x0, y0, x1, y1)` check terrain obstacles (`W.blocked`).
+  - `COMBAT.unitZoCRadius(u)`, `COMBAT.canUnitIntercept(W, f, u)`, and `COMBAT.resolveDefensiveInterception(W, f, a, d, o)` enable frontline `TANK`/polearm units to intercept attacks aimed at backline allies (`BODYGUARD_INTERCEPT`, `SPEAR_ZOC_COUNTER`).
+  - `COMBAT.resolveWeaponTactics(a, d, o, f)` handles reach counters (`SPEAR_OUTREACH_COUNTER`, `BOW_CAUGHT_IN_MELEE`, `LIGHTNESS_ESCAPE_SHOT`, `FLYING_ART_LONG_RANGE`, `DASH_CLOSE_COUNTER`, `CAST_INTERRUPTED`).
+- **Tactical Roles, 5 Cognitive Archetypes & Bout Summary (`js/combat.js`)**:
+  - `COMBAT.inferCombatRole(u)` (`TANK`, `HEALER`, `CASTER`, `ASSASSIN`, `FIGHTER`), `COMBAT.resolveCognitiveArchetype(u)` (`GRAND_TACTICIAN`, `CUNNING_ASSASSIN`, `BLOODTHIRSTY_BERSERKER`, `HONORABLE_DUELLIST`, `INSTINCTIVE_BEAST`), `COMBAT.computeTargetPriorityScore`, and `COMBAT.evaluateTacticalEngagement`.
+  - `COMBAT.evaluateTacticalBoutSummary(partyA, partyB, opts)` connects tactical spatial evaluation to outside-sect battles across `js/explore.js`, `js/sect.js` (`resolveTournamentMatch`), and `js/expedition.js` (`resolveSectSiege`, `resolveDiscipleSectEncounter`).
+  - Verify with `node test/v300_tactical_combat_and_living_chronicle_suite.js`.

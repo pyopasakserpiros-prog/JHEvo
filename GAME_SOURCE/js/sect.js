@@ -671,7 +671,8 @@
     const meritK = 0.35 + pol.meritocracy / 100 * 0.65;
     return merit * meritK + (rel + flat * 1.2) * (1 - meritK) * 0.55 + (CULT.equivalentStage(n) * 2) - (n.h.state.heartDemon > 40 ? 6 : 0);
   };
-  SECT.relationScore = (a, b) => {
+  SECT.relationScore = (a, b, c) => {
+    if (c !== undefined && a && a.sect) { if (SECT.PEAKS) SECT.PEAKS._activeWorld = a; a = b; b = c; }
     if (!a || !b || !a.h || !a.h.mind || !a.h.mind.relations) return 0;
     const r = a.h.mind.relations[b.id];
     let base = r ? (r.a * 0.6 + (r.t ?? 40) * 0.2 + (r.r ?? 30) * 0.2 + (r.g || 0) * 0.18 - (r.v || 0) * 0.12) : 0;
@@ -1268,8 +1269,11 @@
     const formB = opts.useFormation && g.COMBAT && g.COMBAT.evaluateFormationSynergy ? g.COMBAT.evaluateFormationSynergy(opts.formationPartyB || b.conferenceParty || [b]) : { synergies: [], powerMultiplier: 1 };
     const powA = a.power != null ? a.power : CULT.power(a);
     const powB = b.power != null ? b.power : CULT.power(b);
-    const scoreA = powA * (tacA.dmgMult || 1) * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (formA.powerMultiplier || 1) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
-    const scoreB = powB * (tacB.dmgMult || 1) * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (formB.powerMultiplier || 1) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
+    const dsh = (g.COMBAT && g.COMBAT.evaluateTacticalBoutSummary) ? g.COMBAT.evaluateTacticalBoutSummary(opts.formationPartyA || a.conferenceParty || [a], opts.formationPartyB || b.conferenceParty || [b]) : null;
+    const dshA = dsh ? (1 + Math.max(-0.12, Math.min(0.12, dsh.advantageDelta * 0.5))) : 1;
+    const dshB = dsh ? (1 + Math.max(-0.12, Math.min(0.12, -dsh.advantageDelta * 0.5))) : 1;
+    const scoreA = powA * (tacA.dmgMult || 1) * dshA * (1 + (resA.active ? resA.pieces * 0.04 : 0)) * (formA.powerMultiplier || 1) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
+    const scoreB = powB * (tacB.dmgMult || 1) * dshB * (1 + (resB.active ? resB.pieces * 0.04 : 0)) * (formB.powerMultiplier || 1) * (0.88 + (W.rng ? W.rng.next() * 0.24 : 0.12));
     const win = scoreA >= scoreB ? a : b;
     const lose = win === a ? b : a;
     const winTac = win === a ? tacA : tacB;
@@ -6577,7 +6581,7 @@
     if (!W || !W.sect || !entry) return null;
     SECT.ensureCompanionsAndBloodlines(W);
     const S = W.sect;
-    const day = entry.day != null ? entry.day : (W.day || 360);
+    const day = Number.isFinite(entry.day) ? entry.day : (Number.isFinite(W.day) ? W.day : 0);
     const cal = (g.SIM && g.SIM.calendar) ? g.SIM.calendar(day * 1440) : { year: Math.floor(day / 360) + 1, month: Math.floor(((day % 360) / 30)) + 1 };
     const mType = (entry.milestoneType && SECT.TIMELINE_TYPES[entry.milestoneType]) ? entry.milestoneType : 'FOUNDING';
     const tDef = SECT.TIMELINE_TYPES[mType];
@@ -6616,7 +6620,7 @@
       involvedIds: Array.isArray(entry.involvedIds) ? entry.involvedIds : []
     };
     S.timeline.unshift(rec);
-    if (S.timeline.length > 80) S.timeline.length = 80;
+    if (S.timeline.length > 160) S.timeline.length = 160;
     if (g.SFX && g.SFX.playBell && !entry.quiet) {
       g.SFX.playBell();
     }
@@ -11056,7 +11060,7 @@
       quiet: opts.quiet
     }) : null;
 
-    return { ok: true, allocations, isFairCentral, chronicle: chron };
+    return { ok: true, distributedTotal: totalPoolStones, allocations, isFairCentral, chronicle: chron };
   };
 
   PEAKS.distributePeakResourcesToMembers = (W, peakId, opts) => {

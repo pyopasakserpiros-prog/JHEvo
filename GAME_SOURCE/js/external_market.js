@@ -867,7 +867,19 @@
   // Visiting merchants participate in the NPC utility system at the existing market station.
   AI.ACTS.outsideTrade = {
     nameTh: 'ซื้อขายกับพ่อค้าภายนอก', icon: '🪙', color: '#c9a15b',
-    can: (n, W) => !!(n._otQuote = EXT.memberQuote(W, n)),
+    can: (n, W) => {
+      const vList = W && W.world && W.world.visitors;
+      if (!vList || !vList.length) return false;
+      const stn = (n.inv && n.inv.stones) || 0, v0 = vList[0], vStn = v0 ? v0.stones : 0;
+      if (W.t > 0 && n._otCache && W.t > n._otCache.t && W.t - n._otCache.t < 30 && n._otCache.stn === stn && n._otCache.vLen === vList.length && n._otCache.vStn === vStn) {
+        n._otQuote = n._otCache.q;
+        return !!n._otQuote;
+      }
+      const q = EXT.memberQuote(W, n);
+      n._otQuote = q;
+      if (W.t > 0) n._otCache = { t: W.t, stn, vLen: vList.length, vStn, q };
+      return !!q;
+    },
     score(n, W, S) {
       const q = n._otQuote !== undefined ? n._otQuote : EXT.memberQuote(W, n);
       n._otQuote = undefined;

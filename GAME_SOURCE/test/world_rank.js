@@ -146,6 +146,7 @@ W.explore.gate.open = true;
 W.explore.gate.world = 'eden';
 W.explore.gate.until = W.day + 10;
 W.explore.gate.tide = 0;
+party.forEach(p => { p.expId = null; p.away = false; p.travel = null; });
 const realmExp = EXPLORE.depart(W, party, 'realm');
 assert.strictEqual(realmExp.partyRank, 3, 'Realm expedition must snapshot partyRank 3');
 assert.strictEqual(realmExp.rankArea, 3, 'Realm expedition must snapshot rankArea 3');

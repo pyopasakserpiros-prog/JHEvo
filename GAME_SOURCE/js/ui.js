@@ -408,16 +408,31 @@
             exists: true
           });
         } else {
-          out.push({
-            kind: 'npc',
-            id,
-            label: id,
-            currentLabel: null,
-            fullName: id,
-            surname: '',
-            role: 'ไม่อยู่ในสำนักแล้ว',
-            exists: false
-          });
+          const histNpc = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+          if (histNpc) {
+            out.push({
+              kind: "npc",
+              id,
+              label: histNpc.given || histNpc.fullName || id,
+              currentLabel: histNpc.given || histNpc.fullName || null,
+              formerNames: Array.isArray(histNpc.formerNames) ? histNpc.formerNames : [],
+              fullName: histNpc.fullName || id,
+              surname: histNpc.surname || "",
+              role: (histNpc.roleTh ? histNpc.roleTh + " · " : "") + (histNpc.statusTh || "ไม่อยู่ในสำนักแล้ว"),
+              exists: false
+            });
+          } else {
+            out.push({
+              kind: "npc",
+              id,
+              label: id,
+              currentLabel: null,
+              fullName: id,
+              surname: "",
+              role: "ไม่อยู่ในสำนักแล้ว",
+              exists: false
+            });
+          }
         }
       }
     });
@@ -645,7 +660,15 @@
   UI.openNpc = (id, tab) => {
     const W = UI.G && UI.G.W;
     const n = W && W.byId[id];
-    if (!n) { UI.toast('ไม่พบข้อมูลตัวละครนี้ (ออกจากสำนักหรือถูกลบแล้ว)'); return; }
+    if (!n) {
+      const hp = W && W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+      if (hp) {
+        UI.toast("📜 " + hp.fullName + " (" + (hp.roleTh || "อดีตสมาชิกสำนัก") + ") — " + (hp.statusTh || "ไม่อยู่ในสำนักแล้ว"));
+      } else {
+        UI.toast("ไม่พบข้อมูลตัวละครนี้ (ออกจากสำนักหรือถูกลบแล้ว)");
+      }
+      return;
+    }
     UI.G.R.selected = id; UI.npcId = id;
     show('npc', esc(HC.fullName(n)) + ' <span class="muted" style="font-weight:400">' + SECT.title(n) + '</span>', [
       ['ov', 'ภาพรวม'],
@@ -693,12 +716,15 @@
   UI.doAction = (a, arg) => {
     const G = UI.G, W = G.W;
     if (a === 'npc') { const p = String(arg || '').split('|'); UI.openNpc(p[0], p[1]); }
-    else if (a === 'chronicle-filter') { UI.chronicleFilter = arg || 'all'; UI.render(); }
-    else if (a === 'chronicle-person') { UI.chronicleNpcId = arg || null; UI.chronicleFilter = 'all'; UI.logFilters = new Set(['all']); UI.open('log'); }
-    else if (a === 'chronicle-clear-person') { UI.chronicleNpcId = null; UI.render(); }
-    else if (a === 'world-chronicle-cat') { UI.worldChronicleCategory = arg || 'all'; UI.render(); }
-    else if (a === 'world-chronicle-fmt') { UI.worldChronicleFormat = arg || 'all'; UI.render(); }
-    else if (a === 'timeline-filter') { UI.timelineFilter = arg || 'all'; if (UI.audio) UI.audio.playGuqinChime(); UI.render(); }
+    else if (a === "chronicle-filter") { UI.chronicleFilter = arg || "all"; UI.sectChronicleLimit = 50; UI.render(); }
+    else if (a === "chronicle-person") { UI.chronicleNpcId = arg || null; UI.chronicleFilter = "all"; UI.sectChronicleLimit = 50; UI.logFilters = new Set(["all"]); UI.open("log"); }
+    else if (a === "chronicle-clear-person") { UI.chronicleNpcId = null; UI.render(); }
+    else if (a === "sect-chronicle-more") { UI.sectChronicleLimit = (UI.sectChronicleLimit || 50) + 50; UI.render(); }
+    else if (a === "world-chronicle-cat") { UI.worldChronicleCategory = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-fmt") { UI.worldChronicleFormat = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-more") { UI.worldChronicleLimit = (UI.worldChronicleLimit || 15) + 20; UI.render(); }
+    else if (a === "timeline-filter") { UI.timelineFilter = arg || "all"; UI.timelineLimit = 25; if (UI.audio) UI.audio.playGuqinChime(); UI.render(); }
+    else if (a === "timeline-more") { UI.timelineLimit = (UI.timelineLimit || 25) + 25; UI.render(); }
     else if (a === 'toggle-audio') {
       const isMuted = UI.audio ? UI.audio.toggleMute() : false;
       if (!isMuted && UI.audio) UI.audio.playBell();
@@ -2066,7 +2092,16 @@
     const sancSel = body.querySelector("#editSanctumSel");
     if (sancSel) sancSel.onchange = () => { UI.editSanctumId = sancSel.value; UI.render(); };
 
-    // World Chronicle Search
+    // Sect & World Chronicle Search
+    const scSearch = body.querySelector("#sectChronicleSearch");
+    if (scSearch) {
+      scSearch.oninput = () => {
+        UI.sectChronicleSearch = scSearch.value;
+        UI.render();
+        const el = $("shBody").querySelector("#sectChronicleSearch");
+        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+      };
+    }
     const wcSearch = body.querySelector("#worldChronicleSearch");
     if (wcSearch) {
       wcSearch.oninput = () => {
@@ -3412,22 +3447,47 @@
   };
   UI.sectChronicle = (W, category, npcId) => {
     const cats = {
-      people: ['death','marriage','recruit','expel','succession'],
-      cult: ['breakthrough','heal'],
-      battle: ['raid','tournament','mission'],
-      heritage: ['legacy','research','craft','decision'],
-      economy: ['finance']
+      people: ["death","marriage","recruit","expel","succession"],
+      cult: ["breakthrough","heal"],
+      battle: ["raid","tournament","mission","challenge","duel"],
+      heritage: ["legacy","research","craft","decision"],
+      economy: ["finance"]
     };
     const all = ((W.sect && W.sect.sectChronicle) || []).slice();
     const known = new Set(all.map(e => e.id));
     (W.logs || []).forEach(e => {
-      if (!known.has(e.id) && (cats.people.includes(e.type) || cats.cult.includes(e.type) || cats.battle.includes(e.type) || cats.heritage.includes(e.type) || cats.economy.includes(e.type))) {
+      if (!known.has(e.id) && matchesLogSubFilter(e, UI.logSubFilter) && (cats.people.includes(e.type) || cats.cult.includes(e.type) || cats.battle.includes(e.type) || cats.heritage.includes(e.type) || cats.economy.includes(e.type))) {
         all.push(e);
       }
     });
-    const list = all.filter(e => (!category || category === 'all' || (cats[category] || []).includes(e.type)) && (!npcId || (e.ids || []).includes(npcId))).sort((a,b) => b.t-a.t || b.id-a.id).slice(0,100);
-    if (!list.length) return '<div class="muted">ยังไม่มีเหตุการณ์ในเงื่อนไขนี้</div>';
-    return list.map(e => '<div class="lineage-entry"><span class="lineage-date">' + dayStamp(e.t) + '</span> ' + linkify(W,e.text,e.ids) + '</div>').join('');
+    const scSearch = (UI.sectChronicleSearch || "").trim().toLowerCase();
+    const filtered = all.filter(e => {
+      if (!matchesLogSubFilter(e, UI.logSubFilter)) return false;
+      if (category && category !== "all" && !(cats[category] || []).includes(e.type)) return false;
+      if (npcId && !(e.ids || []).includes(npcId)) return false;
+      if (scSearch) {
+        const hay = ((e.text || "") + " " + ((e.names || []).join(" ")) + " " + ((e.combatSummary && e.combatSummary.summaryLineTh) || "")).toLowerCase();
+        if (!hay.includes(scSearch)) return false;
+      }
+      return true;
+    }).sort((a, b) => b.t - a.t || b.id - a.id);
+    if (!filtered.length) return "<div class=\"muted\">ยังไม่มีเหตุการณ์ในเงื่อนไขนี้</div>";
+    const limit = Math.max(20, UI.sectChronicleLimit || 50);
+    const shown = filtered.slice(0, limit);
+    let html = shown.map(e => {
+      const refs = Array.isArray(e.names) && Array.isArray(e.ids)
+        ? e.ids.map((id, idx) => e.names[idx] ? ({ kind: "npc", id, label: e.names[idx], fullName: e.names[idx] }) : null).filter(Boolean)
+        : undefined;
+      const cs = e.combatSummary || (e.meta && e.meta.combatSummary);
+      const csHtml = cs && cs.summaryLineTh
+        ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">⚔️ " + esc(cs.summaryLineTh) + "</div>")
+        : "";
+      return "<div class=\"lineage-entry\"><span class=\"lineage-date\">" + dayStamp(e.t) + "</span> " + linkify(W, e.text, e.ids, refs) + csHtml + "</div>";
+    }).join("");
+    if (filtered.length > shown.length) {
+      html += "<div style=\"margin-top:6px\"><button type=\"button\" class=\"btn\" style=\"padding:3px 10px;font-size:11px\" data-do=\"sect-chronicle-more\">แสดงเพิ่มเติม (" + (filtered.length - shown.length) + " รายการ)</button></div>";
+    }
+    return html;
   };
   UI.lineageHistory = (W, npcId) => {
     const list = ((W.sect && W.sect.mentorship && W.sect.mentorship.history) || []).filter(e => e && (!npcId || e.mentorId === npcId || e.discipleId === npcId)).slice(0, 30);
@@ -3454,8 +3514,12 @@
     if (UI.logFilters.has('all')) {
       const filter = UI.chronicleFilter || 'all', id = UI.chronicleNpcId;
       h += '<details class="lineage-chronicle" open><summary>📖 พงศาวดารสำนัก</summary><div class="chronicle-filters">' + [['all','ทั้งหมด'],['people','👥 ผู้คน'],['cult','✨ ทะลวง/จิตใจ'],['battle','⚔️ ศึก'],['heritage','🗡️ คัมภีร์/ศาสตรา/ฮวงจุ้ย'],['economy','🐪 การค้า/ประมูล']].map(([k,v]) => '<button class="btn ' + (filter === k ? 'pri' : '') + '" data-do="chronicle-filter" data-arg="' + k + '">' + v + '</button>').join('') + '</div>';
-      if (id) h += '<div class="lineage-note">กำลังดูเหตุการณ์ของ ' + esc((W.byId[id] && HC.fullName(W.byId[id])) || 'บุคคลที่เลือก') + ' <button class="btn" data-do="chronicle-clear-person">ดูทุกคน</button></div>';
-      h += '<div class="lineage-note">บันทึกเหตุการณ์สำคัญใหม่และรายการเดิมที่ยังอยู่ในบันทึก</div>' + UI.sectChronicle(W,filter,id) + '</details>';
+      if (id) {
+        const pName = (W.byId[id] && HC.fullName(W.byId[id])) || (W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id] && W.sect.historicalPeople[id].fullName) || "บุคคลที่เลือก";
+        h += "<div class=\"lineage-note\">กำลังดูเหตุการณ์ของ " + esc(pName) + " <button class=\"btn\" data-do=\"chronicle-clear-person\">ดูทุกคน</button></div>";
+      }
+      h += "<div style=\"margin:6px 0\"><input id=\"sectChronicleSearch\" type=\"search\" placeholder=\"ค้นหาเหตุการณ์/ชื่อศิษย์/วิชาในพงศาวดารสำนัก…\" value=\"" + esc(UI.sectChronicleSearch || "") + "\" style=\"font-size:11.5px;padding:4px 8px;width:100%\"></div>";
+      h += "<div class=\"lineage-note\">บันทึกเหตุการณ์สำคัญใหม่และรายการเดิมที่ยังอยู่ในบันทึก</div>" + UI.sectChronicle(W,filter,id) + "</details>";
       h += '<details class="lineage-chronicle" data-chronicle-tree><summary>🌳 ผังสายสืบทอดของสำนัก</summary>' + UI.lineageTree(W) + '</details>';
       if (SECT && SECT.getHistoricalTimeline) {
         const tlFilter = UI.timelineFilter || 'all';
@@ -3478,7 +3542,12 @@
         if (!tlList.length) {
           h += '<div class="muted">ยังไม่มีหมุดหมายประวัติศาสตร์ในหมวดที่เลือก</div>';
         } else {
-          h += '<div class="timeline-stream" style="border-left:2px solid var(--gold);padding-left:10px;margin-left:4px">' + tlList.slice(0, 25).map(item => '<div class="timeline-node" style="padding:5px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><span class="chip g">ปีที่ ' + item.year + ' เดือน ' + item.month + ' · รุ่นที่ ' + (item.generation || 1) + '</span> <span class="chip b">' + esc(item.typeNameTh) + '</span>' + (item.reportFormatTh ? (' <span class="chip">' + esc(item.reportFormatTh) + '</span>') : '') + ' <b>' + esc(item.icon || '🏛️') + ' ' + esc(item.titleTh) + '</b></div>' + (item.descTh ? '<div class="muted" style="font-size:11.5px;margin-top:2px">' + esc(item.descTh) + '</div>' : '') + (item.originCauseTh ? '<div class="muted" style="font-size:10.5px;margin-top:1px">🌱 <b>แหล่งที่มา:</b> ' + esc(item.originCauseTh) + '</div>' : '') + (item.systemImpactTh && item.systemImpactTh !== item.descTh ? '<div class="muted" style="font-size:10.5px;color:#8ecae6">🔗 <b>ผลกระทบเชื่อมโยง:</b> ' + esc(item.systemImpactTh) + '</div>' : '') + '</div>').join('') + '</div>';
+          const tlLim = Math.max(15, UI.timelineLimit || 25);
+          const tlShown = tlList.slice(0, tlLim);
+          h += "<div class=\"timeline-stream\" style=\"border-left:2px solid var(--gold);padding-left:10px;margin-left:4px\">" + tlShown.map(item => "<div class=\"timeline-node\" style=\"padding:5px 0;border-bottom:1px dotted var(--line,#3a3f4a)\"><div><span class=\"chip g\">ปีที่ " + item.year + " เดือน " + item.month + " · รุ่นที่ " + (item.generation || 1) + "</span> <span class=\"chip b\">" + esc(item.typeNameTh) + "</span>" + (item.reportFormatTh ? (" <span class=\"chip\">" + esc(item.reportFormatTh) + "</span>") : "") + " <b>" + esc(item.icon || "🏛️") + " " + esc(item.titleTh) + "</b></div>" + (item.descTh ? "<div class=\"muted\" style=\"font-size:11.5px;margin-top:2px\">" + linkify(W, item.descTh, item.involvedIds) + "</div>" : "") + (item.originCauseTh ? "<div class=\"muted\" style=\"font-size:10.5px;margin-top:1px\">🌱 <b>แหล่งที่มา:</b> " + esc(item.originCauseTh) + "</div>" : "") + (item.systemImpactTh && item.systemImpactTh !== item.descTh ? "<div class=\"muted\" style=\"font-size:10.5px;color:#8ecae6\">🔗 <b>ผลกระทบเชื่อมโยง:</b> " + esc(item.systemImpactTh) + "</div>" : "") + "</div>").join("") + "</div>";
+          if (tlList.length > tlShown.length) {
+            h += "<div style=\"margin-top:6px\"><button type=\"button\" class=\"btn\" style=\"padding:3px 10px;font-size:11px\" data-do=\"timeline-more\">แสดงหมุดหมายเพิ่มเติม (" + (tlList.length - tlShown.length) + " รายการ)</button></div>";
+          }
         }
         h += '</div></details>';
       }
@@ -3545,15 +3614,27 @@
       if (!filteredChrons.length) {
         h += '<div class="muted">ไม่พบบันทึกจดหมายเหตุยุทธภพที่ตรงกับเงื่อนไขการค้นหา</div>';
       } else {
-        h += filteredChrons.slice(0, 15).map(c => '<div style="padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><span class="chip g">' + esc(c.categoryTh || 'จดหมายเหตุ') + '</span>' + (c.reportFormatTh ? (' <span class="chip b">' + esc(c.reportFormatTh) + '</span>') : '') + ' <b>' + esc(c.icon || '📜') + ' ' + esc(c.titleTh) + '</b> <span class="muted" style="font-size:11px">(วันที่ ' + c.day + ')</span></div>' +
-          '<div style="font-size:12px;margin-top:3px;line-height:1.45">' + esc(c.storyTh) + '</div>' +
-          (c.originCauseTh ? '<div class="muted" style="font-size:11px;margin-top:2px">🌱 <b>ต้นทาง/สาเหตุ:</b> ' + esc(c.originCauseTh) + '</div>' : '') +
-          (c.actorChainTh ? '<div class="muted" style="font-size:11px;margin-top:1px">👤 <b>ผู้กระทำ/ที่มา:</b> ' + esc(c.actorChainTh) + '</div>' : '') +
-          (c.systemImpactTh ? '<div class="muted" style="font-size:11px;margin-top:1px;color:#8ecae6">🔗 <b>การเชื่อมโยงระบบ:</b> ' + esc(c.systemImpactTh) + '</div>' : '') +
-          (c.directorInsightTh ? '<div class="muted" style="font-size:10.5px;margin-top:1px;color:#cdb4db">🎬 <b>มุมมองผู้กำกับ:</b> ' + esc(c.directorInsightTh) + '</div>' : '') +
-          (c.combatBreakdownTh ? '<div class="muted" style="font-size:11px;margin-top:2px">⚔️ ' + esc(c.combatBreakdownTh) + '</div>' : '') +
-          (c.consequenceTh ? '<div style="font-size:11.5px;color:#ffd166;margin-top:2px">➔ <b>ผลลัพธ์:</b> ' + esc(c.consequenceTh) + '</div>' : '') +
-          '</div>').join('');
+        const wcLim = Math.max(10, UI.worldChronicleLimit || 15);
+        const wcShown = filteredChrons.slice(0, wcLim);
+        h += wcShown.map(c => {
+          const vBadge = c.verificationStatusTh ? (" <span class=\"chip\">" + esc(c.verificationStatusTh) + "</span>") : "";
+          const cHighs = (c.combatSummary && Array.isArray(c.combatSummary.highlights) && c.combatSummary.highlights.length)
+            ? ("<div class=\"muted\" style=\"font-size:10.5px;margin-top:2px;color:#a8dadc\">🎯 <b>จังหวะยุทธวิธี:</b> " + c.combatSummary.highlights.slice(0, 4).map(hl => esc(hl.textTh || hl)).join(" · ") + "</div>")
+            : "";
+          return "<div style=\"padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)\"><div><span class=\"chip g\">" + esc(c.categoryTh || "จดหมายเหตุ") + "</span>" + (c.reportFormatTh ? (" <span class=\"chip b\">" + esc(c.reportFormatTh) + "</span>") : "") + vBadge + " <b>" + esc(c.icon || "📜") + " " + esc(c.titleTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(วันที่ " + c.day + ")</span></div>" +
+          "<div style=\"font-size:12px;margin-top:3px;line-height:1.45\">" + linkify(W, c.storyTh, c.npcIds) + "</div>" +
+          (c.originCauseTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">🌱 <b>ต้นทาง/สาเหตุ:</b> " + esc(c.originCauseTh) + "</div>" : "") +
+          (c.actorChainTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:1px\">👤 <b>ผู้กระทำ/ที่มา:</b> " + esc(c.actorChainTh) + "</div>" : "") +
+          (c.systemImpactTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:1px;color:#8ecae6\">🔗 <b>การเชื่อมโยงระบบ:</b> " + esc(c.systemImpactTh) + "</div>" : "") +
+          (c.directorInsightTh ? "<div class=\"muted\" style=\"font-size:10.5px;margin-top:1px;color:#cdb4db\">🎬 <b>มุมมองผู้กำกับ:</b> " + esc(c.directorInsightTh) + "</div>" : "") +
+          (c.combatBreakdownTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">⚔️ " + esc(c.combatBreakdownTh) + "</div>" : "") +
+          cHighs +
+          (c.consequenceTh ? "<div style=\"font-size:11.5px;color:#ffd166;margin-top:2px\">➔ <b>ผลลัพธ์:</b> " + esc(c.consequenceTh) + "</div>" : "") +
+          "</div>";
+        }).join("");
+        if (filteredChrons.length > wcShown.length) {
+          h += "<div style=\"margin-top:6px\"><button type=\"button\" class=\"btn\" style=\"padding:3px 10px;font-size:11px\" data-do=\"world-chronicle-more\">แสดงจดหมายเหตุเพิ่มเติม (" + (filteredChrons.length - wcShown.length) + " ฉบับ)</button></div>";
+        }
       }
       h += '</div></details>';
     }

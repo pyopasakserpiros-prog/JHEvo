@@ -339,6 +339,7 @@
       requiresWeapon: t.requiresWeapon,
       moves: [m.nameTh]
     };
+    prof.range = m.range || t.range || SK.resolveMoveSpatialSpec(prof, null);
     prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : '');
     return (moveCache[key] = prof);
   };
@@ -437,6 +438,7 @@
     prof.coCast = t.coCast || m0.coCast || null;
     prof.tags = t.tags || m0.tags || null;
     prof.weaponTypes = t.weaponTypes; prof.armorTypes = t.armorTypes; prof.requiresWeapon = t.requiresWeapon;
+    prof.range = t.range || m0.range || SK.resolveMoveSpatialSpec(prof, null);
     prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : ''); return (cache[t.id] = prof);
   };
 
@@ -461,7 +463,7 @@
     }
     const st = p.ctrl || p.rider; if (st && SK.STATUS[st]) bits.push((p.ctrl ? 'ผล: ' : 'โอกาสแทรก: ') + SK.STATUS[st].nameTh);
     bits.push('คูลดาวน์ ' + p.cd + ' · ร่าย ' + p.wind + ' · ปราณ ' + p.costPct + '%');
-    return A.icon + ' ' + A.nameTh + ' · ' + (p.type === 'p' ? 'กายภาพ' : 'วิชา') + ' · ธาตุ' + p.elemTh + ' — ' + bits.join(' · ');
+    return A.icon + ' ' + A.nameTh + ' · ' + (p.type === 'p' ? 'กายภาพ' : 'วิชา') + ' · ธาตุ' + (p.elemTh || (SK.ELEM[p.elem || p.element] && SK.ELEM[p.elem || p.element].nameTh) || 'ไร้ธาตุ') + ' — ' + bits.join(' · ');
   };
 
   /* ---------- Multi-Stage & Multi-Move Progression Authority ---------- */
@@ -630,7 +632,181 @@
     return base * eff * syn;
   };
 
-  /* ศัตรู: สร้างชุดวิชาแบบเรียบง่ายตามชนิด/ระดับ */
+  /* ---------- Patch v3.0.0: 5 Tactical Range Bands & Move Spatial Resolution Engine ---------- */
+  SK.RANGE_BANDS = Object.freeze({
+    POINT_BLANK:   { id: 'POINT_BLANK',   bandIndex: 0, min: 0.0, max: 1.25, nameTh: 'ระยะเผาขนคลุกวงใน', shortTh: 'เผาขน (0–1.2)' },
+    MELEE_REACH:   { id: 'MELEE_REACH',   bandIndex: 1, min: 0.0, max: 2.05, nameTh: 'ระยะคมศาสตราประชิด', shortTh: 'ประชิด (1.1–2.0)' },
+    EXTENDED_REACH:{ id: 'EXTENDED_REACH',bandIndex: 2, min: 0.0, max: 3.05, nameTh: 'ระยะแส้และสายปราณ', shortTh: 'ระยะยืด (2.1–3.0)' },
+    MID_TACTICAL:  { id: 'MID_TACTICAL',  bandIndex: 3, min: 0.8, max: 4.50, nameTh: 'ระยะกลางพิณยันต์และปราณ', shortTh: 'ระยะกลาง (3.1–4.5)' },
+    LONG_BALLISTIC:{ id: 'LONG_BALLISTIC',bandIndex: 4, min: 1.4, max: 6.20, nameTh: 'ระยะไกลกระบี่บินและเกาทัณฑ์', shortTh: 'ระยะไกล (4.6–6.2)' }
+  });
+
+  SK.ARCH_RANGE_DEFAULTS = Object.freeze({
+    strike:            { band: 'MELEE_REACH',    min: 0.0, max: 1.80, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    slash:             { band: 'MELEE_REACH',    min: 0.0, max: 1.85, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    flurry:            { band: 'MELEE_REACH',    min: 0.0, max: 1.75, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    pierce:            { band: 'EXTENDED_REACH', min: 0.0, max: 2.40, shape: 'LINE',          radius: 0.7, requiresLoS: true  },
+    execute:           { band: 'MELEE_REACH',    min: 0.0, max: 1.95, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    sweep:             { band: 'MELEE_REACH',    min: 0.0, max: 2.15, shape: 'CIRCLE_SELF',   radius: 2.3, requiresLoS: false },
+    charge:            { band: 'MID_TACTICAL',   min: 0.8, max: 3.80, shape: 'LINE',          radius: 0.8, requiresLoS: true,  isGapCloser: true },
+    blink:             { band: 'MID_TACTICAL',   min: 0.0, max: 4.40, shape: 'SINGLE',        radius: 0,   requiresLoS: false, isGapCloser: true, ignoresObstacles: true },
+    evade:             { band: 'POINT_BLANK',    min: 0.0, max: 3.20, shape: 'SELF',          radius: 0,   requiresLoS: false, isRetreat: true },
+    guard:             { band: 'POINT_BLANK',    min: 0.0, max: 1.50, shape: 'SELF',          radius: 0,   requiresLoS: false },
+    shield:            { band: 'POINT_BLANK',    min: 0.0, max: 1.50, shape: 'SELF',          radius: 0,   requiresLoS: false },
+    counter:           { band: 'POINT_BLANK',    min: 0.0, max: 1.80, shape: 'SELF',          radius: 0,   requiresLoS: false },
+    stanceShift:       { band: 'POINT_BLANK',    min: 0.0, max: 2.20, shape: 'SELF',          radius: 0,   requiresLoS: false },
+    snipe:             { band: 'LONG_BALLISTIC', min: 1.3, max: 5.60, shape: 'SINGLE',        radius: 0,   requiresLoS: true,  minRangePenalty: 0.35 },
+    barrage:           { band: 'MID_TACTICAL',   min: 1.0, max: 4.60, shape: 'CIRCLE_TARGET', radius: 2.5, requiresLoS: true  },
+    blast:             { band: 'MID_TACTICAL',   min: 0.0, max: 3.90, shape: 'CIRCLE_TARGET', radius: 2.6, requiresLoS: true  },
+    wave:              { band: 'MID_TACTICAL',   min: 0.0, max: 3.60, shape: 'CONE',          radius: 2.8, requiresLoS: false },
+    chainRicochet:     { band: 'MID_TACTICAL',   min: 0.0, max: 4.10, shape: 'CHAIN',         radius: 3.0, requiresLoS: true  },
+    dot:               { band: 'EXTENDED_REACH', min: 0.0, max: 2.80, shape: 'SINGLE',        radius: 0,   requiresLoS: true  },
+    control:           { band: 'MID_TACTICAL',   min: 0.0, max: 3.60, shape: 'SINGLE',        radius: 0,   requiresLoS: true  },
+    drain:             { band: 'EXTENDED_REACH', min: 0.0, max: 2.60, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    burst:             { band: 'EXTENDED_REACH', min: 0.0, max: 3.10, shape: 'CIRCLE_TARGET', radius: 2.4, requiresLoS: false },
+    forbid:            { band: 'MID_TACTICAL',   min: 0.0, max: 3.80, shape: 'CIRCLE_TARGET', radius: 2.8, requiresLoS: false },
+    sacrificeOverdrive:{ band: 'EXTENDED_REACH', min: 0.0, max: 3.00, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    channel:           { band: 'MID_TACTICAL',   min: 0.6, max: 4.20, shape: 'SINGLE',        radius: 2.4, requiresLoS: true,  isChannel: true },
+    soul:              { band: 'MID_TACTICAL',   min: 0.0, max: 4.20, shape: 'SINGLE',        radius: 0,   requiresLoS: false, ignoresObstacles: true },
+    karmaReversal:     { band: 'MID_TACTICAL',   min: 0.0, max: 3.50, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    markPrimer:        { band: 'MID_TACTICAL',   min: 0.0, max: 3.60, shape: 'SINGLE',        radius: 0,   requiresLoS: true  },
+    markDetonate:      { band: 'MID_TACTICAL',   min: 0.0, max: 3.80, shape: 'CIRCLE_TARGET', radius: 2.2, requiresLoS: false },
+    elementalFusion:   { band: 'MID_TACTICAL',   min: 0.0, max: 4.00, shape: 'CIRCLE_TARGET', radius: 2.6, requiresLoS: false },
+    statusTransmute:   { band: 'MID_TACTICAL',   min: 0.0, max: 3.50, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    tetherLink:        { band: 'MID_TACTICAL',   min: 0.0, max: 4.00, shape: 'SINGLE',        radius: 0,   requiresLoS: false },
+    heal:              { band: 'MID_TACTICAL',   min: 0.0, max: 4.50, shape: 'ALLY',          radius: 3.5, requiresLoS: false },
+    support:           { band: 'MID_TACTICAL',   min: 0.0, max: 4.50, shape: 'ALLY_TEAM',     radius: 4.5, requiresLoS: false },
+    buff:              { band: 'MID_TACTICAL',   min: 0.0, max: 4.50, shape: 'ALLY_TEAM',     radius: 4.5, requiresLoS: false },
+    command:           { band: 'MID_TACTICAL',   min: 0.0, max: 4.20, shape: 'ALLY_TEAM',     radius: 4.5, requiresLoS: false },
+    harmonize:         { band: 'MID_TACTICAL',   min: 0.0, max: 4.20, shape: 'ALLY_TEAM',     radius: 4.2, requiresLoS: false },
+    summon:            { band: 'POINT_BLANK',    min: 0.0, max: 3.50, shape: 'SELF',          radius: 0,   requiresLoS: false }
+  });
+
+  SK.classifyRangeBand = maxRange => {
+    const r = Number(maxRange) || 1.7;
+    if (r <= 1.25) return SK.RANGE_BANDS.POINT_BLANK;
+    if (r <= 2.05) return SK.RANGE_BANDS.MELEE_REACH;
+    if (r <= 3.05) return SK.RANGE_BANDS.EXTENDED_REACH;
+    if (r <= 4.50) return SK.RANGE_BANDS.MID_TACTICAL;
+    return SK.RANGE_BANDS.LONG_BALLISTIC;
+  };
+
+  /* คำนวณสเปกระยะและเรขาคณิตของกระบวนท่า (Technique Override > Semantic/Path/Arch > Weapon Base) */
+  SK.resolveMoveSpatialSpec = (p, u) => {
+    if (!p) {
+      const wp = u ? SK.weaponTacticalProfile(u) : null;
+      const maxR = (wp && wp.engageRange) || 1.7;
+      const b = SK.classifyRangeBand(maxR);
+      return {
+        min: 0.0, max: maxR, optimal: Math.max(0.8, maxR * 0.85),
+        band: b.id, bandIndex: b.bandIndex, bandNameTh: b.nameTh,
+        shape: 'SINGLE', radius: 0, requiresLoS: maxR >= 2.6,
+        ignoresObstacles: false, isGapCloser: false, isRetreat: false,
+        minRangePenalty: (wp && wp.weaponType === 'BOW') ? 0.35 : 0,
+        lockType: 'UNIT', source: 'BASIC_ATTACK'
+      };
+    }
+    const arch = p.arch || 'strike';
+    const def = SK.ARCH_RANGE_DEFAULTS[arch] || SK.ARCH_RANGE_DEFAULTS.strike;
+    const explicit = p.range && typeof p.range === 'object' ? p.range : null;
+    const nameStr = ((p.nameTh || '') + ' ' + (p.parentNameTh || '')).trim();
+    const wTypes = Array.isArray(p.weaponTypes) ? p.weaponTypes : (p.reqWeapon || []);
+    const primaryWpn = wTypes[0] || (u && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u).weaponType : 'FIST');
+
+    let minR = explicit && Number.isFinite(explicit.min) ? explicit.min : def.min;
+    let maxR = explicit && Number.isFinite(explicit.max) ? explicit.max : def.max;
+    let shape = (explicit && explicit.shape) || def.shape;
+    let radius = explicit && Number.isFinite(explicit.radius) ? explicit.radius : (p.aoe && !def.radius ? 2.6 : def.radius);
+    let requiresLoS = explicit && explicit.requiresLoS != null ? !!explicit.requiresLoS : !!def.requiresLoS;
+    let ignoresObstacles = !!(explicit && explicit.ignoresObstacles) || !!def.ignoresObstacles;
+    let isGapCloser = !!(explicit && explicit.isGapCloser) || !!def.isGapCloser || !!p.isGapCloser;
+    let isRetreat = !!(explicit && explicit.isRetreat) || !!def.isRetreat;
+    let minRangePenalty = explicit && Number.isFinite(explicit.minRangePenalty) ? explicit.minRangePenalty : (def.minRangePenalty || 0);
+    let source = explicit ? 'EXPLICIT_RANGE' : 'ARCH_DEFAULT';
+
+    // 1. Semantic Technique-Driven Range Override (ปรัชญา "วิชาเหนือกว่าอาวุธ")
+    if (!explicit) {
+      if (/กระบี่บิน|เหินเวหา|หมื่นกระบี่|เกาทัณฑ์|ศรดาวตก|ยิงไกล|ทะลวงพันลี้|ปืนใหญ่|อุกกาบาต|ดาราร่วง|สายฟ้าฟาด/.test(nameStr)) {
+        maxR = Math.max(maxR, 5.20);
+        if (arch === 'snipe' || /เกาทัณฑ์|ศร/.test(nameStr)) { minR = Math.max(minR, 1.35); minRangePenalty = Math.max(minRangePenalty, 0.35); }
+        requiresLoS = !/อุกกาบาต|ดาราร่วง|สายฟ้าฟาด/.test(nameStr);
+        source = 'TECHNIQUE_OVERRIDE_LONG';
+      } else if (/คลื่นเสียง|พิณ|ยันต์|ค่ายกล|อาคม|ลำแสง|คลื่นมังกร|คลื่นปราณ|พายุ|ซัดคลื่น|หอกโลหิต/.test(nameStr)) {
+        maxR = Math.max(maxR, 3.60);
+        if (/คลื่นเสียง|พิณ/.test(nameStr) && p.aoe) { shape = 'CONE'; radius = Math.max(radius, 2.8); requiresLoS = false; }
+        source = 'TECHNIQUE_OVERRIDE_MID';
+      } else if (/สกัดจุด|ดรรชนี|คลุกวงใน|ประชิด|ทุ่ม|กระแทกไหล่|หมัดแปดทิศ|ผลักสะท้าน|ระเบิดรอบตัว/.test(nameStr)) {
+        minR = 0.0;
+        maxR = Math.min(1.25, maxR);
+        requiresLoS = false;
+        if (/ผลัก|ระเบิดรอบตัว|สะท้านทรวง/.test(nameStr)) { shape = 'CIRCLE_SELF'; radius = Math.max(radius, 1.8); isRetreat = true; }
+        source = 'TECHNIQUE_OVERRIDE_CLOSE';
+      } else if (['strike', 'slash', 'flurry', 'execute', 'pierce', 'sweep'].includes(arch)) {
+        // Basic martial strikes adapt to the technique's intended weapon or wielder's weapon reach
+        const wSpec = SK.WEAPON_TACTICS[primaryWpn];
+        if (wSpec) {
+          if (wSpec.reachClass === 'RANGED_KITE' && ['strike', 'flurry'].includes(arch)) {
+            maxR = Math.max(maxR, wSpec.engageRange + 0.65);
+            requiresLoS = true;
+            source = 'WEAPON_ADAPTED_RANGED';
+          } else if (wSpec.reachClass === 'LONG_POLEARM') {
+            maxR = Math.max(maxR, wSpec.engageRange + 0.15);
+            source = 'WEAPON_ADAPTED_POLEARM';
+          } else if (primaryWpn === 'FIST' && arch !== 'pierce') {
+            maxR = Math.min(maxR, 1.25);
+            source = 'WEAPON_ADAPTED_FIST';
+          }
+        }
+      }
+      if (p.acupointStrike && maxR > 2.2 && !/เข็มบิน|ดรรชนีปราณ/.test(nameStr)) {
+        maxR = 1.25;
+        minR = 0.0;
+        source = 'ACUPOINT_CLOSE';
+      }
+    }
+
+    // Target selector adjustments
+    const sel = p.targetSelector || (p.composable && p.composable.targetSelector) || null;
+    if (sel === 'PIERCE_LINE') { shape = 'LINE'; radius = Math.max(radius, 0.85); maxR = Math.max(maxR, 3.2); }
+    else if (sel === 'RICOCHET_CHAIN') { shape = 'CHAIN'; radius = Math.max(radius, 3.0); maxR = Math.max(maxR, 3.8); }
+    else if (sel === 'SPLASH_NEIGHBORS') { shape = 'CIRCLE_TARGET'; radius = Math.max(radius, 2.4); }
+    else if (sel === 'SELF' || p.self) { shape = p.aoe ? 'CIRCLE_SELF' : 'SELF'; minR = 0; }
+    else if (sel === 'ALL_ALLIES' || p.team) { shape = 'ALLY_TEAM'; minR = 0; maxR = Math.max(maxR, 4.5); }
+
+    // Active Stance range modifiers (Section 2.3)
+    if (u) {
+      const stId = u._activeStance || u._combatStance || (u.tac && u.tac.stance);
+      if (stId === 'THUNDER_STEP_STANCE' || stId === 'PUPPET_OVERDRIVE_MODE') {
+        maxR += 0.55;
+      } else if (stId === 'VAJRA_BASTION_STANCE' || stId === 'IRON_VAJRA_GUARD') {
+        if (maxR > 2.0) maxR = Math.max(1.8, maxR - 0.25);
+      }
+    }
+
+    minR = Math.max(0, +(minR).toFixed(2));
+    maxR = Math.max(minR + 0.5, +(maxR).toFixed(2));
+    const bandObj = SK.classifyRangeBand(maxR);
+    const lockType = (shape === 'CIRCLE_TARGET' || shape === 'CONE' || shape === 'LINE') && (p.aoe || arch === 'channel') ? 'POINT' : 'UNIT';
+    return {
+      min: minR,
+      max: maxR,
+      optimal: +(minR > 0 ? Math.max(minR + 0.3, maxR * 0.78) : Math.max(0.8, maxR * 0.82)).toFixed(2),
+      band: bandObj.id,
+      bandIndex: bandObj.bandIndex,
+      bandNameTh: bandObj.nameTh,
+      shape,
+      radius: +(radius || 0).toFixed(2),
+      requiresLoS,
+      ignoresObstacles,
+      isGapCloser,
+      isRetreat,
+      minRangePenalty,
+      lockType,
+      source
+    };
+  };
+
+  /* ศัตรู/ผู้ช่วยรบ: สร้างชุดวิชาที่มีระยะและบทบาทหลากหลายตามชนิด/อาวุธ/ระดับ */
   SK.foeSkills = u => {
     const species = u && JD.BEASTS && JD.BEASTS.species
       ? JD.BEASTS.species.find(s => s.id === u.speciesId || s.id === u.sp || s.nameTh === u.name)
@@ -641,29 +817,61 @@
       ? { mode: 'INTRINSIC_SINGLE', primary: rawElement, weights: { [rawElement]: 1 } }
       : null);
     const mk = (arch, nameTh, tier, type, extra) => {
-      const A = SK.ARCH[arch], cd = A.cd, tm = 1 + 0.12 * (tier - 1);
+      const A = SK.ARCH[arch] || SK.ARCH.strike, cd = A.cd, tm = 1 + 0.12 * (tier - 1);
+      const elKey = rawElement || 'NEUTRAL';
+      const elDef = SK.ELEM[elKey] || SK.ELEM.NEUTRAL;
       const p = Object.assign({
         id: 'F_' + arch + '_' + nameTh, nameTh, tier, arch, archTh: A.nameTh,
         icon: A.icon, type, cd, wind: A.wind, hits: A.hits,
+        elem: elKey, elemTh: elDef.nameTh,
         M: Math.round((A.hits ? A.e * (cd / 4) / A.hits * tm : 0) * 100) / 100,
         costPct: 0, pen: A.penAdd || 0, aoe: !!A.aoe, steal: A.steal || 0,
         dot: A.dot ? A.dot * (cd / 4) * tm : 0, recoil: 0, self: !!A.self, moves: []
       }, extra || {});
-      // Beast species elements flow into the actual generated technique profile.
       if (resolvedProfile) p.elementProfile = resolvedProfile;
+      if (rawElement) p.element = rawElement;
+      p.range = SK.resolveMoveSpatialSpec(p, u);
       p.summary = SK.summary(p);
       return p;
     };
-    const t = u.tier || 1, L = [];
-    if (u.kind === 'beast') {
-      L.push(mk(t >= 2 ? 'flurry' : 'strike', 'ตะปบกัดฉีก', t, 'p'));
-      if (t >= 2) L.push(mk('dot', 'เขี้ยวพิษ', t, 'p', { dotKind: 'poison' }));
-      if (t >= 3) L.push(mk('control', 'คำรามสะท้านใจ', t, 'm', { ctrl: 'stun' }));
-      if (t >= 4) L.push(mk('burst', 'พลังอสูรปะทุ', t, 'm'));
+    const t = u ? (u.tier || 1) : 1, L = [];
+    const wProf = SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u) : { weaponType: 'FIST', reachClass: 'SHORT_SWIFT' };
+    if (u && u.wild) {
+      L.push(mk('strike', 'ตะปบกัดฉีก', t, 'p', { range: { min: 0, max: 1.45, shape: 'SINGLE' } }));
+      if (t >= 3) L.push(mk('control', 'คำรามสะท้านใจ', t, 'm', { ctrl: 'stun', aoe: true, range: { min: 0, max: 2.6, shape: 'CIRCLE_SELF', radius: 2.4 } }));
+      if (t >= 4) L.push(mk('burst', 'พลังอสูรบรรพกาลปะทุ', t, 'm', { aoe: true, range: { min: 0, max: 3.2, shape: 'CIRCLE_TARGET', radius: 2.4 } }));
+    } else if (u && u.kind === 'beast') {
+      const fam = String(u.family || (species && species.family) || '').toUpperCase();
+      const nm = String(u.name || '');
+      const isRangedBeast = fam === 'AVIAN' || fam === 'PLANT_SPIRIT' || /อินทรี|ครุฑ|หงส์|พ่น|บัวเพลิง|แมงมุม/.test(nm);
+      L.push(mk(t >= 2 ? 'flurry' : 'strike', 'ตะปบกัดฉีก', t, 'p', { range: { min: 0, max: 1.45, shape: 'SINGLE' } }));
+      if (isRangedBeast) {
+        L.push(mk('snipe', 'ซัดขนศรปราณอสูร', t, 'm', { range: { min: 1.0, max: 4.5, shape: 'SINGLE', requiresLoS: true } }));
+      }
+      if (t >= 2) L.push(mk('dot', 'เขี้ยวพิษสังหาร', t, 'p', { dotKind: 'poison', range: { min: 0, max: 1.85, shape: 'SINGLE' } }));
+      if (t >= 3) L.push(mk('control', 'คำรามสะท้านใจ', t, 'm', { ctrl: 'stun', aoe: true, range: { min: 0, max: 3.0, shape: 'CIRCLE_SELF', radius: 2.6 } }));
+      if (t >= 4) L.push(mk('burst', 'พลังอสูรบรรพกาลปะทุ', t, 'm', { aoe: true, range: { min: 0, max: 3.6, shape: 'CIRCLE_TARGET', radius: 2.5 } }));
     } else {
-      L.push(mk('strike', 'ฟันหนัก', t, 'p'));
-      if (t >= 2) L.push(mk('pierce', 'แทงเจาะเกราะ', t, 'p'));
-      if (t >= 3) L.push(mk('sweep', 'กวาดวงกว้าง', t, 'p'));
+      const wType = wProf.weaponType || 'SWORD';
+      if (wType === 'BOW' || wType === 'FOCUS' || wType === 'ZITHER' || wType === 'BRUSH') {
+        L.push(mk('snipe', wType === 'BOW' ? 'ศรทะลวงใจ' : 'คลื่นปราณจู่โจมไกล', t, wType === 'BOW' ? 'p' : 'm', { range: { min: 1.2, max: wType === 'BOW' ? 5.2 : 4.2, shape: 'SINGLE', requiresLoS: true } }));
+        L.push(mk('strike', 'ซัดปราณป้องกันตัวระยะประชิด', Math.max(1, t - 1), 'p', { knockback: { dist: 1.4 }, range: { min: 0, max: 1.4, shape: 'SINGLE' } }));
+        if (t >= 2) L.push(mk('barrage', 'ระดมซัดศรปราณ', t, wType === 'BOW' ? 'p' : 'm', { aoe: true, range: { min: 1.0, max: 4.5, shape: 'CIRCLE_TARGET', radius: 2.4, requiresLoS: true } }));
+      } else if (wType === 'SPEAR' || wType === 'STAFF' || wType === 'WHIP') {
+        L.push(mk('pierce', 'แทงทะลวงระยะยาว', t, 'p', { range: { min: 0, max: 2.4, shape: 'LINE', radius: 0.7 } }));
+        if (t >= 2) L.push(mk('sweep', 'กวาดศาสตราสกัดทัพ', t, 'p', { aoe: true, range: { min: 0, max: 2.3, shape: 'CIRCLE_SELF', radius: 2.3 } }));
+        if (t >= 3) L.push(mk('charge', 'พุ่งหอกทะลวงค่าย', t, 'p', { range: { min: 0.8, max: 3.8, shape: 'LINE', isGapCloser: true } }));
+      } else {
+        L.push(mk('strike', 'ฟันสะบั้นคม', t, 'p', { range: { min: 0, max: 1.75, shape: 'SINGLE' } }));
+        if (t >= 2) L.push(mk('pierce', 'ปราณกระบี่ทะลวงเกราะ', t, 'p', { range: { min: 0, max: 2.6, shape: 'SINGLE' } }));
+        if (t >= 3) L.push(mk('sweep', 'คลื่นดาบกวาดสมรภูมิ', t, 'p', { aoe: true, range: { min: 0, max: 2.4, shape: 'CIRCLE_SELF', radius: 2.4 } }));
+        if (t >= 3 && (u && (u.boss || u.isSwornAlly || t >= 4))) {
+          L.push(mk('snipe', 'ปราณกระบี่เหินเวหา', t, 'm', { range: { min: 1.0, max: 4.8, shape: 'SINGLE', requiresLoS: true } }));
+        }
+      }
+      if (u && u.role === 'healer') {
+        L.push(mk('heal', 'โอสถปราณฟื้นฟูสหาย', t, 'm', { heal: 0.20, range: { min: 0, max: 4.2, shape: 'ALLY' } }));
+      }
     }
     return L;
   };
@@ -815,31 +1023,83 @@
     return false;
   };
 
+  SK.inferFoeWeaponType = u => {
+    if (!u || u.wild) return 'FIST';
+    if (u.weaponType && SK.WEAPON_TACTICS[u.weaponType]) return u.weaponType;
+    if (u.equip && u.equip.WEAPON) {
+      const gt = u.equip.WEAPON.gearType || (g.MARTIAL && g.MARTIAL.gearType ? g.MARTIAL.gearType(u.equip.WEAPON) : null);
+      if (gt && SK.WEAPON_TACTICS[gt]) return gt;
+    }
+    if (u.kind === 'beast' || u.isGateBeast || u.wild) {
+      const fam = String(u.family || '').toUpperCase();
+      const nm = String(u.name || u.nameTh || '');
+      if (fam === 'AVIAN' || /อินทรี|ครุฑ|หงส์|วิหค/.test(nm)) return 'BOW';
+      if (fam === 'SERPENT' || /งู|เหลือม|อสรพิษ|เถาวัลย์/.test(nm)) return 'WHIP';
+      if (fam === 'SHELL' || fam === 'URSINE' || /เต่า|หมี|กระทิง|คชสาร|ศิลา/.test(nm) || u.fourSymbol === 'BLACK_TORTOISE') return 'BLADE';
+      return 'FIST';
+    }
+    const nm = String(u.name || u.nameTh || '');
+    if (/ธนู|เกาทัณฑ์|ซุ่มยิง/.test(nm)) return 'BOW';
+    if (/พิณ|สังคีต|คีต/.test(nm)) return 'ZITHER';
+    if (/พู่กัน|อักขระ|ยันต์|ค่ายกล/.test(nm)) return 'BRUSH';
+    if (/แส้|ด้าย|หุ่นเชิด/.test(nm)) return 'WHIP';
+    if (/ทวน|หอก|ง้าว/.test(nm)) return 'SPEAR';
+    if (/พลอง|กระบอง|อรหันต์/.test(nm)) return 'STAFF';
+    if (/ดาบ|ผ่า/.test(nm)) return 'BLADE';
+    if (/กระบี่/.test(nm)) return 'SWORD';
+    if (/เวท|ดารา|ปราณ|โอสถ/.test(nm)) return 'FOCUS';
+    // Deterministic weapon assignment for human raiders/bandits without explicit weaponType
+    if (u.id && typeof u.id === 'string') {
+      const h = hash(u.id + ':' + nm);
+      const pool = u.boss ? ['SWORD', 'BLADE', 'SPEAR', 'FOCUS', 'BOW'] : ['BLADE', 'SWORD', 'SPEAR', 'FIST', 'BOW', 'STAFF'];
+      return pool[h % pool.length];
+    }
+    return 'FIST';
+  };
+
   SK.weaponTacticalProfile = u => {
-    if (!u || u.foe) {
+    if (!u) {
       return { weaponType: 'FIST', reachClass: 'SHORT_SWIFT', engageRange: 1.7, isHeavyFist: false, hasLightness: false, hasDefenseTech: false, spec: SK.WEAPON_TACTICS.FIST };
     }
-    const wType = (g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(u) : 'FIST';
-    const sub = u.cult ? u.cult.sub : 'NONE';
-    const path = u.cult ? u.cult.path : 'NONE';
-    const isHeavyFist = wType === 'FIST' && (path === 'BODY' || SK.HEAVY_FIST_SUBPATHS.includes(sub));
+    const eqW = u.equip ? u.equip.WEAPON : (u.weaponType || null);
+    const stc = u._activeStance || u._combatStance || '';
+    const cSub = (u.cult && u.cult.sub) || u.subPath || 'NONE';
+    const cPath = (u.cult && u.cult.path) || u.path || 'NONE';
+    const tl = (u.cult && u.cult.techs) ? u.cult.techs.length : (u.skl ? u.skl.length : 0);
+    const wtc = u._wpTacCache;
+    if (wtc && wtc.eqW === eqW && wtc.stc === stc && wtc.cSub === cSub && wtc.cPath === cPath && wtc.tl === tl && wtc.pver === (u._passVer || 0)) return wtc.out;
+    const wType = u.foe
+      ? SK.inferFoeWeaponType(u)
+      : ((g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(u) : (u.weaponType || 'FIST'));
+    const sub = (u.cult && u.cult.sub) || u.subPath || 'NONE';
+    const path = (u.cult && u.cult.path) || u.path || 'NONE';
+    const isHeavyFist = wType === 'FIST' && (path === 'BODY' || SK.HEAVY_FIST_SUBPATHS.includes(sub) || (u.foe && (u.fourSymbol === 'BLACK_TORTOISE' || u.bloodlineTrait === 'IRON_CARAPACE')));
     const baseSpec = SK.WEAPON_TACTICS[wType] || SK.WEAPON_TACTICS.FIST;
     const reachClass = isHeavyFist ? 'HEAVY_BREAKER' : baseSpec.reachClass;
-    const hasLightness = SK.hasLightnessOrGapCloser(u);
-    const hasDefenseTech = SK.hasDefensiveTech(u);
-    return {
+    const hasLightness = u.foe ? !!(u.hasLightness || (u.skl && u.skl.some(s => s.arch === 'charge' || s.arch === 'blink' || s.arch === 'evade'))) : SK.hasLightnessOrGapCloser(u);
+    const hasDefenseTech = u.foe ? !!(u.hasDefenseTech || u.fourSymbol === 'BLACK_TORTOISE' || (u.skl && u.skl.some(s => s.arch === 'guard' || s.arch === 'shield'))) : SK.hasDefensiveTech(u);
+    const stanceSpec = (!u.foe && g.STATS && g.STATS.getActiveStanceSpec) ? g.STATS.getActiveStanceSpec(u) : null;
+    const stanceRangeDelta = (u._activeStance === 'THUNDER_STEP_STANCE' || u._activeStance === 'PUPPET_OVERDRIVE_MODE') ? 0.55 : 0;
+    const engageRange = +((baseSpec.engageRange || 1.7) + stanceRangeDelta).toFixed(2);
+    const bandObj = SK.classifyRangeBand(engageRange);
+    const resObj = {
       weaponType: wType,
       reachClass,
-      engageRange: baseSpec.engageRange || 1.7,
+      engageRange,
+      rangeBand: bandObj.id,
+      rangeBandNameTh: bandObj.nameTh,
       isHeavyFist,
       hasLightness,
       hasDefenseTech,
+      activeStance: stanceSpec ? stanceSpec.id : null,
       nameTh: isHeavyFist ? 'หมัดวัชระทลายปราการ' : baseSpec.nameTh,
       stanceTh: isHeavyFist ? 'หมัดหนักทลายโล่และเกราะคุ้มกาย' : baseSpec.stanceTh,
       counteredByTh: baseSpec.counteredByTh,
       descTh: baseSpec.descTh,
       spec: baseSpec
     };
+    u._wpTacCache = { eqW, stc, cSub, cPath, tl, pver: u._passVer || 0, out: resObj };
+    return resObj;
   };
 
   /* ---------- Composable Effect, Stance, Fusion & Keyword Authority (v2.0.35) ---------- */

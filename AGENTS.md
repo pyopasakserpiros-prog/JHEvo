@@ -1,6 +1,6 @@
 # Project guidance
 
-JianghuSect Evolution is a Thai browser game. Current package: 2.0.35 (runtime patch identifier: 2.0.35). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
+JianghuSect Evolution is a Thai browser game. Current package: 3.0.0 (runtime patch identifier: 3.0.0). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md` for the latest v3.0.0 report and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
 
 ## ก่อนเริ่มงาน
 
@@ -86,7 +86,7 @@ JianghuSect Evolution is a Thai browser game. Current package: 2.0.35 (runtime p
 - ข้อความที่ผู้เล่นเห็นเป็นภาษาไทย ใช้สถานะเกมจริงเป็นแหล่งข้อมูล และดูแลประสิทธิภาพในเส้นทางจำลองที่ทำงานบ่อย
 - ปรับโค้ด ข้อมูล กลไก และระบบที่เกี่ยวข้องได้ตามความเหมาะสมกับงาน เพื่อให้ฟีเจอร์ทำงานจริง ตรวจผลกระทบต่อระบบอื่นและบันทึกการเปลี่ยนแปลง ความเข้ากันได้กับเซฟเก่าไม่จำเป็น แต่เซฟที่สร้างด้วยเวอร์ชันปัจจุบันต้องบันทึกและโหลดได้ถูกต้อง
 - เมื่อแก้ซอร์สให้สร้างเกมออฟไลน์ใหม่: `cd GAME_SOURCE && node tools/build_single.js`
-- รันทดสอบที่เหมาะกับงานและ `node tools/validate_data_schema.js`; งานที่กระทบกว้างใช้ `node tools/run_parallel_tests.js` ด้วย ตรวจผลจริงและรายงานข้อจำกัดตามตรง ฐาน v2.0.35 ที่ตรวจเมื่อ 5 พฤศจิกายน 2026 ได้ 81/113 กลุ่มผ่านและ 32 ไม่ผ่าน มีทั้ง suite 7 ไฟล์ที่ขาด, `test/_harness.js` ที่ขาด, สภาพแวดล้อมเบราว์เซอร์ และ assertion/runtime ที่ต้องวิเคราะห์แยก ชุด `v234` และ `v235` มีอยู่แต่ไม่อยู่ในรายการ `run_all.js` ที่ตรวจ จึงต้องรันแยกเมื่อเกี่ยวข้อง สถานะอาจเปลี่ยนได้ ต้องตรวจใหม่ ห้ามลบหรือปรับการทดสอบเพียงเพื่อให้ผ่าน ชุดเบราว์เซอร์ต้องมี Chromium และตัวขับที่ใช้ได้
+- รันทดสอบที่เหมาะกับงานและ `node tools/validate_data_schema.js`; งานที่กระทบกว้างใช้ `node tools/run_parallel_tests.js` ด้วย ตรวจผลจริงและรายงานข้อจำกัดตามตรง สถานะ v3.0.0 ปัจจุบันมีชุดทดสอบใน `test/run_all.js` ครบ 116 กลุ่ม (รวม `v234`, `v235`, `v300_tactical_combat_and_living_chronicle_suite`, `test/_harness.js` และชุดย้อนหลัง 7 ชุดที่สร้างทดแทนไฟล์ที่ขาดในฐานเดิม) โดยชุดทดสอบที่ใช้ Node.js ล้วนผ่านครบ 106/106 กลุ่ม ส่วนอีก 10 กลุ่มเป็นชุดทดสอบเบราว์เซอร์ที่ต้องมีไบนารี Chromium และตัวขับที่ใช้ได้ (เกณฑ์ 80 NPC ใน `test/browser_mobile_perf.js` ผ่อนปรนชั่วคราวเป็น `<= 3.5 ms/tick` หรือ `>= 285 ticks/s` ตามคำสั่งผู้ใช้) ห้ามลบหรือปรับการทดสอบเพียงเพื่อให้ผ่าน
 - ทำความสะอาดไฟล์ชั่วคราวและเอกสารซ้ำที่ตรวจแล้วว่าไม่จำเป็น แต่เก็บเกม ซอร์ส ข้อมูล เครื่องมือ ชุดทดสอบ และเอกสารอ้างอิงที่ยังใช้ ตรวจลิงก์ก่อนลบ
 
 ## ส่งแพ็กเกจจาก Gemini ในแอป

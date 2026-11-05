@@ -35,7 +35,7 @@ for (const p of paths) {
     assert(MARTIAL.INNATE_BY_SUB && MARTIAL.INNATE_BY_SUB[s], `INNATE_BY_SUB missing for subpath ${s}`);
   }
 }
-assert.strictEqual(totalSubpaths, 96, `Expected 96 subpaths, found ${totalSubpaths}`);
+assert.strictEqual(totalSubpaths, 132, `Expected 132 subpaths (96 + 36 v234), found ${totalSubpaths}`);
 
 const expectedNewSubs = [
   'CLOUD_DRAGON_SPEAR', 'PURE_SWORD_SAINT', 'WAR_SPEAR_SOVEREIGN',

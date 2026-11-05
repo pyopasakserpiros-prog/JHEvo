@@ -8,6 +8,7 @@
   const matById = {}, recipeById = {}, recipeByOutItemId = {}, itemById = {};
   JD.ITEMS.materials.forEach(m => matById[m.id] = m);
   JD.ITEMS.recipes.forEach(r => {
+    if (!r.craft && r.station) r.craft = r.station === 'FORGE' ? 'FORGING' : r.station;
     recipeById[r.id] = r;
     if (r.outItemId) recipeByOutItemId[r.outItemId] = r;
   });
@@ -63,7 +64,7 @@
   ECO.base = id => {
     if (typeof id !== 'string') return 5;
     if (id === 'grain') return ECO.GRAIN_PRICE; if (id === 'meal') return 1.2;
-    if (matById[id]) return matById[id].value;
+    if (matById[id]) return matById[id].value || matById[id].price || 10;
     if (id.startsWith('P:')) {
       const raw = id.slice(2);
       const r = recipeById[raw] || recipeByOutItemId[raw];
@@ -85,7 +86,7 @@
       const r = recipeById[raw];
       return r ? Math.round(28 * Math.pow(1.9, (r.tier || 1) - 1)) : 35;
     }
-    if (itemById[id]) return itemById[id].value;
+    if (itemById[id]) return itemById[id].value || itemById[id].price || 15;
     if (recipeById[id]) { const r = recipeById[id]; return 14 * Math.pow(2.05, r.tier - 1); }
     if (recipeByOutItemId[id]) { const r = recipeByOutItemId[id]; return 14 * Math.pow(2.05, r.tier - 1); }
     return 5;
@@ -139,8 +140,8 @@
   };
 
   /* ---------- ตำรับ ---------- */
-  ECO.recipeKnown = (W, r) => !!r && (r.tier <= W.sect.recipeTier || (r.discoverable && (W.sect.knownRecipes || []).includes(r.id))) && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id));
-  ECO.recipeKnownFor = (W, npc, r) => !!r && (r.tier <= W.sect.recipeTier || (r.discoverable && ((W.sect.knownRecipes || []).includes(r.id) || !!(npc && npc.inv && Array.isArray(npc.inv.recipes) && npc.inv.recipes.includes(r.id)) || !!(npc && Array.isArray(npc.recipes) && npc.recipes.includes(r.id))))) && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id) || !!(npc && npc.inv && Array.isArray(npc.inv.recipes) && npc.inv.recipes.includes(r.id)) || !!(npc && Array.isArray(npc.recipes) && npc.recipes.includes(r.id)));
+  ECO.recipeKnown = (W, r) => !!r && (r.tier <= W.sect.recipeTier || (!!r.experimentId && (W.sect.knownRecipes || []).includes(r.id))) && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id));
+  ECO.recipeKnownFor = (W, npc, r) => !!r && (r.tier <= W.sect.recipeTier || (!!r.experimentId && ((W.sect.knownRecipes || []).includes(r.id) || !!(npc && npc.inv && Array.isArray(npc.inv.recipes) && npc.inv.recipes.includes(r.id)) || !!(npc && Array.isArray(npc.recipes) && npc.recipes.includes(r.id))))) && (!r.discoverable || (W.sect.knownRecipes || []).includes(r.id) || !!(npc && npc.inv && Array.isArray(npc.inv.recipes) && npc.inv.recipes.includes(r.id)) || !!(npc && Array.isArray(npc.recipes) && npc.recipes.includes(r.id)));
   ECO.craftEligible = (W, npc, r, hall) => {
     if (!ECO.recipeKnownFor(W, npc, r)) return false;
     const paths = Array.isArray(r.compatiblePath) ? r.compatiblePath : [r.compatiblePath || 'ANY'];
@@ -863,10 +864,12 @@
     const best = [];
     const gearCounts = {};
     for (let i = 0; i < W.sect.gear.length; i++) { const gid = W.sect.gear[i].id; if (gid) gearCounts[gid] = (gearCounts[gid] || 0) + 1; }
+    const headInterestBonus = head ? (HC.eff(head, 'interests.' + (hall === 'alchemy' ? 'alchemy' : 'forging')) - 50) / 400 : 0;
     ECO.recipesFor(W, crafts).forEach(r => {
       const skillOk = head ? ((head.h.skills[r.craft] || 0) + 25 >= r.minMastery || W.npcs.some(n => !n.dead && !n.away && (n.h.skills[r.craft] || 0) + 20 >= r.minMastery && ECO.craftEligible(W, n, r, hall))) : true;
       if (!skillOk) return;
       let s = 0, why = '';
+      const inOk = ECO.inputsOk(W, r);
       const have = ECO.count(W, r.outItemId || 'P:' + r.id);
       if (r.outType === 'PILL') {
         const e = ECO.pillInfo(r.outItemId || 'P:' + r.id).effect;
@@ -878,26 +881,26 @@
         if (e.clearToxic) { s += 0.24 - have * 0.08; if (!why) why = 'สำรองยาถอนพิษ'; }
         if (e.qiRestore) { s += 0.18 - have * 0.06; if (!why) why = 'สำรองยาฟื้นปราณ'; }
         if (e.clearHeartDemon) { s += 0.12 - have * 0.1; }
-        if (r.discoverable && have < 2 && ECO.inputsOk(W, r)) s += 0.55;
+        if (r.discoverable && have < 2 && inOk) s += 0.55;
         if (have > 12) s -= 1;
       } else if (r.outType === 'EQUIPMENT') {
         const gcount = gearCounts[r.outItemId || r.id] || 0;
         const gapW = Math.max(0, need.noWeapon - need.gearWeapon), gapA = Math.max(0, need.noArmor - need.gearArmor), gapAcc = Math.max(0, (need.noAccessory || 0) - (need.gearAccessory || 0));
-        const slot = (r.outItemId && ECO.itemById[r.outItemId] && ECO.itemById[r.outItemId].slot) || ECO.mintGear(r).slot;
+        const slot = r._slot || (r._slot = (r.outItemId && ECO.itemById[r.outItemId] && ECO.itemById[r.outItemId].slot) || (/กระบี่|ศาสตรา|ทวน|ดาบ|หอก|ค้อน|ง้าว/.test(r.outNameTh) || ((r.effect && r.effect.combatMult) || 0) > ((r.effect && r.effect.defenseMult) || 0) * 1.8 ? 'WEAPON' : ((r.effect && r.effect.defenseMult) || 0) > ((r.effect && r.effect.combatMult) || 0) * 1.8 ? 'ARMOR' : 'ACCESSORY'));
         s += (slot === 'WEAPON' ? gapW * 0.25 : slot === 'ARMOR' ? gapA * 0.25 : Math.min(1.3, 0.2 + gapAcc * 0.16)) - gcount * 0.15;
-        if (r.discoverable && gcount < 2 && ECO.inputsOk(W, r)) s += 0.6;
+        if (r.discoverable && gcount < 2 && inOk) s += 0.6;
         why = 'อุปกรณ์ขาดแคลน';
       }
       s += Math.max(0, (ECO.outputValue(W, r) - ECO.inputCost(W, r))) / 220 * (0.4 + pol.focus.commerce) ;
       s -= r.tier > 3 ? (r.tier - 3) * 0.12 : 0;
-      if (!ECO.inputsOk(W, r)) { s -= 0.25; }
-      if (head) { const iid = hall === 'alchemy' ? 'alchemy' : 'forging'; s += (HC.eff(head, 'interests.' + iid) - 50) / 400; }
+      if (!inOk) { s -= 0.25; }
+      if (head) s += headInterestBonus;
       if(head&&g.COG)s+=g.COG.orderBias(W,head,r);
       s += W.rng.next() * 0.12;
-      best.push({ r, s, why });
+      best.push({ r, s, why, inOk });
     });
     best.sort((a, b) => b.s - a.s);
-    const pickable = best.filter(x => ECO.inputsOk(W, x.r));
+    const pickable = best.filter(x => x.inOk);
     const top = pickable[0] || null;
     const want = {};
     best.slice(0, 3).forEach(x => { x.r.inputs.forEach(i => { const lack = i.count * 2 - ECO.count(W, i.matId); if (lack > 0) want[i.matId] = Math.max(want[i.matId] || 0, lack); }); });

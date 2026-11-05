@@ -528,9 +528,10 @@
       const eqW = n.equip ? n.equip.WEAPON : null, eqA = n.equip ? n.equip.ARMOR : null, pLen = n.pets ? n.pets.length : 0;
       const emVer = (n.ext && n.ext.elementalSystem && n.ext.elementalSystem._mVer) || 0;
       tpc = TP_CACHE.get(n);
-      if (!tpc || tpc.ver !== n._ver || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
+      const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0;
+      if (!tpc || tpc.rat !== rat0 || tpc.mLen !== mLen0 || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
         const elemMap = (tpc && tpc.emVer === emVer && tpc.root === n.h.root && tpc.st === n.cult.stage) ? tpc.elemMap : Object.create(null);
-        tpc = { ver: n._ver, emVer, root: n.h.root, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null), elemMap };
+        tpc = { rat: rat0, mLen: mLen0, emVer, root: n.h.root, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null), elemMap };
         TP_CACHE.set(n, tpc);
       } else {
         const hit = tpc.map[t.id];
@@ -1268,7 +1269,8 @@
         const eqW0 = n.equip ? n.equip.WEAPON : null;
         let blc = BLT_CACHE.get(n);
         let bestTech = null;
-        if (blc && blc.libLen === visibleLib.length && blc.cap === cap && blc.sub === n.cult.sub && blc.tl === n.cult.techs.length && blc.ver === n._ver && blc.eqW === eqW0 && (!blc.bestTech || !n.cult.techs.includes(blc.bestTech.id))) {
+        const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0;
+        if (blc && blc.libLen === visibleLib.length && blc.cap === cap && blc.sub === n.cult.sub && blc.tl === n.cult.techs.length && blc.rat === rat0 && blc.mLen === mLen0 && blc.eqW === eqW0 && (!blc.bestTech || !n.cult.techs.includes(blc.bestTech.id))) {
           bestTech = blc.bestTech;
         } else {
           const eligible = CULT.learnable(n, visibleLib).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
@@ -1277,7 +1279,7 @@
             const p = COG.techPreference(n, eligible[i]);
             if (p > bestPref) { bestPref = p; bestTech = eligible[i]; }
           }
-          BLT_CACHE.set(n, { libLen: visibleLib.length, cap, sub: n.cult.sub, tl: n.cult.techs.length, ver: n._ver, eqW: eqW0, bestTech });
+          BLT_CACHE.set(n, { libLen: visibleLib.length, cap, sub: n.cult.sub, tl: n.cult.techs.length, rat: rat0, mLen: mLen0, eqW: eqW0, bestTech });
         }
         const eligible = [bestTech];
         if (eligible[0]) {
@@ -1349,14 +1351,14 @@
     envoy: ['duty'], spymaster: ['duty', 'investigateClueLocal'], beastmaster: ['duty', 'guard'], arraymaster: ['duty', 'forge'], censor: ['duty'], quartermaster: ['duty']
   };
   COG.modifiers = (W, n, id, SAcc) => {
-    const out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = (why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } };
+    const isFast = !!(SAcc && SAcc._fast), out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = isFast ? ((_, x) => { if (x > 0.025 || x < -0.025) SAcc.u += (x < -2 ? -2 : x > 2 ? 2 : x); }) : ((why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } });
     let mc = n._cogModCtx;
     if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
       const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
       const postsRef = W.sect && W.sect.posts;
       const safeNow = safe(n), hourBand = ((W.t % 1440) / 60) | 0, planAnchor = W.sect && W.sect.officePlans && W.sect.officePlans.alchemy ? W.sect.officePlans.alchemy.by : null;
       const pCmd = postsRef ? postsRef.commander : null, pAlc = postsRef ? postsRef.alchemy : null, pFrg = postsRef ? postsRef.forge : null, pMas = W.sect ? W.sect.masterId : null;
-      if (!mc || (W.t - mc.t >= 15 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.hourBand !== hourBand || mc.ver !== n._ver || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || mc.cp !== cpNow || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
+      if (!mc || (W.t - mc.t >= 60 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.hourBand !== hourBand || mc.ver !== n._ver || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || (curGoal && (curGoal.id === 'scripture' || curGoal.id === 'gear_upgrade') && mc.cp !== cpNow) || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -1434,7 +1436,7 @@
         injLen: n.inj ? n.inj.length : 0, hasSevInj: !!(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)),
         hasTrackBnWindow: !!(safe0 && n.cult && n.cult.track && n.cult.track.ordinal < 9 && !(n.inj && n.inj.length && n.inj.some(i => (i.sev || 1) >= 2)) && !(curGoal && (curGoal.id === 'crisis' || curGoal.id === 'help_friend' || curGoal.id === 'recovery')) && (CULT.trackReady(n) || n.cult.track.prog >= CULT.trackThreshold(n) * 0.65)),
         weatherPen: (['rain', 'snow'].includes(W.weather?.kind)) ? (-0.12 - E(n, 'personality.caution') / 800) : 0,
-        hasRefineCand: !!(safe0 && n.rank >= 2 && W.sect && W.sect.catalysts && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n))
+        hasRefineCand: undefined
       };
       }
       if (SAcc && mc) mc._decTick = W.t;
@@ -1474,7 +1476,7 @@
     if ((s.heartDemon || 0) >= 45 && (id === 'pray' || id === 'consolidate' || id === 'personalPillUse') && (!n.cult || n.cult.path !== 'DEMON' || s.heartDemon >= 68)) {
       push('สงบจิตมารที่รบกวนตบะ', 0.62);
     }
-    if (id === 'forge' && mc.hasRefineCand) {
+    if (id === 'forge' && (mc.hasRefineCand !== undefined ? mc.hasRefineCand : (mc.hasRefineCand = !!(mc.safe && n.rank >= 2 && W.sect && W.sect.catalysts && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n))))) {
       push('ขัดเกลาศาสตรา T4–T6 ด้วยผลึกโบราณ', 0.52);
     }
     if (mc.hasTrackBnWindow) {
@@ -1828,12 +1830,18 @@
   /* ---------- Medicine Sharing & Surplus Gear Gifting ---------- */
   function helpCandidate(W, n, target) {
     if (!COG.available(n, W) || !safe(n) || n.act?.id === 'fight') return null;
-    const key = (g.JD.CP.RECOVERY.hp || []).find(k => n.inv?.pills?.[k] > 0 && ECO.pillInfo(k)?.effect.healHealth);
-    if (!key) return null;
+    if (!target && W.t > 0 && n._helpCandCache && n._helpCandCache.t === W.t) return n._helpCandCache.val;
+    const pills = n.inv && n.inv.pills;
+    if (!pills) return null;
+    const recHp = g.JD.CP.RECOVERY.hp || [];
+    let key = null;
+    for (let i = 0; i < recHp.length; i++) { const k = recHp[i]; if (pills[k] > 0 && ECO.pillInfo(k)?.effect.healHealth) { key = k; break; } }
+    if (!key) { if (!target && W.t > 0) n._helpCandCache = { t: W.t, val: null }; return null; }
     const candidates = target ? [W.byId[target]] : W.npcs;
     let best = null, score = 0;
-    for (const x of candidates) {
-      if (!x || x.id === n.id || !COG.available(x, W) || x.hidden || x.act?.id === 'fight' || Math.hypot(x.x - n.x, x.y - n.y) > 12 || x.h.state.hp >= CULT.hpMax(x) * 0.55 || (x.inv.pills[key] || 0) >= 1) continue;
+    for (let i = 0; i < candidates.length; i++) {
+      const x = candidates[i];
+      if (!x || x.id === n.id || x.dead || x.away || x.exiled || x.hidden || x.act?.id === 'fight' || Math.abs(x.x - n.x) > 12 || Math.abs(x.y - n.y) > 12 || !COG.available(x, W) || Math.hypot(x.x - n.x, x.y - n.y) > 12 || x.h.state.hp >= (x._nd ? x._nd.hpMax : CULT.hpMax(x)) * 0.55 || (x.inv.pills[key] || 0) >= 1) continue;
       const ri = COG.relInfo(W, n, x);
       const empathy = E(n, 'personality.empathy');
       const v = empathy / 100 + Math.max(0, ri.affection) / 100 + ri.gratitude / 140 + (ri.isKin ? 0.4 : 0) - (E(n, 'values.wealthResource') / 200);
@@ -1842,6 +1850,7 @@
         best = { id: x.id, key, score: v };
       }
     }
+    if (!target && W.t > 0) n._helpCandCache = { t: W.t, val: best };
     return best;
   }
   COG.helpCandidate = helpCandidate;

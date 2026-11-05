@@ -339,8 +339,8 @@ M.progression=(n,stage)=>{
  const rank=Math.min(CULT.PATHS[c.path].maxStage,stage==null?c.stage:stage),track=c.track?c.track.ordinal||1:1;
  const pc=n._progCache;if(pc&&pc.path===c.path&&pc.sub===c.sub&&pc.rank===rank&&pc.track===track)return pc.value;
  const path=paths[c.path],sub=CULT.PATHS[c.path].subPaths.some(s=>s.id===c.sub)?profiles[c.sub]:null,max=CULT.PATHS[c.path].maxStage,ps=growth(rank,max,path.curve),ss=Math.max(growth(rank,max,sub?sub[2]:'steady'),track>1?growth(track,9,sub?sub[2]:'steady')*.85:0);
- const body={},p={},life={};for(const k in path.body)body[k]=path.body[k]*ps;if(sub)for(const k in sub[0])body[k]=(body[k]||0)+sub[0][k]*ss;
- for(const k in path.p)p[k]=path.p[k]*ps;for(const k in path.life)life[k]=1+path.life[k]*ps;if(sub)for(const k in sub[1])life[k]=(life[k]||1)+sub[1][k]*ss;
+ const body={},p={},life={};for(const k in path.body)body[k]=path.body[k]*ps;if(sub)for(const k in sub[0])if(typeof sub[0][k]==='number')body[k]=(body[k]||0)+sub[0][k]*ss;
+ for(const k in path.p)p[k]=path.p[k]*ps;for(const k in path.life)life[k]=1+path.life[k]*ps;if(sub)for(const k in sub[1])if(typeof sub[1][k]==='number')life[k]=(life[k]||1)+sub[1][k]*ss;
  Object.keys(body).forEach(k=>body[k]=Math.round(body[k]*10)/10);
  const value={identity:sub?CULT.subInfo(c.path,c.sub).nameTh:'พื้นฐาน (ยังไม่เลือกสายย่อย)',body,p,f:{},life,scale:ss,curve:sub?sub[2]:path.curve};
  n._progCache={path:c.path,sub:c.sub,rank,track,value};return value;
@@ -1097,12 +1097,12 @@ M.gearSuitability=(n,it,price)=>{
  if(!it||it.retired||(it.procedural&&it.dur!=null&&it.dur<=0&&(it.maxDur||100)<=20)||!n.cult||(it.minStage||1)>effSt+1)return {score:-Infinity,reasons:[it&&it.retired?'ศาสตราชำรุดถาวร':'ขั้นบำเพ็ญไม่ถึง']};
  const c=n.cult;
  if(it.compatiblePath){const cp=Array.isArray(it.compatiblePath)?it.compatiblePath:[it.compatiblePath];if(!cp.includes('ANY')&&!cp.includes(c.path))return {score:-Infinity,reasons:['ต่างวิถีหลัก']};}
- const lowHp=!!(n.h&&n.h.root&&n.h.state&&n.h.state.hp<CULT.hpMax(n)*.6);
+ const lowHp=!!(n.h&&n.h.root&&n.h.state&&n.h.state.hp<(n._nd?n._nd.hpMax:CULT.hpMax(n))*.6);
  const eq=n.equip||{};
- let gsc=(n.h&&n.h.root)?GS_CACHE.get(n):null;
+ let gsc=(n.h&&n.h.root)?(n._gsc||GS_CACHE.get(n)):null;
  if(n.h&&n.h.root){
   if(!gsc||gsc.ver!==n._ver||gsc.st!==effSt||gsc.sub!==c.sub||gsc.path!==c.path||gsc.tl!==c.techs.length||gsc.eqW!==eq.WEAPON||gsc.eqA!==eq.ARMOR||gsc.eqX!==eq.ACCESSORY||gsc.post!==n.post||gsc.lowHp!==lowHp||gsc.pLen!==(n.pets?n.pets.length:0)){
-   gsc={ver:n._ver,st:effSt,sub:c.sub,path:c.path,tl:c.techs.length,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,post:n.post,lowHp,pLen:n.pets?n.pets.length:0,wm:new WeakMap()};
+   gsc=n._gsc={ver:n._ver,st:effSt,sub:c.sub,path:c.path,tl:c.techs.length,eqW:eq.WEAPON,eqA:eq.ARMOR,eqX:eq.ACCESSORY,post:n.post,lowHp,pLen:n.pets?n.pets.length:0,wm:new WeakMap()};
    GS_CACHE.set(n,gsc);
   }else{
    const hit=gsc.wm.get(it);

@@ -668,14 +668,14 @@
       for (let d = 0; d < 8; d++) {
         const dx = DX8[d], dy = DY8[d], nx = x + dx, ny = y + dy;
         if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
-        const nk = ny * W + nx; if (cost[nk] === 0) continue;
+        const nk = ny * W + nx; if (closed[nk] === curStamp || cost[nk] === 0) continue;
         if (dx !== 0 && dy !== 0 && (cost[y * W + nx] === 0 || cost[ny * W + x] === 0)) continue; // กันตัดมุม
+        const nInWall = nx > 22 && nx < 218 && ny > 18 && ny < 131;
+        if (nInWall !== gInWall) continue;
         const ng = gk0 + DC8[d] * cost[nk];
         if (stamp[nk] !== curStamp || ng < gScore[nk]) {
           stamp[nk] = curStamp; gScore[nk] = ng; came[nk] = k;
           let hDist;
-          const nInWall = nx > 22 && nx < 218 && ny > 18 && ny < 131;
-          if (nInWall !== gInWall) continue;
           let hx = Math.abs(nx - gx), hy = Math.abs(ny - gy);
           if (!gInWall && nx > 22 && nx < 218 && ((ny >= 131 && gy <= 18) || (ny <= 18 && gy >= 131))) {
             const detourWest = (nx - 21) + Math.abs(gx - 21);
@@ -697,7 +697,7 @@
     pc.set(key, path);
     return path;
   };
-  MAP.speedAt = (M, x, y) => { x = Math.floor(x); y = Math.floor(y); if (!M.inb(x, y)) return 1; return SPEED[M.terrain[y * W + x]] || 1; };
+  MAP.speedAt = (M, x, y) => { x |= 0; y |= 0; return (x >= 0 && y >= 0 && x < W && y < H) ? (SPEED[M.terrain[y * W + x]] || 1) : 1; };
   MAP.blocked = (M, x, y) => { x = Math.floor(x); y = Math.floor(y); return !M.inb(x, y) || M.block[y * W + x] !== 0; };
   MAP.stationsOf = (M, b) => b.stations.map(i => M.stations[i]);
   MAP.isOutsideWall = (M, x, y) => {

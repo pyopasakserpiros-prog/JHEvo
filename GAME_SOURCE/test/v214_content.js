@@ -6,13 +6,13 @@ const W = SIM.create('v214-content');
 const newSubs = D.subPaths.filter(s => s.v214);
 const oldCraft = ['PILL_FURNACE_IMMORTAL', 'POISON_VENOM_CAULDRON', 'HEAVENLY_ANVIL_SMITH', 'SPIRIT_SWORD_ARTIFICER', 'RUNE_ARRAY_ENGRAVER', 'DIVINE_FLAME_SMELTER'];
 assert.strictEqual(newSubs.length, 12);
-assert.strictEqual(JD.CULT.paths.CRAFT_CREATION.subPaths.length, 9);
+assert.strictEqual(JD.CULT.paths.CRAFT_CREATION.subPaths.filter(s => !s.v234).length, 9);
 for (const id of oldCraft) assert(JD.CULT.paths.CRAFT_CREATION.subPaths.some(s => s.id === id), 'retain broad craft: ' + id);
 for (const [path, count] of [['ARRAY_TALISMAN', 4], ['STRATEGY_GOVERNANCE', 5]]) {
   const def = JD.CULT.paths[path];
   assert.strictEqual(def.stages.length, 8);
   assert.strictEqual(def.maxStage, 8);
-  assert.strictEqual(def.subPaths.length, count);
+  assert.strictEqual(def.subPaths.filter(s => !s.v234).length, count);
   assert.deepStrictEqual(def.stages.map(s => s.stage), [1, 2, 3, 4, 5, 6, 7, 8]);
   assert(D.pathProfiles[path]);
   assert(MARTIAL.PATHS[path], 'runtime identity registered: ' + path);
@@ -57,7 +57,7 @@ for (const sub of newSubs) {
   const stats = STATS.get(n);
   for (const key of STATS.KEYS) assert(Number.isFinite(stats[key]), 'finite runtime stat ' + sub.id + '/' + key);
 }
-assert.deepStrictEqual(JD.CULT.paths.STRATEGY_GOVERNANCE.subPaths.map(s => s.governanceRole), ['command', 'steward', 'diplomacy', 'logistics', 'teaching']);
+assert.deepStrictEqual(JD.CULT.paths.STRATEGY_GOVERNANCE.subPaths.filter(s => !s.v234).map(s => s.governanceRole), ['command', 'steward', 'diplomacy', 'logistics', 'teaching']);
 assert.strictEqual(D.professionSpecializations.SPIRIT_FEAST_HEALER.role, 'RECOVERY_FOOD');
 assert.strictEqual(D.professionSpecializations.JADE_MEAL_PREPARER.role, 'CULTIVATION_FOOD');
 assert.strictEqual(D.professionSpecializations.CELESTIAL_ARMOR_ARTISAN.role, 'ARMOR');

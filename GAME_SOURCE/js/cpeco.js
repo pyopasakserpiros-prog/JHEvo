@@ -337,23 +337,33 @@
     const cp = n.cp || 0, c = n.cult; if (cp < 4) return null;
     const hm0 = n._nd ? n._nd.hpMax : CULT.hpMax(n);
     const sSeq = (W._pillSeq || 0) * 4096 + ((W.sect && W.sect.crystalsVer) || 0), hpBand = n.h.state.hp >= hm0 * 0.73 ? 8 : ((n.h.state.hp * 0.5) | 0), injLen = n.inj ? n.inj.length : 0;
-    if (W.t > 0 && n._pickCache && (n._pickCache.t === W.t || (W.t > n._pickCache.t && W.t - n._pickCache.t < 45 && n._pickCache.sSeq === sSeq)) && n._pickCache.path === (c && c.path) && n._pickCache.stage === (c && c.stage) && n._pickCache.cp === cp && n._pickCache.hpBand === hpBand && n._pickCache.gearLen === W.sect.gear.length && n._pickCache.injLen === injLen) return n._pickCache.val;
+    if (W.t > 0 && n._pickCache && (n._pickCache.t === W.t || (W.t > n._pickCache.t && W.t - n._pickCache.t < 180 && n._pickCache.sSeq === sSeq && n._pickCache.ver === n._ver)) && n._pickCache.path === (c && c.path) && n._pickCache.stage === (c && c.stage) && (W.t === n._pickCache.t ? n._pickCache.cp === cp : (Math.abs(cp - n._pickCache.cp) < 3 && (cp | 0) === (n._pickCache.cp | 0))) && n._pickCache.hpBand === hpBand && n._pickCache.gearLen === W.sect.gear.length && n._pickCache.injLen === injLen) return n._pickCache.val;
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
     const consider = (it, s, why) => { if (it.price == null) it.price = CPE.priceOf(W, it.key); if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
-    for (const k in W.sect.stock) {
-      if (W.sect.stock[k] <= 0 || (k.charCodeAt(0) !== 80 && !ECO.isPill(k))) continue; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
+    const hpRatio = n.h.state.hp / Math.max(1, hm0), th0 = c ? CULT.threshold(n) : 0, eqSt0 = c ? (n._nd ? n._nd.eqStage : CULT.equivalentStage(n)) : 0;
+    if (W._pillStockKeysSeq !== (W._pillSeq || 0) || !W._pillStockKeys) {
+      const pks = [];
+      for (const k in W.sect.stock) {
+        if (W.sect.stock[k] > 0 && (k.charCodeAt(0) === 80 || ECO.isPill(k))) pks.push(k);
+      }
+      W._pillStockKeys = pks;
+      W._pillStockKeysSeq = W._pillSeq || 0;
+    }
+    const pillKeys = W._pillStockKeys;
+    for (let pki = 0; pki < pillKeys.length; pki++) {
+      const k = pillKeys[pki];
+      if (W.sect.stock[k] <= 0) continue; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
       const info = ECO.pillInfo(k);
       if (BASIC_IDS.includes(k)) { const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); continue; }
       if (!info || (e.compatiblePath && (!c || e.compatiblePath !== c.path))) continue;
-      const hpRatio = n.h.state.hp / Math.max(1, CULT.hpMax(n));
       if (e.healHealth && hpRatio < 0.72 && have(k) < 1) consider(it, 0.65 + (1 - hpRatio) * 1.5, 'โอสถรักษาระดับสูง');
       if (e.healInjury && n.inj && n.inj.length && have(k) < 1) consider(it, 1.1 + Math.min(0.8, n.inj.length * 0.2), 'รักษาบาดแผลหนัก');
       if (e.clearToxic && c && (c.toxic || 0) > 25 && have(k) < 1) consider(it, 0.8 + c.toxic / 100, 'ถอนพิษสะสม');
       if (e.clearHeartDemon && n.h.state.heartDemon > 32 && have(k) < 1) consider(it, 0.7 + n.h.state.heartDemon / 120, 'ระงับจิตมาร');
       if (e.insight && c && have(k) < 1 && (c.learning || E(n, 'personality.curiosity') > 65)) consider(it, 0.65 + E(n, 'personality.curiosity') / 250, 'เพิ่มความเข้าใจคัมภีร์');
       if (!c) continue;
-      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && have(k) < 1 && (c.bn || c.prog >= CULT.threshold(n) * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น'); continue; }
+      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && have(k) < 1 && (c.bn || c.prog >= th0 * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น'); continue; }
       if (e.cbBuff) {
         const combatInt = E(n, 'interests.combat') || 50;
         const courage = E(n, 'personality.courage') || 50;
@@ -362,7 +372,7 @@
         }
         continue;
       }
-      if (e.cultivationProgress && info.tier <= CULT.equivalentStage(n) + 1 && c.prog < CULT.threshold(n) * 0.85 && (c.toxic || 0) < (c.path === 'DEMON' ? 50 : 35)) consider(it, 0.5 + e.cultivationProgress / 160 + (E(n, 'personality.ambition') - 50) / 250, 'เร่งตบะ');
+      if (e.cultivationProgress && info.tier <= eqSt0 + 1 && c.prog < th0 * 0.85 && (c.toxic || 0) < (c.path === 'DEMON' ? 50 : 35)) consider(it, 0.5 + e.cultivationProgress / 160 + (E(n, 'personality.ambition') - 50) / 250, 'เร่งตบะ');
     }
     const savingForTech = n.cognition?.goal?.id === "scripture" && n.cognition.goal.targetId ? CULT.tech(n.cognition.goal.targetId) : null;
     const reserveTechCp = savingForTech ? CPE.techPrice(W, savingForTech) : 0;
@@ -399,7 +409,7 @@
         }
       }
     }
-    if (W.t > 0) n._pickCache = { t: W.t, sSeq, path: c && c.path, stage: c && c.stage, cp, hpBand, gearLen: W.sect.gear.length, injLen, val: best };
+    if (W.t > 0) n._pickCache = { t: W.t, sSeq, ver: n._ver, path: c && c.path, stage: c && c.stage, cp, hpBand, gearLen: W.sect.gear.length, injLen, val: best };
     return best;
   };
   CPE.buy = (W, n, p) => {
@@ -896,7 +906,7 @@
     for (const mk in mats) { if (mats[mk] > 0) matSum += mats[mk]; }
     if (matSum <= 0) return null;
     const wt = W ? W.t : -1, nVer = n._ver || 0;
-    if (wt > 0 && n._pcTick === wt && n._pcVer === nVer && n._pcMatSum === matSum) return n._pcVal;
+    if (wt > 0 && (n._pcTick === wt || (wt > n._pcTick && wt - n._pcTick < 45)) && n._pcVer === nVer && n._pcMatSum === matSum) return n._pcVal;
     n._pcTick = wt; n._pcVer = nVer; n._pcMatSum = matSum;
     const known = [...(n.inv.recipes || []), ...(n.recipes || [])];
     const canBasicBrew = (n.h.skills.ALCHEMY || 0) >= 10 || HC.eff(n, 'interests.herbs') >= 35 || n.post === 'alchemy' || (n.inj && n.inj.length > 0) || n.h.state.hp < CULT.hpMax(n) * 0.75;

@@ -171,7 +171,8 @@
     return false;
   };
 
-  ST.dirty = u => { if (u) { u._cs = null; u._csBase = null; u._skillEffectsCache = null; } };
+  ST.dirty = u => { if (u) { u._cs = null; u._csBase = null; u._csStatic = null; u._skillEffectsCache = null; u._nd = null; } };
+  ST.dirtyStatus = u => { if (u) { u._cs = null; u._nd = null; } };
 
   ST.purgeExpired = (u, now) => {
     if (!u) return false;
@@ -213,7 +214,7 @@
         changed = true;
       }
     }
-    if (changed) ST.dirty(u);
+    if (changed) ST.dirtyStatus(u);
     return changed;
   };
 
@@ -341,12 +342,16 @@
     const pred = typeof filterOrId === 'function' ? filterOrId : (b => b.id === filterOrId || b.k === filterOrId);
     if (Array.isArray(u.buffs)) u.buffs = u.buffs.filter(b => !pred(b));
     if (Array.isArray(u.sx)) u.sx = u.sx.filter(x => !pred(x));
-    ST.dirty(u);
+    ST.dirtyStatus(u);
   };
 
   function passiveCacheKey(n) {
     if (!n || !n.cult) return 0;
     const hpfBand = (n._hpf == null || n._hpf > 0.8) ? 2 : (n._hpf <= 0.4 ? 0 : (n._hpf <= 0.45 ? 1 : (n._hpf <= 0.5 ? 3 : 4)));
+    if ((!n.pets || !n.pets.length) && !n.mechState && !n.karmaState && !n._activeStance && !n._combatStance && (!n.meridians || !n.meridians.openedCount) && !n._beastFusedUntil && !n._beastSpiritPossessedUntil) {
+      const ext0 = (n.mentorImprint ? 0x8000 : 0) | (n.ancientBloodline && n.ancientBloodline.awakened ? 0x40000 : 0);
+      return (((n._passVer || 0) * 16) + hpfBand) ^ (ext0 << 4);
+    }
     let ext = 0;
     if (n.pets && n.pets.length) {
       for (let i = 0; i < n.pets.length; i++) {
@@ -585,182 +590,173 @@
         cb.eqX === eqX && cb.eqXdur === eqXdur) {
       return cb;
     }
-    const b = { hp: 0, atk: 0, matk: 0, def: 0, mdef: 0, crit: 5, critDmg: 150, eva: 0, acc: 0, pen: 0, cast: 100, move: 0 };
-    const p = { hp: 0, atk: 0, matk: 0, def: 0, mdef: 0, crit: 0, critDmg: 0, eva: 0, acc: 0, pen: 0, cast: 0, move: 0 };
-    const f = { hp: 0, atk: 0, matk: 0, def: 0, mdef: 0, crit: 0, critDmg: 0, eva: 0, acc: 0, pen: 0, cast: 0, move: 0 };
-    const addP = (k, v) => { if (v) p[k] += v; };
-    const addF = (k, v) => { if (!v) return; if (k === 'move') p.move += v / 100; else f[k] += v; };
-    const addAll = (o, isF) => { for (const k in o) if (k in b) { if (isF) addF(k, o[k]); else addP(k, o[k]); } };
-    const st = CULT.stageInfo(n), L = st.combatPower, sub = c ? CULT.subInfo(c.path, c.sub) : null;
-    const Lo = L * (sub ? sub.combatBonus : 1), Ld = L * (sub ? sub.defenseBonus : 1), pw = PATHW[c && PATHW[c.path] ? c.path : 'NONE'], d = g.MARTIAL ? g.MARTIAL.derived(n) : HC.derived(n);
-    b.atk = Lo * 0.6 * pw.atk; b.matk = Lo * 0.6 * pw.matk; b.def = Ld * 0.5 * pw.def; b.mdef = Ld * 0.45 * pw.mdef; b.acc = Lo * 0.55; b.eva = Lo * 0.55;
-    b.hp = d.hpMax * CULT.hpMult(n); b.move = 100 * d.walkSpeed / 1.05;
+    const skVer = n._cbSkillVer || 0;
+    let stc = n._csStatic;
+    if (!(stc && stc.cPath === cPath && stc.cStage === cStage && stc.cSub === cSub && stc.cMantra === cMantra &&
+          stc.cTechLen === cTechLen && stc.cTechLast === cTechLast && stc.cTrack === cTrack && stc.passKey === passKey &&
+          stc.skVer === skVer && stc.eqW === eqW && stc.eqWdur === eqWdur && stc.eqA === eqA && stc.eqAdur === eqAdur &&
+          stc.eqX === eqX && stc.eqXdur === eqXdur)) {
+      const sp = { hp: 0, atk: 0, matk: 0, def: 0, mdef: 0, crit: 0, critDmg: 0, eva: 0, acc: 0, pen: 0, cast: 0, move: 0 };
+      const sf = { hp: 0, atk: 0, matk: 0, def: 0, mdef: 0, crit: 0, critDmg: 0, eva: 0, acc: 0, pen: 0, cast: 0, move: 0 };
+      const addP = (k, v) => { if (v) sp[k] += v; };
+      const addF = (k, v) => { if (!v) return; if (k === 'move') sp.move += v / 100; else sf[k] += v; };
+      const addAll = (o, isF) => { for (const k in o) if (k in sp) { if (isF) addF(k, o[k]); else addP(k, o[k]); } };
+      if (c) {
+        const ns = CULT.normalizedStage ? CULT.normalizedStage(n) : c.stage; addF('cast', 2 * (ns - 1)); addF('move', 4 * (ns - 1));
+        const rawFx = SUBFX[c.sub] || (JD.EXPANSION.subStats || {})[c.sub], fx = rawFx && g.MARTIAL ? g.MARTIAL.subStats(n, rawFx) : rawFx; if (fx) { if (fx.p) addAll(fx.p, false); if (fx.f) addAll(fx.f, true); }
+        const m = c.mantra ? CULT.tech(c.mantra) : null;
+        if (m) {
+          if (c.path === 'XIAN') { addP('matk', 0.04 * m.tier); addP('mdef', 0.02 * m.tier); }
+          else if (c.path === 'BODY') { addP('def', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('atk', 0.02 * m.tier); }
+          else if (c.path === 'DEMON') { addP('atk', 0.03 * m.tier); addP('matk', 0.03 * m.tier); addF('crit', 0.8 * m.tier); }
+          else if (c.path === 'HEART_SOUL') { addP('matk', 0.04 * m.tier); addP('mdef', 0.03 * m.tier); addF('cast', 1.2 * m.tier); }
+          else if (c.path === 'MECH_PUPPET') { addP('def', 0.035 * m.tier); addP('atk', 0.025 * m.tier); addP('matk', 0.025 * m.tier); }
+          else if (c.path === 'KARMA_SAMSARA') { addP('mdef', 0.04 * m.tier); addP('matk', 0.035 * m.tier); addP('hp', 0.02 * m.tier); }
+          else if (c.path === 'BEAST_SOVEREIGN') { addP('atk', 0.035 * m.tier); addP('hp', 0.035 * m.tier); addF('move', 1.0 * m.tier); }
+          else if (c.path === 'SAGE_SUPPORT') { addP('mdef', 0.04 * m.tier); addP('hp', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
+          else if (c.path === 'CRAFT_CREATION') { addP('atk', 0.03 * m.tier); addP('matk', 0.035 * m.tier); addP('def', 0.03 * m.tier); addP('mdef', 0.03 * m.tier); }
+          else if (c.path === 'ARRAY_TALISMAN') { addP('matk', 0.04 * m.tier); addP('mdef', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
+          else if (c.path === 'STRATEGY_GOVERNANCE') { addP('atk', 0.03 * m.tier); addP('matk', 0.03 * m.tier); addP('def', 0.035 * m.tier); addP('mdef', 0.035 * m.tier); }
+          else { addP('mdef', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('matk', 0.02 * m.tier); }
+          if (m.mantraBonus) {
+            if (m.mantraBonus.p) addAll(m.mantraBonus.p, false);
+            if (m.mantraBonus.f) addAll(m.mantraBonus.f, true);
+            if (m.mantraBonus.pp) addAll(m.mantraBonus.pp, true);
+          }
+        }
+        let techT = 0;
+        const techs = g.MARTIAL ? g.MARTIAL.activeTechs(n) : c.techs;
+        for (let i = 0; i < techs.length; i++) {
+          const t = CULT.tech(techs[i]); if (!t) continue;
+          if (t.cat === 'COMBAT_TECHNIQUE') techT += t.tier;
+          else if (g.MARTIAL && !g.MARTIAL.conditionMatches(n, t)) continue;
+          else if (t.cat === 'LIGHTNESS_ART' || t.cat === 'MOVEMENT_TECHNIQUE') { addF('move', 3 + 2 * t.tier); addP('eva', 0.02 * t.tier); }
+          else if (t.cat === 'DEFENSIVE_TECHNIQUE') { addP('def', 0.018 * t.tier); addP('mdef', 0.015 * t.tier); }
+          else if ((t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') || t.cat === 'SUPPORT_TECHNIQUE') addP('mdef', 0.015 * t.tier);
+        }
+        const tf = Math.min(0.3, 0.03 * techT); addP('atk', tf); addP('matk', tf);
+        if (c.track) {
+          const trRealm = CULT.trackRealm(n);
+          if (trRealm) {
+            const rb = trRealm.realmBuffs || {};
+            if (rb.combatOffensePct) { const v = rb.combatOffensePct / 100; addP('atk', v); addP('matk', v); }
+            if (rb.combatDefensePct) { const v = rb.combatDefensePct / 100; addP('def', v); addP('mdef', v); }
+            if (rb.armorPenetrationPct) addF('pen', rb.armorPenetrationPct);
+            if (rb.evasionPct) addP('eva', rb.evasionPct / 100);
+            const cap = trRealm.capacityMultipliers || {};
+            if (cap.senseBonus) addF('acc', cap.senseBonus);
+          }
+        }
+      }
+      if (g.MARTIAL) {
+        const skills = g.MARTIAL.skillEffects(n);
+        addAll(skills.p, false); addAll(skills.f, true);
+        const growth = g.MARTIAL.progression(n), passive = g.MARTIAL.passiveStats(n), innate = g.MARTIAL.innateStats ? g.MARTIAL.innateStats(n) : null;
+        addAll(growth.p, false); addAll(passive.p, false); addAll(passive.f, true);
+        if (passive.pp) addAll(passive.pp, true);
+        if (innate) { addAll(innate.p, false); addAll(innate.f, true); if (innate.pp) addAll(innate.pp, true); }
+        const subEq = g.MARTIAL.evaluateSubEquipmentBonus ? g.MARTIAL.evaluateSubEquipmentBonus(n) : null;
+        if (subEq && subEq.active) { addAll(subEq.p, false); addAll(subEq.f, true); }
+        const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
+        if (resSet && resSet.active) { addAll(resSet.p, false); addAll(resSet.f, true); }
+        if ((eqW && eqW.legendary) || (eqA && eqA.legendary) || (eqX && eqX.legendary)) {
+          const legRes = g.MARTIAL.evaluateLegendaryRelicResonance ? g.MARTIAL.evaluateLegendaryRelicResonance(n) : null;
+          if (legRes && legRes.active) { addAll(legRes.p, false); addAll(legRes.f, true); }
+        }
+      }
+      if (CULT.petStatBonuses && n.pets && n.pets.length) {
+        const pb = CULT.petStatBonuses(n);
+        if (pb && pb.activeCount > 0) { if (pb.p) addAll(pb.p, false); if (pb.f) addAll(pb.f, true); }
+      }
+      if (n.cult && n.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
+        const ms = CULT.ensureMechState(n);
+        const intFactor = clamp((ms.integrity || 100) / 100, 0.25, 1.0);
+        if (intFactor < 1.0) { addP('atk', -(1 - intFactor) * 0.25); addP('def', -(1 - intFactor) * 0.25); }
+        if (ms.mode === 'SIEGE') { addP('atk', 0.16); addP('matk', 0.16); addF('pen', 12); addP('eva', -0.08); }
+        else if (ms.mode === 'SWARM') { addF('cast', 16); addF('acc', 12); addP('eva', 0.08); }
+        else { addP('def', 0.18); addP('mdef', 0.14); }
+      }
+      if (n.cult && n.cult.path === 'KARMA_SAMSARA' && CULT.ensureKarmaState) {
+        const ks = CULT.ensureKarmaState(n);
+        if (ks.stance === 'ASURA') { addP('atk', 0.16); addP('matk', 0.14); addF('crit', 6); addP('def', -0.06); }
+        else if (ks.stance === 'DEVA') { addP('mdef', 0.18); addP('def', 0.12); addF('cast', 10); }
+        else if (ks.stance === 'NARAKA') { addF('pen', 16); addF('acc', 12); addP('matk', 0.10); }
+        else if (ks.stance === 'PRETA') { addP('matk', 0.12); addF('eva', 8); }
+        else if (ks.stance === 'HUMAN') { addP('def', 0.14); addP('mdef', 0.14); addF('acc', 8); }
+        else if (ks.stance === 'ANIMAL') { addF('move', 12); addP('atk', 0.12); addP('eva', 0.10); }
+      }
+      if (n.mentorImprint && Number.isFinite(n.mentorImprint.combatStatBonus) && n.mentorImprint.combatStatBonus > 0) {
+        const boost = clamp(n.mentorImprint.combatStatBonus, 0, 0.18);
+        ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => addP(k, boost));
+        addF('cast', 8); addF('acc', 10);
+      }
+      const stanceSpec = ST.getActiveStanceSpec(n);
+      if (stanceSpec) {
+        const stMult = ST.hasStanceFlowAmplifier(n) ? 1.15 : 1.0;
+        for (const k in (stanceSpec.p || {})) addP(k, stanceSpec.p[k] * stMult);
+        for (const k in (stanceSpec.f || {})) addF(k, stanceSpec.f[k] * stMult);
+      }
+      if (CULT.MERIDIANS && CULT.MERIDIANS.getStatBonuses && n.meridians) {
+        const mb = CULT.MERIDIANS.getStatBonuses(n, ST.now);
+        if (mb && mb.openedCount > 0) { if (mb.p) addAll(mb.p, false); if (mb.f) addAll(mb.f, true); }
+      }
+      if (g.SECT && g.SECT.TOTEMS_BLOODLINES && g.SECT.TOTEMS_BLOODLINES.getUnitBonuses) {
+        const tb = g.SECT.TOTEMS_BLOODLINES.getUnitBonuses(n);
+        if (tb && tb.active) { if (tb.p) addAll(tb.p, false); if (tb.f) addAll(tb.f, true); }
+      }
+      if (CULT.BEAST_SYMBIOSIS && CULT.BEAST_SYMBIOSIS.getStatBonuses) {
+        const bsb = CULT.BEAST_SYMBIOSIS.getStatBonuses(n, ST.now);
+        if (bsb && bsb.active) { if (bsb.p) addAll(bsb.p, false); if (bsb.f) addAll(bsb.f, true); }
+      }
+      for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); for (const key in gs) if (key in sp) addF(key, gs[key] * df); }
+      const st = CULT.stageInfo(n), L = st.combatPower, sub = c ? CULT.subInfo(c.path, c.sub) : null;
+      const Lo = L * (sub ? sub.combatBonus : 1), Ld = L * (sub ? sub.defenseBonus : 1), pw = PATHW[c && PATHW[c.path] ? c.path : 'NONE'];
+      const progBody = (g.MARTIAL && g.MARTIAL.progression) ? g.MARTIAL.progression(n).body : {};
+      stc = n._csStatic = {
+        cPath, cStage, cSub, cMantra, cTechLen, cTechLast, cTrack, passKey, skVer,
+        eqW, eqWdur, eqA, eqAdur, eqX, eqXdur, sp, sf, Lo, Ld, pw, progBody, hpMult: CULT.hpMult(n)
+      };
+    }
+    const progBody = stc.progBody, Lo = stc.Lo, Ld = stc.Ld, pw = stc.pw;
+    const dFast = (n._d && n._d.day === HC.nowDay && n._d.ver === n._ver) ? n._d : null;
+    const baseHpMax = dFast ? dFast.hpMax : Math.round(70 + HC.eff(n, 'physiology.vitality') * 1.1 + HC.eff(n, 'physiology.toughness') * 0.5 + HC.eff(n, 'physiology.strength') * 0.2);
+    const baseWalk = dFast ? dFast.walkSpeed : (0.75 + (HC.eff(n, 'physiology.speed') * 0.7 + HC.eff(n, 'physiology.agility') * 0.3) / 100 * 0.9);
+    const effHpMax = Math.round(baseHpMax + (progBody.vitality || 0) * 1.1 + (progBody.toughness || 0) * 0.5 + (progBody.strength || 0) * 0.2);
+    const effWalk = baseWalk + ((progBody.speed || 0) * 0.7 + (progBody.agility || 0) * 0.3) / 100 * 0.9;
+    const b = {
+      hp: effHpMax * stc.hpMult,
+      atk: Lo * 0.6 * pw.atk,
+      matk: Lo * 0.6 * pw.matk,
+      def: Ld * 0.5 * pw.def,
+      mdef: Ld * 0.45 * pw.mdef,
+      crit: 5, critDmg: 150,
+      eva: Lo * 0.55, acc: Lo * 0.55,
+      pen: 0, cast: 100,
+      move: 100 * effWalk / 1.05
+    };
     const strF = 0.65 + 0.6 * (E(n, 'physiology.strength') * .4 + E(n, 'physiology.toughness') * .2 + E(n, 'physiology.explosiveness') * .2 + E(n, 'physiology.endurance') * .2) / 100;
-    addP('atk', strF - 1);
     const qiF = 0.65 + 0.6 * (E(n, 'physiology.spiritualFoundation') * .35 + E(n, 'physiology.meridianCapacity') * .25 + E(n, 'intellect.comprehension') * .2 + E(n, 'intellect.willpower') * .2) / 100;
-    addP('matk', qiF - 1);
-    addP('def', 0.65 + 0.6 * (E(n, 'physiology.toughness') * .5 + E(n, 'physiology.endurance') * .2 + E(n, 'physiology.vitality') * .3) / 100 - 1);
-    addP('mdef', 0.65 + 0.6 * (E(n, 'intellect.willpower') * .4 + E(n, 'physiology.spiritualFoundation') * .3 + E(n, 'personality.composure') * .3) / 100 - 1);
-    addP('acc', 0.6 + 0.8 * (E(n, 'intellect.perceptiveness') * .3 + E(n, 'physiology.reflex') * .25 + E(n, 'aptitudes.combat') * .25 + E(n, 'intellect.focus') * .2) / 100 - 1);
-    addP('eva', 0.6 + 0.8 * (E(n, 'physiology.agility') * .4 + E(n, 'physiology.reflex') * .35 + E(n, 'physiology.speed') * .25) / 100 - 1);
-    addF('crit', (E(n, 'intellect.perceptiveness') + E(n, 'intellect.intuition') + E(n, 'aptitudes.combat')) / 3 * 0.08);
-    addF('critDmg', (E(n, 'aptitudes.combat') - 50) * 0.3 + (E(n, 'personality.aggression') - 50) * 0.2);
-    addF('cast', (E(n, 'physiology.reflex') - 50) * 0.4 + (E(n, 'intellect.focus') - 50) * 0.3 + (E(n, 'intellect.comprehension') - 50) * 0.2);
-    if (c) {
-      const ns = CULT.normalizedStage ? CULT.normalizedStage(n) : c.stage; addF('cast', 2 * (ns - 1)); addF('move', 4 * (ns - 1));
-      const rawFx = SUBFX[c.sub] || (JD.EXPANSION.subStats || {})[c.sub], fx = rawFx && g.MARTIAL ? g.MARTIAL.subStats(n, rawFx) : rawFx; if (fx) { if (fx.p) addAll(fx.p, false); if (fx.f) addAll(fx.f, true); }
-      const m = c.mantra ? CULT.tech(c.mantra) : null;
-      if (m) {
-        if (c.path === 'XIAN') { addP('matk', 0.04 * m.tier); addP('mdef', 0.02 * m.tier); }
-        else if (c.path === 'BODY') { addP('def', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('atk', 0.02 * m.tier); }
-        else if (c.path === 'DEMON') { addP('atk', 0.03 * m.tier); addP('matk', 0.03 * m.tier); addF('crit', 0.8 * m.tier); }
-        else if (c.path === 'HEART_SOUL') { addP('matk', 0.04 * m.tier); addP('mdef', 0.03 * m.tier); addF('cast', 1.2 * m.tier); }
-        else if (c.path === 'MECH_PUPPET') { addP('def', 0.035 * m.tier); addP('atk', 0.025 * m.tier); addP('matk', 0.025 * m.tier); }
-        else if (c.path === 'KARMA_SAMSARA') { addP('mdef', 0.04 * m.tier); addP('matk', 0.035 * m.tier); addP('hp', 0.02 * m.tier); }
-        else if (c.path === 'BEAST_SOVEREIGN') { addP('atk', 0.035 * m.tier); addP('hp', 0.035 * m.tier); addF('move', 1.0 * m.tier); }
-        else if (c.path === 'SAGE_SUPPORT') { addP('mdef', 0.04 * m.tier); addP('hp', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
-        else if (c.path === 'CRAFT_CREATION') { addP('atk', 0.03 * m.tier); addP('matk', 0.035 * m.tier); addP('def', 0.03 * m.tier); addP('mdef', 0.03 * m.tier); }
-        else if (c.path === 'ARRAY_TALISMAN') { addP('matk', 0.04 * m.tier); addP('mdef', 0.035 * m.tier); addF('cast', 1.2 * m.tier); }
-        else if (c.path === 'STRATEGY_GOVERNANCE') { addP('atk', 0.03 * m.tier); addP('matk', 0.03 * m.tier); addP('def', 0.035 * m.tier); addP('mdef', 0.035 * m.tier); }
-        else { addP('mdef', 0.04 * m.tier); addP('hp', 0.03 * m.tier); addP('matk', 0.02 * m.tier); }
-        if (m.mantraBonus) {
-          if (m.mantraBonus.p) addAll(m.mantraBonus.p, false);
-          if (m.mantraBonus.f) addAll(m.mantraBonus.f, true);
-          if (m.mantraBonus.pp) addAll(m.mantraBonus.pp, true);
-        }
-      }
-      let techT = 0;
-      const techs = g.MARTIAL ? g.MARTIAL.activeTechs(n) : c.techs;
-      for (let i = 0; i < techs.length; i++) {
-        const t = CULT.tech(techs[i]); if (!t) continue;
-        if (t.cat === 'COMBAT_TECHNIQUE') techT += t.tier;
-        else if (g.MARTIAL && !g.MARTIAL.conditionMatches(n, t)) continue;
-        else if (t.cat === 'LIGHTNESS_ART' || t.cat === 'MOVEMENT_TECHNIQUE') { addF('move', 3 + 2 * t.tier); addP('eva', 0.02 * t.tier); }
-        else if (t.cat === 'DEFENSIVE_TECHNIQUE') { addP('def', 0.018 * t.tier); addP('mdef', 0.015 * t.tier); }
-        else if ((t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') || t.cat === 'SUPPORT_TECHNIQUE') addP('mdef', 0.015 * t.tier);
-      }
-      const tf = Math.min(0.3, 0.03 * techT); addP('atk', tf); addP('matk', tf);
-      if (c.track) {
-        const trRealm = CULT.trackRealm(n);
-        if (trRealm) {
-          const rb = trRealm.realmBuffs || {};
-          if (rb.combatOffensePct) {
-            const v = rb.combatOffensePct / 100;
-            addP('atk', v);
-            addP('matk', v);
-          }
-          if (rb.combatDefensePct) {
-            const v = rb.combatDefensePct / 100;
-            addP('def', v);
-            addP('mdef', v);
-          }
-          if (rb.armorPenetrationPct) {
-            addF('pen', rb.armorPenetrationPct);
-          }
-          if (rb.evasionPct) {
-            addP('eva', rb.evasionPct / 100);
-          }
-          const cap = trRealm.capacityMultipliers || {};
-          if (cap.senseBonus) {
-            addF('acc', cap.senseBonus);
-          }
-        }
-      }
-    }
-    if (g.MARTIAL) {
-      const skills = g.MARTIAL.skillEffects(n);
-      addAll(skills.p, false);
-      addAll(skills.f, true);
-      const growth = g.MARTIAL.progression(n), passive = g.MARTIAL.passiveStats(n), innate = g.MARTIAL.innateStats ? g.MARTIAL.innateStats(n) : null;
-      addAll(growth.p, false);
-      addAll(passive.p, false);
-      addAll(passive.f, true);
-      if (passive.pp) addAll(passive.pp, true);
-      if (innate) {
-        addAll(innate.p, false);
-        addAll(innate.f, true);
-        if (innate.pp) addAll(innate.pp, true);
-      }
-      const subEq = g.MARTIAL.evaluateSubEquipmentBonus ? g.MARTIAL.evaluateSubEquipmentBonus(n) : null;
-      if (subEq && subEq.active) {
-        addAll(subEq.p, false);
-        addAll(subEq.f, true);
-      }
-      const resSet = g.MARTIAL.evaluateResonanceSet ? g.MARTIAL.evaluateResonanceSet(n) : null;
-      if (resSet && resSet.active) {
-        addAll(resSet.p, false);
-        addAll(resSet.f, true);
-      }
-      if ((eqW && eqW.legendary) || (eqA && eqA.legendary) || (eqX && eqX.legendary)) {
-        const legRes = g.MARTIAL.evaluateLegendaryRelicResonance ? g.MARTIAL.evaluateLegendaryRelicResonance(n) : null;
-        if (legRes && legRes.active) {
-          addAll(legRes.p, false);
-          addAll(legRes.f, true);
-        }
-      }
-    }
-    if (CULT.petStatBonuses && n.pets && n.pets.length) {
-      const pb = CULT.petStatBonuses(n);
-      if (pb && pb.activeCount > 0) {
-        if (pb.p) addAll(pb.p, false);
-        if (pb.f) addAll(pb.f, true);
-      }
-    }
-    if (c && c.path === 'MECH_PUPPET' && CULT.ensureMechState) {
-      const ms = CULT.ensureMechState(n);
-      if (ms.integrity >= 40) {
-        if (ms.mode === 'SIEGE' || ms.mode === 'OVERDRIVE') { addP('atk', 0.08); addP('matk', 0.08); addF('pen', 8); }
-        else if (ms.mode === 'SWARM') { addF('cast', 10); addP('acc', 0.08); addF('crit', 4); }
-        else { addP('def', 0.10); addP('mdef', 0.08); }
-      } else if (ms.integrity < 25) {
-        addP('def', -0.06);
-      }
-    }
-    if (c && c.path === 'KARMA_SAMSARA' && CULT.ensureKarmaState) {
-      const ks = CULT.ensureKarmaState(n), stc = ks.stance || 'HUMAN';
-      if (stc === 'DEVA') { addP('mdef', 0.08); addF('cast', 8); }
-      else if (stc === 'ASURA') { addP('atk', 0.08); addP('matk', 0.08); addF('critDmg', 12); }
-      else if (stc === 'PRETA') { addP('eva', 0.08); addF('pen', 8); }
-      else if (stc === 'NARAKA') { addF('crit', 5); addF('pen', 10); }
-      else if (stc === 'ANIMAL' || stc === 'BEAST') { addP('hp', 0.08); addF('move', 8); }
-      else { addP('def', 0.06); addP('mdef', 0.06); addP('acc', 0.06); }
-    }
-    const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1; addP('atk', mind); addP('matk', mind);
-    const sp = HC.special(n, 'combat.powerMult') - 1; if (sp) { addP('atk', sp); addP('matk', sp); }
-    if (n.mentorImprint) {
-      const boost = n.mentorImprint.statBonusPct || 0.08;
-      ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => addP(k, boost));
-      addF('cast', 8);
-      addF('acc', 10);
-    }
-    const stanceSpec = ST.getActiveStanceSpec(n);
-    if (stanceSpec) {
-      const stMult = ST.hasStanceFlowAmplifier(n) ? 1.15 : 1.0;
-      for (const k in (stanceSpec.p || {})) addP(k, stanceSpec.p[k] * stMult);
-      for (const k in (stanceSpec.f || {})) addF(k, stanceSpec.f[k] * stMult);
-    }
-    if (CULT.MERIDIANS && CULT.MERIDIANS.getStatBonuses && n.meridians) {
-      const mb = CULT.MERIDIANS.getStatBonuses(n, ST.now);
-      if (mb && mb.openedCount > 0) {
-        if (mb.p) addAll(mb.p, false);
-        if (mb.f) addAll(mb.f, true);
-      }
-    }
-    if (g.SECT && g.SECT.TOTEMS_BLOODLINES && g.SECT.TOTEMS_BLOODLINES.getUnitBonuses) {
-      const tb = g.SECT.TOTEMS_BLOODLINES.getUnitBonuses(n);
-      if (tb && tb.active) {
-        if (tb.p) addAll(tb.p, false);
-        if (tb.f) addAll(tb.f, true);
-      }
-    }
-    if (CULT.BEAST_SYMBIOSIS && CULT.BEAST_SYMBIOSIS.getStatBonuses) {
-      const bsb = CULT.BEAST_SYMBIOSIS.getStatBonuses(n, ST.now);
-      if (bsb && bsb.active) {
-        if (bsb.p) addAll(bsb.p, false);
-        if (bsb.f) addAll(bsb.f, true);
-      }
-    }
-    for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); for (const key in gs) if (key in b) addF(key, gs[key] * df); }
+    const mind = 0.9 + E(n, 'personality.courage') / 100 * 0.12 + E(n, 'aptitudes.combat') / 100 * 0.18 - 1;
+    const spMult = HC.special(n, 'combat.powerMult') - 1;
+    const p = {
+      hp: stc.sp.hp,
+      atk: stc.sp.atk + (strF - 1) + mind + spMult,
+      matk: stc.sp.matk + (qiF - 1) + mind + spMult,
+      def: stc.sp.def + (0.65 + 0.6 * (E(n, 'physiology.toughness') * .5 + E(n, 'physiology.endurance') * .2 + E(n, 'physiology.vitality') * .3) / 100 - 1),
+      mdef: stc.sp.mdef + (0.65 + 0.6 * (E(n, 'intellect.willpower') * .4 + E(n, 'physiology.spiritualFoundation') * .3 + E(n, 'personality.composure') * .3) / 100 - 1),
+      crit: stc.sp.crit, critDmg: stc.sp.critDmg,
+      eva: stc.sp.eva + (0.6 + 0.8 * (E(n, 'physiology.agility') * .4 + E(n, 'physiology.reflex') * .35 + E(n, 'physiology.speed') * .25) / 100 - 1),
+      acc: stc.sp.acc + (0.6 + 0.8 * (E(n, 'intellect.perceptiveness') * .3 + E(n, 'physiology.reflex') * .25 + E(n, 'aptitudes.combat') * .25 + E(n, 'intellect.focus') * .2) / 100 - 1),
+      pen: stc.sp.pen, cast: stc.sp.cast, move: stc.sp.move
+    };
+    const f = {
+      hp: stc.sf.hp, atk: stc.sf.atk, matk: stc.sf.matk, def: stc.sf.def, mdef: stc.sf.mdef,
+      crit: stc.sf.crit + (E(n, 'intellect.perceptiveness') + E(n, 'intellect.intuition') + E(n, 'aptitudes.combat')) / 3 * 0.08,
+      critDmg: stc.sf.critDmg + (E(n, 'aptitudes.combat') - 50) * 0.3 + (E(n, 'personality.aggression') - 50) * 0.2,
+      eva: stc.sf.eva, acc: stc.sf.acc, pen: stc.sf.pen,
+      cast: stc.sf.cast + (E(n, 'physiology.reflex') - 50) * 0.4 + (E(n, 'intellect.focus') - 50) * 0.3 + (E(n, 'intellect.comprehension') - 50) * 0.2,
+      move: stc.sf.move
+    };
     const hpVal = Math.round(Math.max(1, b.hp * (1 + p.hp) + f.hp));
     const vMove0 = Math.round(clamp(Math.max(30, b.move * (1 + p.move) + f.move), 30, 320));
     const moveMult0 = clamp(vMove0 / b.move, 0.6, 2.2);
@@ -881,10 +877,16 @@
   }
   ST.get = n => {
     if ((n.buffs && n.buffs.length > 0) || (n.sx && n.sx.length > 0)) ST.purgeExpired(n, ST.now);
-    const c = n._cs, eq = n.equip || {}, pk = n.foe ? '' : passiveCacheKey(n), s0 = n.h && n.h.state, injL = n.inj ? n.inj.length : 0;
-    const ttl = (n.act && n.act.id === 'fight') ? 3 : 30;
+    const c = n._cs, ttl = (n.act && n.act.id === 'fight') ? 3 : 30;
+    if (n.foe) {
+      const sxL = n.sx ? n.sx.length : 0, sxLast = sxL ? n.sx[sxL - 1] : null;
+      if (c && ST.now > 0 && ST.now >= c.t && ST.now - c.t < ttl && (!c.nextExp || ST.now < c.nextExp) && c.sxL === sxL && c.sxLast === sxLast) return c.v;
+      const r = compute(n, false);
+      n._cs = { t: ST.now, v: r.v, nextExp: earliestExpiry(n), sxL, sxLast };
+      return r.v;
+    }
+    const eq = n.equip || {}, pk = passiveCacheKey(n), s0 = n.h && n.h.state, injL = n.inj ? n.inj.length : 0;
     if (c && ST.now > 0 && ST.now >= c.t && ST.now - c.t < ttl && (!c.nextExp || ST.now < c.nextExp) && c.eqW === eq.WEAPON && c.eqA === eq.ARMOR && c.eqX === eq.ACCESSORY && c.ver === n._ver && c.sub === (n.cult && n.cult.sub) && c.stage === (n.cult && n.cult.stage) && c.passKey === pk && (!s0 || (c.injL === injL && Math.abs(s0.hp - c.hp0) < 4 && Math.abs(s0.energy - c.en0) < 6))) return c.v;
-    if (n.foe) { const r = compute(n, false); n._cs = { t: ST.now, v: r.v, nextExp: earliestExpiry(n) }; return r.v; }
     n._hpf = clamp(s0.hp / Math.max(1, hpMaxBase(n)), 0, 1);
     const v = computeFast(n); n._cs = { t: ST.now, v, nextExp: earliestExpiry(n), eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: pk, hp0: s0.hp, en0: s0.energy, injL }; return v;
   };
@@ -892,9 +894,16 @@
   ST.explain = n => { if (!n.foe) n._hpf = clamp(n.h.state.hp / Math.max(1, hpMaxBase(n)), 0, 1); return compute(n, true); };
   ST.hpMax = n => {
     if (n.foe) return n.hpMax;
-    if ((!n.buffs || !n.buffs.length) && (!n.sx || !n.sx.length)) return getBaseFast(n).hpVal;
-    const c = n._cs; if (c && ST.now > 0 && ST.now - c.t < 3 && c.passKey === passiveCacheKey(n)) return c.v.hp;
-    return ST.get(n).hp;
+    const base = getBaseFast(n);
+    if (!n.buffs || !n.buffs.length) return base.hpVal;
+    let pHp = base.p.hp, fHp = base.f.hp;
+    for (let i = 0; i < n.buffs.length; i++) {
+      const bf = n.buffs[i];
+      if (!bf || (bf.until <= ST.now && ST.now > 0)) continue;
+      if (bf.p && bf.p.hp) pHp += bf.p.hp;
+      if (bf.f && bf.f.hp) fHp += bf.f.hp;
+    }
+    return Math.round(Math.max(1, base.b.hp * (1 + pHp) + fHp));
   };
   ST.moveMult = n => {
     if (!n.foe && (!n.buffs || !n.buffs.length) && (!n.sx || !n.sx.length)) {

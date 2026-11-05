@@ -7655,10 +7655,12 @@
         equip: { WEAPON: { slot: 'WEAPON', gearType: fl.weaponType, nameTh: fl.weaponType, tier: fl.tier } }
       };
       const tac = (g.COMBAT && g.COMBAT.resolveWeaponTactics) ? g.COMBAT.resolveWeaponTactics(lead, guardian, { dist: 2.2 }) : { dmgMult: 1, relation: 'NEUTRAL', noteTh: '' };
+      const dsh = (g.COMBAT && g.COMBAT.evaluateTacticalBoutSummary) ? g.COMBAT.evaluateTacticalBoutSummary(alive, [guardian]) : null;
+      const effTacMult = dsh ? clamp((tac.dmgMult || 1) * (1 + dsh.advantageDelta * 0.5), 0.85, 1.25) : (tac.dmgMult || 1);
       const partyPower = alive.reduce((sum, m) => {
         const rs = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(m) : { active: false, pieces: 0 };
         return sum + CULT.power(m) * (1 + (rs.active ? rs.pieces * 0.06 : 0));
-      }, 0) * (tac.dmgMult || 1) * (formSyn.powerMultiplier || 1);
+      }, 0) * effTacMult * (formSyn.powerMultiplier || 1);
       const bossEffectivePower = fl.basePower * 1.12; // 3-piece boss resonance bonus
       const winProb = clamp(partyPower / (partyPower + bossEffectivePower * 0.85), 0.05, 0.96);
       const won = ex.forceFailFloor === fl.floor ? false : (ex.forceClear ? true : (W.rng ? W.rng.next() < winProb : true));

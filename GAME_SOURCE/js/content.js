@@ -7,6 +7,7 @@
   const C={VERSION:3}, clamp=U.clamp;
   const regionById=Object.fromEntries(D.regions.map(r=>[r.id,r]));
   const premiumPills=D.recipes.filter(r=>r.outType==='PILL');
+  const premiumPillByKey=Object.fromEntries(premiumPills.map(r=>['P:'+r.id,r]));
   const recipeIds=new Set(D.recipes.map(r=>r.id).concat(((g.JD.ITEMS&&g.JD.ITEMS.recipes)||[]).filter(r=>r&&r.discoverable).map(r=>r.id)));
   const techIds=new Set(D.techniques.map(t=>t.id));
   const rareOrgans=D.rareOrgans||[];
@@ -31,6 +32,7 @@
   const POLITICS_STAT_KEYS=['treatiesSigned','tradeShipments','tributesPaid','crisesResolved','jointDefenses','allyExchanges','envoyChallenges','vassalTreatiesSigned','vassalTributes'];
 
   C.ensure=W=>{
+    if(W && W.sect && W.sect.contentVersion===C.VERSION && W._contentEnsuredDay===W.day && W._contentEnsuredPop===(W.npcs?W.npcs.length:0) && W.world && W.world.contentSites && W.world.politics && W.world.contentMetrics && Array.isArray(W.sect.knownRecipes) && W.sect.recipeAuth && W.sect.organs && W.sect.experiments) return W.world.contentMetrics;
     if(g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
     if(!Array.isArray(W.sect.knownRecipes)) W.sect.knownRecipes=[];
     else W.sect.knownRecipes=Array.from(new Set(W.sect.knownRecipes.filter(id=>!!ECO.recipeById[id])));
@@ -112,6 +114,8 @@
       }
     });
     W.sect.contentVersion=C.VERSION;
+    W._contentEnsuredDay=W.day;
+    W._contentEnsuredPop=W.npcs?W.npcs.length:0;
     if(!Array.isArray(W.sect.gateBeasts)) W.sect.gateBeasts=[];
     else if(W.sect.gateBeasts.length>4) W.sect.gateBeasts.length=4;
     if(g.EXPLORE&&g.EXPLORE.ensureTrials&&(!W.explore||!W.explore.trials)) g.EXPLORE.ensureTrials(W);
@@ -915,7 +919,7 @@
 
   /* ---------- Regional Sites & Expeditions ---------- */
   C.site=(W,reg)=>{
-    C.ensure(W); let s=W.world.contentSites[reg.id];
+    if(!W.world||!W.world.contentSites) C.ensure(W); let s=W.world.contentSites[reg.id];
     if(!s) s=W.world.contentSites[reg.id]={day:W.day,stock:Object.fromEntries(reg.resources.map(r=>[r.id,r.cap])),visits:0};
     const elapsed=Math.max(0,W.day-s.day);
     if(elapsed>0) {
@@ -1180,14 +1184,19 @@
   const autoUse=CPE.autoUse;
   C.pillAllowed=(n,key)=>{const i=ECO.pillInfo(key),p=i&&i.effect.compatiblePath;return !!i && (!p || (n.cult && n.cult.path===p));};
   CPE.autoUse=(W,n)=>{
-    const count=()=>Object.values((n.inv&&n.inv.pills)||{}).reduce((v,x)=>v+x,0),before=count();
+    const pills=n&&n.inv&&n.inv.pills;
+    let before=0; if(pills){for(const k in pills)before+=pills[k];}
     autoUse(W,n);
-    if(count()!==before || n.dead || !n.inv || (n.act&&n.act.id==='fight')) return;
-    for(const r of premiumPills) {
-      const key='P:'+r.id,e=r.effect;
-      if((n.inv.pills[key]||0)<=0 || !C.pillAllowed(n,key)) continue;
+    if(!pills||before<=0||n.dead||(n.act&&n.act.id==='fight')) return;
+    let after=0; for(const k in pills)after+=pills[k];
+    if(after!==before) return;
+    for(const key in pills) {
+      if((pills[key]||0)<=0) continue;
+      const r=premiumPillByKey[key];
+      if(!r || !C.pillAllowed(n,key)) continue;
+      const e=r.effect;
       const needs=(e.healHealth && n.h.state.hp<CULT.hpMax(n)*.65) || (e.healInjury && n.inj&&n.inj.length) || (e.clearToxic&&n.cult&&n.cult.toxic>25) || (e.qiRestore&&n.cult&&n.h.state.qi<CULT.qiMax(n)*.3);
-      if(needs) {n.inv.pills[key]--;if(!n.inv.pills[key])delete n.inv.pills[key];ECO.applyPill(W,n,key);return;}
+      if(needs) {pills[key]--;if(!pills[key])delete pills[key];ECO.applyPill(W,n,key);return;}
     }
   };
 
