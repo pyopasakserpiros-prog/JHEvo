@@ -1,19 +1,20 @@
-# JianghuSect Evolution — v3.0.0
+# JianghuSect Evolution — v3.1.0
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
-Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูรายงานการพัฒนาแพตช์ปัจจุบัน (`v3.0.0`) ได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md) และแผนที่โลกยุทธภพใน [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md)
+Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูรายงานการพัฒนาแพตช์ปัจจุบัน (`v3.1.0`) ได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md) และแผนที่โลกยุทธภพใน [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md)
 
 ผู้พัฒนาและ AI ต้องอ่าน [AGENTS.md](AGENTS.md) ก่อนเริ่มงาน ใช้มุมมองทีมพัฒนาและผู้เล่นตามความเหมาะสม และตรวจข้อมูลจากซอร์สและผลทดสอบจริง ดู [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md)
 
 **งานแพตช์ถัดไปสำหรับ Gemini Work (Argon 4):** อ่าน [พรอมต์แพตช์ v3.1.0 (Office Authority & Peaks Overhaul)](NEXT_PATCH_PROMPT_V3_1_0.md) และ [ข้อเสนอแนะเชิงสถาปัตยกรรม](PATCH_REPORTS/PROPOSAL_V3_1_0_OFFICE_AUTHORITY_AND_PEAKS_EXPANSION.md) หลัง `AGENTS.md` และสรุปเกม โดยเกมในสาขานี้เป็นฐาน v3.0.0 สมบูรณ์พร้อมส่งมอบ
 
-**สถานะชุดทดสอบ (`v3.0.0`):** ชุดทดสอบทั้งหมด 116 ชุดใน `GAME_SOURCE/test/run_all.js` มีไฟล์ครบทุกชุดแล้ว โดยชุดทดสอบที่ใช้ Node.js ล้วนผ่านครบ **106 / 106 ชุด (100% PASS)** (รวมชุดใหม่ `v300_tactical_combat_and_living_chronicle_suite.js` 57 assertions และชุด `v235_comprehensive_mechanics_and_elemental_fusion_suite.js` 406 assertions) ส่วนอีก 10 ชุดเป็นชุดทดสอบที่ต้องเปิดเบราว์เซอร์ผ่าน Playwright Chromium (รายละเอียดและข้อจำกัดตามสภาพแวดล้อมอยู่ใน [สรุปเกม](project_status_and_ai_onboarding.md) และ [รายงาน v3.0.0](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md))
+**สถานะชุดทดสอบ (`v3.1.0`):** ชุดทดสอบทั้งหมด **117 ชุด** ใน `GAME_SOURCE/test/run_all.js` ผ่านครบ **117 / 117 ชุด (100% PASS — ทั้ง 107 ชุด Node.js และ 10 ชุด Browser Playwright/Chromium)** รวมชุดทดสอบใหม่ `v310_autonomous_governance_and_peaks_sanctuary_suite.js` (422 assertions), `v300_tactical_combat_and_living_chronicle_suite.js` (57 assertions) และ `v235_comprehensive_mechanics_and_elemental_fusion_suite.js` (406 assertions) ดูรายละเอียดใน [สรุปเกม](project_status_and_ai_onboarding.md) และ [รายงาน v3.1.0](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md)
 
 ```bash
 cd GAME_SOURCE
 node tools/build_single.js
 node tools/validate_data_schema.js
+node test/v310_autonomous_governance_and_peaks_sanctuary_suite.js
 node test/v300_tactical_combat_and_living_chronicle_suite.js
 node test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js
 ```
@@ -24,6 +25,7 @@ node test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js
 
 เอกสารรายงานการพัฒนาและผลการตรวจสอบทั้งหมดถูกจัดเก็บไว้อย่างเป็นระเบียบในโฟลเดอร์ **[`PATCH_REPORTS/`](PATCH_REPORTS/)**:
 
+- **[v3.1.0 Autonomous Governance, 25 Offices & Peaks Sanctuary Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md)**: รายงานการพัฒนาแพตช์ v3.1.0 ยกเครื่องทำเนียบขุนนาง 6 ทำเนียบฝ่าย 25 ตำแหน่งพร้อมการตัดสินใจอัตโนมัติจริง เบี้ยหวัดตำแหน่ง ค่าน้ำหนักบารมีโหวตสภา หน้าต่างบริหาร 8 ยอดเขาและหุบเขาเฉพาะ (`⛰️ หุบเขา/ยอดเขา`) ระบบคุกใต้ดินและเชลยศึก 3 แนวทาง และชุดทดสอบผ่านครบ 117/117 ชุด
 - **[v3.0.0 Tactical Combat & Living Chronicle Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md)**: รายงานการพัฒนาแพตช์ v3.0.0 ยกเครื่องระบบต่อสู้เชิงยุทธวิธี 5 ช่วงระยะอาวุธ, เส้นเล็งสิ่งกีดขวาง, การคุ้มกันแถวหลัง (ZoC), AI ยุทธวิธี 5 บุคลิก, ตัวคำนวณยุทธวิธีศึกนอกสำนักครบทุกเส้นทาง (`explore.js`, `sect.js`, `expedition.js`), พงศาวดารมีชีวิต 11 รูปแบบพร้อมสายโซ่เหตุ–ผล 4 มิติ, ทะเบียนประวัติบุคคล (`SIM.snapshotPerson`), และการซ่อมแซมชุดทดสอบครบ 116 ชุด
 - **[v3.0.0 Master Design Proposal](PATCH_REPORTS/PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md)**: เอกสารรวบรวมข้อเสนอการออกแบบ v3.0.0 ทั้งคอมแบทและพงศาวดาร
 - **[v2.0.35 Master Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_35.md)**: รายงานการพัฒนาแพตช์ v2.0.35 ระบบผสานมหาธาตุ 34 ปฏิกิริยา, 8 เสาหลักแก้บัค, จุดชีพจร, ศาสตราตื่นรู้, เสาโทเทม, ปรากฏการณ์ฟ้าดิน, สถิตร่างอสูร, ด้ายชะตา และค่ายกลชีพจรปฐพี

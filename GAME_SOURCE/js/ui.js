@@ -5,7 +5,7 @@
   const clamp = U.clamp;
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const UI = { G: null, sheet: null, tab: null, lastHud: 0, logSubFilter: 'all', editNpcId: null, editStatGroup: 'personality', editDraft: null, spawnDest: 'sect', spawnSearch: '', spawnKind: 'ALL', spawnTier: 'ALL', spawnElement: 'ALL', spawnRarity: 'ALL', spawnPage: 1, spawnPageSize: 40, spawnQty: 1, spawnQuality: 1, stockSearch: '', stockType: 'ALL', stockTier: 'ALL', stockSort: 'qty', bagSearch: '', bagType: 'ALL', bagSort: 'tier', bagCat: 'ALL', bagPage: 1, bagSelKey: null, bagMoreOpen: false, stockCat: 'ALL', stockPage: 1, stockSelKey: null, stockMoreOpen: false, shopCat: 'ALL', shopSearch: '', shopSort: 'tier', shopPage: 1, shopSelKey: null, shopMoreOpen: false, shopBuyerId: null };
+  const UI = { G: null, sheet: null, tab: null, activePeakId: 'OVERVIEW', postDirFilter: 'ALL', lastHud: 0, logSubFilter: 'all', editNpcId: null, editStatGroup: 'personality', editDraft: null, spawnDest: 'sect', spawnSearch: '', spawnKind: 'ALL', spawnTier: 'ALL', spawnElement: 'ALL', spawnRarity: 'ALL', spawnPage: 1, spawnPageSize: 40, spawnQty: 1, spawnQuality: 1, stockSearch: '', stockType: 'ALL', stockTier: 'ALL', stockSort: 'qty', bagSearch: '', bagType: 'ALL', bagSort: 'tier', bagCat: 'ALL', bagPage: 1, bagSelKey: null, bagMoreOpen: false, stockCat: 'ALL', stockPage: 1, stockSelKey: null, stockMoreOpen: false, shopCat: 'ALL', shopSearch: '', shopSort: 'tier', shopPage: 1, shopSelKey: null, shopMoreOpen: false, shopBuyerId: null };
   const SPEEDS = [[0, '⏸'], [1, '1×'], [2, '2×'], [4, '4×'], [8, '8×'], [16, '16×'], [32, '32×'], [48, '48×']];
   UI.SPEEDS = SPEEDS.map(s => s[0]);
 
@@ -634,7 +634,7 @@
     if (!UI.G.W && kind !== 'menu') { UI.close(); return; }
     if (UI.sheet === kind && kind !== 'npc' && kind !== 'edit' && (!arg || UI.tab === arg)) { UI.close(); return; }
     if (kind === 'people') show('people', '👥 ผู้คนในสำนัก', [['rank', 'ตามระดับ'], ['act', 'กำลังทำอะไร'], ['cult', 'ตบะ'], ['mood', 'อารมณ์']], 'rank');
-    else if (kind === 'sect') show('sect', '🏯 สำนัก', [['over', 'ภาพรวม'], ['policy', 'นโยบาย/นิสัยผู้นำ'], ['posts', 'ตำแหน่ง'], ['library', '📚 หอคัมภีร์'], ['stock', 'ภาพรวมคลัง'], ['stockItems', '📦 คลังไอเทม'], ['shop', '🛒 ร้าน/คุณูปการ'], ['bld', 'อาคาร']], arg || 'over');
+    else if (kind === 'sect') show('sect', '🏯 สำนัก', [['over', 'ภาพรวม'], ['policy', 'นโยบาย/นิสัยผู้นำ'], ['posts', 'ตำแหน่ง'], ['peaks', '⛰️ หุบเขา/ยอดเขา'], ['library', '📚 หอคัมภีร์'], ['stock', 'ภาพรวมคลัง'], ['stockItems', '📦 คลังไอเทม'], ['shop', '🛒 ร้าน/คุณูปการ'], ['bld', 'อาคาร']], arg || 'over');
     else if (kind === 'log') { if (UI.audio && UI.audio.playGuqinChime) UI.audio.playGuqinChime(); show('log', '📜 บันทึกเหตุการณ์', Object.keys(LOG_GROUPS).map(k => [k, LOG_GROUPS[k][0]]), 'all'); }
     else if (kind === 'world') show('world', '🧭 ยุทธภพนอกสำนัก', [['map', '🗺️ แผนที่ยุทธภพ'], ['exp', 'คณะเดินทาง'], ['visitors', '🎐 ผู้มาเยือน'], ['clues', '🗺️ เบาะแส/มรดก'], ['content', '🌿 พื้นที่/ตำรับ'], ['ecology', '🐾 อสูรและนิเวศ'], ['disc', '🔭 ค้นพบ'], ['sects', 'สำนักอื่น'], ['hist', 'ประวัติ']], arg || 'exp', true);
     else if (kind === 'edit') {
@@ -991,13 +991,181 @@
       UI.render();
       UI.updateHud(true);
     }
+    else if (a === 'open-sect-peaks') {
+      UI.activePeakId = arg || 'OVERVIEW';
+      UI.open('sect', 'peaks');
+    }
+    else if (a === 'select-peak-tab') {
+      UI.activePeakId = String(arg || 'OVERVIEW');
+      UI.render();
+    }
+    else if (a === 'found-specific-peak') {
+      const peakId = String(arg || 'PEAK_AZURE_SWORD');
+      const res = (SECT && SECT.PEAKS) ? SECT.PEAKS.foundPeak(W, peakId, { allowDecree: true }) : { ok: false };
+      if (res && res.ok && res.peak) {
+        if (UI.audio) UI.audio.playBell();
+        UI.activePeakId = peakId;
+        UI.toast('⛰️ สถาปนา「' + res.peak.nameTh + '」สำเร็จ! เจ้าหุบเขา: ' + (res.peak.masterNameTh || '-'));
+      } else {
+        UI.toast('ยังไม่สามารถสถาปนายอดเขานี้ได้: ' + ((res && res.reason) || ''));
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'appoint-peak-leader') {
+      const [peakId, role, npcId] = String(arg || '').split('|');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.appointPeakLeader) ? SECT.PEAKS.appointPeakLeader(W, peakId, role || 'MASTER', npcId || null) : { ok: false };
+      if (res && res.ok && res.leader) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('👑 แต่งตั้ง「' + HC.fullName(res.leader) + '」เป็น' + (res.role === 'MASTER' ? 'ประธาน' : 'รองประธาน') + res.peak.nameTh + ' สำเร็จ!');
+      } else {
+        UI.toast('ไม่มีศิษย์ที่เหมาะสมสำหรับการแต่งตั้งในขณะนี้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'remove-peak-leader') {
+      const [peakId, role] = String(arg || '').split('|');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.removePeakLeader) ? SECT.PEAKS.removePeakLeader(W, peakId, role || 'MASTER') : { ok: false };
+      if (res && res.ok) {
+        UI.toast('ถอดถอนตำแหน่งผู้นำยอดเขาเรียบร้อยแล้ว');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'assign-disciple-peak') {
+      const [npcId, peakId] = String(arg || '').split('|');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.transferDiscipleToPeak) ? SECT.PEAKS.transferDiscipleToPeak(W, npcId, peakId) : { ok: false };
+      if (res && res.ok && res.peak) {
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast('⛰️ โยกย้าย「' + HC.fullName(res.npc) + '」เข้าสังกัด「' + res.peak.nameTh + '」สำเร็จ!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'remove-from-peak') {
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.removeDiscipleFromPeak) ? SECT.PEAKS.removeDiscipleFromPeak(W, arg) : { ok: false };
+      if (res && res.ok && res.npc) {
+        UI.toast('🍃 ให้「' + HC.fullName(res.npc) + '」แยกตัวเป็นศิษย์อิสระไร้สังกัดยอดเขาแล้ว');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'auto-assign-peak-disciples') {
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.autoAssignUnassignedDisciples) ? SECT.PEAKS.autoAssignUnassignedDisciples(W, { allowDecree: true }) : { ok: false };
+      if (res && res.ok && res.assignedCount > 0) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('⛰️ จัดสรรศิษย์เข้าสังกัดยอดเขาตามวิถีสำเร็จ ' + res.assignedCount + ' คน!');
+      } else {
+        UI.toast('ศิษย์ทุกคนมีสังกัดยอดเขาครบถ้วนแล้ว');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-peak-policy') {
+      const [peakId, rule] = String(arg || '').split('|');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.setPeakPolicy) ? SECT.PEAKS.setPeakPolicy(W, peakId, rule) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast('📜 ตั้งนโยบายจัดสรรทรัพยากรยอดเขา: ' + res.policy.allocationRuleTh);
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'distribute-single-peak') {
+      const peakId = String(arg || UI.activePeakId);
+      const pk = SECT && SECT.PEAKS ? SECT.PEAKS.ensure(W) : null;
+      if (pk && pk.byId[peakId] && (pk.byId[peakId].treasuryStones || 0) < 30) {
+        SECT.PEAKS.allocateCentralResourcesToPeaks(W, { quiet: true });
+      }
+      const res = (SECT && SECT.PEAKS) ? SECT.PEAKS.distributePeakResourcesToMembers(W, peakId, {}) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🎁 แจกจ่ายทรัพยากรประจำยอดเขาแก่ศิษย์ ' + res.recipients.length + ' คน ตามหลัก「' + res.ruleTh + '」!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'peak-joint-exchange') {
+      const [pA, pB] = String(arg || '').split('|');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.holdJointPeakExchange) ? SECT.PEAKS.holdJointPeakExchange(W, pA, pB || null, {}) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast(res.summaryTh);
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'unlock-all-offices') {
+      const res = (SECT && SECT.unlockAllOffices) ? SECT.unlockAllOffices(W, {}) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🔓 ปลดล็อกทำเนียบขุนนางครบทั้ง ' + res.unlockedCount + ' ตำแหน่ง (6 ทำเนียบฝ่าย) เรียบร้อยแล้ว!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-post-dir-filter') {
+      UI.postDirFilter = String(arg || 'ALL');
+      UI.render();
+    }
+    else if (a === 'auto-appoint-office') {
+      const post = SECT.resolveOfficeId ? SECT.resolveOfficeId(String(arg || 'envoy')) : String(arg || 'envoy');
+      W.sect.unlockSpecializedOffices = true;
+      const master = W.byId[W.sect.masterId];
+      const cands = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== W.sect.masterId && n.id !== W.sect.deputyId);
+      cands.sort((a, b) => SECT.appointScore(W, post, b, master) - SECT.appointScore(W, post, a, master));
+      const pick = cands.find(n => !n.post) || cands[0];
+      if (pick) {
+        SECT.appoint(W, post, pick, 'เจ้าสำนักคัดเลือกผู้มีความเหมาะสมสูงสุดเข้าดำรงตำแหน่ง');
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🎖️ แต่งตั้ง「' + HC.fullName(pick) + '」ดำรงตำแหน่ง' + (SECT.POSTS[post] ? SECT.POSTS[post].nameTh : post) + ' สำเร็จ!');
+      } else {
+        UI.toast('ยังไม่มีศิษย์ที่พร้อมรับตำแหน่งนี้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'dismiss-office') {
+      const post = SECT.resolveOfficeId ? SECT.resolveOfficeId(String(arg || '')) : String(arg || '');
+      const holder = SECT.holder(W, post);
+      if (holder) {
+        SECT.dismiss(W, post, 'เจ้าสำนักสั่งปรับเปลี่ยนทำเนียบตำแหน่ง');
+        UI.toast('ปลด「' + HC.fullName(holder) + '」ออกจากตำแหน่งเรียบร้อยแล้ว');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'run-single-office') {
+      const post = SECT.resolveOfficeId ? SECT.resolveOfficeId(String(arg || '')) : String(arg || '');
+      const res = (SECT && SECT.runOfficerJurisdictionSingle) ? SECT.runOfficerJurisdictionSingle(W, post, null, { ignoreAvailability: true }) : { ok: false };
+      if (res && res.ok && res.summaryTh) {
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast('🏛️ ' + res.summaryTh);
+      } else {
+        UI.toast('ตำแหน่งนี้ยังว่างอยู่หรือไม่มีผู้ปฏิบัติงาน');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'pay-office-stipends') {
+      const res = (SECT && SECT.payOfficeStipends) ? SECT.payOfficeStipends(W, {}) : { ok: false, totalPaid: 0, recipients: [] };
+      if (res && res.ok && res.recipients.length) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('💰 จ่ายเบี้ยหวัดประจำตำแหน่งให้ขุนนาง ' + res.recipients.length + ' คน รวม ' + res.totalPaid + ' ศิลาวิญญาณ!');
+      } else {
+        UI.toast('ยังไม่มีผู้ดำรงตำแหน่งบริหารที่รอรับเบี้ยหวัดเสริม');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
     else if (a === 'scan-and-found-peaks') {
       const res = (SECT && SECT.PEAKS) ? SECT.PEAKS.scanAndFoundEligiblePeaks(W, {}) : { ok: false };
       if (res && res.ok && res.newlyFounded && res.newlyFounded.length) {
         if (UI.audio) UI.audio.playBell();
         UI.toast('🏔️ สถาปนายอดเขาใหม่สำเร็จ: ' + res.newlyFounded.map(p => p.nameTh).join(', '));
       } else {
-        UI.toast('ตรวจสอบยอดเขาแล้ว: ยอดเขาจะแสดงเมื่อมีผู้ฝึกตนในวิถีนั้นครบ 4 คนและมีผู้อาวุโสอย่างน้อย 1 คน');
+        UI.toast('ตรวจสอบยอดเขาแล้ว: ยอดเขาจะแสดงเมื่อมีผู้ฝึกตนในวิถีนั้นครบ 4 คนและมีผู้อาวุโสอย่างน้อย 1 คน (หรือกดปุ่มสถาปนาในหน้าหุบเขา)');
       }
       UI.render();
       UI.updateHud(true);
@@ -1014,7 +1182,7 @@
       UI.updateHud(true);
     }
     else if (a === 'hold-inter-peak-tournament') {
-      const res = (SECT && SECT.PEAKS) ? SECT.PEAKS.holdInterPeakTournament(W, {}) : { ok: false };
+      const res = (SECT && SECT.PEAKS) ? SECT.PEAKS.holdInterPeakTournament(W, { autoFoundIfNeeded: true }) : { ok: false };
       if (res && res.ok && res.tournament) {
         if (UI.audio) UI.audio.playBladeClash();
         UI.toast(res.tournament.summaryTh);
@@ -2704,6 +2872,248 @@
     return h;
   };
 
+  /* ----- หน้าต่างเฉพาะระบบหุบเขาและ 8 ยอดเขา (Dedicated Sect Peaks & Valleys Sanctuary Hub v3.1.0) ----- */
+  UI.rSectPeaks = W => {
+    W = W || (UI.G && UI.G.W);
+    if (!W || !W.sect || !SECT.PEAKS) return '<div class="card muted">ระบบยอดเขายังไม่พร้อมใช้งาน</div>';
+    const pk = SECT.PEAKS.ensure(W);
+    const allPeaks = SECT.PEAKS.PEAK_IDS.map(pid => pk.byId[pid]).filter(Boolean);
+    const foundedPeaks = SECT.PEAKS.getVisibleFoundedPeaks(W);
+    const activeTab = UI.activePeakId || UI._peaksTab || UI._peaksSubView || UI._peaksView || 'OVERVIEW';
+    const independents = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== W.sect.masterId && !n.peakId);
+
+    let h = '';
+    // 1. Single-Row Horizontal Scrollable Selector (Mobile-Friendly Clean UX — Zero 3-Level Nested Menus)
+    h += '<div class="card" style="padding:8px 10px;margin-bottom:8px;border-color:var(--gold)">';
+    h += '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;white-space:nowrap">';
+    h += '<button class="btn ' + (activeTab === 'OVERVIEW' ? 'pri' : '') + '" style="padding:4px 10px;font-size:11.5px;flex-shrink:0" data-do="select-peak-tab" data-arg="OVERVIEW">🗺️ ภาพรวมทุกยอดเขา (' + foundedPeaks.length + '/8)</button>';
+    allPeaks.forEach(pObj => {
+      const isSelected = activeTab === pObj.id;
+      const badge = pObj.founded ? (' · ' + ((pObj.memberIds && pObj.memberIds.length) || 0)) : ' 🔒';
+      h += '<button class="btn ' + (isSelected ? 'pri' : '') + '" style="padding:4px 9px;font-size:11.5px;flex-shrink:0" data-do="select-peak-tab" data-arg="' + esc(pObj.id) + '">' + esc((pObj.icon || '⛰️') + ' ' + (pObj.shortTh || pObj.nameTh) + badge) + '</button>';
+    });
+    h += '<button class="btn ' + (activeTab === 'TOURNAMENT' ? 'pri' : 'ok') + '" style="padding:4px 10px;font-size:11.5px;flex-shrink:0" data-do="select-peak-tab" data-arg="TOURNAMENT">🏆 ศึกประลองยอดเขา</button>';
+    h += '</div></div>';
+
+    if (activeTab === 'OVERVIEW') {
+      // Top Action Bar
+      h += '<div class="card" style="margin-bottom:8px">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+      h += '<div><b>🗺️ แผนผังบริหาร 8 ยอดเขาและหุบเขาประจำสำนัก</b><div class="muted" style="font-size:11.5px">ประธานยอดเขามีศักดิ์เทียบเท่ารองเจ้าสำนัก (น้ำหนักโหวตสภา 1.8–2.5) · สมาชิกในสังกัดรับโบนัสค่ายกลปราณยอดเขา +14%</div></div>';
+      h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' +
+        '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="scan-and-found-peaks">🏔️ ตรวจสอบ/สถาปนายอดเขาครบเกณฑ์</button>' +
+        '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="auto-assign-peak-disciples">🤝 จัดสรรศิษย์ไร้สังกัดเข้ายอดเขา</button>' +
+        '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="allocate-peak-resources">🪙 จัดสรรงบส่วนกลางสู่ยอดเขา</button>' +
+        '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="hold-inter-peak-tournament">⚔️ จัดประลองระหว่างยอดเขา</button>' +
+        '</div></div></div>';
+
+      // 8-Peak Comparison Grid
+      h += '<div class="grid2">';
+      allPeaks.forEach(pObj => {
+        const def = SECT.PEAKS.PEAK_DEFS[pObj.id] || {};
+        const aura = def.auraBonus || { cultRate: 0.14 };
+        const memCount = (pObj.memberIds || []).filter(id => W.byId[id] && !W.byId[id].dead && !W.byId[id].exiled).length;
+        const pathMembersCount = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== W.sect.masterId && n.cult && pObj.paths.includes(n.cult.path)).length;
+        const allies = [];
+        const rivals = [];
+        SECT.PEAKS.PEAK_IDS.forEach(otherId => {
+          if (otherId === pObj.id) return;
+          const sc = SECT.PEAKS.getInterPeakScore(W, pObj.id, otherId);
+          const oName = pk.byId[otherId] ? (pk.byId[otherId].shortTh || pk.byId[otherId].nameTh) : otherId;
+          if (sc >= 15) allies.push(oName + ' (+' + sc + ')');
+          else if (sc <= -15) rivals.push(oName + ' (' + sc + ')');
+        });
+        h += '<div class="card" style="margin:0;border-color:' + (pObj.founded ? 'var(--gold)' : 'var(--line,#3a3f4a)') + '">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">';
+        h += '<div><b>' + esc((pObj.icon || '⛰️') + ' ' + pObj.nameTh) + '</b> ' +
+          (pObj.founded ? '<span class="chip ok">สถาปนาแล้ว</span>' : '<span class="chip">รอสถาปนา (' + pathMembersCount + '/4 คน)</span>') +
+          '<div class="muted" style="font-size:11px;margin-top:2px">วิถีประจำยอดเขา: <b>' + esc(pObj.paths.join(' + ')) + '</b> · ค่ายกลปราณ <b>+' + Math.round((aura.cultRate || 0.14) * 100) + '%</b></div></div>';
+        h += '<div style="display:flex;gap:4px;flex-shrink:0">' +
+          (!pObj.founded ? '<button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="found-specific-peak" data-arg="' + esc(pObj.id) + '">🏔️ สถาปนา</button>' : '') +
+          '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="select-peak-tab" data-arg="' + esc(pObj.id) + '">🔍 จัดการ</button>' +
+          '</div></div>';
+        h += '<div style="font-size:11.5px;margin-top:6px;padding-top:5px;border-top:1px dotted var(--line,#3a3f4a)">' +
+          '<div>👑 <b>ประธานยอดเขา:</b> ' + esc(pObj.masterNameTh || 'ยังไม่ได้แต่งตั้ง') + ' · <b>รองประธาน:</b> ' + esc(pObj.deputyNameTh || '-') + '</div>' +
+          '<div>👥 <b>ศิษย์ในสังกัด:</b> ' + memCount + ' คน · 🏅 <b>ความรุ่งเรือง:</b> ' + (pObj.prestige || 50) + ' · 💎 <b>คลังยอดเขา:</b> ' + (pObj.treasuryStones || 0) + ' ศิลา (' + (pObj.pillReserve || 0) + ' โอสถ)</div>' +
+          '<div class="muted" style="font-size:11px">📜 นโยบาย: ' + esc(pObj.policy && pObj.policy.allocationRuleTh ? pObj.policy.allocationRuleTh : 'เน้นผลงานและตบะ') + '</div>' +
+          '<div class="muted" style="font-size:11px">🤝 พันธมิตร: ' + esc(allies.length ? allies.join(', ') : 'เป็นกลาง') + ' · ⚔️ คู่ปรับ: ' + esc(rivals.length ? rivals.join(', ') : 'ไม่มี') + '</div>' +
+          '</div></div>';
+      });
+      h += '</div>';
+
+      // Unassigned / Independent Disciples Panel
+      h += '<h3>🍃 ทำเนียบศิษย์อิสระไร้สังกัดยอดเขา (' + independents.length + ' คน)</h3>';
+      h += '<div class="card">';
+      if (!independents.length) {
+        h += '<div class="muted">ศิษย์ทุกคนในสำนักมีสังกัดยอดเขาครบถ้วนแล้ว</div>';
+      } else {
+        h += '<div class="muted" style="font-size:11.5px;margin-bottom:6px">ศิษย์ไร้สังกัดยอดเขาจะขาดค่ายกลปราณหนุนตบะ (-12%) และไม่ได้รับส่วนแบ่งโอสถ/ศิลาประจำยอดเขา — กดเลือกส่งเข้าสังกัดยอดเขาที่ตรงสายได้ทันที:</div>';
+        independents.forEach(n => {
+          const recPeakId = (n.cult && SECT.PEAKS.peakIdForPath(n.cult.path)) || 'PEAK_AZURE_SWORD';
+          const recPeak = pk.byId[recPeakId] || allPeaks[0];
+          h += '<div style="padding:5px 0;border-top:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
+            '<div><b>' + nameLink(n) + '</b> <span class="chip">' + esc((SECT.RANKS[n.rank] && SECT.RANKS[n.rank].nameTh) || 'ศิษย์') + '</span> <span class="chip b">วิถี: ' + esc(n.cult ? n.cult.path : 'ปุถุชน') + ' · ' + (n.cult ? CULT.stageName(n) : '-') + '</span></div>' +
+            '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+            '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="assign-disciple-peak" data-arg="' + esc(n.id + '|' + recPeak.id) + '">➕ ส่งเข้า「' + esc(recPeak.shortTh || recPeak.nameTh) + '」(ตรงสาย)</button>' +
+            foundedPeaks.filter(fp => fp.id !== recPeak.id).slice(0, 2).map(fp => '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="assign-disciple-peak" data-arg="' + esc(n.id + '|' + fp.id) + '">➔ ' + esc(fp.shortTh || fp.nameTh) + '</button>').join('') +
+            '</div></div>';
+        });
+      }
+      h += '</div>';
+      return h;
+    }
+
+    if (activeTab === 'TOURNAMENT') {
+      const tHist = pk.tournamentHistory || [];
+      h += '<div class="card" style="border-color:var(--gold)">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+      h += '<div><b>🏆 ศึกลานประลองยุทธ์เชื่อมสัมพันธ์ 8 ยอดเขา (Inter-Peak Grand Tournament)</b><div class="muted" style="font-size:11.5px">คัดเลือกตัวแทนยอดฝีมือของแต่ละยอดเขามาประลองชิงธงเกียรติยศ แชมป์รับ +90 ศิลา, +40 CP, +55 ตบะ และยอดเขาชนะเลิศได้โควตางบส่วนกลาง +25%!</div></div>';
+      h += '<button class="btn ok" style="padding:5px 12px;font-size:12px" data-do="hold-inter-peak-tournament">⚔️ จัดศึกประลองยุทธ์ระหว่างยอดเขาทันที</button>';
+      h += '</div></div>';
+
+      // Leaderboard of Peaks
+      h += '<h3>🏅 ตารางอันดับเกียรติภูมิและศักยภาพยอดเขา</h3><div class="card">';
+      const rankedPeaks = allPeaks.slice().sort((a, b) => ((b.founded ? 1000 : 0) + (b.prestige || 50)) - ((a.founded ? 1000 : 0) + (a.prestige || 50)));
+      rankedPeaks.forEach((pObj, idx) => {
+        const mems = (pObj.memberIds || []).map(id => W.byId[id]).filter(n => n && !n.dead && !n.exiled);
+        mems.sort((a, b) => CULT.power(b) - CULT.power(a));
+        const topRep = mems[0];
+        const wins = tHist.filter(t => t.winnerPeakId === pObj.id).length;
+        h += '<div style="padding:5px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
+          '<div><b>#' + (idx + 1) + ' ' + esc((pObj.icon || '⛰️') + ' ' + pObj.nameTh) + '</b> ' +
+          (pObj.founded ? '<span class="chip g">เกียรติภูมิ ' + (pObj.prestige || 50) + '</span>' : '<span class="chip">ยังไม่สถาปนา</span>') +
+          ' <span class="chip b">แชมป์สะสม ' + wins + ' สมัย</span> <span class="muted">โควตางบ ×' + (pObj.budgetMultiplier || 1).toFixed(2) + '</span></div>' +
+          '<div class="muted" style="font-size:11.5px">ตัวแทนสูงสุด: <b>' + esc(topRep ? HC.fullName(topRep) : '-') + '</b>' + (topRep ? (' (พลังยุทธ์ ' + Math.round(CULT.power(topRep)) + ')') : '') + '</div></div>';
+      });
+      h += '</div>';
+
+      // Tournament History
+      h += '<h3>📜 บันทึกประวัติแชมป์ศึกประลองยอดเขา (' + tHist.length + ' ครั้ง)</h3><div class="card">';
+      if (!tHist.length) {
+        h += '<div class="muted">ยังไม่มีประวัติการประลองระหว่างยอดเขา — กดปุ่ม「⚔️ จัดศึกประลองยุทธ์ระหว่างยอดเขาทันที」ด้านบนเพื่อเปิดศึกชิงเจ้ายอดเขา!</div>';
+      } else {
+        tHist.forEach(tr => {
+          h += '<div style="padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)">' +
+            '<div><b>🏆 วันที่ ' + tr.day + ' — แชมป์ยอดเขา: ' + esc(tr.championNameTh) + ' (' + esc(tr.winnerPeakNameTh) + ')</b> <span class="chip ok">ชนะ ' + esc(tr.runnerUpNameTh) + ' (' + esc(tr.runnerUpPeakNameTh) + ')</span></div>' +
+            '<div class="muted" style="font-size:11.5px;margin-top:2px">' + esc(tr.summaryTh) + '</div></div>';
+        });
+      }
+      h += '</div>';
+      return h;
+    }
+
+    // 3. Individual Peak Detail View
+    const pObj = pk.byId[activeTab] || allPeaks[0];
+    const def = SECT.PEAKS.PEAK_DEFS[pObj.id] || {};
+    const aura = def.auraBonus || { cultRate: 0.14 };
+    const masterNpc = pObj.masterId ? W.byId[pObj.masterId] : null;
+    const deputyNpc = pObj.deputyId ? W.byId[pObj.deputyId] : null;
+    const members = (pObj.memberIds || []).map(id => W.byId[id]).filter(n => n && !n.dead && !n.exiled);
+    const eligibleOutsiders = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== W.sect.masterId && n.peakId !== pObj.id);
+    eligibleOutsiders.sort((a, b) => {
+      const mA = (a.cult && pObj.paths.includes(a.cult.path)) ? 100 : 0;
+      const mB = (b.cult && pObj.paths.includes(b.cult.path)) ? 100 : 0;
+      return (mB + (b.rank || 1) * 15 + CULT.power(b)) - (mA + (a.rank || 1) * 15 + CULT.power(a));
+    });
+
+    h += '<div class="card" style="border-color:var(--gold)">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px">';
+    h += '<div><div style="font-size:15px"><b>' + esc((pObj.icon || '⛰️') + ' ' + pObj.nameTh) + '</b> ' +
+      (pObj.founded ? '<span class="chip ok">สถาปนาแล้ว (วันที่ ' + (pObj.foundedDay || 360) + ')</span>' : '<span class="chip r">ยังไม่สถาปนา</span>') +
+      '</div><div class="muted" style="font-size:11.5px;margin-top:2px">' + esc(pObj.descTh) + '</div>' +
+      '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">' +
+      '<span class="chip g">☯️ ค่ายกลปราณยอดเขา: อัตราฝึกปราณ +' + Math.round((aura.cultRate || 0.14) * 100) + '%</span>' +
+      '<span class="chip b">วิถีหลัก: ' + esc(pObj.paths.join(' + ')) + '</span>' +
+      '<span class="chip">🏅 เกียรติภูมิ ' + (pObj.prestige || 50) + '</span>' +
+      '<span class="chip">💎 คลังยอดเขา ' + (pObj.treasuryStones || 0) + ' ศิลา · โอสถ ' + (pObj.pillReserve || 0) + ' เม็ด</span>' +
+      '</div></div>';
+    h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' +
+      (!pObj.founded ? '<button class="btn pri" style="padding:4px 10px;font-size:11.5px" data-do="found-specific-peak" data-arg="' + esc(pObj.id) + '">🏔️ สถาปนายอดเขานี้ทันที</button>' : '') +
+      '<button class="btn ok" style="padding:4px 10px;font-size:11.5px" data-do="distribute-single-peak" data-arg="' + esc(pObj.id) + '">🎁 แจกจ่ายทรัพยากรคลังยอดเขา</button>' +
+      '</div></div></div>';
+
+    // Leadership Cards (Peak Master & Deputy)
+    h += '<h3>👑 ทำเนียบผู้นำยอดเขา (ประธานยอดเขา & รองประธานยอดเขา)</h3>';
+    h += '<div class="grid2">';
+    // Peak Master Card
+    h += '<div class="card" style="margin:0">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><b>👑 ประธานยอดเขา (Peak Master)</b><span class="chip g">ศักดิ์เทียบเท่ารองเจ้าสำนัก · โหวต 2.5</span></div>';
+    if (masterNpc) {
+      h += '<div class="prow" style="margin:6px 0" data-npc="' + masterNpc.id + '">' + portraitHtml(masterNpc, 42) + '<div class="pi"><div class="nm">' + esc(HC.fullName(masterNpc)) + '</div><div class="sub">' + (masterNpc.cult ? CULT.stageName(masterNpc) : '-') + ' · พลังยุทธ์ ' + Math.round(CULT.power(masterNpc)) + '</div></div></div>';
+    } else {
+      h += '<div class="muted" style="padding:8px 0">ยังไม่มีประธานยอดเขา — กดปุ่มแต่งตั้งผู้เหมาะสมด้านล่าง</div>';
+    }
+    h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' +
+      '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="appoint-peak-leader" data-arg="' + esc(pObj.id + '|MASTER|') + '">👑 แต่งตั้ง/เปลี่ยนประธานยอดเขา</button>' +
+      (masterNpc ? '<button class="btn dan" style="padding:2px 8px;font-size:11px" data-do="remove-peak-leader" data-arg="' + esc(pObj.id + '|MASTER') + '">✕ ถอดถอน</button>' : '') +
+      '</div></div>';
+
+    // Deputy Peak Master Card
+    h += '<div class="card" style="margin:0">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><b>🎖️ รองประธานยอดเขา (Deputy)</b><span class="chip b">ผู้ช่วยบริหารหุบเขา · เบี้ยหวัด +15%</span></div>';
+    if (deputyNpc) {
+      h += '<div class="prow" style="margin:6px 0" data-npc="' + deputyNpc.id + '">' + portraitHtml(deputyNpc, 42) + '<div class="pi"><div class="nm">' + esc(HC.fullName(deputyNpc)) + '</div><div class="sub">' + (deputyNpc.cult ? CULT.stageName(deputyNpc) : '-') + ' · พลังยุทธ์ ' + Math.round(CULT.power(deputyNpc)) + '</div></div></div>';
+    } else {
+      h += '<div class="muted" style="padding:8px 0">ยังไม่มีรองประธานยอดเขา — กดปุ่มแต่งตั้งผู้เหมาะสมด้านล่าง</div>';
+    }
+    h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' +
+      '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="appoint-peak-leader" data-arg="' + esc(pObj.id + '|DEPUTY|') + '">🎖️ แต่งตั้ง/เปลี่ยนรองประธาน</button>' +
+      (deputyNpc ? '<button class="btn dan" style="padding:2px 8px;font-size:11px" data-do="remove-peak-leader" data-arg="' + esc(pObj.id + '|DEPUTY') + '">✕ ถอดถอน</button>' : '') +
+      '</div></div>';
+    h += '</div>';
+
+    // Resource Allocation Policy Selector
+    const curRule = (pObj.policy && pObj.policy.allocationRule) || 'MERITOCRATIC';
+    h += '<h3>📜 นโยบายการจัดสรรทรัพยากรและโอสถประจำยอดเขา</h3><div class="card">';
+    h += '<div style="margin-bottom:6px">นโยบายปัจจุบัน: <b>' + esc(pObj.policy && pObj.policy.allocationRuleTh ? pObj.policy.allocationRuleTh : 'เน้นผลงานและตบะ') + '</b></div>';
+    h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    Object.values(SECT.PEAKS.POLICY_RULES || {}).forEach(rSpec => {
+      h += '<button class="btn ' + (curRule === rSpec.id ? 'pri' : '') + '" style="padding:3px 9px;font-size:11px" data-do="set-peak-policy" data-arg="' + esc(pObj.id + '|' + rSpec.id) + '">' + esc(rSpec.nameTh) + '</button>';
+    });
+    h += '</div></div>';
+
+    // Peak Disciple Roster & Transfer Controls
+    h += '<h3>👥 ทำเนียบศิษย์ในสังกัด「' + esc(pObj.shortTh || pObj.nameTh) + '」(' + members.length + ' คน)</h3><div class="card">';
+    if (!members.length) {
+      h += '<div class="muted">ยังไม่มีศิษย์สังกัดยอดเขานี้ — สามารถรับศิษย์เข้าสังกัดได้จากรายชื่อด้านล่าง</div>';
+    } else {
+      members.forEach(mNpc => {
+        const roleBadge = mNpc.peakRole === 'MASTER' ? '<span class="chip g">👑 ประธานยอดเขา</span>' : mNpc.peakRole === 'DEPUTY' ? '<span class="chip b">🎖️ รองประธาน</span>' : '<span class="chip">ศิษย์ในสังกัด</span>';
+        h += '<div style="padding:5px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
+          '<div><b>' + nameLink(mNpc) + '</b> ' + roleBadge + ' <span class="muted">วิถี ' + esc(mNpc.cult ? mNpc.cult.path : '-') + ' · ' + (mNpc.cult ? CULT.stageName(mNpc) : '-') + ' · พลัง ' + Math.round(CULT.power(mNpc)) + '</span></div>' +
+          '<div style="display:flex;gap:4px">' +
+          (mNpc.peakRole !== 'MASTER' ? '<button class="btn" style="padding:2px 6px;font-size:10.5px" data-do="appoint-peak-leader" data-arg="' + esc(pObj.id + '|MASTER|' + mNpc.id) + '">👑 ตั้งเป็นประธาน</button>' : '') +
+          (mNpc.peakRole !== 'DEPUTY' ? '<button class="btn" style="padding:2px 6px;font-size:10.5px" data-do="appoint-peak-leader" data-arg="' + esc(pObj.id + '|DEPUTY|' + mNpc.id) + '">🎖️ ตั้งเป็นรอง</button>' : '') +
+          '<button class="btn dan" style="padding:2px 6px;font-size:10.5px" data-do="remove-from-peak" data-arg="' + esc(mNpc.id) + '">🍃 ย้ายออก</button>' +
+          '</div></div>';
+      });
+    }
+    if (eligibleOutsiders.length) {
+      h += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line,#3a3f4a)"><b>➕ รับศิษย์เข้าสังกัด「' + esc(pObj.shortTh || pObj.nameTh) + '」เพิ่มเติม:</b></div>';
+      eligibleOutsiders.slice(0, 8).forEach(cand => {
+        const isPathMatch = cand.cult && pObj.paths.includes(cand.cult.path);
+        h += '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
+          '<div><b>' + nameLink(cand) + '</b> ' + (isPathMatch ? '<span class="chip ok">ตรงวิถี (' + esc(cand.cult.path) + ')</span>' : '<span class="chip">วิถี ' + esc(cand.cult ? cand.cult.path : '-') + '</span>') + ' <span class="muted">(' + (cand.peakNameTh ? 'สังกัด: ' + esc(cand.peakNameTh) : 'ศิษย์อิสระ') + ')</span></div>' +
+          '<button class="btn pri" style="padding:2px 8px;font-size:10.5px" data-do="assign-disciple-peak" data-arg="' + esc(cand.id + '|' + pObj.id) + '">➕ โยกย้ายเข้ายอดเขานี้</button></div>';
+      });
+    }
+    h += '</div>';
+
+    // Inter-Peak Diplomacy & Exchange
+    h += '<h3>🤝 สายสัมพันธ์ระหว่างยอดเขาและการแลกเปลี่ยนเคล็ดวิชา</h3><div class="card">';
+    h += '<div class="grid2">';
+    allPeaks.filter(op => op.id !== pObj.id).forEach(op => {
+      const sc = SECT.PEAKS.getInterPeakScore(W, pObj.id, op.id);
+      const stLabel = sc >= 15 ? '<span class="chip ok">พันธมิตร (+' + sc + ')</span>' : sc <= -15 ? '<span class="chip r">คู่ปรับ (' + sc + ')</span>' : '<span class="chip">เป็นกลาง (' + sc + ')</span>';
+      h += '<div style="padding:5px 7px;border:1px solid var(--line,#3a3f4a);border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:4px">' +
+        '<div><b>' + esc((op.icon || '⛰️') + ' ' + (op.shortTh || op.nameTh)) + '</b> ' + stLabel + '</div>' +
+        '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="peak-joint-exchange" data-arg="' + esc(pObj.id + '|' + op.id) + '">🤝 เชื่อมไมตรี</button></div>';
+    });
+    h += '</div></div>';
+
+    return h;
+  };
+
   /* ----- สำนัก ----- */
   UI.rSect = () => {
     const W = UI.G.W, S = W.sect, m = W.byId[S.masterId], tab = UI.tab; let h = '';
@@ -2802,31 +3212,18 @@
         const foundedPeaks = SECT.PEAKS.getVisibleFoundedPeaks(W);
         const independents = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== W.sect.masterId && !n.peakId);
         const unappointedElders = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && (n.rank === 4 || n.isElder) && !n.post && n.id !== W.sect.masterId && n.id !== W.sect.deputyId);
-        h += '<h3>🏔️ ทำเนียบยอดเขาประจำสำนัก & สถานะผู้อาวุโส (ก่อตั้งแล้ว ' + foundedPeaks.length + ' ยอดเขา · ผู้อาวุโสไร้ตำแหน่งบริหาร ' + unappointedElders.length + ' คน · ศิษย์อิสระ ' + independents.length + ' คน)</h3>';
+        h += '<h3>⛰️ ระบบหุบเขาและ 8 ยอดเขาประจำสำนัก (ก่อตั้งแล้ว ' + foundedPeaks.length + '/8 ยอดเขา · ศิษย์ไร้สังกัด ' + independents.length + ' คน)</h3>';
         h += '<div class="card" style="border-color:var(--gold)">';
-        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px"><div class="muted" style="font-size:11.5px">ยอดเขาจะปรากฏเมื่อมีสมาชิกวิถีนั้นครบ 4 คนและมีผู้อาวุโสอย่างน้อย 1 คน (ผู้นำยอดเขามีศักดิ์เทียบเท่ารองเจ้าสำนัก)</div><div style="display:flex;gap:5px;flex-wrap:wrap">' +
-          '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="scan-and-found-peaks">🏔️ ตรวจสอบ/สถาปนายอดเขาที่ครบเกณฑ์</button>' +
-          '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="evaluate-elder-ascensions">🎖️ แต่งตั้งยศผู้อาวุโสตามตบะ</button>' +
-          (foundedPeaks.length >= 1 ? '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="allocate-peak-resources">🪙 จัดสรรทรัพยากรสู่ยอดเขา</button>' : '') +
-          (foundedPeaks.length >= 2 ? '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="hold-inter-peak-tournament">⚔️ จัดประลองระหว่างยอดเขา</button>' : '') +
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div>บริหารจัดการทั้ง 8 ยอดเขา แต่งตั้งประธานยอดเขา โยกย้ายศิษย์เข้าสังกัด ตั้งนโยบายแจกโอสถ และจัดศึกประลองยอดเขาได้ในหน้าต่างเฉพาะ</div><div style="display:flex;gap:5px;flex-wrap:wrap">' +
+          '<button class="btn pri" style="padding:4px 10px;font-size:11.5px" data-do="open-sect-peaks" data-arg="OVERVIEW">⛰️ เปิดหน้าต่างบริหารหุบเขา/ยอดเขา</button>' +
+          '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="scan-and-found-peaks">🏔️ ตรวจสอบยอดเขาครบเกณฑ์</button>' +
+          '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="open-sect-peaks" data-arg="TOURNAMENT">🏆 ศึกประลองยอดเขา</button>' +
           '</div></div>';
-        if (!foundedPeaks.length) {
-          h += '<div class="muted" style="font-size:11.5px">ยังไม่มีการตั้งยอดเขาในขณะนี้ — เมื่อมีผู้ฝึกตนในวิถีเดียวกัน/คู่กันครบ 4 คนและมีผู้อาวุโส 1 คน ยอดเขาจะถูกสถาปนาและแสดงผลที่นี่โดยอัตโนมัติ</div>';
-        } else {
-          h += foundedPeaks.map(p => {
-            const memNames = (p.memberIds || []).map(id => W.byId[id]).filter(Boolean).map(n => HC.fullName(n)).join(', ');
-            return '<div style="padding:6px 0;border-top:1px dotted var(--line,#3a3f4a)">' +
-              '<div><b>' + esc(p.icon || '🏔️') + ' ' + esc(p.nameTh) + '</b> <span class="chip g">วิถี: ' + esc(p.paths.join(' + ')) + '</span> <span class="chip b">เกียรติภูมิ ' + (p.prestige || 50) + ' · คลังหุบเขา ' + (p.treasuryStones || 0) + ' ศิลา</span></div>' +
-              '<div style="font-size:11.5px;margin-top:2px">👑 <b>ผู้นำยอดเขา (ศักดิ์เทียบเท่ารองเจ้าสำนัก):</b> ' + esc(p.masterNameTh || '-') + ' · <b>รองผู้นำยอดเขา:</b> ' + esc(p.deputyNameTh || '-') + ' · <b>สมาชิก (' + (p.memberIds ? p.memberIds.length : 0) + ' คน):</b> ' + esc(memNames) + '</div>' +
-              '<div class="muted" style="font-size:11px;margin-top:1px">นโยบายผู้นำยอดเขา: <b>' + esc(p.policy && p.policy.allocationRuleTh ? p.policy.allocationRuleTh : '-') + '</b> · ' + esc(p.descTh) + '</div>' +
-              '</div>';
-          }).join('');
+        if (foundedPeaks.length) {
+          h += '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">' + foundedPeaks.map(p => '<span class="chip g" style="cursor:pointer" data-do="open-sect-peaks" data-arg="' + esc(p.id) + '">' + esc(p.icon || '⛰️') + ' ' + esc(p.shortTh || p.nameTh) + ' (' + ((p.memberIds && p.memberIds.length) || 0) + ' คน · เจ้าหุบเขา: ' + esc(p.masterNameTh || '-') + ')</span>').join('') + '</div>';
         }
         if (unappointedElders.length) {
-          h += '<div style="margin-top:6px;padding-top:5px;border-top:1px dotted var(--line,#3a3f4a);font-size:11.5px">🎖️ <b>ทำเนียบผู้อาวุโสสำนัก (มีสถานะเป็นผู้อาวุโสโดยไม่ต้องครองตำแหน่งบริหาร):</b> ' + unappointedElders.map(eNpc => esc(HC.fullName(eNpc)) + ' <span class="chip">(' + esc(eNpc.elderTitleTh || 'ผู้อาวุโส') + ')</span>').join(' · ') + '</div>';
-        }
-        if (independents.length) {
-          h += '<div class="muted" style="margin-top:4px;font-size:11px">🍃 <b>ศิษย์อิสระไร้สังกัดยอดเขา (' + independents.length + ' คน):</b> ' + independents.slice(0, 6).map(iNpc => esc(HC.fullName(iNpc))).join(', ') + ' — ไม่ถูกบังคับด้วยกฎหุบเขา แต่ไม่ได้รับทรัพยากรจัดสรรจากยอดเขาและขาดค่ายกลปราณยอดเขาหนุนตบะ (-12%)</div>';
+          h += '<div style="margin-top:5px;font-size:11px" class="muted">🎖️ ผู้อาวุโสสำนักไร้ตำแหน่งบริหาร (' + unappointedElders.length + ' คน): ' + unappointedElders.slice(0, 6).map(eNpc => esc(HC.fullName(eNpc))).join(', ') + '</div>';
         }
         h += '</div>';
       }
@@ -2926,23 +3323,102 @@
       h += '</div>';
       const recent = W.logs.filter(l => l.type === 'decision').slice(-6).reverse(); if (recent.length) h += '<h3>การตัดสินใจล่าสุดของเจ้าสำนัก</h3><div class="card">' + recent.map(l => '<div class="logrow"><span class="tm">' + dayStamp(l.t) + '</span>' + linkify(W, l.text, l.ids, l.refs) + '</div>').join('') + '</div>';
     } else if (tab === 'posts') {
-      h += '<div class="card"><b>ตำแหน่งบริหาร</b><div class="muted">ผู้นำเลือกคนตามความสามารถหรือความสนิท ขึ้นกับนโยบาย "ยึดความสามารถ" ' + Math.round(S.policy.meritocracy) + '</div></div>';
-      const slots = [['เจ้าสำนัก', W.byId[S.masterId]], ['รองเจ้าสำนัก', W.byId[S.deputyId]]].concat(SECT.POST_IDS.map(p => [SECT.POSTS[p].nameTh, SECT.holder(W, p), SECT.POSTS[p].desc, SECT.officeState(W, p), p]));
-      h += slots.map(s => {
-        const n = s[1], pId = s[4];
-        let subText = '';
-        if (n) {
-          subText = esc(HC.fullName(n)) + ' · ' + (n.cult ? CULT.stageName(n) : 'ปุถุชน');
-          if (pId === 'disciples') subText += ' · <button class="btn" style="padding:1px 6px;font-size:10.5px" data-do="elect-successor">🗳️ คัดเลือกใหม่</button>';
-        } else if (s[3] && !s[3].enabled) {
-          subText = '🔒 ยังไม่ปลดล็อก · ' + esc(s[3].reason);
-        } else if (pId === 'disciples') {
-          subText = 'ว่าง · <button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="elect-successor">🗳️ เปิดการประชุมคัดเลือกศิษย์สืบทอด</button>';
-        } else {
-          subText = 'ว่าง · เจ้าสำนักกำลังพิจารณาคนที่เหมาะสม';
-        }
-        return '<div class="prow" ' + (n ? 'data-npc="' + n.id + '"' : '') + '>' + (n ? portraitHtml(n, 40) : '<div style="width:40px;height:40px;border-radius:10px;background:#0e141b;display:flex;align-items:center;justify-content:center">—</div>') + '<div class="pi"><div class="nm">' + s[0] + '</div><div class="sub">' + subText + '</div><div class="sub">' + esc(s[2] || '') + '</div></div></div>';
-      }).join('');
+      const dirFilter = UI.postDirFilter || 'ALL';
+      const filledCount = SECT.POST_IDS.filter(p => SECT.holder(W, p)).length;
+      h += '<div class="card" style="border-color:var(--gold)">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+      h += '<div><b>🏛️ ทำเนียบขุนนางและตำแหน่งบริหาร 6 ทำเนียบฝ่าย (' + filledCount + '/' + SECT.POST_IDS.length + ' ตำแหน่ง)</b><div class="muted" style="font-size:11.5px">ผู้นำเลือกคนตามความสามารถหรือความสนิท (ยึดความสามารถ ' + Math.round(S.policy.meritocracy) + '%) · ทุกตำแหน่งมีเบี้ยหวัดจริง บารมีโหวตสภา และสิทธิตัดสินใจอัตโนมัติ</div></div>';
+      h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' +
+        '<button class="btn pri" style="padding:3px 9px;font-size:11px" data-do="unlock-all-offices">🔓 ปลดล็อกทำเนียบตำแหน่งทั้งหมด</button>' +
+        '<button class="btn ok" style="padding:3px 9px;font-size:11px" data-do="run-officer-jurisdictions">🏛️ ให้ขุนนางตัดสินใจตามตำแหน่ง</button>' +
+        '<button class="btn" style="padding:3px 9px;font-size:11px" data-do="pay-office-stipends">💰 จ่ายเบี้ยหวัดตำแหน่ง</button>' +
+        '</div></div>';
+      // 4 Unlocked Strategic Bureaus Banner (ฝ่ายการทูต, ฝ่ายข่าวกรอง, ฝ่ายสัตว์วิญญาณ, ฝ่ายค่ายกลป้องกัน)
+      const plannedBureaus = Object.entries(SECT.PLANNED_POSTS || {});
+      if (plannedBureaus.length) {
+        h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a);display:flex;gap:6px;flex-wrap:wrap;align-items:center">';
+        h += '<span class="muted" style="font-size:11px"><b>4 ฝ่ายยุทธศาสตร์หลัก:</b></span>';
+        plannedBureaus.forEach(([bId, bp]) => {
+          const linkedId = bp.linkedPost || (SECT.POST_ALIASES && SECT.POST_ALIASES[bId]) || 'envoy';
+          const lPost = SECT.POSTS[linkedId];
+          const lHolder = SECT.holder(W, linkedId);
+          h += '<span class="chip g" style="font-size:11px">✅ ' + esc(bp.nameTh) + ' ➔ ' + esc(lPost ? lPost.nameTh : linkedId) + (lHolder ? (' (' + esc(HC.fullName(lHolder)) + ')') : ' (ว่าง)') + '</span>';
+        });
+        h += '</div>';
+      }
+      // Single-row Directorate Filter Chips
+      h += '<div style="display:flex;gap:5px;overflow-x:auto;padding-top:8px;scrollbar-width:thin">';
+      h += '<button class="btn ' + (dirFilter === 'ALL' ? 'pri' : '') + '" style="padding:3px 8px;font-size:11px;flex-shrink:0" data-do="set-post-dir-filter" data-arg="ALL">📋 ทุกทำเนียบ (' + SECT.POST_IDS.length + ')</button>';
+      (SECT.DIRECTORATE_IDS || []).forEach(dId => {
+        const dSpec = SECT.DIRECTORATES[dId];
+        const cnt = SECT.POST_IDS.filter(p => SECT.POSTS[p].category === dId).length;
+        h += '<button class="btn ' + (dirFilter === dId ? 'pri' : '') + '" style="padding:3px 8px;font-size:11px;flex-shrink:0" data-do="set-post-dir-filter" data-arg="' + esc(dId) + '">' + esc(dSpec.icon + ' ' + dSpec.nameTh) + ' (' + cnt + ')</button>';
+      });
+      h += '</div></div>';
+
+      // Supreme Leadership (Sect Master & Deputy Master)
+      const depNpc = W.byId[S.deputyId];
+      h += '<div class="grid2" style="margin-bottom:8px">';
+      [[ '👑 เจ้าสำนัก', m, 'ผู้นำสูงสุด · บารมีโหวต 2.4 · เบี้ยหวัด 130 ศิลา/เดือน' ], [ '🦅 รองเจ้าสำนัก', depNpc, 'ผู้ช่วยบริหารสูงสุด · บารมีโหวต 1.8 · เบี้ยหวัด 85 ศิลา/เดือน' ]].forEach(slot => {
+        const ldr = slot[1];
+        h += '<div class="prow" style="margin:0" ' + (ldr ? 'data-npc="' + ldr.id + '"' : '') + '>' +
+          (ldr ? portraitHtml(ldr, 42) : '<div style="width:42px;height:42px;border-radius:10px;background:#0e141b;display:flex;align-items:center;justify-content:center">—</div>') +
+          '<div class="pi"><div class="nm">' + slot[0] + '</div><div class="sub">' + (ldr ? (esc(HC.fullName(ldr)) + ' · ' + (ldr.cult ? CULT.stageName(ldr) : 'ปุถุชน')) : 'ว่าง · รอเจ้าสำนักแต่งตั้ง') + '</div><div class="sub muted">' + slot[2] + '</div></div></div>';
+      });
+      h += '</div>';
+
+      // Render offices grouped by Directorate
+      const activeDirs = (SECT.DIRECTORATE_IDS || []).filter(dId => dirFilter === 'ALL' || dirFilter === dId);
+      activeDirs.forEach(dId => {
+        const dSpec = SECT.DIRECTORATES[dId] || { icon: '🏛️', nameTh: dId, descTh: '' };
+        const dirPosts = SECT.POST_IDS.filter(p => (SECT.POSTS[p].category || 'governance') === dId);
+        if (!dirPosts.length) return;
+        h += '<h3>' + esc(dSpec.icon + ' ' + dSpec.nameTh) + ' <span class="muted" style="font-size:11px;font-weight:normal">— ' + esc(dSpec.descTh) + '</span></h3>';
+        dirPosts.forEach(pId => {
+          const pSpec = SECT.POSTS[pId];
+          const n = SECT.holder(W, pId);
+          const st = SECT.officeState(W, pId);
+          const del = S.delegations && S.delegations[pId];
+          const delNpc = del && del.until > W.t ? W.byId[del.delegateId] : null;
+          const minRankName = (SECT.RANKS[pSpec.minRank || 3] && SECT.RANKS[pSpec.minRank || 3].nameTh) || 'ศิษย์แกนกลาง';
+          const plan = S.officePlans && S.officePlans[pId];
+          const lastDec = n && n.lastJurisdictionDecision && n.lastJurisdictionDecision.post === pId ? n.lastJurisdictionDecision.summaryTh : (plan ? plan.title : '');
+          let subText = '';
+          let actBtns = '';
+          if (n) {
+            const suitScore = SECT.suitability ? SECT.suitability(pId, n, W) : Math.round(SECT.relevance(pId, n));
+            subText = '<b>' + esc(HC.fullName(n)) + '</b> · ' + (n.cult ? CULT.stageName(n) : 'ปุถุชน') + ' <span class="chip ok">ความเหมาะสม ' + suitScore + '</span>';
+            if (delNpc) subText += ' <span class="chip b">รักษาการแทนโดย ' + esc(HC.fullName(delNpc)) + '</span>';
+            if (pId === 'disciples') {
+              actBtns = '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="elect-successor">🗳️ คัดเลือกใหม่</button>';
+            } else {
+              actBtns = '<button class="btn ok" style="padding:2px 7px;font-size:10.5px" data-do="run-single-office" data-arg="' + esc(pId) + '">⚡ สั่งงาน</button> ' +
+                '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="auto-appoint-office" data-arg="' + esc(pId) + '">🔄 เปลี่ยนคน</button> ' +
+                '<button class="btn dan" style="padding:2px 7px;font-size:10.5px" data-do="dismiss-office" data-arg="' + esc(pId) + '">✕ ปลด</button>';
+            }
+          } else if (st && !st.enabled) {
+            subText = '🔒 ยังไม่ปลดล็อก · ' + esc(st.reason);
+            actBtns = '<button class="btn pri" style="padding:2px 8px;font-size:10.5px" data-do="auto-appoint-office" data-arg="' + esc(pId) + '">🔓 ปลดล็อก & แต่งตั้ง</button>';
+          } else if (pId === 'disciples') {
+            subText = 'ว่าง · รอการลงมติคัดเลือกศิษย์สืบทอด';
+            actBtns = '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="elect-successor">🗳️ เปิดประชุมคัดเลือกศิษย์สืบทอด</button>';
+          } else {
+            subText = 'ว่าง · พร้อมแต่งตั้งผู้มีความสามารถเข้าประจำตำแหน่ง';
+            actBtns = '<button class="btn pri" style="padding:2px 8px;font-size:10.5px" data-do="auto-appoint-office" data-arg="' + esc(pId) + '">🎖️ แต่งตั้งผู้เหมาะสมสูงสุด</button>';
+          }
+          h += '<div class="prow" style="align-items:flex-start">' +
+            (n ? '<div data-npc="' + n.id + '" style="cursor:pointer">' + portraitHtml(n, 42) + '</div>' : '<div style="width:42px;height:42px;border-radius:10px;background:#0e141b;display:flex;align-items:center;justify-content:center;flex-shrink:0">—</div>') +
+            '<div class="pi" style="flex:1;min-width:0">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">' +
+            '<div class="nm">' + esc(pSpec.nameTh) + ' <span class="chip" style="font-size:10.5px">ขั้นต่ำ: ' + esc(minRankName) + '</span> <span class="chip g" style="font-size:10.5px">+' + (pSpec.stipendBonus || 20) + ' ศิลา/ด.</span> <span class="chip b" style="font-size:10.5px">บารมี ' + (pSpec.authority || 65) + '</span> <span class="chip" style="font-size:10.5px">🏯 ' + esc(pSpec.hall || 'main_hall') + '</span></div>' +
+            '<div style="flex-shrink:0">' + actBtns + '</div></div>' +
+            '<div class="sub" style="margin-top:2px">' + subText + '</div>' +
+            '<div class="sub muted">' + esc(pSpec.descTh || pSpec.desc || '') + '</div>' +
+            (lastDec ? '<div class="sub" style="color:var(--gold);font-size:11px;margin-top:2px">📋 การตัดสินใจล่าสุด: ' + esc(lastDec) + '</div>' : '') +
+            '</div></div>';
+        });
+      });
+
       if (S.internalPolitics) {
         const ip = S.internalPolitics;
         const uc = Math.round(ip.undercurrent || 0);
@@ -2978,18 +3454,18 @@
         h += '</div>';
       }
       const dng = (W.sect && W.sect.dungeon) || { prisoners: [], stats: { captured: 0, ransomed: 0, interrogated: 0, defected: 0, totalRansomStones: 0 } };
-      h += '<h3>🪷 มรรคาเทศนาธรรม & ⛓️ คุกคุมขังเชลยศึกสำนัก</h3><div class="card">';
+      const wardenNpc = SECT.holder(W, 'warden') || SECT.holder(W, 'discipline');
+      h += '<h3>🪷 มรรคาเทศนาธรรม & ⛓️ คุกคุมขังเชลยศึกสำนัก (ผู้คุมทัณฑ์: ' + esc(wardenNpc ? HC.fullName(wardenNpc) : 'ยังไม่ได้แต่งตั้ง') + ')</h3><div class="card">';
       h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px"><div><b>🪷 ลานมรรคาเทศนาธรรม:</b> ชำระจิตมาร (-20) ลดความเครียด และกระตุ้นการตื่นรู้ฉับพลันทะลวงคอขวด</div><button class="btn pri" style="padding:3px 9px;font-size:11.5px" data-do="hold-dao-lecture">🪷 เปิดลานเทศนาธรรมทันที</button></div>';
       h += '<div style="padding-top:6px;border-top:1px solid var(--line,#3a3f4a)"><b>⛓️ คุกคุมขังเชลยศึก (' + (dng.prisoners ? dng.prisoners.length : 0) + ' คน):</b> เรียกค่าไถ่แล้ว ' + ((dng.stats && dng.stats.ransomed) || 0) + ' ครั้ง (+' + ((dng.stats && dng.stats.totalRansomStones) || 0) + ' ศิลา) · เค้นคัมภีร์ ' + ((dng.stats && dng.stats.interrogated) || 0) + ' ครั้ง · เกลี้ยกล่อมแปรพักตร์ ' + ((dng.stats && dng.stats.defected) || 0) + ' คน</div>';
       if (dng.prisoners && dng.prisoners.length) {
         h += dng.prisoners.map(p => '<div style="padding:4px 0;border-top:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div><b>⛓️ ' + esc(p.nameTh) + '</b> <span class="chip r">' + esc(p.roleTh) + ' · ' + esc(p.sectNameTh) + '</span> <span class="muted">(ขั้น ' + p.stage + ' · ค่าไถ่ ' + p.ransomStones + ' ศิลา)</span></div><div style="display:flex;gap:4px"><button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="handle-dungeon-prisoner" data-arg="' + esc(p.id) + '|RANSOM">🪙 เรียกค่าไถ่</button><button class="btn" style="padding:2px 7px;font-size:11px" data-do="handle-dungeon-prisoner" data-arg="' + esc(p.id) + '|INTERROGATE">📖 เค้นคัมภีร์</button><button class="btn ok" style="padding:2px 7px;font-size:11px" data-do="handle-dungeon-prisoner" data-arg="' + esc(p.id) + '|RECRUIT_DEFECTOR">🤝 กล่อมแปรพักตร์</button></div></div>').join('');
       } else {
-        h += '<div class="muted" style="font-size:11.5px;margin-top:4px">ขณะนี้ไม่มีเชลยศึกในคุกใต้ดิน (เชลยจะถูกจับกุมอัตโนมัติเมื่อชนะศึกป้องกันสำนักหรือสกัดสายลับ)</div>';
+        h += '<div class="muted" style="font-size:11.5px;margin-top:4px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><span>ขณะนี้ไม่มีเชลยศึกในคุกใต้ดิน (เชลยจะถูกจับกุมอัตโนมัติเมื่อชนะศึกป้องกันสำนักหรือสกัดสายลับ)</span><button class="btn" style="padding:2px 8px;font-size:11px" data-do="handle-dungeon-prisoner" data-arg="|RANSOM">⛓️ จับกุมสายลับศัตรูและสอบสวนทันที</button></div>';
       }
       h += '</div>';
-                  const locked = Object.entries(SECT.PLANNED_POSTS).filter(([id]) => !SECT.POSTS[id]);
-      h += '<h3>ตำแหน่งที่เตรียมไว้สำหรับอนาคต</h3><div class="card muted">เมื่อระบบรองรับเปิดใช้งาน เจ้าสำนักจึงจะพิจารณาหาคนมาประจำ</div>';
-      h += locked.map(([id, p]) => '<div class="card" data-locked-office="' + id + '"><b>🔒 ' + esc(p.nameTh) + ' · ยังไม่ปลดล็อก</b><div class="muted">รอ' + esc(p.requires) + '</div></div>').join('');
+    } else if (tab === 'peaks') {
+      h += UI.rSectPeaks(W);
     } else if (tab === 'library') {
       h += UI.rSectLibrary(W);
     } else if (tab === 'stock') {

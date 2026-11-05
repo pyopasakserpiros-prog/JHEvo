@@ -5,6 +5,7 @@
 > เอกสาร `AGENTS.md` นี้คือกฎระเบียบและแนวทางการพัฒนาสูงสุดของโครงการ JianghuSect Evolution ทุกคนและ AI ทุกตัว (Gemini, Claude, Codex, Antigravity) ต้องอ่าน ทำความเข้าใจ และปฏิบัติตามอย่างเคร่งครัด 100% ก่อนเริ่มแตะต้องโค้ดหรือเขียนงานใด ๆ  
 > - **ต้องอ่านสกิลเฉพาะระบบที่เกี่ยวข้องใน `.agents/skills/` ก่อนเริ่มงานทุกครั้ง** (ดูตารางการเลือกสกิลด้านล่าง)  
 > - ข้อกำหนดในเอกสารนี้มีผลบังคับใช้สูงสุด เป็นธรรมนูญและกฎเหล็กขององค์กรที่ทุกคนต้องยึดถืออย่างเคร่งครัด
+> - สิ่งที่อยู่นอกเหนือจากกฏเหล็กในเอกสารนี้ ai ที่ทำหน้าที่อัพเดทแพทช์สามารถคิดและตัดสินใจเองได้อย่างอิสระตามขอบเขตงาน
 
 JianghuSect Evolution is a Thai browser game. Current package: 3.0.0 (runtime patch identifier: 3.0.0). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md` for the latest v3.0.0 report and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
 

@@ -114,3 +114,8 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 
 ## Patch v2.0.30 Multi-Format Chronicle & Timeline UI
 - `UI.rLog` supports filtering World Chronicles both by category (`data-do="world-chronicle-cat"`) and by the 6 Wuxia/Xianxia Chronicle Reporting Formats (`data-do="world-chronicle-fmt"`: `PIGEON_DISPATCH`, `WAR_PAVILION_RECORD`, `DISCIPLINE_EDICT`, `ANCESTRAL_INSCRIPTION`, `TAVERN_BALLAD`, `LINEAGE_COMPANION_SCROLL`), rendering `originCauseTh`, `actorChainTh`, and `systemImpactTh` on every card.
+
+
+## v3.1.0 Dedicated Peaks Sanctuary & 6-Directorate Office UI
+- `UI.open('sect')` includes dedicated sub-tab `['peaks', '⛰️ หุบเขา/ยอดเขา']` rendered by `UI.rSectPeaks(W)` using a mobile-friendly Single-Row Horizontal Scrollable Selector (`OVERVIEW`, 8 Peaks, `TOURNAMENT`) with zero 3-level nested menus.
+- `UI.rSect()` (`tab === 'posts'`) groups all 25 offices under `SECT.DIRECTORATES`, renders `W.sect.jurisdictionLog`, and provides interactive controls for `W.sect.dungeon` prisoners.
