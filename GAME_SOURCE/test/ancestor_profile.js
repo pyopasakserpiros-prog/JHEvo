@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('assert'),g=require('./load');require('../js/ui');const {SIM,SECT,UI,HC}=g;
+const W=SIM.create('ancestor-profile'),[mentor,student]=W.npcs;
+assert(SECT.MENTORSHIP.formBond(W,mentor,student,{force:true,quiet:true}).ok);
+W.log('tournament','ชนะงานประลอง',[mentor.id]);
+const tab=SECT.inscribeLegacyTablet(W,mentor,'อายุขัยสิ้นสุด',{force:true,quiet:true});
+assert(tab.profile && tab.profile.nameTh===HC.fullName(mentor),'record profile at inscription');
+assert(tab.profile.disciples.some(x=>x.id===student.id),'real disciple preserved');
+assert(tab.profile.events.some(e=>e.text.includes('งานประลอง')),'real chronicle events preserved');
+const saved=SIM.deserialize(SIM.serialize(W)); const st=saved.sect.legacyTablets.find(t=>t.npcId===mentor.id); assert(st.profile && st.profile.disciples.length);
+UI.G={W:saved,R:{},opts:{}};const html=UI.ancestorProfile(saved,st);assert(html.includes(HC.fullName(mentor)) && html.includes('งานประลอง') && html.includes(student.h.name.given));
+assert(UI.ancestorProfile(saved,{nameTh:'บรรพชนเก่า',npcId:'lost'}).includes('ไม่มีข้อมูล'));
+const deathWorld=SIM.create('ancestor-death'); const teacher=deathWorld.npcs[1], pupil=deathWorld.npcs[2]; teacher.rank=4; SECT.MENTORSHIP.formBond(deathWorld,teacher,pupil,{force:true,quiet:true}); g.AI.kill(deathWorld,teacher,'ทดสอบ'); const deathTab=deathWorld.sect.legacyTablets.find(t=>t.npcId===teacher.id); assert(deathTab && deathTab.profile.events.some(e=>e.type==='death')); assert(deathWorld.sect.mentorship.history.some(e=>e.occasion==='dying'&&e.mentorId===teacher.id));
+console.log('PASS ancestor profile snapshot, truthfulness, historical fallback and save/load');

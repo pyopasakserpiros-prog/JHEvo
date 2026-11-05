@@ -1,83 +1,111 @@
-# Implementation entry point
+# Project guidance
 
-1. **First**: Read [`START_HERE_FOR_AI.md`](./START_HERE_FOR_AI.md) and follow its prioritized **Task-to-Skill Routing Matrix**.
-2. **Current Baseline**: Current working source is **v2.0.17**, extending the v2.0.16 archive with unified 10-weapon skill storage on `npc.h.skills`, 12-Path `CULT.recommendPath` parity, full combat wiring for custom stats (`soul_atk`, `aura_potency`, `command_authority`, `construct_atk`), autonomous NPC `BUFF`/`HEAL` casting, the Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT` across `WEAPON`, `ARMOR`, `ACCESSORY`) with 62 Clue Templates, 2-Piece/3-Piece Legendary Relic Resonance (`MARTIAL.evaluateLegendaryRelicResonance`), Relic Star Attunement (`ECO.attuneLegendaryRelic` 1–3 ★), quality-aware CP pricing, realm-scaled Inedia/fasting, cross-path Mentorship & dying-wish Qi transmission, Sworn Ally raid reinforcements, and interactive Mentorship/Jianghu UI controls. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_17.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_17.md) before planning follow-up work.
-3. **Mandatory Skill Loading**: Before modifying any file in `GAME_SOURCE/`, read the matching Master Skill in `.agents/skills/<skill>/SKILL.md` (mirrored in `.codex/skills/<skill>/SKILL.md`).
-4. **Active next patch**: Implement [`NEXT_PATCH_PROMPT_V2_0_18_EN.md`](./NEXT_PATCH_PROMPT_V2_0_18_EN.md).
+JianghuSect Evolution is a Thai browser game. Current package: 3.0.0 (runtime patch identifier: 3.0.0). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md` for the latest v3.0.0 report and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
 
----
+## ก่อนเริ่มงาน
 
-# JianghuSect AI Agent & Codex Instructions
+1. อ่าน `AGENTS.md` นี้ และตรวจว่ามี `AGENTS.md` เพิ่มเติมในโฟลเดอร์ที่จะแก้หรือไม่ หากมีให้ปฏิบัติตามส่วนที่เกี่ยวข้องด้วย คำสั่งปัจจุบันของผู้ใช้มีลำดับเหนือเอกสารโครงการ
+2. ตรวจสาขา สถานะไฟล์ และงานที่ผู้อื่นอาจกำลังทำ ก่อนเริ่มและก่อน push ให้ตรวจ `main` ล่าสุด รักษางานของผู้อื่นและอย่า force push ทับงาน หากมีความขัดแย้งให้ตรวจและรวมอย่างระมัดระวัง
+3. เมื่อตอบว่าเกมมีอะไร ให้อ่าน `project_status_and_ai_onboarding.md` ก่อน แยกระบบที่มีแล้ว ส่วนที่ยังตรวจไม่ครบ และแนวคิดในอนาคต เพื่อไม่เสนอสร้างสิ่งที่มีอยู่ซ้ำ เมื่อจะลงมือแก้หรือต้องการรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้อง หากสรุป สกิล และโค้ดขัดกัน ให้ตรวจหลักฐานก่อนตัดสิน
+4. อ่านสกิลเฉพาะระบบที่เกี่ยวข้องจากตารางด้านล่างเท่าที่จำเป็น ข้อเสนอแพตช์หรือพรอมป์เก่าเป็นข้อมูลประกอบ ไม่ใช่งานที่ต้องทำโดยอัตโนมัติ
 
-This repository contains the complete source and data for **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**.
-All AI assistants (Antigravity, Codex CLI, Gemini, Cursor, Claude Code) must follow the priority routing below.
+## ดุลพินิจของผู้พัฒนาและผลกระทบทั้งเกม
 
-## 1. Priority Skill Routing for Active & Upcoming Work
+ข้อกำหนดส่วนนี้ใช้กับ **ทุกคนและ AI ทุกค่ายที่พัฒนา ตรวจ หรือส่งมอบแพตช์** ผู้ลงมือมีหน้าที่คิด วิเคราะห์ และตัดสินใจด้วยตนเองภายในขอบเขตงานและข้อกำหนดของผู้ใช้ เอกสาร Proposal บทสรุปจาก AI และเอกสารชื่อ Final เป็นข้อเสนอประกอบการพิจารณา ไม่ใช่คำสั่งให้คัดลอกทุกข้อ ผู้พัฒนาสามารถเลือก ประยุกต์ เพิ่มทางแก้ ทดแทน หรือไม่ใช้ข้อเสนอได้ตามความเหมาะสม โดยอธิบายเหตุผลสำคัญและตรวจผลจริง ข้อนี้ไม่ลบล้างคำสั่งหรือข้อกำหนดที่ผู้ใช้ระบุไว้โดยตรง
 
-Always load only the skills relevant to the subsystem you are touching:
+- ก่อนแก้ ให้ตรวจสิ่งที่มีอยู่จริง เทียบทางเลือก และคิดอย่างละเอียดรอบคอบจากมุมผู้เล่น NPC โลก ความสมเหตุสมผล บาลานซ์ เศรษฐกิจ UI ข้อมูล เซฟ และประสิทธิภาพตามส่วนที่เกี่ยวข้อง ไม่ตัดสินจากความเห็นของ AI รายเดียวหรือจำนวนผู้เห็นด้วย
+- ไล่ผลกระทบทั้งทางตรง ทางอ้อม และวงจรย้อนกลับจนถึงผลปลายทางที่เกี่ยวข้อง เช่น **ระยะวิชา → การเลือกท่า/เป้าและการคุ้มกัน → ความยาวศึก/บาดเจ็บ/ตาย → งานสำนักและการใช้โอสถ/อุปกรณ์ → ทรัพยากร อำนาจสำนัก บันทึก และเซฟ** ตรวจด้วยว่าปลายทางกลับมากระทบสมดุลหรือสร้างวงจรทรัพยากรฟรี/ผลซ้ำหรือไม่
+- ดูให้ครบทั้งผู้สร้างข้อมูล ผู้ใช้ข้อมูล และผลลัพธ์ที่ส่งกลับเกม หากเพิ่มหรือเปลี่ยนไอเทม วิชา สูตรผลิต หรือระบบ ให้ตรวจแหล่งที่มา เงื่อนไข วัตถุดิบ การใช้งาน AI/UI และผลต่อระบบที่ใช้ร่วมกัน ไม่จบเพียงเพิ่มชื่อหรือป้ายแสดงผล
+- กำหนดกรณีทดสอบจากผลกระทบที่คาด รวมกรณีปกติ ขอบเขต ค่าหาย ความล้มเหลว และการเล่นต่อเนื่องตามความเสี่ยง แยกสิ่งที่ตรวจยืนยันแล้ว ข้อสันนิษฐาน และสิ่งที่ยังไม่ได้ทดสอบในรายงาน
+- เมื่อรับช่วงจากผู้พัฒนาคนอื่น ให้ระบุฐานเวอร์ชัน สาขา/commit หรือแพ็กเกจต้นทาง ตรวจงานล่าสุดและความขัดแย้ง รักษาผลงานผู้อื่น และส่งต่อเหตุผลของการตัดสินใจ ผลทดสอบ และข้อจำกัด เพื่อให้ผู้ทำแพตช์คนต่อไปตรวจและคิดต่อได้
 
-### Tier 1 — Deep-Dive Core Gameplay & Domain Skills (Read First for Feature Work)
-1. **[`progression-design`](./.agents/skills/progression-design/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: 12 Major Cultivation Paths, 96 Subpaths, Stage Equivalence (`CULT.equivalentStage`), Mentorship & Sect Heritage Arts (`SECT.MENTORSHIP`), 14 Starting Sect Archetypes, Spirit Beast Companions/Breeding/War-Beasts/Mount Caravans, and Universal Dungeons (`EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS`).
-2. **[`combat-design`](./.agents/skills/combat-design/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Exact `COMBAT.strike` damage formula, 12 composite stats (`STATS.KEYS`), 12 timed buffs (`STATS.BUFF_CATALOG` with strict `until` expiration), 17 equipment types (`10` weapons + `3` armors + `4` accessories), 21 Legendary Equipment items, Legendary Relic Resonance (`M.evaluateLegendaryRelicResonance`), Relic Star Attunement (`ECO.attuneLegendaryRelic`), 27 Equipment Resonance Sets, 96/96 Subpath Synergies (`M.evaluateSubEquipmentBonus`), Universal Legendary Art Access (`M.resolveTechCompatibility`), Formation Synergies (`COMBAT.evaluateFormationSynergy`), and Grand Martial Conferences (`SECT.WORLD_MARTIAL_CONFERENCE`).
-3. **[`ai-behavior-patterns`](./.agents/skills/ai-behavior-patterns/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: NPC Psychological Utility AI (`js/ai.js` `ScoreAcc` / `S.add` Thai reasons in `npc.why`), Goal-Driven Cognition (`js/cognition.js` `COG` aspirations, goals, 18 sect offices, zero-RNG rule), 12-Layer `HC` stats (`js/human_core.js`), and station reservation (`AI.freeStation`, `AI.reserve`, `AI.release`).
-4. **[`procedural-gen`](./.agents/skills/procedural-gen/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Ancient Sanctums (`EX.resolveSanctum`, `EX.NINE_DAO_PAGODA`, `EX.ELEMENTAL_REALMS` in `js/explore.js`), Expeditions & Caravans (`EXPED.caravan`, Spirit Mount Caravans `MOUNT_CHARGER`/`AVIAN`/`UNGULATE`), Sect Gate Raids & War-Beasts (`EXPED.spawnRaid`, `EXPED.rally`, `W.sect.gateBeasts` in `js/expedition.js`), Seeded `U.RNG`, `240×192` World Map, Southern Spirit River, and Fishing Monte Carlo loot tables.
-5. **[`economy-balancing`](./.agents/skills/economy-balancing/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Sect Stock (`W.sect.stock`), Spirit Stones (`W.sect.stones`), CP Monetary Ledger (`js/cpeco.js` `CPE.scarcity`/`CPE.priceOf` anti-arbitrage, `CPE.daily` inflation control, `CPE.welfareDaily`), Inventory Intelligence (`ECO.inventoryIntelligence`), Sanctum Refinement Catalysts (`ECO.REFINEMENT_CATALYSTS`), Idempotent Craft Receipts (`W.sect.craftTransactions`), and `VASSAL_TREATY` tribute flows.
-6. **[`game-ui-ux`](./.agents/skills/game-ui-ux/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Wuxia UI drawers (`js/ui.js`), 104-cell Item Icon Atlas (`UI.resolveItemAtlasCell`), Responsive Grid/List Pagination (`UI.calcGridPageSize`), Single-Pass Positional Log Linkifier (`UI.linkify`), NPC/Sect/World sheets, and the 6-tab Edit Hub (`UI.rEdit` + `SECT.EDITOR`).
-7. **[`game-data-integrity`](./.agents/skills/game-data-integrity/SKILL.md)** *(Deep-Dive Master)*
-   - **Use for**: Adding/modifying items, recipes (`REC_*` / `ITEM_*` Dual-ID), martial arts, weapon affinities, `elementProfile`, combat effects, and 100% Edit Hub spawner resolution.
+## มุมมองในการพัฒนาและตรวจเกม
 
-### Tier 2 — Deep-Dive Architecture, Save, Performance & QA Guardrail Skills
-8. **[`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md)** *(Deep-Dive Master)* — Exact 40-script-tag invariant in `index.html`, matching source-module order in `test/load.js`, `W` single source of truth, simulation lifecycle, `SIM.expandStations` dormitory bed cap (`100` max), and `tools/build_single.js`.
-9. **[`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md)** *(Deep-Dive Master)* — `SIM.serialize` / `SIM.deserialize` (`js/sim.js` lines 534–620), automatic `_` transient cache stripping, `W._saveExtras` forward compatibility, pointer rebinding, legacy craft receipt adoption, and dead-reference pruning.
-10. **[`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md)** & **[`web-performance`](./.agents/skills/web-performance/SKILL.md)** *(Deep-Dive Master)* — Maintaining `< 3.0 ms/tick` (80 NPCs, 80x+ speed) via `_stVer`, `_passVer`, `_eqSetCache`, `_stEarliestBuffExp`, `SIM_BUDGET_MS = 12`, `16×16` Canvas terrain chunk caching (`buildChunk`), and `measureCached`.
-11. **[`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md)** & **[`web-testing`](./.agents/skills/web-testing/SKILL.md)** *(Deep-Dive Master)* — Mandatory 4-step verification gate, 96 automated suites plus a full JavaScript syntax sweep (`test/run_all.js`, `tools/run_parallel_tests.js`), Node VM / DOM stub harness (`test/load.js`), and headless Chromium CDP (`tools/cdp_playwright.js`).
+ทำงานเสมือนทีมพัฒนาเกมที่ร่วมกันดูทั้งความสนุก การดำเนินชีวิตของ NPC และโลกยุทธภพ เลือกใช้ความเชี่ยวชาญและมุมมองที่เกี่ยวข้องกับแต่ละงาน งานที่กระทบหลายระบบให้พิจารณาผลต่อเนื่องและความขัดแย้งของความต้องการก่อนตัดสินใจ งานเล็กไม่ต้องวิเคราะห์ครบทุกบทบาทหรือจำลองบทสนทนาทุกครั้ง จำนวนด้านล่างหมายถึง **มุมมองที่แตกต่างกัน** ไม่ใช่จำนวนบุคคลจริงหรือคำสั่งให้สร้าง agent เพิ่ม
 
----
+### ทีมพัฒนาเกม
 
-## 2. Mandatory Validation & Build Commands
-Whenever modifying data, AI, progression, or combat code, **always run**:
-```bash
-node GAME_SOURCE/tools/validate_data_schema.js
-cd GAME_SOURCE && node tools/build_single.js
-node test/run_all.js
-```
+ให้ครอบคลุมหน้าที่ต่อไปนี้ตามความเกี่ยวข้อง คนหรือ agent เดียวอาจรับหลายหน้าที่ได้:
 
-## 3. Non-Negotiable Constraints
-- **Core Lock:** Never modify `GAME_SOURCE/js/human_core.js` (`HC.FINGERPRINT === '155:2f9c9dd7'`, SHA-256 locked).
-- **Script Load Order:** Keep exactly 40 `<script>` tags in `GAME_SOURCE/index.html`; preserve the corresponding data and simulation module load order in `GAME_SOURCE/test/load.js` (which is a CommonJS loader, not an HTML file).
-- **Thai Localization:** All user-facing items, martial arts, recipes, techniques, and `S.add` AI reasons MUST include Thai (`nameTh`).
-- **Performance Budget:** Maintain `< 3.0 ms/tick` across 80 active NPCs (supporting 80x+ simulation speed).
+- **Game director และ creative director:** วิสัยทัศน์ ความสนุก อัตลักษณ์เทพเซียน และความสอดคล้องของประสบการณ์โดยรวม
+- **Producer และ project manager:** ขอบเขต ลำดับความสำคัญ ความเสี่ยง การประสานงาน และการส่งมอบ
+- **Game, systems และ economy designers:** กติกา ความก้าวหน้า การต่อสู้ เศรษฐกิจ ทรัพยากร บาลานซ์ และผลในระยะยาว
+- **Simulation, AI และ narrative designers:** พฤติกรรมและแรงจูงใจ NPC ความสัมพันธ์ โลกที่เปลี่ยนไป เรื่องราว วาสนา และผลของการกระทำ
+- **World และ content designers:** แผนที่ ภูมิภาค สำนัก สถานที่ ไอเทม วิชา เหตุการณ์ และความเชื่อมโยงกับระบบ
+- **Technical lead และ gameplay/simulation programmers:** สถาปัตยกรรม โค้ดเกม AI ประสิทธิภาพ ความถูกต้อง และการเชื่อมระบบ
+- **Frontend/UI และ graphics programmers:** หน้าต่างและข้อมูลจริง การโต้ตอบ การแสดงผล Canvas ภาพเคลื่อนไหว และขนาดหน้าจอ
+- **Tools, data และ build engineers:** เครื่องมือสร้างและตรวจข้อมูล ตัวแก้ไขเกม pipeline ไฟล์ออฟไลน์ และความสอดคล้องของข้อมูล
+- **Save และ platform engineers:** บันทึก/โหลด สถานะระหว่างการกระทำ พฤติกรรมในเบราว์เซอร์และแพลตฟอร์มที่รองรับ
+- **Art director และ artists:** ทิศทางศิลปะ ภาพตัวละคร ฉาก แผนที่ ไอคอน อนิเมชัน และความสม่ำเสมอของภาพ
+- **Audio director, sound designer และ composer:** ดนตรี เสียงและการควบคุมเสียง เมื่อขอบเขตงานเกี่ยวข้อง
+- **UX, UI และ accessibility designers:** การจัดลำดับข้อมูล ความชัดเจน การเข้าถึง และความสะดวกในการติดตาม NPC และเหตุการณ์
+- **Writers, editors และ localization:** เนื้อเรื่อง ภาษาไทย คำอธิบาย ชื่อ บริบทเทพเซียน และความสม่ำเสมอของคำศัพท์
+- **QA และ test automation:** ตรวจพฤติกรรมจริง กรณีขอบ ผลกระทบข้ามระบบ การจำลองระยะยาว และรายงานข้อจำกัด
+- **Technical operations, release และ security:** การสร้างแพ็กเกจ ตรวจความพร้อมส่งมอบ ความปลอดภัยและการจัดการข้อมูลตามขอบเขตจริงของเกม
+- **Product, analytics, community และ player support:** เป้าหมายผู้เล่น การตีความผลตอบรับ การสื่อสารและช่วยเหลือผู้เล่น โดยไม่อ้างว่ามีข้อมูลหรือการเก็บสถิติที่ยังไม่มี
+- **Legal, licensing และ business:** ตรวจสิทธิ์ทรัพย์สินและข้อกำหนดการเผยแพร่เมื่อเกี่ยวข้อง พร้อมระบุประเด็นที่ต้องให้ผู้เชี่ยวชาญจริงตรวจ
+- **Network/backend และ live operations:** พิจารณาเมื่อมีงานออนไลน์ บริการหลังบ้าน หรือการดำเนินเกมสดที่เกี่ยวข้อง ไม่สมมติว่าเกมมีระบบเหล่านี้อยู่แล้ว
 
----
+### มุมมองผู้เล่นและผู้เชี่ยวชาญ
 
-## 4. Mandatory Patch Delivery Protocol (Standard Operating Procedure)
-Whenever completing any major release, feature expansion, or patch, the AI agent MUST fulfill all 7 core delivery requirements before declaring completion:
+- **ผู้เล่นเกมเทพเซียน 3 มุม:** บ่มเพาะและต่อสู้; บริหารสำนัก; สำรวจและสะสมวาสนา
+- **ผู้เล่นจริงจัง 2 มุม:** วางแผนระยะยาวและทรัพยากร; ทดลองกลยุทธ์และจัดทีม
+- **ผู้อ่านนิยายเทพเซียน 3 มุม:** การเติบโตของตัวละคร; การเมืองและความสัมพันธ์ระหว่างสำนัก; โลก วาสนา และความลึกลับ
+- **ผู้เล่นที่ชอบดู NPC 3 มุม:** ชีวิตประจำวันและบุคลิก; ความสัมพันธ์และการสืบทอด; เรื่องราวของ NPC ในระยะยาว
+- **ผู้เล่นที่ชอบดูโลกดำเนินไปเอง 2 มุม:** เหตุการณ์ระหว่างสำนัก; ความเปลี่ยนแปลงของโลกตลอดหลายรุ่น
+- **ผู้เล่น Idle 2 มุม:** ปล่อยเกมแล้วกลับมาดูผล; ตั้งนโยบายภาพรวมแล้วดูผลระยะยาว
+- **จิตวิทยาและพฤติกรรมมนุษย์ 2 มุม:** แรงจูงใจและอารมณ์รายบุคคล; ความสัมพันธ์และพฤติกรรมกลุ่ม
+- **ตรรกะและเหตุ–ผล 2 มุม:** การตัดสินใจของ NPC; ผลต่อเนื่องระหว่างระบบและเหตุการณ์ในโลก
+- **ประสบการณ์และ UI 2 มุม:** ความเข้าใจข้อมูลเพื่อการตัดสินใจ; การติดตาม NPC และโลกผ่านหน้าจอ
+- **ระบบจำลองและสมดุล 2 มุม:** เศรษฐกิจและทรัพยากร; การเติบโต อำนาจสำนัก และสมดุลระยะยาว
+- **การทดสอบ 2 มุม:** การใช้งานจริงและพฤติกรรมผิดปกติ; การจำลองระยะยาวและผลกระทบข้ามระบบ
 
-1. **Standalone Playable Game (`JianghuSect_single.html`):**
-   - Execute `cd GAME_SOURCE && node tools/build_single.js` to compile the single-file HTML release. It must load and play in modern desktop and mobile browsers with zero console errors.
-2. **Complete, Clean Source Code (`GAME_SOURCE/`):**
-   - All modules, data tables, CSS, and assets must be committed cleanly. No loose, broken, or half-implemented stubs.
-3. **Rigorous Automated Testing & New Test Suites:**
-   - Run `node GAME_SOURCE/tools/validate_data_schema.js` (must pass with `Errors: 0`).
-   - Run `cd GAME_SOURCE && node test/run_all.js` (core Node.js suites must pass with zero regressions).
-   - **Browser/Environment Exception:** Tests that require real browser rendering, headless Chromium, or CDP (which may fail due to sandbox/environment constraints on Termux or certain AI platforms) are completely excused. Focus on data schema, game logic, and formula suites.
-   - **New Features Rule:** Every newly introduced mechanic, formula, or subsystem must have a dedicated automated test suite in `GAME_SOURCE/test/`.
-4. **Comprehensive Patch Implementation Report (`PATCH_IMPLEMENTATION_REPORT_V<X>.md`):**
-   - Create a thorough technical report detailing: architectural changes, new constants/formulas, schema modifications, UI features, test results, and performance profiling.
-5. **Continuous Master Skill Synchronization (Living Knowledge Base):**
-   - **Crucial Invariant:** Every time a new system, combat formula, cultivation path, economic loop, UI drawer, or procedural table is added or tuned, the agent **MUST immediately update the matching Master Skills in `.agents/skills/<skill>/SKILL.md` (and mirrored in `.codex/skills/<skill>/SKILL.md`)**. Skills must reflect the true, current state of the engine so that future AI agents never guess or duplicate work.
-6. **Save System Hygiene (Unconstrained Forward Evolution):**
-   - **Freedom to Innovate:** Backwards compatibility with older legacy saves is **NOT required**. Do not let legacy save constraints slow down or compromise bold architectural innovations. Prioritize clean, scalable gameplay architecture over legacy save baggage.
-   - **Serialization Hygiene:** Ensure current saves serialize/deserialize cleanly within the active version (`SIM.serialize` / `SIM.deserialize`), and transient cache keys (`_`-prefixed) are stripped to prevent bloated save payloads.
-7. **Clean Repository Hygiene & Documentation Updates:**
-   - Update `README.md` version tag, release notes, and summary.
-   - Update `START_HERE_FOR_AI.md` baseline version and routing matrix.
-   - Clean obsolete historical patch prompts and outdated temporary logs.
-   - If providing a distribution archive (ZIP), ensure it includes the full playable game, complete source, tests, tools, updated skills, and reports.
+เมื่อมุมมองขัดกัน ให้ระบุข้อแลกเปลี่ยนและเลือกทางออกที่เหมาะกับเป้าหมายงาน ตรวจสิ่งที่เกมมีจากสรุปและซอร์สก่อนเสนอเพิ่ม ตรวจข้อค้นพบด้วยหลักฐานและการทดสอบที่เหมาะสม แยกข้อสันนิษฐานออกจากผลจริง ห้ามอ้างว่าได้จ้างผู้เชี่ยวชาญ มีผู้เล่นจริงทดสอบ หรือมีผลสำรวจ หากไม่ได้เกิดขึ้นจริง
 
+## เลือกสกิลตามงาน
+
+สกิลอยู่ใน `.agents/skills/<ชื่อ>/SKILL.md` เป็นข้อมูลอ้างอิงที่อาจล้าสมัย ให้ยืนยันพฤติกรรมจากซอร์สและทดสอบ:
+
+| งาน | สกิลที่เกี่ยวข้อง |
+| --- | --- |
+| วิถี สายย่อย ตบะ ทะลวงด่าน อาจารย์–ศิษย์ สัตว์เลี้ยง แดนทดสอบ | `progression-design` |
+| ต่อสู้ ค่าสถานะ บัฟ อาวุธ และชุดอุปกรณ์ | `combat-design` |
+| การตัดสินใจ บุคลิก ความต้องการ ความสัมพันธ์ และหน้าที่ NPC | `ai-behavior-patterns` |
+| ไอเทม ตำรับ วิชา ธาตุ และข้อมูลตัวเสก | `game-data-integrity` |
+| คลัง การผลิต การค้า และแต้มคุณูปการ | `economy-balancing` |
+| แผนที่ ทรัพยากร สัตว์ป่า ตกปลา การสำรวจ และ RNG | `procedural-gen` |
+| หน้าต่าง UI รายชื่อตัวละคร คลัง แผนที่ และ Edit Hub | `game-ui-ux` |
+| โครงสร้างโมดูล สถานะเกม การสร้างไฟล์เดี่ยว | `gameplay-architecture` |
+| บันทึก/โหลดและข้อมูลชั่วคราว | `save-system-patterns` |
+| ความเร็วจำลองและการวาดหน้าจอ | `performance-budgeting`, `web-performance` |
+| แผนทดสอบและตรวจเบราว์เซอร์ | `qa-test-matrix`, `web-testing` |
+
+## ข้อกำหนดและการพัฒนา
+
+- รักษา `GAME_SOURCE/js/human_core.js` ให้ byte-identical โดยเทียบไฟล์กับฐานที่ถูกต้องแยกต่างหาก; `HC.FINGERPRINT === '155:2f9c9dd7'` ตรวจเส้นทางค่าสถานะ ไม่ใช่แฮชของไฟล์ และรักษาลำดับสคริปต์ใน `GAME_SOURCE/index.html` กับลำดับโหลดใน `GAME_SOURCE/test/load.js` เว้นแต่ผู้ใช้สั่งเปลี่ยนโดยตรง
+- ข้อความที่ผู้เล่นเห็นเป็นภาษาไทย ใช้สถานะเกมจริงเป็นแหล่งข้อมูล และดูแลประสิทธิภาพในเส้นทางจำลองที่ทำงานบ่อย
+- ปรับโค้ด ข้อมูล กลไก และระบบที่เกี่ยวข้องได้ตามความเหมาะสมกับงาน เพื่อให้ฟีเจอร์ทำงานจริง ตรวจผลกระทบต่อระบบอื่นและบันทึกการเปลี่ยนแปลง ความเข้ากันได้กับเซฟเก่าไม่จำเป็น แต่เซฟที่สร้างด้วยเวอร์ชันปัจจุบันต้องบันทึกและโหลดได้ถูกต้อง
+- เมื่อแก้ซอร์สให้สร้างเกมออฟไลน์ใหม่: `cd GAME_SOURCE && node tools/build_single.js`
+- รันทดสอบที่เหมาะกับงานและ `node tools/validate_data_schema.js`; งานที่กระทบกว้างใช้ `node tools/run_parallel_tests.js` ด้วย ตรวจผลจริงและรายงานข้อจำกัดตามตรง สถานะ v3.0.0 ปัจจุบันมีชุดทดสอบใน `test/run_all.js` ครบ 116 กลุ่ม (รวม `v234`, `v235`, `v300_tactical_combat_and_living_chronicle_suite`, `test/_harness.js` และชุดย้อนหลัง 7 ชุดที่สร้างทดแทนไฟล์ที่ขาดในฐานเดิม) โดยชุดทดสอบที่ใช้ Node.js ล้วนผ่านครบ 106/106 กลุ่ม ส่วนอีก 10 กลุ่มเป็นชุดทดสอบเบราว์เซอร์ที่ต้องมีไบนารี Chromium และตัวขับที่ใช้ได้ (เกณฑ์ 80 NPC ใน `test/browser_mobile_perf.js` ผ่อนปรนชั่วคราวเป็น `<= 3.5 ms/tick` หรือ `>= 285 ticks/s` ตามคำสั่งผู้ใช้) ห้ามลบหรือปรับการทดสอบเพียงเพื่อให้ผ่าน
+- ทำความสะอาดไฟล์ชั่วคราวและเอกสารซ้ำที่ตรวจแล้วว่าไม่จำเป็น แต่เก็บเกม ซอร์ส ข้อมูล เครื่องมือ ชุดทดสอบ และเอกสารอ้างอิงที่ยังใช้ ตรวจลิงก์ก่อนลบ
+
+## ส่งแพ็กเกจจาก Gemini ในแอป
+
+เมื่อทำแพตช์ผ่าน **Chat Gemini Work ในแอป Gemini หรือ Gemini บนเว็บที่ไม่สามารถ push ขึ้น GitHub ได้** ให้ส่งงานเป็น **ZIP โปรเจกต์ฉบับเต็ม** ให้ผู้ใช้นำไปอัปโหลด ระบุว่าเป็นไฟล์ส่งมอบและไม่อ้างว่า push แล้ว ส่วน Antigravity หรือผู้พัฒนาที่มีเครื่องมือ Git ให้ใช้วิธีส่งมอบตามสิทธิ์และสาขาที่ผู้ใช้กำหนด ข้อกำหนดความครบถ้วนของ ZIP ต่อไปนี้ใช้กับผู้พัฒนารายอื่นที่ส่งแพ็กเกจให้ทำงานต่อด้วย:
+
+1. เตรียมโฟลเดอร์โปรเจกต์ฉบับเต็มจากฐานล่าสุด รวม **ไฟล์เกมที่เล่นได้และซอร์สโมดูลทั้งหมด** (`GAME_SOURCE/index.html`, `js/`, `data/`, CSS และ assets ที่อ้างถึง), เครื่องมือ build/ตรวจข้อมูล, ชุดทดสอบ runner และไฟล์ช่วยทดสอบที่ถูกอ้างถึง, ไฟล์เกมออฟไลน์ `GAME_SOURCE/JianghuSect_single.html` ที่สร้างตรงกับซอร์ส, `AGENTS.md`, README, **`.agents/skills/` พร้อม `SKILL.md` ที่อัปเดตและสารบัญสกิล**, `project_status_and_ai_onboarding.md` ที่อัปเดต และรายงานแพตช์ที่เกี่ยวข้อง ไม่ส่งเพียงไฟล์เกมเดี่ยวหรือรายงานแทนซอร์สฉบับเต็ม ตรวจว่าลิงก์รายงานใน README มีไฟล์อยู่จริง หากส่งรายงานแยกด้วย ให้แนบฉบับที่อยู่ใน ZIP ด้วย
+2. สร้าง ZIP จากโฟลเดอร์ฉบับเต็ม โดยเพิ่ม **directory entries** ให้โฟลเดอร์และโฟลเดอร์ย่อย เช่น `JHEvo-main/`, `JHEvo-main/GAME_SOURCE/` และ `JHEvo-main/GAME_SOURCE/js/` เพื่อช่วยให้แอปจัดการไฟล์บนมือถือแสดงโครงสร้างได้ครบ ใช้เส้นทางสัมพัทธ์ รวมโฟลเดอร์ซ่อน `.agents/` ที่เป็นเอกสารโครงการด้วย ไม่ใส่ไฟล์ชั่วคราว แคช ZIP เก่าที่ซ้ำซ้อน หรือโฟลเดอร์ `.git`
+3. ปิดตัวเขียน ZIP ให้เสร็จสมบูรณ์ก่อนส่ง จากนั้น **เปิด ZIP ที่สร้างเสร็จจริงอีกครั้ง** ตรวจว่ามี central directory และแตกไฟล์ได้โดยไม่มีข้อผิดพลาด เช่น `unzip -t ชื่อไฟล์.zip` หรือ Python `zipfile.ZipFile(...).testzip()` แล้วตรวจรายชื่อไฟล์เทียบกับโฟลเดอร์ต้นฉบับและไฟล์สำคัญ รวมรายงานและ dependency ของชุดทดสอบ อย่าตัดสินจากชื่อไฟล์หรือขนาดอย่างเดียว
+4. ทดลองแตกลงโฟลเดอร์ใหม่ ตรวจโครงสร้างและไฟล์เกม ซอร์ส ชุดทดสอบ รายงานและเอกสารที่ต้องส่ง รันทดสอบที่ทำได้จากไฟล์ที่แตก แล้วรายงานผลและข้อจำกัดตามจริง หากตรวจ ZIP หลังส่งออกหรือทดสอบไม่ได้ ให้ระบุว่ายังไม่ได้ตรวจ อย่าอ้างว่าแพ็กเกจสมบูรณ์
+5. เมื่อผู้ใช้ดาวน์โหลดหรืออัปโหลด ZIP ขึ้นสาขาแล้ว ให้ตรวจไฟล์ปลายทางอีกครั้งเมื่อทำได้ โดยเทียบขนาดและ SHA-256 กับไฟล์ต้นฉบับ และเปิดตรวจ ZIP ที่ดาวน์โหลดกลับมา เพื่อจับไฟล์ที่ถูกตัดระหว่างส่ง
+6. รายงานใน ZIP ต้องระบุฐานและเวอร์ชันส่งมอบ สิ่งที่เปลี่ยนและเหตุผล ผลกระทบข้ามระบบ คำสั่ง/ผลทดสอบจริง ข้อจำกัด และเอกสาร/สกิลที่อัปเดต หากรันทดสอบ สร้างเกม หรือเปิดตรวจ ZIP ไม่ได้ ให้ระบุสิ่งที่ยังไม่ยืนยันตามจริงและส่งไฟล์ที่ทำไว้ให้ตรวจต่อ ไม่อ้างว่าทำครบหรือผ่านทั้งหมดเพียงเพราะมีรายชื่อไฟล์หรือสคริปต์
+
+Directory entries ช่วยเรื่องการแสดงโฟลเดอร์ในบางแอป แต่ ZIP ที่มีเฉพาะรายการไฟล์ก็อาจถูกต้องได้ ส่วนกรณี 2.0.33 ที่ตรวจพบจริงคือ ZIP ฉบับแรกไม่มี central directory และมีข้อมูลไม่ครบ จึงต้องตรวจความสมบูรณ์ของไฟล์แยกจากการตรวจรายการโฟลเดอร์
+
+## อัปเดตสรุปเกมทุกครั้งที่เกี่ยวข้อง
+
+เมื่อพัฒนา แก้บัค ปรับข้อมูล บาลานซ์ หรือ UI ที่เปลี่ยนสิ่งที่เกมมี วิธีทำงาน ข้อจำกัด หรือวิธีเข้าถึง ให้อัปเดต `project_status_and_ai_onboarding.md` ในการเปลี่ยนแปลงเดียวกัน พร้อมอัปเดตสกิลที่เกี่ยวข้อง ระบุเวอร์ชัน สิ่งที่ผู้เล่นทำได้ ความเชื่อมโยง ข้อจำกัด และสถานะการตรวจ แก้รายการเดิมแทนการเพิ่มข้อมูลซ้ำ แยกระบบที่มีจริง สิ่งที่ยังไม่ยืนยัน และข้อเสนอในอนาคตให้ชัด ตรวจรายการที่เปลี่ยนกับซอร์สและการทดสอบที่เหมาะสม โดยไม่อ้างว่าตรวจครบทั้งเกม หากงานไม่กระทบสรุปให้ระบุเหตุผลในรายงาน
+
+เมื่อส่งแพตช์ ให้รายงานสิ่งที่เปลี่ยน ผลทดสอบ ข้อจำกัด และอัปเดต README/รายงานที่เกี่ยวข้องให้ตรงกับเวอร์ชันจริง
+
+**Master skills ใน `.agents/skills/` เป็นคู่มือเฉพาะการทำงานจริงของเกมนี้ ไม่ใช่คำแนะนำพัฒนาเกมแบบทั่วไป** ทุกแพตช์ต้องตรวจว่าสกิลใดได้รับผลกระทบ และแก้สกิลเหล่านั้นในการเปลี่ยนแปลงเดียวกัน ทั้งชื่อฟังก์ชัน พฤติกรรม สูตร จำนวนข้อมูล คำสั่งทดสอบและข้อจำกัด โดยเทียบกับซอร์สและผลทดสอบจริง รักษารายละเอียดเฉพาะโปรเจกต์และแก้ข้อมูลล้าสมัย ไม่แทนด้วยข้อความภาพรวมที่ใช้กับเกมใดก็ได้ หากส่วนใดยังไม่ได้ตรวจให้ระบุไว้ ห้ามเปลี่ยนเลขเวอร์ชันเพื่อสื่อว่าตรวจครบทั้งสกิล และปรับสารบัญ `.agents/skills/README.md` เมื่อขอบเขตหรือวิธีใช้สกิลเปลี่ยน หากแพตช์ไม่กระทบสกิลหรือสรุปเกม ให้บันทึกเหตุผลในรายงานแทนการอ้างว่าอัปเดตหรือตรวจครบแล้ว
