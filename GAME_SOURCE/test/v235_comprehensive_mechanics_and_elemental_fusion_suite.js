@@ -23,7 +23,7 @@ console.log('===================================================================
 
 const W = SIM.create('v235-test-world');
 const CE = COMBAT.COMPOSABLE_ENGINE;
-assert(SIM.PATCH_VERSION === '2.0.35' || SIM.PATCH_VERSION === '3.0.0', `SIM.PATCH_VERSION must be 2.0.35 or 3.0.0 (got ${SIM.PATCH_VERSION})`);
+assert(SIM.PATCH_VERSION === '2.0.35' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0'), `SIM.PATCH_VERSION must be 2.0.35 or 3.0.0 (got ${SIM.PATCH_VERSION})`);
 assert(HC.FINGERPRINT === '155:2f9c9dd7', `HC.FINGERPRINT must remain locked at 155:2f9c9dd7`);
 
 const caster = W.npcs[0];
@@ -319,6 +319,7 @@ assert(CE.evaluateCondition({ kind: "SELF_HAS_STANCE", stanceId: "STAR_SWORD_STA
 const offRes = SECT.TOTEMS_BLOODLINES.rollOffspringBloodline(W, ally, caster, caster);
 assert(offRes && (offRes.awakened || offRes.dormantBloodline), "Offspring bloodline roll succeeded");
 
+SIM.tick(W); // Warm up JIT before 60-tick benchmark
 const t0 = Date.now();
 const benchTicks = 60;
 for (let i = 0; i < benchTicks; i++) {

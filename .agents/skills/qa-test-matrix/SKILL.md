@@ -106,3 +106,7 @@ Earlier claims of 97/97 are historical and do not establish the status of the cu
 - `node test/v300_tactical_combat_and_living_chronicle_suite.js` (57 assertions: verifies 5-band spatial range model, weapon range floors, wild beast weapon guardrails, LoS & safe position projection, ZoC & frontline interception, 5 cognitive combat AI archetypes, `COMBAT.evaluateTacticalBoutSummary` across `explore.js`/`sect.js`/`expedition.js`, `EXPED.recordChronicle`, and `SIM.snapshotPerson`).
 - `test/_harness.js` and the 7 reconstructed legacy suites (`v215`, `v216`, `v217`, `v218`, `v219`, `v222`, `v225`) are included so all **116 suites** in `test/run_all.js` exist on disk.
 - All **106 Node.js suites pass (106/106 PASS)**. The remaining **10 suites** (`skill_visual_browser`, `input_cancellation`, `startup_ui`, `outside_visual_browser`, `inventory_grid_ui_suite`, `fishing_river_suite`, `world_atlas_browser`, `lineage_chronicle_browser`, `ancestor_profile_browser`, `browser_mobile_perf`) require a Chromium binary via `tools/cdp_playwright.js`. In `test/browser_mobile_perf.js`, the 80-NPC threshold is temporarily relaxed to `<= 3.5 ms/tick` (`>= 285 ticks/s`).
+
+
+## v3.1.0 Test Matrix Update
+- Total registered suites in `GAME_SOURCE/test/run_all.js`: **117 suites** (107 Node.js suites + 10 Browser Playwright/Chromium suites), including `test/v310_autonomous_governance_and_peaks_sanctuary_suite.js` (422 assertions).

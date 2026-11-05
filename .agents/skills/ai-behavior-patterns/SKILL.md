@@ -287,3 +287,8 @@ const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
 - **3-Tier Promotion Ladder (`EXPED.promoteToSuccessor`, `EXPED.promoteToDeputy`):** When a foreign sect `successor` or `deputy` ascends or dies, the strongest Tier 3 `coreDisciple` promotes to `successor` and the strongest Tier 2 Elder (`warMarshal`, `disciplineElder`, `craftElder`) promotes to `deputy`, backfilling the lower tier slot.
 - **Idle Extradition Ultimatum Auto-Resolution & Assassin Pursuit Clash (`EXPED.tickForeignSectCognitionTiers`, `EXPED.triggerRenegadePursuitClash`):** Expired ultimatums are auto-resolved by the Player Sect Master based on `integrity`, `courage`, `caution`, and treasury reserves; defied sects (`assassinThreat: true`) dispatch Discipline Elder enforcers against the player sect guard roster.
 - **Daily Companion AI & Bereavement (`AI.socialStart`, `AI.pairTick`, `AI.kill`):** NPCs strongly prefer their `companionId` for social/date pair activities, gain dual-cultivation progress and `heartDemon` relief during `AI.pairTick`, and suffer deep grief and `heartDemon` surge if their sworn Taoist Companion dies.
+
+
+## v3.1.0 Officer Jurisdiction & Cognition Integration
+- `COG.role(W, n)`, `COG.reviewOffice(W, n)`, `COG.performDuty(W, n)`, and `COG.deferenceToward(W, a, b)` cover all 25 offices including `vanguard`, `warden`, and `marketmaster`.
+- `SECT.ELDER_COUNCIL_EDICTS.conveneElderCouncil` weights elder votes by `SECT.POSTS[post].authority`.

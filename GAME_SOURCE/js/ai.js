@@ -921,7 +921,10 @@
       const hall = role ? (['master','deputy'].includes(role)?'main_hall':SECT.POSTS[role]?.hall) : n.rank >= 5 ? 'main_hall' : SECT.POSTS[n.post || n.assist]?.hall;
       if(!hall)return null;
       const bk = hall === 'training_ground' || hall === 'gate' || hall === 'infirmary' || hall === 'alchemy' || hall === 'forge' ? null : hall;
-      if (bk) { const s = AI.freeStation(W, n, 'work', bk); return s ? { st: s } : null; }
+      if (bk) {
+        const s = AI.freeStation(W, n, 'work', bk) || AI.freeStation(W, n, 'work', 'main_hall');
+        return s ? { st: s } : null;
+      }
       if (hall === 'training_ground') { const s = AI.freeStation(W, n, 'spar', 'training_ground'); return s ? { st: s, kind: 'class' } : null; }
       if (hall === 'gate') { const s = AI.freeStation(W, n, 'guard', 'gate'); return s ? { st: s, kind: 'guard' } : null; }
       if (hall === 'infirmary') { const s = AI.freeStation(W, n, 'treat', 'infirmary'); return s ? { st: s, kind: 'heal' } : null; }
@@ -941,10 +944,10 @@
 
   A.guard = {
     nameTh: 'เฝ้ายาม', icon: '🛡️', color: '#6b9ac4',
-    can: (n, W) => n.rank >= 1 && n.h.state.energy > 35 && (n.rank <= 3 || ['guard', 'wildwarden', 'commander'].includes(n.post) || !!(W.sect && W.sect.guardRoster && W.sect.guardRoster.includes(n.id)) || !!(W.threat && (W.threat.raid || W.threat.alert > 0))),
+    can: (n, W) => n.rank >= 1 && n.h.state.energy > 35 && (n.rank <= 3 || ['guard', 'wildwarden', 'commander', 'vanguard'].includes(n.post) || !!(W.sect && W.sect.guardRoster && W.sect.guardRoster.includes(n.id)) || !!(W.threat && (W.threat.raid || W.threat.alert > 0))),
     score(n, W, S) {
       const gcOrder = W.sect.guardRoster && W.sect.guardRoster.includes(n.id);
-      const isDefPost = ['guard', 'wildwarden', 'commander'].includes(n.post);
+      const isDefPost = ['guard', 'wildwarden', 'commander', 'vanguard'].includes(n.post);
       if (gcOrder) S.add('ได้รับมอบหมายเข้าเวร', 1.7 * dutyWeight(n));
       else if (W.threat && (W.threat.raid || W.threat.alert > 0)) S.add('สำนักอยู่ในภาวะเฝ้าระวังภัยคุกคาม', (W.threat.raid ? 1.55 : 1.05) * (isDefPost ? 1.3 : 1) * dutyWeight(n));
       else if (isDefPost) S.add('ตรวจเวรยามตามตำแหน่ง', 0.55 * dutyWeight(n));

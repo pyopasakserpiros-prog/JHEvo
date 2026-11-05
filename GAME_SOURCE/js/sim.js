@@ -4,7 +4,7 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '3.0.0', SAVE_SCHEMA_VERSION: '3.0.0-tactical-chronicle', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '3.1.0', SAVE_SCHEMA_VERSION: '3.1.0-autonomous-governance-peaks', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
 
@@ -279,6 +279,8 @@
     if (g.SECT && g.SECT.GRAND_ASSEMBLY_BANQUET) g.SECT.GRAND_ASSEMBLY_BANQUET.ensure(W);
     if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
+    if (g.SECT && g.SECT.ensureDungeon) g.SECT.ensureDungeon(W);
+    if (g.SECT && g.SECT.ensureJurisdictionLog) g.SECT.ensureJurisdictionLog(W);
     if (g.SECT && g.SECT.TOTEMS_BLOODLINES) g.SECT.TOTEMS_BLOODLINES.ensure(W);
     if (g.SECT && g.SECT.CELESTIAL_ALIGNMENTS) g.SECT.CELESTIAL_ALIGNMENTS.ensure(W);
     if (g.SECT && g.SECT.DESTINY_KARMA) g.SECT.DESTINY_KARMA.ensure(W);
@@ -823,6 +825,12 @@
       if (g.SECT && g.SECT.GRAND_ASSEMBLY_BANQUET && (!W.world || !W.world.grandAssembly)) g.SECT.GRAND_ASSEMBLY_BANQUET.ensure(W);
       if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR && (!W.world || !W.world.heavenlyDao)) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
       if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
+      if (g.SECT && g.SECT.ensureDungeon) g.SECT.ensureDungeon(W);
+      if (W.sect && W.sect.posts && g.SECT && Array.isArray(g.SECT.POST_IDS)) {
+        g.SECT.POST_IDS.forEach(pid => {
+          if (W.sect.posts[pid] === undefined) W.sect.posts[pid] = null;
+        });
+      }
 
       if (W.world && Array.isArray(W.world.wanderingFigures) && g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
       return W;

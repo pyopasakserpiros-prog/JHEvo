@@ -30,7 +30,10 @@
     beastmaster: ['เจ้าอุทยานอสูรและพาหนะ', 'ดูแลโรงเพาะเลี้ยงสัตว์วิญญาณ ฟื้นฟูพาหนะ และจัดทัพอสูรพิทักษ์ด่าน'],
     arraymaster: ['ปรมาจารย์ค่ายกลและปราการ', 'บำรุงรักษาค่ายกลพิทักษ์สำนัก เสริมปราการจุดยุทธศาสตร์ และคุมม่านพลังป้องกัน'],
     censor: ['ผู้ตรวจการสภาและคลื่นใต้น้ำ', 'ถ่วงดุลก๊กการเมืองภายในสำนัก ตรวจสอบการใช้อำนาจ และระงับคลื่นใต้น้ำ'],
-    quartermaster: ['แม่ทัพยุทธปัจจัยและคาราวาน', 'จัดสรรเสบียงทัพ ควบคุมเส้นทางคาราวานการค้าเสรี และดูแลคลังยุทธปัจจัย']
+    quartermaster: ['แม่ทัพยุทธปัจจัยและคาราวาน', 'จัดสรรเสบียงทัพ ควบคุมเส้นทางคาราวานการค้าเสรี และดูแลคลังยุทธปัจจัย'],
+    vanguard: ['ผู้อาวุโสกองหน้าพิทักษ์ด่าน', 'สกัดกั้นแนวหน้า บัญชาการ Zone of Control และเข้าคุ้มกันศิษย์แถวหลัง'],
+    warden: ['ผู้คุมทัณฑ์และเชลยศึก', 'ควบคุมคุกใต้ดิน เรียกค่าไถ่เชลยศึก เค้นคัมภีร์ยุทธ์ และกล่อมเชลยแปรพักตร์'],
+    marketmaster: ['นายวาณิชย์ตลาดภายนอก', 'ดูแลการค้าตลาดภายนอก แลกเปลี่ยนวัตถุดิบ และระบายของล้นคลัง']
   };
   COG.OFFICE = OFFICE;
 
@@ -1716,7 +1719,8 @@
     const loyalty = E(a, 'personality.loyalty'), discipline = E(a, 'personality.discipline'), pride = E(a, 'personality.pride');
     const bIntim = E(b, 'social.intimidation') + (bRole.id === 'discipline' || bRole.id === 'master' ? 15 : 0);
     const fear = clamp(ri.fear + Math.max(0, (bIntim - E(a, 'personality.courage')) * 0.35) + (rankGap >= 2 && E(b, 'personality.aggression') > 65 ? 12 : 0), 0, 100);
-    const respect = clamp(ri.respect + stageGap * 5 + rankGap * 4 + (SECT.relevance && bRole.id !== 'member' && SECT.POSTS[bRole.id] ? Math.min(12, SECT.relevance(bRole.id, b) * 0.15) : 0), 0, 100);
+    const authBonus = (bRole.id !== 'member' && SECT.POSTS && SECT.POSTS[bRole.id] && SECT.POSTS[bRole.id].authority) ? Math.round((SECT.POSTS[bRole.id].authority - 45) * 0.18) : (b && b.peakRole === 'MASTER' ? 8 : 0);
+    const respect = clamp(ri.respect + stageGap * 5 + rankGap * 4 + authBonus + (SECT.relevance && bRole.id !== 'member' && SECT.POSTS[bRole.id] ? Math.min(12, SECT.relevance(bRole.id, b) * 0.15) : 0), 0, 100);
     const resentment = clamp(ri.memResent + (ri.affection < -15 && officeWeight > 0 ? Math.abs(ri.affection) * 0.5 : 0) + (pride > 65 && rankGap > 0 && CULT.power(a) > CULT.power(b) * 1.1 ? 15 : 0), 0, 100);
     const deference = clamp(officeWeight * (0.5 + (loyalty + discipline) / 220) + respect * 0.35 + fear * 0.25 + ri.gratitude * 0.2 - resentment * 0.25 - Math.max(0, pride - 60) * 0.2, 0, 100);
     const summaryTh = deference >= 65 && ri.affection < -10 ? 'ยำเกรงอำนาจแต่เก็บความขุ่นเคืองในใจ'
@@ -2203,6 +2207,21 @@
       actions = ['duty'];
       targetId = critical ? critical.id : null;
     }
+    if (r.id === 'vanguard') {
+      const raid = !!(W.threat && W.threat.raid);
+      title = raid ? 'นำทัพกองหน้าสกัดกั้นศัตรูและคุ้มกันแถวหลัง' : 'จัดแนวป้องกัน Zone of Control และฝึกซ้อมพลทวน/โล่';
+      actions = raid ? ['guard', 'duty'] : ['duty', 'guard', 'practice'];
+    }
+    if (r.id === 'warden') {
+      const prisCount = (W.sect && W.sect.dungeon && Array.isArray(W.sect.dungeon.prisoners)) ? W.sect.dungeon.prisoners.length : 0;
+      title = prisCount > 0 ? ('ดำเนินการสอบสวน/เรียกค่าไถ่/กล่อมเชลยศึกในคุกใต้ดิน (' + prisCount + ' คน)') : 'ตรวจตราความมั่นคงของคุกใต้ดินและทัณฑ์สถาน';
+      actions = ['duty'];
+    }
+    if (r.id === 'marketmaster') {
+      const hasTrader = (W.world && Array.isArray(W.world.visitors)) && W.world.visitors.some(v => v && v.kind === 'trader');
+      title = hasTrader ? 'เจรจาแลกเปลี่ยนสินค้าและระบายอุปกรณ์ค้างคลังกับพ่อค้าเร่' : 'ตรวจสอบราคาตลาดภายนอกและจัดเตรียมสินค้าส่งออก';
+      actions = hasTrader ? ['outsideTrade', 'duty'] : ['duty'];
+    }
     const plans = W.sect.officePlans || (W.sect.officePlans = {});
     plans[r.id] = { by: n.id, title, targetId, actions, at: W.t, expiresAt: W.t + 1440 };
     // Issue actionable order for urgent shortages/threats
@@ -2211,6 +2230,7 @@
       orders[r.id] = { id: 'ord_' + r.id + '_' + W.t, post: r.id, by: n.id, title, targetId, actions, priority: critical ? 'critical' : 'normal', at: W.t, expiresAt: W.t + 1440 };
     }
     COG.officeDecision(W, n, title, [r.responsibility]);
+    return true;
   };
 
   COG.reviewOffices = W => {
@@ -2293,15 +2313,16 @@
       COG.officeDecision(W, n, 'ดูแลระเบียบและตรวจสอบข้อร้องเรียน', [r.responsibility]);
       return;
     }
-    if (['envoy', 'spymaster', 'beastmaster', 'arraymaster', 'censor', 'quartermaster'].includes(r.id) && SECT.runOfficerJurisdictionSingle) {
-      const res = SECT.runOfficerJurisdictionSingle(W, r.id, n);
+    if (['envoy', 'spymaster', 'warden', 'beastmaster', 'wildwarden', 'arraymaster', 'censor', 'quartermaster', 'marketmaster', 'commander', 'vanguard'].includes(r.id) && SECT.runOfficerJurisdictionSingle) {
+      const res = SECT.runOfficerJurisdictionSingle(W, r.id, n, { quiet: true, ignoreAvailability: true });
       if (res && res.summaryTh) {
         COG.officeDecision(W, n, res.summaryTh, [r.responsibility]);
-        return;
+        return true;
       }
     }
-        const status = r.id === 'healer' ? 'ตรวจความจำเป็นของผู้บาดเจ็บ' : r.id === 'guard' ? 'ตรวจความพร้อมในการเฝ้ายาม' : 'ปฏิบัติงานตามตำแหน่ง';
+    const status = r.id === 'healer' ? 'ตรวจความจำเป็นของผู้บาดเจ็บ' : r.id === 'guard' ? 'ตรวจความพร้อมในการเฝ้ายาม' : 'ปฏิบัติงานตามตำแหน่ง';
     COG.officeDecision(W, n, status, [r.responsibility]);
+    return true;
   };
 
   COG.missionBias = (W, approver, kind) => {
@@ -2319,7 +2340,7 @@
     if (f.over) return null;
     const current = W.byId[f.ctx.commanderId];
     if (current && COG.available(current, W) && !current.fled && !current.yield && current.h.state.hp >= CULT.hpMax(current) * 0.45 && f.A.includes(current.id) && current.act?.ctx?.fid === f.id) return current;
-    const ids = [W.sect.posts.commander, W.sect.posts.guard, W.sect.posts.martial, W.sect.masterId];
+    const ids = [W.sect.posts.commander, W.sect.posts.vanguard, W.sect.posts.guard, W.sect.posts.martial, W.sect.masterId];
     for (const id of ids) {
       const n = W.byId[id];
       if (!COG.available(n, W) || n.fled || n.yield || (f.A.length >= 14 && !f.A.includes(n.id)) || n.h.state.hp < CULT.hpMax(n) * 0.45 || (n.act?.id === 'fight' && !f.A.includes(n.id))) continue;

@@ -433,3 +433,10 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 ## Patch v2.0.18 Additions: World Map Topology & Hegemony Loop
 - Integrated `EXPED.ensureWorldTopology(W)`, `EXPED.tickHegemony(W)`, and `EXPED.harvestResourceNodes(W)` into `EXPED.daily(W)` and `CONTENT.ensure(W)` while maintaining `1.351 ms/tick` for 80 active NPCs.
 - **Save Policy Update:** Backwards compatibility with older save versions is not required (`"ไม่จำเป็นต้องทำให้เซฟเก่าเล่นต่อได้"`), allowing clean architectural evolution.
+
+
+## v3.1.0 Governance, Peaks & Dungeon Architecture
+- `SECT.DIRECTORATES` (6 Directorates) and `SECT.POSTS` / `SECT.POST_CATALOG` (25 assignable offices including `vanguard`, `warden`, `marketmaster`, plus `SECT.PLANNED_POSTS` linked via `SECT.resolveOfficeId` and unlocked via `SECT.unlockAllOffices(W)`).
+- `SECT.runOfficerJurisdictionSingle(W, post, officer, opts)` and `SECT.runOfficerJurisdictions(W, opts)` execute real autonomous office decisions and record to `W.sect.jurisdictionLog`.
+- `SECT.PEAKS` manages the 8 canonical Peaks (`PEAK_IDS`), interactive leader appointment/removal, disciple transfers, 4 allocation policies (`MERITOCRATIC`, `REALM_PRIORITY`, `EGALITARIAN`, `NEPOTISTIC_INNER_CIRCLE`), Qi Array (+14%), joint exchanges, and inter-peak tournaments.
+- `W.sect.dungeon` (`SECT.capturePrisoner`, `SECT.handleDungeonPrisoner` / `SECT.executePrisonerAction`) handles `RANSOM`, `INTERROGATE`, and `RECRUIT_DEFECTOR`.

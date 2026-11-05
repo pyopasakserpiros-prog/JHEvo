@@ -81,3 +81,8 @@ Always run idempotent `ensure*` hooks at the end of `SIM.deserialize`:
 
 ## Patch v2.0.18 Policy Update: No Legacy Save Backwards-Compatibility Required
 - **"ไม่จำเป็นต้องทำให้เซฟเก่าเล่นต่อได้"**: AI is unlocked to design new architectures and data structures freely without worrying about backwards compatibility with saves from previous versions. Within-version `SIM.serialize` / `SIM.deserialize` determinism remains verified.
+
+
+## v3.1.0 Save Schema (`3.1.0-autonomous-governance-peaks`)
+- `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-autonomous-governance-peaks'`.
+- `SIM.serialize` and `SIM.deserialize` preserve `W.sect.unlockSpecializedOffices`, `W.sect.dungeon`, `W.sect.jurisdictionLog`, `W.sect.vanguardPosture`, `W.sect.vanguardInterceptBonus`, `W.sect.diplomacyBonus`, and `W.sect.dungeonSecurity` with 100% post-load determinism.
