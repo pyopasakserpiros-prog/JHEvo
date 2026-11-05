@@ -6,6 +6,10 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 
 ผู้พัฒนาและ AI ต้องอ่าน [AGENTS.md](AGENTS.md) ก่อนเริ่มงาน ใช้มุมมองทีมพัฒนาและผู้เล่นตามความเหมาะสม และตรวจข้อมูลจากซอร์สและผลทดสอบจริง ดู [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md)
 
+แผนออกแบบคอมแบท v3 อยู่ใน [Proposal ฉบับเต็ม](PATCH_REPORTS/PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md): ขั้นที่ 1 เก็บข้อเสนอ Gemini/Antigravity, GPT, Claude และ Grok; ขั้นที่ 2 มีบทสรุปรวมของ GPT (§11) และ Gemini (§12); ขั้นที่ 3 มี **[Final (§13)](PATCH_REPORTS/PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md#combat-v3-final)** หลังอ่านบทสรุปทั้งสองแล้ว ผู้ทำแพตช์ใช้ประกอบการคิดและตัดสินใจเองตาม [กติกาผู้พัฒนา](AGENTS.md) ขณะนี้เกมยังเป็น v2.0.35 และเอกสารนี้ยังไม่ใช่การส่งมอบเกม v3
+
+ไฟล์ `JHEvo_v3_Combat_Review_AI.zip` ในสาขาตรวจเป็นชุดตั้งต้นก่อนรับข้อเสนอ Claude/Grok และยังไม่มี Final หรือกติกาส่งต่องานล่าสุด ให้ใช้ไฟล์ Markdown ข้างต้นกับ `AGENTS.md` โดยตรงสำหรับข้อมูลออกแบบปัจจุบัน
+
 ผลตรวจการนำเข้าและข้อจำกัดของชุดทดสอบ: [PATCH_REPORTS/IMPORT_VERIFICATION_V2_0_33.md](PATCH_REPORTS/IMPORT_VERIFICATION_V2_0_33.md) | รายงานผู้พัฒนา 2.0.32: [PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md](PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md)
 
 ```bash
