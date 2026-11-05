@@ -24,6 +24,7 @@
 ---
 
 ## 📚 เอกสารอ้างอิงและข้อเสนอเชิงยุทธศาสตร์ (Strategic References & Proposals)
+* [PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md](PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md) — **[แผนแม่บท v3.0.0]** ข้อเสนอการอัปเกรดระบบต่อสู้ มิติระยะใกล้-ไกลไดนามิก และสมองกล AI ทางยุทธวิธี
 * [IMPORT_VERIFICATION_V2_0_33.md](IMPORT_VERIFICATION_V2_0_33.md) — รายงานผลตรวจการนำเข้าแพ็กเกจและข้อจำกัดชุดทดสอบ
 * [LEGENDARY_CONTENT_REFERENCE.md](LEGENDARY_CONTENT_REFERENCE.md) — สารบบเนื้อหาระดับตำนานและไอเทมพิเศษ
 * [JIANGHU_SECT_Strategic_Game_Development_and_Innovation_Proposal.docx](JIANGHU_SECT_Strategic_Game_Development_and_Innovation_Proposal.docx) — เอกสารข้อเสนอการพัฒนาเชิงยุทธศาสตร์และนวัตกรรมเกม
