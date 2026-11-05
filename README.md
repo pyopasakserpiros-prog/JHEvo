@@ -6,6 +6,14 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 
 ผู้พัฒนาและ AI ต้องอ่าน [AGENTS.md](AGENTS.md) ก่อนเริ่มงาน ใช้มุมมองทีมพัฒนาและผู้เล่นตามความเหมาะสม และตรวจข้อมูลจากซอร์สและผลทดสอบจริง ดู [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md)
 
+**งานแพตช์ถัดไปสำหรับ Gemini Work:** อ่าน [พรอมแพตช์ v3.0.0](NEXT_PATCH_PROMPT_V3_0_0.md) หลัง `AGENTS.md` และสรุปเกม งานประกอบด้วยคอมแบทและพงศาวดาร โดยเกมในสาขานี้ยังเป็นฐาน v2.0.35
+
+**สถานะชุดทดสอบฐาน:** ตรวจรวมล่าสุดผ่าน 81 จาก 113 กลุ่ม มีไฟล์ทดสอบ/ตัวช่วยบางส่วนขาดและมีผลไม่ผ่านที่ต้องแยกสาเหตุ รายละเอียดและข้อจำกัดอยู่ใน [สรุปเกม](project_status_and_ai_onboarding.md) และพรอม v3
+
+แผนออกแบบ v3 อยู่ใน [Proposal ฉบับเต็ม](PATCH_REPORTS/PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md): ขั้นที่ 1 เก็บข้อเสนอ Gemini/Antigravity, GPT, Claude และ Grok; ขั้นที่ 2 มีบทสรุปรวมของ GPT (§11) และ Gemini (§12); ขั้นที่ 3 มี **[Final คอมแบท (§13)](PATCH_REPORTS/PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md#combat-v3-final)** และ **[ข้อเสนอพงศาวดาร (§14)](PATCH_REPORTS/PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md#chronicle-v3)** ผู้ทำแพตช์ใช้ประกอบการคิดและตัดสินใจเองตาม [กติกาผู้พัฒนา](AGENTS.md) ขณะนี้เกมยังเป็น v2.0.35 และเอกสารนี้ยังไม่ใช่การส่งมอบเกม v3
+
+รายงานเก่าใน `PATCH_REPORTS/` และ `FUTURE_ROADMAP_AND_IDEAS.md` เก็บไว้เป็นข้อมูลอ้างอิงตามงาน ไม่ใช่คำสั่งแพตช์ปัจจุบัน ตรวจข้อมูลกับซอร์สก่อนใช้ โดยไม่จำเป็นต้องอ่านไฟล์เกมเดี่ยวที่สร้างแล้วหรือรายงานประวัติทั้งหมดเพื่อเริ่มงาน
+
 ผลตรวจการนำเข้าและข้อจำกัดของชุดทดสอบ: [PATCH_REPORTS/IMPORT_VERIFICATION_V2_0_33.md](PATCH_REPORTS/IMPORT_VERIFICATION_V2_0_33.md) | รายงานผู้พัฒนา 2.0.32: [PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md](PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md)
 
 ```bash
@@ -22,11 +30,11 @@ node test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js
 เอกสารรายงานการพัฒนาและผลการตรวจสอบทั้งหมดถูกจัดเก็บไว้อย่างเป็นระเบียบในโฟลเดอร์ **[`PATCH_REPORTS/`](PATCH_REPORTS/)**:
 
 - **[v2.0.35 Master Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_35.md)**: รายงานการพัฒนาแพตช์ v2.0.35 ระบบผสานมหาธาตุ 34 ปฏิกิริยา, 8 เสาหลักแก้บัค, จุดชีพจร, ศาสตราตื่นรู้, เสาโทเทม, ปรากฏการณ์ฟ้าดิน, สถิตร่างอสูร, ด้ายชะตา และค่ายกลชีพจรปฐพี
-- **[v2.0.35 QA & Systems Balance Audit](PATCH_REPORTS/QA_SYSTEMS_AND_BALANCE_AUDIT_V2_0_35.md)**: รายงานผลการตรวจสอบ 7 มิติโดย Lead QA Architect & Game Balance Director (ผ่าน 100% ครบทุกข้อ)
+- **[v2.0.35 QA & Systems Balance Audit](PATCH_REPORTS/QA_SYSTEMS_AND_BALANCE_AUDIT_V2_0_35.md)**: รายงานการตรวจเดิม; ผลทดสอบล่าสุดอาจแตกต่าง ต้องรันตรวจเอง
 - **[v2.0.35 Complete Development Report (.docx)](PATCH_REPORTS/JIANGHU_SECT_v2_0_35_Complete_Development_Report.docx)**: เอกสารรายงานฉบับสมบูรณ์สำหรับผู้บริหาร
 - **[v2.0.34 Content & Composable Mechanics Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_34.md)**: ขยาย 132 สายย่อย, 655 วรยุทธ์, 917 ไอเทม, 1,255 ตำรับ, Composable Engine
 - **[v2.0.33 Peaks, Elder & Social Matrix Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_33.md)**: ระบบ 8 ยอดเขา, ผู้นำยอดเขา, ความสัมพันธ์ 24 เหตุการณ์, สมอง NPC
-- **[v2.0.32 Elder Council & Secret Realms Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_32.md)**: สภาผู้อาวุโส 4 ก๊ก, โหนดแดนลับ 5 ด่าน 12 มรรคา, มหาชุมนุมยุทธภพ 4 สาย, ผู้กำกับชะตาฟ้าดิน
+- **[v2.0.32 Elder Council & Secret Realms Report](PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md)**: สภาผู้อาวุโส 4 ก๊ก, โหนดแดนลับ 5 ด่าน 12 มรรคา, มหาชุมนุมยุทธภพ 4 สาย, ผู้กำกับชะตาฟ้าดิน
 - **[v2.0.31 Stability & Save Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_31.md)**: ปรับปรุงระบบบันทึกและเสถียรภาพ
 - **[v2.0.30 External Elders & Dual Cultivation Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_30.md)**: ผู้อาวุโสภายนอก, คู่บำเพ็ญ, สายเลือดตระกูล
 - **[v2.0.29 External Assimilation Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_29.md)**: ระบบหลอมรวมคนนอกและจดหมายเหตุยุทธภพ
@@ -40,7 +48,9 @@ node test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js
 
 ## 🌟 ไฮไลต์สถานะล่าสุด: Patch v2.0.35 (Multi-Tier Elemental Fusion & Deep Xianxia Mechanics)
 
-- **Version**: `SIM.PATCH_VERSION = '2.0.35'` (`JianghuSect_single.html` rebuilt 7,003 KB, 40 `<script>` tags in `index.html`, `human_core.js` lock `155:2f9c9dd7` intact).
+รายละเอียดด้านล่างมาจากรายงาน v2.0.35 และควรตรวจซอร์สเมื่อใช้ตัดสินใจพัฒนา; ผลตรวจรวมล่าสุดและข้อจำกัดของชุดทดสอบอยู่ใน [สรุปเกม](project_status_and_ai_onboarding.md)
+
+- **Version**: `SIM.PATCH_VERSION = '2.0.35'` (ไฟล์ `JianghuSect_single.html` ในฐานมีขนาดประมาณ 8.3 MB; รายงานเดิมระบุ 40 `<script>` tags และ fingerprint `155:2f9c9dd7` ซึ่งไม่ใช่ hash ของไฟล์ `human_core.js`).
 - **Multi-Tier Elemental Fusion Engine (`COMBAT.COMPOSABLE_ENGINE.FUSIONS`)**:
   - เกจสะสมธาตุ (`applyElementalAura` 1.0U–3.0U), การสลายตัว (`decayElementalAuras` 0.2U/รอบ), Internal Cooldown (`_elemReactionIcd` 0.5s)
   - **16 ปฏิกิริยาทวิธาตุ (2-Element):** `2E-01` ถึง `2E-16` (ไอน้ำระเบิด, ลาวาปะทุ, แช่แข็งสัมบูรณ์, ไท่เก๊กหักล้าง, ตัวนำยิ่งยวดสนามแม่เหล็ก, วายุศาสตราฉีกกระชาก, โลหิตมารคลั่งชีพ ฯลฯ)
