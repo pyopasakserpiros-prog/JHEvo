@@ -4558,6 +4558,245 @@
     return { triggered, logs };
   };
 
+  /* =========================================================================
+   * Patch v2.0.35 — Section 10.3 Progression (Oaths, Dao Seals, Seasonal,
+   * Tribulation Variants), Section 12.1 Eight Extraordinary Meridians &
+   * Section 12.5 Spirit Beast Symbiosis (Possession & Core Ingestion)
+   * ========================================================================= */
+  const MERIDIANS = {};
+  MERIDIANS.CATALOG = Object.freeze({
+    DU_MAI: { id: 'DU_MAI', nameTh: 'เส้นตูม่าย (ชีพจรปกครอง)', p: { atk: 0.10, matk: 0.10 }, f: { pen: 6 }, descTh: 'เปิดชีพจรปกครองแนวสันหลัง เพิ่มพลังโจมตีและโจมตีวิชา +10%' },
+    REN_MAI: { id: 'REN_MAI', nameTh: 'เส้นเหรินม่าย (ชีพจรกำเนิด)', p: { hp: 0.15 }, f: {}, qiMaxBonusPct: 0.15, descTh: 'เปิดชีพจรกำเนิดด้านหน้า เพิ่มพลังชีวิตสูงสุด +15% และความจุปราณ +15%' },
+    CHONG_MAI: { id: 'CHONG_MAI', nameTh: 'เส้นชงม่าย (ชีพจรทะลวง)', p: {}, f: { cast: 12, move: 8 }, qiRegenBonusPct: 0.12, descTh: 'เปิดชีพจรทะลวงศูนย์กลาง เพิ่มความเร็วร่ายวิชา +12 และฟื้นฟูปราณ +12%' },
+    DAI_MAI: { id: 'DAI_MAI', nameTh: 'เส้นไต้หม่าย (ชีพจรคาดเอว)', p: { def: 0.12, mdef: 0.12 }, f: {}, descTh: 'เปิดชีพจรคาดเอวคุ้มครองตันเถียน เพิ่มป้องกันและป้องกันวิชา +12%' },
+    YIN_QIAO: { id: 'YIN_QIAO', nameTh: 'เส้นอินเชียว (ชีพจรส้นเท้าหยิน)', p: { eva: 0.10 }, f: { move: 10 }, descTh: 'เปิดชีพจรเท้าหยิน เพิ่มหลบหลีก +10% และความเร็วเดินทาง +10' },
+    YANG_QIAO: { id: 'YANG_QIAO', nameTh: 'เส้นหยางเชียว (ชีพจรส้นเท้าหยาง)', p: { acc: 0.10 }, f: { crit: 6 }, descTh: 'เปิดชีพจรเท้าหยาง เพิ่มความแม่นยำ +10% และอัตราคริ +6%' },
+    YIN_WEI: { id: 'YIN_WEI', nameTh: 'เส้นอินเหวย (ชีพจรเชื่อมหยิน)', p: { mdef: 0.12, hp: 0.06 }, f: {}, heartDemonResist: 0.15, descTh: 'เปิดชีพจรเชื่อมหยิน เพิ่มป้องกันวิชา +12% และต้านทานจิตมาร +15%' },
+    YANG_WEI: { id: 'YANG_WEI', nameTh: 'เส้นหยางเหวย (ชีพจรเชื่อมหยาง)', p: { atk: 0.08 }, f: { pen: 10, critDmg: 15 }, descTh: 'เปิดชีพจรเชื่อมหยาง เพิ่มเจาะเกราะ +10% และความแรงคริ +15%' }
+  });
+  MERIDIANS.ORDER = Object.freeze(['DU_MAI', 'REN_MAI', 'CHONG_MAI', 'DAI_MAI', 'YIN_QIAO', 'YANG_QIAO', 'YIN_WEI', 'YANG_WEI']);
+
+  MERIDIANS.ensure = npc => {
+    if (!npc) return null;
+    if (!npc.meridians || typeof npc.meridians !== 'object') {
+      npc.meridians = { opened: {}, openedCount: 0, overdriveUntil: 0, acupointImmunity: false };
+    }
+    if (!npc.meridians.opened || typeof npc.meridians.opened !== 'object') npc.meridians.opened = {};
+    npc.meridians.openedCount = Object.keys(npc.meridians.opened).filter(k => npc.meridians.opened[k]).length;
+    npc.meridians.allEightOpened = npc.meridians.openedCount >= 8;
+    return npc.meridians;
+  };
+
+  MERIDIANS.openMeridian = (npc, meridianId) => {
+    if (!npc) return { ok: false, reason: 'no-npc' };
+    const m = MERIDIANS.ensure(npc);
+    const id = MERIDIANS.CATALOG[meridianId] ? meridianId : MERIDIANS.ORDER.find(k => !m.opened[k]) || 'DU_MAI';
+    m.opened[id] = true;
+    m.openedCount = Object.keys(m.opened).filter(k => m.opened[k]).length;
+    m.allEightOpened = m.openedCount >= 8;
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, meridianId: id, spec: MERIDIANS.CATALOG[id], openedCount: m.openedCount, allEightOpened: m.allEightOpened };
+  };
+
+  MERIDIANS.openNextMeridian = npc => MERIDIANS.openMeridian(npc, null);
+
+  MERIDIANS.triggerOverdrive = (W, npc, dur) => {
+    if (!npc) return { ok: false };
+    const m = MERIDIANS.ensure(npc);
+    const tNow = (W && W.t != null) ? W.t : ((g.STATS && g.STATS.now) || 0);
+    const cleanDur = clamp(Number(dur) || 36, 6, 120);
+    m.overdriveUntil = tNow + cleanDur;
+    m.overdriveUsedInFight = true;
+    if (g.STATS && g.STATS.applyNamedBuff && !npc.foe) {
+      g.STATS.applyNamedBuff(npc, 'meridianOverdrive', cleanDur, tNow, { casterId: npc.id });
+    }
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, overdriveUntil: m.overdriveUntil, openedCount: m.openedCount };
+  };
+
+  MERIDIANS.getStatBonuses = (npc, now) => {
+    if (!npc || !npc.meridians) return { openedCount: 0, overdrive: false, p: {}, f: {} };
+    const m = MERIDIANS.ensure(npc);
+    const tNow = now != null ? now : ((g.STATS && g.STATS.now) || 0);
+    const overdrive = m.overdriveUntil > tNow;
+    const p = {}, f = {};
+    for (const id of MERIDIANS.ORDER) {
+      if (!m.opened[id]) continue;
+      const spec = MERIDIANS.CATALOG[id];
+      if (!spec) continue;
+      for (const [k, v] of Object.entries(spec.p || {})) p[k] = (p[k] || 0) + v;
+      for (const [k, v] of Object.entries(spec.f || {})) f[k] = (f[k] || 0) + v;
+    }
+    if (m.allEightOpened) {
+      p.atk = (p.atk || 0) + 0.08;
+      p.matk = (p.matk || 0) + 0.08;
+      f.cast = (f.cast || 0) + 10;
+    }
+    if (overdrive) {
+      p.atk = (p.atk || 0) + 0.30;
+      p.matk = (p.matk || 0) + 0.30;
+      f.cast = (f.cast || 0) + 28;
+    }
+    return { openedCount: m.openedCount, allEightOpened: m.allEightOpened, overdrive, p, f };
+  };
+  CULT.MERIDIANS = MERIDIANS;
+
+  /* ---------- Section 12.5: Spirit Beast Symbiosis (Possession & Core Ingestion) ---------- */
+  const BEAST_SYMBIOSIS = {};
+  BEAST_SYMBIOSIS.activatePossession = (W, npc, petUidOrIdx, dur) => {
+    if (!npc) return { ok: false, reason: 'no-npc' };
+    const pets = Array.isArray(npc.pets) ? npc.pets : [];
+    let pet = pets.find(p => p && (p.uid === petUidOrIdx || p.id === petUidOrIdx)) || pets[0];
+    if (!pet) {
+      pet = { uid: 'PET_SYM_' + npc.id, nameTh: 'อสูรพันธสัญญาบรรพกาล', tier: 4, level: 5, bond: 100, element: 'LIGHTNING', active: true };
+      npc.pets = [pet];
+    }
+    pet.bond = Math.max(100, pet.bond || 100);
+    const tNow = (W && W.t != null) ? W.t : ((g.STATS && g.STATS.now) || 0);
+    const cleanDur = clamp(Number(dur) || 36, 8, 120);
+    npc._beastSpiritPossessedUntil = tNow + cleanDur;
+    npc._possessedPetSnapshot = {
+      petUid: pet.uid || pet.id,
+      nameTh: pet.nameTh || 'อสูรคู่สัญญา',
+      tier: pet.tier || 3,
+      element: pet.element || 'BEAST',
+      statShareRatio: 0.25
+    };
+    if (g.STATS && g.STATS.applyNamedBuff && !npc.foe) {
+      g.STATS.applyNamedBuff(npc, 'beastSpiritPossessed', cleanDur, tNow, { casterId: npc.id });
+    }
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, petNameTh: pet.nameTh, until: npc._beastSpiritPossessedUntil, statShareRatio: 0.25 };
+  };
+
+  BEAST_SYMBIOSIS.ingestBeastCore = (W, npc, coreSpec) => {
+    if (!npc) return { ok: false, reason: 'no-npc' };
+    coreSpec = coreSpec || { id: 'CORE_THUNDER_ROC', nameTh: 'เนยในพญาครุฑอสนี', tier: 5, element: 'LIGHTNING', passiveId: 'PASSIVE_THUNDER_WINGS', p: { atk: 0.10, matk: 0.10 }, f: { move: 14, crit: 6 } };
+    npc.ingestedBeastCores = Array.isArray(npc.ingestedBeastCores) ? npc.ingestedBeastCores : [];
+    if (npc.ingestedBeastCores.length >= 3) npc.ingestedBeastCores.shift();
+    npc.ingestedBeastCores.push({
+      id: coreSpec.id || 'CORE_BEAST',
+      nameTh: coreSpec.nameTh || 'เนยในอสูรบรรพกาล',
+      tier: coreSpec.tier || 4,
+      element: coreSpec.element || 'FIRE',
+      passiveId: coreSpec.passiveId || 'PASSIVE_BEAST_CORE',
+      p: coreSpec.p || { atk: 0.08, hp: 0.08 },
+      f: coreSpec.f || { move: 10, pen: 8 }
+    });
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, count: npc.ingestedBeastCores.length, latestCore: npc.ingestedBeastCores[npc.ingestedBeastCores.length - 1] };
+  };
+
+  BEAST_SYMBIOSIS.getStatBonuses = (npc, now) => {
+    if (!npc) return { active: false };
+    const tNow = now != null ? now : ((g.STATS && g.STATS.now) || 0);
+    const possessed = npc._beastSpiritPossessedUntil && npc._beastSpiritPossessedUntil > tNow;
+    const cores = Array.isArray(npc.ingestedBeastCores) ? npc.ingestedBeastCores : [];
+    if (!possessed && !cores.length) return { active: false };
+    const p = {}, f = {};
+    if (possessed) {
+      const tier = (npc._possessedPetSnapshot && npc._possessedPetSnapshot.tier) || 3;
+      p.atk = (p.atk || 0) + 0.18 + tier * 0.02;
+      p.matk = (p.matk || 0) + 0.15 + tier * 0.02;
+      p.def = (p.def || 0) + 0.15;
+      p.hp = (p.hp || 0) + 0.15;
+      f.move = (f.move || 0) + 18;
+      f.crit = (f.crit || 0) + 8;
+    }
+    for (const c of cores) {
+      for (const [k, v] of Object.entries(c.p || {})) p[k] = (p[k] || 0) + v;
+      for (const [k, v] of Object.entries(c.f || {})) f[k] = (f[k] || 0) + v;
+    }
+    return {
+      active: true,
+      possessed: !!possessed,
+      coreCount: cores.length,
+      labelTh: possessed ? 'ประทับร่างอสูรวิญญาณและแก่นเนยใน' : ('แก่นเนยในอสูรหลอมตันเถียน (' + cores.length + ' แก่น)'),
+      p,
+      f
+    };
+  };
+  CULT.BEAST_SYMBIOSIS = BEAST_SYMBIOSIS;
+
+  /* ---------- Section 10.3: Oaths/Vows, Dao Seals, Seasonal Cultivation & Tribulation Variants ---------- */
+  CULT.OATH_CATALOG = Object.freeze({
+    VEGETARIAN_PACIFIST: { id: 'VEGETARIAN_PACIFIST', nameTh: 'สัตย์สาบานเมตตาธรรมถือศีล', cultSpeedBonus: 0.25, backlashHeartDemon: 35 },
+    CHALLENGE_HIGHER_REALM: { id: 'CHALLENGE_HIGHER_REALM', nameTh: 'สัตย์สาบานท้าทายผู้เหนือขั้น', cultSpeedBonus: 0.28, combatBonusVsHigher: 0.18, backlashHeartDemon: 30 },
+    PROTECT_JUNIORS: { id: 'PROTECT_JUNIORS', nameTh: 'สัตย์สาบานคุ้มครองศิษย์น้อง', cultSpeedBonus: 0.22, shieldBonusPct: 0.20, backlashHeartDemon: 28 }
+  });
+
+  CULT.bindOathVow = (W, npc, oathId) => {
+    if (!npc) return { ok: false };
+    const spec = CULT.OATH_CATALOG[oathId] || CULT.OATH_CATALOG.CHALLENGE_HIGHER_REALM;
+    npc.daoOath = {
+      id: spec.id,
+      nameTh: spec.nameTh,
+      cultSpeedBonus: spec.cultSpeedBonus,
+      upheld: true,
+      boundDay: (W && W.day) || 0
+    };
+    return { ok: true, oath: npc.daoOath };
+  };
+
+  CULT.breakOathVow = (W, npc) => {
+    if (!npc || !npc.daoOath || !npc.daoOath.upheld) return { ok: false };
+    const spec = CULT.OATH_CATALOG[npc.daoOath.id] || { backlashHeartDemon: 30 };
+    npc.daoOath.upheld = false;
+    if (npc.h && npc.h.state) {
+      npc.h.state.heartDemon = clamp((npc.h.state.heartDemon || 0) + spec.backlashHeartDemon, 0, 100);
+    }
+    return { ok: true, brokenOath: npc.daoOath, heartDemonAdded: spec.backlashHeartDemon };
+  };
+
+  CULT.DAO_SEALS = Object.freeze({
+    SEAL_UNDEFEATED_10: { id: 'SEAL_UNDEFEATED_10', nameTh: 'ตราประทับเต๋า·สิบศึกไร้พ่าย', btBonus: 0.08, p: { atk: 0.08, matk: 0.08 } },
+    SEAL_ZERO_TOXICITY: { id: 'SEAL_ZERO_TOXICITY', nameTh: 'ตราประทับเต๋า·กายาหยกไร้พิษ', btBonus: 0.10, p: { hp: 0.10, mdef: 0.10 } },
+    SEAL_SOLO_BOSS: { id: 'SEAL_SOLO_BOSS', nameTh: 'ตราประทับเต๋า·สยบอสูรบรรพกาล', btBonus: 0.12, p: { atk: 0.10, def: 0.10 } }
+  });
+
+  CULT.grantDaoSeal = (W, npc, sealId) => {
+    if (!npc) return { ok: false };
+    const spec = CULT.DAO_SEALS[sealId] || CULT.DAO_SEALS.SEAL_UNDEFEATED_10;
+    npc.daoSeals = Array.isArray(npc.daoSeals) ? npc.daoSeals : [];
+    if (!npc.daoSeals.some(s => s && s.id === spec.id)) {
+      npc.daoSeals.push(Object.assign({ grantedDay: (W && W.day) || 0 }, spec));
+    }
+    npc._btBonusPct = Math.min(0.35, (npc._btBonusPct || 0) + spec.btBonus);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, seal: spec, totalSeals: npc.daoSeals.length };
+  };
+
+  CULT.evaluateSeasonalCultivationMult = (W, npc) => {
+    const season = (W && W.season != null) ? W.season : 0; // 0 Spring, 1 Summer, 2 Autumn, 3 Winter
+    const el = (npc && npc.h && npc.h.root && npc.h.root.primaryElement) || (npc && npc.cult && npc.cult.path) || 'NEUTRAL';
+    if (season === 0 && (el === 'WOOD_LIFE' || (npc && npc.cult && npc.cult.path === 'SAGE_SUPPORT'))) return 1.25;
+    if (season === 1 && (el === 'FIRE' || el === 'LIGHT_YANG' || (npc && npc.cult && npc.cult.path === 'BODY'))) return 1.25;
+    if (season === 2 && (el === 'EARTH_METAL' || (npc && npc.cult && npc.cult.path === 'XIAN'))) return 1.25;
+    if (season === 3 && (el === 'WATER_ICE' || el === 'DARK_YIN' || (npc && npc.cult && npc.cult.path === 'HEART_SOUL'))) return 1.25;
+    return 1.05;
+  };
+
+  CULT.TRIBULATION_VARIANTS = Object.freeze({
+    PURPLE_THUNDER_TRIBULATION: { id: 'PURPLE_THUNDER_TRIBULATION', nameTh: 'ทัณฑ์สวรรค์อสนีม่วงเก้าชั้น', element: 'LIGHTNING', rewardTrait: 'THUNDER_TEMPERED_MARROW', bonusPen: 12 },
+    KARMA_FIRE_TRIBULATION: { id: 'KARMA_FIRE_TRIBULATION', nameTh: 'ทัณฑ์สวรรค์เพลิงกรรมดอกบัวแดง', element: 'FIRE', rewardTrait: 'KARMIC_LOTUS_BODY', bonusMdefPct: 0.14 },
+    HEART_DEMON_MIRROR_TRIBULATION: { id: 'HEART_DEMON_MIRROR_TRIBULATION', nameTh: 'ทัณฑ์สวรรค์กระจกเงาจิตมาร', element: 'DARK_YIN', rewardTrait: 'MIND_MIRROR_SOVEREIGN', bonusCrit: 8 },
+    NINE_ABYSS_WIND_TRIBULATION: { id: 'NINE_ABYSS_WIND_TRIBULATION', nameTh: 'ทัณฑ์สวรรค์วายุทมิฬเก้าเหว', element: 'WIND', rewardTrait: 'ASTRAL_WIND_BONE', bonusMove: 16 }
+  });
+
+  CULT.resolveTribulationVariant = (W, npc, variantId) => {
+    if (!npc) return { ok: false };
+    const spec = CULT.TRIBULATION_VARIANTS[variantId] || CULT.TRIBULATION_VARIANTS.PURPLE_THUNDER_TRIBULATION;
+    npc.daoScars = Array.isArray(npc.daoScars) ? npc.daoScars : [];
+    npc.daoScars.push({
+      id: spec.rewardTrait,
+      nameTh: spec.nameTh,
+      element: spec.element,
+      combatPowerBonus: 0.08
+    });
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, variant: spec, daoScarsCount: npc.daoScars.length };
+  };
+
   g.CULT = CULT;
   if (typeof module === 'object' && module.exports) module.exports = CULT;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

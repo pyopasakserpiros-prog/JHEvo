@@ -4540,7 +4540,10 @@
     const grandArrayBonus = (W && W.sect && W.sect.fengShui && W.sect.fengShui.activeGrandArray && Number.isFinite(W.sect.fengShui.activeGrandArray.tribulationShieldBonus))
       ? W.sect.fengShui.activeGrandArray.tribulationShieldBonus
       : 0;
-    return +clamp(0.36 + base * 0.30 + helperBonus + roleBonus + diversityBonus + formationBonus + imprintBonus + relicBonus + grandArrayBonus + (medicineId ? 0.06 : 0), 0.45, 0.92).toFixed(3);
+    const karmaDelta = (candidate && candidate.karmicLedger)
+      ? clamp((candidate.karmicLedger.netKarma || 0) * 0.0015, -0.12, 0.10)
+      : 0;
+    return +clamp(0.36 + base * 0.30 + helperBonus + roleBonus + diversityBonus + formationBonus + imprintBonus + relicBonus + grandArrayBonus + karmaDelta + (medicineId ? 0.06 : 0), 0.35, 0.94).toFixed(3);
   };
   const releaseTribulationParticipants = (W, attempt) => {
     const ids = [attempt && attempt.candidateId].concat(attempt && Array.isArray(attempt.supportIds) ? attempt.supportIds : []).filter(Boolean);
@@ -11273,6 +11276,434 @@
   SECT.launchCoalitionOffensive = (W, party, targetSectOrId, allySectIds, opts) => g.EXPED.launchCoalitionOffensive(W, party, targetSectOrId, allySectIds, opts);
   SECT.triggerSiegeReinforcementBeacon = (W, opts) => g.EXPED.triggerSiegeReinforcementBeacon(W, opts);
   SECT.launchVendettaReclamation = (W, renegadeNpcOrId, party, opts) => g.EXPED.launchVendettaReclamation(W, renegadeNpcOrId, party, opts);
+
+  /* =========================================================================
+   * Patch v2.0.35 — Sections 12.2, 12.3, 12.4, 12.6, 12.7, 13 & 14:
+   * - 12.2 Awakened Weapon Souls (Armament Wills, Compatibility, Avatar Manifestation, Elder Soul Imbuing)
+   * - 12.3 Sect Totem Pillars & Ancient Bloodline Awakening + Marrow Cleansing Pool
+   * - 12.4 Celestial Alignments & World Cataclysms (Blood Moon, Nine Suns, Meteor Shower, Prana Tide)
+   * - 12.6 Destiny Threads (Red/Black/Gold) & Karmic Debt Ledger
+   * - 12.7 Leyline Anchors & Sect Territorial Grid Network
+   * - 13 & 14 Universal 12-Path Equity Matrix & Multi-Perspective Synthesis
+   * ========================================================================= */
+  if (SECT.SOUL_FORGE) {
+    const SF = SECT.SOUL_FORGE;
+    SF.ARMAMENT_WILLS = Object.freeze({
+      BLOODTHIRSTY_BLADE: { id: 'BLOODTHIRSTY_BLADE', nameTh: 'เจตจำนงดาบกระหายโลหิต', preferredTrait: 'aggression', minVal: 55, bonusMult: 0.18 },
+      RIGHTEOUS_GUARDIAN_SWORD: { id: 'RIGHTEOUS_GUARDIAN_SWORD', nameTh: 'เจตจำนงกระบี่พิทักษ์ธรรม', preferredTrait: 'integrity', minVal: 55, bonusMult: 0.18 },
+      SCHOLARLY_JADE_BRUSH: { id: 'SCHOLARLY_JADE_BRUSH', nameTh: 'เจตจำนงพู่กันหยกปราชญ์เมธี', preferredTrait: 'composure', minVal: 55, bonusMult: 0.18 },
+      VOID_ASTRAL_BOW: { id: 'VOID_ASTRAL_BOW', nameTh: 'เจตจำนงศรดาราผ่าสุญตา', preferredTrait: 'courage', minVal: 55, bonusMult: 0.18 }
+    });
+
+    SF.evaluateWeaponCompatibility = (npc, weapon) => {
+      const wpn = weapon || (npc && npc.equip && npc.equip.WEAPON);
+      if (!npc || !wpn || !wpn.weaponSpirit) return { compatible: true, resonanceMult: 1.0, rebellion: false };
+      const ws = wpn.weaponSpirit;
+      const willId = ws.armamentWill || (HC.eff(npc, 'personality.aggression') >= 60 ? 'BLOODTHIRSTY_BLADE' : 'RIGHTEOUS_GUARDIAN_SWORD');
+      ws.armamentWill = willId;
+      const willSpec = SF.ARMAMENT_WILLS[willId] || SF.ARMAMENT_WILLS.RIGHTEOUS_GUARDIAN_SWORD;
+      const traitVal = (npc.h && npc.h.personality && Number.isFinite(npc.h.personality[willSpec.preferredTrait]))
+        ? npc.h.personality[willSpec.preferredTrait]
+        : (HC && HC.eff ? HC.eff(npc, 'personality.' + willSpec.preferredTrait) : 60);
+      if (traitVal < 28 && !ws.rebellionSuppressed) {
+        return { compatible: false, rebellion: true, willId, resonanceMult: 0.85, accPenalty: -15, hpDrainPct: 0.03 };
+      }
+      return { compatible: true, rebellion: false, willId, resonanceMult: +(1 + willSpec.bonusMult).toFixed(2) };
+    };
+
+    SF.manifestWeaponAvatar = (W, f, npc) => {
+      if (!npc || !npc.equip || !npc.equip.WEAPON) return { ok: false, reason: 'no-weapon' };
+      const wpn = npc.equip.WEAPON;
+      if (!wpn.weaponSpirit) SF.awakenWeaponSpirit(W, npc, npc, { initialXp: 320, quiet: true });
+      const ws = wpn.weaponSpirit;
+      ws.stage = 5;
+      ws.spiritXp = Math.max(300, ws.spiritXp || 300);
+      ws.stageNameTh = SF.SPIRIT_STAGES[4].nameTh;
+      ws.multBonus = 0.32;
+      const avatar = {
+        id: 'WPN_AVATAR_' + npc.id + '_' + ((W && W.t) || 0),
+        name: 'ร่างจำแลง' + ws.spiritNameTh,
+        isSummon: true,
+        isWeaponAvatar: true,
+        summonerId: npc.id,
+        foe: true,
+        tier: Math.max(5, wpn.tier || 5),
+        element: ws.element || 'EARTH_METAL',
+        hpMax: Math.round(((g.CULT && g.CULT.hpMax) ? g.CULT.hpMax(npc) : 400) * 0.65),
+        hp: Math.round(((g.CULT && g.CULT.hpMax) ? g.CULT.hpMax(npc) : 400) * 0.65),
+        dur: 20
+      };
+      if (W && f) {
+        const side = (g.COMBAT && g.COMBAT.sideOf) ? g.COMBAT.sideOf(f, npc.id) : 'A';
+        W.foeById = W.foeById || {};
+        W.foeById[avatar.id] = avatar;
+        if (!f[side].includes(avatar.id)) f[side].push(avatar.id);
+      }
+      npc.lastWeaponAvatar = avatar;
+      return { ok: true, avatar, weaponSpirit: ws };
+    };
+
+    SF.imbueElderSoulIntoWeapon = (W, elderNpc, weapon) => {
+      const wpn = weapon || (elderNpc && elderNpc.equip && elderNpc.equip.WEAPON);
+      if (!elderNpc || !wpn) return { ok: false, reason: 'missing-elder-or-weapon' };
+      if (!wpn.weaponSpirit) SF.awakenWeaponSpirit(W, elderNpc, elderNpc, { initialXp: 300, quiet: true });
+      const ws = wpn.weaponSpirit;
+      ws.stage = 5;
+      ws.multBonus = 0.32;
+      ws.imbuedElderSoul = {
+        elderId: elderNpc.id,
+        elderNameTh: HC.fullName(elderNpc),
+        path: elderNpc.cult ? elderNpc.cult.path : 'XIAN',
+        sub: elderNpc.cult ? elderNpc.cult.sub : 'NONE',
+        imbuedDay: (W && W.day) || 360,
+        guardianAuraBonusPct: 0.20
+      };
+      wpn.isAncestralSoulRelic = true;
+      return { ok: true, weapon: wpn, weaponSpirit: ws, imbuedElderSoul: ws.imbuedElderSoul };
+    };
+  }
+
+  /* ---------- Section 12.3: Sect Totem Pillars & Ancient Bloodline Awakening ---------- */
+  const TOTEMS_BLOODLINES = {};
+  TOTEMS_BLOODLINES.BLOODLINE_CATALOG = Object.freeze({
+    IMMORTAL_SOLAR_BLOODLINE: {
+      id: 'IMMORTAL_SOLAR_BLOODLINE', nameTh: 'สายเลือดสุริยันอมตะบรรพกาล', element: 'FIRE',
+      p: { atk: 0.14, matk: 0.14, hp: 0.10 }, f: { pen: 10, crit: 6 },
+      immuneChill: true, applyRadiationBurn: true,
+      descTh: 'ต้านทานสถานะหนาวเหน็บและแช่แข็งอย่างสมบูรณ์ วิชาธาตุไฟเผาผลาญเพดานเลือดศัตรู'
+    },
+    SKY_DEVOURING_DEMON_BLOODLINE: {
+      id: 'SKY_DEVOURING_DEMON_BLOODLINE', nameTh: 'สายเลือดมารกลืนสวรรค์', element: 'BLOOD_DEMON',
+      p: { atk: 0.16, matk: 0.12, hp: 0.12 }, f: { pen: 12, critDmg: 20 },
+      devourStatsOnKillPct: 0.10,
+      descTh: 'เมื่อสังหารศัตรูจะกลืนกินสเตตัส 10% มาเสริมพลังให้ตนเองตลอดการต่อสู้'
+    },
+    ALL_SEEING_EYE_BLOODLINE: {
+      id: 'ALL_SEEING_EYE_BLOODLINE', nameTh: 'สายเลือดเนตรสวรรค์แจ้งสัจธรรม', element: 'ASTRAL',
+      p: { acc: 0.30, eva: 0.14, matk: 0.12 }, f: { crit: 12, cast: 12 },
+      revealHiddenNodes: true,
+      descTh: 'เพิ่มความแม่นยำ +30% อัตราคริ +12% และมองเห็นจุดซ่อนเร้นรวมถึงคูลดาวน์ศัตรู'
+    },
+    PRIMORDIAL_AZURE_DRAGON_BLOODLINE: {
+      id: 'PRIMORDIAL_AZURE_DRAGON_BLOODLINE', nameTh: 'สายเลือดมังกรครามบรรพกาล', element: 'WOOD_LIFE',
+      p: { hp: 0.18, matk: 0.14, def: 0.12 }, f: { cast: 10, move: 10 },
+      descTh: 'เพิ่มพลังชีวิต +18% โจมตีวิชา +14% และฟื้นฟูบาดแผลอัตโนมัติ'
+    }
+  });
+
+  TOTEMS_BLOODLINES.TOTEM_CATALOG = Object.freeze({
+    TOTEM_AZURE_DRAGON: { id: 'TOTEM_AZURE_DRAGON', nameTh: 'เสาโทเท็มมังกรครามพฤกษาสวรรค์', element: 'WOOD_LIFE', p: { hp: 0.10, matk: 0.10 }, f: { cast: 8 } },
+    TOTEM_WHITE_TIGER: { id: 'TOTEM_WHITE_TIGER', nameTh: 'เสาโทเท็มพยัคฆ์ขาวศาสตราทอง', element: 'EARTH_METAL', p: { atk: 0.12, def: 0.08 }, f: { pen: 10, crit: 5 } },
+    TOTEM_VERMILION_PHOENIX: { id: 'TOTEM_VERMILION_PHOENIX', nameTh: 'เสาโทเท็มหงส์ชาดเพลิงนิพพาน', element: 'FIRE', p: { matk: 0.12, hp: 0.08 }, f: { critDmg: 16 } },
+    TOTEM_BLACK_TORTOISE: { id: 'TOTEM_BLACK_TORTOISE', nameTh: 'เสาโทเท็มเต่าดำปราการอุดร', element: 'WATER_ICE', p: { def: 0.15, mdef: 0.15 }, f: {} }
+  });
+
+  TOTEMS_BLOODLINES.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.totemPillars || typeof W.sect.totemPillars !== 'object') {
+      W.sect.totemPillars = { activeTotems: ['TOTEM_AZURE_DRAGON'], marrowPoolLevel: 1, awakenedCount: 0 };
+    }
+    return W.sect.totemPillars;
+  };
+
+  TOTEMS_BLOODLINES.erectTotemPillar = (W, totemId) => {
+    const st = TOTEMS_BLOODLINES.ensure(W);
+    const spec = TOTEMS_BLOODLINES.TOTEM_CATALOG[totemId] || TOTEMS_BLOODLINES.TOTEM_CATALOG.TOTEM_WHITE_TIGER;
+    if (st && !st.activeTotems.includes(spec.id)) st.activeTotems.push(spec.id);
+    if (W && Array.isArray(W.npcs)) {
+      W.npcs.forEach(n => {
+        if (n) {
+          n._sectTotems = st ? st.activeTotems.slice() : [spec.id];
+          if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+        }
+      });
+    }
+    return { ok: true, totem: spec, activeTotems: st ? st.activeTotems : [spec.id] };
+  };
+
+  TOTEMS_BLOODLINES.awakenBloodline = (W, npc, bloodlineId) => {
+    if (!npc) return { ok: false, reason: 'no-npc' };
+    const spec = TOTEMS_BLOODLINES.BLOODLINE_CATALOG[bloodlineId]
+      || (npc.cult && npc.cult.path === 'DEMON' ? TOTEMS_BLOODLINES.BLOODLINE_CATALOG.SKY_DEVOURING_DEMON_BLOODLINE
+        : (npc.cult && npc.cult.path === 'XIAN' ? TOTEMS_BLOODLINES.BLOODLINE_CATALOG.ALL_SEEING_EYE_BLOODLINE
+          : TOTEMS_BLOODLINES.BLOODLINE_CATALOG.IMMORTAL_SOLAR_BLOODLINE));
+    npc.ancientBloodline = {
+      id: spec.id,
+      nameTh: spec.nameTh,
+      element: spec.element,
+      awakened: true,
+      purity: 0.92,
+      awakenedDay: (W && W.day) || 360,
+      p: Object.assign({}, spec.p),
+      f: Object.assign({}, spec.f)
+    };
+    const st = TOTEMS_BLOODLINES.ensure(W);
+    if (st) st.awakenedCount = (st.awakenedCount || 0) + 1;
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, bloodline: npc.ancientBloodline };
+  };
+
+  TOTEMS_BLOODLINES.rollOffspringBloodline = (W, childNpc, parentA, parentB) => {
+    if (!childNpc) return { awakened: false };
+    const parentHas = (parentA && parentA.ancientBloodline && parentA.ancientBloodline.awakened) || (parentB && parentB.ancientBloodline && parentB.ancientBloodline.awakened);
+    const chance = parentHas ? 0.35 : 0.15;
+    const roll = (W && W.rng && typeof W.rng.next === 'function') ? W.rng.next() : 0.10;
+    if (roll <= chance) {
+      const inheritedId = (parentA && parentA.ancientBloodline && parentA.ancientBloodline.id) || (parentB && parentB.ancientBloodline && parentB.ancientBloodline.id) || 'IMMORTAL_SOLAR_BLOODLINE';
+      return TOTEMS_BLOODLINES.awakenBloodline(W, childNpc, inheritedId);
+    }
+    childNpc.dormantBloodline = { id: 'IMMORTAL_SOLAR_BLOODLINE', purity: 0.45, awakened: false };
+    return { ok: true, awakened: false, dormantBloodline: childNpc.dormantBloodline };
+  };
+
+  TOTEMS_BLOODLINES.getUnitBonuses = npc => {
+    if (!npc || npc.foe) return { active: false };
+    const hasBld = !!(npc.ancientBloodline && npc.ancientBloodline.awakened);
+    const activeTotems = (npc._sectTotems) || (g.W && g.W.sect && g.W.sect.totemPillars && g.W.sect.totemPillars.activeTotems) || [];
+    if (!hasBld && (!Array.isArray(activeTotems) || !activeTotems.length)) return { active: false };
+    const p = {}, f = {};
+    if (hasBld) {
+      const b = npc.ancientBloodline;
+      const spec = TOTEMS_BLOODLINES.BLOODLINE_CATALOG[b.id] || b;
+      for (const [k, v] of Object.entries(spec.p || {})) p[k] = (p[k] || 0) + v;
+      for (const [k, v] of Object.entries(spec.f || {})) f[k] = (f[k] || 0) + v;
+    }
+    if (Array.isArray(activeTotems)) {
+      for (const tid of activeTotems) {
+        const tSpec = TOTEMS_BLOODLINES.TOTEM_CATALOG[tid];
+        if (!tSpec) continue;
+        for (const [k, v] of Object.entries(tSpec.p || {})) p[k] = (p[k] || 0) + v;
+        for (const [k, v] of Object.entries(tSpec.f || {})) f[k] = (f[k] || 0) + v;
+      }
+    }
+    return {
+      active: true,
+      labelTh: hasBld ? ('สายเลือดบรรพกาล「' + (npc.ancientBloodline.nameTh || npc.ancientBloodline.id) + '」และเสาโทเท็ม') : 'พรคุ้มครองเสาโทเท็มสำนัก',
+      p,
+      f
+    };
+  };
+  SECT.TOTEMS_BLOODLINES = TOTEMS_BLOODLINES;
+
+  /* ---------- Section 12.4: Celestial Alignments & World Cataclysms ---------- */
+  const CELESTIAL_ALIGNMENTS = {};
+  CELESTIAL_ALIGNMENTS.EVENTS = Object.freeze({
+    BLOOD_MOON_ECLIPSE: {
+      id: 'BLOOD_MOON_ECLIPSE', nameTh: 'ปรากฏการณ์จันทรุปราคาโลหิต', icon: '🩸',
+      boostElements: ['BLOOD_DEMON', 'DARK_YIN'], dmgBoostPct: 0.30, heartDemonRiskAdd: 0.15,
+      specialResource: 'MAT_V234_005', descTh: 'วิชาสายมารและหยินรุนแรงขึ้น +30% และสมุนไพรจันทราโลหิตผลิบาน'
+    },
+    NINE_SUN_CONVERGENCE: {
+      id: 'NINE_SUN_CONVERGENCE', nameTh: 'ปรากฏการณ์เก้าสุริยันเรียงตัว', icon: '☀️',
+      boostElements: ['FIRE', 'LIGHT_YANG'], dmgBoostPct: 0.35, fireAlchemyBonusPct: 0.25,
+      specialResource: 'MAT_V234_001', descTh: 'วิชาสายอัคคีและกายาสุริยันรุนแรงขึ้น +35% และปรุงโอสถไฟสำเร็จง่ายขึ้น +25%'
+    },
+    ASTRAL_METEOR_SHOWER: {
+      id: 'ASTRAL_METEOR_SHOWER', nameTh: 'ปรากฏการณ์ฝนดาวตกดาราจักร', icon: '☄️',
+      boostElements: ['ASTRAL', 'EARTH_METAL'], dmgBoostPct: 0.28, comprehensionBonusPct: 0.40,
+      specialResource: 'MAT_V234_002', descTh: 'แร่เหล็กดาราร่วงหล่นลงสู่แผนที่โลก และการหยั่งรู้ค่ายกลดาราเพิ่มขึ้น +40%'
+    },
+    PRANA_TIDE_INFLUX: {
+      id: 'PRANA_TIDE_INFLUX', nameTh: 'ปรากฏการณ์กระแสปราณบรรพกาลทะลัก', icon: '🌊',
+      boostElements: ['WATER_ICE', 'WOOD_LIFE', 'WIND', 'LIGHTNING'], qiRegenBoostPct: 0.50, btBonusPct: 0.10,
+      specialResource: 'MAT_V234_004', descTh: 'ความเร็วฟื้นฟูปราณทั่วหล้าเพิ่มขึ้น +50% และโอกาสทะลวงขั้นเพิ่มขึ้น +10%'
+    }
+  });
+
+  CELESTIAL_ALIGNMENTS.ensure = W => {
+    if (!W) return null;
+    if (!W.celestialAlignment || typeof W.celestialAlignment !== 'object') {
+      W.celestialAlignment = { activeEvent: null, history: [] };
+    }
+    return W.celestialAlignment;
+  };
+
+  CELESTIAL_ALIGNMENTS.triggerEvent = (W, eventId, durDays) => {
+    const st = CELESTIAL_ALIGNMENTS.ensure(W);
+    const spec = CELESTIAL_ALIGNMENTS.EVENTS[eventId] || CELESTIAL_ALIGNMENTS.EVENTS.PRANA_TIDE_INFLUX;
+    const dayNow = (W && W.day) || 360;
+    const active = Object.assign({}, spec, {
+      startedDay: dayNow,
+      untilDay: dayNow + (durDays || 7)
+    });
+    if (st) {
+      st.activeEvent = active;
+      st.history.unshift(active);
+      if (st.history.length > 20) st.history.length = 20;
+    }
+    if (W) W.celestialEvent = active;
+    if (W && W.sect && spec.specialResource && g.ECO && g.ECO.add) {
+      g.ECO.add(W, spec.specialResource, 3);
+    }
+    return { ok: true, event: active };
+  };
+
+  CELESTIAL_ALIGNMENTS.tick = W => {
+    const st = CELESTIAL_ALIGNMENTS.ensure(W);
+    if (!st) return null;
+    const dayNow = (W && W.day) || 360;
+    if (st.activeEvent && dayNow >= st.activeEvent.untilDay) {
+      st.activeEvent = null;
+      W.celestialEvent = null;
+    }
+    if (!st.activeEvent && dayNow % 60 === 0) {
+      const keys = Object.keys(CELESTIAL_ALIGNMENTS.EVENTS);
+      const pick = keys[(Math.floor(dayNow / 60)) % keys.length];
+      return CELESTIAL_ALIGNMENTS.triggerEvent(W, pick, 6);
+    }
+    return { ok: true, activeEvent: st.activeEvent };
+  };
+  SECT.CELESTIAL_ALIGNMENTS = CELESTIAL_ALIGNMENTS;
+
+  /* ---------- Section 12.6: Destiny Threads & Karmic Debt Ledger ---------- */
+  const DESTINY_KARMA = {};
+  DESTINY_KARMA.THREAD_TYPES = Object.freeze({
+    RED_THREAD: { id: 'RED_THREAD', nameTh: 'ด้ายแดงคู่บุญวาสนา', dualCultSpeedBonus: 0.20, duetSkillUnlocked: true },
+    BLACK_THREAD: { id: 'BLACK_THREAD', nameTh: 'ด้ายดำหนี้แค้นข้ามภพ', nemesisDmgBonus: 0.25, daoInsightOnSlay: 100 },
+    GOLD_THREAD: { id: 'GOLD_THREAD', nameTh: 'ด้ายทองผู้มีพระคุณ', rescueInterventionChance: 0.85, shieldOnRescuePct: 0.30 }
+  });
+
+  DESTINY_KARMA.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.destinyKarma || typeof W.sect.destinyKarma !== 'object') {
+      W.sect.destinyKarma = { threads: [], ledger: {} };
+    }
+    return W.sect.destinyKarma;
+  };
+
+  DESTINY_KARMA.bindThread = (W, npcA, npcB, threadType, reasonTh) => {
+    const st = DESTINY_KARMA.ensure(W);
+    const spec = DESTINY_KARMA.THREAD_TYPES[threadType] || DESTINY_KARMA.THREAD_TYPES.RED_THREAD;
+    const idA = typeof npcA === 'object' ? npcA.id : npcA;
+    const idB = typeof npcB === 'object' ? npcB.id : npcB;
+    const entry = {
+      id: 'THD_' + spec.id + '_' + idA + '_' + idB,
+      type: spec.id,
+      nameTh: spec.nameTh,
+      aId: idA,
+      bId: idB,
+      reasonTh: reasonTh || spec.nameTh,
+      boundDay: (W && W.day) || 360,
+      spec
+    };
+    if (st) st.threads.push(entry);
+    if (typeof npcA === 'object' && npcA) {
+      npcA.destinyThreads = Array.isArray(npcA.destinyThreads) ? npcA.destinyThreads : [];
+      npcA.destinyThreads.push(entry);
+    }
+    if (typeof npcB === 'object' && npcB) {
+      npcB.destinyThreads = Array.isArray(npcB.destinyThreads) ? npcB.destinyThreads : [];
+      npcB.destinyThreads.push(entry);
+    }
+    return { ok: true, thread: entry };
+  };
+
+  DESTINY_KARMA.recordKarmicAction = (W, npc, delta, reasonTh) => {
+    if (!npc) return { ok: false };
+    npc.karmicLedger = npc.karmicLedger || { virtueKarma: 0, sinKarma: 0, netKarma: 0, aura: 'NEUTRAL', history: [] };
+    if (delta >= 0) npc.karmicLedger.virtueKarma += delta;
+    else npc.karmicLedger.sinKarma += Math.abs(delta);
+    npc.karmicLedger.netKarma = npc.karmicLedger.virtueKarma - npc.karmicLedger.sinKarma;
+    if (npc.karmicLedger.virtueKarma >= 50) npc.karmicLedger.aura = 'GOLDEN_BODHI_HALO';
+    else if (npc.karmicLedger.sinKarma >= 50) npc.karmicLedger.aura = 'ASURA_BLOOD_AURA';
+    npc.karmicLedger.history.unshift({ day: (W && W.day) || 360, delta, reasonTh: reasonTh || 'บันทึกกรรม' });
+    return { ok: true, ledger: npc.karmicLedger };
+  };
+
+  DESTINY_KARMA.evaluateIntervention = (W, endangeredNpc) => {
+    if (!endangeredNpc || !Array.isArray(endangeredNpc.destinyThreads)) return { intervened: false };
+    const gold = endangeredNpc.destinyThreads.find(t => t && (t.type === 'GOLD_THREAD' || t.type === 'RED_THREAD'));
+    if (!gold) return { intervened: false };
+    const saviorId = gold.aId === endangeredNpc.id ? gold.bId : gold.aId;
+    const savior = W && W.byId && W.byId[saviorId];
+    return { intervened: true, saviorId, saviorNameTh: savior ? HC.fullName(savior) : 'ผู้มีวาสนาผูกพัน', threadType: gold.type };
+  };
+  SECT.DESTINY_KARMA = DESTINY_KARMA;
+
+  /* ---------- Section 12.7: Leyline Anchors & Sect Territorial Grid Network ---------- */
+  const LEYLINE_GRID = {};
+  LEYLINE_GRID.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.leylineGrid || typeof W.sect.leylineGrid !== 'object') {
+      W.sect.leylineGrid = {
+        anchors: [
+          { id: 'ANCHOR_NORTH_PEAK', nameTh: 'เสาค่ายกลชีพจรธรณี·ยอดเขาอุดร', x: 90, y: 80, active: true, element: 'WATER_ICE' },
+          { id: 'ANCHOR_EAST_VALLEY', nameTh: 'เสาค่ายกลชีพจรธรณี·หุบเขาบูรพา', x: 150, y: 110, active: true, element: 'WOOD_LIFE' },
+          { id: 'ANCHOR_SOUTH_GATE', nameTh: 'เสาค่ายกลชีพจรธรณี·ด่านทักษิณ', x: 115, y: 165, active: true, element: 'FIRE' }
+        ],
+        triangulated: true,
+        travelSpeedBonusPct: 0.50,
+        monsterWardActive: true,
+        sabotagedRivals: []
+      };
+    }
+    return W.sect.leylineGrid;
+  };
+
+  LEYLINE_GRID.deployAnchor = (W, x, y, nameTh, element) => {
+    const grid = LEYLINE_GRID.ensure(W);
+    const anchor = {
+      id: 'ANCHOR_' + (grid.anchors.length + 1) + '_' + Math.round(x || 100) + '_' + Math.round(y || 100),
+      nameTh: nameTh || ('เสาค่ายกลชีพจรธรณี #' + (grid.anchors.length + 1)),
+      x: Number(x) || 100,
+      y: Number(y) || 100,
+      active: true,
+      element: element || 'EARTH_METAL'
+    };
+    grid.anchors.push(anchor);
+    grid.triangulated = grid.anchors.filter(a => a && a.active).length >= 3;
+    return { ok: true, anchor, triangulated: grid.triangulated, activeCount: grid.anchors.filter(a => a && a.active).length };
+  };
+
+  LEYLINE_GRID.isTerritoryTriangulated = W => {
+    const grid = LEYLINE_GRID.ensure(W);
+    return !!(grid && grid.anchors.filter(a => a && a.active).length >= 3);
+  };
+
+  LEYLINE_GRID.teleportBetweenAnchors = (W, npcOrParty, fromAnchorId, toAnchorId) => {
+    const grid = LEYLINE_GRID.ensure(W);
+    if (!grid || !grid.triangulated) return { ok: false, reason: 'grid-not-triangulated' };
+    const dest = grid.anchors.find(a => a && a.id === toAnchorId && a.active) || grid.anchors[0];
+    const list = Array.isArray(npcOrParty) ? npcOrParty : [npcOrParty];
+    for (const n of list) {
+      if (!n) continue;
+      n.x = dest.x;
+      n.y = dest.y;
+      n.lastLeylineTeleport = { t: (W && W.t) || 0, fromAnchorId, toAnchorId: dest.id };
+    }
+    return { ok: true, destination: dest, count: list.length };
+  };
+
+  LEYLINE_GRID.sabotageRivalAnchor = (W, party, rivalSectId) => {
+    const grid = LEYLINE_GRID.ensure(W);
+    const rec = { rivalSectId: rivalSectId || 'RIVAL_SECT_1', day: (W && W.day) || 360, defenseDroppedPct: 0.35 };
+    if (grid) grid.sabotagedRivals.push(rec);
+    return { ok: true, sabotage: rec };
+  };
+  SECT.LEYLINE_GRID = LEYLINE_GRID;
+
+  /* ---------- Section 13 & 14: Universal 12-Path Equity Matrix & Multi-Perspective Synthesis ---------- */
+  SECT.UNIVERSAL_EQUITY_V235 = Object.freeze({
+    XIAN: { path: 'XIAN', combatMechanic: 'Flying Sword Array & Astral Star-Seals', elementalSpecialty: ['ASTRAL', 'WIND'], facilityRole: 'Pavilion of Myriad Swords (+Cast Speed)', explorationRole: 'Sky-Flight Bypass Terrain Obstacles' },
+    BODY: { path: 'BODY', combatMechanic: 'Blood-Qi Furnace & Poise-Break Collisions', elementalSpecialty: ['FIRE', 'EARTH_METAL'], facilityRole: 'Marrow-Cleansing Crucible (+Max HP)', explorationRole: 'Boulder-Shatter & Hazard Immunity' },
+    GOD: { path: 'GOD', combatMechanic: 'Divine Edict Domain & Faith Barrier', elementalSpecialty: ['LIGHT_YANG', 'LIGHTNING'], facilityRole: 'Ancestral Shrine & Totem Pillar (+Morale)', explorationRole: 'Purify Cursed Ruins & Undead Sanctums' },
+    DEMON: { path: 'DEMON', combatMechanic: 'Heart-Demon Overdrive & Blood-Boil Detonation', elementalSpecialty: ['BLOOD_DEMON', 'DARK_YIN'], facilityRole: 'Blood-Refining Altar (+Crit & Lifesteal)', explorationRole: 'Intimidate Wild Beasts & Harvest Soul Cores' },
+    HEART_SOUL: { path: 'HEART_SOUL', combatMechanic: 'Dream Illusion Clone & Mind-Control', elementalSpecialty: ['DARK_YIN', 'ASTRAL'], facilityRole: 'Bell of Tranquility (Purges Heart Demons)', explorationRole: 'Sense Hidden Treasures & Read Ancient Memories' },
+    MECH_PUPPET: { path: 'MECH_PUPPET', combatMechanic: 'Overheat Reactor & Synchronized Puppet Barrage', elementalSpecialty: ['EARTH_METAL', 'LIGHTNING'], facilityRole: 'Automated Forge & Construct Foundry', explorationRole: 'Deploy Scout Drones & Disarm Ancient Traps' },
+    KARMA_SAMSARA: { path: 'KARMA_SAMSARA', combatMechanic: 'Six-Realms Wheel Shift & Karmic Debt Reflection', elementalSpecialty: ['LIGHT_YANG', 'DARK_YIN'], facilityRole: 'Hall of Karmic Ledger (Predicts Calamities)', explorationRole: 'Trace Destiny Threads to Fated Encounters' },
+    BEAST_SOVEREIGN: { path: 'BEAST_SOVEREIGN', combatMechanic: 'Beast Spirit Possession & Pack Alpha Frenzy', elementalSpecialty: ['WOOD_LIFE', 'WIND'], facilityRole: 'Spirit Beast Menagerie & Breeding Grounds', explorationRole: 'Track Rare Mythic Beasts & Mount Speed +40%' },
+    SAGE_SUPPORT: { path: 'SAGE_SUPPORT', combatMechanic: 'Acupoint Sealing & Cleanse-to-Power Nectar', elementalSpecialty: ['WOOD_LIFE', 'WATER_ICE'], facilityRole: 'Hundred-Herb Apothecary & Infirmary', explorationRole: 'Harvest Intact Immortal Herbs (+50% Yield)' },
+    CRAFT_CREATION: { path: 'CRAFT_CREATION', combatMechanic: 'Multi-Relic Barrage & Molten Armor Shatter', elementalSpecialty: ['FIRE', 'EARTH_METAL'], facilityRole: 'Heavenly Flame Smithy & Pill Cauldron', explorationRole: 'Salvage Ancient Golems & Repair Relics in Field' },
+    ARRAY_TALISMAN: { path: 'ARRAY_TALISMAN', combatMechanic: 'Eight-Trigram Labyrinth & Multi-Charge Talismans', elementalSpecialty: ['ASTRAL', 'LIGHTNING'], facilityRole: 'Sect Grand Protective Formation & Leyline Grid', explorationRole: 'Crack Ancient Sealing Arrays & Teleportation Gates' },
+    STRATEGY_GOVERNANCE: { path: 'STRATEGY_GOVERNANCE', combatMechanic: 'Tactical Row Command & Focus-Fire Decree', elementalSpecialty: ['EARTH_METAL', 'LIGHT_YANG'], facilityRole: 'Hall of Affairs & Diplomatic Trade Hub', explorationRole: 'Supply Logistics (-40% Food Cost) & Negotiate Treaties' }
+  });
+
+  SECT.EXPERT_SYNTHESIS_V235 = Object.freeze({
+    COMBAT_SYSTEMS_ARCHITECT: { maxReactionChainPerTurn: 1, icdSeconds: 0.5, o1ReactionLookup: true },
+    SIMULATION_AI_ENGINEER: { personalityDrivenWeaponCompatibility: true, karmaDestinyDrivenTargeting: true },
+    CONTENT_PROGRESSION_DESIGNER: { crossSystemElementalLoop: true, realmPuzzlesToAlchemyToSmithingToCombat: true },
+    PERFORMANCE_QA_LEAD: { bitmaskAndTableLookup: true, perTickConditionCache: true, targetTickBudgetMs: 3.0 }
+  });
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;

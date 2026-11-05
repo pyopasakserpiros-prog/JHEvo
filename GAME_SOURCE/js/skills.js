@@ -108,7 +108,28 @@
     beastPackFury: { nameTh: 'สัญชาตญาณฝูงอสูรคลั่ง', icon: '🐾', isBuff: true, pmods: { atk: .20, hp: .12 }, mods: { move: 16, crit: 8, pen: 10 } },
     artisanFocus: { nameTh: 'สมาธิเตาหลอมเทวะ', icon: '🔨', isBuff: true, pmods: { atk: .14, matk: .16, def: .14, mdef: .14 }, mods: { acc: 12, pen: 10 } },
     alchemicalHarmony: { nameTh: 'ปราณโอสถประสานชีพจร', icon: '⚗️', hot: true, isBuff: true, pmods: { hp: .14, mdef: .16 }, mods: { cast: 12 } },
-    voidPhase: { nameTh: 'เร้นมิติสุญตา', icon: '🌀', isBuff: true, pmods: { eva: .30, matk: .14 }, mods: { move: 18, pen: 14 } }
+    voidPhase: { nameTh: 'เร้นมิติสุญตา', icon: '🌀', isBuff: true, pmods: { eva: .30, matk: .14 }, mods: { move: 18, pen: 14 } },
+    taunt: { nameTh: 'ยั่วยุดึงความสนใจ', icon: '🤬', tags: ['#CONTROL'] },
+    grounded: { nameTh: 'ตรึงปฐพีห้ามเหิน', icon: '🪨', mods: { move: -60 }, pmods: { eva: -.30 }, tags: ['#CONTROL', '#EARTH'] },
+    hemorrhage: { nameTh: 'แผลฉีกขาดเลือดทะลัก', icon: '🩸', dot: true, pmods: { def: -.12 }, tags: ['#BLOOD', '#PHYSICAL'] },
+    sporeBloom: { nameTh: 'ดอกสปอร์พิษกลืนชีพ', icon: '🍄', dot: true, pmods: { mdef: -.10 }, tags: ['#WOOD', '#POISON'] },
+    bloodfrostShard: { nameTh: 'ผลึกโลหิตเยือกแข็ง', icon: '🧊', dot: true, mods: { cast: -20, move: -20 }, tags: ['#ICE', '#BLOOD'] },
+    healBlock: { nameTh: 'เพลิงพิษผนึกการรักษา', icon: '🚫', pmods: { mdef: -.15 }, tags: ['#FIRE', '#POISON', '#SEAL'] },
+    poiseBroken: { nameTh: 'ท่าร่างพังทลาย', icon: '💥', pmods: { def: -.30, mdef: -.30, eva: -.40 }, tags: ['#CONTROL', '#PHYSICAL'] },
+    soulFractured: { nameTh: 'วิญญาณสะเทือนไร้สมาธิ', icon: '⚡', mods: { cast: -35, acc: -25 }, pmods: { mdef: -.20 }, tags: ['#LIGHTNING', '#SEAL'] },
+    cryoStasis: { nameTh: 'เวลาหยุดนิ่งเยือกแข็งสัมบูรณ์', icon: '❄️', mods: { move: -100, cast: -100 }, pmods: { eva: -1.0 }, tags: ['#ICE', '#CONTROL'] },
+    manaBurnBacklash: { nameTh: 'คำสาปสะท้อนปราณอเวจี', icon: '🔥', dot: true, pmods: { mdef: -.15 }, tags: ['#YIN', '#DEMON'] },
+    acupointQiBlock: { nameTh: 'สกัดจุดลมปราณ', icon: '🪡', mods: { cast: -40 }, tags: ['#ACUPOINT', '#SEAL'] },
+    acupointWeaken: { nameTh: 'สกัดจุดสลายพละกำลัง', icon: '🪡', pmods: { atk: -.40, matk: -.40 }, tags: ['#ACUPOINT'] },
+    acupointBleed: { nameTh: 'สกัดจุดหยุดชีพจร', icon: '🪡', dot: true, pmods: { def: -.15 }, tags: ['#ACUPOINT', '#BLOOD'] },
+    meridianRupture: { nameTh: 'ชีพจรฉีกขาดหลังระเบิดปราณ', icon: '💔', pmods: { atk: -.20, matk: -.20, def: -.15 }, mods: { cast: -20, move: -20 }, tags: ['#ACUPOINT'] },
+    cryoMirror: { nameTh: 'กระจกหิมะสะท้อนหมื่นลี้', icon: '🪞', isBuff: true, pmods: { mdef: .25, def: .20 }, tags: ['#ICE', '#METAL', '#SHIELD'] },
+    phoenixCovenant: { nameTh: 'พันธะสุริยันอมตะคืนชีพ', icon: '🐦‍🔥', isBuff: true, pmods: { atk: .15, matk: .15, hp: .12 }, tags: ['#FIRE', '#YANG', '#SAMSARA'] },
+    asuraBloodFrenzy: { nameTh: 'โลหิตมารคลั่งชีพ', icon: '👹', isBuff: true, pmods: { atk: .50, matk: .50, def: -.10 }, mods: { crit: 12, critDmg: 25 }, tags: ['#BLOOD', '#DEMON'] },
+    meridianOverdrive: { nameTh: 'ระเบิดชีพจรทะลวงขีดจำกัด', icon: '⚡', isBuff: true, pmods: { atk: 1.0, matk: 1.0 }, mods: { move: 100, cast: 100, crit: 20 }, tags: ['#ACUPOINT'] },
+    finalStandImmortal: { nameTh: 'ปราการอมตะเฮือกสุดท้าย', icon: '🛡️', isBuff: true, pmods: { def: .80, mdef: .80 }, tags: ['#SHIELD'] },
+    totemBlessing: { nameTh: 'พรเสาโทเทมบรรพชน', icon: '🗿', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { acc: 10, cast: 10 }, tags: ['#ASTRAL'] },
+    beastSpiritPossessed: { nameTh: 'สถิตร่างรวมวิญญาณอสูร', icon: '🐉', isBuff: true, pmods: { atk: .24, matk: .20, def: .22, mdef: .20 }, mods: { move: 28, crit: 10, pen: 12 }, tags: ['#SUMMON'] }
   };
   const SUBW = {
     SWORD_IMMORTAL: { strike: 3, pierce: 3, flurry: 2, burst: 1.5, dot: .5 },
@@ -280,6 +301,31 @@
       aiRole: m.aiRole || null,
       fxKind: m.fxKind || t.fxKind || null,
       composable: m.composable || t.composable || null,
+      targetSelector: m.targetSelector || (m.composable && m.composable.targetSelector) || t.targetSelector || (t.composable && t.composable.targetSelector) || null,
+      condition: m.condition || (m.composable && m.composable.condition) || t.condition || (t.composable && t.composable.condition) || null,
+      action: m.action || (m.composable && m.composable.action) || t.action || (t.composable && t.composable.action) || null,
+      actions: m.actions || (m.composable && m.composable.actions) || t.actions || (t.composable && t.composable.actions) || null,
+      stanceShift: m.stanceShift || (m.composable && m.composable.stanceId) || t.stanceShift || null,
+      comboPrimer: !!(m.comboPrimer || (m.composable && m.composable.comboPrimer)),
+      comboFinisher: !!(m.comboFinisher || (m.composable && m.composable.comboFinisher)),
+      markPrimer: m.markPrimer || (m.composable && m.composable.markPrimer) || null,
+      markDetonate: m.markDetonate || (m.composable && m.composable.markDetonate) || null,
+      elementalFusion: m.elementalFusion || (m.composable && m.composable.elementalFusion) || t.elementalFusion || null,
+      statusTransmute: m.statusTransmute || (m.composable && m.composable.statusTransmute) || null,
+      sacrificeOverdrive: m.sacrificeOverdrive || (m.composable && m.composable.sacrificeOverdrive) || null,
+      tetherLink: m.tetherLink || (m.composable && m.composable.tetherLink) || null,
+      domain: m.domain || (m.composable && m.composable.domain) || t.domain || null,
+      acupointStrike: m.acupointStrike || (m.composable && m.composable.acupointStrike) || t.acupointStrike || null,
+      delayedEcho: m.delayedEcho || (m.composable && m.composable.delayedEcho) || null,
+      taunt: m.taunt || (m.composable && m.composable.taunt) || false,
+      knockback: m.knockback || (m.composable && m.composable.knockback) || null,
+      poiseDamage: m.poiseDamage || (m.composable && m.composable.poiseDamage) || 0,
+      chargeStage: m.chargeStage || (m.composable && m.composable.chargeStage) || 0,
+      coCast: m.coCast || (m.composable && m.composable.coCast) || t.coCast || null,
+      cleanseToPower: m.cleanseToPower || (m.composable && m.composable.cleanseToPower) || false,
+      contagion: m.contagion || (m.composable && m.composable.contagion) || false,
+      phoenixClause: m.phoenixClause || (m.composable && m.composable.phoenixClause) || false,
+      tags: m.tags || t.tags || null,
       reqPath: t.reqPath || (t.path !== 'ANY' ? t.path : null),
       bonusPath: t.bonusPath || t.compatiblePaths || null,
       reqSubpath: t.reqSubpath || null,
@@ -370,6 +416,26 @@
       };
       prof.ticks = ticks;
     }
+    const m0 = (Array.isArray(t.moveDefs) && t.moveDefs[0]) || {};
+    prof.composable = t.composable || m0.composable || null;
+    prof.targetSelector = t.targetSelector || m0.targetSelector || (prof.composable && prof.composable.targetSelector) || null;
+    prof.condition = t.condition || m0.condition || (prof.composable && prof.composable.condition) || null;
+    prof.action = t.action || m0.action || (prof.composable && prof.composable.action) || null;
+    prof.actions = t.actions || m0.actions || (prof.composable && prof.composable.actions) || null;
+    prof.stanceShift = t.stanceShift || m0.stanceShift || null;
+    prof.comboPrimer = !!(t.comboPrimer || m0.comboPrimer);
+    prof.comboFinisher = !!(t.comboFinisher || m0.comboFinisher);
+    prof.markPrimer = t.markPrimer || m0.markPrimer || null;
+    prof.markDetonate = t.markDetonate || m0.markDetonate || null;
+    prof.elementalFusion = t.elementalFusion || m0.elementalFusion || null;
+    prof.statusTransmute = t.statusTransmute || m0.statusTransmute || null;
+    prof.sacrificeOverdrive = t.sacrificeOverdrive || m0.sacrificeOverdrive || null;
+    prof.tetherLink = t.tetherLink || m0.tetherLink || null;
+    prof.domain = t.domain || m0.domain || null;
+    prof.acupointStrike = t.acupointStrike || m0.acupointStrike || null;
+    prof.delayedEcho = t.delayedEcho || m0.delayedEcho || null;
+    prof.coCast = t.coCast || m0.coCast || null;
+    prof.tags = t.tags || m0.tags || null;
     prof.weaponTypes = t.weaponTypes; prof.armorTypes = t.armorTypes; prof.requiresWeapon = t.requiresWeapon;
     prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : ''); return (cache[t.id] = prof);
   };
@@ -776,37 +842,265 @@
     };
   };
 
-  /* ---------- Composable Effect & Keyword Authority (v2.0.34) ---------- */
+  /* ---------- Composable Effect, Stance, Fusion & Keyword Authority (v2.0.35) ---------- */
+  SK.STANCE_CATALOG = Object.freeze({
+    STAR_SWORD_STANCE: {
+      id: 'STAR_SWORD_STANCE',
+      nameTh: 'ท่ากระบี่ดารา',
+      icon: '🌠',
+      p: { matk: 0.18, acc: 0.10 },
+      f: { crit: 12 },
+      descTh: 'โจมตีวิชา +18%, คริติคอล +12%, แม่นยำ +10%'
+    },
+    VAJRA_BASTION_STANCE: {
+      id: 'VAJRA_BASTION_STANCE',
+      nameTh: 'ท่าปราการวัชระ',
+      icon: '🛡️',
+      p: { def: 0.25, mdef: 0.20, move: -0.10 },
+      f: {},
+      descTh: 'พลังป้องกันกายภาพ +25%, ป้องกันวิชา +20%, สปีดเคลื่อนที่ -10%'
+    },
+    SHADOW_REAPER_STANCE: {
+      id: 'SHADOW_REAPER_STANCE',
+      nameTh: 'ท่าเงาสังหาร',
+      icon: '🌑',
+      p: { eva: 0.22 },
+      f: { pen: 15, crit: 8, critDmg: 18 },
+      descTh: 'หลบหลีก +22%, เจาะเกราะ +15%, เพิ่มโอกาสโจมตีจุดตาย'
+    },
+    LOTUS_MERCY_STANCE: {
+      id: 'LOTUS_MERCY_STANCE',
+      nameTh: 'ท่าบัวการุญ',
+      icon: '🪷',
+      p: { atk: -0.08, matk: -0.08, mdef: 0.15 },
+      f: {},
+      qiRegenBonus: 0.20,
+      healOutBonus: 0.25,
+      descTh: 'อัตราฟื้นฟูปราณ +20%, พลังรักษาเพื่อน +25%, พลังโจมตี -8%'
+    },
+    THUNDER_STEP_STANCE: {
+      id: 'THUNDER_STEP_STANCE',
+      nameTh: 'ท่าย่างก้าวอัสนี',
+      icon: '⚡',
+      p: { cast: 0.20, eva: 0.18, move: 0.25 },
+      f: { cast: 20, move: 25 },
+      descTh: 'ความเร็วร่าย +20%, หลบหลีก +18%, ความเร็วเคลื่อนที่ +25%'
+    },
+    BLOOD_ASURA_STANCE: {
+      id: 'BLOOD_ASURA_STANCE',
+      nameTh: 'ท่าอสูรโลหิต',
+      icon: '🩸',
+      p: { atk: 0.22, matk: 0.22, def: -0.12, mdef: -0.12 },
+      f: {},
+      lifestealBonus: 0.15,
+      descTh: 'ดูดเลือด +15%, พลังโจมตี +22%, พลังป้องกัน -12%'
+    },
+    QIMEN_ARRAY_STANCE: {
+      id: 'QIMEN_ARRAY_STANCE',
+      nameTh: 'ท่าค่ายกลฉีเหมิน',
+      icon: '☯️',
+      p: { def: 0.15, mdef: 0.18 },
+      f: {},
+      shieldBonus: 0.20,
+      ctrlResistBonus: 0.30,
+      descTh: 'เพิ่มความแข็งแกร่งของโล่ +20%, ต้านทานสถานะผิดปกติ +30%'
+    },
+    // Aliases for cross-compatibility
+    SWORD_INTENT_FLOW: { id: 'SWORD_INTENT_FLOW', aliasOf: 'STAR_SWORD_STANCE', nameTh: 'ท่าเจตจำนงกระบี่ไหลเวียน', icon: '🗡️', p: { matk: 0.18, acc: 0.10 }, f: { crit: 12 } },
+    IRON_VAJRA_GUARD: { id: 'IRON_VAJRA_GUARD', aliasOf: 'VAJRA_BASTION_STANCE', nameTh: 'ท่าปราการเหล็กวัชระ', icon: '🛡️', p: { def: 0.25, mdef: 0.20, move: -0.10 }, f: {} },
+    BLOOD_FRENZY_POSTURE: { id: 'BLOOD_FRENZY_POSTURE', aliasOf: 'BLOOD_ASURA_STANCE', nameTh: 'ท่าโลหิตคลั่งสังหาร', icon: '🩸', p: { atk: 0.22, matk: 0.22, def: -0.12, mdef: -0.12 }, f: {}, lifestealBonus: 0.15 },
+    ASTRAL_DIVINATION_STANCE: { id: 'ASTRAL_DIVINATION_STANCE', aliasOf: 'QIMEN_ARRAY_STANCE', nameTh: 'ท่าพยากรณ์ดาราฉีเหมิน', icon: '🌌', p: { def: 0.15, mdef: 0.18 }, f: {}, shieldBonus: 0.20, ctrlResistBonus: 0.30 },
+    PUPPET_OVERDRIVE_MODE: { id: 'PUPPET_OVERDRIVE_MODE', aliasOf: 'THUNDER_STEP_STANCE', nameTh: 'ท่าหุ่นเชิดเร่งพิกัด', icon: '⚙️', p: { cast: 0.20, eva: 0.18, move: 0.25 }, f: { cast: 20, move: 25 } },
+    KARMA_MIRROR_STANCE: { id: 'KARMA_MIRROR_STANCE', aliasOf: 'LOTUS_MERCY_STANCE', nameTh: 'ท่ากระจกสะท้อนกรรม', icon: '☸️', p: { atk: -0.08, matk: -0.08, mdef: 0.15 }, f: {}, qiRegenBonus: 0.20, healOutBonus: 0.25 }
+  });
+
+  SK.normalizeTrigger = triggerKind => {
+    if (!triggerKind) return '';
+    const raw = String(triggerKind).trim();
+    const lower = raw.toLowerCase().replace(/_/g, '');
+    const map = {
+      onhit: 'onHit',
+      onstruck: 'onStruck',
+      onbeinghit: 'onStruck',
+      oncrit: 'onCrit',
+      ondodge: 'onDodge',
+      onparry: 'onParry',
+      onkill: 'onKill',
+      onheal: 'onHeal',
+      oncast: 'onCast',
+      onshieldbreak: 'onShieldBreak',
+      onstatusapply: 'onStatusApply',
+      onlowhp: 'onLowHp',
+      onallylowhp: 'onLowHp',
+      onstanceswitch: 'onStanceSwitch',
+      combattick: 'combatTick',
+      oncombattick: 'combatTick',
+      onturnstart: 'onRoundStart',
+      onroundstart: 'onRoundStart',
+      onturnend: 'onRoundEnd',
+      onroundend: 'onRoundEnd',
+      onallyfall: 'onAllyFall',
+      onenemyfall: 'onEnemyFall',
+      ondebuffresisted: 'onDebuffResisted',
+      onskillcooldownready: 'onSkillCooldownReady',
+      oncombochainn: 'onComboChainN',
+      onfirststrike: 'onFirstStrike',
+      onenterrealm: 'onEnterRealm',
+      onleaverealm: 'onLeaveRealm',
+      onbreakthroughsuccess: 'onBreakthroughSuccess',
+      onbreakthroughfail: 'onBreakthroughFail',
+      onpillconsumed: 'onPillConsumed',
+      onitemcrafted: 'onItemCrafted',
+      ondawn: 'onDawn',
+      ondusk: 'onDusk',
+      ontrielementtrigger: 'onTriElementTrigger',
+      ontetraelementtrigger: 'onTetraElementTrigger',
+      onconsumableuse: 'onPillConsumed',
+      onbreakthroughattempt: 'onBreakthroughSuccess',
+      outofcombatcultivate: 'outOfCombatCultivate',
+      outofcombatcraft: 'outOfCombatCraft',
+      outofcombatexplore: 'outOfCombatExplore'
+    };
+    return map[lower] || raw.toLowerCase().replace(/^on_?/, 'on');
+  };
+
   SK.COMPOSABLE_KEYWORDS = Object.freeze({
     TRIGGERS: Object.freeze([
-      'ON_CAST', 'ON_HIT', 'ON_CRIT', 'ON_STRUCK', 'ON_DODGE', 'ON_PARRY',
+      'ON_CAST', 'ON_HIT', 'ON_CRIT', 'ON_STRUCK', 'ON_BEING_HIT', 'ON_DODGE', 'ON_PARRY',
       'ON_KILL', 'ON_HEAL', 'ON_SHIELD_BREAK', 'ON_STATUS_APPLY',
-      'ON_LOW_HP', 'ON_STANCE_SWITCH', 'COMBAT_TICK',
+      'ON_LOW_HP', 'ON_ALLY_LOW_HP', 'ON_STANCE_SWITCH', 'COMBAT_TICK',
+      'ON_TURN_START', 'ON_TURN_END', 'ON_ROUND_START', 'ON_ROUND_END',
+      'ON_ALLY_FALL', 'ON_ENEMY_FALL', 'ON_DEBUFF_RESISTED', 'ON_SKILL_COOLDOWN_READY',
+      'ON_COMBO_CHAIN_N', 'ON_FIRST_STRIKE', 'ON_ENTER_REALM', 'ON_LEAVE_REALM',
+      'ON_BREAKTHROUGH_SUCCESS', 'ON_BREAKTHROUGH_FAIL', 'ON_PILL_CONSUMED', 'ON_ITEM_CRAFTED',
+      'ON_DAWN', 'ON_DUSK', 'ON_TRI_ELEMENT_TRIGGER', 'ON_TETRA_ELEMENT_TRIGGER',
+      'ON_CONSUMABLE_USE', 'ON_BREAKTHROUGH_ATTEMPT',
       'OUT_OF_COMBAT_CULTIVATE', 'OUT_OF_COMBAT_CRAFT', 'OUT_OF_COMBAT_EXPLORE',
-      'onHit', 'onStruck', 'combatTick', 'onCrit', 'onDodge', 'onKill', 'onHeal', 'onShieldBreak', 'onLowHp'
+      'onHit', 'onStruck', 'combatTick', 'onCrit', 'onDodge', 'onParry', 'onCast',
+      'onKill', 'onHeal', 'onShieldBreak', 'onLowHp', 'onStanceSwitch', 'onStatusApply',
+      'onRoundStart', 'onRoundEnd', 'onAllyFall', 'onEnemyFall', 'onDebuffResisted',
+      'onSkillCooldownReady', 'onComboChainN', 'onFirstStrike'
     ]),
     TARGET_SELECTORS: Object.freeze([
-      'SELF', 'SINGLE_ENEMY', 'LOWEST_HP_ENEMY', 'HIGHEST_ATK_ENEMY',
-      'MARKED_ENEMIES', 'SPLASH_NEIGHBORS', 'RICOCHET_CHAIN', 'PIERCE_LINE',
-      'ALL_ALLIES', 'LOWEST_HP_ALLY', 'SAME_PATH_ALLIES', 'SUMMON_OR_PUPPET'
+      'SELF', 'SINGLE_ENEMY', 'SINGLE_PRIMARY', 'ALL_ENEMIES', 'ROW_FRONT', 'ROW_BACK',
+      'LOWEST_HP_ENEMY', 'HIGHEST_ATK_ENEMY', 'MOST_DEBUFFED_ENEMY',
+      'MARKED_ENEMIES', 'SPLASH_NEIGHBORS', 'RICOCHET_CHAIN', 'PIERCE_LINE', 'RANDOM_BOUNCE_3',
+      'ALL_ALLIES', 'LOWEST_HP_ALLY', 'SAME_PATH_ALLIES', 'SUMMON_OR_PUPPET', 'SUMMON_UNITS'
     ]),
     CONDITIONS: Object.freeze([
       'ALWAYS', 'TARGET_HAS_MARK', 'TARGET_HAS_DEBUFF', 'TARGET_HAS_BUFF',
       'TARGET_HP_BELOW_PCT', 'TARGET_HP_ABOVE_PCT', 'SELF_HP_BELOW_PCT',
       'SELF_QI_ABOVE_PCT', 'SELF_HAS_STANCE', 'SELF_HAS_COMBO_READY',
-      'SELF_HAS_TOXICITY', 'SAME_PEAK_ALLY_PRESENT', 'ELEMENT_RESONANCE_ACTIVE'
+      'SELF_HAS_TOXICITY', 'SAME_PEAK_ALLY_PRESENT', 'ELEMENT_RESONANCE_ACTIVE',
+      // Section 10.2 New Conditions
+      'TARGET_IS_ELEMENT', 'TARGET_HAS_STATUS_COUNT_GTE', 'SELF_HAS_BUFF',
+      'ALLY_COUNT_ALIVE_GTE', 'ENEMY_COUNT_ALIVE_GTE', 'ROUND_NUMBER_GTE',
+      'WEATHER_IS', 'TIME_OF_DAY_IS', 'LOCATION_TAG_IS',
+      'SELF_HEART_DEMON_ABOVE_PCT', 'SELF_TOXICITY_ABOVE_PCT',
+      'WIELDING_WEAPON_TYPE', 'FIRST_STRIKE_IN_FIGHT', 'TARGET_IS_BOSS_OR_ELITE',
+      'COMPANION_PRESENT', 'MENTOR_OR_DISCIPLE_PRESENT'
     ]),
     ACTIONS: Object.freeze([
       'APPLY_MARK', 'DETONATE_MARK', 'STACK_THRESHOLD_BURST',
-      'STANCE_ENTER', 'COMBO_PRIMER', 'COMBO_FINISHER', 'DELAYED_ECHO',
-      'EXTEND_DEBUFF', 'TRANSFER_DEBUFF', 'STEAL_BUFF', 'CONVERT_BUFF_TO_DEBUFF',
+      'STANCE_ENTER', 'SET_STANCE', 'COMBO_PRIMER', 'COMBO_FINISHER', 'DELAYED_ECHO',
+      'EXTEND_DEBUFF', 'TRANSFER_DEBUFF', 'TRANSFER_DEBUFF_TO_ENEMY', 'STEAL_BUFF', 'CONVERT_BUFF_TO_DEBUFF',
       'ABSORB_DOT_TO_SHIELD', 'ELEMENTAL_FUSION_REACTION',
       'HP_TO_QI_OVERDRIVE', 'QI_TO_SHIELD_BARRIER', 'OVERHEAT_COOLDOWN_TRADE',
       'TOXICITY_TO_VENOM_POWER', 'HEART_DEMON_EDGE_SCALING',
       'SOUL_LINK_SHARE_DMG', 'CHAIN_TETHER_ENEMY', 'PUPPET_SYMBIOSIS_PULSE',
-      'GRANT_BUFF', 'RESTORE_QI_PCT', 'SHATTER_SHIELD', 'BONUS_TRUE_DMG'
+      'GRANT_BUFF', 'GRANT_BARRIER', 'RESTORE_QI_PCT', 'SHATTER_SHIELD', 'BONUS_TRUE_DMG',
+      // Section 10, 11, 12 New Actions
+      'DEPLOY_DOMAIN', 'DEPLOY_FIELD_DOMAIN', 'TAUNT_ENEMY', 'KNOCKBACK_TARGET', 'PULL_VACUUM',
+      'POISE_INTERRUPT', 'CLEANSE_TO_POWER', 'CONTAGION_SPREAD', 'PHOENIX_CLAUSE',
+      'ACUPOINT_STRIKE', 'MERIDIAN_OVERDRIVE', 'CO_CAST_DUET', 'CHARGE_RELEASE',
+      'TRIGGER_DUAL_FUSION', 'TRIGGER_TRI_FUSION', 'TRIGGER_TETRA_FUSION',
+      'DEAL_SCALED_DMG', 'TRUE_PIERCE_DMG', 'CONSUME_STATUS_BURST', 'SPREAD_DEBUFF',
+      'CHAIN_FOLLOWUP', 'SUMMON_ENTITY', 'RESOURCE_CONVERT', 'COOLDOWN_SHIFT', 'EXECUTE_BELOW_THRESHOLD'
     ]),
-    MARK_KINDS: Object.freeze(['daoMark', 'starSeal', 'venomSeed', 'bloodBrand'])
+    MARK_KINDS: Object.freeze(['daoMark', 'starSeal', 'venomSeed', 'bloodBrand']),
+    TAGS: Object.freeze([
+      '#FIRE', '#WATER', '#WOOD', '#METAL', '#EARTH', '#LIGHTNING', '#ICE', '#WIND',
+      '#YIN', '#YANG', '#BLOOD', '#DEMON', '#ASTRAL', '#SAMSARA', '#POISON',
+      '#SOUND', '#SEAL', '#TRUE_DMG', '#SUMMON', '#PHYSICAL', '#MAGIC',
+      '#SHIELD', '#HEAL', '#CONTROL', '#ACUPOINT', '#DOMAIN'
+    ])
+  });
+
+  // Unified Single-Source Keyword Registry with implemented=true verification (Section 10.8)
+  const _kwRegistry = {};
+  for (const t of SK.COMPOSABLE_KEYWORDS.TRIGGERS) _kwRegistry['TRIGGER:' + t] = { id: t, category: 'TRIGGER', normalized: SK.normalizeTrigger(t), implemented: true };
+  for (const s of SK.COMPOSABLE_KEYWORDS.TARGET_SELECTORS) _kwRegistry['SELECTOR:' + s] = { id: s, category: 'TARGET_SELECTOR', implemented: true };
+  for (const c of SK.COMPOSABLE_KEYWORDS.CONDITIONS) _kwRegistry['CONDITION:' + c] = { id: c, category: 'CONDITION', implemented: true };
+  for (const a of SK.COMPOSABLE_KEYWORDS.ACTIONS) _kwRegistry['ACTION:' + a] = { id: a, category: 'ACTION', implemented: true };
+  for (const m of SK.COMPOSABLE_KEYWORDS.MARK_KINDS) _kwRegistry['MARK:' + m] = { id: m, category: 'MARK_KIND', implemented: true };
+  for (const tg of SK.COMPOSABLE_KEYWORDS.TAGS) _kwRegistry['TAG:' + tg] = { id: tg, category: 'TAG', implemented: true };
+  SK.KEYWORD_REGISTRY = Object.freeze(_kwRegistry);
+
+  // Section 10.6: 7 Unlocked Subpath Archetypes
+  SK.SUBPATH_ARCHETYPES_V235 = Object.freeze({
+    WARDEN_TAUNTER: {
+      id: 'WARDEN_TAUNTER',
+      nameTh: 'จอมยั่วยุผู้พิทักษ์ (Warden Taunter)',
+      coreMechanics: ['C01_TAUNT', 'C03_BODYBLOCK', 'S01_DIMINISHING_RESIST'],
+      recommendedPaths: ['BODY', 'GOD', 'BEAST_SOVEREIGN'],
+      stance: 'VAJRA_BASTION_STANCE',
+      bonusStats: { p: { def: 0.25, mdef: 0.20, hp: 0.18 }, f: { poise: 45 } },
+      descTh: 'แนวหน้าปราการเหล็ก ยั่วยุดึงความสนใจศัตรูและใช้ร่างกายบังแถวหลัง พร้อมภูมิต้านทานสถานะสะสม'
+    },
+    FATE_WEAVER: {
+      id: 'FATE_WEAVER',
+      nameTh: 'ผู้ชี้ชะตา (Fate Weaver)',
+      coreMechanics: ['C04_DELAYED_ECHO', 'S08_KARMA_LEDGER', '2E_15_ASTRAL_CHRONO_REVERSAL'],
+      recommendedPaths: ['KARMA_SAMSARA', 'HEART_SOUL', 'ARRAY_TALISMAN'],
+      stance: 'QIMEN_ARRAY_STANCE',
+      bonusStats: { p: { matk: 0.20, mdef: 0.16 }, f: { cast: 16, acc: 14 } },
+      descTh: 'ถักทอชะตาหน่วงเวลา สะสมดาเมจระเบิดย้อนหลังและพลิกผันผลกรรมในสมรภูมิ'
+    },
+    DOMAIN_ARRAYIST: {
+      id: 'DOMAIN_ARRAYIST',
+      nameTh: 'ปรมาจารย์ค่ายกลสนามรบ (Domain Arrayist)',
+      coreMechanics: ['C12_BATTLEFIELD_DOMAIN', 'S04_ARRAY_RUNES', '4E_01_FOUR_SYMBOLS_DOMAIN'],
+      recommendedPaths: ['ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'XIAN'],
+      stance: 'QIMEN_ARRAY_STANCE',
+      bonusStats: { p: { matk: 0.22, def: 0.14, mdef: 0.18 }, f: { cast: 18 } },
+      descTh: 'กางเขตแดนสนามรบเปลี่ยนกติกาสมรภูมิ เสริมพลังพรรคพวกและกดขี่ต้านทานธาตุของศัตรู'
+    },
+    OATH_BOUND_DUELIST: {
+      id: 'OATH_BOUND_DUELIST',
+      nameTh: 'นักสู้สาบาน (Oath-Bound Duelist)',
+      coreMechanics: ['S07_OATH_VOW', 'C06_POISE_GAUGE', '12_1_MERIDIAN_OVERDRIVE'],
+      recommendedPaths: ['XIAN', 'BODY', 'DEMON', 'GOD'],
+      stance: 'STAR_SWORD_STANCE',
+      bonusStats: { p: { atk: 0.24, matk: 0.20 }, f: { crit: 12, pen: 18 } },
+      descTh: 'ตั้งสัตย์สาบานจำกัดตนเองเพื่อแลกกับอานุภาพกระบวนท่าและเกจท่าร่างที่ไม่มีวันสั่นคลอน'
+    },
+    CONTAGION_ALCHEMIST: {
+      id: 'CONTAGION_ALCHEMIST',
+      nameTh: 'หมอพิษกู่ (Contagion Alchemist)',
+      coreMechanics: ['C10_CONTAGION', 'S03_TOXIN_SYNERGY', '3E_06_NOXIOUS_PYRE'],
+      recommendedPaths: ['DEMON', 'SAGE_SUPPORT', 'CRAFT_CREATION'],
+      stance: 'SHADOW_REAPER_STANCE',
+      bonusStats: { p: { matk: 0.22, mdef: 0.14 }, f: { pen: 15, acc: 12 } },
+      descTh: 'ผสมผสานพิษคู่และโอสถหลายเฟส แพร่กระจายพิษสังหารข้ามเป้าหมายเมื่อศัตรูสิ้นชีพ'
+    },
+    DUET_SAGE: {
+      id: 'DUET_SAGE',
+      nameTh: 'ผู้เชื่อมวิญญาณคู่ (Duet Sage)',
+      coreMechanics: ['C08_CO_CAST', '12_6_RED_GOLD_THREADS', 'SOUL_LINK_SHARE_DMG'],
+      recommendedPaths: ['HEART_SOUL', 'SAGE_SUPPORT', 'XIAN', 'KARMA_SAMSARA'],
+      stance: 'LOTUS_MERCY_STANCE',
+      bonusStats: { p: { matk: 0.18, mdef: 0.18, hp: 0.14 }, f: { cast: 15 } },
+      descTh: 'ประสานจิตวิญญาณกับคู่บำเพ็ญหรืออาจารย์-ศิษย์ ร่ายวิชาคู่ประสานฟ้าดินโดยอัตโนมัติ'
+    },
+    STANCE_DANCER: {
+      id: 'STANCE_DANCER',
+      nameTh: 'นักรบเปลี่ยนท่า (Stance Dancer)',
+      coreMechanics: ['PILLAR_3_ACTIVE_STANCES', 'ON_STANCE_SWITCH', 'S05_WEAPON_AFFINITY_RAMP'],
+      recommendedPaths: ['XIAN', 'BODY', 'MECH_PUPPET', 'CRAFT_CREATION'],
+      stance: 'THUNDER_STEP_STANCE',
+      bonusStats: { p: { atk: 0.18, matk: 0.18, eva: 0.16 }, f: { cast: 18, move: 18, crit: 10 } },
+      descTh: 'สลับท่าร่างทั้ง 7 ท่าอย่างลื่นไหลระหว่างศึก รับบัฟต่อเนื่องทุกครั้งที่เปลี่ยนท่าร่าง'
+    }
   });
 
   SK.validateComposableSpec = spec => {
@@ -814,14 +1108,30 @@
     const errs = [];
     const KW = SK.COMPOSABLE_KEYWORDS;
     const CE = (g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE) || {};
-    const validStances = CE.STANCE_CATALOG ? Object.keys(CE.STANCE_CATALOG) : [
-      'STAR_SWORD_STANCE', 'VAJRA_BASTION_STANCE', 'SHADOW_REAPER_STANCE',
-      'LOTUS_MERCY_STANCE', 'THUNDER_STEP_STANCE', 'BLOOD_ASURA_STANCE', 'QIMEN_ARRAY_STANCE'
-    ];
-    const validFusions = CE.FUSION_REACTIONS ? Object.keys(CE.FUSION_REACTIONS) : [
+    const validStances = Object.keys(SK.STANCE_CATALOG || {});
+    const validFusions = CE.ALL_REACTION_IDS ? Array.from(CE.ALL_REACTION_IDS) : [
       'INFERNO_VORTEX', 'OVERLOAD_BLAST', 'SUPERCONDUCT_SHATTER', 'GLACIAL_SHATTER',
-      'MIASMA_DETONATION', 'GU_FIRE_ERUPTION', 'BLOOD_BOIL_RUPTURE', 'STARFALL_COLLAPSE', 'KARMIC_PURIFICATION_SMITE'
+      'MIASMA_DETONATION', 'GU_FIRE_ERUPTION', 'BLOOD_BOIL_RUPTURE', 'STARFALL_COLLAPSE', 'KARMIC_PURIFICATION_SMITE',
+      'THERMAL_VAPORIZE', 'WILDFIRE_CONFLAGRATION', 'MOLTEN_ARMOR_MELT', 'MAGMA_ERUPTION',
+      'VERDANT_PROLIFERATION', 'ELECTRIFIED_CONDUIT', 'ABSOLUTE_GLACIATION', 'QUICKSILVER_QUAGMIRE',
+      'SUPERCONDUCTING_MAGNETIC_CAGE', 'GALE_RAZOR_SHARDS', 'NOXIOUS_SPORE_BLOOM', 'FIRESTORM_INFERNO',
+      'TAIJI_ANNIHILATION', 'ASURA_BLOOD_FRENZY', 'ASTRAL_CHRONO_REVERSAL', 'BLOODFROST_SHARD',
+      'PRIMORDIAL_STORM_CATACLYSM', 'MOLTEN_CRUCIBLE_CORE', 'BLOODROOT_PARASITE_OVERGROWTH', 'GLACIAL_PERMAFROST_CATACLYSM',
+      'CELESTIAL_SINGULARITY_COLLAPSE', 'NOXIOUS_PYRE_SPORE_BLAST', 'ASURA_BLOOD_THUNDER_TRIBULATION', 'CRYO_MIRROR_REFLECTION',
+      'YGGDRASIL_ASTRAL_CONDUIT', 'PLASMA_TEMPEST_OVERCHARGE', 'SOLAR_PHOENIX_REBIRTH', 'NINE_ABYSS_FROZEN_PURGATORY',
+      'FOUR_HEAVENLY_SYMBOLS_DOMAIN', 'PRIMORDIAL_SAMSARA_VOID_GENESIS', 'HEAVENLY_DAO_NINE_TRIBULATION_JUDGMENT',
+      'NINE_HELLS_ABYSSAL_CATACLYSM', 'ABSOLUTE_ZERO_GLACIAL_EPOCH', 'COSMIC_FIVE_PHASE_AUTOMATON'
     ];
+    const isValidConditionKey = k => {
+      if (!k || typeof k !== 'string') return false;
+      const base = k.split(':')[0];
+      return KW.CONDITIONS.includes(k) || KW.CONDITIONS.includes(base) && !!SK.KEYWORD_REGISTRY['CONDITION:' + base]?.implemented;
+    };
+    const isValidActionKey = k => {
+      if (!k || typeof k !== 'string') return false;
+      const base = k.split(':')[0];
+      return (KW.ACTIONS.includes(k) || KW.ACTIONS.includes(base)) && !!SK.KEYWORD_REGISTRY['ACTION:' + base]?.implemented;
+    };
     const checkMoveOrSpec = (obj, label) => {
       if (!obj || typeof obj !== 'object') return;
       if (obj.arch && !SK.ARCH[obj.arch]) errs.push(label + ': Unknown arch ' + obj.arch);
@@ -830,15 +1140,15 @@
       if (obj.grantBuff && !SK.STATUS[obj.grantBuff] && !(g.STATS && g.STATS.BUFF_CATALOG && g.STATS.BUFF_CATALOG[obj.grantBuff])) {
         errs.push(label + ': Unknown grantBuff ' + obj.grantBuff);
       }
-      if (obj.trigger && !KW.TRIGGERS.includes(obj.trigger)) errs.push(label + ': Unknown composable trigger ' + obj.trigger);
+      if (obj.trigger && !KW.TRIGGERS.includes(obj.trigger) && !SK.normalizeTrigger(obj.trigger)) errs.push(label + ': Unknown composable trigger ' + obj.trigger);
       if (obj.targetSelector && !KW.TARGET_SELECTORS.includes(obj.targetSelector)) errs.push(label + ': Unknown composable targetSelector ' + obj.targetSelector);
-      if (obj.condition && typeof obj.condition === 'string' && !KW.CONDITIONS.includes(obj.condition)) errs.push(label + ': Unknown composable condition ' + obj.condition);
-      if (obj.condition && typeof obj.condition === 'object' && obj.condition.kind && !KW.CONDITIONS.includes(obj.condition.kind)) errs.push(label + ': Unknown composable condition.kind ' + obj.condition.kind);
-      if (obj.action && !KW.ACTIONS.includes(obj.action)) errs.push(label + ': Unknown composable action ' + obj.action);
+      if (obj.condition && typeof obj.condition === 'string' && !isValidConditionKey(obj.condition)) errs.push(label + ': Unknown composable condition ' + obj.condition);
+      if (obj.condition && typeof obj.condition === 'object' && !Array.isArray(obj.condition) && obj.condition.kind && !isValidConditionKey(obj.condition.kind)) errs.push(label + ': Unknown composable condition.kind ' + obj.condition.kind);
+      if (obj.action && !isValidActionKey(obj.action)) errs.push(label + ': Unknown composable action ' + obj.action);
       if (Array.isArray(obj.actions)) {
         for (const act of obj.actions) {
-          const k = typeof act === 'string' ? act : (act && act.kind);
-          if (k && !KW.ACTIONS.includes(k)) errs.push(label + ': Unknown composable action in actions[] ' + k);
+          const k = typeof act === 'string' ? act : (act && (act.kind || act.action));
+          if (k && !isValidActionKey(k)) errs.push(label + ': Unknown composable action in actions[] ' + k);
         }
       }
       if (obj.markKind && !KW.MARK_KINDS.includes(obj.markKind)) errs.push(label + ': Unknown composable markKind ' + obj.markKind);
@@ -849,8 +1159,12 @@
     };
     const rootLabel = spec.id || 'spec';
     checkMoveOrSpec(spec, rootLabel);
+    if (spec.composable) checkMoveOrSpec(spec.composable, rootLabel + '.composable');
     if (Array.isArray(spec.moveDefs)) {
-      for (const mv of spec.moveDefs) checkMoveOrSpec(mv, rootLabel + '.' + (mv.id || 'move'));
+      for (const mv of spec.moveDefs) {
+        checkMoveOrSpec(mv, rootLabel + '.' + (mv.id || 'move'));
+        if (mv && mv.composable) checkMoveOrSpec(mv.composable, rootLabel + '.' + (mv.id || 'move') + '.composable');
+      }
     }
     if (spec.passive && spec.passive.proc) {
       const pr = spec.passive.proc;

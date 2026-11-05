@@ -1,7 +1,7 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `v2.0.34` (runtime patch identifier `2.0.34` | SIM Version `1.10.11` | Save Schema `2.0.0-elemental` | Human Core Fingerprint `155:2f9c9dd7`)
+**เวอร์ชันแพ็กเกจ**: `v2.0.35` (runtime patch identifier `2.0.35` | SIM Version `1.10.11` | Save Schema `2.0.0-elemental` | Human Core Fingerprint `155:2f9c9dd7`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
@@ -153,3 +153,7 @@ AI มักเข้าใจผิดว่าเกมยังไม่ม�
   - **3-Tier Promotion Ladder (`promoteToDeputy`, `promoteToSuccessor`)**: เลื่อนขั้นผู้อาวุโส Tier 2 เป็นรองเจ้าสำนัก และศิษย์เอก Tier 3 เป็นศิษย์สืบทอดเมื่อเกิดวิกฤตผลัดแผ่นดินในสำนักนอก
   - **Renegade & Vendetta Deep Hooks**: ผู้ลี้ภัยศึกชิงบัลลังก์บันทึกประวัติใน `h.life.bio` และเกิดปมมารในใจ `DEFEAT_HUMILIATION` ใน `SECT.HEART_DEMON`; เมื่อชนะศึกทวงคืนบัลลังก์จะบันทึกวีรกรรมลงใน `SECT.SOUL_FORGE.recordWeaponFeat`, ปรับดัชนีตลาด `SECT.CARAVAN_AUCTION`, อำลา `W.npcs` ไปปกครองสำนักเดิม (`retiredToThrone = true`), และผูกสายสัมพันธ์ `SWORN_ALLY` ใน `W.world.jianghu.bonds`
   - **Companion & Bloodline Daily AI**: พิธีคู่บำเพ็ญช่วยคลายปมมารในใจอัตโนมัติ; ทายาทที่เข้าสำนักผูกสายสัมพันธ์ `สายเลือดตระกูล` กับพ่อแม่และมีพ่อ/แม่ที่แข็งแกร่งกว่าเป็นอาจารย์ (`npc.mentor`); และ `AI.findSupportBlessTarget` ให้ความสำคัญเร่งด่วน (`+4.5`) แก่คู่บำเพ็ญและพ่อแม่ลูก
+
+
+## 12. อัปเดตล่าสุดใน Patch v2.0.35
+- เชื่อมต่อ Central Condition Evaluator (29 เงื่อนไข), Trigger Normalization (18 ฮุก), Active Stance State Machine (7 ท่วงท่า), 8 Composable Actions, 129/129 Item `effectId` Runtime Coverage, Battlefield Domains (8 อาณาเขต), Multi-Tier Elemental Fusion (16 Dual + 12 Tri + 6 Tetra = 34 ปฏิกิริยา), และระบบลึก หมวด 12–14 ครบ 100% พร้อมชุดทดสอบ `test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js`.

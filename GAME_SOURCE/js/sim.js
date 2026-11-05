@@ -4,7 +4,7 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.34', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '2.0.35', SAVE_SCHEMA_VERSION: '2.0.0-elemental', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
 
@@ -279,6 +279,10 @@
     if (g.SECT && g.SECT.GRAND_ASSEMBLY_BANQUET) g.SECT.GRAND_ASSEMBLY_BANQUET.ensure(W);
     if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
+    if (g.SECT && g.SECT.TOTEMS_BLOODLINES) g.SECT.TOTEMS_BLOODLINES.ensure(W);
+    if (g.SECT && g.SECT.CELESTIAL_ALIGNMENTS) g.SECT.CELESTIAL_ALIGNMENTS.ensure(W);
+    if (g.SECT && g.SECT.DESTINY_KARMA) g.SECT.DESTINY_KARMA.ensure(W);
+    if (g.SECT && g.SECT.LEYLINE_GRID) g.SECT.LEYLINE_GRID.ensure(W);
     if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
     SIM.dailyUpdate(W, true);
     return W;
@@ -624,6 +628,7 @@
     if (SECT && SECT.GRAND_ASSEMBLY_BANQUET && SECT.GRAND_ASSEMBLY_BANQUET.tick) SECT.GRAND_ASSEMBLY_BANQUET.tick(W);
     if (SECT && SECT.HEAVENLY_DAO_DIRECTOR && SECT.HEAVENLY_DAO_DIRECTOR.tick) SECT.HEAVENLY_DAO_DIRECTOR.tick(W);
     if (SECT && SECT.PEAKS && SECT.PEAKS.tick) SECT.PEAKS.tick(W);
+    if (SECT && SECT.CELESTIAL_ALIGNMENTS && SECT.CELESTIAL_ALIGNMENTS.tick) SECT.CELESTIAL_ALIGNMENTS.tick(W);
     W.npcs.forEach(n => { if (n.dead || n.cult || n.away) return; if (HC.ageYears(n) > 45) return; const tal = HC.derived(n).cultivationTalent; if (W.rng.chance(clamp((tal - 38) / 200, 0.02, 0.35))) { const ch = CULT.awaken(n, W.rng, null, W.day); if (g.MARTIAL && g.MARTIAL.reconcileInnate) g.MARTIAL.reconcileInnate(n, W); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); n.h.state.qi = CULT.qiMax(n); W.log('awaken', n.h.name.given + ' ตื่นรู้ปราณและก้าวเข้าสู่วิถี' + (CULT.PATHS[ch.path].nameTh || ch.path), [n.id]); HC.experience(n, 'insight', 0.8); } });
   };
   SIM.guardRoster = W => {

@@ -48408,8 +48408,17 @@ JD.ITEMS.items.forEach(it => {
         statusTransmute: TRANSMUTE_MODES[i % TRANSMUTE_MODES.length],
         sacrificeOverdrive: (i % 4 === 0) ? OVERDRIVE_MODES[(i / 4) % OVERDRIVE_MODES.length] : undefined,
         tetherLink: (i % 3 === 1) ? { kind: (i % 2 === 0 ? 'ENEMY_MIRROR' : 'ALLY_GUARD'), sharePct: 0.32, dur: 8 } : undefined,
+        action: ['DELAYED_ECHO', 'HEART_DEMON_EDGE_SCALING', 'SHATTER_SHIELD', 'BONUS_TRUE_DMG', 'OVERHEAT_COOLDOWN_TRADE', 'PUPPET_SYMBIOSIS_PULSE', 'RESTORE_QI_PCT', 'COMBO_FINISHER'][(pIdx + i) % 8],
+        acupointStrike: (i % 4 === 2) ? ['QI_BLOCK_POINT', 'WEAKENING_POINT', 'BLOOD_HALTING_POINT'][(pIdx + i) % 3] : undefined,
+        condition: 'ALWAYS',
         aiRole: 'core'
       };
+
+      const DOMAIN_ROTATION = [
+        'DOMAIN_ASTRAL_STARFIELD', 'DOMAIN_PURGATORY_BLOOD_SEA', 'DOMAIN_GOLDEN_LOTUS_SANCTUARY',
+        'DOMAIN_THOUSAND_PUPPET_MATRIX', 'DOMAIN_SAMSARA_KARMA_WHEEL', 'DOMAIN_EIGHT_TRIGRAM_LABYRINTH',
+        'DOMAIN_FOUR_HEAVENLY_SYMBOLS', 'DOMAIN_NINE_HELLS_ABYSS'
+      ];
 
       const move3 = {
         id: tid + '_M3',
@@ -48432,8 +48441,11 @@ JD.ITEMS.items.forEach(it => {
         aoe: (i % 2 === 0),
         targetSelector: 'MARKED_ENEMIES',
         comboFinisher: true,
+        action: 'COMBO_FINISHER',
+        domain: (i >= 9) ? DOMAIN_ROTATION[(pIdx + i) % DOMAIN_ROTATION.length] : undefined,
         markDetonate: { k: markKey, perStackMult: 0.24 },
         elementalFusion: fusionKey,
+        condition: 'ALWAYS',
         aiRole: 'finisher'
       };
 

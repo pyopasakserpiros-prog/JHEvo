@@ -217,57 +217,72 @@
     };
   };
 
-  /* Bounded Passive Procs (with strict internal cooldown and anti-recursion guard) */
+  /* Bounded Passive Procs (with strict internal cooldown, trigger normalization, and condition evaluator) */
   function runPassiveProcs(W, f, actor, target, triggerKind, dmgDealt) {
     if (f && f._inProc) return;
-    if (!actor || actor.foe || actor.dead || !actor.cult || !g.MARTIAL || !g.MARTIAL.passiveStats) return;
+    if (!actor || actor.foe || actor.dead) return;
     if (f) f._inProc = true;
     try {
-    const ps = g.MARTIAL.passiveStats(actor);
-    if (!ps || !Array.isArray(ps.procs) || !ps.procs.length) return;
-    actor._procCds = actor._procCds || {};
-    const ST = STs();
-    for (const proc of ps.procs) {
-      if (proc.kind !== triggerKind) continue;
-      if ((actor._procCds[proc.techId] || 0) > W.t) continue;
-      actor._procCds[proc.techId] = W.t + Math.max(1, proc.icdTicks || 6);
-      if (proc.qiRestorePct && actor.cult) {
-        const qm = CULT.qiMax(actor);
-        actor.h.state.qi = Math.min(qm, (actor.h.state.qi == null ? qm : actor.h.state.qi) + qm * proc.qiRestorePct);
+      const SK = SKs(), ST = STs();
+      const normTrigger = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(triggerKind) : triggerKind;
+      if (actor.cult && g.MARTIAL && g.MARTIAL.passiveStats) {
+        const ps = g.MARTIAL.passiveStats(actor);
+        if (ps && Array.isArray(ps.procs) && ps.procs.length) {
+          actor._procCds = actor._procCds || {};
+          for (const proc of ps.procs) {
+            const pKind = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(proc.kind || proc.trigger) : (proc.kind || proc.trigger);
+            if (pKind !== normTrigger) continue;
+            if ((actor._procCds[proc.techId] || 0) > W.t) continue;
+            if (proc.condition && C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.evaluateCondition) {
+              if (!C.COMPOSABLE_ENGINE.evaluateCondition(proc.condition, actor, target, { W, f, triggerKind: normTrigger, dmgDealt })) continue;
+            }
+            actor._procCds[proc.techId] = W.t + Math.max(1, proc.icdTicks || 6);
+            if (proc.qiRestorePct && actor.cult && actor.h && actor.h.state) {
+              const qm = CULT.qiMax(actor);
+              actor.h.state.qi = Math.min(qm, (actor.h.state.qi == null ? qm : actor.h.state.qi) + qm * proc.qiRestorePct);
+            }
+            if (proc.hpRestorePct && !actor.dead) {
+              const hm = C.hpMax(actor);
+              C.setHp(actor, Math.min(hm, C.hp(actor) + Math.max(1, Math.round(hm * proc.hpRestorePct))));
+            }
+            if (proc.addStatus && !actor.dead) {
+              if (ST.BUFF_CATALOG && ST.BUFF_CATALOG[proc.addStatus] && ST.applyNamedBuff) {
+                ST.applyNamedBuff(actor, proc.addStatus, proc.dur || 12, W.t, { casterId: actor.id });
+              } else {
+                ST.addStatus(actor, proc.addStatus, proc.dur || 6, null, W.t);
+              }
+            }
+            if (proc.counterStatus && target && C.alive(target)) {
+              ST.addStatus(target, proc.counterStatus, proc.dur || 8, null, W.t);
+            }
+            if (proc.bonusPen && target && C.alive(target)) {
+              ST.addStatus(target, 'armorbreak', 8, null, W.t);
+            }
+            if (proc.applyMark && target && C.alive(target)) {
+              C.COMPOSABLE_ENGINE.applyMark(W, f, actor, target, proc.applyMark, proc.markStacks || 1, proc.dur || 14);
+            }
+            if (proc.detonateMarks && target && C.alive(target)) {
+              C.COMPOSABLE_ENGINE.detonateMarks(W, f, actor, target, { bonusPerStack: proc.detonateBonus || 0.28 });
+            }
+            if (proc.grantBuff && ST.applyNamedBuff && !actor.foe) {
+              ST.applyNamedBuff(actor, proc.grantBuff, proc.dur || 16, W.t, { casterId: actor.id });
+            }
+            if (proc.cleanseDebuff && !actor.dead) {
+              ST.clearStatus(actor, x => ['burn', 'bleed', 'poison', 'slow', 'weaken', 'blind', 'chill', 'fear', 'paralyze', 'root', 'curse'].includes(x.k));
+            }
+            if (proc.shieldPct && !actor.dead) {
+              ST.addStatus(actor, 'shield', proc.dur || 10, { amt: Math.round(C.hpMax(actor) * proc.shieldPct) }, W.t);
+            }
+            if (proc.action && C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.executeAction) {
+              C.COMPOSABLE_ENGINE.executeAction(W, f, actor, target, proc.action, proc, { triggerKind: normTrigger, dmgDealt });
+            }
+            actor.lastPassiveProc = { t: W.t, techId: proc.techId, kind: normTrigger };
+          }
+        }
       }
-      if (proc.hpRestorePct && !actor.dead) {
-        const hm = C.hpMax(actor);
-        C.setHp(actor, Math.min(hm, C.hp(actor) + Math.max(1, Math.round(hm * proc.hpRestorePct))));
+      if (C.runItemEffectProcs) {
+        C.runItemEffectProcs(W, f, actor, target, normTrigger, dmgDealt);
       }
-      if (proc.addStatus && !actor.dead) {
-        ST.addStatus(actor, proc.addStatus, proc.dur || 6);
-      }
-      if (proc.counterStatus && target && C.alive(target)) {
-        ST.addStatus(target, proc.counterStatus, proc.dur || 8);
-      }
-      if (proc.bonusPen && target && C.alive(target)) {
-        ST.addStatus(target, 'armorbreak', 8);
-      }
-      if (proc.applyMark && target && C.alive(target)) {
-        C.COMPOSABLE_ENGINE.applyMark(W, f, actor, target, proc.applyMark, proc.markStacks || 1, proc.dur || 14);
-      }
-      if (proc.detonateMarks && target && C.alive(target)) {
-        C.COMPOSABLE_ENGINE.detonateMarks(W, f, actor, target, { bonusPerStack: proc.detonateBonus || 0.28 });
-      }
-      if (proc.grantBuff && ST.applyNamedBuff && !actor.foe) {
-        ST.applyNamedBuff(actor, proc.grantBuff, proc.dur || 16, W.t, { casterId: actor.id });
-      }
-      if (proc.cleanseDebuff && !actor.dead) {
-        ST.clearStatus(actor, x => ['burn', 'bleed', 'poison', 'slow', 'weaken', 'blind', 'chill', 'fear', 'paralyze', 'root', 'curse'].includes(x.k));
-      }
-      if (proc.shieldPct && !actor.dead) {
-        ST.addStatus(actor, 'shield', proc.dur || 10, { amt: Math.round(C.hpMax(actor) * proc.shieldPct) }, W.t);
-      }
-      actor.lastPassiveProc = { t: W.t, techId: proc.techId, kind: triggerKind };
-    }
-    if (C.runItemEffectProcs) {
-      C.runItemEffectProcs(W, f, actor, target, triggerKind, dmgDealt);
-    }
     } finally { if (f) f._inProc = false; }
   }
   C.runPassiveProcs = runPassiveProcs;
@@ -379,6 +394,25 @@
       d.lastNirvanaSave = { t: W.t, fightId: f ? f.id : 0 };
       STs().dirty(d);
     }
+    if (hp <= 0 && (STs().has(d, 'phoenixCovenant', W.t) || (STs().hasBuff && STs().hasBuff(d, 'phoenixCovenant', W.t)) || d._phoenixClauseReady)) {
+      f._phoenixClauseUsed = f._phoenixClauseUsed || {};
+      if (!f._phoenixClauseUsed[d.id]) {
+        f._phoenixClauseUsed[d.id] = true;
+        d._phoenixClauseReady = false;
+        STs().clearBuff(d, 'phoenixCovenant');
+        hp = Math.max(1, Math.round(hm * 0.48));
+        STs().addStatus(d, 'shield', 12, { amt: Math.round(hm * 0.22) }, W.t);
+        STs().clearStatus(d, x => ['burn', 'bleed', 'poison', 'chill', 'curse'].includes(x.k));
+        d.fx = { t: W.t, text: '🔥 เพลิงนิพพานหงส์คืนชีพ!' };
+        d.lastPhoenixClause = { t: W.t, fightId: f ? f.id : 0, restoredHp: hp };
+        if (a && C.alive(a) && note !== 'ระเบิดเพลิงนิพพาน') {
+          const novaDmg = Math.max(10, Math.round(hm * 0.18));
+          C.applyDamage(W, f, d, a, novaDmg, 'ระเบิดเพลิงนิพพาน');
+          STs().addStatus(a, 'burn', 12, { per: 0.018, src: d.id }, W.t);
+        }
+        STs().dirty(d);
+      }
+    }
     if (d.act && d.act.ctx && d.act.ctx.channeling) {
       if (dmg >= hm * 0.12) C.interruptChannel(W, f, d, 'ถูกโจมตีหนัก');
     }
@@ -404,18 +438,33 @@
     const ST = STs(), sa = ST.get(a), sd = ST.get(d), nonlethal = !f.serious;
     const effectiveAcc = Math.max(1, sa.acc + (Number.isFinite(o.accAdd) ? o.accAdd : 0));
     const hitP = o.forced ? 1 : clamp(effectiveAcc / (effectiveAcc + 0.55 * sd.eva), 0.12, 0.97);
-    if (W.rng.next() > hitP) { d.fx = { t: W.t, text: 'หลบ' }; if (!d.foe) HC.trainBody(d, 'reflex', 0.3); return { hit: false }; }
+    if (W.rng.next() > hitP) {
+      d.fx = { t: W.t, text: 'หลบ' };
+      d._lastDodgeOrParryAt = W.t;
+      if (!d.foe) HC.trainBody(d, 'reflex', 0.3);
+      runPassiveProcs(W, f, d, a, 'onDodge', 0);
+      return { hit: false };
+    }
     // ท่าสวนกลับ & เงาดาราซ้อนมิติ (astralMirage): ปัดทิ้ง/หลบมิติแล้วสวน (ป้องกันลูปสะท้อน/สวนซ้ำ)
     if (!o.noCounter) {
       const am = ST.statusOf(d, 'astralMirage') || (ST.hasBuff && ST.hasBuff(d, 'astralMirage', W.t));
       if (am && !d.dead && (!d._astralMirageUsedAt || W.t - d._astralMirageUsedAt >= 6)) {
         d._astralMirageUsedAt = W.t;
+        d._lastDodgeOrParryAt = W.t;
         d.fx = { t: W.t, text: '🌌 เงาดาราหลบสวน!' };
+        runPassiveProcs(W, f, d, a, 'onParry', 0);
         C.strike(W, f, d, a, { M: 1.45, type: 'm', pen: 25, forced: true, noCounter: true, noReflect: true, noProc: true });
         return { hit: false, countered: true, astralMirage: true };
       }
       const cs = ST.statusOf(d, 'counter');
-      if (cs && !d.dead) { ST.clearStatus(d, x => x.k === 'counter'); d.fx = { t: W.t, text: '↩ ปัดสวน!' }; C.strike(W, f, d, a, { M: cs.M, type: cs.type, pen: cs.pen, forced: true, noCounter: true, noReflect: true, noProc: true }); return { hit: false, countered: true }; }
+      if (cs && !d.dead) {
+        ST.clearStatus(d, x => x.k === 'counter');
+        d._lastDodgeOrParryAt = W.t;
+        d.fx = { t: W.t, text: '↩ ปัดสวน!' };
+        runPassiveProcs(W, f, d, a, 'onParry', 0);
+        C.strike(W, f, d, a, { M: cs.M, type: cs.type, pen: cs.pen, forced: true, noCounter: true, noReflect: true, noProc: true });
+        return { hit: false, countered: true };
+      }
     }
     const tb = (!a.foe && g.MARTIAL && g.MARTIAL.combatTargetBonus) ? g.MARTIAL.combatTargetBonus(a, d) : null;
     const tac = C.resolveWeaponTactics ? C.resolveWeaponTactics(a, d, o, f) : null;
@@ -536,6 +585,26 @@
     if (!d.foe && (ST.has(d, 'karmicAegis', W.t) || (ST.hasBuff && ST.hasBuff(d, 'karmicAegis', W.t)))) {
       frac *= 0.85; // วัฏจักรสะท้อนกรรมลดความเสียหายขาเข้า 15%
     }
+    if (W && W.celestialEvent && Array.isArray(W.celestialEvent.boostElements)) {
+      const skEl = (o.skill && o.skill.element) || (a.element) || (a.h && a.h.root && a.h.root.primaryElement);
+      if (skEl && W.celestialEvent.boostElements.includes(skEl)) {
+        frac *= (1 + (W.celestialEvent.dmgBoostPct || 0.30));
+      }
+    }
+    if (!a.foe && Array.isArray(a.destinyThreads) && a.destinyThreads.length) {
+      if (a.destinyThreads.some(th => th && th.type === 'BLACK_THREAD' && (th.aId === d.id || th.bId === d.id))) {
+        frac *= 1.25;
+      }
+      if (f && a.destinyThreads.some(th => th && th.type === 'RED_THREAD' && (f.A.includes(th.aId) && f.A.includes(th.bId) || f.B.includes(th.aId) && f.B.includes(th.bId)))) {
+        frac *= 1.15;
+      }
+    }
+    if (W && g.SECT && g.SECT.LEYLINE_GRID && g.SECT.LEYLINE_GRID.isTerritoryTriangulated && g.SECT.LEYLINE_GRID.isTerritoryTriangulated(W)) {
+      if (!d.foe && a.foe) frac *= 0.88;
+      else if (!a.foe && d.foe) frac *= 1.10;
+    }
+    if (ST.has(d, 'poiseBroken', W.t)) frac *= 1.35;
+    frac = clamp(frac, 0.005, 1.85);
     if (nonlethal) frac *= 0.55;
     const hm = C.hpMax(d), beastGuard = !d.foe && g.MARTIAL && g.MARTIAL.isBeast(a) ? g.MARTIAL.skillEffects(d).beastDamage : 1, dmg = hm * frac * beastGuard;
     a.fx = a.fx || {}; if (!o.silent) { a.fx = { t: W.t, text: o.label || (crit ? 'จุดตาย!' : type === 'p' ? W.rng.pick(FX_PHYS) : W.rng.pick(FX_MAG)) }; }
@@ -660,10 +729,41 @@
           a.lastPetAssist = { t: W.t, count: actPets.length, petNames: actPets.map(x => x.nameTh), dmg: pRes.dmg || 0 };
         }
       }
+      const aStance = ST.getActiveStanceSpec ? ST.getActiveStanceSpec(a) : null;
+      if (aStance && aStance.lifestealBonus && dmg > 0 && !a.dead && !ST.has(a, 'stygianFreeze', W.t)) {
+        const stMult = (ST.hasStanceFlowAmplifier && ST.hasStanceFlowAmplifier(a)) ? 1.15 : 1.0;
+        const stLs = Math.max(1, Math.round(dmg * aStance.lifestealBonus * stMult));
+        C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + stLs));
+        lifesteal += stLs;
+      }
+      const dStance = ST.getActiveStanceSpec ? ST.getActiveStanceSpec(d) : null;
+      if (!o.noReflect && dStance && dStance.reflectPct && dmg > 0 && !a.dead) {
+        const stRef = Math.max(1, Math.min(Math.round(C.hpMax(a) * 0.20), Math.round(dmg * dStance.reflectPct)));
+        reflected += stRef;
+        C.applyDamage(W, f, d, a, stRef, 'สะท้อนปราการวัชระ');
+      }
+      if (!o.noReflect && (ST.has(d, 'cryoMirror', W.t) || (ST.hasBuff && ST.hasBuff(d, 'cryoMirror', W.t))) && dmg > 0 && !a.dead) {
+        const cmRef = Math.max(1, Math.min(Math.round(C.hpMax(a) * 0.25), Math.round(dmg * 0.25)));
+        reflected += cmRef;
+        C.applyDamage(W, f, d, a, cmRef, 'กระจกเงาดาราเหมันต์สะท้อน');
+        ST.clearBuff(d, 'cryoMirror');
+      }
+      if (f) {
+        f._unitFirstStrikeDone = f._unitFirstStrikeDone || {};
+        if (!f._unitFirstStrikeDone[a.id]) {
+          f._unitFirstStrikeDone[a.id] = true;
+          runPassiveProcs(W, f, a, d, 'onFirstStrike', dmg);
+        }
+      }
       runPassiveProcs(W, f, a, d, 'onHit', dmg);
       if (crit) runPassiveProcs(W, f, a, d, 'onCrit', dmg);
       runPassiveProcs(W, f, d, a, 'onStruck', dmg);
-      if (killed) runPassiveProcs(W, f, a, d, 'onKill', dmg);
+      if (killed) {
+        runPassiveProcs(W, f, a, d, 'onKill', dmg);
+        if (C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.spreadContagionOnDeath) {
+          C.COMPOSABLE_ENGINE.spreadContagionOnDeath(W, f, a, d);
+        }
+      }
       if (C.hp(d) <= C.hpMax(d) * 0.35 && C.alive(d)) runPassiveProcs(W, f, d, a, 'onLowHp', dmg);
     }
     return { hit: true, dmg, crit, killed, lifesteal, reflected, tacticalRelation: tac ? tac.relation : 'NEUTRAL', resonanceTriggered };
@@ -979,20 +1079,31 @@
       if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(a, p.grantBuff, buffDur, W.t, { casterId: a.id });
       return;
     }
+    runPassiveProcs(W, f, a, d, 'onCast', 0);
+    const aStanceCast = ST.getActiveStanceSpec ? ST.getActiveStanceSpec(a) : null;
+    const stanceHealMult = (aStanceCast && aStanceCast.healDoneMult) ? (1 + aStanceCast.healDoneMult) : 1.0;
+    const stanceShieldMult = (aStanceCast && aStanceCast.shieldBonus) ? (1 + aStanceCast.shieldBonus) : 1.0;
     if (p.arch === 'heal') {
       const healTargets = p.aoe ? C.alliesOf(W, f, a.id) : [(() => { const ally = lowestAlly(W, f, a); return (ally && hpFrac(ally) < hpFrac(a) - 0.05) ? ally : a; })()];
-      const sageBonus = (!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 1.18 : 1.0;
+      const sageBonus = ((!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 1.18 : 1.0) * stanceHealMult;
       healTargets.forEach((tgt, idx) => {
         if (!tgt || !C.alive(tgt)) return;
         if (idx === 0) { a.castFx.x = tgt.x; a.castFx.y = tgt.y; }
         const thm = C.hpMax(tgt);
-        const healAmt = Math.max(1, Math.round(thm * (p.heal || 0.22) * sageBonus));
-        C.setHp(tgt, Math.min(thm, C.hp(tgt) + healAmt));
-        if (p.shield > 0) ST.addStatus(tgt, 'shield', 12, { amt: Math.round(thm * p.shield) }, W.t);
+        const ashenMult = ST.has(tgt, 'ashenToxin', W.t) ? 0.5 : (ST.has(tgt, 'stygianFreeze', W.t) ? 0 : 1.0);
+        const healAmt = Math.max(0, Math.round(thm * (p.heal || 0.22) * sageBonus * ashenMult));
+        if (healAmt > 0) C.setHp(tgt, Math.min(thm, C.hp(tgt) + healAmt));
+        if (p.shield > 0) ST.addStatus(tgt, 'shield', 12, { amt: Math.round(thm * p.shield * stanceShieldMult) }, W.t);
+        const beforeSx = tgt.sx ? tgt.sx.length : 0;
         ST.clearStatus(tgt, x => { const S = SK.STATUS[x.k]; return S && (S.dot || ['slow', 'weaken', 'blind', 'armorbreak', 'mdefbreak', 'silence', 'stun'].includes(x.k)); });
+        const cleansedCount = Math.max(0, beforeSx - (tgt.sx ? tgt.sx.length : 0));
+        if (cleansedCount > 0 && p.cleanseToPower) {
+          ST.addStatus(tgt, 'shield', 12, { amt: Math.round(thm * 0.10 * cleansedCount) }, W.t);
+        }
         const bKind = p.grantBuff || ((!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 'vitalRegen' : null);
         if (bKind && ST.applyNamedBuff) ST.applyNamedBuff(tgt, bKind, buffDur, W.t, { casterId: a.id });
         tgt.fx = { t: W.t, text: '💚 +' + healAmt };
+        runPassiveProcs(W, f, a, tgt, 'onHeal', healAmt);
       });
       return;
     }
@@ -1204,10 +1315,29 @@
     if (p.arch === 'dot') { const k = p.dotKind || 'bleed'; ST.addStatus(t, k, 12, { per: Math.min(0.06, (p.dot || 1) * 0.12 * (ST.get(a)[p.type === 'p' ? 'atk' : 'matk'] / Math.max(1, Math.max(ST.get(a).atk, ST.get(a).matk))) / 12), src: a.id }); }
     const elementProcMult = clamp(Number.isFinite(p.elementControlChanceMult) ? p.elementControlChanceMult : 1, 0.75, 1.25);
     if (p.ctrl) {
+      if (t._ccImmuneUntil && W.t < t._ccImmuneUntil) {
+        t.fx = { t: W.t, text: '🛡️ ต้านทานสะกดสมบูรณ์' };
+        runPassiveProcs(W, f, t, a, 'onDebuffResisted', 0);
+        return;
+      }
       const hasClarity = !t.foe && ST.hasBuff && ST.hasBuff(t, 'clarityLotus', W.t);
-      const ctrlResistMult = hasClarity ? 0.72 : 1.0;
+      const tStance = ST.getActiveStanceSpec ? ST.getActiveStanceSpec(t) : null;
+      const drStacks = (t._ccDrUntil && W.t < t._ccDrUntil) ? (t._ccDrStacks || 0) : 0;
+      const ctrlResistMult = (hasClarity ? 0.72 : 1.0) * ((tStance && tStance.ctrlResist) ? (1 - tStance.ctrlResist) : 1.0) * Math.max(0.1, 1 - drStacks * 0.30);
       const ok = W.rng.next() < clamp(0.78 * Math.pow(ratio, 0.7) * elementProcMult * ctrlResistMult, 0.08, 0.95);
-      if (!ok) { t.fx = { t: W.t, text: 'ต้านทาน' }; return; }
+      if (!ok) {
+        t.fx = { t: W.t, text: 'ต้านทาน' };
+        runPassiveProcs(W, f, t, a, 'onDebuffResisted', 0);
+        return;
+      }
+      if (['stun', 'paralyze', 'silence', 'root', 'fear'].includes(p.ctrl)) {
+        t._ccDrStacks = drStacks + 1;
+        t._ccDrUntil = W.t + 18;
+        if (t._ccDrStacks >= 3) {
+          t._ccImmuneUntil = W.t + 12;
+          t._ccDrStacks = 0;
+        }
+      }
       if (p.ctrl === 'stun' || p.ctrl === 'silence') C.interruptChannel(W, f, t, 'ถูกสะกดขัดจังหวะ');
       let dur = { stun: 4 + Math.floor(p.tier / 2), slow: 14, silence: 10, weaken: 12, blind: 12 }[p.ctrl] || 8;
       if (!t.foe && t.cult && (t.cult.path === 'BODY' || (t.cult.path === 'HEART_SOUL' && p.ctrl === 'silence'))) dur = Math.max(2, Math.round(dur * 0.75));
@@ -1230,15 +1360,26 @@
     if (!u.sx || !u.sx.length) return;
     const SK = SKs(); const keep = [];
     u.sx.forEach(x => {
-      if (x.until <= W.t) return;
+      if (x.until <= W.t) {
+        if ((x.stacks || 1) > 1 && (x.stackDecayMode === 'LAYERED' || COMPOSABLE_ENGINE.MARK_KEYS.includes(x.k) || ['chill', 'poison', 'bleed', 'burn'].includes(x.k))) {
+          x.stacks -= 1;
+          x.until = W.t + Math.max(4, Math.round((x.dur || 8) * 0.5));
+          keep.push(x);
+        }
+        return;
+      }
       keep.push(x);
       const S = SK.STATUS[x.k];
       if (!S || u.dead) return;
       if (S.dot && x.per) {
         const src = x.src ? C.unit(W, x.src) : null;
-        C.applyDamage(W, f, src && !src.dead ? src : null, u, C.hpMax(u) * x.per * (f.serious ? 1 : 0.55) * (src && !src.foe && g.MARTIAL && ['poison','bleed'].includes(x.k) ? g.MARTIAL.skillEffects(src).poisonPower : 1));
+        const toxMult = (src && !src.foe && src.cult && ['poison', 'venomSeed', 'sovereignPlague'].includes(x.k))
+          ? (1 + clamp((src.cult.toxic || 0) * 0.008, 0, 0.50))
+          : 1.0;
+        const stackMult = clamp(x.stacks || 1, 1, 5);
+        C.applyDamage(W, f, src && !src.dead ? src : null, u, C.hpMax(u) * x.per * stackMult * toxMult * (f.serious ? 1 : 0.55) * (src && !src.foe && g.MARTIAL && ['poison','bleed'].includes(x.k) ? g.MARTIAL.skillEffects(src).poisonPower : 1));
         u.fx = { t: W.t, text: S.icon };
-      } else if (S.hot) {
+      } else if (S.hot && !ST.has(u, 'stygianFreeze', W.t)) {
         const hotAmt = Math.max(1, Math.round(C.hpMax(u) * (x.per || 0.035)));
         C.setHp(u, Math.min(C.hpMax(u), C.hp(u) + hotAmt));
         u.fx = { t: W.t, text: S.icon + ' +' + hotAmt };
@@ -1310,6 +1451,12 @@
       if (victim.fx) victim.fx = { t: W.t, text: '💨 สลายร่าง' };
       return;
     }
+    if (f) {
+      const vAllies = C.alliesOf(W, f, victim.id).filter(u => u && u.id !== victim.id && C.alive(u));
+      const vEnemies = C.enemies(W, f, victim.id).filter(u => u && C.alive(u));
+      for (const al of vAllies) runPassiveProcs(W, f, al, killer || victim, 'onAllyFall', 0);
+      for (const en of vEnemies) runPassiveProcs(W, f, en, victim, 'onEnemyFall', 0);
+    }
     if (!killer.foe && !killer.dead && killer.cult && killer.cult.path === 'DEMON') {
       const vTier = victim.tier || (victim.cult && victim.cult.stage) || 1;
       const gainAmt = 3 + vTier * 2.5;
@@ -1340,7 +1487,14 @@
     }
     const ctx = n.act.ctx; C.statusTick(W, f, n); if (n.dead || n.yield || n.fled) return;
     runPassiveProcs(W, f, n, null, 'combatTick', 0);
-    if (n.h.state.qi != null && n.cult) { const qm = CULT.qiMax(n); const hasConduit = STs().hasBuff && STs().hasBuff(n, 'qiConduit', W.t); const qRegen = (n.cult.path === 'XIAN' ? 0.0075 : 0.006) + (hasConduit ? 0.015 : 0); n.h.state.qi = Math.min(qm, n.h.state.qi + qm * qRegen); }
+    if (n.h.state.qi != null && n.cult && !STs().has(n, 'stygianFreeze', W.t)) {
+      const qm = CULT.qiMax(n);
+      const hasConduit = STs().hasBuff && STs().hasBuff(n, 'qiConduit', W.t);
+      const stSpec = STs().getActiveStanceSpec ? STs().getActiveStanceSpec(n) : null;
+      const stQiMult = (stSpec && stSpec.qiRegenBonus) ? (1 + stSpec.qiRegenBonus) : 1.0;
+      const qRegen = ((n.cult.path === 'XIAN' ? 0.0075 : 0.006) + (hasConduit ? 0.015 : 0)) * stQiMult;
+      n.h.state.qi = Math.min(qm, n.h.state.qi + qm * qRegen);
+    }
     if (f.state === 'gather') {
       const ar = f.arena; if (Math.hypot(n.x - ar.x, n.y - ar.y) > 5 + (f.A.indexOf(n.id) + f.B.indexOf(n.id) + 1) % 3) { if (!n.path) AI.goTo(W, n, Math.floor(ar.x + (C.sideOf(f, n.id) === 'A' ? -3 : 3)), Math.floor(ar.y)); AI.stepMove(W, n); } else n.path = null;
       return;
@@ -1400,9 +1554,21 @@
         if (near || W.t - f.t0 > 400) { f.state = 'fight'; all.forEach(u => { u.path = null; }); }
         continue;
       }
+      if (!f._roundStartFired) {
+        f._roundStartFired = true;
+        [].concat(f.A, f.B).map(i => C.unit(W, i)).filter(C.alive).forEach(u => runPassiveProcs(W, f, u, null, 'onRoundStart', 0));
+      }
+      if (C.COMPOSABLE_ENGINE) {
+        if (C.COMPOSABLE_ENGINE.tickDomain && f.activeDomain) C.COMPOSABLE_ENGINE.tickDomain(W, f);
+        if (C.COMPOSABLE_ENGINE.tickDelayedEchoes && f.delayedEchoes && f.delayedEchoes.length) C.COMPOSABLE_ENGINE.tickDelayedEchoes(W, f);
+        if (C.COMPOSABLE_ENGINE.decayElementalAuras) C.COMPOSABLE_ENGINE.decayElementalAuras(W, f);
+      }
       const a = f.A.map(i => C.unit(W, i)).filter(C.alive), b = f.B.map(i => C.unit(W, i)).filter(C.alive);
       const timeout = W.t - f.t0 > (f.kind === 'raid' ? 900 : 300);
-      if (!a.length || !b.length || timeout) { f.over = true; f.winner = timeout ? (f.kind === 'raid' ? 'B' : null) : (a.length ? 'A' : 'B'); C.conclude(W, f); }
+      if (!a.length || !b.length || timeout) {
+        [].concat(a, b).forEach(u => runPassiveProcs(W, f, u, null, 'onRoundEnd', 0));
+        f.over = true; f.winner = timeout ? (f.kind === 'raid' ? 'B' : null) : (a.length ? 'A' : 'B'); C.conclude(W, f);
+      }
     }
     W.fights = fl.filter(f => !f.over || W.t - f.t0 < 5);
     C.processQueue(W); C.tournamentTick(W);
@@ -1415,6 +1581,16 @@
       if (u.isSummon) {
         u.dead = true; u.gone = true;
       } else if (!u.foe && !u.dead) {
+        if (u.meridians && u.meridians.overdriveUsedInFight) {
+          u.meridians.overdriveUsedInFight = false;
+          u.meridians.overdriveUntil = 0;
+          u.inj = Array.isArray(u.inj) ? u.inj : [];
+          if (u.inj.length < 3) {
+            u.inj.push({ part: 'เส้นลมปราณพิสดาร', why: 'ผลสะท้อนหลังเร่งชีพจรพิสดารเกินขีดจำกัด', sev: 1, until: W.t + 1440 });
+          }
+          if (u.h && u.h.state) u.h.state.energy = Math.max(10, (u.h.state.energy || 50) - 20);
+          STs().dirty(u);
+        }
         C.leave(W, u); u.yield = false; u.fled = false;
         if (!u.act || u.act.id === 'fight') u.act = { id: 'idle', stage: 'do', left: 20, total: 20, ctx: {}, why: [] };
       }
@@ -1637,25 +1813,1027 @@
   };
 
   /* =========================================================================
-   * Patch v2.0.34: Composable Effect, Mark/Detonate, Elemental Reaction,
-   * Status Transmutation, Tether & Item Effect Runtime Engine
+   * Patch v2.0.34 + v2.0.35: Unified Composable Effect Engine, Central Condition
+   * Evaluator, Active Stances, Battlefield Domains, Multi-Tier Elemental Fusion
+   * (2E / 3E / 4E), Acupoint Strikes & 100% Item Effect Runtime Engine
    * ========================================================================= */
   const COMPOSABLE_ENGINE = {
     MAX_TRIGGER_DEPTH: 3,
-    MARK_KEYS: ['daoMark', 'starSeal', 'venomSeed', 'bloodBrand'],
-    DEBUFF_KEYS: ['burn', 'bleed', 'poison', 'slow', 'stun', 'silence', 'weaken', 'blind', 'armorbreak', 'mdefbreak', 'exposed', 'chill', 'fear', 'paralyze', 'root', 'curse', 'daoMark', 'starSeal', 'venomSeed', 'bloodBrand'],
+    MARK_KEYS: ['daoMark', 'starSeal', 'venomSeed', 'bloodBrand', 'sporeSeed'],
+    DEBUFF_KEYS: [
+      'burn', 'bleed', 'poison', 'slow', 'stun', 'silence', 'weaken', 'blind',
+      'armorbreak', 'mdefbreak', 'exposed', 'chill', 'fear', 'paralyze', 'root',
+      'curse', 'daoMark', 'starSeal', 'venomSeed', 'bloodBrand', 'taunted',
+      'poiseBroken', 'ashenToxin', 'radiationBurn', 'crimsonGuSwarm',
+      'sovereignPlague', 'stygianFreeze', 'weaponMelt', 'acupointSealed', 'disarmed'
+    ],
     REACTIONS: {
-      'burn+WIND': { id: 'INFERNO_VORTEX', nameTh: 'พายุเพลิงกัลป์ผลาญศึก', mult: 0.42, applyStatus: 'exposed', dur: 12, aoeSplash: true },
-      'burn+LIGHTNING': { id: 'OVERLOAD_BLAST', nameTh: 'อัสนีเพลิงปะทุ', mult: 0.45, applyStatus: 'stun', dur: 4, aoeSplash: true },
-      'chill+LIGHTNING': { id: 'SUPERCONDUCT_SHATTER', nameTh: 'อสนีผ่าเหมันต์ทลายเกราะ', mult: 0.44, applyStatus: 'armorbreak', dur: 14, penBonus: 25 },
-      'slow+LIGHTNING': { id: 'SUPERCONDUCT_SHATTER', nameTh: 'อสนีผ่าเหมันต์ทลายเกราะ', mult: 0.38, applyStatus: 'armorbreak', dur: 12, penBonus: 20 },
-      'chill+EARTH_METAL': { id: 'GLACIAL_SHATTER', nameTh: 'ศิลาบดน้ำแข็งแหลกสลาย', mult: 0.46, applyStatus: 'bleed', dur: 12 },
-      'poison+FIRE': { id: 'MIASMA_DETONATION', nameTh: 'ระเบิดหมอกพิษอัคคี', mult: 0.48, applyStatus: 'burn', dur: 12, aoeSplash: true },
-      'venomSeed+FIRE': { id: 'GU_FIRE_ERUPTION', nameTh: 'เพลิงจุดระเบิดกู่พิษ', mult: 0.52, applyStatus: 'weaken', dur: 14, aoeSplash: true },
-      'bleed+BLOOD_DEMON': { id: 'BLOOD_BOIL_RUPTURE', nameTh: 'โลหิตเดือดสูบวิญญาณ', mult: 0.46, applyStatus: 'fear', dur: 10, leechPct: 0.35 },
-      'mdefbreak+ASTRAL': { id: 'STARFALL_COLLAPSE', nameTh: 'ดาราถล่มทะเลจิต', mult: 0.45, applyStatus: 'silence', dur: 10 },
-      'curse+LIGHT_YANG': { id: 'KARMIC_PURIFICATION_SMITE', nameTh: 'แสงธรรมชำระคำสาป', mult: 0.48, applyStatus: 'blind', dur: 12, selfBuff: 'clarityLotus' }
+      'burn+WIND': { id: 'INFERNO_VORTEX', code: '2E-02', nameTh: 'พายุเพลิงกัลป์ผลาญศึก', mult: 0.42, applyStatus: 'exposed', dur: 12, aoeSplash: true },
+      'burn+LIGHTNING': { id: 'OVERLOAD_BLAST', code: '2E-03', nameTh: 'อัสนีเพลิงปะทุ', mult: 0.45, applyStatus: 'stun', dur: 4, aoeSplash: true },
+      'chill+LIGHTNING': { id: 'SUPERCONDUCT_SHATTER', code: '2E-05', nameTh: 'อสนีผ่าเหมันต์ทลายเกราะ', mult: 0.44, applyStatus: 'armorbreak', dur: 14, penBonus: 25 },
+      'slow+LIGHTNING': { id: 'SUPERCONDUCT_SHATTER', code: '2E-05', nameTh: 'อสนีผ่าเหมันต์ทลายเกราะ', mult: 0.38, applyStatus: 'armorbreak', dur: 12, penBonus: 20 },
+      'chill+EARTH_METAL': { id: 'GLACIAL_SHATTER', code: '2E-07', nameTh: 'ศิลาบดน้ำแข็งแหลกสลาย', mult: 0.46, applyStatus: 'bleed', dur: 12 },
+      'poison+FIRE': { id: 'MIASMA_DETONATION', code: '2E-04', nameTh: 'ระเบิดหมอกพิษอัคคี', mult: 0.48, applyStatus: 'burn', dur: 12, aoeSplash: true },
+      'venomSeed+FIRE': { id: 'GU_FIRE_ERUPTION', code: '2E-04', nameTh: 'เพลิงจุดระเบิดกู่พิษ', mult: 0.52, applyStatus: 'weaken', dur: 14, aoeSplash: true },
+      'bleed+BLOOD_DEMON': { id: 'BLOOD_BOIL_RUPTURE', code: '2E-14', nameTh: 'โลหิตเดือดสูบวิญญาณ', mult: 0.46, applyStatus: 'fear', dur: 10, leechPct: 0.35 },
+      'mdefbreak+ASTRAL': { id: 'STARFALL_COLLAPSE', code: '2E-12', nameTh: 'ดาราถล่มทะเลจิต', mult: 0.45, applyStatus: 'silence', dur: 10 },
+      'curse+LIGHT_YANG': { id: 'KARMIC_PURIFICATION_SMITE', code: '2E-11', nameTh: 'แสงธรรมชำระคำสาป', mult: 0.48, applyStatus: 'blind', dur: 12, selfBuff: 'clarityLotus' }
     }
+  };
+
+  /* ---------- Section 11: Multi-Tier Elemental Fusion Lookup Tables ---------- */
+  const pairKey = (e1, e2) => [String(e1 || '').toUpperCase(), String(e2 || '').toUpperCase()].sort().join('+');
+  const triKey = (e1, e2, e3) => [String(e1 || '').toUpperCase(), String(e2 || '').toUpperCase(), String(e3 || '').toUpperCase()].sort().join('+');
+  const tetraKey = (e1, e2, e3, e4) => [String(e1 || '').toUpperCase(), String(e2 || '').toUpperCase(), String(e3 || '').toUpperCase(), String(e4 || '').toUpperCase()].sort().join('+');
+
+  COMPOSABLE_ENGINE.DUAL_REACTIONS = Object.freeze({
+    [pairKey('FIRE', 'WATER_ICE')]: {
+      code: '2E-01', id: 'THERMAL_VAPORIZE', nameTh: 'ไอน้ำระเบิดปราณ', elements: ['FIRE', 'WATER_ICE'],
+      mult: 1.75, applyStatus: 'blind', dur: 8, stripArmorBuff: true, aoeSplash: true,
+      descTh: 'ขยายความเสียหายระเบิดไอน้ำ 1.75 เท่า สลายบัฟเกราะ และทำให้ตาพร่ามัว 2 รอบ'
+    },
+    [pairKey('FIRE', 'WIND')]: {
+      code: '2E-02', id: 'INFERNO_CYCLONE', nameTh: 'พายุเพลิงกัลป์', elements: ['FIRE', 'WIND'],
+      mult: 1.48, applyStatus: 'burn', dur: 12, spreadBurn: true, pullTowardCenter: true, aoeSplash: true,
+      descTh: 'พายุเพลิงดูดรวบศัตรู แพร่กระจายสถานะเผาไหม้ไปยังศัตรูข้างเคียง'
+    },
+    [pairKey('FIRE', 'LIGHTNING')]: {
+      code: '2E-03', id: 'PLASMA_OVERLOAD', nameTh: 'อสนีเพลิงคลั่ง', elements: ['FIRE', 'LIGHTNING'],
+      mult: 1.55, applyStatus: 'stun', dur: 4, shieldBreakRatio: 0.40, knockback: true, aoeSplash: true,
+      descTh: 'ระเบิดคลื่นพลาสมาทำลายโล่ 40% ซัดกระเด็นและทำให้มึนงง'
+    },
+    [pairKey('FIRE', 'WOOD_LIFE')]: {
+      code: '2E-04', id: 'ASHEN_BLIGHT', nameTh: 'ไฟป่าผลาญชีพจร', elements: ['FIRE', 'WOOD_LIFE'],
+      mult: 1.52, applyStatus: 'ashenToxin', secondaryStatus: 'burn', dur: 14, consumeHot: true,
+      descTh: 'เผาผลาญบัฟฟื้นฟูทั้งหมดและฝังพิษเถ้าถ่านลดการรักษาลง 50% นาน 3 รอบ'
+    },
+    [pairKey('WATER_ICE', 'LIGHTNING')]: {
+      code: '2E-05', id: 'SUPERCONDUCT_SHATTER', nameTh: 'เหมันต์อสนีทลายเกราะ', elements: ['WATER_ICE', 'LIGHTNING'],
+      mult: 1.46, applyStatus: 'armorbreak', secondaryStatus: 'slow', dur: 14, chainTargets: 3, penBonus: 35,
+      descTh: 'ชิ่งกระแสไฟฟ้าเหมันต์ 3 เป้าหมาย ลดป้องกันกายภาพ -35% และลดความเร็วร่าย -20%'
+    },
+    [pairKey('WATER_ICE', 'WIND')]: {
+      code: '2E-06', id: 'BLIZZARD_WHITE_OUT', nameTh: 'พายุหิมะมืดบอด', elements: ['WATER_ICE', 'WIND'],
+      mult: 1.42, applyStatus: 'chill', secondaryStatus: 'blind', dur: 12, chillStacks: 2, aoeSplash: true,
+      descTh: 'พายุหิมะลดหลบหลีกและแม่นยำศัตรู -30% พร้อมสะสมความหนาวเหน็บ 2 ชั้น'
+    },
+    [pairKey('WATER_ICE', 'EARTH_METAL')]: {
+      code: '2E-07', id: 'GLACIAL_SHATTER', nameTh: 'ภูผาบดน้ำแข็ง', elements: ['WATER_ICE', 'EARTH_METAL'],
+      mult: 1.60, applyStatus: 'bleed', secondaryStatus: 'armorbreak', dur: 12, forceCrit: true,
+      descTh: 'ทุบทำลายน้ำแข็งสร้างความเสียหายคริติคอลกายภาพ +60% และทำให้เลือดไหล'
+    },
+    [pairKey('LIGHTNING', 'EARTH_METAL')]: {
+      code: '2E-08', id: 'MAGNETIC_POLARITY', nameTh: 'สนามแม่เหล็กดูดศาสตรา', elements: ['LIGHTNING', 'EARTH_METAL'],
+      mult: 1.45, applyStatus: 'disarmed', secondaryStatus: 'paralyze', dur: 10, pullTowardCenter: true,
+      descTh: 'สนามแม่เหล็กดูดรวบศัตรูที่ถือศาสตราโลหะและลดพลังโจมตีอาวุธลง -25%'
+    },
+    [pairKey('WOOD_LIFE', 'WATER_ICE')]: {
+      code: '2E-09', id: 'PARASITIC_BLOOM', nameTh: 'บุปผากาฝากดูดปราณ', elements: ['WOOD_LIFE', 'WATER_ICE'],
+      mult: 1.40, applyStatus: 'sporeSeed', dur: 14, leechPct: 0.28, qiLeechPct: 0.12,
+      descTh: 'ฝังเมล็ดกาฝากดูดเลือดและปราณคืนสู่ผู้ร่าย และระเบิดซ้ำเมื่อถูกธาตุไฟ'
+    },
+    [pairKey('WOOD_LIFE', 'EARTH_METAL')]: {
+      code: '2E-10', id: 'THORN_BASTION', nameTh: 'ปราการหนามพันธนาการ', elements: ['WOOD_LIFE', 'EARTH_METAL'],
+      mult: 1.38, applyStatus: 'root', dur: 10, casterShieldPct: 0.20, selfBuff: 'karmicAegis',
+      descTh: 'รากไม้ศิลาพันธนาการศัตรู 2 รอบ พร้อมสร้างเกราะหนาม 20% Max HP ให้ผู้ร่าย'
+    },
+    [pairKey('LIGHT_YANG', 'DARK_YIN')]: {
+      code: '2E-11', id: 'TAIJI_ANNIHILATION', nameTh: 'ไท่จี๋สะท้านภพ', elements: ['LIGHT_YANG', 'DARK_YIN'],
+      mult: 1.62, applyStatus: 'exposed', dur: 12, trueDmgRatio: 0.50, cleanseSelf: true, stripTargetBuff: true,
+      descTh: 'แปรเปลี่ยนความเสียหาย 50% เป็นความเสียหายแท้จริง ชำระดีบัฟตนเองและสลายบัฟศัตรู'
+    },
+    [pairKey('ASTRAL', 'FIRE')]: {
+      code: '2E-12', id: 'SOLAR_FLARE_NOVA', nameTh: 'สุริยคราสเผาผลาญ', elements: ['ASTRAL', 'FIRE'],
+      mult: 1.58, applyStatus: 'radiationBurn', secondaryStatus: 'mdefbreak', dur: 14, ignoreMdefRatio: 0.40,
+      descTh: 'เพลิงสุริยะดาราละเลยป้องกันวิชา 40% และเผาผลาญเพดานพลังชีวิตศัตรู -10%'
+    },
+    [pairKey('ASTRAL', 'WATER_ICE')]: {
+      code: '2E-13', id: 'CRYO_STAR_MIRROR', nameTh: 'กระจกเงาดาราเหมันต์', elements: ['ASTRAL', 'WATER_ICE'],
+      mult: 1.44, applyStatus: 'chill', dur: 10, selfBuff: 'cryoMirror', casterShieldPct: 0.16,
+      descTh: 'สร้างกระจกน้ำแข็งดาราสะท้อนความเสียหายวิชาถัดไปของศัตรูคืน 25%'
+    },
+    [pairKey('BLOOD_DEMON', 'FIRE')]: {
+      code: '2E-14', id: 'BLOOD_BOIL_DETONATION', nameTh: 'โลหิตเดือดระเบิดชีพจร', elements: ['BLOOD_DEMON', 'FIRE'],
+      mult: 1.68, applyStatus: 'fear', secondaryStatus: 'bleed', dur: 10, detonateBleedMult: 2.0, leechPct: 0.30,
+      descTh: 'จุดระเบิดสถานะเลือดไหลทั้งหมดเป็นความเสียหายฉับพลัน 200% และทำให้หวาดกลัว'
+    },
+    [pairKey('BLOOD_DEMON', 'WOOD_LIFE')]: {
+      code: '2E-15', id: 'CRIMSON_GU_SWARM', nameTh: 'ฝูงกู่โลหิตกลืนกิน', elements: ['BLOOD_DEMON', 'WOOD_LIFE'],
+      mult: 1.50, applyStatus: 'crimsonGuSwarm', dur: 14, leechPct: 0.35,
+      descTh: 'ปล่อยฝูงแมลงกู่โลหิตสูบพลังชีวิตศัตรู 5%/รอบ ส่งกลับมารักษาผู้ร่าย'
+    },
+    [pairKey('BLOOD_DEMON', 'WATER_ICE')]: {
+      code: '2E-16', id: 'BLOODFROST_SHARD', nameTh: 'ผลึกโลหิตเยือกแข็ง', elements: ['BLOOD_DEMON', 'WATER_ICE'],
+      mult: 1.64, applyStatus: 'paralyze', secondaryStatus: 'exposed', dur: 10, selfHpSacrificePct: 0.05,
+      descTh: 'สละเลือดตนเอง 5% หลอมหอกน้ำแข็งโลหิตตรึงร่างศัตรูและเพิ่มความแรงคริที่ได้รับ +25%'
+    }
+  });
+
+  COMPOSABLE_ENGINE.TRI_REACTIONS = Object.freeze({
+    [triKey('FIRE', 'WATER_ICE', 'WIND')]: {
+      code: '3E-01', id: 'PRIMORDIAL_STORM', nameTh: 'มหาพายุไอน้ำบรรพกาล', elements: ['FIRE', 'WATER_ICE', 'WIND'],
+      mult: 2.20, applyStatus: 'blind', secondaryStatus: 'exposed', dur: 14, stripTargetBuff: true, qiRestorePct: 0.15, aoeSplash: true,
+      descTh: 'มหาพายุไอน้ำล้างบัฟเกราะศัตรูทั้งหมดและฟื้นฟูปราณให้ฝ่ายเดียวกัน 15% Max Qi'
+    },
+    [triKey('FIRE', 'LIGHTNING', 'WIND')]: {
+      code: '3E-02', id: 'HEAVENLY_TRIBULATION_TEMPEST', nameTh: 'พายุทัณฑ์สวรรค์เก้าอสนี', elements: ['FIRE', 'LIGHTNING', 'WIND'],
+      mult: 2.50, applyStatus: 'paralyze', secondaryStatus: 'stun', dur: 8, strikes: 3, aoeSplash: true,
+      descTh: 'ฟาดสายฟ้าทัณฑ์สวรรค์ 3 สายต่อเนื่อง สร้างความเสียหายรุนแรงและสะกดอัมพาต'
+    },
+    [triKey('WATER_ICE', 'LIGHTNING', 'EARTH_METAL')]: {
+      code: '3E-03', id: 'ABSOLUTE_ZERO_RAILGUN', nameTh: 'ศรแม่เหล็กศูนย์องศาสมบูรณ์', elements: ['WATER_ICE', 'LIGHTNING', 'EARTH_METAL'],
+      mult: 2.40, applyStatus: 'stun', secondaryStatus: 'armorbreak', dur: 10, shieldBreakRatio: 1.0, penBonus: 60,
+      descTh: 'ยิงลำแสงแม่เหล็กเหมันต์ทะลวงแนวเส้นตรง ละเลยป้องกัน 60% และทำลายโล่ทั้งหมด'
+    },
+    [triKey('FIRE', 'WOOD_LIFE', 'EARTH_METAL')]: {
+      code: '3E-04', id: 'VOLCANIC_CALDERA_ERUPTION', nameTh: 'ภูเขาไฟปะทุหลอมพิภพ', elements: ['FIRE', 'WOOD_LIFE', 'EARTH_METAL'],
+      mult: 2.30, applyStatus: 'burn', secondaryStatus: 'slow', dur: 16, aoeSplash: true,
+      descTh: 'ระเบิดปากปล่องภูเขาไฟสร้างพื้นที่ลาวาเผาผลาญต่อเนื่องและลดความเร็วเคลื่อนที่ -40%'
+    },
+    [triKey('WOOD_LIFE', 'WATER_ICE', 'LIGHT_YANG')]: {
+      code: '3E-05', id: 'IMMORTAL_NECTAR_SANCTUARY', nameTh: 'แดนทิพย์น้ำอมฤตบัวสวรรค์', elements: ['WOOD_LIFE', 'WATER_ICE', 'LIGHT_YANG'],
+      mult: 1.85, applyStatus: 'blind', dur: 10, teamHealPct: 0.25, cleanseTeam: true, selfBuff: 'clarityLotus', secondaryBuff: 'vitalRegen',
+      descTh: 'กลั่นน้ำอมฤตฟื้นฟูเลือดทั้งทีม 25% ชำระล้างพิษและดีบัฟทั้งหมด พร้อมมอบบัฟบัวทิพย์'
+    },
+    [triKey('BLOOD_DEMON', 'DARK_YIN', 'FIRE')]: {
+      code: '3E-06', id: 'HELLFIRE_ASURA_APOTHEOSIS', nameTh: 'อวตารอสูรเพลิงอเวจี', elements: ['BLOOD_DEMON', 'DARK_YIN', 'FIRE'],
+      mult: 2.45, applyStatus: 'fear', secondaryStatus: 'burn', dur: 12, selfBuff: 'asuraBloodFrenzy', leechPct: 0.35,
+      descTh: 'ปลุกร่างอวตารอสูรเพลิงอเวจี เพิ่มพลังโจมตี +24% และดูดเลือด 35%'
+    },
+    [triKey('ASTRAL', 'LIGHT_YANG', 'DARK_YIN')]: {
+      code: '3E-07', id: 'COSMIC_ECLIPSE_SINGULARITY', nameTh: 'หลุมดำสุริยุปราคาดาราจักร', elements: ['ASTRAL', 'LIGHT_YANG', 'DARK_YIN'],
+      mult: 2.50, applyStatus: 'silence', secondaryStatus: 'exposed', dur: 12, trueDmgRatio: 0.50, pullTowardCenter: true, aoeSplash: true,
+      descTh: 'สร้างหลุมดำสุริยุปราคาดูดรวบศัตรูทั้งหมด สร้างความเสียหายแท้จริงและผนึกวิชา 2 รอบ'
+    },
+    [triKey('LIGHTNING', 'WIND', 'ASTRAL')]: {
+      code: '3E-08', id: 'VOID_THUNDER_STEP_MIRAGE', nameTh: 'ย่างก้าวอสนีทะลวงสุญตา', elements: ['LIGHTNING', 'WIND', 'ASTRAL'],
+      mult: 2.35, applyStatus: 'exposed', dur: 10, selfBuff: 'astralMirage', secondaryBuff: 'thunderStep',
+      descTh: 'ทะลวงมิติฟัน 5 กระบวนท่าพริบตา พร้อมเข้าสู่สภาวะเงาดาราซ้อนมิติหลบสวนอัตโนมัติ'
+    },
+    [triKey('WOOD_LIFE', 'BLOOD_DEMON', 'DARK_YIN')]: {
+      code: '3E-09', id: 'MYRIAD_VENOM_SOVEREIGN_PLAGUE', nameTh: 'โรคระบาดราชันย์หมื่นพิษ', elements: ['WOOD_LIFE', 'BLOOD_DEMON', 'DARK_YIN'],
+      mult: 2.25, applyStatus: 'sovereignPlague', secondaryStatus: 'poison', dur: 16, aoeSplash: true,
+      descTh: 'แพร่เชื้อโรคระบาดราชันย์หมื่นพิษสร้างความเสียหาย 8% Max HP ต่อรอบและติดต่อเมื่อตาย'
+    },
+    [triKey('EARTH_METAL', 'FIRE', 'LIGHTNING')]: {
+      code: '3E-10', id: 'DIVINE_FORGE_MOLTEN_HAMMER', nameTh: 'ค้อนเทพหลอมสวรรค์ทลายศาสตรา', elements: ['EARTH_METAL', 'FIRE', 'LIGHTNING'],
+      mult: 2.40, applyStatus: 'weaponMelt', secondaryStatus: 'armorbreak', dur: 16, selfBuff: 'artisanFocus',
+      descTh: 'ค้อนเพลิงอัสนีทุบหลอมศาสตราและเกราะของศัตรู ลดประสิทธิภาพอุปกรณ์ลง -30%'
+    },
+    [triKey('WATER_ICE', 'DARK_YIN', 'ASTRAL')]: {
+      code: '3E-11', id: 'STYGIAN_ABYSS_FREEZE', nameTh: 'ยมโลกเยือกแข็งสะกดวิญญาณ', elements: ['WATER_ICE', 'DARK_YIN', 'ASTRAL'],
+      mult: 2.30, applyStatus: 'stygianFreeze', secondaryStatus: 'chill', dur: 12,
+      descTh: 'แช่แข็งวิญญาณด้วยไอเย็นยมโลก ปิดกั้นการฟื้นฟูเลือดและปราณของศัตรูอย่างสมบูรณ์ 2 รอบ'
+    },
+    [triKey('BLOOD_DEMON', 'LIGHT_YANG', 'FIRE')]: {
+      code: '3E-12', id: 'KARMIC_SIN_INCINERATION', nameTh: 'เพลิงกรรมชำระบาปโลหิต', elements: ['BLOOD_DEMON', 'LIGHT_YANG', 'FIRE'],
+      mult: 2.45, applyStatus: 'burn', secondaryStatus: 'exposed', dur: 12, trueDmgRatio: 0.45, karmaScale: true,
+      descTh: 'จุดเพลิงกรรมเผาผลาญบาปในตัวศัตรู สร้างโบนัสความเสียหายแท้จริงตามบัญชีกรรมและจำนวนสังหาร'
+    }
+  });
+
+  COMPOSABLE_ENGINE.TETRA_REACTIONS = Object.freeze({
+    [tetraKey('FIRE', 'WATER_ICE', 'WIND', 'EARTH_METAL')]: {
+      code: '4E-01', id: 'FOUR_HEAVENLY_SYMBOLS_DOMAIN', nameTh: 'ค่ายกลจตุรเทพพิทักษ์สวรรค์', elements: ['FIRE', 'WATER_ICE', 'WIND', 'EARTH_METAL'],
+      mult: 3.10, deployDomain: 'DOMAIN_FOUR_HEAVENLY_SYMBOLS', teamBuff: 'tacticalCommand', casterShieldPct: 0.30, aoeSplash: true,
+      descTh: 'อัญเชิญจตุรเทพมังกรคราม พยัคฆ์ขาว หงส์ชาด และเต่าดำ กางอาณาเขตสวรรค์ 5 รอบ'
+    },
+    [tetraKey('FIRE', 'WATER_ICE', 'WOOD_LIFE', 'EARTH_METAL')]: {
+      code: '4E-02', id: 'CHAOS_WUXING_GENESIS', nameTh: 'ปฐมกำเนิดเบญจธาตุโกลาหล', elements: ['FIRE', 'WATER_ICE', 'WOOD_LIFE', 'EARTH_METAL'],
+      mult: 3.50, applyStatus: 'exposed', dur: 16, trueDmgRatio: 0.60, resetCooldowns: true, restoreHpPct: 0.50, restoreQiPct: 0.50, aoeSplash: true,
+      descTh: 'หลอมรวมวัฏจักรเบญจธาตุเป็นปราณโกลาหลบรรพกาล 350% รีเซ็ตคูลดาวน์และฟื้นฟูเลือด/ปราณ 50%'
+    },
+    [tetraKey('LIGHT_YANG', 'DARK_YIN', 'ASTRAL', 'BLOOD_DEMON')]: {
+      code: '4E-03', id: 'SAMSARA_TWILIGHT_VERDICT', nameTh: 'พิพากษาวัฏสงสารสนธยา', elements: ['LIGHT_YANG', 'DARK_YIN', 'ASTRAL', 'BLOOD_DEMON'],
+      mult: 3.60, applyStatus: 'curse', secondaryStatus: 'weaken', dur: 18, executeBelowPct: 0.25, selfBuff: 'karmicAegis', deployDomain: 'DOMAIN_SAMSARA_KARMA_WHEEL',
+      descTh: 'เปิดประตูวัฏสงสารพิพากษาสังหารศัตรูที่เลือดต่ำกว่า 25% ทันที หรือช่วงชิงสเตตัส 20%'
+    },
+    [tetraKey('FIRE', 'LIGHTNING', 'LIGHT_YANG', 'ASTRAL')]: {
+      code: '4E-04', id: 'NINE_SUNS_APOCALYPSE', nameTh: 'เก้าสุริยันล้างพิภพ', elements: ['FIRE', 'LIGHTNING', 'LIGHT_YANG', 'ASTRAL'],
+      mult: 3.40, applyStatus: 'radiationBurn', secondaryStatus: 'blind', dur: 18, shieldBreakRatio: 1.0, destroySummons: true, aoeSplash: true,
+      descTh: 'อัญเชิญดวงอาทิตย์จำลองเก้าดวงแผดเผาโล่และร่างอัญเชิญทั้งหมด พร้อมทำให้ศัตรูตาบอด 3 รอบ'
+    },
+    [tetraKey('WOOD_LIFE', 'BLOOD_DEMON', 'DARK_YIN', 'WATER_ICE')]: {
+      code: '4E-05', id: 'NETHERWORLD_YGGDRASIL_ROOT', nameTh: 'รากพฤกษายมโลกกลืนวิญญาณ', elements: ['WOOD_LIFE', 'BLOOD_DEMON', 'DARK_YIN', 'WATER_ICE'],
+      mult: 3.25, applyStatus: 'root', secondaryStatus: 'sovereignPlague', dur: 16, leechPct: 0.45, casterShieldPct: 0.35, aoeSplash: true,
+      descTh: 'รากพฤกษายมโลกพันธนาการศัตรูทั้งหมดและสูบพลังชีวิตมาสร้างโล่คุ้มกันทั้งทีม'
+    },
+    [tetraKey('EARTH_METAL', 'LIGHTNING', 'FIRE', 'ASTRAL')]: {
+      code: '4E-06', id: 'COSMIC_SINGULARITY_AUTOMATON', nameTh: 'จักรกลดาราจักรผ่ามิติ', elements: ['EARTH_METAL', 'LIGHTNING', 'FIRE', 'ASTRAL'],
+      mult: 3.35, applyStatus: 'armorbreak', secondaryStatus: 'stun', dur: 10, deployDomain: 'DOMAIN_THOUSAND_PUPPET_MATRIX', selfBuff: 'puppetOverclock', aoeSplash: true,
+      descTh: 'ประกอบร่างหุ่นเชิดกลืนดาราระดับ 7 ยิงลำแสงโคจรทำลายล้างและเปิดค่ายกลหมื่นหุ่นเชิด'
+    }
+  });
+
+  /* ---------- Pillar 6: Battlefield Domains Catalog & Runtime Engine ---------- */
+  COMPOSABLE_ENGINE.DOMAIN_CATALOG = Object.freeze({
+    DOMAIN_ASTRAL_STARFIELD: {
+      id: 'DOMAIN_ASTRAL_STARFIELD', nameTh: 'อาณาเขตดาราจักรสุญตา', element: 'ASTRAL', defaultDur: 24,
+      allyBuff: 'starlightAegis', enemyStatus: 'starSeal', tickMult: 0.28,
+      descTh: 'เพิ่มความแรงวิชาธาตุดารา/สุญตา +25% และโปรยฝนดาวตกใส่ศัตรูทุกต้นรอบ'
+    },
+    DOMAIN_PURGATORY_BLOOD_SEA: {
+      id: 'DOMAIN_PURGATORY_BLOOD_SEA', nameTh: 'อาณาเขตทะเลโลหิตอเวจี', element: 'BLOOD_DEMON', defaultDur: 24,
+      allyBuff: 'bloodFrenzy', enemyStatus: 'bleed', tickMult: 0.30, leechPct: 0.25,
+      descTh: 'สูบเลือดศัตรูที่มีสถานะเลือดไหลทุกต้นรอบมารักษาผู้ร่ายและพันธมิตรสายมาร/โลหิต'
+    },
+    DOMAIN_GOLDEN_LOTUS_SANCTUARY: {
+      id: 'DOMAIN_GOLDEN_LOTUS_SANCTUARY', nameTh: 'อาณาเขตแดนบัวทองคำบริสุทธิ์', element: 'LIGHT_YANG', defaultDur: 24,
+      allyBuff: 'clarityLotus', healPct: 0.06, cleanseEachTick: true,
+      descTh: 'ฟื้นฟูเลือดพันธมิตร 6% ทุกต้นรอบ ชำระล้างพิษ/คำสาป และลดความเสียหายขาเข้า 20%'
+    },
+    DOMAIN_THOUSAND_PUPPET_MATRIX: {
+      id: 'DOMAIN_THOUSAND_PUPPET_MATRIX', nameTh: 'อาณาเขตค่ายกลหมื่นหุ่นเชิด', element: 'EARTH_METAL', defaultDur: 24,
+      allyBuff: 'puppetOverclock', enemyStatus: 'armorbreak', tickMult: 0.32, restoreIntegrity: 12,
+      descTh: 'เร่งความเร็วหุ่นเชิดและซ่อมแซมความสมบูรณ์ +12 ทุกต้นรอบ พร้อมยิงปืนกลปราณสนับสนุน'
+    },
+    DOMAIN_SAMSARA_KARMA_WHEEL: {
+      id: 'DOMAIN_SAMSARA_KARMA_WHEEL', nameTh: 'อาณาเขตกงล้อวัฏสงสารหกภูมิ', element: 'DARK_YIN', defaultDur: 24,
+      allyBuff: 'karmicAegis', enemyStatus: 'curse', tickMult: 0.26, reflectPct: 0.22,
+      descTh: 'สะท้อนความเสียหายตามวิบากกรรม 22% และฝังคำสาปวัฏสงสารใส่ศัตรูทุกต้นรอบ'
+    },
+    DOMAIN_EIGHT_TRIGRAM_LABYRINTH: {
+      id: 'DOMAIN_EIGHT_TRIGRAM_LABYRINTH', nameTh: 'อาณาเขตค่ายกลแปดทิศฉีเหมิน', element: 'WIND', defaultDur: 24,
+      allyBuff: 'aegisWard', enemyStatus: 'slow', tickMult: 0.25,
+      descTh: 'บิดเบือนทิศทางในค่ายกลแปดทิศ ลดความแม่นยำและความเร็วศัตรู พร้อมเพิ่มป้องกันให้ทีม'
+    },
+    DOMAIN_FOUR_HEAVENLY_SYMBOLS: {
+      id: 'DOMAIN_FOUR_HEAVENLY_SYMBOLS', nameTh: 'อาณาเขตจตุรเทพพิทักษ์สวรรค์', element: 'ASTRAL', defaultDur: 30,
+      allyBuff: 'tacticalCommand', enemyStatus: 'exposed', tickMult: 0.36, healPct: 0.05,
+      descTh: 'อาณาเขตจตุรเทพสูงสุด มอบพรโจมตี/ป้องกัน/ฟื้นฟูครบสี่ทิศและถล่มศัตรูทุกต้นรอบ'
+    },
+    DOMAIN_NINE_HELLS_ABYSS: {
+      id: 'DOMAIN_NINE_HELLS_ABYSS', nameTh: 'อาณาเขตนรกเก้าขุมอเวจี', element: 'DARK_YIN', defaultDur: 24,
+      allyBuff: 'asuraBloodFrenzy', enemyStatus: 'stygianFreeze', tickMult: 0.32,
+      descTh: 'แผ่ไอเย็นและเพลิงอเวจีเก้าขุม ปิดกั้นการรักษาของศัตรูและเพิ่มพลังทำลายล้างสูงสุด'
+    }
+  });
+
+  COMPOSABLE_ENGINE.deployDomain = (W, f, caster, domainId, dur) => {
+    if (!f || !caster) return null;
+    const spec = COMPOSABLE_ENGINE.DOMAIN_CATALOG[domainId] || COMPOSABLE_ENGINE.DOMAIN_CATALOG.DOMAIN_ASTRAL_STARFIELD;
+    const tNow = (W && W.t != null) ? W.t : (STs().now || 0);
+    const casterRank = caster.cult ? (CULT.equivalentStage ? CULT.equivalentStage(caster) : (caster.cult.stage || 1)) : (caster.tier || 1);
+    const casterSide = C.sideOf ? C.sideOf(f, caster.id) : 'A';
+    // Domain Clash check
+    if (f.activeDomain && f.activeDomain.until > tNow && f.activeDomain.side !== casterSide) {
+      const prevRank = f.activeDomain.casterRank || 1;
+      if (casterRank < prevRank) {
+        caster.fx = { t: tNow, text: '⚠️ อาณาเขตถูกข่ม!' };
+        return f.activeDomain;
+      }
+      if (casterRank === prevRank) {
+        const allUnits = [].concat(f.A || [], f.B || []).map(id => C.unit(W, id)).filter(C.alive);
+        for (const u of allUnits) {
+          const shatterDmg = Math.max(10, Math.round(C.hpMax(u) * 0.12));
+          C.setHp(u, Math.max(1, C.hp(u) - shatterDmg));
+          u.fx = { t: tNow, text: '💥 อาณาเขตปะทะแตกสลาย! (-' + shatterDmg + ')' };
+        }
+        f.lastDomainClash = { t: tNow, domainA: f.activeDomain.id, domainB: spec.id, outcome: 'DOMAIN_SHATTER' };
+        f.activeDomain = null;
+        return null;
+      }
+    }
+    const cleanDur = clamp(Number(dur) || spec.defaultDur || 24, 6, 120);
+    f.activeDomain = {
+      id: spec.id,
+      nameTh: spec.nameTh,
+      element: spec.element,
+      casterId: caster.id,
+      casterRank,
+      side: casterSide,
+      startedAt: tNow,
+      until: tNow + cleanDur,
+      lastTickAt: tNow - 4,
+      spec
+    };
+    caster.fx = { t: tNow, text: '🌐 กาง' + spec.nameTh + '!' };
+    caster.lastDomainDeployed = { t: tNow, domainId: spec.id, nameTh: spec.nameTh };
+    COMPOSABLE_ENGINE.tickDomain(W, f, true);
+    return f.activeDomain;
+  };
+
+  COMPOSABLE_ENGINE.tickDomain = (W, f, immediate) => {
+    if (!f || !f.activeDomain) return false;
+    const tNow = (W && W.t != null) ? W.t : (STs().now || 0);
+    const dom = f.activeDomain;
+    if (dom.until <= tNow) {
+      f.activeDomain = null;
+      return false;
+    }
+    if (!immediate && tNow - (dom.lastTickAt || 0) < 4) return false;
+    dom.lastTickAt = tNow;
+    const spec = dom.spec || COMPOSABLE_ENGINE.DOMAIN_CATALOG[dom.id];
+    if (!spec) return false;
+    const ST = STs();
+    const caster = C.unit(W, dom.casterId);
+    const allyIds = dom.side === 'A' ? (f.A || []) : (f.B || []);
+    const enemyIds = dom.side === 'A' ? (f.B || []) : (f.A || []);
+    const allies = allyIds.map(id => C.unit(W, id)).filter(C.alive);
+    const enemies = enemyIds.map(id => C.unit(W, id)).filter(C.alive);
+
+    for (const al of allies) {
+      if (spec.allyBuff && ST.applyNamedBuff && !al.foe) {
+        ST.applyNamedBuff(al, spec.allyBuff, 12, tNow, { casterId: dom.casterId });
+      }
+      if (spec.healPct && !ST.has(al, 'stygianFreeze', tNow)) {
+        const hm = C.hpMax(al);
+        C.setHp(al, Math.min(hm, C.hp(al) + Math.max(1, Math.round(hm * spec.healPct))));
+      }
+      if (spec.cleanseEachTick) {
+        ST.clearStatus(al, x => ['poison', 'burn', 'bleed', 'curse', 'slow', 'weaken'].includes(x.k));
+      }
+      if (spec.restoreIntegrity && al.cult && al.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
+        const ms = CULT.ensureMechState(al);
+        ms.integrity = clamp((ms.integrity || 50) + spec.restoreIntegrity, 0, 100);
+        ms.constructReadiness = ms.integrity;
+      }
+    }
+    const baseAtk = caster ? Math.max(ST.get(caster).atk || 40, ST.get(caster).matk || 40) : 50;
+    for (const en of enemies) {
+      if (spec.enemyStatus) {
+        if (COMPOSABLE_ENGINE.MARK_KEYS.includes(spec.enemyStatus)) {
+          COMPOSABLE_ENGINE.applyMark(W, f, caster || allies[0], en, spec.enemyStatus, 1, 12);
+        } else {
+          ST.addStatus(en, spec.enemyStatus, 10, { per: 0.015, src: dom.casterId }, tNow);
+        }
+      }
+      if (spec.tickMult && C.alive(en)) {
+        const dDmg = Math.max(4, Math.round(baseAtk * spec.tickMult * (f.serious ? 0.35 : 0.22)));
+        f._composableDepth = (f._composableDepth || 0) + 1;
+        try {
+          C.applyDamage(W, f, caster || allies[0] || en, en, dDmg, spec.nameTh);
+          if (spec.leechPct && caster && !caster.dead) {
+            C.setHp(caster, Math.min(C.hpMax(caster), C.hp(caster) + Math.max(1, Math.round(dDmg * spec.leechPct))));
+          }
+        } finally {
+          f._composableDepth = Math.max(0, (f._composableDepth || 1) - 1);
+        }
+      }
+    }
+    return true;
+  };
+
+  /* ---------- Pillar 1: Central Condition Evaluator (13 Original + 16 Section 10.2 Conditions) ---------- */
+  COMPOSABLE_ENGINE.evaluateCondition = (cond, caster, target, ctx) => {
+    if (!cond || cond === 'ALWAYS') return true;
+    ctx = ctx || {};
+    const W = ctx.W || { t: (STs() && STs().now) || 0 };
+    const f = ctx.f || (caster && C.fightOf ? C.fightOf(W, caster) : null);
+    const tNow = (W && W.t != null) ? W.t : ((STs() && STs().now) || 0);
+    const ST = STs();
+
+    if (Array.isArray(cond)) {
+      return cond.every(c => COMPOSABLE_ENGINE.evaluateCondition(c, caster, target, ctx));
+    }
+    if (typeof cond === 'object') {
+      if (Array.isArray(cond.all)) return cond.all.every(c => COMPOSABLE_ENGINE.evaluateCondition(c, caster, target, ctx));
+      if (Array.isArray(cond.any)) return cond.any.some(c => COMPOSABLE_ENGINE.evaluateCondition(c, caster, target, ctx));
+      const kind = cond.kind || cond.id || cond.condition || 'ALWAYS';
+      return COMPOSABLE_ENGINE._evalSingleCondition(kind, cond, caster, target, W, f, tNow, ST, ctx);
+    }
+    return COMPOSABLE_ENGINE._evalSingleCondition(String(cond), {}, caster, target, W, f, tNow, ST, ctx);
+  };
+
+  COMPOSABLE_ENGINE._evalSingleCondition = (kind, params, caster, target, W, f, tNow, ST, ctx) => {
+    if (!kind || kind === 'ALWAYS') return true;
+    // Fast per-tick cache check for parameterless string conditions
+    const hasCtxOverride = ctx && (ctx.dist != null || ctx.weather != null || ctx.terrain != null || ctx.isNight != null);
+    const cacheKey = f && !hasCtxOverride && (!params || Object.keys(params).length === 0)
+      ? (tNow + ':' + kind + ':' + (caster ? caster.id : '') + ':' + (target ? target.id : ''))
+      : null;
+    if (cacheKey && f._condCache && f._condCache.t === tNow && cacheKey in f._condCache.map) {
+      return f._condCache.map[cacheKey];
+    }
+    const store = val => {
+      if (cacheKey && f) {
+        if (!f._condCache || f._condCache.t !== tNow) f._condCache = { t: tNow, map: {} };
+        f._condCache.map[cacheKey] = !!val;
+      }
+      return !!val;
+    };
+
+    const cHpFrac = caster ? hpFrac(caster) : 1;
+    const tHpFrac = target ? hpFrac(target) : 1;
+    const cQiFrac = (!caster || caster.foe || !caster.cult || !caster.h || !caster.h.state)
+      ? 1
+      : clamp((caster.h.state.qi == null ? CULT.qiMax(caster) : caster.h.state.qi) / Math.max(1, CULT.qiMax(caster)), 0, 1);
+
+    switch (kind) {
+      case 'TARGET_HP_BELOW_40':
+      case 'TARGET_HP_BELOW_PCT':
+        return store(target && tHpFrac <= (params.thresholdPct || params.pct || 0.40));
+      case 'TARGET_HP_ABOVE_70':
+      case 'TARGET_HP_ABOVE_PCT':
+        return store(target && tHpFrac >= (params.thresholdPct || params.pct || 0.70));
+      case 'SELF_HP_BELOW_50':
+      case 'SELF_HP_BELOW_PCT':
+        return store(caster && cHpFrac <= (params.thresholdPct || params.pct || 0.50));
+      case 'SELF_QI_ABOVE_60':
+      case 'SELF_QI_ABOVE_PCT':
+        return store(caster && cQiFrac >= (params.thresholdPct || params.pct || 0.60));
+      case 'TARGET_HAS_DEBUFF':
+        return store(target && Array.isArray(target.sx) && target.sx.some(x => x && x.until > tNow && COMPOSABLE_ENGINE.DEBUFF_KEYS.includes(x.k)));
+      case 'TARGET_HAS_SHIELD':
+        return store(target && (!!shieldOf(target) || ST.has(target, 'guardUp', tNow)));
+      case 'TARGET_HAS_MARK':
+        return store(target && COMPOSABLE_ENGINE.totalMarksOn(target, tNow) >= (params.minStacks || 1));
+      case 'TARGET_MARK_STACKS_AT_LEAST_2':
+        return store(target && COMPOSABLE_ENGINE.totalMarksOn(target, tNow) >= (params.minStacks || 2));
+      case 'SELF_HAS_STANCE': {
+        const curSt = caster && (caster._activeStance || caster._combatStance);
+        return store(!!curSt && (!params.stanceId || curSt === params.stanceId));
+      }
+      case 'TARGET_IS_CONTROLLED':
+        return store(target && Array.isArray(target.sx) && target.sx.some(x => x && x.until > tNow && ['stun', 'silence', 'paralyze', 'root', 'fear', 'taunted', 'acupointSealed', 'stygianFreeze'].includes(x.k)));
+      case 'SELF_HAS_COMBO_PRIMER':
+        return store(caster && (ST.has(caster, 'comboReady', tNow) || (ST.hasBuff && ST.hasBuff(caster, 'comboReady', tNow))));
+      case 'SELF_TOXICITY_ABOVE_25':
+        return store(caster && !caster.foe && caster.cult && (caster.cult.toxic || 0) >= (params.threshold || 25));
+      case 'SELF_HEART_DEMON_ABOVE_20':
+        return store(caster && !caster.foe && caster.h && caster.h.state && (caster.h.state.heartDemon || 0) >= (params.threshold || 20));
+      case 'PARTY_SIZE_AT_LEAST_2':
+      case 'ALLY_COUNT_ALIVE': {
+        const minAllies = params.minAllies || 2;
+        const allies = (f && caster && C.alliesOf) ? C.alliesOf(W, f, caster.id).filter(C.alive) : (caster ? [caster] : []);
+        return store(allies.length >= minAllies);
+      }
+      case 'LONE_WOLF_SOLO': {
+        const allies = (f && caster && C.alliesOf) ? C.alliesOf(W, f, caster.id).filter(C.alive) : (caster ? [caster] : []);
+        return store(allies.length <= 1);
+      }
+      case 'TIME_OF_DAY_NIGHT': {
+        const tod = (W && W.timeOfDay != null) ? W.timeOfDay : ((tNow % 1440) / 60);
+        const isEclipse = !!(W && W.celestialEvent && W.celestialEvent.id === 'BLOOD_MOON_ECLIPSE');
+        return store(isEclipse || tod >= 19 || tod <= 5 || !!(ctx && ctx.isNight));
+      }
+      case 'WEATHER_STORM': {
+        const rawWth = (ctx && ctx.weather) || (W && W.weather && (W.weather.kind || W.weather)) || (W && W.sect && W.sect.weather) || '';
+        return store(['STORM', 'THUNDER', 'RAIN', 'BLIZZARD', 'SNOW'].includes(String(rawWth).toUpperCase()) || !!(f && f.activeDomain && f.activeDomain.element === 'LIGHTNING'));
+      }
+      case 'TERRAIN_WATER_OR_ICE': {
+        const ter = (f && f.terrain) || (W && W.terrain) || (ctx && ctx.terrain) || '';
+        return store(['WATER', 'ICE', 'SNOW', 'RIVER', 'LAKE'].includes(String(ter).toUpperCase()) || (target && ST.has(target, 'chill', tNow)));
+      }
+      case 'TERRAIN_HIGH_GROUND': {
+        const ter = (f && f.terrain) || (ctx && ctx.terrain) || '';
+        return store(['HIGH_GROUND', 'MOUNTAIN', 'PEAK', 'CLIFF'].includes(String(ter).toUpperCase()) || !!(caster && caster.highGround));
+      }
+      case 'DISTANCE_FAR': {
+        const dist = (ctx && Number.isFinite(ctx.dist)) ? ctx.dist : ((caster && target && Number.isFinite(caster.x) && Number.isFinite(target.x)) ? Math.hypot(caster.x - target.x, caster.y - target.y) : 2.5);
+        return store(dist >= (params.minDist || 2.1));
+      }
+      case 'DISTANCE_MELEE': {
+        const dist = (ctx && Number.isFinite(ctx.dist)) ? ctx.dist : ((caster && target && Number.isFinite(caster.x) && Number.isFinite(target.x)) ? Math.hypot(caster.x - target.x, caster.y - target.y) : 1.4);
+        return store(dist <= (params.maxDist || 1.85));
+      }
+      case 'ENEMY_CASTING_SKILL':
+        return store(target && ((target.act && target.act.ctx && target.act.ctx.channeling) || ST.has(target, 'channeling', tNow)));
+      case 'COMBO_CHAIN_COUNT_3_PLUS':
+        return store(caster && (caster._comboChainCount || 0) >= (params.minChain || 3));
+      case 'WEAPON_DURABILITY_HIGH': {
+        const wpn = caster && caster.equip && caster.equip.WEAPON;
+        return store(wpn && !wpn.broken && (wpn.dur == null || wpn.dur >= (params.minDur || 80)));
+      }
+      case 'WEAPON_BROKEN_UNARMED': {
+        const wpn = caster && caster.equip && caster.equip.WEAPON;
+        return store(!wpn || !!wpn.broken || (wpn.dur != null && wpn.dur <= 0));
+      }
+      case 'TARGET_REALM_HIGHER': {
+        const cSt = caster && caster.cult ? (CULT.equivalentStage ? CULT.equivalentStage(caster) : caster.cult.stage) : (caster && caster.tier) || 1;
+        const tSt = target && target.cult ? (CULT.equivalentStage ? CULT.equivalentStage(target) : target.cult.stage) : (target && target.tier) || 1;
+        return store(tSt > cSt);
+      }
+      case 'TARGET_REALM_LOWER': {
+        const cSt = caster && caster.cult ? (CULT.equivalentStage ? CULT.equivalentStage(caster) : caster.cult.stage) : (caster && caster.tier) || 1;
+        const tSt = target && target.cult ? (CULT.equivalentStage ? CULT.equivalentStage(target) : target.cult.stage) : (target && target.tier) || 1;
+        return store(tSt < cSt);
+      }
+      case 'RECENTLY_DODGED_OR_PARRIED':
+        return store(caster && caster._lastDodgeOrParryAt != null && (tNow - caster._lastDodgeOrParryAt) <= (params.windowTicks || 8));
+      case 'KARMIC_DEBT_POSITIVE': {
+        const ks = caster && caster.karmaState;
+        return store((ks && (ks.debtPool || ks.karmicDebt || 0) > 0) || (caster && (caster.karmicDebt || 0) > 0));
+      }
+      case 'SIN_KARMA_HIGH': {
+        const kills = (target && target.stats && target.stats.kills) || (target && target.killCount) || (caster && caster.stats && caster.stats.kills) || 0;
+        const hd = (target && target.h && target.h.state && target.h.state.heartDemon) || 0;
+        return store(kills >= 3 || hd >= 35 || !!(target && target.cult && target.cult.path === 'DEMON'));
+      }
+      default:
+        return store(true);
+    }
+  };
+
+  /* ---------- Elemental Gauge & Multi-Tier Fusion Engine (Section 11) ---------- */
+  COMPOSABLE_ENGINE.STATUS_TO_ELEMENT = Object.freeze({
+    burn: 'FIRE', radiationBurn: 'FIRE',
+    chill: 'WATER_ICE', stygianFreeze: 'WATER_ICE',
+    paralyze: 'LIGHTNING',
+    slow: 'WIND',
+    armorbreak: 'EARTH_METAL', weaponMelt: 'EARTH_METAL',
+    poison: 'WOOD_LIFE', venomSeed: 'WOOD_LIFE', sporeSeed: 'WOOD_LIFE', sovereignPlague: 'WOOD_LIFE',
+    blind: 'LIGHT_YANG',
+    curse: 'DARK_YIN', fear: 'DARK_YIN',
+    starSeal: 'ASTRAL', mdefbreak: 'ASTRAL',
+    bleed: 'BLOOD_DEMON', bloodBrand: 'BLOOD_DEMON', crimsonGuSwarm: 'BLOOD_DEMON'
+  });
+
+  COMPOSABLE_ENGINE.applyElementalAura = (target, element, gaugeUnits, now, sourceId) => {
+    if (!target || !element) return null;
+    const tNow = now != null ? now : (STs().now || 0);
+    target._elemAuras = target._elemAuras || {};
+    const el = String(element).toUpperCase();
+    const u = clamp(Number(gaugeUnits) || 1.5, 0.5, 3.0);
+    const cur = target._elemAuras[el];
+    target._elemAuras[el] = {
+      element: el,
+      gauge: clamp((cur && cur.until > tNow ? cur.gauge * 0.5 : 0) + u, 0.5, 3.0),
+      appliedAt: tNow,
+      until: tNow + Math.round(u * 10) + 6,
+      sourceId: sourceId || null
+    };
+    return target._elemAuras[el];
+  };
+
+  COMPOSABLE_ENGINE.getActiveElementalAuras = (target, now) => {
+    if (!target) return [];
+    const tNow = now != null ? now : (STs().now || 0);
+    const auras = new Set();
+    if (target._elemAuras) {
+      for (const [el, entry] of Object.entries(target._elemAuras)) {
+        if (entry && entry.gauge > 0.05 && entry.until > tNow) auras.add(el);
+        else delete target._elemAuras[el];
+      }
+    }
+    if (Array.isArray(target.sx)) {
+      for (const sx of target.sx) {
+        if (sx && sx.until > tNow && COMPOSABLE_ENGINE.STATUS_TO_ELEMENT[sx.k]) {
+          auras.add(COMPOSABLE_ENGINE.STATUS_TO_ELEMENT[sx.k]);
+        }
+      }
+    }
+    return Array.from(auras);
+  };
+
+  COMPOSABLE_ENGINE.decayElementalAuras = (W, f) => {
+    if (!f) return;
+    const tNow = (W && W.t != null) ? W.t : (STs().now || 0);
+    const units = [].concat(f.A || [], f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+    for (const u of units) {
+      if (!u._elemAuras) continue;
+      for (const el of Object.keys(u._elemAuras)) {
+        const a = u._elemAuras[el];
+        if (!a || a.until <= tNow) { delete u._elemAuras[el]; continue; }
+        a.gauge = Math.max(0, +(a.gauge - 0.2).toFixed(2));
+        if (a.gauge <= 0.05) delete u._elemAuras[el];
+      }
+    }
+  };
+
+  COMPOSABLE_ENGINE.resolveElementalReactionSpec = (activeElements, catalystEl, explicitId) => {
+    if (explicitId) {
+      for (const tbl of [COMPOSABLE_ENGINE.TETRA_REACTIONS, COMPOSABLE_ENGINE.TRI_REACTIONS, COMPOSABLE_ENGINE.DUAL_REACTIONS]) {
+        for (const spec of Object.values(tbl)) {
+          if (spec.id === explicitId || spec.code === explicitId) return spec;
+        }
+      }
+    }
+    const cat = String(catalystEl || 'FIRE').toUpperCase();
+    const others = (activeElements || []).map(e => String(e).toUpperCase()).filter(e => e && e !== cat);
+    // 1. Check 4-Element Primordial Reaction first
+    if (others.length >= 3) {
+      for (let i = 0; i < others.length; i++) {
+        for (let j = i + 1; j < others.length; j++) {
+          for (let k = j + 1; k < others.length; k++) {
+            const tk = tetraKey(cat, others[i], others[j], others[k]);
+            if (COMPOSABLE_ENGINE.TETRA_REACTIONS[tk]) return COMPOSABLE_ENGINE.TETRA_REACTIONS[tk];
+          }
+        }
+      }
+    }
+    // 2. Check 3-Element Tri-Harmonic Reaction
+    if (others.length >= 2) {
+      for (let i = 0; i < others.length; i++) {
+        for (let j = i + 1; j < others.length; j++) {
+          const trk = triKey(cat, others[i], others[j]);
+          if (COMPOSABLE_ENGINE.TRI_REACTIONS[trk]) return COMPOSABLE_ENGINE.TRI_REACTIONS[trk];
+        }
+      }
+    }
+    // 3. Check 2-Element Dual Reaction
+    for (let i = 0; i < others.length; i++) {
+      const pk = pairKey(cat, others[i]);
+      if (COMPOSABLE_ENGINE.DUAL_REACTIONS[pk]) return COMPOSABLE_ENGINE.DUAL_REACTIONS[pk];
+    }
+    return null;
+  };
+
+  COMPOSABLE_ENGINE.triggerElementalReaction = (W, f, a, t, catalystEl, baseDmg, opts) => {
+    if (!t || !C.alive(t)) return null;
+    opts = opts || {};
+    const ST = STs();
+    const tNow = (W && W.t != null) ? W.t : (ST.now || 0);
+    t._elemReactionIcd = t._elemReactionIcd || {};
+    const icdKey = (opts.skillId || catalystEl || 'EL') + ':' + tNow;
+    if (opts.enforceIcd && t._elemReactionIcd[icdKey]) return null;
+    t._elemReactionIcd[icdKey] = true;
+    const activeAuras = COMPOSABLE_ENGINE.getActiveElementalAuras(t, tNow);
+    const spec = COMPOSABLE_ENGINE.resolveElementalReactionSpec(activeAuras, catalystEl, opts.explicitReactionId);
+    if (!spec) {
+      COMPOSABLE_ENGINE.applyElementalAura(t, catalystEl, opts.gaugeUnits || 1.5, tNow, a ? a.id : null);
+      return null;
+    }
+    // Consume elemental gauges involved in the reaction
+    if (t._elemAuras) {
+      for (const el of (spec.elements || [])) {
+        if (t._elemAuras[el]) {
+          t._elemAuras[el].gauge = Math.max(0, t._elemAuras[el].gauge - 1.0);
+          if (t._elemAuras[el].gauge <= 0.1) delete t._elemAuras[el];
+        }
+      }
+    }
+    const reactorBonus = (a && a._hasElementalReactor) ? 1.22 : 1.0;
+    let mult = (spec.mult || 1.45) * reactorBonus;
+    if (spec.karmaScale) {
+      const debt = (a && a.karmaState && a.karmaState.debtPool) || (t && t.stats && t.stats.kills * 15) || 20;
+      mult *= (1 + clamp(debt / 150, 0.15, 1.20));
+    }
+    const rawBase = Math.max(12, Number(baseDmg) || (a ? Math.max(ST.get(a).atk || 40, ST.get(a).matk || 40) * 0.45 : 35));
+    const reactDmg = Math.max(8, Math.round(rawBase * (mult - 0.55)));
+    if (f) f._composableDepth = (f._composableDepth || 0) + 1;
+    try {
+      if (spec.stripArmorBuff || spec.stripTargetBuff) {
+        ST.clearStatus(t, x => x.k === 'guardUp' || (SKs().STATUS[x.k] && SKs().STATUS[x.k].isBuff));
+      }
+      if (spec.shieldBreakRatio) {
+        const sh = shieldOf(t);
+        if (sh) {
+          sh.amt = Math.max(0, Math.round(sh.amt * (1 - spec.shieldBreakRatio)));
+          if (sh.amt <= 0) ST.clearStatus(t, x => x.k === 'shield');
+        }
+      }
+      if (spec.consumeHot && Array.isArray(t.sx)) {
+        ST.clearStatus(t, x => SKs().STATUS[x.k] && SKs().STATUS[x.k].hot);
+      }
+      if (spec.selfHpSacrificePct && a && !a.dead) {
+        C.setHp(a, Math.max(1, C.hp(a) - Math.round(C.hpMax(a) * spec.selfHpSacrificePct)));
+      }
+      if (spec.trueDmgRatio) {
+        const truePortion = Math.max(4, Math.round(reactDmg * spec.trueDmgRatio));
+        const normalPortion = Math.max(2, reactDmg - truePortion);
+        C.setHp(t, Math.max(1, C.hp(t) - truePortion));
+        C.applyDamage(W, f, a, t, normalPortion, spec.nameTh);
+      } else {
+        C.applyDamage(W, f, a, t, reactDmg, spec.nameTh);
+      }
+      if (spec.executeBelowPct && C.alive(t) && !t.isBoss && hpFrac(t) <= spec.executeBelowPct) {
+        C.applyDamage(W, f, a, t, C.hp(t) + 10, spec.nameTh + ' (พิพากษา)');
+      }
+      if (spec.applyStatus && C.alive(t)) {
+        const isDot = ['burn', 'bleed', 'poison', 'radiationBurn', 'crimsonGuSwarm', 'sovereignPlague'].includes(spec.applyStatus);
+        ST.addStatus(t, spec.applyStatus, spec.dur || 12, isDot ? { per: 0.018, src: a ? a.id : null } : null, tNow);
+      }
+      if (spec.secondaryStatus && C.alive(t)) {
+        const isDot2 = ['burn', 'bleed', 'poison'].includes(spec.secondaryStatus);
+        ST.addStatus(t, spec.secondaryStatus, spec.dur || 10, isDot2 ? { per: 0.015, src: a ? a.id : null } : null, tNow);
+      }
+      if (spec.leechPct && a && !a.dead && !ST.has(a, 'stygianFreeze', tNow)) {
+        C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + Math.max(1, Math.round(reactDmg * spec.leechPct))));
+      }
+      if (spec.casterShieldPct && a && !a.dead) {
+        ST.addStatus(a, 'shield', 16, { amt: Math.round(C.hpMax(a) * spec.casterShieldPct) }, tNow);
+      }
+      if (spec.selfBuff && a && ST.applyNamedBuff && !a.foe) {
+        ST.applyNamedBuff(a, spec.selfBuff, 28, tNow, { casterId: a.id });
+      }
+      if (spec.secondaryBuff && a && ST.applyNamedBuff && !a.foe) {
+        ST.applyNamedBuff(a, spec.secondaryBuff, 28, tNow, { casterId: a.id });
+      }
+      if (spec.cleanseSelf && a) {
+        ST.clearStatus(a, x => ['burn', 'bleed', 'poison', 'slow', 'weaken', 'blind', 'chill', 'curse'].includes(x.k));
+      }
+      if (spec.teamHealPct && f && a) {
+        const allies = C.alliesOf(W, f, a.id).filter(C.alive);
+        for (const al of allies) {
+          const hm = C.hpMax(al);
+          C.setHp(al, Math.min(hm, C.hp(al) + Math.round(hm * spec.teamHealPct)));
+          if (spec.cleanseTeam) ST.clearStatus(al, x => COMPOSABLE_ENGINE.DEBUFF_KEYS.includes(x.k));
+        }
+      }
+      if (spec.qiRestorePct && a && !a.foe && a.cult && a.h && a.h.state) {
+        const qm = CULT.qiMax(a);
+        a.h.state.qi = Math.min(qm, (a.h.state.qi || 0) + qm * spec.qiRestorePct);
+      }
+      if (spec.restoreHpPct && a && !a.dead) {
+        const hm = C.hpMax(a);
+        C.setHp(a, Math.min(hm, C.hp(a) + Math.round(hm * spec.restoreHpPct)));
+      }
+      if (spec.restoreQiPct && a && !a.foe && a.cult && a.h && a.h.state) {
+        const qm = CULT.qiMax(a);
+        a.h.state.qi = Math.min(qm, (a.h.state.qi || 0) + qm * spec.restoreQiPct);
+      }
+      if (spec.resetCooldowns && a && a.act && a.act.ctx) {
+        a.act.ctx.cds = {};
+      }
+      if (spec.deployDomain && f && a) {
+        COMPOSABLE_ENGINE.deployDomain(W, f, a, spec.deployDomain, 24);
+      }
+      if (a && ST.applyNamedBuff && !a.foe) {
+        ST.applyNamedBuff(a, 'elementalOvercharge', 24, tNow, { casterId: a.id });
+      }
+      t.fx = { t: tNow, text: '🌈 ' + spec.nameTh + '!' };
+      if (a) {
+        a.lastElementalReaction = {
+          t: tNow, code: spec.code, reactionId: spec.id, nameTh: spec.nameTh,
+          elements: spec.elements, tier: (spec.elements || []).length, targetId: t.id, dmg: reactDmg
+        };
+      }
+    } finally {
+      if (f) f._composableDepth = Math.max(0, (f._composableDepth || 1) - 1);
+    }
+    return { code: spec.code, id: spec.id, nameTh: spec.nameTh, dmg: reactDmg, tier: (spec.elements || []).length, spec };
+  };
+
+  /* ---------- Section 12.1: Acupoint Strikes & Meridian Overdrive ---------- */
+  COMPOSABLE_ENGINE.ACUPOINT_STRIKES = Object.freeze({
+    QI_BLOCK_POINT: {
+      id: 'QI_BLOCK_POINT', nameTh: 'สกัดจุดตันเถียนปิดกั้นปราณ', dur: 12,
+      status: 'acupointSealed', secondaryStatus: 'silence', qiDrainPct: 0.18,
+      descTh: 'สกัดจุดตันเถียนของศัตรู ผนึกการโคจรปราณและการใช้เคล็ดวิชา 2 รอบ พร้อมสลายปราณ 18%'
+    },
+    WEAKENING_POINT: {
+      id: 'WEAKENING_POINT', nameTh: 'สกัดจุด曲池คลายกำลัง', dur: 16,
+      status: 'weaken', secondaryStatus: 'exposed',
+      descTh: 'สกัดจุดคลายพละกำลัง ลดพลังโจมตีกายภาพและวิชาของศัตรูลงอย่างหนักนาน 3 รอบ'
+    },
+    BLOOD_HALTING_POINT: {
+      id: 'BLOOD_HALTING_POINT', nameTh: 'สกัดจุดห้ามเลือดและสะกดกาย', dur: 8,
+      status: 'paralyze', secondaryStatus: 'acupointSealed', allyHealPct: 0.18,
+      descTh: 'เมื่อใช้ใส่ศัตรูจะสะกดร่างให้เป็นอัมพาต 1 รอบ เมื่อใช้ใส่พันธมิตรจะห้ามเลือดทันทีและฟื้นฟูเลือด 18%'
+    }
+  });
+
+  COMPOSABLE_ENGINE.executeAcupointStrike = (W, f, caster, target, pointId) => {
+    if (!target || !C.alive(target)) return null;
+    const ST = STs();
+    const tNow = (W && W.t != null) ? W.t : (ST.now || 0);
+    const spec = COMPOSABLE_ENGINE.ACUPOINT_STRIKES[pointId] || COMPOSABLE_ENGINE.ACUPOINT_STRIKES.QI_BLOCK_POINT;
+    const sameSide = f && caster && C.sideOf && C.sideOf(f, caster.id) === C.sideOf(f, target.id);
+    if (spec.id === 'BLOOD_HALTING_POINT' && sameSide) {
+      ST.clearStatus(target, x => x.k === 'bleed' || x.k === 'poison');
+      const hm = C.hpMax(target);
+      const heal = Math.max(1, Math.round(hm * (spec.allyHealPct || 0.18)));
+      C.setHp(target, Math.min(hm, C.hp(target) + heal));
+      target.fx = { t: tNow, text: '🪡 ห้ามเลือด +' + heal };
+      return { pointId: spec.id, mode: 'ALLY_HEAL', heal };
+    }
+    ST.addStatus(target, spec.status, spec.dur || 10, null, tNow);
+    if (spec.secondaryStatus) ST.addStatus(target, spec.secondaryStatus, spec.dur || 10, null, tNow);
+    if (spec.qiDrainPct && !target.foe && target.cult && target.h && target.h.state) {
+      const qm = CULT.qiMax(target);
+      target.h.state.qi = Math.max(0, (target.h.state.qi || 0) - qm * spec.qiDrainPct);
+    }
+    target.fx = { t: tNow, text: '🪡 ' + spec.nameTh + '!' };
+    if (caster) caster.lastAcupointStrike = { t: tNow, pointId: spec.id, targetId: target.id };
+    return { pointId: spec.id, mode: 'ENEMY_SEAL', status: spec.status };
+  };
+
+  COMPOSABLE_ENGINE.triggerMeridianOverdrive = (W, f, caster, dur) => {
+    if (!caster || caster.dead) return null;
+    const ST = STs();
+    const tNow = (W && W.t != null) ? W.t : (ST.now || 0);
+    const cleanDur = clamp(Number(dur) || 36, 8, 120);
+    caster.meridians = caster.meridians || { opened: {}, openedCount: 0, overdriveUntil: 0 };
+    caster.meridians.overdriveUntil = tNow + cleanDur;
+    caster.meridians.overdriveUsedInFight = true;
+    if (ST.applyNamedBuff && !caster.foe) {
+      ST.applyNamedBuff(caster, 'meridianOverdrive', cleanDur, tNow, { casterId: caster.id });
+    } else {
+      ST.addStatus(caster, 'meridianOverdrive', cleanDur, null, tNow);
+    }
+    ST.dirty(caster);
+    caster.fx = { t: tNow, text: '⚡ ชีพจรแปดพิสดารปะทุ!' };
+    return caster.meridians;
+  };
+
+  /* ---------- Pillar 4: Universal Composable Action Executor & Section 10.1 C01-C12 ---------- */
+  COMPOSABLE_ENGINE.executeAction = (W, f, a, t, actionId, params, ctx) => {
+    if (!a || !actionId) return { ok: false, bonusDmg: 0, mult: 1.0 };
+    params = params || {};
+    ctx = ctx || {};
+    const ST = STs();
+    const tNow = (W && W.t != null) ? W.t : (ST.now || 0);
+    let bonusDmg = 0;
+    let mult = 1.0;
+
+    switch (actionId) {
+      case 'DELAYED_ECHO': {
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const echoM = params.echoMult || 0.45;
+          const echoDmg = Math.max(6, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * echoM * (f && f.serious ? 0.38 : 0.25)));
+          ST.addStatus(t, 'delayedEcho', params.delayTicks || 6, { echoDmg, casterId: a.id }, tNow);
+          if (f) {
+            f.delayedEchoes = f.delayedEchoes || [];
+            f.delayedEchoes.push({ triggerAt: tNow + (params.delayTicks || 4), casterId: a.id, targetId: t.id, dmg: echoDmg, label: 'คลื่นสะท้อนเงาอดีต' });
+          }
+          // Immediate resonance pulse + queued echo
+          const immDmg = Math.max(4, Math.round(echoDmg * 0.55));
+          C.applyDamage(W, f, a, t, immDmg, 'คลื่นสะท้อนเงา');
+          bonusDmg += immDmg;
+          a.lastDelayedEcho = { t: tNow, targetId: t.id, dmg: immDmg, queuedDmg: echoDmg };
+        }
+        break;
+      }
+      case 'HEART_DEMON_EDGE_SCALING': {
+        const hd = (!a.foe && a.h && a.h.state) ? (a.h.state.heartDemon || 0) : 25;
+        const missingHp = 1 - hpFrac(a);
+        mult = 1 + clamp(hd * 0.008 + missingHp * 0.28, 0.12, 0.65);
+        if (hd >= 20 && ST.applyNamedBuff && !a.foe) {
+          ST.applyNamedBuff(a, 'asuraBloodFrenzy', 24, tNow, { casterId: a.id });
+        }
+        a.lastHeartDemonScaling = { t: tNow, heartDemon: hd, mult: +mult.toFixed(3) };
+        break;
+      }
+      case 'SHATTER_SHIELD': {
+        if (t && C.alive(t)) {
+          const sh = shieldOf(t);
+          const shVal = sh ? sh.amt : 0;
+          ST.clearStatus(t, x => x.k === 'shield' || x.k === 'guardUp');
+          if (t.shieldBp) t.shieldBp = 0;
+          ST.addStatus(t, 'armorbreak', 12, null, tNow);
+          const shatterBurst = Math.max(8, Math.round(shVal > 0 ? shVal * 0.65 : C.hpMax(t) * 0.12));
+          C.applyDamage(W, f, a, t, shatterBurst, 'ทลายโล่คุ้มกาย');
+          bonusDmg += shatterBurst;
+          a.lastShieldShatter = { t: tNow, targetId: t.id, shatteredShield: shVal, bonusDmg: shatterBurst };
+        }
+        break;
+      }
+      case 'BONUS_TRUE_DMG': {
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const trueMult = params.trueDmgMult || 0.28;
+          const trueDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * trueMult));
+          C.setHp(t, Math.max(1, C.hp(t) - trueDmg));
+          t.fx = { t: tNow, text: '⚡ ดาเมจแท้จริง -' + trueDmg };
+          bonusDmg += trueDmg;
+          a.lastTrueDmg = { t: tNow, targetId: t.id, trueDmg };
+        }
+        break;
+      }
+      case 'OVERHEAT_COOLDOWN_TRADE': {
+        mult = params.overheatMult || 1.32;
+        if (!a.foe && a.cult && a.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
+          const ms = CULT.ensureMechState(a);
+          ms.heat = clamp((ms.heat || 0) + 18, 0, 100);
+          ms.charge = clamp((ms.charge || 0) + 25, 0, 100);
+        }
+        if (a.act && a.act.ctx && a.act.ctx.cds && params.skillId) {
+          a.act.ctx.cds[params.skillId] = (a.act.ctx.cds[params.skillId] || tNow) + (params.extraCd || 4);
+        }
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'puppetOverclock', 24, tNow, { casterId: a.id });
+        a.lastOverheatTrade = { t: tNow, mult };
+        break;
+      }
+      case 'PUPPET_SYMBIOSIS_PULSE': {
+        if (!a.foe && a.cult && CULT.ensureMechState) {
+          const ms = CULT.ensureMechState(a);
+          ms.integrity = clamp((ms.integrity || 50) + 15, 0, 100);
+          ms.constructReadiness = ms.integrity;
+        }
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'puppetOverclock', 28, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const pulseDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.38));
+          C.applyDamage(W, f, a, t, pulseDmg, 'คลื่นประสานจักรกล');
+          bonusDmg += pulseDmg;
+        }
+        a.lastPuppetPulse = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'RESTORE_QI_PCT': {
+        if (!a.foe && a.cult && a.h && a.h.state && !ST.has(a, 'stygianFreeze', tNow)) {
+          const qm = CULT.qiMax(a);
+          const pct = params.qiRestorePct || params.qiPct || 0.22;
+          const gain = Math.round(qm * pct);
+          a.h.state.qi = Math.min(qm, (a.h.state.qi || 0) + gain);
+          a.lastQiRestore = { t: tNow, gain, pct };
+        }
+        break;
+      }
+      case 'COMBO_FINISHER': {
+        const hadPrimer = ST.has(a, 'comboReady', tNow) || (ST.hasBuff && ST.hasBuff(a, 'comboReady', tNow));
+        const chain = Math.min(4, (a._comboChainCount || 0) + (hadPrimer ? 1 : 0));
+        mult = 1 + (hadPrimer ? 0.28 : 0.14) + chain * 0.08;
+        if (hadPrimer) ST.clearBuff(a, 'comboReady');
+        a._comboChainCount = 0;
+        if (t && C.alive(t) && COMPOSABLE_ENGINE.totalMarksOn(t, tNow) > 0) {
+          const det = COMPOSABLE_ENGINE.detonateMarks(W, f, a, t, { bonusPerStack: 0.34 });
+          bonusDmg += det.bonusDmg || 0;
+        }
+        a.lastComboFinisher = { t: tNow, chain, mult: +mult.toFixed(3), bonusDmg };
+        break;
+      }
+      case 'APPLY_TAUNT': {
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'taunted', params.dur || 10, { taunterId: a.id }, tNow);
+          if (t.act && t.act.ctx) t.act.ctx.target = a.id;
+          t.fx = { t: tNow, text: '💢 ถูกยั่วยุ!' };
+        }
+        break;
+      }
+      case 'DISPLACE_KNOCKBACK':
+      case 'DISPLACE_PULL':
+      case 'DISPLACE_VACUUM': {
+        if (t && Number.isFinite(t.x) && Number.isFinite(a.x)) {
+          const dx = t.x - a.x, dy = t.y - a.y, dist = Math.max(0.1, Math.hypot(dx, dy));
+          const step = actionId === 'DISPLACE_KNOCKBACK' ? (params.dist || 1.8) : -(params.dist || 1.4);
+          t.x = +(t.x + (dx / dist) * step).toFixed(2);
+          t.y = +(t.y + (dy / dist) * step).toFixed(2);
+          a.lastDisplacement = { t: tNow, kind: actionId, targetId: t.id };
+        }
+        break;
+      }
+      case 'POISE_BREAK': {
+        if (t && C.alive(t)) {
+          t._poiseGauge = Math.max(0, (t._poiseGauge == null ? 100 : t._poiseGauge) - (params.poiseDmg || 55));
+          if (t._poiseGauge <= 0) {
+            t._poiseGauge = 100;
+            ST.addStatus(t, 'poiseBroken', 10, null, tNow);
+            ST.addStatus(t, 'stun', 4, null, tNow);
+            t.fx = { t: tNow, text: '💥 เสียหลักเกราะแตก!' };
+          }
+        }
+        break;
+      }
+      case 'CLEANSE_TO_POWER': {
+        const allies = f ? C.alliesOf(W, f, a.id).filter(C.alive) : [a];
+        let totalCleansed = 0;
+        for (const al of allies) {
+          const before = al.sx ? al.sx.length : 0;
+          ST.clearStatus(al, x => COMPOSABLE_ENGINE.DEBUFF_KEYS.includes(x.k));
+          totalCleansed += Math.max(0, before - (al.sx ? al.sx.length : 0));
+        }
+        const stacks = clamp(Math.max(1, totalCleansed), 1, 5);
+        ST.addStatus(a, 'shield', 16, { amt: Math.round(C.hpMax(a) * 0.10 * stacks) }, tNow);
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'fervorMight', 20, tNow, { casterId: a.id });
+        mult = 1 + Math.min(0.40, stacks * 0.08);
+        break;
+      }
+      case 'CONTAGION_SPREAD': {
+        if (t && f) COMPOSABLE_ENGINE.spreadContagionOnDeath(W, f, a, t);
+        break;
+      }
+      case 'DEPLOY_DOMAIN': {
+        if (f) COMPOSABLE_ENGINE.deployDomain(W, f, a, params.domainId || 'DOMAIN_ASTRAL_STARFIELD', params.dur || 24);
+        break;
+      }
+      case 'ACUPOINT_SEAL': {
+        if (t) COMPOSABLE_ENGINE.executeAcupointStrike(W, f, a, t, params.acupointId || 'QI_BLOCK_POINT');
+        break;
+      }
+      case 'MERIDIAN_OVERDRIVE': {
+        COMPOSABLE_ENGINE.triggerMeridianOverdrive(W, f, a, params.dur || 36);
+        break;
+      }
+      default:
+        break;
+    }
+    return { ok: true, actionId, bonusDmg, mult };
+  };
+
+  COMPOSABLE_ENGINE.tickDelayedEchoes = (W, f) => {
+    if (!f || !Array.isArray(f.delayedEchoes) || !f.delayedEchoes.length) return;
+    const keep = [];
+    for (const ec of f.delayedEchoes) {
+      if (W.t < ec.triggerAt) { keep.push(ec); continue; }
+      const caster = C.unit(W, ec.casterId);
+      const target = C.unit(W, ec.targetId);
+      if (target && C.alive(target)) {
+        C.applyDamage(W, f, caster || target, target, ec.dmg || 15, ec.label || 'คลื่นสะท้อนเงาอดีต');
+        target.fx = { t: W.t, text: '⏳ ' + (ec.label || 'คลื่นสะท้อน') + ' -' + (ec.dmg || 15) };
+      }
+    }
+    f.delayedEchoes = keep;
+  };
+
+  COMPOSABLE_ENGINE.spreadContagionOnDeath = (W, f, killer, victim) => {
+    if (!f || !victim || !Array.isArray(victim.sx)) return 0;
+    const ST = STs();
+    const tNow = (W && W.t != null) ? W.t : (ST.now || 0);
+    const contagious = victim.sx.filter(x => x && x.until > tNow && ['poison', 'burn', 'bleed', 'curse', 'venomSeed', 'sovereignPlague', 'crimsonGuSwarm'].includes(x.k));
+    if (!contagious.length) return 0;
+    const alliesOfVictim = C.alliesOf(W, f, victim.id).filter(u => u && u.id !== victim.id && C.alive(u));
+    let spreadCount = 0;
+    for (const nb of alliesOfVictim.slice(0, 3)) {
+      for (const c of contagious) {
+        ST.addStatus(nb, c.k, 12, { per: c.per || 0.015, stacks: c.stacks || 1, src: killer ? killer.id : c.src }, tNow);
+        spreadCount++;
+      }
+      nb.fx = { t: tNow, text: '☣️ พิษระบาดติดต่อ!' };
+    }
+    return spreadCount;
   };
 
   COMPOSABLE_ENGINE.totalMarksOn = (u, now) => {
@@ -1677,14 +2855,14 @@
     const dTicks = clamp(Number(dur) || 16, 4, 120);
     const cur = ST.statusOf(target, kind, W.t);
     const prevStacks = cur ? (cur.stacks || 1) : 0;
-    const nextStacks = clamp(prevStacks + (Number(addStacks) || 1), 1, 5);
+    const ampBonus = (caster && caster._hasMarkAmplifier) ? 1 : 0;
+    const nextStacks = clamp(prevStacks + (Number(addStacks) || 1) + ampBonus, 1, 5);
     const entry = ST.addStatus(target, kind, dTicks, {
       stacks: nextStacks,
       src: caster ? caster.id : null,
       per: kind === 'venomSeed' ? 0.008 * nextStacks : 0
     }, W.t);
     target.fx = { t: W.t, text: (SKs().STATUS[kind]?.icon || '🎯') + ' ×' + nextStacks };
-    // Auto threshold burst at 5 stacks
     if (nextStacks >= 5 && caster && C.alive(caster) && (!f || (f._composableDepth || 0) < 2)) {
       COMPOSABLE_ENGINE.detonateMarks(W, f, caster, target, { bonusPerStack: 0.30, thresholdBurst: true });
     }
@@ -1711,7 +2889,7 @@
     ST.clearStatus(target, x => toRemove.includes(x.k));
     const sa = ST.get(caster);
     const baseRef = Math.max(sa.atk || 50, sa.matk || 50);
-    const perStack = Number.isFinite(opts.bonusPerStack) ? opts.bonusPerStack : 0.32;
+    const perStack = (Number.isFinite(opts.bonusPerStack) ? opts.bonusPerStack : 0.32) * ((caster && caster._hasMarkAmplifier) ? 1.14 : 1.0);
     const rawBonus = Math.max(8, Math.round(baseRef * perStack * stacks * (f && f.serious ? 0.45 : 0.28)));
     if (f) f._composableDepth = (f._composableDepth || 0) + 1;
     try {
@@ -1736,13 +2914,21 @@
   };
 
   COMPOSABLE_ENGINE.selectTargets = (W, f, a, d, p) => {
-    const comp = p && p.composable;
-    const sel = (comp && comp.targetSelector) || p.targetSelector || null;
+    const comp = (p && p.composable) || {};
+    const sel = comp.targetSelector || (p && p.targetSelector) || null;
     const enemies = C.enemies(W, f, a.id).filter(u => C.alive(u));
     const allies = C.alliesOf(W, f, a.id).filter(u => C.alive(u));
+    // Taunt override for single-target enemy selectors
+    const tauntStatus = STs().statusOf(a, 'taunted', W.t);
+    if (tauntStatus && tauntStatus.taunterId) {
+      const taunter = enemies.find(u => u.id === tauntStatus.taunterId);
+      if (taunter && (!sel || sel === 'SINGLE_ENEMY' || sel === 'LOWEST_HP_ENEMY' || sel === 'HIGHEST_ATK_ENEMY')) {
+        return [taunter];
+      }
+    }
     if (!sel) {
       if (p.arch === 'chainRicochet') {
-        return enemies.slice().sort((x, y) => Math.hypot(x.x - (d ? d.x : a.x), x.y - (d ? d.y : a.y)) - Math.hypot(y.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y))).slice(0, 4);
+        return enemies.slice().sort((x, y) => Math.hypot(x.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y)) - Math.hypot(y.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y))).slice(0, 4);
       }
       if (p.aoe) {
         return enemies.filter(x => !d || Math.hypot(x.x - d.x, x.y - d.y) < 2.8);
@@ -1764,6 +2950,7 @@
       return sums.length ? sums : [a];
     }
     if (!enemies.length) return d ? [d] : [];
+    if (sel === 'ALL_ENEMIES') return enemies;
     if (sel === 'LOWEST_HP_ENEMY') {
       return enemies.slice().sort((x, y) => (C.hp(x) / Math.max(1, C.hpMax(x))) - (C.hp(y) / Math.max(1, C.hpMax(y)))).slice(0, 1);
     }
@@ -1777,7 +2964,7 @@
     }
     if (sel === 'RICOCHET_CHAIN' || sel === 'SPLASH_NEIGHBORS' || sel === 'PIERCE_LINE') {
       const limit = sel === 'RICOCHET_CHAIN' ? 4 : 3;
-      return enemies.slice().sort((x, y) => Math.hypot(x.x - (d ? d.x : a.x), x.y - (d ? d.y : a.y)) - Math.hypot(y.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y))).slice(0, limit);
+      return enemies.slice().sort((x, y) => Math.hypot(x.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y)) - Math.hypot(y.x - (d ? d.x : a.x), y.y - (d ? d.y : a.y))).slice(0, limit);
     }
     return d ? [d] : enemies.slice(0, 1);
   };
@@ -1785,16 +2972,29 @@
   COMPOSABLE_ENGINE.preExecuteSkill = (W, f, a, d, p, ctx) => {
     const ST = STs();
     let comboMult = 1.0;
-    if (ST.has(a, 'comboReady', W.t) && (p.M || 0) > 0 && p.arch !== 'stanceShift') {
+    const comp = p.composable || {};
+    const cond = p.condition || comp.condition || null;
+    if (cond && !COMPOSABLE_ENGINE.evaluateCondition(cond, a, d, { W, f, skill: p, ctx })) {
+      return { comboMult: 1.0, handledCompletely: false, conditionFailed: true };
+    }
+
+    if (p.comboFinisher || comp.action === 'COMBO_FINISHER') {
+      const finRes = COMPOSABLE_ENGINE.executeAction(W, f, a, d, 'COMBO_FINISHER', { skillId: p.id }, ctx);
+      comboMult *= finRes.mult || 1.28;
+    } else if (ST.has(a, 'comboReady', W.t) && (p.M || 0) > 0 && p.arch !== 'stanceShift') {
       comboMult = 1.28;
+      a._comboChainCount = Math.min(5, (a._comboChainCount || 0) + 1);
       ST.clearBuff(a, 'comboReady');
       a.lastComboFinisher = { t: W.t, skillId: p.id, mult: comboMult };
     }
-    const comp = p.composable || {};
+
     if (p.stanceShift || p.comboPrimer || p.arch === 'stanceShift' || comp.action === 'STANCE_ENTER' || comp.action === 'COMBO_PRIMER') {
-      const stanceId = p.stanceShift || comp.stanceId || p.grantBuff || 'comboReady';
+      const stanceId = p.stanceShift || comp.stanceId || p.grantBuff || 'STAR_SWORD_STANCE';
+      const prevStance = a._activeStance;
       a._combatStance = stanceId;
       a._activeStance = stanceId;
+      a._comboChainCount = Math.min(5, (a._comboChainCount || 0) + 1);
+      ST.dirty(a);
       ST.applyNamedBuff(a, 'comboReady', 24, W.t, { casterId: a.id });
       if (p.grantBuff && p.grantBuff !== 'comboReady' && ST.applyNamedBuff) {
         ST.applyNamedBuff(a, p.grantBuff, 36, W.t, { casterId: a.id });
@@ -1802,8 +3002,16 @@
       if (p.shield > 0) {
         ST.addStatus(a, 'shield', 14, { amt: Math.round(C.hpMax(a) * p.shield) }, W.t);
       }
+      if (prevStance !== stanceId) {
+        runPassiveProcs(W, f, a, d, 'onStanceSwitch', 0);
+      }
       if ((p.M || 0) <= 0) return { comboMult, handledCompletely: true };
     }
+
+    if (p.domain || comp.action === 'DEPLOY_DOMAIN') {
+      COMPOSABLE_ENGINE.deployDomain(W, f, a, p.domain || comp.domainId || 'DOMAIN_ASTRAL_STARFIELD', 24);
+    }
+
     if (p.tetherLink || p.arch === 'tetherLink' || comp.action === 'SOUL_LINK_SHARE_DMG' || comp.action === 'CHAIN_TETHER_ENEMY') {
       const allies = C.alliesOf(W, f, a.id).filter(u => C.alive(u) && u.id !== a.id);
       if (allies.length > 0) {
@@ -1823,15 +3031,16 @@
       }
       if ((p.M || 0) <= 0) return { comboMult, handledCompletely: true };
     }
-    const odAction = p.sacrificeOverdrive || comp.action;
+
+    const odAction = p.sacrificeOverdrive || p.action || comp.action;
     if (p.arch === 'sacrificeOverdrive' || odAction === 'HP_TO_QI_OVERDRIVE' || odAction === 'TOXICITY_TO_VENOM_POWER' || odAction === 'QI_TO_SHIELD_BARRIER') {
       if (!a.foe && a.cult && a.h && a.h.state) {
-        if (comp.action === 'TOXICITY_TO_VENOM_POWER' || (a.cult.toxic || 0) >= 8) {
+        if (odAction === 'TOXICITY_TO_VENOM_POWER' || (a.cult.toxic || 0) >= 8) {
           const spentTox = Math.min(25, a.cult.toxic || 10);
           a.cult.toxic = Math.max(0, (a.cult.toxic || 0) - spentTox);
           ST.applyNamedBuff(a, 'toxinOverdrive', 35, W.t, { casterId: a.id });
           comboMult *= 1.18;
-        } else if (comp.action === 'QI_TO_SHIELD_BARRIER') {
+        } else if (odAction === 'QI_TO_SHIELD_BARRIER') {
           const qm = CULT.qiMax(a);
           const spendQi = Math.round(qm * 0.12);
           if ((a.h.state.qi || 0) >= spendQi) {
@@ -1847,6 +3056,16 @@
         }
       }
     }
+
+    // Execute any pre-hit composable actions (HEART_DEMON_EDGE_SCALING, OVERHEAT_COOLDOWN_TRADE, RESTORE_QI_PCT, MERIDIAN_OVERDRIVE)
+    const preActions = [].concat(p.actions || [], p.action ? [p.action] : [], comp.actions || [], comp.action ? [comp.action] : []);
+    for (const act of preActions) {
+      if (['HEART_DEMON_EDGE_SCALING', 'OVERHEAT_COOLDOWN_TRADE', 'RESTORE_QI_PCT', 'CLEANSE_TO_POWER', 'MERIDIAN_OVERDRIVE'].includes(act)) {
+        const res = COMPOSABLE_ENGINE.executeAction(W, f, a, d, act, Object.assign({ skillId: p.id }, p, comp), ctx);
+        if (res && res.mult) comboMult *= res.mult;
+      }
+    }
+
     return { comboMult, handledCompletely: false };
   };
 
@@ -1854,7 +3073,17 @@
     if (!t || !C.alive(t)) return 0;
     const ST = STs();
     const comp = p.composable || {};
+    const cond = p.condition || comp.condition || null;
+    if (cond && !COMPOSABLE_ENGINE.evaluateCondition(cond, a, t, { W, f, skill: p, hitResult: r })) {
+      return 0;
+    }
     let extraDmg = 0;
+
+    // Apply Elemental Gauge Primer on every elemental skill hit
+    if (p.element) {
+      const gaugeU = (p.tier || 1) >= 5 ? 3.0 : ((p.tier || 1) >= 3 ? 2.0 : 1.0);
+      COMPOSABLE_ENGINE.applyElementalAura(t, p.element, gaugeU, W.t, a ? a.id : null);
+    }
 
     // 1. Mark Primer
     if (p.markPrimer || p.arch === 'markPrimer' || comp.action === 'APPLY_MARK' || comp.markKind) {
@@ -1873,10 +3102,14 @@
       extraDmg += det.bonusDmg || 0;
     }
 
-    // 3. Elemental Fusion Reaction
+    // 3. Multi-Tier Elemental Fusion Reaction (2E, 3E, 4E + legacy status reactions)
     if (p.elementalFusion || p.arch === 'elementalFusion' || comp.action === 'ELEMENTAL_FUSION_REACTION') {
       const el = p.element || 'FIRE';
-      if (Array.isArray(t.sx)) {
+      const explicitId = typeof p.elementalFusion === 'string' ? p.elementalFusion : null;
+      const multiRes = COMPOSABLE_ENGINE.triggerElementalReaction(W, f, a, t, el, r.dmg || 25, { explicitReactionId: explicitId });
+      if (multiRes && multiRes.dmg) {
+        extraDmg += multiRes.dmg;
+      } else if (Array.isArray(t.sx)) {
         for (const sx of t.sx.slice()) {
           if (!sx || sx.until <= W.t) continue;
           const reactSpec = COMPOSABLE_ENGINE.REACTIONS[sx.k + '+' + el];
@@ -1934,7 +3167,27 @@
       }
     }
 
-    // 5. Soul archetype mental pressure
+    // 5. Acupoint Strike
+    if (p.acupointStrike || comp.action === 'ACUPOINT_SEAL') {
+      COMPOSABLE_ENGINE.executeAcupointStrike(W, f, a, t, p.acupointStrike || comp.acupointId || 'QI_BLOCK_POINT');
+    }
+
+    // 6. Execute Post-Hit Composable Actions (DELAYED_ECHO, SHATTER_SHIELD, BONUS_TRUE_DMG, PUPPET_SYMBIOSIS_PULSE, APPLY_TAUNT, DISPLACE_*, POISE_BREAK, CONTAGION_SPREAD)
+    const postActions = [].concat(
+      p.delayedEcho ? ['DELAYED_ECHO'] : [],
+      p.actions || [],
+      p.action ? [p.action] : [],
+      comp.actions || [],
+      comp.action ? [comp.action] : []
+    );
+    for (const act of postActions) {
+      if (['DELAYED_ECHO', 'SHATTER_SHIELD', 'BONUS_TRUE_DMG', 'PUPPET_SYMBIOSIS_PULSE', 'APPLY_TAUNT', 'DISPLACE_KNOCKBACK', 'DISPLACE_PULL', 'DISPLACE_VACUUM', 'POISE_BREAK', 'CONTAGION_SPREAD'].includes(act)) {
+        const actRes = COMPOSABLE_ENGINE.executeAction(W, f, a, t, act, Object.assign({ skillId: p.id }, p, comp), { W, f, hitResult: r });
+        if (actRes && actRes.bonusDmg) extraDmg += actRes.bonusDmg;
+      }
+    }
+
+    // 7. Soul archetype mental pressure
     if (p.arch === 'soul' && C.alive(t)) {
       ST.addStatus(t, 'mdefbreak', 10, null, W.t);
       if (!t.foe && t.h && t.h.state) {
@@ -1982,17 +3235,21 @@
     return dmg;
   };
 
-  /* ---------- Runtime Processor for All 61 Legacy + 18 New v2.0.34 Item Effect IDs ---------- */
+  /* ---------- Pillar 5: Runtime Processor for All Equipment & Combat Item Effect IDs ---------- */
   C.runItemEffectProcs = (W, f, actor, target, triggerKind, dmgDealt) => {
     if (!actor || actor.foe || actor.dead || !actor.equip) return;
     if (f && (f._composableDepth || 0) >= 2) return;
-    const ST = STs();
+    const ST = STs(), SK = SKs();
+    const normTrigger = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(triggerKind) : triggerKind;
     actor._itemEfxCds = actor._itemEfxCds || {};
+    actor._hasMarkAmplifier = false;
+    actor._hasElementalReactor = false;
+
     for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
       const it = actor.equip[slot];
       if (!it || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(actor, it))) continue;
       if (it.charges !== undefined && it.charges !== null && it.charges <= 0) continue;
-      const src = (it.id && g.ECO && g.ECO.itemById && g.ECO.itemById[it.id]) || it;
+      const src = (it.id && g.ECO && ((g.ECO.getItem && g.ECO.getItem(it.id)) || (g.ECO.itemById && g.ECO.itemById[it.id]))) || it;
       const efxList = it.effects || it.fx || (src && src.effects) || [];
       if (!Array.isArray(efxList) || !efxList.length) continue;
 
@@ -2000,11 +3257,13 @@
         if (!efx || !efx.effectId) continue;
         const eid = efx.effectId;
         const p = efx.params || {};
-        const cdKey = (it.uid || it.id) + ':' + eid;
+        if (eid === 'EFX_V234_MARK_AMPLIFIER') actor._hasMarkAmplifier = true;
+        if (eid === 'EFX_V234_ELEMENTAL_REACTOR') actor._hasElementalReactor = true;
+        const cdKey = (it.uid || it.id || slot) + ':' + eid + ':' + normTrigger;
         if ((actor._itemEfxCds[cdKey] || 0) > W.t) continue;
 
-        if (triggerKind === 'onHit' && target && C.alive(target)) {
-          let triggered = false;
+        let triggered = false;
+        if (normTrigger === 'onHit' && target && C.alive(target)) {
           if (eid === 'EFX_ARMOR_FRACTURE' || eid === 'EFX_ARMOR_SHATTER') {
             ST.addStatus(target, 'armorbreak', 10, null, W.t); triggered = true;
           } else if (eid === 'EFX_BLEEDING') {
@@ -2034,35 +3293,111 @@
             C.interruptChannel(W, f, target, 'ยันต์สกัดจุด');
             ST.addStatus(target, 'silence', 6, null, W.t); triggered = true;
           } else if (eid === 'EFX_SUPPRESS_POSITIVE_BUFF') {
-            ST.clearStatus(target, x => SKs().STATUS[x.k] && SKs().STATUS[x.k].isBuff); triggered = true;
+            ST.clearStatus(target, x => SK.STATUS[x.k] && SK.STATUS[x.k].isBuff); triggered = true;
           } else if (eid === 'EFX_SPATIAL_LOCK' || eid === 'EFX_TERRAIN_BIND_TRAP') {
             ST.addStatus(target, 'root', 8, null, W.t); triggered = true;
           } else if (eid === 'EFX_WEAPON_MAGNET_DISARM' || eid === 'EFX_FORMATION_DISRUPTION') {
             ST.addStatus(target, 'weaken', 10, null, W.t); triggered = true;
           } else if (eid === 'EFX_SWORD_STORM_STRIKE' || eid === 'EFX_ELEMENTAL_ANNIHILATION') {
             ST.addStatus(target, 'exposed', 10, null, W.t); triggered = true;
-          } else if (eid === 'EFX_V234_MARK_IMPRINT') {
-            COMPOSABLE_ENGINE.applyMark(W, f, actor, target, p.markKind || 'daoMark', p.stacks || 1, 16); triggered = true;
+          } else if (eid === 'EFX_V234_MARK_IMPRINT' || eid === 'EFX_V234_MARK_AMPLIFIER') {
+            COMPOSABLE_ENGINE.applyMark(W, f, actor, target, p.markKind || 'daoMark', p.stacks || 1, p.dur || 16);
+            triggered = true;
           } else if (eid === 'EFX_V234_MARK_EXECUTIONER') {
             if (COMPOSABLE_ENGINE.totalMarksOn(target, W.t) >= 2) {
               COMPOSABLE_ENGINE.detonateMarks(W, f, actor, target, { bonusPerStack: p.detonateBonus || 0.30 });
               triggered = true;
             }
-          } else if (eid === 'EFX_V234_ELEMENTAL_CATALYST') {
-            ST.applyNamedBuff(actor, 'elementalOvercharge', 20, W.t, { casterId: actor.id }); triggered = true;
-          } else if (eid === 'EFX_V234_CHAIN_LIGHTNING_ARC' || eid === 'EFX_V234_SONIC_RESONANCE_WAVE') {
-            ST.addStatus(target, 'exposed', 8, null, W.t); triggered = true;
+          } else if (eid === 'EFX_V234_ELEMENTAL_CATALYST' || eid === 'EFX_V234_ELEMENTAL_REACTOR') {
+            const itemEl = it.element || (src && src.element) || 'FIRE';
+            COMPOSABLE_ENGINE.applyElementalAura(target, itemEl, 1.5, W.t, actor.id);
+            ST.applyNamedBuff(actor, 'elementalOvercharge', 20, W.t, { casterId: actor.id });
+            triggered = true;
+          } else if (eid === 'EFX_V234_COMBO_MOMENTUM') {
+            actor._comboChainCount = Math.min(5, (actor._comboChainCount || 0) + 1);
+            ST.applyNamedBuff(actor, 'comboReady', 18, W.t, { casterId: actor.id });
+            if (actor.cult && actor.h && actor.h.state) {
+              const qm = CULT.qiMax(actor);
+              actor.h.state.qi = Math.min(qm, (actor.h.state.qi || 0) + qm * (p.qiRestorePct || 0.06));
+            }
+            triggered = true;
+          } else if (eid === 'EFX_V234_STANCE_FLOW') {
+            if (!actor._activeStance) actor._activeStance = 'STAR_SWORD_STANCE';
+            ST.addStatus(actor, 'haste', 12, null, W.t);
+            if (actor.cult && actor.h && actor.h.state) {
+              const qm = CULT.qiMax(actor);
+              actor.h.state.qi = Math.min(qm, (actor.h.state.qi || 0) + qm * (p.qiDrainPct || 0.06));
+            }
+            triggered = true;
+          } else if (eid === 'EFX_V234_RICOCHET_CONDUCTOR' || eid === 'EFX_V234_CHAIN_LIGHTNING_ARC' || eid === 'EFX_V234_SONIC_RESONANCE_WAVE') {
+            ST.addStatus(target, 'exposed', 8, null, W.t);
+            if (f) {
+              const others = C.enemies(W, f, actor.id).filter(u => C.alive(u) && u.id !== target.id);
+              if (others.length > 0) {
+                const arcDmg = Math.max(4, Math.round((dmgDealt || 20) * (p.arcRatio || 0.32)));
+                f._composableDepth = (f._composableDepth || 0) + 1;
+                try { C.applyDamage(W, f, actor, others[0], arcDmg, 'สายฟ้าชิ่งสะท้อน'); } finally { f._composableDepth = Math.max(0, (f._composableDepth || 1) - 1); }
+              }
+            }
+            triggered = true;
+          } else if (eid === 'EFX_V234_EXECUTE_REAPER') {
+            if (hpFrac(target) <= (p.executeThreshold || 0.45)) {
+              const exDmg = Math.max(6, Math.round((dmgDealt || 24) * (p.bonusMult || 0.28)));
+              C.setHp(target, Math.max(1, C.hp(target) - exDmg));
+              target.fx = { t: W.t, text: '💀 เคียวปลิดวิญญาณ -' + exDmg };
+            } else {
+              COMPOSABLE_ENGINE.applyMark(W, f, actor, target, 'bloodBrand', 1, 14);
+            }
+            triggered = true;
+          } else if (eid === 'EFX_V234_BUFF_STEALER') {
+            if (Array.isArray(target.sx)) {
+              const stolen = target.sx.find(x => x && x.until > W.t && SK.STATUS[x.k] && SK.STATUS[x.k].isBuff);
+              if (stolen) {
+                ST.clearStatus(target, x => x.k === stolen.k);
+                ST.applyNamedBuff(actor, stolen.k, 20, W.t, { casterId: actor.id });
+              }
+            }
+            ST.addStatus(target, 'exposed', 10, null, W.t);
+            triggered = true;
+          } else if (eid === 'EFX_V234_DEBUFF_EXTENDER') {
+            if (Array.isArray(target.sx)) {
+              for (const x of target.sx) {
+                if (x && x.until > W.t && COMPOSABLE_ENGINE.DEBUFF_KEYS.includes(x.k)) {
+                  x.until = Math.min(W.t + 2880, x.until + (p.extendDur || 6));
+                }
+              }
+            }
+            ST.addStatus(target, 'weaken', 10, null, W.t);
+            triggered = true;
+          } else if (eid === 'EFX_V234_DOT_TRANSMUTER') {
+            ST.clearStatus(actor, x => ['burn', 'bleed', 'poison', 'curse'].includes(x.k));
+            ST.addStatus(actor, 'shield', 12, { amt: Math.round(C.hpMax(actor) * 0.14) }, W.t);
+            ST.addStatus(target, 'poison', 12, { per: 0.015, src: actor.id }, W.t);
+            triggered = true;
+          } else if (eid === 'EFX_V234_OVERDRIVE_SURGE') {
+            ST.applyNamedBuff(actor, 'fervorMight', 20, W.t, { casterId: actor.id });
+            triggered = true;
           } else if (eid === 'EFX_V234_KARMIC_THREAD_BIND') {
             ST.addStatus(target, 'curse', 10, { per: 0.012, src: actor.id }, W.t); triggered = true;
+          } else if (eid === 'EFX_RECON_SIGNAL_JAM') {
+            ST.addStatus(target, 'blind', 10, null, W.t);
+            ST.addStatus(target, 'silence', 6, null, W.t);
+            triggered = true;
+          } else if (eid === 'EFX_VEIN_ANCHORED' || eid === 'EFX_REGEN_AURA') {
+            const hm = C.hpMax(actor);
+            C.setHp(actor, Math.min(hm, C.hp(actor) + Math.max(1, Math.round(hm * 0.04))));
+            ST.applyNamedBuff(actor, 'vitalRegen', 18, W.t, { casterId: actor.id });
+            triggered = true;
           }
-          if (triggered) {
-            actor._itemEfxCds[cdKey] = W.t + (p.icdTicks || 8);
-            actor.lastItemEffectProc = { t: W.t, itemId: it.id, effectId: eid, kind: 'onHit' };
-          }
-        } else if (triggerKind === 'onStruck') {
-          let triggered = false;
-          if (eid === 'EFX_BARRIER_SHIELD' || eid === 'EFX_TIMED_PARRY' || eid === 'EFX_STRUCTURAL_IMMUNITY_FLOOR' || eid === 'EFX_REALM_SUPPRESSION_GUARD' || eid === 'EFX_V234_AEGIS_COUNTER_PULSE') {
-            ST.addStatus(actor, 'shield', 10, { amt: Math.round(C.hpMax(actor) * 0.14) }, W.t);
+        } else if (normTrigger === 'onStruck' || normTrigger === 'onLowHp' || normTrigger === 'combatTick' || normTrigger === 'onStanceSwitch') {
+          if (eid === 'EFX_BARRIER_SHIELD' || eid === 'EFX_TIMED_PARRY' || eid === 'EFX_STRUCTURAL_IMMUNITY_FLOOR' || eid === 'EFX_REALM_SUPPRESSION_GUARD' || eid === 'EFX_V234_AEGIS_COUNTER_PULSE' || eid === 'EFX_V234_EMERGENCY_AEGIS' || eid === 'EFX_FINAL_STAND_SHIELD') {
+            const shPct = p.shieldPct || 0.18;
+            ST.addStatus(actor, 'shield', 12, { amt: Math.round(C.hpMax(actor) * shPct) }, W.t);
+            if (eid === 'EFX_V234_EMERGENCY_AEGIS' && target && C.alive(target) && dmgDealt > 0) {
+              const ref = Math.max(1, Math.min(200, Math.round(dmgDealt * (p.reflectPct || 0.14))));
+              if (f) f._composableDepth = (f._composableDepth || 0) + 1;
+              try { C.applyDamage(W, f, actor, target, ref, 'เกราะฉุกเฉินสะท้อน'); } finally { if (f) f._composableDepth = Math.max(0, (f._composableDepth || 1) - 1); }
+            }
             triggered = true;
           } else if (eid === 'EFX_DAMAGE_REFLECT' && target && C.alive(target)) {
             const ref = Math.max(1, Math.min(240, Math.round((dmgDealt || 20) * (p.reflectRatio || 0.22))));
@@ -2072,23 +3407,45 @@
           } else if (eid === 'EFX_ILLUSION_DECOY' || eid === 'EFX_STEALTH_CONCEALMENT' || eid === 'EFX_SIDESTEP_EVASION' || eid === 'EFX_ILLUSION_MIST_MAZE' || eid === 'EFX_V234_VOID_BLINK_ESCAPE') {
             ST.applyNamedBuff(actor, 'shadowVeil', 18, W.t, { casterId: actor.id });
             triggered = true;
-          } else if (eid === 'EFX_GUARDED_DAMAGE_SHARE' || eid === 'EFX_V234_SOUL_TETHER_WARD') {
+          } else if (eid === 'EFX_GUARDED_DAMAGE_SHARE' || eid === 'EFX_V234_SOUL_TETHER_WARD' || eid === 'EFX_V234_TETHER_GUARD') {
             ST.applyNamedBuff(actor, 'soulLinkGuard', 20, W.t, { casterId: actor.id });
+            ST.addStatus(actor, 'shield', 12, { amt: Math.round(C.hpMax(actor) * (p.shieldPct || 0.14)) }, W.t);
             triggered = true;
-          } else if (eid === 'EFX_V234_STATUS_ABSORB_ARMOR') {
+          } else if (eid === 'EFX_V234_STATUS_ABSORB_ARMOR' || eid === 'EFX_V234_DOT_TRANSMUTER') {
             ST.clearStatus(actor, x => ['burn', 'bleed', 'poison', 'chill', 'slow'].includes(x.k));
-            ST.addStatus(actor, 'shield', 12, { amt: Math.round(C.hpMax(actor) * 0.12) }, W.t);
+            ST.addStatus(actor, 'shield', 12, { amt: Math.round(C.hpMax(actor) * 0.14) }, W.t);
+            triggered = true;
+          } else if (eid === 'EFX_V234_OVERDRIVE_SURGE') {
+            ST.applyNamedBuff(actor, 'fervorMight', 20, W.t, { casterId: actor.id });
+            ST.addStatus(actor, 'haste', 12, null, W.t);
+            triggered = true;
+          } else if (eid === 'EFX_EMERGENCY_BEACON') {
+            ST.addStatus(actor, 'shield', 14, { amt: Math.round(C.hpMax(actor) * 0.22) }, W.t);
+            ST.applyNamedBuff(actor, 'tacticalCommand', 24, W.t, { casterId: actor.id });
+            triggered = true;
+          } else if (eid === 'EFX_VEIN_ANCHORED' || eid === 'EFX_REGEN_AURA') {
+            const hm = C.hpMax(actor);
+            C.setHp(actor, Math.min(hm, C.hp(actor) + Math.max(1, Math.round(hm * 0.04))));
+            if (actor.cult && actor.h && actor.h.state) {
+              const qm = CULT.qiMax(actor);
+              actor.h.state.qi = Math.min(qm, (actor.h.state.qi || 0) + qm * 0.05);
+            }
+            ST.applyNamedBuff(actor, 'vitalRegen', 18, W.t, { casterId: actor.id });
+            triggered = true;
+          } else if (eid === 'EFX_V234_STANCE_FLOW') {
+            ST.addStatus(actor, 'haste', 10, null, W.t);
             triggered = true;
           }
-          if (triggered) {
-            actor._itemEfxCds[cdKey] = W.t + (p.icdTicks || 10);
-            actor.lastItemEffectProc = { t: W.t, itemId: it.id, effectId: eid, kind: 'onStruck' };
-          }
+        }
+        if (triggered) {
+          actor._itemEfxCds[cdKey] = W.t + (p.icdTicks || 8);
+          actor.lastItemEffectProc = { t: W.t, itemId: it.id, effectId: eid, kind: normTrigger };
         }
       }
     }
   };
 
+  COMPOSABLE_ENGINE.IMPLEMENTED_EFFECT_IDS = new Set((g.ECO && g.ECO.ALL_RUNTIME_EFFECT_IDS) || []);
   C.COMPOSABLE_ENGINE = COMPOSABLE_ENGINE;
 
   g.COMBAT = C;

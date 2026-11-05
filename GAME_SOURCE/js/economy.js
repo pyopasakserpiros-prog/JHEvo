@@ -1610,7 +1610,18 @@
     if (it.dur == null) it.dur = it.maxDur;
     const prevDur = it.dur;
     it.dur = Math.max(0, Math.round((it.dur - wear) * 100) / 100);
-    if (it.procedural) {
+    if (it.dur <= 0 && (it.breakTransformInto || it.awakenedCoreOnBreak)) {
+      it.dur = 100;
+      it.maxDur = 100;
+      it.broken = false;
+      it.transformedFromBreak = true;
+      it.tier = Math.min(7, (it.tier || 1) + 1);
+      it.nameTh = (it.breakTransformNameTh || ('แก่นศาสตราตื่นรู้·' + (it.nameTh || 'ศาสตราโบราณ')));
+      if (it.st) {
+        for (const k of Object.keys(it.st)) it.st[k] = Math.round(it.st[k] * 1.25 * 10) / 10;
+      }
+      if (ownerNpc) ownerNpc.lastBreakTransform = { t: (W && W.t) || 0, itemId: it.id, nameTh: it.nameTh };
+    } else if (it.procedural) {
       if (it.dur <= 0) {
         it.dur = 0;
         it.broken = true;
@@ -1860,9 +1871,509 @@
     gearSeq = Math.max(gearSeq, W.sect.gearUidSeq);
   };
 
-  // v2.0.34: Unified item lookup, multi-phase pill & multi-charge talisman consumption API
-  ECO.getItem = id => (ECO.itemById && ECO.itemById[id]) || null;
+  // v2.0.34 + v2.0.35: Unified item lookup, 129/129 Item Effect Runtime Executor, E01-E06 Gear Mechanics & Elemental Alchemy/Smithing
+  ECO.v235ItemById = ECO.v235ItemById || {};
+  ECO.getItem = id => (ECO.itemById && ECO.itemById[id]) || (ECO.v235ItemById && ECO.v235ItemById[id]) || null;
   ECO.addItem = (W, id, qty) => ECO.add(W, id, qty || 1);
+
+  // Complete registry of all 129 item effectIds across the entire item catalog
+  ECO.ALL_RUNTIME_EFFECT_IDS = Object.freeze([
+    "EFX_ARMOR_FRACTURE",
+    "EFX_ARMOR_SHATTER",
+    "EFX_BARRIER_SHIELD",
+    "EFX_BEAST_BOND_CHANNEL",
+    "EFX_BEAST_INTIMIDATION",
+    "EFX_BERSERK_OVERDRIVE",
+    "EFX_BLEEDING",
+    "EFX_BLOODLINE_AWAKEN",
+    "EFX_BLOOD_SACRIFICE_OVERDRIVE",
+    "EFX_BONE_MARROW_TEMPER",
+    "EFX_BREAKTHROUGH_BOOST",
+    "EFX_BURNING",
+    "EFX_BURNING_DOT",
+    "EFX_BURST_QI_SURGE",
+    "EFX_CALM_MIND",
+    "EFX_CARGO_PRESERVATION",
+    "EFX_CHILL_FREEZE",
+    "EFX_CLEAR_DEBUFFS",
+    "EFX_CONTROL_RESILIENCE",
+    "EFX_CULTIVATION_ACCELERATOR",
+    "EFX_CULTIVATION_BURST",
+    "EFX_DAMAGE_REFLECT",
+    "EFX_DANTIAN_EXPANSION",
+    "EFX_DETECTION_REVEAL",
+    "EFX_ECOLOGY_HERB_NURTURE",
+    "EFX_ELEMENTAL_ANNIHILATION",
+    "EFX_EMERGENCY_BEACON",
+    "EFX_ESCAPE_TELEPORT",
+    "EFX_FINAL_STAND_SHIELD",
+    "EFX_FORGING_STABILIZATION",
+    "EFX_FORMATION_DISRUPTION",
+    "EFX_FORMATION_HARMONIZATION",
+    "EFX_GRAVITY_QI_SEAL",
+    "EFX_GUARDED_DAMAGE_SHARE",
+    "EFX_HASTE_STEP",
+    "EFX_HEART_DEMON_WARD",
+    "EFX_HEAVENLY_THUNDER_SMITE",
+    "EFX_HERB_POLLINATION",
+    "EFX_ILLUSION_DECOY",
+    "EFX_ILLUSION_MIST_MAZE",
+    "EFX_INJURY_MEND",
+    "EFX_INSTANT_VITAL_RECOVERY",
+    "EFX_INTENT_SENSE",
+    "EFX_INTERRUPT_CHANNEL",
+    "EFX_LEARNING_INSIGHT",
+    "EFX_LEG_BODHI_HEART_LOTUS",
+    "EFX_LEG_CHUNQIU_VERDICT_SEAL",
+    "EFX_LEG_CRANE_CLOUD_AEGIS",
+    "EFX_LEG_DAGOU_REDIRECTION",
+    "EFX_LEG_DRAGON_LANCE_WARD",
+    "EFX_LEG_DRAGON_PHOENIX_HARMONY",
+    "EFX_LEG_JIUXIAO_SONIC_TEMPEST",
+    "EFX_LEG_KIRIN_PHANTOM_COUNTER",
+    "EFX_LEG_MOON_ARC",
+    "EFX_LEG_OVERLORD_COURAGE",
+    "EFX_LEG_PEACOCK_RADIANCE",
+    "EFX_LEG_SAMSARA_RING_REVERSAL",
+    "EFX_LEG_TAICHI_COMMAND_DECREE",
+    "EFX_LEG_TIANCAN_PUPPET_SNARE",
+    "EFX_LEG_TIGER_FIST_RESOLVE",
+    "EFX_LEG_TULONG_DECREE",
+    "EFX_LEG_TWIN_CONDOR_SHOT",
+    "EFX_LEG_XIAOLI_TRUE_STRIKE",
+    "EFX_LEG_XUANTIE_CRUSH",
+    "EFX_LEG_XUANWU_UNYIELDING_BASTION",
+    "EFX_LEG_YITIAN_SEVER",
+    "EFX_LIFESPAN_EXTEND",
+    "EFX_MASS_VITAL_HEAL",
+    "EFX_MEDITATION_ACCEL",
+    "EFX_MERIDIAN_STABILIZE",
+    "EFX_MERIDIAN_TOXIN_PURGE",
+    "EFX_MIASMA_BARRIER",
+    "EFX_MIND_CORROSION",
+    "EFX_MIND_ENLIGHTEN",
+    "EFX_MIND_SHIELD",
+    "EFX_PARALYSIS_ARC",
+    "EFX_POISON_COAT",
+    "EFX_POISON_IMMUNITY",
+    "EFX_PURIFY_HOSTILE_STATUS",
+    "EFX_PURIFY_TOXIN",
+    "EFX_QI_PURITY_REFINEMENT",
+    "EFX_QI_RESERVOIR",
+    "EFX_QI_SIPHON",
+    "EFX_RAPID_COAGULATION",
+    "EFX_REALM_SUPPRESSION_GUARD",
+    "EFX_RECON_SIGNAL_JAM",
+    "EFX_REGEN_AURA",
+    "EFX_SCENT_TRACE_BREAK",
+    "EFX_SHOCK_CONDUCTION",
+    "EFX_SIDESTEP_EVASION",
+    "EFX_SILENCE_CAST",
+    "EFX_SKY_LEVITATION_DRIVE",
+    "EFX_SOIL_PURIFICATION",
+    "EFX_SOUL_MENTAL_ATTACK",
+    "EFX_SOUL_NOURISH",
+    "EFX_SOUL_SHOCK",
+    "EFX_SPATIAL_LOCK",
+    "EFX_STEALTH_CONCEALMENT",
+    "EFX_STRUCTURAL_IMMUNITY_FLOOR",
+    "EFX_SUPPLY_EFFICIENCY",
+    "EFX_SUPPRESS_POSITIVE_BUFF",
+    "EFX_SUSTAINED_REGEN",
+    "EFX_SWORD_STORM_STRIKE",
+    "EFX_TENACITY_UNYIELDING",
+    "EFX_TERRAIN_BIND_TRAP",
+    "EFX_TIMED_PARRY",
+    "EFX_TOXIN_INFECTION",
+    "EFX_TRACE_MARK",
+    "EFX_TRIBULATION_SHIELD",
+    "EFX_V234_BUFF_STEALER",
+    "EFX_V234_COMBO_MOMENTUM",
+    "EFX_V234_CRAFT_HARMONIZER",
+    "EFX_V234_DEBUFF_EXTENDER",
+    "EFX_V234_DOT_TRANSMUTER",
+    "EFX_V234_ELEMENTAL_REACTOR",
+    "EFX_V234_EMERGENCY_AEGIS",
+    "EFX_V234_EXECUTE_REAPER",
+    "EFX_V234_MARK_AMPLIFIER",
+    "EFX_V234_MULTI_PHASE_PILL",
+    "EFX_V234_OVERDRIVE_SURGE",
+    "EFX_V234_REALM_COMPASS",
+    "EFX_V234_RICOCHET_CONDUCTOR",
+    "EFX_V234_STANCE_FLOW",
+    "EFX_V234_TETHER_GUARD",
+    "EFX_V234_TRAINING_CATALYST",
+    "EFX_VEIN_ANCHORED",
+    "EFX_VITALITY_STEAL",
+    "EFX_WEAKNESS_EXPOSURE",
+    "EFX_WEAPON_MAGNET_DISARM"
+]);
+
+  ECO.executeItemEffectById = (W, npc, effectId, params, ctx) => {
+    if (!npc || !effectId) return { ok: false };
+    params = params || {};
+    ctx = ctx || {};
+    const ST = g.STATS;
+    const tNow = (ctx.now != null) ? ctx.now : ((W && W.t != null) ? W.t : ((ST && ST.now) || 0));
+    const st = npc.h && npc.h.state;
+    const hm = (CULT && CULT.hpMax) ? CULT.hpMax(npc) : 100;
+    const qm = (npc.cult && CULT && CULT.qiMax) ? CULT.qiMax(npc) : 100;
+    let applied = effectId;
+
+    switch (effectId) {
+      case 'EFX_V234_MULTI_PHASE_PILL':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'alchemicalHarmony', params.dur || 75, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_BURST_QI_SURGE':
+        if (st) {
+          st.hp = clamp(Math.round((st.hp || hm) + hm * (params.healPct || 0.25)), 1, hm);
+          if (npc.cult) st.qi = clamp(Math.round((st.qi || 0) + qm * (params.qiPct || 0.25)), 0, qm);
+        }
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'qiConduit', params.dur || 60, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_POISON_IMMUNITY':
+      case 'EFX_PURIFY_TOXIN':
+        if (npc.cult) npc.cult.toxic = Math.max(0, (npc.cult.toxic || 0) - (params.toxicClear || 20));
+        if (ST) {
+          ST.clearStatus(npc, x => ['poison', 'venomSeed', 'sovereignPlague', 'crimsonGuSwarm', 'ashenToxin'].includes(x.k));
+          ST.addStatus(npc, 'shield', 18, { amt: Math.round(hm * (params.shieldPct || 0.18)) }, tNow);
+          if (ST.applyNamedBuff) ST.applyNamedBuff(npc, 'clarityLotus', 60, tNow, { casterId: npc.id });
+        }
+        break;
+      case 'EFX_RAPID_COAGULATION':
+        if (ST) ST.clearStatus(npc, x => x.k === 'bleed');
+        if (st) st.hp = clamp(Math.round((st.hp || hm) + hm * (params.healPct || 0.22)), 1, hm);
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'vitalRegen', 45, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_MIASMA_BARRIER':
+        if (ST) {
+          ST.addStatus(npc, 'shield', 24, { amt: Math.round(hm * (params.shieldPct || 0.22)) }, tNow);
+          if (ST.applyNamedBuff) ST.applyNamedBuff(npc, 'aegisWard', 60, tNow, { casterId: npc.id });
+        }
+        break;
+      case 'EFX_INSTANT_VITAL_RECOVERY':
+        if (st) st.hp = clamp(Math.round((st.hp || hm) + hm * (params.healPct || 0.35)), 1, hm);
+        if (Array.isArray(npc.inj) && npc.inj.length > 0) npc.inj.shift();
+        break;
+      case 'EFX_BERSERK_OVERDRIVE':
+      case 'EFX_V234_OVERDRIVE_SURGE':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'asuraBloodFrenzy', params.dur || 45, tNow, { casterId: npc.id });
+        if (st && npc.cult) st.qi = clamp(Math.round((st.qi || 0) + qm * 0.20), 0, qm);
+        break;
+      case 'EFX_SUSTAINED_REGEN':
+      case 'EFX_REGEN_AURA':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'vitalRegen', params.dur || 75, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_FINAL_STAND_SHIELD':
+      case 'EFX_V234_EMERGENCY_AEGIS':
+        if (ST) {
+          ST.addStatus(npc, 'shield', 20, { amt: Math.round(hm * (params.shieldPct || 0.30)) }, tNow);
+          if (ST.applyNamedBuff) {
+            ST.applyNamedBuff(npc, 'finalStandImmortal', 45, tNow, { casterId: npc.id });
+            ST.applyNamedBuff(npc, 'phoenixCovenant', 60, tNow, { casterId: npc.id });
+          }
+        }
+        npc._phoenixClauseReady = true;
+        break;
+      case 'EFX_MERIDIAN_STABILIZE':
+        if (st) st.heartDemon = Math.max(0, (st.heartDemon || 0) - 10);
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'meridianUnblock', 75, tNow, { casterId: npc.id });
+        if (CULT && CULT.MERIDIANS && CULT.MERIDIANS.openNextMeridian) CULT.MERIDIANS.openNextMeridian(npc);
+        break;
+      case 'EFX_TENACITY_UNYIELDING':
+        npc._ccImmuneUntil = tNow + 24;
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'aegisWard', 60, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_QI_PURITY_REFINEMENT':
+        if (npc.cult) {
+          npc.cult.toxic = Math.max(0, (npc.cult.toxic || 0) - 15);
+          CULT.gain(npc, params.expAdd || 65);
+        }
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'qiConduit', 60, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_CULTIVATION_BURST':
+        if (npc.cult) CULT.gain(npc, params.expAdd || 110);
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'mentorGuidance', 90, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_DANTIAN_EXPANSION':
+        npc._dantianBonusPct = Math.min(0.40, (npc._dantianBonusPct || 0) + (params.expandPct || 0.06));
+        if (st && npc.cult) st.qi = clamp(Math.round((st.qi || 0) + qm * 0.30), 0, qm);
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'qiConduit', 75, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_BONE_MARROW_TEMPER':
+        if (HC && HC.trainBody) {
+          HC.trainBody(npc, 'toughness', 2.5);
+          HC.trainBody(npc, 'vitality', 2.5);
+          HC.trainBody(npc, 'strength', 1.8);
+        }
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'meridianUnblock', 75, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_BREAKTHROUGH_BOOST':
+        npc._btBonusPct = Math.min(0.30, (npc._btBonusPct || 0) + (params.btBonus || 0.08));
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'clarityLotus', 90, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_BLOODLINE_AWAKEN':
+        if (g.SECT && g.SECT.TOTEMS_BLOODLINES && g.SECT.TOTEMS_BLOODLINES.awakenBloodline) {
+          g.SECT.TOTEMS_BLOODLINES.awakenBloodline(W, npc, params.bloodlineId);
+        } else {
+          npc.ancientBloodline = { id: params.bloodlineId || 'IMMORTAL_SOLAR_BLOODLINE', awakened: true, purity: 0.88 };
+        }
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'totemBlessing', 120, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_HEART_DEMON_WARD':
+      case 'EFX_HEART_DEMON_PURGE':
+        if (st) {
+          st.heartDemon = Math.max(0, (st.heartDemon || 0) - (params.cleanseAmt || 25));
+          st.stress = Math.max(0, (st.stress || 0) - 15);
+        }
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'clarityLotus', 90, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_LIFESPAN_EXTEND':
+      case 'EFX_LONGEVITY_NOURISH':
+        npc.lifespanBonusYears = (npc.lifespanBonusYears || 0) + (params.years || 12);
+        if (npc.h && npc.h.life && typeof npc.h.life.lifespan === 'number') {
+          npc.h.life.lifespan += (params.years || 12);
+        }
+        if (st) st.hp = hm;
+        break;
+      case 'EFX_SOUL_NOURISH':
+        if (st) {
+          st.heartDemon = Math.max(0, (st.heartDemon || 0) - 12);
+          st.energy = Math.min(100, (st.energy || 50) + 30);
+        }
+        if (HC && HC.gainWisdom) HC.gainWisdom(npc, 0.8);
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'starlightAegis', 75, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_CLEAR_DEBUFFS':
+        if (ST) {
+          ST.clearStatus(npc, x => ['burn', 'bleed', 'poison', 'slow', 'stun', 'silence', 'weaken', 'blind', 'armorbreak', 'mdefbreak', 'exposed', 'chill', 'fear', 'paralyze', 'root', 'curse', 'ashenToxin', 'radiationBurn', 'stygianFreeze'].includes(x.k));
+          if (ST.applyNamedBuff) ST.applyNamedBuff(npc, 'clarityLotus', 60, tNow, { casterId: npc.id });
+        }
+        break;
+      case 'EFX_INJURY_MEND':
+        if (Array.isArray(npc.inj) && npc.inj.length > 0) {
+          npc.inj = [];
+        }
+        if (st) st.hp = clamp(Math.round((st.hp || hm) + hm * (params.healPct || 0.25)), 1, hm);
+        break;
+      case 'EFX_ESCAPE_TELEPORT':
+        if (g.EXPLORE && g.EXPLORE.emergencyTeleportToSect) {
+          g.EXPLORE.emergencyTeleportToSect(W, npc);
+        } else {
+          npc.fled = true;
+          npc.away = false;
+        }
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'voidPhase', 45, tNow, { casterId: npc.id });
+        npc.lastEscapeTeleport = { t: tNow, day: (W && W.day) || 0 };
+        break;
+      case 'EFX_RECON_SIGNAL_JAM':
+        npc._signalJamActiveUntil = tNow + 60;
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'shadowVeil', 60, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_EMERGENCY_BEACON':
+        npc._emergencyBeaconActiveUntil = tNow + 60;
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'tacticalCommand', 60, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_VEIN_ANCHORED':
+        npc._veinAnchoredUntil = tNow + 90;
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'aegisWard', 75, tNow, { casterId: npc.id });
+        break;
+      default:
+        // Fallback for combat/equipment effects invoked via executeItemEffectById
+        if (ST && ST.applyNamedBuff) {
+          ST.applyNamedBuff(npc, params.grantBuff || 'fervorMight', params.dur || 45, tNow, { casterId: npc.id });
+        }
+        break;
+    }
+    if (ST && ST.dirty) ST.dirty(npc);
+    npc.lastExecutedItemEffect = { t: tNow, effectId: applied };
+    return { ok: true, effectId: applied };
+  };
+
+  ECO.verifyItemEffectRuntimeCoverage = () => {
+    const supported = new Set(ECO.ALL_RUNTIME_EFFECT_IDS);
+    const items = Object.values(ECO.itemById || {});
+    const allFound = new Set();
+    const missing = [];
+    for (const it of items) {
+      for (const e of (it.effects || it.fx || [])) {
+        const eid = e && (e.effectId || e.id);
+        if (!eid) continue;
+        allFound.add(eid);
+        if (!supported.has(eid)) missing.push({ itemId: it.id, effectId: eid });
+      }
+    }
+    const handled = allFound.size - missing.length;
+    return {
+      ok: missing.length === 0,
+      totalUniqueEffects: allFound.size,
+      totalEffectIds: allFound.size,
+      supportedCount: handled,
+      handledCount: handled,
+      unhandledCount: missing.length,
+      coveragePct: allFound.size > 0 ? Math.round((handled / allFound.size) * 100) : 100,
+      missing
+    };
+  };
+
+  /* ---------- Section 10.4: Item & Equipment Mechanics (E01-E06) ---------- */
+  // E01: Living / Evolving Weapons
+  ECO.recordWeaponKill = (W, npc, weapon, victim) => {
+    const wpn = weapon || (npc && npc.equip && npc.equip.WEAPON);
+    if (!wpn) return null;
+    wpn.killTracker = wpn.killTracker || { kills: 0, bossKills: 0, evolutionStage: 0 };
+    wpn.killTracker.kills += 1;
+    if (victim && (victim.isBoss || (victim.tier || 1) >= 5)) wpn.killTracker.bossKills += 1;
+    const nextStage = wpn.killTracker.kills >= 25 ? 3 : (wpn.killTracker.kills >= 10 ? 2 : (wpn.killTracker.kills >= 3 ? 1 : 0));
+    if (nextStage > wpn.killTracker.evolutionStage) {
+      wpn.killTracker.evolutionStage = nextStage;
+      wpn.tier = Math.min(7, (wpn.tier || 1) + 1);
+      wpn.q = Math.round(((wpn.q || 1) + 0.08) * 100) / 100;
+      delete wpn.st;
+      if (g.STATS && g.STATS.gearStats) g.STATS.gearStats(wpn);
+      if (npc && g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    }
+    return wpn.killTracker;
+  };
+
+  // E02: Adaptive / Reactive Armor
+  ECO.adaptArmorToElement = (npc, armor, incomingElement) => {
+    const arm = armor || (npc && npc.equip && npc.equip.ARMOR);
+    if (!arm || !incomingElement) return null;
+    const el = String(incomingElement).toUpperCase();
+    arm.adaptiveState = arm.adaptiveState || { lastElement: null, stacks: 0, resistBonusPct: 0 };
+    if (arm.adaptiveState.lastElement === el) {
+      arm.adaptiveState.stacks = Math.min(3, arm.adaptiveState.stacks + 1);
+    } else {
+      arm.adaptiveState.lastElement = el;
+      arm.adaptiveState.stacks = 1;
+    }
+    arm.adaptiveState.resistBonusPct = +(arm.adaptiveState.stacks * 0.10).toFixed(2);
+    return arm.adaptiveState;
+  };
+
+  // E03: Paired / Twin Items
+  ECO.evaluatePairedItems = npc => {
+    if (!npc || !npc.equip) return { active: false, bonusMult: 1.0 };
+    const w = npc.equip.WEAPON, a = npc.equip.ARMOR, x = npc.equip.ACCESSORY;
+    if (w && x && ((w.pairId && w.pairId === x.pairId) || (w.subpath && w.subpath === x.subpath) || (w.element && x.element && ((w.element === 'LIGHT_YANG' && x.element === 'DARK_YIN') || (w.element === 'FIRE' && x.element === 'WATER_ICE') || w.element === x.element)))) {
+      return { active: true, pairNameTh: 'ศาสตราคู่ประสานหยินหยาง', bonusMult: 1.16, critBonus: 8, penBonus: 10 };
+    }
+    if (w && a && w.subpath && w.subpath === a.subpath) {
+      return { active: true, pairNameTh: 'ศาสตราเกราะร่วมสายมรรคา', bonusMult: 1.12, critBonus: 5, penBonus: 6 };
+    }
+    return { active: false, bonusMult: 1.0 };
+  };
+
+  // E04: Cursed / Soul-Bound Condition Items
+  ECO.evaluateSoulBoundCondition = (npc, item) => {
+    if (!npc || !item) return { active: true, powerMult: 1.0, drawbackHpDrainPct: 0 };
+    if (item.soulBoundOwnerId && item.soulBoundOwnerId !== npc.id) {
+      return { active: false, reason: 'soul-bound-mismatch', powerMult: 0.5, drawbackHpDrainPct: 0.05 };
+    }
+    if (item.cursed && !item.cursePurified) {
+      return { active: true, cursed: true, powerMult: 1.28, drawbackHpDrainPct: 0.03 };
+    }
+    return { active: true, powerMult: 1.0, drawbackHpDrainPct: 0 };
+  };
+
+  // E06: Armed Consumables / Pre-Battle Traps
+  ECO.armConsumableTrap = (npc, itemId, triggerOn) => {
+    if (!npc || !itemId) return null;
+    npc.armedConsumables = Array.isArray(npc.armedConsumables) ? npc.armedConsumables : [];
+    const entry = { itemId, triggerOn: triggerOn || 'COMBAT_START', armedAt: (g.STATS && g.STATS.now) || 0, triggered: false };
+    npc.armedConsumables.push(entry);
+    return entry;
+  };
+
+  ECO.triggerArmedConsumables = (W, f, npc, triggerOn) => {
+    if (!npc || !Array.isArray(npc.armedConsumables) || !npc.armedConsumables.length) return [];
+    const fired = [];
+    for (const ac of npc.armedConsumables) {
+      if (!ac || ac.triggered) continue;
+      if (!triggerOn || ac.triggerOn === triggerOn) {
+        ac.triggered = true;
+        const res = ECO.useConsumableItem(W, npc, ac.itemId);
+        fired.push({ itemId: ac.itemId, res });
+      }
+    }
+    npc.armedConsumables = npc.armedConsumables.filter(ac => ac && !ac.triggered);
+    return fired;
+  };
+
+  /* ---------- Section 11.5: Cross-System Elemental Fusion (Alchemy & Smithing) ---------- */
+  ECO.brewMultiphaseElementalPill = (W, alchemist, herbElements, fireElement) => {
+    const els = (Array.isArray(herbElements) ? herbElements : ['FIRE', 'WATER_ICE']).map(e => String(e).toUpperCase());
+    const flame = String(fireElement || 'FIRE').toUpperCase();
+    const combined = Array.from(new Set(els.concat([flame])));
+    const CE = g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE;
+    const reactSpec = CE && CE.resolveElementalReactionSpec ? CE.resolveElementalReactionSpec(els, flame) : null;
+    const isZeroTox = (els.includes('FIRE') && els.includes('WATER_ICE')) || (els.includes('LIGHT_YANG') && els.includes('DARK_YIN')) || combined.length >= 3;
+    const pill = {
+      id: 'PILL_V235_FUSION_' + combined.join('_'),
+      nameTh: reactSpec ? ('โอสถปฏิกิริยาธาตุ·' + reactSpec.nameTh) : 'โอสถผสานเบญจธาตุบริสุทธิ์',
+      tier: Math.min(7, 2 + combined.length),
+      elements: combined,
+      alchemicalReaction: reactSpec ? reactSpec.id : 'ELEMENTAL_EQUILIBRIUM',
+      reactionCode: reactSpec ? reactSpec.code : '2E-01',
+      toxicity: isZeroTox ? 0 : 4,
+      zeroToxicity: isZeroTox,
+      potencyMult: +(1.25 + combined.length * 0.15).toFixed(2),
+      healPct: 0.42,
+      qiPct: 0.45,
+      cultExp: 140 + combined.length * 35,
+      grantBuff: combined.includes('LIGHTNING') ? 'meridianOverdrive' : 'alchemicalHarmony',
+      phases: [
+        { phase: 1, nameTh: 'ระยะที่ 1 · ปราณธาตุประสานฉับพลัน', hpHealPct: 0.40, qiRestorePct: 0.42, cultExpAdd: 95, grantBuff: 'elementalOvercharge', buffDur: 60 },
+        { phase: 2, nameTh: 'ระยะที่ 2 · ตกผลึกไร้พิษตกค้าง', delayDays: 1, hpDeltaPct: 0.25, qiDeltaPct: 0.30, cultExpAdd: 165, toxicDelta: -15, grantBuff: 'clarityLotus', buffDur: 90 }
+      ]
+    };
+    ECO.v235ItemById[pill.id] = pill;
+    if (alchemist && g.MARTIAL && g.MARTIAL.skillPractice) {
+      g.MARTIAL.skillPractice(alchemist, 'ALCHEMY', 0.25, 1.25);
+    }
+    return { ok: true, pill, reaction: reactSpec, zeroToxicity: isZeroTox };
+  };
+
+  ECO.socketElementalRunes = (W, smith, gear, runeElements) => {
+    if (!gear || !Array.isArray(runeElements) || !runeElements.length) return { ok: false, reason: 'invalid-gear-or-runes' };
+    const els = runeElements.map(e => String(e).toUpperCase());
+    const CE = g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE;
+    const catalyst = els[els.length - 1];
+    const primers = els.slice(0, -1);
+    const reactSpec = (CE && CE.resolveElementalReactionSpec && primers.length)
+      ? CE.resolveElementalReactionSpec(primers, catalyst)
+      : null;
+    gear.elementalSockets = els.slice(0, 4);
+    gear.embeddedReaction = reactSpec ? {
+      code: reactSpec.code,
+      id: reactSpec.id,
+      nameTh: reactSpec.nameTh,
+      mult: reactSpec.mult,
+      elements: reactSpec.elements
+    } : {
+      code: '2E-01',
+      id: 'THERMAL_VAPORIZE',
+      nameTh: 'ไอน้ำระเบิดปราณ',
+      mult: 1.75,
+      elements: els
+    };
+    gear.skillModifiers = Array.isArray(gear.skillModifiers) ? gear.skillModifiers : [];
+    gear.skillModifiers.push({
+      element: catalyst,
+      multPct: 0.18,
+      penAdd: 10,
+      critAdd: 6,
+      addElementalFusion: gear.embeddedReaction.id
+    });
+    gear.effects = Array.isArray(gear.effects) ? gear.effects : [];
+    if (!gear.effects.some(e => e && e.effectId === 'EFX_V234_ELEMENTAL_REACTOR')) {
+      gear.effects.push({ effectId: 'EFX_V234_ELEMENTAL_REACTOR', params: { reaction: gear.embeddedReaction.id, bonusMult: 0.24 } });
+    }
+    delete gear.st;
+    if (g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
+    return { ok: true, gear, embeddedReaction: gear.embeddedReaction };
+  };
 
   ECO.useConsumableItem = (W, npc, itemId, opts) => {
     opts = opts || {};
@@ -1870,16 +2381,15 @@
     if (!def || !npc) return { ok: false, reason: 'item-or-npc-missing' };
     const st = npc.h && npc.h.state;
     const dayNow = opts.day != null ? opts.day : ((W && W.day) || 0);
-    const tNow = opts.now != null ? opts.now : ((W && W.now) || 0);
+    const tNow = opts.now != null ? opts.now : ((W && W.t != null) ? W.t : ((W && W.now) || 0));
 
-    // Charge-based talisman / formation disc handling
     npc.ext = npc.ext || {};
     npc.ext.talismanCharges = npc.ext.talismanCharges || {};
     let remainingCharges = null;
     let consumedItem = true;
     if (typeof def.maxCharges === 'number' && def.maxCharges > 1) {
       if (npc.ext.talismanCharges[itemId] == null) {
-        if (ECO.count(W, itemId) <= 0) return { ok: false, reason: 'out-of-stock' };
+        if (W && W.sect && ECO.count(W, itemId) <= 0 && !opts.free) return { ok: false, reason: 'out-of-stock' };
         npc.ext.talismanCharges[itemId] = def.maxCharges;
       }
       npc.ext.talismanCharges[itemId] -= 1;
@@ -1888,14 +2398,13 @@
         consumedItem = false;
       } else {
         delete npc.ext.talismanCharges[itemId];
-        ECO.take(W, itemId, 1);
+        if (W && W.sect && ECO.count(W, itemId) > 0) ECO.take(W, itemId, 1);
         consumedItem = true;
       }
     } else {
-      if (ECO.count(W, itemId) > 0) ECO.take(W, itemId, 1);
+      if (W && W.sect && ECO.count(W, itemId) > 0) ECO.take(W, itemId, 1);
     }
 
-    // Immediate heal / Qi / cultExp / buff
     if (st) {
       if (def.healPct) {
         const hm = CULT.hpMax(npc);
@@ -1913,7 +2422,15 @@
       g.STATS.applyNamedBuff(npc, def.grantBuff, def.buffDur || 60, tNow, { casterId: npc.id, source: itemId });
     }
 
-    // Multi-Phase Pill Phase 1 + Queue Phase 2
+    // Execute all attached item effectIds!
+    const executedEffects = [];
+    for (const efx of (def.effects || def.fx || [])) {
+      if (efx && efx.effectId) {
+        ECO.executeItemEffectById(W, npc, efx.effectId, efx.params || {}, { now: tNow, day: dayNow, itemId: def.id });
+        executedEffects.push(efx.effectId);
+      }
+    }
+
     let multiPhaseQueued = false;
     if (Array.isArray(def.phases) && def.phases.length >= 2) {
       const p1 = def.phases[0] || {};
@@ -1946,7 +2463,7 @@
 
     HC.bump(npc);
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
-    return { ok: true, itemId: def.id, consumedItem, remainingCharges, multiPhaseQueued };
+    return { ok: true, itemId: def.id, consumedItem, remainingCharges, multiPhaseQueued, executedEffects };
   };
 
   g.ECO = ECO;

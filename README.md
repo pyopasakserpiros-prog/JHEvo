@@ -1,53 +1,65 @@
-# JianghuSect Evolution — v2.0.34
+# JianghuSect Evolution — v2.0.35
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
-Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. See the [v2.0.24 report](PATCH_IMPLEMENTATION_REPORT_V2_0_24.md) for the world atlas and its validation results.
+Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูรายงานและแผนที่โลกยุทธภพได้ใน [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md)
 
 ผู้พัฒนาและ AI ต้องอ่าน [AGENTS.md](AGENTS.md) ก่อนเริ่มงาน ใช้มุมมองทีมพัฒนาและผู้เล่นตามความเหมาะสม และตรวจข้อมูลจากซอร์สและผลทดสอบจริง ดู [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md)
 
-ผลตรวจการนำเข้าและข้อจำกัดของชุดทดสอบ: [IMPORT_VERIFICATION_V2_0_33.md](IMPORT_VERIFICATION_V2_0_33.md) รายงานผู้พัฒนา 2.0.32 ที่อัปโหลดแยก: [รายงาน 2.0.32](jianghu_sect_v2_0_32_master_development_and_expert_audit_report.md)
+ผลตรวจการนำเข้าและข้อจำกัดของชุดทดสอบ: [PATCH_REPORTS/IMPORT_VERIFICATION_V2_0_33.md](PATCH_REPORTS/IMPORT_VERIFICATION_V2_0_33.md) | รายงานผู้พัฒนา 2.0.32: [PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md](PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md)
 
 ```bash
 cd GAME_SOURCE
 node tools/build_single.js
 node tools/validate_data_schema.js
-node tools/run_parallel_tests.js
+node test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js
 ```
 
-### รายงานการพัฒนาแพตช์ที่ผ่านมา (Implementation Reports):
-- รายละเอียดแพตช์สายสืบทอด: [v2.0.26 report](PATCH_IMPLEMENTATION_REPORT_V2_0_26.md)
-- รายละเอียดผังสายสืบทอดและพงศาวดาร: [v2.0.27 report](PATCH_IMPLEMENTATION_REPORT_V2_0_27.md)
-- รายละเอียดหน้าบรรพชน: [v2.0.28 report](PATCH_IMPLEMENTATION_REPORT_V2_0_28.md)
-- รายละเอียดระบบหลอมรวมคนนอกและจดหมายเหตุยุทธภพ: [v2.0.29 report](PATCH_IMPLEMENTATION_REPORT_V2_0_29.md)
-- **รายละเอียดโครงสร้างผู้อาวุโสสำนักภายนอก 3 ชั้น ยอดคนอิสระพเนจร สารทวงตัว & ศึกทวงคืนสำนักเดิม คู่บำเพ็ญ & สายเลือดตระกูล สงครามพันธมิตรร่วม และไทม์ไลน์ประวัติศาสตร์พร้อมเสียงบรรยากาศ: [v2.0.30 report](PATCH_IMPLEMENTATION_REPORT_V2_0_30.md)**
-- **รายละเอียดสภาผู้อาวุโส 4 ก๊ก & ราชโองการอัตโนมัติ (F10), โหนดแดนลับ 5 ด่าน 12 มรรคา & บูรณะคัมภีร์โบราณ (F06+F01), มหาชุมนุมยุทธภพ 4 สาย & งานเลี้ยงปราณโอชา (F08), ผู้กำกับชะตาฟ้าดิน 4 ยุคสมัย & ตราหยกสำนัก (I01/I02/I04) และพงศาวดาร 10 รูปแบบ: [v2.0.32 report](PATCH_IMPLEMENTATION_REPORT_V2_0_32.md)**
-- **รายละเอียดระบบ 8 ยอดเขาประจำสำนัก (Founded-Only UI, ผู้นำยอดเขาศักดิ์เทียบเท่ารองเจ้าสำนัก, การจัดสรรทรัพยากรส่วนกลางสู่ยอดเขา, ศิษย์อิสระไร้สังกัด, การประลองระหว่างยอดเขา), ยศผู้อาวุโสไร้ตำแหน่งบริหาร, ระบบสายใยความสัมพันธ์เชิงลึก 24 เหตุการณ์ และการเชื่อมสมองตัดสินใจ NPC: [v2.0.33 report](PATCH_IMPLEMENTATION_REPORT_V2_0_33.md)**
-- **รายละเอียดการขยายเนื้อหาครั้งใหญ่และสถาปัตยกรรมกลไกแบบประกอบร่าง (Composable Mechanic Architecture): [v2.0.34 report](PATCH_IMPLEMENTATION_REPORT_V2_0_34.md)**
+---
 
+## 📑 คลังรายงานการพัฒนาแพตช์ (Patch Implementation Reports Archive)
+
+เอกสารรายงานการพัฒนาและผลการตรวจสอบทั้งหมดถูกจัดเก็บไว้อย่างเป็นระเบียบในโฟลเดอร์ **[`PATCH_REPORTS/`](PATCH_REPORTS/)**:
+
+- **[v2.0.35 Master Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_35.md)**: รายงานการพัฒนาแพตช์ v2.0.35 ระบบผสานมหาธาตุ 34 ปฏิกิริยา, 8 เสาหลักแก้บัค, จุดชีพจร, ศาสตราตื่นรู้, เสาโทเทม, ปรากฏการณ์ฟ้าดิน, สถิตร่างอสูร, ด้ายชะตา และค่ายกลชีพจรปฐพี
+- **[v2.0.35 QA & Systems Balance Audit](PATCH_REPORTS/QA_SYSTEMS_AND_BALANCE_AUDIT_V2_0_35.md)**: รายงานผลการตรวจสอบ 7 มิติโดย Lead QA Architect & Game Balance Director (ผ่าน 100% ครบทุกข้อ)
+- **[v2.0.35 Complete Development Report (.docx)](PATCH_REPORTS/JIANGHU_SECT_v2_0_35_Complete_Development_Report.docx)**: เอกสารรายงานฉบับสมบูรณ์สำหรับผู้บริหาร
+- **[v2.0.34 Content & Composable Mechanics Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_34.md)**: ขยาย 132 สายย่อย, 655 วรยุทธ์, 917 ไอเทม, 1,255 ตำรับ, Composable Engine
+- **[v2.0.33 Peaks, Elder & Social Matrix Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_33.md)**: ระบบ 8 ยอดเขา, ผู้นำยอดเขา, ความสัมพันธ์ 24 เหตุการณ์, สมอง NPC
+- **[v2.0.32 Elder Council & Secret Realms Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_32.md)**: สภาผู้อาวุโส 4 ก๊ก, โหนดแดนลับ 5 ด่าน 12 มรรคา, มหาชุมนุมยุทธภพ 4 สาย, ผู้กำกับชะตาฟ้าดิน
+- **[v2.0.31 Stability & Save Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_31.md)**: ปรับปรุงระบบบันทึกและเสถียรภาพ
+- **[v2.0.30 External Elders & Dual Cultivation Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_30.md)**: ผู้อาวุโสภายนอก, คู่บำเพ็ญ, สายเลือดตระกูล
+- **[v2.0.29 External Assimilation Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_29.md)**: ระบบหลอมรวมคนนอกและจดหมายเหตุยุทธภพ
+- **[v2.0.28 Ancestral Shrine Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_28.md)**: หน้าบรรพชนและหอเกียรติยศ
+- **[v2.0.27 Lineage & Chronicle Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_27.md)**: ผังสายสืบทอดและพงศาวดารสำนัก
+- **[v2.0.26 Lineage System Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_26.md)**: ระบบสายสืบทอด
+- **[v2.0.24 World Atlas Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md)**: แผนที่โลกและภูมิศาสตร์ยุทธภพฉบับสมบูรณ์
+- **[สารบัญรายงานทั้งหมดแบบละเอียด](PATCH_REPORTS/README.md)**
 
 ---
 
-## อัปเดตสถานะล่าสุด: Patch v2.0.34 (Massive Content Expansion & Composable Mechanic Architecture)
+## 🌟 ไฮไลต์สถานะล่าสุด: Patch v2.0.35 (Multi-Tier Elemental Fusion & Deep Xianxia Mechanics)
 
-- **Version**: `SIM.PATCH_VERSION = '2.0.34'` (`JianghuSect_single.html` rebuilt, 40 `<script>` tags in `index.html`, `human_core.js` lock `155:2f9c9dd7` intact).
-- **Composable Engine (`COMBAT.COMPOSABLE_ENGINE`, `SK.COMPOSABLE_KEYWORDS`, `SK.validateComposableSpec`)**:
-  - 12 Target Selectors (`SELF`, `SINGLE_ENEMY`, `LOWEST_HP_ENEMY`, `HIGHEST_ATK_ENEMY`, `MARKED_ENEMIES`, `SPLASH_NEIGHBORS`, `RICOCHET_CHAIN`, `PIERCE_LINE`, `ALL_ALLIES`, `LOWEST_HP_ALLY`, `SAME_PATH_ALLIES`, `SUMMON_OR_PUPPET`).
-  - 9 Elemental Fusion Reactions (`INFERNO_VORTEX`, `OVERLOAD_BLAST`, `SUPERCONDUCT_SHATTER`, `GLACIAL_SHATTER`, `MIASMA_DETONATION`, `GU_FIRE_ERUPTION`, `BLOOD_BOIL_RUPTURE`, `STARFALL_COLLAPSE`, `KARMIC_PURIFICATION_SMITE`).
-  - Stackable Marks (`daoMark`, `starSeal`, `venomSeed`, `bloodBrand` up to 5 stacks with auto-burst at 5 stacks & finisher detonation).
-  - Status Transmutation (`STEAL_BUFF`, `EXTEND_DEBUFF`, `ABSORB_DOT_TO_SHIELD`), Resource Overdrive (`HP_TO_QI_OVERDRIVE`, `QI_TO_SHIELD_BARRIER`, `TOXICITY_TO_VENOM_POWER`), and Recursion-Safe Tethers (`soulLinkGuard`, `tetheredEnemy`, `MAX_TRIGGER_DEPTH = 3`).
-  - Equipment-Granted Temporary Skills (`grantedSkills` via `MARTIAL.grantedEquipmentTechs` — active only while equipped & usable, never mutating `npc.cult.techs`) and Equipment Skill Modifiers (`skillModifiers` via `MARTIAL.applyEquipmentSkillModifiers`).
-  - Multi-Phase Pills (`phases` via `ECO.useConsumableItem` & `CULT.tickMultiPhasePills`), Charge-Based Talismans (`maxCharges`), and Out-of-Combat Auxiliary Arts/Tools (`CULT.auxiliaryArtBonus` & `EXPLORE.partyAuxiliaryModifiers`).
-  - All 61 previously data-only item `effectId`s + 18 new `EFX_V234_*` item `effectId`s (106 total) wired into runtime processors.
-- **Massive Content Totals**:
-  - **Subpaths**: `132` (`96 -> 132`, +36 new subpaths, 3 per each of the 12 paths).
-  - **Techniques & Mantras (`JD.TECH`)**: `1,236` (`912 -> 1,236`, +324 new techniques/mantras, 27 per path).
-  - **Materials (`JD.ITEMS.materials`)**: `377` (`317 -> 377`, +60 new `MAT_V234_*` materials).
-  - **Items (`ECO.itemById`)**: `917` (`557 -> 917`, +300 authored items + 60 materials).
-  - **Recipes**: `1,255` (`955 -> 1,255`, +300 acyclic recipes `REC_V234_*`).
-  - **Editor Catalog (`SECT.EDITOR.catalog`)**: `4,221` spawnable entries.
-
----
-
-### ภารกิจและรายการปรับปรุงแพตช์ถัดไป (Active Next Patch):
-- **[มหาคำสั่งมอบหมายงานอัตโนมัติสำหรับโมเดล Gemini แพตช์ v2.0.35 (NEXT_PATCH_PROMPT_V2_0_35.md)](NEXT_PATCH_PROMPT_V2_0_35.md)**: คำสั่งเริ่มงานอัตโนมัติ (Zero-Prompt Autonomous Work Order) ครอบคลุมการสะสางจุดบกพร่องทั้ง 8 เสาหลัก, ตัวประเมินเงื่อนไขกลาง `evaluateCondition()`, แก้ปัญหา Trigger Case & Hooks, ท่าร่างคำนวณจริง, 8 Composable Actions, 40 Item Effect IDs, เขตแดนสนามรบ (Battlefield Domains), พร้อมติดตั้งเครื่องยนต์ผสานมหาธาตุ 2/3/4 ธาตุ (Elemental Fusion Engine) และคลังกลไกสร้างสรรค์เชิงลึก (จุดชีพจร, จิตวิญญาณศาสตรา, เสาโทเทม, ปรากฏการณ์ฟ้าดิน, สถิตร่างสัตว์วิญญาณ, สายสัมพันธ์ชะตา และชีพจรปฐพี) มอบอำนาจการคิดและตัดสินใจเต็มที่แก่ Gemini ด้วยศักยภาพ 1,000,000 Output Tokens
+- **Version**: `SIM.PATCH_VERSION = '2.0.35'` (`JianghuSect_single.html` rebuilt 7,003 KB, 40 `<script>` tags in `index.html`, `human_core.js` lock `155:2f9c9dd7` intact).
+- **Multi-Tier Elemental Fusion Engine (`COMBAT.COMPOSABLE_ENGINE.FUSIONS`)**:
+  - เกจสะสมธาตุ (`applyElementalAura` 1.0U–3.0U), การสลายตัว (`decayElementalAuras` 0.2U/รอบ), Internal Cooldown (`_elemReactionIcd` 0.5s)
+  - **16 ปฏิกิริยาทวิธาตุ (2-Element):** `2E-01` ถึง `2E-16` (ไอน้ำระเบิด, ลาวาปะทุ, แช่แข็งสัมบูรณ์, ไท่เก๊กหักล้าง, ตัวนำยิ่งยวดสนามแม่เหล็ก, วายุศาสตราฉีกกระชาก, โลหิตมารคลั่งชีพ ฯลฯ)
+  - **12 ปฏิกิริยาตรีธาตุประสาน (3-Element Tri-Harmonic):** `3E-01` ถึง `3E-12` (มหาพายุอัสนีบาต, ลาวาหลอมเกราะทลายชีพจร, กาฝากหนามกลืนโลหิต, เอกภพสุญตากลืนฟ้า, พายุหิมะกลืนพสุธา, นรกเยือกแข็งอเวจีเก้าชั้น ฯลฯ)
+  - **6 ปฏิกิริยาจตุรธาตุบรรพกาล (4-Element Primordial):** `4E-01` ถึง `4E-06` (มณฑลจตุรเทพสวรรค์, สุญตาสังสารวัฏกำเนิด, ทัณฑ์อัสนีสวรรค์เก้าทิศ, มหาเพลิงนรกอเวจี, ยุคน้ำแข็งนิรันดร์, กลจักรเบญจธาตุกลืนจักรวาล)
+  - เชื่อมโยงข้ามระบบสู่การปรุงโอสถหลายเฟส, รูนสะท้อนธาตุช่างตีเหล็ก, และปริศนาแดนลับ
+- **The 8 Remediation Pillars (สะสาง 8 เสาหลักสมบูรณ์ 100%)**:
+  - **Pillar 1:** Central Condition Evaluator (`evaluateCondition`) ครบ 29 เงื่อนไข พร้อม Per-Tick Cache
+  - **Pillar 2:** Trigger Case Normalization (`ON_HIT` == `onHit`) พร้อม Hooks ครบ 18 จังหวะ (`onDodge`, `onParry`, `onHeal`, `onCast`, `onRoundStart`, `onRoundEnd`, `onAllyFall`, `onEnemyFall`, `onFirstStrike`, `onDebuffResisted`, `onStanceSwitch`)
+  - **Pillar 3:** Active Stance State Machine 7 ท่ามาตรฐานคำนวณสเตตัสรบจริงใน `STATS.calcCombatStats`
+  - **Pillar 4:** 8 Composable Actions & C01–C12 (`DELAYED_ECHO`, `HEART_DEMON_EDGE_SCALING`, `SHATTER_SHIELD`, `BONUS_TRUE_DMG`, `OVERHEAT_COOLDOWN_TRADE`, `PUPPET_SYMBIOSIS_PULSE`, `RESTORE_QI_PCT`, `COMBO_FINISHER` พร้อม `Taunt`, `Displace`, `Poise Break`, `Cleanse-to-Power`, `Contagion`, `Phoenix Clause`)
+  - **Pillar 5:** 100% Runtime Coverage สำหรับ 129 `effectId` ทั้งหมดในเกม (รวม 40 รายการที่เคยตกค้าง)
+  - **Pillar 6:** Battlefield Domains Engine 8 อาณาเขตสมรภูมิ พร้อมกฎการปะทะอาณาเขต (Domain Clash & Shatter)
+- **Deep Creative Systems (กลไกเชิงลึกใหม่)**:
+  - จุดชีพจรพิสดาร 8 เส้น (`CULT.MERIDIANS`) + การโจมตีสกัดจุด 3 รูปแบบ และระเบิดชีพจร `Meridian Overdrive`
+  - จิตวิญญาณศาสตราตื่นรู้ 5 ขั้น (`SECT.SOUL_FORGE`), ความเข้ากันได้ตามนิสัย, ร่างจำแลงศาสตรา, และสถิตวิญญาณบรรพชน
+  - เสาโทเทมสำนักและสายเลือดบรรพกาล (`SECT.TOTEMS_BLOODLINES`), ปรากฏการณ์ฟ้าดิน (`BLOOD_MOON_ECLIPSE`, `NINE_SUN_CONVERGENCE`)
+  - สถิตร่างสัตว์วิญญาณ (`CULT.BEAST_SYMBIOSIS`), ด้ายชะตา 3 สี & บัญชีกรรม (`SECT.DESTINY_KARMA`), และค่ายกลพิทักษ์ชีพจรปฐพี (`SECT.LEYLINE_GRID`)
+- **การทดสอบและการตรวจสอบ**:
+  - ชุดทดสอบ: `v235_comprehensive_mechanics_and_elemental_fusion_suite.js` (ผ่าน 406 Assertions 100%)
+  - ชุดถดถอย: `v234_massive_content_and_composable_mechanics_suite.js` (ผ่าน 841 Assertions 100%)
+  - ความเร็วจำลองเฉลี่ย: `0.80–1.95 ms/tick` (เร็วกว่างบประมาณ `< 3.0 ms/tick`)

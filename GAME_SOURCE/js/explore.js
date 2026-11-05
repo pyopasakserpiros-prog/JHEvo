@@ -8019,12 +8019,81 @@
         mods.secretFindBonus += aux * 0.12;
       }
     }
-    mods.speedMult = clamp(mods.speedMult, 1.0, 1.65);
+    if (g.SECT && g.SECT.LEYLINE_GRID && g.SECT.LEYLINE_GRID.isTerritoryTriangulated && g.W && g.SECT.LEYLINE_GRID.isTerritoryTriangulated(g.W)) {
+      mods.speedMult += 0.50;
+      mods.hazardResistPct += 0.15;
+    }
+    mods.speedMult = clamp(mods.speedMult, 1.0, 2.15);
     mods.supplySavePct = clamp(mods.supplySavePct, 0, 0.55);
     mods.hazardResistPct = clamp(mods.hazardResistPct, 0, 0.60);
     mods.lootYieldMult = clamp(mods.lootYieldMult, 1.0, 1.60);
     mods.secretFindBonus = clamp(mods.secretFindBonus, 0, 0.45);
     return mods;
+  };
+
+  // Section 11.5: Elemental Realm Puzzles (unlocks ancient vaults via 2E/3E/4E elemental reaction keys)
+  EX.solveElementalPuzzleGate = function (W, party, gateSpec) {
+    gateSpec = gateSpec || { id: 'GATE_THERMAL_VAPORIZE', requiredReaction: 'THERMAL_VAPORIZE', requiredElements: ['FIRE', 'WATER_ICE'], rewardStones: 380 };
+    const members = Array.isArray(party) ? party.filter(Boolean) : [];
+    const partyElements = new Set();
+    for (const n of members) {
+      if (n.h && n.h.root) {
+        if (n.h.root.primaryElement) partyElements.add(n.h.root.primaryElement);
+        if (Array.isArray(n.h.root.elements)) n.h.root.elements.forEach(e => partyElements.add(e));
+      }
+      if (n.cult && Array.isArray(n.cult.techs)) {
+        for (const tid of n.cult.techs) {
+          const t = g.CULT && g.CULT.tech ? g.CULT.tech(tid) : null;
+          if (t && t.element) partyElements.add(t.element);
+        }
+      }
+      if (n.equip) {
+        for (const sl of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+          if (n.equip[sl] && n.equip[sl].element) partyElements.add(n.equip[sl].element);
+          if (n.equip[sl] && Array.isArray(n.equip[sl].elementalSockets)) {
+            n.equip[sl].elementalSockets.forEach(e => partyElements.add(e));
+          }
+        }
+      }
+    }
+    const reqEls = gateSpec.requiredElements || ['FIRE', 'WATER_ICE'];
+    const solved = reqEls.every(e => partyElements.has(e));
+    const CE = g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE;
+    const reactionSpec = (CE && CE.resolveElementalReactionSpec && reqEls.length >= 2)
+      ? CE.resolveElementalReactionSpec(reqEls.slice(0, -1), reqEls[reqEls.length - 1], gateSpec.requiredReaction)
+      : null;
+    if (solved && W && W.sect) {
+      W.sect.stones = (W.sect.stones || 0) + (gateSpec.rewardStones || 350);
+    }
+    return {
+      ok: solved,
+      gateId: gateSpec.id,
+      requiredElements: reqEls,
+      partyElements: Array.from(partyElements),
+      reactionTriggered: reactionSpec ? reactionSpec.id : (gateSpec.requiredReaction || 'THERMAL_VAPORIZE'),
+      rewardStones: solved ? (gateSpec.rewardStones || 350) : 0
+    };
+  };
+
+  // Pillar 5: Emergency Escape Teleport (EFX_ESCAPE_TELEPORT)
+  EX.emergencyTeleportToSect = function (W, npcOrParty) {
+    const list = Array.isArray(npcOrParty) ? npcOrParty : [npcOrParty];
+    const mh = (W && W.map && W.map.byId && W.map.byId.main_hall) || { x: 118, y: 128, w: 8, h: 6 };
+    for (const n of list) {
+      if (!n) continue;
+      n.away = false;
+      n.hidden = false;
+      n.fled = true;
+      n.travel = null;
+      n.expId = null;
+      n.path = null;
+      n.x = mh.x + (mh.w || 6) / 2;
+      n.y = mh.y + (mh.h || 6) + 1;
+      if (g.STATS && g.STATS.applyNamedBuff) {
+        g.STATS.applyNamedBuff(n, 'voidPhase', 45, (W && W.t) || 0, { casterId: n.id });
+      }
+    }
+    return { ok: true, count: list.length, destination: 'main_hall' };
   };
 
   g.EXPLORE = EX;

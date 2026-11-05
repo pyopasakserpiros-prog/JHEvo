@@ -132,8 +132,44 @@
     qiBarrierShell: { id: 'qiBarrierShell', name: 'เกราะปราณกลั่นตัว', icon: '🫧', kind: 'shield', defaultDur: 50, p: { def: 0.18, mdef: 0.22 }, f: {}, shieldPct: 0.20, descTh: 'กลั่นปราณสำรองเป็นม่านคุ้มกาย เพิ่มป้องกันวิชา +22%, ป้องกัน +18% และสร้างโล่ปราณ' },
     toxinOverdrive: { id: 'toxinOverdrive', name: 'พิษโอสถคลั่งพลัง', icon: '🧪', kind: 'overdrive', defaultDur: 40, p: { atk: 0.22, matk: 0.22, def: -0.08 }, f: { pen: 15, critDmg: 20 }, descTh: 'แปรเปลี่ยนพิษสะสมในกายเป็นพลังทำลายล้าง เพิ่มโจมตี/วิชา +22%, เจาะเกราะ +15%, แรงคริ +20%' },
     alchemicalHarmony: { id: 'alchemicalHarmony', name: 'ปราณโอสถประสานชีพจร', icon: '⚗️', kind: 'regen', defaultDur: 75, p: { hp: 0.14, mdef: 0.16 }, f: { cast: 12 }, hotPct: 0.04, cultRateBonus: 0.16, btBonus: 0.06, descTh: 'ฤทธิ์โอสถระยะที่สองฟื้นฟูเลือดต่อเนื่อง +4%/รอบ, ป้องกันวิชา +16% และเร่งการบ่มเพาะ +16%' },
-    voidPhase: { id: 'voidPhase', name: 'เร้นมิติสุญตา', icon: '🌀', kind: 'mirage', defaultDur: 35, p: { eva: 0.30, matk: 0.14 }, f: { move: 18, pen: 14 }, descTh: 'แฝงเร้นในรอยแยกมิติ เพิ่มหลบหลีก +30%, โจมตีวิชา +14%, เจาะเกราะ +14%' }
+    voidPhase: { id: 'voidPhase', name: 'เร้นมิติสุญตา', icon: '🌀', kind: 'mirage', defaultDur: 35, p: { eva: 0.30, matk: 0.14 }, f: { move: 18, pen: 14 }, descTh: 'แฝงเร้นในรอยแยกมิติ เพิ่มหลบหลีก +30%, โจมตีวิชา +14%, เจาะเกราะ +14%' },
+    cryoMirror: { id: 'cryoMirror', name: 'กระจกน้ำแข็งสะท้อนวิญญาณ', icon: '🪞', kind: 'ward', defaultDur: 45, p: { mdef: 0.24, def: 0.16 }, f: { acc: 10 }, reflectPct: 0.25, shieldPct: 0.16, descTh: 'กระจกน้ำแข็งสะท้อนความเสียหายวิชา 25% และเพิ่มป้องกันวิชา +24%' },
+    phoenixCovenant: { id: 'phoenixCovenant', name: 'พันธะเพลิงนิพพานหงส์อมตะ', icon: '🔥', kind: 'ward', defaultDur: 90, p: { atk: 0.12, matk: 0.12, hp: 0.12 }, f: { cast: 10 }, cheatDeath: true, cheatDeathPct: 0.35, descTh: 'เมื่อเลือดลดเหลือ 0 จะคืนชีพด้วยเลือด 35% พร้อมระเบิดเพลิงนิพพานรอบตัว 1 ครั้งต่อการต่อสู้' },
+    asuraBloodFrenzy: { id: 'asuraBloodFrenzy', name: 'อสูรโลหิตคลั่งสังหาร', icon: '👹', kind: 'offense', defaultDur: 45, p: { atk: 0.24, matk: 0.18, def: -0.06 }, f: { crit: 12, critDmg: 28, pen: 14 }, descTh: 'เร่งโลหิตอสูรสูงสุด เพิ่มโจมตี +24%, คริ +12%, แรงคริ +28%, เจาะเกราะ +14%' },
+    meridianOverdrive: { id: 'meridianOverdrive', name: 'ชีพจรแปดพิสดารปะทุ', icon: '⚡', kind: 'overdrive', defaultDur: 40, p: { atk: 0.30, matk: 0.30, def: 0.20, mdef: 0.20 }, f: { cast: 28, move: 22, pen: 18, crit: 10 }, descTh: 'ปลดขีดจำกัดเส้นลมปราณพิสดารทั้งแปด เพิ่มสเตตัสรบ +30% และความเร็วร่าย +28' },
+    finalStandImmortal: { id: 'finalStandImmortal', name: 'ปราการยืนหยัดไร้พ่าย', icon: '🛡️', kind: 'defense', defaultDur: 40, p: { def: 0.32, mdef: 0.32, hp: 0.15 }, f: {}, shieldPct: 0.30, descTh: 'กางปราการไร้พ่ายเมื่อวิกฤต เพิ่มป้องกัน +32% และสร้างโล่คุ้มกาย 30%' },
+    totemBlessing: { id: 'totemBlessing', name: 'พรเสาโทเท็มบรรพชน', icon: '🗿', kind: 'lineage', defaultDur: 120, p: { atk: 0.12, matk: 0.12, def: 0.12, mdef: 0.12, hp: 0.10 }, f: { crit: 5, pen: 8 }, cultRateBonus: 0.15, descTh: 'รับพรคุ้มครองจากเสาโทเท็มประจำสำนัก เพิ่มสเตตัสรบ +12% และเร่งบ่มเพาะ +15%' },
+    beastSpiritPossessed: { id: 'beastSpiritPossessed', name: 'ประทับร่างอสูรบรรพกาล', icon: '🐉', kind: 'overdrive', defaultDur: 50, p: { atk: 0.25, matk: 0.20, def: 0.18, hp: 0.18 }, f: { move: 24, crit: 10, pen: 15 }, descTh: 'ผสานวิญญาณสัตว์อสูรคู่สัญญาเข้าสู่ร่างต้น เพิ่มพลังรบและความเร็วอย่างมหาศาล' }
   });
+
+  ST.STANCE_CATALOG = (SK && SK.STANCE_CATALOG) || {
+    STAR_SWORD_STANCE: { id: 'STAR_SWORD_STANCE', nameTh: 'กระบวนท่ากระบี่ดารา', p: { atk: 0.12, matk: 0.12 }, f: { crit: 10, pen: 15, acc: 8 }, descTh: 'เพิ่มอัตราคริ +10%, เจาะเกราะ +15%, โจมตี/วิชา +12%' },
+    VAJRA_BASTION_STANCE: { id: 'VAJRA_BASTION_STANCE', nameTh: 'กระบวนท่าปราการวัชระ', p: { def: 0.25, mdef: 0.20, move: -0.10 }, f: {}, reflectPct: 0.15, descTh: 'เพิ่มป้องกัน +25%, ป้องกันวิชา +20%, สะท้อนดาเมจ 15%, ความเร็วเคลื่อนที่ -10%' },
+    SHADOW_REAPER_STANCE: { id: 'SHADOW_REAPER_STANCE', nameTh: 'กระบวนท่าเคียวเงาสังหาร', p: { eva: 0.20, atk: 0.10 }, f: { critDmg: 30, move: 14, crit: 6 }, descTh: 'เพิ่มหลบหลีก +20%, ความแรงคริ +30%, ความเร็ว +14' },
+    LOTUS_MERCY_STANCE: { id: 'LOTUS_MERCY_STANCE', nameTh: 'กระบวนท่าบัวทิพย์เมตตา', p: { mdef: 0.16, hp: 0.10 }, f: { cast: 12 }, healDoneMult: 0.25, qiRegenBonus: 0.15, descTh: 'เพิ่มผลรักษาขาออก +25%, ฟื้นปราณ +15%, ป้องกันวิชา +16%' },
+    THUNDER_STEP_STANCE: { id: 'THUNDER_STEP_STANCE', nameTh: 'กระบวนท่าย่างก้าวอัสนี', p: { eva: 0.15, matk: 0.10 }, f: { move: 20, cast: 15, acc: 10 }, descTh: 'เพิ่มความเร็วเคลื่อนที่ +20%, ความเร็วร่าย +15%, หลบหลีก +15%' },
+    BLOOD_ASURA_STANCE: { id: 'BLOOD_ASURA_STANCE', nameTh: 'กระบวนท่าอสูรโลหิต', p: { atk: 0.20, matk: 0.15, def: -0.10 }, f: { critDmg: 20, pen: 12 }, lifestealBonus: 0.12, descTh: 'เพิ่มโจมตี +20%, ดูดเลือด +12%, ป้องกัน -10%' },
+    QIMEN_ARRAY_STANCE: { id: 'QIMEN_ARRAY_STANCE', nameTh: 'กระบวนท่าค่ายกลฉีเหมิน', p: { matk: 0.14, mdef: 0.18 }, f: { acc: 14, cast: 10 }, ctrlResist: 0.20, shieldBonus: 0.18, descTh: 'เพิ่มความแม่นยำ +14, ป้องกันวิชา +18%, ต้านทานสถานะสะกด +20%' }
+  };
+
+  ST.getActiveStanceSpec = u => {
+    if (!u) return null;
+    const rawId = u._activeStance || u._combatStance || null;
+    if (!rawId) return null;
+    const cat = (SK && SK.STANCE_CATALOG) || ST.STANCE_CATALOG;
+    return cat[rawId] || null;
+  };
+
+  ST.hasStanceFlowAmplifier = u => {
+    if (!u || u.foe || !u.equip) return false;
+    for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+      const it = u.equip[slot];
+      if (!it) continue;
+      const efx = it.effects || it.fx || [];
+      if (Array.isArray(efx) && efx.some(e => e && e.effectId === 'EFX_V234_STANCE_FLOW')) return true;
+    }
+    return false;
+  };
 
   ST.dirty = u => { if (u) { u._cs = null; u._csBase = null; u._skillEffectsCache = null; } };
 
@@ -324,6 +360,11 @@
     if (n.mechState) ext = (ext ^ (((n.mechState.integrity || 0) >> 4) << 8) ^ (n.mechState.mode === 'SIEGE' ? 256 : n.mechState.mode === 'SWARM' ? 512 : 128)) | 0;
     if (n.karmaState && n.karmaState.stance) ext = (ext ^ (n.karmaState.stance.charCodeAt(0) << 10)) | 0;
     if (n.mentorImprint) ext = (ext ^ 0x8000) | 0;
+    const stc = n._activeStance || n._combatStance || '';
+    if (stc) ext = (ext ^ (stc.charCodeAt(0) * 131 + stc.length * 17)) | 0;
+    if (n.meridians && n.meridians.openedCount) ext = (ext ^ (n.meridians.openedCount << 11) ^ (n.meridians.overdriveUntil > ST.now ? 0x20000 : 0)) | 0;
+    if (n.ancientBloodline && n.ancientBloodline.awakened) ext = (ext ^ 0x40000) | 0;
+    if (n._beastSpiritPossessedUntil && n._beastSpiritPossessedUntil > ST.now) ext = (ext ^ 0x80000) | 0;
     return (((n._passVer || 0) * 16) + hpfBand) ^ (ext << 4);
   }
 
@@ -482,6 +523,37 @@
       ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => add(k, miLab, 'p', boost));
       add('cast', miLab, 'f', 8);
       add('acc', miLab, 'f', 10);
+    }
+    const stanceSpec = ST.getActiveStanceSpec(n);
+    if (stanceSpec) {
+      const stMult = ST.hasStanceFlowAmplifier(n) ? 1.15 : 1.0;
+      const stLab = 'ท่วงท่า「' + stanceSpec.nameTh + '」' + (stMult > 1 ? ' (ไหลลื่น +15%)' : '');
+      for (const k in (stanceSpec.p || {})) add(k, stLab, 'p', stanceSpec.p[k] * stMult);
+      for (const k in (stanceSpec.f || {})) add(k, stLab, 'f', stanceSpec.f[k] * stMult);
+    }
+    if (CULT.MERIDIANS && CULT.MERIDIANS.getStatBonuses && n.meridians) {
+      const mb = CULT.MERIDIANS.getStatBonuses(n, ST.now);
+      if (mb && mb.openedCount > 0) {
+        const mLab = 'เส้นลมปราณพิสดารทั้งแปด (' + mb.openedCount + '/8 เส้น' + (mb.overdrive ? ' · ปะทุขีดสุด' : '') + ')';
+        addAll(mLab, mb.p || {}, 'p');
+        addAll(mLab, mb.f || {}, 'f');
+      }
+    }
+    if (g.SECT && g.SECT.TOTEMS_BLOODLINES && g.SECT.TOTEMS_BLOODLINES.getUnitBonuses) {
+      const tb = g.SECT.TOTEMS_BLOODLINES.getUnitBonuses(n);
+      if (tb && tb.active) {
+        const tbLab = tb.labelTh || 'สายเลือดบรรพกาลและเสาโทเท็ม';
+        addAll(tbLab, tb.p || {}, 'p');
+        addAll(tbLab, tb.f || {}, 'f');
+      }
+    }
+    if (CULT.BEAST_SYMBIOSIS && CULT.BEAST_SYMBIOSIS.getStatBonuses) {
+      const bsb = CULT.BEAST_SYMBIOSIS.getStatBonuses(n, ST.now);
+      if (bsb && bsb.active) {
+        const bsbLab = bsb.labelTh || 'สถิตร่างอสูรวิญญาณ';
+        addAll(bsbLab, bsb.p || {}, 'p');
+        addAll(bsbLab, bsb.f || {}, 'f');
+      }
     }
     // อุปกรณ์
     const Eq = n.equip || {};
@@ -661,6 +733,33 @@
       addF('cast', 8);
       addF('acc', 10);
     }
+    const stanceSpec = ST.getActiveStanceSpec(n);
+    if (stanceSpec) {
+      const stMult = ST.hasStanceFlowAmplifier(n) ? 1.15 : 1.0;
+      for (const k in (stanceSpec.p || {})) addP(k, stanceSpec.p[k] * stMult);
+      for (const k in (stanceSpec.f || {})) addF(k, stanceSpec.f[k] * stMult);
+    }
+    if (CULT.MERIDIANS && CULT.MERIDIANS.getStatBonuses && n.meridians) {
+      const mb = CULT.MERIDIANS.getStatBonuses(n, ST.now);
+      if (mb && mb.openedCount > 0) {
+        if (mb.p) addAll(mb.p, false);
+        if (mb.f) addAll(mb.f, true);
+      }
+    }
+    if (g.SECT && g.SECT.TOTEMS_BLOODLINES && g.SECT.TOTEMS_BLOODLINES.getUnitBonuses) {
+      const tb = g.SECT.TOTEMS_BLOODLINES.getUnitBonuses(n);
+      if (tb && tb.active) {
+        if (tb.p) addAll(tb.p, false);
+        if (tb.f) addAll(tb.f, true);
+      }
+    }
+    if (CULT.BEAST_SYMBIOSIS && CULT.BEAST_SYMBIOSIS.getStatBonuses) {
+      const bsb = CULT.BEAST_SYMBIOSIS.getStatBonuses(n, ST.now);
+      if (bsb && bsb.active) {
+        if (bsb.p) addAll(bsb.p, false);
+        if (bsb.f) addAll(bsb.f, true);
+      }
+    }
     for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); for (const key in gs) if (key in b) addF(key, gs[key] * df); }
     const hpVal = Math.round(Math.max(1, b.hp * (1 + p.hp) + f.hp));
     const vMove0 = Math.round(clamp(Math.max(30, b.move * (1 + p.move) + f.move), 30, 320));
@@ -749,6 +848,12 @@
     A.atk.b = P * (beast ? 0.62 : 0.55); A.matk.b = P * (beast ? 0.25 : 0.2); A.def.b = P * (beast ? 0.5 : 0.48) * (0.95 + 0.03 * t); A.mdef.b = P * (beast ? 0.32 : 0.3); A.acc.b = P * 0.55; A.eva.b = P * (beast ? 0.62 : 0.5);
     A.hp.b = u.hpMax; A.crit.b = 5 + t; A.critDmg.b = 150; A.cast.b = 100 + t * 3; A.move.b = 100; A.pen.b = t;
     if (wp) { ['atk', 'matk', 'def', 'mdef', 'acc', 'eva', 'hp', 'crit', 'critDmg', 'cast', 'move', 'pen'].forEach(k => A[k].parts.push(['ฐานของ' + (beast ? 'อสูร' : 'ศัตรู') + ' ระดับ ' + t, 'b', A[k].b])); }
+    const stanceSpec = ST.getActiveStanceSpec(u);
+    if (stanceSpec) {
+      const stLab = 'ท่วงท่า「' + stanceSpec.nameTh + '」';
+      for (const k in (stanceSpec.p || {})) add(k, stLab, 'p', stanceSpec.p[k]);
+      for (const k in (stanceSpec.f || {})) add(k, stLab, 'f', stanceSpec.f[k]);
+    }
     statusMods(u, add); conditionMods(u, add); return finish(A, wp);
   }
   function finish(A, wp) {
@@ -875,6 +980,7 @@
     }
     return gear;
   };
+  ST.calcCombatStats = ST.get;
   g.STATS = ST;
   if (typeof module === 'object' && module.exports) module.exports = ST;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

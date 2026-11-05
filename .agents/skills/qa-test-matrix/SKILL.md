@@ -95,7 +95,7 @@ When writing a new integration test:
    ```
 
 ## Historical test results
-Earlier claims of 97/97 are historical and do not establish the status of the current package. Use current runner output and `PATCH_IMPLEMENTATION_REPORT_V2_0_28.md`.
+Earlier claims of 97/97 are historical and do not establish the status of the current package. Use current runner output and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_28.md`.
 
 ## v2.0.30 Test Suite Addition
 - Added `test/v230_expanded_figures_and_pursuit_suite.js` to `test/run_all.js`, covering 3-tier foreign sect figures, wandering unaffiliated figures, extradition ultimatums, vendetta reclamation, Taoist companions & mutated-root offspring, coalition warfare & siege beacons, historical timeline, Web Audio API synthesizer, and save/load round-trip integrity. Current parallel runner status: 99/110 passing (`npc_life_authority_overhaul`, `v229`, and `v230` all pass).
