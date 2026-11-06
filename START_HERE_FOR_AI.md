@@ -7,14 +7,14 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v4.0.0` (Phase 6: Living Frontier, Behavioral Mastery & Sect Charter — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักใหม่ของ `v4.0.0` และ 36 ข้อเสนอเดิม (`PROP-01` ถึง `PROP-36`) เสร็จสมบูรณ์ 100%!**)
-- **🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V4_1_0.md`](ACTIVE_PATCH_PROMPT_V4_1_0.md) (ใบสั่งงานแพตช์ v4.0.0 ฉบับที่เพิ่งส่งมอบ: [`ACTIVE_PATCH_PROMPT_V4_0_0.md`](ACTIVE_PATCH_PROMPT_V4_0_0.md))
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v4.0.3` (Phase 6: Living Frontier, Behavioral Mastery, Sect Charter & Living Atlas Redraw — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักของ `v4.0.0` และระบบแผนที่ภาพวาดหมึกยุทธภพมีชีวิต `v4.0.3` เสร็จสมบูรณ์ 100%!**)
+- **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
+  👉 [`ACTIVE_PATCH_PROMPT_V4_1_0.md`](ACTIVE_PATCH_PROMPT_V4_1_0.md) (Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_6_0.md) (`v3.6.0` — Phase 5 Finale: `PROP-27, 28, 34, 36`)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md) (`v4.0.0` — Phase 6: Living Frontier, Behavioral Mastery & Sect Charter ครบ 5 เสาหลัก)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **แพตช์ `v4.0.0` เสร็จสิ้นสมบูรณ์ 100% (ผ่านการทดสอบ 124/124 ชุดทดสอบ, 0 Errors / 0 Warnings)!**
+  👉 **แพตช์ `v4.0.0` / `v4.0.3` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มมหากาพย์ใหม่ `v4.1.0` ตามใบสั่งงาน!**
 
 ---
 
@@ -95,4 +95,6 @@ cd GAME_SOURCE && node tools/build_single.js
 | **Phase 2** | **v3.3.0** | `ACTIVE_PATCH_PROMPT_V3_3_0.md` | `PROP-04, 11, 16, 19, 21, 31, 35` (7 ข้อ) | **Core Gameplay Loop & Daily Living Sect:** เข้าฌานกักตนปิดด่านคอขวด & ผู้คุ้มภัย, คลื่นความแค้นจากเชลยแปรพักตร์, ทัพสำรวจเฉพาะทางประจำ 8 ยอดเขา, ศาลไต่สวนหอวินัย, สงครามชิงเสาค่ายกลชีพจรปฐพี, จิตศาสตราขั้น 5 & มรดกผู้อาวุโส, แดชบอร์ดศูนย์บัญชาการอัตโนมัติ (QoL) | ✅ **เสร็จสมบูรณ์** |
 | **Phase 3** | **v3.4.0** | `ACTIVE_PATCH_PROMPT_V3_4_0.md` | `PROP-03, 05, 06, 08, 09, 10, 32` (7 ข้อ) | **Combat Depth, Path Subsystems & Duet Synergies:** เกจพลังงานรองเฉพาะวิถี (Sword Intent / Heat / Faith / Gu), 7 สายย่อยใหม่ครบ 6 ขั้น, สกิลร่ายคู่ประสานวิชา (Duet Skills), ม่านพิทักษ์สำนัก 5 ธาตุ, สกิลชาร์จ & ขัดจังหวะ, เล็งทำลายชิ้นส่วนบอสอสูร, หอสมบัติบรรพชน & อัญเชิญจิตบรรพจารย์ | ✅ **เสร็จสมบูรณ์ (Baseline)** |
 | **Phase 4** | **v3.5.0** | `ACTIVE_PATCH_PROMPT_V3_5_0.md` | `PROP-13, 14, 22, 23, 24, 26, 29` (7 ข้อ) | **Jianghu Macro-World, Politics & Alchemy:** กบฏก๊กการเมือง & การแยกตัวตั้งสำนักใหม่, ศิษย์ปมชาติกำเนิดลึกลับ 3 บท, ศิษย์แลกเปลี่ยนข้ามสำนัก & จารชน, กระดานล่าค่าหัวโรงเตี๊ยม, ประมูลลับตลาดมืด & ขบวนคาราวานจริง, ปรากฏการณ์ฟ้าดินรายเดือน, โรงหลอมโอสถ 2 ระยะ (48 ชนิด) | ✅ **เสร็จสมบูรณ์ (100%)** |
-| **Phase 5** | **v3.6.0** | `ACTIVE_PATCH_PROMPT_V3_6_0.md` *(สร้างเมื่อจบ v3.5.0)* | `PROP-27, 28, 34, 36` (4 ข้อ) | **Endgame Crises, Generational Legacy & Final Polish:** สุสานเซียนโบราณขุดค้น 3 ชั้น, มหากาพย์วิกฤตการณ์ยุทธภพหลายบท (Multi-Stage Endgame Crises), มรดกสายเลือดตระกูลรุ่นที่ 2–3, การปรับจูนประสิทธิภาพ 80-NPC Tick Budget & Resilient Save Whitelist | ✅ **เสร็จสมบูรณ์ (Final Master Release v3.6.0)** |
+| **Phase 5** | **v3.6.0** | `ACTIVE_PATCH_PROMPT_V3_6_0.md` | `PROP-27, 28, 34, 36` (4 ข้อ) | **Endgame Crises, Generational Legacy & Final Polish:** สุสานเซียนโบราณขุดค้น 3 ชั้น, มหากาพย์วิกฤตการณ์ยุทธภพหลายบท (Multi-Stage Endgame Crises), มรดกสายเลือดตระกูลรุ่นที่ 2–3, การปรับจูนประสิทธิภาพ 80-NPC Tick Budget & Resilient Save Whitelist | ✅ **เสร็จสมบูรณ์** |
+| **Phase 6** | **v4.0.0 / v4.0.3** | `ACTIVE_PATCH_PROMPT_V4_0_0.md` | Pillar 1–5 (5 เสาหลัก) | **Living Frontier, Behavioral Mastery & Living World Atlas:** ค่ายพักยุทธศาสตร์ & เสบียง Closed-Loop, รอยชำนาญการต่อสู้ 4 เทรต, ธรรมนูญสำนัก 5 แนวทาง, สภา 6 ขุนนางใหญ่, 4 จุดสำรวจย่อยบนแผนที่โลก, แผนที่ภาพวาดหมึกและชั้นเลเยอร์มีชีวิต | ✅ **เสร็จสมบูรณ์ (Baseline ปัจจุบัน)** |
+| **Phase 7** | **v4.1.0** | `ACTIVE_PATCH_PROMPT_V4_1_0.md` | Pillar 1–5 (5 เสาหลัก) | **Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution:** จองผัง 8 ยอดเขาบนผืนดินสำนัก, หมอกปราณสลายตัวเมื่อสถาปนายอดเขา, วิวัฒนาการสถาปัตยกรรมอาคาร 3 ขั้นตามเลเวล, แสงเงาตกกระทบตามเวลาจริง, โดมม่านพลัง 5 ธาตุ & เส้นชีพจรปฐพี | 🔥 **งานที่ต้องทำทันที (Active Target)** |

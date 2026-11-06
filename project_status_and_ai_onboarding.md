@@ -1,17 +1,18 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `v4.0.0` (runtime patch identifier `4.0.0` | SIM Version `1.10.11` | Save Schema `4.0.0-living-frontier-charter` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v4.0.0 Complete 100%`)
+**เวอร์ชันแพ็กเกจ**: `v4.0.3` (runtime patch identifier `4.0.0` | SIM Version `1.10.11` | Save Schema `4.0.0-living-frontier-charter` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v4.0.0 / v4.0.3 Complete 100%` | Active Target: `v4.1.0 Living Sect Expansion & 8-Peak Sanctuary`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
 > เอกสารนี้คือ **สรุประบบปัจจุบันสำหรับตอบคำถามภาพรวม** ให้อ่านก่อนตอบว่าเกมมีอะไรหรือเสนอแนวทางพัฒนาต่อ เพื่อหลีกเลี่ยงการเสนอระบบที่มีอยู่แล้ว เมื่อจะลงมือแก้ไขหรือต้องการยืนยันรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้องด้วย
 
-> **สถานะปัจจุบันของแพตช์ v3.6.0 (ครบทั้ง 36 ข้อเสนอ) และผลการตรวจรับรอง (6 พฤศจิกายน 2026):**
-> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`7,246 KB`) เรียบร้อยแล้ว
+> **สถานะปัจจุบันของแพตช์ v4.0.0 / v4.0.3 และผลการตรวจรับรอง (6 พฤศจิกายน 2026):**
+> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`8,046 KB`) ฝังแผนที่ภาพวาดหมึกยุทธภพเรียบร้อยแล้ว
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
-> 3. ชุดทดสอบใหม่สำหรับระบบ v3.2.0 คือ `test/v350_macro_world_politics_and_alchemy_suite.js` ผ่านครบ **8/8 Phases (48 assertions, 100% PASS)** ยืนยันการยกระดับวงจรชีวิตสำนักทั้ง 7 ข้อเสนอ (`PROP-04, 11, 16, 19, 21, 31, 35`) เข้าสู่วงจรจำลองหลักอย่างสมบูรณ์
-> 4. ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` มีไฟล์ครบทั้งหมด **121 ชุด** และผ่านการทดสอบรวม `node tools/run_parallel_tests.js` ครบ **121 / 121 ชุด (100% PASS, 0 FAIL)** โดยความเร็วจำลอง 80 NPC อยู่ที่ `0.640 ms/tick` (ต่ำกว่าเพดาน `<= 3.5 ms/tick`)
+> 3. ชุดทดสอบใหม่ประจำแพตช์คือ `test/v400_living_frontier_and_sect_charter_suite.js` ผ่านครบ **6/6 Phases (76 assertions, 100% PASS)** ยืนยันการทำงานของ 5 เสาหลัก (`SECT.OUTPOSTS_LOGISTICS`, `COMBAT.ACTION_MASTERY_TRAITS`, `SECT.CHARTER_DOCTRINE`, `SECT.STRATEGIC_COUNCIL`, `EXPLORE.MICRO_LOCATIONS`)
+> 4. ปรับปรุงแผนที่โลกเป็นภาพวาดหมึกจีนโบราณพร้อมระบบเลเยอร์ 5 ชั้น (`v4.0.3` Living World Atlas Redraw by Claude) ผ่านการทดสอบทั้งหมด 100% โดยความเร็วจำลอง 80 NPC อยู่ที่ `0.750 ms/tick` (ต่ำกว่าเพดาน `<= 3.5 ms/tick`)
+> 5. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V4_1_0.md`](ACTIVE_PATCH_PROMPT_V4_1_0.md) (Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution)
 
 ---
 
