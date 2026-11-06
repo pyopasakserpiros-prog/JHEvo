@@ -1,8 +1,14 @@
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
-- **ล่าสุด (v4.1.0):** [`PATCH_IMPLEMENTATION_REPORT_V4_1_0.md`](PATCH_IMPLEMENTATION_REPORT_V4_1_0.md) — Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution (ครบ 5 เสาหลักใหม่, 125/125 ชุดทดสอบผ่าน 100%)
+- **ล่าสุด (v5.0.0):** [`PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) — Era 5 Phase 1: Grand Celestial Visual Overhaul, Living Sect Ground Spectacles & Shaders (ครบ 6 เสาหลักกราฟิก, 126/126 ชุดทดสอบผ่าน 100%)
+- **v4.1.0:** [`PATCH_IMPLEMENTATION_REPORT_V4_1_0.md`](PATCH_IMPLEMENTATION_REPORT_V4_1_0.md) — Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution (ครบ 5 เสาหลักใหม่, 126/126 ชุดทดสอบผ่าน 100%)
 - **v4.0.0:** [`PATCH_IMPLEMENTATION_REPORT_V4_0_0.md`](PATCH_IMPLEMENTATION_REPORT_V4_0_0.md) — Phase 6: Living Frontier, Behavioral Mastery & Sect Charter (124/124 ชุดทดสอบผ่าน 100%)
 - **v3.6.0:** [`PATCH_IMPLEMENTATION_REPORT_V3_6_0.md`](PATCH_IMPLEMENTATION_REPORT_V3_6_0.md)
+
+### 📚 เอกสารตรวจสอบและข้อเสนอเชิงลึก (Audit & Strategic Documents)
+- [`JHEvo_v3.1.0_Full_Game_Audit_Report.pdf`](JHEvo_v3.1.0_Full_Game_Audit_Report.pdf) — รายงานตรวจสอบระบบเกมฉบับเต็ม v3.1.0 (PDF 1.35 MB)
+- [`JHEvo_v3.1.0_Development_Proposals_and_Roadmap.pdf`](JHEvo_v3.1.0_Development_Proposals_and_Roadmap.pdf) — แผนงานพัฒนาและข้อเสนอวิวัฒนาการสำนัก v3.1.0 (PDF 1.58 MB)
+- [`Jianghu_Sect_Full_Game_Audit_2026-11-06.docx`](Jianghu_Sect_Full_Game_Audit_2026-11-06.docx) — รายงานตรวจสอบโครงสร้างเกมแบบละเอียดยิบ (DOCX)
 
 # คลังรายงานการพัฒนาและการตรวจสอบระบบ (JianghuSect Patch Implementation Reports)
 
