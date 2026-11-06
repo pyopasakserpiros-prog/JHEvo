@@ -1,12 +1,12 @@
-# JianghuSect v3.1.0 — Source Tree
+# JianghuSect v3.1.1 — Source Tree
 
 This folder contains the editable source and tests for the current game.
 
 ## Version identity
 
-- Package release: v3.1.0
+- Package release: v3.1.1
 - Runtime: `SIM.VERSION 1.10.11`
-- Patch: `SIM.PATCH_VERSION 3.1.0`
+- Patch: `SIM.PATCH_VERSION 3.1.1`
 - Elemental authority: `ELEM.VERSION 2.0.1`
 - Save marker: `3.1.0-autonomous-governance-peaks`
 

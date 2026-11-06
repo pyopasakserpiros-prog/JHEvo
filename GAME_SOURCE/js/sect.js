@@ -1021,15 +1021,20 @@
     });
     const ok = W.sect.stones >= total;
     const k = ok ? 1 : Math.max(0, W.sect.stones) / Math.max(1, total);
+    let actualPaid = 0;
     list.forEach(([n, amt, postBonus, peakBonus]) => {
-      const pay = Math.round(amt * k);
+      let pay = Math.round(amt * k);
+      if (!ok) {
+        pay = Math.min(pay, Math.max(0, W.sect.stones - actualPaid));
+      }
       n.inv.stones = (n.inv.stones || 0) + pay;
       n.lastStipendPaid = pay;
       n.lastOfficeBonusPaid = Math.round(postBonus * k);
       n.lastPeakBonusPaid = Math.round(peakBonus * k);
+      actualPaid += pay;
     });
-    const paid = Math.round(total * k);
-    W.sect.stones -= paid;
+    const paid = actualPaid;
+    W.sect.stones = Math.max(0, W.sect.stones - paid);
     W.sect.ledger.push({ t: W.t, amt: -paid, why: 'เบี้ยหวัดรายเดือนและเบี้ยหวัดตำแหน่งบริหาร' });
     if (W._tally) W._tally('-เบี้ยหวัดรายเดือน', paid);
     W.sect.stipendOk = ok;
@@ -1632,11 +1637,13 @@
         champ.cpEarned = (champ.cpEarned || 0) + spec.cpReward;
         champ.merit = (champ.merit || 0) + 25 + spec.fameReward * 3;
         champ.inv = champ.inv || { stones: 0, pills: {}, mats: {}, gear: [] };
-        const stonePay = Math.min(spec.stonePrize, Math.max(20, Math.floor((S.stones || 0) * 0.15)));
-        if (stonePay > 0 && S.stones >= stonePay) {
-          ECO.pay(W, stonePay, 'รางวัลชุมนุมยุทธ์ ' + spec.nameTh);
+        const avail = Math.max(0, S.stones || 0);
+        const stonePay = Math.min(spec.stonePrize, Math.floor(avail * 0.15));
+        const actualStonePay = Math.min(stonePay, avail);
+        if (actualStonePay > 0) {
+          ECO.pay(W, actualStonePay, 'รางวัลชุมนุมยุทธ์ ' + spec.nameTh);
+          champ.inv.stones = (champ.inv.stones || 0) + actualStonePay;
         }
-        champ.inv.stones = (champ.inv.stones || 0) + spec.stonePrize;
         HC.experience(champ, 'duel_win', 0.85);
         if (g.AI && g.AI.mem) g.AI.mem(W, champ, 'คว้าแชมป์ชุมนุมยุทธ์ ' + spec.nameTh + ' ด้วย' + sig.weaponNameTh + '「' + sig.techNameTh + '」', 0.9);
         totalFameGained += spec.fameReward;
@@ -5873,8 +5880,11 @@
       if (W.world && W.world.resourceNodes) {
         Object.values(W.world.resourceNodes).forEach(rn => {
           if (rn && rn.ownerSectId === 'PLAYER' && rn.garrison) {
-            rn.garrison.defensePower = Math.round((rn.garrison.defensePower || 320) * 1.06);
-            boostedNodes++;
+            const curPower = rn.garrison.defensePower || 320;
+            if (curPower < 650 && (n.lastJurisdictionDay !== (W.day || 0) || opts.force)) {
+              rn.garrison.defensePower = Math.min(650, Math.round(curPower * 1.06));
+              boostedNodes++;
+            }
           }
         });
       }
@@ -5895,11 +5905,16 @@
         effect = { undercurrentDelta: 4, impartial: false };
       }
     } else if (post === 'quartermaster') {
-      const freeTradeCount = ((W.world && W.world.allSects) || []).filter(s => s && s.treaty === 'FREE_TRADE_TREATY').length;
-      const bonusStones = Math.round(20 + freeTradeCount * 25 + ((sk.trading || 0) + (sk.administration || 0)) * 0.25);
-      if (ECO && ECO.earn) ECO.earn(W, bonusStones, 'ผลตอบแทนบริหารคลังยุทธปัจจัยและคาราวานโดย ' + n.h.name.given);
-      summaryTh = n.h.name.given + ' (แม่ทัพยุทธปัจจัย) บริหารเส้นทางคาราวานและคลังเสบียง สร้างรายได้เสริม +' + bonusStones + ' ศิลา';
-      effect = { bonusStones };
+      if (n.lastJurisdictionDay === (W.day || 0) && !opts.force) {
+        summaryTh = n.h.name.given + ' (แม่ทัพยุทธปัจจัย) ปฏิบัติหน้าที่ตรวจคลังเสบียงเรียบร้อยแล้วในวันนี้';
+        effect = { bonusStones: 0, cooldown: true };
+      } else {
+        const freeTradeCount = ((W.world && W.world.allSects) || []).filter(s => s && s.treaty === 'FREE_TRADE_TREATY').length;
+        const bonusStones = Math.round(20 + freeTradeCount * 25 + ((sk.trading || 0) + (sk.administration || 0)) * 0.25);
+        if (ECO && ECO.earn) ECO.earn(W, bonusStones, 'ผลตอบแทนบริหารคลังยุทธปัจจัยและคาราวานโดย ' + n.h.name.given);
+        summaryTh = n.h.name.given + ' (แม่ทัพยุทธปัจจัย) บริหารเส้นทางคาราวานและคลังเสบียง สร้างรายได้เสริม +' + bonusStones + ' ศิลา';
+        effect = { bonusStones };
+      }
     } else if (post === 'commander') {
       const hawkish = e('personality.aggression') >= 62 && e('personality.courage') >= 60;
       const distress = (W.world && Array.isArray(W.world.vassalDistressCalls)) ? W.world.vassalDistressCalls.find(c => c && !c.resolved) : null;
@@ -5944,16 +5959,21 @@
       summaryTh = n.h.name.given + ' (ผู้อาวุโสฝ่ายเสบียง) ตรวจสอบคลังข้าวสาร (' + (ECO ? ECO.count(W, 'grain') : 0) + ') และอาหารพร้อมทาน (' + (ECO ? ECO.count(W, 'meal') : 0) + ')';
       effect = { meal: ECO ? ECO.count(W, 'meal') : 0, grain: ECO ? ECO.count(W, 'grain') : 0 };
     } else if (post === 'marketmaster') {
-      let soldCount = 0;
-      const vis = (W.world && Array.isArray(W.world.visitors)) ? W.world.visitors.find(v => v && v.kind === 'trader') : null;
-      if (vis && g.EXT && g.EXT.sellStaleSectGear) {
-        const sRes = g.EXT.sellStaleSectGear(W, vis, { maxSell: 2 });
-        soldCount = (sRes && sRes.soldCount) || 0;
+      if (n.lastJurisdictionDay === (W.day || 0) && !opts.force) {
+        summaryTh = n.h.name.given + ' (นายวาณิชย์ตลาดภายนอก) ปฏิบัติหน้าที่บริหารราคาตลาดเรียบร้อยแล้วในวันนี้';
+        effect = { tradeBonus: 0, soldCount: 0, cooldown: true };
+      } else {
+        let soldCount = 0;
+        const vis = (W.world && Array.isArray(W.world.visitors)) ? W.world.visitors.find(v => v && v.kind === 'trader') : null;
+        if (vis && g.EXT && g.EXT.sellStaleSectGear) {
+          const sRes = g.EXT.sellStaleSectGear(W, vis, { maxSell: 2 });
+          soldCount = (sRes && sRes.soldCount) || 0;
+        }
+        const tradeBonus = Math.max(8, Math.round(((sk.trading || 0) + e('aptitudes.socialCommerce')) * 0.18));
+        if (ECO && ECO.earn) ECO.earn(W, tradeBonus, 'กำไรแลกเปลี่ยนตลาดภายนอกโดย ' + n.h.name.given);
+        summaryTh = n.h.name.given + ' (นายวาณิชย์ตลาดภายนอก) บริหารราคาสินค้าตลาดภายนอก (กำไร +' + tradeBonus + ' ศิลา' + (soldCount ? ' · ระบายอุปกรณ์ค้างคลัง ' + soldCount + ' ชิ้น' : '') + ')';
+        effect = { tradeBonus, soldCount };
       }
-      const tradeBonus = Math.max(8, Math.round(((sk.trading || 0) + e('aptitudes.socialCommerce')) * 0.18));
-      if (ECO && ECO.earn) ECO.earn(W, tradeBonus, 'กำไรแลกเปลี่ยนตลาดภายนอกโดย ' + n.h.name.given);
-      summaryTh = n.h.name.given + ' (นายวาณิชย์ตลาดภายนอก) บริหารราคาสินค้าตลาดภายนอก (กำไร +' + tradeBonus + ' ศิลา' + (soldCount ? ' · ระบายอุปกรณ์ค้างคลัง ' + soldCount + ' ชิ้น' : '') + ')';
-      effect = { tradeBonus, soldCount };
     } else if (post === 'alchemy') {
       const o = (ECO && ECO.pickOrder) ? ECO.pickOrder(W, 'alchemy', n) : null;
       if (o && o.recipe) W.sect.orders.alchemy = { rid: o.recipe.id, why: o.why, by: n.id };
@@ -6018,6 +6038,7 @@
     }
 
     if (summaryTh) {
+      n.lastJurisdictionDay = W.day || 0;
       n.lastJurisdictionDecision = { day: W.day || 0, post, summaryTh, effect };
       W.sect.jurisdictionLog = Array.isArray(W.sect.jurisdictionLog) ? W.sect.jurisdictionLog : [];
       W.sect.jurisdictionLog.unshift({ day: W.day || 0, t: W.t || 0, post, postNameTh: pSpec.nameTh, officerId: n.id, officerNameTh: HC.fullName(n), summaryTh, effect });
@@ -6050,6 +6071,12 @@
   SECT.runOfficerJurisdictions = (W, opts) => {
     opts = opts || {};
     if (!W || !W.sect) return { ok: false, decisions: [] };
+    if (opts.manual && W.sect.lastManualJurisdictionDay === (W.day || 0) && !opts.force) {
+      return { ok: false, reason: 'cooldown-same-day', decisions: [] };
+    }
+    if (opts.manual) {
+      W.sect.lastManualJurisdictionDay = W.day || 0;
+    }
     const decisions = [];
     const targetPosts = opts.allPosts ? SECT.POST_IDS : ['envoy', 'spymaster', 'warden', 'beastmaster', 'wildwarden', 'arraymaster', 'censor', 'quartermaster', 'marketmaster', 'commander', 'vanguard', 'martial', 'guard', 'treasury', 'provision', 'alchemy', 'forge', 'herbal', 'discipline', 'scripture', 'registry', 'healer', 'steward', 'mission', 'disciples'];
     targetPosts.forEach(post => {
@@ -6741,15 +6768,20 @@
     opts = opts || {};
     const dng = SECT.ensureDungeon(W);
     if (!dng) return { ok: false, reason: 'no-dungeon' };
-    let pris = typeof prisonerOrId === 'object' && prisonerOrId
-      ? prisonerOrId
-      : dng.prisoners.find(p => p && p.id === prisonerOrId && p.status === 'IMPRISONED');
+
+    const act = String(action || 'RANSOM').toUpperCase();
+    const VALID_ACTIONS = ['RANSOM', 'INTERROGATE', 'RECRUIT_DEFECTOR', 'RECRUIT'];
+    if (!VALID_ACTIONS.includes(act)) {
+      return { ok: false, reason: 'invalid-action', action: act };
+    }
+
+    const prisId = (typeof prisonerOrId === 'object' && prisonerOrId) ? prisonerOrId.id : prisonerOrId;
+    let pris = dng.prisoners.find(p => p && p.id === prisId && p.status === 'IMPRISONED');
     if (!pris && opts.autoSpawnIfEmpty) {
       pris = SECT.capturePrisoner(W);
     }
     if (!pris) return { ok: false, reason: 'prisoner-not-found' };
 
-    const act = String(action || 'RANSOM').toUpperCase();
     const warden = opts.warden || SECT.holder(W, 'warden') || SECT.holder(W, 'censor') || SECT.holder(W, 'discipline') || SECT.holder(W, 'spymaster') || W.byId[W.sect.masterId];
     const wardenNameTh = warden ? HC.fullName(warden) : 'ผู้คุมคุกสำนัก';
 
@@ -6764,7 +6796,8 @@
 
     if (act === 'RANSOM') {
       const wardenBonus = warden ? Math.round((HC.eff(warden, 'social.intimidation') + HC.eff(warden, 'social.persuasion')) * 0.35) : 0;
-      const stones = (pris.ransomStones || 280) + wardenBonus;
+      const baseRansom = clamp(pris.ransomStones || (180 + (pris.stage || 1) * 60), 100, 1000);
+      const stones = baseRansom + wardenBonus;
       if (ECO && ECO.earn) ECO.earn(W, stones, 'ค่าไถ่ตัวเชลยศึก「' + pris.nameTh + '」จาก' + pris.sectNameTh);
       if (homeSect) homeSect.attitude = clamp((homeSect.attitude || 0) + 4, -100, 100);
       dng.stats.ransomed = (dng.stats.ransomed || 0) + 1;
@@ -11376,7 +11409,17 @@
     const merPolicy = (W.sect.policy && W.sect.policy.meritocracy) || 55;
     const isFairCentral = (masterInteg * 0.5 + merPolicy * 0.5) >= 52;
 
-    const totalPoolStones = opts.poolStones || Math.min(360, Math.max(80, Math.round((W.sect.stones || 400) * 0.18)));
+    const available = Math.max(0, (W.sect && W.sect.stones) || 0);
+    if (available <= 0 && !opts.poolStones) {
+      return { ok: false, reason: 'insufficient-treasury', distributedTotal: 0, allocations: [], isFairCentral };
+    }
+
+    let totalPoolStones = opts.poolStones != null ? opts.poolStones : Math.min(360, Math.round(available * 0.18));
+    totalPoolStones = Math.min(totalPoolStones, available);
+    if (totalPoolStones <= 0) {
+      return { ok: false, reason: 'insufficient-treasury', distributedTotal: 0, allocations: [], isFairCentral };
+    }
+
     const allocations = [];
 
     // Compute weights per founded peak
@@ -11401,9 +11444,14 @@
       return { pObj, pMaster, w, biasNoteTh };
     });
 
-    weights.forEach(({ pObj, pMaster, w, biasNoteTh }) => {
-      const shareStones = Math.max(25, Math.round(totalPoolStones * (w / Math.max(1, weightSum))));
-      const sharePills = Math.max(2, Math.round(shareStones / 35));
+    let distributedSum = 0;
+    weights.forEach(({ pObj, pMaster, w, biasNoteTh }, idx) => {
+      const isLast = idx === weights.length - 1;
+      let shareStones = isLast ? Math.max(0, totalPoolStones - distributedSum) : Math.floor(totalPoolStones * (w / Math.max(1, weightSum)));
+      shareStones = Math.min(shareStones, Math.max(0, totalPoolStones - distributedSum));
+      distributedSum += shareStones;
+
+      const sharePills = Math.max(0, Math.floor(shareStones / 35));
       pObj.treasuryStones = (pObj.treasuryStones || 0) + shareStones;
       pObj.pillReserve = (pObj.pillReserve || 0) + sharePills;
 
@@ -11429,10 +11477,19 @@
       });
     });
 
+    // Debit actual distributed stones from central treasury
+    if (distributedSum > 0) {
+      if (ECO && ECO.pay) {
+        ECO.pay(W, distributedSum, 'จัดสรรงบประมาณสู่หุบเขายอดเขา');
+      } else {
+        W.sect.stones = Math.max(0, (W.sect.stones || 0) - distributedSum);
+      }
+    }
+
     const rec = {
       day: W.day || 360,
       isFairCentral,
-      totalPoolStones,
+      totalPoolStones: distributedSum,
       allocations
     };
     pk.allocationHistory.unshift(rec);
@@ -11449,11 +11506,11 @@
       originCauseTh: 'รอบการจัดสรรงบประมาณรายเดือนจากหอคลังส่วนกลางสู่ยอดเขาทั้ง ' + foundedPeaks.length + ' แห่ง',
       actorChainTh: 'ส่วนกลาง (' + (master ? HC.fullName(master) : 'เจ้าสำนัก') + ') ➔ ผู้นำยอดเขา ➔ สมาชิกในแต่ละยอดเขา (ศิษย์อิสระไม่ได้รับส่วนแบ่งนี้)',
       systemImpactTh: 'เชื่อมโยง คลังส่วนกลาง ➔ คลังยอดเขา (SECT.PEAKS) ➔ ความสัมพันธ์ผู้นำยอดเขากับลูกศิษย์ (SOCIAL_MATRIX)',
-      consequenceTh: 'กระจายศิลารวม ' + totalPoolStones + ' ก้อนสู่สมาชิกยอดเขา',
+      consequenceTh: 'กระจายศิลารวม ' + distributedSum + ' ก้อนสู่สมาชิกยอดเขา',
       quiet: opts.quiet
     }) : null;
 
-    return { ok: true, distributedTotal: totalPoolStones, allocations, isFairCentral, chronicle: chron };
+    return { ok: true, distributedTotal: distributedSum, allocations, isFairCentral, chronicle: chron };
   };
 
   PEAKS.distributePeakResourcesToMembers = (W, peakId, opts) => {
@@ -11469,6 +11526,8 @@
     const rule = (pObj.policy && pObj.policy.allocationRule) || 'MERITOCRATIC';
     const members = (pObj.memberIds || []).map(id => W.byId[id]).filter(n => n && !n.dead && !n.exiled);
     if (!members.length) return { ok: false, reason: 'no-members' };
+
+    const availableTreasury = Math.max(0, pObj.treasuryStones || 0);
 
     // Sort recipients based on Peak Master's policy
     const sorted = members.slice().sort((a, b) => {
@@ -11491,15 +11550,21 @@
 
     const recipients = [];
     const passedOver = [];
-    const stonesPerMember = Math.max(12, Math.floor((pObj.treasuryStones || 60) / Math.max(1, members.length)));
+    const stonesPerMember = Math.floor(availableTreasury / Math.max(1, members.length));
+    let remainingBudget = availableTreasury;
 
     sorted.forEach((m, idx) => {
       const isFavored = rule !== 'NEPOTISTIC_INNER_CIRCLE' || idx < Math.max(2, Math.ceil(sorted.length * 0.6));
-      if (isFavored) {
-        const gainStones = rule === 'NEPOTISTIC_INNER_CIRCLE' ? Math.round(stonesPerMember * 1.4) : stonesPerMember;
-        if (m.inv) m.inv.stones = (m.inv.stones || 0) + gainStones;
-        if (ECO && ECO.addPersonalPill && idx < 2) {
+      if (isFavored && remainingBudget > 0) {
+        let gainStones = rule === 'NEPOTISTIC_INNER_CIRCLE' ? Math.round(stonesPerMember * 1.4) : stonesPerMember;
+        gainStones = Math.min(gainStones, remainingBudget);
+        if (gainStones > 0) {
+          if (m.inv) m.inv.stones = (m.inv.stones || 0) + gainStones;
+          remainingBudget -= gainStones;
+        }
+        if (ECO && ECO.addPersonalPill && idx < 2 && (pObj.pillReserve || 0) > 0) {
           ECO.addPersonalPill(m, 'P:BASIC_QI', 1.05, 1);
+          pObj.pillReserve = Math.max(0, (pObj.pillReserve || 0) - 1);
         }
         if (master && m.id !== master.id) {
           SECT.SOCIAL_MATRIX.applyActionModifier(W, m, master, 'PEAK_RESOURCE_BESTOWAL', { scale: 0.7 });
@@ -11513,7 +11578,7 @@
       }
     });
 
-    pObj.treasuryStones = Math.max(20, (pObj.treasuryStones || 60) - stonesPerMember * recipients.length);
+    pObj.treasuryStones = remainingBudget;
     return {
       ok: true,
       rule,
@@ -11528,19 +11593,16 @@
     opts = opts || {};
     const pk = PEAKS.ensure(W);
     if (!pk) return { ok: false, reason: 'no-peaks' };
+
+    // Cooldown check: prevent tournament spamming on same day / within 30 days unless opts.force
+    if (pk.lastTournamentDay != null && (W.day || 0) - pk.lastTournamentDay < 30 && !opts.force) {
+      return { ok: false, reason: 'cooldown-active', lastTournamentDay: pk.lastTournamentDay };
+    }
+
     let foundedPeaks = PEAKS.getVisibleFoundedPeaks(W);
     if (foundedPeaks.length < 2 && opts.autoFoundIfNeeded) {
       PEAKS.scanAndFoundEligiblePeaks(W, { quiet: true });
       foundedPeaks = PEAKS.getVisibleFoundedPeaks(W);
-      if (foundedPeaks.length < 2) {
-        for (const pid of PEAKS.PEAK_IDS) {
-          if (foundedPeaks.length >= 2) break;
-          if (!pk.byId[pid].founded) {
-            PEAKS.foundPeak(W, pid, { allowDecree: true, quiet: true });
-            foundedPeaks = PEAKS.getVisibleFoundedPeaks(W);
-          }
-        }
-      }
     }
     if (foundedPeaks.length < 2) {
       return { ok: false, reason: 'need-at-least-2-founded-peaks', count: foundedPeaks.length };
@@ -11563,8 +11625,23 @@
     const champ = winEntry.rep;
     const winPeak = winEntry.peak;
 
+    // Fund prizes strictly from central treasury without minting
+    const totalPrizeTarget = 210;
+    const availTreasury = Math.max(0, (W.sect && W.sect.stones) || 0);
+    const prizeRatio = availTreasury >= totalPrizeTarget ? 1 : (availTreasury / totalPrizeTarget);
+    const champStones = Math.round(90 * prizeRatio);
+    const peakStones = Math.min(availTreasury - champStones, Math.round(120 * prizeRatio));
+    const actualPaid = champStones + peakStones;
+    if (actualPaid > 0) {
+      if (ECO && ECO.pay) {
+        ECO.pay(W, actualPaid, 'เงินรางวัลประลองยุทธ์ระหว่างยอดเขา');
+      } else {
+        W.sect.stones = Math.max(0, (W.sect.stones || 0) - actualPaid);
+      }
+    }
+
     // 1. Personal Rewards for the Winning Representative
-    if (champ.inv) champ.inv.stones = (champ.inv.stones || 0) + 90;
+    if (champ.inv) champ.inv.stones = (champ.inv.stones || 0) + champStones;
     if (ECO && ECO.addPersonalPill) ECO.addPersonalPill(champ, 'P:BASIC_QI', 1.15, 2);
     champ.cp = (champ.cp || 0) + 40;
     champ.merit = (champ.merit || 0) + 28;
@@ -11580,7 +11657,7 @@
     // 2. Peak Rewards for the Winning Peak
     winPeak.prestige = clamp((winPeak.prestige || 60) + 22, 0, 200);
     winPeak.budgetMultiplier = 1.25;
-    winPeak.treasuryStones = (winPeak.treasuryStones || 0) + 120;
+    winPeak.treasuryStones = (winPeak.treasuryStones || 0) + peakStones;
     (winPeak.memberIds || []).forEach(mid => {
       const m = W.byId[mid];
       if (m && !m.dead && m.cult) {
@@ -11601,6 +11678,7 @@
       }
     }
 
+    pk.lastTournamentDay = W.day || 0;
     const tRec = {
       id: 'PKTOUR_' + (++pk.seq),
       day: W.day || 360,
@@ -11909,6 +11987,16 @@
       pB = pk.byId[altId];
     }
     if (!pA || !pB || pA.id === pB.id) return { ok: false, reason: 'invalid-peaks' };
+    if (!pA.founded || !pB.founded) return { ok: false, reason: 'peak-not-founded' };
+
+    const pairKey = [pA.id, pB.id].sort().join(':');
+    pk.lastExchangeDays = pk.lastExchangeDays || {};
+    const lastDay = pk.lastExchangeDays[pairKey];
+    if (lastDay != null && (W.day || 0) - lastDay < 15 && !opts.force) {
+      return { ok: false, reason: 'cooldown-active', lastDay };
+    }
+    pk.lastExchangeDays[pairKey] = W.day || 0;
+
     const nextScore = PEAKS.adjustInterPeakRelation(W, pA.id, pB.id, 14, 'แลกเปลี่ยนวิชายุทธ์และเชื่อมไมตรีระหว่างยอดเขา');
     const allMems = [].concat(pA.memberIds || [], pB.memberIds || []);
     allMems.forEach(id => {
@@ -11942,6 +12030,7 @@
     const pk = PEAKS.ensure(W);
     const p = pk && pk.byId && pk.byId[peakId];
     if (!p) return { ok: false, reason: 'invalid-peak' };
+    if (!p.founded) return { ok: false, reason: 'peak-not-founded' };
     p.arrayActive = true;
     return { ok: true, peak: p, bonus: p.cultivationBonus || 0.14 };
   };
@@ -11950,7 +12039,7 @@
     if (!n || !n.peakId) return 0;
     const pk = PEAKS.ensure(W);
     const p = pk && pk.byId && pk.byId[n.peakId];
-    return (p && p.founded) ? (p.cultivationBonus || 0.14) : 0;
+    return (p && p.founded && p.arrayActive) ? (p.cultivationBonus || 0.14) : 0;
   };
 
   SECT.PEAKS = PEAKS;

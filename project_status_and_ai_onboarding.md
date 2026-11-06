@@ -1,17 +1,17 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `v3.1.0` (runtime patch identifier `3.0.0` | SIM Version `1.10.11` | Save Schema `3.1.0-autonomous-governance-peaks` | Human Core Fingerprint `155:2f9c9dd7`)
+**เวอร์ชันแพ็กเกจ**: `v3.1.1` (runtime patch identifier `3.1.1` | SIM Version `1.10.11` | Save Schema `3.1.0-autonomous-governance-peaks` | Human Core Fingerprint `155:2f9c9dd7`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
 > เอกสารนี้คือ **สรุประบบปัจจุบันสำหรับตอบคำถามภาพรวม** ให้อ่านก่อนตอบว่าเกมมีอะไรหรือเสนอแนวทางพัฒนาต่อ เพื่อหลีกเลี่ยงการเสนอระบบที่มีอยู่แล้ว เมื่อจะลงมือแก้ไขหรือต้องการยืนยันรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้องด้วย
 
-> **สถานะปัจจุบันของแพตช์ v3.1.0 และผลการตรวจรับรอง (5 พฤศจิกายน 2026):**
-> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`7,110 KB`) เรียบร้อยแล้ว
+> **สถานะปัจจุบันของแพตช์ v3.1.1 และผลการตรวจรับรอง (6 พฤศจิกายน 2026):**
+> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`7,196 KB`) เรียบร้อยแล้ว
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ
-> 3. ชุดทดสอบใหม่สำหรับระบบ v3.1.0 คือ `test/v300_tactical_combat_and_living_chronicle_suite.js` ผ่านครบ **57 assertions (100% PASS)** ยืนยันการทำงานของโมเดลระยะ 5 ช่วง, เพดานระยะตามอาวุธ, เส้นเล็งสิ่งกีดขวาง, การคุ้มกันแถวหลัง (ZoC), AI ยุทธวิธี 5 บุคลิก, ตัวคำนวณยุทธวิธีศึกนอกสำนัก (`COMBAT.evaluateTacticalBoutSummary`), พงศาวดารมีชีวิต (`EXPED.recordChronicle`), และทะเบียนประวัติบุคคล (`SIM.snapshotPerson`)
-> 4. ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` มีไฟล์ครบทั้งหมด **116 ชุด** แล้ว (รวม `test/_harness.js` และชุดทดสอบย้อนหลัง 7 ชุด `v215`–`v225` ที่สร้างทดแทนไฟล์ที่ขาดหายไปในฐานเดิม):
+> 3. ชุดทดสอบใหม่สำหรับระบบ v3.1.1 คือ `test/v311_economy_dungeon_and_peaks_invariants_suite.js` ผ่านครบ **6/6 Phases (100% PASS)** ยืนยันการปิดช่องโหว่ทางเศรษฐกิจ 16 จุด (การกระจายทรัพยากรส่วนกลาง, คลังยอดเขา, โควตาโอสถ, การดักจับอ็อบเจ็กต์เชลยศึกปลอม, คูลดาวน์หน้าที่ขุนนาง, เพดานค่ายกล, และการเชื่อมต่อ Vanguard เข้าสู่การต่อสู้จริง)
+> 4. ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` มีไฟล์ครบทั้งหมด **118 ชุด** แล้ว:
 >    - **ชุดทดสอบ Node.js ทั้งหมด 106 ชุด:** ผ่านครบ **106 / 106 ชุด (100% PASS)** (รวมถึง `v235`, `v234`, `npc_life_authority_overhaul`, และ `diplomacy_sanctum_ancestral_suite`)
 >    - **ชุดทดสอบที่ต้องเปิดเบราว์เซอร์ผ่าน Playwright Chromium จำนวน 10 ชุด:** ในสภาพแวดล้อม CLI/Termux ที่ไม่มีไบนารี Chromium จะรายงาน `Error: No Chromium executable found` (ทำให้ `parallel_audit_latest.json` ในสภาพแวดล้อมไร้เบราว์เซอร์แสดง `106 PASS / 10 FAIL`) ส่วนในสภาพแวดล้อมที่มี Chromium ติดตั้งอยู่ ชุดทดสอบเบราว์เซอร์ทำงานได้ตามปกติ โดยเกณฑ์ประสิทธิภาพประชากร 80 NPC ใน `test/browser_mobile_perf.js` ได้ผ่อนปรนชั่วคราวเป็น `<= 3.5 ms/tick` (`>= 285 ticks/s`) ตามคำสั่งผู้ใช้
 

@@ -4,7 +4,7 @@ const { bootGame } = require('./_harness');
 const w = bootGame(203301);
 const { SIM, SECT, CULT, EXP, COG, AI, UI, HC } = w;
 const W = SIM.newWorld(203301);
-assert.ok((SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0') || SIM.PATCH_VERSION === '2.0.33', 'Patch version verified');
+assert.ok((SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1') || SIM.PATCH_VERSION === '2.0.33', 'Patch version verified');
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HumanCore fingerprint preserved');
 assert.strictEqual(Object.keys(SECT.PEAKS.PEAK_CATALOG).length, 8, '8 canonical peaks locked');
 const visibleInitially = SECT.PEAKS.getFoundedPeaks(W);
