@@ -9,7 +9,7 @@
 
 - **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.2.0` (Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals, Portal FX & Relic Showcase — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักของ `v5.2.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 128/128 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md) (Era 5 Phase 4: Dynamic 4 Seasons, Interactive Relationship Constellation, Zen Screenshot Mode & Disciple Daily Life Loops)
+  👉 [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md) (Era 5 Phase 4: Heavenly Tribulation Breakthrough Overhaul, Path Resonance Spectacles & Signature Technique VFX)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) (`v5.0.0` — Era 5: Grand Celestial Visual Overhaul ครบ 6 เสาหลัก)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md) (`v5.1.0` — Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscenes & Martial Arena Camera ครบ 5 เสาหลัก)

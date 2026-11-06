@@ -1,7 +1,7 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `v5.2.0` (runtime patch identifier `5.2.0` | SIM Version `1.10.14` | Save Schema `5.2.0-subtabs-and-world-visuals` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v5.2.0 Complete 100%` | Active Target: `v5.3.0 Dynamic 4 Seasons & Constellations`)
+**เวอร์ชันแพ็กเกจ**: `v5.2.0` (runtime patch identifier `5.2.0` | SIM Version `1.10.14` | Save Schema `5.2.0-subtabs-and-world-visuals` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v5.2.0 Complete 100%` | Active Target: `v5.3.0 Heavenly Tribulation & Signature Skill VFX`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
@@ -13,7 +13,7 @@
 > 3. ชุดทดสอบใหม่ประจำแพตช์คือ `test/v510_interactive_visual_dioramas_suite.js` และ `test/v520_subtabs_and_world_visuals_suite.js` ผ่านครบ **100% PASS** ยืนยันการทำงานของระบบหมวดย่อยหน้าต่างสำนัก/ตัวละคร/ยุทธภพ, แผนที่โลกขบวนเสบียงมีชีวิต, ประตูมิติแดนลับ, และแผงส่องของวิเศษ
 > 4. ความเร็วจำลอง 80 NPC อยู่ที่ `1.244 ms/tick` (ต่ำกว่าเพดานกำหนด `<= 3.5 ms/tick`)
 > 5. ชุดทดสอบรวมผ่านครบ **128/128 กลุ่ม (100% PASS)**
-> 6. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md) (Era 5 Phase 4: Dynamic 4 Seasons, Interactive Relationship Constellation, Zen Screenshot Mode & Disciple Daily Life Loops)
+> 6. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md) (Era 5 Phase 4: Heavenly Tribulation Breakthrough Overhaul, Path Resonance Spectacles & Signature Technique VFX)
 
 ---
 
