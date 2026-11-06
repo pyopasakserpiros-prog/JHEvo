@@ -1,45 +1,80 @@
 # Jianghu Evolution (JHEvo) — AI Developer Entry Point (READ THIS FIRST)
 
-The current working source is **v2.0.17**, extending the v2.0.16 baseline with **Deep Architectural Cohesion & Legacy Remnant Remediation**: unified 10-weapon skill storage on `npc.h.skills`, 12-Path `CULT.recommendPath` parity, full combat wiring for custom stats (`soul_atk`, `aura_potency`, `command_authority`, `construct_atk`), autonomous NPC `BUFF`/`HEAL` casting, the **Universal 21-Relic Trinity (`VC.LEGENDARY_EQUIPMENT`: 14 Weapons + 3 Armors + 4 Accessories)** with **62 Living Clue Templates**, **2-Piece / 3-Piece Legendary Relic Resonance (`MARTIAL.evaluateLegendaryRelicResonance`)**, **Relic Star Attunement (`ECO.attuneLegendaryRelic` 1–3 ★)**, quality-aware CP pricing, realm-scaled Inedia/fasting, cross-path Mentorship & dying-wish Qi transmission, Sworn Ally raid reinforcements, and interactive Mentorship/Jianghu UI controls. The active next-patch assignment is [NEXT_PATCH_PROMPT_V2_0_18_EN.md](NEXT_PATCH_PROMPT_V2_0_18_EN.md): read it in full and implement it. Read [PATCH_IMPLEMENTATION_REPORT_V2_0_17.md](PATCH_IMPLEMENTATION_REPORT_V2_0_17.md) for the current baseline. Older numbered prompts are historical; do not automatically repeat them.
+> [!IMPORTANT]
+> **สำหรับ AI ผู้พัฒนาทุกท่าน (Gemini, Claude, Antigravity, Codex):**  
+> เอกสารนี้คือ **ศูนย์บัญชาการตั้งต้นอัตโนมัติ (Automated AI Entry Point)**  
+> เมื่อท่านได้รับไฟล์โปรเจกต์นี้ (ผ่านการแตกไฟล์ ZIP หรือเปิดในแชทใหม่) **ไม่ต้องรอคำสั่งเพิ่มเติมจากผู้ใช้** ให้ดำเนินการตามขั้นตอนในเอกสารนี้ทันที!
 
-## 🧭 Priority Execution Order for AI Agents (Gemini, Codex, Antigravity, Claude)
+---
 
-To maximize accuracy and avoid wasting context tokens, follow this exact reading and execution sequence:
+## 🧭 สถานะปัจจุบันและงานแพตช์ที่ต้องทำทันที (Current Active Assignment)
 
-### Step 1: Read Project Guardrails & Current Baseline
-1. Read [`AGENTS.md`](./AGENTS.md) for non-negotiable architectural locks (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags in `index.html`, matching module order in `test/load.js`, Thai localization `nameTh`).
-2. Read [`PATCH_IMPLEMENTATION_REPORT_V2_0_17.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_17.md) to see what is already implemented in v2.0.17.
-3. Read the active assignment [`NEXT_PATCH_PROMPT_V2_0_18_EN.md`](./NEXT_PATCH_PROMPT_V2_0_18_EN.md) and reference [`FUTURE_ROADMAP_AND_IDEAS.md`](./FUTURE_ROADMAP_AND_IDEAS.md) and [`LEGENDARY_CONTENT_REFERENCE.md`](./LEGENDARY_CONTENT_REFERENCE.md) as needed.
-4. Consult [`PATCH_IMPLEMENTATION_REPORT_V2_0_16.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_16.md) or [`PATCH_IMPLEMENTATION_REPORT_V2_0_15.md`](./PATCH_IMPLEMENTATION_REPORT_V2_0_15.md) only when relevant as historical design context; do not repeat completed work.
+| รายการ | สถานะและลิงก์เชื่อมโยง |
+| :--- | :--- |
+| **ฐานโค้ดปัจจุบัน (Baseline)** | `v3.1.1` (Closed-Loop Invariants Verified, Vanguard Tactical Combat Wired) |
+| **รายงานสรุปแพตช์ล่าสุด** | [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_1.md`](./PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_1.md) |
+| **กฎเหล็กของประธานบริษัท** | [`AGENTS.md`](./AGENTS.md) (ต้องอ่านและปฏิบัติตามอย่างเคร่งครัด 100%) |
+| **เอกสารสรุประบบและแผนงานแม่บท** | [`project_status_and_ai_onboarding.md`](./project_status_and_ai_onboarding.md) & `JHEvo_v3.1.0_Development_Proposals_and_Roadmap.pdf` |
+| **🔥 งานแพตช์ที่ต้องลงมือทำทันที (ACTIVE PATCH)** | 👉 **[`ACTIVE_PATCH_PROMPT_V3_2_0.md`](./ACTIVE_PATCH_PROMPT_V3_2_0.md)** 👈 |
 
-### Step 2: Load Only the Relevant Master Skills (`.agents/skills/<skill>/SKILL.md`)
-Do **not** guess internal APIs. Before editing any module in `GAME_SOURCE/`, open the matching bespoke JianghuSect skill(s) by priority:
+---
 
-| Priority | When Your Task Touches... | Read This Skill First |
-| :---: | :--- | :--- |
-| **P0 (Core)** | **12 Cultivation Paths, 96 Subpaths, Stage Equivalence, Mentorship/Heritage Arts, Spirit Beasts, War-Beasts, Mounts, or Nine-Dao Pagoda / Realms** (`js/cultivation.js`, `js/explore.js`, `js/expedition.js`, `js/sect.js`) | [`.agents/skills/progression-design/SKILL.md`](./.agents/skills/progression-design/SKILL.md) |
-| **P0 (Core)** | **Combat Formulas, 12 Stats, 12 Timed Buffs, 27 Resonance Sets, 17 Equipment Types, 21 Legendary Relics (Trinity Resonance & Star Attunement), Formation Synergies, or Martial Tournaments** (`js/combat.js`, `js/stats.js`, `js/martial.js`, `js/skills.js`) | [`.agents/skills/combat-design/SKILL.md`](./.agents/skills/combat-design/SKILL.md) |
-| **P0 (Core)** | **NPC Decisions, Utility Scoring (`ScoreAcc`/`S.add`), `npc.why`, Aspirations, Goals, or 18 Sect Offices** (`js/ai.js`, `js/cognition.js`, `js/human_core.js`) | [`.agents/skills/ai-behavior-patterns/SKILL.md`](./.agents/skills/ai-behavior-patterns/SKILL.md) |
-| **P0 (Core)** | **New Items, Recipes (`REC_*`/`ITEM_*`), Martial Arts, Weapons, Elements, or Edit Hub Spawner** (`data/*`) | [`.agents/skills/game-data-integrity/SKILL.md`](./.agents/skills/game-data-integrity/SKILL.md) |
-| **P1 (System)** | **Sect Economy, Spirit Stones, CP Ledger, Crafting, Market, or Tributary Treaties** (`js/economy.js`, `js/cpeco.js`, `js/content.js`, `js/external_market.js`) | [`.agents/skills/economy-balancing/SKILL.md`](./.agents/skills/economy-balancing/SKILL.md) |
-| **P1 (System)** | **240×192 World Map, Southern Spirit River, Fishing, Wildlife, or Sanctum RNG** (`js/world_map.js`, `js/fishing.js`, `js/wildlife.js`) | [`.agents/skills/procedural-gen/SKILL.md`](./.agents/skills/procedural-gen/SKILL.md) |
-| **P1 (System)** | **Wuxia UI Drawers, NPC Sheet Tabs, 104-Cell Icon Atlas, or Edit Hub Controls** (`js/ui.js`, `js/render.js`, `css/style.css`) | [`.agents/skills/game-ui-ux/SKILL.md`](./.agents/skills/game-ui-ux/SKILL.md) |
-| **P2 (Guard)** | **Module Load Order, `W` State, `SIM.tick`, Save/Load, Performance (<3ms/tick), or the 96 automated suites plus syntax sweep** (`js/sim.js`, `test/run_all.js`) | [`gameplay-architecture`](./.agents/skills/gameplay-architecture/SKILL.md), [`save-system-patterns`](./.agents/skills/save-system-patterns/SKILL.md), [`performance-budgeting`](./.agents/skills/performance-budgeting/SKILL.md), [`qa-test-matrix`](./.agents/skills/qa-test-matrix/SKILL.md) |
+## ⚡ คำสั่งปฏิบัติการด่วนสำหรับ AI (Zero-Prompt Auto-Run Instructions)
 
-### Step 3: Verify & Rebuild Before Delivering
-```bash
-node GAME_SOURCE/tools/validate_data_schema.js
-cd GAME_SOURCE && node tools/build_single.js
-node test/run_all.js
+หากผู้ใช้ส่งมอบไฟล์ ZIP ให้ท่านในแชท และพิมพ์เพียง "เริ่มงาน", "ทำต่อเลย" หรือไม่ได้พิมพ์คำสั่งใดๆ ให้ท่านปฏิบัติตามลำดับขั้นตอนนี้ทันที:
+
+1. **อ่านข้อกำหนดใน [`ACTIVE_PATCH_PROMPT_V3_2_0.md`](./ACTIVE_PATCH_PROMPT_V3_2_0.md) ทั้งหมด** ซึ่งมีรายละเอียดทางเทคนิค ข้อเสนอ 11 รายการของ Phase 1, สูตรคำนวณ, และไฟล์ที่ต้องแก้ไข
+2. **อ่านสกิลที่เกี่ยวข้องใน `.agents/skills/` ก่อนเริ่มแตะต้องโค้ด** (โดยเฉพาะ `progression-design`, `combat-design`, `gameplay-architecture`, `game-ui-ux`, `economy-balancing`)
+3. **ตรวจสอบกฎเหล็กสถาปัตยกรรม (Core Architectural Invariants):**
+   - ห้ามแก้ไข `GAME_SOURCE/js/human_core.js` แม้แต่อักขระเดียว (`HC.FINGERPRINT === '155:2f9c9dd7'`)
+   - รักษารายชื่อและลำดับ `<script>` ใน `GAME_SOURCE/index.html` และ `GAME_SOURCE/test/load.js` ให้ตรงกัน 40 แท็ก
+   - ข้อความผู้เล่นทั้งหมดต้องเป็นภาษาไทย (`nameTh`, คำอธิบาย, บันทึกพงศาวดาร, UI)
+   - ห้ามย่อโค้ด ห้ามใช้สคริปต์ตัดทอน หรือเขียนคอมเมนต์ `// ... existing code ...` ให้เขียนโค้ดเต็มสมบูรณ์ 100%
+   - รักษางบเวลาจำลอง: `< 3.5 ms/tick` สำหรับประชากร 80 NPC
+4. **ลงมือแก้ไขและเชื่อมต่อระบบตามที่ระบุใน Active Patch Prompt**
+5. **สร้างชุดทดสอบ Adversarial Regression Test Suite ใหม่** สำหรับแพตช์นี้ (เช่น `GAME_SOURCE/test/v320_dormant_awakening_suite.js`) และลงทะเบียนเข้า `GAME_SOURCE/test/run_all.js`
+6. **รันการทดสอบและตรวจรับรองคุณภาพ:**
+   ```bash
+   node GAME_SOURCE/test/core_lock.js
+   node GAME_SOURCE/tools/validate_data_schema.js
+   cd GAME_SOURCE && node tools/build_single.js
+   node test/run_all.js
+   ```
+7. **เขียนรายงานการส่งมอบอย่างละเอียด:**
+   สร้างไฟล์ `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_2_0.md`
+8. **อัปเดตเอกสารสรุปโครงการและสกิล:**
+   อัปเดต `project_status_and_ai_onboarding.md` และสกิลที่ได้รับผลกระทบใน `.agents/skills/`
+9. **⭐ ดำเนินการตามกฎลูกโซ่อัตโนมัติ (Daisy-Chain Mandate):**
+   - เขียนเอกสารงานแพตช์ถัดไป: `ACTIVE_PATCH_PROMPT_V3_3_0.md` (สำหรับ Phase 2: Core Gameplay Loop & Daily Living Sect) โดยระบุรายละเอียดฟีเจอร์ กฎเหล็ก และเกณฑ์ทดสอบอย่างสมบูรณ์
+   - อัปเดตตัวชี้ใน `START_HERE_FOR_AI.md` ให้ชี้ไปที่ `ACTIVE_PATCH_PROMPT_V3_3_0.md`
+10. **ส่งมอบแพ็กเกจ ZIP ฉบับสมบูรณ์ให้ผู้ใช้:**
+    สร้างไฟล์ ZIP ที่มีโครงสร้างโฟลเดอร์สมบูรณ์ (Directory Entries), ไม่มีโฟลเดอร์ `.git`, ตรวจสอบด้วย `testzip()` และสรุปผลงานให้ผู้ใช้ทราบเพื่อนำไปเริ่มแชทถัดไปได้ทันที!
+
+---
+
+## 🗺️ แผนผังโร้ดแมป 5 ระยะสู่ความเป็นเลิศ (The 5-Phase Master Roadmap)
+
+โครงการ JianghuSect Evolution ดำเนินการยกระดับตามข้อเสนอ 36 รายการ (`PROP-01` ถึง `PROP-36`) แบ่งออกเป็น 5 แพตช์ต่อเนื่อง:
+
+```mermaid
+flowchart TD
+    P0["✅ Baseline: v3.1.1<br/>Closed-Loop Economy & Invariants<br/>(21 Audit Findings Resolved)"] --> P1
+    P1["🔥 Active Patch: v3.2.0<br/>Phase 1: Foundation & Dormant Code Awakening<br/>(PROP-01, 02, 07, 12, 15, 17, 18, 20, 25, 30, 33)"] --> P2
+    P2["⏳ Next Patch: v3.3.0<br/>Phase 2: Core Gameplay Loop & Daily Living Sect<br/>(PROP-04, 11, 16, 19, 21, 31, 35)"] --> P3
+    P3["⏳ Future Patch: v3.4.0<br/>Phase 3: Tactical Combat & Martial Synergy<br/>(PROP-03, 05, 06, 08, 09, 10, 32)"] --> P4
+    P4["⏳ Future Patch: v3.5.0<br/>Phase 4: Geopolitical Hegemony & Grand Jianghu<br/>(PROP-13, 14, 22, 23, 24, 26, 29)"] --> P5
+    P5["⏳ Future Patch: v3.6.0<br/>Phase 5: Generational Dynasty & Immortal Endgame<br/>(PROP-27, 28, 34, 36)"]
 ```
 
-### Step 4: Follow the Mandatory Patch Delivery Protocol (`AGENTS.md` §4)
-Before delivering any completed release or patch:
-1. **Playable Game:** Rebuild `JianghuSect_single.html`.
-2. **Complete Source:** Fully integrate changes in `GAME_SOURCE/`.
-3. **Tests:** Ensure schema passes with 0 errors and core logic suites in `test/run_all.js` pass (browser/Chromium tests are excused if constrained by the AI sandbox). Add new test suites for new features.
-4. **Report:** Write `PATCH_IMPLEMENTATION_REPORT_V<X>.md` documenting every new module, formula, schema, and UI change.
-5. **Living Master Skills:** Update all affected Master Skills in `.agents/skills/<skill>/SKILL.md` (and `.codex/skills/`) so skills always match reality.
-6. **Save Hygiene (No Legacy Baggage):** Legacy save backwards compatibility is NOT required—innovate freely. Ensure current version saves serialize/deserialize cleanly without cache leaks.
-7. **Clean Docs & Hygiene:** Update `README.md`, update `START_HERE_FOR_AI.md`, and clean obsolete historical prompt files.
+---
 
+> [!TIP]
+> **สารบัญสกิลเฉพาะด้าน (.agents/skills/):**
+> - ตบะ, เส้นทางบำเพ็ญ, ทะลวงด่าน, ชีพจร 8 เส้น: [`.agents/skills/progression-design/SKILL.md`](.agents/skills/progression-design/SKILL.md)
+> - ระบบต่อสู้, ท่วงท่า, สเตตัส, อาณาเขต, ระยะอาวุธ: [`.agents/skills/combat-design/SKILL.md`](.agents/skills/combat-design/SKILL.md)
+> - พฤติกรรม NPC, ปณิธาน, จิตวิทยา, การตัดสินใจ: [`.agents/skills/ai-behavior-patterns/SKILL.md`](.agents/skills/ai-behavior-patterns/SKILL.md)
+> - ข้อมูลไอเทม, ตำรับผลิต, วิชายุทธ์, ความสมบูรณ์ของ Schema: [`.agents/skills/game-data-integrity/SKILL.md`](.agents/skills/game-data-integrity/SKILL.md)
+> - เศรษฐกิจ, คลังสำนัก, การค้า, งบประมาณยอดเขา: [`.agents/skills/economy-balancing/SKILL.md`](.agents/skills/economy-balancing/SKILL.md)
+> - หน้าต่าง UI, Canvas 2D, แผงควบคุม, สไตล์และไอคอน: [`.agents/skills/game-ui-ux/SKILL.md`](.agents/skills/game-ui-ux/SKILL.md)
+> - สถาปัตยกรรมลูปเวลา, การจัดระเบียบสำนัก, สร้างไฟล์เดี่ยว: [`.agents/skills/gameplay-architecture/SKILL.md`](.agents/skills/gameplay-architecture/SKILL.md)
+> - บันทึกและโหลดเกม, การตรวจ Round-trip Determinism: [`.agents/skills/save-system-patterns/SKILL.md`](.agents/skills/save-system-patterns/SKILL.md)

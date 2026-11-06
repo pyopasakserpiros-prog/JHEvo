@@ -7,7 +7,7 @@
 > - ข้อกำหนดในเอกสารนี้มีผลบังคับใช้สูงสุด เป็นธรรมนูญและกฎเหล็กขององค์กรที่ทุกคนต้องยึดถืออย่างเคร่งครัด
 > - สิ่งที่อยู่นอกเหนือจากกฏเหล็กในเอกสารนี้ ai ที่ทำหน้าที่อัพเดทแพทช์สามารถคิดและตัดสินใจเองได้อย่างอิสระตามขอบเขตงาน
 
-JianghuSect Evolution is a Thai browser game. Current package: 3.0.0 (runtime patch identifier: 3.0.0). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md` for the latest v3.0.0 report and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md` for the current world atlas.
+JianghuSect Evolution is a Thai browser game. Current package: 3.1.1 (runtime patch identifier: 3.1.1). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_1.md` for the latest v3.1.1 report and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md` for the v3.0.0 tactical combat baseline.
 
 ## ก่อนเริ่มงาน
 
@@ -116,3 +116,17 @@ Directory entries ช่วยเรื่องการแสดงโฟล�
 เมื่อส่งแพตช์ ให้รายงานสิ่งที่เปลี่ยน ผลทดสอบ ข้อจำกัด และอัปเดต README/รายงานที่เกี่ยวข้องให้ตรงกับเวอร์ชันจริง
 
 **Master skills ใน `.agents/skills/` เป็นคู่มือเฉพาะการทำงานจริงของเกมนี้ ไม่ใช่คำแนะนำพัฒนาเกมแบบทั่วไป** ทุกแพตช์ต้องตรวจว่าสกิลใดได้รับผลกระทบ และแก้สกิลเหล่านั้นในการเปลี่ยนแปลงเดียวกัน ทั้งชื่อฟังก์ชัน พฤติกรรม สูตร จำนวนข้อมูล คำสั่งทดสอบและข้อจำกัด โดยเทียบกับซอร์สและผลทดสอบจริง รักษารายละเอียดเฉพาะโปรเจกต์และแก้ข้อมูลล้าสมัย ไม่แทนด้วยข้อความภาพรวมที่ใช้กับเกมใดก็ได้ หากส่วนใดยังไม่ได้ตรวจให้ระบุไว้ ห้ามเปลี่ยนเลขเวอร์ชันเพื่อสื่อว่าตรวจครบทั้งสกิล และปรับสารบัญ `.agents/skills/README.md` เมื่อขอบเขตหรือวิธีใช้สกิลเปลี่ยน หากแพตช์ไม่กระทบสกิลหรือสรุปเกม ให้บันทึกเหตุผลในรายงานแทนการอ้างว่าอัปเดตหรือตรวจครบแล้ว
+
+## ระบบส่งต่องานลูกโซ่อัตโนมัติข้ามเซสชั่น (Automated Multi-Patch Daisy Chain Protocol)
+
+เพื่อให้ผู้ใช้สามารถนำไฟล์ ZIP ของโปรเจกต์ไปรันต่อในแชท AI ใหม่ (เช่น Gemini, Claude, Codex) ได้ทันทีโดยผู้ใช้ **ไม่ต้องคิดหรือพิมพ์พรอมต์ใหม่ด้วยตนเอง** ให้ยึดถือระเบียบปฏิบัติดังนี้:
+
+1. **จุดเริ่มต้นศูนย์กลาง (`START_HERE_FOR_AI.md`):**  
+   เป็นเอกสารหน้าแรกที่ AI ทุกตัวต้องอ่านทันทีเมื่อเปิดโปรเจกต์ เอกสารนี้จะมีตัวชี้ไปยังเอกสารงานแพตช์ที่กำลังดำเนินการอยู่เสมอ (Active Patch Assignment)
+2. **คำสั่งแพตช์เฉพาะระยะ (`ACTIVE_PATCH_PROMPT_V3_X_0.md`):**  
+   บรรจุรายละเอียดข้อกำหนดทางเทคนิค กฎเหล็ก และเกณฑ์ทดสอบของแต่ละแพตช์อย่างสมบูรณ์
+3. **ข้อบังคับการส่งต่องานเมื่อเสร็จสิ้นแพตช์ (Mandatory Handoff Authoring):**  
+   เมื่อ AI ใดพัฒนาแพตช์ปัจจุบันเสร็จสิ้น (รันเทสต์ผ่าน, บิลด์ไฟล์เดี่ยวสำเร็จ, เขียนรายงานแพตช์เสร็จสิ้น) **ต้องเป็นผู้ร่างคำสั่งสำหรับแพตช์ถัดไป (`ACTIVE_PATCH_PROMPT_V3_(X+1)_0.md`) ทันที** ตามแผนแม่บท 5 ระยะ (Phase 1 ถึง Phase 5) พร้อมอัปเดตตัวชี้ใน `START_HERE_FOR_AI.md` ก่อนที่จะแพ็กเกจไฟล์ ZIP ส่งคืนให้ผู้ใช้
+4. **ความสมบูรณ์ของไฟล์ส่งมอบ:**  
+   ไฟล์ ZIP ที่ส่งมอบต้องมี Directory Entries ครบถ้วน, ไม่มีโฟลเดอร์ `.git`, ผ่านการทดสอบ `testzip()` และสามารถนำไปแตกไฟล์เพื่อเริ่มงานแพตช์ถัดไปได้ทันที 100% โดยไร้รอยต่อ
+
