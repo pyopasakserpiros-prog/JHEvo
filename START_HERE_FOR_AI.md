@@ -7,14 +7,14 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v4.1.0` (Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักของ `v4.1.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 125/125 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.0.0` (Era 5 Phase 1: Grand Celestial Visual Overhaul, Living Sect Ground Spectacles & Shaders — **พัฒนาและส่งมอบครบทั้ง 6 เสาหลักของ `v5.0.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 126/126 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V4_2_0.md`](ACTIVE_PATCH_PROMPT_V4_2_0.md) (Phase 8: Living Peak Sanctum Rituals, Sect Wonders, Interactive Courtyard Props & Dynamic Celestial Weather)
+  👉 [`ACTIVE_PATCH_PROMPT_V5_1_0.md`](ACTIVE_PATCH_PROMPT_V5_1_0.md) (Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscene Moments & Martial Arena Camera)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md) (`v4.0.0` — Phase 6: Living Frontier, Behavioral Mastery & Sect Charter ครบ 5 เสาหลัก)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_1_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_1_0.md) (`v4.1.0` — Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution ครบ 5 เสาหลัก)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) (`v5.0.0` — Era 5: Grand Celestial Visual Overhaul ครบ 6 เสาหลัก)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **แพตช์ `v4.1.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มมหากาพย์ใหม่ `v4.2.0` ตามใบสั่งงาน!**
+  👉 **แพตช์ `v5.0.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.1.0` ตามใบสั่งงาน!**
 
 ---
 
@@ -97,5 +97,11 @@ cd GAME_SOURCE && node tools/build_single.js
 | **Phase 4** | **v3.5.0** | `ACTIVE_PATCH_PROMPT_V3_5_0.md` | `PROP-13, 14, 22, 23, 24, 26, 29` (7 ข้อ) | **Jianghu Macro-World, Politics & Alchemy:** กบฏก๊กการเมือง & การแยกตัวตั้งสำนักใหม่, ศิษย์ปมชาติกำเนิดลึกลับ 3 บท, ศิษย์แลกเปลี่ยนข้ามสำนัก & จารชน, กระดานล่าค่าหัวโรงเตี๊ยม, ประมูลลับตลาดมืด & ขบวนคาราวานจริง, ปรากฏการณ์ฟ้าดินรายเดือน, โรงหลอมโอสถ 2 ระยะ (48 ชนิด) | ✅ **เสร็จสมบูรณ์ (100%)** |
 | **Phase 5** | **v3.6.0** | `ACTIVE_PATCH_PROMPT_V3_6_0.md` | `PROP-27, 28, 34, 36` (4 ข้อ) | **Endgame Crises, Generational Legacy & Final Polish:** สุสานเซียนโบราณขุดค้น 3 ชั้น, มหากาพย์วิกฤตการณ์ยุทธภพหลายบท (Multi-Stage Endgame Crises), มรดกสายเลือดตระกูลรุ่นที่ 2–3, การปรับจูนประสิทธิภาพ 80-NPC Tick Budget & Resilient Save Whitelist | ✅ **เสร็จสมบูรณ์** |
 | **Phase 6** | **v4.0.0 / v4.0.3** | `ACTIVE_PATCH_PROMPT_V4_0_0.md` | Pillar 1–5 (5 เสาหลัก) | **Living Frontier, Behavioral Mastery & Living World Atlas:** ค่ายพักยุทธศาสตร์ & เสบียง Closed-Loop, รอยชำนาญการต่อสู้ 4 เทรต, ธรรมนูญสำนัก 5 แนวทาง, สภา 6 ขุนนางใหญ่, 4 จุดสำรวจย่อยบนแผนที่โลก, แผนที่ภาพวาดหมึกและชั้นเลเยอร์มีชีวิต | ✅ **เสร็จสมบูรณ์ (Baseline ปัจจุบัน)** |
-| **Phase 7** | **v4.1.0** | `ACTIVE_PATCH_PROMPT_V4_1_0.md` | Pillar 1–5 (5 เสาหลัก) | **Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution:** จองผัง 8 ยอดเขาบนผืนดินสำนัก, หมอกปราณสลายตัวเมื่อสถาปนายอดเขา, วิวัฒนาการสถาปัตยกรรมอาคาร 3 ขั้นตามเลเวล, แสงเงาตกกระทบตามเวลาจริง, โดมม่านพลัง 5 ธาตุ & เส้นชีพจรปฐพี | ✅ **เสร็จสมบูรณ์ (Baseline ปัจจุบัน)** |
+| **Phase 7** | **v4.1.0** | `ACTIVE_PATCH_PROMPT_V5_1_0.md` | Pillar 1–5 (5 เสาหลัก) | **Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution:** จองผัง 8 ยอดเขาบนผืนดินสำนัก, หมอกปราณสลายตัวเมื่อสถาปนายอดเขา, วิวัฒนาการสถาปัตยกรรมอาคาร 3 ขั้นตามเลเวล, แสงเงาตกกระทบตามเวลาจริง, โดมม่านพลัง 5 ธาตุ & เส้นชีพจรปฐพี | ✅ **เสร็จสมบูรณ์ (Baseline ปัจจุบัน)** |
 | **Phase 8** | **v4.2.0** | `ACTIVE_PATCH_PROMPT_V4_2_0.md` | Pillar 1–5 (5 เสาหลัก) | **Living Peak Sanctum Rituals, Sect Wonders & Dynamic Celestial Weather:** พิธีกรรมประจำ 8 ยอดเขา, 4 สิ่งมหัศจรรย์สำนักบนแผนที่จริง, ขบวนลาดตระเวนเชื่อมยอดเขา, ปรากฏการณ์ฟ้าดินบน Canvas, และโหมดส่องทัศนียภาพสำนัก | 🔥 **งานที่ต้องทำทันที (Active Target)** |
+
+
+## สถานะล่าสุด: Patch v5.0.0 (Era 5: Grand Celestial Visual Overhaul) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`
+- แพทช์ถัดไปในคิว: `ACTIVE_PATCH_PROMPT_V5_1_0.md`
+- ชุดทดสอบทั้งหมด: `126/126 PASS` (`test/v500_celestial_visual_overhaul_suite.js`)

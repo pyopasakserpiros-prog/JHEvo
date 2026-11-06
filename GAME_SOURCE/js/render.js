@@ -1118,6 +1118,118 @@
     return true;
   };
 
+
+  /* ---------- Patch v5.0.0 [Era 5: Grand Celestial Visual Overhaul — 6 Visual Pillars] ---------- */
+  R.ERA5_VERSION = '5.0.0-celestial-visual-overhaul';
+
+  // Pillar 1A: 9-Stage Realm Halo & Immortal Ascension Visual Tiers
+  R.REALM_VISUAL_TIERS = Object.freeze({
+    1: { stage: 1, tierGroup: 'QI_REFINING', nameTh: 'หลอมปราณ', haloType: 'breath_ring', color: '#80deea', secondary: '#e0f7fa', radius: 6.5, silkRibbon: false },
+    2: { stage: 2, tierGroup: 'FOUNDATION', nameTh: 'สร้างรากฐาน', haloType: 'foundation_ring', color: '#4dd0e1', secondary: '#b2ebf2', radius: 7.5, silkRibbon: false },
+    3: { stage: 3, tierGroup: 'CORE_FORMATION', nameTh: 'ก่อแก่นศักดิ์สิทธิ์', haloType: 'golden_core', color: '#ffd54f', secondary: '#ffecb3', radius: 8.5, silkRibbon: false },
+    4: { stage: 4, tierGroup: 'GOLDEN_CORE', nameTh: 'จินตานทองคำ', haloType: 'golden_core_dual', color: '#ffb300', secondary: '#fff8e1', radius: 9.2, silkRibbon: false },
+    5: { stage: 5, tierGroup: 'NASCENT_SOUL', nameTh: 'หยวนอิง (ทารกวิญญาณ)', haloType: 'trigram_halo', color: '#ba68c8', secondary: '#f3e5f5', radius: 10.2, silkRibbon: false },
+    6: { stage: 6, tierGroup: 'SPIRIT_SEVERING', nameTh: 'แปรเปลี่ยนวิญญาณ', haloType: 'lotus_wheel', color: '#ab47bc', secondary: '#e1bee7', radius: 11.0, silkRibbon: false },
+    7: { stage: 7, tierGroup: 'VOID_REFINING', nameTh: 'หลอมความว่างเปล่า', haloType: 'celestial_mandala', color: '#00e5ff', secondary: '#ffd740', radius: 12.0, silkRibbon: true },
+    8: { stage: 8, tierGroup: 'MAHAYANA', nameTh: 'มหายานบรรพกาล', haloType: 'mahayana_crown', color: '#ffd740', secondary: '#ff4081', radius: 13.0, silkRibbon: true },
+    9: { stage: 9, tierGroup: 'TRUE_IMMORTAL', nameTh: 'เซียนแท้จริงจุติ', haloType: 'immortal_divine_wheel', color: '#fff59d', secondary: '#00f5d4', radius: 14.2, silkRibbon: true }
+  });
+
+  // Pillar 1B: 12 Cultivation Path Visual Signatures
+  R.PATH_VISUAL_SIGNATURES = Object.freeze({
+    SWORD:     { id: 'SWORD',     nameTh: 'วิถีกระบี่',     moteShape: 'sword_qi',      primary: '#4fc3f7', secondary: '#e1f5fe' },
+    BODY:      { id: 'BODY',      nameTh: 'วิถีกายา',      moteShape: 'blood_amber',   primary: '#ffb74d', secondary: '#ff6f00' },
+    MAGIC:     { id: 'MAGIC',     nameTh: 'วิถีเวทธาตุ',    moteShape: 'element_sparks',primary: '#ce93d8', secondary: '#7c4dff' },
+    ARRAY:     { id: 'ARRAY',     nameTh: 'วิถีค่ายกล',     moteShape: 'bagua_glyph',   primary: '#ffd54f', secondary: '#fff9c4' },
+    PILL:      { id: 'PILL',      nameTh: 'วิถีโอสถ',      moteShape: 'emerald_leaf',  primary: '#66bb6a', secondary: '#b9f6ca' },
+    TALISMAN:  { id: 'TALISMAN',  nameTh: 'วิถีอักขระยันต์', moteShape: 'paper_talisman',primary: '#ffca28', secondary: '#ef5350' },
+    SOUL:      { id: 'SOUL',      nameTh: 'วิถีวิญญาณ',    moteShape: 'will_o_wisp',   primary: '#80cbc4', secondary: '#b388ff' },
+    BEAST:     { id: 'BEAST',     nameTh: 'วิถีอสูร',      moteShape: 'totem_fang',    primary: '#a1887f', secondary: '#ffcc80' },
+    SOUND:     { id: 'SOUND',     nameTh: 'วิถีดนตรีปราณ',  moteShape: 'harmonic_wave', primary: '#80deea', secondary: '#f48fb1' },
+    PUPPET:    { id: 'PUPPET',    nameTh: 'วิถีเชิดหุ่น',   moteShape: 'spirit_thread', primary: '#b0bec5', secondary: '#ea80fc' },
+    POISON:    { id: 'POISON',    nameTh: 'วิถีพิษกู่',     moteShape: 'miasma_spore',  primary: '#9ccc65', secondary: '#ab47bc' },
+    DIVINE:    { id: 'DIVINE',    nameTh: 'วิถีเทวะชะตา',   moteShape: 'starlight_orb', primary: '#ffe082', secondary: '#ffffff' }
+  });
+
+  // Pillar 2A: 12 Elements & 34 Elemental Fusions VFX Palette
+  R.ELEMENT_VFX_PALETTE = Object.freeze({
+    METAL:     { primary: '#f8f9fa', secondary: '#ffd166', accent: '#90e0ef', style: 'razor_silver' },
+    WOOD:      { primary: '#52b788', secondary: '#b7e4c7', accent: '#f8c2d8', style: 'vine_blossom' },
+    WATER:     { primary: '#00b4d8', secondary: '#90e0ef', accent: '#caf0f8', style: 'tidal_wave' },
+    FIRE:      { primary: '#ff4d00', secondary: '#ffb703', accent: '#fff3b0', style: 'lotus_inferno' },
+    EARTH:     { primary: '#d4a373', secondary: '#e9c46a', accent: '#ccd5ae', style: 'monolith_amber' },
+    WIND:      { primary: '#80ed99', secondary: '#c7f9cc', accent: '#ffffff', style: 'gale_vortex' },
+    LIGHTNING: { primary: '#7209b7', secondary: '#4cc9f0', accent: '#f72585', style: 'thunder_arc' },
+    ICE:       { primary: '#48cae4', secondary: '#ade8f4', accent: '#ffffff', style: 'frost_crystal' },
+    LIGHT:     { primary: '#ffd60a', secondary: '#ffc300', accent: '#ffffff', style: 'radiant_sun' },
+    DARK:      { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
+    SPACE:     { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
+    TIME:      { primary: '#f4a261', secondary: '#e9c46a', accent: '#e0fbfc', style: 'chrono_wheel' },
+    FUSION_SAMADHI_FIRE:    { primary: '#ff0055', secondary: '#ffbe0b', accent: '#ffffff', style: 'fusion_dual_spiral' },
+    FUSION_FROST_THUNDER:   { primary: '#00f5d4', secondary: '#9b5de5', accent: '#ffffff', style: 'fusion_dual_spiral' },
+    FUSION_KARMA_BLOOD:     { primary: '#d90429', secondary: '#7209b7', accent: '#ffccd5', style: 'fusion_dual_spiral' },
+    FUSION_ASTRAL_SWORD:    { primary: '#4cc9f0', secondary: '#ffd166', accent: '#ffffff', style: 'fusion_dual_spiral' }
+  });
+
+  // Pillar 3A: Equipment Tier Glows (T1-T7) & Star Attunement (★1-3)
+  R.GEAR_TIER_GLOWS = Object.freeze({
+    1: { tier: 1, nameTh: 'สามัญ',     color: '#9e9e9e', glowAlpha: 0.0,  orbitSword: false, weaponSoul: false },
+    2: { tier: 2, nameTh: 'ชั้นดี',     color: '#66bb6a', glowAlpha: 0.16, orbitSword: false, weaponSoul: false },
+    3: { tier: 3, nameTh: 'ปราณแท้',   color: '#42a5f5', glowAlpha: 0.24, orbitSword: false, weaponSoul: false },
+    4: { tier: 4, nameTh: 'ล้ำเลิศ',    color: '#ab47bc', glowAlpha: 0.34, orbitSword: true,  weaponSoul: false },
+    5: { tier: 5, nameTh: 'ปฐพีเทวะ',  color: '#ffa726', glowAlpha: 0.44, orbitSword: true,  weaponSoul: false },
+    6: { tier: 6, nameTh: 'ตำนานสวรรค์', color: '#ffd54f', glowAlpha: 0.56, orbitSword: true,  weaponSoul: true },
+    7: { tier: 7, nameTh: 'บรรพกาลอมตะ', color: '#ff1744', glowAlpha: 0.68, orbitSword: true,  weaponSoul: true }
+  });
+
+  // Pillar 5A: Celestial Phenomenon Atmospheric Shaders
+  R.CELESTIAL_SHADERS = Object.freeze({
+    AUTO: {
+      id: 'AUTO',
+      nameTh: 'ตามวัฏจักรโลกจริง (Auto)',
+      icon: '☯️',
+      tint: null,
+      particleColor: null,
+      descTh: 'เปลี่ยนบรรยากาศตามปรากฏการณ์ฟ้าดินและฤดูกาลในโลกจำลองอัตโนมัติ'
+    },
+    BLOOD_MOON: {
+      id: 'BLOOD_MOON',
+      nameTh: 'จันทร์โลหิตอาบยุทธภพ (Blood Moon)',
+      icon: '🩸',
+      tint: 'rgba(135,14,38,0.22)',
+      beamColor: 'rgba(255,42,85,0.16)',
+      particleColor: '#ff4d6d',
+      descTh: 'จันทราสีชาดสาดแสงสีแดงทับทิมพร้อมละอองปราณโลหิตลอยตัวขึ้นจากพื้นพิภพ'
+    },
+    NINE_SUNS: {
+      id: 'NINE_SUNS',
+      nameTh: 'เก้าตะวันฉายส่อง (Nine Suns Corona)',
+      icon: '☀️',
+      tint: 'rgba(255,183,3,0.18)',
+      beamColor: 'rgba(255,235,130,0.20)',
+      particleColor: '#ffd166',
+      descTh: 'ลำแสงสุริยันสีทองอร่ามสาดส่องทแยงมุมลงมาเหนือยอดเขาพร้อมประกายอัคคีทองคำ'
+    },
+    METEOR_SHOWER: {
+      id: 'METEOR_SHOWER',
+      nameTh: 'ฝนดาวตกดาราสวรรค์ (Astral Meteor Shower)',
+      icon: '🌠',
+      tint: 'rgba(28,20,68,0.24)',
+      beamColor: 'rgba(114,239,221,0.14)',
+      particleColor: '#72efdd',
+      descTh: 'ดาราจักรเปิดออกพร้อมสายฝนดาวตกสีเงินครามพาดผ่านนภาเหนือสำนัก'
+    },
+    PRANA_TIDE: {
+      id: 'PRANA_TIDE',
+      nameTh: 'คลื่นปราณบรรพกาล (Primordial Qi Tide)',
+      icon: '🌌',
+      tint: 'rgba(16,88,78,0.18)',
+      beamColor: 'rgba(82,183,136,0.16)',
+      particleColor: '#80ed99',
+      descTh: 'สายธารออโรราสีหยกมรกตพัดผ่านยอดเขาพร้อมฟองปราณทิพย์ลอยตัวทั่วสำนัก'
+    }
+  });
+
   /* ---------- สร้าง/จัดการ renderer ---------- */
   R.create = (canvas) => {
     const r = {
@@ -1139,7 +1251,7 @@
       selected: null,
       follow: false,
       alpha: 1,
-      opts: { names: true, bubbles: true, weather: true, night: true, quality: 'auto', reducedMotion: false },
+      opts: { names: true, bubbles: true, weather: true, night: true, quality: 'auto', reducedMotion: false, realmHalos: true, flyingSwords: true, combatSlashes: true, sectSpectacles: true, livingFauna: true, celestialShaders: true, celestialPreview: 'AUTO' },
       dpr: Math.min(2, g.devicePixelRatio || 1),
       effectiveQuality: 'standard',
       avgDrawMs: 8,
@@ -1373,8 +1485,13 @@
       }
 
       const hour = (W.t % 1440) / 60;
+      const nightPre = this.nightFactor(hour);
       this.drawWater(ctx);
       this.drawLeylineVeins(ctx);
+      if (this.opts.sectSpectacles !== false) {
+        this.drawPlazaGrandArrayAndTotems(ctx);
+        this.drawPeakSanctuarySpectacles(ctx);
+      }
 
       const items = [];
       W.map.buildings.forEach(b => {
@@ -1423,6 +1540,9 @@
       }
 
       this.drawCastEffects(ctx);
+      if (this.opts.livingFauna !== false) {
+        this.drawLivingFloraAndFauna(ctx, hour, night);
+      }
       this.drawDriftingMountainMist(ctx);
       this.drawSectBarrierDome(ctx);
       this.drawMarkers(ctx);
@@ -1479,6 +1599,9 @@
 
       ctx.restore();
       if (this.opts.weather) this.drawWeather(ctx, W.weather.kind, hour);
+      if (this.opts.celestialShaders !== false) {
+        this.drawCelestialPhenomena(ctx, hour, night);
+      }
       this.drawOverlayText(ctx);
       this.updateAdaptiveQuality(performance.now() - drawStart);
     },
@@ -1511,6 +1634,9 @@
         const isLegend = !!(event.legendary || (motif && String(motif).startsWith('legend_')));
         this.castActive.delete(key);
         if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
+        const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
+        const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
+        const fusionKey = event.fusionId || event.fusion || null;
         this.castActive.set(key, {
           kind: forbidden ? 'forbidden' : 'normal',
           motif,
@@ -1518,6 +1644,9 @@
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
+          element: elemKey,
+          fusion: fusionKey,
+          stage: (a.cult && a.cult.stage) || 1,
           x,
           y,
           angle: Math.atan2(event.y * TS - y, event.x * TS - x),
@@ -1943,7 +2072,11 @@
         ctx.save(); ctx.translate(fx.x, fx.y - 7); ctx.globalAlpha = fade; ctx.lineCap = 'round';
         if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryCastMotif(ctx, fx, p, r, reduced);
+          if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
         } else if (fx.kind === 'normal') {
+          if (fx.element || fx.fusion) {
+            this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+          }
           ctx.fillStyle = 'rgba(109,223,181,.14)'; ctx.beginPath(); ctx.ellipse(0, 4, r * 0.9, r * 0.38, 0, 0, 7); ctx.fill();
           ctx.strokeStyle = 'rgba(236,213,133,.78)'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.ellipse(0, 4, r * 0.8, r * 0.34, 0, 0, 7); ctx.stroke();
           ctx.rotate(fx.angle + (reduced ? 0 : (p - 0.5) * 0.7));
@@ -2595,8 +2728,17 @@
       const eqA = armObj ? (armObj.visualKey || armObj.id || '') : '';
       const eqAcc = accObj ? (accObj.visualKey || accObj.id || '') : '';
       const cPath = (n && n.cult) ? n.cult.path : 'MORTAL';
+      const cStage = (n && n.cult && n.cult.stage) ? n.cult.stage : 0;
       const wUsable = !!(wpnObj && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
-      const sig = `${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${eqW}|${wUsable ? 1 : 0}|${eqA}|${eqAcc}`;
+      const wTier = wpnObj ? (wpnObj.tier || 1) : 0;
+      const aTier = armObj ? (armObj.tier || 1) : 0;
+      const accTier = accObj ? (accObj.tier || 1) : 0;
+      const wStars = wpnObj ? (wpnObj.stars || wpnObj.star || (wpnObj.quality === 'Masterwork' || wpnObj.legendary ? 3 : wpnObj.quality === 'Refined' ? 2 : wTier >= 5 ? 2 : wTier >= 3 ? 1 : 0)) : 0;
+      const aStars = armObj ? (armObj.stars || armObj.star || (armObj.legendary ? 3 : aTier >= 5 ? 2 : aTier >= 3 ? 1 : 0)) : 0;
+      const accStars = accObj ? (accObj.stars || accObj.star || (accObj.legendary ? 3 : accTier >= 5 ? 2 : accTier >= 3 ? 1 : 0)) : 0;
+      const petObj = (n && Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n && n.pet ? n.pet : null);
+      const petSig = petObj ? `${petObj.speciesId || petObj.id || 'pet'}:${petObj.stage || petObj.tier || 1}:${petObj.awakenedSymbol || ''}` : '';
+      const sig = `${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${cStage}|${eqW}|${wUsable ? 1 : 0}|${wTier}:${wStars}|${eqA}:${aTier}:${aStars}|${eqAcc}:${accTier}:${accStars}|${petSig}`;
 
       if (this.apCache && n && n.id) {
         const cached = this.apCache.get(n.id);
@@ -2627,7 +2769,24 @@
         weaponUsable: wUsable,
         hasArmor: !!armObj,
         armorVisualKey: armObj && armObj.visualKey ? armObj.visualKey : null,
-        accessoryVisualKey: accObj && accObj.visualKey ? accObj.visualKey : null
+        accessoryVisualKey: accObj && accObj.visualKey ? accObj.visualKey : null,
+        cultStage: cStage,
+        cultPath: cPath,
+        weaponTier: wTier,
+        armorTier: aTier,
+        accessoryTier: accTier,
+        highestGearTier: Math.max(wTier, aTier, accTier),
+        totalGearStars: Math.min(9, wStars + aStars + accStars),
+        weaponStars: wStars,
+        weaponElement: (wpnObj && (wpnObj.element || (Array.isArray(wpnObj.runes) && wpnObj.runes[0]))) || (n && n.cult && n.cult.element) || null,
+        activeSetCount: [wpnObj, armObj, accObj].filter(Boolean).length,
+        hasFlyingSword: !!(wUsable && (wTier >= 4 || (wpnObj && wpnObj.legendary) || (cStage >= 3 && (cPath === 'SWORD' || wpnObj)))),
+        hasWeaponSoul: !!(wUsable && (wTier >= 6 || (wpnObj && (wpnObj.legendary || wpnObj.weaponSoul || wpnObj.spiritNameTh)))),
+        hasSilkRibbon: cStage >= 7 || (armObj && armObj.visualKey === 'vis_celestial_crane_robe'),
+        hasPet: !!petObj,
+        petSpeciesId: petObj ? (petObj.speciesId || petObj.id || 'SPIRIT_BEAST') : null,
+        petTier: petObj ? (petObj.tier || petObj.stage || 2) : 0,
+        petSymbol: petObj ? (petObj.awakenedSymbol || petObj.fourSymbol || null) : null
       };
 
       if (this.apCache && n && n.id) {
@@ -2684,8 +2843,21 @@
       ctx.fillStyle = 'rgba(0,0,0,.26)';
       ctx.beginPath(); ctx.ellipse(0, 1, 5.6 * sc, 2.5, 0, 0, 7); ctx.fill();
 
+      // Companion Spirit Beast beside disciple on map (Pillar 1D)
+      if (ap.hasPet) {
+        this.drawCompanionPets(ctx, n, p, sc);
+      }
+
       // Legendary passive/mantra aura (pure read-only)
       this.drawLegendaryAura(ctx, n, act);
+
+      // Era 5 Pillar 1 & 3: Realm Halo, Path Signature Motes, Equipment Tier Glow & Set Resonance
+      if (this.opts.realmHalos !== false) {
+        this.drawCultivatorRealmHalo(ctx, n, ap, act, -bob);
+        this.drawPathSignatureMotes(ctx, n, ap, act, -bob);
+      }
+      this.drawEquipmentTierAura(ctx, n, ap, -bob);
+      this.drawWeaponSoulAndSetResonance(ctx, n, ap, -bob);
 
       // Cultivation / Breakthrough / Intensive Paid Training Qi Resonance
       if (n.cult && (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining')) {
@@ -2825,6 +2997,12 @@
         ctx.restore();
       }
       this.drawProp(ctx, n, act, armA, by, lunge, ap);
+      if (this.opts.flyingSwords !== false) {
+        this.drawOrbitingFlyingWeapon(ctx, n, ap, by, act);
+      }
+      if (this.opts.combatSlashes !== false) {
+        this.drawCombatSlashAndAfterimages(ctx, n, ap, act, armA, by, lunge);
+      }
 
       // Head, Hair, Topknot & Rank Crown
       const hy = -17.5 + by + (pose === 'bow' ? 2.2 : 0);
@@ -2890,6 +3068,11 @@
         ctx.fillRect(1, hy - 2.4, 1.3, 1.7);
       }
       ctx.restore();
+
+      // Era 5 Pillar 2D: Breakthrough Heavenly Tribulation Clouds & Lightning Pillars
+      if (act === 'breakthrough' || (n.fx && /ทะลวง|ทัณฑ์สวรรค์|สำเร็จขั้น/.test(n.fx.text || '') && this.W.t - n.fx.t < 6)) {
+        this.drawBreakthroughTribulationVfx(ctx, n, p, sc);
+      }
 
       // Unflipped HUD overlays: HP bar, Nameplate, Acting Office Seal, Action Bubble
       const showName = this.opts.names && (z >= 1.05 || sel);
@@ -3564,6 +3747,697 @@
         }
       }
     },
+
+    /* ---------- Patch v5.0.0 [Pillar 1]: 9-Stage Realm Halos, Silk Ribbons, 12-Path Motes & Spirit Pets ---------- */
+    drawCultivatorRealmHalo(ctx, n, ap, act, by) {
+      if (!n || !n.cult) return false;
+      const stg = clamp(n.cult.stage || 1, 1, 9);
+      const spec = R.REALM_VISUAL_TIERS[stg] || R.REALM_VISUAL_TIERS[1];
+      const t = this.t + (n.n || 0) * 0.5;
+      const isMeditating = act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining';
+
+      ctx.save();
+      // 1. Stages 1-2: Subtle Breathing Foundation Qi Ring at feet
+      if (stg <= 2) {
+        if (isMeditating || stg === 2 || this.selected === n.id) {
+          const pulse = 0.5 + 0.5 * Math.sin(t * 2.6);
+          ctx.strokeStyle = spec.color;
+          ctx.globalAlpha = isMeditating ? 0.55 : 0.28 + pulse * 0.14;
+          ctx.lineWidth = stg === 2 ? 1.3 : 1.0;
+          ctx.beginPath();
+          ctx.ellipse(0, 1.2, spec.radius + pulse * 1.2, (spec.radius + pulse * 1.2) * 0.42, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      // 2. Stages 3-4: Golden Core (金丹) Orbiting Bead & Radiant Dantian Ring
+      else if (stg <= 4) {
+        const pulse = 0.5 + 0.5 * Math.sin(t * 3.0);
+        ctx.strokeStyle = spec.color;
+        ctx.globalAlpha = 0.42 + pulse * 0.18;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(0, 1.2, spec.radius, spec.radius * 0.42, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        const orbCount = stg === 4 ? 2 : 1;
+        for (let i = 0; i < orbCount; i++) {
+          const ang = t * 2.2 + i * Math.PI;
+          const ox = Math.cos(ang) * 8.2, oy = -10.5 + by + Math.sin(ang * 1.5) * 3.2;
+          ctx.fillStyle = spec.secondary;
+          ctx.globalAlpha = 0.88;
+          ctx.beginPath(); ctx.arc(ox, oy, 1.9, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = spec.color;
+          ctx.lineWidth = 0.9;
+          ctx.stroke();
+        }
+      }
+      // 3. Stages 5-6: Nascent Soul / Spirit Severing Rotating Back Halo & Lotus Wheel (脑后光轮)
+      else if (stg <= 6) {
+        const hy = -15.5 + by;
+        ctx.strokeStyle = spec.color;
+        ctx.globalAlpha = 0.58;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, hy, 7.6, 0, Math.PI * 2);
+        ctx.stroke();
+        const spokes = stg === 6 ? 8 : 6;
+        for (let i = 0; i < spokes; i++) {
+          const a = t * 1.2 + (i * Math.PI * 2) / spokes;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * 4.8, hy + Math.sin(a) * 4.8);
+          ctx.lineTo(Math.cos(a) * 8.6, hy + Math.sin(a) * 8.6);
+          ctx.stroke();
+        }
+        // Lotus ground ring
+        ctx.strokeStyle = spec.secondary;
+        ctx.globalAlpha = 0.45;
+        ctx.beginPath();
+        ctx.ellipse(0, 1.2, spec.radius, spec.radius * 0.44, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      // 4. Stages 7-9: Celestial Immortal Mandala + Flowing Dunhuang Silk Ribbon (仙家披帛)
+      else {
+        const hy = -16.0 + by;
+        // Double counter-rotating divine mandala wheel behind shoulders/head
+        ctx.strokeStyle = spec.color;
+        ctx.globalAlpha = 0.72;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(0, hy, 9.2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = spec.secondary;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.arc(0, hy, 6.4, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let i = 0; i < 8; i++) {
+          const a = -t * 1.5 + (i * Math.PI) / 4;
+          ctx.fillStyle = i % 2 === 0 ? spec.color : spec.secondary;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * 9.2, hy + Math.sin(a) * 9.2, 1.35, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Flowing Celestial Silk Ribbon (披帛) arching gracefully around shoulders
+        const wave = Math.sin(t * 2.4) * 2.2;
+        ctx.strokeStyle = stg >= 9 ? '#00f5d4' : '#ffd740';
+        ctx.globalAlpha = 0.78;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(-7.5, -9.5 + by);
+        ctx.quadraticCurveTo(-11.5, -18.5 + by + wave, 0, -23.5 + by - wave * 0.4);
+        ctx.quadraticCurveTo(11.5, -18.5 + by - wave, 7.5, -9.5 + by);
+        ctx.stroke();
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawPathSignatureMotes(ctx, n, ap, act, by) {
+      if (!n || !n.cult) return false;
+      const stg = n.cult.stage || 1;
+      const active = act === 'cultivate' || act === 'practice' || act === 'skillDrill' || act === 'fight' || act === 'breakthrough' || stg >= 3 || this.selected === n.id;
+      if (!active) return false;
+
+      const pKey = n.cult.path || 'SWORD';
+      const sig = R.PATH_VISUAL_SIGNATURES[pKey] || R.PATH_VISUAL_SIGNATURES.SWORD;
+      const t = this.t + (n.n || 0) * 0.9;
+      const count = stg >= 6 ? 4 : stg >= 3 ? 3 : 2;
+
+      ctx.save();
+      ctx.globalAlpha = 0.76;
+      for (let i = 0; i < count; i++) {
+        const a = t * 1.7 + (i * Math.PI * 2) / count;
+        const mx = Math.cos(a) * (7.5 + (i % 2) * 2.0);
+        const my = -9.5 + by + Math.sin(a * 1.3) * 4.5;
+        ctx.fillStyle = i % 2 === 0 ? sig.primary : sig.secondary;
+        ctx.strokeStyle = sig.primary;
+        ctx.lineWidth = 1.0;
+
+        if (pKey === 'SWORD') {
+          ctx.beginPath();
+          ctx.moveTo(mx, my - 2.6);
+          ctx.lineTo(mx, my + 2.6);
+          ctx.stroke();
+        } else if (pKey === 'TALISMAN' || pKey === 'ARRAY') {
+          ctx.fillRect(mx - 1.4, my - 2.0, 2.8, 4.0);
+        } else if (pKey === 'SOUND') {
+          ctx.beginPath();
+          ctx.arc(mx, my, 2.1, -0.8, 0.8);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(mx, my, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawCompanionPets(ctx, n, p, sc) {
+      const pet = (n && Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n && n.pet ? n.pet : null);
+      if (!pet) return false;
+      const t = this.t + (n.n || 0) * 0.6;
+      const face = n.face >= 0 ? 1 : -1;
+      const px = -face * 10.5;
+      const py = 1.5 + Math.sin(t * 4.2) * 0.9;
+      const spId = String(pet.speciesId || pet.id || 'SPIRIT_FOX').toUpperCase();
+      const sym = pet.awakenedSymbol || pet.fourSymbol || null;
+      const col = sym === 'AZURE_DRAGON' ? '#00e5ff'
+        : sym === 'VERMILION_BIRD' ? '#ff5252'
+        : sym === 'WHITE_TIGER' ? '#f8f9fa'
+        : sym === 'BLACK_TORTOISE' ? '#2ec4b6'
+        : /FOX|NINE/.test(spId) ? '#ff9ebb'
+        : /CRANE|PHOENIX|BIRD|ROC/.test(spId) ? '#90e0ef'
+        : /TIGER|WOLF/.test(spId) ? '#ffd166'
+        : /TURTLE|TORTOISE/.test(spId) ? '#52b788'
+        : '#c77dff';
+
+      ctx.save();
+      ctx.translate(px, py);
+      // Pet shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.beginPath(); ctx.ellipse(0, 1.2, 3.8, 1.6, 0, 0, Math.PI * 2); ctx.fill();
+
+      // Awakened Four-Symbol constellation ring
+      if (sym || (pet.tier || pet.stage || 1) >= 4) {
+        ctx.strokeStyle = col;
+        ctx.globalAlpha = 0.65;
+        ctx.lineWidth = 1.0;
+        ctx.beginPath(); ctx.ellipse(0, 0.8, 5.2, 2.3, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      // Miniature Spirit Beast body, head, ears & tail
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(0, -2.5, 3.6, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(face * 2.6, -4.4, 2.2, 0, Math.PI * 2); ctx.fill();
+      // Ears / crest
+      ctx.beginPath();
+      ctx.moveTo(face * 1.8, -6.0); ctx.lineTo(face * 2.4, -8.2); ctx.lineTo(face * 3.2, -6.0);
+      ctx.closePath(); ctx.fill();
+      // Spirited tail
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-face * 3.2, -2.5);
+      ctx.quadraticCurveTo(-face * 5.8, -5.8 + Math.sin(t * 5) * 1.4, -face * 4.5, -7.2);
+      ctx.stroke();
+      ctx.restore();
+      return true;
+    },
+
+    /* ---------- Patch v5.0.0 [Pillar 2]: Multi-Layered Weapon Slashes, Elemental Fusion & Heavenly Tribulation ---------- */
+    drawCombatSlashAndAfterimages(ctx, n, ap, act, armA, by, lunge) {
+      const inCombat = act === 'fight' || act === 'practice' || act === 'skillDrill' || (act === 'pair' && n.act?.ctx?.pair?.type === 'spar');
+      const movingFast = (!!n.path || !!n.travel) && ((ap && ap.cultStage >= 4) || act === 'fight');
+
+      // 1. Movement Technique Shadow Afterimages (ภาพติดตาวิชาตัวเบา)
+      if (movingFast) {
+        ctx.save();
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = (ap && ap.robe) || '#4fc3f7';
+        ctx.beginPath();
+        ctx.ellipse(-4.5, -9.0 + by, 3.5, 6.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (!inCombat) return false;
+      const t = this.t + (n.n || 0) * 0.73;
+      const swingPhase = Math.sin(t * 8.5);
+      if (act !== 'fight' && swingPhase < 0.15) return false;
+
+      const wType = (ap && ap.weaponType) || 'SWORD';
+      const elKey = (ap && ap.weaponElement) || (n.cult && n.cult.element) || 'METAL';
+      const pal = R.ELEMENT_VFX_PALETTE[elKey] || R.ELEMENT_VFX_PALETTE.METAL;
+
+      ctx.save();
+      if (wType === 'SPEAR' || wType === 'STAFF') {
+        // Piercing Dragon Spear Cone & Spiral Thrust
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(4, -11 + by);
+        ctx.lineTo(17 + lunge, -15 + by);
+        ctx.stroke();
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.arc(12 + lunge, -13 + by, 4.2, -0.9, 0.9);
+        ctx.stroke();
+      } else if (wType === 'ZITHER') {
+        // Expanding Sonic Jade Ripple Rings
+        ctx.strokeStyle = '#80ffdb';
+        ctx.lineWidth = 1.2;
+        const rr = 6 + ((t * 12) % 9);
+        ctx.beginPath();
+        ctx.arc(8, -11 + by, rr, -1.1, 1.1);
+        ctx.stroke();
+      } else if (wType === 'FIST_PALM' || !wType) {
+        // Golden/Elemental Palm Shockwave Arc
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(9 + lunge, -11 + by, 7.5, -0.85, 0.85);
+        ctx.stroke();
+      } else {
+        // 3-Layer Crescent Sword / Saber Qi Slash (外弧光 + 剑气核心 + 残影)
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        ctx.arc(6 + lunge, -11 + by, 11.5, -1.25, 0.45);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.arc(6.5 + lunge, -11 + by, 10.2, -1.15, 0.35);
+        ctx.stroke();
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawElementalCastAndFusionVfx(ctx, fx, p, r) {
+      if (!ctx || !fx) return false;
+      const fKey = fx.fusion && R.ELEMENT_VFX_PALETTE[fx.fusion] ? fx.fusion : null;
+      const eKey = fx.element && R.ELEMENT_VFX_PALETTE[fx.element] ? fx.element : 'FIRE';
+      const pal = R.ELEMENT_VFX_PALETTE[fKey || eKey] || R.ELEMENT_VFX_PALETTE.FIRE;
+
+      ctx.save();
+      // Dual-color intertwining elemental spiral + ground sigil
+      ctx.strokeStyle = pal.primary;
+      ctx.lineWidth = 1.9;
+      ctx.beginPath();
+      ctx.ellipse(0, 4, r * 1.08, r * 0.46, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = pal.secondary;
+      ctx.lineWidth = 1.4;
+      for (let arm = 0; arm < 2; arm++) {
+        const a0 = p * Math.PI * 3 + arm * Math.PI;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.78, a0, a0 + 1.8);
+        ctx.stroke();
+      }
+      // Elemental burst motes
+      ctx.fillStyle = pal.accent;
+      for (let i = 0; i < 4; i++) {
+        const a = (i * Math.PI) / 2 + p * 2.5;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * r * 0.85, Math.sin(a) * r * 0.42 - p * 8, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawBreakthroughTribulationVfx(ctx, n, p, sc) {
+      if (!ctx || !n || !p) return false;
+      const x = p.x * TS, y = p.y * TS;
+      const stg = (n.cult && n.cult.stage) || 1;
+      const t = this.t + (n.n || 0);
+
+      ctx.save();
+      ctx.translate(x, y);
+      // 1. Golden-Purple Bagua Breakthrough Ground Array
+      ctx.strokeStyle = stg >= 5 ? '#e0aaff' : '#ffd166';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.ellipse(0, 1, 16 * sc, 7 * sc, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 2. Dark Purple-Gold Tribulation Cloud Vortex (劫云) overhead
+      const cloudY = -36 * sc;
+      ctx.fillStyle = 'rgba(38,18,64,0.78)';
+      ctx.beginPath();
+      ctx.ellipse(0, cloudY, 18 * sc, 6.5 * sc, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffd740';
+      ctx.lineWidth = 1.1;
+      ctx.stroke();
+
+      // 3. Jagged Heavenly Lightning Pillar (天劫雷柱) striking from cloud to cultivator
+      ctx.strokeStyle = stg >= 6 ? '#ff4081' : '#fff59d';
+      ctx.lineWidth = 2.1;
+      const jitter = Math.sin(t * 22) * 3.2;
+      ctx.beginPath();
+      ctx.moveTo(0, cloudY + 3);
+      ctx.lineTo(-3.5 + jitter, cloudY * 0.68);
+      ctx.lineTo(3.2 - jitter * 0.6, cloudY * 0.36);
+      ctx.lineTo(0, -10 * sc);
+      ctx.stroke();
+      ctx.restore();
+      return true;
+    },
+
+    /* ---------- Patch v5.0.0 [Pillar 3]: Equipment Tier Glows, Orbiting Flying Swords & Weapon Souls ---------- */
+    drawEquipmentTierAura(ctx, n, ap, by) {
+      const maxTier = (ap && ap.highestGearTier) || 0;
+      if (maxTier < 3) return false;
+      const spec = R.GEAR_TIER_GLOWS[clamp(maxTier, 1, 7)] || R.GEAR_TIER_GLOWS[3];
+      const stars = clamp((ap && ap.totalGearStars) || 0, 0, 9);
+      const t = this.t + (n.n || 0) * 0.8;
+
+      ctx.save();
+      ctx.strokeStyle = spec.color;
+      ctx.globalAlpha = spec.glowAlpha;
+      ctx.lineWidth = maxTier >= 6 ? 1.8 : 1.2;
+      ctx.beginPath();
+      ctx.ellipse(0, -8.5 + by, 6.8, 9.8, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Star-attunement motes (★1-3)
+      const starNodes = Math.min(3, Math.ceil(stars / 2));
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = '#fff8c4';
+      for (let i = 0; i < starNodes; i++) {
+        const a = t * 2.0 + (i * Math.PI * 2) / Math.max(1, starNodes);
+        const sx = Math.cos(a) * 7.8, sy = -12 + by + Math.sin(a) * 4.5;
+        ctx.fillRect(sx - 1.0, sy - 1.0, 2.0, 2.0);
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawOrbitingFlyingWeapon(ctx, n, ap, by, act) {
+      if (!ap || !ap.hasFlyingSword) return false;
+      const t = this.t + (n.n || 0) * 1.1;
+      const speed = act === 'fight' ? 3.8 : 2.1;
+      const ang = t * speed;
+      const ox = Math.cos(ang) * 11.2;
+      const oy = -11.5 + by + Math.sin(ang * 1.5) * 4.2;
+      const col = ap.weaponTier >= 6 ? '#ffd740' : ap.weaponTier >= 4 ? '#00e5ff' : '#80ed99';
+
+      ctx.save();
+      // Luminous comet trail behind flying sword
+      ctx.strokeStyle = col;
+      ctx.globalAlpha = 0.45;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      const prevAng = ang - 0.55;
+      ctx.moveTo(Math.cos(prevAng) * 11.2, -11.5 + by + Math.sin(prevAng * 1.5) * 4.2);
+      ctx.lineTo(ox, oy);
+      ctx.stroke();
+
+      // Autonomous Flying Sword Blade & Hilt (飞剑环绕)
+      ctx.globalAlpha = 0.92;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.7;
+      ctx.beginPath();
+      ctx.moveTo(ox - 3.2, oy + 1.8);
+      ctx.lineTo(ox + 3.8, oy - 2.6);
+      ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(ox - 1.6, oy + 0.9, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return true;
+    },
+
+    drawWeaponSoulAndSetResonance(ctx, n, ap, by) {
+      if (!ap) return false;
+      let drew = false;
+      const t = this.t + (n.n || 0) * 0.65;
+
+      ctx.save();
+      // 1. Full 3-Piece Equipment Set Resonance Foot Sigil
+      if (ap.activeSetCount >= 3 && ap.highestGearTier >= 3) {
+        ctx.strokeStyle = ap.highestGearTier >= 5 ? '#ffd166' : '#4cc9f0';
+        ctx.globalAlpha = 0.48;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(0, 1.4, 8.8, 3.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        drew = true;
+      }
+
+      // 2. Weapon Soul Spirit Manifestation (器灵显化) floating above T6-T7 / Legendary wielder
+      if (ap.hasWeaponSoul) {
+        const sx = -5.5 + Math.cos(t * 1.8) * 2.2;
+        const sy = -22.5 + by + Math.sin(t * 2.4) * 1.6;
+        ctx.globalAlpha = 0.78;
+        ctx.fillStyle = '#ffd740';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#00f5d4';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 3.8, 0, Math.PI * 2);
+        ctx.stroke();
+        drew = true;
+      }
+      ctx.restore();
+      return drew;
+    },
+
+    /* ---------- Patch v5.0.0 [Pillar 4]: Living Sect Ground Spectacles (Plaza Taiji Array, Totems, Banners, Koi, Cranes, Lanterns) ---------- */
+    drawPlazaGrandArrayAndTotems(ctx) {
+      const W = this.W;
+      if (!W || !W.map || !W.map.byId) return false;
+      const pl = W.map.byId.plaza;
+      if (!pl) return false;
+
+      const cx = (pl.x + pl.w / 2) * TS;
+      const cy = (pl.y + pl.h / 2) * TS;
+      const rad = Math.min(pl.w, pl.h) * TS * 0.42;
+      const t = this.t;
+      const col = R.resolveBarrierColor(W);
+
+      ctx.save();
+      // 1. Rotating Luminous Yin-Yang Bagua Grand Formation on Central Plaza
+      ctx.strokeStyle = col;
+      ctx.globalAlpha = 0.34 + 0.08 * Math.sin(t * 1.6);
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rad, rad * 0.58, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#fff3b0';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rad * 0.72, rad * 0.42, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 8 Bagua Trigram Spokes rotating slowly
+      for (let i = 0; i < 8; i++) {
+        const a = t * 0.25 + (i * Math.PI) / 4;
+        const x1 = cx + Math.cos(a) * (rad * 0.45);
+        const y1 = cy + Math.sin(a) * (rad * 0.26);
+        const x2 = cx + Math.cos(a) * (rad * 0.96);
+        const y2 = cy + Math.sin(a) * (rad * 0.55);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+
+      // 2. Four Cardinal Sect Totem Pillars (เสาโทเท็มสี่ทิศลานแปดทิศ)
+      const corners = [
+        [pl.x * TS + 10, pl.y * TS + 10],
+        [(pl.x + pl.w) * TS - 10, pl.y * TS + 10],
+        [pl.x * TS + 10, (pl.y + pl.h) * TS - 10],
+        [(pl.x + pl.w) * TS - 10, (pl.y + pl.h) * TS - 10]
+      ];
+      ctx.globalAlpha = 0.85;
+      for (let i = 0; i < corners.length; i++) {
+        const [tx, ty] = corners[i];
+        ctx.fillStyle = '#5c4d3c';
+        ctx.fillRect(tx - 3, ty - 18, 6, 18);
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(tx, ty - 20 + Math.sin(t * 2.5 + i) * 1.2, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawPeakSanctuarySpectacles(ctx) {
+      const W = this.W;
+      if (!W || !W.map || !Array.isArray(W.map.buildings)) return false;
+      const t = this.t;
+      let count = 0;
+
+      ctx.save();
+      for (let i = 0; i < W.map.buildings.length; i++) {
+        const b = W.map.buildings[i];
+        if (!b || !b.isPeakSanctuary) continue;
+        const active = !!(b.founded || (MAP.isPeakBuildingActive && MAP.isPeakBuildingActive(W, b)));
+        if (!active) continue;
+
+        const cx = (b.x + b.w / 2) * TS;
+        const cy = (b.y + b.h / 2) * TS;
+        const rx = b.w * TS * 0.58;
+        const ry = b.h * TS * 0.36;
+        const pCol = (MAP.PEAK_LAYOUTS && MAP.PEAK_LAYOUTS[b.id] && MAP.PEAK_LAYOUTS[b.id].leylineColor) || '#ffd166';
+
+        // Active Peak Guardian Formation Ring
+        ctx.strokeStyle = pCol;
+        ctx.globalAlpha = 0.32 + 0.10 * Math.sin(t * 2 + i);
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 8, rx, ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Twin Fluttering Silk Peak Banners (ธงไหมประจำยอดเขา)
+        const wave = Math.sin(t * 3.0 + i) * 2.5;
+        ctx.globalAlpha = 0.88;
+        for (const side of [-1, 1]) {
+          const bx = cx + side * (b.w * TS * 0.46);
+          const by = (b.y + b.h) * TS - 4;
+          ctx.fillStyle = '#4a3525';
+          ctx.fillRect(bx - 1, by - 22, 2, 22);
+          ctx.fillStyle = pCol;
+          ctx.beginPath();
+          ctx.moveTo(bx + 1, by - 21);
+          ctx.lineTo(bx + side * (11 + wave), by - 18);
+          ctx.lineTo(bx + side * (9 + wave * 0.8), by - 8);
+          ctx.lineTo(bx + 1, by - 10);
+          ctx.closePath();
+          ctx.fill();
+        }
+        count++;
+      }
+      ctx.restore();
+      return count > 0;
+    },
+
+    drawLivingFloraAndFauna(ctx, hour, night) {
+      const W = this.W;
+      if (!W || !W.map) return false;
+      const t = this.t;
+
+      ctx.save();
+      // 1. Golden & Crimson Spirit Koi Carp (ปลาคาร์ปวิญญาณ) in Spirit Pond
+      const pond = W.map.byId && W.map.byId.spirit_pond;
+      if (pond) {
+        const px0 = pond.x * TS + 14, py0 = pond.y * TS + 14;
+        const pw = Math.max(20, (pond.w - 2) * TS), ph = Math.max(20, (pond.h - 2) * TS);
+        for (let i = 0; i < 6; i++) {
+          const ang = t * (0.55 + (i % 3) * 0.15) + i * 1.1;
+          const kx = px0 + pw * 0.5 + Math.cos(ang) * (pw * 0.34);
+          const ky = py0 + ph * 0.5 + Math.sin(ang * 1.3) * (ph * 0.32);
+          ctx.fillStyle = i % 2 === 0 ? '#ff9f1c' : '#ff4d6d';
+          ctx.beginPath();
+          ctx.ellipse(kx, ky, 3.6, 1.6, ang + Math.PI / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(kx + Math.cos(ang) * 1.5, ky + Math.sin(ang) * 1.5, 0.9, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 2. Soaring Immortal White Cranes (นกกระเรียนเซียนเหินเวหา) across mountain peaks
+      for (let i = 0; i < 5; i++) {
+        const cx = ((i * 520 + t * (22 + i * 3)) % (MAP.W * TS));
+        const cy = (18 + i * 26) * TS + Math.sin(t * 1.2 + i) * 16;
+        const flap = Math.sin(t * 6.5 + i * 1.7) * 4.5;
+        // Soft ground shadow below crane
+        ctx.fillStyle = 'rgba(0,0,0,0.14)';
+        ctx.beginPath();
+        ctx.ellipse(cx - 6, cy + 26, 5.5, 2.0, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Crane wings & body
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.7;
+        ctx.beginPath();
+        ctx.moveTo(cx - 7, cy + flap);
+        ctx.quadraticCurveTo(cx, cy - 2, cx + 7, cy + flap);
+        ctx.stroke();
+        ctx.fillStyle = '#e63946';
+        ctx.beginPath();
+        ctx.arc(cx + 3.5, cy - 1, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 3. Rising Kongming Sky Lanterns (โคมลอยขงเบ้งยามราตรีและเทศกาล)
+      const isBanquet = !!(W.sect && W.sect.festival && W.sect.festival.until > W.t);
+      if ((night && night > 0.15) || isBanquet) {
+        const lCount = isBanquet ? 10 : 6;
+        for (let i = 0; i < lCount; i++) {
+          const lx = (75 + ((i * 23) % 90)) * TS + Math.sin(t * 0.8 + i) * 12;
+          const ly = (110 - ((t * 5 + i * 14) % 75)) * TS;
+          ctx.fillStyle = 'rgba(255,214,102,0.88)';
+          ctx.beginPath();
+          ctx.ellipse(lx, ly, 3.2, 4.2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ff6b35';
+          ctx.beginPath();
+          ctx.arc(lx, ly + 2.5, 1.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+      return true;
+    },
+
+    /* ---------- Patch v5.0.0 [Pillar 5]: Celestial Phenomenon Atmospheric Shaders ---------- */
+    resolveActiveCelestialShader() {
+      const preview = this.opts && this.opts.celestialPreview;
+      if (preview && preview !== 'AUTO' && R.CELESTIAL_SHADERS[preview]) {
+        return R.CELESTIAL_SHADERS[preview];
+      }
+      const W = this.W;
+      if (!W) return null;
+      const align = String(W.celestialAlignment || (W.world && W.world.celestialEvent) || (W.sect && W.sect.fengShui && W.sect.fengShui.celestialPhenomenon && W.sect.fengShui.celestialPhenomenon.id) || '').toUpperCase();
+      if (/BLOOD|ECLIPSE|CRIMSON|โลหิต/.test(align)) return R.CELESTIAL_SHADERS.BLOOD_MOON;
+      if (/SUN|YANG|SOLAR|สุริยัน|ตะวัน/.test(align)) return R.CELESTIAL_SHADERS.NINE_SUNS;
+      if (/STAR|METEOR|ASTRAL|ดารา|ดาวตก/.test(align)) return R.CELESTIAL_SHADERS.METEOR_SHOWER;
+      if (/PRANA|TIDE|AURORA|ปราณ/.test(align)) return R.CELESTIAL_SHADERS.PRANA_TIDE;
+      return null;
+    },
+
+    drawCelestialPhenomena(ctx, hour, night) {
+      const spec = this.resolveActiveCelestialShader();
+      if (!spec || !spec.tint) return false;
+      const w = this.vw || 412, h = this.vh || 860, t = this.t;
+
+      ctx.save();
+      // 1. Full-viewport atmospheric glaze
+      ctx.fillStyle = spec.tint;
+      ctx.fillRect(0, 0, w, h);
+
+      // 2. Diagonal Celestial Light Rays / Aurora Beams
+      if (spec.beamColor) {
+        ctx.fillStyle = spec.beamColor;
+        for (let i = 0; i < 3; i++) {
+          const bx = ((i * 180 + t * 12) % (w + 120)) - 60;
+          ctx.beginPath();
+          ctx.moveTo(bx, 0);
+          ctx.lineTo(bx + 55, 0);
+          ctx.lineTo(bx + 145, h);
+          ctx.lineTo(bx + 90, h);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      // 3. Phenomenon Particles (Meteors, Blood Embers, Solar Sparks, Prana Motes)
+      ctx.fillStyle = spec.particleColor || '#ffd166';
+      ctx.strokeStyle = spec.particleColor || '#ffd166';
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 14; i++) {
+        const px = ((i * 97 + t * (spec.id === 'METEOR_SHOWER' ? 140 : 24)) % w);
+        const py = ((i * 67 + t * (spec.id === 'METEOR_SHOWER' ? 95 : 18)) % h);
+        if (spec.id === 'METEOR_SHOWER') {
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - 16, py - 10);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(px, py, 1.8 + (i % 2) * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+      return true;
+    },
+
     drawOverlayText() {}
   };
 
@@ -3617,11 +4491,36 @@
     c.save();
     c.scale(s, s);
 
-    // Cultivation path aura ring in background
+    // Era 5 Pillar 1: Cultivation Realm Mandala & Path Aura in Portrait Background
     if (n.cult) {
-      c.strokeStyle = col + '55';
+      const stg = clamp(n.cult.stage || 1, 1, 9);
+      const rSpec = R.REALM_VISUAL_TIERS[stg] || R.REALM_VISUAL_TIERS[1];
+      c.strokeStyle = col + '66';
       c.lineWidth = 1.4;
       c.beginPath(); c.arc(20, 18, 15, 0, Math.PI * 2); c.stroke();
+      if (stg >= 3) {
+        c.strokeStyle = rSpec.color;
+        c.lineWidth = stg >= 7 ? 1.8 : 1.2;
+        c.beginPath(); c.arc(20, 17, 16.8, 0, Math.PI * 2); c.stroke();
+      }
+      if (stg >= 5) {
+        const spokes = stg >= 7 ? 12 : 8;
+        for (let i = 0; i < spokes; i++) {
+          const a = (i * Math.PI * 2) / spokes;
+          c.beginPath();
+          c.moveTo(20 + Math.cos(a) * 13.5, 17 + Math.sin(a) * 13.5);
+          c.lineTo(20 + Math.cos(a) * 17.5, 17 + Math.sin(a) * 17.5);
+          c.stroke();
+        }
+      }
+      if (stg >= 7) {
+        // Immortal Flowing Silk Ribbon (仙家披帛) in Portrait
+        c.strokeStyle = stg >= 9 ? '#00f5d4' : '#ffd740';
+        c.lineWidth = 1.6;
+        c.beginPath();
+        c.arc(20, 22, 17.5, Math.PI * 1.08, Math.PI * 1.92);
+        c.stroke();
+      }
     }
 
     // 2. Back Hair
@@ -3804,9 +4703,22 @@
       c.fillRect(12.5, 7.6, 15, 2.0);
     }
 
-    // Subtle portrait frame border
-    c.strokeStyle = rk.color + '88';
-    c.lineWidth = 1.2;
+    // Era 5 Divine Forehead Mark (花钿 / 道印) for Stage >= 4 Cultivators
+    if (n.cult && (n.cult.stage || 1) >= 4) {
+      c.fillStyle = (n.cult.stage || 1) >= 7 ? '#00f5d4' : '#ffd166';
+      c.beginPath();
+      c.moveTo(20, 11.2);
+      c.lineTo(21.1, 12.8);
+      c.lineTo(20, 14.2);
+      c.lineTo(18.9, 12.8);
+      c.closePath();
+      c.fill();
+    }
+
+    // Subtle portrait frame border + Equipment Tier Glow Frame
+    const maxPillarTier = Math.max(wpnObj ? (wpnObj.tier || 1) : 0, armObj ? (armObj.tier || 1) : 0, accObj ? (accObj.tier || 1) : 0);
+    c.strokeStyle = maxPillarTier >= 5 ? '#ffd54f' : (rk.color + '88');
+    c.lineWidth = maxPillarTier >= 5 ? 1.8 : 1.2;
     c.strokeRect(0.6, 0.6, 38.8, 38.8);
     c.restore();
 

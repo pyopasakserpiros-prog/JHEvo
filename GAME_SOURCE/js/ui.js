@@ -716,6 +716,7 @@
   };
   UI.focusNpc = id => { const n = UI.G.W.byId[id]; if (!n) return; UI.G.R.selected = id; if (!n.away && !n.dead) { UI.G.R.focus(n.x, n.y, Math.max(UI.G.R.cam.z, 2)); } UI.updateHud(true); };
 
+  function R_SHADERS_HAS(k) { return !!(g.Render && g.Render.CELESTIAL_SHADERS && g.Render.CELESTIAL_SHADERS[k]); }
   UI.doAction = (a, arg) => {
     const G = UI.G, W = G.W;
     if (a === 'npc') { const p = String(arg || '').split('|'); UI.openNpc(p[0], p[1]); }
@@ -739,6 +740,29 @@
       if (arg === 'bell' && UI.audio) UI.audio.playBell();
       else if (arg === 'blade' && UI.audio) UI.audio.playBladeClash();
       else if (UI.audio) UI.audio.playGuqinChime();
+    }
+    else if (a === 'cycle-celestial-preview') {
+      const order = ['AUTO', 'BLOOD_MOON', 'NINE_SUNS', 'METEOR_SHOWER', 'PRANA_TIDE'];
+      const cur = (G.opts && G.opts.celestialPreview) || (G.R && G.R.opts && G.R.opts.celestialPreview) || 'AUTO';
+      const next = (arg && R_SHADERS_HAS(arg)) ? arg : order[(order.indexOf(cur) + 1) % order.length];
+      if (G.opts) G.opts.celestialPreview = next;
+      if (G.R && G.R.opts) G.R.opts.celestialPreview = next;
+      const spec = (g.Render && g.Render.CELESTIAL_SHADERS && g.Render.CELESTIAL_SHADERS[next]) || { icon: '✨', nameTh: next };
+      if (UI.audio) UI.audio.playGuqinChime();
+      UI.toast(spec.icon + ' ทัศนียภาพฟ้าดิน: ' + spec.nameTh);
+      UI.applyOpts();
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'toggle-vfx-opt') {
+      const k = String(arg || 'realmHalos');
+      const curVal = (G.opts && G.opts[k] !== undefined) ? G.opts[k] : (G.R && G.R.opts && G.R.opts[k] !== undefined ? G.R.opts[k] : true);
+      const nextVal = !curVal;
+      if (G.opts) G.opts[k] = nextVal;
+      if (G.R && G.R.opts) G.R.opts[k] = nextVal;
+      UI.applyOpts();
+      UI.toast((nextVal ? '✨ เปิดแสดงผล: ' : '○ ซ่อนแสดงผล: ') + k);
+      UI.render();
     }
     else if (a === 'resolve-extradition') {
       const [ultId, choice] = String(arg || '').split('|');
@@ -3668,6 +3692,16 @@
         }
         if (unappointedElders.length) {
           h += '<div style="margin-top:5px;font-size:11px" class="muted">🎖️ ผู้อาวุโสสำนักไร้ตำแหน่งบริหาร (' + unappointedElders.length + ' คน): ' + unappointedElders.slice(0, 6).map(eNpc => esc(HC.fullName(eNpc))).join(', ') + '</div>';
+        }
+        h += '</div>';
+      }
+      {
+        const curPrev = (UI.G && UI.G.R && UI.G.R.opts && UI.G.R.opts.celestialPreview) || 'AUTO';
+        const shaders = (g.Render && g.Render.CELESTIAL_SHADERS) ? Object.values(g.Render.CELESTIAL_SHADERS) : [];
+        h += '<h3>✨ ศูนย์ควบคุมกราฟิกเซียนยุคที่ 5 (Era 5 Grand Celestial Visuals v5.0.0)</h3><div class="card" style="border-color:var(--gold);background:rgba(255,215,64,0.05)">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div><b>ทัศนียภาพฟ้าดิน (Celestial Phenomenon Shader):</b> เลือกชมบรรยากาศแสงสีและปรากฏการณ์ฟ้าดินเหนือสำนักได้ทันที</div><button class="btn pri" style="padding:3px 9px;font-size:11.5px" data-do="cycle-celestial-preview">🌌 สลับปรากฏการณ์ฟ้าดิน</button></div>';
+        if (shaders.length) {
+          h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + shaders.map(sh => '<button class="btn' + (curPrev === sh.id ? ' ok' : '') + '" style="padding:3px 8px;font-size:11px" data-do="cycle-celestial-preview" data-arg="' + esc(sh.id) + '">' + esc(sh.icon + ' ' + sh.nameTh) + '</button>').join('') + '</div>';
         }
         h += '</div>';
       }
@@ -7291,6 +7325,21 @@
       const qNames = { low: 'ประหยัดพลังงาน', standard: 'มาตรฐาน', high: 'คมชัดสูง' };
       h += '<div class="card"><b>คุณภาพกราฟิกและการเคลื่อนไหว</b><div class="edit-field" style="margin-top:6px"><label>ระดับความละเอียดภาพ (ใช้งานจริง: ' + esc(qNames[effQ] || effQ) + ')</label><select id="gfxQualitySel">' + [['auto', 'อัตโนมัติ (ปรับตามขนาดจอและเฟรมเรต)'], ['low', 'ประหยัดพลังงาน (Low — ลดเงาและละออง)'], ['standard', 'มาตรฐาน (Standard — สมดุลคมชัด)'], ['high', 'คมชัดสูง (High — เต็มพิกัด DPR 2×)']].map(([k, v]) => '<option value="' + k + '"' + ((o.quality || 'auto') === k ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></div>';
       h += '<label class="sw" style="border-bottom:0;padding-bottom:2px"><span>ลดการเคลื่อนไหว (หยุดอนิเมชันน้ำ/ควัน/ประกาย)</span><input type="checkbox" data-set="reducedMotion" ' + (o.reducedMotion ? 'checked' : '') + '></label><div class="edit-field" style="margin-top:6px"><label>รูปแบบแสดงผลถุงสัมภาระ คลังสำนัก และร้านค้า</label><select id="invViewModeSel"><option value="grid"' + (UI.getInvViewMode() === 'grid' ? ' selected' : '') + '>⊞ ตารางไอคอนแบบแบ่งหน้า (Paginated Icon-Grid)</option><option value="list"' + (UI.getInvViewMode() === 'list' ? ' selected' : '') + '>☰ รายการแบบดั้งเดิม (Classic List View)</option></select></div></div>';
+      h += '<div class="card" style="border-color:var(--gold)"><b>✨ กราฟิกเซียนยุคที่ 5 (Era 5 Celestial Visual Overhaul v5.0.0)</b><div class="muted" style="font-size:11.5px;margin-top:2px">ควบคุมรัศมีตบะ 9 ขั้น · กระบี่บินโคจร · ปราณศาสตรา 7 ระดับ · ค่ายกลแปดทิศ · นกกระเรียนเซียน และปรากฏการณ์ฟ้าดิน</div>';
+      const curPrev = (G.R && G.R.opts && G.R.opts.celestialPreview) || o.celestialPreview || 'AUTO';
+      const shaders = (g.Render && g.Render.CELESTIAL_SHADERS) ? Object.values(g.Render.CELESTIAL_SHADERS) : [];
+      h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + shaders.map(sh => '<button type="button" class="btn' + (curPrev === sh.id ? ' pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="cycle-celestial-preview" data-arg="' + esc(sh.id) + '">' + esc(sh.icon + ' ' + sh.nameTh) + '</button>').join('') + '</div>';
+      h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + [
+        ['realmHalos', 'วงล้อรัศมีตบะ 9 ขั้น & ผ้าแพรเซียน'],
+        ['flyingSwords', 'กระบี่บินโคจรรอบกาย (飞剑环绕)'],
+        ['combatSlashes', 'คลื่นคมกระบี่ 3 ชั้น & ภาพติดตา'],
+        ['sectSpectacles', 'ค่ายกลหยินหยางลานกลาง & ธงยอดเขา'],
+        ['livingFauna', 'ปลาคาร์ปวิญญาณ · นกกระเรียนเซียน & โคมลอย'],
+        ['celestialShaders', 'แสงบรรยากาศปรากฏการณ์ฟ้าดิน']
+      ].map(([vk, vl]) => {
+        const isOn = (G.R && G.R.opts && G.R.opts[vk] !== undefined) ? G.R.opts[vk] : (o[vk] !== false);
+        return '<button type="button" class="btn' + (isOn ? ' ok' : '') + '" style="padding:3px 8px;font-size:11px" data-do="toggle-vfx-opt" data-arg="' + esc(vk) + '">' + (isOn ? '✓ ' : '○ ') + esc(vl) + '</button>';
+      }).join('') + '</div></div>';
       h += [['names', 'แสดงชื่อตัวละคร (ขยายภาพ)'], ['bubbles', 'แสดงไอคอนกิจกรรมเหนือหัว'], ['weather', 'เอฟเฟกต์อากาศ/ใบไม้ร่วง'], ['night', 'กลางคืนมืดลง'], ['toast', 'แจ้งเตือนเหตุการณ์สำคัญ'], ['autosave', 'บันทึกอัตโนมัติ (ทุก 3 นาที)']].map(s => '<label class="sw"><span>' + s[1] + '</span><input type="checkbox" data-set="' + s[0] + '" ' + (o[s[0]] ? 'checked' : '') + '></label>').join('');
       h += '<div class="muted" style="margin-top:10px">การลากนิ้ว = เลื่อนแผนที่ · บีบนิ้ว = ซูม · แตะตัวละคร/อาคาร = ดูข้อมูล</div>';
     } else if (tab === 'tools') {
@@ -7301,7 +7350,7 @@
     }
     return h;
   };
-  UI.applyOpts = () => { const o = UI.G.opts, R = UI.G.R; R.opts.names = o.names; R.opts.bubbles = o.bubbles; R.opts.weather = o.weather; R.opts.night = o.night; R.opts.quality = o.quality || 'auto'; R.opts.reducedMotion = !!o.reducedMotion; if (R.resize) R.resize(); try { localStorage.setItem('jhs_opts', JSON.stringify(o)); } catch (e) { } };
+  UI.applyOpts = () => { const o = UI.G.opts, R = UI.G.R; R.opts.names = o.names; R.opts.bubbles = o.bubbles; R.opts.weather = o.weather; R.opts.night = o.night; R.opts.quality = o.quality || 'auto'; R.opts.reducedMotion = !!o.reducedMotion; ['realmHalos', 'flyingSwords', 'combatSlashes', 'sectSpectacles', 'livingFauna', 'celestialShaders'].forEach(k => { if (o[k] !== undefined) R.opts[k] = !!o[k]; }); if (o.celestialPreview) R.opts.celestialPreview = o.celestialPreview; if (R.resize) R.resize(); try { localStorage.setItem('jhs_opts', JSON.stringify(o)); } catch (e) { } };
   UI.tool = a => {
     const G = UI.G, W = G.W, S = W.sect, m = W.byId[S.masterId];
     if (a === 'stones') { ECO.earn(W, 1000, 'ของขวัญจากผู้สังเกตการณ์'); UI.toast('มอบศิลา 1,000'); }

@@ -1,19 +1,19 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `v4.1.0` (runtime patch identifier `4.1.0` | SIM Version `1.10.11` | Save Schema `4.1.0-sect-expansion-peaks-sanctuary` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v4.1.0 Complete 100%` | Active Target: `v4.2.0 Living Peak Sanctum Rituals & Sect Wonders`)
+**เวอร์ชันแพ็กเกจ**: `v5.0.0` (runtime patch identifier `5.0.0` | SIM Version `1.10.12` | Save Schema `5.0.0-celestial-visual-overhaul` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v5.0.0 Complete 100%` | Active Target: `v5.1.0 Interactive Visual Dioramas & Sect Moments`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
 > เอกสารนี้คือ **สรุประบบปัจจุบันสำหรับตอบคำถามภาพรวม** ให้อ่านก่อนตอบว่าเกมมีอะไรหรือเสนอแนวทางพัฒนาต่อ เพื่อหลีกเลี่ยงการเสนอระบบที่มีอยู่แล้ว เมื่อจะลงมือแก้ไขหรือต้องการยืนยันรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้องด้วย
 
-> **สถานะปัจจุบันของแพตช์ v4.0.0 / v4.0.3 และผลการตรวจรับรอง (6 พฤศจิกายน 2026):**
-> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`8,046 KB`) ฝังแผนที่ภาพวาดหมึกยุทธภพเรียบร้อยแล้ว
+> **สถานะปัจจุบันของแพตช์ v5.0.0 และผลการตรวจรับรอง (6 พฤศจิกายน 2026):**
+> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`8,128 KB`) ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
-> 3. ชุดทดสอบใหม่ประจำแพตช์คือ `test/v400_living_frontier_and_sect_charter_suite.js` ผ่านครบ **6/6 Phases (76 assertions, 100% PASS)** ยืนยันการทำงานของ 5 เสาหลัก (`SECT.OUTPOSTS_LOGISTICS`, `COMBAT.ACTION_MASTERY_TRAITS`, `SECT.CHARTER_DOCTRINE`, `SECT.STRATEGIC_COUNCIL`, `EXPLORE.MICRO_LOCATIONS`)
-> 4. ปรับปรุงแผนที่โลกเป็นภาพวาดหมึกจีนโบราณพร้อมระบบเลเยอร์ 5 ชั้น (`v4.0.3` Living World Atlas Redraw by Claude) ผ่านการทดสอบทั้งหมด 100% โดยความเร็วจำลอง 80 NPC อยู่ที่ `0.750 ms/tick` (ต่ำกว่าเพดาน `<= 3.5 ms/tick`)
-> 5. ชุดทดสอบใหม่ประจำแพตช์ `v4.1.0` คือ `test/v410_sect_expansion_and_architecture_suite.js` ผ่านครบ **6/6 Phases (121 assertions, 100% PASS)** และชุดทดสอบรวมผ่านครบ **125/125 กลุ่ม (100% PASS)** ยืนยันการทำงานของผัง 8 ยอดเขาบนแผนที่สำนัก (`MAP.PEAK_LAYOUTS`), หมอกปราณปกคลุมและการปลุกตื่นตามเงื่อนไข (`Render.drawPeakMist`, `MAP.isPeakBuildingActive`), วิวัฒนาการสถาปัตยกรรม 3 ขั้น (`Render.buildBuildingSprite`), เงาตกกระทบตามเวลาจริง (`Render.computeSunShadow`), และโดมม่านพลังค่ายกล 5 ธาตุพร้อมเส้นชีพจรปฐพี (`Render.drawSectBarrierDome`, `Render.drawLeylineVeins`)
-> 6. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V4_2_0.md`](ACTIVE_PATCH_PROMPT_V4_2_0.md) (Phase 8: Living Peak Sanctum Rituals, Sect Wonders & Dynamic Celestial Weather)
+> 3. ชุดทดสอบใหม่ประจำแพตช์คือ `test/v500_celestial_visual_overhaul_suite.js` ผ่านครบ **6/6 Phases (100% PASS)** ยืนยันการทำงานของ 6 เสาหลักกราฟิกยุคที่ 5 (Cultivation Realm Aura, Elemental/Fusion Combat VFX, Weapon Soul & Set Resonance, Sect Ground Spectacles & Bagua Array, Celestial Phenomena Shaders, Visual Control Center)
+> 4. ความเร็วจำลอง 80 NPC อยู่ที่ `1.207 ms/tick` (ต่ำกว่าเพดานกำหนด `<= 3.5 ms/tick`)
+> 5. ชุดทดสอบรวมผ่านครบ **126/126 กลุ่ม (100% PASS)**
+> 6. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V5_1_0.md`](ACTIVE_PATCH_PROMPT_V5_1_0.md) (Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscene Moments & Martial Arena Camera)
 
 ---
 

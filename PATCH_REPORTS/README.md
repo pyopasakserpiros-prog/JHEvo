@@ -35,3 +35,4 @@
 
 - [`PATCH_IMPLEMENTATION_REPORT_V3_5_0.md`](PATCH_IMPLEMENTATION_REPORT_V3_5_0.md) — Phase 4: Geopolitical Hegemony & Grand Jianghu (`v3.5.0`: `PROP-13, 14, 22, 23, 24, 26, 29`)
 - [`PATCH_IMPLEMENTATION_REPORT_V3_6_0.md`](PATCH_IMPLEMENTATION_REPORT_V3_6_0.md) — Phase 5: Generational Dynasty & Immortal Endgame (`v3.6.0`: `PROP-27, 28, 34, 36` — ครบ 36 ข้อเสนอ)
+- `PATCH_IMPLEMENTATION_REPORT_V5_0_0.md` — **Patch v5.0.0 (Era 5: Grand Celestial Visual Overhaul)**: 9-Stage Realm Halos & Immortal Silk Ribbons, 12-Path Signature Motes, On-Map Spirit Beast Companions, Multi-Layered Weapon Slashes & Elemental Fusions, Breakthrough Heavenly Tribulation Lightning, T1–T7 Equipment Tier Glows & Orbiting Flying Swords (`飞剑环绕`), Weapon Soul Manifestation (`器灵显化`), Central Bagua Plaza Grand Taiji Formation, Peak Sanctuary Banners, Swimming Spirit Koi, Soaring Immortal Cranes, Night Sky Lanterns, and 4 Celestial Phenomenon Shaders (`126/126 PASS`).
