@@ -21,7 +21,7 @@ console.log('===================================================================
 // 1. Version, Core Lock & 6-Directorate / 25-Office Catalog Verification
 console.log('▶ [1/6] Testing Version Metadata, Core Lock & 25-Office Catalog...');
 {
-  check(SIM.PATCH_VERSION === '3.1.0', 'SIM.PATCH_VERSION must be 3.1.0');
+  check(SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1', 'SIM.PATCH_VERSION must be 3.1.0 or 3.1.1');
   check(SIM.SAVE_SCHEMA_VERSION === '3.1.0-autonomous-governance-peaks', 'SIM.SAVE_SCHEMA_VERSION must be 3.1.0-autonomous-governance-peaks');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
 

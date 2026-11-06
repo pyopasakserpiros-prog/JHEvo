@@ -4,7 +4,7 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '3.1.0', SAVE_SCHEMA_VERSION: '3.1.0-autonomous-governance-peaks', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '3.1.1', SAVE_SCHEMA_VERSION: '3.1.0-autonomous-governance-peaks', MIN_PER_YEAR: 360 * 1440 };
   const E = (n, p) => HC.eff(n, p);
 
 

@@ -853,7 +853,11 @@
         C.recordTacticalHighlight(W, f, 'LOS_COVER', reasonTh, {
           actorId: a.id, targetId: d.id, protectorId: blk.id
         });
-        return { interceptor: blk, kind: 'LOS_COVER', dmgMult: 0.78, reasonTh };
+        let losDmgMult = 0.78;
+        if (!blk.foe && W.sect && W.sect.vanguardPosture === 'IRON_SHIELD_WALL') {
+          losDmgMult = 0.65;
+        }
+        return { interceptor: blk, kind: 'LOS_COVER', dmgMult: losDmgMult, reasonTh };
       }
     }
 
@@ -880,6 +884,9 @@
       // Check personal bond (companion, mentor/disciple, destiny thread, high loyalty/affection)
       let bondLabel = 'สหายร่วมรบ';
       if (!al.foe && !d.foe) {
+        if (W.sect && W.sect.vanguardInterceptBonus) {
+          sc += (W.sect.vanguardInterceptBonus || 0) * 5.0;
+        }
         if (al.companionId === d.id) { sc += 2.5; bondLabel = 'คู่บำเพ็ญ'; }
         else if (al.mentorId === d.id || al.mentor === d.id) { sc += 2.2; bondLabel = 'อาจารย์'; }
         else if (d.mentorId === al.id || d.mentor === al.id) { sc += 2.2; bondLabel = 'ศิษย์สายตรง'; }
@@ -926,7 +933,11 @@
       C.recordTacticalHighlight(W, f, 'BODYGUARD_INTERCEPT', reasonTh, {
         actorId: a.id, targetId: d.id, protectorId: gUnit.id, bondLabel: bestGuard.bondLabel
       });
-      return { interceptor: gUnit, kind: 'BODYGUARD_INTERCEPT', dmgMult: 0.82, reasonTh };
+      let dmgMult = 0.82;
+      if (!gUnit.foe && W.sect && W.sect.vanguardPosture === 'IRON_SHIELD_WALL') {
+        dmgMult = 0.70;
+      }
+      return { interceptor: gUnit, kind: 'BODYGUARD_INTERCEPT', dmgMult, reasonTh };
     }
     return null;
   };
@@ -2739,9 +2750,15 @@
   };
   C.tournamentEnd = (W, T) => {
     const win = W.byId[T.alive[0]]; W.sect.tournament = null; if (!win) return;
-    ECO.pay(W, Math.min(T.prize, W.sect.stones), 'รางวัลประลองยุทธ์'); win.inv.stones += T.prize; win.merit += 35; HC.experience(win, 'duel_win', 1); W.fame(3);
+    const avail = Math.max(0, (W.sect && W.sect.stones) || 0);
+    const actualPrize = Math.min(T.prize || 0, avail);
+    if (actualPrize > 0) {
+      ECO.pay(W, actualPrize, 'รางวัลประลองยุทธ์');
+    }
+    if (win.inv) win.inv.stones = (win.inv.stones || 0) + actualPrize;
+    win.merit += 35; HC.experience(win, 'duel_win', 1); W.fame(3);
     AI.mem(W, win, 'ชนะเลิศประลองยุทธ์สำนัก', 1);
-    W.log('tournament', win.h.name.given + ' ชนะเลิศประลองยุทธ์สำนัก ได้รางวัล ' + T.prize + ' ศิลา', [win.id]);
+    W.log('tournament', win.h.name.given + ' ชนะเลิศประลองยุทธ์สำนัก ได้รางวัล ' + actualPrize + ' ศิลา', [win.id]);
     const m = W.byId[W.sect.masterId];
     if (SECT && SECT.assembly) {
       SECT.assembly(W, m, { fromTournament: T, primaryWinnerId: win.id });

@@ -547,7 +547,8 @@
     done(n, W) {
       n.merit += 0.4;
       if (n.cult && SECT && SECT.PEAKS) {
-        const pkMult = n.peakId ? 1.14 : (n.isIndependentFromPeak ? (n.independentPenaltyMult || 0.88) : 1.0);
+        const pkBonus = SECT.PEAKS.cultivationBonusFor ? SECT.PEAKS.cultivationBonusFor(W, n) : 0;
+        const pkMult = pkBonus > 0 ? (1.0 + pkBonus) : (n.isIndependentFromPeak ? (n.independentPenaltyMult || 0.88) : 1.0);
         if (pkMult !== 1.0) CULT.gain(n, (pkMult - 1.0) * 0.45, W, 'peak_aura');
       }
       if (SECT && SECT.FENG_SHUI && SECT.FENG_SHUI.buildingMultiplierForNpc && n.cult) {
