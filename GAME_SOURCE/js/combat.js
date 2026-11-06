@@ -888,6 +888,7 @@
         bTac.reactionReadyAt = tNow + 8;
         bTac.coveringAllyId = d.id;
         bTac.interceptCount = (bTac.interceptCount || 0) + 1;
+        if (!blk.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, blk, 'coverCount', 1);
         const ft = C.ensureFightTac(f, tNow);
         ft.stats.losBlocks = (ft.stats.losBlocks || 0) + 1;
         ft.stats.intercepts = (ft.stats.intercepts || 0) + 1;
@@ -964,6 +965,7 @@
       gTac.reactionReadyAt = tNow + 10;
       gTac.coveringAllyId = d.id;
       gTac.interceptCount = (gTac.interceptCount || 0) + 1;
+      if (!gUnit.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, gUnit, 'coverCount', 1);
       if (!gUnit.foe && gUnit.h && gUnit.h.state) {
         gUnit.h.state.energy = Math.max(0, (gUnit.h.state.energy || 20) - 2.5);
       }
@@ -1029,8 +1031,10 @@
         d._astralMirageUsedAt = W.t;
         d._lastDodgeOrParryAt = W.t;
         d.fx = { t: W.t, text: '🌌 เงาดาราหลบสวน!' };
+        if (!d.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, d, 'parryCount', 1);
         runPassiveProcs(W, f, d, a, 'onParry', 0);
-        C.strike(W, f, d, a, { M: 1.45, type: 'm', pen: 25, forced: true, noCounter: true, noReflect: true, noProc: true });
+        const parryBonusM = (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(d, 'TRAIT_PARRY_COUNTER')) ? 1.15 : 1.0;
+        C.strike(W, f, d, a, { M: 1.45 * parryBonusM, type: 'm', pen: 25, forced: true, noCounter: true, noReflect: true, noProc: true });
         return { hit: false, countered: true, astralMirage: true };
       }
       const cs = ST.statusOf(d, 'counter');
@@ -1038,8 +1042,10 @@
         ST.clearStatus(d, x => x.k === 'counter');
         d._lastDodgeOrParryAt = W.t;
         d.fx = { t: W.t, text: '↩ ปัดสวน!' };
+        if (!d.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, d, 'parryCount', 1);
         runPassiveProcs(W, f, d, a, 'onParry', 0);
-        C.strike(W, f, d, a, { M: cs.M, type: cs.type, pen: cs.pen, forced: true, noCounter: true, noReflect: true, noProc: true });
+        const parryBonusM = (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(d, 'TRAIT_PARRY_COUNTER')) ? 1.15 : 1.0;
+        C.strike(W, f, d, a, { M: cs.M * parryBonusM, type: cs.type, pen: cs.pen, forced: true, noCounter: true, noReflect: true, noProc: true });
         return { hit: false, countered: true };
       }
     }
@@ -1238,6 +1244,12 @@
     } else if (!a.foe && !a.dead && a.cult && a.cult.path === 'GOD' && dmg > 0 && o.isSkill) {
       const faithHeal = Math.max(1, Math.round(C.hpMax(a) * 0.028));
       C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + faithHeal));
+    }
+    if (!o.noReflect && !d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(d, 'TRAIT_PARRY_COUNTER') && dmg > 0 && !a.dead) {
+      const pcRef = Math.max(1, Math.round(dmg * 0.15));
+      reflected += pcRef;
+      d.lastReflect = reflected;
+      C.applyDamage(W, f, d, a, pcRef, 'กระบี่ตอบโต้สะท้อน');
     }
     if (!o.noReflect && !d.foe && (ST.has(d, 'karmicAegis', W.t) || (ST.hasBuff && ST.hasBuff(d, 'karmicAegis', W.t))) && dmg > 0 && !a.dead) {
       const kaRef = Math.max(1, Math.min(Math.round(C.hpMax(a) * 0.22), Math.round(dmg * 0.22)));
@@ -1935,8 +1947,13 @@
         if (!tgt || !C.alive(tgt)) return;
         if (idx === 0) { a.castFx.x = tgt.x; a.castFx.y = tgt.y; }
         const thm = C.hpMax(tgt);
+        const beforeFrac = C.hp(tgt) / Math.max(1, thm);
+        if (beforeFrac < 0.25 && !a.foe && C.ACTION_MASTERY_TRAITS) {
+          C.ACTION_MASTERY_TRAITS.recordAction(W, a, 'clutchHealCount', 1);
+        }
+        const medicMult = (!a.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(a, 'TRAIT_COMBAT_MEDIC')) ? 1.20 : 1.0;
         const ashenMult = ST.has(tgt, 'ashenToxin', W.t) ? 0.5 : (ST.has(tgt, 'stygianFreeze', W.t) ? 0 : 1.0);
-        const healAmt = Math.max(0, Math.round(thm * (p.heal || 0.22) * sageBonus * ashenMult));
+        const healAmt = Math.max(0, Math.round(thm * (p.heal || 0.22) * sageBonus * medicMult * ashenMult));
         if (healAmt > 0) C.setHp(tgt, Math.min(thm, C.hp(tgt) + healAmt));
         if (p.shield > 0) ST.addStatus(tgt, 'shield', 12, { amt: Math.round(thm * p.shield * stanceShieldMult) }, W.t);
         const beforeSx = tgt.sx ? tgt.sx.length : 0;
@@ -4941,6 +4958,180 @@
     };
   };
   C.ANATOMY_BREAKER = ANATOMY_BREAKER;
+
+  /* ---------- Patch v4.0.0 [Pillar 2]: Action-Derived Behavioral Mastery Traits (COMBAT.ACTION_MASTERY_TRAITS) ---------- */
+  const ACTION_MASTERY_TRAITS = {};
+  ACTION_MASTERY_TRAITS.TRAIT_DEFS = Object.freeze({
+    TRAIT_PARRY_COUNTER: {
+      id: 'TRAIT_PARRY_COUNTER',
+      nameTh: 'กระบี่ตอบโต้',
+      icon: '⚔️',
+      statKey: 'parryCount',
+      threshold: 15,
+      reflectDmgBonus: 0.15,
+      descTh: 'ปัดป้องครบ 15 ครั้ง: ความเสียหายสะท้อนกลับ +15%'
+    },
+    TRAIT_VANGUARD_GUARD: {
+      id: 'TRAIT_VANGUARD_GUARD',
+      nameTh: 'ทวนพิทักษ์',
+      icon: '🛡️',
+      statKey: 'coverCount',
+      threshold: 20,
+      defBonusPct: 0.12,
+      allyDefAuraPct: 0.12,
+      descTh: 'เข้าขวางรับดาเมจแทนเพื่อนครบ 20 ครั้ง: ป้องกันตนเองและเพื่อนข้างเคียง +12%'
+    },
+    TRAIT_COMBAT_MEDIC: {
+      id: 'TRAIT_COMBAT_MEDIC',
+      nameTh: 'หมอสนาม',
+      icon: '⚕️',
+      statKey: 'clutchHealCount',
+      threshold: 10,
+      clutchHealBonusPct: 0.20,
+      descTh: 'ฮีลช่วยเพื่อนที่ HP < 25% ครบ 10 ครั้ง: ผลฮีลฉุกเฉิน +20%'
+    },
+    TRAIT_FORMATION_STRATEGIST: {
+      id: 'TRAIT_FORMATION_STRATEGIST',
+      nameTh: 'ผู้วางหมาก',
+      icon: '☯️',
+      statKey: 'formationTicks',
+      threshold: 30,
+      qiRegenBonusPct: 0.15,
+      descTh: 'เปิดใช้ค่ายกลในสนามรบสะสมครบ 30 เทิร์น: ฟื้นฟูปราณ +15%'
+    }
+  });
+  ACTION_MASTERY_TRAITS.TRAITS = ACTION_MASTERY_TRAITS.TRAIT_DEFS;
+
+  ACTION_MASTERY_TRAITS.ensureHistory = npc => {
+    if (!npc) return null;
+    if (!npc.combatHistory || typeof npc.combatHistory !== 'object') {
+      npc.combatHistory = {
+        parryCount: 0,
+        coverCount: 0,
+        clutchHealCount: 0,
+        formationTicks: 0,
+        unlockedTraits: []
+      };
+    }
+    if (typeof npc.combatHistory.parryCount !== 'number') npc.combatHistory.parryCount = 0;
+    if (typeof npc.combatHistory.coverCount !== 'number') npc.combatHistory.coverCount = 0;
+    if (typeof npc.combatHistory.clutchHealCount !== 'number') npc.combatHistory.clutchHealCount = 0;
+    if (typeof npc.combatHistory.formationTicks !== 'number') npc.combatHistory.formationTicks = 0;
+    if (!Array.isArray(npc.combatHistory.unlockedTraits)) npc.combatHistory.unlockedTraits = [];
+    if (!Array.isArray(npc.actionMasteryTraits)) npc.actionMasteryTraits = npc.combatHistory.unlockedTraits.slice();
+    return npc.combatHistory;
+  };
+
+  ACTION_MASTERY_TRAITS.hasTrait = (npc, traitId) => {
+    if (!npc || !traitId) return false;
+    const ch = npc.combatHistory;
+    if (ch && Array.isArray(ch.unlockedTraits) && ch.unlockedTraits.includes(traitId)) return true;
+    if (Array.isArray(npc.actionMasteryTraits) && npc.actionMasteryTraits.includes(traitId)) return true;
+    return false;
+  };
+
+  ACTION_MASTERY_TRAITS.checkAndUnlockTraits = (W, npc, opts) => {
+    opts = opts || {};
+    const ch = ACTION_MASTERY_TRAITS.ensureHistory(npc);
+    if (!ch) return { ok: false, newlyUnlocked: [] };
+    const newlyUnlocked = [];
+    const wRef = W || (g.W || (g.G && g.G.W)) || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld);
+
+    for (const spec of Object.values(ACTION_MASTERY_TRAITS.TRAIT_DEFS)) {
+      const count = Number(ch[spec.statKey]) || 0;
+      if (count >= spec.threshold && !ch.unlockedTraits.includes(spec.id)) {
+        ch.unlockedTraits.push(spec.id);
+        if (!Array.isArray(npc.actionMasteryTraits)) npc.actionMasteryTraits = [];
+        if (!npc.actionMasteryTraits.includes(spec.id)) npc.actionMasteryTraits.push(spec.id);
+        newlyUnlocked.push(spec);
+        npc._ver = (npc._ver || 1) + 1;
+        if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+
+        if (wRef) {
+          if (!Array.isArray(wRef.chronicle)) wRef.chronicle = [];
+          const actorName = (g.HC && g.HC.fullName) ? g.HC.fullName(npc) : (npc.nameTh || npc.id);
+          const entry = {
+            category: 'BATTLE',
+            icon: spec.icon,
+            titleTh: actorName + ' บรรลุรอยชำนาญสนามรบ「' + spec.nameTh + '」!',
+            storyTh: actorName + ' สั่งสมประสบการณ์จริงในสมรภูมิจนตื่นรู้เทรตถาวร ' + spec.nameTh + ' (' + spec.descTh + ')',
+            consequenceTh: spec.descTh,
+            npcIds: [npc.id],
+            traitId: spec.id
+          };
+          let rec = null;
+          if (g.EXPED && g.EXPED.recordChronicle && !opts.quiet) {
+            rec = g.EXPED.recordChronicle(wRef, Object.assign({ allowDuplicate: true }, entry));
+          }
+          wRef.chronicle.unshift(rec || Object.assign({ id: 'CHRON_TRAIT_' + spec.id + '_' + (wRef.t || 0), day: wRef.day || 1, t: wRef.t || 0 }, entry));
+          if (wRef.log && !opts.quiet) {
+            wRef.log('combat', spec.icon + ' ' + actorName + ' ตื่นรู้รอยชำนาญ「' + spec.nameTh + '」(' + spec.descTh + ')!', [npc.id]);
+          }
+        }
+      }
+    }
+    return {
+      ok: true,
+      newlyUnlocked,
+      unlockedTraits: ch.unlockedTraits.slice(),
+      combatHistory: ch
+    };
+  };
+
+  ACTION_MASTERY_TRAITS.recordAction = (W, npc, actionKey, amount, opts) => {
+    if (!npc || npc.foe) return { ok: false, reason: 'invalid-npc' };
+    const ch = ACTION_MASTERY_TRAITS.ensureHistory(npc);
+    const keyMap = {
+      PARRY: 'parryCount',
+      parry: 'parryCount',
+      parryCount: 'parryCount',
+      TRAIT_PARRY_COUNTER: 'parryCount',
+      COVER: 'coverCount',
+      cover: 'coverCount',
+      coverCount: 'coverCount',
+      TRAIT_VANGUARD_GUARD: 'coverCount',
+      CLUTCH_HEAL: 'clutchHealCount',
+      clutchHeal: 'clutchHealCount',
+      clutchHealCount: 'clutchHealCount',
+      TRAIT_COMBAT_MEDIC: 'clutchHealCount',
+      FORMATION: 'formationTicks',
+      formation: 'formationTicks',
+      formationTicks: 'formationTicks',
+      TRAIT_FORMATION_STRATEGIST: 'formationTicks'
+    };
+    const statKey = keyMap[actionKey] || actionKey;
+    if (!(statKey in ch)) return { ok: false, reason: 'unknown-action-key' };
+    const inc = Math.max(1, Math.round(Number(amount != null ? amount : 1)));
+    ch[statKey] = (ch[statKey] || 0) + inc;
+    const res = ACTION_MASTERY_TRAITS.checkAndUnlockTraits(W, npc, opts);
+    return {
+      ok: true,
+      statKey,
+      newValue: ch[statKey],
+      newlyUnlocked: res.newlyUnlocked,
+      unlockedTraits: res.unlockedTraits
+    };
+  };
+
+  ACTION_MASTERY_TRAITS.getTraitModifiers = npc => {
+    const ch = ACTION_MASTERY_TRAITS.ensureHistory(npc);
+    const unlocked = (ch && ch.unlockedTraits) || [];
+    return {
+      hasParryCounter: unlocked.includes('TRAIT_PARRY_COUNTER'),
+      hasVanguardGuard: unlocked.includes('TRAIT_VANGUARD_GUARD'),
+      hasCombatMedic: unlocked.includes('TRAIT_COMBAT_MEDIC'),
+      hasFormationStrategist: unlocked.includes('TRAIT_FORMATION_STRATEGIST'),
+      reflectDmgBonus: unlocked.includes('TRAIT_PARRY_COUNTER') ? 0.15 : 0,
+      defBonusPct: unlocked.includes('TRAIT_VANGUARD_GUARD') ? 0.12 : 0,
+      allyDefAuraPct: unlocked.includes('TRAIT_VANGUARD_GUARD') ? 0.12 : 0,
+      clutchHealBonusPct: unlocked.includes('TRAIT_COMBAT_MEDIC') ? 0.20 : 0,
+      qiRegenBonusPct: unlocked.includes('TRAIT_FORMATION_STRATEGIST') ? 0.15 : 0,
+      unlockedTraits: unlocked.slice()
+    };
+  };
+
+  C.ACTION_MASTERY_TRAITS = ACTION_MASTERY_TRAITS;
+
 
   C.invokeAncestralPhantom = (W, f, opts) => {
     if (g.SECT && g.SECT.ANCESTRAL_PAVILION && g.SECT.ANCESTRAL_PAVILION.invokeFounderPhantom) {

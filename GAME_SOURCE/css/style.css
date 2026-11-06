@@ -200,7 +200,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .atlas-shell{position:relative;isolation:isolate;border:1px solid #b5a568;border-radius:13px;box-shadow:0 7px 18px #06130f88;background:#183c32;overflow:hidden}
 .atlas-viewport{position:relative;width:100%;height:clamp(260px,55vh,570px);overflow:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
 .atlas-viewport::-webkit-scrollbar{display:none}.atlas-viewport:active{cursor:grabbing}
-.atlas-surface{position:relative;aspect-ratio:1/1;min-width:100%;background:#486e54 url('../assets/world_atlas_terrain.jpg') center/100% 100% no-repeat}
+.atlas-surface{position:relative;aspect-ratio:1/1;min-width:100%;background:#d9c89b url('../assets/world_atlas_terrain.jpg') center/100% 100% no-repeat}
 .atlas-marker{position:absolute;z-index:2;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:34px;height:34px;min-width:34px;border:2px solid #e6d17f;border-radius:50%;padding:0;background:linear-gradient(145deg,#264639,#0c251d);box-shadow:0 2px 7px #081a14c9,0 0 0 1px #0d2b20;color:#fff2c6;cursor:pointer}
 .atlas-marker.righteous{border-color:#88deec;background:linear-gradient(145deg,#287284,#103e4b)}
 .atlas-marker.demonic{border-color:#ef8b79;background:linear-gradient(145deg,#8c342c,#401c20)}
@@ -249,3 +249,17 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .ancestor-card summary{cursor:pointer;line-height:1.5;color:#f5e2ac}
 .ancestor-profile{padding:8px 6px;color:#edf2de;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
 .ancestor-profile>div{margin-top:4px}.ancestor-events{margin-top:8px}
+
+/* v4.0.1 แผนที่ใหม่: เส้นทาง + ป้ายแคว้นสไตล์หมึกบนกระดาษ */
+.atlas-routes{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.atlas-region-title{background:#f1e4bfe0;color:#4a2f18;border:1px solid #8a6a3f;font-weight:700;letter-spacing:.04em}
+.atlas-region-title.unseen{opacity:.75;font-style:italic}
+
+/* v4.0.3 ชั้นแผนที่: หมอก ฤดู กลางคืน คณะเดินทาง */
+.atlas-fog{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.atlas-season,.atlas-night{position:absolute;inset:0;z-index:1;pointer-events:none;mix-blend-mode:multiply}
+.atlas-night{background:#0b1646;mix-blend-mode:multiply}
+.atlas-party{position:absolute;z-index:3;transform:translate(-50%,-50%);width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:#fff6d8;border:2px solid #c0392b;font-size:13px;box-shadow:0 0 0 0 #c0392b88;animation:atlas-party 1.8s ease-in-out infinite;pointer-events:auto}
+@keyframes atlas-party{50%{box-shadow:0 0 0 6px #c0392b00,0 0 0 2px #c0392b55}}
+.atlas-layers{margin-top:-2px}
+@media (prefers-reduced-motion:reduce){.atlas-party{animation:none}}

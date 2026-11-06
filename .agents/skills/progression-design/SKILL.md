@@ -7,7 +7,7 @@ category: cultivation-progression
 
 # JianghuSect Progression: 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension, Mentorship & Living Jianghu
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
 Progression reference for `GAME_SOURCE/js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js`, `js/sect.js`, `js/explore.js`, `js/expedition.js`, `data/data_cult.js`, `data/data_martial.js`; check historical details against current source.
@@ -205,3 +205,9 @@ Exterior figures (deputies, successors, prodigies) from foreign sects defecting 
 - **Causal Heart-Demons & Dao Scars (`SECT.HEART_DEMON`):** `npc.heartDemons` spawned from 4 concrete causes (`BEREAVEMENT_GRIEF`, `DEFEAT_HUMILIATION`, `AMBITION_ENVY`, `BLOOD_SLAUGHTER`), resolved via NPC counseling (`counselHeartDemon`) or demonic devouring (`devourHeartDemon`) into permanent `npc.daoScars` (`+btBonus` in `CULT.breakthroughChance`, `+combatPowerBonus` in `CULT.power` & `ST.rating`).
 - **Sentient Weapon Spirits & Multi-Generational Sutra Annotation (`SECT.SOUL_FORGE`):** `weapon.weaponSpirit` evolves across 5 stages via `recordWeaponFeat` and autonomously selects a worthy sect heir upon the owner's death (`inheritSentientWeaponOnDeath` in `AI.kill`). `annotateHeritageSutra` upgrades `W.sect.mentorship.heritageArts` across 5 editions (capped at `+35%`), accelerating `A.study.tick` for future disciples.
 - **Dynamic Market Index, Disciple Caravans & Seasonal Immortal Auction (`SECT.CARAVAN_AUCTION`):** 8-category dynamic `W.world.marketIndex` (`0.65x..1.60x`), escorted trade caravans (`dispatchTradeCaravan`), and seasonal 4-lot `W.world.auctionHouse` where unclaimed lots are won by rival foreign sects on season rotation.
+
+---
+
+## Patch v4.0.0 Baseline Synchronization
+- Synchronized with `SIM.PATCH_VERSION = '4.0.0'` (`SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`, `HC.FINGERPRINT === '155:2f9c9dd7'`).
+- All 124 test groups in `test/run_all.js` and `node tools/validate_data_schema.js` pass with 0 errors and 0 warnings.

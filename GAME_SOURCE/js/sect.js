@@ -1159,6 +1159,9 @@
     if (m && !m.dead && !m.away && !(m.jail > W.t)) SECT.masterDecision(W, m);
     // 5) หัวหน้าหอสั่งงานของตน
     SECT.hallHeads(W);
+    if (SECT.OUTPOSTS_LOGISTICS && SECT.OUTPOSTS_LOGISTICS.tickOutpostLogistics) {
+      SECT.OUTPOSTS_LOGISTICS.tickOutpostLogistics(W, { quiet: true });
+    }
   };
 
   /* ---------- พิจารณาผู้สมัคร: ประเมินจากความสามารถปัจจุบันที่สังเกตได้ (CA) เท่านั้น ไม่รั่วไหล PA ---------- */
@@ -1173,6 +1176,10 @@
     bias += (e('personality.empathy') - 50) / 12 * (cls === 'ยาจก' || /ยาก|ทาส|กำพร้า/.test(cls) ? 1 : 0.25);
     bias -= (e('personality.pride') - 50) / 14 * (ca.caScore < 44 ? 1 : 0);
     if (ca.demeanorScore >= 58 && e('personality.discipline') >= 55) bias += 2.2;
+    if (W && W.sect && SECT.CHARTER_DOCTRINE && SECT.CHARTER_DOCTRINE.getCharterPerks) {
+      const cPerks = SECT.CHARTER_DOCTRINE.getCharterPerks(W);
+      if (cPerks && Number.isFinite(cPerks.applicantScoreBonus)) bias += cPerks.applicantScoreBonus;
+    }
     const deterministicScore = Math.round((ca.caScore + bias) * 100) / 100;
     const score = ca.caScore + noise + bias;
     return {
@@ -14647,6 +14654,871 @@
     };
   };
   SECT.DYNASTY_BLOODLINE = DYNASTY_BLOODLINE;
+
+  /* =========================================================================
+   * Patch v4.0.0 — Phase 6: Living Frontier, Sect Charter & Strategic Council
+   * Pillar 1: SECT.OUTPOSTS_LOGISTICS
+   * Pillar 3: SECT.CHARTER_DOCTRINE
+   * Pillar 4: SECT.STRATEGIC_COUNCIL
+   * ========================================================================= */
+
+  const pushWorldChronicle = (W, entry) => {
+    if (!W) return null;
+    if (!Array.isArray(W.chronicle)) W.chronicle = [];
+    let rec = null;
+    if (g.EXPED && g.EXPED.recordChronicle) {
+      rec = g.EXPED.recordChronicle(W, Object.assign({ allowDuplicate: true }, entry));
+    }
+    const item = rec || Object.assign({
+      id: 'CHRON_V400_' + ((W.day || 1)) + '_' + (W.chronicle.length + 1),
+      day: W.day || 1,
+      t: W.t || 0
+    }, entry);
+    W.chronicle.unshift(item);
+    if (W.chronicle.length > 200) W.chronicle.length = 200;
+    return item;
+  };
+
+  /* ---------- [Pillar 1] เครือข่ายค่ายพักและเส้นทางยุทธปัจจัย (SECT.OUTPOSTS_LOGISTICS) ---------- */
+  const OUTPOSTS_LOGISTICS = {};
+  OUTPOSTS_LOGISTICS.CAMP_TYPES = Object.freeze({
+    CAMP_REST: {
+      id: 'CAMP_REST',
+      nameTh: 'ค่ายพักแรมยุทธภพ',
+      icon: '⛺',
+      staminaRestorePct: 0.30,
+      ambushRiskReduction: 0.05,
+      emergencyRationDraw: false,
+      cureSevereInjury: false,
+      hpRegenBonusPct: 0.10,
+      dailyGrainUpkeep: 2,
+      dailyPillUpkeep: 0,
+      descTh: 'ฟื้นฟู Stamina +30% ให้คณะสำรวจที่แวะพักและศิษย์ประจำการ'
+    },
+    CAMP_GUARD: {
+      id: 'CAMP_GUARD',
+      nameTh: 'ค่ายป้อมยามตรวจการณ์',
+      icon: '🏯',
+      staminaRestorePct: 0.10,
+      ambushRiskReduction: 0.40,
+      defenseBonusPct: 0.25,
+      emergencyRationDraw: false,
+      cureSevereInjury: false,
+      hpRegenBonusPct: 0.05,
+      dailyGrainUpkeep: 3,
+      dailyPillUpkeep: 1,
+      descTh: 'เพิ่มการตรวจจับศัตรู ลดโอกาสคาราวานถูกดักปล้นในภูมิภาค -40%'
+    },
+    CAMP_SUPPLY: {
+      id: 'CAMP_SUPPLY',
+      nameTh: 'คลังเสบียงหน้าด่าน',
+      icon: '🌾',
+      staminaRestorePct: 0.15,
+      ambushRiskReduction: 0.10,
+      emergencyRationDraw: true,
+      supplySavePct: 0.25,
+      cureSevereInjury: false,
+      hpRegenBonusPct: 0.05,
+      dailyGrainUpkeep: 2,
+      dailyPillUpkeep: 0,
+      descTh: 'กักตุนเสบียงสำรองฉุกเฉิน (เบิกจ่ายอาหารได้ระหว่างทาง)'
+    },
+    CAMP_MEDIC: {
+      id: 'CAMP_MEDIC',
+      nameTh: 'กระโจมหมอสนามยุทธภพ',
+      icon: '⚕️',
+      staminaRestorePct: 0.15,
+      ambushRiskReduction: 0.05,
+      emergencyRationDraw: false,
+      cureSevereInjury: true,
+      hpRegenBonusPct: 0.35,
+      dailyGrainUpkeep: 2,
+      dailyPillUpkeep: 1,
+      descTh: 'รักษาอาการบาดเจ็บสาหัส เร่งฟื้นฟู HP นอกสำนัก (+35%)'
+    }
+  });
+
+  OUTPOSTS_LOGISTICS.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.outposts || typeof W.sect.outposts !== 'object') {
+      W.sect.outposts = {
+        byNodeId: {},
+        convoys: [],
+        history: [],
+        lastTickDay: 0,
+        seq: 0
+      };
+    }
+    if (!W.sect.outposts.byNodeId || typeof W.sect.outposts.byNodeId !== 'object') {
+      W.sect.outposts.byNodeId = {};
+    }
+    if (!Array.isArray(W.sect.outposts.convoys)) W.sect.outposts.convoys = [];
+    if (!Array.isArray(W.sect.outposts.history)) W.sect.outposts.history = [];
+    if (!Array.isArray(W.chronicle)) W.chronicle = [];
+    return W.sect.outposts;
+  };
+
+  const countTotalSectPills = W => {
+    if (!W || !W.sect || !W.sect.stock) return 0;
+    let total = 0;
+    for (const [k, v] of Object.entries(W.sect.stock)) {
+      const qty = Number(v) || 0;
+      if (qty <= 0) continue;
+      if (k === 'pills' || k.startsWith('P:') || k.startsWith('ITEM_PILL_') || (ECO && ECO.isPill && ECO.isPill(k))) {
+        total += qty;
+      }
+    }
+    return total;
+  };
+
+  const deductSectPills = (W, pillQty, preferredKey) => {
+    if (!W || !W.sect || !W.sect.stock || pillQty <= 0) return { ok: true, deducted: 0, keysUsed: [] };
+    const st = W.sect.stock;
+    const candidateKeys = [];
+    if (preferredKey && (st[preferredKey] || 0) > 0) candidateKeys.push(preferredKey);
+    if ((st.pills || 0) > 0 && !candidateKeys.includes('pills')) candidateKeys.push('pills');
+    for (const k of Object.keys(st)) {
+      if ((st[k] || 0) > 0 && !candidateKeys.includes(k)) {
+        if (k === 'pills' || k.startsWith('P:') || k.startsWith('ITEM_PILL_') || (ECO && ECO.isPill && ECO.isPill(k))) {
+          candidateKeys.push(k);
+        }
+      }
+    }
+    const available = candidateKeys.reduce((acc, k) => acc + (Number(st[k]) || 0), 0);
+    if (available < pillQty) return { ok: false, reason: 'insufficient-pills', available };
+    let rem = pillQty;
+    const keysUsed = [];
+    for (const k of candidateKeys) {
+      if (rem <= 0) break;
+      const have = Number(st[k]) || 0;
+      const take = Math.min(have, rem);
+      if (take > 0) {
+        if (ECO && ECO.take && k !== 'pills') ECO.take(W, k, take);
+        else {
+          st[k] = have - take;
+          if (st[k] <= 0) delete st[k];
+        }
+        rem -= take;
+        keysUsed.push({ key: k, qty: take });
+      }
+    }
+    return { ok: true, deducted: pillQty - rem, keysUsed };
+  };
+
+  OUTPOSTS_LOGISTICS.establishOutpost = (W, nodeId, campType, garrisonNpcIds, opts) => {
+    opts = opts || {};
+    const st = OUTPOSTS_LOGISTICS.ensure(W);
+    if (!st) return { ok: false, reason: 'invalid-world' };
+    if (g.EXPED && g.EXPED.ensureWorldTopology) g.EXPED.ensureWorldTopology(W);
+
+    const rNodes = (W.world && W.world.resourceNodes) || {};
+    const resolvedNodeId = (nodeId && rNodes[nodeId])
+      ? nodeId
+      : (nodeId || Object.keys(rNodes).find(k => rNodes[k] && rNodes[k].ownerSectId === 'PLAYER') || 'MINE_CELESTIAL_STONE');
+    const rn = rNodes[resolvedNodeId] || null;
+    if (rn && opts.claimNode !== false) {
+      rn.ownerSectId = 'PLAYER';
+      rn.ownerNameTh = W.sect.name;
+    }
+
+    const typeKey = (campType && OUTPOSTS_LOGISTICS.CAMP_TYPES[campType]) ? campType : 'CAMP_REST';
+    const spec = OUTPOSTS_LOGISTICS.CAMP_TYPES[typeKey];
+
+    // Seed initial frontier medical pill reserve if sect stock has 0 pills so Closed-Loop convoy works out of the box
+    if (countTotalSectPills(W) === 0 && opts.seedInitialPillReserve !== false) {
+      W.sect.stock['P:BASIC_HEAL_1'] = (W.sect.stock['P:BASIC_HEAL_1'] || 0) + 25;
+    }
+
+    let gIds = [];
+    if (Array.isArray(garrisonNpcIds) && garrisonNpcIds.length) {
+      gIds = garrisonNpcIds.map(x => (typeof x === 'object' && x ? x.id : String(x))).filter(id => W.byId && W.byId[id] && !W.byId[id].dead);
+    } else if (opts.autoGarrison !== false) {
+      gIds = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && n.id !== W.sect.masterId).slice(0, 2).map(n => n.id);
+    }
+
+    if (rn && gIds.length && g.EXPED && g.EXPED.assignNodeGarrison) {
+      g.EXPED.assignNodeGarrison(W, resolvedNodeId, { discipleIds: gIds });
+    }
+
+    const outpost = {
+      id: 'OUTPOST_' + resolvedNodeId,
+      nodeId: resolvedNodeId,
+      nodeNameTh: rn ? rn.nameTh : resolvedNodeId,
+      campType: spec.id,
+      nameTh: spec.nameTh,
+      icon: spec.icon,
+      macroRegion: (rn && rn.macroRegion) || 'NORTHERN_PEAKS',
+      garrisonNpcIds: gIds,
+      grainStock: opts.initialGrain != null ? Number(opts.initialGrain) : 16,
+      pillStock: opts.initialPills != null ? Number(opts.initialPills) : 6,
+      morale: opts.initialMorale != null ? Number(opts.initialMorale) : 100,
+      active: true,
+      establishedDay: W.day || 1,
+      staminaRestorePct: spec.staminaRestorePct || 0,
+      ambushRiskReduction: spec.ambushRiskReduction || 0,
+      emergencyRationDraw: !!spec.emergencyRationDraw,
+      cureSevereInjury: !!spec.cureSevereInjury,
+      hpRegenBonusPct: spec.hpRegenBonusPct || 0,
+      dailyGrainUpkeep: spec.dailyGrainUpkeep || 2,
+      dailyPillUpkeep: spec.dailyPillUpkeep || 0,
+      descTh: spec.descTh
+    };
+
+    st.byNodeId[resolvedNodeId] = outpost;
+    if (rn) rn.outpost = outpost;
+
+    // Apply immediate camp establishment perks to garrisoned disciples
+    OUTPOSTS_LOGISTICS.applyCampPerksToParty(W, outpost, gIds.map(id => W.byId[id]).filter(Boolean));
+
+    if (!opts.quiet) {
+      W.log('exped', spec.icon + ' สถาปนา「' + spec.nameTh + '」ณ ' + outpost.nodeNameTh + ' สำเร็จ!', gIds);
+      pushWorldChronicle(W, {
+        category: 'SECRET_REALM_NODE',
+        icon: spec.icon,
+        titleTh: 'สถาปนาค่ายพักหน้าด่าน「' + spec.nameTh + '」ณ ' + outpost.nodeNameTh,
+        storyTh: W.sect.name + ' ได้ส่งศิษย์ไปตั้ง ' + spec.nameTh + ' ประจำจุดยุทธศาสตร์ ' + outpost.nodeNameTh + ' เพื่อขยายเส้นทางยุทธปัจจัย',
+        consequenceTh: spec.descTh,
+        npcIds: gIds
+      });
+    }
+
+    return {
+      ok: true,
+      nodeId: resolvedNodeId,
+      campType: spec.id,
+      outpost
+    };
+  };
+
+  OUTPOSTS_LOGISTICS.applyCampPerksToParty = (W, outpostOrType, party) => {
+    if (!W) return { ok: false };
+    const outpost = (typeof outpostOrType === 'object' && outpostOrType)
+      ? outpostOrType
+      : (OUTPOSTS_LOGISTICS.CAMP_TYPES[outpostOrType] || OUTPOSTS_LOGISTICS.CAMP_TYPES.CAMP_REST);
+    const members = (Array.isArray(party) ? party : [party]).map(n => (typeof n === 'string' && W.byId ? W.byId[n] : n)).filter(n => n && !n.dead);
+    let staminaRestored = 0, healedCount = 0, curedInjuries = 0, rationsDrawn = 0;
+
+    for (const n of members) {
+      const s = n.h && n.h.state;
+      if (!s) continue;
+      if (outpost.staminaRestorePct > 0) {
+        const gain = Math.round(100 * outpost.staminaRestorePct);
+        s.energy = clamp((s.energy == null ? 60 : s.energy) + gain, 0, 100);
+        s.rest = clamp((s.rest == null ? 60 : s.rest) + Math.round(gain * 0.8), 0, 100);
+        staminaRestored += gain;
+      }
+      if (outpost.emergencyRationDraw) {
+        s.satiety = clamp((s.satiety == null ? 60 : s.satiety) + 35, 0, 100);
+        if (typeof outpost.grainStock === 'number' && outpost.grainStock > 0) {
+          outpost.grainStock = Math.max(0, outpost.grainStock - 1);
+        }
+        rationsDrawn++;
+      }
+      if (outpost.cureSevereInjury || outpost.hpRegenBonusPct > 0) {
+        const hm = (CULT && CULT.hpMax) ? CULT.hpMax(n) : 100;
+        const hpGain = Math.max(1, Math.round(hm * (outpost.hpRegenBonusPct || 0.35)));
+        s.hp = Math.min(hm, (s.hp || hm) + hpGain);
+        healedCount++;
+        if (outpost.cureSevereInjury && Array.isArray(n.inj) && n.inj.length > 0) {
+          curedInjuries += n.inj.length;
+          n.inj = [];
+        }
+      }
+    }
+    return {
+      ok: true,
+      campType: outpost.campType || outpost.id,
+      staminaRestorePct: outpost.staminaRestorePct || 0,
+      ambushRiskReduction: outpost.ambushRiskReduction || 0,
+      emergencyRationDraw: !!outpost.emergencyRationDraw,
+      cureSevereInjury: !!outpost.cureSevereInjury,
+      staminaRestored,
+      healedCount,
+      curedInjuries,
+      rationsDrawn
+    };
+  };
+
+  OUTPOSTS_LOGISTICS.getRegionalAmbushReduction = (W, macroRegion) => {
+    const st = OUTPOSTS_LOGISTICS.ensure(W);
+    if (!st) return 0;
+    let reduction = 0;
+    for (const op of Object.values(st.byNodeId)) {
+      if (!op || !op.active || op.morale <= 10) continue;
+      if (!macroRegion || op.macroRegion === macroRegion || op.campType === 'CAMP_GUARD') {
+        reduction = Math.max(reduction, op.ambushRiskReduction || 0);
+      }
+    }
+    return clamp(reduction, 0, 0.75);
+  };
+
+  OUTPOSTS_LOGISTICS.dispatchSupplyConvoy = (W, outpostNodeId, grainQty, pillQty, opts) => {
+    opts = opts || {};
+    const st = OUTPOSTS_LOGISTICS.ensure(W);
+    if (!st) return { ok: false, reason: 'invalid-world' };
+
+    const targetId = outpostNodeId || Object.keys(st.byNodeId)[0] || 'MINE_CELESTIAL_STONE';
+    let outpost = st.byNodeId[targetId];
+    if (!outpost) {
+      const est = OUTPOSTS_LOGISTICS.establishOutpost(W, targetId, 'CAMP_SUPPLY', null, { quiet: true });
+      outpost = est.outpost;
+    }
+    if (!outpost) return { ok: false, reason: 'outpost-not-found' };
+
+    const gQty = Math.max(0, Math.round(Number(grainQty != null ? grainQty : 20)));
+    const pQty = Math.max(0, Math.round(Number(pillQty != null ? pillQty : 5)));
+
+    const sectGrainBefore = (ECO && ECO.count) ? ECO.count(W, 'grain') : (W.sect.stock.grain || 0);
+    const sectPillsBefore = countTotalSectPills(W);
+
+    if (gQty > 0 && sectGrainBefore < gQty) {
+      return { ok: false, reason: 'insufficient-grain', availableGrain: sectGrainBefore, requestedGrain: gQty };
+    }
+    if (pQty > 0 && sectPillsBefore < pQty) {
+      return { ok: false, reason: 'insufficient-pills', availablePills: sectPillsBefore, requestedPills: pQty };
+    }
+
+    // Strict Closed-Loop Deduction from Sect Stock
+    if (gQty > 0) {
+      if (ECO && ECO.take) ECO.take(W, 'grain', gQty);
+      else W.sect.stock.grain = Math.max(0, (W.sect.stock.grain || 0) - gQty);
+    }
+    const pillDeductRes = pQty > 0 ? deductSectPills(W, pQty, opts.pillKey) : { ok: true, deducted: 0, keysUsed: [] };
+    if (!pillDeductRes.ok) return pillDeductRes;
+
+    const sectGrainAfter = (ECO && ECO.count) ? ECO.count(W, 'grain') : (W.sect.stock.grain || 0);
+    const sectPillsAfter = countTotalSectPills(W);
+
+    // Calculate caravan ambush risk (reduced by -40% when CAMP_GUARD is active)
+    const baseAmbushRisk = 0.25;
+    const guardReduction = OUTPOSTS_LOGISTICS.getRegionalAmbushReduction(W, outpost.macroRegion);
+    const effectiveAmbushRisk = +(baseAmbushRisk * (1 - guardReduction)).toFixed(4);
+    const ambushed = opts.forceAmbush === true ? true : (opts.forceAmbush === false ? false : false);
+
+    const lossRatio = ambushed ? (guardReduction >= 0.40 ? 0.10 : 0.25) : 0;
+    const grainDelivered = Math.max(0, gQty - Math.floor(gQty * lossRatio));
+    const pillDelivered = Math.max(0, pQty - Math.floor(pQty * lossRatio));
+
+    outpost.grainStock = (outpost.grainStock || 0) + grainDelivered;
+    outpost.pillStock = (outpost.pillStock || 0) + pillDelivered;
+    outpost.morale = clamp((outpost.morale || 80) + 10, 0, 100);
+
+    const convoyRecord = {
+      id: 'CONVOY_' + (++st.seq),
+      day: W.day || 1,
+      outpostNodeId: targetId,
+      outpostNameTh: outpost.nameTh,
+      grainSent: gQty,
+      pillSent: pQty,
+      grainDelivered,
+      pillDelivered,
+      ambushed,
+      ambushRisk: effectiveAmbushRisk,
+      guardReduction
+    };
+    st.convoys.unshift(convoyRecord);
+    if (st.convoys.length > 40) st.convoys.length = 40;
+
+    if (!opts.quiet) {
+      W.log('exped', '🐪 จัดส่งขบวนเสบียงยุทธปัจจัยสู่「' + outpost.nameTh + '」สำเร็จ (ข้าวสาร +' + grainDelivered + ', โอสถ +' + pillDelivered + ')', outpost.garrisonNpcIds || []);
+    }
+
+    return {
+      ok: true,
+      outpostNodeId: targetId,
+      outpost,
+      convoy: convoyRecord,
+      grainSent: gQty,
+      pillSent: pQty,
+      grainDelivered,
+      pillDelivered,
+      ambushed,
+      ambushRisk: effectiveAmbushRisk,
+      guardReduction,
+      sectGrainBefore,
+      sectGrainAfter,
+      sectPillsBefore,
+      sectPillsAfter
+    };
+  };
+
+  OUTPOSTS_LOGISTICS.tickOutpostLogistics = (W, opts) => {
+    opts = opts || {};
+    const st = OUTPOSTS_LOGISTICS.ensure(W);
+    if (!st) return { ok: false, reason: 'invalid-world' };
+    const shortageNodes = [];
+    const suppliedNodes = [];
+    let tickedCount = 0;
+
+    for (const [nodeId, op] of Object.entries(st.byNodeId)) {
+      if (!op || !op.active) continue;
+      tickedCount++;
+      const spec = OUTPOSTS_LOGISTICS.CAMP_TYPES[op.campType] || OUTPOSTS_LOGISTICS.CAMP_TYPES.CAMP_REST;
+      const gNeed = spec.dailyGrainUpkeep != null ? spec.dailyGrainUpkeep : 2;
+      const pNeed = spec.dailyPillUpkeep != null ? spec.dailyPillUpkeep : 0;
+
+      const hadGrain = (op.grainStock || 0) >= gNeed && (op.grainStock || 0) > 0;
+      const hadPills = pNeed === 0 || (op.pillStock || 0) >= pNeed;
+
+      op.grainStock = Math.max(0, (op.grainStock || 0) - gNeed);
+      if (pNeed > 0) op.pillStock = Math.max(0, (op.pillStock || 0) - pNeed);
+
+      const garrisonNpcs = (op.garrisonNpcIds || []).map(id => W.byId && W.byId[id]).filter(n => n && !n.dead);
+      if (!hadGrain || !hadPills) {
+        const moraleDrop = !hadGrain ? 15 : 8;
+        op.morale = clamp((op.morale == null ? 100 : op.morale) - moraleDrop, 0, 100);
+        shortageNodes.push(nodeId);
+        for (const n of garrisonNpcs) {
+          n.sat = clamp((n.sat || 60) - 5, 0, 100);
+          if (n.h && n.h.state) n.h.state.mood = clamp((n.h.state.mood || 0) - 6, -50, 50);
+        }
+      } else {
+        op.morale = clamp((op.morale == null ? 100 : op.morale) + 5, 0, 100);
+        suppliedNodes.push(nodeId);
+        OUTPOSTS_LOGISTICS.applyCampPerksToParty(W, op, garrisonNpcs);
+      }
+    }
+
+    st.lastTickDay = W.day || 1;
+    return {
+      ok: true,
+      tickedCount,
+      shortageNodes,
+      suppliedNodes
+    };
+  };
+
+  SECT.OUTPOSTS_LOGISTICS = OUTPOSTS_LOGISTICS;
+  SECT.establishOutpost = OUTPOSTS_LOGISTICS.establishOutpost;
+  SECT.dispatchSupplyConvoy = OUTPOSTS_LOGISTICS.dispatchSupplyConvoy;
+  SECT.tickOutpostLogistics = OUTPOSTS_LOGISTICS.tickOutpostLogistics;
+
+  /* ---------- [Pillar 3] ธรรมนูญสำนักระยะยาวและอุดมการณ์หลัก (SECT.CHARTER_DOCTRINE) ---------- */
+  const CHARTER_DOCTRINE = {};
+  CHARTER_DOCTRINE.DOCTRINES = Object.freeze({
+    CHARTER_MERITOCRACY: {
+      id: 'CHARTER_MERITOCRACY',
+      nameTh: 'ธรรมนูญเชิดชูคุณูปการและผู้แข็งแกร่ง',
+      icon: '⚖️',
+      loyaltyBonus: 10,
+      recruitRateMult: 1.15,
+      applicantScoreBonus: 4.5,
+      cpRewardMult: 1.20,
+      cultRateBonus: 0.10,
+      combatPowerBonus: 0.12,
+      researchSpeedMult: 1.05,
+      tradeIncomeMult: 1.05,
+      tributeMult: 1.10,
+      favoredTrait: 'ambition',
+      descTh: 'จัดสรรทรัพยากรและเลื่อนขั้นตามผลงานจริง เพิ่มแต้มคุณูปการ +20%, อัตราผู้สมัคร +15%, และตบะ +10%'
+    },
+    CHARTER_BROTHERHOOD_SANCTUARY: {
+      id: 'CHARTER_BROTHERHOOD_SANCTUARY',
+      nameTh: 'ธรรมนูญภราดรภาพและร่มโพธิ์ยุทธภพ',
+      icon: '🤝',
+      loyaltyBonus: 20,
+      recruitRateMult: 1.25,
+      applicantScoreBonus: 6.0,
+      cpRewardMult: 1.10,
+      cultRateBonus: 0.08,
+      combatPowerBonus: 0.10,
+      defBonusPct: 0.15,
+      researchSpeedMult: 1.0,
+      tradeIncomeMult: 1.05,
+      tributeMult: 1.15,
+      favoredTrait: 'empathy',
+      descTh: 'สำนักคือครอบครัวเดียว ความภักดีศิษย์ +20, อัตราผู้สมัครเข้าสำนัก +25%, และป้องกันศึกหน้าด่าน +15%'
+    },
+    CHARTER_SCHOLASTIC_DAO: {
+      id: 'CHARTER_SCHOLASTIC_DAO',
+      nameTh: 'ธรรมนูญปราชญ์ศึกษาวิถีเต๋า',
+      icon: '📜',
+      loyaltyBonus: 12,
+      recruitRateMult: 1.10,
+      applicantScoreBonus: 4.0,
+      cpRewardMult: 1.10,
+      cultRateBonus: 0.18,
+      btBonus: 0.08,
+      researchSpeedMult: 1.30,
+      tradeIncomeMult: 1.0,
+      tributeMult: 1.05,
+      favoredTrait: 'curiosity',
+      descTh: 'มุ่งค้นคว้าคัมภีร์และสัจธรรมเต๋า เร่งความเร็วการวิจัยวิชา +30%, ความเร็วบ่มเพาะปราณ +18%, และทะลวงด่าน +8%'
+    },
+    CHARTER_OPEN_MERCHANT: {
+      id: 'CHARTER_OPEN_MERCHANT',
+      nameTh: 'ธรรมนูญการค้าเสรีและเปิดกว้างสี่ทิศ',
+      icon: '🏮',
+      loyaltyBonus: 10,
+      recruitRateMult: 1.20,
+      applicantScoreBonus: 5.0,
+      cpRewardMult: 1.15,
+      cultRateBonus: 0.08,
+      researchSpeedMult: 1.10,
+      tradeIncomeMult: 1.30,
+      tributeMult: 1.25,
+      favoredTrait: 'rationality',
+      descTh: 'เปิดประตูการค้าเชื่อมสี่ทิศ รายได้คาราวานและตลาด +30%, บรรณาการสำนัก +25%, และอัตราผู้สมัคร +20%'
+    },
+    CHARTER_RECLUSIVE_HERMIT: {
+      id: 'CHARTER_RECLUSIVE_HERMIT',
+      nameTh: 'ธรรมนูญสันโดษซ่อนเร้นเหนือโลกียะ',
+      icon: '🏔️',
+      loyaltyBonus: 16,
+      recruitRateMult: 0.85,
+      applicantScoreBonus: 2.0,
+      cpRewardMult: 1.05,
+      cultRateBonus: 0.25,
+      heartDemonReduce: 0.30,
+      raidThreatReduction: 0.35,
+      researchSpeedMult: 1.20,
+      tradeIncomeMult: 0.90,
+      tributeMult: 0.95,
+      favoredTrait: 'composure',
+      descTh: 'ปลีกวิเวกเร้นกายจากโลกียะ เร่งความเร็วบ่มเพาะปราณ +25%, ลดจิตมาร -30%, และลดโอกาสถูกบุกโจมตี -35%'
+    }
+  });
+  CHARTER_DOCTRINE.CHARTERS = CHARTER_DOCTRINE.DOCTRINES;
+
+  CHARTER_DOCTRINE.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.charter || typeof W.sect.charter !== 'object' || !W.sect.charter.activeDoctrine) {
+      const def = CHARTER_DOCTRINE.DOCTRINES.CHARTER_MERITOCRACY;
+      W.sect.charter = {
+        activeDoctrine: def.id,
+        nameTh: def.nameTh,
+        icon: def.icon,
+        adoptedDay: W.day || 1,
+        loyaltyBonus: def.loyaltyBonus,
+        perks: Object.assign({}, def),
+        history: []
+      };
+    }
+    return W.sect.charter;
+  };
+
+  CHARTER_DOCTRINE.getCharterPerks = W => {
+    if (!W || !W.sect) return CHARTER_DOCTRINE.DOCTRINES.CHARTER_MERITOCRACY;
+    const ch = CHARTER_DOCTRINE.ensure(W);
+    const spec = CHARTER_DOCTRINE.DOCTRINES[ch.activeDoctrine] || CHARTER_DOCTRINE.DOCTRINES.CHARTER_MERITOCRACY;
+    return Object.assign({}, spec, {
+      activeDoctrine: ch.activeDoctrine,
+      adoptedDay: ch.adoptedDay,
+      loyaltyBonus: ch.loyaltyBonus != null ? ch.loyaltyBonus : spec.loyaltyBonus
+    });
+  };
+
+  CHARTER_DOCTRINE.enactSectCharter = (W, charterId, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect) return { ok: false, reason: 'invalid-world' };
+    const ch = CHARTER_DOCTRINE.ensure(W);
+    const spec = CHARTER_DOCTRINE.DOCTRINES[charterId];
+    if (!spec) return { ok: false, reason: 'invalid-charter' };
+
+    const cost = opts.free ? 0 : 50;
+    if ((W.sect.stones || 0) < cost) {
+      return { ok: false, reason: 'insufficient-stones', required: cost, have: W.sect.stones || 0 };
+    }
+
+    if (cost > 0) {
+      if (ECO && ECO.pay) ECO.pay(W, cost, 'จัดพิธีประกาศธรรมนูญสำนัก「' + spec.nameTh + '」');
+      else W.sect.stones -= cost;
+      if (W.world && W.world.resourcePool && typeof W.world.resourcePool.stones === 'number') {
+        W.world.resourcePool.stones += cost;
+      }
+    }
+
+    let loyaltyAdjustedCount = 0;
+    (W.npcs || []).forEach(n => {
+      if (!n || n.dead || n.exiled) return;
+      const traitVal = (n.h && n.h.personality && n.h.personality[spec.favoredTrait]) || 55;
+      const traitMatchBonus = traitVal >= 55 ? Math.round(spec.loyaltyBonus * 1.2) : spec.loyaltyBonus;
+      n.charterLoyaltyBonus = traitMatchBonus;
+      if (n.h && n.h.personality && typeof n.h.personality.loyalty === 'number') {
+        n.h.personality.loyalty = clamp(n.h.personality.loyalty + Math.round(traitMatchBonus * 0.25), 0, 100);
+      }
+      n.sat = clamp((n.sat || 60) + Math.round(traitMatchBonus * 0.4), 0, 100);
+      n._cultRateBase = null;
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      loyaltyAdjustedCount++;
+    });
+
+    const prevHistory = Array.isArray(ch.history) ? ch.history : [];
+    prevHistory.unshift({
+      charterId: spec.id,
+      nameTh: spec.nameTh,
+      adoptedDay: W.day || 1,
+      costPaid: cost
+    });
+    if (prevHistory.length > 25) prevHistory.length = 25;
+
+    W.sect.charter = {
+      activeDoctrine: spec.id,
+      nameTh: spec.nameTh,
+      icon: spec.icon,
+      adoptedDay: W.day || 1,
+      loyaltyBonus: spec.loyaltyBonus,
+      perks: Object.assign({}, spec),
+      history: prevHistory
+    };
+
+    if (!opts.quiet) {
+      W.log('policy', spec.icon + ' สถาปนาธรรมนูญสำนัก「' + spec.nameTh + '」อย่างเป็นทางการ!', [W.sect.masterId].filter(Boolean));
+      pushWorldChronicle(W, {
+        category: 'ELDER_COUNCIL_EDICT',
+        icon: spec.icon,
+        titleTh: 'สถาปนาธรรมนูญสำนัก「' + spec.nameTh + '」',
+        storyTh: W.sect.name + ' จัดพิธีประกาศใช้ ' + spec.nameTh + ' เป็นอุดมการณ์หลักระยะยาวของสำนัก',
+        consequenceTh: spec.descTh,
+        npcIds: [W.sect.masterId].filter(Boolean)
+      });
+    }
+
+    return {
+      ok: true,
+      charterId: spec.id,
+      charter: W.sect.charter,
+      perks: CHARTER_DOCTRINE.getCharterPerks(W),
+      costPaid: cost,
+      loyaltyAdjustedCount
+    };
+  };
+
+  SECT.CHARTER_DOCTRINE = CHARTER_DOCTRINE;
+  SECT.enactSectCharter = CHARTER_DOCTRINE.enactSectCharter;
+  SECT.getCharterPerks = CHARTER_DOCTRINE.getCharterPerks;
+
+  /* ---------- [Pillar 4] สภาแผนยุทธศาสตร์ 6 ขุนนางใหญ่ (SECT.STRATEGIC_COUNCIL) ---------- */
+  const STRATEGIC_COUNCIL = {};
+  STRATEGIC_COUNCIL.COUNCIL_OFFICES = Object.freeze([
+    { postId: 'spymaster', titleTh: 'เจ้าหอข่าวกรองและเบาะแส', domain: 'INTELLIGENCE', icon: '🕵️' },
+    { postId: 'envoy', titleTh: 'ทูตยุทธภพและกิจการบริวาร', domain: 'DIPLOMACY', icon: '🕊️' },
+    { postId: 'quartermaster', titleTh: 'แม่ทัพยุทธปัจจัยและคาราวาน', domain: 'LOGISTICS', icon: '🐪' },
+    { postId: 'vanguard', titleTh: 'ผู้อาวุโสกองหน้าพิทักษ์ด่าน', domain: 'DEFENSE', icon: '🛡️' },
+    { postId: 'warden', titleTh: 'ผู้คุมทัณฑ์และเชลยศึก', domain: 'DUNGEON', icon: '⛓️' },
+    { postId: 'marketmaster', titleTh: 'นายวาณิชย์ตลาดภายนอก', domain: 'COMMERCE', icon: '🏮' }
+  ]);
+
+  STRATEGIC_COUNCIL.AGENDA_CHOICES = Object.freeze({
+    FORTIFY_LOGISTICS: {
+      id: 'FORTIFY_LOGISTICS',
+      nameTh: 'เสริมความมั่นคงเส้นทางยุทธปัจจัยและป้อมค่าย',
+      icon: '🛡️',
+      proposedBy: ['quartermaster', 'vanguard', 'warden'],
+      descTh: 'จัดส่งเสบียงฉุกเฉินสู่ค่ายพักหน้าด่าน เสริมกำลังป้อมยาม (+20 ขวัญกำลังใจค่าย) และยกระดับความมั่นคงคุกใต้ดิน (+15%)'
+    },
+    DIPLOMATIC_OFFENSIVE: {
+      id: 'DIPLOMATIC_OFFENSIVE',
+      nameTh: 'ส่งทูตผูกมิตรและขยายเครือข่ายการค้าสี่ทิศ',
+      icon: '🕊️',
+      proposedBy: ['envoy', 'marketmaster', 'spymaster'],
+      descTh: 'เจริญสัมพันธไมตรีกับสำนักพันธมิตร (+8 ท่าที), เพิ่มโบนัสการทูตและการค้า (+15%), และขยายข่ายข่าวกรองเตือนภัยล่วงหน้า'
+    },
+    GRAND_WAR_DRILL: {
+      id: 'GRAND_WAR_DRILL',
+      nameTh: 'เปิดซ้อมรบใหญ่และระดมพลแนวหน้า',
+      icon: '⚔️',
+      proposedBy: ['vanguard', 'spymaster', 'warden'],
+      descTh: 'ฝึกซ้อมค่ายกลยุทธวิธีทั้งสำนัก มอบบัฟโองการพยุหะ (tacticalCommand) และเร่งตบะศิษย์แนวหน้าทุกคน'
+    }
+  });
+
+  STRATEGIC_COUNCIL.ensure = W => {
+    if (!W || !W.sect) return null;
+    if (!W.sect.strategicCouncil || typeof W.sect.strategicCouncil !== 'object') {
+      W.sect.strategicCouncil = {
+        seq: 0,
+        lastConvenedDay: 0,
+        activeSession: null,
+        resolvedCount: 0,
+        lastChoiceId: null,
+        history: []
+      };
+    }
+    if (!Array.isArray(W.sect.strategicCouncil.history)) W.sect.strategicCouncil.history = [];
+    return W.sect.strategicCouncil;
+  };
+
+  STRATEGIC_COUNCIL.conveneCouncil = (W, opts) => {
+    opts = opts || {};
+    const st = STRATEGIC_COUNCIL.ensure(W);
+    if (!st) return { ok: false, reason: 'invalid-world' };
+    OUTPOSTS_LOGISTICS.ensure(W);
+    CHARTER_DOCTRINE.ensure(W);
+    if (SECT.ensureDungeon) SECT.ensureDungeon(W);
+
+    const alive = (W.npcs || []).filter(n => n && !n.dead && !n.exiled);
+    const officerReports = {};
+    const reportsList = [];
+
+    const outpostsCount = Object.keys(W.sect.outposts.byNodeId || {}).length;
+    const prisonerCount = (W.sect.dungeon && Array.isArray(W.sect.dungeon.prisoners)) ? W.sect.dungeon.prisoners.length : 0;
+    const hostileSects = ((W.world && W.world.sects) || []).filter(s => s && (s.attitude || 0) < -15).length;
+    const grainStock = (W.sect.stock && W.sect.stock.grain) || 0;
+    const stones = W.sect.stones || 0;
+
+    STRATEGIC_COUNCIL.COUNCIL_OFFICES.forEach((off, idx) => {
+      const holder = (SECT.holder && SECT.holder(W, off.postId)) || alive[idx % Math.max(1, alive.length)] || null;
+      const officerNameTh = holder ? HC.fullName(holder) : 'ผู้รักษาการอาวุโส';
+      let summaryTh = '';
+      let readiness = 80;
+      if (off.postId === 'spymaster') {
+        readiness = clamp(75 + Math.round(((W.threat && W.threat.earlyWarningBonus) || 0) * 100) - hostileSects * 5, 25, 100);
+        summaryTh = 'ตรวจพบสำนักที่มีท่าทีคุกคาม ' + hostileSects + ' แห่ง · ข่ายข่าวกรองพร้อมใช้งาน ' + readiness + '%';
+      } else if (off.postId === 'envoy') {
+        const allyCount = ((W.world && W.world.allSects) || []).filter(s => s && (s.attitude || 0) >= 25).length;
+        readiness = clamp(65 + allyCount * 5, 30, 100);
+        summaryTh = 'สำนักที่มีไมตรีจิต ' + allyCount + ' แห่ง · โบนัสการทูตปัจจุบัน +' + Math.round((W.sect.diplomacyBonus || 0) * 100) + '%';
+      } else if (off.postId === 'quartermaster') {
+        readiness = clamp(50 + Math.min(40, Math.floor(grainStock / 4)) + outpostsCount * 5, 20, 100);
+        summaryTh = 'เสบียงคลังสำนักมีข้าวสาร ' + grainStock + ' หน่วย · ค่ายพักหน้าด่าน ' + outpostsCount + ' แห่ง';
+      } else if (off.postId === 'vanguard') {
+        readiness = clamp(78 + (W.sect.vanguardPosture === 'IRON_SHIELD_WALL' ? 15 : 5), 35, 100);
+        summaryTh = 'แนวป้องกันหน้าด่านอยู่ในเกณฑ์ ' + readiness + '% · ท่วงท่ากองหน้า: ' + (W.sect.vanguardPosture || 'STANDARD');
+      } else if (off.postId === 'warden') {
+        const sec = W.sect.dungeonSecurity || (W.sect.dungeon && W.sect.dungeon.securityLevel) || 75;
+        readiness = clamp(sec - prisonerCount * 4, 25, 100);
+        summaryTh = 'คุมขังเชลยศึก ' + prisonerCount + ' คน · ระดับความมั่นคงคุกใต้ดิน ' + readiness + '%';
+      } else if (off.postId === 'marketmaster') {
+        readiness = clamp(55 + Math.min(45, Math.floor(stones / 40)), 25, 100);
+        summaryTh = 'คลังสำนักมีศิลาปราณ ' + stones + ' ก้อน · เส้นทางคาราวานพร้อมทำกำไร';
+      }
+      const rep = {
+        postId: off.postId,
+        titleTh: off.titleTh,
+        domain: off.domain,
+        icon: off.icon,
+        officerId: holder ? holder.id : null,
+        officerNameTh,
+        readiness,
+        summaryTh
+      };
+      officerReports[off.postId] = rep;
+      reportsList.push(rep);
+    });
+
+    const avgReadiness = Math.round(reportsList.reduce((acc, r) => acc + r.readiness, 0) / Math.max(1, reportsList.length));
+    const threatScore = clamp(30 + hostileSects * 12 + prisonerCount * 6 - Math.round((avgReadiness - 60) * 0.4), 10, 95);
+    const options = Object.values(STRATEGIC_COUNCIL.AGENDA_CHOICES).map(c => Object.assign({}, c));
+
+    const councilReport = {
+      sessionId: 'COUNCIL_' + (W.day || 1) + '_' + (++st.seq),
+      convenedDay: W.day || 1,
+      officerReports,
+      reportsList,
+      avgReadiness,
+      threatScore,
+      threatLevel: threatScore >= 65 ? 'HIGH' : (threatScore >= 40 ? 'MODERATE' : 'LOW'),
+      threatSummaryTh: 'ระดับภัยคุกคามรวม ' + threatScore + '/100 · ความพร้อมของ 6 ทำเนียบขุนนางเฉลี่ย ' + avgReadiness + '%',
+      options,
+      resolved: false,
+      chosenAgendaId: null
+    };
+
+    st.activeSession = councilReport;
+    st.lastConvenedDay = W.day || 1;
+
+    if (!opts.quiet) {
+      W.log('policy', '👑 เจ้าสำนักเรียกประชุมสภาแผนยุทธศาสตร์ 6 ขุนนางใหญ่ (ความพร้อมเฉลี่ย ' + avgReadiness + '%)', [W.sect.masterId].filter(Boolean));
+    }
+
+    return {
+      ok: true,
+      councilReport,
+      officerReports,
+      reportsList,
+      options
+    };
+  };
+
+  STRATEGIC_COUNCIL.resolveCouncilAgenda = (W, choiceId, opts) => {
+    opts = opts || {};
+    const st = STRATEGIC_COUNCIL.ensure(W);
+    if (!st) return { ok: false, reason: 'invalid-world' };
+    if (!st.activeSession) {
+      STRATEGIC_COUNCIL.conveneCouncil(W, { quiet: true });
+    }
+    const session = st.activeSession;
+    const normalizedId = String(choiceId || 'FORTIFY_LOGISTICS').replace(/^AGENDA_/, '');
+    const choiceSpec = STRATEGIC_COUNCIL.AGENDA_CHOICES[normalizedId] || STRATEGIC_COUNCIL.AGENDA_CHOICES.FORTIFY_LOGISTICS;
+
+    const effects = { choiceId: choiceSpec.id };
+    if (choiceSpec.id === 'FORTIFY_LOGISTICS') {
+      W.sect.dungeonSecurity = clamp((W.sect.dungeonSecurity || 75) + 15, 0, 100);
+      if (W.sect.dungeon) W.sect.dungeon.securityLevel = W.sect.dungeonSecurity;
+      for (const op of Object.values((W.sect.outposts && W.sect.outposts.byNodeId) || {})) {
+        if (!op) continue;
+        op.grainStock = (op.grainStock || 0) + 10;
+        op.pillStock = (op.pillStock || 0) + 3;
+        op.morale = clamp((op.morale || 80) + 20, 0, 100);
+      }
+      effects.dungeonSecurity = W.sect.dungeonSecurity;
+      effects.outpostsReinforced = Object.keys((W.sect.outposts && W.sect.outposts.byNodeId) || {}).length;
+    } else if (choiceSpec.id === 'DIPLOMATIC_OFFENSIVE') {
+      W.sect.diplomacyBonus = +((W.sect.diplomacyBonus || 0) + 0.15).toFixed(2);
+      W.threat = W.threat || {};
+      W.threat.earlyWarningBonus = +((W.threat.earlyWarningBonus || 0) + 0.15).toFixed(2);
+      ((W.world && W.world.allSects) || []).forEach(s => {
+        if (s) s.attitude = clamp((s.attitude || 0) + 8, -100, 100);
+      });
+      effects.diplomacyBonus = W.sect.diplomacyBonus;
+      effects.earlyWarningBonus = W.threat.earlyWarningBonus;
+    } else if (choiceSpec.id === 'GRAND_WAR_DRILL') {
+      W.sect.vanguardPosture = 'IRON_SHIELD_WALL';
+      W.sect.vanguardInterceptBonus = Math.max(W.sect.vanguardInterceptBonus || 0, 0.20);
+      let buffedCount = 0;
+      (W.npcs || []).forEach(n => {
+        if (!n || n.dead || n.exiled) return;
+        if (g.STATS && g.STATS.applyNamedBuff) {
+          g.STATS.applyNamedBuff(n, 'tacticalCommand', 120, W.t || 0, { casterId: W.sect.masterId });
+        }
+        if (n.cult && CULT && CULT.gain) CULT.gain(n, 20, W, 'council_war_drill');
+        buffedCount++;
+      });
+      effects.vanguardPosture = W.sect.vanguardPosture;
+      effects.buffedCount = buffedCount;
+    }
+
+    session.resolved = true;
+    session.chosenAgendaId = choiceSpec.id;
+    session.resolvedDay = W.day || 1;
+    session.effects = effects;
+
+    st.resolvedCount = (st.resolvedCount || 0) + 1;
+    st.lastChoiceId = choiceSpec.id;
+    st.history.unshift({
+      sessionId: session.sessionId,
+      day: W.day || 1,
+      choiceId: choiceSpec.id,
+      nameTh: choiceSpec.nameTh,
+      effects
+    });
+    if (st.history.length > 30) st.history.length = 30;
+
+    if (!opts.quiet) {
+      W.log('policy', choiceSpec.icon + ' สภาแผนยุทธศาสตร์ 6 ขุนนางมีมติสั่งการ「' + choiceSpec.nameTh + '」!', [W.sect.masterId].filter(Boolean));
+      pushWorldChronicle(W, {
+        category: 'ELDER_COUNCIL_EDICT',
+        icon: choiceSpec.icon,
+        titleTh: 'มติสภา 6 ขุนนางใหญ่:「' + choiceSpec.nameTh + '」',
+        storyTh: 'หลังรับฟังรายงานจากขุนนางทั้ง 6 ทำเนียบ เจ้าสำนักได้เคาะแผนยุทธศาสตร์ ' + choiceSpec.nameTh,
+        consequenceTh: choiceSpec.descTh,
+        npcIds: [W.sect.masterId].filter(Boolean)
+      });
+    }
+
+    return {
+      ok: true,
+      choiceId: choiceSpec.id,
+      choice: choiceSpec,
+      effects,
+      councilReport: session
+    };
+  };
+
+  SECT.STRATEGIC_COUNCIL = STRATEGIC_COUNCIL;
+  SECT.conveneCouncil = STRATEGIC_COUNCIL.conveneCouncil;
+  SECT.resolveCouncilAgenda = STRATEGIC_COUNCIL.resolveCouncilAgenda;
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;

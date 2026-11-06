@@ -2129,7 +2129,13 @@
     }
     const originMult = (npc.originArc && npc.originArc.awakenedDestinyTrait && Number.isFinite(npc.originArc.awakenedDestinyTrait.cultRateBonus))
       ? (1 + npc.originArc.awakenedDestinyTrait.cultRateBonus) : 1;
-    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult;
+    let charterMult = 1;
+    if (npc.charterLoyaltyBonus && g.SECT && g.SECT.CHARTER_DOCTRINE) {
+      const wRefC = (g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+      const cp = wRefC && wRefC.sect && wRefC.sect.charter && wRefC.sect.charter.perks;
+      if (cp && Number.isFinite(cp.cultRateBonus)) charterMult = 1 + cp.cultRateBonus;
+    }
+    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult;
     if (rc && !hasOath && !hasMeridianInj && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
       rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.dynMult = dynMult;
     }
@@ -4436,7 +4442,11 @@
     const baseHealPct = opts.healPct != null ? opts.healPct : ((chosenSkill && chosenSkill.heal) ? chosenSkill.heal : (isSage ? 0.28 : 0.18));
     const hm = CULT.hpMax(tgt);
     const beforeHp = (tgt.h && tgt.h.state) ? tgt.h.state.hp : hm;
-    const healAmt = Math.max(1, Math.round(hm * baseHealPct * scale));
+    if ((beforeHp / Math.max(1, hm)) < 0.25 && g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS) {
+      g.COMBAT.ACTION_MASTERY_TRAITS.recordAction(W, caster, 'clutchHealCount', 1);
+    }
+    const medicBonus = (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS && g.COMBAT.ACTION_MASTERY_TRAITS.hasTrait(caster, 'TRAIT_COMBAT_MEDIC')) ? 1.20 : 1.0;
+    const healAmt = Math.max(1, Math.round(hm * baseHealPct * scale * medicBonus));
     if (tgt.h && tgt.h.state) {
       tgt.h.state.hp = Math.min(hm, beforeHp + healAmt);
       const qmTgt = CULT.qiMax(tgt);

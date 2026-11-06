@@ -7,7 +7,7 @@ category: qa-testing
 
 # JianghuSect Evolution — Automated QA & Regression Matrix (`test/run_all.js`, `tools/validate_data_schema.js`)
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill governs the automated verification pipeline of **JianghuSect Evolution (สำนักยุทธ์เจียงหู)**, using the registered suites and schema validator. See the baseline below; do not claim zero regressions without a current run.
 
@@ -110,3 +110,15 @@ Earlier claims of 97/97 are historical and do not establish the status of the cu
 
 ## v3.1.0 Test Matrix Update
 - Total registered suites in `GAME_SOURCE/test/run_all.js`: **117 suites** (107 Node.js suites + 10 Browser Playwright/Chromium suites), including `test/v310_autonomous_governance_and_peaks_sanctuary_suite.js` (422 assertions).
+
+---
+
+## Patch v4.0.0 Master QA Matrix Update (`124/124 Groups Passing`)
+- Total registered suites in `GAME_SOURCE/test/run_all.js`: **124 groups** (123 test suites + full `syntax` check across 198 JS files), including:
+  - `test/v320_dormant_awakening_suite.js`
+  - `test/v330_living_sect_and_daily_loop_suite.js`
+  - `test/v340_combat_depth_and_duet_synergies_suite.js`
+  - `test/v350_macro_jianghu_and_alchemy_suite.js`
+  - `test/v360_immortal_endgame_dynasty_suite.js`
+  - `test/v400_living_frontier_and_sect_charter_suite.js` (6 Phases, 76 assertions verifying Outpost Logistics, Behavioral Mastery Traits, Sect Charter, 6-Officer Strategic Council, 4 Micro-Locations, Save/Load, and 80-NPC performance at `~0.700 ms/tick`).
+- Current `node test/run_all.js` result: **`Assertions: 124/124 groups passed.`**

@@ -7,7 +7,7 @@ category: qa-testing
 
 # JianghuSect Evolution — Headless Node VM, JSDOM & Chromium CDP Testing Blueprint (`test/load.js`, `tools/cdp_playwright.js`)
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill covers how to test both headless simulation logic (`test/load.js`) and browser DOM/Canvas UI (`js/ui.js`, `js/render.js`, `js/main.js`) in **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**, including Termux/Android headless environments.
 
@@ -80,3 +80,9 @@ When full browser layout, computed CSS styles (`getBoundingClientRect()`), Canva
 - **Environment Realities:** Standard Termux environments do not ship with desktop Chromium or Playwright browser binaries.
 - **Graceful Execution:** Browser-dependent tests (such as `test/perf.js` or `tools/cdp_playwright.js`) should detect missing browser binaries and exit with an environmental notice rather than breaking test runs.
 - **100% Node Native Support:** All core simulation suites, schema validator (`tools/validate_data_schema.js`), single-file bundler (`tools/build_single.js`), and Node VM frame pacing harness (`test/runtime_timing.js`) run 100% natively in Node.js on Termux without any browser dependencies.
+
+---
+
+## Patch v4.0.0 Baseline Synchronization
+- Synchronized with `SIM.PATCH_VERSION = '4.0.0'` (`SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`, `HC.FINGERPRINT === '155:2f9c9dd7'`).
+- All 124 test groups in `test/run_all.js` and `node tools/validate_data_schema.js` pass with 0 errors and 0 warnings.

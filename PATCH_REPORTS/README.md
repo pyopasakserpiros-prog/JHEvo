@@ -1,3 +1,8 @@
+# สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
+
+- **ล่าสุด (v4.0.0):** [`PATCH_IMPLEMENTATION_REPORT_V4_0_0.md`](PATCH_IMPLEMENTATION_REPORT_V4_0_0.md) — Phase 6: Living Frontier, Behavioral Mastery & Sect Charter (ครบ 5 เสาหลักใหม่, 124/124 ชุดทดสอบผ่าน 100%)
+- **v3.6.0:** [`PATCH_IMPLEMENTATION_REPORT_V3_6_0.md`](PATCH_IMPLEMENTATION_REPORT_V3_6_0.md)
+
 # คลังรายงานการพัฒนาและการตรวจสอบระบบ (JianghuSect Patch Implementation Reports)
 
 > **ไดเรกทอรีศูนย์รวมรายงานการพัฒนาแพตช์ (Historical & Current Patch Archive)**

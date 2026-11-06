@@ -7,7 +7,7 @@
 > - ข้อกำหนดในเอกสารนี้มีผลบังคับใช้สูงสุด เป็นธรรมนูญและกฎเหล็กขององค์กรที่ทุกคนต้องยึดถืออย่างเคร่งครัด
 > - สิ่งที่อยู่นอกเหนือจากกฏเหล็กในเอกสารนี้ ai ที่ทำหน้าที่อัพเดทแพทช์สามารถคิดและตัดสินใจเองได้อย่างอิสระตามขอบเขตงาน
 
-JianghuSect Evolution is a Thai browser game. Current package: 3.1.1 (runtime patch identifier: 3.1.1). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_1.md` for the latest v3.1.1 report and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md` for the v3.0.0 tactical combat baseline.
+JianghuSect Evolution is a Thai browser game. Current package: 4.0.0 (runtime patch identifier: 4.0.0, Save Schema: 4.0.0-living-frontier-charter). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md` for the latest v4.0.0 report and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md` for the v3.0.0 tactical combat baseline.
 
 ## ก่อนเริ่มงาน
 

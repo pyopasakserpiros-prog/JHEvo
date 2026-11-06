@@ -5,7 +5,7 @@ description: Use when changing JianghuSect simulation architecture, module loadi
 
 # JianghuSect Evolution — Macro-Simulation & Sect Governance Architectural Blueprint (`js/sim.js`, `js/sect.js`, `index.html`, `test/load.js`)
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill is the definitive master specification for JianghuSect Evolution's core engine architecture. It governs the strict 40-script-tag load invariant, the single authoritative world state (`W`), deterministic PRNG simulation lifecycle (`js/sim.js`), comprehensive sect governance, succession, and facility management (`js/sect.js`), strict CA/PA applicant evaluation boundaries, ancestral shrine legacy tablets, and the single-file offline build pipeline (`tools/build_single.js`).
 
@@ -440,3 +440,21 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 - `SECT.runOfficerJurisdictionSingle(W, post, officer, opts)` and `SECT.runOfficerJurisdictions(W, opts)` execute real autonomous office decisions and record to `W.sect.jurisdictionLog`.
 - `SECT.PEAKS` manages the 8 canonical Peaks (`PEAK_IDS`), interactive leader appointment/removal, disciple transfers, 4 allocation policies (`MERITOCRATIC`, `REALM_PRIORITY`, `EGALITARIAN`, `NEPOTISTIC_INNER_CIRCLE`), Qi Array (+14%), joint exchanges, and inter-peak tournaments.
 - `W.sect.dungeon` (`SECT.capturePrisoner`, `SECT.handleDungeonPrisoner` / `SECT.executePrisonerAction`) handles `RANSOM`, `INTERROGATE`, and `RECRUIT_DEFECTOR`.
+
+---
+
+## Patch v3.2.0 – v4.0.0 Architecture Additions (`SIM.PATCH_VERSION = '4.0.0'`)
+- **Version & Save Schema (`js/sim.js`):**
+  - `SIM.PATCH_VERSION = '4.0.0'`
+  - `SIM.SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`
+  - `SIM.SUPPORTED_PATCHES = ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0']`
+- **Pillar 1 — Living Frontier & Outpost Logistics (`SECT.OUTPOSTS_LOGISTICS` in `js/sect.js`):**
+  - 4 Camp Types (`CAMP_REST` +30% Stamina, `CAMP_GUARD` -40% regional caravan ambush risk, `CAMP_SUPPLY` emergency ration draw, `CAMP_MEDIC` severe injury cure & +35% HP restore).
+  - `establishOutpost(W, nodeId, campType, garrisonNpcIds, opts)`, `dispatchSupplyConvoy(W, outpostNodeId, grainQty, pillQty, opts)` (strictly Closed-Loop from `W.sect.stock`), and `tickOutpostLogistics(W)` wired into `SECT.daily(W)`.
+- **Pillar 3 — Sect Charter & Long-Term Doctrine (`SECT.CHARTER_DOCTRINE` in `js/sect.js`):**
+  - Stored in `W.sect.charter` (`activeDoctrine`, `adoptedDay`, `loyaltyBonus`, `perks`, `history`).
+  - 5 Doctrines: `CHARTER_MERITOCRACY` (default), `CHARTER_BROTHERHOOD_SANCTUARY`, `CHARTER_SCHOLASTIC_DAO`, `CHARTER_OPEN_MERCHANT`, `CHARTER_RECLUSIVE_HERMIT`.
+  - `enactSectCharter(W, charterId)` deducts 50 Spirit Stones via Closed-Loop ceremony and updates disciple loyalty & cultivation rate (`getCharterPerks(W)`).
+- **Pillar 4 — 6-Officer Strategic Council Assembly (`SECT.STRATEGIC_COUNCIL` in `js/sect.js`):**
+  - `conveneCouncil(W)` aggregates readiness and threat assessments from 6 Grand Officers (`spymaster`, `envoy`, `quartermaster`, `vanguard`, `warden`, `marketmaster`) and presents 3 strategic choices (`FORTIFY_LOGISTICS`, `DIPLOMATIC_OFFENSIVE`, `GRAND_WAR_DRILL`).
+  - `resolveCouncilAgenda(W, choiceId)` executes the chosen directive and records to `W.chronicle`.

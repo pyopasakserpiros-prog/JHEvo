@@ -5,7 +5,7 @@ description: Use when changing JianghuSect inventory, crafting, equipment, contr
 
 # JianghuSect Evolution — Economy, Crafting, Durability, CP Ledger & External Trade Blueprint (`js/economy.js`, `js/cpeco.js`, `js/external_market.js`)
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill governs the closed-loop economic engine of **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**: Sect Stock (`W.sect.stock`), Spirit Stones (`W.sect.stones`), Contribution Points (`W.sect.cp` / `npc.cp`), Slot-Based Procedural Forging (`ECO.resolveCraftMaterials`), Durability & Repair Stones (`ECO.REPAIR_STONES`), Specialty Meal Cooking (`W.sect.mealSpecialties`), 8 Refinement Catalysts & Relic Star Attunement (`ECO.REFINEMENT_CATALYSTS`, `attunedStars` 1–3 ★), Inventory Intelligence (`ECO.inventoryIntelligence`), and Visiting Merchant Trade (`js/external_market.js`).
 
@@ -253,3 +253,13 @@ node GAME_SOURCE/test/test_procedural_equipment_system.js
   - `MINE_CELESTIAL_STONE`, `MINE_STARFALL_CRAG`, `VALLEY_MILLENNIAL_HERB`, `VALLEY_IMMORTAL_MARSH`, `TOLL_JIANGNAN_CROSSWAY`, `TOLL_SOUTHERN_WATERWAY` generating daily/seasonal Spirit Stones and T2-T4 materials (+25% yield when garrisoned by `BLACK_TORTOISE`).
 - **Vassal Tributes & Free-Trade Treaties (`EXPED.collectVassalTributes`, `FREE_TRADE_TREATY`)**:
   - Seasonal tributes scale by `LENIENT` (0.75x), `STANDARD` (1.0x), or `HARSH` (1.45x); `FREE_TRADE_TREATY` reduces specialty material market prices by 20%.
+
+---
+
+## Patch v3.5.0 – v4.0.0 Economy, Alchemy & Outpost Logistics Additions
+- **Closed-Loop World Resource Pool (`W.world.resourcePool`):** Bounty payouts (`SECT.BOUNTY_BOARD.claimBountyHunt`), Black Market bids (`SECT.CARAVAN_AUCTION.bidOnAuctionItem`), Sect Charter ceremonies (`SECT.CHARTER_DOCTRINE.enactSectCharter`), and Micro-Location stone rewards (`EXPLORE.dispatchExploration`) conserve Spirit Stones across the world pool.
+- **Two-Phase Alchemy Furnace (`ECO.brewMultiPhaseSpecialtyPill`):** Supports all 48 multi-phase specialty pills (`PILL_V234_001`..`048`).
+- **Pillar 1 (v4.0.0) — Closed-Loop Outpost Supply Convoys (`SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy`):**
+  - Strictly deducts real `grain` (`ECO.take(W, 'grain', grainQty)`) and pills (`P:*` / `pills`) from `W.sect.stock` before crediting `outpost.grainStock` and `outpost.pillStock`.
+  - Regional `CAMP_GUARD` outposts reduce convoy ambush risk by `-40%`.
+  - Daily upkeep (`SECT.OUTPOSTS_LOGISTICS.tickOutpostLogistics`) consumes outpost grain/pills each day; supply exhaustion reduces outpost morale and garrison satisfaction.

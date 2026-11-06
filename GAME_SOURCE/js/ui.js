@@ -1437,6 +1437,50 @@
       if (res && res.ok) UI.toast('🌌 ตัดสินใจวิกฤตการณ์ยุทธภพบทที่ ' + res.chapter + '/3 สำเร็จ!');
       UI.render(); UI.updateHud(true);
     }
+    else if (a === 'establish-outpost') {
+      const parts = String(arg || 'MINE_CELESTIAL_STONE|CAMP_REST').split('|');
+      const res = (SECT && SECT.OUTPOSTS_LOGISTICS && SECT.OUTPOSTS_LOGISTICS.establishOutpost)
+        ? SECT.OUTPOSTS_LOGISTICS.establishOutpost(W, parts[0] || 'MINE_CELESTIAL_STONE', parts[1] || 'CAMP_REST')
+        : { ok: false };
+      if (res && res.ok) UI.toast('⛺ สถาปนาค่ายพักหน้าด่าน「' + (res.outpost ? res.outpost.nameTh : '') + '」สำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'dispatch-supply-convoy') {
+      const res = (SECT && SECT.OUTPOSTS_LOGISTICS && SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy)
+        ? SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy(W, arg || 'MINE_CELESTIAL_STONE', 20, 5)
+        : { ok: false };
+      if (res && res.ok) UI.toast('🐪 จัดส่งขบวนเสบียงยุทธปัจจัยสู่ค่ายพักสำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'enact-sect-charter') {
+      const res = (SECT && SECT.CHARTER_DOCTRINE && SECT.CHARTER_DOCTRINE.enactSectCharter)
+        ? SECT.CHARTER_DOCTRINE.enactSectCharter(W, arg || 'CHARTER_MERITOCRACY')
+        : { ok: false };
+      if (res && res.ok) UI.toast('📜 สถาปนาธรรมนูญสำนัก「' + (res.charter ? res.charter.nameTh : '') + '」สำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'convene-strategic-council') {
+      const res = (SECT && SECT.STRATEGIC_COUNCIL && SECT.STRATEGIC_COUNCIL.conveneCouncil)
+        ? SECT.STRATEGIC_COUNCIL.conveneCouncil(W)
+        : { ok: false };
+      if (res && res.ok) UI.toast('👑 เรียกประชุมสภาแผนยุทธศาสตร์ 6 ขุนนางใหญ่สำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'resolve-council-agenda') {
+      const res = (SECT && SECT.STRATEGIC_COUNCIL && SECT.STRATEGIC_COUNCIL.resolveCouncilAgenda)
+        ? SECT.STRATEGIC_COUNCIL.resolveCouncilAgenda(W, arg || 'FORTIFY_LOGISTICS')
+        : { ok: false };
+      if (res && res.ok) UI.toast('⚖️ เคาะแผนยุทธศาสตร์สภา 6 ขุนนาง「' + (res.choice ? res.choice.nameTh : '') + '」สำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'explore-micro-location') {
+      const parts = String(arg || 'LOC_NAMELESS_SWORD_TOMB|').split('|');
+      const res = (EXPLORE && EXPLORE.dispatchExploration)
+        ? EXPLORE.dispatchExploration(W, parts[0] || 'LOC_NAMELESS_SWORD_TOMB', null, { choiceId: parts[1] || undefined })
+        : { ok: false };
+      if (res && res.ok) UI.toast('🧭 สำรวจ「' + (res.location ? res.location.nameTh : '') + '」สำเร็จ (+' + res.rewardStones + ' ศิลา)!');
+      UI.render(); UI.updateHud(true);
+    }
     else if (a === 'cleanse-marrow-pool') {
       const tNpc = W.byId[arg || UI.npcId] || W.byId[W.sect.masterId];
       const res = (SECT && SECT.TOTEMS_BLOODLINES && SECT.TOTEMS_BLOODLINES.cleanseMarrowPool) ? SECT.TOTEMS_BLOODLINES.cleanseMarrowPool(W, tNpc) : { ok: false };
@@ -2226,6 +2270,11 @@
     else if (a === 'atlas-filter') {
       const v = UI.atlasView || (UI.atlasView = {zoom:1,x:0.5,y:0.5,filter:'ALL'});
       v.filter = String(arg || 'ALL'); UI.atlasSelectedId = null; UI.atlasGroupIds = null; UI.render();
+    }
+    else if (a === 'atlas-layer') {
+      const v = UI.atlasView || (UI.atlasView = {zoom:1,x:0.5,y:0.5,filter:'ALL'});
+      v.layers = Object.assign({routes:true, fog:true, aura:true, parties:true, season:true}, v.layers || {});
+      v.layers[String(arg)] = !v.layers[String(arg)]; UI.render();
     }
     else if (a === 'atlas-zoom') {
       const v = UI.atlasView || (UI.atlasView = {zoom:1,x:0.5,y:0.5,filter:'ALL'});
@@ -3512,10 +3561,30 @@
             h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="brew-multiphase-pill">⚗️ หลอมโอสถสองระยะ</button>';
             h += '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="excavate-immortal-tomb">🏛️ ขุดค้นสุสานเซียน 3 ชั้น</button>';
             h += '<button class="btn dan" style="padding:3px 8px;font-size:11px" data-do="advance-world-crisis" data-arg="ORTHODOX">🌌 ตัดสินใจวิกฤตยุทธภพ</button>';
+            h += '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="establish-outpost" data-arg="MINE_CELESTIAL_STONE|CAMP_REST">⛺ ตั้งค่ายพักยุทธศาสตร์</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="dispatch-supply-convoy" data-arg="MINE_CELESTIAL_STONE">🐪 ส่งขบวนเสบียงค่ายพัก</button>';
+            h += '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="enact-sect-charter" data-arg="CHARTER_BROTHERHOOD_SANCTUARY">📜 สถาปนาธรรมนูญสำนัก</button>';
+            h += '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="convene-strategic-council">👑 ประชุมสภา 6 ขุนนาง</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="resolve-council-agenda" data-arg="FORTIFY_LOGISTICS">⚖️ เคาะมติสภายุทธศาสตร์</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_NAMELESS_SWORD_TOMB">🧭 สำรวจจุดสำรวจย่อย</button>';
             h += '</div>';
           }
           h += '</div>';
         }
+      }
+      if (SECT.CHARTER_DOCTRINE && SECT.STRATEGIC_COUNCIL && SECT.OUTPOSTS_LOGISTICS) {
+        const ch = SECT.CHARTER_DOCTRINE.ensure(W);
+        const sc = SECT.STRATEGIC_COUNCIL.ensure(W);
+        const op = SECT.OUTPOSTS_LOGISTICS.ensure(W);
+        const opList = Object.values((op && op.byNodeId) || {});
+        h += '<h3>📜 ธรรมนูญสำนัก · 👑 สภา 6 ขุนนาง & ⛺ เครือข่ายค่ายพักหน้าด่าน (v4.0.0)</h3><div class="card">';
+        h += '<div><b>ธรรมนูญปัจจุบัน:</b> <span class="chip g">' + esc((ch.icon || '📜') + ' ' + (ch.nameTh || ch.activeDoctrine)) + '</span> <span class="muted">โบนัสความภักดี +' + (ch.loyaltyBonus || 10) + ' · ประกาศใช้วันที่ ' + (ch.adoptedDay || 1) + '</span></div>';
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">' + Object.values(SECT.CHARTER_DOCTRINE.DOCTRINES).map(d => '<button class="btn' + (ch.activeDoctrine === d.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="enact-sect-charter" data-arg="' + esc(d.id) + '">' + esc(d.icon + ' ' + d.nameTh) + '</button>').join('') + '</div>';
+        h += '<div style="margin-top:6px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>⛺ ค่ายพักยุทธศาสตร์ (' + opList.length + ' แห่ง):</b> ' + (opList.length ? opList.map(o => '<span class="chip ok">' + esc(o.icon + ' ' + o.nameTh + ' (ข้าว ' + o.grainStock + '/โอสถ ' + o.pillStock + ' · ขวัญ ' + o.morale + '%)') + '</span>').join(' ') : '<span class="muted">ยังไม่ได้ตั้งค่ายพักหน้าด่าน</span>') + '</div>';
+        if (sc && sc.activeSession) {
+          h += '<div style="margin-top:6px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>👑 รายงานสภา 6 ขุนนาง:</b> <span class="muted">' + esc(sc.activeSession.threatSummaryTh || '') + '</span></div>';
+        }
+        h += '</div>';
       }
       if (SECT.ensureCompanionsAndBloodlines) {
         SECT.ensureCompanionsAndBloodlines(W);
@@ -4740,15 +4809,87 @@
       '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-alliance-council" title="ประชุมเจรจาความร่วมมือและการค้ากับสำนักพันธมิตร (คูลดาวน์ 60 วัน)">⚖ เรียกประชุมสภาฝ่ายพันธมิตร</button>' +
       '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-secret-realm" title="ค้นหาพิกัดถ้ำโบราณที่ซ่อนอยู่ (คูลดาวน์ 90 วัน)">🌌 สำรวจร่องรอยแดนลับโบราณ</button>' +
       '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="evaluate-elder-ascensions" title="ประเมินศิษย์อาวุโสที่มีผลงานเด่นขึ้นเป็นผู้อาวุโส">🎖 ประเมินเลื่อนขั้นผู้อาวุโสกิตติมศักดิ์</button>' +
+      '<button type="button" class="btn pri" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_NAMELESS_SWORD_TOMB">🗡️ สุสานกระบี่นิรนาม</button>' +
+      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_ANCIENT_MECH_RUINS">⚙️ ซากนครกลไก</button>' +
+      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_MYRIAD_VENOM_FOREST">🐍 ป่าหมื่นพิษ</button>' +
+      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_MOON_MIRROR_VALLEY">🌙 หุบเขากระจกจันทรา</button>' +
       '</div>';
     h += '<div class="atlas-filters" aria-label="ประเภทสถานที่">' + ATLAS_FILTERS.map(([id,label]) => '<button type="button" class="atlas-filter' + (view.filter === id ? ' active' : '') + '" data-do="atlas-filter" data-arg="' + id + '">' + label + '</button>').join('') + '</div>';
+    { const Ll = Object.assign({routes:true, fog:true, aura:true, parties:true, season:true}, view.layers || {});
+      h += '<div class="atlas-filters atlas-layers" aria-label="ชั้นแผนที่">' + [['routes','🛤 เส้นทาง'],['aura','🔆 อิทธิพล/พันธมิตร'],['parties','🧭 คณะเดินทาง'],['fog','🌫 หมอกแคว้น'],['season','🍂 ฤดู/ยามค่ำ']].map(([id,label]) => '<button type="button" class="atlas-filter' + (Ll[id] ? ' active' : '') + '" data-do="atlas-layer" data-arg="' + id + '">' + label + '</button>').join('') + '</div>'; }
     h += '<div class="atlas-legend"><span class="righteous">◆ ธรรมะ</span><span class="demonic">◆ อธรรม</span><span class="neutral">◆ สายกลาง</span><span>แตะจุดเพื่อดูข้อมูล · ลากเพื่อเลื่อน</span></div>';
     const distress = (W.world.vassalDistressCalls || []).find(c => c && !c.resolved);
     const threatened = distress && atlas.nodes.find(n => n.kind === 'NEIGHBOR_SECT' && n.sectId === distress.sectId);
     if (distress && threatened) h += '<button class="atlas-alert" data-do="atlas-select" data-arg="' + esc(threatened.id) + '">🚨 ' + esc(distress.sectNameTh) + ' ขอความช่วยเหลือ · แตะเพื่อดู</button>';
     h += '<div class="atlas-shell"><div class="atlas-viewport" tabindex="0" role="region" aria-label="แผนที่ยุทธภพ ลากเพื่อเลื่อนและใช้ปุ่มซูม"><div class="atlas-surface" style="width:' + (view.zoom * 100) + '%">';
-    [['แดนเหนือ',50,3],['แดนตะวันตก',12,72],['แดนตะวันออก',86,27],['แดนใต้',52,94]].forEach(([name,x,y]) => {
-      h += '<span class="atlas-region-title" style="left:' + x + '%;top:' + y + '%">' + name + '</span>';
+    // ===== ชั้นแผนที่ที่ผูกกับข้อมูลจริงของเกม (เปิด/ปิดได้) =====
+    const L = Object.assign({routes:true, fog:true, aura:true, parties:true, season:true}, view.layers || {});
+    const shown = new Set(nodes.map(n => n.id)); shown.add('NODE_HOME_SECT');
+    const byId = {}; atlas.nodes.forEach(n => { byId[n.id] = n; });
+    const home = byId.NODE_HOME_SECT || {x:50, y:50, id:'NODE_HOME_SECT'};
+    const routeCol = {forest:'#2f6a3a', mountain:'#5a4a3c', plains:'#8a6a2a', water:'#1f6f8a', desert:'#8a4a2a'};
+    const ATLAS_CELLS = {
+      CENTRAL_HEARTLAND:'65.0,64.1 35.5,62.1 32.2,35.2 65.0,32.9', NORTHERN_PEAKS:'0,0 93.8,0 65.0,32.9 32.2,35.2 0,5.1',
+      SOUTHERN_WATERS:'98.7,100 2.7,100 35.5,62.1 65.0,64.1', EASTERN_PLAINS:'93.8,0 100,0 100,100 98.7,100 65.0,64.1 65.0,32.9',
+      WESTERN_BADLANDS:'32.2,35.2 35.5,62.1 2.7,100 0,100 0,5.1'
+    };
+    // ฤดูกาลและกลางวัน/กลางคืนจากเวลาจริงในเกม
+    if (L.season) {
+      const seasonTint = ['rgba(255,170,200,.10)', 'rgba(255,225,120,.06)', 'rgba(225,115,40,.16)', 'rgba(205,228,255,.22)'][W.season || 0];
+      const hr = Math.floor(((W.t || 0) % 1440) / 60);
+      const night = hr >= 21 || hr < 4 ? .34 : hr >= 19 || hr < 6 ? .16 : 0;
+      h += '<div class="atlas-season" style="background:' + seasonTint + '"></div>' + (night ? '<div class="atlas-night" style="opacity:' + night + '"></div>' : '');
+    }
+    // หมอกแคว้นที่ยังไม่ได้สำรวจ (หมุดยังกดได้ตามเดิม)
+    if (L.fog) {
+      let fog = '';
+      Object.keys(ATLAS_CELLS).forEach(rid => {
+        if (atlas.topology.discoveredRegions && atlas.topology.discoveredRegions[rid] === false) fog += '<polygon points="' + ATLAS_CELLS[rid] + '" fill="#f1e6c8" opacity=".62"/><polygon points="' + ATLAS_CELLS[rid] + '" fill="none" stroke="#8a6a3f" stroke-width="1.2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" opacity=".7"/>';
+      });
+      if (fog) h += '<svg class="atlas-fog" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="atlasFogBlur"><feGaussianBlur stdDeviation="1.1"/></filter></defs><g filter="url(#atlasFogBlur)">' + fog + '</g></svg>';
+    }
+    let rs = '', defs = '<defs>' + [['R','#3fb0c8'],['D','#d24a3c'],['N','#e3b848'],['P','#e6c75a'],['H','#38c493']].map(([k,c]) => '<radialGradient id="atlasAura' + k + '"><stop offset="0" stop-color="' + c + '" stop-opacity=".55"/><stop offset="1" stop-color="' + c + '" stop-opacity="0"/></radialGradient>').join('') + '</defs>';
+    if (L.aura) {
+      atlas.nodes.forEach(n => {
+        if (!shown.has(n.id)) return;
+        if (n.kind === 'NEIGHBOR_SECT') {
+          const k = n.isVassal ? 'P' : n.alignment === 'RIGHTEOUS' ? 'R' : n.alignment === 'DEMONIC' ? 'D' : 'N', r = 3.2 + (n.tierLevel || 2) * 0.9 + (n.isAllianceLeader ? 1.5 : 0);
+          rs += '<circle cx="' + n.x + '" cy="' + n.y + '" r="' + r + '" fill="url(#atlasAura' + k + ')"/>';
+        } else if (n.kind === 'RESOURCE_NODE' && n.ownerSectId === 'PLAYER') rs += '<circle cx="' + n.x + '" cy="' + n.y + '" r="4" fill="url(#atlasAuraP)"/>';
+        else if (n.kind === 'HOME_SECT') rs += '<circle cx="' + n.x + '" cy="' + n.y + '" r="8" fill="url(#atlasAuraH)"/>';
+      });
+      // เส้นสัมพันธ์กับสำนักเรา: บริวาร / พันธมิตร / ไม่รุกราน
+      atlas.nodes.forEach(n => {
+        if (n.kind !== 'NEIGHBOR_SECT' || !shown.has(n.id)) return;
+        const col = n.isVassal || n.treaty === 'VASSAL_TREATY' ? '#d9a521' : (n.treaty === 'ALLIANCE' || n.treaty === 'ALLIANCE_PACT') ? '#2fa36b' : n.treaty === 'NON_AGGRESSION' ? '#3b82c4' : null;
+        if (!col) return;
+        rs += '<path d="M' + home.x + ',' + home.y + ' L' + n.x + ',' + n.y + '" stroke="' + col + '" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round" fill="none" opacity=".9" vector-effect="non-scaling-stroke"><title>' + esc(n.rawNameTh || n.nameTh) + ' · ' + esc((g.CONTENT && g.CONTENT.TREATY_TH && g.CONTENT.TREATY_TH[n.treaty]) || n.treaty) + '</title></path>';
+      });
+    }
+    if (L.routes) (atlas.topology.routes || []).forEach(r => {
+      const A = byId[r.from], B = byId[r.to];
+      if (!A || !B || !shown.has(A.id) || !shown.has(B.id)) return;
+      const hot = selected && (selected.id === A.id || selected.id === B.id);
+      const mx = (A.x + B.x) / 2 + (B.y - A.y) * 0.08, my = (A.y + B.y) / 2 - (B.x - A.x) * 0.08;
+      rs += '<path d="M' + A.x + ',' + A.y + ' Q' + mx + ',' + my + ' ' + B.x + ',' + B.y + '" fill="none" stroke="' + (hot ? '#c0392b' : routeCol[r.terrain] || '#5a4a3c') + '" stroke-width="' + (hot ? 2.6 : 1.5) + '" stroke-dasharray="' + (r.terrain === 'water' ? '2 5' : '6 4') + '" stroke-linecap="round" opacity="' + (hot ? 0.95 : 0.55) + '" vector-effect="non-scaling-stroke"><title>' + esc(A.rawNameTh || A.nameTh) + ' → ' + esc(B.rawNameTh || B.nameTh) + ' · ' + r.days + ' วัน</title></path>';
+    });
+    // คณะเดินทางจริง: เส้นทางสีแดง + ตำแหน่งปัจจุบัน (ครึ่งแรกขาไป ครึ่งหลังขากลับ)
+    const partyDots = [];
+    if (L.parties) (W.world.expeds || []).forEach(e => {
+      if (!e || e.done || !(e.ret > e.t0)) return;
+      const tid = e.targetNodeId || e.region, T = byId[tid] || (e.siteId && byId['FORTUNE:' + e.siteId]) || atlas.nodes.find(n => (e.sectId && n.sectId === e.sectId) || (e.anomalyId && n.anomalyId === e.anomalyId));
+      if (!T || T.id === home.id) return;
+      const pr = clamp(((W.t || 0) - e.t0) / (e.ret - e.t0), 0, 1), out = pr < 0.5, f = out ? pr * 2 : (1 - pr) * 2;
+      rs += '<path d="M' + home.x + ',' + home.y + ' L' + T.x + ',' + T.y + '" stroke="#c0392b" stroke-width="2" stroke-dasharray="4 3" fill="none" opacity=".8" vector-effect="non-scaling-stroke"/>';
+      partyDots.push({x:home.x + (T.x - home.x) * f, y:home.y + (T.y - home.y) * f, out, name:(T.rawNameTh || T.nameTh), n:(e.party || []).length, days:Math.max(0, ((e.ret - (W.t || 0)) / 1440)).toFixed(1)});
+    });
+    h += '<svg class="atlas-routes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + defs + rs + '</svg>';
+    partyDots.forEach(d => { h += '<span class="atlas-party" style="left:' + d.x + '%;top:' + d.y + '%" title="คณะ ' + d.n + ' คน ' + (d.out ? 'มุ่งหน้า' : 'เดินทางกลับจาก') + ' ' + esc(d.name) + ' · อีก ~' + d.days + ' วัน">🧭</span>'; });
+    const regTitles = [['NORTHERN_PEAKS',50,3.5],['WESTERN_BADLANDS',9,76],['EASTERN_PLAINS',87,22],['SOUTHERN_WATERS',50,95],['CENTRAL_HEARTLAND',33,45]];
+    regTitles.forEach(([rid,x,y]) => {
+      const reg = EXPED.WORLD_REGIONS[rid]; if (!reg) return;
+      const seen = !atlas.topology.discoveredRegions || atlas.topology.discoveredRegions[rid] !== false;
+      h += '<span class="atlas-region-title' + (seen ? '' : ' unseen') + '" style="left:' + x + '%;top:' + y + '%">' + esc(reg.shortTh) + (seen ? '' : ' · ยังไม่สำรวจ') + '</span>';
     });
     for (const g1 of groups) {
       const many = g1.nodes.length > 1, n = g1.nodes[0], isHome = n.kind === 'HOME_SECT';
@@ -6290,6 +6431,17 @@
           }
         }
         h += '</div>';
+        if (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS) {
+          const ch = g.COMBAT.ACTION_MASTERY_TRAITS.ensureHistory(n);
+          const defs = Object.values(g.COMBAT.ACTION_MASTERY_TRAITS.TRAIT_DEFS);
+          h += '<h3>⚔️ รอยชำนาญจากพฤติกรรมจริงในสนามรบ (' + ((ch && ch.unlockedTraits.length) || 0) + '/4 เทรต)</h3><div class="card">';
+          h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' + defs.map(td => {
+            const has = ch && ch.unlockedTraits.includes(td.id);
+            const cur = (ch && ch[td.statKey]) || 0;
+            return '<span class="chip ' + (has ? 'ok' : '') + '">' + esc(td.icon + ' ' + td.nameTh + ' (' + cur + '/' + td.threshold + ')') + '</span>';
+          }).join('') + '</div>';
+          h += '</div>';
+        }
         if (CULT.MERIDIANS && n.cult) {
           const mSt = CULT.MERIDIANS.ensure(n);
           h += '<h3>🪡 จุดชีพจรพิสดารทั้ง 8 เส้น (' + (mSt.openedCount || 0) + '/8 เส้น)</h3><div class="card">';

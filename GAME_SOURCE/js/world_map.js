@@ -757,6 +757,56 @@
     return reach[y * W + x] === 1;
   };
 
+
+  /* ---------- Patch v4.0.0 [Pillar 5]: 4 Living Micro-Locations on World Map ---------- */
+  MAP.MICRO_LOCATIONS = Object.freeze({
+    LOC_NAMELESS_SWORD_TOMB: {
+      id: 'LOC_NAMELESS_SWORD_TOMB',
+      nameTh: 'สุสานกระบี่นิรนาม',
+      icon: '🗡️',
+      macroRegion: 'NORTHERN_PEAKS',
+      terrain: 'mountain',
+      x: 62, y: 24,
+      mapX: 148, mapY: 46,
+      danger: 3,
+      descTh: 'เนินดินฝังศาสตรานับพันของยอดกระบี่นิรนาม แฝงปราณกระบี่โบราณที่รอผู้มีวาสนาเข้าถึงเจตจำนง'
+    },
+    LOC_ANCIENT_MECH_RUINS: {
+      id: 'LOC_ANCIENT_MECH_RUINS',
+      nameTh: 'ซากนครกลไกบรรพกาล',
+      icon: '⚙️',
+      macroRegion: 'WESTERN_BADLANDS',
+      terrain: 'ruins',
+      x: 28, y: 58,
+      mapX: 68, mapY: 112,
+      danger: 4,
+      descTh: 'ซากโรงหลอมหุ่นเชิดยุคโบราณที่ยังมีฟันเฟืองปราณหมุนเวียน ซ่อนแก่นกลไกและพิมพ์เขียวลับ'
+    },
+    LOC_MYRIAD_VENOM_FOREST: {
+      id: 'LOC_MYRIAD_VENOM_FOREST',
+      nameTh: 'ป่าหมื่นพิษเร้นลับ',
+      icon: '🐍',
+      macroRegion: 'SOUTHERN_WATERS',
+      terrain: 'forest',
+      x: 44, y: 82,
+      mapX: 105, mapY: 158,
+      danger: 3,
+      descTh: 'ป่าดงดิบปกคลุมด้วยหมอกพิษเจ็ดสี อุดมด้วยสมุนไพรพิษหายากและแมลงกู่บรรพกาล'
+    },
+    LOC_MOON_MIRROR_VALLEY: {
+      id: 'LOC_MOON_MIRROR_VALLEY',
+      nameTh: 'หุบเขากระจกจันทรา',
+      icon: '🌙',
+      macroRegion: 'EASTERN_PLAINS',
+      terrain: 'water',
+      x: 82, y: 46,
+      mapX: 196, mapY: 88,
+      danger: 3,
+      descTh: 'ทะเลสาบใสประดุจกระจกเงาสะท้อนแสงจันทร์พันปี ช่วยชำระมารในใจและควบแน่นน้ำค้างจันทรา'
+    }
+  });
+  MAP.getMicroLocations = () => Object.values(MAP.MICRO_LOCATIONS);
+
   g.MAP = MAP;
   if (typeof module === 'object' && module.exports) module.exports = MAP;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

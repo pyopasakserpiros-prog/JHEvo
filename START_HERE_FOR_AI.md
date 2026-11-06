@@ -7,14 +7,14 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v3.6.0` (Phase 5: Generational Dynasty & Immortal Endgame — **พัฒนาและส่งมอบครบทั้ง 36 ข้อเสนอ (`PROP-01` ถึง `PROP-36`) ครบทั้ง 5 ระยะ 100% เสร็จสมบูรณ์!**)
-- **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V4_0_0.md`](ACTIVE_PATCH_PROMPT_V4_0_0.md) (Phase 6: Living Frontier, Behavioral Mastery & Sect Charter)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v4.0.0` (Phase 6: Living Frontier, Behavioral Mastery & Sect Charter — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักใหม่ของ `v4.0.0` และ 36 ข้อเสนอเดิม (`PROP-01` ถึง `PROP-36`) เสร็จสมบูรณ์ 100%!**)
+- **🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):**
+  👉 [`ACTIVE_PATCH_PROMPT_V4_1_0.md`](ACTIVE_PATCH_PROMPT_V4_1_0.md) (ใบสั่งงานแพตช์ v4.0.0 ฉบับที่เพิ่งส่งมอบ: [`ACTIVE_PATCH_PROMPT_V4_0_0.md`](ACTIVE_PATCH_PROMPT_V4_0_0.md))
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_5_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_5_0.md) (`v3.5.0` — Phase 4: `PROP-13, 14, 22, 23, 24, 26, 29`)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_6_0.md) (`v3.6.0` — Phase 5 Finale: `PROP-27, 28, 34, 36`)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md) (`v4.0.0` — Phase 6: Living Frontier, Behavioral Mastery & Sect Charter ครบ 5 เสาหลัก)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **ส่งมอบครบทั้ง 36 ข้อเสนอเดิมแล้ว กำลังเริ่มมหากาพย์ใหม่ v4.0.0!**
+  👉 **แพตช์ `v4.0.0` เสร็จสิ้นสมบูรณ์ 100% (ผ่านการทดสอบ 124/124 ชุดทดสอบ, 0 Errors / 0 Warnings)!**
 
 ---
 

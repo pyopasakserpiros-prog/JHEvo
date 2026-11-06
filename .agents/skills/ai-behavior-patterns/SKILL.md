@@ -7,7 +7,7 @@ category: ai-cognition-behavior
 
 # JianghuSect Evolution — Master NPC AI, Cognition & Human Core Blueprint (`js/ai.js`, `js/cognition.js`, `js/human_core.js`)
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This is the authoritative, source-verified engineering blueprint for **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**'s three-tier autonomous NPC mind:
 1. **Tier 1 — 12-Layer Human Core (`GAME_SOURCE/js/human_core.js` — `g.HC`):** 155 psychological, physiological, intellectual, social, and destiny parameters (`HC.FINGERPRINT === '155:2f9c9dd7'`), dynamic emotions, life experiences, and age curves.
@@ -292,3 +292,9 @@ const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
 ## v3.1.0 Officer Jurisdiction & Cognition Integration
 - `COG.role(W, n)`, `COG.reviewOffice(W, n)`, `COG.performDuty(W, n)`, and `COG.deferenceToward(W, a, b)` cover all 25 offices including `vanguard`, `warden`, and `marketmaster`.
 - `SECT.ELDER_COUNCIL_EDICTS.conveneElderCouncil` weights elder votes by `SECT.POSTS[post].authority`.
+
+---
+
+## Patch v4.0.0 Baseline Synchronization
+- Synchronized with `SIM.PATCH_VERSION = '4.0.0'` (`SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`, `HC.FINGERPRINT === '155:2f9c9dd7'`).
+- All 124 test groups in `test/run_all.js` and `node tools/validate_data_schema.js` pass with 0 errors and 0 warnings.

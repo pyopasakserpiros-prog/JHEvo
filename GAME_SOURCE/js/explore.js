@@ -8129,6 +8129,210 @@
     return { ok: true, count: list.length, destination: 'main_hall' };
   };
 
+
+  /* ---------- Patch v4.0.0 [Pillar 5]: Living Micro-Locations Exploration (EXPLORE.MICRO_LOCATIONS & EXPLORE.dispatchExploration) ---------- */
+  const MICRO_LOCATIONS = {
+    LOC_NAMELESS_SWORD_TOMB: {
+      id: 'LOC_NAMELESS_SWORD_TOMB',
+      nameTh: 'สุสานกระบี่นิรนาม',
+      icon: '🗡️',
+      macroRegion: 'NORTHERN_PEAKS',
+      terrain: 'mountain',
+      x: 62, y: 24,
+      danger: 3,
+      rewardStones: 180,
+      rewardMats: ['MAT_ORE_COLD_STEEL_2', 'MAT_ORE_STAR_COPPER_3'],
+      choices: [
+        { id: 'COMPREHEND_SWORD_INTENT', nameTh: 'นั่งสมาธิสดับปราณกระบี่โบราณ', bonusCultXp: 65, bonusSkill: 'SWORD' },
+        { id: 'EXCAVATE_ANCIENT_BLADE', nameTh: 'ขุดค้นศาสตราโบราณใต้เนินกระบี่', bonusMatQty: 2, bonusStones: 60 }
+      ],
+      descTh: 'เนินดินฝังศาสตรานับพันของยอดกระบี่นิรนาม แฝงปราณกระบี่โบราณที่รอผู้มีวาสนาเข้าถึงเจตจำนง'
+    },
+    LOC_ANCIENT_MECH_RUINS: {
+      id: 'LOC_ANCIENT_MECH_RUINS',
+      nameTh: 'ซากนครกลไกบรรพกาล',
+      icon: '⚙️',
+      macroRegion: 'WESTERN_BADLANDS',
+      terrain: 'ruins',
+      x: 28, y: 58,
+      danger: 4,
+      rewardStones: 220,
+      rewardMats: ['MAT_ORE_STAR_COPPER_3', 'MAT_ORE_MAGNET_LODESTONE_3'],
+      choices: [
+        { id: 'DISMANTLE_CORE_GEAR', nameTh: 'ถอดรื้อแกนฟันเฟืองหุ่นกลโบราณ', bonusMatQty: 2, bonusStones: 70 },
+        { id: 'DECIPHER_PUPPET_BLUEPRINT', nameTh: 'คัดลอกพิมพ์เขียวค่ายกลจักรกล', bonusCultXp: 70, bonusCraft: 'FORGING' }
+      ],
+      descTh: 'ซากโรงหลอมหุ่นเชิดยุคโบราณที่ยังมีฟันเฟืองปราณหมุนเวียน ซ่อนแก่นกลไกและพิมพ์เขียวลับ'
+    },
+    LOC_MYRIAD_VENOM_FOREST: {
+      id: 'LOC_MYRIAD_VENOM_FOREST',
+      nameTh: 'ป่าหมื่นพิษเร้นลับ',
+      icon: '🐍',
+      macroRegion: 'SOUTHERN_WATERS',
+      terrain: 'forest',
+      x: 44, y: 82,
+      danger: 3,
+      rewardStones: 160,
+      rewardMats: ['MAT_HERB_VENOM_VINE_3', 'MAT_HERB_ANCIENT_MIST_FERN_3'],
+      choices: [
+        { id: 'HARVEST_VENOM_HERBS', nameTh: 'เก็บเกี่ยวสมุนไพรพิษเจ็ดสี', bonusMatQty: 3, bonusCraft: 'ALCHEMY' },
+        { id: 'SUBDUE_GU_INSECT', nameTh: 'หลอมกลั่นพิษฝึกจิตต้านทาน', bonusCultXp: 60, clearToxin: true }
+      ],
+      descTh: 'ป่าดงดิบปกคลุมด้วยหมอกพิษเจ็ดสี อุดมด้วยสมุนไพรพิษหายากและแมลงกู่บรรพกาล'
+    },
+    LOC_MOON_MIRROR_VALLEY: {
+      id: 'LOC_MOON_MIRROR_VALLEY',
+      nameTh: 'หุบเขากระจกจันทรา',
+      icon: '🌙',
+      macroRegion: 'EASTERN_PLAINS',
+      terrain: 'water',
+      x: 82, y: 46,
+      danger: 3,
+      rewardStones: 190,
+      rewardMats: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MERIDIAN_FLOWER_3'],
+      choices: [
+        { id: 'MEDITATE_MOON_REFLECTION', nameTh: 'เพ่งจันทร์ในเงาน้ำชำระมารในใจ', bonusCultXp: 75, clearHeartDemon: true },
+        { id: 'GATHER_LUNAR_DEW', nameTh: 'รวบรวมน้ำค้างจันทราพันปี', bonusMatQty: 2, bonusStones: 50 }
+      ],
+      descTh: 'ทะเลสาบใสประดุจกระจกเงาสะท้อนแสงจันทร์พันปี ช่วยชำระมารในใจและควบแน่นน้ำค้างจันทรา'
+    }
+  };
+
+  EX.MICRO_LOCATIONS = MICRO_LOCATIONS;
+
+  EX.ensureMicroLocations = function (W) {
+    if (!W || !W.sect) return null;
+    if (!W.sect.microLocations || typeof W.sect.microLocations !== 'object') {
+      W.sect.microLocations = {
+        visitedCountById: {},
+        history: [],
+        totalRuns: 0
+      };
+    }
+    return W.sect.microLocations;
+  };
+
+  EX.dispatchExploration = function (W, locIdOrParty, partyOrLocId, opts) {
+    opts = opts || {};
+    if (!W || !W.sect) return { ok: false, reason: 'invalid-world' };
+    const st = EX.ensureMicroLocations(W);
+
+    let locId = 'LOC_NAMELESS_SWORD_TOMB';
+    let partyInput = null;
+    if (typeof locIdOrParty === 'string' && MICRO_LOCATIONS[locIdOrParty]) {
+      locId = locIdOrParty;
+      partyInput = partyOrLocId;
+    } else if (typeof partyOrLocId === 'string' && MICRO_LOCATIONS[partyOrLocId]) {
+      locId = partyOrLocId;
+      partyInput = locIdOrParty;
+    } else if (typeof locIdOrParty === 'string') {
+      return { ok: false, reason: 'invalid-micro-location', locId: locIdOrParty };
+    }
+
+    const loc = MICRO_LOCATIONS[locId];
+    if (!loc) return { ok: false, reason: 'invalid-micro-location' };
+
+    let members = [];
+    if (Array.isArray(partyInput) && partyInput.length) {
+      members = partyInput.map(x => (typeof x === 'string' && W.byId ? W.byId[x] : x)).filter(n => n && !n.dead);
+    } else if (partyInput && typeof partyInput === 'object' && partyInput.id) {
+      members = [partyInput];
+    } else {
+      members = (W.npcs || []).filter(n => n && !n.dead && !n.exiled).slice(0, 3);
+    }
+    if (!members.length) return { ok: false, reason: 'no-party-members' };
+
+    const choiceSpec = (opts.choiceId && loc.choices.find(c => c.id === opts.choiceId)) || loc.choices[0];
+
+    let outpostApplied = null;
+    if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS && W.sect.outposts && W.sect.outposts.byNodeId) {
+      const regOutpost = Object.values(W.sect.outposts.byNodeId).find(op => op && op.active && op.macroRegion === loc.macroRegion)
+        || Object.values(W.sect.outposts.byNodeId)[0];
+      if (regOutpost) {
+        outpostApplied = g.SECT.OUTPOSTS_LOGISTICS.applyCampPerksToParty(W, regOutpost, members);
+      }
+    }
+
+    const stonesEarned = (loc.rewardStones || 150) + (choiceSpec.bonusStones || 0);
+    if (W.world && W.world.resourcePool && typeof W.world.resourcePool.stones === 'number') {
+      W.world.resourcePool.stones = Math.max(0, W.world.resourcePool.stones - stonesEarned);
+    }
+    if (g.ECO && g.ECO.earn) {
+      g.ECO.earn(W, stonesEarned, 'สำรวจจุดสำรวจย่อย「' + loc.nameTh + '」(' + choiceSpec.nameTh + ')');
+    } else {
+      W.sect.stones = (W.sect.stones || 0) + stonesEarned;
+    }
+
+    const matsGranted = {};
+    const baseQty = 1 + (choiceSpec.bonusMatQty || 1);
+    (loc.rewardMats || []).forEach(matId => {
+      if (g.ECO && g.ECO.add) g.ECO.add(W, matId, baseQty);
+      else {
+        W.sect.stock = W.sect.stock || {};
+        W.sect.stock[matId] = (W.sect.stock[matId] || 0) + baseQty;
+      }
+      matsGranted[matId] = (matsGranted[matId] || 0) + baseQty;
+    });
+
+    const xpGain = choiceSpec.bonusCultXp || 50;
+    for (const m of members) {
+      m.merit = (m.merit || 0) + 15;
+      m.cp = (m.cp || 0) + 20;
+      if (m.cult && g.CULT && g.CULT.gain) g.CULT.gain(m, xpGain, W, 'micro_location_explore');
+      if (choiceSpec.clearHeartDemon && m.h && m.h.state) {
+        m.h.state.heartDemon = Math.max(0, (m.h.state.heartDemon || 0) - 25);
+      }
+      if (choiceSpec.clearToxin && m.cult) {
+        m.cult.toxic = Math.max(0, (m.cult.toxic || 0) - 30);
+      }
+    }
+
+    st.visitedCountById[loc.id] = (st.visitedCountById[loc.id] || 0) + 1;
+    st.totalRuns = (st.totalRuns || 0) + 1;
+    const record = {
+      id: 'MICRO_EXP_' + st.totalRuns,
+      day: W.day || 1,
+      locationId: loc.id,
+      locationNameTh: loc.nameTh,
+      choiceId: choiceSpec.id,
+      choiceNameTh: choiceSpec.nameTh,
+      rewardStones: stonesEarned,
+      rewardMats: matsGranted,
+      partyIds: members.map(m => m.id),
+      outpostApplied: !!(outpostApplied && outpostApplied.ok)
+    };
+    st.history.unshift(record);
+    if (st.history.length > 40) st.history.length = 40;
+
+    if (!opts.quiet) {
+      if (!Array.isArray(W.chronicle)) W.chronicle = [];
+      const cEntry = {
+        category: 'SECRET_REALM_NODE',
+        icon: loc.icon,
+        titleTh: 'สำรวจ「' + loc.nameTh + '」สำเร็จ (' + choiceSpec.nameTh + ')',
+        storyTh: members.map(m => (g.HC && g.HC.fullName ? g.HC.fullName(m) : m.id)).join('、') + ' เดินทางไปสำรวจ ' + loc.nameTh + ' และเลือก ' + choiceSpec.nameTh,
+        consequenceTh: 'ได้รับศิลาปราณ +' + stonesEarned + ' และวัตถุดิบพิเศษเข้าคลังสำนัก',
+        npcIds: members.map(m => m.id)
+      };
+      if (g.EXPED && g.EXPED.recordChronicle) g.EXPED.recordChronicle(W, Object.assign({ allowDuplicate: true }, cEntry));
+      W.chronicle.unshift(Object.assign({ id: record.id, day: W.day || 1, t: W.t || 0 }, cEntry));
+      if (W.log) W.log('explore', loc.icon + ' คณะสำรวจพิชิตจุดสำรวจย่อย「' + loc.nameTh + '」(' + choiceSpec.nameTh + ' · +' + stonesEarned + ' ศิลา)', members.map(m => m.id));
+    }
+
+    return {
+      ok: true,
+      locationId: loc.id,
+      location: loc,
+      choiceId: choiceSpec.id,
+      choiceNameTh: choiceSpec.nameTh,
+      rewardStones: stonesEarned,
+      rewardMats: matsGranted,
+      partyIds: members.map(m => m.id),
+      outpostApplied,
+      record
+    };
+  };
+
   if (g.SECT && g.SECT.IMMORTAL_TOMB) EX.IMMORTAL_TOMB = g.SECT.IMMORTAL_TOMB;
   g.EXPLORE = EX;
   if (typeof module === 'object' && module.exports) module.exports = EX;

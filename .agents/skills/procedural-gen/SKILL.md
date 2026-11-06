@@ -7,7 +7,7 @@ category: world-procgen-exploration
 
 # JianghuSect Procedural Generation: Random Gear Engine, World, Exploration & Ecology
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
 Reference for generated systems in JHEvo: **randomised equipment instances** (`GAME_SOURCE/js/economy.js`), plus dungeons/trials, expeditions, raids, fishing, ecology (`js/explore.js`, `js/expedition.js`, `js/world_map.js`, `js/fishing.js`, `js/wildlife.js`, `js/wild_resources.js`, `js/visitors_clues.js`, `js/external_market.js`). Check historical details against current source.
@@ -164,3 +164,15 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
 - Fortune sites, secret-realm sites and wandering legends have only biome/region information in the simulation; their atlas coordinates are deliberately approximate. The dimensional gate is inside the player's sect and leads to separate worlds.
 - Selecting a fortune site calls `EXPED.depart(W, party, 'fortune', region, {siteId})`; validate rank and biome before spending resources or RNG. Strategic resource capture uses `EXPED.departResourceClaim`, resolves on arrival, and may fail against defenders. Always settle expired anomalies and return the expedition members.
 - The generated terrain is `assets/world_atlas_terrain.jpg`. `tools/build_single.js` embeds it in the standalone file; keep the offline asset test passing.
+
+---
+
+## Patch v3.6.0 – v4.0.0 World Map, Immortal Tombs & Micro-Locations Additions
+- **3-Layer Ancient Immortal Tomb Excavation (`SECT.IMMORTAL_TOMB` / `EXPLORE.IMMORTAL_TOMB`):**
+  - `discoverTombSite(W, templateId)` and `excavateTombLayer(W, siteId)` across Layer 1 (`ARRAY` + `FORGING`), Layer 2 (`SCRIPTURE` + `comprehension`), and Layer 3 (Guardian Automaton boss + Immortal Legacy unlock).
+- **Pillar 5 (v4.0.0) — 4 Living Micro-Locations (`EXPLORE.MICRO_LOCATIONS` in `js/explore.js` & `MAP.MICRO_LOCATIONS` in `js/world_map.js`):**
+  1. `LOC_NAMELESS_SWORD_TOMB` (`สุสานกระบี่นิรนาม`, Northern Peaks, `x:62, y:24`): `COMPREHEND_SWORD_INTENT` / `EXCAVATE_ANCIENT_BLADE` (`MAT_ORE_COLD_STEEL_2`, `MAT_ORE_STAR_COPPER_3`).
+  2. `LOC_ANCIENT_MECH_RUINS` (`ซากนครกลไกบรรพกาล`, Western Badlands, `x:28, y:58`): `DISMANTLE_CORE_GEAR` / `DECIPHER_PUPPET_BLUEPRINT` (`MAT_ORE_STAR_COPPER_3`, `MAT_ORE_MAGNET_LODESTONE_3`).
+  3. `LOC_MYRIAD_VENOM_FOREST` (`ป่าหมื่นพิษเร้นลับ`, Southern Waters, `x:44, y:82`): `HARVEST_VENOM_HERBS` / `SUBDUE_GU_INSECT` (`MAT_HERB_VENOM_VINE_3`, `MAT_HERB_ANCIENT_MIST_FERN_3`).
+  4. `LOC_MOON_MIRROR_VALLEY` (`หุบเขากระจกจันทรา`, Eastern Plains, `x:82, y:46`): `MEDITATE_MOON_REFLECTION` (clears `heartDemon`) / `GATHER_LUNAR_DEW` (`MAT_HERB_JADE_LOTUS_2`, `MAT_HERB_MERIDIAN_FLOWER_3`).
+  - Dispatched via `EXPLORE.dispatchExploration(W, locId, party, opts)` with automatic integration of regional `SECT.OUTPOSTS_LOGISTICS` camp perks.

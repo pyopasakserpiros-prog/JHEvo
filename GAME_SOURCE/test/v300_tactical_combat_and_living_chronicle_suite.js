@@ -26,8 +26,8 @@ console.log('   JIANGHUSECT v3.0.0 TACTICAL COMBAT & LIVING CHRONICLE SUITE     
 console.log('===================================================================\n');
 
 // 0. Core version & fingerprint locks
-ok((SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || SIM.PATCH_VERSION === '3.4.0' || SIM.PATCH_VERSION === '3.5.0' || SIM.PATCH_VERSION === '3.6.0'))), `SIM.PATCH_VERSION must be 3.0.0/3.1.0/3.1.1 (got ${SIM.PATCH_VERSION})`);
-ok((SIM.SAVE_SCHEMA_VERSION === '3.0.0-tactical-chronicle' || SIM.SAVE_SCHEMA_VERSION === '3.1.0-autonomous-governance-peaks' || SIM.SAVE_SCHEMA_VERSION === '3.6.0-immortal-endgame-dynasty'), `SIM.SAVE_SCHEMA_VERSION must be 3.0.0-tactical-chronicle`);
+ok((SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || (SIM.PATCH_VERSION === '3.4.0' || SIM.PATCH_VERSION === '4.0.0') || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || SIM.PATCH_VERSION === '4.0.0')))), `SIM.PATCH_VERSION must be 3.0.0/3.1.0/3.1.1 (got ${SIM.PATCH_VERSION})`);
+ok((SIM.SAVE_SCHEMA_VERSION === '3.0.0-tactical-chronicle' || SIM.SAVE_SCHEMA_VERSION === '3.1.0-autonomous-governance-peaks' || SIM.SAVE_SCHEMA_VERSION === '3.6.0-immortal-endgame-dynasty' || SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter'), `SIM.SAVE_SCHEMA_VERSION must be 3.0.0-tactical-chronicle`);
 ok(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
 
 const W = SIM.create('v300-tactical-chronicle-seed');

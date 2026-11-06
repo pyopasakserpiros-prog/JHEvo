@@ -581,6 +581,10 @@
         add('def', 'ท่วงท่าการรบสำนัก (ตั้งรับพิทักษ์)', 'p', 0.10);
         add('mdef', 'ท่วงท่าการรบสำนัก (ตั้งรับพิทักษ์)', 'p', 0.10);
       }
+      if (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) && n.combatHistory.unlockedTraits.includes('TRAIT_VANGUARD_GUARD')) {
+        add('def', 'รอยชำนาญ「ทวนพิทักษ์」', 'p', 0.12);
+        add('mdef', 'รอยชำนาญ「ทวนพิทักษ์」', 'p', 0.12);
+      }
     }
     if (!n.foe && g.ECO && g.ECO.evaluatePairedItems) {
       const pr = g.ECO.evaluatePairedItems(n);
@@ -624,7 +628,7 @@
     const cTrack = c && c.track ? c.track.ordinal : 0;
     const passKey = passiveCacheKey(n);
     const wRefKey = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
-    const postKey = (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0);
+    const postKey = (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0) + ':' + (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) ? n.combatHistory.unlockedTraits.length : 0);
     const eqW = Eq.WEAPON || null, eqWdur = (eqW ? eqW.dur : 0) + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + postKey;
     const eqA = Eq.ARMOR || null, eqAdur = eqA ? eqA.dur : 0;
     const eqX = Eq.ACCESSORY || null, eqXdur = eqX ? eqX.dur : 0;
@@ -767,6 +771,9 @@
         const cPost = wRef && wRef.sect && wRef.sect.combatPosture;
         if (cPost === 'OFFENSIVE') addP('atk', 0.08);
         else if (cPost === 'DEFENSIVE') { addP('def', 0.10); addP('mdef', 0.10); }
+        if (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) && n.combatHistory.unlockedTraits.includes('TRAIT_VANGUARD_GUARD')) {
+          addP('def', 0.12); addP('mdef', 0.12);
+        }
       }
       if (!n.foe && g.ECO && g.ECO.evaluatePairedItems) {
         const pr = g.ECO.evaluatePairedItems(n);

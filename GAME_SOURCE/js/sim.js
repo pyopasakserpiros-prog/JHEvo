@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '3.6.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0'],
-    SAVE_SCHEMA_VERSION: '3.6.0-immortal-endgame-dynasty',
+    PATCH_VERSION: '4.0.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0'],
+    SAVE_SCHEMA_VERSION: '4.0.0-living-frontier-charter',
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
@@ -297,6 +297,10 @@
     if (g.SECT && g.SECT.ensureDefectorPursuit) g.SECT.ensureDefectorPursuit(W);
     if (g.SECT && g.SECT.ELEMENTAL_BARRIER) g.SECT.ELEMENTAL_BARRIER.ensure(W);
     if (g.SECT && g.SECT.ANCESTRAL_PAVILION) g.SECT.ANCESTRAL_PAVILION.ensure(W);
+    if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS) g.SECT.OUTPOSTS_LOGISTICS.ensure(W);
+    if (g.SECT && g.SECT.CHARTER_DOCTRINE) g.SECT.CHARTER_DOCTRINE.ensure(W);
+    if (g.SECT && g.SECT.STRATEGIC_COUNCIL) g.SECT.STRATEGIC_COUNCIL.ensure(W);
+    if (g.EXPLORE && g.EXPLORE.ensureMicroLocations) g.EXPLORE.ensureMicroLocations(W);
     if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
     SIM.dailyUpdate(W, true);
     return W;
@@ -893,6 +897,10 @@
       if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR && (!W.world || !W.world.heavenlyDao)) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
       if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
       if (g.SECT && g.SECT.ensureDungeon) g.SECT.ensureDungeon(W);
+      if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS) g.SECT.OUTPOSTS_LOGISTICS.ensure(W);
+      if (g.SECT && g.SECT.CHARTER_DOCTRINE) g.SECT.CHARTER_DOCTRINE.ensure(W);
+      if (g.SECT && g.SECT.STRATEGIC_COUNCIL) g.SECT.STRATEGIC_COUNCIL.ensure(W);
+      if (g.EXPLORE && g.EXPLORE.ensureMicroLocations) g.EXPLORE.ensureMicroLocations(W);
       if (W.sect && W.sect.posts && g.SECT && Array.isArray(g.SECT.POST_IDS)) {
         g.SECT.POST_IDS.forEach(pid => {
           if (W.sect.posts[pid] === undefined) W.sect.posts[pid] = null;

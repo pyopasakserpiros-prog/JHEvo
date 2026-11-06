@@ -7,7 +7,7 @@ category: combat-martial-arts
 
 # JianghuSect Combat Engine: Exact Formulas, 12 Combat Stats, 10 Weapon Types, 12 Timed Buffs, 21 Legendary Relics, 31 Resonance Sets, Formations & 12-Path Combat
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
 Provide the deep-dive, source-verified engineering specification for **JianghuSect Evolution v2.0.17** combat (`GAME_SOURCE/js/combat.js`, `GAME_SOURCE/js/stats.js`, `GAME_SOURCE/js/martial.js`, `GAME_SOURCE/js/skills.js`, `GAME_SOURCE/data/data_martial.js`, `GAME_SOURCE/data/data_cb.js`, `GAME_SOURCE/js/visitors_clues.js`).
@@ -292,3 +292,17 @@ node test/v209_facilities_party_synergy_suite.js
   - `COMBAT.inferCombatRole(u)` (`TANK`, `HEALER`, `CASTER`, `ASSASSIN`, `FIGHTER`), `COMBAT.resolveCognitiveArchetype(u)` (`GRAND_TACTICIAN`, `CUNNING_ASSASSIN`, `BLOODTHIRSTY_BERSERKER`, `HONORABLE_DUELLIST`, `INSTINCTIVE_BEAST`), `COMBAT.computeTargetPriorityScore`, and `COMBAT.evaluateTacticalEngagement`.
   - `COMBAT.evaluateTacticalBoutSummary(partyA, partyB, opts)` connects tactical spatial evaluation to outside-sect battles across `js/explore.js`, `js/sect.js` (`resolveTournamentMatch`), and `js/expedition.js` (`resolveSectSiege`, `resolveDiscipleSectEncounter`).
   - Verify with `node test/v300_tactical_combat_and_living_chronicle_suite.js`.
+
+---
+
+## Patch v3.4.0 – v4.0.0 Combat Engine Additions
+- **Path-Specific Secondary Gauges (`CULT.PATH_GAUGES`):** Sword Intent, Blood Qi/Heat, Divine Faith, and Gu Swarm gauges charging in combat and triggering path finishers.
+- **Duet Synergies (`COMBAT.DUET_SYNERGIES`):** Joint dual-caster techniques for bonded companions, mentors/disciples, or complementary elemental roots.
+- **Charged Skills & Poise Break (`COMBAT.startChargedSkill`)** and **Boss Beast Anatomy Part-Breaking (`COMBAT.ANATOMY_BREAKER`)**: Targetable `HORN_CROWN`, `VENOM_SAC`, `WING_MEMBRANE`, `CORE_SHELL` with guaranteed organ drops.
+- **Pillar 2 (v4.0.0) — Action-Derived Behavioral Mastery Traits (`COMBAT.ACTION_MASTERY_TRAITS` in `js/combat.js`):**
+  - Tracks real combat behavior on `npc.combatHistory = { parryCount, coverCount, clutchHealCount, formationTicks, unlockedTraits }`:
+    1. `TRAIT_PARRY_COUNTER` (`กระบี่ตอบโต้`, `parryCount >= 15`): +15% counter/reflect damage (`C.strike`).
+    2. `TRAIT_VANGUARD_GUARD` (`ทวนพิทักษ์`, `coverCount >= 20`): +12% `def`/`mdef` in `STATS.get` / `STATS.explain` and frontline cover (`C.resolveDefensiveInterception`).
+    3. `TRAIT_COMBAT_MEDIC` (`หมอสนาม`, `clutchHealCount >= 10` on allies with HP `< 25%`): +20% emergency healing (`C.fightStep` heal & `CULT.castHealOrBuff`).
+    4. `TRAIT_FORMATION_STRATEGIST` (`ผู้วางหมาก`, `formationTicks >= 30`): +15% Qi regeneration.
+  - Automatically logs trait awakening into `W.chronicle` and `W.world.chronicles`.

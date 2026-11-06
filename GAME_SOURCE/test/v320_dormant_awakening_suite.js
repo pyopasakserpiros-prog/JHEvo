@@ -36,7 +36,7 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Version Lock
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.2.0)...');
 {
-  check(['3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be 3.2.0 (got ${SIM.PATCH_VERSION})`);
+  check(['3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be 3.2.0 (got ${SIM.PATCH_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');

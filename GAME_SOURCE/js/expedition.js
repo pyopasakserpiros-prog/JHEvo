@@ -3942,6 +3942,7 @@
   X.recordChronicle = (W, entry) => {
     if (!W || !W.world || !entry) return null;
     if (!Array.isArray(W.world.chronicles)) W.world.chronicles = [];
+    if (!Array.isArray(W.chronicle)) W.chronicle = W.world.chronicles;
     const day = Number.isFinite(entry.day) ? entry.day : (Number.isFinite(W.day) ? W.day : 0);
     const t = Number.isFinite(entry.t) ? entry.t : (Number.isFinite(W.t) ? W.t : day * 1440);
     const eventKey = entry.eventKey || ((entry.category || "JIANGHU") + ":" + (entry.titleTh || "") + ":" + day);

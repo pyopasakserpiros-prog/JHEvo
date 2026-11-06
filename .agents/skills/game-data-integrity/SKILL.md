@@ -7,7 +7,7 @@ category: game-data-schema
 
 # Game Data & Combat Integrity: Schemas, Dual-ID Discipline, 10 Weapon Types, 12 Paths, 21 Legendary Relics & Editor Catalog
 
-> **Current baseline 2.0.28:** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
 Provide the authoritative data schema reference and audit checklist for **JianghuSect Evolution v2.0.17** data files:
@@ -287,3 +287,9 @@ node test/recipe_coverage.js
 node test/technique_overhaul_suites.js
 node test/resonance_tactics_assembly_suite.js
 ```
+
+---
+
+## Patch v4.0.0 Baseline Synchronization
+- Synchronized with `SIM.PATCH_VERSION = '4.0.0'` (`SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`, `HC.FINGERPRINT === '155:2f9c9dd7'`).
+- All 124 test groups in `test/run_all.js` and `node tools/validate_data_schema.js` pass with 0 errors and 0 warnings.
