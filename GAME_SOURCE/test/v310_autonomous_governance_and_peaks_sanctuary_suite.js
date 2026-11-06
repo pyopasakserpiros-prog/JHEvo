@@ -21,8 +21,8 @@ console.log('===================================================================
 // 1. Version, Core Lock & 6-Directorate / 25-Office Catalog Verification
 console.log('▶ [1/6] Testing Version Metadata, Core Lock & 25-Office Catalog...');
 {
-  check(SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || (SIM.PATCH_VERSION === '3.4.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.0.0')) || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.0.0')))), 'SIM.PATCH_VERSION must be 3.1.0 or 3.1.1');
-  check(SIM.SAVE_SCHEMA_VERSION === '3.1.0-autonomous-governance-peaks' || SIM.SAVE_SCHEMA_VERSION === '3.6.0-immortal-endgame-dynasty' || (SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter' || SIM.SAVE_SCHEMA_VERSION === '5.0.0-celestial-visual-overhaul'), 'SIM.SAVE_SCHEMA_VERSION must be 3.1.0-autonomous-governance-peaks');
+  check(SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || (SIM.PATCH_VERSION === '3.4.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.2.0')) || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.2.0')))), 'SIM.PATCH_VERSION must be 3.1.0 or 3.1.1');
+  check(SIM.SAVE_SCHEMA_VERSION === '3.1.0-autonomous-governance-peaks' || SIM.SAVE_SCHEMA_VERSION === '3.6.0-immortal-endgame-dynasty' || (SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter' || SIM.SAVE_SCHEMA_VERSION === '5.2.0-subtabs-and-world-visuals'), 'SIM.SAVE_SCHEMA_VERSION must be 3.1.0-autonomous-governance-peaks');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
 
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));

@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '5.0.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0'],
-    SAVE_SCHEMA_VERSION: '5.0.0-celestial-visual-overhaul',
+    PATCH_VERSION: '5.2.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0'],
+    SAVE_SCHEMA_VERSION: '5.2.0-subtabs-and-world-visuals',
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };

@@ -7,14 +7,15 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.0.0` (Era 5 Phase 1: Grand Celestial Visual Overhaul, Living Sect Ground Spectacles & Shaders — **พัฒนาและส่งมอบครบทั้ง 6 เสาหลักของ `v5.0.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 126/126 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.2.0` (Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals, Portal FX & Relic Showcase — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักของ `v5.2.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 128/128 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V5_1_0.md`](ACTIVE_PATCH_PROMPT_V5_1_0.md) (Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscene Moments & Martial Arena Camera)
+  👉 [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md) (Era 5 Phase 4: Dynamic 4 Seasons, Interactive Relationship Constellation, Zen Screenshot Mode & Disciple Daily Life Loops)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_1_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_1_0.md) (`v4.1.0` — Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution ครบ 5 เสาหลัก)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) (`v5.0.0` — Era 5: Grand Celestial Visual Overhaul ครบ 6 เสาหลัก)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md) (`v5.1.0` — Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscenes & Martial Arena Camera ครบ 5 เสาหลัก)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md) (`v5.2.0` — Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals & Relic Showcase ครบ 5 เสาหลัก)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **แพตช์ `v5.0.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.1.0` ตามใบสั่งงาน!**
+  👉 **แพตช์ `v5.2.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.3.0` ตามใบสั่งงาน!**
 
 ---
 
@@ -101,7 +102,15 @@ cd GAME_SOURCE && node tools/build_single.js
 | **Phase 8** | **v4.2.0** | `ACTIVE_PATCH_PROMPT_V4_2_0.md` | Pillar 1–5 (5 เสาหลัก) | **Living Peak Sanctum Rituals, Sect Wonders & Dynamic Celestial Weather:** พิธีกรรมประจำ 8 ยอดเขา, 4 สิ่งมหัศจรรย์สำนักบนแผนที่จริง, ขบวนลาดตระเวนเชื่อมยอดเขา, ปรากฏการณ์ฟ้าดินบน Canvas, และโหมดส่องทัศนียภาพสำนัก | 🔥 **งานที่ต้องทำทันที (Active Target)** |
 
 
-## สถานะล่าสุด: Patch v5.0.0 (Era 5: Grand Celestial Visual Overhaul) เสร็จสมบูรณ์ 100%
+## สถานะล่าสุด: Patch v5.0.0 (Era 5 Phase 1: Grand Celestial Visual Overhaul) เสร็จสมบูรณ์ 100%
 - รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`
-- แพทช์ถัดไปในคิว: `ACTIVE_PATCH_PROMPT_V5_1_0.md`
 - ชุดทดสอบทั้งหมด: `126/126 PASS` (`test/v500_celestial_visual_overhaul_suite.js`)
+
+## สถานะล่าสุด: Patch v5.1.0 (Era 5 Phase 2: Interactive Visual Dioramas & Martial Arena Camera) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md`
+- ชุดทดสอบทั้งหมด: `127/127 PASS` (`test/v510_interactive_visual_dioramas_suite.js`)
+
+## สถานะล่าสุด: Patch v5.2.0 (Era 5 Phase 3: Sub-Category Navigation Overhaul, World Atlas Convoys & Relic Showcase) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md`
+- แพทช์ถัดไปในคิว: [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md)
+- ชุดทดสอบทั้งหมด: `128/128 PASS` (`test/v520_subtabs_and_world_visuals_suite.js`)

@@ -40,8 +40,8 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Patch Version Lock (4.0.0)
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (4.0.0)...');
 {
-  check((SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.0.0'), `SIM.PATCH_VERSION must be '4.0.0' (got ${SIM.PATCH_VERSION})`);
-  check((SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter' || SIM.SAVE_SCHEMA_VERSION === '5.0.0-celestial-visual-overhaul'), `SIM.SAVE_SCHEMA_VERSION must be '4.0.0-living-frontier-charter' (got ${SIM.SAVE_SCHEMA_VERSION})`);
+  check((SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.2.0'), `SIM.PATCH_VERSION must be '4.0.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter' || SIM.SAVE_SCHEMA_VERSION === '5.2.0-subtabs-and-world-visuals'), `SIM.SAVE_SCHEMA_VERSION must be '4.0.0-living-frontier-charter' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');

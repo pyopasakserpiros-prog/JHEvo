@@ -1,6 +1,8 @@
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
-- **ล่าสุด (v5.0.0):** [`PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) — Era 5 Phase 1: Grand Celestial Visual Overhaul, Living Sect Ground Spectacles & Shaders (ครบ 6 เสาหลักกราฟิก, 126/126 ชุดทดสอบผ่าน 100%)
+- **ล่าสุด (v5.2.0):** [`PATCH_IMPLEMENTATION_REPORT_V5_2_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_2_0.md) — Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals, Portal FX & Relic Showcase (ครบ 5 เสาหลัก, 128/128 ชุดทดสอบผ่าน 100%)
+- **v5.1.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_1_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_1_0.md) — Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscenes & Martial Arena Camera (ครบ 5 เสาหลัก, 127/127 ชุดทดสอบผ่าน 100%)
+- **v5.0.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) — Era 5 Phase 1: Grand Celestial Visual Overhaul, Living Sect Ground Spectacles & Shaders (ครบ 6 เสาหลักกราฟิก, 126/126 ชุดทดสอบผ่าน 100%)
 - **v4.1.0:** [`PATCH_IMPLEMENTATION_REPORT_V4_1_0.md`](PATCH_IMPLEMENTATION_REPORT_V4_1_0.md) — Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution (ครบ 5 เสาหลักใหม่, 126/126 ชุดทดสอบผ่าน 100%)
 - **v4.0.0:** [`PATCH_IMPLEMENTATION_REPORT_V4_0_0.md`](PATCH_IMPLEMENTATION_REPORT_V4_0_0.md) — Phase 6: Living Frontier, Behavioral Mastery & Sect Charter (124/124 ชุดทดสอบผ่าน 100%)
 - **v3.6.0:** [`PATCH_IMPLEMENTATION_REPORT_V3_6_0.md`](PATCH_IMPLEMENTATION_REPORT_V3_6_0.md)

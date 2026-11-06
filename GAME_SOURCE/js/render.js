@@ -1230,6 +1230,49 @@
     }
   });
 
+
+  // Patch v5.1.0 [Pillar 1 & 2]: Sect Ceremony & Martial Arena Spectacle Presets
+  R.CEREMONY_PRESETS = Object.freeze({
+    AUTO: {
+      id: 'AUTO',
+      nameTh: 'ตามเหตุการณ์จริงในสำนัก (Auto)',
+      icon: '🏯',
+      descTh: 'แสดงฉากงานเลี้ยง พิธีมงคล และเวทีประลองตามเหตุการณ์ที่กำลังเกิดขึ้นจริงในสำนัก'
+    },
+    BANQUET: {
+      id: 'BANQUET',
+      nameTh: 'งานเลี้ยงฉลองปราณโอชา & พลุดอกไม้ไฟเซียน',
+      icon: '🎎',
+      primary: '#ff4d6d',
+      secondary: '#ffd166',
+      descTh: 'จัดโต๊ะหยกปราณโอชา พรมไหมแดงมงคล โคมบัวสวรรค์ และจุดพลุปราณเซียน 5 สีเหนือลานแปดทิศ'
+    },
+    COMPANION_WEDDING: {
+      id: 'COMPANION_WEDDING',
+      nameTh: 'พิธีผูกวาสนาคู่บำเพ็ญมังกรหงส์',
+      icon: '💞',
+      primary: '#ff0055',
+      secondary: '#ffd740',
+      descTh: 'ตั้งแท่นพิธีมงคลมังกรหงส์ ด้ายแดงแห่งโชคชะตา และโปรยกลีบบุปผาสวรรค์ทั่วลานแปดทิศ'
+    },
+    ANCESTRAL_RITE: {
+      id: 'ANCESTRAL_RITE',
+      nameTh: 'พิธีบวงสรวงบูรพาจารย์ & บัวปราณบรรพชน',
+      icon: '🕯️',
+      primary: '#00f5d4',
+      secondary: '#ffd166',
+      descTh: 'ตั้งกระถางธูปสัมฤทธิ์โบราณ ป้ายวิญญาณศักดิ์สิทธิ์ และเสาแสงบัวทองคำเชื่อมฟ้าดิน'
+    },
+    TOURNAMENT_ARENA: {
+      id: 'TOURNAMENT_ARENA',
+      nameTh: 'ศึกชุมนุมประลองยุทธ์ & กระบี่ตัดสินฟ้า',
+      icon: '🏆',
+      primary: '#ffb703',
+      secondary: '#00e5ff',
+      descTh: 'กางม่านพลังเวทีประลองแปดเหลี่ยม ธงศึกพยัคฆ์มังกร 4 มุม และตราประทับกระบี่ตัดสินยุทธ์เหนือลานฝึก'
+    }
+  });
+
   /* ---------- สร้าง/จัดการ renderer ---------- */
   R.create = (canvas) => {
     const r = {
@@ -1251,7 +1294,7 @@
       selected: null,
       follow: false,
       alpha: 1,
-      opts: { names: true, bubbles: true, weather: true, night: true, quality: 'auto', reducedMotion: false, realmHalos: true, flyingSwords: true, combatSlashes: true, sectSpectacles: true, livingFauna: true, celestialShaders: true, celestialPreview: 'AUTO' },
+      opts: { names: true, bubbles: true, weather: true, night: true, quality: 'auto', reducedMotion: false, realmHalos: true, flyingSwords: true, combatSlashes: true, sectSpectacles: true, livingFauna: true, celestialShaders: true, celestialPreview: 'AUTO', sacredSpectacles: true, ceremonyPreview: 'AUTO' },
       dpr: Math.min(2, g.devicePixelRatio || 1),
       effectiveQuality: 'standard',
       avgDrawMs: 8,
@@ -1491,6 +1534,12 @@
       if (this.opts.sectSpectacles !== false) {
         this.drawPlazaGrandArrayAndTotems(ctx);
         this.drawPeakSanctuarySpectacles(ctx);
+        this.drawSectCeremonySpectacles(ctx, hour, nightPre);
+        this.drawMartialArenaSpectacles(ctx);
+      }
+      if (this.opts.sacredSpectacles !== false) {
+        this.drawSacredSiteSpectacles(ctx, hour, nightPre);
+        this.drawSecretRealmPortalSpectacles(ctx, hour, nightPre);
       }
 
       const items = [];
@@ -4438,6 +4487,295 @@
       return true;
     },
 
+
+    /* ---------- Patch v5.1.0 [Pillar 1, 2 & 4]: Sect Ceremonies, Martial Arena Ring & Sacred Site Spectacles ---------- */
+    resolveActiveCeremonyMode() {
+      const prev = this.opts && this.opts.ceremonyPreview;
+      if (prev && prev !== 'AUTO' && R.CEREMONY_PRESETS[prev]) return prev;
+      const W = this.W;
+      if (!W || !W.sect) return null;
+      if (W.sect.festival && W.sect.festival.until > W.t) return 'BANQUET';
+      if (Array.isArray(W.sect.companions) && W.sect.companions.some(c => c && W.day - (c.marriedDay || 0) <= 2)) return 'COMPANION_WEDDING';
+      if (W.sect.ancestralRiteUntil && W.sect.ancestralRiteUntil > W.t) return 'ANCESTRAL_RITE';
+      return null;
+    },
+
+    drawSectCeremonySpectacles(ctx, hour, night) {
+      const W = this.W;
+      if (!W || !W.map || !W.map.byId) return false;
+      const pl = W.map.byId.plaza;
+      if (!pl) return false;
+      const mode = this.resolveActiveCeremonyMode();
+      if (!mode || mode === 'TOURNAMENT_ARENA') return false;
+
+      const x = pl.x * TS, y = pl.y * TS, w = pl.w * TS, h = pl.h * TS;
+      const cx = x + w / 2, cy = y + h / 2;
+      const t = this.t;
+
+      ctx.save();
+      // 1. Auspicious Crimson-Gold Ceremonial Silk Carpet along Central Plaza Axis
+      ctx.fillStyle = mode === 'ANCESTRAL_RITE' ? 'rgba(0,180,216,0.28)' : 'rgba(217,4,41,0.34)';
+      ctx.fillRect(cx - 14, y + 6, 28, h - 12);
+      ctx.strokeStyle = '#ffd166';
+      ctx.lineWidth = 1.4;
+      ctx.strokeRect(cx - 14, y + 6, 28, h - 12);
+
+      // 2. Mode-Specific Centerpiece Altar & Feast Tables
+      if (mode === 'BANQUET') {
+        // 4 Jade Feast Tables with golden wine goblets & spirit fruit platters
+        const offsets = [[-36, -18], [36, -18], [-36, 18], [36, 18]];
+        for (let i = 0; i < offsets.length; i++) {
+          const tx = cx + offsets[i][0], ty = cy + offsets[i][1];
+          ctx.fillStyle = '#5c3a21';
+          ctx.fillRect(tx - 12, ty - 6, 24, 12);
+          ctx.strokeStyle = '#ffd166';
+          ctx.lineWidth = 1.0;
+          ctx.strokeRect(tx - 12, ty - 6, 24, 12);
+          ctx.fillStyle = '#80ed99';
+          ctx.beginPath(); ctx.arc(tx - 5, ty, 2.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#ff4d6d';
+          ctx.beginPath(); ctx.arc(tx + 5, ty, 2.2, 0, Math.PI * 2); ctx.fill();
+        }
+      } else if (mode === 'COMPANION_WEDDING') {
+        // Twin Dragon-Phoenix Wedding Altar & Destiny Red Silk Ribbons
+        ctx.strokeStyle = '#ff0055';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let i = 0; i < 4; i++) {
+          const a = (i * Math.PI) / 2 + t * 0.6;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - 18);
+          ctx.quadraticCurveTo(cx + Math.cos(a) * 18, cy - 10, cx + Math.cos(a) * 34, cy + Math.sin(a) * 20);
+          ctx.stroke();
+        }
+      } else if (mode === 'ANCESTRAL_RITE') {
+        // Bronze Ancestral Incense Tripod & Golden Lotus Pillar
+        ctx.fillStyle = '#d4a238';
+        ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#00f5d4';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.ellipse(cx, cy, 24, 14, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // 3. Multi-Burst Celestial Qi Fireworks (พลุดอกไม้ไฟปราณเซียน 5 สี) above Plaza
+      const fwColors = ['#ffd166', '#ff4d6d', '#00f5d4', '#c77dff', '#80ed99'];
+      for (let bIdx = 0; bIdx < 3; bIdx++) {
+        const phase = (t * 0.65 + bIdx * 0.33) % 1;
+        const fx = cx + (bIdx - 1) * 42;
+        const fy = y - 16 - phase * 24;
+        const bRad = 4 + phase * 18;
+        ctx.strokeStyle = fwColors[(bIdx + Math.floor(t)) % fwColors.length];
+        ctx.globalAlpha = clamp(1 - phase * 0.85, 0.15, 0.92);
+        ctx.lineWidth = 1.5;
+        for (let r = 0; r < 8; r++) {
+          const ang = (r * Math.PI) / 4 + phase * 0.6;
+          ctx.beginPath();
+          ctx.moveTo(fx + Math.cos(ang) * (bRad * 0.3), fy + Math.sin(ang) * (bRad * 0.3));
+          ctx.lineTo(fx + Math.cos(ang) * bRad, fy + Math.sin(ang) * bRad);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawMartialArenaSpectacles(ctx) {
+      const W = this.W;
+      if (!W || !W.map || !W.map.byId) return false;
+      const tg = W.map.byId.training_ground;
+      if (!tg) return false;
+
+      const prev = this.opts && this.opts.ceremonyPreview;
+      const activeTourney = !!(W.sect && W.sect.tournament);
+      const activeDuel = Array.isArray(W.duelQueue) && W.duelQueue.length > 0;
+      const fightingOnArena = Array.isArray(W.npcs) && W.npcs.some(n => !n.dead && n.act && (n.act.id === 'fight' || (n.act.id === 'pair' && n.act.ctx && n.act.ctx.pair && n.act.ctx.pair.type === 'spar')));
+      if (prev !== 'TOURNAMENT_ARENA' && !activeTourney && !activeDuel && !fightingOnArena) return false;
+
+      const x = tg.x * TS, y = tg.y * TS, w = tg.w * TS, h = tg.h * TS;
+      const cx = x + w / 2, cy = y + h / 2;
+      const rx = w * 0.46, ry = h * 0.44;
+      const t = this.t;
+
+      ctx.save();
+      // 1. Octagonal Golden-Crimson Martial Arena Barrier Ring
+      ctx.strokeStyle = activeTourney || prev === 'TOURNAMENT_ARENA' ? '#ffd166' : '#4cc9f0';
+      ctx.globalAlpha = 0.62 + 0.16 * Math.sin(t * 3.0);
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      for (let i = 0; i <= 8; i++) {
+        const a = (i * Math.PI) / 4 + t * 0.15;
+        const vx = cx + Math.cos(a) * rx;
+        const vy = cy + Math.sin(a) * ry;
+        if (i === 0) ctx.moveTo(vx, vy);
+        else ctx.lineTo(vx, vy);
+      }
+      ctx.stroke();
+
+      // 2. Clashing Shockwave Rings at Arena Center
+      const clashR = 8 + ((t * 18) % Math.max(14, Math.min(rx, ry) * 0.75));
+      ctx.strokeStyle = '#ffffff';
+      ctx.globalAlpha = 0.42;
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, clashR, clashR * 0.58, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 3. Four Corner War Banners (ธงศึกพยัคฆ์มังกร 4 ทิศ)
+      const corners = [
+        [x + 6, y + 6, -1],
+        [x + w - 6, y + 6, 1],
+        [x + 6, y + h - 6, -1],
+        [x + w - 6, y + h - 6, 1]
+      ];
+      ctx.globalAlpha = 0.9;
+      for (let i = 0; i < corners.length; i++) {
+        const [bx, by, dir] = corners[i];
+        const wave = Math.sin(t * 3.5 + i) * 2.5;
+        ctx.fillStyle = '#4a3525';
+        ctx.fillRect(bx - 1, by - 24, 2.2, 24);
+        ctx.fillStyle = i % 2 === 0 ? '#d90429' : '#ffb703';
+        ctx.beginPath();
+        ctx.moveTo(bx + 1, by - 23);
+        ctx.lineTo(bx + dir * (12 + wave), by - 19);
+        ctx.lineTo(bx + dir * (10 + wave), by - 9);
+        ctx.lineTo(bx + 1, by - 11);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 4. Floating Heavenly Referee Sword Seal (ตราประทับกระบี่ตัดสินยุทธ์)
+      const hoverY = y - 14 + Math.sin(t * 2.6) * 3.0;
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.moveTo(cx, hoverY - 12);
+      ctx.lineTo(cx, hoverY + 6);
+      ctx.moveTo(cx - 5, hoverY - 6);
+      ctx.lineTo(cx + 5, hoverY - 6);
+      ctx.stroke();
+      ctx.restore();
+      return true;
+    },
+
+    drawSacredSiteSpectacles(ctx, hour, night) {
+      const W = this.W;
+      if (!W || !W.map || !W.map.byId) return false;
+      const t = this.t;
+      let drew = false;
+
+      ctx.save();
+      // 1. Scripture Pavilion (หอคัมภีร์): Orbiting Golden Dao Glyphs
+      const sc = W.map.byId.scripture;
+      if (sc && !sc.building) {
+        const cx = (sc.x + sc.w / 2) * TS, cy = (sc.y + sc.h * 0.45) * TS;
+        ctx.fillStyle = '#ffd166';
+        ctx.globalAlpha = 0.75;
+        for (let i = 0; i < 6; i++) {
+          const a = t * 0.8 + (i * Math.PI) / 3;
+          const gx = cx + Math.cos(a) * (sc.w * TS * 0.52);
+          const gy = cy + Math.sin(a) * (sc.h * TS * 0.28) - 8;
+          ctx.fillRect(gx - 2, gy - 3, 4, 6);
+        }
+        drew = true;
+      }
+
+      // 2. Meditation Hall & Spirit Tower: Rising Azure-Gold Lotus Qi Rings
+      for (const bid of ['meditation_hall', 'tower']) {
+        const b = W.map.byId[bid];
+        if (!b || b.building) continue;
+        const cx = (b.x + b.w / 2) * TS, cy = (b.y + b.h * 0.5) * TS;
+        const phase = (t * 0.45) % 1;
+        ctx.strokeStyle = bid === 'tower' ? '#00f5d4' : '#90e0ef';
+        ctx.globalAlpha = (1 - phase) * 0.52;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - phase * 22, (b.w * TS * 0.45) * (1 - phase * 0.25), (b.h * TS * 0.24) * (1 - phase * 0.25), 0, 0, Math.PI * 2);
+        ctx.stroke();
+        drew = true;
+      }
+      ctx.restore();
+      return drew;
+    },
+
+
+    /* ---------- Patch v5.2.0 [Pillar 3]: Secret Realm Portal Vortex, Ancient Cave & Stele Spectacles ---------- */
+    drawSecretRealmPortalSpectacles(ctx, hour, night) {
+      const W = this.W;
+      if (!W || !W.map || !W.map.byId) return false;
+      const t = this.t;
+      let drew = false;
+
+      ctx.save();
+      // 1. Dimensional Realm Gate (ประตูมิติสู่แดนหมื่นพิภพ): Astral Star-Pillar & Orbiting Runes
+      const rg = W.map.byId.realm_gate || W.map.byId.gate_zone;
+      if (rg) {
+        const cx = (rg.x + rg.w / 2) * TS, cy = (rg.y + rg.h / 2) * TS;
+        const isOpen = !!(W.explore && W.explore.gate && W.explore.gate.open);
+        const rad = Math.min(rg.w, rg.h) * TS * 0.44;
+        ctx.strokeStyle = isOpen ? '#00f5d4' : '#9d4edd';
+        ctx.globalAlpha = isOpen ? 0.72 : 0.38;
+        ctx.lineWidth = isOpen ? 2.2 : 1.4;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rad, rad * 0.62, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Orbiting dimensional seal runes
+        for (let i = 0; i < 8; i++) {
+          const a = t * (isOpen ? 1.4 : 0.5) + (i * Math.PI) / 4;
+          const rx = cx + Math.cos(a) * (rad * 0.92);
+          const ry = cy + Math.sin(a) * (rad * 0.56);
+          ctx.fillStyle = i % 2 === 0 ? '#ffd166' : '#72efdd';
+          ctx.fillRect(rx - 1.8, ry - 2.4, 3.6, 4.8);
+        }
+        if (isOpen) {
+          // Vertical Astral Light Pillar
+          ctx.fillStyle = 'rgba(114,239,221,0.18)';
+          ctx.fillRect(cx - 10, cy - 42, 20, 42);
+        }
+        drew = true;
+      }
+
+      // 2. Ancient Stele (ศิลาจารึกโบราณ): Floating Golden Enlightenment Characters
+      const st = W.map.byId.stele;
+      if (st) {
+        const cx = (st.x + st.w / 2) * TS, cy = (st.y + st.h / 2) * TS;
+        ctx.strokeStyle = '#ffd166';
+        ctx.globalAlpha = 0.55;
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 6, 18, 9, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let i = 0; i < 4; i++) {
+          const phase = (t * 0.5 + i * 0.25) % 1;
+          const gx = cx + Math.sin(t * 2 + i * 1.7) * 11;
+          const gy = cy + 2 - phase * 24;
+          ctx.fillStyle = '#ffe57f';
+          ctx.globalAlpha = (1 - phase) * 0.85;
+          ctx.fillRect(gx - 1.5, gy - 2, 3, 4);
+        }
+        drew = true;
+      }
+
+      // 3. Myriad Mist Cave (ถ้ำหมื่นสายหมอก): Swirling Amethyst-Azure Spirit Orbs
+      const cv = W.map.byId.cave;
+      if (cv) {
+        const cx = (cv.x + cv.w / 2) * TS, cy = (cv.y + cv.h * 0.65) * TS;
+        for (let i = 0; i < 4; i++) {
+          const a = t * 1.1 + (i * Math.PI) / 2;
+          ctx.fillStyle = i % 2 === 0 ? '#c77dff' : '#48cae4';
+          ctx.globalAlpha = 0.65;
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(a) * 14, cy + Math.sin(a) * 6 - 6, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        drew = true;
+      }
+      ctx.restore();
+      return drew;
+    },
+
     drawOverlayText() {}
   };
 
@@ -4729,6 +5067,238 @@
   };
 
   function ctx_stroke(c) { c.stroke(); }
+
+
+  /* ---------- Patch v5.1.0 [Pillar 3]: Interactive Full-Body Character Visual Diorama & Relic Showcase ---------- */
+  R.diorama = (canvas, n, opts) => {
+    if (!canvas || !n) return false;
+    opts = opts || {};
+    const dpr = Math.min(2, g.devicePixelRatio || 1);
+    const w = opts.width || 220;
+    const h = opts.height || 136;
+    const poseMode = opts.pose || 'cultivate';
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    if (canvas.style) {
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const stg = clamp((n.cult && n.cult.stage) || 1, 1, 9);
+    const pKey = (n.cult && n.cult.path) || 'SWORD';
+    const rSpec = R.REALM_VISUAL_TIERS[stg] || R.REALM_VISUAL_TIERS[1];
+    const pSig = R.PATH_VISUAL_SIGNATURES[pKey] || R.PATH_VISUAL_SIGNATURES.SWORD;
+
+    // 1. Scenic Xianxia Night-Mountain & Celestial Aurora Backdrop
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#0f1c2e');
+    bg.addColorStop(0.55, '#1b3142');
+    bg.addColorStop(1, '#122229');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // Distant mountain silhouettes & celestial moon/sun disc
+    ctx.fillStyle = 'rgba(255,235,160,0.16)';
+    ctx.beginPath();
+    ctx.arc(w * 0.82, h * 0.24, 18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(18,38,48,0.75)';
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    ctx.lineTo(0, h * 0.68);
+    ctx.quadraticCurveTo(w * 0.25, h * 0.48, w * 0.52, h * 0.70);
+    ctx.quadraticCurveTo(w * 0.78, h * 0.50, w, h * 0.66);
+    ctx.lineTo(w, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // 2. Jade Lotus Meditation / Martial Pedestal
+    const cx = w * 0.5, gy = h * 0.82;
+    ctx.fillStyle = 'rgba(12,24,28,0.75)';
+    ctx.beginPath();
+    ctx.ellipse(cx, gy + 4, 56, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = rSpec.color;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(cx, gy + 2, 48, 12, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 3. Render Full-Body Cultivator with all Era 5 Visual Layers using a lightweight stand-in renderer context
+    const fakeRenderer = Object.assign({
+      W: (g.G && g.G.W) || { t: 720, npcs: [n], byId: { [n.id]: n }, sect: { delegations: {} } },
+      cam: { x: 0, y: 0, z: 2.2 },
+      t: Number(opts.timeSec) || 2.4,
+      uiT: 2.4,
+      selected: null,
+      apCache: new Map(),
+      opts: { names: false, bubbles: false, realmHalos: true, flyingSwords: true, combatSlashes: true }
+    }, R.methods);
+
+    const savedAct = n.act;
+    try {
+      const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : 'cultivate';
+      const proxyNpc = Object.create(n);
+      proxyNpc.x = 0;
+      proxyNpc.y = 0;
+      proxyNpc.px = 0;
+      proxyNpc.py = 0;
+      proxyNpc.act = { id: actId, ctx: {} };
+
+      ctx.save();
+      ctx.translate(cx, gy);
+      ctx.scale(2.15, 2.15);
+      fakeRenderer.drawNpc(ctx, proxyNpc, { x: 0, y: 0 }, 12);
+      ctx.restore();
+    } finally {
+      if (savedAct !== undefined) n.act = savedAct;
+    }
+
+    // 4. Top-Left Realm & Path Badge Overlay + Border Frame
+    ctx.fillStyle = 'rgba(10,18,24,0.78)';
+    ctx.fillRect(6, 6, 118, 18);
+    ctx.strokeStyle = rSpec.color;
+    ctx.lineWidth = 1.0;
+    ctx.strokeRect(6, 6, 118, 18);
+    ctx.fillStyle = '#fff5d6';
+    ctx.font = '600 10px ' + FONT;
+    ctx.textAlign = 'left';
+    ctx.fillText('ขั้น ' + stg + ' ' + rSpec.nameTh + ' · ' + pSig.nameTh, 11, 18);
+
+    ctx.strokeStyle = 'rgba(233,205,133,0.65)';
+    ctx.lineWidth = 1.4;
+    ctx.strokeRect(0.7, 0.7, w - 1.4, h - 1.4);
+    return true;
+  };
+
+
+  /* ---------- Patch v5.2.0 [Pillar 4]: Interactive Relic & Equipment Visual Showcase Canvas ---------- */
+  R.relicShowcase = (canvas, item, opts) => {
+    if (!canvas || !item) return false;
+    opts = opts || {};
+    const dpr = Math.min(2, g.devicePixelRatio || 1);
+    const w = opts.width || 180;
+    const h = opts.height || 86;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    if (canvas.style) {
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const eq = item.eq || item.gear || item;
+    const tier = clamp(item.tier || eq.tier || 1, 1, 7);
+    const gSpec = R.GEAR_TIER_GLOWS[tier] || R.GEAR_TIER_GLOWS[1];
+    const isLeg = !!(item.legendary || eq.legendary || tier >= 6);
+    const stars = clamp(eq.stars || eq.star || (isLeg ? 3 : tier >= 5 ? 2 : tier >= 3 ? 1 : 0), 0, 3);
+    const elKey = eq.element || (Array.isArray(eq.runes) && eq.runes[0]) || 'METAL';
+    const elPal = R.ELEMENT_VFX_PALETTE[elKey] || R.ELEMENT_VFX_PALETTE.METAL;
+
+    // 1. Deep Sanctuary Relic Pedestal Background
+    const bg = ctx.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, '#101926');
+    bg.addColorStop(0.5, '#192a38');
+    bg.addColorStop(1, '#0e171f');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const cx = w * 0.5, cy = h * 0.54;
+    // 2. Radial Tier Halo & Bagua Forge Ring
+    ctx.strokeStyle = gSpec.color;
+    ctx.globalAlpha = 0.65;
+    ctx.lineWidth = isLeg ? 2.0 : 1.4;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 16, 46, 12, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = elPal.primary;
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(cx, cy - 2, 24, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 3. Weapon / Armor / Accessory Silhouette in Center
+    const slot = eq.slot || (item.broadCat === 'EQUIPMENT' ? 'WEAPON' : 'RELIC');
+    const wType = (g.MARTIAL && g.MARTIAL.gearType && eq) ? g.MARTIAL.gearType(eq) : (eq.type || 'SWORD');
+    ctx.save();
+    ctx.translate(cx, cy - 2);
+    if (slot === 'ARMOR' || wType === 'ARMOR') {
+      ctx.fillStyle = gSpec.color;
+      ctx.beginPath();
+      ctx.moveTo(-14, -12);
+      ctx.lineTo(14, -12);
+      ctx.lineTo(11, 14);
+      ctx.lineTo(-11, 14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#fff5d6';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    } else if (slot === 'ACCESSORY' || wType === 'ACCESSORY') {
+      ctx.strokeStyle = gSpec.color;
+      ctx.lineWidth = 3.0;
+      ctx.beginPath();
+      ctx.arc(0, 0, 11, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = elPal.secondary;
+      ctx.beginPath();
+      ctx.arc(0, -11, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Weapon Blade / Spear / Zither / Brush Silhouette
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.8;
+      ctx.beginPath();
+      ctx.moveTo(-18, 12);
+      ctx.lineTo(18, -12);
+      ctx.stroke();
+      ctx.strokeStyle = gSpec.color;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(-9, 9);
+      ctx.lineTo(-13, 3);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 4. Star-Attunement Nodes (★1-3) & Awakened Weapon Soul Orb
+    for (let i = 0; i < stars; i++) {
+      const sx = w - 14 - i * 11, sy = 13;
+      ctx.fillStyle = '#ffd740';
+      ctx.beginPath();
+      ctx.arc(sx, sy, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (isLeg || eq.weaponSpirit || eq.weaponSoul) {
+      ctx.fillStyle = '#00f5d4';
+      ctx.beginPath();
+      ctx.arc(cx + 28, cy - 14, 4.0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffd740';
+      ctx.lineWidth = 1.1;
+      ctx.stroke();
+    }
+
+    // 5. Tier Label & Border
+    ctx.fillStyle = '#fff5d6';
+    ctx.font = '600 9.5px ' + FONT;
+    ctx.textAlign = 'left';
+    ctx.fillText('T' + tier + ' ' + gSpec.nameTh + (elKey ? ' · ธาตุ ' + elKey : ''), 8, 15);
+    ctx.strokeStyle = gSpec.color;
+    ctx.lineWidth = 1.3;
+    ctx.strokeRect(0.7, 0.7, w - 1.4, h - 1.4);
+    return true;
+  };
 
   R.describeActiveLegendaryVisuals = n => {
     if (!n || !n.cult) return { weaponVisualKey: null, weaponPresentation: null, armorVisualKey: null, accessoryVisualKey: null, activePassiveAuras: [], activeMantraAura: null, castMotifs: [] };
