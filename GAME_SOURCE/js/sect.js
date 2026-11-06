@@ -37,7 +37,15 @@
     watchtower_e: { maxLevel: 1, category: 'defense' },
     waterfall: { maxLevel: 1, category: 'landmark' },
     spirit_tree: { maxLevel: 1, category: 'landmark' },
-    plaza: { maxLevel: 1, category: 'landmark' }
+    plaza: { maxLevel: 1, category: 'landmark' },
+    peak_sword: { maxLevel: 5, costBase: 750, category: 'peak' },
+    peak_body: { maxLevel: 5, costBase: 750, category: 'peak' },
+    peak_chaos: { maxLevel: 5, costBase: 750, category: 'peak' },
+    peak_alchemy: { maxLevel: 5, costBase: 750, category: 'peak' },
+    peak_magic: { maxLevel: 5, costBase: 750, category: 'peak' },
+    peak_array: { maxLevel: 5, costBase: 750, category: 'peak' },
+    peak_scholar: { maxLevel: 5, costBase: 750, category: 'peak' },
+    peak_beast: { maxLevel: 5, costBase: 750, category: 'peak' }
   };
 
   SECT.maxBuildingLevel = bOrId => {
@@ -11042,7 +11050,15 @@
     PEAK_MAGIC: 'PEAK_SOUL_SAMSARA',
     PEAK_ARRAY: 'PEAK_ASTRAL_MECHANISM',
     PEAK_SCHOLAR: 'PEAK_SAGE_STRATEGIST',
-    PEAK_BEAST: 'PEAK_DIVINE_BEAST'
+    PEAK_BEAST: 'PEAK_DIVINE_BEAST',
+    peak_sword: 'PEAK_AZURE_SWORD',
+    peak_body: 'PEAK_VAJRA_BODY',
+    peak_chaos: 'PEAK_CRIMSON_SHADOW',
+    peak_alchemy: 'PEAK_DIVINE_CAULDRON',
+    peak_magic: 'PEAK_SOUL_SAMSARA',
+    peak_array: 'PEAK_ASTRAL_MECHANISM',
+    peak_scholar: 'PEAK_SAGE_STRATEGIST',
+    peak_beast: 'PEAK_DIVINE_BEAST'
   });
 
   PEAKS.resolvePeakId = peakId => {
@@ -11220,6 +11236,18 @@
         }
       }
     }
+    PEAKS.PEAK_IDS.forEach(pid => {
+      const def = PEAKS.PEAK_DEFS[pid];
+      const pObj = pk.byId[pid];
+      if (pObj) {
+        pk[pid] = pObj;
+        if (def && def.aliasId) {
+          pk[def.aliasId] = pObj;
+          pk[def.aliasId.toLowerCase()] = pObj;
+        }
+      }
+    });
+    if (g.MAP && g.MAP.syncPeakSanctuaries) g.MAP.syncPeakSanctuaries(W);
     return pk;
   };
 
@@ -11260,6 +11288,7 @@
   // 2) >= 1 member with Elder status (rank >= 4 or isElder === true) to serve as Peak Master
   // 3) >= 4 members total (1 Peak Master + 1 Deputy Peak Master + >= 2 regular members)
   PEAKS.checkFoundingEligibility = (W, peakId) => {
+    peakId = PEAKS.resolvePeakId(peakId);
     const pk = PEAKS.ensure(W);
     if (!pk || !pk.byId[peakId]) return { eligible: false, reason: 'invalid-peak' };
     const pObj = pk.byId[peakId];
@@ -11358,6 +11387,7 @@
   };
 
   PEAKS.foundPeak = (W, peakId, masterOrOpts, maybeOpts) => {
+    peakId = PEAKS.resolvePeakId(peakId);
     let opts = (typeof masterOrOpts === 'string') ? Object.assign({ masterId: masterOrOpts }, maybeOpts || {}) : (masterOrOpts || {});
     const pk = PEAKS.ensure(W);
     if (!pk || !pk.byId[peakId]) return { ok: false, reason: 'invalid-peak' };
@@ -11395,6 +11425,8 @@
 
     pObj.founded = true;
     pObj.foundedDay = W.day || 360;
+    pObj.foundedAtT = W.t || 0;
+    if (g.MAP && g.MAP.syncPeakSanctuaries) g.MAP.syncPeakSanctuaries(W);
     pObj.masterId = master.id;
     pObj.masterNameTh = HC.fullName(master);
     pObj.deputyId = deputy.id;
@@ -13378,14 +13410,35 @@
    * ========================================================================= */
 
   const ELEMENTAL_BARRIER = {};
-  ELEMENTAL_BARRIER.ELEMENTS = Object.freeze(['WOOD_LIFE', 'FIRE', 'EARTH_METAL', 'WATER_ICE', 'LIGHTNING']);
+  ELEMENTAL_BARRIER.ELEMENTS = Object.freeze(['WOOD_LIFE', 'FIRE', 'EARTH_METAL', 'WATER_ICE', 'LIGHTNING', 'METAL', 'WOOD', 'WATER', 'EARTH']);
+  ELEMENTAL_BARRIER.DOME_COLOR_PALETTE = Object.freeze({
+    METAL: { id: 'METAL', colorHex: '#f1c40f', nameTh: 'ธาตุทอง (วัชระสุวรรณ)' },
+    EARTH_METAL: { id: 'EARTH_METAL', colorHex: '#f1c40f', nameTh: 'ธาตุทองปฐพี (สุวรรณศิลา)' },
+    WOOD: { id: 'WOOD', colorHex: '#2ecc71', nameTh: 'ธาตุไม้ (พฤกษาอมตะ)' },
+    WOOD_LIFE: { id: 'WOOD_LIFE', colorHex: '#2ecc71', nameTh: 'ธาตุไม้ปราณชีวิต (พฤกษาอมตะ)' },
+    WATER: { id: 'WATER', colorHex: '#3498db', nameTh: 'ธาตุน้ำ (วารีเหมันต์)' },
+    WATER_ICE: { id: 'WATER_ICE', colorHex: '#3498db', nameTh: 'ธาตุน้ำเหมันต์ (วารีเหมันต์)' },
+    FIRE: { id: 'FIRE', colorHex: '#e74c3c', nameTh: 'ธาตุไฟ (อัคคีผลาญฟ้า)' },
+    LIGHTNING: { id: 'LIGHTNING', colorHex: '#e74c3c', nameTh: 'ธาตุอัสนีอัคคี (อัคคีอสนีบาต)' },
+    EARTH: { id: 'EARTH', colorHex: '#e67e22', nameTh: 'ธาตุดิน (ปฐพีไร้พ่าย)' },
+    ทอง: { id: 'METAL', colorHex: '#f1c40f', nameTh: 'ธาตุทอง (วัชระสุวรรณ)' },
+    ไม้: { id: 'WOOD', colorHex: '#2ecc71', nameTh: 'ธาตุไม้ (พฤกษาอมตะ)' },
+    น้ำ: { id: 'WATER', colorHex: '#3498db', nameTh: 'ธาตุน้ำ (วารีเหมันต์)' },
+    ไฟ: { id: 'FIRE', colorHex: '#e74c3c', nameTh: 'ธาตุไฟ (อัคคีผลาญฟ้า)' },
+    ดิน: { id: 'EARTH', colorHex: '#e67e22', nameTh: 'ธาตุดิน (ปฐพีไร้พ่าย)' }
+  });
+
+  ELEMENTAL_BARRIER.resolveDomeColor = elementKey => {
+    const spec = ELEMENTAL_BARRIER.DOME_COLOR_PALETTE[elementKey] || ELEMENTAL_BARRIER.DOME_COLOR_PALETTE[String(elementKey || '').toUpperCase()] || ELEMENTAL_BARRIER.DOME_COLOR_PALETTE.EARTH_METAL;
+    return spec.colorHex;
+  };
 
   ELEMENTAL_BARRIER.ensure = W => {
     if (!W || !W.sect) return null;
     if (!W.sect.elementalBarrier || typeof W.sect.elementalBarrier !== 'object') {
       W.sect.elementalBarrier = {
         active: true,
-        element: 'EARTH_METAL',
+        element: W.sect.barrierElement || 'EARTH_METAL',
         level: 1,
         barrierHp: 1500,
         barrierMaxHp: 1500,
@@ -13393,15 +13446,33 @@
         totalAbsorbed: 0
       };
     }
+    if (W.sect.barrierActive === undefined) W.sect.barrierActive = W.sect.elementalBarrier.active !== false;
+    if (!W.sect.barrierElement) W.sect.barrierElement = W.sect.elementalBarrier.element || 'EARTH_METAL';
     return W.sect.elementalBarrier;
   };
 
   ELEMENTAL_BARRIER.setBarrierElement = (W, element) => {
     const bar = ELEMENTAL_BARRIER.ensure(W);
     if (!bar) return { ok: false, reason: 'no-barrier' };
-    const el = ELEMENTAL_BARRIER.ELEMENTS.includes(element) ? element : 'EARTH_METAL';
+    const el = (ELEMENTAL_BARRIER.ELEMENTS.includes(element) || ELEMENTAL_BARRIER.DOME_COLOR_PALETTE[element]) ? element : 'EARTH_METAL';
     bar.element = el;
-    return { ok: true, element: bar.element, barrier: bar };
+    W.sect.barrierElement = el;
+    return { ok: true, element: bar.element, colorHex: ELEMENTAL_BARRIER.resolveDomeColor(el), barrier: bar };
+  };
+
+  ELEMENTAL_BARRIER.getBarrierVisualSpec = W => {
+    const bar = ELEMENTAL_BARRIER.ensure(W);
+    const el = (W && W.sect && W.sect.barrierElement) || (bar && bar.element) || 'EARTH_METAL';
+    const pal = ELEMENTAL_BARRIER.DOME_COLOR_PALETTE[el] || ELEMENTAL_BARRIER.DOME_COLOR_PALETTE.EARTH_METAL;
+    const active = !!(W && W.sect && W.sect.barrierActive !== false && (!bar || bar.active !== false));
+    return {
+      active,
+      element: el,
+      colorHex: pal.colorHex,
+      nameTh: pal.nameTh,
+      barrierHp: bar ? bar.barrierHp : 1500,
+      barrierMaxHp: bar ? bar.barrierMaxHp : 1500
+    };
   };
 
   ELEMENTAL_BARRIER.rechargeBarrier = (W, stonesToSpend, opts) => {

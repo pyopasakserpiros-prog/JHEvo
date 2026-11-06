@@ -23,7 +23,7 @@ console.log('===================================================================
 
 const W = SIM.create('v235-test-world');
 const CE = COMBAT.COMPOSABLE_ENGINE;
-assert(SIM.PATCH_VERSION === '2.0.35' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || (SIM.PATCH_VERSION === '3.4.0' || SIM.PATCH_VERSION === '4.0.0') || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || SIM.PATCH_VERSION === '4.0.0')))), `SIM.PATCH_VERSION must be 2.0.35, 3.0.0, 3.1.0 or 3.1.1 (got ${SIM.PATCH_VERSION})`);
+assert(SIM.PATCH_VERSION === '2.0.35' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || (SIM.PATCH_VERSION === '3.4.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '4.1.0')) || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '4.1.0'))))), `SIM.PATCH_VERSION must be 2.0.35, 3.0.0, 3.1.0 or 3.1.1 (got ${SIM.PATCH_VERSION})`);
 assert(HC.FINGERPRINT === '155:2f9c9dd7', `HC.FINGERPRINT must remain locked at 155:2f9c9dd7`);
 
 const caster = W.npcs[0];

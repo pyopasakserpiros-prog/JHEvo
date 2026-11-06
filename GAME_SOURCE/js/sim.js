@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '4.0.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0'],
-    SAVE_SCHEMA_VERSION: '4.0.0-living-frontier-charter',
+    PATCH_VERSION: '4.1.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0'],
+    SAVE_SCHEMA_VERSION: '4.1.0-sect-expansion-peaks-sanctuary',
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
@@ -286,6 +286,8 @@
     if (g.SECT && g.SECT.GRAND_ASSEMBLY_BANQUET) g.SECT.GRAND_ASSEMBLY_BANQUET.ensure(W);
     if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
+    if (g.SECT && g.SECT.ELEMENTAL_BARRIER) g.SECT.ELEMENTAL_BARRIER.ensure(W);
+    if (g.MAP && g.MAP.syncPeakSanctuaries) g.MAP.syncPeakSanctuaries(W);
     if (g.SECT && g.SECT.ensureDungeon) g.SECT.ensureDungeon(W);
     if (g.SECT && g.SECT.ensureJurisdictionLog) g.SECT.ensureJurisdictionLog(W);
     if (g.SECT && g.SECT.TOTEMS_BLOODLINES) g.SECT.TOTEMS_BLOODLINES.ensure(W);
@@ -588,6 +590,16 @@
     }
 
     // 2. Non-housing facilities NEVER add bed stations
+    if (b.isPeakSanctuary && (!MAP.isPeakBuildingActive || !MAP.isPeakBuildingActive(W, b))) {
+      b.stations.forEach(sid => {
+        const st = M.stations[sid];
+        if (st && st.kind === 'bed') {
+          st.peakStationKind = 'bed';
+          st.kind = 'peak_dorm';
+        }
+      });
+      return;
+    }
     const base = b.stations.slice();
     const kinds = {};
     base.forEach(id => {
@@ -896,6 +908,8 @@
       if (g.SECT && g.SECT.GRAND_ASSEMBLY_BANQUET && (!W.world || !W.world.grandAssembly)) g.SECT.GRAND_ASSEMBLY_BANQUET.ensure(W);
       if (g.SECT && g.SECT.HEAVENLY_DAO_DIRECTOR && (!W.world || !W.world.heavenlyDao)) g.SECT.HEAVENLY_DAO_DIRECTOR.ensure(W);
       if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS.ensure(W);
+    if (g.SECT && g.SECT.ELEMENTAL_BARRIER) g.SECT.ELEMENTAL_BARRIER.ensure(W);
+    if (g.MAP && g.MAP.syncPeakSanctuaries) g.MAP.syncPeakSanctuaries(W);
       if (g.SECT && g.SECT.ensureDungeon) g.SECT.ensureDungeon(W);
       if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS) g.SECT.OUTPOSTS_LOGISTICS.ensure(W);
       if (g.SECT && g.SECT.CHARTER_DOCTRINE) g.SECT.CHARTER_DOCTRINE.ensure(W);

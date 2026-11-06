@@ -5,7 +5,7 @@ description: Use when changing JianghuSect simulation architecture, module loadi
 
 # JianghuSect Evolution — Macro-Simulation & Sect Governance Architectural Blueprint (`js/sim.js`, `js/sect.js`, `index.html`, `test/load.js`)
 
-> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.1.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill is the definitive master specification for JianghuSect Evolution's core engine architecture. It governs the strict 40-script-tag load invariant, the single authoritative world state (`W`), deterministic PRNG simulation lifecycle (`js/sim.js`), comprehensive sect governance, succession, and facility management (`js/sect.js`), strict CA/PA applicant evaluation boundaries, ancestral shrine legacy tablets, and the single-file offline build pipeline (`tools/build_single.js`).
 
@@ -458,3 +458,10 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 - **Pillar 4 — 6-Officer Strategic Council Assembly (`SECT.STRATEGIC_COUNCIL` in `js/sect.js`):**
   - `conveneCouncil(W)` aggregates readiness and threat assessments from 6 Grand Officers (`spymaster`, `envoy`, `quartermaster`, `vanguard`, `warden`, `marketmaster`) and presents 3 strategic choices (`FORTIFY_LOGISTICS`, `DIPLOMATIC_OFFENSIVE`, `GRAND_WAR_DRILL`).
   - `resolveCouncilAgenda(W, choiceId)` executes the chosen directive and records to `W.chronicle`.
+
+---
+
+## Patch v4.1.0 Additions: 8-Peak Physical Sanctuary Layout & Conditional Awakening (`js/world_map.js`, `js/sect.js`, `js/ai.js`)
+- `SIM.PATCH_VERSION = '4.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.1.0-sect-expansion-peaks-sanctuary'`.
+- **8-Peak Physical Layout (`MAP.BTYPES`, `MAP.PEAK_LAYOUTS`, `MAP.STN`)**: Adds 8 physical Peak Sanctuary buildings (`peak_sword`, `peak_body`, `peak_chaos`, `peak_alchemy`, `peak_magic`, `peak_array`, `peak_scholar`, `peak_beast`) around the sect perimeter, each with 18 sub-stations (`6 bed, 2 pantry, 6 practice, 4 meditate`) and connected by `1.8x` speed Spirit Roads (`MAP.SPEED[T.ROAD] = 1.8`, `MAP.SPEED[T.PLAZA] = 1.8`).
+- **Conditional Peak Awakening (`MAP.isPeakBuildingActive`, `MAP.syncPeakSanctuaries`)**: Unfounded peaks (`founded === false`) block station usage in `AI.freeStation` and render under primordial mist (`Render.drawPeakMist`). Founding a peak via `SECT.PEAKS.foundPeak` immediately activates all 18 stations on the map.

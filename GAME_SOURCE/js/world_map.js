@@ -14,7 +14,8 @@
   const T = { GRASS: 0, ROAD: 1, WATER: 2, CLIFF: 3, FOREST: 4, WALL: 5, FLOOR: 6, FARM: 7, DIRT: 8, PLAZA: 9, ARCH: 10, SAND: 11, MOSS: 12 };
   MAP.T = T;
   // ตัวคูณความเร็วเดินตามพื้น (WATER = 0 เดินลุยน้ำไม่ได้ ต้องข้ามสะพานหรือเดินตามตลิ่ง)
-  const SPEED = [1.0, 1.25, 0, 0, 0.8, 0, 1.1, 0.85, 1.0, 1.15, 1.1, 0.9, 0.95];
+  const SPEED = [1.0, 1.8, 0, 0, 0.8, 0, 1.1, 0.85, 1.0, 1.8, 1.8, 0.9, 0.95];
+  MAP.SPEED = SPEED;
 
   /* -------- ทะเบียนชนิดอาคาร -------- */
   const BTYPES = {
@@ -52,7 +53,15 @@
     spring: { nameTh: 'น้ำพุปราณลับ', icon: '⛲', roof: '#444', wall: '#555', desc: 'ตาน้ำปราณ ฟื้นพลังและเพิ่มตบะ ใช้ได้จำกัดต่อวัน', open: true, terr: 12 },
     ruin: { nameTh: 'ซากเจดีย์ร้าง', icon: '🏚️', roof: '#444', wall: '#555', desc: 'ซากโบราณ มีของเก่า เงื่อนงำ และผีสาง', open: true, terr: 11 },
     grove: { nameTh: 'ป่าสมุนไพรเร้นลับ', icon: '🌳', roof: '#444', wall: '#555', desc: 'ป่าลึกหลังกำแพง สมุนไพรหายาก', open: true, terr: 12 },
-    plaza: { nameTh: 'ลานกลางสำนัก', icon: '⛲', roof: '#999', wall: '#999', desc: 'ลานรวมพลและพบปะ', open: true }
+    plaza: { nameTh: 'ลานกลางสำนัก', icon: '⛲', roof: '#999', wall: '#999', desc: 'ลานรวมพลและพบปะ', open: true },
+    peak_sword: { nameTh: 'ตำหนักกระบี่เมฆาคราม', icon: '🗡️', roof: '#1e5f74', wall: '#d8e2e8', desc: 'ยอดเขาเอกแห่งวิถีเซียนปราณและกระบี่เหินเมฆา หลังคาทรงแหลมประดับกระบี่หินขนาดยักษ์', peakId: 'PEAK_AZURE_SWORD', aliasId: 'PEAK_SWORD' },
+    peak_body: { nameTh: 'อารามกายาวัชระ', icon: '⛰️', roof: '#6b4423', wall: '#8c7a6b', desc: 'อารามหินแกรนิตหนาทึบและเสาทองสัมฤทธิ์สำหรับผู้ฝึกตนวิถีหลอมกายา', peakId: 'PEAK_VAJRA_BODY', aliasId: 'PEAK_BODY' },
+    peak_chaos: { nameTh: 'หอเงาโลหิต', icon: '🩸', roof: '#4a1525', wall: '#6e3b47', desc: 'หอเร้นลับหลังคาสีม่วงคล้ำ-แดงเข้ม ประดับโคมวิญญาณแห่งวิถีมารโลหิต', peakId: 'PEAK_CRIMSON_SHADOW', aliasId: 'PEAK_CHAOS' },
+    peak_alchemy: { nameTh: 'หอเตาหลอมสวรรค์', icon: '⚗️', roof: '#2d6a4f', wall: '#b89f72', desc: 'ยอดเขาแห่งไฟปฐพีและปล่องเตาหลอมยักษ์ มีควันสมุนไพรวิญญาณลอยพวยพุ่ง', peakId: 'PEAK_DIVINE_CAULDRON', aliasId: 'PEAK_ALCHEMY' },
+    peak_magic: { nameTh: 'หอจิตสังสารวัฏ', icon: '🪷', roof: '#3c3b6e', wall: '#d8cfe8', desc: 'สถาปัตยกรรมทรงหกเหลี่ยมประดับวงแหวนกระจกเงาสะท้อนวิญญาณและวัฏสงสาร', peakId: 'PEAK_SOUL_SAMSARA', aliasId: 'PEAK_MAGIC' },
+    peak_array: { nameTh: 'หอดารากลไก', icon: '⚙️', roof: '#2b4c65', wall: '#b0bec5', desc: 'หอคอยดาราศาสตร์ประดับล้อฟันเฟืองปราณและวงแหวนอักขระค่ายกล', peakId: 'PEAK_ASTRAL_MECHANISM', aliasId: 'PEAK_ARRAY' },
+    peak_scholar: { nameTh: 'ศาลาปราชญ์พิชัย', icon: '📜', roof: '#3b6e5c', wall: '#efe5cc', desc: 'ศาลาปราชญ์เหนือน้ำ พร้อมลานกระดานหมากและลานคัดอักษรพิชัยยุทธ์', peakId: 'PEAK_SAGE_STRATEGIST', aliasId: 'PEAK_SCHOLAR' },
+    peak_beast: { nameTh: 'วิหารราชันย์อสูร', icon: '🐉', roof: '#5c4028', wall: '#a68a64', desc: 'วิหารเสาโทเท็มอสูรบรรพกาลและโครงกระดูกพญามังกรแห่งวิถีเทพอสูร', peakId: 'PEAK_DIVINE_BEAST', aliasId: 'PEAK_BEAST' }
   };
   MAP.BTYPES = BTYPES;
 
@@ -79,6 +88,19 @@
     ['shrine', 'shrine', 62, 58, 10, 6, 3],
     ['mine', 'mine', 26, 16, 16, 10, 3]
   ];
+  const PEAK_LAYOUT_SPECS = [
+    { type: 'peak_sword', id: 'peak_sword', peakId: 'PEAK_AZURE_SWORD', aliasId: 'PEAK_SWORD', dir: 'NW', dirTh: 'ทิศตะวันตกเฉียงเหนือ', lx: 11, ly: 14, w: 13, h: 8, yard: 2, leylineColor: '#48cae4', bannerColor: '#0288d1' },
+    { type: 'peak_array', id: 'peak_array', peakId: 'PEAK_ASTRAL_MECHANISM', aliasId: 'PEAK_ARRAY', dir: 'W', dirTh: 'ทิศตะวันตก', lx: 11, ly: 66, w: 14, h: 8, yard: 2, leylineColor: '#64c3ce', bannerColor: '#0097a7' },
+    { type: 'peak_body', id: 'peak_body', peakId: 'PEAK_VAJRA_BODY', aliasId: 'PEAK_BODY', dir: 'N', dirTh: 'ทิศเหนือ', lx: 64, ly: 7, w: 16, h: 6, yard: 2, leylineColor: '#f4a261', bannerColor: '#e65100' },
+    { type: 'peak_alchemy', id: 'peak_alchemy', peakId: 'PEAK_DIVINE_CAULDRON', aliasId: 'PEAK_ALCHEMY', dir: 'NE', dirTh: 'ทิศตะวันออกเฉียงเหนือ', lx: 166, ly: 14, w: 16, h: 8, yard: 2, leylineColor: '#52b788', bannerColor: '#2e7d32' },
+    { type: 'peak_beast', id: 'peak_beast', peakId: 'PEAK_DIVINE_BEAST', aliasId: 'PEAK_BEAST', dir: 'E', dirTh: 'ทิศตะวันออก', lx: 168, ly: 80, w: 16, h: 8, yard: 2, leylineColor: '#e09f3e', bannerColor: '#d97706' },
+    { type: 'peak_scholar', id: 'peak_scholar', peakId: 'PEAK_SAGE_STRATEGIST', aliasId: 'PEAK_SCHOLAR', dir: 'S', dirTh: 'ทิศใต้ริมธารน้ำ', lx: 168, ly: 96, w: 16, h: 8, yard: 2, leylineColor: '#76c893', bannerColor: '#1b4332' },
+    { type: 'peak_chaos', id: 'peak_chaos', peakId: 'PEAK_CRIMSON_SHADOW', aliasId: 'PEAK_CHAOS', dir: 'SW', dirTh: 'ทิศตะวันตกเฉียงใต้ (เหนือ)', lx: 11, ly: 84, w: 14, h: 8, yard: 2, leylineColor: '#ef476f', bannerColor: '#880e4f' },
+    { type: 'peak_magic', id: 'peak_magic', peakId: 'PEAK_SOUL_SAMSARA', aliasId: 'PEAK_MAGIC', dir: 'SW_LOWER', dirTh: 'ทิศตะวันตกเฉียงใต้ (ใต้)', lx: 11, ly: 100, w: 14, h: 8, yard: 2, leylineColor: '#b5838d', bannerColor: '#6a1b9a' }
+  ];
+  MAP.PEAK_LAYOUTS = PEAK_LAYOUT_SPECS.map(p => Object.assign({}, p, { x: p.lx + OX, y: p.ly + OY }));
+  MAP.PEAK_BUILDING_IDS = Object.freeze(PEAK_LAYOUT_SPECS.map(p => p.id));
+  MAP.LAYOUT = LAYOUT.concat(PEAK_LAYOUT_SPECS.map(p => [p.type, p.id, p.lx, p.ly, p.w, p.h, p.yard, p.peakId]));
   const OPEN = [ // พื้นที่เปิด [type,id,x,y,w,h]
     ['training_ground', 'training_ground', 50, 90, 34, 18],
     ['herb_garden', 'herb_garden', 112, 92, 22, 14],
@@ -123,8 +145,17 @@
     spirit_pond: [['fish', 6, 'shore'], ['relax', 4, 'shore']],
     plaza: [['stroll', 12, 'open']],
     cave: [['delve', 4, 'open']], realm_gate: [['watch', 3, 'open']], stele: [['explore', 3, 'open']], spring: [['explore', 3, 'open']], ruin: [['explore', 3, 'open']], grove: [['explore', 4, 'open']],
-    tower: [['guard', 1, 'yard']]
+    tower: [['guard', 1, 'yard']],
+    peak_sword: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']],
+    peak_body: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']],
+    peak_chaos: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']],
+    peak_alchemy: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']],
+    peak_magic: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']],
+    peak_array: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']],
+    peak_scholar: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']],
+    peak_beast: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']]
   };
+  MAP.STN = STN;
 
   // คำนวณแนวร่องน้ำของ「ธารน้ำปราณทักษิณ」(Southern Spirit River)
   function riverCenterY(x) {
@@ -258,6 +289,9 @@
 
     // 7) ขยายแผนที่ลงทางทิศใต้ (y = 160..191): ธารน้ำปราณทักษิณ สะพาน ท่าน้ำ และจุดตกปลา 3 เขต
     sid = buildSouthernRiverExtension(M, seed, sid);
+
+    // 7B) ขยายผังพื้นที่ 8 ยอดเขาศักดิ์สิทธิ์ (8-Peak Physical Sanctuary Layout) และถนนปราณเชื่อมลานกลาง (v4.1.0)
+    sid = buildPeakSanctuariesExtension(M, seed, sid);
 
     M.stations.forEach(st => { if (M.block[st.y * W + st.x] !== 0) { const f = MAP.nearestFree(M, st.x, st.y); if (f) { st.x = f.x; st.y = f.y; } } });
     // 8) กริดต้นทุนนำทาง
@@ -496,6 +530,177 @@
       const x = rrng.int(10, W - 10), y = rrng.int(H_BASE, H - 4), k = idx(x, y);
       if (M.block[k] !== 0 || (M.terrain[k] !== T.GRASS && M.terrain[k] !== T.MOSS)) continue;
       M.decor.push({ x, y, kind: 'flower', s: 1, r: rrng.next(), walk: true });
+    }
+
+    return sid;
+  }
+
+  function buildPeakSanctuariesExtension(M, seed, sid) {
+    const prng = new U.RNG('peak_sanctuary_' + (seed || 1));
+    const idx = M.idx;
+    const inb = M.inb;
+    const isRoadish = (x, y) => {
+      if (!inb(x, y)) return false;
+      const t = M.terrain[idx(x, y)];
+      return t === T.ROAD || t === T.PLAZA || t === T.ARCH;
+    };
+
+    M.peakBuildings = [];
+    M.peakByPeakId = {};
+    M.leylinePaths = [];
+
+    const pl = M.byId.plaza || { x: 80 + OX, y: 58 + OY, w: 32, h: 18 };
+    const plCx = Math.floor(pl.x + pl.w / 2);
+    const plCy = Math.floor(pl.y + pl.h / 2);
+
+    // Clear decor items that overlap any 8-peak footprint or yard
+    for (const pSpec of PEAK_LAYOUT_SPECS) {
+      const x = pSpec.lx + OX, y = pSpec.ly + OY, w = pSpec.w, h = pSpec.h, yard = pSpec.yard || 2;
+      for (let yy = y - 1; yy <= y + h + yard + 1; yy++) {
+        for (let xx = x - 1; xx <= x + w + 1; xx++) {
+          if (!inb(xx, yy)) continue;
+          const k = idx(xx, yy);
+          if (M.block[k] === 3) M.block[k] = 0;
+        }
+      }
+      M.decor = M.decor.filter(d => !(d.x >= x - 1 && d.x <= x + w + 1 && d.y >= y - 1 && d.y <= y + h + yard + 1));
+
+      const b = {
+        n: M.buildings.length,
+        id: pSpec.id,
+        type: pSpec.type,
+        peakId: pSpec.peakId,
+        aliasId: pSpec.aliasId,
+        dir: pSpec.dir,
+        dirTh: pSpec.dirTh,
+        leylineColor: pSpec.leylineColor,
+        bannerColor: pSpec.bannerColor,
+        isPeakSanctuary: true,
+        founded: false,
+        active: false,
+        mistAlpha: 1.0,
+        mistFadeStartT: null,
+        x,
+        y,
+        w,
+        h,
+        yard,
+        open: false,
+        level: 1,
+        hp: 100,
+        nameTh: BTYPES[pSpec.type].nameTh,
+        inside: [],
+        stations: [],
+        peakStations: [],
+        door: { x: x + (w >> 1), y: y + h },
+        area: { x: x - 1, y, w: w + 2, h: h + yard }
+      };
+
+      for (let yy = y; yy < y + h; yy++) {
+        for (let xx = x; xx < x + w; xx++) {
+          if (!inb(xx, yy)) continue;
+          const k = idx(xx, yy);
+          M.block[k] = 1;
+          M.owner[k] = b.n;
+          M.terrain[k] = T.FLOOR;
+        }
+      }
+      for (let yy = y + h; yy < y + h + yard; yy++) {
+        for (let xx = x - 1; xx < x + w + 1; xx++) {
+          if (!inb(xx, yy)) continue;
+          const k = idx(xx, yy);
+          if (M.block[k] === 3) M.block[k] = 0;
+          if (M.block[k] !== 0) continue;
+          M.terrain[k] = T.PLAZA;
+          M.owner[k] = b.n;
+        }
+      }
+
+      // Carve Spirit Road (T.ROAD) from peak door to main sect road network
+      let curX = b.door.x, curY = b.door.y;
+      const targetY = U.clamp(curY, 28 + OY, 80 + OY);
+      const targetX = curX < plCx ? (12 + OX) : (180 + OX);
+      const roadPts = [];
+      // Connect door vertically/horizontally via BFS or direct L-corridor to existing road
+      const bfsPath = bfsToRoad(M, curX, curY, isRoadish);
+      if (bfsPath && bfsPath.length) {
+        bfsPath.forEach(([rx, ry]) => {
+          const rk = idx(rx, ry);
+          if (M.block[rk] === 3) M.block[rk] = 0;
+          if (M.block[rk] === 0 && M.terrain[rk] !== T.PLAZA && M.terrain[rk] !== T.FLOOR && M.terrain[rk] !== T.ARCH) {
+            M.terrain[rk] = T.ROAD;
+          }
+          roadPts.push([rx, ry]);
+        });
+      } else {
+        while (curY !== targetY) {
+          curY += (targetY > curY ? 1 : -1);
+          if (inb(curX, curY) && M.block[idx(curX, curY)] !== 1 && M.block[idx(curX, curY)] !== 2) {
+            M.block[idx(curX, curY)] = 0;
+            M.terrain[idx(curX, curY)] = T.ROAD;
+            roadPts.push([curX, curY]);
+          }
+        }
+        while (curX !== targetX && !isRoadish(curX, curY)) {
+          curX += (targetX > curX ? 1 : -1);
+          if (inb(curX, curY) && M.block[idx(curX, curY)] !== 1 && M.block[idx(curX, curY)] !== 2) {
+            M.block[idx(curX, curY)] = 0;
+            M.terrain[idx(curX, curY)] = T.ROAD;
+            roadPts.push([curX, curY]);
+          }
+        }
+      }
+
+      // Build leyline path waypoints from Peak Sanctuary center to Central Bagua Plaza
+      const peakCx = x + w / 2, peakCy = y + h / 2;
+      const midX = b.door.x, midY = plCy;
+      b.leylineWaypoints = [
+        { x: peakCx, y: peakCy },
+        { x: b.door.x, y: b.door.y + 1 },
+        { x: midX, y: midY },
+        { x: plCx, y: plCy }
+      ];
+      M.leylinePaths.push({
+        peakId: b.peakId,
+        aliasId: b.aliasId,
+        buildingId: b.id,
+        color: b.leylineColor,
+        waypoints: b.leylineWaypoints
+      });
+
+      // Create the 18 sub-stations for this Peak Sanctuary: [['bed', 6, 'in'], ['pantry', 2, 'yard'], ['practice', 6, 'yard'], ['meditate', 4, 'yard']]
+      const specs = STN[b.type] || [];
+      specs.forEach(([kind, count, where]) => {
+        const spots = stationSpots(M, b, kind, count, where, prng);
+        spots.forEach((p, i) => {
+          const s = {
+            id: sid++,
+            bid: b.n,
+            bkey: b.id,
+            peakId: b.peakId,
+            aliasId: b.aliasId,
+            kind,
+            peakStationKind: kind,
+            x: p.x,
+            y: p.y,
+            inside: where === 'in',
+            occ: null,
+            owner: null,
+            active: false,
+            n: i
+          };
+          M.stations.push(s);
+          b.stations.push(s.id);
+          b.peakStations.push(s.id);
+        });
+      });
+
+      M.buildings.push(b);
+      M.byId[b.id] = b;
+      M.peakBuildings.push(b);
+      M.peakByPeakId[b.peakId] = b;
+      M.peakByPeakId[b.aliasId] = b;
+      M.peakByPeakId[b.id] = b;
     }
 
     return sid;
@@ -806,6 +1011,76 @@
     }
   });
   MAP.getMicroLocations = () => Object.values(MAP.MICRO_LOCATIONS);
+
+  /* ---------- Patch v4.1.0 [Pillar 1, 2 & 5]: 8-Peak Sanctuary Lookup, Conditional Awakening & Leylines ---------- */
+  MAP.getPeakBuilding = function (M, peakOrBldId) {
+    if (!M || !peakOrBldId) return null;
+    if (M.peakByPeakId && M.peakByPeakId[peakOrBldId]) return M.peakByPeakId[peakOrBldId];
+    if (M.byId && M.byId[peakOrBldId] && M.byId[peakOrBldId].isPeakSanctuary) return M.byId[peakOrBldId];
+    return (M.buildings || []).find(b => b && b.isPeakSanctuary && (b.id === peakOrBldId || b.peakId === peakOrBldId || b.aliasId === peakOrBldId)) || null;
+  };
+
+  MAP.isPeakBuildingActive = function (W, bOrId) {
+    if (!W || !W.sect) return false;
+    const M = W.map;
+    const b = (typeof bOrId === 'object' && bOrId) ? bOrId : MAP.getPeakBuilding(M, bOrId);
+    if (!b) return false;
+    if (!b.isPeakSanctuary) return true;
+    const pk = W.sect.peaks;
+    if (!pk || typeof pk !== 'object') return !!b.founded;
+    const rec = (pk.byId && (pk.byId[b.peakId] || pk.byId[b.aliasId] || pk.byId[b.id])) || pk[b.peakId] || pk[b.aliasId] || pk[b.id];
+    if (rec && typeof rec === 'object' && typeof rec.founded === 'boolean') {
+      return rec.founded === true;
+    }
+    return !!b.founded;
+  };
+
+  MAP.syncPeakSanctuaries = function (W) {
+    if (!W || !W.map || !Array.isArray(W.map.peakBuildings)) return;
+    const M = W.map;
+    const pk = W.sect && W.sect.peaks;
+    for (let i = 0; i < M.peakBuildings.length; i++) {
+      const b = M.peakBuildings[i];
+      if (!b) continue;
+      // Ensure direct alias access on W.sect.peaks[peakId] as well as W.sect.peaks.byId[peakId]
+      if (pk && pk.byId && pk.byId[b.peakId]) {
+        if (!pk[b.peakId]) pk[b.peakId] = pk.byId[b.peakId];
+        if (b.aliasId && !pk[b.aliasId]) pk[b.aliasId] = pk.byId[b.peakId];
+        if (!pk[b.id]) pk[b.id] = pk.byId[b.peakId];
+      }
+      const isFounded = MAP.isPeakBuildingActive(W, b);
+      const wasFounded = !!b.founded;
+      b.founded = isFounded;
+      b.active = isFounded;
+      if (isFounded && !wasFounded) {
+        b.mistFadeStartT = Number.isFinite(W.t) ? W.t : 0;
+      } else if (!isFounded) {
+        b.mistAlpha = 1.0;
+        b.mistFadeStartT = null;
+      }
+      const stIds = b.peakStations || b.stations || [];
+      for (let j = 0; j < stIds.length; j++) {
+        const s = M.stations[stIds[j]];
+        if (!s) continue;
+        s.active = isFounded;
+        if (isFounded && s.peakStationKind) {
+          s.kind = s.peakStationKind;
+        }
+        if (!isFounded && s.occ != null) {
+          s.occ = null;
+        }
+      }
+    }
+  };
+
+  MAP.getLeylinePaths = function (W) {
+    const M = W && W.map ? W.map : W;
+    if (!M || !Array.isArray(M.leylinePaths)) return [];
+    return M.leylinePaths.map(lp => {
+      const active = (W && W.sect) ? MAP.isPeakBuildingActive(W, lp.peakId) : false;
+      return Object.assign({}, lp, { active });
+    });
+  };
 
   g.MAP = MAP;
   if (typeof module === 'object' && module.exports) module.exports = MAP;

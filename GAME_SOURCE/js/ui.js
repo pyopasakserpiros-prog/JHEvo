@@ -1002,13 +1002,24 @@
       UI.activePeakId = String(arg || 'OVERVIEW');
       UI.render();
     }
+    else if (a === 'focus-peak-camera') {
+      const peakId = String(arg || 'PEAK_AZURE_SWORD');
+      const pb = (MAP && MAP.getPeakBuilding && W && W.map) ? MAP.getPeakBuilding(W.map, peakId) : null;
+      if (pb && G && G.R) {
+        UI.close();
+        G.R.follow = false;
+        G.R.focus(pb.x + pb.w / 2, pb.y + pb.h / 2, 1.5);
+        UI.toast('🔍 เคลื่อนกล้องส่องดู「' + pb.nameTh + '」(' + (pb.dirTh || '') + ')');
+      }
+    }
     else if (a === 'found-specific-peak') {
       const peakId = String(arg || 'PEAK_AZURE_SWORD');
       const res = (SECT && SECT.PEAKS) ? SECT.PEAKS.foundPeak(W, peakId, { allowDecree: true }) : { ok: false };
       if (res && res.ok && res.peak) {
+        if (MAP && MAP.syncPeakSanctuaries) MAP.syncPeakSanctuaries(W);
         if (UI.audio) UI.audio.playBell();
         UI.activePeakId = peakId;
-        UI.toast('⛰️ สถาปนา「' + res.peak.nameTh + '」สำเร็จ! เจ้าหุบเขา: ' + (res.peak.masterNameTh || '-'));
+        UI.toast('⛰️ สถาปนา「' + res.peak.nameTh + '」สำเร็จ! หมอกปราณสลายตัวเผยโฉมอาคารยอดเขาแล้ว');
       } else {
         UI.toast('ยังไม่สามารถสถาปนายอดเขานี้ได้: ' + ((res && res.reason) || ''));
       }
@@ -3286,7 +3297,8 @@
           '<div class="muted" style="font-size:11px;margin-top:2px">วิถีประจำยอดเขา: <b>' + esc(pObj.paths.join(' + ')) + '</b> · ค่ายกลปราณ <b>+' + Math.round((aura.cultRate || 0.14) * 100) + '%</b></div></div>';
         h += '<div style="display:flex;gap:4px;flex-shrink:0">' +
           (!pObj.founded ? '<button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="found-specific-peak" data-arg="' + esc(pObj.id) + '">🏔️ สถาปนา</button>' : '') +
-          '<button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="peak-launch-expedition" data-arg="' + esc(pObj.id) + '">🧭 ส่งทัพสำรวจประจำยอดเขา</button>' + '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="select-peak-tab" data-arg="' + esc(pObj.id) + '">🔍 จัดการ</button>' +
+          '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="focus-peak-camera" data-arg="' + esc(pObj.id) + '">🔍 ส่องดูกล้อง</button>' +
+          '<button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="peak-launch-expedition" data-arg="' + esc(pObj.id) + '">🧭 ส่งทัพสำรวจประจำยอดเขา</button>' + '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="select-peak-tab" data-arg="' + esc(pObj.id) + '">⚙️ จัดการ</button>' +
           '</div></div>';
         h += '<div style="font-size:11.5px;margin-top:6px;padding-top:5px;border-top:1px dotted var(--line,#3a3f4a)">' +
           '<div>👑 <b>ประธานยอดเขา:</b> ' + esc(pObj.masterNameTh || 'ยังไม่ได้แต่งตั้ง') + ' · <b>รองประธาน:</b> ' + esc(pObj.deputyNameTh || '-') + '</div>' +
@@ -3384,6 +3396,7 @@
       '<span class="chip">💎 คลังยอดเขา ' + (pObj.treasuryStones || 0) + ' ศิลา · โอสถ ' + (pObj.pillReserve || 0) + ' เม็ด</span>' +
       '</div></div>';
     h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' +
+      '<button class="btn" style="padding:4px 10px;font-size:11.5px" data-do="focus-peak-camera" data-arg="' + esc(pObj.id) + '">🔍 ส่องดูกล้องยอดเขานี้</button>' +
       (!pObj.founded ? '<button class="btn pri" style="padding:4px 10px;font-size:11.5px" data-do="found-specific-peak" data-arg="' + esc(pObj.id) + '">🏔️ สถาปนายอดเขานี้ทันที</button>' : '') +
       (pObj.founded ? '<button class="btn ' + (pObj.arrayActive ? 'pri' : '') + '" style="padding:4px 10px;font-size:11.5px" data-do="toggle-peak-array" data-arg="' + esc(pObj.id) + '">☯️ ' + (pObj.arrayActive ? 'ค่ายกลปราณ: เปิดอยู่ (Lv.' + (pObj.arrayLevel || 1) + ')' : 'เปิดค่ายกลปราณยอดเขา') + '</button>' : '') +
       (pObj.founded && (pObj.arrayLevel || 1) < 3 ? '<button class="btn" style="padding:4px 10px;font-size:11.5px" data-do="upgrade-peak-array" data-arg="' + esc(pObj.id) + '">⬆️ อัปเกรดค่ายกลยอดเขา (Lv.' + ((pObj.arrayLevel || 1) + 1) + ')</button>' : '') +

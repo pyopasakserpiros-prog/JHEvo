@@ -433,6 +433,17 @@
     } else if (s.kind === 'pray') {
       c.fillStyle = '#d8c488'; c.fillRect(cx - u * 0.16, cy - u * 0.26, u * 0.32, u * 0.32);
       c.fillStyle = '#e04030'; c.fillRect(cx - u * 0.04, cy - u * 0.38, u * 0.08, u * 0.12);
+    } else if (s.kind === 'pantry') {
+      // Peak Sanctuary food pantry table & steamer baskets
+      c.fillStyle = '#7d5233'; c.fillRect(cx - u * 0.34, cy - u * 0.14, u * 0.68, u * 0.28);
+      c.fillStyle = '#e8d5a7'; c.beginPath(); c.arc(cx - u * 0.14, cy - u * 0.08, u * 0.10, 0, 7); c.fill();
+      c.fillStyle = '#c84b31'; c.beginPath(); c.arc(cx + u * 0.14, cy - u * 0.08, u * 0.09, 0, 7); c.fill();
+    } else if (s.kind === 'practice') {
+      // Peak Sanctuary stone martial post & formation ring
+      c.strokeStyle = 'rgba(88,164,176,.55)'; c.lineWidth = 1.1 * S;
+      c.beginPath(); c.arc(cx, cy, u * 0.34, 0, 7); c.stroke();
+      c.fillStyle = '#6c584c'; c.fillRect(cx - u * 0.08, cy - u * 0.38, u * 0.16, u * 0.68);
+      c.fillStyle = '#d4af37'; c.fillRect(cx - u * 0.20, cy - u * 0.24, u * 0.40, u * 0.10);
     }
   }
 
@@ -481,6 +492,22 @@
         return { family: 'gate', roof: '#2e5866', ridge: '#f0cf68', wall: '#9e342c', wood: '#962e26', accent: '#e8b848', plaqueBg: '#1c343d', plaqueInk: '#ffe89e' };
       case 'tower':
         return { family: 'tower', roof: '#3c5260', ridge: '#d4b872', wall: '#d8ccb4', wood: '#735038', accent: '#c44b38', plaqueBg: '#24323b', plaqueInk: '#f0e0b8' };
+      case 'peak_sword':
+        return { family: 'peak_sword', roof: '#1e5f74', ridge: '#80deea', wall: '#e2ecf2', wood: '#2c5364', accent: '#00e5ff', plaqueBg: '#102a36', plaqueInk: '#b2ebf2' };
+      case 'peak_body':
+        return { family: 'peak_body', roof: '#6b4423', ridge: '#ffb703', wall: '#b8aa9a', wood: '#5c3a21', accent: '#fb8500', plaqueBg: '#2e1d10', plaqueInk: '#ffe082' };
+      case 'peak_chaos':
+        return { family: 'peak_chaos', roof: '#4a1525', ridge: '#ff4d6d', wall: '#78525e', wood: '#38101c', accent: '#ff1744', plaqueBg: '#240812', plaqueInk: '#ffccd5' };
+      case 'peak_alchemy':
+        return { family: 'peak_alchemy', roof: '#2d6a4f', ridge: '#ffd166', wall: '#e9d8b4', wood: '#6c4830', accent: '#52b788', plaqueBg: '#1b4332', plaqueInk: '#d8f3dc' };
+      case 'peak_magic':
+        return { family: 'peak_magic', roof: '#3c3b6e', ridge: '#e0aaff', wall: '#e6dff2', wood: '#4a3b6e', accent: '#c77dff', plaqueBg: '#241e42', plaqueInk: '#f3e5f5' };
+      case 'peak_array':
+        return { family: 'peak_array', roof: '#2b4c65', ridge: '#ffd166', wall: '#cfd8dc', wood: '#37474f', accent: '#48cae4', plaqueBg: '#182c3b', plaqueInk: '#caf0f8' };
+      case 'peak_scholar':
+        return { family: 'peak_scholar', roof: '#3b6e5c', ridge: '#e9c46a', wall: '#f4ebd6', wood: '#6d4c3d', accent: '#76c893', plaqueBg: '#1f3d32', plaqueInk: '#fefae0' };
+      case 'peak_beast':
+        return { family: 'peak_beast', roof: '#5c4028', ridge: '#f4a261', wall: '#c9b8a0', wood: '#4a321e', accent: '#e76f51', plaqueBg: '#2e1f12', plaqueInk: '#ffedd8' };
       default:
         return { family: 'hall', roof: '#528f86', ridge: '#dfc48b', wall: '#eddfbd', wood: '#946246', accent: '#528f86', plaqueBg: '#2c4d48', plaqueInk: '#f5ebd0' };
     }
@@ -547,10 +574,20 @@
     }
   }
 
+  R.getArchitecturalTierStage = function (lv) {
+    const n = Number(lv) || 1;
+    return n >= 5 ? 3 : n >= 3 ? 2 : 1;
+  };
+
   function buildBuildingSprite(b, S) {
+    S = S || 1;
     const m = buildingMetrics(b), { w, h, roofH, wallH, wallTop, cols } = m, style = buildingStyle(b.type);
     const lv = b.level || 1;
+    const tierStage = b.tierStage || R.getArchitecturalTierStage(lv);
     const cv = newCanvas((w + 48) * S, (h + 68) * S), c = cv.getContext('2d');
+    cv.tierStage = tierStage;
+    cv.buildingLevel = lv;
+    cv.buildingType = b.type;
     c.scale(S, S);
     c.translate(22, 44);
 
@@ -811,8 +848,8 @@
       c.beginPath(); c.arc(w / 2, topY - 9.5, 3.4, 0, Math.PI * 2); c.fill();
       c.strokeStyle = '#fff0b3'; c.lineWidth = 1;
       c.beginPath(); c.moveTo(w / 2, topY - 13); c.lineTo(w / 2, topY - 16); c.stroke();
-    } else if (lv >= 3 || b.type === 'main_hall' || b.type === 'shrine') {
-      // Imperial / Level-3 Finial Orb & Flame Spire (宝顶)
+    } else if (lv >= 3 || tierStage >= 2 || b.type === 'main_hall' || b.type === 'shrine') {
+      // Imperial / Level-3+ Finial Orb & Flame Spire (宝顶)
       const topY = hasUpperTier ? ry - 17 : ry - 3;
       c.fillStyle = '#f5d77f';
       c.beginPath(); c.arc(w / 2, topY, 4.2, 0, Math.PI * 2); c.fill();
@@ -820,8 +857,143 @@
       c.beginPath(); c.moveTo(w / 2 - 2, topY - 2); c.lineTo(w / 2, topY - 9); c.lineTo(w / 2 + 2, topY - 2); c.closePath(); c.fill();
     }
 
+    // 7. Patch v4.1.0 [Pillar 3]: 3-Tier Architectural Evolution & 8-Peak Sanctuary Iconic Superstructures
+    if (tierStage === 1) {
+      // Stage 1 (Lv.1-2): Rustic timber cross-braces & simple terracotta coping
+      c.strokeStyle = 'rgba(92,64,40,0.45)';
+      c.lineWidth = 1.0;
+      c.beginPath();
+      c.moveTo(0, h - 4); c.lineTo(w, h - 4);
+      c.stroke();
+    } if (tierStage >= 2) {
+      // Stage 2 (Lv.3-4): Vermilion Dou-Gong bracket frieze, swallowtail flying eave horns & carved granite balustrade
+      c.fillStyle = '#b8332a';
+      for (let bx = 6; bx < w - 6; bx += 14) {
+        c.fillRect(bx, wallTop - 1, 8, 3.2);
+        c.fillStyle = '#f0cf68';
+        c.fillRect(bx + 2, wallTop, 4, 1.4);
+        c.fillStyle = '#b8332a';
+      }
+      // Upturned swallowtail flying eaves (飞檐)
+      c.strokeStyle = style.ridge;
+      c.lineWidth = 2.0;
+      c.beginPath();
+      c.moveTo(rx - 4, rb - 5); c.quadraticCurveTo(rx - 12, rb - 11, rx - 15, rb - 18);
+      c.moveTo(rx + rw + 4, rb - 5); c.quadraticCurveTo(rx + rw + 12, rb - 11, rx + rw + 15, rb - 18);
+      c.stroke();
+    } if (tierStage >= 3) {
+      // Stage 3 (Lv.5+): Celestial Immortality Architecture (วิมานเซียนอมตะ)
+      // White-jade stepped foundation & Dan-Chi imperial dragon stairway (丹墀)
+      const dx = (b.door.x - b.x) * TS;
+      c.fillStyle = '#f4f1ea';
+      c.fillRect(-6, h - 6, w + 12, 5);
+      c.fillStyle = '#e2ece9';
+      c.fillRect(dx - 14, h - 2, 44, 10);
+      c.strokeStyle = '#d4af37';
+      c.lineWidth = 1.1;
+      c.strokeRect(dx - 12, h - 1, 40, 8);
+
+      // Jade-and-Gold Dragon-Coiled Columns (盘龙玉柱)
+      for (let i = 0; i <= cols; i++) {
+        const px = i * (w - 5) / cols;
+        c.strokeStyle = '#ffd54f';
+        c.lineWidth = 1.1;
+        c.beginPath();
+        c.moveTo(px, h - 8);
+        c.quadraticCurveTo(px + 6, wallTop + wallH * 0.6, px, wallTop + wallH * 0.35);
+        c.quadraticCurveTo(px + 6, wallTop + wallH * 0.15, px + 2, wallTop + 2);
+        c.stroke();
+      }
+
+      // Third Celestial Crown Roof Tier (重檐仙阁)
+      const cw = rw * 0.32, cx0 = w / 2 - cw / 2, cy0 = ry - 26;
+      c.fillStyle = shade(style.roof, 0.15);
+      c.beginPath();
+      c.moveTo(cx0 - 6, cy0 + 11);
+      c.quadraticCurveTo(w / 2, cy0 - 3, cx0 + cw + 6, cy0 + 11);
+      c.quadraticCurveTo(w / 2, cy0 + 16, cx0 - 6, cy0 + 11);
+      c.fill();
+      c.strokeStyle = '#ffd740';
+      c.lineWidth = 1.6;
+      c.stroke();
+
+      // Floating Golden Dao Runes & Celestial Halo around roof crest (符文瑞气)
+      c.strokeStyle = 'rgba(255,215,64,0.75)';
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.arc(w / 2, cy0 - 2, 11, 0, Math.PI * 2);
+      c.stroke();
+      for (let ri = -2; ri <= 2; ri++) {
+        if (ri === 0) continue;
+        c.fillStyle = '#ffe57f';
+        c.fillRect(w / 2 + ri * 14 - 1.5, cy0 + Math.abs(ri) * 3, 3, 4.5);
+      }
+    }
+
+    // 8. Iconic Motifs for the 8 Peak Sanctuaries
+    const topCrestY = hasUpperTier ? ry - 18 : ry - 4;
+    if (b.type === 'peak_sword') {
+      // Giant Stone Sword Monument (巨剑碑)
+      c.fillStyle = '#b0bec5';
+      c.beginPath();
+      c.moveTo(w / 2 - 4, topCrestY + 4);
+      c.lineTo(w / 2, topCrestY - 22);
+      c.lineTo(w / 2 + 4, topCrestY + 4);
+      c.closePath();
+      c.fill();
+      c.strokeStyle = '#00e5ff';
+      c.lineWidth = 1.4;
+      c.beginPath(); c.moveTo(w / 2 - 8, topCrestY - 2); c.lineTo(w / 2 + 8, topCrestY - 2); c.stroke();
+    } else if (b.type === 'peak_body') {
+      // Twin Bronze Vajra Pillars (金刚杵柱)
+      for (const side of [10, w - 16]) {
+        c.fillStyle = '#ffb703';
+        c.fillRect(side, wallTop - 6, 6, wallH + 6);
+        c.beginPath(); c.arc(side + 3, wallTop - 8, 4.5, 0, Math.PI * 2); c.fill();
+      }
+    } else if (b.type === 'peak_chaos') {
+      // Crimson Soul Lanterns (魂灯) & Blood Crescent
+      for (const side of [rx + 6, rx + rw - 6]) {
+        c.fillStyle = '#ff1744';
+        c.beginPath(); c.ellipse(side, rb + 5, 3.5, 4.8, 0, 0, Math.PI * 2); c.fill();
+      }
+      c.strokeStyle = '#ff4d6d'; c.lineWidth = 1.8;
+      c.beginPath(); c.arc(w / 2, topCrestY - 6, 6, 0.4, Math.PI * 1.6); c.stroke();
+    } else if (b.type === 'peak_alchemy') {
+      // Giant Pill Cauldron Chimneys (天地丹炉)
+      c.fillStyle = '#d4a238';
+      c.beginPath(); c.arc(w / 2, topCrestY - 5, 7, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#52b788';
+      c.beginPath(); c.ellipse(w / 2, topCrestY - 9, 5, 2.2, 0, 0, Math.PI * 2); c.fill();
+    } else if (b.type === 'peak_magic') {
+      // Samsara Mirror Ring (轮回宝镜)
+      c.strokeStyle = '#e0aaff'; c.lineWidth = 1.8;
+      c.beginPath(); c.arc(w / 2, topCrestY - 7, 7.5, 0, Math.PI * 2); c.stroke();
+      c.fillStyle = '#c77dff';
+      c.beginPath(); c.arc(w / 2, topCrestY - 7, 3.5, 0, Math.PI * 2); c.fill();
+    } else if (b.type === 'peak_array') {
+      // Astral Cogwheel & Armillary Ring (浑天星轮)
+      c.strokeStyle = '#ffd166'; c.lineWidth = 1.6;
+      c.beginPath(); c.arc(w / 2, topCrestY - 7, 8, 0, Math.PI * 2); c.stroke();
+      c.beginPath(); c.ellipse(w / 2, topCrestY - 7, 10, 4, 0.4, 0, Math.PI * 2); c.stroke();
+    } else if (b.type === 'peak_scholar') {
+      // Scholarly Jade Scroll & Chess Pavilion Crest
+      c.fillStyle = '#fefae0';
+      c.fillRect(w / 2 - 9, topCrestY - 7, 18, 5);
+      c.strokeStyle = '#2a9d8f'; c.lineWidth = 1.2;
+      c.strokeRect(w / 2 - 9, topCrestY - 7, 18, 5);
+    } else if (b.type === 'peak_beast') {
+      // Primal Totem Horns & Dragon-Bone Ridge (万兽龙骨脊)
+      c.strokeStyle = '#f4e1c1'; c.lineWidth = 2.0;
+      c.beginPath();
+      c.moveTo(w / 2 - 12, topCrestY + 2); c.quadraticCurveTo(w / 2 - 16, topCrestY - 12, w / 2 - 6, topCrestY - 14);
+      c.moveTo(w / 2 + 12, topCrestY + 2); c.quadraticCurveTo(w / 2 + 16, topCrestY - 12, w / 2 + 6, topCrestY - 14);
+      c.stroke();
+    }
+
     return cv;
   }
+  R.buildBuildingSprite = buildBuildingSprite;
 
   /* ---------- Pre-rendered Light Halo Sprite for Fast Night Rendering ---------- */
   function createLightSprite(rCol, gCol, bCol) {
@@ -834,6 +1006,117 @@
     c.fillRect(0, 0, sz, sz);
     return cv;
   }
+
+  /* ---------- Patch v4.1.0 [Pillar 2, 4 & 5]: Sun Shadows, Peak Mist, Leylines & 5-Element Barrier Dome ---------- */
+  R.computeSunShadow = function (tMinutes) {
+    const hr = (((Number(tMinutes) || 0) % 1440) + 1440) % 1440 / 60;
+    let offsetX = 0, offsetY = 4, alpha = 0.22;
+    if (hr >= 6 && hr <= 10) {
+      offsetX = -12;
+      offsetY = 6;
+    } else if (hr > 10 && hr < 11) {
+      const u = hr - 10;
+      offsetX = -12 * (1 - u);
+      offsetY = 6 - 2 * u;
+    } else if (hr >= 11 && hr <= 13) {
+      offsetX = 0;
+      offsetY = 4;
+    } else if (hr > 13 && hr < 15) {
+      const u = (hr - 13) / 2;
+      offsetX = 14 * u;
+      offsetY = 4 + 2 * u;
+    } else if (hr >= 15 && hr <= 18) {
+      offsetX = 14;
+      offsetY = 6;
+    } else {
+      offsetX = hr < 6 ? -8 : 8;
+      offsetY = 5;
+      alpha = 0.14;
+    }
+    return {
+      hour: hr,
+      offsetX,
+      offsetY,
+      alpha,
+      fillStyle: 'rgba(20,38,30,.22)'
+    };
+  };
+
+  R.BARRIER_COLORS = Object.freeze({
+    METAL: '#f1c40f',
+    EARTH_METAL: '#f1c40f',
+    WOOD: '#2ecc71',
+    WOOD_LIFE: '#2ecc71',
+    WATER: '#3498db',
+    WATER_ICE: '#3498db',
+    FIRE: '#e74c3c',
+    LIGHTNING: '#e74c3c',
+    EARTH: '#e67e22',
+    ทอง: '#f1c40f',
+    ไม้: '#2ecc71',
+    น้ำ: '#3498db',
+    ไฟ: '#e74c3c',
+    ดิน: '#e67e22'
+  });
+
+  R.resolveBarrierColor = function (WOrEl) {
+    if (typeof WOrEl === 'string') {
+      return R.BARRIER_COLORS[WOrEl] || R.BARRIER_COLORS[WOrEl.toUpperCase()] || '#f1c40f';
+    }
+    const S = WOrEl && WOrEl.sect ? WOrEl.sect : WOrEl;
+    const el = (S && (S.barrierElement || (S.elementalBarrier && S.elementalBarrier.element))) || 'EARTH_METAL';
+    return R.BARRIER_COLORS[el] || R.BARRIER_COLORS[String(el).toUpperCase()] || '#f1c40f';
+  };
+
+  R.drawPeakMist = function (ctx, peakArea, alpha, timeSec) {
+    if (!ctx || !peakArea) return false;
+    const a = alpha == null ? 1.0 : clamp(alpha, 0, 1);
+    if (a <= 0.01) return false;
+    const x = (peakArea.x || 0) * TS, y = (peakArea.y || 0) * TS;
+    const w = (peakArea.w || 14) * TS, h = ((peakArea.h || 8) + (peakArea.yard || 2)) * TS;
+    const cx = x + w / 2, cy = y + h / 2;
+    const t = Number(timeSec) || 0;
+
+    ctx.save();
+    ctx.globalAlpha = a;
+    // Layered mountain crag silhouette & dense azure-white primordial qi mist
+    ctx.fillStyle = 'rgba(42,68,78,0.52)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, w * 0.72, h * 0.68, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const puffs = [
+      [-0.32, -0.18, 0.46, 0.34],
+      [0.28, -0.14, 0.44, 0.32],
+      [-0.18, 0.20, 0.48, 0.35],
+      [0.24, 0.22, 0.45, 0.33],
+      [0, 0, 0.56, 0.42]
+    ];
+    for (let i = 0; i < puffs.length; i++) {
+      const pf = puffs[i];
+      const drift = Math.sin(t * 0.9 + i * 1.4) * 6;
+      ctx.fillStyle = i % 2 === 0 ? 'rgba(218,242,252,0.78)' : 'rgba(182,224,242,0.72)';
+      ctx.beginPath();
+      ctx.ellipse(cx + pf[0] * w + drift, cy + pf[1] * h, pf[2] * w, pf[3] * h, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(130,210,235,0.55)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, w * 0.62, h * 0.52, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    if (peakArea.nameTh) {
+      ctx.font = '600 10px ' + FONT;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(18,38,46,0.85)';
+      ctx.fillRect(cx - 72, cy - 8, 144, 16);
+      ctx.fillStyle = '#e0f7fa';
+      ctx.fillText('🌫️ ' + peakArea.nameTh + ' (หมอกปราณปิดกั้น)', cx, cy + 4);
+    }
+    ctx.restore();
+    return true;
+  };
 
   /* ---------- สร้าง/จัดการ renderer ---------- */
   R.create = (canvas) => {
@@ -1003,7 +1286,8 @@
       return cv;
     },
     getBuildingSprite(b) {
-      const key = b.id + '|' + b.type + '|' + (b.level || 1) + '|' + this.S;
+      const lv = b.level || 1, ts = b.tierStage || R.getArchitecturalTierStage(lv);
+      const key = b.id + '|' + b.type + '|' + lv + '|T' + ts + '|' + this.S;
       let cv = this.buildingSprites.get(key);
       if (!cv) {
         if (this.buildingSprites.size >= 64) this.buildingSprites.delete(this.buildingSprites.keys().next().value);
@@ -1090,6 +1374,7 @@
 
       const hour = (W.t % 1440) / 60;
       this.drawWater(ctx);
+      this.drawLeylineVeins(ctx);
 
       const items = [];
       W.map.buildings.forEach(b => {
@@ -1138,6 +1423,8 @@
       }
 
       this.drawCastEffects(ctx);
+      this.drawDriftingMountainMist(ctx);
+      this.drawSectBarrierDome(ctx);
       this.drawMarkers(ctx);
 
       // Dawn/Dusk warm golden-amber glaze & Night illumination with viewport-culled cached light sprites
@@ -1856,8 +2143,136 @@
           ctx.ellipse(fx, fy, 4.2, 1.8, Math.sin(t * 2 + i) * 0.15, 0, Math.PI * 2);
           ctx.fill();
         }
+        // ประกายแดดระยิบระยับบนผิวน้ำ (Living Water Caustics — Pillar 4)
+        ctx.fillStyle = 'rgba(255,238,165,.48)';
+        for (let i = 0; i < 16; i++) {
+          const cx = ((i * 97 + t * 14) % (180 * TS)) + 30 * TS;
+          const tx = Math.floor(cx / TS);
+          const cy = (MAP.riverCenterY ? MAP.riverCenterY(tx) : 170) * TS + Math.cos(t * 2.5 + i) * 9;
+          const gl = 0.8 + 0.7 * Math.sin(t * 4.5 + i * 1.9);
+          if (gl > 0.4) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, gl * 1.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
         ctx.restore();
       }
+      if (b) {
+        // Golden water caustics on spirit_pond
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,240,175,.45)';
+        for (let i = 0; i < 8; i++) {
+          const gx = b.x * TS + 12 + ((i * 43 + t * 8) % Math.max(16, (b.w - 2) * TS));
+          const gy = b.y * TS + 12 + ((i * 29 + Math.sin(t * 2 + i) * 6) % Math.max(16, (b.h - 2) * TS));
+          ctx.beginPath();
+          ctx.arc(gx, gy, 1.3 + 0.5 * Math.sin(t * 4 + i), 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    },
+
+    computeSunShadow(tMinutes) {
+      return R.computeSunShadow(tMinutes != null ? tMinutes : (this.W ? this.W.t : 0));
+    },
+
+    drawPeakMist(ctx, peakArea, alpha) {
+      return R.drawPeakMist(ctx, peakArea, alpha, this.t);
+    },
+
+    drawLeylineVeins(ctx) {
+      const W = this.W;
+      if (!W || !W.map || !Array.isArray(W.map.leylinePaths)) return;
+      const t = this.t;
+      ctx.save();
+      for (let i = 0; i < W.map.leylinePaths.length; i++) {
+        const lp = W.map.leylinePaths[i];
+        const pts = lp && lp.waypoints;
+        if (!pts || pts.length < 2) continue;
+        const active = MAP.isPeakBuildingActive ? MAP.isPeakBuildingActive(W, lp.peakId) : false;
+        ctx.strokeStyle = active ? (lp.color || '#48cae4') : 'rgba(130,180,195,0.22)';
+        ctx.lineWidth = active ? 2.6 : 1.3;
+        ctx.globalAlpha = active ? (0.48 + 0.16 * Math.sin(t * 2.4 + i)) : 0.24;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x * TS, pts[0].y * TS);
+        for (let j = 1; j < pts.length; j++) {
+          ctx.lineTo(pts[j].x * TS, pts[j].y * TS);
+        }
+        ctx.stroke();
+
+        if (active) {
+          // Flowing qi pulse node along the leyline toward Central Bagua Plaza
+          const prog = (t * 0.35 + i * 0.13) % 1;
+          const segIdx = Math.min(pts.length - 2, Math.floor(prog * (pts.length - 1)));
+          const segU = (prog * (pts.length - 1)) - segIdx;
+          const px = (pts[segIdx].x + (pts[segIdx + 1].x - pts[segIdx].x) * segU) * TS;
+          const py = (pts[segIdx].y + (pts[segIdx + 1].y - pts[segIdx].y) * segU) * TS;
+          ctx.fillStyle = '#ffffff';
+          ctx.globalAlpha = 0.82;
+          ctx.beginPath();
+          ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    },
+
+    drawDriftingMountainMist(ctx) {
+      const W = this.W;
+      if (!W) return;
+      const wt = (W.t || 0) * 0.25 + this.t * 6;
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,.12)';
+      for (let i = 0; i < 6; i++) {
+        const mx = ((i * 420 + wt * (1.2 + (i % 3) * 0.3)) % (MAP.W * TS));
+        const my = (22 + i * 24) * TS + Math.sin(this.t * 0.6 + i) * 18;
+        ctx.beginPath();
+        ctx.ellipse(mx, my, 110 + (i % 3) * 35, 22 + (i % 2) * 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    },
+
+    drawSectBarrierDome(ctx) {
+      const W = this.W;
+      if (!W || !W.sect) return;
+      const bar = W.sect.elementalBarrier;
+      const isActive = W.sect.barrierActive !== false && (!bar || bar.active !== false);
+      if (!isActive) return;
+
+      const colHex = R.resolveBarrierColor(W);
+      const cx = 118 * TS, cy = 75 * TS, rx = 92 * TS, ry = 58 * TS;
+      const pulse = 0.5 + 0.5 * Math.sin(this.t * 1.8);
+
+      ctx.save();
+      // Outer protective barrier dome ring
+      ctx.strokeStyle = colHex;
+      ctx.lineWidth = 2.4;
+      ctx.globalAlpha = 0.28 + pulse * 0.12;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Hexagonal Shield Mesh (ลายตาข่ายรวงผึ้งหกเหลี่ยม)
+      ctx.lineWidth = 1.1;
+      ctx.globalAlpha = 0.18 + pulse * 0.08;
+      const hexR = 24;
+      for (let i = 0; i < 16; i++) {
+        const ang = (i / 16) * Math.PI * 2 + this.t * 0.05;
+        const hx = cx + Math.cos(ang) * (rx * 0.88);
+        const hy = cy + Math.sin(ang) * (ry * 0.88);
+        ctx.beginPath();
+        for (let k = 0; k <= 6; k++) {
+          const ha = k * Math.PI / 3;
+          const vx = hx + Math.cos(ha) * hexR;
+          const vy = hy + Math.sin(ha) * hexR * 0.68;
+          if (k === 0) ctx.moveTo(vx, vy);
+          else ctx.lineTo(vx, vy);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
     },
 
     drawDeco(ctx, d, night) {
@@ -1905,33 +2320,63 @@
     drawBuilding(ctx, b, hour, night) {
       const bt = MAP.BTYPES[b.type], c = this.cam, z = c.z;
       if (bt.open) { this.drawOpenArea(ctx, b, z); return; }
+
+      // Patch v4.1.0 [Pillar 2]: Fog-Shrouded Peak Awakening & Conditional Unveiling
+      if (b.isPeakSanctuary) {
+        const isFounded = MAP.isPeakBuildingActive ? MAP.isPeakBuildingActive(this.W, b) : !!b.founded;
+        if (!isFounded) {
+          this.drawPeakMist(ctx, b, 1.0);
+          return;
+        }
+      }
+
       const x = b.x * TS, y = b.y * TS, w = b.w * TS, h = b.h * TS;
       const m = buildingMetrics(b), wallTop = y + m.wallTop;
       const level = b.level || 1;
+
+      // Patch v4.1.0 [Pillar 4]: Directional Soft Sun Shadows based on W.t
+      const sunSh = this.computeSunShadow(this.W ? this.W.t : hour * 60);
+      ctx.save();
+      ctx.fillStyle = sunSh.fillStyle;
+      ctx.beginPath();
+      ctx.moveTo(x, y + h);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x + w + sunSh.offsetX, y + h + sunSh.offsetY);
+      ctx.lineTo(x + sunSh.offsetX, y + h + sunSh.offsetY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
       const shell = this.getBuildingSprite(b);
       ctx.drawImage(shell, x - 22, y - 44, w + 48, h + 68);
 
+      // If Peak Sanctuary was recently founded, render dissipating mist fade-out
+      if (b.isPeakSanctuary && b.mistFadeStartT != null && this.W && (this.W.t - b.mistFadeStartT) < 60) {
+        const fadeAlpha = clamp(1 - (this.W.t - b.mistFadeStartT) / 60, 0, 0.85);
+        if (fadeAlpha > 0.02) this.drawPeakMist(ctx, b, fadeAlpha);
+      }
+
       const occupied = b.inside && b.inside.length > 0;
-      const lit = night > 0.3 && (occupied || b.type === 'main_hall');
+      const lit = night > 0.3 && (occupied || b.type === 'main_hall' || b.isPeakSanctuary);
       if (lit && b.type !== 'gate') {
         ctx.save(); ctx.translate(x, y); buildingWindows(ctx, m, true, b.type); ctx.restore();
       }
 
-      // State-bound ambient facility effects (ONLY when active/occupied and NOT under construction)
-      if (!b.building && occupied && this.effectiveQuality !== 'low') {
+      // State-bound ambient facility effects (Alchemy multicolored vapor & Forge glowing sparks)
+      if (!b.building && (occupied || b.type === 'alchemy' || b.type === 'forge' || b.type === 'peak_alchemy' || b.type === 'peak_body') && this.effectiveQuality !== 'low') {
         const t = this.t;
-        if (b.type === 'alchemy') {
-          // Rising violet-jade alchemical vapor from the bronze cupola
+        if (b.type === 'alchemy' || b.type === 'peak_alchemy') {
+          // Rising multi-colored alchemical vapor from the bronze cupola
           const cx = x + w / 2, topY = y - (level >= 2 ? 28 : 14);
           for (let i = 0; i < 3; i++) {
             const phase = (t * 0.8 + i * 0.33) % 1;
-            ctx.fillStyle = i % 2 === 0 ? `rgba(130,235,190,${(1 - phase) * 0.45})` : `rgba(195,160,245,${(1 - phase) * 0.40})`;
+            ctx.fillStyle = i === 0 ? `rgba(130,235,190,${(1 - phase) * 0.45})` : i === 1 ? `rgba(195,160,245,${(1 - phase) * 0.42})` : `rgba(255,215,110,${(1 - phase) * 0.40})`;
             ctx.beginPath();
             ctx.arc(cx + Math.sin(t * 2 + i) * 4, topY - phase * 18, 2.5 + phase * 3.5, 0, Math.PI * 2);
             ctx.fill();
           }
-        } else if (b.type === 'forge') {
-          // Rising charcoal smoke & warm hearth pulse from the smelter chimney
+        } else if (b.type === 'forge' || b.type === 'peak_body') {
+          // Rising charcoal smoke & glowing forge sparks from the smelter chimney
           const chX = x + w - 15.5, chY = y - 18;
           for (let i = 0; i < 3; i++) {
             const phase = (t * 0.9 + i * 0.33) % 1;
@@ -1939,6 +2384,9 @@
             ctx.beginPath();
             ctx.arc(chX + Math.sin(t * 1.8 + i) * 3.5, chY - phase * 20, 3 + phase * 4, 0, Math.PI * 2);
             ctx.fill();
+            // Forge sparks
+            ctx.fillStyle = i % 2 === 0 ? '#ffb703' : '#fb8500';
+            ctx.fillRect(chX + Math.cos(t * 5 + i) * 5, chY - phase * 16, 1.8, 1.8);
           }
         } else if (b.type === 'canteen') {
           // Soft white cooking steam

@@ -143,30 +143,53 @@
 
   /* ---------- สถานี ---------- */
   AI.freeStation = (W, n, kind, bkeys, opts) => {
+    if (MAP && MAP.syncPeakSanctuaries) MAP.syncPeakSanctuaries(W);
     const owner = opts && opts.owner != null ? opts.owner : null;
     let best = null, bd = 1e9;
     const stations = W.map.stations;
+    const nx = n ? n.x : 118, ny = n ? n.y : 70;
     if (typeof bkeys === 'string') {
-      const b = W.map.byId[bkeys];
+      const b = W.map.byId[bkeys] || (MAP.getPeakBuilding && MAP.getPeakBuilding(W.map, bkeys));
       if (!b) return null;
+      if (b.isPeakSanctuary && MAP.isPeakBuildingActive && !MAP.isPeakBuildingActive(W, b)) return null;
       const stIds = b.stations;
       for (let i = 0; i < stIds.length; i++) {
-        const s = stations[stIds[i]]; if (s.kind !== kind || s.occ) continue;
+        const s = stations[stIds[i]];
+        if (!s || s.occ) continue;
+        if (s.peakId && s.active === false) continue;
+        const matchKind = s.kind === kind || (kind === 'eat' && s.kind === 'pantry') || (kind === 'dummy' && s.kind === 'practice');
+        if (!matchKind) continue;
         if (owner != null && s.owner != null && s.owner !== owner) continue;
-        const d = Math.abs(s.x - n.x) + Math.abs(s.y - n.y);
+        const d = Math.abs(s.x - nx) + Math.abs(s.y - ny);
         if (d < bd) { bd = d; best = s; }
+      }
+      // If disciple belongs to an awakened Peak Sanctuary and is looking for food at canteen, also check their Peak's local pantry
+      if (n && n.peakId && bkeys === 'canteen' && kind === 'eat' && MAP.getPeakBuilding) {
+        const pb = MAP.getPeakBuilding(W.map, n.peakId);
+        if (pb && MAP.isPeakBuildingActive(W, pb)) {
+          for (let i = 0; i < pb.stations.length; i++) {
+            const s = stations[pb.stations[i]];
+            if (!s || s.occ || (s.kind !== 'pantry' && s.kind !== 'eat')) continue;
+            const d = Math.abs(s.x - nx) + Math.abs(s.y - ny);
+            if (d < bd) { bd = d; best = s; }
+          }
+        }
       }
       return best;
     }
     const list = bkeys ? bkeys : W.map.buildings;
     for (let j = 0; j < list.length; j++) {
-      const b = typeof list[j] === 'string' ? W.map.byId[list[j]] : list[j];
+      const b = typeof list[j] === 'string' ? (W.map.byId[list[j]] || (MAP.getPeakBuilding && MAP.getPeakBuilding(W.map, list[j]))) : list[j];
       if (!b) continue;
+      if (b.isPeakSanctuary && MAP.isPeakBuildingActive && !MAP.isPeakBuildingActive(W, b)) continue;
       const stIds = b.stations;
       for (let i = 0; i < stIds.length; i++) {
-        const s = stations[stIds[i]]; if (s.kind !== kind || s.occ) continue;
+        const s = stations[stIds[i]];
+        if (!s || s.occ) continue;
+        if (s.peakId && s.active === false) continue;
+        if (s.kind !== kind) continue;
         if (owner != null && s.owner != null && s.owner !== owner) continue;
-        const d = Math.abs(s.x - n.x) + Math.abs(s.y - n.y);
+        const d = Math.abs(s.x - nx) + Math.abs(s.y - ny);
         if (d < bd) { bd = d; best = s; }
       }
     }

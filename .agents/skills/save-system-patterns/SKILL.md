@@ -7,7 +7,7 @@ category: save-load-persistence
 
 # JianghuSect Evolution — Save/Load Serialization & Migration Blueprint (`js/sim.js`)
 
-> **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+> **Current baseline 4.1.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill governs `SIM.serialize(W)` and `SIM.deserialize(str)` in `GAME_SOURCE/js/sim.js` (lines 559–653), covering transient cache stripping, current-schema save/load and mid-action recovery. Legacy compatibility is not required unless the user requests it; test the actual affected paths.
 
@@ -92,3 +92,7 @@ Always run idempotent `ensure*` hooks at the end of `SIM.deserialize`:
 ## Patch v3.6.0 – v4.0.0 Save Schema & Resilient Whitelist (`4.0.0-living-frontier-charter`)
 - `SIM.PATCH_VERSION = '4.0.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`.
 - `SIM.TRANSIENT_CACHE_KEYS` explicitly whitelists transient caches (`_c`, `_d`, `_cs`, `_csBase`, `_csStatic`, `_cultRateBase`, `_nd`, `_hpMaxCache`, `_qiMaxCache`, `_mDer`, `_condCache`, `_wsBase`, `_skRateCache`, `_dwVer`, `_dwDay`, `_alivePop`, `jianghuSects`, `inventoryIntelligence`) while preserving `_btBonusPct`, `_dantianBonusPct`, `W.sect.outposts`, `W.sect.charter`, `W.sect.strategicCouncil`, `W.sect.microLocations`, and `npc.combatHistory` across `SIM.serialize` / `SIM.deserialize`.
+
+## Patch v4.1.0 Save Schema (`4.1.0-sect-expansion-peaks-sanctuary`)
+- `SIM.PATCH_VERSION = '4.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.1.0-sect-expansion-peaks-sanctuary'`.
+- `SIM.deserialize` calls `SECT.PEAKS.ensure(W)`, `SECT.ELEMENTAL_BARRIER.ensure(W)`, and `MAP.syncPeakSanctuaries(W)` so all 8 Peak Sanctuary building levels, `founded` states, active stations, and barrier element settings (`W.sect.barrierElement`, `W.sect.barrierActive`) are 100% preserved across save/load.
