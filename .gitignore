@@ -8,3 +8,4 @@ __pycache__/
 .agent_status
 agent_runner.sh
 *.zip
+!patch_zips/*.zip
