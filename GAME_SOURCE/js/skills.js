@@ -119,6 +119,9 @@
     soulFractured: { nameTh: 'วิญญาณสะเทือนไร้สมาธิ', icon: '⚡', mods: { cast: -35, acc: -25 }, pmods: { mdef: -.20 }, tags: ['#LIGHTNING', '#SEAL'] },
     cryoStasis: { nameTh: 'เวลาหยุดนิ่งเยือกแข็งสัมบูรณ์', icon: '❄️', mods: { move: -100, cast: -100 }, pmods: { eva: -1.0 }, tags: ['#ICE', '#CONTROL'] },
     manaBurnBacklash: { nameTh: 'คำสาปสะท้อนปราณอเวจี', icon: '🔥', dot: true, pmods: { mdef: -.15 }, tags: ['#YIN', '#DEMON'] },
+    acupointSealed: { nameTh: 'สกัดจุดผนึกปราณ', icon: '🪡', mods: { cast: -45 }, tags: ['#ACUPOINT', '#SEAL'] },
+    QI_BLOCK: { nameTh: 'สกัดจุดปิดกั้นปราณ', icon: '🪡', mods: { cast: -50 }, tags: ['#ACUPOINT', '#SEAL'] },
+    BLOOD_HALT: { nameTh: 'สกัดจุดชะลอโลหิต', icon: '🩸', mods: { move: -35, cast: -20 }, pmods: { eva: -.20 }, tags: ['#ACUPOINT', '#BLOOD'] },
     acupointQiBlock: { nameTh: 'สกัดจุดลมปราณ', icon: '🪡', mods: { cast: -40 }, tags: ['#ACUPOINT', '#SEAL'] },
     acupointWeaken: { nameTh: 'สกัดจุดสลายพละกำลัง', icon: '🪡', pmods: { atk: -.40, matk: -.40 }, tags: ['#ACUPOINT'] },
     acupointBleed: { nameTh: 'สกัดจุดหยุดชีพจร', icon: '🪡', dot: true, pmods: { def: -.15 }, tags: ['#ACUPOINT', '#BLOOD'] },
@@ -1362,6 +1365,53 @@
       descTh: 'สลับท่าร่างทั้ง 7 ท่าอย่างลื่นไหลระหว่างศึก รับบัฟต่อเนื่องทุกครั้งที่เปลี่ยนท่าร่าง'
     }
   });
+
+
+  // Patch v3.4.0 [PROP-05]: 6-Tier Subpath Archetype Mastery & Signature Finishers
+  SK.ARCHETYPE_MASTERY_TIERS = Object.freeze([
+    { tier: 1, nameTh: 'ขั้นที่ 1: แรกเริ่มหยั่งรู้', statMult: 1.04 },
+    { tier: 2, nameTh: 'ขั้นที่ 2: หลอมรวมท่วงท่า', statMult: 1.08 },
+    { tier: 3, nameTh: 'ขั้นที่ 3: ชำนาญศึกสมรภูมิ', statMult: 1.12 },
+    { tier: 4, nameTh: 'ขั้นที่ 4: บรรลุเคล็ดวิชาเฉพาะสาย (ปลดล็อกกระบวนท่าขั้น 4)', statMult: 1.16, unlocksSkill: 'T4' },
+    { tier: 5, nameTh: 'ขั้นที่ 5: ปรมาจารย์ไร้พ่าย', statMult: 1.20 },
+    { tier: 6, nameTh: 'ขั้นที่ 6: ตำนานสะท้านยุทธภพ (ปลดล็อกท่าไม้ตายสูงสุดขั้น 6)', statMult: 1.25, unlocksSkill: 'T6' }
+  ]);
+
+  SK.getArchetypeSignatureSkills = (archId, tier) => {
+    const spec = SK.SUBPATH_ARCHETYPES_V235[archId];
+    if (!spec) return [];
+    const out = [];
+    if ((tier || 1) >= 4) {
+      out.push({
+        id: 'ARCH_' + spec.id + '_T4',
+        nameTh: 'เคล็ด' + spec.nameTh.split(' (')[0] + '·ขั้นที่ 4',
+        arch: 'burst',
+        type: (spec.bonusStats && spec.bonusStats.p && spec.bonusStats.p.atk) ? 'p' : 'm',
+        M: 1.48,
+        cd: 12,
+        wind: 3,
+        tier: 4,
+        isArchetypeSignature: true,
+        archetypeId: spec.id
+      });
+    }
+    if ((tier || 1) >= 6) {
+      out.push({
+        id: 'ARCH_' + spec.id + '_T6_FINISHER',
+        nameTh: 'ท่าไม้ตายสูงสุด·' + spec.nameTh.split(' (')[0],
+        arch: 'execute',
+        type: (spec.bonusStats && spec.bonusStats.p && spec.bonusStats.p.atk) ? 'p' : 'm',
+        M: 1.92,
+        cd: 18,
+        wind: 4,
+        tier: 6,
+        isArchetypeSignature: true,
+        isArchetypeFinisher: true,
+        archetypeId: spec.id
+      });
+    }
+    return out;
+  };
 
   SK.validateComposableSpec = spec => {
     if (!spec || typeof spec !== 'object') return { ok: true, errors: [] };

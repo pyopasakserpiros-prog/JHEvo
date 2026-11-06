@@ -1543,7 +1543,13 @@
     if (g.SECT && g.SECT.SOUL_FORGE && g.SECT.SOUL_FORGE.inheritSentientWeaponOnDeath && n.equip && n.equip.WEAPON && n.equip.WEAPON.weaponSpirit) {
       g.SECT.SOUL_FORGE.inheritSentientWeaponOnDeath(W, n);
     }
-    if (n.id === W.sect.masterId) { SECT.succession(W, 'เจ้าสำนักเสียชีวิต'); }
+    if (g.SECT && g.SECT.SOUL_FORGE && g.SECT.SOUL_FORGE.imbueElderSoulIntoWeapon && n.equip && n.equip.WEAPON && ((n.rank || 0) >= 4 || (n.cult && (n.cult.stage || 0) >= 4)) && (n.equip.WEAPON.tier || 1) >= 3) {
+      g.SECT.SOUL_FORGE.imbueElderSoulIntoWeapon(W, n, n.equip.WEAPON);
+    }
+    if (n.id === W.sect.masterId) {
+      if (SECT.resolvePlayerSuccessionCrisis) SECT.resolvePlayerSuccessionCrisis(W, 'เจ้าสำนักเสียชีวิต');
+      else SECT.succession(W, 'เจ้าสำนักเสียชีวิต');
+    }
     if (n.id === W.sect.deputyId) W.sect.deputyId = null;
     if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n);
     if (g.CPE && g.CPE.retireNpc) g.CPE.retireNpc(W, n, 'เสียชีวิต');

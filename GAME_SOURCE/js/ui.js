@@ -592,7 +592,10 @@
   UI.updateHud = (force) => {
     const G = UI.G, W = G.W; if (!W) return; const now = performance.now(); if (!force && now - UI.lastHud < 250) return; UI.lastHud = now;
     const c = SIM.calendar(W.t); const wk = { clear: '☀️', cloud: '⛅', rain: '🌧️', snow: '❄️', fog: '🌫️' }[W.weather.kind] || '';
-    $('dateTxt').title = SIM.SEASON_TH[c.season]; $('dateTxt').textContent = wk + ' ปี ' + c.year + ' ด.' + c.month + ' ว.' + c.dom + '  ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SIM.SEASON_TH[c.season];
+    const celEv = (W.celestialAlignment && W.celestialAlignment.activeEvent) || W.celestialEvent;
+    const celTxt = celEv ? (' · ' + (celEv.icon || '🌌') + ' ' + celEv.nameTh) : '';
+    $('dateTxt').title = SIM.SEASON_TH[c.season] + (celEv ? (' — ' + (celEv.descTh || celEv.nameTh)) : '');
+    $('dateTxt').textContent = wk + ' ปี ' + c.year + ' ด.' + c.month + ' ว.' + c.dom + '  ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SIM.SEASON_TH[c.season] + celTxt;
     document.querySelectorAll('#speedBar button').forEach(b => b.classList.toggle('on', +b.dataset.sp === G.speed));
     const alive = W.npcs.filter(n => !n.dead && !n.exiled), away = alive.filter(n => n.away).length; const S = W.sect;
     const pop = SECT.memberOccupancy ? SECT.memberOccupancy(W) : alive.length;
@@ -1152,9 +1155,294 @@
       const res = (SECT && SECT.payOfficeStipends) ? SECT.payOfficeStipends(W, {}) : { ok: false, totalPaid: 0, recipients: [] };
       if (res && res.ok && res.recipients.length) {
         if (UI.audio) UI.audio.playBell();
-        UI.toast('💰 จ่ายเบี้ยหวัดประจำตำแหน่งให้ขุนนาง ' + res.recipients.length + ' คน รวม ' + res.totalPaid + ' ศิลาวิญญาณ!');
+        UI.toast('💰 จ่ายเบี้ยหวัดเสริมประจำตำแหน่งให้ขุนนาง ' + res.recipients.length + ' คน รวม ' + res.totalPaid + ' ศิลาวิญญาณ (ความพึงพอใจ +8 · ประสิทธิภาพงาน +20%)!');
+      } else if (res && res.cooldown) {
+        UI.toast('⏳ เบิกเบี้ยหวัดเสริมประจำเดือนนี้ไปแล้ว (เบิกได้อีกครั้งวันที่ ' + res.nextAvailableDay + ')');
       } else {
         UI.toast('ยังไม่มีผู้ดำรงตำแหน่งบริหารที่รอรับเบี้ยหวัดเสริม');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'toggle-peak-array') {
+      const peakId = String(arg || UI.activePeakId || 'PEAK_AZURE_SWORD');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.togglePeakArray) ? SECT.PEAKS.togglePeakArray(W, peakId) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast('☯️ ' + (res.arrayActive ? 'เปิดใช้งาน' : 'ปิดพัก') + 'ค่ายกลปราณประจำ' + res.peak.nameTh + ' (ระดับ ' + (res.arrayLevel || 1) + ') เรียบร้อย!');
+      } else {
+        UI.toast('ต้องสถาปนายอดเขาก่อนจึงจะเปิดค่ายกลปราณได้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'upgrade-peak-array') {
+      const peakId = String(arg || UI.activePeakId || 'PEAK_AZURE_SWORD');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.upgradePeakArray) ? SECT.PEAKS.upgradePeakArray(W, peakId, {}) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('✨ ยกระดับค่ายกลปราณประจำ' + res.peak.nameTh + ' เป็นระดับ ' + res.arrayLevel + ' สำเร็จ!');
+      } else {
+        UI.toast('ไม่สามารถยกระดับค่ายกลยอดเขาได้ (' + ((res && res.reason) || 'ศิลาไม่พอหรือระดับสูงสุดแล้ว') + ')');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'open-meridian') {
+      const [npcId, merId] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId];
+      const res = (tNpc && CULT && CULT.MERIDIANS && CULT.MERIDIANS.openMeridian) ? CULT.MERIDIANS.openMeridian(tNpc, merId || null, { consumeResource: true }) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast('🪡 ทะลวงจุดชีพจรพิสดาร「' + (res.spec ? res.spec.nameTh : res.meridianId) + '」สำเร็จ (' + res.openedCount + '/8 เส้น)!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'trigger-meridian-overdrive') {
+      const tNpc = W.byId[arg || UI.npcId];
+      const res = (tNpc && CULT && CULT.MERIDIANS && CULT.MERIDIANS.triggerOverdrive) ? CULT.MERIDIANS.triggerOverdrive(W, tNpc, 36) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBladeClash();
+        UI.toast('⚡ ระเบิดชีพจรพิสดารเร่งพลังยุทธ์ขีดสุด (ATK/MATK +30%, Cast +28 นาน 36 นาที)!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'bind-dao-oath') {
+      const [npcId, oathId] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId];
+      const res = (tNpc && CULT && CULT.bindOathVow) ? CULT.bindOathVow(W, tNpc, oathId || 'VOW_CHALLENGE_STRONG') : { ok: false };
+      if (res && res.ok && res.oath) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('📜 ตั้งสัตย์สาบานแห่งมรรคา「' + res.oath.nameTh + '」สำเร็จ (อัตราฝึกปราณ +' + Math.round((res.oath.cultSpeedBonus || 0.25) * 100) + '%)!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'grant-dao-seal') {
+      const [npcId, sealId] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId];
+      const res = (tNpc && CULT && CULT.grantDaoSeal) ? CULT.grantDaoSeal(W, tNpc, sealId || 'SEAL_UNDEFEATED_10') : { ok: false };
+      if (res && res.ok && res.seal) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('💮 ประทับตราแห่งเต๋า「' + res.seal.nameTh + '」สำเร็จ (โอกาสทะลวงด่าน +' + Math.round((res.seal.btBonus || 0.08) * 100) + '%)!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'socket-elemental-runes') {
+      const [npcId, itemKey] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId] || W.byId[W.sect.masterId];
+      let targetGear = null;
+      if (tNpc && tNpc.equip) {
+        targetGear = Object.values(tNpc.equip).find(g2 => g2 && (g2.uid === itemKey || g2.id === itemKey || itemKey === g2.slot)) || tNpc.equip.WEAPON || tNpc.equip.ARMOR;
+      }
+      if (!targetGear && tNpc && tNpc.inv && Array.isArray(tNpc.inv.gear)) {
+        targetGear = tNpc.inv.gear.find(g2 => g2 && (g2.uid === itemKey || g2.id === itemKey));
+      }
+      if (!targetGear && W.sect && Array.isArray(W.sect.gear)) {
+        targetGear = W.sect.gear.find(g2 => g2 && (g2.uid === itemKey || g2.id === itemKey)) || W.sect.gear[0];
+      }
+      const rootEl = (tNpc && tNpc.h && tNpc.h.root && tNpc.h.root.primaryElement) || 'FIRE';
+      const secEl = rootEl === 'FIRE' ? 'WATER_ICE' : 'FIRE';
+      const res = (targetGear && ECO && ECO.socketElementalRunes) ? ECO.socketElementalRunes(W, tNpc, targetGear, [rootEl, secEl]) : { ok: false };
+      if (res && res.ok) {
+        if (tNpc && g.STATS && g.STATS.dirty) g.STATS.dirty(tNpc);
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast('💎 ฝังรูนธาตุประสาน「' + (res.embeddedReaction ? res.embeddedReaction.nameTh : 'ปฏิกิริยาธาตุ') + '」ลงใน「' + targetGear.nameTh + '」สำเร็จ!');
+      } else {
+        UI.toast('ไม่พบอุปกรณ์ที่สามารถฝังรูนธาตุได้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'ingest-beast-core') {
+      const tNpc = W.byId[arg || UI.npcId] || W.byId[W.sect.masterId];
+      const res = (tNpc && CULT && CULT.BEAST_SYMBIOSIS && CULT.BEAST_SYMBIOSIS.ingestBeastCore) ? CULT.BEAST_SYMBIOSIS.ingestBeastCore(W, tNpc, null) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🐉 กลืนแก่นเนยในอสูร「' + (res.latestCore ? res.latestCore.nameTh : '') + '」หลอมรวมสู่ตันเถียนสำเร็จ (' + res.count + '/3 แก่น)!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'activate-beast-possession') {
+      const [npcId, petUid] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId] || W.byId[W.sect.masterId];
+      const res = (tNpc && CULT && CULT.BEAST_SYMBIOSIS && CULT.BEAST_SYMBIOSIS.activatePossession) ? CULT.BEAST_SYMBIOSIS.activatePossession(W, tNpc, petUid || null, 36) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBladeClash();
+        UI.toast('🐾 สถิตร่างอสูรวิญญาณ「' + res.petNameTh + '」สำเร็จ (ผสานสเตตัส +25% นาน 36 นาที)!');
+      } else {
+        UI.toast('ต้องมีสัตว์อสูรคู่สัญญาที่มีความผูกพัน (Bond) >= 80 จึงจะสถิตร่างอสูรได้');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'erect-totem-pillar') {
+      const totemId = String(arg || 'TOTEM_WHITE_TIGER');
+      const res = (SECT && SECT.TOTEMS_BLOODLINES && SECT.TOTEMS_BLOODLINES.erectTotemPillar) ? SECT.TOTEMS_BLOODLINES.erectTotemPillar(W, totemId) : { ok: false };
+      if (res && res.ok && res.totem) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🏛️ สถาปนา「' + res.totem.nameTh + '」คุ้มครองสำนักสำเร็จ (เปิดใช้งาน ' + res.activeTotems.length + '/4 ต้น)!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'enter-closed-door-seclusion') {
+      const [npcId, protId] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId];
+      const res = (tNpc && CULT && CULT.enterClosedDoorSeclusion) ? CULT.enterClosedDoorSeclusion(W, tNpc, { days: 15, protectorId: protId || null, force: true }) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🧘 สั่งกักตนปิดด่านทะลวงคอขวดสำเร็จ (15 วัน)!');
+      } else {
+        UI.toast('ไม่สามารถเข้ากักตนปิดด่านได้ (' + ((res && res.reason) || 'ยังไม่ถึงคอขวด') + ')');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'resolve-defector-ultimatum') {
+      const dec = String(arg || 'PROTECT_AND_FIGHT');
+      const res = (SECT && SECT.resolveDefectorUltimatum) ? SECT.resolveDefectorUltimatum(W, dec) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('📜 ดำเนินการตอบโต้คำขาดศิษย์แปรพักตร์ (' + dec + ') สำเร็จ!');
+      } else {
+        UI.toast('ไม่สามารถดำเนินการคำขาดได้ (' + ((res && res.reason) || 'ไม่มีคำขาด') + ')');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'peak-launch-expedition') {
+      const pid = String(arg || UI.activePeakId || 'PEAK_AZURE_SWORD');
+      const res = (SECT && SECT.PEAKS && SECT.PEAKS.launchPeakExpedition) ? SECT.PEAKS.launchPeakExpedition(W, pid) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🧭 ส่งทัพสำรวจประจำยอดเขาสำเร็จ (คลังยอดเขา +' + res.peakShare + ' · คลังสำนัก +' + res.sectShare + ' ศิลา)!');
+      } else {
+        UI.toast('ยังไม่สามารถส่งทัพสำรวจประจำยอดเขาได้ (' + ((res && res.reason) || 'ติดคูลดาวน์ 15 วัน') + ')');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'tribunal-adjudicate') {
+      const [caseId, verdict] = String(arg || '|MERIT_FINE_AND_PENANCE').split('|');
+      const res = (SECT && SECT.TRIBUNAL && SECT.TRIBUNAL.adjudicateCase) ? SECT.TRIBUNAL.adjudicateCase(W, caseId, verdict || 'MERIT_FINE_AND_PENANCE') : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('⚖️ ศาลหอวินัยพิพากษาคดีด้วยโทษ ' + res.verdict + ' สำเร็จ!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'assign-leyline-guard') {
+      const [ancId, npcId] = String(arg || '').split('|');
+      const gNpc = W.byId[npcId] || W.npcs.find(n => n && !n.dead && !n.exiled);
+      const res = (SECT && SECT.LEYLINE_GRID && SECT.LEYLINE_GRID.assignAnchorGuard) ? SECT.LEYLINE_GRID.assignAnchorGuard(W, ancId, gNpc) : { ok: false };
+      if (res && res.ok) {
+        UI.toast('🛡️ ส่งผู้คุ้มกันเสาค่ายกลปฐพีสำเร็จ!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'repair-leyline-anchor') {
+      const ancId = String(arg || '');
+      const res = (SECT && SECT.LEYLINE_GRID && SECT.LEYLINE_GRID.repairAnchor) ? SECT.LEYLINE_GRID.repairAnchor(W, ancId) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🔧 ซ่อมแซมเสาค่ายกลชีพจรปฐพีกลับมาสมบูรณ์ 100%!');
+      } else {
+        UI.toast('ไม่สามารถซ่อมแซมเสาค่ายกลได้ (' + ((res && res.reason) || 'ศิลาไม่พอ') + ')');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'awaken-weapon-soul') {
+      const [npcId] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId] || W.byId[W.sect.masterId];
+      const res = (tNpc && SECT && SECT.SOUL_FORGE && SECT.SOUL_FORGE.awakenWeaponSpirit) ? SECT.SOUL_FORGE.awakenWeaponSpirit(W, tNpc, tNpc, { initialXp: 320 }) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBladeClash();
+        UI.toast('🗡️ ปลุกจิตวิญญาณศาสตราสำเร็จ!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'toggle-automation-rule') {
+      const ruleKey = String(arg || 'enabled');
+      const res = (SECT && SECT.AUTOMATION && SECT.AUTOMATION.toggleRule) ? SECT.AUTOMATION.toggleRule(W, ruleKey) : { ok: false };
+      if (res && res.ok) {
+        UI.toast('⚙️ สลับการตั้งค่าอัตโนมัติ (' + ruleKey + ': ' + (res.value ? 'เปิด' : 'ปิด') + ')');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'recharge-elemental-barrier') {
+      const amt = Number(arg) || 100;
+      const res = (SECT && SECT.ELEMENTAL_BARRIER && SECT.ELEMENTAL_BARRIER.rechargeBarrier) ? SECT.ELEMENTAL_BARRIER.rechargeBarrier(W, amt) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('🛡️ ป้อนศิลาปราณเสริมม่านพลังพิทักษ์สำนัก +' + res.restoredHp + ' HP สำเร็จ!');
+      } else {
+        UI.toast('ไม่สามารถเติมม่านพลังสำนักได้ (' + ((res && res.reason) || 'ศิลาไม่พอ') + ')');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'invoke-founder-phantom') {
+      const res = (SECT && SECT.ANCESTRAL_PAVILION && SECT.ANCESTRAL_PAVILION.invokeFounderPhantom) ? SECT.ANCESTRAL_PAVILION.invokeFounderPhantom(W, null) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playBell();
+        UI.toast('👻 อัญเชิญเจตจำนงบูรพาจารย์คุ้มครองศิษย์ทั้งสำนักสำเร็จ!');
+      } else {
+        UI.toast('แต้มธูปสักการะไม่เพียงพอสำหรับอัญเชิญเจตจำนงบูรพาจารย์');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'resolve-faction-schism') {
+      const res = (SECT && SECT.resolveFactionSchism) ? SECT.resolveFactionSchism(W, arg || 'NEGOTIATE') : { ok: false };
+      if (res && res.ok) UI.toast('🏛️ คลี่คลายวิกฤตกบฏก๊กการเมืองสำเร็จ (' + res.mode + ')');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'dispatch-exchange-disciple') {
+      const res = (SECT && SECT.dispatchExchangeDisciple) ? SECT.dispatchExchangeDisciple(W, null, arg) : { ok: false };
+      if (res && res.ok) UI.toast('🎓 ส่งศิษย์แลกเปลี่ยนข้ามสำนักสำเร็จ · เรียนรู้「' + res.learnedTechNameTh + '」!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'claim-bounty-hunt') {
+      const res = (SECT && SECT.BOUNTY_BOARD && SECT.BOUNTY_BOARD.claimBountyHunt) ? SECT.BOUNTY_BOARD.claimBountyHunt(W, arg, null) : { ok: false };
+      if (res && res.ok) UI.toast('🎯 ปราบอาชญากรค่าหัวสำเร็จ · รับรางวัล +' + res.rewardStones + ' ศิลา!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'bid-black-market') {
+      const res = (SECT && SECT.CARAVAN_AUCTION && SECT.CARAVAN_AUCTION.bidOnAuctionItem) ? SECT.CARAVAN_AUCTION.bidOnAuctionItem(W, arg, null) : { ok: false };
+      if (res && res.ok) UI.toast('🌙 ชนะการประมูลลับตลาดมืด「' + (res.lot ? res.lot.nameTh : '') + '」!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'brew-multiphase-pill') {
+      const res = (ECO && ECO.brewMultiPhaseSpecialtyPill) ? ECO.brewMultiPhaseSpecialtyPill(W, null, arg) : { ok: false };
+      if (res && res.ok) UI.toast('⚗️ หลอมโอสถสองระยะ「' + (res.pill ? res.pill.nameTh : '') + '」เข้าคลังสำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'excavate-immortal-tomb') {
+      const res = (SECT && SECT.IMMORTAL_TOMB && SECT.IMMORTAL_TOMB.excavateTombLayer) ? SECT.IMMORTAL_TOMB.excavateTombLayer(W, arg, null) : { ok: false };
+      if (res && res.ok) UI.toast('🏛️ ขุดค้นสุสานเซียนโบราณชั้นที่ ' + res.layerCleared + '/3 สำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'advance-world-crisis') {
+      const res = (SECT && SECT.WORLD_CRISIS && SECT.WORLD_CRISIS.advanceCrisisChapter) ? SECT.WORLD_CRISIS.advanceCrisisChapter(W, arg || 'ORTHODOX') : { ok: false };
+      if (res && res.ok) UI.toast('🌌 ตัดสินใจวิกฤตการณ์ยุทธภพบทที่ ' + res.chapter + '/3 สำเร็จ!');
+      UI.render(); UI.updateHud(true);
+    }
+    else if (a === 'cleanse-marrow-pool') {
+      const tNpc = W.byId[arg || UI.npcId] || W.byId[W.sect.masterId];
+      const res = (SECT && SECT.TOTEMS_BLOODLINES && SECT.TOTEMS_BLOODLINES.cleanseMarrowPool) ? SECT.TOTEMS_BLOODLINES.cleanseMarrowPool(W, tNpc) : { ok: false };
+      if (res && res.ok) {
+        if (UI.audio) UI.audio.playGuqinChime();
+        UI.toast('♨️ ชำระไขกระดูกในสระบรรพกาลสำเร็จ · ปลุกสายเลือด「' + (res.bloodline ? res.bloodline.nameTh : 'บรรพกาล') + '」!');
       }
       UI.render();
       UI.updateHud(true);
@@ -1193,12 +1481,19 @@
       UI.updateHud(true);
     }
     else if (a === 'evaluate-elder-ascensions') {
-      const res = (SECT && SECT.ELDER_STATUS) ? SECT.ELDER_STATUS.evaluateElderAscensions(W, {}) : { ok: false };
-      if (res && res.ok && res.ascended && res.ascended.length) {
-        if (UI.audio) UI.audio.playBell();
-        UI.toast('🎖️ เลื่อนสถานะผู้อาวุโสไร้ตำแหน่งสำเร็จ ' + res.ascended.length + ' คน!');
+      const curDay = W.day || 0;
+      if (W.sect.lastElderEvalDay != null && (curDay - W.sect.lastElderEvalDay) < 15) {
+        UI.toast('⏳ เพิ่งจัดประเมินเลื่อนขั้นผู้อาวุโสไปเมื่อวันที่ ' + W.sect.lastElderEvalDay + ' (คูลดาวน์ 15 วัน)');
       } else {
-        UI.toast('ตรวจสอบสถานะผู้อาวุโสเรียบร้อย');
+        W.sect.lastElderEvalDay = curDay;
+        if (SECT && SECT.reviewPromotions) SECT.reviewPromotions(W);
+        const res = (SECT && SECT.ELDER_STATUS) ? SECT.ELDER_STATUS.evaluateElderAscensions(W, {}) : { ok: false };
+        if (res && res.ok && res.ascended && res.ascended.length) {
+          if (UI.audio) UI.audio.playBell();
+          UI.toast('🎖️ จัดสอบคัดเลือกและเลื่อนขั้นผู้อาวุโสกิตติมศักดิ์สำเร็จ ' + res.ascended.length + ' คน!');
+        } else {
+          UI.toast('🎖️ จัดสอบคัดเลือกศิษย์สายในและประเมินผู้อาวุโสเรียบร้อยแล้ว');
+        }
       }
       UI.render();
       UI.updateHud(true);
@@ -2103,15 +2398,27 @@
       UI.updateHud(true);
     }
     else if (a === 'trigger-alliance-council') {
-      const res = (EXPED && EXPED.tickAllianceCouncil) ? EXPED.tickAllianceCouncil(W, { alignment: arg || null }) : null;
-      UI.toast(res && res.chronicle ? ('⚖️ ' + res.chronicle.titleTh) : 'ประชุมสภาฝ่ายเรียบร้อย');
+      const curDay = W.day || 0;
+      if (W.sect.lastAllianceCouncilDay != null && (curDay - W.sect.lastAllianceCouncilDay) < 60) {
+        UI.toast('⏳ สภาฝ่ายพันธมิตรอยู่ในช่วงคูลดาวน์ 60 วัน (จัดได้อีกครั้งวันที่ ' + (W.sect.lastAllianceCouncilDay + 60) + ')');
+      } else {
+        W.sect.lastAllianceCouncilDay = curDay;
+        const res = (EXPED && EXPED.tickAllianceCouncil) ? EXPED.tickAllianceCouncil(W, { alignment: arg || null }) : null;
+        UI.toast(res && res.chronicle ? ('⚖️ ' + res.chronicle.titleTh) : '⚖️ เรียกประชุมสภาฝ่ายพันธมิตรเรียบร้อย');
+      }
       UI.render();
       UI.updateHud(true);
     }
     else if (a === 'trigger-secret-realm') {
-      const sr = (EXPED && EXPED.spawnSecretRealm) ? EXPED.spawnSecretRealm(W, arg || null, { quiet: true }) : null;
-      const res = (sr && EXPED && EXPED.resolveSecretRealmRace) ? EXPED.resolveSecretRealmRace(W, sr) : null;
-      UI.toast(res && res.chronicle ? ('🌌 ' + res.chronicle.titleTh) : 'สำรวจแดนลับโบราณเรียบร้อย');
+      const curDay = W.day || 0;
+      if (W.sect.lastSecretRealmDay != null && (curDay - W.sect.lastSecretRealmDay) < 90) {
+        UI.toast('⏳ การสำรวจร่องรอยแดนลับโบราณอยู่ในช่วงคูลดาวน์ 90 วัน (สำรวจได้อีกครั้งวันที่ ' + (W.sect.lastSecretRealmDay + 90) + ')');
+      } else {
+        W.sect.lastSecretRealmDay = curDay;
+        const sr = (EXPED && EXPED.spawnSecretRealm) ? EXPED.spawnSecretRealm(W, arg || null, { quiet: true }) : null;
+        const res = (sr && EXPED && EXPED.resolveSecretRealmRace) ? EXPED.resolveSecretRealmRace(W, sr) : null;
+        UI.toast(res && res.chronicle ? ('🌌 ' + res.chronicle.titleTh) : '🌌 สำรวจร่องรอยแดนลับโบราณเรียบร้อย');
+      }
       UI.render();
       UI.updateHud(true);
     }
@@ -2930,7 +3237,7 @@
           '<div class="muted" style="font-size:11px;margin-top:2px">วิถีประจำยอดเขา: <b>' + esc(pObj.paths.join(' + ')) + '</b> · ค่ายกลปราณ <b>+' + Math.round((aura.cultRate || 0.14) * 100) + '%</b></div></div>';
         h += '<div style="display:flex;gap:4px;flex-shrink:0">' +
           (!pObj.founded ? '<button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="found-specific-peak" data-arg="' + esc(pObj.id) + '">🏔️ สถาปนา</button>' : '') +
-          '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="select-peak-tab" data-arg="' + esc(pObj.id) + '">🔍 จัดการ</button>' +
+          '<button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="peak-launch-expedition" data-arg="' + esc(pObj.id) + '">🧭 ส่งทัพสำรวจประจำยอดเขา</button>' + '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="select-peak-tab" data-arg="' + esc(pObj.id) + '">🔍 จัดการ</button>' +
           '</div></div>';
         h += '<div style="font-size:11.5px;margin-top:6px;padding-top:5px;border-top:1px dotted var(--line,#3a3f4a)">' +
           '<div>👑 <b>ประธานยอดเขา:</b> ' + esc(pObj.masterNameTh || 'ยังไม่ได้แต่งตั้ง') + ' · <b>รองประธาน:</b> ' + esc(pObj.deputyNameTh || '-') + '</div>' +
@@ -3029,6 +3336,8 @@
       '</div></div>';
     h += '<div style="display:flex;gap:5px;flex-wrap:wrap">' +
       (!pObj.founded ? '<button class="btn pri" style="padding:4px 10px;font-size:11.5px" data-do="found-specific-peak" data-arg="' + esc(pObj.id) + '">🏔️ สถาปนายอดเขานี้ทันที</button>' : '') +
+      (pObj.founded ? '<button class="btn ' + (pObj.arrayActive ? 'pri' : '') + '" style="padding:4px 10px;font-size:11.5px" data-do="toggle-peak-array" data-arg="' + esc(pObj.id) + '">☯️ ' + (pObj.arrayActive ? 'ค่ายกลปราณ: เปิดอยู่ (Lv.' + (pObj.arrayLevel || 1) + ')' : 'เปิดค่ายกลปราณยอดเขา') + '</button>' : '') +
+      (pObj.founded && (pObj.arrayLevel || 1) < 3 ? '<button class="btn" style="padding:4px 10px;font-size:11.5px" data-do="upgrade-peak-array" data-arg="' + esc(pObj.id) + '">⬆️ อัปเกรดค่ายกลยอดเขา (Lv.' + ((pObj.arrayLevel || 1) + 1) + ')</button>' : '') +
       '<button class="btn ok" style="padding:4px 10px;font-size:11.5px" data-do="distribute-single-peak" data-arg="' + esc(pObj.id) + '">🎁 แจกจ่ายทรัพยากรคลังยอดเขา</button>' +
       '</div></div></div>';
 
@@ -3115,8 +3424,8 @@
   };
 
   /* ----- สำนัก ----- */
-  UI.rSect = () => {
-    const W = UI.G.W, S = W.sect, m = W.byId[S.masterId], tab = UI.tab; let h = '';
+  UI.rSect = wArg => {
+    const W = wArg || (UI.G && UI.G.W), S = W.sect, m = W.byId[S.masterId], tab = UI.tab || 'over'; let h = '';
     if (tab === 'over') {
       const alive = W.npcs.filter(n => !n.dead && !n.exiled);
       const pop = SECT.memberOccupancy ? SECT.memberOccupancy(W) : alive.length;
@@ -3153,7 +3462,60 @@
         h += '<button class="btn" data-do="declare-sect-alignment" data-arg="RIGHTEOUS">☀️ ประกาศจุดยืนฝ่ายธรรมะ</button>';
         h += '<button class="btn" data-do="declare-sect-alignment" data-arg="NEUTRAL">☯️ รักษาจุดยืนสายกลาง (อิสระ)</button>';
         h += '<button class="btn dan" data-do="declare-sect-alignment" data-arg="DEMONIC">🩸 ประกาศจุดยืนฝ่ายอธรรม</button>';
+        h += '<button class="btn pri" data-do="evaluate-elder-ascensions" title="จัดสอบคัดเลือกศิษย์สายในและประเมินศิษย์อาวุโสขึ้นเป็นผู้อาวุโสกิตติมศักดิ์">🎖️ ประเมินเลื่อนขั้นผู้อาวุโสกิตติมศักดิ์</button>';
+        h += '<button class="btn ok" data-do="pay-office-stipends" title="จ่ายเบี้ยหวัดโบนัสพิเศษรายเดือนแก่ขุนนาง (+8 ความพอใจ, +20% ประสิทธิภาพ)">💰 จ่ายเบี้ยหวัดเสริมขุนนาง</button>';
         h += '</div></div>';
+        if (SECT.TOTEMS_BLOODLINES) {
+          const totSt = SECT.TOTEMS_BLOODLINES.ensure(W);
+          const actTots = (totSt && totSt.activeTotems) || [];
+          h += '<h3>🏛️ เสาโทเท็มพิทักษ์สำนัก 4 ทิศ & ♨️ สระชำระไขกระดูกบรรพกาล</h3><div class="card">';
+          h += '<div class="muted" style="font-size:11.5px;margin-bottom:6px">เสาโทเท็มที่เปิดใช้งานแล้ว (' + actTots.length + '/4 ต้น): มอบโบนัสสเตตัสถาวรแก่ศิษย์ทุกคนในสำนักและคงอยู่ข้ามการบันทึกเกม</div>';
+          h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+          Object.values(SECT.TOTEMS_BLOODLINES.TOTEM_CATALOG).forEach(tSpec => {
+            const isBuilt = actTots.includes(tSpec.id);
+            h += '<button class="btn ' + (isBuilt ? 'ok' : 'pri') + '" style="padding:3px 8px;font-size:11px" data-do="erect-totem-pillar" data-arg="' + esc(tSpec.id) + '">🏛️ ' + (isBuilt ? '✓ ' : 'สร้าง') + esc(tSpec.nameTh) + '</button>';
+          });
+          h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="cleanse-marrow-pool" data-arg="' + esc(m ? m.id : '') + '">♨️ สระชำระไขกระดูก (Lv.' + ((totSt && totSt.marrowPoolLevel) || 1) + ')</button>';
+          h += '</div></div>';
+        }
+        if (SECT.AUTOMATION) {
+          const autoPol = SECT.AUTOMATION.ensure(W);
+          const alertsObj = SECT.AUTOMATION.getExecutiveAlerts(W);
+          h += '<h3>⚙️ ศูนย์บัญชาการอัตโนมัติและการแจ้งเตือนเจ้าสำนัก (Executive QoL Dashboard)</h3><div class="card">';
+          h += '<div class="muted" style="font-size:11.5px;margin-bottom:6px">แจ้งเตือนด่วน: คอขวดตบะ ' + alertsObj.bottleneckCount + ' คน · คดีหอวินัยค้าง ' + alertsObj.pendingTribunalCases + ' คดี · เสาค่ายกลชำรุด ' + alertsObj.damagedLeylineAnchors + ' ต้น</div>';
+          h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+          [
+            ['enabled', 'ระบบช่วยบริหารอัตโนมัติ'],
+            ['autoAssignNewDisciplesToPeaks', 'จัดสรรศิษย์ใหม่เข้ายอดเขาอัตโนมัติ'],
+            ['autoDistributeBreakthroughPills', 'แจกโอสถทะลวงด่านอัตโนมัติ'],
+            ['autoRepairLeylines', 'ซ่อมแซมเสาค่ายกลปฐพีอัตโนมัติ'],
+            ['autoTriggerClosedDoorOnBottleneck', 'สั่งกักตนปิดด่านเมื่อติดคอขวดอัตโนมัติ']
+          ].forEach(([rk, labelTh]) => {
+            const on = !!(autoPol && autoPol[rk]);
+            h += '<button class="btn ' + (on ? 'ok' : '') + '" style="padding:3px 8px;font-size:11px" data-do="toggle-automation-rule" data-arg="' + esc(rk) + '">' + (on ? '✓ ' : '○ ') + esc(labelTh) + '</button>';
+          });
+          h += '</div>';
+          if (SECT.TRIBUNAL) {
+            const tb = SECT.TRIBUNAL.ensure(W);
+            const firstCaseId = (tb && tb.activeCases[0] && tb.activeCases[0].id) || 'CASE_1';
+            h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="tribunal-adjudicate" data-arg="' + esc(firstCaseId + '|MERIT_FINE_AND_PENANCE') + '">⚖️ ศาลหอวินัยตัดสินคดี (' + ((tb && tb.activeCases.length) || 0) + ')</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="assign-leyline-guard" data-arg="ANCHOR_NORTH_PEAK|">🛡️ ส่งผู้คุ้มกันเสาปฐพี</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="repair-leyline-anchor" data-arg="ANCHOR_NORTH_PEAK">🔧 ซ่อมแซมเสาค่ายกลปฐพี</button>';
+            h += '<button class="btn dan" style="padding:3px 8px;font-size:11px" data-do="resolve-defector-ultimatum" data-arg="PROTECT_AND_FIGHT">⚔️ ปกป้องศิษย์แปรพักตร์</button>';
+            h += '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="recharge-elemental-barrier" data-arg="100">🛡️ เสริมม่านพลังสำนัก 5 ธาตุ</button>';
+            h += '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="invoke-founder-phantom">👻 อัญเชิญเจตจำนงบูรพาจารย์</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="resolve-faction-schism" data-arg="NEGOTIATE">🏛️ คลี่คลายวิกฤตกบฏก๊ก</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="dispatch-exchange-disciple">🎓 ส่งศิษย์แลกเปลี่ยนข้ามสำนัก</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="claim-bounty-hunt">🎯 ล่าค่าหัวโรงเตี๊ยม</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="bid-black-market">🌙 ประมูลลับตลาดมืด</button>';
+            h += '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="brew-multiphase-pill">⚗️ หลอมโอสถสองระยะ</button>';
+            h += '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="excavate-immortal-tomb">🏛️ ขุดค้นสุสานเซียน 3 ชั้น</button>';
+            h += '<button class="btn dan" style="padding:3px 8px;font-size:11px" data-do="advance-world-crisis" data-arg="ORTHODOX">🌌 ตัดสินใจวิกฤตยุทธภพ</button>';
+            h += '</div>';
+          }
+          h += '</div>';
+        }
       }
       if (SECT.ensureCompanionsAndBloodlines) {
         SECT.ensureCompanionsAndBloodlines(W);
@@ -3594,6 +3956,7 @@
             (selItem.canOpenContainer ? "<button type=\"button\" class=\"btn pri\" data-do=\"open-sect-container\">🎁 เปิดหีบปริศนาในคลัง (1 ใบ)</button>" : "") +
             (selItem.canCookFish ? "<button type=\"button\" class=\"btn pri\" data-do=\"cook-sect-fish\" data-arg=\"" + esc(selItem.id) + "\">🍳 ปรุงอาหารปลาเข้าโรงครัว</button>" : "") +
             (selItem.canDiscardTrash ? "<button type=\"button\" class=\"btn dan\" data-do=\"discard-sect-trash\">🗑️ ทิ้งเศษซากใต้น้ำ</button>" : "") +
+            (selItem.kind === "EQUIPMENT" || selItem.eq ? "<button type=\"button\" class=\"btn pri\" data-do=\"socket-elemental-runes\" data-arg=\"|" + esc((selItem.eq && (selItem.eq.uid || selItem.eq.id)) || selItem.id) + "\">💎 ฝังรูนธาตุ</button>" : "") + (selItem.kind === "EQUIPMENT" || selItem.eq ? "<button type=\"button\" class=\"btn\" data-do=\"awaken-weapon-soul\" data-arg=\"\">🗡️ ปลุกจิตวิญญาณศาสตรา</button>" : "") +
             "<button type=\"button\" class=\"btn pri\" data-do=\"stock-distribute-now\">🎁 ให้หอคลังจัดสรรสวัสดิการ/มอบของ</button>" +
             "<button type=\"button\" class=\"btn\" data-do=\"stock-toggle-more\">" + (UI.stockMoreOpen ? "ปิดรายละเอียด" : "ดูรายละเอียดเต็ม") + "</button>" +
             "</div>" +
@@ -4371,6 +4734,13 @@
     const groups = UI.atlasGroups(nodes, view.zoom), labels = [];
     const regionCount = Object.values(atlas.topology.discoveredRegions || {}).filter(Boolean).length;
     let h = '<div class="atlas-header"><div><span class="atlas-kicker">บันทึกภูมิศาสตร์ยุทธภพ</span><h2>🧭 แผนที่ยุทธภพ</h2></div><span class="atlas-regions">สำรวจแล้ว ' + regionCount + '/5 แคว้น</span></div>';
+    h += '<div class="card" style="padding:6px 8px;margin-bottom:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">' +
+      '<button type="button" class="btn pri" style="padding:3px 8px;font-size:11px" data-do="collect-vassal-tribute" title="เบิกผลผลิตตามฤดูกาลจากสำนักที่ตกเป็นบริวาร">👑 เก็บเกี่ยวบรรณาการสำนักบริวาร</button>' +
+      '<button type="button" class="btn ok" style="padding:3px 8px;font-size:11px" data-do="harvest-resource-nodes" title="รวบรวมแร่และสมุนไพรจากจุดเหมืองโลกที่ส่งคนไปเฝ้า">💎 เก็บเกี่ยวผลผลิตจุดยุทธศาสตร์ทั้งหมด</button>' +
+      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-alliance-council" title="ประชุมเจรจาความร่วมมือและการค้ากับสำนักพันธมิตร (คูลดาวน์ 60 วัน)">⚖ เรียกประชุมสภาฝ่ายพันธมิตร</button>' +
+      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-secret-realm" title="ค้นหาพิกัดถ้ำโบราณที่ซ่อนอยู่ (คูลดาวน์ 90 วัน)">🌌 สำรวจร่องรอยแดนลับโบราณ</button>' +
+      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="evaluate-elder-ascensions" title="ประเมินศิษย์อาวุโสที่มีผลงานเด่นขึ้นเป็นผู้อาวุโส">🎖 ประเมินเลื่อนขั้นผู้อาวุโสกิตติมศักดิ์</button>' +
+      '</div>';
     h += '<div class="atlas-filters" aria-label="ประเภทสถานที่">' + ATLAS_FILTERS.map(([id,label]) => '<button type="button" class="atlas-filter' + (view.filter === id ? ' active' : '') + '" data-do="atlas-filter" data-arg="' + id + '">' + label + '</button>').join('') + '</div>';
     h += '<div class="atlas-legend"><span class="righteous">◆ ธรรมะ</span><span class="demonic">◆ อธรรม</span><span class="neutral">◆ สายกลาง</span><span>แตะจุดเพื่อดูข้อมูล · ลากเพื่อเลื่อน</span></div>';
     const distress = (W.world.vassalDistressCalls || []).find(c => c && !c.resolved);
@@ -5522,6 +5892,9 @@
     if (it.canEquip) {
       btns += "<button type=\"button\" class=\"btn pri\" data-do=\"equip-personal\" data-arg=\"" + n.id + "|" + it.id + "\">สวมใส่</button>";
     }
+    if (it.kind === "EQUIPPED" || it.kind === "EQUIPMENT" || it.rawKind === "EQUIPMENT" || it.eq) {
+      btns += "<button type=\"button\" class=\"btn\" data-do=\"socket-elemental-runes\" data-arg=\"" + n.id + "|" + esc((it.eq && (it.eq.uid || it.eq.id)) || it.id) + "\">💎 ฝังรูนธาตุ</button>";
+    }
     if (it.canRepair || (it.eq && it.eq.procedural && (it.eq.maxDur == null ? 100 : it.eq.maxDur) > 20 && (it.eq.dur == null ? 100 : it.eq.dur) < (it.eq.maxDur == null ? 100 : it.eq.maxDur))) {
       btns += "<button type=\"button\" class=\"btn\" data-do=\"repair-gear\" data-arg=\"" + n.id + "|" + it.id + "\">🔧 ซ่อมศาสตรา</button>";
     }
@@ -5917,14 +6290,52 @@
           }
         }
         h += '</div>';
-        if (CULT.ensurePets) CULT.ensurePets(n);
-        if (Array.isArray(n.pets) && n.pets.length) {
-          const maxP = CULT.maxActivePets ? CULT.maxActivePets(n) : 1;
-          const actP = CULT.activePets ? CULT.activePets(n) : n.pets.filter(p => p && p.active);
-          h += '<h3>🐾 สัตว์อสูรพันธสัญญา (' + actP.length + '/' + maxP + ' ตัวที่ออกรบ · ทั้งหมด ' + n.pets.length + ' ตัว)</h3><div class="card">' + n.pets.map(p => {
-            const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
-            return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><b>' + (p.sovereignAwakened ? '👑 ' : '🐾 ') + esc(p.nameTh) + '</b> <span class="chip ' + (p.active ? 'ok' : '') + '">' + (p.active ? 'ร่วมรบ' : 'พักฟื้น') + ' · T' + (p.tier || 1) + '</span> <span class="chip b">' + esc(gNames[p.growthStage || 1] || 'วัยเยาว์') + '</span><div class="muted" style="font-size:11.5px">ความภักดี ' + Math.round(p.loyalty || 0) + '% · ความอิ่ม/พึงพอใจ ' + Math.round(p.satisfaction || 0) + '% · สายสัมพันธ์ (Bond XP) ' + Math.round(p.bondXp || 0) + '</div></div>';
+        if (CULT.MERIDIANS && n.cult) {
+          const mSt = CULT.MERIDIANS.ensure(n);
+          h += '<h3>🪡 จุดชีพจรพิสดารทั้ง 8 เส้น (' + (mSt.openedCount || 0) + '/8 เส้น)</h3><div class="card">';
+          h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">' + CULT.MERIDIANS.ORDER.map(mid => {
+            const mSpec = CULT.MERIDIANS.CATALOG[mid];
+            const isOpen = !!(mSt.opened && mSt.opened[mid]);
+            return '<button class="btn ' + (isOpen ? 'ok' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="open-meridian" data-arg="' + esc(n.id + '|' + mid) + '">' + (isOpen ? '✦ ' : '🔒 ') + esc(mSpec.nameTh) + '</button>';
           }).join('') + '</div>';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><span class="muted" style="font-size:11px">' + (mSt.allEightOpened ? '🌟 เปิดครบ 8 เส้น: ATK/MATK +8%, Cast +10, ต้านสกัดจุด' : mSt.fourOpened ? '✨ เปิดครบ 4 เส้น: ATK/MATK +4%, Cast +5' : 'กดเลือกเส้นชีพจรเพื่อทะลวงเปิดรับโบนัสเฉพาะทาง') + '</span><button class="btn dan" style="padding:2px 8px;font-size:11px" data-do="trigger-meridian-overdrive" data-arg="' + esc(n.id) + '">⚡ ระเบิดชีพจรพิสดาร (+30% ATK/MATK)</button><button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="enter-closed-door-seclusion" data-arg="' + esc(n.id) + '">🧘 สั่งกักตนปิดด่านทะลวงคอขวด</button></div></div>';
+        }
+        if (CULT.OATH_CATALOG && n.cult && (n.cult.stage || 1) >= 3) {
+          const curOath = n.daoOath || (n.ext && n.ext.daoOath);
+          const seals = n.daoSeals || (n.ext && n.ext.daoSeals) || [];
+          h += '<h3>📜 สัตย์สาบานแห่งมรรคา & ตราประทับเต๋า (' + seals.length + ' ตรา)</h3><div class="card">';
+          if (curOath) {
+            h += '<div style="margin-bottom:6px"><b>' + esc(curOath.nameTh) + '</b> ' + (curOath.upheld ? '<span class="chip ok">รักษาสัตย์ (+' + Math.round((curOath.cultSpeedBonus || 0.25) * 100) + '% อัตราฝึกปราณ)</span>' : '<span class="chip r">สัตย์สาบานพังทลาย</span>') + '</div>';
+          }
+          h += '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+            ['VOW_NO_KILL', 'VOW_CHALLENGE_STRONG', 'VOW_PROTECT_JUNIOR', 'VOW_ABSTAIN_PILLS'].map(oid => {
+              const oSpec = CULT.OATH_CATALOG[oid];
+              return oSpec ? '<button class="btn ' + (curOath && curOath.id === oid && curOath.upheld ? 'pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="bind-dao-oath" data-arg="' + esc(n.id + '|' + oid) + '">📜 ' + esc(oSpec.nameTh) + '</button>' : '';
+            }).join('') + '</div>';
+          if (seals.length) {
+            h += '<div style="margin-top:5px">' + seals.map(s2 => '<span class="chip g">💮 ' + esc(s2.nameTh) + ' (+' + Math.round((s2.btBonus || 0.08) * 100) + '% ทะลวงด่าน)</span>').join(' ') + '</div>';
+          }
+          h += '</div>';
+        }
+        if ((Array.isArray(n.destinyThreads) && n.destinyThreads.length) || n.karmicLedger) {
+          const ths = n.destinyThreads || [];
+          const kl = n.karmicLedger || { virtueKarma: 0, sinKarma: 0, netKarma: 0, aura: 'NEUTRAL' };
+          h += '<h3>🧶 ด้ายชะตาสามสี (' + ths.length + '/5) & สมุดบัญชีกรรม</h3><div class="card">';
+          h += '<div style="margin-bottom:4px">☯️ <b>กุศลกรรม:</b> +' + Math.round(kl.virtueKarma || 0) + ' · <b>อกุศลกรรม:</b> -' + Math.round(kl.sinKarma || 0) + ' · <b>กรรมสุทธิ:</b> ' + Math.round(kl.netKarma || 0) + ' <span class="chip b">' + esc(kl.aura || 'NEUTRAL') + '</span></div>';
+          if (ths.length) {
+            h += ths.map(t2 => '<div style="font-size:11.5px;padding:2px 0"><span class="chip ' + (t2.type === 'GOLD_THREAD' ? 'g' : t2.type === 'RED_THREAD' ? 'ok' : 'r') + '">' + esc(t2.nameTh) + '</span> ' + esc(t2.reasonTh || '') + '</div>').join('');
+          }
+          h += '</div>';
+        }
+        if (CULT.ensurePets) CULT.ensurePets(n);
+        if ((Array.isArray(n.pets) && n.pets.length) || (n.cult && n.cult.path === 'BEAST_SOVEREIGN')) {
+          const pList = Array.isArray(n.pets) ? n.pets : [];
+          const maxP = CULT.maxActivePets ? CULT.maxActivePets(n) : 1;
+          const actP = CULT.activePets ? CULT.activePets(n) : pList.filter(p => p && p.active);
+          h += '<h3>🐾 สัตว์อสูรพันธสัญญา & สถิตร่างอสูร (' + actP.length + '/' + maxP + ' ตัวที่ออกรบ · ทั้งหมด ' + pList.length + ' ตัว)</h3><div class="card">' + pList.map(p => {
+            const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
+            return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><div><b>' + (p.sovereignAwakened ? '👑 ' : '🐾 ') + esc(p.nameTh) + '</b> <span class="chip ' + (p.active ? 'ok' : '') + '">' + (p.active ? 'ร่วมรบ' : 'พักฟื้น') + ' · T' + (p.tier || 1) + '</span> <span class="chip b">' + esc(gNames[p.growthStage || 1] || 'วัยเยาว์') + '</span><div class="muted" style="font-size:11.5px">ความภักดี ' + Math.round(p.loyalty || 0) + '% · ความผูกพัน (Bond) ' + Math.round(p.bond != null ? p.bond : (p.bondXp || 0)) + '</div></div><button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|' + (p.uid || p.id || '')) + '">🐾 ประทับร่างอสูร</button></div>';
+          }).join('') + '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn ok" style="padding:3px 9px;font-size:11px" data-do="ingest-beast-core" data-arg="' + esc(n.id) + '">🐉 กลืนแก่นอสูรหลอมตันเถียน</button><button class="btn" style="padding:3px 9px;font-size:11px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|') + '">⚡ สถิตร่างอสูรคู่สัญญา</button></div></div>';
         }
         if (n.cult && (n.cult.path === 'MECH_PUPPET' || n.mechState)) {
           const ms = CULT.ensureMechState ? CULT.ensureMechState(n) : n.mechState;

@@ -1947,7 +1947,8 @@
     const pass = g.MARTIAL && g.MARTIAL.passiveStats ? g.MARTIAL.passiveStats(npc) : null;
     const inn = g.MARTIAL && g.MARTIAL.innateStats ? g.MARTIAL.innateStats(npc) : null;
     const m = c.mantra ? TECH_BY_ID[c.mantra] : null;
-    const pct = (pass ? (pass.qiMaxPct || 0) : 0) + (inn ? (inn.qiMaxPct || 0) : 0) + (m && m.mantraBonus && m.mantraBonus.qiMaxPct ? m.mantraBonus.qiMaxPct : 0);
+    const renBonus = (npc.meridians && npc.meridians.opened && npc.meridians.opened.REN_MAI) ? 0.15 : 0;
+    const pct = (pass ? (pass.qiMaxPct || 0) : 0) + (inn ? (inn.qiMaxPct || 0) : 0) + (m && m.mantraBonus && m.mantraBonus.qiMaxPct ? m.mantraBonus.qiMaxPct : 0) + renBonus;
     const flat = (pass ? (pass.qiMaxFlat || 0) : 0) + (inn ? (inn.qiMaxFlat || 0) : 0);
     const val = Math.max(1, Math.round(base * (1 + pct) + flat));
     npc._qiMaxCache = { cult: c, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, ver: npc._ver, pver: npc._passVer || 0, val };
@@ -2073,7 +2074,10 @@
     const rest = npc.h.state.rest < 30 ? 0.6 : npc.h.state.rest < 55 ? 0.85 : 1;
     const hd = npc.h.state.heartDemon || 0;
     rc = npc._cultRateBase;
-    if (rc && !(npc.buffs && npc.buffs.length > 0) && rc.lastRest === rest && rc.lastTox === c.toxic && rc.lastHd === hd && rc.lastPillT === (c.pillT > 0 ? c.pillBoost : -1) && (c.path !== "HEART_SOUL" || rc.lastStress === (npc.h.state.stress || 0)) && rc.dynMult !== undefined) {
+    const oathObj = npc.daoOath || (npc.ext && npc.ext.daoOath);
+    const hasOath = !!(oathObj && oathObj.upheld && Number.isFinite(oathObj.cultSpeedBonus));
+    const hasMeridianInj = !!(Array.isArray(npc.inj) && npc.inj.length > 0);
+    if (rc && !hasOath && !hasMeridianInj && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0) && rc.lastRest === rest && rc.lastTox === c.toxic && rc.lastHd === hd && rc.lastPillT === (c.pillT > 0 ? c.pillBoost : -1) && (c.path !== "HEART_SOUL" || rc.lastStress === (npc.h.state.stress || 0)) && rc.dynMult !== undefined) {
       return staticBase * rc.dynMult * (env || 1);
     }
     let toxic, dev;
@@ -2104,8 +2108,29 @@
     const compId = npc.companionId || (npc.h && npc.h.companionId);
     const compMult = compId ? (1 + (Number.isFinite(npc.companionSynergyBonus) ? npc.companionSynergyBonus : 0.25)) : 1;
     const bloodMult = (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.cultRateBonus)) ? (1 + npc.bloodlineTrait.cultRateBonus) : 1;
-    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult;
-    if (rc && !(npc.buffs && npc.buffs.length > 0)) {
+    const oathMult = hasOath ? (1 + clamp(oathObj.cultSpeedBonus, 0.05, 0.35)) : 1;
+    let meridianInjMult = 1;
+    if (hasMeridianInj) {
+      for (let ii = 0; ii < npc.inj.length; ii++) {
+        const inj = npc.inj[ii];
+        if (inj && (inj.id === 'MERIDIAN_OVERDRIVE_BACKLASH' || (inj.part && (inj.part.includes('ชีพจรปกครองร้าว') || inj.part.includes('เส้นลมปราณพิสดาร'))))) {
+          meridianInjMult = 1 - clamp(inj.cultPenaltyPct || 0.30, 0.10, 0.50);
+          break;
+        }
+      }
+    }
+    let peakMult = 1;
+    if (npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.cultivationBonusFor) {
+      const wRef = g.SECT.PEAKS._activeWorld || g.W || (g.G && g.G.W);
+      const pb = g.SECT.PEAKS.cultivationBonusFor(wRef, npc);
+      if (pb > 0) peakMult = 1 + pb;
+    } else if (npc.isIndependentFromPeak && Number.isFinite(npc.independentPenaltyMult)) {
+      peakMult = npc.independentPenaltyMult;
+    }
+    const originMult = (npc.originArc && npc.originArc.awakenedDestinyTrait && Number.isFinite(npc.originArc.awakenedDestinyTrait.cultRateBonus))
+      ? (1 + npc.originArc.awakenedDestinyTrait.cultRateBonus) : 1;
+    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult;
+    if (rc && !hasOath && !hasMeridianInj && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
       rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.dynMult = dynMult;
     }
     return staticBase * dynMult * (env || 1);
@@ -2227,6 +2252,15 @@
       const scarBonus = npc.daoScars.reduce((sum, sc) => sum + (sc && sc.btBonus ? sc.btBonus : 0.05), 0);
       p += Math.min(0.18, scarBonus);
     }
+    const sealBt = (npc.ext && Number.isFinite(npc.ext.btBonusPct)) ? npc.ext.btBonusPct : (Number.isFinite(npc.btBonusPct) ? npc.btBonusPct : (Number.isFinite(npc._btBonusPct) ? npc._btBonusPct : 0));
+    if (sealBt > 0) p += Math.min(0.35, sealBt);
+    if (npc.closedDoorSeclusion && Number.isFinite(npc.closedDoorSeclusion.insightBonusPct) && !(prep && prep._seclusionIncluded)) {
+      p += Math.min(0.30, npc.closedDoorSeclusion.insightBonusPct);
+    }
+    if (npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) {
+      const pkb = g.SECT.PEAKS.getUnitPeakBonuses(npc);
+      if (pkb && pkb.active && pkb.btBonus) p += pkb.btBonus;
+    }
     if (Array.isArray(npc.heartDemons) && npc.heartDemons.length && c.path !== 'DEMON') {
       const unresolvedPen = npc.heartDemons.filter(k => k && !k.resolved).reduce((sum, k) => sum + (k.btPenalty || 0.06), 0);
       p -= Math.min(0.18, unresolvedPen);
@@ -2317,6 +2351,9 @@
       if (m && (!c.mantra || !TECH_BY_ID[c.mantra] || TECH_BY_ID[c.mantra].tier < m.tier) && effSt >= m.tier - 1) c.mantra = m.id;
       ELEM.syncSpecialAccess(npc);
       c.pillT = 0; c.pillBoost = 0; if (g.BN) g.BN.onResult(W, npc, true);
+      if (npc.originArc && !npc.originArc.completed && [3, 5, 7].includes(c.stage) && g.SECT && g.SECT.ORIGIN_ARCS && g.SECT.ORIGIN_ARCS.advanceOriginChapter) {
+        g.SECT.ORIGIN_ARCS.advanceOriginChapter(W, npc, 'PROTECT', { autoFromBreakthrough: true, quiet: true });
+      }
     } else {
       c.prog = CULT.threshold(npc) * (0.5 + 0.2 * clamp(HC.eff(npc, 'intellect.willpower') / 100 * 0.6 + HC.eff(npc, 'personality.composure') / 100 * 0.4 + rng.gauss(0, 0.12), 0, 1));
       const sev = rng.next() < 0.35 ? 2 : 1;
@@ -3648,7 +3685,8 @@
       const isSov = !!(npc.cult && npc.cult.path === 'BEAST_SOVEREIGN');
       const sovScale = isSov ? (npc.cult.sub === 'PRIMORDIAL_BLOOD_MUTATOR' && active.length === 1 ? 1.55 : 1.30) : 1.0;
       const isFused = !!(npc._beastFusedUntil && g.STATS && g.STATS.now < npc._beastFusedUntil);
-      const fuseMult = isFused ? 1.35 : 1.0;
+      const peakBeastMult = (npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses && (g.SECT.PEAKS.getUnitPeakBonuses(npc).petStatBonus > 0)) ? (1 + g.SECT.PEAKS.getUnitPeakBonuses(npc).petStatBonus) : 1.0;
+      const fuseMult = (isFused ? 1.35 : 1.0) * peakBeastMult;
       for (let i = 0; i < active.length; i++) {
         const pet = active[i];
         const w = (weights[i] || 0.25) * sovScale * fuseMult * (0.65 + (pet.bond || 60) / 200);
@@ -3782,7 +3820,8 @@
     if ((sp.tier || 1) > maxTamableTier && !opts.force) {
       return { ok: false, reason: 'ตบะหรือทักษะฝึกอสูรยังไม่ถึงเกณฑ์สำหรับอสูรระดับ T' + sp.tier };
     }
-    let chance = 0.38 + (tamingSk / 160) + (effSt - (sp.tier || 1)) * 0.12 + (isSov ? 0.25 : 0);
+    const peakTameBonus = (npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) ? (g.SECT.PEAKS.getUnitPeakBonuses(npc).tameBonus || 0) : 0;
+    let chance = 0.38 + (tamingSk / 160) + (effSt - (sp.tier || 1)) * 0.12 + (isSov ? 0.25 : 0) + peakTameBonus;
     // Check for spirit feed item in personal or sect stock
     if (npc.inv && npc.inv.pills && npc.inv.pills['P:REC140_BST_SPIRIT_FEED_1'] > 0) {
       npc.inv.pills['P:REC140_BST_SPIRIT_FEED_1']--;
@@ -4516,12 +4555,13 @@
     return clamp(total, 0, 1.25);
   };
 
-  CULT.tickMultiPhasePills = function (W, npc) {
+  CULT.tickMultiPhasePills = function (W, npc, nowTick) {
     if (!npc || !npc.ext || !Array.isArray(npc.ext.multiPhasePills) || !npc.ext.multiPhasePills.length) {
       return { triggered: 0, logs: [] };
     }
-    const dayNow = (W && typeof W.day === 'number') ? W.day : 0;
-    const minNow = (W && typeof W.min === 'number') ? W.min : 0;
+    const tNow = nowTick != null ? nowTick : ((W && typeof W.t === 'number') ? W.t : ((W && W.now) || 0));
+    const dayNow = (W && typeof W.day === 'number') ? W.day : Math.floor(tNow / 1440);
+    const minNow = (W && typeof W.min === 'number') ? W.min : (tNow % 1440);
     const remaining = [];
     const logs = [];
     let triggered = 0;
@@ -4530,8 +4570,9 @@
       if (!mp || mp.resolved) continue;
       const dueDay = mp.triggerDay != null ? mp.triggerDay : (mp.startedDay || 0) + (mp.delayDays || 1);
       const dueMin = mp.triggerMin != null ? mp.triggerMin : 0;
-      const isDue = (dayNow > dueDay) || (dayNow === dueDay && minNow >= dueMin);
-      if (!isDue) {
+      const isDueByTick = mp.triggerTick != null && tNow >= mp.triggerTick;
+      const isDueByDay = (dayNow > dueDay) || (dayNow === dueDay && minNow >= dueMin);
+      if (!isDueByTick && !isDueByDay) {
         remaining.push(mp);
         continue;
       }
@@ -4550,6 +4591,12 @@
         }
         if (p2.fatigueDelta) {
           st.fatigue = clamp((st.fatigue || 0) + p2.fatigueDelta, 0, 100);
+          st.rest = clamp((st.rest == null ? 80 : st.rest) - p2.fatigueDelta, 0, 100);
+          st.energy = clamp((st.energy == null ? 80 : st.energy) - p2.fatigueDelta, 0, 100);
+        }
+        if (p2.energyDelta) {
+          st.rest = clamp((st.rest == null ? 80 : st.rest) + p2.energyDelta, 0, 100);
+          st.energy = clamp((st.energy == null ? 80 : st.energy) + p2.energyDelta, 0, 100);
         }
         if (p2.stressDelta) {
           st.stress = clamp((st.stress || 0) + p2.stressDelta, 0, 100);
@@ -4557,24 +4604,25 @@
       }
       if (npc.cult) {
         if (p2.cultExpAdd) {
-          CULT.gain(npc, p2.cultExpAdd);
+          CULT.gain(npc, p2.cultExpAdd, W, 'multiphase_pill_p2');
         }
         if (p2.toxicDelta) {
           npc.cult.toxic = clamp((npc.cult.toxic || 0) + p2.toxicDelta, 0, 100);
         }
       }
       if (p2.grantBuff && g.STATS && g.STATS.applyNamedBuff) {
-        g.STATS.applyNamedBuff(npc, p2.grantBuff, p2.buffDur || 60, (W && W.now) || 0, { source: mp.itemId || 'MULTI_PHASE_PILL' });
+        g.STATS.applyNamedBuff(npc, p2.grantBuff, p2.buffDur || 60, tNow, { casterId: npc.id, source: mp.itemId || 'MULTI_PHASE_PILL' });
       }
       if (p2.aftermathStatus && g.STATS && g.STATS.addStatus) {
-        g.STATS.addStatus(npc, { k: p2.aftermathStatus, v: p2.aftermathVal || 0.12, dur: p2.aftermathDur || 4, src: mp.itemId || 'MULTI_PHASE_PILL' });
+        g.STATS.addStatus(npc, p2.aftermathStatus, p2.aftermathVal || 0.12, p2.aftermathDur || 4, tNow, mp.itemId || 'MULTI_PHASE_PILL');
       }
-      logs.push({ itemId: mp.itemId, nameTh: mp.nameTh, phase2: p2 });
+      logs.push({ itemId: mp.itemId, nameTh: mp.nameTh, phase2: p2, triggeredAtTick: tNow, triggeredAtDay: dayNow });
       if (W && W.log && npc.h && npc.h.name) {
         W.log('cult', '💊 ฤทธิ์ระยะที่ 2 ของโอสถ「' + (mp.nameTh || mp.itemId) + '」ทำงานในร่างของ ' + npc.h.name.given, [npc.id]);
       }
     }
     npc.ext.multiPhasePills = remaining;
+    npc.lastMultiPhaseTriggered = logs.length ? logs[logs.length - 1] : npc.lastMultiPhaseTriggered;
     if (triggered > 0 && g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
     return { triggered, logs };
   };
@@ -4586,9 +4634,9 @@
    * ========================================================================= */
   const MERIDIANS = {};
   MERIDIANS.CATALOG = Object.freeze({
-    DU_MAI: { id: 'DU_MAI', nameTh: 'เส้นตูม่าย (ชีพจรปกครอง)', p: { atk: 0.10, matk: 0.10 }, f: { pen: 6 }, descTh: 'เปิดชีพจรปกครองแนวสันหลัง เพิ่มพลังโจมตีและโจมตีวิชา +10%' },
+    DU_MAI: { id: 'DU_MAI', nameTh: 'เส้นตูม่าย (ชีพจรปกครอง)', p: { atk: 0.10, matk: 0.10, def: 0.08 }, f: { pen: 6 }, descTh: 'เปิดชีพจรปกครองแนวสันหลัง เพิ่มพลังโจมตี/วิชา +10% และป้องกัน +8%' },
     REN_MAI: { id: 'REN_MAI', nameTh: 'เส้นเหรินม่าย (ชีพจรกำเนิด)', p: { hp: 0.15 }, f: {}, qiMaxBonusPct: 0.15, descTh: 'เปิดชีพจรกำเนิดด้านหน้า เพิ่มพลังชีวิตสูงสุด +15% และความจุปราณ +15%' },
-    CHONG_MAI: { id: 'CHONG_MAI', nameTh: 'เส้นชงม่าย (ชีพจรทะลวง)', p: {}, f: { cast: 12, move: 8 }, qiRegenBonusPct: 0.12, descTh: 'เปิดชีพจรทะลวงศูนย์กลาง เพิ่มความเร็วร่ายวิชา +12 และฟื้นฟูปราณ +12%' },
+    CHONG_MAI: { id: 'CHONG_MAI', nameTh: 'เส้นชงม่าย (ชีพจรทะลวง)', p: { atk: 0.08 }, f: { cast: 12, move: 8, pen: 6 }, qiRegenBonusPct: 0.12, descTh: 'เปิดชีพจรทะลวงศูนย์กลาง เพิ่มพลังโจมตี +8%, ร่ายวิชา +12 และฟื้นฟูปราณ +12%' },
     DAI_MAI: { id: 'DAI_MAI', nameTh: 'เส้นไต้หม่าย (ชีพจรคาดเอว)', p: { def: 0.12, mdef: 0.12 }, f: {}, descTh: 'เปิดชีพจรคาดเอวคุ้มครองตันเถียน เพิ่มป้องกันและป้องกันวิชา +12%' },
     YIN_QIAO: { id: 'YIN_QIAO', nameTh: 'เส้นอินเชียว (ชีพจรส้นเท้าหยิน)', p: { eva: 0.10 }, f: { move: 10 }, descTh: 'เปิดชีพจรเท้าหยิน เพิ่มหลบหลีก +10% และความเร็วเดินทาง +10' },
     YANG_QIAO: { id: 'YANG_QIAO', nameTh: 'เส้นหยางเชียว (ชีพจรส้นเท้าหยาง)', p: { acc: 0.10 }, f: { crit: 6 }, descTh: 'เปิดชีพจรเท้าหยาง เพิ่มความแม่นยำ +10% และอัตราคริ +6%' },
@@ -4600,29 +4648,65 @@
   MERIDIANS.ensure = npc => {
     if (!npc) return null;
     if (!npc.meridians || typeof npc.meridians !== 'object') {
-      npc.meridians = { opened: {}, openedCount: 0, overdriveUntil: 0, acupointImmunity: false };
+      npc.meridians = { opened: {}, openedCount: 0, fourOpened: false, allEightOpened: false, overdriveUntil: 0, acupointImmunity: false };
     }
     if (!npc.meridians.opened || typeof npc.meridians.opened !== 'object') npc.meridians.opened = {};
     npc.meridians.openedCount = Object.keys(npc.meridians.opened).filter(k => npc.meridians.opened[k]).length;
+    npc.meridians.fourOpened = npc.meridians.openedCount >= 4;
     npc.meridians.allEightOpened = npc.meridians.openedCount >= 8;
+    npc.meridians.acupointImmunity = npc.meridians.allEightOpened;
     return npc.meridians;
   };
 
-  MERIDIANS.openMeridian = (npc, meridianId) => {
+  MERIDIANS.openMeridian = (npc, meridianId, opts) => {
+    if (npc && npc.sect && meridianId && typeof meridianId === 'object') {
+      const tmpW = npc; npc = meridianId; meridianId = opts; opts = { W: tmpW };
+    }
+    opts = opts || {};
     if (!npc) return { ok: false, reason: 'no-npc' };
     const m = MERIDIANS.ensure(npc);
     const id = MERIDIANS.CATALOG[meridianId] ? meridianId : MERIDIANS.ORDER.find(k => !m.opened[k]) || 'DU_MAI';
+    if (m.opened[id] && meridianId && MERIDIANS.CATALOG[meridianId] && !opts.allowReopen) {
+      return { ok: true, alreadyOpened: true, meridianId: id, spec: MERIDIANS.CATALOG[id], openedCount: m.openedCount, fourOpened: m.fourOpened, allEightOpened: m.allEightOpened };
+    }
+    if (opts.consumeResource && npc.inv && npc.inv.pills) {
+      const pillKey = Object.keys(npc.inv.pills).find(k => npc.inv.pills[k] > 0 && (k.includes('MERIDIAN') || k.includes('QI')));
+      if (pillKey) {
+        npc.inv.pills[pillKey] -= 1;
+        if (npc.inv.pills[pillKey] <= 0) delete npc.inv.pills[pillKey];
+      }
+    }
     m.opened[id] = true;
     m.openedCount = Object.keys(m.opened).filter(k => m.opened[k]).length;
+    m.fourOpened = m.openedCount >= 4;
     m.allEightOpened = m.openedCount >= 8;
+    m.acupointImmunity = m.allEightOpened;
+    npc._qiMaxCache = null;
+    npc._cultRateBase = null;
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
-    return { ok: true, meridianId: id, spec: MERIDIANS.CATALOG[id], openedCount: m.openedCount, allEightOpened: m.allEightOpened };
+    return {
+      ok: true,
+      meridianId: id,
+      spec: MERIDIANS.CATALOG[id],
+      openedCount: m.openedCount,
+      fourOpened: m.fourOpened,
+      allEightOpened: m.allEightOpened,
+      acupointPassiveUnlocked: m.fourOpened
+    };
   };
 
-  MERIDIANS.openNextMeridian = npc => MERIDIANS.openMeridian(npc, null);
+  MERIDIANS.openNextMeridian = (npc, opts) => MERIDIANS.openMeridian(npc, null, opts);
 
   MERIDIANS.triggerOverdrive = (W, npc, dur) => {
-    if (!npc) return { ok: false };
+    if (W && !npc && (W.h || W.cult || W.meridians)) {
+      npc = W;
+      W = g.W || (g.G && g.G.W) || null;
+    } else if (W && typeof npc === 'number' && dur === undefined && (W.h || W.cult || W.meridians)) {
+      dur = npc;
+      npc = W;
+      W = g.W || (g.G && g.G.W) || null;
+    }
+    if (!npc) return { ok: false, reason: 'no-npc' };
     const m = MERIDIANS.ensure(npc);
     const tNow = (W && W.t != null) ? W.t : ((g.STATS && g.STATS.now) || 0);
     const cleanDur = clamp(Number(dur) || 36, 6, 120);
@@ -4632,11 +4716,11 @@
       g.STATS.applyNamedBuff(npc, 'meridianOverdrive', cleanDur, tNow, { casterId: npc.id });
     }
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
-    return { ok: true, overdriveUntil: m.overdriveUntil, openedCount: m.openedCount };
+    return { ok: true, overdriveUntil: m.overdriveUntil, overdriveUsedInFight: true, openedCount: m.openedCount };
   };
 
   MERIDIANS.getStatBonuses = (npc, now) => {
-    if (!npc || !npc.meridians) return { openedCount: 0, overdrive: false, p: {}, f: {} };
+    if (!npc || !npc.meridians) return { openedCount: 0, fourOpened: false, allEightOpened: false, overdrive: false, p: {}, f: {} };
     const m = MERIDIANS.ensure(npc);
     const tNow = now != null ? now : ((g.STATS && g.STATS.now) || 0);
     const overdrive = m.overdriveUntil > tNow;
@@ -4652,50 +4736,84 @@
       p.atk = (p.atk || 0) + 0.08;
       p.matk = (p.matk || 0) + 0.08;
       f.cast = (f.cast || 0) + 10;
+    } else if (m.fourOpened) {
+      p.atk = (p.atk || 0) + 0.04;
+      p.matk = (p.matk || 0) + 0.04;
+      f.cast = (f.cast || 0) + 5;
     }
     if (overdrive) {
       p.atk = (p.atk || 0) + 0.30;
       p.matk = (p.matk || 0) + 0.30;
       f.cast = (f.cast || 0) + 28;
     }
-    return { openedCount: m.openedCount, allEightOpened: m.allEightOpened, overdrive, p, f };
+    return { openedCount: m.openedCount, fourOpened: m.fourOpened, allEightOpened: m.allEightOpened, overdrive, p, f };
   };
   CULT.MERIDIANS = MERIDIANS;
 
   /* ---------- Section 12.5: Spirit Beast Symbiosis (Possession & Core Ingestion) ---------- */
   const BEAST_SYMBIOSIS = {};
   BEAST_SYMBIOSIS.activatePossession = (W, npc, petUidOrIdx, dur) => {
-    if (!npc) return { ok: false, reason: 'no-npc' };
-    const pets = Array.isArray(npc.pets) ? npc.pets : [];
-    let pet = pets.find(p => p && (p.uid === petUidOrIdx || p.id === petUidOrIdx)) || pets[0];
-    if (!pet) {
-      pet = { uid: 'PET_SYM_' + npc.id, nameTh: 'อสูรพันธสัญญาบรรพกาล', tier: 4, level: 5, bond: 100, element: 'LIGHTNING', active: true };
-      npc.pets = [pet];
+    if (W && !npc && (W.h || W.cult || W.pets || W.ext)) {
+      npc = W;
+      W = g.W || (g.G && g.G.W) || null;
     }
-    pet.bond = Math.max(100, pet.bond || 100);
+    if (!npc) return { ok: false, reason: 'no-npc' };
+    npc.ext = npc.ext || {};
+    const extPets = Array.isArray(npc.ext.pets) ? npc.ext.pets : [];
+    const basePets = Array.isArray(npc.pets) ? npc.pets : [];
+    // Sync pets between npc.pets and npc.ext.pets
+    if (basePets.length && !extPets.length) {
+      npc.ext.pets = basePets.slice();
+    } else if (extPets.length && !basePets.length) {
+      npc.pets = extPets.slice();
+    }
+    const allPets = (Array.isArray(npc.ext.pets) && npc.ext.pets.length) ? npc.ext.pets : (Array.isArray(npc.pets) ? npc.pets : []);
+    let pet = null;
+    if (typeof petUidOrIdx === 'number' && allPets[petUidOrIdx]) {
+      pet = allPets[petUidOrIdx];
+    } else if (petUidOrIdx != null) {
+      pet = allPets.find(p => p && (p.uid === petUidOrIdx || p.id === petUidOrIdx || p.speciesId === petUidOrIdx));
+    } else {
+      pet = allPets.find(p => p && (p.bond != null ? p.bond : (p.loyalty || 0)) >= 80) || allPets[0] || null;
+    }
+    const petBond = pet ? (pet.bond != null ? pet.bond : (pet.loyalty != null ? pet.loyalty : 0)) : 0;
+    if (!pet || petBond < 80) {
+      return { ok: false, reason: !pet ? 'no-pet' : 'insufficient-bond', requiredBond: 80, currentBond: petBond };
+    }
     const tNow = (W && W.t != null) ? W.t : ((g.STATS && g.STATS.now) || 0);
     const cleanDur = clamp(Number(dur) || 36, 8, 120);
-    npc._beastSpiritPossessedUntil = tNow + cleanDur;
-    npc._possessedPetSnapshot = {
-      petUid: pet.uid || pet.id,
+    const until = tNow + cleanDur;
+    const snap = {
+      petUid: pet.uid || pet.id || 'PET_BONDED',
       nameTh: pet.nameTh || 'อสูรคู่สัญญา',
       tier: pet.tier || 3,
       element: pet.element || 'BEAST',
+      bond: petBond,
       statShareRatio: 0.25
     };
+    npc.ext.beastSpiritPossessedUntil = until;
+    npc.ext.possessedPetSnapshot = snap;
+    npc.beastSpiritPossessedUntil = until;
+    npc.possessedPetSnapshot = snap;
+    npc._beastSpiritPossessedUntil = until;
+    npc._possessedPetSnapshot = snap;
     if (g.STATS && g.STATS.applyNamedBuff && !npc.foe) {
       g.STATS.applyNamedBuff(npc, 'beastSpiritPossessed', cleanDur, tNow, { casterId: npc.id });
     }
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
-    return { ok: true, petNameTh: pet.nameTh, until: npc._beastSpiritPossessedUntil, statShareRatio: 0.25 };
+    return { ok: true, petNameTh: snap.nameTh, until, statShareRatio: 0.25, snapshot: snap };
   };
 
   BEAST_SYMBIOSIS.ingestBeastCore = (W, npc, coreSpec) => {
+    if (W && !npc && (W.h || W.cult)) {
+      npc = W;
+      W = g.W || (g.G && g.G.W) || null;
+    }
     if (!npc) return { ok: false, reason: 'no-npc' };
     coreSpec = coreSpec || { id: 'CORE_THUNDER_ROC', nameTh: 'เนยในพญาครุฑอสนี', tier: 5, element: 'LIGHTNING', passiveId: 'PASSIVE_THUNDER_WINGS', p: { atk: 0.10, matk: 0.10 }, f: { move: 14, crit: 6 } };
     npc.ingestedBeastCores = Array.isArray(npc.ingestedBeastCores) ? npc.ingestedBeastCores : [];
     if (npc.ingestedBeastCores.length >= 3) npc.ingestedBeastCores.shift();
-    npc.ingestedBeastCores.push({
+    const entry = {
       id: coreSpec.id || 'CORE_BEAST',
       nameTh: coreSpec.nameTh || 'เนยในอสูรบรรพกาล',
       tier: coreSpec.tier || 4,
@@ -4703,20 +4821,25 @@
       passiveId: coreSpec.passiveId || 'PASSIVE_BEAST_CORE',
       p: coreSpec.p || { atk: 0.08, hp: 0.08 },
       f: coreSpec.f || { move: 10, pen: 8 }
-    });
+    };
+    npc.ingestedBeastCores.push(entry);
+    npc.ext = npc.ext || {};
+    npc.ext.ingestedBeastCores = npc.ingestedBeastCores;
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
-    return { ok: true, count: npc.ingestedBeastCores.length, latestCore: npc.ingestedBeastCores[npc.ingestedBeastCores.length - 1] };
+    return { ok: true, count: npc.ingestedBeastCores.length, latestCore: entry };
   };
 
   BEAST_SYMBIOSIS.getStatBonuses = (npc, now) => {
     if (!npc) return { active: false };
     const tNow = now != null ? now : ((g.STATS && g.STATS.now) || 0);
-    const possessed = npc._beastSpiritPossessedUntil && npc._beastSpiritPossessedUntil > tNow;
-    const cores = Array.isArray(npc.ingestedBeastCores) ? npc.ingestedBeastCores : [];
+    const until = (npc.ext && npc.ext.beastSpiritPossessedUntil) || npc.beastSpiritPossessedUntil || npc._beastSpiritPossessedUntil || 0;
+    const possessed = until > tNow;
+    const snap = (npc.ext && npc.ext.possessedPetSnapshot) || npc.possessedPetSnapshot || npc._possessedPetSnapshot;
+    const cores = Array.isArray(npc.ingestedBeastCores) ? npc.ingestedBeastCores : ((npc.ext && Array.isArray(npc.ext.ingestedBeastCores)) ? npc.ext.ingestedBeastCores : []);
     if (!possessed && !cores.length) return { active: false };
     const p = {}, f = {};
     if (possessed) {
-      const tier = (npc._possessedPetSnapshot && npc._possessedPetSnapshot.tier) || 3;
+      const tier = (snap && snap.tier) || 3;
       p.atk = (p.atk || 0) + 0.18 + tier * 0.02;
       p.matk = (p.matk || 0) + 0.15 + tier * 0.02;
       p.def = (p.def || 0) + 0.15;
@@ -4731,6 +4854,7 @@
     return {
       active: true,
       possessed: !!possessed,
+      possessedUntil: until,
       coreCount: cores.length,
       labelTh: possessed ? 'ประทับร่างอสูรวิญญาณและแก่นเนยใน' : ('แก่นเนยในอสูรหลอมตันเถียน (' + cores.length + ' แก่น)'),
       p,
@@ -4741,14 +4865,23 @@
 
   /* ---------- Section 10.3: Oaths/Vows, Dao Seals, Seasonal Cultivation & Tribulation Variants ---------- */
   CULT.OATH_CATALOG = Object.freeze({
-    VEGETARIAN_PACIFIST: { id: 'VEGETARIAN_PACIFIST', nameTh: 'สัตย์สาบานเมตตาธรรมถือศีล', cultSpeedBonus: 0.25, backlashHeartDemon: 35 },
-    CHALLENGE_HIGHER_REALM: { id: 'CHALLENGE_HIGHER_REALM', nameTh: 'สัตย์สาบานท้าทายผู้เหนือขั้น', cultSpeedBonus: 0.28, combatBonusVsHigher: 0.18, backlashHeartDemon: 30 },
-    PROTECT_JUNIORS: { id: 'PROTECT_JUNIORS', nameTh: 'สัตย์สาบานคุ้มครองศิษย์น้อง', cultSpeedBonus: 0.22, shieldBonusPct: 0.20, backlashHeartDemon: 28 }
+    VOW_NO_KILL: { id: 'VOW_NO_KILL', nameTh: 'สัตย์สาบานเมตตาธรรมละเว้นการสังหาร', cultSpeedBonus: 0.25, backlashHeartDemon: 35, descTh: 'ละเว้นการสังหารศัตรู มอบโบนัสอัตราฝึกปราณ +25%' },
+    VOW_CHALLENGE_STRONG: { id: 'VOW_CHALLENGE_STRONG', nameTh: 'สัตย์สาบานท้าทายผู้มีขั้นพลังสูงกว่า', cultSpeedBonus: 0.28, combatBonusVsHigher: 0.18, backlashHeartDemon: 35, descTh: 'ท้าทายเฉพาะผู้มีขั้นพลังสูงกว่า มอบโบนัสอัตราฝึกปราณ +28%' },
+    VOW_PROTECT_JUNIOR: { id: 'VOW_PROTECT_JUNIOR', nameTh: 'สัตย์สาบานคุ้มครองศิษย์น้องแถวหลัง', cultSpeedBonus: 0.22, shieldBonusPct: 0.20, backlashHeartDemon: 35, descTh: 'คุ้มครองศิษย์น้องแถวหลัง มอบโบนัสอัตราฝึกปราณ +22%' },
+    VOW_ABSTAIN_PILLS: { id: 'VOW_ABSTAIN_PILLS', nameTh: 'สัตย์สาบานงดพึ่งพาโอสถเพิ่มตบะ', cultSpeedBonus: 0.26, backlashHeartDemon: 35, descTh: 'งดพึ่งพาโอสถเพิ่มตบะ มอบโบนัสอัตราฝึกปราณ +26%' },
+    VEGETARIAN_PACIFIST: { id: 'VEGETARIAN_PACIFIST', nameTh: 'สัตย์สาบานเมตตาธรรมถือศีล', cultSpeedBonus: 0.25, backlashHeartDemon: 35, descTh: 'ถือศีลละเว้นการสังหารและโอสถต้องห้าม มอบโบนัสอัตราฝึกปราณ +25%' },
+    CHALLENGE_HIGHER_REALM: { id: 'CHALLENGE_HIGHER_REALM', nameTh: 'สัตย์สาบานท้าทายผู้เหนือขั้น', cultSpeedBonus: 0.28, combatBonusVsHigher: 0.18, backlashHeartDemon: 35, descTh: 'ท้าทายผู้เหนือขั้นพลัง มอบโบนัสอัตราฝึกปราณ +28%' },
+    PROTECT_JUNIORS: { id: 'PROTECT_JUNIORS', nameTh: 'สัตย์สาบานคุ้มครองศิษย์น้อง', cultSpeedBonus: 0.22, shieldBonusPct: 0.20, backlashHeartDemon: 35, descTh: 'คุ้มครองศิษย์น้องในสำนัก มอบโบนัสอัตราฝึกปราณ +22%' }
   });
 
   CULT.bindOathVow = (W, npc, oathId) => {
-    if (!npc) return { ok: false };
-    const spec = CULT.OATH_CATALOG[oathId] || CULT.OATH_CATALOG.CHALLENGE_HIGHER_REALM;
+    if (W && !npc && (W.h || W.cult)) {
+      oathId = npc;
+      npc = W;
+      W = g.W || (g.G && g.G.W) || null;
+    }
+    if (!npc) return { ok: false, reason: 'no-npc' };
+    const spec = CULT.OATH_CATALOG[oathId] || CULT.OATH_CATALOG.VOW_CHALLENGE_STRONG || CULT.OATH_CATALOG.CHALLENGE_HIGHER_REALM;
     npc.daoOath = {
       id: spec.id,
       nameTh: spec.nameTh,
@@ -4756,17 +4889,44 @@
       upheld: true,
       boundDay: (W && W.day) || 0
     };
+    npc.ext = npc.ext || {};
+    npc.ext.daoOath = npc.daoOath;
+    npc._cultRateBase = null;
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
     return { ok: true, oath: npc.daoOath };
   };
 
-  CULT.breakOathVow = (W, npc) => {
-    if (!npc || !npc.daoOath || !npc.daoOath.upheld) return { ok: false };
-    const spec = CULT.OATH_CATALOG[npc.daoOath.id] || { backlashHeartDemon: 30 };
-    npc.daoOath.upheld = false;
-    if (npc.h && npc.h.state) {
-      npc.h.state.heartDemon = clamp((npc.h.state.heartDemon || 0) + spec.backlashHeartDemon, 0, 100);
+  CULT.breakOathVow = (W, npc, reasonTh) => {
+    if (W && (!npc || typeof npc === 'string') && (W.h || W.cult)) {
+      reasonTh = npc;
+      npc = W;
+      W = g.W || (g.G && g.G.W) || null;
     }
-    return { ok: true, brokenOath: npc.daoOath, heartDemonAdded: spec.backlashHeartDemon };
+    const oath = npc && (npc.daoOath || (npc.ext && npc.ext.daoOath));
+    if (!npc || !oath || !oath.upheld) return { ok: false, reason: 'no-active-oath' };
+    const spec = CULT.OATH_CATALOG[oath.id] || { backlashHeartDemon: 35 };
+    const hdAdd = spec.backlashHeartDemon || 35;
+    oath.upheld = false;
+    oath.brokenDay = (W && W.day) || 0;
+    oath.brokenReasonTh = reasonTh || 'ละเมิดสัตย์สาบานแห่งมรรคา';
+    npc.daoOath = oath;
+    if (npc.ext) npc.ext.daoOath = oath;
+    if (npc.h && npc.h.state) {
+      npc.h.state.heartDemon = clamp((npc.h.state.heartDemon || 0) + hdAdd, 0, 100);
+    }
+    npc.inj = Array.isArray(npc.inj) ? npc.inj : [];
+    if (!npc.inj.some(i => i && i.part === 'สัตย์สาบานพังทลาย')) {
+      npc.inj.push({
+        id: 'BROKEN_DAO_OATH',
+        part: 'สัตย์สาบานพังทลาย',
+        why: reasonTh || 'ผิดคำสัตย์สาบานแห่งมรรคา จิตวิญญาณสั่นคลอน',
+        sev: 2,
+        until: ((W && W.t) || 0) + 2880
+      });
+    }
+    npc._cultRateBase = null;
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return { ok: true, brokenOath: oath, heartDemonAdded: hdAdd, injuryAdded: 'สัตย์สาบานพังทลาย' };
   };
 
   CULT.DAO_SEALS = Object.freeze({
@@ -4776,15 +4936,25 @@
   });
 
   CULT.grantDaoSeal = (W, npc, sealId) => {
-    if (!npc) return { ok: false };
+    if (W && (!npc || typeof npc === 'string') && (W.h || W.cult)) {
+      sealId = npc;
+      npc = W;
+      W = g.W || (g.G && g.G.W) || null;
+    }
+    if (!npc) return { ok: false, reason: 'no-npc' };
     const spec = CULT.DAO_SEALS[sealId] || CULT.DAO_SEALS.SEAL_UNDEFEATED_10;
-    npc.daoSeals = Array.isArray(npc.daoSeals) ? npc.daoSeals : [];
+    npc.ext = npc.ext || {};
+    npc.daoSeals = Array.isArray(npc.daoSeals) ? npc.daoSeals : (Array.isArray(npc.ext.daoSeals) ? npc.ext.daoSeals : []);
     if (!npc.daoSeals.some(s => s && s.id === spec.id)) {
       npc.daoSeals.push(Object.assign({ grantedDay: (W && W.day) || 0 }, spec));
     }
-    npc._btBonusPct = Math.min(0.35, (npc._btBonusPct || 0) + spec.btBonus);
+    npc.ext.daoSeals = npc.daoSeals;
+    const totalBtBonus = Math.min(0.35, npc.daoSeals.reduce((sum, s) => sum + ((s && s.btBonus) || 0.08), 0));
+    npc.ext.btBonusPct = +totalBtBonus.toFixed(4);
+    npc.btBonusPct = npc.ext.btBonusPct;
+    npc._btBonusPct = npc.ext.btBonusPct;
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
-    return { ok: true, seal: spec, totalSeals: npc.daoSeals.length };
+    return { ok: true, seal: spec, totalSeals: npc.daoSeals.length, btBonusPct: npc.ext.btBonusPct };
   };
 
   CULT.evaluateSeasonalCultivationMult = (W, npc) => {
@@ -4816,6 +4986,197 @@
     });
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
     return { ok: true, variant: spec, daoScarsCount: npc.daoScars.length };
+  };
+
+
+  /* ---------- Patch v3.3.0 [PROP-04]: Closed-Door Bottleneck Seclusion & Breakthrough Protection ---------- */
+  CULT.attemptBreakthrough = (W, npc, prep) => CULT.breakthrough(W, npc, prep);
+
+  CULT.enterClosedDoorSeclusion = (W, npc, opts) => {
+    opts = opts || {};
+    if (!npc || npc.dead || !npc.cult) return { ok: false, reason: 'invalid-npc' };
+    const thresh = CULT.threshold ? CULT.threshold(npc) : 100;
+    const atBottleneck = (npc.cult.prog || 0) >= thresh * 0.95 || (npc.cult.attempts || 0) >= 1 || opts.force === true;
+    if (!atBottleneck) return { ok: false, reason: 'not-at-bottleneck', prog: npc.cult.prog, threshold: thresh };
+    const targetDays = clamp(Math.round(Number(opts.days) || 15), 1, 60);
+    const protId = opts.protectorId || null;
+    npc.closedDoorSeclusion = {
+      active: true,
+      startedDay: (W && W.day) || 360,
+      targetDays,
+      daysElapsed: 0,
+      insightBonusPct: 0,
+      protectorId: protId,
+      disturbedCount: 0
+    };
+    npc.cult.secl = { started: (W && W.day) || 360, days: targetDays, protectorId: protId };
+    if (W && W.log && !opts.quiet && npc.h && npc.h.name) {
+      const prot = protId && W.byId && W.byId[protId];
+      W.log('cult', '🧘 ' + HC.fullName(npc) + ' เข้าถ้ำปิดด่านกักตนสะสมญาณทะลวงคอขวด (' + targetDays + ' วัน)' + (prot ? (' โดยมี ' + HC.fullName(prot) + ' คุ้มภัยหน้าถ้ำ') : ''), [npc.id, protId].filter(Boolean));
+    }
+    return { ok: true, seclusion: npc.closedDoorSeclusion };
+  };
+
+  CULT.tickClosedDoorSeclusion = (W, opts) => {
+    opts = opts || {};
+    if (!W || !Array.isArray(W.npcs)) return { ok: false, ticked: 0, breakthroughs: [] };
+    let ticked = 0;
+    const breakthroughs = [];
+    for (let i = 0; i < W.npcs.length; i++) {
+      const n = W.npcs[i];
+      if (!n || n.dead || n.exiled || !n.closedDoorSeclusion || !n.closedDoorSeclusion.active) continue;
+      ticked++;
+      const cs = n.closedDoorSeclusion;
+      cs.daysElapsed = (cs.daysElapsed || 0) + 1;
+      cs.insightBonusPct = +Math.min(0.30, cs.daysElapsed * 0.02).toFixed(4);
+      const prot = cs.protectorId && W.byId && W.byId[cs.protectorId];
+      const hasValidProtector = !!(prot && !prot.dead && !prot.exiled && ((prot.h && prot.h.state && prot.h.state.hp) || 100) >= CULT.hpMax(prot) * 0.35);
+      const disturbChance = hasValidProtector ? 0.03 : 0.15;
+      if (!opts.noDisturb && W.rng && W.rng.chance && W.rng.chance(disturbChance)) {
+        cs.disturbedCount = (cs.disturbedCount || 0) + 1;
+        if (n.h && n.h.state) n.h.state.heartDemon = clamp((n.h.state.heartDemon || 0) + 4, 0, 100);
+      } else if (hasValidProtector && n.h && n.h.state) {
+        n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - 2);
+      }
+      if (cs.daysElapsed >= (cs.targetDays || 15) || opts.forceComplete) {
+        const btRes = CULT.attemptBreakthrough(W, n, {
+          env: cs.insightBonusPct,
+          guide: hasValidProtector ? 0.06 : 0,
+          _seclusionIncluded: true
+        });
+        cs.active = false;
+        cs.completedDay = W.day || 360;
+        cs.lastResult = btRes;
+        if (n.cult) n.cult.secl = null;
+        if (btRes && btRes.ok && hasValidProtector) {
+          if (g.SECT && g.SECT.DESTINY_KARMA && g.SECT.DESTINY_KARMA.bindThread) {
+            g.SECT.DESTINY_KARMA.bindThread(W, prot, n, 'GOLD_THREAD', HC.fullName(prot) + ' ยืนหยัดคุ้มภัยหน้าถ้ำจน ' + HC.fullName(n) + ' ทะลวงด่านสำเร็จ');
+          }
+          if (g.SECT && g.SECT.rel) {
+            const rel = g.SECT.rel(n, prot.id);
+            rel.r = clamp((rel.r || 0) + 15, -100, 100);
+            rel.a = clamp((rel.a || 0) + 10, -100, 100);
+          }
+          prot.merit = (prot.merit || 0) + 15;
+        }
+        breakthroughs.push({ npcId: n.id, ok: !!(btRes && btRes.ok), stage: n.cult ? n.cult.stage : 1, insightBonusPct: cs.insightBonusPct, protectorId: hasValidProtector ? prot.id : null });
+      }
+    }
+    return { ok: true, ticked, breakthroughs };
+  };
+
+
+  /* ---------- Patch v3.4.0 [PROP-03]: Path-Specific Secondary Combat Resource Gauges ---------- */
+  CULT.PATH_GAUGES = Object.freeze({
+    XIAN: { id: 'SWORD_INTENT', path: 'XIAN', nameTh: 'เจตจำนงกระบี่ (Sword Intent)', max: 100, gainOnHit: 25, gainOnHurt: 12, finisherNameTh: 'กระบี่หมื่นดาราผ่าสวรรค์', finisherMult: 1.65 },
+    BODY: { id: 'BLOOD_FURNACE', path: 'BODY', nameTh: 'เตาหลอมโลหิตปราณ (Blood Furnace)', max: 100, gainOnHit: 18, gainOnHurt: 28, finisherNameTh: 'หมัดราชันบรรพกาลทลายขุนเขา', finisherMult: 1.65 },
+    GOD: { id: 'DIVINE_FAITH', path: 'GOD', nameTh: 'ศรัทธาเทวะศักดิ์สิทธิ์ (Divine Faith)', max: 100, gainOnHit: 22, gainOnHurt: 18, finisherNameTh: 'ทัณฑ์สวรรค์เทวะจุติ', finisherMult: 1.65 },
+    DEMON: { id: 'DEMONIC_FRENZY', path: 'DEMON', nameTh: 'คลั่งโลหิตอสูร (Demonic Frenzy)', max: 100, gainOnHit: 25, gainOnHurt: 20, finisherNameTh: 'อสูรกลืนสวรรค์ผลาญวิญญาณ', finisherMult: 1.70 },
+    HEART_SOUL: { id: 'SOUL_RESONANCE', path: 'HEART_SOUL', nameTh: 'คลื่นสั่นพ้องจิตวิญญาณ (Soul Resonance)', max: 100, gainOnHit: 22, gainOnHurt: 16, finisherNameTh: 'มายาฝันนิรันดร์ดับจิต', finisherMult: 1.60 },
+    MECH_PUPPET: { id: 'PUPPET_HEAT', path: 'MECH_PUPPET', nameTh: 'พลังงานแกนกลไก (Core Overcharge)', max: 100, gainOnHit: 25, gainOnHurt: 15, finisherNameTh: 'ปืนใหญ่กลไกถล่มดารา', finisherMult: 1.65 },
+    KARMA_SAMSARA: { id: 'KARMIC_WHEEL', path: 'KARMA_SAMSARA', nameTh: 'กงล้อวัฏสงสาร (Karmic Wheel)', max: 100, gainOnHit: 20, gainOnHurt: 25, finisherNameTh: 'กงล้อพิพากษาหกภพภูมิ', finisherMult: 1.65 },
+    BEAST_SOVEREIGN: { id: 'GU_SWARM', path: 'BEAST_SOVEREIGN', nameTh: 'ฝูงกู่และจิตอสูร (Gu Swarm & Beast Fury)', max: 100, gainOnHit: 25, gainOnHurt: 15, finisherNameTh: 'หมื่นอสูรคำรามกลืนฟ้า', finisherMult: 1.65 },
+    SAGE_SUPPORT: { id: 'NECTAR_HARMONY', path: 'SAGE_SUPPORT', nameTh: 'น้ำทิพย์แห่งเต๋า (Nectar Harmony)', max: 100, gainOnHit: 22, gainOnHurt: 18, finisherNameTh: 'พิรุณทิพย์ชุบชีวิตหมื่นบุปผา', finisherMult: 1.50, healPct: 0.25 },
+    CRAFT_CREATION: { id: 'FORGE_FLAME', path: 'CRAFT_CREATION', nameTh: 'เพลิงหลอมสวรรค์ (Heavenly Forge Flame)', max: 100, gainOnHit: 22, gainOnHurt: 16, finisherNameTh: 'ค้อนสวรรค์หลอมศาสตราพิฆาต', finisherMult: 1.60 },
+    ARRAY_TALISMAN: { id: 'TRIGRAM_SIGIL', path: 'ARRAY_TALISMAN', nameTh: 'ยันต์แปดทิศสะสม (Eight-Trigram Sigils)', max: 100, gainOnHit: 22, gainOnHurt: 16, finisherNameTh: 'ค่ายกลมหาเวทย์แปดทิศสังหาร', finisherMult: 1.65 },
+    STRATEGY_GOVERNANCE: { id: 'COMMAND_AUTHORITY', path: 'STRATEGY_GOVERNANCE', nameTh: 'ตราอาญาสิทธิ์จอมทัพ (Command Authority)', max: 100, gainOnHit: 22, gainOnHurt: 16, finisherNameTh: 'พิชัยยุทธ์หมื่นทัพพิชิตศึก', finisherMult: 1.60 }
+  });
+
+  CULT.ensurePathGauge = npc => {
+    if (!npc || npc.foe) return null;
+    const pathKey = (npc.cult && npc.cult.path) || 'XIAN';
+    const spec = CULT.PATH_GAUGES[pathKey] || CULT.PATH_GAUGES.XIAN;
+    if (!npc.pathGauge || npc.pathGauge.id !== spec.id) {
+      npc.pathGauge = {
+        id: spec.id,
+        path: pathKey,
+        nameTh: spec.nameTh,
+        value: 0,
+        max: spec.max || 100,
+        ready: false,
+        triggeredCount: 0,
+        finisherNameTh: spec.finisherNameTh,
+        finisherMult: spec.finisherMult || 1.65
+      };
+    }
+    return npc.pathGauge;
+  };
+
+  CULT.gainPathGauge = (npc, delta) => {
+    const pg = CULT.ensurePathGauge(npc);
+    if (!pg) return null;
+    pg.value = clamp((pg.value || 0) + (Number(delta) || 0), 0, pg.max || 100);
+    pg.ready = pg.value >= (pg.max || 100);
+    return pg;
+  };
+
+  CULT.triggerPathGaugeFinisher = (W, f, caster, target) => {
+    const pg = CULT.ensurePathGauge(caster);
+    if (!pg || pg.value < (pg.max || 100)) return { ok: false, reason: 'gauge-not-full' };
+    const spec = CULT.PATH_GAUGES[pg.path] || CULT.PATH_GAUGES.XIAN;
+    pg.value = 0;
+    pg.ready = false;
+    pg.triggeredCount = (pg.triggeredCount || 0) + 1;
+    let dmgDealt = 0;
+    if (target && g.COMBAT && g.COMBAT.alive(target)) {
+      const baseHm = g.COMBAT.hpMax(target);
+      dmgDealt = Math.max(15, Math.round(baseHm * 0.22 * (spec.finisherMult || 1.65)));
+      g.COMBAT.applyDamage(W, f, caster, target, dmgDealt, spec.finisherNameTh);
+    }
+    if (spec.healPct && g.COMBAT) {
+      const cHm = g.COMBAT.hpMax(caster);
+      g.COMBAT.setHp(caster, Math.min(cHm, g.COMBAT.hp(caster) + Math.round(cHm * spec.healPct)));
+    }
+    caster.fx = { t: (W && W.t) || 0, text: '🔥 ' + spec.finisherNameTh + '!' };
+    caster.lastPathGaugeFinisher = {
+      t: (W && W.t) || 0,
+      gaugeId: pg.id,
+      finisherNameTh: spec.finisherNameTh,
+      dmgDealt,
+      targetId: target ? target.id : null
+    };
+    return { ok: true, gaugeId: pg.id, finisherNameTh: spec.finisherNameTh, dmgDealt, triggeredCount: pg.triggeredCount };
+  };
+
+  /* ---------- Patch v3.4.0 [PROP-05]: 7 Archetype Subpaths 6-Tier Mastery ---------- */
+  CULT.evaluateSubpathArchetypeMastery = (npc, archetypeId, tierOverride) => {
+    if (!npc || !g.SK || !g.SK.SUBPATH_ARCHETYPES_V235) return { ok: false, reason: 'invalid-npc-or-catalog' };
+    const cat = g.SK.SUBPATH_ARCHETYPES_V235;
+    const archId = (archetypeId && cat[archetypeId]) ? archetypeId : (npc.subpathArchetype && cat[npc.subpathArchetype] ? npc.subpathArchetype : 'OATH_BOUND_DUELIST');
+    const spec = cat[archId];
+    const tier = clamp(Math.round(tierOverride != null ? tierOverride : (npc.subpathArchetypeTier != null ? npc.subpathArchetypeTier : ((npc.cult && npc.cult.stage) || 1))), 1, 6);
+    npc.subpathArchetype = archId;
+    npc.subpathArchetypeTier = tier;
+    const tierSpec = (g.SK.ARCHETYPE_MASTERY_TIERS && g.SK.ARCHETYPE_MASTERY_TIERS[tier - 1]) || { tier, statMult: 1 + tier * 0.04 };
+    const sigSkills = g.SK.getArchetypeSignatureSkills ? g.SK.getArchetypeSignatureSkills(archId, tier) : [];
+    npc.unlockedArchetypeSkills = sigSkills;
+    const scaledP = {}, scaledF = {};
+    const mult = tierSpec.statMult || (1 + tier * 0.04);
+    for (const [k, v] of Object.entries((spec.bonusStats && spec.bonusStats.p) || {})) {
+      scaledP[k] = +(v * (0.5 + tier / 6)).toFixed(4);
+    }
+    for (const [k, v] of Object.entries((spec.bonusStats && spec.bonusStats.f) || {})) {
+      scaledF[k] = Math.round(v * (0.5 + tier / 6));
+    }
+    npc.archetypeMasteryState = {
+      archetypeId: archId,
+      nameTh: spec.nameTh,
+      tier,
+      tierNameTh: tierSpec.nameTh,
+      statMult: mult,
+      p: scaledP,
+      f: scaledF,
+      unlockedSkills: sigSkills
+    };
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return {
+      ok: true,
+      archetypeId: archId,
+      tier,
+      statMult: mult,
+      bonusStats: { p: scaledP, f: scaledF },
+      unlockedSkills: sigSkills
+    };
   };
 
   g.CULT = CULT;
