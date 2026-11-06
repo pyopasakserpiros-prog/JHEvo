@@ -4,7 +4,14 @@
   'use strict';
   const U = g.U || require('./util.js'), HC = g.HC, MAP = g.MAP, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, COMBAT = g.COMBAT, EXPED = g.EXPED, JD = g.JD;
   const clamp = U.clamp;
-  const SIM = { VERSION: '1.10.11', PATCH_VERSION: '3.1.1', SAVE_SCHEMA_VERSION: '3.1.0-autonomous-governance-peaks', MIN_PER_YEAR: 360 * 1440 };
+  const SIM = {
+    VERSION: '1.10.11',
+    PATCH_VERSION: '3.6.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0'],
+    SAVE_SCHEMA_VERSION: '3.6.0-immortal-endgame-dynasty',
+    MIN_PER_YEAR: 360 * 1440,
+    TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
+  };
   const E = (n, p) => HC.eff(n, p);
 
 
@@ -285,6 +292,11 @@
     if (g.SECT && g.SECT.CELESTIAL_ALIGNMENTS) g.SECT.CELESTIAL_ALIGNMENTS.ensure(W);
     if (g.SECT && g.SECT.DESTINY_KARMA) g.SECT.DESTINY_KARMA.ensure(W);
     if (g.SECT && g.SECT.LEYLINE_GRID) g.SECT.LEYLINE_GRID.ensure(W);
+    if (g.SECT && g.SECT.TRIBUNAL) g.SECT.TRIBUNAL.ensure(W);
+    if (g.SECT && g.SECT.AUTOMATION) g.SECT.AUTOMATION.ensure(W);
+    if (g.SECT && g.SECT.ensureDefectorPursuit) g.SECT.ensureDefectorPursuit(W);
+    if (g.SECT && g.SECT.ELEMENTAL_BARRIER) g.SECT.ELEMENTAL_BARRIER.ensure(W);
+    if (g.SECT && g.SECT.ANCESTRAL_PAVILION) g.SECT.ANCESTRAL_PAVILION.ensure(W);
     if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
     SIM.dailyUpdate(W, true);
     return W;
@@ -474,6 +486,9 @@
           }
           ms.overclockReady = ms.charge >= 50;
         }
+        if (CULT && CULT.tickMultiPhasePills && n.ext && Array.isArray(n.ext.multiPhasePills) && n.ext.multiPhasePills.length) {
+          CULT.tickMultiPhasePills(W, n, W.t);
+        }
         AI.healTick(W, n);
         g.STATS.recover(n);
         g.CPE.autoUse(W, n);
@@ -644,9 +659,13 @@
     if (silent) return;
     W.npcs.forEach(n => { if (n.dead) return; const age = HC.ageYears(n), life = n.lifespanMax || CULT.lifespan(n); if (age > life * 0.92) { const p = clamp((age - life * 0.92) / (life * 0.08), 0, 1) * 0.06; if (rng.chance(p)) AI.kill(W, n, 'ชราภาพ'); } });
     for (let i = W.npcs.length - 1; i >= 0; i--) { const n = W.npcs[i]; if (n.dead && W.day - n.deathDay > 4) { SIM.snapshotPerson(W, n, "เสียชีวิตและฝังในสุสานสำนัก"); W.npcs.splice(i, 1); W.graveyard.push(n.id); } }
-    if (!W.byId[W.sect.masterId] || W.byId[W.sect.masterId].dead) SECT.succession(W, 'เจ้าสำนักว่าง');
+    if (!W.byId[W.sect.masterId] || W.byId[W.sect.masterId].dead) {
+      if (SECT.resolvePlayerSuccessionCrisis) SECT.resolvePlayerSuccessionCrisis(W, 'เจ้าสำนักเดิมถึงแก่อนิจกรรม');
+      else SECT.succession(W, 'เจ้าสำนักว่าง');
+    }
     SIM.guardRoster(W);
     SIM.assistants(W);
+    if (CULT.tickClosedDoorSeclusion) CULT.tickClosedDoorSeclusion(W);
     SECT.daily(W);
     if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
     W.npcs.forEach(n => { if (!n.dead && !n.away && g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n); });
@@ -703,7 +722,10 @@
     if (SECT && SECT.GRAND_ASSEMBLY_BANQUET && SECT.GRAND_ASSEMBLY_BANQUET.tick) SECT.GRAND_ASSEMBLY_BANQUET.tick(W);
     if (SECT && SECT.HEAVENLY_DAO_DIRECTOR && SECT.HEAVENLY_DAO_DIRECTOR.tick) SECT.HEAVENLY_DAO_DIRECTOR.tick(W);
     if (SECT && SECT.PEAKS && SECT.PEAKS.tick) SECT.PEAKS.tick(W);
-    if (SECT && SECT.CELESTIAL_ALIGNMENTS && SECT.CELESTIAL_ALIGNMENTS.tick) SECT.CELESTIAL_ALIGNMENTS.tick(W);
+    if (SECT && SECT.CELESTIAL_ALIGNMENTS) {
+      if (SECT.CELESTIAL_ALIGNMENTS.tickMonthlyCycle) SECT.CELESTIAL_ALIGNMENTS.tickMonthlyCycle(W);
+      else if (SECT.CELESTIAL_ALIGNMENTS.tick) SECT.CELESTIAL_ALIGNMENTS.tick(W);
+    }
     W.npcs.forEach(n => { if (n.dead || n.cult || n.away) return; if (HC.ageYears(n) > 45) return; const tal = HC.derived(n).cultivationTalent; if (W.rng.chance(clamp((tal - 38) / 200, 0.02, 0.35))) { const ch = CULT.awaken(n, W.rng, null, W.day); if (g.MARTIAL && g.MARTIAL.reconcileInnate) g.MARTIAL.reconcileInnate(n, W); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); n.h.state.qi = CULT.qiMax(n); W.log('awaken', n.h.name.given + ' ตื่นรู้ปราณและก้าวเข้าสู่วิถี' + (CULT.PATHS[ch.path].nameTh || ch.path), [n.id]); HC.experience(n, 'insight', 0.8); } });
   };
   SIM.guardRoster = W => {
@@ -731,9 +753,46 @@
   SIM.serialize = W => {
     if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) W.npcs[i]._cultRateBase = null; } }
     const M = W.map;
-    const snap = { ...(W._saveExtras || {}), schemaVersion: SIM.SAVE_SCHEMA_VERSION, wildlife: W.wildlife, wildResources: W.wildResources, fishing: W.fishing, v: SIM.VERSION, runtimeTiming: W.runtimeTiming, hc: HC.FINGERPRINT, seed: W.seed, t: W.t, speed: W.speed, rng: W.rng.getState(), seqN: W.seqN, logSeq: W.logSeq, deaths: W.deaths, avgSat: W.avgSat, avgMood: W.avgMood, weather: W.weather, market: W.market, sect: W.sect, world: W.world, threat: W.threat, explore: W.explore, npcs: W.npcs, graveyard: W.graveyard, gone: W.gone, logs: W.logs.slice(-600), duelQueue: W.duelQueue, fights: W.fights, foes: W.foes, foeSeq: W.foeSeq, fightSeq: W.fightSeq,
-      map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) } };
-    return JSON.stringify(snap, (k, v) => ((k[0] === '_' && k !== '_ver') || k === 'jianghuSects' || k === 'inventoryIntelligence') ? undefined : v);
+    const snap = {
+      ...(W._saveExtras || {}),
+      schemaVersion: SIM.SAVE_SCHEMA_VERSION,
+      patchVersion: SIM.PATCH_VERSION,
+      celestialAlignment: W.celestialAlignment || null,
+      celestialEvent: W.celestialEvent || null,
+      wildlife: W.wildlife,
+      wildResources: W.wildResources,
+      fishing: W.fishing,
+      v: SIM.VERSION,
+      runtimeTiming: W.runtimeTiming,
+      hc: HC.FINGERPRINT,
+      seed: W.seed,
+      t: W.t,
+      speed: W.speed,
+      rng: W.rng.getState(),
+      seqN: W.seqN,
+      logSeq: W.logSeq,
+      deaths: W.deaths,
+      avgSat: W.avgSat,
+      avgMood: W.avgMood,
+      weather: W.weather,
+      market: W.market,
+      sect: W.sect,
+      world: W.world,
+      threat: W.threat,
+      explore: W.explore,
+      npcs: W.npcs,
+      graveyard: W.graveyard,
+      gone: W.gone,
+      logs: W.logs.slice(-600),
+      duelQueue: W.duelQueue,
+      fights: W.fights,
+      foes: W.foes,
+      foeSeq: W.foeSeq,
+      fightSeq: W.fightSeq,
+      map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
+    };
+    const transientSet = SIM.TRANSIENT_CACHE_KEYS;
+    return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && k !== '_ver' && k !== '_btBonusPct' && k !== '_dantianBonusPct' && k !== '_saveExtras')) ? undefined : v);
   };
   SIM.deserialize = str => {
     const s = JSON.parse(str);
@@ -768,7 +827,7 @@
       W.npcs = s.npcs.map(n => {
         const base = { id: n.id, h: n.h, mods: n.mods || [], ext: n.ext || {}, _ver: n._ver || 1, _c: null, _d: null };
         for (const k of Object.keys(n)) {
-          if (!(k in base) && k[0] !== "_") base[k] = n[k];
+          if (!(k in base) && !SIM.TRANSIENT_CACHE_KEYS.has(k)) base[k] = n[k];
         }
         return base;
       });
@@ -780,7 +839,15 @@
       M.buildings.forEach(b => { b.inside = []; });
       W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
       W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta); W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); }; W.makeNpc = o => SIM.addNpc(W, o);
-      const knownKeys = new Set(['v', 'schemaVersion', 'hc', 'seed', 't', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
+      const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
+      if (s.celestialAlignment) W.celestialAlignment = s.celestialAlignment;
+      if (s.celestialEvent) W.celestialEvent = s.celestialEvent;
+      if (W.sect && W.sect.customPills && ECO) {
+        Object.entries(W.sect.customPills).forEach(([pid, pdef]) => {
+          if (ECO.v235ItemById) ECO.v235ItemById[pid] = pdef;
+          if (ECO.itemById) ECO.itemById[pid] = pdef;
+        });
+      }
       W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));
       if (s.runtimeTiming) W.runtimeTiming = s.runtimeTiming;
       const legacyContent = !s.sect.contentVersion;

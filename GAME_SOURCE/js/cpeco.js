@@ -34,7 +34,12 @@
   };
   CPE.init = W => { CPE.S(W); W.npcs.forEach(n => { if (n.cp == null) n.cp = 40; }); };
   const note = (W, text) => { const c = CPE.S(W); c.log.push({ t: W.t, text }); if (c.log.length > 40) c.log.shift(); };
-  CPE.mint = (W, n, amt, why, quiet) => { amt = Math.round(amt * 10) / 10; if (!(amt > 0)) return 0; const c = CPE.S(W); n.cp = (n.cp || 0) + amt; c.minted += amt; c.dayMint += amt; n.cpEarned = (n.cpEarned || 0) + amt; if (!quiet && amt >= 30) note(W, n.h.name.given + ' ได้ ' + Math.round(amt) + ' คป. (' + why + ')'); return amt; };
+  CPE.mint = (W, n, amt, why, quiet) => {
+    if (n && n.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) {
+      const pkb = g.SECT.PEAKS.getUnitPeakBonuses(W, n);
+      if (pkb && pkb.active && pkb.cpGainBonus > 0) amt *= (1 + pkb.cpGainBonus);
+    }
+    amt = Math.round(amt * 10) / 10; if (!(amt > 0)) return 0; const c = CPE.S(W); n.cp = (n.cp || 0) + amt; c.minted += amt; c.dayMint += amt; n.cpEarned = (n.cpEarned || 0) + amt; if (!quiet && amt >= 30) note(W, n.h.name.given + ' ได้ ' + Math.round(amt) + ' คป. (' + why + ')'); return amt; };
   CPE.spend = (W, n, amt, why) => { if (!Number.isFinite(amt) || amt < 0 || !Number.isFinite(n.cp || 0) || (n.cp || 0) < amt) return false; const c = CPE.S(W); n.cp -= amt; c.burned += amt; c.dayBurn += amt; if (amt >= 40) note(W, n.h.name.given + ' ใช้ ' + Math.round(amt) + ' คป. ' + why); return true; };
   CPE.retireNpc = (W, n, reason) => {
     if (!n || !(n.cp > 0)) return 0;

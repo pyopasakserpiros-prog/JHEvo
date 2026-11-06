@@ -7623,6 +7623,8 @@
     const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], catalysts: {}, crystals: {}, recipes: [], bonusRewards: [], bonusReward: null, bonusRoll: null, retreated: false, failedFloor: null, notes: [], rep: 0, floorsCleared: 0, floorLogs: [] };
     sState.runs = (sState.runs || 0) + 1;
     const maxTargetFloor = clamp(ex.maxFloor != null ? ex.maxFloor : (opts.maxFloor != null ? opts.maxFloor : sc.floors.length), 1, sc.floors.length);
+    const auxMods = EX.partyAuxiliaryModifiers ? EX.partyAuxiliaryModifiers(alive, W) : { speedMult: 1.0, supplySavePct: 0, lootYieldMult: 1.0 };
+    out.auxiliaryModifiers = auxMods;
     const formSyn = (g.COMBAT && g.COMBAT.evaluateFormationSynergy) ? g.COMBAT.evaluateFormationSynergy(alive) : { powerMultiplier: 1, damageMitigation: 0, auraNamesTh: [] };
     if (formSyn.auraNamesTh && formSyn.auraNamesTh.length) {
       out.notes.push('ค่ายกลประสานพลัง: ' + formSyn.auraNamesTh.join(' · '));
@@ -7892,6 +7894,8 @@
     const floors = isPagoda ? EX.NINE_DAO_PAGODA.floors : [1,2,3].map(floor => ({ floor, nameTh: realm.nameTh + ' · ด่าน ' + floor, guardianNameTh: realm.guardianNameTh, basePower: realm.basePower * (1 + (floor - 1) * 0.34), stones: 65 + floor * 15 }));
     const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], unlockedManuals: [], unlockedRecipes: [], catalysts: {}, crystals: {}, recipes: [], bonusRewards: [], notes: [], rep: 0, floorsCleared: 0, floorLogs: [], formationSynergies: [] };
     const target = clamp(Math.floor(ex.maxFloor || ex.target || floors.length), 1, floors.length);
+    const auxMods = EX.partyAuxiliaryModifiers ? EX.partyAuxiliaryModifiers(alive, W) : { speedMult: 1.0, supplySavePct: 0, lootYieldMult: 1.0 };
+    out.auxiliaryModifiers = auxMods;
     const formSyn = g.COMBAT && g.COMBAT.evaluateFormationSynergy ? g.COMBAT.evaluateFormationSynergy(alive) : { powerMultiplier: 1, synergies: [] };
     out.formationSynergies = formSyn.synergies || [];
     const gainedInsights = new Set(); let lastAffinityCount = 0;
@@ -7948,6 +7952,10 @@
         if (g.ECO && g.ECO.addCatalyst && g.ECO.addCatalyst(W, realm.catalystId, 1)) out.catalysts[realm.catalystId] = (out.catalysts[realm.catalystId] || 0) + 1;
         if (floor.floor === 3) {
           const rElems = realm.resonantElements || [realm.element];
+          if (EX.solveElementalPuzzleGate) {
+            const gateRes = EX.solveElementalPuzzleGate(W, alive, { id: 'GATE_' + (realm ? realm.id : 'REALM'), requiredElements: rElems.slice(0, 2), rewardStones: 180 });
+            out.puzzleGateResult = gateRes;
+          }
           W.sect.knownRecipes = W.sect.knownRecipes || [];
           W.sect.library = W.sect.library || [];
           const discRecs = (g.JD && g.JD.ITEMS && g.JD.ITEMS.recipes || []).filter(r => r && r.v212Pack && r.discoverable && rElems.includes(r.element) && !W.sect.knownRecipes.includes(r.id));
@@ -8000,8 +8008,9 @@
     }
   };
 
-  // v2.0.34: Evaluate party out-of-combat exploration & logistics bonuses from Auxiliary Arts & Tools
-  EX.partyAuxiliaryModifiers = function (members) {
+  // v3.2.0 PROP-25: Evaluate party out-of-combat exploration & logistics bonuses from Auxiliary Arts, Mounts & Leylines
+  EX.partyAuxiliaryModifiers = function (members, W) {
+    const wRef = W || (g.W || (g.G && g.G.W)) || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld);
     const mods = {
       speedMult: 1.0,
       supplySavePct: 0,
@@ -8011,7 +8020,7 @@
     };
     if (!Array.isArray(members) || !members.length) return mods;
     for (const n of members) {
-      if (!n || n.alive === false) continue;
+      if (!n || n.alive === false || n.dead) continue;
       const aux = (g.CULT && g.CULT.auxiliaryArtBonus) ? g.CULT.auxiliaryArtBonus(n, 'EXPLORE') : 0;
       if (aux > 0) {
         mods.speedMult += aux * 0.18;
@@ -8020,9 +8029,14 @@
         mods.lootYieldMult += aux * 0.16;
         mods.secretFindBonus += aux * 0.12;
       }
+      if (Array.isArray(n.pets) && n.pets.some(p => p && p.active !== false)) {
+        mods.speedMult += 0.12;
+        mods.supplySavePct += 0.08;
+      }
     }
-    if (g.SECT && g.SECT.LEYLINE_GRID && g.SECT.LEYLINE_GRID.isTerritoryTriangulated && g.W && g.SECT.LEYLINE_GRID.isTerritoryTriangulated(g.W)) {
+    if (g.SECT && g.SECT.LEYLINE_GRID && g.SECT.LEYLINE_GRID.isTerritoryTriangulated && wRef && g.SECT.LEYLINE_GRID.isTerritoryTriangulated(wRef)) {
       mods.speedMult += 0.50;
+      mods.supplySavePct += 0.12;
       mods.hazardResistPct += 0.15;
     }
     mods.speedMult = clamp(mods.speedMult, 1.0, 2.15);
@@ -8033,8 +8047,9 @@
     return mods;
   };
 
-  // Section 11.5: Elemental Realm Puzzles (unlocks ancient vaults via 2E/3E/4E elemental reaction keys)
+  // Section 11.5 & PROP-25: Elemental Realm Puzzles (unlocks ancient vaults via 2E/3E/4E elemental reaction keys)
   EX.solveElementalPuzzleGate = function (W, party, gateSpec) {
+    const wRef = W || (g.W || (g.G && g.G.W)) || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld);
     gateSpec = gateSpec || { id: 'GATE_THERMAL_VAPORIZE', requiredReaction: 'THERMAL_VAPORIZE', requiredElements: ['FIRE', 'WATER_ICE'], rewardStones: 380 };
     const members = Array.isArray(party) ? party.filter(Boolean) : [];
     const partyElements = new Set();
@@ -8042,6 +8057,7 @@
       if (n.h && n.h.root) {
         if (n.h.root.primaryElement) partyElements.add(n.h.root.primaryElement);
         if (Array.isArray(n.h.root.elements)) n.h.root.elements.forEach(e => partyElements.add(e));
+        if (Array.isArray(n.h.root.roots)) n.h.root.roots.forEach(r => { if (r && r.element) partyElements.add(r.element); });
       }
       if (n.cult && Array.isArray(n.cult.techs)) {
         for (const tid of n.cult.techs) {
@@ -8064,16 +8080,31 @@
     const reactionSpec = (CE && CE.resolveElementalReactionSpec && reqEls.length >= 2)
       ? CE.resolveElementalReactionSpec(reqEls.slice(0, -1), reqEls[reqEls.length - 1], gateSpec.requiredReaction)
       : null;
-    if (solved && W && W.sect) {
-      W.sect.stones = (W.sect.stones || 0) + (gateSpec.rewardStones || 350);
+    const rewardStones = solved ? (gateSpec.rewardStones || 350) : 0;
+    let unlockedRecipeId = null;
+    if (solved && wRef && wRef.sect) {
+      wRef.sect.stones = (wRef.sect.stones || 0) + rewardStones;
+      if (Array.isArray(wRef.sect.ledger)) {
+        wRef.sect.ledger.push({ t: wRef.t || 0, amt: rewardStones, why: 'ไขปริศนาประตูกลไกธาตุโบราณ (' + gateSpec.id + ')' });
+      }
+      if (gateSpec.rewardRecipeId) {
+        wRef.sect.knownRecipes = wRef.sect.knownRecipes || [];
+        if (!wRef.sect.knownRecipes.includes(gateSpec.rewardRecipeId)) {
+          wRef.sect.knownRecipes.push(gateSpec.rewardRecipeId);
+        }
+        unlockedRecipeId = gateSpec.rewardRecipeId;
+      }
     }
     return {
       ok: solved,
+      solved,
+      blockedMainPath: false,
       gateId: gateSpec.id,
       requiredElements: reqEls,
       partyElements: Array.from(partyElements),
       reactionTriggered: reactionSpec ? reactionSpec.id : (gateSpec.requiredReaction || 'THERMAL_VAPORIZE'),
-      rewardStones: solved ? (gateSpec.rewardStones || 350) : 0
+      rewardStones,
+      unlockedRecipeId
     };
   };
 
@@ -8098,6 +8129,7 @@
     return { ok: true, count: list.length, destination: 'main_hall' };
   };
 
+  if (g.SECT && g.SECT.IMMORTAL_TOMB) EX.IMMORTAL_TOMB = g.SECT.IMMORTAL_TOMB;
   g.EXPLORE = EX;
   if (typeof module === 'object' && module.exports) module.exports = EX;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

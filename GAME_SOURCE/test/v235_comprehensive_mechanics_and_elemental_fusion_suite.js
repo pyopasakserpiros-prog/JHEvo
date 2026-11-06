@@ -23,7 +23,7 @@ console.log('===================================================================
 
 const W = SIM.create('v235-test-world');
 const CE = COMBAT.COMPOSABLE_ENGINE;
-assert(SIM.PATCH_VERSION === '2.0.35' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1'), `SIM.PATCH_VERSION must be 2.0.35, 3.0.0, 3.1.0 or 3.1.1 (got ${SIM.PATCH_VERSION})`);
+assert(SIM.PATCH_VERSION === '2.0.35' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.1.0' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || SIM.PATCH_VERSION === '3.4.0' || SIM.PATCH_VERSION === '3.5.0' || SIM.PATCH_VERSION === '3.6.0'))), `SIM.PATCH_VERSION must be 2.0.35, 3.0.0, 3.1.0 or 3.1.1 (got ${SIM.PATCH_VERSION})`);
 assert(HC.FINGERPRINT === '155:2f9c9dd7', `HC.FINGERPRINT must remain locked at 155:2f9c9dd7`);
 
 const caster = W.npcs[0];
@@ -277,6 +277,7 @@ for (const evId of ['BLOOD_MOON_ECLIPSE', 'NINE_SUN_CONVERGENCE', 'ASTRAL_METEOR
   assert(evRes && evRes.ok && evRes.event.id === evId, `Celestial Alignment ${evId} triggered`);
 }
 
+caster.ext = caster.ext || {}; caster.ext.pets = [{ uid: 'PET_V235_TEST', nameTh: 'พยัคฆ์สายฟ้าคู่สัญญา', tier: 4, level: 5, bond: 95, element: 'LIGHTNING', active: true }]; caster.pets = caster.ext.pets;
 const posRes = CULT.BEAST_SYMBIOSIS.activatePossession(W, caster, null, 30);
 assert(posRes && posRes.ok && posRes.statShareRatio === 0.25, 'Beast Spirit Possession activated');
 const coreRes = CULT.BEAST_SYMBIOSIS.ingestBeastCore(W, caster, { id: 'CORE_GOLDEN_CROW', nameTh: 'เนยในอีกาทองคำสามขา', tier: 6, element: 'FIRE' });

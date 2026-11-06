@@ -170,7 +170,14 @@
     u.tac.stuckTicks = 0;
     u.tac.archetype = C.resolveCognitiveArchetype ? C.resolveCognitiveArchetype(u) : 'BALANCED';
     if (u.foe && (!u.skl || !u.skl.length)) u.skl = SKs().foeSkills(u);
+    if (W && g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
     if (!u.foe && f.serious) STs().preFight(W, u, f.kind === 'raid');
+    if (!u.foe && g.ECO && g.ECO.triggerArmedConsumables) {
+      g.ECO.triggerArmedConsumables(W, f, u, 'COMBAT_START');
+    }
+    if (!u.foe && u.cult && u.cult.path === 'BEAST_SOVEREIGN' && (f.serious || f.kind === 'raid' || f.kind === 'duel' || f.kind === 'leadership') && g.CULT && g.CULT.BEAST_SYMBIOSIS && g.CULT.BEAST_SYMBIOSIS.activatePossession) {
+      g.CULT.BEAST_SYMBIOSIS.activatePossession(W, u, null, 36);
+    }
     if (!u.foe) {
       AI.interruptFor(W, u);
       u.hidden = false;
@@ -334,7 +341,7 @@
     };
   };
 
-  C.unitZoCRadius = u => {
+  C.unitZoCRadius = (u, W) => {
     if (!u || !C.alive(u)) return 0;
     const ST = STs();
     if (ST && (ST.has(u, 'stun') || ST.has(u, 'paralyze') || ST.has(u, 'fear') || ST.has(u, 'cryoStasis'))) return 0;
@@ -344,6 +351,10 @@
     let r = wp.reachClass === 'LONG_POLEARM' ? 1.65 : wp.reachClass === 'HEAVY_BREAKER' ? 1.45 : 1.25;
     if (u._activeStance === 'VAJRA_BASTION_STANCE' || u._activeStance === 'IRON_VAJRA_GUARD' || (ST && ST.has(u, 'guardUp'))) r += 0.30;
     if (!u.foe && u.cult && (u.cult.path === 'BODY' || u.cult.path === 'GOD')) r += 0.15;
+    const wRef = W || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+    if (!u.foe && wRef && wRef.sect && wRef.sect.vanguardPosture === 'SPEAR_ZOC_PHALANX' && (wp.reachClass === 'LONG_POLEARM' || wp.weaponType === 'SPEAR' || wp.weaponType === 'STAFF')) {
+      r += 0.35;
+    }
     if (u.isGateBeast && (u.fourSymbol === 'BLACK_TORTOISE' || u.bloodlineTrait === 'IRON_CARAPACE')) r += 0.35;
     return +r.toFixed(2);
   };
@@ -675,6 +686,18 @@
       W = { t: (g.STATS && g.STATS.now) || 0, rng: { chance: () => false, next: () => 0.5 }, byId: {} };
       f = { id: 0, serious: false, A: [d.id], B: [] };
     }
+    if (dmg > 0 && d && !d.foe && d.equip && d.equip.ARMOR && g.ECO && g.ECO.adaptArmorToElement) {
+      const incEl = (f && f._lastAttackElement) || (a && a.element) || (a && a.h && a.h.root && a.h.root.primaryElement) || null;
+      if (incEl && incEl !== 'NEUTRAL') {
+        const prevElem = d.equip.ARMOR.adaptiveState && d.equip.ARMOR.adaptiveState.lastElement;
+        const prevResist = (d.equip.ARMOR.adaptiveState && prevElem === String(incEl).toUpperCase()) ? (d.equip.ARMOR.adaptiveState.resistBonusPct || 0) : 0;
+        const adState = g.ECO.adaptArmorToElement(d, d.equip.ARMOR, incEl);
+        const resist = Math.max(prevResist, (adState && adState.stacks > 1) ? adState.resistBonusPct : 0);
+        if (resist > 0) {
+          dmg *= (1 - clamp(resist, 0, 0.30));
+        }
+      }
+    }
     if (dmg > 0 && C.COMPOSABLE_ENGINE && f && (f._composableDepth || 0) < 3) {
       dmg = C.COMPOSABLE_ENGINE.interceptPreDamage(W, f, a, d, dmg, note);
     }
@@ -707,6 +730,19 @@
           }
         }
       }
+    }
+    if (f && f.kind === 'raid' && !d.foe && W && W.sect && W.sect.elementalBarrier && W.sect.elementalBarrier.active && W.sect.elementalBarrier.barrierHp > 0 && dmg > 0) {
+      const bar = W.sect.elementalBarrier;
+      const absDmg = Math.min(bar.barrierHp, Math.max(1, Math.round(dmg * (bar.absorbRatio || 0.35))));
+      bar.barrierHp = Math.max(0, bar.barrierHp - absDmg);
+      bar.totalAbsorbed = (bar.totalAbsorbed || 0) + absDmg;
+      dmg = Math.max(1, dmg - absDmg);
+      d.lastBarrierAbsorb = { t: W.t, absorbed: absDmg, remainingBarrierHp: bar.barrierHp };
+      if (bar.barrierHp <= 0) bar.active = false;
+    }
+    if (!d.foe && dmg > 0 && g.CULT && g.CULT.gainPathGauge) {
+      const pSpec = g.CULT.PATH_GAUGES && d.cult ? g.CULT.PATH_GAUGES[d.cult.path] : null;
+      g.CULT.gainPathGauge(d, (pSpec && pSpec.gainOnHurt) || 15);
     }
     const nonlethal = !f.serious, hm = C.hpMax(d);
     if (dmg > 0 && !d.foe && d.cult && d.cult.path === 'KARMA_SAMSARA' && note !== 'สะท้อนจิต' && note !== 'วิบากสะท้อน' && CULT.ensureKarmaState) {
@@ -797,7 +833,15 @@
       }
     }
     if (d.act && d.act.ctx && d.act.ctx.channeling) {
-      if (dmg >= hm * 0.12) C.interruptChannel(W, f, d, 'ถูกโจมตีหนัก');
+      const ch = d.act.ctx.channeling;
+      if (ch.isChargedSkill && Number.isFinite(ch.poiseShield)) {
+        ch.poiseShield = Math.max(0, ch.poiseShield - Math.max(10, Math.round(dmg)));
+        if (ch.poiseShield <= 0) {
+          C.interruptChannel(W, f, d, 'เกราะปราณชาร์จวิชาถูกทำลาย', a);
+        }
+      } else if (dmg >= hm * 0.12) {
+        C.interruptChannel(W, f, d, 'ถูกโจมตีหนัก', a);
+      }
     }
     if (!d.foe) { d.lastHurtBy = a ? a.id : d.lastHurtBy; d.h.state.stress += 0.8; d.h.state.fear = clamp(d.h.state.fear + 1.5 * (1 - E(d, 'personality.courage') / 130), 0, 100); HC.trainBody(d, 'toughness', 0.15); if (W.rng.chance(0.02 * (dmg / hm * 10))) AI.injure(W, d, hp < hm * .3 ? 2 : 1, 'บาดแผลจากการต่อสู้'); }
     if (hp <= 0) {
@@ -853,11 +897,14 @@
         C.recordTacticalHighlight(W, f, 'LOS_COVER', reasonTh, {
           actorId: a.id, targetId: d.id, protectorId: blk.id
         });
+        if (hpFrac(d) < 0.25 && !blk.foe && !d.foe && g.SECT && g.SECT.DESTINY_KARMA && g.SECT.DESTINY_KARMA.bindThread) {
+          g.SECT.DESTINY_KARMA.bindThread(W, blk, d, 'GOLD_THREAD', C.name(blk) + ' ยืนขวางแนวยิงช่วยชีวิต ' + C.name(d) + ' ยามวิกฤต');
+        }
         let losDmgMult = 0.78;
         if (!blk.foe && W.sect && W.sect.vanguardPosture === 'IRON_SHIELD_WALL') {
           losDmgMult = 0.65;
         }
-        return { interceptor: blk, kind: 'LOS_COVER', dmgMult: losDmgMult, reasonTh };
+        return { interceptor: blk, kind: 'LOS_COVER', dmgMult: losDmgMult, reasonTh, interceptCap: 0.85 };
       }
     }
 
@@ -902,9 +949,11 @@
         sc += 0.5;
       }
       sc -= distToAlly * 0.35;
+      const cappedChance = Math.min(0.85, clamp(sc / 4.2, 0.15, 0.85));
+      sc = Math.min(sc, 3.85);
       if (sc > bestScore && sc >= 1.35) {
         bestScore = sc;
-        bestGuard = { unit: al, bondLabel, dist: distToAlly };
+        bestGuard = { unit: al, bondLabel, dist: distToAlly, interceptChance: cappedChance, sc };
       }
     }
 
@@ -925,11 +974,15 @@
         gUnit.x = proj.x;
         gUnit.y = proj.y;
       }
+      // PROP-12: Bind GOLD_THREAD when rescuing a critically wounded ally (HP < 25%)
+      if (dHpFrac < 0.25 && !gUnit.foe && !d.foe && g.SECT && g.SECT.DESTINY_KARMA && g.SECT.DESTINY_KARMA.bindThread) {
+        g.SECT.DESTINY_KARMA.bindThread(W, gUnit, d, 'GOLD_THREAD', C.name(gUnit) + ' พุ่งเข้ารับคมศาสตราช่วยชีวิต ' + C.name(d) + ' ยามปางตาย');
+      }
       const ft = C.ensureFightTac(f, tNow);
       ft.stats.intercepts = (ft.stats.intercepts || 0) + 1;
       const reasonTh = C.name(gUnit) + ' พุ่งเข้าขวางคมศาสตราคุ้มกัน' + bestGuard.bondLabel + ' ' + C.name(d);
       gUnit.fx = { t: tNow, text: '🛡️ คุ้มกัน ' + C.name(d) + '!' };
-      gUnit.lastInterceptEvent = { t: tNow, kind: 'BODYGUARD_INTERCEPT', protectedId: d.id, attackerId: a.id, bondLabel: bestGuard.bondLabel, reasonTh };
+      gUnit.lastInterceptEvent = { t: tNow, kind: 'BODYGUARD_INTERCEPT', protectedId: d.id, attackerId: a.id, bondLabel: bestGuard.bondLabel, reasonTh, interceptChance: bestGuard.interceptChance };
       C.recordTacticalHighlight(W, f, 'BODYGUARD_INTERCEPT', reasonTh, {
         actorId: a.id, targetId: d.id, protectorId: gUnit.id, bondLabel: bestGuard.bondLabel
       });
@@ -937,13 +990,13 @@
       if (!gUnit.foe && W.sect && W.sect.vanguardPosture === 'IRON_SHIELD_WALL') {
         dmgMult = 0.70;
       }
-      return { interceptor: gUnit, kind: 'BODYGUARD_INTERCEPT', dmgMult, reasonTh };
+      return { interceptor: gUnit, kind: 'BODYGUARD_INTERCEPT', dmgMult, reasonTh, interceptChance: bestGuard.interceptChance, interceptCap: 0.85 };
     }
     return null;
   };
 
   /* หนึ่งการโจมตี: o = {M, type:'p'|'m', pen, dotHalf, forced, noCounter, noProc, crit+} */
-  C.strike = (W, f, a, d, o) => {
+  C.hit = C.strike = (W, f, a, d, o) => {
     o = o || {};
     let originalTarget = d;
     let interceptInfo = null;
@@ -1123,17 +1176,37 @@
         frac *= 1.15;
       }
     }
+    if (!a.foe && a.karmicLedger) {
+      if (a.karmicLedger.aura === 'ASURA_BLOOD_AURA' || (a.karmicLedger.sinKarma || 0) >= 50) frac *= 1.12;
+      else if ((a.karmicLedger.virtueKarma || 0) >= 30 && (d.foe || (d.karmicLedger && (d.karmicLedger.sinKarma || 0) >= 30))) frac *= 1.12;
+    }
+    if (!d.foe && d.karmicLedger && (d.karmicLedger.aura === 'GOLDEN_BODHI_HALO' || (d.karmicLedger.virtueKarma || 0) >= 50)) {
+      frac *= 0.90;
+    }
+    if (f) {
+      f._lastAttackElement = (o.skill && o.skill.element) || (a.equip && a.equip.WEAPON && a.equip.WEAPON.element) || a.element || (a.h && a.h.root && a.h.root.primaryElement) || null;
+    }
     if (W && g.SECT && g.SECT.LEYLINE_GRID && g.SECT.LEYLINE_GRID.isTerritoryTriangulated && g.SECT.LEYLINE_GRID.isTerritoryTriangulated(W)) {
       if (!d.foe && a.foe) frac *= 0.88;
       else if (!a.foe && d.foe) frac *= 1.10;
     }
     if (ST.has(d, 'poiseBroken', W.t)) frac *= 1.35;
+    let avatarAssisted = false;
+    if (!a.foe && ((a._weaponAvatar && a._weaponAvatarFightId === (f && f.id)) || (a.lastWeaponAvatar && f && ((Array.isArray(f.A) && f.A.includes(a.lastWeaponAvatar.id)) || (Array.isArray(f.B) && f.B.includes(a.lastWeaponAvatar.id)))))) {
+      frac *= 1.18;
+      avatarAssisted = true;
+      a.lastAvatarStrike = { t: W.t, targetId: d.id, bonusPct: 0.18 };
+    }
     frac = clamp(frac, o.forced ? 0.0001 : 0.005, 1.85);
     if (nonlethal) frac *= 0.55;
     const hm = C.hpMax(d), beastGuard = !d.foe && g.MARTIAL && g.MARTIAL.isBeast(a) ? g.MARTIAL.skillEffects(d).beastDamage : 1, dmg = hm * frac * beastGuard;
     a.fx = a.fx || {}; if (!o.silent) { a.fx = { t: W.t, text: o.label || (crit ? 'จุดตาย!' : type === 'p' ? W.rng.pick(FX_PHYS) : W.rng.pick(FX_MAG)) }; }
-    d.fx = { t: W.t, text: (crit ? '✦' : '') + '-' + Math.max(1, Math.round(dmg)) };
+    d.fx = { t: W.t, text: (avatarAssisted ? '⚡ ร่างจำแลงศาสตราประสานโจมตี! ' : (crit ? '✦' : '')) + '-' + Math.max(1, Math.round(dmg)) };
     if (!a.foe) { a.h.state.energy = Math.max(0, a.h.state.energy - 0.15); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, (g.MARTIAL ? ({ FIST: 'FIST_PALM' }[g.MARTIAL.equippedType(a)] || g.MARTIAL.equippedType(a)) : g.AI.pickTeachSkill(a, a)), 1 / 90, 1.1); HC.trainBody(a, 'reflex', 0.1); a.lastHurt = null; }
+    if (!a.foe && g.CULT && g.CULT.gainPathGauge) {
+      const pSpec = g.CULT.PATH_GAUGES && a.cult ? g.CULT.PATH_GAUGES[a.cult.path] : null;
+      g.CULT.gainPathGauge(a, (pSpec && pSpec.gainOnHit) || 20);
+    }
     const killed = C.applyDamage(W, f, a, d, dmg);
     if (!o.isPetAssist && g.ECO && g.ECO.wearGear) {
       const seriousMult = (f && f.serious) ? 1.0 : 0.35;
@@ -2203,7 +2276,12 @@
     u.act.ctx.cds = u.act.ctx.cds || {};
     u.act.ctx.cds[ch.skillId] = W.t + Math.round(((ch.skill && ch.skill.cd) || 16) * 0.65);
     const skName = (ch.skill && ch.skill.nameTh) || 'วิชาร่ายต่อเนื่อง';
+    const wasCharged = !!ch.isChargedSkill;
     delete u.act.ctx.channeling;
+    if (wasCharged) {
+      STs().addStatus(u, 'weaken', 8, null, W.t);
+      u.lastChannelBacklash = { t: W.t, skillId: ch.skillId, skillNameTh: skName, reason: reason || 'ปราณชาร์จตีกลับ' };
+    }
     u.fx = { t: W.t, text: '⚡ เสียสมาธิ!' };
     u.lastInterrupted = { t: W.t, skillId: ch.skillId, skillNameTh: skName, reason: reason || 'ถูกขัดจังหวะ', byId: interrupter ? interrupter.id : null };
     if (f) {
@@ -2249,6 +2327,9 @@
       label: isFinal ? '💥 ' + ch.skill.nameTh + ' ปะทุ!' : '🌀 คลื่นพลัง (' + (ch.totalTicks - ch.ticksLeft + 1) + '/' + ch.totalTicks + ')'
     });
     if (r.hit && ch.skill) applyRiders(W, f, a, t, ch.skill, r);
+    if (isFinal && ch.isChargedSkill) {
+      a.lastChargedRelease = { t: W.t, skillId: ch.skillId, mult: mult, releaseMult: ch.releaseMult || 1.65, targetId: t.id };
+    }
     ch.ticksLeft--;
     if (ch.ticksLeft <= 0 || !C.alive(t)) {
       STs().clearStatus(a, x => x.k === 'channeling');
@@ -2291,11 +2372,30 @@
       if (victim.fx) victim.fx = { t: W.t, text: '💨 สลายร่าง' };
       return;
     }
+    if (killer && !killer.foe && g.ECO && g.ECO.recordWeaponKill) {
+      g.ECO.recordWeaponKill(W, killer, null, victim);
+    }
+    if (!victim.foe && victim.equip && victim.equip.WEAPON && ((victim.rank || 0) >= 4 || (victim.cult && (victim.cult.stage || 0) >= 4)) && (victim.equip.WEAPON.tier || 1) >= 3 && g.SECT && g.SECT.SOUL_FORGE && g.SECT.SOUL_FORGE.imbueElderSoulIntoWeapon) {
+      g.SECT.SOUL_FORGE.imbueElderSoulIntoWeapon(W, victim, victim.equip.WEAPON);
+    }
+    if (killer && !killer.foe && killer.daoOath && killer.daoOath.upheld && (killer.daoOath.id === 'VOW_NO_KILL' || killer.daoOath.id === 'VEGETARIAN_PACIFIST') && g.CULT && g.CULT.breakOathVow) {
+      g.CULT.breakOathVow(W, killer, 'สังหารศัตรูละเมิดสัตย์สาบานเมตตาธรรม');
+    }
     if (f) {
       const vAllies = C.alliesOf(W, f, victim.id).filter(u => u && u.id !== victim.id && C.alive(u));
       const vEnemies = C.enemies(W, f, victim.id).filter(u => u && C.alive(u));
       for (const al of vAllies) runPassiveProcs(W, f, al, killer || victim, 'onAllyFall', 0);
       for (const en of vEnemies) runPassiveProcs(W, f, en, victim, 'onEnemyFall', 0);
+    }
+    // PROP-12: Bind BLACK_THREAD on bereaved mentor, disciple, companion, or close friend
+    if (W && Array.isArray(W.npcs) && !victim.foe && killer && g.SECT && g.SECT.DESTINY_KARMA && g.SECT.DESTINY_KARMA.bindThread) {
+      W.npcs.forEach(n => {
+        if (!n || n.dead || n.id === victim.id || n.id === killer.id) return;
+        const isClose = n.companionId === victim.id || n.mentorId === victim.id || victim.mentorId === n.id || (SECT && SECT.rel && (SECT.rel(n, victim.id).a || 0) >= 45);
+        if (isClose) {
+          g.SECT.DESTINY_KARMA.bindThread(W, n, killer, 'BLACK_THREAD', 'หนี้แค้นสังหาร「' + C.name(victim) + '」');
+        }
+      });
     }
     if (!killer.foe && !killer.dead && killer.cult && killer.cult.path === 'DEMON') {
       const vTier = victim.tier || (victim.cult && victim.cult.stage) || 1;
@@ -2314,6 +2414,9 @@
     }
     AI.kill(W, victim, killer.foe ? 'ถูก' + killer.name + 'สังหาร' : 'ถูก' + killer.h.name.given + 'สังหารในการดวล');
     if (!killer.foe) { HC.experience(killer, 'killed_foe', 0.8); const r = SECT.rel(killer, victim.id); AI.mem(W, killer, 'ปลิดชีพ ' + victim.h.name.given, 1, victim.id); killer.stats = killer.stats || {}; killer.stats.kills = (killer.stats.kills || 0) + 1; }
+    if (W && W.sect && victim.id === W.sect.masterId && g.SECT && g.SECT.resolvePlayerSuccessionCrisis && (!f || f.kind !== 'leadership')) {
+      g.SECT.resolvePlayerSuccessionCrisis(W, 'เจ้าสำนักเดิมสิ้นชีพในการต่อสู้');
+    }
   };
 
   /* พฤติกรรมต่อนาทีของผู้ต่อสู้ที่เป็น NPC (Patch v3.0.0: Joint Tactical Engagement & Range-Aware Positioning) */
@@ -2332,7 +2435,24 @@
     if (n.dead || n.yield || n.fled) return;
     const nTac = C.ensureUnitTac(n);
     if (nTac.reactionReadyAt <= W.t && nTac.reactionCharges < 1) nTac.reactionCharges = 1;
+    if (!n.foe && n.equip && n.equip.WEAPON && ((n.equip.WEAPON.weaponSpirit && n.equip.WEAPON.weaponSpirit.stage >= 5) || (n.equip.WEAPON.weaponSpirit && n.equip.WEAPON.weaponSpirit.imbuedElderSoul) || n.equip.WEAPON.isAncestralSoulRelic) && n._weaponAvatarFightId !== f.id && g.SECT && g.SECT.SOUL_FORGE && g.SECT.SOUL_FORGE.manifestWeaponAvatar) {
+      const avRes = g.SECT.SOUL_FORGE.manifestWeaponAvatar(W, f, n);
+      if (avRes && avRes.ok) {
+        n._weaponAvatarFightId = f.id;
+        n._weaponAvatar = avRes.avatar;
+      }
+    }
+    if (n.meridians && n.meridians.openedCount > 0 && !n.meridians.overdriveUsedInFight && hpFrac(n) < 0.25 && g.CULT && g.CULT.MERIDIANS && g.CULT.MERIDIANS.triggerOverdrive) {
+      if (E(n, 'personality.courage') >= 55 || E(n, 'personality.aggression') >= 55 || n.meridians.autoOverdrive !== false) {
+        g.CULT.MERIDIANS.triggerOverdrive(W, n, 36);
+        n.fx = { t: W.t, text: '⚡ ระเบิดชีพจรพิสดาร!' };
+      }
+    }
     runPassiveProcs(W, f, n, null, 'combatTick', 0);
+    if (n.pathGauge && n.pathGauge.ready && g.CULT && g.CULT.triggerPathGaugeFinisher) {
+      const enemies = C.enemies(W, f, n.id).filter(C.alive);
+      if (enemies.length > 0) g.CULT.triggerPathGaugeFinisher(W, f, n, enemies[0]);
+    }
     if (n.h.state.qi != null && n.cult && !ST.has(n, 'stygianFreeze', W.t)) {
       const qm = CULT.qiMax(n);
       const hasConduit = ST.hasBuff && ST.hasBuff(n, 'qiConduit', W.t);
@@ -2635,9 +2755,15 @@
           u.meridians.overdriveUsedInFight = false;
           u.meridians.overdriveUntil = 0;
           u.inj = Array.isArray(u.inj) ? u.inj : [];
-          if (u.inj.length < 3) {
-            u.inj.push({ part: 'เส้นลมปราณพิสดาร', why: 'ผลสะท้อนหลังเร่งชีพจรพิสดารเกินขีดจำกัด', sev: 1, until: W.t + 1440 });
-          }
+          u.inj.push({
+            id: 'MERIDIAN_OVERDRIVE_BACKLASH',
+            part: 'ชีพจรปกครองร้าว',
+            why: 'ผลสะท้อนหลังเร่งชีพจรพิสดารเกินขีดจำกัด (อัตราฝึกปราณ -30%)',
+            sev: 2,
+            cultPenaltyPct: 0.30,
+            until: ((W && W.t) || 0) + 1440
+          });
+          u._cultRateBase = null;
           if (u.h && u.h.state) u.h.state.energy = Math.max(10, (u.h.state.energy || 50) - 20);
           STs().dirty(u);
         }
@@ -3384,12 +3510,15 @@
         return store(caster && caster._lastDodgeOrParryAt != null && (tNow - caster._lastDodgeOrParryAt) <= (params.windowTicks || 8));
       case 'KARMIC_DEBT_POSITIVE': {
         const ks = caster && caster.karmaState;
-        return store((ks && (ks.debtPool || ks.karmicDebt || 0) > 0) || (caster && (caster.karmicDebt || 0) > 0));
+        const kl = caster && caster.karmicLedger;
+        return store((ks && (ks.debtPool || ks.karmicDebt || 0) > 0) || (caster && (caster.karmicDebt || 0) > 0) || !!(kl && ((kl.virtueKarma || 0) > 0 || (kl.netKarma || 0) > 0)));
       }
       case 'SIN_KARMA_HIGH': {
         const kills = (target && target.stats && target.stats.kills) || (target && target.killCount) || (caster && caster.stats && caster.stats.kills) || 0;
         const hd = (target && target.h && target.h.state && target.h.state.heartDemon) || 0;
-        return store(kills >= 3 || hd >= 35 || !!(target && target.cult && target.cult.path === 'DEMON'));
+        const tKl = target && target.karmicLedger;
+        const cKl = caster && caster.karmicLedger;
+        return store(kills >= 3 || hd >= 35 || !!(target && target.cult && target.cult.path === 'DEMON') || !!(tKl && ((tKl.sinKarma || 0) >= 25 || (tKl.netKarma || 0) <= -25)) || !!(cKl && (cKl.sinKarma || 0) >= 25));
       }
       default:
         return store(true);
@@ -3628,6 +3757,11 @@
 
   /* ---------- Section 12.1: Acupoint Strikes & Meridian Overdrive ---------- */
   COMPOSABLE_ENGINE.ACUPOINT_STRIKES = Object.freeze({
+    QI_BLOCK: {
+      id: 'QI_BLOCK', nameTh: 'สกัดจุดตันเถียนปิดกั้นปราณ', dur: 12,
+      status: 'acupointSealed', secondaryStatus: 'silence', qiDrainPct: 0.18,
+      descTh: 'สกัดจุดตันเถียนของศัตรู ปิดกั้นการใช้ปราณ 2 เทิร์น พร้อมสลายปราณ 18%'
+    },
     QI_BLOCK_POINT: {
       id: 'QI_BLOCK_POINT', nameTh: 'สกัดจุดตันเถียนปิดกั้นปราณ', dur: 12,
       status: 'acupointSealed', secondaryStatus: 'silence', qiDrainPct: 0.18,
@@ -3637,6 +3771,11 @@
       id: 'WEAKENING_POINT', nameTh: 'สกัดจุด曲池คลายกำลัง', dur: 16,
       status: 'weaken', secondaryStatus: 'exposed',
       descTh: 'สกัดจุดคลายพละกำลัง ลดพลังโจมตีกายภาพและวิชาของศัตรูลงอย่างหนักนาน 3 รอบ'
+    },
+    BLOOD_HALT: {
+      id: 'BLOOD_HALT', nameTh: 'สกัดจุดชะลอโลหิตและห้ามเลือด', dur: 10,
+      status: 'BLOOD_HALT', secondaryStatus: 'healBlock', allyHealPct: 0.18,
+      descTh: 'ลดความเร็วเคลื่อนที่และระงับการฟื้นฟูเลือดของศัตรู หรือใช้ห้ามเลือดฟื้นฟูพันธมิตร'
     },
     BLOOD_HALTING_POINT: {
       id: 'BLOOD_HALTING_POINT', nameTh: 'สกัดจุดห้ามเลือดและสะกดกาย', dur: 8,
@@ -4659,6 +4798,156 @@
   COMPOSABLE_ENGINE.IMPLEMENTED_EFFECT_IDS = new Set((g.ECO && g.ECO.ALL_RUNTIME_EFFECT_IDS) || []);
   C.COMPOSABLE_ENGINE = COMPOSABLE_ENGINE;
   C.ELEMENTAL_FUSION = COMPOSABLE_ENGINE;
+
+
+  /* ---------- Patch v3.4.0 [PROP-06]: Dual-Caster Duet Resonance Skills ---------- */
+  C.DUET_CATALOG = Object.freeze({
+    DUET_TWIN_LOTUS_SWORD: { id: 'DUET_TWIN_LOTUS_SWORD', nameTh: 'กระบี่คู่บัวสวรรค์ผสานใจ', bondType: 'TAOIST_COMPANION', mult: 1.75, shieldPct: 0.15 },
+    DUET_MASTER_DISCIPLE_INHERITANCE: { id: 'DUET_MASTER_DISCIPLE_INHERITANCE', nameTh: 'ค่ายกลสืบทอดเจตจำนงอาจารย์ศิษย์', bondType: 'MENTOR_DISCIPLE', mult: 1.65, shieldPct: 0.12 },
+    DUET_FATED_THREADS_RESONANCE: { id: 'DUET_FATED_THREADS_RESONANCE', nameTh: 'วัฏจักรด้ายชะตาประสานฟ้าดิน', bondType: 'DESTINY_THREAD', mult: 1.60, shieldPct: 0.12 }
+  });
+
+  C.tryExecuteDuetSkill = (W, f, caster, partner, target, opts) => {
+    opts = opts || {};
+    if (!caster || !partner || caster.id === partner.id || !C.alive(caster) || !C.alive(partner) || !target || !C.alive(target)) {
+      return { ok: false, reason: 'invalid-participants' };
+    }
+    const tNow = (W && W.t) || 0;
+    if (!opts.ignoreCooldown && caster._duetCdUntil && caster._duetCdUntil > tNow) {
+      return { ok: false, reason: 'cooldown-active' };
+    }
+    const dist = (Number.isFinite(caster.x) && Number.isFinite(partner.x)) ? Math.hypot(caster.x - partner.x, caster.y - partner.y) : 1.5;
+    if (!opts.ignoreDistance && dist > 3.0) {
+      return { ok: false, reason: 'out-of-range', dist };
+    }
+    const isCompanion = caster.companionId === partner.id || partner.companionId === caster.id;
+    const isMentorDisciple = caster.mentorId === partner.id || partner.mentorId === caster.id || caster.mentor === partner.id || partner.mentor === caster.id;
+    const isThreadBonded = Array.isArray(caster.destinyThreads) && caster.destinyThreads.some(th => th && (th.type === 'RED_THREAD' || th.type === 'GOLD_THREAD') && (th.aId === partner.id || th.bId === partner.id));
+    if (!isCompanion && !isMentorDisciple && !isThreadBonded && !opts.forceBond) {
+      return { ok: false, reason: 'no-resonance-bond' };
+    }
+    const spec = isCompanion ? C.DUET_CATALOG.DUET_TWIN_LOTUS_SWORD : isMentorDisciple ? C.DUET_CATALOG.DUET_MASTER_DISCIPLE_INHERITANCE : C.DUET_CATALOG.DUET_FATED_THREADS_RESONANCE;
+    const dmg = Math.max(18, Math.round(C.hpMax(target) * 0.24 * spec.mult));
+    C.applyDamage(W, f, caster, target, dmg, spec.nameTh);
+    const ST = STs();
+    if (ST) {
+      ST.addStatus(caster, 'shield', 14, { amt: Math.round(C.hpMax(caster) * spec.shieldPct) }, tNow);
+      ST.addStatus(partner, 'shield', 14, { amt: Math.round(C.hpMax(partner) * spec.shieldPct) }, tNow);
+    }
+    caster._duetCdUntil = tNow + 16;
+    partner._duetCdUntil = tNow + 16;
+    caster.fx = { t: tNow, text: '☯️ ' + spec.nameTh + '!' };
+    partner.fx = { t: tNow, text: '☯️ ประสานวิชาคู่!' };
+    caster.lastDuetSkill = { t: tNow, duetId: spec.id, nameTh: spec.nameTh, partnerId: partner.id, targetId: target.id, dmg };
+    return { ok: true, duet: spec, dmg, partnerId: partner.id, targetId: target.id };
+  };
+
+  /* ---------- Patch v3.4.0 [PROP-09]: Multi-Turn Charged Skills & Poise Shield ---------- */
+  C.startChargedSkill = (W, f, caster, target, skillSpec, opts) => {
+    opts = opts || {};
+    if (!caster || !C.alive(caster)) return { ok: false, reason: 'invalid-caster' };
+    const sk = skillSpec || { id: 'CHARGED_HEAVEN_SLASH', nameTh: 'เพลงกระบี่ชาร์จพลังผ่าสวรรค์', M: 1.4, type: 'p', cd: 16 };
+    const ticks = Math.max(1, opts.ticks || 2);
+    const poiseShield = opts.poiseShield != null ? opts.poiseShield : 80;
+    const releaseMult = opts.releaseMult || 1.65;
+    caster.act = caster.act || { id: 'fight', ctx: {} };
+    caster.act.ctx = caster.act.ctx || {};
+    caster.act.ctx.channeling = {
+      skillId: sk.id,
+      skill: sk,
+      targetId: target ? target.id : null,
+      totalTicks: ticks,
+      ticksLeft: ticks,
+      tickM: 0.35,
+      finishM: +((sk.M || 1.0) * releaseMult).toFixed(3),
+      releaseMult,
+      isChargedSkill: true,
+      poiseShield,
+      maxPoiseShield: poiseShield
+    };
+    const ST = STs();
+    if (ST) ST.addStatus(caster, 'channeling', ticks * 4 + 4, null, (W && W.t) || 0);
+    caster.fx = { t: (W && W.t) || 0, text: '⚡ ชาร์จพลัง「' + sk.nameTh + '」' };
+    return { ok: true, channeling: caster.act.ctx.channeling };
+  };
+
+  /* ---------- Patch v3.4.0 [PROP-10]: Boss Beast Anatomy Part-Breaking & Targeted Drops ---------- */
+  const ANATOMY_BREAKER = {};
+  ANATOMY_BREAKER.PART_CATALOG = Object.freeze({
+    HORN_CROWN: { id: 'HORN_CROWN', nameTh: 'เขามงกุฎราชันอสูร', hpRatio: 0.25, debuffStatus: 'weaken', dropItemId: 'MAT_BOSS_HORN_CROWN', dropNameTh: 'เขาราชันอสูรบรรพกาล' },
+    VENOM_SAC: { id: 'VENOM_SAC', nameTh: 'ถุงพิษมรกตอสูร', hpRatio: 0.20, debuffStatus: 'silence', disablePoison: true, dropItemId: 'MAT_BOSS_VENOM_SAC', dropNameTh: 'ถุงพิษอสูรพันปี' },
+    WING_MEMBRANE: { id: 'WING_MEMBRANE', nameTh: 'พังผืดปีกวายุอสูร', hpRatio: 0.20, debuffStatus: 'slow', dropItemId: 'MAT_BOSS_WING', dropNameTh: 'ปีกวายุราชันอสูร' },
+    CORE_SHELL: { id: 'CORE_SHELL', nameTh: 'เกราะอกแก่นอสูร', hpRatio: 0.30, debuffStatus: 'armorbreak', dropItemId: 'MAT_BOSS_CORE_SHELL', dropNameTh: 'เกล็ดเกราะอกราชันอสูร' }
+  });
+
+  ANATOMY_BREAKER.initBossParts = bossUnit => {
+    if (!bossUnit) return null;
+    if (!bossUnit.anatomyParts || typeof bossUnit.anatomyParts !== 'object') {
+      const hm = Math.max(100, C.hpMax(bossUnit));
+      bossUnit.anatomyParts = {};
+      for (const [pid, spec] of Object.entries(ANATOMY_BREAKER.PART_CATALOG)) {
+        const pMax = Math.max(25, Math.round(hm * spec.hpRatio));
+        bossUnit.anatomyParts[pid] = {
+          id: pid,
+          nameTh: spec.nameTh,
+          hp: pMax,
+          maxHp: pMax,
+          broken: false,
+          dropItemId: spec.dropItemId,
+          dropNameTh: spec.dropNameTh
+        };
+      }
+      bossUnit.brokenParts = [];
+      bossUnit.guaranteedOrganDrops = [];
+    }
+    return bossUnit.anatomyParts;
+  };
+
+  ANATOMY_BREAKER.damageBossPart = (W, f, attacker, bossUnit, partId, dmg) => {
+    if (!bossUnit) return { ok: false, reason: 'no-boss' };
+    const parts = ANATOMY_BREAKER.initBossParts(bossUnit);
+    const pKey = partId && parts[partId] ? partId : 'HORN_CROWN';
+    const part = parts[pKey];
+    const spec = ANATOMY_BREAKER.PART_CATALOG[pKey];
+    if (!part) return { ok: false, reason: 'invalid-part' };
+    const dealt = Math.max(1, Math.round(Number(dmg) || 25));
+    part.hp = Math.max(0, part.hp - dealt);
+    let newlyBroken = false;
+    if (part.hp === 0 && !part.broken) {
+      part.broken = true;
+      newlyBroken = true;
+      bossUnit.brokenParts = bossUnit.brokenParts || [];
+      if (!bossUnit.brokenParts.includes(pKey)) bossUnit.brokenParts.push(pKey);
+      bossUnit.guaranteedOrganDrops = bossUnit.guaranteedOrganDrops || [];
+      if (!bossUnit.guaranteedOrganDrops.includes(spec.dropItemId)) {
+        bossUnit.guaranteedOrganDrops.push(spec.dropItemId);
+      }
+      if (W && W.sect) {
+        W.sect.stock = W.sect.stock || {};
+        W.sect.stock[spec.dropItemId] = (W.sect.stock[spec.dropItemId] || 0) + 1;
+      }
+      if (spec.disablePoison) bossUnit.poisonDisabled = true;
+      const ST = STs();
+      if (ST && spec.debuffStatus) ST.addStatus(bossUnit, spec.debuffStatus, 20, null, (W && W.t) || 0);
+      bossUnit.fx = { t: (W && W.t) || 0, text: '💥 ทำลาย' + spec.nameTh + '!' };
+    }
+    C.applyDamage(W, f, attacker, bossUnit, Math.round(dealt * 0.5), 'เล็งทำลาย' + spec.nameTh);
+    return {
+      ok: true,
+      partId: pKey,
+      part,
+      newlyBroken,
+      dropItemId: newlyBroken ? spec.dropItemId : null
+    };
+  };
+  C.ANATOMY_BREAKER = ANATOMY_BREAKER;
+
+  C.invokeAncestralPhantom = (W, f, opts) => {
+    if (g.SECT && g.SECT.ANCESTRAL_PAVILION && g.SECT.ANCESTRAL_PAVILION.invokeFounderPhantom) {
+      return g.SECT.ANCESTRAL_PAVILION.invokeFounderPhantom(W, f, opts);
+    }
+    return { ok: false, reason: 'no-ancestral-pavilion' };
+  };
 
   g.COMBAT = C;
   if (typeof module === 'object' && module.exports) module.exports = C;

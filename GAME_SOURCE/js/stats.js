@@ -544,6 +544,11 @@
         addAll(mLab, mb.f || {}, 'f');
       }
     }
+    if (n.archetypeMasteryState && n.archetypeMasteryState.p) {
+      const amLab = 'ความชำนาญสายย่อย「' + (n.archetypeMasteryState.nameTh || n.subpathArchetype) + '」ขั้นที่ ' + (n.archetypeMasteryState.tier || 1);
+      addAll(amLab, n.archetypeMasteryState.p || {}, 'p');
+      addAll(amLab, n.archetypeMasteryState.f || {}, 'f');
+    }
     if (g.SECT && g.SECT.TOTEMS_BLOODLINES && g.SECT.TOTEMS_BLOODLINES.getUnitBonuses) {
       const tb = g.SECT.TOTEMS_BLOODLINES.getUnitBonuses(n);
       if (tb && tb.active) {
@@ -560,9 +565,48 @@
         addAll(bsbLab, bsb.f || {}, 'f');
       }
     }
+    if (!n.foe && n.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) {
+      const pkb = g.SECT.PEAKS.getUnitPeakBonuses(n);
+      if (pkb && pkb.active) {
+        const pkbLab = 'ค่ายกลยอดเขา「' + (pkb.nameTh || n.peakId) + '」';
+        addAll(pkbLab, pkb.p || {}, 'p');
+        addAll(pkbLab, pkb.f || {}, 'f');
+      }
+    }
+    if (!n.foe) {
+      const wRef = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+      const cPost = wRef && wRef.sect && wRef.sect.combatPosture;
+      if (cPost === 'OFFENSIVE') add('atk', 'ท่วงท่าการรบสำนัก (รุกสังหาร)', 'p', 0.08);
+      else if (cPost === 'DEFENSIVE') {
+        add('def', 'ท่วงท่าการรบสำนัก (ตั้งรับพิทักษ์)', 'p', 0.10);
+        add('mdef', 'ท่วงท่าการรบสำนัก (ตั้งรับพิทักษ์)', 'p', 0.10);
+      }
+    }
+    if (!n.foe && g.ECO && g.ECO.evaluatePairedItems) {
+      const pr = g.ECO.evaluatePairedItems(n);
+      if (pr && pr.active) {
+        const prLab = pr.pairNameTh || 'ศาสตราคู่ประสาน';
+        const bm = (pr.bonusMult || 1.12) - 1;
+        add('atk', prLab, 'p', bm);
+        add('matk', prLab, 'p', bm);
+        if (pr.critBonus) add('crit', prLab, 'f', pr.critBonus);
+        if (pr.penBonus) add('pen', prLab, 'f', pr.penBonus);
+      }
+    }
     // อุปกรณ์
     const Eq = n.equip || {};
-    for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); const lab = '「' + it.nameTh + '」' + (df < 1 ? ' (สึก ' + Math.round(df * 100) + '%)' : ''); for (const key in gs) if (A[key]) add(key, lab, 'f', gs[key] * df); }
+    for (const k in Eq) {
+      const it = Eq[k];
+      if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n, it))) continue;
+      const gs = ST.gearStats(it);
+      let df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1);
+      if (g.ECO && g.ECO.evaluateSoulBoundCondition) {
+        const sb = g.ECO.evaluateSoulBoundCondition(n, it);
+        if (sb && Number.isFinite(sb.powerMult)) df *= sb.powerMult;
+      }
+      const lab = '「' + it.nameTh + '」' + (df < 1 ? ' (สึก ' + Math.round(df * 100) + '%)' : '');
+      for (const key in gs) if (A[key]) add(key, lab, 'f', gs[key] * df);
+    }
     // บัฟโอสถ + สถานะ
     ST.purgeExpired(n, ST.now);
     (n.buffs || []).forEach(b => { if (b.until <= ST.now) return; addAll('บัฟ「' + b.name + '」', b.p, 'p'); addAll('บัฟ「' + b.name + '」', b.f, 'f'); });
@@ -579,7 +623,9 @@
     const cTechLast = cTechLen > 0 ? c.techs[cTechLen - 1] : '';
     const cTrack = c && c.track ? c.track.ordinal : 0;
     const passKey = passiveCacheKey(n);
-    const eqW = Eq.WEAPON || null, eqWdur = eqW ? eqW.dur : 0;
+    const wRefKey = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+    const postKey = (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0);
+    const eqW = Eq.WEAPON || null, eqWdur = (eqW ? eqW.dur : 0) + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + postKey;
     const eqA = Eq.ARMOR || null, eqAdur = eqA ? eqA.dur : 0;
     const eqX = Eq.ACCESSORY || null, eqXdur = eqX ? eqX.dur : 0;
     const cb = n._csBase;
@@ -700,6 +746,10 @@
         const mb = CULT.MERIDIANS.getStatBonuses(n, ST.now);
         if (mb && mb.openedCount > 0) { if (mb.p) addAll(mb.p, false); if (mb.f) addAll(mb.f, true); }
       }
+      if (n.archetypeMasteryState && n.archetypeMasteryState.p) {
+        addAll(n.archetypeMasteryState.p, false);
+        if (n.archetypeMasteryState.f) addAll(n.archetypeMasteryState.f, true);
+      }
       if (g.SECT && g.SECT.TOTEMS_BLOODLINES && g.SECT.TOTEMS_BLOODLINES.getUnitBonuses) {
         const tb = g.SECT.TOTEMS_BLOODLINES.getUnitBonuses(n);
         if (tb && tb.active) { if (tb.p) addAll(tb.p, false); if (tb.f) addAll(tb.f, true); }
@@ -708,7 +758,36 @@
         const bsb = CULT.BEAST_SYMBIOSIS.getStatBonuses(n, ST.now);
         if (bsb && bsb.active) { if (bsb.p) addAll(bsb.p, false); if (bsb.f) addAll(bsb.f, true); }
       }
-      for (const k in Eq) { const it = Eq[k]; if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n,it))) continue; const gs = ST.gearStats(it), df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1); for (const key in gs) if (key in sp) addF(key, gs[key] * df); }
+      if (!n.foe && n.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) {
+        const pkb = g.SECT.PEAKS.getUnitPeakBonuses(n);
+        if (pkb && pkb.active) { if (pkb.p) addAll(pkb.p, false); if (pkb.f) addAll(pkb.f, true); }
+      }
+      if (!n.foe) {
+        const wRef = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+        const cPost = wRef && wRef.sect && wRef.sect.combatPosture;
+        if (cPost === 'OFFENSIVE') addP('atk', 0.08);
+        else if (cPost === 'DEFENSIVE') { addP('def', 0.10); addP('mdef', 0.10); }
+      }
+      if (!n.foe && g.ECO && g.ECO.evaluatePairedItems) {
+        const pr = g.ECO.evaluatePairedItems(n);
+        if (pr && pr.active) {
+          const bm = (pr.bonusMult || 1.12) - 1;
+          addP('atk', bm); addP('matk', bm);
+          if (pr.critBonus) addF('crit', pr.critBonus);
+          if (pr.penBonus) addF('pen', pr.penBonus);
+        }
+      }
+      for (const k in Eq) {
+        const it = Eq[k];
+        if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n, it))) continue;
+        const gs = ST.gearStats(it);
+        let df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1);
+        if (g.ECO && g.ECO.evaluateSoulBoundCondition) {
+          const sb = g.ECO.evaluateSoulBoundCondition(n, it);
+          if (sb && Number.isFinite(sb.powerMult)) df *= sb.powerMult;
+        }
+        for (const key in gs) if (key in sp) addF(key, gs[key] * df);
+      }
       const st = CULT.stageInfo(n), L = st.combatPower, sub = c ? CULT.subInfo(c.path, c.sub) : null;
       const Lo = L * (sub ? sub.combatBonus : 1), Ld = L * (sub ? sub.defenseBonus : 1), pw = PATHW[c && PATHW[c.path] ? c.path : 'NONE'];
       const progBody = (g.MARTIAL && g.MARTIAL.progression) ? g.MARTIAL.progression(n).body : {};
