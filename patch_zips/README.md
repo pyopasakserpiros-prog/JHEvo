@@ -5,7 +5,15 @@
 ---
 
 ## 🌟 มหายุคที่ 5: Grand Celestial Visual Overhaul (v5.x)
-- **`JHEvo-main-v5.2.0.zip`** (ล่าสุด):
+- **`JHEvo-main-v5.6.0.zip`** (ล่าสุด):
+  - แพตช์ Era 5 Phase 7: Defensive Kungfu & Protective Aegis Overhaul — วิชาคุ้มกาย 6 อาร์คิไทป์ (`IRON_VAJRA_CARAPACE`, `ELEMENTAL_THORN_ARMOR`, `SWORD_CURTAIN_WARD`, `TAIJI_SOFT_REDIRECTION`, `MIRAGE_CICADA_SHELL`, `CELESTIAL_AEGIS_DOME`), 3 ท่วงท่าตั้งรับ (`PASSIVE_AURA_GUARD`, `COUNTER_PARRY_STANCE`, `FORTRESS_BASTION_LOCK`), ปราการเพชรคุ้มสหาย และเอฟเฟกต์ม่านพลังคุ้มกายสดบนแผนที่สำนัก/ไดโอรามา
+- **`JHEvo-main-v5.5.0.zip`**:
+  - แพตช์ Era 5 Phase 6: Mantra Resonance, Dynamic Weather & Grand Formation Warfare — 122 คัมภีร์ลมปราณจัดกลุ่ม 7 อาร์คิไทป์, 3 ท่าเดินลมปราณภายใน, ค่ายกลสงครามสำนัก 3 ท่า (`FIVE_ELEMENT_NURTURE`, `SWORD_NET_SLAUGHTER`, `IMMORTAL_AEGIS_DOME`), และปรากฏการณ์ฟ้าดิน 6 สภาพอากาศ
+- **`JHEvo-main-v5.4.0.zip`**:
+  - แพตช์ Era 5 Phase 5: Qinggong Locomotion, Sword Flight & Celestial Levitation — วิชาตัวเบาและการเคลื่อนที่ 6 ระดับ (วิ่งปราณทะยาน, ล่องวารี, ทะยานเมฆา, ก้าวพริบตาเงาพราย, ขี่กระบี่บินเหินเวหา, เหาะเหินเดินอากาศเซียนอมตะ) พร้อมผลลัพธ์จริงในเกม อัตราผลาญปราณ และการลงจอดฉุกเฉิน
+- **`JHEvo-main-v5.3.0.zip`**:
+  - แพตช์ Era 5 Phase 4: Multi-Phase Heavenly Tribulation Breakthrough & 15 Signature Skill VFX — ระบบทัณฑ์สวรรค์ 15 ทิค (3 จังหวะ: ก่อเมฆทมิฬ, ฟาดสายฟ้า 1/3/6/9 สายตามขั้น, ระเบิดเสาแสงบรรลุเต๋า/ธาตุไฟเข้าแทรก), เอกลักษณ์ทัณฑ์สวรรค์แยก 12 วิถี, 15 สกิลเอฟเฟกต์เฉพาะตัว, และปุ่มส่องกล้องติดตาม
+- **`JHEvo-main-v5.2.0.zip`**:
   - แพตช์ Era 5 Phase 3: ระบบแถบหมวดย่อยจัดระเบียบหน้าต่าง 3 มิติ (สำนัก · ตัวละคร · ยุทธภพ), แผนที่โลกขบวนคาราวานเสบียงมีชีวิต (`🐪`), ประตูมิติแดนลับ (`drawSecretRealmPortalSpectacles`), และแผงส่องของวิเศษเรืองแสง T1–T7 (`Render.relicShowcase`)
 - **`JHEvo-main-v5.1.0.zip`**:
   - แพตช์ Era 5 Phase 2: ฉากพิธีกรรม & งานเลี้ยงปราณโอชาบนแผนที่จริง, ม่านพลังสังเวียนประลองยุทธ์ 4 ทิศ, แท่นส่องตัวละครเต็มตัวพร้อมโพสท่า 3 รูปแบบ (`Render.diorama`), และทิวทัศน์หอคัมภีร์
