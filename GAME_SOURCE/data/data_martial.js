@@ -12726,6 +12726,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_SPEAR_DRAGON_SPINE_IMPALE_T5",
+        "signatureVfx": "sig_blazing_dragon_wave",
       "nameTh": "ทวนมังกรคลั่งทะลวงขุนเขา",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -13865,6 +13866,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_SPEAR_CELESTIAL_TEMPEST_T6",
+        "signatureVfx": "sig_thunder_god_halberd",
       "nameTh": "คัมภีร์ทวนมังกรสวรรค์เหินอัสนี",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -15130,6 +15132,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_SPEAR_PRIMORDIAL_VOID_T7",
+        "signatureVfx": "sig_void_spatial_slash",
       "nameTh": "มหาคัมภีร์ทวนจิตสุญตาบรรพกาล",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -17370,6 +17373,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_STAFF_ARHAT_SANCTUARY_T6",
+        "signatureVfx": "sig_golden_buddha_bell",
       "nameTh": "มหาคัมภีร์พลองทองคำอรหันต์ปราบมาร",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -18945,6 +18949,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_BOW_NINE_SUNS_FALL_T7",
+        "signatureVfx": "sig_nine_suns_eye",
       "nameTh": "มหาคัมภีร์ศรราชันย์ยิงดับเก้าตะวัน",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -20090,6 +20095,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_BOW_SUN_GOD_VERDICT_T7",
+        "signatureVfx": "sig_nine_suns_eye",
       "nameTh": "มหาเทวคัมภีร์ศรสุริยเทพพิพากษาสามภพ",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -22172,6 +22178,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_BLADE_BLOOD_FRENZY_T5",
+        "signatureVfx": "sig_soul_scorching_flame",
       "nameTh": "เพลงดาบมารโลหิตกลืนวิญญาณ",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -22331,6 +22338,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_BLADE_THUNDER_GOD_SLASH_T6",
+        "signatureVfx": "sig_thunder_god_halberd",
       "nameTh": "คัมภีร์ดาบสายฟ้าเทวทัณฑ์ผ่าพิภพ",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -24094,6 +24102,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_FOCUS_ASTRAL_BANNER_T5",
+        "signatureVfx": "sig_taiji_yin_yang_crush",
       "nameTh": "วิชาธงค่ายกลดาราจักรแปดทิศ",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -25674,6 +25683,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_SWORD_SAINT_TRACELESS_T6",
+        "signatureVfx": "sig_immortal_crane_feather_storm",
       "nameTh": "คัมภีร์ปราชญ์กระบี่ไร้ร่องรอย",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -25831,6 +25841,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_SWORD_MYRIAD_RETURN_ONE_T7",
+        "signatureVfx": "sig_meteor_sword_rain",
       "nameTh": "มหาคัมภีร์หมื่นกระบี่คืนสู่ความเรียบง่าย",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -26026,6 +26037,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_SWORD_FROST_MOON_SLASH_T5",
+        "signatureVfx": "sig_frost_lotus_domain",
       "nameTh": "เพลงกระบี่จันทราเหมันต์สะท้อนเงา",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",
@@ -27121,6 +27133,7 @@ const EXP_V204 = {
     },
     {
       "id": "MP_FIST_MORTAL_GOD_SHATTER_T7",
+        "signatureVfx": "sig_eight_directions_palm",
       "nameTh": "มหาคัมภีร์หมัดกายาเนื้อหนังทลายสวรรค์",
       "cat": "COMBAT_TECHNIQUE",
       "role": "COMBAT_OFFENSE",

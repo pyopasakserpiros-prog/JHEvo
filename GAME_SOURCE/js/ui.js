@@ -5,7 +5,7 @@
   const clamp = U.clamp;
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const UI = { G: null, sheet: null, tab: null, activePeakId: 'OVERVIEW', postDirFilter: 'ALL', lastHud: 0, logSubFilter: 'all', editNpcId: null, editStatGroup: 'personality', editDraft: null, spawnDest: 'sect', spawnSearch: '', spawnKind: 'ALL', spawnTier: 'ALL', spawnElement: 'ALL', spawnRarity: 'ALL', spawnPage: 1, spawnPageSize: 40, spawnQty: 1, spawnQuality: 1, stockSearch: '', stockType: 'ALL', stockTier: 'ALL', stockSort: 'qty', bagSearch: '', bagType: 'ALL', bagSort: 'tier', bagCat: 'ALL', bagPage: 1, bagSelKey: null, bagMoreOpen: false, stockCat: 'ALL', stockPage: 1, stockSelKey: null, stockMoreOpen: false, shopCat: 'ALL', shopSearch: '', shopSort: 'tier', shopPage: 1, shopSelKey: null, shopMoreOpen: false, shopBuyerId: null, sectSubTab: 'CORE', sectPostsSubTab: 'OFFICES', stockItemsSubTab: 'GRID', shopSubTab: 'EXCHANGE', npcSubTab: 'CORE', worldExpSubTab: 'TRAVEL', worldSectsSubTab: 'NEIGHBORS', worldDiscSubTab: 'PORTALS', worldContentSubTab: 'REGIONS' };
+  const UI = { G: null, sheet: null, tab: null, activePeakId: 'OVERVIEW', postDirFilter: 'ALL', lastHud: 0, logSubFilter: 'all', editNpcId: null, editStatGroup: 'personality', editDraft: null, spawnDest: 'sect', spawnSearch: '', spawnKind: 'ALL', spawnTier: 'ALL', spawnElement: 'ALL', spawnRarity: 'ALL', spawnPage: 1, spawnPageSize: 40, spawnQty: 1, spawnQuality: 1, stockSearch: '', stockType: 'ALL', stockTier: 'ALL', stockSort: 'qty', bagSearch: '', bagType: 'ALL', bagSort: 'tier', bagCat: 'ALL', bagPage: 1, bagSelKey: null, bagMoreOpen: false, stockCat: 'ALL', stockPage: 1, stockSelKey: null, stockMoreOpen: false, shopCat: 'ALL', shopSearch: '', shopSort: 'tier', shopPage: 1, shopSelKey: null, shopMoreOpen: false, shopBuyerId: null, sectSubTab: 'CORE', sectPostsSubTab: 'OFFICES', stockItemsSubTab: 'GRID', shopSubTab: 'EXCHANGE', npcSubTab: 'CORE', worldExpSubTab: 'TRAVEL', worldSectsSubTab: 'NEIGHBORS', worldDiscSubTab: 'PORTALS', worldContentSubTab: 'REGIONS', buildingSubTab: 'OVERVIEW', editCharSubTab: 'CULT_ECON', editPetSubTab: 'PETS_BUFFS' };
   const SPEEDS = [[0, '⏸'], [1, '1×'], [2, '2×'], [4, '4×'], [8, '8×'], [16, '16×'], [32, '32×'], [48, '48×']];
   UI.SPEEDS = SPEEDS.map(s => s[0]);
 
@@ -39,6 +39,10 @@
   function dayStamp(t) { const c = SIM.calendar(t); return 'ปี' + c.year + ' ด.' + c.month + ' ว.' + c.dom; }
   function portraitHtml(n, size) { return '<canvas class="pt" data-pid="' + n.id + '" data-size="' + (size || 40) + '" style="border-radius:10px;flex:0 0 auto"></canvas>'; }
   function dioramaHtml(n, w, h) { return '<canvas class="diorama" data-pid="' + n.id + '" data-w="' + (w || 220) + '" data-h="' + (h || 136) + '" style="border-radius:10px;display:block;margin:0 auto"></canvas>'; }
+  function buildingShowcaseHtml(b, w, h) {
+    if (!b) return '';
+    return '<canvas class="building-showcase" data-bid="' + esc(b.id) + '" data-w="' + (w || 210) + '" data-h="' + (h || 92) + '" style="border-radius:8px;display:block;margin:6px auto"></canvas>';
+  }
   function relicShowcaseHtml(item, w, h) {
     const eq = item && (item.eq || item.gear || item);
     const tier = (item && item.tier) || (eq && eq.tier) || 1;
@@ -72,6 +76,12 @@
           element: cv.dataset.el || 'METAL',
           legendary: cv.dataset.leg === '1'
         }, { width: +cv.dataset.w || 180, height: +cv.dataset.h || 82 });
+      }
+    });
+    root.querySelectorAll('canvas.building-showcase').forEach(cv => {
+      const b = UI.G && UI.G.W && UI.G.W.map && UI.G.W.map.byId && UI.G.W.map.byId[cv.dataset.bid];
+      if (b && Render.buildingShowcase) {
+        Render.buildingShowcase(cv, b, { width: +cv.dataset.w || 210, height: +cv.dataset.h || 92 });
       }
     });
   }
@@ -636,10 +646,13 @@
     const alive = W.npcs.filter(n => !n.dead && !n.exiled), away = alive.filter(n => n.away).length; const S = W.sect;
     const pop = SECT.memberOccupancy ? SECT.memberOccupancy(W) : alive.length;
     const cap = SECT.housingCapacity ? SECT.housingCapacity(W) : 46;
-    const raid = W.threat && W.threat.raid ? '<span class="pill" style="border-color:#ff8a3a;color:#ffb27a">⚠ ศัตรูบุก!</span>' : '';
+    const activeTribs = (W.sect && Array.isArray(W.sect.activeTribulations)) ? W.sect.activeTribulations.filter(x => x && x.active) : [];
+    const tribPill = activeTribs.length ? '<button type="button" id="btnFocusTribHud" class="pill" style="cursor:pointer;border-color:#ffd740;color:#ffe57f;background:rgba(255,215,64,0.14)" title="คลิกเพื่อส่องกล้องดูศิษย์กำลังฝ่าทัณฑ์สวรรค์">⚡ ส่องดูทัณฑ์สวรรค์ (' + activeTribs.length + ')</button>' : '';
+    const raid = (W.threat && W.threat.raid ? '<span class="pill" style="border-color:#ff8a3a;color:#ffb27a">⚠ ศัตรูบุก!</span>' : '') + tribPill;
     const audioPill = '<button type="button" id="btnAudioToggle" class="pill" style="cursor:pointer;background:transparent;color:inherit" title="เปิด/ปิดเสียงบรรยากาศยุทธภพ">' + (UI.audio && UI.audio.muted ? '🔇 ปิดเสียง' : '🔊 เสียงยุทธภพ') + '</button>';
     $('resRow').innerHTML = '<span class="pill" title="ศิลาวิญญาณ">💎 ' + UI.icon('stones') + '<b>' + U.fmtNum(S.stones) + '</b></span><span class="pill" title="เสบียงรวม">🍚 ' + UI.icon('food') + '<b>' + U.fmtNum(ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3) + '</b></span><span class="pill" title="สมาชิกปัจจุบัน / ความจุเตียงพัก">👥 ' + UI.icon('people') + '<b>' + pop + '/' + cap + '</b>' + (away ? ' (นอก ' + away + ')' : '') + '</span><span class="pill" title="ชื่อเสียงสำนัก">🏅 ' + UI.icon('fame') + '<b>' + U.fmtNum(S.fame) + '</b></span>' + audioPill + raid + (G.acc >= 1 ? '<span class="pill" title="งานจำลองที่รอประมวลผลยังถูกเก็บไว้">⏳ รอ ' + Math.floor(G.acc) + ' นาทีเกม</span>' : '');
     const btnAud = $('btnAudioToggle'); if (btnAud) btnAud.onclick = () => UI.doAction('toggle-audio');
+    const btnTrb = $('btnFocusTribHud'); if (btnTrb) btnTrb.onclick = () => UI.doAction('focus-tribulation');
     const R = G.R, sel = R.selected && W.byId[R.selected]; const si = $('selInfo');
     if (sel && !UI.sheet) {
       si.classList.add('show'); const key = sel.id + ':' + sel.act.id + ':' + sel.rank + ':' + (sel.dead ? 1 : 0);
@@ -881,6 +894,199 @@
       UI.worldContentSubTab = arg || 'REGIONS';
       UI.render();
       const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-building-subtab') {
+      UI.buildingSubTab = arg || 'OVERVIEW';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-edit-char-subtab') {
+      UI.collectEditDraftFromDom();
+      UI.editCharSubTab = arg || 'CULT_ECON';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-edit-pet-subtab') {
+      UI.editPetSubTab = arg || 'PETS_BUFFS';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-npc-defensive-posture') {
+      const [npcIdArg, postureKey, archKey] = String(arg || '').split('|');
+      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
+      if (n && CULT.DEFENSIVE_ARTS) {
+        const res = CULT.DEFENSIVE_ARTS.setDefensivePosture(W, n, postureKey || 'COUNTER_PARRY_STANCE', archKey || null);
+        if (res) {
+          UI.dioramaPose = 'defensive';
+          UI.toast(res.postureSpec.icon + ' ปรับท่าตั้งรับวิชาคุ้มกายของ「' + HC.fullName(n) + '」เป็น: ' + res.postureSpec.nameTh);
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'demo-defensive-aegis') {
+      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
+      const n = targetId && W && W.byId && W.byId[targetId];
+      if (n && CULT.DEFENSIVE_ARTS) {
+        CULT.DEFENSIVE_ARTS.ensureState(n);
+        const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, n);
+        UI.dioramaPose = 'defensive';
+        if (G.R) {
+          G.R.selected = n.id;
+          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
+        }
+        if (df) {
+          UI.toast(df.spec.icon + ' ' + HC.fullName(n) + ' สำแดง「' + df.spec.nameTh + '」(ลดดาเมจ -' + Math.round(df.effDmgRedPct * 100) + '%)!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-npc-mantra-stance') {
+      const [npcIdArg, stanceKey] = String(arg || '').split('|');
+      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
+      if (n && CULT.MANTRA_SYSTEM) {
+        const res = CULT.MANTRA_SYSTEM.setMantraStance(W, n, stanceKey || 'HARMONIOUS_CIRCULATION');
+        if (res) {
+          UI.dioramaPose = 'mantra';
+          UI.toast(res.stanceSpec.icon + ' ปรับจังหวะโคจรปราณของ「' + HC.fullName(n) + '」เป็น: ' + res.stanceSpec.nameTh);
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'demo-mantra-resonance') {
+      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
+      const n = targetId && W && W.byId && W.byId[targetId];
+      if (n && CULT.MANTRA_SYSTEM) {
+        CULT.MANTRA_SYSTEM.ensureState(n);
+        const mr = CULT.MANTRA_SYSTEM.stepMeditationResonance(W, n);
+        UI.dioramaPose = 'mantra';
+        if (G.R) {
+          G.R.selected = n.id;
+          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
+        }
+        if (mr) {
+          UI.toast(mr.spec.icon + ' ' + HC.fullName(n) + ' สำแดง「' + mr.spec.nameTh + '」(×' + mr.effectiveCultMult.toFixed(2) + ')!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-sect-formation-stance') {
+      if (SECT.FORMATION_WARFARE) {
+        const res = SECT.FORMATION_WARFARE.setFormationStance(W, arg || 'FIVE_ELEMENT_NURTURE');
+        if (res && res.ok) {
+          UI.toast(res.spec.icon + ' แปรขบวนมหาค่ายกลสำนักเป็น「' + res.spec.nameTh + '」!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-sect-weather-phenomenon') {
+      if (SECT.FORMATION_WARFARE) {
+        const res = SECT.FORMATION_WARFARE.triggerWeatherPhenomenon(W, arg || 'clear');
+        if (res && res.ok) {
+          UI.toast(res.spec.icon + ' ปรากฏการณ์ฟ้าดินเหนือสำนักเปลี่ยนเป็น「' + res.spec.nameTh + '」!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-npc-qinggong-mode') {
+      const [npcIdArg, modeKey] = String(arg || '').split('|');
+      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
+      if (n && CULT.QINGGONG) {
+        const st = CULT.QINGGONG.ensureState(n);
+        st.preferredMode = modeKey || 'AUTO';
+        st.exhaustedFallback = false;
+        n._qgUnlockCache = null;
+        const resolved = CULT.QINGGONG.resolveNpcMode(W, n);
+        UI.toast('🌬️ ตั้งค่ารูปแบบการเคลื่อนที่ของ「' + HC.fullName(n) + '」เป็น: ' + resolved.spec.nameTh);
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'demo-qinggong-flight') {
+      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
+      const n = targetId && W && W.byId && W.byId[targetId];
+      if (n && CULT.QINGGONG) {
+        const stObj = (n.h && n.h.state) || n.state;
+        if (stObj) stObj.qi = Math.max(stObj.qi || 0, CULT.qiMax(n));
+        const st = CULT.QINGGONG.ensureState(n);
+        st.exhaustedFallback = false;
+        const qg = CULT.QINGGONG.resolveNpcMode(W, n);
+        const destX = clamp(Math.round(n.x + (n.x < 118 ? 18 : -18)), 25, 210);
+        const destY = clamp(Math.round(n.y + (n.y < 75 ? 10 : -10)), 22, 130);
+        AI.goTo(W, n, destX, destY);
+        if (G.R) {
+          G.R.selected = n.id;
+          if (G.R.focus) G.R.focus(n.x, n.y, 2.2);
+        }
+        UI.dioramaPose = 'qinggong';
+        UI.toast(qg.spec.icon + ' ' + HC.fullName(n) + ' สำแดง「' + qg.spec.nameTh + '」(ความเร็ว ×' + qg.speedMult.toFixed(2) + ')!');
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'focus-tribulation') {
+      const activeList = (W && W.sect && Array.isArray(W.sect.activeTribulations)) ? W.sect.activeTribulations.filter(x => x && x.active) : [];
+      const targetId = arg || (activeList[0] && activeList[0].npcId) || UI.npcId || (W && W.sect && W.sect.masterId);
+      const n = targetId && W && W.byId && W.byId[targetId];
+      if (n) {
+        if (G.R) {
+          G.R.selected = n.id;
+          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
+        }
+        if (UI.audio) UI.audio.playBell();
+        UI.close();
+        UI.toast('⚡ ส่องดูทัณฑ์สวรรค์ของ「' + HC.fullName(n) + '」บนแผนที่สำนัก');
+      } else {
+        UI.toast('ยังไม่มีศิษย์ที่กำลังฝ่าด่านทัณฑ์สวรรค์ในขณะนี้');
+      }
+      UI.updateHud(true);
+    }
+    else if (a === 'start-tribulation-ritual') {
+      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
+      const n = targetId && W && W.byId && W.byId[targetId];
+      if (n && n.cult && CULT.TRIBULATION && CULT.TRIBULATION.start) {
+        const res = CULT.TRIBULATION.start(W, n, { prep: 0.25, totalTicks: 15, announce: true, standaloneRitual: true });
+        if (res && res.ok) {
+          n.tribulationState.standaloneRitual = true;
+          if (G.R) {
+            G.R.selected = n.id;
+            if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
+          }
+          if (UI.audio) UI.audio.playBell();
+          UI.toast('⛈️ อัญเชิญทัณฑ์สวรรค์: ' + HC.fullName(n) + ' เริ่มฝ่าด่าน (' + res.state.boltLabelTh + ')!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'preview-signature-vfx') {
+      const [npcIdArg, sigOrTechId] = String(arg || '').split('|');
+      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
+      if (n && g.SK) {
+        const sigKey = (g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigOrTechId])
+          ? sigOrTechId
+          : (g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(CULT.tech(sigOrTechId) || { id: sigOrTechId, legendary: true })) || 'sig_meteor_sword_rain';
+        const spec = (g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigKey]) || { nameTh: sigKey, icon: '✨' };
+        n.castFx = {
+          seq: ((n.castFx && n.castFx.seq) || 0) + 1,
+          t: W.t,
+          kind: 'normal',
+          signatureVfx: sigKey,
+          legendary: true,
+          techId: sigOrTechId || sigKey,
+          x: (Number.isFinite(n.x) ? n.x : 118) + 3,
+          y: Number.isFinite(n.y) ? n.y : 75
+        };
+        if (G.R && G.R.updateCastEffects) G.R.updateCastEffects(performance.now());
+        if (UI.audio) UI.audio.playBladeClash();
+        UI.toast((spec.icon || '✨') + ' สำแดงเอฟเฟกต์วิชาเฉพาะตัว:「' + spec.nameTh + '」!');
+      }
+      UI.render();
     }
     else if (a === 'resolve-extradition') {
       const [ultId, choice] = String(arg || '').split('|');
@@ -3655,6 +3861,17 @@
       const byRank = SECT.RANKS.map(r => alive.filter(n => n.rank === r.id).length);
       h += '<div class="prow" data-npc="' + m.id + '">' + portraitHtml(m, 54) + '<div class="pi"><div class="nm" style="font-size:15px">' + esc(S.name) + '</div><div class="sub">เจ้าสำนัก: ' + esc(HC.fullName(m)) + ' · ' + HC.ageText(m) + ' · ' + esc(HC.identity(m).title) + '</div></div></div>';
       h += '<div class="card"><div class="grid2"><div>👥 สมาชิก <b>' + pop + '/' + cap + '</b> <span class="muted">(สูงสุด ' + maxCap + ')</span></div><div>🏅 ชื่อเสียง <b>' + U.fmtNum(S.fame) + '</b></div><div>💎 ศิลาวิญญาณ <b>' + U.fmtNum(S.stones) + '</b></div><div>😊 ความพึงพอใจ <b>' + Math.round(W.avgSat) + '</b></div><div>🍚 ข้าว/อาหาร <b>' + ECO.count(W, 'grain') + '/' + ECO.count(W, 'meal') + '</b></div><div>☠ ผู้เสียชีวิตสะสม <b>' + (W.deaths || 0) + '</b></div></div></div>';
+      const activeTribs = (S.activeTribulations || []).filter(x => x && x.active);
+      if (activeTribs.length) {
+        h += '<div class="card" style="border-color:#ffd740;background:rgba(255,215,64,0.10);margin-bottom:8px">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div><b>⛈️ แจ้งเตือนทัณฑ์สวรรค์กำลังฟาดถล่มเหนือสำนัก (' + activeTribs.length + ' คน)</b></div></div>';
+        activeTribs.forEach(tr => {
+          h += '<div style="margin-top:4px;padding-top:4px;border-top:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
+            '<div><b>' + esc(tr.npcNameTh) + '</b> <span class="chip g">' + esc(tr.pathStyleNameTh) + '</span> <span class="chip b">' + esc(tr.boltLabelTh) + '</span><div class="muted" style="font-size:11px">' + esc(tr.phaseTh) + ' (ทิค ' + tr.elapsedTicks + '/' + tr.totalTicks + ')</div></div>' +
+            '<button type="button" class="btn pri" style="padding:3px 9px;font-size:11px" data-do="focus-tribulation" data-arg="' + esc(tr.npcId) + '">⚡ ส่องดูทัณฑ์สวรรค์</button></div>';
+        });
+        h += '</div>';
+      }
       h += renderSubTabBar('set-sect-subtab', sSub, sectSubTabs, 'หมวดย่อยภาพรวมสำนัก');
       let hCore = '', hCouncil = '', hPeaksArray = '', hLineage = '', hDao = '', hVisuals = '';
       h += '<div class="subcat-pane" data-subcat="CORE"' + ((sSub === 'ALL' || sSub === 'CORE') ? '' : ' style="display:none"') + '>';
@@ -3850,6 +4067,25 @@
           h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🎎 ฉากคัตซีนพิธีกรรม & สนามประลองยุทธ์บนแผนที่ (v5.1.0):</b></div>';
           h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' + ceremonies.map(cm => '<button class="btn' + (curCer === cm.id ? ' pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="cycle-ceremony-preview" data-arg="' + esc(cm.id) + '">' + esc(cm.icon + ' ' + cm.nameTh) + '</button>').join('') + '</div>';
           h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px"><button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="focus-plaza-ceremony" data-arg="BANQUET">🎆 ส่องกล้องชมพลุลานแปดทิศ</button><button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="focus-martial-arena">🏆 ส่องกล้องชมเวทีประลองยุทธ์</button></div>';
+          h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>⚡ ทัณฑ์สวรรค์ 3 จังหวะ & 15 เอฟเฟกต์วิชาเฉพาะตัว (v5.3.0):</b></div>';
+          h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
+            '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="start-tribulation-ritual" data-arg="' + esc(m ? m.id : '') + '">⛈️ อัญเชิญทัณฑ์สวรรค์ทะลวงด่าน</button>' +
+            '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="focus-tribulation" data-arg="' + esc(m ? m.id : '') + '">⚡ ส่องดูทัณฑ์สวรรค์</button>' +
+            '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="preview-signature-vfx" data-arg="' + esc((m ? m.id : '') + '|sig_meteor_sword_rain') + '">☄️ ทดสอบเอฟเฟกต์วิชาเฉพาะตัว</button>' +
+            '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="demo-qinggong-flight" data-arg="' + esc(m ? m.id : '') + '">🗡️ ทดสอบวิชาตัวเบา/ขี่กระบี่บิน</button>' +
+            '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="demo-mantra-resonance" data-arg="' + esc(m ? m.id : '') + '">☯️ สำแดงคัมภีร์ปราณบ่มเพาะ</button>' +
+            '</div>';
+          if (SECT.FORMATION_WARFARE) {
+            const fw = SECT.FORMATION_WARFARE.ensure(W);
+            const curW = (W.weather && (W.weather.kind || W.weather)) || 'clear';
+            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🏯 มหาค่ายกลพิทักษ์สำนัก 3 รูปแบบ & ปรากฏการณ์ฟ้าดินหนุนคัมภีร์ปราณ (v5.5.0):</b></div>';
+            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
+              Object.values(SECT.FORMATION_WARFARE.STANCES).map(fs => '<button class="btn' + (fw.activeStance === fs.id ? ' pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="set-sect-formation-stance" data-arg="' + esc(fs.id) + '">' + esc(fs.icon + ' ' + fs.shortTh) + '</button>').join('') +
+              '</div>';
+            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
+              Object.values(SECT.FORMATION_WARFARE.WEATHER_PHENOMENA).map(wp => '<button class="btn' + (curW === wp.id ? ' ok' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-sect-weather-phenomenon" data-arg="' + esc(wp.id) + '">' + esc(wp.icon + ' ' + wp.nameTh) + '</button>').join('') +
+              '</div>';
+          }
         }
         h += '</div>';
       }
@@ -4438,7 +4674,17 @@
     const isDorm = SECT.HOUSING_IDS && SECT.HOUSING_IDS.includes(b.id);
     const maxBeds = isDorm && SECT.FACILITY_SPECS[b.id] ? SECT.FACILITY_SPECS[b.id].bedsByLevel[maxL] : 0;
     const inside = (b.inside || []).map(id => W.byId[id]).filter(Boolean); const around = W.npcs.filter(n => !n.dead && !n.away && !n.hidden && n.x >= b.x - 2 && n.x <= b.x + b.w + 2 && n.y >= b.y - 1 && n.y <= b.y + b.h + 5);
-    let h = '<div class="card"><div style="font-size:30px">' + bt.icon + '</div><div>' + esc(bt.desc) + '</div><div class="muted">ระดับ ' + b.level + '/' + maxL + ' · สภาพ ' + Math.round(b.hp) + '% · ' + (isDorm ? ('เตียงพัก ' + b.stations.length + '/' + maxBeds + ' เตียง') : ('จุดกิจกรรม ' + b.stations.length)) + '</div></div>';
+    const bSub = UI.buildingSubTab || 'OVERVIEW';
+    const bSubTabs = [
+      ['OVERVIEW', '🏯 ภาพรวม & ผู้ใช้งาน'],
+      ['FENGSHUI', '☯️ ฮวงจุ้ย & ชีพจรปราณ'],
+      ['ACTIVITIES', '⚙️ กิจกรรม & มรดกอาคาร'],
+      ['ALL', '📋 ดูทั้งหมด']
+    ];
+    let h = renderSubTabBar('set-building-subtab', bSub, bSubTabs, 'หมวดย่อยข้อมูลอาคารสำนัก');
+    h += '<div class="subcat-pane" data-subcat="OVERVIEW"' + ((bSub === 'ALL' || bSub === 'OVERVIEW') ? '' : ' style="display:none"') + '>';
+    h += '<div class="card">' + buildingShowcaseHtml(b, 210, 92) + '<div style="font-size:30px">' + bt.icon + '</div><div>' + esc(bt.desc) + '</div><div class="muted">ระดับ ' + b.level + '/' + maxL + ' · สภาพ ' + Math.round(b.hp) + '% · ' + (isDorm ? ('เตียงพัก ' + b.stations.length + '/' + maxBeds + ' เตียง') : ('จุดกิจกรรม ' + b.stations.length)) + '</div></div>';
+    h += '</div><div class="subcat-pane" data-subcat="FENGSHUI"' + ((bSub === 'ALL' || bSub === 'FENGSHUI') ? '' : ' style="display:none"') + '>';
     if (SECT.FENG_SHUI) {
       const fs = SECT.FENG_SHUI.ensure(W);
       const fn = fs && fs.nodes && fs.nodes[b.id];
@@ -4450,6 +4696,7 @@
         h += '<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">' + ['WOOD', 'FIRE', 'EARTH', 'METAL', 'WATER', 'ASTRAL', 'BLOOD'].map(elKey => '<button class="btn" style="padding:2px 6px;font-size:10.5px" data-do="attune-building-leyline" data-arg="' + esc(b.id) + '|' + elKey + '">ฝังแกน ' + esc((SECT.FENG_SHUI.ELEMENT_META[elKey] || {}).nameTh || elKey) + '</button>').join('') + '</div></div>';
       }
     }
+    h += '</div><div class="subcat-pane" data-subcat="ACTIVITIES"' + ((bSub === 'ALL' || bSub === 'ACTIVITIES' || bSub === 'OVERVIEW') ? '' : ' style="display:none"') + '>';
     h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><button class="btn pri" data-do="locb" data-arg="' + b.id + '">📍 ไปที่สถานที่นี้</button>';
     if (g.FISHING && ['spirit_pond', 'river_dock', 'river_west', 'river_east'].includes(b.id)) {
       const zid = b.zoneId || (b.id === 'river_dock' ? 'river_central' : b.id);
@@ -4493,6 +4740,7 @@
       if (ascHistory.length) h += '<div class="muted" style="margin-top:7px">จารึกจุติล่าสุด: ' + ascHistory.map(r => esc(r.candidateNameTh) + ' (' + esc(r.path) + ')').join(' · ') + '</div>';
       h += '</div>';
     }
+    h += '</div>';
     return h;
   };
 
@@ -4772,7 +5020,20 @@
     list = list.filter(l => matchesLogSubFilter(l, UI.logSubFilter));
     list = list.slice(-150).reverse();
     if (!list.length) return h + '<div class="muted">ยังไม่มีเหตุการณ์ในหมวดที่เลือก</div>';
-    return h + list.map(l => '<div class="logrow"><span class="tm">' + dayStamp(l.t) + ' ' + U.pad2(Math.floor((l.t % 1440) / 60)) + ':' + U.pad2(l.t % 60) + '</span>' + linkify(W, l.text, l.ids, l.refs) + '</div>').join('');
+    const majorBanners = {
+      breakthrough: ['⚡ ทัณฑ์สวรรค์/ทะลวงด่าน', '#ffd740'],
+      death: ['🕯️ จารึกผู้ล่วงลับ', '#ef476f'],
+      tournament: ['🏆 ประลองยุทธ์สำนัก', '#00f5d4'],
+      raid: ['⚔️ ศึกป้องกันสำนัก', '#ff6b35'],
+      marriage: ['💞 มงคลคู่บำเพ็ญ', '#ff9ebb'],
+      succession: ['👑 สืบทอดเจ้าสำนัก', '#c77dff'],
+      legend: ['🐉 ตำนานยุทธภพ', '#90e0ef']
+    };
+    return h + list.map(l => {
+      const mb = majorBanners[l.type];
+      const badge = mb ? '<span class="chip" style="border-color:' + mb[1] + ';color:' + mb[1] + ';margin-right:4px">' + mb[0] + '</span>' : '';
+      return '<div class="logrow"' + (mb ? ' style="border-left:3px solid ' + mb[1] + ';padding-left:6px;background:rgba(255,255,255,0.02)"' : '') + '><span class="tm">' + dayStamp(l.t) + ' ' + U.pad2(Math.floor((l.t % 1440) / 60)) + ':' + U.pad2(l.t % 60) + '</span>' + badge + linkify(W, l.text, l.ids, l.refs) + '</div>';
+    }).join('');
   };
 
   /* ----- แผนที่ยุทธภพ 5 แคว้น & ยุทธศาสตร์ครองยุทธภพ (v2.0.18) ----- */
@@ -6481,7 +6742,10 @@
         const allM = (g.SK.allMoves && parent && Array.isArray(parent.moveDefs) && parent.moveDefs.length > 1) ? g.SK.allMoves(parent) : [];
         const lockedM = allM.filter(mv => !g.SK.canSelectMove(n, parent, mv.id));
         const elemInter = (g.ELEM && parent) ? g.ELEM.explainCompatibility(n, parent, 'COMBAT_SKILL') : null;
-        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+        const sigId = p.signatureVfx || (parent && parent.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(parent || p, p) : null);
+        const sigSpec = (sigId && g.SK && g.SK.SIGNATURE_VFX_CATALOG) ? g.SK.SIGNATURE_VFX_CATALOG[sigId] : null;
+        const sigBadge = sigSpec ? (' <span class="chip g">' + esc(sigSpec.icon + ' เอฟเฟกต์เฉพาะ: ' + sigSpec.nameTh) + '</span> <button type="button" class="btn" style="padding:1px 6px;font-size:10.5px" data-do="preview-signature-vfx" data-arg="' + esc(n.id + '|' + sigSpec.id) + '">✨ ชมท่าไม้ตาย</button>') : '';
+        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + sigBadge + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่มีกระบวนท่าต่อสู้ที่ติดตั้ง</div>';
@@ -6631,13 +6895,67 @@
         const petObj = (Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n.pet || null);
         h += '<div class="card" style="border-color:var(--gold);background:rgba(255,215,64,0.04);margin:6px 0">';
         h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:6px"><b>✨ แท่นจำลองรัศมีเซียน & ศาสตราคู่กาย (Era 5 Visual Diorama)</b><div style="display:flex;gap:4px">' +
-          [['cultivate', '🧘 โคจรปราณ'], ['fight', '⚔️ สำแดงวิชา'], ['breakthrough', '⚡ ทัณฑ์สวรรค์']].map(([pk, pl]) => '<button class="btn' + (curPose === pk ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-diorama-pose" data-arg="' + pk + '">' + pl + '</button>').join('') +
+          [['cultivate', '🧘 โคจรปราณ'], ['mantra', '☯️ คัมภีร์ปราณ'], ['defensive', '🛡️ วิชาคุ้มกาย'], ['fight', '⚔️ สำแดงวิชา'], ['qinggong', '🗡️ วิชาตัวเบา/เหินเวหา'], ['breakthrough', '⚡ ทัณฑ์สวรรค์']].map(([pk, pl]) => '<button class="btn' + (curPose === pk ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-diorama-pose" data-arg="' + pk + '">' + pl + '</button>').join('') +
           '</div></div>';
         h += dioramaHtml(n, 220, 136);
         h += '<div class="muted" style="font-size:11px;text-align:center;margin-top:5px">รัศมีตบะ: <b>' + esc(rSpec.nameTh) + '</b>' + (stg >= 7 ? ' · มีผ้าแพรเซียนเหินเมฆา (披帛)' : '') + (petObj ? ' · สัตว์อสูรคู่ใจ: <b>' + esc(petObj.nameTh || petObj.speciesId || 'อสูรวิญญาณ') + '</b>' : '') + '</div>';
         h += '</div>';
       }
       h += '<div class="muted">🏅 แต้มคุณูปการ <b>' + Math.round(n.cp || 0) + '</b> · สะสมตลอดชีพ ' + Math.round(n.cpEarned || 0) + '</div>';
+      if (CULT.DEFENSIVE_ARTS && n.cult) {
+        const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, n);
+        if (df && df.spec) {
+          const dSt = n.defensiveArtState || { posture: 'COUNTER_PARRY_STANCE', totalDamageMitigated: 0, totalDamageRedirected: 0, totalAllyIntercepts: 0 };
+          h += '<h3>🛡️ วิชาคุ้มกายและปราณเกราะพิทักษ์ (Defensive Kungfu & Aegis v5.6.0)</h3><div class="card" style="border-color:' + esc(df.spec.color || '#72efdd') + '">';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<div><span class="chip g" style="border-color:' + esc(df.spec.color || '#72efdd') + '">' + df.spec.icon + ' <b>' + esc(df.spec.nameTh) + '</b></span> <span class="chip b">ลดดาเมจ -' + Math.round(df.effDmgRedPct * 100) + '%</span>' + (df.effRedirectPct > 0 ? ' <span class="chip ok">☯️ ยืมแรงสะท้อน ' + Math.round(df.effRedirectPct * 100) + '%</span>' : '') + (df.effCounterPct > 0 ? ' <span class="chip ok">⚔️ สวนกลับ ' + Math.round(df.effCounterPct * 100) + '%</span>' : '') + (df.allyInterceptActive ? ' <span class="chip g">👑 คุ้มครองสหาย 5.5 ช่อง</span>' : '') + '</div>';
+          h += '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="demo-defensive-aegis" data-arg="' + esc(n.id) + '">🛡️ สำแดงปราณคุ้มกาย</button>';
+          h += '</div>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>จุดเด่นวิชาคุ้มกาย:</b> ' + esc(df.spec.prosTh) + '<br><b>ข้อจำกัด:</b> ' + esc(df.spec.consTh) + '<br><b>สถิติการป้องกัน:</b> สลายดาเมจสะสม ' + Math.round(dSt.totalDamageMitigated || 0) + ' หน่วย · สะท้อน/สวนกลับ ' + Math.round(dSt.totalDamageRedirected || 0) + ' หน่วย · รับเคราะห์แทนสหาย ' + (dSt.totalAllyIntercepts || 0) + ' ครั้ง</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ท่าตั้งรับปราณคุ้มกาย:</span>';
+          Object.values(CULT.DEFENSIVE_ARTS.POSTURES).forEach(pSpec => {
+            h += '<button class="btn' + (df.postureId === pSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-defensive-posture" data-arg="' + esc(n.id + '|' + pSpec.id) + '">' + esc(pSpec.icon + ' ' + pSpec.shortTh) + '</button>';
+          });
+          h += '</div></div>';
+        }
+      }
+      if (CULT.MANTRA_SYSTEM && n.cult) {
+        const mr = CULT.MANTRA_SYSTEM.resolveNpcMantra(W, n);
+        if (mr && mr.spec) {
+          const mSt = n.mantraState || { stance: 'HARMONIOUS_CIRCULATION', resonanceStacks: 0, totalAutonomousGain: 0, totalCombatProcs: 0 };
+          h += '<h3>☯️ คัมภีร์ปราณบ่มเพาะและเอกลักษณ์การเดินลมปราณ (Mantra Resonance v5.5.0)</h3><div class="card" style="border-color:' + esc(mr.spec.color || '#ffd166') + '">';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<div><span class="chip g" style="border-color:' + esc(mr.spec.color || '#ffd166') + '">' + mr.spec.icon + ' <b>' + esc(mr.spec.nameTh) + '</b></span> <span class="chip b">คัมภีร์: ' + esc(mr.mantraNameTh) + '</span> <span class="chip ok">ตัวคูณเดินปราณ ×' + mr.effectiveCultMult.toFixed(2) + '</span>' + (mr.weatherResonanceActive ? ' <span class="chip g">🌌 สอดคล้องฟ้าดิน (+' + Math.round((mr.spec.weatherBonusPct || 0.2) * 100) + '%)</span>' : '') + '</div>';
+          h += '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="demo-mantra-resonance" data-arg="' + esc(n.id) + '">☯️ สำแดงวงจรคัมภีร์ปราณ</button>';
+          h += '</div>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>เอกลักษณ์คัมภีร์ปราณ:</b> ' + esc(mr.spec.prosTh) + '<br><b>ข้อจำกัดเฉพาะทาง:</b> ' + esc(mr.spec.consTh) + '<br><b>จังหวะปัจจุบัน:</b> ' + esc(mr.stanceSpec.icon + ' ' + mr.stanceSpec.nameTh) + ' — ' + esc(mr.stanceSpec.descTh) + '</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">เปลี่ยนจังหวะการเดินลมปราณ:</span>';
+          Object.values(CULT.MANTRA_SYSTEM.STANCES).forEach(stSpec => {
+            h += '<button class="btn' + (mr.stanceId === stSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-mantra-stance" data-arg="' + esc(n.id + '|' + stSpec.id) + '">' + esc(stSpec.icon + ' ' + stSpec.shortTh) + '</button>';
+          });
+          h += '</div></div>';
+        }
+      }
+      if (CULT.QINGGONG && n.cult) {
+        const qg = CULT.QINGGONG.resolveNpcMode(W, n);
+        const st = CULT.QINGGONG.ensureState(n);
+        const cmp = CULT.QINGGONG.compareSwordVsLevitation(W, n);
+        const curPref = st.preferredMode || 'AUTO';
+        h += '<h3>🌬️ วิชาตัวเบาและการเคลื่อนที่ในสำนัก/ยุทธภพ (Qinggong & Flight)</h3><div class="card" style="border-color:' + esc(qg.spec.color || '#48cae4') + '">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+        h += '<div><span class="chip g" style="border-color:' + esc(qg.spec.color || '#48cae4') + '">' + qg.spec.icon + ' <b>' + esc(qg.spec.nameTh) + '</b></span> <span class="chip b">ความเร็วสำนัก ×' + qg.speedMult.toFixed(2) + '</span> <span class="chip">ผลาญปราณ ' + qg.qiCostPerTick.toFixed(2) + '/ทิค</span>' + (qg.airborne ? ' <span class="chip ok">✈️ บินลัดสิ่งกีดขวาง</span>' : '') + (qg.exhaustedFallback ? ' <span class="chip r">⚠️ ปราณต่ำ พักเดินพื้นชั่วคราว</span>' : '') + (qg.weaponPenaltyActive ? ' <span class="chip r">⚠️ ไร้ศาสตรา (ความเร็วกระบี่บินลดลง)</span>' : '') + '</div>';
+        h += '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="demo-qinggong-flight" data-arg="' + esc(n.id) + '">🚀 ทดสอบเหินเวหา/วิ่งปราณบนแผนที่</button>';
+        h += '</div>';
+        h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>จุดเด่น:</b> ' + esc(qg.spec.prosTh) + '<br><b>ข้อจำกัด:</b> ' + esc(qg.spec.consTh) + '<br><b>สถิติสะสม:</b> เคลื่อนที่ ' + Math.round(st.totalTilesMoved || 0) + ' ช่อง · เหินเวหา ' + Math.round(st.totalTilesFlown || 0) + ' ช่อง · ใช้ปราณสะสม ' + Math.round(st.totalQiSpent || 0) + ' แต้ม</div>';
+        h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">เลือกรูปแบบการเคลื่อนที่:</span>';
+        [['AUTO', '⚙️ อัตโนมัติ (ดีสุด)']].concat(qg.unlockedModes.map(mId => [mId, CULT.QINGGONG.MODES[mId].icon + ' ' + CULT.QINGGONG.MODES[mId].shortTh])).forEach(([mKey, mLbl]) => {
+          h += '<button class="btn' + (curPref === mKey ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-qinggong-mode" data-arg="' + esc(n.id + '|' + mKey) + '">' + esc(mLbl) + '</button>';
+        });
+        h += '</div>';
+        h += '<details style="margin-top:6px;font-size:11.5px"><summary style="cursor:pointer;color:var(--gold)">⚖️ เปรียบเทียบ「ขี่กระบี่บิน (ขั้น 3+)」กับ「เหาะเหินเดินอากาศเซียนอมตะ (ขั้น 6+)」</summary>';
+        h += '<div class="muted" style="padding-top:4px">• <b>' + esc(cmp.swordFlight.nameTh) + ':</b> ความเร็ว ×' + cmp.swordFlight.effectiveSpeedMult.toFixed(2) + ' · กินปราณ ' + cmp.swordFlight.qiCostPerTick + '/ทิค · ' + esc(cmp.swordFlight.drawbacksTh.join(' · ')) + '<br>• <b>' + esc(cmp.celestialLevitation.nameTh) + ':</b> ความเร็ว ×' + cmp.celestialLevitation.effectiveSpeedMult.toFixed(2) + ' · กินปราณเพียง ' + cmp.celestialLevitation.qiCostPerTick + '/ทิค · ' + esc(cmp.celestialLevitation.advantagesTh.join(' · ')) + '</div></details>';
+        h += '</div>';
+      }
       h += '<h3>กำลังทำอะไร</h3><div class="card"><div style="font-size:15px;font-weight:600">' + esc(actText(n)) + '</div>';
       if (n.why && n.why.length && !n.dead) h += '<div class="muted" style="margin-top:4px">เพราะ:</div><ul class="why" style="margin:2px 0 0 16px;padding:0">' + n.why.map(w => '<li>' + esc(w[0]) + ' <span class="muted">(' + (w[1] > 0 ? '+' : '') + w[1] + ')</span></li>').join('') + '</ul>';
       if (n.lastScores) h += '<div class="muted" style="margin-top:6px">ตัวเลือกที่ชั่งใจ: ' + n.lastScores.slice(0, 5).map(x => (AI.ACTS[x.id] ? AI.ACTS[x.id].nameTh : x.id === 'pair' ? 'พบปะ' : x.id) + ' ' + x.u).join(' · ') + '</div>';
@@ -7220,6 +7538,15 @@
       const curSub = (d.cult && d.cult.sub !== undefined) ? d.cult.sub : (n.cult ? n.cult.sub : "NONE");
       const curXp = (d.cult && d.cult.xp !== undefined) ? d.cult.xp : (n.cult ? Math.round(n.cult.prog || 0) : 0);
 
+      const eCharSub = UI.editCharSubTab || 'CULT_ECON';
+      const editCharTabs = [
+        ['CULT_ECON', '🧘 วิถีตบะ & ทรัพยากร'],
+        ['ROOTS_ELEM', '🌿 รากวิญญาณ & ธาตุ'],
+        ['STATS', '📊 ค่าพื้นฐาน 9 หมวด'],
+        ['ALL', '📋 ดูทั้งหมด']
+      ];
+      h += renderSubTabBar('set-edit-char-subtab', eCharSub, editCharTabs, 'หมวดย่อยแก้ไขตัวละคร');
+      h += '<div class="subcat-pane" data-subcat="CULT_ECON"' + ((eCharSub === 'ALL' || eCharSub === 'CULT_ECON') ? '' : ' style="display:none"') + '>';
       h += "<h3>1. วิถีบำเพ็ญ ขั้นตบะ และทรัพยากรส่วนตัว</h3><div class=\"card\"><div class=\"edit-grid\">";
       h += "<div class=\"edit-field\"><label>วิถีหลัก</label><select id=\"editCultPath\" class=\"edit-live-input\"><option value=\"MORTAL\"" + (curPath === "MORTAL" ? " selected" : "") + ">ปุถุชน (ไร้ตบะ)</option>" + Object.keys(CULT.PATHS).map(pid => "<option value=\"" + pid + "\"" + (curPath === pid ? " selected" : "") + ">" + esc(CULT.PATHS[pid].nameTh) + " (สูงสุดขั้น " + CULT.PATHS[pid].maxStage + ")</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>สายย่อย</label><select id=\"editCultSub\" class=\"edit-live-input\"><option value=\"NONE\">พื้นฐาน (ยังไม่เลือกสายย่อย)</option>" + validSubs.map(s => "<option value=\"" + s.id + "\"" + (curSub === s.id ? " selected" : "") + ">" + esc(s.nameTh) + "</option>").join("") + "</select></div>";
@@ -7232,6 +7559,7 @@
       h += "<div class=\"edit-field\"><label>ความพึงพอใจ (0–100)</label><input id=\"editSat\" class=\"edit-live-input\" type=\"number\" min=\"0\" max=\"100\" value=\"" + Math.round((d.economy && d.economy.sat !== undefined) ? d.economy.sat : (n.sat == null ? 60 : n.sat)) + "\"></div>";
       h += "</div></div>";
 
+      h += '</div><div class="subcat-pane" data-subcat="ROOTS_ELEM"' + ((eCharSub === 'ALL' || eCharSub === 'ROOTS_ELEM') ? '' : ' style="display:none"') + '>';
       // Spiritual Roots & Elemental Mastery Editor
       if (g.ELEM) {
         const curRoot = d.root || n.h.root || { rootCount: 1, elements: ["FIRE"], grades: ["MORTAL"] };
@@ -7293,6 +7621,7 @@
         social: "ทักษะสังคม (Social 7)",
         skills: "ทักษะยุทธ์และวิชาชีพ (Skills 26)"
       };
+      h += '</div><div class="subcat-pane" data-subcat="STATS"' + ((eCharSub === 'ALL' || eCharSub === 'STATS') ? '' : ' style="display:none"') + '>';
       h += "<h3>3. ค่าพื้นฐานและความถนัดตัวละคร (คำนวณ HP/Qi/พลังรบอัตโนมัติ)</h3><div class=\"card\">";
       h += "<select id=\"editStatGroupSel\" style=\"margin-bottom:8px\">" + Object.keys(grpLabels).map(gk => "<option value=\"" + gk + "\"" + (grp === gk ? " selected" : "") + ">" + grpLabels[gk] + "</option>").join("") + "</select>";
       h += "<div class=\"edit-grid\">";
@@ -7303,6 +7632,7 @@
       });
       h += "</div></div>";
 
+      h += "</div>";
       const prev = SECT.EDITOR.previewCharacterEdit(W, n.id, d);
       h += "<div class=\"card\" id=\"editLivePreview\">" + (prev.ok ? ("<b>ผลคำนวณหลังแก้ไข:</b> " + esc(prev.after.stageName) + " · รากปราณ <b>" + (prev.after.rootCount || 1) + " ราก (" + esc(prev.after.aggregateGrade || "MORTAL") + " · " + esc(prev.after.rarityTitleTh || "") + ")</b> · พลังชีวิตสูงสุด <b>" + prev.after.hpMax + "</b> · ปราณสูงสุด <b>" + prev.after.qiMax + "</b> · พลังรบ <b>" + prev.after.combatPower + "</b> · อัตราบ่มเพาะ <b>" + (prev.after.cultRate || 0) + "/ชม.</b>") : ("<span style=\"color:var(--red)\">⚠️ " + esc(prev.reason) + "</span>")) + "</div>";
       h += "<div style=\"display:flex;gap:8px;margin-top:8px\"><button class=\"btn pri\" style=\"flex:1\" data-do=\"apply-char-edit\">💾 บันทึกการแก้ไขตัวละคร</button></div>";
@@ -7310,6 +7640,15 @@
       const pData = SECT.EDITOR.petState(W, n.id);
       const species = pData.speciesCatalog || [];
       const buffCat = pData.buffCatalog || {};
+      const ePetSub = UI.editPetSubTab || 'PETS_BUFFS';
+      const editPetTabs = [
+        ['PETS_BUFFS', '🐾 สัตว์อสูร & บัฟหนุนนำ'],
+        ['MECH_KARMA', '⚙️ หุ่นเชิด · หนี้กรรม & ผสมพันธุ์'],
+        ['FACILITIES', '🏛️ นโยบายหมอ & สิ่งปลูกสร้างวิถี'],
+        ['ALL', '📋 ดูทั้งหมด']
+      ];
+      h += renderSubTabBar('set-edit-pet-subtab', ePetSub, editPetTabs, 'หมวดย่อยสัตว์อสูร บัฟ และกลไกวิถี');
+      h += '<div class="subcat-pane" data-subcat="PETS_BUFFS"' + ((ePetSub === 'ALL' || ePetSub === 'PETS_BUFFS') ? '' : ' style="display:none"') + '>';
       h += "<h3>1. 🐾 จัดการสัตว์อสูรพันธสัญญา (Universal Spirit Beast Companions)</h3><div class=\"card\">";
       h += "<div class=\"muted\" style=\"margin-bottom:6px\">ผู้ฝึกตนทั่วไปสามารถผูกพันธสัญญาสัตว์อสูรออกรบได้สูงสุด <b>1 ตัว</b> · ส่วนผู้เดิน <b>วิถีราชันย์อสูร (BEAST_SOVEREIGN)</b> สามารถควบคุมฝูงอสูรออกรบพร้อมกันได้สูงสุด <b>2–4 ตัว</b> ตามขั้นตบะ (ปัจจุบันของ " + esc(n.h.name.given) + ": สูงสุด <b>" + pData.maxPets + " ตัว</b>)</div>";
       h += "<div class=\"edit-grid\">";
@@ -7350,6 +7689,7 @@
 
       const ms = pData.mechState || { constructReadiness: 100, overclockReady: true, decoyAvailable: true };
       const ks = pData.karmaState || { karmicDebt: 0, activeRealmStance: 'DEVA', echoReady: true };
+      h += '</div><div class="subcat-pane" data-subcat="MECH_KARMA"' + ((ePetSub === 'ALL' || ePetSub === 'MECH_KARMA') ? '' : ' style="display:none"') + '>';
       h += "<h3>3. ⚙️ กลไกหุ่นเชิด (MECH_PUPPET) & ☸️ บัญชีหนี้กรรม (KARMA_SAMSARA)</h3><div class=\"card\"><div class=\"edit-grid\">";
       h += "<div class=\"edit-field\"><label>ความพร้อมหุ่นเชิด (Construct Readiness 0–100%)</label><input id=\"editMechReadiness\" type=\"number\" min=\"0\" max=\"100\" value=\"" + Math.round(ms.constructReadiness || 0) + "\"><label style=\"font-size:11px;margin-top:4px;display:flex;gap:4px\"><input type=\"checkbox\" id=\"editMechOverclock\"" + (ms.overclockReady ? " checked" : "") + "> โอเวอร์คล็อกพร้อม</label><label style=\"font-size:11px;display:flex;gap:4px\"><input type=\"checkbox\" id=\"editMechDecoy\"" + (ms.decoyAvailable ? " checked" : "") + "> หุ่นสลับร่างพร้อม</label><button class=\"btn\" style=\"margin-top:4px\" data-do=\"edit-save-mech\">⚙️ บันทึกสถานะหุ่นเชิด</button></div>";
       h += "<div class=\"edit-field\"><label>หนี้กรรมสะสม (Karmic Debt Ledger)</label><input id=\"editKarmaDebt\" type=\"number\" min=\"0\" max=\"5000\" value=\"" + Math.round(ks.karmicDebt || 0) + "\"><label style=\"font-size:11px;margin-top:4px\">ท่าทีวัฏจักร 6 ภพภูมิ</label><select id=\"editKarmaStance\">" + [["DEVA", "สวรรค์ (DEVA)"], ["ASURA", "อสูรสงคราม (ASURA)"], ["HUMAN", "มนุษย์สมดุล (HUMAN)"], ["PRETA", "เปรตสูบปราณ (PRETA)"], ["NARAKA", "นรกโลกันตร์ (NARAKA)"], ["ANIMAL", "เดรัจฉานสัญชาตญาณ (ANIMAL)"]].map(([k, v]) => "<option value=\"" + k + "\"" + (ks.activeRealmStance === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select><label style=\"font-size:11px;margin-top:4px;display:flex;gap:4px\"><input type=\"checkbox\" id=\"editKarmaEcho\"" + (ks.echoReady ? " checked" : "") + "> กายาอดีตชาติคุ้มชีพพร้อม</label><button class=\"btn\" style=\"margin-top:4px\" data-do=\"edit-save-karma\">☸️ บันทึกสถานะหนี้กรรม</button></div>";
@@ -7373,6 +7713,7 @@
       }
       h += "</div>";
 
+      h += '</div><div class="subcat-pane" data-subcat="FACILITIES"' + ((ePetSub === 'ALL' || ePetSub === 'FACILITIES') ? '' : ' style="display:none"') + '>';
       // 5. Sect Support & Medical Triage Doctrine
       h += "<h3>5. 🪷 นโยบายซัพพอร์ตและการรักษาสำนัก (Sect Support Doctrine)</h3><div class=\"card\">";
       h += "<div class=\"muted\" style=\"margin-bottom:6px\">กำหนดลำดับความสำคัญในการเดินปราณรักษาและแจกบัฟของศิษย์สาย <b>SAGE_SUPPORT</b> และหมอหลวงประจำสำนัก</div>";
@@ -7396,7 +7737,7 @@
         const fc = facs[fId];
         h += "<div class=\"edit-field\"><b>" + esc(fc.nameTh) + "</b> <span class=\"chip ok\">ระดับ " + fc.level + "/" + fc.maxLevel + "</span><div class=\"muted\" style=\"font-size:11px;margin:3px 0\">" + esc(fc.descTh) + "</div>" + (fc.level < fc.maxLevel ? ("<button class=\"btn\" data-do=\"edit-upgrade-facility\" data-arg=\"" + fId + "\">🏛️ ยกระดับ (ใช้ " + (fc.costBase * fc.level * fc.level) + " ศิลา)</button>") : "<span class=\"chip\">ระดับสูงสุดแล้ว</span>") + "</div>";
       });
-      h += "</div></div>";
+      h += "</div></div></div>";
     } else if (tab === "spawn") {
       const paged = SECT.EDITOR.catalogPaginated(W, {
         search: UI.spawnSearch,

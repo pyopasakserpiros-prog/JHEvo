@@ -6,11 +6,11 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '5.2.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0'],
-    SAVE_SCHEMA_VERSION: '5.2.0-subtabs-and-world-visuals',
+    PATCH_VERSION: '5.6.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0'],
+    SAVE_SCHEMA_VERSION: '5.6.0-defensive-kungfu-and-aegis-barriers',
     MIN_PER_YEAR: 360 * 1440,
-    TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
+    TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
   const E = (n, p) => HC.eff(n, p);
 
@@ -637,7 +637,8 @@
   /* ---------- รายวัน ---------- */
   SIM.dailyUpdate = (W, silent) => {
     const rng = W.rng; const cal = SIM.calendar(W.t); W.season = cal.season; HC.nowDay = W.day;
-    for (let i = 0; i < W.npcs.length; i++) {
+    if (g.CULT && g.CULT.TRIBULATION && g.CULT.TRIBULATION.tickAll) g.CULT.TRIBULATION.tickAll(W);
+      for (let i = 0; i < W.npcs.length; i++) {
       const n = W.npcs[i];
       if (!n || n.dead) continue;
       if (n._dwVer === n._ver) n._dwDay = W.day;
@@ -767,7 +768,7 @@
 
   /* ---------- บันทึก/โหลด ---------- */
   SIM.serialize = W => {
-    if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) W.npcs[i]._cultRateBase = null; } }
+    if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) { W.npcs[i]._cultRateBase = null; W.npcs[i]._wsBase = null; } } }
     const M = W.map;
     const snap = {
       ...(W._saveExtras || {}),

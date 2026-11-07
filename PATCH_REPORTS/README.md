@@ -1,6 +1,10 @@
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
-- **ล่าสุด (v5.2.0):** [`PATCH_IMPLEMENTATION_REPORT_V5_2_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_2_0.md) — Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals, Portal FX & Relic Showcase (ครบ 5 เสาหลัก, 128/128 ชุดทดสอบผ่าน 100%)
+- **ล่าสุด (v5.6.0):** [`PATCH_IMPLEMENTATION_REPORT_V5_6_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_6_0.md) — Era 5 Phase 7: Defensive Kungfu & Protective Aegis Overhaul (วิชาคุ้มกาย 6 อาร์คิไทป์, 3 ท่วงท่าตั้งรับ, ปราการเพชรและม่านสวรรค์, 132/132 ชุดทดสอบผ่าน 100%)
+- **v5.5.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_5_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_5_0.md) — Era 5 Phase 6: Mantra Resonance, Dynamic Weather & Grand Formation Warfare (122 คัมภีร์ลมปราณ 7 อาร์คิไทป์, ค่ายกลสงครามสำนัก 3 ท่า, ปรากฏการณ์ฟ้าดิน 6 สภาพ, 131/131 ชุดทดสอบผ่าน 100%)
+- **v5.4.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_4_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_4_0.md) — Era 5 Phase 5: Qinggong Locomotion, Sword Flight & Celestial Levitation (วิชาตัวเบา 6 ระดับ, กระบี่บินเหินเวหา, เหาะเหินเดินอากาศเซียน, 130/130 ชุดทดสอบผ่าน 100%)
+- **v5.3.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_3_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_3_0.md) — Era 5 Phase 4: Heavenly Tribulation Breakthrough Overhaul & 15 Signature Skill VFX (ทัณฑ์สวรรค์ 15 ทิค, สายฟ้า 1/3/6/9 สาย, เอกลักษณ์ 12 วิถี, 15 สกิลเอฟเฟกต์เฉพาะตัว, 129/129 ชุดทดสอบผ่าน 100%)
+- **v5.2.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_2_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_2_0.md) — Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals, Portal FX & Relic Showcase (ครบ 5 เสาหลัก, 128/128 ชุดทดสอบผ่าน 100%)
 - **v5.1.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_1_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_1_0.md) — Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscenes & Martial Arena Camera (ครบ 5 เสาหลัก, 127/127 ชุดทดสอบผ่าน 100%)
 - **v5.0.0:** [`PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) — Era 5 Phase 1: Grand Celestial Visual Overhaul, Living Sect Ground Spectacles & Shaders (ครบ 6 เสาหลักกราฟิก, 126/126 ชุดทดสอบผ่าน 100%)
 - **v4.1.0:** [`PATCH_IMPLEMENTATION_REPORT_V4_1_0.md`](PATCH_IMPLEMENTATION_REPORT_V4_1_0.md) — Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution (ครบ 5 เสาหลักใหม่, 126/126 ชุดทดสอบผ่าน 100%)

@@ -219,39 +219,146 @@
   AI.freeBed = (W, n) => { if (n.bed != null) { const s = W.map.stations[n.bed]; if (s) s.owner = null; n.bed = null; } };
 
   /* ---------- การเคลื่อนที่ ---------- */
+  AI.buildAerialPath = (W, sx, sy, gx, gy) => {
+    const dist = Math.hypot(gx - sx, gy - sy);
+    const steps = Math.max(2, Math.min(64, Math.ceil(dist / 1.5)));
+    const pts = [];
+    for (let i = 1; i <= steps; i++) {
+      const u = i / steps;
+      const px = Math.floor(sx + (gx - sx) * u);
+      const py = Math.floor(sy + (gy - sy) * u);
+      pts.push([px, py]);
+    }
+    pts[pts.length - 1] = [Math.floor(gx), Math.floor(gy)];
+    return pts;
+  };
   AI.goTo = (W, n, tx, ty) => {
+    const qg = (CULT.QINGGONG && n && n.cult) ? CULT.QINGGONG.resolveNpcMode(W, n) : null;
+    const dist = Math.hypot(tx - n.x, ty - n.y);
+    if (qg && qg.airborne && dist >= 3.5) {
+      const goal = MAP.nearestPassable ? MAP.nearestPassable(W.map, tx, ty) : { x: Math.floor(tx), y: Math.floor(ty) };
+      const gx = Number.isFinite(goal && goal.x) ? goal.x : Math.floor(tx);
+      const gy = Number.isFinite(goal && goal.y) ? goal.y : Math.floor(ty);
+      n.path = AI.buildAerialPath(W, n.x, n.y, gx, gy);
+      n.pi = 0;
+      n.tx = gx;
+      n.ty = gy;
+      n.aerialFlightActive = true;
+      return true;
+    }
+    n.aerialFlightActive = false;
     const p = MAP.findPath(W.map, n.x, n.y, tx, ty);
     if (!p) { n.path = null; return false; }
     n.path = p; n.pi = (p.length > 1 && Math.abs(p[0][0] + 0.5 - n.x) + Math.abs(p[0][1] + 0.5 - n.y) < 0.6) ? 1 : 0;
     if (n.pi >= p.length) n.pi = p.length - 1;
+    n.tx = p[p.length - 1][0];
+    n.ty = p[p.length - 1][1];
     return true;
   };
   AI.walkSpeed = (W, n) => {
     const injLen = n.inj ? n.inj.length : 0, bLen = n.buffs ? n.buffs.length : 0, sxLen = n.sx ? n.sx.length : 0, cSt = n.cult ? n.cult.stage : 0, pVer = n._passVer || 0, bLast = bLen ? n.buffs[bLen - 1] : null, sxLast = sxLen ? n.sx[sxLen - 1] : null;
     const p0 = n.h.physiology, spd0 = p0.speed | 0, agi0 = p0.agility | 0, mLen0 = n.mods ? n.mods.length : 0, eqW0 = n.equip && n.equip.WEAPON, eqA0 = n.equip && n.equip.ARMOR, eqX0 = n.equip && n.equip.ACCESSORY;
     let wb = n._wsBase;
-    if (!wb || wb.spd !== spd0 || wb.agi !== agi0 || wb.mLen !== mLen0 || wb.eqW !== eqW0 || wb.eqA !== eqA0 || wb.eqX !== eqX0 || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.bLast !== bLast || wb.sxLen !== sxLen || wb.sxLast !== sxLast || (sxLen > 0 && W.t >= (wb.sxExp || 0))) {
+    if (!wb || wb.ver !== n._ver || wb.spd !== spd0 || wb.agi !== agi0 || wb.mLen !== mLen0 || wb.eqW !== eqW0 || wb.eqA !== eqA0 || wb.eqX !== eqX0 || wb.day !== HC.nowDay || wb.cSt !== cSt || wb.pVer !== pVer || wb.injLen !== injLen || wb.bLen !== bLen || wb.bLast !== bLast || wb.sxLen !== sxLen || wb.sxLast !== sxLast || (sxLen > 0 && W.t >= (wb.sxExp || 0))) {
       const progB = (g.MARTIAL && g.MARTIAL.progression) ? g.MARTIAL.progression(n).body : {};
       const baseWs = (0.75 + (E(n, "physiology.speed") * 0.7 + E(n, "physiology.agility") * 0.3) / 100 * 0.9) + ((progB.speed || 0) * 0.7 + (progB.agility || 0) * 0.3) / 100 * 0.9;
       let sxExp = Infinity;
       if (sxLen > 0) { for (let i = 0; i < sxLen; i++) { const u = n.sx[i] && n.sx[i].until; if (u > W.t && u < sxExp) sxExp = u; } }
-      wb = n._wsBase = { spd: spd0, agi: agi0, mLen: mLen0, eqW: eqW0, eqA: eqA0, eqX: eqX0, ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, bLast, sxLen, sxLast, sxExp, v: baseWs * CULT.speedMult(n) };
+      const rawStageMult = n.cult ? (1 + 0.05 * (n.cult.stage - 1)) : 1;
+      wb = n._wsBase = { spd: spd0, agi: agi0, mLen: mLen0, eqW: eqW0, eqA: eqA0, eqX: eqX0, ver: n._ver, day: HC.nowDay, cSt, pVer, injLen, bLen, bLast, sxLen, sxLast, sxExp, v: baseWs * rawStageMult };
     }
-    let v = wb.v * MAP.speedAt(W.map, n.x, n.y);
-    if (injLen) v *= 0.75; if (n.h.state.energy < 20) v *= 0.8; if (n.run) v *= 1.5;
-    if (W.weather && W.weather.kind === 'snow') v *= 0.9; if (W.weather && W.weather.kind === 'rain') v *= 0.95;
+    const qg = (CULT.QINGGONG && n.cult) ? CULT.QINGGONG.resolveNpcMode(W, n) : null;
+    const terrainSpd = (qg && (qg.airborne || qg.waterBonusActive)) ? Math.max(1.15, MAP.speedAt(W.map, n.x, n.y)) : MAP.speedAt(W.map, n.x, n.y);
+    let v = wb.v * terrainSpd * (qg ? qg.speedMult : 1.0);
+    if (injLen && !(qg && qg.airborne)) v *= 0.75;
+    if (n.h.state.energy < 20) v *= 0.8;
+    if (n.run) v *= 1.35;
+    if (n.defensiveArtState && CULT.DEFENSIVE_ARTS) {
+      const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, n);
+      if (df && df.postureSpec && df.postureSpec.speedMult !== 1) v *= df.postureSpec.speedMult;
+    }
+    if (!(qg && qg.spec && qg.spec.ignoreWeatherSlow) && !(n.defensiveArtState && CULT.DEFENSIVE_ARTS && CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, n)?.spec?.weatherImmunity)) {
+      const wKind = W.weather && (W.weather.kind || W.weather);
+      if (wKind === 'snow') v *= 0.9;
+      if (wKind === 'rain') v *= 0.95;
+    }
     return v;
   };
   AI.stepMove = (W, n) => {
-    const p = n.path; if (!p) return true;
+    let p = n.path; if (!p) { n.aerialFlightActive = false; return true; }
+    const qg = (CULT.QINGGONG && n.cult) ? CULT.QINGGONG.resolveNpcMode(W, n) : null;
+    const st = (CULT.QINGGONG && n.cult) ? CULT.QINGGONG.ensureState(n) : null;
+
+    // If NPC was flying an aerial path but ran out of Qi (exhaustedFallback), replan ground path safely
+    if (n.aerialFlightActive && (!qg || !qg.airborne)) {
+      n.aerialFlightActive = false;
+      const lastWp = p[p.length - 1];
+      const gx = Array.isArray(lastWp) ? lastWp[0] : (n.tx || Math.floor(n.x));
+      const gy = Array.isArray(lastWp) ? lastWp[1] : (n.ty || Math.floor(n.y));
+      const gp = MAP.findPath(W.map, n.x, n.y, gx, gy);
+      if (gp && gp.length) {
+        n.path = gp;
+        p = gp;
+        n.pi = 0;
+      } else {
+        n.path = null;
+        return true;
+      }
+    }
+
+    // Bounding Leap (ทะยานเมฆา) or Shadow Blink (ก้าวพริบตาเงาพราย) multi-waypoint vault
+    if (qg && st && p && (p.length - n.pi) >= 3) {
+      const nowTick = (W && W.t) || 0;
+      if (qg.modeId === 'LEAP_BOUND' && nowTick - (st.lastLeapTick || -999) >= 3) {
+        const leapIdx = Math.min(p.length - 1, n.pi + (qg.spec.leapTiles || 2));
+        const lwp = p[leapIdx];
+        if (lwp) {
+          const lx = (Array.isArray(lwp) ? lwp[0] + 0.5 : lwp.x);
+          const ly = (Array.isArray(lwp) ? lwp[1] + 0.5 : lwp.y);
+          const lDist = Math.hypot(lx - n.x, ly - n.y);
+          if (Math.abs(lx - n.x) > 0.02) n.face = (lx - n.x) >= 0 ? 1 : -1;
+          n.x = lx; n.y = ly; n.pi = leapIdx + 1;
+          st.lastLeapTick = nowTick;
+          st.totalLeaps = (st.totalLeaps || 0) + 1;
+          st.leapPhase = 0.5;
+          CULT.QINGGONG.stepQinggongMove(W, n, lDist);
+          if (n.pi >= p.length) { n.path = null; n.aerialFlightActive = false; return true; }
+          return false;
+        }
+      } else if (qg.modeId === 'SHADOW_BLINK' && nowTick - (st.lastBlinkTick || -999) >= 3) {
+        const blinkIdx = Math.min(p.length - 1, n.pi + 2);
+        const bwp = p[blinkIdx];
+        if (bwp) {
+          const bx = (Array.isArray(bwp) ? bwp[0] + 0.5 : bwp.x);
+          const by = (Array.isArray(bwp) ? bwp[1] + 0.5 : bwp.y);
+          const bDist = Math.hypot(bx - n.x, by - n.y);
+          if (Math.abs(bx - n.x) > 0.02) n.face = (bx - n.x) >= 0 ? 1 : -1;
+          n.prevBlinkX = n.x; n.prevBlinkY = n.y;
+          n.x = bx; n.y = by; n.pi = blinkIdx + 1;
+          st.lastBlinkTick = nowTick;
+          st.totalBlinks = (st.totalBlinks || 0) + 1;
+          CULT.QINGGONG.stepQinggongMove(W, n, bDist);
+          if (n.pi >= p.length) { n.path = null; n.aerialFlightActive = false; return true; }
+          return false;
+        }
+      }
+    }
+
     let budget = AI.walkSpeed(W, n);
+    let totalMoved = 0;
     while (budget > 1e-4 && n.pi < p.length) {
-      const tx = p[n.pi][0] + 0.5, ty = p[n.pi][1] + 0.5, dx = tx - n.x, dy = ty - n.y, d = Math.hypot(dx, dy);
-      if (d <= budget) { n.x = tx; n.y = ty; budget -= d; n.pi++; }
-      else { n.x += dx / d * budget; n.y += dy / d * budget; budget = 0; }
+      const wp = p[n.pi];
+      const tx = Array.isArray(wp) ? wp[0] + 0.5 : wp.x;
+      const ty = Array.isArray(wp) ? wp[1] + 0.5 : wp.y;
+      const dx = tx - n.x, dy = ty - n.y, d = Math.hypot(dx, dy);
+      if (d <= budget) { n.x = tx; n.y = ty; budget -= d; totalMoved += d; n.pi++; }
+      else { n.x += dx / d * budget; n.y += dy / d * budget; totalMoved += budget; budget = 0; }
       if (d > 0.02) { if (Math.abs(dx) > 0.02) n.face = dx >= 0 ? 1 : -1; n.dir = Math.atan2(dy, dx); }
     }
-    if (n.pi >= p.length) { n.path = null; return true; }
+    if (totalMoved > 0 && CULT.QINGGONG && n.cult) {
+      CULT.QINGGONG.stepQinggongMove(W, n, totalMoved);
+    }
+    if (n.pi >= p.length) { n.path = null; n.aerialFlightActive = false; return true; }
     return false;
   };
 
@@ -467,6 +574,7 @@
       const c = n.cult, s = n.h.state;
       const r = CULT.rate(n, ctx.mult || 1) / 60;
       CULT.gain(n, r); if (c.pillT > 0) c.pillT--;
+      if (CULT.MANTRA_SYSTEM && n.mantraState) CULT.MANTRA_SYSTEM.stepMeditationResonance(W, n);
       const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1));
       const eDrain = Math.max(0, (c.path === 'BODY' ? 0.13 : c.path === 'DEMON' ? 0.045 : c.path === 'HEART_SOUL' ? 0.02 : 0.015) - eqStage * 0.01);
       const rDrain = Math.max(0, (c.path === 'HEART_SOUL' ? 0.032 : c.path === 'DEMON' ? 0.025 : 0.02) - eqStage * 0.015);
@@ -602,7 +710,7 @@
       S.add('ทะเยอทะยาน', (E(n, 'personality.ambition') - 50) / 120);
     },
     where(W, n) { const c = n.cult; const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT'].includes(c.path); const isCraft = c.path === 'CRAFT_CREATION'; const preferAlc = isCraft && ((n.h.skills.ALCHEMY || 0) >= (n.h.skills.FORGING || 0) || c.sub === 'PILL_FURNACE_IMMORTAL' || c.sub === 'POISON_VENOM_CAULDRON'); const kind = isMed ? 'meditate' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'lift' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'anvil' : (isCraft && preferAlc) ? 'cauldron' : c.path === 'DEMON' ? 'explore' : 'worship'; const bk = isMed ? 'meditation_hall' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'training_ground' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'forge' : (isCraft && preferAlc) ? 'alchemy' : c.path === 'DEMON' ? 'ruin' : 'shrine'; let s = AI.freeStation(W, n, kind, bk); if (!s) s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond'); return s ? { st: s } : (n.bed != null ? { st: W.map.stations[n.bed], room: true } : null); },
-    dur: n => 180 + n.cult.stage * 40,
+    dur: n => 15,
     start(n, W, ctx) {
       // ขอโอสถทะลวงจากคลังตามสิทธิ (ขึ้นกับเจ้าสำนัก/ความสัมพันธ์)
       const c = n.cult; c.btBonus = c.btBonus || 0;
@@ -612,13 +720,33 @@
           if (info && info.effect.breakthroughBonus && !info.effect.btFor && info.tier <= CULT.equivalentStage(n) + 1 && W.sect.stock[k] > 0 && (n.rank >= 2)) { ECO.usePill(W, n, k); AI.mem(W, n, 'ได้รับ' + info.name + 'จากคลังสำนักก่อนทะลวงขั้น', 0.6); break; }
         }
       }
-      n.cult.lastTry = W.day; n.sealedBt = true; return true;
+      n.cult.lastTry = W.day; n.sealedBt = true;
+      const env = (ctx && ctx.room) ? 0 : 0.05;
+      const mId = n.mentorId || n.mentor;
+      const guide = (mId && W.byId[mId] && !W.byId[mId].dead ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0);
+      if (CULT.TRIBULATION && CULT.TRIBULATION.start) {
+        CULT.TRIBULATION.start(W, n, { prep: { env, pill: c.btBonus || 0, guide }, totalTicks: 15, announce: true });
+      }
+      return true;
     },
-    tick(n, W) { n.h.state.energy = Math.max(10, n.h.state.energy - 0.01); n.h.state.stress += 0.01; },
+    tick(n, W) {
+      n.h.state.energy = Math.max(10, n.h.state.energy - 0.01);
+      n.h.state.stress += 0.01;
+      if (CULT.TRIBULATION && n.tribulationState && n.tribulationState.active) {
+        CULT.TRIBULATION.tick(W, n);
+      }
+    },
     done(n, W, ctx) {
-      const c = n.cult; const env = ctx.room ? 0 : 0.05; const pill = c.btBonus || 0; c.btBonus = 0;
+      const c = n.cult; const env = (ctx && ctx.room) ? 0 : 0.05; const pill = c.btBonus || 0; c.btBonus = 0;
       const mId = n.mentorId || n.mentor; const guide = (mId && W.byId[mId] && !W.byId[mId].dead ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0);
-      const res = CULT.breakthrough(W, n, { env, pill, guide });
+      let res = (n.tribulationState && n.tribulationState.resolved) ? n.tribulationState.outcome : (n.lastTribulationOutcome || null);
+      if (!res) {
+        res = CULT.breakthrough(W, n, { env, pill, guide });
+      }
+      if (CULT.TRIBULATION && n.tribulationState) {
+        CULT.TRIBULATION.cleanup(W, n);
+      }
+      n.lastTribulationOutcome = null;
       n.sealedBt = false;
       if (res.ok) { W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage); }
       else { W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + Math.round(res.p * 100) + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id]); AI.mem(W, n, 'ทะลวงขั้นล้มเหลว', 1); if (res.died) AI.kill(W, n, 'ตบะแตกระหว่างทะลวงขั้น'); else AI.injure(W, n, res.sev || 1, 'ตบะย้อนกลับ'); }

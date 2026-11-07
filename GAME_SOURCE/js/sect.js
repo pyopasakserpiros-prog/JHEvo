@@ -15591,6 +15591,88 @@
   SECT.conveneCouncil = STRATEGIC_COUNCIL.conveneCouncil;
   SECT.resolveCouncilAgenda = STRATEGIC_COUNCIL.resolveCouncilAgenda;
 
+  /* ===== PATCH v5.5.0: GRAND FORMATION WARFARE & DYNAMIC WEATHER CALAMITIES ===== */
+  SECT.FORMATION_WARFARE = {
+    STANCES: {
+      FIVE_ELEMENT_NURTURE: {
+        id: 'FIVE_ELEMENT_NURTURE',
+        icon: '☯️',
+        nameTh: 'มหาค่ายกลเบญจธาตุหล่อเลี้ยงปราณ',
+        shortTh: 'เบญจธาตุหล่อเลี้ยง',
+        beamColor: '#48cae4',
+        secondaryColor: '#72efdd',
+        cultRateBonusPct: 0.20,
+        atkBonusPct: 0,
+        dmgRedPct: 0.08,
+        descTh: 'เชื่อมโยงเส้นชีพจรปราณจากลานแปดทิศสู่ยอดเขาทั้งแปด เร่งความเร็วบ่มเพาะคัมภีร์ปราณทั้งสำนัก +20% และลดความเสียหายทั่วไป 8%'
+      },
+      SWORD_NET_SLAUGHTER: {
+        id: 'SWORD_NET_SLAUGHTER',
+        icon: '⚔️',
+        nameTh: 'มหาค่ายกลตาข่ายกระบี่สังหารเทวะ',
+        shortTh: 'ตาข่ายกระบี่สังหาร',
+        beamColor: '#ff4d6d',
+        secondaryColor: '#ffd166',
+        cultRateBonusPct: 0,
+        atkBonusPct: 0.22,
+        dmgRedPct: 0.05,
+        descTh: 'แปรเปลี่ยนเสาค่ายกลและยอดเขาเป็นโครงข่ายลำแสงกระบี่สังหาร เพิ่มพลังโจมตีให้ศิษย์ผู้พิทักษ์สำนัก +22% และฟาดลำแสงกระบี่ใส่ผู้บุกรุก'
+      },
+      IMMORTAL_AEGIS_DOME: {
+        id: 'IMMORTAL_AEGIS_DOME',
+        icon: '🛡️',
+        nameTh: 'มหาค่ายกลระฆังสวรรค์พิทักษ์สำนัก',
+        shortTh: 'ระฆังสวรรค์คุ้มภัย',
+        beamColor: '#ffd166',
+        secondaryColor: '#00f5d4',
+        cultRateBonusPct: 0.05,
+        atkBonusPct: 0.05,
+        dmgRedPct: 0.22,
+        descTh: 'กางม่านพลังระฆังทองสวรรค์เชื่อมยอดเขาและเสาโทเท็มทั้งสี่ทิศ ลดความเสียหายที่ศิษย์ในสำนักได้รับลง -22% และเสริมความแข็งแกร่งของม่านพลังสำนัก'
+      }
+    },
+    WEATHER_PHENOMENA: {
+      clear: { id: 'clear', icon: '🌤️', nameTh: 'ฟ้าใสปราณสมดุล', favoredArchetype: 'PRIMORDIAL_YANG_FURNACE', descTh: 'ท้องฟ้าปลอดโปร่ง ปราณฟ้าดินไหลเวียนสมดุล' },
+      rain: { id: 'rain', icon: '🌧️', nameTh: 'พิรุณโปรยปราย', favoredArchetype: 'EVERGREEN_LONGEVITY_SPRING', descTh: 'สายฝนชุ่มฉ่ำ หนุนปราณน้ำพุพฤกษาและย่างก้าวบัวหยก' },
+      snow: { id: 'snow', icon: '❄️', nameTh: 'เหมันต์หิมะโปรย', favoredArchetype: 'ABYSSAL_FROST_MIRROR', descTh: 'ไอเย็นเยือกแข็งปกคลุมสำนัก หนุนปราณกระจกน้ำแข็งจันทรา +22%' },
+      spirit_aurora: { id: 'spirit_aurora', icon: '🌌', nameTh: 'แสงเหนือปราณดาราจักรวาล', favoredArchetype: 'ASTRAL_VOID_BREATHING', descTh: 'ม่านแสงดาราเจ็ดสีพาดผ่านเวหา หนุนคัมภีร์ลมหายใจดาราจักรวาล +30%' },
+      crimson_sun: { id: 'crimson_sun', icon: '☀️', nameTh: 'สุริยันเพลิงศักดิ์สิทธิ์ทรงกลด', favoredArchetype: 'PRIMORDIAL_YANG_FURNACE', descTh: 'ปราณหยางบริสุทธิ์แผ่ซ่านจากดวงตะวัน หนุนคัมภีร์เตาหลอมสุริยันอัคนี +25%' },
+      thunder_tempest: { id: 'thunder_tempest', icon: '⛈️', nameTh: 'พายุอัสนีทัณฑ์สวรรค์คำราม', favoredArchetype: 'SWORD_QI_MERIDIAN', descTh: 'ประจุสายฟ้าแลบแปลบปลาบทั่วขุนเขา หนุนคัมภีร์ชีพจรกระบี่และระฆังทองวัชระ +24%' }
+    },
+    ensure(W) {
+      if (!W || !W.sect) return null;
+      if (!W.sect.formationWarfare || typeof W.sect.formationWarfare !== 'object') {
+        W.sect.formationWarfare = {
+          activeStance: 'FIVE_ELEMENT_NURTURE',
+          beamIntensity: 1.0,
+          switchedCount: 0,
+          lastSwitchedTick: 0
+        };
+      }
+      return W.sect.formationWarfare;
+    },
+    setFormationStance(W, stanceId) {
+      if (!W || !W.sect || !this.STANCES[stanceId]) return { ok: false, reason: 'invalid-stance' };
+      const fw = this.ensure(W);
+      fw.activeStance = stanceId;
+      fw.switchedCount = (fw.switchedCount || 0) + 1;
+      fw.lastSwitchedTick = W.t || 0;
+      if (Array.isArray(W.npcs)) {
+        W.npcs.forEach(n => { if (n) n._cultRateBase = null; });
+      }
+      return { ok: true, stanceId, spec: this.STANCES[stanceId], state: fw };
+    },
+    triggerWeatherPhenomenon(W, weatherKind) {
+      if (!W || !this.WEATHER_PHENOMENA[weatherKind]) return { ok: false, reason: 'invalid-weather' };
+      const wSpec = this.WEATHER_PHENOMENA[weatherKind];
+      W.weather = { kind: weatherKind, t: W.t || 0, labelTh: wSpec.nameTh };
+      if (Array.isArray(W.npcs)) {
+        W.npcs.forEach(n => { if (n) { n._cultRateBase = null; n._qgUnlockCache = null; } });
+      }
+      return { ok: true, weatherKind, spec: wSpec };
+    }
+  };
+
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

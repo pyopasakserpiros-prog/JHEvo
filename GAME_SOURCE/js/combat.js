@@ -731,6 +731,130 @@
         }
       }
     }
+    // Patch v5.5.0: Mantra Combat Dharma Manifestations & Grand Formation Warfare
+    if (dmg > 0 && note !== 'สะท้อนคัมภีร์ปราณ' && CULT && CULT.MANTRA_SYSTEM) {
+      // 1. Attacker Mantra Dharma Bonus
+      if (a && !a.foe && a.cult && a.mantraState) {
+        const amr = CULT.MANTRA_SYSTEM.resolveNpcMantra(W, a);
+        if (amr) {
+          const stMult = amr.stanceSpec ? (amr.stanceSpec.combatPowerMult || 1.0) : 1.0;
+          if (amr.archetypeId === 'PRIMORDIAL_YANG_FURNACE') {
+            dmg = Math.round(dmg * (1 + (amr.spec.combatBurnBonusPct || 0.15)) * stMult);
+            a.lastMantraCombatProc = { t: W.t, kind: 'SOLAR_FURNACE_BURN', textTh: '🔥 ปราณเตาหลอมสุริยันแผดเผา!' };
+          } else if (amr.archetypeId === 'DEVOURING_NETHER_VORTEX') {
+            const ls = Math.max(1, Math.round(dmg * (amr.spec.combatLifestealPct || 0.14)));
+            const qs = Math.max(1, Math.round(dmg * (amr.spec.combatQistealPct || 0.18)));
+            C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + ls));
+            if (a.h && a.h.state) a.h.state.qi = Math.min(CULT.qiMax(a), (a.h.state.qi || 0) + qs);
+            a.lastMantraCombatProc = { t: W.t, kind: 'NETHER_VORTEX_SIPHON', textTh: '🩸 วังวนมารสูบปราณ!', healedHp: ls, siphonedQi: qs };
+          } else if (amr.archetypeId === 'EVERGREEN_LONGEVITY_SPRING') {
+            const regenHp = Math.max(1, Math.round(C.hpMax(a) * (amr.spec.combatRegenHpPct || 0.035)));
+            C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + regenHp));
+            a.lastMantraCombatProc = { t: W.t, kind: 'EVERGREEN_SPRING_HEAL', textTh: '🌿 น้ำพุพฤกษาฟื้นฟูชีพจร!', healedHp: regenHp };
+          } else if (amr.archetypeId === 'SWORD_QI_MERIDIAN') {
+            dmg = Math.round(dmg * (1 + (amr.spec.combatPenBonusPct || 0.18) * 0.5) * stMult);
+          }
+          a.mantraState.totalCombatProcs = (a.mantraState.totalCombatProcs || 0) + 1;
+        }
+      }
+      // 2. Defender Mantra Dharma Protection & Counter-Reaction
+      if (d && !d.foe && d.cult && d.mantraState) {
+        const dmr = CULT.MANTRA_SYSTEM.resolveNpcMantra(W, d);
+        if (dmr) {
+          if (dmr.archetypeId === 'VAJRA_IMMORTAL_BODY_BELL') {
+            const red = dmr.spec.combatDamageRedPct || 0.22;
+            const refDmg = Math.max(1, Math.round(dmg * (dmr.spec.combatReflectPct || 0.16)));
+            dmg = Math.max(1, Math.round(dmg * (1 - red)));
+            d.lastMantraCombatProc = { t: W.t, kind: 'VAJRA_BELL_REFLECT', textTh: '🔔 ระฆังทองวัชระสะท้อนศึก!', reflected: refDmg };
+            if (a && C.alive(a)) C.applyDamage(W, f, d, a, refDmg, 'สะท้อนคัมภีร์ปราณ');
+          } else if (dmr.archetypeId === 'ABYSSAL_FROST_MIRROR') {
+            dmg = Math.max(1, Math.round(dmg * (1 - (dmr.spec.combatDamageRedPct || 0.15))));
+            d.lastMantraCombatProc = { t: W.t, kind: 'FROST_MIRROR_SHIELD', textTh: '❄️ เกราะกระจกเหมันต์คุ้มกาย!' };
+          } else if (dmr.archetypeId === 'SWORD_QI_MERIDIAN' && a && C.alive(a)) {
+            const counterDmg = Math.max(1, Math.round(dmg * (dmr.spec.combatCounterSlashPct || 0.12)));
+            d.lastMantraCombatProc = { t: W.t, kind: 'SWORD_QI_COUNTER', textTh: '🗡️ ปราณกระบี่คุ้มกายสวนกลับ!', counterDmg };
+            C.applyDamage(W, f, d, a, counterDmg, 'สะท้อนคัมภีร์ปราณ');
+          } else if (dmr.archetypeId === 'PRIMORDIAL_YANG_FURNACE' && a && C.alive(a)) {
+            const burnBack = Math.max(1, Math.round(dmg * (dmr.spec.combatBacklashPct || 0.08)));
+            C.applyDamage(W, f, d, a, burnBack, 'สะท้อนคัมภีร์ปราณ');
+          }
+          d.mantraState.totalCombatProcs = (d.mantraState.totalCombatProcs || 0) + 1;
+        }
+      }
+      // 3. Grand Sect Formation Warfare Stance Bonuses
+      if (W && W.sect && W.sect.formationWarfare) {
+        const fwStance = W.sect.formationWarfare.activeStance;
+        if (fwStance === 'SWORD_NET_SLAUGHTER' && a && !a.foe) {
+          dmg = Math.round(dmg * 1.22);
+        }
+        if (fwStance === 'IMMORTAL_AEGIS_DOME' && d && !d.foe) {
+          dmg = Math.max(1, Math.round(dmg * 0.78));
+        }
+      }
+    }
+    // Patch v5.6.0: Defensive Kungfu & Protective Aegis (CULT.DEFENSIVE_ARTS)
+    if (dmg > 0 && note !== 'สะท้อนคัมภีร์ปราณ' && note !== 'สะท้อนวิชาคุ้มกาย' && CULT && CULT.DEFENSIVE_ARTS && d && !d.foe) {
+      // A. Check if a nearby ally with CELESTIAL_AEGIS_DOME / FORTRESS_BASTION_LOCK intercepts part of the damage
+      if (W && Array.isArray(W.npcs)) {
+        for (let i = 0; i < W.npcs.length; i++) {
+          const guardian = W.npcs[i];
+          if (!guardian || guardian.dead || guardian.away || guardian.id === d.id || !guardian.defensiveArtState || !guardian.cult) continue;
+          const gDef = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, guardian);
+          if (gDef && gDef.allyInterceptActive && Math.hypot((guardian.x || 0) - (d.x || 0), (guardian.y || 0) - (d.y || 0)) <= gDef.allyInterceptRadius) {
+            const interceptAmt = Math.max(1, Math.round(dmg * gDef.allyInterceptPct));
+            dmg = Math.max(1, dmg - interceptAmt);
+            const gHpAfter = Math.max(1, C.hp(guardian) - Math.max(1, Math.round(interceptAmt * 0.5)));
+            C.setHp(guardian, gHpAfter);
+            guardian.defensiveArtState.totalAllyIntercepts = (guardian.defensiveArtState.totalAllyIntercepts || 0) + 1;
+            guardian.lastDefensiveArtProc = { t: W.t, kind: 'ALLY_AEGIS_INTERCEPT', textTh: '👑 ม่านสวรรค์รับเคราะห์แทนสหาย!', protectedId: d.id, intercepted: interceptAmt };
+            break;
+          }
+        }
+      }
+      // B. Defender's Own Defensive Kungfu Mitigation, Redirection, Counter-Slash & Cicada Molt
+      if (d.defensiveArtState && d.cult) {
+        const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, d);
+        if (df && df.qiSufficient) {
+          const dSt = d.defensiveArtState;
+          const rawBefore = dmg;
+          dmg = Math.max(1, Math.round(dmg * (1 - df.effDmgRedPct)));
+          const mitigated = Math.max(0, rawBefore - dmg);
+          dSt.totalDamageMitigated = (dSt.totalDamageMitigated || 0) + mitigated;
+
+          // Deduct defensive Qi cost per hit
+          if (d.h && d.h.state && df.qiPerHit > 0) {
+            d.h.state.qi = Math.max(0, (d.h.state.qi || 0) - df.qiPerHit);
+          }
+
+          // Taiji Soft Redirection (ยืมแรงสะท้อนกลับ + ฟื้นฟูปราณ)
+          if (df.effRedirectPct > 0 && a && C.alive(a)) {
+            const redirDmg = Math.max(1, Math.round(rawBefore * df.effRedirectPct));
+            dSt.totalDamageRedirected = (dSt.totalDamageRedirected || 0) + redirDmg;
+            if (d.h && d.h.state && df.spec.qiRestoreOnHit) {
+              d.h.state.qi = Math.min(CULT.qiMax(d), (d.h.state.qi || 0) + df.spec.qiRestoreOnHit);
+            }
+            d.lastDefensiveArtProc = { t: W.t, kind: 'TAIJI_REDIRECT', textTh: '☯️ ปราณอ่อนยืมแรงสะท้อนกลับ!', redirected: redirDmg };
+            C.applyDamage(W, f, d, a, redirDmg, 'สะท้อนวิชาคุ้มกาย');
+          } else if (df.effCounterPct > 0 && a && C.alive(a)) {
+            // Sword Curtain Ward / Elemental Thorn Armor / Iron Vajra Counter
+            const cntDmg = Math.max(1, Math.round(rawBefore * df.effCounterPct));
+            dSt.totalDamageRedirected = (dSt.totalDamageRedirected || 0) + cntDmg;
+            d.lastDefensiveArtProc = { t: W.t, kind: df.archetypeId + '_COUNTER', textTh: df.spec.icon + ' ' + df.spec.shortTh + 'สวนกลับ!', counterDmg: cntDmg };
+            C.applyDamage(W, f, d, a, cntDmg, 'สะท้อนวิชาคุ้มกาย');
+          }
+
+          // Mirage Cicada Shell (จักจั่นลอกคราบเร้นเงา เมื่อเลือดจะลดต่ำกว่า 25%)
+          const fightIdNow = (f && f.id) || 1;
+          if (df.archetypeId === 'MIRAGE_CICADA_SHELL' && dSt.cicadaMoltUsedFightId !== fightIdNow && (C.hp(d) - dmg) <= C.hpMax(d) * 0.25) {
+            dSt.cicadaMoltUsedFightId = fightIdNow;
+            dmg = 0;
+            const healMolt = Math.max(1, Math.round(C.hpMax(d) * (df.spec.cicadaMoltHealPct || 0.22)));
+            C.setHp(d, Math.min(C.hpMax(d), C.hp(d) + healMolt));
+            d.lastDefensiveArtProc = { t: W.t, kind: 'CICADA_MOLT_SAVE', textTh: '🦋 จักจั่นทองลอกคราบเร้นเงา!', healedHp: healMolt };
+          }
+        }
+      }
+    }
     if (f && f.kind === 'raid' && !d.foe && W && W.sect && W.sect.elementalBarrier && W.sect.elementalBarrier.active && W.sect.elementalBarrier.barrierHp > 0 && dmg > 0) {
       const bar = W.sect.elementalBarrier;
       const absDmg = Math.min(bar.barrierHp, Math.max(1, Math.round(dmg * (bar.absorbRatio || 0.35))));
@@ -1863,11 +1987,13 @@
     const tech = p.tech && CULT.tech(p.tech), target = p.self || p.team || ['heal', 'support', 'buff', 'summon'].includes(p.arch) ? a : d || a;
     const isForbid = p.arch === 'forbid' || !!(tech && (tech.cat === 'FORBIDDEN_ART' || tech.cat === 'FORBIDDEN_TECHNIQUE'));
     const fxMotif = p.fxKind || (tech && tech.fxKind) || (isForbid ? 'forbidden' : 'normal');
+    const sigVfx = p.signatureVfx || (tech && tech.signatureVfx) || (SK && SK.resolveSignatureVfx ? SK.resolveSignatureVfx(tech || p, p) : null) || null;
     a.castFx = {
       t: W.t,
       kind: isForbid ? 'forbidden' : 'normal',
       motif: fxMotif,
       fxKind: p.fxKind || (tech && tech.fxKind) || null,
+      signatureVfx: sigVfx,
       legendary: !!(p.legendary || (tech && tech.legendary)),
       techId: tech ? tech.id : p.id,
       moveId: p.moveId || p.id,

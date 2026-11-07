@@ -272,17 +272,26 @@
     const isWaterRoute = opts.regionId === 'water' || opts.regionId === 'REG_SLEEPING_DRAGON_LAKE' || opts.macroRegion === 'SOUTHERN_WATERS' || opts.terrain === 'water';
     if (isWaterRoute && fsSummary && fsSummary.hasAzureDragon) hasAzureDragonMount = true;
     const hasMount = mounts.length > 0 || hasPhoenixMount;
-    const durMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : (hasMount ? 0.75 : 1);
-    const capMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
+    const qgBonus = (CULT && CULT.QINGGONG && CULT.QINGGONG.evaluatePartyExpeditionBonus)
+      ? CULT.QINGGONG.evaluatePartyExpeditionBonus(W, members, { terrain: isWaterRoute ? 'water' : opts.terrain, nameTh: opts.regionId || '' })
+      : { durationMultiplier: 1.0, capacityMultiplier: 1.0, hazardReduction: 0, dominantMode: 'MORTAL_WALK', summaryTh: 'เดินเท้าปกติ' };
+    const applyQinggongToTrip = opts.useQinggong === true || (opts.useQinggong !== false && CULT && CULT.QINGGONG && members.some(m => CULT.QINGGONG.hasExplicitWorldQinggong(m)));
+    const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : (hasMount ? 0.75 : 1);
+    const mountCapMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
+    const durMult = applyQinggongToTrip ? +(Math.max(0.45, mountDurMult * qgBonus.durationMultiplier)).toFixed(3) : mountDurMult;
+    const capMult = applyQinggongToTrip ? +(mountCapMult * qgBonus.capacityMultiplier).toFixed(2) : mountCapMult;
+    const hazRed = Math.min(0.60, (hasPhoenixMount ? 0.35 : (hasMount ? 0.12 : 0)) + (applyQinggongToTrip ? qgBonus.hazardReduction : 0));
     const baseDays = Number.isFinite(opts.baseDays) ? Math.max(1, opts.baseDays) : null;
     const baseCapacity = Number.isFinite(opts.baseCapacity) ? Math.max(1, opts.baseCapacity) : 20 + members.length * 12;
     return {
       ok: true, members, mounts, hasMount, hasPhoenixMount, hasAzureDragonMount,
+      qinggongBonuses: qgBonus,
+      qinggongActive: applyQinggongToTrip,
       durationMultiplier: durMult,
       capacityMultiplier: capMult,
-      hazardReduction: hasPhoenixMount ? 0.35 : (hasMount ? 0.12 : 0),
+      hazardReduction: +hazRed.toFixed(3),
       baseDays,
-      days: baseDays == null ? null : Math.max(0.5, baseDays * durMult),
+      days: baseDays == null ? null : Math.max(0.5, +(baseDays * durMult).toFixed(4)),
       baseCarryCapacity: baseCapacity,
       carryCapacity: Math.max(1, Math.floor(baseCapacity * capMult))
     };
@@ -2357,6 +2366,9 @@
       hasMount: !!trip.hasMount,
       hasPhoenixMount: !!trip.hasPhoenixMount,
       hasAzureDragonMount: !!trip.hasAzureDragonMount,
+      qinggongBonuses: trip.qinggongBonuses || null,
+      qinggongActive: !!trip.qinggongActive,
+      hazardReduction: trip.hazardReduction || 0,
       carryCapacity: trip.carryCapacity || 32
     };
   };

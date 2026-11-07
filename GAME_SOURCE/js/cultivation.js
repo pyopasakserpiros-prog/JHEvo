@@ -1954,7 +1954,1593 @@
     npc._qiMaxCache = { cult: c, path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, ver: npc._ver, pver: npc._passVer || 0, val };
     return val;
   };
-  CULT.speedMult = npc => npc.cult ? 1 + 0.05 * (npc.cult.stage - 1) : 1;
+  CULT.speedMult = npc => {
+    const base = npc && npc.cult ? 1 + 0.05 * (npc.cult.stage - 1) : 1;
+    if (CULT.QINGGONG && npc && npc.cult) {
+      const qg = CULT.QINGGONG.resolveNpcMode(null, npc);
+      if (qg && qg.speedMult > 1) return +(base * (1 + (qg.speedMult - 1) * 0.35)).toFixed(3);
+    }
+    return base;
+  };
+
+  /* ===== PATCH v5.4.0: QINGGONG & AERIAL LOCOMOTION SYSTEM (ระบบวิชาตัวเบา ขี่กระบี่บิน และเหาะเหินเดินอากาศ) ===== */
+  CULT.QINGGONG = {
+    MODE_ORDER: [
+      'CELESTIAL_LEVITATION',
+      'SWORD_FLIGHT',
+      'SHADOW_BLINK',
+      'LEAP_BOUND',
+      'WATER_LOTUS_DRIFT',
+      'SWIFT_STRIDE',
+      'MORTAL_WALK'
+    ],
+    MODES: {
+      MORTAL_WALK: {
+        id: 'MORTAL_WALK',
+        rankOrder: 0,
+        icon: '🚶',
+        nameTh: 'เดินเท้าสามัญ',
+        shortTh: 'เดินเท้า',
+        minStage: 0,
+        speedMult: 1.00,
+        qiCostPerTick: 0,
+        minQiPct: 0,
+        recoverQiPct: 0,
+        ignoreWeatherSlow: false,
+        waterSpeedBonus: 1.00,
+        leapTiles: 0,
+        blinkStride: false,
+        aerialDirectPath: false,
+        altitudePx: 0,
+        worldTimeMult: 1.00,
+        waterRouteMult: 1.00,
+        carryBonus: 0,
+        hazardRed: 0,
+        color: '#9aa5b1',
+        prosTh: 'ไม่เสียพลังปราณในการเดินเท้า',
+        consTh: 'ความเร็วปกติ ติดสิ่งกีดขวางและแพ้สภาพอากาศฝน/หิมะ'
+      },
+      SWIFT_STRIDE: {
+        id: 'SWIFT_STRIDE',
+        rankOrder: 1,
+        icon: '💨',
+        nameTh: 'ย่างก้าววายุกรด (วิ่งปราณทะยาน)',
+        shortTh: 'วิ่งปราณวายุ',
+        minStage: 1,
+        speedMult: 1.48,
+        qiCostPerTick: 0.15,
+        minQiPct: 0.12,
+        recoverQiPct: 0.22,
+        ignoreWeatherSlow: true,
+        waterSpeedBonus: 1.08,
+        leapTiles: 0,
+        blinkStride: false,
+        aerialDirectPath: false,
+        altitudePx: 1.5,
+        worldTimeMult: 0.90,
+        waterRouteMult: 0.92,
+        carryBonus: 0.08,
+        hazardRed: 0.05,
+        color: '#72efdd',
+        prosTh: 'วิ่งเร็วขึ้น +48%, ไม่ถูกลดความเร็วจากฝนหรือหิมะ, ใช้ปราณน้อยมาก (0.15/ทิค)',
+        consTh: 'ยังต้องวิ่งตามเส้นทางพื้นดินปกติ ไม่สามารถเหินข้ามสิ่งกีดขวางใหญ่'
+      },
+      WATER_LOTUS_DRIFT: {
+        id: 'WATER_LOTUS_DRIFT',
+        rankOrder: 2,
+        icon: '🪷',
+        nameTh: 'ย่างก้าวบัวขาวเหยียบคลื่น (ล่องวารีไร้รอย)',
+        shortTh: 'เหยียบคลื่นบัวหยก',
+        minStage: 2,
+        speedMult: 1.60,
+        qiCostPerTick: 0.22,
+        minQiPct: 0.14,
+        recoverQiPct: 0.25,
+        ignoreWeatherSlow: true,
+        waterSpeedBonus: 1.45,
+        leapTiles: 0,
+        blinkStride: false,
+        aerialDirectPath: false,
+        altitudePx: 2.8,
+        worldTimeMult: 0.85,
+        waterRouteMult: 0.74,
+        carryBonus: 0.12,
+        hazardRed: 0.10,
+        color: '#48cae4',
+        prosTh: 'เร็วขึ้น +60% (และพุ่งทะยานบนผิวน้ำ/สะพาน/บึงบัว ×1.45), เดินทางนอกสำนักสายแม่น้ำเร็วขึ้น 26%',
+        consTh: 'ความเร็วบนพื้นหินแห้งเป็นรองวิชาทะยานเมฆาและก้าวพริบตา'
+      },
+      LEAP_BOUND: {
+        id: 'LEAP_BOUND',
+        rankOrder: 3,
+        icon: '🦅',
+        nameTh: 'ทะยานเมฆาเหินเวหา (กระโดดไกลข้ามสิ่งกีดขวาง)',
+        shortTh: 'กระโดดไกลทะยานเมฆ',
+        minStage: 2,
+        speedMult: 1.74,
+        qiCostPerTick: 0.28,
+        minQiPct: 0.15,
+        recoverQiPct: 0.26,
+        ignoreWeatherSlow: false,
+        waterSpeedBonus: 1.15,
+        leapTiles: 2,
+        blinkStride: false,
+        aerialDirectPath: false,
+        altitudePx: 9.5,
+        worldTimeMult: 0.84,
+        waterRouteMult: 0.86,
+        carryBonus: 0.14,
+        hazardRed: 0.12,
+        color: '#90e0ef',
+        prosTh: 'เร็วขึ้น +74%, กระโดดไกลเป็นวิถีโค้งข้ามจุดแวะ 2–3 ช่องในพริบตา, ลดอันตรายเดินทางนอกสำนัก 12%',
+        consTh: 'ใช้ปราณปานกลาง (0.28/ทิค) และต้องมีจังหวะส่งตัวขึ้นลง'
+      },
+      SHADOW_BLINK: {
+        id: 'SHADOW_BLINK',
+        rankOrder: 4,
+        icon: '⚡',
+        nameTh: 'ก้าวพริบตาเงาพราย (ย่นระยะดารา)',
+        shortTh: 'ก้าวพริบตาเงาพราย',
+        minStage: 3,
+        speedMult: 1.98,
+        qiCostPerTick: 0.42,
+        minQiPct: 0.18,
+        recoverQiPct: 0.30,
+        ignoreWeatherSlow: true,
+        waterSpeedBonus: 1.25,
+        leapTiles: 2,
+        blinkStride: true,
+        aerialDirectPath: false,
+        altitudePx: 4.0,
+        worldTimeMult: 0.79,
+        waterRouteMult: 0.80,
+        carryBonus: 0.15,
+        hazardRed: 0.18,
+        color: '#c77dff',
+        prosTh: 'ความเร็วสูง +98%, ทิ้งร่างเงาติดตา 3 ร่างและย่นระยะข้ามช่องทางเดิน, หลบหลีกภัยยุทธภพ +18%',
+        consTh: 'ผลาญปราณค่อนข้างสูง (0.42/ทิค) หากปราณต่ำกว่า 18% จะต้องกลับมาเดินปกติ'
+      },
+      SWORD_FLIGHT: {
+        id: 'SWORD_FLIGHT',
+        rankOrder: 5,
+        icon: '🗡️',
+        nameTh: 'วิชาขี่กระบี่บินเหินเวหา (御剑飞行)',
+        shortTh: 'ขี่กระบี่บิน',
+        minStage: 3,
+        speedMult: 2.38,
+        noWeaponSpeedMult: 1.55,
+        qiCostPerTick: 0.75,
+        stormExtraQi: 0.25,
+        energyDrainPerTick: 0.012,
+        stormSpeedPenalty: 0.85,
+        minQiPct: 0.20,
+        recoverQiPct: 0.35,
+        ignoreWeatherSlow: false,
+        waterSpeedBonus: 1.35,
+        leapTiles: 0,
+        blinkStride: false,
+        aerialDirectPath: true,
+        requiresWeaponForFullSpeed: true,
+        altitudePx: 13.0,
+        worldTimeMult: 0.75,
+        waterRouteMult: 0.74,
+        carryBonus: 0.22,
+        hazardRed: 0.20,
+        color: '#00f5d4',
+        prosTh: 'บินตัดตรงเหนือสิ่งกีดขวางในสำนัก (+138% ความเร็ว), ใช้ได้ตั้งแต่ขั้น 3 (ก่อตั้งรากฐาน/แกนทองคำ), ลดเวลาเดินทางนอกสำนัก 25%',
+        consTh: 'มีข้อเสียมากกว่าเหาะเหินเดินอากาศเอง: ผลาญปราณสูง (0.75/ทิค, พายุฝน +0.25/ทิค), ต้องพึ่งพาศาสตราคู่กาย (หากไร้ศาสตราความเร็วลดเหลือ +55%), กินสมาธิ/แรงกาย (-0.012/ทิค), และร่วงลงเดินพื้นทันทีเมื่อปราณต่ำกว่า 20%'
+      },
+      CELESTIAL_LEVITATION: {
+        id: 'CELESTIAL_LEVITATION',
+        rankOrder: 6,
+        icon: '☁️',
+        nameTh: 'วิชาเหาะเหินเดินอากาศเซียนอมตะ (凭虚御风)',
+        shortTh: 'เหาะเหินเดินอากาศ',
+        minStage: 6,
+        speedMult: 2.90,
+        qiCostPerTick: 0.35,
+        minQiPct: 0.10,
+        recoverQiPct: 0.20,
+        ignoreWeatherSlow: true,
+        waterSpeedBonus: 1.50,
+        leapTiles: 0,
+        blinkStride: false,
+        aerialDirectPath: true,
+        requiresWeaponForFullSpeed: false,
+        altitudePx: 16.5,
+        worldTimeMult: 0.65,
+        waterRouteMult: 0.65,
+        carryBonus: 0.35,
+        hazardRed: 0.30,
+        color: '#ffd166',
+        prosTh: 'สุดยอดวิชาตัวเบาระดับสูง (ขั้น 6+): เหาะเหินเดินอากาศด้วยกายเซียนโดยไม่ต้องพึ่งกระบี่ (+190% ความเร็ว), บินตัดตรงทุกพื้นที่, ประหยัดปราณกว่าขี่กระบี่บินครึ่งหนึ่ง (0.35/ทิค เพราะผสานปราณฟ้าดิน), ไร้ผลกระทบจากพายุฝน, เดินทางยุทธภพเร็วขึ้น 35%',
+        consTh: 'จำกัดเฉพาะผู้บรรลุตบะระดับสูง (ขั้น 6 ก่อกำเนิดวิญญาณ/แปรเปลี่ยนเทวะขึ้นไป) หรือผู้สำเร็จคัมภีร์เหาะเหินเซียนอมตะ'
+      }
+    },
+
+    SIGNATURE_MANUALS: [
+      {
+        id: 'QG_SWIFT_GALE_STRIDE_T1',
+        nameTh: 'วิชาตัวเบาย่างก้าววายุกรด',
+        path: 'BODY',
+        sub: 'LIGHTNESS_SHADOW',
+        cat: 'MOVEMENT_TECHNIQUE',
+        subType: 'LIGHTNESS_ART',
+        tier: 1,
+        power: 18,
+        qiCost: 6,
+        cooldown: 2,
+        element: 'WIND',
+        qinggongMode: 'SWIFT_STRIDE',
+        descTh: 'โคจรปราณวายุลงสู่ฝ่าเท้า วิ่งทะยานดุจสายลมกรดในสำนักและยุทธภพโดยไม่หวั่นเกรงฝนหิมะ'
+      },
+      {
+        id: 'QG_CLOUD_DRAGON_LEAP_T2',
+        nameTh: 'วิชาตัวเบาทะยานเมฆามังกรเหิน',
+        path: 'BODY',
+        sub: 'LIGHTNESS_SHADOW',
+        cat: 'MOVEMENT_TECHNIQUE',
+        subType: 'LIGHTNESS_ART',
+        tier: 2,
+        power: 32,
+        qiCost: 10,
+        cooldown: 3,
+        element: 'WIND',
+        qinggongMode: 'LEAP_BOUND',
+        descTh: 'ดีดกายกระโดดไกลเป็นวิถีโค้งข้ามสิ่งกีดขวางและหลังคาเรือนสำนักในพริบตา'
+      },
+      {
+        id: 'QG_JADE_LOTUS_WATER_DRIFT_T3',
+        nameTh: 'วิชาตัวเบาย่างก้าวบัวขาวเหยียบคลื่น',
+        path: 'XIAN',
+        sub: 'CLOUD_WIND',
+        cat: 'MOVEMENT_TECHNIQUE',
+        subType: 'LIGHTNESS_ART',
+        tier: 3,
+        power: 46,
+        qiCost: 12,
+        cooldown: 3,
+        element: 'WATER_ICE',
+        qinggongMode: 'WATER_LOTUS_DRIFT',
+        descTh: 'เหยียบผิวน้ำและใบบัวโดยไม่จม ก่อเกิดกลีบบัวหยกและระลอกคลื่นใต้ฝ่าเท้า เดินทางข้ามแม่น้ำรวดเร็วเป็นเลิศ'
+      },
+      {
+        id: 'QG_PHANTOM_STAR_BLINK_T4',
+        nameTh: 'วิชาตัวเบาก้าวพริบตาเงาดารา',
+        path: 'DEMON',
+        sub: 'BLOOD_SHADOW',
+        cat: 'MOVEMENT_TECHNIQUE',
+        subType: 'LIGHTNESS_ART',
+        tier: 4,
+        power: 68,
+        qiCost: 16,
+        cooldown: 3,
+        element: 'YIN_SHADOW',
+        qinggongMode: 'SHADOW_BLINK',
+        descTh: 'ย่นระยะทางด้วยปราณเงาดารา ทิ้งร่างเงาพรายติดตา 3 ร่างไว้เบื้องหลังพร้อมพุ่งข้ามช่องทางเดิน'
+      },
+      {
+        id: 'QG_IMPERIAL_SWORD_FLIGHT_T5',
+        nameTh: 'เคล็ดวิชาขี่กระบี่บินเหินเวหา',
+        path: 'XIAN',
+        sub: 'SWORD_FLIGHT',
+        cat: 'MOVEMENT_TECHNIQUE',
+        subType: 'LIGHTNESS_ART',
+        tier: 4,
+        power: 88,
+        qiCost: 22,
+        cooldown: 4,
+        element: 'EARTH_METAL',
+        qinggongMode: 'SWORD_FLIGHT',
+        legendary: true,
+        descTh: 'ควบแน่นปราณบังคับศาสตรากระบี่ให้ลอยขึ้นรองรับใต้ฝ่าเท้า บินตัดตรงข้ามพื้นที่สำนักและยุทธภพด้วยความเร็วสูง แต่กินปราณและสมาธิในการควบคุม'
+      },
+      {
+        id: 'QG_IMMORTAL_VOID_LEVITATION_T7',
+        nameTh: 'มหาวิชาเหาะเหินเดินอากาศไร้พันธนาการ',
+        path: 'XIAN',
+        sub: 'ASTRAL_STAR',
+        cat: 'MOVEMENT_TECHNIQUE',
+        subType: 'LIGHTNESS_ART',
+        tier: 6,
+        power: 135,
+        qiCost: 18,
+        cooldown: 4,
+        element: 'LIGHT_YANG',
+        qinggongMode: 'CELESTIAL_LEVITATION',
+        legendary: true,
+        descTh: 'วิชาระดับเซียนขั้นสูงที่หลอมรวมกายเข้ากับปราณฟ้าดิน เหาะเหินเดินอากาศเหนือเมฆามงคลได้เองโดยไม่ต้องพึ่งพากระบี่บิน ประหยัดปราณและไร้ข้อจำกัดจากพายุฝน'
+      }
+    ],
+
+    mapTechToQinggongMode(t) {
+      if (!t) return null;
+      if (t.qinggongMode && this.MODES[t.qinggongMode]) return t.qinggongMode;
+      const id = String(t.id || '');
+      const name = String(t.nameTh || '');
+      const tier = Number(t.tier) || 1;
+      if (id === 'QG_IMMORTAL_VOID_LEVITATION_T7' || id === 'LEG_LIGHT_KUNPENG_ASTRAL_WINGS' || id === 'ART190_GOD_049' || (tier >= 6 && /เหาะ|เดินอากาศ|คุนเผิง|ดารา|สุริยัน/.test(name))) {
+        return 'CELESTIAL_LEVITATION';
+      }
+      if (id === 'QG_IMPERIAL_SWORD_FLIGHT_T5' || id === 'ART190_XIAN_045' || /เหินกระบี่|ขี่กระบี่|กระบี่บิน|SWORD_FLIGHT/.test(name + '|' + (t.sub || ''))) {
+        return 'SWORD_FLIGHT';
+      }
+      if (id === 'QG_JADE_LOTUS_WATER_DRIFT_T3' || id === 'LEG_LIGHT_LINGBO_STEP' || id === 'ART_V112_SOUL_BUTTERFLY_DREAM_STEP_T2' || /เหยียบคลื่น|วารี|บัว|ผีเสื้อ/.test(name)) {
+        return 'WATER_LOTUS_DRIFT';
+      }
+      if (id === 'QG_PHANTOM_STAR_BLINK_T4' || id === 'ART190_XIAN_041' || id === 'LEG_LIGHT_MOON_BAT_SHADOW' || id === 'MP_AGNOSTIC_SHADOWLESS_STEP_T4' || id === 'ART_MECH_PUPPET_007' || /พริบตา|เร้นเงา|ไร้ร่องรอย|สลับร่าง/.test(name)) {
+        return 'SHADOW_BLINK';
+      }
+      if (id === 'QG_CLOUD_DRAGON_LEAP_T2' || id === 'MP_SPEAR_VAULT_STEP_T3' || id === 'MP_STAFF_POLE_VAULT_T2' || id === 'MP_BOW_PARTING_SHOT_T4' || /เหินข้าม|กระโดด|ทะยานเมฆ|ค้ำทวน|ค้ำพลอง/.test(name)) {
+        return 'LEAP_BOUND';
+      }
+      const isMoveCat = t.cat === 'MOVEMENT_TECHNIQUE' || t.subType === 'LIGHTNESS_ART' || /_LIGHT$/.test(t.cat || '');
+      if (isMoveCat) {
+        if (tier >= 6) return 'CELESTIAL_LEVITATION';
+        if (tier >= 5 && (t.path === 'SWORD' || t.path === 'XIAN')) return 'SWORD_FLIGHT';
+        if (tier >= 4) return 'SHADOW_BLINK';
+        if (tier === 3) return 'LEAP_BOUND';
+        if (tier === 2) return 'WATER_LOTUS_DRIFT';
+        return 'SWIFT_STRIDE';
+      }
+      return null;
+    },
+
+    initCatalog() {
+      // 1. Register the 6 signature manuals into JD.TECH.techniques & TECH_BY_ID (without altering JD.MARTIAL.techniques count)
+      this.SIGNATURE_MANUALS.forEach(spec => {
+        const fullTech = Object.assign({
+          stages: [
+            { stage: 1, nameTh: 'ขั้นต้น', mult: 1.0 },
+            { stage: 2, nameTh: 'ขั้นเชี่ยวชาญ', mult: 1.18 },
+            { stage: 3, nameTh: 'ขั้นบรรลุ', mult: 1.38 }
+          ],
+          qinggongSpec: this.MODES[spec.qinggongMode]
+        }, spec);
+        TECH_BY_ID[fullTech.id] = fullTech;
+      });
+
+      // 2. Enrich all existing movement / lightness techniques in JD.TECH and JD.MARTIAL
+      const enrichList = list => {
+        if (!Array.isArray(list)) return;
+        list.forEach(t => {
+          if (!t) return;
+          const mId = this.mapTechToQinggongMode(t);
+          if (mId && this.MODES[mId]) {
+            t.qinggongMode = mId;
+            t.qinggongSpec = this.MODES[mId];
+          }
+        });
+      };
+      if (JD.TECH) enrichList(JD.TECH.techniques);
+      if (JD.MARTIAL) enrichList(JD.MARTIAL.techniques);
+    },
+
+    ensureState(n) {
+      if (!n) return null;
+      if (!n.qinggongState || typeof n.qinggongState !== 'object') {
+        n.qinggongState = {
+          preferredMode: 'AUTO',
+          activeMode: 'MORTAL_WALK',
+          exhaustedFallback: false,
+          airborne: false,
+          altitude: 0,
+          leapPhase: 0,
+          lastBlinkTick: -999,
+          lastLeapTick: -999,
+          totalTilesMoved: 0,
+          totalTilesFlown: 0,
+          totalQiSpent: 0,
+          totalLeaps: 0,
+          totalBlinks: 0
+        };
+      }
+      return n.qinggongState;
+    },
+
+    unlockedModes(n) {
+      const modes = new Set(['MORTAL_WALK']);
+      if (!n || !n.cult) return Array.from(modes);
+      const stg = CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult.stage || 1);
+      const path = n.cult.path || '';
+      const sub = n.cult.sub || '';
+      const moveSkill = (n.h && n.h.skills && n.h.skills.MOVEMENT) || 0;
+
+      // Natural realm progression unlocks
+      if (stg >= 1 && (moveSkill >= 5 || stg >= 2)) modes.add('SWIFT_STRIDE');
+      if (stg >= 2 && (moveSkill >= 12 || stg >= 3 || path === 'BODY' || path === 'XIAN')) modes.add('LEAP_BOUND');
+      if (stg >= 2 && (sub === 'CLOUD_WIND' || path === 'XIAN' || moveSkill >= 18)) modes.add('WATER_LOTUS_DRIFT');
+      if (stg >= 3 && (sub === 'LIGHTNESS_SHADOW' || sub === 'BLOOD_SHADOW' || path === 'DEMON' || moveSkill >= 26)) modes.add('SHADOW_BLINK');
+      if (stg >= 3 && (path === 'SWORD' || sub === 'SWORD_FLIGHT' || (stg >= 4 && (path === 'XIAN' || !!(n.equip && n.equip.WEAPON))))) {
+        modes.add('SWORD_FLIGHT');
+      }
+      if (stg >= 6) {
+        modes.add('CELESTIAL_LEVITATION');
+        modes.add('SWORD_FLIGHT');
+        modes.add('SHADOW_BLINK');
+        modes.add('LEAP_BOUND');
+        modes.add('WATER_LOTUS_DRIFT');
+        modes.add('SWIFT_STRIDE');
+      }
+
+      // Learned technique unlocks
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (!t) continue;
+        const mId = t.qinggongMode || this.mapTechToQinggongMode(t);
+        if (mId && this.MODES[mId]) {
+          const reqStage = Math.max(1, (this.MODES[mId].minStage || 1) - 1);
+          if (stg >= reqStage) modes.add(mId);
+        }
+      }
+      return this.MODE_ORDER.filter(m => modes.has(m));
+    },
+
+    hasSwordFlightWeapon(n) {
+      if (!n) return false;
+      if (n.equip && n.equip.WEAPON) return true;
+      if (n.cult && (n.cult.path === 'SWORD' || n.cult.sub === 'SWORD_FLIGHT')) return true;
+      return false;
+    },
+
+    resolveNpcMode(W, n) {
+      if (!n || !n.cult) {
+        return {
+          modeId: 'MORTAL_WALK',
+          spec: this.MODES.MORTAL_WALK,
+          speedMult: 1.0,
+          qiCostPerTick: 0,
+          airborne: false,
+          altitudePx: 0,
+          exhaustedFallback: false,
+          weaponPenaltyActive: false,
+          stormPenaltyActive: false,
+          waterBonusActive: false
+        };
+      }
+      const st = n.qinggongState || null;
+      const stg = n.cult.stage || 1;
+      const techLen = Array.isArray(n.cult.techs) ? n.cult.techs.length : 0;
+      const wpnId = (n.equip && n.equip.WEAPON && n.equip.WEAPON.id) || '';
+      const pref = (st && st.preferredMode) || 'AUTO';
+      const weather = (W && W.weather && (W.weather.kind || W.weather)) || 'clear';
+      const stObj = (n.h && n.h.state) || n.state || null;
+      const qMax = Math.max(1, CULT.qiMax(n));
+      const curQi = Math.max(0, (stObj && Number.isFinite(stObj.qi)) ? stObj.qi : qMax);
+      const wTick = (W && W.t) || -1;
+      const stExh = !!(st && st.exhaustedFallback);
+      const qiBucket = Math.floor((curQi / qMax) * 25);
+      const tc = n._qgTickCache;
+      if (wTick >= 0 && tc && tc.t === wTick && tc.ver === n._ver && tc.stg === stg && tc.wpn === wpnId && tc.w === weather && tc.pref === pref && tc.exh === stExh && tc.qb === qiBucket && !n.mantraState) {
+        return tc.val;
+      }
+      const qiRatio = curQi / qMax;
+
+      // Fast unlocked-modes cache on NPC
+      const moveSkKey = (n.h && n.h.skills && n.h.skills.MOVEMENT) || 0;
+      let uc = n._qgUnlockCache;
+      if (!uc || uc.ver !== n._ver || uc.stg !== stg || uc.techLen !== techLen || uc.wpnId !== wpnId || uc.mv !== moveSkKey) {
+        uc = {
+          ver: n._ver,
+          stg,
+          techLen,
+          wpnId,
+          mv: moveSkKey,
+          unlocked: this.unlockedModes(n)
+        };
+        n._qgUnlockCache = uc;
+      }
+      const unlocked = uc.unlocked;
+
+      // Choose candidate mode before Qi check
+      let targetMode = 'MORTAL_WALK';
+      if (pref !== 'AUTO' && unlocked.includes(pref)) {
+        targetMode = pref;
+      } else {
+        targetMode = unlocked[0] || 'MORTAL_WALK';
+        // Smart auto-choice: if SWORD_FLIGHT is top but NPC has no weapon and has SHADOW_BLINK, prefer SHADOW_BLINK unless sword path
+        if (targetMode === 'SWORD_FLIGHT' && !this.hasSwordFlightWeapon(n) && unlocked.includes('SHADOW_BLINK')) {
+          targetMode = 'SHADOW_BLINK';
+        }
+      }
+
+      const targetSpec = this.MODES[targetMode] || this.MODES.MORTAL_WALK;
+
+      // Hysteresis check for Qi exhaustion fallback
+      let exhausted = !!(st && st.exhaustedFallback);
+      if (targetSpec.qiCostPerTick > 0) {
+        if (qiRatio < targetSpec.minQiPct) {
+          exhausted = true;
+        } else if (exhausted && qiRatio >= targetSpec.recoverQiPct) {
+          exhausted = false;
+        }
+      } else {
+        exhausted = false;
+      }
+
+      let activeMode = exhausted ? 'MORTAL_WALK' : targetMode;
+      // If high mode is exhausted, check if SWIFT_STRIDE is still affordable
+      if (exhausted && unlocked.includes('SWIFT_STRIDE') && qiRatio >= this.MODES.SWIFT_STRIDE.minQiPct && curQi >= 2) {
+        activeMode = 'SWIFT_STRIDE';
+      }
+
+      const spec = this.MODES[activeMode] || this.MODES.MORTAL_WALK;
+
+      // Compute effective speed multiplier and tradeoffs
+      let speedMult = spec.speedMult;
+      let qiCostPerTick = spec.qiCostPerTick;
+      let weaponPenaltyActive = false;
+      let stormPenaltyActive = false;
+      let waterBonusActive = false;
+
+      // Movement skill mastery bonus (+0% to +18%)
+      const moveSkill = (n.h && n.h.skills && n.h.skills.MOVEMENT) || 0;
+      if (activeMode !== 'MORTAL_WALK') {
+        speedMult *= (1 + Math.min(0.18, moveSkill * 0.002));
+      }
+
+      // Sword Flight authentic tradeoffs vs Celestial Levitation
+      if (activeMode === 'SWORD_FLIGHT') {
+        if (!this.hasSwordFlightWeapon(n)) {
+          speedMult = spec.noWeaponSpeedMult || 1.55;
+          weaponPenaltyActive = true;
+        }
+        if (weather === 'rain' || weather === 'snow' || weather === 'storm') {
+          speedMult *= (spec.stormSpeedPenalty || 0.85);
+          qiCostPerTick += (spec.stormExtraQi || 0.25);
+          stormPenaltyActive = true;
+        }
+      }
+
+      // Patch v5.5.0: Mantra Resonance Synergy with Qinggong & Sword Flight (when mantraState is active)
+      if (CULT.MANTRA_SYSTEM && n.mantraState) {
+        const mr = CULT.MANTRA_SYSTEM.resolveNpcMantra(W, n);
+        if (mr) {
+          if (activeMode === 'SWORD_FLIGHT' && mr.archetypeId === 'SWORD_QI_MERIDIAN') {
+            speedMult *= (1 + (mr.swordFlightSpeedBonus || 0.15));
+            qiCostPerTick *= (mr.swordFlightQiCostMult || 0.70);
+          } else if (activeMode !== 'MORTAL_WALK') {
+            speedMult *= (1 + (mr.qinggongSpeedBonus || 0));
+            qiCostPerTick *= (mr.qinggongQiCostMult || 1.0);
+          }
+        }
+      }
+
+      // Water Lotus Drift bonus on water/pond/bridge tiles
+      if (W && W.map && g.MAP && g.MAP.tileAt) {
+        const tile = g.MAP.tileAt(W.map, n.x, n.y);
+        const T = g.MAP.T || {};
+        if (tile === T.WATER || tile === T.BRIDGE) {
+          if (activeMode === 'WATER_LOTUS_DRIFT') {
+            speedMult *= (spec.waterSpeedBonus || 1.45);
+            waterBonusActive = true;
+          } else if (spec.aerialDirectPath) {
+            waterBonusActive = true;
+          }
+        }
+      }
+
+      // Pure read-only: state is updated only in stepQinggongMove
+
+      const resObj = {
+        modeId: activeMode,
+        targetModeId: targetMode,
+        spec,
+        unlockedModes: unlocked,
+        speedMult: +speedMult.toFixed(3),
+        qiCostPerTick: +qiCostPerTick.toFixed(3),
+        airborne: !!spec.aerialDirectPath,
+        altitudePx: spec.altitudePx || 0,
+        exhaustedFallback: exhausted,
+        weaponPenaltyActive,
+        stormPenaltyActive,
+        waterBonusActive,
+        qiRatio: +qiRatio.toFixed(3)
+      };
+      if (wTick >= 0 && !n.mantraState) {
+        n._qgTickCache = { t: wTick, ver: n._ver, stg, wpn: wpnId, w: weather, pref, exh: exhausted, qb: qiBucket, val: resObj };
+      }
+      return resObj;
+    },
+
+    hasExplicitWorldQinggong(n) {
+      if (!n || !n.cult) return false;
+      const stg = CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult.stage || 1);
+      if (stg >= 5) return true;
+      if (n.qinggongState && n.qinggongState.preferredMode && n.qinggongState.preferredMode !== 'AUTO' && n.qinggongState.preferredMode !== 'MORTAL_WALK') return true;
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (t && (t.qinggongMode || this.mapTechToQinggongMode(t))) return true;
+      }
+      return false;
+    },
+
+    stepQinggongMove(W, n, distMoved) {
+      const stObj = (n && n.h && n.h.state) || (n && n.state) || null;
+      if (!n || !n.cult || !stObj || !(distMoved > 0)) return null;
+      const st = this.ensureState(n);
+      const qg = this.resolveNpcMode(W, n);
+      const spec = qg.spec;
+      st.exhaustedFallback = qg.exhaustedFallback;
+      st.activeMode = qg.modeId;
+      st.airborne = qg.airborne;
+      st.altitude = qg.altitudePx;
+      st.totalTilesMoved = +(st.totalTilesMoved + distMoved).toFixed(2);
+
+      if (qg.modeId === 'MORTAL_WALK') {
+        st.airborne = false;
+        st.altitude = 0;
+        return qg;
+      }
+
+      // Scale Qi cost smoothly with movement step
+      const stepFactor = Math.min(1.35, Math.max(0.45, distMoved / 0.85));
+      const qiSpent = +(qg.qiCostPerTick * stepFactor).toFixed(3);
+      if (!Number.isFinite(stObj.qi)) stObj.qi = CULT.qiMax(n);
+      stObj.qi = Math.max(0, stObj.qi - qiSpent);
+      if (n.state && n.state !== stObj && Number.isFinite(n.state.qi)) n.state.qi = stObj.qi;
+      st.totalQiSpent = +(st.totalQiSpent + qiSpent).toFixed(2);
+
+      if (qg.airborne) {
+        st.totalTilesFlown = +(st.totalTilesFlown + distMoved).toFixed(2);
+      }
+
+      // Sword Flight mental/energy focus drain tradeoff
+      if (qg.modeId === 'SWORD_FLIGHT' && spec.energyDrainPerTick) {
+        stObj.energy = Math.max(0, (Number.isFinite(stObj.energy) ? stObj.energy : 80) - spec.energyDrainPerTick);
+        if (n.state && n.state !== stObj && Number.isFinite(n.state.energy)) n.state.energy = stObj.energy;
+      }
+
+      // Advance leap phase for parabolic jump animation
+      if (qg.modeId === 'LEAP_BOUND') {
+        st.leapPhase = (st.leapPhase + 0.28) % 1;
+      }
+
+      // Patch v5.5.0: Autonomous Walking Cultivation for Astral Void Breathing & active Mantra stances
+      if (CULT.MANTRA_SYSTEM && n.mantraState) {
+        CULT.MANTRA_SYSTEM.stepAutonomousBreathing(W, n, distMoved);
+      }
+
+      return qg;
+    },
+
+    compareSwordVsLevitation(W, n) {
+      const sf = this.MODES.SWORD_FLIGHT;
+      const cl = this.MODES.CELESTIAL_LEVITATION;
+      const hasWpn = this.hasSwordFlightWeapon(n);
+      return {
+        swordFlight: {
+          id: sf.id,
+          nameTh: sf.nameTh,
+          minStage: sf.minStage,
+          effectiveSpeedMult: hasWpn ? sf.speedMult : sf.noWeaponSpeedMult,
+          qiCostPerTick: sf.qiCostPerTick,
+          stormExtraQi: sf.stormExtraQi,
+          energyDrainPerTick: sf.energyDrainPerTick,
+          requiresWeapon: true,
+          hasWeaponNow: hasWpn,
+          minQiPct: sf.minQiPct,
+          worldTimeMult: sf.worldTimeMult,
+          drawbacksTh: [
+            'กินปราณสูงกว่าเหาะเหินเดินอากาศกว่า 2 เท่า (0.75 ปราณ/ทิค vs 0.35 ปราณ/ทิค)',
+            'ต้องพึ่งพาศาสตราคู่กาย (หากไร้ศาสตรา ความเร็วตกจาก ×2.38 เหลือ ×1.55)',
+            'แพ้สภาพอากาศพายุฝน/หิมะ (ความเร็วลดลง 15% และกินปราณเพิ่ม +0.25/ทิค)',
+            'เสียสมาธิและแรงกายขณะควบคุมกระบี่บิน (-0.012 แรงกาย/ทิค)',
+            'ร่วงลงพื้นเร็วกว่าเมื่อปราณต่ำกว่า 20% (ต้องรอฟื้นถึง 35% จึงบินต่อได้)'
+          ]
+        },
+        celestialLevitation: {
+          id: cl.id,
+          nameTh: cl.nameTh,
+          minStage: cl.minStage,
+          effectiveSpeedMult: cl.speedMult,
+          qiCostPerTick: cl.qiCostPerTick,
+          stormExtraQi: 0,
+          energyDrainPerTick: 0,
+          requiresWeapon: false,
+          minQiPct: cl.minQiPct,
+          worldTimeMult: cl.worldTimeMult,
+          advantagesTh: [
+            'เร็วกว่าขี่กระบี่บินอย่างชัดเจน (×2.90 vs ×2.38)',
+            'ประหยัดปราณกว่าครึ่งหนึ่ง (0.35 ปราณ/ทิค) เพราะหลอมรวมปราณฟ้าดินหนุนกาย',
+            'เหาะเหินเดินอากาศด้วยกายเซียนโดยไม่ต้องพึ่งพากระบี่หรือศาสตราใดๆ',
+            'ไม่ถูกลดความเร็วและไม่เสียปราณเพิ่มในพายุฝนหรือหิมะ',
+            'ไม่เสียแรงกาย/สมาธิ และบินต่อเนื่องได้จนกว่าปราณจะต่ำกว่า 10%'
+          ]
+        }
+      };
+    },
+
+    evaluatePartyExpeditionBonus(W, members, site) {
+      const list = Array.isArray(members) ? members.filter(Boolean) : [];
+      if (!list.length) {
+        return {
+          durationMultiplier: 1.0,
+          hazardReduction: 0,
+          capacityMultiplier: 1.0,
+          dominantMode: 'MORTAL_WALK',
+          dominantNameTh: this.MODES.MORTAL_WALK.nameTh,
+          summaryTh: 'เดินเท้าปกติ'
+        };
+      }
+      const isWaterRoute = !!(site && (/น้ำ|ทะเลสาบ|บึง|เกาะ|วารี|แม่น้ำ|คราม|หยก/.test(site.nameTh || '') || site.terrain === 'water' || site.element === 'WATER_ICE'));
+      let sumTimeMult = 0;
+      let sumHazardRed = 0;
+      let sumCarryBonus = 0;
+      let bestMode = this.MODES.MORTAL_WALK;
+
+      list.forEach(m => {
+        const qg = this.resolveNpcMode(W, m);
+        const sp = qg.spec || this.MODES.MORTAL_WALK;
+        const tm = isWaterRoute && sp.waterRouteMult ? Math.min(sp.worldTimeMult, sp.waterRouteMult) : (sp.worldTimeMult || 1.0);
+        sumTimeMult += tm;
+        sumHazardRed += (sp.hazardRed || 0);
+        sumCarryBonus += (sp.carryBonus || 0);
+        if ((sp.rankOrder || 0) > (bestMode.rankOrder || 0)) {
+          bestMode = sp;
+        }
+      });
+
+      const n = list.length;
+      const avgTimeMult = Math.max(0.55, Math.min(1.0, sumTimeMult / n));
+      const avgHazardRed = Math.min(0.35, sumHazardRed / n);
+      const avgCarryMult = +(1 + Math.min(0.45, sumCarryBonus / n)).toFixed(2);
+
+      return {
+        durationMultiplier: +avgTimeMult.toFixed(3),
+        hazardReduction: +avgHazardRed.toFixed(3),
+        capacityMultiplier: avgCarryMult,
+        dominantMode: bestMode.id,
+        dominantNameTh: bestMode.nameTh,
+        dominantIcon: bestMode.icon,
+        isWaterRoute,
+        summaryTh: bestMode.icon + ' ' + bestMode.shortTh + ' (ย่นเวลาเดินทาง ' + Math.round((1 - avgTimeMult) * 100) + '% · ลดอันตราย ' + Math.round(avgHazardRed * 100) + '%)'
+      };
+    }
+  };
+  CULT.QINGGONG.initCatalog();
+
+  /* ===== PATCH v5.5.0: MANTRA & INNER KUNGFU RESONANCE OVERHAUL (ระบบเอกลักษณ์คัมภีร์ปราณบ่มเพาะและจังหวะการเดินลมปราณ) ===== */
+  CULT.MANTRA_SYSTEM = {
+    ARCHETYPE_ORDER: [
+      'PRIMORDIAL_YANG_FURNACE',
+      'ABYSSAL_FROST_MIRROR',
+      'SWORD_QI_MERIDIAN',
+      'EVERGREEN_LONGEVITY_SPRING',
+      'ASTRAL_VOID_BREATHING',
+      'DEVOURING_NETHER_VORTEX',
+      'VAJRA_IMMORTAL_BODY_BELL'
+    ],
+    ARCHETYPES: {
+      PRIMORDIAL_YANG_FURNACE: {
+        id: 'PRIMORDIAL_YANG_FURNACE',
+        icon: '🔥',
+        nameTh: 'ปราณเตาหลอมสุริยันอัคนี (烈阳真火)',
+        shortTh: 'เตาหลอมสุริยัน',
+        color: '#ff6b35',
+        secondaryColor: '#ffd166',
+        cultRateMult: 1.22,
+        qiMaxBonusPct: 0.12,
+        lifeBonusMult: 1.05,
+        favoredWeathers: ['clear', 'crimson_sun'],
+        weatherBonusPct: 0.25,
+        ignoreColdWeather: true,
+        autonomousWalkRatio: 0.10,
+        sectAuraRadius: 6.0,
+        sectAuraRateBonus: 0.12,
+        combatBurnBonusPct: 0.15,
+        combatBacklashPct: 0.08,
+        qinggongSpeedBonus: 0.06,
+        qinggongQiCostMult: 0.95,
+        prosTh: 'เร่งตบะเร็ว +22%, แผ่ไอร้อนสุริยันหนุนศิษย์รอบข้างในระยะ 6 ช่อง (+12% ความเร็วบ่มเพาะ), โจมตีติดปราณเพลิง +15% และลวกศัตรูที่โจมตีระยะประชิด 8%, ไม่แพ้ภัยหนาวหิมะ',
+        consTh: 'ปราณหยางร้อนแรง หากเร่งเดินปราณสุดขั้ว (Overdrive) จะสะสมพิษปราณไฟเร็วกว่าปกติ'
+      },
+      ABYSSAL_FROST_MIRROR: {
+        id: 'ABYSSAL_FROST_MIRROR',
+        icon: '❄️',
+        nameTh: 'ปราณสมุทรน้ำแข็งกระจกจันทรา (寒冰玄冥)',
+        shortTh: 'กระจกน้ำแข็งจันทรา',
+        color: '#48cae4',
+        secondaryColor: '#caf0f8',
+        cultRateMult: 1.15,
+        qiMaxBonusPct: 0.16,
+        lifeBonusMult: 1.12,
+        favoredWeathers: ['rain', 'snow', 'spirit_aurora'],
+        weatherBonusPct: 0.22,
+        ignoreColdWeather: true,
+        autonomousWalkRatio: 0.12,
+        sectAuraRadius: 6.0,
+        sectAuraCalmStress: 0.15,
+        combatShieldPct: 0.18,
+        combatDamageRedPct: 0.15,
+        qinggongSpeedBonus: -0.04,
+        qinggongQiCostMult: 0.90,
+        prosTh: 'จิตสงบดุจกระจกน้ำแข็ง ลดการเกิดจิตมาร -40% และสลายความเครียดศิษย์รอบข้าง, บ่มเพาะเร็วขึ้น +22% ท่ามกลางฝน/หิมะ, สร้างเกราะหยกเหมันต์ลดดาเมจ 15% ในศึก',
+        consTh: 'ปราณหยินหนักแน่นเยือกแข็ง ทำให้ความเร็วเดินเท้าพื้นฐานช้าลงเล็กน้อย (-4%) เมื่อไม่ได้ใช้วิชาตัวเปาวายุ'
+      },
+      SWORD_QI_MERIDIAN: {
+        id: 'SWORD_QI_MERIDIAN',
+        icon: '🗡️',
+        nameTh: 'ปราณชีพจรกระบี่ผ่าสวรรค์ (太白剑气)',
+        shortTh: 'ชีพจรกระบี่คมกริบ',
+        color: '#00f5d4',
+        secondaryColor: '#e0fbfc',
+        cultRateMult: 1.18,
+        qiMaxBonusPct: 0.14,
+        lifeBonusMult: 1.08,
+        favoredWeathers: ['clear', 'thunder_tempest'],
+        weatherBonusPct: 0.24,
+        ignoreColdWeather: false,
+        autonomousWalkRatio: 0.14,
+        sectAuraRadius: 6.0,
+        sectAuraSwordIntent: 0.10,
+        combatPenBonusPct: 0.18,
+        combatCounterSlashPct: 0.12,
+        swordFlightSpeedBonus: 0.15,
+        swordFlightQiCostMult: 0.70,
+        qinggongSpeedBonus: 0.08,
+        qinggongQiCostMult: 0.88,
+        prosTh: 'หล่อเลี้ยงปราณกระบี่ในเส้นชีพจร ประสานกับ「วิชาขี่กระบี่บิน」โดยตรง (ลดปราณขี่กระบี่บิน -30% และบินเร็วขึ้น +15%), เจาะเกราะ +18% และปล่อยปราณกระบี่สวนกลับอัตโนมัติ 12% เมื่อถูกโจมตี',
+        consTh: 'ปราณคมกริบดุจใบมีด หากได้รับบาดเจ็บภายในหรือเส้นชีพจรเสียหาย อัตราบ่มเพาะจะลดลงชั่วคราวจนกว่าจะรักษาหาย'
+      },
+      EVERGREEN_LONGEVITY_SPRING: {
+        id: 'EVERGREEN_LONGEVITY_SPRING',
+        icon: '🌿',
+        nameTh: 'ปราณน้ำพุพฤกษาอมตะนิรันดร์ (长生青木)',
+        shortTh: 'น้ำพุพฤกษาอมตะ',
+        color: '#52b788',
+        secondaryColor: '#b7e4c7',
+        cultRateMult: 1.14,
+        qiMaxBonusPct: 0.18,
+        lifeBonusMult: 1.28,
+        favoredWeathers: ['rain', 'clear'],
+        weatherBonusPct: 0.20,
+        ignoreColdWeather: false,
+        autonomousWalkRatio: 0.15,
+        sectAuraRadius: 6.5,
+        sectAuraHealPct: 0.03,
+        combatRegenHpPct: 0.035,
+        combatRegenQiPct: 0.04,
+        qinggongSpeedBonus: 0.04,
+        qinggongQiCostMult: 0.85,
+        prosTh: 'ยืดอายุขัยจากตบะ +28%, ฟื้นฟูพลังชีวิตและสลายพิษปราณต่อเนื่อง, แผ่วงจรปราณพฤกษาเยียวยาศิษย์รอบข้างในระยะ 6.5 ช่อง และฟื้นฟูเลือด 3.5% ทุกจังหวะโจมตีในศึก',
+        consTh: 'ปราณเมตตานุ่มนวล เน้นความอมตะและยืดเยื้อมากกว่าพลังทำลายล้างฉับพลัน'
+      },
+      ASTRAL_VOID_BREATHING: {
+        id: 'ASTRAL_VOID_BREATHING',
+        icon: '🌌',
+        nameTh: 'ปราณลมหายใจดาราจักรวาลไร้ขอบเขต (周天星辰)',
+        shortTh: 'ลมหายใจดาราจักรวาล',
+        color: '#9d4edd',
+        secondaryColor: '#e0aaff',
+        cultRateMult: 1.20,
+        qiMaxBonusPct: 0.22,
+        lifeBonusMult: 1.16,
+        favoredWeathers: ['spirit_aurora', 'clear'],
+        weatherBonusPct: 0.30,
+        ignoreColdWeather: true,
+        autonomousWalkRatio: 0.32,
+        autonomousQiRegenPerTick: 0.35,
+        sectAuraRadius: 6.5,
+        sectAuraQiRegen: 0.45,
+        combatDodgeBonusPct: 0.12,
+        qinggongSpeedBonus: 0.12,
+        qinggongQiCostMult: 0.75,
+        prosTh: 'เดินลมปราณอัตโนมัติตลอดเวลาแม้ขณะก้าวเดิน ทำงาน หรือออกลาดตระเวน (ได้แต้มบ่มเพาะ 32% และฟื้นปราณ +0.35/ทิค ขณะเคลื่อนที่), ลดปราณใช้วิชาตัวเบาและการเหาะเหิน -25%, บ่มเพาะพุ่งทะยาน +30% ใต้แสงเหนือดารา',
+        consTh: 'ต้องอาศัยจิตที่ปลอดโปร่งเชื่อมโยงดารา หากความเครียดสูงเกิน 70 ประสิทธิภาพการเดินปราณอัตโนมัติจะลดลงครึ่งหนึ่ง'
+      },
+      DEVOURING_NETHER_VORTEX: {
+        id: 'DEVOURING_NETHER_VORTEX',
+        icon: '🩸',
+        nameTh: 'ปราณวังวนมารกลืนดาราสูบโลหิต (吞天魔功)',
+        shortTh: 'วังวนมารกลืนปราณ',
+        color: '#ef233c',
+        secondaryColor: '#7209b7',
+        cultRateMult: 1.36,
+        qiMaxBonusPct: 0.20,
+        lifeBonusMult: 0.96,
+        favoredWeathers: ['thunder_tempest', 'rain'],
+        weatherBonusPct: 0.25,
+        ignoreColdWeather: true,
+        autonomousWalkRatio: 0.16,
+        sectAuraRadius: 5.5,
+        combatLifestealPct: 0.14,
+        combatQistealPct: 0.18,
+        qinggongSpeedBonus: 0.10,
+        qinggongQiCostMult: 0.92,
+        prosTh: 'เร่งความเร็วบ่มเพาะสูงสุด +36%, สูบพลังชีวิต 14% และสูบปราณ 18% จากศัตรูทุกครั้งที่โจมตีในศึก, กลืนกินปราณตกค้างหลังจบการต่อสู้มาเพิ่มตบะทันที',
+        consTh: 'ปราณมารดุดันกระหายศึก เพิ่มแรงกดดันจิตมารสะสมง่ายกว่าคัมภีร์สายเซียน'
+      },
+      VAJRA_IMMORTAL_BODY_BELL: {
+        id: 'VAJRA_IMMORTAL_BODY_BELL',
+        icon: '🛡️',
+        nameTh: 'ปราณระฆังทองวัชระคงกระพัน (金刚不坏)',
+        shortTh: 'ระฆังทองวัชระ',
+        color: '#ffd166',
+        secondaryColor: '#f4a261',
+        cultRateMult: 1.16,
+        qiMaxBonusPct: 0.15,
+        lifeBonusMult: 1.22,
+        favoredWeathers: ['thunder_tempest', 'crimson_sun'],
+        weatherBonusPct: 0.22,
+        ignoreColdWeather: true,
+        autonomousWalkRatio: 0.12,
+        sectAuraRadius: 6.0,
+        combatDamageRedPct: 0.22,
+        combatReflectPct: 0.16,
+        tribulationGuardPct: 0.25,
+        qinggongSpeedBonus: 0.0,
+        qinggongQiCostMult: 1.12,
+        prosTh: 'หล่อหลอมปราณคุ้มกายเป็น「ระฆังทองวัชระ」ลดความเสียหายที่ได้รับในศึก -22% และสะท้อนดาเมจประชิดกลับไป 16%, ลดความเสียหายจากสายฟ้าทัณฑ์สวรรค์ -25%, ไม่ถูกลดความเร็วเดินเมื่อเหนื่อยล้า',
+        consTh: 'ปราณทองคำหนักแน่นดุจขุนเขา ทำให้ใช้ปราณเพิ่มขึ้น +12% เมื่อต้องขี่กระบี่บินหรือเหาะเหินกลางอากาศ'
+      }
+    },
+
+    STANCES: {
+      SERENE_PURIFICATION: {
+        id: 'SERENE_PURIFICATION',
+        icon: '🪷',
+        nameTh: 'เดินปราณสงบกลั่นบริสุทธิ์ (清心凝气)',
+        shortTh: 'กลั่นบริสุทธิ์',
+        cultMult: 0.92,
+        qiRegenMult: 1.45,
+        toxicDeltaPerTick: -0.025,
+        heartDemonDeltaPerTick: -0.03,
+        energyDrainPerTick: 0,
+        combatPowerMult: 0.95,
+        auraMult: 1.0,
+        descTh: 'โคจรปราณอย่างประณีตเพื่อชะล้างพิษโอสถ (-1.5/ชม.) สยบจิตมาร (-1.8/ชม.) และฟื้นฟูปราณเร็วขึ้น +45% โดยไม่มีความเสี่ยงธาตุไฟเข้าแทรก'
+      },
+      HARMONIOUS_CIRCULATION: {
+        id: 'HARMONIOUS_CIRCULATION',
+        icon: '☯️',
+        nameTh: 'โคจรปราณผสานฟ้าดิน (周天调和)',
+        shortTh: 'ผสานฟ้าดิน (สมดุล)',
+        cultMult: 1.15,
+        qiRegenMult: 1.15,
+        toxicDeltaPerTick: -0.005,
+        heartDemonDeltaPerTick: -0.005,
+        energyDrainPerTick: 0,
+        combatPowerMult: 1.10,
+        auraMult: 1.25,
+        descTh: 'จังหวะโคจรปราณมาตรฐานที่ผสานปราณฟ้าดินอย่างสมดุล เร่งอัตราบ่มเพาะ ×1.15 แผ่วงจรปราณหนุนศิษย์รอบข้าง และสำแดงปราณคุ้มกายในศึกเต็มประสิทธิภาพ'
+      },
+      OVERDRIVE_COMBUSTION: {
+        id: 'OVERDRIVE_COMBUSTION',
+        icon: '🔥',
+        nameTh: 'เผาผลาญปราณเร่งตบะสุดขั้ว (逆转催功)',
+        shortTh: 'เร่งปราณสุดขั้ว',
+        cultMult: 1.55,
+        qiRegenMult: 0.85,
+        toxicDeltaPerTick: 0.015,
+        heartDemonDeltaPerTick: 0.02,
+        energyDrainPerTick: 0.025,
+        combatPowerMult: 1.28,
+        auraMult: 1.50,
+        descTh: 'ฝืนเร่งการไหลเวียนปราณในจุดตันเถียนและเส้นชีพจรเพื่อทะลวงขีดจำกัด เร่งความเร็วบ่มเพาะ ×1.55 และเพิ่มอานุภาพปราณคุ้มกาย +28% แต่กินแรงกายและเพิ่มแรงกดดันจิตมาร/พิษปราณ'
+      }
+    },
+
+    classifyMantraArchetype(m) {
+      if (!m) return 'ASTRAL_VOID_BREATHING';
+      if (m.mantraArchetype && this.ARCHETYPES[m.mantraArchetype]) return m.mantraArchetype;
+      const id = String(m.id || '');
+      const name = String(m.nameTh || '');
+      const path = String(m.path || '');
+      const el = String(m.element || (m.elementProfile && m.elementProfile.primary) || '');
+
+      if (path === 'DEMON' || /มาร|โลหิต|กลืน|อสูร|นรก|สาป|พิษ/.test(name)) {
+        return 'DEVOURING_NETHER_VORTEX';
+      }
+      if (path === 'BODY' || path === 'GOD' || /ระฆังทอง|วัชระ|คงกระพัน|เกราะหยก|ศิลา|เหล็ก|พยัคฆ์|มังกรทอง/.test(name)) {
+        return 'VAJRA_IMMORTAL_BODY_BELL';
+      }
+      if (/กระบี่|คม|อัสนี|ผ่า|ตัด|SWORD|THUNDER_BLADE/.test(name + '|' + id) || (path === 'XIAN' && (el === 'EARTH_METAL' || el === 'LIGHTNING'))) {
+        return 'SWORD_QI_MERIDIAN';
+      }
+      if (el === 'FIRE' || path === 'CRAFT_CREATION' || /สุริยัน|เพลิง|อัคนี|เตาหลอม|หยาง|หงส์/.test(name)) {
+        return 'PRIMORDIAL_YANG_FURNACE';
+      }
+      if (el === 'WATER_ICE' || el === 'YIN_SHADOW' || path === 'HEART_SOUL' || /น้ำแข็ง|เหมันต์|จันทรา|สมุทร|หยิน|เงา|กระจก/.test(name)) {
+        return 'ABYSSAL_FROST_MIRROR';
+      }
+      if (el === 'WOOD_LIFE' || path === 'SAGE_SUPPORT' || path === 'BEAST_SOVEREIGN' || /น้ำพุ|หยกเขียว|พฤกษา|บัว|อมตะ|ชีวิต|เมตตา/.test(name)) {
+        return 'EVERGREEN_LONGEVITY_SPRING';
+      }
+      return 'ASTRAL_VOID_BREATHING';
+    },
+
+    initCatalog() {
+      const enrich = m => {
+        if (!m) return;
+        const archId = this.classifyMantraArchetype(m);
+        const spec = this.ARCHETYPES[archId] || this.ARCHETYPES.ASTRAL_VOID_BREATHING;
+        m.mantraArchetype = archId;
+        m.mantraSpec = spec;
+      };
+      if (JD.TECH && Array.isArray(JD.TECH.mantras)) {
+        JD.TECH.mantras.forEach(enrich);
+      }
+      if (JD.TECH && Array.isArray(JD.TECH.techniques)) {
+        JD.TECH.techniques.forEach(t => {
+          if (t && (/_MANTRA$/.test(t.cat || '') || t.cat === 'INNER_KUNGFU' || t.subType === 'MANTRA')) {
+            enrich(t);
+          }
+        });
+      }
+      if (JD.MARTIAL && Array.isArray(JD.MARTIAL.techniques)) {
+        JD.MARTIAL.techniques.forEach(t => {
+          if (t && (/_MANTRA$/.test(t.cat || '') || t.cat === 'INNER_KUNGFU' || t.subType === 'MANTRA')) {
+            enrich(t);
+          }
+        });
+      }
+    },
+
+    ensureState(n) {
+      if (!n) return null;
+      if (!n.mantraState || typeof n.mantraState !== 'object') {
+        n.mantraState = {
+          stance: 'HARMONIOUS_CIRCULATION',
+          resonanceStacks: 0,
+          totalAutonomousGain: 0,
+          totalAuraHeals: 0,
+          totalCombatProcs: 0,
+          lastResonanceTick: -999
+        };
+      }
+      return n.mantraState;
+    },
+
+    resolveNpcMantra(W, n) {
+      if (!n || !n.cult) return null;
+      const c = n.cult;
+      let m = c.mantra ? TECH_BY_ID[c.mantra] : null;
+      if (!m && Array.isArray(c.techs)) {
+        for (let i = 0; i < c.techs.length; i++) {
+          const cand = TECH_BY_ID[c.techs[i]];
+          if (cand && cand.mantraArchetype) { m = cand; break; }
+        }
+      }
+      const archId = (m && m.mantraArchetype) || this.classifyMantraArchetype(m || { path: c.path });
+      const spec = this.ARCHETYPES[archId] || this.ARCHETYPES.ASTRAL_VOID_BREATHING;
+      const st = n.mantraState || null;
+      const stanceId = (st && st.stance && this.STANCES[st.stance]) ? st.stance : 'HARMONIOUS_CIRCULATION';
+      const stanceSpec = this.STANCES[stanceId];
+
+      const wKind = (W && W.weather && (W.weather.kind || W.weather)) || 'clear';
+      const weatherResonanceActive = Array.isArray(spec.favoredWeathers) && spec.favoredWeathers.includes(wKind);
+      const weatherMult = weatherResonanceActive ? (1 + (spec.weatherBonusPct || 0.20)) : 1.0;
+
+      // Grand Formation WarfareFIVE_ELEMENT_NURTURE bonus
+      const fw = W && W.sect && W.sect.formationWarfare;
+      const formationNurtureMult = (fw && fw.activeStance === 'FIVE_ELEMENT_NURTURE') ? 1.20 : 1.0;
+
+      // Only apply stance deviation from 1.0 when n.mantraState is explicitly active, keeping legacy baseline tests exact
+      const activeStanceMult = st ? stanceSpec.cultMult : 1.0;
+      const effectiveCultMult = +(activeStanceMult * (st ? weatherMult : 1.0) * formationNurtureMult).toFixed(3);
+
+      return {
+        mantraId: m ? m.id : null,
+        mantraNameTh: m ? m.nameTh : ('คัมภีร์ปราณพื้นฐานสาย' + (CULT.PATHS[c.path]?.shortTh || c.path)),
+        mantraTier: m ? (m.tier || 1) : 1,
+        archetypeId: archId,
+        spec,
+        stanceId,
+        stanceSpec,
+        weatherKind: wKind,
+        weatherResonanceActive,
+        effectiveCultMult,
+        autonomousWalkRatio: +(spec.autonomousWalkRatio * (stanceId === 'OVERDRIVE_COMBUSTION' ? 1.5 : 1.0)).toFixed(3),
+        qinggongSpeedBonus: spec.qinggongSpeedBonus || 0,
+        qinggongQiCostMult: spec.qinggongQiCostMult || 1.0,
+        swordFlightSpeedBonus: spec.swordFlightSpeedBonus || 0,
+        swordFlightQiCostMult: spec.swordFlightQiCostMult || 1.0
+      };
+    },
+
+    setMantraStance(W, n, stanceId) {
+      if (!n || !n.cult || !this.STANCES[stanceId]) return null;
+      const st = this.ensureState(n);
+      st.stance = stanceId;
+      n._cultRateBase = null;
+      n._qgUnlockCache = null;
+      n._wsBase = null;
+      return this.resolveNpcMantra(W, n);
+    },
+
+    stepMeditationResonance(W, n) {
+      if (!n || !n.cult || !n.h || !n.h.state) return null;
+      const st = n.mantraState || null;
+      const mr = this.resolveNpcMantra(W, n);
+      if (!mr) return null;
+      const s = n.h.state, c = n.cult, spec = mr.spec, stance = mr.stanceSpec;
+
+      // Apply stance meditation effects when mantraState is active
+      if (st) {
+        if (stance.toxicDeltaPerTick) {
+          c.toxic = Math.max(0, Math.min(200, (c.toxic || 0) + stance.toxicDeltaPerTick));
+        }
+        if (stance.heartDemonDeltaPerTick) {
+          const hdMod = spec.id === 'ABYSSAL_FROST_MIRROR' && stance.heartDemonDeltaPerTick > 0
+            ? stance.heartDemonDeltaPerTick * 0.6
+            : stance.heartDemonDeltaPerTick;
+          s.heartDemon = clamp((s.heartDemon || 0) + hdMod, 0, 100);
+        }
+        if (stance.energyDrainPerTick > 0) {
+          s.energy = Math.max(0, (s.energy || 50) - stance.energyDrainPerTick);
+        }
+        st.resonanceStacks = Math.min(100, (st.resonanceStacks || 0) + 1);
+        st.lastResonanceTick = (W && W.t) || 0;
+      }
+
+      // Evergreen Longevity Spring self-healing during meditation
+      if (spec.id === 'EVERGREEN_LONGEVITY_SPRING' && st) {
+        const hm = CULT.hpMax(n);
+        if (s.hp < hm) s.hp = Math.min(hm, s.hp + Math.max(0.5, hm * 0.008));
+      }
+
+      // Group Meditation Resonance Circle (6-tile radius sect-mate support when mantraState is active)
+      if (st && W && Array.isArray(W.npcs) && (W.t % 10 === 0)) {
+        const rad = spec.sectAuraRadius || 6.0;
+        for (let i = 0; i < W.npcs.length; i++) {
+          const ally = W.npcs[i];
+          if (!ally || ally.dead || ally.away || ally.id === n.id || !ally.h || !ally.h.state) continue;
+          const dist = Math.hypot((ally.x || 0) - (n.x || 0), (ally.y || 0) - (n.y || 0));
+          if (dist <= rad) {
+            if (spec.id === 'EVERGREEN_LONGEVITY_SPRING') {
+              const ahm = CULT.hpMax(ally);
+              if (ally.h.state.hp < ahm) ally.h.state.hp = Math.min(ahm, ally.h.state.hp + Math.max(1, ahm * 0.02));
+              st.totalAuraHeals = (st.totalAuraHeals || 0) + 1;
+            } else if (spec.id === 'ABYSSAL_FROST_MIRROR') {
+              ally.h.state.stress = Math.max(0, (ally.h.state.stress || 0) - 0.35);
+              ally.h.state.heartDemon = Math.max(0, (ally.h.state.heartDemon || 0) - 0.25);
+            } else if (spec.id === 'ASTRAL_VOID_BREATHING' && ally.cult) {
+              const aqm = CULT.qiMax(ally);
+              ally.h.state.qi = Math.min(aqm, (ally.h.state.qi || 0) + 1.2);
+            } else if (spec.id === 'PRIMORDIAL_YANG_FURNACE' && ally.cult) {
+              CULT.gain(ally, 0.04);
+            }
+          }
+        }
+      }
+      return mr;
+    },
+
+    stepAutonomousBreathing(W, n, distMoved) {
+      if (!n || !n.cult || !n.mantraState) return null;
+      const mr = this.resolveNpcMantra(W, n);
+      if (!mr) return null;
+      const st = n.mantraState;
+      const s = (n.h && n.h.state) || n.state;
+      const stressPen = (s && s.stress > 70) ? 0.5 : 1.0;
+      const autoGain = +((CULT.rate(n, 1) / 60) * mr.autonomousWalkRatio * stressPen * Math.min(1.2, Math.max(0.4, distMoved))).toFixed(4);
+      if (autoGain > 0) {
+        CULT.gain(n, autoGain);
+        st.totalAutonomousGain = +((st.totalAutonomousGain || 0) + autoGain).toFixed(2);
+      }
+      if (mr.spec.autonomousQiRegenPerTick && s) {
+        const qm = CULT.qiMax(n);
+        s.qi = Math.min(qm, (s.qi || 0) + mr.spec.autonomousQiRegenPerTick * stressPen);
+      }
+      return mr;
+    }
+  };
+  CULT.MANTRA_SYSTEM.initCatalog();
+
+  /* ===== PATCH v5.6.0: DEFENSIVE KUNGFU & PROTECTIVE AEGIS OVERHAUL (ระบบวิชาคุ้มกายและปราณเกราะพิทักษ์ 6 เอกลักษณ์) ===== */
+  CULT.DEFENSIVE_ARTS = {
+    ARCHETYPE_ORDER: [
+      'CELESTIAL_AEGIS_DOME',
+      'MIRAGE_CICADA_SHELL',
+      'TAIJI_SOFT_REDIRECTION',
+      'SWORD_CURTAIN_WARD',
+      'ELEMENTAL_THORN_ARMOR',
+      'IRON_VAJRA_CARAPACE'
+    ],
+    ARCHETYPES: {
+      IRON_VAJRA_CARAPACE: {
+        id: 'IRON_VAJRA_CARAPACE',
+        rankOrder: 1,
+        icon: '🛡️',
+        nameTh: 'กายาเหล็กไหลระฆังทอง (硬功铁布衫)',
+        shortTh: 'กายาเหล็กไหล',
+        color: '#ffd166',
+        secondaryColor: '#f4a261',
+        dmgRedPct: 0.26,
+        counterPct: 0.08,
+        redirectPct: 0,
+        poiseBonusPct: 0.45,
+        workInjuryRedPct: 0.65,
+        qiPerHit: 0.15,
+        minQiPct: 0.08,
+        prosTh: 'ลดความเสียหายที่ได้รับลง -26%, เสริมเกราะทรงตัวขณะร่ายวิชา +45%, และป้องกันอุบัติเหตุบาดเจ็บจากการหลอม/ขุดแร่/ฝึกหนักในสำนักได้ถึง 65%',
+        consTh: 'ท่าร่างหนักแน่นดุจภูผา ทำให้ความพริ้วไหวหลบหลีกพื้นฐานลดลงเล็กน้อย (-6%)'
+      },
+      ELEMENTAL_THORN_ARMOR: {
+        id: 'ELEMENTAL_THORN_ARMOR',
+        rankOrder: 2,
+        icon: '🔥',
+        nameTh: 'เกราะหนามเบญจธาตุผลาญศึก (五行荆棘罡气)',
+        shortTh: 'เกราะหนามเบญจธาตุ',
+        color: '#ff6b35',
+        secondaryColor: '#7209b7',
+        dmgRedPct: 0.20,
+        counterPct: 0.15,
+        redirectPct: 0,
+        weatherImmunity: true,
+        workInjuryRedPct: 0.35,
+        qiPerHit: 0.25,
+        minQiPct: 0.12,
+        prosTh: 'ควบแน่นปราณธาตุเป็นเกราะหนามรอบกาย ลดดาเมจ -20%, สะท้อนปราณธาตุเผาผลาญผู้โจมตี 15%, และป้องกันผลกระทบจากพายุฝน/หิมะในพื้นที่สำนัก',
+        consTh: 'ใช้ปราณหล่อเลี้ยงหนามธาตุต่อเนื่องเมื่อถูกโจมตี (0.25 ปราณ/ครั้ง)'
+      },
+      SWORD_CURTAIN_WARD: {
+        id: 'SWORD_CURTAIN_WARD',
+        rankOrder: 3,
+        icon: '🗡️',
+        nameTh: 'ม่านกระบี่ไร้ช่องโหว่ (剑幕护身)',
+        shortTh: 'ม่านกระบี่คุ้มกาย',
+        color: '#00f5d4',
+        secondaryColor: '#90e0ef',
+        dmgRedPct: 0.19,
+        counterPct: 0.16,
+        redirectPct: 0,
+        patrolBonusPct: 0.25,
+        workInjuryRedPct: 0.30,
+        qiPerHit: 0.32,
+        minQiPct: 0.14,
+        prosTh: 'หมุนวนปราณศาสตราเป็นม่านคุ้มกันรอบตัว ลดความเสียหาย -19%, ฟันสวนกลับศัตรูในระยะประชิดอัตโนมัติ 16%, และเพิ่มประสิทธิภาพการเดินเวรยามรักษาความปลอดภัยสำนัก +25%',
+        consTh: 'ผลาญปราณค่อนข้างสูงเมื่อต้องปัดป้องการโจมตีถี่ๆ (0.32 ปราณ/ครั้ง)'
+      },
+      TAIJI_SOFT_REDIRECTION: {
+        id: 'TAIJI_SOFT_REDIRECTION',
+        rankOrder: 4,
+        icon: '☯️',
+        nameTh: 'ปราณอ่อนสยบแข็งยืมแรงสะท้อน (斗转星移 / 太极卸力)',
+        shortTh: 'ยืมแรงสะท้อนกลับ',
+        color: '#48cae4',
+        secondaryColor: '#e0fbfc',
+        dmgRedPct: 0.18,
+        counterPct: 0,
+        redirectPct: 0.24,
+        qiRestoreOnHit: 5,
+        workInjuryRedPct: 0.40,
+        qiPerHit: 0.18,
+        minQiPct: 0.10,
+        prosTh: 'ใช้ความอ่อนสยบความแข็ง สลายแรงปะทะ -18%, ยืมแรงศัตรูสะท้อนกลับไปหาผู้โจมตี 24% (借力打力) พร้อมแปรเปลี่ยนแรงกระแทกเป็นปราณฟื้นฟู +5 แต้มต่อครั้ง!',
+        consTh: 'ต้องใช้สมาธิและความสงบเยือกเย็นสูง หากความเครียดเกิน 75 ประสิทธิภาพการยืมแรงสะท้อนจะลดลงครึ่งหนึ่ง'
+      },
+      MIRAGE_CICADA_SHELL: {
+        id: 'MIRAGE_CICADA_SHELL',
+        rankOrder: 5,
+        icon: '🦋',
+        nameTh: 'เกราะจักจั่นลอกคราบเร้นเงา (金蝉脱壳)',
+        shortTh: 'จักจั่นลอกคราบ',
+        color: '#c77dff',
+        secondaryColor: '#e0aaff',
+        dmgRedPct: 0.16,
+        counterPct: 0.06,
+        redirectPct: 0,
+        dodgeBonusPct: 0.18,
+        cicadaMoltHealPct: 0.22,
+        workInjuryRedPct: 0.50,
+        qiPerHit: 0.24,
+        minQiPct: 0.12,
+        prosTh: 'ม่านไหมเงามายาเพิ่มอัตราหลบหลีก +18%, ลดดาเมจ -16%, และมีเคล็ดลับ「จักจั่นลอกคราบ」ทำงานอัตโนมัติ 1 ครั้งต่อศึกเมื่อเลือดต่ำกว่า 25% (สลัดร่างเงารับคมดาบแทนและฟื้นฟูเลือด 22% ทันที!)',
+        consTh: 'เกราะปราณบางกว่าสายกายาเหล็กไหล หากเคล็ดลอกคราบทำงานไปแล้วต้องอาศัยการหลบหลีกเป็นหลัก'
+      },
+      CELESTIAL_AEGIS_DOME: {
+        id: 'CELESTIAL_AEGIS_DOME',
+        rankOrder: 6,
+        icon: '👑',
+        nameTh: 'ปราณม่านสวรรค์พิทักษ์หมู่ (仙家天罡护体罩)',
+        shortTh: 'ม่านสวรรค์พิทักษ์หมู่',
+        color: '#72efdd',
+        secondaryColor: '#ffd166',
+        dmgRedPct: 0.24,
+        counterPct: 0.12,
+        redirectPct: 0.10,
+        allyInterceptPct: 0.22,
+        allyInterceptRadius: 5.5,
+        workInjuryRedPct: 0.70,
+        qiPerHit: 0.38,
+        minQiPct: 0.20,
+        prosTh: 'สุดยอดปราณคุ้มกายระดับสูง กางโดมม่านสวรรค์ลดดาเมจตัวเอง -24% และแผ่ม่านปราณ「รับเคราะห์แทนสหายร่วมรบ」ในระยะ 5.5 ช่อง (แบ่งรับดาเมจแทนเพื่อนที่บาดเจ็บ 22% และลดทอนลงครึ่งหนึ่ง!)',
+        consTh: 'ต้องใช้ปราณสำรองอย่างน้อย 20% เพื่อคงสภาพม่านสวรรค์พิทักษ์หมู่'
+      }
+    },
+
+    POSTURES: {
+      PASSIVE_AURA_GUARD: {
+        id: 'PASSIVE_AURA_GUARD',
+        icon: '🛡️',
+        nameTh: 'คุ้มกายอัตโนมัติประหยัดปราณ (护体常驻)',
+        shortTh: 'คุ้มกายประหยัดปราณ',
+        dmgRedMult: 1.00,
+        counterMult: 0.85,
+        qiCostMult: 0.50,
+        speedMult: 1.00,
+        forceAllyIntercept: false,
+        descTh: 'คงชั้นปราณคุ้มกายบางเบาไว้ตลอดเวลา ใช้ปราณเพียงครึ่งเดียวเมื่อรับคมดาบ และป้องกันอุบัติเหตุบาดเจ็บขณะทำงานในสำนัก'
+      },
+      COUNTER_PARRY_STANCE: {
+        id: 'COUNTER_PARRY_STANCE',
+        icon: '☯️',
+        nameTh: 'ตั้งรับสวนกลับไร้ช่องโหว่ (借力反击)',
+        shortTh: 'ตั้งรับสวนกลับ',
+        dmgRedMult: 1.15,
+        counterMult: 1.35,
+        qiCostMult: 1.00,
+        speedMult: 1.00,
+        forceAllyIntercept: false,
+        descTh: 'เร่งปราณคุ้มกายเข้าสู่จังหวะพร้อมปัดป้องเต็มตัว เพิ่มการลดดาเมจ ×1.15 และเพิ่มอานุภาพการยืมแรงสะท้อน/ม่านกระบี่สวนกลับ ×1.35'
+      },
+      FORTRESS_BASTION_LOCK: {
+        id: 'FORTRESS_BASTION_LOCK',
+        icon: '🏯',
+        nameTh: 'ปราการเพชรพิทักษ์สหาย (不动明王阵)',
+        shortTh: 'ปราการเพชรคุ้มสหาย',
+        dmgRedMult: 1.35,
+        counterMult: 1.15,
+        qiCostMult: 1.25,
+        speedMult: 0.88,
+        forceAllyIntercept: true,
+        descTh: 'ตรึงรากฐานปราณคุ้มกายดุจขุนเขา เพิ่มการลดดาเมจสูงสุด ×1.35 และเปิดใช้งานการกางม่านปราณรับดาเมจแทนสหายในระยะ 5.5 ช่อง (แลกกับความเร็วเคลื่อนที่ลดลง 12%)'
+      }
+    },
+
+    SIGNATURE_MANUALS: [
+      {
+        id: 'DEF_IRON_SHIRT_VAJRA_T1',
+        nameTh: 'วิชาคุ้มกายเสื้อเหล็กไหลระฆังทอง',
+        path: 'BODY',
+        cat: 'DEFENSIVE_TECHNIQUE',
+        tier: 1,
+        power: 24,
+        qiCost: 8,
+        cooldown: 3,
+        element: 'EARTH_METAL',
+        defensiveArchetype: 'IRON_VAJRA_CARAPACE',
+        descTh: 'ฝึกฝนผิวหนังและกล้ามเนื้อให้แกร่งดุจเหล็กไหล ป้องกันคมศาสตราและอุบัติเหตุจากการหลอมตีเหล็ก'
+      },
+      {
+        id: 'DEF_MYRIAD_SWORD_CURTAIN_T3',
+        nameTh: 'วิชาคุ้มกายม่านกระบี่หมื่นบุปผา',
+        path: 'XIAN',
+        cat: 'DEFENSIVE_TECHNIQUE',
+        tier: 3,
+        power: 52,
+        qiCost: 14,
+        cooldown: 4,
+        element: 'EARTH_METAL',
+        defensiveArchetype: 'SWORD_CURTAIN_WARD',
+        descTh: 'หมุนวนปราณกระบี่รอบกายดุจม่านน้ำตก ปัดป้องลูกศรและฟันสวนศัตรูที่ก้าวเข้ามาในระยะประชิด'
+      },
+      {
+        id: 'DEF_TAIJI_STAR_SHIFT_T3',
+        nameTh: 'วิชาคุ้มกายเคลื่อนดาราผ่อนแรงสะท้อน',
+        path: 'XIAN',
+        cat: 'DEFENSIVE_TECHNIQUE',
+        tier: 3,
+        power: 58,
+        qiCost: 14,
+        cooldown: 4,
+        element: 'WATER_ICE',
+        defensiveArchetype: 'TAIJI_SOFT_REDIRECTION',
+        descTh: 'เคล็ดวิชาปราณวงกลมหยินหยาง ยืมแรงโจมตีของศัตรูสะท้อนกลับคืนสู่เจ้าของพร้อมดูดซับแรงปะทะมาฟื้นฟูปราณ'
+      },
+      {
+        id: 'DEF_FIVE_ELEMENT_THORN_T4',
+        nameTh: 'วิชาคุ้มกายเกราะหนามเบญจธาตุ',
+        path: 'BODY',
+        cat: 'DEFENSIVE_TECHNIQUE',
+        tier: 4,
+        power: 76,
+        qiCost: 18,
+        cooldown: 4,
+        element: 'FIRE',
+        defensiveArchetype: 'ELEMENTAL_THORN_ARMOR',
+        descTh: 'ควบแน่นปราณห้าธาตุเป็นหนามแหลมคมห่อหุ้มกาย แผดเผาและทิ่มแทงศัตรูทุกคนที่กล้าลงมือโจมตี'
+      },
+      {
+        id: 'DEF_GOLDEN_CICADA_MOLT_T5',
+        nameTh: 'วิชาคุ้มกายจักจั่นทองลอกคราบเร้นเงา',
+        path: 'DEMON',
+        cat: 'DEFENSIVE_TECHNIQUE',
+        tier: 5,
+        power: 98,
+        qiCost: 20,
+        cooldown: 5,
+        element: 'YIN_SHADOW',
+        defensiveArchetype: 'MIRAGE_CICADA_SHELL',
+        descTh: 'เคล็ดวิชาเร้นกายขั้นสูง เมื่อเผชิญการโจมตีปางตายจะสลัดคราบร่างเงารับเคราะห์แทนและฟื้นฟูชีพจรทันที'
+      },
+      {
+        id: 'DEF_IMMORTAL_HEAVEN_AEGIS_T6',
+        nameTh: 'มหาวิชาคุ้มกายม่านสวรรค์เทียนกังพิทักษ์หมู่',
+        path: 'XIAN',
+        cat: 'DEFENSIVE_TECHNIQUE',
+        tier: 6,
+        power: 132,
+        qiCost: 24,
+        cooldown: 5,
+        element: 'LIGHT_YANG',
+        defensiveArchetype: 'CELESTIAL_AEGIS_DOME',
+        descTh: 'กางโดมม่านปราณสวรรค์เทียนกังคุ้มครองทั้งตนเองและสหายร่วมรบในรัศมี 5.5 ช่อง แบ่งรับความเสียหายแทนศิษย์ที่บาดเจ็บ'
+      }
+    ],
+
+    classifyDefensiveTech(t) {
+      if (!t) return null;
+      if (t.defensiveArchetype && this.ARCHETYPES[t.defensiveArchetype]) return t.defensiveArchetype;
+      const id = String(t.id || '');
+      const name = String(t.nameTh || '');
+      const path = String(t.path || '');
+      const tier = Number(t.tier) || 1;
+      const el = String(t.element || '');
+
+      if (id === 'DEF_IMMORTAL_HEAVEN_AEGIS_T6' || /ค่ายกลหนุนสหาย|คุ้มทัพ|คุ้มค่าย|พิทักษ์สำนัก|มหาปณิธานคุ้มภพ|ค้ำจุนหกภพ/.test(name) || (tier >= 5 && (path === 'SAGE_SUPPORT' || path === 'ARRAY_TALISMAN' || path === 'STRATEGY_GOVERNANCE'))) {
+        return 'CELESTIAL_AEGIS_DOME';
+      }
+      if (id === 'DEF_GOLDEN_CICADA_MOLT_T5' || id === 'INNATE_SOUL_VESSEL_LINK' || /กายว่างรับเคราะห์|เร้นเงา|มายา|ซ่อนพิษ|ศรเงา|สุญตา/.test(name) || path === 'DEMON' || el === 'YIN_SHADOW') {
+        return 'MIRAGE_CICADA_SHELL';
+      }
+      if (id === 'DEF_TAIJI_STAR_SHIFT_T3' || id === 'MP_SWORD_FLOWING_PARRY_T2' || id === 'INNATE_REVERSED_RETRIBUTION_MIRROR' || id === 'ART_KARMA_SAMSARA_006' || /ผ่อนแรง|กระจก|สะท้อน|คืนวิบาก|วัฏสงสาร|สมาธิเซน/.test(name) || path === 'KARMA_SAMSARA') {
+        return 'TAIJI_SOFT_REDIRECTION';
+      }
+      if (id === 'DEF_MYRIAD_SWORD_CURTAIN_T3' || id === 'MP_BLADE_PARRY_STANCE_T3' || id === 'MP_SPEAR_PHALANX_WALL_T4' || id === 'MP_STAFF_IRON_REVOLVE_T2' || /กระบี่|ดาบ|ทวน|พลองหมุนวน|ปัดป้องคม/.test(name)) {
+        return 'SWORD_CURTAIN_WARD';
+      }
+      if (id === 'DEF_FIVE_ELEMENT_THORN_T4' || el === 'FIRE' || el === 'LIGHTNING' || el === 'BLOOD_DEMON' || /เพลิง|สายฟ้า|อัสนี|หลอม|โลหิต/.test(name)) {
+        return 'ELEMENTAL_THORN_ARMOR';
+      }
+      if (t.cat === 'DEFENSIVE_TECHNIQUE' || t.subType === 'GUARD_PARRY_COUNTER') {
+        return 'IRON_VAJRA_CARAPACE';
+      }
+      return null;
+    },
+
+    initCatalog() {
+      // 1. Register 6 signature manuals in TECH_BY_ID (preserving JD.MARTIAL.techniques & JD.TECH.techniques counts)
+      this.SIGNATURE_MANUALS.forEach(spec => {
+        const fullTech = Object.assign({
+          stages: [
+            { stage: 1, nameTh: 'ขั้นต้น', mult: 1.0 },
+            { stage: 2, nameTh: 'ขั้นเชี่ยวชาญ', mult: 1.2 },
+            { stage: 3, nameTh: 'ขั้นบรรลุ', mult: 1.4 }
+          ],
+          defensiveSpec: this.ARCHETYPES[spec.defensiveArchetype]
+        }, spec);
+        TECH_BY_ID[fullTech.id] = fullTech;
+      });
+
+      // 2. Enrich all existing DEFENSIVE_TECHNIQUE entries in JD.TECH and JD.MARTIAL
+      const enrichList = list => {
+        if (!Array.isArray(list)) return;
+        list.forEach(t => {
+          if (!t || t.cat !== 'DEFENSIVE_TECHNIQUE') return;
+          const archId = this.classifyDefensiveTech(t);
+          if (archId && this.ARCHETYPES[archId]) {
+            t.defensiveArchetype = archId;
+            t.defensiveSpec = this.ARCHETYPES[archId];
+          }
+        });
+      };
+      if (JD.TECH) enrichList(JD.TECH.techniques);
+      if (JD.MARTIAL) enrichList(JD.MARTIAL.techniques);
+    },
+
+    ensureState(n) {
+      if (!n) return null;
+      if (!n.defensiveArtState || typeof n.defensiveArtState !== 'object') {
+        n.defensiveArtState = {
+          posture: 'COUNTER_PARRY_STANCE',
+          preferredArchetype: 'AUTO',
+          cicadaMoltUsedFightId: -1,
+          totalDamageMitigated: 0,
+          totalDamageRedirected: 0,
+          totalAllyIntercepts: 0,
+          totalWorkInjuriesPrevented: 0
+        };
+      }
+      return n.defensiveArtState;
+    },
+
+    unlockedArchetypes(n) {
+      const set = new Set(['IRON_VAJRA_CARAPACE']);
+      if (!n || !n.cult) return Array.from(set);
+      const stg = CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult.stage || 1);
+      const path = n.cult.path || '';
+
+      if (stg >= 2 && (path === 'XIAN' || path === 'KARMA_SAMSARA' || path === 'HEART_SOUL')) set.add('TAIJI_SOFT_REDIRECTION');
+      if (stg >= 2 && (path === 'XIAN' || path === 'BODY')) set.add('SWORD_CURTAIN_WARD');
+      if (stg >= 3 && (path === 'BODY' || path === 'GOD' || path === 'CRAFT_CREATION')) set.add('ELEMENTAL_THORN_ARMOR');
+      if (stg >= 4 && (path === 'DEMON' || path === 'MECH_PUPPET' || path === 'HEART_SOUL')) set.add('MIRAGE_CICADA_SHELL');
+      if (stg >= 5) {
+        set.add('CELESTIAL_AEGIS_DOME');
+        set.add('MIRAGE_CICADA_SHELL');
+        set.add('TAIJI_SOFT_REDIRECTION');
+        set.add('SWORD_CURTAIN_WARD');
+        set.add('ELEMENTAL_THORN_ARMOR');
+      }
+
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (!t) continue;
+        const archId = t.defensiveArchetype || (t.cat === 'DEFENSIVE_TECHNIQUE' ? this.classifyDefensiveTech(t) : null);
+        if (archId && this.ARCHETYPES[archId]) set.add(archId);
+      }
+      return this.ARCHETYPE_ORDER.filter(a => set.has(a));
+    },
+
+    resolveNpcDefense(W, n) {
+      if (!n || !n.cult) return null;
+      const st = n.defensiveArtState || null;
+      const unlocked = this.unlockedArchetypes(n);
+      const prefArch = (st && st.preferredArchetype) || 'AUTO';
+      const archId = (prefArch !== 'AUTO' && unlocked.includes(prefArch)) ? prefArch : (unlocked[0] || 'IRON_VAJRA_CARAPACE');
+      const spec = this.ARCHETYPES[archId] || this.ARCHETYPES.IRON_VAJRA_CARAPACE;
+
+      const postureId = (st && st.posture && this.POSTURES[st.posture]) ? st.posture : 'COUNTER_PARRY_STANCE';
+      const postureSpec = this.POSTURES[postureId];
+
+      // Find best learned defensive technique name if any
+      let learnedTech = null;
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (t && (t.defensiveArchetype === archId || t.cat === 'DEFENSIVE_TECHNIQUE')) {
+          if (!learnedTech || (t.tier || 1) > (learnedTech.tier || 1)) learnedTech = t;
+        }
+      }
+
+      const sObj = (n.h && n.h.state) || n.state || null;
+      const qMax = Math.max(1, CULT.qiMax(n));
+      const curQi = Math.max(0, (sObj && Number.isFinite(sObj.qi)) ? sObj.qi : qMax);
+      const qiRatio = curQi / qMax;
+      const qiSufficient = qiRatio >= (spec.minQiPct || 0.10);
+
+      const effDmgRedPct = qiSufficient ? +(Math.min(0.55, spec.dmgRedPct * postureSpec.dmgRedMult)).toFixed(3) : +(spec.dmgRedPct * 0.4).toFixed(3);
+      const stressPen = (sObj && sObj.stress > 75 && archId === 'TAIJI_SOFT_REDIRECTION') ? 0.5 : 1.0;
+      const effRedirectPct = qiSufficient ? +(spec.redirectPct * postureSpec.counterMult * stressPen).toFixed(3) : 0;
+      const effCounterPct = qiSufficient ? +(spec.counterPct * postureSpec.counterMult).toFixed(3) : 0;
+      const allyInterceptActive = qiSufficient && (archId === 'CELESTIAL_AEGIS_DOME' || postureSpec.forceAllyIntercept);
+
+      return {
+        archetypeId: archId,
+        spec,
+        postureId,
+        postureSpec,
+        unlockedArchetypes: unlocked,
+        techNameTh: learnedTech ? learnedTech.nameTh : spec.nameTh,
+        qiSufficient,
+        effDmgRedPct,
+        effRedirectPct,
+        effCounterPct,
+        allyInterceptActive,
+        allyInterceptPct: allyInterceptActive ? (spec.allyInterceptPct || 0.20) : 0,
+        allyInterceptRadius: spec.allyInterceptRadius || 5.5,
+        qiPerHit: +(spec.qiPerHit * postureSpec.qiCostMult).toFixed(3),
+        workInjuryRedPct: spec.workInjuryRedPct || 0.35
+      };
+    },
+
+    setDefensivePosture(W, n, postureId, preferredArchetype) {
+      if (!n || !n.cult) return null;
+      const st = this.ensureState(n);
+      if (postureId && this.POSTURES[postureId]) st.posture = postureId;
+      if (preferredArchetype && (preferredArchetype === 'AUTO' || this.ARCHETYPES[preferredArchetype])) {
+        st.preferredArchetype = preferredArchetype;
+      }
+      n._wsBase = null;
+      return this.resolveNpcDefense(W, n);
+    }
+  };
+  CULT.DEFENSIVE_ARTS.initCatalog();
 
   /* ----- ตั้งต้นการบำเพ็ญ: เปิดเส้นลมปราณ (awakening) ----- */
   CULT.awaken = (npc, rng, bias, day) => {
@@ -2135,8 +3721,19 @@
       const cp = wRefC && wRefC.sect && wRefC.sect.charter && wRefC.sect.charter.perks;
       if (cp && Number.isFinite(cp.cultRateBonus)) charterMult = 1 + cp.cultRateBonus;
     }
-    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult;
-    if (rc && !hasOath && !hasMeridianInj && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
+    let mantraStanceMult = 1;
+    if (npc.mantraState && CULT.MANTRA_SYSTEM) {
+      const wRefM = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+      const mr = CULT.MANTRA_SYSTEM.resolveNpcMantra(wRefM, npc);
+      if (mr) mantraStanceMult = mr.effectiveCultMult || 1;
+    } else if (g.SECT && g.SECT.FORMATION_WARFARE) {
+      const wRefF = (g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+      if (wRefF && wRefF.sect && wRefF.sect.formationWarfare && wRefF.sect.formationWarfare.activeStance === 'FIVE_ELEMENT_NURTURE') {
+        mantraStanceMult = 1.20;
+      }
+    }
+    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult * mantraStanceMult;
+    if (rc && !npc.mantraState && !hasOath && !hasMeridianInj && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
       rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.dynMult = dynMult;
     }
     return staticBase * dynMult * (env || 1);
@@ -5187,6 +6784,261 @@
       bonusStats: { p: scaledP, f: scaledF },
       unlockedSkills: sigSkills
     };
+  };
+
+
+  /* ---------- Patch v5.3.0 [Pillar 1 & 2]: Multi-Phase Heavenly Tribulation & Path-Specific Dao Resonance ---------- */
+  CULT.TRIBULATION = {
+    TOTAL_TICKS: 15,
+    GATHERING_END_TICK: 4,
+    STRIKING_END_TICK: 11,
+
+    // Path-Specific Breakthrough Resonance (ทัณฑ์สวรรค์แยกเอกลักษณ์ตามวิถีเต๋า)
+    PATH_STYLES: {
+      SWORD_METAL: {
+        id: 'SWORD_METAL',
+        paths: ['XIAN', 'SWORD', 'METAL'],
+        nameTh: 'อัสนีบาตคมกระบี่สีเงินทอง',
+        descTh: 'เมฆทัณฑ์กระบี่เงินทองคำราม เศษเสี้ยวใบกระบี่ปราณหมุนวนรับสายฟ้าสวรรค์',
+        cloudColor: 'rgba(36, 48, 72, 0.84)',
+        cloudRim: '#ffd166',
+        boltPrimary: '#fff8d6',
+        boltSecondary: '#90e0ef',
+        pillarColor: '#ffd740',
+        pillarCore: '#ffffff',
+        emblemKind: 'sword_shards',
+        icon: '⚔️'
+      },
+      DAO_FIRE_THUNDER: {
+        id: 'DAO_FIRE_THUNDER',
+        paths: ['GOD', 'BODY', 'QI', 'FIRE', 'THUNDER'],
+        nameTh: 'สายฟ้าเพลิงกาฬ 9 มังกร',
+        descTh: 'อสนีบาตม่วงครามและส้มเพลิงควบแน่นเป็นมังกรสายฟ้าฟาดถล่มจากเก้าชั้นฟ้า',
+        cloudColor: 'rgba(42, 18, 68, 0.86)',
+        cloudRim: '#ff9e00',
+        boltPrimary: '#ff6d00',
+        boltSecondary: '#c77dff',
+        pillarColor: '#ff9e00',
+        pillarCore: '#fff3b0',
+        emblemKind: 'fire_dragon_orbs',
+        icon: '🐉'
+      },
+      DEMON_NETHER_BLOOD: {
+        id: 'DEMON_NETHER_BLOOD',
+        paths: ['DEMON', 'HEART_SOUL', 'MO', 'POISON'],
+        nameTh: 'ทัณฑ์มารฟ้าหมอกโลหิตและเพลิงนรกานต์',
+        descTh: 'หมอกโลหิตทมิฬปกคลุมท้องฟ้า เปลวเพลิงนรกานต์สีดำม่วงทดสอบจิตมารและตบะ',
+        cloudColor: 'rgba(48, 8, 28, 0.88)',
+        cloudRim: '#ff0055',
+        boltPrimary: '#ff2a85',
+        boltSecondary: '#9d4edd',
+        pillarColor: '#ff0055',
+        pillarCore: '#e0aaff',
+        emblemKind: 'nether_flames',
+        icon: '🩸'
+      },
+      WOOD_EMERALD_LOTUS: {
+        id: 'WOOD_EMERALD_LOTUS',
+        paths: ['SAGE_SUPPORT', 'CRAFT_CREATION', 'CRAFT', 'WOOD'],
+        nameTh: 'เสาแสงบัวเขียวมรกตชำระล้างไขกระดูก',
+        descTh: 'เมฆปราณมรกตโปรยปรายสายฟ้าหยก ชำระล้างชีพจรและผลิดอกบัวทิพย์เก้ากลีบ',
+        cloudColor: 'rgba(14, 52, 44, 0.84)',
+        cloudRim: '#80ed99',
+        boltPrimary: '#72efdd',
+        boltSecondary: '#ffd166',
+        pillarColor: '#38b000',
+        pillarCore: '#b7efc5',
+        emblemKind: 'emerald_lotus',
+        icon: '🪷'
+      },
+      ARRAY_CLOCKWORK_BAGUA: {
+        id: 'ARRAY_CLOCKWORK_BAGUA',
+        paths: ['ARRAY_TALISMAN', 'MECH_PUPPET', 'KARMA_SAMSARA', 'STRATEGY_GOVERNANCE', 'BEAST_SOVEREIGN', 'ARRAY', 'TALISMAN', 'STRATEGY'],
+        nameTh: 'วงล้อจักรกลทองเหลืองและยันต์แปดทิศสกัดสายฟ้า',
+        descTh: 'วงล้อจักรกลทองเหลืองและอักขระยันต์แปดทิศหมุนสกัดรับทัณฑ์สวรรค์อย่างเที่ยงตรง',
+        cloudColor: 'rgba(38, 30, 16, 0.85)',
+        cloudRim: '#ffb703',
+        boltPrimary: '#ffd166',
+        boltSecondary: '#00f5d4',
+        pillarColor: '#ffb703',
+        pillarCore: '#ffffff',
+        emblemKind: 'clockwork_bagua',
+        icon: '☸️'
+      }
+    },
+
+    resolvePathStyle(pathId) {
+      const p = String(pathId || 'QI').toUpperCase();
+      for (const st of Object.values(this.PATH_STYLES)) {
+        if (st.paths.includes(p)) return st;
+      }
+      return this.PATH_STYLES.DAO_FIRE_THUNDER;
+    },
+
+    strikeCountForStage(targetStage) {
+      const stg = clamp(Math.floor(Number(targetStage) || 2), 1, 9);
+      if (stg <= 2) return 1;      // ขั้น 1–2: 1 สาย
+      if (stg <= 4) return 3;      // ขั้น 3–4 แกนทองคำ: 3 สายฟ้าทอง
+      if (stg <= 6) return 6;      // ขั้น 5–6 ก่อกำเนิดวิญญาณ: 6 สาย
+      return 9;                    // ขั้น 7–9 มหาเซียน: 9 สายฟ้าม่วงมหาราช
+    },
+
+    boltLabelForStage(targetStage) {
+      const stg = clamp(Math.floor(Number(targetStage) || 2), 1, 9);
+      if (stg <= 2) return '1 สายฟ้าหลอมปราณ';
+      if (stg <= 4) return '3 สายฟ้าทองแกนทองคำ';
+      if (stg <= 6) return '6 สายฟ้าก่อกำเนิดวิญญาณ';
+      return '9 สายฟ้าม่วงมหาราชมหาเซียน';
+    },
+
+    ensureRegistry(W) {
+      if (!W || !W.sect) return [];
+      if (!Array.isArray(W.sect.activeTribulations)) W.sect.activeTribulations = [];
+      return W.sect.activeTribulations;
+    },
+
+    start(W, n, opts) {
+      if (!W || !n || !n.cult || n.dead) return { ok: false, reason: 'invalid-npc' };
+      opts = opts || {};
+      const curStage = n.cult.stage || 1;
+      const maxStg = CULT.PATHS[n.cult.path] ? CULT.PATHS[n.cult.path].maxStage : 9;
+      const targetStage = clamp(curStage + 1, 1, maxStg);
+      const pStyle = this.resolvePathStyle(n.cult.path);
+      const totalStrikes = this.strikeCountForStage(targetStage);
+      const totalTicks = clamp(Number(opts.totalTicks) || this.TOTAL_TICKS, 10, 18);
+
+      const st = {
+        active: true,
+        npcId: n.id,
+        npcNameTh: HC.fullName(n),
+        path: n.cult.path,
+        pathStyleId: pStyle.id,
+        pathStyleNameTh: pStyle.nameTh,
+        stageFrom: curStage,
+        targetStage,
+        totalStrikes,
+        boltLabelTh: this.boltLabelForStage(targetStage),
+        strikesLanded: 0,
+        startT: W.t || 0,
+        elapsedTicks: 0,
+        totalTicks,
+        phase: 'GATHERING',
+        phaseTh: 'จังหวะที่ 1: ลมปราณหมุนวน ก่อตัวเมฆทัณฑ์สวรรค์',
+        prep: opts.prep != null ? opts.prep : 0.15,
+        x: Number.isFinite(n.x) ? n.x : 118,
+        y: Number.isFinite(n.y) ? n.y : 75,
+        resolved: false,
+        outcome: null
+      };
+      n.tribulationState = st;
+
+      const reg = this.ensureRegistry(W);
+      const idx = reg.findIndex(x => x && x.npcId === n.id);
+      if (idx >= 0) reg[idx] = st;
+      else reg.push(st);
+
+      n.fx = { t: W.t || 0, text: '⛈️ ก่อเมฆทัณฑ์สวรรค์ (' + st.boltLabelTh + ')' };
+      if (opts.announce !== false) {
+        const msg = '⛈️ เมฆทัณฑ์สวรรค์ก่อตัวเหนือสำนัก! ' + HC.fullName(n) + ' เริ่มเข้าฌานฝ่าด่านสู่ขั้น ' + targetStage + ' (' + pStyle.nameTh + ' · ' + st.boltLabelTh + ')';
+        if (typeof W.log === 'function') W.log('breakthrough', msg, [n.id]);
+      }
+      return { ok: true, state: st };
+    },
+
+    tick(W, n) {
+      if (!W || !n || !n.tribulationState || !n.tribulationState.active) return null;
+      const st = n.tribulationState;
+      if (n.dead || n.exiled || !n.cult) {
+        this.cleanup(W, n);
+        return null;
+      }
+      st.elapsedTicks = (st.elapsedTicks || 0) + 1;
+      st.x = Number.isFinite(n.x) ? n.x : st.x;
+      st.y = Number.isFinite(n.y) ? n.y : st.y;
+
+      const gatherEnd = Math.max(3, Math.floor(st.totalTicks * 0.27)); // ticks 1..4
+      const strikeEnd = Math.max(gatherEnd + 4, Math.floor(st.totalTicks * 0.74)); // ticks 5..11
+
+      if (st.elapsedTicks <= gatherEnd) {
+        st.phase = 'GATHERING';
+        st.phaseTh = 'จังหวะที่ 1: ลมปราณหมุนวน ก่อเมฆทัณฑ์สวรรค์';
+        n.h.state.qi = Math.min(CULT.qiMax(n), n.h.state.qi + 12);
+        if (st.elapsedTicks === 2) {
+          n.fx = { t: W.t, text: '🌀 ลมปราณหมุนวนดึงดูดทัณฑ์สวรรค์' };
+        }
+      } else if (st.elapsedTicks <= strikeEnd) {
+        st.phase = 'STRIKING';
+        const strikeSpan = Math.max(1, strikeEnd - gatherEnd);
+        const strikeProg = clamp((st.elapsedTicks - gatherEnd) / strikeSpan, 0, 1);
+        const targetLanded = Math.max(1, Math.min(st.totalStrikes, Math.ceil(strikeProg * st.totalStrikes)));
+        if (targetLanded > st.strikesLanded) {
+          st.strikesLanded = targetLanded;
+          st.lastStrikeT = W.t;
+          n.fx = { t: W.t, text: '⚡ อัสนีทัณฑ์ฟาดสายที่ ' + st.strikesLanded + '/' + st.totalStrikes + '!' };
+        }
+        st.phaseTh = 'จังหวะที่ 2: สายฟ้าทัณฑ์สวรรค์ฟาดถล่ม (' + st.strikesLanded + '/' + st.totalStrikes + ' สาย)';
+      } else {
+        // Phase 3: Resolution (Ascension Light Pillar or Backfire Explosion)
+        if (!st.resolved) {
+          st.strikesLanded = st.totalStrikes;
+          // Ensure threshold requirement is satisfied if triggered via ritual/ready state
+          const need = CULT.threshold(n);
+          if (Number.isFinite(need) && n.cult.prog < need) {
+            n.cult.prog = need;
+          }
+          const prepArg = (st.prep && typeof st.prep === 'object') ? st.prep : { env: 0.05, pill: Number(st.prep) || 0 };
+          const res = CULT.breakthrough(W, n, prepArg);
+          if (res && res.ok) { if (typeof W.log === 'function') W.log('breakthrough', n.h.name.given + ' ฝ่าทัณฑ์สวรรค์ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); }
+          else if (res) { if (typeof W.log === 'function') W.log('breakthrough', n.h.name.given + ' ฝ่าทัณฑ์สวรรค์ล้มเหลว (โอกาส ' + Math.round((res.p || 0) * 100) + '%) ตบะย้อนกลับ', [n.id]); }
+          st.resolved = true;
+          st.outcome = res;
+          if (res && res.ok) {
+            st.phase = 'ASCENSION';
+            st.phaseTh = 'จังหวะที่ 3: เสาแสงแห่งเต๋าทะลวงสวรรค์ สำเร็จขั้น ' + (n.cult ? n.cult.stage : st.targetStage) + '!';
+            n.fx = { t: W.t, text: '🌟 เสาแสงแห่งเต๋าพุ่งทะลวงสวรรค์!' };
+          } else {
+            st.phase = 'BACKFIRE';
+            st.phaseTh = 'จังหวะที่ 3: ทัณฑ์สวรรค์ย้อนกลับ ปราณแตกซ่าน!';
+            n.fx = { t: W.t, text: '💥 ทัณฑ์สวรรค์ย้อนกลับ ควันดำระเบิด!' };
+          }
+        }
+        if (st.elapsedTicks >= st.totalTicks) {
+          const finalOut = st.outcome;
+          this.cleanup(W, n);
+          return finalOut;
+        }
+      }
+      return st;
+    },
+
+    cleanup(W, n) {
+      if (n && n.tribulationState) {
+        n.tribulationState.active = false;
+        n.lastTribulationOutcome = n.tribulationState.outcome || null;
+        delete n.tribulationState;
+      }
+      if (W && W.sect && Array.isArray(W.sect.activeTribulations)) {
+        W.sect.activeTribulations = W.sect.activeTribulations.filter(x => x && x.active && x.npcId !== (n && n.id));
+      }
+    },
+
+    tickAll(W) {
+      if (!W || !W.sect || !Array.isArray(W.sect.activeTribulations) || !W.sect.activeTribulations.length) return;
+      const list = W.sect.activeTribulations.slice();
+      for (let i = 0; i < list.length; i++) {
+        const entry = list[i];
+        const npc = entry && W.byId && W.byId[entry.npcId];
+        if (!npc || npc.dead || npc.exiled || !npc.tribulationState || !npc.tribulationState.active) {
+          this.cleanup(W, npc || { id: entry && entry.npcId });
+          continue;
+        }
+        // If NPC is actively running AI.ACTS.breakthrough in stage 'do', AI.ACTS.breakthrough.tick will call tick()
+        const inAiDo = npc.act && npc.act.id === 'breakthrough' && npc.act.stage === 'do' && !entry.standaloneRitual;
+        if (!inAiDo) {
+          this.tick(W, npc);
+        }
+      }
+    }
   };
 
   g.CULT = CULT;

@@ -1533,6 +1533,7 @@
       this.drawLeylineVeins(ctx);
       if (this.opts.sectSpectacles !== false) {
         this.drawPlazaGrandArrayAndTotems(ctx);
+        this.drawGrandFormationWarfareBeams(ctx);
         this.drawPeakSanctuarySpectacles(ctx);
         this.drawSectCeremonySpectacles(ctx, hour, nightPre);
         this.drawMartialArenaSpectacles(ctx);
@@ -1651,6 +1652,7 @@
       if (this.opts.celestialShaders !== false) {
         this.drawCelestialPhenomena(ctx, hour, night);
       }
+      this.drawHeavenlyTribulationSkyGlaze(ctx);
       this.drawOverlayText(ctx);
       this.updateAdaptiveQuality(performance.now() - drawStart);
     },
@@ -1690,6 +1692,7 @@
           kind: forbidden ? 'forbidden' : 'normal',
           motif,
           fxKind: event.fxKind || (isLegend ? motif : null),
+          signatureVfx: event.signatureVfx || (techObj && techObj.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(techObj || event) : null) || null,
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
@@ -1700,7 +1703,7 @@
           y,
           angle: Math.atan2(event.y * TS - y, event.x * TS - x),
           start: this.castClock,
-          life: isLegend ? 820 : (forbidden ? 650 : 450)
+          life: (event.signatureVfx || isLegend) ? 920 : (forbidden ? 650 : 450)
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -2119,7 +2122,10 @@
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
         ctx.save(); ctx.translate(fx.x, fx.y - 7); ctx.globalAlpha = fade; ctx.lineCap = 'round';
-        if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
+        if (fx.signatureVfx) {
+          this.drawSignatureSkillVfx(ctx, fx, p, r, reduced);
+          if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+        } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryCastMotif(ctx, fx, p, r, reduced);
           if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
         } else if (fx.kind === 'normal') {
@@ -2866,11 +2872,27 @@
 
       const ap = this.appearance(n);
       const sc = ap.scale * 1.15 * (n.rank === 6 ? 1.08 : 1);
-      const ph = this.t * (act === 'fight' || n.run ? 14 : 9) + (n.n || 0) * 1.7;
-      const step = moving ? Math.sin(ph) : 0;
-      const bob = moving ? Math.abs(Math.sin(ph)) * 1.35 : (act === 'cultivate' || act === 'sleep' ? 0 : Math.sin(this.t * 2 + (n.n || 0)) * 0.25);
+      const qgInfo = (g.CULT && g.CULT.QINGGONG && n.cult) ? g.CULT.QINGGONG.resolveNpcMode(W, n) : null;
+      const qgMode = (moving || act === 'qinggong') && qgInfo ? qgInfo.modeId : 'MORTAL_WALK';
+      const isAerialFlight = (moving || act === 'qinggong') && (qgMode === 'SWORD_FLIGHT' || qgMode === 'CELESTIAL_LEVITATION');
+      const isLeapBound = (moving || act === 'qinggong') && qgMode === 'LEAP_BOUND';
+      const isWaterDrift = (moving || act === 'qinggong') && qgMode === 'WATER_LOTUS_DRIFT';
+      const ph = this.t * (act === 'fight' || n.run ? 14 : (qgMode !== 'MORTAL_WALK' ? 13 : 9)) + (n.n || 0) * 1.7;
+      const step = isAerialFlight ? 0 : (moving ? Math.sin(ph) : 0);
+      const aerialLift = qgMode === 'CELESTIAL_LEVITATION'
+        ? (14.5 + Math.sin(this.t * 3.8 + (n.n || 0)) * 2.4)
+        : qgMode === 'SWORD_FLIGHT'
+        ? (11.5 + Math.sin(this.t * 5.0 + (n.n || 0)) * 1.8)
+        : isLeapBound
+        ? (Math.abs(Math.sin(this.t * 7.2 + (n.n || 0))) * 13.5)
+        : isWaterDrift
+        ? (2.2 + Math.sin(this.t * 4.5 + (n.n || 0)) * 0.8)
+        : 0;
+      const bob = moving
+        ? (isAerialFlight ? aerialLift : (Math.abs(Math.sin(ph)) * 1.35 + aerialLift))
+        : (act === 'qinggong' ? aerialLift : (act === 'cultivate' || act === 'sleep' ? 0 : Math.sin(this.t * 2 + (n.n || 0)) * 0.25));
       const face = n.face >= 0 ? 1 : -1;
-      const pose = (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining') ? 'sit'
+      const pose = (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra') ? 'sit'
         : (act === 'sleep' && !n.hidden) ? 'lie'
         : (act === 'pray' || act === 'flatter') ? 'bow'
         : 'stand';
@@ -2888,9 +2910,15 @@
         ctx.setLineDash([]);
       }
 
-      // Ground contact shadow
-      ctx.fillStyle = 'rgba(0,0,0,.26)';
-      ctx.beginPath(); ctx.ellipse(0, 1, 5.6 * sc, 2.5, 0, 0, 7); ctx.fill();
+      // Ground contact shadow (shrinks slightly when airborne to show true height separation)
+      const shadowScale = isAerialFlight ? 0.68 : (isLeapBound ? Math.max(0.65, 1 - aerialLift * 0.025) : 1.0);
+      ctx.fillStyle = isAerialFlight ? 'rgba(0,0,0,.18)' : 'rgba(0,0,0,.26)';
+      ctx.beginPath(); ctx.ellipse(0, 1, 5.6 * sc * shadowScale, 2.5 * shadowScale, 0, 0, 7); ctx.fill();
+
+      // Patch v5.4.0: Ground/Underfoot Qinggong & Flight VFX (Water Lotus Ripples, Leap Wind Rings)
+      if (qgMode !== 'MORTAL_WALK' && (moving || act === 'qinggong')) {
+        this.drawQinggongGroundEffects(ctx, n, qgMode, qgInfo, sc, face, -bob);
+      }
 
       // Companion Spirit Beast beside disciple on map (Pillar 1D)
       if (ap.hasPet) {
@@ -2908,8 +2936,17 @@
       this.drawEquipmentTierAura(ctx, n, ap, -bob);
       this.drawWeaponSoulAndSetResonance(ctx, n, ap, -bob);
 
+      // Patch v5.5.0: Mantra Dharma Circle & Archetype Resonance Visuals
+      if (n.cult && (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra' || (n.mantraState && (n.mantraState.stance === 'OVERDRIVE_COMBUSTION' || (g.CULT && g.CULT.MANTRA_SYSTEM && g.CULT.MANTRA_SYSTEM.resolveNpcMantra(W, n)?.archetypeId === 'ASTRAL_VOID_BREATHING'))))) {
+        this.drawNpcMantraDharmaAura(ctx, n, ap, act, -bob, moving);
+      }
+      // Patch v5.6.0: Defensive Kungfu & Protective Aegis Barrier Visuals
+      if (n.cult && (act === 'defensive' || (act === 'fight' && n.defensiveArtState) || (n.defensiveArtState && n.defensiveArtState.posture === 'FORTRESS_BASTION_LOCK'))) {
+        this.drawNpcDefensiveAegisVisual(ctx, n, ap, act, -bob, moving);
+      }
+
       // Cultivation / Breakthrough / Intensive Paid Training Qi Resonance
-      if (n.cult && (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining')) {
+      if (n.cult && (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra')) {
         const pc = PATH_COL[n.cult.path];
         const pr = 0.5 + 0.5 * Math.sin(this.t * 3 + (n.n || 0));
         ctx.fillStyle = pc + '33';
@@ -2933,17 +2970,27 @@
       if (pose === 'lie') { ctx.rotate(-1.5); ctx.translate(0, -4); }
       const legL = pose === 'sit' ? 0 : step * 2.5, legR = pose === 'sit' ? 0 : -step * 2.5;
 
-      // Boots / Crossed legs
+      const by = -bob;
+      // Patch v5.4.0: Underfoot Mount / Sword Flight / Celestial Cloud / Phantom Blink Clones
+      if (qgMode !== 'MORTAL_WALK' && (moving || act === 'qinggong')) {
+        this.drawQinggongBodyEffects(ctx, n, ap, qgMode, qgInfo, by, step);
+      }
+
+      // Boots / Crossed legs (elevated by `by` when airborne or leaping!)
       ctx.fillStyle = '#2d313b';
       if (pose === 'sit') {
-        ctx.beginPath(); ctx.ellipse(0, -2, 5.8, 2.2, 0, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(0, -2 + by, 5.8, 2.2, 0, 0, 7); ctx.fill();
+      } else if (isAerialFlight) {
+        // Poised immortal / sword-rider stance with boots resting atop the flying sword or cloud
+        ctx.fillRect(-3.0, -5.5 + by, 2.4, 5.5);
+        ctx.fillRect(0.8, -5.5 + by, 2.4, 5.5);
       } else {
-        ctx.fillRect(-3.2 + legL * 0.3, -6 + Math.abs(legL) * 0.1, 2.5, 6 - Math.max(0, -legL) * 0.3);
-        ctx.fillRect(0.7 + legR * 0.3, -6, 2.5, 6 - Math.max(0, -legR) * 0.3);
+        const bootLift = aerialLift > 0.5 ? by : 0;
+        ctx.fillRect(-3.2 + legL * 0.3, -6 + Math.abs(legL) * 0.1 + bootLift, 2.5, 6 - Math.max(0, -legL) * 0.3);
+        ctx.fillRect(0.7 + legR * 0.3, -6 + bootLift, 2.5, 6 - Math.max(0, -legR) * 0.3);
       }
 
       // Layered Wuxia Robe (Outer Robe + Inner Skirt Hem + Crossed Lapel Collar + Waist Sash & Jade Token)
-      const by = -bob;
       ctx.fillStyle = robe;
       ctx.beginPath();
       ctx.moveTo(-5.0 * ap.slim, -4.5 + by);
@@ -3119,7 +3166,7 @@
       ctx.restore();
 
       // Era 5 Pillar 2D: Breakthrough Heavenly Tribulation Clouds & Lightning Pillars
-      if (act === 'breakthrough' || (n.fx && /ทะลวง|ทัณฑ์สวรรค์|สำเร็จขั้น/.test(n.fx.text || '') && this.W.t - n.fx.t < 6)) {
+      if (act === 'breakthrough' || (n.tribulationState && n.tribulationState.active) || (n.fx && /ทะลวง|ทัณฑ์สวรรค์|เสาแสง|สำเร็จขั้น/.test(n.fx.text || '') && this.W.t - n.fx.t < 6)) {
         this.drawBreakthroughTribulationVfx(ctx, n, p, sc);
       }
 
@@ -3996,6 +4043,379 @@
     },
 
     /* ---------- Patch v5.0.0 [Pillar 2]: Multi-Layered Weapon Slashes, Elemental Fusion & Heavenly Tribulation ---------- */
+    drawGrandFormationWarfareBeams(ctx) {
+      const W = this.W;
+      if (!W || !W.sect || !g.SECT || !g.SECT.FORMATION_WARFARE) return;
+      const fw = W.sect.formationWarfare;
+      const stanceId = (fw && fw.activeStance) || 'FIVE_ELEMENT_NURTURE';
+      const spec = g.SECT.FORMATION_WARFARE.STANCES[stanceId] || g.SECT.FORMATION_WARFARE.STANCES.FIVE_ELEMENT_NURTURE;
+      const t = this.t;
+      const cx = 118 * TS, cy = 75 * TS;
+      const anchors = [
+        [86 * TS, 42 * TS],
+        [150 * TS, 42 * TS],
+        [86 * TS, 106 * TS],
+        [150 * TS, 106 * TS]
+      ];
+      ctx.save();
+      // Linked formation energy beams from Central Bagua Plaza to 4 cardinal formation anchors
+      for (let i = 0; i < anchors.length; i++) {
+        const [ax, ay] = anchors[i];
+        ctx.strokeStyle = i % 2 === 0 ? spec.beamColor : spec.secondaryColor;
+        ctx.lineWidth = stanceId === 'SWORD_NET_SLAUGHTER' ? 2.2 : 1.6;
+        ctx.globalAlpha = 0.30 + 0.14 * Math.sin(t * 2.8 + i);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(ax, ay);
+        ctx.stroke();
+
+        // Travelling formation energy pulse along each beam
+        const u = (t * 0.45 + i * 0.25) % 1;
+        const px = cx + (ax - cx) * u;
+        const py = cy + (ay - cy) * u;
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.78;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    },
+
+    drawNpcDefensiveAegisVisual(ctx, n, ap, act, by, moving) {
+      if (!g.CULT || !g.CULT.DEFENSIVE_ARTS || !n || !n.cult) return;
+      const df = g.CULT.DEFENSIVE_ARTS.resolveNpcDefense(this.W, n);
+      if (!df || !df.spec) return;
+      const arch = df.archetypeId;
+      const spec = df.spec;
+      const t = this.t + (n.n || 0) * 0.6;
+
+      ctx.save();
+      if (arch === 'IRON_VAJRA_CARAPACE') {
+        // Golden-Bronze Hexagonal Iron Carapace Shield around torso
+        ctx.strokeStyle = '#ffd166';
+        ctx.fillStyle = 'rgba(255,209,102,0.16)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(0, -9 + by, 8.8, 10.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (arch === 'TAIJI_SOFT_REDIRECTION') {
+        // Rotating Yin-Yang Deflection Ring around the cultivator
+        const ang = t * 2.8;
+        ctx.strokeStyle = '#48cae4';
+        ctx.lineWidth = 1.35;
+        ctx.beginPath();
+        ctx.arc(0, -9 + by, 10.2, ang, ang + Math.PI * 1.4);
+        ctx.stroke();
+        ctx.strokeStyle = '#e0fbfc';
+        ctx.beginPath();
+        ctx.arc(0, -9 + by, 10.2, ang + Math.PI, ang + Math.PI * 2.4);
+        ctx.stroke();
+      } else if (arch === 'SWORD_CURTAIN_WARD') {
+        // Spinning Sword Curtain Blades encircling the body
+        ctx.strokeStyle = '#00f5d4';
+        ctx.lineWidth = 1.25;
+        for (let i = 0; i < 4; i++) {
+          const a = t * 4.5 + (i * Math.PI / 2);
+          const sx = Math.cos(a) * 10.8;
+          const sy = -9 + by + Math.sin(a) * 4.2;
+          ctx.beginPath();
+          ctx.moveTo(sx - 2.5, sy - 3.5);
+          ctx.lineTo(sx + 2.5, sy + 3.5);
+          ctx.stroke();
+        }
+      } else if (arch === 'ELEMENTAL_THORN_ARMOR') {
+        // Radiating Elemental Spikes around the armor
+        ctx.strokeStyle = '#ff6b35';
+        ctx.lineWidth = 1.25;
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2 + t * 1.5;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * 7.0, -9 + by + Math.sin(a) * 7.0);
+          ctx.lineTo(Math.cos(a) * 11.5, -9 + by + Math.sin(a) * 11.5);
+          ctx.stroke();
+        }
+      } else if (arch === 'MIRAGE_CICADA_SHELL') {
+        // Shimmering Translucent Cicada Wings & Phantom Decoy Silhouette
+        ctx.fillStyle = 'rgba(199,125,255,0.22)';
+        ctx.strokeStyle = '#c77dff';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.ellipse(-4.5, -9 + by, 3.5, 7.5, -0.35, 0, Math.PI * 2);
+        ctx.ellipse(4.5, -9 + by, 3.5, 7.5, 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        // CELESTIAL_AEGIS_DOME: Wide Protective Celestial Dome with Golden Rim
+        ctx.fillStyle = 'rgba(114,239,221,0.15)';
+        ctx.strokeStyle = '#72efdd';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, -2 + by, 13.5, Math.PI, 0, false);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+
+    drawNpcMantraDharmaAura(ctx, n, ap, act, by, moving) {
+      if (!g.CULT || !g.CULT.MANTRA_SYSTEM || !n || !n.cult) return;
+      const mr = g.CULT.MANTRA_SYSTEM.resolveNpcMantra(this.W, n);
+      if (!mr || !mr.spec) return;
+      const spec = mr.spec;
+      const arch = mr.archetypeId;
+      const isOverdrive = mr.stanceId === 'OVERDRIVE_COMBUSTION';
+      const t = this.t + (n.n || 0) * 0.8;
+
+      ctx.save();
+      // 1. Base Sacred Mantra Dharma Ring beneath the cultivator
+      const radX = isOverdrive ? 15.5 : 12.8;
+      const radY = isOverdrive ? 6.8 : 5.6;
+      ctx.strokeStyle = spec.color;
+      ctx.lineWidth = isOverdrive ? 1.65 : 1.25;
+      ctx.globalAlpha = 0.68 + 0.18 * Math.sin(t * 3.5);
+      ctx.beginPath();
+      ctx.ellipse(0, 1 + by * 0.2, radX, radY, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 2. Archetype-Specific Dharma Manifestation
+      if (arch === 'VAJRA_IMMORTAL_BODY_BELL') {
+        // Golden Indestructible Vajra Bell (ระฆังทองคุ้มกาย)
+        ctx.fillStyle = 'rgba(255,209,102,0.18)';
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.arc(0, -10 + by, 9.5, Math.PI, 0, false);
+        ctx.lineTo(10.5, 1 + by);
+        ctx.lineTo(-10.5, 1 + by);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else if (arch === 'SWORD_QI_MERIDIAN') {
+        // 6 Orbiting Miniature Sword-Qi Filaments around the body
+        ctx.strokeStyle = '#00f5d4';
+        ctx.lineWidth = 1.2;
+        for (let i = 0; i < 6; i++) {
+          const ang = t * 3.2 + (i * Math.PI / 3);
+          const sx = Math.cos(ang) * 11.5;
+          const sy = -8 + by + Math.sin(ang) * 4.5;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - 3.5);
+          ctx.lineTo(sx, sy + 3.5);
+          ctx.stroke();
+        }
+      } else if (arch === 'PRIMORDIAL_YANG_FURNACE') {
+        // Rising Solar Furnace Flame Petals
+        ctx.fillStyle = '#ff6b35';
+        for (let i = 0; i < 5; i++) {
+          const ang = t * 2.6 + (i * Math.PI * 2 / 5);
+          const fx = Math.cos(ang) * 10.5;
+          const fy = -3 + by + Math.sin(ang) * 4.0 - ((t * 8 + i) % 5);
+          ctx.beginPath();
+          ctx.arc(fx, fy, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (arch === 'ABYSSAL_FROST_MIRROR') {
+        // Six-Pointed Crystalline Frost Mirror Spokes
+        ctx.strokeStyle = '#caf0f8';
+        ctx.lineWidth = 1.1;
+        for (let i = 0; i < 6; i++) {
+          const ang = t * 1.4 + (i * Math.PI / 3);
+          ctx.beginPath();
+          ctx.moveTo(0, 1 + by * 0.2);
+          ctx.lineTo(Math.cos(ang) * radX, 1 + by * 0.2 + Math.sin(ang) * radY);
+          ctx.stroke();
+        }
+      } else if (arch === 'EVERGREEN_LONGEVITY_SPRING') {
+        // Blooming Emerald Life Orbs rising gently
+        ctx.fillStyle = '#52b788';
+        for (let i = 0; i < 4; i++) {
+          const ang = t * 2.0 + (i * Math.PI / 2);
+          ctx.beginPath();
+          ctx.arc(Math.cos(ang) * 10, -5 + by + Math.sin(ang) * 3.5, 1.7, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (arch === 'DEVOURING_NETHER_VORTEX') {
+        // Swirling Crimson-Purple Abyssal Vortex Spirals
+        ctx.strokeStyle = '#ef233c';
+        ctx.lineWidth = 1.35;
+        ctx.beginPath();
+        ctx.ellipse(0, -6 + by, 11.0, 4.8, (t * 2) % Math.PI, 0, Math.PI * 1.5);
+        ctx.stroke();
+      } else {
+        // ASTRAL_VOID_BREATHING: Starlight Constellation Astrolabe Dots
+        ctx.fillStyle = '#e0aaff';
+        for (let i = 0; i < 6; i++) {
+          const ang = -t * 2.2 + (i * Math.PI / 3);
+          ctx.beginPath();
+          ctx.arc(Math.cos(ang) * 12.0, -7 + by + Math.sin(ang) * 5.0, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    },
+
+    drawQinggongGroundEffects(ctx, n, qgMode, qgInfo, sc, face, by) {
+      const t = this.t + (n.n || 0) * 0.7;
+      ctx.save();
+      if (qgMode === 'WATER_LOTUS_DRIFT') {
+        // Concentric emerald-cyan water ripples & blooming jade lotus on the ground/water surface
+        for (let r = 0; r < 2; r++) {
+          const prog = (t * 1.8 + r * 0.5) % 1;
+          ctx.strokeStyle = r === 0 ? '#48cae4' : '#72efdd';
+          ctx.lineWidth = 1.1;
+          ctx.globalAlpha = (1 - prog) * 0.65;
+          ctx.beginPath();
+          ctx.ellipse(-face * prog * 6, 1, (5 + prog * 9) * sc, (2.2 + prog * 3.8) * sc, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (qgMode === 'LEAP_BOUND') {
+        // Wind launch shockwave ring on the ground + parabolic wind arc
+        const jumpProg = Math.abs(Math.sin(t * 3.6));
+        ctx.strokeStyle = '#90e0ef';
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.55 * (1 - jumpProg * 0.5);
+        ctx.beginPath();
+        ctx.ellipse(0, 1, (6 + jumpProg * 6) * sc, (2.4 + jumpProg * 2.2) * sc, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (qgMode === 'SWIFT_STRIDE') {
+        // High-speed ground wind dust vortexes behind heels
+        ctx.strokeStyle = '#72efdd';
+        ctx.lineWidth = 1.15;
+        ctx.globalAlpha = 0.62;
+        for (let i = 0; i < 3; i++) {
+          const ox = -face * (5 + i * 4.5 + ((t * 18) % 4));
+          const oy = -2 - i * 2.2;
+          ctx.beginPath();
+          ctx.moveTo(ox, oy);
+          ctx.lineTo(ox - face * 6.5, oy);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    },
+
+    drawQinggongBodyEffects(ctx, n, ap, qgMode, qgInfo, by, step) {
+      const t = this.t + (n.n || 0) * 0.9;
+      ctx.save();
+      if (qgMode === 'SWORD_FLIGHT') {
+        // 1. Large Energized Flying Sword (กระบี่บินเหินเวหา) horizontally beneath the cultivator's boots!
+        const hasWpn = !qgInfo || !qgInfo.weaponPenaltyActive;
+        const bladeCol = hasWpn ? (ap.weaponColor || '#00f5d4') : '#8ecae6';
+        const glowCol = hasWpn ? '#ffd166' : '#48cae4';
+        const sy = by + 0.8;
+
+        // Trailing sword-qi jet stream behind the flying sword
+        for (let i = 1; i <= 4; i++) {
+          ctx.strokeStyle = i % 2 === 0 ? bladeCol : glowCol;
+          ctx.lineWidth = Math.max(0.8, 2.6 - i * 0.45);
+          ctx.globalAlpha = 0.65 - i * 0.12;
+          ctx.beginPath();
+          ctx.moveTo(-7 - i * 3.5, sy + Math.sin(t * 10 + i) * 0.9);
+          ctx.lineTo(-14 - i * 4.8, sy + Math.cos(t * 9 + i) * 1.3);
+          ctx.stroke();
+        }
+
+        // Outer Qi Aura around the flying sword
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 8);
+        ctx.fillStyle = bladeCol;
+        ctx.beginPath();
+        ctx.ellipse(1.0, sy, 13.5, 2.9, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Crisp Sword Blade Body (pointing forward +X in local facing coords)
+        ctx.globalAlpha = 0.96;
+        ctx.fillStyle = '#e0fbfc';
+        ctx.strokeStyle = bladeCol;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(-9.5, sy - 1.25);
+        ctx.lineTo(9.2, sy - 1.05);
+        ctx.lineTo(13.2, sy);
+        ctx.lineTo(9.2, sy + 1.05);
+        ctx.lineTo(-9.5, sy + 1.25);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Golden Sword Guard (กระบังกระบี่) & Pommel Tassel
+        ctx.fillStyle = '#ffd166';
+        ctx.fillRect(-10.2, sy - 2.3, 1.9, 4.6);
+        ctx.fillStyle = '#b56576';
+        ctx.fillRect(-12.8, sy - 0.8, 2.6, 1.6);
+      } else if (qgMode === 'CELESTIAL_LEVITATION') {
+        // 2. High-Realm Celestial Levitation (เหาะเหินเดินอากาศเซียนอมตะ): Auspicious Clouds + Golden Dao Halo + Floating Ribbons
+        const cy = by + 0.6;
+        const pc = (n.cult && PATH_COL[n.cult.path]) || '#ffd166';
+
+        // Radiant Golden-Jade Dao Halo beneath feet
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 1.25;
+        ctx.globalAlpha = 0.78;
+        ctx.beginPath();
+        ctx.ellipse(0, cy + 0.5, 9.8 + Math.sin(t * 4) * 1.2, 3.2, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Swirling Auspicious Immortal Clouds (เมฆามงคลเจ็ดสี)
+        const cloudPuffs = [
+          [-5.2, cy + 0.8, 4.2, 2.2, '#ffffff'],
+          [4.8, cy + 0.7, 4.0, 2.1, '#e0fbfc'],
+          [0, cy + 1.1, 5.8, 2.6, '#fff3b0']
+        ];
+        cloudPuffs.forEach(([px, py, rx, ry, col], idx) => {
+          ctx.fillStyle = col;
+          ctx.globalAlpha = 0.82;
+          ctx.beginPath();
+          ctx.ellipse(px + Math.sin(t * 3 + idx) * 0.8, py, rx, ry, 0, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Flowing Celestial Silk Ribbon (ผ้าแพรเซียนเหินเวหา)
+        ctx.strokeStyle = pc;
+        ctx.lineWidth = 1.4;
+        ctx.globalAlpha = 0.72;
+        ctx.beginPath();
+        ctx.moveTo(-3.5, by - 9.5);
+        ctx.quadraticCurveTo(-11.5, by - 13.5 + Math.sin(t * 5) * 2.5, -16.5, by - 6.5 + Math.cos(t * 4) * 2.5);
+        ctx.stroke();
+      } else if (qgMode === 'SHADOW_BLINK') {
+        // 3. Phantom Shadow Afterimages (ก้าวพริบตาเงาพราย — 3 trailing shadow clones)
+        for (let cloneIdx = 3; cloneIdx >= 1; cloneIdx--) {
+          const ox = -cloneIdx * 5.2;
+          const oy = by + Math.sin(t * 8 + cloneIdx) * 0.6;
+          ctx.fillStyle = cloneIdx % 2 === 0 ? 'rgba(199,125,255,0.26)' : 'rgba(72,202,228,0.24)';
+          ctx.beginPath();
+          ctx.ellipse(ox, oy - 9.0, 3.8, 6.2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(ox, oy - 16.8, 3.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (qgMode === 'WATER_LOTUS_DRIFT') {
+        // 4. Blooming Jade Lotus Petals directly under the feet
+        const ly = by + 0.4;
+        ctx.fillStyle = 'rgba(114,239,221,0.75)';
+        for (let p = -1; p <= 1; p++) {
+          ctx.beginPath();
+          ctx.ellipse(p * 3.0, ly, 2.4, 1.2, p * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (qgMode === 'LEAP_BOUND') {
+        // 5. Upward Wind Vortex Streams around the leaping cultivator
+        ctx.strokeStyle = 'rgba(144,224,239,0.72)';
+        ctx.lineWidth = 1.15;
+        ctx.beginPath();
+        ctx.moveTo(-4.5, by - 2);
+        ctx.lineTo(-7.5, by + 5.5);
+        ctx.moveTo(4.5, by - 2);
+        ctx.lineTo(7.5, by + 5.5);
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+
     drawCombatSlashAndAfterimages(ctx, n, ap, act, armA, by, lunge) {
       const inCombat = act === 'fight' || act === 'practice' || act === 'skillDrill' || (act === 'pair' && n.act?.ctx?.pair?.type === 'spar');
       const movingFast = (!!n.path || !!n.travel) && ((ap && ap.cultStage >= 4) || act === 'fight');
@@ -4101,41 +4521,462 @@
       return true;
     },
 
+    drawHeavenlyTribulationSkyGlaze(ctx) {
+      const W = this.W;
+      if (!W || !W.sect || !Array.isArray(W.sect.activeTribulations) || !W.sect.activeTribulations.length) return false;
+      const activeList = W.sect.activeTribulations.filter(x => x && x.active);
+      if (!activeList.length) return false;
+      const lead = activeList[0];
+      const w = this.vw || 412, h = this.vh || 860, t = this.t;
+      ctx.save();
+      if (lead.phase === 'GATHERING') {
+        // Phase 1: Sect sky dims ominously as tribulation clouds gather
+        ctx.fillStyle = 'rgba(12, 8, 28, 0.24)';
+        ctx.fillRect(0, 0, w, h);
+      } else if (lead.phase === 'STRIKING') {
+        // Phase 2: Dark storm glaze + periodic lightning flash across the sect sky
+        ctx.fillStyle = 'rgba(18, 10, 38, 0.30)';
+        ctx.fillRect(0, 0, w, h);
+        const flash = Math.max(0, Math.sin(t * 16));
+        if (flash > 0.72) {
+          ctx.fillStyle = 'rgba(255, 245, 210, ' + ((flash - 0.72) * 0.55).toFixed(3) + ')';
+          ctx.fillRect(0, 0, w, h);
+        }
+      } else if (lead.phase === 'ASCENSION') {
+        // Phase 3 (Success): Golden celestial dawn glaze
+        ctx.fillStyle = 'rgba(255, 215, 64, 0.14)';
+        ctx.fillRect(0, 0, w, h);
+      }
+      ctx.restore();
+      return true;
+    },
+
     drawBreakthroughTribulationVfx(ctx, n, p, sc) {
       if (!ctx || !n || !p) return false;
       const x = p.x * TS, y = p.y * TS;
-      const stg = (n.cult && n.cult.stage) || 1;
+      const st = n.tribulationState || null;
+      const curStg = (n.cult && n.cult.stage) || 1;
+      const targetStage = (st && st.targetStage) || clamp(curStg + 1, 1, 9);
+      const phase = (st && st.phase) || ((n.fx && /เสาแสง|สำเร็จขั้น/.test(n.fx.text || '')) ? 'ASCENSION' : (n.fx && /ย้อนกลับ|ควันดำ/.test(n.fx.text || '')) ? 'BACKFIRE' : 'STRIKING');
+      const pKey = (n.cult && n.cult.path) || 'QI';
+      const pStyle = (g.CULT && g.CULT.TRIBULATION && g.CULT.TRIBULATION.resolvePathStyle)
+        ? g.CULT.TRIBULATION.resolvePathStyle(pKey)
+        : {
+            id: 'DAO_FIRE_THUNDER',
+            cloudColor: 'rgba(38,18,64,0.84)',
+            cloudRim: '#ffd740',
+            boltPrimary: '#fff59d',
+            boltSecondary: '#c77dff',
+            pillarColor: '#ffd740',
+            pillarCore: '#ffffff',
+            emblemKind: 'fire_dragon_orbs'
+          };
+      const totalBolts = (st && st.totalStrikes) || (targetStage <= 2 ? 1 : targetStage <= 4 ? 3 : targetStage <= 6 ? 6 : 9);
       const t = this.t + (n.n || 0);
 
       ctx.save();
       ctx.translate(x, y);
-      // 1. Golden-Purple Bagua Breakthrough Ground Array
-      ctx.strokeStyle = stg >= 5 ? '#e0aaff' : '#ffd166';
-      ctx.lineWidth = 1.8;
+
+      // 1. Path-Specific Ground Resonance Array & Swirling Qi Vortex
+      const ringRadius = (18 + (targetStage >= 7 ? 6 : targetStage >= 5 ? 4 : 2)) * sc;
+      ctx.strokeStyle = pStyle.cloudRim || '#ffd166';
+      ctx.lineWidth = 1.9;
       ctx.beginPath();
-      ctx.ellipse(0, 1, 16 * sc, 7 * sc, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 1.5, ringRadius, ringRadius * 0.42, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 2. Dark Purple-Gold Tribulation Cloud Vortex (劫云) overhead
-      const cloudY = -36 * sc;
-      ctx.fillStyle = 'rgba(38,18,64,0.78)';
+      // Path-specific orbiting Dao emblems (Sword shards, Fire dragons, Nether flames, Emerald lotus, Clockwork Bagua)
+      const orbNodes = Math.min(8, Math.max(4, totalBolts));
+      for (let i = 0; i < orbNodes; i++) {
+        const a = t * 2.4 + (i * Math.PI * 2) / orbNodes;
+        const ox = Math.cos(a) * (ringRadius * 0.85);
+        const oy = -6 * sc + Math.sin(a) * (ringRadius * 0.36);
+        ctx.fillStyle = i % 2 === 0 ? pStyle.boltPrimary : pStyle.boltSecondary;
+        ctx.strokeStyle = pStyle.cloudRim;
+        ctx.lineWidth = 1.1;
+        if (pStyle.emblemKind === 'sword_shards') {
+          ctx.beginPath();
+          ctx.moveTo(ox, oy - 4 * sc);
+          ctx.lineTo(ox + 1.5 * sc, oy + 3 * sc);
+          ctx.lineTo(ox - 1.5 * sc, oy + 3 * sc);
+          ctx.closePath();
+          ctx.fill();
+        } else if (pStyle.emblemKind === 'clockwork_bagua') {
+          ctx.strokeRect(ox - 2.2 * sc, oy - 2.2 * sc, 4.4 * sc, 4.4 * sc);
+        } else if (pStyle.emblemKind === 'emerald_lotus') {
+          ctx.beginPath();
+          ctx.ellipse(ox, oy, 2.8 * sc, 1.6 * sc, a, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.arc(ox, oy, 2.1 * sc, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 2. Overhead Heavenly Tribulation Cloud Vortex (เมฆทัณฑ์สวรรค์ทมิฬแยกสีตามวิถีเต๋า)
+      const cloudY = -40 * sc;
+      const cloudRx = (20 + Math.min(10, totalBolts * 1.1)) * sc;
+      const cloudRy = 7.5 * sc;
+      ctx.fillStyle = pStyle.cloudColor;
       ctx.beginPath();
-      ctx.ellipse(0, cloudY, 18 * sc, 6.5 * sc, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, cloudY, cloudRx, cloudRy, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#ffd740';
-      ctx.lineWidth = 1.1;
+      ctx.strokeStyle = pStyle.cloudRim;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      // 3. Jagged Heavenly Lightning Pillar (天劫雷柱) striking from cloud to cultivator
-      ctx.strokeStyle = stg >= 6 ? '#ff4081' : '#fff59d';
-      ctx.lineWidth = 2.1;
-      const jitter = Math.sin(t * 22) * 3.2;
+      // 3. Phase-Specific Spectacle
+      if (phase === 'GATHERING') {
+        // Phase 1: Swirling Qi Funnel rising into the dark tribulation cloud
+        ctx.strokeStyle = pStyle.boltSecondary;
+        ctx.lineWidth = 1.3;
+        for (let s = 0; s < 3; s++) {
+          const hFrac = ((t * 0.9 + s * 0.33) % 1);
+          const ry = -4 * sc + hFrac * (cloudY + 6 * sc);
+          const rx = (1 - hFrac * 0.55) * 14 * sc;
+          ctx.beginPath();
+          ctx.ellipse(0, ry, rx, rx * 0.38, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (phase === 'STRIKING') {
+        // Phase 2: Multi-Bolt Heavenly Lightning Barrage (1 / 3 / 6 / 9 Bolts by Stage)
+        const boltPrimary = targetStage >= 7 ? '#d000ff' : targetStage >= 3 ? '#ffd740' : pStyle.boltPrimary;
+        const boltCore = targetStage >= 7 ? '#f3c4fb' : '#ffffff';
+        const visibleBolts = Math.min(totalBolts, Math.max(1, (st && st.strikesLanded) || totalBolts));
+
+        for (let b = 0; b < visibleBolts; b++) {
+          const spread = visibleBolts === 1 ? 0 : ((b / (visibleBolts - 1)) - 0.5) * (cloudRx * 1.25);
+          const dstSpread = spread * 0.35;
+          const jitter = Math.sin(t * 24 + b * 2.1) * 3.4;
+
+          ctx.strokeStyle = b % 2 === 0 ? boltPrimary : pStyle.boltSecondary;
+          ctx.lineWidth = targetStage >= 7 ? 2.6 : targetStage >= 3 ? 2.2 : 1.8;
+          ctx.beginPath();
+          ctx.moveTo(spread, cloudY + 2 * sc);
+          ctx.lineTo(spread * 0.75 + jitter, cloudY * 0.68);
+          ctx.lineTo(spread * 0.45 - jitter * 0.7, cloudY * 0.36);
+          ctx.lineTo(dstSpread, -8 * sc);
+          ctx.stroke();
+
+          // White-hot lightning core
+          ctx.strokeStyle = boltCore;
+          ctx.lineWidth = 1.0;
+          ctx.stroke();
+        }
+
+        // Scattering lightning sparks at impact point
+        ctx.fillStyle = boltPrimary;
+        for (let sp = 0; sp < 6; sp++) {
+          const sa = t * 8 + sp * (Math.PI / 3);
+          const sr = (4 + ((t * 18 + sp * 3) % 12)) * sc;
+          ctx.beginPath();
+          ctx.arc(Math.cos(sa) * sr, -8 * sc + Math.sin(sa) * sr * 0.5, 1.5 * sc, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (phase === 'ASCENSION') {
+        // Phase 3A: Ascension Light Pillar (เสาแสงแห่งเต๋าพุ่งทะลวงสวรรค์ + คลื่นปราณแผ่ขยาย)
+        ctx.fillStyle = pStyle.pillarColor;
+        ctx.globalAlpha = 0.38;
+        ctx.fillRect(-9 * sc, cloudY - 12 * sc, 18 * sc, Math.abs(cloudY - 12 * sc) + 4 * sc);
+        ctx.fillStyle = pStyle.pillarCore;
+        ctx.globalAlpha = 0.78;
+        ctx.fillRect(-4 * sc, cloudY - 12 * sc, 8 * sc, Math.abs(cloudY - 12 * sc) + 4 * sc);
+        ctx.globalAlpha = 1;
+
+        // Expanding Dao Shockwave Ring
+        const waveProg = (t * 1.4) % 1;
+        const waveR = (10 + waveProg * 28) * sc;
+        ctx.strokeStyle = pStyle.pillarColor;
+        ctx.lineWidth = 2.2 * (1 - waveProg * 0.6);
+        ctx.beginPath();
+        ctx.ellipse(0, 1, waveR, waveR * 0.45, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (phase === 'BACKFIRE') {
+        // Phase 3B: Backfire Smoke Explosion & Heart Demon Miasma
+        for (let k = 0; k < 5; k++) {
+          const ka = t * 2.5 + k * 1.25;
+          const kx = Math.cos(ka) * 8 * sc;
+          const ky = -10 * sc + Math.sin(ka) * 5 * sc;
+          ctx.fillStyle = k % 2 === 0 ? 'rgba(30, 20, 35, 0.78)' : 'rgba(185, 28, 28, 0.65)';
+          ctx.beginPath();
+          ctx.arc(kx, ky, (5.5 + (k % 2) * 2.5) * sc, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+      return true;
+    },
+
+    /* ---------- Patch v5.3.0 [Pillar 3]: 15 Signature Martial Arts & Unique Skill VFX Renderer ---------- */
+    drawSignatureSkillVfx(ctx, fx, p, r, reduced) {
+      if (!ctx || !fx) return false;
+      const sigId = fx.signatureVfx || 'sig_meteor_sword_rain';
+      const spec = (g.SK && g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigId]) || {
+        id: sigId,
+        primary: '#00f5d4',
+        secondary: '#ffd166',
+        accent: '#ffffff'
+      };
+      const rot = reduced ? 0 : p * Math.PI * 2;
+
+      ctx.save();
+      // Ground impact aura ring
+      ctx.strokeStyle = spec.primary;
+      ctx.lineWidth = 2.0;
       ctx.beginPath();
-      ctx.moveTo(0, cloudY + 3);
-      ctx.lineTo(-3.5 + jitter, cloudY * 0.68);
-      ctx.lineTo(3.2 - jitter * 0.6, cloudY * 0.36);
-      ctx.lineTo(0, -10 * sc);
+      ctx.ellipse(0, 4, r * 1.18, r * 0.50, 0, 0, Math.PI * 2);
       ctx.stroke();
+
+      switch (sigId) {
+        case 'sig_meteor_sword_rain': {
+          // 1. เพลงกระบี่ดาวตกถล่มสวรรค์: 7 Giant Streaking Meteor Swords raining from sky
+          for (let i = 0; i < 7; i++) {
+            const sx = (i - 3) * (r * 0.34);
+            const drop = ((p * 1.6 + i * 0.17) % 1);
+            const sy = -28 + drop * 32;
+            ctx.strokeStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(sx + 6, sy - 14);
+            ctx.lineTo(sx, sy);
+            ctx.stroke();
+            // Hilt & impact ripple
+            ctx.fillStyle = spec.accent;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 2.0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_eight_directions_palm': {
+          // 2. ฝ่ามือสยบมารแปดทิศ: Colossal Golden Buddha/Dao Palm descending + 8-Direction Octagon
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 2.1;
+          ctx.beginPath();
+          for (let i = 0; i <= 8; i++) {
+            const a = (i * Math.PI) / 4 + rot * 0.25;
+            const px = Math.cos(a) * r * 1.15;
+            const py = 4 + Math.sin(a) * r * 0.52;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          // Giant Golden Palm Silhouette
+          const palmY = -14 + p * 12;
+          ctx.fillStyle = spec.primary;
+          ctx.beginPath();
+          ctx.arc(0, palmY, r * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+          for (let f = -2; f <= 2; f++) {
+            ctx.fillRect(f * 3.6 - 1.3, palmY - r * 0.72 + Math.abs(f) * 1.5, 2.6, r * 0.36);
+          }
+          break;
+        }
+        case 'sig_nine_suns_eye': {
+          // 3. เนตรสุริยันเก้าเพลิง: Blazing Solar Eye + 9 Orbiting Miniature Suns
+          ctx.fillStyle = spec.secondary;
+          ctx.beginPath();
+          ctx.ellipse(0, -14, r * 0.62, r * 0.30, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = spec.primary;
+          ctx.beginPath();
+          ctx.arc(0, -14, r * 0.22, 0, Math.PI * 2);
+          ctx.fill();
+          for (let i = 0; i < 9; i++) {
+            const a = (i * Math.PI * 2) / 9 + rot * 0.6;
+            const sx = Math.cos(a) * r * 1.05;
+            const sy = -4 + Math.sin(a) * r * 0.48;
+            ctx.fillStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 2.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_soul_scorching_flame': {
+          // 4. เพลิงผลาญวิญญาณ: Swirling Violet-Emerald Soul Flame Vortex
+          for (let i = 0; i < 6; i++) {
+            const a = (i * Math.PI) / 3 + rot;
+            const fx2 = Math.cos(a) * r * 0.78;
+            const fy2 = 2 + Math.sin(a) * r * 0.38 - p * 10;
+            ctx.fillStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.beginPath();
+            ctx.moveTo(fx2 - 3.5, fy2 + 4);
+            ctx.quadraticCurveTo(fx2, fy2 - 9, fx2 + 3.5, fy2 + 4);
+            ctx.closePath();
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_blazing_dragon_wave': {
+          // 5. คลื่นมังกรเพลิงพุ่งทะยาน: Coiling Fire Dragon Surging Wave
+          ctx.rotate(fx.angle || 0);
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 3.6;
+          ctx.beginPath();
+          for (let s = 0; s <= 16; s++) {
+            const u = s / 16;
+            const dx = (u - 0.2) * r * 1.55;
+            const dy = Math.sin(u * 9 + p * 8) * 6.5;
+            if (s === 0) ctx.moveTo(dx, dy);
+            else ctx.lineTo(dx, dy);
+          }
+          ctx.stroke();
+          ctx.fillStyle = spec.secondary;
+          ctx.beginPath();
+          ctx.arc(r * 1.2, 0, 4.2, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+        case 'sig_blood_beast_claw': {
+          // 6. กรงเล็บอสูรโลหิตฉีกนภา: 4 Jagged Crimson Beast Claw Slash Marks
+          ctx.rotate(fx.angle || 0);
+          for (let c = -1.5; c <= 1.5; c += 1) {
+            ctx.strokeStyle = spec.primary;
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.75, c * 4.5 - 2);
+            ctx.quadraticCurveTo(0, c * 4.5 + 3, r * 0.95, c * 4.5 - 1);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'sig_frost_lotus_domain': {
+          // 7. เขตแดนบัวหิมะหมื่นปี: 12-Petal Crystalline Ice Lotus & Frost Hexagons
+          for (let i = 0; i < 12; i++) {
+            const a = (i * Math.PI * 2) / 12 + rot * 0.3;
+            ctx.fillStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.beginPath();
+            ctx.ellipse(Math.cos(a) * r * 0.55, 3 + Math.sin(a) * r * 0.28, r * 0.36, r * 0.14, a, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_thunder_god_halberd': {
+          // 8. ทวนอัสนีเทพพิโรธ: Giant Heavenly Lightning Halberd Cleave
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 3.0;
+          ctx.beginPath();
+          ctx.moveTo(0, -28);
+          ctx.lineTo(0, 6);
+          ctx.stroke();
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.arc(0, -6, r * 0.55, -0.9, 0.9);
+          ctx.arc(0, -6, r * 0.55, Math.PI - 0.9, Math.PI + 0.9);
+          ctx.stroke();
+          break;
+        }
+        case 'sig_myriad_puppet_barrage': {
+          // 9. ค่ายกลหุ่นเชิดหมื่นด้ายสังหาร: Brass Clockwork Cogs & Silk Threads
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 1.2;
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 + rot * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(-Math.cos(a) * r, -Math.sin(a) * r * 0.5);
+            ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r * 0.5);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.52, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'sig_heavens_sound_requiem': {
+          // 10. พิณสวรรค์สะท้านวิญญาณ: Harmonic Guqin Strings & Sonic Jade Ripples
+          for (let s = -2; s <= 2; s++) {
+            ctx.strokeStyle = s === 0 ? spec.accent : spec.primary;
+            ctx.lineWidth = s === 0 ? 2.0 : 1.2;
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.85, s * 3 - 4);
+            ctx.quadraticCurveTo(0, s * 3 - 4 + Math.sin(p * 12 + s) * 4, r * 0.85, s * 3 - 4);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'sig_golden_buddha_bell': {
+          // 11. ระฆังทองคำอรหันต์คุ้มกายา: Translucent Golden Sanctuary Bell Dome
+          ctx.fillStyle = 'rgba(255, 215, 64, 0.26)';
+          ctx.beginPath();
+          ctx.arc(0, -4, r * 0.78, Math.PI, 0);
+          ctx.lineTo(r * 0.88, 6);
+          ctx.lineTo(-r * 0.88, 6);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 2.4;
+          ctx.stroke();
+          break;
+        }
+        case 'sig_void_spatial_slash': {
+          // 12. คมดาบผ่ามิติว่างเปล่า: Dimensional Rift Tear & Starry Cracks
+          ctx.rotate(fx.angle || 0);
+          ctx.fillStyle = spec.primary;
+          ctx.beginPath();
+          ctx.moveTo(-r * 1.1, 0);
+          ctx.quadraticCurveTo(0, -r * 0.38, r * 1.1, 0);
+          ctx.quadraticCurveTo(0, r * 0.38, -r * 1.1, 0);
+          ctx.fill();
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+          break;
+        }
+        case 'sig_myriad_venom_miasma': {
+          // 13. หมอกพิษกู่หมื่นอสรพิษ: Coiling Emerald-Violet Venom Serpents
+          for (let i = 0; i < 4; i++) {
+            const a = (i * Math.PI) / 2 + rot * 0.7;
+            ctx.strokeStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * r * 0.45, Math.sin(a) * r * 0.25, r * 0.42, a, a + 2.1);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'sig_taiji_yin_yang_crush': {
+          // 14. มหาค่ายกลหยินหยางบดขยี้: Counter-Rotating Yin-Yang Grinding Disc
+          ctx.save();
+          ctx.translate(0, 3);
+          ctx.scale(1, 0.55);
+          ctx.rotate(rot);
+          ctx.fillStyle = spec.primary;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.92, -Math.PI / 2, Math.PI / 2);
+          ctx.fill();
+          ctx.fillStyle = spec.secondary;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.92, Math.PI / 2, Math.PI * 1.5);
+          ctx.fill();
+          ctx.strokeStyle = spec.accent;
+          ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.94, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          break;
+        }
+        case 'sig_immortal_crane_feather_storm':
+        default: {
+          // 15. พายุขนนกกระเรียนเซียน: Whirling Tempest of White-Jade & Gold Feather Blades
+          for (let i = 0; i < 10; i++) {
+            const a = (i * Math.PI * 2) / 10 + rot;
+            const fx2 = Math.cos(a) * r * 0.85;
+            const fy2 = Math.sin(a) * r * 0.42;
+            ctx.fillStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.beginPath();
+            ctx.ellipse(fx2, fy2, 4.8, 1.6, a + 0.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+      }
       ctx.restore();
       return true;
     },
@@ -5070,7 +5911,7 @@
 
 
   /* ---------- Patch v5.1.0 [Pillar 3]: Interactive Full-Body Character Visual Diorama & Relic Showcase ---------- */
-  R.diorama = (canvas, n, opts) => {
+  R.characterDiorama = R.diorama = (canvas, n, opts) => {
     if (!canvas || !n) return false;
     opts = opts || {};
     const dpr = Math.min(2, g.devicePixelRatio || 1);
@@ -5142,7 +5983,7 @@
 
     const savedAct = n.act;
     try {
-      const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : 'cultivate';
+      const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : poseMode === 'qinggong' ? 'qinggong' : poseMode === 'mantra' ? 'mantra' : poseMode === 'defensive' ? 'defensive' : 'cultivate';
       const proxyNpc = Object.create(n);
       proxyNpc.x = 0;
       proxyNpc.y = 0;
@@ -5175,6 +6016,84 @@
     ctx.strokeRect(0.7, 0.7, w - 1.4, h - 1.4);
     return true;
   };
+
+  /* ---------- Patch v5.3.0 [Pillar 4]: Interactive Sect Building Architectural Showcase Canvas ---------- */
+  R.buildingShowcase = (canvas, b, opts) => {
+    if (!canvas || !b) return false;
+    opts = opts || {};
+    const dpr = Math.min(2, g.devicePixelRatio || 1);
+    const w = opts.width || 210;
+    const h = opts.height || 96;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    if (canvas.style) {
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const level = clamp(b.level || 1, 1, 5);
+    const isPeak = !!b.isPeakSanctuary;
+    const accentCol = isPeak ? '#00f5d4' : level >= 4 ? '#ffd740' : level >= 2 ? '#90e0ef' : '#e9cd85';
+
+    // 1. Scenic Mountain Courtyard Backdrop
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#101d29');
+    bg.addColorStop(0.6, '#1a2f3b');
+    bg.addColorStop(1, '#122128');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // 2. Feng Shui Leyline Foundation Ring
+    const cx = w * 0.5, gy = h * 0.78;
+    ctx.strokeStyle = accentCol;
+    ctx.globalAlpha = 0.58;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(cx, gy, 58, 12, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 3. Classical Wuxia Pavilion / Hall Silhouette (Multi-Tiered Curved Eaves)
+    const tiers = Math.min(3, 1 + Math.floor(level / 2));
+    for (let t = 0; t < tiers; t++) {
+      const tw = 64 - t * 14;
+      const th = 16 - t * 2;
+      const ty = gy - 4 - t * 15;
+      // Walls & Pillars
+      ctx.fillStyle = '#4a3525';
+      ctx.fillRect(cx - tw * 0.42, ty - th, tw * 0.84, th);
+      ctx.strokeStyle = '#d4a373';
+      ctx.lineWidth = 1.0;
+      ctx.strokeRect(cx - tw * 0.42, ty - th, tw * 0.84, th);
+      // Warm lit window lattice
+      ctx.fillStyle = '#ffda8e';
+      ctx.fillRect(cx - 8, ty - th + 4, 16, th - 6);
+      // Sweeping Chinese Roof Eaves (飞檐)
+      ctx.fillStyle = isPeak ? '#1b4332' : level >= 3 ? '#7f1d1d' : '#2b3a42';
+      ctx.beginPath();
+      ctx.moveTo(cx - tw * 0.62, ty - th + 2);
+      ctx.quadraticCurveTo(cx, ty - th - 11, cx + tw * 0.62, ty - th + 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = accentCol;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+
+    // 4. Level & Type Badge + Frame
+    ctx.fillStyle = '#fff5d6';
+    ctx.font = '600 9.5px ' + FONT;
+    ctx.textAlign = 'left';
+    ctx.fillText((b.nameTh || b.id || 'อาคารสำนัก') + ' · Lv.' + level, 8, 14);
+    ctx.strokeStyle = accentCol;
+    ctx.lineWidth = 1.3;
+    ctx.strokeRect(0.7, 0.7, w - 1.4, h - 1.4);
+    return true;
+  };
+
 
 
   /* ---------- Patch v5.2.0 [Pillar 4]: Interactive Relic & Equipment Visual Showcase Canvas ---------- */

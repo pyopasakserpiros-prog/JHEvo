@@ -7,7 +7,7 @@
 > - ข้อกำหนดในเอกสารนี้มีผลบังคับใช้สูงสุด เป็นธรรมนูญและกฎเหล็กขององค์กรที่ทุกคนต้องยึดถืออย่างเคร่งครัด
 > - สิ่งที่อยู่นอกเหนือจากกฏเหล็กในเอกสารนี้ ai ที่ทำหน้าที่อัพเดทแพทช์สามารถคิดและตัดสินใจเองได้อย่างอิสระตามขอบเขตงาน
 
-JianghuSect Evolution is a Thai browser game. Current package: 5.2.0 (runtime patch identifier: 5.2.0, Save Schema: 5.2.0-subtabs-and-world-visuals). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md` for the latest v5.2.0 report, `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md` for v5.1.0 diorama visuals, and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md` for the celestial overhaul baseline.
+JianghuSect Evolution is a Thai browser game. Current package: 5.6.0 (runtime patch identifier: 5.6.0, Save Schema: 5.6.0-defensive-kungfu-and-aegis-barriers). The source, data, tools and tests are in `GAME_SOURCE/`; `GAME_SOURCE/JianghuSect_single.html` is the generated offline game. See `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md` for the latest v5.6.0 report, `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md` for v5.5.0 mantra resonance, `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_4_0.md` for v5.4.0 qinggong flight, `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_3_0.md` for v5.3.0 tribulation, and `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md` for v5.2.0 sub-tabs navigation.
 
 ## ก่อนเริ่มงาน
 

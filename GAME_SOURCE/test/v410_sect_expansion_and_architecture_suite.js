@@ -7,7 +7,7 @@
  * Phase 7: Living Sect Expansion, 8-Peak Sanctuary Awakening & Architectural Evolution Suite
  *
  * Verifies all 5 Pillars of Patch v4.1.0 across 6 comprehensive phases:
- * - Phase 0 (Invariants & Lock): SIM.PATCH_VERSION === '5.2.0', SAVE_SCHEMA_VERSION === '5.2.0-subtabs-and-world-visuals', HC.FINGERPRINT === '155:2f9c9dd7', human_core.js SHA-256, 40 script tags
+ * - Phase 0 (Invariants & Lock): SIM.PATCH_VERSION === '5.6.0', SAVE_SCHEMA_VERSION === '5.6.0-defensive-kungfu-and-aegis-barriers', HC.FINGERPRINT === '155:2f9c9dd7', human_core.js SHA-256, 40 script tags
  * - Phase 1 (8-Peak Ground Layout & Stations): All 8 Peak Sanctuary buildings in BTYPES, PEAK_LAYOUTS, W.map.buildings, 18 sub-stations (6 bed, 2 pantry, 6 practice, 4 meditate), Spirit Road 1.8x speed & A* reachability
  * - Phase 2 (Conditional Peak Awakening): Unfounded peaks (founded = false) block disciple station access & render mist; Founded peaks (founded = true) unlock stations immediately & expose UI camera focus button
  * - Phase 3 (3-Tier Architectural Evolution): buildBuildingSprite & getArchitecturalTierStage across Tier 1 (Lv.1-2), Tier 2 (Lv.3-4), Tier 3 (Lv.5+) for core & 8-Peak buildings
@@ -123,8 +123,8 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Lock (4.1.0)
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants, Script Tags & Version Lock (4.1.0)...');
 {
-  check(SIM.PATCH_VERSION === '5.2.0', `SIM.PATCH_VERSION must be '5.2.0' (got ${SIM.PATCH_VERSION})`);
-  check(SIM.SAVE_SCHEMA_VERSION === '5.2.0-subtabs-and-world-visuals', `SIM.SAVE_SCHEMA_VERSION must be '5.2.0-subtabs-and-world-visuals' (got ${SIM.SAVE_SCHEMA_VERSION})`);
+  check(SIM.PATCH_VERSION === '5.6.0', `SIM.PATCH_VERSION must be '5.6.0' (got ${SIM.PATCH_VERSION})`);
+  check(SIM.SAVE_SCHEMA_VERSION === '5.6.0-defensive-kungfu-and-aegis-barriers', `SIM.SAVE_SCHEMA_VERSION must be '5.6.0-defensive-kungfu-and-aegis-barriers' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
 
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));

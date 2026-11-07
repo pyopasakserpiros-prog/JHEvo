@@ -303,6 +303,7 @@
       drawback: m.drawback || null,
       aiRole: m.aiRole || null,
       fxKind: m.fxKind || t.fxKind || null,
+      signatureVfx: m.signatureVfx || t.signatureVfx || SK.resolveSignatureVfx(t, m) || null,
       composable: m.composable || t.composable || null,
       targetSelector: m.targetSelector || (m.composable && m.composable.targetSelector) || t.targetSelector || (t.composable && t.composable.targetSelector) || null,
       condition: m.condition || (m.composable && m.composable.condition) || t.condition || (t.composable && t.composable.condition) || null,
@@ -1487,6 +1488,239 @@
   };
 
   SK.get = id => (g.CULT && g.CULT.tech) ? g.CULT.tech(id) : null;
+
+  /* ---------- Patch v5.3.0 [Pillar 3]: 15 Signature Martial Arts & Unique Skill VFX Catalog ---------- */
+  SK.SIGNATURE_VFX_CATALOG = {
+    sig_meteor_sword_rain: {
+      id: 'sig_meteor_sword_rain',
+      nameTh: 'เพลงกระบี่ดาวตกถล่มสวรรค์',
+      icon: '☄️',
+      shape: 'meteor_sword_rain',
+      primary: '#00f5d4',
+      secondary: '#ffd166',
+      accent: '#ffffff',
+      descTh: 'ฝนกระบี่แสงดาวตกพุ่งถล่มจากฟากฟ้าปักลงสู่พื้นพร้อมวงคลื่นปราณระเบิด'
+    },
+    sig_eight_directions_palm: {
+      id: 'sig_eight_directions_palm',
+      nameTh: 'ฝ่ามือสยบมารแปดทิศ',
+      icon: '✋',
+      shape: 'colossal_golden_palm',
+      primary: '#ffd740',
+      secondary: '#ff9e00',
+      accent: '#fff8d6',
+      descTh: 'ฝ่ามือทองคำยักษ์ประทับลงสู่พื้นพร้อมค่ายกลแปดทิศสั่นสะเทือนปฐพี'
+    },
+    sig_nine_suns_eye: {
+      id: 'sig_nine_suns_eye',
+      nameTh: 'เนตรสุริยันเก้าเพลิง',
+      icon: '☀️',
+      shape: 'nine_suns_solar_eye',
+      primary: '#ff6d00',
+      secondary: '#ffd740',
+      accent: '#ffffff',
+      descTh: 'ดวงตาเทพสุริยันเบิกฟ้าพร้อมดวงอาทิตย์จำลอง 9 ดวงแผ่รังสีเผาผลาญ'
+    },
+    sig_soul_scorching_flame: {
+      id: 'sig_soul_scorching_flame',
+      nameTh: 'เพลิงผลาญวิญญาณ',
+      icon: '🔥',
+      shape: 'nether_soul_fire_vortex',
+      primary: '#9d4edd',
+      secondary: '#00f5d4',
+      accent: '#e0aaff',
+      descTh: 'พายุเพลิงวิญญาณสีม่วงมรกตและดวงไฟอเวจีหมุนวนเผาผลาญทะเลสำนึก'
+    },
+    sig_blazing_dragon_wave: {
+      id: 'sig_blazing_dragon_wave',
+      nameTh: 'คลื่นมังกรเพลิงพุ่งทะยาน',
+      icon: '🐉',
+      shape: 'coiling_fire_dragon',
+      primary: '#ff4d6d',
+      secondary: '#ffd166',
+      accent: '#fff3b0',
+      descTh: 'คลื่นมังกรเพลิงสีชาดทองพุ่งทะยานแหวกอากาศพร้อมเกล็ดอัคคีเรืองรอง'
+    },
+    sig_blood_beast_claw: {
+      id: 'sig_blood_beast_claw',
+      nameTh: 'กรงเล็บอสูรโลหิตฉีกนภา',
+      icon: '🐾',
+      shape: 'crimson_beast_claws',
+      primary: '#d90429',
+      secondary: '#ff758f',
+      accent: '#2b2d42',
+      descTh: 'รอยกรงเล็บอสูรโลหิต 4 รอยฉีกกระชากห้วงอากาศพร้อมไอสังหารสีเลือด'
+    },
+    sig_frost_lotus_domain: {
+      id: 'sig_frost_lotus_domain',
+      nameTh: 'เขตแดนบัวหิมะหมื่นปี',
+      icon: '❄️',
+      shape: 'crystalline_frost_lotus',
+      primary: '#90e0ef',
+      secondary: '#00b4d8',
+      accent: '#ffffff',
+      descTh: 'ดอกบัวผลึกน้ำแข็ง 12 กลีบผลิบานแช่แข็งพื้นที่พร้อมเกล็ดหิมะหกเหลี่ยม'
+    },
+    sig_thunder_god_halberd: {
+      id: 'sig_thunder_god_halberd',
+      nameTh: 'ทวนอัสนีเทพพิโรธ',
+      icon: '⚡',
+      shape: 'thunder_god_halberd_strike',
+      primary: '#c77dff',
+      secondary: '#ffd740',
+      accent: '#ffffff',
+      descTh: 'คมทวนสายฟ้าม่วงทองฟาดผ่าลงมาจากฟากฟ้าพร้อมสายฟ้าแตกแขนงรอบทิศ'
+    },
+    sig_myriad_puppet_barrage: {
+      id: 'sig_myriad_puppet_barrage',
+      nameTh: 'ค่ายกลหุ่นเชิดหมื่นด้ายสังหาร',
+      icon: '⚙️',
+      shape: 'clockwork_puppet_threads',
+      primary: '#ffb703',
+      secondary: '#00f5d4',
+      accent: '#fde4cf',
+      descTh: 'เส้นไหมปราณสังหารและฟันเฟืองจักรกลทองเหลืองหมุนตัดพันธนาการศัตรู'
+    },
+    sig_heavens_sound_requiem: {
+      id: 'sig_heavens_sound_requiem',
+      nameTh: 'พิณสวรรค์สะท้านวิญญาณ',
+      icon: '🎶',
+      shape: 'celestial_zither_requiem',
+      primary: '#72efdd',
+      secondary: '#ff9ebb',
+      accent: '#ffd166',
+      descTh: 'สายพิณโบราณเรืองแสงพร้อมคลื่นเสียงหยกสวรรค์สั่นสะเทือนดวงจิต'
+    },
+    sig_golden_buddha_bell: {
+      id: 'sig_golden_buddha_bell',
+      nameTh: 'ระฆังทองคำอรหันต์คุ้มกายา',
+      icon: '🔔',
+      shape: 'golden_arhat_bell_dome',
+      primary: '#ffd740',
+      secondary: '#ff9e00',
+      accent: '#fff8d6',
+      descTh: 'ระฆังปราณทองคำขนาดยักษ์ครอบคลุมร่างพร้อมอักขระธรรมหมุนวนคุ้มกัน'
+    },
+    sig_void_spatial_slash: {
+      id: 'sig_void_spatial_slash',
+      nameTh: 'คมดาบผ่ามิติว่างเปล่า',
+      icon: '🌌',
+      shape: 'dimensional_void_rift',
+      primary: '#7209b7',
+      secondary: '#4cc9f0',
+      accent: '#ffffff',
+      descTh: 'รอยแยกมิติสีนิลม่วงฉีกผ่าห้วงอากาศพร้อมประกายดาราในความว่างเปล่า'
+    },
+    sig_myriad_venom_miasma: {
+      id: 'sig_myriad_venom_miasma',
+      nameTh: 'หมอกพิษกู่หมื่นอสรพิษ',
+      icon: '🐍',
+      shape: 'venom_gu_serpent_miasma',
+      primary: '#52b788',
+      secondary: '#9d4edd',
+      accent: '#d8f3dc',
+      descTh: 'หมอกพิษเบญจรงค์และเงาอสรพิษกู่มรกตเลื้อยพันกัดกร่อนเกราะปราณ'
+    },
+    sig_taiji_yin_yang_crush: {
+      id: 'sig_taiji_yin_yang_crush',
+      nameTh: 'มหาค่ายกลหยินหยางบดขยี้',
+      icon: '☯️',
+      shape: 'taiji_millstone_crush',
+      primary: '#f8f9fa',
+      secondary: '#212529',
+      accent: '#00f5d4',
+      descTh: 'จานหมุนหยินหยางขาวดำและยันต์แปดทิศหมุนสวนทางบดขยี้สมรภูมิ'
+    },
+    sig_immortal_crane_feather_storm: {
+      id: 'sig_immortal_crane_feather_storm',
+      nameTh: 'พายุขนนกกระเรียนเซียน',
+      icon: '🦢',
+      shape: 'immortal_crane_feather_tempest',
+      primary: '#e0fbfc',
+      secondary: '#ffd166',
+      accent: '#ff4d6d',
+      descTh: 'พายุขนนกกระเรียนหยกขาวและแสงทองพัดกระหน่ำดุจคมกระบี่เซียน'
+    }
+  };
+
+  SK.TECH_TO_SIGNATURE_VFX = {
+    MP_BOW_METEOR_STORM: 'sig_meteor_sword_rain',
+    MP_SWORD_MYRIAD_RETURN_ONE_T7: 'sig_meteor_sword_rain',
+    ART_QI_009: 'sig_meteor_sword_rain',
+    ART_KARMA_SAMSARA_009: 'sig_eight_directions_palm',
+    MP_FIST_MORTAL_GOD_SHATTER_T7: 'sig_eight_directions_palm',
+    LEG_PALM_18_DRAGON: 'sig_eight_directions_palm',
+    MP_BOW_NINE_SUNS_FALL_T7: 'sig_nine_suns_eye',
+    MP_BOW_SUN_GOD_VERDICT_T7: 'sig_nine_suns_eye',
+    ART_V212_GOD_SUN_T5: 'sig_nine_suns_eye',
+    MP_BLADE_BLOOD_FRENZY_T5: 'sig_soul_scorching_flame',
+    ART_V212_DEMON_GHOST_T6: 'sig_soul_scorching_flame',
+    ART_HEART_SOUL_010: 'sig_soul_scorching_flame',
+    MP_SPEAR_DRAGON_SPINE_IMPALE_T5: 'sig_blazing_dragon_wave',
+    ART_CRAFT_007: 'sig_blazing_dragon_wave',
+    MP_BLADE_EIGHT_DESOLATIONS_T7: 'sig_blazing_dragon_wave',
+    ART_BEAST_SOV_005: 'sig_blood_beast_claw',
+    MP_BLADE_ASHURA_EXTINCTION_T7: 'sig_blood_beast_claw',
+    ART_BEAST_SOV_010: 'sig_blood_beast_claw',
+    MP_SWORD_FROST_MOON_SLASH_T5: 'sig_frost_lotus_domain',
+    ART_V212_XIAN_FROST_T6: 'sig_frost_lotus_domain',
+    MP_SPEAR_CELESTIAL_TEMPEST_T6: 'sig_thunder_god_halberd',
+    MP_BLADE_THUNDER_GOD_SLASH_T6: 'sig_thunder_god_halberd',
+    ART_MECH_PUPPET_006: 'sig_myriad_puppet_barrage',
+    ART_MECH_PUPPET_010: 'sig_myriad_puppet_barrage',
+    MP_WHIP_THOUSAND_PUPPET_T6: 'sig_myriad_puppet_barrage',
+    ART_V212_XIAN_ZITHER_T6: 'sig_heavens_sound_requiem',
+    LEG_ZITHER_GUANGLING: 'sig_heavens_sound_requiem',
+    MP_ZITHER_HEAVEN_SOUND_T7: 'sig_heavens_sound_requiem',
+    MP_STAFF_ARHAT_SANCTUARY_T6: 'sig_golden_buddha_bell',
+    MP_STAFF_VAJRA_BELL_SHIELD: 'sig_golden_buddha_bell',
+    MP_STAFF_HEAVEN_PILLAR_T7: 'sig_golden_buddha_bell',
+    MP_SPEAR_PRIMORDIAL_VOID_T7: 'sig_void_spatial_slash',
+    MP_SPEAR_VOID_ANNIHILATION_T7: 'sig_void_spatial_slash',
+    ART_CRAFT_010: 'sig_myriad_venom_miasma',
+    ART_V212_MO_VENOM_T6: 'sig_myriad_venom_miasma',
+    MP_FOCUS_ASTRAL_BANNER_T5: 'sig_taiji_yin_yang_crush',
+    LEG_FIST_QIANKUN_SHIFT: 'sig_taiji_yin_yang_crush',
+    ART_ARRAY_010: 'sig_taiji_yin_yang_crush',
+    MP_SWORD_SAINT_TRACELESS_T6: 'sig_immortal_crane_feather_storm',
+    LEG_SWORD_FEIXIAN: 'sig_immortal_crane_feather_storm'
+  };
+
+  SK.resolveSignatureVfx = (techOrMove, moveOpt) => {
+    if (!techOrMove) return null;
+    if (moveOpt && moveOpt.signatureVfx && SK.SIGNATURE_VFX_CATALOG[moveOpt.signatureVfx]) {
+      return moveOpt.signatureVfx;
+    }
+    if (techOrMove.signatureVfx && SK.SIGNATURE_VFX_CATALOG[techOrMove.signatureVfx]) {
+      return techOrMove.signatureVfx;
+    }
+    const tid = techOrMove.tech || techOrMove.id || '';
+    if (SK.TECH_TO_SIGNATURE_VFX[tid]) return SK.TECH_TO_SIGNATURE_VFX[tid];
+
+    // Also match high-tier/legendary techniques by Thai name or element/weapon archetype so all major ultimates shine
+    const tier = techOrMove.tier || 1;
+    const isHigh = !!(techOrMove.legendary || tier >= 5 || techOrMove.arch === 'burst' || techOrMove.arch === 'forbid');
+    if (!isHigh) return null;
+
+    const nm = String((moveOpt && moveOpt.nameTh) || techOrMove.nameTh || '');
+    if (/ดาวตก|พิรุณกระบี่|หมื่นกระบี่/.test(nm)) return 'sig_meteor_sword_rain';
+    if (/ฝ่ามือ|แปดทิศ|ตถาคต|สยบมาร/.test(nm)) return 'sig_eight_directions_palm';
+    if (/สุริยัน|เก้าตะวัน|เก้าเพลิง/.test(nm)) return 'sig_nine_suns_eye';
+    if (/ผลาญวิญญาณ|เพลิงอเวจี|เพลิงมาร/.test(nm)) return 'sig_soul_scorching_flame';
+    if (/มังกรเพลิง|มังกรอัคคี|คลื่นมังกร/.test(nm)) return 'sig_blazing_dragon_wave';
+    if (/กรงเล็บ|อสูรโลหิต|พยัคฆ์โลหิต/.test(nm)) return 'sig_blood_beast_claw';
+    if (/บัวหิมะ|เยือกแข็ง|จันทราเหมันต์/.test(nm)) return 'sig_frost_lotus_domain';
+    if (/ทวนอัสนี|เทพสายฟ้า|อสนีบาต/.test(nm)) return 'sig_thunder_god_halberd';
+    if (/หุ่นเชิด|หมื่นด้าย|กลไก/.test(nm)) return 'sig_myriad_puppet_barrage';
+    if (/พิณ|คีต|สะท้านวิญญาณ/.test(nm)) return 'sig_heavens_sound_requiem';
+    if (/ระฆังทอง|อรหันต์|วัชระ/.test(nm)) return 'sig_golden_buddha_bell';
+    if (/ผ่ามิติ|ว่างเปล่า|สุญตา/.test(nm)) return 'sig_void_spatial_slash';
+    if (/หมอกพิษ|กู่|หมื่นพิษ/.test(nm)) return 'sig_myriad_venom_miasma';
+    if (/หยินหยาง|ไท่เก๊ก|แปดทิศบดขยี้/.test(nm)) return 'sig_taiji_yin_yang_crush';
+    if (/กระเรียน|เหินเซียน|ขนนก/.test(nm)) return 'sig_immortal_crane_feather_storm';
+    return null;
+  };
+
   g.SK = SK;
   if (typeof module === 'object' && module.exports) module.exports = SK;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

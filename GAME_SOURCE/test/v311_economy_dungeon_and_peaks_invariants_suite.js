@@ -32,7 +32,7 @@ console.log('===================================================================
 // 1. Version, Metadata & Core Lock
 console.log('▶ [1/6] Testing Version Locks & Byte-Identical Human Core...');
 {
-  check(SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || (SIM.PATCH_VERSION === '3.4.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.2.0')) || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.2.0')))), `SIM.PATCH_VERSION must be 3.1.1 (got ${SIM.PATCH_VERSION})`);
+  check(SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.2.0' || (SIM.PATCH_VERSION === '3.3.0' || (SIM.PATCH_VERSION === '3.4.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.6.0')) || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || SIM.PATCH_VERSION === '5.6.0')))), `SIM.PATCH_VERSION must be 3.1.1 (got ${SIM.PATCH_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
 
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));

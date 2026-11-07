@@ -7,15 +7,16 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.2.0` (Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals, Portal FX & Relic Showcase — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักของ `v5.2.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 128/128 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.6.0` (Era 5 Phase 7: Defensive Kungfu & Protective Aegis Overhaul — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักของ `v5.6.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 132/132 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md) (Era 5 Phase 4: Heavenly Tribulation Breakthrough Overhaul, Path Resonance Spectacles & Signature Technique VFX)
+  👉 [`ACTIVE_PATCH_PROMPT_V5_7_0.md`](ACTIVE_PATCH_PROMPT_V5_7_0.md) (Era 5 Phase 8: Advanced Combat Maneuvers, Stance Transitions & Battlefield Domains)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md) (`v5.0.0` — Era 5: Grand Celestial Visual Overhaul ครบ 6 เสาหลัก)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md) (`v5.1.0` — Era 5 Phase 2: Interactive Visual Dioramas, Sect Cutscenes & Martial Arena Camera ครบ 5 เสาหลัก)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md) (`v5.2.0` — Era 5 Phase 3: Sub-Category Navigation Overhaul, Grand World Atlas Visuals & Relic Showcase ครบ 5 เสาหลัก)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_3_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_3_0.md) (`v5.3.0` — Heavenly Tribulation Breakthrough & Signature Skill VFX)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_4_0.md) (`v5.4.0` — Qinggong Locomotion, Sword Flight & Celestial Levitation)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md) (`v5.5.0` — Mantra Resonance, Dynamic Weather & Grand Formation Warfare)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md) (`v5.6.0` — Defensive Kungfu & Protective Aegis Overhaul)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **แพตช์ `v5.2.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.3.0` ตามใบสั่งงาน!**
+  👉 **แพตช์ `v5.6.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.7_0` ตามใบสั่งงาน!**
 
 ---
 
@@ -112,5 +113,21 @@ cd GAME_SOURCE && node tools/build_single.js
 
 ## สถานะล่าสุด: Patch v5.2.0 (Era 5 Phase 3: Sub-Category Navigation Overhaul, World Atlas Convoys & Relic Showcase) เสร็จสมบูรณ์ 100%
 - รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md`
-- แพทช์ถัดไปในคิว: [`ACTIVE_PATCH_PROMPT_V5_3_0.md`](ACTIVE_PATCH_PROMPT_V5_3_0.md)
 - ชุดทดสอบทั้งหมด: `128/128 PASS` (`test/v520_subtabs_and_world_visuals_suite.js`)
+
+## สถานะล่าสุด: Patch v5.3.0 (Era 5 Phase 4: Heavenly Tribulation Breakthrough Overhaul & 15 Signature Skill VFX) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_3_0.md`
+- ชุดทดสอบทั้งหมด: `129/129 PASS` (`test/v530_heavenly_tribulation_and_skill_vfx_suite.js`)
+
+## สถานะล่าสุด: Patch v5.4.0 (Era 5 Phase 5: Qinggong Locomotion, Sword Flight & Celestial Levitation) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_4_0.md`
+- ชุดทดสอบทั้งหมด: `130/130 PASS` (`test/v540_qinggong_movement_and_flight_suite.js`)
+
+## สถานะล่าสุด: Patch v5.5.0 (Era 5 Phase 6: Mantra Resonance, Dynamic Weather & Grand Formation Warfare) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md`
+- ชุดทดสอบทั้งหมด: `131/131 PASS` (`test/v550_mantra_resonance_and_formation_warfare_suite.js`)
+
+## สถานะล่าสุด: Patch v5.6.0 (Era 5 Phase 7: Defensive Kungfu & Protective Aegis Overhaul) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md`
+- แพทช์ถัดไปในคิว: [`ACTIVE_PATCH_PROMPT_V5_7_0.md`](ACTIVE_PATCH_PROMPT_V5_7_0.md)
+- ชุดทดสอบทั้งหมด: `132/132 PASS` (`test/v560_defensive_kungfu_and_aegis_suite.js`)
