@@ -80,9 +80,9 @@ assert.strictEqual(
   'human_core.js SHA-256 must remain 100% byte-identical'
 );
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-assert.strictEqual(SIM.PATCH_VERSION, '5.6.0', 'SIM.PATCH_VERSION must be 5.4.0');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '5.6.0-defensive-kungfu-and-aegis-barriers', 'SIM.SAVE_SCHEMA_VERSION must match v5.4.0');
-assert(SIM.SUPPORTED_PATCHES.includes('5.6.0'), 'SIM.SUPPORTED_PATCHES must include 5.4.0');
+assert.strictEqual(SIM.PATCH_VERSION, '5.8.0', 'SIM.PATCH_VERSION must be 5.4.0');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '5.8.0-forbidden-arts-passive-awakening-and-blood-altar', 'SIM.SAVE_SCHEMA_VERSION must match v5.4.0');
+assert(SIM.SUPPORTED_PATCHES.includes('5.8.0'), 'SIM.SUPPORTED_PATCHES must include 5.4.0');
 
 // 2. Verify CULT.QINGGONG Modes & 6 Signature Manuals + Existing Movement Art Mapping
 assert(CULT.QINGGONG && CULT.QINGGONG.MODES, 'CULT.QINGGONG.MODES must exist');

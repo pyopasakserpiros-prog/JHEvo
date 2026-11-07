@@ -795,7 +795,7 @@
     // Patch v5.6.0: Defensive Kungfu & Protective Aegis (CULT.DEFENSIVE_ARTS)
     if (dmg > 0 && note !== 'สะท้อนคัมภีร์ปราณ' && note !== 'สะท้อนวิชาคุ้มกาย' && CULT && CULT.DEFENSIVE_ARTS && d && !d.foe) {
       // A. Check if a nearby ally with CELESTIAL_AEGIS_DOME / FORTRESS_BASTION_LOCK intercepts part of the damage
-      if (W && Array.isArray(W.npcs)) {
+      if (W && W._hasActiveDefSupportAura && Array.isArray(W.npcs)) {
         for (let i = 0; i < W.npcs.length; i++) {
           const guardian = W.npcs[i];
           if (!guardian || guardian.dead || guardian.away || guardian.id === d.id || !guardian.defensiveArtState || !guardian.cult) continue;
@@ -851,6 +851,93 @@
             const healMolt = Math.max(1, Math.round(C.hpMax(d) * (df.spec.cicadaMoltHealPct || 0.22)));
             C.setHp(d, Math.min(C.hpMax(d), C.hp(d) + healMolt));
             d.lastDefensiveArtProc = { t: W.t, kind: 'CICADA_MOLT_SAVE', textTh: '🦋 จักจั่นทองลอกคราบเร้นเงา!', healedHp: healMolt };
+          }
+        }
+      }
+    }
+    // Patch v5.7.0: Support & Auxiliary Arts Battlefield Aura (CULT.SUPPORT_ARTS)
+    if (dmg > 0 && note !== 'สะท้อนคัมภีร์ปราณ' && note !== 'สะท้อนวิชาคุ้มกาย' && CULT && CULT.SUPPORT_ARTS && W && (W._hasActiveDefSupportAura || (a && a.supportState) || (d && d.supportState)) && Array.isArray(W.npcs)) {
+      // 1. Check if attacker `a` is buffed by own or nearby ally's Support Art (Qimen Banner / Zither Melody)
+      if (a && !a.foe) {
+        for (let i = 0; i < W.npcs.length; i++) {
+          const supNpc = W.npcs[i];
+          if (!supNpc || supNpc.dead || supNpc.away || !supNpc.supportState || !supNpc.cult) continue;
+          const sup = CULT.SUPPORT_ARTS.resolveNpcSupport(W, supNpc);
+          if (sup && Math.hypot((supNpc.x || 0) - (a.x || 0), (supNpc.y || 0) - (a.y || 0)) <= sup.auraRadius) {
+            dmg = Math.round(dmg * (1 + sup.effAtkBonusPct));
+            supNpc.supportState.totalCommandBuffs = (supNpc.supportState.totalCommandBuffs || 0) + 1;
+            supNpc.lastSupportArtProc = { t: W.t, kind: sup.archetypeId + '_BUFF', textTh: sup.spec.icon + ' ' + sup.spec.shortTh + 'หนุนศึก!' };
+            break;
+          }
+        }
+      }
+      // 2. Check if defender `d` is protected/healed by own or nearby ally's Support Art (Acupoint Therapy / Bodhi Sanctuary / Alchemical Mist)
+      if (d && !d.foe) {
+        for (let i = 0; i < W.npcs.length; i++) {
+          const supNpc = W.npcs[i];
+          if (!supNpc || supNpc.dead || supNpc.away || !supNpc.supportState || !supNpc.cult) continue;
+          const sup = CULT.SUPPORT_ARTS.resolveNpcSupport(W, supNpc);
+          if (sup && Math.hypot((supNpc.x || 0) - (d.x || 0), (supNpc.y || 0) - (d.y || 0)) <= sup.auraRadius) {
+            dmg = Math.max(1, Math.round(dmg * (1 - sup.effDefBonusPct)));
+            const healAmt = Math.max(1, Math.round(C.hpMax(d) * sup.effHealPct));
+            C.setHp(d, Math.min(C.hpMax(d), C.hp(d) + healAmt));
+            supNpc.supportState.totalAlliesHealed = (supNpc.supportState.totalAlliesHealed || 0) + healAmt;
+            supNpc.lastSupportArtProc = { t: W.t, kind: sup.archetypeId + '_HEAL', textTh: sup.spec.icon + ' ' + sup.spec.shortTh + 'สมานชีพ!', healedHp: healAmt };
+            break;
+          }
+        }
+      }
+    }
+    // Patch v5.8.0 [Pillar 1, 2 & 4]: Forbidden Arts Blood-Sacrifice Surge, Desperation Nova & Passive Constellation Bonuses
+    if (dmg > 0 && note !== 'สะท้อนคัมภีร์ปราณ' && note !== 'สะท้อนวิชาคุ้มกาย' && note !== 'ระเบิดมหาวิชาต้องห้าม' && CULT) {
+      // 1. Attacker Passive Constellation Bonus
+      if (a && !a.foe && a.passiveResonanceState && CULT.PASSIVE_RESONANCE) {
+        const pr = CULT.PASSIVE_RESONANCE.resolveNpcConstellation(W, a);
+        if (pr && pr.atkBonusPct > 0) dmg = Math.round(dmg * (1 + pr.atkBonusPct));
+      }
+      // 2. Defender Passive Constellation Mitigation
+      if (d && !d.foe && d.passiveResonanceState && CULT.PASSIVE_RESONANCE) {
+        const prD = CULT.PASSIVE_RESONANCE.resolveNpcConstellation(W, d);
+        if (prD && prD.dmgRedPct > 0) dmg = Math.max(1, Math.round(dmg * (1 - prD.dmgRedPct)));
+      }
+      // 3. Attacker Unsealed Forbidden Art Surge & Blood Sacrifice
+      if (a && !a.foe && a.forbiddenArtState && a.cult && CULT.FORBIDDEN_ARTS) {
+        const fb = CULT.FORBIDDEN_ARTS.resolveNpcForbidden(W, a);
+        if (fb && fb.isUnsealed) {
+          const fSt = a.forbiddenArtState;
+          dmg = Math.round(dmg * (1 + fb.effAtkBonusPct));
+          const hpCost = Math.max(1, Math.round(C.hpMax(a) * fb.effHpCostPct));
+          if (C.hp(a) > hpCost + 5) {
+            C.setHp(a, C.hp(a) - hpCost);
+            fSt.totalBloodSacrificed = (fSt.totalBloodSacrificed || 0) + hpCost;
+          }
+          fSt.totalTabooStrikes = (fSt.totalTabooStrikes || 0) + 1;
+          fSt.tabooStrain = Math.min(100, +((fSt.tabooStrain || 0) + (fb.sealSpec.strainRate || 0.2)).toFixed(2));
+          if (fb.archetypeId === 'SOUL_DEVOURING_ABYSS') {
+            const devourHp = Math.max(1, Math.round(dmg * (fb.spec.lifestealPct || 0.24)));
+            const devourQi = Math.max(1, Math.round(dmg * (fb.spec.qistealPct || 0.28)));
+            C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + devourHp));
+            if (a.h && a.h.state) a.h.state.qi = Math.min(CULT.qiMax(a), (a.h.state.qi || 0) + devourQi);
+            fSt.totalSoulsDevoured = (fSt.totalSoulsDevoured || 0) + 1;
+          }
+          a.lastForbiddenArtProc = { t: W.t, kind: fb.archetypeId + '_STRIKE', textTh: fb.spec.icon + ' สำแดง' + fb.spec.shortTh + '!' };
+        }
+      }
+      // 4. Defender Cataclysmic Taboo Desperation Nova (when BLOOD_TABOO_UNLEASHED and HP drops below 30%)
+      if (d && !d.foe && d.forbiddenArtState && d.cult && CULT.FORBIDDEN_ARTS) {
+        const dfb = CULT.FORBIDDEN_ARTS.resolveNpcForbidden(W, d);
+        const fStD = d.forbiddenArtState;
+        const fightIdNow = (f && f.id) || 1;
+        if (dfb && dfb.isFullTaboo && fStD.desperationNovaUsedFightId !== fightIdNow && (C.hp(d) - dmg) <= C.hpMax(d) * 0.30) {
+          fStD.desperationNovaUsedFightId = fightIdNow;
+          fStD.totalDesperationNovas = (fStD.totalDesperationNovas || 0) + 1;
+          dmg = Math.max(1, Math.round(dmg * 0.35)); // Absorbs 65% of the lethal blow in a blood-void explosion!
+          const novaHeal = Math.max(1, Math.round(C.hpMax(d) * 0.25));
+          C.setHp(d, Math.min(C.hpMax(d), C.hp(d) + novaHeal));
+          const novaDmg = Math.max(15, Math.round(C.hpMax(d) * (dfb.spec.desperationNovaMult || 0.40)));
+          d.lastForbiddenArtProc = { t: W.t, kind: 'TABOO_DESPERATION_NOVA', textTh: '🌑 ระเบิดมหาวิชาต้องห้ามฝืนชะตาสวรรค์!', novaDmg, healedHp: novaHeal };
+          if (a && C.alive(a)) {
+            C.applyDamage(W, f, d, a, novaDmg, 'ระเบิดมหาวิชาต้องห้าม');
           }
         }
       }

@@ -113,11 +113,11 @@ require(path.join(ROOT, 'js/ui.js'));
     'human_core.js SHA-256 must remain 100% byte-identical'
   );
   assert.strictEqual(g.HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(g.SIM.PATCH_VERSION, '5.6.0', 'SIM.PATCH_VERSION must be 5.3.0');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '5.8.0', 'SIM.PATCH_VERSION must be 5.3.0');
   assert.strictEqual(
     g.SIM.SAVE_SCHEMA_VERSION,
-    '5.6.0-defensive-kungfu-and-aegis-barriers',
-    'SIM.SAVE_SCHEMA_VERSION must be 5.6.0-defensive-kungfu-and-aegis-barriers'
+    '5.8.0-forbidden-arts-passive-awakening-and-blood-altar',
+    'SIM.SAVE_SCHEMA_VERSION must be 5.8.0-forbidden-arts-passive-awakening-and-blood-altar'
   );
 
   const { CULT, SIM, SK, Render, UI } = g;

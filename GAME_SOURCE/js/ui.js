@@ -911,6 +911,115 @@
       UI.render();
       const sb = $('shBody'); if (sb) sb.scrollTop = 0;
     }
+    else if (a === 'set-npc-forbidden-seal') {
+      const [npcIdArg, sealKey, archKey] = String(arg || '').split('|');
+      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
+      if (n && CULT.FORBIDDEN_ARTS) {
+        const res = CULT.FORBIDDEN_ARTS.setForbiddenSealMode(W, n, sealKey || 'SEALED_RESTRAINT', archKey || null);
+        if (res) {
+          UI.dioramaPose = 'forbidden';
+          UI.toast(res.sealSpec.icon + ' ปรับผนึกวิชาต้องห้ามของ「' + HC.fullName(n) + '」เป็น: ' + res.sealSpec.nameTh);
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'demo-forbidden-taboo') {
+      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
+      const n = targetId && W && W.byId && W.byId[targetId];
+      if (n && CULT.FORBIDDEN_ARTS) {
+        const res = CULT.FORBIDDEN_ARTS.setForbiddenSealMode(W, n, 'BLOOD_TABOO_UNLEASHED');
+        UI.dioramaPose = 'forbidden';
+        if (G.R) {
+          G.R.selected = n.id;
+          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
+        }
+        if (res) {
+          UI.toast(res.spec.icon + ' ' + HC.fullName(n) + ' ปลดผนึก「' + res.spec.nameTh + '」(โจมตี +' + Math.round(res.effAtkBonusPct * 100) + '%)!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-npc-passive-constellation') {
+      const [npcIdArg, constKey] = String(arg || '').split('|');
+      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
+      if (n && CULT.PASSIVE_RESONANCE) {
+        const res = CULT.PASSIVE_RESONANCE.setFocusConstellation(W, n, constKey || 'AUTO');
+        if (res) {
+          UI.toast(res.spec.icon + ' เชื่อมโยงดาราจักรวิชาติดตัวของ「' + HC.fullName(n) + '」เข้ากับ: ' + res.spec.nameTh);
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-sect-forbidden-policy') {
+      if (SECT.FORBIDDEN_VAULT) {
+        const res = SECT.FORBIDDEN_VAULT.setVaultPolicy(W, arg || 'ELDER_LICENSED_ACCESS');
+        if (res && res.ok) {
+          UI.toast(res.spec.icon + ' ประกาศนโยบายหอผนึกคัมภีร์ต้องห้าม:「' + res.spec.nameTh + '」!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'perform-forbidden-altar-ritual') {
+      if (SECT.FORBIDDEN_VAULT) {
+        const res = SECT.FORBIDDEN_VAULT.performAltarRitual(W, arg || 'AWAKEN_BLOODLINE_ALTAR');
+        if (res && res.ok) {
+          UI.toast(res.spec.icon + ' ประกอบ「' + res.spec.nameTh + '」สำเร็จ (' + res.affectedCount + ' คน)!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'set-npc-support-posture') {
+      const [npcIdArg, postureKey, archKey] = String(arg || '').split('|');
+      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
+      if (n && CULT.SUPPORT_ARTS) {
+        const res = CULT.SUPPORT_ARTS.setSupportPosture(W, n, postureKey || 'SOUL_MELODY_HARMONY', archKey || null);
+        if (res) {
+          UI.dioramaPose = 'support';
+          UI.toast(res.postureSpec.icon + ' ปรับท่วงท่าสายสนับสนุนของ「' + HC.fullName(n) + '」เป็น: ' + res.postureSpec.nameTh);
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'demo-support-art-aura') {
+      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
+      const n = targetId && W && W.byId && W.byId[targetId];
+      if (n && CULT.SUPPORT_ARTS) {
+        CULT.SUPPORT_ARTS.ensureState(n);
+        const res = CULT.SUPPORT_ARTS.stepFacilityAndDailySynergy(W, n);
+        UI.dioramaPose = 'support';
+        if (G.R) {
+          G.R.selected = n.id;
+          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
+        }
+        if (res && res.supportProfile) {
+          const sp = res.supportProfile;
+          UI.toast(sp.spec.icon + ' ' + HC.fullName(n) + ' สำแดง「' + sp.spec.nameTh + '」หนุนศิษย์รอบข้าง ' + res.affected + ' คน!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'trigger-sect-emergency-support') {
+      if (CULT.SUPPORT_ARTS) {
+        const res = CULT.SUPPORT_ARTS.triggerSectEmergencySupport(W, arg || 'ZITHER_PURGE_HEART_DEMON');
+        if (res && res.ok) {
+          const msgMap = {
+            ZITHER_PURGE_HEART_DEMON: '🎶 บรรเลงคีตเวทย์พิณขลุ่ยหยกสลายจิตมารและหนุนโอกาสทะลวงด่านทั้งสำนัก (' + res.affectedCount + ' คน)!',
+            INFIRMARY_ACUPOINT_HEAL: '🪡 ระดมเข็มทองสมานแผลและขับพิษโอสถศิษย์ทั้งสำนัก (' + res.affectedCount + ' คน)!',
+            QIMEN_BANNER_RALLY: '🚩 ชูธงรบฉีเหมินฟื้นฟูแรงกายและปราณพร้อมรบทั้งสำนัก (' + res.affectedCount + ' คน)!'
+          };
+          UI.toast(msgMap[res.mode] || '🎶 สำแดงวิชาสนับสนุนทั้งสำนักสำเร็จ!');
+        }
+      }
+      UI.render();
+      UI.updateHud(true);
+    }
     else if (a === 'set-npc-defensive-posture') {
       const [npcIdArg, postureKey, archKey] = String(arg || '').split('|');
       const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
@@ -4086,6 +4195,25 @@
               Object.values(SECT.FORMATION_WARFARE.WEATHER_PHENOMENA).map(wp => '<button class="btn' + (curW === wp.id ? ' ok' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-sect-weather-phenomenon" data-arg="' + esc(wp.id) + '">' + esc(wp.icon + ' ' + wp.nameTh) + '</button>').join('') +
               '</div>';
           }
+          if (CULT.SUPPORT_ARTS) {
+            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🎶 คำสั่งฉุกเฉินวิชาสายสนับสนุน & อาคารสำนัก (Support & Facility Synergy v5.7.0):</b></div>';
+            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
+              '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="trigger-sect-emergency-support" data-arg="ZITHER_PURGE_HEART_DEMON">🎶 บรรเลงคีตเวทย์สลายจิตมารทั้งสำนัก</button>' +
+              '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="trigger-sect-emergency-support" data-arg="INFIRMARY_ACUPOINT_HEAL">🪡 ระดมเข็มทองสมานแผลหอพยาบาล</button>' +
+              '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-sect-emergency-support" data-arg="QIMEN_BANNER_RALLY">🚩 ชูธงรบฉีเหมินปลุกขวัญทั้งสำนัก</button>' +
+              '</div>';
+          }
+          if (SECT.FORBIDDEN_VAULT) {
+            const fv = SECT.FORBIDDEN_VAULT.ensure(W);
+            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🩸 หอผนึกคัมภีร์ต้องห้าม & แท่นสังเวยโลหิตบรรพกาล (Forbidden Vault & Blood Altar v5.8.0):</b></div>';
+            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
+              Object.values(SECT.FORBIDDEN_VAULT.POLICIES).map(pol => '<button class="btn' + (fv.policy === pol.id ? (pol.id === 'UNRESTRICTED_BLOOD_CULT' ? ' dan' : ' pri') : '') + '" style="padding:3px 8px;font-size:11px" data-do="set-sect-forbidden-policy" data-arg="' + esc(pol.id) + '">' + esc(pol.icon + ' ' + pol.shortTh) + '</button>').join('') +
+              '</div>';
+            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
+              '<button class="btn dan" style="padding:3px 8px;font-size:11px" data-do="perform-forbidden-altar-ritual" data-arg="AWAKEN_BLOODLINE_ALTAR">🩸 ปลุกสายเลือดบรรพกาลบนแท่นสังเวย</button>' +
+              '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="perform-forbidden-altar-ritual" data-arg="PURIFY_TABOO_BACKLASH">🪷 พิธีชำระล้างปราณต้องห้ามและคลายชีพจร</button>' +
+              '</div>';
+          }
         }
         h += '</div>';
       }
@@ -6895,13 +7023,62 @@
         const petObj = (Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n.pet || null);
         h += '<div class="card" style="border-color:var(--gold);background:rgba(255,215,64,0.04);margin:6px 0">';
         h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:6px"><b>✨ แท่นจำลองรัศมีเซียน & ศาสตราคู่กาย (Era 5 Visual Diorama)</b><div style="display:flex;gap:4px">' +
-          [['cultivate', '🧘 โคจรปราณ'], ['mantra', '☯️ คัมภีร์ปราณ'], ['defensive', '🛡️ วิชาคุ้มกาย'], ['fight', '⚔️ สำแดงวิชา'], ['qinggong', '🗡️ วิชาตัวเบา/เหินเวหา'], ['breakthrough', '⚡ ทัณฑ์สวรรค์']].map(([pk, pl]) => '<button class="btn' + (curPose === pk ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-diorama-pose" data-arg="' + pk + '">' + pl + '</button>').join('') +
+          [['cultivate', '🧘 โคจรปราณ'], ['mantra', '☯️ คัมภีร์ปราณ'], ['defensive', '🛡️ วิชาคุ้มกาย'], ['support', '🎶 วิชาหนุนเสริม'], ['forbidden', '🩸 วิชาต้องห้าม'], ['fight', '⚔️ สำแดงวิชา'], ['qinggong', '🗡️ วิชาตัวเบา/เหินเวหา'], ['breakthrough', '⚡ ทัณฑ์สวรรค์']].map(([pk, pl]) => '<button class="btn' + (curPose === pk ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-diorama-pose" data-arg="' + pk + '">' + pl + '</button>').join('') +
           '</div></div>';
         h += dioramaHtml(n, 220, 136);
         h += '<div class="muted" style="font-size:11px;text-align:center;margin-top:5px">รัศมีตบะ: <b>' + esc(rSpec.nameTh) + '</b>' + (stg >= 7 ? ' · มีผ้าแพรเซียนเหินเมฆา (披帛)' : '') + (petObj ? ' · สัตว์อสูรคู่ใจ: <b>' + esc(petObj.nameTh || petObj.speciesId || 'อสูรวิญญาณ') + '</b>' : '') + '</div>';
         h += '</div>';
       }
       h += '<div class="muted">🏅 แต้มคุณูปการ <b>' + Math.round(n.cp || 0) + '</b> · สะสมตลอดชีพ ' + Math.round(n.cpEarned || 0) + '</div>';
+      if (CULT.FORBIDDEN_ARTS && n.cult) {
+        const fb = CULT.FORBIDDEN_ARTS.resolveNpcForbidden(W, n);
+        if (fb && fb.spec) {
+          const fSt = n.forbiddenArtState || { sealMode: 'SEALED_RESTRAINT', tabooStrain: 0, totalBloodSacrificed: 0, totalDesperationNovas: 0 };
+          h += '<h3>🩸 คัมภีร์วิชาต้องห้ามและการปลดผนึกโลหิต (Forbidden Arts & Taboo Seals v5.8.0)</h3><div class="card" style="border-color:' + esc(fb.spec.color || '#ef233c') + '">';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<div><span class="chip r" style="border-color:' + esc(fb.spec.color || '#ef233c') + '">' + fb.spec.icon + ' <b>' + esc(fb.spec.nameTh) + '</b></span> <span class="chip b">สถานะผนึก: ' + esc(fb.sealSpec.shortTh) + '</span>' + (fb.isUnsealed ? ' <span class="chip r">🔥 พลังโจมตี +' + Math.round(fb.effAtkBonusPct * 100) + '% · เร่งตบะ ×' + fb.effCultMult.toFixed(2) + '</span>' : ' <span class="chip ok">🔒 ปลอดภัยไร้ผลสะท้อน</span>') + '</div>';
+          h += '<button class="btn dan" style="padding:2px 8px;font-size:11px" data-do="demo-forbidden-taboo" data-arg="' + esc(n.id) + '">🩸 สำแดงปราณต้องห้าม</button>';
+          h += '</div>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>อานุภาพต้องห้าม:</b> ' + esc(fb.spec.prosTh) + '<br><b>ราคาที่ต้องจ่าย:</b> ' + esc(fb.spec.consTh) + '<br><b>สถิติต้องห้าม:</b> ชีพจรตึงเครียดสะสม ' + Math.round(fSt.tabooStrain || 0) + '/100 · สังเวยโลหิตสะสม ' + Math.round(fSt.totalBloodSacrificed || 0) + ' HP · ระเบิดพลีชีพฝืนฟ้า ' + (fSt.totalDesperationNovas || 0) + ' ครั้ง</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ระดับการคลายผนึกต้องห้าม:</span>';
+          Object.values(CULT.FORBIDDEN_ARTS.SEAL_MODES).forEach(sSpec => {
+            h += '<button class="btn' + (fb.sealModeId === sSpec.id ? (sSpec.id === 'BLOOD_TABOO_UNLEASHED' ? ' dan' : ' pri') : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-forbidden-seal" data-arg="' + esc(n.id + '|' + sSpec.id) + '">' + esc(sSpec.icon + ' ' + sSpec.shortTh) + '</button>';
+          });
+          h += '</div></div>';
+        }
+      }
+      if (CULT.PASSIVE_RESONANCE && n.cult) {
+        const pr = CULT.PASSIVE_RESONANCE.resolveNpcConstellation(W, n);
+        if (pr && pr.spec) {
+          h += '<h3>🌟 ดาราจักรวิชาติดตัวและเคล็ดสายย่อยประสานชีพจร (Passive & Innate Constellations v5.8.0)</h3><div class="card" style="border-color:' + esc(pr.spec.color || '#00f5d4') + '">';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<div><span class="chip g" style="border-color:' + esc(pr.spec.color || '#00f5d4') + '">' + pr.spec.icon + ' <b>' + esc(pr.spec.nameTh) + '</b></span> <span class="chip b">ดาราจักรขั้นที่ ' + pr.setTier + '/3</span> <span class="chip ok">โจมตี +' + Math.round(pr.atkBonusPct * 100) + '% · ลดดาเมจ -' + Math.round(pr.dmgRedPct * 100) + '% · บ่มเพาะ +' + Math.round(pr.cultRateBonusPct * 100) + '%</span></div>';
+          h += '</div>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px">' + esc(pr.spec.descTh) + '</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">เปลี่ยนดาราจักรประสานหลัก:</span>';
+          Object.values(CULT.PASSIVE_RESONANCE.CONSTELLATIONS).forEach(cSpec => {
+            h += '<button class="btn' + (pr.constellationId === cSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-passive-constellation" data-arg="' + esc(n.id + '|' + cSpec.id) + '">' + esc(cSpec.icon + ' ' + cSpec.shortTh) + '</button>';
+          });
+          h += '</div></div>';
+        }
+      }
+      if (CULT.SUPPORT_ARTS && n.cult) {
+        const sup = CULT.SUPPORT_ARTS.resolveNpcSupport(W, n);
+        if (sup && sup.spec) {
+          const sSt = n.supportState || { posture: 'SOUL_MELODY_HARMONY', totalAlliesHealed: 0, totalHeartDemonCleansed: 0, totalCommandBuffs: 0, breakthroughBlessingsGranted: 0 };
+          h += '<h3>🎶 วิชาสายสนับสนุนและวิชาเสริม (Support & Auxiliary Arts v5.7.0)</h3><div class="card" style="border-color:' + esc(sup.spec.color || '#48cae4') + '">';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<div><span class="chip g" style="border-color:' + esc(sup.spec.color || '#48cae4') + '">' + sup.spec.icon + ' <b>' + esc(sup.spec.nameTh) + '</b></span> <span class="chip b">อาคารประสาน: ' + esc(sup.spec.facilityNameTh) + '</span> <span class="chip ok">หนุนทะลวงด่าน +' + Math.round(sup.effBreakthroughBonus * 100) + '%</span></div>';
+          h += '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="demo-support-art-aura" data-arg="' + esc(n.id) + '">🎶 แผ่รัศมีวิชาสนับสนุน</button>';
+          h += '</div>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>เอกลักษณ์และผลกระทบต่อเนื่อง:</b> ' + esc(sup.spec.prosTh) + '<br><b>ข้อจำกัด:</b> ' + esc(sup.spec.consTh) + '<br><b>สถิติสนับสนุนสำนัก:</b> ชะล้างจิตมารสะสม ' + Math.round(sSt.totalHeartDemonCleansed || 0) + ' แต้ม · สมานแผลสหาย ' + Math.round(sSt.totalAlliesHealed || 0) + ' HP · อวยพรทะลวงด่าน ' + (sSt.breakthroughBlessingsGranted || 0) + ' ครั้ง</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ท่วงท่ายุทธวิธีสายสนับสนุน:</span>';
+          Object.values(CULT.SUPPORT_ARTS.POSTURES).forEach(pSpec => {
+            h += '<button class="btn' + (sup.postureId === pSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-support-posture" data-arg="' + esc(n.id + '|' + pSpec.id) + '">' + esc(pSpec.icon + ' ' + pSpec.shortTh) + '</button>';
+          });
+          h += '</div></div>';
+        }
+      }
       if (CULT.DEFENSIVE_ARTS && n.cult) {
         const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, n);
         if (df && df.spec) {

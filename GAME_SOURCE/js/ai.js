@@ -575,6 +575,7 @@
       const r = CULT.rate(n, ctx.mult || 1) / 60;
       CULT.gain(n, r); if (c.pillT > 0) c.pillT--;
       if (CULT.MANTRA_SYSTEM && n.mantraState) CULT.MANTRA_SYSTEM.stepMeditationResonance(W, n);
+      if (CULT.SUPPORT_ARTS && n.supportState && (W.t % 15 === 0)) CULT.SUPPORT_ARTS.stepFacilityAndDailySynergy(W, n);
       const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1));
       const eDrain = Math.max(0, (c.path === 'BODY' ? 0.13 : c.path === 'DEMON' ? 0.045 : c.path === 'HEART_SOUL' ? 0.02 : 0.015) - eqStage * 0.01);
       const rDrain = Math.max(0, (c.path === 'HEART_SOUL' ? 0.032 : c.path === 'DEMON' ? 0.025 : 0.02) - eqStage * 0.015);

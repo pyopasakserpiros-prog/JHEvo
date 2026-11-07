@@ -1534,6 +1534,7 @@
       if (this.opts.sectSpectacles !== false) {
         this.drawPlazaGrandArrayAndTotems(ctx);
         this.drawGrandFormationWarfareBeams(ctx);
+        this.drawForbiddenVaultAltarSpectacles(ctx);
         this.drawPeakSanctuarySpectacles(ctx);
         this.drawSectCeremonySpectacles(ctx, hour, nightPre);
         this.drawMartialArenaSpectacles(ctx);
@@ -2944,6 +2945,14 @@
       if (n.cult && (act === 'defensive' || (act === 'fight' && n.defensiveArtState) || (n.defensiveArtState && n.defensiveArtState.posture === 'FORTRESS_BASTION_LOCK'))) {
         this.drawNpcDefensiveAegisVisual(ctx, n, ap, act, -bob, moving);
       }
+      // Patch v5.7.0: Support & Auxiliary Arts Visuals (Zither Sound-Waves, Qimen Banner, Golden Needles, Alchemical Mist)
+      if (n.cult && (act === 'support' || (n.supportState && (act === 'cultivate' || act === 'tea' || act === 'treatPatients' || act === 'brew' || act === 'fight')))) {
+        this.drawNpcSupportArtVisual(ctx, n, ap, act, -bob, moving);
+      }
+      // Patch v5.8.0: Forbidden Arts Taboo Seal Chains, Blood-Flame Pillars & Passive Constellation Star-Nodes
+      if (n.cult && (act === 'forbidden' || (n.forbiddenArtState && n.forbiddenArtState.sealMode !== 'SEALED_RESTRAINT') || n.passiveResonanceState)) {
+        this.drawNpcForbiddenTabooVisual(ctx, n, ap, act, -bob, moving);
+      }
 
       // Cultivation / Breakthrough / Intensive Paid Training Qi Resonance
       if (n.cult && (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra')) {
@@ -4078,6 +4087,204 @@
         ctx.beginPath();
         ctx.arc(px, py, 2.6, 0, Math.PI * 2);
         ctx.fill();
+      }
+      ctx.restore();
+    },
+
+    drawForbiddenVaultAltarSpectacles(ctx) {
+      const W = this.W;
+      if (!W || !W.sect || !W.sect.forbiddenVault) return;
+      const fv = W.sect.forbiddenVault;
+      const t = this.t;
+      const ax = 118 * TS, ay = 62 * TS;
+      const isBlood = fv.policy === 'UNRESTRICTED_BLOOD_CULT' || (fv.bloodlineSurgeUntil && fv.bloodlineSurgeUntil > (W.t || 0));
+      ctx.save();
+      ctx.strokeStyle = isBlood ? '#ef233c' : '#ffd166';
+      ctx.lineWidth = 1.8;
+      ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3.2);
+      ctx.beginPath();
+      ctx.ellipse(ax, ay, 22, 10, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    },
+
+    drawNpcForbiddenTabooVisual(ctx, n, ap, act, by, moving) {
+      if (!g.CULT || !n || !n.cult) return;
+      const t = this.t + (n.n || 0) * 0.9;
+      ctx.save();
+
+      // A. Passive Resonance Constellation Star-Ring (if passiveResonanceState is active or pose === 'forbidden')
+      if (g.CULT.PASSIVE_RESONANCE && (n.passiveResonanceState || act === 'forbidden')) {
+        const pr = g.CULT.PASSIVE_RESONANCE.resolveNpcConstellation(this.W, n);
+        if (pr && pr.spec) {
+          const stars = pr.spec.starCount || 6;
+          ctx.strokeStyle = pr.spec.color;
+          ctx.fillStyle = pr.spec.color;
+          ctx.lineWidth = 0.75;
+          ctx.globalAlpha = 0.55;
+          ctx.beginPath();
+          for (let i = 0; i <= stars; i++) {
+            const ang = t * 1.1 + (i % stars) * (Math.PI * 2 / stars);
+            const sx = Math.cos(ang) * 12.0;
+            const sy = -18.5 + by + Math.sin(ang) * 3.2;
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // B. Forbidden Arts Taboo Chains, Blood-Flame Pillar & Void Halo
+      if (g.CULT.FORBIDDEN_ARTS && (act === 'forbidden' || (n.forbiddenArtState && n.forbiddenArtState.sealMode !== 'SEALED_RESTRAINT'))) {
+        const fb = g.CULT.FORBIDDEN_ARTS.resolveNpcForbidden(this.W, n);
+        if (fb && fb.spec) {
+          const arch = fb.archetypeId;
+          const col = fb.spec.color || '#ef233c';
+
+          // Crimson-Black Taboo Hexagram & Shattered Seal Chains around the cultivator
+          ctx.strokeStyle = col;
+          ctx.lineWidth = fb.isFullTaboo ? 1.65 : 1.25;
+          ctx.globalAlpha = 0.78;
+          ctx.beginPath();
+          ctx.ellipse(0, 1 + by * 0.2, 13.5, 5.8, 0, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Crisscrossing Taboo Seal Chains (โซ่ตรวนผนึกต้องห้าม)
+          ctx.strokeStyle = fb.isFullTaboo ? '#ff006e' : '#2b2d42';
+          ctx.lineWidth = 1.15;
+          ctx.beginPath();
+          ctx.moveTo(-9.5, -14 + by);
+          ctx.lineTo(9.5, -3 + by);
+          ctx.moveTo(9.5, -14 + by);
+          ctx.lineTo(-9.5, -3 + by);
+          ctx.stroke();
+
+          if (arch === 'VOID_TABOO_ANNIHILATION' || arch === 'SOUL_DEVOURING_ABYSS') {
+            // Swirling Black-Crimson Void Singularity behind torso
+            ctx.fillStyle = 'rgba(25,10,40,0.55)';
+            ctx.strokeStyle = col;
+            ctx.beginPath();
+            ctx.arc(0, -10 + by, 9.2 + Math.sin(t * 5) * 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            // Raging Blood-Essence Flame tongues rising around body
+            ctx.fillStyle = col;
+            ctx.globalAlpha = 0.65;
+            for (let i = 0; i < 4; i++) {
+              const ang = t * 3.8 + i * 1.57;
+              ctx.beginPath();
+              ctx.arc(Math.cos(ang) * 9.5, -8 + by + Math.sin(ang) * 4.5, 1.8, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      }
+      ctx.restore();
+    },
+
+    drawNpcSupportArtVisual(ctx, n, ap, act, by, moving) {
+      if (!g.CULT || !g.CULT.SUPPORT_ARTS || !n || !n.cult) return;
+      const sup = g.CULT.SUPPORT_ARTS.resolveNpcSupport(this.W, n);
+      if (!sup || !sup.spec) return;
+      const arch = sup.archetypeId;
+      const spec = sup.spec;
+      const t = this.t + (n.n || 0) * 0.7;
+
+      ctx.save();
+      if (arch === 'CELESTIAL_ZITHER_MELODY') {
+        // Expanding Acoustic Zither/Flute Sound-Wave Ripples + Floating Jade Musical Chimes
+        for (let r = 0; r < 2; r++) {
+          const prog = (t * 0.9 + r * 0.5) % 1;
+          ctx.strokeStyle = r === 0 ? '#48cae4' : '#90e0ef';
+          ctx.lineWidth = 1.25;
+          ctx.globalAlpha = (1 - prog) * 0.72;
+          ctx.beginPath();
+          ctx.ellipse(0, 1 + by * 0.15, 7 + prog * 11, 3.0 + prog * 4.8, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#90e0ef';
+        ctx.globalAlpha = 0.85;
+        for (let i = 0; i < 3; i++) {
+          const ang = t * 2.2 + i * 2.1;
+          ctx.beginPath();
+          ctx.arc(Math.cos(ang) * 9.5, -10 + by + Math.sin(ang) * 4.0, 1.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (arch === 'ACUPOINT_MERIDIAN_THERAPY') {
+        // Golden Acupuncture Needles connected by luminous emerald-gold Qi meridian threads
+        ctx.strokeStyle = '#00f5d4';
+        ctx.lineWidth = 0.9;
+        ctx.globalAlpha = 0.65;
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const ang = t * 2.5 + (i * Math.PI * 2 / 5);
+          const nx = Math.cos(ang) * 10.5;
+          const ny = -9 + by + Math.sin(ang) * 5.0;
+          if (i === 0) ctx.moveTo(nx, ny);
+          else ctx.lineTo(nx, ny);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 1.35;
+        ctx.globalAlpha = 0.92;
+        for (let i = 0; i < 5; i++) {
+          const ang = t * 2.5 + (i * Math.PI * 2 / 5);
+          const nx = Math.cos(ang) * 10.5;
+          const ny = -9 + by + Math.sin(ang) * 5.0;
+          ctx.beginPath();
+          ctx.moveTo(nx, ny - 2.5);
+          ctx.lineTo(nx, ny + 2.5);
+          ctx.stroke();
+        }
+      } else if (arch === 'QIMEN_BATTLE_BANNER') {
+        // Glowing Qimen Tactical Command War Banner planted beside the cultivator
+        const bx = -8.5, baseY = 1 + by * 0.2;
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(bx, baseY);
+        ctx.lineTo(bx, baseY - 21);
+        ctx.stroke();
+
+        const wave = Math.sin(t * 4.0) * 1.8;
+        ctx.fillStyle = '#ff6b35';
+        ctx.beginPath();
+        ctx.moveTo(bx, baseY - 20.5);
+        ctx.lineTo(bx - 8.5, baseY - 17.5 + wave);
+        ctx.lineTo(bx, baseY - 13.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else if (arch === 'ALCHEMICAL_INCENSE_MIST') {
+        // Swirling Emerald-Amber Spirit-Herb Incense Mist Puffs
+        const puffs = [[-6.5, -5 + by, 4.2, 2.2, '#52b788'], [6.5, -6 + by, 4.0, 2.1, '#74c69d'], [0, -3 + by, 5.2, 2.4, '#ffd166']];
+        puffs.forEach(([px, py, rx, ry, col], idx) => {
+          ctx.fillStyle = col;
+          ctx.globalAlpha = 0.42 + 0.12 * Math.sin(t * 3 + idx);
+          ctx.beginPath();
+          ctx.ellipse(px + Math.sin(t * 2 + idx) * 1.2, py, rx, ry, 0, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      } else if (arch === 'DIVINATION_STAR_GUIDANCE') {
+        // Rotating Star-Compass Astrolabe Ring
+        ctx.strokeStyle = '#c77dff';
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.78;
+        ctx.beginPath();
+        ctx.ellipse(0, -9 + by, 11.2, 5.2, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        // BODHI_CHANT_SANCTUARY: Floating Golden Bodhi Lotus Lantern & Warm Sanctuary Halo
+        ctx.strokeStyle = '#ffd166';
+        ctx.fillStyle = 'rgba(244,162,97,0.18)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(0, -10 + by, 11.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
       }
       ctx.restore();
     },
@@ -5983,7 +6190,7 @@
 
     const savedAct = n.act;
     try {
-      const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : poseMode === 'qinggong' ? 'qinggong' : poseMode === 'mantra' ? 'mantra' : poseMode === 'defensive' ? 'defensive' : 'cultivate';
+      const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : poseMode === 'qinggong' ? 'qinggong' : poseMode === 'mantra' ? 'mantra' : poseMode === 'defensive' ? 'defensive' : poseMode === 'support' ? 'support' : poseMode === 'forbidden' ? 'forbidden' : 'cultivate';
       const proxyNpc = Object.create(n);
       proxyNpc.x = 0;
       proxyNpc.y = 0;

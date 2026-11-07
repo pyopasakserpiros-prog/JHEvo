@@ -80,9 +80,9 @@ assert.strictEqual(
   'human_core.js SHA-256 must remain 100% byte-identical'
 );
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-assert.strictEqual(SIM.PATCH_VERSION, '5.6.0', 'SIM.PATCH_VERSION must be 5.6.0');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '5.6.0-defensive-kungfu-and-aegis-barriers', 'SIM.SAVE_SCHEMA_VERSION must match v5.6.0');
-assert(SIM.SUPPORTED_PATCHES.includes('5.6.0'), 'SIM.SUPPORTED_PATCHES must include 5.6.0');
+assert.strictEqual(SIM.PATCH_VERSION, '5.8.0', 'SIM.PATCH_VERSION must be 5.6.0');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '5.8.0-forbidden-arts-passive-awakening-and-blood-altar', 'SIM.SAVE_SCHEMA_VERSION must match v5.6.0');
+assert(SIM.SUPPORTED_PATCHES.includes('5.8.0'), 'SIM.SUPPORTED_PATCHES must include 5.6.0');
 
 // 1. Verify CULT.DEFENSIVE_ARTS 6 Archetypes, 3 Postures, 6 Signature Manuals & Catalog Enrichment
 assert(CULT.DEFENSIVE_ARTS && CULT.DEFENSIVE_ARTS.ARCHETYPES, 'CULT.DEFENSIVE_ARTS.ARCHETYPES must exist');

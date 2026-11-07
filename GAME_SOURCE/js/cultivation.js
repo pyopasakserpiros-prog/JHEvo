@@ -3531,6 +3531,7 @@
 
     setDefensivePosture(W, n, postureId, preferredArchetype) {
       if (!n || !n.cult) return null;
+      if (W) W._hasActiveDefSupportAura = true;
       const st = this.ensureState(n);
       if (postureId && this.POSTURES[postureId]) st.posture = postureId;
       if (preferredArchetype && (preferredArchetype === 'AUTO' || this.ARCHETYPES[preferredArchetype])) {
@@ -3541,6 +3542,1095 @@
     }
   };
   CULT.DEFENSIVE_ARTS.initCatalog();
+
+  /* ===== PATCH v5.7.0: SUPPORT & AUXILIARY ARTS OVERHAUL (ระบบวิชาสายสนับสนุน 44 วิชา และสายเสริม 53 วิชา ครบวงจร 5 เสาหลัก) ===== */
+  CULT.SUPPORT_ARTS = {
+    ARCHETYPE_ORDER: [
+      'BODHI_CHANT_SANCTUARY',
+      'DIVINATION_STAR_GUIDANCE',
+      'QIMEN_BATTLE_BANNER',
+      'ACUPOINT_MERIDIAN_THERAPY',
+      'ALCHEMICAL_INCENSE_MIST',
+      'CELESTIAL_ZITHER_MELODY'
+    ],
+    ARCHETYPES: {
+      CELESTIAL_ZITHER_MELODY: {
+        id: 'CELESTIAL_ZITHER_MELODY',
+        rankOrder: 1,
+        icon: '🎶',
+        nameTh: 'คีตเวทย์พิณขลุ่ยหยกกล่อมขวัญสลายมาร (琴箫音律)',
+        shortTh: 'คีตเวทย์พิณขลุ่ย',
+        color: '#48cae4',
+        secondaryColor: '#90e0ef',
+        facilityId: 'tea',
+        facilityNameTh: 'สวนชาวิญญาณ / หอทำสมาธิ',
+        heartDemonCleansePerTick: 0.45,
+        stressCleansePerTick: 0.60,
+        breakthroughStabilityBonus: 0.12,
+        combatAllyAtkBonusPct: 0.16,
+        combatAllyHealPct: 0.04,
+        auraRadius: 6.5,
+        prosTh: 'คลื่นเสียงพิณและขลุ่ยหยกชะล้างจิตมาร (-0.45) และความเครียด (-0.60) ของศิษย์รอบข้าง ลดโอกาสธาตุไฟเข้าแทรกและเพิ่มโอกาสทะลวงด่านสำเร็จ +12%, ในศึกช่วยปลุกขวัญเพิ่มพลังโจมตีสหาย +16%',
+        consTh: 'เน้นการประโลมจิตใจและหนุนสหาย ไม่มีอานุภาพทำลายล้างโดยตรงหากอยู่ลำพัง'
+      },
+      ALCHEMICAL_INCENSE_MIST: {
+        id: 'ALCHEMICAL_INCENSE_MIST',
+        rankOrder: 2,
+        icon: '⚗️',
+        nameTh: 'หมอกควันโอสถทิพย์และสำรับหยกบำรุงปราณ (丹香灵雾)',
+        shortTh: 'หมอกควันโอสถทิพย์',
+        color: '#52b788',
+        secondaryColor: '#ffd166',
+        facilityId: 'alchemy',
+        facilityNameTh: 'หอโอสถ / โรงครัวทิพย์',
+        craftEfficiencyBonusPct: 0.22,
+        energyRestorePerTick: 0.55,
+        satietyRestorePerTick: 0.40,
+        combatAllyHealPct: 0.06,
+        combatAllyQiRestorePct: 0.06,
+        auraRadius: 6.0,
+        prosTh: 'กระจายหมอกควันสมุนไพรทิพย์เร่งประสิทธิภาพการหลอมโอสถ/ตีเหล็ก/ปรุงอาหาร +22%, ฟื้นฟูแรงกายและปราณให้ศิษย์ในสำนัก, และฟื้นฟูเลือด/ปราณสหาย 6% ในศึก',
+        consTh: 'รัศมีหมอกควันโอสถจะหนาแน่นที่สุดเมื่ออยู่ใกล้หอโอสถหรือรวมกลุ่มกัน'
+      },
+      ACUPOINT_MERIDIAN_THERAPY: {
+        id: 'ACUPOINT_MERIDIAN_THERAPY',
+        rankOrder: 3,
+        icon: '🪡',
+        nameTh: 'ดัชนีเข็มทองร้อยด้ายปราณทะลวงจุด (金针渡穴)',
+        shortTh: 'เข็มทองทะลวงจุด',
+        color: '#ffd166',
+        secondaryColor: '#00f5d4',
+        facilityId: 'infirmary',
+        facilityNameTh: 'หอพยาบาล / เรือนหมอเทวดา',
+        injuryHealSpeedBonusPct: 0.50,
+        toxicCleansePerTick: 0.40,
+        breakthroughStabilityBonus: 0.08,
+        combatAllyHealPct: 0.14,
+        combatPurgeDebuff: true,
+        auraRadius: 6.0,
+        prosTh: 'เร่งการรักษาอาการบาดเจ็บในหอพยาบาลเร็วขึ้น +50%, ขับพิษโอสถสะสม (-0.40) เพื่อให้ศิษย์กินโอสถบ่มเพาะต่อได้โดยไม่เกิดพิษตกค้าง, และสมานแผลสหายในศึกฉับพลัน +14% HP',
+        consTh: 'ต้องใช้ความแม่นยำและปราณละเอียดอ่อนในการเดินเข็มทองร้อยด้ายปราณ'
+      },
+      QIMEN_BATTLE_BANNER: {
+        id: 'QIMEN_BATTLE_BANNER',
+        rankOrder: 4,
+        icon: '🚩',
+        nameTh: 'ค่ายกลธงรบฉีเหมินบัญชาทัพ (奇门阵旗)',
+        shortTh: 'ธงรบฉีเหมินนำทัพ',
+        color: '#ff6b35',
+        secondaryColor: '#ffd166',
+        facilityId: 'training_ground',
+        facilityNameTh: 'ลานฝึกยุทธ์ / กองลาดตระเวน',
+        patrolSecurityBonusPct: 0.30,
+        drillEfficiencyBonusPct: 0.20,
+        combatAllyAtkBonusPct: 0.20,
+        combatAllyDefBonusPct: 0.15,
+        expeditionHazardRed: 0.18,
+        auraRadius: 6.5,
+        prosTh: 'ปักธงค่ายกลฉีเหมินบัญชาทัพ เพิ่มพลังโจมตีสหายร่วมรบ +20% และป้องกัน +15%, เสริมความมั่นคงเวรยามสำนัก +30%, และลดความสูญเสียเมื่อออกเดินทางยุทธภพ -18%',
+        consTh: 'เน้นการบัญชาการรบเป็นหมู่คณะ จะแสดงอานุภาพสูงสุดเมื่อมีสหายร่วมรบเคียงข้าง'
+      },
+      DIVINATION_STAR_GUIDANCE: {
+        id: 'DIVINATION_STAR_GUIDANCE',
+        rankOrder: 5,
+        icon: '🔮',
+        nameTh: 'คันฉ่องพยากรณ์ชี้ชะตาดาราและเร้นเงา (星占天机)',
+        shortTh: 'พยากรณ์ดาราชี้ชะตา',
+        color: '#c77dff',
+        secondaryColor: '#e0aaff',
+        facilityId: 'scripture',
+        facilityNameTh: 'หอคัมภีร์ / หอดูดาว',
+        studySpeedBonusPct: 0.22,
+        expeditionHazardRed: 0.25,
+        breakthroughStabilityBonus: 0.10,
+        combatAllyDodgeBonusPct: 0.16,
+        combatAllyCritBonusPct: 0.15,
+        auraRadius: 6.5,
+        prosTh: 'อ่านชะตาดาราชี้ทางสว่าง เร่งความเร็วศึกษาคัมภีร์และวิจัยในหอคัมภีร์ +22%, ลดอันตรายและกับดักในการเดินทางนอกสำนัก -25%, และเพิ่มหลบหลีก/คริติคอลให้สหายในศึก',
+        consTh: 'ใช้สมาธิและปัญญาคำนวณวิถีดาราสูง'
+      },
+      BODHI_CHANT_SANCTUARY: {
+        id: 'BODHI_CHANT_SANCTUARY',
+        rankOrder: 6,
+        icon: '📿',
+        nameTh: 'โคมบัวทิพย์และบทสวดโพธิสัตว์คุ้มวิญญาณ (梵音佛光)',
+        shortTh: 'โคมบัวโพธิสัตว์',
+        color: '#f4a261',
+        secondaryColor: '#fff3b0',
+        facilityId: 'meditation_hall',
+        facilityNameTh: 'หอทำสมาธิ / ลานแปดทิศ',
+        heartDemonCleansePerTick: 0.55,
+        stressCleansePerTick: 0.70,
+        tribulationProtectPct: 0.22,
+        breakthroughStabilityBonus: 0.15,
+        combatAllyDmgRedPct: 0.18,
+        combatAllyHealPct: 0.08,
+        auraRadius: 7.0,
+        prosTh: 'สุดยอดวิชาหนุนเสริมระดับโพธิสัตว์ กางม่านแสงโคมบัวทิพย์ชำระจิตมาร (-0.55) และความหวาดกลัว, คุ้มครองวิญญาณผู้ฝ่าด่านทัณฑ์สวรรค์ (-22% ดาเมจสายฟ้าทัณฑ์ & +15% โอกาสทะลวงด่าน), และลดดาเมจให้สหายในศึก -18%',
+        consTh: 'ต้องอาศัยตบะและจิตเมตตาธรรมอันแน่วแน่ในการคงสภาพม่านแสงโคมบัวทิพย์'
+      }
+    },
+
+    POSTURES: {
+      BENEVOLENT_HEALER_AURA: {
+        id: 'BENEVOLENT_HEALER_AURA',
+        icon: '🌿',
+        nameTh: 'โอสถเมตตาพิทักษ์ชีพ (医道仁心)',
+        shortTh: 'โอสถเมตตาพิทักษ์ชีพ',
+        healMult: 1.45,
+        detoxMult: 1.40,
+        commandMult: 0.90,
+        harmonyMult: 1.10,
+        descTh: 'มุ่งเน้นการเดินเข็มทองและหมอกควันโอสถสมานแผล เร่งฟื้นฟูพลังชีวิตและอาการบาดเจ็บ ×1.45 พร้อมขับพิษโอสถสะสม ×1.40'
+      },
+      TACTICAL_ARRAY_COMMAND: {
+        id: 'TACTICAL_ARRAY_COMMAND',
+        icon: '🚩',
+        nameTh: 'กุนซือค่ายกลนำทัพ (奇门统帅)',
+        shortTh: 'กุนซือค่ายกลนำทัพ',
+        healMult: 1.00,
+        detoxMult: 1.00,
+        commandMult: 1.40,
+        harmonyMult: 1.05,
+        descTh: 'ชูธงรบฉีเหมินและเข็มทิศดาราบัญชาการรบ เพิ่มโบนัสพลังโจมตี/ป้องกันให้สหายร่วมศึกและลดภัยอันตรายนอกสำนัก ×1.40'
+      },
+      SOUL_MELODY_HARMONY: {
+        id: 'SOUL_MELODY_HARMONY',
+        icon: '🎶',
+        nameTh: 'คีตกล่อมจิตสลายมาร (清心梵音)',
+        shortTh: 'คีตกล่อมจิตสลายมาร',
+        healMult: 1.10,
+        detoxMult: 1.25,
+        commandMult: 1.05,
+        harmonyMult: 1.50,
+        descTh: 'บรรเลงพิณขลุ่ยหยกและบทสวดโพธิสัตว์กล่อมเกลาจิตใจ สลายจิตมารและความเครียด ×1.50 ส่งผลให้ศิษย์ในสำนักทะลวงด่านสำเร็จสูงขึ้นอย่างชัดเจน!'
+      }
+    },
+
+    SIGNATURE_MANUALS: [
+      {
+        id: 'SUP_JADE_FLUTE_SERENITY_T1',
+        nameTh: 'เคล็ดขลุ่ยหยกคีตวายุชำระใจ',
+        path: 'SAGE_SUPPORT',
+        cat: 'SUPPORT_TECHNIQUE',
+        tier: 1,
+        power: 22,
+        qiCost: 8,
+        cooldown: 3,
+        element: 'WIND',
+        supportArchetype: 'CELESTIAL_ZITHER_MELODY',
+        descTh: 'เป่าขลุ่ยหยกกระจายคลื่นเสียงวายุพิสุทธิ์ ชะล้างความเหนื่อยล้าและจิตมารของศิษย์ในสวนชาและหอทำสมาธิ'
+      },
+      {
+        id: 'SUP_ALCHEMICAL_SPIRIT_MIST_T2',
+        nameTh: 'เคล็ดหมอกควันเตาโอสถเก้าสมุนไพร',
+        path: 'CRAFT_CREATION',
+        cat: 'AUXILIARY_ART',
+        tier: 2,
+        power: 38,
+        qiCost: 11,
+        cooldown: 3,
+        element: 'WOOD_LIFE',
+        supportArchetype: 'ALCHEMICAL_INCENSE_MIST',
+        descTh: 'ควบแน่นไอน้ำสมุนไพรและกลิ่นหอมจากเตาหลอมโอสถทิพย์ บำรุงปราณและเร่งประสิทธิภาพการผลิตในหอโอสถและโรงหลอม'
+      },
+      {
+        id: 'SUP_GOLDEN_NEEDLE_MERIDIAN_T3',
+        nameTh: 'วิชาเข็มทองร้อยด้ายปราณสมานชีพจร',
+        path: 'SAGE_SUPPORT',
+        cat: 'SUPPORT_TECHNIQUE',
+        tier: 3,
+        power: 56,
+        qiCost: 14,
+        cooldown: 4,
+        element: 'LIGHT_YANG',
+        supportArchetype: 'ACUPOINT_MERIDIAN_THERAPY',
+        descTh: 'ซัดเข็มทองร้อยด้ายปราณเปิดจุดชีพจรสำคัญ สมานแผลภายใน ขับพิษโอสถ และฟื้นฟูพลังชีวิตสหายในพริบตา'
+      },
+      {
+        id: 'SUP_QIMEN_COMMAND_BANNER_T4',
+        nameTh: 'วิชาธงรบฉีเหมินแปดประตูบัญชาทัพ',
+        path: 'STRATEGY_GOVERNANCE',
+        cat: 'SUPPORT_TECHNIQUE',
+        tier: 4,
+        power: 78,
+        qiCost: 18,
+        cooldown: 4,
+        element: 'FIRE',
+        supportArchetype: 'QIMEN_BATTLE_BANNER',
+        descTh: 'ปักธงศึกฉีเหมินแปดประตูกลางสมรภูมิ ปลุกขวัญและประสานกระบวนทัพเพิ่มทั้งพลังโจมตีและปราการป้องกันแก่สหายทั้งหมด'
+      },
+      {
+        id: 'SUP_ASTRAL_FATE_COMPASS_T5',
+        nameTh: 'คัมภีร์เข็มทิศดาราพยากรณ์ชี้ชะตา',
+        path: 'ARRAY_TALISMAN',
+        cat: 'AUXILIARY_ART',
+        tier: 5,
+        power: 102,
+        qiCost: 20,
+        cooldown: 5,
+        element: 'ASTRAL',
+        supportArchetype: 'DIVINATION_STAR_GUIDANCE',
+        descTh: 'หมุนจานเข็มทิศดาราอ่านวิถีฟ้าดิน ชี้จุดตายของศัตรูและนำทางคณะเดินทางหลบเลี่ยงภัยพิบัติในยุทธภพ'
+      },
+      {
+        id: 'SUP_BODHI_SOVEREIGN_CHANT_T6',
+        nameTh: 'มหาโศลกโคมบัวโพธิสัตว์คุ้มภพนิรันดร์',
+        path: 'KARMA_SAMSARA',
+        cat: 'SUPPORT_TECHNIQUE',
+        tier: 6,
+        power: 136,
+        qiCost: 24,
+        cooldown: 5,
+        element: 'LIGHT_YANG',
+        supportArchetype: 'BODHI_CHANT_SANCTUARY',
+        descTh: 'จุดโคมบัวทิพย์เก้ากลีบพร้อมเปล่งมหาโศลกโพธิสัตว์ ชำระจิตมารทั่วสำนักและกางม่านบุญบารมีคุ้มครองศิษย์ที่กำลังฝ่าด่านทัณฑ์สวรรค์'
+      }
+    ],
+
+    classifySupportTech(t) {
+      if (!t) return null;
+      if (t.supportArchetype && this.ARCHETYPES[t.supportArchetype]) return t.supportArchetype;
+      const id = String(t.id || '');
+      const name = String(t.nameTh || '');
+      const path = String(t.path || '');
+      const el = String(t.element || '');
+
+      if (id === 'SUP_BODHI_SOVEREIGN_CHANT_T6' || /โคมบัว|โพธิสัตว์|สวด|ปทุม|เมตตาธรรม|ชำระบาป|อวยพรผู้ทะลวงด่าน|ศรัทธา|ร่มโพธิ์|หกภพ/.test(name) || path === 'KARMA_SAMSARA' || path === 'GOD') {
+        return 'BODHI_CHANT_SANCTUARY';
+      }
+      if (id === 'SUP_JADE_FLUTE_SERENITY_T1' || /พิณ|ขลุ่ย|คีต|ลำนำ|ระฆังหยก|โศลก|สงบจิต|คืนสมาธิ|ปลอบขวัญ/.test(name) || path === 'HEART_SOUL') {
+        return 'CELESTIAL_ZITHER_MELODY';
+      }
+      if (id === 'SUP_GOLDEN_NEEDLE_MERIDIAN_T3' || /เข็มทอง|เข็มเงิน|สกัดจุด|สมานแผล|ต่อชีวิต|ขับพิษ|นวดคลายเส้น|ชุบชีวา|ชุบชีวิต|ประคองผู้บาดเจ็บ|ปลุกชีพจร/.test(name)) {
+        return 'ACUPOINT_MERIDIAN_THERAPY';
+      }
+      if (id === 'SUP_QIMEN_COMMAND_BANNER_T4' || /ธง|กลอง|คำราม|ปลุกขวัญ|เรียกทัพ|สั่งฝูงอสูร|ส่งสัญญาณ|เคี่ยวกรำ|พิชัยสงคราม|เดินทัพ/.test(name) || path === 'STRATEGY_GOVERNANCE') {
+        return 'QIMEN_BATTLE_BANNER';
+      }
+      if (id === 'SUP_ALCHEMICAL_SPIRIT_MIST_T2' || /เตาหลอม|เตาโอสถ|สมุนไพร|น้ำค้างทิพย์|ซุปหยก|ข้าวทิพย์|ครัวทิพย์|ชาหยก|สำรับ|กู่ทองคำ|เก็บกัก/.test(name) || path === 'CRAFT_CREATION') {
+        return 'ALCHEMICAL_INCENSE_MIST';
+      }
+      if (id === 'SUP_ASTRAL_FATE_COMPASS_T5' || /พยากรณ์|เข็มทิศ|พราง|เร้นเงา|ลบกลิ่นอาย|เงาลวง|คัมภีร์เบิกปัญญา|เคลื่อนย้ายจักรวาล/.test(name) || path === 'ARRAY_TALISMAN' || el === 'ASTRAL') {
+        return 'DIVINATION_STAR_GUIDANCE';
+      }
+      if (t.cat === 'SUPPORT_TECHNIQUE' || t.cat === 'AUXILIARY_ART') {
+        return path === 'SAGE_SUPPORT' ? 'ACUPOINT_MERIDIAN_THERAPY' : 'CELESTIAL_ZITHER_MELODY';
+      }
+      return null;
+    },
+
+    initCatalog() {
+      // 1. Register 6 signature manuals in TECH_BY_ID (preserving JD.MARTIAL.techniques & JD.TECH.techniques counts)
+      this.SIGNATURE_MANUALS.forEach(spec => {
+        const fullTech = Object.assign({
+          stages: [
+            { stage: 1, nameTh: 'ขั้นต้น', mult: 1.0 },
+            { stage: 2, nameTh: 'ขั้นเชี่ยวชาญ', mult: 1.22 },
+            { stage: 3, nameTh: 'ขั้นบรรลุ', mult: 1.45 }
+          ],
+          supportSpec: this.ARCHETYPES[spec.supportArchetype]
+        }, spec);
+        TECH_BY_ID[fullTech.id] = fullTech;
+      });
+
+      // 2. Enrich all 97 SUPPORT_TECHNIQUE (44) & AUXILIARY_ART (53) entries in JD.TECH and JD.MARTIAL
+      const enrichList = list => {
+        if (!Array.isArray(list)) return;
+        list.forEach(t => {
+          if (!t || (t.cat !== 'SUPPORT_TECHNIQUE' && t.cat !== 'AUXILIARY_ART')) return;
+          const archId = this.classifySupportTech(t);
+          if (archId && this.ARCHETYPES[archId]) {
+            t.supportArchetype = archId;
+            t.supportSpec = this.ARCHETYPES[archId];
+          }
+        });
+      };
+      if (JD.TECH) enrichList(JD.TECH.techniques);
+      if (JD.MARTIAL) enrichList(JD.MARTIAL.techniques);
+    },
+
+    ensureState(n) {
+      if (!n) return null;
+      if (!n.supportState || typeof n.supportState !== 'object') {
+        n.supportState = {
+          posture: 'SOUL_MELODY_HARMONY',
+          preferredArchetype: 'AUTO',
+          totalAlliesHealed: 0,
+          totalHeartDemonCleansed: 0,
+          totalCommandBuffs: 0,
+          totalFacilitySynergies: 0,
+          breakthroughBlessingsGranted: 0,
+          lastPulseTick: -999
+        };
+      }
+      return n.supportState;
+    },
+
+    unlockedArchetypes(n) {
+      const set = new Set(['CELESTIAL_ZITHER_MELODY']);
+      if (!n || !n.cult) return Array.from(set);
+      const stg = CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult.stage || 1);
+      const path = n.cult.path || '';
+
+      if (stg >= 1 && (path === 'CRAFT_CREATION' || path === 'SAGE_SUPPORT')) set.add('ALCHEMICAL_INCENSE_MIST');
+      if (stg >= 2 && (path === 'SAGE_SUPPORT' || path === 'XIAN' || path === 'BODY')) set.add('ACUPOINT_MERIDIAN_THERAPY');
+      if (stg >= 2 && (path === 'STRATEGY_GOVERNANCE' || path === 'BODY' || path === 'BEAST_SOVEREIGN')) set.add('QIMEN_BATTLE_BANNER');
+      if (stg >= 3 && (path === 'ARRAY_TALISMAN' || path === 'XIAN' || path === 'HEART_SOUL')) set.add('DIVINATION_STAR_GUIDANCE');
+      if (stg >= 4 && (path === 'KARMA_SAMSARA' || path === 'GOD' || path === 'SAGE_SUPPORT')) set.add('BODHI_CHANT_SANCTUARY');
+      if (stg >= 5) {
+        this.ARCHETYPE_ORDER.forEach(a => set.add(a));
+      }
+
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (!t) continue;
+        const archId = t.supportArchetype || ((t.cat === 'SUPPORT_TECHNIQUE' || t.cat === 'AUXILIARY_ART') ? this.classifySupportTech(t) : null);
+        if (archId && this.ARCHETYPES[archId]) set.add(archId);
+      }
+      return this.ARCHETYPE_ORDER.filter(a => set.has(a));
+    },
+
+    resolveNpcSupport(W, n) {
+      if (!n || !n.cult) return null;
+      const st = n.supportState || null;
+      const unlocked = this.unlockedArchetypes(n);
+      const prefArch = (st && st.preferredArchetype) || 'AUTO';
+      const archId = (prefArch !== 'AUTO' && unlocked.includes(prefArch)) ? prefArch : (unlocked[0] || 'CELESTIAL_ZITHER_MELODY');
+      const spec = this.ARCHETYPES[archId] || this.ARCHETYPES.CELESTIAL_ZITHER_MELODY;
+
+      const postureId = (st && st.posture && this.POSTURES[st.posture]) ? st.posture : 'SOUL_MELODY_HARMONY';
+      const postureSpec = this.POSTURES[postureId];
+
+      let learnedTech = null;
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (t && (t.supportArchetype === archId || t.cat === 'SUPPORT_TECHNIQUE' || t.cat === 'AUXILIARY_ART')) {
+          if (!learnedTech || (t.tier || 1) > (learnedTech.tier || 1)) learnedTech = t;
+        }
+      }
+
+      const effHealPct = +((spec.combatAllyHealPct || 0.05) * postureSpec.healMult).toFixed(3);
+      const effAtkBonusPct = +((spec.combatAllyAtkBonusPct || 0.08) * postureSpec.commandMult).toFixed(3);
+      const effDefBonusPct = +((spec.combatAllyDefBonusPct || spec.combatAllyDmgRedPct || 0.08) * postureSpec.commandMult).toFixed(3);
+      const effHeartDemonCleanse = +((spec.heartDemonCleansePerTick || 0.25) * postureSpec.harmonyMult).toFixed(3);
+      const effToxicCleanse = +((spec.toxicCleansePerTick || 0.20) * postureSpec.detoxMult).toFixed(3);
+      const effBreakthroughBonus = +((spec.breakthroughStabilityBonus || 0.08) * postureSpec.harmonyMult).toFixed(3);
+      const effExpeditionHazardRed = +((spec.expeditionHazardRed || 0.10) * postureSpec.commandMult).toFixed(3);
+
+      return {
+        archetypeId: archId,
+        spec,
+        postureId,
+        postureSpec,
+        unlockedArchetypes: unlocked,
+        techNameTh: learnedTech ? learnedTech.nameTh : spec.nameTh,
+        effHealPct,
+        effAtkBonusPct,
+        effDefBonusPct,
+        effHeartDemonCleanse,
+        effToxicCleanse,
+        effBreakthroughBonus,
+        effExpeditionHazardRed,
+        auraRadius: spec.auraRadius || 6.5
+      };
+    },
+
+    setSupportPosture(W, n, postureId, preferredArchetype) {
+      if (!n || !n.cult) return null;
+      if (W) W._hasActiveDefSupportAura = true;
+      const st = this.ensureState(n);
+      if (postureId && this.POSTURES[postureId]) st.posture = postureId;
+      if (preferredArchetype && (preferredArchetype === 'AUTO' || this.ARCHETYPES[preferredArchetype])) {
+        st.preferredArchetype = preferredArchetype;
+      }
+      return this.resolveNpcSupport(W, n);
+    },
+
+    stepFacilityAndDailySynergy(W, n) {
+      if (!W || !n || !n.cult || !n.supportState) return null;
+      const sup = this.resolveNpcSupport(W, n);
+      if (!sup) return null;
+      const st = n.supportState;
+      const rad = sup.auraRadius || 6.5;
+      let affected = 0;
+
+      // Apply chain-reaction support aura to nearby sect members (and self)
+      const list = Array.isArray(W.npcs) ? W.npcs : [];
+      for (let i = 0; i < list.length; i++) {
+        const ally = list[i];
+        if (!ally || ally.dead || ally.away || !ally.h || !ally.h.state) continue;
+        const dist = ally.id === n.id ? 0 : Math.hypot((ally.x || 0) - (n.x || 0), (ally.y || 0) - (n.y || 0));
+        if (dist > rad) continue;
+        affected++;
+        const as = ally.h.state;
+
+        // 1. Cleanse Heart Demon & Stress -> directly lowers Qi deviation & boosts breakthrough readiness
+        if (sup.effHeartDemonCleanse > 0 && (as.heartDemon || 0) > 0) {
+          const hdBefore = as.heartDemon || 0;
+          as.heartDemon = Math.max(0, +(hdBefore - sup.effHeartDemonCleanse).toFixed(3));
+          st.totalHeartDemonCleansed = +((st.totalHeartDemonCleansed || 0) + (hdBefore - as.heartDemon)).toFixed(2);
+        }
+        if (sup.spec.stressCleansePerTick) {
+          as.stress = Math.max(0, (as.stress || 0) - sup.spec.stressCleansePerTick);
+        }
+
+        // 2. Cleanse Pill Qi Toxicity & accelerate injury recovery (Infirmary / Acupoint Synergy)
+        if (ally.cult && sup.effToxicCleanse > 0 && (ally.cult.toxic || 0) > 0) {
+          ally.cult.toxic = Math.max(0, +(ally.cult.toxic - sup.effToxicCleanse).toFixed(3));
+        }
+        if (sup.archetypeId === 'ACUPOINT_MERIDIAN_THERAPY' && Array.isArray(ally.inj) && ally.inj.length > 0) {
+          ally.inj.forEach(inj => { if (inj && inj.until > 0) inj.until = Math.max(0, inj.until - 180); });
+          ally.inj = ally.inj.filter(inj => inj && inj.until > 0);
+        }
+
+        // 3. Heal HP & restore Stamina (Alchemical Mist / Benevolent Healer)
+        const ahm = CULT.hpMax(ally);
+        if (as.hp < ahm) {
+          const healAmt = Math.max(1, Math.round(ahm * sup.effHealPct));
+          as.hp = Math.min(ahm, as.hp + healAmt);
+          st.totalAlliesHealed = (st.totalAlliesHealed || 0) + healAmt;
+        }
+        if (sup.spec.energyRestorePerTick) {
+          as.energy = Math.min(100, (as.energy || 50) + sup.spec.energyRestorePerTick);
+        }
+
+        // 3B. Patch v5.8.0 Cross-System Synergy: Cleanse Forbidden Taboo Strain (คลายเส้นชีพจรที่ตึงเครียดจากวิชาต้องห้าม)
+        if (ally.forbiddenArtState && ally.forbiddenArtState.tabooStrain > 0) {
+          ally.forbiddenArtState.tabooStrain = Math.max(0, +(ally.forbiddenArtState.tabooStrain - 8).toFixed(2));
+        }
+
+        // 4. Grant Breakthrough Stability Blessing (_btBonusPct) so disciples break through with higher success!
+        if (ally.cult && sup.effBreakthroughBonus > 0) {
+          const prevBt = ally._btBonusPct || 0;
+          if (sup.effBreakthroughBonus > prevBt) {
+            ally._btBonusPct = sup.effBreakthroughBonus;
+            st.breakthroughBlessingsGranted = (st.breakthroughBlessingsGranted || 0) + 1;
+          }
+        }
+      }
+
+      st.totalFacilitySynergies = (st.totalFacilitySynergies || 0) + 1;
+      st.lastPulseTick = W.t || 0;
+      return { ok: true, affected, supportProfile: sup };
+    },
+
+    triggerSectEmergencySupport(W, mode) {
+      if (!W || !Array.isArray(W.npcs)) return { ok: false, reason: 'no-world' };
+      const alive = W.npcs.filter(n => n && !n.dead && !n.away);
+      let count = 0;
+      alive.forEach(n => {
+        const s = n.h && n.h.state;
+        if (!s) return;
+        count++;
+        if (mode === 'ZITHER_PURGE_HEART_DEMON') {
+          s.heartDemon = Math.max(0, (s.heartDemon || 0) - 18);
+          s.stress = Math.max(0, (s.stress || 0) - 20);
+          s.mood = Math.min(50, (s.mood || 0) + 12);
+          if (n.cult) n._btBonusPct = Math.max(n._btBonusPct || 0, 0.12);
+        } else if (mode === 'INFIRMARY_ACUPOINT_HEAL') {
+          const hm = CULT.hpMax(n);
+          s.hp = hm;
+          if (n.cult) n.cult.toxic = Math.max(0, (n.cult.toxic || 0) - 25);
+          if (Array.isArray(n.inj) && n.inj.length > 0) n.inj = [];
+        } else if (mode === 'QIMEN_BANNER_RALLY') {
+          s.energy = Math.min(100, (s.energy || 50) + 30);
+          if (n.cult) s.qi = CULT.qiMax(n);
+          n.supportCommandRallyUntil = (W.t || 0) + 1440;
+        }
+      });
+      return { ok: true, mode, affectedCount: count };
+    }
+  };
+  CULT.SUPPORT_ARTS.initCatalog();
+
+  /* ===== PATCH v5.8.0 [PILLAR 1]: FORBIDDEN ARTS & BLOOD-SACRIFICE OVERHAUL (ยกระดับวิชาต้องห้าม 37 วิชา + 6 คัมภีร์ต้องห้ามใหม่ T1–T6) ===== */
+  CULT.FORBIDDEN_ARTS = {
+    ARCHETYPE_ORDER: [
+      'VOID_TABOO_ANNIHILATION',
+      'LIFESPAN_HEAVEN_DEFIANCE',
+      'SOUL_DEVOURING_ABYSS',
+      'CORPSE_PUPPET_NECROMANCY',
+      'MERIDIAN_REVERSE_BURST',
+      'BLOOD_ESSENCE_IGNITION'
+    ],
+    ARCHETYPES: {
+      BLOOD_ESSENCE_IGNITION: {
+        id: 'BLOOD_ESSENCE_IGNITION',
+        rankOrder: 1,
+        icon: '🩸',
+        nameTh: 'เผาแก่นโลหิตระเบิดตบะ (燃血秘术)',
+        shortTh: 'เผาแก่นโลหิต',
+        color: '#ef233c',
+        secondaryColor: '#ff758f',
+        atkSurgePct: 0.45,
+        cultSurgePct: 0.32,
+        hpSacrificePctPerHit: 0.025,
+        heartDemonGainPerTick: 0.14,
+        breakthroughDefianceBonus: 0.14,
+        desperationNovaMult: 0.30,
+        prosTh: 'เผาผลาญโลหิตต้นกำเนิดเพื่อระเบิดพลังโจมตี +45% และเร่งความเร็วบ่มเพาะ +32%, เพิ่มโอกาสฝ่าด่านคอขวด +14%',
+        consTh: 'สูญเสียพลังชีวิต 2.5% ทุกครั้งที่สำแดงวิชาในศึก และสะสมภาวะโลหิตพร่อง/แรงกดดันจิตมาร'
+      },
+      MERIDIAN_REVERSE_BURST: {
+        id: 'MERIDIAN_REVERSE_BURST',
+        rankOrder: 2,
+        icon: '⚡',
+        nameTh: 'ย้อนรอยเส้นชีพจรทะลวงขีดจำกัด (逆脉狂暴)',
+        shortTh: 'ย้อนรอยชีพจรคลั่ง',
+        color: '#ff006e',
+        secondaryColor: '#ffbe0b',
+        atkSurgePct: 0.42,
+        cultSurgePct: 0.36,
+        speedSurgePct: 0.30,
+        hpSacrificePctPerHit: 0.02,
+        heartDemonGainPerTick: 0.16,
+        breakthroughDefianceBonus: 0.18,
+        desperationNovaMult: 0.32,
+        prosTh: 'ฝืนเดินปราณย้อนเส้นชีพจรพิสดารทั้งแปด เพิ่มพลังโจมตี +42%, ความเร็วเคลื่อนที่และวิชาตัวเบา +30%, และทะลวงคอขวดตบะ +18%',
+        consTh: 'ก่อให้เกิดอาการชีพจรตึงเครียด (Taboo Strain) หลังจบศึก ต้องอาศัยเข็มทองหรือโอสถช่วยคลายเส้น'
+      },
+      CORPSE_PUPPET_NECROMANCY: {
+        id: 'CORPSE_PUPPET_NECROMANCY',
+        rankOrder: 3,
+        icon: '🧟',
+        nameTh: 'เพาะกู่โลหิตและเชิดหุ่นวิญญาณต้องห้าม (控尸血蛊)',
+        shortTh: 'กู่โลหิตเชิดวิญญาณ',
+        color: '#7209b7',
+        secondaryColor: '#b5179e',
+        atkSurgePct: 0.38,
+        cultSurgePct: 0.28,
+        venomCurseBonusPct: 0.35,
+        hpSacrificePctPerHit: 0.015,
+        heartDemonGainPerTick: 0.18,
+        breakthroughDefianceBonus: 0.12,
+        desperationNovaMult: 0.28,
+        prosTh: 'ปล่อยแมลงกู่โลหิตและหุ่นเงาวิญญาณรุมกัดกร่อนศัตรู เพิ่มดาเมจพิษ/คำสาป +38% และดูดซับแรงกายศัตรูมาฟื้นฟูตนเอง',
+        consTh: 'กลิ่นอายกู่โลหิตชวนขนลุก เพิ่มแรงกดดันจิตมารและเสี่ยงถูกหอวินัยเพ่งเล็งหากใช้อย่างเปิดเผย'
+      },
+      SOUL_DEVOURING_ABYSS: {
+        id: 'SOUL_DEVOURING_ABYSS',
+        rankOrder: 4,
+        icon: '💀',
+        nameTh: 'วังวนกลืนวิญญาณสูบตันเถียน (噬魂魔典)',
+        shortTh: 'วังวนสูบตันเถียน',
+        color: '#9d4edd',
+        secondaryColor: '#ef233c',
+        atkSurgePct: 0.48,
+        cultSurgePct: 0.44,
+        lifestealPct: 0.24,
+        qistealPct: 0.28,
+        hpSacrificePctPerHit: 0.01,
+        heartDemonGainPerTick: 0.22,
+        breakthroughDefianceBonus: 0.16,
+        desperationNovaMult: 0.35,
+        prosTh: 'สร้างวังวนทมิฬสูบพลังชีวิต 24% และสูบปราณตันเถียนศัตรู 28% ทุกครั้งที่โจมตี! เร่งความเร็วบ่มเพาะ +44% และกลืนกินตบะศัตรูที่พ่ายแพ้',
+        consTh: 'วิญญาณอาฆาตที่สูบเข้ามาจะกระตุ้นจิตมารอย่างรุนแรง ต้องใช้คีตเวทย์พิณหรือโคมบัวโพธิสัตว์คอยชำระล้าง'
+      },
+      LIFESPAN_HEAVEN_DEFIANCE: {
+        id: 'LIFESPAN_HEAVEN_DEFIANCE',
+        rankOrder: 5,
+        icon: '⏳',
+        nameTh: 'สังเวยอายุขัยฝืนลิขิตฟ้า (燃寿逆天功)',
+        shortTh: 'สังเวยอายุขัยฝืนฟ้า',
+        color: '#ff4d6d',
+        secondaryColor: '#ffd166',
+        atkSurgePct: 0.58,
+        cultSurgePct: 0.48,
+        hpSacrificePctPerHit: 0.03,
+        heartDemonGainPerTick: 0.20,
+        breakthroughDefianceBonus: 0.25,
+        desperationNovaMult: 0.42,
+        prosTh: 'เผาผลาญพลังชีวิตและเศษเสี้ยวอายุขัยเพื่อฝืนชะตาสวรรค์! เพิ่มพลังโจมตี +58%, เพิ่มโอกาสทะลวงด่านใหญ่ +25%, และระเบิดพลังเฮือกสุดท้ายเมื่อเลือดต่ำกว่า 30%',
+        consTh: 'ทุกครั้งที่ปลดผนึกเต็มพิกัดจะบั่นทอนปราณอายุขัยและเพิ่มความเหนื่อยล้าอย่างหนัก'
+      },
+      VOID_TABOO_ANNIHILATION: {
+        id: 'VOID_TABOO_ANNIHILATION',
+        rankOrder: 6,
+        icon: '🌑',
+        nameTh: 'มหาวิชาต้องห้ามทลายสามภพดับสูญ (禁忌灭世诀)',
+        shortTh: 'ทลายสามภพดับสูญ',
+        color: '#d90429',
+        secondaryColor: '#3a0ca3',
+        atkSurgePct: 0.72,
+        cultSurgePct: 0.55,
+        hpSacrificePctPerHit: 0.035,
+        heartDemonGainPerTick: 0.28,
+        breakthroughDefianceBonus: 0.28,
+        desperationNovaMult: 0.50,
+        prosTh: 'สุดยอดมหาวิชาต้องห้ามระดับทำลายล้าง เมื่อปลดผนึกเต็มพิกัดจะเพิ่มพลังโจมตี +72% และปล่อย「มหาคลื่นสุญตาดับสูญฟ้าดิน」กวาดล้างศัตรูเมื่อตกอยู่ในวิกฤตปางตาย!',
+        consTh: 'กินพลังชีวิต 3.5% ต่อการโจมตีและสร้างแรงสะท้อนปราณต้องห้ามสูงสุด ต้องมีตบะและรากฐานที่แข็งแกร่งจึงจะควบคุมได้'
+      }
+    },
+
+    SEAL_MODES: {
+      SEALED_RESTRAINT: {
+        id: 'SEALED_RESTRAINT',
+        icon: '🔒',
+        nameTh: 'ผนึกคัมภีร์ต้องห้าม (封印静心)',
+        shortTh: 'ผนึกคัมภีร์ (ปลอดภัย)',
+        powerMult: 0,
+        cultMult: 1.00,
+        strainRate: -0.15,
+        descTh: 'ตีตราผนึกวิชาต้องห้ามไว้ในส่วนลึกของจิตวิญญาณ ไม่เสียเลือดและไม่เกิดจิตมาร พร้อมได้โบนัสความตั้งมั่นทางใจจากการชนะสิ่งยั่วยุ'
+      },
+      HALF_UNSEALED_FLOW: {
+        id: 'HALF_UNSEALED_FLOW',
+        icon: '☯️',
+        nameTh: 'คลายผนึกครึ่งขั้น (半解禁制)',
+        shortTh: 'คลายผนึกครึ่งขั้น',
+        powerMult: 0.55,
+        cultMult: 1.22,
+        strainRate: 0.12,
+        descTh: 'แง้มตราผนึกดึงปราณต้องห้ามออกมาใช้ครึ่งส่วน เพิ่มพลังโจมตีและอัตราบ่มเพาะอย่างมีนัยสำคัญโดยยังควบคุมผลข้างเคียงได้'
+      },
+      BLOOD_TABOO_UNLEASHED: {
+        id: 'BLOOD_TABOO_UNLEASHED',
+        icon: '🩸',
+        nameTh: 'ปลดผนึกโลหิตต้องห้ามเต็มพิกัด (血祭全开)',
+        shortTh: 'ปลดผนึกโลหิตเต็มพิกัด!',
+        powerMult: 1.00,
+        cultMult: 1.50,
+        strainRate: 0.35,
+        descTh: 'ฉีกตราผนึกทั้งหมดเพื่อสำแดงอานุภาพวิชาต้องห้าม 100%! เร่งพลังทำลายล้างและทะลวงคอขวดสูงสุด พร้อมเปิดใช้งาน「ระเบิดมหาวิชาต้องห้ามฝืนชะตา」เมื่อบาดเจ็บวิกฤต!'
+      }
+    },
+
+    SIGNATURE_MANUALS: [
+      {
+        id: 'FORB_BLOOD_ESSENCE_IGNITE_T1',
+        nameTh: 'เคล็ดต้องห้ามเผาโลหิตเร่งปราณ',
+        path: 'DEMON',
+        cat: 'FORBIDDEN_ART',
+        tier: 1,
+        power: 35,
+        qiCost: 10,
+        cooldown: 4,
+        element: 'BLOOD_DEMON',
+        forbiddenArchetype: 'BLOOD_ESSENCE_IGNITION',
+        descTh: 'จุดระเบิดโลหิตในกายเพื่อเร่งปราณและพละกำลังโจมตีให้พุ่งทะยานเหนือขีดจำกัดของระดับขั้น'
+      },
+      {
+        id: 'FORB_MERIDIAN_REVERSE_BURST_T2',
+        nameTh: 'เคล็ดต้องห้ามย้อนชีพจรแปดพิสดาร',
+        path: 'BODY',
+        cat: 'FORBIDDEN_ART',
+        tier: 2,
+        power: 55,
+        qiCost: 14,
+        cooldown: 4,
+        element: 'LIGHTNING',
+        forbiddenArchetype: 'MERIDIAN_REVERSE_BURST',
+        descTh: 'ฝืนหมุนเวียนลมปราณย้อนทวนเส้นชีพจรพิสดารทั้งแปด ระเบิดความเร็วและแรงปะทะดุจอสูรคลั่ง'
+      },
+      {
+        id: 'FORB_CORPSE_GU_NECROMANCY_T3',
+        nameTh: 'คัมภีร์ต้องห้ามกู่โลหิตเชิดวิญญาณ',
+        path: 'DEMON',
+        cat: 'FORBIDDEN_ART',
+        tier: 3,
+        power: 78,
+        qiCost: 18,
+        cooldown: 5,
+        element: 'YIN_SHADOW',
+        forbiddenArchetype: 'CORPSE_PUPPET_NECROMANCY',
+        descTh: 'เลี้ยงกู่โลหิตและอัญเชิญเงาซากศพบรรพกาลออกมากัดกร่อนปราณคุ้มกายของศัตรู'
+      },
+      {
+        id: 'FORB_SOUL_DEVOURING_ABYSS_T4',
+        nameTh: 'มหาเวทต้องห้ามวังวนสูบตันเถียน',
+        path: 'DEMON',
+        cat: 'FORBIDDEN_ART',
+        tier: 4,
+        power: 105,
+        qiCost: 22,
+        cooldown: 5,
+        element: 'BLOOD_DEMON',
+        forbiddenArchetype: 'SOUL_DEVOURING_ABYSS',
+        descTh: 'เปิดวังวนทมิฬดูดกลืนพลังชีวิตและปราณตันเถียนของคู่ต่อสู้มาหล่อเลี้ยงตบะของตนเองโดยตรง'
+      },
+      {
+        id: 'FORB_LIFESPAN_HEAVEN_DEFIANCE_T5',
+        nameTh: 'คัมภีร์ต้องห้ามสังเวยอายุขัยฝืนชะตาสวรรค์',
+        path: 'XIAN',
+        cat: 'FORBIDDEN_ART',
+        tier: 5,
+        power: 138,
+        qiCost: 26,
+        cooldown: 6,
+        element: 'FIRE',
+        forbiddenArchetype: 'LIFESPAN_HEAVEN_DEFIANCE',
+        descTh: 'เผาผลาญปราณอายุขัยแลกกับพลังอำนาจท้าทายสวรรค์ ช่วยฝ่าด่านคอขวดและพลิกสถานการณ์จากความตาย'
+      },
+      {
+        id: 'FORB_VOID_APOCALYPSE_TABOO_T6',
+        nameTh: 'มหาคัมภีร์ต้องห้ามทลายสามภพดับสูญ',
+        path: 'DEMON',
+        cat: 'FORBIDDEN_ART',
+        tier: 6,
+        power: 175,
+        qiCost: 32,
+        cooldown: 6,
+        element: 'ASTRAL',
+        forbiddenArchetype: 'VOID_TABOO_ANNIHILATION',
+        descTh: 'คัมภีร์ต้องห้ามสูงสุดที่ฉีกกระชากมิติและสายฟ้าทัณฑ์สวรรค์ลงมาถล่มสมรภูมิให้พินาศไปพร้อมกัน'
+      }
+    ],
+
+    classifyForbiddenTech(t) {
+      if (!t) return null;
+      if (t.forbiddenArchetype && this.ARCHETYPES[t.forbiddenArchetype]) return t.forbiddenArchetype;
+      const id = String(t.id || '');
+      const name = String(t.nameTh || '');
+      const el = String(t.element || '');
+
+      if (id === 'FORB_VOID_APOCALYPSE_TABOO_T6' || /ทลายสามภพ|ล้างบางสมรภูมิ|ทัณฑ์สวรรค์|ระเบิดแกนค่ายกล|ระเบิดสะท้านสวรรค์|ฉีกมิติ|พลิกผันกงล้อกรรม/.test(name)) {
+        return 'VOID_TABOO_ANNIHILATION';
+      }
+      if (id === 'FORB_LIFESPAN_HEAVEN_DEFIANCE_T5' || /อายุขัย|แลกชีวิต|พลีชีพ|ร่วมตาย|บงกชโลหิต/.test(name)) {
+        return 'LIFESPAN_HEAVEN_DEFIANCE';
+      }
+      if (id === 'FORB_SOUL_DEVOURING_ABYSS_T4' || /สูบปราณ|สูบเลือด|กลืนกิน|ดูดดาว|กลืนสวรรค์|กลืนฟ้าร้าวชีพ|สูบพลังชีวิต/.test(name)) {
+        return 'SOUL_DEVOURING_ABYSS';
+      }
+      if (id === 'FORB_CORPSE_GU_NECROMANCY_T3' || /กู่โลหิต|หมอกพิษ|คำสาป|บังคับวิญญาณ|บังคับอสูร|มายาจันทรา/.test(name)) {
+        return 'CORPSE_PUPPET_NECROMANCY';
+      }
+      if (id === 'FORB_MERIDIAN_REVERSE_BURST_T2' || /ย้อนชีพจร|ฉีกกล้ามเนื้อ|ทุบชีพจร|สะบั้นสายพิณ|ผสานร่างอวตาร/.test(name) || el === 'LIGHTNING') {
+        return 'MERIDIAN_REVERSE_BURST';
+      }
+      if (t.cat === 'FORBIDDEN_ART' || t.cat === 'FORBIDDEN_TECHNIQUE') {
+        return 'BLOOD_ESSENCE_IGNITION';
+      }
+      return null;
+    },
+
+    initCatalog() {
+      this.SIGNATURE_MANUALS.forEach(spec => {
+        const fullTech = Object.assign({
+          stages: [
+            { stage: 1, nameTh: 'ขั้นแง้มผนึก', mult: 1.0 },
+            { stage: 2, nameTh: 'ขั้นคลายผนึกโลหิต', mult: 1.25 },
+            { stage: 3, nameTh: 'ขั้นปลดผนึกทลายฟ้า', mult: 1.55 }
+          ],
+          forbiddenSpec: this.ARCHETYPES[spec.forbiddenArchetype]
+        }, spec);
+        TECH_BY_ID[fullTech.id] = fullTech;
+      });
+
+      const enrichList = list => {
+        if (!Array.isArray(list)) return;
+        list.forEach(t => {
+          if (!t || (t.cat !== 'FORBIDDEN_ART' && t.cat !== 'FORBIDDEN_TECHNIQUE')) return;
+          const archId = this.classifyForbiddenTech(t);
+          if (archId && this.ARCHETYPES[archId]) {
+            t.forbiddenArchetype = archId;
+            t.forbiddenSpec = this.ARCHETYPES[archId];
+          }
+        });
+      };
+      if (JD.TECH) enrichList(JD.TECH.techniques);
+      if (JD.MARTIAL) enrichList(JD.MARTIAL.techniques);
+    },
+
+    ensureState(n) {
+      if (!n) return null;
+      if (!n.forbiddenArtState || typeof n.forbiddenArtState !== 'object') {
+        n.forbiddenArtState = {
+          sealMode: 'SEALED_RESTRAINT',
+          preferredArchetype: 'AUTO',
+          tabooStrain: 0,
+          desperationNovaUsedFightId: -1,
+          totalBloodSacrificed: 0,
+          totalSoulsDevoured: 0,
+          totalTabooStrikes: 0,
+          totalDesperationNovas: 0
+        };
+      }
+      return n.forbiddenArtState;
+    },
+
+    unlockedArchetypes(n) {
+      const set = new Set(['BLOOD_ESSENCE_IGNITION']);
+      if (!n || !n.cult) return Array.from(set);
+      const stg = CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult.stage || 1);
+      const path = n.cult.path || '';
+
+      if (stg >= 2 && (path === 'BODY' || path === 'XIAN' || path === 'DEMON')) set.add('MERIDIAN_REVERSE_BURST');
+      if (stg >= 3 && (path === 'DEMON' || path === 'BEAST_SOVEREIGN' || path === 'MECH_PUPPET')) set.add('CORPSE_PUPPET_NECROMANCY');
+      if (stg >= 4 && (path === 'DEMON' || path === 'HEART_SOUL' || path === 'GOD')) set.add('SOUL_DEVOURING_ABYSS');
+      if (stg >= 5) {
+        set.add('LIFESPAN_HEAVEN_DEFIANCE');
+        set.add('SOUL_DEVOURING_ABYSS');
+        set.add('CORPSE_PUPPET_NECROMANCY');
+        set.add('MERIDIAN_REVERSE_BURST');
+      }
+      if (stg >= 6) {
+        this.ARCHETYPE_ORDER.forEach(a => set.add(a));
+      }
+
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (!t) continue;
+        const archId = t.forbiddenArchetype || ((t.cat === 'FORBIDDEN_ART' || t.cat === 'FORBIDDEN_TECHNIQUE') ? this.classifyForbiddenTech(t) : null);
+        if (archId && this.ARCHETYPES[archId]) set.add(archId);
+      }
+      return this.ARCHETYPE_ORDER.filter(a => set.has(a));
+    },
+
+    resolveNpcForbidden(W, n) {
+      if (!n || !n.cult) return null;
+      const st = n.forbiddenArtState || null;
+      const unlocked = this.unlockedArchetypes(n);
+      const prefArch = (st && st.preferredArchetype) || 'AUTO';
+      const archId = (prefArch !== 'AUTO' && unlocked.includes(prefArch)) ? prefArch : (unlocked[0] || 'BLOOD_ESSENCE_IGNITION');
+      const spec = this.ARCHETYPES[archId] || this.ARCHETYPES.BLOOD_ESSENCE_IGNITION;
+
+      const sealModeId = (st && st.sealMode && this.SEAL_MODES[st.sealMode]) ? st.sealMode : 'SEALED_RESTRAINT';
+      const sealSpec = this.SEAL_MODES[sealModeId];
+
+      let learnedTech = null;
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (t && (t.forbiddenArchetype === archId || t.cat === 'FORBIDDEN_ART' || t.cat === 'FORBIDDEN_TECHNIQUE')) {
+          if (!learnedTech || (t.tier || 1) > (learnedTech.tier || 1)) learnedTech = t;
+        }
+      }
+
+      const pMult = sealSpec.powerMult || 0;
+      const effAtkBonusPct = +(spec.atkSurgePct * pMult).toFixed(3);
+      const effCultMult = pMult > 0 ? +(1 + (spec.cultSurgePct || 0.30) * pMult).toFixed(3) : 1.0;
+      const effHpCostPct = +(spec.hpSacrificePctPerHit * pMult).toFixed(4);
+      const effBreakthroughBonus = +(spec.breakthroughDefianceBonus * pMult).toFixed(3);
+
+      return {
+        archetypeId: archId,
+        spec,
+        sealModeId,
+        sealSpec,
+        unlockedArchetypes: unlocked,
+        techNameTh: learnedTech ? learnedTech.nameTh : spec.nameTh,
+        isUnsealed: pMult > 0,
+        isFullTaboo: sealModeId === 'BLOOD_TABOO_UNLEASHED',
+        effAtkBonusPct,
+        effCultMult,
+        effHpCostPct,
+        effBreakthroughBonus,
+        tabooStrain: (st && st.tabooStrain) || 0
+      };
+    },
+
+    setForbiddenSealMode(W, n, sealModeId, preferredArchetype) {
+      if (!n || !n.cult) return null;
+      const st = this.ensureState(n);
+      if (sealModeId && this.SEAL_MODES[sealModeId]) st.sealMode = sealModeId;
+      if (preferredArchetype && (preferredArchetype === 'AUTO' || this.ARCHETYPES[preferredArchetype])) {
+        st.preferredArchetype = preferredArchetype;
+      }
+      const res = this.resolveNpcForbidden(W, n);
+      if (res && res.effBreakthroughBonus > 0) {
+        n._btBonusPct = Math.max(n._btBonusPct || 0, res.effBreakthroughBonus);
+      }
+      n._cultRateBase = null;
+      return res;
+    }
+  };
+  CULT.FORBIDDEN_ARTS.initCatalog();
+
+  /* ===== PATCH v5.8.0 [PILLAR 2]: PASSIVE & INNATE SUBPATH RESONANCE CONSTELLATIONS (ยกระดับวิชาติดตัว 227 วิชา และวิชาสายย่อย 36 วิชา รวม 263 วิชา) ===== */
+  CULT.PASSIVE_RESONANCE = {
+    CONSTELLATION_ORDER: [
+      'SWORD_BLADE_EDGE_CONSTELLATION',
+      'IMMORTAL_MERIDIAN_OCEAN',
+      'TITAN_MARROW_FORTRESS',
+      'PHANTOM_WIND_SHADOW_WEB',
+      'SAGE_ARTISAN_MIND_PALACE',
+      'SOVEREIGN_KARMA_BLOOD_SEAL'
+    ],
+    CONSTELLATIONS: {
+      SWORD_BLADE_EDGE_CONSTELLATION: {
+        id: 'SWORD_BLADE_EDGE_CONSTELLATION',
+        icon: '⚔️',
+        nameTh: 'ดาราจักรคมศาสตราผ่าสวรรค์ (天剑锋芒星宿)',
+        shortTh: 'ดาราจักรคมศาสตรา',
+        color: '#00f5d4',
+        starCount: 7,
+        atkBonusPerTier: 0.08,
+        critBonusPerTier: 4.5,
+        penBonusPerTier: 5.0,
+        descTh: 'เชื่อมโยงวิชาติดตัวสายศาสตราและเจตจำนงคมดาบ เพิ่มพลังโจมตี อัตราคริติคอล และเจาะเกราะตามระดับดาราจักร (ขั้น 1–3)'
+      },
+      IMMORTAL_MERIDIAN_OCEAN: {
+        id: 'IMMORTAL_MERIDIAN_OCEAN',
+        icon: '🌊',
+        nameTh: 'ดาราจักรทะเลปราณไร้ก้นบึ้ง (沧海气海星宿)',
+        shortTh: 'ดาราจักรทะเลปราณ',
+        color: '#48cae4',
+        starCount: 6,
+        qiMaxBonusPerTier: 0.12,
+        cultRateBonusPerTier: 0.09,
+        qiCostRedPerTier: 0.06,
+        descTh: 'เชื่อมโยงวิชาติดตัวสายชีพจรและตันเถียน ขยายความจุปราณสูงสุด เร่งความเร็วบ่มเพาะ และประหยัดปราณเมื่อใช้วิชา'
+      },
+      TITAN_MARROW_FORTRESS: {
+        id: 'TITAN_MARROW_FORTRESS',
+        icon: '🏔️',
+        nameTh: 'ดาราจักรกระดูกทองคำค้ำปฐพี (玄武金骨星宿)',
+        shortTh: 'ดาราจักรกระดูกทองคำ',
+        color: '#ffd166',
+        starCount: 8,
+        hpMaxBonusPerTier: 0.12,
+        dmgRedPerTier: 0.06,
+        poiseBonusPerTier: 0.15,
+        descTh: 'เชื่อมโยงวิชาติดตัวสายหลอมกายาและกระดูกทองคำ เพิ่มพลังชีวิตสูงสุด ลดความเสียหายที่ได้รับ และต้านทานการถูกขัดจังหวะ'
+      },
+      PHANTOM_WIND_SHADOW_WEB: {
+        id: 'PHANTOM_WIND_SHADOW_WEB',
+        icon: '🕸️',
+        nameTh: 'ดาราจักรเงาวายุไร้ร่องรอย (幽影疾风星宿)',
+        shortTh: 'ดาราจักรเงาวายุ',
+        color: '#c77dff',
+        starCount: 5,
+        speedBonusPerTier: 0.08,
+        dodgeBonusPerTier: 0.06,
+        firstStrikeBonusPerTier: 0.10,
+        descTh: 'เชื่อมโยงวิชาติดตัวสายความเร็วและลอบเร้น เพิ่มความเร็วเคลื่อนที่ อัตราหลบหลีก และโบนัสดาเมจเปิดฉากโจมตี'
+      },
+      SAGE_ARTISAN_MIND_PALACE: {
+        id: 'SAGE_ARTISAN_MIND_PALACE',
+        icon: '🏛️',
+        nameTh: 'ดาราจักรตำหนักปัญญาปราชญ์สรรค์สร้าง (天工慧心星宿)',
+        shortTh: 'ดาราจักรตำหนักปัญญา',
+        color: '#52b788',
+        starCount: 6,
+        studySpeedBonusPerTier: 0.12,
+        craftBonusPerTier: 0.10,
+        heartDemonResPerTier: 0.15,
+        descTh: 'เชื่อมโยงวิชาติดตัวสายปัญญา โอสถ ค่ายกล และการปกครอง เร่งความเร็วศึกษาคัมภีร์ เพิ่มผลผลิตงานช่าง และต้านทานจิตมาร'
+      },
+      SOVEREIGN_KARMA_BLOOD_SEAL: {
+        id: 'SOVEREIGN_KARMA_BLOOD_SEAL',
+        icon: '👑',
+        nameTh: 'ดาราจักรตราประทับราชันย์และวัฏสงสาร (霸主轮回星宿)',
+        shortTh: 'ดาราจักรตราประทับราชันย์',
+        color: '#ff4d6d',
+        starCount: 7,
+        lifestealPerTier: 0.05,
+        petPuppetBonusPerTier: 0.12,
+        karmaRetributionPerTier: 0.08,
+        descTh: 'เชื่อมโยงวิชาติดตัวสายราชันย์อสูร หุ่นเชิด จิตมาร และวัฏสงสาร เพิ่มการดูดเลือด บัญชาอสูร/หุ่นเชิด และสะท้อนวิบากกรรม'
+      }
+    },
+
+    classifyPassiveTech(t) {
+      if (!t) return null;
+      if (t.passiveConstellation && this.CONSTELLATIONS[t.passiveConstellation]) return t.passiveConstellation;
+      const id = String(t.id || '');
+      const name = String(t.nameTh || '');
+      const path = String(t.path || '');
+
+      if (/SWORD|BLADE|SPEAR|BOW|กระบี่|ดาบ|ทวน|ศร|คม|สังหาร|ผ่า/.test(id + '|' + name)) {
+        return 'SWORD_BLADE_EDGE_CONSTELLATION';
+      }
+      if (path === 'BODY' || /กระดูก|กายา|โลหิตมังกร|เหล็ก|ศิลา|ทนทาน|ระฆัง|เกราะ|ค้ำ/.test(name)) {
+        return 'TITAN_MARROW_FORTRESS';
+      }
+      if (path === 'CRAFT_CREATION' || path === 'SAGE_SUPPORT' || path === 'ARRAY_TALISMAN' || path === 'STRATEGY_GOVERNANCE' || /โอสถ|หลอม|ค่ายกล|ยันต์|พิณ|หมอ|ปัญญา|คัมภีร์|บริหาร/.test(name)) {
+        return 'SAGE_ARTISAN_MIND_PALACE';
+      }
+      if (path === 'DEMON' || path === 'BEAST_SOVEREIGN' || path === 'MECH_PUPPET' || path === 'KARMA_SAMSARA' || /มาร|อสูร|หุ่น|กรรม|วิญญาณ|โลหิต/.test(name)) {
+        return 'SOVEREIGN_KARMA_BLOOD_SEAL';
+      }
+      if (/เงา|วายุ|พริบตา|ลอบ|เร็ว|คล่องตัว|หลบ/.test(name)) {
+        return 'PHANTOM_WIND_SHADOW_WEB';
+      }
+      if (t.cat === 'PASSIVE' || t.cat === 'INNATE_SUBPATH') {
+        return 'IMMORTAL_MERIDIAN_OCEAN';
+      }
+      return null;
+    },
+
+    initCatalog() {
+      const enrichList = list => {
+        if (!Array.isArray(list)) return;
+        list.forEach(t => {
+          if (!t || (t.cat !== 'PASSIVE' && t.cat !== 'INNATE_SUBPATH')) return;
+          const cId = this.classifyPassiveTech(t);
+          if (cId && this.CONSTELLATIONS[cId]) {
+            t.passiveConstellation = cId;
+            t.constellationSpec = this.CONSTELLATIONS[cId];
+          }
+        });
+      };
+      if (JD.TECH) enrichList(JD.TECH.techniques);
+      if (JD.MARTIAL) enrichList(JD.MARTIAL.techniques);
+    },
+
+    ensureState(n) {
+      if (!n) return null;
+      if (!n.passiveResonanceState || typeof n.passiveResonanceState !== 'object') {
+        n.passiveResonanceState = {
+          focusConstellation: 'AUTO',
+          awakenedLevel: 1
+        };
+      }
+      return n.passiveResonanceState;
+    },
+
+    resolveNpcConstellation(W, n) {
+      if (!n || !n.cult) return null;
+      const st = n.passiveResonanceState || null;
+      const counts = {};
+      this.CONSTELLATION_ORDER.forEach(k => { counts[k] = 0; });
+
+      const techs = Array.isArray(n.cult.techs) ? n.cult.techs : [];
+      for (let i = 0; i < techs.length; i++) {
+        const t = TECH_BY_ID[techs[i]];
+        if (!t) continue;
+        const cId = t.passiveConstellation || ((t.cat === 'PASSIVE' || t.cat === 'INNATE_SUBPATH') ? this.classifyPassiveTech(t) : null);
+        if (cId && counts[cId] != null) counts[cId]++;
+      }
+
+      // Choose dominant or user-focused constellation
+      let focusId = (st && st.focusConstellation && this.CONSTELLATIONS[st.focusConstellation]) ? st.focusConstellation : null;
+      if (!focusId) {
+        focusId = this.CONSTELLATION_ORDER[0];
+        let bestCnt = -1;
+        this.CONSTELLATION_ORDER.forEach(k => {
+          if (counts[k] > bestCnt) { bestCnt = counts[k]; focusId = k; }
+        });
+      }
+
+      const spec = this.CONSTELLATIONS[focusId] || this.CONSTELLATIONS.SWORD_BLADE_EDGE_CONSTELLATION;
+      const matchedCount = counts[focusId] || 0;
+      const stg = n.cult.stage || 1;
+      const setTier = matchedCount >= 4 ? 3 : matchedCount >= 2 ? 2 : (matchedCount >= 1 || stg >= 3) ? 1 : 1;
+
+      return {
+        constellationId: focusId,
+        spec,
+        setTier,
+        matchedPassivesCount: matchedCount,
+        countsByConstellation: counts,
+        atkBonusPct: +((spec.atkBonusPerTier || 0.04) * setTier).toFixed(3),
+        dmgRedPct: +((spec.dmgRedPerTier || 0.03) * setTier).toFixed(3),
+        cultRateBonusPct: +((spec.cultRateBonusPerTier || 0.05) * setTier).toFixed(3)
+      };
+    },
+
+    setFocusConstellation(W, n, constellationId) {
+      if (!n || !n.cult) return null;
+      const st = this.ensureState(n);
+      st.focusConstellation = (constellationId && this.CONSTELLATIONS[constellationId]) ? constellationId : 'AUTO';
+      n._cultRateBase = null;
+      return this.resolveNpcConstellation(W, n);
+    }
+  };
+  CULT.PASSIVE_RESONANCE.initCatalog();
 
   /* ----- ตั้งต้นการบำเพ็ญ: เปิดเส้นลมปราณ (awakening) ----- */
   CULT.awaken = (npc, rng, bias, day) => {
@@ -3732,7 +4822,16 @@
         mantraStanceMult = 1.20;
       }
     }
-    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult * mantraStanceMult;
+    let forbiddenAndPassiveMult = 1;
+    if (npc.forbiddenArtState && CULT.FORBIDDEN_ARTS) {
+      const fb = CULT.FORBIDDEN_ARTS.resolveNpcForbidden(null, npc);
+      if (fb && fb.effCultMult > 1) forbiddenAndPassiveMult *= fb.effCultMult;
+    }
+    if (npc.passiveResonanceState && CULT.PASSIVE_RESONANCE) {
+      const pr = CULT.PASSIVE_RESONANCE.resolveNpcConstellation(null, npc);
+      if (pr && pr.cultRateBonusPct > 0) forbiddenAndPassiveMult *= (1 + pr.cultRateBonusPct);
+    }
+    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult * mantraStanceMult * forbiddenAndPassiveMult;
     if (rc && !npc.mantraState && !hasOath && !hasMeridianInj && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
       rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.dynMult = dynMult;
     }

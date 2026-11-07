@@ -15592,6 +15592,113 @@
   SECT.resolveCouncilAgenda = STRATEGIC_COUNCIL.resolveCouncilAgenda;
 
   /* ===== PATCH v5.5.0: GRAND FORMATION WARFARE & DYNAMIC WEATHER CALAMITIES ===== */
+  /* ===== PATCH v5.8.0 [PILLAR 3]: SECT FORBIDDEN SCRIPTURE VAULT & PRIMORDIAL BLOODLINE ALTAR ===== */
+  SECT.FORBIDDEN_VAULT = {
+    POLICIES: {
+      STRICT_ORTHODOX_BAN: {
+        id: 'STRICT_ORTHODOX_BAN',
+        icon: '⚖️',
+        nameTh: 'ผนึกตายห้ามฝึกวิชาต้องห้าม (正道严禁)',
+        shortTh: 'ผนึกตายฝ่ายธรรมะ',
+        fameBonus: 15,
+        sectPowerMult: 1.00,
+        heartDemonDelta: -0.25,
+        descTh: 'สั่งปิดตายหอผนึกคัมภีร์ต้องห้าม เชิดชูเกียรติภูมิสำนักฝ่ายธรรมะ (+15 ชื่อเสียง) และลดการเกิดจิตมารทั่วสำนัก'
+      },
+      ELDER_LICENSED_ACCESS: {
+        id: 'ELDER_LICENSED_ACCESS',
+        icon: '📜',
+        nameTh: 'อนุญาตเฉพาะผู้อาวุโสและศิษย์แกนกลางยามศึก (长老特许)',
+        shortTh: 'อนุญาตเฉพาะแกนกลาง',
+        fameBonus: 0,
+        sectPowerMult: 1.15,
+        heartDemonDelta: 0.05,
+        descTh: 'เปิดหอผนึกให้ผู้อาวุโสและศิษย์แกนกลางศึกษาเพื่อป้องกันสำนักในยามวิกฤต เพิ่มพลังรบสำนัก +15% อย่างสมดุล'
+      },
+      UNRESTRICTED_BLOOD_CULT: {
+        id: 'UNRESTRICTED_BLOOD_CULT',
+        icon: '🩸',
+        nameTh: 'เปิดหอคัมภีร์ต้องห้ามเสรี (禁忌全开)',
+        shortTh: 'เปิดเสรีวิชาต้องห้าม!',
+        fameBonus: -10,
+        sectPowerMult: 1.35,
+        heartDemonDelta: 0.30,
+        descTh: 'ปลดล็อกคัมภีร์ต้องห้ามให้ศิษย์ทุกคนเข้าถึงได้เพื่อเร่งอำนาจสูงสุด! พลังรบสำนักพุ่งทะยาน +35% แต่เพิ่มแรงกดดันจิตมาร'
+      }
+    },
+    ALTAR_RITUALS: {
+      AWAKEN_BLOODLINE_ALTAR: {
+        id: 'AWAKEN_BLOODLINE_ALTAR',
+        icon: '🩸',
+        nameTh: 'พิธีปลุกสายเลือดบรรพกาลและแท่นสังเวยอสูร',
+        descTh: 'หลอมแก่นอสูรและศิลาวิญญาณบนแท่นบูชาบรรพกาล มอบบัฟเร่งพลังรบ +18% และความเร็วบ่มเพาะ +20% แก่ศิษย์ทั้งสำนัก'
+      },
+      PURIFY_TABOO_BACKLASH: {
+        id: 'PURIFY_TABOO_BACKLASH',
+        icon: '🪷',
+        nameTh: 'มหาพิธีชำระล้างปราณต้องห้ามและคลายชีพจร',
+        descTh: 'เดินค่ายกลชำระล้างอาการชีพจรตึงเครียด (Taboo Strain), พิษโอสถ และจิตมารที่เกิดจากการใช้วิชาต้องห้ามให้หมดสิ้นทั้งสำนัก'
+      }
+    },
+    ensure(W) {
+      if (!W || !W.sect) return null;
+      if (!W.sect.forbiddenVault || typeof W.sect.forbiddenVault !== 'object') {
+        W.sect.forbiddenVault = {
+          policy: 'ELDER_LICENSED_ACCESS',
+          altarLevel: 1,
+          bloodlineSurgeUntil: 0,
+          totalRitualsPerformed: 0,
+          totalTabooPurifications: 0
+        };
+      }
+      return W.sect.forbiddenVault;
+    },
+    setVaultPolicy(W, policyId) {
+      if (!W || !W.sect || !this.POLICIES[policyId]) return { ok: false, reason: 'invalid-policy' };
+      const fv = this.ensure(W);
+      fv.policy = policyId;
+      const spec = this.POLICIES[policyId];
+      if (Array.isArray(W.npcs)) {
+        W.npcs.forEach(n => {
+          if (!n || n.dead || !n.cult) return;
+          if (policyId === 'STRICT_ORTHODOX_BAN') {
+            if (n.forbiddenArtState) n.forbiddenArtState.sealMode = 'SEALED_RESTRAINT';
+            if (n.h && n.h.state) n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - 8);
+          } else if (policyId === 'UNRESTRICTED_BLOOD_CULT' && CULT && CULT.FORBIDDEN_ARTS) {
+            CULT.FORBIDDEN_ARTS.setForbiddenSealMode(W, n, 'HALF_UNSEALED_FLOW');
+          }
+          n._cultRateBase = null;
+        });
+      }
+      return { ok: true, policyId, spec, state: fv };
+    },
+    performAltarRitual(W, ritualId) {
+      if (!W || !W.sect || !this.ALTAR_RITUALS[ritualId]) return { ok: false, reason: 'invalid-ritual' };
+      const fv = this.ensure(W);
+      fv.totalRitualsPerformed = (fv.totalRitualsPerformed || 0) + 1;
+      const alive = (W.npcs || []).filter(n => n && !n.dead && !n.away);
+      if (ritualId === 'AWAKEN_BLOODLINE_ALTAR') {
+        fv.bloodlineSurgeUntil = (W.t || 0) + 2880;
+        alive.forEach(n => {
+          if (n.cult) n._btBonusPct = Math.max(n._btBonusPct || 0, 0.15);
+          if (n.h && n.h.state) n.h.state.qi = CULT.qiMax(n);
+        });
+      } else if (ritualId === 'PURIFY_TABOO_BACKLASH') {
+        fv.totalTabooPurifications = (fv.totalTabooPurifications || 0) + 1;
+        alive.forEach(n => {
+          if (n.forbiddenArtState) n.forbiddenArtState.tabooStrain = 0;
+          if (n.h && n.h.state) {
+            n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - 25);
+            n.h.state.stress = Math.max(0, (n.h.state.stress || 0) - 25);
+            n.h.state.hp = CULT.hpMax(n);
+          }
+          if (n.cult) n.cult.toxic = Math.max(0, (n.cult.toxic || 0) - 25);
+        });
+      }
+      return { ok: true, ritualId, spec: this.ALTAR_RITUALS[ritualId], affectedCount: alive.length, state: fv };
+    }
+  };
+
   SECT.FORMATION_WARFARE = {
     STANCES: {
       FIVE_ELEMENT_NURTURE: {

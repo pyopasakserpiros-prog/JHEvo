@@ -7,16 +7,16 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.6.0` (Era 5 Phase 7: Defensive Kungfu & Protective Aegis Overhaul — **พัฒนาและส่งมอบครบทั้ง 5 เสาหลักของ `v5.6.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 132/132 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.8.0` (Era 5 Phase 9: Forbidden Arts Overhaul, Passive Constellations & Primordial Bloodline Altar — **พัฒนาและส่งมอบครบทั้ง 6 เสาหลักของ `v5.8.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 134/134 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V5_7_0.md`](ACTIVE_PATCH_PROMPT_V5_7_0.md) (Era 5 Phase 8: Advanced Combat Maneuvers, Stance Transitions & Battlefield Domains)
+  👉 [`ACTIVE_PATCH_PROMPT_V5_9_0.md`](ACTIVE_PATCH_PROMPT_V5_9_0.md)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_3_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_3_0.md) (`v5.3.0` — Heavenly Tribulation Breakthrough & Signature Skill VFX)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_4_0.md) (`v5.4.0` — Qinggong Locomotion, Sword Flight & Celestial Levitation)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md) (`v5.5.0` — Mantra Resonance, Dynamic Weather & Grand Formation Warfare)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md) (`v5.6.0` — Defensive Kungfu & Protective Aegis Overhaul)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md) (`v5.7.0` — Support & Auxiliary Arts Overhaul)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md) (`v5.8.0` — Forbidden Arts, Passive Constellations & Primordial Bloodline Altar)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **แพตช์ `v5.6.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.7_0` ตามใบสั่งงาน!**
+  👉 **แพตช์ `v5.8.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.9.0` ตามใบสั่งงาน!**
 
 ---
 
@@ -129,5 +129,13 @@ cd GAME_SOURCE && node tools/build_single.js
 
 ## สถานะล่าสุด: Patch v5.6.0 (Era 5 Phase 7: Defensive Kungfu & Protective Aegis Overhaul) เสร็จสมบูรณ์ 100%
 - รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md`
-- แพทช์ถัดไปในคิว: [`ACTIVE_PATCH_PROMPT_V5_7_0.md`](ACTIVE_PATCH_PROMPT_V5_7_0.md)
 - ชุดทดสอบทั้งหมด: `132/132 PASS` (`test/v560_defensive_kungfu_and_aegis_suite.js`)
+
+## สถานะล่าสุด: Patch v5.7.0 (Era 5 Phase 8: Support & Auxiliary Arts Overhaul) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md`
+- ชุดทดสอบทั้งหมด: `133/133 PASS` (`test/v570_support_and_auxiliary_arts_suite.js`)
+
+## สถานะล่าสุด: Patch v5.8.0 (Era 5 Phase 9: Forbidden Arts Overhaul, Passive Constellations & Blood Altar) เสร็จสมบูรณ์ 100%
+- รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md`
+- แพทช์ถัดไปในคิว: [`ACTIVE_PATCH_PROMPT_V5_9_0.md`](ACTIVE_PATCH_PROMPT_V5_9_0.md)
+- ชุดทดสอบทั้งหมด: `134/134 PASS` (`test/v580_forbidden_arts_and_passive_constellations_suite.js`)

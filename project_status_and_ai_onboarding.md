@@ -1,19 +1,19 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `v5.6.0` (runtime patch identifier `5.6.0` | SIM Version `1.10.18` | Save Schema `5.6.0-defensive-kungfu-and-aegis-barriers` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v5.6.0 Complete 100%` | Active Target: `v5.7.0 Advanced Combat Maneuvers & Battlefield Domains`)
+**เวอร์ชันแพ็กเกจ**: `v5.8.0` (runtime patch identifier `5.8.0` | SIM Version `1.10.20` | Save Schema `5.8.0-forbidden-arts-passive-awakening-and-blood-altar` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v5.8.0 Complete 100%` | Active Target: `v5.9.0`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
 > เอกสารนี้คือ **สรุประบบปัจจุบันสำหรับตอบคำถามภาพรวม** ให้อ่านก่อนตอบว่าเกมมีอะไรหรือเสนอแนวทางพัฒนาต่อ เพื่อหลีกเลี่ยงการเสนอระบบที่มีอยู่แล้ว เมื่อจะลงมือแก้ไขหรือต้องการยืนยันรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้องด้วย
 
-> **สถานะปัจจุบันของแพตช์ v5.6.0 และผลการตรวจรับรอง (7 พฤศจิกายน 2026):**
-> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`8,333 KB`) ครบสมบูรณ์
+> **สถานะปัจจุบันของแพตช์ v5.8.0 และผลการตรวจรับรอง (7 พฤศจิกายน 2026):**
+> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`8,410 KB`) ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
-> 3. ชุดทดสอบใหม่ประจำแพตช์คือ `test/v530_heavenly_tribulation_and_skill_vfx_suite.js`, `test/v540_qinggong_movement_and_flight_suite.js`, `test/v550_mantra_resonance_and_formation_warfare_suite.js`, และ `test/v560_defensive_kungfu_and_aegis_suite.js` ผ่านครบ **100% PASS** ยืนยันการทำงานของระบบทัณฑ์สวรรค์ 15 ทิค, วิชากระบี่เหิน/เหาะเหินเดินอากาศ, ลมปราณและค่ายกลสงครามสำนัก, และวิชาคุ้มกาย 6 อาร์คิไทป์
-> 4. ความเร็วจำลอง 80 NPC อยู่ที่ `<= 0.5 ms/tick` (ต่ำกว่าเพดานกำหนด `<= 3.5 ms/tick`)
-> 5. ชุดทดสอบรวมผ่านครบ **132/132 กลุ่ม (100% PASS)**
-> 6. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V5_7_0.md`](ACTIVE_PATCH_PROMPT_V5_7_0.md)
+> 3. ชุดทดสอบใหม่ประจำแพตช์คือ `test/v570_support_and_auxiliary_arts_suite.js` และ `test/v580_forbidden_arts_and_passive_constellations_suite.js` ผ่านครบ **100% PASS** ยืนยันการทำงานของระบบวิชาสนับสนุน 6 อาร์คิไทป์, วิชาต้องห้าม 37 วิชา, 263 พาสซีฟจัดกลุ่ม 6 กลุ่มดาว, หอคัมภีร์ต้องห้าม, และแท่นบูชาสายเลือดบรรพกาล
+> 4. ความเร็วจำลอง 80 NPC อยู่ที่ `~1.58 ms/tick` (ต่ำกว่าเพดานกำหนด `<= 3.5 ms/tick`)
+> 5. ชุดทดสอบรวมผ่านครบ **134/134 กลุ่ม (100% PASS)**
+> 6. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V5_9_0.md`](ACTIVE_PATCH_PROMPT_V5_9_0.md)
 
 ---
 

@@ -280,7 +280,17 @@
     const mountCapMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
     const durMult = applyQinggongToTrip ? +(Math.max(0.45, mountDurMult * qgBonus.durationMultiplier)).toFixed(3) : mountDurMult;
     const capMult = applyQinggongToTrip ? +(mountCapMult * qgBonus.capacityMultiplier).toFixed(2) : mountCapMult;
-    const hazRed = Math.min(0.60, (hasPhoenixMount ? 0.35 : (hasMount ? 0.12 : 0)) + (applyQinggongToTrip ? qgBonus.hazardReduction : 0));
+    let supportHazRed = 0;
+    if (CULT && CULT.SUPPORT_ARTS) {
+      for (let i = 0; i < members.length; i++) {
+        const m = members[i];
+        if (m && m.supportState && m.cult) {
+          const sup = CULT.SUPPORT_ARTS.resolveNpcSupport(W, m);
+          if (sup && sup.effExpeditionHazardRed > supportHazRed) supportHazRed = sup.effExpeditionHazardRed;
+        }
+      }
+    }
+    const hazRed = Math.min(0.65, (hasPhoenixMount ? 0.35 : (hasMount ? 0.12 : 0)) + (applyQinggongToTrip ? qgBonus.hazardReduction : 0) + supportHazRed);
     const baseDays = Number.isFinite(opts.baseDays) ? Math.max(1, opts.baseDays) : null;
     const baseCapacity = Number.isFinite(opts.baseCapacity) ? Math.max(1, opts.baseCapacity) : 20 + members.length * 12;
     return {
