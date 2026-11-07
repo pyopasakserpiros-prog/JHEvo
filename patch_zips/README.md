@@ -5,7 +5,11 @@
 ---
 
 ## 🌟 มหายุคที่ 5: Grand Celestial Visual Overhaul (v5.x)
-- **`JHEvo-main-v5.6.0.zip`** (ล่าสุด):
+- **`JHEvo-main-v5.8.0.zip`** (ล่าสุด):
+  - แพตช์ Era 5 Phase 9: Mega 6-Pillar Expansion — ยกเครื่องวิชาต้องห้าม 37 วิชา + 6 คัมภีร์ต้องห้ามระดับ T1–T6, 3 โหมดปลดผนึกพลังโลหิต, 263 วิชาพาสซีฟ/สายย่อยจัดกลุ่ม 6 กลุ่มดาวสถิตฟ้า, หอคัมภีร์ต้องห้าม & แท่นบูชาสายเลือดบรรพกาล, และเอฟเฟกต์ออร่าต้องห้ามสีเลือดทมิฬในไดโอรามา (`poseMode === 'forbidden'`)
+- **`JHEvo-main-v5.7.0.zip`**:
+  - แพตช์ Era 5 Phase 8: Support & Auxiliary Arts Overhaul — วิชาสายสนับสนุน 44 วิชา และวิชาเสริม 53 วิชา รวม 97 วิชา จัดกลุ่ม 6 อาร์คิไทป์ + 6 คัมภีร์ T1–T6, 3 ท่วงท่ายุทธวิธี (`BENEVOLENT_HEALER_AURA`, `TACTICAL_ARRAY_COMMAND`, `SOUL_MELODY_HARMONY`), คลื่นเสียงพิณระลอกคลื่น, ธงค่ายกลเรืองแสง, เข็มทองร้อยด้ายปราณ และโหมดโพสท่าสายสนับสนุน (`poseMode === 'support'`)
+- **`JHEvo-main-v5.6.0.zip`**:
   - แพตช์ Era 5 Phase 7: Defensive Kungfu & Protective Aegis Overhaul — วิชาคุ้มกาย 6 อาร์คิไทป์ (`IRON_VAJRA_CARAPACE`, `ELEMENTAL_THORN_ARMOR`, `SWORD_CURTAIN_WARD`, `TAIJI_SOFT_REDIRECTION`, `MIRAGE_CICADA_SHELL`, `CELESTIAL_AEGIS_DOME`), 3 ท่วงท่าตั้งรับ (`PASSIVE_AURA_GUARD`, `COUNTER_PARRY_STANCE`, `FORTRESS_BASTION_LOCK`), ปราการเพชรคุ้มสหาย และเอฟเฟกต์ม่านพลังคุ้มกายสดบนแผนที่สำนัก/ไดโอรามา
 - **`JHEvo-main-v5.5.0.zip`**:
   - แพตช์ Era 5 Phase 6: Mantra Resonance, Dynamic Weather & Grand Formation Warfare — 122 คัมภีร์ลมปราณจัดกลุ่ม 7 อาร์คิไทป์, 3 ท่าเดินลมปราณภายใน, ค่ายกลสงครามสำนัก 3 ท่า (`FIVE_ELEMENT_NURTURE`, `SWORD_NET_SLAUGHTER`, `IMMORTAL_AEGIS_DOME`), และปรากฏการณ์ฟ้าดิน 6 สภาพอากาศ
