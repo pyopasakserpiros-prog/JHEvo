@@ -16,14 +16,18 @@
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md) (`v5.7.0` — Support & Auxiliary Arts Overhaul)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md) (`v5.8.0` — Forbidden Arts, Passive Constellations & Primordial Bloodline Altar)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **แพตช์ `v5.8.0` เสร็จสิ้นสมบูรณ์ 100% พร้อมเริ่มแพตช์ใหม่ `v5.9.0` ตามใบสั่งงาน!**
+  👉 **ยกระดับสู่ JianghuSect 2 (v2.0.0: The Grand Dao Epoch — มหาศักราชแห่งวิถีและกำเนิดผู้บ่มเพาะ)** โดยปลดล็อกข้อจำกัดเซฟเก่าเพื่อพัฒนาเต็มประสิทธิภาพ!
+- **🔥 ใบสั่งงานและข้อกำหนดการพัฒนามหาอัปเดต (Active Specification):**
+  👉 [`INSTRUCTIONS_FOR_GEMINI_ARGON4.md`](INSTRUCTIONS_FOR_GEMINI_ARGON4.md)  
+  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md)  
+  👉 ข้อเสนอ 5 มหาวิถีของ GPT สำหรับอ้างอิง: [`JHEvo_v5_8_0_five_new_cultivation_paths_proposal.md`](JHEvo_v5_8_0_five_new_cultivation_paths_proposal.md)  
 
 ---
 
 ## 🧭 ขั้นตอนการปฏิบัติงานมาตรฐาน 10 ขั้น (10-Step Execution & Daisy-Chain Protocol)
 
 ### ขั้นที่ 1: อ่านใบสั่งงานแพตช์ปัจจุบัน (`ACTIVE_PATCH_PROMPT`)
-1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_V4_0_0.md`](ACTIVE_PATCH_PROMPT_V4_0_0.md)) อย่างละเอียดทุกบรรทัด
+1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md) หรือ [`INSTRUCTIONS_FOR_GEMINI_ARGON4.md`](INSTRUCTIONS_FOR_GEMINI_ARGON4.md)) อย่างละเอียดทุกบรรทัด
 2. ตรวจสอบตารางรายการข้อเสนอ (Proposals) เป้าหมาย ไฟล์ที่ต้องแก้ไข และเกณฑ์การผ่านทดสอบ (Acceptance Criteria)
 
 ### ขั้นที่ 2: อ่านภาพรวมสถาปัตยกรรมและกฎเหล็กของโปรเจกต์
