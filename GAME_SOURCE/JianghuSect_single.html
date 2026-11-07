@@ -132338,7 +132338,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta);
     W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); };
     W.makeNpc = o => SIM.addNpc(W, o);
-    W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [], assemblyHistory: [] };
+    W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [], assemblyHistory: [], trackedNpcIds: [] };
     SECT.POST_IDS.forEach(p => W.sect.posts[p] = null);
     EXPED.initWorld(W); EXPLORE.init(W);
     // ---- ห้องสมุด/คลัง/ตำรับ และ Archetype ----
@@ -132954,7 +132954,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     const stats = g.STATS, hadStatsTime = stats && Object.prototype.hasOwnProperty.call(stats, 'now'), statsTimeBefore = stats && stats.now;
     try {
       const W = SIM.create(s.seed, { masterIdx: 0 });
-      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; W.world = s.world; W.threat = s.threat; if (s.explore) W.explore = s.explore; W.graveyard = s.graveyard; W.gone = s.gone; W.logs = s.logs; W.duelQueue = s.duelQueue || []; W.fights = s.fights || []; W.foes = s.foes || []; W.foeSeq = s.foeSeq; W.fightSeq = s.fightSeq;
+      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; if (W.sect && !Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = []; W.world = s.world; W.threat = s.threat; if (s.explore) W.explore = s.explore; W.graveyard = s.graveyard; W.gone = s.gone; W.logs = s.logs; W.duelQueue = s.duelQueue || []; W.fights = s.fights || []; W.foes = s.foes || []; W.foeSeq = s.foeSeq; W.fightSeq = s.fightSeq;
       W.foeById = {}; W.foes.forEach(u => W.foeById[u.id] = u);
       W.wildlife = s.wildlife || { seq: 0, beasts: [], kills: 0 };
       W.wildlife.beasts = W.wildlife.beasts.map(b => W.foeById[b.id] || b);
@@ -148050,6 +148050,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
   const LOG_GROUPS = {
     all: ['ทั้งหมด', null],
+    tracked: ['⭐ ที่ติดตาม', null],
     people: ['👥 ผู้คน', ['relation', 'marriage', 'recruit', 'death', 'injury', 'heal', 'awaken', 'desert', 'disciple', 'punish', 'expel']],
     combat: ['⚔️ ต่อสู้/ล่า', ['combat', 'hunt', 'beast', 'explore', 'raid', 'duel', 'spar', 'tournament', 'conflict', 'challenge']],
     craft: ['⚗️ การผลิต/ตกปลา', ['craft', 'harvest', 'fish', 'legend', 'alchemy', 'forge', 'organ', 'learn', 'research', 'insight', 'breakthrough']],
@@ -148711,6 +148712,28 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   };
   UI.onLog = e => { if (TOAST_TYPES.includes(e.type) && !UI.G.muted) { const sp = UI.G.speed; if (e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (sp > 0 && sp <= 16)) { const now = performance.now(); if (sp === 0 && now - (UI._lastBatchToast || 0) < 40) return; UI._lastBatchToast = now; UI.toast(e.text, e.type, e.ids[0]); } } };
 
+  /* ---------- ระบบติดตามตัวละคร (Tracked Disciples) ---------- */
+  UI.isTrackedNpc = (W, id) => {
+    if (!W || !W.sect || !Array.isArray(W.sect.trackedNpcIds) || !id) return false;
+    return W.sect.trackedNpcIds.includes(id);
+  };
+  UI.toggleTrackNpc = (W, id) => {
+    if (!W || !W.sect || !id) return false;
+    if (!Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = [];
+    const idx = W.sect.trackedNpcIds.indexOf(id);
+    const n = W.byId && W.byId[id];
+    const name = n ? HC.fullName(n) : id;
+    if (idx >= 0) {
+      W.sect.trackedNpcIds.splice(idx, 1);
+      UI.toast('เลิกติดตาม ' + name + ' แล้ว');
+      return false;
+    } else {
+      W.sect.trackedNpcIds.push(id);
+      UI.toast('⭐ เริ่มติดตาม ' + name + ' แล้ว (ดูได้ใน เมนู > ตัวละครที่ติดตาม)');
+      return true;
+    }
+  };
+
   /* ---------- แผ่นข้อมูล ---------- */
   UI.close = () => { UI.sheet = null; UI.tab = null; $('sheet').classList.remove('show'); document.querySelectorAll('#hudBottom button').forEach(b => b.classList.remove('on')); if (!UI.G.W) $('start').classList.remove('hidden'); UI.updateHud(true); };
   function show(kind, title, tabs, active, tall) {
@@ -148724,7 +148747,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   UI.open = (kind, arg) => {
     if (!UI.G.W && kind !== 'menu') { UI.close(); return; }
     if (UI.sheet === kind && kind !== 'npc' && kind !== 'edit' && (!arg || UI.tab === arg)) { UI.close(); return; }
-    if (kind === 'people') show('people', '👥 ผู้คนในสำนัก', [['rank', 'ตามระดับ'], ['act', 'กำลังทำอะไร'], ['cult', 'ตบะ'], ['mood', 'อารมณ์']], 'rank');
+    if (kind === 'people') {
+      const tCount = ((UI.G.W && UI.G.W.sect && UI.G.W.sect.trackedNpcIds) || []).length;
+      show('people', '👥 ผู้คนในสำนัก', [['rank', 'ตามระดับ'], ['act', 'กำลังทำอะไร'], ['cult', 'ตบะ'], ['mood', 'อารมณ์'], ['tracked', '⭐ ที่ติดตาม' + (tCount ? ' (' + tCount + ')' : '')]], arg || 'rank');
+    }
     else if (kind === 'sect') show('sect', '🏯 สำนัก', [['over', 'ภาพรวม'], ['council', '🏛️ สภา/ธรรมนูญ'], ['peaks', '⛰️ หุบเขา/ยอดเขา'], ['lineage', '💞 คู่บำเพ็ญ/มรดก'], ['dao', '🌌 แดนลับ/ชะตาฟ้า'], ['visuals', '✨ กราฟิก/ฟ้าดิน'], ['policy', 'นโยบาย/นิสัยผู้นำ'], ['posts', 'ตำแหน่ง'], ['library', '📚 หอคัมภีร์'], ['stock', 'ภาพรวมคลัง'], ['stockItems', '📦 คลังไอเทม'], ['shop', '🛒 ร้าน/คุณูปการ'], ['bld', 'อาคาร']], arg || 'over');
     else if (kind === 'log') { if (UI.audio && UI.audio.playGuqinChime) UI.audio.playGuqinChime(); show('log', '📜 บันทึกเหตุการณ์', Object.keys(LOG_GROUPS).map(k => [k, LOG_GROUPS[k][0]]), 'all'); }
     else if (kind === 'world') show('world', '🧭 ยุทธภพนอกสำนัก', [['map', '🗺️ แผนที่ยุทธภพ'], ['exp', 'คณะเดินทาง'], ['visitors', '🎐 ผู้มาเยือน'], ['clues', '🗺️ เบาะแส/มรดก'], ['content', '🌿 พื้นที่/ตำรับ'], ['ecology', '🐾 อสูรและนิเวศ'], ['disc', '🔭 ค้นพบ'], ['sects', 'สำนักอื่น'], ['hist', 'ประวัติ']], arg || 'exp', true);
@@ -148736,7 +148762,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       UI.editDraft = null;
       show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['pet', '🐾 สัตว์อสูร/บัฟ/กลไก'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], arg || 'char', true);
     }
-    else if (kind === 'menu') show('menu', UI.G.W ? '⚙️ เมนู' : '📂 โหลดเกมที่บันทึก', UI.G.W ? [['main', 'เกม'], ['set', 'ตั้งค่า'], ['tools', 'ผู้สังเกตการณ์'], ['about', 'เกี่ยวกับ']] : [], arg || 'main');
+    else if (kind === 'menu') {
+      const tCount = ((UI.G.W && UI.G.W.sect && UI.G.W.sect.trackedNpcIds) || []).length;
+      show('menu', UI.G.W ? '⚙️ เมนู' : '📂 โหลดเกมที่บันทึก', UI.G.W ? [['main', 'เกม'], ['tracked', '⭐ ตัวละครที่ติดตาม' + (tCount ? ' (' + tCount + ')' : '')], ['set', 'ตั้งค่า'], ['tools', 'ผู้สังเกตการณ์'], ['about', 'เกี่ยวกับ']] : [], arg || 'main');
+    }
     UI.render();
   };
   UI.openEditNpc = (id, subTab) => {
@@ -150082,6 +150111,31 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     else if (a === 'deselect') { G.R.selected = null; G.R.follow = false; UI.updateHud(true); }
     else if (a === 'locate') { UI.close(); UI.focusNpc(arg); }
     else if (a === 'follow') { UI.close(); UI.focusNpc(arg); G.R.follow = true; G.R.cam.z = Math.max(G.R.cam.z, 2.2); $('fFollow').style.background = 'var(--gold)'; }
+    else if (a === 'goto-npc') { UI.close(); UI.focusNpc(arg); G.R.follow = true; G.R.cam.z = Math.max(G.R.cam.z, 2.2); if ($('fFollow')) $('fFollow').style.background = 'var(--gold)'; }
+    else if (a === 'toggle-track-npc') { UI.toggleTrackNpc(W, arg); UI.render(); UI.updateHud(true); }
+    else if (a === 'untrack-npc') {
+      if (W && W.sect && Array.isArray(W.sect.trackedNpcIds)) {
+        const idx = W.sect.trackedNpcIds.indexOf(arg);
+        if (idx >= 0) W.sect.trackedNpcIds.splice(idx, 1);
+      }
+      const tn = W && W.byId && W.byId[arg];
+      UI.toast('เลิกติดตาม ' + (tn ? HC.fullName(tn) : 'ตัวละคร') + ' แล้ว');
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'clear-all-tracked') {
+      if (W && W.sect) W.sect.trackedNpcIds = [];
+      UI.toast('ยกเลิกการติดตามตัวละครทั้งหมดแล้ว');
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'open-log-tracked') {
+      UI.open('log', 'tracked');
+      UI.logFilters = new Set(['tracked']);
+      UI.render();
+    }
+    else if (a === 'open-menu-tracked') { UI.open('menu', 'tracked'); }
+    else if (a === 'open-people') { UI.open('people', arg || 'rank'); }
     else if (a === 'locb') { const b = W.map.byId[arg]; if (b) { UI.close(); G.R.follow = false; G.R.focus(b.x + b.w / 2, b.y + b.h / 2, 1.3); } }
     else if (a === 'begin-tribulation') {
       const parts = String(arg || '').split('|');
@@ -151150,18 +151204,29 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   UI.rPeople = () => {
     const W = UI.G.W; let list = W.npcs.filter(n => !n.dead && !n.exiled); const q = (UI.pq || '').trim(); if (q) list = list.filter(n => HC.fullName(n).includes(q) || SECT.title(n).includes(q));
     const tab = UI.tab;
-    if (tab === 'rank') list.sort((a, b) => b.rank - a.rank || (b.cult ? b.cult.stage : 0) - (a.cult ? a.cult.stage : 0));
+    const trackedIds = (W.sect && W.sect.trackedNpcIds) || [];
+    const trackedSet = new Set(trackedIds);
+    if (tab === 'tracked') {
+      list = list.filter(n => trackedSet.has(n.id));
+      list.sort((a, b) => b.rank - a.rank || (b.cult ? b.cult.stage : 0) - (a.cult ? a.cult.stage : 0));
+    }
+    else if (tab === 'rank') list.sort((a, b) => b.rank - a.rank || (b.cult ? b.cult.stage : 0) - (a.cult ? a.cult.stage : 0));
     else if (tab === 'act') list.sort((a, b) => (a.away ? 'z' : a.act.id).localeCompare(b.away ? 'z' : b.act.id));
     else if (tab === 'cult') list.sort((a, b) => (b.cult ? CULT.power(b) : 0) - (a.cult ? CULT.power(a) : 0));
     else list.sort((a, b) => a.h.state.mood - b.h.state.mood);
     const cap = SECT.housingCapacity ? SECT.housingCapacity(W) : 46;
-    const head = '<input id="pq" type="search" placeholder="ค้นหาชื่อ/ตำแหน่ง…" value="' + esc(UI.pq || '') + '" style="margin-bottom:8px"><div class="muted" style="margin-bottom:6px">สมาชิก ' + list.length + '/' + cap + ' คน (เพดานที่พักสูงสุด 100 คน) · แตะเพื่อดูตัวตนเต็ม</div>';
+    const head = '<input id="pq" type="search" placeholder="ค้นหาชื่อ/ตำแหน่ง…" value="' + esc(UI.pq || '') + '" style="margin-bottom:8px"><div class="muted" style="margin-bottom:6px">' + (tab === 'tracked' ? 'สมาชิกที่ติดตาม ' + list.length + ' คน' : 'สมาชิก ' + list.length + '/' + cap + ' คน (เพดานที่พักสูงสุด 100 คน)') + ' · แตะเพื่อดูตัวตนเต็ม</div>';
+    if (tab === 'tracked' && !list.length) {
+      return head + '<div class="card" style="margin-top:10px;text-align:center"><div class="muted">ยังไม่มีศิษย์ที่ติดตามในขณะนี้</div><div style="margin-top:6px;font-size:12.5px;line-height:1.6">แตะที่ชื่อศิษย์คนใดก็ได้ แล้วกดปุ่ม <b>⭐ ติดตามตัวละคร</b> เพื่อปักหมุดติดตามความคืบหน้า<br>หรือเลือกศิษย์ที่ต้องการติดตามจากแท็บอื่น</div><div style="margin-top:8px"><button class="btn pri" data-do="open-people" data-arg="rank">👥 ไปหน้ารายชื่อศิษย์ทั้งหมด</button></div></div>';
+    }
     return head + list.map(n => { const hpf = n.h.state.hp / CULT.hpMax(n); const sub = tab === 'cult' ? (n.cult ? CULT.stageName(n) + ' · พลัง ' + Math.round(CULT.power(n)) : 'ปุถุชน') : tab === 'mood' ? 'อารมณ์ ' + Math.round(n.h.state.mood) + ' · เครียด ' + Math.round(n.h.state.stress) + ' · พอใจสำนัก ' + Math.round(n.sat == null ? 60 : n.sat) : actText(n);
       const c = n.cult, path = c && CULT.PATHS[c.path], subpath = c && c.sub && c.sub !== 'NONE' ? CULT.subInfo(c.path, c.sub) : null;
       const roots = (n.h.root && (n.h.root.roots || n.h.root.elements)) || [];
       const rootText = roots.map(r => { const key = typeof r === 'string' ? r : r.element; const m = g.ELEM && g.ELEM.META && g.ELEM.META[key]; return m ? (m.icon || '✦') + ' ' + (m.shortTh || m.nameTh) : ''; }).filter(Boolean).join(' · ');
-      const badges = '<div class="people-badges">' + (c ? '<span class="chip b">' + esc(CULT.stageName(n)) + '</span> <span class="chip" style="border-color:' + esc((path && path.color) || '#749b89') + '">' + esc((path && path.icon) || '☯') + ' ' + esc((path && (path.shortTh || path.nameTh)) || 'วิถี') + '</span>' + (subpath ? ' <span class="chip">' + esc(subpath.nameTh) + '</span>' : '') : '<span class="chip">ปุถุชน</span>') + (rootText ? '<div class="sub">รากธาตุ: ' + esc(rootText) + '</div>' : '') + '</div>';
-      return '<div class="prow" data-npc="' + n.id + '">' + portraitHtml(n, 42) + '<div class="pi"><div class="nm">' + esc(HC.fullName(n)) + ' <span class="chip ' + (n.rank >= 4 ? 'g' : '') + '" style="font-size:10.5px">' + esc(SECT.title(n)) + '</span></div>' + badges + '<div class="sub">' + esc(sub) + '</div><div class="mini"><i style="width:' + clamp(hpf * 100, 0, 100) + '%;background:' + (hpf > .6 ? '#5fd38a' : hpf > .3 ? '#e8c43a' : '#e0584a') + '"></i></div></div></div>'; }).join('');
+      const isTr = trackedSet.has(n.id);
+      const trChip = isTr ? ' <span class="chip" style="border-color:#ffd700;color:#ffd700;font-size:10px" title="กำลังติดตาม">⭐ ติดตาม</span>' : '';
+      const badges = '<div class="people-badges">' + (c ? '<span class="chip b">' + esc(CULT.stageName(n)) + '</span> <span class="chip" style="border-color:' + esc((path && path.color) || '#749b89') + '">' + esc((path && path.icon) || '☯') + ' ' + esc((path && (path.shortTh || path.nameTh)) || 'วิถี') + '</span>' + (subpath ? ' <span class="chip">' + esc(subpath.nameTh) + '</span>' : '') : '<span class="chip">ปุถุชน</span>') + trChip + (rootText ? '<div class="sub">รากธาตุ: ' + esc(rootText) + '</div>' : '') + '</div>';
+      return '<div class="prow" data-npc="' + n.id + '">' + portraitHtml(n, 42) + '<div class="pi"><div class="nm">' + esc(HC.fullName(n)) + ' <span class="chip ' + (n.rank >= 4 ? 'g' : '') + '" style="font-size:10.5px">' + esc(SECT.title(n)) + '</span>' + (isTr ? ' <span style="color:#ffd700;font-size:12px" title="กำลังติดตาม">⭐</span>' : '') + '</div>' + badges + '<div class="sub">' + esc(sub) + '</div><div class="mini"><i style="width:' + clamp(hpf * 100, 0, 100) + '%;background:' + (hpf > .6 ? '#5fd38a' : hpf > .3 ? '#e8c43a' : '#e0584a') + '"></i></div></div></div>'; }).join('');
   };
 
   /* ----- Helper: Build Filtered Sect Stock & Shop Rows (Read-Only, Authoritative) ----- */
@@ -153176,13 +153241,39 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       h += '</div></details>';
     }
     let list = W.logs || [];
+    const trackedIds = (W.sect && W.sect.trackedNpcIds) || [];
+    const trackedSet = new Set(trackedIds);
+    const hasTrackedFilter = UI.logFilters.has('tracked');
+
     if (!UI.logFilters.has('all')) {
       const allowed = new Set();
       for (const k of UI.logFilters) {
+        if (k === 'tracked') continue;
         const types = LOG_GROUPS[k] && LOG_GROUPS[k][1];
         if (types) types.forEach(t => allowed.add(t));
       }
-      list = list.filter(l => allowed.has(l.type));
+      if (allowed.size > 0) {
+        list = list.filter(l => allowed.has(l.type));
+      }
+    }
+    if (hasTrackedFilter) {
+      list = list.filter(l => {
+        if (Array.isArray(l.ids) && l.ids.some(id => trackedSet.has(id))) return true;
+        if (l.meta && (trackedSet.has(l.meta.npcId) || trackedSet.has(l.meta.targetId))) return true;
+        return false;
+      });
+      const trackedNpcs = trackedIds.map(id => W.byId && W.byId[id]).filter(Boolean);
+      h += '<div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.06);margin-bottom:8px">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">';
+      h += '<div><b>⭐ บันทึกเฉพาะตัวละครที่ติดตาม</b> (' + trackedNpcs.length + ' คน)</div>';
+      h += '<button class="btn" style="padding:2px 7px;font-size:11px" data-do="open-menu-tracked">⚙️ จัดการรายชื่อติดตาม</button>';
+      h += '</div>';
+      if (!trackedNpcs.length) {
+        h += '<div class="muted" style="margin-top:4px;font-size:12px">ยังไม่มีตัวละครที่ติดตาม คุณสามารถกดปุ่ม <b>⭐ ติดตามตัวละคร</b> ในหน้ารายละเอียดตัวละคร เพื่อกรองดูเฉพาะเหตุการณ์ของพวกเขาได้ที่นี่</div>';
+      } else {
+        h += '<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">' + trackedNpcs.map(n => '<span class="chip" style="cursor:pointer" data-npc="' + n.id + '">⭐ ' + esc(HC.fullName(n)) + ' (' + esc(SECT.title(n)) + ')</span>').join('') + '</div>';
+      }
+      h += '</div>';
     }
     list = list.filter(l => matchesLogSubFilter(l, UI.logSubFilter));
     list = list.slice(-150).reverse();
@@ -155050,9 +155141,15 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         ['PETS', '🐾 สัตว์อสูร · กลไก & ถุงด่วน'],
         ['ALL', '📋 ดูทั้งหมด']
       ];
-      h += '<div class="prow">' + portraitHtml(n, 64) + '<div class="pi"><div class="nm" style="font-size:15px">' + esc(HC.fullName(n)) + '</div><div class="sub">' + (n.h.sex === 'M' ? 'ชาย' : 'หญิง') + ' · ' + HC.ageText(n) + ' · ' + esc(n.h.origin.cls) + ' จาก' + esc(n.h.origin.region) + '</div><div class="sub">' + esc(idn.title) + '</div></div></div>';
-      h += '<div>' + idn.tags.map(t => '<span class="chip v">' + esc(t) + '</span>').join('') + '<span class="chip">' + esc(idn.archetypeTh) + '</span><span class="chip b">ปัญญา: ' + esc(idn.smart) + '</span></div>';
-      h += '<div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap"><button class="btn pri" data-do="follow" data-arg="' + n.id + '">🎯 ติดตาม</button><button class="btn" data-do="locate" data-arg="' + n.id + '">📍 ดูบนแผนที่</button><button class="btn" data-do="editnpc" data-arg="' + n.id + '">✏️ แก้ไขตัวละครนี้</button><button class="btn" data-do="spawnnpc" data-arg="' + n.id + '">✨ เสกของเข้าถุง</button>' + (SECT.MENTORSHIP && n.cult ? '<button class="btn" data-do="chronicle-person" data-arg="' + esc(n.id) + '">📖 ดูพงศาวดารของคนนี้</button>' : '') + '</div>';
+      const isTr = UI.isTrackedNpc(W, n.id);
+      h += '<div class="prow">' + portraitHtml(n, 64) + '<div class="pi"><div class="nm" style="font-size:15px">' + esc(HC.fullName(n)) + (isTr ? ' <span style="color:#ffd700;font-size:14px" title="กำลังติดตาม">⭐</span>' : '') + '</div><div class="sub">' + (n.h.sex === 'M' ? 'ชาย' : 'หญิง') + ' · ' + HC.ageText(n) + ' · ' + esc(n.h.origin.cls) + ' จาก' + esc(n.h.origin.region) + '</div><div class="sub">' + esc(idn.title) + '</div></div></div>';
+      h += '<div>' + (isTr ? '<span class="chip" style="border-color:#ffd700;background:rgba(255,215,0,0.12);color:#ffd700;font-weight:bold">⭐ กำลังติดตาม</span>' : '') + idn.tags.map(t => '<span class="chip v">' + esc(t) + '</span>').join('') + '<span class="chip">' + esc(idn.archetypeTh) + '</span><span class="chip b">ปัญญา: ' + esc(idn.smart) + '</span></div>';
+      h += '<div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">' +
+        (isTr
+          ? '<button class="btn ok" style="font-weight:bold" data-do="toggle-track-npc" data-arg="' + n.id + '">⭐ เลิกติดตาม</button>'
+          : '<button class="btn" style="border-color:#ffd700;color:#ffd700;font-weight:bold" data-do="toggle-track-npc" data-arg="' + n.id + '">⭐ ติดตามตัวละคร</button>'
+        ) +
+        '<button class="btn pri" data-do="follow" data-arg="' + n.id + '">🎯 ติดตามกล้อง</button><button class="btn" data-do="locate" data-arg="' + n.id + '">📍 ดูบนแผนที่</button><button class="btn" data-do="editnpc" data-arg="' + n.id + '">✏️ แก้ไขตัวละครนี้</button><button class="btn" data-do="spawnnpc" data-arg="' + n.id + '">✨ เสกของเข้าถุง</button>' + (SECT.MENTORSHIP && n.cult ? '<button class="btn" data-do="chronicle-person" data-arg="' + esc(n.id) + '">📖 ดูพงศาวดารของคนนี้</button>' : '') + '</div>';
       h += renderSubTabBar('set-npc-subtab', nSub, npcSubTabs, 'หมวดย่อยข้อมูลตัวละคร');
       h += '<div class="subcat-pane" data-subcat="CORE"' + ((nSub === 'ALL' || nSub === 'CORE') ? '' : ' style="display:none"') + '>';
       {
@@ -156135,6 +156232,57 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       [1, 2, 3].forEach(i => { const s = slots[i]; h += '<div class="card"><b>ช่องที่ ' + i + '</b> <span class="muted">' + (s ? esc(s.text) : 'ว่าง') + '</span><div>' + (G.W ? '<button class="btn pri" data-do="save" data-arg="' + i + '">💾 บันทึก</button>' : '') + (s ? '<button class="btn" data-do="load" data-arg="' + i + '">📂 โหลด</button>' : '') + '</div></div>'; });
       h += '<div class="card"><b>ไฟล์สำรอง</b><div class="muted">' + (G.W ? 'ส่งออกเป็นไฟล์ เก็บไว้ในเครื่อง หรือนำเข้ามาเล่นต่อ' : 'นำเข้าไฟล์สำรองเพื่อเล่นต่อ') + '</div>' + (G.W ? '<button class="btn" data-do="export">⬇ ส่งออกไฟล์</button>' : '') + '<button class="btn" data-do="import">⬆ นำเข้าไฟล์</button></div>';
       h += '<div class="card"><button class="btn dan" data-do="new">🔄 เริ่มเกมใหม่ (เลือกเจ้าสำนักใหม่)</button></div>';
+    } else if (tab === 'tracked') {
+      const W = G.W;
+      const trackedIds = (W && W.sect && W.sect.trackedNpcIds) || [];
+      const trackedNpcs = trackedIds.map(id => W.byId && W.byId[id]).filter(Boolean);
+      h += '<h3>⭐ ตัวละครที่กำลังติดตาม (Tracked Disciples · ' + trackedNpcs.length + ' คน)</h3>';
+      h += '<div class="muted" style="margin-bottom:8px">ติดตามความคืบหน้า ตบะ สภาพร่างกาย ภารกิจ และกรองบันทึกเหตุการณ์เฉพาะบุคคลได้ทันที</div>';
+      if (!trackedNpcs.length) {
+        h += '<div class="card" style="text-align:center;padding:16px 10px">';
+        h += '<div style="font-size:28px;margin-bottom:6px">⭐</div>';
+        h += '<b>ยังไม่มีตัวละครที่ติดตาม</b>';
+        h += '<div class="muted" style="font-size:12px;margin:6px 0 12px 0;line-height:1.6">คุณสามารถกดปุ่ม <b>⭐ ติดตามตัวละคร</b> ในหน้ารายละเอียดของศิษย์คนใดก็ได้ เพื่อปักหมุดความคืบหน้าไว้ที่นี่</div>';
+        h += '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap"><button class="btn pri" data-do="open-people" data-arg="rank">👥 เลือกศิษย์จากทำเนียบสำนัก</button><button class="btn" data-do="open-log-tracked">📜 ไปที่บันทึกเหตุการณ์</button></div>';
+        h += '</div>';
+      } else {
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">';
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn pri" data-do="open-log-tracked">📜 ดูกระแสบันทึกที่ติดตาม</button><button class="btn" data-do="open-people" data-arg="tracked">👥 ดูในรายชื่อผู้คน</button></div>';
+        h += '<button class="btn dan" style="font-size:11px;padding:3px 8px" data-do="clear-all-tracked">❌ ยกเลิกติดตามทั้งหมด</button>';
+        h += '</div>';
+        h += trackedNpcs.map(n => {
+          const c = n.cult, path = c && CULT.PATHS[c.path], subpath = c && c.sub && c.sub !== 'NONE' ? CULT.subInfo(c.path, c.sub) : null;
+          const hpf = n.h.state.hp / CULT.hpMax(n);
+          const mood = Math.round(n.h.state.mood);
+          const act = n.away ? 'เดินทางภายนอก' : actText(n);
+          const stgName = c ? CULT.stageName(n) : 'ปุถุชน';
+          const pwr = c ? Math.round(CULT.power(n)) : 0;
+          return '<div class="card" style="margin-bottom:8px;border-color:var(--gold);background:rgba(233,205,133,0.03)">' +
+            '<div style="display:flex;gap:10px;align-items:flex-start">' +
+            portraitHtml(n, 48) +
+            '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">' +
+            '<div><span style="font-size:14px;font-weight:bold;cursor:pointer" data-npc="' + n.id + '">⭐ ' + esc(HC.fullName(n)) + '</span> <span class="chip ' + (n.rank >= 4 ? 'g' : '') + '" style="font-size:10.5px">' + esc(SECT.title(n)) + '</span>' + (n.dead ? ' <span class="chip r">🕯️ ล่วงลับ</span>' : '') + '</div>' +
+            '<button class="btn" style="padding:2px 7px;font-size:10.5px" data-do="untrack-npc" data-arg="' + n.id + '" title="เลิกติดตาม">❌ เลิกติดตาม</button>' +
+            '</div>' +
+            '<div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap">' +
+            (c ? '<span class="chip b" style="font-size:11px">' + esc(stgName) + ' (พลัง ' + pwr + ')</span> <span class="chip" style="font-size:11px;border-color:' + esc((path && path.color) || '#749b89') + '">' + esc((path && path.icon) || '☯') + ' ' + esc((path && (path.shortTh || path.nameTh)) || 'วิถี') + '</span>' + (subpath ? ' <span class="chip" style="font-size:11px">' + esc(subpath.nameTh) + '</span>' : '') : '<span class="chip">ปุถุชน</span>') +
+            '</div>' +
+            '<div class="muted" style="font-size:11.5px;margin-top:3px">📍 <b>กิจกรรม:</b> ' + esc(act) + ' · <b>อารมณ์:</b> ' + mood + '/100</div>' +
+            '<div style="margin-top:4px;display:flex;align-items:center;gap:6px">' +
+            '<span class="muted" style="font-size:10.5px">HP:</span><div class="mini" style="flex:1;max-width:160px;height:6px"><i style="width:' + clamp(hpf * 100, 0, 100) + '%;background:' + (hpf > .6 ? '#5fd38a' : hpf > .3 ? '#e8c43a' : '#e0584a') + '"></i></div>' +
+            '</div>' +
+            '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">' +
+            '<button class="btn" style="padding:2px 8px;font-size:11px" data-npc="' + n.id + '">👁️ ดูรายละเอียด</button>' +
+            '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="goto-npc" data-arg="' + n.id + '">🎯 ติดตามกล้อง</button>' +
+            '<button class="btn" style="padding:2px 8px;font-size:11px" data-do="locate" data-arg="' + n.id + '">📍 แผนที่</button>' +
+            (SECT.MENTORSHIP && n.cult ? '<button class="btn" style="padding:2px 8px;font-size:11px" data-do="chronicle-person" data-arg="' + esc(n.id) + '">📖 บันทึก</button>' : '') +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        }).join('');
+      }
     } else if (tab === 'set') {
       const o = G.opts, effQ = (G.R && G.R.resolveQuality) ? G.R.resolveQuality() : (o.quality || 'standard');
       const qNames = { low: 'ประหยัดพลังงาน', standard: 'มาตรฐาน', high: 'คมชัดสูง' };
