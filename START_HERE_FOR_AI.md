@@ -7,14 +7,14 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `v5.8.0` (Era 5 Phase 9: Forbidden Arts Overhaul, Passive Constellations & Primordial Bloodline Altar — **พัฒนาและส่งมอบครบทั้ง 6 เสาหลักของ `v5.8.0` เสร็จสมบูรณ์ 100% ผ่านชุดทดสอบ 134/134 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `JianghuSect 2 v2.3.0` (Grand Dao Debates, 27 Apex Trials & Complete B-01..B-20 Remediation — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 139/139 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_V5_9_0.md`](ACTIVE_PATCH_PROMPT_V5_9_0.md)
+  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_3_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_3_0.md)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md) (`v5.5.0` — Mantra Resonance, Dynamic Weather & Grand Formation Warfare)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md) (`v5.6.0` — Defensive Kungfu & Protective Aegis Overhaul)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md) (`v5.7.0` — Support & Auxiliary Arts Overhaul)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md) (`v5.8.0` — Forbidden Arts, Passive Constellations & Primordial Bloodline Altar)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md) (`JianghuSect 2 v2.3.0` — Forbidden Arts, Passive Constellations & Primordial Bloodline Altar)
 - **🏆 สถานะโครงการ (Master Roadmap Status):**
   👉 **ยกระดับสู่ JianghuSect 2 (v2.0.0: The Grand Dao Epoch — มหาศักราชแห่งวิถีและกำเนิดผู้บ่มเพาะ)** โดยปลดล็อกข้อจำกัดเซฟเก่าเพื่อพัฒนาเต็มประสิทธิภาพ!
 - **🔥 ใบสั่งงานและข้อกำหนดการพัฒนามหาอัปเดต (Active Specification):**
@@ -139,7 +139,7 @@ cd GAME_SOURCE && node tools/build_single.js
 - รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md`
 - ชุดทดสอบทั้งหมด: `133/133 PASS` (`test/v570_support_and_auxiliary_arts_suite.js`)
 
-## สถานะล่าสุด: Patch v5.8.0 (Era 5 Phase 9: Forbidden Arts Overhaul, Passive Constellations & Blood Altar) เสร็จสมบูรณ์ 100%
+## สถานะล่าสุด: Patch JianghuSect 2 v2.3.0 (Era 5 Phase 9: Forbidden Arts Overhaul, Passive Constellations & Blood Altar) เสร็จสมบูรณ์ 100%
 - รายงานฉบับเต็ม: `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md`
-- แพทช์ถัดไปในคิว: [`ACTIVE_PATCH_PROMPT_V5_9_0.md`](ACTIVE_PATCH_PROMPT_V5_9_0.md)
-- ชุดทดสอบทั้งหมด: `134/134 PASS` (`test/v580_forbidden_arts_and_passive_constellations_suite.js`)
+- แพทช์ถัดไปในคิว: [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_3_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_3_0.md)
+- ชุดทดสอบทั้งหมด: `139/139 PASS` (`test/v580_forbidden_arts_and_passive_constellations_suite.js`)

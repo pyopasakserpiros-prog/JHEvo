@@ -38,7 +38,7 @@ const items = Object.values(ECO.itemById || {});
 check(items.length > 0, 'ECO.itemById must not be empty');
 
 const itemIds = new Set();
-const validWeaponTypes = new Set(['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP']);
+const validWeaponTypes = new Set(['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'ROSARY', 'CLAW', 'NEEDLE', 'FAN', 'ASTROLABE', 'ABACUS']);
 
 let grantedSkillItemsCount = 0;
 let skillModifierItemsCount = 0;
@@ -172,7 +172,7 @@ console.log(`  ✓ Audited ${allRecipes.length} recipes and verified acyclic cra
 // 3. Audit Subpaths across all 12 Cultivation Paths
 console.log('\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...');
 const majorPaths = Object.keys(JD.CULT.paths || {});
-check(majorPaths.length === 12, `Expected 12 major cultivation paths, found ${majorPaths.length}`);
+check(majorPaths.length === 43, `Expected 43 major cultivation paths, found ${majorPaths.length}`);
 const allSubPaths = Object.entries(JD.CULT.paths || {}).flatMap(([pk, p]) => (p.subPaths || []).map(s => Object.assign({ path: pk }, s)));
 const subPathIds = new Set();
 for (const sp of allSubPaths) {
@@ -192,9 +192,10 @@ console.log(`  ✓ Audited ${allSubPaths.length} subpaths across ${majorPaths.le
 
 // 4. Audit Martial Arts, Techniques, Composable Keywords & Strict Arch/Status/Buff Checks
 console.log('\n▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...');
-const techniques = Array.isArray(JD.MARTIAL?.techniques)
-  ? JD.MARTIAL.techniques
-  : Object.values(JD.MARTIAL?.techniques || {});
+const techniques = [
+  ...(Array.isArray(JD.MARTIAL?.techniques) ? JD.MARTIAL.techniques : Object.values(JD.MARTIAL?.techniques || {})),
+  ...(Array.isArray(JD.MARTIAL?.v200Techniques) ? JD.MARTIAL.v200Techniques : [])
+];
 check(techniques.length > 0, 'JD.MARTIAL.techniques must not be empty');
 
 const validPaths = new Set([...Object.keys(JD.CULT.paths), 'ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'CONFUCIAN', 'EXTERNAL']);

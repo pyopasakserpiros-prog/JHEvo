@@ -541,6 +541,222 @@
         }
       ],
       descTh: 'แส้และด้ายไหมสวรรค์ที่ถักทอจากใยหนอนไหมสวรรค์เทียนฉานและไหมแดงชะตากรรม ตัดเหล็กดั่งตัดโคลน ยืดหดไร้ร่องรอยดั่งเส้นด้ายแห่งวัฏสงสาร'
+    },
+    {
+      id: 'LEG_WPN_BODHI_NIRVANA_ROSARY',
+      nameTh: 'มหาประคำโพธิญาณร้อยแปดพุทธเกษตร',
+      chineseName: '菩提涅槃百八佛珠',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Buddhist 108 Bodhi Beads & Shaolin/Zen Arhat Rosary Lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'ROSARY',
+      visualSubtype: 'ROSARY',
+      visualKey: 'vis_bodhi_nirvana_rosary',
+      presentationMode: 'held_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4920,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['BUDDHA_DHARMA', 'KARMA_SAMSARA', 'SAGE_SUPPORT', 'CHRONO_EPOCH', 'ANY'],
+      preferredSubs: ['VAJRA_WRATH_GUARDIAN', 'GOLDEN_LOTUS_CHAN', 'SUTRA_CHANT_ARHAT', 'THOUSAND_PALM_BODHISATTVA', 'RELIC_PAGODA_KEEPER', 'KARMA_FIRE_ASCETIC'],
+      fixedStats: { atk: 440, matk: 870, def: 280, mdef: 310, hp: 360, acc: 245, crit: 12, critDmg: 26, cast: 16, pen: 18 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_BODHI_NIRVANA_ROSARY',
+          nameTh: 'รัศมีร้อยแปดพระธาตุสยบมาร',
+          descTh: 'เมื่อโจมตีจะเปล่งแสงพระธาตุทองคำสร้างความเสียหายเพิ่ม +18% ชำระล้างมารในใจ มอบบัฟรัศมีโพธิญาณ และทำให้ศัตรูอ่อนแรง (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.18, targetStatus: 'weaken', selfStatus: 'bodhiGrace', hpRestorePct: 0.05, dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'ลูกประคำร้อยแปดเม็ดที่ร้อยเรียงจากเมล็ดต้นโพธิ์บรรพกาลและพระธาตุทองคำของมหาอรหันต์ ยามโคจรปราณจะปรากฏเงาพุทธเกษตรคุ้มครองและปราบมาร'
+    },
+    {
+      id: 'LEG_WPN_TAOTIE_DEVOURING_CLAW',
+      nameTh: 'กรงเล็บเทพอสูรเทาเที่ยกลืนสวรรค์',
+      chineseName: '饕餮噬天魔爪',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Shan Hai Jing (《山海经》) Four Perils Taotie & Primordial Beast Claw Lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'CLAW',
+      visualSubtype: 'CLAW',
+      visualKey: 'vis_taotie_devouring_claw',
+      presentationMode: 'held',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4950,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['PRIMORDIAL_SHIFTER', 'BEAST_SOVEREIGN', 'DEMON', 'PRIMORDIAL_CHAOS', 'ANY'],
+      preferredSubs: ['AZURE_DRAGON_SCALE_SHIFTER', 'WHITE_TIGER_FANG_RAVAGER', 'SCORPION_CLAW_EXECUTIONER', 'HUN_DUN_ORIGIN_DEVOURER'],
+      fixedStats: { atk: 920, matk: 420, def: 230, mdef: 190, acc: 255, crit: 18, critDmg: 36, pen: 26, move: 12 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_TAOTIE_DEVOURING_CLAW',
+          nameTh: 'เขี้ยวเล็บเทาเที่ยฉีกกระชากปราณ',
+          descTh: 'ขย้ำฉีกเกราะป้องกันสร้างความเสียหายเพิ่ม +20% ฝังแผลเลือดไหลรุนแรง และดูดซับพลังชีวิต 8% ของความเสียหายที่ทำได้ (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.20, targetStatus: 'bleed', selfStatus: 'atavismFrenzy', leechRatio: 0.08, dur: 7, icdTicks: 8 }
+        }
+      ],
+      descTh: 'กรงเล็บที่หลอมจากกระดูกกรามและเขี้ยวของอสูรบรรพกาลเทาเที่ย แฝงความหิวกระหายไร้ก้นบึ้งที่สามารถฉีกกระชากได้แม้กระทั่งม่านปราณเซียน'
+    },
+    {
+      id: 'LEG_WPN_BAIHUA_SOUL_NEEDLE',
+      nameTh: 'เข็มเทวะร้อยบุปผาสะกดวิญญาณ',
+      chineseName: '百花蚀魂神针',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Classical Wuxia Golden/Venom Needle Lore & Soul-Stitching Acupuncture',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'NEEDLE',
+      visualSubtype: 'NEEDLE',
+      visualKey: 'vis_baihua_soul_needle',
+      presentationMode: 'held_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4890,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['VENOM_GU', 'SOUL_PUPPETRY', 'VOID_SPACE', 'SAGE_SUPPORT', 'ANY'],
+      preferredSubs: ['GOLDEN_SILKWORM_GU_LORD', 'MYRIAD_VENOM_APOTHECARY', 'SOUL_STITCH_NEEDLE_MASTER', 'PHASE_MIRAGE_ASSASSIN'],
+      fixedStats: { atk: 680, matk: 740, def: 180, mdef: 220, acc: 280, crit: 17, critDmg: 32, pen: 28, eva: 14 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_BAIHUA_SOUL_NEEDLE',
+          nameTh: 'เข็มไร้เงาผนึกเจ็ดชีพจร',
+          descTh: 'ซัดเข็มวิญญาณเจาะทะลุเกราะสร้างความเสียหายเพิ่ม +19% ผนึกการเดินปราณเป้าหมายด้วยสถานะเข็มพิษผนึกชีพจร และฟื้นปราณ 5% (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.19, targetStatus: 'meridianSeal', selfStatus: 'marionetteLink', qiRestorePct: 0.05, dur: 7, icdTicks: 8 }
+        }
+      ],
+      descTh: 'ชุดเข็มทองคำขาวและเข็มไหมพิษที่แช่ในน้ำอมฤตร้อยบุปผาและพิษหนอนกู่พันปี บางเฉียบไร้เงา สามารถทั้งชุบชีวิตคนตายและสะกดวิญญาณยอดฝีมือในพริบตา'
+    },
+    {
+      id: 'LEG_WPN_BAJIAO_TEMPEST_FAN',
+      nameTh: 'พัดเทวะ芭蕉โบกสะบัดสี่ฤดู',
+      chineseName: '太虚芭蕉四时扇',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Journey to the West Banana Leaf Fan (芭蕉扇) & Zhuge Feather Fan Lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'FAN',
+      visualSubtype: 'FAN',
+      visualKey: 'vis_bajiao_tempest_fan',
+      presentationMode: 'held',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4910,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['CELESTIAL_WEATHER', 'SONIC_HARMONY', 'WANDERING_DAO', 'INK_LITERATI', 'ANY'],
+      preferredSubs: ['THUNDER_CLOUD_CALLER', 'TYPHOON_GALE_SOVEREIGN', 'CELESTIAL_CHOIR_CONDUCTOR', 'VERMILION_PHOENIX_WING_ASCENDANT'],
+      fixedStats: { atk: 460, matk: 890, def: 210, mdef: 270, acc: 250, crit: 14, critDmg: 28, cast: 22, pen: 20, eva: 12 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_BAJIAO_TEMPEST_FAN',
+          nameTh: 'หนึ่งโบกพัดเปลี่ยนลมฟ้าอากาศ',
+          descTh: 'เมื่อโบกพัดโจมตีจะปลดปล่อยพายุสี่ฤดูสร้างความเสียหายวิชา +18% สลายจังหวะศัตรู และมอบบัฟปราณเทวอากาศ (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.18, targetStatus: 'tempoBreak', selfStatus: 'weatherConduct', qiRestorePct: 0.04, dur: 7, icdTicks: 8 }
+        }
+      ],
+      descTh: 'พัดวิเศษที่ถักทอจากใบกล้วยทิพย์แห่งเขาคุนหลุนและขนหงส์สวรรค์ โบกครั้งที่หนึ่งเกิดพายุไต้ฝุ่น โบกครั้งที่สองเรียกฝนดาวตกและอสนีบาต'
+    },
+    {
+      id: 'LEG_WPN_HETU_LUOSHU_ASTROLABE',
+      nameTh: 'จานสวรรค์เหอถูลั่วซูหมุนดารา',
+      chineseName: '河图洛书浑天盘',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Ancient Chinese Hetu Luoshu (河图洛书) & Armillary Sphere / Luopan Lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'ASTROLABE',
+      visualSubtype: 'ASTROLABE',
+      visualKey: 'vis_hetu_luoshu_astrolabe',
+      presentationMode: 'held_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4960,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['ASTRO_DIVINATION', 'DRAGON_VEIN_GEOMANCY', 'GRAVITY_DAO', 'CHRONO_EPOCH', 'ANY'],
+      preferredSubs: ['STAR_CHART_PROPHET', 'LUOPAN_GEOMANCER_SAGE', 'SINGULARITY_WELL_CONTROLLER', 'SUNDIAL_EPOCH_CHRONICLER'],
+      fixedStats: { atk: 430, matk: 910, def: 250, mdef: 290, acc: 270, crit: 15, critDmg: 28, cast: 18, pen: 22 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_HETU_LUOSHU_ASTROLABE',
+          nameTh: 'เหอถูลั่วซูลิขิตดาราและปฐพี',
+          descTh: 'หมุนจานสวรรค์คำนวณชะตาและแรงโน้มถ่วง สร้างความเสียหายวิชา +19% กดทับศัตรูด้วยแรงโน้มถ่วง และกางม่านลิขิตดารา (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.19, targetStatus: 'gravityCrush', selfStatus: 'starDestinyWard', qiRestorePct: 0.05, dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'จานดาราและหลัวผานบรรพกาลที่สลักผังเหอถูและลั่วซูไว้บนวงแหวนหยกเก้าชั้น หมุนวงนอกบังคับดวงดาวบนฟ้า หมุนวงในสั่งการชีพจรมังกรใต้พิภพ'
+    },
+    {
+      id: 'LEG_WPN_CAISHEN_GOLDEN_ABACUS',
+      nameTh: 'มหาลูกคิดทองคำไฉ่ซิงชั่งตวงชะตา',
+      chineseName: '紫金乾坤算命盘',
+      provenanceType: 'ADAPTATION_FROM_CANON',
+      literarySource: 'Wuxia Iron Abacus (铁算盘) & Mercantile / Karmic Ledger Lore',
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: 'WEAPON',
+      gearType: 'ABACUS',
+      visualSubtype: 'ABACUS',
+      visualKey: 'vis_caishen_golden_abacus',
+      presentationMode: 'held_and_orbit',
+      tier: 7,
+      minStage: 5,
+      rarity: 'Legendary',
+      grade: 'Legendary',
+      legendary: true,
+      unique: true,
+      q: 1.35,
+      value: 4940,
+      craft: 'FORGING',
+      durability: 100,
+      compatiblePath: ['MERCANTILE_DAO', 'STRATEGY_GOVERNANCE', 'KARMA_SAMSARA', 'INK_LITERATI', 'ANY'],
+      preferredSubs: ['GOLDEN_ABACUS_ARBITER', 'BLOOD_CONTRACT_NOTARY', 'DEBT_FORECLOSURE_ENFORCER', 'IMPERIAL_SEAL_CHANCELLOR'],
+      fixedStats: { atk: 650, matk: 760, def: 260, mdef: 260, acc: 265, crit: 15, critDmg: 28, cast: 16, pen: 24 },
+      effects: [
+        {
+          effectId: 'EFX_LEG_CAISHEN_GOLDEN_ABACUS',
+          nameTh: 'ดีดลูกคิดทองคำบังคับชำระหนี้สวรรค์',
+          descTh: 'ซัดเม็ดลูกคิดทองคำทะลวงเกราะสร้างความเสียหายเพิ่ม +19% ประทับตราผิดนัดพันธสัญญา และมอบบัฟโองการพยุหะ (คูลดาวน์ 8 นาที)',
+          params: { bonusDmgMult: 0.19, targetStatus: 'contractDefault', selfStatus: 'tacticalCommand', qiRestorePct: 0.04, dur: 8, icdTicks: 8 }
+        }
+      ],
+      descTh: 'ลูกคิดทองคำม่วงที่หลอมจากทองคำแกนปฐพีและหยกตราแผ่นดิน ทุกเสียงดีดเม็ดลูกคิดคือการคำนวณคุณค่า บุญคุณ และหนี้แค้นที่ไม่มีผู้ใดเบี้ยวชำระได้'
     }
   ];
 
@@ -558,7 +774,13 @@
     LEG_WPN_PEACOCK_PLUME_FOCUS: { el: 'LIGHT_YANG', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.55, ASTRAL: 0.45 } } },
     LEG_WPN_JIUXIAO_PHOENIX_ZITHER: { el: 'WIND', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WIND', weights: { WIND: 0.55, FIRE: 0.45 } } },
     LEG_WPN_CHUNQIU_JUDGMENT_BRUSH: { el: 'ASTRAL', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.55, LIGHT_YANG: 0.45 } } },
-    LEG_WPN_TIANCAN_FATE_WHIP: { el: 'YIN_SHADOW', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'YIN_SHADOW', weights: { YIN_SHADOW: 0.55, ASTRAL: 0.45 } } }
+    LEG_WPN_TIANCAN_FATE_WHIP: { el: 'YIN_SHADOW', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'YIN_SHADOW', weights: { YIN_SHADOW: 0.55, ASTRAL: 0.45 } } },
+    LEG_WPN_BODHI_NIRVANA_ROSARY: { el: 'LIGHT_YANG', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 0.65, WOOD_LIFE: 0.35 } } },
+    LEG_WPN_TAOTIE_DEVOURING_CLAW: { el: 'BLOOD_DEMON', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'BLOOD_DEMON', weights: { BLOOD_DEMON: 0.65, EARTH_METAL: 0.35 } } },
+    LEG_WPN_BAIHUA_SOUL_NEEDLE: { el: 'WOOD_LIFE', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 0.60, YIN_SHADOW: 0.40 } } },
+    LEG_WPN_BAJIAO_TEMPEST_FAN: { el: 'WIND', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'WIND', weights: { WIND: 0.60, LIGHTNING: 0.40 } } },
+    LEG_WPN_HETU_LUOSHU_ASTROLABE: { el: 'ASTRAL', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'ASTRAL', weights: { ASTRAL: 0.60, EARTH_METAL: 0.40 } } },
+    LEG_WPN_CAISHEN_GOLDEN_ABACUS: { el: 'EARTH_METAL', profile: { mode: 'INTRINSIC_WEIGHTED', primary: 'EARTH_METAL', weights: { EARTH_METAL: 0.65, LIGHT_YANG: 0.35 } } }
   };
   LEGENDARY_WEAPONS.forEach(w => {
     const ep = LEG_WPN_EL_PROFILES[w.id];
@@ -1222,6 +1444,40 @@
             }
           }
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (
+          eid === 'EFX_LEG_BODHI_NIRVANA_ROSARY' ||
+          eid === 'EFX_LEG_TAOTIE_DEVOURING_CLAW' ||
+          eid === 'EFX_LEG_BAIHUA_SOUL_NEEDLE' ||
+          eid === 'EFX_LEG_BAJIAO_TEMPEST_FAN' ||
+          eid === 'EFX_LEG_HETU_LUOSHU_ASTROLABE' ||
+          eid === 'EFX_LEG_CAISHEN_GOLDEN_ABACUS'
+        ) {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          if (COMBAT.alive(defender)) {
+            if (p.targetStatus) ST.addStatus(defender, p.targetStatus, p.dur || 7);
+            if (strikeResult && strikeResult.dmg > 0) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.18)));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, fx.nameTh || 'ศาสตราเทพสำแดงเดช');
+              strikeResult.dmg += extra;
+              if (p.leechRatio && !attacker.dead) {
+                const hm = COMBAT.hpMax(attacker);
+                COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(strikeResult.dmg * p.leechRatio))));
+              }
+            }
+          }
+          if (p.hpRestorePct && !attacker.dead) {
+            const hm = COMBAT.hpMax(attacker);
+            COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
+          }
+          if (p.qiRestorePct && attacker.cult) {
+            const qm = CULT.qiMax(attacker);
+            attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          }
+          if (p.selfStatus && ST.applyNamedBuff) {
+            ST.applyNamedBuff(attacker, p.selfStatus, p.dur || 8, W.t, { casterId: attacker.id });
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid };
+          triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_TIANCAN_PUPPET_SNARE') {
           attacker.wpnProcCds[eid] = W.t + icd;
           if (p.qiRestorePct && attacker.cult) {
@@ -6290,7 +6546,13 @@
       FOCUS: 'MP_RING_5',
       ZITHER: 'EQ_V215_ZITHER_17_T5',
       BRUSH: 'EQ_V215_BRUSH_17_T5',
-      WHIP: 'EQ_V215_WHIP_17_T5'
+      WHIP: 'EQ_V215_WHIP_17_T5',
+      ROSARY: 'EQ_V200_WPN_ROSARY_T5',
+      CLAW: 'EQ_V200_WPN_CLAW_T5',
+      NEEDLE: 'EQ_V200_WPN_NEEDLE_T5',
+      FAN: 'EQ_V200_WPN_FAN_T5',
+      ASTROLABE: 'EQ_V200_WPN_ASTROLABE_T5',
+      ABACUS: 'EQ_V200_WPN_ABACUS_T5'
     };
 
     const results = [];

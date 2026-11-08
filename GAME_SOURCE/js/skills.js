@@ -132,7 +132,32 @@
     meridianOverdrive: { nameTh: 'ระเบิดชีพจรทะลวงขีดจำกัด', icon: '⚡', isBuff: true, pmods: { atk: 1.0, matk: 1.0 }, mods: { move: 100, cast: 100, crit: 20 }, tags: ['#ACUPOINT'] },
     finalStandImmortal: { nameTh: 'ปราการอมตะเฮือกสุดท้าย', icon: '🛡️', isBuff: true, pmods: { def: .80, mdef: .80 }, tags: ['#SHIELD'] },
     totemBlessing: { nameTh: 'พรเสาโทเทมบรรพชน', icon: '🗿', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { acc: 10, cast: 10 }, tags: ['#ASTRAL'] },
-    beastSpiritPossessed: { nameTh: 'สถิตร่างรวมวิญญาณอสูร', icon: '🐉', isBuff: true, pmods: { atk: .24, matk: .20, def: .22, mdef: .20 }, mods: { move: 28, crit: 10, pen: 12 }, tags: ['#SUMMON'] }
+    beastSpiritPossessed: { nameTh: 'สถิตร่างรวมวิญญาณอสูร', icon: '🐉', isBuff: true, pmods: { atk: .24, matk: .20, def: .22, mdef: .20 }, mods: { move: 28, crit: 10, pen: 12 }, tags: ['#SUMMON'] },
+    massGuard: { nameTh: 'มวลเกราะดูดซับแรง', icon: '🪐', isBuff: true, pmods: { def: .24, mdef: .18, hp: .10 }, tags: ['#EARTH', '#SHIELD'] },
+    sonicHarmonyAura: { nameTh: 'รัศมีคีตาประสาน', icon: '🎵', isBuff: true, pmods: { matk: .16, eva: .12 }, mods: { cast: 18, move: 14, acc: 10 }, tags: ['#SOUND', '#WIND'] },
+    bodhiGrace: { nameTh: 'รัศมีโพธิญาณคุ้มกาย', icon: '🪷', isBuff: true, pmods: { def: .22, mdef: .24, hp: .12 }, mods: { cast: 10 }, tags: ['#YANG', '#SHIELD'] },
+    starDestinyWard: { nameTh: 'ม่านลิขิตดาราพิทักษ์', icon: '🔭', isBuff: true, pmods: { matk: .18, mdef: .20, eva: .16 }, mods: { crit: 10, acc: 14 }, tags: ['#ASTRAL', '#SHIELD'] },
+    weatherConduct: { nameTh: 'ปราณเทวอากาศหนุนนำ', icon: '⛈️', isBuff: true, pmods: { matk: .20, atk: .12, eva: .14 }, mods: { cast: 16, pen: 12 }, tags: ['#LIGHTNING', '#WIND'] },
+    leylineBastion: { nameTh: 'ปราการชีพจรมังกรธรณี', icon: '⛰️', isBuff: true, pmods: { def: .28, mdef: .22, hp: .14 }, tags: ['#EARTH', '#SHIELD'] },
+    atavismFrenzy: { nameTh: 'สายเลือดบรรพกาลคลั่ง', icon: '🐉', isBuff: true, pmods: { atk: .26, def: .14, hp: .12 }, mods: { crit: 12, critDmg: 22, pen: 14 }, tags: ['#BLOOD', '#PHYSICAL'] },
+    temporalHaste: { nameTh: 'กระแสเวลาเร่งพิกัด', icon: '⏳', isBuff: true, pmods: { matk: .16, eva: .18 }, mods: { cast: 24, move: 22, crit: 8 }, tags: ['#ASTRAL'] },
+    literatiDecree: { nameTh: 'โองการอักษรสวรรค์', icon: '🖌️', isBuff: true, pmods: { matk: .20, mdef: .18, acc: .15 }, mods: { pen: 14, cast: 14 }, tags: ['#YANG', '#SEAL'] },
+    marionetteLink: { nameTh: 'เส้นไหมเชิดเงาเชื่อมจิต', icon: '🧵', isBuff: true, isTether: true, pmods: { atk: .16, matk: .16, eva: .20 }, mods: { acc: 14, crit: 10 }, tags: ['#YIN', '#CONTROL'] },
+    chaosEntropyShield: { nameTh: 'ม่านหุ่นตุ้นกลืนสรรพธาตุ', icon: '🌌', isBuff: true, pmods: { atk: .18, matk: .18, def: .18, mdef: .18 }, mods: { pen: 16 }, tags: ['#ASTRAL', '#SHIELD'] },
+    meridianSeal: { nameTh: 'เข็มพิษผนึกจุดชีพจร', icon: '🪡', mods: { cast: -35, move: -20 }, pmods: { atk: -.15, matk: -.15 }, tags: ['#ACUPOINT', '#SEAL'] },
+    tempoBreak: { nameTh: 'คลื่นเสียงสลายจังหวะ', icon: '🎵', mods: { cast: -30, acc: -14 }, pmods: { eva: -.16 }, tags: ['#SOUND', '#CONTROL'] },
+    guLeech: { nameTh: 'คำสาปหนอนกู่สูบวิญญาณ', icon: '🦂', dot: true, pmods: { def: -.14, mdef: -.14 }, tags: ['#POISON', '#WOOD'] },
+    gravityCrush: { nameTh: 'แรงกดทับหมื่นชั่ง', icon: '🪐', mods: { move: -45, cast: -20 }, pmods: { eva: -.25, def: -.12 }, tags: ['#EARTH', '#CONTROL'] },
+    contractDefault: { nameTh: 'ผิดนัดพันธสัญญาสวรรค์', icon: '⚖️', pmods: { def: -.20, mdef: -.20, atk: -.12 }, tags: ['#SEAL'] },
+    voidRiftTear: { nameTh: 'แผลฉีกรอยแยกมิติ', icon: '🌀', dot: true, pmods: { def: -.22, mdef: -.22 }, tags: ['#ASTRAL'] },
+    entropyDecay: { nameTh: 'ปราณโกลาหลกัดกร่อนธาตุ', icon: '🌌', dot: true, pmods: { def: -.18, mdef: -.24 }, tags: ['#ASTRAL'] },
+    divineResonance: { nameTh: 'การสั่นพ้องเทวะ', icon: '🏛️', isBuff: true, pmods: { atk: .18, matk: .18, def: .12, mdef: .15 }, fmods: { pen: 30 }, tags: ['#BUFF'] },
+    shadowClone: { nameTh: 'ร่างแยกเงามายา', icon: '👥', isBuff: true, pmods: { eva: .22 }, fmods: { crit: 12 }, tags: ['#BUFF'] },
+    substitutionReady: { nameTh: 'สลับร่างท่อนไม้', icon: '🪵', isBuff: true, pmods: { eva: .16, def: .12 }, tags: ['#BUFF'] },
+    vowBacklash: { nameTh: 'ของเข้าตัว·ผิดสัจจะ', icon: '💔', pmods: { def: -.35, mdef: -.30 }, tags: ['#SEAL'] },
+    boneArmor: { nameTh: 'เกราะกระดูกวิญญาณ', icon: '🦴', isBuff: true, shield: true, pmods: { def: .25, mdef: .14 }, tags: ['#SHIELD', '#BUFF'] },
+    parryCounter: { nameTh: 'ปัดป้องสะท้อนคม', icon: '⚔️', isBuff: true, pmods: { atk: .16, def: .18 }, fmods: { crit: 18, pen: 16 }, tags: ['#BUFF'] },
+    sanityStrain: { nameTh: 'จิตใจปั่นป่วนนอกมิติ', icon: '👁️‍🗨️', isBuff: true, pmods: { matk: .36, def: -.12 }, fmods: { pen: 24, crit: 14 }, tags: ['#BUFF'] }
   };
   const SUBW = {
     SWORD_IMMORTAL: { strike: 3, pierce: 3, flurry: 2, burst: 1.5, dot: .5 },
@@ -999,6 +1024,78 @@
       firstStrikeAcc: 10,
       counteredByTh: 'วิชาตัวเบา (LIGHTNESS_ART / MOVEMENT_TECHNIQUE) หรือท่าพุ่งทะลวงประชิด',
       descTh: 'ใช้ระยะแส้และเส้นไหมปราณชิงลงมือก่อนอาวุธสั้น (+13% ดาเมจ, +10 แม่นยำ) เว้นแต่ศัตรูใช้วิชาตัวเบาฝ่าวงล้อม'
+    },
+    ROSARY: {
+      weaponType: 'ROSARY',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.45,
+      nameTh: 'ลูกประคำบารมีธรรมสะกดมาร',
+      stanceTh: 'โคจรประคำทองคำคุ้มกายและซัดคลื่นธรรม',
+      kiteDmgMult: 1.12,
+      kiteCritAdd: 5,
+      kiteAccAdd: 10,
+      counteredByTh: 'ท่าพุ่งทะลวง (charge/evade) หรือการคลุกวงในประชิด',
+      descTh: 'หมุนลูกประคำบารมีธรรมสร้างรัศมีป้องกันและซัดปราณระยะกลาง-ไกล (+12% ดาเมจ, +5% คริ, +10 แม่นยำ)'
+    },
+    CLAW: {
+      weaponType: 'CLAW',
+      reachClass: 'SHORT_SWIFT',
+      engageRange: 1.65,
+      nameTh: 'กรงเล็บอสูรฉีกกระชากระยะประชิด',
+      stanceTh: 'พุ่งขย้ำจุดตายและฉีกเกราะป้องกัน',
+      gapCloserMult: 1.14,
+      gapCloserAcc: 10,
+      shieldBreakMult: 1.35,
+      counteredByTh: 'ศาสตรายาวคุมระยะหากไม่มีท่าร่างพุ่งเข้าวงใน',
+      descTh: 'จู่โจมระยะประชิดด้วยความเร็วสูงและฉีกกระชากเกราะ (+14% ดาเมจเมื่อพุ่งเข้าวงใน, ทำลายโล่ ×1.35)'
+    },
+    NEEDLE: {
+      weaponType: 'NEEDLE',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.60,
+      nameTh: 'เข็มวิญญาณและเข็มพิษสกัดจุด',
+      stanceTh: 'ซัดเข็มปราณล่องหนสะกดจุดชีพจรระยะไกล',
+      kiteDmgMult: 1.13,
+      kiteCritAdd: 7,
+      kiteAccAdd: 12,
+      counteredByTh: 'ม่านคุ้มกันปราณหนาแน่นหรือการพุ่งเข้าประชิดตัว',
+      descTh: 'ซัดเข็มพิษและเข็มวิญญาณเจาะจุดชีพจรอย่างแม่นยำ (+13% ดาเมจ, +7% คริ, +12 แม่นยำ)'
+    },
+    FAN: {
+      weaponType: 'FAN',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.55,
+      nameTh: 'พัดยุทธและพัดเทวพายุโบกสะบัด',
+      stanceTh: 'โบกพัดเรียกคลื่นวายุและเบี่ยงวิถีศาสตรา',
+      kiteDmgMult: 1.13,
+      kiteCritAdd: 6,
+      kiteAccAdd: 9,
+      counteredByTh: 'อาวุธหนักทะลวงคลื่นลมหรือท่าพุ่งประชิด',
+      descTh: 'โบกพัดส่งคลื่นวายุและปราณธาตุโจมตีระยะไกล (+13% ดาเมจ, +6% คริ, +9 แม่นยำ)'
+    },
+    ASTROLABE: {
+      weaponType: 'ASTROLABE',
+      reachClass: 'RANGED_KITE',
+      engageRange: 2.75,
+      nameTh: 'จานดวงดาวและหลัวผานธรณีคุมสมรภูมิ',
+      stanceTh: 'หมุนจานดวงดาวคำนวณค่ายกลและแรงโน้มถ่วงระยะไกล',
+      kiteDmgMult: 1.14,
+      kiteCritAdd: 6,
+      kiteAccAdd: 11,
+      counteredByTh: 'ท่าพุ่งทะลวงเข้าประชิดตัว',
+      descTh: 'ใช้จานดวงดาวและหลัวผานธรณีควบคุมสนามรบจากระยะไกล (+14% ดาเมจ, +6% คริ, +11 แม่นยำ)'
+    },
+    ABACUS: {
+      weaponType: 'ABACUS',
+      reachClass: 'HEAVY_BREAKER',
+      engageRange: 2.15,
+      nameTh: 'ลูกคิดทองคำดีดเม็ดปราณทลายเกราะ',
+      stanceTh: 'ดีดลูกคิดคำนวณจุดอ่อนและกระแทกทลายโล่',
+      shieldBreakMult: 1.42,
+      guardShatterDmgMult: 1.14,
+      guardShatterPenAdd: 14,
+      counteredByTh: 'ศาสตรายาวหรือการยิงสกัดจากระยะไกลสุด',
+      descTh: 'คำนวณช่องโหว่และดีดเม็ดลูกคิดทองคำทลายโล่ป้องกัน (+14% ดาเมจ, +14% เจาะเกราะ, ทำลายโล่ ×1.42)'
     }
   };
 
@@ -1223,7 +1320,32 @@
       onbreakthroughattempt: 'onBreakthroughSuccess',
       outofcombatcultivate: 'outOfCombatCultivate',
       outofcombatcraft: 'outOfCombatCraft',
-      outofcombatexplore: 'outOfCombatExplore'
+      outofcombatexplore: 'outOfCombatExplore',
+      onweathersync: 'onWeatherSync',
+      onaurapulse: 'onAuraPulse',
+      oncontractbreach: 'onContractBreach',
+      ongravityshift: 'onGravityShift',
+      onbeastshift: 'onBeastShift',
+      onstaralign: 'onStarAlign',
+      onmeritlotus: 'onMeritLotus',
+      onvoidblink: 'onVoidBlink',
+      onguincubate: 'onGuIncubate',
+      ontemporalrewind: 'onTemporalRewind',
+      onliteratiedict: 'onLiteratiEdict',
+      onmarionettetether: 'onMarionetteTether',
+      onchaostransmute: 'onChaosTransmute',
+      onleylinepulse: 'onLeylinePulse',
+      onwayfarerstep: 'onWayfarerStep',
+      oniaidraw: 'onIaiDraw',
+      onshadowclonehit: 'onShadowCloneHit',
+      onmudracomplete: 'onMudraComplete',
+      ondeitysummon: 'onDeitySummon',
+      onavatardescent: 'onAvatarDescent',
+      oncosmicborrow: 'onCosmicBorrow',
+      onsanitysacrifice: 'onSanitySacrifice',
+      onvowinvoke: 'onVowInvoke',
+      onorgandevour: 'onOrganDevour',
+      ongraveresonance: 'onGraveResonance'
     };
     return map[lower] || raw.toLowerCase().replace(/^on_?/, 'on');
   };
@@ -1243,7 +1365,17 @@
       'onHit', 'onStruck', 'combatTick', 'onCrit', 'onDodge', 'onParry', 'onCast',
       'onKill', 'onHeal', 'onShieldBreak', 'onLowHp', 'onStanceSwitch', 'onStatusApply',
       'onRoundStart', 'onRoundEnd', 'onAllyFall', 'onEnemyFall', 'onDebuffResisted',
-      'onSkillCooldownReady', 'onComboChainN', 'onFirstStrike'
+      'onSkillCooldownReady', 'onComboChainN', 'onFirstStrike',
+      'ON_WEATHER_SYNC', 'ON_AURA_PULSE', 'ON_CONTRACT_BREACH', 'ON_GRAVITY_SHIFT', 'ON_BEAST_SHIFT',
+      'ON_STAR_ALIGN', 'ON_MERIT_LOTUS', 'ON_VOID_BLINK', 'ON_GU_INCUBATE', 'ON_TEMPORAL_REWIND',
+      'ON_LITERATI_EDICT', 'ON_MARIONETTE_TETHER', 'ON_CHAOS_TRANSMUTE', 'ON_LEYLINE_PULSE', 'ON_WAYFARER_STEP',
+      'onWeatherSync', 'onAuraPulse', 'onContractBreach', 'onGravityShift', 'onBeastShift',
+      'onStarAlign', 'onMeritLotus', 'onVoidBlink', 'onGuIncubate', 'onTemporalRewind',
+      'onLiteratiEdict', 'onMarionetteTether', 'onChaosTransmute', 'onLeylinePulse', 'onWayfarerStep',
+      'ON_IAI_DRAW', 'ON_SHADOW_CLONE_HIT', 'ON_MUDRA_COMPLETE', 'ON_DEITY_SUMMON', 'ON_AVATAR_DESCENT',
+      'ON_COSMIC_BORROW', 'ON_SANITY_SACRIFICE', 'ON_VOW_INVOKE', 'ON_ORGAN_DEVOUR', 'ON_GRAVE_RESONANCE',
+      'onIaiDraw', 'onShadowCloneHit', 'onMudraComplete', 'onDeitySummon', 'onAvatarDescent',
+      'onCosmicBorrow', 'onSanitySacrifice', 'onVowInvoke', 'onOrganDevour', 'onGraveResonance'
     ]),
     TARGET_SELECTORS: Object.freeze([
       'SELF', 'SINGLE_ENEMY', 'SINGLE_PRIMARY', 'ALL_ENEMIES', 'ROW_FRONT', 'ROW_BACK',
@@ -1279,7 +1411,14 @@
       'ACUPOINT_STRIKE', 'MERIDIAN_OVERDRIVE', 'CO_CAST_DUET', 'CHARGE_RELEASE',
       'TRIGGER_DUAL_FUSION', 'TRIGGER_TRI_FUSION', 'TRIGGER_TETRA_FUSION',
       'DEAL_SCALED_DMG', 'TRUE_PIERCE_DMG', 'CONSUME_STATUS_BURST', 'SPREAD_DEBUFF',
-      'CHAIN_FOLLOWUP', 'SUMMON_ENTITY', 'RESOURCE_CONVERT', 'COOLDOWN_SHIFT', 'EXECUTE_BELOW_THRESHOLD'
+      'CHAIN_FOLLOWUP', 'SUMMON_ENTITY', 'RESOURCE_CONVERT', 'COOLDOWN_SHIFT', 'EXECUTE_BELOW_THRESHOLD',
+      'MASS_ABSORPTION', 'SONIC_TEMPO_BREAK', 'MERIDIAN_SEAL', 'VOID_POCKET_DEFENSE', 'GU_SOUL_LEECH',
+      'STAR_FATE_REVERSAL', 'BODHI_KARMA_AEGIS', 'WEATHER_THUNDER_CALL', 'CONTRACT_FORECLOSURE',
+      'LEYLINE_EARTH_SPIKE', 'ATAVISM_FRENZY_BITE', 'TEMPORAL_SAND_REWIND', 'IMPERIAL_INK_DECREE',
+      'MARIONETTE_SOUL_SWAP', 'CHAOS_ELEMENT_SHATTER',
+      'IAI_ZERO_QI_SLASH', 'SPAWN_SHADOW_CLONE', 'MUDRA_EXPLOSIVE_SEAL', 'SUMMON_DEITY_PROJECTION',
+      'ENTER_AVATAR_TRANCE', 'BORROW_COSMIC_LAW', 'ELDRITCH_SANITY_BLAST', 'KHMER_YANTRA_WARD',
+      'DEVOUR_ESSENCE_BITE', 'GRAVE_CORPSE_DETONATE'
     ]),
     MARK_KINDS: Object.freeze(['daoMark', 'starSeal', 'venomSeed', 'bloodBrand']),
     TAGS: Object.freeze([
@@ -1640,6 +1779,76 @@
       secondary: '#ffd166',
       accent: '#ff4d6d',
       descTh: 'พายุขนนกกระเรียนหยกขาวและแสงทองพัดกระหน่ำดุจคมกระบี่เซียน'
+    },
+    sig_iai_crimson_moon_slash: {
+      id: 'sig_iai_crimson_moon_slash',
+      nameTh: 'เพลงดาบอิไอผ่าจันทราโลหิตไร้ปราณ',
+      icon: '⚔️',
+      shape: 'iai_crimson_moon_slash',
+      primary: '#e63946',
+      secondary: '#f1faee',
+      accent: '#ffd166',
+      descTh: 'ประกายดาบอิไอไร้ปราณชักฟันเสี้ยววินาทีเกิดเป็นวงพระจันทร์เสี้ยวสีชาดตัดผ่ามิติ'
+    },
+    sig_shinobi_phantom_clone_ambush: {
+      id: 'sig_shinobi_phantom_clone_ambush',
+      nameTh: 'ค่ายกลเงาแยกสังหารแปดทิศ',
+      icon: '🥷',
+      shape: 'shinobi_phantom_clone_ambush',
+      primary: '#4a4e69',
+      secondary: '#c77dff',
+      accent: '#e0fbfc',
+      descTh: 'ร่างแยกเงามายาพุ่งจู่โจมพร้อมดาวกระจายจักระจากทุกทิศทางในม่านควันรัตติกาล'
+    },
+    sig_shinobi_mudra_firestorm: {
+      id: 'sig_shinobi_mudra_firestorm',
+      nameTh: 'มหาเวทย์ประสานอินเพลิงอัสนีถล่มภพ',
+      icon: '🔥',
+      shape: 'shinobi_mudra_firestorm',
+      primary: '#f77f00',
+      secondary: '#fcbf49',
+      accent: '#00f5d4',
+      descTh: 'วงอักขระมุทราประสานอิน 9 ตาประทับระเบิดพายุเพลิงและสายฟ้าคำราม'
+    },
+    sig_pantheon_deity_descent: {
+      id: 'sig_pantheon_deity_descent',
+      nameTh: 'มหาเทวาลัยเบื้องบนจุติข้ามพิภพ',
+      icon: '👑',
+      shape: 'pantheon_deity_descent',
+      primary: '#ffd166',
+      secondary: '#4cc9f0',
+      accent: '#ffffff',
+      descTh: 'ประตูสวรรค์เบื้องบนเปิดออกพร้อมรัศมีทวยเทพ 5 มหาพิภพจุติลงมาพิพากษา'
+    },
+    sig_eldritch_void_rift: {
+      id: 'sig_eldritch_void_rift',
+      nameTh: 'รอยแยกเนตรอเวจีนอกมิติกลืนสติ',
+      icon: '👁️',
+      shape: 'eldritch_void_rift',
+      primary: '#7209b7',
+      secondary: '#f72585',
+      accent: '#4cc9f0',
+      descTh: 'รอยแยกอวกาศนอกมิติฉีกออกพร้อมเนตรทมิฬและระยางค์สุญตาสูบกลืนสติสัมปชัญญะ'
+    },
+    sig_khmer_sacred_yantra_seal: {
+      id: 'sig_khmer_sacred_yantra_seal',
+      nameTh: 'มหายันต์เก้ายอดอาคมขอมคงกระพัน',
+      icon: '📿',
+      shape: 'khmer_sacred_yantra_seal',
+      primary: '#d97706',
+      secondary: '#fef08a',
+      accent: '#ef4444',
+      descTh: 'อักขระยันต์เก้ายอดสีทองชาดลอยเด่นสะท้อนศาสตราและปลุกแรงครูคุ้มกาย'
+    },
+    sig_nether_grave_soul_eruption: {
+      id: 'sig_nether_grave_soul_eruption',
+      nameTh: 'สุสานยมโลกปะทุวิญญาณบรรพชน',
+      icon: '🪦',
+      shape: 'nether_grave_soul_eruption',
+      primary: '#6c757d',
+      secondary: '#80ffdb',
+      accent: '#c77dff',
+      descTh: 'ศิลาจารึกสุสานผุดขึ้นพร้อมเพลิงวิญญาณสีเขียวครามของเหล่าบรรพชนผู้ล่วงลับ'
     }
   };
 

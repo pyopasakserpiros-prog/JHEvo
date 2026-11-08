@@ -7487,7 +7487,7 @@
         fallbackUsed = 'requires_floor_3';
       } else {
         const allTechs = [...(JD.TECH.techniques || []), ...(JD.TECH.mantras || [])];
-        const legPool = allTechs.filter(t => t && t.legendary && !t.innateOnly && !(g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) && !isManualOwned(t.id));
+        const legPool = allTechs.filter(t => t && t.legendary && !t.grandDaoLegendary && !t.innateOnly && !(g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) && !isManualOwned(t.id));
         const themedLeg = legPool.filter(t => t.path === 'ANY' || sanctumPaths.includes(t.path));
         const chosenLeg = (themedLeg.length ? themedLeg : legPool)[0] || null;
         if (chosenLeg) {
@@ -7776,6 +7776,19 @@
   X.MISSIONS.elemental_realm = { nameTh: 'สำรวจแดนธาตุ', icon: '🌌' };
   EX.NINE_DAO_PAGODA = Object.freeze({
     id: 'NINE_DAO_PAGODA', nameTh: 'เจดีย์เก้าวิถีทดสอบสัจธรรม', icon: '🗼',
+    attemptApexTrial(W, npc, floorOrPathId, opts) {
+      opts = Object.assign({}, opts || {});
+      if (typeof floorOrPathId === 'number') {
+        const fl = this.floors.find(x => x.floor === floorOrPathId);
+        if (fl) opts.path = fl.path;
+      } else if (typeof floorOrPathId === 'string') {
+        opts.path = floorOrPathId;
+      }
+      if (g.CULT && g.CULT.APEX_DAO_TRIALS && typeof g.CULT.APEX_DAO_TRIALS.attemptApexTrial === 'function') {
+        return g.CULT.APEX_DAO_TRIALS.attemptApexTrial(W, npc, opts);
+      }
+      return { ok: false, reason: 'apex-trials-unavailable' };
+    },
     floors: Object.freeze([
       { floor: 1, path: 'XIAN', nameTh: 'ชั้นกระบี่และเวหา', guardianNameTh: 'เงากระบี่เมฆา', basePower: 110, stones: 45 },
       { floor: 2, path: 'BODY', nameTh: 'ชั้นกายาวัชระ', guardianNameTh: 'หุ่นวัชระทลายผา', basePower: 145, stones: 55 },
@@ -7788,7 +7801,38 @@
       { floor: 9, path: 'SAGE_SUPPORT', nameTh: 'ชั้นมหาโอสถสวรรค์', guardianNameTh: 'ปราชญ์คีตเวทย์บรรพกาล', basePower: 530, stones: 150 },
       { floor: 10, path: 'CRAFT_CREATION', nameTh: 'ชั้นเตาหลอมเทวะและทั่งสวรรค์', guardianNameTh: 'ปรมาจารย์เตาสวรรค์บรรพกาล', basePower: 600, stones: 175 },
       { floor: 11, path: 'ARRAY_TALISMAN', nameTh: 'ชั้นอักขระค่ายกลฟ้าดิน', guardianNameTh: 'ผู้พิทักษ์ผนึกดารา', basePower: 675, stones: 195 },
-      { floor: 12, path: 'STRATEGY_GOVERNANCE', nameTh: 'ชั้นพิชัยยุทธ์ประสานสรรพชน', guardianNameTh: 'จอมทัพหมื่นธง', basePower: 750, stones: 215 }
+      { floor: 12, path: 'STRATEGY_GOVERNANCE', nameTh: 'ชั้นพิชัยยุทธ์ประสานสรรพชน', guardianNameTh: 'จอมทัพหมื่นธง', basePower: 750, stones: 215 },
+      { floor: 13, path: 'ASTRO_DIVINATION', nameTh: 'ชั้นดาราพยากรณ์และชะตาสวรรค์', guardianNameTh: 'เทพพยากรณ์เจ็ดดารา', basePower: 820, stones: 235 },
+      { floor: 14, path: 'BUDDHA_DHARMA', nameTh: 'ชั้นพุทธะโพธิญาณและบัวทอง', guardianNameTh: 'พระอรหันต์ทองคำพิทักษ์ธรรม', basePower: 890, stones: 255 },
+      { floor: 15, path: 'VOID_SPACE', nameTh: 'ชั้นมิติสุญญากาศและรอยแยกดารา', guardianNameTh: 'จ้าวแห่งรอยแยกสุญญากาศ', basePower: 965, stones: 275 },
+      { floor: 16, path: 'SONIC_HARMONY', nameTh: 'ชั้นคีตศิลป์และคลื่นเสียงสั่นพ้อง', guardianNameTh: 'เซียนพิณเจ็ดสายสะท้านภพ', basePower: 1040, stones: 295 },
+      { floor: 17, path: 'VENOM_GU', nameTh: 'ชั้นหมื่นกู่พิษและปรสิตบรรพกาล', guardianNameTh: 'ราชันย์หมื่นกู่ไหมทอง', basePower: 1120, stones: 315 },
+      { floor: 18, path: 'PRIMORDIAL_SHIFTER', nameTh: 'ชั้นแปลงร่างเทพอสูรสายเลือดบรรพกาล', guardianNameTh: 'เทพอสูรคุนเผิงจำแลง', basePower: 1200, stones: 340 },
+      { floor: 19, path: 'CELESTIAL_WEATHER', nameTh: 'ชั้นบัญชาฟ้าดินและอัสนีวายุ', guardianNameTh: 'ทูตสวรรค์คลื่นเมฆาอัสนี', basePower: 1285, stones: 365 },
+      { floor: 20, path: 'WANDERING_DAO', nameTh: 'ชั้นพเนจรหมื่นลี้และมรรคาเสรี', guardianNameTh: 'จอมยุทธ์พเนจรไร้ร่องรอย', basePower: 1370, stones: 390 },
+      { floor: 21, path: 'MERCANTILE_DAO', nameTh: 'ชั้นพาณิชย์เต๋าและพันธสัญญาสวรรค์', guardianNameTh: 'เทพเจ้าโชคลาภลูกคิดทองคำ', basePower: 1460, stones: 420 },
+      { floor: 22, path: 'DRAGON_VEIN_GEOMANCY', nameTh: 'ชั้นชีพจรมังกรและฮวงจุ้ยปฐพี', guardianNameTh: 'ปรมาจารย์เข็มทิศมังกรปฐพี', basePower: 1550, stones: 450 },
+      { floor: 23, path: 'GRAVITY_DAO', nameTh: 'ชั้นแรงโน้มถ่วงดาราและมวลสาร', guardianNameTh: 'ราชันย์ศิลาดาราถ่วง', basePower: 1645, stones: 480 },
+      { floor: 24, path: 'CHRONO_EPOCH', nameTh: 'ชั้นกาลเวลาและวัฏจักรยุคสมัย', guardianNameTh: 'ผู้เฝ้าแม่น้ำแห่งกาลเวลา', basePower: 1745, stones: 515 },
+      { floor: 25, path: 'INK_LITERATI', nameTh: 'ชั้นปราชญ์น้ำหมึกและอักษรสวรรค์', guardianNameTh: 'มหาปราชญ์พู่กันราชโองการ', basePower: 1850, stones: 550 },
+      { floor: 26, path: 'SOUL_PUPPETRY', nameTh: 'ชั้นหุ่นเชิดวิญญาณและด้ายชะตา', guardianNameTh: 'จ้าวโรงละครไหมวิญญาณ', basePower: 1960, stones: 590 },
+      { floor: 27, path: 'PRIMORDIAL_CHAOS', nameTh: 'ชั้นโกลาหลบรรพกาล (หงเหมิง)', guardianNameTh: 'องค์บรรพชนหงเหมิงเบิกฟ้า', basePower: 2080, stones: 640 },
+      { floor: 28, path: 'SHADOW_SAMURAI', nameTh: 'ชั้นอิไอไร้เงาและคมดาบบูชิโด', guardianNameTh: 'เคนเซย์ดาบไร้ปราณ', basePower: 2150, stones: 660 },
+      { floor: 29, path: 'NINPO_SHADOW', nameTh: 'ชั้นพันร่างเงาและหมอกลอบสังหาร', guardianNameTh: 'จอมนินจาเงาอสูร', basePower: 2220, stones: 680 },
+      { floor: 30, path: 'NINPO_ELEMENTAL', nameTh: 'ชั้นมุทราเบญจธาตุและค่ายกลยันต์ระเบิด', guardianNameTh: 'ปรมาจารย์มุทราอัคคีสายฟ้า', basePower: 2290, stones: 700 },
+      { floor: 31, path: 'DIVINE_SUMMONER', nameTh: 'ชั้นรอยแยกอัญเชิญทวยเทพเบื้องบน', guardianNameTh: 'มหาสังฆราชประตูเทวสภา', basePower: 2360, stones: 720 },
+      { floor: 32, path: 'DIVINE_POSSESSION', nameTh: 'ชั้นภวังค์เทวะประทับร่างนาฏราช', guardianNameTh: 'มหาร่างทรงสุริยเทพจุติ', basePower: 2430, stones: 740 },
+      { floor: 33, path: 'DIVINE_CHANNELER', nameTh: 'ชั้นสายใยยืมกฎฟ้าและอสุนีบาต', guardianNameTh: 'ผู้ถือครองตราชั่งและสายฟ้าเทวะ', basePower: 2500, stones: 760 },
+      { floor: 34, path: 'VOID_HERETIC_PACT', nameTh: 'ชั้นเสียงกระซิบวิปลาสนอกมิติ', guardianNameTh: 'ทูตแห่งดวงตาอวกาศมืด', basePower: 2580, stones: 785 },
+      { floor: 35, path: 'OCCULT_MAGE', nameTh: 'ชั้นแรงครูมหาอาคมคงกระพันชาตรี', guardianNameTh: 'บรมครูจอมขมังเวทเก้ายอด', basePower: 2660, stones: 810 },
+      { floor: 36, path: 'DEVOURING_FLESH', nameTh: 'ชั้นกระเพาะหลุมดำหลอมอวัยวะเร้นลับ', guardianNameTh: 'จอมอสูรกลืนแร่หลอมกระดูก', basePower: 2740, stones: 835 },
+      { floor: 37, path: 'NETHER_GRAVE', nameTh: 'ชั้นสุสานบรรพชนและเกราะกระดูกยมโลก', guardianNameTh: 'ราชันสุสานโครงกระดูกวัชระ', basePower: 2820, stones: 860 },
+      { floor: 38, path: 'ANCESTRAL_RITUAL', nameTh: 'ชั้นป้ายวิญญาณและไขกระดูกบรรพชน', guardianNameTh: 'มหาปุโรหิตมรดกสามรุ่น', basePower: 2900, stones: 885 },
+      { floor: 39, path: 'TIDE_VOYAGER', nameTh: 'ชั้นเกลียวคลื่นสมุทรและเหมันต์ทะเลลึก', guardianNameTh: 'จ้าวสมุทรทวนคลื่นยักษ์', basePower: 2980, stones: 910 },
+      { floor: 40, path: 'LORE_ARCHIVIST', nameTh: 'ชั้นสารานุกรมสวรรค์และกระจกคัดลอกวิชา', guardianNameTh: 'มหาอาลักษณ์หอคัมภีร์โบราณ', basePower: 3060, stones: 935 },
+      { floor: 41, path: 'FORTUNE_GAMBLER', nameTh: 'ชั้นลูกเต๋าหยกและวงล้อเดิมพันชะตา', guardianNameTh: 'จอมราชันนักเดิมพันฟ้าดิน', basePower: 3140, stones: 960 },
+      { floor: 42, path: 'SPIRIT_HUSBANDRY', nameTh: 'ชั้นสวนพฤกษาอมตะและรวงข้าวเสิ่นหนง', guardianNameTh: 'เซียนเกษตรต้นไม้โลก', basePower: 3220, stones: 985 },
+      { floor: 43, path: 'ARENA_GLORY', nameTh: 'ชั้นสังเวียนเกียรติยุทธ์เจ้ายุทธจักร', guardianNameTh: 'แชมเปี้ยนร้อยศึกไร้พ่าย', basePower: 3300, stones: 1020 }
     ])
   });
   // EARTH_METAL is the engine's canonical shared Earth/Metal root element.
@@ -7924,12 +7968,19 @@
           if (!n.cult || n.cult.path !== floor.path) continue;
           HC.gainWisdom(n, 0.65); CULT.gain(n, Math.max(0.5, CULT.threshold(n) * 0.004));
           gainedInsights.add(floor.path); W.sect.daoInsights[floor.path] = (W.sect.daoInsights[floor.path] || 0) + 1;
+          if (g.CULT && g.CULT.GRAND_DAO_MECHANICS && g.CULT.GRAND_DAO_MECHANICS.gainRouteInsight) {
+            g.CULT.GRAND_DAO_MECHANICS.gainRouteInsight(W, n, 15);
+          }
           if (!pagodaState.unlockedSets[floor.path]) {
             pagodaState.unlockedSets[floor.path] = W.day || 0;
             for (const piece of EX.pagodaSetPieces(floor.path, W.day)) if (!EX.hasResonancePiece(W, piece.uid)) out.gear.push(piece);
             log.resonanceSetUnlocked = 'RES_NINE_DAO_' + floor.path;
+            const manualId = 'MANUAL_PATH_' + floor.path;
+            if (g.SECT && g.SECT.PATH_LIBRARY && !g.SECT.PATH_LIBRARY.isPathUnlocked(W, floor.path)) {
+              out.mats[manualId] = (out.mats[manualId] || 0) + 1;
+            }
           }
-          const pathManuals = (g.JD && g.JD.TECH && g.JD.TECH.techniques || []).filter(t => t && t.v212Pack && t.path === floor.path && !(W.sect.library || []).includes(t.id));
+          const pathManuals = (g.JD && g.JD.TECH && g.JD.TECH.techniques || []).filter(t => t && (t.v212Pack || t.v200 || t.v230) && t.path === floor.path && !(W.sect.library || []).includes(t.id));
           if (pathManuals.length) {
             const subMatch = pathManuals.find(t => t.sub === n.cult.sub || (t.compatibleSubs && t.compatibleSubs.includes(n.cult.sub))) || pathManuals[0];
             if (subMatch) {
@@ -8032,6 +8083,14 @@
       if (Array.isArray(n.pets) && n.pets.some(p => p && p.active !== false)) {
         mods.speedMult += 0.12;
         mods.supplySavePct += 0.08;
+      }
+    }
+    if (g.CULT && g.CULT.GRAND_DAO_MECHANICS && g.CULT.GRAND_DAO_MECHANICS.evaluateWanderingPartyBonus) {
+      const wb = g.CULT.GRAND_DAO_MECHANICS.evaluateWanderingPartyBonus(wRef, members);
+      if (wb && wb.active) {
+        mods.speedMult += (1 / Math.max(0.65, wb.travelTimeMult)) - 1;
+        mods.supplySavePct += wb.supplySavePct || 0;
+        mods.hazardResistPct += wb.hazardReduction || 0;
       }
     }
     if (g.SECT && g.SECT.LEYLINE_GRID && g.SECT.LEYLINE_GRID.isTerritoryTriangulated && wRef && g.SECT.LEYLINE_GRID.isTerritoryTriangulated(wRef)) {

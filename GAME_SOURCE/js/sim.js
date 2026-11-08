@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '5.8.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0'],
-    SAVE_SCHEMA_VERSION: '5.8.0-forbidden-arts-passive-awakening-and-blood-altar',
+    PATCH_VERSION: '2.3.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0'],
+    SAVE_SCHEMA_VERSION: '2.3.0-grand-dao-deep-parity-release',
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
@@ -102,6 +102,9 @@
 
     if (typeof o.stage === 'function' || o.stage > 0) SIM.awaken(W, rng, npc, o.stage, o);
     else if (o.stage == null && o.awakenChance != null) { if (rng.chance(o.awakenChance)) SIM.awaken(W, rng, npc, 1, o); }
+    if (!npc.cult && CULT && CULT.MORTAL_INITIATION) {
+      CULT.MORTAL_INITIATION.ensureMortalState(npc, W);
+    }
     npc.h.state.hp = CULT.hpMax(npc);
     npc.h.state.qi = CULT.qiMax(npc);
     return npc;
@@ -113,10 +116,18 @@
 
     if (archDef && o.archetypeKey && W._founding !== false) {
       if (g.ELEM && g.ELEM.ensureNpc) g.ELEM.ensureNpc(npc);
-      const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % archDef.subs.length;
-      const chosenSub = archDef.subs[subIdx] || archDef.subs[0];
-      const subEntry = g.CULT && g.CULT.subList && g.CULT.subList.find(x => x.sub.id === chosenSub);
-      const memberPath = subEntry ? subEntry.path : archDef.path;
+      const primaryPath = archDef.path || 'XIAN';
+      const samePathSubs = (archDef.subs || []).filter(sid => {
+        const se = g.CULT && g.CULT.subList && g.CULT.subList.find(x => x.sub.id === sid);
+        return se && se.path === primaryPath;
+      });
+      const fallbackPathSubs = (g.CULT && g.CULT.PATHS && g.CULT.PATHS[primaryPath] && Array.isArray(g.CULT.PATHS[primaryPath].subPaths))
+        ? g.CULT.PATHS[primaryPath].subPaths.map(s => s.id)
+        : archDef.subs;
+      const validPool = samePathSubs.length ? samePathSubs : fallbackPathSubs;
+      const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % validPool.length;
+      const chosenSub = validPool[subIdx] || validPool[0];
+      const memberPath = primaryPath;
       const mant = CULT.bestMantra(memberPath, 1, npc);
       npc.cult = { path: memberPath, sub: chosenSub, stage: 1, prog: 0, mantra: mant ? mant.id : null, techs: [], learning: null, toxic: 0, lifeBonus: 0, since: W.day, attempts: 0, secl: null, rate: 0, pillT: 0 };
       if (CULT.trackDef(chosenSub)) npc.cult.track = CULT.initTrack(chosenSub, 1, W.day);
@@ -135,7 +146,7 @@
     const m = CULT.bestMantra(c.path, c.stage, npc);
     if (m) c.mantra = m.id;
 
-    const lib = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly).map(t => t.id);
+    const lib = JD.TECH.techniques.filter(t => !t.sourcePack && !t.martialRare && !t.overhaulPack && !t.innateOnly && !t.v230).map(t => t.id);
     let cand = [];
     if (archDef && o.archetypeKey && W._founding !== false && Array.isArray(archDef.techs) && archDef.techs.length) {
       cand = archDef.techs.map(CULT.tech).filter(t => {
@@ -302,6 +313,8 @@
     if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS) g.SECT.OUTPOSTS_LOGISTICS.ensure(W);
     if (g.SECT && g.SECT.CHARTER_DOCTRINE) g.SECT.CHARTER_DOCTRINE.ensure(W);
     if (g.SECT && g.SECT.STRATEGIC_COUNCIL) g.SECT.STRATEGIC_COUNCIL.ensure(W);
+    if (g.SECT && g.SECT.PATH_LIBRARY) g.SECT.PATH_LIBRARY.ensure(W);
+    if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
     if (g.EXPLORE && g.EXPLORE.ensureMicroLocations) g.EXPLORE.ensureMicroLocations(W);
     if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
     SIM.dailyUpdate(W, true);
@@ -343,7 +356,8 @@
     const effQuality = o.quality != null ? o.quality : (tierRoll ? tierRoll.quality : 0);
     const effRoot = o.rootGrade || (tierRoll ? tierRoll.rootGrade : undefined);
     const effTraits = o.traitCount != null ? o.traitCount : (tierRoll ? tierRoll.traitCount : undefined);
-    const awaken = o.fromExped || o.fromApplicant ? 0.65 + Math.max(0, effQuality) * 0.15 : 0.5;
+    const awaken = o.fromExped ? 0.65 + Math.max(0, effQuality) * 0.15 : 0.5;
+    const isMortalRecruit = o.stage == null && ((o.rank || 0) === 0 || o.fromApplicant) && !o.fromExped && !o.forceAwaken;
     const n = SIM.buildNpc(W, W.rng, {
       id,
       sex: o.sex,
@@ -352,7 +366,7 @@
       skillExp: clamp(((o.ageYears || 18) - 12) / 40, 0.03, 0.35),
       trainedness: 0.5,
       rank: o.rank || 0,
-      stage: o.stage != null ? o.stage : (W.rng.chance(awaken) ? 1 : 0),
+      stage: o.stage != null ? o.stage : (isMortalRecruit ? 0 : (W.rng.chance(awaken) ? 1 : 0)),
       awakenChance: null,
       merit: 0,
       traitCount: effTraits,
@@ -743,7 +757,9 @@
       if (SECT.CELESTIAL_ALIGNMENTS.tickMonthlyCycle) SECT.CELESTIAL_ALIGNMENTS.tickMonthlyCycle(W);
       else if (SECT.CELESTIAL_ALIGNMENTS.tick) SECT.CELESTIAL_ALIGNMENTS.tick(W);
     }
-    W.npcs.forEach(n => { if (n.dead || n.cult || n.away) return; if (HC.ageYears(n) > 45) return; const tal = HC.derived(n).cultivationTalent; if (W.rng.chance(clamp((tal - 38) / 200, 0.02, 0.35))) { const ch = CULT.awaken(n, W.rng, null, W.day); if (g.MARTIAL && g.MARTIAL.reconcileInnate) g.MARTIAL.reconcileInnate(n, W); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); n.h.state.qi = CULT.qiMax(n); W.log('awaken', n.h.name.given + ' ตื่นรู้ปราณและก้าวเข้าสู่วิถี' + (CULT.PATHS[ch.path].nameTh || ch.path), [n.id]); HC.experience(n, 'insight', 0.8); } });
+    if (CULT && CULT.MORTAL_INITIATION) {
+      CULT.MORTAL_INITIATION.monthlyTick(W);
+    }
   };
   SIM.guardRoster = W => {
     const pop = W.npcs.filter(n => !n.dead).length; const k = 2 + Math.floor(pop / 14);
@@ -817,6 +833,42 @@
     const invalid = field => { throw new Error('ข้อมูลเซฟไม่ถูกต้อง: ' + field); };
     if (!object(s)) invalid('save');
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
+    const SUPPORTED_SAVE_SCHEMAS = new Set([
+      SIM.SAVE_SCHEMA_VERSION,
+      '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle',
+      '2.1.0-grand-dao-debates-apex-trials',
+      '2.0.0-grand-dao-epoch-mortal-awakening',
+      '5.8.0-forbidden-arts-passive-awakening-and-blood-altar',
+      '5.7.0-support-and-auxiliary-arts-overhaul',
+      '5.6.0-defensive-kungfu-and-aegis-overhaul',
+      '5.5.0-mantra-resonance-and-formation-warfare',
+      '5.4.0-qinggong-movement-and-flight',
+      '5.3.0-heavenly-tribulation-and-skill-vfx',
+      '5.2.0-subtabs-and-world-visuals',
+      '5.1.0-interactive-visual-dioramas',
+      '5.0.0-celestial-visual-overhaul',
+      '4.1.0-sect-expansion-and-architecture',
+      '4.0.0-living-frontier-charter',
+      '3.6.0-immortal-endgame-dynasty',
+      '3.5.0-macro-jianghu-and-alchemy',
+      '3.4.0-combat-depth-and-duet-synergies',
+      '3.3.0-living-sect-and-daily-loop',
+      '3.2.0-dormant-awakening',
+      '3.1.0-autonomous-governance-peaks'
+    ]);
+    if (s.schemaVersion != null) {
+      if (typeof s.schemaVersion !== 'string' || (!SUPPORTED_SAVE_SCHEMAS.has(s.schemaVersion) && s.schemaVersion > SIM.SAVE_SCHEMA_VERSION)) {
+        throw new Error('ไฟล์เซฟสร้างจาก Schema เวอร์ชันที่ใหม่กว่าหรือไม่รองรับ (' + s.schemaVersion + ' > ' + SIM.SAVE_SCHEMA_VERSION + ') ไม่สามารถโหลดได้');
+      }
+    }
+    if (s.patchVersion != null) {
+      if (typeof s.patchVersion !== 'string' || (!SIM.SUPPORTED_PATCHES.includes(s.patchVersion) && parseFloat(s.patchVersion) > parseFloat(SIM.PATCH_VERSION))) {
+        throw new Error('ไฟล์เซฟสร้างจาก Patch เวอร์ชันที่ใหม่กว่า (' + s.patchVersion + ' > ' + SIM.PATCH_VERSION + ') ไม่สามารถโหลดได้');
+      }
+    }
+    if (s.v != null && typeof s.v === 'string' && parseFloat(s.v) > 10) {
+      throw new Error('ไฟล์เซฟสร้างจากเกมเวอร์ชันที่ใหม่กว่า (' + s.v + ' > ' + SIM.VERSION + ') ไม่สามารถโหลดได้');
+    }
     if (typeof s.seed !== 'string' && !Number.isFinite(s.seed)) invalid('seed');
     if (!Number.isSafeInteger(s.t) || s.t < 0) invalid('t');
     for (const key of ['seqN', 'logSeq']) if (!Number.isSafeInteger(s[key]) || s[key] < 0) invalid(key);
@@ -873,6 +925,11 @@
       if (g.ECO && g.ECO.ensureStockTracker) g.ECO.ensureStockTracker(W);
       if (g.CPE && g.CPE.S) g.CPE.S(W);
       g.CONTENT.ensure(W); W._founding = false; g.MARTIAL.restore(W); if (g.FISHING) g.FISHING.ensure(W);
+      if (g.SECT && g.SECT.PATH_LIBRARY) g.SECT.PATH_LIBRARY.ensure(W);
+      if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
+      if (g.CULT && g.CULT.MORTAL_INITIATION && Array.isArray(W.npcs)) {
+        W.npcs.forEach(n => { if (n && !n.dead && !n.cult) g.CULT.MORTAL_INITIATION.ensureMortalState(n, W); });
+      }
       if (legacyContent) W.npcs.forEach(n => {
         const a = n.act, ctx = a && a.ctx;
         if (a && ['brew', 'forge', 'brewBasic'].includes(a.id) && a.stage === 'do' && a.started2 && ctx && !ctx.craftReceipt) {

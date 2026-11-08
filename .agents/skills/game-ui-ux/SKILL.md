@@ -140,3 +140,8 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 - **Dynamic Atmosphere & Directional Sun Shadows (`Render.computeSunShadow`, `drawDriftingMountainMist`, `drawWater`)**: Casts directional building shadows (`offsetX = -12, offsetY = 6` morning; `0, 4` noon; `14, 6` evening), drifting mountain mist, golden water caustics, multicolored alchemy vapor, and forge sparks.
 - **5-Element Sect Barrier Dome & Leyline Veins (`Render.drawSectBarrierDome`, `Render.drawLeylineVeins`, `Render.resolveBarrierColor`)**: Draws a hexagonal-mesh protective dome colored by element (`METAL #f1c40f`, `WOOD #2ecc71`, `WATER #3498db`, `FIRE #e74c3c`, `EARTH #e67e22`) and glowing leyline veins from all 8 Peaks to the central Bagua Plaza.
 - **Peak Camera Focus (`UI.rSectPeaks`, `data-do="focus-peak-camera"`)**: Pans and zooms the 2D canvas camera directly to any of the 8 Peak Sanctuaries.
+
+
+## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
+- **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
+- **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.

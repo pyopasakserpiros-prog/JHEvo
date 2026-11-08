@@ -80,8 +80,8 @@ assert.strictEqual(
   'human_core.js SHA-256 must remain 100% byte-identical'
 );
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-assert.strictEqual(SIM.PATCH_VERSION, '5.8.0', 'SIM.PATCH_VERSION must be 5.5.0');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '5.8.0-forbidden-arts-passive-awakening-and-blood-altar', 'SIM.SAVE_SCHEMA_VERSION must match v5.5.0');
+assert.strictEqual(SIM.PATCH_VERSION, '2.3.0', 'SIM.PATCH_VERSION must be 5.5.0');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '2.3.0-grand-dao-deep-parity-release', 'SIM.SAVE_SCHEMA_VERSION must match v5.5.0');
 assert(SIM.SUPPORTED_PATCHES.includes('5.8.0'), 'SIM.SUPPORTED_PATCHES must include 5.5.0');
 
 // 1. Verify CULT.MANTRA_SYSTEM 7 Archetypes, 3 Stances & Full Catalog Enrichment

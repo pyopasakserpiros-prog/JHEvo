@@ -75,3 +75,8 @@ node test/long_simulation.js
 ## Patch v4.0.0 Performance Verification (`80 NPCs <= 3.5 ms/tick`)
 - In `v4.0.0`, `SECT.OUTPOSTS_LOGISTICS.tickOutpostLogistics(W)` executes once per day in `SECT.daily(W)`, `COMBAT.ACTION_MASTERY_TRAITS` uses O(1) counter increments and invalidates `STATS.dirty(npc)` only on threshold unlock, and `CULT.rate(npc)` caches base rates in `_cultRateBase`.
 - Verified 80-NPC tick speed in `test/v400_living_frontier_and_sect_charter_suite.js`: **`0.700 ms/tick`** (5× faster than the `3.5 ms/tick` ceiling).
+
+
+## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
+- **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
+- **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.

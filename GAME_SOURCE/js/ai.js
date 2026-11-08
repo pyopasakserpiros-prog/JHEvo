@@ -365,8 +365,8 @@
   /* ---------- นิยามกิจกรรม ---------- */
   const A = {}; AI.ACTS = A;
   const idleOk = n => !n.act || n.act.id === 'idle';
-  const MC_AFF_MAP = { BOW: 'SWORD', STAFF: 'SPEAR', FOCUS: 'SOUL_DIVINE', ZITHER: 'SOUL_DIVINE', BRUSH: 'TALISMAN', WHIP: 'SPEAR' };
-  const MC_IDS = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ARRAY', 'TALISMAN'];
+  const MC_AFF_MAP = { BOW: 'SWORD', STAFF: 'SPEAR', FOCUS: 'SOUL_DIVINE', ZITHER: 'SOUL_DIVINE', BRUSH: 'TALISMAN', WHIP: 'SPEAR', ROSARY: 'SOUL_DIVINE', CLAW: 'FIST_PALM', NEEDLE: 'MEDICINE', FAN: 'WIND', ASTROLABE: 'SCRIPTURE', ABACUS: 'SCRIPTURE' };
+  const MC_IDS = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'ROSARY', 'CLAW', 'NEEDLE', 'FAN', 'ASTROLABE', 'ABACUS', 'MOVEMENT', 'BODY_REFINING', 'SOUL_DIVINE', 'POISON', 'ARRAY', 'TALISMAN'];
   function martialChoice(n, W) {
     if (g.MARTIAL && g.MARTIAL.activeBottleneckSkills) {
       const bn = g.MARTIAL.activeBottleneckSkills(W || null, n);
@@ -468,6 +468,86 @@
     tick(n, W) { const s = n.h.state; s.satiety = Math.min(100, s.satiety + 4.6); s.mood = Math.min(100, s.mood + 0.12); s.hp = Math.min(CULT.hpMax(n), s.hp + 0.1); if (s.satiety >= 98) return 'done'; },
     vf: { familyClan: 0.1 }
   };
+  /* ---------- PATCH v2.0.0: กิจกรรมคนธรรมดาเริ่มต้นบำเพ็ญเพียร (Mortal Initiation Routines) ---------- */
+  A.study_dao = {
+    nameTh: 'ศึกษาคัมภีร์วิถีเริ่มต้น', icon: '📖', color: '#a78bfa',
+    can: (n, W) => !n.cult && !(n.inj && n.inj.some(i => i.sev >= 2)),
+    score(n, W, S) {
+      if (n.cult) return;
+      const mc = (CULT.MORTAL_INITIATION && CULT.MORTAL_INITIATION.ensureMortalState) ? CULT.MORTAL_INITIATION.ensureMortalState(n, W) : null;
+      const comp = mc ? (mc.daoComprehension || 0) : 0;
+      const st = n.h.state;
+      if (comp < 50) S.add('ต้องเข้าใจคัมภีร์วิถีก่อนเปิดตันเถียน', 1.45 + ((50 - comp) / 50) * 0.55);
+      else if (comp < 100) S.add('ขัดเกลาความเข้าใจวิถีเต๋า', 0.85);
+      else S.add('เข้าใจวิถีถ่องแท้แล้ว', -0.6);
+      S.add('ใฝ่รู้', (E(n, 'values.knowledgeCraft') - 45) / 180 + (E(n, 'intellect.comprehension') - 45) / 200);
+      if (st.rest < 25) S.add('อ่อนล้า', -0.8);
+      if (st.satiety < 30) S.add('หิว', -0.8);
+    },
+    where(W, n) {
+      const sRead = AI.freeStation(W, n, 'read', 'scripture');
+      if (sRead) return { st: sRead, mult: 1.35 + 0.15 * ((W.map.byId.scripture && W.map.byId.scripture.level) || 1) };
+      const sMed = AI.freeStation(W, n, 'meditate', 'meditation_hall');
+      if (sMed) return { st: sMed, mult: 1.15 };
+      if (n.bed != null && W.map.stations[n.bed]) return { st: W.map.stations[n.bed], mult: 0.85, room: true };
+      return null;
+    },
+    dur: n => Math.round(55 + E(n, 'personality.discipline') * 0.6),
+    tick(n, W, ctx) {
+      if (n.cult) return 'done';
+      if (CULT.MORTAL_INITIATION) {
+        CULT.MORTAL_INITIATION.stepStudyDao(W, n, 1 / 60, (ctx && ctx.mult) || 1.25);
+      }
+      if (n.cult) return 'done';
+    },
+    done(n, W, ctx) {
+      if (!n.cult && CULT.MORTAL_INITIATION) {
+        CULT.MORTAL_INITIATION.stepStudyDao(W, n, 0.08, (ctx && ctx.mult) || 1.25);
+      }
+    },
+    inside: true
+  };
+
+  A.gather_qi = {
+    nameTh: 'รวบรวมปราณเปิดตันเถียน', icon: '🌅', color: '#38bdf8',
+    can: (n, W) => !n.cult && !(n.inj && n.inj.some(i => i.sev >= 2)),
+    score(n, W, S) {
+      if (n.cult) return;
+      const mc = (CULT.MORTAL_INITIATION && CULT.MORTAL_INITIATION.ensureMortalState) ? CULT.MORTAL_INITIATION.ensureMortalState(n, W) : null;
+      const comp = mc ? (mc.daoComprehension || 0) : 0;
+      const qf = mc ? (mc.qiFoundation || 0) : 0;
+      const st = n.h.state;
+      if (comp >= 25) S.add('พร้อมดูดซับปราณฟ้าดินเปิดจุดตันเถียน', 1.55 + (qf / 100) * 0.70);
+      else S.add('สัมผัสปราณธรรมชาติเบื้องต้น', 1.05);
+      S.add('ใฝ่ตบะ', (E(n, 'values.martialPeak') - 42) / 160 + (E(n, 'personality.ambition') - 42) / 200);
+      if (st.rest < 25) S.add('อ่อนล้า', -0.8);
+      if (st.satiety < 30) S.add('หิว', -0.8);
+    },
+    where(W, n) {
+      const sMed = AI.freeStation(W, n, 'meditate', 'meditation_hall');
+      if (sMed) return { st: sMed, mult: 1.45 + 0.18 * (((W.map.byId.meditation_hall && W.map.byId.meditation_hall.level) || 1) - 1) };
+      const sPond = AI.freeStation(W, n, 'relax', 'spirit_pond');
+      if (sPond) return { st: sPond, mult: 1.35 };
+      const sShrine = AI.freeStation(W, n, 'worship', 'shrine');
+      if (sShrine) return { st: sShrine, mult: 1.25 };
+      if (n.bed != null && W.map.stations[n.bed]) return { st: W.map.stations[n.bed], mult: 0.85, room: true };
+      return null;
+    },
+    dur: n => Math.round(65 + E(n, 'personality.discipline') * 0.7),
+    tick(n, W, ctx) {
+      if (n.cult) return 'done';
+      if (CULT.MORTAL_INITIATION) {
+        CULT.MORTAL_INITIATION.stepGatherQi(W, n, 1 / 60, ctx.mult || 1.25);
+      }
+      if (n.cult) return 'done';
+    },
+    done(n, W, ctx) {
+      if (!n.cult && CULT.MORTAL_INITIATION) {
+        CULT.MORTAL_INITIATION.stepGatherQi(W, n, 0.08, (ctx && ctx.mult) || 1.25);
+      }
+    }
+  };
+
   A.cultivate = {
     nameTh: 'บำเพ็ญ', icon: '🧘', color: '#38bdf8',
     can: (n, W) => !!n.cult && !(n.inj && n.inj.some(i => i.sev >= 2)),
@@ -545,9 +625,39 @@
         if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
         return null;
       }
-      if (c.path === 'STRATEGY_GOVERNANCE') {
+      if (c.path === 'STRATEGY_GOVERNANCE' || c.path === 'INK_LITERATI' || c.path === 'ASTRO_DIVINATION' || c.path === 'CHRONO_EPOCH') {
         const sSt = AI.freeStation(W, n, 'read', 'scripture') || AI.freeStation(W, n, 'work', 'main_hall') || AI.freeStation(W, n, 'meditate', 'meditation_hall');
         if (sSt) return { st: sSt, mult: 1.50 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
+      if (c.path === 'BUDDHA_DHARMA') {
+        const sBd = AI.freeStation(W, n, 'worship', 'shrine') || AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'pray', 'ancestral');
+        if (sBd) return { st: sBd, mult: 1.52 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
+      if (c.path === 'SONIC_HARMONY') {
+        const sSn = AI.freeStation(W, n, 'music', 'tea_garden') || AI.freeStation(W, n, 'relax', 'spirit_pond') || AI.freeStation(W, n, 'meditate', 'meditation_hall');
+        if (sSn) return { st: sSn, mult: 1.50 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
+      if (c.path === 'VENOM_GU' || c.path === 'PRIMORDIAL_SHIFTER') {
+        const sVg = AI.freeStation(W, n, 'farm', 'herb_garden') || AI.freeStation(W, n, 'cauldron', 'alchemy') || AI.freeStation(W, n, 'relax', 'spirit_pond') || AI.freeStation(W, n, 'dummy', 'training_ground');
+        if (sVg) return { st: sVg, mult: 1.48 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
+      if (c.path === 'MERCANTILE_DAO') {
+        const sMc = AI.freeStation(W, n, 'browse', 'market') || AI.freeStation(W, n, 'work', 'main_hall') || AI.freeStation(W, n, 'read', 'scripture');
+        if (sMc) return { st: sMc, mult: 1.50 };
+        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+        return null;
+      }
+      if (c.path === 'VOID_SPACE' || c.path === 'CELESTIAL_WEATHER' || c.path === 'WANDERING_DAO' || c.path === 'DRAGON_VEIN_GEOMANCY' || c.path === 'GRAVITY_DAO' || c.path === 'SOUL_PUPPETRY' || c.path === 'PRIMORDIAL_CHAOS' || ['SHADOW_SAMURAI','NINPO_SHADOW','NINPO_ELEMENTAL','DIVINE_SUMMONER','DIVINE_POSSESSION','DIVINE_CHANNELER','VOID_HERETIC_PACT','OCCULT_MAGE','DEVOURING_FLESH','NETHER_GRAVE','ANCESTRAL_RITUAL','TIDE_VOYAGER','LORE_ARCHIVIST','FORTUNE_GAMBLER','SPIRIT_HUSBANDRY','ARENA_GLORY'].includes(c.path)) {
+        const sGd = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond') || AI.freeStation(W, n, 'array', 'forge');
+        if (sGd) return { st: sGd, mult: 1.52 };
         if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
         return null;
       }

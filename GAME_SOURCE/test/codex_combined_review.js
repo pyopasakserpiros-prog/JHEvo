@@ -262,7 +262,7 @@ check('Item 8: Yitian shield-sever proc, Dagou redirection proc, and weapon bala
   assert(procDagou && procDagou.triggered && procDagou.redirectedDmg > 0, 'Dagou Staff must redirect damage back to attacker');
 
   const bench = g.VC.benchmarkWeaponBalance();
-  assert.strictEqual(bench.length, 14, 'benchmark must cover all 14 legendary weapons');
+  assert.strictEqual(bench.length, 20, 'benchmark must cover all 20 legendary weapons');
   const ratios = bench.map(x => x.powerRatio);
   const spread = Math.max(...ratios) / Math.min(...ratios);
   assert(spread < 2.2, `legendary weapon power ratio spread must be balanced (<2.2), got ${spread}`);

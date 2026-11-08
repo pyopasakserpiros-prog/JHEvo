@@ -71,7 +71,7 @@
     const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '') + (it.uid || '')), f = 1 + 0.12 * tier, s = {};
     const pool = [['crit', () => (2.2 + 2 * rn(h, 5)) * f], ['critDmg', () => (8 + 8 * rn(h, 6)) * f], ['pen', () => (3 + 4 * rn(h, 7)) * f], ['acc', () => base * 0.12], ['cast', () => (3 + 4 * rn(h, 8)) * f], ['eva', () => base * 0.1], ['hp', () => base * 0.45], ['move', () => 3 + 3 * rn(h, 9)], ['mdef', () => base * 0.18], ['def', () => base * 0.18]];
     const pickAff = (n, ex) => { const used = {}; for (let i = 0; i < n; i++) { let k = Math.floor(rn(h, 20 + i) * pool.length), tries = 0; while ((used[pool[k][0]] || (ex && ex.includes(pool[k][0]))) && tries++ < 12) k = (k + 1) % pool.length; used[pool[k][0]] = 1; s[pool[k][0]] = (s[pool[k][0]] || 0) + pool[k][1](); } };
-    if (it.slot === 'WEAPON') { const gType = it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh); const isMag = ['FOCUS', 'ZITHER', 'BRUSH'].includes(gType); const isHyb = gType === 'WHIP'; s[isMag ? 'matk' : 'atk'] = base * (isHyb ? 0.44 : 0.55); s[isMag ? 'atk' : 'matk'] = base * (isHyb ? 0.34 : 0.1); pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
+    if (it.slot === 'WEAPON') { const gType = it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh); const isMag = ['FOCUS', 'ZITHER', 'BRUSH', 'ROSARY', 'FAN', 'ASTROLABE'].includes(gType); const isHyb = ['WHIP', 'NEEDLE', 'ABACUS'].includes(gType); s[isMag ? 'matk' : 'atk'] = base * (isHyb ? 0.44 : 0.55); s[isMag ? 'atk' : 'matk'] = base * (isHyb ? 0.34 : 0.1); pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
     else if (it.slot === 'ARMOR') { s.def = base * 0.55; s.mdef = base * 0.28; s.hp = base * 0.5; pickAff(tier >= 4 ? 1 : 0, ['crit', 'critDmg', 'pen']); if (tier >= 4 && rn(h, 3) < 0.5) s.eva = (s.eva || 0) + base * 0.06; }
     else { pickAff(2); const r = rn(h, 4); if (r < 0.3) s.atk = (s.atk || 0) + base * 0.2; else if (r < 0.6) s.matk = (s.matk || 0) + base * 0.2; }
     (it.fx || it.effects || []).forEach(x => {
@@ -95,7 +95,7 @@
       }
     });
     const type = it.gearType || JD.MARTIAL.classify(it.slot, it.nameTh);
-    const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
+    const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, ROSARY: { matk: base * .12, mdef: base * .14, hp: base * .18 }, CLAW: { atk: base * .15, crit: 4, pen: 5 }, NEEDLE: { atk: base * .08, matk: base * .10, acc: base * .16, pen: 6 }, FAN: { matk: base * .13, cast: 5, eva: base * .08 }, ASTROLABE: { matk: base * .14, acc: base * .16, crit: 3 }, ABACUS: { atk: base * .10, matk: base * .10, pen: 5, def: base * .08 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
     for (const k in typed) s[k] = (s[k] || 0) + typed[k];
     for (const k in s) s[k] = Math.round(s[k] * 10) / 10;
     it.st = s; return s;
@@ -139,7 +139,25 @@
     meridianOverdrive: { id: 'meridianOverdrive', name: 'ชีพจรแปดพิสดารปะทุ', icon: '⚡', kind: 'overdrive', defaultDur: 40, p: { atk: 0.30, matk: 0.30, def: 0.20, mdef: 0.20 }, f: { cast: 28, move: 22, pen: 18, crit: 10 }, descTh: 'ปลดขีดจำกัดเส้นลมปราณพิสดารทั้งแปด เพิ่มสเตตัสรบ +30% และความเร็วร่าย +28' },
     finalStandImmortal: { id: 'finalStandImmortal', name: 'ปราการยืนหยัดไร้พ่าย', icon: '🛡️', kind: 'defense', defaultDur: 40, p: { def: 0.32, mdef: 0.32, hp: 0.15 }, f: {}, shieldPct: 0.30, descTh: 'กางปราการไร้พ่ายเมื่อวิกฤต เพิ่มป้องกัน +32% และสร้างโล่คุ้มกาย 30%' },
     totemBlessing: { id: 'totemBlessing', name: 'พรเสาโทเท็มบรรพชน', icon: '🗿', kind: 'lineage', defaultDur: 120, p: { atk: 0.12, matk: 0.12, def: 0.12, mdef: 0.12, hp: 0.10 }, f: { crit: 5, pen: 8 }, cultRateBonus: 0.15, descTh: 'รับพรคุ้มครองจากเสาโทเท็มประจำสำนัก เพิ่มสเตตัสรบ +12% และเร่งบ่มเพาะ +15%' },
-    beastSpiritPossessed: { id: 'beastSpiritPossessed', name: 'ประทับร่างอสูรบรรพกาล', icon: '🐉', kind: 'overdrive', defaultDur: 50, p: { atk: 0.25, matk: 0.20, def: 0.18, hp: 0.18 }, f: { move: 24, crit: 10, pen: 15 }, descTh: 'ผสานวิญญาณสัตว์อสูรคู่สัญญาเข้าสู่ร่างต้น เพิ่มพลังรบและความเร็วอย่างมหาศาล' }
+    beastSpiritPossessed: { id: 'beastSpiritPossessed', name: 'ประทับร่างอสูรบรรพกาล', icon: '🐉', kind: 'overdrive', defaultDur: 50, p: { atk: 0.25, matk: 0.20, def: 0.18, hp: 0.18 }, f: { move: 24, crit: 10, pen: 15 }, descTh: 'ผสานวิญญาณสัตว์อสูรคู่สัญญาเข้าสู่ร่างต้น เพิ่มพลังรบและความเร็วอย่างมหาศาล' },
+    massGuard: { id: 'massGuard', name: 'มวลเกราะดูดซับแรง', icon: '🪐', kind: 'defense', defaultDur: 45, p: { def: 0.24, mdef: 0.18, hp: 0.10 }, f: {}, shieldPct: 0.18, descTh: 'ดูดกลืนแรงปะทะเป็นเกราะมวลหนัก เพิ่มป้องกัน +24%, ป้องกันวิชา +18% และสร้างโล่มวลสาร' },
+    sonicHarmonyAura: { id: 'sonicHarmonyAura', name: 'รัศมีคีตาประสาน', icon: '🎵', kind: 'haste', defaultDur: 50, p: { matk: 0.16, eva: 0.12 }, f: { cast: 18, move: 14, acc: 10 }, qiRegenBonus: 0.12, descTh: 'คลื่นเสียงสั่นพ้องหนุนนำทีม เพิ่มโจมตีวิชา +16%, ความเร็วร่าย +18, เคลื่อนที่ +14' },
+    bodhiGrace: { id: 'bodhiGrace', name: 'รัศมีโพธิญาณคุ้มกาย', icon: '🪷', kind: 'ward', defaultDur: 60, p: { def: 0.22, mdef: 0.24, hp: 0.12 }, f: { cast: 10 }, shieldPct: 0.20, ctrlResist: 0.25, descTh: 'รัศมีพุทธธรรมคุ้มครอง เพิ่มป้องกัน +22%, ป้องกันวิชา +24% และต้านทานสถานะสะกด' },
+    starDestinyWard: { id: 'starDestinyWard', name: 'ม่านลิขิตดาราพิทักษ์', icon: '🔭', kind: 'ward', defaultDur: 55, p: { matk: 0.18, mdef: 0.20, eva: 0.16 }, f: { crit: 10, acc: 14 }, shieldPct: 0.16, descTh: 'ม่านดวงดาวเบี่ยงชะตา เพิ่มโจมตีวิชา +18%, ป้องกันวิชา +20%, หลบหลีก +16%, แม่นยำ +14' },
+    weatherConduct: { id: 'weatherConduct', name: 'ปราณเทวอากาศหนุนนำ', icon: '⛈️', kind: 'element', defaultDur: 50, p: { matk: 0.20, atk: 0.12, eva: 0.14 }, f: { cast: 16, pen: 12 }, descTh: 'ผสานปราณเข้ากับสภาพอากาศ เพิ่มโจมตีวิชา +20%, ร่ายไว +16, เจาะเกราะ +12%' },
+    leylineBastion: { id: 'leylineBastion', name: 'ปราการชีพจรมังกรธรณี', icon: '⛰️', kind: 'defense', defaultDur: 65, p: { def: 0.28, mdef: 0.22, hp: 0.14 }, f: {}, shieldPct: 0.22, descTh: 'เชื่อมกายกับชีพจรมังกรธรณี เพิ่มป้องกัน +28%, ป้องกันวิชา +22% และกางโล่ศิลา' },
+    atavismFrenzy: { id: 'atavismFrenzy', name: 'สายเลือดบรรพกาลคลั่ง', icon: '🐉', kind: 'offense', defaultDur: 45, p: { atk: 0.26, def: 0.14, hp: 0.12 }, f: { crit: 12, critDmg: 22, pen: 14 }, descTh: 'ปลุกสายเลือดเทพอสูรบรรพกาล เพิ่มโจมตี +26%, คริ +12%, แรงคริ +22%, เจาะเกราะ +14%' },
+    temporalHaste: { id: 'temporalHaste', name: 'กระแสเวลาเร่งพิกัด', icon: '⏳', kind: 'haste', defaultDur: 45, p: { matk: 0.16, eva: 0.18 }, f: { cast: 24, move: 22, crit: 8 }, descTh: 'เร่งกระแสเวลาเฉพาะตัว เพิ่มความเร็วร่าย +24, เคลื่อนที่ +22, หลบหลีก +18%' },
+    literatiDecree: { id: 'literatiDecree', name: 'โองการอักษรสวรรค์', icon: '🖌️', kind: 'command', defaultDur: 55, p: { matk: 0.20, mdef: 0.18, acc: 0.15 }, f: { pen: 14, cast: 14 }, cultRateBonus: 0.18, descTh: 'จารึกอักษรสวรรค์หนุนทัพ เพิ่มโจมตีวิชา +20%, ป้องกันวิชา +18%, เจาะเกราะ +14% และเร่งศึกษาคัมภีร์' },
+    marionetteLink: { id: 'marionetteLink', name: 'เส้นไหมเชิดเงาเชื่อมจิต', icon: '🧵', kind: 'tether', defaultDur: 45, p: { atk: 0.16, matk: 0.16, eva: 0.20 }, f: { acc: 14, crit: 10 }, descTh: 'ถักทอเส้นไหมวิญญาณเชื่อมร่างเงา แบ่งรับดาเมจและเพิ่มหลบหลีก +20%, แม่นยำ +14' },
+    chaosEntropyShield: { id: 'chaosEntropyShield', name: 'ม่านหุ่นตุ้นกลืนสรรพธาตุ', icon: '🌌', kind: 'shield', defaultDur: 50, p: { atk: 0.18, matk: 0.18, def: 0.18, mdef: 0.18 }, f: { pen: 16 }, shieldPct: 0.20, descTh: 'ม่านปราณโกลาหลต้นกำเนิด ดูดซับดาเมจธาตุและเพิ่มสเตตัสรบทุกด้าน +18%, เจาะเกราะ +16%' },
+    divineResonance: { id: 'divineResonance', name: 'การสั่นพ้องเทวะ', icon: '🏛️', kind: 'offense', defaultDur: 50, p: { atk: 0.18, matk: 0.22, def: 0.14, mdef: 0.18 }, f: { pen: 30, crit: 12 }, descTh: 'สั่นพ้องกับทวยเทพเบื้องบน เพิ่มเจาะเกราะ +30%, พลังโจมตี/เวท และชำระล้างดีบัฟมาร' },
+    shadowClone: { id: 'shadowClone', name: 'ร่างแยกเงามายา', icon: '👥', kind: 'utility', defaultDur: 45, p: { atk: 0.12, eva: 0.24 }, f: { eva: 20, crit: 14 }, descTh: 'สร้างร่างแยกเงามายา 1 HP คอยรับการโจมตีเดี่ยวแทนตัวจริงและเพิ่มหลบหลีกสูงสุด' },
+    substitutionReady: { id: 'substitutionReady', name: 'คาถาสลับร่างท่อนไม้', icon: '🪵', kind: 'defense', defaultDur: 50, p: { def: 0.14, eva: 0.18 }, f: { eva: 16 }, descTh: 'เตรียมพร้อมสลับร่างกับท่อนไม้เมื่อได้รับความเสียหายถึงตายและฟื้นฟูเลือด 25%' },
+    vowBacklash: { id: 'vowBacklash', name: 'ของเข้าตัว·ผิดสัจจะ', icon: '💔', kind: 'debuff', defaultDur: 30, p: { def: -0.35, mdef: -0.30 }, f: {}, descTh: 'ผลสะท้อนกลับจากการฝืนกฎเทวะหรือผิดสัจจะอาคม ลดพลังป้องกันลงชั่วคราว' },
+    boneArmor: { id: 'boneArmor', name: 'เกราะกระดูกวิญญาณ', icon: '🦴', kind: 'shield', defaultDur: 55, p: { def: 0.25, mdef: 0.15, hp: 0.12 }, f: {}, shieldPct: 0.25, descTh: 'เกราะกระดูกวิญญาณดูดซับความเสียหายกายภาพ 25% ของ Max HP และเพิ่ม DEF +25%' },
+    parryCounter: { id: 'parryCounter', name: 'ปัดป้องสะท้อนคม', icon: '⚔️', kind: 'offense', defaultDur: 45, p: { atk: 0.20, def: 0.18 }, f: { crit: 18, critDmg: 24, pen: 18 }, descTh: 'ตั้งการ์ดอิไอปัดป้องการโจมตีประชิดและสวนกลับด้วยคมดาบคริติคอลทันที' },
+    sanityStrain: { id: 'sanityStrain', name: 'จิตใจปั่นป่วนนอกมิติ', icon: '👁️‍🗨️', kind: 'offense', defaultDur: 45, p: { matk: 0.38, def: -0.10 }, f: { pen: 24, crit: 15, critDmg: 25 }, descTh: 'สังเวยสติสัมปชัญญะรับพลังนอกมิติ เพิ่ม MATK +38% และเจาะเกราะ +24%' }
   });
 
   ST.STANCE_CATALOG = (SK && SK.STANCE_CATALOG) || {
@@ -685,6 +703,45 @@
           else if ((t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') || t.cat === 'SUPPORT_TECHNIQUE') addP('mdef', 0.015 * t.tier);
         }
         const tf = Math.min(0.3, 0.03 * techT); addP('atk', tf); addP('matk', tf);
+        const pDef = CULT.PATHS && CULT.PATHS[c.path];
+        if (pDef && Array.isArray(pDef.realmTraits)) {
+          for (let ti = 0; ti < pDef.realmTraits.length; ti++) {
+            const rt = pDef.realmTraits[ti];
+            if (rt && c.stage >= (rt.stage || 1) && rt.bonusStats) {
+              const bs = rt.bonusStats;
+              if (bs.atkPct) addP('atk', bs.atkPct);
+              if (bs.matkPct) addP('matk', bs.matkPct);
+              if (bs.defPct) addP('def', bs.defPct);
+              if (bs.mdefPct) addP('mdef', bs.mdefPct);
+              if (bs.hpPct) addP('hp', bs.hpPct);
+              if (bs.crit) addF('crit', bs.crit);
+              if (bs.critDmg) addF('critDmg', bs.critDmg);
+              if (bs.pen) addF('pen', bs.pen);
+              if (bs.acc) addF('acc', bs.acc);
+              if (bs.eva) addP('eva', bs.eva / 100);
+              if (bs.cast) addF('cast', bs.cast);
+              if (bs.move) addF('move', bs.move);
+            }
+          }
+        }
+        const sDef = (c.sub && CULT.subInfo) ? CULT.subInfo(c.path, c.sub) : null;
+        if (sDef && Array.isArray(sDef.subpathTraits)) {
+          const curOrd = (c.track && c.track.ordinal) ? c.track.ordinal : c.stage;
+          for (let si = 0; si < sDef.subpathTraits.length; si++) {
+            const stt = sDef.subpathTraits[si];
+            if (stt && curOrd >= (stt.realm || 1) && stt.bonusStats) {
+              const bs = stt.bonusStats;
+              if (bs.atkPct) addP('atk', bs.atkPct);
+              if (bs.matkPct) addP('matk', bs.matkPct);
+              if (bs.defPct) addP('def', bs.defPct);
+              if (bs.mdefPct) addP('mdef', bs.mdefPct);
+              if (bs.crit) addF('crit', bs.crit);
+              if (bs.critDmg) addF('critDmg', bs.critDmg);
+              if (bs.pen) addF('pen', bs.pen);
+              if (bs.acc) addF('acc', bs.acc);
+            }
+          }
+        }
         if (c.track) {
           const trRealm = CULT.trackRealm(n);
           if (trRealm) {

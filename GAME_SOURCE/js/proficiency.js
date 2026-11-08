@@ -2,13 +2,13 @@
 (function(g){
 'use strict';
 const {MARTIAL:M,HC,STATS:ST,AI,CULT,U}=g,clamp=U.clamp;
-const extra={BOW:'ฝีมือธนู',STAFF:'ฝีมือพลอง',FOCUS:'ฝีมือสื่อปราณ',ZITHER:'ฝีมือพิณคีตเวทย์',BRUSH:'ฝีมือพู่กันอาคม',WHIP:'ฝีมือแส้และด้ายปราณ'};
+const extra={BOW:'ฝีมือธนู',STAFF:'ฝีมือพลอง',FOCUS:'ฝีมือสื่อปราณ',ZITHER:'ฝีมือพิณคีตเวทย์',BRUSH:'ฝีมือพู่กันอาคม',WHIP:'ฝีมือแส้และด้ายปราณ',ROSARY:'ฝีมือลูกประคำบารมีธรรม',CLAW:'ฝีมือกรงเล็บอสูร',NEEDLE:'ฝีมือเข็มวิญญาณและเข็มพิษ',FAN:'ฝีมือพัดยุทธและพัดเทวพายุ',ASTROLABE:'ฝีมือจานดวงดาวและหลัวผาน',ABACUS:'ฝีมือลูกคิดทองคำพิพากษา'};
 const elemGateSkills={WATER_ICE:{id:'WATER_ICE',nameTh:'ปราณเหมันต์วารี',aff:'WATER_ICE',interest:'meditation',baseSkill:'SOUL_DIVINE'},WOOD_LIFE:{id:'WOOD_LIFE',nameTh:'ปราณพฤกษาชีวิต',aff:'WOOD_LIFE',interest:'herbs',baseSkill:'herbalism'}};
-const groups={weapon:['SWORD','BLADE','SPEAR','FIST_PALM','BOW','STAFF','FOCUS','ZITHER','BRUSH','WHIP'],cultivation:['MOVEMENT','BODY_REFINING','SOUL_DIVINE','POISON','SCRIPTURE','ritual'],production:['ALCHEMY','FORGING','ARRAY','TALISMAN','MEDICINE','herbalism','mining','cooking','construction'],exploration:['BEAST_TAMING','stealth','survival'],social:['trading','administration','diplomacy','arts']};
+const groups={weapon:['SWORD','BLADE','SPEAR','FIST_PALM','BOW','STAFF','FOCUS','ZITHER','BRUSH','WHIP','ROSARY','CLAW','NEEDLE','FAN','ASTROLABE','ABACUS'],cultivation:['MOVEMENT','BODY_REFINING','SOUL_DIVINE','POISON','SCRIPTURE','ritual'],production:['ALCHEMY','FORGING','ARRAY','TALISMAN','MEDICINE','herbalism','mining','cooking','construction'],exploration:['BEAST_TAMING','stealth','survival'],social:['trading','administration','diplomacy','arts']};
 M.SKILL_GROUPS=groups;M.SKILL_GROUP_NAMES={weapon:'อาวุธ',cultivation:'บำเพ็ญและเคล็ดภายใน',production:'การผลิตและการแพทย์',exploration:'สำรวจและอสูร',social:'สังคมและการจัดการ'};
 M.SKILL_IDS=HC.SKILL_IDS.concat(Object.keys(extra));
 const effects={
- SWORD:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้กระบี่',BLADE:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้ดาบ',SPEAR:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้หอก',FIST_PALM:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้สนับหรือมือเปล่า',BOW:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้ธนู',STAFF:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้พลอง',FOCUS:'เพิ่มพลังวิชา/ความแม่นยำและเจาะเกราะเมื่อใช้สื่อปราณ',ZITHER:'เพิ่มพลังวิชา/ความแม่นยำและเจาะเกราะเมื่อใช้พิณคีตเวทย์',BRUSH:'เพิ่มพลังวิชา/ความแม่นยำและเจาะเกราะเมื่อใช้พู่กันอาคม',WHIP:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้แส้และด้ายปราณ',
+ SWORD:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้กระบี่',BLADE:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้ดาบ',SPEAR:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้หอก',FIST_PALM:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้สนับหรือมือเปล่า',BOW:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้ธนู',STAFF:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้พลอง',FOCUS:'เพิ่มพลังวิชา/ความแม่นยำและเจาะเกราะเมื่อใช้สื่อปราณ',ZITHER:'เพิ่มพลังวิชา/ความแม่นยำและเจาะเกราะเมื่อใช้พิณคีตเวทย์',BRUSH:'เพิ่มพลังวิชา/ความแม่นยำและเจาะเกราะเมื่อใช้พู่กันอาคม',WHIP:'เพิ่มพลัง/ความแม่นยำและเจาะเกราะเมื่อใช้แส้และด้ายปราณ',ROSARY:'เพิ่มพลังวิชา/ป้องกันวิชาและบารมีธรรมเมื่อใช้ลูกประคำ',CLAW:'เพิ่มพลังโจมตีประชิด/อัตราคริและเจาะเกราะเมื่อใช้กรงเล็บอสูร',NEEDLE:'เพิ่มความแม่นยำ/เจาะเกราะและสะกดจุดชีพจรเมื่อใช้เข็มวิญญาณ',FAN:'เพิ่มพลังวิชา/ความเร็วร่ายและคลื่นวายุเมื่อใช้พัดยุทธ',ASTROLABE:'เพิ่มพลังวิชา/ความแม่นยำและค่ายกลดาราเมื่อใช้จานดวงดาว',ABACUS:'เพิ่มพลังโจมตี/เจาะเกราะและการบังคับพันธสัญญาเมื่อใช้ลูกคิดทองคำ',
  ALCHEMY:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมโอสถ',FORGING:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมอุปกรณ์',ARRAY:'เพิ่มโอกาสสร้างค่ายกลและป้องกันวิชาในการรบ',TALISMAN:'เพิ่มโอกาสสร้างยันต์และเกราะในการรบ',BEAST_TAMING:'ลดความเสียหายจากอสูรจริง',POISON:'เพิ่มความแรงแผลพิษ/โลหิตจากวิชา',MEDICINE:'เพิ่มการฟื้นตัวของผู้ป่วยเมื่อเป็นหมอและโอกาสชำแหละอวัยวะ',SCRIPTURE:'เพิ่มความเร็วศึกษาวิชาและโอกาสถอดจารึก',MOVEMENT:'เพิ่มความเร็วเคลื่อนที่และหลบหลีก',BODY_REFINING:'เพิ่มพลังชีวิตและป้องกัน',SOUL_DIVINE:'เพิ่มโจมตีวิชาและป้องกันวิชา',herbalism:'เพิ่มจำนวน/ระดับสมุนไพรและข้าวที่เก็บได้',mining:'เพิ่มจำนวน/ระดับแร่ที่ขุดได้',cooking:'เพิ่มอาหารจากข้าวหนึ่งหน่วยและความแรงสำรับฟื้นกาย/เตรียมปราณของผู้เชี่ยวชาญ',trading:'เพิ่มรายได้จากการค้าเดินทาง',administration:'ลดค่าใช้จ่ายดูแลสำนักและช่วยความเร็วขยายอาคาร',diplomacy:'เพิ่มผลเจรจาความสัมพันธ์/สนธิสัญญา',stealth:'เพิ่มหลบหลีกและคริติคอล',survival:'เพิ่มโอกาสผ่านอันตราย/หนีและลดอุบัติเหตุ',arts:'เพิ่มการคลายเครียดและขวัญใจจากดนตรี',construction:'ลดเวลาขยายอาคารจริง',ritual:'เพิ่มอัตราบำเพ็ญ โดยเฉพาะวิถีเทพ',WATER_ICE:'ความชำนาญปราณเหมันต์และวารีสำหรับสายเฉพาะทาง',WOOD_LIFE:'ความชำนาญปราณพฤกษาและพลังชีวิตสำหรับสายเฉพาะทาง'};
 const interests={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:'arrays',BEAST_TAMING:'beasts',MEDICINE:'medicine',SCRIPTURE:'scholarship',MOVEMENT:'exploring',BODY_REFINING:'combat',SOUL_DIVINE:'worship',POISON:'alchemy',herbalism:'herbs',mining:'labor',cooking:'cuisine',trading:'trade',administration:'leading',diplomacy:'socializing',stealth:'intrigue',survival:'exploring',arts:'arts',construction:'building',ritual:'worship',WATER_ICE:'meditation',WOOD_LIFE:'herbs'};
 M.SKILL_INFO=Object.fromEntries(M.SKILL_IDS.map(id=>[id,{id,nameTh:extra[id]||HC.nameOf('skills.'+id),group:Object.keys(groups).find(k=>groups[k].includes(id)),effect:effects[id],route:groups.weapon.includes(id)?'ฝึกหอยุทธ์/ใช้อาวุธจริง/รับการสอน':'งานที่เกี่ยวข้อง/ฝึกทักษะเฉพาะ/รับการสอน',interest:interests[id]||'combat'}]));
@@ -17,12 +17,12 @@ M.ensureSkills=(n,rng)=>{
  if(!n||!n.h)return;
  n.h.skills=n.h.skills||{};
  const exp=(n.h.birthDay!=null&&HC.nowDay!=null)?clamp(((HC.nowDay-n.h.birthDay)/360-12)/30,0.05,1):0.4;
- for(const id of ['BOW','STAFF','FOCUS','ZITHER','BRUSH','WHIP','WATER_ICE','WOOD_LIFE']){
+ for(const id of ['BOW','STAFF','FOCUS','ZITHER','BRUSH','WHIP','ROSARY','CLAW','NEEDLE','FAN','ASTROLABE','ABACUS','WATER_ICE','WOOD_LIFE']){
   if(n.h.skills[id]==null){
    if(n.martialSkills&&n.martialSkills[id]!=null){
     n.h.skills[id]=clamp(n.martialSkills[id],0,100);
    }else{
-    const affKey={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',ZITHER:'SOUL_DIVINE',BRUSH:'TALISMAN',WHIP:'SPEAR',WATER_ICE:'WATER_ICE',WOOD_LIFE:'WOOD_LIFE'}[id];
+    const affKey={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',ZITHER:'SOUL_DIVINE',BRUSH:'TALISMAN',WHIP:'SPEAR',ROSARY:'SCRIPTURE',CLAW:'FIST_PALM',NEEDLE:'MEDICINE',FAN:'MOVEMENT',ASTROLABE:'ARRAY',ABACUS:'SCRIPTURE',WATER_ICE:'WATER_ICE',WOOD_LIFE:'WOOD_LIFE'}[id];
     const aff=(n.h.affinities&&n.h.affinities[affKey])||30;
     const intr=(n.h.interests&&n.h.interests.combat)||40;
     const v=(aff*0.5+intr*0.5-25)*0.55*exp+2;
@@ -59,7 +59,7 @@ M.skillAdd=(n,id,amt)=>{
 
 const _dirtySkillSet=new Set([...groups.weapon,'SOUL_DIVINE','MOVEMENT','stealth','BODY_REFINING','TALISMAN','ARRAY','ALCHEMY','FORGING']);
 const _HC_INTR_MAP={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:'arrays',BEAST_TAMING:'beasts',MEDICINE:'medicine',SCRIPTURE:'scholarship',SWORD:'combat',BLADE:'combat',SPEAR:'combat',FIST_PALM:'combat',MOVEMENT:'exploring',BODY_REFINING:'combat',SOUL_DIVINE:'worship',POISON:'alchemy',herbalism:'herbs',mining:'labor',cooking:'cuisine',trading:'trade',administration:'leading',diplomacy:'socializing',stealth:'intrigue',survival:'exploring',arts:'arts',construction:'building',ritual:'worship'};
-const _EXTRA_AFF_MAP={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',ZITHER:'SOUL_DIVINE',BRUSH:'TALISMAN',WHIP:'SPEAR',WATER_ICE:'WATER_ICE',WOOD_LIFE:'WOOD_LIFE'};
+const _EXTRA_AFF_MAP={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',ZITHER:'SOUL_DIVINE',BRUSH:'TALISMAN',WHIP:'SPEAR',ROSARY:'SCRIPTURE',CLAW:'FIST_PALM',NEEDLE:'MEDICINE',FAN:'MOVEMENT',ASTROLABE:'ARRAY',ABACUS:'SCRIPTURE',WATER_ICE:'WATER_ICE',WOOD_LIFE:'WOOD_LIFE'};
 M.skillPractice=(n,id,hours,quality)=>{
  if((!M.SKILL_INFO[id]&&!elemGateSkills[id])||!Number.isFinite(hours)||hours<=0||!Number.isFinite(quality==null?1:quality)||(quality!=null&&quality<=0))return 0;
  const q0=quality==null?1:quality<.1?.1:quality>3?3:quality;let gain;
@@ -111,13 +111,13 @@ M.pathSkillAffinity=(n,path,sub)=>{
   }
   if(total>0)return clamp(sum/total,0,100)*.18;
  }
- const profile=M.PROFILES[sub],preferred=profile?profile[3]:M.PATHS[path].weapons;
+ const profile=M.PROFILES[sub],preferred=profile?profile[3]:(M.PATHS[path]?M.PATHS[path].weapons:['SWORD']);
  return Math.max(...preferred.map(type=>M.weaponSkill(n,type)))*.18;
 };
 M.weaponSkill=(n,type)=>M.skillRead(n,({FIST:'FIST_PALM'}[type||M.equippedType(n)]||type||M.equippedType(n)));
 M.skillEffects=n=>{
  const eqW=n.equip&&n.equip.WEAPON,cPath=n.cult&&n.cult.path,cSub=n.cult&&n.cult.sub,sk=n.h.skills,sec=n._skillEffectsCache;
- const skSig=((sk.ritual||0)*4|0)+((sk.SCRIPTURE||0)*4|0)*2+((sk.SOUL_DIVINE||0)*4|0)*3+((sk.MOVEMENT||0)*4|0)*5+((sk.BODY_REFINING||0)*4|0)*7+((sk.POISON||0)*4|0)*11+((sk.MEDICINE||0)*4|0)*13+((sk.BEAST_TAMING||0)*4|0)*17+((sk.SWORD||0)*4|0)*19+((sk.BLADE||0)*4|0)*23+((sk.SPEAR||0)*4|0)*29+((sk.FIST_PALM||0)*4|0)*31+((sk.BOW||0)*4|0)*37+((sk.STAFF||0)*4|0)*41+((sk.FOCUS||0)*4|0)*43+((sk.ALCHEMY||0)*4|0)*47+((sk.FORGING||0)*4|0)*53+((sk.ARRAY||0)*4|0)*59+((sk.TALISMAN||0)*4|0)*61+((sk.cooking||0)*4|0)*67+((sk.ZITHER||0)*4|0)*71+((sk.BRUSH||0)*4|0)*73+((sk.WHIP||0)*4|0)*79+((sk.stealth||0)*4|0)*83+((sk.arts||0)*4|0)*89;
+ const skSig=((sk.ritual||0)*4|0)+((sk.SCRIPTURE||0)*4|0)*2+((sk.SOUL_DIVINE||0)*4|0)*3+((sk.MOVEMENT||0)*4|0)*5+((sk.BODY_REFINING||0)*4|0)*7+((sk.POISON||0)*4|0)*11+((sk.MEDICINE||0)*4|0)*13+((sk.BEAST_TAMING||0)*4|0)*17+((sk.SWORD||0)*4|0)*19+((sk.BLADE||0)*4|0)*23+((sk.SPEAR||0)*4|0)*29+((sk.FIST_PALM||0)*4|0)*31+((sk.BOW||0)*4|0)*37+((sk.STAFF||0)*4|0)*41+((sk.FOCUS||0)*4|0)*43+((sk.ALCHEMY||0)*4|0)*47+((sk.FORGING||0)*4|0)*53+((sk.ARRAY||0)*4|0)*59+((sk.TALISMAN||0)*4|0)*61+((sk.cooking||0)*4|0)*67+((sk.ZITHER||0)*4|0)*71+((sk.BRUSH||0)*4|0)*73+((sk.WHIP||0)*4|0)*79+((sk.ROSARY||0)*4|0)*97+((sk.CLAW||0)*4|0)*101+((sk.NEEDLE||0)*4|0)*103+((sk.FAN||0)*4|0)*107+((sk.ASTROLABE||0)*4|0)*109+((sk.ABACUS||0)*4|0)*113+((sk.stealth||0)*4|0)*83+((sk.arts||0)*4|0)*89;
  const cSt=n.cult&&n.cult.stage;if(sec&&sec.eqW===eqW&&sec.cPath===cPath&&sec.cSub===cSub&&sec.cSt===cSt&&sec.skSig===skSig)return sec.out;
  const v=id=>((M.skillRead(n,id)*4)|0)*0.25,weapon=((M.weaponSkill(n)*4)|0)*0.25,isCraft=cPath==='CRAFT_CREATION',alc=v('ALCHEMY'),frg=v('FORGING'),arr=v('ARRAY'),tal=v('TALISMAN');
  const p={atk:isCraft?(frg*.0014+alc*.0005):0,matk:(.8+.45*weapon/100-1)+v('SOUL_DIVINE')*.0015+(isCraft?(alc*.0014+frg*.0005):0),acc:weapon*.0015,move:v('MOVEMENT')*.0018,eva:v('MOVEMENT')*.001+v('stealth')*.0013,hp:v('BODY_REFINING')*.0015+(isCraft?(alc*.0008+frg*.0008):0),def:v('BODY_REFINING')*.0014+tal*.0007+(isCraft?frg*.0010:0),mdef:v('SOUL_DIVINE')*.0013+arr*.0009+tal*.0005+(isCraft?alc*.0010:0)},f={crit:v('stealth')*.025,pen:isCraft?Math.round((frg+alc)*.045):0};

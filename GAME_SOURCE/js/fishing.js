@@ -1953,13 +1953,18 @@
   }
 
   // เชื่อมต่อบัฟอาหารเข้ากับการคำนวณความเร็วบ่มเพาะและศึกษาคัมภีร์
-  if (CULT && CULT.cultRate) {
-    const origCultRate = CULT.cultRate;
-    CULT.cultRate = function (W, n, inHall) {
-      const base = origCultRate.apply(this, arguments);
-      const fb = FISHING.activeFoodBuff(W, n);
+  if (CULT && typeof CULT.rate === 'function' && !CULT._fishingFoodBuffWrapped) {
+    const origCultRate = CULT.rate;
+    CULT.rate = function (arg1, arg2, arg3) {
+      const isWorldFirst = arg1 && typeof arg1 === 'object' && !arg1.h && (arg1.sect || arg1.npcs);
+      const npcObj = isWorldFirst ? arg2 : arg1;
+      const worldObj = isWorldFirst ? arg1 : null;
+      const base = isWorldFirst ? origCultRate.call(this, arg2, arg3) : origCultRate.apply(this, arguments);
+      const fb = FISHING.activeFoodBuff(worldObj, npcObj);
       return fb && fb.cultRateMult ? base * fb.cultRateMult : base;
     };
+    CULT.cultRate = CULT.rate;
+    CULT._fishingFoodBuffWrapped = true;
   }
   // foodBuff ticked directly in AI.needs
 

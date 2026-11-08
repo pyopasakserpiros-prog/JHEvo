@@ -24,9 +24,9 @@ function runVisitorsCluesWeaponsSuite() {
   assert(g.VC && g.VC.VERSION === 1, 'VC module loaded');
   const catErrs = g.VC.validateCatalog();
   assert.deepStrictEqual(catErrs, [], 'Catalog validation errors: ' + catErrs.join('; '));
-  assert.strictEqual(g.VC.LEGENDARY_WEAPONS.length, 14, 'Must have 14 authored legendary weapons');
+  assert.strictEqual(g.VC.LEGENDARY_WEAPONS.length, 20, 'Must have 14 authored legendary weapons');
   assert.strictEqual(g.VC.CLUE_TEMPLATES.length, 60, 'Must have 60 authored clue templates');
-  assert.strictEqual(g.VC.LEGENDARY_EQUIPMENT.length, 21, 'Must have 21 authored legendary equipment items');
+  assert.strictEqual(g.VC.LEGENDARY_EQUIPMENT.length, 27, 'Must have 21 authored legendary equipment items');
 
   const families = new Set(g.VC.LEGENDARY_WEAPONS.map(w => w.gearType));
   ['SWORD', 'BLADE', 'SPEAR', 'STAFF', 'FIST', 'BOW', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'].forEach(fam => {

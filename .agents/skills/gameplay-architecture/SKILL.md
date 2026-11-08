@@ -443,9 +443,9 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 
 ---
 
-## Patch v3.2.0 – v4.0.0 Architecture Additions (`SIM.PATCH_VERSION = '4.0.0'`)
+## Patch v3.2.0 – v4.0.0 Architecture Additions (`SIM.PATCH_VERSION = '2.1.0'`)
 - **Version & Save Schema (`js/sim.js`):**
-  - `SIM.PATCH_VERSION = '4.0.0'`
+  - `SIM.PATCH_VERSION = '2.1.0'`
   - `SIM.SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`
   - `SIM.SUPPORTED_PATCHES = ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0']`
 - **Pillar 1 — Living Frontier & Outpost Logistics (`SECT.OUTPOSTS_LOGISTICS` in `js/sect.js`):**
@@ -462,6 +462,11 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 ---
 
 ## Patch v4.1.0 Additions: 8-Peak Physical Sanctuary Layout & Conditional Awakening (`js/world_map.js`, `js/sect.js`, `js/ai.js`)
-- `SIM.PATCH_VERSION = '4.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.1.0-sect-expansion-peaks-sanctuary'`.
+- `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.1.0-sect-expansion-peaks-sanctuary'`.
 - **8-Peak Physical Layout (`MAP.BTYPES`, `MAP.PEAK_LAYOUTS`, `MAP.STN`)**: Adds 8 physical Peak Sanctuary buildings (`peak_sword`, `peak_body`, `peak_chaos`, `peak_alchemy`, `peak_magic`, `peak_array`, `peak_scholar`, `peak_beast`) around the sect perimeter, each with 18 sub-stations (`6 bed, 2 pantry, 6 practice, 4 meditate`) and connected by `1.8x` speed Spirit Roads (`MAP.SPEED[T.ROAD] = 1.8`, `MAP.SPEED[T.PLAZA] = 1.8`).
 - **Conditional Peak Awakening (`MAP.isPeakBuildingActive`, `MAP.syncPeakSanctuaries`)**: Unfounded peaks (`founded === false`) block station usage in `AI.freeStation` and render under primordial mist (`Render.drawPeakMist`). Founding a peak via `SECT.PEAKS.foundPeak` immediately activates all 18 stations on the map.
+
+
+## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
+- **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
+- **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.

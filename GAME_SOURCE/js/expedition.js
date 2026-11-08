@@ -813,6 +813,10 @@
         if (keep > 20) { holder.h.state.stress += 1; W.sect.suspicion = (W.sect.suspicion || 0) + 1; }
       }
     } else if (out.stones < 0) ECO.pay(W, Math.min(-out.stones, W.sect.stones), 'สูญเสียระหว่างเดินทาง');
+    if (g.SECT && g.SECT.PATH_LIBRARY && g.SECT.PATH_LIBRARY.sellSurplusManuals) {
+      const surp = g.SECT.PATH_LIBRARY.sellSurplusManuals(W, { quiet: true });
+      if (surp && surp.revenueStones > 0) sold += surp.revenueStones;
+    }
     if (SECT.notifyStockChanged) SECT.notifyStockChanged(W);
     return donation;
   };
@@ -886,6 +890,20 @@
     (S.buyList || []).slice(0, 6).forEach(b => { const pr = Math.round(ECO.price(W, b.id) * (1.12 - skill / 600)); const n = b.n; const cost = pr * n; if (S.stones - spent >= cost + 150) { spent += cost; ECO.add(W, b.id, n); } });
     if (spent) { S.stones -= spent; S.ledger.push({ t: W.t, amt: -spent, why: 'คาราวานซื้อวัตถุดิบ/เสบียง' }); }
     Object.keys(S.stock).forEach(k => { if (ECO.isPill(k) && S.stock[k] > 10) { const n = S.stock[k] - 6; if (ECO.take(W, k, n)) { const v = Math.round(ECO.price(W, k) * 0.7 * n); ECO.earn(W, v, 'ขายโอสถส่วนเกิน'); sold += v; } } });
+    // Patch v2.0.0: Caravan rare Grand Dao Path Manual & Path Crystal offering
+    if (S.stones >= 1600 && g.SECT && g.SECT.PATH_LIBRARY && W.rng && W.rng.chance(0.35)) {
+      const summary = g.SECT.PATH_LIBRARY.getSummary(W);
+      if (summary && summary.lockedPaths && summary.lockedPaths.length) {
+        const pickPath = W.rng.pick(summary.lockedPaths);
+        const manualId = 'MANUAL_PATH_' + pickPath;
+        const mPrice = 680;
+        if ((S.stones - spent) >= mPrice + 400) {
+          ECO.pay(W, mPrice, 'คาราวานซื้อคัมภีร์มหาวิถี ' + manualId);
+          ECO.add(W, manualId, 1);
+          g.SECT.PATH_LIBRARY.donatePathManual(W, manualId, { donorId: tre ? tre.id : null, quiet: true });
+        }
+      }
+    }
     if (SECT.notifyStockChanged) SECT.notifyStockChanged(W);
     W.log('finance', 'คาราวานประจำเดือน: ซื้อ ' + spent + ' ศิลา' + (sold ? ', ขายโอสถส่วนเกินได้ ' + sold : ''), []);
   };
@@ -4296,8 +4314,8 @@
     const sex = rng.chance(0.58) ? 'M' : 'F';
     const h = generateFastFigureCore(rng, sex);
 
-    const pathIds = (CULT && Array.isArray(CULT.PATH_IDS) && CULT.PATH_IDS.length)
-      ? CULT.PATH_IDS
+    const pathIds = (CULT && CULT.PATHS && Object.keys(CULT.PATHS).length)
+      ? Object.keys(CULT.PATHS)
       : ['XIAN', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'ARRAY_TALISMAN'];
     const chosenPath = opts.path || rng.pick(pathIds);
     const subObjs = (CULT && CULT.PATHS && CULT.PATHS[chosenPath] && Array.isArray(CULT.PATHS[chosenPath].subPaths))
@@ -5801,14 +5819,18 @@
 
     // 4. Cultivation Path & Techniques Synchronization
     if (fig.cult) {
-      const pPath = fig.cult.path || 'XIAN';
-      const pStage = fig.cult.stage || 3;
+      const pPath = (fig.cult.path && CULT.PATHS && CULT.PATHS[fig.cult.path]) ? fig.cult.path : 'XIAN';
+      const pStage = Math.max(1, Number(fig.cult.stage) || 3);
+      const pathSubs = (CULT.PATHS && CULT.PATHS[pPath] && Array.isArray(CULT.PATHS[pPath].subPaths)) ? CULT.PATHS[pPath].subPaths : [];
+      const validSub = (fig.cult.sub && fig.cult.sub !== 'NONE' && pathSubs.some(s => s.id === fig.cult.sub))
+        ? fig.cult.sub
+        : (pathSubs[0] ? pathSubs[0].id : 'SWORD_IMMORTAL');
       const mant = CULT.bestMantra ? CULT.bestMantra(pPath, pStage, fullNpc) : null;
       fullNpc.cult = {
         path: pPath,
-        sub: fig.cult.sub || 'NONE',
+        sub: validSub,
         stage: pStage,
-        prog: Math.round(CULT.threshold(fullNpc) * 0.45),
+        prog: 0,
         mantra: mant ? mant.id : null,
         techs: Array.isArray(fig.cult.techs) ? fig.cult.techs.slice() : [],
         learning: null,
@@ -5820,9 +5842,12 @@
         rate: 0,
         pillT: 0
       };
-      if (CULT.trackDef && CULT.trackDef(fullNpc.cult.sub)) {
-        fullNpc.cult.track = CULT.initTrack(fullNpc.cult.sub, 1, W.day || 360);
+      const threshVal = (CULT.threshold && Number.isFinite(CULT.threshold(fullNpc))) ? CULT.threshold(fullNpc) : 200;
+      fullNpc.cult.prog = Math.round(threshVal * 0.45);
+      if (CULT.trackDef && CULT.trackDef(validSub)) {
+        fullNpc.cult.track = CULT.initTrack(validSub, Math.min(9, pStage), W.day || 360);
       }
+      if (CULT.ensurePathGauge) CULT.ensurePathGauge(fullNpc);
     }
 
     if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(fullNpc, rng);

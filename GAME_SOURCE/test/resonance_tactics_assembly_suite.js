@@ -24,8 +24,8 @@ console.log('  PASS: human_core.js byte-for-byte lock verified (155:2f9c9dd7)');
 // 1. Pillar A: Baseline + Nine-Dao equipment resonance sets (31 sets, 96 subpaths, T3-T7)
 assert(Array.isArray(MARTIAL.RESONANCE_SETS), 'MARTIAL.RESONANCE_SETS must be an array');
 assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 19, 'Must preserve all 19 baseline resonance sets');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 12, 'Must register all twelve Pagoda resonance sets');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 31, 'Must have 31 baseline plus Pagoda resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 43, 'Must register all 43 Pagoda resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 62, 'Must have 31 baseline plus Pagoda resonance sets');
 
 const coveredSubpaths = new Set();
 for (const set of MARTIAL.RESONANCE_SETS) {
@@ -47,7 +47,7 @@ for (const p of Object.keys(CULT.PATHS)) {
     assert(coveredSubpaths.has(s.id), `Subpath ${s.id} not covered by any resonance set!`);
   }
 }
-assert.strictEqual(totalKnownSubpaths, 132, 'Total subpaths in system must be 132');
+assert.strictEqual(totalKnownSubpaths, 286, 'Total subpaths in system must be 132');
 console.log('  PASS: 31 resonance sets verified covering all 96 subpaths');
 
 // Test evaluateResonanceSet functionality

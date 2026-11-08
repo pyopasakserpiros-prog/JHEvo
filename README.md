@@ -1,4 +1,4 @@
-# JianghuSect Evolution — v3.1.0
+# JianghuSect 2 — v2.3.0 (Grand Dao Debates, Apex Trials & Bug Remediation)
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
@@ -75,3 +75,8 @@ node test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js
 - **Multi-Tier Elemental Fusion Engine (`COMBAT.COMPOSABLE_ENGINE.FUSIONS`)**: 34 ปฏิกิริยาธาตุ (16 Dual, 12 Tri-Harmonic, 6 Primordial 4-Element)
 - **The 8 Remediation Pillars**: `evaluateCondition` 29 เงื่อนไข, 18 Trigger Hooks, 7 Active Stances, 8 Composable Actions, 129 `effectId` coverage, 8 Battlefield Domains
 - **Deep Creative Systems**: จุดชีพจรพิสดาร 8 เส้น (`CULT.MERIDIANS`), จิตวิญญาณศาสตรา 5 ขั้น (`SECT.SOUL_FORGE`), เสาโทเทมและสายเลือดบรรพกาล (`SECT.TOTEMS_BLOODLINES`), สถิตร่างสัตว์วิญญาณ (`CULT.BEAST_SYMBIOSIS`), ด้ายชะตา & บัญชีกรรม (`SECT.DESTINY_KARMA`), และค่ายกลชีพจรปฐพี (`SECT.LEYLINE_GRID`)
+
+
+## รายงานการพัฒนาแพตช์ล่าสุด (JianghuSect 2 v2.0.0)
+- อ่านรายละเอียดการอัปเกรด 43 มหาวิถี 286 สายย่อย และระบบวัฏจักรคนธรรมดาได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_0_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_0_0.md)
+- อ่านรายงานการพัฒนาและแก้ไขจุดบกพร่อง `v2.3.0` ได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md)

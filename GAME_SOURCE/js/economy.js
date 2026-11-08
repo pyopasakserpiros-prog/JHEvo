@@ -123,6 +123,7 @@
     W._stockSeq = (W._stockSeq || 0) + 1;
     return true;
   };
+  ECO.spend = (W, amt, why) => ECO.pay(W, amt, why);
   ECO.pay = (W, amt, why) => { if (W.sect.stones < amt) return false; W.sect.stones -= amt; W.sect.ledger.push({ t: W.t, amt: -amt, why }); trimLedger(W); return true; };
   ECO.earn = (W, amt, why) => { W.sect.stones += amt; W.sect.ledger.push({ t: W.t, amt: +amt, why }); trimLedger(W); };
   function trimLedger(W) { if (W.sect.ledger.length > 400) W.sect.ledger.splice(0, 200); }
@@ -1299,6 +1300,12 @@
       ZITHER: ['พิณไม้อู๋ถงเจ็ดสาย', 'ขลุ่ยหยกเมฆา', 'พิณสายไหมเงิน', 'ระฆังสำริดสะกดจิต', 'สังข์ปราณวายุ'],
       BRUSH: ['พู่กันขนพังพอนชาด', 'พู่กันหยกจารึกยันต์', 'สิ่วสลักค่ายกล', 'พู่กันปราชญ์วาดเมฆา', 'พู่กันดาราลิขิต'],
       WHIP: ['แส้หนังอสูรถักเหล็ก', 'ด้ายไหมปราณเชิดหุ่น', 'แส้เถาวัลย์หนามพิษ', 'โซ่ตรวนล่ามเงา', 'ด้ายแดงสะบั้นจุด'],
+      ROSARY: ['ลูกประคำไม้จันทน์หอม', 'ลูกประคำหยกขาวเมตตา', 'ลูกประคำสำริดวัชระ', 'ลูกประคำทองคำอรหันต์', 'ลูกประคำบัวแก้วโพธิญาณ'],
+      CLAW: ['กรงเล็บเหล็กพยัคฆ์', 'กรงเล็บเขี้ยวหมาป่า', 'กรงเล็บแมงป่องพิษ', 'กรงเล็บมังกรคราม', 'กรงเล็บอสูรบรรพกาล'],
+      NEEDLE: ['เข็มเงินสกัดจุด', 'เข็มพิษแมงมุมดำ', 'เข็มทองเปิดชีพจร', 'เข็มไหมวิญญาณ', 'เข็มสุญตาทะลวงมิติ'],
+      FAN: ['พัดโครงเหล็กซ่อนคม', 'พัดขนนกกระเรียนขาว', 'พัดหยกเรียกสายลม', 'พัดปราชญ์จารึกอักษร', 'พัดเทวพายุเจ็ดดารา'],
+      ASTROLABE: ['จานหลัวผานสำริด', 'จานคำนวณดาราแปดทิศ', 'จานหยกชีพจรมังกร', 'จานวงโคจรแรงโน้มถ่วง', 'จานดาราจักรฉีเหมิน'],
+      ABACUS: ['ลูกคิดไม้ดำเก้าราง', 'ลูกคิดสำริดตราชั่ง', 'ลูกคิดเงินกองคาราวาน', 'ลูกคิดหยกเสนาบดี', 'ลูกคิดทองคำพันธสัญญา'],
       HEAVY: ['เกราะเกล็ดเหล็กดำ', 'เกราะศึกพิทักษ์ด่าน', 'เกราะแผ่นศิลา', 'เกราะอกพยัคฆ์', 'เกราะเหล็กหลอมปราณ'],
       LIGHT: ['เกราะหนังอสูร', 'เสื้อเกราะไหมเหนียว', 'ชุดรัดกุมเร้นเงา', 'เกราะเบาขนเหยี่ยว', 'ชุดหนังเกล็ดงู'],
       ROBE: ['อาภรณ์ไหมเมฆา', 'ชุดคลุมนักพรตหยก', 'จีวรปราณบริสุทธิ์', 'อาภรณ์ดาราพยากรณ์', 'ชุดคลุมไหมจันทร์'],
@@ -1344,7 +1351,7 @@
 
   const PROC_BASE_SCALE = [28, 62, 130, 270];
   const ALL_GEAR_TYPES = {
-    WEAPON: ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'],
+    WEAPON: ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'ROSARY', 'CLAW', 'NEEDLE', 'FAN', 'ASTROLABE', 'ABACUS'],
     ARMOR: ['HEAVY', 'LIGHT', 'ROBE'],
     ACCESSORY: ['RING', 'NECKLACE', 'BRACELET', 'CHARM']
   };
@@ -1357,8 +1364,9 @@
       ? spec.slot
       : rng.pick(['WEAPON', 'ARMOR', 'ACCESSORY']);
     const validTypes = ALL_GEAR_TYPES[slot];
-    const gearType = (spec.gearType && validTypes.includes(spec.gearType))
-      ? spec.gearType
+    const reqGearType = spec.gearType || spec.subType || spec.weaponType || spec.wtype;
+    const gearType = (reqGearType && validTypes.includes(reqGearType))
+      ? reqGearType
       : rng.pick(validTypes);
 
     const mods = spec.materialMods || {};
@@ -1418,7 +1426,7 @@
     const baseScale = PROC_BASE_SCALE[tier - 1] * q;
     const st = {};
     if (slot === 'WEAPON') {
-      const isFocus = gearType === 'FOCUS';
+      const isFocus = ['FOCUS', 'ZITHER', 'BRUSH', 'ROSARY', 'FAN', 'ASTROLABE'].includes(gearType);
       st[isFocus ? 'matk' : 'atk'] = baseScale * (0.54 + rng.next() * 0.08);
       st[isFocus ? 'atk' : 'matk'] = baseScale * (0.12 + rng.next() * 0.05);
     } else if (slot === 'ARMOR') {
@@ -1439,6 +1447,15 @@
       STAFF: { def: baseScale * 0.16, hp: baseScale * 0.14 },
       FIST: { cast: 4 + tier, crit: 1.5 + tier * 0.4 },
       FOCUS: { matk: baseScale * 0.16, cast: 3 + tier },
+      ZITHER: { matk: baseScale * 0.16, cast: 4 + tier },
+      BRUSH: { matk: baseScale * 0.15, acc: baseScale * 0.14 },
+      WHIP: { atk: baseScale * 0.10, acc: baseScale * 0.14, pen: 3 + tier },
+      ROSARY: { matk: baseScale * 0.14, mdef: baseScale * 0.14, hp: baseScale * 0.16 },
+      CLAW: { atk: baseScale * 0.16, crit: 3 + tier * 0.6, pen: 4 + tier },
+      NEEDLE: { atk: baseScale * 0.10, matk: baseScale * 0.10, acc: baseScale * 0.16, pen: 4 + tier },
+      FAN: { matk: baseScale * 0.15, cast: 4 + tier, eva: baseScale * 0.08 },
+      ASTROLABE: { matk: baseScale * 0.16, acc: baseScale * 0.16, crit: 2.5 + tier * 0.5 },
+      ABACUS: { atk: baseScale * 0.12, matk: baseScale * 0.12, pen: 4 + tier, def: baseScale * 0.08 },
       HEAVY: { def: baseScale * 0.18, move: -3 },
       LIGHT: { eva: baseScale * 0.16, move: 4 },
       ROBE: { mdef: baseScale * 0.20, cast: 4 },
@@ -1887,6 +1904,20 @@
   // Complete registry of all 129 item effectIds across the entire item catalog
   ECO.ALL_RUNTIME_EFFECT_IDS = Object.freeze([
     "EFX_ARMOR_FRACTURE",
+    "EFX_UNLOCK_SECT_PATH_MANUAL",
+    "EFX_BESTOW_PATH_CRYSTAL",
+    "EFX_V200_BODHI_MERIT_PULSE",
+    "EFX_V200_ATAVISM_CLAW_REND",
+    "EFX_V200_MERIDIAN_VENOM_NEEDLE",
+    "EFX_V200_TEMPEST_FAN_GALE",
+    "EFX_V200_ASTROLABE_STAR_LOCK",
+    "EFX_V200_ABACUS_LEDGER_SETTLE",
+    "EFX_LEG_BODHI_NIRVANA_ROSARY",
+    "EFX_LEG_TAOTIE_DEVOURING_CLAW",
+    "EFX_LEG_BAIHUA_SOUL_NEEDLE",
+    "EFX_LEG_BAJIAO_TEMPEST_FAN",
+    "EFX_LEG_HETU_LUOSHU_ASTROLABE",
+    "EFX_LEG_CAISHEN_GOLDEN_ABACUS",
     "EFX_ARMOR_SHATTER",
     "EFX_BARRIER_SHIELD",
     "EFX_BEAST_BOND_CHANNEL",
@@ -2185,6 +2216,51 @@
       case 'EFX_VEIN_ANCHORED':
         npc._veinAnchoredUntil = tNow + 90;
         if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'aegisWard', 75, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_UNLOCK_SECT_PATH_MANUAL': {
+        const itemDef = (ctx && ctx.itemId && ECO.itemById) ? ECO.itemById[ctx.itemId] : null;
+        const rawFromId = (ctx && ctx.itemId && String(ctx.itemId).startsWith('MANUAL_PATH_')) ? String(ctx.itemId).replace(/^MANUAL_PATH_/, '') : null;
+        const tPath = (params && params.targetPath) || (itemDef && (itemDef.targetPath || itemDef.path)) || rawFromId || 'XIAN';
+        if (W && g.SECT && g.SECT.PATH_LIBRARY && g.SECT.PATH_LIBRARY.unlockPath) {
+          g.SECT.PATH_LIBRARY.unlockPath(W, tPath, { byNpc: npc, source: 'MANUAL' });
+        }
+        if (npc && npc.mortalCult) {
+          npc.mortalCult.daoComprehension = Math.min(100, (npc.mortalCult.daoComprehension || 0) + ((params && params.comprehensionBonus) || 25));
+        }
+        break;
+      }
+      case 'EFX_BESTOW_PATH_CRYSTAL': {
+        const itemDef = (ctx && ctx.itemId && ECO.itemById) ? ECO.itemById[ctx.itemId] : null;
+        const rawFromId = (ctx && ctx.itemId && String(ctx.itemId).startsWith('CRYSTAL_PATH_')) ? String(ctx.itemId).replace(/^CRYSTAL_PATH_/, '') : null;
+        const tPath = (params && params.targetPath) || (itemDef && (itemDef.targetPath || itemDef.path)) || rawFromId || (npc && npc.mortalCult && npc.mortalCult.targetPath) || 'XIAN';
+        if (W && g.CULT && g.CULT.MORTAL_INITIATION && g.CULT.MORTAL_INITIATION.bestowPathCrystal) {
+          g.CULT.MORTAL_INITIATION.bestowPathCrystal(W, npc, tPath, { free: true, fromConsumable: true });
+        }
+        break;
+      }
+      case 'EFX_V200_BODHI_MERIT_PULSE':
+      case 'EFX_LEG_BODHI_NIRVANA_ROSARY':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'bodhiGrace', params.dur || 60, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_V200_ATAVISM_CLAW_REND':
+      case 'EFX_LEG_TAOTIE_DEVOURING_CLAW':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'atavismFrenzy', params.dur || 50, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_V200_MERIDIAN_VENOM_NEEDLE':
+      case 'EFX_LEG_BAIHUA_SOUL_NEEDLE':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'marionetteLink', params.dur || 50, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_V200_TEMPEST_FAN_GALE':
+      case 'EFX_LEG_BAJIAO_TEMPEST_FAN':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'weatherConduct', params.dur || 55, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_V200_ASTROLABE_STAR_LOCK':
+      case 'EFX_LEG_HETU_LUOSHU_ASTROLABE':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'starDestinyWard', params.dur || 55, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_V200_ABACUS_LEDGER_SETTLE':
+      case 'EFX_LEG_CAISHEN_GOLDEN_ABACUS':
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'tacticalCommand', params.dur || 55, tNow, { casterId: npc.id });
         break;
       default:
         // Fallback for combat/equipment effects invoked via executeItemEffectById

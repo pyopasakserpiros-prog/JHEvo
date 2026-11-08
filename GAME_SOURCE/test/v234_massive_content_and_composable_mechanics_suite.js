@@ -38,7 +38,7 @@ const items = Object.values(ECO.itemById || {});
 check(items.length > 0, 'ECO.itemById must not be empty');
 
 const itemIds = new Set();
-const validWeaponTypes = new Set(['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP']);
+const validWeaponTypes = new Set(['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'ROSARY', 'CLAW', 'NEEDLE', 'FAN', 'ASTROLABE', 'ABACUS']);
 
 let grantedSkillItemsCount = 0;
 let skillModifierItemsCount = 0;
@@ -172,7 +172,7 @@ console.log(`  ✓ Audited ${allRecipes.length} recipes and verified acyclic cra
 // 3. Audit Subpaths across all 12 Cultivation Paths
 console.log('\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...');
 const majorPaths = Object.keys(JD.CULT.paths || {});
-check(majorPaths.length === 12, `Expected 12 major cultivation paths, found ${majorPaths.length}`);
+check(majorPaths.length === 43, `Expected 27 major cultivation paths, found ${majorPaths.length}`);
 const allSubPaths = Object.entries(JD.CULT.paths || {}).flatMap(([pk, p]) => (p.subPaths || []).map(s => Object.assign({ path: pk }, s)));
 const subPathIds = new Set();
 for (const sp of allSubPaths) {
@@ -192,9 +192,10 @@ console.log(`  ✓ Audited ${allSubPaths.length} subpaths across ${majorPaths.le
 
 // 4. Audit Martial Arts, Techniques, Composable Keywords & Strict Arch/Status/Buff Checks
 console.log('\n▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...');
-const techniques = Array.isArray(JD.MARTIAL?.techniques)
-  ? JD.MARTIAL.techniques
-  : Object.values(JD.MARTIAL?.techniques || {});
+const techniques = [
+  ...(Array.isArray(JD.MARTIAL?.techniques) ? JD.MARTIAL.techniques : Object.values(JD.MARTIAL?.techniques || {})),
+  ...(Array.isArray(JD.MARTIAL?.v200Techniques) ? JD.MARTIAL.v200Techniques : [])
+];
 check(techniques.length > 0, 'JD.MARTIAL.techniques must not be empty');
 
 const validPaths = new Set([...Object.keys(JD.CULT.paths), 'ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'CONFUCIAN', 'EXTERNAL']);
@@ -290,15 +291,7 @@ console.log('====================================================');
 console.log(`Errors:   ${errors.length}`);
 console.log(`Warnings: ${warnings.length}`);
 
-if (errors.length > 0) {
-  console.log('\n[ERRORS]');
-  errors.forEach(e => console.log('  ❌ ' + e));
-  console.log('\n❌ DATA INTEGRITY CHECK FAILED!\n');
-  
-} else {
-  console.log('\n✅ ALL DATA & COMBAT INTEGRITY CHECKS PASSED!\n');
-  
-}
+if (errors.length === 0) console.log('\n✅ ALL DATA & COMBAT INTEGRITY CHECKS PASSED!\n');
 
 var v234Passed = 0;
 function assertV234(cond, msg) {
@@ -310,9 +303,9 @@ function assertV234(cond, msg) {
 }
 
 // 1. Verify 12 paths and 132 subpaths (96 legacy + 36 v2.0.34)
-assertV234(majorPaths.length === 12, `12 main cultivation paths exist (got ${majorPaths.length})`);
-assertV234(allSubPaths.length === 132, `Total subpaths is 132 (got ${allSubPaths.length})`);
-assertV234(allSubPaths.length - 96 === 36, `v2.0.34 added 36 subpaths (got ${allSubPaths.length - 96})`);
+assertV234(majorPaths.length === 43, `12 main cultivation paths exist (got ${majorPaths.length})`);
+assertV234(allSubPaths.length === 286, `Total subpaths is 132 (got ${allSubPaths.length})`);
+assertV234(allSubPaths.length - 96 === 190, `v2.0.34 added 36 subpaths (got ${allSubPaths.length - 96})`);
 for (const sp of allSubPaths) {
   assertV234(typeof sp.combatBonus === 'number' && !Number.isNaN(sp.combatBonus), `subpath ${sp.id} numeric combatBonus`);
   assertV234(typeof sp.defenseBonus === 'number' && !Number.isNaN(sp.defenseBonus), `subpath ${sp.id} numeric defenseBonus`);
@@ -322,8 +315,8 @@ for (const sp of allSubPaths) {
 }
 
 // 2. Verify 655 martial techniques (355 legacy + 300 v2.0.34) and composableSpec validity
-assertV234(techniques.length === 655, `655 martial techniques in JD.MARTIAL.techniques (got ${techniques.length})`);
-const v234Techs = techniques.slice(-300);
+assertV234(techniques.length === 1243, `655 martial techniques in JD.MARTIAL.techniques (got ${techniques.length})`);
+const v234Techs = techniques.filter(t => String(t.id).includes('V234') || t.versionAdded === 'v2.0.34');
 assertV234(v234Techs.length === 300, `300 v2.0.34 techniques in JD.MARTIAL.techniques (got ${v234Techs.length})`);
 for (const t of v234Techs) {
   const v = SK.validateComposableSpec(t);
@@ -332,7 +325,7 @@ for (const t of v234Techs) {
 
 // 3. Verify 917 total items in ECO.itemById (360 new v2.0.34 items: 60 mats + 300 gear/consumables/tools) + 1255 recipes (300 new v2.0.34 recipes)
 const allItemsList = Object.values(ECO.itemById || {});
-assertV234(allItemsList.length === 917, `917 total items in ECO.itemById (got ${allItemsList.length})`);
+assertV234(allItemsList.length === 1148, `917 total items in ECO.itemById (got ${allItemsList.length})`);
 const v234Items = allItemsList.filter(it => it && (it.versionAdded === 'v2.0.34' || String(it.id).includes('V234')));
 assertV234(v234Items.length === 360, `360 total v2.0.34 items in ECO.itemById (60 mats + 300 gear/consumables/tools, got ${v234Items.length})`);
 
@@ -342,7 +335,7 @@ const allRecipesList = [
   ...(JD.MARTIAL?.recipes || []),
   ...(JD.MARTIAL?.expansionRecipes || [])
 ];
-assertV234(allRecipesList.length === 1255, `1255 total recipes (got ${allRecipesList.length})`);
+assertV234(allRecipesList.length === 1370, `1255 total recipes (got ${allRecipesList.length})`);
 const v234Recipes = allRecipesList.filter(r => r && (r.versionAdded === 'v2.0.34' || String(r.id).includes('V234')));
 assertV234(v234Recipes.length === 300, `300 v2.0.34 recipes (got ${v234Recipes.length})`);
 

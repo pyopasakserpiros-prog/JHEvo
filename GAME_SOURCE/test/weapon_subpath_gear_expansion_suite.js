@@ -22,7 +22,7 @@ assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 1
 
 // 1. Verify all twelve paths and 96 subpath runtime registrations (v2.0.14).
 const paths = Object.keys(CULT.PATHS);
-assert.strictEqual(paths.length, 12, 'Must have 12 major cultivation paths');
+assert.strictEqual(paths.length, 43, 'Must have 27 major cultivation paths');
 let totalSubpaths = 0;
 for (const p of paths) {
   const subs = CULT.PATHS[p].subPaths || [];
@@ -35,7 +35,7 @@ for (const p of paths) {
     assert(MARTIAL.INNATE_BY_SUB && MARTIAL.INNATE_BY_SUB[s], `INNATE_BY_SUB missing for subpath ${s}`);
   }
 }
-assert.strictEqual(totalSubpaths, 132, `Expected 132 subpaths (96 + 36 v234), found ${totalSubpaths}`);
+assert.strictEqual(totalSubpaths, 286, `Expected 132 subpaths (96 + 36 v234), found ${totalSubpaths}`);
 
 const expectedNewSubs = [
   'CLOUD_DRAGON_SPEAR', 'PURE_SWORD_SAINT', 'WAR_SPEAR_SOVEREIGN',

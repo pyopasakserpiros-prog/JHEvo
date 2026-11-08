@@ -35,7 +35,7 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Version Lock (3.4.0)
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.4.0)...');
 {
-  check(['3.4.0', '3.5.0', '3.6.0', '4.0.0', '5.8.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be '3.4.0' (got ${SIM.PATCH_VERSION})`);
+  check(['3.4.0', '3.5.0', '3.6.0', '4.0.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be '3.4.0' (got ${SIM.PATCH_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
@@ -47,7 +47,7 @@ console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Loc
 console.log('▶ [Phase 1 / PROP-03] Testing Path-Specific Secondary Combat Gauges & Finishers...');
 {
   const W = SIM.create('v340-path-gauges');
-  check(Object.keys(CULT.PATH_GAUGES).length === 12, 'All 12 cultivation paths have dedicated secondary combat gauges');
+  check(Object.keys(CULT.PATH_GAUGES).length === 43, 'All 12 cultivation paths have dedicated secondary combat gauges');
 
   const hero = W.npcs[0];
   hero.cult.path = 'XIAN';

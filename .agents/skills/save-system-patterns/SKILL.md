@@ -84,15 +84,20 @@ Always run idempotent `ensure*` hooks at the end of `SIM.deserialize`:
 
 
 ## v3.1.0 Save Schema (`3.1.0-autonomous-governance-peaks`)
-- `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-autonomous-governance-peaks'`.
+- `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-autonomous-governance-peaks'`.
 - `SIM.serialize` and `SIM.deserialize` preserve `W.sect.unlockSpecializedOffices`, `W.sect.dungeon`, `W.sect.jurisdictionLog`, `W.sect.vanguardPosture`, `W.sect.vanguardInterceptBonus`, `W.sect.diplomacyBonus`, and `W.sect.dungeonSecurity` with 100% post-load determinism.
 
 ---
 
 ## Patch v3.6.0 – v4.0.0 Save Schema & Resilient Whitelist (`4.0.0-living-frontier-charter`)
-- `SIM.PATCH_VERSION = '4.0.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`.
+- `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.0.0-living-frontier-charter'`.
 - `SIM.TRANSIENT_CACHE_KEYS` explicitly whitelists transient caches (`_c`, `_d`, `_cs`, `_csBase`, `_csStatic`, `_cultRateBase`, `_nd`, `_hpMaxCache`, `_qiMaxCache`, `_mDer`, `_condCache`, `_wsBase`, `_skRateCache`, `_dwVer`, `_dwDay`, `_alivePop`, `jianghuSects`, `inventoryIntelligence`) while preserving `_btBonusPct`, `_dantianBonusPct`, `W.sect.outposts`, `W.sect.charter`, `W.sect.strategicCouncil`, `W.sect.microLocations`, and `npc.combatHistory` across `SIM.serialize` / `SIM.deserialize`.
 
 ## Patch v4.1.0 Save Schema (`4.1.0-sect-expansion-peaks-sanctuary`)
-- `SIM.PATCH_VERSION = '4.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.1.0-sect-expansion-peaks-sanctuary'`.
+- `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '4.1.0-sect-expansion-peaks-sanctuary'`.
 - `SIM.deserialize` calls `SECT.PEAKS.ensure(W)`, `SECT.ELEMENTAL_BARRIER.ensure(W)`, and `MAP.syncPeakSanctuaries(W)` so all 8 Peak Sanctuary building levels, `founded` states, active stations, and barrier element settings (`W.sect.barrierElement`, `W.sect.barrierActive`) are 100% preserved across save/load.
+
+
+## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
+- **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
+- **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.

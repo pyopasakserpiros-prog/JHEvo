@@ -1285,6 +1285,7 @@
         a.py = a.y;
         a.travel = { to: 'home' };
         a.path = null;
+        if (!a.cult && CULT && CULT.MORTAL_INITIATION) CULT.MORTAL_INITIATION.ensureMortalState(a, W);
         stats.admitted = (stats.admitted || 0) + 1;
         const roleLabel = who === master ? 'เจ้าสำนัก ' : who === dep ? 'รองเจ้าสำนัก ' : SECT.POSTS.registry.nameTh + ' ';
         W.log('recruit', a.h.name.given + ' ผ่านการพิจารณาของ' + roleLabel + who.h.name.given + ' เข้าเป็นผู้ฝึกหัด (' + a.h.origin.cls + ' จาก' + a.h.origin.region + ' · ' + ca.bestRoleTh + ')', [a.id, who.id]);
@@ -3448,7 +3449,7 @@
     // 5. Technique Manuals (including all 12 legendary techniques & 10 legendary mantras = 22 legendary manuals)
     const seenManualIds = new Set();
     [...(JD.TECH.techniques || []), ...(JD.TECH.mantras || [])].forEach(t => {
-      if (!t || !t.id || t.innateOnly || seenManualIds.has(t.id)) return;
+      if (!t || !t.id || t.innateOnly || (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) || seenManualIds.has(t.id)) return;
       seenManualIds.add(t.id);
       const isLeg = !!(t.legendary || t.grade === "Legendary" || /^LEG_/.test(t.id));
       const isMantra = /_MANTRA$|^QI_MANTRA$/.test(t.cat || "");
@@ -3508,6 +3509,32 @@
         element: sub.element || "NEUTRAL", elementProfile: sub.elementProfile || null,
         sourceRegistry: "CULT.subList(SUB_MANUAL)", stackable: false, canSect: true, canNpc: true,
         descTh: "คัมภีร์สายย่อยถาวรประจำหอคัมภีร์ (" + path + ")"
+      }));
+    });
+
+    // 6C. Grand Dao Path Manuals (PATH_MANUAL) & Path Crystals (PATH_CRYSTAL) (54 items across 27 Paths)
+    Object.keys((CULT && CULT.PATHS) || {}).forEach(pid => {
+      const pDef = CULT.PATHS[pid];
+      if (!pDef) return;
+      const manId = "MANUAL_PATH_" + pid;
+      const cryId = "CRYSTAL_PATH_" + pid;
+      out.push(enrichCatalogEntry({
+        key: "PATH_MANUAL:" + manId, kind: "PATH_MANUAL", id: manId,
+        nameTh: "มหาคัมภีร์ต้นกำเนิด · " + pDef.nameTh,
+        tier: 4, grade: "Exceptional", rarity: "Exceptional", compatiblePath: pid,
+        element: pDef.element || "ASTRAL", elementProfile: pDef.elementProfile || null,
+        effectIds: ["EFX_UNLOCK_SECT_PATH_MANUAL"],
+        sourceRegistry: "JD.MARTIAL.items(PATH_MANUAL)", stackable: true, canSect: true, canNpc: true,
+        descTh: "มหาคัมภีร์ต้นกำเนิดสำหรับปลดล็อก「" + pDef.nameTh + "」ในหอคัมภีร์วิถีสำนักอย่างถาวร"
+      }));
+      out.push(enrichCatalogEntry({
+        key: "PATH_CRYSTAL:" + cryId, kind: "PATH_CRYSTAL", id: cryId,
+        nameTh: "ผลึกมรรคาสำเร็จรูป · " + pDef.nameTh,
+        tier: 3, grade: "Rare", rarity: "Rare", compatiblePath: pid,
+        element: pDef.element || "ASTRAL", elementProfile: pDef.elementProfile || null,
+        effectIds: ["EFX_BESTOW_PATH_CRYSTAL"],
+        sourceRegistry: "JD.MARTIAL.items(PATH_CRYSTAL)", stackable: true, canSect: true, canNpc: true,
+        descTh: "ผลึกมรดกวิถีใช้ครั้งเดียวสำหรับเบิกเนตรศิษย์เข้าสู่「" + pDef.nameTh + "」โดยตรง"
       }));
     });
 
@@ -3593,8 +3620,15 @@
     if ((action === "teach" || action === "set_mantra") && opts.kind === "TECH_MANUAL") {
       const rawTechId = String(opts.id).startsWith("T:") ? opts.id.slice(2) : opts.id;
       const t = CULT.tech(rawTechId);
-      if (!t || t.innateOnly) return { ok: false, reason: "ไม่พบคัมภีร์วิชา: " + opts.id };
+      if (!t || t.innateOnly || (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t))) return { ok: false, reason: "ไม่พบคัมภีร์วิชาหรือเป็นวิชาเฉพาะสายย่อยติดตัว: " + opts.id };
       if (!n.cult) return { ok: false, reason: "ตัวละครยังเป็นปุถุชน ต้องเปิดวิถีบำเพ็ญก่อน" };
+      if (!opts.forceCrossPath) {
+        const pathCompat = !t.path || t.path === "ANY" || t.path === n.cult.path;
+        const subCompat = !CULT.isSubCompatible || CULT.isSubCompatible(t, n.cult.sub, false);
+        if (!pathCompat || !subCompat) {
+          return { ok: false, reason: "วิชานี้จำกัดเฉพาะวิถี/สายย่อย (" + (t.path || "ANY") + (t.sub ? "/" + t.sub : "") + ") ไม่ตรงกับผู้เรียน (" + n.cult.path + "/" + n.cult.sub + ")" };
+        }
+      }
       const isMantra = /_MANTRA$|^QI_MANTRA$/.test(t.cat || "");
       if (isMantra || action === "set_mantra") {
         n.cult.unlockedMantras = Array.isArray(n.cult.unlockedMantras) ? n.cult.unlockedMantras : [];
@@ -3802,6 +3836,33 @@
         if (!npc.inv.subManuals.includes(id)) npc.inv.subManuals.push(id);
         npc.inv.spawnedSubManuals = npc.inv.spawnedSubManuals || [];
         if (!npc.inv.spawnedSubManuals.includes(id)) npc.inv.spawnedSubManuals.push(id);
+      }
+    } else if (kind === 'PATH_MANUAL') {
+      const pKey = String(id).replace(/^MANUAL_PATH_/, '').toUpperCase();
+      const pDef = CULT.PATHS && CULT.PATHS[pKey];
+      if (!pDef) return { ok: false, reason: 'ไม่พบคัมภีร์มหาวิถี: ' + id };
+      const canonId = 'MANUAL_PATH_' + pKey;
+      itemNameTh = 'มหาคัมภีร์ต้นกำเนิด · ' + pDef.nameTh;
+      if (dest === 'sect') {
+        ECO.add(W, canonId, qty);
+        if (opts.autoUnlock && SECT.PATH_LIBRARY) {
+          SECT.PATH_LIBRARY.unlockPath(W, pKey, { source: 'EDITOR_SPAWN', quiet: true });
+        }
+      } else {
+        npc.inv.mats = npc.inv.mats || {};
+        npc.inv.mats[canonId] = (npc.inv.mats[canonId] || 0) + qty;
+      }
+    } else if (kind === 'PATH_CRYSTAL') {
+      const pKey = String(id).replace(/^CRYSTAL_PATH_/, '').toUpperCase();
+      const pDef = CULT.PATHS && CULT.PATHS[pKey];
+      if (!pDef) return { ok: false, reason: 'ไม่พบผลึกมหาวิถี: ' + id };
+      const canonId = 'CRYSTAL_PATH_' + pKey;
+      itemNameTh = 'ผลึกมรรคาสำเร็จรูป · ' + pDef.nameTh;
+      if (dest === 'sect') {
+        ECO.add(W, canonId, qty);
+      } else {
+        npc.inv.mats = npc.inv.mats || {};
+        npc.inv.mats[canonId] = (npc.inv.mats[canonId] || 0) + qty;
       }
     } else if (kind === 'RECIPE_SCROLL') {
       const r = ECO.recipeById[id] || (ECO.itemById && ECO.itemById[id] && ECO.recipeById[ECO.itemById[id].recipeId]) || (ECO.recipeByOutItemId && ECO.recipeByOutItemId[id]);
@@ -4801,7 +4862,7 @@
         return { ok: false, reason: 'candidate-unavailable', attempt };
       }
       const result = { ok: true, ascended: false, chance: attempt.chance, attemptId: attempt.id };
-      const success = (W.rng && typeof W.rng.next === 'function' ? W.rng.next() : Math.random()) < attempt.chance;
+      const success = (W.rng && typeof W.rng.next === 'function' ? W.rng.next() : 0.45) < attempt.chance;
       releaseTribulationParticipants(W, attempt);
       if (success) {
         const tablet = SECT.inscribeLegacyTablet(W, candidate, 'ผ่านด่านเคราะห์สวรรค์และจุติสู่แดนบน', { force: true });
@@ -5082,7 +5143,11 @@
     let inheritedTechId = null;
     for (const tid of (mentor.cult.techs || [])) {
       const tObj = CULT.tech(tid);
-      if (tObj && !tObj.innateOnly && !disciple.cult.techs.includes(tid)) {
+      const isInnate = tObj && (tObj.innateOnly || (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(tObj)));
+      const pathOk = tObj && (!tObj.path || tObj.path === 'ANY' || tObj.path === disciple.cult.path);
+      const subOk = tObj && (!CULT.isSubCompatible || CULT.isSubCompatible(tObj, disciple.cult.sub, false));
+      const bushidoOk = disciple.cult.path !== 'SHADOW_SAMURAI' || (!tObj.weaponTypes || tObj.weaponTypes.includes('SWORD') || tObj.weaponTypes.includes('BLADE'));
+      if (tObj && !isInnate && pathOk && subOk && bushidoOk && !disciple.cult.techs.includes(tid)) {
         disciple.cult.techs.push(tid);
         disciple.cult.tm = disciple.cult.tm || {};
         disciple.cult.tm[tid] = Math.max(disciple.cult.tm[tid] || 0, 35);
@@ -5915,7 +5980,7 @@
       const gain = Math.max(4, Math.round(arrSkill / 12));
       W.sect.arrayIntegrity = clamp((W.sect.arrayIntegrity || 80) + gain, 0, 100);
       if (SECT.FENG_SHUI && SECT.FENG_SHUI.attuneBuilding) {
-        SECT.FENG_SHUI.attuneBuilding(W, 'meditation_hall', 'ASTRAL', n, { quiet: true, free: true });
+        SECT.FENG_SHUI.attuneBuilding(W, n, 'meditation_hall', 'ASTRAL', { quiet: true, free: true });
       }
       let boostedNodes = 0;
       if (W.world && W.world.resourceNodes) {
@@ -11074,7 +11139,7 @@
       shortTh: 'ยอดเขากระบี่เมฆา',
       icon: '🗡️',
       isSoloPath: true,
-      paths: ['XIAN'],
+      paths: ['XIAN', 'CELESTIAL_WEATHER', 'CHRONO_EPOCH', 'SHADOW_SAMURAI', 'TIDE_VOYAGER'],
       auraBonus: { cultRate: 0.14, swordPower: 0.10, p: { atk: 0.10, matk: 0.10 } },
       descTh: 'ยอดเขาเอกแห่งวิถีเซียนปราณและกระบี่เหินเมฆา โบนัสดาเมจอาวุธกระบี่ +10%'
     },
@@ -11085,7 +11150,7 @@
       shortTh: 'ยอดผากายาวัชระ',
       icon: '⛰️',
       isSoloPath: true,
-      paths: ['BODY'],
+      paths: ['BODY', 'GRAVITY_DAO', 'PRIMORDIAL_SHIFTER', 'DEVOURING_FLESH', 'ARENA_GLORY'],
       auraBonus: { cultRate: 0.14, hpMaxMult: 0.12, p: { hp: 0.12 } },
       descTh: 'หน้าผาหินเหล็กไหลสำหรับผู้ฝึกตนวิถีหลอมกายา เพิ่มพลังชีวิตสูงสุด +12%'
     },
@@ -11096,7 +11161,7 @@
       shortTh: 'หุบเขาเงาโลหิต',
       icon: '🩸',
       isSoloPath: true,
-      paths: ['DEMON'],
+      paths: ['DEMON', 'VENOM_GU', 'SOUL_PUPPETRY', 'NINPO_SHADOW', 'VOID_HERETIC_PACT', 'NETHER_GRAVE'],
       auraBonus: { cultRate: 0.15, combatFerocity: 0.12, critBonus: 10, btBonus: 0.10, p: { atk: 0.10 }, f: { crit: 10 } },
       descTh: 'หุบเขาลี้ลับและแดนอัสนีโลหิต เพิ่มอัตราคริติคอล +10% และโอกาสทะลวงด่าน +10%'
     },
@@ -11107,7 +11172,7 @@
       shortTh: 'ยอดเขาเตาหลอม',
       icon: '⚗️',
       isSoloPath: true,
-      paths: ['CRAFT_CREATION'],
+      paths: ['CRAFT_CREATION', 'DRAGON_VEIN_GEOMANCY', 'MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'SPIRIT_HUSBANDRY'],
       auraBonus: { cultRate: 0.13, craftQuality: 0.15, alchemySuccess: 0.15 },
       descTh: 'ยอดเขาแห่งไฟปฐพีและทั่งตีเหล็กสวรรค์ เพิ่มอัตราความสำเร็จและคุณภาพโอสถ/ศาสตรา +15%'
     },
@@ -11118,7 +11183,7 @@
       shortTh: 'ยอดเขาวิญญาณวัฏจักร',
       icon: '🪷',
       isSoloPath: false,
-      paths: ['HEART_SOUL', 'KARMA_SAMSARA'],
+      paths: ['HEART_SOUL', 'KARMA_SAMSARA', 'BUDDHA_DHARMA', 'VOID_SPACE', 'PRIMORDIAL_CHAOS', 'DIVINE_POSSESSION', 'ANCESTRAL_RITUAL'],
       auraBonus: { cultRate: 0.14, heartDemonResist: 0.15, matkMult: 0.10, p: { matk: 0.10, mdef: 0.10 } },
       descTh: 'ยอดเขาหยินหยางเต๋าและวิญญาณวัฏจักร เพิ่ม MATK วิชามหาธาตุ +10% และต้านทานจิตมาร +15%'
     },
@@ -11129,7 +11194,7 @@
       shortTh: 'ยอดเขาค่ายกลจักรกล',
       icon: '⚙️',
       isSoloPath: false,
-      paths: ['ARRAY_TALISMAN', 'MECH_PUPPET'],
+      paths: ['ARRAY_TALISMAN', 'MECH_PUPPET', 'ASTRO_DIVINATION', 'INK_LITERATI', 'NINPO_ELEMENTAL', 'OCCULT_MAGE'],
       auraBonus: { cultRate: 0.14, arrayMechMastery: 0.15, sectArrayDefense: 0.15, p: { def: 0.15, mdef: 0.15 } },
       descTh: 'ยอดเขายันต์ค่ายกลและกลจักรดารา เพิ่มพลังป้องกันค่ายกลสำนักและเกราะป้องกัน +15%'
     },
@@ -11140,7 +11205,7 @@
       shortTh: 'หุบเขาปราชญ์พิชัย',
       icon: '📜',
       isSoloPath: false,
-      paths: ['SAGE_SUPPORT', 'STRATEGY_GOVERNANCE'],
+      paths: ['SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'SONIC_HARMONY', 'WANDERING_DAO', 'LORE_ARCHIVIST'],
       auraBonus: { cultRate: 0.14, supportGovernance: 0.15, cpGainBonus: 0.15, studySpeedBonus: 0.15, f: { cast: 10 } },
       descTh: 'หุบเขาปราชญ์พิชัย เพิ่มอัตราการได้รับแต้มคุณูปการ (CP) และความเร็วฝึกสกิล +15%'
     },
@@ -11151,7 +11216,7 @@
       shortTh: 'ยอดเขาเทวะอสูร',
       icon: '🐉',
       isSoloPath: false,
-      paths: ['GOD', 'BEAST_SOVEREIGN'],
+      paths: ['GOD', 'BEAST_SOVEREIGN', 'DIVINE_SUMMONER', 'DIVINE_CHANNELER'],
       auraBonus: { cultRate: 0.14, beastDeityMight: 0.15, petStatBonus: 0.15, tameBonus: 0.15, p: { atk: 0.12, hp: 0.10 } },
       descTh: 'ยอดเขาเทวะราชันอสูร เพิ่มค่าสเตตัสสัตว์เลี้ยงและอัตราการจับสัตว์อสูร +15%'
     }
@@ -11182,6 +11247,9 @@
 
     PEAKS.PEAK_IDS.forEach(pid => {
       const def = PEAKS.PEAK_DEFS[pid];
+      if (pk.byId[pid] && Array.isArray(def.paths)) {
+        pk.byId[pid].paths = def.paths.slice();
+      }
       if (!pk.byId[pid]) {
         pk.byId[pid] = {
           id: pid,
@@ -12315,7 +12383,8 @@
     for (const [k, v] of Object.entries(ab.f || {})) f[k] = +(v * lvScale).toFixed(2);
     if (ab.swordPower) {
       const wpn = npc.equip && npc.equip.WEAPON;
-      const isSword = !wpn || (g.MARTIAL && g.MARTIAL.gearType && g.MARTIAL.gearType(wpn) === 'SWORD') || wpn.gearType === 'SWORD' || /SWORD|กระบี่/.test(String(wpn.id || wpn.nameTh || ''));
+      const wType = (wpn && g.MARTIAL && g.MARTIAL.gearType) ? g.MARTIAL.gearType(wpn) : (wpn && wpn.gearType);
+      const isSword = !wpn || wType === 'SWORD' || wType === 'BLADE' || /SWORD|BLADE|กระบี่|ดาบ/.test(String(wpn.id || wpn.nameTh || ''));
       if (isSword) {
         p.atk = Math.max(p.atk || 0, +(ab.swordPower * lvScale).toFixed(4));
         p.matk = Math.max(p.matk || 0, +(ab.swordPower * lvScale).toFixed(4));
@@ -12343,6 +12412,25 @@
     };
   };
 
+
+  PEAKS.PATH_SANCTUARY_BLESSINGS = Object.freeze((() => {
+    const out = {};
+    const allPaths = (JD && JD.CULT && JD.CULT.paths) || {};
+    for (const [pid, pObj] of Object.entries(allPaths)) {
+      const peakId = PEAKS.peakIdForPath(pid);
+      out[pid] = {
+        path: pid,
+        peakId,
+        subSanctuaryTh: 'ตำหนักย่อย' + (pObj.shortTh || pObj.nameTh),
+        gaugeBonusPct: 0.15,
+        cultRateBonus: 0.04,
+        specialtyWeapon: (pObj.weapons && pObj.weapons[0]) || 'SWORD',
+        descTh: 'ตำหนักย่อยประจำ「' + pObj.nameTh + '」ในสังกัดยอดเขา หนุนอัตราเร่งเกจเอกลักษณ์ +15% และตบะ +4%'
+      };
+    }
+    return out;
+  })());
+
   SECT.PEAKS = PEAKS;
 
   if (g.EXPED) {
@@ -12368,7 +12456,19 @@
       BLOODTHIRSTY_BLADE: { id: 'BLOODTHIRSTY_BLADE', nameTh: 'เจตจำนงดาบกระหายโลหิต', preferredTrait: 'aggression', minVal: 55, bonusMult: 0.18 },
       RIGHTEOUS_GUARDIAN_SWORD: { id: 'RIGHTEOUS_GUARDIAN_SWORD', nameTh: 'เจตจำนงกระบี่พิทักษ์ธรรม', preferredTrait: 'integrity', minVal: 55, bonusMult: 0.18 },
       SCHOLARLY_JADE_BRUSH: { id: 'SCHOLARLY_JADE_BRUSH', nameTh: 'เจตจำนงพู่กันหยกปราชญ์เมธี', preferredTrait: 'composure', minVal: 55, bonusMult: 0.18 },
-      VOID_ASTRAL_BOW: { id: 'VOID_ASTRAL_BOW', nameTh: 'เจตจำนงศรดาราผ่าสุญตา', preferredTrait: 'courage', minVal: 55, bonusMult: 0.18 }
+      VOID_ASTRAL_BOW: { id: 'VOID_ASTRAL_BOW', nameTh: 'เจตจำนงศรดาราผ่าสุญตา', preferredTrait: 'courage', minVal: 55, bonusMult: 0.18 },
+      DRAGON_ROAR_SPEAR: { id: 'DRAGON_ROAR_SPEAR', nameTh: 'เจตจำนงทวนมังกรคำราม', preferredTrait: 'courage', minVal: 55, bonusMult: 0.18 },
+      VAJRA_ARHAT_STAFF: { id: 'VAJRA_ARHAT_STAFF', nameTh: 'เจตจำนงพลองวัชระอรหันต์', preferredTrait: 'discipline', minVal: 55, bonusMult: 0.18 },
+      TITAN_SHATTER_FIST: { id: 'TITAN_SHATTER_FIST', nameTh: 'เจตจำนงหมัดทลายขุนเขา', preferredTrait: 'aggression', minVal: 55, bonusMult: 0.18 },
+      CELESTIAL_CORE_FOCUS: { id: 'CELESTIAL_CORE_FOCUS', nameTh: 'เจตจำนงสื่อปราณดาราจักร', preferredTrait: 'rationality', minVal: 55, bonusMult: 0.18 },
+      HEAVENLY_CHORD_ZITHER: { id: 'HEAVENLY_CHORD_ZITHER', nameTh: 'เจตจำนงพิณสวรรค์กล่อมวิญญาณ', preferredTrait: 'empathy', minVal: 55, bonusMult: 0.18 },
+      PHANTOM_SILK_WHIP: { id: 'PHANTOM_SILK_WHIP', nameTh: 'เจตจำนงแส้ไหมเงาพันธนาการ', preferredTrait: 'caution', minVal: 55, bonusMult: 0.18 },
+      BODHI_MERIT_ROSARY: { id: 'BODHI_MERIT_ROSARY', nameTh: 'เจตจำนงลูกประคำโพธิสัตว์', preferredTrait: 'empathy', minVal: 55, bonusMult: 0.18 },
+      APEX_PREDATOR_CLAW: { id: 'APEX_PREDATOR_CLAW', nameTh: 'เจตจำนงกรงเล็บอสูรบรรพกาล', preferredTrait: 'aggression', minVal: 55, bonusMult: 0.18 },
+      MERIDIAN_SOUL_NEEDLE: { id: 'MERIDIAN_SOUL_NEEDLE', nameTh: 'เจตจำนงเข็มวิญญาณชี้เป็นตาย', preferredTrait: 'composure', minVal: 55, bonusMult: 0.18 },
+      TEMPEST_GALE_FAN: { id: 'TEMPEST_GALE_FAN', nameTh: 'เจตจำนงพัดเทวพายุสี่ฤดู', preferredTrait: 'curiosity', minVal: 55, bonusMult: 0.18 },
+      COSMIC_FATE_ASTROLABE: { id: 'COSMIC_FATE_ASTROLABE', nameTh: 'เจตจำนงจานดาราลิขิตสวรรค์', preferredTrait: 'rationality', minVal: 55, bonusMult: 0.18 },
+      GOLDEN_KARMA_ABACUS: { id: 'GOLDEN_KARMA_ABACUS', nameTh: 'เจตจำนงลูกคิดทองคำพิพากษา', preferredTrait: 'ambition', minVal: 55, bonusMult: 0.18 }
     });
 
     SF.evaluateWeaponCompatibility = (npc, weapon) => {
@@ -12918,7 +13018,38 @@
     SAGE_SUPPORT: { path: 'SAGE_SUPPORT', combatMechanic: 'Acupoint Sealing & Cleanse-to-Power Nectar', elementalSpecialty: ['WOOD_LIFE', 'WATER_ICE'], facilityRole: 'Hundred-Herb Apothecary & Infirmary', explorationRole: 'Harvest Intact Immortal Herbs (+50% Yield)' },
     CRAFT_CREATION: { path: 'CRAFT_CREATION', combatMechanic: 'Multi-Relic Barrage & Molten Armor Shatter', elementalSpecialty: ['FIRE', 'EARTH_METAL'], facilityRole: 'Heavenly Flame Smithy & Pill Cauldron', explorationRole: 'Salvage Ancient Golems & Repair Relics in Field' },
     ARRAY_TALISMAN: { path: 'ARRAY_TALISMAN', combatMechanic: 'Eight-Trigram Labyrinth & Multi-Charge Talismans', elementalSpecialty: ['ASTRAL', 'LIGHTNING'], facilityRole: 'Sect Grand Protective Formation & Leyline Grid', explorationRole: 'Crack Ancient Sealing Arrays & Teleportation Gates' },
-    STRATEGY_GOVERNANCE: { path: 'STRATEGY_GOVERNANCE', combatMechanic: 'Tactical Row Command & Focus-Fire Decree', elementalSpecialty: ['EARTH_METAL', 'LIGHT_YANG'], facilityRole: 'Hall of Affairs & Diplomatic Trade Hub', explorationRole: 'Supply Logistics (-40% Food Cost) & Negotiate Treaties' }
+    STRATEGY_GOVERNANCE: { path: 'STRATEGY_GOVERNANCE', combatMechanic: 'Tactical Row Command & Focus-Fire Decree', elementalSpecialty: ['EARTH_METAL', 'LIGHT_YANG'], facilityRole: 'Hall of Affairs & Diplomatic Trade Hub', explorationRole: 'Supply Logistics (-40% Food Cost) & Negotiate Treaties' },
+    ASTRO_DIVINATION: { path: 'ASTRO_DIVINATION', combatMechanic: 'Star Destiny Gauge & Fate Reversal Prediction', elementalSpecialty: ['ASTRAL', 'LIGHT_YANG'], facilityRole: 'Observatory of Seven Stars (+Breakthrough & Omen Sight)', explorationRole: 'Predict Secret Realm Openings & Avoid Calamity Traps' },
+    BUDDHA_DHARMA: { path: 'BUDDHA_DHARMA', combatMechanic: 'Bodhi Merit Gauge & Golden Lotus Karma Aegis', elementalSpecialty: ['LIGHT_YANG', 'EARTH_METAL'], facilityRole: 'Golden Lotus Bodhi Pagoda (Purifies Heart Demons & Karma)', explorationRole: 'Exorcise Ancient Demon Tombs & Pacify Wrathful Spirits' },
+    VOID_SPACE: { path: 'VOID_SPACE', combatMechanic: 'Void Rift Gauge & Dimensional Pocket Redirection', elementalSpecialty: ['ASTRAL', 'WIND'], facilityRole: 'Dimensional Rift Gate (+Instant Teleport & Storage)', explorationRole: 'Blink Across Chasms & Open Spatial Vaults' },
+    SONIC_HARMONY: { path: 'SONIC_HARMONY', combatMechanic: 'Harmonic Chord Gauge & Sonic Tempo Break', elementalSpecialty: ['WIND', 'WATER_ICE'], facilityRole: 'Celestial Music Pavilion (+Sect Morale & Qi Harmony)', explorationRole: 'Shatter Illusion Mists & Pacify Sonic Caverns' },
+    VENOM_GU: { path: 'VENOM_GU', combatMechanic: 'Symbiotic Gu Gauge & Parasitic Soul Leech', elementalSpecialty: ['WOOD_LIFE', 'YIN_SHADOW'], facilityRole: 'Ten-Thousand Gu Cauldron (+Poison Alchemy & Gu Breeding)', explorationRole: 'Immunity to Miasma Swamps & Harvest Venomous Gu' },
+    PRIMORDIAL_SHIFTER: { path: 'PRIMORDIAL_SHIFTER', combatMechanic: 'Bloodline Atavism Gauge & Feral Morph Bite', elementalSpecialty: ['FIRE', 'BLOOD_DEMON'], facilityRole: 'Primordial Totem Blood Pool (+Vitality & Phys Burst)', explorationRole: 'Apex Predator Scent Tracking & Extreme Terrain Climb' },
+    CELESTIAL_WEATHER: { path: 'CELESTIAL_WEATHER', combatMechanic: 'Sky Qi Gauge & Weather Phenomenon Synchronization', elementalSpecialty: ['LIGHTNING', 'WATER_ICE'], facilityRole: 'Altar of Winds and Rain (Controls Sect Weather)', explorationRole: 'Calm Violent Tempests & Harness Lightning Strikes' },
+    WANDERING_DAO: { path: 'WANDERING_DAO', combatMechanic: 'Route Insight Gauge & Wayfarer Horizon Step', elementalSpecialty: ['WIND', 'WOOD_LIFE'], facilityRole: 'Wayfarer Cartography Hall (-Travel Time & Hazard)', explorationRole: 'Mastery of All Jianghu Routes (-35% Hazard & Fast Travel)' },
+    MERCANTILE_DAO: { path: 'MERCANTILE_DAO', combatMechanic: 'Contract Ledger Gauge & Debt Foreclosure Strike', elementalSpecialty: ['EARTH_METAL', 'LIGHT_YANG'], facilityRole: 'Golden Abacus Chamber (Zero-Free-Resource Escrow Ledger)', explorationRole: 'Appraise Ancient Relics & Broker Caravan Safe Passage' },
+    DRAGON_VEIN_GEOMANCY: { path: 'DRAGON_VEIN_GEOMANCY', combatMechanic: 'Vein Resonance Gauge & Earth Dragon Spike', elementalSpecialty: ['EARTH_METAL', 'WOOD_LIFE'], facilityRole: 'Dragon Vein Compass Sanctum (+Sect Barrier & Peak Aura)', explorationRole: 'Locate Underground Spirit Veins & Stabilize Collapsing Ruins' },
+    GRAVITY_DAO: { path: 'GRAVITY_DAO', combatMechanic: 'Gravity Pressure Gauge & Mass Absorption Field', elementalSpecialty: ['EARTH_METAL', 'ASTRAL'], facilityRole: 'Heavy Gravity Training Chamber (+Body & Qi Density)', explorationRole: 'Crush Gravity Anomalies & Deflect Falling Boulders' },
+    CHRONO_EPOCH: { path: 'CHRONO_EPOCH', combatMechanic: 'Temporal Sand Gauge & Epoch Rewind Restoration', elementalSpecialty: ['ASTRAL', 'WATER_ICE'], facilityRole: 'Sundial of Eternal Kalpas (+Comprehension & Cooldown Flow)', explorationRole: 'Peer Into Past Ruin Echoes & Slow Time Traps' },
+    INK_LITERATI: { path: 'INK_LITERATI', combatMechanic: 'Literati Ink Gauge & Imperial Censorate Seal', elementalSpecialty: ['LIGHT_YANG', 'YIN_SHADOW'], facilityRole: 'Imperial Academy of Classics (+Scripture Study Speed)', explorationRole: 'Decipher Ancient Stele Inscriptions & Seal Cursed Scrolls' },
+    SOUL_PUPPETRY: { path: 'SOUL_PUPPETRY', combatMechanic: 'Marionette Silk Gauge & Soul Tether Damage Link', elementalSpecialty: ['YIN_SHADOW', 'BLOOD_DEMON'], facilityRole: 'Hall of Silken Marionettes (+Soul Defense & Puppet Craft)', explorationRole: 'Send Soul Marionettes Into Lethal Ruin Chambers' },
+    PRIMORDIAL_CHAOS: { path: 'PRIMORDIAL_CHAOS', combatMechanic: 'Chaos Entropy Gauge & Five-Element Shatter', elementalSpecialty: ['ASTRAL', 'FIRE'], facilityRole: 'Wuji Chaos Origin Furnace (+Universal Element Mastery)', explorationRole: 'Absorb Chaotic Void Storms & Transmute Primal Relics' },
+    SHADOW_SAMURAI: { path: 'SHADOW_SAMURAI', combatMechanic: 'Zero-Qi Iai Focus & Instant Armor-Piercing Counter', elementalSpecialty: ['EARTH_METAL', 'LIGHTNING'], facilityRole: 'Bushido Dojo (+Sword/Blade Mastery & Crit)', explorationRole: 'Instant Ambush Elimination & Sever Traps' },
+    NINPO_SHADOW: { path: 'NINPO_SHADOW', combatMechanic: 'Stealth Chakra & 1-HP Shadow Clone Decoys', elementalSpecialty: ['YIN_SHADOW', 'POISON_CORROSION'], facilityRole: 'Shadow Intelligence Network (+Scout & Evasion)', explorationRole: 'Bypass Enemy Patrols Undetected' },
+    NINPO_ELEMENTAL: { path: 'NINPO_ELEMENTAL', combatMechanic: 'Hand-Seal Mudra Rhythm & Log Substitution Escape', elementalSpecialty: ['FIRE', 'WOOD_LIFE'], facilityRole: 'Explosive Tag Workshop (+Trap Defense)', explorationRole: 'Demolish Sealed Ruin Walls & Escape Lethal Ambush' },
+    DIVINE_SUMMONER: { path: 'DIVINE_SUMMONER', combatMechanic: 'Higher-Realm Deity Projection (10^-12 to 5% Cosmic Scale)', elementalSpecialty: ['LIGHT_YANG', 'ASTRAL'], facilityRole: 'Cosmic Beacon Altar (+Sect Faith & Deity Blessing)', explorationRole: 'Summon Divine Heralds Across Planar Rifts' },
+    DIVINE_POSSESSION: { path: 'DIVINE_POSSESSION', combatMechanic: 'Shamanic Avatar Trance & Nataraja Destruction', elementalSpecialty: ['FIRE', 'LIGHT_YANG'], facilityRole: 'Sacred Vessel Sanctum (+Physical/Divine Might)', explorationRole: 'Crush Guardian Bosses via Avatar Descent' },
+    DIVINE_CHANNELER: { path: 'DIVINE_CHANNELER', combatMechanic: 'Cosmic Tether Law Imbuement & Anubis/Zeus Smite', elementalSpecialty: ['ASTRAL', 'LIGHTNING'], facilityRole: 'Pillar of Cosmic Laws (+Armor Penetration)', explorationRole: 'See Through Illusions with Borrowed Divine Sight' },
+    VOID_HERETIC_PACT: { path: 'VOID_HERETIC_PACT', combatMechanic: 'Eldritch Madness Gauge & Sanity-Sacrifice True Damage', elementalSpecialty: ['YIN_SHADOW', 'ASTRAL'], facilityRole: 'Outer-Void Obelisk (+Forbidden Knowledge)', explorationRole: 'Traverse Non-Euclidean Abyssal Rifts' },
+    OCCULT_MAGE: { path: 'OCCULT_MAGE', combatMechanic: 'Sacred Vow Merit & Invulnerable Yantra Tattoos', elementalSpecialty: ['EARTH_METAL', 'POISON_CORROSION'], facilityRole: 'Sacred Master Shrine (+Physical Mitigation & Effigies)', explorationRole: 'Ward Off Curses & Command Sacred Golems' },
+    DEVOURING_FLESH: { path: 'DEVOURING_FLESH', combatMechanic: 'Secret Organ Hunger & Bone Armor Absorption', elementalSpecialty: ['BLOOD_DEMON', 'EARTH_METAL'], facilityRole: 'Flesh & Marrow Crucible (Converts Ores/Beasts to Stats)', explorationRole: 'Devour Ruin Monsters for Permanent Vitality' },
+    NETHER_GRAVE: { path: 'NETHER_GRAVE', combatMechanic: 'Grave Soul Echo & Sect Graveyard Bone Armor', elementalSpecialty: ['YIN_SHADOW', 'EARTH_METAL'], facilityRole: 'Ancestral Necropolis (+Graveyard Scaling Shield)', explorationRole: 'Commune with Ancient Tombs & Harvest Bone Relics' },
+    ANCESTRAL_RITUAL: { path: 'ANCESTRAL_RITUAL', combatMechanic: 'Rite Fervor & Multi-Generation Marrow Echo', elementalSpecialty: ['LIGHT_YANG', 'EARTH_METAL'], facilityRole: 'Hall of Lineage Tablets (+Bloodline Inheritance)', explorationRole: 'Awaken Ancestral Remnants in Historic Battlefields' },
+    TIDE_VOYAGER: { path: 'TIDE_VOYAGER', combatMechanic: 'Tide Flow Maelstrom & Deep-Sea Frost Control', elementalSpecialty: ['WATER_ICE', 'WIND'], facilityRole: 'Dragon-Ship Harbor (+Fishing & River Trade)', explorationRole: 'Mastery of River/Ocean Expeditions' },
+    LORE_ARCHIVIST: { path: 'LORE_ARCHIVIST', combatMechanic: 'Lore Index Analysis & Technique Mirroring', elementalSpecialty: ['ASTRAL', 'LIGHT_YANG'], facilityRole: 'Grand Scripture Archive (+Manual Registration & Study)', explorationRole: 'Decode Ancient Rubbings & Copy Lost Arts' },
+    FORTUNE_GAMBLER: { path: 'FORTUNE_GAMBLER', combatMechanic: 'Destiny Stake High-Roller & Fate Reversal', elementalSpecialty: ['ASTRAL', 'FIRE'], facilityRole: 'Pavilion of Fortune (+Caravan Jackpot & Crit)', explorationRole: 'Turn High-Risk Ruin Events Into Rare Jackpots' },
+    SPIRIT_HUSBANDRY: { path: 'SPIRIT_HUSBANDRY', combatMechanic: 'Growth Cycle World-Tree & Shennong Herb Canopy', elementalSpecialty: ['WOOD_LIFE', 'WATER_ICE'], facilityRole: 'Immortal Herb & Spirit Grain Fields (+Crop Yield)', explorationRole: 'Cultivate Wild Spirit Seeds in Untamed Lands' },
+    ARENA_GLORY: { path: 'ARENA_GLORY', combatMechanic: 'Renown Flame Duelist & Crowd Roar Momentum', elementalSpecialty: ['FIRE', 'EARTH_METAL'], facilityRole: 'Grand Martial Colosseum (+Tournament Fame)', explorationRole: 'Challenge Regional Champions for Prestigious Trophies' }
   });
 
   SECT.EXPERT_SYNTHESIS_V235 = Object.freeze({
@@ -15777,6 +15908,557 @@
         W.npcs.forEach(n => { if (n) { n._cultRateBase = null; n._qgUnlockCache = null; } });
       }
       return { ok: true, weatherKind, spec: wSpec };
+    }
+  };
+
+
+  /* =========================================================================
+   * PATCH v2.0.0: PILLAR 2 — SINGLE STARTER PATH & SECT PATH LIBRARY EXPANSION
+   * (ระบบหอคัมภีร์มหาวิถีประจำสำนัก: เริ่มต้นปลดล็อก 1 วิถีหลัก และขยายด้วยคัมภีร์/ผลึกวิถีทั้ง 27 สาย)
+   * ========================================================================= */
+  SECT.PATH_LIBRARY = {
+    getAllPathIds() {
+      return Object.keys((CULT && CULT.PATHS) || (JD && JD.CULT && JD.CULT.paths) || {});
+    },
+
+    resolveStarterPath(W) {
+      const archId = (W && W.sect && W.sect.archetype) || 'sword';
+      const arch = (SECT.ARCHETYPES && SECT.ARCHETYPES[archId]) || null;
+      if (arch && arch.path && CULT && CULT.PATHS && CULT.PATHS[arch.path]) {
+        return arch.path;
+      }
+      const master = W && W.sect && W.sect.masterId && W.byId && W.byId[W.sect.masterId];
+      if (master && master.cult && master.cult.path && CULT.PATHS[master.cult.path]) {
+        return master.cult.path;
+      }
+      return 'XIAN';
+    },
+
+    ensure(W) {
+      if (!W || !W.sect) return null;
+      const starterPath = this.resolveStarterPath(W);
+      if (!W.sect.pathLibrary || typeof W.sect.pathLibrary !== 'object') {
+        W.sect.pathLibrary = {
+          version: '2.0.0',
+          starterPath,
+          unlockedPaths: [starterPath],
+          donatedManuals: ['MANUAL_PATH_' + starterPath],
+          crystalBestowals: [],
+          history: [
+            {
+              day: W.day || 1,
+              type: 'FOUNDING_PATH',
+              pathId: starterPath,
+              source: 'sect_founding',
+              noteTh: 'มรดกวิถีปฐมฤกษ์ประจำสำนัก'
+            }
+          ]
+        };
+      } else {
+        if (!Array.isArray(W.sect.pathLibrary.unlockedPaths) || !W.sect.pathLibrary.unlockedPaths.length) {
+          W.sect.pathLibrary.unlockedPaths = [starterPath];
+        }
+        if (!W.sect.pathLibrary.starterPath) W.sect.pathLibrary.starterPath = W.sect.pathLibrary.unlockedPaths[0];
+        if (!Array.isArray(W.sect.pathLibrary.donatedManuals)) W.sect.pathLibrary.donatedManuals = ['MANUAL_PATH_' + W.sect.pathLibrary.starterPath];
+        if (!Array.isArray(W.sect.pathLibrary.crystalBestowals)) W.sect.pathLibrary.crystalBestowals = [];
+        if (!Array.isArray(W.sect.pathLibrary.history)) W.sect.pathLibrary.history = [];
+      }
+      return W.sect.pathLibrary;
+    },
+
+    getUnlockedPaths(W) {
+      const lib = this.ensure(W);
+      return lib ? lib.unlockedPaths.slice() : ['XIAN'];
+    },
+
+    isPathUnlocked(W, pathId) {
+      if (!pathId) return false;
+      const lib = this.ensure(W);
+      return !!(lib && lib.unlockedPaths.includes(pathId));
+    },
+
+    canDiscipleStudyPath(W, npc, pathId) {
+      if (!pathId || !CULT.PATHS[pathId]) return false;
+      if (this.isPathUnlocked(W, pathId)) return true;
+      if (npc && npc.mortalCult && npc.mortalCult.enlightenedByCrystal === pathId) return true;
+      if (npc && npc.cult && npc.cult.path === pathId) return true;
+      return false;
+    },
+
+    unlockPath(W, pathId, opts) {
+      opts = opts || {};
+      if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+      const pKey = String(pathId || '').replace(/^MANUAL_PATH_/, '').trim().toUpperCase();
+      if (!CULT || !CULT.PATHS || !CULT.PATHS[pKey]) {
+        return { ok: false, reason: 'invalid-path', pathId: pKey };
+      }
+      const lib = this.ensure(W);
+      const already = lib.unlockedPaths.includes(pKey);
+      if (!already) {
+        lib.unlockedPaths.push(pKey);
+      }
+      const manualId = 'MANUAL_PATH_' + pKey;
+      if (!lib.donatedManuals.includes(manualId)) {
+        lib.donatedManuals.push(manualId);
+      }
+      // Also add starter T1-T2 techniques of this path into W.sect.library so disciples can study them
+      if (Array.isArray(W.sect.library) && JD && JD.TECH && Array.isArray(JD.TECH.techniques)) {
+        JD.TECH.techniques.forEach(t => {
+          if (t && t.path === pKey && (t.tier || 1) <= 2 && !t.innateOnly && !W.sect.library.includes(t.id)) {
+            W.sect.library.push(t.id);
+          }
+        });
+      }
+      const pDef = CULT.PATHS[pKey];
+      if (!already) {
+        lib.history.unshift({
+          day: W.day || 1,
+          type: 'UNLOCK_PATH',
+          pathId: pKey,
+          pathNameTh: pDef.nameTh,
+          source: opts.source || 'manual',
+          byId: opts.byId || null
+        });
+        if (lib.history.length > 50) lib.history.length = 50;
+        if (typeof W.log === 'function' && !opts.quiet) {
+          W.log('research', '📚 หอคัมภีร์สำนักบรรจุคัมภีร์ต้นกำเนิด ปลดล็อก「' + pDef.nameTh + '」สำเร็จ! (เปิดวิถีแล้ว ' + lib.unlockedPaths.length + '/' + this.getAllPathIds().length + ' มหาวิถี)', opts.byId ? [opts.byId] : []);
+        }
+        // Let mortals re-evaluate their best study path now that a new path is available in the library
+        if (Array.isArray(W.npcs) && CULT.MORTAL_INITIATION) {
+          W.npcs.forEach(n => {
+            if (n && !n.dead && !n.cult && n.mortalCult && !n.mortalCult.enlightenedByCrystal && (n.mortalCult.daoComprehension || 0) < 35) {
+              CULT.MORTAL_INITIATION.chooseMortalStudyPath(W, n, { forceRechoose: true });
+            }
+          });
+        }
+      }
+      return {
+        ok: true,
+        alreadyUnlocked: already,
+        pathId: pKey,
+        pathNameTh: pDef.nameTh,
+        unlockedCount: lib.unlockedPaths.length,
+        totalPaths: this.getAllPathIds().length
+      };
+    },
+
+    donatePathManual(W, manualOrPathId, byNpc, opts) {
+      opts = opts || {};
+      if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+      const raw = String(manualOrPathId || '').trim().toUpperCase();
+      const pKey = raw.replace(/^MANUAL_PATH_/, '');
+      if (!CULT || !CULT.PATHS || !CULT.PATHS[pKey]) {
+        return { ok: false, reason: 'invalid-path', pathId: pKey };
+      }
+      const itemId = 'MANUAL_PATH_' + pKey;
+      if (!opts.free && ECO) {
+        if (ECO.count(W, itemId) > 0) {
+          ECO.take(W, itemId, 1);
+        } else if (byNpc && byNpc.inv && byNpc.inv.mats && byNpc.inv.mats[itemId] > 0) {
+          byNpc.inv.mats[itemId]--;
+          if (byNpc.inv.mats[itemId] <= 0) delete byNpc.inv.mats[itemId];
+        } else {
+          return { ok: false, reason: 'missing-manual-item', itemId };
+        }
+      }
+      if (byNpc) byNpc.merit = (byNpc.merit || 0) + 45;
+      return this.unlockPath(W, pKey, { source: 'manual_donation', byId: byNpc ? byNpc.id : null, quiet: opts.quiet });
+    },
+
+    bestowPathCrystal(W, npcOrId, crystalOrPathId, opts) {
+      opts = opts || {};
+      if (!W || !W.sect || !CULT || !CULT.MORTAL_INITIATION) return { ok: false, reason: 'no-world' };
+      const npc = typeof npcOrId === 'string' ? (W.byId && W.byId[npcOrId]) : npcOrId;
+      if (!npc || npc.dead) return { ok: false, reason: 'invalid-npc' };
+      const pKey = String(crystalOrPathId || '').replace(/^CRYSTAL_PATH_/, '').trim().toUpperCase();
+      const res = CULT.MORTAL_INITIATION.bestowPathCrystal(W, npc, pKey, opts);
+      if (res && res.ok) {
+        const lib = this.ensure(W);
+        lib.crystalBestowals.unshift({
+          day: W.day || 1,
+          npcId: npc.id,
+          npcNameTh: HC.fullName(npc),
+          pathId: pKey,
+          pathNameTh: CULT.PATHS[pKey] ? CULT.PATHS[pKey].nameTh : pKey
+        });
+        if (lib.crystalBestowals.length > 40) lib.crystalBestowals.length = 40;
+      }
+      return res;
+    },
+
+    // Patch v2.2.0: Grand Dao Manual Lifecycle Pipeline (Vault -> Library Registration OR Export Surplus Trade)
+    processVaultManuals(W, opts) {
+      opts = opts || {};
+      if (!W || !W.sect || !W.sect.stock) return { registered: [], surplus: [] };
+      const lib = this.ensure(W);
+      const registered = [];
+      const surplus = [];
+      const allPaths = this.getAllPathIds();
+
+      for (const pid of allPaths) {
+        const manId = 'MANUAL_PATH_' + pid;
+        const qty = (g.ECO && g.ECO.count) ? g.ECO.count(W, manId) : (W.sect.stock[manId] || 0);
+        if (qty <= 0) continue;
+
+        if (!this.isPathUnlocked(W, pid)) {
+          // Case A: Sect Library does NOT have this path yet -> withdraw 1 copy and register permanently!
+          if (g.ECO && g.ECO.take) g.ECO.take(W, manId, 1);
+          else W.sect.stock[manId] = Math.max(0, (W.sect.stock[manId] || 0) - 1);
+          this.unlockPath(W, pid, { source: 'VAULT_LIBRARIAN_REGISTER', quiet: opts.quiet });
+          registered.push(manId);
+        }
+        const remQty = (g.ECO && g.ECO.count) ? g.ECO.count(W, manId) : (W.sect.stock[manId] || 0);
+        if (remQty > 0 && this.isPathUnlocked(W, pid)) {
+          // Case B: Sect Library ALREADY has this path -> remaining copies in stock are tradable export surplus!
+          surplus.push({ itemId: manId, pathId: pid, count: remQty });
+        }
+      }
+      lib.exportSurplusManuals = surplus;
+      return { registered, surplus };
+    },
+
+    sellSurplusManuals(W, opts) {
+      opts = opts || {};
+      if (!W || !W.sect || !W.sect.stock) return { soldCount: 0, revenueStones: 0, soldItems: [] };
+      const scan = this.processVaultManuals(W, { quiet: true });
+      const lib = this.ensure(W);
+      let soldCount = 0;
+      let revenueStones = 0;
+      const soldItems = [];
+
+      for (const sp of (scan.surplus || [])) {
+        const qty = sp.count || 0;
+        if (qty <= 0) continue;
+        if (g.ECO && g.ECO.take && g.ECO.take(W, sp.itemId, qty)) {
+          const unitPrice = 1020; // 85% of 1200 base price
+          const rev = unitPrice * qty;
+          // Strict closed-loop conservation: transfer from world.resourcePool.stones when available
+          if (W.world && W.world.resourcePool && typeof W.world.resourcePool.stones === 'number') {
+            W.world.resourcePool.stones = Math.max(0, W.world.resourcePool.stones - rev);
+          }
+          if (g.ECO && g.ECO.earn) g.ECO.earn(W, rev, 'ขายคัมภีร์มหาวิถีซ้ำ (' + sp.itemId + ' ×' + qty + ') ให้คาราวาน');
+          else W.sect.stones = (W.sect.stones || 0) + rev;
+          soldCount += qty;
+          revenueStones += rev;
+          soldItems.push({ itemId: sp.itemId, pathId: sp.pathId, qty, revenue: rev });
+        }
+      }
+      lib.surplusManualsSold = (lib.surplusManualsSold || 0) + soldCount;
+      lib.surplusRevenueStones = (lib.surplusRevenueStones || 0) + revenueStones;
+      lib.exportSurplusManuals = [];
+      return { soldCount, revenueStones, soldItems };
+    },
+
+    getSummary(W) {
+      const lib = this.ensure(W);
+      const all = this.getAllPathIds();
+      const unlocked = lib ? lib.unlockedPaths.slice() : ['XIAN'];
+      const locked = all.filter(p => !unlocked.includes(p));
+      return {
+        starterPath: lib ? lib.starterPath : unlocked[0],
+        unlockedCount: unlocked.length,
+        totalPaths: all.length,
+        unlockedPaths: unlocked,
+        lockedPaths: locked,
+        donatedManuals: lib ? lib.donatedManuals.slice() : [],
+        crystalBestowals: lib ? lib.crystalBestowals.slice() : [],
+        surplusManualsSold: lib ? (lib.surplusManualsSold || 0) : 0,
+        surplusRevenueStones: lib ? (lib.surplusRevenueStones || 0) : 0
+      };
+    }
+  };
+
+  /* =========================================================================
+   * PATCH v2.1.0: B-17 — 17 NEW SECT ARCHETYPES COVERING ALL 27 GRAND DAO PATHS
+   * ========================================================================= */
+  (function registerGrandDaoSectArchetypes() {
+    const newArchSpecs = [
+      { id: 'array_sect', path: 'ARRAY_TALISMAN', nameTh: 'สำนักค่ายกลยันต์สวรรค์', titleTh: 'วิถีอักขระค่ายกลฟ้าดิน', wFamily: 'BRUSH', wSkill: 'BRUSH', w1: 'EQ_WPN_BRUSH_T1', w2: 'EQ_WPN_BRUSH_T2' },
+      { id: 'strategy_sect', path: 'STRATEGY_GOVERNANCE', nameTh: 'สำนักพิชัยยุทธ์บัญชาทัพ', titleTh: 'วิถีกลยุทธ์ครองใต้หล้า', wFamily: 'FAN', wSkill: 'FAN', w1: 'EQ_V200_WPN_FAN_T1', w2: 'EQ_V200_WPN_FAN_T2' },
+      { id: 'astro', path: 'ASTRO_DIVINATION', nameTh: 'สำนักโหราดาราพยากรณ์', titleTh: 'วิถีโหราดวงดาวและชะตาลิขิต', wFamily: 'ASTROLABE', wSkill: 'ASTROLABE', w1: 'EQ_V200_WPN_ASTROLABE_T1', w2: 'EQ_V200_WPN_ASTROLABE_T2' },
+      { id: 'buddha', path: 'BUDDHA_DHARMA', nameTh: 'อารามโพธิญาณวัชรธรรม', titleTh: 'วิถีพุทธะโพธิสัตว์และประคำทอง', wFamily: 'ROSARY', wSkill: 'ROSARY', w1: 'EQ_V200_WPN_ROSARY_T1', w2: 'EQ_V200_WPN_ROSARY_T2' },
+      { id: 'void_sect', path: 'VOID_SPACE', nameTh: 'สำนักมิติเร้นลับสุญญากาศ', titleTh: 'วิถีรอยแยกมิติและดาราจักร', wFamily: 'SWORD', wSkill: 'SWORD', w1: 'MP_SWORD_1', w2: 'MP_SWORD_2' },
+      { id: 'sonic', path: 'SONIC_HARMONY', nameTh: 'สำนักคีตสวรรค์สัททะปราณ', titleTh: 'วิถีพิณสวรรค์และคลื่นเสียงสั่นพ้อง', wFamily: 'ZITHER', wSkill: 'ZITHER', w1: 'EQ_WPN_ZITHER_T1', w2: 'EQ_WPN_ZITHER_T2' },
+      { id: 'venom', path: 'VENOM_GU', nameTh: 'หุบเขาเบญจพิษหมื่นกู่', titleTh: 'วิถีพิษกู่บรรพกาลและเข็มสกัดจุด', wFamily: 'NEEDLE', wSkill: 'NEEDLE', w1: 'EQ_V200_WPN_NEEDLE_T1', w2: 'EQ_V200_WPN_NEEDLE_T2' },
+      { id: 'shifter', path: 'PRIMORDIAL_SHIFTER', nameTh: 'เผ่าสายเลือดเทพอสูรบรรพกาล', titleTh: 'วิถีแปลงกายอสูรและกรงเล็บผ่าฟ้า', wFamily: 'CLAW', wSkill: 'CLAW', w1: 'EQ_V200_WPN_CLAW_T1', w2: 'EQ_V200_WPN_CLAW_T2' },
+      { id: 'weather', path: 'CELESTIAL_WEATHER', nameTh: 'ตำหนักเทวอากาศบัญชาเมฆา', titleTh: 'วิถีพัดโบกสายลมและอัสนีฟ้าดิน', wFamily: 'FAN', wSkill: 'FAN', w1: 'EQ_V200_WPN_FAN_T1', w2: 'EQ_V200_WPN_FAN_T2' },
+      { id: 'wandering', path: 'WANDERING_DAO', nameTh: 'สำนักพเนจรหมื่นลี้ไร้พรมแดน', titleTh: 'วิถีทัศนาจรสำรวจแดนลับ', wFamily: 'STAFF', wSkill: 'STAFF', w1: 'MP_STAFF_1', w2: 'MP_STAFF_2' },
+      { id: 'merchant', path: 'MERCANTILE_DAO', nameTh: 'สมาคมพาณิชย์ลูกคิดทองคำ', titleTh: 'วิถีพันธสัญญาการค้าและตราชั่งสวรรค์', wFamily: 'ABACUS', wSkill: 'ABACUS', w1: 'EQ_V200_WPN_ABACUS_T1', w2: 'EQ_V200_WPN_ABACUS_T2' },
+      { id: 'geomancy', path: 'DRAGON_VEIN_GEOMANCY', nameTh: 'สำนักธรณีชีพจรมังกรปฐพี', titleTh: 'วิถีฮวงจุ้ยขุนเขาและค่ายกลปฐพี', wFamily: 'ASTROLABE', wSkill: 'ASTROLABE', w1: 'EQ_V200_WPN_ASTROLABE_T1', w2: 'EQ_V200_WPN_ASTROLABE_T2' },
+      { id: 'gravity', path: 'GRAVITY_DAO', nameTh: 'สำนักเอกภาวะดาราถ่วง', titleTh: 'วิถีแรงโน้มถ่วงและมวลสารหนักหมื่นชั่ง', wFamily: 'BLADE', wSkill: 'BLADE', w1: 'MP_BLADE_1', w2: 'MP_BLADE_2' },
+      { id: 'chrono', path: 'CHRONO_EPOCH', nameTh: 'วิหารกาลเวลานิรันดร์', titleTh: 'วิถีทรายกาลเวลาและวัฏจักรยุคสมัย', wFamily: 'ASTROLABE', wSkill: 'ASTROLABE', w1: 'EQ_V200_WPN_ASTROLABE_T1', w2: 'EQ_V200_WPN_ASTROLABE_T2' },
+      { id: 'literati', path: 'INK_LITERATI', nameTh: 'สำนักปราชญ์น้ำหมึกราชโองการ', titleTh: 'วิถีพู่กันอักษรสวรรค์สะกดภพ', wFamily: 'BRUSH', wSkill: 'BRUSH', w1: 'EQ_WPN_BRUSH_T1', w2: 'EQ_WPN_BRUSH_T2' },
+      { id: 'marionette', path: 'SOUL_PUPPETRY', nameTh: 'สำนักด้ายวิญญาณเชิดหุ่น', titleTh: 'วิถีเชิดหุ่นวิญญาณและไหมชะตา', wFamily: 'NEEDLE', wSkill: 'NEEDLE', w1: 'EQ_V200_WPN_NEEDLE_T1', w2: 'EQ_V200_WPN_NEEDLE_T2' },
+      { id: 'chaos', path: 'PRIMORDIAL_CHAOS', nameTh: 'สำนักโกลาหลบรรพกาลหงเหมิง', titleTh: 'วิถีปราณโกลาหลกำเนิดจักรวาล', wFamily: 'CLAW', wSkill: 'CLAW', w1: 'EQ_V200_WPN_CLAW_T1', w2: 'EQ_V200_WPN_CLAW_T2' },
+      { id: 'samurai', path: 'SHADOW_SAMURAI', nameTh: 'สำนักดาบซามูไรไร้เงา', titleTh: 'วิถีอิไอไร้ปราณสะบั้นพริบตา', wFamily: 'BLADE', wSkill: 'BLADE', w1: 'MP_BLADE_1', w2: 'MP_BLADE_2' },
+      { id: 'nin_shadow', path: 'NINPO_SHADOW', nameTh: 'หมู่บ้านนินจาเร้นเงามายา', titleTh: 'วิถีร่างแยกเงาและอาวุธลับ', wFamily: 'NEEDLE', wSkill: 'NEEDLE', w1: 'EQ_V200_WPN_NEEDLE_T1', w2: 'EQ_V200_WPN_NEEDLE_T2' },
+      { id: 'nin_elem', path: 'NINPO_ELEMENTAL', nameTh: 'สำนักนินจาคาถายันต์ระเบิด', titleTh: 'วิถีประสานมุทราและสลับร่างท่อนไม้', wFamily: 'NEEDLE', wSkill: 'NEEDLE', w1: 'EQ_V200_WPN_NEEDLE_T1', w2: 'EQ_V200_WPN_NEEDLE_T2' },
+      { id: 'div_summon', path: 'DIVINE_SUMMONER', nameTh: 'มหาวิหารอัญเชิญทวยเทพเบื้องบน', titleTh: 'วิถีเปิดประตูสวรรค์ห้ามหาพิภพ', wFamily: 'ASTROLABE', wSkill: 'ASTROLABE', w1: 'EQ_V200_WPN_ASTROLABE_T1', w2: 'EQ_V200_WPN_ASTROLABE_T2' },
+      { id: 'div_possess', path: 'DIVINE_POSSESSION', nameTh: 'ตำหนักร่างทรงอวตารมหาเทพ', titleTh: 'วิถีเทวะสถิตร่างและระบำนาฏราช', wFamily: 'SPEAR', wSkill: 'SPEAR', w1: 'MP_SPEAR_1', w2: 'MP_SPEAR_2' },
+      { id: 'div_channel', path: 'DIVINE_CHANNELER', nameTh: 'สำนักศาสตรายืมกฎสวรรค์', titleTh: 'วิถีสายใยเทวะและอสุนีบาตพิพากษา', wFamily: 'SWORD', wSkill: 'SWORD', w1: 'MP_SWORD_1', w2: 'MP_SWORD_2' },
+      { id: 'heretic', path: 'VOID_HERETIC_PACT', nameTh: 'ลัทธิพันธสัญญานอกมิติ', titleTh: 'วิถีเสียงกระซิบอวกาศมืดและสังเวยสติ', wFamily: 'FOCUS', wSkill: 'FOCUS', w1: 'MP_FOCUS_1', w2: 'MP_FOCUS_2' },
+      { id: 'occult', path: 'OCCULT_MAGE', nameTh: 'สำนักจอมขมังเวทมหาอาคม', titleTh: 'วิถียันต์คงกระพันชาตรีและแรงครู', wFamily: 'ROSARY', wSkill: 'ROSARY', w1: 'EQ_V200_WPN_ROSARY_T1', w2: 'EQ_V200_WPN_ROSARY_T2' },
+      { id: 'devourer', path: 'DEVOURING_FLESH', nameTh: 'สำนักกระเพาะหลุมดำกลืนสรีระ', titleTh: 'วิถีกลืนแร่หลอมอวัยวะเร้นลับ', wFamily: 'CLAW', wSkill: 'CLAW', w1: 'EQ_V200_WPN_CLAW_T1', w2: 'EQ_V200_WPN_CLAW_T2' },
+      { id: 'nether_grave', path: 'NETHER_GRAVE', nameTh: 'สุสานบรรพชนมารยมโลก', titleTh: 'วิถีเกราะกระดูกและหุ่นซากศพวัชระ', wFamily: 'STAFF', wSkill: 'STAFF', w1: 'MP_STAFF_1', w2: 'MP_STAFF_2' },
+      { id: 'ancestral', path: 'ANCESTRAL_RITUAL', nameTh: 'ศาลบรรพชนไขกระดูกมรดก', titleTh: 'วิถีพิธีบวงสรวงและสืบทอดสายเลือด', wFamily: 'STAFF', wSkill: 'STAFF', w1: 'MP_STAFF_1', w2: 'MP_STAFF_2' },
+      { id: 'tide', path: 'TIDE_VOYAGER', nameTh: 'กองเรือนาวิกสมุทรเหมันต์', titleTh: 'วิถีเกลียวคลื่นและทวนจ้าวสมุทร', wFamily: 'SPEAR', wSkill: 'SPEAR', w1: 'MP_SPEAR_1', w2: 'MP_SPEAR_2' },
+      { id: 'archivist', path: 'LORE_ARCHIVIST', nameTh: 'หออาลักษณ์สารานุกรมสวรรค์', titleTh: 'วิถีถอดรหัสอักขระและคัดลอกวิชา', wFamily: 'BRUSH', wSkill: 'BRUSH', w1: 'EQ_WPN_BRUSH_T1', w2: 'EQ_WPN_BRUSH_T2' },
+      { id: 'gambler', path: 'FORTUNE_GAMBLER', nameTh: 'หอเดิมพันชะตาลูกเต๋าหยก', titleTh: 'วิถีเสี่ยงทายพลิกผันวาสนา', wFamily: 'FAN', wSkill: 'FAN', w1: 'EQ_V200_WPN_FAN_T1', w2: 'EQ_V200_WPN_FAN_T2' },
+      { id: 'husbandry', path: 'SPIRIT_HUSBANDRY', nameTh: 'หุบเขาเกษตรวิญญาณเสิ่นหนง', titleTh: 'วิถีพฤกษาโอสถและรวงข้าวสวรรค์', wFamily: 'STAFF', wSkill: 'STAFF', w1: 'MP_STAFF_1', w2: 'MP_STAFF_2' },
+      { id: 'arena', path: 'ARENA_GLORY', nameTh: 'สังเวียนเกียรติยุทธ์เจ้ายุทธจักร', titleTh: 'วิถีแชมเปี้ยนลานประลองไร้พ่าย', wFamily: 'SPEAR', wSkill: 'SPEAR', w1: 'MP_SPEAR_1', w2: 'MP_SPEAR_2' }
+    ];
+
+    const allTechs = (JD && JD.TECH && Array.isArray(JD.TECH.techniques)) ? JD.TECH.techniques : [];
+    for (const sp of newArchSpecs) {
+      const pDef = (CULT && CULT.PATHS && CULT.PATHS[sp.path]) || (JD && JD.CULT && JD.CULT.paths && JD.CULT.paths[sp.path]);
+      if (!pDef) continue;
+      const subIds = (pDef.subPaths || []).map(s => s.id);
+      const pathTechs = allTechs
+        .filter(t => t && t.path === sp.path && !t.innateOnly && !/PASSIVE_GRAND_DAO|INNATE/.test(t.cat || ''))
+        .slice(0, 12)
+        .map(t => t.id);
+      const crystals = {};
+      if (subIds[0]) crystals['S:' + subIds[0]] = 2;
+      if (subIds[1]) crystals['S:' + subIds[1]] = 1;
+      if (subIds[2]) crystals['S:' + subIds[2]] = 1;
+
+      SECT.ARCHETYPES[sp.id] = {
+        id: sp.id,
+        nameTh: sp.nameTh,
+        titleTh: sp.titleTh,
+        descTh: pDef.coreMechanicTh || ('สำนักสายตรงแห่ง' + pDef.nameTh),
+        path: sp.path,
+        subs: subIds,
+        techs: pathTechs.concat(['PASS_V212_ADAPTIVE_ARSENAL_T2']),
+        crystals
+      };
+      SECT.ARCHETYPE_WEAPON[sp.id] = {
+        family: sp.wFamily,
+        skill: sp.wSkill,
+        starterWeapon: sp.w1,
+        masterWeapon: sp.w2
+      };
+    }
+  })();
+
+  /* =========================================================================
+   * PATCH v2.1.0: PILLAR A — INTER-SECT GRAND DAO DEBATE & DISCOURSE
+   * (งานชุมนุมวิสัชนาธรรม 27 มหาวิถีและประชันความเข้าใจเต๋าข้ามสำนัก)
+   * ========================================================================= */
+  SECT.GRAND_DAO_DEBATE = {
+    COST_STONES: 120,
+    COOLDOWN_DAYS: 15,
+
+    ensure(W) {
+      if (!W || !W.sect) return null;
+      if (!W.sect.grandDaoDebates || typeof W.sect.grandDaoDebates !== 'object') {
+        W.sect.grandDaoDebates = {
+          seq: 1,
+          lastDebateDay: 0,
+          wins: 0,
+          losses: 0,
+          unlockedManualsFromDebates: [],
+          history: []
+        };
+      }
+      return W.sect.grandDaoDebates;
+    },
+
+    holdDebate(W, opts) {
+      opts = opts || {};
+      if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+      const st = this.ensure(W);
+      const dayNow = W.day || 1;
+      if (!opts.force && st.lastDebateDay > 0 && (dayNow - st.lastDebateDay) < this.COOLDOWN_DAYS) {
+        return { ok: false, reason: 'debate-on-cooldown', nextAvailableDay: st.lastDebateDay + this.COOLDOWN_DAYS };
+      }
+
+      const cost = opts.free ? 0 : this.COST_STONES;
+      if (cost > 0) {
+        if ((W.sect.stones || 0) < cost) return { ok: false, reason: 'insufficient-stones', required: cost };
+        if (g.ECO && g.ECO.pay) g.ECO.pay(W, cost, 'จัดการชุมนุมวิสัชนาธรรม 27 มหาวิถี');
+        else W.sect.stones -= cost;
+        if (W.world && W.world.resourcePool) {
+          W.world.resourcePool.stones = (W.world.resourcePool.stones || 0) + cost;
+        }
+      }
+
+      const alive = (W.npcs || []).filter(n => n && !n.dead && !n.exiled);
+      if (!alive.length) return { ok: false, reason: 'no-disciples' };
+
+      // Pick best debater (or specified speakerId)
+      const speaker = (opts.speakerId && W.byId && W.byId[opts.speakerId]) || alive.slice().sort((a, b) => {
+        const score = u => {
+          const comp = HC.eff(u, 'intellect.comprehension') + ((u.h && u.h.skills && u.h.skills.SCRIPTURE) || 0);
+          const stg = (u.cult && u.cult.stage) ? u.cult.stage * 22 : ((u.mortalCult && u.mortalCult.daoComprehension) || 0) * 0.4;
+          const traits = (u.cult && CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.getActiveTraits)
+            ? CULT.GRAND_DAO_MECHANICS.getActiveTraits(u).allTraits.length * 15
+            : 0;
+          return comp + stg + traits;
+        };
+        return score(b) - score(a);
+      })[0];
+
+      const speakerScore = Math.round(
+        HC.eff(speaker, 'intellect.comprehension') * 0.8 +
+        ((speaker.h && speaker.h.skills && speaker.h.skills.SCRIPTURE) || 15) * 0.9 +
+        ((speaker.cult && speaker.cult.stage) || 1) * 24 +
+        ((speaker.cult && CULT.GRAND_DAO_MECHANICS) ? CULT.GRAND_DAO_MECHANICS.getActiveTraits(speaker).allTraits.length * 14 : 0)
+      );
+
+      const rivalSect = (W.world && Array.isArray(W.world.sects) && W.world.sects.length)
+        ? W.world.sects[(dayNow + st.seq) % W.world.sects.length]
+        : { id: 'RIVAL_DAO_ACADEMY', name: 'สำนักปราชญ์เทียนจี' };
+      const allPaths = Object.keys((CULT && CULT.PATHS) || {});
+      const lockedPaths = SECT.PATH_LIBRARY ? SECT.PATH_LIBRARY.getSummary(W).lockedPaths : [];
+      const debatePath = opts.targetPath || (lockedPaths.length ? lockedPaths[(dayNow + st.seq) % lockedPaths.length] : allPaths[st.seq % allPaths.length]) || 'XIAN';
+      const rivalDifficulty = opts.difficulty || 115;
+      const victory = opts.forceWin || speakerScore >= rivalDifficulty;
+
+      st.lastDebateDay = dayNow;
+      st.seq++;
+
+      let rewardItemId = null;
+      if (victory) {
+        st.wins++;
+        W.sect.fame = (W.sect.fame || 0) + 12;
+        speaker.merit = (speaker.merit || 0) + 25;
+        if (speaker.h && speaker.h.skills) {
+          speaker.h.skills.SCRIPTURE = Math.min(100, (speaker.h.skills.SCRIPTURE || 0) + 2.5);
+        }
+        // Boost mortal comprehension across the sect
+        for (const m of alive) {
+          if (!m.cult && CULT.MORTAL_INITIATION) {
+            const mc = CULT.MORTAL_INITIATION.ensureMortalState(m, W);
+            mc.daoComprehension = clamp((mc.daoComprehension || 0) + 8, 0, 100);
+          }
+        }
+        // Grant a Path Crystal or Manual if debating a locked path
+        if (lockedPaths.includes(debatePath) && g.ECO) {
+          if (opts.grantManual || st.wins % 2 === 1) {
+            rewardItemId = 'MANUAL_PATH_' + debatePath;
+            g.ECO.add(W, rewardItemId, 1);
+            st.unlockedManualsFromDebates.push(rewardItemId);
+          } else {
+            rewardItemId = 'CRYSTAL_PATH_' + debatePath;
+            g.ECO.add(W, rewardItemId, 1);
+          }
+        }
+      } else {
+        st.losses++;
+        if (speaker.h && speaker.h.skills) {
+          speaker.h.skills.SCRIPTURE = Math.min(100, (speaker.h.skills.SCRIPTURE || 0) + 1.0);
+        }
+      }
+
+      const pNameTh = (CULT.PATHS[debatePath] && CULT.PATHS[debatePath].nameTh) || debatePath;
+      const rec = {
+        id: 'DEBATE_' + dayNow + '_' + st.seq,
+        day: dayNow,
+        speakerId: speaker.id,
+        speakerNameTh: HC.fullName(speaker),
+        rivalSectNameTh: rivalSect.name || rivalSect.nameTh || 'สำนักพันธมิตร',
+        debatePath,
+        debatePathNameTh: pNameTh,
+        speakerScore,
+        rivalDifficulty,
+        victory,
+        rewardItemId
+      };
+      st.history.unshift(rec);
+      if (st.history.length > 30) st.history.length = 30;
+
+      if (typeof W.log === 'function' && !opts.quiet) {
+        W.log('sect', '📖 งานวิสัชนาธรรมมหาวิถี「' + pNameTh + '」: ' + rec.speakerNameTh + (victory ? ' ชนะการประชันธรรมะ' : ' แลกเปลี่ยนธรรมาภิสมัย') + (rewardItemId ? ' ได้รับ ' + rewardItemId : ''), [speaker.id]);
+      }
+      return { ok: true, victory, record: rec, rewardItemId };
+    },
+
+    monthlyTick(W) {
+      if (!W || !W.sect) return null;
+      const st = this.ensure(W);
+      if ((W.sect.stones || 0) >= 850 && ((W.day || 1) - (st.lastDebateDay || 0)) >= 30) {
+        return this.holdDebate(W, { quiet: true });
+      }
+      return null;
+    },
+
+    getSummary(W) {
+      const st = this.ensure(W);
+      return {
+        wins: st ? st.wins : 0,
+        losses: st ? st.losses : 0,
+        lastDebateDay: st ? st.lastDebateDay : 0,
+        historyCount: st && Array.isArray(st.history) ? st.history.length : 0
+      };
+    }
+  };
+
+  /* =========================================================================
+   * PATCH v2.2.0: SECT COSMIC SHRINE & HIGHER-REALM CONSECRATION
+   * (เทวสถานเชื่อมมิติ 5 มหาพิภพเบื้องบน ถวายเครื่องสักการะจากคลังจริง)
+   * ========================================================================= */
+  SECT.COSMIC_SHRINE = {
+    OFFERING_COST_STONES: 150,
+
+    ensure(W) {
+      if (!W || !W.sect) return null;
+      if (!W.sect.cosmicShrine || typeof W.sect.cosmicShrine !== 'object') {
+        W.sect.cosmicShrine = {
+          activeRealmId: 'HEAVENLY_COURT_DAO',
+          consecratedLevel: 1,
+          faithPoints: 0,
+          totalOfferings: 0,
+          history: []
+        };
+      }
+      return W.sect.cosmicShrine;
+    },
+
+    consecrateOffering(W, realmId, opts) {
+      opts = opts || {};
+      if (!W || !W.sect) return { ok: false, reason: 'no-world' };
+      const sh = this.ensure(W);
+      const pantheon = CULT && CULT.HIGHER_REALMS_PANTHEON;
+      const rKey = String(realmId || 'HEAVENLY_COURT_DAO').toUpperCase();
+      const rDef = pantheon && pantheon.REALMS && pantheon.REALMS[rKey];
+      if (!rDef) return { ok: false, reason: 'invalid-higher-realm', realmId: rKey };
+
+      const cost = opts.free ? 0 : this.OFFERING_COST_STONES;
+      if (cost > 0) {
+        if ((W.sect.stones || 0) < cost) return { ok: false, reason: 'insufficient-stones', required: cost };
+        if (g.ECO && g.ECO.pay) g.ECO.pay(W, cost, 'บวงสรวงเทวสถานเชื่อมมิติสู่「' + rDef.nameTh + '」');
+        else W.sect.stones -= cost;
+        if (W.world && W.world.resourcePool) W.world.resourcePool.stones = (W.world.resourcePool.stones || 0) + cost;
+      }
+
+      sh.activeRealmId = rKey;
+      sh.faithPoints = (sh.faithPoints || 0) + 35;
+      sh.totalOfferings = (sh.totalOfferings || 0) + 1;
+      sh.consecratedLevel = Math.min(9, 1 + Math.floor(sh.totalOfferings / 3));
+
+      // Bestow deity pacts on divine-path disciples who lack one
+      const deities = rDef.deities || ['PANGU'];
+      let pactsFormed = 0;
+      for (const n of (W.npcs || [])) {
+        if (!n || n.dead || !n.cult) continue;
+        if (['DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'GOD', 'ANCESTRAL_RITUAL'].includes(n.cult.path)) {
+          const dPick = deities[pactsFormed % deities.length];
+          pantheon.formDeityPact(W, n, dPick, { free: true });
+          pactsFormed++;
+        }
+      }
+
+      const rec = {
+        day: W.day || 1,
+        realmId: rKey,
+        realmNameTh: rDef.nameTh,
+        faithPoints: sh.faithPoints,
+        pactsFormed
+      };
+      sh.history.unshift(rec);
+      if (sh.history.length > 25) sh.history.length = 25;
+      return { ok: true, shrine: sh, record: rec };
     }
   };
 

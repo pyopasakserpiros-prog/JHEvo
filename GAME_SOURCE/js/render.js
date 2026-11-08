@@ -19,7 +19,7 @@
     return w;
   }
 
-  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78' };
+  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261' };
   const ROBE_MORTAL = '#cdb292';
   const hash2 = (x, y) => {
     let h = Math.imul(x, 73856093) ^ Math.imul(y, 19349663);
@@ -3477,6 +3477,24 @@
           ctx.strokeStyle = '#bc6c25';
           ctx.lineWidth = 1.6;
           ctx.beginPath(); ctx.arc(hx + 2, hy - 2.5, 5.5, -1.1, 1.1); ctx.stroke();
+        } else if (wType === 'ROSARY') {
+          ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 1.4;
+          ctx.beginPath(); ctx.arc(hx + 3, hy - 3, 3.2, 0, Math.PI * 2); ctx.stroke();
+        } else if (wType === 'CLAW') {
+          ctx.strokeStyle = '#ef476f'; ctx.lineWidth = 1.4;
+          ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + 5, hy - 5); ctx.moveTo(hx + 1, hy + 1); ctx.lineTo(hx + 6, hy - 3); ctx.stroke();
+        } else if (wType === 'NEEDLE') {
+          ctx.strokeStyle = '#06d6a0'; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + 6.5, hy - 6.5); ctx.stroke();
+        } else if (wType === 'FAN') {
+          ctx.fillStyle = '#4cc9f0';
+          ctx.beginPath(); ctx.moveTo(hx, hy); ctx.arc(hx, hy, 5.2, -1.4, -0.2); ctx.closePath(); ctx.fill();
+        } else if (wType === 'ASTROLABE') {
+          ctx.strokeStyle = '#74c0fc'; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.arc(hx + 3.5, hy - 3.5, 3.8, 0, Math.PI * 2); ctx.stroke();
+        } else if (wType === 'ABACUS') {
+          ctx.fillStyle = '#ffb703';
+          ctx.fillRect(hx + 1, hy - 5, 5.5, 4.0);
         } else if (wType === 'FOCUS') {
           // Spirit Focus Orb / Fan
           ctx.fillStyle = '#48cae4';
@@ -5169,6 +5187,99 @@
           ctx.restore();
           break;
         }
+
+        case 'sig_iai_crimson_moon_slash': {
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 3.2;
+          ctx.beginPath();
+          ctx.arc(0, -10, r * 1.05, -Math.PI * 0.85, Math.PI * 0.25);
+          ctx.stroke();
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(-r * 1.1, -6);
+          ctx.lineTo(r * 1.1, -14);
+          ctx.stroke();
+          break;
+        }
+        case 'sig_shinobi_phantom_clone_ambush': {
+          for (let i = 0; i < 4; i++) {
+            const a = (i * Math.PI) / 2 + rot;
+            const cx2 = Math.cos(a) * r * 0.78;
+            const cy2 = -8 + Math.sin(a) * r * 0.42;
+            ctx.fillStyle = spec.primary;
+            ctx.beginPath();
+            ctx.arc(cx2, cy2, 4.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = spec.secondary;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(cx2, cy2);
+            ctx.lineTo(0, -10);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'sig_shinobi_mudra_firestorm': {
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 2.4;
+          for (let i = 0; i < 6; i++) {
+            const a = (i * Math.PI) / 3 + rot * 1.2;
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * r * 0.65, -10 + Math.sin(a) * r * 0.35, 4.5, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'sig_pantheon_deity_descent': {
+          ctx.fillStyle = spec.primary;
+          ctx.beginPath();
+          ctx.arc(0, -18, r * 0.55, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(0, -32);
+          ctx.lineTo(0, 6);
+          ctx.stroke();
+          break;
+        }
+        case 'sig_eldritch_void_rift': {
+          ctx.fillStyle = spec.primary;
+          ctx.beginPath();
+          ctx.ellipse(0, -12, r * 0.75, r * 0.35, rot * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = spec.secondary;
+          ctx.beginPath();
+          ctx.arc(0, -12, r * 0.22, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+        case 'sig_khmer_sacred_yantra_seal': {
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 2.0;
+          ctx.strokeRect(-r * 0.55, -18, r * 1.1, r * 0.75);
+          ctx.fillStyle = spec.secondary;
+          for (let i = -1; i <= 1; i++) {
+            ctx.beginPath();
+            ctx.arc(i * 6, -18, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_nether_grave_soul_eruption': {
+          ctx.fillStyle = spec.primary;
+          ctx.fillRect(-5, -18, 10, 16);
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 2.0;
+          for (let i = 0; i < 5; i++) {
+            const a = (i * Math.PI * 2) / 5 + rot;
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * r * 0.65, -10 + Math.sin(a) * r * 0.35, 3.0, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          break;
+        }
         case 'sig_immortal_crane_feather_storm':
         default: {
           // 15. พายุขนนกกระเรียนเซียน: Whirling Tempest of White-Jade & Gold Feather Blades
@@ -6040,6 +6151,14 @@
         c.beginPath(); c.arc(32, 28, 5.5, -1.2, 1.8); c.stroke();
       } else if (ap.weaponType === 'BOW') {
         c.beginPath(); c.arc(31, 24, 9, -1.1, 1.1); c.stroke();
+      } else if (ap.weaponType === 'ROSARY') {
+        c.beginPath(); c.arc(33, 25, 4.5, 0, Math.PI * 2); c.stroke();
+      } else if (ap.weaponType === 'FAN') {
+        c.beginPath(); c.moveTo(31, 30); c.arc(31, 30, 7.5, -1.5, -0.3); c.closePath(); c.stroke();
+      } else if (ap.weaponType === 'ASTROLABE') {
+        c.beginPath(); c.arc(33, 24, 5.2, 0, Math.PI * 2); c.stroke();
+      } else if (ap.weaponType === 'ABACUS') {
+        c.strokeRect(29, 20, 7, 11);
       } else {
         c.beginPath(); c.moveTo(30, 34); c.lineTo(36, 12); c.stroke();
       }
@@ -6381,7 +6500,17 @@
       ctx.arc(0, -11, 3.5, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      // Weapon Blade / Spear / Zither / Brush Silhouette
+      // Weapon Blade / Spear / Zither / Brush / Rosary / Claw / Needle / Fan / Astrolabe / Abacus Silhouette
+      if (wType === 'ROSARY' || wType === 'ASTROLABE') {
+        ctx.strokeStyle = gSpec.color; ctx.lineWidth = 2.2;
+        ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.stroke();
+      } else if (wType === 'FAN') {
+        ctx.fillStyle = gSpec.color;
+        ctx.beginPath(); ctx.moveTo(0, 10); ctx.arc(0, 10, 18, -Math.PI * 0.85, -Math.PI * 0.15); ctx.closePath(); ctx.fill();
+      } else if (wType === 'ABACUS') {
+        ctx.strokeStyle = gSpec.color; ctx.lineWidth = 2.0;
+        ctx.strokeRect(-12, -9, 24, 18);
+      }
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2.8;
       ctx.beginPath();

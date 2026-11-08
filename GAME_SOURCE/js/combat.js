@@ -670,6 +670,34 @@
           }
         }
       }
+      if (!actor.foe && actor.cult && CULT && CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.getActiveTraits) {
+        const traitsObj = CULT.GRAND_DAO_MECHANICS.getActiveTraits(actor);
+        const traitList = (traitsObj && traitsObj.allTraits) || [];
+        actor._traitCds = actor._traitCds || {};
+        for (let ti = 0; ti < traitList.length; ti++) {
+          const tr = traitList[ti];
+          if (!tr) continue;
+          const trTrig = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(tr.trigger) : tr.trigger;
+          // Match exact trigger or allow custom path triggers to fire on roundStart / hit
+          const trigMatch = trTrig === normTrigger ||
+            (normTrigger === 'onRoundStart' && ['onWeatherSync', 'onAuraPulse', 'onStarAlign', 'onMeritLotus', 'onLeylinePulse', 'onWayfarerStep', 'onTemporalRewind', 'onDeitySummon', 'onAvatarDescent', 'onVowInvoke', 'onGraveResonance'].includes(trTrig)) ||
+            (normTrigger === 'onHit' && ['onContractBreach', 'onGravityShift', 'onBeastShift', 'onVoidBlink', 'onGuIncubate', 'onLiteratiEdict', 'onMarionetteTether', 'onChaosTransmute', 'onIaiDraw', 'onShadowCloneHit', 'onMudraComplete', 'onCosmicBorrow', 'onSanitySacrifice', 'onOrganDevour'].includes(trTrig));
+          if (!trigMatch) continue;
+          if ((actor._traitCds[tr.id] || 0) > W.t) continue;
+          actor._traitCds[tr.id] = W.t + 8;
+          if (tr.grantBuff && ST.applyNamedBuff) {
+            ST.applyNamedBuff(actor, tr.grantBuff, 18, W.t, { casterId: actor.id });
+          }
+          if (tr.applyStatus && target && C.alive(target)) {
+            const isDot = ['guLeech', 'voidRiftTear', 'entropyDecay', 'burn', 'bleed', 'poison'].includes(tr.applyStatus);
+            ST.addStatus(target, tr.applyStatus, 12, isDot ? { per: 0.016, src: actor.id } : null, W.t);
+          }
+          if (tr.action && C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.executeAction && !(actor.act && actor.act.ctx && actor.act.ctx.channeling) && (!f || f.kind !== "spar" || !target || C.hp(target) > C.hpMax(target) * 0.55)) {
+            C.COMPOSABLE_ENGINE.executeAction(W, f, actor, target, tr.action, tr, { triggerKind: trTrig, dmgDealt });
+          }
+          actor.lastRealmTraitProc = { t: W.t, traitId: tr.id, nameTh: tr.nameTh, trigger: trTrig, action: tr.action };
+        }
+      }
       if (C.runItemEffectProcs) {
         C.runItemEffectProcs(W, f, actor, target, normTrigger, dmgDealt);
       }
@@ -921,6 +949,61 @@
             fSt.totalSoulsDevoured = (fSt.totalSoulsDevoured || 0) + 1;
           }
           a.lastForbiddenArtProc = { t: W.t, kind: fb.archetypeId + '_STRIKE', textTh: fb.spec.icon + ' สำแดง' + fb.spec.shortTh + '!' };
+        }
+      }
+      // Patch v2.2.0: Shadow Clone 1-HP Decoy Interception, Substitution Log Swap, Samurai Parry Counter & Bone Armor
+      if (d && dmg > 0 && note !== 'สะท้อนคมดาบอิไอ') {
+        const ST = STs();
+        // 1) SHADOW_CLONE (ร่างแยกเงามายา 1 HP รับดาเมจแทนตัวจริงก่อนเสมอ)
+        if ((d._shadowClones && d._shadowClones > 0) || (ST.hasBuff && ST.hasBuff(d, 'shadowClone', W.t)) || (ST.has && ST.has(d, 'shadowClone'))) {
+          if (d._shadowClones && d._shadowClones > 0) d._shadowClones--;
+          if (!d._shadowClones) {
+            if (ST.clearBuff) ST.clearBuff(d, 'shadowClone');
+            if (ST.clearStatus) ST.clearStatus(d, x => x.k === 'shadowClone');
+          }
+          d.lastShadowCloneIntercept = { t: W.t, negatedDmg: dmg };
+          d.fx = { t: W.t, text: '👥 ร่างแยกเงารับดาเมจแทน!' };
+          return 0;
+        }
+        // 2) BONE_ARMOR (เกราะกระดูกวิญญาณ ดูดซับดาเมจกายภาพ 25% Max HP)
+        if ((ST.hasBuff && ST.hasBuff(d, 'boneArmor', W.t)) || (ST.has && ST.has(d, 'boneArmor'))) {
+          if (d._boneArmorHp == null) d._boneArmorHp = Math.max(15, Math.round(C.hpMax(d) * 0.25));
+          if (d._boneArmorHp > 0) {
+            const absorbed = Math.min(dmg, d._boneArmorHp);
+            d._boneArmorHp -= absorbed;
+            dmg = Math.max(1, dmg - absorbed);
+            if (d._boneArmorHp <= 0) {
+              if (ST.clearBuff) ST.clearBuff(d, 'boneArmor');
+              if (ST.clearStatus) ST.clearStatus(d, x => x.k === 'boneArmor');
+            }
+          }
+        }
+        // 3) PARRY_COUNTER (ปัดป้องสะท้อนคม ซามูไรไร้เงาสวนกลับด้วยคริติคอล)
+        if (((ST.hasBuff && ST.hasBuff(d, 'parryCounter', W.t)) || (ST.has && ST.has(d, 'parryCounter'))) && a && C.alive(a)) {
+          dmg = Math.max(1, Math.round(dmg * 0.50));
+          const sd = ST.get(d);
+          const counterDmg = Math.max(12, Math.round((sd.atk || 50) * 0.48));
+          if (ST.clearBuff) ST.clearBuff(d, 'parryCounter');
+          if (ST.clearStatus) ST.clearStatus(d, x => x.k === 'parryCounter');
+          d.lastParryCounter = { t: W.t, counterDmg };
+          d.fx = { t: W.t, text: '⚔️ อิไอปัดป้องสะท้อนคม!' };
+          C.applyDamage(W, f, d, a, counterDmg, 'สะท้อนคมดาบอิไอ');
+        }
+        // 4) SUBSTITUTION (สลับร่างท่อนไม้ เมื่อได้รับความเสียหายถึงตาย)
+        if ((C.hp(d) - dmg) <= 0) {
+          const fightIdSub = (f && f.id) || 1;
+          const hasSubBuff = (ST.hasBuff && ST.hasBuff(d, 'substitutionReady', W.t)) || (ST.has && ST.has(d, 'substitutionReady')) || (d.cult && d.cult.sub === 'SUBSTITUTION_ESCAPE');
+          if (hasSubBuff && d._substitutionUsedFightId !== fightIdSub) {
+            d._substitutionUsedFightId = fightIdSub;
+            dmg = 0;
+            const subHeal = Math.max(10, Math.round(C.hpMax(d) * 0.25));
+            C.setHp(d, Math.min(C.hpMax(d), Math.max(1, C.hp(d)) + subHeal));
+            if (ST.clearBuff) ST.clearBuff(d, 'substitutionReady');
+            if (ST.clearStatus) ST.clearStatus(d, x => x.k === 'substitutionReady');
+            d.lastSubstitutionSave = { t: W.t, healedHp: subHeal };
+            d.fx = { t: W.t, text: '🪵 สลับร่างท่อนไม้หนีตาย!' };
+            return 0;
+          }
         }
       }
       // 4. Defender Cataclysmic Taboo Desperation Nova (when BLOOD_TABOO_UNLEASHED and HP drops below 30%)
@@ -1351,6 +1434,18 @@
         const sk = a.h && a.h.skills ? a.h.skills : {};
         const craftMastery = Math.max(sk.ALCHEMY || 0, sk.FORGING || 0, sk.ARRAY || 0, sk.TALISMAN || 0) + Math.min(sk.ALCHEMY || 0, sk.FORGING || 0) * 0.5;
         frac *= 1 + clamp(0.06 + craftMastery / 900, 0.06, 0.22);
+      } else if (a.cult.path === 'SHADOW_SAMURAI') {
+        frac *= 1.14;
+      } else if (a.cult.path === 'NINPO_SHADOW' || a.cult.path === 'NINPO_ELEMENTAL') {
+        frac *= 1.12;
+      } else if (a.cult.path === 'DIVINE_SUMMONER' || a.cult.path === 'DIVINE_POSSESSION' || a.cult.path === 'DIVINE_CHANNELER') {
+        frac *= 1.12;
+      } else if (['VOID_HERETIC_PACT', 'OCCULT_MAGE', 'DEVOURING_FLESH', 'NETHER_GRAVE'].includes(a.cult.path)) {
+        frac *= 1.11;
+      } else if (['ASTRO_DIVINATION', 'DRAGON_VEIN_GEOMANCY', 'LORE_ARCHIVIST', 'MERCANTILE_DAO'].includes(a.cult.path)) {
+        frac *= 1 + C.pathFormationMastery(a) * 0.08;
+      } else if (CULT && CULT.PATHS && CULT.PATHS[a.cult.path]) {
+        frac *= 1.09;
       }
     }
     if (!d.foe && d.cult) {
@@ -1363,6 +1458,12 @@
         frac *= 1 - C.pathFormationMastery(d) * 0.06;
       } else if (d.cult.path === 'CRAFT_CREATION') {
         frac *= 0.90; // Tempered Crucible & Artifact Ward
+      } else if (['GRAVITY_DAO', 'DEVOURING_FLESH', 'PRIMORDIAL_SHIFTER', 'ARENA_GLORY', 'OCCULT_MAGE', 'BUDDHA_DHARMA', 'DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'ANCESTRAL_RITUAL'].includes(d.cult.path)) {
+        frac *= 0.91;
+      } else if (['ASTRO_DIVINATION', 'DRAGON_VEIN_GEOMANCY', 'LORE_ARCHIVIST', 'MERCANTILE_DAO'].includes(d.cult.path)) {
+        frac *= 1 - C.pathFormationMastery(d) * 0.06;
+      } else if (CULT && CULT.PATHS && CULT.PATHS[d.cult.path]) {
+        frac *= 0.93;
       } else if (d.cult.path === 'MECH_PUPPET' && CULT.ensureMechState) {
         const ms = CULT.ensureMechState(d);
         if (ms.integrity > 10) {
@@ -1579,7 +1680,7 @@
       }
       runPassiveProcs(W, f, a, d, 'onHit', dmg);
       if (crit) runPassiveProcs(W, f, a, d, 'onCrit', dmg);
-      runPassiveProcs(W, f, d, a, 'onStruck', dmg);
+      if (!o.noReflect && !o.noCounter) runPassiveProcs(W, f, d, a, 'onStruck', dmg);
       if (killed) {
         runPassiveProcs(W, f, a, d, 'onKill', dmg);
         if (C.COMPOSABLE_ENGINE && C.COMPOSABLE_ENGINE.spreadContagionOnDeath) {
@@ -3127,7 +3228,7 @@
   // Read-only strength: one specialist leads each aura; headcount cannot stack it.
   C.pathFormationMastery = unit => {
     const path = unit && unit.cult && unit.cult.path;
-    if (!unit || unit.dead || unit.fled || unit.yield || (unit.h && unit.h.state && unit.h.state.hp <= 0) || (path !== 'ARRAY_TALISMAN' && path !== 'STRATEGY_GOVERNANCE')) return 0;
+    if (!unit || unit.dead || unit.fled || unit.yield || (unit.h && unit.h.state && unit.h.state.hp <= 0) || !['ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'ASTRO_DIVINATION', 'DRAGON_VEIN_GEOMANCY', 'LORE_ARCHIVIST', 'MERCANTILE_DAO', 'ANCESTRAL_RITUAL'].includes(path)) return 0;
     const sk = (unit.h && unit.h.skills) || {};
     const sub = CULT.subInfo(path, unit.cult.sub);
     const primary = sub.primarySkill || (path === 'ARRAY_TALISMAN' ? 'ARRAY' : 'administration');
@@ -3230,6 +3331,20 @@
       auras.push("สัญชาตญาณฝูงอสูร");
     }
 
+    if (typeof C.evaluateCrossPathSynergies === "function") {
+      const cpSyn = C.evaluateCrossPathSynergies(alive);
+      if (cpSyn && Array.isArray(cpSyn.matchedSynergies) && cpSyn.matchedSynergies.length) {
+        for (const ms of cpSyn.matchedSynergies) {
+          if (!synergies.some(s => s.id === ms.id)) {
+            powerMult *= (1 + (ms.powerBonus || 0.10));
+            mitigation += (ms.mitigationBonus || 0.04);
+            synergies.push({ id: ms.id, nameTh: ms.nameTh, effect: ms.descTh });
+            auras.push(ms.nameTh);
+          }
+        }
+      }
+    }
+
     return {
       synergies,
       powerMultiplier: +Math.min(1.85, powerMult).toFixed(3),
@@ -3252,7 +3367,8 @@
       'armorbreak', 'mdefbreak', 'exposed', 'chill', 'fear', 'paralyze', 'root',
       'curse', 'daoMark', 'starSeal', 'venomSeed', 'bloodBrand', 'taunted',
       'poiseBroken', 'ashenToxin', 'radiationBurn', 'crimsonGuSwarm',
-      'sovereignPlague', 'stygianFreeze', 'weaponMelt', 'acupointSealed', 'disarmed'
+      'sovereignPlague', 'stygianFreeze', 'weaponMelt', 'acupointSealed', 'disarmed',
+      'meridianSeal', 'tempoBreak', 'guLeech', 'gravityCrush', 'contractDefault', 'voidRiftTear', 'entropyDecay'
     ],
     REACTIONS: {
       'burn+WIND': { id: 'INFERNO_VORTEX', code: '2E-02', nameTh: 'พายุเพลิงกัลป์ผลาญศึก', mult: 0.42, applyStatus: 'exposed', dur: 12, aoeSplash: true },
@@ -4253,6 +4369,391 @@
         COMPOSABLE_ENGINE.triggerMeridianOverdrive(W, f, a, params.dur || 36);
         break;
       }
+      case 'MASS_ABSORPTION': {
+        const shAmt = Math.max(12, Math.round(C.hpMax(a) * 0.22));
+        ST.addStatus(a, 'shield', 16, { amt: shAmt }, tNow);
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'massGuard', 20, tNow, { casterId: a.id });
+        if (CULT && CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.applyGravityField) {
+          CULT.GRAND_DAO_MECHANICS.applyGravityField(W, f, a, t, { free: true, ignoreCooldown: true });
+        }
+        if (t && C.alive(t)) {
+          const isBoss = !!(t.isBoss || t.boss || t.rank === 'BOSS' || (t.tier && t.tier >= 7 && t.foe));
+          if (!isBoss) ST.addStatus(t, 'gravityCrush', 10, null, tNow);
+          else ST.addStatus(t, 'slow', 8, null, tNow);
+          const sa = ST.get(a);
+          const mDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.def || 40) * 0.30));
+          C.applyDamage(W, f, a, t, mDmg, 'ดูดกลืนแรงกระแทกสะท้อนมวล');
+          bonusDmg += mDmg;
+        }
+        a.lastMassAbsorption = { t: tNow, shield: shAmt, bonusDmg };
+        break;
+      }
+      case 'SONIC_TEMPO_BREAK': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'sonicHarmonyAura', 20, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'tempoBreak', 12, null, tNow);
+          if (t.act && t.act.ctx && t.act.ctx.cds) {
+            for (const skId of Object.keys(t.act.ctx.cds)) {
+              t.act.ctx.cds[skId] = (t.act.ctx.cds[skId] || tNow) + 4;
+            }
+          }
+          if (t.act && t.act.ctx && t.act.ctx.channeling) {
+            C.interruptChannel(W, f, t, 'คลื่นเสียงสลายจังหวะร่าย', a);
+          }
+          const sa = ST.get(a);
+          const sDmg = Math.max(8, Math.round((sa.matk || 45) * 0.32));
+          C.applyDamage(W, f, a, t, sDmg, 'คลื่นเสียงสลายคูลดาวน์');
+          bonusDmg += sDmg;
+        }
+        a.lastSonicTempoBreak = { t: tNow, targetId: t ? t.id : null, bonusDmg };
+        break;
+      }
+      case 'MERIDIAN_SEAL': {
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'meridianSeal', 12, null, tNow);
+          ST.addStatus(t, 'acupointSealed', 10, null, tNow);
+          if (!t.foe && t.cult && t.h && t.h.state) {
+            const qm = CULT.qiMax(t);
+            t.h.state.qi = Math.max(0, (t.h.state.qi || 0) - Math.round(qm * 0.18));
+          }
+          const sa = ST.get(a);
+          const nDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.32));
+          C.applyDamage(W, f, a, t, nDmg, 'เข็มปิดชีพจรสะกดลมปราณ');
+          bonusDmg += nDmg;
+          t.fx = { t: tNow, text: '🪡 ผนึกชีพจรปราณ!' };
+        }
+        a.lastMeridianSeal = { t: tNow, targetId: t ? t.id : null, bonusDmg };
+        break;
+      }
+      case 'VOID_POCKET_DEFENSE': {
+        const shAmt = Math.max(12, Math.round(C.hpMax(a) * 0.20));
+        ST.addStatus(a, 'shield', 16, { amt: shAmt }, tNow);
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'astralMirage', 18, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'voidRiftTear', 12, { per: 0.018, src: a.id }, tNow);
+          const sa = ST.get(a);
+          const vDmg = Math.max(8, Math.round((sa.matk || 45) * 0.35));
+          C.applyDamage(W, f, a, t, vDmg, 'ม่านมิติสะท้อนรอยแยกสุญญากาศ');
+          bonusDmg += vDmg;
+        }
+        a.lastVoidPocketDefense = { t: tNow, shield: shAmt, bonusDmg };
+        break;
+      }
+      case 'GU_SOUL_LEECH': {
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'guLeech', 14, { per: 0.022, src: a.id }, tNow);
+          COMPOSABLE_ENGINE.applyMark(W, f, a, t, 'venomSeed', 1, 14);
+          const sa = ST.get(a);
+          const gDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.34));
+          C.applyDamage(W, f, a, t, gDmg, 'หนอนกู่สูบวิญญาณ');
+          bonusDmg += gDmg;
+          const heal = Math.max(4, Math.round(gDmg * 0.45));
+          C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + heal));
+          if (!a.foe && a.cult && a.h && a.h.state) {
+            const qm = CULT.qiMax(a);
+            a.h.state.qi = Math.min(qm, (a.h.state.qi || 0) + Math.round(qm * 0.14));
+          }
+        }
+        a.lastGuSoulLeech = { t: tNow, targetId: t ? t.id : null, bonusDmg };
+        break;
+      }
+      case 'STAR_FATE_REVERSAL': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'starDestinyWard', 20, tNow, { casterId: a.id });
+        ST.clearStatus(a, x => ['blind', 'weaken', 'slow', 'exposed'].includes(x.k));
+        mult = 1.25;
+        if (t && C.alive(t)) {
+          COMPOSABLE_ENGINE.applyMark(W, f, a, t, 'starSeal', 2, 16);
+          const sa = ST.get(a);
+          const stDmg = Math.max(8, Math.round((sa.matk || 45) * 0.34));
+          C.applyDamage(W, f, a, t, stDmg, 'พลิกชะตาดาราพยากรณ์');
+          bonusDmg += stDmg;
+        }
+        a.lastStarFateReversal = { t: tNow, mult, bonusDmg };
+        break;
+      }
+      case 'BODHI_KARMA_AEGIS': {
+        const allies = f ? C.alliesOf(W, f, a.id).filter(C.alive) : [a];
+        allies.forEach(al => {
+          const ahm = C.hpMax(al);
+          ST.addStatus(al, 'shield', 16, { amt: Math.round(ahm * 0.18) }, tNow);
+          if (ST.applyNamedBuff && !al.foe) ST.applyNamedBuff(al, 'bodhiGrace', 20, tNow, { casterId: a.id });
+          ST.clearStatus(al, x => ['curse', 'fear', 'poison', 'bleed'].includes(x.k));
+        });
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const bDmg = Math.max(8, Math.round((sa.matk || 45) * 0.30));
+          C.applyDamage(W, f, a, t, bDmg, 'เกราะบัวทองสะท้อนวิบาก');
+          bonusDmg += bDmg;
+        }
+        a.lastBodhiKarmaAegis = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'WEATHER_THUNDER_CALL': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'weatherConduct', 20, tNow, { casterId: a.id });
+        const wKind = (W && W.weather && (W.weather.kind || W.weather)) || 'clear';
+        const wBonus = ['storm', 'thunder_tempest', 'rain', 'snow'].includes(wKind) ? 1.35 : 1.12;
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const wDmg = Math.max(10, Math.round((sa.matk || 45) * 0.38 * wBonus));
+          C.applyDamage(W, f, a, t, wDmg, 'อัญเชิญสายฟ้าสวรรค์ผสานดินฟ้า');
+          ST.addStatus(t, 'paralyze', 8, null, tNow);
+          bonusDmg += wDmg;
+        }
+        a.lastWeatherThunderCall = { t: tNow, weather: wKind, bonusDmg };
+        break;
+      }
+      case 'CONTRACT_FORECLOSURE': {
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'contractDefault', 14, null, tNow);
+          ST.addStatus(t, 'exposed', 12, null, tNow);
+          const sa = ST.get(a);
+          const cDmg = Math.max(10, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.38));
+          C.applyDamage(W, f, a, t, cDmg, 'บังคับคดีริบปราณผิดสัญญา');
+          bonusDmg += cDmg;
+        }
+        a.lastContractForeclosure = { t: tNow, targetId: t ? t.id : null, bonusDmg };
+        break;
+      }
+      case 'LEYLINE_EARTH_SPIKE': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'leylineBastion', 20, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'armorbreak', 12, null, tNow);
+          ST.addStatus(t, 'slow', 10, null, tNow);
+          const sa = ST.get(a);
+          const lDmg = Math.max(10, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.36));
+          C.applyDamage(W, f, a, t, lDmg, 'หนามปฐพีชีพจรมังกร');
+          bonusDmg += lDmg;
+        }
+        a.lastLeylineEarthSpike = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'ATAVISM_FRENZY_BITE': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'atavismFrenzy', 20, tNow, { casterId: a.id });
+        mult = 1.24;
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'bleed', 12, { per: 0.020, src: a.id }, tNow);
+          const sa = ST.get(a);
+          const bDmg = Math.max(10, Math.round((sa.atk || 45) * 0.40));
+          C.applyDamage(W, f, a, t, bDmg, 'เขี้ยวเทพอสูรบรรพกาลขย้ำ');
+          bonusDmg += bDmg;
+          C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + Math.max(4, Math.round(bDmg * 0.30))));
+        }
+        a.lastAtavismFrenzyBite = { t: tNow, mult, bonusDmg };
+        break;
+      }
+      case 'TEMPORAL_SAND_REWIND': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'temporalHaste', 20, tNow, { casterId: a.id });
+        if (a.act && a.act.ctx && a.act.ctx.cds) {
+          for (const skId of Object.keys(a.act.ctx.cds)) {
+            a.act.ctx.cds[skId] = Math.max(0, (a.act.ctx.cds[skId] || 0) - 4);
+          }
+        }
+        const hm = C.hpMax(a);
+        C.setHp(a, Math.min(hm, C.hp(a) + Math.max(5, Math.round(hm * 0.14))));
+        if (!a.foe && a.cult && a.h && a.h.state) {
+          const qm = CULT.qiMax(a);
+          a.h.state.qi = Math.min(qm, (a.h.state.qi || 0) + Math.round(qm * 0.14));
+        }
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const tmDmg = Math.max(8, Math.round((sa.matk || 45) * 0.32));
+          C.applyDamage(W, f, a, t, tmDmg, 'ย้อนทรายกาลเวลาสะบั้น');
+          bonusDmg += tmDmg;
+        }
+        a.lastTemporalSandRewind = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'IMPERIAL_INK_DECREE': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'literatiDecree', 20, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'silence', 8, null, tNow);
+          ST.addStatus(t, 'mdefbreak', 12, null, tNow);
+          const sa = ST.get(a);
+          const iDmg = Math.max(8, Math.round((sa.matk || 45) * 0.35));
+          C.applyDamage(W, f, a, t, iDmg, 'อักษรราชโองการสวรรค์สะกด');
+          bonusDmg += iDmg;
+        }
+        a.lastImperialInkDecree = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'MARIONETTE_SOUL_SWAP': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'marionetteLink', 22, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'tetheredEnemy', 16, { linkedToId: t.id, shareRatio: 0.30 }, tNow);
+          ST.addStatus(t, 'weaken', 12, null, tNow);
+          const sa = ST.get(a);
+          const mDmg = Math.max(8, Math.round((sa.matk || 45) * 0.34));
+          C.applyDamage(W, f, a, t, mDmg, 'เชิดหุ่นสลับวิญญาณ');
+          bonusDmg += mDmg;
+        }
+        a.lastMarionetteSoulSwap = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'CHAOS_ELEMENT_SHATTER': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'chaosEntropyShield', 20, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'entropyDecay', 14, { per: 0.022, src: a.id }, tNow);
+          ST.clearStatus(t, x => SKs().STATUS[x.k] && SKs().STATUS[x.k].isBuff);
+          const sa = ST.get(a);
+          const chDmg = Math.max(10, Math.round(Math.max(sa.atk || 45, sa.matk || 45) * 0.38));
+          C.setHp(t, Math.max(1, C.hp(t) - Math.round(chDmg * 0.45)));
+          C.applyDamage(W, f, a, t, Math.round(chDmg * 0.55), 'ปราณโกลาหลทลายเบญจธาตุ');
+          bonusDmg += chDmg;
+        }
+        a.lastChaosElementShatter = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'IAI_ZERO_QI_SLASH': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'parryCounter', 20, tNow, { casterId: a.id });
+        if (a.cult && a.cult.path === 'SHADOW_SAMURAI' && a.h && a.h.state) a.h.state.qi = 0;
+        if (t && C.alive(t)) {
+          ST.clearStatus(t, x => x.k === 'shield');
+          ST.addStatus(t, 'bleed', 12, { per: 0.020, src: a.id }, tNow);
+          const sa = ST.get(a);
+          const iaiDmg = Math.max(14, Math.round((sa.atk || 55) * 0.46));
+          C.setHp(t, Math.max(1, C.hp(t) - Math.round(iaiDmg * 0.50)));
+          C.applyDamage(W, f, a, t, Math.round(iaiDmg * 0.50), 'เพลงดาบอิไอไร้เงาผ่าเกราะ');
+          bonusDmg += iaiDmg;
+        }
+        a.lastIaiZeroQiSlash = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'SPAWN_SHADOW_CLONE': {
+        a._shadowClones = Math.min(3, (a._shadowClones || 0) + 1);
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'shadowClone', 24, tNow, { casterId: a.id });
+        else ST.addStatus(a, 'shadowClone', 24, null, tNow);
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'blind', 8, null, tNow);
+          const sa = ST.get(a);
+          const shDmg = Math.max(8, Math.round((sa.atk || 45) * 0.28));
+          C.applyDamage(W, f, a, t, shDmg, 'ร่างแยกเงาลอบสังหาร');
+          bonusDmg += shDmg;
+        }
+        a.lastSpawnShadowClone = { t: tNow, clones: a._shadowClones, bonusDmg };
+        break;
+      }
+      case 'MUDRA_EXPLOSIVE_SEAL': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'substitutionReady', 28, tNow, { casterId: a.id });
+        else ST.addStatus(a, 'substitutionReady', 28, null, tNow);
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'burn', 12, { per: 0.018, src: a.id }, tNow);
+          const sa = ST.get(a);
+          const mDmg = Math.max(10, Math.round(Math.max(sa.matk || 48, sa.atk || 42) * 0.36));
+          C.applyDamage(W, f, a, t, mDmg, 'ค่ายกลยันต์ระเบิดประสานมุทรา');
+          bonusDmg += mDmg;
+        }
+        a.lastMudraExplosiveSeal = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'SUMMON_DEITY_PROJECTION': {
+        let scaleMult = 1.25;
+        if (CULT && CULT.HIGHER_REALMS_PANTHEON) {
+          const inv = CULT.HIGHER_REALMS_PANTHEON.invokeDivineManifestation(W, f, a, t, 'SUMMON');
+          if (inv && inv.combatPowerMult) scaleMult = inv.combatPowerMult;
+        }
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'divineResonance', 24, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const dDmg = Math.max(12, Math.round(Math.max(sa.matk || 50, sa.atk || 45) * 0.34 * scaleMult));
+          C.applyDamage(W, f, a, t, dDmg, 'อัญเชิญเงาทวยเทพเบื้องบน');
+          bonusDmg += dDmg;
+        }
+        a.lastSummonDeityProjection = { t: tNow, scaleMult, bonusDmg };
+        break;
+      }
+      case 'ENTER_AVATAR_TRANCE': {
+        let scaleMult = 1.30;
+        if (CULT && CULT.HIGHER_REALMS_PANTHEON) {
+          const inv = CULT.HIGHER_REALMS_PANTHEON.invokeDivineManifestation(W, f, a, t, 'POSSESSION');
+          if (inv && inv.combatPowerMult) scaleMult = inv.combatPowerMult;
+        }
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'divineResonance', 26, tNow, { casterId: a.id });
+        const hm = C.hpMax(a);
+        const hAmt = Math.max(6, Math.round(hm * 0.12));
+        C.setHp(a, Math.min(hm, C.hp(a) + hAmt));
+        if (t && C.alive(t)) {
+          const sa = ST.get(a);
+          const avDmg = Math.max(12, Math.round(Math.max(sa.atk || 50, sa.matk || 50) * 0.36 * scaleMult));
+          C.applyDamage(W, f, a, t, avDmg, 'เทวะประทับร่างจำแลงอวตาร');
+          bonusDmg += avDmg;
+        }
+        a.lastEnterAvatarTrance = { t: tNow, scaleMult, bonusDmg, healAmt: hAmt };
+        break;
+      }
+      case 'BORROW_COSMIC_LAW': {
+        if (CULT && CULT.HIGHER_REALMS_PANTHEON) {
+          CULT.HIGHER_REALMS_PANTHEON.invokeDivineManifestation(W, f, a, t, 'CHANNEL');
+        }
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'divineResonance', 22, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'meridianSeal', 10, null, tNow);
+          const sa = ST.get(a);
+          const bwDmg = Math.max(11, Math.round(Math.max(sa.atk || 48, sa.matk || 48) * 0.35));
+          C.applyDamage(W, f, a, t, bwDmg, 'ยืมกฎฟ้าพิพากษาชีพจร');
+          bonusDmg += bwDmg;
+        }
+        a.lastBorrowCosmicLaw = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'ELDRITCH_SANITY_BLAST': {
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'sanityStrain', 22, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'fear', 8, null, tNow);
+          ST.addStatus(t, 'voidRiftTear', 12, { per: 0.020, src: a.id }, tNow);
+          const sa = ST.get(a);
+          const elDmg = Math.max(12, Math.round((sa.matk || 52) * 0.42));
+          C.setHp(t, Math.max(1, C.hp(t) - Math.round(elDmg * 0.50)));
+          C.applyDamage(W, f, a, t, Math.round(elDmg * 0.50), 'คลื่นวิปลาสนอกมิติทะลุเกราะ');
+          bonusDmg += elDmg;
+        }
+        a.lastEldritchSanityBlast = { t: tNow, bonusDmg };
+        break;
+      }
+      case 'KHMER_YANTRA_WARD': {
+        const yShield = Math.max(14, Math.round(C.hpMax(a) * 0.24));
+        ST.addStatus(a, 'shield', 18, { amt: yShield }, tNow);
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'ironSkin', 22, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'guLeech', 12, { per: 0.018, src: a.id }, tNow);
+          const sa = ST.get(a);
+          const yDmg = Math.max(9, Math.round(Math.max(sa.matk || 45, sa.atk || 45) * 0.30));
+          C.applyDamage(W, f, a, t, yDmg, 'มหาเวทย์อาคมคงกระพัน');
+          bonusDmg += yDmg;
+        }
+        a.lastKhmerYantraWard = { t: tNow, shield: yShield, bonusDmg };
+        break;
+      }
+      case 'DEVOUR_ESSENCE_BITE': {
+        let healAmt = 0;
+        a._boneArmorHp = Math.max(18, Math.round(C.hpMax(a) * 0.25));
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'boneArmor', 24, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'armorbreak', 12, null, tNow);
+          const sa = ST.get(a);
+          const dvDmg = Math.max(11, Math.round((sa.atk || 50) * 0.36));
+          C.applyDamage(W, f, a, t, dvDmg, 'กลืนกินสรีระหลอมอวัยวะเร้นลับ');
+          bonusDmg += dvDmg;
+          const dvHeal = Math.max(5, Math.round(dvDmg * 0.45));
+          C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + dvHeal));
+          healAmt += dvHeal;
+        }
+        a.lastDevourEssenceBite = { t: tNow, bonusDmg, healAmt };
+        break;
+      }
+      case 'GRAVE_CORPSE_DETONATE': {
+        const graveBonus = (W && Array.isArray(W.graveyard)) ? Math.min(0.35, W.graveyard.length * 0.02) : 0.10;
+        a._boneArmorHp = Math.max(18, Math.round(C.hpMax(a) * (0.25 + graveBonus * 0.5)));
+        if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, 'boneArmor', 24, tNow, { casterId: a.id });
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'fear', 8, null, tNow);
+          const sa = ST.get(a);
+          const grDmg = Math.max(11, Math.round((sa.matk || 48) * (0.35 + graveBonus)));
+          C.applyDamage(W, f, a, t, grDmg, 'ระเบิดซากศพเพลิงวิญญาณสุสาน');
+          bonusDmg += grDmg;
+        }
+        a.lastGraveCorpseDetonate = { t: tNow, bonusDmg };
+        break;
+      }
       default:
         break;
     }
@@ -4477,7 +4978,8 @@
   COMPOSABLE_ENGINE.preExecuteSkill = (W, f, a, d, p, ctx) => {
     const ST = STs();
     let comboMult = 1.0;
-    const comp = p.composable || {};
+    const techDef = (p && p.tech && CULT && CULT.tech) ? CULT.tech(p.tech) : null;
+    const comp = p.composable || p.keywordSpec || (techDef && (techDef.composable || techDef.keywordSpec)) || {};
     const cond = p.condition || comp.condition || null;
     if (cond && !COMPOSABLE_ENGINE.evaluateCondition(cond, a, d, { W, f, skill: p, ctx })) {
       return { comboMult: 1.0, handledCompletely: false, conditionFailed: true };
@@ -4565,7 +5067,7 @@
     // Execute any pre-hit composable actions (HEART_DEMON_EDGE_SCALING, OVERHEAT_COOLDOWN_TRADE, RESTORE_QI_PCT, MERIDIAN_OVERDRIVE)
     const preActions = [].concat(p.actions || [], p.action ? [p.action] : [], comp.actions || [], comp.action ? [comp.action] : []);
     for (const act of preActions) {
-      if (['HEART_DEMON_EDGE_SCALING', 'OVERHEAT_COOLDOWN_TRADE', 'RESTORE_QI_PCT', 'CLEANSE_TO_POWER', 'MERIDIAN_OVERDRIVE'].includes(act)) {
+      if (['HEART_DEMON_EDGE_SCALING', 'OVERHEAT_COOLDOWN_TRADE', 'RESTORE_QI_PCT', 'CLEANSE_TO_POWER', 'MERIDIAN_OVERDRIVE', 'STAR_FATE_REVERSAL', 'BODHI_KARMA_AEGIS', 'TEMPORAL_SAND_REWIND', 'ATAVISM_FRENZY_BITE'].includes(act)) {
         const res = COMPOSABLE_ENGINE.executeAction(W, f, a, d, act, Object.assign({ skillId: p.id }, p, comp), ctx);
         if (res && res.mult) comboMult *= res.mult;
       }
@@ -4577,7 +5079,8 @@
   COMPOSABLE_ENGINE.postHitSkill = (W, f, a, t, p, r) => {
     if (!t || !C.alive(t)) return 0;
     const ST = STs();
-    const comp = p.composable || {};
+    const techDef = (p && p.tech && CULT && CULT.tech) ? CULT.tech(p.tech) : null;
+    const comp = p.composable || p.keywordSpec || (techDef && (techDef.composable || techDef.keywordSpec)) || {};
     const cond = p.condition || comp.condition || null;
     if (cond && !COMPOSABLE_ENGINE.evaluateCondition(cond, a, t, { W, f, skill: p, hitResult: r })) {
       return 0;
@@ -4686,7 +5189,7 @@
       comp.action ? [comp.action] : []
     );
     for (const act of postActions) {
-      if (['DELAYED_ECHO', 'SHATTER_SHIELD', 'BONUS_TRUE_DMG', 'PUPPET_SYMBIOSIS_PULSE', 'APPLY_TAUNT', 'DISPLACE_KNOCKBACK', 'DISPLACE_PULL', 'DISPLACE_VACUUM', 'POISE_BREAK', 'CONTAGION_SPREAD'].includes(act)) {
+      if (['DELAYED_ECHO', 'SHATTER_SHIELD', 'BONUS_TRUE_DMG', 'PUPPET_SYMBIOSIS_PULSE', 'APPLY_TAUNT', 'DISPLACE_KNOCKBACK', 'DISPLACE_PULL', 'DISPLACE_VACUUM', 'POISE_BREAK', 'CONTAGION_SPREAD', 'MASS_ABSORPTION', 'SONIC_TEMPO_BREAK', 'MERIDIAN_SEAL', 'VOID_POCKET_DEFENSE', 'GU_SOUL_LEECH', 'STAR_FATE_REVERSAL', 'BODHI_KARMA_AEGIS', 'WEATHER_THUNDER_CALL', 'CONTRACT_FORECLOSURE', 'LEYLINE_EARTH_SPIKE', 'ATAVISM_FRENZY_BITE', 'TEMPORAL_SAND_REWIND', 'IMPERIAL_INK_DECREE', 'MARIONETTE_SOUL_SWAP', 'CHAOS_ELEMENT_SHATTER'].includes(act)) {
         const actRes = COMPOSABLE_ENGINE.executeAction(W, f, a, t, act, Object.assign({ skillId: p.id }, p, comp), { W, f, hitResult: r });
         if (actRes && actRes.bonusDmg) extraDmg += actRes.bonusDmg;
       }
@@ -5034,7 +5537,12 @@
   C.DUET_CATALOG = Object.freeze({
     DUET_TWIN_LOTUS_SWORD: { id: 'DUET_TWIN_LOTUS_SWORD', nameTh: 'กระบี่คู่บัวสวรรค์ผสานใจ', bondType: 'TAOIST_COMPANION', mult: 1.75, shieldPct: 0.15 },
     DUET_MASTER_DISCIPLE_INHERITANCE: { id: 'DUET_MASTER_DISCIPLE_INHERITANCE', nameTh: 'ค่ายกลสืบทอดเจตจำนงอาจารย์ศิษย์', bondType: 'MENTOR_DISCIPLE', mult: 1.65, shieldPct: 0.12 },
-    DUET_FATED_THREADS_RESONANCE: { id: 'DUET_FATED_THREADS_RESONANCE', nameTh: 'วัฏจักรด้ายชะตาประสานฟ้าดิน', bondType: 'DESTINY_THREAD', mult: 1.60, shieldPct: 0.12 }
+    DUET_FATED_THREADS_RESONANCE: { id: 'DUET_FATED_THREADS_RESONANCE', nameTh: 'วัฏจักรด้ายชะตาประสานฟ้าดิน', bondType: 'DESTINY_THREAD', mult: 1.60, shieldPct: 0.12 },
+    DUET_BUSHIDO_SHINOBI_ECLIPSE: { id: 'DUET_BUSHIDO_SHINOBI_ECLIPSE', nameTh: 'ดาบอิไอผสานเงาเร้นผ่าจันทรา', bondType: 'BUSHIDO_SHINOBI', paths: ['SHADOW_SAMURAI', 'NINPO_SHADOW', 'NINPO_ELEMENTAL'], mult: 1.82, shieldPct: 0.14 },
+    DUET_PANTHEON_TWIN_AVATAR: { id: 'DUET_PANTHEON_TWIN_AVATAR', nameTh: 'มหาเทวาลัยเบื้องบนจุติคู่สวรรค์', bondType: 'PANTHEON_CONDUIT', paths: ['DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'GOD'], mult: 1.85, shieldPct: 0.18 },
+    DUET_OCCULT_GRAVE_REQUIEM: { id: 'DUET_OCCULT_GRAVE_REQUIEM', nameTh: 'อาคมขอมผสานสุสานยมโลกสะกดวิญญาณ', bondType: 'OCCULT_NECROPOLIS', paths: ['OCCULT_MAGE', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'VOID_HERETIC_PACT'], mult: 1.78, shieldPct: 0.16 },
+    DUET_ASTRAL_CHRONO_CONVERGENCE: { id: 'DUET_ASTRAL_CHRONO_CONVERGENCE', nameTh: 'ดาราพยากรณ์ย้อนรอยกาลเวลา', bondType: 'ASTRAL_CHRONO', paths: ['ASTRO_DIVINATION', 'CHRONO_EPOCH', 'VOID_SPACE', 'GRAVITY_DAO', 'PRIMORDIAL_CHAOS'], mult: 1.80, shieldPct: 0.15 },
+    DUET_DRAGON_TIDE_HARMONY: { id: 'DUET_DRAGON_TIDE_HARMONY', nameTh: 'ชีพจรมังกรสมุทรและคีตเวทย์สะท้านภพ', bondType: 'WORLD_HARMONY', paths: ['DRAGON_VEIN_GEOMANCY', 'TIDE_VOYAGER', 'SONIC_HARMONY', 'CELESTIAL_WEATHER', 'LORE_ARCHIVIST'], mult: 1.74, shieldPct: 0.15 }
   });
 
   C.tryExecuteDuetSkill = (W, f, caster, partner, target, opts) => {
@@ -5351,6 +5859,53 @@
       return g.SECT.ANCESTRAL_PAVILION.invokeFounderPhantom(W, f, opts);
     }
     return { ok: false, reason: 'no-ancestral-pavilion' };
+  };
+
+
+  /* =========================================================================
+   * PATCH v2.0.0: PILLAR 5 — 27 GRAND DAO CROSS-PATH SYNERGIES
+   * (ระบบความเข้ากันได้ข้ามมหาวิถีทั้ง 27 สายในปาร์ตี้และสมรภูมิ)
+   * ========================================================================= */
+  C.CROSS_PATH_SYNERGIES = Object.freeze([
+    { id: 'SYN_IMPERIAL_CHARTER', paths: ['MERCANTILE_DAO', 'STRATEGY_GOVERNANCE'], nameTh: 'พันธสัญญาจักรพรรดิและพิชัยยุทธ์การคลัง', powerBonus: 0.14, mitigationBonus: 0.06, descTh: 'ผสานลูกคิดการค้าและตราอาญาสิทธิ์ เพิ่มพลังรบทั้งทีม +14% และลดดาเมจ 6%' },
+    { id: 'SYN_HEAVENLY_TEMPEST_SWORD', paths: ['CELESTIAL_WEATHER', 'XIAN'], nameTh: 'กระบี่อัสนีบัญชาฟ้าดิน', powerBonus: 0.15, mitigationBonus: 0.04, descTh: 'ปราณฟ้าดินหนุนคมกระบี่เซียน เพิ่มความแรงวิชาธาตุลม/สายฟ้าและกระบี่ +15%' },
+    { id: 'SYN_HEAVY_GRAVITY_FORTRESS', paths: ['GRAVITY_DAO', 'MECH_PUPPET'], nameTh: 'ป้อมปราการกลจักรแรงโน้มถ่วงดารา', powerBonus: 0.12, mitigationBonus: 0.10, descTh: 'สนามแรงโน้มถ่วงเสริมเกราะหุ่นเชิดกลไก ลดดาเมจที่ได้รับ 10% และเพิ่มพลังโจมตี +12%' },
+    { id: 'SYN_DRAGON_VEIN_TRIGRAM', paths: ['DRAGON_VEIN_GEOMANCY', 'ARRAY_TALISMAN'], nameTh: 'ค่ายกลแปดทิศผูกชีพจรมังกร', powerBonus: 0.13, mitigationBonus: 0.09, descTh: 'ยึดโยงค่ายกลเข้ากับชีพจรปฐพี เพิ่มความแข็งแกร่งม่านพลังและพลังวิชา +13%' },
+    { id: 'SYN_LOTUS_SAMSARA_NIRVANA', paths: ['BUDDHA_DHARMA', 'KARMA_SAMSARA'], nameTh: 'กงล้อโพธิญาณวัฏสงสารนิพพาน', powerBonus: 0.12, mitigationBonus: 0.10, descTh: 'บารมีพุทธะผสานกงล้อกรรม สะท้อนวิบากกรรมและลดความเสียหายขาเข้า 10%' },
+    { id: 'SYN_SPACETIME_CONTINUUM', paths: ['VOID_SPACE', 'CHRONO_EPOCH'], nameTh: 'มหาค่ายกลมิติ-กาลเวลานิรันดร์', powerBonus: 0.16, mitigationBonus: 0.08, descTh: 'ผสานรอยแยกมิติและทรายกาลเวลา เพิ่มความเร็วร่าย หลบหลีก และพลังทำลาย +16%' },
+    { id: 'SYN_SOUL_ZITHER_REQUIEM', paths: ['SONIC_HARMONY', 'HEART_SOUL'], nameTh: 'คีตมายาสะกดวิญญาณเจ็ดสาย', powerBonus: 0.14, mitigationBonus: 0.06, descTh: 'คลื่นเสียงประสานจิตตานุภาพ ทะลวงป้องกันจิตและสลายคูลดาวน์ศัตรู' },
+    { id: 'SYN_BLOOD_GU_APOCALYPSE', paths: ['VENOM_GU', 'DEMON'], nameTh: 'เพลิงมารกู่โลหิตกลืนสวรรค์', powerBonus: 0.16, mitigationBonus: 0.04, descTh: 'หนอนกู่ปรสิตผสานปราณมาร สูบเลือดและปราณศัตรูอย่างรุนแรง (+16% พลังทำลาย)' },
+    { id: 'SYN_ATAVISM_BEAST_PACK', paths: ['PRIMORDIAL_SHIFTER', 'BEAST_SOVEREIGN'], nameTh: 'ราชันย์อสูรสายเลือดบรรพกาลคำราม', powerBonus: 0.15, mitigationBonus: 0.07, descTh: 'ร่างแปลงเทพอสูรนำทัพฝูงสัตว์วิญญาณ เพิ่มพลังโจมตีกายภาพและความอึดทั้งทีม' },
+    { id: 'SYN_STAR_LITERATI_MANDATE', paths: ['ASTRO_DIVINATION', 'INK_LITERATI'], nameTh: 'โองการสวรรค์จารึกดาราพยากรณ์', powerBonus: 0.14, mitigationBonus: 0.06, descTh: 'คำนวณชะตาดาราพร้อมจารึกอักษรศักดิ์สิทธิ์ เพิ่มความแม่นยำและคริติคอลสูงสุด' },
+    { id: 'SYN_SILK_AUTOMATON_THEATER', paths: ['SOUL_PUPPETRY', 'MECH_PUPPET'], nameTh: 'โรงละครหมื่นหุ่นเชิดวิญญาณกลไก', powerBonus: 0.14, mitigationBonus: 0.08, descTh: 'ผสานไหมเชิดวิญญาณและแกนกลจักร ควบคุมสมรภูมิและแบ่งรับความเสียหาย' },
+    { id: 'SYN_CHAOS_GENESIS_FORGE', paths: ['PRIMORDIAL_CHAOS', 'CRAFT_CREATION'], nameTh: 'เตาหลอมหงเหมิงรังสรรค์จักรวาล', powerBonus: 0.16, mitigationBonus: 0.07, descTh: 'ปราณโกลาหลบรรพกาลหลอมรวมเพลิงสวรรค์ ทลายเกราะธาตุทุกชนิด' },
+    { id: 'SYN_WAYFARER_BENEVOLENT_HERB', paths: ['WANDERING_DAO', 'SAGE_SUPPORT'], nameTh: 'หมอเทวดาพเนจรหมื่นลี้', powerBonus: 0.12, mitigationBonus: 0.09, descTh: 'ก้าวพเนจรผสานโอสถคีตเวทย์ ฟื้นฟูพลังชีวิตและคลายสถานะร้ายอย่างรวดเร็ว' },
+    { id: 'SYN_BUSHIDO_SHINOBI_ECLIPSE', paths: ['SHADOW_SAMURAI', 'NINPO_SHADOW'], nameTh: 'ดาบไร้เงาและนินจาเร้นสังหาร', powerBonus: 0.16, mitigationBonus: 0.06, descTh: 'ร่างแยกเงาดึงความสนใจให้คมดาบอิไอฟันสังหารจุดตาย เพิ่มดาเมจคริติคอล +16%' },
+    { id: 'SYN_HIGHER_REALM_THEOPHANY', paths: ['DIVINE_SUMMONER', 'DIVINE_POSSESSION'], nameTh: 'มหาเทวสภาจุติประทับภพ', powerBonus: 0.18, mitigationBonus: 0.08, descTh: 'ผสานร่างอัญเชิญและร่างทรงเทวะเบื้องบน เพิ่มอานุภาพพลังเทวะ +18% และลดความเสียหาย +8%' },
+    { id: 'SYN_KHMER_NECRO_SANCTUARY', paths: ['OCCULT_MAGE', 'NETHER_GRAVE'], nameTh: 'บรมครูอาคมสะกดสุสานยมโลก', powerBonus: 0.14, mitigationBonus: 0.10, descTh: 'ผสานแรงครูคงกระพันและเกราะกระดูกสุสาน เพิ่มความถึกทนของกองทัพสูงสุด' }
+  ]);
+
+  C.evaluateCrossPathSynergies = party => {
+    const list = Array.isArray(party) ? party.filter(u => u && !u.dead) : [];
+    const activePaths = new Set();
+    list.forEach(u => { if (u.cult && u.cult.path) activePaths.add(u.cult.path); });
+    const matched = [];
+    let totalPowerBonus = 0;
+    let totalMitigationBonus = 0;
+    for (let i = 0; i < C.CROSS_PATH_SYNERGIES.length; i++) {
+      const syn = C.CROSS_PATH_SYNERGIES[i];
+      if (syn.paths.every(p => activePaths.has(p))) {
+        matched.push(syn);
+        totalPowerBonus += syn.powerBonus;
+        totalMitigationBonus += syn.mitigationBonus;
+      }
+    }
+    return {
+      activePaths: Array.from(activePaths),
+      matchedSynergies: matched,
+      powerMultiplier: +(1 + Math.min(0.45, totalPowerBonus)).toFixed(3),
+      mitigationBonus: +Math.min(0.30, totalMitigationBonus).toFixed(3)
+    };
   };
 
   g.COMBAT = C;

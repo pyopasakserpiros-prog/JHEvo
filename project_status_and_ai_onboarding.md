@@ -1,7 +1,7 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `v5.8.0` (runtime patch identifier `5.8.0` | SIM Version `1.10.20` | Save Schema `5.8.0-forbidden-arts-passive-awakening-and-blood-altar` | Human Core Fingerprint `155:2f9c9dd7` | Status: `v5.8.0 Complete 100%` | Active Target: `v5.9.0`)
+**เวอร์ชันแพ็กเกจ**: `JianghuSect 2 v2.3.0` (runtime patch identifier `2.1.0` | SIM Version `1.10.11` | Save Schema `2.3.0-grand-dao-deep-parity-release` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JianghuSect 2 v2.3.0 Complete 100% (139/139 Tests Pass)` | Active Target: `v2.3.0`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
@@ -74,3 +74,17 @@
 
 ---
 *เอกสารนี้ได้รับการปรับปรุงสมบูรณ์ตามสถานะแพตช์ v4.0.0 (ครบ 36 ข้อเสนอ + 5 เสาหลัก Phase 6, ผ่านการทดสอบ 124/124 ชุดทดสอบ) ณ วันที่ 6 พฤศจิกายน 2026*
+
+
+### 🌟 ไฮไลต์ระบบใหม่ล่าสุดใน JianghuSect 2 (`v2.0.0: The 27 Grand Dao Epoch`)
+- **Pillar 1 — ระบบวัฏจักรคนธรรมดาสู่ผู้บ่มเพาะ (`CULT.MORTAL_INITIATION`):** ยกเลิกการสุ่มตื่นรู้รายเดือน คนธรรมดาต้องศึกษาคัมภีร์วิถี (`study_dao`) สะสม `daoComprehension` (0..100) และฝึกหายใจรับปราณ (`gather_qi`) สะสม `qiFoundation` (0..100) จนทะลวงจุดตันเถียนขึ้นเป็นศิษย์ขั้นที่ 1 ในวิถีที่ศึกษามา
+- **Pillar 2 — ระบบเริ่มเกม 1 วิถีประจำสำนักและหอคัมภีร์วิถี (`SECT.PATH_LIBRARY`):** เริ่มเกมด้วย 1 วิถีตาม Archetype สำนัก ขยายวิถีเพิ่มด้วยคัมภีร์ต้นกำเนิด 27 เล่ม (`MANUAL_PATH_*`) และผลึกมรดกวิถี 27 ชิ้น (`CRYSTAL_PATH_*`)
+- **Pillar 3 — 43 มหาวิถีหลัก (`3³`), 286 สายย่อย, Realm Traits & Composable Combat Keywords:** เพิ่ม 15 มหาวิถีใหม่ (6 Core Expansion + 5 World-System + 4 Argon Original: `CHRONO_EPOCH`, `INK_LITERATI`, `SOUL_PUPPETRY`, `PRIMORDIAL_CHAOS`), 90 สายย่อยใหม่, 15 Triggers ใหม่, 15 Actions ใหม่ และ 18 Buffs/Debuffs ใหม่
+- **Pillar 4 — อาวุธใหม่ 6 ประเภท (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`):** 42 อาวุธประจำระดับ T1–T7, 42 ตำรับหลอม, 6 แม่แบบสุ่ม, 6 ทักษะความชำนาญใหม่ (รวม 38 ทักษะ) และ 6 อาวุธในตำนานใหม่ (รวม 20 ชิ้น)
+- **Pillar 5 — Cross-Path Synergies & หอเจดีย์เก้าเต๋า 27 ชั้น:** ระบบสั่นพ้องข้ามวิถี `COMBAT.CROSS_PATH_SYNERGIES`, หอเจดีย์ 27 ชั้น และเซ็ตอุปกรณ์ `RES_NINE_DAO_*` ครบ 27 วิถี (รวม 46 เซ็ต)
+
+
+### 🌟 ไฮไลต์ระบบใหม่และการแก้ไขจุดบกพร่องรอบด้านใน JianghuSect 2 (`v2.3.0`)
+- **Pillar A — งานชุมนุมวิสัชนาธรรม 43 มหาวิถี (`SECT.GRAND_DAO_DEBATE`):** จัดประชันความเข้าใจเต๋าข้ามสำนัก เพิ่ม `daoComprehension` ให้คนธรรมดาและชิงคัมภีร์วิถี (`MANUAL_PATH_*`) / ผลึกวิถี (`CRYSTAL_PATH_*`)
+- **Pillar B — บททดสอบจอมราชัน 43 มหาวิถี (`CULT.APEX_DAO_TRIALS` & `EXPLORE.NINE_DAO_PAGODA.attemptApexTrial`):** มอบฉายาเซียนสูงสุดประจำวิถี (`apexDaoTitle`) และโบนัสถาวร
+- **การแก้ไขจุดบกพร่องครบทั้ง 20 ข้อ (`B-01` ถึง `B-20`):** ปรับสมดุลเวลาเปิดตันเถียนคนธรรมดา (~60 วันเกม), แก้ไขการใช้ `MANUAL_PATH_*` และ `CRYSTAL_PATH_*` ครบ 54 ชิ้น, ผูก 15 วิถีใหม่เข้ากับ 8 ยอดเขา (`SECT.PEAKS`), เพิ่ม 17 Archetype สำนักใหม่ (รวม 32 Archetypes ครบ 27 วิถี), เพิ่ม `PATH_MANUAL`/`PATH_CRYSTAL` ใน Item Spawner พร้อมกรอง Innate Tech ออก (4,815 รายการเสกผ่าน 100%), เชื่อมต่อ `evaluateCrossPathSynergies`, `monthlyAutonomousTick`, `CULT.rate` บัฟอาหาร, `ECO.spend` สมุดบัญชีสำนัก และตัด `Math.random()` ออกจากโมดูลจำลอง 100%

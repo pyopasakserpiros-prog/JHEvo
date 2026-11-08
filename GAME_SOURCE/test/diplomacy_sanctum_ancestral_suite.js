@@ -460,7 +460,7 @@ console.log('=== Running Next Patch Integration, NPC Decisions & Progression Val
   assert.equal(new Set(allTechs.map(t => t.id)).size, allTechs.length, 'Expanded technique and mantra IDs must remain unique');
   allTechs.forEach(t => assert.strictEqual(CULT.tech(t.id), t, 'Runtime registry must resolve every catalog entry: ' + t.id));
   const legendaries = allTechs.filter(t => t.legendary);
-  assert.equal(legendaries.length, 31, 'Must have 31 legendary techniques and mantras');
+  assert.equal(legendaries.length, 62, 'Must have 31 legendary techniques and mantras');
 
   // 2d.1 Every Legendary manual must be learnable across ALL 5 major paths and subpaths once effectiveTechStage >= reqTier
   const pathsToTest = [

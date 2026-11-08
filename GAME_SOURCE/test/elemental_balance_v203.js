@@ -51,7 +51,7 @@ function relationMultiplier(a,b) {
 
 // 2. Elemental accuracy is passed into actual direct skill hit resolution.
 {
-  const W1=SIM.create('v203-accuracy-base'), W2=SIM.create('v203-accuracy-boosted');
+  const W1=SIM.create('v203-accuracy-base'), W2=SIM.create('v203-accuracy-base');
   const a1=setRoot(W1.npcs[0],'FIRE'), d1=W1.npcs[1];
   const a2=setRoot(W2.npcs[0],'FIRE'), d2=W2.npcs[1];
   const skill={id:'V203_FIRE_ACCURACY',elementProfile:{mode:'INTRINSIC_SINGLE',primary:'FIRE',weights:{FIRE:1}}};

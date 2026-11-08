@@ -122,3 +122,8 @@ Earlier claims of 97/97 are historical and do not establish the status of the cu
   - `test/v360_immortal_endgame_dynasty_suite.js`
   - `test/v400_living_frontier_and_sect_charter_suite.js` (6 Phases, 76 assertions verifying Outpost Logistics, Behavioral Mastery Traits, Sect Charter, 6-Officer Strategic Council, 4 Micro-Locations, Save/Load, and 80-NPC performance at `~0.700 ms/tick`).
 - Current `node test/run_all.js` result: **`Assertions: 124/124 groups passed.`**
+
+
+## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
+- **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
+- **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.

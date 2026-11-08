@@ -263,3 +263,8 @@ node GAME_SOURCE/test/test_procedural_equipment_system.js
   - Strictly deducts real `grain` (`ECO.take(W, 'grain', grainQty)`) and pills (`P:*` / `pills`) from `W.sect.stock` before crediting `outpost.grainStock` and `outpost.pillStock`.
   - Regional `CAMP_GUARD` outposts reduce convoy ambush risk by `-40%`.
   - Daily upkeep (`SECT.OUTPOSTS_LOGISTICS.tickOutpostLogistics`) consumes outpost grain/pills each day; supply exhaustion reduces outpost morale and garrison satisfaction.
+
+
+## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
+- **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
+- **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.

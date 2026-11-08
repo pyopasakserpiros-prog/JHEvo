@@ -151,7 +151,7 @@ M.invalidateMartialCaches=n=>{
 /* ---------- Exclusive Innate Subpath Technique Authority ---------- */
 M.isInnateTech=tOrId=>{
  const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
- return !!(t&&(t.innateOnly||t.acquisition==='SUBPATH_INNATE'));
+ return !!(t&&(t.innateOnly||t.isInnate||t.cat==='INNATE_SUBPATH'||t.cat==='INNATE_GRAND_DAO'||t.acquisition==='SUBPATH_INNATE'));
 };
 
 function bindCultInnateAccessors(n){
@@ -398,6 +398,13 @@ M.resolveTechCompatibility=(n,tOrId)=>{
  const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
  if(!n||!n.cult||!t)return {ok:false,studySpeedMult:1,combatPowerMult:1,qiCostMult:1,weaponMult:1,accessClass:'INVALID',summaryTh:'ไม่พร้อมคำนวณ'};
  const c=n.cult,cls=M.classifyTechniqueAccess(t),wpn=M.weaponCompatibility(n,t);
+ if(c.path==='SHADOW_SAMURAI'){
+   const wList=Array.isArray(t.weaponTypes)?t.weaponTypes:(t.weapon?[t.weapon]:[]);
+   const hasSwordBlade=!wList.length||wList.includes('SWORD')||wList.includes('BLADE');
+   if(!hasSwordBlade||(t.path&&t.path!=='ANY'&&t.path!=='SHADOW_SAMURAI'&&t.path!=='XIAN'&&t.path!=='BODY')){
+     return {ok:false,studySpeedMult:0,combatPowerMult:0,qiCostMult:0,weaponMult:0,accessClass:'BUSHIDO_RESTRICTED',summaryTh:'วิถีซามูไรไร้ปราณใช้ได้เฉพาะวิชาหมวดดาบ (BLADE) และกระบี่ (SWORD) เท่านั้น'};
+   }
+ }
  const pathExact=t.path==='ANY'||t.path===c.path||(Array.isArray(t.compatiblePaths)&&t.compatiblePaths.includes(c.path));
  const subExact=!t.sub||t.sub===c.sub||(Array.isArray(t.preferredSubs)&&t.preferredSubs.includes(c.sub));
  const pathStudy=t.legendary?(pathExact&&t.path!=='ANY'?1.08:1.0):(pathExact?1.0:0.80);
@@ -459,7 +466,7 @@ M.isTechCompatible=(n,t)=>{
   const hasEl=reqEls.some(re=>re==='NEUTRAL'||re==='ANY'||rEls.includes(re)||(specAcc[re]&&specAcc[re].unlocked)||subEl===re);
   if(!hasEl)return false;
  }
- const pathOk=t.path==='ANY'||t.path===c.path||(!isExcl&&(t.legendary||!t.id.startsWith('MP_')));
+ const pathOk=t.path==='ANY'||t.path===c.path||(Array.isArray(t.compatiblePaths)?t.compatiblePaths.includes(c.path):(!isExcl&&(t.legendary||!t.id.startsWith('MP_'))));
  const subOk=CULT.isSubCompatible?CULT.isSubCompatible(t,c.sub,false):(!t.sub||t.sub===c.sub);
  return pathOk&&subOk&&(t.reqTier||t.tier)<=effSt;
 };
@@ -480,7 +487,7 @@ M.reconcilePassives=n=>{
   return rc.out;
  }
  const maxSlots=M.maxPassiveSlots(n);
- const learnedPassives=n.cult.techs.filter(id=>{const t=CULT.tech(id);return !!(t&&!M.isInnateTech(t)&&(t.cat==='PASSIVE'||t.passive));});
+ const learnedPassives=n.cult.techs.filter(id=>{const t=CULT.tech(id);return !!(t&&!M.isInnateTech(t)&&(t.cat==='PASSIVE'||t.cat==='PASSIVE_GRAND_DAO'||t.passive));});
  if(!learnedPassives.length){
   if(Array.isArray(n.passiveLoadout)&&n.passiveLoadout.length)n.passiveLoadout=[];
   const emptyOut=[];
@@ -1123,7 +1130,8 @@ M.gearSuitability=(n,it,price)=>{
   if(M.weaponSkill){const wsk=M.weaponSkill(n,type);if(wsk>=45){fit+=Math.min(.22,(wsk-40)*.0035);reasons.push('ชำนาญอาวุธ ('+Math.round(wsk)+')');}else if(wsk<20&&wIdx<0){fit-=.08;}}
  }
  if(it.slot==='ARMOR'){fit=armor.includes(type)?1.25:.85;reasons.push(armor.includes(type)?'เกราะตรงวิถี':'เกราะต่างแนว');}
- const role=c.path==='BODY'?{atk:1.35,matk:.45,def:1.2,mdef:1.1}:c.path==='HEART_SOUL'||c.path==='XIAN'?{atk:.65,matk:1.35,def:1.1,mdef:1}:c.path==='DEMON'?{atk:1.15,matk:1.15,def:.85,mdef:.9}:c.path==='MECH_PUPPET'?{atk:1.15,matk:1.15,def:1.25,mdef:1.1}:c.path==='KARMA_SAMSARA'?{atk:.95,matk:1.28,def:1.12,mdef:1.32}:c.path==='BEAST_SOVEREIGN'?{atk:1.25,matk:.95,def:1.18,mdef:1.05}:c.path==='SAGE_SUPPORT'?{atk:.85,matk:1.30,def:1.18,mdef:1.34}:c.path==='CRAFT_CREATION'?{atk:1.15,matk:1.25,def:1.22,mdef:1.22}:c.path==='ARRAY_TALISMAN'?{atk:0.90,matk:1.32,def:1.15,mdef:1.30}:c.path==='STRATEGY_GOVERNANCE'?{atk:1.12,matk:1.22,def:1.22,mdef:1.22}:{atk:1,matk:1.1,def:1,mdef:1.2};
+ const pDefRole=(JD.CULT&&JD.CULT.paths&&JD.CULT.paths[c.path]&&JD.CULT.paths[c.path].statWeights)||null;
+ const role=c.path==='BODY'?{atk:1.35,matk:.45,def:1.2,mdef:1.1}:c.path==='HEART_SOUL'||c.path==='XIAN'?{atk:.65,matk:1.35,def:1.1,mdef:1}:c.path==='DEMON'?{atk:1.15,matk:1.15,def:.85,mdef:.9}:c.path==='MECH_PUPPET'?{atk:1.15,matk:1.15,def:1.25,mdef:1.1}:c.path==='KARMA_SAMSARA'?{atk:.95,matk:1.28,def:1.12,mdef:1.32}:c.path==='BEAST_SOVEREIGN'?{atk:1.25,matk:.95,def:1.18,mdef:1.05}:c.path==='SAGE_SUPPORT'?{atk:.85,matk:1.30,def:1.18,mdef:1.34}:c.path==='CRAFT_CREATION'?{atk:1.15,matk:1.25,def:1.22,mdef:1.22}:c.path==='ARRAY_TALISMAN'?{atk:0.90,matk:1.32,def:1.15,mdef:1.30}:c.path==='STRATEGY_GOVERNANCE'?{atk:1.12,matk:1.22,def:1.22,mdef:1.22}:pDefRole?{atk:pDefRole.atk||1,matk:pDefRole.matk||1,def:pDefRole.def||1,mdef:pDefRole.mdef||1}:{atk:1,matk:1.1,def:1,mdef:1.2};
  let power=(s.atk||0)*role.atk+(s.matk||0)*role.matk+(s.def||0)*role.def+(s.mdef||0)*role.mdef+(s.hp||0)*.5+(s.crit||0)*8+(s.critDmg||0)*1.5+(s.pen||0)*6+(s.cast||0)*3+(s.eva||0)*.6+(s.acc||0)*2;
  if(it.combatMult||it.defMult){
   const stageScale=22+c.stage*16;
