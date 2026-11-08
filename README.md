@@ -1,15 +1,19 @@
-# JianghuSect 2 — v2.3.0 (Grand Dao Deep Parity Release)
+# JianghuSect 2 (ภาค 2) — JS2-v2.3.0 (Grand Dao Deep Parity Release)
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
+> 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  
+> - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)  
+> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือฐาน **`JS2-v2.3.0`** และกำลังมุ่งสู่ **`JS2-v2.4.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
+
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
-**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
+**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (JS2-v2.4.0: Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
 
 **🐞 รายงานบัคฉบับรวม (Bug Audit Report):** [V2_3_0_CONSOLIDATED_BUG_REPORT.md](V2_3_0_CONSOLIDATED_BUG_REPORT.md)  
 **🗺️ แผนที่นำทางและไอเดีย (Future Roadmap & Ideas):** [FUTURE_ROADMAP_AND_IDEAS.md](FUTURE_ROADMAP_AND_IDEAS.md)
 
-**สถานะชุดทดสอบ (`v2.3.0`):** ชุดทดสอบทั้งหมด **139/139 ชุด** ใน `GAME_SOURCE/test/run_all.js` ผ่านครบ 100% PASS, Schema Validation ผ่าน 0 errors / 0 warnings, และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
+**สถานะชุดทดสอบ (`JS2-v2.3.0`):** ชุดทดสอบทั้งหมด **139/139 ชุด** ใน `GAME_SOURCE/test/run_all.js` ผ่านครบ 100% PASS, Schema Validation ผ่าน 0 errors / 0 warnings, และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
 
 ```bash
 cd GAME_SOURCE

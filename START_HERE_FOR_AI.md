@@ -7,15 +7,17 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `JianghuSect 2 v2.3.0` (Grand Dao Debates, 27 Apex Trials & Deep Parity Release — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 139/139 กลุ่ม!**)
+- **ภาคปัจจุบัน (Game Franchise Status):** **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
+  *(ประวัติ: ภาค 1 วิวัฒนาการจาก ยุค 1 สิ้นสุดที่ `v5.8.0`; ภาค 2 เริ่มต้นนับศักราชใหม่ที่ Season 2 โดยใช้รหัสแพตช์ทางการว่า `JS2-v...` ไม่ใช่การนับเลขถอยหลัง)*
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** **`JS2-v2.3.0`** (Grand Dao Debates, 27 Apex Trials & Deep Parity Release — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 139/139 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
+  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (**`JS2-v2.4.0`**: Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
 - **🐞 รายงานบัคฉบับรวมสำหรับแพตช์นี้ (Consolidated Bug Audit Report):**
   👉 [`V2_3_0_CONSOLIDATED_BUG_REPORT.md`](V2_3_0_CONSOLIDATED_BUG_REPORT.md)
 - **🗺️ แผนที่นำทางและคลังไอเดียรวม (Master Roadmap & Composable Mechanics):**
   👉 [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md) (`JianghuSect 2 v2.3.0` — Grand Dao Deep Parity Release)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md) (`JianghuSect 2 v2.3.0` / `JS2-v2.3.0` — Grand Dao Deep Parity Release)
 
 ---
 

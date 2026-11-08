@@ -1,17 +1,23 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
-**ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)
-**เวอร์ชันแพ็กเกจ**: `JianghuSect 2 v2.3.0` (runtime patch identifier `2.1.0` | SIM Version `1.10.11` | Save Schema `2.3.0-grand-dao-deep-parity-release` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JianghuSect 2 v2.3.0 Complete 100% (139/139 Tests Pass)` | Active Target: `v2.3.0`)
+**ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)  
+**ยุคและภาคปัจจุบัน**: **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
+**เวอร์ชันแพ็กเกจ**: **`JS2-v2.3.0`** (runtime patch identifier `2.1.0` | SIM Version `1.10.11` | Save Schema `2.3.0-grand-dao-deep-parity-release` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.3.0 Complete 100% (139/139 Tests Pass)` | Active Target: `JS2-v2.4.0`)  
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
+
+> 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  
+> - **JianghuSect 1 (ภาค 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)  
+> - **JianghuSect 2 (ภาค 2 — The Grand Dao Epoch):** คือเกมภาคใหม่ที่ยกเครื่องโครงสร้างระบบและมหาวิถีทั้งหมด จึงเริ่มนับวงรอบการพัฒนาใหม่ที่ Season 2 โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** หรือ **`JianghuSect 2 v...`** (ปัจจุบันคือฐาน **`JS2-v2.3.0`** และกำลังมุ่งสู่ **`JS2-v2.4.0`**)  
+> - *หมายเหตุสำหรับ AI:* เลขเวอร์ชัน `v2.x.x` ในปัจจุบันคือของ **"ภาค 2"** มิใช่การนับเลขย้อนหลังของภาค 1
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
 > เอกสารนี้คือ **สรุประบบปัจจุบันสำหรับตอบคำถามภาพรวม** ให้อ่านก่อนตอบว่าเกมมีอะไรหรือเสนอแนวทางพัฒนาต่อ เพื่อหลีกเลี่ยงการเสนอระบบที่มีอยู่แล้ว เมื่อจะลงมือแก้ไขหรือต้องการยืนยันรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้องด้วย
 
-> **สถานะปัจจุบันของแพตช์ v2.3.0 และผลการตรวจรับรอง (8 พฤศจิกายน 2026):**
+> **สถานะปัจจุบันของแพตช์ JS2-v2.3.0 และผลการตรวจรับรอง (8 พฤศจิกายน 2026):**
 > 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
 > 3. ชุดทดสอบรวมผ่านครบ **139/139 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,148 ไอเทม, 1,370 ตำรับ
-> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
+> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (JS2-v2.4.0: Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
 > 5. **🐞 รายงานบัคฉบับรวม:** [`V2_3_0_CONSOLIDATED_BUG_REPORT.md`](V2_3_0_CONSOLIDATED_BUG_REPORT.md) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 
 ---

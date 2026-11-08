@@ -1,8 +1,8 @@
-# ข้อความคำสั่งสำหรับส่งให้ AI พัฒนาแพตช์ถัดไป (Active Patch Prompt: JianghuSect 2 v2.4.0)
-## Tactical Composable Grand Dao & Comprehensive Bugfix Release
+# ข้อความคำสั่งสำหรับส่งให้ AI พัฒนาแพตช์ถัดไป (Active Patch Prompt: JianghuSect 2 — JS2-v2.4.0)
+## Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release
 
 > **วิธีใช้งาน:**  
-> คุณสามารถคัดลอกข้อความทั้งหมดในกรอบด้านล่างนี้ (ตั้งแต่หัวข้อ `Hello AI...`) นำไปวางส่งให้ AI (เช่น Gemini, Claude, หรือ Codex) ในแชท เพื่อเริ่มดำเนินงานพัฒนาแพตช์ **v2.4.0** ได้ทันที  
+> คุณสามารถคัดลอกข้อความทั้งหมดในกรอบด้านล่างนี้ (ตั้งแต่หัวข้อ `Hello AI...`) นำไปวางส่งให้ AI (เช่น Gemini, Claude, หรือ Codex) ในแชท เพื่อเริ่มดำเนินงานพัฒนาแพตช์ **JS2-v2.4.0** ได้ทันที  
 > 
 > **ลำดับกลยุทธ์สำคัญ (Execution Strategy):**  
 > 1. **Phase 1 (พัฒนาฟีเจอร์และแมคคานิคใหม่ก่อน):** ติดตั้งระบบ Composable Keywords, ยุทธวิธีการรบแถวหน้า-หลัง, วิถีใหม่ที่คัดสรร, ขยายโลกเบื้องบนฝั่งมาร/ปีศาจ/อสูร/ซาตาน, และระบบทรัพยากรรอง  
@@ -14,8 +14,13 @@
 ---
 
 ```markdown
-Hello Lead Systems Architect! We are developing the next major generational milestone for **JianghuSect 2**:  
-**Version v2.4.0: Tactical Composable Grand Dao & Comprehensive Bugfix Release**.
+Hello Lead Systems Architect! We are developing the next major generational milestone for **JianghuSect 2 (ภาค 2)**:  
+**Version JS2-v2.4.0: Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release**.
+
+> 💡 **Franchise Versioning Clarity (ธรรมนูญระบบนับเวอร์ชัน):**  
+> - **JianghuSect 1 (ภาค 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 สิ้นสุดสมบูรณ์ที่ `v5.8.0`  
+> - **JianghuSect 2 (ภาค 2 — The Grand Dao Epoch):** คือการยกเครื่องระบบและเริ่มนับศักราชใหม่ที่ Season 2 โดยใช้รหัสทางการว่า **`JS2-v...`** หรือ **`JianghuSect 2 v...`** (ปัจจุบันคือฐาน **`JS2-v2.3.0`** และกำลังพัฒนา **`JS2-v2.4.0`**)  
+> - *ตัวเลข `v2.x.x` ในปัจจุบันคือเลขเวอร์ชันของภาค 2 โดยเฉพาะ ไม่ใช่การนับเลขย้อนหลังของภาค 1*
 
 Our codebase is grounded on branch `main` (Save Schema: `2.3.0-grand-dao-deep-parity-release`, 43 Paths, 286 Subpaths, 1,243 Techniques, 1,148 Items, 1,370 Recipes, Core Lock `155:2f9c9dd7`).
 
@@ -178,13 +183,13 @@ Our codebase is grounded on branch `main` (Save Schema: `2.3.0-grand-dao-deep-pa
    - รัน `cd GAME_SOURCE && node tools/build_single.js` เพื่อสร้าง `GAME_SOURCE/JianghuSect_single.html`
 4. **Patch Delivery Packaging (การส่งมอบแพ็กเกจ):**
    - **กรณีทำจบครบในรอบเดียว:**
-     - อัปเดต Save Schema Version เป็น `2.4.0-tactical-composable-grand-dao`
-     - จัดทำเอกสารสรุปผลการพัฒนา `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`
-     - บีบอัดเป็นไฟล์ `JianghuSect2_v2.4.0_Tactical_Composable_Grand_Dao_Release.zip` พร้อมเล่น
+     - อัปเดต Save Schema Version เป็น `2.4.0-tactical-composable-grand-dao` (หรือ `JS2-2.4.0-tactical-composable-grand-dao`)
+     - จัดทำเอกสารสรุปผลการพัฒนา `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_JS2_V2_4_0.md`
+     - บีบอัดเป็นไฟล์ `JianghuSect2_JS2_v2.4.0_Tactical_Composable_Grand_Dao_Release.zip` พร้อมเล่น
    - **กรณีเลือกแบ่งช่วงพัฒนา (Modular Sub-Patch Release):**
-     - ตั้งชื่อไฟล์ zip และบันทึกเวอร์ชันตามช่วง เช่น `JianghuSect2_v2.4.0_Phase1_Features_Release.zip`
-     - **ในไฟล์ zip ต้องมีไฟล์ส่งต่องานแพตช์ถัดไปเสมอ** เช่น `NEXT_PATCH_PROMPT_v2_4_1.md` เพื่อให้ AI คนถัดไปกดรันต่อได้ทันที
-     - **ในไฟล์ zip ต้องมีรายงานบัคสำหรับแพตช์ต่อไปเสมอ** เช่น `V2_4_0_BUG_AUDIT_REPORT.md` ระบุบัคที่ต้องแก้ในรอบถัดไปอย่างครบถ้วน
+     - ตั้งชื่อไฟล์ zip และบันทึกเวอร์ชันตามช่วง เช่น `JianghuSect2_JS2_v2.4.0_Phase1_Features_Release.zip`
+     - **ในไฟล์ zip ต้องมีไฟล์ส่งต่องานแพตช์ถัดไปเสมอ** เช่น `NEXT_PATCH_PROMPT_JS2_v2_4_1.md` เพื่อให้ AI คนถัดไปกดรันต่อได้ทันที
+     - **ในไฟล์ zip ต้องมีรายงานบัคสำหรับแพตช์ต่อไปเสมอ** เช่น `JS2_V2_4_0_BUG_AUDIT_REPORT.md` ระบุบัคที่ต้องแก้ในรอบถัดไปอย่างครบถ้วน
 
 ขอให้ปฏิบัติหน้าที่ในฐานะ Lead Systems Architect อย่างรอบคอบ มีสติ ตรวจสอบผลกระทบข้ามระบบอย่างละเอียดถี่ถ้วน และลงมือพัฒนาอย่างเต็มกำลังครับ!
 ```
