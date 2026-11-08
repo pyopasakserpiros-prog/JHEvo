@@ -8,4 +8,6 @@ __pycache__/
 .agent_status
 agent_runner.sh
 *.zip
+!docs/references/*.zip
+!patch_zips/*.zip
 runner.log

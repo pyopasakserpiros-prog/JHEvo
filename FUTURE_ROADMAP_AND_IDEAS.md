@@ -2,9 +2,13 @@
 ## JianghuSect 2 — Living World, Tactical Combat & Generational Dynasty
 
 > **วัตถุประสงค์ของเอกสารนี้:**  
-> เป็นสมุดบันทึกแม่บท (Master Roadmap & Idea Compendium) รวบรวมแนวคิดการออกแบบ, กลไกระบบต่อสู้เชิงลึก, วิถีแห่งอนาคต, และพลวัตโลกของยุทธภพ โดยสังเคราะห์ข้อมูลสมบูรณ์จากทั้งสาขา `Gemini` (ข้อเสนอ v2.3.0) และสาขา `main` (เอกสาร `ideas/FUTURE_DAO_AND_MECHANICS_IDEAS.md`, Roadmap หมวด 15, และข้อเสนอ Dynamic Sects)
+> เป็นสมุดบันทึกแม่บท (Master Roadmap & Idea Compendium) รวบรวมแนวคิดการออกแบบ, กลไกระบบต่อสู้เชิงลึก, วิถีแห่งอนาคต, และพลวัตโลกของยุทธภพ โดยสังเคราะห์ข้อมูลสมบูรณ์จากทั้งสาขา `Gemini` (ข้อเสนอ v2.3.0/v2.4.0) และสาขา `main` (เอกสาร `ideas/FUTURE_DAO_AND_MECHANICS_IDEAS.md`, Roadmap หมวด 15, และข้อเสนอ Dynamic Sects)
 > 
-> *(หมายเหตุ: แยกขาดจากเอกสารตรวจบัค [V2_3_0_CONSOLIDATED_BUG_REPORT.md](V2_3_0_CONSOLIDATED_BUG_REPORT.md) อย่างชัดเจน โดยเอกสารนี้มุ่งเน้นเฉพาะการวางแผนพัฒนาฟีเจอร์ในแพตช์อนาคต v2.4.0+ หรือ Era 3)*
+> 📦 **คลังความรู้แม่บทสำหรับการพัฒนาในอนาคต (Future Update Knowledge Base & Roadmap Reference):**  
+> - **ไฟล์คลังความรู้สมบูรณ์ 24 หัวข้อ (Zip):** [`docs/references/JianghuSect2_Future_Update_Knowledge_Base_Complete.zip`](docs/references/JianghuSect2_Future_Update_Knowledge_Base_Complete.zip) (รวบรวมไอเดีย Qwen, DeepSeek, Claude, Grand Dao v1.1, และ Gemini)  
+> - **สารบัญคลังความรู้และตรวจสุขภาพเกม:** [`docs/references/00_รายงานตรวจสุขภาพเกม_v2.4.0_และสารบัญคลังข้อมูล.md`](docs/references/00_รายงานตรวจสุขภาพเกม_v2.4.0_และสารบัญคลังข้อมูล.md)  
+> - **ข้อเสนอ 8 เสาหลักระบบ NPC ตัดสินใจเองโดย Gemini:** [`docs/proposals/jianghusect2_gemini_original_autonomous_npc_proposals.md`](docs/proposals/jianghusect2_gemini_original_autonomous_npc_proposals.md)  
+> - **ไฟล์แพตช์อัปเดตเกมล่าสุด (Patch Release Zip):** [`patch_zips/JianghuSect2_JS2_v2.4.0_Tactical_Composable_Grand_Dao_Release.zip`](patch_zips/JianghuSect2_JS2_v2.4.0_Tactical_Composable_Grand_Dao_Release.zip)
 
 ---
 
