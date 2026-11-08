@@ -1,0 +1,367 @@
+{
+  "qwenPaths": [
+    {
+      "id": "DREAM_WEAVER",
+      "nameTh": "วิถีมายาสุบินและภวังค์นิทรา",
+      "gauge": "Lucid Dreamscape",
+      "subpathsCount": 6
+    },
+    {
+      "id": "INTOXICATED_DAO",
+      "nameTh": "วิถีสุราเซียนและกระบี่เมา",
+      "gauge": "Drunken Qi",
+      "subpathsCount": 6
+    },
+    {
+      "id": "MIRROR_REFLECTION",
+      "nameTh": "วิถีกระจกเงาและภาพสะท้อน",
+      "gauge": "Truth Mirror Shard",
+      "subpathsCount": 4
+    },
+    {
+      "id": "THREAD_WEAVING",
+      "nameTh": "วิถีด้ายชะตาและทอผ้าสวรรค์",
+      "gauge": "Loom of Destiny",
+      "subpathsCount": 4
+    },
+    {
+      "id": "ASH_REBIRTH",
+      "nameTh": "วิถีเถ้าถ่านและเพลิงเกิดใหม่",
+      "gauge": "Primordial Ash",
+      "subpathsCount": 4
+    },
+    {
+      "id": "TACTICAL_BOARD",
+      "nameTh": "วิถีกระดานยุทธศาสตร์และหมากสวรรค์",
+      "gauge": "Celestial Piece",
+      "subpathsCount": 4
+    },
+    {
+      "id": "SAND_DESERT_DAO",
+      "nameTh": "วิถีทรายบรรพกาลและทะเลทรายหมื่นลี้",
+      "gauge": "Primordial Grain",
+      "subpathsCount": 6
+    },
+    {
+      "id": "BLOOD_OATH_DAO",
+      "nameTh": "วิถีพันธสัญญาโลหิตและคำสาบาน",
+      "gauge": "Crimson Truth",
+      "subpathsCount": 6
+    },
+    {
+      "id": "DANCE_OF_WAR",
+      "nameTh": "วิถีรำยุทธ์และนาฏยกรรมยุทธ์",
+      "gauge": "War Melody",
+      "subpathsCount": 6
+    },
+    {
+      "id": "MEMORY_WEAVER",
+      "nameTh": "วิถีทอผ้าความทรงจำ",
+      "gauge": "Memory Thread",
+      "subpathsCount": 6
+    },
+    {
+      "id": "PAIN_TRANSCENDENCE",
+      "nameTh": "วิถีทรานเซนเดนซ์ความเจ็บปวด",
+      "gauge": "Pain Merit",
+      "subpathsCount": 6
+    },
+    {
+      "id": "SYMBIOTIC_PARASITE",
+      "nameTh": "วิถีปรสิตซิมไบโอติก",
+      "gauge": "Parasite Pulse",
+      "subpathsCount": 6
+    },
+    {
+      "id": "LIGHT_SHADOW_DAO",
+      "nameTh": "วิถีแสงและเงา",
+      "gauge": "Light-Shadow Balance",
+      "subpathsCount": 6
+    }
+  ],
+  "deepseekPaths": [
+    {
+      "id": "DREAM_REALM",
+      "nameTh": "วิถีมายาฝันและภวังคจิต",
+      "resource": "Lucid Dream",
+      "subpathsCount": 4
+    },
+    {
+      "id": "OATH_BINDER",
+      "nameTh": "วิถีพันธสัญญาโลหิตและสัจวาจา",
+      "resource": "Credibility",
+      "subpathsCount": 4
+    },
+    {
+      "id": "VOID_FASTING",
+      "nameTh": "วิถีอดอยากเป็นสุข",
+      "resource": "Hunger + HP-as-Mana",
+      "subpathsCount": 6
+    },
+    {
+      "id": "MEMORY_THIEF",
+      "nameTh": "วิถีกินความจำ",
+      "resource": "Memory Slot",
+      "subpathsCount": 6
+    },
+    {
+      "id": "BLIND_SEER",
+      "nameTh": "วิถีคนตาบอดเห็นทุกสิ่ง",
+      "resource": "Sixth Sense",
+      "subpathsCount": 6
+    },
+    {
+      "id": "ECHO_BODY",
+      "nameTh": "วิถีร่างสะท้อน",
+      "resource": "Soul Shard",
+      "subpathsCount": 6
+    },
+    {
+      "id": "DEBT_WEAVER",
+      "nameTh": "วิถีทอหนี้",
+      "resource": "Debt (0..250)",
+      "subpathsCount": 6
+    },
+    {
+      "id": "FLESH_GRAFT",
+      "nameTh": "วิถีต่อเติมกายและหนี้เนื้อหนัง",
+      "resource": "Humanity + Graft Slots",
+      "subpathsCount": 6
+    },
+    {
+      "id": "SENSORY_DEPRIVATION",
+      "nameTh": "วิถีตัดสัมผัสแลกญาณ",
+      "resource": "Sensory Slots (5)",
+      "subpathsCount": 6
+    },
+    {
+      "id": "DEBT_OF_FLESH",
+      "nameTh": "วิถีจำนำร่างกาย",
+      "resource": "Blood Debt (Pledged Max HP)",
+      "subpathsCount": 6
+    },
+    {
+      "id": "KRASUE_BOUND",
+      "nameTh": "วิถีกระสือพันธะสายโลหิต (อุษาคเนย์)",
+      "resource": "Head-String + Night Cycle",
+      "subpathsCount": 6
+    },
+    {
+      "id": "MADNESS_SANITY",
+      "nameTh": "วิถีเสียสติแลกพลัง",
+      "resource": "Sanity + Fear",
+      "subpathsCount": 6
+    },
+    {
+      "id": "CHORUS_WEAVER",
+      "nameTh": "วิถีประสานหมู่ (Support)",
+      "resource": "Harmony Stack",
+      "subpathsCount": 4
+    },
+    {
+      "id": "VOW_BROKER",
+      "nameTh": "วิถีผู้ค้ำประกัน (Support)",
+      "resource": "Favor Debt",
+      "subpathsCount": 4
+    },
+    {
+      "id": "ANCHOR_GUARDIAN",
+      "nameTh": "วิถีผู้ยึดเหนี่ยว (Support)",
+      "resource": "Anchor Point",
+      "subpathsCount": 4
+    },
+    {
+      "id": "PLAGUE_CARRIER",
+      "nameTh": "วิถีผู้แบกโรค (Debuff)",
+      "resource": "Infection Stack",
+      "subpathsCount": 4
+    },
+    {
+      "id": "MARK_OF_FATE",
+      "nameTh": "วิถีผู้ประทับชะตา (Debuff)",
+      "resource": "Fate Mark",
+      "subpathsCount": 4
+    },
+    {
+      "id": "PUPPET_MASTER",
+      "nameTh": "วิถีเจ้าแห่งหุ่นเงา (Debuff)",
+      "resource": "Marionette Thread",
+      "subpathsCount": 4
+    },
+    {
+      "id": "BULWARK_SENTINEL",
+      "nameTh": "วิถีผู้พิทักษ์ปราการ (Tank)",
+      "resource": "Guard Link",
+      "subpathsCount": 4
+    },
+    {
+      "id": "RETRIBUTION_FORGE",
+      "nameTh": "วิถีเตาหลอมการแก้แค้น (Tank)",
+      "resource": "Retribution Charge",
+      "subpathsCount": 4
+    },
+    {
+      "id": "IMMOVABLE_MONOLITH",
+      "nameTh": "วิถีมหาศิลาที่ไม่หวั่นไหว (Tank)",
+      "resource": "Stability",
+      "subpathsCount": 4
+    },
+    {
+      "id": "BERSERKER_DOCTRINE",
+      "nameTh": "วิถีคลั่งตามคำสอน (High-Risk NPC Doctrine)",
+      "resource": "Fury",
+      "subpathsCount": 4
+    },
+    {
+      "id": "FATE_GAMBLER",
+      "nameTh": "วิถีเดิมพันชะตา (High-Risk NPC Doctrine)",
+      "resource": "Wager",
+      "subpathsCount": 4
+    },
+    {
+      "id": "DOOMSEEKER",
+      "nameTh": "วิถีแสวงหายักษ์ (High-Risk NPC Doctrine)",
+      "resource": "Doom Mark",
+      "subpathsCount": 4
+    }
+  ],
+  "claudePaths": [
+    {
+      "id": "PESTILENCE_REMEDY",
+      "num": 44,
+      "nameTh": "วิถีโรคาและโอสถชำระ",
+      "gauge": "Toxin-Remedy Dual Pole",
+      "subpathsCount": 4
+    },
+    {
+      "id": "MEMORY_OBLIVION",
+      "num": 45,
+      "nameTh": "วิถีสมฤติและการลืมเลือน",
+      "gauge": "Remembrance-Oblivion",
+      "subpathsCount": 4
+    },
+    {
+      "id": "MASK_OPERA",
+      "num": 46,
+      "nameTh": "วิถีหน้ากากงิ้วและตัวตนมายา",
+      "gauge": "Persona Mask Layer",
+      "subpathsCount": 4
+    },
+    {
+      "id": "PRISM_LIGHT",
+      "num": 47,
+      "nameTh": "วิถีปริซึมแสงเงา",
+      "gauge": "Refraction Spectrum",
+      "subpathsCount": 4
+    },
+    {
+      "id": "RUST_DECAY",
+      "num": 48,
+      "nameTh": "วิถีสนิมกาลและความเสื่อมสลาย",
+      "gauge": "Corrosion Entropy",
+      "subpathsCount": 4
+    },
+    {
+      "id": "BOND_COMPANION",
+      "num": 49,
+      "nameTh": "วิถีพันธะหทัยและคู่บำเพ็ญ",
+      "gauge": "Heart-Bond Resonance",
+      "subpathsCount": 4
+    },
+    {
+      "id": "FOLKLORE_RUMOR",
+      "num": 50,
+      "nameTh": "วิถีตำนานเล่าขานและวาจาลือ",
+      "gauge": "Rumor Propagation",
+      "subpathsCount": 4
+    },
+    {
+      "id": "DRUNKEN_TEA_DAO",
+      "num": 51,
+      "nameTh": "วิถีสุราและน้ำชา",
+      "gauge": "Ferment-Serenity Dual Pole",
+      "subpathsCount": 4
+    },
+    {
+      "id": "ARCHITECT_FORTIFIER",
+      "num": 52,
+      "nameTh": "วิถีสถาปนิกและป้อมปราการ",
+      "gauge": "Bastion Blueprint",
+      "subpathsCount": 4
+    }
+  ],
+  "grandDaoV11Paths": [
+    {
+      "ลำดับ": "1",
+      "รหัสต้นแบบ": "MEMORY_ECHO",
+      "มหาวิถี": "วิถีรอยจำสะท้อนภพ",
+      "เกจหลัก": "ความชัดเจนรอยจำ (Echo Clarity)"
+    },
+    {
+      "ลำดับ": "2",
+      "รหัสต้นแบบ": "VOWBOUND_HEART",
+      "มหาวิถี": "วิถีสัตย์ปณิธานผูกใจ",
+      "เกจหลัก": "แรงสัตย์ (Vow Resolve)"
+    },
+    {
+      "ลำดับ": "3",
+      "รหัสต้นแบบ": "DREAM_COMMONWEAL",
+      "มหาวิถี": "วิถีสมุทรฝันร่วมสำนัก",
+      "เกจหลัก": "ใยฝัน (Dream Weave)"
+    },
+    {
+      "ลำดับ": "4",
+      "รหัสต้นแบบ": "MYCELIAL_CYCLE",
+      "มหาวิถี": "วิถีเส้นใยสังสารพฤกษา",
+      "เกจหลัก": "ใยธาตุหมุนเวียน (Mycelial Cycle)"
+    },
+    {
+      "ลำดับ": "5",
+      "รหัสต้นแบบ": "THERMAL_BALANCE",
+      "มหาวิถี": "วิถีดุลอุณหภูมิฟ้าดิน",
+      "เกจหลัก": "หนี้ความร้อน (Heat Debt)"
+    },
+    {
+      "ลำดับ": "6",
+      "รหัสต้นแบบ": "FERRO_POLARITY_DAO",
+      "มหาวิถี": "วิถีขั้วแม่เหล็กและเส้นแรง",
+      "เกจหลัก": "แรงขั้ว (Polarity Charge)"
+    },
+    {
+      "ลำดับ": "7",
+      "รหัสต้นแบบ": "PRISM_OPTICS",
+      "มหาวิถี": "วิถีปริซึมสะท้อนอรุณ",
+      "เกจหลัก": "หน้ากระจก (Prism Facets)"
+    },
+    {
+      "ลำดับ": "8",
+      "รหัสต้นแบบ": "SCENT_TRACE",
+      "มหาวิถี": "วิถีหอมควันแกะรอยชะตา",
+      "เกจหลัก": "รอยกลิ่น (Scent Trace)"
+    },
+    {
+      "ลำดับ": "9",
+      "รหัสต้นแบบ": "SCAR_TEMPERING",
+      "มหาวิถี": "วิถีรอยแผลหลอมเจตจำนง",
+      "เกจหลัก": "รอยแผลสำนึก (Scar Insight)"
+    },
+    {
+      "ลำดับ": "10",
+      "รหัสต้นแบบ": "DISASTER_RELIEF",
+      "มหาวิถี": "วิถีพิทักษ์ภัยพิบัติและบูรณะ",
+      "เกจหลัก": "ความพร้อมรับภัย (Relief Readiness)"
+    },
+    {
+      "ลำดับ": "11",
+      "รหัสต้นแบบ": "DANCE_FOOTWORK",
+      "มหาวิถี": "วิถีระบำก้าวดาราประสานทัพ",
+      "เกจหลัก": "จังหวะก้าว (Step Cadence)"
+    },
+    {
+      "ลำดับ": "12",
+      "รหัสต้นแบบ": "RECLAMATION_DAO",
+      "มหาวิถี": "วิถีกลั่นกากคืนทรัพย์",
+      "เกจหลัก": "ประสิทธิภาพคืนรูป (Reclaim Yield)"
+    }
+  ]
+}
