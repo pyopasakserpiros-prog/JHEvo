@@ -7,6 +7,16 @@
 
 ---
 
+## แผนที่รายงานสำหรับผู้แก้ไข (อัปเดต 8 พ.ย. 2026)
+
+เอกสารนี้รวมผลตรวจหลายรอบ ตัวเลขและระดับความรุนแรงในแต่ละรายงานเป็นผลของรอบนั้น ไม่ใช่ยอดรวมทั้งเกม รายการที่มีรหัสต่างกันอาจเกี่ยวข้องกัน ให้อ่านต้นเหตุและ cross-reference ก่อนแก้ ระดับ REVIEW คือข้อที่ต้องยืนยันกติกาหรือวัดเพิ่มก่อนปรับสมดุล
+
+- [รายการหลักและตลาด](#audit-master) · [คอมแบทเดิม](#audit-combat) · [วิถีและสายย่อยเดิม](#audit-paths) · [เสถียรภาพและเซฟ](#audit-stability) · [อุปกรณ์](#audit-equipment)
+- [อาจารย์–ศิษย์](#audit-mentor) · [ระบบสำนัก](#audit-sect) · [วิชาและอาวุธ](#audit-tech) · [สำรวจโลก](#audit-explore)
+- [เศรษฐกิจ](#audit-economy) · [คราฟต์](#audit-craft) · [Save/Load](#audit-save) · [NPC AI](#audit-npc) · [สำรวจเพิ่มเติม](#audit-explore-deep) · [การเมืองและสงคราม](#audit-politics)
+- [ผลกระทบลูกโซ่คอมแบทรอบล่าสุด](#audit-combat-cascade) · [รายงานใหม่จาก Gemini: วิถีและสมดุล](#audit-gemini-paths)
+
+<a id="audit-master"></a>
 ## ผลตรวจเพิ่มเติมโดย Codex — ตลาดภายนอกและคลัง (8 พ.ย. 2026)
 
 **ฐานที่ตรวจ:** `main` commit `680dcf804fdb8d4b819e6d319ed5c28fd4a94be7` (ซอร์สเกมจาก `ecaf3fa3815de76cf472c7138ca4396afd9f1142`) ใช้ Node.js v24.22.1, harness `GAME_SOURCE/test/load.js` และ seed ตามสคริปต์ข้างล่าง ตรวจเฉพาะเส้นทางที่ระบุ ไม่ได้ตรวจทั่วเกมหรือทดสอบด้วยการเล่นผ่าน UI ทุกกรณี ระดับ P1/P2 เป็นข้อเสนอเพื่อจัดลำดับ ไม่ใช่ผลประเมิน release gate ทั้งเกม
@@ -225,6 +235,7 @@
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_COMBAT_SKILLS_STATUS_AUDIT_V230.md
 
+<a id="audit-combat"></a>
 # JianghuSect 2 v2.3.0 — ตรวจระบบต่อสู้ วิชา เอฟเฟกต์สถานะ และ AI ก่อนเปิดให้เล่น
 > **รายงานหมวดที่ 5 แยกเป็นอิสระใน ZIP ชุดเดิม** · 8 พฤศจิกายน 2026 · ใช้ source ต้นฉบับเท่านั้น · **ไม่แก้ซอร์สเกม**
 
@@ -415,6 +426,7 @@ OUTPUT_JSON=/tmp/combat_results.json GAME_SOURCE_ROOT=/absolute/path/to/GAME_SOU
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_DAO_PATH_SUBPATH_AUDIT_V230.md
 
+<a id="audit-paths"></a>
 # รายงานตรวจวิถีหลัก / สายย่อย / สมดุลเมต้า — JianghuSect 2 v2.3.0
 > **รายงานใหม่แยกหมวด (ไม่ทับรายงานอุปกรณ์)** | 8 พฤศจิกายน 2026 | source SHA-256: `983e351b119c63f40b402c5e6e27c44a5f39683dc5e5b995773862efc467df62`
 
@@ -629,6 +641,7 @@ OUTPUT_JSON=/tmp/combat_results.json GAME_SOURCE_ROOT=/absolute/path/to/GAME_SOU
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_FREEZE_AUDIT_V230.md
 
+<a id="audit-stability"></a>
 # JianghuSect 2 v2.3.0 — Freeze / Stability Code & Logic Audit
 
 > **วันที่ตรวจ:** 8 พฤศจิกายน 2026  
@@ -958,6 +971,7 @@ OUTPUT_JSON=/tmp/combat_results.json GAME_SOURCE_ROOT=/absolute/path/to/GAME_SOU
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_GEAR_BALANCE_AUDIT_V230.md
 
+<a id="audit-equipment"></a>
 # รายงานตรวจอุปกรณ์ / ความสมเหตุสมผล / สมดุลเมต้า — JianghuSect 2 v2.3.0
 > **รายงานเพิ่มเติมสำหรับ QA Freeze Audit รอบเดิม** | 8 พฤศจิกายน 2026 | Source: `JianghuSect2_v2.3.0_Grand_Dao_Deep_Parity_Release.zip`
 
@@ -1170,6 +1184,7 @@ OUTPUT_JSON=/tmp/combat_results.json GAME_SOURCE_ROOT=/absolute/path/to/GAME_SOU
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_MENTORSHIP_OFFICES_AUDIT_V230.md
 
+<a id="audit-mentor"></a>
 # รายงาน QA เจาะลึก — ระบบอาจารย์–ศิษย์และตำแหน่งในสำนัก
 **JianghuSect 2 v2.3.0 | Freeze / Release Candidate | 8 พฤศจิกายน 2026**
 
@@ -1453,6 +1468,7 @@ electSuccessor สำเร็จ 4 ครั้งโดยเวลาไม�
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_SECT_SYSTEMS_AUDIT_V230.md
 
+<a id="audit-sect"></a>
 # รายงานตรวจระบบสำนักส่วนที่เหลือ — JianghuSect 2 v2.3.0
 > **หมวดใหม่แยกจากเศรษฐกิจ / อุปกรณ์ / วิถีและสายย่อย** | ตรวจ 8 พฤศจิกายน 2026 | ต้นฉบับไม่ถูกแก้ไข
 
@@ -1855,6 +1871,7 @@ electSuccessor สำเร็จ 4 ครั้งโดยเวลาไม�
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_TECHNIQUES_WEAPONS_AUDIT_V230.md
 
+<a id="audit-tech"></a>
 # JianghuSect 2 v2.3.0 — ตรวจวิชา วิถี/สายย่อย และวิชาสำหรับอาวุธ–อุปกรณ์
 > **หมวดที่ 8 แยกจากหมวดการต่อสู้และหมวดอุปกรณ์เดิม** · 8 พฤศจิกายน 2026 · **Read-only: ไม่แก้ซอร์สเกม**
 
@@ -2156,6 +2173,7 @@ electSuccessor สำเร็จ 4 ครั้งโดยเวลาไม�
 
 ### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_WORLD_EXPLORATION_EXPEDITIONS_AUDIT_V230.md
 
+<a id="audit-explore"></a>
 # รายงานตรวจเกม v2.3.0 — ระบบสำรวจโลก แดนลับ คณะเดินทาง และวาสนาฟ้าดิน
 **JianghuSect 2 · Release Freeze QA · 8 พฤศจิกายน 2026**
 
@@ -2497,6 +2515,7 @@ GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPR
 
 ### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / AUDIT/02_DETAILED_FINDINGS_TH.md
 
+<a id="audit-economy"></a>
 # 02 — รายละเอียดข้อค้นพบ พร้อมจุดอ้างอิงและการทดสอบ
 
 ความหมาย: **UI_TO_SERVICE** = พบ action UI และทดสอบ API ที่ UI เรียก (ยังไม่ใช่ browser click test); **API_ONLY** = เรียก function ตรงผ่าน Node; **SAVE_CROSS_SYSTEM** = พิสูจน์ผล serialize/load; **DESIGN_REVIEW** = ต้องยืนยันสเปกก่อนชี้ว่าผิดแน่. P0 = release blocker ตามผลกระทบ. จำนวนที่พบไม่ใช่จำนวน bug exploit ผ่าน UI ทั้งหมด.
@@ -2761,6 +2780,7 @@ GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPR
 
 ### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / CRAFT_AUDIT/01_EVIDENCE_AND_ROOT_CAUSE_TH.md
 
+<a id="audit-craft"></a>
 # 01 — รายละเอียดข้อค้นพบและ Root Causes
 
 **หมายเหตุ:** `RUNTIME_CONFIRMED` หมายถึงรันทดสอบ/สถานะจริงยืนยัน; `STATIC_CONFIRMED` คือ code path ชัดแต่ยังไม่พิสูจน์ผู้เล่นเข้าถึง; `CONDITIONAL` และ `DESIGN_REVIEW` ห้ามตีความเป็นบัคผู้เล่นแน่นอน
@@ -2966,6 +2986,7 @@ GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPR
 
 ### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / SAVE_AUDIT/01_DETAILED_FINDINGS_TH.md
 
+<a id="audit-save"></a>
 # ข้อค้นพบ Save/Load รายประเด็นพร้อมหลักฐานและแนวทางแก้
 
 **อ่านก่อนใช้งาน:** `CONFIRMED_RUNTIME` หมายถึงพิสูจน์ด้วยการเรียกโมดูลใน Node VM จากโค้ดต้นฉบับ ไม่ได้ยืนยันว่าเส้นทางนี้ผู้เล่นกดได้ทุกกรณีใน UI; `CONFIRMED_MOCK_STORAGE` คือจำลองการโยน error ของ browser storage. ผลแต่ละรายการมีข้อจำกัดของตนเอง ไม่เหมารวมเป็น exploit จากหน้าเกม.
@@ -3085,6 +3106,7 @@ GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPR
 
 ### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / NPC_AI_AUDIT/01_CONFIRMED_FINDINGS_TH.md
 
+<a id="audit-npc"></a>
 # NPC AI: Findings พร้อมหลักฐาน ตำแหน่งโค้ด และข้อตรวจรับ
 
 ## 1. NPC-AI-001 [P0] — การหยุดงานกลางคันไม่ปิดธุรกรรมวัตถุดิบ: หิวระหว่างหลอม/ทำอาหาร
@@ -3273,6 +3295,7 @@ GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPR
 
 ### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / EXPEDITION_WORLD_AUDIT/01_DEEP_FINDINGS_TH.md
 
+<a id="audit-explore-deep"></a>
 # Pre-release deep audit — การสำรวจ ภารกิจนอกสำนัก และเหตุการณ์โลก (JianghuSect2 v2.3.0)
 
 **สถานะ:** รายงานตรวจสอบซอร์สและการทดสอบบนแพ็กเกจต้นฉบับเท่านั้น *ไม่ได้แก้ซอร์สเกม*  
@@ -3502,6 +3525,7 @@ GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPR
 
 ### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / POLITICS_WAR_SUCCESSION_AUDIT/01_FINDINGS_DEEP_TH.md
 
+<a id="audit-politics"></a>
 # ข้อค้นพบเชิงลึก 20 ประเด็น — ร่องรอยโค้ดและการแก้เชิงระบบ
 
 **สรุป:** P0 2 | P1 11 | P2 7; ความรุนแรงใช้ผลกระทบก่อนเปิดเกม ไม่ได้หมายความว่าทุก API เรียกผ่าน UI ได้
@@ -3712,6 +3736,7 @@ GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPR
 - `P1`: บัคตรรกะสำคัญ หรือตัว entry point ที่ระบบภายในอื่นอาจเรียกได้; แนะนำแก้ก่อน release แม้บางจุดยังต้องพิสูจน์ UI
 - `P2`: ความเสี่ยงหรือความไม่สมเหตุสมผลที่ต้องตัดสินเจตนาการออกแบบ และเพิ่ม test/contracts; ไม่ถือเป็น exploit UI ที่ยืนยันแล้ว
 
+<a id="audit-combat-cascade"></a>
 ## ภาคผนวก — ตรวจผลกระทบลูกโซ่ของคอมแบทเพิ่มเติม (2026-11-08)
 
 ตรวจเส้นเชื่อมจากวิชา/วิถีและสายย่อยไปยังผู้คุ้มกัน สัตว์อสูร สเตตัส อุปกรณ์ และการปิดฉากต่อสู้ โดยเทียบกับ COMBAT-01 ถึง COMBAT-11 และรายการ EQ/TECH/JHS ที่มีอยู่แล้ว ภาคผนวกนี้เพิ่ม **บัคที่ทำซ้ำได้ 3 ข้อ (COMBAT-12 ถึง COMBAT-14)** และ **จุดให้ยืนยันกติกา 1 ข้อ (COMBAT-15)**; ไม่แก้โค้ดเกม
@@ -3767,3 +3792,48 @@ node GAME_SOURCE/test/v230_combat_cascade_repro.js
 **การทดสอบพื้นฐานที่เกี่ยวข้อง:** ชุด combat, defensive kungfu/aegis, paths/beast pets, combat depth/duet, weapon/subpath/gear, elemental scaling, combat passives, heavenly tribulation/VFX, forbidden arts/passive constellations, unified weapon skills, resonance tactics, weapon-build improvisation และ elemental overhaul ผ่านทั้งหมดในการตรวจรอบนี้ (รวม 57 assertions ใน `v300`, 38 ใน `v340`, 96 สายย่อย/747 วิชา/420 อุปกรณ์ในชุด weapon-subpath และ 78/78 ใน elemental overhaul). อย่างไรก็ดี ชุดพื้นฐานเหล่านี้ไม่ครอบคลุมการต่อกันของ fatigue threshold→stat cache, intercept→rider และ dead-source DoT→kill attribution; สคริปต์ CC ด้านบนยืนยันช่องว่างเหล่านี้โดยตรง
 
 **ขอบเขต/ข้อจำกัด:** เป็นการตรวจ Node module และโค้ดเชื่อมข้ามระบบ ไม่ใช่ browser E2E หรือการเล่นครบทุกสาย/ทุกอุปกรณ์ด้วยมือ; findings ใหม่ด้านบนมี runtime reproduction ตามที่ระบุ ส่วน COMBAT-15 รอคำยืนยันดีไซน์
+
+
+<a id="audit-gemini-paths"></a>
+## ผลตรวจใหม่จาก Gemini — วิถี สายย่อย และสมดุล (JS2-v2.3.0)
+
+**ต้นทาง:** สาขา `Gemini` commit `f774bfc3c870925557c919ab35801299a5b8afba`, ไฟล์ต้นฉบับเก็บไว้ที่ [รายงานฉบับเต็ม](docs/audits/REPORT_v2_3_0_Paths_Subpaths_Logic_and_Balance_Gemini.md) เพื่อเก็บตารางและวิธีวัดครบถ้วน ต้นทางแยกจาก `main` หลัง commit `a71e286`; ตัวเลขและผลทดสอบในต้นฉบับเป็นคำรายงานของ Gemini ไม่ใช่ผลรันซ้ำทั้งหมดบน `main` รายการด้านล่างรวมเฉพาะประเด็นใหม่หรือหลักฐานเสริมที่มีความหมาย และชี้รายการเดิมที่เกี่ยวข้อง
+
+### GPATH-01 [P1] ฟิลด์ปลด trait ไม่ตรงกัน ทำให้ `getActiveTraits` คืน trait ขั้นสูงก่อนเวลา (Gemini A1)
+
+- **ตำแหน่ง:** `GAME_SOURCE/js/cultivation.js:8662-8673`; ผู้ใช้ข้อมูลใน `GAME_SOURCE/js/combat.js:674` และ `GAME_SOURCE/js/sect.js:16295,16306`; ฝั่งสเตตัส `GAME_SOURCE/js/stats.js:710,731` อ่าน `stage`/`realm`
+- **สาเหตุ:** filter อ่าน `stageReq`/`realmReq` แต่ข้อมูลรายงานต้นทางใช้ `stage`/`realm`; fallback จึงปลด realm trait ทุกขั้นเมื่อ stage ≥ 2 และ subpath trait ทุกขั้นเมื่อ ordinal ≥ 3
+- **ยืนยันซ้ำบน main:** สร้าง NPC ผ่าน `test/load.js` ตั้ง stage 2 ใน `BEAST_SOVEREIGN`, `BODY`, `GOD`; `getActiveTraits` คืน path stages `[2,4,6,8]` ทั้งสามกรณี ฝั่ง subpath และผล proc แต่ละชนิดยังไม่ได้จำลองซ้ำในรอบรวมเอกสารนี้; ต้นทางรายงาน track 3 คืน realm 3/6/9
+- **ผล:** combat passive, UI และคะแนนเวทีโต้วาทีที่อาศัยรายชื่อ trait อาจปลดก่อนเวลา ขณะที่ stat bonus เช็กอีกเกณฑ์ ทำให้ผลต่างระบบไม่ตรงกัน
+- **แนวทางและเกณฑ์รับ:** ใช้กติกาและฟิลด์ปลดร่วมกันกับ STATS ทดสอบ stage ก่อน/ตรง/หลัง 2,4,6,8 และ ordinal 3,6,9 ทั้งผล API, combat proc, UI และเวที; แก้ร่วม GPATH-02 เพื่อไม่ทำให้สองวิถีเสีย trait ที่ควรเข้าถึง
+
+### GPATH-02 [P1/REVIEW] trait ขั้น 6/8 ของ BODY และ GOD อยู่นอกขั้นสูงสุด (Gemini A2)
+
+- **หลักฐาน:** ตรวจบน `main` พบ `CULT.maxStage` ของ BODY = 5, GOD = 4 และ `getActiveTraits` คืนข้อมูล trait stages 2,4,6,8 ทั้งคู่; STATS ตรวจ `c.stage >= rt.stage` จึงไม่ถึง 6/8 ตามข้อมูลปัจจุบัน การปลดครบทุก trait เป็นเจตนาที่ต้องยืนยัน
+- **ผลและการแก้:** เมื่อแก้ GPATH-01 ผล trigger ขั้นสูงที่ปัจจุบันรั่วจะหายไปด้วย กำหนด milestone ที่เข้าถึงได้ตามดีไซน์แต่ละวิถี หรือระบุข้อยกเว้นให้ชัด อย่าปรับสูตรทุกวิถีโดยไม่มีการทดสอบ stage boundary และ save เก่า
+- **ทดสอบ:** ทุก trait ที่ตั้งใจให้ปลดต้องเข้าถึงได้ที่ max stage และไม่ปลดก่อนขั้นที่กำหนด ทั้ง STATS, combat และเซฟโหลด
+
+### GPATH-03 [P2/REVIEW] `resourceReq` อาจเป็นข้อมูลบรรยายที่ไม่ได้บังคับใช้ (Gemini A3)
+
+- **หลักฐานจากต้นทาง:** พบฟิลด์ 340 รายการและรายงานว่าไม่มี runtime reader ใน `js/`; ยังไม่ได้พิสูจน์ว่า UI แสดงเป็นข้อบังคับหรือควรหักไอเทมจริง
+- **ตรวจรับ:** ตรวจผู้ใช้ข้อมูลและเส้นทางทะลวง/UI ก่อนตัดสิน ถ้าตั้งใจเป็นเงื่อนไขให้ผูก item ID, validation และการหักแบบ atomic พร้อมทดสอบทรัพยากรพอ/ไม่พอ/เซฟโหลด; ถ้าเป็น lore ให้ป้ายบรรยายชัดเจน ไม่เพิ่มต้นทุนใหม่โดยพลการ
+
+### GPATH-04 [REVIEW] ความแตกต่างของข้อมูลสายย่อย วิถี วิชา และไอเทม (Gemini A4–A7)
+
+- ต้นทางพบ `subpathTraits` 858 รายการมีรูปแบบ `realm + bonusStats` เพียง 6 แบบ และขั้นของวิถีใหม่จำนวนมากใช้แม่แบบใกล้กัน เป็นข้อสังเกตด้านความหลากหลาย ไม่พิสูจน์ว่าสายย่อยทั้งเกมมีแค่โบนัสตัวเลข เพราะมีระบบเฉพาะสายอื่นด้วย; เทียบข้อเสนอเติมวิชาและความหนาแน่นในหมวด TECH เดิมก่อนสร้างงานซ้ำ
+- ต้นทางรายงานวิถีใหม่มีวิชารบ 6–9 รายการต่อวิถี เทียบ XIAN 89/BODY 86, บางวิถีมีไอเทมผูกเพียง 3 ชิ้น และ GOD/CRAFT_CREATION ไม่มีธง `legendary`; ตรวจนิยามการนับและ catalog ปัจจุบันก่อนเปิด issue แยกหรือเติมข้อมูล
+- สายย่อยเก่า 32 รายการไม่มี field `path` แต่ต้นทางระบุว่า `CULT.subInfo(path, sub)` ยังหาเจอ จัดเป็น data hygiene มิใช่ runtime bug ที่พิสูจน์แล้ว
+- ต้นทางระบุว่าไม่มีวิชาหรือไอเทมอ้างสายย่อยที่ไม่มีอยู่ ขัดกับ **BUG-P1-02** และรายงาน TECH เดิม ให้ตรวจ ID, ชุดข้อมูล, revision และวิธีนับก่อนปิดรายการใด ห้ามใช้ข้อสรุปหนึ่งลบอีกข้อโดยไม่ตรวจ
+
+### GPATH-05 [REVIEW] ความต่าง power ระหว่างวิถีและความเร็วบ่มเพาะ (Gemini B1–B4)
+
+- ต้นทางวัด NPC มาตรฐานตัวเดียว ไม่มีวิชา/อุปกรณ์ ที่ max stage และ track 9: median power 26,010; กลุ่ม DEVOURING_FLESH, SHADOW_SAMURAI, ARENA_GLORY, NETHER_GRAVE, VOID_HERETIC_PACT, DIVINE_SUMMONER เฉลี่ยราว 1.35–1.40 เท่า median; ตัวอย่าง CARAVAN_QUARTERMASTER 12,716 และสายสนับสนุน/ผลิตบางสายต่ำกว่า median
+- แบบจำลอง threshold/rate บ่มเพาะเต็มเวลาไม่คิดล้มเหลว ประมาณ GOD 403 วัน, BODY 873, XIAN 12,096 วัน; ยังไม่รวมความน่าจะเป็นทะลวง ทัณฑ์ ระบบศรัทธา เวลา AI และการเล่นจริง จึงไม่ใช่เวลาที่พิสูจน์ว่าจะเกิดในเกม
+- ตัวเลขเสนอเนิร์ฟ 25–30% หรือกำหนดทุกวิถีให้อยู่ในช่วงเดียวกันเป็น **ข้อเสนอจากต้นทาง ไม่ใช่เกณฑ์บัคที่ยืนยัน** เทียบหมวด DAO/สมดุลเดิมและทดสอบหลาย seed, progression จริง, บทบาทสนับสนุน, อุปกรณ์, ต้นทุน, DPS/EHP และ matchup ก่อนตัดสิน
+
+### GPATH-06 [REVIEW] ฉากทดสอบปลายเกมจบศึกใน 1–2 hit (Gemini B5)
+
+- ต้นทางรายงานฉากบางคู่ผู้ถูกโจมตีไม่มีอุปกรณ์ถูกปิดฉากใน 1–2 hit และลำดับโจมตีกระทบผลรอบวงกลมมาก จึงไม่นำ win rate มาจัดอันดับ; ไม่สรุปว่าเกมทุก build เป็นเช่นนี้
+- ทดสอบซ้ำด้วยหลาย seed, อุปกรณ์และอาวุธที่ถูกชนิด, ระดับ/วิชาเทียบกัน, initiative สลับฝ่าย, mitigation และหลายรูปแบบศึก ก่อนปรับ HP หรือสูตรดาเมจ; เชื่อมกับ COMBAT-12–15 และ EQ/TECH เดิม
+
+**สถานะการตรวจ:** รอบรวบรวมนี้ตรวจ code path GPATH-01/02 และทำซ้ำ path trait ขั้น 2 เท่านั้น ข้ออื่นคงสถานะตามหลักฐานและข้อจำกัดจาก Gemini; ไม่ได้รัน 45-day simulation, schema validation หรือการทดสอบสมดุลของต้นทางซ้ำ และไม่มีการเปลี่ยนพฤติกรรมเกม จึงไม่ต้องเปลี่ยนสกิลหรือ onboarding สำหรับแพตช์เกม
