@@ -7,27 +7,22 @@
 
 ## 📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)
 
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `JianghuSect 2 v2.3.0` (Grand Dao Debates, 27 Apex Trials & Complete B-01..B-20 Remediation — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 139/139 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** `JianghuSect 2 v2.3.0` (Grand Dao Debates, 27 Apex Trials & Deep Parity Release — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 139/139 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_3_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_3_0.md)
+  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
+- **🐞 รายงานบัคฉบับรวมสำหรับแพตช์นี้ (Consolidated Bug Audit Report):**
+  👉 [`V2_3_0_CONSOLIDATED_BUG_REPORT.md`](V2_3_0_CONSOLIDATED_BUG_REPORT.md)
+- **🗺️ แผนที่นำทางและคลังไอเดียรวม (Master Roadmap & Composable Mechanics):**
+  👉 [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md) (`v5.5.0` — Mantra Resonance, Dynamic Weather & Grand Formation Warfare)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md) (`v5.6.0` — Defensive Kungfu & Protective Aegis Overhaul)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md) (`v5.7.0` — Support & Auxiliary Arts Overhaul)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md) (`JianghuSect 2 v2.3.0` — Forbidden Arts, Passive Constellations & Primordial Bloodline Altar)
-- **🏆 สถานะโครงการ (Master Roadmap Status):**
-  👉 **ยกระดับสู่ JianghuSect 2 (v2.0.0: The Grand Dao Epoch — มหาศักราชแห่งวิถีและกำเนิดผู้บ่มเพาะ)** โดยปลดล็อกข้อจำกัดเซฟเก่าเพื่อพัฒนาเต็มประสิทธิภาพ!
-- **🔥 ใบสั่งงานและข้อกำหนดการพัฒนามหาอัปเดต (Active Specification):**
-  👉 [`INSTRUCTIONS_FOR_GEMINI_ARGON4.md`](INSTRUCTIONS_FOR_GEMINI_ARGON4.md)  
-  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md)  
-  👉 ข้อเสนอ 5 มหาวิถีของ GPT สำหรับอ้างอิง: [`JHEvo_v5_8_0_five_new_cultivation_paths_proposal.md`](JHEvo_v5_8_0_five_new_cultivation_paths_proposal.md)  
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md) (`JianghuSect 2 v2.3.0` — Grand Dao Deep Parity Release)
 
 ---
 
 ## 🧭 ขั้นตอนการปฏิบัติงานมาตรฐาน 10 ขั้น (10-Step Execution & Daisy-Chain Protocol)
 
 ### ขั้นที่ 1: อ่านใบสั่งงานแพตช์ปัจจุบัน (`ACTIVE_PATCH_PROMPT`)
-1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_0_0.md) หรือ [`INSTRUCTIONS_FOR_GEMINI_ARGON4.md`](INSTRUCTIONS_FOR_GEMINI_ARGON4.md)) อย่างละเอียดทุกบรรทัด
+1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md)) อย่างละเอียดทุกบรรทัด
 2. ตรวจสอบตารางรายการข้อเสนอ (Proposals) เป้าหมาย ไฟล์ที่ต้องแก้ไข และเกณฑ์การผ่านทดสอบ (Acceptance Criteria)
 
 ### ขั้นที่ 2: อ่านภาพรวมสถาปัตยกรรมและกฎเหล็กของโปรเจกต์

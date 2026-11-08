@@ -1,22 +1,21 @@
-# JianghuSect 2 — v2.3.0 (Grand Dao Debates, Apex Trials & Bug Remediation)
+# JianghuSect 2 — v2.3.0 (Grand Dao Deep Parity Release)
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
-Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูรายงานการพัฒนาแพตช์ปัจจุบัน (`v3.1.0`) ได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md) และแผนที่โลกยุทธภพใน [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md)
+Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
-ผู้พัฒนาและ AI ต้องอ่าน [AGENTS.md](AGENTS.md) ก่อนเริ่มงาน ใช้มุมมองทีมพัฒนาและผู้เล่นตามความเหมาะสม และตรวจข้อมูลจากซอร์สและผลทดสอบจริง ดู [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md)
+**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
 
-**งานแพตช์ถัดไปสำหรับ Gemini Work (Argon 4):** อ่าน [พรอมต์แพตช์ v3.1.0 (Office Authority & Peaks Overhaul)](NEXT_PATCH_PROMPT_V3_1_0.md) และ [ข้อเสนอแนะเชิงสถาปัตยกรรม](PATCH_REPORTS/PROPOSAL_V3_1_0_OFFICE_AUTHORITY_AND_PEAKS_EXPANSION.md) หลัง `AGENTS.md` และสรุปเกม โดยเกมในสาขานี้เป็นฐาน v3.0.0 สมบูรณ์พร้อมส่งมอบ
+**🐞 รายงานบัคฉบับรวม (Bug Audit Report):** [V2_3_0_CONSOLIDATED_BUG_REPORT.md](V2_3_0_CONSOLIDATED_BUG_REPORT.md)  
+**🗺️ แผนที่นำทางและไอเดีย (Future Roadmap & Ideas):** [FUTURE_ROADMAP_AND_IDEAS.md](FUTURE_ROADMAP_AND_IDEAS.md)
 
-**สถานะชุดทดสอบ (`v3.1.0`):** ชุดทดสอบทั้งหมด **117 ชุด** ใน `GAME_SOURCE/test/run_all.js` ผ่านครบ **117 / 117 ชุด (100% PASS — ทั้ง 107 ชุด Node.js และ 10 ชุด Browser Playwright/Chromium)** รวมชุดทดสอบใหม่ `v310_autonomous_governance_and_peaks_sanctuary_suite.js` (422 assertions), `v300_tactical_combat_and_living_chronicle_suite.js` (57 assertions) และ `v235_comprehensive_mechanics_and_elemental_fusion_suite.js` (406 assertions) ดูรายละเอียดใน [สรุปเกม](project_status_and_ai_onboarding.md) และ [รายงาน v3.1.0](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md)
+**สถานะชุดทดสอบ (`v2.3.0`):** ชุดทดสอบทั้งหมด **139/139 ชุด** ใน `GAME_SOURCE/test/run_all.js` ผ่านครบ 100% PASS, Schema Validation ผ่าน 0 errors / 0 warnings, และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
 
 ```bash
 cd GAME_SOURCE
 node tools/build_single.js
 node tools/validate_data_schema.js
-node test/v310_autonomous_governance_and_peaks_sanctuary_suite.js
-node test/v300_tactical_combat_and_living_chronicle_suite.js
-node test/v235_comprehensive_mechanics_and_elemental_fusion_suite.js
+node test/core_lock.js
 ```
 
 ---

@@ -7,13 +7,12 @@
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
 > เอกสารนี้คือ **สรุประบบปัจจุบันสำหรับตอบคำถามภาพรวม** ให้อ่านก่อนตอบว่าเกมมีอะไรหรือเสนอแนวทางพัฒนาต่อ เพื่อหลีกเลี่ยงการเสนอระบบที่มีอยู่แล้ว เมื่อจะลงมือแก้ไขหรือต้องการยืนยันรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้องด้วย
 
-> **สถานะปัจจุบันของแพตช์ v5.8.0 และผลการตรวจรับรอง (7 พฤศจิกายน 2026):**
-> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` (`8,410 KB`) ครบสมบูรณ์
+> **สถานะปัจจุบันของแพตช์ v2.3.0 และผลการตรวจรับรอง (8 พฤศจิกายน 2026):**
+> 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
-> 3. ชุดทดสอบใหม่ประจำแพตช์คือ `test/v570_support_and_auxiliary_arts_suite.js` และ `test/v580_forbidden_arts_and_passive_constellations_suite.js` ผ่านครบ **100% PASS** ยืนยันการทำงานของระบบวิชาสนับสนุน 6 อาร์คิไทป์, วิชาต้องห้าม 37 วิชา, 263 พาสซีฟจัดกลุ่ม 6 กลุ่มดาว, หอคัมภีร์ต้องห้าม, และแท่นบูชาสายเลือดบรรพกาล
-> 4. ความเร็วจำลอง 80 NPC อยู่ที่ `~1.58 ms/tick` (ต่ำกว่าเพดานกำหนด `<= 3.5 ms/tick`)
-> 5. ชุดทดสอบรวมผ่านครบ **134/134 กลุ่ม (100% PASS)**
-> 6. **🔥 ใบสั่งงานแพตช์ปัจจุบันที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_V5_9_0.md`](ACTIVE_PATCH_PROMPT_V5_9_0.md)
+> 3. ชุดทดสอบรวมผ่านครบ **139/139 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,148 ไอเทม, 1,370 ตำรับ
+> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
+> 5. **🐞 รายงานบัคฉบับรวม:** [`V2_3_0_CONSOLIDATED_BUG_REPORT.md`](V2_3_0_CONSOLIDATED_BUG_REPORT.md) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 
 ---
 
