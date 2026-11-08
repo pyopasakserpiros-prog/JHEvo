@@ -175,3 +175,3502 @@
 ```
 
 *(รอรับข้อมูลเพิ่มเติมจาก AI ท่านอื่น...)*
+
+
+---
+
+## ภาคผนวก: ข้อค้นพบจากรายงานตรวจสองชุดในสาขา Gemini
+
+ต้นทาง: commit `5d3756d` สาขา `Gemini` รายงานด้านล่างคงข้อความและรหัสต้นทางเพื่อให้ตรวจสอบย้อนกลับได้ รายการอาจซ้ำหรือขัดกับตารางเดิมและยังไม่ได้ตรวจยืนยันกับซอร์ส main ปัจจุบัน ผลทดสอบและระดับความรุนแรงเป็นคำกล่าวของรายงานต้นทาง ไม่ใช่ผลทดสอบรอบนี้ ดูหลักฐานและรายละเอียดอื่นใน ZIP ต้นฉบับ
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_COMBAT_SKILLS_STATUS_AUDIT_V230.md
+
+# JianghuSect 2 v2.3.0 — ตรวจระบบต่อสู้ วิชา เอฟเฟกต์สถานะ และ AI ก่อนเปิดให้เล่น
+> **รายงานหมวดที่ 5 แยกเป็นอิสระใน ZIP ชุดเดิม** · 8 พฤศจิกายน 2026 · ใช้ source ต้นฉบับเท่านั้น · **ไม่แก้ซอร์สเกม**
+
+## 1. สรุปผลและการตัดสินปล่อยเกม
+**ต้นฉบับ ZIP SHA-256:** `983e351b119c63f40b402c5e6e27c44a5f39683dc5e5b995773862efc467df62`
+**ขอบเขต:** การต่อสู้/ผลดาเมจ/พลังวิชา/ออราสนับสนุน/วิชาคุ้มกัน/ค่ายกลสำนัก/กำแพงศึกบุก/สถานะผิดปกติ/โล่/วงจรสังหารและเซฟโหลด/AI เลือกสกิล. ไม่ทับหมวดเศรษฐกิจที่มีการตรวจแยกในอีกแชท.
+
+**พบ 11 ประเด็น:** P0 1, P1 7, P1/REVIEW 1, P2 1, P3 1. **ทดสอบ 17 เคส**: ยืนยันอาการ 14, ควบคุม 2, ไม่ยืนยัน 1, script errors 0. ประเด็น 11 ไม่ได้แปลว่าทุกเคสคือบัคคนละตัว. **Regression เดิม 10 ชุดผ่าน** เมื่อแยกรัน.
+
+**ตัดสินก่อนปล่อย:** `NOT READY` จนกว่าจะปิด `COMBAT-01` และแก้ข้อผิดฝ่าย (`COMBAT-02` ถึง `COMBAT-06`) พร้อม test side/participation, ปิดโล่ไม่ลด (`COMBAT-07`) และแก้ MECH path (`COMBAT-09`). `COMBAT-08` ยืนยันอาการ แต่ตัวเลข nerf/cooldown เป็นการออกแบบ ต้องทำ balance playtest ก่อนตัดสิน. อย่าอนุมานว่า 10 tests ผ่าน = ปลอดบัค.
+
+## 2. ตารางติดตามงาน
+| ID | ระดับ | ปัญหาโดยย่อ | Test IDs |
+|---|---|---|---|
+| COMBAT-01 | P0 | การตายจากศึกข้ามระบบบันทึกความตายและล้างตำแหน่ง | CB-13, CB-16, CB-15 |
+| COMBAT-02 | P1 | วิชาสนับสนุนเพิ่มโจมตี/ฮีลให้ฝ่ายศัตรู | CB-01, CB-02 |
+| COMBAT-03 | P1 | ตัวสนับสนุนที่ไม่อยู่ในศึกส่งบัฟข้ามศึกได้ | CB-03 |
+| COMBAT-04 | P1 | ผู้คุ้มกันฝ่ายศัตรูรับความเสียหายแทนอีกฝ่าย | CB-04 |
+| COMBAT-05 | P1 | ค่ายกลสำนักเพิ่ม ATK/ลดดาเมจให้ NPC ฝ่ายตรงข้าม | CB-05, CB-12 |
+| COMBAT-06 | P1 | กำแพงธาตุศึกบุกสำนักรับดาเมจแทนผู้บุกที่เป็น NPC | CB-06, CB-17 |
+| COMBAT-07 | P1 | โล่ shieldBp แบบเดิมรับความเสียหายซ้ำโดยค่าไม่ลด | CB-14 |
+| COMBAT-08 | P1/REVIEW | วิชาฮีลจากออราทำงานทุกฮิต ไม่มีต้นทุนต่อครั้งหรือคูลดาวน์ | CB-09 |
+| COMBAT-09 | P1 | ป้องกันวิถี MECH_PUPPET สายหุ่นกลไม่มีวันเข้าสาขาพิเศษ | CB-08 |
+| COMBAT-10 | P2 | DOT ซ้อนชั้นหมดอายุแล้วหายทั้งหมด ไม่ลดทีละชั้น | CB-07 |
+| COMBAT-11 | P3 | chooseSkill ดึง self ก่อนประกาศเมื่อไม่มีเป้าหมาย | CB-10 |
+
+## 3. รายละเอียดทุกข้อ — สาเหตุ → ผลลูกโซ่ → วิธีแก้ → เกณฑ์ปิด
+### COMBAT-01 [P0] การตายจากศึกข้ามระบบบันทึกความตายและล้างตำแหน่ง
+- **การเข้าถึง/ขอบเขต:** เส้นทางการต่อสู้จริง + ยืนยันหลังเซฟ/โหลด
+- **ตำแหน่ง:** js/combat.js:2700–2701,2746; js/ai.js:1765–1782; js/sim.js (serialize/deserialize)
+- **ต้นเหตุ:** C.slay ทำ victim.dead = true ก่อน AI.kill; AI.kill มี guard if(n.dead)return ตั้งแต่บรรทัดแรก ทำให้ขั้นตอนส่วนใหญ่ไม่รัน
+- **หลักฐานรันจริง:** หลังศึก NPC dead=true แต่ post=martial และ W.sect.posts.martial ยังชี้คนตาย; W.deaths=0, deathWhy=null, ไม่เกิด death log; บันทึก/โหลดแล้วยังค้าง. เคสควบคุมเรียก AI.kill ตรงทำงานถูก.
+- **ผลกระทบลูกโซ่:** ศึกสังหาร → ไม่ปลดตำแหน่ง/เตียง/การไว้อาลัย/สืบทอด/ถ่ายทอดปราณหรือมรดกใน AI.kill → UI สำนักและระบบสรรหาตีความผิด → ข้อมูลเซฟผิดถาวร; ความเสี่ยงผู้เล่นสูญเสียกิจกรรม/มรดก
+- **แนวทางแก้ที่ราก:** กำหนด single canonical death transaction: C.slay เรียก AI.kill ก่อนให้ dead=true และแยก hook onDeath/การสะสม kill-credit ที่ต้องทำต่อ; ใช้ guard idempotent หลังดำเนินงานสำเร็จ; ตรวจทางตายอื่น, summon และ foe ต่างหาก
+- **Acceptance/Regression:** ฆ่า NPC ตำแหน่ง martial 1 ครั้งแล้วต้องมี deathDay/deathWhy, W.deaths+1, post null ทั้ง NPC และ W.sect.posts, log ความตาย 1 ครั้ง, ผลสืบทอดถูกต้อง, เซฟโหลดแล้วคงสถานะ; เรียกซ้ำไม่เพิ่ม death count
+- **Reproduction IDs:** `CB-13, CB-16, CB-15`
+
+### COMBAT-02 [P1] วิชาสนับสนุนเพิ่มโจมตี/ฮีลให้ฝ่ายศัตรู
+- **การเข้าถึง/ขอบเขต:** runtime combat NPC ฝ่ายตรงข้าม
+- **ตำแหน่ง:** js/combat.js:886–917; js/combat.js:203–215
+- **ต้นเหตุ:** วน W.npcs ทั้งโลก ใช้ระยะห่างและไม่ dead/away เป็นหลัก ไม่ใช้ C.isAlly(f,supportId, recipientId)
+- **หลักฐานรันจริง:** ตัวสนับสนุนฝ่าย B เพิ่มดาเมจให้ฝ่าย A +21%; นักเยียวยาฝ่าย B ฮีลตัวฝ่าย A (บันทึกฮีล 76 HP) ทั้งที่กำลังโจมตีกัน
+- **ผลกระทบลูกโซ่:** ดวล/รบหลายทีม → บัฟผิดฝ่าย → DPS/EHP และผลแพ้ชนะกลับด้าน → บันทึกฆ่า, บาดเจ็บ, ตาย และภารกิจสำนักเปลี่ยนจากที่ออกแบบ
+- **แนวทางแก้ที่ราก:** แยก list ตัวสนับสนุนที่อยู่ฝั่งเดียวกันใน f ณ เวลาสกิลออกผล; เช็ก C.isAlly(f, supNpc.id, a.id/d.id) ก่อนคำนวณระยะ; คุม recursion และเงื่อนไข no-self ตามดีไซน์
+- **Acceptance/Regression:** ฝ่าย B ไม่บัฟหรือฮีล A; ฝ่าย A ยังช่วย A ได้ตามระยะ; ทั้ง NPC vs NPC, NPC vs foe และ raid
+- **Reproduction IDs:** `CB-01, CB-02`
+
+### COMBAT-03 [P1] ตัวสนับสนุนที่ไม่อยู่ในศึกส่งบัฟข้ามศึกได้
+- **การเข้าถึง/ขอบเขต:** runtime combat; ผู้ยืนใกล้ไม่ใช่ participant
+- **ตำแหน่ง:** js/combat.js:886–916; js/combat.js:203–207
+- **ต้นเหตุ:** ค้นหา support จาก W.npcs ทั้งหมดโดยไม่บังคับ sideOf(f,supNpc.id) มีค่า
+- **หลักฐานรันจริง:** ตัวที่ไม่ได้อยู่ใน f.A หรือ f.B (side=null) ทำให้สถิติ command buffs เพิ่ม 1 ครั้งในศึกได้
+- **ผลกระทบลูกโซ่:** สำนักที่ยืนติดลานรบหลายวง → ซ้อนบัฟผ่านระยะโดยไม่ลงสนาม/ไม่เสี่ยงตาย → การคำนวณสมดุลทีมและตำแหน่ง AI ผิด
+- **แนวทางแก้ที่ราก:** เฉพาะผู้มีสิทธิ์เข้าร่วม combat f และมีชีวิตในสนามเท่านั้นจึงให้ aura; กรณี world buff ที่ตั้งใจให้ใช้ข้ามวงต้องสร้าง API/flag แยกพร้อมต้นทุนและความชัดเจน
+- **Acceptance/Regression:** side=null ให้บัฟ/ฮีลไม่ได้ ขณะสมาชิกทีมเดียวกันในสนามได้ตามปกติ
+- **Reproduction IDs:** `CB-03`
+
+### COMBAT-04 [P1] ผู้คุ้มกันฝ่ายศัตรูรับความเสียหายแทนอีกฝ่าย
+- **การเข้าถึง/ขอบเขต:** runtime combat ฝ่ายตรงข้าม
+- **ตำแหน่ง:** js/combat.js:823–840
+- **ต้นเหตุ:** สแกน W.npcs แล้วตรวจแค่ระยะ/defensiveState ไม่มีการตรวจฝ่ายและการเข้าร่วมศึก
+- **หลักฐานรันจริง:** guardian ฝ่าย B ไปขวางความเสียหายให้ A: intercepted 10 และตัว guardian เสียเลือดเอง
+- **ผลกระทบลูกโซ่:** เปลี่ยนผลการบาดเจ็บของคู่ต่อสู้, AI อาจตายแทนศัตรู → ระบบตาย/ตำแหน่ง/ของตกในสำนักผิด
+- **แนวทางแก้ที่ราก:** guard C.isAlly(f, guardian.id, d.id) และ C.alive(guardian); เลือก guardian ฝั่งเดียวกันใน f พร้อมทดสอบกรณี multiple guardians
+- **Acceptance/Regression:** ศัตรูและผู้ไม่ร่วมศึกไม่ได้คุ้มกัน; ฝ่ายเดียวกันยัง intercept ได้โดยลดทรัพยากรตามเงื่อนไข
+- **Reproduction IDs:** `CB-04`
+
+### COMBAT-05 [P1] ค่ายกลสำนักเพิ่ม ATK/ลดดาเมจให้ NPC ฝ่ายตรงข้าม
+- **การเข้าถึง/ขอบเขต:** runtime NPC vs NPC หรือดวล NPC ต่างฝ่าย; scope ไม่รวม hostile foe บางชนิด
+- **ตำแหน่ง:** js/combat.js:812–821
+- **ต้นเหตุ:** เช็กเพียง !a.foe หรือ !d.foe (เป็น NPC) แทนการเป็นกำลังสำนักเจ้าของค่ายกล
+- **หลักฐานรันจริง:** SWORD_NET_SLAUGHTER ทำให้ NPC ฝ่าย B โจมตี 30 → 37; IMMORTAL_AEGIS_DOME ลดดาเมจที่ NPC ฝ่าย B รับจาก 100 → 78
+- **ผลกระทบลูกโซ่:** บัฟเชิงยุทธวิธีถูกแบ่งให้คู่ต่อสู้ → สงครามสำนัก/กบฏและป้องกันตำแหน่งตีค่าผิด, ผลชนะเปลี่ยน → รางวัล/มรดกต่อเนื่อง
+- **แนวทางแก้ที่ราก:** จำแนก ownership ของ formation จาก W.sect และฝ่าย/สังกัดก่อนใช้; อย่าใช้ !foe เป็นตัวแทนคำว่า ally; ทดสอบ PvE/NPC raid แยก
+- **Acceptance/Regression:** ค่ายกลผู้เล่นไม่บัฟ/ป้องกัน NPC ฝ่ายตรงข้าม; NPC ฝ่ายผู้เล่นได้โบนัส; ถ้ารบกลางกลางต้องไม่ติดอัตโนมัติ
+- **Reproduction IDs:** `CB-05, CB-12`
+
+### COMBAT-06 [P1] กำแพงธาตุศึกบุกสำนักรับดาเมจแทนผู้บุกที่เป็น NPC
+- **การเข้าถึง/ขอบเขต:** runtime raid; hostile NPC raider; ยืนยันกรณี foe ไม่ผิดแบบเดียวกัน
+- **ตำแหน่ง:** js/combat.js:1028–1037
+- **ต้นเหตุ:** เงื่อนไข f.kind=raid && !d.foe ไม่ตรวจว่า defender เป็นฝ่ายสำนักที่มีกำแพง
+- **หลักฐานรันจริง:** โจมตี NPC ผู้บุก 100 แต่กำแพงผู้ป้องกันลด 1000→965 และผู้บุกเสีย HP เพียง 65; เคสควบคุม hostile foe ไม่ได้รับโล่
+- **ผลกระทบลูกโซ่:** ป้องกันสำนักกลายเป็นช่วยผู้บุก → siege outcome/จำนวนผู้บาดเจ็บ/รางวัลสงครามผิด, พลังโล่ถูกเผาให้ศัตรู
+- **แนวทางแก้ที่ราก:** ตรวจว่า d เป็นสมาชิก/หน่วยฝ่ายที่ได้รับการคุ้มครองจริงและมีสิทธิ์ใน raid f; แยก siege side จาก !foe
+- **Acceptance/Regression:** NPC ผู้บุกไม่ได้ใช้กำแพง; ฝ่ายผู้ป้องกันใช้ได้; hostile foe, NPC-neutral, NPC-owned raiders มี regression
+- **Reproduction IDs:** `CB-06, CB-17`
+
+### COMBAT-07 [P1] โล่ shieldBp แบบเดิมรับความเสียหายซ้ำโดยค่าไม่ลด
+- **การเข้าถึง/ขอบเขต:** runtime API; แหล่งใช้ shieldBp มีใน js/visitors_clues.js; UI-to-legacy route ยังไม่ได้พิสูจน์ครบ
+- **ตำแหน่ง:** js/combat.js:459, 731–748; js/visitors_clues.js:5607,5664
+- **ต้นเหตุ:** shieldOf สร้าง object ใหม่ {k:shield,amt:u.shieldBp} แทนตัวอ้างอิงบน NPC; C.applyDamage ลดเพียง sh.amt บน object ชั่วคราว
+- **หลักฐานรันจริง:** shieldBp=100 รับ 4 hits ×50, HP ไม่ลดเลย และ shieldBp ยัง=100
+- **ผลกระทบลูกโซ่:** ศัตรู/NPC ที่ได้โล่ legacy กลายเป็นแทบอมตะเมื่อรับ hit ย่อย; ถ้า P0 ระบบตายผิดด้วยจะบดบังการตรวจมรดก/คำนวณการรบ
+- **แนวทางแก้ที่ราก:** ย้าย shieldBp เข้า canonical status shield หรือหักจาก u.shieldBp จริงและสั่ง dirty; ระวัง double counting กับ shield status และ migration save เก่า
+- **Acceptance/Regression:** 4 hits ×50 กับ shieldBp=100: โล่หมดตามกฎ, HP สูญเสียหลังโล่หมด; เซฟ/โหลดระหว่างฮิตไม่คืนโล่
+- **Reproduction IDs:** `CB-14`
+
+### COMBAT-08 [P1/REVIEW] วิชาฮีลจากออราทำงานทุกฮิต ไม่มีต้นทุนต่อครั้งหรือคูลดาวน์
+- **การเข้าถึง/ขอบเขต:** runtime; ข้อจำกัดการ procs ต้องยืนยัน design
+- **ตำแหน่ง:** js/combat.js:902–914; js/cultivation.js (SUPPORT_ARTS)
+- **ต้นเหตุ:** ทุกครั้งที่ applyDamage ถูกเรียก จะคำนวณ healPct*hpMax แม้ฮิตถี่ใน W.t เดียว ไม่มี ICD หรือ Qi drain ภายในเส้นทางนี้
+- **หลักฐานรันจริง:** โดนตีเบา 8 ครั้งใน tick เดียว ตัวสนับสนุนบันทึก healing procs 264 หน่วย (8×33), Qi ใช้ 0; ตัวรับฮีลกลับเต็ม HP ได้
+- **ผลกระทบลูกโซ่:** โจมตีแบบ multi-hit / proc ดาเมจต่ำ → กลายเป็นแหล่งฟื้นเลือดไม่จำกัดตามจำนวนฮิต → anti-meta ไม่สมเหตุสมผล; ต้องทดสอบ DPS จริงก่อนตั้งตัวเลข nerf
+- **แนวทางแก้ที่ราก:** ยืนยันเจตนา design ก่อน: จำกัด heal ต่อ attack action, ICD per support-target หรือ shared heal budget ต่อ tick; ตั้งค่า Qi/ทรัพยากรตามกฎเดียวกัน; นับเฉพาะ effective healing ไม่ใช่ยอดก่อน cap
+- **Acceptance/Regression:** ทดสอบ 1-hit vs 8-hit ภายใน tick เดียว, heal ไม่ scale แปลกกับจำนวน hits; build สนับสนุนยังมีประโยชน์ ไม่ nerf แบบเหวี่ยง
+- **Reproduction IDs:** `CB-09`
+
+### COMBAT-09 [P1] ป้องกันวิถี MECH_PUPPET สายหุ่นกลไม่มีวันเข้าสาขาพิเศษ
+- **การเข้าถึง/ขอบเขต:** runtime; อ้างอิงวิถีหลักที่มีข้อมูลจริง
+- **ตำแหน่ง:** js/combat.js:1451–1476; js/cultivation.js (PATHS/ensureMechState)
+- **ต้นเหตุ:** เงื่อนไข else if(CULT.PATHS[d.cult.path]) มาก่อน else if(d.cult.path===MECH_PUPPET) ทำให้ทุก MECH_PUPPET ที่อยู่ใน PATHS ถูกดักด้วย generic branch
+- **หลักฐานรันจริง:** ดวลโจมตีหุ่นกล mode BASTION แล้ว integrity ยังคง 100 และไม่มีการดูดซับตามสาขาเฉพาะ
+- **ผลกระทบลูกโซ่:** ต้นทุน integrity/charge ไม่ถูกใช้ → ปรับสมดุลความถึกหุ่นกลผิด; ทำให้ความต่างสายย่อยและโหมดหาย
+- **แนวทางแก้ที่ราก:** ย้ายเงื่อนไข MECH_PUPPET ก่อน generic PATHS หรือแยก path-specific mitigation resolver หลัง generic แบบไม่ซ้อน; ตรวจ caps และ resource spend
+- **Acceptance/Regression:** MECH_PUPPET BASTION ถูกตีแล้ว integrity ลดและ charge อัปเดต; generic paths ยังคงลดดาเมจตามเดิม
+- **Reproduction IDs:** `CB-08`
+
+### COMBAT-10 [P2] DOT ซ้อนชั้นหมดอายุแล้วหายทั้งหมด ไม่ลดทีละชั้น
+- **การเข้าถึง/ขอบเขต:** runtime statusTick
+- **ตำแหน่ง:** js/combat.js:2570–2602; js/stats.js:195–235
+- **ต้นเหตุ:** C.statusTick เรียก ST.purgeExpired ก่อนเข้า branch stackDecayMode=LAYERED ทำให้สถานะที่ x.until<=W.t ถูกกรองออกทันที
+- **หลักฐานรันจริง:** poison stacks=3 duration=2 ถึงวันหมดอายุแล้วรายการสถานะกลายเป็น [] แทน stacks=2 และต่ออายุครึ่ง duration
+- **ผลกระทบลูกโซ่:** build สายพิษ/เลือดไหลเสียช่วงเวลา DOT ที่ออกแบบ; cap/balance ของบัฟบิดเบี้ยว; ตัวเลข DPR จากเทสต์ทั่วไปไม่ครอบคลุมหมดอายุ
+- **แนวทางแก้ที่ราก:** กำหนดเจ้าของ lifecycle ของ layered statuses เพียงที่เดียว; แยก purge invalid กับ expire/decay หรือย้าย decay ก่อน purge, ใช้ ST.dirty
+- **Acceptance/Regression:** poison layered 3→2→1→0 ข้ามหลาย tick และเซฟ/โหลดระหว่างเสื่อมชั้น; duration ปกติหมดแล้วหาย
+- **Reproduction IDs:** `CB-07`
+
+### COMBAT-11 [P3] chooseSkill ดึง self ก่อนประกาศเมื่อไม่มีเป้าหมาย
+- **การเข้าถึง/ขอบเขต:** เฉพาะ direct API เรียก d=null; เส้นทางเล่นปกติมักมี target
+- **ตำแหน่ง:** js/combat.js:1928–1929
+- **ต้นเหตุ:** const ... tdp = d ? C.power(d) : self, self = C.power(a) มี Temporal Dead Zone เมื่อ d เป็น null
+- **หลักฐานรันจริง:** เรียก C.chooseSkill(W,f,a,null,{cds:{}}) ได้ ReferenceError Cannot access self before initialization
+- **ผลกระทบลูกโซ่:** หาก UI/AI สกิล self/team สามารถเรียกโดยไร้เป้าหมายจะทำให้ action interrupt; ยังไม่ยืนยันเส้น UI ดังกล่าว
+- **แนวทางแก้ที่ราก:** ประกาศ self ก่อน tdp แยก statement; ตรวจ self/team skill path และ ctx null guards
+- **Acceptance/Regression:** null target ไม่ throw, เลือกสกิล self/team หรือคืน null แบบปลอดภัยตามกฎ
+- **Reproduction IDs:** `CB-10`
+
+## 4. ตัวอย่างหลักฐานทดสอบ — แยกอาการกับเคสควบคุม
+| เคส | ผล | Observed |
+|---|---|---|
+| CB-01 | REPRO | `{   "supportSide": "B",   "attackerSide": "A",   "increased": 1,   "damageBonus": 0.21 }` |
+| CB-02 | REPRO | `{   "supportSide": "B",   "targetSide": "A",   "hpBefore": 221,   "hpAfter": 272,   "healEvent": 76,   "healPct": 0.154 }` |
+| CB-03 | REPRO | `{   "supportInFight": null,   "changedAttacks": 1,   "insideRadius": true }` |
+| CB-04 | REPRO | `{   "guardianSide": "B",   "targetSide": "A",   "allowed": true,   "proc": {     "t": 518760,     "kind": "ALLY_AEGIS_INTERCEPT",     "textTh": "👑 ม่านสวรรค์รับเคราะห์แทนสหาย!",     "protectedId": "n_master",     "intercepted": 10   },   "guardHpBefore": 232, …` |
+| CB-05 | REPRO | `{   "attackerSide": "B",   "sectPlayerSide": "A",   "dealt": 37,   "raw": 30,   "activeStance": "SWORD_NET_SLAUGHTER" }` |
+| CB-06 | REPRO | `{   "defenderSide": "A",   "raiderSide": "B",   "barrierBefore": 1000,   "barrierAfter": 965,   "enemyHpLost": 65 }` |
+| CB-07 | REPRO | `{   "before": [     {       "k": "poison",       "stacks": 3,       "until": 518762     }   ],   "after": [],   "expected": "stack=2, renewed until" }` |
+| CB-08 | REPRO | `{   "hit": true,   "firstIntegrity": 100,   "finalIntegrity": 100,   "mode": "BASTION",   "hasPathEntry": true,   "damage": 0.30891235298860625 }` |
+| CB-09 | REPRO | `{   "heals": 264,   "healPct": 0.154,   "qiSpent": 0,   "hitCount": 8,   "gameTimeElapsed": 0,   "targetHp": 213 }` |
+| CB-10 | REPRO | `{   "error": "Cannot access 'self' before initialization" }` |
+| CB-11 | NO_REPRO | `{   "skill": "INNATE_DIVINE_FLAME_CRUCIBLE",   "cost": 19,   "qiAfter": 54.32,   "castFx": true,   "hpBefore": 204,   "hpAfter": 169.53491920095098 }` |
+| CB-12 | REPRO | `{   "enemySide": "B",   "defendersSide": "A",   "damage": 78,   "raw": 100,   "stance": "IMMORTAL_AEGIS_DOME" }` |
+| CB-13 | REPRO | `{   "damageKilled": true,   "dead": true,   "officerPost": "martial",   "sectOfficerId": "n895921",   "deathWhy": null,   "deathsBefore": 0,   "deathsAfter": 0,   "deathLogCount": 0 }` |
+| CB-14 | REPRO | `{   "initialShield": 100,   "remainingShield": 100,   "hitCount": 4,   "rawDamageTotal": 200,   "hpLost": 0 }` |
+| CB-15 | NO_REPRO | `{   "dead": true,   "post": null,   "officerSlot": null,   "deathWhy": "QA control",   "deathsDelta": 1 }` |
+| CB-16 | REPRO | `{   "dead": true,   "post": "martial",   "postRef": "n131620",   "deathWhy": null,   "deaths": 0 }` |
+| CB-17 | NO_REPRO | `{   "barrierHp": 1000,   "foeHp": 150 }` |
+
+**คำอธิบาย:** `REPRO` คือบัค/พฤติกรรมที่ต้องทบทวนเกิดซ้ำในการทดสอบแบบจงใจท้าทาย invariant; **ไม่ใช่ผล PASS ของเกม**. `CB-11` ไม่ยืนยันบัค Qi เพราะมีเส้นทางเติม Qi ระหว่างรัน จึงไม่เปิด finding. `CB-15/17` เป็น positive controls. บัคบางจุดผ่าน direct API ไม่พิสูจน์ว่าผู้เล่นทั่วไปกดเอ็กซ์พลอยต์ได้จาก UI. ข้อมูลนี้เป็นการทดสอบ Node module ไม่ใช่ browser E2E.
+
+## 5. แผนซ่อมแบบกลไกกลาง (หลีกเลี่ยงแก้ทีละอาการ)
+1. ทำ **canonical combat-side predicate**: unit ต้องอยู่ใน fight side ที่อนุญาตและเจ้าของค่ายกลถูกต้อง; ใช้ผ่าน support/guardian/formation/barrier; แยก combat participant, world passive และ sect membership โดยกฎชัดเจน.
+2. ทำ **canonical death transaction**: AI.kill/บริการตายเดียว; idempotent, บันทึกครั้งเดียว, post/bed/mentorship/inheritance/relationships ทุกระบบรับ event เดียว. ทดสอบทั้ง natural, combat, foe, summon, leadership, save/load.
+3. ทำ **canonical shield + status lifecycle**: สถานะ shield จริงต้องลด persistent source; layered expiry ต้องผ่าน reducer ก่อน purge; save/load ไม่สร้าง resource ขึ้นใหม่.
+4. จัดการ **resource/proc budgets**: heal/guard/MECH ใช้ทรัพยากรและ cooldown ตามแบบแผนเดียว พร้อม simulated multi-hit / multi-actor / 1 vs many cases.
+5. หลังแก้แล้ว rerun repro (คาดว่าเคส violation กลับ NO_REPRO) และ 10 baseline suites; เพิ่ม browser combat smoke, soak simulation, legacy-save migration ก่อน Release Gate.
+
+## 6. วิธีรันทดสอบและข้อจำกัด
+```bash
+GAME_SOURCE_ROOT=/absolute/path/to/GAME_SOURCE node COMBAT_DEEP_REPRO_TESTS.js
+OUTPUT_JSON=/tmp/combat_results.json GAME_SOURCE_ROOT=/absolute/path/to/GAME_SOURCE node COMBAT_DEEP_REPRO_TESTS.js
+```
+ซอร์สต้นฉบับต้องมี `test/load.js` พร้อม `js/` ของเกม. ไฟล์ ZIP นี้มีเฉพาะรายงาน/สคริปต์ ไม่รวมซอร์ส. ไม่ได้รัน browser click-through ทั้งเกม; ไม่ได้รันครบทุก 130+ regression suites; `test/combat_stats.js` มีการจำลองขนาดใหญ่มากและถูกหยุดเมื่อรันนานในการสำรวจ **ไม่ควรนับว่า fail หรือ hang**. ผลทั้งหมดจากต้นฉบับ v2.3.0 ไม่ใช่แพตช์ที่ได้รับการแก้แล้ว.
+
+## 7. หมวดถัดไปที่ควรตรวจ (หลังหมวดต่อสู้)
+**อันดับ 1: เซฟ/โหลด, ย้ายเวอร์ชันเซฟ และวงจรเวลาโลก (World Tick / Daily / Monthly)** — เสี่ยงสูงสุดก่อนปล่อยจริง เพราะบัคที่พบหลายหมวดทิ้งสถานะผิดไว้ในเซฟ; ต้องทดสอบ 1 วัน→1 ปี, ปิดเกม/โหลดใหม่ตรงคูลดาวน์/วันครบภารกิจ, ตาย/เกิดใหม่/สืบทอด, ข้ามวัน, ออก-เข้าสำนัก, เอฟเฟกต์ซ้ำ, migration เซฟเก่า และความเร็วเมื่อ NPC จำนวนมาก.
+**อันดับ 2: UI เส้นทางเล่นจริง + ความสอดคล้องของเมนู/ปุ่ม/ข้อความ** — ปิดช่อง API-only ที่อาจไม่ถึงผู้เล่น, แต่ยืนยัน exploit ที่กดได้จาก UI; แยก error/lag/browser interactions.
+**อันดับ 3: สำรวจโลก/แผนที่/เหตุการณ์/ภารกิจ/การเดินทาง NPC** — ตรวจเหตุการณ์ที่ไม่ยิง tick, ตัวละครติดสถานะ away, reward/interaction ซ้ำ และระบบที่หลงลืมหลังเซฟโหลด. ไม่ทำราคา/เศรษฐกิจซ้ำ.
+
+## 8. เชื่อมโยงรายงานเดิม
+- `QA_FREEZE_AUDIT_V230`: P0 death transaction และเซฟโหลดผิดถาวร
+- `QA_SECT_SYSTEMS_AUDIT_V230`: post/สืบทอด/ความสัมพันธ์/ป้อมเมืองขึ้นกับ death transaction และ side/formation/barrier
+- `QA_GEAR_BALANCE_AUDIT_V230`: อาวุธจิตศาสตรา/มรดกต้องทดสอบทั้งตายจากศึกและตายปกติ; โล่เก่าที่หักไม่จริง
+- `QA_DAO_PATH_SUBPATH_AUDIT_V230`: branch MECH และสถานะ DOT layered ใช้ path/subpaths จริง; ระวังไม่เนิร์ฟ meta โดยหลักฐาน DPS ไม่ครบ
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_DAO_PATH_SUBPATH_AUDIT_V230.md
+
+# รายงานตรวจวิถีหลัก / สายย่อย / สมดุลเมต้า — JianghuSect 2 v2.3.0
+> **รายงานใหม่แยกหมวด (ไม่ทับรายงานอุปกรณ์)** | 8 พฤศจิกายน 2026 | source SHA-256: `983e351b119c63f40b402c5e6e27c44a5f39683dc5e5b995773862efc467df62`
+
+## 1. บทสรุป
+
+**ขอบเขต:** ตรวจวิถีหลัก 43 วิถีและสายย่อย 286 สาย ใช้โค้ดจริงจากไฟล์ release เดิมบน Node.js; ไม่แก้ source และไม่อ้างว่าทดสอบผ่าน UI ทั้งหมดหรือผล DPS/EHP ครบทุกบิลด์.
+
+**ผล:** พบ 5 กลุ่มปัญหาที่พิสูจน์ได้ (P0 ×1, P1 ×3, P2 ×1), ข้อทบทวนสมดุล ×1 และข้อมูล coverage ×1 รวม 7 ประเด็น. ชุดรันทดสอบ 8 กรณี: ยืนยันบัค 6 เคส (2 เคสใน DAO-001), control ผ่าน 1 และ review 1.
+
+- **แก้ทันที P0:** 15 สายย่อยทะลวงขั้น 1→2 ไม่ได้ เพราะเงื่อนไขเช็กสกิลที่ไม่มีจริง (อ้างผิด 144 จุดใน 9 realm / 128 จุดในระดับ 2–9).
+- **แก้ก่อน freeze P1:** สวมคัมภีร์ขั้น 7 ข้ามวิถีหลัง retrain ได้; AI แนะนำสายย่อยผิดจาก 38 affinity refs ใน 35 สาย; 3 วิถีหลักอ่านค่านิยมที่ไม่มีอยู่จริง.
+- **แก้เมื่อพร้อม P2:** โบนัสทักษะจากการทะลวงสายย่อยค้างแคช ไม่อัปเดตทันที.
+- **ยังไม่สรุปว่าโกง:** ผู้เชี่ยวชาญบางสายมี ATK/DEF/HP สูงมากเมื่อเทียบกับสายย่อย NONE แต่ยังไม่มีการพิสูจน์ด้วย DPS/EHP, ต้นทุนและความหายาก. **ห้ามเนิร์ฟอัตโนมัติ.**
+
+## 2. รายงานแยกรายข้อ (ส่งให้ AI แก้ตรง ๆ)
+
+### DAO-001 [P0] — 15 สายย่อยทะลวงขั้นต่อไม่ได้จริง เพราะอ้าง Skill ID ที่ไม่มีอยู่ในระบบ
+**การจำแนก:** `BUG` | **ตำแหน่ง:** `js/cultivation.js:5360–5426`, `js/cultivation.js:5546–5614`, `js/cultivation.js:5981–6001`, `js/proficiency.js:10–46`
+**สาเหตุ:** ข้อมูล realm.skillGate ของ 15 สายย่อยใช้ HERBALISM / COOKING / HERB_LORE / COMMERCE / FISHING / CRAFTING / LEADERSHIP แต่ skillRead() ยอมรับเฉพาะรายการ M.SKILL_INFO หรือเกตธาตุพิเศษ ข้อความสกิลที่ไม่รู้จักจึงถูกอ่านเป็น 0 เสมอ ไม่มีทางผ่าน requirement แม้มีศิลา/ตบะครบ และฝึกสกิลจริงถึง 100
+**หลักฐาน:** สแกนพบ 144 references ที่ไม่ถูกต้องในเกต 9 ระดับรวม 15 สาย โดย 128 references อยู่ในเกตทะลวงระดับ 2–9; ทดลอง SPIRIT_GRAIN_SOVEREIGN มี herbalism=100, cooking=100, ศิลาและ progress ครบ แต่เกตอ่าน HERBALISM=0 (ต้อง 28), COOKING=0 (ต้อง 16), trackBreakthrough คืน blockedByGate=true
+**ผลกระทบ:** NPC และผู้เล่นที่เดิน 15 สายนี้ถูกล็อกความก้าวหน้า; AI ที่พยายามแก้คอขวดฝึกผิด skill หรือวนลูปแก้ไม่ได้ ระบบติดขัดทั้งที่ทรัพยากรครบ
+**แนวทางแก้:** สร้างชุด skill IDs ที่เป็น canonical เพียงแห่งเดียว และ validate realm.skillGate ตอนโหลดเกม/CI; map HERBALISM→herbalism, COOKING→cooking, HERB_LORE→herbalism, COMMERCE→trading; ตรวจเจตนา CRAFTING ว่าเป็น FORGING หรือ construction, LEADERSHIP ว่าเป็น administration หรือ diplomacy; FISHING ไม่มี M.SKILL_INFO ต้องเลือก survival/กิจกรรมประมงที่ฝึกได้จริง หรือเพิ่มสกิล canonical อย่างครบระบบ ไม่ใช่แค่แปลงเป็น fishing ตัวพิมพ์เล็กโดยไม่สร้างสกิล; migrate เซฟโดยไม่รีเซ็ต track
+**เงื่อนไขรับงาน (acceptance):** ทุกเกต realms 2–9 อ้าง skill ที่ skillRead, skillPractice, skillDrill รองรับ; ตัวละครที่ครบ skill+stone+progress สามารถทะลวงได้; 15 สายไม่ติดบัค; สคริปต์ยืนยันไม่พบ invalidSkillRefs
+**Repro IDs:** `DAO-001-A`, `DAO-001-B`
+
+### DAO-002 [P1] — เปลี่ยนวิถีแล้วสวมคัมภีร์ขั้น 7 ต่างวิถีให้ตัวละครขั้น 1 ได้
+**การจำแนก:** `BUG` | **ตำแหน่ง:** `js/retraining.js:13–46`, `js/ui.js:2478–2488`, `js/ui.js:6949–6955`, `js/stats.js:674–700`, `js/cultivation.js:4725–4749`
+**สาเหตุ:** retrain() คัดลอก unlockedMantras ข้ามวิถีอย่างสมเหตุสมผลเพื่อเก็บองค์ความรู้ แต่ปุ่ม switch-mantra และรายการ UI ตรวจเพียง id อยู่ใน unlockedMantras ไม่ตรวจ tech.path หรือ tech.tier เทียบวิถีและขั้นปัจจุบัน; STATS.get() ให้โบนัสจาก tier มนตราที่สวมจริงโดยไม่คัดกรอง
+**หลักฐาน:** ใช้ผลึกเปลี่ยน DEMON/SHADOW_ASSASSIN ขั้น 9 → XIAN/STAR_ARCHER ขั้น 1 (retrain ok=true); คัมภีร์เดิม MANTRA_DEMON_PRIMORDIAL_EMPEROR ขั้น 7 ยังอยู่ในรายการ unlocked และ UI ผ่านเงื่อนไข; สลับแล้ว MATK ตัวอย่างหนึ่ง 85→107 (ค่าขึ้นกับ seed); ดูค่าจริงที่ DAO_PATH_SUBPATH_REPRO_RESULTS.json
+**ผลกระทบ:** ข้ามข้อจำกัดขั้นและความเฉพาะวิถีของโบนัสคัมภีร์ เป็นช่องโกงหลัง retrain แบบตั้งใจได้; ความแรงแปรตามระดับคัมภีร์
+**แนวทางแก้:** เก็บ unlockedMantras เพื่อประวัติการเรียนได้ แต่เพิ่ม canonical canActivateMantra(n,id) ที่ตรวจ id, path, tier ≤ effectiveTechStage, คำสาป/ข้อยกเว้น; ใช้ใน UI listing, switch-mantra, auto-select, load reconciliation และ STATS.get() เพื่อป้องกันเซฟไม่ถูกต้อง; เลือกคัมภีร์ใหม่หลัง retrain เหมือนเดิม
+**เงื่อนไขรับงาน (acceptance):** retrain แล้วมนตราเดิมยังเก็บใน unlock history แต่สวมข้ามวิถี/เกินขั้นไม่ได้; บังคับแก้ c.mantra จากเซฟเดิมให้ปลอดภัย; MATK ไม่โตเพราะคัมภีร์ต่างวิถี; มนตราถูกวิถี/ถูกขั้นยังสลับได้
+**Repro IDs:** `DAO-002`
+
+### DAO-003 [P1] — 35 สายย่อยมีค่า Affinity Preference อ้าง key ไม่มีอยู่ 38 จุด ทำให้เลือกสายเอนเอียง
+**การจำแนก:** `BUG` | **ตำแหน่ง:** `js/cultivation.js:1696–1740`, `js/cultivation.js:1809–1821`, `js/human_core.js`, `js/proficiency.js:10–46`
+**สาเหตุ:** SUBPREF ใช้ affinity ชื่อแบบอาวุธ/วิชา/อาชีพ เช่น ZITHER, FOCUS, HERBALISM, COMMERCE, FISHING, CRAFTING, BLOOD_DEMON, POISON_CORROSION แต่ HC.affinities ไม่มี key เหล่านี้ และ alias map ครอบคลุมเพียงบางรายการ; HC.eff กลับ 0 ทำให้ (0-30)*weight*.45 เป็นค่าลบคงที่ โดยไม่ได้อ่านความถนัดจริง
+**หลักฐาน:** ตรวจ 38 records จาก CULT.SUBPREF กระจาย 35 สาย: ZITHER 8, BLOOD_DEMON 5, FOCUS 5, HERBALISM 4, COMMERCE 3, FISHING 3, POISON_CORROSION 3 และกลุ่มอื่น; ทั้งหมดอ่าน HC.eff(...)=0. ดูรายการครบใน DAO_PATH_SUBPATH_REPRO_RESULTS.json
+**ผลกระทบ:** NPC มีโอกาสเลือกสายที่เหมาะกับตนลดลงแบบไม่รู้ตัว บางสายใน 286 สายด้อยโอกาสกว่าเพื่อนโดยข้อมูลไม่ตั้งใจ; ไม่ใช่พลังต่อสู้ถูกคูณไม่จำกัด
+**แนวทางแก้:** สร้าง alias resolver แยกระหว่าง HC affinity กับ martial skill; FOCUS/ZITHER/WHIP ให้ใช้ affinity proxy ที่เหมาะสมหรือ M.skillRead ตามกฎชัด; HERBALISM/COMMERCE/CRAFTING ฯลฯ map ไป canonical skill/aptitude; BLOOD_DEMON และ POISON_CORROSION ต้องกำหนดความหมายเชิง design ไม่สร้าง key ปลอม; validate ทุก SUBPREF key ใน CI; จัดการคะแนนเดิมอย่างระมัดระวังเพื่อหลีกเลี่ยงเปลี่ยน population distribution รุนแรง
+**เงื่อนไขรับงาน (acceptance):** ไม่มี SUBPREF aff key ที่ resolver คืน 0 เพราะไม่รู้จักโดยไม่มีนิยาม explicit; เปลี่ยนค่าความถนัดจริงแล้วคะแนนสายที่อ้างต้องตอบสนอง; สัดส่วนเลือกสายย่อย baseline มีเหตุผล
+**Repro IDs:** `DAO-003`
+
+### DAO-004 [P1] — วิถีค้าขาย เสี่ยงโชค และพิธีบรรพชน อ่านชื่อตัวแปรค่านิยมผิด
+**การจำแนก:** `BUG` | **ตำแหน่ง:** `js/cultivation.js:1780–1812`, `js/human_core.js`
+**สาเหตุ:** CULT.pathScores ใช้ values.wealth (MERCANTILE_DAO และ FORTUNE_GAMBLER) และ values.dutyHonor (ANCESTRAL_RITUAL) ทั้งที่ human core มี wealthResource, sectDuty, honorLegacy; ค่า invalid เป็น 0 และไม่ขึ้นตามความชอบจริง
+**หลักฐาน:** เปลี่ยน wealthResource หรือ sectDuty ของ NPC จากค่าหนึ่งไปอีกขั้วพร้อม HC.bump() แต่คะแนนทั้ง 3 วิถีเปลี่ยน 0.000 สำหรับสายย่อยในวิถีเดียวกัน; ข้อมูล key ปัจจุบันตรวจสอบได้จาก n.h.values
+**ผลกระทบ:** ตัวละครนิยมทรัพย์สินไม่ได้มีแนวโน้มสู่วิถีค้าขาย/เสี่ยงโชคตามที่สูตรตั้งใจไว้ ตัวละครจงรักภักดี/ยกย่องบรรพชนไม่ส่งผลกับพิธีบรรพชน; เป็นสมดุล AI ที่ผิดแต่ไม่ใช่ช่องโกงตรง ๆ
+**แนวทางแก้:** แก้ wealth→wealthResource, dutyHonor→เลือก sectDuty / honorLegacy หรือสูตรผสมตามความหมายของวิถี; เพิ่ม schema validation สำหรับ HC.eff paths ที่เป็นค่า attribute โดยเฉพาะ; ทำ rank-distribution test เพื่อจับ regression
+**เงื่อนไขรับงาน (acceptance):** ปรับ wealthResource 0→100 ทำให้คะแนน MERCANTILE_DAO และ FORTUNE_GAMBLER ตอบสนองอย่างมีนัย; ปรับ sectDuty/honorLegacy ทำให้ ANCESTRAL_RITUAL เปลี่ยน; ไม่ใช้ key ที่ไม่มีจริง
+**Repro IDs:** `DAO-004`
+
+### DAO-005 [P2] — โบนัสทักษะสายย่อยค้างในแคชหลังทะลวงระดับสำเร็จ
+**การจำแนก:** `BUG` | **ตำแหน่ง:** `js/martial.js:337–349`, `js/martial.js:1009–1030`, `js/cultivation.js:5981–6032`
+**สาเหตุ:** M.progression(n) คำนวณค่าจาก c.track.ordinal แต่ M.lifeMult(n,skill) cache key มี path/sub/stage/mantra/_passVer และไม่มี track.ordinal; trackBreakthrough() อัปเดต ordinal พร้อม HC.bump() โดยไม่ invalidateMartialCaches() จึงคืนค่าโบนัสทักษะเดิมจนมีการล้างแคชจากกิจกรรมอื่น
+**หลักฐาน:** ทะลวง WOOD_SPRING_BODY จาก track 5→6 ด้วย skill gate, stones และ progress ครบ และใช้ guarantee:true เฉพาะเพื่อกัน RNG ล้มเหลวขณะทดสอบ; lifeMult(herbalism) ก่อน=1.298175 หลังทะลวง=1.298175 แต่หลัง invalidateMartialCaches กลายเป็น=1.327580
+**ผลกระทบ:** ผลตอบแทนความเชี่ยวชาญชีวิต เช่น เก็บสมุนไพร/แพทย์/หลอมไม่ขึ้นทันที ทำให้ tooltip/progression ต่างจากผลจริง จนกว่าจะเกิด invalidation อื่น; ไม่ใช่บัคที่บวกพลังเกินแต่ทำให้ผู้เล่นเสียประโยชน์
+**แนวทางแก้:** เพิ่ม c.track.ordinal ใน cache key ของ M.lifeMult (และตรวจแคชอื่นที่ขึ้นกับ track); หรือ invalidateMartialCaches ใน trackBreakthrough ทั้ง success/failure หากมีผลต่อค่าที่คำนวณ; ตรวจทดสอบ track 1→9 พร้อม ST.dirty และ HC.bump
+**เงื่อนไขรับงาน (acceptance):** หลังทะลวงถูกต้อง M.lifeMult เปลี่ยนทันทีโดยไม่เรียก invalidate เพิ่ม; ไม่ได้เปลี่ยนค่าเมื่อทะลวงไม่สำเร็จ; ไม่มี stale cache ข้าม save-load/เปลี่ยนสาย
+**Repro IDs:** `DAO-005`
+
+### DAO-006 [REVIEW] — กลุ่มสายย่อยปลายเกมมีสเตตัสสูงโดดเด่น แต่ยังไม่มีหลักฐานว่าเก่งเกินทุกบิลด์
+**การจำแนก:** `BALANCE` | **ตำแหน่ง:** `js/martial.js:15–120`, `js/martial.js:337–347`, `js/stats.js:440–512`, `data/data_martial.js`
+**สาเหตุ:** สายย่อยต่างบทบาทจงใจบวก ATK/MATK/DEF/HP ต่างกัน การเทียบกับตัวละคร path เดิมที่ sub=NONE แสดงความแรงในการเลือกสาย แต่ไม่ได้พิสูจน์ DPS/EHP จริง และไม่ได้รวมต้นทุน, วิชา, โบนัสเซ็ต, ตำนาน, AI และ matchups
+**หลักฐาน:** ทดสอบ 286 สาย ณ ขั้นหลักสูงสุดของวิถี ติดตั้งอุปกรณ์ว่าง ไม่มี mantra/tech active, same NPC seed; เทียบ NONE ในวิถีเดียวกัน. median atk +47.62%, p95 +72.89%, top BLOOD_DEMON/XIAN +97.29%; def top COLOSSUS_SHIELD_TAMER +112.99%; hp top SOUL_VESSEL_AVATAR +62.80% (ทั้งหมดยังเป็นค่าต่างสเตตัส ไม่ใช่ดาเมจหรืออัตราชนะ)
+**ผลกระทบ:** อาจเกิด dominant builds ถ้า burst+sustain+survivability สูงพร้อมกันโดยไม่มี tradeoff จริง; ยังไม่ควรเนิร์ฟแบบทั้งสายเพราะเทียบกับ NONE ซึ่งเป็น baseline ที่จงใจอ่อนกว่าสายเฉพาะ
+**แนวทางแก้:** ยังไม่เนิร์ฟจากสแกนนี้; ทดสอบทุกวิถีเปรียบ matched tier+stage+rarity+equipment กับ 3 archetypes (burst, tank, support), 100–1,000 battle seeds, ดู DPS/EHP/utility/qi economy/time-to-build/rarity และ counterplay; แก้ exploit จากอุปกรณ์ก่อน re-baseline paths
+**เงื่อนไขรับงาน (acceptance):** มี benchmark ย้อนซ้ำได้ที่ระบุ seed, tier, stage, item quality, skill/tech loadouts, rarity; ถ้า build ชนะทุกสถานการณ์แบบไม่มี tradeoff ค่อยเสนอปรับเฉพาะจุด
+**Repro IDs:** `DAO-007`
+
+### DAO-007 [INFO] — โครงสร้าง 43 วิถี / 286 สายย่อยและไฟล์สเตตัสพื้นฐานครบในชุดตรวจ
+**การจำแนก:** `COVERAGE` | **ตำแหน่ง:** `js/cultivation.js`, `js/martial.js`, `js/stats.js`, `data/data_cult.js`, `data/data_expansion.js`
+**สาเหตุ:** ตรวจรายการวิถีจาก CULT.PATHS และสายย่อยทุกวิถี, M.PROFILES, ST.SUBFX และ expansion subStats ประกอบกับค่าการคำนวณสเตตัสที่ขั้นสูงสุด
+**หลักฐาน:** 43 major paths, 286 subpaths, ไม่พบ missing M.PROFILES หรือ missing substats, ค่า stat vectors ที่ตรวจไม่มี NaN/Infinity; ข้อมูลครบไม่ได้แปลว่าทุกเอฟเฟกต์ถูกนำไปเรียกใช้ถูกต้อง
+**ผลกระทบ:** เป็นผลตรวจขอบเขตและข้อมูลสำหรับแยกปัญหา ไม่ใช่บัค
+**แนวทางแก้:** เก็บ validator รายชื่อ/ID unique/ref integrity และ rerun unit suite ทุกแพตช์; เมื่อแก้ data add assertions per path
+**เงื่อนไขรับงาน (acceptance):** รีรันได้ coverage เท่าเดิมหรือเปลี่ยนตามการออกแบบโดยไม่เกิด orphan data, missing profile, nonfinite stat; 15 dead-end gate ต้องเป็นศูนย์
+**Repro IDs:** `DAO-006`
+
+## 3. รายชื่อสายย่อยที่ทะลวงขั้นไม่ได้ครบทุกสาย (DAO-001)
+
+ตารางนี้เป็นการอ้างอิง **ทั้ง 15 สาย**; `invalid refs` นับทั้ง 9 realms และทุก reference ที่ไม่อยู่ในตัวอ่านทักษะ.
+
+| วิถีหลัก | สายย่อย | Skill ID ที่ไม่มีจริง | refs |
+|---|---|---|---:|
+| `VENOM_GU` | `IMMORTAL_NECTAR_TOXIN_SAGE` | `HERB_LORE` | 9 |
+| `WANDERING_DAO` | `CLOUD_STEP_HERMIT` | `HERB_LORE` | 9 |
+| `OCCULT_MAGE` | `SACRED_GOLEM_TAMER` | `CRAFTING` | 9 |
+| `NETHER_GRAVE` | `BONE_PUPPET_REFINER` | `CRAFTING` | 9 |
+| `TIDE_VOYAGER` | `ABYSSAL_TIDE_SPEAR` | `FISHING` | 9 |
+| `TIDE_VOYAGER` | `DRAGON_SHIP_NAVIGATOR` | `FISHING` | 9 |
+| `TIDE_VOYAGER` | `DEEP_PEARL_APOTHECARY` | `FISHING` | 9 |
+| `FORTUNE_GAMBLER` | `JADE_DICE_HIGH_ROLLER` | `COMMERCE` | 9 |
+| `FORTUNE_GAMBLER` | `KARMA_ROULETTE_DEALER` | `COMMERCE` | 9 |
+| `FORTUNE_GAMBLER` | `ALL_IN_DESPERADO_BLADE` | `COMMERCE` | 9 |
+| `SPIRIT_HUSBANDRY` | `IMMORTAL_HERB_PLANTER` | `HERBALISM` | 9 |
+| `SPIRIT_HUSBANDRY` | `IRON_THORN_VINE_WEAVER` | `HERBALISM` | 9 |
+| `SPIRIT_HUSBANDRY` | `SPIRIT_GRAIN_SOVEREIGN` | `COOKING, HERBALISM` | 18 |
+| `SPIRIT_HUSBANDRY` | `PARASITIC_SPORE_CULTIVATOR` | `HERBALISM` | 9 |
+| `ARENA_GLORY` | `BANNER_GLORY_MARSHAL` | `LEADERSHIP` | 9 |
+
+**หมายเหตุ:** FISHING ไม่ใช่สกิล canonical แม้แปลงเป็นตัวพิมพ์เล็ก ดังนั้นการแก้เฉพาะ capitalization จะไม่พอ. ในไฟล์ผลทดสอบมี gate rows ครบต่อ realm.
+
+## 4. สายย่อยที่ Preference Affinity อ้าง key ไม่รู้จัก (DAO-003)
+
+พบ **38 references ใน 35 สายย่อย**. ค่า HC.eff ของ key เหล่านี้เป็น 0 ในตัวอย่าง เพราะไม่มีอยู่ใน schema ทำให้คะแนนเอนเอียงลงโดยไม่ตอบสนองต่อทักษะจริง.
+
+| Key ที่ไม่รองรับ | จำนวนครั้ง |
+|---|---:|
+| `ZITHER` | 8 |
+| `BLOOD_DEMON` | 5 |
+| `FOCUS` | 5 |
+| `HERBALISM` | 4 |
+| `COMMERCE` | 3 |
+| `FISHING` | 3 |
+| `POISON_CORROSION` | 3 |
+| `CRAFTING` | 2 |
+| `HERB_LORE` | 2 |
+| `COOKING` | 1 |
+| `LEADERSHIP` | 1 |
+| `WHIP` | 1 |
+
+**รายการครบ 38 records:** ดู `QA_DAO_PATH_SUBPATH_AUDIT_V230.json` หรือ `DAO_PATH_SUBPATH_REPRO_RESULTS.json` (fields `invalid_preference_affinities` / `invalidPreferenceKeys`).
+
+## 5. ตัวอย่างค่าที่โดดเด่น (REVIEW ไม่ใช่บัค)
+
+ทดลองตัวละครเดียวกัน ใช้อุปกรณ์ว่าง ไม่มี mantra/tech และอยู่ที่ขั้นสูงสุดของ *แต่ละวิถี* เทียบกับสายย่อย `NONE` ในวิถีเดียวกัน. ตัวเลขด้านล่างเป็น **% ความต่างของ raw stat** ไม่ใช่ DPS, damage multiplier, win rate หรือ power ranking ข้ามวิถี.
+
+### ATK ที่สูงสุด
+
+| วิถี | สายย่อย | % เทียบ NONE ในวิถีเดียวกัน |
+|---|---|---:|
+| `XIAN` | `BLOOD_DEMON` | +97.29% |
+| `DEMON` | `HEAVEN_DEVOURING_DEMON` | +97.07% |
+| `KARMA_SAMSARA` | `ASURA_JUDGMENT_BLADE` | +96.06% |
+| `DEMON` | `ASHURA_SLAUGHTER_BLADE` | +94.37% |
+| `BEAST_SOVEREIGN` | `SYMBIOTIC_BEAST_WARRIOR` | +93.52% |
+
+### MATK ที่สูงสุด
+
+| วิถี | สายย่อย | % เทียบ NONE ในวิถีเดียวกัน |
+|---|---|---:|
+| `DEMON` | `HEAVEN_DEVOURING_DEMON` | +90.03% |
+| `BEAST_SOVEREIGN` | `PRIMORDIAL_BLOOD_MUTATOR` | +83.45% |
+| `BEAST_SOVEREIGN` | `ABYSSAL_DRAGON_TOTEM` | +79.82% |
+| `HEART_SOUL` | `MIND_SWORD_TELEKINESIS` | +79.40% |
+| `DEMON` | `NETHER_GHOST_KING` | +74.46% |
+
+### DEF ที่สูงสุด
+
+| วิถี | สายย่อย | % เทียบ NONE ในวิถีเดียวกัน |
+|---|---|---:|
+| `BEAST_SOVEREIGN` | `COLOSSUS_SHIELD_TAMER` | +112.99% |
+| `BODY` | `TITAN_MOUNTAIN_BODY` | +99.79% |
+| `BODY` | `VAJRA_BODHI` | +96.12% |
+| `MECH_PUPPET` | `HEAVENLY_GOLEM` | +89.76% |
+| `SAGE_SUPPORT` | `QIMEN_TALISMAN_PATRON` | +81.64% |
+
+### HP ที่สูงสุด
+
+| วิถี | สายย่อย | % เทียบ NONE ในวิถีเดียวกัน |
+|---|---|---:|
+| `MECH_PUPPET` | `SOUL_VESSEL_AVATAR` | +62.80% |
+| `KARMA_SAMSARA` | `BODHI_VOW_GUARDIAN` | +62.77% |
+| `BEAST_SOVEREIGN` | `COLOSSUS_SHIELD_TAMER` | +59.38% |
+| `KARMA_SAMSARA` | `LOTUS_MERCY_PURIFIER` | +54.72% |
+| `SAGE_SUPPORT` | `DIVINE_NECTAR_APOTHECARY` | +54.09% |
+
+**คำตัดสิน:** สายแอสซาซิน/ทำดาเมจมี ATK สูง, แทงก์มี DEF/HP สูง เป็นเอกลักษณ์ที่สมเหตุสมผลได้; ต้องวัด damage, mitigation, heal uptime และ tradeoffs ก่อนตัดสิน.
+
+## 6. แนวทางทดสอบก่อนประกาศเป็นแพตช์สุดท้าย
+
+1. รันชุด `DAO_PATH_SUBPATH_REPRO_TESTS.js` จาก source release; แก้ DAO-001 แล้วต้องไม่พบ invalid gate และไม่ติดคอขวดปลอม.
+2. ใช้ `canActivateMantra` แห่งเดียวจาก UI/API/auto-selection/โหลดเซฟ; ตั้งโปรไฟล์ save เก่าที่ติดคัมภีร์ข้ามวิถีแล้วทดสอบ migration.
+3. แก้ canonical skill/affinity/value keys อย่างเป็นระบบ แล้วตรวจ population distribution ที่ AI เลือกวิถีด้วย seeded simulation; อย่าปรับน้ำหนักความถนัดโดยไม่เทียบก่อน/หลัง.
+4. ยืนยัน path lifecycle: awaken→choose major/sub→study/mantra→track 1–9→retrain→save/load; ตรวจความสอดคล้องของ UI, STATS, MARTIAL, CULT และ AI.
+5. เมื่อปิดช่องอุปกรณ์ EQ-001/EQ-009 (จากรายงานอุปกรณ์เดิม) แล้วจึงทดสอบ build meta ในสภาพแวดล้อมสะอาดด้วย 100–1,000 battle seeds, matched tiers/weapon/gear/cost, burst & sustained DPS, EHP, control, resource economy, counter-matchups.
+6. จัดระดับผลทดสอบเป็น BUG / REVIEW / INFO; **DAO-006/DAO-007 ไม่ใช่บัคที่ยืนยัน** และไม่ควรถูกแปลงเป็นคำสั่งเนิร์ฟ.
+
+## 7. ไฟล์ในชุด ZIP ที่เกี่ยวข้อง
+
+- `QA_DAO_PATH_SUBPATH_AUDIT_V230.docx` — รายงานอ่านใน Word
+- `QA_DAO_PATH_SUBPATH_AUDIT_V230.md` — รายงานสำหรับ AI
+- `QA_DAO_PATH_SUBPATH_AUDIT_V230.json` — machine-readable tasks และรายชื่อข้อผิดพลาด
+- `DAO_PATH_SUBPATH_REPRO_TESTS.js` — Node reproducibility harness, ไม่แก้โค้ดต้นฉบับ
+- `DAO_PATH_SUBPATH_REPRO_RESULTS.json` และ `DAO_PATH_SUBPATH_REPRO_RUN_LOG.txt` — หลักฐานรันจริง
+- `DAO_PATH_SUBPATH_BASELINE_MATRIX.json` — สเตตัสตัวอย่างครบ 286 สาย, วิเคราะห์ได้แต่ไม่ใช่ power tier list
+- `DAO_PATCH_IMPLEMENTATION_GUIDE.md` — ลำดับงานสำหรับ AI และเกณฑ์ freeze
+
+### ข้อจำกัด/ความมั่นใจ
+- P0/P1/P2 ที่ระบุ BUG ผ่านการตรวจโค้ดและทดสอบ Node สืบย้อนผลได้; DAO-002 ทดสอบผ่านฟังก์ชัน retrain จริง และจำลองการตรวจปุ่มตามเงื่อนไข UI ที่มีอยู่ **ไม่ได้ทดสอบคลิกด้วยเบราว์เซอร์โดยตรง**.
+- เคส DAO-005 ใช้ `guarantee:true` เพื่อกัน RNG ในการทดสอบเท่านั้น แต่ตรวจ gate/ศิลา/progress จริงครบ; ผู้เล่นปกติยังต้องผ่านโอกาสสำเร็จ.
+- ข้อมูล stat outlier ยังไม่ใช่ evidence ของ meta unbeatable เพราะไม่ได้จำลองการต่อสู้หรือเศรษฐกิจจริง.
+- **รายงานนี้เพิ่มเติมจากรายงานอุปกรณ์เดิม ไม่แทนที่ ไม่รวมชื่อไฟล์ และไม่มีการแก้ source เกม.**
+
+
+## 8. ภาคผนวกอัปเดต — ผลต่อเนื่องหลังเซฟ/โหลด (8 พ.ย. 2026)
+
+> **ไม่มีรหัสบัคใหม่ในหมวดวิถี**; ยืนยันผลกระทบต่อเนื่องของ `DAO-001` และ `DAO-002` จากสถานะจริงหลัง `SIM.serialize`/`SIM.deserialize` เพื่อเตรียม release gate. รายการ/ระดับเดิมไม่เปลี่ยน.
+
+- **DAO-002 / C19 (P1):** เรียก retrain จาก DEMON stage9 ไปวิถีใหม่ XIAN stage1 จริง แล้วจำลองเงื่อนไขสลับมนตราจาก UI; คัมภีร์ DEMON tier7 `MANTRA_DEMON_PRIMORDIAL_EMPEROR` กลับมาสวมได้ ค่า MATK ในเคสเพิ่ม **105 → 127** และหลังโหลดเซฟยัง MATK=127, `cult.mantra` ยังคงชี้คัมภีร์ข้ามวิถี. *ไม่ใช่เพียงบัคแสดง UI ชั่วคราว*.
+- **DAO-001 / C20 (P0):** ตัวอย่างสาย `SPIRIT_GRAIN_SOVEREIGN` ตั้งทักษะ canonical `herbalism`/`cooking` เต็มและทรัพยากรพร้อมแล้วแต่ติด gate `HERBALISM`/`COOKING` ก่อนและหลังโหลดเซฟ; สายจึงติดขัดต่อเนื่องโดยไม่หายเมื่อรีสตาร์ต. ประเด็น 15 สายย่อยยังเป็น P0.
+- **สายสัมพันธ์กับระบบอื่น:** รูน/อุปกรณ์ไม่ควรเป็นวิธีอ้อมเพื่อแก้ gate skill ID; คัมภีร์ข้ามวิถีต้องมี validator ร่วมของ UI/AI/CULT/STATS และ `deserialize` ต้อง sanitize/eject mantra ที่ไม่เข้าวิถี/ขั้นโดย *ยังเก็บ learned record* ไว้.
+- **Regression หลังแก้:** retrain → สลับคัมภีร์ invalid → ตรวจค่า STATS/การต่อสู้ → save/load → auto-mantra selection; track gate → ฝึกทักษะที่มีจริง → ทะลวง → save/load; อุปกรณ์ต่างวิถี/ขั้นต้องไม่คืนโบนัสให้ช่องสวมที่ผิดกติกา.
+
+## การตรวจข้ามระบบเพิ่มเติม — COMBAT v2.3.0 (8 พ.ย. 2026)
+
+**ทางเดินบัฟ/สถานะขณะใช้วิถีจริง:** COMBAT-09 ยืนยันสาขาพิเศษ MECH_PUPPET ไม่ทำงานเพราะ generic CULT.PATHS ถูกตรวจมาก่อน จึงไม่หัก integrity ตามกลไก; COMBAT-10 ยืนยัน poison แบบ layered stacks=3 หมดอายุแล้วถูก purge หายทั้งรายการก่อนลดเหลือ 2. ต้องทดสอบ 43 วิถี/286 สายกับ flow การต่อสู้จริงแยกจาก parity data. ดูรายงาน COMBAT โดยตรง.
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_FREEZE_AUDIT_V230.md
+
+# JianghuSect 2 v2.3.0 — Freeze / Stability Code & Logic Audit
+
+> **วันที่ตรวจ:** 8 พฤศจิกายน 2026  
+> **ขอบเขต:** ไฟล์ ZIP v2.3.0 ที่แนบมาเท่านั้น (ไม่แก้ source)  
+> **เป้าหมาย:** bug fixing / logic / missing integration / exploit ก่อนหยุดพัฒนาฟีเจอร์
+
+## Executive decision
+
+**ยังไม่แนะนำประกาศเป็นแพตช์สมบูรณ์ / content-freeze certified** แม้ Schema Validation และ standalone bundle ผ่าน เพราะมีช่องโหว่เศรษฐกิจที่สร้างทรัพยากรได้ฟรี ความคลาดเคลื่อนของเซฟเกม และระบบที่ประกาศแต่ไม่มีทางเชื่อมเข้าการเล่นจริง.
+
+**จำนวนข้อค้นพบ 13 ข้อ:** P0 = 2, P1 = 6, P2 = 4, P3 = 1. แยกบันทึก QA performance เพิ่ม 1 ประเด็นที่ยังไม่ใช่หลักฐานยืนยันว่าบัคเกม.
+
+## ผลการตรวจที่รันจริง
+
+| Gate | ผล | หลักฐาน/ความหมาย |
+|---|---|---|
+| ZIP CRC | ผ่าน | ไฟล์ ZIP ไม่มีไฟล์เสีย |
+| Core Lock | ผ่าน | human_core.js SHA-256 ตรงตาม invariant |
+| Data Schema | ผ่าน | **0 Errors / 0 Warnings** |
+| Full parallel regression | **138/139 ผ่าน** | v410 performance fail 4.768 ms/tick เมื่อทดสอบ 4 workers พร้อมกัน |
+| v410 isolation | ผ่าน 121 assertions | 2.127 ms/tick เมื่อตรวจเดี่ยว; แสดงความไวต่อ CPU contention |
+| JS syntax sweep | ผ่าน | node --check จำนวน 213 ไฟล์ |
+| Standalone build parity | ผ่าน | สร้างไฟล์ใหม่ได้ SHA-256 เดิมทุกไบต์; standalone suite ผ่าน |
+| Independent red probes | **14/14 FAIL ตามที่คาด** | ชี้บัค/ช่องเชื่อมขาดที่ suite เก่ายังไม่ตรวจ |
+
+> ผล regression แสดงว่าชุดเทสต์เดิมครอบคลุมเส้นทางที่ทดสอบ แต่ **ไม่รับประกันว่าเกมไร้บัคเชิงตรรกะ**; failure ด้าน perf เกิดเฉพาะรันคู่ขนานในสภาพแวดล้อมนี้ จึงไม่จัดเป็นบัคเกมแน่นอน.
+
+## ตารางจัดลำดับงานแก้
+
+| รหัส | ลำดับ | อาการสรุป | หลักฐาน |
+|---|---|---|---|
+| JHS-001 | P0 | ใช้ไอเทมสิ้นเปลืองได้โดยไม่มีของในคลัง | ยืนยันด้วยการรันจริง |
+| JHS-002 | P0 | ปรุงโอสถขาดสมุนไพรได้ และผลิตหลายร้อยชิ้นโดยจ่ายเพียงครั้งเดียว | ยืนยันด้วยการรันจริง |
+| JHS-003 | P1 | ไอเทมหลายชาร์จถูกอ้างสิทธิ์ซ้ำโดยหลายตัวละคร | ยืนยันด้วยการรันจริง |
+| JHS-004 | P1 | การเซฟตัด state ต่อสู้และพิธีกรรมที่มีผลจริงออก | ยืนยันด้วยการรันจริง |
+| JHS-005 | P1 | ตัวตรวจเวอร์ชันเซฟยอมรับเซฟรุ่นใหม่/เวอร์ชันผิดรูปแบบ | ยืนยันด้วยการรันจริง |
+| JHS-006 | P1 | ระบบ Effect ตอบว่าใช้งานสำเร็จทั้งที่ fallback ผิดคุณสมบัติ | ยืนยันด้วยการรันจริงสำหรับตัวอย่าง และยืนยันเชิงโครงสร้างสำหรับขอบเขต |
+| JHS-007 | P1 | Duet Resonance API ยังไม่มีสายเรียกจากเกมจริง | ยืนยันจากการค้นหาจุดเรียกใน source; ยังไม่ยืนยัน UI ทุกเส้นทางด้วย manual playthrough |
+| JHS-008 | P1 | วิชาประสานสายเฉพาะ 5 แบบเป็นเพียงข้อมูลไม่ถูกเลือกใช้งาน | ยืนยันจาก catalog references |
+| JHS-009 | P2 | Duet ตรวจคูลดาวน์ฝ่ายร่าย แต่ไม่ตรวจฝ่ายคู่ | ยืนยันด้วยการรันจริง |
+| JHS-010 | P2 | Enhanced charged skill entrypoint ไม่มีผู้เรียกจากระบบเล่น | ยืนยันจากการค้นหาการเรียกแบบ static |
+| JHS-011 | P2 | Boss anatomy/part-break API ไม่ถูกเชื่อมกับดาเมจการต่อสู้ | ยืนยันจากการค้นหาการเรียกแบบ static |
+| JHS-012 | P2 | ไอเทมโอสถของเซฟหนึ่งปนเข้า catalog ของเกมใหม่ | ยืนยันด้วยการรันจริง |
+| JHS-013 | P3 | README ภายในแพ็กเกจระบุเวอร์ชันผิดจาก runtime | ตรวจเทียบไฟล์โดยตรง |
+
+## รายงานรายข้อและคำสั่งแก้สำหรับ AI
+
+### JHS-001 [P0] ใช้ไอเทมสิ้นเปลืองได้โดยไม่มีของในคลัง
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริง
+
+**จุดที่พบ:** `GAME_SOURCE/js/economy.js:2534-2537`, `GAME_SOURCE/js/economy.js:2550-2566`, `GAME_SOURCE/js/economy.js:2373-2385`
+
+**Actual / Evidence:** กรณีไอเทมใช้ครั้งเดียว เมื่อ ECO.count(W,itemId)=0 โค้ดข้าม ECO.take แล้วเดินหน้ารับผลสำเร็จ (ok:true) แม้ opts.free=false; ทดลอง ITEM190_PILL_001 ไม่มีในคลังแต่ใช้ได้จริง; กับดักที่ arm ไว้ก็เรียกใช้โดยไม่มี stock check.
+
+**Impact:** สร้างผลของยา/ไอเทมฟรี ทำลายเศรษฐกิจและเงื่อนไขการต่อสู้; trap ที่ไม่มีของจริงยังทำงาน
+
+**Fix direction:** ทำธุรกรรม reserve/consume แบบ atomic ก่อน apply effect; ถ้าไม่ free ต้องตรวจ stock/ownership และหักสำเร็จจึงใช้ได้; ห้ามหักสิ่งที่ไม่มี; trap ต้องยืนยัน stock ตั้งแต่ arm หรือ trigger และไม่ mark triggered เมื่อ use ไม่ผ่าน
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-001; ECO.useConsumableItem(W,n,"ITEM190_PILL_001",{free:false}) ขณะ stock=0 คืน ok:true
+
+**Acceptance tests:** stock=0 ต้องคืน ok:false; HP/buff/effects/phase queue ไม่เปลี่ยน; เมื่อ stock≥1 ลดตรงจำนวน; opts.free:true ใช้เฉพาะทางที่อนุญาต
+
+### JHS-002 [P0] ปรุงโอสถขาดสมุนไพรได้ และผลิตหลายร้อยชิ้นโดยจ่ายเพียงครั้งเดียว
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริง
+
+**จุดที่พบ:** `GAME_SOURCE/js/economy.js:2428-2468`
+
+**Actual / Evidence:** brewMultiPhaseSpecialtyPill เช็กเงิน แต่เมื่อสมุนไพรน้อยกว่า herbCost กลับไม่ reject; qty=Math.max(1,opts.qty||1) แต่ stoneCost/herbCost ไม่คูณจำนวน. ทดสอบ herb=0, stones=1000, qty=500: ได้โอสถ 500 ชิ้น ใช้หินปราณ 25 และสมุนไพร 0.
+
+**Impact:** ทำลายต้นทุนการปรุงและระบบตลาด; bulk arbitrage รุนแรง
+
+**Fix direction:** validate qty เป็นจำนวนเต็มบวกและมีเพดาน; คูณต้นทุนต่อหน่วยหรือกำหนดสูตร batch ที่ชัดเจน; reject หากสมุนไพร/เงินไม่พอ; ตรวจทั้งสองทรัพยากรก่อนหักแบบ atomic; ห้ามผลิตก่อนหัก
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-002a/JHS-002b
+
+**Acceptance tests:** ขาดวัตถุดิบใดต้องไม่สร้างยา; qty=N ต้นทุน N× ต่อหน่วย (หรือสูตร batch ที่ประกาศ); ห้ามทรัพยากรติดลบ
+
+### JHS-003 [P1] ไอเทมหลายชาร์จถูกอ้างสิทธิ์ซ้ำโดยหลายตัวละคร
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริง
+
+**จุดที่พบ:** `GAME_SOURCE/js/economy.js:2546-2562`
+
+**Actual / Evidence:** talismanCharges เก็บแยก npc.ext แต่คลังยังถือสินค้าจนใช้ชาร์จสุดท้าย; มี ITEM_V234_TAL_001 เพียงหนึ่งชิ้น (3 charges) ตัวละครสองคนเริ่มใช้ได้ทั้งคู่และต่างมี 2 charges คงเหลือ รวมเกินจำนวนที่เป็นเจ้าของจริง.
+
+**Impact:** ทำซ้ำทรัพยากร/ขยายจำนวนชาร์จโดยไม่มีต้นทุน; ขายหรือโยกสินค้าได้ระหว่างชาร์จ
+
+**Fix direction:** โอน ownership หรือจอง item-instance/charge pool เมื่อเริ่มใช้; ห้าม NPC คนอื่น claim ชิ้นเดียวกัน; เมื่อใช้หมดให้คืน/ลบ reservation อย่างปลอดภัย และ persist ผ่าน save/load
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-003
+
+**Acceptance tests:** ไอเทม 1 ชิ้นมีจำนวนชาร์จรวมจำกัด; ระหว่างการใช้งาน ขาย/โอนไม่ทำให้สร้างชาร์จใหม่
+
+### JHS-004 [P1] การเซฟตัด state ต่อสู้และพิธีกรรมที่มีผลจริงออก
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริง
+
+**จุดที่พบ:** `GAME_SOURCE/js/sim.js:785-829`, `GAME_SOURCE/js/sim.js:896-903`, `GAME_SOURCE/js/cultivation.js:9152-9156`, `GAME_SOURCE/js/combat.js:5538-5576`, `GAME_SOURCE/js/combat.js:958-976`, `GAME_SOURCE/js/cognition.js:808-809`
+
+**Actual / Evidence:** replacer ปฏิเสธ key ขึ้นต้น _ เกือบทั้งหมด; ค่า _divineStrain=90, _duetCdUntil, _ccImmuneUntil, _ccDrStacks, _boneArmorHp, _shadowClones, _poiseGauge, _lastGearSwapAt และค่าเก็บเศษเวลางานอื่นๆ กลายเป็น undefined หลังโหลด. ทดสอบ state 10 ฟิลด์หายทั้ง 10.
+
+**Impact:** เซฟ/โหลดรีเซ็ต cooldown/ความเสี่ยง/เกราะ/CC diminishing returns/ฮิสเทอรีสลับอุปกรณ์; มีโอกาส exploit และผลลัพธ์ไม่ deterministic
+
+**Fix direction:** จัดชั้น authoritative persistent state เทียบกับ transient cache จริง; ย้าย authoritative ไปชื่อไม่ขึ้น _ หรือ explicit allowlist/serialize envelope; มี migration สำหรับเซฟ v2.3.0 เดิม; ตรวจ round-trip active fight, divine strain, buff, gear hysteresis, partial cultivation progress
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-004; 10-field expanded repro อยู่ใน independent_repros ในการตรวจ
+
+**Acceptance tests:** หลัง save/load ค่า cooldown/guard/progress เดิมเท่ากันและ decrement ต่ออย่างถูกต้อง; transient cache ไม่ serialize
+
+### JHS-005 [P1] ตัวตรวจเวอร์ชันเซฟยอมรับเซฟรุ่นใหม่/เวอร์ชันผิดรูปแบบ
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริง
+
+**จุดที่พบ:** `GAME_SOURCE/js/sim.js:7-11`, `GAME_SOURCE/js/sim.js:830-870`
+
+**Actual / Evidence:** PATCH_VERSION ของเกมคือ 2.3.0 แต่ SUPPORTED_PATCHES มี 3.1.1–5.8.0; SUPPORTED_SAVE_SCHEMAS มีรายการ 3.x–5.8.0 จึงรับเซฟ 5.8.0 แล้ว serialize กลับเป็น 2.3.0 โดยไม่มี migration ที่ยืนยัน; patchVersion="invalid-version" ผ่าน เพราะ parseFloat เป็น NaN; schemaVersion="0.0.0-unknown" ก็ผ่าน; runtime v="9.0.0" ผ่าน ทั้งที่ SIM.VERSION=1.10.11.
+
+**Impact:** ยอมรับข้อมูลที่เกมปัจจุบันไม่รู้จักและเปลี่ยนเวอร์ชันกำกับเงียบ ๆ; เสี่ยงโหลดผิด shape/สูญเสีย semantics
+
+**Fix direction:** ใช้ semver parser แยก numeric parts และ reject invalid; รองรับเฉพาะ schema ที่พิสูจน์ migration/round-trip ได้; ห้าม whitelist future schema โดยไม่มี migration; แยกรุ่น engine/patch/schema ชัดเจน
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-005a/JHS-005b
+
+**Acceptance tests:** reject future/malformed และ import ไม่แก้โลกเดิม; accepted version แต่ละรายการมี migration+tests ชัดเจน
+
+### JHS-006 [P1] ระบบ Effect ตอบว่าใช้งานสำเร็จทั้งที่ fallback ผิดคุณสมบัติ
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริงสำหรับตัวอย่าง และยืนยันเชิงโครงสร้างสำหรับขอบเขต
+
+**จุดที่พบ:** `GAME_SOURCE/js/economy.js:1904-2050`, `GAME_SOURCE/js/economy.js:2051-2275`, `GAME_SOURCE/js/economy.js:2277-2300`, `GAME_SOURCE/js/economy.js:2585-2592`, `GAME_SOURCE/js/combat.js:5531`
+
+**Actual / Evidence:** ALL_RUNTIME_EFFECT_IDS มี 143 IDs แต่ switch executeItemEffectById มี dedicated cases เพียง 46; 99 IDs ไหลเข้า default ทิ้ง params แล้วให้ buff fervorMight แทนและคืน ok:true. ตัวอย่าง EFX_CARGO_PRESERVATION ให้ combat buff ไม่ใช่เก็บรักษาเสบียง. verifyItemEffectRuntimeCoverage เพียงเทียบชื่อกับรายการ ไม่ทดสอบผลลัพธ์จริง. บาง ID อาจมี handler ในระบบอื่น จึงห้ามเหมาว่าทุก effect ไม่ทำงานทั่วเกม.
+
+**Impact:** ไอเทม/โอสถที่ผ่าน executor นี้ให้ผลผิดชื่อ, ผู้เล่นเห็น success ผิดจริง, QA 100% coverage ที่ไม่สะท้อนพฤติกรรม
+
+**Fix direction:** สร้าง dispatch map ตาม context/use-case แยก ITEM, PASSIVE_GEAR, COMBAT, CULTIVATION, EXPLORE; unhandled ต้องคืน ok:false พร้อม reason/log ไม่ให้ generic buff; เพิ่มผลเฉพาะ semantics และ contract tests ของ 143 IDs ตาม acquisition/use path
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-006; ECO.executeItemEffectById("EFX_CARGO_PRESERVATION") คืน ok:true และ STATS.has("fervorMight") เป็น true
+
+**Acceptance tests:** ทุก Effect ที่ประกาศต้องมี test แสดง state delta ที่คาดหวังและผลด้านลบ/ข้อจำกัด; unknown ID ไม่ผ่านเงียบ
+
+### JHS-007 [P1] Duet Resonance API ยังไม่มีสายเรียกจากเกมจริง
+
+**ความมั่นใจ:** ยืนยันจากการค้นหาจุดเรียกใน source; ยังไม่ยืนยัน UI ทุกเส้นทางด้วย manual playthrough
+
+**จุดที่พบ:** `GAME_SOURCE/js/combat.js:5536-5581`, `GAME_SOURCE/test/v340_combat_depth_and_duet_synergies_suite.js:104-132`
+
+**Actual / Evidence:** COMBAT.tryExecuteDuetSkill ถูกนิยามใน combat.js แต่ไม่พบการเรียกใช้งานจาก GAME_SOURCE/js/*.js; การเรียกทั้งหมดที่พบอยู่ใน suite ที่ส่งคู่ทดสอบตรง ๆ. ดังนั้นมี API+test green โดยไม่ปรากฏ integration จาก battle AI/action selection.
+
+**Impact:** ผู้เล่นอาจไม่เห็นระบบประสานวิชาคู่ทำงานเลยแม้มีระบบอยู่ใน data และ test
+
+**Fix direction:** ต่อเข้าจังหวะ combat tick/action selection ตามเงื่อนไข bond/range/energy/qi และ cooldown; เลือกท่า/พันธะอย่างมีความหมาย; เพิ่ม integration test จาก SIM.tick/COMBAT.tickFight โดยไม่เรียก tryExecuteDuetSkill ตรง
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-007 (static orphan check)
+
+**Acceptance tests:** สร้างการต่อสู้คู่ที่เข้าเงื่อนไขแล้ว Duet activation เกิดจาก gameplay path, บันทึกเหตุการณ์และ consume cost; ไม่เกิดในกรณีไม่เข้าเงื่อนไข
+
+### JHS-008 [P1] วิชาประสานสายเฉพาะ 5 แบบเป็นเพียงข้อมูลไม่ถูกเลือกใช้งาน
+
+**ความมั่นใจ:** ยืนยันจาก catalog references
+
+**จุดที่พบ:** `GAME_SOURCE/js/combat.js:5537-5546`, `GAME_SOURCE/js/combat.js:5561-5569`, `GAME_SOURCE/test/v230_grand_dao_deep_parity_and_universal_arsenal_suite.js:145-146`
+
+**Actual / Evidence:** CATALOG มี 8 ท่า แต่ tryExecuteDuetSkill เลือกได้เพียง 3 ท่าจาก companion/mentor/destiny; 5 ท่า BUSHIDO_SHINOBI, PANTHEON, OCCULT_GRAVE, ASTRAL_CHRONO, DRAGON_TIDE มีเพียงรายการประกาศ ไม่มี runtime reference เพื่อเลือกจริง. suite v230 ตรวจแค่ Object.keys(...).length>=8.
+
+**Impact:** บิลด์สายเฉพาะมีท่าแสดงในข้อมูล แต่ไม่ได้โบนัส/เอฟเฟกต์ที่สัญญาไว้
+
+**Fix direction:** เพิ่ม selector สำหรับเงื่อนไข path groups ของทั้งสองฝ่ายและบอนด์, ระบุ precedence เมื่อเข้าได้หลายหมวด; ทดสอบทุก catalog ID ถูกเลือกได้จริงผ่านการเล่น
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-008 (static catalog-only check)
+
+**Acceptance tests:** มี fixture สำหรับท่าทั้ง 8 ชนิด และใน runtime แต่ละท่ามีทางเกิดตามกติกา
+
+### JHS-009 [P2] Duet ตรวจคูลดาวน์ฝ่ายร่าย แต่ไม่ตรวจฝ่ายคู่
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริง
+
+**จุดที่พบ:** `GAME_SOURCE/js/combat.js:5548-5556`, `GAME_SOURCE/js/combat.js:5575-5576`
+
+**Actual / Evidence:** เมื่อร่ายสำเร็จตั้ง _duetCdUntil ทั้ง caster และ partner แต่ตรวจเพียง caster. ทดสอบให้ partner ยังติด cooldown แล้วรีเซ็ตเฉพาะ caster: เรียกซ้ำยัง ok:true.
+
+**Impact:** cooldown ของฝ่ายคู่ไม่ถูกบังคับเมื่อสลับบทบาท/เปลี่ยนคู่ สร้างการร่ายถี่เกินออกแบบ
+
+**Fix direction:** ตรวจทั้งสองคนก่อนทำความเสียหาย; บังคับ cost/cooldown สอดคล้องกับการใช้จริง; ร่วมกับแก้ JHS-004 เพื่อ persist cooldown
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-009
+
+**Acceptance tests:** คู่ใดก็ตามที่ยังติด cooldown จะคืน cooldown-active ไม่สร้าง damage/shield
+
+### JHS-010 [P2] Enhanced charged skill entrypoint ไม่มีผู้เรียกจากระบบเล่น
+
+**ความมั่นใจ:** ยืนยันจากการค้นหาการเรียกแบบ static
+
+**จุดที่พบ:** `GAME_SOURCE/js/combat.js:5583-5610`, `GAME_SOURCE/test/v340_combat_depth_and_duet_synergies_suite.js:173-184`
+
+**Actual / Evidence:** startChargedSkill ตั้ง isChargedSkill, poiseShield และ release multiplier แต่ไม่พบ COMBAT.startChargedSkill(...) ใน GAME_SOURCE/js; มีเฉพาะเทสต์โดยตรง. เกมยังมี generic channeling อื่นอยู่ จึงต้องตรวจว่า enhanced entrypoint จำเป็น/ถูกใช้ทางอ้อมหรือไม่.
+
+**Impact:** คุณสมบัติเสริม charge/poise/release อาจไม่เกิดจาก AI หรือสกิลในเกมจริง
+
+**Fix direction:** หากเป็นฟีเจอร์ที่ต้องใช้ ให้ต่อจาก skill/action resolver และทดสอบ channeling ระยะจริง, interrupt, charged release, save/load; หากไม่ใช่ฟีเจอร์ใช้งานจริง ให้ลบ/ซ่อนความคาดหวังใน UI และเอกสาร
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-010 (static orphan check)
+
+**Acceptance tests:** เล่นจนเกิด charged enhanced skill ได้ โดยไม่เรียก API ผ่าน test โดยตรง
+
+### JHS-011 [P2] Boss anatomy/part-break API ไม่ถูกเชื่อมกับดาเมจการต่อสู้
+
+**ความมั่นใจ:** ยืนยันจากการค้นหาการเรียกแบบ static
+
+**จุดที่พบ:** `GAME_SOURCE/js/combat.js:5612-5682`, `GAME_SOURCE/test/v340_combat_depth_and_duet_synergies_suite.js:191-208`
+
+**Actual / Evidence:** ANATOMY_BREAKER.damageBossPart มีระบบลด HP ชิ้นส่วนและดรอป แต่ไม่พบ runtime caller ใน GAME_SOURCE/js; เทสต์เรียก damageBossPart โดยตรง.
+
+**Impact:** ผู้เล่นสู้บอสจริงแล้วไม่ปรากฏการทำลายชิ้นส่วน/หยุดสกิล/ดรอปเฉพาะจุดตามที่คาด
+
+**Fix direction:** ต่อเข้าระบบ hit targeting หรืออนุญาตเป้าชิ้นส่วนใน encounter แบบชัดเจน, จำกัดดรอป 1 ครั้งต่อชิ้น, คืนค่าชิ้นส่วนหลัง save/load; ทดสอบผ่านการโจมตีจริง
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-011 (static orphan check)
+
+**Acceptance tests:** พบการ invoke จาก combat damage path และ integration test ผ่านการโจมตีจริง
+
+### JHS-012 [P2] ไอเทมโอสถของเซฟหนึ่งปนเข้า catalog ของเกมใหม่
+
+**ความมั่นใจ:** ยืนยันด้วยการรันจริง
+
+**จุดที่พบ:** `GAME_SOURCE/js/sim.js:912-918`, `GAME_SOURCE/js/economy.js:1899-1902`, `GAME_SOURCE/js/economy.js:2415-2419`
+
+**Actual / Evidence:** deserialize เอา sect.customPills ไปเขียน ECO.itemById/ECO.v235ItemById ซึ่งเป็น registry ระดับ global; หลังโหลดเซฟที่มี AUDIT_PILL_LEAK_2026 แล้วสร้างโลกใหม่ที่ไม่มี pill ใน sect ใหม่ ECO.getItem(id) ก็ยังคืน pill เก่า.
+
+**Impact:** ข้ามโลก/ข้ามเซฟมีการปนข้อมูล; เมื่อบวก JHS-001 จะใช้ effect ของไอเทมจากอีกเซฟได้แม้ไม่มีในคลัง
+
+**Fix direction:** แยก custom definitions เป็น per-world registry; ECO.getItem ควรอิง W เมื่อเป็น dynamic item; clear scoped definitions ใน newGame/load หรือสร้าง sandbox import ก่อน commit; จัดการ conflict กับ canonical ID
+
+**How to reproduce:** AUDIT_REPRO_RED_TESTS.js → JHS-012
+
+**Acceptance tests:** สร้างโลกใหม่ไม่มี item definition ของเซฟก่อน; สามารถโหลดโลกเก่ากลับได้ครบโดยไม่ปนเปื้อน
+
+### JHS-013 [P3] README ภายในแพ็กเกจระบุเวอร์ชันผิดจาก runtime
+
+**ความมั่นใจ:** ตรวจเทียบไฟล์โดยตรง
+
+**จุดที่พบ:** `GAME_SOURCE/README.md:1-15`, `GAME_SOURCE/js/sim.js:7-11`, `ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_3_0.md:1-12`
+
+**Actual / Evidence:** README ของ GAME_SOURCE เขียน package release/patch 3.1.1 และ save marker 3.1.0 แต่ runtime จริงประกาศ PATCH_VERSION 2.3.0, SAVE_SCHEMA_VERSION 2.3.0-grand-dao-deep-parity-release.
+
+**Impact:** AI ที่รับงานอาจแก้ผิด branch, เขียน migration หรือ QA gate ผิดเวอร์ชัน
+
+**Fix direction:** แก้ README เป็น 2.3.0, ติดป้าย historical docs/archive, ระบุ source of truth และ freeze branch
+
+**How to reproduce:** เทียบข้อเท็จจริงด้วย diff ของ README และ SIM constants
+
+**Acceptance tests:** README/index/version card/test manifest สอดคล้อง 2.3.0 และไม่มี current release ขัดกัน
+
+## ประเด็น QA ที่แยกออกจากบัคเกม
+
+**QA-PERF-01 — Test contention:** `node tools/run_parallel_tests.js` ด้วย `TEST_WORKERS=4` ให้ 138/139 ผ่าน; `v410` ล้มที่ 4.768 ms/tick เกิน threshold 3.5. เมื่อนำ suite เดียวกันมารันเดี่ยวผ่านครบ 121 assertions โดยใช้ 2.127 ms/tick. **ยังไม่มีหลักฐานว่า code path นี้ช้าเกินบนเครื่องเป้าหมายจริง**; แนะนำให้รัน performance solo และบันทึก CPU/VM environment; แยก functional assertions ออกจาก hard perf threshold.
+
+## ขอบเขตและการอ่านผล
+
+- **Confirmed runtime:** มี Node.js reproduction จริง ผ่าน state/return value ตามที่ระบุ; โปรดรันทดสอบใหม่หลังแก้.
+- **Confirmed static integration gap:** จากการค้นทุกไฟล์ `GAME_SOURCE/js/*.js` ไม่พบ caller ไปยัง exported API; dynamic invocation / reflection อาจเกิดได้ตามโค้ดภายนอกหรือส่วนเพิ่มเติมที่ไม่ได้แนบมา จึงควรให้ AI เช็กก่อนตัดสินลบโค้ด.
+- **Item effects 99/143:** หมายถึง `executeItemEffectById` ไม่มี `case` เฉพาะและจะใช้ fallback *ในเส้นทางนี้*; ไม่ได้ยืนยันว่า 99 รายการไม่มี logic ใน subsystem อื่น.
+- **Replit:** ตรวจหาแอปชื่อ JianghuSect ในบัญชีที่เชื่อมต่อแล้วไม่พบ; การตรวจทั้งหมดจึงอ้างอิง ZIP ที่แนบมา ไม่ใช่ repository live.
+- ไม่ได้ทดสอบ gameplay manual ทุกทางเลือกบนอุปกรณ์จริง; อุปกรณ์ที่รองรับ browser/Chromium มีอยู่และ test browser ที่รวมไว้รันผ่านใน baseline.
+
+## ขั้นตอนให้ AI ที่เขียนโค้ดแก้ตามลำดับ
+
+1. **ห้ามแก้ `GAME_SOURCE/js/human_core.js`** และห้ามเพิ่มฟีเจอร์/ทำ refactor ใหญ่ที่ไม่จำเป็น; ทำ snapshot/branch ใหม่เพื่อย้อนกลับได้.
+2. แก้ P0 (`JHS-001`, `JHS-002`) ก่อนเพื่อหยุดการสร้าง resource ฟรี; ใช้ atomic check/reserve/commit และเพิ่ม zero-stock, qty, concurrency tests.
+3. แก้ P1 (`JHS-003`–`JHS-008`): สิทธิ์ talisman charge, authoritative save state, version guards, effect semantics และ duet wiring; จัด migration เฉพาะจำเป็น.
+4. แก้ P2 (`JHS-009`–`JHS-012`) แบบ targeted ตาม acceptance; จัด feature integration tests ที่เรียกจาก `SIM.tick`/combat update ไม่ใช่ direct API อย่างเดียว.
+5. แก้ README `JHS-013` และทดสอบความถูกต้องหลังแก้แต่ละชุด; ไม่แตะ content/data ไม่เกี่ยวข้อง.
+6. Gate ก่อนปล่อย: `node tools/validate_data_schema.js` ต้อง 0/0; `node test/run_all.js` 100%; `node test/standalone.js`; build single-file parity; รัน `AUDIT_REPRO_RED_TESTS.js` เป้าหมาย **GREEN 14/14**; browser QA และ 80-NPC perf แบบเดี่ยว.
+
+## Prompt สำหรับส่งต่อ AI เขียนโค้ด (คัดลอกทั้งส่วนนี้)
+
+```text
+กรุณาแก้เฉพาะบัคของ JianghuSect 2 v2.3.0 จากไฟล์ QA_FREEZE_AUDIT_V230.md และ AUDIT_REPRO_RED_TESTS.js โดยเรียง P0 → P1 → P2 → P3. ห้ามเพิ่มฟีเจอร์ใหม่ที่ไม่จำเป็น, ห้ามแก้ GAME_SOURCE/js/human_core.js (SHA-256 lock), ห้ามเปลี่ยน behavior ที่พิสูจน์ว่าถูกอยู่แล้ว. ก่อนแก้แต่ละข้อ ให้ยืนยัน reproduction และ expected/actual ตามตำแหน่งไฟล์ที่ระบุ; สำหรับ static orphan ให้ตรวจ caller ทั้งหมดรวม dynamic hooks ก่อนต่อระบบ. หลังแก้ต้องส่งรายการไฟล์ที่เปลี่ยน, root cause, test ใหม่, วิธีอัปเกรดเซฟถ้ามี, สถานะ RED→GREEN 14/14, และผล schema/regression/browser/standalone ไม่แอบข้าม test failure หรืออ้าง 100% หากยังไม่ผ่าน. ยึด authoritative state และให้ใช้ resource/check/commit แบบ atomic เท่านั้น.
+```
+
+## ไฟล์แนบในชุดรายงาน
+
+- `QA_FREEZE_AUDIT_V230.md` — รายงานฉบับอ่านโดย AI (ไฟล์นี้)
+- `QA_FREEZE_AUDIT_V230.docx` — รายงานไทยสำหรับอ่านและส่งต่อ
+- `QA_FREEZE_AUDIT_V230.json` — ข้อค้นพบแบบ structured
+- `AUDIT_REPRO_RED_TESTS.js` — เทสต์ที่ควร FAIL ในบิลด์เดิมและ GREEN หลังแก้
+- `AUDIT_REPRO_BASELINE.txt` — ผลการรัน red probes 14/14
+- `REGRESSION_PARALLEL_RESULT.json` / `REGRESSION_PARALLEL_LOG.txt` — หลักฐานผล suite รวม
+- `REGRESSION_V410_ISOLATED_LOG.txt` — ผล v410 เมื่อรันเดี่ยว
+- `SCHEMA_VALIDATION_LOG.txt` / `BUILD_SINGLE_LOG.txt` — หลักฐาน build & schema
+
+---
+หมายเหตุ: รายงานนี้เป็นการตรวจ snapshot ของไฟล์แนบ; **ไม่มีการแก้ซอร์สเกมของลูกพี่** และไม่อ้างว่าเข้าถึง repo/เซฟจริงของผู้เล่น.
+
+
+## ภาคผนวกอัปเดต — ตรวจผลกระทบลูกโซ่ก่อนปล่อยจริง (8 พ.ย. 2026)
+
+> เพิ่มในรายงานเดิม ไม่ใช่รายงานใหม่; ผลตรวจรอบแรก 13 ข้อ + **JHS-014 อีก 1 ข้อ (รวม 14: P0=2/P1=6/P2=5/P3=1)**. การตรวจเศรษฐกิจเชิงลึกแยกให้ AI อีกแชทดูอยู่ จึงไม่มีการจัดอันดับราคา/เงินในส่วนนี้.
+
+### JHS-014 [P2] NPC ที่ออกจากสำนักค้างใน W.byId จนกว่าเซฟ/โหลด
+
+- **โค้ด:** `js/sim.js:472-488`, `js/sect.js:8565-8622`
+- **หลักฐาน runtime:** C14 ลบสมาชิกออกจาก `W.npcs`, ใส่ `W.gone` แต่ `W.byId[id]` ยังมีค่า. C15 เรียก `SOUL_FORGE.awakenWeaponSpirit(W, id, id)` ต่อได้ `ok:true` และสร้างอาวุธให้คนที่ออกจากสำนักแล้ว; หลัง save/load หา ID นั้นไม่เจอ. **ยังไม่ยืนยันเส้นทาง UI ผู้เล่น**
+- **ผลลูกโซ่:** ออกจากสำนัก → index รายชื่อสองชุดขัดกัน → API ภายในทำธุรกรรมกับคนที่ไม่ใช่สมาชิก → เซฟ/โหลดทำให้ผลเรียกต่างจากก่อนโหลด.
+- **แก้ไข:** sync `W.byId` พร้อม `W.npcs` ใน retire, เก็บ history ใน `historicalPeople`, API ตรวจ active membership และสถานะทุกครั้ง; อย่าใช้การลบ history เพื่อแก้ index.
+- **Acceptance:** ก่อนและหลัง load การเรียกด้วย ID คนเก่าคืนปฏิเสธ ไม่สร้างไอเทม/บันทึกผลสำเร็จ; ชื่อในสุสานและบันทึกประวัติยังคงอยู่.
+
+### การเชื่อมต่อที่ต้องทดสอบร่วมหลังแก้
+
+| ลำดับเหตุการณ์ | ผลที่พิสูจน์ / จุดเฝ้าระวัง | รายงานที่เป็นเจ้าของบัค |
+|---|---|---|
+| NPC ตาย → จิตศาสตราสืบทอด → inventory → save/load | อาวุธเดิมทายาทสูญหายถาวร (`C10`) | `EQ-013` รายงานอุปกรณ์ |
+| สำนักแตก → member roster/guard roster → daily → save/load | สมาชิกกบฏยังนับเป็นกำลังเดิม (`C03`,`C12`) | `SECT-06` รายงานสำนัก |
+| รีเทรนวิถี → คัมภีร์เดิม → STATS → save/load | คัมภีร์ข้ามวิถียังอยู่หลังโหลด (`C19`) | `DAO-002` รายงานวิถี |
+| เซฟ/โหลด ↔ ความสามารถของ AI และอุปกรณ์ | สถานะคูลดาวน์/พลังบางส่วนต้อง round-trip โดยไม่ฟื้นโกง | `JHS-004`,`EQ-001`,`EQ-013` |
+
+**Release gate:** ปิด P0/P1 ที่ผู้เล่นเข้าถึงได้ก่อนแจกเกม; สำหรับ API-only ไม่อ้างว่าโกงผ่าน UI จนกว่าจะตรวจ caller; ทุกระบบที่มีผลข้ามหมวดต้องเพิ่ม tests `before action → action → daily tick → serialize/deserialize → invariant` และห้ามแก้ซอร์สในรอบ audit นี้.
+
+## การตรวจข้ามระบบเพิ่มเติม — COMBAT v2.3.0 (8 พ.ย. 2026)
+
+**ผลต่อระบบรวม/เซฟจากการต่อสู้:** พบ COMBAT-01 ระดับ P0: C.slay ตั้ง dead=true ก่อนเรียก AI.kill จึงข้ามล้างตำแหน่ง, death log, W.deaths และ event การตายตามปกติ; CB-16 ยืนยันว่า state ผิดคงอยู่หลัง SIM.serialize/deserialize. ดู QA_COMBAT_SKILLS_STATUS_AUDIT_V230. ถือเป็น cross-domain blocker เพิ่ม ไม่แก้จำนวน issue เดิมและไม่อ้างว่าเกมถูกแก้แล้ว.
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_GEAR_BALANCE_AUDIT_V230.md
+
+# รายงานตรวจอุปกรณ์ / ความสมเหตุสมผล / สมดุลเมต้า — JianghuSect 2 v2.3.0
+> **รายงานเพิ่มเติมสำหรับ QA Freeze Audit รอบเดิม** | 8 พฤศจิกายน 2026 | Source: `JianghuSect2_v2.3.0_Grand_Dao_Deep_Parity_Release.zip`
+
+## 1. บทสรุปและขอบเขต
+ผลรอบอุปกรณ์: พิสูจน์ได้ 12 กรณี (2 P0, 6 P1, 1 P2, 2 REVIEW และ 1 INFO) จากซอร์สต้นฉบับ v2.3.0. ความโกงที่สุดมิใช่ item meta ที่แรงตามการออกแบบ แต่คือฝังรูนซ้ำไม่สิ้นสุด และการขัดเกลาคุณภาพตันแล้วสเตตัสยังโต. อีกเรื่องเร่งด่วนคือปลุกจิตอาวุธจากช่องว่างแล้วขึ้นระดับสูงด้วยการกดเพียงสองครั้ง.
+
+- ทดสอบด้วย JavaScript loader ของโปรเจกต์บน Node.js ใช้ฟังก์ชันจริงของโค้ดเกม ไม่แก้ซอร์สเดิม และไม่ได้อ้างว่าทดสอบต่อสู้ผ่าน UI ในเบราว์เซอร์ครบทุกสถานการณ์
+- ครอบคลุม: อาวุธ/เกราะ/เครื่องประดับ, รูนธาตุ, จิตศาสตรา, คู่ไอเทม, เซ็ต Resonance, เซ็ต Legendary, การขัดเกลา, การซ่อม, การใช้ผิดวิถี/ขั้น และแค็ตตาล็อกของจริง
+- ความร้ายแรง: **P0** ช่องเพิ่มพลังผิดกติกาหรือไม่จำกัด; **P1** บัคมีผลสมดุล/ข้อมูลไม่ตรง; **P2** hardening / ปัญหามีเงื่อนไข; **REVIEW** ความเสี่ยงด้านดีไซน์ยังไม่ใช่บัค; **INFO** สถิติ
+- **ไม่ควรแก้เกมด้วยการเนิร์ฟของในตำนานแบบเหมารวม** จนกว่าจะปิด P0 และวัด damage/defense post-combat จริง
+
+## 2. สรุประดับความร้ายแรง
+
+| ชั้น | จำนวน | ความหมาย |
+|---|---:|---|
+| P0 | 2 | แก้ก่อน freeze |
+| P1 | 6 | แก้/ตัดสินนโยบายก่อน freeze |
+| P2 | 1 | ป้องกัน API ใช้งานผิด |
+| REVIEW | 2 | ทบทวนเมต้า ไม่ใช่บัคยืนยัน |
+| INFO | 1 | สถิติและขอบเขต |
+
+**ลำดับแก้ที่แนะนำ:** EQ-001 → EQ-009 → EQ-002 → EQ-003 → EQ-011 → EQ-010/EQ-005 → EQ-004 (ตัดสินเจตนาก่อน) → EQ-006; EQ-007/EQ-012 เป็นเรื่องสมดุลเชิงออกแบบ
+
+## 3. รายละเอียด 12 ประเด็น พร้อมจุดโค้ดและวิธีแก้
+
+### EQ-001 [P0] ฝังรูนซ้ำบนชิ้นเดิมแล้วคูณความแรงวิชาได้ไม่จำกัด โดยไม่ใช้ทรัพยากร
+**สถานะหลักฐาน:** บัคยืนยัน / เล่นผ่าน UI
+**โค้ดที่เกี่ยวข้อง:** `js/economy.js:2494–2532`, `js/martial.js:1306–1349`, `js/ui.js:1739–1762`
+**สาเหตุ:** ทุกครั้งที่กดฝังรูน ระบบ append skillModifiers อีก 1 รายการ (+18% M, +10 pen, +6 critAdd) ไม่มีการตรวจสล็อตรูนที่เหลือ การแทนที่รูนเก่า ค่าใช้จ่าย หรือขีดจำกัดบน ซ้ำยังผ่านหน้าจอเกมได้ ไม่ใช่แค่ API ภายใน
+**หลักฐานทดสอบ:** ทดสอบ 1/2/5/10/20 ครั้ง: move.M จาก 1.18 → 1.39 → 2.29 → 5.24 → 27.41; pen รวม +200, critAdd รวม +120, ต้นทุนวัสดุ 0 โดยใช้วิชาทดสอบ M=1 (การคำนวณตัวปรับวิชา ไม่ใช่ดาเมจจริงหลังระบบป้องกัน)
+**ผลต่อเกม:** ทำให้เมต้าอื่นหมดความหมาย เพราะพลังเพิ่มแบบทบต้นด้วยการกดซ้ำ ไม่ต้องหาไอเทมระดับสูง
+**แนวทางแก้:** นิยาม rune socket ต่ออุปกรณ์ (เช่น ไม่เกิน 2–4 สล็อตตาม tier) และแทนค่า modifier เดิมของ socket แทนการ push แบบไม่สิ้นสุด; ตรวจสิทธิ์เจ้าของ, วัสดุ, ค่าใช้จ่าย, ขอบเขตธาตุ; clamp modifier ทั้งรายการที่ runtime; กำจัด modifier ซ้ำของเซฟเก่าด้วย migration ที่ไม่ลบของถูกต้อง
+**เกณฑ์รับงาน:** ฝังรูนเดิมซ้ำไม่เพิ่มจำนวน modifier หรือพลังสุทธิ; ปฏิเสธเมื่อวัสดุไม่พอ; reload คง rune slots; 100 ครั้งไม่มีสเกลทบต้น
+**รหัสเคส:** `EQ-001_socket_unlimited_multiplicative`
+
+### EQ-009 [P0] ขัดเกลาหลังชนเพดาน 1.75 ได้ต่อเรื่อย ๆ แต่สเตตัสยังเพิ่ม
+**สถานะหลักฐาน:** บัคยืนยัน / ขัดเกลาผ่าน UI
+**โค้ดที่เกี่ยวข้อง:** `js/economy.js:1114–1119`, `js/economy.js:1172–1212`, `js/visitors_clues.js:1098–1117`, `js/ui.js:2402–2413`
+**สาเหตุ:** CAT_PRIMORDIAL_FLAME_6 อนุญาต maxQuality=1.85 แต่ setter ของ VC.normalizeGearItem clamp gear.q กลับมาที่ 1.75 หลัง `gear.quality=newQ`; ทุกการเรียกครั้งถัดไปเห็น oldQ=1.75 <1.85 จึงหัก catalyst แล้วคูณ gear.st/combatMult ด้วย 1.85/1.75 ซ้ำอีกครั้ง แม้ค่าคุณภาพจริงคงเดิม
+**หลักฐานทดสอบ:** อุปกรณ์ ITEM190_EQ_003: ขัดเกลา 1 ครั้ง q=1.75/atk=308.4; ครั้งที่ 5 q=1.75/atk=385.1; ครั้งที่ 10 atk=508.5; ครั้งที่ 15 atk=671.4 (~2.18 เท่าจากครั้งแรก), หัก catalyst จริง 15 ก้อน
+**ผลต่อเกม:** การเติบโตสเตตัสไร้เพดานตามจำนวน catalyst; สามารถแซงสมดุลคุณภาพ/ระดับ/ความหายาก และเสี่ยงทวีคูณในระบบประเมินกำลัง
+**แนวทางแก้:** กำหนด MAX_GEAR_QUALITY เพียงแห่งเดียว, ให้ catalyst.maxQuality ไม่เกินเพดานนั้น (หรือเพิ่มเพดาน canonical ให้รองรับ 1.85 อย่างตั้งใจ); คำนวณ ratio จาก q *หลัง* normalize และ reject ถ้า newQ<=oldQ; อัปเดตสเตตัสจาก baseStats × q/baseQ แทนคูณซ้ำจากสเตตัสปัจจุบัน; สำหรับเซฟเดิมทำ normalize/rebuild อย่างระมัดระวัง
+**เกณฑ์รับงาน:** เมื่อถึงเพดาน การ refine เพิ่มต้องล้มเหลวโดยไม่ใช้ catalyst และไม่เปลี่ยนสเตตัส; 15 ครั้งไม่สะสมสเตตัสเกินสูตรคุณภาพ; save/load แล้วค่าสเตตัสสอดคล้อง
+**รหัสเคส:** `EQ-009_refinement_quality_ceiling_runaway`
+
+### EQ-002 [P1] ปลุกจิตศาสตราสองครั้งได้ขั้น 5 ฟรี และสร้างอาวุธจากช่องว่าง
+**สถานะหลักฐาน:** บัคยืนยัน / เล่นผ่าน UI
+**โค้ดที่เกี่ยวข้อง:** `js/sect.js:8565–8655`, `js/ui.js:1867–1880`, `js/ui.js:1366–1379`
+**สาเหตุ:** awakenWeaponSpirit ถ้าช่อง WEAPON ว่างจะสร้าง WPN_SPIRIT_* โดยไม่ใช้ทรัพยากร; บน UI stock ส่ง initialXp=320; กดครั้งแรกจิตขั้น 1 แต่สะสม 320 XP; ครั้งที่สอง recordWeaponFeat +320 และขึ้นขั้น 5 (threshold 300) ไม่มีต้นทุน/ข้อจำกัด
+**หลักฐานทดสอบ:** กดจำลองสองครั้ง: สร้าง WPN_SPIRIT_n_master จากช่องว่าง, stage 1 (xp320) → stage 5 (xp640); spirit.multBonus=0.32; gear.combatMult=0.5; stock ไม่เปลี่ยน
+**ผลต่อเกม:** ข้ามความก้าวหน้าการฝึกจิต/ดรอปอาวุธและบิดกำลังประเมินโดยไม่ต้องต่อสู้
+**แนวทางแก้:** ห้ามปลุกจากช่องว่างหากไม่ได้ตั้งใจเป็นของขวัญเริ่มต้น; initialXp มาจากสเปกที่เซิร์ฟเวอร์/ระบบกำหนดเท่านั้น ไม่รับ 320 จากปุ่ม; ปลุกครั้งแรกคำนวณขั้นจาก xp อย่างสอดคล้อง; ครั้งต่อไปต้องใช้การกระทำ/ทรัพยากรหรือ cooldown ตาม design
+**เกณฑ์รับงาน:** ไม่มีอาวุธ => ไม่สร้างอาวุธฟรี (เว้น exception ที่ระบุไว้); กดซ้ำสองครั้งไม่ถึงขั้น 5; มีต้นทุนหรือ feat ที่ตรวจนับจริง; ปุ่ม UI กับ API ใช้กติกาเดียวกัน
+**รหัสเคส:** `EQ-002_free_max_spirit`
+
+### EQ-003 [P1] คู่ศาสตรารับโบนัสเมื่อเป็นธาตุ NEUTRAL และแม้อาวุธพัง
+**สถานะหลักฐาน:** บัคยืนยัน / เอฟเฟกต์ไอเทมพังยังทำงาน
+**โค้ดที่เกี่ยวข้อง:** `js/economy.js:2340–2351`, `js/stats.js:608–617`, `js/stats.js:830–845`
+**สาเหตุ:** evaluatePairedItems ตรวจ element เท่ากันโดยไม่ยกเว้น NEUTRAL และไม่เช็ค MARTIAL.gearUsable() หรือ retired/broken ก่อนให้โบนัส; ST.get เรียกโบนัสคู่แยกจากการกรองอุปกรณ์พัง
+**หลักฐานทดสอบ:** กระบี่ T1 ธาตุ NEUTRAL + แหวน T1 NEUTRAL ได้ atk/matk +16%, crit +8, pen +10; กำหนด weapon.broken=true/dur=0 แล้วผลคู่ยัง active ทั้งที่ gearUsable=false
+**ผลต่อเกม:** โบนัสฟรีตั้งแต่ต้นเกมและคงอยู่หลังอุปกรณ์พัง เป็นความขัดแย้งด้านตรรกะที่พิสูจน์ได้; ส่วนการให้ NEUTRAL คู่กันอาจเป็น design choice จึงเสนอให้กำหนดกฎชัด
+**แนวทางแก้:** กรองคู่ด้วย gearUsable สองชิ้นก่อนคำนวณ; แยก pairing ประเภทที่มี pairId, complementary elements, subpath from generic same-element; ถ้าต้องการ NEUTRAL pair ให้ลดโบนัสหรือระบุว่าเป็นกฎตั้งใจ
+**เกณฑ์รับงาน:** อุปกรณ์พัง/ถูก retired ไม่ให้โบนัสคู่ทันที; หาก NEUTRAL ไม่ใช่คู่พิเศษ ต้องไม่ให้ +16/+8/+10; แสดงคำอธิบายโบนัสให้ตรงกับกฎ
+**รหัสเคส:** `EQ-003_neutral_pair_and_broken_bonus`
+
+### EQ-004 [P1] Legendary ทุกชิ้นเป็น wildcard ชุดเซ็ตทุกวิถี ทุกชนิดอุปกรณ์
+**สถานะหลักฐาน:** ความเสี่ยงเมต้าสูง / พฤติกรรมยืนยัน
+**โค้ดที่เกี่ยวข้อง:** `js/martial.js:745–762`, `js/martial.js:762–834`, `js/stats.js:490–509`
+**สาเหตุ:** itemMatchesResonanceSet คืน true ทันทีเมื่อ it.legendary ก่อนตรวจ rs.slots, element และวิถี; ใน evaluateResonanceSet ค่า pathMatch มีผลเฉพาะจัดอันดับเซ็ต ไม่ใช่สิทธิ์รับโบนัส
+**หลักฐานทดสอบ:** Legendary WEAPON + ARMOR ต่างธีม match ได้แม้ rs.path=XIAN แต่ NPC.path=CRAFT_CREATION; ได้เซ็ต RES_CRAFT_DIVINE_ARTISAN 2 ชิ้น atk/matk/def/mdef +16.3% (ขึ้นกับ tier)
+**ผลต่อเกม:** อุปกรณ์ในตำนาน 2–3 ชิ้นใดก็ได้เปิดโบนัสเซ็ตระดับสูงอย่างง่าย ทำให้ “ตามหาชิ้นให้ครบธีม” ไม่สำคัญ; ต้องตรวจ intent ก่อนแก้ เพราะอาจตั้งใจให้เซ็ต legend เป็น universal meta
+**แนวทางแก้:** ให้ legendary wildcard เฉพาะชุดที่อนุญาต, หรือให้ wildcard ได้เพียงหนึ่งชิ้น/เซ็ต, และมีหักคะแนน/โบนัสเมื่อคนละวิถี; แยก universal legendary resonance ออกจาก themed resonance; อนุญาต path เฉพาะอย่างชัดเจน
+**เกณฑ์รับงาน:** ชุดธีมไม่ติดเพราะไอเทม legendary คนละวิถี/slotType หากไม่ประกาศ wildcard; เซ็ต universal legendary ยังทำงานตามดีไซน์ที่เลือก; เทสต์ 2/3 ชิ้นทุกวิถี
+**รหัสเคส:** `EQ-004_legendary_wildcard_resonance`
+
+### EQ-005 [P1] เกียร์ต่างวิถีใช้คำนวณได้ แม้ปุ่มสวมใส่ปฏิเสธ
+**สถานะหลักฐาน:** ตัวตรวจไม่สอดคล้อง / จำลองเงื่อนไข
+**โค้ดที่เกี่ยวข้อง:** `js/proficiency.js:100`, `js/visitors_clues.js:1203–1209`, `js/sect.js:3907–3942`
+**สาเหตุ:** M.gearUsable ไม่ตรวจ compatiblePath แต่ EDITOR.equipPersonalGear ตรวจและปฏิเสธ; เกียร์จริง EQ_SAGE_ZITHER_NEEDLE_5 มี compatiblePath ที่ไม่ใช่ ANY
+**หลักฐานทดสอบ:** ให้ตัวละคร CRAFT_CREATION มีขั้นเพียงพอสำหรับเกียร์จริงชิ้นนี้: gearUsable=true แต่ equipPersonalGear คืน reason "วิถีไม่ตรงกับอุปกรณ์"; เคสยกขั้นตัวละครเฉพาะการทดสอบเพื่อแยกประเด็น
+**ผลต่อเกม:** เสี่ยงเมื่อระบบอัตโนมัติ/เซฟ/โค้ดอื่นติดตั้งไอเทมโดยไม่ผ่านปุ่ม แล้วได้รับพลังของเกียร์ต้องห้าม
+**แนวทางแก้:** ใช้ helper เดียวกัน เช่น canEquipGear(n,it,{strictStage:true}) สำหรับ UI, auto-equip, gearUsable, grantedSkills; ตัดสินนโยบาย ALL/ANY ให้คงเส้นคงวา
+**เกณฑ์รับงาน:** เมื่อ compatiblePath ไม่ตรง: manualEquip, autoEquip, gearUsable, skill-grant ปฏิเสธเหมือนกัน; ทดสอบกับเกียร์จริง EQ_SAGE_ZITHER_NEEDLE_5
+**รหัสเคส:** `EQ-005_incompatible_path_gear_usable`
+
+### EQ-010 [P1] ขั้นต่ำขั้นวิชาถูกบวกให้ใช้ได้อีก 1 ขั้นในคอมแบต แต่ UI ไม่ยอมสวม
+**สถานะหลักฐาน:** ตัวตรวจไม่สอดคล้อง / จำลองเงื่อนไข
+**โค้ดที่เกี่ยวข้อง:** `js/proficiency.js:100`, `js/sect.js:3921–3930`, `js/martial.js:1272–1282`, `js/stats.js:619–629`
+**สาเหตุ:** M.gearUsable ใช้ minStage <= effectiveTechStage+1 ส่วน UI equipPersonalGear ใช้ minStage <= effectiveTechStage; ต่างกันหนึ่งขั้น ซึ่งกระทบ bonus และ grantedSkills หากมีของสวมไว้แล้วจากแหล่งอื่น
+**หลักฐานทดสอบ:** เกียร์จริง ITEM190_EQ_007 minStage=4; NPC ทดลอง stage=3: gearUsable=true แต่ UI ตอบว่าต้องขั้น 4
+**ผลต่อเกม:** เซฟเก่าหรือระบบ auto-equip อาจให้ผลประโยชน์จากอุปกรณ์ที่ UI ระบุว่าใส่ไม่ได้
+**แนวทางแก้:** กำหนดเกณฑ์ stage แห่งเดียวและใช้ทุกเส้นทาง; หากต้องการอนุโลม +1 ก็ต้องระบุ UI สามารถใส่ได้เช่นกัน หรือห้ามทั้งคู่
+**เกณฑ์รับงาน:** gear minStage4 + npc eff3 มีผลลัพธ์เดียวกันใน UI/autoEquip/การคำนวณ; ไม่ติดโบนัสเฉพาะทางเมื่อยังสวมไม่ได้
+**รหัสเคส:** `EQ-010_min_stage_validator_inconsistent`
+
+### EQ-011 [P1] จิตศาสตรายังบวกคะแนนกำลังรบ +32% ขณะอาวุธพัง
+**สถานะหลักฐาน:** บัคยืนยัน / เฉพาะค่าประเมินกำลัง
+**โค้ดที่เกี่ยวข้อง:** `js/stats.js:1071–1077`, `js/proficiency.js:100`
+**สาเหตุ:** ST.rating คำนวณ wsMult จาก n.equip.WEAPON.weaponSpirit โดยไม่เช็ค gearUsable; แม้ระบบเกียร์ถือว่า broken และไม่ให้สเตตัส แต่คะแนนประเมินยังได้โบนัสจิตศาสตรา
+**หลักฐานทดสอบ:** ตรึง stat vector เดียวกันและเปรียบเทียบ: rating ไม่มีจิต =367.82, มีจิตขั้น 5 =485.52 (+32%) ขณะ weapon.broken=true และ gearUsable=false
+**ผลต่อเกม:** ค่า rating อาจสูงกว่าความสามารถรบจริง ส่งผลระบบจัดอันดับ/เลือกเป้าหมาย/ภารกิจที่อิง rating (ยังไม่ทดสอบผลปลายทางทั้งหมด)
+**แนวทางแก้:** ใช้ `MARTIAL.gearUsable(n,n.equip.WEAPON)` ก่อนให้ wsMult; invalidate rating cache เมื่อสถานะอาวุธเปลี่ยน
+**เกณฑ์รับงาน:** อาวุธพัง => rating ไม่มีโบนัส spirit; ซ่อมแล้วจึงคืน bonus; ค่าประเมินเปลี่ยนทันทีหลัง wearGear/repairGear
+**รหัสเคส:** `EQ-011_broken_spirit_weapon_rating_still_buffed`
+
+### EQ-006 [P2] API ขัดเกลาอุปกรณ์ที่ไม่อยู่ในครอบครองได้
+**สถานะหลักฐาน:** ช่องโหว่ API / ยังไม่ยืนยันเส้นทาง UI
+**โค้ดที่เกี่ยวข้อง:** `js/economy.js:1141–1163`
+**สาเหตุ:** refineGearWithCatalyst รับ object ใน gearOrUid โดยไม่ยืนยันว่ามีอยู่ใน W.sect.gear หรือกระเป๋า/ช่องสวมของ NPC; ระบบ UI ส่ง UID ตามปกติ จึงเป็นจุดแข็งป้องกันการใช้ API ผิด มากกว่าช่องโกงจากปุ่มที่พิสูจน์แล้ว
+**หลักฐานทดสอบ:** ส่ง orphan object ที่คัดลอกจากเกียร์ไม่อยู่ในครอบครอง: คืน ok=true, q 1.26→1.54 และหัก catalyst 1 ก้อน
+**ผลต่อเกม:** เสี่ยงแก้ object อ้างอิงนอกระบบเมื่อระบบอื่นเรียก API ผิด หรือรับ payload ไม่ปลอดภัย
+**แนวทางแก้:** รับ UID และ resolve item จากรายการเจ้าของจริงเท่านั้น หรือยืนยัน reference identity ใน world; ปฏิเสธ object แปลกปลอม
+**เกณฑ์รับงาน:** orphan object ล้มเหลวและไม่หัก catalyst; เกียร์จริงในคลัง/กระเป๋า/ช่องสวมยังขัดเกลาได้
+**รหัสเคส:** `EQ-006_refine_no_owner_integrity`
+
+### EQ-007 [REVIEW] หินซ่อม T1 ซ่อมอุปกรณ์ T7 ได้ แต่เสียเพดานความทนทาน
+**สถานะหลักฐาน:** ไม่ใช่บัคยืนยัน / ความสมเหตุสมผล
+**โค้ดที่เกี่ยวข้อง:** `js/economy.js:1284–1288`, `js/economy.js:1665–1755`
+**สาเหตุ:** ไม่มีข้อจำกัด tier ระหว่างหินกับเกียร์; หินระดับต่ำลด maxDur อย่างมีนัยสำคัญ (ทดสอบ 100→75) เป็น trade-off ด้านคุณภาพ ไม่ใช่การซ่อมฟรี
+**หลักฐานทดสอบ:** เกียร์ T7 dur=10 ใช้หิน ITEM_REPAIR_STONE_1: ซ่อมผ่าน, maxDur=75, หินถูกใช้จริง 1 ชิ้น
+**ผลต่อเกม:** ทำให้ทรัพยากรหินชั้นสูงด้อยลง หากหิน T1 ฟาร์มง่ายและ maxDur ไม่กดพลังจริงมากนัก; แต่หากตั้งใจเป็น repair emergency ถือว่าสมเหตุสมผล
+**แนวทางแก้:** คงระบบได้ถ้าต้องการ emergency repair; เพิ่มความเสียหายสะสม/โอกาสล้มเหลวตาม tier gap เฉพาะเมื่อทดสอบเล่นแล้วเกิด dominant strategy
+**เกณฑ์รับงาน:** ตัดสินด้วยการทดลองตลาดและ 20 วัฏจักรซ่อม ไม่ใช่เนิร์ฟจาก API เพียงอย่างเดียว
+**รหัสเคส:** `EQ-007_cheap_low_tier_stone_repairs_high_tier`
+
+### EQ-012 [REVIEW] Legendary 3 ชิ้นได้โบนัสเซ็ตธีมและโบนัสตำนานซ้อนกัน รวม +45.3% ATK
+**สถานะหลักฐาน:** เมต้าแรง / อาจตั้งใจ / ยังไม่ยืนยันเก่งเกินคอนเทนต์
+**โค้ดที่เกี่ยวข้อง:** `js/martial.js:762–834`, `js/martial.js:852–907`, `js/stats.js:498–513`, `js/stats.js:767–778`
+**สาเหตุ:** เซ็ตธีมปกติ 3/3 และ universal legendary 3/3 ทำงานพร้อมกัน; นี่เป็นผลการออกแบบสแต็ก ไม่ใช่ขอบเขตไม่จำกัดอย่างรูน และอาจเป็นรางวัล endgame ที่ยอมรับได้
+**หลักฐานทดสอบ:** Legendary 3 ชิ้นในเคส NPC CRAFT_CREATION: themed resonance atk/matk/def/mdef +29.3%, hp +22.8%; legendary trinity +16% หลายสเตตัส, pen+14 crit+10 critDmg+18 qi cost ×0.80, proc ×1.25; โบนัส raw atk สองแหล่งรวม +45.3 จุดเปอร์เซ็นต์ (ไม่ใช่ดาเมจจริง +45.3%)
+**ผลต่อเกม:** เสี่ยงทำให้ชุดอื่นหมดโอกาสแข่งขันหากสะสม legendary 3 ชิ้นได้เร็ว; ควรวัด DPS/EHP/ทรัพยากรจริงกับศัตรูระดับเดียวกันก่อนเนิร์ฟ
+**แนวทางแก้:** คงไว้ก่อน; หาก DPS/EHP ข้ามกรอบสมดุลจึงพิจารณาโบนัสกองรวมลดทอน, โบนัสเซ็ตหลักกับตำนานเลือกแข่งกัน หรือเพิ่มเงื่อนไขชุดธีม แทนลดพลัง legendary ทุกชิ้น
+**เกณฑ์รับงาน:** จำลอง 1000 battle seed ต่อ tier/path กับ 3 เซ็ต/ทางเลือก; ยอมรับเมต้าได้ถ้าไม่มี build ชนะทุกสถานการณ์โดยไร้ต้นทุน
+**รหัสเคส:** `EQ-012_legendary_double_set_bonus`
+
+### EQ-008 [INFO] สำรวจฐานข้อมูลอุปกรณ์และช่วงคะแนนตามช่อง/ระดับ
+**สถานะหลักฐาน:** สถิติฐานข้อมูล / ไม่พบหลักฐานโกงจาก raw score ล้วน
+**โค้ดที่เกี่ยวข้อง:** `data/data_items.js`, `js/stats.js:69–103`
+**สาเหตุ:** โหลดอุปกรณ์จาก item catalog และ mint ด้วยกฎจริง; คำนวณ gearScore เพื่อดูการกระจายเบื้องต้น แต่สูตรให้น้ำหนักต่างกันตาม slot, stat และไม่รวมผลวิชา/คู่/เซ็ต/ธาตุ จึงใช้ยืนยันความโกงของชื่อไอเทมเพียงชิ้นไม่ได้
+**หลักฐานทดสอบ:** 1132 รายการสินค้าทั้งหมด; อุปกรณ์ 873 รายการ; Legendary 64 รายการ (7.33% ของอุปกรณ์). T7: WEAPON median≈1979.6/max≈2654.4; ARMOR median≈2864.8/max≈3692.2; ACCESSORY median≈1180.3/max≈1659.0. เทียบคะแนนเฉพาะช่องเดียวและ tier เดียวเท่านั้น
+**ผลต่อเกม:** เมต้าเกียร์ที่แรงผิดปกติพบจากช่องโหว่รูน/ขัดเกลา/เซ็ต มากกว่าจาก raw score ของ catalogue ที่ตรวจโดยรวม
+**แนวทางแก้:** ทำ test benchmark: เทียบไอเทม 95th/50th percentile ภายใน slot+tier, แล้วจำลอง final DPS/EHP/utility เพื่อหา dominant combinations
+**เกณฑ์รับงาน:** ได้ benchmark ย้อนซ้ำได้, ไม่ใช้คะแนนอาวุธเทียบเกราะข้ามสูตรและไม่ตีความ raw score เป็นดาเมจ
+**รหัสเคส:** `EQ-008_default_quality_and_stat_score_catalog`
+
+## 4. คำตัดสิน “เมต้าแรง” vs “โกงจนพัง”
+
+**ไม่สมเหตุสมผลและเป็น exploit จริง:** ฝังรูนซ้ำ (EQ-001) และขัดเกลาหลังชนเพดาน (EQ-009) เพราะเพิ่มพลังได้ซ้ำโดยไม่ผ่านกติกา scaling; จิตศาสตรา (EQ-002) เพราะอัปขั้น 5 ด้วยเพียงสอง interaction ไม่มีต้นทุน
+**บัคตรรกะแต่ไม่ใช่พลังไร้ขีด:** โบนัสคู่บนอาวุธพัง (EQ-003), rating จิตอาวุธพัง (EQ-011), ตรวจขั้น/วิถีต่างกัน (EQ-005/EQ-010).
+**อาจเป็นเมต้าที่ตั้งใจ:** อาวุธตำนาน 3 ชิ้นซ้อน set 2 ชั้น (EQ-012) และ wildcard ชุดตำนาน (EQ-004). ถ้า Legendary หาได้ยากและศัตรู Endgame สเกลสูง โบนัส raw +45.3 จุดเปอร์เซ็นต์อาจรับได้; ต้องจำลองจริงก่อนตัดสิน.
+**ซ่อมหินต่ำไม่ได้ฟรี:** EQ-007 ใช้หิน 1 ชิ้นและเสียเพดานทนทาน 25 จึงไม่ควรเรียกช่องโกงโดยไม่มีข้อมูลเศรษฐกิจหินและผลลด maxDur.
+
+## 5. เกณฑ์ทดสอบสมดุลหลังแก้ (ข้อเสนอ ไม่ใช่กฎที่มีอยู่ในเกม)
+- เก็บ snapshot item ที่ tier/path/slot เดียวกัน, seed เดียวกัน, stat ทั้งหมดและ raw/modified damage; ทดสอบอย่างน้อย 100 seed ต่อ matchup และ 1,000 seed สำหรับ top/meta builds
+- เปรียบเทียบ burst DPS, sustained DPS, effective HP, qi economy, control uptime, cooldown, ต้นทุนสร้าง, โอกาสได้, เงื่อนไขเซ็ต, และเวลาเล่นจนประกอบบิลด์ได้; ห้ามดู rating หรือ gearScore อย่างเดียว
+- ตั้งงบพลังตามช่วงเล่น: item T7/legendary ควรชนะ T5 ที่หาได้ง่าย แต่ไม่ควรชนะทุกทางเลือกโดยไม่มี trade-off หรือข้อจำกัดการหา
+- ปุ่มทำซ้ำทุกตัว: ทำงานซ้ำ 10/100 ครั้งด้วยทรัพยากร 0 ต้องไม่มีการเพิ่มค่าสถานะแบบไม่จำกัด; มีของ/ทรัพยากรจริงต้องลดตามจำนวน
+- ทดสอบ swap/unequip/broken/retired/repair/save-load/ย้ายเจ้าของ/ต่างวิถี/ต่างขั้น เพื่อให้ tooltip, rating, grantedSkills, effect, ตรรกะ combat เห็นตรงกัน
+
+## 6. วิธีให้ AI แก้โค้ดโดยไม่ทำลาย meta ที่ตั้งใจ
+1. อ่าน `QA_FREEZE_AUDIT_V230.md` (ชุดก่อน), ตามด้วยรายงานนี้ และ `GEAR_PATCH_IMPLEMENTATION_GUIDE.md`.
+2. รัน `GEAR_BALANCE_REPRO_TESTS.js` บนซอร์สเดิม; ปัจจุบัน 12/12 เคสยืนยันพฤติกรรมผิด/จุดทบทวน (ไม่ใช่ 12 บัคทั้งหมด).
+3. ปิด P0 ก่อน, เพิ่ม regression tests ที่คาดหวัง *การปฏิเสธ* หรือค่าหยุดโต, แล้วทำให้ผ่านโดยแก้โค้ดต้นฉบับ; ระวัง test ที่ใช้ setup แบบจำลอง (EQ-005/EQ-010).
+4. ปิด P1 ที่เป็นบัคยืนยัน; EQ-004/EQ-012 ต้องเลือก design intent และค่อยปรับ; รีรัน unit/regression เดิมและทดสอบเซฟเก่าก่อน freeze.
+5. แก้สูตร/เพดานที่ชั้น core ให้ปลอดภัยทั้ง UI, action, auto-equip, load/save และ migration; ห้ามแก้เฉพาะปุ่ม UI.
+
+## 7. ข้อจำกัดการตรวจและการติดตาม
+- การทดสอบนี้ใช้ scripted repro ไม่ได้ประกาศผลว่า combat balance ทั้งเกมผ่าน end-to-end และไม่ได้ทดสอบความหายาก/เวลาฟาร์มทุก drop table
+- EQ-005 และ EQ-010 ตั้งระดับขั้น NPC จำลองเพื่อแยกความไม่ตรงของ validator; หลักฐานคือ API conflict ไม่ใช่ยืนยันผู้เล่นทั่วไปสวมเกียร์ต้องห้ามผ่าน UI ได้
+- EQ-006 ทดสอบผ่าน API โดยตรง จึงยังไม่มีหลักฐานว่าผู้เล่นทำจากปุ่มเกมตามปกติได้
+- EQ-004/012 อาจเป็น design intent และไม่ควรแก้เป็น bug fix โดยปราศจากเกณฑ์สมดุลที่เจ้าของเกมยอมรับ
+- EQ-007 มีต้นทุนหินและลดความทนทาน จัดเป็น trade-off ไม่ใช่ exploit ยืนยัน
+- Source SHA-256: `983e351b119c63f40b402c5e6e27c44a5f39683dc5e5b995773862efc467df62`
+- **ไม่แก้ไฟล์เกมต้นฉบับในงานตรวจนี้**
+
+
+## 8. ภาคผนวกอัปเดต — ความเสียหายลูกโซ่จากอุปกรณ์ก่อนเปิดให้เล่น (8 พ.ย. 2026)
+
+> เพิ่มจากรายงานเกียร์เดิม 12 ข้อ เป็น **14 ข้อ** (P0=2, P1=7, P2=2, REVIEW=2, INFO=1) โดยไม่แทนที่ข้อเดิม. หลักฐานใหม่เป็น Node runtime จริงของ v2.3.0, ไม่ใช่การกดทุกเมนูด้วยเบราว์เซอร์.
+
+### EQ-013 [P1] จิตศาสตราสืบทอดแล้วลบอาวุธเดิมของทายาทแบบถาวร
+
+- **จุดโค้ด:** `js/sect.js:8661-8707`, `js/ai.js:1805-1806,1826-1827`
+- **รากสาเหตุ:** `inheritSentientWeaponOnDeath` เก็บอาวุธเดิมไว้ต่อเมื่อมี `heir.inv.gear` เป็น array อยู่แล้ว; NPC โดยทั่วไปไม่ได้มีฟิลด์นี้ตั้งแต่แรก. จากนั้นเขียนทับ `heir.equip.WEAPON` โดยไม่โอนอาวุธเดิมไปที่อื่น.
+- **หลักฐาน C10:** ก่อนตายทายาทถือ `uid_ITEM_PROC_SWORD_2`; หลังตายทายาทถืออาวุธวิญญาณ UID อื่นแล้ว `uid_ITEM_PROC_SWORD_2` นับได้ **0** ใน equip/bag/stock; หลังโหลดเซฟยัง **0**.
+- **ผลลูกโซ่:** เสียชีวิตระหว่างสงคราม/ชราภาพ → event สืบทอดทำงาน → ข้าวของผู้รอดชีวิตสูญหายทันที → save/load ยืนยันความสูญหายนั้น. ผู้เล่นอาจสูญอาวุธระดับสูงแบบไม่มีทางเรียกคืน.
+- **แก้:** เคลื่อนย้าย item/UID แบบ atomic, สร้าง `heir.inv.gear ||= []` ก่อนย้าย, ตรวจ UID ไม่สูญไม่ซ้ำ; ผู้รับ away/ถูกขัง/ขั้นหรือวิถีใช้ไม่ได้ให้ใส่คลังรอสวม แทนการฝืน equip.
+- **Acceptance:** old UID/new UID ยังคงมีอย่างละ 1 ชิ้น ทั้งก่อนและหลัง reload; กรณี `inv.gear` ไม่เคยสร้างต้องผ่าน; คนไม่มีสิทธิ์สวมไม่สูญ gear และไม่แอบได้รับโบนัส.
+
+### EQ-014 [P2] วิญญาณผู้อาวุโสไม่ถูกฝังเมื่อเจ้าของจิตศาสตราตาย
+
+- **จุดโค้ด:** `js/ai.js:1805-1810`, `js/sect.js:8702-8707,12522-12537`
+- **หลักฐาน C13:** ผู้อาวุโส rank4/stage5 ถืออาวุธ tier5 ที่มีจิตศาสตรา; เมื่อเสียชีวิตอาวุธถูกส่งต่อสำเร็จ แต่ `weaponSpirit.imbuedElderSoul` ไม่เกิด เพราะ inherited weapon ถูกย้ายและ `deadNpc.equip.WEAPON=null` ไปก่อนการตรวจถัดมา.
+- **แก้:** ยืนยันดีไซน์ก่อนว่า ‘จิตศาสตราสืบทอด’ และ ‘วิญญาณผู้อาวุโส’ ต้องเกิดพร้อมกันหรือไม่. ถ้าใช่ ให้จับ reference ของอาวุธก่อนย้าย, ทำ imbue ครั้งเดียวก่อน/ระหว่าง transfer และบันทึก lineage; ถ้าไม่ใช่ ให้แก้ข้อความที่สื่อว่าเกิดทั้งสองอย่าง.
+- **Acceptance:** ไม่มีอาวุธ/เจ้าของซ้ำ, metadata ของเจตนารมณ์ถูกต้องหลัง death และ reload.
+
+### หลักฐานผลต่อเมต้าและระบบอื่น (ยืนยันพฤติกรรม แต่ไม่แปลว่าต้องเนิร์ฟ)
+
+- `EQ-001/C05`: ฝังรูน **15 ครั้ง → ตัวคูณทดสอบ M≈11.98**; หลังโหลดเซฟยัง M≈11.98 และมี modifier 15 รายการ — ช่องโกงคงอยู่ข้าม session. ตัวเลขนี้เป็นตัวคูณวิชาทดสอบ ไม่ใช่ DPS หลังป้องกัน.
+- `EQ-002/C17`: ปลุกจิตจากช่องว่างกด 2 ครั้ง → stage5; ในตัวอย่างคะแนนกำลัง `CULT.power` เพิ่ม **ประมาณ 39.1%** และคะแนน Tier สำนักเพิ่ม 8 คะแนน (ยังไม่เปลี่ยน Tier ในตัวอย่าง). จึงไม่ใช่แค่ปัญหา UI อาวุธ แต่มีผลต่อระบบจัดกำลัง/สำนัก.
+- `EQ-013/C18`: จิตศาสตราสามารถย้ายให้นอกสำนักที่กำลัง `away=true` หรือคน stage1 ที่อาวุธกำหนด minStage7; อุปกรณ์ย้ายจริงแต่ `gearUsable=false` และ rating อาจยังให้โบนัสจิต (`EQ-011`). ควรตรวจ eligibility ที่ต้นทาง.
+- **บังคับตรวจร่วมหลังแก้:** death → inheritance → displaced gear → stage/path eligibility → stat/rating → save/load; และ rune/refine → repeated actions → stat/rating → sect tier/mission power → save/load.
+
+## การตรวจข้ามระบบเพิ่มเติม — COMBAT v2.3.0 (8 พ.ย. 2026)
+
+**ความต่อเนื่องมรดกและโล่ในการต่อสู้:** ความผิด COMBAT-01 ทำให้ระบบสืบทอดที่อยู่ใน AI.kill อาจไม่ทำงานเมื่อเจ้าของอาวุธตายในศึก (ต่างจากการตายตามปกติที่เคยตรวจ EQ-013/014). COMBAT-07 ตรวจพบโล่ legacy shieldBp=100 รับ 4x50 damage แล้วยังมี 100 และ HP ไม่ลด; ควรทดสอบกับอุปกรณ์ป้องกันและ save/load ด้วย. จุดเหล่านี้เป็น cross-reference กับรายงาน COMBAT ไม่ใช่เปิด finding EQ ซ้ำ.
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_MENTORSHIP_OFFICES_AUDIT_V230.md
+
+# รายงาน QA เจาะลึก — ระบบอาจารย์–ศิษย์และตำแหน่งในสำนัก
+**JianghuSect 2 v2.3.0 | Freeze / Release Candidate | 8 พฤศจิกายน 2026**
+
+> ขอบเขต: ระบบ mentorship, สายสืบทอด, ชี้แนะ, ถ่ายทอดปราณ, UI กิจกรรมศิษย์, ตำแหน่ง 25 บทบาท/alias, สิทธิ์รักษาการ, การตาย/ออกจากสำนัก, ความสอดคล้องการบันทึกเซฟ. ตรวจซอร์สเกมต้นฉบับแบบ read-only ไม่แก้เกม.
+
+## 1. สรุปผู้บริหารและ Release Gate
+
+**ยังไม่ผ่านเกณฑ์ปล่อยเกม** ในหมวดนี้: พบช่องชี้แนะซ้ำผ่าน UI โดยไม่มีเวลา/ต้นทุน และเส้นทาง AI จบการสอนปกติกลับเปลี่ยนความเป็นอาจารย์อย่างเป็นทางการ รวมถึงการออกจากสำนักที่อาจค้างกลางทางด้วย exception.
+
+- ไฟล์เกมต้นฉบับ: `JianghuSect2_v2.3.0_Grand_Dao_Deep_Parity_Release.zip`; SHA-256 `983e351b119c63f40b402c5e6e27c44a5f39683dc5e5b995773862efc467df62`.
+- ปริมาณ: 33 เคสอิสระ — **21 พบอาการ/เงื่อนไขผิดที่ยืนยันซ้ำได้**, **9 control ผ่าน**, **3 design-review**; ไม่มี test script error. 21 เคสไม่เท่ากับ 21 บัคไม่ซ้ำกัน.
+- สังเคราะห์เป็น **14 root-cause findings ใหม่**: **P0 1, P1 10, P2 3**; ประเด็นกฎกติกา **3** ไม่รวมเป็นบัค; และ **1 บัคที่เคยรายงาน SECT-03** ยืนยันซ้ำ ไม่เพิ่มจำนวน.
+- Regression เดิมเกี่ยวกับ lineages/offices/AI cognition จำนวน **9 suites** ผ่านทั้งหมดเมื่อรันแยก. การผ่านไม่ได้ครอบคลุม negative-path ที่ทดสอบรอบนี้.
+- ระดับการเข้าถึง: UI path มี source path และ runtime call ให้ยืนยัน; ส่วน MOF-07/08/09/10/11/12 มีข้อจำกัดเป็นการเรียก API หรือ crafted state ตามรายการ. **ไม่ได้อ้างว่าได้คลิก UI ผ่าน Chromium แบบ end-to-end**.
+- หลีกเลี่ยงการตรวจเศรษฐกิจ/เซฟเกมเชิงลึกซ้ำกับอีกแชท; ตรวจแค่ผลลูกโซ่จำเป็น เช่น mentorship/save persist, delegation, lifecycle.
+
+## 2. แผนภาพผลกระทบข้ามระบบ
+
+- **AI social teach → force bond → เปลี่ยนอาจารย์ → ตำรับ/ถ่ายทอดวิชา/โบนัสทะลวง → ความสัมพันธ์และพงศาวดาร → เซฟค้าง**
+- **UI ชี้แนะซ้ำ → cult/merit/ลด stress/บัฟ → ข้ามช่วงบ่มเพาะและเพิ่มอำนาจอาจารย์ → สมดุลวิถีและการแข่งขันสำนัก**
+- **ปลดตำแหน่ง → delegated authority ไม่ถูกถอน → ผู้รักษาการใช้อำนาจคลัง/ฝ่ายต่อไป → อำนาจในโลกกับ UI ไม่ตรงกัน**
+- **NPC ใหม่ออกสำนัก → คืน knowledge exception หลังลบ roster → assets ไม่คืนครบ → สายอาจารย์/ตำแหน่ง/byId ยังอ้างตัวเก่า → สถานะผิดถาวรได้**
+
+## 3. รายละเอียดสิ่งที่พบ (14 root causes)
+
+### MOF-01 [P0] ชี้แนะซ้ำในเวลาเกมเดียวกัน ปั๊มค่าฝึก/คุณูปการ
+
+**การเข้าถึง:** UI → core  |  **หลักฐาน:** MO-01, MO-20  |  **พิกัด:** `js/sect.js:5086–5120; js/ui.js:7549–7565`
+
+**ผลทดสอบ:** ปุ่มชี้แนะเรียก coachDisciple โดยไม่มีข้อจำกัด session/day หรือค่าใช้จ่าย; การเรียก 12 ครั้ง ณ t=518760 สำเร็จทุกครั้ง ทำให้ cult.prog +124, merit อาจารย์ +24, เวลาไม่เปลี่ยน; ผลฝึกบางส่วนคงอยู่เมื่อเซฟ/โหลด.
+
+**ผลกระทบลูกโซ่:** ผู้เล่นวนคลิก → เร่งบ่มเพาะ/ลด stress/heartDemon/เพิ่มบัฟ → ทะลวง/สเตตัส/สิทธิ์สายย่อยเร็วผิดธรรมชาติ → คุณูปการและตำแหน่งของอาจารย์ผิดสมดุล → ผลค้างในเซฟ.
+
+**แนวทางแก้ต้นทาง:** บังคับ cooldown/งบฝึกและตรวจที่ core action; ระบุว่าหนึ่งรอบฝึกใช้เวลา/ทรัพยากรหรือโควตาใด; อย่าแก้เฉพาะปุ่ม UI.
+
+**Acceptance test:** กด 12 ครั้ง ณ เวลาเดียวกัน: ครั้งเกินโควตาต้องถูกปฏิเสธและไม่มีการเปลี่ยน cult/merit/log; ข้ามเวลา/จ่ายต้นทุนครบแล้วจึงทำได้.
+
+### MOF-02 [P1] กิจกรรมสอนของ AI เปลี่ยนสายอาจารย์–ศิษย์โดยอัตโนมัติ
+
+**การเข้าถึง:** AI normal runtime + core  |  **หลักฐาน:** MO-02, MO-33  |  **พิกัด:** `js/ai.js:1720–1740; js/sect.js:5093–5096`
+
+**ผลทดสอบ:** AI.pairEnd(type=teach) เรียก coachDisciple ซึ่งเรียก formBond(force:true) หากยังไม่ใช่ศิษย์; ทดสอบกำหนดศิษย์ให้ n_master ก่อน แล้วให้ AI คู่สอนอีกคนจบกิจกรรม พบ mentorId เปลี่ยนเป็น n4_105 และหลุดจากรายชื่อศิษย์อาจารย์เดิม.
+
+**ผลกระทบลูกโซ่:** กิจกรรมทางสังคมธรรมดา → เปลี่ยนสายสืบทอด/ความสัมพันธ์/ผู้ได้โบนัสขณะทะลวง → พิธีถ่ายทอดปราณให้คนละคน → ข้อมูลประวัติและบัฟสำนักขัดแย้ง; เกิดเองได้แม้ผู้เล่นไม่ได้คลิก.
+
+**แนวทางแก้ต้นทาง:** แยก mentoring lesson ชั่วคราวกับพิธีรับศิษย์อย่างเป็นทางการ; AI teach ไม่เรียก formBond(force:true); เปลี่ยนสายต้องผ่านกฎย้ายอาจารย์และอัปเดตทุกดัชนี.
+
+**Acceptance test:** AI.pairEnd teach ไม่เปลี่ยน mentorId/mentor bond ของศิษย์ที่มีอาจารย์แล้ว และยังมอบ XP เรียนทั่วไปได้ตามกติกา.
+
+### MOF-03 [P1] อาจารย์ที่ไม่พร้อมยังชี้แนะได้
+
+**การเข้าถึง:** UI/core  |  **หลักฐาน:** MO-04  |  **พิกัด:** `js/sect.js:5086–5120; js/ui.js:7549–7565`
+
+**ผลทดสอบ:** อาจารย์ที่ away=true, sealed=true และ jailUntil สูงกว่าเวลาปัจจุบันชี้แนะสำเร็จจริง; gain cult +15.
+
+**ผลกระทบลูกโซ่:** จำคุก/ปิดด่าน/สำรวจไกล → ยังเพิ่มการฝึกของศิษย์ → ระบบความเสี่ยง/เวลาทำงาน/ระยะทางไร้ผล → เมต้าเลี่ยงข้อจำกัดการเดินทางและลงโทษ.
+
+**แนวทางแก้ต้นทาง:** รวม eligibility กลางสำหรับการชี้แนะปกติ: สมาชิกอยู่ในสำนัก/มีชีวิต/พร้อมทำกิจกรรม/ไม่กักขังหรือออกเดินทาง; กรณีสอนระยะไกลต้องมีกฎเฉพาะ.
+
+**Acceptance test:** away/sealed/detained ปฏิเสธและ state ไม่เปลี่ยน; กลับสำนักและพร้อมทำงานให้ชี้แนะได้.
+
+### MOF-04 [P1] รับศิษย์ที่ถูกเนรเทศ/คุมขังได้โดยไม่ตรวจสถานะ
+
+**การเข้าถึง:** Internal API; some callers may be UI  |  **หลักฐาน:** MO-05  |  **พิกัด:** `js/sect.js:5008–5085`
+
+**ผลทดสอบ:** formBond ตรวจมีชีวิต/ขั้นฝึกแต่ไม่ได้ตรวจ exiled, detainedUntilDay และ membership; สถานะ exiled=true และถูกคุมขังยังทำพิธีรับศิษย์สำเร็จ.
+
+**ผลกระทบลูกโซ่:** บทลงโทษไร้น้ำหนัก → สายอาจารย์ยังเพิ่มและเกิดโบนัส/ภารกิจ → ขัดกับกฎการจัดศิษย์ออกคณะเดินทางและการเมืองสำนัก.
+
+**แนวทางแก้ต้นทาง:** เพิ่ม predicate ผู้เข้าพิธีทั้งสองฝ่าย พร้อมแยกประวัติศิษย์เก่าออกจากความสัมพันธ์ใช้งานปัจจุบัน.
+
+**Acceptance test:** ผู้ถูกเนรเทศ/คุมขังไม่เป็นศิษย์ใหม่ได้; ผู้พ้นโทษและอยู่ในสำนักทำพิธีสำเร็จ.
+
+### MOF-05 [P1] ข้ามเพดานศิษย์ 3 คนด้วยการชี้แนะ
+
+**การเข้าถึง:** Core/API  |  **หลักฐาน:** MO-07; MO-06 control  |  **พิกัด:** `js/sect.js:5029–5039, 5093–5095`
+
+**ผลทดสอบ:** formBond ปกติกันเกิน 3 คน แต่ coachDisciple เรียก formBond(force:true), ทำให้อาจารย์คนเดียวมี apprenticeIds 6 คน.
+
+**ผลกระทบลูกโซ่:** ชี้แนะซ้ำ → สายศิษย์ขยายผิดเพดาน → เพิ่มผลต่อความสัมพันธ์, สืบทอด, จุดคุ้มครอง/โบนัส, ความถี่ AI mentor และกิจกรรมสำนัก.
+
+**แนวทางแก้ต้นทาง:** กำหนด force scope เฉพาะ migration/เหตุการณ์พิเศษที่บันทึกเหตุผล; ชี้แนะและ UI ห้าม force รับศิษย์.
+
+**Acceptance test:** 4th disciple ต้องไม่เพิ่มใน teacher.apprenticeIds; formBond ธรรมดา 3 คนยังผ่าน; ไม่มีข้อมูลสายค้าง.
+
+### MOF-06 [P2] เปลี่ยนอาจารย์แล้ว bond ความสัมพันธ์เก่ายังค้างว่าเป็นสายตรง
+
+**การเข้าถึง:** Core/save  |  **หลักฐาน:** MO-08, MO-23  |  **พิกัด:** `js/sect.js:5040–5078`
+
+**ผลทดสอบ:** เมื่อเปลี่ยนทางการ mentorId และ family ถูกแก้ แต่ SECT.rel ของอาจารย์เก่า/ศิษย์ยังมี bond=อาจารย์สายตรง แม้เซฟ/โหลด.
+
+**ผลกระทบลูกโซ่:** AI ตีความความไว้วางใจ/ความแค้น/ความโศกเศร้า/ลำดับสายผิด → พงศาวดารและกฎพบญาติใช้ข้อมูลขัดกัน.
+
+**แนวทางแก้ต้นทาง:** บน reparent ชำระ/แปลง label ความสัมพันธ์เดิมเป็น "อดีตอาจารย์" โดยไม่ลบความผูกพันทางอารมณ์ทั้งหมด; ซิงก์ bond, mentorId, family, history.
+
+**Acceptance test:** การเปลี่ยนสายทำให้ direct relation ของอาจารย์เก่าสิ้นสุด สายใหม่ตรงกัน และผลเหมือนเดิมหลังโหลด.
+
+### MOF-07 [P1] ถ่ายทอดปราณให้คนนอกสายได้หลายคนและรับผลสะสม
+
+**การเข้าถึง:** API internal, UI checks direct mentor  |  **หลักฐาน:** MO-09, MO-11  |  **พิกัด:** `js/sect.js:5122–5200; js/ui.js:7562–7565`
+
+**ผลทดสอบ:** transmitQi ไม่ตรวจว่า disciple.mentorId === mentor.id; ครู 3 คนที่ไม่ใช่สายตรงถ่ายทอดต่อเนื่องให้ตัวละครหนึ่งคนจน cult.prog +557. ผู้ถ่ายทอดแต่ละคนใช้ครั้งเดียวจริง แต่ศิษย์รับจากหลายคนได้.
+
+**ผลกระทบลูกโซ่:** ข้ามพิธีรับศิษย์ → เร่งทะลวง/ฟื้น HP-Qi/รับวิชาและ imprint ใหม่ → สร้างบิลด์ผิดธรรมชาติ/เสี่ยง imbalance; เกมเปิดช่อง internal API มากกว่าปุ่ม UI.
+
+**แนวทางแก้ต้นทาง:** ระบุ policy การถ่ายทอด/ช่วงใกล้ตาย: ต้องเป็นศิษย์สายตรงและอยู่ร่วมฉาก ยกเว้นเหตุการณ์บันทึกสิทธิพิเศษ; จำกัด recipient หรือประวัติภายในช่วงเวลาที่ออกแบบ.
+
+**Acceptance test:** ผู้ไม่มี bond ถูกปฏิเสธไม่เสีย qiTransmitted; 3 unrelated ไม่สามารถปั๊มความก้าวหน้าได้; ศิษย์ที่ถูกต้องรับได้ตาม intended rules.
+
+### MOF-08 [P1] ผู้ตายหรือถูกเนรเทศยังถ่ายทอดปราณผ่าน API ได้
+
+**การเข้าถึง:** API internal  |  **หลักฐาน:** MO-10  |  **พิกัด:** `js/sect.js:5122–5142; js/ai.js:1764–1772`
+
+**ผลทดสอบ:** transmitQi ตรวจ disciple.dead แต่ไม่ตรวจ mentor.dead หรือ exiled; ตัวอย่างผู้ถ่ายทอด dead=true, exiled=true ยัง success.
+
+**ผลกระทบลูกโซ่:** NPC ตาย/ถูกขับ → ยังถ่ายทอดพลังและสร้าง log/วิชา → ขัด life cycle; เสี่ยงแก้แล้วทำพิธีคำสั่งเสียก่อนตายพัง.
+
+**แนวทางแก้ต้นทาง:** normal transmit ต้องตรวจ mentor alive/valid; dyingWish/preAscension ให้เกิดใน lifecycle ก่อน mark dead เท่านั้น พร้อม token เหตุการณ์/transaction.
+
+**Acceptance test:** dead mentor transmission ผ่าน API ปกติถูกปฏิเสธ; legitimate dyingWish จาก AI.kill ก่อนตายยังผ่าน regression.
+
+### MOF-09 [P1] ปลดตำแหน่งด้วยชื่อย่อทำให้ทะเบียนค้างและ exception
+
+**การเข้าถึง:** API internal; UI resolves aliases  |  **หลักฐาน:** MO-14  |  **พิกัด:** `js/sect.js:789–858; js/ui.js:1637–1643`
+
+**ผลทดสอบ:** appoint(diplomacy) แมปเป็น envoy แต่ dismiss(diplomacy) ไม่แมป; ตัวละคร n.post=null แต่ W.sect.posts.envoy ยังค้าง id และฟังก์ชัน throw เมื่ออ่าน POST[diplomacy].nameTh.
+
+**ผลกระทบลูกโซ่:** ผู้บริหารพ้นตำแหน่งจากมุมบุคคล แต่สำนักยังมีผู้ถือครอง → สิทธิ์/เบี้ยหวัด/AI งานสำนัก/ผู้สืบทอดตำแหน่งผิด → save เก็บข้อมูลทะเบียนไม่ตรงกัน.
+
+**แนวทางแก้ต้นทาง:** ใช้ canonical post resolver ตัวเดียวสำหรับ appoint, dismiss, holder, revokeDelegation; ห้าม mutate ก่อน validate post.
+
+**Acceptance test:** ทุก alias ที่ใช้แต่งตั้งได้ต้องปลดได้; ไม่มี exception และ post/n.post/cognition สอดคล้อง.
+
+### MOF-10 [P1] สิทธิ์ผู้รักษาการคงอยู่หลังปลดตำแหน่งต้นทาง
+
+**การเข้าถึง:** Core internal, indirect AI  |  **หลักฐาน:** MO-15, MO-22; MO-16 control  |  **พิกัด:** `js/sect.js:844–855; js/cognition.js:266–338`
+
+**ผลทดสอบ:** dismiss ไม่เรียก COG.syncOfficeAuthority; ผู้รักษาการเดิมยังผ่าน hasAuthority ก่อนถึงเวลา expiry; record ที่อ้าง holderId ไม่มีอยู่จริงก็ยังให้สิทธิ์ treasury ได้.
+
+**ผลกระทบลูกโซ่:** ปลดคน/หนีจากสำนัก → ผู้รักษาการเดิมยังเบิกคลังหรือสั่งฝ่ายยุทธศาสตร์ → การตัดสินใจอัตโนมัติ/ทรัพยากร/ความเชื่อถือผิด; ยิ่งหนักหากเซฟสิทธิ์ค้าง.
+
+**แนวทางแก้ต้นทาง:** บน dismiss/retire/death/replace sync/revoke delegation แบบ atomic; hasAuthority ต้องตรวจ holder ตัวจริง, scope, active window, domain รวมทั้ง subject ยังอยู่ในสำนัก.
+
+**Acceptance test:** หลังปลด hasAuthority=false ทันที; บันทึก delegation ปลอม/หมดอายุไม่ผ่าน; replacement appointment ยังคงผ่าน control.
+
+### MOF-11 [P2] API รับอาจารย์จากโลกคนละเซฟด้วย object โดยตรง
+
+**การเข้าถึง:** Internal API (not ordinary UI)  |  **หลักฐาน:** MO-24  |  **พิกัด:** `js/sect.js:5008–5030; js/sect.js:MENTORSHIP.resolveNpc`
+
+**ผลทดสอบ:** ส่ง NPC object ที่ไม่ได้อยู่ใน W.byId/W.npcs ให้ formBond ก็สำเร็จและไปแก้ apprenticeIds ของ object ภายนอก; mentorId ยังอาจชน ID ในอีกโลก.
+
+**ผลกระทบลูกโซ่:** ข้อมูลโลก/เซฟปนกันเมื่อเรียก API ภายใน → สายสืบทอดอ้างคนผิด → history/rel/cult skew; ต่ำกว่าปัญหา UI และต้องระวัง shared object tests.
+
+**แนวทางแก้ต้นทาง:** resolve NPC ที่ยอมรับ object ต้องตรวจ identity ด้วย W.byId[id]===obj และ active membership; ยกเว้น migration บันทึกเหตุผล.
+
+**Acceptance test:** object จากโลกอื่นถูกปฏิเสธ โดยไม่แก้ทั้งสองโลก; object ใน W เดียวกันทำงานปกติ.
+
+### MOF-12 [P2] flag รักษาการปิดแล้ว แต่ยังมีสิทธิ์คลัง
+
+**การเข้าถึง:** Internal special-state  |  **หลักฐาน:** MO-26  |  **พิกัด:** `js/cognition.js:234, 266–273`
+
+**ผลทดสอบ:** COG.role ตรวจ welfareAuthority.acting แต่ COG.hasAuthority(treasury) ตรวจเพียง welfareAuthority.id; record acting=false ยัง authorize.
+
+**ผลกระทบลูกโซ่:** UI/คำอธิบายบอกว่าเป็นสมาชิกธรรมดา แต่ backend ยังให้สิทธิ์คลัง → automation และเบี้ยหวัด/การอนุมัติตัดสินผิด.
+
+**แนวทางแก้ต้นทาง:** ใช้ predicate เดียวของ acting treasury ใน role และ hasAuthority; เช็ก active timestamp/active membership.
+
+**Acceptance test:** acting=false ปฏิเสธ; acting=true พร้อมเงื่อนไขครบให้สิทธิ์; ข้ามเซฟแล้วยังเหมือนกัน.
+
+### MOF-13 [P1] ผู้ที่ออกจากสำนักยังสอนและมีโบนัสช่วยทะลวง
+
+**การเข้าถึง:** AI + core + lifecycle  |  **หลักฐาน:** MO-29, MO-30  |  **พิกัด:** `js/sim.js:473–490; js/sect.js:5086–5120; js/ai.js:836–853`
+
+**ผลทดสอบ:** SIM.retire เอา NPC จาก W.npcs แต่ W.byId ยังชี้ object เดิม; coachDisciple ยอมรับและเพิ่ม cult +15 ให้ศิษย์; predicate mentor guidance ใน AI เช็กเพียง byId และ !dead จึงยังให้โบนัสทะลวง.
+
+**ผลกระทบลูกโซ่:** อาจารย์ออกจากสำนัก → การฝึกและโอกาสสำเร็จทะลวงคงอยู่ → เกมโลกไม่รับรู้การจากลา → เส้นทางบรรพชน/มรดกและความสัมพันธ์ขัดกัน → ค้างในเซฟ.
+
+**แนวทางแก้ต้นทาง:** กำหนด active-sect membership predicate ที่เป็น authoritative; อาจารย์อดีตยังอยู่เป็นประวัติได้แต่ไม่ถือเป็นผู้สอน active เว้นแต่มี remote mentoring rule ที่ชัด.
+
+**Acceptance test:** หลัง retire ไม่สามารถ coach หรือให้ live guidance ได้; ประวัติศิษย์ยังดูได้โดยไม่พัง; ตอนกลับเข้าร่วมใหม่ต้อง revalidate.
+
+### MOF-14 [P1] NPC ที่เพิ่งสร้างออกสำนักแล้ว exception หลังถูกลบรายชื่อ
+
+**การเข้าถึง:** Normal lifecycle, not confined to mentorship  |  **หลักฐาน:** MO-31; MO-32 control  |  **พิกัด:** `js/sim.js:349, 473–486; js/knowledge.js:180–200, 665`
+
+**ผลทดสอบ:** SIM.addNpc สร้าง inv ที่ยังไม่มี crystals/subManuals; SIM.retire ลบจาก W.npcs ก่อน MARTIAL.returnKnowledge; latter เรียก M.ensure ที่วนเฉพาะ roster ที่เหลือ แล้ว Object.entries(undefined) throw: Cannot convert undefined or null to object. เกิด partial removal.
+
+**ผลกระทบลูกโซ่:** รับ NPC ใหม่ → ออกสำนัก/เนรเทศ/เลิกเป็นครู → ตัวละครหายจาก roster แต่คืนทรัพย์สินไม่ครบ → อาวุธ/คัมภีร์/คลัง-สมาชิกและบันทึกผิด → save potentially persists fragmented state.
+
+**แนวทางแก้ต้นทาง:** normalize inventory ของ NPC ทันทีที่ addNpc; returnKnowledge defensive default; retire เป็น transaction: validate/transfer assets ก่อน final roster removal; ซิงก์ active indexes; retry safe.
+
+**Acceptance test:** addNpc→retire ไม่ throw, อุปกรณ์+ทรัพย์สินคืนครบ, roster/byId/gone/mentorOffice consistent; failure injection ไม่ทำให้อยู่สถานะครึ่งทาง.
+
+## 4. ประเด็นที่ต้องยืนยันกติกา ไม่ใช่บัคยืนยัน
+
+### DR-01 พิธีสร้างวิชาประจำสำนักฟรีซ้ำ (MO-12)
+สร้าง 6 วิชาโดยเวลาและศิลาปราณไม่ลด; อาจตั้งใจให้ระบบสร้างคัมภีร์เป็นรางวัลเชิงเนื้อเรื่อง ไม่ควรใส่ต้นทุนโดยพลการ **แนวพิจารณา:** กำหนดเพดานจำนวนวิชาที่ใช้ได้จริง/ประสิทธิภาพ การคัดเลือกเงื่อนไข และเทสต์ performance ของ library ใหญ่
+
+### DR-02 แต่งตั้งแล้วได้ยศผู้อาวุโสถาวร (MO-17)
+NPC rank1 ถูกเลื่อนเป็น rank4 + isElder=true และแม้ปลดยังเป็นผู้อาวุโส; อาจเป็นการให้เกียรติอย่างถาวร **แนวพิจารณา:** ตัดสินว่าตำแหน่งชั่วคราวหรือยศถาวร มีผลต่อสิทธิ์ลงคะแนน/เบี้ยหวัด/หอพักหรือไม่
+
+### DR-03 เลือกผู้สืบทอดซ้ำได้ในเวลาเดียวกัน (MO-28)
+electSuccessor สำเร็จ 4 ครั้งโดยเวลาไม่เดิน; อาจเป็นคำสั่งบริหารที่ตั้งใจอนุญาต **แนวพิจารณา:** กำหนดว่าต้องมี cooldown และค่าต้นทุนการเมือง หรือเพียง dedupe event/log เพื่อไม่ปั่นประวัติ
+
+## 5. ความเกี่ยวข้องกับรายงานเดิม — ไม่ทำซ้ำ
+
+- SECT-03 ใน QA_SECT_SYSTEMS_AUDIT_V230: การแต่งตั้งผู้ถูกคุมขัง/ออกภารกิจผ่านชั้น SECT.appoint (ยืนยันซ้ำด้วย MO-21; ไม่เปิดรหัสบัคใหม่ซ้ำ).
+- `JHS-014` รายงานทั่วไป: byId ยังชี้อดีตสมาชิก (ซ้ำเชิงอาการกับ MOF-13); รอบนี้เพิ่มหลักฐานว่า mentorship/tribulation ใช้ byId โดยไม่กรอง active-membership.
+- `SECT-28` ผู้สืบทอดที่ตายแล้วมี id ค้าง: กฎ sync สถานะ office/lineage ควรใช้ predicate เดียวกับผู้ดำรงตำแหน่งและการออกสำนัก.
+- `COMBAT-01` ระบบตายจากศึกข้าม cleanup: การปรับ lifecycle ไม่ควรทำให้ mentorship dyingWish ขาด; ต้องทดสอบร่วมก่อนปล่อย.
+- `DAO-002` คัมภีร์ข้ามวิถีหลังเปลี่ยนสาย: การถ่ายทอดปราณ/วิชามรดกต้อง recheck วิถีและขั้นใหม่ก่อนมอบ.
+
+## 6. ผลทดสอบจริงและข้อจำกัด
+
+| ประเภท | จำนวน | ผล |
+|---|---:|---|
+| บัค/เงื่อนไขผิดที่พิสูจน์ซ้ำ | 21 เคส | reproduced; จัดกลุ่มเป็น 14 สาเหตุใหม่ และ 1 known issue |
+| กรณีควบคุม | 9 เคส | 9 ผ่าน |
+| ทบทวนดีไซน์ | 3 เคส | สังเกตพฤติกรรมได้ แต่ยังไม่ฟันธงว่าเป็นบัค |
+| ข้อผิดพลาดจากสคริปต์ | 0 | ไม่มี |
+| Regression เดิม | 9 suites | exit=0 ทุกชุด เมื่อแยกรัน |
+
+**ตัวอย่าง control ที่รักษาไว้หลังแก้:** ครูตายไม่ชี้แนะ, รับศิษย์ตรงเพดาน 3 ได้/คนที่ 4 ปกติถูกปฏิเสธ, รับคู่เดิมไม่เพิ่มประวัติซ้ำ, เปลี่ยนผู้ดำรงตำแหน่งถอนสิทธิ์ delegation, ระบบความคิดรู้จักผู้ที่ถูกปลด, สายอาจารย์ปกติอยู่รอดหลังเซฟ/โหลด, นักฝึกใหม่ไม่เหมาะสมถูกปฏิเสธ, แต่งตั้ง/ปลดแบบ canonical ยังทำงาน, normalize knowledge ก่อน retire ไม่ crash.
+
+**ข้อจำกัดสำคัญ:** ชุด Node `test/load.js` สร้างโลกจำลองเฉพาะเคส; API internal/bad-state ต้องถูกจัดตามความเสี่ยงการเข้าถึงจริง; ไม่ได้ทำ manual UI E2E หรือทดสอบ 100+ ปีโลกเกมในรอบนี้. ผู้พัฒนาควรตรวจ input guards/softlock และ browser action อีกชั้นหลังแก้.
+
+## 7. ลำดับแก้สำหรับ Coding AI
+
+- **Blocker 1:** MOF-01 ปิด farm ชี้แนะไม่เสียเวลา/ต้นทุน ด้วย guard ที่ core + UI feedback; เพิ่ม idempotence และโควตาที่ชัด.
+- **Blocker 2:** MOF-02, MOF-05, MOF-06 แยก teach จาก formal lineage, ถอด force รับศิษย์, ป้องกัน 3 คนเกินเพดานและเคลียร์ direct relation เก่า.
+- **Blocker 3:** MOF-14 + MOF-13 ทำ NPC exit/retire เป็น atomic transition, normalize inv, ตรวจ roster เป็น authoritative สำหรับ live mentorship.
+- **Blocker 4:** MOF-09/10/12 ทำ canonical office IDs, revoke delegated authority, sync cognition และเช็ค active/acting state ทุกครั้ง.
+- **Blocker 5:** MOF-03/04/07/08/11 ปรับ active member eligibility และกฎถ่ายทอดปราณ โดยรักษา dying wish ก่อนตาย.
+- **Regression gate:** รัน `MENTORSHIP_OFFICES_DEEP_REPRO_TESTS.js` แล้วต้องเปลี่ยน finding cases ให้เป็น rejection/expected behavior ตามเกณฑ์รายข้อ (ไม่ใช่ให้ script เก่าเขียวเพราะ test ยืนยันบัค), รันชุดมาตรฐาน 9 suites + full test + browser manual.
+
+## 8. ภาคผนวก 33 เคสอิสระและค่า observed
+
+| Case | ประเภท | ประเมินผล | สิ่งที่ทดสอบ |
+|---|---|---|---|
+| MO-01 | finding | ยืนยัน | Coaching repeatedly within same simulation minute |
+| MO-02 | finding | ยืนยัน | Coaching unrelated disciple force-switches mentorship |
+| MO-03 | control | ยืนยัน | Teacher unavailable/dead/exiled can be used for coaching? (control) |
+| MO-04 | finding | ยืนยัน | Sealed / detained / absent teacher still teaches |
+| MO-05 | finding | ยืนยัน | Exiled / imprisoned cannot form a teacher-disciple bond |
+| MO-06 | control | ยืนยัน | Teacher-capacity bound works in ordinary formBond (control) |
+| MO-07 | finding | ยืนยัน | Mentorship no cap when coaching forcibly creates pair |
+| MO-08 | finding | ยืนยัน | Changing master leaves old social relation flagged as direct mentor |
+| MO-09 | finding | ยืนยัน | Transmit Qi to non-disciple with no mentor relationship |
+| MO-10 | finding | ยืนยัน | Transmit Qi by dead/exiled teacher |
+| MO-11 | finding | ยืนยัน | Several unrelated teachers can feed same student cumulative breakthroughs |
+| MO-12 | review | ยืนยัน | Synthesized sect art creation without cost, cooldown or capacity |
+| MO-13 | control | ยืนยัน | Repeated formBond same pair is idempotent (control) |
+| MO-14 | finding | ยืนยัน | Appoint alias then dismiss via alias leaves real slot and throws |
+| MO-15 | finding | ยืนยัน | Dismissing office leaves a delegated officer authorized until expiry |
+| MO-16 | control | ยืนยัน | Delegation survives holder replacement when original holder is absent |
+| MO-17 | review | ยืนยัน | Dismissing new promoted officer retains elder rank permanently |
+| MO-18 | control | ยืนยัน | Dismissed office remains in cached cognition role? |
+| MO-19 | control | ยืนยัน | Mentor bond between active members remains across save/load (control) |
+| MO-20 | finding | ยืนยัน | Mentor spam and office stale-state persist across save/load |
+| MO-21 | finding | ยืนยัน | Office appointment allows detained candidate despite eligibility denial |
+| MO-22 | finding | ยืนยัน | Cognition delegation authority accepts stale delegate record without holder |
+| MO-23 | finding | ยืนยัน | Historical mentor relationship remains after switch, even after save/load |
+| MO-24 | finding | ยืนยัน | Mentor appointment accepts cross-world NPC object |
+| MO-25 | control | ยืนยัน | Invalid seniority prevents voluntary novice-mentor pairing (control) |
+| MO-26 | finding | ยืนยัน | Acting welfare treasurer retains authority even when flag is inactive |
+| MO-27 | control | ยืนยัน | Official appointment and dismissal updates post ledger normally (control) |
+| MO-28 | review | ยืนยัน | Repeat election at same world time produces repeated official records |
+| MO-29 | finding | ยืนยัน | Retired / out-of-sect teacher still grants coaching to student |
+| MO-30 | finding | ยืนยัน | Removed mentor still grants tribulation guidance predicate |
+| MO-31 | finding | ยืนยัน | Freshly added NPC retirement throws after roster removal |
+| MO-32 | control | ยืนยัน | Knowledge normalization before retirement prevents TypeError (control) |
+| MO-33 | finding | ยืนยัน | Ordinary AI teach interaction silently changes master-disciple lineage |
+
+**ไฟล์ที่แนบใน ZIP:** `MENTORSHIP_OFFICES_DEEP_REPRO_TESTS.js`, `MENTORSHIP_OFFICES_DEEP_REPRO_RESULTS.json`, `MENTORSHIP_OFFICES_REGRESSION_LOG.txt`, และ `MENTORSHIP_OFFICES_PATCH_IMPLEMENTATION_GUIDE.md`.
+
+**วิธีรัน:** `node MENTORSHIP_OFFICES_DEEP_REPRO_TESTS.js /absolute/path/to/GAME_SOURCE > result.json` (ต้องมี `test/load.js` ในซอร์สเกม).
+**หลักการ:** ไม่มีการแก้ source เกม, ไม่มีการแนะนำ nerf meta เพียงเพราะตัวเลขสูง, อนุญาตทบทวน DR แยกจาก bug register.
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_SECT_SYSTEMS_AUDIT_V230.md
+
+# รายงานตรวจระบบสำนักส่วนที่เหลือ — JianghuSect 2 v2.3.0
+> **หมวดใหม่แยกจากเศรษฐกิจ / อุปกรณ์ / วิถีและสายย่อย** | ตรวจ 8 พฤศจิกายน 2026 | ต้นฉบับไม่ถูกแก้ไข
+
+**SHA-256 ต้นฉบับ ZIP:** `983e351b119c63f40b402c5e6e27c44a5f39683dc5e5b995773862efc467df62`
+
+## 1) สรุปผู้บริหาร
+
+ตรวจ **27 negative-path cases** กับระบบสำนักจริง: **27 เคสแสดงปัญหาหรือข้อทบทวนตามสมมติฐาน** (26 ประเด็นโค้ด/การเชื่อมต่อที่ต้องแก้หรือยืนยัน + 1 เรื่องสมดุลที่ให้เจ้าของเกมตัดสิน); ไม่ได้หมายความว่าเทสต์เดิม 27 ชุดล้มเหลว — สิ่งเหล่านี้เป็นชุดทดสอบใหม่ที่เขียนให้จงใจจับพฤติกรรมผิด.
+
+จำนวนตามลำดับความสำคัญ: **P1: 18**, **P2: 7**, **P3: 1**, **REVIEW: 1**. ไม่มี P0 เพราะส่วนใหญ่เป็นข้อผิดพลาดร้ายแรงแต่ยังไม่พิสูจน์ว่าทำลายเซฟหรือเปิดช่องแบบไร้เพดานให้ผู้เล่นโดยตรงใน UI.
+
+**ผลเทสต์เดิม (control):** 5 suites ที่ครอบคลุม politics, sect daily, officer/peaks, creative systems, architecture **ผ่านทุกชุด** เมื่อตรวจแยก. เทสต์ใหม่ค้นพบข้อผิดพลาดที่เทสต์ปกติยังไม่ตรวจ เช่น invalid input, duplicate actions, no-op integration, lifecycle วันหมดอายุ.
+
+**ขอบเขต:** ตรวจสมาชิก/ตำแหน่ง/สืบทอด, ศาลวินัย, ก๊กการเมือง/กบฏ, สภา, แลกเปลี่ยนศิษย์/จารกรรม, โทเท็มและสายเลือด, บูรพาจารย์, ค่ายกล, ค่าหัว, ระบบช่วยบริหารและยอดเขา. แยกออกจากการตรวจ *ราคา รายได้ ต้นทุน และสมดุลเศรษฐกิจมหภาค* ของอีกแชท; เรื่องค่าหัวที่แตะรางวัลถูกรายงานเพราะปัญหา **ภารกิจ/เงื่อนไขการจบงาน** เป็นแกนหลัก.
+
+### ประเด็นที่ควรจัดการก่อนเข้าสู่แพตช์ Freeze
+
+1. **SECT-17/26:** ค่าหัวให้รางวัลโดยไม่ต้องทำภารกิจจริง และบอร์ดหมดหลัง 4 งานโดยไม่มีรอบสร้างใหม่. การรีเฟรชผ่าน API ในวันเดียวทำงานได้ แต่ **ยังไม่มีหลักฐานว่าผู้เล่นกดรีเฟรช API ผ่าน UI**.
+2. **SECT-05/06/07/13:** ดวลตราแพ้ไม่ได้ตามปกติ (`|| true`), กบฏแยกตัวแต่ยังอยู่ในสำนักเดิม, ปราบแล้วผู้ถูกขังยังทำงาน และการกด resolve สร้างวิกฤตใหม่เอง.
+3. **SECT-01/02/21:** ศาลตัดสินผิดคดี/ใช้คำพิพากษา invalid/การคุมขังไม่บังคับใช้กับ NPC.
+4. **SECT-08/09/10/11:** แลกเปลี่ยนศิษย์ซ้ำวันเดียว ID ชน, ไม่มีกลับเมื่อ stayAway, จารกรรมฟรีสำเร็จเสมอและไม่มีตรวจเจ้าหน้าที่/ชนิดภารกิจ.
+5. **SECT-22/23:** UI เปิด automation แต่ไม่พบการเรียกจาก Tick จริง; PEAKS.dailyTick ที่จะส่งสำรวจอัตโนมัติไม่ได้ถูกเรียกใน SIM (ยังมี PEAKS.tick สำหรับงานเดิม).
+6. **SECT-16 (REVIEW):** สามารถเปิด 4 โทเท็มฟรีจาก UI ภายในวันเดียว รับโบนัสถาวรแรงมาก **อย่าเนิร์ฟโดยอัตโนมัติ** ต้องถามว่าเป็น design หรือไม่.
+
+## 2) สรุปผลตามหมวด
+
+| ระบบ | จำนวนเคส | ระดับ |
+|---|---:|---|
+| หอวินัย | 3 | P1 |
+| ตำแหน่ง | 1 | P1 |
+| สืบทอด | 1 | P1 |
+| กบฏ/การเมือง | 5 | P1, P2 |
+| ศิษย์แลกเปลี่ยน | 2 | P1 |
+| จารกรรม | 2 | P1 |
+| การเมืองภายใน | 1 | P1 |
+| กบฏ/ข้อมูล | 1 | P3 |
+| โทเท็ม/สายเลือด | 1 | P2 |
+| โทเท็ม/สมดุล | 1 | REVIEW |
+| กิจกรรม/ค่าหัว | 4 | P1, P2 |
+| สภา | 1 | P2 |
+| ศาลบรรพชน | 1 | P2 |
+| ค่ายกล/อาณาเขต | 1 | P2 |
+| ระบบอัตโนมัติ | 1 | P1 |
+| ยอดเขา/การสำรวจ | 1 | P2 |
+
+## 3) รายละเอียดสำหรับ AI เขียนโค้ด: 27 ประเด็น
+
+ทุกข้อมี **ตำแหน่งโค้ด สาเหตุ ผลกระทบ หลักฐานที่รันจริง วิธีแก้ และเกณฑ์รับงาน**. “REPRO” หมายถึงพฤติกรรมเดิมที่ไม่ตรงกับ invariant ใน script; บางข้อเป็น API-only และไม่ควรเหมารวมว่าโกงผ่าน UI ได้.
+
+### SECT-01 [P1] ศาลตัดสินคดีผิดคนเมื่อระบุรหัสคดีไม่ถูกต้อง
+- **กลุ่ม/การเข้าถึง:** หอวินัย · UI+API · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13345–13358; js/ui.js:1835–1839`
+- **รากสาเหตุ:** ค้นหา caseId ไม่พบแล้ว fallback ไปคดีแรก จากนั้นลบและลงโทษคนในคดีนั้น
+- **ผลกระทบ:** การคลิกจากสถานะ UI ล้าสมัย/รหัสเซฟเก่าอาจพิพากษาคนผิดโดยไม่แจ้ง
+- **ผลรันทดสอบ:** `{"adjudicated":"CASE_1","before":["CASE_1","CASE_2"],"ok":true,"remaining":["CASE_2"]}`
+- **แนวแก้:** หากส่ง caseId ที่ไม่ว่าง ต้องพบคดีตรงกันเท่านั้น มิฉะนั้น {ok:false,reason:"case-not-found"}; แยก action “เลือกคดีแรก” ที่ UI explicit
+- **Accept:** ส่ง CASE_NONEXISTENT แล้วคดีเดิมทั้ง 2 คงอยู่ ไม่มีใครโดนลงโทษ
+- **Repro case:** `S01`
+
+### SECT-02 [P1] สั่งจำคุก 7 วัน แต่ NPC ยังมีสิทธิ์รับตำแหน่ง/ทำงาน
+- **กลุ่ม/การเข้าถึง:** หอวินัย · UI+API · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13369–13385, 684–685, 774–788`
+- **รากสาเหตุ:** ศาลเขียน detainedUntilDay แต่ isOfficerAvailable/eligible และระบบงานอ่าน jail/punished อีกชุดหนึ่ง
+- **ผลกระทบ:** บทลงโทษจำคุกไม่มีผลต่อการทำงานจริงและกฎหมายสำนักไม่สมเหตุสมผล
+- **ผลรันทดสอบ:** `{"available":true,"day":360,"eligible":true,"until":367}`
+- **แนวแก้:** รวม canonical isNpcDetained(W,n) และเชื่อมทุก eligibility/AI/office/expedition; migration กับ jail/punished เดิม
+- **Accept:** ก่อนหมดวันที่กำหนดต้องไม่ทำงาน/รับตำแหน่ง; หลังพ้นวันกลับได้
+- **Repro case:** `S02`
+
+### SECT-03 [P1] API แต่งตั้งคนตายได้และทำสถานะตำแหน่งไม่สอดคล้อง
+- **กลุ่ม/การเข้าถึง:** ตำแหน่ง · API (UI auto filter dead) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:774–808, 789–844; js/ui.js:1620–1640`
+- **รากสาเหตุ:** SECT.appoint ไม่เรียก eligible และไม่ตรวจ dead/exiled/away เอง แม้ eligible ตอบ false
+- **ผลกระทบ:** คืน true แล้วแก้ n.post เป็น martial ให้คนตาย ขณะที่ W.sect.posts อาจถูกระบบอื่นเคลียร์
+- **ผลรันทดสอบ:** `{"appointed":true,"dead":true,"eligible":false,"postInSect":null}`
+- **แนวแก้:** ตรวจ candidate validity ภายใน appoint เสมอและใช้ canonical eligibility; แยก force/editor explicit พร้อมเหตุผล
+- **Accept:** ผู้สมัครตาย/ถูกขัง/ออกสำนัก แต่งตั้งไม่สำเร็จและไม่ mutate สถานะ
+- **Repro case:** `S03`
+
+### SECT-04 [P1] ย้ายผู้สืบทอดไปตำแหน่งอื่นแล้วยังค้าง successorId
+- **กลุ่ม/การเข้าถึง:** สืบทอด · API+UI indirect · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:789–830, 844–854, 858–969`
+- **รากสาเหตุ:** เมื่อ n.post เดิมเป็น disciples การแต่งตั้ง post ใหม่ล้าง posts.disciples แต่ไม่ได้ล้าง successorId
+- **ผลกระทบ:** สองระบบรายงานคนละตำแหน่งและอาจเข้าสู่วิกฤตสืบทอดผิดคน
+- **ผลรันทดสอบ:** `{"after":"n937698","before":"n937698","disciples":null,"martial":"n937698","post":"martial"}`
+- **แนวแก้:** สร้าง updateSuccessorOfficeState บนทุกทางตั้ง/ย้าย/ปลดและ validate เมื่อโหลด
+- **Accept:** successorId และ posts.disciples ต้องสอดคล้องหรือใช้สถานะ designate แยกชัดเจน
+- **Repro case:** `S04`
+
+### SECT-05 [P1] ดวลตราเจ้าสำนักชนะตลอดแม้กบฏแข็งแกร่งกว่า 26 เท่า
+- **กลุ่ม/การเข้าถึง:** กบฏ/การเมือง · API (UI มีปุ่มเจรจาเป็นหลัก) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13858–13877`
+- **รากสาเหตุ:** เงื่อนไข masterPow*1.15>=rebelPow || true บังคับ true เสมอ เว้น forceRebelWin
+- **ผลกระทบ:** ความเสี่ยงดวลไม่มีจริง ทำให้การกบฏไม่สมเหตุสมผล
+- **ผลรันทดสอบ:** `{"duelWinner":"MASTER","masterPower":316.46455788675144,"masterWon":true,"rebelPower":8266.180862038145}`
+- **แนวแก้:** ตัด ||true; สุ่มผล/ใช้ combat resolver + บันทึกผลเมื่อกบฏชนะและระบบสืบทอด
+- **Accept:** ทดลอง masterPower≈316 vs rebelPower≈8266 ให้ฝ่ายกบฏชนะได้โดยไม่ใช้ force flag
+- **Repro case:** `S05`
+
+### SECT-06 [P1] กบฏแยกสำนักแต่ผู้ติดตามยังเป็นสมาชิกสำนักเดิม
+- **กลุ่ม/การเข้าถึง:** กบฏ/การเมือง · API (แผนเรื่อง) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13880–13896`
+- **รากสาเหตุ:** สร้าง splinterSect.memberIds แต่ไม่ถอน NPC จาก W.npcs/W.byId และไม่ mark exiled/defector
+- **ผลกระทบ:** สมาชิกอยู่พร้อมกันสองสำนัก นับประชากร/งาน/อำนาจซ้ำกับฝ่ายกบฏ
+- **ผลรันทดสอบ:** `{"rebels":["n635818","n929261","n4_218"],"stillActiveAtHome":["n635818","n929261","n4_218"],"worldSectCount":1}`
+- **แนวแก้:** กำหนด canonical ownership transition; ใช้ transfer/exile/leave แล้วถอนหน้าที่และ update peaks/posts/queue
+- **Accept:** ทุก rebelId ไม่ปรากฏเป็นศิษย์ active ของสำนักเดิมหลัง SPLINTER
+- **Repro case:** `S06`
+
+### SECT-07 [P1] ปราบกบฏแล้วจับหัวหน้าขัง แต่ตัวจริงยังเดินทำงานได้
+- **กลุ่ม/การเข้าถึง:** กบฏ/การเมือง · API (แผนเรื่อง) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13837–13858; js/sect.js:6867–6903`
+- **รากสาเหตุ:** capturePrisoner สร้าง prisoner record ใหม่ แต่ไม่ย้าย/กัก/ถอน ringleaderId ต้นฉบับ
+- **ผลกระทบ:** หัวหน้ากบฏมีทั้งสถานะ “ถูกขัง” และศิษย์ active ในสำนัก
+- **ผลรันทดสอบ:** `{"away":false,"dead":false,"exiled":false,"jailed":0,"leaderId":"n668592","leaderRank":1,"prisoner":"ฝูหว่านชิง"}`
+- **แนวแก้:** เชื่อม prisoner.sourceNpcId หรือ custodyRef กับ NPC จริง; ตั้ง detained/removed และคืนสถานะเมื่อปล่อย
+- **Accept:** SUPPRESS แล้วหัวหน้ากบฏหยุดงานและถูกกักตัวจริง ไม่ปรากฏ 2 ตัวตน
+- **Repro case:** `S07`
+
+### SECT-08 [P1] ส่งศิษย์แลกเปลี่ยนซ้ำวันเดียว ได้รางวัลซ้ำและรหัสชนกัน
+- **กลุ่ม/การเข้าถึง:** ศิษย์แลกเปลี่ยน · UI+API · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14090–14146; js/ui.js:1915–1919`
+- **รากสาเหตุ:** dispatchExchangeDisciple ไม่เช็ก active exchange/cooldown และใช้ id=EXCH_day_npcId
+- **ผลกระทบ:** เพิ่ม exp/วิชาซ้ำได้ในช่วงวันเดียว; record IDs ซ้ำชน save/index/tooltip
+- **ผลรันทดสอบ:** `{"firstOk":true,"records":["EXCH_360_n223062","EXCH_360_n223062"],"sameId":true,"secondOk":true}`
+- **แนวแก้:** กำหนด active exchange check + cooldown + sequence ID; จ่ายรางวัลเมื่อกลับจริง
+- **Accept:** ส่งคนเดิมในวันเดียว/ระหว่างรอคืนถูกปฏิเสธ; ID ทุก record unique
+- **Repro case:** `S08`
+
+### SECT-09 [P1] ศิษย์แลกเปลี่ยนแบบ stayAway ไม่มีวงจรกลับสำนัก
+- **กลุ่ม/การเข้าถึง:** ศิษย์แลกเปลี่ยน · API (UI default stayAway=false) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14126–14139, 14074–14089`
+- **รากสาเหตุ:** ตั้ง npc.away=true + returnDay แต่ไม่มี exchange daily tick/processor ที่คืน away=false และเปลี่ยนสถานะ
+- **ผลกระทบ:** ตัวละครหายจากการทำงานตลอดแม้เลยกำหนดกลับ
+- **ผลรันทดสอบ:** `{"away":true,"day":365,"hasExchangeTick":false,"returnDay":362,"status":"AWAY_STUDYING"}`
+- **แนวแก้:** เพิ่ม tickExchangeDisciples(W) ใน daily clock; reconcile save โหลด และคืน/ยกเลิกเมื่อศิษย์เสียชีวิต
+- **Accept:** W.day>returnDay แล้ว away=false และ status=COMPLETED/FAILED
+- **Repro case:** `S09`
+
+### SECT-10 [P1] จารกรรมสำเร็จ 100% และเพิ่ม earlyWarningBonus ไม่มีขีดจำกัด
+- **กลุ่ม/การเข้าถึง:** จารกรรม · API (ไม่พบปุ่มตรง) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14168–14212`
+- **รากสาเหตุ:** runEspionageOperation ตั้ง success:true และเพิ่ม +0.20 ทุกครั้งโดยไม่เช็กเสี่ยง/คูลดาวน์/cap
+- **ผลกระทบ:** ทำซ้ำ 8 ครั้งเพิ่ม warning 0→1.6 และยังไม่มีความเสี่ยงใด ๆ
+- **ผลรันทดสอบ:** `{"after":1.6,"before":0,"missions":8,"successes":8}`
+- **แนวแก้:** ตรวจ spy/target/mission; ใช้ RNG seeded, cooldown, resource cost, upper bound, modifier duration หรือ stack rule
+- **Accept:** ซ้ำ 8 ครั้งไม่สามารถโตไม่จำกัด/สำเร็จทุกครั้ง และแสดงเหตุผล fail
+- **Repro case:** `S10`
+
+### SECT-11 [P1] คนตายและชนิดภารกิจจารกรรมปลอมยังทำสำเร็จ
+- **กลุ่ม/การเข้าถึง:** จารกรรม · API (ไม่พบปุ่มตรง) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14168–14212`
+- **รากสาเหตุ:** รับ spy จาก W.byId แต่ไม่ตรวจ dead/exiled/away; missionType ที่ไม่รู้จักก็เข้า success:true
+- **ผลกระทบ:** ตัวละครที่ปฏิบัติการไม่ได้สร้างรายงานสำเร็จและเพิ่ม warning
+- **ผลรันทดสอบ:** `{"dead":true,"mission":"INVALID_MISSION","resultOk":true,"success":true,"warning":0.2}`
+- **แนวแก้:** strict membership+availability check และ allowlist missionType; validate target sect ID
+- **Accept:** spy.dead=true หรือ INVALID_MISSION คืน ok:false และไม่เปลี่ยน state
+- **Repro case:** `S11`
+
+### SECT-12 [P1] ญัตติทางการเมืองใบเดียวถูกตัดสินซ้ำและส่งผลซ้ำ
+- **กลุ่ม/การเข้าถึง:** การเมืองภายใน · API/internal AI · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:6310–6465`
+- **รากสาเหตุ:** resolvePoliticalNomination รับ object nomination โดยตรงโดยไม่ตรวจว่าอยู่ใน pending หรือ status===PENDING
+- **ผลกระทบ:** สามารถใช้ข้อมูลญัตติเดิมแต่งตั้งใหม่และเพิ่ม undercurrent/history ซ้ำ
+- **ผลรันทดสอบ:** `{"firstOk":true,"firstU":0,"history":2,"secondOk":true,"secondU":12,"status":"RESOLVED"}`
+- **แนวแก้:** resolve ด้วย id จาก pending เท่านั้น; ตรวจสถานะก่อน mutate; optimistic state guard
+- **Accept:** resolve ครั้งที่สองคืน ok:false และ counters/history ไม่เปลี่ยน
+- **Repro case:** `S12`
+
+### SECT-13 [P1] กดแก้วิกฤตกบฏทั้งที่ไม่มีวิกฤต ระบบกลับสร้างวิกฤตใหม่เอง
+- **กลุ่ม/การเข้าถึง:** กบฏ/การเมือง · UI+API · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13813–13822; js/ui.js:1910–1914, 4131–4131`
+- **รากสาเหตุ:** resolveFactionSchism เรียก triggerFactionSchismCrisis โดยอัตโนมัติเมื่อไม่มี ACTIVE crisis
+- **ผลกระทบ:** ปุ่มเจรจาใน UI สามารถสร้างกบฏจากความว่างเปล่าแล้ว “แก้” ทันที
+- **ผลรันทดสอบ:** `{"before":false,"created":true,"mode":"NEGOTIATE","ok":true}`
+- **แนวแก้:** คืน no-active-schism และซ่อน/disable action จนมีวิกฤตจริง; แยก debug spawn API
+- **Accept:** เกมเริ่มต้นไม่มีวิกฤต กด resolve แล้วไม่สร้าง crisis/ไม่หักศิลา
+- **Repro case:** `S13`
+
+### SECT-14 [P3] รหัสสำนักกบฏนำกลับมาใช้ซ้ำหลังลบข้อมูลรายการ
+- **กลุ่ม/การเข้าถึง:** กบฏ/ข้อมูล · API/edge only · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13880–13892`
+- **รากสาเหตุ:** ใช้ splinterSects.length+1 แทน monotonic sequence
+- **ผลกระทบ:** ถ้ามีการลบ records/กรองเซฟ อาจชน ID กับประวัติ/พันธมิตรเดิม
+- **ผลรันทดสอบ:** `{"first":"SPLINTER_SECT_1","second":"SPLINTER_SECT_1"}`
+- **แนวแก้:** ใช้ world.splinterSeq เพิ่มต่อเนื่อง และ migrate ID เดิมเฉพาะกรณีชน
+- **Accept:** ลบ entry เก่าแล้วก่อกบฏใหม่ ID ต้องไม่ซ้ำ
+- **Repro case:** `S14` · ทดสอบสภาวะ edge ไม่ยืนยันว่าผู้เล่นสร้างเหตุการณ์นี้ผ่าน UI ปกติ
+
+### SECT-15 [P2] สระไขกระดูกปลุกสายเลือดคนเดิมได้เรื่อย ๆ และนับจำนวนผิด
+- **กลุ่ม/การเข้าถึง:** โทเท็ม/สายเลือด · UI+API · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:12615–12649; js/ui.js:1989–1999`
+- **รากสาเหตุ:** cleanseMarrowPool เปิด awakenBloodline ทุกครั้ง ไม่มี cooldown/วัสดุ; awakenedCount++ แม้คนเดิมมีสายเลือดแล้ว
+- **ผลกระทบ:** คลังตัวเลข “ปลุกแล้ว” เพิ่ม 12 จากผู้มีสายเลือดจริงคนเดียว; ฝึก body เพิ่มได้ซ้ำเล็กน้อยโดยไม่ลงทุน
+- **ผลรันทดสอบ:** `{"afterScore":123,"afterTier":"SMALL","beforeScore":122,"beforeTier":"SMALL","bloodlineCount":12,"uniqueAwakened":1}`
+- **แนวแก้:** เพิ่ม first-awakening guard, cooldown, cost; count derived from unique awakened NPCs
+- **Accept:** ชำระซ้ำจะไม่เพิ่ม awakenedCount; ตัวนับเท่าจำนวนคนจริง; ทดสอบออก/เข้า
+- **Repro case:** `S15`
+
+### SECT-16 [REVIEW] สถาปนาโทเท็มครบ 4 ต้นฟรีทันที ให้โบนัสถาวรทุกคน
+- **กลุ่ม/การเข้าถึง:** โทเท็ม/สมดุล · UI+API · `design-review`
+- **โค้ด:** `js/sect.js:12576–12613, 12662–12694; js/ui.js:1788–1796, 4091–4101; js/stats.js:570–575`
+- **รากสาเหตุ:** กดสร้างอีก 3 ต้นเพื่อเปิดครบ 4 ไม่มีเงื่อนไขขั้น/ทรัพยากร/cooldown เลย
+- **ผลกระทบ:** ทดสอบแจกโบนัสรวม HP+18%, MATK+22%, ATK+12%, DEF+23%, MDEF+15% พร้อม flat CRIT+5 เป็นต้น; อาจเป็น intended meta
+- **ผลรันทดสอบ:** `{"after":["TOTEM_AZURE_DRAGON","TOTEM_WHITE_TIGER","TOTEM_VERMILION_PHOENIX","TOTEM_BLACK_TORTOISE"],"afterBonus":{"active":true,"f":{"cast":8,"crit":5,"critDmg":16,"pen":10},"labelTh":"พรคุ้มครองเสาโทเท็มสำนัก","p":{"atk":0.12,"def":0.22999999999999998,"hp":0.18,"matk":0.22,"mdef":0.15}},"beforeBonus":{"active":false},"day":360,"start":["TOTEM_AZURE_DRAGON"],"stonesAfter":1000,"stonesBefore":1000}`
+- **แนวแก้:** ให้เจ้าของเกมยืนยันเจตนา; ถ้าต้องการปลดตามความก้าวหน้า ให้เกตตามระดับสำนัก/ยอดเขาและใส่ต้นทุน ไม่เนิร์ฟโบนัสก่อน benchmark
+- **Accept:** ถ้าตั้งใจแจกฟรี ให้ระบุในคำอธิบายเกม; ถ้าไม่ ตั้งเงื่อนไข/เกตพร้อมเทสต์
+- **Repro case:** `S16`
+
+### SECT-17 [P1] กดรับค่าหัวได้โดยไม่ล่าหรือต่อสู้; API รีเฟรชแล้วรับซ้ำในวันเดิม
+- **กลุ่ม/การเข้าถึง:** กิจกรรม/ค่าหัว · UI+API · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14237–14308; js/ui.js:1920–1924`
+- **รากสาเหตุ:** claimBountyHunt ให้ rewards/merit/fame และสร้างเชลยทันทีโดยไม่มี combat/missions/party check; refreshBounties ไม่เช็กเวลา
+- **ผลกระทบ:** จาก UI รับรางวัล 4 งานแรกได้เลย; หากเรียก refresh API แล้วรับเพิ่มวันเดิมได้ (ยังไม่พบปุ่มรีเฟรชโดยตรง)
+- **ผลรันทดสอบ:** `{"completedAfterFirst":1,"completedAfterSecond":2,"fameDelta":24,"firstOk":true,"firstPrisoner":true,"sameDay":360,"secondOk":true,"secondPrisoner":true}`
+- **แนวแก้:** สร้าง state CONTRACT→HUNTING→RETURN→CLAIMED หรือ auto-resolve แบบมี risk/time/cost; refresh มีวันขั้นต่ำ
+- **Accept:** กด claim งานยังไม่จบถูกปฏิเสธ; ไม่มีสังหาร/จับสำเร็จฟรี; refresh API วันเดิมไม่ได้
+- **Repro case:** `S17`
+
+### SECT-18 [P2] สภาผู้อาวุโสรับรหัสญัตติที่ไม่มีจริงแล้วทำญัตติอื่น
+- **กลุ่ม/การเข้าถึง:** สภา · API (UI ส่งค่า valid) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:9395–9404`
+- **รากสาเหตุ:** MOTION_DEFS[motionId] || EXPAND_PRODUCTION_QUOTAS กลบ invalid ID
+- **ผลกระทบ:** สั่งเรื่องหนึ่งแต่ระบบออกมติการผลิตเงียบ ๆ และแก้ state ผิดเรื่อง
+- **ผลรันทดสอบ:** `{"actualMotion":"EXPAND_PRODUCTION_QUOTAS","ok":true,"passed":true}`
+- **แนวแก้:** ถ้า argument ไม่ว่างและไม่อยู่ใน catalog ให้ invalid-motion; default ได้เฉพาะกรณีไม่ส่ง id และ UX ระบุ
+- **Accept:** BAD_MOTION_ID คืน ok:false ไม่เปิดญัตติหรือบันทึกผล
+- **Repro case:** `S18` · ทดสอบสภาวะ edge ไม่ยืนยันว่าผู้เล่นสร้างเหตุการณ์นี้ผ่าน UI ปกติ
+
+### SECT-19 [P2] ถวายของโบราณซ้ำ UID ได้และปั๊มแต้มธูปทุกครั้ง
+- **กลุ่ม/การเข้าถึง:** ศาลบรรพชน · API only (ไม่พบปุ่มบูชา relic) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13647–13663`
+- **รากสาเหตุ:** enshrineAncestralRelic push ทุกครั้ง ไม่ตรวจ UID หรือการถือครอง; ได้ incensePoints+25 ทุกครั้ง
+- **ผลกระทบ:** ไอเทมเดียวถวายได้สองครั้ง ข้อมูลซ้ำและเพิ่มแต้มธูป 100→150 จากสองครั้ง
+- **ผลรันทดสอบ:** `{"a":true,"b":true,"entries":["SAME_ONE","SAME_ONE"],"incenseAfter":150,"incenseBefore":100}`
+- **แนวแก้:** บังคับ owner/holding check + unique UID + transfer item to pavilion vault + one-time reward
+- **Accept:** ใช้ UID ซ้ำครั้งสองคืน duplicate-relic และ incense ไม่เพิ่ม
+- **Repro case:** `S19` · ทดสอบสภาวะ edge ไม่ยืนยันว่าผู้เล่นสร้างเหตุการณ์นี้ผ่าน UI ปกติ
+
+### SECT-20 [P2] ระบุรหัสเสาค่ายกลผิด แต่เปลี่ยนยามเสาต้นแรก
+- **กลุ่ม/การเข้าถึง:** ค่ายกล/อาณาเขต · API+UI indirect · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:12916–12927; js/ui.js:1845–1852`
+- **รากสาเหตุ:** assignAnchorGuard ใช้ find(id) || grid.anchors[0] แม้ id ไม่ว่างแต่ไม่พบ
+- **ผลกระทบ:** คำสั่งรหัสผิดไปเปลี่ยน NPC ผู้คุ้มกันเสาอื่นแบบไม่แจ้ง
+- **ผลรันทดสอบ:** `{"guardAfter":"n198764","guardBefore":null,"modifiedAnchor":"ANCHOR_NORTH_PEAK","ok":true,"requested":"NOT_FOUND"}`
+- **แนวแก้:** ถ้ามี id ต้อง match เท่านั้น; fallback ต้นแรกได้เฉพาะ omit id โดยตั้งใจ
+- **Accept:** NOT_FOUND คืน ok:false และ guardNpcId เสาแรกคงเดิม
+- **Repro case:** `S20`
+
+### SECT-21 [P1] ศาลรับคำพิพากษาไม่รู้จักแล้วแอบลงโทษแบบหักแต้ม
+- **กลุ่ม/การเข้าถึง:** หอวินัย · API (UI ส่ง valid) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13354–13400`
+- **รากสาเหตุ:** vKey ไม่อยู่ในสองกรณีพิเศษแล้วเข้า else MERIT_FINE_AND_PENANCE โดยเก็บ verdict เป็นค่า invalid
+- **ผลกระทบ:** ส่ง INVALID_VERDICT หัก merit 100→75 และปิดคดีทันที
+- **ผลรันทดสอบ:** `{"casesRemaining":0,"meritAfter":75,"ok":true,"verdict":"INVALID_VERDICT"}`
+- **แนวแก้:** กำหนด validVerdicts ชัดเจน ตรวจค่าก่อนลบคดี/ปรับ NPC
+- **Accept:** invalid verdict ไม่หัก merit ไม่ปิดคดี และคืน reason
+- **Repro case:** `S21`
+
+### SECT-22 [P1] สวิตช์ระบบช่วยบริหารอัตโนมัติเปิดอยู่ แต่ SIM ไม่เคยเรียกงานอัตโนมัติ
+- **กลุ่ม/การเข้าถึง:** ระบบอัตโนมัติ · UI-visible / static wiring · `static-wiring`
+- **โค้ด:** `js/sect.js:13434–13534; js/sim.js:740–760, 300–310; js/ui.js:1878–1884, 4104–4120`
+- **รากสาเหตุ:** AUTOMATION.runDailyAutomation ถูกนิยามและทดสอบโดยเรียกตรง แต่ไม่มี production call-site ในไฟล์ js อื่น; sim แค่ ensure policy
+- **ผลกระทบ:** ปุ่มเปิดเผยให้เข้าใจว่าจะแจกยา/ซ่อมเสา/จัดยอดเขา แต่ Tick เกมไม่ทำตาม
+- **ผลรันทดสอบ:** `{"externalCallSites":[],"policyDefaultEnabled":true}`
+- **แนวแก้:** เชื่อมครั้งเดียวต่อวันใน SIM.daily/approved clock ด้วย lastRunDay guard, เปิด on/off ทุก rule และทดสอบหลายวัน
+- **Accept:** เปิด auto + สร้างเงื่อนไขแล้ว 1 วันเกิดผล; ปิดแล้วไม่เกิด; เรียกซ้ำวันเดียวไม่แจกของซ้ำ
+- **Repro case:** `S22`
+
+### SECT-23 [P2] ทัพสำรวจยอดเขาอัตโนมัติถูกเขียนไว้แต่ไม่เชื่อม Tick เกม
+- **กลุ่ม/การเข้าถึง:** ยอดเขา/การสำรวจ · static wiring / UI manual works · `static-wiring`
+- **โค้ด:** `js/sect.js:13214–13310, 12279–12307; js/sim.js:750–756`
+- **รากสาเหตุ:** PEAKS.dailyTick เรียก launchPeakExpedition เมื่อคลังยอดเขาต่ำ แต่ SIM.monthly เรียกเพียง PEAKS.tick ที่ไม่เรียก auto expedition
+- **ผลกระทบ:** ยอดเขารอส่งสำรวจอัตโนมัติอยู่ในโค้ดแต่ไม่มีการเรียกจากวงรอบปกติ
+- **ผลรันทดสอบ:** `{"externalCallSites":[],"simCallsPeakTick":true}`
+- **แนวแก้:** เลือก cadence ที่ตั้งใจ (daily/monthly), เชื่อมอย่างระวังไม่ทำ PEAKS.tick ซ้ำ และเคารพคูลดาวน์/เสบียง
+- **Accept:** เมื่อยอดเขาที่ก่อตั้งมีเงื่อนไขพร้อมและคลังต่ำ จะออกสำรวจอัตโนมัติตามรอบ ไม่ถี่เกิน
+- **Repro case:** `S23`
+
+### SECT-24 [P2] วิธีแก้วิกฤตกบฏไม่รู้จัก กลายเป็นคำสั่งแยกสำนัก
+- **กลุ่ม/การเข้าถึง:** กบฏ/การเมือง · API only (UI fixed valid) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:13816–13898`
+- **รากสาเหตุ:** ทุกค่าที่ไม่เข้า NEGOTIATE/SUPPRESS/SEAL_DUEL ไหลผ่านถึง default SPLINTER
+- **ผลกระทบ:** ส่ง NO_SUCH_DECISION แล้วสำนักแตกถาวรและเปลี่ยนประวัติ
+- **ผลรันทดสอบ:** `{"crisisStatus":"RESOLVED_SPLINTERED","mode":"SPLINTER","ok":true,"splinterCount":1}`
+- **แนวแก้:** ใช้ explicit case SPLINTER กับ allowlist, unknown return invalid-resolution ก่อน mutate
+- **Accept:** unknown ไม่แก้ crisis หรือสร้าง splinterSect
+- **Repro case:** `S24` · ทดสอบสภาวะ edge ไม่ยืนยันว่าผู้เล่นสร้างเหตุการณ์นี้ผ่าน UI ปกติ
+
+### SECT-25 [P2] ส่งรหัสประกาศจับที่ไม่มีจริง แต่ไปรับรางวัลงานแรก
+- **กลุ่ม/การเข้าถึง:** กิจกรรม/ค่าหัว · API (UI omitted ID intentionally) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14261–14267`
+- **รากสาเหตุ:** ค้นหา bountyId ไม่พบแล้ว fallback ไปงาน OPEN แรกเสมอ ไม่แยก null ออกจาก invalid ID
+- **ผลกระทบ:** คำสั่งติดตั้ง/บันทึกผิดหมายเลขอาจจ่ายรางวัลคนละงาน
+- **ผลรันทดสอบ:** `{"actual":"BOUNTY_1_1","ok":true,"remainingOpen":3,"requested":"WRONG_BOUNTY"}`
+- **แนวแก้:** allow null/undefined เพื่อเลือกแรกตาม UI เท่านั้น แต่ explicit invalid ต้อง reject
+- **Accept:** WRONG_BOUNTY ไม่ลดจำนวนงาน OPEN; null ยังคงเลือกแรกได้
+- **Repro case:** `S25`
+
+### SECT-26 [P1] ค่าหัวมีแค่สี่งานแล้วบอร์ดหมดถาวร ไม่รีสต็อกตามวัน
+- **กลุ่ม/การเข้าถึง:** กิจกรรม/ค่าหัว · UI+API · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14220–14269, 14237–14255; js/ui.js:1920–1924`
+- **รากสาเหตุ:** claimBountyHunt refresh เฉพาะเมื่อ activeBounties.length===0; หลังถูก CLAIMED ครบสี่รายการ length ยัง=4; ไม่มี timetable refresh
+- **ผลกระทบ:** หลังเสร็จ 4 งานและผ่านไป 120 วันยัง claim เพิ่มไม่ได้ บอร์ดหยุดเป็น dead feature
+- **ผลรันทดสอบ:** `{"active":["CLAIMED","CLAIMED","CLAIMED","CLAIMED"],"afterFourOk":false,"day":480,"firstFour":[true,true,true,true],"lastRefreshDay":360,"reason":"bounty-not-found"}`
+- **แนวแก้:** ทำ daily/weekly refresh ที่ตรวจจำนวน OPEN และ lastRefreshDay หรือ prune CLAIMED; รักษา history และ ID unique
+- **Accept:** วันใหม่ตาม cadence มีค่าหัวใหม่และไม่รีเซ็ตงานที่ยัง active แบบไม่ตั้งใจ
+- **Repro case:** `S26`
+
+### SECT-27 [P1] คนตายยังรับเครดิตจับค่าหัวและรางวัลเกียรติยศได้
+- **กลุ่ม/การเข้าถึง:** กิจกรรม/ค่าหัว · API only (UI hunter fallback master) · `runtime-reproduced`
+- **โค้ด:** `js/sect.js:14268–14308`
+- **รากสาเหตุ:** claimBountyHunt ใช้ hunter จาก W.byId โดยไม่เช็ก dead/exiled/away/detained
+- **ผลกระทบ:** ให้ dead=true แล้วกด claim สำเร็จ เพิ่มแต้ม merit เป็น 65 และระบุเป็นผู้จับ
+- **ผลรันทดสอบ:** `{"claimed":"CLAIMED","hunterDead":true,"hunterId":"n818489","meritAfter":65,"ok":true}`
+- **แนวแก้:** ตรวจ hunter availability และ actual mission completion; หากไม่มีคนพร้อมต้อง return no-hunter
+- **Accept:** dead/exiled/detained hunter ได้ ok:false ไม่มีรางวัล/เลื่อนตำแหน่ง
+- **Repro case:** `S27`
+
+## 4) Regression matrix ที่ AI ควรเพิ่มลง CI
+
+| สิ่งที่ทดสอบ | กรณีปกติ | กรณีผิด / ขอบเขต |
+|---|---|---|
+| ผู้สมัคร/ตำแหน่ง/สืบทอด | แต่งตั้ง-ย้าย-ปลดคนมีสิทธิ์ | ตาย, ขัง, away, เปลี่ยน post แล้ว successor stale |
+| ศาลวินัย | ยื่นคดี ตัดสินตามรหัสจริง | unknown id, invalid verdict, detainedStillWorking |
+| วิกฤตกบฏ | trigger→choice→resolve→save/load | ไม่มีวิกฤต, ชนิดผิด, duel ยุติธรรม, แยกตัว/ถูกจับจริง |
+| การเมือง/สภา | เสนอ→โหวต→มติ | resolve ซ้ำ, unknown motion, claimant invalid |
+| แลกเปลี่ยน/จารกรรม | ส่ง→กลับ→เรียนวิชา | action ซ้ำ, ID unique, invalid/dead spy, cap warning |
+| โทเท็ม/สายเลือด | สถาปนา-ปลุก-คำนวณบัฟ | กดซ้ำ, cost/cooldown, unique NPC count |
+| ค่าหัว | ประกาศ→ออกล่า→นำกลับ→รับรางวัล→รอบใหม่ | claim no mission, dead hunter, invalid id, ครบ 4 แล้วไม่หมดถาวร |
+| ค่ายกล/ยอดเขา | guard/repair/peakExpedition | unknown anchor; SIM tick/wiring; cooldown |
+| Automation | enabled/disabled auto rules | day guard, process exactly once/day, no work when disabled |
+
+## 5) วิธีรันและเกณฑ์ก่อน/หลัง
+
+1. แตก ZIP source v2.3.0 ที่ผู้ใช้ส่งไว้ และรัน: `GAME_SOURCE_ROOT=/path/to/GAME_SOURCE OUTPUT_JSON=sect_results.json node SECT_DEEP_REPRO_TESTS.js`
+2. สคริปต์เป็น **negative repro baseline**: ผลเดิมแสดง `REPRO` 27 ข้อ โดย REVIEW โทเท็มไม่ใช่บัคยืนยัน. เมื่อแก้ให้เป็น green ให้ assertion invariant ผ่าน และแยก UI-test ที่กดปุ่มจริงเพื่อยืนยันผู้เล่นเข้าถึงได้.
+3. รัน regression เดิมทั้งหมด ไม่ใช่แค่ห้าชุดที่นำมาเป็น control; ย้ำเรื่อง migration เซฟคดี/กบฏ/ตำแหน่ง/รายการแลกเปลี่ยน/รายการค่าหัว และห้ามล้างประวัติผู้เล่น.
+4. สำหรับ API-only ต้องตรวจ call graph และเจตนาว่าถูกเรียกโดยกิจกรรมเกมจริงก่อนจัดเป็น exploit ผู้เล่น; คำสั่ง invalid ให้ reject แต่กรณี argument ว่างที่ UI ตั้งใจ auto-pick ยังต้องใช้งานได้.
+5. การออกแบบการเมือง/ศาล/ค่าหัวควรมี invariant: atomic transitions, member ownership เดียว, idempotency, ID stable และทุก automation มี clock+cooldown+feature toggle.
+
+## 6) ข้อจำกัดสำคัญ
+
+- ตรวจด้วย Node runtime ของ release และการอ่าน code/UI-action ไม่ได้ทดสอบการคลิกทุกหน้าในเบราว์เซอร์จริง, การจำลองหลายปี, ระบบเศรษฐกิจทั้งหมด หรือ multiplayer (เกมเป็น standalone).
+- กรณี `S15` ยืนยันว่าตัวนับ awakenedCount เพิ่มซ้ำ 12 รอบ แต่ **ไม่ได้ยืนยันว่าคะแนน Tier สำนัก +95 ต่อครั้ง**: ในการทดลองคะแนน Tier เปลี่ยนเพียง ~1 เพราะส่วนคำนวณ Tier ใช้ `CULT.sectFourSymbolSummary` คนละตัวนับ. ห้ามอ้างเป็นช่องปั๊ม Tier จากผลนี้.
+- `S17` ผู้เล่นกดรับ 4 ค่าหัวแรกได้โดยไม่ต้องล่า แต่ **การรีเฟรชรอบเดียวกันมีเฉพาะ API**; UI ที่ตรวจไม่พบปุ่ม refresh. จึงห้ามเขียนว่าฟาร์มเงินไม่สิ้นสุดผ่าน UI โดยไม่พิสูจน์เพิ่ม.
+- `S14` รหัสชนทดสอบหลังลบรายการด้วยตัวทดสอบ; ยังไม่ยืนยันว่าการลบแบบนั้นเกิดในเกมปกติ. จัด P3.
+- `S16` โทเท็มแถมพลังแรงมากโดยไม่เสียทรัพยากรจริง แต่ความเหมาะสมต้องดูช่วงปลดล็อกตามเจตนาการออกแบบก่อน ไม่ถือว่าแรง=บัคเสมอ.
+- ตำแหน่งโค้ดอ้าง **source ZIP v2.3.0 เดิมเท่านั้น**. ไม่มีการแก้ไฟล์ต้นฉบับ; อย่าใช้บรรทัดจากแพตช์อื่นโดยไม่เทียบ.
+
+## 7) ไฟล์ชุดนี้ใน ZIP รวม
+
+- `QA_SECT_SYSTEMS_AUDIT_V230.docx` / `.md` / `.json`: รายงานหมวดสำนักละเอียด แยกจากรายงานเดิม
+- `SECT_PATCH_IMPLEMENTATION_GUIDE.md`: ลำดับแก้และ Definition of Done สำหรับ AI
+- `SECT_DEEP_REPRO_TESTS.js`: สคริปต์ตรวจ 27 กรณี (ไม่แก้โค้ดเกม)
+- `SECT_DEEP_REPRO_RESULTS.json` / `SECT_DEEP_REPRO_RUN_LOG.txt`: ผลสังเกตต้นฉบับ
+- `SECT_REGRESSION_BASELINE_LOG.txt`: ผลทดสอบเดิม 5 ชุด (ผ่าน) ใช้เป็น control
+- รายงาน 3 หมวดก่อนหน้ายังอยู่ครบใน ZIP เดียวกันโดยไม่เขียนทับ.
+
+
+## 8) ภาคผนวกอัปเดต — ผลกระทบลูกโซ่ก่อนเปิดให้ผู้เล่น (8 พ.ย. 2026)
+
+> เพิ่มเคสใหม่ **SECT-28 [P1]** จากรายงานเดิม 27 เป็น **28 ประเด็น (P1=19/P2=7/P3=1/REVIEW=1)**. อัปเดตข้อเดิมด้านล่างเป็นหลักฐานเพิ่ม ไม่แยกเป็นรายงานใหม่ และไม่นับเป็นบัคใหม่ซ้ำ.
+
+### SECT-28 [P1] ศิษย์สืบทอดเสียชีวิต แต่ successorId ยังชี้ผู้ตาย
+
+- **เส้นทาง:** `AI.kill` → `W.sect.posts.disciples` / `W.sect.successorId` → `SIM.serialize` → `SIM.deserialize`
+- **โค้ด:** `js/ai.js:1765-1772`, `js/sect.js:805-813`; เกี่ยวข้องกับ SECT-04 (ย้ายตำแหน่งแล้วค้าง).
+- **หลักฐาน C01:** ก่อนตาย `posts.disciples` และ `successorId` ชี้ NPC เดียวกัน; หลัง `AI.kill` โพสต์กลายเป็น null แต่ successorId ยังเป็นรหัสผู้ตาย; โหลดเซฟใหม่ยังเป็นรหัสเดิม.
+- **ผล:** UI/ระบบสภา/การสืบทอดที่อ่านรหัสนี้โดยตรงอาจรายงานคนตายว่าเป็นผู้สืบทอด. เส้นทางคัดผู้สืบทอดใหม่บางส่วนตรวจ dead แล้ว จึง **ยังไม่ยืนยันว่าตั้งคนตายเป็นเจ้าสำนัก**; ปัญหาคือข้อมูล authoritative ขัดกัน.
+- **แก้:** onMemberUnavailable ร่วมของตาย/ย้าย/ปลด/ออกจากสำนัก/กักขัง ตาม policy; cleanup successorId กับ posts ในธุรกรรมเดียวและ normalize บน load.
+- **Acceptance:** ตายแล้วสองค่าต้อง null/ชี้คนมีสิทธิ์อย่างสอดคล้องทันทีและหลังโหลด; ทดสอบ master เสียชีวิตต่อเนื่องและเลือก successor จากผู้มีชีวิตได้.
+
+### หลักฐานผลกระทบเพิ่มเติมต่อข้อเดิม (ไม่เพิ่มยอดเคส)
+
+| ประเด็นเดิม | โซ่เหตุการณ์และผลที่รันได้จริง | การแก้ร่วมที่ต้องยืนยัน |
+|---|---|---|
+| SECT-02 | ลงโทษขังถึงวัน 367 → `SIM.guardRoster` จัดคนที่ถูกขังเข้าเวรยาม (C02). | canonical availability ต้องใช้ทั้งศาล ตำแหน่ง งาน และกองเวร |
+| SECT-06 | SPLINTER → 3 สมาชิกยังอยู่ home → 2 คนถูกจัดเวรยามเดิม (C03); ผ่าน dailyUpdate และ save/load ยังอยู่สำนักเดิม (C12). | transfer ownership ถอด posts/guard/expedition + update tier/population |
+| SECT-09 | ส่งไปเรียนแบบ `stayAway=true` returnDay=361; ผ่าน `SIM.dailyUpdate` ถึงวัน 364 ยัง AWAY_STUDYING; หลัง reload ยัง away=true (C04). | daily lifecycle ต้อง complete/cancel/return แน่นอน |
+| SECT-17/27 | NPC ตายยัง claim bounty สำเร็จ ได้ merit +25, fame +12; ผล save/load ยังอยู่ (C07). | deny inactive hunter ก่อนให้รางวัลและก่อนจับ prisoner |
+| SECT-19 | relic UID เดียวถวายได้ 2 ครั้ง แต้มธูป +50; รายการซ้ำยังอยู่หลังโหลด (C06). | unique UID + ownership transfer + idempotent API |
+| SECT-16 REVIEW | เปิดโทเท็มฟรีครบ 4: ในตัวอย่าง rating NPC +28.9%, คะแนน Tier สำนัก 222→259 (+37) แต่ **Tier ยัง STANDARD เท่าเดิม** (C11); ไม่ฟันธงว่าโกง. | ตัดสิน design gate ก่อนปรับโบนัส; benchmark ปลายทาง |
+| SECT-04 + SECT-28 | ย้ายตำแหน่ง/ตายล้าง posts ไม่ครบ ทำให้ successorId ไม่สอดคล้องถาวร. | consolidate lifecycle helper และ repair legacy saves |
+| EQUIP: EQ-013 | AI.kill → จิตศาสตราเลือกทายาท → อาวุธเดิมผู้รับหายถาวร (C10). | ดูรายงานอุปกรณ์สำหรับ atomic item transfer |
+
+### Definition of Done ระดับ release ไม่ใช่แค่ฟังก์ชันผ่าน
+
+1. สมาชิกมี **สถานะและเจ้าของสำนักชุดเดียว**: ตาย/คุมขัง/ออก/แลกเปลี่ยน/กบฏต้องมีผลกับ office, guardRoster, peak, mission, AI duty, tier และ UI ในวันเดียวกัน; ไม่ทำให้ประวัติสูญหาย.
+2. กิจกรรมที่ให้รางวัลต้องมี completed/claimed state; invalid/dead/away ID ต้องไม่มีผล; หลัง action ซ้ำต้อง idempotent; save/load แล้วห้ามคืนสิทธิ์เรียกรางวัลซ้ำ.
+3. ต้องมี tests ตามลำดับ `action → day tick → save/load → world roster/equip/rating invariant` และตรวจทั้ง normal success + negative path; แก้ shared helper แทนแก้เฉพาะปุ่ม UI.
+4. การอัปเกรดเซฟต้องกู้ orphan successor/member ownership และ special gear UIDs แบบไม่ทิ้งของผู้เล่น; ปัญหา API-only ให้ติดตาม call graph ไม่อ้างว่า UI โกงได้หากยังไม่มีหลักฐาน.
+
+## การตรวจข้ามระบบเพิ่มเติม — COMBAT v2.3.0 (8 พ.ย. 2026)
+
+**ผลกระทบลูกโซ่จากสนามรบต่อสำนัก:** COMBAT-01: ตายจากศึกแล้วตำแหน่ง (martial) ไม่ว่าง, W.deaths ไม่เพิ่ม, deathWhy ไม่บันทึก; ยืนยันเซฟ/โหลดแล้วข้อมูลค้าง จึงกระทบ successor, officer, inheritance, relationships. COMBAT-05/06: ค่ายกลให้โบนัส NPC ฝ่ายตรงข้าม และกำแพงธาตุรับดาเมจแทนผู้บุกที่เป็น NPC. ควรแก้ร่วมกับ SECT-28, เช็ก side/membership/party ร่วมกัน ไม่ใช่เช็กแค่ !foe.
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_TECHNIQUES_WEAPONS_AUDIT_V230.md
+
+# JianghuSect 2 v2.3.0 — ตรวจวิชา วิถี/สายย่อย และวิชาสำหรับอาวุธ–อุปกรณ์
+> **หมวดที่ 8 แยกจากหมวดการต่อสู้และหมวดอุปกรณ์เดิม** · 8 พฤศจิกายน 2026 · **Read-only: ไม่แก้ซอร์สเกม**
+
+## 1. ข้อมูลฐานและผลสรุป
+- ZIP เกม SHA-256: `983e351b119c63f40b402c5e6e27c44a5f39683dc5e5b995773862efc467df62`; ใช้ต้นฉบับ v2.3.0 ที่ผู้ใช้อัปโหลด ไม่ใช่โค้ดเวอร์ชันอื่นจากเอกสาร AGENTS.md ที่มีข้อมูลเก่าใหม่ปะปน
+- อ่าน `AGENTS.md`, `.agents/skills/combat-design`, `game-data-integrity`, `progression-design`, `qa-test-matrix`, onboarding และโค้ดจากชุดไฟล์นี้ก่อนตรวจ
+- ตรวจทะเบียน **1,702 เทคนิค/วิชา + 122 คัมภีร์ = 1,824 records**, ตรวจ profile ที่รันได้ **2,603 กระบวนท่า/โปรไฟล์** (จำนวนที่ประกาศ `moveDefs` แยกอาจน้อยกว่า), **43 วิถี**, **286 สายย่อย**, **16 ประเภทอาวุธ** และสถานะที่ใช้อยู่ใน `SK.STATUS` 109 ชื่อ
+- กลุ่มตรวจพบ **7 ประเด็นบัค/ความไม่สอดคล้องเชิงพฤติกรรม** (TECH-01–07), **2 กลุ่มทบทวนสมดุล/เจตนา** (TECH-08–09) และ **1 กลุ่มข้อเสนอเนื้อหา** (TECH-10).
+- ทดสอบด้วย runtime Node **14 เคส** (บางเคสเป็น schema/design scan ที่ไม่ใช่บัค), ชุด regression เดิมที่เกี่ยวข้อง **6 ชุดผ่านทั้งหมด** เมื่อรันเดี่ยว. ไม่มีการอ้างว่า test 2,603 move แบบเล่นจริงครบ.
+
+**การตัดสิน Release Gate:** ยังไม่ผ่าน เพราะ TECH-01 / TECH-02 / TECH-04 และ TECH-03 (หลังยืนยันความหมาย schema) ส่งผลต่อเงื่อนไขหรือพลังวิชาที่ผู้เล่นใช้จริง และยังมี P0/P1 ในรายงานก่อนหน้าที่ต้องปิด
+
+## 2. Bug Register: สิ่งที่พิสูจน์และสิ่งที่เป็นเพียงข้อเสนอ
+| ID | ระดับ | ประเด็น |
+|---|---|---|
+| TECH-01 | P1 | อาวุธและเกราะจำแนกประเภทผิดจากชนิดที่กำหนดไว้ |
+| TECH-02 | P1 | สวมอุปกรณ์แล้วใช้ท่าที่สูงกว่าขั้นบ่มเพาะและความชำนาญ |
+| TECH-03 | P1 / DESIGN-CONFIRM | โบนัสธาตุ/ประเภทจาก skillModifiers ทำงานกว้างเกินข้อมูล |
+| TECH-04 | P1 | กระบวนท่าขั้นสอง 4 วิชาปลดล็อกไม่ได้ |
+| TECH-05 | P2 | UI บอกเลือกท่าได้แม้อาวุธบังคับไม่พร้อม |
+| TECH-06 | P2 | แคชรายการวิชาไม่อัปเดตเมื่อ modifier เปลี่ยนบนอุปกรณ์ UID เดิม |
+| TECH-07 | P2 / INTERNAL | เปลี่ยนวิชากลางอาร์เรย์จำนวนเท่าเดิมแล้ว SK.list ค้าง |
+| TECH-08 | REVIEW | อุปกรณ์ประจำวิถีอาจยอมมอบวิชาข้ามวิถี |
+| TECH-09 | BALANCE-REVIEW | วิชาดาเมจสูงและวิชาไร้ต้นทุน: ห้ามจัดว่าโกงจาก M ดิบ |
+| TECH-10 | CONTENT-PLAN | ความหนาแน่นวิถี/สายย่อย/อาวุธไม่เท่ากัน |
+
+### TECH-01 — อาวุธและเกราะจำแนกประเภทผิดจากชนิดที่กำหนดไว้ [P1]
+- **หลักฐาน:** PT-GEAR-TYPE-REAL; 24 WEAPON + 12 ARMOR; ECO.mintGear(EQ_V234_WPN_053) ให้ SWORD ทั้งที่ weaponType=BOW
+- **จุดโค้ด/ข้อมูล:** js/martial.js:639,1358; js/economy.js:372–387; data itemById EQ_V234_WPN_017–118 / ARM_002 เป็นต้น
+- **ต้นเหตุ:** gearType ของอุปกรณ์บางรุ่นไม่ถูกคัดลอกจาก weaponType/armorType/subType แต่เดาประเภทจาก nameTh ซึ่งประกอบชื่อไอเทมหลายหมวด
+- **ผลกระทบลูกโซ่:** การผลิต/รับดรอป → อาวุธกลายเป็นประเภทอื่น → requiredWeapon ของวิชาและระยะโจมตีผิด → AI จัดอาวุธผิด → DPS/ผลศึก/การบาดเจ็บ/การตาย/รางวัลผิด
+- **แนวแก้ต้นทาง:** กำหนดชนิด canonical จากข้อมูล item ที่มีชนิดชัดเจนก่อน fallback classify(nameTh); ตรวจ mint/procedural/dropped gear และ UI แล้วอัปเดต cache
+- **เกณฑ์ผ่าน:** mint เทียบรายการ 36 ชิ้นทุกชิ้นต้องรักษาชนิดที่ declare และวิชา BOW/ARMOR ตามประเภทจริงใช้ได้
+
+### TECH-02 — สวมอุปกรณ์แล้วใช้ท่าที่สูงกว่าขั้นบ่มเพาะและความชำนาญ [P1]
+- **หลักฐาน:** PT-EQUIP-GRANT-EARLY; stage1 equips EQ_V234_WPN_025 → TECH_V234_XIAN_ACT_03_M1/M2 require cultivation3; SK.canSelectMove=true
+- **จุดโค้ด/ข้อมูล:** js/martial.js:1271–1290,1343–1354; js/skills.js:606–619
+- **ต้นเหตุ:** grantedSkills ผ่าน gate ที่ระดับไอเทมเท่านั้น; SK.list ใช้ SK.allMoves(t).slice(0,2) ข้าม unlockedMoves+reqCultStage/reqMastery
+- **ผลกระทบลูกโซ่:** คราฟต์/แลกอาวุธ → ได้วิชาขั้นสูงทั้งที่ยังไม่ฝึก → กำจัดบอส/ผ่านหอ/ชิงทรัพยากรก่อนระดับ → เศรษฐกิจและความก้าวหน้าถูกเร่ง → เซฟเก็บสถานะ
+- **แนวแก้ต้นทาง:** กำหนดกติกา Equipment Grant ระบุ override ที่ตั้งใจ (tier cap explicit) และ default ให้ใช้ SK.unlockedMoves รวม reqCultStage/reqMastery; ตรวจ item minStage จากข้อมูลจริง
+- **เกณฑ์ผ่าน:** stage1 ไม่เลือกหรือใช้ move ที่ reqCultStage3; ตัวละครถึงขั้น/ความชำนาญตามกฎแล้วใช้ได้; อุปกรณ์ไม่ให้เรียนวิชาถาวร
+
+### TECH-03 — โบนัสธาตุ/ประเภทจาก skillModifiers ทำงานกว้างเกินข้อมูล [P1 / DESIGN-CONFIRM]
+- **หลักฐาน:** PT-ELEMENT-MOD, PT-SCHEMA-MOD-MATCH; EQ_V234_WPN_001 FIRE +14% ให้ WATER_ICE (M=1.25→1.43), 277 mod มี element แต่ 0 ใช้ matchElement
+- **จุดโค้ด/ข้อมูล:** js/martial.js:1306–1339; ECO.itemById.*.skillModifiers
+- **ต้นเหตุ:** ตัวกรองอ่าน matchElement/matchArch/matchTechId แต่ข้อมูลจริงบันทึก element (277) / weaponType (120) แทน
+- **ผลกระทบลูกโซ่:** อาวุธเฉพาะธาตุ → บัฟทุกท่ารวมธาตุตรงข้าม → คอมโบ/ดาเมจ/สถานะ/ยิงหลายครั้งแรงเกิน → build meta บิด → AI เลือกผิด
+- **แนวแก้ต้นทาง:** ยืนยันก่อนว่า element/weaponType เป็น metadata หรือเงื่อนไขที่ตั้งใจ; หากเป็น gate ให้ normalize schema หรือแก้ producer/consumer และทำ test ตรง/ไม่ตรงธาตุ
+- **เกณฑ์ผ่าน:** วิชา FIRE เทียบ WATER_ICE ได้โบนัสเฉพาะตาม design; เปลี่ยนอุปกรณ์แล้ว stats/skill ทันทีไม่ค้าง
+
+### TECH-04 — กระบวนท่าขั้นสอง 4 วิชาปลดล็อกไม่ได้ [P1]
+- **หลักฐาน:** PT-UNREACH-MP_STAFF_WALL / MP_SPEAR_LINE / MP_BLADE_SHADOW / MP_FOCUS_SEAL; mastery=99999 ยังได้ stage1
+- **จุดโค้ด/ข้อมูล:** js/skills.js:501–515,528–539; technique definitions 4 IDs
+- **ต้นเหตุ:** moveDefs.stageReq=2 แต่ t.stages ไม่มี, unlockedStage() คืน 1
+- **ผลกระทบลูกโซ่:** ฝึกวิชา/ใช้ทรัพยากร → ท่าที่สองล็อกถาวร → ผู้เล่นลงทุนสูญเปล่า → AI/บิลด์สำนักไม่ครบ
+- **แนวแก้ต้นทาง:** เพิ่ม stages ระดับ2 ที่สอดคล้องความชำนาญ/ขั้น หรือแก้ gate ตาม design; ห้ามปลดฟรีแบบไม่ตรวจ
+- **เกณฑ์ผ่าน:** mastery และ cultivation ถึง requirement จึงปลดท่า2 ได้; ต่ำกว่า requirement ยังไม่ได้
+
+### TECH-05 — UI บอกเลือกท่าได้แม้อาวุธบังคับไม่พร้อม [P2]
+- **หลักฐาน:** PT-SELECT-REQUIRED; MP_BOW_IRON_DRAW_T1 canSelectMove=true มือเปล่า แต่ weaponCanUse=false, skillEfficiency=0
+- **จุดโค้ด/ข้อมูล:** js/skills.js:545–556; js/martial.js:385–395,651–659; js/combat.js:1844–1845,1938
+- **ต้นเหตุ:** canSelectMove ตรวจ ownership/ความชำนาญ ไม่ตรวจ compatibility ที่การต่อสู้ปฏิเสธ
+- **ผลกระทบลูกโซ่:** ผู้เล่นเห็นปุ่มกดได้ → ตั้งท่าที่ออกไม่ได้ → AI หลีกเลี่ยง/ทำท่าพื้นฐาน → เข้าใจผิดว่าเกมไม่ตอบสนอง
+- **แนวแก้ต้นทาง:** ปรับ UI/selection ให้เรียก gate สถานะเดียวกับ combat, พร้อมข้อความอาวุธจำเป็น
+- **เกณฑ์ผ่าน:** ไม่อนุญาต select move ที่ requiresWeapon แต่ไม่ตรง; สวมถูกและไม่พังแล้วเลือกได้
+
+### TECH-06 — แคชรายการวิชาไม่อัปเดตเมื่อ modifier เปลี่ยนบนอุปกรณ์ UID เดิม [P2]
+- **หลักฐาน:** PT-CACHE-SKILL-MOD; เปลี่ยน multPct จาก .10→1.50 แต่ SK.list ยังแสดง M=1.38; invalidate แล้ว M=3.13
+- **จุดโค้ด/ข้อมูล:** js/skills.js:585–593,632; js/martial.js:1306–1339
+- **ต้นเหตุ:** _skListCache.eqKey ใช้ UID/ID ไม่ใช้ version ของ skillModifiers/runes/quality
+- **ผลกระทบลูกโซ่:** ตีรูน/ปรับอุปกรณ์ → UI ดาเมจและรายการท่าค้าง → AI/เซฟใช้อัตราเก่าจน invalidate → ผู้เล่นเห็นผลไม่แน่นอน
+- **แนวแก้ต้นทาง:** เพิ่ม equipmentSkillsVersion และ invalidate ทุกครั้งที่เปลี่ยน modifier, enchant, durability, grant, UID; อย่า stringify ทั้ง object ทุก tick
+- **เกณฑ์ผ่าน:** อัปเกรดบน UID เดิมให้ผลใหม่ใน SK.list ทันทีและตรงการคำนวณรอบถัดไป
+
+### TECH-07 — เปลี่ยนวิชากลางอาร์เรย์จำนวนเท่าเดิมแล้ว SK.list ค้าง [P2 / INTERNAL]
+- **หลักฐาน:** PT-CACHE-MIDDLE; techs[1] เปลี่ยนจาก ART190_XIAN_002→004 แต่ SK.list ไม่เปลี่ยนจน invalidate
+- **จุดโค้ด/ข้อมูล:** js/skills.js:585–593,632
+- **ต้นเหตุ:** cache key เทียบเพียง tl,t0,tL ไม่เก็บ revision/digest รายชื่อ
+- **ผลกระทบลูกโซ่:** ระบบสอน/ถอนวิชา/เปลี่ยนช่อง → รายชื่อท่าปัจจุบันผิด → AI เลือกไม่ตรง → ผู้เล่นเข้าใจว่าเรียนใหม่ไม่ติด
+- **แนวแก้ต้นทาง:** ให้ mutation เส้นทางเดียวเพิ่ม techLoadoutVersion และ invalidate ใน teach/unlearn/retrain/equip/deserialize
+- **เกณฑ์ผ่าน:** เปลี่ยนสมาชิกกลางแล้วรายการท่าอัปเดต; save/load คง revision ถูกต้อง
+
+### TECH-08 — อุปกรณ์ประจำวิถีอาจยอมมอบวิชาข้ามวิถี [REVIEW]
+- **หลักฐาน:** PT-GRANT-CROSSPATH; EQ_V234_WPN_002 path BODY แต่ reqPath=null, XIAN ได้ TECH_V234_BODY_ACT_01
+- **จุดโค้ด/ข้อมูล:** data EQ_V234_WPN_002; js/martial.js:1279–1288
+- **ต้นเหตุ:** schema มี path สำหรับ flavor/bonus และ reqPath สำหรับ gate; บางรายการ reqPath=null ตามจริง
+- **ผลกระทบลูกโซ่:** ผู้เล่นข้ามสายด้วยอุปกรณ์ → เกิด build ใหม่ที่อาจตั้งใจ แต่ถ้าเป็นข้อจำกัดจะลบเอกลักษณ์วิถี
+- **แนวแก้ต้นทาง:** ยืนยัน design cross-path ของ gear grants ก่อนใส่ gate โดยอัตโนมัติ
+- **เกณฑ์ผ่าน:** เกมและ UI บอกชัดว่าสวมข้ามวิถีได้หรือไม่; ทดสอบ both cases
+
+### TECH-09 — วิชาดาเมจสูงและวิชาไร้ต้นทุน: ห้ามจัดว่าโกงจาก M ดิบ [BALANCE-REVIEW]
+- **หลักฐาน:** 34 profiles มี M×hits>15; 2 profiles M×hits>4 costPct=0; วิชาต้องห้ามมี CD สูง/ต้นทุนอื่น; SHADOW_SAMURAI เป็นวิถีไร้ปราณ
+- **จุดโค้ด/ข้อมูล:** SK.moveProfile, SK.qiCost, COMBAT.chooseSkill and strike; TECHNIQUE_EACH_MOVE_QA.csv
+- **ต้นเหตุ:** เครื่องคัดเบื้องต้นใช้ M×hits ไม่รวมนโยบาย Qi, HP cost, windup, range, proc, enemy defense, role and encounter progression
+- **ผลกระทบลูกโซ่:** เนิร์ฟ M ผิด → วิถีไร้ปราณเสียเอกลักษณ์; ไม่ตรวจ proc ถูก → บิลด์ combo หลุด balance
+- **แนวแก้ต้นทาง:** จำลอง duel/pve/pvp เทียบ stage + gear parity + RNG seeds + burst/sustain + Qi/HP cost + roles before nerf
+- **เกณฑ์ผ่าน:** มี DPS/EHP/useful utility distribution ตาม tier/build และ meta อธิบายได้
+
+### TECH-10 — ความหนาแน่นวิถี/สายย่อย/อาวุธไม่เท่ากัน [CONTENT-PLAN]
+- **หลักฐาน:** 43 paths mean 39.91 median19; 31 ต่ำกว่า mean; 286 subpaths mean5.16 median4; 202 ต่ำกว่า mean, 114 ต่ำกว่า median; JADE_IMMORTAL_BODY มี 1; ABACUS 56 associated; 6 new weapon classes have 0 requiresWeapon
+- **จุดโค้ด/ข้อมูล:** JD.CULT.paths, JD.TECH.techniques, JD.MARTIAL.types, generated coverage tables
+- **ต้นเหตุ:** กลุ่มวิถีใหม่ถูกเติมแบบ broad parity แต่ยังไม่เท่า depth วิถีเก่า; ชุดใหม่เน้นการแสดงบทบาทผ่าน innate/composable
+- **ผลกระทบลูกโซ่:** ตัวเลือกที่มีน้อย → ผู้เล่นเกิดบิลด์ซ้ำ/ต้องพึ่งวิชาสากล → ศาสตราบางชนิดรู้สึกไร้เอกลักษณ์ แม้มี innate จริง
+- **แนวแก้ต้นทาง:** หลังปิด release bugs ให้ทยอยเพิ่มความหลากหลายตาม role, ไม่เติมจำนวนเพียงเพื่อดันค่าเฉลี่ย; ใช้ตาราง 43/286/16 และแยก native vs universal
+- **เกณฑ์ผ่าน:** แต่ละ sub ที่อ่อนมีทางเลือก offensive + defensive/utility ที่ได้จาก source จริง, AI ใช้, ค่าร่าย/การได้มาสมเหตุสมผล
+
+## 3. ตารางความหนาแน่นแยก 43 วิถีหลัก
+- ค่าเฉลี่ยวิชาประจำวิถี (ไม่รวม path ANY) = **39.91**, ค่ามัธยฐาน = **19**, วิถีต่ำกว่าค่าเฉลี่ย = **31 วิถี**. **ห้ามแปลว่า 31 วิถีต้องเติม 20 วิชาทันที** เพราะรุ่นเนื้อหาและกลไกต่างกัน
+- การนับเป็น `tech.path` ตามทะเบียนหลัก; ไม่บวกเทคนิค ANY, วิชาสากล หรือที่ยืมข้ามสายเป็นวิชาประจำทุกวิถี เพื่อป้องกันการปกปิดช่องว่าง
+| รหัสวิถี | ชื่อวิถี | สายย่อย | วิชาประจำ | ใช้งาน/มีท่า | profiles |
+|---|---|---|---|---|---|
+| XIAN | วิถีเซียน | 16 | 198 | 136 | 227 |
+| BODY | วิถีกายา | 16 | 183 | 130 | 212 |
+| GOD | วิถีเทพ | 13 | 158 | 116 | 184 |
+| DEMON | วิถีมารอสูร | 10 | 95 | 72 | 137 |
+| HEART_SOUL | วิถีจิต·เซน | 10 | 106 | 80 | 151 |
+| MECH_PUPPET | วิถีกลจักร | 10 | 55 | 42 | 89 |
+| KARMA_SAMSARA | วิถีกรรมวัฏ | 10 | 58 | 46 | 94 |
+| BEAST_SOVEREIGN | วิถีราชันย์อสูร | 10 | 55 | 43 | 88 |
+| SAGE_SUPPORT | วิถีปราชญ์หนุนนำ | 10 | 55 | 42 | 98 |
+| CRAFT_CREATION | วิถีรังสรรค์ | 12 | 69 | 48 | 99 |
+| ARRAY_TALISMAN | ค่ายกลยันต์ | 7 | 55 | 37 | 75 |
+| STRATEGY_GOVERNANCE | พิชัยอภิบาล | 8 | 55 | 37 | 72 |
+| ASTRO_DIVINATION | โหราดวงดาว | 6 | 18 | 14 | 34 |
+| BUDDHA_DHARMA | พุทธธรรม | 6 | 19 | 15 | 35 |
+| VOID_SPACE | สุญญตามิติ | 6 | 18 | 14 | 34 |
+| SONIC_HARMONY | คีตายุทธ | 6 | 18 | 14 | 34 |
+| VENOM_GU | พิษหนอนกู่ | 6 | 19 | 15 | 35 |
+| PRIMORDIAL_SHIFTER | แปลงกายบรรพกาล | 6 | 19 | 15 | 35 |
+| CELESTIAL_WEATHER | เทวอากาศ | 6 | 19 | 15 | 35 |
+| WANDERING_DAO | จาริกพิภพ | 6 | 18 | 14 | 34 |
+| MERCANTILE_DAO | พาณิชย์มรรคา | 6 | 19 | 15 | 35 |
+| DRAGON_VEIN_GEOMANCY | มังกรธรณี | 6 | 19 | 15 | 35 |
+| GRAVITY_DAO | แรงโน้มถ่วง | 6 | 19 | 15 | 35 |
+| CHRONO_EPOCH | กาลเวลา | 6 | 19 | 15 | 35 |
+| INK_LITERATI | อักษรปราชญ์ | 6 | 18 | 14 | 34 |
+| SOUL_PUPPETRY | เชิดเงาวิญญาณ | 6 | 19 | 15 | 35 |
+| PRIMORDIAL_CHAOS | โกลาหลต้นกำเนิด | 6 | 18 | 14 | 34 |
+| SHADOW_SAMURAI | ซามูไรไร้เงา | 4 | 18 | 14 | 28 |
+| NINPO_SHADOW | นินจาเร้นเงา | 4 | 19 | 15 | 29 |
+| NINPO_ELEMENTAL | นินจาคาถาธาตุ | 4 | 19 | 15 | 29 |
+| DIVINE_SUMMONER | อัญเชิญเทวะ | 4 | 19 | 15 | 29 |
+| DIVINE_POSSESSION | เทวะสถิตร่าง | 4 | 18 | 14 | 28 |
+| DIVINE_CHANNELER | ยืมพลังเทวะ | 4 | 18 | 14 | 28 |
+| VOID_HERETIC_PACT | สัญญานอกมิติ | 4 | 18 | 14 | 28 |
+| OCCULT_MAGE | จอมขมังเวท | 4 | 18 | 14 | 28 |
+| DEVOURING_FLESH | กลืนหลอมสรีระ | 4 | 19 | 15 | 29 |
+| NETHER_GRAVE | สุสานยมโลก | 4 | 18 | 14 | 28 |
+| ANCESTRAL_RITUAL | พิธีบรรพชน | 4 | 18 | 14 | 28 |
+| TIDE_VOYAGER | นาวิกสมุทร | 4 | 19 | 15 | 29 |
+| LORE_ARCHIVIST | อาลักษณ์หอคัมภีร์ | 4 | 19 | 15 | 29 |
+| FORTUNE_GAMBLER | เดิมพันชะตา | 4 | 19 | 15 | 29 |
+| SPIRIT_HUSBANDRY | เกษตรวิญญาณ | 4 | 18 | 14 | 28 |
+| ARENA_GLORY | เกียรติยุทธ์ประลอง | 4 | 18 | 14 | 28 |
+
+## 4. ตาราง 286 สายย่อย: เกณฑ์จัดลำดับเติมวิชา
+- วิชาเฉพาะสายที่เชื่อมด้วย `sub / innateSubpath / reqSubpath` เฉลี่ย **5.16** มัธยฐาน **4**; สายที่ต่ำกว่า mean = **202**, ต่ำกว่า median = **114**
+- มี **1 สาย** ที่มีเฉพาะ innate 1 วิชา (`BODY / JADE_IMMORTAL_BODY`), **55 สาย** ที่มี 2 รายการ. ถือเป็นโอกาสเติมความหลากหลาย ไม่ได้แปลว่าใช้สกิลอื่นไม่ได้: วิชา cross-path/shared/universal ยังมีอยู่
+- แผนงานระยะถัดไปหลังปิดบัค: สาย 1 รายการตั้งเป้าเพิ่ม 2–3 บทบาท, สาย 2 รายการเพิ่ม 1–2 บทบาทที่แตกต่าง; ยึด median 4 เป็น checkpoint ไม่ใช่กฎแข็งหรือเป้ารวมทุกวิถี
+
+### สายย่อยที่มีวิชาเฉพาะสายเพียง 1–2 รายการ (รายชื่อเต็ม)
+| วิถี | สายย่อย | ชื่อ | จำนวน | ไม่ใช่ innate | profiles |
+|---|---|---|---|---|---|
+| XIAN | YIN_YANG_HARMONY | สายหยินหยางหมุนเวียนไร้ลักษณ์ | 2 | 1 | 5 |
+| BODY | JADE_IMMORTAL_BODY | สายกายาหยกพิสุทธิ์หมื่นพิษไม่กล้ำกราย | 1 | 0 | 2 |
+| GOD | MEDICINE_BODHI_GOD | สายเทพโอสถโพธิญาณ | 2 | 1 | 3 |
+| KARMA_SAMSARA | LOTUS_MERCY_PURIFIER | สายปทุมโปรดสัตว์ชำระบาป | 2 | 1 | 3 |
+| KARMA_SAMSARA | BODHI_VOW_GUARDIAN | สายมหาปณิธานโพธิสัตว์คุ้มภพ | 2 | 1 | 3 |
+| BEAST_SOVEREIGN | SYMBIOTIC_BEAST_WARRIOR | สายนักรบผสานร่างอสูรคลั่ง | 2 | 1 | 3 |
+| BEAST_SOVEREIGN | COLOSSUS_SHIELD_TAMER | สายปราการอสูรยักษ์พิทักษ์สำนัก | 2 | 1 | 3 |
+| BEAST_SOVEREIGN | CELESTIAL_ASTRAL_FAIRY_TAMER | สายพันธะสัตว์เทพดาราและภูตพฤกษา | 2 | 1 | 3 |
+| SAGE_SUPPORT | QIMEN_TALISMAN_PATRON | สายปรมาจารย์ยันต์ฉีเหมินคุ้มทัพ | 2 | 1 | 4 |
+| SAGE_SUPPORT | WAR_BANNER_CHORISTER | สายขุนพลธงศึกปลุกขวัญสวรรค์ | 2 | 1 | 4 |
+| SAGE_SUPPORT | WOOD_SPIRIT_SYMBIONT | สายทูตพฤกษาวิญญาณค้ำชูโลก | 2 | 1 | 4 |
+| ASTRO_DIVINATION | METEOR_OMEN_CALLER | สายอัญเชิญดาวตกพิพากษา | 2 | 1 | 5 |
+| ASTRO_DIVINATION | QIMEN_EIGHT_GATES_DIVINER | สายฉีเหมินแปดประตูพยากรณ์ | 2 | 1 | 5 |
+| ASTRO_DIVINATION | BIG_DIPPER_LONGEVITY_SAGE | สายกระบวยดาราต่อชะตา | 2 | 1 | 5 |
+| BUDDHA_DHARMA | THOUSAND_PALM_BODHISATTVA | สายโพธิสัตว์พันกรการุญ | 2 | 1 | 5 |
+| BUDDHA_DHARMA | RELIC_PAGODA_KEEPER | สายผู้พิทักษ์เจดีย์พระธาตุ | 2 | 1 | 5 |
+| BUDDHA_DHARMA | KARMA_FIRE_ASCETIC | สายธุดงค์เพลิงกัลป์เผาวิบาก | 2 | 1 | 5 |
+| VOID_SPACE | SINGULARITY_COLLAPSE_MAGE | สายยุบตัวจุดอนันต์สุญตา | 2 | 1 | 5 |
+| VOID_SPACE | PHASE_MIRAGE_ASSASSIN | สายเร้นเงาเหลื่อมมิติ | 2 | 1 | 5 |
+| VOID_SPACE | SPATIAL_BARRIER_WARDEN | สายกำแพงกระจกมิติสะท้อน | 2 | 1 | 5 |
+| SONIC_HARMONY | RESONANT_BELL_EXORCIST | สายกระดิ่งกังวานสลายมาร | 2 | 1 | 5 |
+| SONIC_HARMONY | SILENT_WAVE_ASSASSIN | สายคลื่นเสียงไร้รูปสังหารเงียบ | 2 | 1 | 5 |
+| SONIC_HARMONY | CELESTIAL_CHOIR_CONDUCTOR | สายวาทยกรสวรรค์ประสานคีตา | 2 | 1 | 5 |
+| VENOM_GU | CORROSIVE_MIASMA_WEAVER | สายทอหมอกพิษกัดกร่อนเกราะ | 2 | 1 | 5 |
+| VENOM_GU | SCORPION_CLAW_EXECUTIONER | สายกรงเล็บแมงป่องพิษบรรพกาล | 2 | 1 | 5 |
+| VENOM_GU | IMMORTAL_NECTAR_TOXIN_SAGE | สายพิษสลับอมฤตช่วยชีวิต | 2 | 1 | 5 |
+| PRIMORDIAL_SHIFTER | BLACK_TORTOISE_SHELL_COLOSSUS | สายกระดองเต่าดำสะท้อนศาสตรา | 2 | 1 | 5 |
+| PRIMORDIAL_SHIFTER | FIEND_APE_TITAN_MORPH | สายแปลงร่างวานรยักษ์ถล่มขุนเขา | 2 | 1 | 5 |
+| PRIMORDIAL_SHIFTER | NINE_TAIL_MIRAGE_SHIFTER | สายจำแลงจิ้งจอกเก้าหางพันหน้า | 2 | 1 | 5 |
+| CELESTIAL_WEATHER | TYPHOON_GALE_SOVEREIGN | สายจ้าวพายุไต้ฝุ่นกวาดสมรภูมิ | 2 | 1 | 5 |
+| CELESTIAL_WEATHER | MIRAGE_FOG_SHROUDER | สายม่านหมอกลวงตาปิดกั้นสัมผัส | 2 | 1 | 5 |
+| CELESTIAL_WEATHER | SOLAR_ZENITH_INVOKER | สายอัญเชิญแสงสุริยันกลางหาว | 2 | 1 | 5 |
+| WANDERING_DAO | WILDERNESS_BEAST_TRACKER | สายพรานแกะรอยอสูรแดนเถื่อน | 2 | 1 | 5 |
+| WANDERING_DAO | CLOUD_STEP_HERMIT | สายฤๅษีเหยียบเมฆาเร้นกาย | 2 | 1 | 5 |
+| WANDERING_DAO | REALM_MAPPER_CHRONICLER | สายนักเขียนแผนที่หมื่นพิภพ | 2 | 1 | 5 |
+| MERCANTILE_DAO | TREASURE_APPRAISER_SAGE | สายปราชญ์ประเมินศาสตราและของวิเศษ | 2 | 1 | 5 |
+| MERCANTILE_DAO | DEBT_FORECLOSURE_ENFORCER | สายทวงหนี้วิบากและยึดครองพลัง | 2 | 1 | 5 |
+| MERCANTILE_DAO | EQUITY_SHIELD_CHANCELLOR | สายเสนาบดีคลังสมดุลทองคำ | 2 | 1 | 5 |
+| DRAGON_VEIN_GEOMANCY | EARTH_DRAGON_AWAKENER | สายปลุกชีพมังกรดินสะเทือนภพ | 2 | 1 | 5 |
+| DRAGON_VEIN_GEOMANCY | JADE_FAULT_CRUSHER | สายรอยเลื่อนหยกทลายปราการ | 2 | 1 | 5 |
+| DRAGON_VEIN_GEOMANCY | SANCTUARY_PEAK_CUSTODIAN | สายผู้พิทักษ์ยอดเขาศักดิ์สิทธิ์ | 2 | 1 | 5 |
+| GRAVITY_DAO | SINGULARITY_WELL_CONTROLLER | สายหลุมแรงโน้มถ่วงสะกดทัพ | 2 | 1 | 5 |
+| GRAVITY_DAO | METEOR_WEIGHT_STRIKER | สายหมัดศิลาเพิ่มมวลพริบตา | 2 | 1 | 5 |
+| GRAVITY_DAO | TIDAL_LOCK_ARBITER | สายแรงดึงดูดพันธนาการคู่ศึก | 2 | 1 | 5 |
+| CHRONO_EPOCH | ACCELERATED_BLADE_FLASH | สายประกายดาบเร่งเวลาพริบตา | 2 | 1 | 5 |
+| CHRONO_EPOCH | STASIS_SEAL_WARDEN | สายผนึกหยุดนิ่งชั่วนิรันดร์ | 2 | 1 | 5 |
+| CHRONO_EPOCH | PAST_FUTURE_MIRROR_SAGE | สายกระจกส่องอดีตและอนาคต | 2 | 1 | 5 |
+| INK_LITERATI | CLASSICS_LAW_ARBITER | สายปราชญ์บัญญัติกฎมณเฑียรบาล | 2 | 1 | 5 |
+| INK_LITERATI | VERMILION_CRITIQUE_CENSOR | สายพู่กันชาดวิพากษ์สลายวิชา | 2 | 1 | 5 |
+| INK_LITERATI | HISTORIANS_DESTINY_QUILL | สายอาลักษณ์จารึกพงศาวดารฟ้า | 2 | 1 | 5 |
+| SOUL_PUPPETRY | CORPSE_FLAME_MARIONETTE | สายหุ่นเชิดเพลิงอสูรบรรพกาล | 2 | 1 | 5 |
+| SOUL_PUPPETRY | MIRROR_SHADOW_TWIN | สายเงาแฝดกระจกสะท้อนสังหาร | 2 | 1 | 5 |
+| SOUL_PUPPETRY | FATE_STRING_CONDUCTOR | สายบรรเลงด้ายชะตาควบคุมองคาพยพ | 2 | 1 | 5 |
+| PRIMORDIAL_CHAOS | ENTROPY_FLAME_SOVEREIGN | สายเพลิงโกลาหลเผาผลาญกฎเกณฑ์ | 2 | 1 | 5 |
+| PRIMORDIAL_CHAOS | GENESIS_LOTUS_CREATOR | สายบัวกำเนิดภพเนรมิตปราณ | 2 | 1 | 5 |
+| PRIMORDIAL_CHAOS | ABYSSAL_CHAOS_HALBERD | สายทวนโกลาหลผ่าแยกฟ้าดิน | 2 | 1 | 5 |
+
+**ทะเบียนครบทั้ง 286 สาย พร้อมจำนวน, บทบาท, gap และ tech IDs** อยู่ที่ `TECHNIQUE_SUBPATH_GAP_ACTIONS.csv`; ยึดไฟล์นี้เป็น input สั่ง AI สร้างเนื้อหาต่อ ต้องตรวจแหล่งเรียนและ usability จริงก่อนเพิ่ม
+
+## 5. อาวุธ 16 ประเภท และอุปกรณ์ 3 ช่อง
+- จำนวน associatedTech นับวิชาที่ประกาศ `weaponTypes` (วิชาหนึ่งอาจอยู่หลายประเภท) ไม่เท่ากับจำนวนวิชาที่จำเป็นต้องใช้อาวุธนั้น และไม่รับรองว่าใช้ได้โดยทุกวิถี
+| ศาสตรา | วิชาที่เกี่ยว | บังคับใช้ | ไอเทม | วิชาแถมจากไอเทม | ขาด archetype ตรง |
+|---|---|---|---|---|---|
+| SWORD | 284 | 8 | 42 | 15 |  |
+| BLADE | 248 | 14 | 43 | 14 |  |
+| SPEAR | 294 | 17 | 50 | 17 |  |
+| FIST | 277 | 0 | 32 | 7 |  |
+| BOW | 264 | 18 | 28 | 0 |  |
+| STAFF | 443 | 15 | 43 | 13 |  |
+| FOCUS | 471 | 11 | 61 | 21 |  |
+| ZITHER | 215 | 13 | 48 | 17 |  |
+| BRUSH | 335 | 8 | 47 | 16 |  |
+| WHIP | 229 | 10 | 45 | 14 |  |
+| ROSARY | 108 | 0 | 17 | 8 | DEFENSE, SUPPORT, CONTROL, MOBILITY |
+| CLAW | 90 | 0 | 18 | 10 | DEFENSE, SUPPORT, CONTROL, MOBILITY |
+| NEEDLE | 111 | 0 | 19 | 8 | DEFENSE, SUPPORT, CONTROL, MOBILITY |
+| FAN | 161 | 0 | 17 | 8 | DEFENSE, SUPPORT, CONTROL, MOBILITY |
+| ASTROLABE | 138 | 0 | 20 | 10 | DEFENSE, SUPPORT, CONTROL, MOBILITY |
+| ABACUS | 56 | 0 | 16 | 8 | DEFENSE, SUPPORT, CONTROL, MOBILITY |
+
+- **6 ประเภทอาวุธใหม่ ROSARY, CLAW, NEEDLE, FAN, ASTROLABE, ABACUS มี requiresWeapon = 0 ทั้งหมด**: รูปแบบความถนัดมีแต่ขาดวิชาที่ผูกกับอาวุธนั้นแบบมีข้อกำหนดตรง ๆ. ถือเป็นช่องว่างเอกลักษณ์ ไม่ใช่บัคหรือข้อบังคับต้องทำก่อนปล่อย
+- ชั้นเกราะ ARMOR `HEAVY/LIGHT/ROBE` และเครื่องประดับ `RING/NECKLACE/BRACELET/CHARM` ตรวจผลข้ามกับ gearType, grantSkill, skillModifiers; ตาราง mismatch 36 รายการแนบทั้ง JSON
+
+## 6. ข้อเสนอเติมวิชาอย่างมีเอกลักษณ์ (ไม่ใช่บัค)
+**ลำดับหลังปิด P0/P1 เท่านั้น**; อย่าเพิ่มจำนวนอย่างเดียว และห้ามเอา keyword ใหม่ไปแย่งหน้าที่ 109 สถานะเดิม
+| วิถี/กลุ่ม | บทบาทที่ควรเติม | อาวุธ/อุปกรณ์ |
+|---|---|---|
+| BODY / JADE_IMMORTAL_BODY | โล่หยกกักแรง • ป้องกันตัดดาเมจได้ครั้งเดียวต่อช่วง, counter แตกเกราะเมื่อผ่านเงื่อนไข, หมัดพุ่งที่แลกความถึกกับระยะ | FIST / HEAVY / CLAW |
+| ASTRO_DIVINATION / CHRONO_EPOCH | ชี้ดวงดาวและอ่านจังหวะก่อนสังหาร; วางตำแหน่งคุ้มกัน+จำกัดรีไวน์ด้วย Temporal Debt | ASTROLABE / BRUSH |
+| MERCANTILE_DAO / FORTUNE_GAMBLER | ลูกคิดรบคุมจังหวะ Qi ที่ใช้จริง, risk/reward จากเดิมพันที่มีต้นทุนล่วงหน้าและไม่เสกเงิน | ABACUS / CHARM |
+| SONIC_HARMONY / INK_LITERATI | วงคีตะคุ้มกันหมู่ที่ต้องอยู่ฝ่ายเดียวกัน, อักษรผนึกที่ใช้ LoS/จุดคุม, การประสานที่มีเว้นจังหวะ | ZITHER / BRUSH / FAN |
+| VENOM_GU / NINPO_SHADOW | โจมตีจุดชีพจรแบบ status buildup (ไม่ stun-lock), ปิดแผล/ดูดพิษแบบมี counter | NEEDLE / CLAW |
+| BUDDHA_DHARMA / DIVINE_CHANNELER | สายลูกประคำคุมโล่ช่วยเพื่อนแบบมี ICD และเสีย Qi, ชำระ curse เฉพาะจังหวะ | ROSARY / STAFF |
+| DRAGON_VEIN_GEOMANCY / VOID_SPACE | อ่านตำแหน่งค่ายกลกับท่าถอย, anchor พื้นที่กัน displacement แต่เสียโอกาสโจมตี | ASTROLABE / FAN |
+| BEAST_SOVEREIGN / SPIRIT_HUSBANDRY / SOUL_PUPPETRY | ท่าร่วมสัตว์/หุ่นเชิดที่ตรวจ faction+participant; break tether แล้วคืน ownership ถูกต้อง | CLAW / WHIP / FOCUS |
+
+## 7. คีย์เวิร์ดและสถานะใหม่ที่เสนอ (ยังไม่มีในเกม)
+- ตรวจชื่อ ID ที่เสนอเทียบ `SK.STATUS` ของ ZIP นี้แล้วเป็นชื่อใหม่; **ต้องสร้างสัญญา producer → trigger/condition → effect/sink → AI → UI → save → tests ให้ครบ** ห้ามใส่ status ID ลง data อย่างเดียว
+- **`temporalDebt` · หนี้กาลเวลา** (CHRONO_EPOCH / ASTROLABE): หลังย้อนเวลาได้ประโยชน์ 1 ครั้ง ใส่หนี้ 1–2 ชั้น; ร่ายครั้งถัดไปช้าลงหรือใช้ Qi เพิ่มตามชั้น **ข้อจำกัด:** รีเซ็ตหลังชำระต้นทุน; ไม่ซ้อนเกิน 2; ไม่เรียกรีไวน์ซ้อน; ระบุใน UI
+- **`meridianPressure` · แรงกดจุดชีพจร** (NEEDLE / BODY / VENOM_GU): โจมตีเข็มสะสมแรงกด 2 ชั้นเพื่อลดอัตราฟื้น Qi ชั่วคราวโดยไม่ซ้ำ stun **ข้อจำกัด:** มีภูมิคุ้มกันบอส, purge ได้, ไม่ซ้อน QI_BLOCK จนปลดวิชาไม่ได้ถาวร
+- **`sightlinePinned` · กดดันแนวยิง** (BOW / SNIPE): ธนูยิงคุมแนวทำให้เป้าหมายออกจากที่กำบังแล้วเสีย accuracy ชั่วคราว แทน stun/root **ข้อจำกัด:** ใช้ LoS จริง, cap per target, AI เลี่ยงด้วยตำแหน่ง; ห้ามข้ามกำแพง
+- **`rhythmDebt` · ค้างจังหวะคีตะ** (ZITHER / ROSARY / SONIC_HARMONY): ใช้วิชาในจังหวะไม่สัมพันธ์กับเครื่องหมายจังหวะแล้วเสียโบนัสครั้งต่อไป; เล่นเป็นลำดับได้ combo **ข้อจำกัด:** คุม rhythm chain ไม่บังคับผู้เล่น spam, duration สั้น, เสียง/ภาพ/UI บอกสถานะ
+- **`ledgerBalance` · ดุลบัญชีกรรม** (ABACUS / MERCANTILE_DAO / KARMA_SAMSARA): บันทึก Qi ที่ใช้กับโจมตีเป็นดุล ใช้ครั้งเดียวเพื่อกันดาเมจหรือปล่อยโจมตีตอบโต้ **ข้อจำกัด:** ไม่มีการสร้าง Qi/ทรัพยากรจริง; จำกัดยอดตาม Qi ที่จ่ายจริงและ softcap; ไม่ทบกับ loot
+- **`fanWindAngle` · มุมลมแปรผัน** (FAN / CELESTIAL_WEATHER): โจมตีพัดเปลี่ยนทิศบังคับตำแหน่งเป้าหมายเล็กน้อย และสร้างช่องให้ท่าต่อเนื่องโดนเป็นแนว **ข้อจำกัด:** ใช้ pathfinding/ขอบสนาม/immune boss; จำกัด chain และไม่กระเด็นนอกแผนที่
+- **`clawGrip` · เขี้ยวเกาะแน่น** (CLAW / PRIMORDIAL_SHIFTER / BEAST_SOVEREIGN): ตีประชิดติดเครื่องหมายเกาะครั้งเดียวทำให้ท่ากรงเล็บถัดไปได้โบนัสต่อเป้าหมายเดิม **ข้อจำกัด:** ไม่ล็อก NPC ตลอดศึก; สลับเป้าแล้วหาย; ตรวจ guard/ward และ durability
+- **`rosaryVow` · สัตย์ป้องกันธรรม** (ROSARY / BUDDHA_DHARMA): คำสัตย์ช่วยเพื่อนหนึ่งคนด้วยโล่เล็กเมื่อเลือดต่ำ แต่ผู้ร่ายต้องเสีย Qi จริง **ข้อจำกัด:** ICD ต่อผู้รับ+ศึก, ตรวจฝ่าย/participant เหมือน combat fix, ห้ามฮีลผิดฝ่าย
+- **`inkOrderSeal` · ราชโองการหมึก** (BRUSH / INK_LITERATI): ประทับตราคำสั่งบนเป้าหมาย; วิชาเขียนอักษรถัดไปเปลี่ยนชนิดเอฟเฟกต์หรือคุมพื้นที่ **ข้อจำกัด:** ใช้ mark key ใหม่ไม่ซ้ำ starSeal/daoMark, cap 2, save/load ทวนสอบ
+- **`stanceFracture` · แตกร้าวท่วงท่า** (BLADE / SPEAR / HEAVY): การเจาะเกราะหนักลดโบนัส stance ชั่วคราวโดยไม่ถอดอุปกรณ์หรือเขียนทับ loadout **ข้อจำกัด:** ต้านทานได้, ไม่ลบสถานะถาวร, จำกัด 1 proc ต่อวงจรคูลดาวน์
+- **`astralCalibration` · ปรับแกนดารา** (ASTROLABE / ASTRO_DIVINATION / DRAGON_VEIN_GEOMANCY): ผู้ร่ายอ่านตำแหน่งเป้าหมายล่วงหน้า 1 รอบ ช่วยคุมระยะและการโต้กลับแต่เสียเวลาร่าย **ข้อจำกัด:** ขอบเขต LoS จริงและการเคลื่อนที่, ไม่เพิ่ม accuracy ไร้เพดาน
+- **`summonInterdict` · ผนึกประตูอัญเชิญ** (FOCUS / ROSARY / DIVINE_SUMMONER / NETHER_GRAVE): กั้นการเกิด summon ใหม่ระยะสั้น ไม่ลบ summon ที่มีอยู่และไม่ยุ่งกับ registry NPC จริง **ข้อจำกัด:** มี counterspell/ระดับบอส immune บางส่วน; ห้ามทำลายข้อมูลสัตว์เลี้ยง/มรดก
+
+## 8. สมดุลและผลกระทบลูกโซ่ (Release Gate)
+1. อาวุธ/เกราะ TYPE ผิด → วิชาระยะ/การใช้ท่าผิด → AI เลือก target+ตำแหน่งผิด → ดาเมจผิด → บาดเจ็บ/สังหารผิด → เศรษฐกิจ/ตำแหน่ง/เซฟได้รับผล (เชื่อม TECH-01 กับ COMBAT-01 และ EQ ที่พบก่อนหน้า)
+2. Item Grant ข้ามขั้น → ท่าแข็งแรงก่อนเวลา → ผ่านหอ/แดนลับ/บอสที่ปกติไม่ผ่าน → ได้ทรัพยากร/คัมภีร์เร็ว → ตัวละครและสำนักยิ่งนำ → ความต่างยิ่งโต (TECH-02)
+3. Modifier ไม่จำกัดธาตุ → วิชาทั่วไปและวิชาข้ามสายรับโบนัสไฟ/น้ำแข็งโดยไม่ได้แลกต้นทุน → meta ดัน DPS สูงจนทำลายบทบาทธาตุ/คุมพื้นที่ (TECH-03)
+4. คุมสถานะฝ่าย: ก่อนสร้างวิชาช่วยเหลือหรือสถานะใหม่ ต้องปิด COMBAT-02–06 ที่บัฟผิดฝ่ายก่อน ไม่เช่นนั้นวิชาใหม่ขยายบัคเดิม
+5. ทุกการแก้ skill cache/gear grant ต้องตรวจกลางศึก, สลับอาวุธ, ของพัง, ตาย/สืบทอด, ย้ายสำนัก, เซฟ/โหลด, การเล่นหลายวัน และ RNG deterministic
+
+## 9. Test Plan และข้อจำกัด
+- Runtime tests: `TECHNIQUE_RUNTIME_PROBES.js` 14 cases; ผล `TECHNIQUE_RUNTIME_PROBE_RESULTS.json`; พฤติกรรมที่ถูก flag รวม schema/design ไม่ได้หมายถึง 14 distinct bugs
+- Full catalog: `TECHNIQUE_INDIVIDUAL_CATALOG_QA.csv` 1,824 records และ `TECHNIQUE_EACH_MOVE_QA.csv` 2,603 move profiles; มิใช่การยืนยัน gameplay ดาเมจจริงทีละท่า
+- Coverage: `TECHNIQUE_PATH_COVERAGE.csv` 43 วิถี, `TECHNIQUE_SUBPATH_GAP_ACTIONS.csv` 286 สาย, `TECHNIQUE_WEAPON_COVERAGE.csv` 16 ประเภท
+- Type mismatch: `TECHNIQUE_EQUIPMENT_TYPE_MISMATCHES.json` 36 items. Stage grant pre-screen: `TECHNIQUE_EQUIPMENT_GRANT_CANDIDATES.json` 189 รายการที่ต้องประเมินตามเงื่อนไขไอเทมและหอ/สูตร; 1 ตัวอย่างรันจริงยืนยันได้
+- Regression เดิมที่รันซ้ำเดี่ยว: v230_grand_dao, v234_massive_content, unified_weapon, technique_overhaul, v212_weapon_build, v300_tactical ทั้ง **6 ผ่าน**; บันทึก `TECHNIQUE_RELATED_REGRESSION_LOG.txt`
+- **ยังไม่ได้ทำ** browser click/gesture E2E บน Chromium ครบทุกท่า, battle-monte-carlo 1000 seed, 43-path all-vs-all balancing, เกณฑ์ retention จากผู้เล่นจริง หรือพิสูจน์สมดุล PvP ระยะยาว. ห้ามอ้างว่าพิสูจน์แล้วว่า 34 ท่าที่ M×hits>15 โกงจริง
+- เครื่องมือที่ใช้: Node runtime ปัจจุบัน+ Python CSV, ไม่มีการเชื่อม Replit app ในบัญชีที่พบ; แก้ไขแค่เอกสารรายงานภายใน ZIP ไม่แตะ source
+
+## 10. สิ่งที่ต้องทำต่อสำหรับ Coding AI
+1. ปิด TECH-01 และ TECH-02 ก่อน ต่อด้วย TECH-04; ทำ regression weapons, gear grants, stage unlock, AI selection, sim/save.
+2. ยืนยัน spec ของ element/weaponType ใน skillModifiers เพื่อปิด TECH-03 อย่างปลอดภัย; ทดสอบไวมากกับ item ที่เกี่ยวข้อง 277 mods และ cross-element.
+3. ปรับ canSelect / cache / loadout authority ที่ TECH-05–07 ตามต้นทางเดียวกัน ไม่ patch UI อย่างเดียว.
+4. หลังปิด P0/P1 รายงานเดิม ให้ใช้ทะเบียน 43/286/16 เสนอแพตช์เพิ่มวิชาเล็ก ๆ ทีละชุดพร้อม source การได้มาจริง และ DPS/utility before-after; สถานะใหม่เป็น proposal ไม่ต้องเร่งลง release build.
+
+
+---
+
+### ต้นทาง: JianghuSect_v2.3.0_Freeze_Audit_Report.zip / QA_WORLD_EXPLORATION_EXPEDITIONS_AUDIT_V230.md
+
+# รายงานตรวจเกม v2.3.0 — ระบบสำรวจโลก แดนลับ คณะเดินทาง และวาสนาฟ้าดิน
+**JianghuSect 2 · Release Freeze QA · 8 พฤศจิกายน 2026**
+
+> เอกสารนี้เป็นการตรวจ *ซอร์สเกมต้นฉบับ* เพื่อหาบัคและผลกระทบก่อนปล่อย ไม่ใช่คำขอเพิ่มฟีเจอร์ ไม่แก้ซอร์ส และไม่ใช่รายงานตรวจเศรษฐกิจ/เซฟซ้ำอีกแชท
+
+## บทสรุปผู้บริหาร
+
+- **พบ 14 ประเด็นแยกชั้น**: P0 1 ข้อ · P1 5 ข้อ · P2 5 ข้อ · REVIEW 3 ข้อ (REVIEW ไม่ใช่ confirmed bug).
+- **ทดสอบ 30 กรณี** (มี negative path, control 2 กรณี, design review 3 กรณี และเคสผลพ่วง): ผลที่คาดเกิดซ้ำได้ครบ 30/30; **test script errors = 0**. ตัวเลขนี้ไม่ได้หมายความว่ามี 30 บัค.
+- **Regression เดิม 6 ชุดผ่าน** เมื่อรันแยก แต่ยังไม่ครอบคลุม negative path ใหม่; เน้นการยืนยันด้วยการตรวจโค้ดเส้นทาง UI และรัน Node runtime.
+- **Release blocker หลัก WORLD-01/P0:** micro-location มีปุ่ม UI 4 แห่ง ส่งรางวัลทุกครั้งโดยเวลาเกมไม่เดิน; 20 ครั้งได้ศิลา +3,600, CP +400 และ merit +300 โดยไม่เปลี่ยนเวลา.
+- **Chain blocker WORLD-04/P1:** NPC เดียวซ้อน gather + world anomaly ได้จริง และเมื่อชั่วโมงผ่านไปทั้งสองภารกิจต่างให้ผลลัพธ์.
+- **ขอบเขตสำคัญ:** ยังไม่ได้ทดสอบคลิกจริงใน Chromium เพราะเบราว์เซอร์ถูกบล็อกการเปิดทั้ง `file:` และ `localhost` ด้วย `ERR_BLOCKED_BY_ADMINISTRATOR`. อย่านำผล UI source-path ไปอ้างว่าเป็น full E2E.
+
+## ฐานเวอร์ชันและขอบเขต
+
+ตรวจต้นฉบับ ZIP `JianghuSect2_v2.3.0_Grand_Dao_Deep_Parity_Release.zip`; ใน loader ซอร์ส `GAME_SOURCE` ระบบอยู่บน **v2.3.0**. อ่าน `AGENTS.md`, `project_status_and_ai_onboarding.md`, `.agents/skills/procedural-gen`, `qa-test-matrix`, `game-data-integrity` และ `gameplay-architecture` ก่อนตรวจ. ข้อความบางบรรทัดใน AGENTS.md เป็นข้อมูลแพตช์รุ่นอื่น จึงใช้ซอร์สและผลรันปัจจุบันเป็นฐานตัดสิน.
+
+ระบบที่ตรวจ: สถานที่ย่อย 4 แห่ง, คณะเดินทาง gather/ถ้ำ/เจดีย์เก้าวิถี, วาสนาฟ้าดินและการแข่งขัน, atlas selector, ค่ายพัก/บัฟ, พงศาวดาร และความคงอยู่ของรางวัลหลังเซฟ (ตรวจแค่ผลพ่วง ไม่ทำ save audit ซ้ำ).
+
+## ระบบที่ตรวจจริงและผลเบื้องต้น
+
+| เส้นทาง | สิ่งที่ตรวจ | หลักฐาน |
+|---|---|---|
+| Micro-location 4 แห่ง | UI button → action → reward → progression → chronicle | `ui.js:1981–1986,5524–5527`, `explore.js:8274–8393`, WEXP-01/07/08/21C |
+| Expedition ปกติ | สร้าง party → ตรวจสิทธิ์ → depart → hourly return | `expedition.js:254–363,382–508`, WEXP-10/13/21E |
+| แดนลับ/เจดีย์ | คณะซ้ำ/ภารกิจหลายแบบ | `explore.js:7188–7216,7573+,7879+`, WEXP-14/15 |
+| วาสนาฟ้าดิน | enqueue, arrival, rival contest, reward, release member | `expedition.js:3166–3285`, WEXP-16/17/18/19/20/21B/21G |
+| UI แผนที่ | ตรวจผู้ถูกขัง, การแสดงปุ่มส่งคณะ | `ui.js:5280–5289,5502`, WEXP-21A |
+| สำนัก/ค่ายพัก | Active/region perk → ฟื้น energy | `explore.js:8306–8313`, WEXP-21F |
+| บันทึก/ความคงอยู่ | 1 mission ↔ chronicle entry และ save outcome | `explore.js:8366–8378`, WEXP-08/21D |
+
+## ทะเบียนข้อค้นพบ
+
+| ID | ระดับ | อาการโดยย่อ | ผู้เล่นเข้าถึงได้หรือไม่ |
+|---|---|---|---|
+| `WORLD-01` | P0 | สำรวจสถานที่ย่อยซ้ำได้ไม่จำกัดโดยเวลาไม่เดินและทรัพยากรเพิ่มทุกครั้ง | ปุ่ม UI ตามเส้นทางโค้ด (ยังไม่ทดสอบคลิกใน browser) |
+| `WORLD-02` | P1 | สมาชิกไม่พร้อม (เดินทาง ถูกกักขัง ถูกเนรเทศ) ยังมีสิทธิ์รับรางวัลสำรวจ | ปุ่ม UI default (away/jail); เส้นทาง API แบบระบุรายชื่อ (exiled) |
+| `WORLD-03` | P1 | ยอมรับ NPC คนเดิมหลายช่องในคณะเดียวกัน ทำให้คำนวณซ้ำ | API party construction และ dispatch สำรวจหลายประเภท; ยังไม่ยืนยันปุ่ม UI ปกติเพิ่ม NPC ซ้ำเอง |
+| `WORLD-04` | P1 | ส่ง NPC เดียวซ้อนภารกิจเดิมและวาสนาฟ้าดิน ทำให้ได้ผลลัพธ์สองงาน | API explicit party ไป world anomaly; ส่งภารกิจครั้งแรกโดย API ปกติ |
+| `WORLD-05` | P1 | แผนที่ยุทธภพเสนอสมาชิกที่ถูกกักขังเป็นสมาชิกคณะเดินทาง | UI.atlasParty ใช้ในแผนที่โดยตรง (ยังไม่ทดสอบคลิก) |
+| `WORLD-06` | P1 | ระบบวาสนาฟ้าดินเลือกผู้ถูกเนรเทศเป็นสมาชิกคณะเริ่มต้นได้ | route auto/default บน dispatchWorldAnomaly; ไม่ยืนยันปุ่ม UI ใช้ default เสมอ |
+| `WORLD-07` | P2 | ค่ายพักสำนักที่ปิดใช้งานหรืออยู่คนละภูมิภาคยังช่วยฟื้นแรงสำรวจ | micro UI ผ่าน applyCampPerksToParty |
+| `WORLD-08` | P2 | หนึ่งการสำรวจสร้างบันทึกพงศาวดารสองรายการ | micro UI, ไม่ใช้ quiet |
+| `WORLD-09` | P2 | API คณะสำรวจยอมรับวัตถุตัวละครที่ไม่ใช่สมาชิกโลกปัจจุบัน | การเรียก API ภายในด้วย object เท่านั้น |
+| `WORLD-10` | P2 | รหัสชนิดภารกิจผิดทำให้คณะถูกจองแล้วค่อยโยนข้อผิดพลาด | API ภายใน; ไม่ใช่ action ปกติของผู้เล่น |
+| `WORLD-11` | P2 | choiceId ที่ไม่มีจริงถูกแปลงเป็นตัวเลือกแรกและให้รางวัลโดยไม่แจ้ง | crafted action/API; ปุ่มปกติมี choice ที่ถูกต้อง |
+| `WORLD-12` | REVIEW | มาถึงวาสนาก่อนคู่แข่งเท่ากับชนะเสมอ แม้พลังศัตรูสูงมหาศาล | world anomaly contest algorithm; ทดสอบ branch immediate เฉพาะ API |
+| `WORLD-13` | REVIEW | พารามิเตอร์ immediate:true สามารถรับรางวัลวาสนาโดยไม่เดินทาง | direct API/debug path เท่านั้น |
+| `WORLD-14` | REVIEW | คลังทรัพยากรโลกหมดศิลาแล้ว micro ยังสร้างรางวัลใหม่ได้ | micro UI + world economy coupling; แยกจาก AI อีกแชทที่กำลังตรวจเศรษฐกิจ |
+
+## รายละเอียดรายข้อและเกณฑ์แก้ไข
+
+### WORLD-01 · P0 · สำรวจสถานที่ย่อยซ้ำได้ไม่จำกัดโดยเวลาไม่เดินและทรัพยากรเพิ่มทุกครั้ง
+**ความมั่นใจ:** ยืนยันจาก Node runtime + เส้นทาง UI ในซอร์ส  
+**เส้นทาง:** ปุ่ม UI ตามเส้นทางโค้ด (ยังไม่ทดสอบคลิกใน browser)  
+**โค้ด:** `js/ui.js:1981–1986, 4143, 5524–5527; js/explore.js:8274–8393`  
+**ทดสอบ:** `WEXP-01`, `WEXP-21C`, `WEXP-21D`
+
+**ต้นเหตุ:** EX.dispatchExploration จ่ายรางวัลทันที แต่ไม่ล็อกสถานที่/ผู้เล่น/คณะตามเวลาหรือใช้ turn/cost; มีเพียงตัวนับสถิติ ไม่ถูกใช้กันการจ่ายซ้ำ.
+
+**ผลที่เกิดจริง:** 3 ครั้งวันเดียวได้ศิลา +540; 20 ครั้งเวลาเกมคงเดิมได้ศิลา +3,600, CP +400 และคุณูปการ +300 (สำหรับ NPC แรก); รางวัลยังอยู่หลัง serialize/deserialize.
+
+**ผลกระทบลูกโซ่:** คลิกซ้ำ → วัตถุดิบและศิลาปราณเพิ่มฟรี → ทำของ/ฝึกฝน/กำลังสำนักโตเร็วผิดสมดุล → ข้อมูลบันทึกถาวรและการแข่งขันเสียสมดุล
+
+**แนวแก้:** กำหนดกฎการสำรวจที่ชัดเจน (ครั้งเดียว/คูลดาวน์/การเดินทาง/ค่าเหนื่อยหรือ hazard); ตรวจ eligibility และต้นทุนก่อนจ่ายรางวัล; เขียน lastCompletedAt/availability แบบ authoritative และบังคับฝั่ง simulation ไม่ใช่แค่ disable ปุ่ม.
+
+**เกณฑ์ผ่านหลังแก้:** กดซ้ำก่อนครบเงื่อนไขต้องไม่จ่ายทรัพยากร/CP/merit; เวลาและค่าเดินทางสัมพันธ์กับกิจกรรม; reload ไม่รีเซ็ตข้อจำกัด และไม่ทำลายรางวัลที่เคยได้โดยชอบ.
+
+### WORLD-02 · P1 · สมาชิกไม่พร้อม (เดินทาง ถูกกักขัง ถูกเนรเทศ) ยังมีสิทธิ์รับรางวัลสำรวจ
+**ความมั่นใจ:** ยืนยันจาก Node runtime; UI micro default ตรวจจาก source  
+**เส้นทาง:** ปุ่ม UI default (away/jail); เส้นทาง API แบบระบุรายชื่อ (exiled)  
+**โค้ด:** `js/explore.js:8294–8302, 8336–8347; js/ui.js:1981–1986`  
+**ทดสอบ:** `WEXP-02`, `WEXP-03`, `WEXP-07`, `WEXP-21H`
+
+**ต้นเหตุ:** พรรค default กรองแค่ dead/exiled; party explicit กรองแค่ dead ไม่ตรวจ away/expId/travel/jail/สมาชิกสำนักจริง.
+
+**ผลที่เกิดจริง:** NPC away+expId ได้ CP และ merit จาก micro; ศิษย์ที่ถูกกักขังยังถูกเลือกโดยอัตโนมัติและได้ CP; explicit party ให้ exiled ร่วมได้.
+
+**ผลกระทบลูกโซ่:** ศิษย์ถูกคุมขัง/ทำภารกิจอื่น → เกมยังให้ลงพื้นที่และรับความก้าวหน้า → กฎวินัย/ตำแหน่ง/ตารางชีวิต NPC ผิด → สถิติ/บันทึกขัดกับสถานะจริง
+
+**แนวแก้:** ใช้ validator กลาง isAvailableForWorldActivity(W,n) ที่ตรวจสมาชิก/ตัวตน/ตาย/ถูกเนรเทศ/กักขัง/ภารกิจที่จอง/เดินทาง และแยกข้อยกเว้นตามกติกา.
+
+**เกณฑ์ผ่านหลังแก้:** UI และ API ปฏิเสธ NPC ที่ไม่พร้อมด้วยเหตุผลชัดเจน; กรณีพักรบ/ปล่อยตัว/กลับจากเดินทางจึงมีสิทธิ์อีกครั้ง.
+
+### WORLD-03 · P1 · ยอมรับ NPC คนเดิมหลายช่องในคณะเดียวกัน ทำให้คำนวณซ้ำ
+**ความมั่นใจ:** ยืนยันหลาย route ของ API  
+**เส้นทาง:** API party construction และ dispatch สำรวจหลายประเภท; ยังไม่ยืนยันปุ่ม UI ปกติเพิ่ม NPC ซ้ำเอง  
+**โค้ด:** `js/expedition.js:254–258, 294–307; js/explore.js:7188–7216, 7573–7590, 7879–7905, 8294–8301; js/expedition.js:3166–3175`  
+**ทดสอบ:** `WEXP-04`, `WEXP-10`, `WEXP-13`, `WEXP-14`, `WEXP-15`, `WEXP-17`
+
+**ต้นเหตุ:** แปลง party.map() เป็น members โดยไม่ตรวจ unique(id) ก่อนประเมินพลัง/ความจุ/ค่าประสบการณ์.
+
+**ผลที่เกิดจริง:** micro ใส่ NPC เดียว 3 ครั้งได้ CP +60 แทน +20; createParty, gather, cave, pagoda, anomaly เก็บ duplicate ID สำเร็จ.
+
+**ผลกระทบลูกโซ่:** คณะปลอมจำนวนสมาชิก → พลัง/ความจุ/ผลตอบแทน/ความก้าวหน้าเกินจริง → โลกแข่งขันผิด → state คนเดียวอาจถูกลงผลหลายครั้ง
+
+**แนวแก้:** normalize และ reject duplicate ID ตั้งแต่ party entry point ทั้งหมด; ใช้ reference เดียวจาก W.byId; ไม่ dedup เงียบหลังคิดต้นทุน.
+
+**เกณฑ์ผ่านหลังแก้:** ทุก route มี ID ซ้ำต้อง return invalid-party (หรือ dedup ตามกติกาเดียวกัน) และไม่ทำ mutation/จ่าย reward.
+
+### WORLD-04 · P1 · ส่ง NPC เดียวซ้อนภารกิจเดิมและวาสนาฟ้าดิน ทำให้ได้ผลลัพธ์สองงาน
+**ความมั่นใจ:** ยืนยันลำดับก่อน/หลังจาก Node runtime  
+**เส้นทาง:** API explicit party ไป world anomaly; ส่งภารกิจครั้งแรกโดย API ปกติ  
+**โค้ด:** `js/expedition.js:3166–3204; js/expedition.js:382–396, 3213–3239`  
+**ทดสอบ:** `WEXP-16`, `WEXP-21G`
+
+**ต้นเหตุ:** departWorldAnomaly explicit party กรอง away แต่ไม่กัน expId/travel; สร้าง ex ใหม่แล้วเขียน expId ทับ mission เก่า; resolver สามารถ settle หลายรายการที่อ้าง party เดียวกัน.
+
+**ผลที่เกิดจริง:** ส่ง gather ก่อน แล้วส่ง world anomaly สำเร็จ; หลังเลื่อนเวลาและ hourly ทั้ง mission เก่าและ anomaly ถูกตัดสินว่าจบและได้ผลลัพธ์.
+
+**ผลกระทบลูกโซ่:** หนึ่งคนไปสองภารกิจ → รับของ/วาสนาทั้งสอง → สถานะ return/away สลับกัน → AI ตัดสินใจจากสภาพผิด/หลอกการเดินทาง → เซฟบันทึกความคืบหน้าผิด
+
+**แนวแก้:** จองสมาชิกแบบ single-owner reservation โดย mission ID; ตรวจ active mission/away/travel ก่อน queue; resolver ต้องตรวจ ownership ก่อน release/ให้ผลรายตัว; atomic enqueue.
+
+**เกณฑ์ผ่านหลังแก้:** ส่งซ้อนต้องถูกปฏิเสธและไม่เพิ่ม ex; เมื่อภารกิจหนึ่งจบจึงส่งอีกได้; forced abandon/ตายกลางทางคืนสถานะถูกต้อง.
+
+### WORLD-05 · P1 · แผนที่ยุทธภพเสนอสมาชิกที่ถูกกักขังเป็นสมาชิกคณะเดินทาง
+**ความมั่นใจ:** ยืนยันการเลือกทีมผ่าน UI.atlasParty  
+**เส้นทาง:** UI.atlasParty ใช้ในแผนที่โดยตรง (ยังไม่ทดสอบคลิก)  
+**โค้ด:** `js/ui.js:5280–5289; js/ui.js:5502`  
+**ทดสอบ:** `WEXP-21A`
+
+**ต้นเหตุ:** UI.atlasParty ไม่ตรวจ jail / restricted / imprisoned ก่อน sort by power และเลือกศิษย์.
+
+**ผลที่เกิดจริง:** ตั้ง n.jail>W.t แล้ว UI.atlasParty ยังเลือกรายชื่อคนนั้น.
+
+**ผลกระทบลูกโซ่:** บทลงโทษคุกไร้ความหมาย → ผู้เล่นส่งกำลังสูงสุดข้ามข้อจำกัด → ประสิทธิภาพสงคราม/สำรวจผิด และ NPC activity ledger ไม่ตรงกัน
+
+**แนวแก้:** UI เรียก shared validator ตัวเดียวกับ simulation; แสดงเหตุผลที่เลือกไม่ได้และอย่าให้ status/UI ขัดกัน.
+
+**เกณฑ์ผ่านหลังแก้:** กักขังมีผลต่อ selector, action และ resolver; หลังปล่อยตัวเลือกได้อีกครั้ง.
+
+### WORLD-06 · P1 · ระบบวาสนาฟ้าดินเลือกผู้ถูกเนรเทศเป็นสมาชิกคณะเริ่มต้นได้
+**ความมั่นใจ:** ยืนยัน Node runtime ใน default route  
+**เส้นทาง:** route auto/default บน dispatchWorldAnomaly; ไม่ยืนยันปุ่ม UI ใช้ default เสมอ  
+**โค้ด:** `js/expedition.js:3166–3176; js/ui.js:2913–2920`  
+**ทดสอบ:** `WEXP-18`, `WEXP-21B`
+
+**ต้นเหตุ:** auto party กรอง dead/away/expId เท่านั้น ไม่กรอง exiled, jail หรือความเป็นสมาชิกสำนัก.
+
+**ผลที่เกิดจริง:** ตั้งตัวละคร exiled แล้วออกวาสนาฟ้าดินโดยไม่ระบุ party มี ID ของคนถูกเนรเทศใน expedition.
+
+**ผลกระทบลูกโซ่:** กฎเนรเทศพัง → ผู้เล่นยังใช้กำลังคนเดิมแข่งขันกับสำนักคู่แข่ง → ผลตำแหน่ง/บทลงโทษ/รางวัลไม่สอดคล้อง → world log ผิดสัญญา
+
+**แนวแก้:** ใช้ eligibility shared validator กับ default และ explicit; แยกว่าพรรคคู่แข่งกับพรรคผู้เล่นใช้ pool ไหน.
+
+**เกณฑ์ผ่านหลังแก้:** เนรเทศ/กักขัง/ไปภารกิจอื่นไม่ถูก auto-select และไม่มีผล reward; สมาชิกถูกต้องยังทำงานได้.
+
+### WORLD-07 · P2 · ค่ายพักสำนักที่ปิดใช้งานหรืออยู่คนละภูมิภาคยังช่วยฟื้นแรงสำรวจ
+**ความมั่นใจ:** ยืนยัน Node runtime + source  
+**เส้นทาง:** micro UI ผ่าน applyCampPerksToParty  
+**โค้ด:** `js/explore.js:8306–8313; js/sect.js:15095 เป็นต้นไป`  
+**ทดสอบ:** `WEXP-21F`
+
+**ต้นเหตุ:** หา outpost ตรงภูมิภาค active ไม่เจอแล้ว fallback เป็นรายการแรกใน byNodeId โดยไม่ตรวจ active/region.
+
+**ผลที่เกิดจริง:** outpost inactive ที่ NORTHERN_PEAKS ฟื้น energy 10→40 ให้ผู้สำรวจ EASTERN_PLAINS.
+
+**ผลกระทบลูกโซ่:** ลงทุน/ยึดพื้นที่ไม่จำเป็น → บัฟเดินทางฟรีข้ามโลก → จำกัด stamina/hazard ของการสำรวจถูกลดผลจริง → ความได้เปรียบระหว่างสำนักบิดเบือน
+
+**แนวแก้:** คืน null เมื่อไม่เจอ active outpost ใน region ที่กำหนด; ตรวจ active + region ซ้ำก่อน apply.
+
+**เกณฑ์ผ่านหลังแก้:** ค่าย inactive/off-region ไม่ให้โบนัสและคืน outpostApplied=null; ค่าย active ตรง region ยังคงได้ผล.
+
+### WORLD-08 · P2 · หนึ่งการสำรวจสร้างบันทึกพงศาวดารสองรายการ
+**ความมั่นใจ:** ยืนยัน Node runtime  
+**เส้นทาง:** micro UI, ไม่ใช้ quiet  
+**โค้ด:** `js/explore.js:8366–8378`  
+**ทดสอบ:** `WEXP-08`
+
+**ต้นเหตุ:** เรียก EXPED.recordChronicle และ W.chronicle.unshift อีกครั้งโดยใช้ cEntry เดียวกัน.
+
+**ผลที่เกิดจริง:** W.chronicle เพิ่ม 2 entries หลังสำรวจหนึ่งครั้ง.
+
+**ผลกระทบลูกโซ่:** ประวัติเกมซ้ำ → UI ชวนเข้าใจว่าภารกิจเกิดสองครั้ง → ขนาดเซฟ/ความหนาแน่น log โตเร็วขึ้นเมื่อ WORLD-01 ถูกกดซ้ำ
+
+**แนวแก้:** เลือกเจ้าของการเขียน chronicle เพียงเส้นทางเดียวและเก็บ eventId เฉพาะ; ระบบ UI อ่านจากจุดเดียว.
+
+**เกณฑ์ผ่านหลังแก้:** สำรวจหนึ่งครั้งมี chronicle 1 รายการและ event IDs ไม่ชน; save/load/refresh ไม่เติมซ้ำ.
+
+### WORLD-09 · P2 · API คณะสำรวจยอมรับวัตถุตัวละครที่ไม่ใช่สมาชิกโลกปัจจุบัน
+**ความมั่นใจ:** ยืนยัน direct API; ไม่พบหลักฐานผู้เล่นส่ง object ปลอมผ่าน UI ปกติ  
+**เส้นทาง:** การเรียก API ภายในด้วย object เท่านั้น  
+**โค้ด:** `js/explore.js:8294–8299; js/expedition.js:254–258`  
+**ทดสอบ:** `WEXP-05`, `WEXP-12`
+
+**ต้นเหตุ:** เชื่อ object ที่มีฟิลด์คล้าย NPC ไม่ verify identity ด้วย W.byId และ membership.
+
+**ผลที่เกิดจริง:** วัตถุ ID EXTERNAL_FAKE ได้ CP ใน micro; createParty จาก NPC อีกโลกผ่านการตรวจเบื้องต้น.
+
+**ผลกระทบลูกโซ่:** ส่วนเสริม/AI/UI script ใหม่ส่ง reference ผิด → เกิด reward ให้ object ลอย → บันทึก ID หาไม่เจอ ทำให้ผลเงียบหรือผิดข้ามเกม
+
+**แนวแก้:** รับ ID แล้ว resolve จาก W.byId เท่านั้น; ถ้ามี object ให้เทียบ === กับ canonical NPC ใน world.
+
+**เกณฑ์ผ่านหลังแก้:** foreign/stale object ต้อง reject ก่อน mutation; NPC เดียวกันใน W.byId ถูกต้องยังใช้ได้.
+
+### WORLD-10 · P2 · รหัสชนิดภารกิจผิดทำให้คณะถูกจองแล้วค่อยโยนข้อผิดพลาด
+**ความมั่นใจ:** ยืนยัน direct API negative input  
+**เส้นทาง:** API ภายใน; ไม่ใช่ action ปกติของผู้เล่น  
+**โค้ด:** `js/expedition.js:310–363 (โดยเฉพาะ 360–362)`  
+**ทดสอบ:** `WEXP-21E`
+
+**ต้นเหตุ:** X.MISSIONS[kind] ใช้ nameTh ใน logging ภายหลังสร้าง expedition และตั้ง expId โดยไม่ validate kind ก่อน.
+
+**ผลที่เกิดจริง:** ส่ง INVALID_KIND แล้วเกิด TypeError แต่ W.world.expeds มีภารกิจแล้วหนึ่งรายการและ n.expId ถูกตั้ง.
+
+**ผลกระทบลูกโซ่:** input/ข้อมูล mod ผิด → script throw → state กึ่งสำเร็จ → NPC ค้างภารกิจและ resolver ไม่รู้จะทำอะไร → save/softlock
+
+**แนวแก้:** validate kind/region/party ก่อนหักของหรือสร้าง ex; ทำ transaction rollback เมื่อ exception; structured failure.
+
+**เกณฑ์ผ่านหลังแก้:** invalid kind ไม่ throw, ไม่เพิ่ม ex, ไม่เปลี่ยน NPC/คลัง; งาน kind จริงยังเดินและจบถูกต้อง.
+
+### WORLD-11 · P2 · choiceId ที่ไม่มีจริงถูกแปลงเป็นตัวเลือกแรกและให้รางวัลโดยไม่แจ้ง
+**ความมั่นใจ:** ยืนยัน direct API negative input  
+**เส้นทาง:** crafted action/API; ปุ่มปกติมี choice ที่ถูกต้อง  
+**โค้ด:** `js/explore.js:8304–8305`  
+**ทดสอบ:** `WEXP-06`
+
+**ต้นเหตุ:** find(choice) || loc.choices[0] fallback แม้ caller ระบุ choiceId ชัดเจน.
+
+**ผลที่เกิดจริง:** ส่ง INVALID_CHOICE แล้วยอมรับ เลือก choice อื่น และแจก reward.
+
+**ผลกระทบลูกโซ่:** UI stale/migration/ปุ่มเสีย → ผู้เล่นได้รับผลที่ไม่ได้เลือก → เกิดข้อร้องเรียนและบันทึกที่ตีความผิด
+
+**แนวแก้:** ถ้าส่ง choiceId แล้วหาไม่เจอ ให้ return invalid-choice แบบไม่เปลี่ยน state; default ใช้เฉพาะไม่มี choiceId.
+
+**เกณฑ์ผ่านหลังแก้:** invalid choice ไม่เปลี่ยนเงิน วัตถุดิบ CP merit หรือ log และบอกสาเหตุ.
+
+### WORLD-12 · REVIEW · มาถึงวาสนาก่อนคู่แข่งเท่ากับชนะเสมอ แม้พลังศัตรูสูงมหาศาล
+**ความมั่นใจ:** ผลพฤติกรรมยืนยัน แต่กติกายังต้องให้ผู้ออกแบบยืนยัน  
+**เส้นทาง:** world anomaly contest algorithm; ทดสอบ branch immediate เฉพาะ API  
+**โค้ด:** `js/expedition.js:3229–3234`  
+**ทดสอบ:** `WEXP-20`
+
+**ต้นเหตุ:** wonContest = forceWin || arrivedBeforeRival || partyPower>=0.85*rivalPower (เป็น OR ไม่ใช่ AND).
+
+**ผลที่เกิดจริง:** ในเคส test คู่แข่ง power=1e12 แต่ early arrival ยัง won=true.
+
+**ผลกระทบลูกโซ่:** หากตั้งใจให้เป็นการแข่งขันความเร็ว ผลนี้สมเหตุสมผล; หากตั้งใจให้มีการต่อสู้แย่งสมบัติ ถือว่าข้ามด่านกำลังของศัตรู.
+
+**แนวแก้:** ยืนยันกติกา race vs combat ให้ชัด; ถ้าตั้งใจ race ให้บันทึกข้อความว่า "ถึงก่อน" และไม่เรียกว่า "ชนะการต่อสู้"; ถ้าต้องชนะศึกให้แยก contest phases.
+
+**เกณฑ์ผ่านหลังแก้:** เขียน test จากกติกาที่อนุมัติ ไม่เนิร์ฟก่อนยืนยันเจตนา.
+
+### WORLD-13 · REVIEW · พารามิเตอร์ immediate:true สามารถรับรางวัลวาสนาโดยไม่เดินทาง
+**ความมั่นใจ:** branch API ยืนยัน; ไม่พบ UI เรียก immediate:true  
+**เส้นทาง:** direct API/debug path เท่านั้น  
+**โค้ด:** `js/expedition.js:3178–3181, 3248–3285`  
+**ทดสอบ:** `WEXP-19`
+
+**ต้นเหตุ:** opts.immediate ข้าม enqueue/travel เพื่อ resolve ทันที.
+
+**ผลที่เกิดจริง:** เรียก API immediate:true ด้วย NPC ที่ถูกต้องแล้วได้เงินและ claimedBy=PLAYER โดยเวลาไม่ผ่าน.
+
+**ผลกระทบลูกโซ่:** ถ้าใช้เฉพาะเครื่องมือทดสอบไม่มีผลผู้เล่น; ถ้ามี UI/ปลั๊กอินเรียกผิดจะเป็นช่องลัดรับรางวัล.
+
+**แนวแก้:** จำกัด immediate เป็น internal test/debug พร้อม flag ตรวจสิทธิ์หรือแยก helper; ตรวจทุก callsites.
+
+**เกณฑ์ผ่านหลังแก้:** release UI/API ปกติไม่มีเส้นทาง bypass time; test harness ยังสร้างเหตุการณ์จำลองได้อย่างปลอดภัย.
+
+### WORLD-14 · REVIEW · คลังทรัพยากรโลกหมดศิลาแล้ว micro ยังสร้างรางวัลใหม่ได้
+**ความมั่นใจ:** ผลพฤติกรรมยืนยัน ไม่ทราบนิยาม world resource pool  
+**เส้นทาง:** micro UI + world economy coupling; แยกจาก AI อีกแชทที่กำลังตรวจเศรษฐกิจ  
+**โค้ด:** `js/explore.js:8315–8323`  
+**ทดสอบ:** `WEXP-09`
+
+**ต้นเหตุ:** resourcePool.stones = max(0, pool - reward) แต่ไม่ลด reward ตาม available; ECO.earn ได้จำนวนเต็ม.
+
+**ผลที่เกิดจริง:** resourcePool.stones=0 ยังได้ reward +180.
+
+**ผลกระทบลูกโซ่:** หาก resourcePool คือ finite supply จะเป็นการสร้างของจากศูนย์; หากเป็นเพียง world statistic หรือการเกิดหินใหม่อาจตั้งใจ.
+
+**แนวแก้:** ประสานนิยาม resourcePool กับทีมตรวจเศรษฐกิจ; ไม่ตัดสิน/แก้ด้านเศรษฐกิจโดยซ้ำงาน.
+
+**เกณฑ์ผ่านหลังแก้:** เขียน spec แล้วทดสอบ supply invariant เฉพาะเมื่อ model กำหนดว่าจำกัดจริง.
+
+## แผนผังผลกระทบลูกโซ่ (มองหลายระบบ)
+
+### เส้นทาง A: ปั๊มทรัพยากรและความก้าวหน้า
+
+`ปุ่ม micro-location` → `ไม่มีคูลดาวน์/เวลา/ต้นทุน` → `ศิลา+วัตถุดิบ+CP+merit` → `ปลดล็อกความก้าวหน้าและกำลังสำนักเร็วผิด` → `มีของเพียงพอไปทำอาวุธ/อุปกรณ์/ศึก/บูชา` → `การเติบโตระยะยาวเสียสมดุล` → `เซฟบันทึกผลลัพธ์แล้ว`.
+
+**วงจรย้อนกลับ:** หากของที่ได้เพิ่มความสามารถหรือความเร็วของคณะสำรวจ ก็จะยิ่งขยายผลลัพธ์; หลังแก้ต้องตรวจไม่ให้ของที่รับไปแล้วถูกทำซ้ำใน migration. ไม่สรุปค่าต้นทุนผลิตจริง เพราะอีกแชทตรวจเศรษฐกิจอยู่.
+
+### เส้นทาง B: จอง NPC สองภารกิจ
+
+`gather จอง NPC` → `world anomaly รับ NPC เดิมด้วย explicit party` → `expId ถูกเขียนทับ` → `ทั้งสอง ex ยัง pending` → `hourly settle สองรายการ` → `NPC กลับจากสองที่/รับผลซ้ำ` → `AI, patrol และประวัติตัวละครอ้างสถานะไม่ตรงกัน`.
+
+### เส้นทาง C: กฎวินัยและพื้นที่โลก
+
+`ศิษย์ถูกคุมขังหรือเนรเทศ` → `selector/dispatch กรองไม่ครบ` → `ศิษย์ลงพื้นที่ทั้งที่ไม่ควร` → `รับวาสนาและพลัง/คุณูปการ` → `บทลงโทษสำนักหมดความหมาย` → `ประวัติ/การแต่งตั้ง/กำลังป้องกันผิด`.
+
+`outpost ปิดใช้งาน/ผิดเขต` → `micro fallback firstOutpost` → `ฟื้น energy ฟรี` → `ความเสี่ยงและค่าใช้จ่ายสำรวจไม่สัมพันธ์กับการครอบครองพื้นที่`.
+
+## สิ่งที่ไม่ควรรีบเนิร์ฟ
+
+WORLD-12 (ถึงก่อนชนะ) อาจเป็นเกมแข่งขันด้านเวลาโดยตั้งใจ; WORLD-13 (immediate branch) เป็น API ที่อาจมีไว้ทดสอบและไม่มีหลักฐานปุ่มปกติใช้; WORLD-14 (คลังโลกทรัพยากรหมดแต่ยังแจก) ต้องยืนยันว่า resourcePool เป็น supply cap หรือ telemetry ก่อน. **ห้ามนับ REVIEW เป็นบัคยืนยัน**.
+
+## ผลการทดสอบ, ข้อจำกัดและการทำซ้ำ
+
+**ชุดทดสอบเพิ่ม:** `WORLD_EXPLORATION_REPRO_TESTS.js`, ผลเต็ม `WORLD_EXPLORATION_REPRO_RESULTS.json`, log `WORLD_EXPLORATION_REPRO_RUN_LOG.txt`.
+
+```bash
+GAME_SOURCE_ROOT=/path/to/your/extracted/GAME_SOURCE node WORLD_EXPLORATION_REPRO_TESTS.js
+```
+
+`REPRO` ใน log หมายถึง behavior ที่กรณีนั้นออกแบบให้ตรวจเกิดขึ้นจริง **รวม control ที่ควรทำงานถูก**. 30 checks ไม่ใช่ 30 บัค; กรณี 21 และ 22 เป็น control ที่ยืนยันการปฏิเสธคนตาย/การ claim ซ้ำว่าใช้งานถูก. สคริปต์มีผลเมื่อใช้ source ZIP ที่ระบุเท่านั้น; หลัง AI แก้แล้ว regression negative test บางข้อควรเปลี่ยนคาดหวังจากอาการผิดเป็นการปฏิเสธที่ถูกต้อง.
+
+**Regression เดิมผ่าน 6 ชุด (exit 0):** `exploration_replay.js`, `world_atlas.js`, `v400_living_frontier_and_sect_charter_suite.js`, `v218_world_map_hegemony_beasts_suite.js`, `wild_resources.js`, `v350_macro_world_politics_and_alchemy_suite.js`; log `WORLD_EXPLORATION_REGRESSION_LOG.txt`. เทสต์เดิมไม่ครอบคลุมการกด micro ซ้ำทันทีและการจอง NPC ซ้อน.
+
+**Browser limitation:** `WORLD_EXPLORATION_BROWSER_E2E_BLOCKED.json` บันทึก Playwright ไปยัง `localhost` ถูก `ERR_BLOCKED_BY_ADMINISTRATOR`. ยืนยันเส้นทาง UI จาก source callsite เท่านั้น ไม่อ้างว่าทดสอบคลิกจริง.
+
+**ขอบเขตที่ยังไม่รับรอง:** การเดินต่อจริง 30/180 วันหลังแก้, stress test 1,000 NPC, platform/mobile GUI, cross-version migration, multiplayer (ไม่ได้สมมติว่ามี), UI ซ่อนทั้งหมด, และผลด้านเศรษฐกิจซึ่งอีกแชทกำลังตรวจ.
+
+## ลำดับการแก้ที่แนะนำให้ Coding AI
+
+1. **Blocker ก่อนปล่อย:** WORLD-01 ให้มี contract ด้านเวลา/คูลดาวน์และจ่าย reward ครั้งเดียวต่อ activity ที่ถูกต้อง.
+2. **แก้ต้นทาง:** WORLD-02/03/04/05/06 สร้าง validator/party reservation กลางที่ทั้ง UI, EXPLORE และ EXPED ใช้ร่วมกัน; ทดสอบ negative paths ทุก entry point.
+3. **ข้อมูลถูกต้อง:** WORLD-07/08/09/10/11 และการ rollback ก่อนแก้สถานะ.
+4. **Design approval:** WORLD-12/13/14 ยืนยันกติกาก่อนเปลี่ยน behavior.
+5. **Release validation:** รัน Node regression ใหม่ทั้งหมด + UI E2E บนอุปกรณ์ที่อนุญาต Chromium + long-run 30/180 วัน + ตรวจเซฟเกมหลัง activity ค้างและเมื่อ NPC ตาย/เนรเทศ.
+
+## ระบบที่ควรตรวจเจาะลึกต่อไป
+
+**หมวดแนะนำอันดับหนึ่ง: AI NPC อิสระ ความต้องการ บุคลิก ความสัมพันธ์ อาจารย์–ศิษย์ และการเลือกกิจกรรม**. เหตุผล: เชื่อมชีวิต NPC การออกภารกิจ การตาย การดำเนินงานสำนัก ศึก และความสม่ำเสมอของเรื่องราว โดยยังไม่มีรายงานหมวดเฉพาะใน ZIP นี้. หลังจากนั้นควรตรวจ **UI จริง/Accessibility/อุปกรณ์มือถือ** และ **ระบบเกิดเหตุการณ์โลก/RNG ระยะยาว**.
+
+## Source integrity (ไฟล์ต้นฉบับไม่ถูกแก้)
+
+- `js/explore.js` SHA256 `d54aff02699bfc9b53a94284be3f35ad1ecb0474513c1c415ca27d559fc012fb`
+- `js/expedition.js` SHA256 `d2a4b6ea7e0b2b99f393cb210da73368fe787d0cd3a84ce79548c8d9b2aa3791`
+- `js/ui.js` SHA256 `783690d382de050fb44b14fc2e47aa4857d5155a36f5a6c8b336d1e3de756113`
+- `js/human_core.js` SHA256 `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`
+
+*ผู้ตรวจ: ChatGPT · รายงานเพื่อส่งต่อ Coding AI · ไม่ได้ยืนยันว่าแพตช์พร้อมปล่อย*
+
+
+---
+
+### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / AUDIT/02_DETAILED_FINDINGS_TH.md
+
+# 02 — รายละเอียดข้อค้นพบ พร้อมจุดอ้างอิงและการทดสอบ
+
+ความหมาย: **UI_TO_SERVICE** = พบ action UI และทดสอบ API ที่ UI เรียก (ยังไม่ใช่ browser click test); **API_ONLY** = เรียก function ตรงผ่าน Node; **SAVE_CROSS_SYSTEM** = พิสูจน์ผล serialize/load; **DESIGN_REVIEW** = ต้องยืนยันสเปกก่อนชี้ว่าผิดแน่. P0 = release blocker ตามผลกระทบ. จำนวนที่พบไม่ใช่จำนวน bug exploit ผ่าน UI ทั้งหมด.
+
+## ECON-001 · P0 / RELEASE BLOCKER — คาราวานผลิตศิลาวิญญาณและรางวัลคนคุ้มกันโดยไม่ใช้สินค้า/เวลา
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `UI_TO_SERVICE`
+- **จุดโค้ด:** `js/ui.js:1387-1395; js/sect.js:8965-9055`
+- **ชื่อเคสทดสอบ:** `UI_CARAVAN_REPEAT_MONEY; CARAVAN_SAVE_PERSISTENCE`
+
+**หลักฐานและสาเหตุ:** UI เรียก dispatchTradeCaravan(...,{force:true}) โดยตรง; ฟังก์ชันจ่ายรายรับทันทีและบันทึก COMPLETED, ขณะไม่มี debit สินค้า, ไม่มีต้นทุนคาราวาน, cooldown, การเดินทางหรือเหตุการณ์สำเร็จปลายทางในเส้นทางนี้; จัดปาร์ตี้เพิ่ม merit/CP/ตบะทุกครั้ง. สคริปต์แสดงรายได้จากการเรียกสองครั้งในวันเดียวโดยไม่เปลี่ยนจำนวนชนิด stock; ตัวเลขขึ้นกับ seed (รอบก่อนพบ +434 สองครั้ง; สคริปต์ล่าสุด +440 สองครั้ง)
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** กดคาราวานซ้ำ → ศิลาสำนักเพิ่มจากศูนย์ → จ่ายซื้อสินค้า/จ้าง/คราฟต์ได้ไม่จำกัดตามการกด → ความขาดแคลนและราคาสูญความหมาย → CP+merit+cultExp จากการคุ้มกันเพิ่มตาม → ข้ามข้อจำกัดการเติบโต/ความสัมพันธ์สำนักคู่ค้า → เงินผิดปกติคงอยู่หลังเซฟ
+
+**แนวทางแก้ที่เสนอ:** สร้าง order lifecycle: เลือกสินค้าและจำนวนพร้อมตรวจคลัง/จองสินค้าจริง, ล็อก NPC เดินทาง, หน่วงเวลาและประเมินความเสี่ยงระหว่างทาง, จ่ายเงิน+CP/merit ณ COMPLETE เพียงครั้งเดียว, ตรวจ idempotency; ถ้าต้องการนามธรรมแบบ instant ให้มีต้นทุนทรัพยากรและ quota/cooldown ที่มีนัย
+
+**เกณฑ์ตรวจรับหลังแก้:** กด UI 2 ครั้งติดกันต้องไม่รับเงิน/CP ซ้ำโดยไม่มี order ใหม่ที่ใช้ทรัพยากรและผ่านกติกา; stock/ledger/audit trail ตรง; save/load ก่อน–หลัง COMPLETE ไม่รับซ้ำ
+
+---
+
+## ECON-002 · P0 / RELEASE BLOCKER — ราชโองการสร้างยาและอาหารแม้เงิน 0 และกดซ้ำได้
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `UI_TO_SERVICE`
+- **จุดโค้ด:** `js/ui.js:1418-1425; js/sect.js:9541-9618`
+- **ชื่อเคสทดสอบ:** `UI_EDICT_FREE_STOCK`
+
+**หลักฐานและสาเหตุ:** หากเงินไม่พอหรือเกิน budget cap, เงื่อนไขหักเงินจะถูกข้าม แต่ ECO.add อยู่หลัง if และทำงานต่อ; batch heal/qi ไม่หักสมุนไพร และ meal ไม่หัก grain; UI ส่ง force:true ทำให้ไม่ยึด quota ของคงคลัง. ทดสอบที่เงิน 0 สามครั้ง: +12 โอสถรักษา, +12 โอสถปราณ, +36 อาหาร
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** ฟรียา/อาหาร → ค่าบาดเจ็บและการขาดแคลนอาหารถูกลบล้าง → NPC ดำรงชีวิตและฝึกต่อได้โดยไม่ต้องเก็บเกี่ยว → ราคาตลาดและความเสี่ยง expedition ต่ำลง → แรงงานและพัฒนาสำนักเร่งขึ้น → ระบบเงินและวัตถุดิบไม่มีข้อจำกัด
+
+**แนวทางแก้ที่เสนอ:** ใช้ transactional `reserveInputs + spend + commitOutputs`, ตรวจ budget ก่อนเพิ่มสินค้า, ต้นทุนสมุนไพร/ข้าว/แรงงาน/เวลา, จำกัดจังหวะประมวลผลตาม tick/รอบนโยบาย; UI force หมายถึงตรวจโควตาใหม่ได้ ไม่ใช่บังคับผลิตฟรี
+
+**เกณฑ์ตรวจรับหลังแก้:** เงิน 0 + สต็อกวัตถุดิบ 0 ต้องผลิต 0; กดซ้ำต้องได้ผลตาม quota และช่วงเวลา; กรณี budget ไม่พอห้ามเพิ่มสินค้า; ประวัติ spentStones ตรงเงินหักจริง
+
+---
+
+## ECON-003 · P0 / RELEASE BLOCKER — ฝังรูนซ้ำโดยไม่มีต้นทุน/จำนวนครั้งจำกัด เพิ่ม modifier ต่อเนื่อง
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `UI_TO_SERVICE`
+- **จุดโค้ด:** `js/ui.js:1739-1763; js/economy.js:2494-2528`
+- **ชื่อเคสทดสอบ:** `UI_RUNE_REPEAT_NO_COST`
+
+**หลักฐานและสาเหตุ:** UI มีคำสั่ง socket-elemental-runes เรียก ECO.socketElementalRunes, สร้าง skillModifiers ใหม่ทุกครั้ง ไม่มีการหักวัสดุหรือเงิน และไม่มีเงื่อนไขปฏิเสธรูนซ้ำ; ผลรัน modifier เพิ่ม 0→2 ทั้งที่ stockTotal และ stones เท่าเดิม. ยังไม่ได้พิสูจน์ตัวคำนวณดาเมจว่า stack ทุก modifier หรือไม่
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** ทำรูนไร้ต้นทุนซ้ำ → modifier สะสมในอุปกรณ์ → *อาจ* เพิ่มพลังต่อสู้หากระบบต่อสู้รวม modifier → บาดเจ็บน้อย/ล่าเร็ว/ของดรอปมาก → เศรษฐกิจเสียสมดุล; แม้ combat dedupe ก็ยังเสี่ยง save บวมและ UX แสดงไม่ตรง
+
+**แนวทางแก้ที่เสนอ:** กำหนด recipe/rune item ที่ถูกใช้จริง, จำนวนช่องและ overwrite/upgrade policy; dedupe ตาม reaction id, ตรวจขีดจำกัด, ตัดสินผลครั้งเดียว; ให้ AI ทีมอุปกรณ์ตรวจ downstream damage stacking
+
+**เกณฑ์ตรวจรับหลังแก้:** เรียกฝังรูนเดิมซ้ำต้องไม่เพิ่ม modifier และไม่ใช้เงินซ้ำเมื่อปฏิเสธ; ฝังรูนใหม่ต้องหักต้นทุน, ผ่าน cap และ save/load modifiers คงที่
+
+---
+
+## ECON-004 · P1 — กระดานค่าหัวรับรางวัลทันทีโดยไม่ต้องล่า/ต่อสู้
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `UI_TO_SERVICE`
+- **จุดโค้ด:** `js/ui.js:1920-1923; js/sect.js:14259-14316`
+- **ชื่อเคสทดสอบ:** `UI_BOUNTY_INSTANT_PAYOUT`
+
+**หลักฐานและสาเหตุ:** คำสั่ง UI claim-bounty-hunt เรียก claimBountyHunt, ในฟังก์ชันไม่มีด่านออกภารกิจ ระยะเวลา Combat สำเร็จหรือความสามารถผู้ล่า; จ่ายเงินจาก world.resourcePool จริงและเพิ่ม CP/merit/ตบะทันที พร้อมสร้างนักโทษ. ทดสอบกดรับสองค่าหัวในวันเดียวได้ 380+480 ศิลา, CP ผู้ล่า +60; ไม่ใช่สินทรัพย์ไม่มีเพดานเพราะรายการค่าหัวมีจำนวนจำกัด
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** กดค่าหัว → รายได้และ CP โดยไม่มีความเสี่ยง → การทะลวง/ปลดล็อกเร็วขึ้น → ได้เชลยโดยข้ามฉากต่อสู้ → วงจรงานผู้คุม/จัดการเชลยและชื่อเสียงถูกเร่ง; world.resourcePool ถูกตัดจริงดังนั้นอาจทำให้เศรษฐกิจ NPC โลกขาดเงินเร็วกว่าตั้งใจ
+
+**แนวทางแก้ที่เสนอ:** แยก ACCEPT → ASSIGN HUNTER → DEPART → RESOLVE COMBAT/CHASE → CLAIM, ตรวจผลล่าจริงและความเสี่ยง, กัน claim ซ้ำ; ถ้าเป็น narrative auto-resolve ต้องมีเวลาต้นทุน/ความเสี่ยงและเกณฑ์ power
+
+**เกณฑ์ตรวจรับหลังแก้:** คลิก Claim โดยไม่มีหลักฐาน RESOLVED ห้ามเพิ่มเงิน CP เชลย; ดำเนินภารกิจเสร็จแล้วรับได้เพียงครั้ง; ตรวจ worldPool debit และ save/load
+
+---
+
+## ECON-005 · P1 — หลอมโอสถสองระยะได้โดยไม่มีสมุนไพรจริง
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `UI_TO_SERVICE`
+- **จุดโค้ด:** `js/ui.js:1930-1933; js/economy.js:2437-2479`
+- **ชื่อเคสทดสอบ:** `SPECIALTY_PILL_UNDERPAY_AND_MISSING_HERB`
+
+**หลักฐานและสาเหตุ:** ค่าเริ่มต้น herbCost=2 แต่เงื่อนไขหักสมุนไพร `if herbCost>0 && count(W,"herb")>=herbCost` ทำให้ไม่มี herb ก็ข้ามการหักแล้ว ECO.add ยาได้; คลังหลักใช้รหัสสมุนไพรหลายชนิด, ไม่จำเป็นมี item generic herb. ทาง UI เรียกด้วย opts default จึงได้รับผลด้วยหากมีศิลาพอ; สคริปต์พิสูจน์กรณี herbCost=100 และคงคลัง herb=0
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** ยาจากศิลาโดยไม่มีวัตถุดิบ → demand สมุนไพรจริงไม่เกิด → เก็บเกี่ยว/ขายสมุนไพรไร้ค่า → potion supply เพิ่ม → ลด mortality/เพิ่ม CULT gain → ราคาและเป้าหมาย NPC แปรปรวน
+
+**แนวทางแก้ที่เสนอ:** ให้สูตรระบุ material IDs ที่มีจริง, ตรวจและหักวัตถุดิบแบบ atomic ร่วมกับ stoneCost; หากไม่มีวัตถุดิบต้อง fail ก่อนหักเงิน, ไม่ใช้ generic herb ที่ไม่มีแหล่ง
+
+**เกณฑ์ตรวจรับหลังแก้:** ในโลกที่มีเงินพอแต่ไม่มีวัตถุดิบต้อง return insufficient-inputs และยาไม่เพิ่ม; มีวัตถุดิบครบต้องหักตรงตาม recipe ทั้งเงินและวัสดุ
+
+---
+
+## ECON-006 · P1 — หลอมโอสถหลายเม็ดด้วยค่าครั้งเดียวและรับราคาที่ caller ส่งเอง
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `API_ONLY`
+- **จุดโค้ด:** `js/economy.js:2451-2479`
+- **ชื่อเคสทดสอบ:** `SPECIALTY_PILL_UNDERPAY_AND_MISSING_HERB`
+
+**หลักฐานและสาเหตุ:** `opts.qty` ใช้เพิ่ม ECO.add แต่ `stoneCost/herbCost` ใช้ต้นทุนต่อการเรียก ไม่คูณ qty และเป็นราคาที่ caller กำหนด. ทดสอบ `{qty:5,stoneCost:1,herbCost:100}` ได้ยา 5 เสียเงิน 1 และไม่หักสมุนไพร; **UI ปกติส่งแค่ pillId และไม่ได้แสดงปุ่มปรับ qty/cost** จึงเป็นช่องโหว่ service API หรือ extension มากกว่าสาธิตได้ทาง UI
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** caller อื่นหรือ future feature กำหนด qty สูง → สร้างยาปริมาณมากในราคาเดิม → stock เกินอุปสงค์ → ต้นทุนการฝึกและบาดเจ็บลด → ระบบ trade/crafting บิดเบือน
+
+**แนวทางแก้ที่เสนอ:** ห้าม trust ราคาจาก caller; คำนวณ server/game-domain quote จากสูตรและจำนวนที่ตรวจเป็น safe int 1..limit, ตรวจวัตถุดิบรวม, charge total before mint, transaction receipt once
+
+**เกณฑ์ตรวจรับหลังแก้:** การผลิต 5 ต้องหัก 5 เท่าหรือสูตร batch ที่กำหนดชัด; qty 0/-1/NaN/Infinity ต้อง fail; callback retry ห้ามผลิตซ้ำ
+
+---
+
+## ECON-007 · P1 — คลังศิลาจ่ายค่าติดลบ/NaN ได้จนยอดเงินผิด
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `API_ONLY`
+- **จุดโค้ด:** `js/economy.js:126-128`
+- **ชื่อเคสทดสอบ:** `TREASURY_NEGATIVE_AND_NONFINITE`
+
+**หลักฐานและสาเหตุ:** `ECO.pay` ตรวจเพียง `W.sect.stones < amt` และลบ amt ตรง ๆ: pay(-50) เพิ่มเงิน +50; pay(NaN) ผ่าน check แล้วทำให้ยอดเป็น NaN; ECO.earn ก็ไม่ตรวจ finite/negative. ต้องหา caller รับ input จากผู้เล่นอีกครั้ง จึงจัด API-only
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** caller ใดก็ตามส่ง amt ผิด → ศิลาสำนักเพิ่มฟรีหรือ NaN → งบทั้งหมดใช้ไม่ได้หรือการตรวจความพอเงินถูก bypass → UI/AI ตัดสินใจผิด → เซฟเสีย
+
+**แนวทางแก้ที่เสนอ:** รวม function `validateCurrencyAmount` Number.isSafeInteger/finite >0, จำกัดการโอนและตรวจยอดก่อน–หลัง; return false ไม่มี side effect หากผิด; ป้องกันใน `ECO.earn` และทุก sink/source; มี ledger ID ซ้ำและ reconciliation
+
+**เกณฑ์ตรวจรับหลังแก้:** pay(-50/NaN/Infinity/0) ต้อง false โดยไม่แก้ ledger, earn ค่าผิดต้อง false, balance คง finite nonnegative; ใช้ property-based test รอบ boundary
+
+---
+
+## ECON-008 · P1 — ยอดศิลา NaN ถูก JSON serialize เป็น null และกู้เซฟแล้วการจ่ายเงินผิด
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `SAVE_CROSS_SYSTEM`
+- **จุดโค้ด:** `js/economy.js:126-128; js/sim.js (serialize/deserialize)`
+- **ชื่อเคสทดสอบ:** `TREASURY_SAVE_AFTER_NAN`
+
+**หลักฐานและสาเหตุ:** รันจ่าย NaN แล้ว SIM.serialize ทำให้ `sect.stones` ใน JSON กลายเป็น null; SIM.deserialize กลับเป็น null และ `ECO.pay(10)` return false. เป็นการทดสอบผลข้ามระบบของ ECON-007 จัดรายการแยกเพราะเกี่ยวกับข้อมูลผู้เล่นระยะยาว
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** ผิดพลาดชั่วคราวในยอดเงิน → เซฟคงค่า null → โหลดกลับไม่สามารถซื้อหรือคราฟต์ → ผู้เล่นติดทางตัน → ข้อมูล ledger และการเงินย้อนหลังอธิบายไม่ได้
+
+**แนวทางแก้ที่เสนอ:** แก้ต้นตอ ECON-007 และเพิ่ม save-validation ก่อน serialize / load migration validation: ตรวจ finite nonnegative, เขียนนโยบายซ่อมค่าผิดอย่างระมัดระวัง (backup แจ้งผู้เล่น/หลักฐาน) ห้ามแก้ยอดเป็น 0 เงียบ ๆ
+
+**เกณฑ์ตรวจรับหลังแก้:** เซฟหลังทุกธุรกรรมต้อง stones เป็น number finite; ปฏิเสธเซฟ/เตือนเมื่อ invariant แตก; regression save/load ทั้งก่อนและหลังจ่ายเงินที่ถูกต้อง
+
+---
+
+## ECON-009 · P1 — การแลก CP เป็นศิลาส่วนตัวเชื่อราคาและจำนวนศิลาที่ caller ระบุ
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `API_ONLY`
+- **จุดโค้ด:** `js/cpeco.js:407-426`
+- **ชื่อเคสทดสอบ:** `CP_STONE_GRANT_FORGED_QUOTE_API`
+
+**หลักฐานและสาเหตุ:** `CPE.buy` สำหรับ `stone_grant` รับ p.stones/p.price ตรง ๆ ต่างจาก pill/gear ซึ่งคำนวณ quote ในฟังก์ชัน; ทดสอบให้ 1000 ศิลาในราคา 1 CP โดยสำนักถูกหัก 1000. `pickPurchase` ปกติให้ราคา/เพดานถูกต้อง จึงยังไม่พบ UI กำหนด quote เอง
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** หาก caller ภายใน/ม็อดส่งค่า forged → CP ต้นทุนต่ำแต่ย้ายทรัพย์สินออกจากสำนักมาก → ความมั่งคั่งตัวบุคคลเพิ่มสวนกับคลัง → เกิดอุปสรรคทางการเงินกับงานสำนักและ NPC อื่น
+
+**แนวทางแก้ที่เสนอ:** คำนวณ grantAmount และ price ใน CPE.buy เองจาก source-of-truth/เงื่อนไข track พร้อม bounded caps, cross-check quote; ใช้ atomic transfer stones และ CP, audit both parties
+
+**เกณฑ์ตรวจรับหลังแก้:** p.price=1 p.stones=1000 ต้องถูก reject หรือบังคับ quote ใหม่; ปกติ pickPurchase ยังทำงานและ balances/CP ledger ตรงกัน
+
+---
+
+## ECON-010 · P1 — API หลอมโอสถผสานธาตุสร้างไอเทมจริงโดยไม่หักทรัพยากร
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `API_ONLY`
+- **จุดโค้ด:** `js/economy.js:2389-2427; js/economy.js:2437-2448`
+- **ชื่อเคสทดสอบ:** `FUSION_PILL_ZERO_COST_API`
+
+**หลักฐานและสาเหตุ:** ECO.brewMultiphaseElementalPill เพิ่ม definition และ ECO.add(W,pill.id,1) โดยไม่มี ECO.pay/take; brewMultiPhaseSpecialtyPill array หรือ fallback เรียกผ่านได้. มีฤทธิ์ heal/qi/cultExp/buff, จึงเป็น item economic impact ไม่ใช่แค่ catalog; ยังไม่พบ UI ปกติเรียก array-form
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** อนาคต/AI ที่เรียก API → รับโอสถบัฟ+ตบะฟรี → ระบบคืน HP/พัฒนาฝึกเร็ว → ตลาดโอสถและวัสดุถูกแทน → อาจกระทบการต่อสู้และ progression
+
+**แนวทางแก้ที่เสนอ:** แยก `registerPillDefinition` ที่ไม่เกิด stock จาก `craftFusionPill` ที่ตรวจสูตร+วัตถุดิบ+ฝีมือ+ขั้นตอน และการจ่าย output เพียงครั้งเดียว; ป้องกัน free flag เฉพาะ debug
+
+**เกณฑ์ตรวจรับหลังแก้:** เรียก API ไม่มีสูตร/ต้นทุนต้องไม่เพิ่มยา; craft ด้วย recipe จริงหักวัตถุดิบตรง; catalog registration ไม่เปลี่ยนคลัง
+
+---
+
+## ECON-011 · P1 — รางวัล CP จากคาราวานและค่าหัวเพิ่มให้ NPC โดยไม่บันทึก minted accounting
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `CROSS_SYSTEM_ACCOUNTING`
+- **จุดโค้ด:** `js/sect.js:9007-9012; js/sect.js:14288-14295; js/cpeco.js (state minted)`
+- **ชื่อเคสทดสอบ:** `UI_CARAVAN_REPEAT_MONEY; UI_BOUNTY_INSTANT_PAYOUT`
+
+**หลักฐานและสาเหตุ:** ระบบคาราวาน/ค่าหัวเพิ่ม `npc.cp += 18/30` โดยตรง แต่ตัวนับ CPE.S(W).minted ไม่เพิ่มตาม (พิสูจน์จากสคริปต์). จำนวน CP ในกระเป๋าและ CP minted รวมจึงไม่ถูก trace เป็น ledger เดียวกันแม้ยอด CP ผู้เล่นเปลี่ยนจริง. อาจเป็นข้อยกเว้น design แต่ต้องระบุอย่างชัดเจน
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** CP สร้างโดยเส้นทางข้างเคียง → ไดนามิก scarcity/price ของ CP ไม่สะท้อนรายได้จริง → NPC จ่ายเรียน/อบรม/ซื้อสินค้าเร็วกว่าแบบจำลอง → เงิน/ของไหลข้ามสำนักต่างจาก economic model → วัด balance ผิด
+
+**แนวทางแก้ที่เสนอ:** กำหนด CPE.awardCp(W,n,amt,cause) จุดเดียวสำหรับทุกการ mint, reason typed + idempotency key, นำ reward ทั้งหมดเข้าระบบ accounting; หาก minted counter ตั้งใจนับเฉพาะรางวัล AI ให้ rename และแยก totalMinted กับ categoryMinted
+
+**เกณฑ์ตรวจรับหลังแก้:** รางวัล CP ทุกช่องทางเพิ่มยอดรวม minted เท่ากับ CP ที่แจก; simulate CP wallet conservation minus burns/legacy adjustments; save/load retains audit
+
+---
+
+## ECON-012 · P2 — ใช้โอสถในคลังเป็นศูนย์แล้วยังได้ผลฟื้นฟู/ตบะ
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED`
+- **ทางเข้าถึง:** `API_ONLY`
+- **จุดโค้ด:** `js/economy.js:2530-2585`
+- **ชื่อเคสทดสอบ:** `CONSUMABLE_OUT_OF_STOCK_API`
+
+**หลักฐานและสาเหตุ:** กรณีไอเทมปกติ หาก count==0 จะไม่เรียก ECO.take แต่ทำ effect ต่อ และ return ok. ทดสอบ ITEM_V234_PILL_001 ไม่มี stock ทำ NPC.hp จาก 1 เพิ่มขึ้นอย่างมีนัย. ยังไม่ยืนยันว่า UI เส้นทางหลัก/AI NPC ส่ง itemId โดยไม่ตรวจ stock เองหรือไม่
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** หาก caller ลืม precheck → NPC ใช้ยาไม่มีของ → HP/qi/ตบะฟรี → ดุลการตาย/บาดเจ็บ/กิจกรรม NPC ผิด; นโยบาย gear vs potion ใกล้กันแต่ความเสี่ยงข้ามระบบสูง
+
+**แนวทางแก้ที่เสนอ:** ตรวจ ECO.count และ ECO.take===true ก่อน effect ทุกประเภท (รวม talisman multi-charge/owner inventory), เว้น free ผ่าน internal authorization สำหรับ event-specific; verify precheck caller ไม่พอ
+
+**เกณฑ์ตรวจรับหลังแก้:** ไม่มี stock และไม่มี authorized free ต้อง return out-of-stock ไม่มี effect, no cultivation/buff, no oath change; consume 1 ก่อน apply; charged talisman ถูกต้อง
+
+---
+
+## ECON-013 · P2 — เปิดฤดูกาลประมูลซ้ำทับ activeLots แม้อยู่ฤดูกาลเดิม
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED_DESIGN_REVIEW`
+- **ทางเข้าถึง:** `API_ONLY`
+- **จุดโค้ด:** `js/sect.js:9058-9120; js/sect.js:14321-14332`
+- **ชื่อเคสทดสอบ:** `AUCTION_REOPEN_RESET_API`
+
+**หลักฐานและสาเหตุ:** openSeasonalAuction เพิ่ม seq และตั้ง activeLots ใหม่ทุกครั้ง; ในการทดลอง lot ที่ WON_BY_PLAYER หายจาก activeLots เมื่อเปิดซ้ำในฤดูกาลเดียว. หากรายการชัยชนะและสินค้าส่งมอบถูกเก็บที่อื่นอาจเป็นพฤติกรรมตั้งใจ; ต้อง trace settlement/collection และ black-market UI ก่อนฟันธงข้อมูลหาย
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** reopen ก่อนรับรางวัล/ของค้าง → UI อาจหา lot ไม่พบ → ผู้เล่นเสียเงินแต่ไม่ได้ของหรือประวัติที่อธิบายได้; การเปิดตลาดมืดเรียก openSeasonalAuction อาจเร่งผลหากไม่ guard
+
+**แนวทางแก้ที่เสนอ:** เก็บ settled + claimable lots แยกจาก activeLots, unique auction event id และ season gate; ป้องกัน reopen same season ที่ไม่ใช่ admin reset; สร้าง test ของ item delivery และ retry
+
+**เกณฑ์ตรวจรับหลังแก้:** เปิดซ้ำในฤดูกาลเดิมต้องไม่ลบ lot ที่ยังมีเงิน/สิทธิ์รับ; สินค้า+เงินตาม bid ledger reconcile 100%; save/load auction in-progress
+
+---
+
+## ECON-014 · P2 — สัญญาปริมาณ stock ไม่ชัดเจน: ค่าทศนิยมและ take(0) ทำให้ sequence เปลี่ยน
+
+- **สถานะหลักฐาน:** `RUNTIME_CONFIRMED_DESIGN_REVIEW`
+- **ทางเข้าถึง:** `API_ONLY`
+- **จุดโค้ด:** `js/economy.js:107-124`
+- **ชื่อเคสทดสอบ:** `STOCK_QUANTITY_CONTRACT_API`
+
+**หลักฐานและสาเหตุ:** ECO.add(W,"grain",1.5) สำเร็จ และ ECO.take(W,"grain",0) สำเร็จพร้อมเพิ่ม _stockSeq แม้ไม่มีการลดจริง. สินค้าบางชนิดอาจตั้งใจนับหน่วยเศษส่วนได้ ดังนั้นไม่สรุปว่า 1.5 เป็นบัคทุกสินค้า; แต่ zero-spend ส่งผลต่อ cache invalidation/การตัดสินใจ AI ที่อิง stockSeq
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** input จากสูตร/การค้าขัด schema → stock ทศนิยมของของนับเป็นชิ้น → serialize/render ผิด → cache stockSeq เปลี่ยนโดยไร้เหตุ → performance/AI re-plan บ่อย
+
+**แนวทางแก้ที่เสนอ:** กำหนด unit policy ต่อ material, จำนวนเต็มสำหรับยาหรือไอเทมที่นับชิ้น, return false for take(0) หรือ no-op without seq increment, schema validation ทั้ง trade/craft
+
+**เกณฑ์ตรวจรับหลังแก้:** take(0) ต้องไม่แก้ stock/seq; สำหรับ integer-only item ปฏิเสธเศษส่วน; commodity fractional เฉพาะชนิดที่ออกแบบให้รองรับ
+
+---
+
+## ECON-015 · P2 — แทนที่งานคราฟต์ของ NPC ลบใบจองเดิมพร้อมวัตถุดิบโดยไม่มีคืน
+
+- **สถานะหลักฐาน:** `STATIC_REVIEW_ONLY`
+- **ทางเข้าถึง:** `DESIGN_REVIEW`
+- **จุดโค้ด:** `js/economy.js:287-309; test/craft_transactions.js`
+- **ชื่อเคสทดสอบ:** `ไม่มี repro ใหม่; test/craft_transactions.js ยืนยัน behavior intentionally no refunds`
+
+**หลักฐานและสาเหตุ:** registerCraft ลบ ledger.open ของงานเดิมเมื่อ NPC เริ่มงานใหม่และไม่คืนวัตถุดิบ; ชุดทดสอบเดิมระบุว่าตั้งใจให้เสียเป็นค่า interrupted receipt แต่สำหรับผู้เล่นที่สั่งงานผิด/AI เปลี่ยนงานเองอาจถูกมองว่าไอเทมหาย ไม่มี log/UX แสดงต้นทุนสูญเสียชัดเจน. ไม่ใช่บัคยืนยันตามสเปกปัจจุบัน
+
+**ผลต่อระบบอื่นแบบลูกโซ่:** เปลี่ยนคำสั่งผลิตเพราะ NPC เลือกงานใหม่ → วัตถุดิบหาย → อุปกรณ์/โอสถไม่เสร็จ → ขาดวัตถุดิบคราฟต์ซ้ำ/เงินหมด → ผู้เล่นเข้าใจว่าเซฟหรือคลังผิด
+
+**แนวทางแก้ที่เสนอ:** ให้เจ้าของเกมเลือกว่า loss ถือเป็นต้นทุนความล้มเหลวหรือคืนบางส่วน; หากคงไว้ต้องมี cancellation reason, log ใน UI, warning และ AI policy ป้องกัน thrash; อย่าแก้ให้คืนฟรีโดยละเลย arbitrage
+
+**เกณฑ์ตรวจรับหลังแก้:** เมื่อเปลี่ยนงานต้องมีผล deterministic ชัดเจน, UI บอกเหตุผลและจำนวนวัตถุดิบที่สูญ, NPC ไม่วนสั่งเปลี่ยนงานจน resource leak; tests preserve agreed rule
+
+---
+
+
+---
+
+### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / CRAFT_AUDIT/01_EVIDENCE_AND_ROOT_CAUSE_TH.md
+
+# 01 — รายละเอียดข้อค้นพบและ Root Causes
+
+**หมายเหตุ:** `RUNTIME_CONFIRMED` หมายถึงรันทดสอบ/สถานะจริงยืนยัน; `STATIC_CONFIRMED` คือ code path ชัดแต่ยังไม่พิสูจน์ผู้เล่นเข้าถึง; `CONDITIONAL` และ `DESIGN_REVIEW` ห้ามตีความเป็นบัคผู้เล่นแน่นอน
+
+## CRAFT-P0-001 [P0] สูตร 415 สูตรมี schema ไม่เข้ากับเครื่องผลิต; ค่าโอกาสสำเร็จ NaN และเสียวัตถุดิบ
+
+**หลักฐาน:** RUNTIME_CONFIRMED  
+**จุดโค้ด:** `js/economy.js:7-17`, `js/economy.js:355-362`, `js/economy.js:420-465`, `js/ai.js:1007-1058`, `data/data_martial.js (V200/V230/V234 recipe builders)`
+
+**สิ่งที่พบ:** 1118 registered recipes: 415 missing outType, minMastery, outNameTh; 343 EQUIPMENT, 48 PILL-kind and 24 TALISMAN-kind. REC_V234_001 at skill 100 -> successChance NaN; reserveInputs deducts, finishCraft fails even with rng.next=0.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Automatic NPC skills/receipt path and ordinary recipe schema; manual API proof; recipeKnown/craftEligible may expose discovered recipe but NPC filters out missing mastery.
+
+**ผลกระทบลูกโซ่:** แหล่งวัตถุดิบ/ซื้อของ→พบ/ปลดล็อกสูตร→แรงงาน NPC→จองวัตถุดิบ→NaN/ผลิตล้มเหลว→ขาดอุปกรณ์หรือยา→คอขวดความก้าวหน้า→สำนักขาดกำลังและเสียค่าเสียโอกาส
+
+**แนวทางแก้:** Normalize recipe schema once at registry load; require outType,minMastery,valid output mapping, craft+station+facility/yield; implement distinct CONSUMABLE/TALISMAN output, route output by item category. Apply and validate NPC and personal pipelines; do not simply default NaN to guaranteed success.
+
+**เกณฑ์รับงาน:** For every 1118 recipes schema valid; NPC skill gate finite; create success outputs correctly or explicitly unsupported; no ingredients lost due to invalid schema; 415 formerly bad IDs covered by generated tests.
+
+## CRAFT-P1-002 [P1] ECO.outputValue คำนวณ NaN ใน 418 สูตร ทำให้การจัดลำดับงานผลิตผิดเพี้ยน
+
+**หลักฐาน:** RUNTIME_CONFIRMED  
+**จุดโค้ด:** `js/economy.js:269-280`, `js/economy.js:902-920`, `data/data_martial.js:51745-52470`
+
+**สิ่งที่พบ:** 415 malformed recipes have output item.price but no .value; ECO.outputValue uses .value * .8 -> NaN. Another 3 valid equipment recipes have baseValue, no value. Together 418/1118 outputValue non-finite.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** ECO.pickOrder scores potential projects with Math.max(0, outputValue-inputCost); NaN propagates to score and sort.
+
+**ผลกระทบลูกโซ่:** ราคาข้อมูลไม่ครบ→คะแนนงานผลิต NaN→ลำดับความต้องการ NPC/หัวหน้าหอไม่เสถียร→สั่งซื้อวัตถุดิบไม่ตรงความต้องการ→เงิน/แรงงานสูญเปล่า
+
+**แนวทางแก้:** Define canonical valuation value ?? price ?? baseValue (validate finite positive) with sensible fallback; require finite inputCost, outputValue and scoring; tests against all recipe outputs and stock.
+
+**เกณฑ์รับงาน:** For every recipe isFinite(outputValue), isFinite(inputCost), and finite score; no NaN in purchase wants, UI or save.
+
+## CRAFT-P1-003 [P1] พ่อค้าสุ่มเสนอโอสถปลอมจากสูตรอุปกรณ์/ยันต์ เพราะ P:<recipeId> ใช้ได้กับทุกสูตร
+
+**หลักฐาน:** RUNTIME_CONFIRMED  
+**จุดโค้ด:** `js/external_market.js:147-152`, `js/external_market.js:208-218`, `js/external_market.js:27-32`, `js/economy.js:94-97`, `js/economy.js:611-626`, `js/economy.js:733-735`
+
+**สิ่งที่พบ:** 948/1118 recipes are non-PILL by outType. EXT.isTradable(P:REC_V234_001)=true; pillInfo(P:REC_V234_001).effect={} even though recipe outputs gear. 80 medicine merchant visits in fixed seed generated 67/80 invalid pseudo-pill listings. ECO.usePill consumes P:REC_V234_001, returns no effect messages.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Normal trader stock build and player/member trade, not merely a debug API.
+
+**ผลกระทบลูกโซ่:** สูตรอุปกรณ์→เข้า pool ยาพ่อค้า→ผู้เล่นเสียเงิน/CP ซื้อสินค้าไม่ใช่ยา→กินแล้วไม่มีฤทธิ์ตามคาด→อุปทานยาจริงลดและความเชื่อถือระบบเสีย
+
+**แนวทางแก้:** Strictly filter recipe-derived pills by normalized output type PILL and valid effect route; never create a P: alias for other recipe outputs; audit existing save/trader inventory keys and prevent invalid item import.
+
+**เกณฑ์รับงาน:** 1000 seeded trader visits contain 0 non-PILL P: keys; purchase of actual pill works; fake pills cannot be sold/used; save/load repairs invalid merchant keys without economy duplication.
+
+## CRAFT-P1-004 [P1] วัตถุดิบพิเศษ 24 ชนิดอยู่ใน items แต่หายจาก materials registry; เกี่ยวข้อง 67 สูตร
+
+**หลักฐาน:** STATIC_AND_REGISTRY_CONFIRMED  
+**จุดโค้ด:** `data/data_martial.js:51745-51809`, `js/economy.js:8-17`, `js/wild_resources.js:57-68`, `js/expedition.js:461-465`, `js/external_market.js:123-126`
+
+**สิ่งที่พบ:** MAT_V230_001..024 all ECO.itemById true, ECO.matById false. Referenced by 67 recipes. Normal wild/expedition randomized pools filter JD.ITEMS.materials; visiting merchant random material pool filters ECO.matById. However demand-directed buyList can sometimes list an item ID, so not proven entirely unobtainable.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Random natural material acquisition pools not include these entries; source metadata is not an executable provider.
+
+**ผลกระทบลูกโซ่:** สูตรระดับสูง→ต้องใช้ MAT_V230→ไม่อยู่ pool แหล่งมาตรฐาน→ผู้เล่นสำรวจ/ล่าสัตว์/ซื้อซ้ำแต่ไม่พบ→67 สูตรติดคอขวด (ซ้ำกับ schema ผิด)→เส้นทางคราฟต์ช่วงกลาง-ท้ายหยุด
+
+**แนวทางแก้:** Register material definitions in canonical material registry (or add explicit provider adaptor) exactly once; implement each declared obtainSources as a real provider or revise descriptions; add drop-coverage tests and max-tier scarcity calibration.
+
+**เกณฑ์รับงาน:** 24 item IDs resolvable by material registry or supported alternate route; at least one reachable non-editor source per intended progression tier; 67 recipe supply chains reachable in tests; no duplicate economy sinks.
+
+## CRAFT-P1-005 [P1] โอสถใหม่ 48 ชนิด (out CONSUMABLE, cat PILL) ไม่ถูกมองเป็นยาโดยระบบโอสถมาตรฐาน
+
+**หลักฐาน:** RUNTIME_CONFIRMED  
+**จุดโค้ด:** `js/economy.js:94-97`, `js/economy.js:611-668`, `js/economy.js:470-475`, `js/cpeco.js:917-945`, `data/data_martial.js (V234 pill recipes)`
+
+**สิ่งที่พบ:** 48 output item kind/cat PILL has out CONSUMABLE; ECO.isPill false, ECO.pillInfo null, ECO.personalCraftQuote null even with ingredients+skill+CP. ECO.useConsumableItem understands these defs, so there is an alternate use route; do not claim all effects are absent.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Personal crafting AI and standard sect pill inventory/production / trade pipelines, with separate generic consumable API still available.
+
+**ผลกระทบลูกโซ่:** ผลิตโอสถใหม่ไม่ได้ตามระบบหลัก→NPC ไม่วางแผนปรุง/ไม่จ่ายยารักษา→ผู้บาดเจ็บ/ใกล้ทะลวงไม่ได้รับผล→การเติบโตและความเสี่ยงต่อสู้เปลี่ยน
+
+**แนวทางแก้:** Provide canonical item kind and bridge standard pill interfaces to multi-phase consumable effects without duplicate applying; verify full treatment, toxicity, buffs, expiry, phase queue and save/load.
+
+**เกณฑ์รับงาน:** All 48 recognized as pills where intended; use once spends exactly one stock; personal/sect craft and NPC choice work; deferred phase survives save/load once.
+
+## CRAFT-P1-006 [P1] Schema validator ผ่าน 0 error ทั้งที่ runtime recipe contract ผิด 415 สูตร
+
+**หลักฐาน:** RUNTIME_CONFIRMED  
+**จุดโค้ด:** `tools/validate_data_schema.js:112-170`, `js/economy.js:355-362`, `js/economy.js:420-465`
+
+**สิ่งที่พบ:** node tools/validate_data_schema.js exits 0 (Errors:0,Warnings:0; reports 1370 audited entries aggregated from multiple arrays), while 415 canonical runtime recipes invalid; validator validates ID/name/inputs/output references but not outType/minMastery/producer mapping. Duplicate aggregate arrays should not be confused with unique runtime counts.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** CI/pre-release quality gate misses release-blocking data contract mismatch.
+
+**ผลกระทบลูกโซ่:** นักพัฒนาเห็นผลผ่าน→เชื่อข้อมูลครบ→ส่งแพตช์จริง→ผู้เล่นใช้ของ/สูตรเสีย→ข้อผิดพลาดขยายหลายระบบ
+
+**แนวทางแก้:** Validate exact runtime ECO.recipeById, schema variants, finite successChance/valuation, registry sources, all outputs and aliases; reject errors instead of treating warnings as pass.
+
+**เกณฑ์รับงาน:** Unpatched source fails new validator with meaningful errors; after fix 0 errors; targeted tests cover every registered recipe.
+
+## CRAFT-P2-007 [P2] ป้าย obtainSources ของวัตถุดิบบางชุดเป็นคำบรรยาย ไม่ใช่แหล่งที่แจกได้จริง
+
+**หลักฐาน:** STATIC_CONFIRMED_RUNTIME_REACH_UNKNOWN  
+**จุดโค้ด:** `data/data_martial.js:51754-51809`, `js/wild_resources.js:57-68`, `js/external_market.js:123-126`, `js/content.js:1272-1299`
+
+**สิ่งที่พบ:** V230 items declare WILD_GATHER, PAGODA_TRIAL, MYRIAD_WORLD, CARAVAN etc; no JS generator references obtainSources as a provider. Standard random generators use data.materials. Other bespoke exploration/trial rewards might still exist; cannot categorically rule out all acquisition.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Data/UI hints may guide player to nonfunctional providers; secondary to P1-004 but distinct content traceability issue.
+
+**ผลกระทบลูกโซ่:** แหล่งในคำอธิบายไม่ตรงระบบ→ผู้เล่นเสียเวลาออกสำรวจ→หาของไม่ได้→ตีความว่าเกมยากเกินหรือพัง
+
+**แนวทางแก้:** Machine-readable provider registry keyed by reward ID and source capability; either implement actual source or show accurate source text for each ID.
+
+**เกณฑ์รับงาน:** 100% of crafting inputs have a provider evidence mapping or explicit gated/unobtainable design status; UI hints generated from actual providers.
+
+## CRAFT-P2-008 [P2] ปรุงยาส่วนตัวตรวจทรัพยากรใหม่เมื่อจบงาน โดยไม่มีการจองตั้งแต่ต้น
+
+**หลักฐาน:** STATIC_CONFIRMED  
+**จุดโค้ด:** `js/cpeco.js:940-945`, `js/economy.js:470-518`
+
+**สิ่งที่พบ:** personalBrew.start returns bool(personalCraftQuote), but no reserve. On done ECO.personalCraft calls personalCraftQuote again. If stock or CP changes during travel/time, done can return false; AI.done logs only if out.ok, so idle time is spent without clear failure log.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** NPC autonomous job; conditional on concurrent usage of stock/CP over duration.
+
+**ผลกระทบลูกโซ่:** NPC เริ่มงาน→คลังถูกใช้อย่างอื่น→สิ้นเวลาวัตถุดิบขาด→ไม่มีผลงาน/ข้อความ→การจัดตารางและศักยภาพแรงงานลด
+
+**แนวทางแก้:** Choose explicit reservation or opportunistic crafting policy; if no reserve, show/log failed and release station; account for labor and CP appropriately.
+
+**เกณฑ์รับงาน:** Start-to-finish shortage has expected documented behavior and player-visible event, no negative stock or CP, no orphan work action.
+
+## CRAFT-P2-009 [P2] เปิดใบจองงานผลิตซ้ำให้ NPC เดิมลบใบจองก่อนโดยไม่มีการคืนของ (อาจเป็นกฎตั้งใจ)
+
+**หลักฐาน:** STATIC_CONFIRMED_INTENTIONAL_POLICY  
+**จุดโค้ด:** `js/economy.js:287-310`, `test/craft_transactions.js`
+
+**สิ่งที่พบ:** registerCraft deletes existing open receipts for same NPC; dedicated test expects replacement to consume previous materials. This is currently an explicit tested policy, not automatically a defect.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Interrupt/cancel/reassign production, reload prune; must verify UI informs consequences and whether repeated switches can exhaust all supplies.
+
+**ผลกระทบลูกโซ่:** งานถูกสั่งทับ→ของที่จองหายเป็น sunk cost→งานหอช่างชะงัก→AI สั่งซื้อชดเชย→เศรษฐกิจใช้จ่ายเกินจำเป็น
+
+**แนวทางแก้:** Do not silently change intentional balance: first decide salvage/loss/partial refund rule; add UI description, bounded loss and tests for save/load and repeated reassignment.
+
+**เกณฑ์รับงาน:** Every reserve has explicit lifecycle open/settled/cancelled; interruptions reconciled once and policy observable.
+
+## CRAFT-P2-010 [P2] API หลอม procedural แบบทันทีข้าม craftEligible/knownRecipe และไม่ตรวจผล take; ไม่พบ caller ปกติ
+
+**หลักฐาน:** INTERNAL_API_ONLY  
+**จุดโค้ด:** `js/economy.js:1591-1628`
+
+**สิ่งที่พบ:** craftProceduralNow checks materials and forEach(ECO.take), but not craftEligible nor result of each take; search of source finds only its definition, no other direct call sites. Therefore not a confirmed player-accessible exploit.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Internal/debug/future integration API only, absent externally reachable caller in audited source.
+
+**ผลกระทบลูกโซ่:** หากต่อ UI ภายหลัง→ผู้เล่นข้ามปลดล็อก/ต้นทุน→ของขั้นสูงหลั่งไหล→สมดุลอุปกรณ์และเศรษฐกิจเสีย
+
+**แนวทางแก้:** Harden with validated eligibility or explicit trusted debug capability; atomic take and negative test; no current UI exploit claim.
+
+**เกณฑ์รับงาน:** Explicit mode distinguishes player vs debug, all material takes succeed atomically before item mint.
+
+## CRAFT-P2-011 [P2] การเกิดจุดเก็บทรัพยากรไม่ catch up เมื่อเวลาเกมกระโดดหลายช่วง
+
+**หลักฐาน:** CONDITIONAL_STATIC  
+**จุดโค้ด:** `js/wild_resources.js:273-281`
+
+**สิ่งที่พบ:** tick performs one spawn batch if W.t>=nextSpawnAt then schedules W.t+120. Under normal minute ticks this is fine; time skips or unloaded clock acceleration could underproduce compared with continuous sim.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Only if time skip or timer jumps across multiple spawn windows; not confirmed on normal gameplay.
+
+**ผลกระทบลูกโซ่:** ข้ามเวลา→แหล่งเกิดน้อย→สมุนไพรตั้งต้นขาด→NPC รักษา/ผลิตลด→แรงงานอื่นเสียโอกาส
+
+**แนวทางแก้:** If fast-forward supported, bounded catch-up respecting node max and seed determinism; else document clock contract and add invariant.
+
+**เกณฑ์รับงาน:** Compare 24-hour fixed-seed simulation with normal ticks vs time jump within declared tolerance; runtime bounded.
+
+## CRAFT-P2-012 [P2] แหล่งสมุนไพร/เหมืองมีวัสดุงานฝีมือบางชนิดผิดบริบททางธรรมชาติ
+
+**หลักฐาน:** DESIGN_REVIEW  
+**จุดโค้ด:** `js/economy.js:738-752`
+
+**สิ่งที่พบ:** HERBS pool includes instrument wood/silk/whip tendon; ORES pool includes brush hair/cinnabar. May represent managed foraging vs literal mine; design interpretation needed.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Player expectations and immersion; not necessarily a bug.
+
+**ผลกระทบลูกโซ่:** คำอธิบายงานไม่สอดคล้องผลผลิต→ผู้เล่นหาทรัพยากรผิดแหล่ง→ทิ้งงานที่ควรใช้→อัตรา supply เปลี่ยน
+
+**แนวทางแก้:** Map natural sources based on category and lore or clarify that farm/mine manages procurement; preserve economical supply rates.
+
+**เกณฑ์รับงาน:** Source text and actual item flow agree; no changed supply without calibration.
+
+## CRAFT-P2-013 [P2] เส้นทาง reserveInputs หักหลายรายการโดยไม่ตรวจผลการหักแต่ละรายการหลัง validation
+
+**หลักฐาน:** STATIC_POTENTIAL  
+**จุดโค้ด:** `js/economy.js:298-314`, `js/economy.js:155-270`
+
+**สิ่งที่พบ:** All input counts checked before take; then inputs.forEach(ECO.take) without checking returned bool. Synchronous normal state avoids most races, but state mutation/hooks or corrupted inventory could produce orphaned receipt.
+
+**ขอบเขตการเข้าถึง/เงื่อนไข:** Edge-case under state mutation or malformed save/mod; not a confirmed regular UI bug.
+
+**ผลกระทบลูกโซ่:** บางวัตถุดิบหักไม่สำเร็จ→ออกใบรับจอง→ผลิตสินค้าโดยต้นทุนไม่ครบ→เกิดของฟรีหรือยอดบัญชีผิด
+
+**แนวทางแก้:** Atomic transaction with checked take results and rollback, quantity integrity validated before mutation.
+
+**เกณฑ์รับงาน:** Injected failed take yields no receipt/item and restores all balances; all successful inputs sum exactly to receipt.
+
+
+
+---
+
+### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / SAVE_AUDIT/01_DETAILED_FINDINGS_TH.md
+
+# ข้อค้นพบ Save/Load รายประเด็นพร้อมหลักฐานและแนวทางแก้
+
+**อ่านก่อนใช้งาน:** `CONFIRMED_RUNTIME` หมายถึงพิสูจน์ด้วยการเรียกโมดูลใน Node VM จากโค้ดต้นฉบับ ไม่ได้ยืนยันว่าเส้นทางนี้ผู้เล่นกดได้ทุกกรณีใน UI; `CONFIRMED_MOCK_STORAGE` คือจำลองการโยน error ของ browser storage. ผลแต่ละรายการมีข้อจำกัดของตนเอง ไม่เหมารวมเป็น exploit จากหน้าเกม.
+
+## เกณฑ์ระดับความรุนแรง
+- **P0:** เซฟเสีย/ของฟรี/ฉีกกติกาขั้นวิกฤตในทางเข้าผู้เล่นที่พิสูจน์ได้อย่างหนัก ต้อง block release.
+- **P1:** เซฟ/ความต่อเนื่อง/ผลเกมผิดที่พิสูจน์ได้ หรือมีแนวทางสูญความคืบหน้า; ต้องแก้ก่อนปล่อย.
+- **P2:** รูปแบบข้อมูลผิด ความเสี่ยงฮาร์ดเดนหรือปัญหาจำกัดเงื่อนไข ที่ต้องตรวจ/ปรับให้แน่น.
+
+### SV-01 — [P1] ตัวนับผลเสียจากอัญเชิญเทพหายหลังโหลด ทำให้หลีกเลี่ยง backlash ได้
+- **สถานะ:** `CONFIRMED_RUNTIME`
+- **ตำแหน่งโค้ด:** `js/sim.js:827-828; js/cultivation.js:9150-9169; js/combat.js:4651,4667,4685`
+- **ขั้นตอนก่อปัญหา:** ใช้พลังอัญเชิญ 5 ครั้งจน _divineStrain=90 → เซฟ → โหลด → ใช้ครั้งที่ 6
+- **หลักฐานทดสอบ:** ไม่โหลด: ครั้งที่ 6 เกิด vowBacklash; หลังโหลด: ครั้งที่ 6 ไม่เกิด; repro S-02.
+- **ผลกระทบต่อระบบอื่น:** ลดต้นทุนการใช้พลังระดับสูง → การต่อสู้ได้เปรียบ → บาดเจ็บ/การใช้โอสถน้อยลง → เศรษฐกิจและความก้าวหน้าเสียสมดุล
+- **แนวทางแก้ไขที่เสนอ:** persist ตัวนับเป็น domain state หรือ allowlist เฉพาะ field ที่คงอยู่; ทดสอบก่อน/หลังโหลดและ threshold 100; ไม่ persist cache จริง
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูง: reproduced direct module call; combat callsites confirmed; browser UI execution not tested
+
+---
+
+### SV-02 — [P1] นำเข้าเซฟผิดรูปแบบแล้วล้มเหลว แต่ยังเปลี่ยน registry โอสถกลางของเกม
+- **สถานะ:** `CONFIRMED_RUNTIME`
+- **ตำแหน่งโค้ด:** `js/sim.js:914-919; js/sim.js:939; js/economy.js:321-326`
+- **ขั้นตอนก่อปัญหา:** เซฟมี customPills ใหม่ และ sect.craftTransactions.open=null → deserialize โยน error หลัง insert registry
+- **หลักฐานทดสอบ:** repro S-07: โหลดล้มเหลว Cannot convert undefined or null to object แต่ ECO.itemById มี id ของ pill จากเซฟที่ล้มเหลว
+- **ผลกระทบต่อระบบอื่น:** การ import ล้มเหลว → global mutable state ปะปน → โลกเดิม/โลกใหม่เห็นของแปลกหรือสูตรชื่อผิด → save/export ต่ออาจพ่วงสิ่งผิดโดยไม่ตั้งใจ
+- **แนวทางแก้ไขที่เสนอ:** transactional load: parse/validate nested state ทั้งหมดก่อนแตะ singleton; commit registry เฉพาะหลังสร้างโลกสำเร็จ; rollback ทุก external side effect on error
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูง: confirmed in actual deserializer VM
+
+---
+
+### SV-03 — [P1] เซฟยอดศิลาวิญญาณชนิดผิดได้ → จ่ายเงินแล้วกลายเป็น NaN → เซฟเป็น null
+- **สถานะ:** `CONFIRMED_RUNTIME`
+- **ตำแหน่งโค้ด:** `js/sim.js:870-892; js/economy.js:128-129; js/sim.js:827-828`
+- **ขั้นตอนก่อปัญหา:** แก้ raw.sect.stones='INVALID' แล้วโหลด → ECO.pay(W,1)
+- **หลักฐานทดสอบ:** repro S-05: deserialize รับ; ECO.pay คืน true; stones เป็น NaN; serialize เขียน null
+- **ผลกระทบต่อระบบอื่น:** เซฟผิดชนิด/ค่าตั้งต้นผิด → รายจ่ายตรวจไม่ผ่าน → ledger และยอดเงินเสีย → กลไกผลิต/อาคาร/ซื้อขายทำงานผิด → เซฟใหม่ถาวรเสีย
+- **แนวทางแก้ไขที่เสนอ:** validate nested sect.stones, inventory, ledger, CP, stock and all monetary counters as finite bounded numeric values; guard pay/earn amount and postcondition; reject bad imports before mutation
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูง: malformed import reproduced; ordinary save creation from gameplay not established
+
+---
+
+### SV-04 — [P1] ชั่วโมงเรียน/เก็บรวบรวมที่สะสมเศษส่วนหายเมื่อเซฟ–โหลด
+- **สถานะ:** `CONFIRMED_RUNTIME`
+- **ตำแหน่งโค้ด:** `js/sim.js:827-828; js/cultivation.js:8369-8372; js/cultivation.js:8395-8398`
+- **ขั้นตอนก่อปัญหา:** มรรตัยเรียน 0.2h × 4 ครั้งสะสม _studyHrsAcc=0.8 → โหลด → เรียนอีก 0.2h
+- **หลักฐานทดสอบ:** repro S-03: ก่อนโหลด acc=0.8; หลังโหลดเรียนต่อ acc=0.2 และ studySessions ยังคง 0 แทนที่จะเป็น 1; _gatherHrsAcc ใช้รูปแบบเดียวกัน
+- **ผลกระทบต่อระบบอื่น:** การทำงานช่วงสั้นหลายรอบถูกริบความคืบหน้า → ผู้เล่นที่เซฟบ่อยเติบโตช้ากว่าผู้เล่นที่เปิดเกมต่อเนื่อง → ผลผลิต/แรงงาน NPC/ความสมดุลเปลี่ยนตามการเซฟ
+- **แนวทางแก้ไขที่เสนอ:** save fractional progress ใน state ที่เป็น domain-specific; test partial sessions multiple unload cycles; เคารพนโยบายของ gameplay คงเดิม
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูงสำหรับ study; gather risk confirmed by source symmetry, need focused execution test
+
+---
+
+### SV-05 — [P1] ตัวกรอง _field ลบคูลดาวน์และสถานะต่อสู้ที่ไม่ใช่แคช
+- **สถานะ:** `CONFIRMED_RUNTIME_WITH_ACCESS_CAVEAT`
+- **ตำแหน่งโค้ด:** `js/sim.js:13,827-828; js/cultivation.js:8871-8896; js/combat.js:2531-2550,5252-5271,5449,5548-5581`
+- **ขั้นตอนก่อปัญหา:** สร้าง _gravityFieldCdUntil แล้วใช้ซ้ำก่อนครบเวลา → ถูกห้าม; เซฟ–โหลด → เรียกใช้สำเร็จทันที
+- **หลักฐานทดสอบ:** repro S-01, S-08: _gravityFieldCdUntil, _duetCdUntil, _ccImmuneUntil, _itemEfxCds, _beastFusedUntil, _lastGearSwapAt ถูกลบ. CAVEAT: normal MASS_ABSORPTION passes ignoreCooldown:true; duet skill caller via normal UI unverified
+- **ผลกระทบต่อระบบอื่น:** cooldown/immune/proc state ที่ควรคงอยู่ถูกรีเซ็ต → ผลต่อความถี่ของ buff/trigger หรือ gear decisions → พลังการต่อสู้และทรัพยากรแตกต่างระหว่างการเล่นต่อเนื่องกับ reload
+- **แนวทางแก้ไขที่เสนอ:** inventory ทุก underscore key: classify domain state vs derived cache; persist only domain-required; preserve timing in game ticks; add real battle callsite test, avoid patching cooldown game-design without test
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูง: serialization and API tests; user exploitation for gravity default combat path NOT demonstrated
+
+---
+
+### SV-06 — [P2] โหลดเซฟที่มีโอสถ custom สำเร็จแล้ว singleton registry ยังปะปนไปยังโลกใหม่
+- **สถานะ:** `CONFIRMED_RUNTIME`
+- **ตำแหน่งโค้ด:** `js/sim.js:914-919; js/economy.js:2418-2468`
+- **ขั้นตอนก่อปัญหา:** โหลดโลกที่มี customPills id เฉพาะ → สร้างโลกใหม่ในแท็บเดียวกัน
+- **หลักฐานทดสอบ:** repro S-06: newWorldHasCustomPill=false แต่ ECO.itemById[id] ยังมีชื่อจากโลกก่อน
+- **ผลกระทบต่อระบบอื่น:** โลกใหม่แม้ไม่มี content พิเศษกลับยังมองเห็น catalog global ส่วนเกิน → inventory/store lookup และ formula assumptions คลาดเคลื่อน → ผู้เล่นสงสัยว่าโลกและเซฟปะปนกัน
+- **แนวทางแก้ไขที่เสนอ:** separate registry by world/save scope; rebuild dynamic index on bind/load/new game; clear world-only registration before moving worlds; do not clear static registries
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูง: registry visible after world switch; specific player UI surface not tested
+
+---
+
+### SV-07 — [P1] Autosave กลืน error จาก localStorage จนผู้เล่นไม่รู้ว่าความคืบหน้าไม่ได้บันทึก
+- **สถานะ:** `CONFIRMED_MOCK_STORAGE`
+- **ตำแหน่งโค้ด:** `js/main.js:34-35; js/main.js:59`
+- **ขั้นตอนก่อปัญหา:** จำลอง localStorage.setItem โยน QuotaExceededError ระหว่าง G.autosave()
+- **หลักฐานทดสอบ:** repro_autosave.js on original main.js VM: setCalls=1, thrown=false, toastCount=0
+- **ผลกระทบต่อระบบอื่น:** พื้นที่เก็บเต็ม/โหมดจำกัด storage → auto-save fail เงียบ → ผู้เล่นปิดเกมโดยคิดว่าเซฟล่าสุดแล้ว → สูญความคืบหน้าหลายชั่วโมง
+- **แนวทางแก้ไขที่เสนอ:** catch แยก quota/security/storage; แจ้งเตือนผู้เล่นและ flag unsaved; retain fallback/export hint; do not mark last save successful; test quota, disabled storage, tab background
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูงใน mock storage: browser quota behavior not exercised end-to-end
+
+---
+
+### SV-08 — [P2] ตัวตรวจ version ของ save schema รับสตริง schema ที่ไม่รู้จักบางแบบ
+- **สถานะ:** `CONFIRMED_RUNTIME`
+- **ตำแหน่งโค้ด:** `js/sim.js:859-865`
+- **ขั้นตอนก่อปัญหา:** set schemaVersion='2.0.9999-this-is-not-supported'
+- **หลักฐานทดสอบ:** repro S-04: unsupported schema accepted due to lexicographic greater-than fallback
+- **ผลกระทบต่อระบบอื่น:** เซฟ schema ไม่รู้จัก → migration ไม่ตรงรูปแบบ → อ้างอิง field ที่ขาด/ไม่ครบ → โลกเกิดพฤติกรรมผิดเงียบหรือโหลดล้มในขั้นตอนลึก
+- **แนวทางแก้ไขที่เสนอ:** compare exact supported set + explicit semver parser only for future detection; migrate whitelisted legacy versions; reject unknown schema safely
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** สูง: unsupported schema recognized as accepted
+
+---
+
+### SV-09 — [P2] จำนวน tick ค้างที่ฝังในเซฟถูกยอมรับแม้สูงผิดปกติ
+- **สถานะ:** `CONFIRMED_INPUT_UNBOUNDED_RUNTIME_UNVERIFIED`
+- **ตำแหน่งโค้ด:** `js/sim.js:917; js/main.js:20-23,40-57`
+- **ขั้นตอนก่อปัญหา:** ตั้ง runtimeTiming.pendingTicks=1,000,000,000 แล้ว import
+- **หลักฐานทดสอบ:** repro S-09: deserializer รับค่า; bindWorld accepts any finite nonnegative; game frame work budget limits work per frame but backlog remains enormous
+- **ผลกระทบต่อระบบอื่น:** โหลดเซฟผิดปกติ → ตัวจำลองพยายามไล่ tick ค้างจำนวนมาก → UI ลื่นลดลง/ความคืบหน้าจำลองไม่ตรงที่ผู้เล่นคาด, แม้มีเวลางบ per-frame
+- **แนวทางแก้ไขที่เสนอ:** cap pendingTicks and speed to safe policy; on impossible backlog warn/reset or amortize with documented rule; confirm native UI behavior and low-end mobile
+- **ระดับความเชื่อมั่น/ข้อจำกัด:** กลาง: validation demonstrated, real browser performance not benchmarked
+
+## ข้อสังเกตที่ต้องไม่แก้ผิดทิศ
+
+- `applyGravityField` ในท่า `MASS_ABSORPTION` เรียก `{ free:true, ignoreCooldown:true }` จริง: จึงห้ามสรุปว่า *ผู้เล่นกดรีโหลดเพื่อข้าม gravity cooldown* ผ่านท่านี้ได้; ทดสอบใน VM ยืนยันเพียงข้อผิดพลาดของ persistence และ API แบบไม่ ignoreCooldown. ตรวจการเข้าถึงท่าอื่นก่อนตั้งสถานะ exploit.
+- เอฟเฟกต์ `_ccImmuneUntil` บางอันอาจตั้งใจจบพร้อมไฟต์ ขึ้นกับขอบเขตสถานะในเกม; ต้องกำหนด domain-level spec และทดสอบ mid-fight load ไม่ใช่ persist ทุก key ตามอำเภอใจ.
+- โค้ด rollback นาฬิกา `HC.nowDay`/`STATS.now` มีอยู่แล้วใน catch ของ `SIM.deserialize`, แต่ยัง rollback global item registry ไม่ครบ; อย่าลบ logic เดิม.
+- ข้อค้นพบเกี่ยวกับ `stones` มี root cause เชื่อม `ECO.pay/earn` ที่ audit เศรษฐกิจพบก่อนหน้า; แยกหน้าที่ **deserialize validation** กับ **payment invariant** ออกจากกัน.
+- ถ้าจะเปลี่ยน schema ใหม่ต้องพิจารณา `AGENTS.md` ว่าเซฟเวอร์ชันปัจจุบันต้องโหลดต่อได้ถูกต้อง และระบุแนวทาง migrate/persist ไม่ใช่แค่เปลี่ยนชื่อฟิลด์.
+
+
+---
+
+### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / NPC_AI_AUDIT/01_CONFIRMED_FINDINGS_TH.md
+
+# NPC AI: Findings พร้อมหลักฐาน ตำแหน่งโค้ด และข้อตรวจรับ
+
+## 1. NPC-AI-001 [P0] — การหยุดงานกลางคันไม่ปิดธุรกรรมวัตถุดิบ: หิวระหว่างหลอม/ทำอาหาร
+
+**สถานะหลักฐาน:** ยืนยัน: โค้ด+การรัน 2 งาน
+
+**ตำแหน่งโค้ด:** `js/ai.js:1834-1835,2017-2040; js/economy.js:298-335,780-817`
+
+**หลักฐาน:** ทดสอบหิวใน AI.step กับงาน brew: วัตถุดิบ 2+1 หน่วยหาย ใบจองค้าง 1; และ cook: grain 150→145 แต่ meal ไม่เพิ่ม ใบจองค้าง 1; หลัง save/load ใบจองหายแต่ stock ไม่คืน
+
+**ลูกโซ่:** ความหิว/ความเหนื่อย→AI.interruptFor→AI.release ไม่ settle/cancel receipt→วัตถุดิบหาย→กดดันคลังและแผนกเสบียง→NPC ทำซ้ำ→ขาดแคลนทวีคูณ→บันทึกเซฟยืนยันความเสียหาย
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** ทำ cancelCraft/abortWork กลางทางเป็นจุดเดียว มีนโยบาย refund หรือ scrap อย่างชัดเจน; ถือ receipt ที่ยังเปิดเป็นภาระผูกพัน ไม่ใช่ orphan; ปิดธุรกรรม idempotent และทดสอบหลัง save/load
+
+**เกณฑ์รับรองหลังแก้:** หิว/งานล้มเหลว/เทศกาล/เปลี่ยนงาน/เวลาเดินทางค้าง ให้ stock+reserved+output คงสมดุล; ไม่เหลือ orphan และโหลดซ้ำไม่เปลี่ยนยอด
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-01-INTERRUPTION_LEAK`, `NPC-10-COOK_INTERRUPTION_LEAK`
+
+---
+
+## 2. NPC-AI-002 [P1] — NPC เสียชีวิตระหว่างคราฟต์ทำให้ ledger/ใบจองค้างและต้นทุนหายแบบไม่มีสถานะยุติ
+
+**สถานะหลักฐาน:** ยืนยัน: โค้ด+การรัน; กฎสูญเสียวัตถุดิบต้องตัดสิน
+
+**ตำแหน่งโค้ด:** `js/ai.js:1765-1772,1834-1835; js/sim.js:470-480; js/economy.js:287-335`
+
+**หลักฐาน:** เรียก AI.kill ระหว่างงานที่จองวัตถุดิบ พบ NPC.dead=true, open receipt ยังเป็น 1, วัตถุดิบถูกหักครบ; บางเส้นทางเกษียณเรียก cancelAct เช่นกัน
+
+**ลูกโซ่:** บาดเจ็บ/ชราภาพ/ภัยระหว่างงาน→AI.kill→ledger orphan→วัตถุดิบหาย→กำลังผลิตลด→ทรัพย์สินและมรดกไม่รวมงานค้าง→เซฟล้าง ledger อย่างเงียบ
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** กำหนดนโยบายเมื่อช่างตาย: คืนวัตถุดิบให้คลัง/ยึดเป็น scrap/สูญเสียตามกติกา พร้อมบันทึกรายการ; ให้ end-of-life finalizer เรียก transaction resolution ครั้งเดียว
+
+**เกณฑ์รับรองหลังแก้:** งานที่ NPC เสียชีวิต/เกษียณ/ถูกเนรเทศปิด ledger เสมอ; ตรวจอนุรักษ์ต้นทุนตามนโยบายและไม่มีผลผลิตซ้ำ
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-02-DEATH_LEAK`
+
+---
+
+## 3. NPC-AI-003 [P1] — ทบทวนแผนตำแหน่งประจำวันข้ามผู้รักษาการเมื่อหัวหน้าตัวจริงไม่พร้อม
+
+**สถานะหลักฐาน:** ยืนยัน: โค้ด+การรัน
+
+**ตำแหน่งโค้ด:** `js/cognition.js:2236-2242,2126-2130,278-344; js/sect.js:2650`
+
+**หลักฐาน:** ผู้ดำรงตำแหน่งฝ่ายเสบียง away=true; syncOfficeAuthority สร้าง delegation ให้ผู้ช่วยแล้ว แต่ reviewOffices เลือก SECT.holder ก่อน จึง reviewOffice(holder) return และ officePlans ยังว่าง; ให้ผู้รักษาการทบทวนโดยตรงจึงมีแผน
+
+**ลูกโซ่:** หัวหน้าปิดด่าน/เดินทาง/ติดคุก→แต่งผู้รักษาการ→แผนไม่ถูกทบทวนรายวัน→งานตอบสนองอาหาร/ยา/ภัยขาด→ผลิตช้า→ความขาดแคลนเพิ่ม→แรงจูงใจ NPC ผิด
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** เลือก authorized active operator (delegation ก่อน holder ที่ unavailable) ในทุกจุดที่วางแผน พร้อม invalidation cache/authority; ไม่ให้ผู้รักษาการและหัวหน้าออกคำสั่งซ้ำ
+
+**เกณฑ์รับรองหลังแก้:** หัวหน้าหาย/กลับ/ตาย/ถูกปลด: ตัวแทนตัวจริงสร้างแผนได้ในรอบเดียว และเมื่อหัวหน้ากลับไม่มี double command
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-03-DELEGATE_REVIEW_SKIPPED`
+
+---
+
+## 4. NPC-AI-004 [P1] — คำสั่งวิกฤตค้างแม้สถานการณ์กลับสู่ปกติ
+
+**สถานะหลักฐาน:** ยืนยัน: โค้ด+การรัน; ผลการใช้แรงงานตามคำสั่งต้องทดสอบ UI เพิ่ม
+
+**ตำแหน่งโค้ด:** `js/cognition.js:2225-2234,1412-1426,278-307`
+
+**หลักฐาน:** ทดสอบ meal=0 สร้าง order cook; เติม meal=500 แล้ว reviewOffice อีกครั้งได้ plan actions=[duty], targetId=null แต่ old officeOrders.provision ยังเป็น cook และให้ modifier cook บวกจริง (~0.41 ใน seed ทดสอบ), expiresAt ยังเหลือ 1439 นาที
+
+**ลูกโซ่:** วิกฤตเสบียง→ออกคำสั่ง cook→อาหารกลับมาเพียงพอ→คำสั่งเก่ายังบังคับ/จูงใจให้ปรุง→ใช้ grain/สถานีและเวลาเกินจำเป็น→แย่งทรัพยากรงานผลิตอื่น→กลับไปสร้างภาวะขาดแคลนใหม่
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** เมื่อ review ใหม่แล้วไม่มี urgent target ให้ลบ/ยกเลิก order เดิมของ post; version/revision ของแผนและคำสั่งต้องสัมพันธ์กัน; เคารพเงื่อนไข threat
+
+**เกณฑ์รับรองหลังแก้:** แก้วิกฤตแล้วใน tick ถัดไป plan/order ต้องสอดคล้อง; ไม่มี stale modifier; urgent→normal→urgent รอบใหม่ไม่ซ้อน
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-08-STALE_URGENT_ORDER_AFTER_RESOLUTION`
+
+---
+
+## 5. NPC-AI-005 [P1] — NPC ที่ถูกคุมขังสามารถเลือกเริ่มงานอื่นเมื่อห้องขังเต็ม
+
+**สถานะหลักฐาน:** ยืนยัน: โค้ด+การรัน; ยังไม่พิสูจน์ว่าได้ทำงานจนสำเร็จ
+
+**ตำแหน่งโค้ด:** `js/ai.js:1455-1463,1878-1940,2017-2040`
+
+**หลักฐาน:** เมื่อ station cell ทั้ง 3 ถูกจองและ NPC มี jail>t, AI.decide ให้ sentence คะแนน 9 แต่ where กลับ null; ติด cooldown แล้ว fallback ไปเริ่ม practice หรือ study (stage=move); แม้ AI.interrupt ทุก 5 นาทีจะหยุดกิจกรรมเหล่านี้ก็ตาม
+
+**ลูกโซ่:** คุกเต็ม→sentence หา station ไม่ได้→fallback งานปกติ→NPC หลุดกติกาคุมขังชั่วคราว→การเคลื่อนที่และ log/แผนงานไม่สมจริง→เมื่อห้องขังว่างยังติด cooldown สูงสุด 25 นาที
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** ใช้ hard state gate ใน AI.decide/AI.begin/AI.step สำหรับ jail, terminal wait state เมื่อ cell ไม่ว่าง; อย่าใช้ cooldown ของงานลงโทษแบบงานสมัครใจ; ตรวจประวัติการลงโทษ
+
+**เกณฑ์รับรองหลังแก้:** ไม่มี activity ที่ผิดกฎระหว่างคุมขังแม้คุกเต็ม; เมื่อเซลล์ว่างเข้า sentence ตามกติกาทันที
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-05-JAILED_WORK_WITHOUT_CELL`
+
+---
+
+## 6. NPC-AI-006 [P2] — สิทธิ์รักษาการเปลี่ยนแล้ว แต่ COG.role ยังคืนสถานะเก่าจนเวลาขยับ
+
+**สถานะหลักฐาน:** ยืนยัน: cache stale ใน tick เดียวกัน
+
+**ตำแหน่งโค้ด:** `js/cognition.js:220-263,278-344`
+
+**หลักฐาน:** เรียก COG.role ผู้ช่วยก่อนแต่ง delegation, จากนั้น syncOfficeAuthority ภายใน W.t เดิม: delegated ยัง false; W.t+1 จึง true
+
+**ลูกโซ่:** เจ้าหน้าที่ไม่พร้อม→มอบอำนาจฉุกเฉิน→cache สิทธิ์เก่าตกค้าง→การออกคำสั่ง/การเลือกหน้าที่และ UI ของ tick นั้นไม่ตรงกับอำนาจจริง
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** เพิ่ม delegation/version และ holderId ใน role cache key หรือ invalidate role cache ทุกรายที่เกี่ยวข้องเมื่อโอนอำนาจ
+
+**เกณฑ์รับรองหลังแก้:** เปลี่ยนผู้มีอำนาจใน tick เดียวกัน role/eligibility/report ต้องอัปเดตทันที
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-04-ROLE_CACHE_STALE`
+
+---
+
+## 7. NPC-AI-007 [P2] — AI action modifiers ค้างหลังออก officeOrders ใหม่ (กว่าจะรับรู้ ~1 ชั่วโมงในตัวอย่าง)
+
+**สถานะหลักฐาน:** ยืนยัน: การรันจำลอง
+
+**ตำแหน่งโค้ด:** `js/cognition.js:1356-1376,1390-1435,1496-1504`
+
+**หลักฐาน:** อ่าน modifier cook ของคนงานก่อนออกคำสั่งได้ 0; ออกคำสั่ง cook ใน W.t เดียวกันยังได้ 0; หลัง W.t+60 modifier >0; cache ไม่รวม revision ของ officePlans/officeOrders
+
+**ลูกโซ่:** สำนักขาดอาหาร/เกิดภัย→เจ้าหน้าที่สั่งงาน→NPC บางคนตัดสินจาก cache ก่อนเปลี่ยน→ตอบสนองล่าช้า→คลังต่ำ/ผู้บาดเจ็บหนักขึ้น
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** ผูก office revision กับ cache หรือให้ mod เฉพาะคำสั่งฉุกเฉินอ่าน live snapshot; วัดผลกระทบ throughput ก่อนตัดสินวิธี invalidation
+
+**เกณฑ์รับรองหลังแก้:** ออก/ถอนคำสั่งแล้ว modifier ตรงกับสถานะใหม่โดยไม่ต้องรอ 60 นาที ในขณะที่ perf ไม่ตกเมื่อ NPC จำนวนมาก
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-09_OFFICE_MODIFIER_CACHE_DELAY`
+
+---
+
+## 8. NPC-AI-008 [P2] — การทำเวรของผู้ช่วยให้ merit/efficiency แม้ไม่ได้ทำคำสั่งฝ่ายใด
+
+**สถานะหลักฐาน:** ยืนยัน: ค่าบวกจริง; ความถูกต้องเป็นนโยบายออกแบบ
+
+**ตำแหน่งโค้ด:** `js/ai.js:1173-1205; js/cognition.js:2244-2253`
+
+**หลักฐาน:** ผู้ช่วยทั่วไปที่ไม่ delegated เรียก A.duty.done ได้ merit +2 และ sect.efficiency +1 ทุกครั้งที่จบเวร แม้ COG.performDuty return ตั้งแต่ต้นและ production orders ไม่เปลี่ยน
+
+**ลูกโซ่:** ไม่มีอำนาจ/ไม่มีผลผลิตเชิงฝ่าย→แต้มและประสิทธิภาพสำนักยังเพิ่ม→อาจทำให้ KPI หลอกผู้เล่นและเร่งความก้าวหน้าโดยไม่สัมพันธ์กับผลงาน
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** กำหนดความหมาย “ประสิทธิภาพจากช่วยงาน” ให้ชัด; ถ้าตั้งใจให้รางวัลให้มีผลงาน/หลักฐานการช่วยงาน; หากต้องมีคำสั่งก่อนรับโบนัสให้ส่ง result จาก performDuty
+
+**เกณฑ์รับรองหลังแก้:** merit และ sect.efficiency เพิ่มตามงานที่ทำจริงหรือการช่วยงานที่กำหนด; ป้องกันการปั๊มจากงานไร้ผล
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-06-ASSISTANT_REWARDED_WITHOUT_AUTHORITY`
+
+---
+
+## 9. NPC-AI-009 [P2] — การเรียงเวรยามใช้ RNG ภายใน comparator ของ sort ซึ่งไม่เสถียรและไม่เป็นฟังก์ชันบริสุทธิ์
+
+**สถานะหลักฐาน:** พิสูจน์จากรูปแบบโค้ด; ยังไม่พบผลเสียการต่อสู้จริง
+
+**ตำแหน่งโค้ด:** `js/sim.js:764-769`
+
+**หลักฐาน:** pool.sort((a,b)=>(dutyWeight(b)+rng.next()*0.8)-(dutyWeight(a)+rng.next()*0.8)) สุ่มใหม่ทุกการเปรียบเทียบคู่เดียวกัน; ลำดับและจำนวนการเรียก RNG ขึ้นกับรูปแบบ sort
+
+**ลูกโซ่:** เลือกเวรยามไม่คงที่→กำลังป้องกันและผลปะทะอาจต่างกันระหว่าง engine→บาดเจ็บ/ตาย→ตำแหน่งและเศรษฐกิจสำนักเปลี่ยน→การเล่นซ้ำผลคลาดเคลื่อน
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** สุ่ม random priority ต่อ NPC หนึ่งครั้งก่อน sort และจัดลำดับด้วย comparator deterministic; tie-break ด้วย id; regression deterministic seeds/browser
+
+**เกณฑ์รับรองหลังแก้:** guardRoster ตรงกันเมื่อ seed+state+การเรียง input เท่าเดิม; comparator antisymmetric และ transitive
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** ตรวจจากสัญญาโค้ด/ต้องเพิ่ม test ตรงจุด
+
+---
+
+## 10. NPC-AI-010 [P3] — ตัวเปรียบเทียบการคัดความจำ NPC ไม่ถูกต้องตามสัญญา sort
+
+**สถานะหลักฐาน:** ยืนยันว่าตัวเปรียบเทียบไม่สมมาตร; ยังไม่พบ memory หายผิดประเภท
+
+**ตำแหน่งโค้ด:** `js/ai.js:1570-1573`
+
+**หลักฐาน:** b.w - a.w*0.99 เมื่อ a=b ที่ w=2 ให้ผล 0.02 แทน 0; ทดลองสะสม 50 ความจำแล้วตัดเหลือ 32 รายการ ยังเก็บความจำค่าน้ำหนักสูงครบ 12 ในตัวอย่าง จึงไม่อ้างว่าข้อมูลสูญผิดแน่
+
+**ลูกโซ่:** ความทรงจำ/น้ำหนักเมื่อแตะ 40 รายการ→การเลือกเก็บผันผวนตาม runtime→เปลี่ยนความสัมพันธ์และการตัดสินใจระยะยาวอย่างยากคาดเดา
+
+**แนวทางแก้ (ให้ผู้แก้พิจารณา trade-off ด้วย):** ใช้ comparator `(b.w-a.w)||(a.t-b.t)` แบบ total order; มี id/index ลำดับคงที่เมื่อเวลาและน้ำหนักเท่ากัน
+
+**เกณฑ์รับรองหลังแก้:** unit/property test comparators, same-seed memory retention across save/load, no unauthorized memory loss
+
+**สคริปต์พิสูจน์ที่เกี่ยวข้อง:** `NPC-07-MEMORY_ORDER_COMPARATOR`
+
+---
+
+
+
+---
+
+### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / EXPEDITION_WORLD_AUDIT/01_DEEP_FINDINGS_TH.md
+
+# Pre-release deep audit — การสำรวจ ภารกิจนอกสำนัก และเหตุการณ์โลก (JianghuSect2 v2.3.0)
+
+**สถานะ:** รายงานตรวจสอบซอร์สและการทดสอบบนแพ็กเกจต้นฉบับเท่านั้น *ไม่ได้แก้ซอร์สเกม*  
+**ขอบเขต:** EXPED, EXPLORE, Atlas UI caller, NPC availability, world anomalies, siege, secret realms, resource garrisons, fortune rewards, save boundary.  
+**ไม่ตรวจซ้ำ:** วิถี สายย่อย อุปกรณ์ เศรษฐกิจ การคราฟต์ เซฟ และ NPC AI ในฐานะหมวดหลัก แต่ตรวจ integration ที่เป็นเหตุ–ผลกับการเดินทางโดยตรง  
+**วิธีอ่าน:** P0 = ขวางการปล่อย; P1 = ควรแก้ก่อนปล่อย; P2 = ปรับปรุง/ทบทวนดีไซน์/ตรวจเพิ่ม; ผลรันยืนยันพฤติกรรมได้ แต่ไม่ได้พิสูจน์ว่า exploit ได้จากผู้เล่นทุกกรณี
+
+## สรุปสำหรับตัดสินใจปล่อย
+
+พบ 12 ประเด็น: **P0 1, P1 5, P2 6**. จุดขวางปล่อยคือการขายคัมภีร์ส่วนเกินระหว่างส่งมอบที่ทำให้คณะติดค้างจริงแม้ได้รับรายได้แล้ว; อีก 5 ประเด็น P1 กระทบการส่งคนที่ควรไม่ว่าง, รางวัลซ้ำจากแดนลับ และกองรักษาการที่ไม่สะท้อนการตายของ NPC. ปัญหาระบบปกติและ API ภายในถูกแยกสถานะเพื่อไม่กล่าวเกินความสามารถของผู้เล่น.
+
+**ผลการทดสอบ:** 12 probes พบพฤติกรรมตามที่ระบุ, ชุดทดสอบเดิมเฉพาะระบบที่เกี่ยวข้อง **ผ่าน 17/17** และ `tools/validate_data_schema.js` **Errors 0, Warnings 0**; รัน simulation 30 วันเกม 2 seed ได้โดยไม่ crash แต่การรันดังกล่าว **ไม่มีการบังคับส่งคณะสำรวจในทุกวัน** จึงไม่ใช่ soak test ครอบคลุมการแข่งขันแดนลับและการแย่งชิงจุด. ไม่มีการทดสอบคลิก UI บน Playwright และไม่จำลอง 90–360 วันทุกเหตุการณ์. *Test suites เดิมที่ผ่านไม่หักล้างบัคที่ probe ใหม่พบ*.
+
+## ตารางสรุป
+
+| ID | ความสำคัญ | ผลกระทบ | การเข้าถึง | ระดับหลักฐาน |
+|---|---|---|---|---|
+| EX-01 | P0 | คณะสำรวจขายคัมภีร์ส่วนเกินแล้ว crash ระหว่างคืน NPC | เส้นทางระบบปกติ; เมื่อขายคัมภีร์ส่วนเกินสำเร็จ | รันยืนยัน+ทดสอบเซฟ |
+| EX-02 | P1 | ผู้ต้องโทษติดคุกถูกเลือกและส่งออกเดินทางผ่านหน้าจอ Atlas ได้ | มีเส้นทาง UI atlas-depart ในซอร์ส; ยังไม่ได้คลิกเบราว์เซอร์ | ทดสอบ API ที่ UI เรียก+ตรวจ caller UI |
+| EX-03 | P1 | คณะสำรวจวาสนาฟ้าดินรับ NPC ที่ติดภารกิจอยู่แล้ว | API ภายใน; UI มักกรอง expId ไว้ | รันยืนยัน |
+| EX-04 | P1 | ศึกตีสำนักซ้อนกับภารกิจเดินทางเดิม | API ภายใน; UI atlas เลือกทีมที่ไม่ติด expId | รันยืนยัน |
+| EX-05 | P1 | ตัดสินแดนลับโบราณซ้ำแล้วจ่ายรางวัลซ้ำได้ | API ภายใน; daily scheduler จำกัด OPEN และ UI สร้าง event ใหม่ | รันยืนยัน |
+| EX-06 | P2 | ผู้ร่วมชิงแดนลับเสียชีวิตก่อนจบ แต่พลังจาก snapshot ยังนับ | เหตุการณ์โลกอัตโนมัติ; ตัวทดสอบใช้ forcePlayerWin จึงไม่ได้พิสูจน์โอกาสชนะตามธรรมชาติ | ทดสอบ synthetic fixture + ตรวจโค้ด |
+| EX-07 | P1 | NPC ผู้รักษาจุดทรัพยากรตายแล้ว แต่พลังป้องกันและโบนัสผลผลิตยังคงเดิม | เหตุการณ์โลก/การเสียชีวิตจริงข้ามระบบ | รันยืนยันทั้ง set dead และ AI.kill จริง |
+| EX-08 | P2 | API สร้างคณะรับ NPC คนเดียวซ้ำเป็นสองสมาชิก | API ภายใน ไม่ได้ยืนยันการเกิดผ่าน UI | รันยืนยัน |
+| EX-09 | P2 | API เดินทางผ่านประตูมิติปิดได้ | API ภายใน; EX.tryVolunteer มีกฎ canGo | รันยืนยัน |
+| EX-10 | P2 | NPC ที่มอบหมายประจำจุดทรัพยากรยังใช้ชีวิตและทำงานในสำนักพร้อมกัน | ระบบ world node + NPC AI; อาจเป็น abstraction ที่ตั้งใจ | เห็นข้อมูลสถานะจริง; การตัดสินว่า bug ขึ้นกับดีไซน์ |
+| EX-11 | P2 | ระบุแดนทดสอบผิดรหัสแต่ระบบส่งไปอีกแดนหนึ่งแทน | API ภายใน; UI ส่ง node ที่มีอยู่ | รันยืนยัน |
+| EX-12 | P2 | วาสนาเพิ่มสูตรเข้า knownRecipes ก่อนขั้นส่งมอบและรับผลตอบแทน | เส้นทางรางวัลคณะสำรวจ; ต้องตรวจความตั้งใจสูตร/CP ก่อนเปลี่ยน | รันยืนยัน+ตรวจ content handover |
+
+## รายละเอียดรายประเด็น
+
+### EX-01 · P0 — คณะสำรวจขายคัมภีร์ส่วนเกินแล้ว crash ระหว่างคืน NPC
+
+**เส้นทาง / Exposure:** เส้นทางระบบปกติ; เมื่อขายคัมภีร์ส่วนเกินสำเร็จ  
+**หลักฐาน:** รันยืนยัน+ทดสอบเซฟ  
+**ไฟล์/บรรทัด:** `js/expedition.js:485-507`, `js/expedition.js:807-822`, `js/sect.js:16120-16150`
+
+**กลไกผิด:** X.handover ขายคัมภีร์แล้วบวก surp.revenueStones ลงตัวแปร sold ที่ไม่ประกาศ เกิด ReferenceError ภายใต้ strict mode; X.resolve กำหนด ex.done=true ไปก่อนแล้ว จึงขัดจังหวะการล้าง expId/travel ของสมาชิก
+
+**สิ่งที่ทดสอบพบ:** ทดลองปลดล็อกวิถีและเพิ่มคัมภีร์ 2 เล่ม: ขายได้ +2040 ศิลา, คัมภีร์ถูกหัก, ReferenceError, ex.done=true และ npc.expId=1; หลัง serialize/deserialize expId=1 ค้างอยู่
+
+**ผลกระทบลูกโซ่:** ผลผลิตสำรวจ → ขายคัมภีร์ → เงินเปลี่ยนแล้ว → runtime exception → ไม่คืน NPC → แรงงานหาย → ภารกิจ/อาหาร/งานสำนักชะงัก → เซฟค้าง
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** ห้ามใช้ตัวแปรที่ไม่ประกาศ; ย้ายการปิดงานและการคืน NPC ไปขั้นตอน finally/transactional settlement ที่ idempotent; แยก SOLD accounting กับ donation; ตรวจ return cleanup แม้ sale ล้มเหลว
+
+**Regression acceptance:** เมื่อมี surplus ต้องจบคณะอย่างถูกต้อง, NPC กลับสำนัก, คัมภีร์และเงินปรับเพียงครั้งเดียว, โหลดซ้ำไม่ค้าง/ซ้ำ
+
+### EX-02 · P1 — ผู้ต้องโทษติดคุกถูกเลือกและส่งออกเดินทางผ่านหน้าจอ Atlas ได้
+
+**เส้นทาง / Exposure:** มีเส้นทาง UI atlas-depart ในซอร์ส; ยังไม่ได้คลิกเบราว์เซอร์  
+**หลักฐาน:** ทดสอบ API ที่ UI เรียก+ตรวจ caller UI  
+**ไฟล์/บรรทัด:** `js/ui.js:5280-5288`, `js/ui.js:2820-2834`, `js/expedition.js:254-258`
+
+**กลไกผิด:** UI.atlasParty และ X.createParty ตรวจ dead/away/expId/travel แต่ไม่ตรวจ jail > W.t และข้อจำกัดความพร้อมที่เกี่ยวข้อง
+
+**สิ่งที่ทดสอบพบ:** ตั้ง n.jail=W.t+90000 แล้ว n ยังอยู่ใน UI.atlasParty; X.depart รับคนดังกล่าวและสร้าง expId ได้
+
+**ผลกระทบลูกโซ่:** คุกและวินัย → เลือกทีมสำรวจ → เดินทางได้ทั้งที่ยังติดโทษ → การคุมขังขาดความหมาย → กำลังศึก/รางวัลและงานสำนักบิดเบี้ยว
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** รวม predicate isAvailableForExpedition(W,n,mode) เดียวที่ UI และทุก API ใช้ ตรวจคุก บาดเจ็บ/รักษาตัว บังคับพัก exiled/travel/active mission พร้อมข้อความเหตุผล
+
+**Regression acceptance:** NPC ติดคุกไม่อยู่ในรายชื่อพร้อมออกและสั่งเดินทางไม่ได้จาก API/UI; หลังพ้นโทษจึงกลับมาเลือกได้
+
+### EX-03 · P1 — คณะสำรวจวาสนาฟ้าดินรับ NPC ที่ติดภารกิจอยู่แล้ว
+
+**เส้นทาง / Exposure:** API ภายใน; UI มักกรอง expId ไว้  
+**หลักฐาน:** รันยืนยัน  
+**ไฟล์/บรรทัด:** `js/expedition.js:3166-3204`, `js/expedition.js:254-260`
+
+**กลไกผิด:** เมื่อระบุ party เอง departWorldAnomaly คัดแค่ !dead&&!away ไม่ตรวจ expId/travel และเขียน expId ใหม่ทับคณะแรก
+
+**สิ่งที่ทดสอบพบ:** ส่ง gather id=1 แล้วส่ง world anomaly id=3 ด้วยคนเดียวกัน return ok; เมื่อเวลาไปถึง ret ภารกิจสองชุดลงสถานะ done ทั้งคู่
+
+**ผลกระทบลูกโซ่:** สองคณะพร้อมกัน → รางวัล/ความเสี่ยงสองชั้น → expId ทับ → คืนคนผิดคณะ → ความสัมพันธ์กับเซฟและความก้าวหน้าผิด
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** บังคับ central availability + unique NPC reservation ก่อนออกทุกรูปแบบ; ปฏิเสธหรือยกเลิกคณะแรกอย่างมีธุรกรรม
+
+**Regression acceptance:** คนใน gather ไม่สามารถเข้าสู่ anomaly หรือคณะอื่นจนจบและคืนตัว
+
+### EX-04 · P1 — ศึกตีสำนักซ้อนกับภารกิจเดินทางเดิม
+
+**เส้นทาง / Exposure:** API ภายใน; UI atlas เลือกทีมที่ไม่ติด expId  
+**หลักฐาน:** รันยืนยัน  
+**ไฟล์/บรรทัด:** `js/expedition.js:2450-2473`, `js/ui.js:2820-2829`
+
+**กลไกผิด:** marshalStrikeForce กรองคนที่ส่งผ่าน array ด้วย !dead&&!away เท่านั้น ไม่กรอง !expId/!travel ก่อนสร้างคณะศึก
+
+**สิ่งที่ทดสอบพบ:** หลังออก gather ยังเป็น leaving สามารถ marshalStrikeForce ด้วยคนเดียวกันได้สำเร็จ; expId ถูกเปลี่ยนเป็นคณะใหม่
+
+**ผลกระทบลูกโซ่:** ทัพ/ภารกิจสองชุด → ความสามารถรบและบาดเจ็บสองทาง → สถานะอำนาจสำนักผิด → เกิดการคืนตัว/เซฟไม่สอดคล้อง
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** ใช้ one-NPC-one-active-deployment invariant ร่วมกับ EXPED, EXPLORE, siege, anomaly, resource claim
+
+**Regression acceptance:** NPC ติดภารกิจใด ๆ ไม่สามารถถูกส่ง siege จนกว่าจะจบหรือถูกยกเลิกโดยสมบูรณ์
+
+### EX-05 · P1 — ตัดสินแดนลับโบราณซ้ำแล้วจ่ายรางวัลซ้ำได้
+
+**เส้นทาง / Exposure:** API ภายใน; daily scheduler จำกัด OPEN และ UI สร้าง event ใหม่  
+**หลักฐาน:** รันยืนยัน  
+**ไฟล์/บรรทัด:** `js/expedition.js:5199-5214`, `js/expedition.js:5274-5301`
+
+**กลไกผิด:** resolveSecretRealmRace รับ object ของ realm RESOLVED โดยไม่ตรวจ status และไม่ทำ idempotency ก่อนจ่าย
+
+**สิ่งที่ทดสอบพบ:** เรียก object เดิมสองครั้ง forcePlayerWin:true ได้ +580 ศิลาวิญญาณทั้งสองครั้ง; status RESOLVED แต่ second.ok=true
+
+**ผลกระทบลูกโซ่:** เหตุการณ์โลก → รางวัลซ้ำ → เงิน/อิทธิพล/การบ่มเพาะเพิ่มผิด → สมดุลสำนัก/สงครามเปลี่ยน → บันทึกผลซ้ำใน chronicle
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** validate realm belongs to W, status OPEN, unique settlementId, settled ledger; ไม่ spawn เงียบหาก ID ไม่พบใน call ที่ควร resolve
+
+**Regression acceptance:** เรียก realm เดิมหลัง RESOLVED และหลัง deserialize ต้องไม่เปลี่ยนทรัพยากร/ผลสงคราม/chronicle แม้เรียกซ้ำ
+
+### EX-06 · P2 — ผู้ร่วมชิงแดนลับเสียชีวิตก่อนจบ แต่พลังจาก snapshot ยังนับ
+
+**เส้นทาง / Exposure:** เหตุการณ์โลกอัตโนมัติ; ตัวทดสอบใช้ forcePlayerWin จึงไม่ได้พิสูจน์โอกาสชนะตามธรรมชาติ  
+**หลักฐาน:** ทดสอบ synthetic fixture + ตรวจโค้ด  
+**ไฟล์/บรรทัด:** `js/expedition.js:5140-5158`, `js/expedition.js:5199-5226`
+
+**กลไกผิด:** spawn จับ snapshot npcIds,power; resolve หลัง 12 วันใช้ e.power โดยไม่ทบทวน alive/availability; actor dead แล้วอาจยังเป็นผู้ชนะ
+
+**สิ่งที่ทดสอบพบ:** ตั้ง dead=true ให้ทุกคนในทีมก่อน resolve; fixture forcePlayerWin พบสำนักยังรับ +580
+
+**ผลกระทบลูกโซ่:** ความตาย → ทีมไร้สมาชิก → ระบบประลองยังใช้พลังเก่า → รางวัล/ประวัติศาสตร์สวนทางกับโลก
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** กำหนดชัดว่าเป็นการแข่งขันช่วง 12 วันหรือ snapshot ณ วันเปิด; ถ้าเชื่อว่ามีการเดินทางจริง ให้ update alive/deployment และ re-score; ถ้าเป็น narrative snapshot ต้องบันทึกเหตุผล
+
+**Regression acceptance:** กรณีทีมตาย/ถูกจองงานอื่นต้องให้ผลสอดคล้องกติกาที่ประกาศ โดยไม่จ่ายรางวัลจากผู้ตายโดยไม่อธิบาย
+
+### EX-07 · P1 — NPC ผู้รักษาจุดทรัพยากรตายแล้ว แต่พลังป้องกันและโบนัสผลผลิตยังคงเดิม
+
+**เส้นทาง / Exposure:** เหตุการณ์โลก/การเสียชีวิตจริงข้ามระบบ  
+**หลักฐาน:** รันยืนยันทั้ง set dead และ AI.kill จริง  
+**ไฟล์/บรรทัด:** `js/expedition.js:3011-3055`, `js/expedition.js:3059-3104`, `js/ai.js:1765-1831`
+
+**กลไกผิด:** assignNodeGarrison snapshot defensePower/yieldMultiplier แต่ AI.kill ไม่ถอนสมาชิกหรือลดกำลัง; contest/harvest ใช้ snapshot ต่อ
+
+**สิ่งที่ทดสอบพบ:** assign guardian n แล้ว AI.kill(W,n) พบ dead=true แต่ guardIds ยังมี id เดิม พลังป้องกันคง 529→529; test set dead โดยตรง 1776→1776, yield=1.1 ค้าง
+
+**ผลกระทบลูกโซ่:** NPC ตาย → กองรักษาการผี → โหนดไม่เสียกำลัง/โบนัสทรัพยากร → สงครามแย่งจุด/เศรษฐกิจแร่เพี้ยน → ความสมเหตุสมผลโลกเสีย
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** คำนวณ live garrison effective power/yield ก่อน harvest/contest หรือ invalidate snapshot เมื่อ kill/exile/travel/relocate; อย่าลบ base defense ของป้อม
+
+**Regression acceptance:** หลังตาย/ย้าย/ถอนกำลัง defense ลดเหลือค่าของกำลังที่มีชีวิตพร้อม base fortification, yield ลดตามคนที่อยู่จริง
+
+### EX-08 · P2 — API สร้างคณะรับ NPC คนเดียวซ้ำเป็นสองสมาชิก
+
+**เส้นทาง / Exposure:** API ภายใน ไม่ได้ยืนยันการเกิดผ่าน UI  
+**หลักฐาน:** รันยืนยัน  
+**ไฟล์/บรรทัด:** `js/expedition.js:254-260`
+
+**กลไกผิด:** createParty ใช้ party.map/filter โดยไม่ uniqueness ของ npcId
+
+**สิ่งที่ทดสอบพบ:** X.createParty(W,[n,n]) ok=true และ X.depart สร้าง ex.party=[id,id]
+
+**ผลกระทบลูกโซ่:** รายชื่อสมาชิกซ้ำ → กำลัง/ค่าเสบียง/จำนวนรางวัลอาจคำนวณซ้ำ → encounter และ injury ไม่สมเหตุสมผล
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** deduplicate หรือ reject duplicate IDs ที่ boundary; คำนวณจาก stable unique ids
+
+**Regression acceptance:** list มีสมาชิกซ้ำต้องถูกปฏิเสธหรือ normalize และไม่ขยายโอกาส/รางวัล
+
+### EX-09 · P2 — API เดินทางผ่านประตูมิติปิดได้
+
+**เส้นทาง / Exposure:** API ภายใน; EX.tryVolunteer มีกฎ canGo  
+**หลักฐาน:** รันยืนยัน  
+**ไฟล์/บรรทัด:** `js/explore.js:7179-7212`
+
+**กลไกผิด:** EX.canGo(W) ตรวจ gate.open + เวลาคงเหลือ แต่ EX.depart(kind=realm) ไม่เรียก check
+
+**สิ่งที่ทดสอบพบ:** ตั้ง gate.open=false แล้ว EX.canGo(W)=false แต่ EX.depart(W,[n],realm) สร้างคณะใหม่และนับ visits
+
+**ผลกระทบลูกโซ่:** ประตูปิด → ภารกิจ realm ที่ไม่ควรมี → Codex/รางวัล/อันตรายผิดจังหวะ → เซฟมีคณะโลกปิด
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** enforce EX.canGo at EX.depart for realm; validate world and remaining lifetime independent UI
+
+**Regression acceptance:** gate ปิด/เวลาเหลือน้อย/ไม่มี realm ID ต้องปฏิเสธโดยไม่มี resource/tick/visit side effect
+
+### EX-10 · P2 — NPC ที่มอบหมายประจำจุดทรัพยากรยังใช้ชีวิตและทำงานในสำนักพร้อมกัน
+
+**เส้นทาง / Exposure:** ระบบ world node + NPC AI; อาจเป็น abstraction ที่ตั้งใจ  
+**หลักฐาน:** เห็นข้อมูลสถานะจริง; การตัดสินว่า bug ขึ้นกับดีไซน์  
+**ไฟล์/บรรทัด:** `js/expedition.js:3011-3055`
+
+**กลไกผิด:** assignNodeGarrison บันทึกแค่ discipleIds ไม่เปลี่ยน away,expId,travel,location
+
+**สิ่งที่ทดสอบพบ:** NPC ที่อยู่ในกองรักษาการยังมี away=false expId=null travel=null และพิกัดอยู่สำนัก
+
+**ผลกระทบลูกโซ่:** รักษาการพร้อมทำงานที่บ้าน → แรงงานดูเหมือนมีมากกว่าจริง → ผลผลิต/เวรยาม/กำลังคุ้มครองสูงเกินจริง
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** ตัดสิน abstraction: remote outpost จริงต้อง lock schedule + travel; abstract defense aura ต้องอธิบายและ balance ค่า opportunity cost
+
+**Regression acceptance:** กติกากองรักษาการชัดเจน UI/AI พฤติกรรมสอดคล้อง และไม่มีการใช้คนเดียวในสองงาน exclusive
+
+### EX-11 · P2 — ระบุแดนทดสอบผิดรหัสแต่ระบบส่งไปอีกแดนหนึ่งแทน
+
+**เส้นทาง / Exposure:** API ภายใน; UI ส่ง node ที่มีอยู่  
+**หลักฐาน:** รันยืนยัน  
+**ไฟล์/บรรทัด:** `js/explore.js:7573-7579`
+
+**กลไกผิด:** EX.departSanctum ใช้ default SANCTUM_SWORD_ABYSS เมื่อ ID ไม่รู้จัก แทน fail-closed
+
+**สิ่งที่ทดสอบพบ:** ส่ง WRONG_SANCTUM_DOES_NOT_EXIST แล้วได้ ex.sanctumId=SANCTUM_SWORD_ABYSS
+
+**ผลกระทบลูกโซ่:** รหัสปลายทางผิด → ภารกิจสำเร็จที่อื่น → บันทึกเนื้อเรื่อง/รางวัล/เส้นทางไม่ตรงคำสั่ง → debugging ยาก
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** reject unknown ID unless caller explicitly requests default; log descriptive reason
+
+**Regression acceptance:** unknown sanctum ID ปฏิเสธไม่เปลี่ยน inventory/party/log; default explicit เท่านั้น
+
+### EX-12 · P2 — วาสนาเพิ่มสูตรเข้า knownRecipes ก่อนขั้นส่งมอบและรับผลตอบแทน
+
+**เส้นทาง / Exposure:** เส้นทางรางวัลคณะสำรวจ; ต้องตรวจความตั้งใจสูตร/CP ก่อนเปลี่ยน  
+**หลักฐาน:** รันยืนยัน+ตรวจ content handover  
+**ไฟล์/บรรทัด:** `js/expedition.js:514-590`, `js/content.js:1017-1060`
+
+**กลไกผิด:** fortuneEvent เขียนสูตรตรงลง W.sect.knownRecipes ก่อน handover, แต่ handover skip สูตรที่รู้แล้ว; เสี่ยงข้ามขั้นตอนเลือกเก็บ/บริจาคและ event receipt
+
+**สิ่งที่ทดสอบพบ:** pool f1_thorn_beast_lair ให้ REC_V222_EQ_01, knownRecipes เพิ่มแล้วก่อน X.handover; out.recipes บันทึกสูตรแต่ยังไม่มีใบส่งมอบ
+
+**ผลกระทบลูกโซ่:** เจอสูตร → ปลดล็อกทันที → ทางเลือกรับ/บริจาคหาย → แต้มคุณูปการและบันทึกการค้นพบอาจคลาดเคลื่อน → ภาพรวมความก้าวหน้าไม่เป็นเหตุเป็นผล
+
+**แนวทางแก้โดยไม่กระทบระบบอื่น:** กำหนด ownership transfer ชัด: discovery event เก็บ pending formula แล้วค่อย commit ใน handover; ถ้าตั้งใจ unlock ทันทีให้ handover รับรู้สถานะ discovered-now และลง receipt/CP อย่างถูกต้อง
+
+**Regression acceptance:** สูตรใหม่หนึ่งสูตรถูก unlock 1 ครั้ง, ตัวเลือกและ CP มีผลตามกติกา, save/load ไม่ให้ receipt ซ้ำ
+
+
+---
+
+### ต้นทาง: JianghuSect2_v2.3.0_Combined_PreRelease_Audit_Economy_Craft_Save_NPC_Expedition_Politics_War_Succession.zip / POLITICS_WAR_SUCCESSION_AUDIT/01_FINDINGS_DEEP_TH.md
+
+# ข้อค้นพบเชิงลึก 20 ประเด็น — ร่องรอยโค้ดและการแก้เชิงระบบ
+
+**สรุป:** P0 2 | P1 11 | P2 7; ความรุนแรงใช้ผลกระทบก่อนเปิดเกม ไม่ได้หมายความว่าทุก API เรียกผ่าน UI ได้
+
+## POL-01 [P0] — ปุ่มพลุทัพหนุนสร้างศึกเองและให้ศิลา/ชื่อเสียงซ้ำได้
+
+- **กลุ่ม:** สงคราม/รางวัล · **ฐานหลักฐาน:** UI source path + in-memory repro
+- **โค้ดอ้างอิง:** `js/ui.js:2072; js/expedition.js:7056-7130`
+- **รากปัญหา:** ไม่มีศึกเปิดอยู่ แต่ปุ่มเรียก triggerSiegeReinforcementBeacon({forceWin:true}); API สร้าง startEnemyGrandSiege เองแล้วตัดสินผลและจ่าย 360 ศิลาต่อรอบ
+- **กรณีทำซ้ำ/ผลรัน:** กดซ้ำ 2 รอบในโลกทดสอบ: เงิน 1000→1720, +720 โดยเริ่มไม่มีศึก (P-01)
+- **ผลกระทบลูกโซ่:** ศิลาฟรี/ชื่อเสียง→ซื้อวัตถุดิบ/จ้าง NPC/คราฟต์→พลังสูง→ยึดเมือง/สำนัก→บรรณาการเพิ่ม; บันทึกเซฟเก็บผลลัพธ์ผิดถาวร
+- **แนวทางแก้:** UI ต้องปิดปุ่มเมื่อไม่มีศึก BESIEGING; service ปฏิเสธและไม่เปลี่ยน state; ศึกที่จบต้องจ่ายครั้งเดียวผ่าน transaction ID; ไม่ส่ง forceWin ใน UI
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-02 [P1] — สูตรผลแพ้ชนะของพลุคืนค่า true เป็นค่าเริ่มต้นแม้ศัตรูเหนือกว่าอย่างมหาศาล
+
+- **กลุ่ม:** กำลังรบ · **ฐานหลักฐาน:** Internal API, UI also forces win
+- **โค้ดอ้างอิง:** `js/expedition.js:7085-7090`
+- **รากปัญหา:** opts.forceWin !== false ประเมิน true เมื่อไม่ได้ส่งค่ามา; มี fallback helper อย่างน้อยหนึ่งสำนักซึ่งทำให้ reinforcementLeaders.length >0 ก็ชนะอัตโนมัติ
+- **กรณีทำซ้ำ/ผลรัน:** ตั้งศัตรู power=10^12 ไม่มี helper/forceReinforcement:false และไม่ส่ง forceWin ได้ won=true (P-02)
+- **ผลกระทบลูกโซ่:** กองทัพชนะศึกที่เป็นไปไม่ได้→ผลยึดทรัพย์/ชื่อเสียง/สนธิสัญญา→ความยากพัง
+- **แนวทางแก้:** คำนวณผลตาม power/อัตราส่วนจริง หรือใช้ระบบ combat เดียวกัน; forceWin เฉพาะ test/admin ไม่ให้ UI ปกติเรียก
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-03 [P0] — เก็บบรรณาการจากสำนักบริวารวันเว้นวันได้ ทั้งที่ข้อความบอกทุกฤดูกาล
+
+- **กลุ่ม:** บรรณาการ · **ฐานหลักฐาน:** UI source path + in-memory repro
+- **โค้ดอ้างอิง:** `js/ui.js:2874; js/expedition.js:2775-2826; js/content.js:849-867`
+- **รากปัญหา:** collectVassalTributes เช็ก lastVassalTributeDay===W.day เท่านั้น; tickPolitics เดิมมีรอบ 90 วันแต่ปุ่ม bypass เวลารอ
+- **กรณีทำซ้ำ/ผลรัน:** หลังตั้งบริวาร เก็บวัน 361: +168; วัน 362: +168; วันเดียวกันถูกบล็อก (P-03)
+- **ผลกระทบลูกโซ่:** ศิลา+วัสดุ+ของพิเศษฟรีต่อวัน→โตแบบทวีคูณ→บีบทรัพยากร/สงคราม/การเมืองฝั่งอื่น; สามารถสะสมในเซฟ
+- **แนวทางแก้:** กำหนด nextTributeDueDay/lastCollectedCycle แบบ source-of-truth เดียว และรวมทาง manual/auto; บังคับ >=90 วัน ยกเว้นกติกา explicit
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-04 [P1] — 13 สำนักจากทะเบียน allSects ไม่ถูกประมวลผลหมดอายุสนธิสัญญาและขบวนสินค้า
+
+- **กลุ่ม:** การทูตโลก · **ฐานหลักฐาน:** Internal repro, ordinary daily simulation
+- **โค้ดอ้างอิง:** `js/content.js:841-889; js/expedition.js:1965`
+- **รากปัญหา:** CONTENT.tickPolitics เดิน W.world.sects (6) แต่ทะเบียนโลกใช้ W.world.allSects (19); สนธิสัญญา S6 ไม่มี expiration และไม่ได้รับ trade shipments ในวัน tick
+- **กรณีทำซ้ำ/ผลรัน:** S6 TRADE_PACT อายุ1วัน ยัง active เมื่อผ่าน3วัน; วัน trade tick base S0 ส่งของ แต่ S6 ไม่ส่ง (P-04,P-22)
+- **ผลกระทบลูกโซ่:** สนธิสัญญาไม่หมด/ข้อตกลงส่งของไม่ทำงาน→แรงจูงใจทางการทูตบิดเบี้ยว→วัตถุดิบ/รายรับ NPC แตกต่างตามรหัสสำนัก
+- **แนวทางแก้:** ออกแบบ canonical iterator ที่รวม allSects พร้อม no duplicates และตั้ง compatibility migration สำหรับเซฟ, นิยามว่า subsystem ใดควรครอบคลุม 6/19 ชัดเจน
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-05 [P2] — FREE_TRADE_TREATY ไม่อยู่ในกฎต้นทุน/ความสัมพันธ์ขั้นต่ำของการเซ็นสนธิสัญญา
+
+- **กลุ่ม:** การทูต · **ฐานหลักฐาน:** Internal API repro; intended rule uncertain
+- **โค้ดอ้างอิง:** `js/content.js:600-645`
+- **รากปัญหา:** ชนิดสนธิสัญญาใหม่ไม่มี mapping ค่าใช้จ่ายและ minAtt ขณะที่ signTreaty ยอมรับสตริง
+- **กรณีทำซ้ำ/ผลรัน:** ตั้งความสัมพันธ์ -99 และศิลา0 แล้วเซ็น FREE_TRADE_TREATY สำเร็จโดยไม่มีต้นทุน (P-05)
+- **ผลกระทบลูกโซ่:** การทูตไร้ข้อจำกัด→แหล่งวัสดุ/ราคาตลาดเปลี่ยนโดยข้ามต้นทุน
+- **แนวทางแก้:** ใช้ enum treaty ที่อนุญาตและ schema rule ต่อชนิดครบ; แยกการบังคับเปิดการค้าหลังชนะศึกจากการลงนามโดยสมัครใจ
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-06 [P1] — เรียก resolveSectSiege ซ้ำบนศึกที่จบแล้วได้รับของปล้นซ้ำ
+
+- **กลุ่ม:** ศึกปิดล้อม · **ฐานหลักฐาน:** Internal API repro; no player UI replay proven
+- **โค้ดอ้างอิง:** `js/expedition.js:2523-2680`
+- **รากปัญหา:** resolver ไม่มี terminal status guard ก่อนทำ 3 phases และ apply resolution; same siege ถูกใช้เป็น input ได้ซ้ำ
+- **กรณีทำซ้ำ/ผลรัน:** ศึกเดียว resolve ได้ loot 710 แล้ว 638 เพิ่ม (P-06)
+- **ผลกระทบลูกโซ่:** ทรัพย์สินเพิ่มซ้ำ→การทูตศัตรูลดซ้ำ→คลัง/ตำรา/บันทึกประวัติขัดแย้ง
+- **แนวทางแก้:** ป้องกันด้วย terminal state และ idempotency key ต่อ siege; transaction reward-once พร้อม persisted receipt
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-07 [P1] — applySiegeResolution ทำให้ได้ค่าด่านการค้าเสรี 180 ซ้ำ โดยไม่ตรวจว่ามีผลศึกที่ชนะจริง
+
+- **กลุ่ม:** ผลสงคราม · **ฐานหลักฐาน:** Internal API; deliberate editor call must be separated
+- **โค้ดอ้างอิง:** `js/expedition.js:2682-2757`
+- **รากปัญหา:** ฟังก์ชัน utility ใช้ได้โดยตรงกับ target และ FREE_TRADE ไม่ต้องมี result ID, ให้ +180 และลดราคาได้ซ้ำ
+- **กรณีทำซ้ำ/ผลรัน:** เรียก 2 ครั้ง target เดิมได้ +360; treaty ยัง FREE_TRADE_TREATY (P-07)
+- **ผลกระทบลูกโซ่:** จ่ายเงินที่ไม่ผูกกับศึก→ราคา specialty multiplier ลดซ้ำจนผิดสมดุล→เศรษฐกิจรั่ว
+- **แนวทางแก้:** บังคับยืนยัน victory receipt และ once-per-war outcome; admin/editor override อยู่คนละทาง
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-08 [P1] — กบฏพ่วงทำให้ทะเบียน treaty ไม่ตรงกับสถานะสำนักที่ถอนตัว
+
+- **กลุ่ม:** กบฏบริวาร · **ฐานหลักฐาน:** Internal repro on rebellion cascade
+- **โค้ดอ้างอิง:** `js/expedition.js:2878-2925`
+- **รากปัญหา:** พันธมิตรที่ร่วมกบฏบางรายเปลี่ยน s.treaty=RIVAL_FEUD แต่ W.world.politics.treaties[id] ยัง VASSAL_TREATY
+- **กรณีทำซ้ำ/ผลรัน:** ตั้งบริวาร S0,S1 loyalty10 แล้วกบฏ S0; S1 RIVAL_FEUD แต่ ledger ยัง VASSAL_TREATY (P-08)
+- **ผลกระทบลูกโซ่:** ระบบลงนาม/การค้า/บรรณาการอ่านคนละสถานะ→โลกเห็นสำนักเป็นมิตรและศัตรูพร้อมกัน
+- **แนวทางแก้:** รวม mutation สัญญาเป็น transaction/update function เดียว แล้วตรวจ invariant s.treaty == ledger.type; save/load regression
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-09 [P2] — respondVassalDistress รับ sect ID แม้ไม่มีคำร้องและสร้างเรื่องเองก่อนให้ชื่อเสียง
+
+- **กลุ่ม:** ความจงรักภักดีบริวาร · **ฐานหลักฐาน:** Internal API only; UI guards pending calls
+- **โค้ดอ้างอิง:** `js/expedition.js:2842-2890`
+- **รากปัญหา:** หาก ID ไม่ใช่ distress record ฟังก์ชัน fallback spawnVassalDistressCall แล้ว resolve; UI ปุ่มแสดงเฉพาะ call ค้าง
+- **กรณีทำซ้ำ/ผลรัน:** เรียก 2 ครั้งกับ ID สำนักเดิม +8 fame ไม่มีค่าจ่าย, calls 2 (P-09)
+- **ผลกระทบลูกโซ่:** ชื่อเสียงและความภักดีจากเหตุการณ์ที่ไม่เคยเกิด; อาจเพิ่มเส้นทางวงจรทรัพยากรฟรี
+- **แนวทางแก้:** ปิด fallback สำหรับ action; ให้ create distress เป็น function แยก event generator; ตรวจ unique call ID
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-10 [P2] — tickAllianceCouncil รันซ้ำวันเดียวกันและตัดสินมติซ้ำได้
+
+- **กลุ่ม:** ประชุมพันธมิตร · **ฐานหลักฐาน:** Internal API only; UI has daily guard
+- **โค้ดอ้างอิง:** `js/expedition.js:4872-4935; js/ui.js:2979`
+- **รากปัญหา:** call direct สองครั้งในวันเดียวกันได้สอง resolutions แต่ chronicle ระบบกรองแล้วเหลือหนึ่งรายการ
+- **กรณีทำซ้ำ/ผลรัน:** run 2 ครั้งวัน360 first/second = COUNCIL_RESOLUTION (P-10)
+- **ผลกระทบลูกโซ่:** ประวัติแสดง 1 แต่ความสัมพันธ์/ทรัพยากรเปลี่ยน 2 → ผู้เล่นตามเหตุการณ์ไม่ทัน
+- **แนวทางแก้:** persist lastCouncilProcessedDay และแยก command/request vs process; idempotency สำหรับ side effects
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-11 [P1] — killJianghuFigure รับ figure ที่ตายแล้ว ทำให้สืบทอดตำแหน่งซ้ำ
+
+- **กลุ่ม:** การสืบทอด · **ฐานหลักฐาน:** Internal API only; kill callback replay
+- **โค้ดอ้างอิง:** `js/expedition.js:4724-4795`
+- **รากปัญหา:** ไม่มี early return เมื่อ fig.dead true; handler หา/ตั้งผู้นำใหม่อีกครั้งจาก event เดิม
+- **กรณีทำซ้ำ/ผลรัน:** kill figure ตายเดิม 2 ครั้ง masterId เปลี่ยน 2 รอบ, history+2 (P-11)
+- **ผลกระทบลูกโซ่:** ผู้สืบทอดเปลี่ยนซ้ำ→นโยบาย/ผู้นำสงคราม/พลังป้องกัน/ประวัติ/ไมตรีไม่สอดคล้อง
+- **แนวทางแก้:** dead event idempotent; check dead+successionProcessed; unique deathId และ successionKey ในเซฟ; ยืนยันการมีชีวิตของ successor
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-12 [P1] — กดตั้งนโยบายผ่อนปรนซ้ำเพิ่มความภักดีถึง 100 โดยไม่ต้องรอหรือจ่ายต้นทุน
+
+- **กลุ่ม:** นโยบายบริวาร · **ฐานหลักฐาน:** UI source path + in-memory repro
+- **โค้ดอ้างอิง:** `js/ui.js:2869; js/expedition.js:2765-2773`
+- **รากปัญหา:** setVassalTributePolicy ใช้ +6 ทุกครั้งเมื่อ policy=LENIENT แม้ p เดิมอยู่แล้ว
+- **กรณีทำซ้ำ/ผลรัน:** 14 calls: loyalty 21→100; ทุกครั้ง ok true (P-12)
+- **ผลกระทบลูกโซ่:** ปิดความเสี่ยงกบฏโดยกดปุ่มรัว→สำนักบริวารถาวร→บรรณาการ/ผลิต/สงครามผิดสมดุล
+- **แนวทางแก้:** no-op เมื่อ policy เดิม; กำหนด cooldown/ต้นทุน/วันทำงานจริงสำหรับ change; normalize autonomous NPC calls ด้วย
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-13 [P1] — ส่งศิษย์แลกเปลี่ยนทันทีซ้ำในวันเดียว: เรียนวิชา/ตบะและความสัมพันธ์เพิ่มโดยไม่ได้ออกเดินทาง
+
+- **กลุ่ม:** ทูต/ศิษย์แลกเปลี่ยน · **ฐานหลักฐาน:** UI source path + in-memory repro
+- **โค้ดอ้างอิง:** `js/ui.js:1916,4132; js/sect.js:14090-14154`
+- **รากปัญหา:** default stayAway=false, CULT.gain ทันที; no active lock; ID EXCH_{day}_{npcId} ซ้ำกัน และ record COMPLETED ทันที
+- **กรณีทำซ้ำ/ผลรัน:** 3 calls: stones -180, attitude -4→26, progress 75→300; 3 records ID เดียว; npc.away false (P-13)
+- **ผลกระทบลูกโซ่:** ตบะฟรีเมื่อมีศิลาพอ→พลังนักรบ/ศึก/ตำราสำนัก→เกมจบเร็ว; ประวัติและ save ไม่รู้ว่าเดินทางไหน
+- **แนวทางแก้:** state machine REQUESTED/TRAVELLING/STUDYING/RETURNED, unique ID, eligibility/one-active-exchange, reward on return exactly once, UI disable repeat
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-14 [P2] — ประลองตราประทับตัดสินให้เจ้าสำนักชนะเสมอจาก `|| true`
+
+- **กลุ่ม:** ศึกก๊กภายใน · **ฐานหลักฐาน:** Internal API only; UI NEGOTIATE only
+- **โค้ดอ้างอิง:** `js/sect.js:13857-13872`
+- **รากปัญหา:** masterWon = opts.forceRebelWin ? false : (masterPow * 1.15 >= rebelPow || true)
+- **กรณีทำซ้ำ/ผลรัน:** ไม่ว่าจะ masterPow < rebelPow ผล masterWon=true (static and P-14)
+- **ผลกระทบลูกโซ่:** กบฏแทบไม่มีโอกาสชนะในช่องทางนี้→ความสมเหตุสมผลและความเสี่ยงการเมืองเสีย
+- **แนวทางแก้:** เอา || true ออก แล้วกำหนด deterministic/seeded resolution และผลพ่ายแพ้จริง; UI ไม่จำเป็นต้องเปิดฟีเจอร์ทันที
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-15 [P2] — ก๊กแยกตั้งสำนักใหม่แต่ศิษย์กบฏยังทำงานในสำนักเดิม และสำนักใหม่ไม่เข้าทะเบียน allSects
+
+- **กลุ่ม:** กบฏแยกสำนัก · **ฐานหลักฐาน:** Internal API only; may be design stub
+- **โค้ดอ้างอิง:** `js/sect.js:13875-13897`
+- **รากปัญหา:** สร้าง W.world.splinterSects แต่ไม่ย้าย W.npcs หรือทะเบียนโลก; memberIds ยัง live/away:false ในสำนักเดิม
+- **กรณีทำซ้ำ/ผลรัน:** หลัง SPLINTER rebelIds 2 คนยังอยู่ใน W.npcs และ splinterSect ไม่อยู่ allSects (P-15)
+- **ผลกระทบลูกโซ่:** ศิษย์เป็นสมาชิกสองสำนักพร้อมกัน→กำลังรบ/แรงงาน/อาจารย์ศิษย์/การสืบทอด/เซฟนับซ้ำ
+- **แนวทางแก้:** เลือก design A: แยกเป็น entity จริงพร้อม membership, AI, travel, diplomacy; หรือ B: เป็นเหตุการณ์ narrative-only พร้อมคำอธิบาย และเอาคนออกตามกติกา
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-16 [P1] — ปุ่มโจมตีร่วมพันธมิตรไม่มีช่องเลือกเป้า ใช้สำนักแรก S0 และโจมตีทันที แม้ไม่มีพันธมิตร
+
+- **กลุ่ม:** สงครามร่วมทัพ · **ฐานหลักฐาน:** UI source path + in-memory repro
+- **โค้ดอ้างอิง:** `js/ui.js:2062-2069,5901; js/expedition.js:6951-7020`
+- **รากปัญหา:** UI arg ว่าง -> allSects[0], allowSoloFallback:true; API immediate: opts.immediate !== false
+- **กรณีทำซ้ำ/ผลรัน:** 0 ally แล้วได้ VICTORY เป้า S0, expeditionAdded 0, skippedTravel true (P-16)
+- **ผลกระทบลูกโซ่:** ศึกเกิดโดยไม่ได้เลือกศัตรู→ทำลายไมตรีผิดสำนัก/ได้ทรัพยากรทันที/ไม่ต้องเดินทาง/ผู้เล่นงง
+- **แนวทางแก้:** ให้ UI บังคับเลือกเป้าและสมาชิก, ตรวจ ally; ส่ง immediate:false/สร้าง expedition lifecycle; ทดสอบวงจรทั้งสามเฟส
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-17 [P2] — ค่า winProb ที่แสดงใน 3 เฟสไม่ได้ถูกใช้เพื่อสุ่มผลชนะตามตัวเลข
+
+- **กลุ่ม:** โอกาสชนะศึก · **ฐานหลักฐาน:** Static + scenario repro; design intent requires decision
+- **โค้ดอ้างอิง:** `js/expedition.js:2550-2677`
+- **รากปัญหา:** winProb 0.861/0.86/0.895 แสดงประกอบ แต่ phaseWon = power >= defense*threshold
+- **กรณีทำซ้ำ/ผลรัน:** ผล P-17 3 เฟส: won true ตาม threshold deterministic แม้มี winProb
+- **ผลกระทบลูกโซ่:** UI ผู้เล่นคำนวณความเสี่ยงผิด→สั่งศึก/ลงทุนผิด; คาดหมาย fairness ของ RNG ไม่ตรง
+- **แนวทางแก้:** เลือกว่าจะให้ winProb เป็นความน่าจะเป็นจริง (seeded RNG) หรือเปลี่ยนชื่อเป็น strengthScore/UI โชว์เกณฑ์ที่ถูกใช้; อย่าแก้บาลานซ์เงียบๆ
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-18 [P1] — เจรจากบฏด้วยจำนวนศิลาที่ไม่มีจริง แต่เพิ่มเงินให้ resourcePool โลกตามยอดเต็ม
+
+- **กลุ่ม:** กบฏ/เศรษฐกิจโลก · **ฐานหลักฐาน:** Internal API; opts.stones input, not UI default
+- **โค้ดอ้างอิง:** `js/sect.js:13825-13839`
+- **รากปัญหา:** ECO.pay คืน false เมื่อขาดเงิน แต่ผลลัพธ์ไม่ถูกเช็ก และ W.world.resourcePool.stones += payAmt อย่างไรก็ได้
+- **กรณีทำซ้ำ/ผลรัน:** ตั้งเงิน1, opts.stones=1000: ไม่เสียเงินจริง แต่ pool+1000 และรายงาน paidStones1000 (P-23)
+- **ผลกระทบลูกโซ่:** ปั๊มเงินโลกแล้วมีผลต่อเศรษฐกิจมหภาค/สงคราม/ราคาทางอ้อม; log โกหกผู้เล่น
+- **แนวทางแก้:** validate positive safe integer, pay must succeed before credit, atomic update and rollback/receipt; ห้ามใช้ default/opts จ่ายเงินผิด
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-19 [P1] — ปุ่มคลี่คลายกบฏสร้างวิกฤตขึ้นเองเมื่อไม่มีวิกฤตและหักเงินแก้ในคำสั่งเดียว
+
+- **กลุ่ม:** กบฏ/ทรัพยากร · **ฐานหลักฐาน:** UI source path + in-memory repro
+- **โค้ดอ้างอิง:** `js/ui.js:1911,4131; js/sect.js:13813-13820`
+- **รากปัญหา:** เมื่อ activeSchismCrisis ไม่ ACTIVE resolver เรียก triggerFactionSchismCrisis(quiet:true) โดยอัตโนมัติ; UI เปิดปุ่มตลอด
+- **กรณีทำซ้ำ/ผลรัน:** ไม่มีวิกฤต: click-equivalent resolve NEGOTIATE ทำให้ stones1000→750, crisis=RESOLVED_NEGOTIATED (P-19)
+- **ผลกระทบลูกโซ่:** ผู้เล่นกดแก้ปัญหาที่ไม่มีอยู่แล้วเสียเงิน → ความเชื่อถือ UI/เศรษฐกิจ/สมดุลความขัดแย้งเสีย
+- **แนวทางแก้:** resolver ต้องคืน no-active-schism โดยไม่สร้างหรือจ่าย; ปุ่ม disabled/hidden ตามสถานะ, separate trigger event
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## POL-20 [P2] — สงครามสองขั้วถูกเรียกทุก 60 วันจากการซ้อนเงื่อนไข 12 และ 15 วัน
+
+- **กลุ่ม:** จังหวะสงครามมหภาค · **ฐานหลักฐาน:** Verified scheduling cadence; design intent requires decision
+- **โค้ดอ้างอิง:** `js/expedition.js:3530-3560,3611`
+- **รากปัญหา:** X.daily เรียก tickGrandAlliancePolitics เฉพาะวัน %12=0; ภายในทำสงครามเมื่อ %15=0
+- **กรณีทำซ้ำ/ผลรัน:** จำลองประมวลผลการเมือง120วัน สงครามวันที่ 420 และ 480 (P-21)
+- **ผลกระทบลูกโซ่:** ความถี่สงครามผิดที่คิด→อิทธิพล/ความสัมพันธ์/สูญเสีย/ความก้าวหน้าโลกช้าหรือเร็วผิด
+- **แนวทางแก้:** กำหนด intended cadence ให้ชัด: 15วันใช้ daily handler; 60วันแก้ comment/คำอธิบาย; มี test ขอบเดือนปี
+- **การตรวจรับ:** หลังแก้ต้องล้มเหลวอย่างปลอดภัยเมื่อกติกาไม่ครบ; ทดสอบค่าขอบ/ปุ่มซ้ำ/เซฟ–โหลด และตรวจไม่ให้ side effect ใดเกิดก่อน validation
+
+## วิธีอ่านความเสี่ยง
+
+- `P0`: เส้นทาง UI ที่เปิดให้รับรางวัล/ทรัพยากรโดยไม่มีกติกาบังคับ จนทำลายสมดุลหลักของการเล่น; ควรบล็อกเปิดให้เล่น
+- `P1`: บัคตรรกะสำคัญ หรือตัว entry point ที่ระบบภายในอื่นอาจเรียกได้; แนะนำแก้ก่อน release แม้บางจุดยังต้องพิสูจน์ UI
+- `P2`: ความเสี่ยงหรือความไม่สมเหตุสมผลที่ต้องตัดสินเจตนาการออกแบบ และเพิ่ม test/contracts; ไม่ถือเป็น exploit UI ที่ยืนยันแล้ว
