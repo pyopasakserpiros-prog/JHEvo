@@ -546,11 +546,13 @@
     if (!n || !n.cult) return false;
     const t = typeof techOrId === 'string' ? CULT.tech(techOrId) : techOrId;
     if (!t || t.passive || t.cat === 'PASSIVE') return false;
+    if (g.MARTIAL && g.MARTIAL.skillEfficiency && g.MARTIAL.skillEfficiency(n, t) <= 0) return false;
     if (t.innateOnly) {
       if (!(g.MARTIAL && g.MARTIAL.isInnateActive && g.MARTIAL.isInnateActive(n, t))) return false;
     } else {
       const activeTechs = g.MARTIAL && g.MARTIAL.activeTechs ? g.MARTIAL.activeTechs(n) : n.cult.techs;
-      const owned = activeTechs.includes(t.id) || n.cult.mantra === t.id;
+      const mantraOk = n.cult.mantra === t.id && (!g.MARTIAL || !g.MARTIAL.canActivateMantra || g.MARTIAL.canActivateMantra(n, t));
+      const owned = activeTechs.includes(t.id) || mantraOk;
       if (!owned) return false;
     }
     return SK.unlockedMoves(n, t).some(m => m.id === moveIdOrIdx || m.moveId === moveIdOrIdx || m.moveIndex === moveIdOrIdx);
@@ -582,13 +584,18 @@
   SK.list = n => {
     if (n.foe) return n.skl || [];
     if (!n.cult) return [];
-    const c = n.cult, tl = c.techs ? c.techs.length : 0, t0 = tl ? c.techs[0] : '', tL = tl ? c.techs[tl - 1] : '';
+    const c = n.cult, tl = c.techs ? c.techs.length : 0, tSig = c.techs ? c.techs.join(',') : '';
     const eq = n.equip || {};
-    const eqKey = ((eq.WEAPON && (eq.WEAPON.uid || eq.WEAPON.id) && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, eq.WEAPON))) ? (eq.WEAPON.uid || eq.WEAPON.id) : '') + '|' +
-                  ((eq.ARMOR && (eq.ARMOR.uid || eq.ARMOR.id) && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, eq.ARMOR))) ? (eq.ARMOR.uid || eq.ARMOR.id) : '') + '|' +
-                  ((eq.ACCESSORY && (eq.ACCESSORY.uid || eq.ACCESSORY.id) && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, eq.ACCESSORY))) ? (eq.ACCESSORY.uid || eq.ACCESSORY.id) : '');
+    const slotSig = it => {
+      if (!it || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(n, it))) return '';
+      const mLen = Array.isArray(it.skillModifiers) ? it.skillModifiers.length : 0;
+      const rCnt = it.runeInscriptions ? Object.keys(it.runeInscriptions).length : 0;
+      const gLen = Array.isArray(it.grantedSkills) ? it.grantedSkills.length : 0;
+      return (it.uid || it.id || '') + ':' + mLen + ':' + rCnt + ':' + gLen;
+    };
+    const eqKey = slotSig(eq.WEAPON) + '|' + slotSig(eq.ARMOR) + '|' + slotSig(eq.ACCESSORY);
     const slc = n._skListCache;
-    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === c.stage && slc.mantra === c.mantra && slc.tl === tl && slc.t0 === t0 && slc.tL === tL && slc.eqKey === eqKey && slc.ver === (n._passVer || 0)) {
+    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === c.stage && slc.mantra === c.mantra && slc.tl === tl && slc.tSig === tSig && slc.eqKey === eqKey && slc.ver === (n._passVer || 0)) {
       return slc.out;
     }
     const activeIds = (g.MARTIAL ? g.MARTIAL.activeTechs(n) : n.cult.techs).slice();
@@ -597,7 +604,7 @@
         if (!activeIds.includes(innId)) activeIds.push(innId);
       }
     }
-    if (n.cult.mantra) {
+    if (n.cult.mantra && (!g.MARTIAL || !g.MARTIAL.canActivateMantra || g.MARTIAL.canActivateMantra(n, n.cult.mantra))) {
       const mTech = CULT.tech(n.cult.mantra);
       if (mTech && Array.isArray(mTech.moveDefs) && mTech.moveDefs.length && !activeIds.includes(mTech.id)) {
         activeIds.push(mTech.id);
@@ -614,7 +621,7 @@
       if (!t || t.passive || t.cat === 'PASSIVE') continue;
       const isGranted = grantedIds.includes(id) && !(c.techs && c.techs.includes(id));
       if (Array.isArray(t.moveDefs) && t.moveDefs.length) {
-        const moves = isGranted ? SK.allMoves(t).slice(0, 2) : SK.unlockedMoves(n, t);
+        const moves = SK.unlockedMoves(n, t);
         for (const mv of moves) {
           const finalMv = hasSkillMods ? g.MARTIAL.applyEquipmentSkillModifiers(n, mv) : (isGranted ? Object.assign({}, mv, { fromEquipmentGrant: true }) : mv);
           if (isGranted) finalMv.fromEquipmentGrant = true;
@@ -629,7 +636,7 @@
         }
       }
     }
-    n._skListCache = { path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, tl, t0, tL, eqKey, ver: n._passVer || 0, out };
+    n._skListCache = { path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, tl, tSig, eqKey, ver: n._passVer || 0, out };
     return out;
   };
 

@@ -4,11 +4,11 @@ This folder contains the editable source and tests for the current game.
 
 ## Version identity
 
-- Package release: v3.1.1
+- Package release: JS2-v2.4.0
 - Runtime: `SIM.VERSION 1.10.11`
-- Patch: `SIM.PATCH_VERSION 3.1.1`
+- Patch: `SIM.PATCH_VERSION 2.4.0`
 - Elemental authority: `ELEM.VERSION 2.0.1`
-- Save marker: `3.1.0-autonomous-governance-peaks`
+- Save marker: `2.4.0-tactical-composable-grand-dao`
 
 The runtime and patch version fields identify engine and data revisions; the package release is v3.1.0.
 

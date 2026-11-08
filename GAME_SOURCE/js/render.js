@@ -6159,6 +6159,12 @@
         c.beginPath(); c.arc(33, 24, 5.2, 0, Math.PI * 2); c.stroke();
       } else if (ap.weaponType === 'ABACUS') {
         c.strokeRect(29, 20, 7, 11);
+      } else if (ap.weaponType === 'CLAW') {
+        c.strokeStyle = isLegW ? '#ff4d6d' : '#ef476f';
+        c.beginPath(); c.moveTo(29, 32); c.lineTo(35, 18); c.moveTo(31, 33); c.lineTo(37, 20); c.stroke();
+      } else if (ap.weaponType === 'NEEDLE') {
+        c.strokeStyle = isLegW ? '#ffd166' : '#06d6a0';
+        c.beginPath(); c.moveTo(31, 32); c.lineTo(36, 15); c.stroke();
       } else {
         c.beginPath(); c.moveTo(30, 34); c.lineTo(36, 12); c.stroke();
       }
@@ -6510,6 +6516,12 @@
       } else if (wType === 'ABACUS') {
         ctx.strokeStyle = gSpec.color; ctx.lineWidth = 2.0;
         ctx.strokeRect(-12, -9, 24, 18);
+      } else if (wType === 'CLAW') {
+        ctx.strokeStyle = gSpec.color; ctx.lineWidth = 2.0;
+        ctx.beginPath(); ctx.moveTo(-14, 10); ctx.lineTo(14, -10); ctx.moveTo(-10, 14); ctx.lineTo(18, -6); ctx.stroke();
+      } else if (wType === 'NEEDLE') {
+        ctx.strokeStyle = '#06d6a0'; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(-16, 10); ctx.lineTo(16, -10); ctx.stroke();
       }
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2.8;

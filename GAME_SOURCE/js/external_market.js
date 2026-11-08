@@ -145,6 +145,7 @@
     }
     if (subtype === 'medicine' || subtype === 'rare' || W.rng.chance(0.35)) {
       const pills = Object.keys(ECO.recipeById || {})
+        .filter(rid => ECO.recipeById[rid] && ECO.recipeById[rid].outType === 'PILL')
         .map(rid => 'P:' + rid)
         .filter(k => EXT.isTradable(k) && (subtype !== 'general' || BASIC_PILLS.has(k)));
       if (pills.length) { const id = W.rng.pick(pills); addStock(W, stock, id, 1, subtype === 'medicine' ? 4 : 2); }
@@ -209,6 +210,7 @@
       let id = null;
       if (subtype === 'medicine' || subtype === 'rare' || W.rng.chance(0.25)) {
         const pills = Object.keys(ECO.recipeById || {})
+          .filter(rid => ECO.recipeById[rid] && ECO.recipeById[rid].outType === 'PILL')
           .map(rid => 'P:' + rid)
           .filter(k => EXT.isTradable(k) && !used.has(k) && (subtype !== 'general' || BASIC_PILLS.has(k)));
         if (pills.length) id = W.rng.pick(pills);
@@ -348,6 +350,7 @@
     // 4. Fallback scan of trader inventory for critical shortages
     Object.keys(v.stock).forEach(id => {
       if (!EXT.isTradable(id) || seen.has(id)) return;
+      if (id.startsWith('TECH_MANUAL:') || id.startsWith('TM:') || id.startsWith('SUB_MANUAL:') || id.startsWith('SM:') || id.startsWith('RECIPE_SCROLL:') || id.startsWith('FORMULA:') || id.startsWith('R:') || id.startsWith('CRYSTAL:') || id.startsWith('T:') || id.startsWith('S:') || id.startsWith('EQ:')) return;
       const count = ECO.count(W, id);
       const res = EXT.reserveForSect(W, id);
       if (count < res * 0.4) {
@@ -411,26 +414,26 @@
         } else if (need.id.startsWith('TECH_MANUAL:') || need.id.startsWith('TM:')) {
           const tid = need.id.replace(/^(TECH_MANUAL:|TM:)/, '');
           W.sect.library = W.sect.library || [];
-          if (!W.sect.library.includes(tid)) W.sect.library.push(tid);
-          else {
-            W.sect.surplusTechManuals = W.sect.surplusTechManuals || [];
-            W.sect.surplusTechManuals.push(tid);
+          W.sect.surplusTechManuals = W.sect.surplusTechManuals || [];
+          for (let mi = 0; mi < qty; mi++) {
+            if (!W.sect.library.includes(tid)) W.sect.library.push(tid);
+            else W.sect.surplusTechManuals.push(tid);
           }
         } else if (need.id.startsWith('SUB_MANUAL:') || need.id.startsWith('SM:')) {
           const sid = need.id.replace(/^(SUB_MANUAL:|SM:)/, '');
           W.sect.subLibrary = W.sect.subLibrary || [];
-          if (!W.sect.subLibrary.includes(sid)) W.sect.subLibrary.push(sid);
-          else {
-            W.sect.surplusSubManuals = W.sect.surplusSubManuals || [];
-            W.sect.surplusSubManuals.push(sid);
+          W.sect.surplusSubManuals = W.sect.surplusSubManuals || [];
+          for (let mi = 0; mi < qty; mi++) {
+            if (!W.sect.subLibrary.includes(sid)) W.sect.subLibrary.push(sid);
+            else W.sect.surplusSubManuals.push(sid);
           }
         } else if (need.id.startsWith('RECIPE_SCROLL:') || need.id.startsWith('FORMULA:') || need.id.startsWith('R:')) {
           const rid = need.id.replace(/^(RECIPE_SCROLL:|FORMULA:|R:)/, '');
           W.sect.knownRecipes = W.sect.knownRecipes || [];
-          if (!W.sect.knownRecipes.includes(rid)) W.sect.knownRecipes.push(rid);
-          else {
-            W.sect.surplusRecipes = W.sect.surplusRecipes || [];
-            W.sect.surplusRecipes.push(rid);
+          W.sect.surplusRecipes = W.sect.surplusRecipes || [];
+          for (let mi = 0; mi < qty; mi++) {
+            if (!W.sect.knownRecipes.includes(rid)) W.sect.knownRecipes.push(rid);
+            else W.sect.surplusRecipes.push(rid);
           }
         } else if (need.id.startsWith('EQ:')) {
           const eqId = need.id.slice(3);
@@ -790,6 +793,7 @@
     if (!v) return false;
     const fresh = EXT.memberQuote(W, n, v.id);
     if (!fresh || fresh.side !== quote.side || fresh.itemId !== quote.itemId || fresh.price !== quote.price || fresh.qty !== quote.qty) return false;
+    if ((quote.side === 'buy-proc-gear' || quote.gearUid) && fresh.gearUid !== quote.gearUid) return false;
     const id = fresh.itemId, total = fresh.total;
     if (fresh.side === 'buy') {
       if (!(v.stock[id] > 0) || (n.inv.stones || 0) < total || !EXT.isTradable(id)) return false;
@@ -847,13 +851,25 @@
       record(W, v, 'member-buy', id, 1, fresh.price, total, n, fresh.reason);
     } else if (fresh.side === 'sell') {
       if (!EXT.isTradable(id) || !(n.inv.mats && n.inv.mats[id] > 0) || !(v.wants && v.wants[id] > 0) || v.stones < total) return false;
-      n.inv.mats[id]--; if (!n.inv.mats[id]) delete n.inv.mats[id];
+      n.inv.mats[id]--;
+      const remMat = n.inv.mats[id] || 0;
+      if (remMat <= 0) delete n.inv.mats[id];
+      if (n.inv.spawnedMats && n.inv.spawnedMats[id] != null) {
+        if (n.inv.spawnedMats[id] > remMat) n.inv.spawnedMats[id] = remMat;
+        if (n.inv.spawnedMats[id] <= 0) delete n.inv.spawnedMats[id];
+      }
       v.wants[id]--; if (!v.wants[id]) delete v.wants[id];
       v.stones -= total; n.inv.stones = (n.inv.stones || 0) + total;
       record(W, v, 'member-sell', id, 1, fresh.price, total, n);
     } else if (fresh.side === 'sell-pill') {
       if (!EXT.isTradable(id) || !ECO.isPill(id) || !(n.inv.pills && n.inv.pills[id] >= 2) || pillNeed(n, id) > 0 || !(v.wants && v.wants[id] > 0) || v.stones < total) return false;
-      n.inv.pills[id]--; if (!n.inv.pills[id]) delete n.inv.pills[id];
+      n.inv.pills[id]--;
+      const remPill = n.inv.pills[id] || 0;
+      if (remPill <= 0) delete n.inv.pills[id];
+      if (n.inv.spawnedPills && n.inv.spawnedPills[id] != null) {
+        if (n.inv.spawnedPills[id] > remPill) n.inv.spawnedPills[id] = remPill;
+        if (n.inv.spawnedPills[id] <= 0) delete n.inv.spawnedPills[id];
+      }
       v.wants[id]--; if (!v.wants[id]) delete v.wants[id];
       v.stones -= total; n.inv.stones = (n.inv.stones || 0) + total;
       record(W, v, 'member-sell', id, 1, fresh.price, total, n);

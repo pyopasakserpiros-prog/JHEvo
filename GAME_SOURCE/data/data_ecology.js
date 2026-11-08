@@ -10695,6 +10695,255 @@
     recipes.push(rec);
   });
 
+
+  /* ============================================================================
+   * PATCH v2.4.0 CONTENT & ECOSYSTEM COMPLETION:
+   * - 6 New Spirit & Abyssal Beasts across URSINE, BOAR, SHELL, UNGULATE, AQUATIC, PLANT_SPIRIT
+   * - 24 New Specialized Equipment & Elixir Items (3 each for ROSARY, CLAW, NEEDLE, FAN, ASTROLABE, ABACUS + 6 Boss/Relic Armors & Accessories)
+   * - 31 New Crafting & Alchemy Recipes consuming all 31 previously unassigned beast/boss/relic materials (0 Orphan Materials)
+   * ============================================================================ */
+  const v240NewBeasts = [
+    {
+      id: 'BEAST_V240_ABYSSAL_IRON_BEAR',
+      nameTh: 'หมีเกราะเหล็กนิลโลหิตผาแดง',
+      family: 'URSINE',
+      tier: 5,
+      cp: 1850,
+      flee: 10,
+      aggro: 84,
+      element: 'EARTH_METAL',
+      terrain: ['mountain', 'ruin'],
+      biome: 'ABYSSAL_CLIFF',
+      role: 'TANK_BRUISER',
+      tameable: true,
+      captureRule: 'WEAKEN_BELOW_25_PCT_OR_BEAST_TAMING_65',
+      specialAbility: { id: 'ABIL_IRON_MARROW_GUARD', nameTh: 'เกราะหมีเหล็กนิลสะท้อนผา', combatKeywords: ['KW_GUARD_COUNTER', 'KW_POISE_SHIELD'] },
+      drops: ['MAT_V222_BP_32', 'ECO2_MAT_URSINE_B_1', 'MAT_BOSS_CORE_SHELL'],
+      v240: true
+    },
+    {
+      id: 'BEAST_V240_THUNDER_TUSK_BOAR_KING',
+      nameTh: 'พญาหมูป่าเขี้ยวอสนีคลั่ง',
+      family: 'BOAR',
+      tier: 5,
+      cp: 1780,
+      flee: 12,
+      aggro: 88,
+      element: 'LIGHTNING',
+      terrain: ['forest', 'mountain'],
+      biome: 'THUNDER_RIDGE',
+      role: 'VANGUARD_CHARGER',
+      tameable: true,
+      captureRule: 'WEAKEN_BELOW_25_PCT_OR_BEAST_TAMING_60',
+      specialAbility: { id: 'ABIL_THUNDER_TUSK_STAMPEDE', nameTh: 'เขี้ยวอสนีทะลวงทัพ', combatKeywords: ['KW_SHATTER_ARMOR', 'KW_GAP_CLOSE_STRIKE'] },
+      drops: ['MAT_BP_THUNDER_LIZARD_SCALE_4', 'MAT_V222_BP_25', 'MAT_BOSS_HORN_CROWN'],
+      v240: true
+    },
+    {
+      id: 'BEAST_V240_STARLIGHT_VOID_TORTOISE',
+      nameTh: 'เต่าดาราเร้นมิติสุริยัน',
+      family: 'SHELL',
+      tier: 6,
+      cp: 3100,
+      flee: 8,
+      aggro: 62,
+      element: 'ASTRAL',
+      terrain: ['river', 'ruin'],
+      biome: 'STARLIGHT_SANCTUM',
+      role: 'FORTRESS_BASTION',
+      tameable: true,
+      captureRule: 'SPIRIT_PACT_OR_BEAST_TAMING_75',
+      specialAbility: { id: 'ABIL_SOLAR_STAR_AEGIS', nameTh: 'กระดองสุริยันดาราพิทักษ์', combatKeywords: ['KW_ABSORB_RELEASE', 'KW_ADAPTIVE_RESIST'] },
+      drops: ['MAT_V222_BP_31', 'MAT_FORM_VOID_COMPASS_SHARD_5', 'MAT_BOSS_CORE_SHELL'],
+      v240: true
+    },
+    {
+      id: 'BEAST_V240_CELESTIAL_JADE_QILIN_STAG',
+      nameTh: 'กวางกิเลนหยกหมอกสวรรค์',
+      family: 'UNGULATE',
+      tier: 6,
+      cp: 2950,
+      flee: 28,
+      aggro: 45,
+      element: 'WOOD_LIFE',
+      terrain: ['forest', 'mountain'],
+      biome: 'MISTY_IMMORTAL_VALLEY',
+      role: 'SAGE_SUPPORT_MOUNT',
+      tameable: true,
+      captureRule: 'OFFER_SPIRIT_HERB_OR_BEAST_TAMING_70',
+      specialAbility: { id: 'ABIL_MIST_QILIN_BLESSING', nameTh: 'รัศมีกวางกิเลนชุบชีพจร', combatKeywords: ['KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
+      drops: ['MAT_BP_MIST_STAG_ANTLER_3', 'MAT_V222_BP_33', 'MAT_BP_FROST_KIRIN_PLUME_5'],
+      v240: true
+    },
+    {
+      id: 'BEAST_V240_MAELSTROM_LEVIATHAN_SERPENT',
+      nameTh: 'มังกรสมุทรเกล็ดเหมันต์กลืนคลื่น',
+      family: 'AQUATIC',
+      archetype: 'AQUATIC',
+      tier: 6,
+      cp: 3350,
+      flee: 14,
+      aggro: 86,
+      element: 'WATER_ICE',
+      terrain: 'water',
+      biome: 'ABYSSAL_TRENCH',
+      role: 'FROST_DOMAIN_CONTROLLER',
+      tameable: true,
+      captureRule: 'WEAKEN_BELOW_20_PCT_OR_BEAST_TAMING_78',
+      specialAbility: { id: 'ABIL_FROST_PEARL_MAELSTROM', nameTh: 'มุกสมุทรเยือกแข็งพันธนาการ', combatKeywords: ['KW_PULL_VORTEX', 'KW_DELAYED_DETONATION'] },
+      drops: ['MAT_V222_BP_27', 'ECO2_MAT_AQUATIC_A_1', 'MAT_BOSS_VENOM_SAC'],
+      v240: true
+    },
+    {
+      id: 'BEAST_V240_IMMORTAL_BODHI_TREANT',
+      nameTh: 'พฤกษาเทวะโพธิ์หนามโลหิตบรรพกาล',
+      family: 'PLANT_SPIRIT',
+      tier: 6,
+      cp: 5200,
+      flee: 5,
+      aggro: 74,
+      element: 'WOOD_LIFE',
+      terrain: ['forest', 'ruin'],
+      biome: 'ANCIENT_BODHI_GROVE',
+      role: 'MYTHIC_GUARDIAN',
+      tameable: true,
+      captureRule: 'ANCESTRAL_PACT_OR_BEAST_TAMING_85',
+      specialAbility: { id: 'ABIL_BODHI_THORN_SANCTUARY', nameTh: 'เขตแดนพฤกษาเทวะร้อยหนาม', combatKeywords: ['KW_TETHER_LINK', 'KW_OVERHEAL_BARRIER', 'KW_REFLECT_CONSOLIDATE'] },
+      drops: ['MAT_V222_BP_35', 'MAT_FORM_LIFE_ESSENCE_DEW_4', 'MAT_BP_MYTHIC_GUARDIAN_CORE_6', 'MAT_TR_IMMORTAL_BEAST_MARROW'],
+      v240: true
+    }
+  ];
+  species.push(...v240NewBeasts);
+
+  const v240NewGearSpecs = [
+    // ROSARY (3 items: T4, T5, T6)
+    { id: 'EQ_V240_ROSARY_T4', nameTh: 'ประคำหยกน้ำค้างพฤกษาพันปี', slot: 'WEAPON', gearType: 'ROSARY', tier: 4, el: 'WOOD_LIFE', kw: ['KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'], mat1: 'MAT_FORM_LIFE_ESSENCE_DEW_4', mat2: 'MAT_BP_MIST_STAG_ANTLER_3', stats: { atk: 68, matk: 96, def: 48, mdef: 72, hp: 220, cast: 8 } },
+    { id: 'EQ_V240_ROSARY_T5', nameTh: 'ประคำทองคำเต่าสุริยันพิทักษ์ธรรม', slot: 'WEAPON', gearType: 'ROSARY', tier: 5, el: 'LIGHT_YANG', kw: ['KW_ABSORB_RELEASE', 'KW_OVERHEAL_BARRIER'], mat1: 'MAT_V222_BP_31', mat2: 'MAT_BP_FROST_KIRIN_PLUME_5', stats: { atk: 105, matk: 148, def: 78, mdef: 112, hp: 340, cast: 10 } },
+    { id: 'EQ_V240_ROSARY_T6', nameTh: 'มหาประคำแก่นเทพอสูรพิทักษ์บรรพกาล', slot: 'WEAPON', gearType: 'ROSARY', tier: 6, el: 'LIGHT_YANG', kw: ['KW_OVERHEAL_BARRIER', 'KW_TETHER_LINK', 'KW_ADAPTIVE_RESIST'], mat1: 'MAT_BP_MYTHIC_GUARDIAN_CORE_6', mat2: 'MAT_V222_BP_35', stats: { atk: 162, matk: 228, def: 124, mdef: 175, hp: 520, cast: 14 } },
+    // CLAW (3 items: T4, T5, T6)
+    { id: 'EQ_V240_CLAW_T4', nameTh: 'กรงเล็บเขี้ยวดาบพยัคฆ์วายุโลหิต', slot: 'WEAPON', gearType: 'CLAW', tier: 4, el: 'WIND', kw: ['KW_SHATTER_ARMOR', 'KW_EXECUTE_CULL'], mat1: 'MAT_V222_BP_30', mat2: 'MAT_V222_BP_25', stats: { atk: 108, matk: 62, def: 44, mdef: 38, crit: 9, pen: 12, move: 8 } },
+    { id: 'EQ_V240_CLAW_T5', nameTh: 'กรงเล็บแมงป่องหยินร้อยพิษกลืนวิญญาณ', slot: 'WEAPON', gearType: 'CLAW', tier: 5, el: 'POISON', kw: ['KW_EXECUTE_CULL', 'KW_STATUS_TRANSFER'], mat1: 'MAT_V222_BP_29', mat2: 'MAT_BOSS_VENOM_SAC', stats: { atk: 164, matk: 112, def: 64, mdef: 58, crit: 12, pen: 16, move: 10 } },
+    { id: 'EQ_V240_CLAW_T6', nameTh: 'กรงเล็บจะงอยครุฑทองคำฉีกเมฆา', slot: 'WEAPON', gearType: 'CLAW', tier: 6, el: 'EARTH_METAL', kw: ['KW_SHATTER_ARMOR', 'KW_CRIT_BREAK', 'KW_LAST_BREATH'], mat1: 'MAT_V222_BP_36', mat2: 'MAT_BOSS_HORN_CROWN', stats: { atk: 248, matk: 145, def: 96, mdef: 84, crit: 15, pen: 22, move: 12 } },
+    // NEEDLE (3 items: T4, T5, T6)
+    { id: 'EQ_V240_NEEDLE_T4', nameTh: 'เข็มไหมมายาผีเสื้อจันทร์เร้น', slot: 'WEAPON', gearType: 'NEEDLE', tier: 4, el: 'YIN_SHADOW', kw: ['KW_MARKSMAN_FOCUS', 'KW_TEMPO_STEAL'], mat1: 'MAT_V222_BP_34', mat2: 'ECO2_MAT_ARTHROPOD_B_2', stats: { atk: 82, matk: 94, acc: 16, crit: 10, pen: 14, cast: 10 } },
+    { id: 'EQ_V240_NEEDLE_T5', nameTh: 'เข็มพิษหนามโลหิตพฤกษาอสูร', slot: 'WEAPON', gearType: 'NEEDLE', tier: 5, el: 'WOOD_LIFE', kw: ['KW_STATUS_TRANSFER', 'KW_DELAYED_DETONATION'], mat1: 'MAT_V222_BP_35', mat2: 'MAT_BOSS_VENOM_SAC', stats: { atk: 126, matk: 146, acc: 20, crit: 12, pen: 18, cast: 12 } },
+    { id: 'EQ_V240_NEEDLE_T6', nameTh: 'เข็มเทวะขนหงส์สายฟ้าม่วงทะลวงชีพจร', slot: 'WEAPON', gearType: 'NEEDLE', tier: 6, el: 'LIGHTNING', kw: ['KW_MARKSMAN_FOCUS', 'KW_CRIT_OVERFLOW', 'KW_ARMOR_READ'], mat1: 'MAT_BP_PHOENIX_PLUME_6', mat2: 'MAT_V222_BP_26', stats: { atk: 192, matk: 224, acc: 26, crit: 16, pen: 24, cast: 16 } },
+    // FAN (3 items: T4, T5, T6)
+    { id: 'EQ_V240_FAN_T4', nameTh: 'พัดขนนกเหยี่ยวเผิงสายฟ้าคำราม', slot: 'WEAPON', gearType: 'FAN', tier: 4, el: 'WIND', kw: ['KW_PULL_VORTEX', 'KW_TEMPO_STEAL'], mat1: 'MAT_V222_BP_26', mat2: 'ECO2_MAT_AVIAN_B_1', stats: { atk: 64, matk: 102, mdef: 58, eva: 10, cast: 12, move: 8 } },
+    { id: 'EQ_V240_FAN_T5', nameTh: 'พัดขนแผงคอกิเลนเหมันต์ดาราเร้น', slot: 'WEAPON', gearType: 'FAN', tier: 5, el: 'WATER_ICE', kw: ['KW_PULL_VORTEX', 'KW_AURA_PULSE'], mat1: 'MAT_BP_FROST_KIRIN_PLUME_5', mat2: 'MAT_BOSS_WING', stats: { atk: 98, matk: 156, mdef: 88, eva: 14, cast: 15, move: 10 } },
+    { id: 'EQ_V240_FAN_T6', nameTh: 'พัดเทวะปีกพญาอินทรีสายฟ้าม่วงเก้าชั้นฟ้า', slot: 'WEAPON', gearType: 'FAN', tier: 6, el: 'LIGHTNING', kw: ['KW_PULL_VORTEX', 'KW_TEMPO_STEAL', 'KW_DELAYED_DETONATION'], mat1: 'MAT_BP_PHOENIX_PLUME_6', mat2: 'MAT_BOSS_WING', stats: { atk: 148, matk: 238, mdef: 136, eva: 18, cast: 18, move: 14 } },
+    // ASTROLABE (3 items: T4, T5, T6)
+    { id: 'EQ_V240_ASTROLABE_T4', nameTh: 'จานดารากีบเท้ากิเลนอสนีคราม', slot: 'WEAPON', gearType: 'ASTROLABE', tier: 4, el: 'ASTRAL', kw: ['KW_FOCUS_WINDOW', 'KW_AURA_PULSE'], mat1: 'MAT_V222_BP_33', mat2: 'MAT_BP_THUNDER_LIZARD_SCALE_4', stats: { atk: 58, matk: 106, def: 52, mdef: 68, acc: 14, cast: 10 } },
+    { id: 'EQ_V240_ASTROLABE_T5', nameTh: 'จานสวรรค์เข็มทิศมิติจิ้งจอกเก้าหางดารา', slot: 'WEAPON', gearType: 'ASTROLABE', tier: 5, el: 'ASTRAL', kw: ['KW_FOCUS_WINDOW', 'KW_TEMPO_STEAL'], mat1: 'MAT_FORM_VOID_COMPASS_SHARD_5', mat2: 'MAT_V222_BP_28', stats: { atk: 92, matk: 162, def: 82, mdef: 108, acc: 18, cast: 14 } },
+    { id: 'EQ_V240_ASTROLABE_T6', nameTh: 'มหาจานดาราแก่นเทพอสูรพิทักษ์จักรวาล', slot: 'WEAPON', gearType: 'ASTROLABE', tier: 6, el: 'ASTRAL', kw: ['KW_FOCUS_WINDOW', 'KW_TETHER_LINK', 'KW_ABSORB_RELEASE'], mat1: 'MAT_BP_MYTHIC_GUARDIAN_CORE_6', mat2: 'MAT_FORM_VOID_COMPASS_SHARD_5', stats: { atk: 142, matk: 246, def: 128, mdef: 168, acc: 24, cast: 18 } },
+    // ABACUS (3 items: T4, T5, T6)
+    { id: 'EQ_V240_ABACUS_T4', nameTh: 'ลูกคิดเกล็ดมังกรสายฟ้าคำนวณศึก', slot: 'WEAPON', gearType: 'ABACUS', tier: 4, el: 'EARTH_METAL', kw: ['KW_ARMOR_READ', 'KW_CRIT_BREAK'], mat1: 'MAT_BP_THUNDER_LIZARD_SCALE_4', mat2: 'MAT_V222_BP_30', stats: { atk: 88, matk: 88, def: 58, mdef: 58, acc: 15, pen: 14 } },
+    { id: 'EQ_V240_ABACUS_T5', nameTh: 'ลูกคิดมุกน้ำแข็งมังกรสมุทรชั่งชะตา', slot: 'WEAPON', gearType: 'ABACUS', tier: 5, el: 'WATER_ICE', kw: ['KW_ARMOR_READ', 'KW_TEMPO_STEAL'], mat1: 'MAT_V222_BP_27', mat2: 'MAT_V222_BP_31', stats: { atk: 136, matk: 136, def: 90, mdef: 90, acc: 20, pen: 18 } },
+    { id: 'EQ_V240_ABACUS_T6', nameTh: 'มหาลูกคิดทองคำจะงอยครุฑพิพากษาคลังสวรรค์', slot: 'WEAPON', gearType: 'ABACUS', tier: 6, el: 'EARTH_METAL', kw: ['KW_ARMOR_READ', 'KW_CRIT_OVERFLOW', 'KW_SHATTER_ARMOR'], mat1: 'MAT_V222_BP_36', mat2: 'MAT_BP_MYTHIC_GUARDIAN_CORE_6', stats: { atk: 206, matk: 206, def: 138, mdef: 138, acc: 26, pen: 24 } },
+    // 6 Boss-Organ & Immortal Beast-Marrow Armors/Accessories (T5-T7)
+    { id: 'EQ_V240_ARMOR_BOSS_SHELL_T5', nameTh: 'เกราะเกล็ดอกราชันอสูรบรรพกาล', slot: 'ARMOR', gearType: 'HEAVY_ARMOR', subType: 'HEAVY_ARMOR', tier: 5, el: 'EARTH_METAL', kw: ['KW_GUARD_COUNTER', 'KW_ADAPTIVE_RESIST'], mat1: 'MAT_BOSS_CORE_SHELL', mat2: 'MAT_V222_BP_29', stats: { def: 168, mdef: 124, hp: 460, atk: 38 } },
+    { id: 'EQ_V240_ARMOR_BOSS_WING_T6', nameTh: 'ภูษาปีกวายุราชันอสูรท่องนภา', slot: 'ARMOR', gearType: 'LIGHT_ARMOR', subType: 'LIGHT_ARMOR', tier: 6, el: 'WIND', kw: ['KW_TEMPO_STEAL', 'KW_ADAPTIVE_RESIST'], mat1: 'MAT_BOSS_WING', mat2: 'MAT_BP_PHOENIX_PLUME_6', stats: { def: 182, mdef: 210, hp: 540, eva: 16, move: 14, cast: 12 } },
+    { id: 'EQ_V240_ARMOR_IMMORTAL_MARROW_T7', nameTh: 'เกราะเทวะไขกระดูกอสูรเบื้องบนอมตะ', slot: 'ARMOR', gearType: 'HEAVY_ARMOR', subType: 'HEAVY_ARMOR', tier: 6, el: 'LIGHT_YANG', kw: ['KW_ABSORB_RELEASE', 'KW_LAST_BREATH', 'KW_ADAPTIVE_RESIST'], mat1: 'MAT_TR_IMMORTAL_BEAST_MARROW', mat2: 'MAT_BP_MYTHIC_GUARDIAN_CORE_6', stats: { def: 295, mdef: 275, hp: 820, atk: 85, matk: 85 } },
+    { id: 'EQ_V240_ACC_BOSS_CROWN_T5', nameTh: 'รัดเกล้าเขาราชันอสูรสะท้านภพ', slot: 'ACCESSORY', gearType: 'PENDANT', subType: 'PENDANT', tier: 5, el: 'FIRE', kw: ['KW_SHATTER_ARMOR', 'KW_CRIT_BREAK'], mat1: 'MAT_BOSS_HORN_CROWN', mat2: 'MAT_V222_BP_28', stats: { atk: 96, matk: 96, crit: 10, critDmg: 22, pen: 14, hp: 240 } },
+    { id: 'EQ_V240_ACC_BOSS_VENOM_T5', nameTh: 'ถุงหอมพิษอสูรพันปีกลืนชีพจร', slot: 'ACCESSORY', gearType: 'CHARM', subType: 'CHARM', tier: 5, el: 'POISON', kw: ['KW_STATUS_TRANSFER', 'KW_DELAYED_DETONATION'], mat1: 'MAT_BOSS_VENOM_SAC', mat2: 'MAT_V222_BP_27', stats: { atk: 78, matk: 118, acc: 16, pen: 16, hp: 260, cast: 10 } },
+    { id: 'EQ_V240_ACC_IMMORTAL_MARROW_T7', nameTh: 'ตราหยกไขกระดูกเทพอสูรเบื้องบนนิรันดร์', slot: 'ACCESSORY', gearType: 'RING', subType: 'RING', tier: 6, el: 'ASTRAL', kw: ['KW_OVERHEAL_BARRIER', 'KW_CRIT_OVERFLOW', 'KW_FOCUS_WINDOW'], mat1: 'MAT_TR_IMMORTAL_BEAST_MARROW', mat2: 'MAT_FORM_VOID_COMPASS_SHARD_5', stats: { atk: 185, matk: 195, def: 145, mdef: 155, hp: 480, crit: 12, pen: 16 } }
+  ];
+
+  v240NewGearSpecs.forEach(gs => {
+    const it = {
+      id: gs.id,
+      nameTh: gs.nameTh,
+      cat: 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: gs.slot,
+      gearType: gs.gearType,
+      subType: gs.subType || gs.gearType,
+      visualSubtype: gs.gearType,
+      tier: gs.tier,
+      minStage: Math.max(1, gs.tier - 1),
+      rarity: gs.tier >= 7 ? 'Mythic' : gs.tier >= 5 ? 'Epic' : 'Rare',
+      grade: gs.tier >= 7 ? 'Mythic' : gs.tier >= 5 ? 'Epic' : 'Rare',
+      q: gs.tier >= 6 ? 1.25 : 1.15,
+      value: Math.round(65 * Math.pow(1.95, gs.tier - 1)),
+      craft: 'FORGING',
+      durability: 100,
+      element: gs.el,
+      elementProfile: epSingleV222(gs.el),
+      combatKeywords: gs.kw,
+      fixedStats: gs.stats,
+      effects: [
+        {
+          effectId: ({
+            ROSARY: 'EFX_V200_BODHI_MERIT_PULSE',
+            CLAW: 'EFX_V200_ATAVISM_CLAW_REND',
+            NEEDLE: 'EFX_V200_MERIDIAN_VENOM_NEEDLE',
+            FAN: 'EFX_V200_TEMPEST_FAN_GALE',
+            ASTROLABE: 'EFX_V200_ASTROLABE_STAR_LOCK',
+            ABACUS: 'EFX_V200_ABACUS_LEDGER_SETTLE'
+          }[gs.gearType] || (gs.slot === 'ARMOR' ? 'EFX_TRIBULATION_SHIELD' : 'EFX_QI_RESERVOIR')),
+          nameTh: 'ปราณศาสตรา ' + gs.nameTh,
+          descTh: 'เสริมคีย์เวิร์ดยุทธวิธี ' + gs.kw.join(' + ') + ' ตามระดับศาสตรา',
+          params: { bonusDmgMult: 0.08 + gs.tier * 0.015, dur: 60 }
+        }
+      ],
+      obtainSources: ['CRAFTING', 'SECRET_REALM', 'SECT_TREASURY'],
+      v240: true
+    };
+    items.push(it);
+    const rec = {
+      id: 'REC_' + gs.id,
+      nameTh: 'ตำราหลอม ' + gs.nameTh,
+      craft: 'FORGING',
+      station: 'FORGE',
+      tier: gs.tier,
+      out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      outItemId: gs.id,
+      outNameTh: gs.nameTh,
+      minMastery: Math.max(10, (gs.tier - 1) * 14),
+      inputs: [
+        { matId: gs.mat1, count: 2 },
+        { matId: gs.mat2, count: 1 }
+      ],
+      element: gs.el,
+      obtainSources: ['SECT_TREASURY', 'SECRET_REALM', 'MARKET'],
+      v240: true
+    };
+    recipes.push(rec);
+  });
+
+  // 7 Spirit Beast Anatomy Alchemy Recipes consuming all remaining unassigned ECO2_MAT_* & MAT_V222_BP_* materials
+  const v240AlchemySpecs = [
+    { id: 'REC_V240_PILL_FELINE_AGILITY_1', nameTh: 'โอสถโลหิตเสือผาว่องไว', tier: 1, el: 'WIND', mat1: 'ECO2_MAT_FELINE_B_1', mat2: 'ECO2_MAT_AVIAN_B_1', effect: { healHealth: 35, buff: 'windStep', dur: 180 } },
+    { id: 'REC_V240_PILL_URSINE_VITALITY_1', nameTh: 'โอสถดีหมีดงไผ่ชูกำลัง', tier: 1, el: 'EARTH_METAL', mat1: 'ECO2_MAT_URSINE_B_1', mat2: 'ECO2_MAT_UNGULATE_A_1', effect: { healHealth: 45, healInjury: 1, buff: 'ironSkin', dur: 180 } },
+    { id: 'REC_V240_PILL_AQUATIC_CHIMERA_1', nameTh: 'โอสถเกล็ดเงินจิ้งจอกวายุปลอดโปร่ง', tier: 1, el: 'WATER_ICE', mat1: 'ECO2_MAT_AQUATIC_A_1', mat2: 'ECO2_MAT_CHIMERA_B_1', effect: { clearToxic: 25, clearHeartDemon: 15, buff: 'clarityLotus', dur: 180 } },
+    { id: 'REC_V240_PILL_CENTIPEDE_BEAR_2', nameTh: 'โอสถดีหมีผาแดงตะขาบร้อยขา', tier: 2, el: 'FIRE', mat1: 'MAT_V222_BP_32', mat2: 'ECO2_MAT_ARTHROPOD_B_2', effect: { healHealth: 75, breakthroughBonus: 0.05, dur: 240 } },
+    { id: 'REC_V240_PILL_KIRIN_MARROW_3', nameTh: 'โอสถไขกระดูกหมาป่ากิเลนทะลวงด่าน', tier: 3, el: 'BLOOD_DEMON', mat1: 'MAT_V222_BP_25', mat2: 'MAT_BP_MIST_STAG_ANTLER_3', effect: { healHealth: 120, breakthroughBonus: 0.08, dur: 300 } },
+    { id: 'REC_V240_PILL_NINE_TAIL_STAR_5', nameTh: 'โอสถหัวใจจิ้งจอกเก้าหางดาราสวรรค์', tier: 5, el: 'ASTRAL', mat1: 'MAT_V222_BP_28', mat2: 'MAT_FORM_LIFE_ESSENCE_DEW_4', effect: { healHealth: 260, clearHeartDemon: 40, breakthroughBonus: 0.12, dur: 360 } },
+    { id: 'REC_V240_PILL_IMMORTAL_MARROW_7', nameTh: 'มหาโอสถไขกระดูกเทพอสูรเบื้องบนนิรันดร์', tier: 6, el: 'LIGHT_YANG', mat1: 'MAT_TR_IMMORTAL_BEAST_MARROW', mat2: 'MAT_BP_PHOENIX_PLUME_6', effect: { healHealth: 500, healInjury: 3, clearToxic: 80, breakthroughBonus: 0.18, dur: 480 } }
+  ];
+  v240AlchemySpecs.forEach(ps => {
+    recipes.push({
+      id: ps.id,
+      nameTh: 'ตำรับปรุง' + ps.nameTh,
+      outNameTh: ps.nameTh,
+      craft: 'ALCHEMY',
+      station: 'ALCHEMY',
+      tier: ps.tier,
+      out: 'PILL',
+      outType: 'PILL',
+      minMastery: Math.max(0, (ps.tier - 1) * 14),
+      inputs: [
+        { matId: ps.mat1, count: 1 },
+        { matId: ps.mat2, count: 1 }
+      ],
+      effect: ps.effect,
+      element: ps.el,
+      obtainSources: ['SECT_TREASURY', 'SECRET_REALM', 'MARKET'],
+      v240: true
+    });
+  });
+
   const ECOLOGY = {
     VERSION: '1.10.12',
     species,
@@ -10741,7 +10990,8 @@
     anatomy: m.anatomy,
     element: m.element,
     craft: m.craft,
-    status: 'RESERVED_FOR_NEXT_PATCH',
+    usedInRecipeIds: recByInputMat[m.id] || [],
+    status: (recByInputMat[m.id] && recByInputMat[m.id].length > 0) ? 'ACTIVE_IN_V240_RECIPES' : 'RESERVED_FOR_NEXT_PATCH',
     usesTh: m.usesTh,
     plannedUsageTh: m.plannedUsageTh
   }));

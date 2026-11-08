@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '2.3.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0'],
-    SAVE_SCHEMA_VERSION: '2.3.0-grand-dao-deep-parity-release',
+    PATCH_VERSION: '2.4.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0'],
+    SAVE_SCHEMA_VERSION: '2.4.0-tactical-composable-grand-dao',
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
@@ -82,7 +82,7 @@
     }
     if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(npc, rng);
     if (g.ELEM && g.ELEM.ensureNpcElementalState) g.ELEM.ensureNpcElementalState(npc);
-    Object.assign(npc, { x: 0, y: 0, px: 0, py: 0, face: 1, dir: 0, rank: o.rank || 0, post: null, assist: null, merit: o.merit || 0, sat: 60, mentor: null, bed: null, joinDay: W.day - (o.tenure || 0), inv: { stones: Math.round(20 + (o.rank || 0) * 40 * (0.5 + rng.next())), pills: {}, mats: {} }, equip: {}, inj: [], cool: {}, recent: [], act: { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }, path: null, pi: 0, hidden: false, away: false, dead: false, stats: {}, why: [], travel: null });
+    Object.assign(npc, { x: 0, y: 0, px: 0, py: 0, face: 1, dir: 0, rank: o.rank || 0, post: null, assist: null, merit: o.merit || 0, sat: 60, mentor: null, bed: null, joinDay: W.day - (o.tenure || 0), inv: { stones: Math.round(20 + (o.rank || 0) * 40 * (0.5 + rng.next())), pills: {}, mats: {}, crystals: {}, subManuals: [], gear: [] }, equip: {}, inj: [], cool: {}, recent: [], act: { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }, path: null, pi: 0, hidden: false, away: false, dead: false, stats: {}, why: [], travel: null });
 
     // Archetype founding alignment for weapon skill & starter weapon
     if (o.archetypeKey && g.SECT && g.SECT.ARCHETYPE_WEAPON) {
@@ -220,6 +220,7 @@
   /* ---------- สร้างโลก ---------- */
   SIM.create = (seed, opts) => {
     opts = opts || {};
+    if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems();
     const rng = new U.RNG(String(seed) + ':world');
     const W = { _founding: true, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
     if (g.STATS) g.STATS.now = W.t;
@@ -239,7 +240,7 @@
     if (arch) {
       W.sect.archetype = arch.id;
       if (!opts.sectName) W.sect.name = arch.nameTh;
-      const baseCurriculum = (g.SECT && Array.isArray(g.SECT.FOUNDATION_CURRICULUM)) ? g.SECT.FOUNDATION_CURRICULUM : ['MP_BASE_XIAN', 'MP_BASE_BODY', 'MP_BASE_GOD', 'MP_BASE_DEMON', 'MP_BASE_HEART_SOUL', 'MP_BASE_MECH_PUPPET', 'MP_BASE_KARMA_SAMSARA', 'MP_BASE_BEAST_SOVEREIGN', 'MP_BASE_SAGE_SUPPORT', 'MP_BASE_CRAFT_CREATION', 'MP_BASE_ARRAY_TALISMAN', 'MP_BASE_STRATEGY_GOVERNANCE'];
+      const baseCurriculum = JD.TECH.techniques.filter(t => t && t.id && t.id.startsWith('MP_BASE_')).map(t => t.id);
       W.sect.library = Array.from(new Set(arch.techs.concat(baseCurriculum)));
       W.sect.crystals = Object.assign({}, arch.crystals);
       W.sect.unlockedSubs = arch.subs.slice();
@@ -314,6 +315,7 @@
     if (g.SECT && g.SECT.CHARTER_DOCTRINE) g.SECT.CHARTER_DOCTRINE.ensure(W);
     if (g.SECT && g.SECT.STRATEGIC_COUNCIL) g.SECT.STRATEGIC_COUNCIL.ensure(W);
     if (g.SECT && g.SECT.PATH_LIBRARY) g.SECT.PATH_LIBRARY.ensure(W);
+    if (g.SECT && g.SECT.INFERNAL_SHRINE) g.SECT.INFERNAL_SHRINE.ensure(W);
     if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
     if (g.EXPLORE && g.EXPLORE.ensureMicroLocations) g.EXPLORE.ensureMicroLocations(W);
     if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
@@ -473,18 +475,33 @@
   SIM.retire = (W, n) => {
     AI.cancelAct(W, n); AI.freeBed(W, n); if (n.post) { W.sect.posts[n.post] = null; n.post = null; }
     if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n);
-    SIM.snapshotPerson(W, n, n.exiled ? "ถูกขับไล่/ออกจากสำนัก" : "ออกจากสำนักแล้ว"); const i = W.npcs.indexOf(n); if (i >= 0) W.npcs.splice(i, 1); W.gone.push(n.id);
-    if (n.id === W.sect.deputyId) W.sect.deputyId = null;
     if (g.CPE && g.CPE.retireNpc) g.CPE.retireNpc(W, n, 'ออกจากสำนัก');
     for (const k of Object.keys(n.equip || {})) { if (n.equip[k]) W.sect.gear.push(n.equip[k]); } n.equip = {};
-    if (n.inv && Array.isArray(n.inv.gear)) { n.inv.gear.forEach(g2 => { if (g2) W.sect.gear.push(g2); }); delete n.inv.gear; }
-    if (g.VC && g.VC.syncUniqueArtifacts) g.VC.syncUniqueArtifacts(W);
+    if (n.inv && Array.isArray(n.inv.gear)) { n.inv.gear.forEach(g2 => { if (g2) W.sect.gear.push(g2); }); n.inv.gear = []; }
     for (const k of Object.keys((n.inv && n.inv.pills) || {})) ECO.add(W, k, n.inv.pills[k]);
-    g.MARTIAL.returnKnowledge(W, n);
+    if (g.MARTIAL) g.MARTIAL.returnKnowledge(W, n);
     for (const k of Object.keys((n.inv && n.inv.mats) || {})) ECO.add(W, k, n.inv.mats[k]);
     for (const id of ((n.inv && n.inv.techs) || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id);
     for (const id of ((n.inv && n.inv.recipes) || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; }
     if (n.inv) { n.inv.pills = {}; n.inv.mats = {}; n.inv.techs = []; n.inv.recipes = []; }
+    SIM.snapshotPerson(W, n, n.exiled ? "ถูกขับไล่/ออกจากสำนัก" : "ออกจากสำนักแล้ว");
+    n.retired = true;
+    const i = W.npcs.indexOf(n);
+    if (i >= 0) W.npcs.splice(i, 1);
+    if (W.byId && W.byId[n.id] === n) delete W.byId[n.id];
+    W.gone.push(n.id);
+    if (n.id === W.sect.deputyId) W.sect.deputyId = null;
+    if (W.sect && W.sect.successorId === n.id) W.sect.successorId = null;
+    if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
+    if (W.world && W.world.resourceNodes && g.EXPED && g.EXPED.recomputeNodeGarrison) {
+      Object.values(W.world.resourceNodes).forEach(rn => {
+        if (rn && rn.garrison && Array.isArray(rn.garrison.discipleIds) && rn.garrison.discipleIds.includes(n.id)) {
+          g.EXPED.recomputeNodeGarrison(W, rn);
+        }
+      });
+    }
+    if (g.VC && g.VC.syncUniqueArtifacts) g.VC.syncUniqueArtifacts(W);
+    if (g.MARTIAL && g.MARTIAL.syncLibrary) g.MARTIAL.syncLibrary(W);
   };
   SIM.hourly = W => {
     if (g.STATS) g.STATS.now = W.t;
@@ -760,12 +777,19 @@
     if (CULT && CULT.MORTAL_INITIATION) {
       CULT.MORTAL_INITIATION.monthlyTick(W);
     }
+    if (SECT && SECT.INFERNAL_SHRINE && SECT.INFERNAL_SHRINE.monthlyTick) {
+      SECT.INFERNAL_SHRINE.monthlyTick(W);
+    }
+    if (CULT && CULT.tickMonthlyWorldHooks) {
+      CULT.tickMonthlyWorldHooks(W);
+    }
   };
   SIM.guardRoster = W => {
     const pop = W.npcs.filter(n => !n.dead).length; const k = 2 + Math.floor(pop / 14);
-    const pool = W.npcs.filter(n => !n.dead && !n.away && n.rank >= 1 && n.rank <= 3 && !(n.inj && n.inj.length) && !n.sealed);
-    pool.sort((a, b) => (AI.dutyWeight(b) + W.rng.next() * 0.8) - (AI.dutyWeight(a) + W.rng.next() * 0.8));
-    W.sect.guardRoster = pool.slice(0, k).map(n => n.id);
+    const pool = W.npcs.filter(n => !n.dead && !n.away && n.rank >= 1 && n.rank <= 3 && !(n.inj && n.inj.length) && !n.sealed && !(SECT && SECT.isNpcDetained && SECT.isNpcDetained(W, n)));
+    const scored = pool.map(n => ({ n, score: AI.dutyWeight(n) + W.rng.next() * 0.8 }));
+    scored.sort((a, b) => b.score - a.score);
+    W.sect.guardRoster = scored.slice(0, k).map(x => x.n.id);
   };
   SIM.assistants = W => {
     ['alchemy', 'forge'].forEach(h => {
@@ -825,7 +849,8 @@
       map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
     };
     const transientSet = SIM.TRANSIENT_CACHE_KEYS;
-    return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && k !== '_ver' && k !== '_btBonusPct' && k !== '_dantianBonusPct' && k !== '_saveExtras')) ? undefined : v);
+    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq']);
+    return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && !PERSISTED_UNDERSCORE_KEYS.has(k))) ? undefined : v);
   };
   SIM.deserialize = str => {
     const s = JSON.parse(str);
@@ -835,6 +860,8 @@
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
     const SUPPORTED_SAVE_SCHEMAS = new Set([
       SIM.SAVE_SCHEMA_VERSION,
+      '2.4.0-tactical-composable-grand-dao',
+      '2.3.0-grand-dao-deep-parity-release',
       '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle',
       '2.1.0-grand-dao-debates-apex-trials',
       '2.0.0-grand-dao-epoch-mortal-awakening',
@@ -857,17 +884,19 @@
       '3.1.0-autonomous-governance-peaks'
     ]);
     if (s.schemaVersion != null) {
-      if (typeof s.schemaVersion !== 'string' || (!SUPPORTED_SAVE_SCHEMAS.has(s.schemaVersion) && s.schemaVersion > SIM.SAVE_SCHEMA_VERSION)) {
+      if (typeof s.schemaVersion !== 'string' || !SUPPORTED_SAVE_SCHEMAS.has(s.schemaVersion)) {
         throw new Error('ไฟล์เซฟสร้างจาก Schema เวอร์ชันที่ใหม่กว่าหรือไม่รองรับ (' + s.schemaVersion + ' > ' + SIM.SAVE_SCHEMA_VERSION + ') ไม่สามารถโหลดได้');
       }
     }
     if (s.patchVersion != null) {
-      if (typeof s.patchVersion !== 'string' || (!SIM.SUPPORTED_PATCHES.includes(s.patchVersion) && parseFloat(s.patchVersion) > parseFloat(SIM.PATCH_VERSION))) {
-        throw new Error('ไฟล์เซฟสร้างจาก Patch เวอร์ชันที่ใหม่กว่า (' + s.patchVersion + ' > ' + SIM.PATCH_VERSION + ') ไม่สามารถโหลดได้');
+      if (typeof s.patchVersion !== 'string' || !SIM.SUPPORTED_PATCHES.includes(s.patchVersion)) {
+        throw new Error('ไฟล์เซฟสร้างจาก Patch เวอร์ชันที่ใหม่กว่าหรือไม่รองรับ (' + s.patchVersion + ' > ' + SIM.PATCH_VERSION + ') ไม่สามารถโหลดได้');
       }
     }
-    if (s.v != null && typeof s.v === 'string' && parseFloat(s.v) > 10) {
-      throw new Error('ไฟล์เซฟสร้างจากเกมเวอร์ชันที่ใหม่กว่า (' + s.v + ' > ' + SIM.VERSION + ') ไม่สามารถโหลดได้');
+    if (s.v != null) {
+      if (typeof s.v !== 'string' || !/^\d+\.\d+(\.\d+)?$/.test(s.v) || parseFloat(s.v) > 2) {
+        throw new Error('ไฟล์เซฟสร้างจากเกมเวอร์ชันที่ใหม่กว่าหรือไม่รองรับ (' + s.v + ' > ' + SIM.VERSION + ') ไม่สามารถโหลดได้');
+      }
     }
     if (typeof s.seed !== 'string' && !Number.isFinite(s.seed)) invalid('seed');
     if (!Number.isSafeInteger(s.t) || s.t < 0) invalid('t');
@@ -875,6 +904,7 @@
     if (!Array.isArray(s.rng) || s.rng.length !== 4 || !s.rng.every(Number.isInteger)) invalid('rng');
     if (s.speed != null && (!Number.isFinite(s.speed) || s.speed < 0)) invalid('speed');
     for (const key of ['sect', 'world', 'market', 'weather', 'threat', 'map']) if (!object(s[key])) invalid(key);
+    if (!Number.isFinite(s.sect.stones) || s.sect.stones < 0) invalid('sect.stones');
     for (const key of ['npcs', 'logs', 'graveyard', 'gone']) if (!Array.isArray(s[key])) invalid(key);
     for (const key of ['buildings', 'extra']) if (!Array.isArray(s.map[key])) invalid('map.' + key);
     for (const key of ['duelQueue', 'fights', 'foes']) if (s[key] != null && !Array.isArray(s[key])) invalid(key);
@@ -911,25 +941,13 @@
       const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
       if (s.celestialAlignment) W.celestialAlignment = s.celestialAlignment;
       if (s.celestialEvent) W.celestialEvent = s.celestialEvent;
-      if (W.sect && W.sect.customPills && ECO) {
-        Object.entries(W.sect.customPills).forEach(([pid, pdef]) => {
-          if (ECO.v235ItemById) ECO.v235ItemById[pid] = pdef;
-          if (ECO.itemById) ECO.itemById[pid] = pdef;
+      W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));
+      if (s.runtimeTiming && typeof s.runtimeTiming === 'object') {
+        W.runtimeTiming = Object.assign({}, s.runtimeTiming, {
+          pendingTicks: clamp(Number.isFinite(s.runtimeTiming.pendingTicks) ? s.runtimeTiming.pendingTicks : 0, 0, 1440)
         });
       }
-      W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));
-      if (s.runtimeTiming) W.runtimeTiming = s.runtimeTiming;
       const legacyContent = !s.sect.contentVersion;
-      if (g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
-      if (g.SECT && g.SECT.ensureFacilityDemand) g.SECT.ensureFacilityDemand(W);
-      if (g.ECO && g.ECO.ensureStockTracker) g.ECO.ensureStockTracker(W);
-      if (g.CPE && g.CPE.S) g.CPE.S(W);
-      g.CONTENT.ensure(W); W._founding = false; g.MARTIAL.restore(W); if (g.FISHING) g.FISHING.ensure(W);
-      if (g.SECT && g.SECT.PATH_LIBRARY) g.SECT.PATH_LIBRARY.ensure(W);
-      if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
-      if (g.CULT && g.CULT.MORTAL_INITIATION && Array.isArray(W.npcs)) {
-        W.npcs.forEach(n => { if (n && !n.dead && !n.cult) g.CULT.MORTAL_INITIATION.ensureMortalState(n, W); });
-      }
       if (legacyContent) W.npcs.forEach(n => {
         const a = n.act, ctx = a && a.ctx;
         if (a && ['brew', 'forge', 'brewBasic'].includes(a.id) && a.stage === 'do' && a.started2 && ctx && !ctx.craftReceipt) {
@@ -937,6 +955,24 @@
         }
       });
       ECO.pruneCraftTransactions(W);
+      if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems(W);
+      else if (W.sect && W.sect.customPills && ECO) {
+        Object.entries(W.sect.customPills).forEach(([pid, pdef]) => {
+          if (ECO.v235ItemById) ECO.v235ItemById[pid] = pdef;
+          if (ECO.itemById) ECO.itemById[pid] = pdef;
+        });
+      }
+      if (g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
+      if (g.SECT && g.SECT.ensureFacilityDemand) g.SECT.ensureFacilityDemand(W);
+      if (g.ECO && g.ECO.ensureStockTracker) g.ECO.ensureStockTracker(W);
+      if (g.CPE && g.CPE.S) g.CPE.S(W);
+      g.CONTENT.ensure(W); W._founding = false; g.MARTIAL.restore(W); if (g.FISHING) g.FISHING.ensure(W);
+      if (g.SECT && g.SECT.PATH_LIBRARY) g.SECT.PATH_LIBRARY.ensure(W);
+      if (g.SECT && g.SECT.INFERNAL_SHRINE) g.SECT.INFERNAL_SHRINE.ensure(W);
+      if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
+      if (g.CULT && g.CULT.MORTAL_INITIATION && Array.isArray(W.npcs)) {
+        W.npcs.forEach(n => { if (n && !n.dead && !n.cult) g.CULT.MORTAL_INITIATION.ensureMortalState(n, W); });
+      }
       if (W.sect && W.sect.delegations && typeof W.sect.delegations === "object") {
         for (const p of Object.keys(W.sect.delegations)) {
           const d = W.sect.delegations[p];
@@ -982,6 +1018,7 @@
       if (W.world && Array.isArray(W.world.wanderingFigures) && g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
       return W;
     } catch (error) {
+      if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems();
       if (hadDay) HC.nowDay = dayBefore; else delete HC.nowDay;
       if (stats) { if (hadStatsTime) stats.now = statsTimeBefore; else delete stats.now; }
       throw error;

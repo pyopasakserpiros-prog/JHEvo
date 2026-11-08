@@ -145,6 +145,13 @@ for (const r of allRecipes) {
   if (r.outItemId) {
     check(ECO.itemById[r.outItemId], `Recipe ${r.id} references non-existent outItemId: ${r.outItemId}`);
   }
+  const rtRecipe = ECO.recipeById && ECO.recipeById[r.id];
+  if (rtRecipe) {
+    check(typeof rtRecipe.outType === 'string' && rtRecipe.outType.length > 0, `Recipe ${r.id} missing outType in runtime registry`);
+    check(Number.isFinite(rtRecipe.minMastery), `Recipe ${r.id} missing finite minMastery in runtime registry`);
+    check(typeof rtRecipe.outNameTh === 'string' && rtRecipe.outNameTh.length > 0, `Recipe ${r.id} missing outNameTh in runtime registry`);
+    check(Number.isFinite(ECO.outputValue(null, rtRecipe)) && ECO.outputValue(null, rtRecipe) > 0, `Recipe ${r.id} has non-finite outputValue`);
+  }
 }
 
 // Detect cycles in crafting DAG

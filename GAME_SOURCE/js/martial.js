@@ -441,6 +441,17 @@ M.auditTechniqueCatalog=()=>{
  }
  return counts;
 };
+M.canActivateMantra=(n,mOrId)=>{
+ if(!n||!n.cult||!mOrId)return false;
+ const m=typeof mOrId==='string'?CULT.tech(mOrId):mOrId;
+ if(!m)return false;
+ const c=n.cult;
+ const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):(c.stage||1);
+ const reqT=m.reqTier||m.tier||1;
+ if(reqT>effSt&&(c.path!=='GOD'||reqT>2))return false;
+ if(m.path&&m.path!=='ANY'&&m.path!==c.path&&(!Array.isArray(m.compatiblePaths)||!m.compatiblePaths.includes(c.path)))return false;
+ return true;
+};
 M.isTechCompatible=(n,t)=>{
  if(!n||!n.cult||!t)return false;
  const c=n.cult;
@@ -636,7 +647,7 @@ M.unequipPassive=(W,n,id)=>{
  return {ok:true,loadout:n.passiveLoadout.slice()};
 };
 
-M.gearType=it=>it?(it.gearType||D.classify(it.slot,it.nameTh)):null;
+M.gearType=it=>it?(it.gearType||it.weaponType||it.armorType||it.subType||D.classify(it.slot,it.nameTh)):null;
 M.weaponConditionMatches=(n,t)=>{
  if(!t)return false;
  if(t.weaponTypes&&t.weaponTypes.length){const type=(M.equippedType?M.equippedType(n):M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');if(!t.weaponTypes.includes(type))return false;}
@@ -749,7 +760,6 @@ M.itemMatchesResonanceSet=(n,it,rs)=>{
  if(!['WEAPON','ARMOR','ACCESSORY'].includes(slot))return false;
  if((it.tier||1)<(rs.minTier||3))return false;
  if(it.resonanceSetId===rs.id||(Array.isArray(it.resonanceSetIds)&&it.resonanceSetIds.includes(rs.id)))return true;
- if(it.legendary)return true;
  const gType=M.gearType(it);
  const allowedTypes=rs.slots[slot];
  if(!allowedTypes||!allowedTypes.includes(gType))return false;
@@ -1008,8 +1018,8 @@ M.passiveStats=n=>{
 
 M.lifeMult=(n,skill)=>{
  if(!n||!n.cult)return 1;
- const c=n.cult,lmc=n._lifeMultCache;
- if(lmc&&lmc.cult===c&&lmc.path===c.path&&lmc.sub===c.sub&&lmc.st===c.stage&&lmc.mantra===c.mantra&&lmc.ver===(n._passVer||0)){
+ const c=n.cult,trOrd=(c.track&&c.track.ordinal)||0,lmc=n._lifeMultCache;
+ if(lmc&&lmc.cult===c&&lmc.path===c.path&&lmc.sub===c.sub&&lmc.st===c.stage&&lmc.tr===trOrd&&lmc.mantra===c.mantra&&lmc.ver===(n._passVer||0)){
   const hit=lmc.map[skill];
   if(hit!==undefined)return hit;
  }
@@ -1018,11 +1028,11 @@ M.lifeMult=(n,skill)=>{
  const passAdd=(pass.life&&pass.life[skill])||0;
  const inn=M.innateStats(n);
  const innAdd=(inn.life&&inn.life[skill])||0;
- const m=c.mantra?CULT.tech(c.mantra):null;
+ const m=c.mantra&&(M.canActivateMantra?M.canActivateMantra(n,c.mantra):true)?CULT.tech(c.mantra):null;
  const manAdd=(m&&m.mantraBonus&&m.mantraBonus.life&&m.mantraBonus.life[skill])||0;
  const val=base+passAdd+innAdd+manAdd;
- if(!lmc||lmc.cult!==c||lmc.path!==c.path||lmc.sub!==c.sub||lmc.st!==c.stage||lmc.mantra!==c.mantra||lmc.ver!==(n._passVer||0)){
-  n._lifeMultCache={cult:c,path:c.path,sub:c.sub,st:c.stage,mantra:c.mantra,ver:n._passVer||0,map:{[skill]:val}};
+ if(!lmc||lmc.cult!==c||lmc.path!==c.path||lmc.sub!==c.sub||lmc.st!==c.stage||lmc.tr!==trOrd||lmc.mantra!==c.mantra||lmc.ver!==(n._passVer||0)){
+  n._lifeMultCache={cult:c,path:c.path,sub:c.sub,st:c.stage,tr:trOrd,mantra:c.mantra,ver:n._passVer||0,map:{[skill]:val}};
  }else{
   lmc.map[skill]=val;
  }
@@ -1285,7 +1295,8 @@ M.grantedEquipmentTechs = n => {
    if (!cp.includes('ANY') && !cp.includes(n.cult.path)) continue;
   }
   for (const tid of list) {
-   if (typeof tid === 'string' && CULT.tech(tid) && !out.includes(tid)) out.push(tid);
+   const gt = typeof tid === 'string' ? CULT.tech(tid) : null;
+   if (gt && (gt.reqTier || gt.tier || 1) <= effSt + 1 && !out.includes(tid)) out.push(tid);
   }
  }
  return out;
@@ -1314,8 +1325,16 @@ M.applyEquipmentSkillModifiers = (n, moveProf) => {
   if (!Array.isArray(mods) || !mods.length) continue;
   for (const mod of mods) {
    if (!mod) continue;
-   if (mod.matchArch && (!Array.isArray(mod.matchArch) ? mod.matchArch !== moveProf.arch : !mod.matchArch.includes(moveProf.arch))) continue;
-   if (mod.matchElement && (!Array.isArray(mod.matchElement) ? mod.matchElement !== moveProf.element : !mod.matchElement.includes(moveProf.element))) continue;
+   const mArch = mod.matchArch || mod.arch;
+   if (mArch && (!Array.isArray(mArch) ? mArch !== moveProf.arch : !mArch.includes(moveProf.arch))) continue;
+   const mElem = mod.matchElement || mod.element;
+   if (mElem && (!Array.isArray(mElem) ? mElem !== moveProf.element : !mElem.includes(moveProf.element))) continue;
+   const mWpn = mod.matchWeaponType || mod.weaponType;
+   if (mWpn) {
+    const eqType = M.equippedType ? M.equippedType(n) : 'FIST';
+    const wOk = Array.isArray(mWpn) ? mWpn.includes(eqType) : mWpn === eqType;
+    if (!wOk) continue;
+   }
    if (mod.matchTechId && mod.matchTechId !== moveProf.tech && mod.matchTechId !== moveProf.id) continue;
    if (!cloned) cloned = Object.assign({}, moveProf);
    const mAdd = mod.multAdd || mod.multPct || 0;
@@ -1348,12 +1367,14 @@ if (g.SK && g.SK.canSelectMove) {
   if (!n || !n.cult) return false;
   const t = typeof techOrId === 'string' ? CULT.tech(techOrId) : techOrId;
   if (!t || t.passive || t.cat === 'PASSIVE') return false;
+  if (M.skillEfficiency && M.skillEfficiency(n, t) <= 0) return false;
   const granted = M.grantedEquipmentTechs(n);
   if (!granted.includes(t.id)) return false;
-  return g.SK.allMoves(t).slice(0, 2).some(m => m.id === moveIdOrIdx || m.moveId === moveIdOrIdx || m.moveIndex === moveIdOrIdx);
+  const moves = g.SK.unlockedMoves ? g.SK.unlockedMoves(n, t) : g.SK.allMoves(t).slice(0, 1);
+  return moves.some(m => m.id === moveIdOrIdx || m.moveId === moveIdOrIdx || m.moveIndex === moveIdOrIdx);
  };
 }
 
 // Mint/catalog boundary types also cover historical recipe-only equipment.
-const oldMint=ECO.mintGear;ECO.mintGear=(a,b,c,d)=>{const it=oldMint(a,b,c,d),r=(a&&a.sect&&a.npcs)?b:a,source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=it.gearType||source.gearType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.attunedElement&&!it.attunedElement)it.attunedElement=source.attunedElement;if(source.resonanceSetId&&!it.resonanceSetId)it.resonanceSetId=source.resonanceSetId;if(source.resonanceSetIds&&!it.resonanceSetIds)it.resonanceSetIds=source.resonanceSetIds.slice();if(source.grantedSkills&&!it.grantedSkills)it.grantedSkills=source.grantedSkills.slice();if(source.skillModifiers&&!it.skillModifiers)it.skillModifiers=JSON.parse(JSON.stringify(source.skillModifiers));if(source.composableEffects&&!it.composableEffects)it.composableEffects=JSON.parse(JSON.stringify(source.composableEffects));if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
+const oldMint=ECO.mintGear;ECO.mintGear=(a,b,c,d)=>{const it=oldMint(a,b,c,d),r=(a&&a.sect&&a.npcs)?b:a,source=ECO.itemById[r&&(r.outItemId||r.itemId)]||r||{};it.gearType=it.gearType||source.gearType||source.weaponType||source.armorType||source.subType||D.classify(it.slot,it.nameTh);if(source.elementalRole){it.elementalRole=source.elementalRole;if(source.elementalRole==='EXPLICIT_NON_ELEMENTAL')delete it.element;}else if(source.element&&!it.element)it.element=source.element;if(source.elementProfile&&!it.elementProfile)it.elementProfile=source.elementProfile;if(source.attunedElement&&!it.attunedElement)it.attunedElement=source.attunedElement;if(source.resonanceSetId&&!it.resonanceSetId)it.resonanceSetId=source.resonanceSetId;if(source.resonanceSetIds&&!it.resonanceSetIds)it.resonanceSetIds=source.resonanceSetIds.slice();if(source.grantedSkills&&!it.grantedSkills)it.grantedSkills=source.grantedSkills.slice();if(source.skillModifiers&&!it.skillModifiers)it.skillModifiers=JSON.parse(JSON.stringify(source.skillModifiers));if(source.composableEffects&&!it.composableEffects)it.composableEffects=JSON.parse(JSON.stringify(source.composableEffects));if(source.st&&!it.st&&!source.fixedStats){const qf=it.q||1;it.st=Object.fromEntries(Object.entries(source.st).map(([k,v])=>[k,['crit','critDmg','pen','move','cast'].includes(k)?Math.round(v*10)/10:Math.round(v*qf*10)/10]));}return it;};
 })(typeof globalThis!=='undefined'?globalThis:this);

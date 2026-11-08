@@ -419,10 +419,17 @@
   };
   CPE.buy = (W, n, p) => {
     if (p && p.kind === 'stone_grant' && Number.isFinite(p.price) && p.price > 0 && Number.isFinite(p.stones) && p.stones > 0) {
-      if (!W.sect || (W.sect.stones || 0) < p.stones) return false;
-      if (!CPE.spend(W, n, p.price, 'แลกศิลาวิญญาณทะลวงสายเฉพาะทาง')) return false;
-      W.sect.stones -= p.stones;
-      n.inv.stones = (n.inv.stones || 0) + p.stones;
+      if (!W || !W.sect || !n || !n.cult || !n.cult.track || !CULT.checkTrackGates) return false;
+      const tg = CULT.checkTrackGates(W, n);
+      const deficit = (!tg.resourceOk && tg.missingStones && tg.missingStones.deficit > 0) ? tg.missingStones.deficit : 0;
+      const maxGrant = Math.min(deficit || 0, Math.floor((W.sect.stones || 0) * 0.25), Math.floor((n.cp || 0) * 2.5));
+      const reqStones = Math.floor(p.stones);
+      if (reqStones < 5 || reqStones > maxGrant) return false;
+      const expectedPrice = Math.max(4, Math.ceil(reqStones / 2.5));
+      if (p.price !== expectedPrice || (W.sect.stones || 0) < reqStones) return false;
+      if (!CPE.spend(W, n, expectedPrice, 'แลกศิลาวิญญาณทะลวงสายเฉพาะทาง')) return false;
+      W.sect.stones -= reqStones;
+      n.inv.stones = (n.inv.stones || 0) + reqStones;
       return true;
     }
     if (!p || !Number.isFinite(p.price) || p.price <= 0 || !['pill','gear'].includes(p.kind)) return false;
@@ -941,7 +948,20 @@
     start(n,W,ctx) { return !!ECO.personalCraftQuote(W,n,ECO.recipeById[ctx.rid]); },
     dur(n,W,ctx) { const r=ECO.recipeById[ctx.rid]; return r ? Math.round(ECO.craftHours(r,n.h.skills.ALCHEMY||0)*60) : 0; },
     tick(n, W) { n.h.state.energy=Math.max(0,n.h.state.energy-0.04); if (n.cult && (n.cult.path === 'CRAFT_CREATION' || (Array.isArray(n.cult.techs) && n.cult.techs.includes('PASS_CROSS_CRAFT_004')))) { const cMult = n.cult.path === 'CRAFT_CREATION' ? 1.35 : 0.65; CULT.gain(n, CULT.rate(n, cMult) / 60, W, 'craft_tick'); } },
-    done(n,W,ctx) { const out=ECO.personalCraft(W,n,ECO.recipeById[ctx.rid],ctx.intent); if(out.ok) {n.stats=n.stats||{};n.stats.crafted=(n.stats.crafted||0)+1;} if(out.ok) W.log('craft',n.h.name.given+' ปรุงโอสถส่วนตัวสำเร็จ (คุณภาพ '+Math.round(out.product.q*100)+'%)',[n.id]); }
+    done(n,W,ctx) {
+      const r = ECO.recipeById[ctx.rid];
+      const out = ECO.personalCraft(W, n, r, ctx.intent);
+      if (out && out.ok) {
+        n.stats = n.stats || {};
+        n.stats.crafted = (n.stats.crafted || 0) + 1;
+        n.lastPersonalCraftFail = null;
+        W.log('craft', n.h.name.given + ' ปรุงโอสถส่วนตัวสำเร็จ (คุณภาพ ' + Math.round(out.product.q * 100) + '%)', [n.id]);
+      } else {
+        const failReason = (out && out.reason) || 'missing-inputs-or-cp';
+        n.lastPersonalCraftFail = { t: W.t, rid: ctx.rid, reason: failReason };
+        if (AI && AI.mem) AI.mem(W, n, 'ปรุงโอสถส่วนตัวไม่สำเร็จ (' + failReason + ')', 0.3);
+      }
+    }
   };
   A.personalPillDonation = {
     nameTh:'บริจาคโอสถส่วนตัว',icon:'🎁',color:'#c6a4f5',

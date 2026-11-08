@@ -28,7 +28,7 @@ M.retrain=(W,n,key,opts)=>{
  // No RNG or fallible operation follows payment; consume a unit only on this successful commit.
  if(quote.source==='crystal')M.consumeCrystalUnit(n,key);else CPE.S(W).techSales+=quote.fee;
  const old=n.cult,from=old.path+'/'+old.sub,before=old.stage,k=quote.knowledge;
- n.cult={path:k.path,sub:k.id,stage:quote.newStage,prog:0,mantra:null,unlockedMantras:Array.isArray(old.unlockedMantras)?old.unlockedMantras.slice():[],techs:Array.from(new Set(old.techs||[])),learning:null,toxic:old.toxic||0,lifeBonus:old.lifeBonus||0,since:W.day,attempts:0,secl:null,rate:0,pillT:0,tm:old.tm||{}};
+ n.cult={path:k.path,sub:k.id,stage:quote.newStage,prog:0,mantra:null,unlockedMantras:Array.isArray(old.unlockedMantras)?old.unlockedMantras.filter(id=>{const m=CULT.tech(id);return !!(m&&(!m.path||m.path==="ANY"||m.path===k.path));}):[],techs:Array.from(new Set(old.techs||[])),learning:null,toxic:old.toxic||0,lifeBonus:old.lifeBonus||0,since:W.day,attempts:0,secl:null,rate:0,pillT:0,tm:old.tm||{}};
  n.cult.mantra=(CULT.bestMantra(k.path,quote.newStage,n)||{}).id||null;
  if(CULT.isExpansionTrack?CULT.isExpansionTrack(k.id):(CULT.EXPANSION_TRACK_IDS&&CULT.EXPANSION_TRACK_IDS.has(k.id)))n.cult.track=CULT.initTrack(k.id,1,W.day);
  if(CULT.ensurePets&&n.pets)CULT.ensurePets(n);if(k.path==='MECH_PUPPET'&&CULT.ensureMechState)CULT.ensureMechState(n);if(k.path==='KARMA_SAMSARA'&&CULT.ensureKarmaState)CULT.ensureKarmaState(n);

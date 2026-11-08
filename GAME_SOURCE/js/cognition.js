@@ -215,12 +215,14 @@
   /* ============================================================================
    * 2. OFFICE JURISDICTION, DELEGATION & AUTHORITY
    * ============================================================================ */
-  COG.available = (n, W) => !!n && !n.dead && !n.away && !n.exiled && !n.sealed && !n.sealedBt && !(n.jail > (W?.t ?? 0)) && !(n.punished > (W?.t ?? 0));
+  COG.available = (n, W) => !!n && !n.dead && !n.away && !n.exiled && !n.sealed && !n.sealedBt && !(n.jail > (W?.t ?? 0)) && !(n.punished > (W?.t ?? 0)) && !(SECT && SECT.isNpcDetained && SECT.isNpcDetained(W, n)) && (!Array.isArray(W?.npcs) || W.npcs.includes(n));
 
   COG.role = (W, n) => {
     if (!W || !W.sect || !n) return { id: 'member', title: 'สมาชิกสำนัก', responsibility: 'ดูแลตนเอง ฝึกฝน และเลือกช่วยสำนักตามความสามารถ', acting: false, delegated: false };
     const rc = n._cogRoleCache;
-    if (rc && rc.t === W.t && rc.post === n.post && rc.assist === n.assist && rc.isM === (W.sect.masterId === n.id) && rc.isD === (W.sect.deputyId === n.id)) {
+    const delSig = W.sect.delegations ? Object.entries(W.sect.delegations).map(([k, d]) => d && d.delegateId === n.id && d.until > W.t ? (k + ':' + (d.holderId || '')) : '').filter(Boolean).join(',') : '';
+    const welfAct = !!(W.sect.welfareAuthority && W.sect.welfareAuthority.id === n.id && W.sect.welfareAuthority.acting);
+    if (rc && rc.t === W.t && rc.post === n.post && rc.assist === n.assist && rc.isM === (W.sect.masterId === n.id) && rc.isD === (W.sect.deputyId === n.id) && rc.delSig === delSig && rc.welfAct === welfAct) {
       return rc.val;
     }
     let id = W.sect.masterId === n.id ? 'master' : W.sect.deputyId === n.id ? 'deputy' : (n.post && W.sect.posts && W.sect.posts[n.post] === n.id ? n.post : null);
@@ -231,7 +233,7 @@
       }
     }
     let acting = false, delegated = false;
-    if (!id && W.sect.welfareAuthority?.id === n.id && W.sect.welfareAuthority.acting) {
+    if (!id && welfAct) {
       id = 'treasury';
       acting = true;
       delegated = true;
@@ -239,7 +241,7 @@
     if (!id && W.sect.delegations) {
       for (const p in W.sect.delegations) {
         const d = W.sect.delegations[p];
-        if (d && d.delegateId === n.id && d.until > W.t && OFFICE[p]) {
+        if (d && d.delegateId === n.id && d.until > W.t && OFFICE[p] && (!d.holderId || (W.sect.posts && W.sect.posts[p] === d.holderId && !COG.available(W.byId[d.holderId], W)))) {
           id = p;
           acting = true;
           delegated = true;
@@ -259,7 +261,7 @@
       acting,
       delegated
     };
-    n._cogRoleCache = { t: W.t, post: n.post, assist: n.assist, isM: W.sect.masterId === n.id, isD: W.sect.deputyId === n.id, val };
+    n._cogRoleCache = { t: W.t, post: n.post, assist: n.assist, isM: W.sect.masterId === n.id, isD: W.sect.deputyId === n.id, delSig, welfAct, val };
     return val;
   };
 
@@ -268,9 +270,9 @@
     if (domain === 'master') return W.sect.masterId === n.id || (W.sect.deputyId === n.id && !COG.available(W.byId[W.sect.masterId], W));
     if (domain === 'deputy') return W.sect.deputyId === n.id;
     if (W.sect.posts && W.sect.posts[domain] === n.id) return true;
-    if (domain === 'treasury' && W.sect.welfareAuthority?.id === n.id) return true;
+    if (domain === 'treasury' && W.sect.welfareAuthority?.id === n.id && W.sect.welfareAuthority.acting) return true;
     const del = W.sect.delegations && W.sect.delegations[domain];
-    if (del && del.delegateId === n.id && del.until > W.t) return true;
+    if (del && del.delegateId === n.id && del.until > W.t && (!del.holderId || (W.sect.posts && W.sect.posts[domain] === del.holderId && !COG.available(W.byId[del.holderId], W)))) return true;
     return false;
   };
 
@@ -1360,8 +1362,9 @@
       const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
       const postsRef = W.sect && W.sect.posts;
       const safeNow = safe(n), hourBand = ((W.t % 1440) / 60) | 0, planAnchor = W.sect && W.sect.officePlans && W.sect.officePlans.alchemy ? W.sect.officePlans.alchemy.by : null;
+      const officeRev = (W.sect && W.sect._officeOrderSeq) || 0;
       const pCmd = postsRef ? postsRef.commander : null, pAlc = postsRef ? postsRef.alchemy : null, pFrg = postsRef ? postsRef.forge : null, pMas = W.sect ? W.sect.masterId : null;
-      if (!mc || (W.t - mc.t >= 60 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.hourBand !== hourBand || mc.ver !== n._ver || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || (curGoal && (curGoal.id === 'scripture' || curGoal.id === 'gear_upgrade') && mc.cp !== cpNow) || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
+      if (!mc || (W.t - mc.t >= 60 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.hourBand !== hourBand || mc.ver !== n._ver || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.officeRev !== officeRev || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || (curGoal && (curGoal.id === 'scripture' || curGoal.id === 'gear_upgrade') && mc.cp !== cpNow) || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -1428,7 +1431,7 @@
       }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, hourBand, planAnchor, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
+        t: W.t, hourBand, planAnchor, officeRev, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -2224,10 +2227,13 @@
     }
     const plans = W.sect.officePlans || (W.sect.officePlans = {});
     plans[r.id] = { by: n.id, title, targetId, actions, at: W.t, expiresAt: W.t + 1440 };
-    // Issue actionable order for urgent shortages/threats
+    W.sect._officeOrderSeq = (W.sect._officeOrderSeq || 0) + 1;
+    // Issue actionable order for urgent shortages/threats, or clear stale order when resolved
     if (targetId || actions[0] !== 'duty') {
       const orders = W.sect.officeOrders || (W.sect.officeOrders = {});
       orders[r.id] = { id: 'ord_' + r.id + '_' + W.t, post: r.id, by: n.id, title, targetId, actions, priority: critical ? 'critical' : 'normal', at: W.t, expiresAt: W.t + 1440 };
+    } else if (W.sect.officeOrders && W.sect.officeOrders[r.id]) {
+      delete W.sect.officeOrders[r.id];
     }
     COG.officeDecision(W, n, title, [r.responsibility]);
     return true;
@@ -2236,7 +2242,11 @@
   COG.reviewOffices = W => {
     COG.syncOfficeAuthority(W);
     for (const id of Object.keys(SECT.POSTS)) {
-      const n = SECT.holder(W, id) || (W.sect.delegations && W.sect.delegations[id] && W.byId[W.sect.delegations[id].delegateId]);
+      const holder = SECT.holder(W, id);
+      const del = W.sect.delegations && W.sect.delegations[id];
+      const n = (holder && COG.available(holder, W))
+        ? holder
+        : (del && del.until > W.t && W.byId[del.delegateId] && COG.available(W.byId[del.delegateId], W) ? W.byId[del.delegateId] : holder);
       if (n) COG.reviewOffice(W, n);
     }
   };
@@ -2244,12 +2254,12 @@
   // Execute office duty including personality-sensitive allocation, favoritism, or discipline investigation
   COG.performDuty = (W, n) => {
     const r = COG.role(W, n);
-    if (r.id === 'member' || !COG.available(n, W)) return;
+    if (r.id === 'member' || !COG.available(n, W)) return false;
     COG.reviewOffice(W, n);
     // An ordinary assistant without explicit delegated authority cannot issue official production orders
     if (r.acting && !r.delegated) {
       COG.officeDecision(W, n, 'ช่วยงานภายใต้ผู้มีอำนาจ', [r.responsibility]);
-      return;
+      return false;
     }
     if (SECT.governancePractice) SECT.governancePractice(W, n, r.id);
     if (['alchemy', 'forge'].includes(r.id)) {
@@ -2260,7 +2270,7 @@
         SECT.SOUL_FORGE.awakenWeaponSpirit(W, n, null, { quiet: true });
       }
       COG.officeDecision(W, n, 'จัดแผนผลิต' + (o.recipe ? ' ' + o.recipe.nameTh : ' รอวัตถุดิบ'), [r.responsibility, o.why || 'ยังไม่มีงานผลิตที่พร้อม']);
-      return;
+      return true;
     }
     if (r.id === 'scripture' && SECT.SOUL_FORGE && (W.day - (n._lastSutraAnnotateDay || -99)) >= 15) {
       n._lastSutraAnnotateDay = W.day;
@@ -2272,7 +2282,7 @@
     }
     if (r.id === 'master' && !n.sealed && !n.away) {
       SECT.masterDecision(W, n);
-      return;
+      return true;
     }
     if (r.id === 'treasury') {
       // Personality-dependent treasury behavior: fair reserve check vs favoritism gift vs self-dealing
@@ -2289,7 +2299,7 @@
         if (W.sect.auditTrail.length > 25) W.sect.auditTrail.shift();
       }
       COG.officeDecision(W, n, 'ตรวจของสำรองและความขาดแคลน', [r.responsibility]);
-      return;
+      return true;
     }
     if (r.id === 'discipline') {
       // Evidence-based discipline investigation
@@ -2303,15 +2313,15 @@
           if (W.rng.next() < clamp(0.25 + eye / 180 + (W.sect.suspicion || 0) / 80, 0.15, 0.85)) {
             SECT.exposeEmbezzle(W, tre, n);
             COG.officeDecision(W, n, 'ตรวจพบหลักฐานทุจริตและลงโทษตามกฎสำนัก', ['หลักฐานส่วนต่างบัญชีคลังชัดเจน']);
-            return;
+            return true;
           }
         } else {
           COG.officeDecision(W, n, 'ชะลอการสอบสวนคนสนิทแม้มีข้อสงสัย', ['เห็นแก่ความสัมพันธ์ส่วนตัว']);
-          return;
+          return true;
         }
       }
       COG.officeDecision(W, n, 'ดูแลระเบียบและตรวจสอบข้อร้องเรียน', [r.responsibility]);
-      return;
+      return true;
     }
     if (['envoy', 'spymaster', 'warden', 'beastmaster', 'wildwarden', 'arraymaster', 'censor', 'quartermaster', 'marketmaster', 'commander', 'vanguard'].includes(r.id) && SECT.runOfficerJurisdictionSingle) {
       const res = SECT.runOfficerJurisdictionSingle(W, r.id, n, { quiet: true, ignoreAvailability: true });

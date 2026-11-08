@@ -1087,6 +1087,9 @@
 
   // Register Legendary Weapons, Armors & Accessories in JD.ITEMS.items and ECO.itemById without adding repeatable recipes
   LEGENDARY_EQUIPMENT.forEach(w => {
+    if (!Array.isArray(w.obtainSources) || !w.obtainSources.length) {
+      w.obtainSources = ['CLUE_QUEST', 'SECRET_REALM', 'RELIC_INHERITANCE'];
+    }
     if (!JD.ITEMS.items.some(x => x.id === w.id)) {
       JD.ITEMS.items.push(w);
     }
@@ -1097,7 +1100,7 @@
   VC.gearQuality = it => {
     if (!it || typeof it !== 'object') return 1;
     const raw = Number.isFinite(it.q) ? it.q : (Number.isFinite(it.quality) ? it.quality : 1);
-    return clamp(Math.round(raw * 100) / 100, 0.7, 1.75);
+    return clamp(Math.round(raw * 100) / 100, 0.7, 1.85);
   };
   VC.normalizeGearItem = it => {
     if (!it || typeof it !== 'object' || it._vcNorm) return it;
@@ -1107,7 +1110,7 @@
     if (!Object.getOwnPropertyDescriptor(it, 'quality')) {
       Object.defineProperty(it, 'quality', {
         get() { return this.q; },
-        set(v) { if (Number.isFinite(v)) this.q = clamp(Math.round(v * 100) / 100, 0.7, 1.75); },
+        set(v) { if (Number.isFinite(v)) this.q = clamp(Math.round(v * 100) / 100, 0.7, 1.85); },
         enumerable: false,
         configurable: true
       });

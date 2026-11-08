@@ -1367,10 +1367,12 @@
       UI.updateHud(true);
     }
     else if (a === 'awaken-weapon-spirit') {
-      const res = (SECT && SECT.SOUL_FORGE) ? SECT.SOUL_FORGE.awakenWeaponSpirit(W, null, arg || UI.npcId) : { ok: false };
+      const res = (SECT && SECT.SOUL_FORGE) ? SECT.SOUL_FORGE.awakenWeaponSpirit(W, null, arg || UI.npcId, { initialXp: 40 }) : { ok: false };
       if (res && res.ok && res.weaponSpirit) {
         if (UI.audio) UI.audio.playBladeClash();
         UI.toast('🗡️ ปลุกจิตวิญญาณศาสตรา「' + res.weaponSpirit.spiritNameTh + '」ขั้นที่ ' + res.weaponSpirit.stage + ' สำเร็จ!');
+      } else if (res && res.reason) {
+        UI.toast('ไม่สามารถปลุกจิตศาสตราได้ (' + res.reason + ')');
       }
       UI.render();
       UI.updateHud(true);
@@ -1385,10 +1387,12 @@
       UI.updateHud(true);
     }
     else if (a === 'dispatch-trade-caravan') {
-      const res = (SECT && SECT.CARAVAN_AUCTION) ? SECT.CARAVAN_AUCTION.dispatchTradeCaravan(W, arg || null, null, { force: true }) : { ok: false };
+      const res = (SECT && SECT.CARAVAN_AUCTION) ? SECT.CARAVAN_AUCTION.dispatchTradeCaravan(W, arg || null, null, {}) : { ok: false };
       if (res && res.ok && res.caravan) {
         if (UI.audio) UI.audio.playBell();
         UI.toast('🐪 ' + res.caravan.summaryTh);
+      } else {
+        UI.toast(res && res.reason === 'caravan-cooldown' ? '⏳ คาราวานการค้าอยู่ระหว่างคูลดาวน์ (ส่งได้ทุก 15 วัน)' : 'ไม่สามารถจัดส่งคาราวานได้ในขณะนี้');
       }
       UI.render();
       UI.updateHud(true);
@@ -1416,10 +1420,12 @@
       UI.updateHud(true);
     }
     else if (a === 'execute-standing-edicts') {
-      const res = (SECT && SECT.ELDER_COUNCIL_EDICTS) ? SECT.ELDER_COUNCIL_EDICTS.executeStandingEdicts(W, { force: true }) : { ok: false };
+      const res = (SECT && SECT.ELDER_COUNCIL_EDICTS) ? SECT.ELDER_COUNCIL_EDICTS.executeStandingEdicts(W, {}) : { ok: false };
       if (res && res.ok) {
         if (UI.audio) UI.audio.playBell();
         UI.toast('📜 ราชโองการโควตาอัตโนมัติ: ' + res.craftedSummaryTh);
+      } else {
+        UI.toast(res && res.reason === 'cooldown' ? '⏳ เพิ่งเบิกจ่ายโควตาราชโองการไป (คูลดาวน์ 10 วัน)' : 'ศิลาหรือเงื่อนไขไม่เพียงพอสำหรับราชโองการโควตา');
       }
       UI.render();
       UI.updateHud(true);
@@ -1867,7 +1873,7 @@
     else if (a === 'awaken-weapon-soul') {
       const [npcId] = String(arg || '').split('|');
       const tNpc = W.byId[npcId || UI.npcId] || W.byId[W.sect.masterId];
-      const res = (tNpc && SECT && SECT.SOUL_FORGE && SECT.SOUL_FORGE.awakenWeaponSpirit) ? SECT.SOUL_FORGE.awakenWeaponSpirit(W, tNpc, tNpc, { initialXp: 320 }) : { ok: false };
+      const res = (tNpc && SECT && SECT.SOUL_FORGE && SECT.SOUL_FORGE.awakenWeaponSpirit) ? SECT.SOUL_FORGE.awakenWeaponSpirit(W, tNpc, tNpc, { initialXp: 40 }) : { ok: false };
       if (res && res.ok) {
         if (UI.audio) UI.audio.playBladeClash();
         UI.toast('🗡️ ปลุกจิตวิญญาณศาสตราสำเร็จ!');
@@ -2062,17 +2068,54 @@
     else if (a === 'launch-coalition-offensive') {
       if (UI.audio) UI.audio.playBladeClash();
       const targetId = arg || ((W.world.allSects && W.world.allSects[0] && W.world.allSects[0].id) || 'S0');
-      const res = (EXPED && EXPED.launchCoalitionOffensive) ? EXPED.launchCoalitionOffensive(W, null, targetId, null, { allowSoloFallback: true }) : { ok: false };
+      const res = (EXPED && EXPED.launchCoalitionOffensive) ? EXPED.launchCoalitionOffensive(W, null, targetId, null, {}) : { ok: false };
       UI.toast(res && res.ok && res.chronicle ? ('🚩 ' + res.chronicle.titleTh) : 'ยังไม่มีสำนักพันธมิตรที่พร้อมร่วมทัพ');
       UI.render();
       UI.updateHud(true);
     }
     else if (a === 'trigger-siege-beacon') {
       if (UI.audio) UI.audio.playBladeClash();
-      const res = (EXPED && EXPED.triggerSiegeReinforcementBeacon) ? EXPED.triggerSiegeReinforcementBeacon(W, { forceWin: true }) : { ok: false };
-      UI.toast(res && res.ok && res.chronicle ? ('🔥 ' + res.chronicle.titleTh) : 'จุดพลุสัญญาณขอทัพหนุนพันธมิตรแล้ว');
+      const res = (EXPED && EXPED.triggerSiegeReinforcementBeacon) ? EXPED.triggerSiegeReinforcementBeacon(W, {}) : { ok: false };
+      UI.toast(res && res.ok && res.chronicle ? ('🔥 ' + res.chronicle.titleTh) : (res && res.reason === 'no-active-siege' ? 'สำนักไม่ได้อยู่ระหว่างถูกปิดล้อมในขณะนี้' : 'ยังไม่มีพันธมิตรที่พร้อมส่งทัพหนุน'));
       UI.render();
       UI.updateHud(true);
+    }
+    else if (a === 'offer-infernal-tribute') {
+      const [planeId] = String(arg || '').split('|');
+      const res = (SECT && SECT.INFERNAL_SHRINE && SECT.INFERNAL_SHRINE.offerInfernalTribute)
+        ? SECT.INFERNAL_SHRINE.offerInfernalTribute(W, planeId || 'NINE_SERENITIES_HELL', {})
+        : { ok: false };
+      UI.toast(res && res.ok ? ('🩸 ถวายเครื่องสังเวยโลหิตสู่「' + (res.record ? res.record.planeNameTh : 'พิภพมาร') + '」สำเร็จ!') : 'ไม่สามารถถวายเครื่องสังเวยโลหิตได้');
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'sign-blood-covenant') {
+      const [npcId, lordId] = String(arg || '').split('|');
+      const res = (SECT && SECT.INFERNAL_SHRINE && SECT.INFERNAL_SHRINE.signBloodCovenant)
+        ? SECT.INFERNAL_SHRINE.signBloodCovenant(W, npcId || UI.npcId || W.sect.masterId, lordId || 'MARA_PAPIYAN', {})
+        : { ok: false };
+      UI.toast(res && res.ok ? ('🩸 ทำพันธสัญญาโลหิตสำเร็จ!') : 'ไม่สามารถทำพันธสัญญาโลหิตได้');
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'swear-voluntary-vow') {
+      const [npcId, vowId] = String(arg || '').split('|');
+      const tNpc = W.byId[npcId || UI.npcId] || W.byId[W.sect.masterId];
+      const res = (CULT && CULT.VOLUNTARY_VOWS && CULT.VOLUNTARY_VOWS.swearVow)
+        ? CULT.VOLUNTARY_VOWS.swearVow(W, tNpc, vowId || 'VOW_NO_MEDICINE')
+        : { ok: false };
+      UI.toast(res && res.ok ? ('📜 ตั้งสัตย์สาบาน「' + res.vow.nameTh + '」สำเร็จ!') : 'ไม่สามารถตั้งสัตย์สาบานได้');
+      UI.render();
+      UI.updateHud(true);
+    }
+    else if (a === 'toggle-combat-row') {
+      const tNpc = W.byId[arg || UI.npcId];
+      if (tNpc) {
+        tNpc.preferredRow = tNpc.preferredRow === 'BACK_ROW' ? 'FRONT_ROW' : 'BACK_ROW';
+        tNpc.combatRow = tNpc.preferredRow;
+        UI.toast('จัดแถวยืนสนามรบของ ' + HC.fullName(tNpc) + ' เป็น ' + (tNpc.preferredRow === 'BACK_ROW' ? 'แถวหลัง (BACK_ROW)' : 'แถวหน้า (FRONT_ROW)'));
+        UI.render();
+      }
     }
     else if (a === 'editnpc') UI.openEditNpc(arg, 'char');
     else if (a === 'spawnnpc') UI.openEditNpc(arg, 'spawn');
@@ -2479,6 +2522,11 @@
       const parts = String(arg || '').split('|');
       const npc = W.byId[parts[0]], mId = parts[1];
       if (npc && npc.cult && mId && (npc.cult.unlockedMantras || []).includes(mId)) {
+        const chk = (g.MARTIAL && g.MARTIAL.canActivateMantra) ? g.MARTIAL.canActivateMantra(npc, mId) : { ok: true };
+        if (!chk.ok) {
+          UI.toast('ไม่สามารถโคจรคัมภีร์นี้ได้: ' + (chk.reason || 'ไม่ตรงสายวิถี'));
+          return;
+        }
         npc.cult.mantra = mId;
         HC.bump(npc);
         if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(npc);
@@ -5278,7 +5326,7 @@
   // encounters only have a region in the simulation; their pin is explicitly
   // approximate and is never used to calculate the duration of a mission.
   UI.atlasParty = (W, node) => {
-    const available = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away && !n.expId && !n.travel).slice().sort((a,b) => CULT.power(b) - CULT.power(a));
+    const available = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away && !n.expId && !n.travel && !n.sealed && !n.sealedBt && !(SECT && SECT.isNpcDetained && SECT.isNpcDetained(W, n))).slice().sort((a,b) => CULT.power(b) - CULT.power(a));
     if (node && node.kind === 'FORTUNE_SITE') {
       const rank = node.fortuneRank;
       const eligible = available.filter(n => Math.max(1, CULT.worldRank(n)) <= rank);
@@ -6946,7 +6994,7 @@
     } else {
       h += '<div class="muted">ยังไม่ได้โคจรคัมภีร์ลมปราณหลัก</div>';
     }
-    const unlockedMantras = (c.unlockedMantras || []).filter(id => id !== c.mantra);
+    const unlockedMantras = (c.unlockedMantras || []).filter(id => id !== c.mantra && (!M || !M.canActivateMantra || M.canActivateMantra(n, id).ok));
     if (unlockedMantras.length) {
       h += '<div style="margin-top:6px;border-top:1px solid var(--line,#3a3f4a);padding-top:4px"><b>คัมภีร์ปราณอื่นที่ตื่นรู้แล้ว:</b></div>' + unlockedMantras.map(id => {
         const mt = CULT.tech(id);

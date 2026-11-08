@@ -70,11 +70,11 @@ D.techniques=[
    {id:'MP_BOW_METEOR_M1',parentId:'MP_BOW_METEOR_STORM',stageReq:1,reqMastery:0,nameTh:'ห่าฝนศรดาวตก',arch:'sweep',type:'m',M:1.60,hits:2,cd:16,wind:4,costPct:8.0,pen:35,aoe:true,aiRole:'aoe_pressure'},
    {id:'MP_BOW_METEOR_M2',parentId:'MP_BOW_METEOR_STORM',stageReq:2,reqMastery:45,nameTh:'ดาราสลายมิติ',arch:'burst',type:'m',M:2.65,hits:1,cd:24,wind:5,costPct:11.0,pen:65,critAdd:25,aoe:false,aiRole:'finisher'}
   ]},
- {id:'MP_STAFF_WALL',nameTh:'กำแพงพลองพิทักษ์',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',combatArch:'guard',element:'EARTH_METAL',weaponTypes:['STAFF'],moves:['ควงพลองกางม่านศิลา','เสาพลองค้ำฟ้าสะท้อนศึก'],moveDefs:[{id:'MV_MP_STAFF_WALL_1',parentId:'MP_STAFF_WALL',stageReq:1,reqMastery:0,nameTh:'ควงพลองกางม่านศิลา',arch:'guard',type:'p',M:0,hits:1,cd:12,wind:2,costPct:5.0,shield:0.20,self:true,aiRole:'sustain'},{id:'MV_MP_STAFF_WALL_2',parentId:'MP_STAFF_WALL',stageReq:2,reqMastery:30,nameTh:'เสาพลองค้ำฟ้าสะท้อนศึก',arch:'counter',type:'p',M:1.45,hits:1,cd:14,wind:3,costPct:6.5,pen:15,shield:0.15,aiRole:'core'}]},
+ {id:'MP_STAFF_WALL',nameTh:'กำแพงพลองพิทักษ์',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',combatArch:'guard',element:'EARTH_METAL',weaponTypes:['STAFF'],stages:[{stage:1,id:'ST1',nameTh:'ควงพลองกางม่านศิลา',reqMastery:0},{stage:2,id:'ST2',nameTh:'เสาพลองค้ำฟ้าสะท้อนศึก',reqMastery:30}],moves:['ควงพลองกางม่านศิลา','เสาพลองค้ำฟ้าสะท้อนศึก'],moveDefs:[{id:'MV_MP_STAFF_WALL_1',parentId:'MP_STAFF_WALL',stageReq:1,reqMastery:0,nameTh:'ควงพลองกางม่านศิลา',arch:'guard',type:'p',M:0,hits:1,cd:12,wind:2,costPct:5.0,shield:0.20,self:true,aiRole:'sustain'},{id:'MV_MP_STAFF_WALL_2',parentId:'MP_STAFF_WALL',stageReq:2,reqMastery:30,nameTh:'เสาพลองค้ำฟ้าสะท้อนศึก',arch:'counter',type:'p',M:1.45,hits:1,cd:14,wind:3,costPct:6.5,pen:15,shield:0.15,aiRole:'core'}]},
  {id:'MP_STAFF_ROOT',nameTh:'หยั่งรากพลองเหล็ก',path:'BODY',sub:'STAFF_GUARD',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_STAFF_ROOT',weaponTypes:['STAFF'],passive:{p:{def:.15},f:{pen:6}}},
- {id:'MP_SPEAR_LINE',nameTh:'ทวนธงรบทะลวงแนว',path:'GOD',sub:'WAR_DEITY',tier:2,grade:'Rare',combatArch:'pierce',element:'LIGHT_YANG',weaponTypes:['SPEAR'],moves:['แทงทวนทะลวงค่าย','สะบัดธงรบกวาดแนวหน้า'],moveDefs:[{id:'MV_MP_SPEAR_LINE_1',parentId:'MP_SPEAR_LINE',stageReq:1,reqMastery:0,nameTh:'แทงทวนทะลวงค่าย',arch:'pierce',type:'p',M:1.55,hits:1,cd:10,wind:3,costPct:5.5,pen:25,aiRole:'anti_armor'},{id:'MV_MP_SPEAR_LINE_2',parentId:'MP_SPEAR_LINE',stageReq:2,reqMastery:30,nameTh:'สะบัดธงรบกวาดแนวหน้า',arch:'sweep',type:'p',M:1.35,hits:2,cd:14,wind:4,costPct:7.0,pen:18,aoe:true,aiRole:'aoe_pressure'}]},
- {id:'MP_BLADE_SHADOW',nameTh:'คมเงาตัดชีพจร',path:'DEMON',sub:'SHADOW_ASSASSIN',tier:2,grade:'Rare',combatArch:'flurry',element:'YIN_SHADOW',weaponTypes:['BLADE'],moves:['ดาบเงาฉับพลัน','เชือดชีพจรไร้เสียง'],moveDefs:[{id:'MV_MP_BLADE_SHADOW_1',parentId:'MP_BLADE_SHADOW',stageReq:1,reqMastery:0,nameTh:'ดาบเงาฉับพลัน',arch:'flurry',type:'p',M:1.25,hits:2,cd:10,wind:2,costPct:5.2,pen:18,critAdd:10,aiRole:'opener'},{id:'MV_MP_BLADE_SHADOW_2',parentId:'MP_BLADE_SHADOW',stageReq:2,reqMastery:30,nameTh:'เชือดชีพจรไร้เสียง',arch:'execute',type:'p',M:1.85,hits:1,cd:15,wind:3,costPct:7.2,pen:28,critAdd:16,rider:'bleed',aiRole:'finisher'}]},
- {id:'MP_FOCUS_SEAL',nameTh:'ตราจิตผนึกคลื่นฝัน',path:'HEART_SOUL',sub:'DREAM_ILLUSION_WEAVER',tier:2,grade:'Rare',combatArch:'control',element:'ASTRAL',weaponTypes:['FOCUS'],moves:['คลื่นจิตสะกดฝัน','ผนึกวิญญาณนิทรา'],moveDefs:[{id:'MV_MP_FOCUS_SEAL_1',parentId:'MP_FOCUS_SEAL',stageReq:1,reqMastery:0,nameTh:'คลื่นจิตสะกดฝัน',arch:'control',type:'m',M:1.30,hits:1,cd:12,wind:3,costPct:5.8,pen:14,ctrl:'slow',aiRole:'control'},{id:'MV_MP_FOCUS_SEAL_2',parentId:'MP_FOCUS_SEAL',stageReq:2,reqMastery:30,nameTh:'ผนึกวิญญาณนิทรา',arch:'control',type:'m',M:1.65,hits:1,cd:16,wind:4,costPct:7.8,pen:20,ctrl:'silence',aiRole:'control'}]},
+ {id:'MP_SPEAR_LINE',nameTh:'ทวนธงรบทะลวงแนว',path:'GOD',sub:'WAR_DEITY',tier:2,grade:'Rare',combatArch:'pierce',element:'LIGHT_YANG',weaponTypes:['SPEAR'],stages:[{stage:1,id:'ST1',nameTh:'แทงทวนทะลวงค่าย',reqMastery:0},{stage:2,id:'ST2',nameTh:'สะบัดธงรบกวาดแนวหน้า',reqMastery:30}],moves:['แทงทวนทะลวงค่าย','สะบัดธงรบกวาดแนวหน้า'],moveDefs:[{id:'MV_MP_SPEAR_LINE_1',parentId:'MP_SPEAR_LINE',stageReq:1,reqMastery:0,nameTh:'แทงทวนทะลวงค่าย',arch:'pierce',type:'p',M:1.55,hits:1,cd:10,wind:3,costPct:5.5,pen:25,aiRole:'anti_armor'},{id:'MV_MP_SPEAR_LINE_2',parentId:'MP_SPEAR_LINE',stageReq:2,reqMastery:30,nameTh:'สะบัดธงรบกวาดแนวหน้า',arch:'sweep',type:'p',M:1.35,hits:2,cd:14,wind:4,costPct:7.0,pen:18,aoe:true,aiRole:'aoe_pressure'}]},
+ {id:'MP_BLADE_SHADOW',nameTh:'คมเงาตัดชีพจร',path:'DEMON',sub:'SHADOW_ASSASSIN',tier:2,grade:'Rare',combatArch:'flurry',element:'YIN_SHADOW',weaponTypes:['BLADE'],stages:[{stage:1,id:'ST1',nameTh:'ดาบเงาฉับพลัน',reqMastery:0},{stage:2,id:'ST2',nameTh:'เชือดชีพจรไร้เสียง',reqMastery:30}],moves:['ดาบเงาฉับพลัน','เชือดชีพจรไร้เสียง'],moveDefs:[{id:'MV_MP_BLADE_SHADOW_1',parentId:'MP_BLADE_SHADOW',stageReq:1,reqMastery:0,nameTh:'ดาบเงาฉับพลัน',arch:'flurry',type:'p',M:1.25,hits:2,cd:10,wind:2,costPct:5.2,pen:18,critAdd:10,aiRole:'opener'},{id:'MV_MP_BLADE_SHADOW_2',parentId:'MP_BLADE_SHADOW',stageReq:2,reqMastery:30,nameTh:'เชือดชีพจรไร้เสียง',arch:'execute',type:'p',M:1.85,hits:1,cd:15,wind:3,costPct:7.2,pen:28,critAdd:16,rider:'bleed',aiRole:'finisher'}]},
+ {id:'MP_FOCUS_SEAL',nameTh:'ตราจิตผนึกคลื่นฝัน',path:'HEART_SOUL',sub:'DREAM_ILLUSION_WEAVER',tier:2,grade:'Rare',combatArch:'control',element:'ASTRAL',weaponTypes:['FOCUS'],stages:[{stage:1,id:'ST1',nameTh:'คลื่นจิตสะกดฝัน',reqMastery:0},{stage:2,id:'ST2',nameTh:'ผนึกวิญญาณนิทรา',reqMastery:30}],moves:['คลื่นจิตสะกดฝัน','ผนึกวิญญาณนิทรา'],moveDefs:[{id:'MV_MP_FOCUS_SEAL_1',parentId:'MP_FOCUS_SEAL',stageReq:1,reqMastery:0,nameTh:'คลื่นจิตสะกดฝัน',arch:'control',type:'m',M:1.30,hits:1,cd:12,wind:3,costPct:5.8,pen:14,ctrl:'slow',aiRole:'control'},{id:'MV_MP_FOCUS_SEAL_2',parentId:'MP_FOCUS_SEAL',stageReq:2,reqMastery:30,nameTh:'ผนึกวิญญาณนิทรา',arch:'control',type:'m',M:1.65,hits:1,cd:16,wind:4,costPct:7.8,pen:20,ctrl:'silence',aiRole:'control'}]},
  {id:'MP_SWORD_POISE',nameTh:'ตั้งจิตรับคมกระบี่',path:'XIAN',sub:'SWORD_IMMORTAL',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_SWORD_POISE',weaponTypes:['SWORD'],passive:{f:{pen:9,crit:4}}},
  {id:'MP_FIST_BREATH',nameTh:'ลมหายใจพยัคฆ์ไร้ศาสตรา',path:'BODY',sub:'TIGER_SOVEREIGN',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_FIST_BREATH',weaponTypes:['FIST'],passive:{p:{atk:.12},f:{cast:7}}},
  {id:'MP_ROBE_WARD',nameTh:'อาภรณ์ประสานห้าธาตุ',path:'XIAN',sub:'FIVE_ELEMENTS',tier:2,grade:'Rare',cat:'PASSIVE',passiveFamily:'FAM_MP_ROBE_WARD',armorTypes:['ROBE'],passive:{p:{mdef:.18},f:{cast:8}}}
@@ -44667,7 +44667,27 @@ EXP_V208.newResonanceSets.forEach(rs => {
   Object.assign(D.SUBPATH_ALIASES, {
     ALCHEMIST_IMMORTAL: 'PILL_FURNACE_IMMORTAL',
     BLACKSMITH_SAINT: 'HEAVENLY_ANVIL_SMITH',
-    SWORD_FORGER: 'SPIRIT_SWORD_ARTIFICER'
+    SWORD_FORGER: 'SPIRIT_SWORD_ARTIFICER',
+    SOUL_MUSICIAN: 'SEVEN_EMOTIONS_ZITHER',
+    ILLUSION_MIND: 'DREAM_ILLUSION_WEAVER',
+    CHANT_RESONANCE: 'CELESTIAL_ZITHER_ENVOY',
+    GRAND_STRATEGIST: 'BATTLEFIELD_STRATEGIST',
+    GRAND_FORMATION_ARCHITECT: 'EARTH_VEIN_WARDEN',
+    UNDERWORLD_DECREE: 'SIX_PATHS_WHEEL',
+    SPIRIT_THREAD_PUPPET: 'THOUSAND_THREAD_ASSASSIN',
+    PACK_COMMAND_HUNT: 'MYRIAD_BEAST_PACK',
+    REINCARNATION_WARDEN: 'SIX_PATHS_WHEEL',
+    ASTRAL_LEVIATHAN_KRAKEN: 'ABYSSAL_DRAGON_TOTEM',
+    BLOOD_FURNACE: 'DEVOURING_FIEND',
+    BEAST_BLOOD_FUSION: 'SYMBIOTIC_BEAST_WARRIOR',
+    TIDAL_WATER_MIRROR: 'FROST_MOON_IMMORTAL',
+    LIGHTNING_TEMPERED_BODY: 'THUNDER_BODY',
+    THUNDER_PUNISHMENT_ENVOY: 'STORM_THUNDER_EMPEROR',
+    WIND_SHADOW_ROAMER: 'PHANTOM_SOUL',
+    DIVINE_FORGE_FOUNDER: 'HEAVENLY_ANVIL_SMITH',
+    BATTLE_ARRAY_TACTICIAN: 'BATTLEFIELD_STRATEGIST',
+    BLOOD_SEA_FIEND: 'BLOOD_SPEAR_ASURA',
+    PILL_FLAME_SOVEREIGN: 'PILL_FURNACE_IMMORTAL'
   });
 
   const craftSubStats = {
@@ -45656,6 +45676,7 @@ JD.ITEMS.items.forEach(it => {
   const procSpecs = [
     { key: 'SWORD', slot: 'WEAPON', subType: 'SWORD', nameTh: 'กระบี่หลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
     { key: 'BLADE', slot: 'WEAPON', subType: 'BLADE', nameTh: 'ดาบหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
+    { key: 'DAGGER', slot: 'WEAPON', subType: 'BLADE', nameTh: 'กริชและมีดสั้นหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
     { key: 'SPEAR', slot: 'WEAPON', subType: 'SPEAR', nameTh: 'ทวนหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
     { key: 'FIST', slot: 'WEAPON', subType: 'FIST', nameTh: 'สนับมือหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
     { key: 'BOW', slot: 'WEAPON', subType: 'BOW', nameTh: 'คันศรหลอมสุ่มสำนัก', defaultInputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }] },
@@ -52467,6 +52488,113 @@ JD.ITEMS.items.forEach(it => {
     D.v200Techniques.push(uTech);
   }
 
+
+  /* ---------- Patch v2.4.0: Legendary Techniques for GOD & CRAFT_CREATION (A7) + 22 Dedicated Single-Weapon Techniques ---------- */
+  const v240SingleWeaponAndLegendarySpecs = [
+    // 2 Missing Path Legendaries (GOD & CRAFT_CREATION)
+    { id: 'LEG_V240_GOD', nameTh: 'มหาเทวโองการสวรรค์เก้าชั้นฟ้าพิพากษาภพ', path: 'GOD', sub: 'WAR_DEITY', tier: 7, legendary: true, wt: 'SPEAR', el: 'LIGHT_YANG', arch: 'burst', action: 'SUMMON_DEITY_PROJECTION', buff: 'divineResonance', debuff: 'stun', kw: ['KW_SHATTER_ARMOR', 'KW_AURA_PULSE', 'KW_EXECUTE_CULL'] },
+    { id: 'LEG_V240_CRAFT_CREATION', nameTh: 'มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา', path: 'CRAFT_CREATION', sub: 'DIVINE_FORGE_ARTISAN', tier: 7, legendary: true, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'qiBarrierShell', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_SHATTER_ARMOR', 'KW_ABSORB_RELEASE'] },
+    // BRUSH (3 strict single-weapon techniques: 0 -> 3)
+    { id: 'TECH_V240_BRUSH_01', nameTh: 'พู่กันหยกตวัดอักษรสะกดวิญญาณ', path: 'INK_LITERATI', sub: 'IMPERIAL_DECREE_CALLIGRAPHER', tier: 3, wt: 'BRUSH', el: 'ASTRAL', arch: 'pierce', action: 'IMPERIAL_INK_DECREE', buff: 'literatiDecree', debuff: 'silence', kw: ['KW_MARKSMAN_FOCUS', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_BRUSH_02', nameTh: 'พู่กันหมึกสวรรค์จารึกค่ายกลแปดทิศ', path: 'HEART_SOUL', sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 5, wt: 'BRUSH', el: 'LIGHT_YANG', arch: 'strike', action: 'IMPERIAL_INK_DECREE', buff: 'clarityLotus', debuff: 'weaken', kw: ['KW_FOCUS_WINDOW', 'KW_STATUS_TRANSFER'] },
+    { id: 'TECH_V240_BRUSH_03', nameTh: 'พู่กันชุนชิวพิพากษาชะตาดารา', path: 'INK_LITERATI', sub: 'GRAND_HISTORIAN_SCHOLAR', tier: 6, wt: 'BRUSH', el: 'ASTRAL', arch: 'burst', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_MARKSMAN_FOCUS', 'KW_CRIT_OVERFLOW', 'KW_DELAYED_DETONATION'] },
+    // ABACUS (3 strict single-weapon techniques: 3 -> 6)
+    { id: 'TECH_V240_ABACUS_01', nameTh: 'ลูกคิดเหล็กคำนวณจุดตายร้อยก้าว', path: 'MERCANTILE_DAO', sub: 'GOLDEN_ABACUS_ARBITER', tier: 3, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'strike', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_BREAK'] },
+    { id: 'TECH_V240_ABACUS_02', nameTh: 'ลูกคิดหยกดีดเม็ดทองทลายค่ายกล', path: 'STRATEGY_GOVERNANCE', sub: 'GRAND_STRATEGIST', tier: 5, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'pierce', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'contractDefault', kw: ['KW_ARMOR_READ', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_ABACUS_03', nameTh: 'มหาลูกคิดไฉ่ซิงชั่งตวงบุญบาปสวรรค์', path: 'MERCANTILE_DAO', sub: 'TREASURY_SOVEREIGN', tier: 6, wt: 'ABACUS', el: 'LIGHT_YANG', arch: 'burst', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_OVERFLOW', 'KW_SHATTER_ARMOR'] },
+    // ROSARY (2 strict single-weapon techniques: 3 -> 5)
+    { id: 'TECH_V240_ROSARY_01', nameTh: 'ประคำโพธิ์ร้อยแปดเม็ดสยบมาร', path: 'KARMA_SAMSARA', sub: 'BODHI_SALVATION_MONK', tier: 4, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'strike', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'weaken', kw: ['KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
+    { id: 'TECH_V240_ROSARY_02', nameTh: 'มหาประคำวัชระสะท้อนกรรมเก้าภพ', path: 'KARMA_SAMSARA', sub: 'SAMSARA_WHEEL_ARBITER', tier: 6, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'burst', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'silence', kw: ['KW_ABSORB_RELEASE', 'KW_REFLECT_CONSOLIDATE', 'KW_OVERHEAL_BARRIER'] },
+    // CLAW (2 strict single-weapon techniques: 3 -> 5)
+    { id: 'TECH_V240_CLAW_01', nameTh: 'กรงเล็บอสูรโลหิตฉีกกระชากหัวใจ', path: 'DEVOURING_FLESH', sub: 'BLOOD_MARROW_DEVOURER', tier: 4, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'pierce', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'bleed', kw: ['KW_EXECUTE_CULL', 'KW_SHATTER_ARMOR'] },
+    { id: 'TECH_V240_CLAW_02', nameTh: 'กรงเล็บเทาเที่ยกลืนกินดารา', path: 'BEAST_SOVEREIGN', sub: 'TIGER_SOVEREIGN', tier: 6, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'burst', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'armorbreak', kw: ['KW_EXECUTE_CULL', 'KW_LAST_BREATH', 'KW_CRIT_BREAK'] },
+    // NEEDLE (2 strict single-weapon techniques: 3 -> 5)
+    { id: 'TECH_V240_NEEDLE_01', nameTh: 'เข็มเงินเก้าดาราสะกดจุดตันเถียน', path: 'SAGE_SUPPORT', sub: 'DIVINE_PHYSICIAN_HEALER', tier: 4, wt: 'NEEDLE', el: 'WOOD_LIFE', arch: 'pierce', action: 'MERIDIAN_SEAL', buff: 'clarityLotus', debuff: 'meridianSeal', kw: ['KW_MARKSMAN_FOCUS', 'KW_STATUS_TRANSFER'] },
+    { id: 'TECH_V240_NEEDLE_02', nameTh: 'เข็มบุปผาพิษเร้นเงาสังหารไร้เสียง', path: 'VENOM_GU', sub: 'MYRIAD_POISON_APOTHECARY', tier: 6, wt: 'NEEDLE', el: 'DARK_YIN', arch: 'burst', action: 'GU_SOUL_LEECH', buff: 'shadowClone', debuff: 'poison', kw: ['KW_MARKSMAN_FOCUS', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] },
+    // FAN (2 strict single-weapon techniques: 3 -> 5)
+    { id: 'TECH_V240_FAN_01', nameTh: 'พัดขนนกเมฆาโบกสะบัดพายุหมุน', path: 'CELESTIAL_WEATHER', sub: 'GALE_CLOUD_CONDUCTOR', tier: 4, wt: 'FAN', el: 'WIND', arch: 'strike', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_FAN_02', nameTh: 'พัดเทวะสี่ฤดูพลิกผันฟ้าดิน', path: 'CELESTIAL_WEATHER', sub: 'THUNDER_MONSOON_SOVEREIGN', tier: 6, wt: 'FAN', el: 'LIGHTNING', arch: 'burst', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_DELAYED_DETONATION', 'KW_AURA_PULSE'] },
+    // ASTROLABE (2 strict single-weapon techniques: 3 -> 5)
+    { id: 'TECH_V240_ASTROLABE_01', nameTh: 'จานดาราเจ็ดดาวเหนือล็อกชะตา', path: 'ASTRO_DIVINATION', sub: 'STARLIGHT_ASTROLOGER', tier: 4, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'pierce', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_MARKSMAN_FOCUS'] },
+    { id: 'TECH_V240_ASTROLABE_02', nameTh: 'มหาจานสวรรค์เหอถูลั่วซูบิดเบือนกาล', path: 'CHRONO_EPOCH', sub: 'EPOCH_HOURGLASS_KEEPER', tier: 6, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'burst', action: 'TEMPORAL_SAND_REWIND', buff: 'temporalHaste', debuff: 'entropyDecay', kw: ['KW_FOCUS_WINDOW', 'KW_TEMPO_STEAL', 'KW_TETHER_LINK'] },
+    // WHIP (2 strict single-weapon techniques: 3 -> 5)
+    { id: 'TECH_V240_WHIP_01', nameTh: 'แส้ไหมเหล็กพันธนาการเงาอสรพิษ', path: 'SOUL_PUPPETRY', sub: 'SPIRIT_THREAD_PUPPETEER', tier: 4, wt: 'WHIP', el: 'DARK_YIN', arch: 'strike', action: 'MARIONETTE_SOUL_SWAP', buff: 'marionetteLink', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_WHIP_02', nameTh: 'แส้เทวะเทียนฉานกระชากวิญญาณเก้าชั้นฟ้า', path: 'BEAST_SOVEREIGN', sub: 'BLOOD_DRAGON', tier: 6, wt: 'WHIP', el: 'LIGHTNING', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'windStride', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK', 'KW_SHATTER_ARMOR'] },
+    // ZITHER (2 strict single-weapon techniques: 4 -> 6)
+    { id: 'TECH_V240_ZITHER_01', nameTh: 'พิณหยกเจ็ดสายบรรเลงคลื่นสยบมาร', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 4, wt: 'ZITHER', el: 'WIND', arch: 'strike', action: 'SONIC_TEMPO_BREAK', buff: 'clarityLotus', debuff: 'weaken', kw: ['KW_AURA_PULSE', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_ZITHER_02', nameTh: 'มหาพิณหงส์สวรรค์เก้าชั้นฟ้าสะท้านวิญญาณ', path: 'HEART_SOUL', sub: 'DREAM_ILLUSION_WEAVER', tier: 6, wt: 'ZITHER', el: 'ASTRAL', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'starDestinyWard', debuff: 'silence', kw: ['KW_AURA_PULSE', 'KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION'] },
+    // FOCUS (2 strict single-weapon techniques: 4 -> 6)
+    { id: 'TECH_V240_FOCUS_01', nameTh: 'ศาสตราอาคมผนึกค่ายกลดาราผูกวิญญาณ', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 4, wt: 'FOCUS', el: 'ASTRAL', arch: 'pierce', action: 'VOID_POCKET_DEFENSE', buff: 'qiBarrierShell', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_FOCUS_02', nameTh: 'มหาตราประทับเทวะบัญชาห้าธาตุบรรพกาล', path: 'OCCULT_MAGE', sub: 'ELEMENTAL_GRIMOIRE_SAGE', tier: 6, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MUDRA_EXPLOSIVE_SEAL', buff: 'divineResonance', debuff: 'burn', kw: ['KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] }
+  ];
+
+  for (const sp of v240SingleWeaponAndLegendarySpecs) {
+    const tObj = {
+      id: sp.id,
+      nameTh: sp.nameTh,
+      cat: 'COMBAT_TECHNIQUE',
+      role: 'ACTIVE',
+      combatArch: sp.arch,
+      path: sp.path,
+      sub: sp.sub,
+      compatiblePaths: [sp.path],
+      compatibleSubs: [sp.sub],
+      tier: sp.tier,
+      reqTier: Math.max(1, sp.tier - 1),
+      minStage: Math.max(1, sp.tier - 1),
+      grade: sp.legendary ? 'Legendary' : (sp.tier >= 5 ? 'Exceptional' : 'Rare'),
+      power: sp.tier * 55 + 40,
+      legendary: false,
+      apexPathArt: !!sp.legendary,
+      rarity: sp.legendary ? 'Legendary' : (sp.tier >= 6 ? 'Mythic' : 'Epic'),
+      element: sp.el,
+      elementalRole: 'ELEMENTAL',
+      elementProfile: epSingle(sp.el),
+      weaponType: sp.wt,
+      weaponTypes: [sp.wt],
+      bonusWeapon: [sp.wt],
+      armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+      cond: { weapon: sp.wt },
+      combatKeywords: sp.kw,
+      cooldown: 6 + sp.tier,
+      qiCost: 12 + sp.tier * 4,
+      obtainSources: ['SECT_LIBRARY', 'CARAVAN_RARE_MERCHANT', 'ANCIENT_RUIN_EXPEDITION'],
+      sourceInfoTh: 'หอคัมภีร์สำนัก · พ่อค้าคาราวาน · โบราณสถานแดนลับ',
+      stages: [
+        { stage: 1, id: sp.id + '_S1', nameTh: 'ขั้นที่ 1 • พื้นฐานเที่ยงแท้', reqMastery: 0, reqCultStage: Math.max(1, sp.tier - 1), mult: 1.0 },
+        { stage: 2, id: sp.id + '_S2', nameTh: 'ขั้นที่ 2 • พลิกแพลงไร้ลักษณ์', reqMastery: 35, reqCultStage: sp.tier, mult: 1.18 }
+      ],
+      moveDefs: [
+        {
+          id: sp.id + '_M1',
+          parentId: sp.id,
+          stageReq: 1,
+          reqMastery: 0,
+          nameTh: 'กระบวนท่าที่ 1 • ' + sp.nameTh,
+          arch: sp.arch,
+          type: ['BRUSH', 'ROSARY', 'FAN', 'ASTROLABE', 'ZITHER', 'FOCUS'].includes(sp.wt) ? 'm' : 'p',
+          M: +(1.28 + sp.tier * 0.14).toFixed(2),
+          mult: +(1.28 + sp.tier * 0.14).toFixed(2),
+          hits: 1,
+          cd: 5 + sp.tier,
+          wind: 2,
+          costPct: 3.5,
+          qiCost: 10 + sp.tier * 3,
+          pen: 12 + sp.tier * 2,
+          penAdd: 12 + sp.tier * 2,
+          targetSelector: 'SINGLE_ENEMY',
+          trigger: 'onHit',
+          action: sp.action,
+          grantBuff: sp.buff,
+          rider: sp.debuff,
+          aiRole: sp.arch === 'burst' ? 'finisher' : 'core'
+        }
+      ],
+      moves: ['กระบวนท่าที่ 1 • ' + sp.nameTh],
+      v240: true
+    };
+    if (!JD.TECH.techniques.some(x => x.id === sp.id)) JD.TECH.techniques.push(tObj);
+  }
   for (const it of v200Items) {
     if (!JD.ITEMS.items.some(x => x.id === it.id)) JD.ITEMS.items.push(it);
     if (G.ECO && G.ECO.itemById) G.ECO.itemById[it.id] = it;

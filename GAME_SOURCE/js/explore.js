@@ -7186,9 +7186,22 @@
   EX.bandOf = f => CAVE_BANDS.find(b => f >= b.from && f <= b.to) || CAVE_BANDS[2];
   EX.canGo = W => { const g = dex(W).gate; return g.open && g.until - W.day >= 2.2; };
   EX.depart = (W, party, kind) => {
-    if (!W || !Array.isArray(party)) return null;
-    party = party.filter(p => p && !p.dead && !p.away && !p.travel && !p.expId);
-    if (!party.length) return null;
+    if (!W || !Array.isArray(party) || !party.length) return null;
+    if (kind !== 'delve' && kind !== 'realm') return null;
+    if (kind === 'realm') { const g = dex(W) && dex(W).gate; if (!g || !g.open || !g.world || !EX.WORLD_BY_ID[g.world] || (g.until > 0 && g.until < W.day)) return null; }
+    const seen = new Set();
+    const validParty = [];
+    for (const raw of party) {
+      const p = typeof raw === 'string' ? (W.byId && W.byId[raw]) : raw;
+      if (!p || p.dead || p.exiled || p.away || p.travel || p.expId) return null;
+      if (W.byId && Object.keys(W.byId).length > 0 && W.byId[p.id] !== p) return null;
+      if (Array.isArray(W.npcs) && !W.npcs.includes(p)) return null;
+      if (g.SECT && g.SECT.isNpcDetained && g.SECT.isNpcDetained(W, p)) return null;
+      if (seen.has(p.id)) return null;
+      seen.add(p.id);
+      validParty.push(p);
+    }
+    party = validParty;
     const rng = W.rng, w = W.world, e = dex(W); const lead = party[0];
     const totalP = party.reduce((s, m) => s + PW(m), 0), bold = party.reduce((s, m) => s + E(m, 'personality.courage'), 0) / party.length;
     let target = 0, days, placeTh, world = null, site, partyRank = 1, exSubpool = null;
@@ -7571,9 +7584,21 @@
   };
 
   EX.departSanctum = (W, party, sanctumId) => {
-    if (!W || !Array.isArray(party)) return null;
-    party = party.filter(p => p && !p.dead && !p.away && !p.travel && !p.expId);
-    if (!party.length) return null;
+    if (!W || !Array.isArray(party) || !party.length) return null;
+    if (sanctumId !== undefined && sanctumId !== null && sanctumId !== '' && !EX.SANCTUMS[sanctumId]) return null;
+    const seen = new Set();
+    const validParty = [];
+    for (const raw of party) {
+      const p = typeof raw === 'string' ? (W.byId && W.byId[raw]) : raw;
+      if (!p || p.dead || p.exiled || p.away || p.travel || p.expId) return null;
+      if (W.byId && Object.keys(W.byId).length > 0 && W.byId[p.id] !== p) return null;
+      if (Array.isArray(W.npcs) && !W.npcs.includes(p)) return null;
+      if (g.SECT && g.SECT.isNpcDetained && g.SECT.isNpcDetained(W, p)) return null;
+      if (seen.has(p.id)) return null;
+      seen.add(p.id);
+      validParty.push(p);
+    }
+    party = validParty;
     EX.ensureSanctums(W);
     const sc = EX.SANCTUMS[sanctumId] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
     const b = (W.map && W.map.byId && (W.map.byId.gate_zone || W.map.byId.cave)) || { door: { x: 118, y: 130 } };
@@ -8291,22 +8316,51 @@
     const loc = MICRO_LOCATIONS[locId];
     if (!loc) return { ok: false, reason: 'invalid-micro-location' };
 
+    if (opts.choiceId !== undefined && opts.choiceId !== null && opts.choiceId !== '') {
+      if (!loc.choices.some(c => c.id === opts.choiceId)) {
+        return { ok: false, reason: 'invalid-choice', choiceId: opts.choiceId };
+      }
+    }
+
+    st.lastVisitedDayById = st.lastVisitedDayById || {};
+    const curDay = W.day || 1;
+    if (!opts.ignoreCooldown && st.lastVisitedDayById[loc.id] === curDay) {
+      return { ok: false, reason: 'location-on-cooldown', locationId: loc.id, day: curDay };
+    }
+
+    const isEligibleMember = n => {
+      if (!n || n.dead || n.exiled || n.away || n.travel || n.expId) return false;
+      if (W.byId && Object.keys(W.byId).length > 0 && W.byId[n.id] !== n) return false;
+      if (Array.isArray(W.npcs) && !W.npcs.includes(n)) return false;
+      if (g.SECT && g.SECT.isNpcDetained && g.SECT.isNpcDetained(W, n)) return false;
+      if ((n.jail && n.jail > (W.t || 0)) || (n.punished && n.punished > (W.t || 0)) || (n.detainedUntilDay && n.detainedUntilDay > (W.day || 0))) return false;
+      return true;
+    };
+
     let members = [];
     if (Array.isArray(partyInput) && partyInput.length) {
-      members = partyInput.map(x => (typeof x === 'string' && W.byId ? W.byId[x] : x)).filter(n => n && !n.dead);
+      const seen = new Set();
+      for (const x of partyInput) {
+        const n = typeof x === 'string' && W.byId ? W.byId[x] : x;
+        if (!isEligibleMember(n)) return { ok: false, reason: 'unavailable-member' };
+        if (seen.has(n.id)) return { ok: false, reason: 'duplicate-member' };
+        seen.add(n.id);
+        members.push(n);
+      }
     } else if (partyInput && typeof partyInput === 'object' && partyInput.id) {
+      if (!isEligibleMember(partyInput)) return { ok: false, reason: 'unavailable-member' };
       members = [partyInput];
     } else {
-      members = (W.npcs || []).filter(n => n && !n.dead && !n.exiled).slice(0, 3);
+      members = (W.npcs || []).filter(isEligibleMember).slice(0, 3);
     }
     if (!members.length) return { ok: false, reason: 'no-party-members' };
 
+    st.lastVisitedDayById[loc.id] = curDay;
     const choiceSpec = (opts.choiceId && loc.choices.find(c => c.id === opts.choiceId)) || loc.choices[0];
 
     let outpostApplied = null;
     if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS && W.sect.outposts && W.sect.outposts.byNodeId) {
-      const regOutpost = Object.values(W.sect.outposts.byNodeId).find(op => op && op.active && op.macroRegion === loc.macroRegion)
-        || Object.values(W.sect.outposts.byNodeId)[0];
+      const regOutpost = Object.values(W.sect.outposts.byNodeId).find(op => op && op.active && op.macroRegion === loc.macroRegion);
       if (regOutpost) {
         outpostApplied = g.SECT.OUTPOSTS_LOGISTICS.applyCampPerksToParty(W, regOutpost, members);
       }
@@ -8373,8 +8427,12 @@
         consequenceTh: 'ได้รับศิลาปราณ +' + stonesEarned + ' และวัตถุดิบพิเศษเข้าคลังสำนัก',
         npcIds: members.map(m => m.id)
       };
-      if (g.EXPED && g.EXPED.recordChronicle) g.EXPED.recordChronicle(W, Object.assign({ allowDuplicate: true }, cEntry));
-      W.chronicle.unshift(Object.assign({ id: record.id, day: W.day || 1, t: W.t || 0 }, cEntry));
+      const chronRec = (g.EXPED && g.EXPED.recordChronicle)
+        ? g.EXPED.recordChronicle(W, Object.assign({ id: record.id, allowDuplicate: true }, cEntry))
+        : null;
+      if (!chronRec || !W.chronicle.includes(chronRec)) {
+        W.chronicle.unshift(chronRec || Object.assign({ id: record.id, day: W.day || 1, t: W.t || 0 }, cEntry));
+      }
       if (W.log) W.log('explore', loc.icon + ' คณะสำรวจพิชิตจุดสำรวจย่อย「' + loc.nameTh + '」(' + choiceSpec.nameTh + ' · +' + stonesEarned + ' ศิลา)', members.map(m => m.id));
     }
 

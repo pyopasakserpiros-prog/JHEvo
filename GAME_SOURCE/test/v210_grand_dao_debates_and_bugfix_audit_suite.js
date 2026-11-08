@@ -28,8 +28,8 @@ function check(cond, msg) {
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   check(hcSha === 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js SHA-256 must remain byte-for-byte identical');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  check(((SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || SIM.PATCH_VERSION === '2.3.0')) || (SIM.PATCH_VERSION === '2.2.0' || SIM.PATCH_VERSION === '2.3.0')), `SIM.PATCH_VERSION must be '2.1.0' (got ${SIM.PATCH_VERSION})`);
-  check(((SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release')) || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release')), `SIM.SAVE_SCHEMA_VERSION must be '2.1.0-grand-dao-debates-apex-trials' (got ${SIM.SAVE_SCHEMA_VERSION})`);
+  check(((SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || SIM.PATCH_VERSION === '2.4.0'))) || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || SIM.PATCH_VERSION === '2.4.0'))), `SIM.PATCH_VERSION must be '2.1.0' (got ${SIM.PATCH_VERSION})`);
+  check(((SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao'))) || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao'))), `SIM.SAVE_SCHEMA_VERSION must be '2.1.0-grand-dao-debates-apex-trials' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   console.log('  ✓ [0/7] Core Lock & v2.1.0 Schema Invariants Verified');
 }
 

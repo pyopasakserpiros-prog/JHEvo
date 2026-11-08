@@ -12,6 +12,9 @@ const effects={
  ALCHEMY:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมโอสถ',FORGING:'เพิ่มโอกาสสำเร็จ คุณภาพและความเร็วหลอมอุปกรณ์',ARRAY:'เพิ่มโอกาสสร้างค่ายกลและป้องกันวิชาในการรบ',TALISMAN:'เพิ่มโอกาสสร้างยันต์และเกราะในการรบ',BEAST_TAMING:'ลดความเสียหายจากอสูรจริง',POISON:'เพิ่มความแรงแผลพิษ/โลหิตจากวิชา',MEDICINE:'เพิ่มการฟื้นตัวของผู้ป่วยเมื่อเป็นหมอและโอกาสชำแหละอวัยวะ',SCRIPTURE:'เพิ่มความเร็วศึกษาวิชาและโอกาสถอดจารึก',MOVEMENT:'เพิ่มความเร็วเคลื่อนที่และหลบหลีก',BODY_REFINING:'เพิ่มพลังชีวิตและป้องกัน',SOUL_DIVINE:'เพิ่มโจมตีวิชาและป้องกันวิชา',herbalism:'เพิ่มจำนวน/ระดับสมุนไพรและข้าวที่เก็บได้',mining:'เพิ่มจำนวน/ระดับแร่ที่ขุดได้',cooking:'เพิ่มอาหารจากข้าวหนึ่งหน่วยและความแรงสำรับฟื้นกาย/เตรียมปราณของผู้เชี่ยวชาญ',trading:'เพิ่มรายได้จากการค้าเดินทาง',administration:'ลดค่าใช้จ่ายดูแลสำนักและช่วยความเร็วขยายอาคาร',diplomacy:'เพิ่มผลเจรจาความสัมพันธ์/สนธิสัญญา',stealth:'เพิ่มหลบหลีกและคริติคอล',survival:'เพิ่มโอกาสผ่านอันตราย/หนีและลดอุบัติเหตุ',arts:'เพิ่มการคลายเครียดและขวัญใจจากดนตรี',construction:'ลดเวลาขยายอาคารจริง',ritual:'เพิ่มอัตราบำเพ็ญ โดยเฉพาะวิถีเทพ',WATER_ICE:'ความชำนาญปราณเหมันต์และวารีสำหรับสายเฉพาะทาง',WOOD_LIFE:'ความชำนาญปราณพฤกษาและพลังชีวิตสำหรับสายเฉพาะทาง'};
 const interests={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:'arrays',BEAST_TAMING:'beasts',MEDICINE:'medicine',SCRIPTURE:'scholarship',MOVEMENT:'exploring',BODY_REFINING:'combat',SOUL_DIVINE:'worship',POISON:'alchemy',herbalism:'herbs',mining:'labor',cooking:'cuisine',trading:'trade',administration:'leading',diplomacy:'socializing',stealth:'intrigue',survival:'exploring',arts:'arts',construction:'building',ritual:'worship',WATER_ICE:'meditation',WOOD_LIFE:'herbs'};
 M.SKILL_INFO=Object.fromEntries(M.SKILL_IDS.map(id=>[id,{id,nameTh:extra[id]||HC.nameOf('skills.'+id),group:Object.keys(groups).find(k=>groups[k].includes(id)),effect:effects[id],route:groups.weapon.includes(id)?'ฝึกหอยุทธ์/ใช้อาวุธจริง/รับการสอน':'งานที่เกี่ยวข้อง/ฝึกทักษะเฉพาะ/รับการสอน',interest:interests[id]||'combat'}]));
+M.SKILL_ALIASES=Object.freeze({HERB_LORE:'herbalism',HERBALISM:'herbalism',CRAFTING:'FORGING',FISHING:'survival',COMMERCE:'trading',COOKING:'cooking',LEADERSHIP:'administration',POISON_CORROSION:'POISON',BLOOD_DEMON:'BLADE'});
+M.resolveSkillId=id=>M.SKILL_ALIASES[id]||id;
+M.ELEM_GATE_SKILLS=Object.fromEntries(Object.entries(elemGateSkills).map(([ek,ev])=>[ek,{id:ek,nameTh:ev.nameTh,group:'cultivation',effect:effects[ek],route:'งานที่เกี่ยวข้อง/ฝึกทักษะเฉพาะ/รับการสอน',interest:ev.interest}]));
 
 M.ensureSkills=(n,rng)=>{
  if(!n||!n.h)return;
@@ -32,7 +35,8 @@ M.ensureSkills=(n,rng)=>{
  }
 };
 
-M.skillRead=(n,id)=>{
+M.skillRead=(n,rawId)=>{
+ const id=M.resolveSkillId?M.resolveSkillId(rawId):rawId;
  if(!n||!n.h||!n.h.skills||(!M.SKILL_INFO[id]&&!elemGateSkills[id]))return 0;
  if(elemGateSkills[id]&&n.h.skills[id]==null){n.h.skills[id]=clamp(n.h.skills[elemGateSkills[id].baseSkill]||15,0,100);}
  if(n.h.skills[id]==null&&n.martialSkills&&n.martialSkills[id]!=null){
@@ -41,7 +45,8 @@ M.skillRead=(n,id)=>{
  return clamp(Number.isFinite(n.h.skills[id])?n.h.skills[id]:0,0,100);
 };
 
-M.skillSet=(n,id,val)=>{
+M.skillSet=(n,rawId,val)=>{
+ const id=M.resolveSkillId?M.resolveSkillId(rawId):rawId;
  if(!n||!n.h||(!M.SKILL_INFO[id]&&!elemGateSkills[id]))return 0;
  n.h.skills=n.h.skills||{};
  const clamped=clamp(Number.isFinite(val)?val:0,0,100);
@@ -52,7 +57,8 @@ M.skillSet=(n,id,val)=>{
  return clamped;
 };
 
-M.skillAdd=(n,id,amt)=>{
+M.skillAdd=(n,rawId,amt)=>{
+ const id=M.resolveSkillId?M.resolveSkillId(rawId):rawId;
  if(!n||!n.h||(!M.SKILL_INFO[id]&&!elemGateSkills[id])||!Number.isFinite(amt))return M.skillRead(n,id);
  return M.skillSet(n,id,M.skillRead(n,id)+amt);
 };
@@ -60,7 +66,8 @@ M.skillAdd=(n,id,amt)=>{
 const _dirtySkillSet=new Set([...groups.weapon,'SOUL_DIVINE','MOVEMENT','stealth','BODY_REFINING','TALISMAN','ARRAY','ALCHEMY','FORGING']);
 const _HC_INTR_MAP={ALCHEMY:'alchemy',FORGING:'forging',ARRAY:'arrays',TALISMAN:'arrays',BEAST_TAMING:'beasts',MEDICINE:'medicine',SCRIPTURE:'scholarship',SWORD:'combat',BLADE:'combat',SPEAR:'combat',FIST_PALM:'combat',MOVEMENT:'exploring',BODY_REFINING:'combat',SOUL_DIVINE:'worship',POISON:'alchemy',herbalism:'herbs',mining:'labor',cooking:'cuisine',trading:'trade',administration:'leading',diplomacy:'socializing',stealth:'intrigue',survival:'exploring',arts:'arts',construction:'building',ritual:'worship'};
 const _EXTRA_AFF_MAP={BOW:'SWORD',STAFF:'SPEAR',FOCUS:'SOUL_DIVINE',ZITHER:'SOUL_DIVINE',BRUSH:'TALISMAN',WHIP:'SPEAR',ROSARY:'SCRIPTURE',CLAW:'FIST_PALM',NEEDLE:'MEDICINE',FAN:'MOVEMENT',ASTROLABE:'ARRAY',ABACUS:'SCRIPTURE',WATER_ICE:'WATER_ICE',WOOD_LIFE:'WOOD_LIFE'};
-M.skillPractice=(n,id,hours,quality)=>{
+M.skillPractice=(n,rawId,hours,quality)=>{
+ const id=M.resolveSkillId?M.resolveSkillId(rawId):rawId;
  if((!M.SKILL_INFO[id]&&!elemGateSkills[id])||!Number.isFinite(hours)||hours<=0||!Number.isFinite(quality==null?1:quality)||(quality!=null&&quality<=0))return 0;
  const q0=quality==null?1:quality<.1?.1:quality>3?3:quality;let gain;
  const h=n.h,oldLv=Number.isFinite(h.skills[id])?h.skills[id]:0,c=n.cult,cSt=c?c.stage:0,cSub=c?c.sub:'',pVer=n._passVer||0;
@@ -97,7 +104,7 @@ M.skillPractice=(n,id,hours,quality)=>{
  if(gain&&(hours>=0.1||(_dirtySkillSet.has(id)&&((newLv*4)|0)!==(((newLv-gain)*4)|0))))ST.dirty(n);return gain||0;
 };
 M.isBeast=u=>!!u&&!!u.foe&&(u.kind==='beast'||!!u.wild&&!!u.speciesId);
-M.gearUsable=(n,it)=>!!it&&!it.retired&&!it.broken&&!(it.procedural&&it.dur!=null&&it.dur<=0)&&(!n||!n.cult||(it.minStage||1)<=(CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage)+1);
+M.gearUsable=(n,it)=>{if(!it||it.retired||it.broken||(it.procedural&&it.dur!=null&&it.dur<=0))return false;if(!n||!n.cult)return true;const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):(n.cult.stage||1);if((it.minStage||1)>effSt)return false;const reqP=it.compatiblePath||it.reqPath;if(reqP){const cp=Array.isArray(reqP)?reqP:[reqP];if(!cp.includes('ANY')&&!cp.includes(n.cult.path))return false;}return true;}
 M.equippedType=n=>M.gearUsable(n,n.equip&&n.equip.WEAPON)?M.gearType(n.equip.WEAPON):'FIST';
 M.pathSkillAffinity=(n,path,sub)=>{
  const def=CULT.subInfo&&CULT.subInfo(path,sub),weights=def&&def.skillWeights;

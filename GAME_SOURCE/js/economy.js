@@ -6,13 +6,45 @@
   const clamp = U.clamp;
   const ECO = {};
   const matById = {}, recipeById = {}, recipeByOutItemId = {}, itemById = {};
-  JD.ITEMS.materials.forEach(m => matById[m.id] = m);
+  JD.ITEMS.materials.forEach(m => {
+    if (!Number.isFinite(m.value)) m.value = Number.isFinite(m.price) ? m.price : (Number.isFinite(m.baseValue) ? m.baseValue : Math.round(8 * Math.pow(1.85, (m.tier || 1) - 1)));
+    matById[m.id] = m;
+  });
+  JD.ITEMS.items.forEach(i => {
+    if (!Number.isFinite(i.value)) i.value = Number.isFinite(i.price) ? i.price : (Number.isFinite(i.baseValue) ? i.baseValue : Math.round(20 * Math.pow(1.9, (i.tier || 1) - 1)));
+    itemById[i.id] = i;
+    if ((i.out === 'MATERIAL' || i.type === 'mat') && !matById[i.id]) {
+      if (!i.category) i.category = i.cat || i.sub || 'SPECIAL';
+      matById[i.id] = i;
+      if (Array.isArray(JD.ITEMS.materials)) JD.ITEMS.materials.push(i);
+    }
+  });
+  [
+    { id: 'MAT_BOSS_HORN_CROWN', nameTh: 'เขาราชันอสูรบรรพกาล', tier: 5, category: 'ORGAN', value: 420 },
+    { id: 'MAT_BOSS_VENOM_SAC', nameTh: 'ถุงพิษอสูรพันปี', tier: 5, category: 'ORGAN', value: 380 },
+    { id: 'MAT_BOSS_WING', nameTh: 'ปีกวายุราชันอสูร', tier: 5, category: 'ORGAN', value: 390 },
+    { id: 'MAT_BOSS_CORE_SHELL', nameTh: 'เกล็ดเกราะอกราชันอสูร', tier: 5, category: 'ORGAN', value: 450 }
+  ].forEach(bm => {
+    if (!matById[bm.id]) { matById[bm.id] = bm; if (Array.isArray(JD.ITEMS.materials)) JD.ITEMS.materials.push(bm); }
+    if (!itemById[bm.id]) itemById[bm.id] = bm;
+  });
   JD.ITEMS.recipes.forEach(r => {
     if (!r.craft && r.station) r.craft = r.station === 'FORGE' ? 'FORGING' : r.station;
+    if (!r.craft) r.craft = 'FORGING';
+    const outIt = r.outItemId && itemById[r.outItemId];
+    if (!r.outType) {
+      if (r.out === 'EQUIPMENT' || (outIt && (outIt.out === 'EQUIPMENT' || outIt.slot))) r.outType = 'EQUIPMENT';
+      else if (r.out === 'PILL' || r.craft === 'ALCHEMY' || (outIt && (outIt.out === 'PILL' || outIt.cat === 'PILL' || outIt.kind === 'PILL'))) r.outType = 'PILL';
+      else if (outIt && (outIt.cat === 'TALISMAN' || outIt.kind === 'TALISMAN' || outIt.out === 'CONSUMABLE')) r.outType = 'CONSUMABLE';
+      else r.outType = r.out || 'MATERIAL';
+    }
+    if (!Number.isFinite(r.minMastery)) r.minMastery = Math.max(0, ((r.tier || 1) - 1) * 14);
+    if (!r.outNameTh) r.outNameTh = (outIt && outIt.nameTh) || (r.nameTh ? r.nameTh.replace(/^ตำรา(หลอม|ปรุง|สร้าง|ตัดเย็บ|สลัก)\s*·?\s*/, '') : r.id);
     recipeById[r.id] = r;
     if (r.outItemId) recipeByOutItemId[r.outItemId] = r;
   });
-  JD.ITEMS.items.forEach(i => itemById[i.id] = i);
+  const STATIC_ITEM_IDS = new Set(Object.keys(itemById));
+  ECO.STATIC_ITEM_IDS = STATIC_ITEM_IDS;
   ECO.matById = matById; ECO.matMap = matById; ECO.recipeById = recipeById; ECO.recipeByOutItemId = recipeByOutItemId; ECO.itemById = itemById;
 
   ECO.GRAIN_PRICE = 3; ECO.MEAL_PER_GRAIN = 3;
@@ -92,7 +124,21 @@
     return 5;
   };
   ECO.price = (W, id) => ECO.base(id) * ((W.market && W.market.mult[id]) || 1);
-  ECO.isPill = id => typeof id === 'string' && (id.startsWith('P:') || !!(itemById[id] && itemById[id].out === 'PILL') || !!(recipeById[id] && recipeById[id].outType === 'PILL') || !!(recipeByOutItemId[id] && recipeByOutItemId[id].outType === 'PILL'));
+  ECO.isPill = id => {
+    if (typeof id !== 'string') return false;
+    if (id.startsWith('P:')) {
+      const raw = id.slice(2);
+      const r = recipeById[raw] || recipeByOutItemId[raw];
+      if (r) return r.outType === 'PILL';
+      const it = itemById[raw] || (ECO.v235ItemById && ECO.v235ItemById[raw]);
+      return !!(it && (it.out === 'PILL' || it.cat === 'PILL' || it.kind === 'PILL' || Array.isArray(it.phases)));
+    }
+    const it = itemById[id] || (ECO.v235ItemById && ECO.v235ItemById[id]);
+    if (it && (it.out === 'PILL' || it.cat === 'PILL' || it.kind === 'PILL' || Array.isArray(it.phases))) return true;
+    if (recipeById[id] && recipeById[id].outType === 'PILL') return true;
+    if (recipeByOutItemId[id] && recipeByOutItemId[id].outType === 'PILL') return true;
+    return false;
+  };
   ECO.category = id => matById[id] ? matById[id].category : (ECO.isPill(id) ? 'PILL' : 'OTHER');
 
   function invalidateStockIntel(W) {
@@ -101,31 +147,57 @@
       if (W.sect.inventoryIntelligence) W.sect.inventoryIntelligence.evaluatedAt = -1;
     }
   }
+  ECO.invalidateStockIntel = invalidateStockIntel;
 
   /* ---------- คลัง ---------- */
-  ECO.count = (W, id) => { const n = W.sect.stock[id]; return Number.isFinite(n) && n > 0 ? n : 0; };
+  ECO.count = (W, id) => { const n = W && W.sect && W.sect.stock ? W.sect.stock[id] : 0; return Number.isFinite(n) && n > 0 ? n : 0; };
   ECO.add = (W, id, n, quality) => {
-    if (typeof id !== 'string' || !id || !Number.isFinite(n) || n <= 0) return false;
+    if (!W || !W.sect || typeof id !== 'string' || !id || !Number.isFinite(n) || n <= 0) return false;
     const before = ECO.count(W, id), total = before + n; if (!Number.isFinite(total)) return false;
     if (ECO.isPill(id)) { const map = W.sect.pillQuality || (W.sect.pillQuality = {}), old = Number.isFinite(map[id]) ? map[id] : 1, q = Number.isFinite(quality) ? clamp(quality, 0.7, 1.5) : 1; map[id] = (before * old + n * q) / total; W._pillSeq = (W._pillSeq || 0) + 1; }
     if (id === '__proto__' || id === 'constructor' || id === 'prototype') Object.defineProperty(W.sect.stock, id, { value: total, writable: true, enumerable: true, configurable: true });
     else W.sect.stock[id] = total;
     W._stockSeq = (W._stockSeq || 0) + 1;
+    invalidateStockIntel(W);
     return true;
   };
   ECO.take = (W, id, n) => {
-    if (typeof id !== 'string' || !id || !Number.isFinite(n) || n < 0) return false;
+    if (!W || !W.sect || typeof id !== 'string' || !id || !Number.isFinite(n) || n < 0) return false;
+    if (n === 0) return true;
     const have = ECO.count(W, id); if (have < n) return false;
     if (id === 'meal' && n > 0) consumeMealSpecialties(W, n);
-    if (have > n) W.sect.stock[id] = have - n; else { delete W.sect.stock[id]; if (W.sect.pillQuality) delete W.sect.pillQuality[id]; }
+    const rem = have > n ? have - n : 0;
+    if (rem > 0) W.sect.stock[id] = rem; else { delete W.sect.stock[id]; if (W.sect.pillQuality) delete W.sect.pillQuality[id]; }
+    if (W.sect.spawnedMats && W.sect.spawnedMats[id] != null) {
+      if (W.sect.spawnedMats[id] > rem) W.sect.spawnedMats[id] = rem;
+      if (W.sect.spawnedMats[id] <= 0) delete W.sect.spawnedMats[id];
+    }
+    if (W.sect.spawnedPills && W.sect.spawnedPills[id] != null) {
+      if (W.sect.spawnedPills[id] > rem) W.sect.spawnedPills[id] = rem;
+      if (W.sect.spawnedPills[id] <= 0) delete W.sect.spawnedPills[id];
+    }
     if (W.sect && W.sect.stockTracker && n > 0) W.sect.stockTracker.recordUsage(id, n, W.day);
     if (ECO.isPill(id)) W._pillSeq = (W._pillSeq || 0) + 1;
     W._stockSeq = (W._stockSeq || 0) + 1;
+    invalidateStockIntel(W);
     return true;
   };
   ECO.spend = (W, amt, why) => ECO.pay(W, amt, why);
-  ECO.pay = (W, amt, why) => { if (W.sect.stones < amt) return false; W.sect.stones -= amt; W.sect.ledger.push({ t: W.t, amt: -amt, why }); trimLedger(W); return true; };
-  ECO.earn = (W, amt, why) => { W.sect.stones += amt; W.sect.ledger.push({ t: W.t, amt: +amt, why }); trimLedger(W); };
+  ECO.pay = (W, amt, why) => {
+    if (!W || !W.sect || !Number.isFinite(amt) || amt <= 0 || !Number.isFinite(W.sect.stones) || W.sect.stones < amt) return false;
+    W.sect.stones -= amt;
+    W.sect.ledger.push({ t: W.t, amt: -amt, why });
+    trimLedger(W);
+    return true;
+  };
+  ECO.earn = (W, amt, why) => {
+    if (!W || !W.sect || !Number.isFinite(amt) || amt <= 0) return false;
+    if (!Number.isFinite(W.sect.stones)) W.sect.stones = 0;
+    W.sect.stones += amt;
+    W.sect.ledger.push({ t: W.t, amt: +amt, why });
+    trimLedger(W);
+    return true;
+  };
   function trimLedger(W) { if (W.sect.ledger.length > 400) W.sect.ledger.splice(0, 200); }
 
   /* ---------- ตลาดภายนอก (ราคาแกว่งตามเดือน) ---------- */
@@ -271,9 +343,15 @@
   };
   ECO.inputCost = (W, r) => r.inputs.reduce((s, i) => s + ECO.price(W, i.matId) * i.count, 0);
   ECO.outputValue = (W, r) => {
-    if (r.outItemId && itemById[r.outItemId]) return itemById[r.outItemId].value * 0.8;
+    if (!r && W && W.id) { r = W; W = null; }
+    if (!r) return 0;
+    if (r.outItemId && itemById[r.outItemId]) {
+      const it = itemById[r.outItemId];
+      const v = Number.isFinite(it.value) ? it.value : (Number.isFinite(it.price) ? it.price : (Number.isFinite(it.baseValue) ? it.baseValue : 20 * Math.pow(1.9, (r.tier || 1) - 1)));
+      return v * 0.8;
+    }
     if (r.outType === 'PILL') return ECO.base('P:' + r.id) * 0.9;
-    return 20 * Math.pow(1.9, r.tier - 1);
+    return 20 * Math.pow(1.9, (r.tier || 1) - 1);
   };
   ECO.craftHours = (r, skill) => (3.5 + 2.3 * r.tier) * (1 - clamp(skill, 0, 100) / 100 * 0.32);
   function craftTransactions(W) {
@@ -310,7 +388,15 @@
     }
     const ledger = craftTransactions(W);
     if (!Number.isSafeInteger(ledger.seq) || ledger.seq < 0 || ledger.seq >= Number.MAX_SAFE_INTEGER) return false;
-    inputs.forEach(i => ECO.take(W, i.matId, i.count));
+    const taken = [];
+    for (let idx = 0; idx < inputs.length; idx++) {
+      const inp = inputs[idx];
+      if (!ECO.take(W, inp.matId, inp.count)) {
+        for (let rIdx = 0; rIdx < taken.length; rIdx++) ECO.add(W, taken[rIdx].matId, taken[rIdx].count);
+        return false;
+      }
+      taken.push(inp);
+    }
     return registerCraft(W, npc, r, ctx, inputs, materialMods);
   };
   ECO.adoptLegacyCraft = (W, npc, r, ctx) => {
@@ -318,8 +404,31 @@
     if (ctx.craftReceipt) return !!matchingReceipt(W, npc, r, ctx);
     const inputs = recipeInputs(r, 1); return !!inputs && registerCraft(W, npc, r, ctx, inputs);
   };
+  ECO.cancelCraft = (W, npc, reason, opts) => {
+    if (!W || !W.sect || !W.sect.craftTransactions || !W.sect.craftTransactions.open) return false;
+    const ledger = W.sect.craftTransactions;
+    const npcId = typeof npc === 'object' && npc ? npc.id : npc;
+    if (npcId == null) return false;
+    let closedCount = 0;
+    const refund = !(opts && opts.noRefund);
+    for (const id of Object.keys(ledger.open)) {
+      const paid = ledger.open[id];
+      if (paid && paid.npcId === npcId) {
+        if (refund && Array.isArray(paid.inputs)) {
+          paid.inputs.forEach(inp => { if (inp && inp.matId && inp.count > 0) ECO.add(W, inp.matId, inp.count); });
+        }
+        delete ledger.open[id];
+        closedCount++;
+      }
+    }
+    if (typeof npc === 'object' && npc && npc.act && npc.act.ctx && npc.act.ctx.craftReceipt) {
+      npc.act.ctx.craftReceipt.state = 'cancelled';
+      npc.act.ctx.craftReceipt.cancelReason = reason || 'interrupted';
+    }
+    return closedCount > 0;
+  };
   ECO.pruneCraftTransactions = W => {
-    const ledger = W.sect.craftTransactions; if (!ledger) return;
+    const ledger = W && W.sect && W.sect.craftTransactions; if (!ledger) return;
     Object.keys(ledger.open).forEach(id => {
       const paid = ledger.open[id]; if (paid.npcId == null) return;
       const n = W.byId[paid.npcId], ac = n && n.act, receipt = ac && ac.ctx && ac.ctx.craftReceipt;
@@ -382,7 +491,7 @@
       const it = itemOrRecipe.slot ? itemOrRecipe : itemById[itemOrRecipe.outItemId];
       const wp = it.slot === 'WEAPON', ar = it.slot === 'ARMOR';
       const cm = (wp ? 0.05 : ar ? 0.015 : 0.014) * it.tier * q, dm = (ar ? 0.05 : wp ? 0.012 : 0.012) * it.tier * q;
-      const gOut = { uid: ECO.nextGearUid(W, it.id), id: it.id, nameTh: it.nameTh, slot: it.slot, tier: it.tier, element: it.element || 'NEUTRAL', elementProfile: it.elementProfile || null, q: Math.round(q * 100) / 100, combatMult: cm, defMult: dm, dur: 100, maxDur: 100, repairCount: 0, minStage: it.minStage || 1, value: it.value };
+      const gOut = { uid: ECO.nextGearUid(W, it.id), id: it.id, nameTh: it.nameTh, slot: it.slot, gearType: it.gearType || it.weaponType || it.armorType || it.subType || undefined, subType: it.subType || it.weaponType || it.armorType || it.gearType || undefined, weaponType: it.weaponType || undefined, armorType: it.armorType || undefined, tier: it.tier, element: it.element || 'NEUTRAL', elementProfile: it.elementProfile || null, q: Math.round(q * 100) / 100, combatMult: cm, defMult: dm, dur: 100, maxDur: 100, repairCount: 0, minStage: it.minStage || 1, value: it.value };
       if (playerSpawned) gOut.playerSpawned = true;
       return gOut;
     }
@@ -429,13 +538,15 @@
     }
     if (g.ELEM && g.ELEM.gainMastery) g.ELEM.gainMastery(npc, r, 'craft_finish', W, { sourceId: r.id });
     const peakQBonus = (npc && npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) ? (g.SECT.PEAKS.getUnitPeakBonuses(npc).craftQuality || 0) : 0;
-    const q = clamp(0.85 + (skill - r.minMastery) / 160 + peakQBonus + W.rng.gauss(0, 0.06), 0.7, 1.65);
+    const kwBon = (npc && g.COMBAT && typeof g.COMBAT.keywordsOf === 'function') ? g.COMBAT.keywordsOf(npc) : null;
+    const kwPrecBonus = (kwBon && kwBon.craftPrecisionAdd > 0) ? kwBon.craftPrecisionAdd : 0;
+    const q = clamp(0.85 + (skill - r.minMastery) / 160 + peakQBonus + kwPrecBonus + W.rng.gauss(0, 0.06), 0.7, 1.65 + kwPrecBonus);
     const out = { ok: true, q };
     if (r.outType === 'PILL') {
       const n = (r.yield || 1) + (W.rng.chance(clamp((skill - r.minMastery) / 120, 0, 0.5)) ? 1 : 0) + (r.starter ? 1 : 0);
       const key = r.outItemId ? r.outItemId : 'P:' + r.id;
       ECO.add(W, key, n, q); out.text = ECO.name(key) + ' ×' + n; out.key = key; out.n = n;
-    } else if (r.outType === 'MATERIAL' && r.outItemId) {
+    } else if ((r.outType === 'MATERIAL' || r.outType === 'CONSUMABLE') && r.outItemId) {
       const n = (r.yield || 1) + (W.rng.chance(clamp((skill - r.minMastery) / 160, 0, 0.35)) ? 1 : 0);
       ECO.add(W, r.outItemId, n);
       out.text = ECO.name(r.outItemId) + ' ×' + n; out.key = r.outItemId; out.n = n;
@@ -608,11 +719,24 @@
       const raw = key.slice(2);
       const r = recipeById[raw] || recipeByOutItemId[raw];
       if (r) {
+        if (r.outType !== 'PILL') {
+          _pillInfoCache.set(key, null);
+          return null;
+        }
+        if (r.outItemId && itemById[r.outItemId]) {
+          const itemInfo = ECO.pillInfo(r.outItemId);
+          if (itemInfo) {
+            const res = { tier: r.tier || itemInfo.tier, effect: Object.assign({}, itemInfo.effect, r.effect || {}), name: r.outNameTh || itemInfo.name || r.nameTh };
+            _pillInfoCache.set(key, res);
+            return res;
+          }
+        }
         const res = { tier: r.tier, effect: r.effect || {}, name: r.outNameTh || r.nameTh };
         _pillInfoCache.set(key, res);
         return res;
       }
-      if (itemById[raw] && itemById[raw].out === 'PILL') {
+      const itRaw = ECO.getItem ? ECO.getItem(raw) : itemById[raw];
+      if (itRaw && (itRaw.out === 'PILL' || itRaw.cat === 'PILL' || itRaw.kind === 'PILL' || Array.isArray(itRaw.phases))) {
         const res = ECO.pillInfo(raw);
         _pillInfoCache.set(key, res);
         return res;
@@ -620,9 +744,13 @@
       _pillInfoCache.set(key, null);
       return null;
     }
-    const it = itemById[key];
-    if (it && it.out === 'PILL') {
+    const it = ECO.getItem ? ECO.getItem(key) : itemById[key];
+    if (it && (it.out === 'PILL' || it.cat === 'PILL' || it.kind === 'PILL' || Array.isArray(it.phases))) {
       const e = Object.assign({}, it.effect || {});
+      if (it.healPct && !e.healHealth) e.healHealth = Math.round(it.healPct * 100);
+      if (it.qiPct && !e.qiRestore) e.qiRestore = Math.round(it.qiPct * 100);
+      if (it.cultExp && !e.cultivationProgress) e.cultivationProgress = it.cultExp;
+      if (it.grantBuff && !e.grantBuff) { e.grantBuff = it.grantBuff; e.buffDur = it.buffDur || 60; }
       (it.effects || []).forEach(x => {
         const p = x.params || {};
         if (x.effectId === 'EFX_CULTIVATION_ACCELERATOR') { e.cultivationProgress = (e.cultivationProgress || 0) + 18 * it.tier; e.rateBoost = Math.max(e.rateBoost || 0, p.cultivationBoostRatio || 0.25); }
@@ -732,12 +860,15 @@
   };
   ECO.usePill = (W, npc, key) => {
     const quality = ECO.pillQuality(W, key); if (!ECO.pillInfo(key) || !ECO.take(W, key, 1)) return null;
+    if (npc && npc.voluntaryVows && npc.voluntaryVows.VOW_NO_MEDICINE && g.CULT && g.CULT.VOLUNTARY_VOWS && g.CULT.VOLUNTARY_VOWS.violateVow) {
+      g.CULT.VOLUNTARY_VOWS.violateVow(W, npc, 'VOW_NO_MEDICINE', 'ใช้โอสถ ' + key + ' ระหว่างถือสัตย์งดพึ่งโอสถ');
+    }
     return ECO.applyQualityPill(W, npc, key, quality);
   };
 
   /* ---------- แหล่งผลิตในสำนัก ---------- */
-  const HERBS = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1', 'MAT_ZITHER_PARASOL_WOOD_1', 'MAT_WHIP_IRON_SILKWORM_THREAD_1'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_ANCIENT_MIST_FERN_3', 'MAT_HERB_MERIDIAN_FLOWER_3', 'MAT_ZITHER_ICE_SILK_STRING_3', 'MAT_WHIP_SHADOW_PYTHON_TENDON_3'] };
-  const ORES = { 1: ['MAT_ORE_BLACK_IRON_1', 'MAT_ORE_CINNABAR_1', 'MAT_BRUSH_SPIRIT_WEASEL_HAIR_1'], 2: ['MAT_ORE_COLD_STEEL_2', 'MAT_ORE_JADE_SLATE_2'], 3: ['MAT_ORE_STAR_COPPER_3', 'MAT_ORE_MAGNET_LODESTONE_3', 'MAT_ORE_THUNDER_SCORCH_COPPER_3', 'MAT_BRUSH_STARLIGHT_CINNABAR_3'] };
+  const HERBS = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1', 'MAT_ZITHER_PARASOL_WOOD_1', 'MAT_WHIP_IRON_SILKWORM_THREAD_1', 'MAT_V230_002'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2', 'MAT_V230_006'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_ANCIENT_MIST_FERN_3', 'MAT_HERB_MERIDIAN_FLOWER_3', 'MAT_ZITHER_ICE_SILK_STRING_3', 'MAT_WHIP_SHADOW_PYTHON_TENDON_3', 'MAT_V230_010', 'MAT_V230_014'] };
+  const ORES = { 1: ['MAT_ORE_BLACK_IRON_1', 'MAT_ORE_CINNABAR_1', 'MAT_BRUSH_SPIRIT_WEASEL_HAIR_1', 'MAT_V230_001', 'MAT_V230_004'], 2: ['MAT_ORE_COLD_STEEL_2', 'MAT_ORE_JADE_SLATE_2', 'MAT_V230_005', 'MAT_V230_008'], 3: ['MAT_ORE_STAR_COPPER_3', 'MAT_ORE_MAGNET_LODESTONE_3', 'MAT_ORE_THUNDER_SCORCH_COPPER_3', 'MAT_BRUSH_STARLIGHT_CINNABAR_3', 'MAT_V230_009', 'MAT_V230_012', 'MAT_V230_013'] };
   ECO.harvestHerb = (W, npc, hours) => {
     hours *= g.MARTIAL ? g.MARTIAL.lifeMult(npc, 'herbalism') : 1;
     const b = W.map.byId.herb_garden, sk = npc.h.skills.herbalism || 0;
@@ -1145,8 +1276,17 @@
     if (!cat) return { ok: false, reason: 'invalid-catalyst' };
     if (!opts.free && ECO.catalystCount(W, cat.id) <= 0) return { ok: false, reason: 'insufficient-catalyst' };
 
-    let gear = (gearOrUid && typeof gearOrUid === 'object') ? gearOrUid : null;
-    if (!gear && typeof gearOrUid === 'string') {
+    let gear = null;
+    if (gearOrUid && typeof gearOrUid === 'object') {
+      if (opts.allowDetached) {
+        gear = gearOrUid;
+      } else {
+        const isOwnedBy = n => n && ((n.equip && (n.equip.WEAPON === gearOrUid || n.equip.ARMOR === gearOrUid || n.equip.ACCESSORY === gearOrUid)) || (n.inv && Array.isArray(n.inv.gear) && n.inv.gear.includes(gearOrUid)));
+        const inSect = Array.isArray(W.sect.gear) && W.sect.gear.includes(gearOrUid);
+        const inNpcs = isOwnedBy(npc) || (Array.isArray(W.npcs) && W.npcs.some(isOwnedBy));
+        if (inSect || inNpcs) gear = gearOrUid;
+      }
+    } else if (typeof gearOrUid === 'string') {
       if (npc && npc.equip) {
         for (const k of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
           if (npc.equip[k] && (npc.equip[k].uid === gearOrUid || npc.equip[k].id === gearOrUid)) { gear = npc.equip[k]; break; }
@@ -1158,6 +1298,21 @@
       if (!gear && Array.isArray(W.sect.gear)) {
         gear = W.sect.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
       }
+      if (!gear && Array.isArray(W.npcs)) {
+        for (const n of W.npcs) {
+          if (!n || n.dead) continue;
+          if (n.equip) {
+            for (const k of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+              if (n.equip[k] && (n.equip[k].uid === gearOrUid || n.equip[k].id === gearOrUid)) { gear = n.equip[k]; npc = npc || n; break; }
+            }
+          }
+          if (gear) break;
+          if (n.inv && Array.isArray(n.inv.gear)) {
+            const hit = n.inv.gear.find(g2 => g2 && (g2.uid === gearOrUid || g2.id === gearOrUid));
+            if (hit) { gear = hit; npc = npc || n; break; }
+          }
+        }
+      }
     }
     if (!gear || !gear.slot) return { ok: false, reason: 'gear-not-found' };
     const gTier = gear.tier || 1;
@@ -1165,7 +1320,8 @@
       return { ok: false, reason: 'invalid-gear-tier', tier: gTier, requiredMin: cat.minGearTier };
     }
     const oldQ = Number.isFinite(gear.q) ? gear.q : 1.0;
-    if (oldQ >= cat.maxQuality) return { ok: false, reason: 'max-quality-reached', quality: oldQ };
+    const capQ = Math.min(1.85, cat.maxQuality || 1.75);
+    if (oldQ >= capQ - 1e-6) return { ok: false, reason: 'max-quality-reached', quality: oldQ };
 
     if (!opts.free) {
       W.sect.catalysts[cat.id] = Math.max(0, (W.sect.catalysts[cat.id] || 1) - 1);
@@ -1184,10 +1340,11 @@
       gear.attunedElement = attunedElement;
     }
     const effectiveBoost = cat.qualityBoost + (elementResonant ? 0.04 : 0);
-    const newQ = Math.min(cat.maxQuality, +(oldQ + effectiveBoost).toFixed(2));
+    const targetQ = Math.min(capQ, +(oldQ + effectiveBoost).toFixed(2));
+    gear.q = targetQ;
+    if (gear.quality !== undefined || gear.legendary) gear.quality = targetQ;
+    const newQ = Number.isFinite(gear.q) ? gear.q : targetQ;
     const ratio = newQ / Math.max(0.5, oldQ);
-    gear.q = newQ;
-    if (gear.quality !== undefined || gear.legendary) gear.quality = newQ;
     if (gear.legendary || gTier >= 6) {
       const prevStars = gear.attunedStars || 0;
       const nextStars = newQ >= 1.75 ? 3 : newQ >= 1.62 ? 2 : newQ >= 1.48 ? 1 : prevStars;
@@ -1595,7 +1752,15 @@
     if (!crafter) return { ok: false, reason: 'no-crafter' };
     const resolved = ECO.resolveCraftMaterials(W, r, opts, crafter);
     if (!resolved) return { ok: false, reason: 'insufficient-inputs' };
-    resolved.inputs.forEach(i => ECO.take(W, i.matId, i.count));
+    const taken = [];
+    for (let idx = 0; idx < resolved.inputs.length; idx++) {
+      const inp = resolved.inputs[idx];
+      if (!ECO.take(W, inp.matId, inp.count)) {
+        for (let rIdx = 0; rIdx < taken.length; rIdx++) ECO.add(W, taken[rIdx].matId, taken[rIdx].count);
+        return { ok: false, reason: 'insufficient-inputs' };
+      }
+      taken.push(inp);
+    }
     const skill = (crafter.h && crafter.h.skills && crafter.h.skills.FORGING) || 25;
     const baseQ = clamp(0.88 + (skill - r.minMastery) / 160 + W.rng.gauss(0, 0.05), 0.72, 1.50);
     const gear = ECO.rollProceduralGear(W, {
@@ -1898,7 +2063,35 @@
 
   // v2.0.34 + v2.0.35: Unified item lookup, 129/129 Item Effect Runtime Executor, E01-E06 Gear Mechanics & Elemental Alchemy/Smithing
   ECO.v235ItemById = ECO.v235ItemById || {};
-  ECO.getItem = id => (ECO.itemById && ECO.itemById[id]) || (ECO.v235ItemById && ECO.v235ItemById[id]) || null;
+  ECO._boundWorld = null;
+  ECO.resetDynamicItems = W => {
+    const isDynamicKey = (k, obj) => k.startsWith('P_ELEM_') || k.startsWith('CUSTOM_PILL_') || !!(obj && (obj.isCustomElementalPill || obj.isDynamicCustomPill));
+    for (const k of Object.keys(ECO.itemById)) {
+      if (!STATIC_ITEM_IDS.has(k) && isDynamicKey(k, ECO.itemById[k])) delete ECO.itemById[k];
+      else STATIC_ITEM_IDS.add(k);
+    }
+    for (const k of Object.keys(ECO.v235ItemById)) {
+      if (!STATIC_ITEM_IDS.has(k) && isDynamicKey(k, ECO.v235ItemById[k])) delete ECO.v235ItemById[k];
+      else STATIC_ITEM_IDS.add(k);
+    }
+    _pillInfoCache.clear();
+    ECO._boundWorld = W || null;
+    if (W && W.sect && W.sect.customPills && typeof W.sect.customPills === 'object') {
+      for (const [pid, pdef] of Object.entries(W.sect.customPills)) {
+        if (pid && pdef && typeof pdef === 'object' && !STATIC_ITEM_IDS.has(pid)) {
+          ECO.v235ItemById[pid] = pdef;
+          ECO.itemById[pid] = pdef;
+        }
+      }
+    }
+  };
+  ECO.getItem = (id, W) => {
+    if (!id || typeof id !== 'string') return null;
+    if (STATIC_ITEM_IDS.has(id)) return ECO.itemById[id] || null;
+    const w = W || ECO._boundWorld;
+    if (w && w.sect && w.sect.customPills && w.sect.customPills[id]) return w.sect.customPills[id];
+    return (ECO.v235ItemById && ECO.v235ItemById[id]) || (ECO.itemById && ECO.itemById[id]) || null;
+  };
   ECO.addItem = (W, id, qty) => ECO.add(W, id, qty || 1);
 
   // Complete registry of all 129 item effectIds across the entire item catalog
@@ -2222,7 +2415,7 @@
         const rawFromId = (ctx && ctx.itemId && String(ctx.itemId).startsWith('MANUAL_PATH_')) ? String(ctx.itemId).replace(/^MANUAL_PATH_/, '') : null;
         const tPath = (params && params.targetPath) || (itemDef && (itemDef.targetPath || itemDef.path)) || rawFromId || 'XIAN';
         if (W && g.SECT && g.SECT.PATH_LIBRARY && g.SECT.PATH_LIBRARY.unlockPath) {
-          g.SECT.PATH_LIBRARY.unlockPath(W, tPath, { byNpc: npc, source: 'MANUAL' });
+          g.SECT.PATH_LIBRARY.unlockPath(W, tPath, { byId: npc ? npc.id : null, byNpc: npc, source: 'MANUAL' });
         }
         if (npc && npc.mortalCult) {
           npc.mortalCult.daoComprehension = Math.min(100, (npc.mortalCult.daoComprehension || 0) + ((params && params.comprehensionBonus) || 25));
@@ -2262,12 +2455,73 @@
       case 'EFX_LEG_CAISHEN_GOLDEN_ABACUS':
         if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'tacticalCommand', params.dur || 55, tNow, { casterId: npc.id });
         break;
-      default:
-        // Fallback for combat/equipment effects invoked via executeItemEffectById
-        if (ST && ST.applyNamedBuff) {
-          ST.applyNamedBuff(npc, params.grantBuff || 'fervorMight', params.dur || 45, tNow, { casterId: npc.id });
+      case 'EFX_CARGO_PRESERVATION':
+      case 'EFX_SUPPLY_EFFICIENCY':
+        npc.ext = npc.ext || {};
+        npc.ext.cargoPreservationPct = Math.max(npc.ext.cargoPreservationPct || 0, params.preservePct || 0.25);
+        npc.ext.supplyEfficiencyPct = Math.max(npc.ext.supplyEfficiencyPct || 0, params.supplyBonusPct || 0.20);
+        if (W && W.sect) W.sect.logisticsPreserveBonus = Math.max(W.sect.logisticsPreserveBonus || 0, 0.20);
+        break;
+      case 'EFX_ECOLOGY_HERB_NURTURE':
+      case 'EFX_HERB_POLLINATION':
+      case 'EFX_SOIL_PURIFICATION':
+        if (W && W.sect) W.sect.herbYieldBonus = Math.min(0.50, (W.sect.herbYieldBonus || 0) + (params.yieldBonus || 0.15));
+        if (g.MARTIAL && g.MARTIAL.skillPractice) g.MARTIAL.skillPractice(npc, 'herbalism', 0.5, 1.2);
+        break;
+      case 'EFX_FORGING_STABILIZATION':
+      case 'EFX_V234_CRAFT_HARMONIZER':
+        npc.ext = npc.ext || {};
+        npc.ext.craftBonusPct = Math.max(npc.ext.craftBonusPct || 0, params.craftBonus || 0.15);
+        if (g.MARTIAL && g.MARTIAL.skillPractice) g.MARTIAL.skillPractice(npc, 'FORGING', 0.5, 1.2);
+        break;
+      case 'EFX_V234_REALM_COMPASS':
+      case 'EFX_DETECTION_REVEAL':
+      case 'EFX_INTENT_SENSE':
+      case 'EFX_TRACE_MARK':
+      case 'EFX_STEALTH_CONCEALMENT':
+      case 'EFX_SCENT_TRACE_BREAK':
+      case 'EFX_SKY_LEVITATION_DRIVE':
+      case 'EFX_HASTE_STEP':
+      case 'EFX_SIDESTEP_EVASION':
+        npc.ext = npc.ext || {};
+        npc.ext.explorationCompassBonus = Math.max(npc.ext.explorationCompassBonus || 0, 0.20);
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'shadowVeil', params.dur || 60, tNow, { casterId: npc.id });
+        break;
+      case 'EFX_CULTIVATION_ACCELERATOR':
+      case 'EFX_MEDITATION_ACCEL':
+      case 'EFX_MIND_ENLIGHTEN':
+      case 'EFX_LEARNING_INSIGHT':
+      case 'EFX_CALM_MIND':
+      case 'EFX_V234_TRAINING_CATALYST':
+      case 'EFX_QI_RESERVOIR':
+      case 'EFX_TRIBULATION_SHIELD':
+        if (npc.cult) CULT.gain(npc, params.expAdd || 45);
+        if (st) st.heartDemon = Math.max(0, (st.heartDemon || 0) - 12);
+        npc.insightT = Math.max(npc.insightT || 0, 240);
+        if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'clarityLotus', params.dur || 60, tNow, { casterId: npc.id });
+        break;
+      default: {
+        if (!ECO.ALL_RUNTIME_EFFECT_IDS.includes(effectId)) {
+          return { ok: false, reason: 'unknown-effect-id', effectId };
+        }
+        if (/SHIELD|BARRIER|WARD|GUARD|BASTION|AEGIS|IMMUNITY/.test(effectId)) {
+          if (ST) {
+            ST.addStatus(npc, 'shield', 18, { amt: Math.round(hm * 0.20) }, tNow);
+            if (ST.applyNamedBuff) ST.applyNamedBuff(npc, 'aegisWard', params.dur || 50, tNow, { casterId: npc.id });
+          }
+        } else if (/HEAL|NOURISH|PURGE|PURIFY|LOTUS|HARMONY|RESILIENCE/.test(effectId)) {
+          if (st) st.hp = clamp(Math.round((st.hp || hm) + hm * (params.healPct || 0.20)), 1, hm);
+          if (ST && ST.applyNamedBuff) ST.applyNamedBuff(npc, 'vitalRegen', params.dur || 50, tNow, { casterId: npc.id });
+        } else {
+          npc.ext = npc.ext || {};
+          npc.ext.activeItemEffects = npc.ext.activeItemEffects || {};
+          npc.ext.activeItemEffects[effectId] = { t: tNow, until: tNow + (params.dur || 45), params };
+          if (params.grantBuff && ST && ST.applyNamedBuff) {
+            ST.applyNamedBuff(npc, params.grantBuff, params.dur || 45, tNow, { casterId: npc.id });
+          }
         }
         break;
+      }
     }
     if (ST && ST.dirty) ST.dirty(npc);
     npc.lastExecutedItemEffect = { t: tNow, effectId: applied };
@@ -2339,8 +2593,12 @@
   // E03: Paired / Twin Items
   ECO.evaluatePairedItems = npc => {
     if (!npc || !npc.equip) return { active: false, bonusMult: 1.0 };
-    const w = npc.equip.WEAPON, a = npc.equip.ARMOR, x = npc.equip.ACCESSORY;
-    if (w && x && ((w.pairId && w.pairId === x.pairId) || (w.subpath && w.subpath === x.subpath) || (w.element && x.element && ((w.element === 'LIGHT_YANG' && x.element === 'DARK_YIN') || (w.element === 'FIRE' && x.element === 'WATER_ICE') || w.element === x.element)))) {
+    const usable = it => !!(it && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(npc, it)));
+    const w = usable(npc.equip.WEAPON) ? npc.equip.WEAPON : null;
+    const a = usable(npc.equip.ARMOR) ? npc.equip.ARMOR : null;
+    const x = usable(npc.equip.ACCESSORY) ? npc.equip.ACCESSORY : null;
+    const validEl = el => !!(el && el !== 'NEUTRAL' && el !== 'NONE');
+    if (w && x && ((w.pairId && w.pairId === x.pairId) || (w.subpath && w.subpath === x.subpath) || (validEl(w.element) && validEl(x.element) && ((w.element === 'LIGHT_YANG' && (x.element === 'DARK_YIN' || x.element === 'YIN_SHADOW')) || (w.element === 'FIRE' && x.element === 'WATER_ICE') || w.element === x.element)))) {
       return { active: true, pairNameTh: 'ศาสตราคู่ประสานหยินหยาง', bonusMult: 1.16, critBonus: 8, penBonus: 10 };
     }
     if (w && a && w.subpath && w.subpath === a.subpath) {
@@ -2376,20 +2634,56 @@
     for (const ac of npc.armedConsumables) {
       if (!ac || ac.triggered) continue;
       if (!triggerOn || ac.triggerOn === triggerOn) {
-        ac.triggered = true;
         const res = ECO.useConsumableItem(W, npc, ac.itemId);
-        fired.push({ itemId: ac.itemId, res });
+        if (res && res.ok) {
+          ac.triggered = true;
+          fired.push({ itemId: ac.itemId, res });
+        }
       }
     }
     npc.armedConsumables = npc.armedConsumables.filter(ac => ac && !ac.triggered);
     return fired;
   };
 
+  function getHerbStockKeys(W) {
+    if (!W || !W.sect || !W.sect.stock) return [];
+    return Object.keys(W.sect.stock).filter(k => {
+      if (!(W.sect.stock[k] > 0)) return false;
+      if (k === 'herb' || k.startsWith('MAT_HERB_') || k.startsWith('MAT_V234_')) return true;
+      const m = matById[k];
+      return !!(m && (m.category === 'HERB' || m.cat === 'HERB' || m.sub === 'HERB'));
+    });
+  }
+  function countAvailableHerbs(W) {
+    return getHerbStockKeys(W).reduce((s, k) => s + (ECO.count(W, k) || 0), 0);
+  }
+  function consumeSectHerbs(W, needed) {
+    if (needed <= 0) return true;
+    if (countAvailableHerbs(W) < needed) return false;
+    let rem = needed;
+    for (const k of getHerbStockKeys(W)) {
+      if (rem <= 0) break;
+      const have = ECO.count(W, k);
+      const takeAmt = Math.min(have, rem);
+      if (takeAmt > 0 && ECO.take(W, k, takeAmt)) rem -= takeAmt;
+    }
+    return rem <= 0;
+  }
+
   /* ---------- Section 11.5: Cross-System Elemental Fusion (Alchemy & Smithing) ---------- */
-  ECO.brewMultiphaseElementalPill = (W, alchemist, herbElements, fireElement) => {
+  ECO.brewMultiphaseElementalPill = (W, alchemist, herbElements, fireElement, opts) => {
+    opts = opts || {};
     const els = (Array.isArray(herbElements) ? herbElements : ['FIRE', 'WATER_ICE']).map(e => String(e).toUpperCase());
     const flame = String(fireElement || 'FIRE').toUpperCase();
     const combined = Array.from(new Set(els.concat([flame])));
+    if (W && W.sect && !opts.free) {
+      const herbNeed = Math.max(2, els.length);
+      const stoneNeed = 20;
+      if ((W.sect.stones || 0) < stoneNeed) return { ok: false, reason: 'insufficient-stones', required: stoneNeed };
+      if (countAvailableHerbs(W) < herbNeed) return { ok: false, reason: 'insufficient-herbs', requiredHerbs: herbNeed };
+      if (!consumeSectHerbs(W, herbNeed)) return { ok: false, reason: 'insufficient-herbs' };
+      if (!ECO.pay(W, stoneNeed, 'หลอมโอสถปฏิกิริยาธาตุ')) return { ok: false, reason: 'insufficient-stones' };
+    }
     const CE = g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE;
     const reactSpec = CE && CE.resolveElementalReactionSpec ? CE.resolveElementalReactionSpec(els, flame) : null;
     const isZeroTox = (els.includes('FIRE') && els.includes('WATER_ICE')) || (els.includes('LIGHT_YANG') && els.includes('DARK_YIN')) || combined.length >= 3;
@@ -2397,6 +2691,10 @@
       id: 'PILL_V235_FUSION_' + combined.join('_'),
       nameTh: reactSpec ? ('โอสถปฏิกิริยาธาตุ·' + reactSpec.nameTh) : 'โอสถผสานเบญจธาตุบริสุทธิ์',
       tier: Math.min(7, 2 + combined.length),
+      out: 'PILL',
+      cat: 'PILL',
+      kind: 'PILL',
+      value: 180 + combined.length * 45,
       elements: combined,
       alchemicalReaction: reactSpec ? reactSpec.id : 'ELEMENTAL_EQUILIBRIUM',
       reactionCode: reactSpec ? reactSpec.code : '2E-01',
@@ -2415,6 +2713,7 @@
     ECO.v235ItemById[pill.id] = pill;
     if (ECO.itemById) ECO.itemById[pill.id] = pill;
     if (W && W.sect) {
+      ECO._boundWorld = W;
       W.sect.customPills = W.sect.customPills || {};
       W.sect.customPills[pill.id] = pill;
       ECO.add(W, pill.id, 1);
@@ -2435,34 +2734,39 @@
       || (W.npcs && W.npcs[0]);
 
     if (Array.isArray(pillIdOrElements)) {
-      return ECO.brewMultiphaseElementalPill(W, alchemist, pillIdOrElements, opts.fireElement || 'FIRE');
+      return ECO.brewMultiphaseElementalPill(W, alchemist, pillIdOrElements, opts.fireElement || 'FIRE', opts);
     }
 
-    const allMultiPhasePills = Object.values(ECO.itemById || {}).filter(it => it && Array.isArray(it.phases) && it.phases.length >= 2);
-    let targetDef = (pillIdOrElements && ECO.getItem(pillIdOrElements)) || null;
+    const allMultiPhasePills = Object.values(ECO.itemById || {}).filter(it => it && STATIC_ITEM_IDS.has(it.id) && Array.isArray(it.phases) && it.phases.length >= 2);
+    let targetDef = (pillIdOrElements && ECO.getItem(pillIdOrElements, W)) || null;
     if (!targetDef || !Array.isArray(targetDef.phases) || targetDef.phases.length < 2) {
       targetDef = allMultiPhasePills[0] || null;
     }
     if (!targetDef) {
-      return ECO.brewMultiphaseElementalPill(W, alchemist, ['FIRE', 'WATER_ICE'], 'FIRE');
+      return ECO.brewMultiphaseElementalPill(W, alchemist, ['FIRE', 'WATER_ICE'], 'FIRE', opts);
     }
 
-    const herbCost = opts.free ? 0 : (opts.herbCost != null ? opts.herbCost : 2);
-    const stoneCost = opts.free ? 0 : (opts.stoneCost != null ? opts.stoneCost : 25);
+    const rawQty = opts.qty != null ? Number(opts.qty) : 1;
+    if (!Number.isInteger(rawQty) || rawQty <= 0 || rawQty > 50) return { ok: false, reason: 'invalid-qty' };
+    const qty = rawQty;
+    const unitHerbCost = opts.free ? 0 : Math.max(2, Number.isFinite(opts.herbCost) && opts.herbCost >= 0 ? Math.ceil(opts.herbCost) : 2);
+    const unitStoneCost = opts.free ? 0 : Math.max(25, Number.isFinite(opts.stoneCost) && opts.stoneCost >= 0 ? Math.ceil(opts.stoneCost) : 25);
+    const herbCost = unitHerbCost * qty;
+    const stoneCost = unitStoneCost * qty;
     if (!opts.free) {
       if ((W.sect.stones || 0) < stoneCost) return { ok: false, reason: 'insufficient-stones', required: stoneCost };
-      if (herbCost > 0 && ECO.count(W, 'herb') >= herbCost) {
-        ECO.take(W, 'herb', herbCost);
-      }
+      if (herbCost > 0 && countAvailableHerbs(W) < herbCost) return { ok: false, reason: 'insufficient-herbs', requiredHerbs: herbCost };
+      if (herbCost > 0 && !consumeSectHerbs(W, herbCost)) return { ok: false, reason: 'insufficient-herbs', requiredHerbs: herbCost };
       if (stoneCost > 0) {
-        ECO.pay(W, stoneCost, 'เดินเตาหลอมโอสถสองระยะ「' + targetDef.nameTh + '」');
+        if (!ECO.pay(W, stoneCost, 'เดินเตาหลอมโอสถสองระยะ「' + targetDef.nameTh + '」')) {
+          return { ok: false, reason: 'insufficient-stones', required: stoneCost };
+        }
         W.world = W.world || {};
         W.world.resourcePool = W.world.resourcePool || { stones: 50000, herbs: 5000, ores: 5000 };
         W.world.resourcePool.stones += stoneCost;
       }
     }
 
-    const qty = Math.max(1, opts.qty || 1);
     ECO.add(W, targetDef.id, qty);
     W.sect.customPills = W.sect.customPills || {};
     W.sect.customPills[targetDef.id] = targetDef;
@@ -2491,16 +2795,32 @@
     };
   };
 
-  ECO.socketElementalRunes = (W, smith, gear, runeElements) => {
+  ECO.socketElementalRunes = (W, smith, gear, runeElements, opts) => {
+    opts = opts || {};
     if (!gear || !Array.isArray(runeElements) || !runeElements.length) return { ok: false, reason: 'invalid-gear-or-runes' };
-    const els = runeElements.map(e => String(e).toUpperCase());
+    const els = runeElements.map(e => String(e).toUpperCase()).slice(0, 4);
+    if (Array.isArray(gear.elementalSockets) && gear.elementalSockets.join(',') === els.join(',')) {
+      return { ok: false, reason: 'duplicate-runes', gear, embeddedReaction: gear.embeddedReaction };
+    }
+    if (W && W.sect && !opts.free) {
+      const stoneCost = 15 * els.length;
+      const matKeys = Object.keys(W.sect.stock || {}).filter(k => k !== 'grain' && k !== 'meal' && !ECO.isPill(k) && (W.sect.stock[k] || 0) > 0);
+      if ((W.sect.stones || 0) < stoneCost || !matKeys.length) {
+        return { ok: false, reason: 'insufficient-resources', requiredStones: stoneCost };
+      }
+      if (!ECO.take(W, matKeys[0], 1)) return { ok: false, reason: 'insufficient-resources' };
+      if (!ECO.pay(W, stoneCost, 'สลักอักขระรูนธาตุลงศาสตรา')) {
+        ECO.add(W, matKeys[0], 1);
+        return { ok: false, reason: 'insufficient-resources' };
+      }
+    }
     const CE = g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE;
     const catalyst = els[els.length - 1];
     const primers = els.slice(0, -1);
     const reactSpec = (CE && CE.resolveElementalReactionSpec && primers.length)
       ? CE.resolveElementalReactionSpec(primers, catalyst)
       : null;
-    gear.elementalSockets = els.slice(0, 4);
+    gear.elementalSockets = els;
     gear.embeddedReaction = reactSpec ? {
       code: reactSpec.code,
       id: reactSpec.id,
@@ -2514,31 +2834,32 @@
       mult: 1.75,
       elements: els
     };
-    gear.skillModifiers = Array.isArray(gear.skillModifiers) ? gear.skillModifiers : [];
+    gear.skillModifiers = (Array.isArray(gear.skillModifiers) ? gear.skillModifiers : []).filter(m => !(m && (m._fromRuneSocket || m.addElementalFusion)));
     gear.skillModifiers.push({
+      _fromRuneSocket: true,
       element: catalyst,
+      matchElement: catalyst,
       multPct: 0.18,
       penAdd: 10,
       critAdd: 6,
       addElementalFusion: gear.embeddedReaction.id
     });
-    gear.effects = Array.isArray(gear.effects) ? gear.effects : [];
-    if (!gear.effects.some(e => e && e.effectId === 'EFX_V234_ELEMENTAL_REACTOR')) {
-      gear.effects.push({ effectId: 'EFX_V234_ELEMENTAL_REACTOR', params: { reaction: gear.embeddedReaction.id, bonusMult: 0.24 } });
-    }
+    gear._modVer = (gear._modVer || 0) + 1;
+    gear.effects = (Array.isArray(gear.effects) ? gear.effects : []).filter(e => !(e && e.effectId === 'EFX_V234_ELEMENTAL_REACTOR'));
+    gear.effects.push({ effectId: 'EFX_V234_ELEMENTAL_REACTOR', params: { reaction: gear.embeddedReaction.id, bonusMult: 0.24 } });
     delete gear.st;
     if (g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
+    if (smith) {
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(smith);
+      if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(smith);
+    }
     return { ok: true, gear, embeddedReaction: gear.embeddedReaction };
   };
 
   ECO.useConsumableItem = (W, npc, itemId, opts) => {
     opts = opts || {};
-    const def = ECO.getItem(itemId) || (String(itemId || '').startsWith('P:') && ECO.pillInfo(itemId) ? { id: itemId, nameTh: ECO.name(itemId), kind: 'PILL', cultExp: (ECO.pillInfo(itemId).effect && ECO.pillInfo(itemId).effect.cultivationProgress) || 25 } : null);
+    const def = ECO.getItem(itemId, W) || (String(itemId || '').startsWith('P:') && ECO.pillInfo(itemId) ? { id: itemId, nameTh: ECO.name(itemId), kind: 'PILL', cultExp: (ECO.pillInfo(itemId).effect && ECO.pillInfo(itemId).effect.cultivationProgress) || 25 } : null);
     if (!def || !npc) return { ok: false, reason: 'item-or-npc-missing' };
-    if (npc.daoOath && npc.daoOath.upheld && (npc.daoOath.id === 'VOW_ABSTAIN_PILLS' || npc.daoOath.id === 'VEGETARIAN_PACIFIST') && g.CULT && g.CULT.breakOathVow) {
-      const isPillItem = String(itemId || '').startsWith('P:') || String(itemId || '').includes('PILL') || def.kind === 'PILL' || def.out === 'PILL' || (def.cultExp > 0);
-      if (isPillItem) g.CULT.breakOathVow(W, npc, 'ใช้โอสถเพิ่มตบะละเมิดสัตย์สาบานแห่งมรรคา');
-    }
     const st = npc.h && npc.h.state;
     const dayNow = opts.day != null ? opts.day : ((W && W.day) || 0);
     const tNow = opts.now != null ? opts.now : ((W && W.t != null) ? W.t : ((W && W.now) || 0));
@@ -2547,9 +2868,34 @@
     npc.ext.talismanCharges = npc.ext.talismanCharges || {};
     let remainingCharges = null;
     let consumedItem = true;
+    const takeFromOwnerOrSect = () => {
+      if (opts.free) return true;
+      if (npc.inv && npc.inv.pills && npc.inv.pills[itemId] > 0) {
+        npc.inv.pills[itemId] -= 1;
+        const remP = npc.inv.pills[itemId] || 0;
+        if (remP <= 0) delete npc.inv.pills[itemId];
+        if (npc.inv.spawnedPills && npc.inv.spawnedPills[itemId] > remP) {
+          npc.inv.spawnedPills[itemId] = remP;
+          if (npc.inv.spawnedPills[itemId] <= 0) delete npc.inv.spawnedPills[itemId];
+        }
+        return true;
+      }
+      if (npc.inv && npc.inv.mats && npc.inv.mats[itemId] > 0) {
+        npc.inv.mats[itemId] -= 1;
+        const remM = npc.inv.mats[itemId] || 0;
+        if (remM <= 0) delete npc.inv.mats[itemId];
+        if (npc.inv.spawnedMats && npc.inv.spawnedMats[itemId] > remM) {
+          npc.inv.spawnedMats[itemId] = remM;
+          if (npc.inv.spawnedMats[itemId] <= 0) delete npc.inv.spawnedMats[itemId];
+        }
+        return true;
+      }
+      if (W && W.sect && ECO.count(W, itemId) > 0 && ECO.take(W, itemId, 1)) return true;
+      return false;
+    };
     if (typeof def.maxCharges === 'number' && def.maxCharges > 1) {
       if (npc.ext.talismanCharges[itemId] == null) {
-        if (W && W.sect && ECO.count(W, itemId) <= 0 && !opts.free) return { ok: false, reason: 'out-of-stock' };
+        if (!takeFromOwnerOrSect()) return { ok: false, reason: 'out-of-stock' };
         npc.ext.talismanCharges[itemId] = def.maxCharges;
       }
       npc.ext.talismanCharges[itemId] -= 1;
@@ -2558,11 +2904,14 @@
         consumedItem = false;
       } else {
         delete npc.ext.talismanCharges[itemId];
-        if (W && W.sect && ECO.count(W, itemId) > 0) ECO.take(W, itemId, 1);
         consumedItem = true;
       }
     } else {
-      if (W && W.sect && ECO.count(W, itemId) > 0) ECO.take(W, itemId, 1);
+      if (!takeFromOwnerOrSect()) return { ok: false, reason: 'out-of-stock' };
+    }
+    if (npc.daoOath && npc.daoOath.upheld && (npc.daoOath.id === 'VOW_ABSTAIN_PILLS' || npc.daoOath.id === 'VEGETARIAN_PACIFIST') && g.CULT && g.CULT.breakOathVow) {
+      const isPillItem = String(itemId || '').startsWith('P:') || String(itemId || '').includes('PILL') || def.kind === 'PILL' || def.out === 'PILL' || (def.cultExp > 0);
+      if (isPillItem) g.CULT.breakOathVow(W, npc, 'ใช้โอสถเพิ่มตบะละเมิดสัตย์สาบานแห่งมรรคา');
     }
 
     if (st) {
@@ -2630,6 +2979,8 @@
     return { ok: true, itemId: def.id, consumedItem, remainingCharges, multiPhaseQueued, executedEffects };
   };
 
+  Object.keys(ECO.itemById).forEach(k => STATIC_ITEM_IDS.add(k));
+  Object.keys(ECO.v235ItemById || {}).forEach(k => STATIC_ITEM_IDS.add(k));
   g.ECO = ECO;
   if (typeof module === 'object' && module.exports) module.exports = ECO;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

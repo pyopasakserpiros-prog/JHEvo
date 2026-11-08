@@ -9,22 +9,21 @@
 
 - **ภาคปัจจุบัน (Game Franchise Status):** **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
   *(ประวัติ: ภาค 1 วิวัฒนาการจาก ยุค 1 สิ้นสุดที่ `v5.8.0`; ภาค 2 เริ่มต้นนับศักราชใหม่ที่ Season 2 โดยใช้รหัสแพตช์ทางการว่า `JS2-v...` ไม่ใช่การนับเลขถอยหลัง)*
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** **`JS2-v2.3.0`** (Grand Dao Debates, 27 Apex Trials & Deep Parity Release — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 139/139 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** **`JS2-v2.4.0`** (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 140/140 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md) (**`JS2-v2.4.0`**: Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release)
-- **🐞 รายงานบัคฉบับรวมสำหรับแพตช์นี้ (Consolidated Bug Audit Report):**
-  👉 [`V2_3_0_CONSOLIDATED_BUG_REPORT.md`](V2_3_0_CONSOLIDATED_BUG_REPORT.md)
+  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (**`JS2-v2.5.0`**: Grand Dao Ecosystem Synergy, Sect Dynasty Chronicles & World Event Depth Release)
 - **🗺️ แผนที่นำทางและคลังไอเดียรวม (Master Roadmap & Composable Mechanics):**
   👉 [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md) (`JianghuSect 2 v2.3.0` / `JS2-v2.3.0` — Grand Dao Deep Parity Release)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (`JianghuSect 2 v2.4.0` / `JS2-v2.4.0` Release (1) — ฉบับสมบูรณ์หลังแก้บั๊ก)
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (`JianghuSect 2 v2.4.0` / `JS2-v2.4.0` Initial — ฉบับก่อนแก้บั๊ก)
 
 ---
 
 ## 🧭 ขั้นตอนการปฏิบัติงานมาตรฐาน 10 ขั้น (10-Step Execution & Daisy-Chain Protocol)
 
 ### ขั้นที่ 1: อ่านใบสั่งงานแพตช์ปัจจุบัน (`ACTIVE_PATCH_PROMPT`)
-1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_4_0.md)) อย่างละเอียดทุกบรรทัด
+1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md)) อย่างละเอียดทุกบรรทัด
 2. ตรวจสอบตารางรายการข้อเสนอ (Proposals) เป้าหมาย ไฟล์ที่ต้องแก้ไข และเกณฑ์การผ่านทดสอบ (Acceptance Criteria)
 
 ### ขั้นที่ 2: อ่านภาพรวมสถาปัตยกรรมและกฎเหล็กของโปรเจกต์

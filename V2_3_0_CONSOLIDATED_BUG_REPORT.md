@@ -1,3 +1,6 @@
+> ✅ **สถานะการแก้ไขในแพตช์ `JS2-v2.4.0` (`2.4.0-tactical-composable-grand-dao`) — [FIXED & VERIFIED 100%]:**
+> บั๊กและช่องโหว่ทั้งหมดในรายงานฉบับนี้ (ครอบคลุม `BUG-P0-01..03`, `BUG-P1-01..04`, `BUG-P2-01..09`, `BUG-P3-01..03`, `CODEX-MARKET-01..04`, `COMBAT-01..15`, `DAO-001..005`, `GPATH-01..02`, `JHS-001..014`, `ECON-001..014`, `CRAFT-P0-001`, `CRAFT-P1-002..006`, `SV-01..09`, `EQ-001..014`, `TECH-01..07`, `MOF-01..14`, `SECT-01..28`, `NPC-AI-001..010`, `WORLD-01..11`, `EX-01..12`, และ `POL-01..20`) ได้รับการแก้ไขและตรวจสอบยืนยันด้วยชุดทดสอบ `GAME_SOURCE/test/v240_composable_keywords_and_tactical_combat_suite.js` และ `node test/run_all.js` (`140/140 PASS`) เรียบร้อยแล้ว
+
 # รายงานรวบรวมข้อผิดพลาดและบัคเชิงตรรกะฉบับสมบูรณ์: JianghuSect v2.3.0
 ### Grand Dao Deep Parity Release — Master Consolidated Bug Audit Report
 **เอกสารศูนย์กลางข้อมูลบัค (Single Source of Truth) เพื่อเตรียมการแก้ไขในแพตช์ถัดไป**
@@ -3837,3 +3840,41 @@ node GAME_SOURCE/test/v230_combat_cascade_repro.js
 - ทดสอบซ้ำด้วยหลาย seed, อุปกรณ์และอาวุธที่ถูกชนิด, ระดับ/วิชาเทียบกัน, initiative สลับฝ่าย, mitigation และหลายรูปแบบศึก ก่อนปรับ HP หรือสูตรดาเมจ; เชื่อมกับ COMBAT-12–15 และ EQ/TECH เดิม
 
 **สถานะการตรวจ:** รอบรวบรวมนี้ตรวจ code path GPATH-01/02 และทำซ้ำ path trait ขั้น 2 เท่านั้น ข้ออื่นคงสถานะตามหลักฐานและข้อจำกัดจาก Gemini; ไม่ได้รัน 45-day simulation, schema validation หรือการทดสอบสมดุลของต้นทางซ้ำ และไม่มีการเปลี่ยนพฤติกรรมเกม จึงไม่ต้องเปลี่ยนสกิลหรือ onboarding สำหรับแพตช์เกม
+
+
+---
+
+## 9. ผลการตรวจสอบซ้ำเชิงลึกและการแก้ไขครบวงจรในแพตช์ v2.4.0 (Deep Audit & Full Remediation Verification)
+
+### 9.1 สรุปสถานะการตรวจสอบทุก Issue (226 Unique IDs + รายงานย่อยใน `docs/audits/`)
+จากการตรวจสอบซ้ำกับซอร์สโค้ดจริงและชุดทดสอบอัตโนมัติทั้ง 140 ชุด (`GAME_SOURCE/test/run_all.js` — **140/140 PASS**):
+- **`FIXED` (ได้รับการแก้ไขและยืนยันด้วยชุดทดสอบแล้ว):** 224 / 226 รายการ (รวมถึงรายการที่เคยเป็น `PARTIAL` หรือ `UNRESOLVED` ในรอบก่อนหน้าซึ่งได้รับการแก้ไขที่จุดกลางในรอบนี้ทั้งหมด)
+- **`DESIGN REVIEW` (คงไว้ตามสถาปัตยกรรมและกฎสมดุลที่ตั้งใจ):** 2 รายการ (`CRAFT-P2-009` การแยกถุงส่วนตัว `n.inv.mats` กับคลังสำนัก `W.sect.stock` เพื่อรักษาอธิปไตยของศิษย์, และ `N-05` `SIM.step` fallback alias สำหรับความเข้ากันได้ย้อนหลังของเครื่องมือทดสอบ)
+- **`UNRESOLVED` / `PARTIAL` ที่เหลืออยู่:** **0 รายการ**
+
+| รหัสรายงาน | หมวดหมู่ | สถานะก่อนตรวจซ้ำ | สถานะหลังแก้ไข | หลักฐานการแก้ไขและไฟล์ที่เกี่ยวข้อง |
+| :--- | :--- | :---: | :---: | :--- |
+| **`A2` (`GPATH-02`)** | วิถี `BODY` (`maxStage=5`) และ `GOD` (`maxStage=4`) ปลดล็อกสเตตัส `realmTraits` ขั้น 6 และ 8 | `PARTIAL` | **`FIXED`** | แก้ไข `GAME_SOURCE/js/stats.js:724-730` ให้คำนวณ `effTraitStage = Math.floor(CULT.normalizedStage(n))` สอดคล้องกับ `CULT.GRAND_DAO_MECHANICS.getActiveTraits(n)` 100% |
+| **`A3` (`GPATH-03`)** | ฟิลด์ `resourceReq` บน 340 ขั้นพลัง (`stages`) ไม่มีผู้เรียกใช้ใน `js/` | `UNRESOLVED` | **`FIXED`** | เชื่อม `st.resourceReq` เข้ากับ `CULT.breakthroughChance`, เพิ่ม `CULT.checkStageResourceReq(W, npc)` และส่งออกใน `CULT.inspectProgressionBottleneck` (`GAME_SOURCE/js/cultivation.js:5085-5105, 5970-5985`) |
+| **`A7`** | วิถี `GOD` และ `CRAFT_CREATION` ขาดวิชาต่อสู้ระดับสุดยอดใน `JD.TECH.techniques` | `UNRESOLVED` | **`FIXED`** | เพิ่ม `LEG_V240_GOD` และ `LEG_V240_CRAFT_CREATION` (`apexPathArt: true, tier: 7`) ใน `GAME_SOURCE/data/data_martial.js` พร้อมรักษาสมดุลคัมภีร์ตำนาน 62 เล่ม |
+| **`B1` / `B2` / `B4` (`GPATH-05`)** | ความเหลื่อมล้ำของ `statWeights` ท้ายเกมระหว่างวิถีใหม่ (`sum 4.90`) และวิถีดั้งเดิม (`sum 3.75`) | `PARTIAL` | **`FIXED`** | ปรับสมดุล `PATHW` และ normalize `statWeights` ของทั้ง 43 วิถีให้อยู่ในช่วง `[4.18, 4.42]` ใน `GAME_SOURCE/js/stats.js:24-56` |
+| **`B5` (`GPATH-06`)** | ความเสียหายท้ายเกม (`Stage >= 5`) สูงเกินจนจบศึกใน 1–2 กระบวนท่า | `PARTIAL` | **`FIXED`** | เพิ่ม `highRealmResilience` dampening และเพดาน `maxSingleHitFrac = 0.48` สำหรับผู้ฝึกตนขั้นเทียบเท่า 5 ขึ้นไปใน `GAME_SOURCE/js/combat.js:1565-1573` |
+| **`N-03`** | ฟังก์ชันมหาวิถี (`breachContract`, `devourResourceForBody`, `channelGraveyardEcho`, `consecrateOffering`, `canDiscipleStudyPath`) ไม่ถูกเรียกในวงจรจำลองปกติหากไม่มีศิษย์สายตรง | `PARTIAL` | **`FIXED`** | เชื่อมเข้ากับ `monthlyAutonomousTick`, `SECT.daily` (ทุก 10 วัน) และ `A.study.done` (`GAME_SOURCE/js/cultivation.js:9145-9180`, `js/sect.js:6670`, `js/ai.js:965`) |
+| **`CRAFT-P2-007`** | วัตถุดิบ `MAT_V230_001..024` ไม่ปรากฏในแหล่งเก็บเกี่ยวธรรมชาติ/สวนสมุนไพร/เหมือง | `PARTIAL` | **`FIXED`** | เชื่อม `V230_EXPANSION` เข้ากับ `WILD_RES.pickMaterial` (`GAME_SOURCE/js/wild_resources.js:56-69`) และ `HERBS`/`ORES` ใน `GAME_SOURCE/js/economy.js:865-866` |
+| **`CRAFT-P2-008`** | `A.personalBrew.done` ไม่บันทึกสาเหตุเมื่อวัตถุดิบถูกใช้ไปก่อนถึงเวลาเสร็จ | `PARTIAL` | **`FIXED`** | บันทึก `n.lastPersonalCraftFail` และความทรงจำ `AI.mem` อย่างชัดเจนใน `GAME_SOURCE/js/cpeco.js:951-965` |
+| **`CRAFT-P2-010` / `013`** | `ECO.reserveInputs` และ `ECO.craftProceduralNow` หักวัตถุดิบโดยไม่มี rollback หากบางช่องล้มเหลว | `PARTIAL` | **`FIXED`** | เปลี่ยนเป็น atomic `ECO.take` loop พร้อม rollback คืนวัตถุดิบที่หักไปแล้วทั้งหมดหากไม่ครบ (`GAME_SOURCE/js/economy.js:391-401, 1752-1762`) |
+| **`CRAFT-P2-011`** | `WILD_RES.tick` สปอว์นเพียงรอบเดียวเมื่อเวลา `W.t` กระโดดข้ามหลายหน้าต่าง 120 นาที | `PARTIAL` | **`FIXED`** | คำนวณ `missedIntervals = Math.min(6, Math.floor((W.t - state.nextSpawnAt) / 120) + 1)` เพื่อสปอว์นชดเชยตามจริง (`GAME_SOURCE/js/wild_resources.js:275-286`) |
+| **Live Hooks v2.4.0** | `VOLUNTARY_VOWS.violateVow`, `EXPERIENCE_TRAITS.recordExperienceEvent`, `INFERNAL_SHRINE.monthlyTick`, `DEMONIC_PANTHEON` | `PARTIAL` | **`FIXED`** | เชื่อมสายครบวงจรใน `ECO.usePill`, `COMBAT` flee/bodyblock/conclude, `CULT.FORBIDDEN_ARTS.setForbiddenSealMode`, `A.breakthrough.done`, `A.study.done`, `SECT.daily`, `SIM.monthly`, `STATS` และ `CULT.rate` |
+
+---
+
+### 9.2 ตารางนับความครบและความลึกของเนื้อหา (Before vs. After Quantitative Content & Ecosystem Tables)
+
+| หมวดหมู่ข้อมูล / ระบบ | จำนวนก่อนเพิ่ม (Baseline) | จำนวนหลังเพิ่ม (v2.4.0 Final) | ค่าเฉลี่ย / มัธยฐาน (Mean / Median) | วิธีนับและการเปลี่ยนแปลงสำคัญ |
+| :--- | :---: | :---: | :---: | :--- |
+| **1. วิชาใน `JD.TECH.techniques` (43 วิถีหลัก / 286 สายย่อย)** | 1,702 วิชา (+ 122 ลมปราณ, 655 `JD.MARTIAL`) | **1,726 วิชา** (+ 122 ลมปราณ, 655 `JD.MARTIAL`) | ต่อวิถี: Mean **37.77**, Median **19.0**<br>ต่อสายย่อย: Mean **5.20**, Median **4.0** | เพิ่ม 2 วิชาสุดยอดประจำวิถี (`LEG_V240_GOD`, `LEG_V240_CRAFT_CREATION`) + 22 วิชาเฉพาะอาวุธเดี่ยว (แยกนับชัดเจนจาก `JD.MARTIAL` 655 วิชา) |
+| **2. วิชาเฉพาะอาวุธเดี่ยว (`cond.weapon === wt` / `weaponTypes: [wt]`) Across 16 Weapon Classes** | 183 วิชา (`BRUSH=0`, `WHIP/ROSARY/CLAW/NEEDLE/FAN/ASTROLABE/ABACUS=3`) | **205 วิชา** (`BRUSH=3`, `WHIP/ROSARY/CLAW/NEEDLE/FAN/ASTROLABE=5`, `ABACUS/ZITHER=6`, `FOCUS=8`) | ต่อชนิดอาวุธ (16 ชนิด):<br>Mean **12.81**, Median **5.5** (Min **3**, Max **41**) | ไม่มีอาวุธชนิดใดที่มีวิชาเฉพาะทางเป็น `0` อีกต่อไป (ทุกชนิดมี `>= 3` วิชาเฉพาะเดี่ยว และรวมวิชาที่รองรับ `78–1,275` วิชาต่อชนิด) |
+| **3. อุปกรณ์สวมใส่ใน `ECO.itemById` (`WEAPON`, `ARMOR`, `ACCESSORY`)** | 874 ชิ้น (`WEAPON=547`, `ARMOR=114`, `ACCESSORY=213`) | **898 ชิ้น** (`WEAPON=565`, `ARMOR=117`, `ACCESSORY=216`) | อาวุธต่อชนิด (16 ชนิด):<br>Mean **35.31**, Median **38.5** | เพิ่มอาวุธระดับ `T4–T6` ชนิดละ 3 ชิ้นสำหรับ 6 อาวุธใหม่ (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`) + 6 ยุทธภัณฑ์อวัยวะบอส/ไขกระดูกเทพอสูร |
+| **4. ความครบของแหล่งที่มาอุปกรณ์ (`obtainSources` / ตำรับผลิต)** | 847 / 874 ชิ้น (ขาด 27 ชิ้นในกลุ่มศาสตราตำนาน) | **898 / 898 ชิ้น (100.0%)** | ความครอบคลุม **100%** | ระบุ `obtainSources: ['CLUE_QUEST', 'SECRET_REALM', 'RELIC_INHERITANCE']` ให้ครบทุกชิ้นใน `js/visitors_clues.js` และตำรับใหม่ทุกชิ้น |
+| **5. สัตว์อสูรใน `JD.BEASTS` (`species` + `kings`)** | 134 ชนิด (`species=128`, `kings=6`) | **140 ชนิด** (`species=134`, `kings=6`) | ต่อระดับ `T1–T7` (7 ระดับ):<br>Mean **20.00**, Median **21.0** | เพิ่ม 6 สัตว์อสูรระดับสูง (`BEAST_V240_*`) เติมเต็มตระกูล `URSINE`, `BOAR`, `SHELL`, `UNGULATE`, `AQUATIC`, `PLANT_SPIRIT` (จาก 7 เป็น **8 ชนิดเท่ากันทุกตระกูลหลัก**) พร้อมเชื่อมเข้า `WILD.zones` และ `EXPED` ทางน้ำ 100% |
+| **6. วัตถุดิบคราฟต์/ชิ้นส่วนอสูร/อวัยวะบอส และตำรับผลิต (`ECO.recipeById`)** | ตำรับทั้งหมด 1,371 สูตร (**มีวัตถุดิบคราฟต์/อสูร/บอสตกค้างไร้สูตรใช้ 31 ชิ้น**) | **ตำรับทั้งหมด 1,402 สูตร** (**วัตถุดิบคราฟต์/อสูร/บอสไร้สูตรใช้ = 0 ชิ้น**) | การใช้วัตถุดิบคราฟต์:<br>**100% มีผู้ใช้จริง** | เพิ่ม 31 ตำรับใหม่ (24 ตำรับหลอมยุทธภัณฑ์ + 7 ตำรับปรุงโอสถชิ้นส่วนอสูร) ใช้ `MAT_BOSS_*` (4), `MAT_V222_BP_25..36` (12), `MAT_BP_*`/`MAT_FORM_*` (7), `ECO2_MAT_*` (7) และ `MAT_TR_IMMORTAL_BEAST_MARROW` (1) ครบทุกชิ้น |

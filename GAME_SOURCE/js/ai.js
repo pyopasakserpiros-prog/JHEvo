@@ -834,7 +834,8 @@
       n.cult.lastTry = W.day; n.sealedBt = true;
       const env = (ctx && ctx.room) ? 0 : 0.05;
       const mId = n.mentorId || n.mentor;
-      const guide = (mId && W.byId[mId] && !W.byId[mId].dead ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0);
+      const mObj = mId && W.byId ? W.byId[mId] : null;
+      const guide = (mObj && !mObj.dead && !mObj.exiled && (!Array.isArray(W.npcs) || W.npcs.includes(mObj)) ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0);
       if (CULT.TRIBULATION && CULT.TRIBULATION.start) {
         CULT.TRIBULATION.start(W, n, { prep: { env, pill: c.btBonus || 0, guide }, totalTicks: 15, announce: true });
       }
@@ -849,7 +850,7 @@
     },
     done(n, W, ctx) {
       const c = n.cult; const env = (ctx && ctx.room) ? 0 : 0.05; const pill = c.btBonus || 0; c.btBonus = 0;
-      const mId = n.mentorId || n.mentor; const guide = (mId && W.byId[mId] && !W.byId[mId].dead ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0);
+      const mId = n.mentorId || n.mentor; const mObj = mId && W.byId ? W.byId[mId] : null; const guide = (mObj && !mObj.dead && !mObj.exiled && (!Array.isArray(W.npcs) || W.npcs.includes(mObj)) ? 0.05 : 0) + (n.mentorImprint ? 0.04 : 0);
       let res = (n.tribulationState && n.tribulationState.resolved) ? n.tribulationState.outcome : (n.lastTribulationOutcome || null);
       if (!res) {
         res = CULT.breakthrough(W, n, { env, pill, guide });
@@ -859,6 +860,9 @@
       }
       n.lastTribulationOutcome = null;
       n.sealedBt = false;
+      if (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent && !n.dead && !res.died) {
+        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'TRIBULATION_SURVIVED_OR_SCARRED', 1);
+      }
       if (res.ok) { W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage); }
       else { W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + Math.round(res.p * 100) + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id]); AI.mem(W, n, 'ทะลวงขั้นล้มเหลว', 1); if (res.died) AI.kill(W, n, 'ตบะแตกระหว่างทะลวงขั้น'); else AI.injure(W, n, res.sev || 1, 'ตบะย้อนกลับ'); }
     },
@@ -959,6 +963,12 @@
     },
     done(n, W) {
       n.merit += 0.3;
+      if (n.cult && g.SECT && g.SECT.PATH_LIBRARY && typeof g.SECT.PATH_LIBRARY.canDiscipleStudyPath === 'function') {
+        g.SECT.PATH_LIBRARY.canDiscipleStudyPath(W, n, n.cult.path);
+      }
+      if (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
+        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'MANUAL_STUDY_AND_ARCHIVE', 1);
+      }
       if (g.ELEM && n.cult) {
         const t = (n.cult.learning && CULT.tech(n.cult.learning.id)) || (n.cult.techs.length && CULT.tech(n.cult.techs[n.cult.techs.length - 1]));
         if (t) g.ELEM.gainMastery(n, t, 'study', W, { sourceId: t.id });
@@ -1083,6 +1093,7 @@
           HC.feel(n, { mood: -5 });
         }
       },
+      cleanup(n, W) { if (ECO && ECO.cancelCraft) ECO.cancelCraft(W, n, 'interrupted'); },
       important: false
     };
   }
@@ -1168,6 +1179,7 @@
     start(n, W, ctx) { return ECO.reserveCooking(W, n, ctx); },
     tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.045); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'cooking', 1 / 60, 1); AI.vf(n, { sectDuty: 0.04, familyClan: 0.02 }); },
     done(n, W, ctx) { const res = ECO.finishCooking(W, n, ctx); if (!res.ok) return; ctx.m = res.meals; n.merit += 0.6; },
+    cleanup(n, W) { if (ECO && ECO.cancelCraft) ECO.cancelCraft(W, n, 'interrupted'); },
     inside: true
   };
   A.duty = {
@@ -1201,7 +1213,7 @@
       if (ctx.kind === 'class') { (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'administration', 1 / 120, 1); AI.teachClass(W, n); }
       if (ctx.kind === 'craftmgmt') { const h = n.post || n.assist; if (h === 'alchemy') (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'ALCHEMY', 1 / 60, 1.1); else { (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'FORGING', 1 / 60, 1.1); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'ARRAY', 1 / 60, 1.1); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'TALISMAN', 1 / 60, 1.1); } }
     },
-    done(n, W) { if(g.COG)g.COG.performDuty(W,n); W.sect.lastDuty[n.id] = W.t; n.merit += 2; W.sect.efficiency = (W.sect.efficiency || 0) + 1; }
+    done(n, W) { const ok = g.COG ? g.COG.performDuty(W, n) : false; W.sect.lastDuty[n.id] = W.t; if (ok) { n.merit += 2; W.sect.efficiency = (W.sect.efficiency || 0) + 1; } else { n.merit += 0.5; } }
   };
   AI.teachClass = (W, n) => { /* หัวหน้าหอยุทธ์ได้ทักษะสอน + ฝึกลูกศิษย์ใกล้ ๆ ผ่าน q ใน practice */ if (W.t % 30 === 0) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'diplomacy', 0.2, 0.5); };
 
@@ -1454,9 +1466,14 @@
   };
   A.sentence = { // ชดใช้โทษ: ทำงานเบ็ดเตล็ด/จำคุก
     nameTh: 'รับโทษ', icon: '⛓️', color: '#7a7a7a',
-    can: (n, W) => n.jail && n.jail > W.t,
+    can: (n, W) => (SECT && SECT.isNpcDetained) ? SECT.isNpcDetained(W, n) : !!(n.jail && n.jail > W.t),
     score: (n, W, S) => S.add('ถูกคุมขัง', 9),
-    where: (W, n) => { const s = AI.freeStation(W, n, 'cell', 'discipline'); return s ? { st: s } : null; },
+    where: (W, n) => {
+      const s = AI.freeStation(W, n, 'cell', 'discipline');
+      if (s) return { st: s };
+      const db = W && W.map && W.map.byId && W.map.byId.discipline;
+      return db && db.door ? { pos: { x: db.door.x, y: db.door.y } } : { pos: { x: n.x, y: n.y } };
+    },
     dur: () => 240,
     tick(n) { n.h.state.stress += 0.01; n.h.state.mood -= 0.02; n.h.state.novelty -= 0.02; },
     inside: true
@@ -1569,7 +1586,7 @@
   };
   AI.mem = (W, n, text, w, withId) => {
     const m = n.h.mind.memories; m.push({ t: W.t, text, w: w || 0.3, who: withId || null });
-    if (m.length > 40) { m.sort((a, b) => b.w - a.w * 0.99); m.length = 32; m.sort((a, b) => a.t - b.t); }
+    if (m.length > 40) { m.sort((a, b) => (b.w - a.w) || (b.t - a.t)); m.length = 32; m.sort((a, b) => a.t - b.t); }
   };
   AI.vf = (n, d) => { const f = n.h.fulfil; for (const k in d) f[k] = Math.min(100, f[k] + d[k]); };
 
@@ -1734,7 +1751,8 @@
     if (d.type === 'teach') {
       AI.mem(W, b, 'ได้รับการสั่งสอนจาก ' + a.h.name.given, 0.4, a.id);
       if (g.SECT && g.SECT.MENTORSHIP && g.SECT.MENTORSHIP.coachDisciple) {
-        g.SECT.MENTORSHIP.coachDisciple(W, a, b);
+        const isDirect = b.mentorId === a.id || (Array.isArray(a.apprenticeIds) && a.apprenticeIds.includes(b.id));
+        g.SECT.MENTORSHIP.coachDisciple(W, a, b, { casualLesson: !isDirect });
       }
     }
   };
@@ -1808,11 +1826,20 @@
     if (g.SECT && g.SECT.SOUL_FORGE && g.SECT.SOUL_FORGE.imbueElderSoulIntoWeapon && n.equip && n.equip.WEAPON && ((n.rank || 0) >= 4 || (n.cult && (n.cult.stage || 0) >= 4)) && (n.equip.WEAPON.tier || 1) >= 3) {
       g.SECT.SOUL_FORGE.imbueElderSoulIntoWeapon(W, n, n.equip.WEAPON);
     }
+    if (W.sect && W.sect.successorId === n.id) W.sect.successorId = null;
     if (n.id === W.sect.masterId) {
       if (SECT.resolvePlayerSuccessionCrisis) SECT.resolvePlayerSuccessionCrisis(W, 'เจ้าสำนักเสียชีวิต');
       else SECT.succession(W, 'เจ้าสำนักเสียชีวิต');
     }
     if (n.id === W.sect.deputyId) W.sect.deputyId = null;
+    if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
+    if (W.world && W.world.resourceNodes && g.EXPED && g.EXPED.recomputeNodeGarrison) {
+      Object.values(W.world.resourceNodes).forEach(rn => {
+        if (rn && rn.garrison && Array.isArray(rn.garrison.discipleIds) && rn.garrison.discipleIds.includes(n.id)) {
+          g.EXPED.recomputeNodeGarrison(W, rn);
+        }
+      });
+    }
     if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n);
     if (g.CPE && g.CPE.retireNpc) g.CPE.retireNpc(W, n, 'เสียชีวิต');
     // ทรัพย์สินกลับสำนัก
@@ -1831,8 +1858,27 @@
   };
 
   /* ---------- วงจรกิจกรรม ---------- */
-  AI.cancelAct = (W, n) => { AI.release(W, n); if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; n.path = null; };
-  AI.interruptFor = (W, n) => { if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n); if (n.act && n.act.id !== 'idle') { const a = A[n.act.id]; if (a && a.cleanup) a.cleanup(n, W); AI.release(W, n); } n.path = null; };
+  AI.cancelAct = (W, n) => {
+    if (n && n.act && n.act.id !== 'idle') {
+      const a = A[n.act.id];
+      if (a && a.cleanup) a.cleanup(n, W);
+    }
+    if (ECO && ECO.cancelCraft) ECO.cancelCraft(W, n, 'cancelled');
+    AI.release(W, n);
+    if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n);
+    n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
+    n.path = null;
+  };
+  AI.interruptFor = (W, n) => {
+    if (g.WILD_RES) g.WILD_RES.releaseClaim(W, n);
+    if (n && n.act && n.act.id !== 'idle') {
+      const a = A[n.act.id];
+      if (a && a.cleanup) a.cleanup(n, W);
+      AI.release(W, n);
+    }
+    if (ECO && ECO.cancelCraft) ECO.cancelCraft(W, n, 'interrupted');
+    n.path = null;
+  };
 
   AI.begin = (W, n, id, w, why) => {
     const a = A[id];
@@ -1876,6 +1922,18 @@
     return S.why.sort((p, q) => Math.abs(q[1]) - Math.abs(p[1])).slice(0, 4);
   }
   AI.decide = (W, n) => {
+    if ((SECT && SECT.isNpcDetained) ? SECT.isNpcDetained(W, n) : !!(n.jail && n.jail > W.t)) {
+      const w = A.sentence.where(W, n);
+      const why = [['ถูกคุมขัง', 9]];
+      if (w && AI.begin(W, n, 'sentence', w, why)) {
+        n.why = why;
+        if (g.COG) g.COG.chosen(W, n, 'sentence', why);
+        return true;
+      }
+      n.act = { id: 'sentence', stage: 'do', left: 60, total: 60, ctx: {}, why };
+      n.why = why;
+      return true;
+    }
     if (g.COG) g.COG.prepare(W, n);
     const cands = [];
     const rec = n.recent, recLen = rec ? rec.length : 0, lastRec = recLen ? rec[recLen - 1] : null;
@@ -2016,7 +2074,7 @@
 
   AI.interrupt = (W, n) => { // ตรวจเหตุขัดจังหวะ (ทุก 5 นาที)
     const s = n.h.state, id = n.act.id, cool = n.cool;
-    if (n.jail && n.jail > W.t && id !== 'sentence') { AI.interruptFor(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [['ถูกคุมขัง', 9]] }; return true; }
+    if (((SECT && SECT.isNpcDetained) ? SECT.isNpcDetained(W, n) : (n.jail && n.jail > W.t)) && id !== 'sentence') { AI.interruptFor(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [['ถูกคุมขัง', 9]] }; return true; }
     if (id === 'breakthrough' || id === 'fight' || id === 'sentence') return false;
     const hm = n._nd ? n._nd.hpMax : CULT.hpMax(n);
     if (s.satiety < (id === 'sleep' ? 8 : 24) && id !== 'eat' && !(cool && cool.eat > W.t) && ECO.count(W, 'meal') > 0) { if (AI.freeStation(W, n, 'eat', 'canteen')) return true; if (g.SECT && g.SECT.recordFacilityDemand) g.SECT.recordFacilityDemand(W, 'eat', 'failed_station', n); if (cool) cool.eat = W.t + 25; }

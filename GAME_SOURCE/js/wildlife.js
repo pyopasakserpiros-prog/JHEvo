@@ -38,7 +38,7 @@
         { id: 'ridge_scorpions', nameTh: 'อาณาเขตแมงป่องเพลิง', min: 4, max: 4, speciesIds: ['BEAST_SAND_SCORPION', 'BEAST_LAVA_FLAME_TORTOISE_4'], weight: 25 },
         { id: 'ridge_thunder', nameTh: 'สันผาอสูรอัสนี', min: 4, max: 5, speciesIds: ['BEAST_THUNDER_DRAKE_LIZARD', 'BEAST_THUNDER_HORN_STAG_4', 'BEAST_THUNDER_ROC'], weight: 20 },
         { id: 'ridge_ecology_t3_t5', nameTh: 'หุบผาอสูรพิภพและเพลิง', min: 3, max: 5, speciesIds: ['ECO2_BEAST_FELINE_4', 'ECO2_BEAST_SERPENT_4', 'ECO2_BEAST_SERPENT_5', 'ECO2_BEAST_UNGULATE_3', 'ECO2_BEAST_UNGULATE_5', 'ECO2_BEAST_PLANT_SPIRIT_4', 'ECO2_BEAST_PLANT_SPIRIT_5', 'ECO2_BEAST_BOAR_5', 'ECO2_BEAST_BOAR_4', 'ECO2_BEAST_SERPENT_3'], weight: 30 },
-        { id: 'ridge_v222_thunder_blood', nameTh: 'สันผาเสือดาวปีกอสนีและพยัคฆ์โลหิต', min: 3, max: 5, speciesIds: ['BEAST_V222_THUNDER_ROC_FALCON', 'BEAST_V222_FLAME_MANE_LION_BOAR'], weight: 26 }
+        { id: 'ridge_v222_thunder_blood', nameTh: 'สันผาเสือดาวปีกอสนีและพยัคฆ์โลหิต', min: 3, max: 5, speciesIds: ['BEAST_V222_THUNDER_ROC_FALCON', 'BEAST_V222_FLAME_MANE_LION_BOAR', 'BEAST_V240_ABYSSAL_IRON_BEAR', 'BEAST_V240_THUNDER_TUSK_BOAR_KING'], weight: 26 }
       ]
     },
     legend: {
@@ -53,7 +53,7 @@
         { id: 'legend_celestial', nameTh: 'มังกรสมุทรและราชันย์เทพอสูร', min: 7, max: 7, speciesIds: ['BEAST_ABYSSAL_DRAGON', 'BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN', 'KING_KUNLUN_DRAGON'], weight: 30 },
         { id: 'legend_ecology_t6', nameTh: 'ราชันย์อสูรบรรพกาลแปดทิศ', min: 6, max: 6, legendary: true, speciesIds: ['ECO2_BEAST_BOAR_6', 'ECO2_BEAST_SERPENT_6', 'ECO2_BEAST_ARTHROPOD_6', 'ECO2_BEAST_SHELL_6', 'ECO2_BEAST_UNGULATE_6', 'ECO2_BEAST_PLANT_SPIRIT_6', 'ECO2_BEAST_CHIMERA_6'], weight: 40 },
         { id: 'legend_ecology_t7', nameTh: 'แปดมหาเทพอสูรบรรพกาลชั้นฟ้า', min: 7, max: 7, legendary: true, speciesIds: ['ECO2_BEAST_MYTHIC_1', 'ECO2_BEAST_MYTHIC_2', 'ECO2_BEAST_MYTHIC_4', 'ECO2_BEAST_MYTHIC_5', 'ECO2_BEAST_MYTHIC_7', 'ECO2_BEAST_MYTHIC_8'], weight: 35 },
-        { id: 'legend_v222_abyssal_sovereigns', nameTh: 'ห้วงเหวราชันมังกรโลหิตและอสูรกลืนดารา', min: 6, max: 7, legendary: true, speciesIds: ['BEAST_V222_VOID_DEVOURING_CHIMERA'], weight: 35 }
+        { id: 'legend_v222_abyssal_sovereigns', nameTh: 'ห้วงเหวราชันมังกรโลหิตและอสูรกลืนดารา', min: 6, max: 7, legendary: true, speciesIds: ['BEAST_V222_VOID_DEVOURING_CHIMERA', 'BEAST_V240_STARLIGHT_VOID_TORTOISE', 'BEAST_V240_CELESTIAL_JADE_QILIN_STAG', 'BEAST_V240_IMMORTAL_BODHI_TREANT'], weight: 35 }
       ]
     },
     west_grove: {

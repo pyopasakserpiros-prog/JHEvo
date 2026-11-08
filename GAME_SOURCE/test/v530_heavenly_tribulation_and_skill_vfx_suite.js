@@ -113,9 +113,9 @@ require(path.join(ROOT, 'js/ui.js'));
     'human_core.js SHA-256 must remain 100% byte-identical'
   );
   assert.strictEqual(g.HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(g.SIM.PATCH_VERSION, '2.3.0', 'SIM.PATCH_VERSION must be 5.3.0');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '2.4.0', 'SIM.PATCH_VERSION must be 5.3.0');
   assert.strictEqual(
-    g.SIM.SAVE_SCHEMA_VERSION, '2.3.0-grand-dao-deep-parity-release',
+    g.SIM.SAVE_SCHEMA_VERSION, '2.4.0-tactical-composable-grand-dao',
     'SIM.SAVE_SCHEMA_VERSION must be 5.8.0-forbidden-arts-passive-awakening-and-blood-altar'
   );
 

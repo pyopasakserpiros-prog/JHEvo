@@ -18,7 +18,7 @@
     G.W = W; W.onLog = e => { if (G.opts.toast) UI.onLog(e); }; HC.nowDay = W.day;
     G.R.setWorld(W); G.R.selected = null; G.R.follow = false; G.R.resize(); G.R.focus(118, 70, 1.0); G.R.clampCam();
     const timing = W.runtimeTiming || {};
-    G.acc = Number.isFinite(timing.pendingTicks) && timing.pendingTicks >= 0 ? timing.pendingTicks : 0;
+    G.acc = Number.isFinite(timing.pendingTicks) && timing.pendingTicks >= 0 ? Math.min(1440, timing.pendingTicks) : 0;
     const savedSpeed = Number.isFinite(timing.speed) && timing.speed >= 0 ? timing.speed : W.speed;
     G.speed = Number.isFinite(savedSpeed) && savedSpeed >= 0 ? savedSpeed : 1;
     last = performance.now();
@@ -32,7 +32,23 @@
     UI.toast('ยินดีต้อนรับ เจ้าสำนัก ' + m.h.name.given + ' — แตะตัวละครเพื่อดูว่าเขากำลังคิดอะไรอยู่');
   };
   G.load = str => { const W = SIM.deserialize(str); bindWorld(W); };
-  G.autosave = () => { try { if (!G.W) return; syncRuntimeTiming(); localStorage.setItem('jhs_auto', SIM.serialize(G.W)); localStorage.setItem('jhs_auto_meta', SIM.dateText(G.W.t)); } catch (e) { } };
+  G.autosave = () => {
+    try {
+      if (!G.W) return false;
+      syncRuntimeTiming();
+      localStorage.setItem('jhs_auto', SIM.serialize(G.W));
+      localStorage.setItem('jhs_auto_meta', SIM.dateText(G.W.t));
+      G.lastAutosaveError = null;
+      return true;
+    } catch (e) {
+      G.lastAutosaveError = e && e.message ? e.message : String(e);
+      if (UI && UI.toast && !G._autosaveWarned) {
+        G._autosaveWarned = true;
+        UI.toast('⚠️ บันทึกอัตโนมัติไม่สำเร็จ (พื้นที่จัดเก็บอาจเต็ม): ' + G.lastAutosaveError);
+      }
+      return false;
+    }
+  };
 
   /* ---------- ลูปหลัก ---------- */
   function frame(ts) {

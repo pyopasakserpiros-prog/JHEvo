@@ -606,9 +606,9 @@
     if(!opts.force && !opts.ignoreCooldown && s.treatyCooldownUntil!=null && (W.day||0)<s.treatyCooldownUntil && s.treaty===treatyType) {
       return {ok:false,reason:'cooldown',cooldownUntilDay:s.treatyCooldownUntil};
     }
-    const minAtt={TRADE_PACT:15,TRADE_CARAVAN_ACCORD:15,NON_AGGRESSION:5,MARTIAL_EXCHANGE:25,ALLIANCE:45,ALLIANCE_PACT:40,RIVAL_FEUD:-100,NONE:-100,EMBARGO:-100,VASSAL_TREATY:-100}[treatyType];
-    if(!opts.force && s.attitude<minAtt) return {ok:false,reason:'insufficient-attitude',attitude:s.attitude,required:minAtt};
-    const cost=opts.free?0:({TRADE_PACT:40,TRADE_CARAVAN_ACCORD:35,NON_AGGRESSION:30,MARTIAL_EXCHANGE:50,ALLIANCE:80,ALLIANCE_PACT:75,RIVAL_FEUD:0,NONE:0,EMBARGO:0,VASSAL_TREATY:0}[treatyType]||0);
+    const minAtt={TRADE_PACT:15,TRADE_CARAVAN_ACCORD:15,FREE_TRADE_TREATY:35,NON_AGGRESSION:5,MARTIAL_EXCHANGE:25,ALLIANCE:45,ALLIANCE_PACT:40,RIVAL_FEUD:-100,NONE:-100,EMBARGO:-100,VASSAL_TREATY:-100}[treatyType];
+    if(minAtt===undefined || (!opts.force && s.attitude<minAtt)) return {ok:false,reason:'insufficient-attitude',attitude:s.attitude,required:minAtt};
+    const cost=opts.free?0:({TRADE_PACT:40,TRADE_CARAVAN_ACCORD:35,FREE_TRADE_TREATY:65,NON_AGGRESSION:30,MARTIAL_EXCHANGE:50,ALLIANCE:80,ALLIANCE_PACT:75,RIVAL_FEUD:0,NONE:0,EMBARGO:0,VASSAL_TREATY:0}[treatyType]||0);
     if(cost>0 && !ECO.pay(W,cost,'ทำ'+TREATY_TH[treatyType]+'กับ'+s.nameTh)) return {ok:false,reason:'insufficient-stones',cost};
 
     s.treaty=treatyType;
@@ -620,12 +620,12 @@
     } else {
       pol.treaties[s.id]=treatyType==='VASSAL_TREATY'?{type:treatyType,signedDay:W.day}:{type:treatyType,signedDay:W.day,expiresDay:W.day+(opts.durationDays||90)};
     }
-    const attDelta={ALLIANCE:10,ALLIANCE_PACT:12,MARTIAL_EXCHANGE:8,TRADE_PACT:6,TRADE_CARAVAN_ACCORD:7,NON_AGGRESSION:4,NONE:0,RIVAL_FEUD:-12,EMBARGO:-15,VASSAL_TREATY:0}[treatyType]||0;
+    const attDelta={ALLIANCE:10,ALLIANCE_PACT:12,MARTIAL_EXCHANGE:8,FREE_TRADE_TREATY:8,TRADE_PACT:6,TRADE_CARAVAN_ACCORD:7,NON_AGGRESSION:4,NONE:0,RIVAL_FEUD:-12,EMBARGO:-15,VASSAL_TREATY:0}[treatyType]||0;
     s.attitude=clamp(s.attitude+attDelta,-100,100);
     if(W.market && W.market.mult && Array.isArray(s.specialtyMatIds)) {
       s.specialtyMatIds.forEach(mId=>{
         const cur=W.market.mult[mId]||1;
-        if(['TRADE_PACT','TRADE_CARAVAN_ACCORD','ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(treatyType)) W.market.mult[mId]=Math.round(clamp(cur*0.9,0.65,1.7)*100)/100;
+        if(['TRADE_PACT','TRADE_CARAVAN_ACCORD','FREE_TRADE_TREATY','ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(treatyType)) W.market.mult[mId]=Math.round(clamp(cur*0.9,0.65,1.7)*100)/100;
         else if(treatyType==='EMBARGO'||treatyType==='RIVAL_FEUD') W.market.mult[mId]=Math.round(clamp(cur*1.18,0.65,1.9)*100)/100;
       });
     }
@@ -842,8 +842,9 @@
     C.ensure(W);
     const pol=W.world.politics;
     const minReserve=(W.sect.reserveDirectives && W.sect.reserveDirectives.minStoneReserve)||120;
+    const allSects = (W.world.allSects && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
     // 1. Update treaty expirations & automatic embargo thresholds
-    (W.world.sects||[]).forEach((s,idx)=>{
+    allSects.forEach((s,idx)=>{
       const tr=pol.treaties[s.id];
       if(tr && tr.expiresDay && W.day>=tr.expiresDay) {
         delete pol.treaties[s.id];
@@ -871,7 +872,7 @@
     });
     // 1b. Every 30 days, if relations are high and treasury has surplus, formalize treaties
     if(W.day>0 && W.day%30===0 && W.sect.stones>=minReserve+100) {
-      for(const s of (W.world.sects||[])) {
+      for(const s of allSects) {
         if(s.attitude>=45 && s.treaty!=='ALLIANCE' && s.treaty!=='VASSAL_TREATY' && W.sect.stones>=minReserve+120) {
           C.signTreaty(W,s,'ALLIANCE'); break;
         } else if(s.attitude>=20 && s.treaty==='NONE' && W.sect.stones>=minReserve+80) {
@@ -881,7 +882,7 @@
     }
     // 2. Every 10 days, active TRADE_PACT / ALLIANCE partners deliver specialty materials
     if(W.day>0 && W.day%10===0) {
-      (W.world.sects||[]).forEach((s,idx)=>{
+      allSects.forEach((s,idx)=>{
         if(!['TRADE_PACT','TRADE_CARAVAN_ACCORD','ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(s.treaty)) return;
         if(!Array.isArray(s.specialtyMatIds)||!s.specialtyMatIds.length) return;
         const matId=s.specialtyMatIds[(W.day+idx)%s.specialtyMatIds.length];
@@ -912,7 +913,7 @@
       C.spawnPoliticalEvent(W);
     }
     if(W.day>0 && W.day%45===0 && SECT && SECT.resolveRivalEnvoyChallenge) {
-      const rival=(W.world.sects||[]).find(x=>(x.treaty==='RIVAL_FEUD'||x.treaty==='EMBARGO'||(x.attitude||0)<=-25) && (W.day-(x.lastEnvoyDay||-99)>=30));
+      const rival=allSects.find(x=>(x.treaty==='RIVAL_FEUD'||x.treaty==='EMBARGO'||(x.attitude||0)<=-25) && (W.day-(x.lastEnvoyDay||-99)>=30));
       if(rival) SECT.resolveRivalEnvoyChallenge(W,null,rival,{respectCooldown:true});
     }
   };

@@ -54,17 +54,17 @@
       return rng.weighted(weights, x => x.w).id;
     }
     if (category === 'OTHER_HERB') {
-      const allHerbs = (JD.ITEMS.materials || []).filter(m => !m.sourcePack && m.category === 'HERB' && !BASIC_HERB_WEIGHTS.some(b => b.id === m.id) && m.tier <= 3);
+      const allHerbs = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && m.category === 'HERB' && !BASIC_HERB_WEIGHTS.some(b => b.id === m.id) && m.tier <= 3);
       if (allHerbs.length) return rng.weighted(allHerbs, m => 1 / (m.tier * m.tier)).id;
       return 'MAT_HERB_DEW_GRASS_1';
     }
     if (category === 'ORE') {
-      const allOres = (JD.ITEMS.materials || []).filter(m => !m.sourcePack && m.category === 'ORE' && m.tier <= 3);
+      const allOres = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && m.category === 'ORE' && m.tier <= 3);
       if (allOres.length) return rng.weighted(allOres, m => 1 / (m.tier * m.tier)).id;
       return 'MAT_ORE_COPPER_1';
     }
     // OTHER natural gatherable materials (excluding manufactured goods such as formation flags)
-    const allOthers = (JD.ITEMS.materials || []).filter(m => !m.sourcePack && (m.category === 'WOOD' || m.category === 'STONE' || m.category === 'FORMATION_PART') && !m.id.includes('FLAG') && m.tier <= 2);
+    const allOthers = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && (m.category === 'WOOD' || m.category === 'STONE' || m.category === 'FORMATION_PART' || m.category === 'SPIRIT_ESSENCE') && !m.id.includes('FLAG') && m.tier <= 2);
     if (allOthers.length) return rng.pick(allOthers).id;
     return 'MAT_HERB_DEW_GRASS_1';
   }
@@ -271,11 +271,13 @@
       }
     }
 
-    // Attempt batch spawn every 120 game minutes using simulation time and W.rng
+    // Attempt batch spawn every 120 game minutes using simulation time and W.rng (with bounded catch-up if W.t jumped)
     if (W.t >= state.nextSpawnAt) {
+      const missedIntervals = Math.min(6, Math.max(1, Math.floor((W.t - state.nextSpawnAt) / 120) + 1));
       state.nextSpawnAt = W.t + 120;
-      const activeCount = state.nodes.filter(n => n.remaining > 0).length;
-      if (activeCount < 48) {
+      for (let cIdx = 0; cIdx < missedIntervals; cIdx++) {
+        const activeCount = state.nodes.filter(n => n.remaining > 0).length;
+        if (activeCount >= 48) break;
         const batch = W.rng.int(1, 3);
         WILD_RES.spawnBatch(W, batch);
       }

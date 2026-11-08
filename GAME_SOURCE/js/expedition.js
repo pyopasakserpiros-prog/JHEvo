@@ -251,11 +251,28 @@
     sites.forEach(s => { s.rank = Number(r); s.icon = s.icon || '✨'; s.desc = s.desc || s.nameTh; });
   });
 
+  X.isAvailableForExpedition = (W, n, opts) => {
+    if (!W || !n || n.dead || n.exiled) return false;
+    if (W.byId && Object.keys(W.byId).length > 0 && W.byId[n.id] !== n) return false;
+    if (Array.isArray(W.npcs) && !W.npcs.includes(n)) return false;
+    if (SECT && SECT.isNpcDetained && SECT.isNpcDetained(W, n)) return false;
+    if ((n.jail && n.jail > (W.t || 0)) || (n.punished && n.punished > (W.t || 0)) || (n.detainedUntilDay && n.detainedUntilDay > (W.day || 0))) return false;
+    if (!(opts && opts.allowDeployed) && (n.away || n.travel || n.expId)) return false;
+    return true;
+  };
+
   X.createParty = (W, party, opts) => {
     opts = opts || {};
-    if (!W || !Array.isArray(party)) return { ok: false, reason: 'invalid-party', members: [] };
-    const members = party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead);
-    if (!members.length || members.length !== party.length || members.some(n => n.away || n.travel || n.expId)) return { ok: false, reason: 'unavailable-member', members: [] };
+    if (!W || !Array.isArray(party) || !party.length) return { ok: false, reason: 'invalid-party', members: [] };
+    const members = [];
+    const seenIds = new Set();
+    for (const x of party) {
+      const n = typeof x === 'string' ? (W.byId && W.byId[x]) : x;
+      if (!X.isAvailableForExpedition(W, n, opts)) return { ok: false, reason: 'unavailable-member', members: [] };
+      if (seenIds.has(n.id)) return { ok: false, reason: 'duplicate-member', members: [] };
+      seenIds.add(n.id);
+      members.push(n);
+    }
     const mounts = [];
     let hasPhoenixMount = false, hasAzureDragonMount = false;
     for (const n of members) {
@@ -309,6 +326,7 @@
 
   X.depart = (W, party, kind, region, opts) => {
     opts = opts || {};
+    if (!kind || !X.MISSIONS[kind]) return null;
     const rng = W.rng; const w = W.world;
     const assembled = X.createParty(W, party, { kind });
     if (!assembled.ok) return null;
@@ -499,8 +517,11 @@
         }
       }
     }
-    if (alive.length) X.handover(W, ex, alive, out);
-    alive.forEach(m => { m.away = false; m.hidden = false; m.x = MAP.EXIT.x + .5 + rng.gauss(0, 0.8); m.y = MAP.EXIT.y + .5; m.travel = { to: 'home' }; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); HC.experience(m, 'adventure', 0.6); m.merit += 8 + reg.danger * 3; AI.mem(W, m, 'กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 ณ ' + reg.nameTh + ' ' + (ex.journal.slice(-2).join(', ') || ''), 0.8); });
+    try {
+      if (alive.length) X.handover(W, ex, alive, out);
+    } finally {
+      alive.forEach(m => { m.away = false; m.hidden = false; m.x = MAP.EXIT.x + .5 + rng.gauss(0, 0.8); m.y = MAP.EXIT.y + .5; m.travel = { to: 'home' }; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); HC.experience(m, 'adventure', 0.6); m.merit += 8 + reg.danger * 3; AI.mem(W, m, 'กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 ณ ' + reg.nameTh + ' ' + (ex.journal.slice(-2).join(', ') || ''), 0.8); });
+    }
     const ppl = members.map(m => m.h.name.given).join('、');
     const brief = ex.kind === 'fortune' && out.notes.length ? out.notes.slice(0, 2).join(' / ') : Object.keys(out.mats).length || out.stones || out.gear.length ? ('ได้ ' + X.summarize(out)) : (ex.journal.slice(-1)[0] || 'ไม่ได้อะไรมากนัก');
     W.log('mission', ppl + ' กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 — ' + brief, members.map(m => m.id));
@@ -573,8 +594,7 @@
           W.sect.knownRecipes = W.sect.knownRecipes || [];
           out.recipes = out.recipes || [];
           const rId = rng.pick(pool.recipeIds);
-          if (!W.sect.knownRecipes.includes(rId)) W.sect.knownRecipes.push(rId);
-          if (!out.recipes.includes(rId)) out.recipes.push(rId);
+          if (!W.sect.knownRecipes.includes(rId) && !out.recipes.includes(rId)) out.recipes.push(rId);
           const rObj = ECO.recipeById && ECO.recipeById[rId];
           ex.journal.push('ค้นพบม้วนตำรับ「' + (rObj ? rObj.nameTh : rId) + '」');
         }
@@ -815,7 +835,9 @@
     } else if (out.stones < 0) ECO.pay(W, Math.min(-out.stones, W.sect.stones), 'สูญเสียระหว่างเดินทาง');
     if (g.SECT && g.SECT.PATH_LIBRARY && g.SECT.PATH_LIBRARY.sellSurplusManuals) {
       const surp = g.SECT.PATH_LIBRARY.sellSurplusManuals(W, { quiet: true });
-      if (surp && surp.revenueStones > 0) sold += surp.revenueStones;
+      if (surp && surp.revenueStones > 0) {
+        donation.surplusManualStones = (donation.surplusManualStones || 0) + surp.revenueStones;
+      }
     }
     if (SECT.notifyStockChanged) SECT.notifyStockChanged(W);
     return donation;
@@ -896,11 +918,13 @@
       if (summary && summary.lockedPaths && summary.lockedPaths.length) {
         const pickPath = W.rng.pick(summary.lockedPaths);
         const manualId = 'MANUAL_PATH_' + pickPath;
-        const mPrice = 680;
-        if ((S.stones - spent) >= mPrice + 400) {
-          ECO.pay(W, mPrice, 'คาราวานซื้อคัมภีร์มหาวิถี ' + manualId);
+        const mPrice = (ECO.itemById && ECO.itemById[manualId] && ECO.itemById[manualId].price) || 1200;
+        if ((S.stones - spent) >= mPrice + 400 && ECO.pay(W, mPrice, 'คาราวานซื้อคัมภีร์มหาวิถี ' + manualId)) {
+          if (W.world && W.world.resourcePool && typeof W.world.resourcePool.stones === 'number') {
+            W.world.resourcePool.stones += mPrice;
+          }
           ECO.add(W, manualId, 1);
-          g.SECT.PATH_LIBRARY.donatePathManual(W, manualId, { donorId: tre ? tre.id : null, quiet: true });
+          g.SECT.PATH_LIBRARY.donatePathManual(W, manualId, tre || null, { quiet: true });
         }
       }
     }
@@ -2450,9 +2474,19 @@
     if (targetSect.isVassal && !opts.force) return { ok: false, reason: 'already-vassal' };
     if (opts.immediate === false && (W.world.expeds || []).some(e => e && !e.done && e.kind === 'sect_siege' && e.sectId === targetSect.id)) return { ok:false, reason:'already-en-route' };
 
-    let members = Array.isArray(party) && party.length
-      ? party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead && !n.away)
-      : (W.npcs || []).filter(n => n && !n.dead && !n.away && !n.expId).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 4);
+    let members = [];
+    if (Array.isArray(party) && party.length) {
+      const seen = new Set();
+      for (const x of party) {
+        const n = typeof x === 'string' ? (W.byId && W.byId[x]) : x;
+        if (!X.isAvailableForExpedition(W, n)) return { ok: false, reason: 'unavailable-member' };
+        if (seen.has(n.id)) return { ok: false, reason: 'duplicate-member' };
+        seen.add(n.id);
+        members.push(n);
+      }
+    } else {
+      members = (W.npcs || []).filter(n => X.isAvailableForExpedition(W, n)).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 4);
+    }
     if (!members.length) return { ok: false, reason: 'no-available-disciples' };
     members = members.slice(0, 5);
 
@@ -2526,6 +2560,9 @@
     X.ensureWorldTopology(W);
     const isEx = siegeOrEx && siegeOrEx.kind === 'sect_siege';
     const siege = isEx ? (siegeOrEx.siege || W.world.sieges.find(s => s.id === siegeOrEx.siegeId)) : (typeof siegeOrEx === 'object' && siegeOrEx.sectId ? siegeOrEx : null);
+    if ((isEx && siegeOrEx.done) || (siege && (siege.status === 'VICTORY' || siege.status === 'REPELLED' || siege.resolvedDay != null))) {
+      return { ok: false, reason: 'already-resolved', siege };
+    }
     const targetSect = X.findSect(W, (siege && siege.sectId) || (isEx && siegeOrEx.sectId) || siegeOrEx);
     if (!targetSect) return { ok: false, reason: 'invalid-target-sect' };
 
@@ -2649,7 +2686,9 @@
     if (allPhasesWon) {
       resolutionResult = X.applySiegeResolution(W, targetSect, resolutionChoice, {
         party: members,
-        tributePolicy: opts.tributePolicy || (siege && siege.tributePolicy) || 'STANDARD'
+        tributePolicy: opts.tributePolicy || (siege && siege.tributePolicy) || 'STANDARD',
+        siegeReceipt: true,
+        siegeId: siege ? siege.id : ('EX_' + (isEx ? siegeOrEx.id : (W.day || 0)))
       });
       W.fame(6);
     } else {
@@ -2723,18 +2762,30 @@
     }
 
     if (choice === 'FREE_TRADE' || choice === 'FREE_TRADE_TREATY') {
+      const hasActiveVictory = Boolean(opts.siegeReceipt || opts.adminOverride || (W.world && Array.isArray(W.world.sieges) && W.world.sieges.some(sg => sg && sg.sectId === s.id && sg.status !== 'REPELLED' && !sg._freeTradeApplied)));
+      if (!hasActiveVictory || (s.treaty === 'FREE_TRADE_TREATY' && s.freeTradeImposedDay != null && !opts.siegeReceipt)) {
+        return { ok: false, reason: 'requires-siege-victory-or-already-imposed', sectId: s.id };
+      }
+      if (W.world && Array.isArray(W.world.sieges)) {
+        const matchSg = W.world.sieges.find(sg => sg && sg.sectId === s.id && !sg._freeTradeApplied);
+        if (matchSg) matchSg._freeTradeApplied = true;
+      }
+      const alreadyFreeTrade = s.treaty === 'FREE_TRADE_TREATY' && s.freeTradeImposedDay != null;
       s.treaty = 'FREE_TRADE_TREATY';
       s.isVassal = false;
       s.tariffFree = true;
       s.bannerTh = '[ ด่านการค้าเสรี ]';
       s.attitude = clamp((s.attitude || 0) + 15, -20, 100);
-      const immediateDividend = 180;
-      ECO.earn(W, immediateDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh);
-      if (W.market && W.market.mult && Array.isArray(s.specialtyMatIds)) {
+      const immediateDividend = alreadyFreeTrade ? 0 : 180;
+      if (immediateDividend > 0) {
+        ECO.earn(W, immediateDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh);
+      }
+      if (!alreadyFreeTrade && W.market && W.market.mult && Array.isArray(s.specialtyMatIds)) {
         s.specialtyMatIds.forEach(mId => {
           W.market.mult[mId] = Math.round(clamp((W.market.mult[mId] || 1) * 0.80, 0.55, 1.5) * 100) / 100;
         });
       }
+      s.freeTradeImposedDay = W.day || 0;
       pol.treaties[s.id] = { type: 'FREE_TRADE_TREATY', signedDay: W.day || 0, tariffFree: true };
       pol.stats.treatiesSigned = (pol.stats.treatiesSigned || 0) + 1;
       const summaryTh = 'บังคับเปิดด่านการค้าเสรีไร้ภาษีกับ' + s.nameTh + ' (ลดราคาสินค้าเฉพาะทาง 20% และรับศิลาเปิดด่าน ' + immediateDividend + ' ก้อน)';
@@ -2765,8 +2816,17 @@
   X.setVassalTributePolicy = (W, sectOrId, policy) => {
     const s = X.findSect(W, sectOrId);
     if (!s || (!s.isVassal && s.treaty !== 'VASSAL_TREATY')) return { ok: false, reason: 'not-a-vassal' };
-    const p = ['LENIENT', 'STANDARD', 'HARSH'].includes(policy) ? policy : 'STANDARD';
+    if (!['LENIENT', 'STANDARD', 'HARSH'].includes(policy)) return { ok: false, reason: 'invalid-policy', policy };
+    const p = policy;
+    if (s.tributePolicy === p) {
+      return { ok: true, unchanged: true, sectId: s.id, tributePolicy: p, loyalty: s.loyalty };
+    }
+    const curDay = (W && W.day) || 0;
+    if (s.lastPolicyChangeDay != null && curDay - s.lastPolicyChangeDay < 15) {
+      return { ok: false, reason: 'policy-cooldown', sectId: s.id, tributePolicy: s.tributePolicy, loyalty: s.loyalty };
+    }
     s.tributePolicy = p;
+    s.lastPolicyChangeDay = curDay;
     if (p === 'LENIENT') s.loyalty = clamp((s.loyalty || 60) + 6, 0, 100);
     if (p === 'HARSH') s.loyalty = clamp((s.loyalty || 60) - 8, 0, 100);
     return { ok: true, sectId: s.id, tributePolicy: p, loyalty: s.loyalty };
@@ -2778,8 +2838,9 @@
     X.ensureWorldTopology(W);
     const vassals = (W.world.allSects || []).filter(s => s && (s.isVassal || s.treaty === 'VASSAL_TREATY'));
     const collected = [];
+    const curDay = W.day || 0;
     vassals.forEach(s => {
-      if (!opts.force && s.lastVassalTributeDay === W.day && W.day > 0) return;
+      if (!opts.force && s.lastVassalTributeDay != null && (curDay === s.lastVassalTributeDay || (curDay - s.lastVassalTributeDay < 90)) && curDay > 0) return;
       const polMult = s.tributePolicy === 'HARSH' ? 1.45 : s.tributePolicy === 'LENIENT' ? 0.75 : 1.0;
       const baseStones = Math.max(80, Math.round((120 + (s.power || 1) * 45) * polMult));
       ECO.earn(W, baseStones, 'บรรณาการตามฤดูกาลจากสำนักบริวาร ' + s.nameTh);
@@ -2843,11 +2904,10 @@
     if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
     X.ensureWorldTopology(W);
     const calls = W.world.vassalDistressCalls || [];
-    let call = calls.find(c => c && !c.resolved && (c.id === distressOrSectId || c.sectId === distressOrSectId)) || (W.world.politics && W.world.politics.activeDistressCall);
-    if (!call) {
-      const sFallback = X.findSect(W, distressOrSectId);
-      if (sFallback) call = X.spawnVassalDistressCall(W, sFallback);
-    }
+    const hasExplicitTarget = distressOrSectId !== undefined && distressOrSectId !== null && distressOrSectId !== '';
+    let call = hasExplicitTarget
+      ? calls.find(c => c && !c.resolved && (c.id === distressOrSectId || c.sectId === distressOrSectId))
+      : ((W.world.politics && W.world.politics.activeDistressCall && !W.world.politics.activeDistressCall.resolved) ? W.world.politics.activeDistressCall : calls.find(c => c && !c.resolved));
     if (!call || call.resolved) return { ok: false, reason: 'no-active-distress-call' };
     const s = X.findSect(W, call.sectId);
     if (!s) return { ok: false, reason: 'invalid-sect' };
@@ -2895,8 +2955,11 @@
     const coalition = (W.world.allSects || []).filter(other => other && other.id !== s.id && ((other.isVassal && (other.loyalty || 50) < 35) || other.treaty === 'RIVAL_FEUD' || (other.attitude || 0) <= -50));
     const coalitionIds = [s.id];
     coalition.forEach(c => {
-      if (c.isVassal && (c.loyalty || 50) < 30) {
+      if ((c.isVassal || c.treaty === 'VASSAL_TREATY') && (c.loyalty || 50) < 35) {
         c.isVassal = false; c.suzerainId = null; c.bannerTh = null; c.treaty = 'RIVAL_FEUD'; c.attitude = -85;
+        if (W.world.politics && W.world.politics.treaties) {
+          W.world.politics.treaties[c.id] = { type: 'RIVAL_FEUD', signedDay: W.day || 0, cause: 'VASSAL_REBELLION_CASCADE' };
+        }
       }
       coalitionIds.push(c.id);
     });
@@ -3050,10 +3113,41 @@
       beastNameTh: beast ? beast.nameTh : null,
       defensePower,
       yieldMultiplier,
-      bastionActive: isBlackTortoise
+      bastionActive: isBlackTortoise,
+      playerManaged: true
     };
     X.ensureWorldTopology(W);
     return { ok: true, nodeId: rn.id, garrison: rn.garrison };
+  };
+
+  X.recomputeNodeGarrison = (W, rn) => {
+    if (!W || !rn || !rn.garrison) return null;
+    const gObj = rn.garrison;
+    if (rn.ownerSectId !== 'PLAYER' && !gObj.playerManaged && (!Array.isArray(gObj.discipleIds) || !gObj.discipleIds.length)) {
+      return gObj;
+    }
+    const aliveDisciples = (gObj.discipleIds || []).map(id => W.byId && W.byId[id]).filter(n => n && !n.dead && !n.exiled && (!Array.isArray(W.npcs) || W.npcs.includes(n)));
+    gObj.discipleIds = aliveDisciples.map(d => d.id);
+    const menagerie = (CULT && CULT.ensureMenagerie) ? CULT.ensureMenagerie(W) : ((W.sect && W.sect.beasts) || []);
+    const beast = gObj.beastUid ? menagerie.find(b => b && !b.dead && (b.uid === gObj.beastUid || b.id === gObj.beastUid)) : null;
+    if (!beast && gObj.beastUid) {
+      gObj.beastUid = null;
+      gObj.beastNameTh = null;
+    }
+    const fsSummary = (CULT && CULT.sectFourSymbolSummary) ? CULT.sectFourSymbolSummary(W) : null;
+    const isBlackTortoise = !!(
+      (beast && (beast.fourSymbol === 'BLACK_TORTOISE' || beast.bloodlineTrait === 'BLACK_TORTOISE')) ||
+      aliveDisciples.some(d => (CULT.activePets ? CULT.activePets(d) : []).some(p => p.fourSymbol === 'BLACK_TORTOISE')) ||
+      (fsSummary && fsSummary.hasBlackTortoise && gObj.bastionActive && (aliveDisciples.length > 0 || beast))
+    );
+    const discPower = aliveDisciples.reduce((s, d) => s + CULT.power(d), 0);
+    const beastPower = beast ? (CULT.petPowerSingle ? CULT.petPowerSingle(beast) : 120) : 0;
+    const baseDef = (X.RESOURCE_NODE_DEFS[rn.id] && X.RESOURCE_NODE_DEFS[rn.id].garrisonPowerBase) || 320;
+    const bastionMult = isBlackTortoise ? 1.45 : 1.0;
+    gObj.defensePower = Math.round((baseDef * 0.65 + discPower + beastPower * 1.5) * bastionMult);
+    gObj.yieldMultiplier = isBlackTortoise ? 1.25 : (aliveDisciples.length || beast ? 1.10 : 1.0);
+    gObj.bastionActive = isBlackTortoise;
+    return gObj;
   };
 
   X.harvestResourceNodes = (W, opts) => {
@@ -3066,6 +3160,7 @@
     Object.values(W.world.resourceNodes || {}).forEach(rn => {
       if (!rn || rn.ownerSectId !== 'PLAYER') return;
       if (!opts.force && rn._lastHarvestedDay === (W.day || 0) && (W.day || 0) > 0) return;
+      X.recomputeNodeGarrison(W, rn);
       const mult = (rn.garrison && rn.garrison.yieldMultiplier) || 1.0;
       const isSeasonal = !!opts.seasonal;
       const stones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
@@ -3095,6 +3190,7 @@
     X.ensureWorldTopology(W);
     const rn = W.world.resourceNodes && W.world.resourceNodes[nodeId];
     if (!rn) return { ok: false, reason: 'invalid-resource-node' };
+    X.recomputeNodeGarrison(W, rn);
     const attacker = X.findSect(W, attackerSectOrId) || (W.world.sects && W.world.sects[0]);
     const atkPower = opts.attackerPower || Math.round(((attacker && attacker.power) || 1.1) * 310);
     const defPower = (rn.garrison && rn.garrison.defensePower) || 260;
@@ -3170,9 +3266,19 @@
     const anomaly = typeof anomalyOrId === 'object' ? anomalyOrId : (W.world.anomalies || []).find(a => a && a.id === anomalyOrId);
     if (!anomaly || anomaly.resolved || anomaly.expired) return { ok: false, reason: 'anomaly-unavailable' };
     if (!opts.immediate && (W.world.expeds || []).some(e => e && !e.done && e.kind === 'world_anomaly' && e.anomalyId === anomaly.id)) return { ok:false, reason:'already-en-route' };
-    const members = Array.isArray(party) && party.length
-      ? party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead && !n.away)
-      : (W.npcs || []).filter(n => n && !n.dead && !n.away && !n.expId).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
+    let members = [];
+    if (Array.isArray(party) && party.length) {
+      const seen = new Set();
+      for (const x of party) {
+        const n = typeof x === 'string' ? (W.byId && W.byId[x]) : x;
+        if (!X.isAvailableForExpedition(W, n)) return { ok: false, reason: 'unavailable-member' };
+        if (seen.has(n.id)) return { ok: false, reason: 'duplicate-member' };
+        seen.add(n.id);
+        members.push(n);
+      }
+    } else {
+      members = (W.npcs || []).filter(n => X.isAvailableForExpedition(W, n)).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
+    }
     if (!members.length) return { ok: false, reason: 'no-party' };
 
     const travel = X.estimateTravelTime(W, members, anomaly.id, { baseDays: anomaly.baseDays, useSectPhoenixAura: true });
@@ -3608,7 +3714,7 @@
     if (W.day > 0) {
       X.harvestResourceNodes(W, { seasonal: W.day % 90 === 0, includeMats: W.day % 5 === 0 });
       if (W.day % 10 === 0) X.tickHegemony(W);
-      if (W.day % 12 === 0) X.tickGrandAlliancePolitics(W);
+      if (W.day % 12 === 0 || W.day % 15 === 0) X.tickGrandAlliancePolitics(W);
       if (W.day % 14 === 0 && X.tickAllianceCouncil) X.tickAllianceCouncil(W);
       if (W.day % 16 === 0 && X.tickAutonomousVisitorsV2) X.tickAutonomousVisitorsV2(W);
       if (W.day % 30 === 0 && X.holdGrandMartialAssembly) X.holdGrandMartialAssembly(W);
@@ -4734,6 +4840,7 @@
       if (s && s.figures && s.figures.master) fig = s.figures.master;
     }
     if (!fig) return { ok: false, reason: 'figure-not-found' };
+    if (fig.dead) return { ok: false, reason: 'already-dead', slainFigure: fig };
 
     fig.dead = true;
     fig.hp = 0;
@@ -4877,8 +4984,15 @@
     const alliances = X.evaluateAllianceLeadership(W);
     const all = W.world.allSects || [];
     const alignId = opts.alignment || (((W.day || 360) % 2 === 0) ? 'RIGHTEOUS' : 'DEMONIC');
+    const gp = W.world.grandPolitics || (W.world.grandPolitics = {});
+    gp.lastCouncilDayByAlignment = gp.lastCouncilDayByAlignment || {};
+    const curDay = W.day || 360;
+    if (!opts.force && gp.lastCouncilDayByAlignment[alignId] === curDay) {
+      return { ok: false, reason: 'already-convened-today', alignment: alignId };
+    }
     const members = all.filter(s => s && s.alignment === alignId && !s.isVassal);
     if (members.length < 2) return null;
+    gp.lastCouncilDayByAlignment[alignId] = curDay;
 
     const leader = members.find(s => s.isAllianceLeader) || members[0];
     const leaderMaster = leader.figures && leader.figures.master;
@@ -5204,20 +5318,57 @@
     X.ensureWanderingLegends(W);
     if (!Array.isArray(W.world.secretRealms)) W.world.secretRealms = [];
 
-    let realm = typeof realmOrId === 'object' && realmOrId
-      ? realmOrId
-      : W.world.secretRealms.find(r => r && (r.id === realmOrId || r.templateId === realmOrId) && r.status === 'OPEN');
-    if (!realm) {
-      realm = X.spawnSecretRealm(W, typeof realmOrId === 'string' ? realmOrId : null, { quiet: true });
+    let realm = null;
+    if (typeof realmOrId === 'object' && realmOrId) {
+      if (realmOrId.status && realmOrId.status !== 'OPEN') {
+        return { ok: false, reason: 'already-resolved', realm: realmOrId };
+      }
+      if (!W.world.secretRealms.includes(realmOrId)) {
+        return { ok: false, reason: 'realm-not-found' };
+      }
+      realm = realmOrId;
+    } else if (realmOrId) {
+      const existingAny = W.world.secretRealms.find(r => r && (r.id === realmOrId || r.templateId === realmOrId));
+      if (existingAny && existingAny.status !== 'OPEN') {
+        return { ok: false, reason: 'already-resolved', realm: existingAny };
+      }
+      realm = existingAny || (X.SECRET_REALM_TEMPLATES[realmOrId] ? X.spawnSecretRealm(W, realmOrId, { quiet: true }) : null);
+    } else {
+      realm = W.world.secretRealms.find(r => r && r.status === 'OPEN') || X.spawnSecretRealm(W, null, { quiet: true });
     }
-    if (!realm || !Array.isArray(realm.entrants) || !realm.entrants.length) return { ok: false, reason: 'no-realm' };
+    if (!realm || realm.status !== 'OPEN' || !Array.isArray(realm.entrants) || !realm.entrants.length) {
+      return { ok: false, reason: 'no-realm' };
+    }
+
+    // Re-evaluate live entrant survival & power (EX-06)
+    const liveEntrants = [];
+    for (const e of realm.entrants) {
+      if (!e) continue;
+      if (e.entrantType === 'PLAYER_SECT') {
+        const aliveMembers = (e.npcIds || []).map(id => W.byId && W.byId[id]).filter(m => m && !m.dead && !m.exiled);
+        if (!aliveMembers.length) continue;
+        e.npcIds = aliveMembers.map(m => m.id);
+        e.power = Math.round(aliveMembers.reduce((sum, m) => sum + CULT.power(m), 0) * 0.85);
+        liveEntrants.push(e);
+      } else if (e.figureId) {
+        const fig = W.world.figuresById && W.world.figuresById[e.figureId];
+        if (fig && fig.dead) continue;
+        liveEntrants.push(e);
+      } else {
+        liveEntrants.push(e);
+      }
+    }
+    if (!liveEntrants.length) {
+      realm.status = 'EXPIRED';
+      return { ok: false, reason: 'no-living-entrants', realm };
+    }
 
     const rng = makeChildRng(W, 'resolve_realm_' + realm.id + '_' + (W.day || 360));
-    const stage1Log = '【ด่านที่ 1 · ฝ่าค่ายกลโบราณชั้นนอก】 คณะผู้ท้าชิงทั้ง ' + realm.entrants.length + ' ฝ่ายทะลวงม่านค่ายกลพันปีของ「' + realm.nameTh + '」เข้าสู่โถงกลางสำเร็จ';
+    const stage1Log = '【ด่านที่ 1 · ฝ่าค่ายกลโบราณชั้นนอก】 คณะผู้ท้าชิงทั้ง ' + liveEntrants.length + ' ฝ่ายทะลวงม่านค่ายกลพันปีของ「' + realm.nameTh + '」เข้าสู่โถงกลางสำเร็จ';
     const stage2Log = '【ด่านที่ 2 · ปะทะ' + realm.guardianNameTh + '】 ยอดฝีมือแต่ละสำนักสำแดงเคล็ดวิชาฟาดฟันกับ「' + realm.guardianNameTh + '」จนปราการโบราณพังทลาย เผยให้เห็นแท่นมรดก「' + realm.prizeNameTh + '」!';
 
     // Score each entrant in Stage 3 (Inner Sanctum Inheritance Duel)
-    const scored = realm.entrants.map(e => {
+    const scored = liveEntrants.map(e => {
       const roll = 0.85 + rng.next() * 0.35;
       const bonus = (opts.forcePlayerWin && e.entrantType === 'PLAYER_SECT') ? 999999 : 0;
       return { entrant: e, finalScore: Math.round(e.power * roll + bonus) };
@@ -6954,6 +7105,9 @@
     X.ensureWorldTopology(W);
     X.ensureJianghuFigures(W);
 
+    if (!targetSectOrId && !opts.autoPickTarget) {
+      return { ok: false, reason: 'missing-target-sect' };
+    }
     const targetSect = X.findSect(W, targetSectOrId);
     if (!targetSect) return { ok: false, reason: 'invalid-target-sect' };
 
@@ -6965,7 +7119,7 @@
       allies = allSects.filter(s => s && s.id !== targetSect.id && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty))).slice(0, 2);
     }
     allies = allies.slice(0, 2);
-    if (!allies.length && !opts.allowSoloFallback) {
+    if (!allies.length && !opts.forceAllies) {
       return { ok: false, reason: 'no-eligible-allies' };
     }
 
@@ -7060,14 +7214,17 @@
     X.ensureJianghuFigures(W);
 
     if (!W.world.activeEnemySiege || W.world.activeEnemySiege.status !== 'BESIEGING') {
+      if (!opts.autoSpawnSiege) {
+        return { ok: false, reason: 'no-active-siege' };
+      }
       X.startEnemyGrandSiege(W, opts.attackerSectId, opts);
     }
     const siege = W.world.activeEnemySiege;
-    if (!siege) return { ok: false, reason: 'no-active-siege' };
+    if (!siege || siege.status !== 'BESIEGING' || siege.beaconLit) return { ok: false, reason: 'no-active-siege' };
 
     const allSects = W.world.allSects || [];
     let helpers = allSects.filter(s => s && s.id !== siege.attackerSectId && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty)));
-    if (!helpers.length && opts.forceReinforcement !== false) {
+    if (!helpers.length && opts.forceReinforcement === true) {
       helpers = allSects.filter(s => s && s.id !== siege.attackerSectId).slice(0, 1);
     }
     helpers = helpers.slice(0, 2);
@@ -7088,7 +7245,7 @@
     });
 
     const totalDefense = Math.round(playerPower + reinforcementPower);
-    const won = opts.forceLose ? false : (totalDefense >= siege.enemyPower * 0.65 || reinforcementLeaders.length > 0 || opts.forceWin !== false);
+    const won = opts.forceLose ? false : (opts.forceWin === true ? true : (totalDefense >= siege.enemyPower * 0.65));
 
     siege.beaconLit = true;
     siege.status = won ? 'REPELLED_BY_COALITION' : 'BREACHED';
