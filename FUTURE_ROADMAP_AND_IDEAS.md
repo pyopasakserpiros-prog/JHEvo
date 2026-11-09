@@ -1,4 +1,6 @@
 # บันทึกโร้ดแมปและคลังรวบรวมแนวคิดระบบเกมในอนาคต (Future Systems Roadmap & Ideas Compendium)
+
+> งานปัจจุบันให้ยึด START_HERE_FOR_AI.md (พงศาวดาร/รายงาน JS2-v2.6.0) แนวคิด authorship/barter/relic biography เดิมพักไว้ใน `docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md`; แผนระยะยาวด้านล่างไม่ใช่ข้อบังคับของแพตช์นี้
 ## JianghuSect 2 — Living World, Tactical Combat & Generational Dynasty
 
 > **วัตถุประสงค์ของเอกสารนี้:**  

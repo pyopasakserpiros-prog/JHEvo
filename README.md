@@ -1,5 +1,7 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.5.0 (Pathbound Ascendant Visuals & Signature Arts Release)
 
+**ส่งต่อ Gemini:** โหลด ZIP สาขา main ทั้งโปรเจกต์ แล้วสั่ง **“เริ่มงานตาม START_HERE_FOR_AI.md”** งานถัดไปคือพงศาวดาร/รายงาน/ตัวกรองรับข่าว ผู้พัฒนาต้องตรวจและคิดเองอย่างละเอียด ใช้พรอมต์เป็นแนวอ้างอิงและตัดสินใจได้ตามเป้าหมายผู้ใช้
+
 > **All Equipment Tier Art (2026-11-09):** atlas ภาพไอเท็ม 9 แผ่น / 576 ช่อง; ภาพ T1–T7 ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา คงภาพเฉพาะตำนาน 50+27 รายการ ดู [รายงานและภาพตัวอย่าง](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md). ฐานยังเป็น JS2-v2.5.0; JS2-v2.6.0 เป็นงานถัดไป
 
 > **ฐานเพิ่มเติม 2026-11-09:** JS2-v2.5.0 มี Legendary Visual Identity refinement ครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนานแล้ว ดู [รายงานและผลทดสอบ](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). งาน JS2-v2.6.0 ยังคงเป็นแพตช์ถัดไป
@@ -12,7 +14,7 @@
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
-**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
+**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: พงศาวดารมีชีวิตและการรายงานยุทธภพ)
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:** 
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts — 43/43 วิถี & 30 Signature VFX)

@@ -19,6 +19,8 @@ JianghuSect Evolution is a Thai browser game. Current package: **JianghuSect 2 (
 
 ฐานเพิ่มเติม All Equipment Tier Art (9 sheets / 576 cells, 28 equipment + 13 other Tier families) ใช้ generated atlases และ `GAME_SOURCE/docs/ITEM_ART_CATALOG.json`; เมื่อแก้ mapping ให้รัน `node GAME_SOURCE/tools/build_item_art.js` แล้ว build single ใหม่ อย่าเขียนภาพทับแผ่นใหม่ด้วย legacy atlas generator แผ่น Tier ใหม่ต้องจัดช่องด้วย `tools/normalize_item_sheet.js` และ layout ที่ตรงกับภาพต้นฉบับ ดูผลตรวจล่าสุดใน `PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md`
 
+> **Active handoff:** เป้าหมาย JS2-v2.6.0 ปัจจุบันคือพงศาวดาร/รายงาน/ตัวกรองตาม `START_HERE_FOR_AI.md` ไม่ใช่ข้อเสนอ authorship/barter เดิม ผู้ใช้ให้ผู้พัฒนาตรวจ คิดและตัดสินใจเองโดยใช้พรอมต์เป็นแนวอ้างอิง
+
 ## ก่อนเริ่มงาน
 
 1. **อ่าน `AGENTS.md` นี้ให้จบอย่างละเอียด:** เอกสารนี้คือกฎเหล็กของประธานบริษัท และตรวจว่ามี `AGENTS.md` เพิ่มเติมในโฟลเดอร์ที่จะแก้หรือไม่ หากมีให้ปฏิบัติตามส่วนที่เกี่ยวข้องด้วย คำสั่งปัจจุบันของผู้ใช้มีลำดับเหนือเอกสารโครงการ
