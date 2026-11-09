@@ -95,3 +95,11 @@ node test/inventory_grid_ui_suite.js
 - Icon resolution reads simulation/catalog metadata, never generates items or consumes world RNG. Inventory remains paginated. Validate actual atlas decoding at 360/412/1280 widths and standalone with item_art_browser.
 
 - The five new sheets add ~11.25 MiB decoded RGBA pixels; all nine total ~35.25 MiB before browser overhead. Lower-resolution normalized sheets prevent a need to decode five additional 1254² textures. No additional animation shaders; the UI stays paginated.
+
+## JS2-v2.5.0 ordinary weapon VFX (2026-11-09)
+- Each real cast adds a small metadata snapshot to the existing `castFx`; no new per-frame inventory lookup or simulation timer. `Render.updateCastEffects` still consumes only changed cast stamps and the presentation queue remains bounded at 24.
+- Multi-target snapshots are bounded to eight actual recipients and are consumed only when a new cast stamp is ingested; the renderer adds no per-frame combat lookup.
+- Persistent buff aura is a constant-size draw over active world characters with statuses; it reads the already-available short `sx` list and is gated by the normal visible-character render pass.
+- `drawWeaponMotionVfx` uses no gradients, images, random values or persistent particle allocation. Its maximum families draw at most 8 rays/beads per active effect; Low and Reduced Motion use 4 ticks or fewer/static orientation.
+- Named Legendary Art does not draw a second weapon flourish. Non-legendary Signature gets one restrained family layer; ordinary casts replace the common crescent with one weapon-family motif. Visual work is limited to existing visible/current cast effects.
+- `test/weapon_motion_vfx_suite.js` validates low/reduced geometry path and pure read-only rendering; `test/weapon_motion_vfx_browser.js` verifies actual Canvas pixels. These checks do not certify FPS on physical low-end phones; use `browser_mobile_perf.js` for current browser timing.

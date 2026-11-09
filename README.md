@@ -22,6 +22,7 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:** 
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) (`JS2-v2.6.0`: พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว — 148/148 กลุ่มทดสอบผ่าน 100%)
+- [WEAPON_MOTION_VFX_JS2_V2_5_0.md](PATCH_REPORTS/WEAPON_MOTION_VFX_JS2_V2_5_0.md) (`JS2-v2.5.0` VFX refinement on v2.6.0 main: 17 ตระกูลอาวุธ, หลายเป้าหมาย, ออร่าบัฟผู้รับ)
 - [ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md) (`JS2-v2.5.0`: All Equipment Tier Art 9 แผ่น / 576 ช่อง)
 - [LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md) (`JS2-v2.5.0`: Legendary Visual Identity 50 วิชา / 27 อุปกรณ์)
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md) (`JS2-v2.5.0`: Pathbound Ascendant Visuals & Signature Arts — 43/43 วิถี & 30 Signature VFX)

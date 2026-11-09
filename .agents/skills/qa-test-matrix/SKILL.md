@@ -23,6 +23,12 @@ node -e "const g = require('./GAME_SOURCE/test/load.js'); if (g.HC.FINGERPRINT !
 ```
 - Must equal `'155:2f9c9dd7'`. This fingerprint summarizes stat paths; it is not a SHA-256 hash of the file. Check `human_core.js` against the intended baseline separately to establish byte identity.
 
+## JS2-v2.5.0 weapon-motion visual coverage
+- `test/weapon_motion_vfx_suite.js` and `test/weapon_motion_vfx_browser.js` are registered in `test/run_all.js`. They cover 17 actual equipment families, low/reduced paths, combat event snapshots, renderer direction, pixel-distinct geometry, legendary precedence, and save/RNG purity. `test/skill_visual_events.js` also checks heal/support/harmonize recipients, mixed command attacks and ally buffs, and multi-enemy target snapshots.
+- Browser coverage verifies Canvas pixels for recipient markers and persistent active-buff aura families; the Node suite checks expiry and confirms the aura renderer never mutates serialized world/status data.
+- The browser case verifies recipient markers and a continuing active-buff aura paint pixels. The Node case checks guard/healing family routing, expiration, and that rendering leaves serialized world/status data untouched.
+- Browser test may require `BROWSER_TEST_BASE_URL` when `file://` is blocked. Record browser launch/environment failures separately from code assertion failures; pixel uniqueness does not prove physical-device frame rate.
+
 ### Step 2: Data Schema & Cross-Reference Auditor (`tools/validate_data_schema.js`)
 ```bash
 node GAME_SOURCE/tools/validate_data_schema.js

@@ -22,10 +22,31 @@ console.log('PASS shared skill visuals: ordinary/forbidden active casts, target 
 
 {const {W,a,d,f}=encounter('strike'); a.skl[0].tech=JD.TECH.techniques.find(t=>t.cat==='FORBIDDEN_ART').id; C.attack(W,f,a,d); assert.equal(a.castFx.kind,'forbidden','forbidden category stays distinct even with a different active archetype');}
 for(const arch of ['heal','support','summon']){
- const {W,a,d,f}=encounter(arch);Object.assign(a.skl[0],{M:0,team:true,heal:0.3});
+ const {W,a,d,f}=encounter(arch);Object.assign(a.skl[0],{M:0,team:true,heal:0.3,aoe:arch==='heal'});
  // Team utility must have a real ally; a lone caster's support score can fall
  // below the casting threshold after its intended random preference modifier.
- const ally={...a,id:'fxAlly',hp:50,sx:[],skl:[],act:{id:'fight',ctx:{}}};
+ const ally={...a,id:'fxAlly',x:119,hp:50,sx:[],skl:[],act:{id:'fight',ctx:{}}};
  W.foes.push(ally);W.foeById[ally.id]=ally;f.A.push(ally.id);
  C.attack(W,f,a,d);assert(a.castFx,arch+' activated');assert.equal(a.castFx.x,a.x,arch+' effect stays with caster/team, not enemy');
+ assert(a.castFx.targetPoints.some(p=>p.x===a.x&&p.y===a.y&&p.team),'caster is represented as a recipient');
+ if(arch==='heal'||arch==='support') assert(a.castFx.targetPoints.some(p=>p.x===119&&p.y===70&&p.team),'team recipient is represented at its actual position');
+}
+for(const arch of ['command','harmonize']){
+ const {W,a,d,f}=encounter(arch);Object.assign(a.skl[0],{M:arch==='command'?1:0,team:true,grantBuff:'morale'});
+ const ally={...a,id:'fxAlly',x:119,y:70,hp:55,sx:[],skl:[],act:{id:'fight',ctx:{}}};W.foes.push(ally);W.foeById[ally.id]=ally;f.A.push(ally.id);
+ C.attack(W,f,a,d);assert(a.castFx,arch+' activated');
+ assert(a.castFx.targetPoints.some(p=>p.x===ally.x&&p.y===ally.y&&p.team),arch+' marks the ally receiving its team effect');
+ if(arch==='command') {
+  assert.equal(a.castFx.x,d.x,'command VFX anchors its offensive primary effect on the struck enemy');
+  assert(a.castFx.targetPoints.some(p=>p.x===d.x&&p.y===d.y&&!p.team),'command also marks its actual hostile strike target');
+ } else assert.equal(a.castFx.x,a.x,'harmonize VFX remains anchored on its caster');
+}
+{
+ const {W,a,d,f}=encounter('strike');a.skl[0].aoe=true;
+ const second={...d,id:'fxSecondTarget',x:123,y:70,hp:100,sx:[],skl:[],act:{id:'fight',ctx:{}}};
+ W.foes.push(second);W.foeById[second.id]=second;f.B.push(second.id);
+ C.attack(W,f,a,d);assert(a.castFx,'area strike activated');
+ const hostilePoints=a.castFx.targetPoints.filter(point=>!point.team);
+ assert(hostilePoints.some(point=>point.x===d.x&&point.y===d.y),'area cast includes its primary enemy');
+ assert(hostilePoints.some(point=>point.x===second.x&&point.y===second.y),'area cast includes the second enemy selected by combat');
 }

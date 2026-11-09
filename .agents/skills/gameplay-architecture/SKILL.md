@@ -493,3 +493,9 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 - **Milestone-Protected Retention**:
   - `EXPED.trimChroniclesWithMilestoneProtection(W, 200, 60)` trims `ROUTINE` entries first when `W.world.chronicles` exceeds 200, protecting up to 60 milestones and incrementing `W.world.chronicleTrimmedCount`.
   - `SIM.log` protects up to 160 milestones when trimming `W.sect.sectChronicle` at 600 entries and increments `W.sect.sectChronicleTrimmedCount`.
+
+## JS2-v2.5.0 Weapon Motion & Target-Aware VFX refinement (carried on v2.6.0 main)
+- Existing `a.castFx` remains the short combat-event boundary from `COMBAT.attack` to `Render.updateCastEffects`. Snapshot `weaponType`, `tier`, `arch`, and `originX/Y` at cast time; don't re-resolve equipment or techniques in the render loop.
+- Add bounded `targetPoints` from combat resolution for self, single/area heals, team support, mixed command attacks, and area strikes. Team tint comes from `COMBAT.isAlly`, not the broad NPC `foe` property. Command keeps the enemy as its primary visual while marking friendly recipients.
+- Persistent passive/mantra/path/equipment auras remain attached to their owner. Active positive combat statuses may add a small owner-bound aura while `until > W.t`; read snapshots directly and never call mutating status purge helpers from rendering.
+- No new timers, save schema, or gameplay state. Run `test/skill_visual_events.js`, `test/weapon_motion_vfx_suite.js`, and `test/weapon_motion_vfx_browser.js` for target routing and read-only visual behavior.

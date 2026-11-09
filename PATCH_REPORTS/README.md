@@ -1,6 +1,7 @@
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
 - **ล่าสุด (`JS2-v2.6.0`):** [`PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) — JianghuSect 2 v2.6.0: พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (Fact Snapshot ณ เวลาเกิดเหตุ, ประวัติบุคคลย้อนหลังแม้ตาย/ถูกขับ/เปลี่ยนชื่อ, รายงาน 12 รูปแบบพร้อมลิ้นชักอธิบายตัวเลข, สมุดสรุปสถานการณ์ประจำรอบ 1/7/30 วันแยกบัญชีไม่บวกซ้ำ, เส้นเรื่องต่อเนื่อง, แยกตั้งค่ารับข่าว 5 โหมดออกจากตัวกรองค้นอ่านคลัง, คุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง, 148/148 กลุ่มชุดทดสอบผ่าน 100%)
+- **`JS2-v2.5.0` visual refinement (on v2.6.0 main):** [`WEAPON_MOTION_VFX_JS2_V2_5_0.md`](WEAPON_MOTION_VFX_JS2_V2_5_0.md) — 17 รูปแบบอาวุธ, แก้ทิศ/ตำแหน่งตามเป้าจริง, marker ผู้รับหลายเป้าหมาย และออร่าบัฟติดตัวผู้รับ
 - **`JS2-v2.5.0` (All Equipment Tier Art):** [`ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md`](ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md) — ภาพไอเท็ม 9 แผ่น / 576 ช่อง ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลาตาม Tier
 - **`JS2-v2.5.0` (Item Art Variety):** [`ITEM_ART_VARIETY_JS2_V2_5_0.md`](ITEM_ART_VARIETY_JS2_V2_5_0.md) — ระบบจัดหมวดภาพไอเท็มและเกรดงานหลอม
 - **`JS2-v2.5.0` (Legendary Visual Identity):** [`LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md`](LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md) — เอกลักษณ์ภาพ 50 วิชาตำนาน และ 27 อุปกรณ์ตำนาน

@@ -109,3 +109,8 @@ When full browser layout, computed CSS styles (`getBoundingClientRect()`), Canva
 
 - `test/equipment_tier_art_suite.js`: all 28 equipment families × 7 tiers, aliases, every one of the 898 real equipment definitions, six medicine/six generic material families + fish, semantic exceptions and serializer/RNG purity. Named legendary artwork stays mapped to its old cells.
 - Source normalization is tested by actual image dimensions, transparent cell boundaries and distinct pixel outputs. A mere cell-key count cannot detect an incorrectly cropped or blank atlas.
+
+## JS2-v2.5.0 ordinary weapon motion VFX (2026-11-09)
+- `test/weapon_motion_vfx_suite.js`: asserts all 17 renderer families produce distinct geometry under High/Low and Full/Reduced Motion, snapshots real combat weapon/tier/origin metadata, validates orientation and `ctx.save/restore`, checks save/RNG purity and legendary route precedence.
+- `test/weapon_motion_vfx_browser.js`: boots the actual game in Chromium, checks pixel uniqueness for the 17 family silhouettes, ingests a real-format cast snapshot and verifies no page errors or world/RNG mutation. It writes `/tmp/weapon-motion-vfx-gallery.png` by default; set `WEAPON_VFX_GALLERY` to choose another output path.
+- The browser suite auto-selects `/usr/bin/chromium` where present. If `file://` is blocked, start an HTTP server from `GAME_SOURCE/` and set `BROWSER_TEST_BASE_URL=http://127.0.0.1:8765`.

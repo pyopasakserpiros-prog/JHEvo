@@ -112,3 +112,8 @@ receipt ประตูธาตุ, ของขวัญคนพเนจร 
 - `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`.
 - `SIM.SUPPORTED_SAVE_SCHEMAS` includes `'2.4.0-tactical-composable-grand-dao'`, `'2.5.0-pathbound-visuals-and-item-art'`, and `'2.6.0-living-chronicle-and-reporting'`.
 - `SIM.create` and `SIM.deserialize` call `EXPED.ensureNewsSystem(W)` to initialize/hydrate `W.sect.newsPrefs` (preset, criticalBypassMode, digestIntervalDays, categories, trackedNpcIds, trackedSectIds, readLogWatermarkId, readChronicleWatermarkSeq, readEntryKeys), `W.sect.digestHistory`, `W.sect.sectChronicleTrimmedCount`, and `W.world.chronicleTrimmedCount`.
+
+## JS2-v2.5.0 Combat VFX snapshot fields (carried on v2.6.0 main)
+- Existing latest-cast snapshot `npc.castFx` may serialize with its actor record; visual fields include `weaponType`, `tier`, `arch`, `originX`, `originY`, and bounded `targetPoints`. This does not add a save subsystem or schema.
+- Renderer queue/clock/dedup (`Render.castActive`, `castClock`, `castSeen`) stays local and resets/baselines in `Render.setWorld`, preventing loaded cast replay. Persistent buff auras read existing status entries and don't add or modify save data.
+- `test/weapon_motion_vfx_suite.js` verifies rendering leaves `SIM.serialize(W)` and RNG unchanged; browser tests verify marker/aura Canvas output.

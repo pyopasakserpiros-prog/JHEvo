@@ -20,6 +20,27 @@
   }
 
   const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261' };
+  // Ordinary martial casts use the real weapon family for their motion language.
+  // Legendary named arts deliberately keep their authored, higher-priority motifs.
+  R.WEAPON_MOTION_VFX = Object.freeze({
+    SWORD: { nameTh: 'กระบี่', primary: '#8be9fd', secondary: '#e8fbff', shape: 'crescent' },
+    BLADE: { nameTh: 'ดาบ', primary: '#ffb86c', secondary: '#fff0cf', shape: 'broad_arc' },
+    SPEAR: { nameTh: 'ทวน', primary: '#80d8ff', secondary: '#e1f5fe', shape: 'thrust' },
+    FIST: { nameTh: 'หมัด/ฝ่ามือ', primary: '#ff8fa3', secondary: '#fff0b3', shape: 'impact' },
+    BOW: { nameTh: 'ธนู', primary: '#ffd166', secondary: '#fff4cc', shape: 'arrow' },
+    STAFF: { nameTh: 'พลอง', primary: '#c3a66b', secondary: '#f4e4bc', shape: 'staff_spiral' },
+    FOCUS: { nameTh: 'สื่อปราณ', primary: '#b197fc', secondary: '#e5dbff', shape: 'focus_seal' },
+    DAGGER: { nameTh: 'มีดสั้น', primary: '#a5d8ff', secondary: '#f1f8ff', shape: 'twin_cut' },
+    ZITHER: { nameTh: 'พิณ', primary: '#63e6be', secondary: '#d3f9d8', shape: 'sound_wave' },
+    BRUSH: { nameTh: 'พู่กัน', primary: '#adb5bd', secondary: '#f1f3f5', shape: 'ink_script' },
+    WHIP: { nameTh: 'แส้', primary: '#f783ac', secondary: '#ffe3ec', shape: 'serpent' },
+    ROSARY: { nameTh: 'ประคำ', primary: '#96f2d7', secondary: '#e6fcf5', shape: 'orbit_beads' },
+    CLAW: { nameTh: 'กรงเล็บ', primary: '#ff6b6b', secondary: '#ffe3e3', shape: 'rake' },
+    NEEDLE: { nameTh: 'เข็ม', primary: '#74c0fc', secondary: '#e7f5ff', shape: 'needles' },
+    FAN: { nameTh: 'พัด', primary: '#b2f2bb', secondary: '#ebfbee', shape: 'fan_sweep' },
+    ASTROLABE: { nameTh: 'จานดารา', primary: '#ffd43b', secondary: '#fff3bf', shape: 'star_dial' },
+    ABACUS: { nameTh: 'ลูกคิด', primary: '#ffa94d', secondary: '#fff4e6', shape: 'counting_beads' }
+  });
   const ROBE_MORTAL = '#cdb292';
   const hash2 = (x, y) => {
     let h = Math.imul(x, 73856093) ^ Math.imul(y, 19349663);
@@ -1818,7 +1839,8 @@
         if (this.castSeen.get(key) === stamp) return;
         this.castSeen.set(key, stamp);
         if (a.dead || a.away || a.gone || a.hidden || !Number.isFinite(event.t) || W.t - event.t < 0 || W.t - event.t > 8 || !Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
-        const p = kind === 'npc' ? this.npcPos(a) : a, x = p.x * TS, y = p.y * TS;
+        const actorPos = kind === 'npc' ? this.npcPos(a) : a;
+        const x = event.x * TS, y = event.y * TS;
         if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x - this.cam.x) > hw + 96 || Math.abs(y - this.cam.y) > hh + 96) return;
         const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
         const forbidden = event.kind === 'forbidden';
@@ -1828,6 +1850,8 @@
         if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
         const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
         const fusionKey = event.fusionId || event.fusion || null;
+        const originX = Number.isFinite(event.originX) ? event.originX * TS : actorPos.x * TS;
+        const originY = Number.isFinite(event.originY) ? event.originY * TS : actorPos.y * TS;
         this.castActive.set(key, {
           kind: forbidden ? 'forbidden' : 'normal',
           motif,
@@ -1836,12 +1860,20 @@
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
+          weaponType: R.WEAPON_MOTION_VFX[event.weaponType] ? event.weaponType : null,
+          tier: clamp(event.tier || (techObj && techObj.tier) || 1, 1, 7),
+          arch: event.arch || null,
           element: elemKey,
           fusion: fusionKey,
           stage: (a.cult && a.cult.stage) || 1,
           x,
           y,
-          angle: Math.atan2(event.y * TS - y, event.x * TS - x),
+          originX,
+          originY,
+          targetPoints: Array.isArray(event.targetPoints) ? event.targetPoints
+            .filter(point => point && Number.isFinite(point.x) && Number.isFinite(point.y))
+            .slice(0, 8).map(point => ({ x: point.x * TS, y: point.y * TS, team: point.team !== false })) : [],
+          angle: Math.atan2(y - originY, x - originX),
           start: this.castClock,
           life: isLegend ? 1500 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))
         });
@@ -2363,10 +2395,139 @@
       ctx.restore();return true;
     },
 
+    // Weapon-family flourishes keep ordinary attacks readable and distinct without
+    // changing combat results. Geometry is deterministic and uses only cast snapshots.
+    drawWeaponMotionVfx(ctx, fx, p, r, reduced, intensity) {
+      if (!ctx || !fx) return false;
+      const spec = R.WEAPON_MOTION_VFX[fx.weaponType];
+      if (!spec) return false;
+      const low = this.resolveQuality ? this.resolveQuality() === 'low' : false;
+      const phase = reduced ? 0.5 : clamp(p, 0, 1);
+      const scale = (0.72 + clamp(fx.tier || 1, 1, 7) * 0.055) * (0.82 + phase * 0.2);
+      const reach = r * scale, alpha = clamp(intensity === undefined ? 1 : intensity, 0, 1);
+      const rot = reduced ? 0 : (phase - 0.5) * 0.38;
+      const ticks = low || reduced ? 4 : 7;
+      ctx.save();
+      ctx.globalAlpha *= alpha;
+      ctx.translate(0, 3);
+      ctx.rotate((Number.isFinite(fx.angle) ? fx.angle : 0) + rot);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.strokeStyle = spec.primary; ctx.fillStyle = spec.primary;
+      ctx.lineWidth = Math.max(1, 1.25 + scale * 0.45);
+      switch (spec.shape) {
+        case 'crescent':
+          ctx.beginPath(); ctx.arc(0, 0, reach, -1.08, 0.86); ctx.stroke();
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth *= 0.62;
+          ctx.beginPath(); ctx.arc(0, 0, reach * 0.82, -0.84, 0.55); ctx.stroke();
+          break;
+        case 'broad_arc':
+          ctx.beginPath(); ctx.moveTo(-reach * 0.68, -reach * 0.8);
+          ctx.quadraticCurveTo(reach * 0.82, -reach * 0.72, reach * 0.95, reach * 0.24);
+          ctx.quadraticCurveTo(reach * 0.2, reach * 0.04, -reach * 0.68, -reach * 0.8);
+          ctx.fill(); ctx.strokeStyle = spec.secondary; ctx.lineWidth *= 0.5;
+          ctx.beginPath(); ctx.arc(0, 0, reach * 0.94, -0.78, 0.45); ctx.stroke();
+          break;
+        case 'thrust':
+          for (let i = -1; i <= 1; i++) {
+            ctx.beginPath(); ctx.moveTo(-reach * (0.9 - Math.abs(i) * 0.18), i * 4);
+            ctx.lineTo(reach * (0.62 + phase * 0.48), i * 1.4); ctx.stroke();
+          }
+          ctx.beginPath(); ctx.moveTo(reach * 0.72, -4); ctx.lineTo(reach, 0); ctx.lineTo(reach * 0.72, 4); ctx.stroke();
+          break;
+        case 'impact':
+          ctx.lineWidth *= 1.2;
+          for (let i = 0; i < (low ? 5 : 8); i++) {
+            const a = i * Math.PI * 2 / (low ? 5 : 8), d0 = reach * 0.18, d1 = reach * (0.48 + (i % 2) * 0.14);
+            ctx.beginPath(); ctx.moveTo(Math.cos(a) * d0, Math.sin(a) * d0); ctx.lineTo(Math.cos(a) * d1, Math.sin(a) * d1); ctx.stroke();
+          }
+          ctx.fillStyle = spec.secondary; ctx.beginPath(); ctx.arc(reach * 0.16, 0, 3.2, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = spec.secondary; ctx.beginPath(); ctx.arc(reach * 0.16, 0, reach * 0.32, 0, Math.PI * 2); ctx.stroke();
+          break;
+        case 'arrow':
+          ctx.beginPath(); ctx.moveTo(-reach * 0.95, 0); ctx.lineTo(reach, 0); ctx.lineTo(reach * 0.65, -4); ctx.moveTo(reach, 0); ctx.lineTo(reach * 0.65, 4); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-reach * 0.72, -4); ctx.lineTo(-reach * 0.5, 0); ctx.lineTo(-reach * 0.72, 4); ctx.stroke();
+          if (!low && !reduced) { ctx.globalAlpha *= 0.55; ctx.beginPath(); ctx.moveTo(-reach * 0.7, 3); ctx.lineTo(reach * 0.72, 3); ctx.stroke(); }
+          break;
+        case 'staff_spiral':
+          ctx.beginPath(); ctx.arc(0, 0, reach * 0.7, -1.2 + phase * 0.25, 1.15 + phase * 0.25); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-reach * 0.7, -reach * 0.36); ctx.lineTo(reach * 0.72, reach * 0.36); ctx.stroke();
+          ctx.strokeStyle = spec.secondary; ctx.beginPath(); ctx.arc(reach * 0.68, reach * 0.3, 3.2, 0, Math.PI * 2); ctx.stroke();
+          break;
+        case 'focus_seal':
+          ctx.save(); ctx.rotate(Math.PI / 4); ctx.strokeRect(-reach * 0.45, -reach * 0.45, reach * 0.9, reach * 0.9); ctx.restore();
+          ctx.beginPath(); ctx.arc(0, 0, reach * 0.68, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-reach * 0.82, 0); ctx.lineTo(reach * 0.82, 0); ctx.moveTo(0, -reach * 0.82); ctx.lineTo(0, reach * 0.82); ctx.stroke();
+          break;
+        case 'twin_cut':
+          ctx.beginPath(); ctx.moveTo(-reach * 0.72, -reach * 0.52); ctx.lineTo(reach * 0.72, reach * 0.1); ctx.stroke();
+          ctx.strokeStyle = spec.secondary; ctx.beginPath(); ctx.moveTo(-reach * 0.48, -reach * 0.82); ctx.lineTo(reach * 0.92, -reach * 0.16); ctx.stroke();
+          break;
+        case 'sound_wave':
+          for (let i = 0; i < (low ? 3 : 5); i++) {
+            const span = reach * (0.42 + i * 0.14);
+            ctx.beginPath(); ctx.moveTo(-span, 0);
+            ctx.quadraticCurveTo(-span * 0.35, -4 - i, 0, 0);
+            ctx.quadraticCurveTo(span * 0.35, 4 + i, span, 0); ctx.stroke();
+          }
+          break;
+        case 'ink_script':
+          ctx.lineWidth *= 1.35;
+          ctx.beginPath(); ctx.moveTo(-reach * 0.68, -reach * 0.64);
+          ctx.bezierCurveTo(-reach * 0.15, -reach * 0.18, -reach * 0.35, reach * 0.44, reach * 0.62, reach * 0.55); ctx.stroke();
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth *= 0.52;
+          ctx.beginPath(); ctx.moveTo(-reach * 0.4, reach * 0.48); ctx.lineTo(reach * 0.46, -reach * 0.58); ctx.stroke();
+          break;
+        case 'serpent':
+          ctx.beginPath(); ctx.moveTo(-reach, 0);
+          ctx.bezierCurveTo(-reach * 0.52, -reach * 0.82, -reach * 0.22, reach * 0.76, reach * 0.18, 0);
+          ctx.bezierCurveTo(reach * 0.52, -reach * 0.72, reach * 0.7, reach * 0.42, reach, -reach * 0.08); ctx.stroke();
+          break;
+        case 'orbit_beads':
+          ctx.beginPath(); ctx.ellipse(0, 0, reach * 0.68, reach * 0.38, 0, 0.2, Math.PI * 1.8); ctx.stroke();
+          for (let i = 0; i < ticks; i++) {
+            const a = i * Math.PI * 2 / ticks + phase * 0.5, bx = Math.cos(a) * reach * 0.68, by = Math.sin(a) * reach * 0.38;
+            ctx.beginPath(); ctx.arc(bx, by, 1.8 + (i % 2) * 0.5, 0, Math.PI * 2); ctx.fill();
+          }
+          break;
+        case 'rake':
+          for (let i = -1; i <= 1; i++) {
+            ctx.beginPath(); ctx.moveTo(-reach * 0.68, i * 5 - 2);
+            ctx.quadraticCurveTo(0, i * 4 + 2, reach * (0.78 + phase * 0.12), i * 5 - 3); ctx.stroke();
+          }
+          break;
+        case 'needles':
+          for (let i = -2; i <= 2; i++) {
+            ctx.beginPath(); ctx.moveTo(-reach * 0.62, i * 3.1); ctx.lineTo(reach * (0.78 + phase * 0.16), i * 5.2); ctx.stroke();
+          }
+          break;
+        case 'fan_sweep':
+          ctx.beginPath(); ctx.moveTo(-reach * 0.42, 0); ctx.arc(0, 0, reach, -1.05, 1.05); ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth *= 0.6;
+          for (let i = -2; i <= 2; i++) { const a = i * 0.34; ctx.beginPath(); ctx.moveTo(-reach * 0.42, 0); ctx.lineTo(Math.cos(a) * reach, Math.sin(a) * reach); ctx.stroke(); }
+          break;
+        case 'star_dial':
+          ctx.beginPath(); ctx.arc(0, 0, reach * 0.54, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, 0, reach * 0.28, 0, Math.PI * 2); ctx.stroke();
+          for (let i = 0; i < ticks; i++) { const a = i * Math.PI * 2 / ticks, d0 = reach * 0.62, d1 = reach * (i % 2 ? 0.76 : 0.9); ctx.beginPath(); ctx.moveTo(Math.cos(a) * d0, Math.sin(a) * d0); ctx.lineTo(Math.cos(a) * d1, Math.sin(a) * d1); ctx.stroke(); }
+          break;
+        case 'counting_beads':
+          ctx.strokeRect(-reach * 0.62, -reach * 0.32, reach * 1.24, reach * 0.64);
+          for (let row = -1; row <= 1; row++) {
+            const by = row * reach * 0.18; ctx.beginPath(); ctx.moveTo(-reach * 0.52, by); ctx.lineTo(reach * 0.52, by); ctx.stroke();
+            for (let bead = 0; bead < 3; bead++) { const bx = -reach * 0.34 + bead * reach * 0.34 + (reduced ? 0 : Math.sin(phase * 5 + row + bead) * reach * 0.035); ctx.beginPath(); ctx.arc(bx, by, 1.7, 0, Math.PI * 2); ctx.fill(); }
+          }
+          break;
+        default: ctx.beginPath(); ctx.arc(0, 0, reach * 0.5, -1, 1); ctx.stroke();
+      }
+      ctx.restore();
+      return true;
+    },
+
     drawCastEffects(ctx) {
       const reduced = this.isReducedMotion();
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
+        this.drawCastTargetMarks(ctx, fx, p, reduced);
         ctx.save(); ctx.translate(fx.x, fx.y - 7); ctx.globalAlpha = fade; ctx.lineCap = 'round';
         if (fx.relicId && R.LEGENDARY_GEAR_VISUALS[fx.relicId]) {
           const spec = R.LEGENDARY_GEAR_VISUALS[fx.relicId];
@@ -2378,18 +2539,21 @@
           if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
         } else if (fx.signatureVfx) {
           this.drawSignatureSkillVfx(ctx, fx, p, r, reduced);
+          if (!fx.legendary && fx.weaponType) this.drawWeaponMotionVfx(ctx, fx, p, r * 0.82, reduced, 0.42);
           if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
         } else if (fx.kind === 'normal') {
-          if (fx.element || fx.fusion) {
-            this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+          if (fx.weaponType && this.drawWeaponMotionVfx(ctx, fx, p, r, reduced, 0.9)) {
+            if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r * 0.72);
+          } else {
+            if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+            ctx.fillStyle = 'rgba(109,223,181,.14)'; ctx.beginPath(); ctx.ellipse(0, 4, r * 0.9, r * 0.38, 0, 0, 7); ctx.fill();
+            ctx.strokeStyle = 'rgba(236,213,133,.78)'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.ellipse(0, 4, r * 0.8, r * 0.34, 0, 0, 7); ctx.stroke();
+            ctx.rotate(fx.angle + (reduced ? 0 : (p - 0.5) * 0.7));
+            ctx.fillStyle = 'rgba(113,221,184,.58)'; ctx.beginPath(); ctx.arc(0, 0, r, -0.95, 0.95); ctx.quadraticCurveTo(r * 0.36, 0, Math.cos(-0.95) * r, Math.sin(-0.95) * r); ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = '#fff0b7'; ctx.lineWidth = 1.7; ctx.beginPath(); ctx.arc(0, 0, r, -0.95, 0.95); ctx.stroke();
+            ctx.strokeStyle = 'rgba(174,245,210,.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(-2, 0, r + 4, -0.68, 0.68); ctx.stroke();
+            if (!reduced) { ctx.fillStyle = '#f8e5a1'; for (let i = 0; i < 3; i++) { const a = (i - 1) * 0.63, d = r + 3 + p * (5 + i * 2); ctx.fillRect(Math.cos(a) * d, Math.sin(a) * d, 1.8, 1.8); } }
           }
-          ctx.fillStyle = 'rgba(109,223,181,.14)'; ctx.beginPath(); ctx.ellipse(0, 4, r * 0.9, r * 0.38, 0, 0, 7); ctx.fill();
-          ctx.strokeStyle = 'rgba(236,213,133,.78)'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.ellipse(0, 4, r * 0.8, r * 0.34, 0, 0, 7); ctx.stroke();
-          ctx.rotate(fx.angle + (reduced ? 0 : (p - 0.5) * 0.7));
-          ctx.fillStyle = 'rgba(113,221,184,.58)'; ctx.beginPath(); ctx.arc(0, 0, r, -0.95, 0.95); ctx.quadraticCurveTo(r * 0.36, 0, Math.cos(-0.95) * r, Math.sin(-0.95) * r); ctx.closePath(); ctx.fill();
-          ctx.strokeStyle = '#fff0b7'; ctx.lineWidth = 1.7; ctx.beginPath(); ctx.arc(0, 0, r, -0.95, 0.95); ctx.stroke();
-          ctx.strokeStyle = 'rgba(174,245,210,.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(-2, 0, r + 4, -0.68, 0.68); ctx.stroke();
-          if (!reduced) { ctx.fillStyle = '#f8e5a1'; for (let i = 0; i < 3; i++) { const a = (i - 1) * 0.63, d = r + 3 + p * (5 + i * 2); ctx.fillRect(Math.cos(a) * d, Math.sin(a) * d, 1.8, 1.8); } }
         } else {
           ctx.fillStyle = 'rgba(88,40,104,.19)'; ctx.beginPath(); ctx.ellipse(0, 6, r * 1.1, r * 0.58, 0, 0, 7); ctx.fill();
           ctx.strokeStyle = '#be8de1'; ctx.lineWidth = 1.9; ctx.beginPath(); ctx.ellipse(0, 6, r, r * 0.52, 0, 0, 7); ctx.stroke();
@@ -2399,9 +2563,32 @@
           ctx.strokeStyle = '#d8adea'; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.moveTo(Math.cos(a) * r * 0.9, Math.sin(a) * r * 0.9); ctx.lineTo(Math.cos(a) * r * 1.1, Math.sin(a) * r * 1.1); } ctx.stroke(); ctx.restore();
           ctx.rotate(fx.angle); ctx.strokeStyle = '#e989a0'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(0, 0, r * 1.05, -0.5, 0.5); ctx.stroke();
           if (!reduced) { ctx.fillStyle = '#c79be2'; for (let i = 0; i < 4; i++) { const a = i * 1.7, d = r * (0.6 + i * 0.1); ctx.fillRect(Math.cos(a) * d, Math.sin(a) * d * 0.5 - p * (10 + i * 2), 1.7, 2.5); } }
+          if (fx.weaponType) this.drawWeaponMotionVfx(ctx, fx, p, r * 0.7, reduced, 0.32);
         }
         ctx.restore();
       }
+    },
+
+    // Recipients are snapshotted by combat resolution so team buffs and area casts
+    // mark every actual affected unit instead of implying a single-target spell.
+    drawCastTargetMarks(ctx, fx, p, reduced) {
+      if (!ctx || !fx || !Array.isArray(fx.targetPoints) || fx.targetPoints.length < 2) return false;
+      const phase = reduced ? 0.5 : clamp(p, 0, 1);
+      for (const point of fx.targetPoints) {
+        if (!point || Math.hypot(point.x - fx.x, point.y - fx.y) < 7) continue;
+        const radius = reduced ? 8 : 7 + phase * 5;
+        ctx.save(); ctx.translate(point.x, point.y - 4);
+        ctx.globalAlpha *= reduced ? 0.62 : (0.72 * (1 - phase * 0.35));
+        ctx.strokeStyle = point.team ? '#72efdd' : '#ff718f';
+        ctx.fillStyle = point.team ? '#c7fff4' : '#ffd0dd';
+        ctx.lineWidth = 1.25; ctx.beginPath(); ctx.ellipse(0, 4, radius, radius * 0.42, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, -2, 1.7, 0, Math.PI * 2); ctx.fill();
+        if (!reduced) {
+          ctx.beginPath(); ctx.moveTo(-3, -2); ctx.lineTo(0, -5); ctx.lineTo(3, -2); ctx.stroke();
+        }
+        ctx.restore();
+      }
+      return true;
     },
 
     // Pure read-only active passive check: never mutates n.passiveLoadout during rendering
@@ -2420,6 +2607,40 @@
         .map(id => CULT.tech(id))
         .filter(t => t && (t.passive || t.cat === 'PASSIVE') && (!M || (M.isTechCompatible(n, t) && M.conditionMatches(n, t))))
         .slice(0, 3);
+    },
+
+    drawAppliedBuffAura(ctx, n, by) {
+      if (!ctx || !n || !Array.isArray(n.sx) || !this.W || !g.SK || !g.SK.STATUS) return false;
+      const positive = n.sx.filter(entry => {
+        if (!entry || !Number.isFinite(entry.until) || entry.until <= this.W.t) return false;
+        const spec = g.SK.STATUS[entry.k]; if (!spec) return false;
+        if (spec.isBuff || (g.STATS && g.STATS.BUFF_CATALOG && g.STATS.BUFF_CATALOG[entry.k])) return true;
+        if (['guardUp', 'evadeUp', 'counter', 'shield', 'critUp', 'haste', 'morale', 'holyAura', 'tacticalCommand'].includes(entry.k)) return true;
+        return Object.values(spec.mods || {}).some(value => value > 0) || Object.values(spec.pmods || {}).some(value => value > 0);
+      });
+      if (!positive.length) return false;
+      const ids = positive.map(entry => entry.k);
+      const family = /aegis|ward|shield|guard|barrier|holyAura|nirvana|karmic/i.test(ids.join('|')) ? 'guard'
+        : /vital|regen|clarity|meridian|lotus|healing/i.test(ids.join('|')) ? 'life'
+          : /haste|swift|wind|step|mirage|evade/i.test(ids.join('|')) ? 'wind'
+            : /morale|fervor|might|frenzy|critUp|command/i.test(ids.join('|')) ? 'power' : 'qi';
+      const palette = { guard: ['#72efdd', '#d4fff6'], life: ['#79d98c', '#e4ffb5'], wind: ['#80deea', '#e0fbff'], power: ['#ffd166', '#fff2bd'], qi: ['#c792ea', '#f0dcff'] }[family];
+      const reduced = this.isReducedMotion(), phase = reduced ? 0.5 : (Number.isFinite(this.t) ? this.t : 0) + (n.n || 0) * 0.41;
+      ctx.save(); ctx.globalAlpha *= 0.58 + (reduced ? 0 : Math.sin(phase * 2.1) * 0.08);
+      ctx.strokeStyle = palette[0]; ctx.fillStyle = palette[1]; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(0, 1 + by * 0.2, 11.5, 4.8, 0, 0, Math.PI * 2); ctx.stroke();
+      if (family === 'guard') {
+        ctx.beginPath(); ctx.arc(0, -5 + by * 0.25, 8.5, Math.PI, 0, false); ctx.lineTo(8.5, 1 + by * 0.2); ctx.lineTo(-8.5, 1 + by * 0.2); ctx.closePath(); ctx.stroke();
+      } else if (family === 'life') {
+        for (let i = 0; i < 3; i++) { const a = phase * 0.8 + i * Math.PI * 2 / 3; ctx.save(); ctx.translate(Math.cos(a) * 10, -7 + by * 0.25 + Math.sin(a) * 2.5); ctx.rotate(a); ctx.beginPath(); ctx.ellipse(0, 0, 1.6, 3.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+      } else if (family === 'wind') {
+        for (let i = 0; i < 3; i++) { const y = -7 + i * 2.3 + by * 0.25; ctx.beginPath(); ctx.moveTo(-10, y); ctx.quadraticCurveTo(0, y - 2.2, 10, y); ctx.stroke(); }
+      } else if (family === 'power') {
+        for (let i = 0; i < 4; i++) { const a = phase * 0.55 + i * Math.PI / 2; const x = Math.cos(a) * 10, y = -6 + by * 0.2 + Math.sin(a) * 3.2; ctx.beginPath(); ctx.arc(x, y, 1.15, 0, Math.PI * 2); ctx.fill(); }
+      } else {
+        for (let i = 0; i < 3; i++) { const a = phase * 0.65 + i * Math.PI * 2 / 3; ctx.beginPath(); ctx.arc(Math.cos(a) * 10, -7 + by * 0.25 + Math.sin(a) * 3, 1.25, 0, Math.PI * 2); ctx.fill(); }
+      }
+      ctx.restore(); return family;
     },
 
     drawLegendaryAura(ctx, n, act) {
@@ -3193,6 +3414,7 @@
         this.drawPathSignatureMotes(ctx, n, ap, act, -bob);
       }
       this.drawEquipmentTierAura(ctx, n, ap, -bob);
+      this.drawAppliedBuffAura(ctx, n, -bob);
       this.drawLegendaryEquipmentAura(ctx, n, ap, -bob);
       this.drawWeaponSoulAndSetResonance(ctx, n, ap, -bob);
 

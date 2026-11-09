@@ -2403,7 +2403,7 @@
     const label = p.moves && p.moves.length ? W.rng.pick(p.moves) : p.nameTh;
     a.fx = { t: W.t, text: p.icon + ' ' + label };
     // One lightweight visual event per actual activation; text/damage feedback stays independent.
-    const tech = p.tech && CULT.tech(p.tech), target = p.self || p.team || ['heal', 'support', 'buff', 'summon'].includes(p.arch) ? a : d || a;
+    const tech = p.tech && CULT.tech(p.tech), selfAnchoredArch = ['heal', 'support', 'buff', 'summon', 'harmonize', 'guard', 'shield', 'evade', 'counter', 'blink'].includes(p.arch), target = p.arch === 'command' ? (d || a) : (p.self || p.team || selfAnchoredArch ? a : d || a);
     const isForbid = p.arch === 'forbid' || !!(tech && (tech.cat === 'FORBIDDEN_ART' || tech.cat === 'FORBIDDEN_TECHNIQUE' || tech.cat === 'FORBIDDEN_GRAND_DAO'));
     if (isForbid && !a.foe && a.voluntaryVows && a.voluntaryVows.VOW_ASCETIC_PRECEPT && a.voluntaryVows.VOW_ASCETIC_PRECEPT.active && CULT && CULT.VOLUNTARY_VOWS && CULT.VOLUNTARY_VOWS.violateVow) {
       CULT.VOLUNTARY_VOWS.violateVow(W, a, 'VOW_ASCETIC_PRECEPT', 'ร่ายวิชาต้องห้าม「' + (tech ? tech.nameTh : p.nameTh) + '」');
@@ -2413,6 +2413,11 @@
     }
     const fxMotif = p.fxKind || (tech && tech.fxKind) || (isForbid ? 'forbidden' : 'normal');
     const sigVfx = p.signatureVfx || (tech && tech.signatureVfx) || (SK && SK.resolveSignatureVfx ? SK.resolveSignatureVfx(tech || p, p) : null) || null;
+    const equippedWeapon = a.equip && a.equip.WEAPON;
+    const usableWeapon = !!(equippedWeapon && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(a, equippedWeapon)));
+    const weaponType = (usableWeapon && g.MARTIAL && g.MARTIAL.gearType ? g.MARTIAL.gearType(equippedWeapon) : null) ||
+      ((Array.isArray(p.weaponTypes) && p.weaponTypes[0]) || (tech && Array.isArray(tech.weaponTypes) && tech.weaponTypes[0]) ||
+        (g.MARTIAL && g.MARTIAL.equippedType ? g.MARTIAL.equippedType(a) : 'FIST'));
     a.castFx = {
       t: W.t,
       kind: isForbid ? 'forbidden' : 'normal',
@@ -2420,12 +2425,26 @@
       fxKind: p.fxKind || (tech && tech.fxKind) || null,
       signatureVfx: sigVfx,
       legendary: !!(p.legendary || (tech && tech.legendary)),
+      weaponType,
+      tier: p.tier || (tech && tech.tier) || 1,
+      arch: p.arch || (tech && (tech.combatArch || tech.role)) || null,
       techId: tech ? tech.id : p.id,
       moveId: p.moveId || p.id,
+      originX: a.x,
+      originY: a.y,
       x: target.x,
       y: target.y,
+      targetPoints: [],
       seq: ((a.castFx && a.castFx.seq) || 0) + 1
     };
+    const snapshotCastTargets = (units, merge = false) => {
+      const points = (units || []).filter(unit => unit && C.alive(unit) && Number.isFinite(unit.x) && Number.isFinite(unit.y))
+        .map(unit => ({ id: unit.id || null, x: unit.x, y: unit.y, team: C.isAlly(f, a.id, unit.id) || unit.id === a.id }));
+      a.castFx.targetPoints = (merge ? a.castFx.targetPoints.concat(points) : points)
+        .filter((point, index, all) => all.findIndex(other => (point.id && other.id) ? point.id === other.id : point.x === other.x && point.y === other.y) === index)
+        .slice(0, 8).map(({ x, y, team }) => ({ x, y, team }));
+    };
+    snapshotCastTargets([target]);
     if ((p.chargeRelease || p.action === 'CHARGE_RELEASE' || (p.composable && p.composable.action === 'CHARGE_RELEASE')) && !p.channel && C.startChargedSkill) {
       const kwA = C.keywordsOf ? C.keywordsOf(a) : null;
       runPassiveProcs(W, f, a, d, 'onCast', 0);
@@ -2502,6 +2521,7 @@
       const maxHealR = p.globalRange ? 999 : Math.max(6.5, (hSpec.max || 4.5) * 1.8);
       const inRangeAllies = C.alliesOf(W, f, a.id).filter(u => C.alive(u) && (!Number.isFinite(a.x) || !Number.isFinite(u.x) || C.unitDist(a, u) <= maxHealR));
       const healTargets = p.aoe ? (inRangeAllies.length ? inRangeAllies : [a]) : [(() => { const ally = lowestAlly(W, f, a); return (ally && hpFrac(ally) < hpFrac(a) - 0.05) ? ally : a; })()];
+      snapshotCastTargets(healTargets);
       const sageBonus = ((!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 1.18 : 1.0) * stanceHealMult;
       healTargets.forEach((tgt, idx) => {
         if (!tgt || !C.alive(tgt)) return;
@@ -2534,6 +2554,7 @@
       const maxSupR = p.globalRange ? 999 : Math.max(7.5, (sSpec.max || 4.5) * 2.0);
       const rawAllies = C.alliesOf(W, f, a.id).filter(u => C.alive(u) && (!Number.isFinite(a.x) || !Number.isFinite(u.x) || C.unitDist(a, u) <= maxSupR));
       const allies = rawAllies.length ? rawAllies : [a];
+      snapshotCastTargets(allies);
       const buffKind = p.grantBuff || (p.support && p.support.kind) || 'morale';
       const dur = buffDur;
       allies.forEach(ally => {
@@ -2559,6 +2580,7 @@
     }
     if (p.arch === 'command') {
       const allies = C.alliesOf(W, f, a.id);
+      snapshotCastTargets(allies);
       const bKind = p.grantBuff || 'tacticalCommand';
       allies.forEach(ally => {
         if (!C.alive(ally)) return;
@@ -2576,6 +2598,7 @@
     }
     if (p.arch === 'harmonize') {
       const allies = C.alliesOf(W, f, a.id);
+      snapshotCastTargets(allies);
       const sageBonus = (!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 1.20 : 1.0;
       const bKind = p.grantBuff || 'vitalRegen';
       allies.forEach(ally => {
@@ -2613,6 +2636,7 @@
       if ((p.M || 0) <= 0) return;
     }
     if (p.arch === 'karmaReversal') {
+      snapshotCastTargets([a, d].filter(Boolean));
       const bKind = p.grantBuff || 'karmicAegis';
       ST.addStatus(a, bKind, buffDur, null, W.t);
       if (ST.applyNamedBuff && !a.foe) ST.applyNamedBuff(a, bKind, buffDur, W.t, { casterId: a.id });
@@ -2747,6 +2771,7 @@
       const dInRange = !Number.isFinite(a.x) || !Number.isFinite(d.x) || (C.unitDist(a, d) <= (mSpec.max || 2.0) + 0.45 && (!mSpec.requiresLoS || C.checkLineOfSight(W, f, a, d, mSpec).clear));
       if (dInRange) targets.unshift(d);
     }
+    snapshotCastTargets(targets.slice(0, 6), p.arch === 'command' || p.arch === 'harmonize' || p.arch === 'karmaReversal');
     const isAoeMulti = !!(p.aoe || targets.length > 1);
     const mas = masBase * comboMult; let dealt = 0;
     targets.slice(0, 6).forEach((t, tIdx) => {
