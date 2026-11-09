@@ -1,6 +1,6 @@
 # JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (Updated for JianghuSect 2 JS2-v2.6.0)
 
-All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 156 registered test groups [155 suites + syntax across 233 JS files]; see the latest audit note below for observed browser-only limitations.
+All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 158 registered test groups [157 suites + syntax across 235 JS files]; see the latest audit note below for observed browser-only limitations.
 
 ## Keeping the skills current
 
@@ -40,4 +40,8 @@ Parallel audit before the T3 refinement: 152/154 PASS, one startup-overlay timeo
 
 T3 VFX refinement (JS2-v2.6.0): 24 forms / 26 T3 techniques / 8 passive routes / 6 existing named statuses. Combat/UI/performance/testing/QA skills document `SK.NONLEGENDARY_VFX_BUDGET` and the T4–T7 reservations. See `docs/audits/T3_SKILL_VFX_AND_TIER_SCALE.md`.
 
-Latest T3-refinement combined audit: 155/156 PASS, zero FAIL, one existing startup-overlay timeout; mobile 1.553 ms/tick, v410 1.901 ms/tick. Final targeted rechecks after the scale/role refinements passed. See `PATCH_REPORTS/T3_SKILL_VFX_JS2_V2_6_0.md`.
+Combined audit before the Legendary Apex refinement: 155/156 PASS, zero FAIL, one existing startup-overlay timeout; mobile 1.553 ms/tick, v410 1.901 ms/tick. Final targeted rechecks after the scale/role refinements passed. See `PATCH_REPORTS/T3_SKILL_VFX_JS2_V2_6_0.md`.
+
+Legendary Apex (JS2-v2.6.0): 47 active scenes / 3 passive crowns / 27 relic scenes; combat/UI/performance/browser/QA skills updated for four-phase painting, real target constraints, shared per-owner spectacle limits and widened reserved T4–T7 ceilings. See `docs/audits/LEGENDARY_APEX_VISUAL_REGISTRY.md`.
+
+Latest Legendary Apex combined audit: 155/158 PASS, two concurrent v400/v410 simulation-budget failures and one existing startup-overlay timeout. Isolated unchanged retries passed at 1.133/2.358 ms/tick; mobile stress passed at 1.452 ms/tick. Final targeted Apex/identity/lower-tier/standalone rechecks passed. See `PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md`.

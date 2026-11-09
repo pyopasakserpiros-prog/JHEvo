@@ -1,5 +1,7 @@
 # Common T1–T2 Skill VFX Registry — JS2-v2.6.0
 
+> Legendary apex and updated T4–T7 reservations: [Legendary Apex Registry](LEGENDARY_APEX_VISUAL_REGISTRY.md). Named skill/item identities are preserved in the new scene architecture.
+
 > T3 additions and future ordinary-tier scale reservations: [T3 Registry & Tier Scale](T3_SKILL_VFX_AND_TIER_SCALE.md). Search all three registries before assigning another effect.
 
 Base: `915c9ac` (45 Signature forms already installed). This patch adds **30 quieter common forms**, **66 active technique routes**, **12 passive routes**, and **22 status routes**. These are separate from the Signature catalog: the existing 45 forms and 256 Signature assignments remain intact.

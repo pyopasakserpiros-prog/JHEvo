@@ -61,9 +61,9 @@ r.setWorld(W);W.speed=1;delete g.UI;const before=g.SIM.serialize(W),rng=JSON.str
 n.castFx={seq:1,t:W.t,techId:techs[0].id,legendary:true,signatureVfx:g.SK.resolveSignatureVfx(techs[0]),x:n.x+1,y:n.y};
 n.lastWeaponProc={triggered:true,t:W.t,weaponId:item.id,effectId:item.effects[0].effectId};
 r.updateCastEffects(100);assert.equal(r.castActive.size,2);
-assert([...r.castActive.values()].some(f=>f.relicId===item.id));assert([...r.castActive.values()].some(f=>f.life===1500));
+assert([...r.castActive.values()].some(f=>f.relicId===item.id));assert([...r.castActive.values()].some(f=>f.techId===techs[0].id&&f.life===R.legendarySceneLife({techId:techs[0].id})));
 const frozen=r.castClock;W.speed=0;r.updateCastEffects(180);assert.equal(r.castClock,frozen);assert.equal(r.castActive.size,2);
-W.speed=1;for(let i=200;i<2200;i+=100)r.updateCastEffects(i);assert.equal(r.castActive.size,0);
+W.speed=1;for(let i=200;i<3400;i+=100)r.updateCastEffects(i);assert.equal(r.castActive.size,0);
 r.setWorld(W);r.updateCastEffects(2300);assert.equal(r.castActive.size,0,'Load baseline must suppress both old casts and old procs');
 // On-draw state, gear and RNG remain byte-identical.
 const saved=g.SIM.serialize(W),savedRng=JSON.stringify(W.rng.getState());

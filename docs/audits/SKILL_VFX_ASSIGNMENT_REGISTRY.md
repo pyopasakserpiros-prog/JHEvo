@@ -1,5 +1,7 @@
 # Skill Signature VFX Assignment Registry
 
+> Legendary apex and updated T4–T7 reservations: [Legendary Apex Registry](LEGENDARY_APEX_VISUAL_REGISTRY.md). Named skill/item identities are preserved in the new scene architecture.
+
 > T3 additions and future ordinary-tier scale reservations: [T3 Registry & Tier Scale](T3_SKILL_VFX_AND_TIER_SCALE.md). Search all three registries before assigning another effect.
 
 **Current game base:** JS2-v2.6.0 (`2.6.0-living-chronicle-and-reporting`)

@@ -504,3 +504,9 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 - Signature catalog grew from 30 to 45 Canvas shapes and from 241 to 256 direct technique mappings. New techniques are assigned only after auditing their current resolver result and any object-based child move definitions.
 - Combat remains the source of truth for cast anchor, team and actual recipients. The renderer reads the existing event; the faith network draws links from the actual recipient snapshot (bounded at eight units). No combat state or save schema was added.
 - See [`docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md`](../../../docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md) for exact mappings and do-not-repeat motifs, and `test/skill_vfx_expansion_suite.js` plus `test/signature_vfx_catalog_browser_audit.js` for producer-to-render checks.
+
+
+## Legendary Apex presentation boundary (JS2-v2.6.0 refinement)
+- All new scene catalogs and four-phase painters stay in `js/render.js`; no additional script/module order or save-schema change. Existing `castFx` / `lastWeaponProc` remain authoritative gameplay boundaries. Renderer-only entries add `ownerId` to prevent simultaneous full cast/relic scenes from stacking on one actor; it is not written back to the actor or save.
+- `Render.legendarySceneLife` selects presentation duration from the 47 skill / 27 relic profiles. `drawLegacyLegendaryArtVfx` preserves old inner motifs; new scene/target conduction does not run simulation actions.
+- The shared cap is two full scenes (one Low) across all Legendary event types within the existing 24-event queue. Exact catalog, future T4–T7 reservations and tests: `docs/audits/LEGENDARY_APEX_VISUAL_REGISTRY.md`.

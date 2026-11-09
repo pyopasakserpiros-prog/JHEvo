@@ -2662,30 +2662,30 @@
       "planned": false
     },
     "4": {
-      "life": 800,
-      "rMin": 21,
-      "rMax": 23,
+      "life": 850,
+      "rMin": 24,
+      "rMax": 29,
       "marks": 6,
       "planned": true
     },
     "5": {
-      "life": 940,
-      "rMin": 24,
-      "rMax": 26,
+      "life": 1050,
+      "rMin": 32,
+      "rMax": 39,
       "marks": 8,
       "planned": true
     },
     "6": {
-      "life": 1080,
-      "rMin": 27,
-      "rMax": 29,
+      "life": 1250,
+      "rMin": 42,
+      "rMax": 47,
       "marks": 10,
       "planned": true
     },
     "7": {
-      "life": 1240,
-      "rMin": 30,
-      "rMax": 32,
+      "life": 1450,
+      "rMin": 50,
+      "rMax": 56,
       "marks": 12,
       "planned": true
     }

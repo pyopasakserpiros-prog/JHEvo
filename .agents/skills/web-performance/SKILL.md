@@ -84,7 +84,7 @@ node test/inventory_grid_ui_suite.js
 - All 43 path aura animations derive phase strictly from `this.t` (which freezes when paused or when `reducedMotion` is enabled) and deterministic NPC index `n.n`.
 
 ## JS2-v2.5.0 Legendary Visual Identity refinement (2026-11-09)
-- Legendary casts have 1500 ms lifetime / 34–53 base radius; ordinary signatures remain 920 ms / 18–31. Named relic procs have 1250 ms lifetime. All share the existing capped 24-entry `castActive` queue; no added simulation timers or RNG.
+- Historical pre-Apex snapshot: Legendary casts had 1500 ms lifetime / 34–53 base radius; ordinary signatures remain 920 ms / 18–31. Named relic procs have 1250 ms lifetime. All share the existing capped 24-entry `castActive` queue; no added simulation timers or RNG.
 - `updateCastEffects` consumes actual `lastWeaponProc` snapshots, filters stale/dead/hidden/offscreen actors and unusable/unequipped relics. `setWorld` baselines both cast and proc stamps; actor despawn prunes `castSeen`. Cosmetic clocks freeze while paused.
 - `drawLegendaryRelicGlyph` drops orbit ornament dots on low quality and reduced motion; art crowns simplify on low quality. Reduced motion uses fixed geometry phases while retaining the expiration/fade envelope. No screen shake, global flashes, dependencies or new script tags.
 - Test visual identity in `legendary_visual_identity_suite` and `legendary_visual_browser`, together with `runtime_timing` and `browser_mobile_perf`. Distinct static pixel hashes prove visible identity at tested phases; they do not constitute an FPS guarantee on physical low-end phones.
@@ -108,3 +108,11 @@ node test/inventory_grid_ui_suite.js
 - `drawSignatureSkillVfx` now has 45 authored technique signatures. A cast still renders one signature inside the existing `castActive` queue capped at 24; the team faith motif links at most the eight recipient points already captured by combat.
 - The 15 new forms use Canvas paths only, allocate no persistent particles and read no simulation RNG. Reduced Motion fixes ornament phases; low-end physical-device FPS is not certified by catalog pixel tests.
 - Compare [`docs/visuals/skill-vfx-expansion/skill-vfx-gallery.png`](../../../docs/visuals/skill-vfx-expansion/skill-vfx-gallery.png). The suite `test/signature_vfx_catalog_browser_audit.js` pixel-tests all 45 signatures and actual-recipient network variation.
+
+
+## Legendary Apex (JS2-v2.6.0 refinement, 2026-11-09)
+- `drawLegendaryArtVfx` / `drawLegendaryRelicScene` use the four-phase scene catalogs (47 skill / 27 relic profiles); `legendarySceneLife` gives 2,100–2,500 ms / 2,100–2,400 ms. Old artwork remains the smaller identity core in `drawLegacyLegendaryArtVfx`, not a full second scene.
+- `drawCastEffects` chooses at most the two newest distinct-owner full scenes, or one on Low; other legendary activations keep compact identities. `ownerId` lives only in renderer entries. Existing 24-event queue, pause, load baselines, expiry, visibility and usability remain.
+- Main scene scale 60–84 px; the local art envelope reserves 136 px and viewport admission padding is 176 px. Recipient links are separate and use real snapshots; no victim coordinates are invented for equipment. Bloom is small (3–4 px), omitted on Low/Reduced Motion, never screen-wide. Reduced Motion also fixes passive-crown phase.
+- Development Chromium 24-scene Canvas-only stress at 412×860 passed; timings vary with load and are recorded in `PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md`. This does not establish physical Android FPS or a whole-frame mobile budget.
+- Verify `legendary_apex_suite`, `legendary_apex_browser`, existing Legendary identity/browser tests and mobile performance. Full-scene caps are shared across skill + equipment events, not one separate cap for each.

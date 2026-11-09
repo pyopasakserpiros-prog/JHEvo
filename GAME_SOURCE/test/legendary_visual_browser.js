@@ -18,7 +18,7 @@ const {chromium}=(()=>{try{return require('playwright');}catch{return require('.
     const ordinaryPreview=!n.castFx.legendary;
     UI.doAction('preview-signature-vfx',n.id+'|LEG_COMBAT_DUGU_NINE_SWORDS');
     R.updateCastEffects(116);R.castClock=600;R.draw(performance.now());
-    const legendary=[...R.castActive.values()].some(f=>f.legendary&&f.life===1500);
+    const legendary=[...R.castActive.values()].some(f=>f.legendary&&f.life===Render.legendarySceneLife(f));
     const frozen=R.castClock;R.updateCastEffects(216);const paused=frozen===R.castClock;
     const before=SIM.serialize(W),rng=JSON.stringify(W.rng.getState());
     const digest=(draw)=>{const c=document.createElement('canvas');c.width=220;c.height=220;const x=c.getContext('2d');x.translate(110,120);draw(x);let h=2166136261,pixels=0;const d=x.getImageData(0,0,220,220).data;for(let i=0;i<d.length;i++){h=Math.imul(h^d[i],16777619);if(i%4===3&&d[i])pixels++;}return [h>>>0,pixels];};

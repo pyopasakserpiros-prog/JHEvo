@@ -6,8 +6,8 @@ assert.equal(forms.length,24);assert.equal(ids.length,26);assert.equal(Object.ke
 const tiers=Object.values(SK.NONLEGENDARY_VFX_BUDGET);
 assert.equal(Math.max(...JD.TECH.techniques.filter(t=>!t.legendary).map(t=>t.tier)),7);
 for(let i=2;i<tiers.length;i++){assert(tiers[i].rMin>tiers[i-1].rMax);assert(tiers[i].life>tiers[i-1].life);assert.equal(tiers[i].planned,i>2);}
-assert(tiers[6].rMax<34,'reserved ordinary T7 radius remains below the existing Legendary main-radius minimum');
-assert(tiers[6].life<1500,'ordinary T7 retains a shorter cast than Legendary');
+assert(tiers[6].rMax<Render.LEGENDARY_APEX_BUDGET.radiusMin,'reserved ordinary T7 remains below the expanded Legendary apex');
+assert(tiers[6].life<Math.min(...Object.values(Render.LEGENDARY_SCENES).map(s=>s.life)),'ordinary T7 retains a shorter cast than Legendary');
 assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,256);
 function recorder(){let depth=0;const ops=[];const ctx=new Proxy({globalAlpha:1},{get(o,k){if(k in o)return o[k];return(...args)=>{if(k==='save')depth++;if(k==='restore')depth--;for(const a of args)if(typeof a==='number')assert(Number.isFinite(a),k);ops.push([k,...args]);};},set(o,k,v){o[k]=v;ops.push([k,v]);return true;}});return{ctx,ops,depth:()=>depth};}
 function view(W){return Object.assign({W,t:.6,opts:{quality:'high'},cam:{x:120*16,y:70*16,z:1},vw:1000,vh:700,castClock:0,castLastTime:null,castSeen:new Map(),castActive:new Map(),npcPos:n=>n},Render.methods);}

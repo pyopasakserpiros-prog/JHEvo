@@ -133820,30 +133820,30 @@ JD.ITEMS.items.forEach(it => {
       "planned": false
     },
     "4": {
-      "life": 800,
-      "rMin": 21,
-      "rMax": 23,
+      "life": 850,
+      "rMin": 24,
+      "rMax": 29,
       "marks": 6,
       "planned": true
     },
     "5": {
-      "life": 940,
-      "rMin": 24,
-      "rMax": 26,
+      "life": 1050,
+      "rMin": 32,
+      "rMax": 39,
       "marks": 8,
       "planned": true
     },
     "6": {
-      "life": 1080,
-      "rMin": 27,
-      "rMax": 29,
+      "life": 1250,
+      "rMin": 42,
+      "rMax": 47,
       "marks": 10,
       "planned": true
     },
     "7": {
-      "life": 1240,
-      "rMin": 30,
-      "rMax": 32,
+      "life": 1450,
+      "rMin": 50,
+      "rMax": 56,
       "marks": 12,
       "planned": true
     }
@@ -154715,6 +154715,42 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     ? (R.LEGENDARY_GEAR_VISUALS[item.id] || null) : null;
 
 
+  // Legendary apex presentation: exact identities, themed scenes, and bounded spectacle.
+  const sceneByMotif = {
+    legend_dugu_sword:'sword_constellation',legend_dragon_palm:'dragon_descent',legend_feixian_beam:'sky_lance',
+    legend_qiankun_taiji:'taiji_court',legend_lingxi_gold:'phoenix_counter',legend_lingbo_afterimage:'moon_steps',
+    legend_moon_shadow:'shadow_court',legend_star_vortex:'void_maw',legend_blood_lotus:'blood_bloom',
+    legend_guangling_zither:'sonic_wings',legend_heaven_seal_brush:'seal_obelisk',legend_samsara_threads:'thread_loom',
+    legend_imperial_eight_gates:'imperial_gates',legend_jade_nirvana_lotus:'jade_garden',
+    legend_kunpeng_wings:'kunpeng_horizon',legend_samsara_wheel_reversal:'karma_orbit'
+  };
+  const sceneByPath = {
+    ASTRO_DIVINATION:'star_orrery',BUDDHA_DHARMA:'lotus_sanctuary',VOID_SPACE:'void_maw',SONIC_HARMONY:'sonic_wings',
+    VENOM_GU:'blood_bloom',PRIMORDIAL_SHIFTER:'beast_avatar',CELESTIAL_WEATHER:'storm_spire',WANDERING_DAO:'moon_steps',
+    MERCANTILE_DAO:'imperial_gates',DRAGON_VEIN_GEOMANCY:'earth_bastion',GRAVITY_DAO:'star_orrery',CHRONO_EPOCH:'epoch_dial',
+    INK_LITERATI:'ink_landscape',SOUL_PUPPETRY:'thread_loom',PRIMORDIAL_CHAOS:'taiji_court',SHADOW_SAMURAI:'sky_lance',
+    NINPO_SHADOW:'shadow_court',NINPO_ELEMENTAL:'seal_obelisk',DIVINE_SUMMONER:'deity_throne',DIVINE_POSSESSION:'beast_avatar',
+    DIVINE_CHANNELER:'storm_spire',VOID_HERETIC_PACT:'void_maw',OCCULT_MAGE:'seal_obelisk',DEVOURING_FLESH:'beast_avatar',
+    NETHER_GRAVE:'grave_procession',ANCESTRAL_RITUAL:'grave_procession',TIDE_VOYAGER:'ocean_pillars',LORE_ARCHIVIST:'ink_landscape',
+    FORTUNE_GAMBLER:'fortune_table',SPIRIT_HUSBANDRY:'jade_garden',ARENA_GLORY:'sword_constellation'
+  };
+  R.LEGENDARY_APEX_BUDGET = Object.freeze({ radiusMin:60,radiusMax:84,fieldMax:136,maxFull:2,maxFullLow:1,maxRecipients:8 });
+  R.LEGENDARY_SCENES = Object.freeze(Object.fromEntries(Object.values(R.LEGENDARY_ART_VISUALS).filter(a=>!a.passive).map((a,i)=>{
+    const family=sceneByMotif[a.motif]||sceneByPath[a.path]||'star_orrery';
+    return [a.id,Object.freeze({id:a.id,family,variant:i+1,life:/garden|sanctuary|sonic/.test(family)?2500:/sword|lance|counter/.test(family)?2100:2300,
+      gatherEnd:/garden|thread/.test(family)?.25:.18,releaseAt:/lance|counter/.test(family)?.38:.46})];
+  })));
+  const relicSceneFamilies={sky_blade:'sky_lance',mountain:'earth_bastion',dragon:'dragon_descent',moon:'shadow_court',heart_dart:'sky_lance',
+    jade_bamboo:'jade_garden',war_banner:'imperial_gates',storm_dragon:'storm_spire',tiger:'beast_avatar',condor:'kunpeng_horizon',
+    peacock:'sword_constellation',phoenix_strings:'sonic_wings',judgment_script:'ink_landscape',fate_threads:'thread_loom',bodhi:'lotus_sanctuary',
+    devouring_maw:'void_maw',flower_needles:'blood_bloom',tempest_fan:'ocean_pillars',nine_palaces:'star_orrery',golden_abacus:'fortune_table',
+    crane_wings:'kunpeng_horizon',kirin:'beast_avatar',tortoise:'earth_bastion',samsara:'karma_orbit',star_beads:'star_orrery',
+    imperial_seal:'deity_throne',dragon_phoenix:'dragon_descent'};
+  R.LEGENDARY_RELIC_SCENES = Object.freeze(Object.fromEntries(Object.values(R.LEGENDARY_GEAR_VISUALS).map((a,i)=>[a.id,Object.freeze({
+    id:a.id,family:relicSceneFamilies[a.shape]||'star_orrery',variant:i+51,life:a.slot==='ARMOR'?2400:2100,gatherEnd:.18,releaseAt:.43
+  })])));
+  R.legendarySceneLife = fx => (fx && (R.LEGENDARY_SCENES[fx.techId] || R.LEGENDARY_RELIC_SCENES[fx.relicId]) || {}).life || 2300;
+
   /* ---------- สีภูมิประเทศตามฤดู ---------- */
   const GRASS = [
     ['#9ec37c', '#96bc74', '#a5c984'],
@@ -156401,10 +156437,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
             const usable = item && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(a,item));
             const pos = kind === 'npc' ? this.npcPos(a) : a;
             if (spec && usable && !a.dead && !a.away && !a.gone && !a.hidden && Number.isFinite(proc.t) && W.t-proc.t >= 0 && W.t-proc.t <= 8 &&
-                Number.isFinite(pos.x) && Number.isFinite(pos.y) && Math.abs(pos.x*TS-this.cam.x) <= hw+80 && Math.abs(pos.y*TS-this.cam.y) <= hh+80) {
+                Number.isFinite(pos.x) && Number.isFinite(pos.y) && Math.abs(pos.x*TS-this.cam.x) <= hw+176 && Math.abs(pos.y*TS-this.cam.y) <= hh+176) {
               this.castActive.delete(procKey);
               if(this.castActive.size>=24) this.castActive.delete(this.castActive.keys().next().value);
-              this.castActive.set(procKey,{relicId:spec.id,kind:'relic',x:pos.x*TS,y:pos.y*TS,angle:0,start:this.castClock,life:1250});
+              this.castActive.set(procKey,{ownerId:a.id,relicId:spec.id,kind:'relic',x:pos.x*TS,y:pos.y*TS,angle:0,start:this.castClock,life:R.legendarySceneLife({relicId:spec.id})});
             }
           }
         }
@@ -156416,8 +156452,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         if (a.dead || a.away || a.gone || a.hidden || !Number.isFinite(event.t) || W.t - event.t < 0 || W.t - event.t > 8 || !Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
         const actorPos = kind === 'npc' ? this.npcPos(a) : a;
         const x = event.x * TS, y = event.y * TS;
-        if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x - this.cam.x) > hw + 96 || Math.abs(y - this.cam.y) > hh + 96) return;
         const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
+        const padding=event.legendary||(techObj&&techObj.legendary)||/^legend_/.test(event.motif||event.fxKind||'')?176:96;
+        if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x - this.cam.x) > hw + padding || Math.abs(y - this.cam.y) > hh + padding) return;
         const authoredMove = techObj && (techObj.moveDefs || []).find(move => move.id === event.moveId);
         const automaticSignature = g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(techObj || event, { ...(authoredMove || {}), arch: event.arch }) : null;
         // Preserve an explicit per-event override too; only demote the old automatic
@@ -156435,6 +156472,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         const originX = Number.isFinite(event.originX) ? event.originX * TS : actorPos.x * TS;
         const originY = Number.isFinite(event.originY) ? event.originY * TS : actorPos.y * TS;
         this.castActive.set(key, {
+          ownerId: a.id,
           kind: forbidden ? 'forbidden' : 'normal',
           motif,
           fxKind: event.fxKind || (isLegend ? motif : null),
@@ -156459,7 +156497,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
             .slice(0, 8).map(point => ({ x: point.x * TS, y: point.y * TS, team: point.team !== false })) : [],
           angle: Math.atan2(y - originY, x - originX),
           start: this.castClock,
-          life: isLegend ? 1500 : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))))
+          life: isLegend ? R.legendarySceneLife({techId:event.techId}) : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))))
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -156874,7 +156912,200 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     },
 
     // Larger, three-beat legendary presentation; signature presence never masks an authored motif.
-    drawLegendaryArtVfx(ctx, fx, p, reduced) {
+    // A local apparition, distinct from the central legacy sigil. Normalized world-space geometry.
+    drawLegendaryApparition(ctx, scene, ink, phase, radius, reduced, low) {
+      const emerge=clamp((phase-scene.gatherEnd)/.22,0,1),decay=1-clamp((phase-.77)/.23,0,1);
+      if(emerge<=0||decay<=0)return;
+      const rot=reduced?0:phase*.35, n=low?4:8;
+      ctx.save();ctx.scale(radius,radius);ctx.translate(0,(1-emerge)*.25);ctx.globalAlpha*=emerge*decay;
+      ctx.strokeStyle=ink.primary;ctx.fillStyle=ink.secondary;ctx.lineWidth=1.65/radius;ctx.lineCap='round';ctx.lineJoin='round';
+      const line=(points,close=false)=>{ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(close)ctx.closePath();ctx.stroke();};
+      const oval=(x,y,rx,ry,a=0)=>{ctx.beginPath();ctx.ellipse(x,y,rx,ry,a,0,Math.PI*2);ctx.stroke();};
+      const disc=(x,y,r)=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();};
+      const feather=(x,y,a,len)=>{ctx.save();ctx.translate(x,y);ctx.rotate(a);line([[0,0],[len*.35,-len*.17],[len,0],[len*.35,len*.17]],true);ctx.restore();};
+      const pillar=(x,y,h)=>{line([[x-.07,y],[x-.07,y-h],[x+.07,y-h],[x+.07,y]],true);line([[x-.13,y-h],[x,y-h-.1],[x+.13,y-h]]);};
+      const petal=(a,len)=>{ctx.save();ctx.rotate(a);ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(-len*.5,-len*.4,-len*.3,-len*.85,0,-len);ctx.bezierCurveTo(len*.3,-len*.85,len*.5,-len*.4,0,0);ctx.stroke();ctx.restore();};
+      switch(scene.family){
+        case 'sword_constellation':
+          for(let i=0;i<n;i++){const a=(i/(n-1)-.5)*2.7;ctx.save();ctx.translate(Math.sin(a)*.92,-.36-Math.cos(a)*.65);ctx.rotate(a*.65);line([[0,.3],[0,-.3],[-.06,-.18],[0,-.4],[.06,-.18],[0,-.3]]);line([[-.1,.15],[.1,.15]]);ctx.restore();}break;
+        case 'dragon_descent':
+          ctx.beginPath();ctx.moveTo(-1,.3);ctx.bezierCurveTo(-1.05,-.55,-.22,-.9,.5,-.46);ctx.bezierCurveTo(1.12,-.05,.4,.42,.12,-.05);ctx.stroke();
+          line([[.5,-.46],[.5,-.7],[.72,-.56],[.9,-.6],[1.05,-.39],[.76,-.32],[.5,-.46]]);line([[.61,-.63],[.57,-.89],[.76,-.7]]);
+          for(let i=0;i<(low?3:6);i++){const x=-.86+i*.2;line([[x,-.28-Math.sin(i*.5)*.35],[x-.1,-.54-Math.sin(i*.5)*.35]]);}oval(.88,-.45,.03,.03);break;
+        case 'sky_lance':
+          ctx.save();ctx.rotate(-.5);line([[-.1,.75],[-.1,-1.05],[0,-1.34],[.1,-1.05],[.1,.75]],true);line([[-.34,.45],[.34,.45]]);ctx.restore();
+          for(let i=0;i<3;i++){const x=(i-1)*.35;line([[x+.35,-.85],[x-.05,.6]]);}break;
+        case 'taiji_court':
+          oval(0,-.1,.88,.48,rot);ctx.beginPath();ctx.moveTo(0,-.58);ctx.bezierCurveTo(-.65,-.58,-.65,-.1,0,-.1);ctx.bezierCurveTo(.65,-.1,.65,.38,0,.38);ctx.stroke();
+          disc(-.22,-.3,.06);disc(.22,.1,.06);for(let i=0;i<4;i++){const a=i*Math.PI/2;pillar(Math.cos(a),.36+Math.sin(a)*.18,.34);}break;
+        case 'phoenix_counter':
+        case 'sonic_wings':
+        case 'kunpeng_horizon':
+          for(const dir of [-1,1]){ctx.beginPath();ctx.moveTo(0,-.24);ctx.quadraticCurveTo(dir*.6,-1.05,dir*1.2,-.64);ctx.quadraticCurveTo(dir*.55,-.24,dir*.18,.2);ctx.stroke();for(let i=0;i<(low?3:6);i++)feather(dir*(.25+i*.14),-.44-i*.045,dir*(.4+i*.09),.25+i*.04);}
+          line([[0,.36],[0,-.55],[.14,-.75],[.22,-.55],[0,-.55]]);
+          if(scene.family==='sonic_wings')for(let i=0;i<3;i++)oval(0,.25+i*.12,.45+i*.19,.13+i*.04);
+          if(scene.family==='phoenix_counter')oval(0,-.3,.23,.34);break;
+        case 'moon_steps':
+          for(let i=0;i<(low?3:6);i++){const a=i*.66+rot,x=Math.cos(a)*(.3+i*.1),y=Math.sin(a)*.35;oval(x,y,.16,.065,-.4);line([[x-.07,y-.13],[x+.07,y-.13]]);}oval(0,.5,.98,.22);break;
+        case 'shadow_court':
+          ctx.beginPath();ctx.arc(0,-.4,.72,-2.2,.65);ctx.arc(.24,-.54,.62,.65,-2.2,true);ctx.stroke();
+          for(let i=0;i<3;i++){const x=(i-1)*.62;line([[x,.2],[x-.13,-.02],[x,-.2],[x+.13,-.02],[x,.2],[x-.25,.55],[x+.25,.55],[x,.2]]);}break;
+        case 'void_maw':
+          oval(0,-.2,.85,.52,-.3);oval(0,-.2,.61,.37,.25);
+          for(let i=0;i<n;i++){const a=i*Math.PI*2/n+rot;line([[Math.cos(a)*1.06,Math.sin(a)*.7-.2],[Math.cos(a)*.71,Math.sin(a)*.44-.2],[Math.cos(a+.18)*.5,Math.sin(a+.18)*.3-.2]]);}break;
+        case 'blood_bloom':
+        case 'jade_garden':
+        case 'lotus_sanctuary':
+          ctx.save();ctx.translate(0,-.14);for(let i=0;i<n;i++)petal(i*Math.PI*2/n,.85);ctx.restore();
+          if(scene.family==='jade_garden')for(let i=0;i<3;i++){const x=(i-1)*.74;line([[x,.45],[x,.05]]);oval(x-.1,.04,.15,.065,-.5);oval(x+.1,-.08,.15,.065,.5);}
+          if(scene.family==='lotus_sanctuary'){line([[-.44,.25],[-.35,-.55],[0,-.75],[.35,-.55],[.44,.25]],true);oval(0,.25,.44,.12);}break;
+        case 'seal_obelisk':
+        case 'deity_throne':
+          for(let i=0;i<3;i++){const x=(i-1)*.6;pillar(x,.4,.95-(i%2)*.22);line([[x-.04,-.3],[x+.05,-.2],[x-.05,-.08],[x+.05,.03]]);}
+          if(scene.family==='deity_throne'){oval(0,-.91,.22,.22);line([[-.5,-.55],[0,-.7],[.5,-.55]]);}else line([[-.88,-.8],[0,-1.12],[.88,-.8]]);break;
+        case 'thread_loom':
+          line([[-.95,-.86],[.95,-.86]]);for(let i=0;i<(low?3:7);i++){const x=(i/(low?2:6)-.5)*1.6;ctx.beginPath();ctx.moveTo(x,-.86);ctx.bezierCurveTo(x*.7,-.32,-x*.5,.05,x*.65,.55);ctx.stroke();oval(x,-.86,.04,.04);}line([[-.64,.55],[.64,.55]]);break;
+        case 'imperial_gates':
+          for(let i=0;i<(low?3:5);i++){const x=(i/(low?2:4)-.5)*1.8,y=.2+Math.abs(x)*.2;pillar(x,y,.48);line([[x-.12,y-.45],[x,y-.62],[x+.12,y-.45]]);}line([[-1,.55],[1,.55]]);break;
+        case 'karma_orbit':
+        case 'star_orrery':
+          for(let i=0;i<3;i++)oval(0,-.2,.83,.23,i*Math.PI/3+rot);
+          for(let i=0;i<(low?4:8);i++){const a=i*Math.PI*2/(low?4:8)+rot;oval(Math.cos(a)*.95,Math.sin(a)*.58-.2,.07,.07);}
+          if(scene.family==='karma_orbit')line([[0,-.9],[.24,-.62],[-.24,-.62],[0,-.9]]);break;
+        case 'storm_spire':
+          line([[-.55,-.8],[-.17,-.85],[.1,-.7],[.6,-.76],[.85,-.54],[-.8,-.54]],true);
+          for(let i=0;i<3;i++){const x=(i-1)*.45;line([[x,-.53],[x-.19,-.1],[x+.08,-.18],[x-.15,.52]]);}break;
+        case 'beast_avatar':
+          line([[-.75,-.2],[-.72,-.85],[-.37,-.58],[0,-.68],[.37,-.58],[.72,-.85],[.75,-.2],[.45,.25],[0,.6],[-.45,.25]],true);
+          line([[-.5,-.25],[-.17,-.15],[0,.02],[.17,-.15],[.5,-.25]]);line([[-.18,.22],[0,.32],[.18,.22]]);
+          for(const d of [-1,1])line([[d*.2,.2],[d*.27,.48],[d*.38,.2]]);break;
+        case 'earth_bastion':
+          line([[-1,.45],[-.78,-.28],[-.5,-.12],[-.1,-.95],[.2,-.55],[.42,-.75],[.68,-.02],[1,.45]],true);
+          line([[-.1,-.95],[-.24,.2],[.08,.04],[.22,.45]]);line([[-1,.52],[1,.52]]);break;
+        case 'epoch_dial':
+          oval(0,-.2,.8,.8);for(let i=0;i<(low?6:12);i++){const a=i*Math.PI*2/(low?6:12);line([[Math.cos(a)*.67,Math.sin(a)*.67-.2],[Math.cos(a)*.8,Math.sin(a)*.8-.2]]);}
+          line([[-.28,-.48],[0,-.2],[.43,-.2]]);line([[-.2,-.64],[.2,-.64],[-.12,.22],[.12,.22],[-.2,-.64]]);break;
+        case 'ink_landscape':
+          line([[-.9,-.65],[.9,-.65],[.9,.45],[-.9,.45]],true);oval(-.9,-.1,.08,.66);oval(.9,-.1,.08,.66);
+          line([[-.75,.1],[-.4,-.45],[-.1,-.05],[.2,-.5],[.68,.13]]);ctx.beginPath();ctx.moveTo(.3,-.02);ctx.bezierCurveTo(-.4,.13,.5,.23,-.2,.35);ctx.stroke();break;
+        case 'grave_procession':
+          for(let i=0;i<(low?3:5);i++){const x=(i/(low?2:4)-.5)*1.6,y=Math.abs(x)*.2;line([[x-.12,y+.35],[x-.12,y-.45],[x,y-.6],[x+.12,y-.45],[x+.12,y+.35]],true);line([[x,y-.3],[x,y+.05]]);}oval(0,.5,1,.16);break;
+        case 'ocean_pillars':
+          for(let i=0;i<3;i++){const y=i*.25-.12;ctx.beginPath();ctx.moveTo(-1,y);ctx.bezierCurveTo(-.5,y-.48,.2,y+.35,1,y-.2);ctx.stroke();}
+          for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(d*.84,.35);ctx.bezierCurveTo(d*1.14,-.85,d*.3,-1,d*.48,-.45);ctx.stroke();}break;
+        case 'fortune_table':
+          for(const d of [-1,1]){const x=d*.45;line([[x-.24,-.7],[x+.24,-.7],[x+.24,-.22],[x-.24,-.22]],true);for(let i=0;i<(d<0?3:5);i++)disc(x+(i%2-.5)*.2,-.62+Math.floor(i/2)*.15,.025);}
+          line([[-.85,.05],[.85,.05],[.65,.45],[-.65,.45]],true);for(let i=0;i<3;i++)oval((i-1)*.35,.2,.08,.08);break;
+      }
+      ctx.restore();
+    },
+
+    legendaryApexFrame(scene, p, reduced, compact) {
+      const phase=reduced?.55:clamp(p,0,1);
+      const reveal=clamp((phase-scene.gatherEnd)/.22,0,1),release=clamp((phase-scene.releaseAt)/.18,0,1);
+      return {phase,reveal,release,radius:compact?32:(reduced?66:60+24*Math.sin(Math.min(1,reveal)*Math.PI/2))};
+    },
+
+    // Conductors and recipient seals use only authoritative snapshot positions.
+    drawLegendaryConduits(ctx, fx, frame, ink, low, reduced) {
+      if(frame.phase<.2||frame.phase>.78)return;
+      const pts=Array.isArray(fx.targetPoints)?fx.targetPoints:[],cap=low?3:R.LEGENDARY_APEX_BUDGET.maxRecipients;
+      ctx.save();ctx.lineWidth=1.1;ctx.globalAlpha*=.36;
+      if(Number.isFinite(fx.originX)&&Number.isFinite(fx.originY)&&Number.isFinite(fx.x)&&Number.isFinite(fx.y)){
+        let dx=fx.originX-fx.x,dy=fx.originY-fx.y;const len=Math.hypot(dx,dy),crop=len>180?180/len:1;
+        if(len>10){ctx.strokeStyle=ink.primary;ctx.beginPath();ctx.moveTo(dx*crop,dy*crop+7);ctx.quadraticCurveTo(dx*crop*.5,dy*crop*.5-16,0,0);ctx.stroke();}
+      }
+      for(let i=0;i<pts.length&&i<cap;i++){
+        const pt=pts[i];if(!pt||!Number.isFinite(pt.x)||!Number.isFinite(pt.y)||!Number.isFinite(fx.x)||!Number.isFinite(fx.y))continue;
+        const x=pt.x-fx.x,y=pt.y-fx.y+7;ctx.strokeStyle=pt.team?'#b3ffe3':'#ffc0ca';
+        ctx.beginPath();ctx.ellipse(x,y,9+frame.release*5,4+frame.release*2,0,0,Math.PI*2);ctx.stroke();
+        if(pt.team&&Math.hypot(x,y)>12){ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(x*.5,y*.5-18,x,y);ctx.stroke();}
+        if(!reduced){ctx.beginPath();ctx.moveTo(x,y-5);ctx.lineTo(x,y-12-frame.release*6);ctx.stroke();}
+      }
+      ctx.restore();
+    },
+
+    drawLegendaryRelease(ctx,scene,ink,frame,angle,reduced,low){
+      const q=clamp((frame.phase-scene.releaseAt)/.23,0,1),strength=reduced?.5:Math.sin(q*Math.PI);
+      if(strength<=.01)return;
+      ctx.save();ctx.globalAlpha*=strength*.76;ctx.strokeStyle=ink.accent||ink.primary;ctx.fillStyle=ink.primary;ctx.lineWidth=low?1.5:2.1;
+      const r=frame.radius,d=reduced?.65:q,n=low?3:6;
+      if(/sword|lance|counter|shadow/.test(scene.family)){
+        ctx.rotate(Number.isFinite(angle)?angle:0);
+        for(let i=0;i<n;i++){const y=(i-(n-1)/2)*9,front=r*(.25+d*.8);ctx.beginPath();ctx.moveTo(-r*.6,y);ctx.lineTo(front,y*.3);ctx.lineTo(front-9,y*.3-4);ctx.stroke();}
+      }else if(/garden|sanctuary|sonic|bloom/.test(scene.family)){
+        for(let i=0;i<n;i++){const a=i*Math.PI*2/n,x=Math.cos(a)*r*.7,y=Math.sin(a)*r*.25;ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x-10,y-r*d*.6,x+12,y-r*d,x,y-r*(.25+d*.55));ctx.stroke();}
+      }else if(/void|karma|orrery|epoch/.test(scene.family)){
+        for(let i=0;i<n;i++){const a=i*Math.PI*2/n+(reduced?0:d*.5),outer=r*(1.2-d*.45),inner=r*.16;ctx.beginPath();ctx.moveTo(Math.cos(a)*outer,Math.sin(a)*outer*.6);ctx.quadraticCurveTo(Math.cos(a+.3)*r*.5,Math.sin(a+.3)*r*.35,Math.cos(a+.5)*inner,Math.sin(a+.5)*inner);ctx.stroke();}
+      }else if(/gates|obelisk|throne|spire|landscape|procession/.test(scene.family)){
+        for(let i=0;i<n;i++){const x=(i-(n-1)/2)*r*.25;ctx.beginPath();ctx.moveTo(x,r*.4);ctx.lineTo(x,r*(.2-d*1.1));ctx.stroke();}
+      }else{
+        for(let i=0;i<(low?2:3);i++){ctx.beginPath();ctx.ellipse(0,12,r*(.7+d*.65+i*.13),r*(.22+d*.15+i*.06),0,.12,Math.PI*1.9);ctx.stroke();}
+      }
+      ctx.restore();
+    },
+
+    drawLegendaryArtVfx(ctx, fx, p, reduced, full = true) {
+      if(!ctx||!fx)return false;
+      const art=R.LEGENDARY_ART_VISUALS[fx.techId],scene=R.LEGENDARY_SCENES[fx.techId]||{family:'star_orrery',variant:0,gatherEnd:.18,releaseAt:.46};
+      const path=art&&R.resolvePathVisualSignature(art.path),ink=LEGENDARY_MOTIFS[(art&&art.motif)||fx.motif||fx.fxKind]||path||{primary:'#ffd166',secondary:'#9378c9',accent:'#fff8dd'};
+      const low=this.resolveQuality()==='low',frame=this.legendaryApexFrame(scene,p,reduced,!full);
+      ctx.save();ctx.globalAlpha*=frame.phase>.72?(1-frame.phase)/.28:1;
+      if(full){
+        // Transparent local ground reflection; it is decorative, not an AoE/range indicator.
+        ctx.save();ctx.fillStyle=ink.secondary;ctx.globalAlpha*=.11;ctx.beginPath();ctx.ellipse(0,12,frame.radius*1.3,frame.radius*.44,0,0,Math.PI*2);ctx.fill();ctx.restore();
+        if(!low&&!reduced){ctx.shadowColor=ink.primary;ctx.shadowBlur=4;}
+        this.drawLegendaryApparition(ctx,scene,ink,frame.phase,frame.radius,reduced,low);
+        this.drawLegendaryConduits(ctx,fx,frame,ink,low,reduced);
+        this.drawLegendaryRelease(ctx,scene,ink,frame,fx.angle,reduced,low);
+      }
+      // Preserve the authored identity as an inner sigil, not the whole new spectacle.
+      const coreScale=full?(.38+frame.reveal*.18):.48;
+      ctx.save();ctx.scale(coreScale,coreScale);
+      this.drawLegacyLegendaryArtVfx(ctx,fx,frame.phase,reduced);ctx.restore();
+      if(full&&!low&&frame.phase>.3&&frame.phase<.85){
+        ctx.strokeStyle=ink.accent||'#fff4ce';ctx.lineWidth=1.2;ctx.globalAlpha*=.55;
+        const count=5+scene.variant%4;
+        for(let i=0;i<count;i++){const a=i*Math.PI*2/count+(reduced?0:frame.phase*.45),d=frame.radius*(.9+frame.release*.38);ctx.beginPath();ctx.moveTo(Math.cos(a)*d,Math.sin(a)*d*.44+10);ctx.lineTo(Math.cos(a)*(d+7),Math.sin(a)*(d+7)*.44+10);ctx.stroke();}
+      }
+      ctx.restore();return true;
+    },
+
+    drawLegendaryRelicScene(ctx, fx, p, reduced, full = true) {
+      const spec=R.LEGENDARY_GEAR_VISUALS[fx.relicId];if(!ctx||!spec)return false;
+      const scene=R.LEGENDARY_RELIC_SCENES[spec.id],low=this.resolveQuality()==='low',frame=this.legendaryApexFrame(scene,p,reduced,!full);
+      const ink={primary:spec.primary,secondary:spec.secondary,accent:'#fff4da'};
+      ctx.save();
+      if(full){
+        ctx.globalAlpha*=.8*(frame.phase>.72?(1-frame.phase)/.28:1);
+        if(!low&&!reduced){ctx.shadowColor=spec.primary;ctx.shadowBlur=3;}
+        this.drawLegendaryApparition(ctx,scene,ink,frame.phase,frame.radius*.9,reduced,low);
+        this.drawLegendaryRelease(ctx,scene,ink,frame,fx.angle,reduced,low);
+        ctx.strokeStyle=spec.secondary;ctx.lineWidth=1.4;
+        if(spec.slot==='ARMOR'){ctx.beginPath();ctx.arc(0,-7,frame.radius*.55,Math.PI,0);ctx.stroke();}
+        else if(spec.slot==='ACCESSORY'){ctx.save();ctx.rotate(reduced?Math.PI/4:Math.PI/4+frame.phase*.2);ctx.strokeRect(-27,-27,54,54);ctx.restore();}
+      }
+      this.drawLegendaryRelicGlyph(ctx,spec,full?24+frame.reveal*10:19,reduced?0:frame.phase*2,reduced);
+      ctx.restore();return true;
+    },
+
+    drawLegendaryPassiveCrown(ctx, lp, phase, reduced, low) {
+      const spec=LEGENDARY_MOTIFS[lp.fxKind];if(!spec)return;
+      const t=reduced?.5:phase;
+      ctx.save();ctx.strokeStyle=spec.primary;ctx.fillStyle=spec.accent;ctx.lineWidth=1.1;ctx.globalAlpha*=.72;
+      if(lp.fxKind==='legend_aura_mingyu'){
+        for(let i=0;i<(low?3:5);i++){const a=i*Math.PI*2/(low?3:5)+t*.4,x=Math.cos(a)*13,y=Math.sin(a)*4;ctx.beginPath();ctx.ellipse(x,y,3,6,a,0,Math.PI*2);ctx.stroke();}
+        ctx.beginPath();ctx.arc(0,-13,8,0,Math.PI*2);ctx.stroke();
+      }else if(lp.fxKind==='legend_aura_nine_yang'){
+        ctx.beginPath();ctx.arc(0,-10,16,Math.PI,Math.PI*2);ctx.stroke();
+        for(let i=0;i<(low?3:9);i++){const a=Math.PI+i*Math.PI/(low?2:8);ctx.beginPath();ctx.moveTo(Math.cos(a)*18,-10+Math.sin(a)*18);ctx.lineTo(Math.cos(a)*21,-10+Math.sin(a)*21);ctx.stroke();}
+      }else if(lp.fxKind==='legend_aura_dugu'){
+        for(let i=0;i<(low?3:5);i++){const a=i*Math.PI*2/(low?3:5)+t*.5,x=Math.cos(a)*17,y=-11+Math.sin(a)*7;ctx.beginPath();ctx.moveTo(x-3,y+3);ctx.lineTo(x+3,y-3);ctx.moveTo(x-3,y);ctx.lineTo(x,y+3);ctx.stroke();}
+      }
+      ctx.restore();
+    },
+
+    drawLegacyLegendaryArtVfx(ctx, fx, p, reduced) {
       const art = R.LEGENDARY_ART_VISUALS[fx.techId];
       const low = this.resolveQuality() === 'low';
       const phase = reduced ? 0.5 : p;
@@ -156973,7 +157204,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         else if(spec.slot === 'ARMOR') ctx.translate(0, -10 + by);
         else ctx.translate(-12, -18 + by);
         ctx.globalAlpha *= spec.slot === 'ARMOR' ? .42 : .8;
-        this.drawLegendaryRelicGlyph(ctx,spec,spec.slot==='ARMOR'?12:6,phase,reduced);
+        this.drawLegendaryRelicGlyph(ctx,spec,spec.slot==='ARMOR'?15:9,phase,reduced);
         ctx.restore();
       }
       ctx.restore();return true;
@@ -157109,18 +157340,23 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
     drawCastEffects(ctx) {
       const reduced = this.isReducedMotion();
+      const sceneLimit=this.resolveQuality()==='low'?R.LEGENDARY_APEX_BUDGET.maxFullLow:R.LEGENDARY_APEX_BUDGET.maxFull;
+      const fullScenes=new Set(),sceneOwners=new Set();
+      const candidates=[...this.castActive.values()].reverse();
+      for(const f of candidates){
+        if(fullScenes.size>=sceneLimit)break;
+        if(!(f.relicId||f.legendary||(f.motif&&String(f.motif).startsWith('legend_'))))continue;
+        if(f.ownerId&&sceneOwners.has(f.ownerId))continue;
+        fullScenes.add(f);if(f.ownerId)sceneOwners.add(f.ownerId);
+      }
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
         this.drawCastTargetMarks(ctx, fx, p, reduced);
         ctx.save(); ctx.translate(fx.x, fx.y - 7); ctx.globalAlpha = fade; ctx.lineCap = 'round';
         if (fx.relicId && R.LEGENDARY_GEAR_VISUALS[fx.relicId]) {
-          const spec = R.LEGENDARY_GEAR_VISUALS[fx.relicId];
-          ctx.strokeStyle=spec.secondary;ctx.lineWidth=2;
-          ctx.beginPath();ctx.ellipse(0,5,r*1.4,r*.6,0,0,7);ctx.stroke();
-          this.drawLegendaryRelicGlyph(ctx,spec,reduced?25:20+Math.sin(p*Math.PI)*16,reduced?0:p*3,reduced);
+          this.drawLegendaryRelicScene(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
-          this.drawLegendaryArtVfx(ctx,fx,p,reduced);
-          if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+          this.drawLegendaryArtVfx(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.t3Vfx) {
           const budget = g.SK.NONLEGENDARY_VFX_BUDGET[3];
           this.drawT3SkillVfx(ctx, fx.t3Vfx, p, reduced ? 18 : budget.rMin + (budget.rMax - budget.rMin) * p, reduced, fx.angle, fx.arch);
@@ -157437,32 +157673,11 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const hasLegMantra = !!(legMantra && legMantra.legendary && legMantra.fxKind);
       if (!legPass.length && !hasLegMantra) return;
 
-      const t = this.t + (n.n || 0) * 0.7;
+      const reduced=this.isReducedMotion(),low=this.resolveQuality()==='low';
+      const t = reduced?.5:this.t + (n.n || 0) * 0.7;
       ctx.save();
-      ctx.scale(1.35, 1.35);
-      for (const lp of legPass) {
-        if (lp.fxKind === 'legend_aura_mingyu') {
-          ctx.strokeStyle = 'rgba(128,222,234,0.72)'; ctx.lineWidth = 1.2;
-          ctx.beginPath(); ctx.ellipse(0, 0, 10.5, 4.6, 0, 0, 7); ctx.stroke();
-          for (let i = 0; i < 4; i++) {
-            const a = t * 1.6 + i * Math.PI / 2;
-            ctx.fillStyle = 'rgba(224,247,250,0.85)';
-            ctx.fillRect(Math.cos(a) * 9 - 1, -8 + Math.sin(a * 1.3) * 5, 2, 2);
-          }
-        } else if (lp.fxKind === 'legend_aura_nine_yang') {
-          ctx.strokeStyle = 'rgba(255,202,40,0.70)'; ctx.lineWidth = 1.4;
-          ctx.beginPath(); ctx.arc(0, -9, 11.5 + Math.sin(t * 3) * 0.8, Math.PI * 0.9, Math.PI * 2.1); ctx.stroke();
-          ctx.strokeStyle = 'rgba(255,112,67,0.48)';
-          ctx.beginPath(); ctx.ellipse(0, 1, 9.8, 4.0, 0, 0, 7); ctx.stroke();
-        } else if (lp.fxKind === 'legend_aura_dugu') {
-          ctx.strokeStyle = 'rgba(179,229,252,0.82)'; ctx.lineWidth = 1.2;
-          for (let i = 0; i < 3; i++) {
-            const a = t * 2.2 + i * Math.PI * 2 / 3;
-            const sx = Math.cos(a) * 10.5, sy = -9 + Math.sin(a) * 4.2;
-            ctx.beginPath(); ctx.moveTo(sx - 2.5, sy - 1.5); ctx.lineTo(sx + 2.5, sy + 1.5); ctx.stroke();
-          }
-        }
-      }
+      ctx.scale(low?1.15:1.35,low?1.15:1.35);
+      for(const lp of legPass)this.drawLegendaryPassiveCrown(ctx,lp,t,reduced,low);
       if (hasLegMantra) {
         const mKey = legMantra.fxKind;
         const spec = LEGENDARY_MOTIFS[mKey] || { primary: '#ffd54f', secondary: '#ff9800', accent: '#ffffff' };
