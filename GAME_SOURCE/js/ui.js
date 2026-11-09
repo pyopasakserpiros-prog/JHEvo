@@ -1214,6 +1214,7 @@
       const [npcIdArg, sigOrTechId] = String(arg || '').split('|');
       const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
       if (n && g.SK) {
+        const previewTech = CULT.tech(sigOrTechId);
         const sigKey = (g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigOrTechId])
           ? sigOrTechId
           : (g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(CULT.tech(sigOrTechId) || { id: sigOrTechId, legendary: true })) || 'sig_meteor_sword_rain';
@@ -1223,7 +1224,8 @@
           t: W.t,
           kind: 'normal',
           signatureVfx: sigKey,
-          legendary: true,
+          legendary: !!(previewTech && previewTech.legendary),
+          motif: previewTech && previewTech.fxKind || null,
           techId: sigOrTechId || sigKey,
           x: (Number.isFinite(n.x) ? n.x : 118) + 3,
           y: Number.isFinite(n.y) ? n.y : 75

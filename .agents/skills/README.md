@@ -21,3 +21,5 @@ For each game patch, update every skill affected by the changes in the same chan
 | [`web-performance`](./web-performance/SKILL.md) | `js/render.js`, `js/ui.js`, `js/main.js` | Optimizing 60 FPS Canvas 2D frustum culling, sprite caching, skill visual effect pools, and throttled DOM refreshes. |
 | [`qa-test-matrix`](./qa-test-matrix/SKILL.md) | `test/run_all.js`, `tools/run_parallel_tests.js` | Mapping code changes to the 124 registered regression suites (including `v320`–`v400`), schema validator, and release gates. |
 | [`web-testing`](./web-testing/SKILL.md) | `test/load.js`, `tools/cdp_playwright.js` | Writing fast Node.js VM unit/integration tests and headless Chromium CDP browser tests. |
+
+Legendary Visual Identity (JS2-v2.5.0 refinement, 2026-11-09): see updated `game-ui-ux`, `web-performance`, `web-testing` and `combat-design` sections for the 50-art / 27-relic visual catalogs, real proc lifecycle, preview rarity and two new regression suites. Historical counts elsewhere are not a fresh full-skill audit.

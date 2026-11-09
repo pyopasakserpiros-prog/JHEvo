@@ -96,3 +96,8 @@ When full browser layout, computed CSS styles (`getBoundingClientRect()`), Canva
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 `tools/browser_test_url.js` รองรับ `BROWSER_TEST_BASE_URL` เพื่อเสิร์ฟ fixture ผ่าน HTTP ภายในเมื่อ browser policy บล็อก file://; โดยไม่ตั้งค่าจะใช้ file:// ตามเดิม ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## JS2-v2.5.0 Legendary visual regression coverage (2026-11-09)
+- `test/legendary_visual_identity_suite.js`: all 50 arts / 27 relics; unique active art geometry in high/low and reduced/full motion; three passive identities; cache invalidation on rarity/usability; real Yitian proc ingestion; signature precedence, 1500 ms cast lifecycle, 1250 ms proc, pause/load suppression, read-only serialization/RNG and unknown fallback.
+- `test/legendary_visual_browser.js`: actual game at 1280×900 and 412×860, preview dispatch, pixel uniqueness for all 47 active arts and 27 relics, pause/purity/no page errors, standalone startup. Optional `LEGENDARY_VFX_SNAPSHOTS=/absolute/path` writes world screenshots and full Canvas gallery exports.
+- Both are registered in `test/run_all.js`. If file:// navigation is policy-blocked, serve GAME_SOURCE locally and set BROWSER_TEST_BASE_URL=http://127.0.0.1:8765. A package named Playwright being installed does not guarantee its bundled Chromium exists; select an installed system Chromium executable or install its browser before testing.

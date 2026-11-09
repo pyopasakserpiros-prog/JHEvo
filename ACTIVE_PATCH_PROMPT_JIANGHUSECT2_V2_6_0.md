@@ -1,5 +1,7 @@
 # ACTIVE PATCH PROMPT — JIANGHUSECT 2 (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
 
+> **ฐานก่อนเริ่มแพตช์นี้:** JS2-v2.5.0 รวม Legendary Visual Identity refinement แล้ว ให้คง `Render.LEGENDARY_ART_VISUALS`, `Render.LEGENDARY_GEAR_VISUALS`, Motif precedence และ event lifecycle ไว้ หากเพิ่ม named relic หรือวิชาตำนาน ให้เพิ่มภาพเฉพาะตามธีมและทดสอบด้วย `legendary_visual_identity_suite` / `legendary_visual_browser`. ดูรายงาน `PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md`. การเพิ่มภาพนี้ไม่ได้ทำข้อกำหนด JS2-v2.6.0 ส่วนอื่นแทนแล้ว
+
 > ## คำสั่งสำหรับ AI ที่รับ ZIP โปรเจกต์
 > พัฒนาแพตช์นี้ต่อจากซอร์สใน ZIP (`JS2-v2.5.0`) โดยอ่าน `AGENTS.md`, `START_HERE_FOR_AI.md`, `project_status_and_ai_onboarding.md` และตรวจพฤติกรรมจริงในโค้ดก่อนลงมือ เป้าหมายของแพตช์ `JS2-v2.6.0` คือการต่อยอดระบบมหาวิถีทั้ง 43 สาย, คีย์เวิร์ดประกอบสร้าง 16 ชนิด (`KW_*` จาก `v2.4.0`), และระบบ Signature VFX 30 รูปแบบ (`v2.5.0`) เข้าสู่วงจรชีวิตที่ **NPC ตัดสินใจและสร้างมรดกด้วยตัวเอง (Emergent Autonomous Loop)**: การบัญญัติเคล็ดวิชาใหม่เข้าหอคัมภีร์สำนัก, การแลกเปลี่ยนและจ้างวานผลิตของกันเองระหว่างศิษย์แบบ Closed-Loop (`Debit = Credit`), และประวัติชีวิตศาสตรา/รอยซ่อมทองคำคินสึกิ (`Kintsugi`)
 >

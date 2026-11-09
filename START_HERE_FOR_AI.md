@@ -1,5 +1,7 @@
 # 🚀 จุดเริ่มต้นสำหรับ AI (START HERE FOR AI — Autonomous Onboarding & Daisy-Chain Protocol)
 
+> **ฐานเพิ่มเติม 2026-11-09:** JS2-v2.5.0 มี Legendary Visual Identity refinement ครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนานแล้ว ดู [รายงานและผลทดสอบ](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). งาน JS2-v2.6.0 ยังคงเป็นแพตช์ถัดไป
+
 > **คำสั่งอัตโนมัติสำหรับ AI (Autonomous Trigger Instruction):**
 > เมื่อผู้ใช้พิมพ์ว่า **"เริ่มงานตาม START_HERE_FOR_AI.md"** หรือ **"ทำแพตช์ถัดไปตามใบสั่งงาน"** ให้คุณอ่านเอกสารฉบับนี้ตามลำดับขั้นที่ 1 ถึง 10 แล้ว **ลงมือเขียนโค้ด ทดสอบ อัปเดตเอกสาร และสร้างใบสั่งงานแพตช์ถัดไป (Daisy-Chain) จนจบครบ 100% ในรวดเดียว** โดยไม่ต้องถามขออนุญาตซ้ำ!
 

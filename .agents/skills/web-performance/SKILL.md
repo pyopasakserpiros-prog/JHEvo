@@ -82,3 +82,9 @@ node test/inventory_grid_ui_suite.js
 ## Patch JS2-v2.5.0 Quality Scaling & Reduced Motion Guardrails (`js/render.js`)
 - `drawCultivatorRealmHalo` and `drawPathSignatureMotes` scale geometric detail when `this.effectiveQuality === 'low'` (halving orbiting mote counts and simplifying spoke loops) while maintaining balanced `ctx.save()` / `ctx.restore()` depth.
 - All 43 path aura animations derive phase strictly from `this.t` (which freezes when paused or when `reducedMotion` is enabled) and deterministic NPC index `n.n`.
+
+## JS2-v2.5.0 Legendary Visual Identity refinement (2026-11-09)
+- Legendary casts have 1500 ms lifetime / 34–53 base radius; ordinary signatures remain 920 ms / 18–31. Named relic procs have 1250 ms lifetime. All share the existing capped 24-entry `castActive` queue; no added simulation timers or RNG.
+- `updateCastEffects` consumes actual `lastWeaponProc` snapshots, filters stale/dead/hidden/offscreen actors and unusable/unequipped relics. `setWorld` baselines both cast and proc stamps; actor despawn prunes `castSeen`. Cosmetic clocks freeze while paused.
+- `drawLegendaryRelicGlyph` drops orbit ornament dots on low quality and reduced motion; art crowns simplify on low quality. Reduced motion uses fixed geometry phases while retaining the expiration/fade envelope. No screen shake, global flashes, dependencies or new script tags.
+- Test visual identity in `legendary_visual_identity_suite` and `legendary_visual_browser`, together with `runtime_timing` and `browser_mobile_perf`. Distinct static pixel hashes prove visible identity at tested phases; they do not constitute an FPS guarantee on physical low-end phones.

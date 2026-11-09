@@ -1,5 +1,7 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.5.0 (Pathbound Ascendant Visuals & Signature Arts Release)
 
+> **ฐานเพิ่มเติม 2026-11-09:** JS2-v2.5.0 มี Legendary Visual Identity refinement ครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนานแล้ว ดู [รายงานและผลทดสอบ](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). งาน JS2-v2.6.0 ยังคงเป็นแพตช์ถัดไป
+
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  

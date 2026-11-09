@@ -152591,6 +152591,48 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     legend_samsara_wheel_reversal: { kind: 'cast', primary: '#9b5de5', secondary: '#f15bb5', accent: '#fee440', shape: 'samsara_inverted_dharma_wheel', labelTh: 'วิชาต้องห้าม • พลิกผันกงล้อกรรมสังสารวัฏ' }
   };
   R.LEGENDARY_MOTIFS = LEGENDARY_MOTIFS;
+  // Renderer-only identities. Authoritative rarity remains on the real technique/item.
+  R.LEGENDARY_ART_VISUALS = Object.freeze(Object.fromEntries((g.JD.TECH.techniques || [])
+    .filter(t => t.legendary).map(t => [t.id, Object.freeze({ id: t.id, nameTh: t.nameTh,
+      path: t.path, motif: t.fxKind || null, passive: t.passive || t.cat === 'PASSIVE',
+      signatureVfx: t.signatureVfx || null })])));
+  const relicThemes = [
+    ['vis_yitian_sword','sky_blade','#72efdd','#f4d35e'],
+    ['vis_xuantie_heavy_sword','mountain','#8d99ae','#d4a373'],
+    ['vis_tulong_saber','dragon','#f4a261','#e63946'],
+    ['vis_full_moon_scimitar','moon','#e0fbfc','#9b5de5'],
+    ['vis_xiaoli_dagger','heart_dart','#f8f9fa','#e63946'],
+    ['vis_dagou_jade_staff','jade_bamboo','#80ed99','#2a9d8f'],
+    ['vis_overlord_spear','war_banner','#ff595e','#ffd166'],
+    ['vis_azure_dragon_lance','storm_dragon','#4ea8de','#caf0f8'],
+    ['vis_wrathful_tiger_gauntlets','tiger','#f4a261','#ffe6a7'],
+    ['vis_condor_meteor_bow','condor','#dda15e','#ffffff'],
+    ['vis_peacock_plume_focus','peacock','#2ec4b6','#f4d35e'],
+    ['vis_jiuxiao_phoenix_zither','phoenix_strings','#ff9e00','#72efdd'],
+    ['vis_chunqiu_judgment_brush','judgment_script','#52b788','#ef476f'],
+    ['vis_tiancan_fate_whip','fate_threads','#ff4d6d','#9b5de5'],
+    ['vis_bodhi_nirvana_rosary','bodhi','#ffd166','#52b788'],
+    ['vis_taotie_devouring_claw','devouring_maw','#9b2226','#ffccd5'],
+    ['vis_baihua_soul_needle','flower_needles','#f15bb5','#d8f3dc'],
+    ['vis_bajiao_tempest_fan','tempest_fan','#80ed99','#caf0f8'],
+    ['vis_hetu_luoshu_astrolabe','nine_palaces','#74c0fc','#e9c46a'],
+    ['vis_caishen_golden_abacus','golden_abacus','#ffb703','#fff3b0'],
+    ['vis_celestial_crane_robe','crane_wings','#90e0ef','#ffffff'],
+    ['vis_shadow_kirin_cuirass','kirin','#c77dff','#ffd166'],
+    ['vis_immortal_tortoise_plate','tortoise','#00f5d4','#8d99ae'],
+    ['vis_samsara_karma_ring','samsara','#e0aaff','#f15bb5'],
+    ['vis_bodhi_starlight_beads','star_beads','#ffd166','#90e0ef'],
+    ['vis_taichi_heaven_seal','imperial_seal','#f4a261','#feefc3'],
+    ['vis_dragon_phoenix_bangle','dragon_phoenix','#2ec4b6','#ff9e00']
+  ];
+  const relicByVisual = Object.fromEntries(relicThemes.map(([visualKey, shape, primary, secondary]) =>
+    [visualKey, Object.freeze({ visualKey, shape, primary, secondary })]));
+  R.LEGENDARY_GEAR_VISUALS = Object.freeze(Object.fromEntries(((g.VC && g.VC.LEGENDARY_EQUIPMENT) || [])
+    .filter(it => relicByVisual[it.visualKey]).map(it => [it.id, Object.freeze({ ...relicByVisual[it.visualKey],
+      id: it.id, nameTh: it.nameTh, slot: it.slot })])));
+  R.resolveLegendaryGearVisual = item => item && item.legendary === true
+    ? (R.LEGENDARY_GEAR_VISUALS[item.id] || null) : null;
+
 
   /* ---------- สีภูมิประเทศตามฤดู ---------- */
   const GRASS = [
@@ -153946,7 +153988,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       this.castLastTime = null;
       this.animClock = 0;
       this.animLastTime = null;
-      const baseline = (a, kind) => { if (a.castFx) this.castSeen.set(kind + ':' + a.id, a.castFx.seq + '|' + a.castFx.t); };
+      const baseline = (a, kind) => {
+        if(a.castFx) this.castSeen.set(kind+':'+a.id,a.castFx.seq+'|'+a.castFx.t);
+        if(a.lastWeaponProc) {const p=a.lastWeaponProc;this.castSeen.set('proc:'+kind+':'+a.id,p.t+'|'+p.weaponId+'|'+p.effectId);}
+      };
       W.npcs.forEach(a => baseline(a, 'npc'));
       (W.foes || []).forEach(a => baseline(a, 'foe'));
     },
@@ -154264,6 +154309,24 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const read = (a, kind) => {
         const key = kind + ':' + a.id;
         present.add(key);
+        const proc = a.lastWeaponProc, procKey = 'proc:' + key;
+        present.add(procKey);
+        if (proc && proc.triggered) {
+          const procStamp = proc.t + '|' + proc.weaponId + '|' + proc.effectId;
+          if (this.castSeen.get(procKey) !== procStamp) {
+            this.castSeen.set(procKey, procStamp);
+            const item = Object.values(a.equip || {}).find(it => it && it.id === proc.weaponId);
+            const spec = R.resolveLegendaryGearVisual(item);
+            const usable = item && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(a,item));
+            const pos = kind === 'npc' ? this.npcPos(a) : a;
+            if (spec && usable && !a.dead && !a.away && !a.gone && !a.hidden && Number.isFinite(proc.t) && W.t-proc.t >= 0 && W.t-proc.t <= 8 &&
+                Number.isFinite(pos.x) && Number.isFinite(pos.y) && Math.abs(pos.x*TS-this.cam.x) <= hw+80 && Math.abs(pos.y*TS-this.cam.y) <= hh+80) {
+              this.castActive.delete(procKey);
+              if(this.castActive.size>=24) this.castActive.delete(this.castActive.keys().next().value);
+              this.castActive.set(procKey,{relicId:spec.id,kind:'relic',x:pos.x*TS,y:pos.y*TS,angle:0,start:this.castClock,life:1250});
+            }
+          }
+        }
         const event = a.castFx;
         if (!event) return;
         const stamp = event.seq + '|' + event.t;
@@ -154271,13 +154334,13 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         this.castSeen.set(key, stamp);
         if (a.dead || a.away || a.gone || a.hidden || !Number.isFinite(event.t) || W.t - event.t < 0 || W.t - event.t > 8 || !Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
         const p = kind === 'npc' ? this.npcPos(a) : a, x = p.x * TS, y = p.y * TS;
-        if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x - this.cam.x) > hw + 48 || Math.abs(y - this.cam.y) > hh + 48) return;
+        if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x - this.cam.x) > hw + 96 || Math.abs(y - this.cam.y) > hh + 96) return;
+        const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
         const forbidden = event.kind === 'forbidden';
         const motif = event.motif || event.fxKind || (forbidden ? 'forbidden' : 'normal');
-        const isLegend = !!(event.legendary || (motif && String(motif).startsWith('legend_')));
+        const isLegend = !!(event.legendary || (techObj && techObj.legendary) || (motif && String(motif).startsWith('legend_')));
         this.castActive.delete(key);
         if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
-        const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
         const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
         const fusionKey = event.fusionId || event.fusion || null;
         this.castActive.set(key, {
@@ -154295,7 +154358,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           y,
           angle: Math.atan2(event.y * TS - y, event.x * TS - x),
           start: this.castClock,
-          life: (event.signatureVfx || isLegend) ? 920 : (forbidden ? 650 : 450)
+          life: isLegend ? 1500 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -154709,16 +154772,127 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       }
     },
 
+    // Larger, three-beat legendary presentation; signature presence never masks an authored motif.
+    drawLegendaryArtVfx(ctx, fx, p, reduced) {
+      const art = R.LEGENDARY_ART_VISUALS[fx.techId];
+      const low = this.resolveQuality() === 'low';
+      const phase = reduced ? 0.5 : p;
+      const r = reduced ? 42 : 34 + Math.sin(Math.min(1, p / 0.75) * Math.PI / 2) * 19;
+      const motif = (art && art.motif) || fx.motif || fx.fxKind;
+      const path = art && R.resolvePathVisualSignature(art.path);
+      const ink = LEGENDARY_MOTIFS[motif] || path || { primary: '#ffd166', secondary: '#90e0ef' };
+      ctx.save();
+      ctx.strokeStyle = ink.primary; ctx.lineWidth = 2.2;
+      ctx.globalAlpha *= p < 0.18 ? 0.5 + p * 2 : 0.75;
+      ctx.beginPath(); ctx.ellipse(0, 5, r * 1.25, r * 0.52, 0, 0, 7); ctx.stroke();
+      if (!low) {
+        ctx.strokeStyle = ink.secondary; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.ellipse(0, 5, r * 1.45, r * 0.61, 0, 0, 7); ctx.stroke();
+      }
+      if (p >= 0.13 || reduced) {
+        if (LEGENDARY_MOTIFS[motif] && LEGENDARY_MOTIFS[motif].kind === 'cast') {
+          this.drawLegendaryCastMotif(ctx, { ...fx, motif }, phase, r, reduced);
+        } else {
+          if (art && path) {
+            ctx.save(); ctx.scale(2.2, 2.2);
+            this.drawPathApexCrownGeometry(ctx, art.path, path, -13, phase * 2.2, true, low || reduced);
+            ctx.restore();
+          }
+          if (fx.signatureVfx) this.drawSignatureSkillVfx(ctx, fx, phase, r * 0.82, reduced);
+          else this.drawLegendaryCastMotif(ctx, fx, phase, r, reduced);
+        }
+      }
+      ctx.restore();
+    },
+
+    // Twenty-seven authored silhouettes, shared by ambient manifestation and real proc bursts.
+    drawLegendaryRelicGlyph(ctx, spec, r, phase, reduced) {
+      if (!spec) return false;
+      const low = this.resolveQuality() === 'low';
+      const t = reduced ? 0 : phase;
+      const line = (points, close = false) => {
+        ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x * r, y * r) : ctx.moveTo(x * r, y * r));
+        if (close) ctx.closePath(); ctx.stroke();
+      };
+      const circle = (x, y, radius) => { ctx.beginPath(); ctx.arc(x * r, y * r, radius * r, 0, Math.PI * 2); ctx.stroke(); };
+      const wing = (side, lift) => line([[0,0],[side * .35,-lift],[side,-.4],[side*.7,.05],[side*.4,-.05]]);
+      ctx.save();ctx.strokeStyle = spec.primary;ctx.fillStyle = spec.secondary;ctx.lineWidth = 1.5;
+      switch (spec.shape) {
+        case 'sky_blade': line([[0,.9],[0,-1.2],[.18,-.7],[0,-1.2],[-.18,-.7]]);line([[-.4,.4],[.4,.4]]);circle(0,0,.65);break;
+        case 'mountain': line([[-1,.8],[-.4,-.7],[0,-1.15],[.4,-.4],[1,.8]],true);line([[-.3,.7],[0,-.6],[.3,.7]]);break;
+        case 'dragon':
+        case 'storm_dragon': {
+          const storm = spec.shape === 'storm_dragon';
+          const points = Array.from({length:13},(_,i)=>[(i/6-1),Math.sin(i*.8+t)*.4]);line(points);
+          line([[.6,-.3],[1.15,-.5],[1,.1],[.6,.3]]);
+          if(storm) line([[-.2,-1],[.15,-.4],[-.15,-.2],[.3,.8]]);
+          else {circle(-.45,.3,.35);line([[-.6,.7],[-.8,1],[-.2,.75]]);}break;
+        }
+        case 'moon': ctx.beginPath();ctx.arc(0,0,r,-1.5,1.5);ctx.arc(-r*.45,0,r*.8,1.2,-1.2,true);ctx.stroke();break;
+        case 'heart_dart': line([[-1,.45],[.9,-.7],[.45,-.1],[.9,-.7],[.15,-.65]]);circle(-.55,.2,.25);break;
+        case 'jade_bamboo': line([[0,1],[0,-1]]);for(const y of [-.6,0,.6]){line([[-.18,y],[.18,y]]);line([[0,y],[.6,y-.35],[.3,y-.4]]);}break;
+        case 'war_banner': line([[-.6,1],[-.6,-1.1],[.65,-.9],[.35,-.4],[-.6,-.5]]);line([[.1,.9],[.1,-.3],[.4,-.6]]);break;
+        case 'tiger': line([[-.9,-.4],[-.7,-1],[-.3,-.6],[.3,-.6],[.7,-1],[.9,-.4],[.65,.6],[0,1],[-.65,.6]],true);line([[-.6,-.1],[-.2,.1]]);line([[.6,-.1],[.2,.1]]);line([[-.3,.5],[.3,.5]]);break;
+        case 'condor': wing(-1,1);wing(1,1);line([[-.3,.4],[0,.9],[.3,.4]]);break;
+        case 'peacock': for(let i=0;i<5;i++){const a=(i-2)*.5;line([[0,.8],[Math.sin(a),-Math.cos(a)]]);circle(Math.sin(a),-Math.cos(a),.14);}break;
+        case 'phoenix_strings': wing(-1,.65);wing(1,.65);for(let i=-1;i<=1;i++)line([[-.7,i*.22],[.7,i*.22]]);line([[-.4,.4],[0,1.2],[.4,.4]]);break;
+        case 'judgment_script': line([[-.7,.8],[.5,-.9],[.75,-1],[.7,-.7]]);line([[-.9,-.6],[-.2,-.6],[-.2,.1],[.4,.1]]);line([[-.8,-.2],[.1,-.2]]);break;
+        case 'fate_threads': for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(-r,(k-1)*r*.35);ctx.bezierCurveTo(-r*.3,-r*(1-k*.25),r*.3,r*(1-k*.25),r,(k-1)*r*.35);ctx.stroke();}circle(.6,-.3,.2);break;
+        case 'bodhi': circle(0,0,.85);for(let i=0;i<8;i++){const a=i*Math.PI/4;circle(Math.cos(a)*.85,Math.sin(a)*.85,.13);}line([[-.3,1],[0,1.35],[.3,1]]);break;
+        case 'devouring_maw': line([[-1,-.7],[-.7,.7],[0,1],[.7,.7],[1,-.7],[.5,-.2],[.3,-.7],[0,0],[-.3,-.7],[-.5,-.2]],true);circle(0,.4,.25);break;
+        case 'flower_needles': for(let i=0;i<5;i++){const a=i*Math.PI*2/5;circle(Math.cos(a)*.5,Math.sin(a)*.5,.38);line([[0,0],[Math.cos(a)*1.25,Math.sin(a)*1.25]]);}break;
+        case 'tempest_fan': line([[-1,-.6],[0,1],[1,-.6]]);ctx.beginPath();ctx.arc(0,r,r*1.8,-2.2,-.94);ctx.stroke();for(let i=-1;i<=1;i++)line([[0,1],[i*.5,-.65]]);break;
+        case 'nine_palaces': ctx.strokeRect(-r,-r,r*2,r*2);for(let i=-1;i<=1;i++){line([[i/3,-1],[i/3,1]]);line([[-1,i/3],[1,i/3]]);}circle(0,0,.4);break;
+        case 'golden_abacus': ctx.strokeRect(-r,-r*.7,r*2,r*1.4);for(let i=-1;i<=1;i++){line([[i*.55,-.7],[i*.55,.7]]);circle(i*.55,i*.17,.17);}break;
+        case 'crane_wings': wing(-1,1.25);wing(1,1.25);line([[0,.6],[0,-.9],[.3,-1.1]]);break;
+        case 'kirin': line([[-.7,.7],[-.6,-.2],[-.3,-.7],[0,-1.2],[.3,-.7],[.6,-.2],[.7,.7],[0,1]],true);line([[-.8,-.8],[-.3,-.4],[.3,-.4],[.8,-.8]]);circle(0,.15,.3);break;
+        case 'tortoise': ctx.beginPath();ctx.ellipse(0,0,r,r*.8,0,0,7);ctx.stroke();line([[-.5,0],[-.25,-.45],[.25,-.45],[.5,0],[.25,.45],[-.25,.45]],true);for(let i=0;i<4;i++){const a=i*Math.PI/2+.6;line([[Math.cos(a)*.8,Math.sin(a)*.65],[Math.cos(a)*1.35,Math.sin(a)*1.1]]);}break;
+        case 'samsara': circle(0,0,1);circle(0,0,.4);for(let i=0;i<6;i++){const a=i*Math.PI/3+t*.2;line([[Math.cos(a)*.4,Math.sin(a)*.4],[Math.cos(a),Math.sin(a)]]);}break;
+        case 'star_beads': for(let i=0;i<7;i++){const a=i*Math.PI*2/7;circle(Math.cos(a)*.85,Math.sin(a)*.85,.12);}line([[-.3,0],[.3,0],[0,-.4],[0,.4]]);break;
+        case 'imperial_seal': ctx.strokeRect(-r*.7,-r*.65,r*1.4,r*1.3);line([[-.35,-.35],[.35,-.35],[0,-.35],[0,.4]]);line([[-.4,.1],[.4,.1]]);line([[-.4,-.8],[0,-1.15],[.4,-.8]]);break;
+        case 'dragon_phoenix': ctx.beginPath();ctx.arc(0,0,r,-.3,2.7);ctx.stroke();ctx.strokeStyle=spec.secondary;ctx.beginPath();ctx.arc(0,0,r*.7,2.7,6);ctx.stroke();wing(1,.8);line([[-.8,.5],[-.4,.1],[-.65,-.5]]);break;
+        default: circle(0,0,.8);
+      }
+      if (!low && !reduced) {
+        ctx.strokeStyle=spec.secondary;ctx.lineWidth=.8;
+        for(let i=0;i<3;i++){const a=t*.7+i*Math.PI*2/3;circle(Math.cos(a)*1.45,Math.sin(a)*1.1,.055);}
+      }
+      ctx.restore();return true;
+    },
+
+    drawLegendaryEquipmentAura(ctx, n, ap, by) {
+      const gear = (ap && ap.legendaryGear) || [];
+      if (!gear.length) return false;
+      const reduced = this.isReducedMotion();
+      const phase = reduced ? 0 : this.t + (n.n || 0) * .37;
+      ctx.save();
+      for (const spec of gear) {
+        ctx.save();
+        if(spec.slot === 'WEAPON') ctx.translate(11, -12 + by);
+        else if(spec.slot === 'ARMOR') ctx.translate(0, -10 + by);
+        else ctx.translate(-12, -18 + by);
+        ctx.globalAlpha *= spec.slot === 'ARMOR' ? .42 : .8;
+        this.drawLegendaryRelicGlyph(ctx,spec,spec.slot==='ARMOR'?12:6,phase,reduced);
+        ctx.restore();
+      }
+      ctx.restore();return true;
+    },
+
     drawCastEffects(ctx) {
       const reduced = this.isReducedMotion();
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
         ctx.save(); ctx.translate(fx.x, fx.y - 7); ctx.globalAlpha = fade; ctx.lineCap = 'round';
-        if (fx.signatureVfx) {
-          this.drawSignatureSkillVfx(ctx, fx, p, r, reduced);
-          if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+        if (fx.relicId && R.LEGENDARY_GEAR_VISUALS[fx.relicId]) {
+          const spec = R.LEGENDARY_GEAR_VISUALS[fx.relicId];
+          ctx.strokeStyle=spec.secondary;ctx.lineWidth=2;
+          ctx.beginPath();ctx.ellipse(0,5,r*1.4,r*.6,0,0,7);ctx.stroke();
+          this.drawLegendaryRelicGlyph(ctx,spec,reduced?25:20+Math.sin(p*Math.PI)*16,reduced?0:p*3,reduced);
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
-          this.drawLegendaryCastMotif(ctx, fx, p, r, reduced);
+          this.drawLegendaryArtVfx(ctx,fx,p,reduced);
+          if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+        } else if (fx.signatureVfx) {
+          this.drawSignatureSkillVfx(ctx, fx, p, r, reduced);
           if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
         } else if (fx.kind === 'normal') {
           if (fx.element || fx.fusion) {
@@ -154774,6 +154948,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
       const t = this.t + (n.n || 0) * 0.7;
       ctx.save();
+      ctx.scale(1.35, 1.35);
       for (const lp of legPass) {
         if (lp.fxKind === 'legend_aura_mingyu') {
           ctx.strokeStyle = 'rgba(128,222,234,0.72)'; ctx.lineWidth = 1.2;
@@ -155385,7 +155560,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const accStars = accObj ? (accObj.stars || accObj.star || (accObj.legendary ? 3 : accTier >= 5 ? 2 : accTier >= 3 ? 1 : 0)) : 0;
       const petObj = (n && Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n && n.pet ? n.pet : null);
       const petSig = petObj ? `${petObj.speciesId || petObj.id || 'pet'}:${petObj.stage || petObj.tier || 1}:${petObj.awakenedSymbol || ''}` : '';
-      const sig = `${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${cStage}|${eqW}|${wUsable ? 1 : 0}|${wTier}:${wStars}|${eqA}:${aTier}:${aStars}|${eqAcc}:${accTier}:${accStars}|${petSig}`;
+      const legendaryGear = Object.values((n && n.equip) || {}).filter(it => it && R.resolveLegendaryGearVisual(it) &&
+        (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n,it))).map(it => R.resolveLegendaryGearVisual(it));
+      const gearIdentity = Object.entries((n && n.equip) || {}).map(([slot,it]) => slot+':'+(it && it.id)+':'+!!(it && it.legendary)).join('|') + '|' + legendaryGear.map(it=>it.id).join(',');
+      const sig = `${gearIdentity}|${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${cStage}|${eqW}|${wUsable ? 1 : 0}|${wTier}:${wStars}|${eqA}:${aTier}:${aStars}|${eqAcc}:${accTier}:${accStars}|${petSig}`;
 
       if (this.apCache && n && n.id) {
         const cached = this.apCache.get(n.id);
@@ -155426,6 +155604,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         armorTier: aTier,
         accessoryTier: accTier,
         highestGearTier: Math.max(wTier, aTier, accTier),
+        legendaryGear,
         totalGearStars: Math.min(9, wStars + aStars + accStars),
         weaponStars: wStars,
         weaponElement: (wpnObj && (wpnObj.element || (Array.isArray(wpnObj.runes) && wpnObj.runes[0]))) || (n && n.cult && n.cult.element) || null,
@@ -155529,6 +155708,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         this.drawPathSignatureMotes(ctx, n, ap, act, -bob);
       }
       this.drawEquipmentTierAura(ctx, n, ap, -bob);
+      this.drawLegendaryEquipmentAura(ctx, n, ap, -bob);
       this.drawWeaponSoulAndSetResonance(ctx, n, ap, -bob);
 
       // Patch v5.5.0: Mantra Dharma Circle & Archetype Resonance Visuals
@@ -155849,13 +156029,16 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         const ox = Math.cos(ang) * 9.5, oy = -10 + by + Math.sin(ang * 1.5) * 3.5;
         ctx.strokeStyle = vk === 'vis_yitian_sword' ? 'rgba(114,239,221,0.75)' : vk === 'vis_xiaoli_dagger' ? 'rgba(255,214,112,0.8)' : 'rgba(46,196,182,0.75)';
         ctx.lineWidth = 1.25;
-        ctx.beginPath();
-        ctx.moveTo(ox - 2.5, oy - 1.5);
-        ctx.lineTo(ox + 2.5, oy + 1.5);
-        ctx.stroke();
+        ctx.save();ctx.translate(ox,oy);
+        this.drawLegendaryRelicGlyph(ctx,relicByVisual[vk],3.6,t,this.isReducedMotion());
+        ctx.restore();
       }
 
-      if (vk === 'vis_yitian_sword') {
+      if (['vis_bodhi_nirvana_rosary','vis_taotie_devouring_claw','vis_baihua_soul_needle','vis_bajiao_tempest_fan','vis_hetu_luoshu_astrolabe','vis_caishen_golden_abacus'].includes(vk)) {
+        ctx.save();ctx.translate(hx+2,hy-3);
+        this.drawLegendaryRelicGlyph(ctx,relicByVisual[vk],5.5,t,this.isReducedMotion());
+        ctx.restore();
+      } else if (vk === 'vis_yitian_sword') {
         ctx.strokeStyle = '#72efdd'; ctx.lineWidth = 1.8;
         ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + (activeCombat ? 11 : -5), hy - 10.5); ctx.stroke();
         ctx.strokeStyle = '#f4d35e'; ctx.lineWidth = 2.2;
@@ -156009,6 +156192,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const wType = (ap && ap.weaponType) || (n.act && n.act.ctx && n.act.ctx.skill) || '';
 
       if (act === 'practice' || act === 'skillDrill' || act === 'fight' || act === 'guard' || (act === 'pair' && n.act?.ctx?.pair?.type === 'spar')) {
+        if (ap && ap.weaponUsable && relicByVisual[ap.weaponVisualKey]) return;
         if (!weapon && (wType === 'FIST_PALM' || wType === 'MOVEMENT' || wType === 'BODY_REFINING' || wType === 'SOUL_DIVINE' || wType === 'POISON' || !wType)) {
           // Unarmed / Palm / Body / Movement build: draw martial palm-qi aura instead of a fake sword
           const pCol = n.cult ? PATH_COL[n.cult.path] : '#f0cf68';
@@ -158779,7 +158963,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     },
 
     drawOrbitingFlyingWeapon(ctx, n, ap, by, act) {
-      if (!ap || !ap.hasFlyingSword) return false;
+      if (!ap || !ap.hasFlyingSword || (ap.legendaryGear || []).some(it=>it.slot==='WEAPON')) return false;
       const t = this.t + (n.n || 0) * 1.1;
       const speed = act === 'fight' ? 3.8 : 2.1;
       const ang = t * speed;
@@ -158832,7 +159016,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       }
 
       // 2. Weapon Soul Spirit Manifestation (器灵显化) floating above T6-T7 / Legendary wielder
-      if (ap.hasWeaponSoul) {
+      if (ap.hasWeaponSoul && !(ap.legendaryGear || []).some(it=>it.slot==='WEAPON')) {
         const sx = -5.5 + Math.cos(t * 1.8) * 2.2;
         const sy = -22.5 + by + Math.sin(t * 2.4) * 1.6;
         ctx.globalAlpha = 0.78;
@@ -159649,6 +159833,14 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       }
       c.restore();
     }
+
+    [wpnObj, armObj, accObj].forEach((it, i) => {
+      const spec = R.resolveLegendaryGearVisual(it);
+      if (!spec || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(n,it))) return;
+      c.save();c.translate(6+i*14,35);
+      R.methods.drawLegendaryRelicGlyph.call({resolveQuality:()=> 'low'},c,spec,3.1,0,true);
+      c.restore();
+    });
 
     // 7. Rank Coronet / Headpiece
     if (n.rank === 6) {
@@ -161280,6 +161472,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const [npcIdArg, sigOrTechId] = String(arg || '').split('|');
       const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
       if (n && g.SK) {
+        const previewTech = CULT.tech(sigOrTechId);
         const sigKey = (g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigOrTechId])
           ? sigOrTechId
           : (g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(CULT.tech(sigOrTechId) || { id: sigOrTechId, legendary: true })) || 'sig_meteor_sword_rain';
@@ -161289,7 +161482,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           t: W.t,
           kind: 'normal',
           signatureVfx: sigKey,
-          legendary: true,
+          legendary: !!(previewTech && previewTech.legendary),
+          motif: previewTech && previewTech.fxKind || null,
           techId: sigOrTechId || sigKey,
           x: (Number.isFinite(n.x) ? n.x : 118) + 3,
           y: Number.isFinite(n.y) ? n.y : 75

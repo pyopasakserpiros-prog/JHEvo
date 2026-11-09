@@ -324,3 +324,8 @@ node test/v209_facilities_party_synergy_suite.js
   - Maps 241 real high-tier, legendary, forbidden, defensive, and support techniques across all 43 paths. Every single one of the 43 paths has between 4 and 49 real active techniques that resolve a bespoke `signatureVfx`.
   - In `js/combat.js` (`useSkill`), `isForbid` now recognizes `FORBIDDEN_GRAND_DAO` (`TECH_V230_*_FORBIDDEN`) in addition to `FORBIDDEN_ART` and `FORBIDDEN_TECHNIQUE`, emitting `a.castFx = { kind: 'forbidden', signatureVfx, ... }` during live combat.
 - **Verification**: `node GAME_SOURCE/test/v250_pathbound_visuals_suite.js` and `node GAME_SOURCE/test/skill_visual_events.js`.
+
+## JS2-v2.5.0 visual-only refinement (2026-11-09)
+- No changes to damage, proc probability, cooldowns, costs or stats. Rendering consumes `castFx` and the existing `lastWeaponProc` producer in `VC.runWeaponProcs` / `runWeaponOnStruckProcs` (field `weaponId` can refer to weapon, armor or accessory).
+- Runtime catalog checked here: 50 legendary techniques and 27 authored relics (20 weapons + 3 armors + 4 accessories), superseding historical 21-relic notes above for this visual feature only.
+- Never fire gameplay procs from render functions. On adding a relic or art, supply a distinct thematic presentation and test real event producer-to-renderer integration; see `legendary_visual_identity_suite`.

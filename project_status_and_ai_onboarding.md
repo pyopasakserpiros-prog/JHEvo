@@ -1,5 +1,18 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
+## JS2-v2.5.0 — Legendary Visual Identity refinement (2026-11-09)
+
+ฐานพัฒนาต่อจาก `main e048b5f`: เพิ่มภาพเฉพาะสำหรับ **วิชาตำนาน 50 บท (47 บทที่ร่ายได้ + 3 พาสซีฟ)** และ **อุปกรณ์ตำนาน 27 ชิ้น (20 อาวุธ + 3 เกราะ + 4 เครื่องประดับ)** โดยไม่เปลี่ยนสูตรต่อสู้หรือ save schema และยังไม่ได้ดำเนินงาน JS2-v2.6.0
+
+- วิชาตำนานมีจังหวะรวมพลัง/สำแดง/จางหาย 1,500 ms และรัศมีหลัก 34–53 หน่วย เทียบ Signature ทั่วไป 920 ms และรัศมี 18–31; Motif เฉพาะบทมีลำดับเหนือ Signature VFX ส่วนวิชาตำนานมหาวิถีรุ่นใหม่มีสัญลักษณ์วิถีประกอบ Signature จึงต่างกันแม้ใช้ Signature เดียวกัน
+- อุปกรณ์ทั้ง 27 ชิ้นมี glyph ตามธีมเฉพาะชิ้น; แยกตำแหน่งอาวุธ/เกราะ/เครื่องประดับ มี burst 1,250 ms จาก `lastWeaponProc` จริง ภาพนี้สงวนสำหรับไอเท็มตำนานที่สวมอยู่และใช้งานได้ ของ T7 ทั่วไปใช้ภาพ Tier เดิม
+- ครบทรงถืออาวุธตำนาน 20 ชิ้น แก้ทรงทั่วไปวาดทับทรงเฉพาะ เปลี่ยนดาบบิน/ดวงวิญญาณทั่วไปของอาวุธตำนานเป็น glyph ของชิ้นนั้น มีตราเฉพาะใน portrait และแสดงใน diorama ผ่าน renderer เดียวกัน
+- ภาพทั้งหมดอ่านสถานะจริง ไม่เปลี่ยนโลกหรือ RNG; คิวรวมร่าย/อุปกรณ์ไม่เกิน 24 รายการ หยุดเวลาแล้วภาพหยุด โหลดโลกแล้วไม่ฉาย event เก่า โหมด Low ลดเครื่องประดับและ Reduced Motion คงรูปทรงโดยไม่หมุนอนุภาค
+- การเพิ่ม legend ใหม่ต้องเพิ่ม Motif หรือการสำแดงตามวิถี และเพิ่มธีมอุปกรณ์ใน `Render.LEGENDARY_GEAR_VISUALS` ตาม catalog จริง พร้อมทดสอบความต่างของภาพ ไม่รับรองว่า legend ที่เพิ่มในอนาคตจะมีภาพเฉพาะโดยอัตโนมัติ
+
+ผลตรวจและภาพ: [รายงาน refinement](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). ใบสั่งงานถัดไปยังเป็น `ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`.
+
+
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)  
 **ยุคและภาคปัจจุบัน**: **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
 **เวอร์ชันแพ็กเกจ**: **`JS2-v2.5.0`** (runtime patch identifier `2.5.0` | SIM Version `1.10.11` | Save Schema `2.4.0-tactical-composable-grand-dao` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.5.0 Release Ready — 43/43 Path Ascendant Visuals & 30 Signature VFX ครบสมบูรณ์ ผ่านชุดทดสอบ 142/142 กลุ่ม (141 test suites + 1 syntax check)` | Active Target: `JS2-v2.6.0`)
