@@ -88,3 +88,8 @@ node test/inventory_grid_ui_suite.js
 - `updateCastEffects` consumes actual `lastWeaponProc` snapshots, filters stale/dead/hidden/offscreen actors and unusable/unequipped relics. `setWorld` baselines both cast and proc stamps; actor despawn prunes `castSeen`. Cosmetic clocks freeze while paused.
 - `drawLegendaryRelicGlyph` drops orbit ornament dots on low quality and reduced motion; art crowns simplify on low quality. Reduced motion uses fixed geometry phases while retaining the expiration/fade envelope. No screen shake, global flashes, dependencies or new script tags.
 - Test visual identity in `legendary_visual_identity_suite` and `legendary_visual_browser`, together with `runtime_timing` and `browser_mobile_perf`. Distinct static pixel hashes prove visible identity at tested phases; they do not constitute an FPS guarantee on physical low-end phones.
+
+## JS2-v2.5.0 generated item art (2026-11-09)
+- Four shared 1254² transparent WebP atlases (~3.8 MiB total), CSS background-position crops; no per-item texture file/request and no continuously animated icon shaders. Seven sword tiers use distinct cells; grade finishes use bounded CSS filters and static accents.
+- Modular UI stores asset URLs in one generated catalog; build_single embeds each sheet once as a WebP data URI (~15.3 MiB total single HTML). Browser engine shares atlas resources across inventory cells. This raises decoded image memory versus the old vector atlas; physical low-end Android FPS is not certified by desktop viewport tests.
+- Icon resolution reads simulation/catalog metadata, never generates items or consumes world RNG. Inventory remains paginated. Validate actual atlas decoding at 360/412/1280 widths and standalone with item_art_browser.

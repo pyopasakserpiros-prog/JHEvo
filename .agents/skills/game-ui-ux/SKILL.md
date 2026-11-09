@@ -169,3 +169,10 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 - `drawLegendaryWeaponVisual` covers 20 named weapons. `drawProp` skips generic held props only when a supported authored silhouette is present and usable; work/activity props remain available.
 - Edit Hub `preview-signature-vfx` resolves rarity and motif from the actual technique. A raw Signature preview is not automatically legendary.
 - Verify `node test/legendary_visual_identity_suite.js` and `node test/legendary_visual_browser.js` from GAME_SOURCE. Gallery exports in docs/visuals/legendary are browser-rendered reference frames, not a replacement for actual animation review.
+
+## JS2-v2.5.0 Item Art Variety refinement (2026-11-09)
+- `UI.resolveItemArt(item)` returns `{sheet,cell,col,row,key,tier,grade,rank,role,...}` from actual item/tech/material/recipe/organ data and wrapper templateId/eq/gear aliases. `UI.renderAtlasIconHtml` uses four WebP sheets, small category seals and grade finishes. Old `UI.resolveItemAtlasCell` / data-atlas-key remain semantic compatibility metadata, not the new art address.
+- Fixed authoring map: `GAME_SOURCE/docs/ITEM_ART_CATALOG.json`, four 8×8 atlases, 256 prepared cells, 50 separate legendary technique scrolls and 27 separate relics. Seven sword Tier silhouettes. Other categories share semantic art with Tier/grade finishes; not one file per item.
+- `UI.itemArtGrade` honors actual grade/rarity; high Tier alone no longer marks ordinary gear legendary in stock/shop/bag view builders. Refined has a green frame; five grade finishes preserve Tier/quality badges. Material physical family outranks elemental words.
+- Regenerate catalog with `node tools/build_item_art.js`, then `node tools/build_single.js` (embeds all four images). Do not apply legacy generate_item_atlas.py to the new painted assets. Legacy fish/boots/helmets/trash/unknown fallbacks stay available.
+- Run `test/item_art_catalog_suite.js`, `test/item_art_browser.js` plus inventory_grid_ui_suite and graphics_overhaul_suite. Named legendary IDs must each resolve distinct cells; low-tier shared art is intentional.

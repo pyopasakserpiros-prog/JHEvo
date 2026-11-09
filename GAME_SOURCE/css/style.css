@@ -263,3 +263,22 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 @keyframes atlas-party{50%{box-shadow:0 0 0 6px #c0392b00,0 0 0 2px #c0392b55}}
 .atlas-layers{margin-top:-2px}
 @media (prefers-reduced-motion:reduce){.atlas-party{animation:none}}
+
+/* Generated item art: shared atlas cells, explicit Tier/grade and typed manual seals. */
+.item-art{position:relative;display:inline-block;overflow:hidden;border-radius:7px;background:radial-gradient(ellipse at 50% 60%,color-mix(in srgb,var(--item-tier) 18%,transparent),transparent 72%);isolation:isolate}
+.item-art-picture{position:absolute;inset:0;display:block;background-repeat:no-repeat;image-rendering:auto}
+.item-art-grade{position:absolute;bottom:0;right:1px;max-width:100%;padding:0 2px;border-radius:3px;background:rgba(5,24,20,.8);color:var(--item-grade);font-size:8px;line-height:9px;letter-spacing:.4px;text-shadow:0 1px 1px #000}
+.item-art-role{position:absolute;left:0;bottom:1px;width:12px;height:12px;border-radius:50%;background:#102c26e8;color:#f6e3b5;font-size:10px;line-height:12px;text-align:center}
+.item-art.grade-Rare .item-art-picture{filter:drop-shadow(0 0 2px #63baff)}
+.item-art.grade-Exceptional{box-shadow:inset 0 0 0 1px #ca8fff70}
+.item-art.grade-Legendary{box-shadow:inset 0 0 0 1px #ffe3a0b0;background:radial-gradient(ellipse at 50% 55%,#f2c35038,transparent 75%)}
+.item-art.tier-2 .item-art-picture{background-color:#68ce9212}
+.item-art.tier-3 .item-art-picture{background-color:#6dbdff17}
+.item-art.tier-4 .item-art-picture{background-color:#ba8ef21a}
+.item-art.tier-5 .item-art-picture{background-color:#f3b5671c}
+.item-art.tier-6 .item-art-picture{background-color:#ff7c8520}
+.item-art.tier-7 .item-art-picture{background-color:#fff0b424}
+.item-art.tier-8 .item-art-picture{background-color:#83f5e22a}
+.item-art.tier-9 .item-art-picture{background-color:#efacff30}
+.inv-cell.r-Refined{border-color:#66d4a4aa;box-shadow:inset 0 0 0 1px #66d4a430}
+.inv-b-tl.ref{color:#8ee9b9;border-color:#66d4a4}

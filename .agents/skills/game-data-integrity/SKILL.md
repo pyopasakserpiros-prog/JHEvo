@@ -303,3 +303,9 @@ node test/resonance_tactics_assembly_suite.js
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 resolver ปฏิกิริยาธาตุที่ระบุชื่อต้องพบ spec และธาตุที่จำเป็นจริง; ห้ามตีความ schema pass ว่า reaction/opcode ทั้ง catalog ทำงาน ตรวจรหัสที่ยังขาดในรายงาน audit ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## JS2-v2.5.0 item illustration mapping (2026-11-09)
+- Presentation map is `GAME_SOURCE/docs/ITEM_ART_CATALOG.json`; runtime copy in ui.js is built by tools/build_item_art.js. It does not add items, recipes or acquisition sources. Existing canonical IDs and gameplay data are unchanged.
+- Current named visual coverage: 50 legendary techniques, 27 authored relics (20 weapons + 3 armor + 4 accessory); each has an explicit immutable cell assignment. Never depend on future runtime enumeration order for indices. A new legend must get an authored image/mapping, not silently reuse a random existing legend.
+- Icon classification supports templateId, eq/gear wrappers and P:/T:/S: aliases; recipe scrolls consult recipe.craft, crystals remain crystalline. Physical family wins over element words: blood-ginseng is a root, blood-crystal a crystal, heart/liver/lung/kidney/stomach use corresponding organ art. Tier and grade are independent.
+- Verify `test/item_art_catalog_suite.js` and `test/item_art_browser.js`; untouched old semantic atlas supports specialized fish and other fallback categories. Historical item counts elsewhere in this skill were not fully re-audited by this graphics patch.

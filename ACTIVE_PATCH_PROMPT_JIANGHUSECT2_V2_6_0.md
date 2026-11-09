@@ -1,5 +1,7 @@
 # ACTIVE PATCH PROMPT — JIANGHUSECT 2 (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
 
+> **ภาพไอเท็มในฐาน:** Item Art Variety refinement มีภาพเฉพาะ 50 legendary manuals / 27 relics แล้ว ใช้ `docs/ITEM_ART_CATALOG.json` ใน GAME_SOURCE และ `tools/build_item_art.js` เมื่อเพิ่ม named relic/manual ให้เลือกหรือเพิ่มภาพเฉพาะตามธีม; อย่าอนุมาน Legendary จาก Tier เพียงอย่างเดียว รักษา offline embedding และชุดทดสอบ `item_art_catalog_suite` / `item_art_browser` ดูรายงาน `PATCH_REPORTS/ITEM_ART_VARIETY_JS2_V2_5_0.md`
+
 > **ฐานก่อนเริ่มแพตช์นี้:** JS2-v2.5.0 รวม Legendary Visual Identity refinement แล้ว ให้คง `Render.LEGENDARY_ART_VISUALS`, `Render.LEGENDARY_GEAR_VISUALS`, Motif precedence และ event lifecycle ไว้ หากเพิ่ม named relic หรือวิชาตำนาน ให้เพิ่มภาพเฉพาะตามธีมและทดสอบด้วย `legendary_visual_identity_suite` / `legendary_visual_browser`. ดูรายงาน `PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md`. การเพิ่มภาพนี้ไม่ได้ทำข้อกำหนด JS2-v2.6.0 ส่วนอื่นแทนแล้ว
 
 > ## คำสั่งสำหรับ AI ที่รับ ZIP โปรเจกต์
