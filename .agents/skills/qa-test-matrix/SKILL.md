@@ -137,3 +137,10 @@ Earlier claims of 97/97 are historical and do not establish the status of the cu
 - Added `GAME_SOURCE/test/v250_pathbound_visuals_suite.js` to `GAME_SOURCE/test/run_all.js`.
 - Total registered test groups in `test/run_all.js` and `tools/run_parallel_tests.js`: **142 groups** (**141 test suites** + **1 syntax check group** across 217 JS files), including all 10 Chromium browser suites (`skill_visual_browser`, `outside_visual_browser`, `world_atlas_browser`, `lineage_chronicle_browser`, `ancestor_profile_browser`, `browser_mobile_perf`, etc.).
 - Latest `node tools/run_parallel_tests.js --concurrency=6` result: **`SUMMARY {"total":142,"pass":142,"fail":0,"timeout":0}`**.
+
+
+## Patch JS2-v2.6.0 Master QA Matrix Update (`148/148 Groups Passing`)
+- Added `GAME_SOURCE/test/v260_living_chronicle_and_reporting_suite.js` to `GAME_SOURCE/test/run_all.js`.
+- Updated `GAME_SOURCE/tools/cdp_playwright.js` (`bundleFileUrlHtml`) to inline `assets/item_art_*.webp` as data URIs when `Page.setDocumentContent` is used on `file://` URLs, and synced `n.px = n.x; n.py = n.y;` in `SIM.placeNear` (`js/sim.js`).
+- Total registered test groups in `test/run_all.js` and `tools/run_parallel_tests.js`: **148 groups** (**147 test suites** + **1 syntax check group** across 225 JS files), including all Chromium browser suites.
+- Latest `node tools/run_parallel_tests.js` result: **`SUMMARY {"total":148,"pass":148,"fail":0,"timeout":0} syntaxFiles=225`**.

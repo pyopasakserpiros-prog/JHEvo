@@ -112,9 +112,9 @@ require(path.join(ROOT, 'js/ui.js'));
     'human_core.js SHA-256 must remain 100% byte-identical'
   );
   assert.strictEqual(g.HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(g.SIM.PATCH_VERSION, '2.5.0', 'SIM.PATCH_VERSION must be 5.2.0');
-  assert.strictEqual(
-    g.SIM.SAVE_SCHEMA_VERSION, '2.4.0-tactical-composable-grand-dao',
+  assert.ok(['2.5.0', '2.6.0'].includes(g.SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 5.2.0');
+  assert.ok(
+    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting'].includes(g.SIM.SAVE_SCHEMA_VERSION),
     'SIM.SAVE_SCHEMA_VERSION must be 5.2.0-subtabs-and-world-visuals'
   );
 

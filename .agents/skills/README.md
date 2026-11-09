@@ -1,6 +1,6 @@
-# JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (Updated for JianghuSect 2 JS2-v2.5.0)
+# JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (Updated for JianghuSect 2 JS2-v2.6.0)
 
-All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, `<= 3.5 ms/tick` 80-NPC budget, and 142/142 passing test groups [141 test suites + 1 syntax check across 217 JS files] in `test/run_all.js`).
+All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, `<= 3.5 ms/tick` 80-NPC budget, and 148/148 passing test groups [147 test suites + 1 syntax check across 225 JS files] in `test/run_all.js`).
 
 ## Keeping the skills current
 
@@ -25,3 +25,5 @@ For each game patch, update every skill affected by the changes in the same chan
 Legendary Visual Identity (JS2-v2.5.0 refinement, 2026-11-09): see updated `game-ui-ux`, `web-performance`, `web-testing` and `combat-design` sections for the 50-art / 27-relic visual catalogs, real proc lifecycle, preview rarity and two new regression suites. Historical counts elsewhere are not a fresh full-skill audit.
 
 Item Art Variety (JS2-v2.5.0 refinement, 2026-11-09): game-ui-ux / game-data-integrity cover the fixed 576-cell / nine-sheet generated atlas catalog and Tier/grade rules; web-performance / web-testing cover shared WebP resources, offline embedding and the painted-art and all-equipment tier regression suites.
+
+Living Chronicle & Jianghu Reporting (`JS2-v2.6.0`, 2026-11-09): see updated `gameplay-architecture`, `game-ui-ux`, `save-system-patterns`, and `qa-test-matrix` sections for `EXPED.CHRONICLE_REPORT_FORMATS` (12 formats), `EXPED.presentChronicleEntry`, `EXPED.computePeriodDigest`, `EXPED.getStoryThreads`, `W.sect.newsPrefs` intake vs archive filtering, milestone-protected retention, `UI.rHistoricalPerson`, and `test/v260_living_chronicle_and_reporting_suite.js`.

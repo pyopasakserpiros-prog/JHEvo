@@ -1,6 +1,24 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
-> **งานถัดไปที่ผู้ใช้กำหนด (ยังไม่พัฒนา):** JS2-v2.6.0 พงศาวดารมีชีวิต/การรายงานยุทธภพ/ตัวกรองการรับข่าว ดู `START_HERE_FOR_AI.md` และใบสั่งงานปัจจุบัน ให้ Gemini ตรวจแหล่งข้อมูลจริง คิดเองและตัดสินใจเอง ไม่บังคับคัดลอกข้อเสนอ งาน authorship/barter/relic biography เดิมถูกพักใน docs/deferred/ ไม่ใช่เป้าหมายที่ต้องทำในแพตช์นี้
+> **สถานะปัจจุบัน (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว — 9 พฤศจิกายน 2026):** พัฒนาและทดสอบแพตช์ **JS2-v2.6.0 พงศาวดารมีชีวิต การรายงานยุทธภพ และตัวกรองการรับข่าว** เสร็จสมบูรณ์ 100% (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, ผ่านชุดทดสอบครบ **148/148 กลุ่ม**) ดูรายละเอียดใน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจ [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md) งาน authorship/barter/relic biography เดิมยังคงถูกพักไว้ใน `docs/deferred/`
+
+## JS2-v2.6.0 — Living Chronicle, Jianghu Reporting & News Filtering (2026-11-09)
+
+1. **Fact Snapshot ณ เวลาเกิดเหตุ, ป้ายความน่าเชื่อถือ (`epistemicStatus`), และระเบียนประวัติบุคคลย้อนหลัง (`js/sim.js`, `js/expedition.js`, `js/ui.js`)**:
+   - `SIM.snapshotPerson(W, n, statusOverride)` บันทึก `formerNames` อัตโนมัติเมื่อเปลี่ยนชื่อ พร้อม `pathNameTh`, `subNameTh`, `stageNameTh`, `topWhyTh` (`n.why[0][0]`), `goalId`, `goalTitleTh`, `aspirationId`, `merit`, `joinDay`, `deathDay`, `deathWhy`
+   - `EXPED.buildFactSnapshot(W, entry, actorSnapshots, fmtId)` เก็บข้อเท็จจริง ณ เวลาเกิดเหตุ แยกสถานะความน่าเชื่อถือ (`VERIFIED` 📜 บันทึกยืนยัน / `OBSERVED` 👁️ รายงานสังเกตการณ์ / `RUMOR` 🍶 ข่าวลือโรงเตี๊ยม)
+   - `UI.openNpc(id)` มี fallback เรียก `UI.findHistoricalPersonSnapshot(W, id)` เปิดหน้าต่าง `UI.rHistoricalPerson()` (`UI.sheet === 'hist_npc'`) สำหรับผู้ที่เสียชีวิต ฝังสุสาน ถูกขับไล่ สาบสูญ หรือเปลี่ยนชื่อ
+2. **การเชื่อมข้อมูลที่คำนวณจริงจาก Producer และการเรียบเรียงรายงาน 12 รูปแบบ (`EXPED.presentChronicleEntry`)**:
+   - ขยาย `EXPED.CHRONICLE_REPORT_FORMATS` เป็น 12 รูปแบบ (เพิ่ม `PERIODIC_SECT_DIGEST`)
+   - อัปเกรด `COMBAT.buildFightChroniclePayload(W, f)` ให้สรุป `summaryLineTh`, `outcomeLabelTh`, `mvp`, `casualties`, `injuredIds`, `overdriveBacklashIds`
+   - เชื่อมเหตุผลและตัวเลขจริงจาก `AI.step` (โอกาสทะลวงด่าน `chancePct` vs `targetPct` และสาเหตุหลอม/ปรุงยาล้มเหลว), `BN.daily` (เหตุผลรอหรือฝืนทะลวงคอขวด), `SECT.daily` & `EXT.daily` (การชะลอก่อสร้าง/ซื้อของเพื่อรักษากันชน `cashReserve`), และ `SECT.exposeEmbezzle` (ยอดที่ยักยอกและยอดริบคืน 60%)
+   - การ์ดรายงานมีโครงสร้าง: พาดหัว ➔ บทนำตามน้ำเสียง ➔ จุดเปลี่ยน/เหตุและผล ➔ ผลกระทบ/สิ่งที่น่าติดตาม ➔ ลิ้นชักรายละเอียดตัวเลขและ Snapshot ที่อธิบายความหมายในเกมจริง (`meaningTh`)
+3. **สมุดสรุปสถานการณ์สำนักประจำรอบ 1/7/30 วัน (`EXPED.computePeriodDigest` / `EXPED.recordPeriodicDigest`) และเส้นเรื่องต่อเนื่อง (`EXPED.getStoryThreads`)**:
+   - แยก 4 บัญชีออกจากกันอย่างเด็ดขาดไม่บวกซ้ำ: (1) คงคลังปลายงวดเทียบ `cashReserveFloor`, (2) รายรับ–รายจ่ายศิลาภายนอกสำนักจาก `W.sect.ledger`, (3) การโอนย้ายภายในสำนัก (แจกของรางวัล, แลก CP, บริจาค), และ (4) รายการเสก/แก้ไขโดยผู้เล่นผ่าน Edit Hub
+   - ผูกเส้นเรื่องต่อเนื่องจาก `storyThreadId` จริงโดยไม่เดาความสัมพันธ์
+4. **แยกตั้งค่าการรับข่าว (`W.sect.newsPrefs`) ออกจากตัวกรองค้นอ่านคลังประวัติ (`UI.logFilters`)**:
+   - 5 โหมดสำเร็จรูป (`ALL`, `MAJOR_ONLY`, `SECT_FOCUS`, `TRACKED_ONLY`, `QUIET_DIGEST`), นโยบายข่าววิกฤต 3 ระดับ (`ALWAYS_ALERT`, `FEED_ONLY`, `STRICT_MUTE`), ปักหมุดติดตามศิษย์คนสำคัญ, สถานะอ่านแล้ว/ยังไม่อ่าน (`EXPED.isEntryUnread`, `EXPED.markNewsRead`), และการคุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง (`EXPED.trimChroniclesWithMilestoneProtection` 200 รายการ / `W.sect.sectChronicle` 600 รายการ)
+   - การอ่าน/กรอง/เรียบเรียงรายงานบริสุทธิ์ 100% ไม่ขยับ `W.rng` และไม่เปลี่ยน `SIM.serialize(W)`
 
 ## JS2-v2.5.0 — All Equipment Tier Art Expansion (2026-11-09)
 
@@ -30,7 +48,7 @@
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)  
 **ยุคและภาคปัจจุบัน**: **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
-**เวอร์ชันแพ็กเกจ**: **`JS2-v2.5.0`** (runtime patch identifier `2.5.0` | SIM Version `1.10.11` | Save Schema `2.4.0-tactical-composable-grand-dao` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.5.0 Release Ready — 43/43 Path Ascendant Visuals & 30 Signature VFX ครบสมบูรณ์ ผ่านชุดทดสอบ 142/142 กลุ่ม (141 test suites + 1 syntax check)` | Active Target: `JS2-v2.6.0`)
+**เวอร์ชันแพ็กเกจ**: **`JS2-v2.6.0`** (runtime patch identifier `2.6.0` | SIM Version `1.10.11` | Save Schema `2.6.0-living-chronicle-and-reporting` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.6.0 Release Ready — พงศาวดารมีชีวิต การรายงานยุทธภพ 12 รูปแบบ สรุปประจำรอบ และตัวกรองการรับข่าว ครบสมบูรณ์ ผ่านชุดทดสอบ 148/148 กลุ่ม (147 test suites + 1 syntax check across 225 JS files)`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  

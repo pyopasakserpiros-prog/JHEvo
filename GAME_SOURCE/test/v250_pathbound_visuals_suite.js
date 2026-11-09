@@ -5,7 +5,7 @@
  *
  * Covers:
  * 1. Core Architectural Invariants: human_core.js SHA-256 & HC.FINGERPRINT ('155:2f9c9dd7'),
- *    SIM.PATCH_VERSION === '2.5.0', SIM.SAVE_SCHEMA_VERSION, and 40 <script> tags.
+ *    (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0'), SIM.SAVE_SCHEMA_VERSION, and 40 <script> tags.
  * 2. P0 — 43/43 Cultivation Path Visual Signatures (`R.PATH_VISUAL_SIGNATURES`):
  *    - Exact 43 keys matching `Object.keys(CULT.PATHS)` with zero fallback to generic sword motes.
  *    - True path ceiling `CULT.PATHS[pathId].maxStage` (4 for GOD, 5 for BODY, 8 for 38 paths, 9 for XIAN/DEMON/HEART_SOUL)
@@ -114,11 +114,10 @@ globalThis.window = globalThis.window || {
     'human_core.js must remain 100% byte-identical'
   );
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(SIM.PATCH_VERSION, '2.5.0', 'SIM.PATCH_VERSION must be 2.5.0');
+  assert.ok(['2.5.0', '2.6.0'].includes(SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 2.5.0');
   assert.ok(SIM.SUPPORTED_PATCHES.includes('2.5.0'), 'SIM.SUPPORTED_PATCHES must include 2.5.0');
-  assert.strictEqual(
-    SIM.SAVE_SCHEMA_VERSION,
-    '2.4.0-tactical-composable-grand-dao',
+  assert.ok(
+    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting'].includes(SIM.SAVE_SCHEMA_VERSION),
     'SIM.SAVE_SCHEMA_VERSION must remain stable when no new persistent save schema is required'
   );
 

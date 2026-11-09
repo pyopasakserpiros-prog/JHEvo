@@ -2021,7 +2021,16 @@
 
     if (!best) {
       if (bestBlockedByTreasury && W.rng.chance(0.4)) {
-        W.log('decision', m.h.name.given + ' ชะลอการขยาย' + bestBlockedByTreasury.b.nameTh + ' แม้พบความต้องการสูง (' + bestBlockedByTreasury.reason + ') เนื่องจากต้องสำรองศิลาคงคลังขั้นต่ำ ' + cashReserve + ' ศิลา (ปัจจุบันมี ' + Math.round(W.sect.stones) + ' ศิลา ต้องการ ' + bestBlockedByTreasury.needed + ' ศิลา)', [m.id, bestBlockedByTreasury.id]);
+        const curSt = Math.round(W.sect.stones);
+        W.log('decision', m.h.name.given + ' ชะลอการขยาย' + bestBlockedByTreasury.b.nameTh + ' แม้พบความต้องการสูง (' + bestBlockedByTreasury.reason + ') เนื่องจากต้องสำรองศิลาคงคลังขั้นต่ำ ' + cashReserve + ' ศิลา (ปัจจุบันมี ' + curSt + ' ศิลา ต้องการ ' + bestBlockedByTreasury.needed + ' ศิลา)', [m.id, bestBlockedByTreasury.id], {
+          storyThreadId: 'thread:governance:facility_' + bestBlockedByTreasury.id,
+          storyThreadTitleTh: 'การขยาย' + bestBlockedByTreasury.b.nameTh + 'และงบสำรองคลัง',
+          originCauseTh: 'พบความต้องการใช้งานสูง (' + bestBlockedByTreasury.reason + ') แต่ต้องรักษากันชนศิลาสำรองขั้นต่ำ ' + cashReserve + ' ศิลา',
+          consequenceTh: 'ชะลอโครงการขยาย ' + bestBlockedByTreasury.b.nameTh + ' (ค่าก่อสร้าง ' + bestBlockedByTreasury.cost + ' ศิลา) เพื่อป้องกันวิกฤตขาดสภาพคล่อง',
+          followUpTh: 'สะสมศิลาวิญญาณให้ถึง ' + bestBlockedByTreasury.needed + ' ศิลา (ขาดอีก ' + Math.max(0, bestBlockedByTreasury.needed - curSt) + ' ศิลา) เพื่อให้ขยายอาคารได้ปลอดภัย',
+          factDeltas: { stonesNow: curSt, cashReserve, buildCost: bestBlockedByTreasury.cost, neededTotal: bestBlockedByTreasury.needed },
+          promoteChronicle: true
+        });
       }
       return;
     }
@@ -2039,7 +2048,15 @@
       fd.congestedHours = 0;
       fd.lastCongestionHour = 0;
     }
-    W.log('decision', m.h.name.given + ' อนุมัติขยาย' + best.b.nameTh + ' เป็นระดับ ' + (best.b.level + 1) + '/' + SECT.maxBuildingLevel(best.b) + ' (ใช้ ' + best.cost + ' ศิลา) หลังพบความแออัดต่อเนื่อง (' + best.reason + ')', [m.id, best.id]);
+    W.log('decision', m.h.name.given + ' อนุมัติขยาย' + best.b.nameTh + ' เป็นระดับ ' + (best.b.level + 1) + '/' + SECT.maxBuildingLevel(best.b) + ' (ใช้ ' + best.cost + ' ศิลา) หลังพบความแออัดต่อเนื่อง (' + best.reason + ')', [m.id, best.id], {
+      storyThreadId: 'thread:governance:facility_' + best.id,
+      storyThreadTitleTh: 'การขยาย' + best.b.nameTh + 'และงบสำรองคลัง',
+      originCauseTh: 'พบความแออัดต่อเนื่อง (' + best.reason + ') และศิลาคงคลังสูงกว่าเกณฑ์สำรองปลอดภัย',
+      consequenceTh: 'เริ่มก่อสร้างขยาย ' + best.b.nameTh + ' สู่ระดับ ' + (best.b.level + 1) + ' (จ่าย ' + best.cost + ' ศิลา)',
+      followUpTh: 'รอการก่อสร้างแล้วเสร็จเพื่อเพิ่มสถานีรองรับศิษย์',
+      factDeltas: { buildCost: best.cost, targetLevel: best.b.level + 1 },
+      promoteChronicle: true
+    });
   };
 
   SECT.startResearch = (W, m) => {
@@ -2088,7 +2105,16 @@
   };
   SECT.exposeEmbezzle = (W, tre, by) => {
     const amt = tre.embezzled; tre.embezzled = 0;
-    W.log('scandal', 'ตรวจพบ ' + tre.h.name.given + ' ยักยอกคลังรวม ' + Math.round(amt) + ' ศิลา!', [tre.id]);
+    W.log('scandal', 'ตรวจพบ ' + tre.h.name.given + ' ยักยอกคลังรวม ' + Math.round(amt) + ' ศิลา!', [tre.id].concat(by ? [by.id] : []), {
+      storyThreadId: 'thread:governance:audit_' + tre.id,
+      storyThreadTitleTh: 'คดีตรวจสอบคลังสำนักของ ' + HC.fullName(tre),
+      originCauseTh: 'หอวินัยและเจ้าสำนักตรวจสอบบัญชีคลังหลังพบพิรุธสะสม',
+      consequenceTh: 'ยึดศิลาคืนเข้าคลัง ' + Math.round(amt * 0.6) + ' ก้อน และลงโทษถอดถอน/คุมขังผู้กระทำผิด',
+      followUpTh: 'แต่งตั้งผู้ดูแลคลังคนใหม่ที่มีความซื่อสัตย์ (Integrity) สูงขึ้น',
+      factDeltas: { embezzledAmt: Math.round(amt), recoveredAmt: Math.round(amt * 0.6) },
+      severity: 'CRITICAL',
+      promoteChronicle: true
+    });
     SECT.punish(W, tre, 3, 'ยักยอกทรัพย์สำนัก', by);
     ECO.earn(W, Math.round(amt * 0.6), 'ยึดคืนจากผู้ยักยอก');
     W.sect.suspicion = Math.max(0, (W.sect.suspicion || 0) - 30);

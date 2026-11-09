@@ -64,6 +64,11 @@ function bundleFileUrlHtml(url) {
     }
     return m;
   });
+  html = html.replace(/(['"])(assets\/item_art_[a-z]+\.webp)\1/g, (m, q, rel) => {
+    const p = path.resolve(dir, rel);
+    if (fs.existsSync(p)) return JSON.stringify("data:image/webp;base64," + fs.readFileSync(p).toString("base64"));
+    return m;
+  });
   if (html.includes('<head>')) {
     html = html.replace('<head>', '<head>\n' + LOCAL_STORAGE_SHIM);
   } else {

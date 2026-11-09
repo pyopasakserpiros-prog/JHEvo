@@ -1,93 +1,40 @@
-# JianghuSect 2 (ภาค 2) — JS2-v2.5.0 (Pathbound Ascendant Visuals & Signature Arts Release)
+# JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
 
-**ส่งต่อ Gemini:** โหลด ZIP สาขา main ทั้งโปรเจกต์ แล้วสั่ง **“เริ่มงานตาม START_HERE_FOR_AI.md”** งานถัดไปคือพงศาวดาร/รายงาน/ตัวกรองรับข่าว ผู้พัฒนาต้องตรวจและคิดเองอย่างละเอียด ใช้พรอมต์เป็นแนวอ้างอิงและตัดสินใจได้ตามเป้าหมายผู้ใช้
+**สถานะส่งมอบปัจจุบัน (`JS2-v2.6.0`):** พัฒนา ทดสอบ และส่งมอบแพตช์ **พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (`JS2-v2.6.0`)** เสร็จสมบูรณ์แล้ว ดูรายละเอียดได้ที่ [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจระบบที่ [JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
 
-> **All Equipment Tier Art (2026-11-09):** atlas ภาพไอเท็ม 9 แผ่น / 576 ช่อง; ภาพ T1–T7 ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา คงภาพเฉพาะตำนาน 50+27 รายการ ดู [รายงานและภาพตัวอย่าง](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md). ฐานยังเป็น JS2-v2.5.0; JS2-v2.6.0 เป็นงานถัดไป
+> **ไฮไลต์ `JS2-v2.6.0` (2026-11-09):**
+> - **Fact Snapshot & ประวัติบุคคลย้อนหลัง (`SIM.snapshotPerson`, `EXPED.buildFactSnapshot`, `UI.rHistoricalPerson`)**: เก็บข้อมูลตัวละคร ณ เวลาเกิดเหตุ พร้อมประวัติชื่อเดิม (`formerNames`) และหน้าต่างแผ่นป้ายจารึกประวัติสำหรับผู้ที่เสียชีวิต ฝังสุสาน ถูกขับไล่ หรือเปลี่ยนชื่อ
+> - **การรายงาน 12 รูปแบบ (`EXPED.presentChronicleEntry`)**: พาดหัว ➔ บทนำตามน้ำเสียง ➔ จุดเปลี่ยน/เหตุและผล ➔ ผลกระทบ/สิ่งที่น่าติดตาม ➔ ลิ้นชักตัวเลขและ Snapshot ที่อธิบายความหมายในเกมจริง พร้อมป้ายความน่าเชื่อถือ (`VERIFIED` / `OBSERVED` / `RUMOR`)
+> - **สมุดสรุปสถานการณ์สำนักประจำรอบ 1/7/30 วัน (`EXPED.computePeriodDigest`) & เส้นเรื่องต่อเนื่อง (`EXPED.getStoryThreads`)**: แยกปริมาณคงคลัง, กระแสศิลาวิญญาณรับ–จ่ายภายนอก, การโอนภายในสำนัก, และรายการเสกของผู้เล่นออกจากกันอย่างเด็ดขาด ไม่บวกซ้ำ
+> - **แยกตั้งค่าการรับข่าว (`W.sect.newsPrefs`) ออกจากตัวกรองค้นอ่านคลังประวัติ (`UI.logFilters`)**: มี 5 โหมดสำเร็จรูป (`ALL`, `MAJOR_ONLY`, `SECT_FOCUS`, `TRACKED_ONLY`, `QUIET_DIGEST`), นโยบายข่าววิกฤต 3 ระดับ, ปักหมุดศิษย์คนสำคัญ, สถานะอ่านแล้ว/ยังไม่อ่าน, และการคุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง (`Milestone-Protected Retention`)
 
-> **ฐานเพิ่มเติม 2026-11-09:** JS2-v2.5.0 มี Legendary Visual Identity refinement ครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนานแล้ว ดู [รายงานและผลทดสอบ](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). งาน JS2-v2.6.0 ยังคงเป็นแพตช์ถัดไป
+> **ฐานภาพจาก `JS2-v2.5.0` ที่รักษาไว้ครบถ้วน:**
+> - **All Equipment Tier Art:** atlas ภาพไอเท็ม 9 แผ่น / 576 ช่อง; ภาพ T1–T7 ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา ดู [รายงาน](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md)
+> - **Legendary Visual Identity:** ภาพและเอฟเฟกต์เฉพาะครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนาน ดู [รายงาน](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md)
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  
 > - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)  
-> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือฐาน **`JS2-v2.5.0`** และกำลังมุ่งสู่ **`JS2-v2.6.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
+> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือ **`JS2-v2.6.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
-**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: พงศาวดารมีชีวิตและการรายงานยุทธภพ)
-
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:** 
-- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts — 43/43 วิถี & 30 Signature VFX)
-- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (JS2-v2.4.0 Release (1) — ฉบับสมบูรณ์หลังแก้บั๊ก)
-- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (รายงานฉบับแรกก่อนแก้บั๊ก — Initial Release)
+- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) (`JS2-v2.6.0`: พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว — 148/148 กลุ่มทดสอบผ่าน 100%)
+- [ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md) (`JS2-v2.5.0`: All Equipment Tier Art 9 แผ่น / 576 ช่อง)
+- [LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md) (`JS2-v2.5.0`: Legendary Visual Identity 50 วิชา / 27 อุปกรณ์)
+- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md) (`JS2-v2.5.0`: Pathbound Ascendant Visuals & Signature Arts — 43/43 วิถี & 30 Signature VFX)
+- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (`JS2-v2.4.0` Release)
+- [สารบัญรายงานทั้งหมดแบบละเอียด](PATCH_REPORTS/README.md)
 
-**สถานะชุดทดสอบ (`JS2-v2.5.0`):** ชุดทดสอบทั้งหมด **142/142 กลุ่ม** (141 ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` + 1 กลุ่มตรวจ Syntax 217 ไฟล์) ผ่านครบ 100% PASS (รวมชุดเบราว์เซอร์ Chromium ทั้ง 10 ชุด), Schema Validation ผ่าน 0 errors / 0 warnings (1,177 items, 1,402 recipes, 43 paths, 286 subpaths, 1,243 techniques), และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
+**สถานะชุดทดสอบ (`JS2-v2.6.0`):** ชุดทดสอบทั้งหมด **148/148 กลุ่ม** (147 ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` + 1 กลุ่มตรวจ Syntax 225 ไฟล์) ผ่านครบ 100% PASS (รวมชุดเบราว์เซอร์ Chromium ทั้งหมด), Schema Validation ผ่าน 0 errors / 0 warnings (1,177 items, 1,402 recipes, 43 paths, 286 subpaths, 1,243 techniques), และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
 
 ```bash
 cd GAME_SOURCE
 node tools/build_single.js
 node tools/validate_data_schema.js
 node test/core_lock.js
+node test/v260_living_chronicle_and_reporting_suite.js
+node tools/run_parallel_tests.js
 ```
-
----
-
-## 📑 คลังรายงานการพัฒนาแพตช์ (Patch Implementation Reports Archive)
-
-เอกสารรายงานการพัฒนาและผลการตรวจสอบทั้งหมดถูกจัดเก็บไว้อย่างเป็นระเบียบในโฟลเดอร์ **[`PATCH_REPORTS/`](PATCH_REPORTS/)**:
-
-- **[v3.1.0 Autonomous Governance, 25 Offices & Peaks Sanctuary Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_1_0.md)**: รายงานการพัฒนาแพตช์ v3.1.0 ยกเครื่องทำเนียบขุนนาง 6 ทำเนียบฝ่าย 25 ตำแหน่งพร้อมการตัดสินใจอัตโนมัติจริง เบี้ยหวัดตำแหน่ง ค่าน้ำหนักบารมีโหวตสภา หน้าต่างบริหาร 8 ยอดเขาและหุบเขาเฉพาะ (`⛰️ หุบเขา/ยอดเขา`) ระบบคุกใต้ดินและเชลยศึก 3 แนวทาง และชุดทดสอบผ่านครบ 117/117 ชุด
-- **[v3.0.0 Tactical Combat & Living Chronicle Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md)**: รายงานการพัฒนาแพตช์ v3.0.0 ยกเครื่องระบบต่อสู้เชิงยุทธวิธี 5 ช่วงระยะอาวุธ, เส้นเล็งสิ่งกีดขวาง, การคุ้มกันแถวหลัง (ZoC), AI ยุทธวิธี 5 บุคลิก, ตัวคำนวณยุทธวิธีศึกนอกสำนักครบทุกเส้นทาง (`explore.js`, `sect.js`, `expedition.js`), พงศาวดารมีชีวิต 11 รูปแบบพร้อมสายโซ่เหตุ–ผล 4 มิติ, ทะเบียนประวัติบุคคล (`SIM.snapshotPerson`), และการซ่อมแซมชุดทดสอบครบ 116 ชุด
-- **[v3.0.0 Master Design Proposal](PATCH_REPORTS/PROPOSAL_V3_0_0_TACTICAL_COMBAT_AND_COGNITION_OVERHAUL.md)**: เอกสารรวบรวมข้อเสนอการออกแบบ v3.0.0 ทั้งคอมแบทและพงศาวดาร
-- **[v2.0.35 Master Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_35.md)**: รายงานการพัฒนาแพตช์ v2.0.35 ระบบผสานมหาธาตุ 34 ปฏิกิริยา, 8 เสาหลักแก้บัค, จุดชีพจร, ศาสตราตื่นรู้, เสาโทเทม, ปรากฏการณ์ฟ้าดิน, สถิตร่างอสูร, ด้ายชะตา และค่ายกลชีพจรปฐพี
-- **[v2.0.35 QA & Systems Balance Audit](PATCH_REPORTS/QA_SYSTEMS_AND_BALANCE_AUDIT_V2_0_35.md)**: รายงานการตรวจสมดุลและระบบของ v2.0.35
-- **[v2.0.35 Complete Development Report (.docx)](PATCH_REPORTS/JIANGHU_SECT_v2_0_35_Complete_Development_Report.docx)**: เอกสารรายงาน v2.0.35 ฉบับสมบูรณ์
-- **[v2.0.34 Content & Composable Mechanics Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_34.md)**: ขยาย 132 สายย่อย, 655 วรยุทธ์, 917 ไอเทม, 1,255 ตำรับ, Composable Engine
-- **[v2.0.33 Peaks, Elder & Social Matrix Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_33.md)**: ระบบ 8 ยอดเขา, ผู้นำยอดเขา, ความสัมพันธ์ 24 เหตุการณ์, สมอง NPC
-- **[v2.0.32 Elder Council & Secret Realms Report](PATCH_REPORTS/JIANGHU_SECT_v2_0_32_Master_Development_and_Expert_Audit_Report.md)**: สภาผู้อาวุโส 4 ก๊ก, โหนดแดนลับ 5 ด่าน 12 มรรคา, มหาชุมนุมยุทธภพ 4 สาย, ผู้กำกับชะตาฟ้าดิน
-- **[v2.0.31 Stability & Save Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_31.md)**: ปรับปรุงระบบบันทึกและเสถียรภาพ
-- **[v2.0.30 External Elders & Dual Cultivation Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_30.md)**: ผู้อาวุโสภายนอก, คู่บำเพ็ญ, สายเลือดตระกูล
-- **[v2.0.29 External Assimilation Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_29.md)**: ระบบหลอมรวมคนนอกและจดหมายเหตุยุทธภพ
-- **[v2.0.28 Ancestral Shrine Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_28.md)**: หน้าบรรพชนและหอเกียรติยศ
-- **[v2.0.27 Lineage & Chronicle Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_27.md)**: ผังสายสืบทอดและพงศาวดารสำนัก
-- **[v2.0.26 Lineage System Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_26.md)**: ระบบสายสืบทอด
-- **[v2.0.24 World Atlas Report](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_24.md)**: แผนที่โลกและภูมิศาสตร์ยุทธภพฉบับสมบูรณ์
-- **[สารบัญรายงานทั้งหมดแบบละเอียด](PATCH_REPORTS/README.md)**
-
----
-
-## 🌟 ไฮไลต์สถานะล่าสุด: Patch v3.0.0 (Tactical Combat, Spatial Positioning & Living Chronicle)
-
-รายละเอียดฉบับเต็มอยู่ใน [รายงานการพัฒนา v3.0.0](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_0_0.md) และ [สรุปเกมปัจจุบัน](project_status_and_ai_onboarding.md):
-
-- **Version & Core Integrity**:
-  - `SIM.PATCH_VERSION = '3.0.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.0.0-tactical-chronicle'`
-  - รักษา `GAME_SOURCE/js/human_core.js` ให้ byte-identical (`HC.FINGERPRINT === '155:2f9c9dd7'`) และลำดับสคริปต์ 40 โมดูลใน `index.html` / `test/load.js`
-  - ไฟล์เกมออฟไลน์ `GAME_SOURCE/JianghuSect_single.html` สร้างใหม่ขนาด `7,110 KB`
-- **5-Band Spatial Range Model & Weapon Identity (`js/skills.js`, `js/combat.js`)**:
-  - จำแนกระยะการต่อสู้ 5 ช่วง (`POINT_BLANK`, `MELEE_REACH`, `EXTENDED_REACH`, `MID_TACTICAL`, `LONG_BALLISTIC`) ผ่าน `SK.RANGE_BANDS` และ `SK.classifyRangeBand`
-  - บังคับเพดานระยะขั้นต่ำตามอาวุธจริงใน `SK.resolveMoveSpatialSpec` และกำหนดอัตลักษณ์อาวุธใน `SK.weaponTacticalProfile` (`FIST`, `BLADE`, `SWORD`, `SPEAR`, `STAFF`, `BOW`, `FOCUS`)
-  - แก้บัคสัตว์ป่าถืออาวุธมนุษย์ (`SK.weapon`, `SK.foeSkills`) ให้สัตว์ป่าใช้วิชาธรรมชาติของอสูรเท่านั้น
-- **Line-of-Sight, Zone of Control & Tactical AI (`js/combat.js`)**:
-  - ตรวจสิ่งกีดขวางบนแผนที่จริง (`COMBAT.checkLineOfSight`, `COMBAT.projectSafePosition`)
-  - ระบบคุ้มกันแถวหลังและทวนสกัดกั้น (`COMBAT.resolveDefensiveInterception`, `COMBAT.resolveWeaponTactics`)
-  - บุคลิกการตัดสินใจในสนามรบ 5 รูปแบบ (`GRAND_TACTICIAN`, `CUNNING_ASSASSIN`, `BLOODTHIRSTY_BERSERKER`, `HONORABLE_DUELLIST`, `INSTINCTIVE_BEAST`) ผ่าน `COMBAT.resolveCognitiveArchetype` และ `COMBAT.evaluateTacticalEngagement`
-- **Unified Tactical Bout Summary (`COMBAT.evaluateTacticalBoutSummary`)**:
-  - เชื่อมตัวคำนวณยุทธวิธีเข้ากับศึกนอกสำนักครบทั้ง 3 เส้นทาง: การสำรวจดันเจี้ยน (`js/explore.js`), งานประลองยุทธภพ (`js/sect.js` — `resolveTournamentMatch`), และศึกตีสำนัก/ปะทะกองกำลังต่างสำนัก (`js/expedition.js` — `resolveSectSiege`, `resolveDiscipleSectEncounter`)
-- **Living Chronicle & Historical People (`js/expedition.js`, `js/sim.js`, `js/ui.js`)**:
-  - พงศาวดารมีชีวิต 11 รูปแบบ (`EXPED.CHRONICLE_REPORT_FORMATS`) พร้อมสายโซ่เหตุ–ผล 4 มิติ (`originCauseTh`, `actorChainTh`, `systemImpactTh`, `directorInsightTh`) ใน `EXPED.recordChronicle`
-  - ทะเบียนประวัติบุคคลสำคัญและผู้ล่วงลับ (`SIM.snapshotPerson` ใน `W.sect.historicalPeople`)
-
----
-
-## 🔥 ระบบหลักจากฐาน v2.0.35 (Multi-Tier Elemental Fusion & Deep Xianxia Mechanics)
-
-ยังคงทำงานร่วมกับระบบ v3.0.0 อย่างครบถ้วน (ดูรายละเอียดใน [รายงาน v2.0.35](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V2_0_35.md)):
-- **Multi-Tier Elemental Fusion Engine (`COMBAT.COMPOSABLE_ENGINE.FUSIONS`)**: 34 ปฏิกิริยาธาตุ (16 Dual, 12 Tri-Harmonic, 6 Primordial 4-Element)
-- **The 8 Remediation Pillars**: `evaluateCondition` 29 เงื่อนไข, 18 Trigger Hooks, 7 Active Stances, 8 Composable Actions, 129 `effectId` coverage, 8 Battlefield Domains
-- **Deep Creative Systems**: จุดชีพจรพิสดาร 8 เส้น (`CULT.MERIDIANS`), จิตวิญญาณศาสตรา 5 ขั้น (`SECT.SOUL_FORGE`), เสาโทเทมและสายเลือดบรรพกาล (`SECT.TOTEMS_BLOODLINES`), สถิตร่างสัตว์วิญญาณ (`CULT.BEAST_SYMBIOSIS`), ด้ายชะตา & บัญชีกรรม (`SECT.DESTINY_KARMA`), และค่ายกลชีพจรปฐพี (`SECT.LEYLINE_GRID`)
-
-
-## รายงานการพัฒนาแพตช์ล่าสุด (JianghuSect 2 v2.0.0)
-- อ่านรายละเอียดการอัปเกรด 43 มหาวิถี 286 สายย่อย และระบบวัฏจักรคนธรรมดาได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_0_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_0_0.md)
-- อ่านรายงานการพัฒนาและแก้ไขจุดบกพร่อง `v2.3.0` ได้ที่ [PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md)

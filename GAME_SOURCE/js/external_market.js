@@ -387,7 +387,15 @@
     const hasShortage = (S.shortageDirectives || []).length > 0 || needs.length > 0;
     if ((S.stones < cashReserve || budget <= 0) && hasShortage && !v.sectPostponedLogged) {
       v.sectPostponedLogged = true;
-      W.log('finance', 'หอคลังชะลอการจัดซื้อสินค้าจาก' + v.nameTh + ' เนื่องจากศิลาสำรองคงเหลือ (' + Math.round(S.stones) + ') ต้องคงไว้เหนือเกณฑ์ปลอดภัย (' + cashReserve + ' ศิลา)', []);
+      W.log('finance', 'หอคลังชะลอการจัดซื้อสินค้าจาก' + v.nameTh + ' เนื่องจากศิลาสำรองคงเหลือ (' + Math.round(S.stones) + ') ต้องคงไว้เหนือเกณฑ์ปลอดภัย (' + cashReserve + ' ศิลา)', [], {
+        storyThreadId: 'thread:supply:treasury_reserve',
+        storyThreadTitleTh: 'การบริหารงบสำรองคลังและการจัดซื้อ',
+        originCauseTh: 'แม้มีรายการของขาดแคลน แต่ศิลาคงเหลือ (' + Math.round(S.stones) + ' ศิลา) ต่ำกว่าเกณฑ์สำรองปลอดภัย (' + cashReserve + ' ศิลา)',
+        consequenceTh: 'งดสั่งซื้อสินค้าจาก ' + v.nameTh + ' ชั่วคราวเพื่อรักษาเสถียรภาพการเงินสำนัก',
+        followUpTh: 'ระบายสินค้าส่วนเกินหรือส่งคณะเดินทางหาศิลาเพิ่มหากต้องการซื้อวัตถุดิบเร่งด่วน',
+        factDeltas: { stonesNow: Math.round(S.stones), cashReserve },
+        promoteChronicle: true
+      });
     }
 
     if (!v.sectBuyDone) {

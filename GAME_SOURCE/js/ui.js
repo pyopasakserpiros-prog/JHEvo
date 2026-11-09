@@ -787,11 +787,30 @@
     } else si.classList.remove('show');
   };
   UI.toast = (text, type, npcId) => {
-    const el = document.createElement('div'); el.className = 'toast t-' + (type || ''); el.textContent = text; if (npcId) el.dataset.npc = npcId; $('toasts').appendChild(el);
-    while ($('toasts').children.length > 4) $('toasts').removeChild($('toasts').firstChild);
-    setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = 0; setTimeout(() => el.remove(), 450); }, 5200);
+    const box = $('toasts');
+    if (!box || typeof box.appendChild !== 'function') return;
+    const el = document.createElement('div'); el.className = 'toast t-' + (type || ''); el.textContent = text; if (npcId) el.dataset.npc = npcId; box.appendChild(el);
+    while (box.children && box.children.length > 4 && typeof box.removeChild === 'function') box.removeChild(box.firstChild);
+    setTimeout(() => { if (el.style) { el.style.transition = 'opacity .4s'; el.style.opacity = 0; } setTimeout(() => { if (typeof el.remove === 'function') el.remove(); }, 450); }, 5200);
   };
-  UI.onLog = e => { if (TOAST_TYPES.includes(e.type) && !UI.G.muted) { const sp = UI.G.speed; if (e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (sp > 0 && sp <= 16)) { const now = performance.now(); if (sp === 0 && now - (UI._lastBatchToast || 0) < 40) return; UI._lastBatchToast = now; UI.toast(e.text, e.type, e.ids[0]); } } };
+  UI.onLog = e => {
+    if (!e || !UI.G || UI.G.muted) return;
+    const W = UI.G.W;
+    if (W && EXPED && EXPED.shouldDeliverToast) {
+      if (!EXPED.shouldDeliverToast(W, e)) return;
+    } else if (!TOAST_TYPES.includes(e.type)) {
+      return;
+    }
+    const isCrit = (EXPED && EXPED.classifyNewsSeverity) ? EXPED.classifyNewsSeverity(e) === 'CRITICAL' : false;
+    if (!isCrit && !TOAST_TYPES.includes(e.type) && !['scandal', 'crisis', 'policy', 'sect', 'diplomacy'].includes(e.type)) return;
+    const sp = UI.G.speed;
+    if (isCrit || e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (sp > 0 && sp <= 16)) {
+      const now = performance.now();
+      if (sp === 0 && now - (UI._lastBatchToast || 0) < 40) return;
+      UI._lastBatchToast = now;
+      UI.toast(e.text, e.type, e.ids && e.ids[0]);
+    }
+  };
 
   /* ---------- ระบบติดตามตัวละคร (Tracked Disciples) ---------- */
   UI.isTrackedNpc = (W, id) => {
@@ -858,15 +877,39 @@
     show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['pet', '🐾 สัตว์อสูร/บัฟ/กลไก'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], subTab || 'char', true);
     UI.render();
   };
+  UI.findHistoricalPersonSnapshot = (W, id) => {
+    if (!W || !id) return null;
+    if (W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id]) {
+      return W.sect.historicalPeople[id];
+    }
+    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+    for (let i = 0; i < chrons.length; i++) {
+      const c = chrons[i];
+      const a = c && Array.isArray(c.actorSnapshots) && c.actorSnapshots.find(x => x && x.id === id);
+      if (a) return a;
+    }
+    const sChrons = (W.sect && Array.isArray(W.sect.sectChronicle)) ? W.sect.sectChronicle : [];
+    for (let i = 0; i < sChrons.length; i++) {
+      const sc = sChrons[i];
+      const a = sc && Array.isArray(sc.actorSnaps) && sc.actorSnaps.find(x => x && x.id === id);
+      if (a) return a;
+    }
+    return null;
+  };
   UI.openNpc = (id, tab) => {
     const W = UI.G && UI.G.W;
     const n = W && W.byId[id];
     if (!n) {
-      const hp = W && W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+      const hp = UI.findHistoricalPersonSnapshot(W, id);
+      UI.histNpcId = id;
       if (hp) {
         UI.toast("📜 " + hp.fullName + " (" + (hp.roleTh || "อดีตสมาชิกสำนัก") + ") — " + (hp.statusTh || "ไม่อยู่ในสำนักแล้ว"));
+        show('hist_npc', '🕯️ จารึกประวัติบุคคล: ' + esc(hp.fullName || id) + ' <span class="muted" style="font-weight:400">' + esc(hp.roleTh || 'อดีตผู้ฝึกตน') + '</span>', [], null, true);
+        UI.render();
       } else {
         UI.toast("ไม่พบข้อมูลตัวละครนี้ (ออกจากสำนักหรือถูกลบแล้ว)");
+        show('hist_npc', '🕯️ ระเบียนประวัติบุคคล: ' + esc(id), [], null, false);
+        UI.render();
       }
       return;
     }
@@ -927,6 +970,103 @@
     else if (a === "sect-chronicle-more") { UI.sectChronicleLimit = (UI.sectChronicleLimit || 50) + 50; UI.render(); }
     else if (a === "world-chronicle-cat") { UI.worldChronicleCategory = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
     else if (a === "world-chronicle-fmt") { UI.worldChronicleFormat = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-sev") { UI.worldChronicleSeverity = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-epistemic") { UI.worldChronicleEpistemic = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-days") { UI.worldChronicleWindowDays = Number(arg) || 0; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-unread") { UI.worldChronicleUnreadOnly = !UI.worldChronicleUnreadOnly; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-include-digest") { UI.worldChronicleIncludeDigest = UI.worldChronicleIncludeDigest === false ? true : false; UI.render(); }
+    else if (a === "chronicle-thread") { UI.worldChronicleThreadId = (UI.worldChronicleThreadId === arg ? "all" : (arg || "all")); UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "reset-archive-filters") {
+      UI.worldChronicleCategory = "all";
+      UI.worldChronicleFormat = "all";
+      UI.worldChronicleSeverity = "all";
+      UI.worldChronicleEpistemic = "all";
+      UI.worldChronicleWindowDays = 0;
+      UI.worldChronicleSearch = "";
+      UI.worldChronicleThreadId = "all";
+      UI.worldChronicleUnreadOnly = false;
+      UI.worldChronicleIncludeDigest = true;
+      UI.chronicleFilter = "all";
+      UI.chronicleNpcId = null;
+      UI.sectChronicleSearch = "";
+      UI.logSubFilter = "all";
+      UI.render();
+    }
+    else if (a === "news-preset") {
+      if (W && EXPED && EXPED.applyNewsPreset) EXPED.applyNewsPreset(W, arg || "ALL");
+      UI.render();
+    }
+    else if (a === "toggle-news-toast") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        np.toastEnabled = !np.toastEnabled;
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "set-critical-policy") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        np.criticalAlertPolicy = (arg === "STRICT_MUTE") ? "STRICT_MUTE" : "ALWAYS_TOAST";
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "set-toast-severity") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        if (["ROUTINE", "NOTABLE", "MAJOR", "CRITICAL"].includes(arg)) np.minToastSeverity = arg;
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "toggle-tracked-toast") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        np.onlyTrackedInToast = !np.onlyTrackedInToast;
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "cycle-cat-channel") {
+      if (W && EXPED && EXPED.ensureNewsPrefs && arg) {
+        const np = EXPED.ensureNewsPrefs(W);
+        const order = ["INSTANT", "FEED_ONLY", "DIGEST_ONLY"];
+        const cur = np.channelByCategory[arg] || "INSTANT";
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        np.channelByCategory[arg] = next;
+        np.mutedCategories = Object.keys(np.channelByCategory).filter(k => np.channelByCategory[k] === "DIGEST_ONLY");
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "set-digest-interval") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        const v = Number(arg);
+        if ([0, 1, 7, 30].includes(v)) np.digestIntervalDays = v;
+      }
+      UI.render();
+    }
+    else if (a === "digest-window") {
+      UI.digestWindowDays = Math.max(1, Number(arg) || 7);
+      UI.render();
+    }
+    else if (a === "record-digest-now") {
+      if (W && EXPED && EXPED.recordPeriodicDigest) {
+        EXPED.recordPeriodicDigest(W, { windowDays: UI.digestWindowDays || 7, force: true, alsoRecordChronicle: true });
+        UI.toast("📊 บันทึกสมุดสรุปสถานการณ์สำนักเข้าสู่พงศาวดารแล้ว");
+      }
+      UI.render();
+    }
+    else if (a === "mark-all-news-read") {
+      if (W && EXPED && EXPED.markNewsRead) EXPED.markNewsRead(W, { all: true });
+      UI.render();
+    }
+    else if (a === "mark-news-read") {
+      if (W && EXPED && EXPED.markNewsRead) EXPED.markNewsRead(W, { id: arg });
+      UI.render();
+    }
     else if (a === "world-chronicle-more") { UI.worldChronicleLimit = (UI.worldChronicleLimit || 15) + 20; UI.render(); }
     else if (a === "timeline-filter") { UI.timelineFilter = arg || "all"; UI.timelineLimit = 25; if (UI.audio) UI.audio.playGuqinChime(); UI.render(); }
     else if (a === "timeline-more") { UI.timelineLimit = (UI.timelineLimit || 25) + 25; UI.render(); }
@@ -3220,6 +3360,7 @@
       case 'building': html = UI.rBuilding(); break;
       case 'visitor': html = UI.rVisitor(); break;
       case 'clue': html = UI.rClueDetail(); break;
+      case 'hist_npc': html = UI.rHistoricalPerson(); break;
     }
     const isWideInv = UI.getInvViewMode() === "grid" && ((UI.sheet === "sect" && (UI.tab === "stockItems" || UI.tab === "shop")) || UI.sheet === "npc" || (UI.sheet === "edit" && UI.tab === "bag"));
     $("sheet").classList.toggle("wide-inv", !!isWideInv);
@@ -5189,18 +5330,91 @@
     };
     return '<p class="muted">แสดงสายที่มีข้อมูลในปัจจุบันและประวัติที่บันทึกไว้</p><div class="lineage-tree"><ul>' + roots.map(id => draw(id,new Set(),0)).join('') + '</ul></div>';
   };
+  UI.rHistoricalPerson = () => {
+    const W = UI.G && UI.G.W;
+    const id = UI.histNpcId;
+    if (!W || !id) return '<div class="muted">ไม่พบรหัสบุคคล</div>';
+    const hp = UI.findHistoricalPersonSnapshot(W, id);
+    if (!hp) {
+      return '<div class="card" style="border-color:var(--line)">' +
+        '<div><b>🕯️ ไม่พบระเบียนข้อมูลปัจจุบันของรหัส「' + esc(id) + '」</b></div>' +
+        '<div class="muted" style="margin-top:4px">บุคคลนี้อาจเป็นตัวละครนิรนามหรือเดินทางออกจากยุทธภพไปโดยไม่มีประวัติจารึกในสำนัก</div>' +
+        '<div style="margin-top:8px"><button type="button" class="btn" data-do="chronicle-person" data-arg="' + esc(id) + '">🔍 ค้นหาเหตุการณ์ที่อ้างอิงรหัสนี้ในบันทึก</button></div>' +
+        '</div>';
+    }
+    const inGrave = Array.isArray(W.graveyard) && W.graveyard.includes(id);
+    const formerTxt = (Array.isArray(hp.formerNames) && hp.formerNames.length)
+      ? ('<div class="muted" style="font-size:11.5px;margin-top:2px">🏷️ <b>นามเดิมที่บันทึกไว้:</b> ' + hp.formerNames.map(esc).join(', ') + '</div>')
+      : '';
+    const relatedEvents = [];
+    const seenKeys = new Set();
+    const sChrons = (W.sect && Array.isArray(W.sect.sectChronicle)) ? W.sect.sectChronicle : [];
+    sChrons.forEach(e => {
+      if (e && Array.isArray(e.ids) && e.ids.includes(id)) {
+        const k = 'sc:' + e.id;
+        if (!seenKeys.has(k)) { seenKeys.add(k); relatedEvents.push({ t: e.t || 0, text: e.text, causeTh: e.originCauseTh || '', impactTh: e.consequenceTh || '' }); }
+      }
+    });
+    const wChrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+    wChrons.forEach(c => {
+      if (c && Array.isArray(c.npcIds) && c.npcIds.includes(id)) {
+        const k = 'wc:' + c.id;
+        if (!seenKeys.has(k)) { seenKeys.add(k); relatedEvents.push({ t: c.t || 0, text: (c.icon || '📜') + ' ' + c.titleTh + ' — ' + c.storyTh, causeTh: c.originCauseTh || '', impactTh: c.consequenceTh || '' }); }
+      }
+    });
+    (W.logs || []).forEach(l => {
+      if (l && Array.isArray(l.ids) && l.ids.includes(id) && relatedEvents.length < 20) {
+        const k = 'lg:' + l.id;
+        if (!seenKeys.has(k)) { seenKeys.add(k); relatedEvents.push({ t: l.t || 0, text: l.text, causeTh: (l.meta && l.meta.originCauseTh) || '', impactTh: (l.meta && l.meta.consequenceTh) || '' }); }
+      }
+    });
+    relatedEvents.sort((a, b) => (b.t || 0) - (a.t || 0));
+
+    let h = '<div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.06)">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">';
+    h += '<div><div style="font-size:15px;font-weight:700;color:var(--gold)">🕯️ ' + esc(hp.fullName || id) + '</div>';
+    h += '<div class="muted">' + esc(hp.roleTh || 'อดีตผู้ฝึกตน') + ' · สถานะ: <b>' + esc(hp.statusTh || (inGrave ? 'ฝังในสุสานสำนัก' : 'ไม่อยู่ในสำนักแล้ว')) + '</b></div>';
+    h += formerTxt + '</div>';
+    h += '<span class="chip g">Snapshot วันที่ ' + (hp.snapshotDay != null ? hp.snapshotDay : (hp.deathDay || 0)) + '</span>';
+    h += '</div>';
+    h += '<div class="grid2" style="margin-top:8px;font-size:12px">';
+    h += '<div>✨ <b>มรรคาขณะบันทึก:</b> ' + esc(hp.pathNameTh || hp.path || 'ปุถุชน') + (hp.subNameTh ? (' (' + esc(hp.subNameTh) + ')') : '') + '</div>';
+    h += '<div>⚡ <b>ขอบเขตตบะ:</b> ' + esc(hp.stageNameTh || ('ขั้นที่ ' + (hp.stage || 0))) + '</div>';
+    if (hp.merit != null) h += '<div>🏅 <b>ผลงานสะสม:</b> ' + esc(hp.merit) + ' แต้ม</div>';
+    if (hp.deathDay != null) h += '<div>🪦 <b>วันที่จากไป:</b> วันที่ ' + esc(hp.deathDay) + (hp.deathWhy ? (' (' + esc(hp.deathWhy) + ')') : '') + '</div>';
+    if (hp.topWhyTh) h += '<div style="grid-column:1 / -1">💭 <b>แรงขับดันสุดท้ายที่บันทึกไว้:</b> ' + esc(hp.topWhyTh) + (hp.goalTitleTh ? (' · เป้าหมาย: ' + esc(hp.goalTitleTh)) : '') + '</div>';
+    h += '</div>';
+    h += '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">';
+    h += '<button type="button" class="btn pri" data-do="chronicle-person" data-arg="' + esc(id) + '">📖 ดูในพงศาวดารสำนัก</button>';
+    h += '</div></div>';
+
+    h += '<h3>📜 เหตุการณ์ที่จารึกไว้ในประวัติ (' + relatedEvents.length + ' รายการ)</h3>';
+    if (!relatedEvents.length) {
+      h += '<div class="muted">ไม่พบบันทึกเหตุการณ์ย่อยที่อ้างอิงถึงบุคคลนี้</div>';
+    } else {
+      h += '<div class="card">' + relatedEvents.slice(0, 15).map(ev => {
+        return '<div class="lineage-entry"><span class="lineage-date">' + dayStamp(ev.t) + '</span> ' + linkify(W, ev.text, [id]) +
+          (ev.causeTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">🌱 <b>สาเหตุ:</b> ' + esc(ev.causeTh) + '</div>') : '') +
+          (ev.impactTh ? ('<div class="muted" style="font-size:11px;color:#ffd166">➔ <b>ผลลัพธ์:</b> ' + esc(ev.impactTh) + '</div>') : '') +
+          '</div>';
+      }).join('') + '</div>';
+    }
+    return h;
+  };
+
   UI.sectChronicle = (W, category, npcId) => {
     const cats = {
-      people: ["death","marriage","recruit","expel","succession"],
+      people: ["death","marriage","recruit","expel","succession","desert","punish"],
       cult: ["breakthrough","heal"],
       battle: ["raid","tournament","mission","challenge","duel"],
-      heritage: ["legacy","research","craft","decision"],
-      economy: ["finance"]
+      heritage: ["legacy","research","craft","decision","policy","sect","diplomacy","exped"],
+      economy: ["finance","scandal"]
     };
     const all = ((W.sect && W.sect.sectChronicle) || []).slice();
     const known = new Set(all.map(e => e.id));
     (W.logs || []).forEach(e => {
       if (!known.has(e.id) && matchesLogSubFilter(e, UI.logSubFilter) && (cats.people.includes(e.type) || cats.cult.includes(e.type) || cats.battle.includes(e.type) || cats.heritage.includes(e.type) || cats.economy.includes(e.type))) {
+        if (e.type === "breakthrough" && /ฝึกประจำวัน/.test(e.text || "")) return;
         all.push(e);
       }
     });
@@ -5210,7 +5424,7 @@
       if (category && category !== "all" && !(cats[category] || []).includes(e.type)) return false;
       if (npcId && !(e.ids || []).includes(npcId)) return false;
       if (scSearch) {
-        const hay = ((e.text || "") + " " + ((e.names || []).join(" ")) + " " + ((e.combatSummary && e.combatSummary.summaryLineTh) || "")).toLowerCase();
+        const hay = ((e.text || "") + " " + ((e.names || []).join(" ")) + " " + ((e.originCauseTh || "") + " " + (e.consequenceTh || "")) + " " + ((e.combatSummary && e.combatSummary.summaryLineTh) || "")).toLowerCase();
         if (!hay.includes(scSearch)) return false;
       }
       return true;
@@ -5223,25 +5437,46 @@
         ? e.ids.map((id, idx) => e.names[idx] ? ({ kind: "npc", id, label: e.names[idx], fullName: e.names[idx] }) : null).filter(Boolean)
         : undefined;
       const cs = e.combatSummary || (e.meta && e.meta.combatSummary);
-      const csHtml = cs && cs.summaryLineTh
-        ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">⚔️ " + esc(cs.summaryLineTh) + "</div>")
+      const csLine = cs && (cs.summaryLineTh || cs.tacticalSummaryTh);
+      const csHtml = csLine
+        ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">⚔️ " + esc(csLine) + "</div>")
         : "";
-      return "<div class=\"lineage-entry\"><span class=\"lineage-date\">" + dayStamp(e.t) + "</span> " + linkify(W, e.text, e.ids, refs) + csHtml + "</div>";
+      const causeTxt = e.originCauseTh || (e.meta && e.meta.originCauseTh) || "";
+      const consTxt = e.consequenceTh || (e.meta && e.meta.consequenceTh) || "";
+      const followTxt = e.followUpTh || (e.meta && e.meta.followUpTh) || "";
+      const threadId = e.storyThreadId || (e.meta && e.meta.storyThreadId) || null;
+      const isUnread = (EXPED && EXPED.isEntryUnread) ? EXPED.isEntryUnread(W, e) : false;
+      const unreadChip = isUnread ? '<span class="chip g" style="padding:0 5px;font-size:10px" data-do="mark-news-read" data-arg="' + esc(e.id) + '" title="คลิกเพื่อทำเครื่องหมายว่าอ่านแล้ว">● ใหม่</span> ' : '';
+      const threadBtn = threadId ? (' <button type="button" class="chip b" style="cursor:pointer;padding:1px 6px;font-size:10px" data-do="chronicle-thread" data-arg="' + esc(threadId) + '">🧵 เส้นเรื่องต่อเนื่อง</button>') : '';
+      const causalHtml = (causeTxt || consTxt || followTxt)
+        ? ('<div class="chron-inline-causal">' +
+            (causeTxt ? ('<div>🌱 <b>เหตุปัจจัย:</b> ' + esc(causeTxt) + '</div>') : '') +
+            (consTxt ? ('<div style="color:#ffd166">➔ <b>ผลที่เกิด:</b> ' + esc(consTxt) + '</div>') : '') +
+            (followTxt ? ('<div style="color:#a8dadc">🔎 <b>ควรติดตามต่อ:</b> ' + esc(followTxt) + '</div>') : '') +
+          '</div>')
+        : '';
+      return "<div class=\"lineage-entry\">" + unreadChip + "<span class=\"lineage-date\">" + dayStamp(e.t) + "</span> " + linkify(W, e.text, e.ids, refs) + threadBtn + csHtml + causalHtml + "</div>";
     }).join("");
     if (filtered.length > shown.length) {
       html += "<div style=\"margin-top:6px\"><button type=\"button\" class=\"btn\" style=\"padding:3px 10px;font-size:11px\" data-do=\"sect-chronicle-more\">แสดงเพิ่มเติม (" + (filtered.length - shown.length) + " รายการ)</button></div>";
+    }
+    if (W.sect && W.sect.sectChronicleTrimmedCount > 0) {
+      html += '<div class="muted" style="font-size:10.5px;margin-top:4px">ℹ️ ระบบคงหมุดหมายสำคัญไว้และรวบรายการเก่าเกินเพดาน 600 รายการไปแล้ว ' + W.sect.sectChronicleTrimmedCount + ' รายการ</div>';
     }
     return html;
   };
   UI.lineageHistory = (W, npcId) => {
     const list = ((W.sect && W.sect.mentorship && W.sect.mentorship.history) || []).filter(e => e && (!npcId || e.mentorId === npcId || e.discipleId === npcId)).slice(0, 30);
     if (!list.length) return '<div class="muted">ยังไม่มีเหตุการณ์สายสืบทอดที่บันทึกไว้</div>';
-    const person = (id, name) => W.byId && W.byId[id] && !W.byId[id].dead && !W.byId[id].exiled ? nameLink(W.byId[id]) : '<b>' + esc(name || 'ไม่ทราบชื่อ') + '</b>';
+    const person = (id, name) => W.byId && W.byId[id] && !W.byId[id].dead && !W.byId[id].exiled
+      ? nameLink(W.byId[id])
+      : '<span class="link-ref gone" data-npc="' + esc(id || '') + '" style="cursor:pointer;text-decoration:underline dotted"><b>' + esc(name || 'ไม่ทราบชื่อ') + '</b></span>';
     return list.map(e => '<div class="lineage-entry"><span class="lineage-date">วันที่ ' + esc(e.day) + '</span> ' + (e.kind === 'bond' ? '🍵 ' + person(e.discipleId,e.discipleNameTh) + ' ฝากตัวเป็นศิษย์ของ ' + person(e.mentorId,e.mentorNameTh) : '✨ ' + person(e.mentorId,e.mentorNameTh) + ' ถ่ายทอดปราณให้ ' + person(e.discipleId,e.discipleNameTh) + ' · ตบะ +' + esc(e.surgePts) + (e.inheritedTechId ? ' · วิชา「' + esc((CULT.tech(e.inheritedTechId) || {}).nameTh || e.inheritedTechId) + '」' : '') + (e.occasion === 'dying' ? ' · ก่อนสิ้นชีวิต' : e.occasion === 'ascension' ? ' · ก่อนขึ้นสู่แดนเซียน' : '')) + '</div>').join('');
   };
 
   UI.rLog = () => {
     const W = UI.G.W;
+    if (EXPED && EXPED.ensureNewsSystem) EXPED.ensureNewsSystem(W);
     if (!UI.logFilters) UI.logFilters = new Set([(UI.tab && LOG_GROUPS[UI.tab]) ? UI.tab : 'all']);
     if (UI.tab && LOG_GROUPS[UI.tab] && (!UI.logFilters.has(UI.tab) && UI.logFilters.size === 1 && UI.logFilters.has('all') && UI.tab !== 'all')) {
       UI.logFilters = new Set([UI.tab]);
@@ -5281,7 +5516,7 @@
         h += '<div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.05);margin-top:6px">';
         h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">';
         h += '<div style="display:flex;gap:4px;flex-wrap:wrap">' + tlCats.map(([tk, tv]) => '<button type="button" class="btn ' + (tlFilter === tk ? 'pri' : '') + '" style="padding:2px 7px;font-size:11px" data-do="timeline-filter" data-arg="' + tk + '">' + tv + '</button>').join('') + '</div>';
-        h += '<div style="display:flex;gap:4px;align-items:center"><button type="button" class="btn" style="padding:2px 7px;font-size:11px" data-do="toggle-audio">' + (UI.audio && UI.audio.muted ? '🔇 เปิดเสียงบรรยากาศ' : '🔊 ปิดเสียงบรรยากาศ') + '</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="bell" title="ทดสอบเสียงระฆังทองสำนัก">🔔 ระฆัง</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="guqin" title="ทดสอบเสียงพิณโบราณ">🎶 พิณ</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="blade" title="ทดสอบเสียงศาสตราปะทะ">⚔️ ศาสตรา</button></div>';
+        h += '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap"><button type="button" class="btn" style="padding:2px 7px;font-size:11px" data-do="toggle-audio">' + (UI.audio && UI.audio.muted ? '🔇 เปิดเสียงบรรยากาศ' : '🔊 ปิดเสียงบรรยากาศ') + '</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="bell" title="ทดสอบเสียงระฆังทองสำนัก">🔔 ระฆัง</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="guqin" title="ทดสอบเสียงพิณโบราณ">🎶 พิณ</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="blade" title="ทดสอบเสียงศาสตราปะทะ">⚔️ ศาสตรา</button></div>';
         h += '</div>';
         if (!tlList.length) {
           h += '<div class="muted">ยังไม่มีหมุดหมายประวัติศาสตร์ในหมวดที่เลือก</div>';
@@ -5295,6 +5530,133 @@
         }
         h += '</div></details>';
       }
+
+      /* ---------- JS2-v2.6.0: News Intake Settings vs Archive Filters, Periodic Digest & Story Threads ---------- */
+      if (EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        const unreadSum = EXPED.getUnreadNewsSummary ? EXPED.getUnreadNewsSummary(W) : { totalUnread: 0, unreadCritical: 0 };
+        const winDays = UI.digestWindowDays || 7;
+        const digest = EXPED.computePeriodDigest ? EXPED.computePeriodDigest(W, { windowDays: winDays }) : null;
+        const threads = EXPED.getStoryThreads ? EXPED.getStoryThreads(W) : [];
+
+        // 1. News Intake & Notification Settings Panel
+        h += '<details class="chron-v260-panel" data-news-prefs-panel>';
+        h += '<summary>📡 ตั้งค่าการรับข่าว & แจ้งเตือนด่วน · <span class="chip g">' + esc((EXPED.NEWS_PRESETS[np.preset] && EXPED.NEWS_PRESETS[np.preset].nameTh) || np.preset) + '</span>' +
+          (unreadSum.totalUnread > 0 ? (' <span class="chip b">ข่าวใหม่ยังไม่อ่าน ' + unreadSum.totalUnread + '</span>') : ' <span class="chip ok">อ่านครบแล้ว</span>') + '</summary>';
+        h += '<div class="card chron-v260-card">';
+        h += '<div class="chron-v260-note">🔔 <b>แยกการตั้งค่ารับข่าวออกจากคลังประวัติชัดเจน:</b> การปิดป้ายแจ้งเตือนด่วนหรือพับหมวดข่าวเข้าสรุปประจำรอบ <b>จะไม่ลบประวัติหรือหยุดการบันทึกของเกม</b> คุณสามารถค้นหาย้อนหลังได้ครบทุกเหตุการณ์เสมอ</div>';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 0">';
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
+        ['ALL', 'MAJOR_ONLY', 'SECT_FOCUS', 'TRACKED_ONLY', 'QUIET_DIGEST'].forEach(pk => {
+          const pDef = EXPED.NEWS_PRESETS[pk];
+          if (!pDef) return;
+          h += '<button type="button" class="btn ' + (np.preset === pk ? 'pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="news-preset" data-arg="' + pk + '" title="' + esc(pDef.descTh) + '">' + esc(pDef.nameTh) + '</button>';
+        });
+        h += '</div>';
+        h += '<button type="button" class="btn" style="padding:3px 9px;font-size:11px" data-do="mark-all-news-read">✓ ทำเครื่องหมายว่าอ่านแล้วทั้งหมด (' + unreadSum.totalUnread + ')</button>';
+        h += '</div>';
+
+        h += '<div class="chron-prefs-grid">';
+        h += '<div><b>ป้ายแจ้งเตือนมุมจอ (Toast):</b> <button type="button" class="btn ' + (np.toastEnabled ? 'pri' : '') + '" style="padding:2px 8px;font-size:11px" data-do="toggle-news-toast">' + (np.toastEnabled ? '🔔 เปิดแจ้งเตือน' : '🔕 ปิดแจ้งเตือนทั่วไป') + '</button></div>';
+        h += '<div><b>นโยบายข่าววิกฤต (ศึกบุก/สิ้นชีพ):</b> ' +
+          '<button type="button" class="btn ' + (np.criticalAlertPolicy === 'ALWAYS_TOAST' ? 'pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-critical-policy" data-arg="ALWAYS_TOAST">🚨 เตือนวิกฤตเสมอ</button>' +
+          '<button type="button" class="btn ' + (np.criticalAlertPolicy === 'STRICT_MUTE' ? 'pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-critical-policy" data-arg="STRICT_MUTE">🔇 ปิดเด็ดขาดตามโหมดเงียบ</button></div>';
+        h += '<div><b>ระดับความสำคัญขั้นต่ำที่เด้งเตือน:</b> ' +
+          [['ROUTINE', 'ทั่วไป'], ['NOTABLE', 'น่าสนใจ+'], ['MAJOR', 'สำคัญ+'], ['CRITICAL', 'วิกฤตเท่านั้น']].map(([sk, sv]) =>
+            '<button type="button" class="btn ' + (np.minToastSeverity === sk ? 'pri' : '') + '" style="padding:2px 6px;font-size:10.5px" data-do="set-toast-severity" data-arg="' + sk + '">' + sv + '</button>'
+          ).join('') + '</div>';
+        h += '<div><b>สรุปประจำรอบอัตโนมัติ:</b> ' +
+          [[0, 'ปิด'], [1, 'ทุกวัน'], [7, 'ทุก 7 วัน'], [30, 'ทุกเดือน']].map(([dk, dv]) =>
+            '<button type="button" class="btn ' + (np.digestIntervalDays === dk ? 'pri' : '') + '" style="padding:2px 6px;font-size:10.5px" data-do="set-digest-interval" data-arg="' + dk + '">' + dv + '</button>'
+          ).join('') + '</div>';
+        h += '</div>';
+
+        h += '<div style="margin-top:6px"><div class="muted" style="font-size:11px;margin-bottom:3px">📂 <b>ช่องทางรับข่าวรายหมวด (แตะเพื่อสลับ: ⚡ ด่วน+ฟีด ➔ 📖 เฉพาะฟีด ➔ 📊 พับเข้าสรุปรอบ):</b></div>';
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
+        Object.values(EXPED.NEWS_CATEGORIES).forEach(catSpec => {
+          const ch = np.channelByCategory[catSpec.id] || 'INSTANT';
+          const chLabel = ch === 'INSTANT' ? '⚡ ด่วน+ฟีด' : ch === 'FEED_ONLY' ? '📖 เฉพาะฟีด' : '📊 สรุปรอบ';
+          const chipCls = ch === 'INSTANT' ? 'ok' : ch === 'FEED_ONLY' ? 'b' : '';
+          h += '<button type="button" class="chip ' + chipCls + '" style="cursor:pointer;padding:3px 8px;font-size:11px" data-do="cycle-cat-channel" data-arg="' + catSpec.id + '">' + esc(catSpec.nameTh) + ': <b>' + chLabel + '</b></button>';
+        });
+        h += '</div></div></div></details>';
+
+        // 2. Periodic Sect Digest Panel
+        if (digest) {
+          const t = digest.treasury;
+          const s = digest.stockAndInternal;
+          const ac = digest.activity;
+          const netCol = t.netStones >= 0 ? '#5fd38a' : '#ef476f';
+          const netTxt = (t.netStones >= 0 ? '+' : '') + U.fmtNum(t.netStones);
+          h += '<details class="chron-v260-panel" open data-periodic-digest-panel>';
+          h += '<summary>📊 สมุดสรุปสถานการณ์สำนักประจำรอบ (' + esc(digest.periodLabelTh) + ')</summary>';
+          h += '<div class="card chron-v260-card">';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">';
+          h += '<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ช่วงเวลาสรุป:</span>' +
+            [[1, 'รายวัน (1 วัน)'], [7, 'รายสัปดาห์ (7 วัน)'], [30, 'รายเดือน (30 วัน)']].map(([wd, wl]) =>
+              '<button type="button" class="btn ' + (winDays === wd ? 'pri' : '') + '" style="padding:2px 8px;font-size:11px" data-do="digest-window" data-arg="' + wd + '">' + wl + '</button>'
+            ).join('') + '</div>';
+          h += '<button type="button" class="btn" style="padding:2px 8px;font-size:11px" data-do="record-digest-now">📌 จารึกสรุปรอบนี้ลงพงศาวดาร</button>';
+          h += '</div>';
+
+          h += '<div class="chron-digest-grid">';
+          h += '<div class="chron-digest-box"><div class="muted" style="font-size:10.5px">💎 ดุลศิลาวิญญาณจริง (แยกโอนภายใน)</div>' +
+            '<div style="font-size:13px;font-weight:700;margin-top:2px">คงคลัง ' + U.fmtNum(t.closingStones) + ' ศิลา <span style="color:' + netCol + '">(' + netTxt + ')</span></div>' +
+            '<div class="muted" style="font-size:11px">รายรับ +' + U.fmtNum(t.stoneIncome) + ' · รายจ่าย -' + U.fmtNum(t.stoneExpense) + ' · เกณฑ์สำรอง ' + U.fmtNum(t.cashReserveFloor) + '</div></div>';
+          h += '<div class="chron-digest-box"><div class="muted" style="font-size:10.5px">🍚 เสบียง & การหมุนเวียนภายในสำนัก</div>' +
+            '<div style="font-size:13px;font-weight:700;margin-top:2px">พอใช้ราว ' + s.foodDaysRemaining + ' วัน (' + U.fmtNum(s.closingFoodEquiv) + ' หน่วยอาหาร)</div>' +
+            '<div class="muted" style="font-size:11px">โอนภายใน: มอบรางวัล ' + s.internalGiftsCount + ' · แลก CP ' + s.internalCpPurchasesCount + ' · บริจาค ' + s.internalDonationsCount + (s.playerInterventionCount ? (' · เสก/แก้ ' + s.playerInterventionCount) : '') + '</div></div>';
+          h += '<div class="chron-digest-box"><div class="muted" style="font-size:10.5px">⚡ ความเคลื่อนไหวสำคัญในรอบ ' + winDays + ' วัน</div>' +
+            '<div style="font-size:12.5px;font-weight:600;margin-top:2px">ทะลวงสำเร็จ ' + ac.breakthroughSuccessCount + ' (พลาด ' + ac.breakthroughFailCount + ') · ศึกชนะ ' + ac.battlesInWindow + '</div>' +
+            '<div class="muted" style="font-size:11px">ผลิตสำเร็จ ' + ac.craftsInWindow + ' (พลาด ' + ac.craftFailsInWindow + ') · รับศิษย์ใหม่ ' + ac.recruitsInWindow + ' · สิ้นชีพ ' + ac.deathsInWindow + '</div></div>';
+          h += '</div>';
+
+          if (digest.topContributors.length) {
+            h += '<div style="margin-top:7px;font-size:11.5px">🏅 <b>ผู้สร้างผลงานเด่นประจำรอบ:</b> ' +
+              digest.topContributors.map(c => linkify(W, c.fullName, [c.id]) + ' <span class="muted">(' + esc(c.featsTh) + ')</span>').join(' · ') + '</div>';
+          }
+          if (digest.troubledDisciples.length) {
+            h += '<div style="margin-top:5px;font-size:11.5px">🩹 <b>ศิษย์ที่ติดปัญหา/ควรดูแล (' + digest.troubledDisciples.length + ' คน):</b> ' +
+              digest.troubledDisciples.map(d => linkify(W, d.fullName, [d.id]) + ' <span style="color:#ffd166">(' + esc(d.issuesTh) + ')</span>').join(' · ') + '</div>';
+          }
+          if (digest.verifiedRisks.length) {
+            h += '<div style="margin-top:6px;padding:6px 8px;border-radius:8px;background:rgba(224,88,74,0.12);border:1px solid rgba(224,88,74,0.45);font-size:11.5px">';
+            h += '<div>⚠️ <b>ความเสี่ยงและเรื่องค้างที่ยืนยันจากสถานะจริง:</b></div>';
+            h += digest.verifiedRisks.map(r => '<div style="margin-top:2px">• <b>' + esc(r.titleTh) + ':</b> <span class="muted">' + esc(r.detailTh) + '</span></div>').join('');
+            h += '</div>';
+          } else {
+            h += '<div class="muted" style="margin-top:6px;font-size:11.5px;color:#7ff5ad">✅ สถานะคลังศิลา เสบียง และแนวป้องกันอยู่ในเกณฑ์มั่นคง</div>';
+          }
+          h += '</div></details>';
+        }
+
+        // 3. Continuing Storyline Threads Panel
+        if (threads.length > 0) {
+          const activeThreadFilter = UI.worldChronicleThreadId || 'all';
+          h += '<details class="chron-v260-panel" open data-story-threads-panel>';
+          h += '<summary>🧵 เส้นเรื่องต่อเนื่องในสำนักและยุทธภพ (' + threads.length + ' เส้นเรื่อง)</summary>';
+          h += '<div class="card chron-v260-card">';
+          h += '<div class="muted" style="font-size:11px;margin-bottom:6px">เชื่อมโยงเหตุการณ์ที่มีรหัสต้นเหตุเดียวกันจริง (ต้นเหตุ ➔ จุดเปลี่ยน/ความพยายาม ➔ ผลลัพธ์ล่าสุด) แตะเพื่อกรองดูเฉพาะเส้นเรื่องนั้น</div>';
+          if (activeThreadFilter !== 'all') {
+            h += '<div style="margin-bottom:6px"><span class="chip g">กำลังกรองเฉพาะเส้นเรื่อง: ' + esc(activeThreadFilter) + '</span> <button type="button" class="btn" style="padding:2px 7px;font-size:11px" data-do="chronicle-thread" data-arg="all">ดูทุกเส้นเรื่อง</button></div>';
+          }
+          h += threads.slice(0, 6).map(th => {
+            const isSel = activeThreadFilter === th.threadId;
+            return '<div class="chron-thread-item' + (isSel ? ' sel' : '') + '">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap">' +
+                '<div><b>🧵 ' + esc(th.titleTh) + '</b> <span class="chip">' + th.eventCount + ' เหตุการณ์</span> <span class="chip ' + (th.statusTh.includes('คลี่คลาย') ? 'ok' : 'b') + '">' + esc(th.statusTh) + '</span></div>' +
+                '<button type="button" class="btn ' + (isSel ? 'pri' : '') + '" style="padding:2px 8px;font-size:10.5px" data-do="chronicle-thread" data-arg="' + esc(th.threadId) + '">' + (isSel ? '✓ กำลังกรอง' : '🔍 ดูเส้นเรื่องนี้') + '</button>' +
+              '</div>' +
+              '<div style="font-size:11.5px;margin-top:4px;line-height:1.45">' +
+                (th.originEvent ? ('<div>🌱 <b>ต้นเหตุ (วันที่ ' + th.originEvent.day + '):</b> ' + linkify(W, th.originEvent.headlineTh, th.originEvent.npcIds) + '</div>') : '') +
+                (th.turningPointEvent ? ('<div>⚡ <b>จุดเปลี่ยน (วันที่ ' + th.turningPointEvent.day + '):</b> ' + linkify(W, th.turningPointEvent.headlineTh, th.turningPointEvent.npcIds) + '</div>') : '') +
+                (th.latestEvent && th.latestEvent !== th.originEvent ? ('<div style="color:#ffd166">➔ <b>ล่าสุด (วันที่ ' + th.latestEvent.day + '):</b> ' + linkify(W, th.latestEvent.headlineTh, th.latestEvent.npcIds) + '</div>') : '') +
+                '<div class="muted" style="font-size:11px;margin-top:2px">🔎 <b>สิ่งที่น่าติดตามต่อ:</b> ' + esc(th.followUpTh) + '</div>' +
+              '</div></div>';
+          }).join('');
+          h += '</div></details>';
+        }
+      }
     }
 
     h += '<div class="log-subfilter-bar" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">';
@@ -5305,9 +5667,15 @@
     h += '</div>';
 
     const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
-    if (chrons.length && UI.logFilters.has('all')) {
+    if (UI.logFilters.has('all')) {
       const cFilter = UI.worldChronicleCategory || 'all';
       const fFilter = UI.worldChronicleFormat || 'all';
+      const sevFilter = UI.worldChronicleSeverity || 'all';
+      const epFilter = UI.worldChronicleEpistemic || 'all';
+      const winFilter = Number(UI.worldChronicleWindowDays) || 0;
+      const thFilter = UI.worldChronicleThreadId || 'all';
+      const unreadOnly = !!UI.worldChronicleUnreadOnly;
+      const includeDigest = UI.worldChronicleIncludeDigest !== false;
       const cSearch = (UI.worldChronicleSearch || '').trim().toLowerCase();
       const catList = [
         ['all', 'ทั้งหมด'],
@@ -5324,7 +5692,8 @@
         ['SECRET_REALM_NODE', '🧭 โหนดแดนลับ/ตำราโบราณ'],
         ['GRAND_ASSEMBLY', '🏆 มหาชุมนุม 4 สาย/งานเลี้ยง'],
         ['HEAVENLY_DAO_ERA', '🌌 ลิขิตฟ้าดิน/ยุคสมัย'],
-        ['SECT_PEAK_POLITICS', '🏔️ ยอดเขา/ผู้อาวุโส/สายสัมพันธ์']
+        ['SECT_PEAK_POLITICS', '🏔️ ยอดเขา/ผู้อาวุโส/สายสัมพันธ์'],
+        ['PERIODIC_DIGEST', '📊 สรุปประจำรอบ']
       ];
       const fmtList = [
         ['all', 'รูปแบบทั้งหมด'],
@@ -5338,13 +5707,24 @@
         ['SECRET_REALM_LOGBOOK', '🧭 บันทึกแดนลับ/โบราณคดี'],
         ['CONTINENTAL_ASSEMBLY_GAZETTE', '🏆 มหาชุมนุม/หอการค้า'],
         ['HEAVENLY_DAO_OMEN_SCROLL', '🌌 ลิขิตสวรรค์/ยุคสมัย'],
-        ['PEAK_HALL_SCROLL', '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์']
+        ['PEAK_HALL_SCROLL', '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์'],
+        ['PERIODIC_SECT_DIGEST', '📊 สรุปประจำรอบ']
       ];
       let filteredChrons = chrons.filter(c => {
+        if (!c) return false;
+        if (!includeDigest && EXPED && EXPED.shouldShowInLiveFeed && !EXPED.shouldShowInLiveFeed(W, c, false)) return false;
         if (cFilter !== 'all' && c.category !== cFilter) return false;
         if (fFilter !== 'all' && (c.reportFormat || 'PIGEON_DISPATCH') !== fFilter) return false;
+        if (sevFilter !== 'all' && (c.severity || (EXPED && EXPED.classifyNewsSeverity && EXPED.classifyNewsSeverity(c)) || 'NOTABLE') !== sevFilter) return false;
+        if (epFilter !== 'all') {
+          const ep = c.epistemicStatus || (c.isRumor ? 'RUMOR' : 'VERIFIED');
+          if (ep !== epFilter) return false;
+        }
+        if (winFilter > 0 && ((W.day || 0) - (c.day || 0)) > winFilter) return false;
+        if (thFilter !== 'all' && c.storyThreadId !== thFilter) return false;
+        if (unreadOnly && EXPED && EXPED.isEntryUnread && !EXPED.isEntryUnread(W, c)) return false;
         if (cSearch) {
-          const hay = ((c.titleTh || '') + ' ' + (c.storyTh || '') + ' ' + (c.consequenceTh || '') + ' ' + (c.originCauseTh || '') + ' ' + (c.systemImpactTh || '') + ' ' + (c.involvedSects || []).join(' ') + ' ' + (c.involvedFigures || []).join(' ')).toLowerCase();
+          const hay = ((c.titleTh || '') + ' ' + (c.storyTh || '') + ' ' + (c.consequenceTh || '') + ' ' + (c.originCauseTh || '') + ' ' + (c.systemImpactTh || '') + ' ' + (c.followUpTh || '') + ' ' + (c.involvedSects || []).join(' ') + ' ' + (c.involvedFigures || []).join(' ')).toLowerCase();
           if (!hay.includes(cSearch)) return false;
         }
         return true;
@@ -5352,33 +5732,70 @@
 
       h += '<details class="lineage-chronicle" open><summary>📜 จดหมายเหตุยุทธภพ & พงศาวดารพิราบสื่อสาร (' + filteredChrons.length + '/' + chrons.length + ' ฉบับ)</summary><div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.04);margin-top:6px">';
       h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">' + catList.map(([ck, cv]) => '<button class="btn ' + (cFilter === ck ? 'pri' : '') + '" style="padding:2px 7px;font-size:11px" data-do="world-chronicle-cat" data-arg="' + ck + '">' + cv + '</button>').join('') + '</div>';
-      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;align-items:center"><span class="muted" style="font-size:10.5px">รูปแบบพงศาวดาร:</span>' + fmtList.map(([fk, fv]) => '<button class="btn ' + (fFilter === fk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-fmt" data-arg="' + fk + '">' + fv + '</button>').join('') + '</div>';
+      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center"><span class="muted" style="font-size:10.5px">รูปแบบพงศาวดาร:</span>' + fmtList.map(([fk, fv]) => '<button class="btn ' + (fFilter === fk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-fmt" data-arg="' + fk + '">' + fv + '</button>').join('') + '</div>';
+
+      // Archive reading filters (Severity, Epistemic Status, Time Window, Unread, Reset)
+      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center">';
+      h += '<span class="muted" style="font-size:10.5px">กรองคลังประวัติ:</span>';
+      [['all', 'ทุกระดับ'], ['CRITICAL', '🔥 วิกฤต'], ['MAJOR', '⭐ สำคัญ'], ['NOTABLE', '📌 น่าสนใจ']].forEach(([sk, sv]) => {
+        h += '<button type="button" class="btn ' + (sevFilter === sk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-sev" data-arg="' + sk + '">' + sv + '</button>';
+      });
+      [['all', 'ทุกแหล่งข่าว'], ['VERIFIED', '📜 ยืนยันแล้ว'], ['RUMOR', '🍶 ข่าวลือโรงเตี๊ยม']].forEach(([ek, ev]) => {
+        h += '<button type="button" class="btn ' + (epFilter === ek ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-epistemic" data-arg="' + ek + '">' + ev + '</button>';
+      });
+      [[0, 'ทุกช่วงเวลา'], [1, 'วันนี้'], [7, '7 วันล่าสุด'], [30, '30 วันล่าสุด']].forEach(([wk, wv]) => {
+        h += '<button type="button" class="btn ' + (winFilter === wk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-days" data-arg="' + wk + '">' + wv + '</button>';
+      });
+      h += '<button type="button" class="btn ' + (unreadOnly ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-unread">● เฉพาะยังไม่อ่าน</button>';
+      h += '<button type="button" class="btn" style="padding:1px 7px;font-size:10.5px" data-do="reset-archive-filters">🔄 ล้างตัวกรองค้นหาทั้งหมด</button>';
+      h += '</div>';
+
       h += '<div style="margin-bottom:8px"><input id="worldChronicleSearch" type="search" placeholder="ค้นหาเหตุการณ์/ชื่อบุคคล/ชื่อสำนัก/แหล่งที่มาในยุทธภพ…" value="' + esc(UI.worldChronicleSearch || '') + '" style="font-size:11.5px;padding:4px 8px;width:100%"></div>';
 
       if (!filteredChrons.length) {
-        h += '<div class="muted">ไม่พบบันทึกจดหมายเหตุยุทธภพที่ตรงกับเงื่อนไขการค้นหา</div>';
+        h += '<div class="muted">ไม่พบบันทึกจดหมายเหตุยุทธภพที่ตรงกับเงื่อนไขการค้นหา <button type="button" class="btn" style="padding:2px 8px;font-size:11px" data-do="reset-archive-filters">แสดงประวัติทั้งหมด</button></div>';
       } else {
         const wcLim = Math.max(10, UI.worldChronicleLimit || 15);
         const wcShown = filteredChrons.slice(0, wcLim);
         h += wcShown.map(c => {
+          const p = (EXPED && EXPED.presentChronicleEntry) ? EXPED.presentChronicleEntry(W, c) : null;
           const vBadge = c.verificationStatusTh ? (" <span class=\"chip\">" + esc(c.verificationStatusTh) + "</span>") : "";
+          const sevBadge = p && p.severityBadge ? (' <span class="chip" style="border-color:' + p.severityBadge.color + ';color:' + p.severityBadge.color + '">' + esc(p.severityBadge.labelTh) + '</span>') : '';
+          const unreadChip = (p && p.isUnread) ? (' <span class="chip g" style="cursor:pointer;padding:0 5px;font-size:10px" data-do="mark-news-read" data-arg="' + esc(c.id) + '">● ใหม่</span>') : '';
+          const threadChip = c.storyThreadId ? (' <button type="button" class="chip b" style="cursor:pointer;padding:1px 6px;font-size:10px" data-do="chronicle-thread" data-arg="' + esc(c.storyThreadId) + '">🧵 เส้นเรื่องต่อเนื่อง</button>') : '';
+          const fmtCls = 'chron-fmt-' + String(c.reportFormat || 'PIGEON_DISPATCH').toLowerCase();
           const cHighs = (c.combatSummary && Array.isArray(c.combatSummary.highlights) && c.combatSummary.highlights.length)
             ? ("<div class=\"muted\" style=\"font-size:10.5px;margin-top:2px;color:#a8dadc\">🎯 <b>จังหวะยุทธวิธี:</b> " + c.combatSummary.highlights.slice(0, 4).map(hl => esc(hl.textTh || hl)).join(" · ") + "</div>")
             : "";
-          return "<div style=\"padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)\"><div><span class=\"chip g\">" + esc(c.categoryTh || "จดหมายเหตุ") + "</span>" + (c.reportFormatTh ? (" <span class=\"chip b\">" + esc(c.reportFormatTh) + "</span>") : "") + vBadge + " <b>" + esc(c.icon || "📜") + " " + esc(c.titleTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(วันที่ " + c.day + ")</span></div>" +
-          "<div style=\"font-size:12px;margin-top:3px;line-height:1.45\">" + linkify(W, c.storyTh, c.npcIds) + "</div>" +
-          (c.originCauseTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">🌱 <b>ต้นทาง/สาเหตุ:</b> " + esc(c.originCauseTh) + "</div>" : "") +
-          (c.actorChainTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:1px\">👤 <b>ผู้กระทำ/ที่มา:</b> " + esc(c.actorChainTh) + "</div>" : "") +
-          (c.systemImpactTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:1px;color:#8ecae6\">🔗 <b>การเชื่อมโยงระบบ:</b> " + esc(c.systemImpactTh) + "</div>" : "") +
-          (c.directorInsightTh ? "<div class=\"muted\" style=\"font-size:10.5px;margin-top:1px;color:#cdb4db\">🎬 <b>มุมมองผู้กำกับ:</b> " + esc(c.directorInsightTh) + "</div>" : "") +
-          (c.combatBreakdownTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">⚔️ " + esc(c.combatBreakdownTh) + "</div>" : "") +
-          cHighs +
-          (c.consequenceTh ? "<div style=\"font-size:11.5px;color:#ffd166;margin-top:2px\">➔ <b>ผลลัพธ์:</b> " + esc(c.consequenceTh) + "</div>" : "") +
-          "</div>";
+          const numDrawerHtml = (p && Array.isArray(p.numericDetails) && p.numericDetails.length)
+            ? ('<details class="chron-numeric-drawer"><summary>📊 ดูรายละเอียดตัวเลขและ Snapshot ณ เวลาเกิดเหตุ (' + p.numericDetails.length + ' รายการ)</summary>' +
+                '<div class="chron-numeric-list">' +
+                p.numericDetails.map(nd =>
+                  '<div class="chron-numeric-row"><div><b>' + esc(nd.labelTh) + ':</b> <span style="color:var(--gold)">' + esc(nd.valueTh) + '</span></div>' +
+                  '<div class="muted" style="font-size:10.5px">' + esc(nd.meaningTh) + '</div></div>'
+                ).join('') +
+                '</div></details>')
+            : '';
+
+          return "<div class=\"chron-card " + fmtCls + "\" style=\"padding:7px 8px;margin-bottom:6px;border-bottom:1px dotted var(--line,#3a3f4a);border-radius:8px\">" +
+            "<div><span class=\"chip g\">" + esc(c.categoryTh || "จดหมายเหตุ") + "</span>" +
+            (c.reportFormatTh ? (" <span class=\"chip b\">" + esc(c.reportFormatTh) + "</span>") : "") +
+            sevBadge + vBadge + unreadChip + threadChip +
+            " <b>" + esc(c.icon || "📜") + " " + esc(c.titleTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(วันที่ " + c.day + ")</span></div>" +
+            "<div style=\"font-size:12px;margin-top:4px;line-height:1.48\">" + (p && p.leadPrefixTh ? ("<span class=\"muted\" style=\"font-size:11px\">" + esc(p.leadPrefixTh) + "</span> ") : "") + linkify(W, c.storyTh, c.npcIds) + "</div>" +
+            (p && p.turningPointBodyTh ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:3px\">" + esc(p.turningPointLabelTh) + ": " + linkify(W, p.turningPointBodyTh, c.npcIds) + "</div>") : (c.originCauseTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">🌱 <b>ต้นทาง/สาเหตุ:</b> " + esc(c.originCauseTh) + "</div>" : "")) +
+            cHighs +
+            (c.consequenceTh ? "<div style=\"font-size:11.5px;color:#ffd166;margin-top:3px\">➔ <b>" + esc((p && p.impactLabelTh) || "ผลลัพธ์") + ":</b> " + linkify(W, c.consequenceTh, c.npcIds) + "</div>" : (c.systemImpactTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">🔗 <b>ผลกระทบ:</b> " + esc(c.systemImpactTh) + "</div>" : "")) +
+            (p && p.followUpTh ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#a8dadc\">🔎 <b>สิ่งที่น่าติดตามต่อ:</b> " + esc(p.followUpTh) + "</div>") : "") +
+            numDrawerHtml +
+            "</div>";
         }).join("");
         if (filteredChrons.length > wcShown.length) {
           h += "<div style=\"margin-top:6px\"><button type=\"button\" class=\"btn\" style=\"padding:3px 10px;font-size:11px\" data-do=\"world-chronicle-more\">แสดงจดหมายเหตุเพิ่มเติม (" + (filteredChrons.length - wcShown.length) + " ฉบับ)</button></div>";
         }
+      }
+      if (W.world && W.world.chronicleTrimmedCount > 0) {
+        h += '<div class="muted" style="font-size:10.5px;margin-top:4px">ℹ️ คลังจดหมายเหตุคงหมุดหมายสำคัญไว้และตัดข่าวทั่วไปที่เก่าเกิน 200 ฉบับไปแล้ว ' + W.world.chronicleTrimmedCount + ' ฉบับ</div>';
       }
       h += '</div></details>';
     }
@@ -5397,6 +5814,8 @@
       if (allowed.size > 0) {
         list = list.filter(l => allowed.has(l.type));
       }
+    } else if (EXPED && EXPED.shouldShowInLiveFeed && UI.worldChronicleIncludeDigest === false) {
+      list = list.filter(l => EXPED.shouldShowInLiveFeed(W, l, false));
     }
     if (hasTrackedFilter) {
       list = list.filter(l => {
@@ -5427,7 +5846,8 @@
       raid: ['⚔️ ศึกป้องกันสำนัก', '#ff6b35'],
       marriage: ['💞 มงคลคู่บำเพ็ญ', '#ff9ebb'],
       succession: ['👑 สืบทอดเจ้าสำนัก', '#c77dff'],
-      legend: ['🐉 ตำนานยุทธภพ', '#90e0ef']
+      legend: ['🐉 ตำนานยุทธภพ', '#90e0ef'],
+      scandal: ['⚖️ คดีทุจริต/หอวินัย', '#ef476f']
     };
     return h + list.map(l => {
       const mb = majorBanners[l.type];

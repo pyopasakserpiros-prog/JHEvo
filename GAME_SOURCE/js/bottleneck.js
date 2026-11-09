@@ -36,9 +36,12 @@
   /* ---- แผนตัดสินใจของ NPC ---- */
   function estimate(W, n) {
     const c = n.cult, S = W.sect;
-    const p0 = CULT.breakthroughChance(n, { env: 0.05, pill: c.btBonus || 0 }) + (BN.heldPill(n) ? (ECO.pillInfo(BN.heldPill(n)).effect.breakthroughBonus || 0) : 0);
+    const heldKey = BN.heldPill(n);
+    const heldInfo = heldKey ? ECO.pillInfo(heldKey) : null;
+    const p0 = CULT.breakthroughChance(n, { env: 0.05, pill: c.btBonus || 0 }) + ((heldInfo && heldInfo.effect && heldInfo.effect.breakthroughBonus) || (heldKey ? 0.18 : 0));
     const key = BN.pillKey(c), tr = BN.treasureOf(c);
-    const pillObt = !BN.heldPill(n) && ECO.count(W, key) > 0 ? ECO.pillInfo(key).effect.breakthroughBonus : 0;
+    const keyInfo = ECO.pillInfo(key);
+    const pillObt = !heldKey && ECO.count(W, key) > 0 ? ((keyInfo && keyInfo.effect && keyInfo.effect.breakthroughBonus) || 0.18) : 0;
     const trObt = tr && c.treasure !== tr.id && ECO.count(W, tr.id) > 0 ? 0.46 : 0;
     return { p0, potential: p0 + pillObt + trObt, obtainable: pillObt + trObt > 0 };
   }
@@ -56,7 +59,34 @@
     else if (waited >= limit) { plan = 'go'; why = urgent ? 'อายุขัยใกล้หมด จึงเสี่ยง' : 'รอนานพอแล้ว ตัดสินใจเสี่ยง'; }
     else { plan = 'wait'; why = est.obtainable ? 'รอโอสถ/สมบัติจากสำนัก' : tr && c.treasure !== tr.id ? 'ยังไม่มี' + tr.nameTh : 'ยังไม่มั่นใจ ขอตกผลึกก่อน'; }
     bn.target = target; bn.p0 = est.p0; bn.why = why; bn.limit = limit;
-    if (plan !== bn.plan) { bn.plan = plan; if (plan === 'go') { W.log('breakthrough', n.h.name.given + ' ตัดสินใจทะลวงคอขวดของ' + CULT.stageName(n) + ' (' + why + ')', [n.id]); } else if (waited === 0) { W.log('breakthrough', n.h.name.given + ' ตบะเต็มแล้วแต่ติดคอขวด — ' + why, [n.id]); } }
+    if (plan !== bn.plan) {
+      bn.plan = plan;
+      const bnThreadId = 'thread:cult:' + n.id + ':' + c.stage;
+      const bnThreadTitle = 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(n);
+      const p0Pct = Math.round((est.p0 || 0) * 100);
+      const tgtPct = Math.round((target || 0) * 100);
+      if (plan === 'go') {
+        W.log('breakthrough', n.h.name.given + ' ตัดสินใจทะลวงคอขวดของ' + CULT.stageName(n) + ' (' + why + ')', [n.id], {
+          storyThreadId: bnThreadId,
+          storyThreadTitleTh: bnThreadTitle,
+          originCauseTh: 'ประเมินโอกาสสำเร็จปัจจุบัน ' + p0Pct + '% เทียบเกณฑ์ความมั่นใจ ' + tgtPct + '% (' + why + ')',
+          consequenceTh: 'เข้าสู่ขั้นตอนเตรียมทะลวงด่าน',
+          followUpTh: 'ติดตามผลการทะลวงด่านและเตรียมโอสถฟื้นฟูหากเกิดตบะย้อนกลับ',
+          factDeltas: { chancePct: p0Pct, targetPct: tgtPct, waitedDays: waited },
+          promoteChronicle: true
+        });
+      } else if (waited === 0) {
+        W.log('breakthrough', n.h.name.given + ' ตบะเต็มแล้วแต่ติดคอขวด — ' + why, [n.id], {
+          storyThreadId: bnThreadId,
+          storyThreadTitleTh: bnThreadTitle,
+          originCauseTh: 'โอกาสทะลวงด่านปัจจุบัน (' + p0Pct + '%) ยังต่ำกว่าเกณฑ์ที่ยอมรับได้ (' + tgtPct + '%) — ' + why,
+          consequenceTh: 'ชะลอการทะลวงด่านเพื่อรอโอสถหรือสะสมความเข้าใจเต๋าเพิ่ม',
+          followUpTh: 'จัดหาโอสถทะลวงด่านประจำขั้นหรือสมบัติหนุนตบะเข้าคลังสำนัก',
+          factDeltas: { chancePct: p0Pct, targetPct: tgtPct, obtainableHelp: !!est.obtainable },
+          promoteChronicle: true
+        });
+      }
+    }
   };
 
   /* ---- รายวัน: คัดคนติดคอขวด จัดสรรของ ---- */
@@ -97,7 +127,14 @@
       const cands = stuck.filter(n => n.cult.path === path && n.cult.stage === +st && !BN.heldPill(n) && !n.away).sort((a, b) => scoreFor(W, b) - scoreFor(W, a));
       const w = cands[0]; if (!w || scoreFor(W, w) < 0.35) return; // ที่เหลือไปซื้อเองที่ตลาด
       ECO.take(W, key, 1); w.inv.pills = w.inv.pills || {}; w.inv.pills[key] = (w.inv.pills[key] || 0) + 1; w.merit = (w.merit || 0) - 4;
-      W.log('breakthrough', 'สำนักมอบ' + ECO.name(key) + 'ให้ ' + w.h.name.given + ' ก่อนทะลวง', [w.id]);
+      W.log('breakthrough', 'สำนักมอบ' + ECO.name(key) + 'ให้ ' + w.h.name.given + ' ก่อนทะลวง', [w.id], {
+        storyThreadId: 'thread:cult:' + w.id + ':' + w.cult.stage,
+        storyThreadTitleTh: 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(w),
+        originCauseTh: 'จัดสรรโอสถทะลวงด่านจากคลังให้ศิษย์ที่ติดคอขวดตามคะแนนคุณูปการ',
+        consequenceTh: w.h.name.given + ' ได้รับ ' + ECO.name(key) + ' ×1 (หักคุณูปการ 4 แต้ม)',
+        followUpTh: 'พร้อมเข้าสู่การทะลวงด่านด้วยโอกาสสำเร็จที่สูงขึ้น',
+        promoteChronicle: true
+      });
     });
     // พ่อค้าเร่เสนอขายสมบัติ ถ้ามีคนต้องการ
     if (W.day % 15 === 0 && Object.keys(needTr).length && W.rng.chance(0.4)) {

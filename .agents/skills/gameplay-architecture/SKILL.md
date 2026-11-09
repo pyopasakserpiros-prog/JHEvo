@@ -479,3 +479,17 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 ## Patch JS2-v2.5.0 Version & Architecture Update
 - `SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'` (`'2.5.0'` added to `SIM.SUPPORTED_PATCHES` in `js/sim.js`).
 - Preserves `GAME_SOURCE/js/human_core.js` byte-identical (`HC.FINGERPRINT === '155:2f9c9dd7'`, SHA-256 `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`) and the exact 40 `<script>` tag load order.
+
+
+## Patch JS2-v2.6.0 Additions: Living Chronicle, Periodic Digest, Storyline Threads & News Intake Engine (`js/sim.js`, `js/expedition.js`, `js/combat.js`)
+- **Version & Save Schema**: `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'` (backwards-compatible with `2.4.0` and `2.5.0` schemas).
+- **Enhanced Person Snapshot (`SIM.snapshotPerson(W, n, statusOverride)`)**: Automatically tracks `formerNames` whenever an NPC's full name changes, and records `pathNameTh`, `subNameTh`, `stageNameTh`, `topWhyTh` (`n.why[0][0]`), `goalId`, `goalTitleTh`, `aspirationId`, `merit`, `joinDay`, `deathDay`, `deathWhy`, and `snapshotDay`/`snapshotTick`.
+- **12 Chronicle Reporting Formats (`EXPED.CHRONICLE_REPORT_FORMATS`) & Pure Presenter (`EXPED.presentChronicleEntry(W, rec)`)**:
+  - Added 12th format `PERIODIC_SECT_DIGEST` (`📊 สมุดสรุปสถานการณ์สำนักประจำรอบ`).
+  - `EXPED.buildFactSnapshot(W, entry, actorSnapshots, fmtId)` captures immutable event-time facts and epistemic status (`'VERIFIED'`, `'OBSERVED'`, `'RUMOR'`).
+  - `EXPED.presentChronicleEntry(W, rec)` is 100% read-only (uses deterministic FNV-1a `EXPED.chronicleHash`, zero `W.rng` calls, zero state mutation).
+- **Periodic Sect Digest (`EXPED.computePeriodDigest(W, { windowDays })` & `EXPED.recordPeriodicDigest(W, opts)`)**:
+  - Separates closing stock (`closingStones`, `closingMeals`, `closingGrain`, `foodDaysRemaining` vs `cashReserveFloor`), external stone cashflow (`stoneIncome`, `stoneExpense`, `netStones` from `W.sect.ledger` in `(fromTick, toTick]`), internal sect transfers (`internalGiftsCount`, `internalCpPurchasesCount`, `internalDonationsCount`), and player Edit Hub interventions (`playerInterventionCount`) without double-counting.
+- **Milestone-Protected Retention**:
+  - `EXPED.trimChroniclesWithMilestoneProtection(W, 200, 60)` trims `ROUTINE` entries first when `W.world.chronicles` exceeds 200, protecting up to 60 milestones and incrementing `W.world.chronicleTrimmedCount`.
+  - `SIM.log` protects up to 160 milestones when trimming `W.sect.sectChronicle` at 600 entries and increments `W.sect.sectChronicleTrimmedCount`.

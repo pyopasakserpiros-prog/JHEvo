@@ -180,3 +180,17 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 ### Tier family routing and normalization (All Equipment Tier Art)
 - `pickTier` inside resolveItemArt prioritizes named IDs, then supported visualSubtype/gearType/weaponType/subType before generic inference. `ITEM_ART.typeAliases` maps SABER/GAUNTLET/FIST_PALM/HEAVY_ARMOR/LIGHT_ARMOR/PENDANT/HEADGEAR/SHOES. ORNAMENT and AUX_TOOL must not collapse into CHARM. FOCUS named as a fan can select the physical FAN family.
 - New tier sheets are normalized 768², 96px cells with <=80px subject bounds; source-specific crop boxes live in docs/ITEM_ART_TIER_CROPS.json. Run normalize_item_sheet.js with the matching approved source, then build_item_art.js and build_single.js. Do not reuse crop boxes on a new differently arranged generation without reviewing them.
+
+
+## Patch JS2-v2.6.0 Additions: News Intake Settings Panel, Periodic Digest UI, Storyline Threads & Historical Person Sheet (`js/ui.js`, `css/style.css`)
+- **News Intake vs Archive Filter Separation (`UI.sectChronicle`, `UI.rLog`, `UI.onLog`)**:
+  - `UI.onLog` checks `EXPED.shouldDeliverToast(W, entry)` before displaying toast notifications.
+  - `UI.sectChronicle(W)` renders `📖 พงศาวดารสำนัก` as the first `.lineage-chronicle[open]` element (preserving `lineage_chronicle_browser.js` compatibility), followed by `.chron-v260-panel` sections for:
+    1. **News Intake Settings (`W.sect.newsPrefs`)**: 5 presets (`data-do="news-preset"`), critical alert policy (`data-do="news-critical-mode"`), auto-digest interval (`data-do="news-digest-interval"`), per-category toast/feed toggles (`data-do="news-toggle-toast"`, `data-do="news-toggle-feed"`), tracked disciple pins (`data-do="news-untrack-npc"` / `data-do="toggle-track-npc"`), and `✓ ทำเครื่องหมายว่าอ่านแล้วทั้งหมด` (`data-do="news-mark-all-read"`).
+    2. **Periodic Sect Digest Panel (`EXPED.computePeriodDigest`)**: Live 1 / 7 / 30 day selector (`data-do="digest-window"`), snapshot button (`data-do="record-digest-now"`), 4-bucket non-overlapping economy cards, top contributors, troubled disciples, and verified risks.
+    3. **Continuing Storyline Threads (`EXPED.getStoryThreads`)**: Shows `🌱 ต้นเหตุ ➔ ⚡ จุดเปลี่ยน ➔ 🎯 ล่าสุด` with 1-click thread filter (`data-do="chronicle-thread"`).
+- **12-Format World Chronicle Cards & Archive Filters (`UI.rLog`)**:
+  - Archive filters (`world-chronicle-cat`, `world-chronicle-fmt`, `world-chronicle-sev`, `world-chronicle-epistemic`, `world-chronicle-days`, `world-chronicle-unread`, `chronicle-thread`, `reset-archive-filters`) never delete stored events.
+  - Each card displays headline, epistemic certainty badge (`📜 บันทึกยืนยัน` / `👁️ รายงานสังเกตการณ์` / `🍶 ข่าวลือโรงเตี๊ยม`), lead paragraph, turning point/causality, impact/follow-up, and a collapsible `<details>` numeric & actor-snapshot breakdown explaining what each number means in the game.
+- **Historical Person Memorial Fallback (`UI.openNpc`, `UI.findHistoricalPersonSnapshot`, `UI.rHistoricalPerson`)**:
+  - Clicking `[data-npc]` for a deceased, buried (`W.graveyard`), exiled (`W.gone`), or renamed NPC opens `UI.sheet = 'hist_npc'` showing their saved snapshot, `formerNames`, cultivation stage, cause of death/departure, and related chronicle/log events.

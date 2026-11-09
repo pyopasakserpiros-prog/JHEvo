@@ -3250,7 +3250,7 @@
     ctx.cd = C.attack(W, f, u, t);
   };
 
-  /* สร้างสรุปเหตุการณ์ศึกสำหรับเชื่อมเข้าพงศาวดาร (Unified Combat Chronicle Payload) */
+  /* สร้างสรุปเหตุการณ์ศึกสำหรับเชื่อมเข้าพงศาวดาร (Unified Combat Chronicle Payload — JS2-v2.6.0) */
   C.buildFightChroniclePayload = (W, f) => {
     if (!f) return null;
     const fTac = C.ensureFightTac(f, W && W.t);
@@ -3259,20 +3259,86 @@
     const st = fTac.stats || {};
     const parts = [];
     if (st.intercepts > 0) parts.push('เข้าคุ้มกัน/ขวางแนวยิง ' + st.intercepts + ' ครั้ง');
+    if (st.losBlocks > 0) parts.push('ใช้สิ่งกีดขวางบังวิถี ' + st.losBlocks + ' ครั้ง');
     if (st.zocStrikes > 0) parts.push('สกัดกั้นเขตคุกคาม ' + st.zocStrikes + ' ครั้ง');
     if (st.interrupts > 0) parts.push('ขัดจังหวะร่ายวิชา ' + st.interrupts + ' ครั้ง');
-    if (st.targetSwitches > 0) parts.push('ปรับเปลี่ยนเป้าหมายเชิงยุทธวิธี ' + st.targetSwitches + ' ครั้ง');
+    if (st.targetSwitches > 0) parts.push('เปลี่ยนเป้าหมายเชิงยุทธวิธี ' + st.targetSwitches + ' ครั้ง');
     const highlightText = highlights.map(h => h.textTh).filter(Boolean).slice(0, 3).join(' · ');
+    const tacticalSummaryTh = parts.length ? parts.join(' · ') : 'ปะทะแลกเปลี่ยนกระบวนท่าตามระยะ';
+
+    const unitsA = (f.A || []).map(id => C.unit(W, id)).filter(Boolean);
+    const unitsB = (f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+    const allUnits = unitsA.concat(unitsB);
+    const casualties = [];
+    const injuredIds = [];
+    const overdriveBacklashIds = [];
+    let mvp = null, bestScore = -1;
+
+    for (let i = 0; i < allUnits.length; i++) {
+      const u = allUnits[i];
+      if (!u || u.isSummon) continue;
+      const side = (f.A || []).includes(u.id) ? 'A' : 'B';
+      const uName = (u.h && u.h.name && g.HC && g.HC.fullName) ? g.HC.fullName(u) : C.name(u);
+      if (u.dead) {
+        casualties.push({ id: u.id, nameTh: uName, side, foe: !!u.foe });
+      } else {
+        const hpRatio = C.hp(u) / Math.max(1, C.hpMax(u));
+        if (hpRatio < 0.45 || (Array.isArray(u.inj) && u.inj.length > 0)) {
+          injuredIds.push(u.id);
+        }
+      }
+      if (u.meridians && u.meridians.overdriveUsedInFight) {
+        overdriveBacklashIds.push(u.id);
+      }
+      if (!u.foe) {
+        const ic = (u.tac && u.tac.interceptCount) || 0;
+        const kills = (u.stats && u.stats.kills) || 0;
+        const wonBonus = (f.winner && f.winner === side) ? 3 : 0;
+        const aliveBonus = u.dead ? 0 : 2;
+        const sc = wonBonus + aliveBonus + ic * 2.5 + (kills > 0 ? Math.min(4, kills * 0.5) : 0);
+        if (sc > bestScore) {
+          bestScore = sc;
+          mvp = { id: u.id, nameTh: uName, intercepts: ic, side, dead: !!u.dead };
+        }
+      }
+    }
+
+    const outcome = fTac.outcome || (f.winner === 'A' ? 'VICTORY_A' : f.winner === 'B' ? 'VICTORY_B' : 'DRAW');
+    const outcomeLabelTh = {
+      RAID_WIPED: 'กวาดล้างผู้บุกรุกสิ้นซาก',
+      PYRRHIC_DEFENSE: 'ต้านศึกสำเร็จแม้สูญเสียหนัก',
+      REPELLED_TIMEOUT: 'ตรึงแนวรับจนข้าศึกหมดกำลังล่าถอย',
+      CORE_BREACHED: 'แนวรับหน้าด่านแตกพ่าย',
+      VICTORY_A: 'ฝ่ายแรกคว้าชัย',
+      VICTORY_B: 'ฝ่ายหลังคว้าชัย',
+      MUTUAL_DOWN: 'สิ้นกำลังทั้งสองฝ่าย',
+      TIMEOUT_DRAW: 'ประลองครบกำหนดโดยไม่รู้ผลแพ้ชนะ',
+      DRAW: 'เสมอกัน'
+    }[outcome] || 'ยุติการปะทะ';
+
+    const summaryParts = [outcomeLabelTh + ' (' + durTicks + ' นาที)', tacticalSummaryTh];
+    if (mvp && mvp.nameTh) summaryParts.push('ผู้โดดเด่น: ' + mvp.nameTh);
+    if (casualties.length > 0) summaryParts.push('ผู้เสียชีวิต ' + casualties.length + ' ราย');
+    const summaryLineTh = summaryParts.filter(Boolean).join(' · ');
+
     return {
       fightId: f.id,
       kind: f.kind,
       winner: f.winner,
-      outcome: fTac.outcome || (f.winner === 'A' ? 'VICTORY_A' : f.winner === 'B' ? 'VICTORY_B' : 'DRAW'),
+      outcome,
+      outcomeLabelTh,
       durationTicks: durTicks,
       stats: Object.assign({}, st),
       highlights,
-      tacticalSummaryTh: parts.length ? parts.join(' · ') : 'ปะทะแลกเปลี่ยนกระบวนท่าตามระยะ',
-      narrativeHighlightTh: highlightText || ''
+      tacticalSummaryTh,
+      narrativeHighlightTh: highlightText || '',
+      summaryLineTh,
+      mvp,
+      casualties: casualties.slice(0, 6),
+      injuredIds: injuredIds.slice(0, 8),
+      overdriveBacklashIds: overdriveBacklashIds.slice(0, 4),
+      countA: unitsA.length,
+      countB: unitsB.length
     };
   };
 

@@ -1,0 +1,92 @@
+{
+  "garrison_counts_deployed_member": {
+    "assign": true,
+    "departed": true,
+    "expeditionId": 1,
+    "travel": {
+      "to": "exit",
+      "ex": 1
+    },
+    "garrisonDiscipleIds": [],
+    "garrisonPower": 273,
+    "assignedNpc": "n_master"
+  },
+  "puzzle_reward_replay": {
+    "before": 1000,
+    "after": 1380,
+    "rewards": [
+      380,
+      0
+    ],
+    "ok": [
+      true,
+      true
+    ],
+    "hasGateClaimLog": 1
+  },
+  "teleport_leaves_expedition_active": {
+    "before": {
+      "away": true,
+      "expId": 1,
+      "exDone": false,
+      "ret": 524543,
+      "t": 518760
+    },
+    "teleport": {
+      "ok": true,
+      "count": 1,
+      "destination": "main_hall"
+    },
+    "afterTeleport": {
+      "away": false,
+      "expId": null,
+      "exDone": true,
+      "exActive": false
+    },
+    "afterDue": {
+      "away": false,
+      "expId": null,
+      "exDone": true,
+      "journal": 0
+    }
+  },
+  "no_trip_cost_and_damage_siege": {
+    "before": {
+      "stones": 1000,
+      "hp": 333
+    },
+    "after": {
+      "stones": 1000,
+      "hp": 333
+    },
+    "queued": true,
+    "travelDays": 4,
+    "exSupplies": 6,
+    "exCarry": [],
+    "memberAway": true
+  },
+  "direct_resource_claim_repeat": {
+    "before": {
+      "fame": 12,
+      "owner": "S0"
+    },
+    "after": {
+      "fame": 15,
+      "owner": "PLAYER"
+    },
+    "first": true,
+    "second": false
+  },
+  "subjugate_without_war": {
+    "hasSieges": 0,
+    "ok": false,
+    "treaty": "NONE",
+    "loyalty": 50
+  },
+  "expired_call_with_ui_path": {
+    "expires": 366,
+    "currentDay": 367,
+    "ok": false,
+    "deltaFame": 0
+  }
+}

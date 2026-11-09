@@ -1,37 +1,35 @@
 # เริ่มงานที่นี่ — JianghuSect 2
 
-## ใบสั่งงานปัจจุบันเพียงฉบับเดียว
+## สถานะปัจจุบันของแพ็กเกจนี้ (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว)
 
-**JS2-v2.6.0 — พงศาวดารมีชีวิตและการรายงานยุทธภพ**
+- **เวอร์ชันปัจจุบัน**: **`JS2-v2.6.0 — พงศาวดารมีชีวิตและการรายงานยุทธภพ`** (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, `HC.FINGERPRINT = '155:2f9c9dd7'`)
+- **สถานะใบสั่งงาน `ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`**: **ดำเนินการพัฒนา ทดสอบ และส่งมอบเสร็จสมบูรณ์แล้ว 100%**
+  - รายงานการพัฒนาฉบับเต็ม: [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md)
+  - ตารางสำรวจ Producer → UI Coverage Matrix: [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
+  - สำเนาใบสั่งงานที่ดำเนินการเสร็จแล้ว: [`docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md)
+- **ผลการตรวจรับรองล่าสุดของแพ็กเกจนี้**:
+  - `node GAME_SOURCE/test/core_lock.js`: **PASS** (`155:2f9c9dd7`, SHA-256 ของ `js/human_core.js` = `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542` byte-identical)
+  - `node GAME_SOURCE/tools/validate_data_schema.js`: **PASS** (`Errors: 0, Warnings: 0`)
+  - `node GAME_SOURCE/tools/run_parallel_tests.js`: **PASS (`148/148` กลุ่มทดสอบผ่าน 100% จาก 147 ชุดทดสอบ + 1 กลุ่มตรวจ Syntax 225 ไฟล์)**
+  - `GAME_SOURCE/JianghuSect_single.html`: สร้างใหม่ตรงกับซอร์ส `JS2-v2.6.0` (ฝัง WebP 9 แผ่นครบ)
 
-อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) แล้วตรวจโค้ดจริง คิด/ออกแบบด้วยตนเอง ลงมือพัฒนา ทดสอบ อัปเดตเอกสารและส่งมอบจนจบ ไม่หยุดเพียงแผนหรือรายงานตรวจ
+## สิ่งที่มีอยู่ในฐาน `JS2-v2.6.0` นี้
 
-คำสั่งสั้นจากผู้ใช้: **“เริ่มงานตาม START_HERE_FOR_AI.md”** ก็เพียงพอ ไม่ต้องให้ผู้ใช้พิมพ์ข้อกำหนดซ้ำ
+1. **พงศาวดารมีชีวิตและการรายงานยุทธภพ (`JS2-v2.6.0`)**:
+   - **Fact Snapshot & Epistemic Status (`js/expedition.js`, `js/sim.js`)**: เก็บข้อเท็จจริงและ Snapshot ผู้เกี่ยวข้อง ณ เวลาเกิดเหตุ (`factSnapshot`, `actorSnapshots`, `formerNames`), แยกสถานะความน่าเชื่อถือ (`VERIFIED` / `OBSERVED` / `RUMOR`), และเปิดดูระเบียนประวัติย้อนหลังได้แม้ตัวละครเสียชีวิต ฝังสุสาน ถูกขับไล่ หรือเปลี่ยนชื่อ (`UI.rHistoricalPerson`)
+   - **รายงาน 12 รูปแบบพร้อมลิ้นชักอธิบายตัวเลข (`EXPED.presentChronicleEntry`)**: พาดหัว ➔ บทนำตามน้ำเสียง ➔ จุดเปลี่ยน/เหตุและผล ➔ ผลกระทบ/สิ่งที่น่าติดตาม ➔ ลิ้นชักตัวเลขและ Snapshot ที่อธิบายความหมายในเกมจริงโดยไม่แต่งเรื่อง
+   - **สมุดสรุปสถานการณ์สำนักประจำรอบ 1/7/30 วัน (`EXPED.computePeriodDigest` / `EXPED.recordPeriodicDigest`)**: แยกปริมาณคงคลังปลายงวด, กระแสศิลาวิญญาณรับ–จ่ายภายนอก, การโอนภายในสำนัก (แจกของ/แลก CP/บริจาค), และการเสกของผู้เล่นออกจากกันอย่างเด็ดขาด ไม่บวกซ้ำ
+   - **เส้นเรื่องต่อเนื่อง (`EXPED.getStoryThreads`)**: ติดตามต้นเหตุ ➔ จุดเปลี่ยน ➔ สถานะล่าสุด จาก `storyThreadId` จริง
+   - **แยกการตั้งค่ารับข่าว (`W.sect.newsPrefs`) ออกจากการค้นอ่านคลังประวัติ (`UI.logFilters`)**: มี 5 โหมดสำเร็จรูป (`ALL`, `MAJOR_ONLY`, `SECT_FOCUS`, `TRACKED_ONLY`, `QUIET_DIGEST`), นโยบายข่าววิกฤต 3 ระดับ (`ALWAYS_ALERT`, `FEED_ONLY`, `STRICT_MUTE`), ปักหมุดติดตามศิษย์คนสำคัญ, สถานะอ่านแล้ว/ยังไม่อ่าน, และการคุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง (`Milestone-Protected Retention`)
+2. **ฐานระบบและภาพจาก `JS2-v2.5.0` ที่รักษาไว้ครบถ้วน**:
+   - 43 มหาวิถี / 286 สายย่อย พร้อมออร่าขั้นสูงสุดครบ 43 วิถีตาม `maxStage` จริง (4/5/8/9)
+   - Legendary Visual Identity ครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนาน ([รายงาน](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md))
+   - All Equipment Tier Art 9 แผ่น / 576 ช่อง ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา ([รายงาน](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md))
 
-ผู้ใช้ให้อำนาจตัดสินใจแล้ว: พรอมต์เป็นแนวอ้างอิง ปรับ เพิ่ม รวม หรือตัดข้อเสนอได้ตามหลักฐานและการคิดอย่างละเอียด อธิบายเหตุผลและข้อแลกเปลี่ยน ไม่ต้องทำตามทุกตัวอย่าง แต่ต้องบรรลุเป้าหมายเรื่องการรายงานที่อ่านสนุก ตรงระบบเกมจริง และตั้งค่าการรับข่าวได้
+## แนวทางสำหรับ AI ในรอบถัดไป (Next Turn Guidance)
 
-## ฐานที่อยู่ใน ZIP นี้
-
-- ฐาน runtime **JS2-v2.5.0**, schema `2.4.0-tactical-composable-grand-dao` พร้อมแพตช์ภาพล่าสุดจาก main `478fbb9`
-- ยังไม่ได้พัฒนา JS2-v2.6.0; การเตรียมเอกสารนี้ไม่ได้เปลี่ยนโค้ดเกมหรือเลขเวอร์ชัน
-- 43 วิถี / 286 สายย่อย; Legendary VFX และภาพไอเท็ม 9 atlas / 576 ช่องพร้อมแล้ว 28 กลุ่มอุปกรณ์ + 13 กลุ่มอื่นมีภาพตาม Tier; named manuals 50 / relics 27 มีภาพเฉพาะ
-- รายงานฐานล่าสุด: [All Equipment Tier Art](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md), [Item Art Variety](PATCH_REPORTS/ITEM_ART_VARIETY_JS2_V2_5_0.md), [Legendary Visual Identity](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md)
-- Full audit ฐาน 147/147 PASS; final image/inventory/schema checks ผ่าน รายละเอียดสภาพแวดล้อมอยู่ในรายงาน ต้องตรวจงานของตนอีกครั้ง ห้ามคัดลอกผลเก่าเป็นผลแพตช์ใหม่
-- Known baseline: startup overlay อาจ intercept real pointer clicks; audit ใช้ project CDP สำหรับ startup_ui จึงไม่ได้ยืนยันว่าปัญหา pointer นั้นถูกแก้แล้ว
-
-## ลำดับการทำงาน
-
-1. อ่านใบสั่งงานปัจจุบันให้ครบ แล้วอ่าน [AGENTS.md](AGENTS.md), [project status](project_status_and_ai_onboarding.md) และ [.agents/skills/README.md](.agents/skills/README.md)
-2. อ่านสกิลที่เกี่ยวข้องตาม AGENTS; เริ่มตรวจแหล่งข้อมูล/producer/consumer จริงก่อนออกแบบ พงศาวดารมีอยู่แล้ว ห้ามคิดว่าเริ่มจากศูนย์
-3. จัด coverage matrix สิ่งที่ระบบคำนวณได้ สิ่งที่รายงานแล้ว/ยังขาด วิธีเล่าและข้อจำกัด เลือกทำสิ่งที่มีประโยชน์ต่อผู้เล่นโดยใช้ดุลยพินิจ
-4. เขียนโค้ดจริงและทดสอบข้ามระบบตามความเสี่ยง รักษา human_core.js byte-identical, 40 scripts/ลำดับโหลด, simulation RNG, ประสิทธิภาพ และภาพล่าสุด
-5. อัปเดต project status, skills/สารบัญ, README และรายงานแพตช์ตามผลจริง Build `GAME_SOURCE/JianghuSect_single.html` ใหม่ ตรวจ schema และ regression tests
-6. ถ้าส่ง Git ไม่ได้ ให้ส่ง ZIP โปรเจกต์เต็มตาม AGENTS: ซอร์สทั้งหมด data/js/css/assets/tools/tests, single HTML ตรงกับซอร์ส, เอกสารและ .agents/skills, directory entries, ไม่มี .git/แคช/ZIPซ้อน ตรวจ ZIP และแตกทดสอบก่อนส่ง ห้ามส่งแค่ single HTML แทนโปรเจกต์
-7. ปิดงานด้วยผลที่ทำจริง เหตุผลตัดสินใจ ตัวอย่างรายงานที่อ่านได้ ผลตรวจและข้อจำกัด อัปเดตตัวชี้งานถัดไปให้ตรงสถานะ ไม่เริ่มโปรเจกต์คนละเรื่องเอง
-
-## เอกสารอื่นมีสถานะอย่างไร
-
-- `docs/historical_prompts/` และรายงานเวอร์ชันเก่าเป็นบริบท/ประวัติ **ไม่ใช่คำสั่งปัจจุบัน**
-- [ข้อเสนอ NPC authorship / barter / relic biography](docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md) ถูกพักหลังผู้ใช้เปลี่ยนเป้าหมายแพตช์ ห้ามทำแทนหรือพ่วงเป็น requirement ของงานรายงาน
-- [FUTURE_ROADMAP_AND_IDEAS.md](FUTURE_ROADMAP_AND_IDEAS.md) เป็นคลังแนวคิด ไม่ใช่ข้อบังคับให้ทำทุกหัวข้อ
-- ถ้าเอกสารเก่าขัดกัน ให้ยึดคำสั่งผู้ใช้ล่าสุดและใบสั่งงานปัจจุบัน พร้อมตรวจซอร์สจริง ไม่ใช้คำว่า “สถานะล่าสุด” ในเอกสารประวัติศาสตร์มาชี้งานใหม่
+1. **ห้ามรันพัฒนา `JS2-v2.6.0` ซ้ำโดยไม่จำเป็น** เพราะพัฒนาและทดสอบครบอยู่ในโค้ดชุดนี้แล้ว หากผู้ใช้สั่งตรวจหรือปรับปรุงเพิ่มเติม ให้เริ่มจากตรวจซอร์สจริงและรายงาน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md)
+2. **สถานะเอกสารอื่น**:
+   - ข้อเสนอ [NPC authorship / barter / relic biography](docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md) ยังคงถูกพักไว้ใน `docs/deferred/` **ห้ามหยิบมาทำเองโดยที่ผู้ใช้ไม่ได้สั่งอนุมัติ**
+   - `docs/historical_prompts/` และ [FUTURE_ROADMAP_AND_IDEAS.md](FUTURE_ROADMAP_AND_IDEAS.md) เป็นคลังประวัติและแนวคิดอ้างอิง ไม่ใช่ใบสั่งงานบังคับ
+   - หากผู้ใช้ยังไม่ได้ระบุหัวข้อแพตช์ใหม่ (`JS2-v2.7.0`) ให้สอบถามหรือรับคำสั่งจากผู้ใช้ก่อนเริ่มฟีเจอร์ใหญ่เรื่องใหม่ หรือหากผู้ใช้สั่งงานเฉพาะเรื่อง ให้ปฏิบัติตาม [AGENTS.md](AGENTS.md) และอ่านสกิลใน [.agents/skills/README.md](.agents/skills/README.md) ทุกครั้ง

@@ -292,6 +292,31 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .inv-cell.r-Refined{border-color:#66d4a4aa;box-shadow:inset 0 0 0 1px #66d4a430}
 .inv-b-tl.ref{color:#8ee9b9;border-color:#66d4a4}
 
+/* JS2-v2.6.0 — Living Chronicle, Periodic Digest, Story Threads & News Preferences */
+.chron-v260-panel{margin:8px 0;padding:8px 10px;border:1px solid #86a38d;border-radius:12px;background:linear-gradient(155deg,#1d3d33,#112821);color:#edf2de;max-width:100%;overflow-x:hidden}
+.chron-v260-panel>summary{cursor:pointer;color:#ffe2a0;font-weight:700;list-style-position:inside;min-height:28px;line-height:1.4;overflow-wrap:anywhere}
+.chron-v260-card{margin-top:6px;margin-bottom:2px;padding:8px 9px;border-color:#688571;background:rgba(16,38,31,.65);max-width:100%;overflow-x:hidden}
+.chron-v260-note{font-size:11px;line-height:1.45;color:#d6e8d5;padding:5px 7px;border-radius:8px;background:rgba(233,205,133,.08);border:1px dashed rgba(233,205,133,.4)}
+.chron-prefs-grid{display:grid;grid-template-columns:1fr;gap:5px;font-size:11.5px;margin-top:6px}
+@media(min-width:560px){.chron-prefs-grid{grid-template-columns:1fr 1fr}}
+.chron-digest-grid{display:grid;grid-template-columns:1fr;gap:6px}
+@media(min-width:560px){.chron-digest-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.chron-digest-box{padding:6px 8px;border-radius:9px;background:#142b24;border:1px solid #4c6857;min-width:0;overflow-wrap:anywhere}
+.chron-thread-item{padding:6px 8px;margin-bottom:5px;border-radius:9px;background:#142b24;border:1px solid #4c6857;border-left:3px solid var(--blue);overflow-wrap:anywhere}
+.chron-thread-item.sel{border-color:var(--gold);background:#233d31}
+.chron-card{background:rgba(16,36,30,.55);border-left:3px solid #6c8b79;overflow-wrap:anywhere}
+.chron-card.chron-fmt-war_pavilion_record{border-left-color:#ef476f;background:rgba(52,22,24,.32)}
+.chron-card.chron-fmt-tavern_ballad{border-left-color:#ffb703;background:rgba(48,38,18,.32)}
+.chron-card.chron-fmt-ancestral_inscription{border-left-color:#c77dff;background:rgba(38,24,52,.32)}
+.chron-card.chron-fmt-imperial_council_decree,.chron-card.chron-fmt-discipline_edict{border-left-color:#e9cd85}
+.chron-card.chron-fmt-periodic_sect_digest{border-left-color:#5fd38a;background:rgba(20,48,36,.4)}
+.chron-inline-causal{margin-top:3px;padding:4px 7px;border-left:2px solid rgba(233,205,133,.5);background:rgba(12,28,23,.55);border-radius:0 6px 6px 0;font-size:11px;line-height:1.42}
+.chron-numeric-drawer{margin-top:4px;font-size:11px}
+.chron-numeric-drawer>summary{cursor:pointer;color:#9bd7fa;font-size:10.5px;user-select:none}
+.chron-numeric-list{margin-top:4px;padding:5px 7px;border-radius:7px;background:#0f221c;border:1px solid #3c5647}
+.chron-numeric-row{padding:3px 0;border-bottom:1px dashed #2e4438}
+.chron-numeric-row:last-child{border-bottom:0}
+
 </style>
 </head>
 <body>
@@ -89753,7 +89778,16 @@ JD.ITEMS.items.forEach(it => {
 
     if (!best) {
       if (bestBlockedByTreasury && W.rng.chance(0.4)) {
-        W.log('decision', m.h.name.given + ' ชะลอการขยาย' + bestBlockedByTreasury.b.nameTh + ' แม้พบความต้องการสูง (' + bestBlockedByTreasury.reason + ') เนื่องจากต้องสำรองศิลาคงคลังขั้นต่ำ ' + cashReserve + ' ศิลา (ปัจจุบันมี ' + Math.round(W.sect.stones) + ' ศิลา ต้องการ ' + bestBlockedByTreasury.needed + ' ศิลา)', [m.id, bestBlockedByTreasury.id]);
+        const curSt = Math.round(W.sect.stones);
+        W.log('decision', m.h.name.given + ' ชะลอการขยาย' + bestBlockedByTreasury.b.nameTh + ' แม้พบความต้องการสูง (' + bestBlockedByTreasury.reason + ') เนื่องจากต้องสำรองศิลาคงคลังขั้นต่ำ ' + cashReserve + ' ศิลา (ปัจจุบันมี ' + curSt + ' ศิลา ต้องการ ' + bestBlockedByTreasury.needed + ' ศิลา)', [m.id, bestBlockedByTreasury.id], {
+          storyThreadId: 'thread:governance:facility_' + bestBlockedByTreasury.id,
+          storyThreadTitleTh: 'การขยาย' + bestBlockedByTreasury.b.nameTh + 'และงบสำรองคลัง',
+          originCauseTh: 'พบความต้องการใช้งานสูง (' + bestBlockedByTreasury.reason + ') แต่ต้องรักษากันชนศิลาสำรองขั้นต่ำ ' + cashReserve + ' ศิลา',
+          consequenceTh: 'ชะลอโครงการขยาย ' + bestBlockedByTreasury.b.nameTh + ' (ค่าก่อสร้าง ' + bestBlockedByTreasury.cost + ' ศิลา) เพื่อป้องกันวิกฤตขาดสภาพคล่อง',
+          followUpTh: 'สะสมศิลาวิญญาณให้ถึง ' + bestBlockedByTreasury.needed + ' ศิลา (ขาดอีก ' + Math.max(0, bestBlockedByTreasury.needed - curSt) + ' ศิลา) เพื่อให้ขยายอาคารได้ปลอดภัย',
+          factDeltas: { stonesNow: curSt, cashReserve, buildCost: bestBlockedByTreasury.cost, neededTotal: bestBlockedByTreasury.needed },
+          promoteChronicle: true
+        });
       }
       return;
     }
@@ -89771,7 +89805,15 @@ JD.ITEMS.items.forEach(it => {
       fd.congestedHours = 0;
       fd.lastCongestionHour = 0;
     }
-    W.log('decision', m.h.name.given + ' อนุมัติขยาย' + best.b.nameTh + ' เป็นระดับ ' + (best.b.level + 1) + '/' + SECT.maxBuildingLevel(best.b) + ' (ใช้ ' + best.cost + ' ศิลา) หลังพบความแออัดต่อเนื่อง (' + best.reason + ')', [m.id, best.id]);
+    W.log('decision', m.h.name.given + ' อนุมัติขยาย' + best.b.nameTh + ' เป็นระดับ ' + (best.b.level + 1) + '/' + SECT.maxBuildingLevel(best.b) + ' (ใช้ ' + best.cost + ' ศิลา) หลังพบความแออัดต่อเนื่อง (' + best.reason + ')', [m.id, best.id], {
+      storyThreadId: 'thread:governance:facility_' + best.id,
+      storyThreadTitleTh: 'การขยาย' + best.b.nameTh + 'และงบสำรองคลัง',
+      originCauseTh: 'พบความแออัดต่อเนื่อง (' + best.reason + ') และศิลาคงคลังสูงกว่าเกณฑ์สำรองปลอดภัย',
+      consequenceTh: 'เริ่มก่อสร้างขยาย ' + best.b.nameTh + ' สู่ระดับ ' + (best.b.level + 1) + ' (จ่าย ' + best.cost + ' ศิลา)',
+      followUpTh: 'รอการก่อสร้างแล้วเสร็จเพื่อเพิ่มสถานีรองรับศิษย์',
+      factDeltas: { buildCost: best.cost, targetLevel: best.b.level + 1 },
+      promoteChronicle: true
+    });
   };
 
   SECT.startResearch = (W, m) => {
@@ -89820,7 +89862,16 @@ JD.ITEMS.items.forEach(it => {
   };
   SECT.exposeEmbezzle = (W, tre, by) => {
     const amt = tre.embezzled; tre.embezzled = 0;
-    W.log('scandal', 'ตรวจพบ ' + tre.h.name.given + ' ยักยอกคลังรวม ' + Math.round(amt) + ' ศิลา!', [tre.id]);
+    W.log('scandal', 'ตรวจพบ ' + tre.h.name.given + ' ยักยอกคลังรวม ' + Math.round(amt) + ' ศิลา!', [tre.id].concat(by ? [by.id] : []), {
+      storyThreadId: 'thread:governance:audit_' + tre.id,
+      storyThreadTitleTh: 'คดีตรวจสอบคลังสำนักของ ' + HC.fullName(tre),
+      originCauseTh: 'หอวินัยและเจ้าสำนักตรวจสอบบัญชีคลังหลังพบพิรุธสะสม',
+      consequenceTh: 'ยึดศิลาคืนเข้าคลัง ' + Math.round(amt * 0.6) + ' ก้อน และลงโทษถอดถอน/คุมขังผู้กระทำผิด',
+      followUpTh: 'แต่งตั้งผู้ดูแลคลังคนใหม่ที่มีความซื่อสัตย์ (Integrity) สูงขึ้น',
+      factDeltas: { embezzledAmt: Math.round(amt), recoveredAmt: Math.round(amt * 0.6) },
+      severity: 'CRITICAL',
+      promoteChronicle: true
+    });
     SECT.punish(W, tre, 3, 'ยักยอกทรัพย์สำนัก', by);
     ECO.earn(W, Math.round(amt * 0.6), 'ยึดคืนจากผู้ยักยอก');
     W.sect.suspicion = Math.max(0, (W.sect.suspicion || 0) - 30);
@@ -105632,8 +105683,34 @@ JD.ITEMS.items.forEach(it => {
       if (hadRealTrib && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent && !n.dead && !res.died) {
         g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'TRIBULATION_SURVIVED_OR_SCARRED', 'bt:' + (W.day || 0) + ':' + c.stage);
       }
-      if (res.ok) { W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage); }
-      else { W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + Math.round(res.p * 100) + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id]); AI.mem(W, n, 'ทะลวงขั้นล้มเหลว', 1); if (res.died) AI.kill(W, n, 'ตบะแตกระหว่างทะลวงขั้น'); else AI.injure(W, n, res.sev || 1, 'ตบะย้อนกลับ'); }
+      const btThreadId = 'thread:cult:' + n.id + ':' + (res.ok ? Math.max(1, c.stage - 1) : c.stage);
+      const btThreadTitle = 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(n);
+      const btChancePct = Math.round((res.p || 0) * 100);
+      if (res.ok) {
+        W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id], {
+          storyThreadId: btThreadId,
+          storyThreadTitleTh: btThreadTitle,
+          originCauseTh: 'สะสมตบะครบเกณฑ์และผ่านการตัดสินใจทะลวงคอขวด (โอกาสสำเร็จ ' + btChancePct + '%)',
+          consequenceTh: 'ก้าวขึ้นสู่ ' + CULT.stageName(n) + ' · คุณูปการ +40 · ชื่อเสียงสำนัก +' + (1 + c.stage),
+          followUpTh: 'ตรวจสอบวิชาและอุปกรณ์ที่รองรับขั้นตบะใหม่ในหอคัมภีร์หรือคลังแสง',
+          factDeltas: { chancePct: btChancePct, meritDelta: 40, fameDelta: 1 + c.stage, newStage: c.stage },
+          severity: c.stage >= 5 ? 'MAJOR' : 'NOTABLE',
+          promoteChronicle: true
+        });
+        AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage);
+      } else {
+        W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + btChancePct + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id], {
+          storyThreadId: btThreadId,
+          storyThreadTitleTh: btThreadTitle,
+          originCauseTh: 'ตัดสินใจเสี่ยงทะลวงด่านที่โอกาสสำเร็จ ' + btChancePct + '% แต่ปราณตีกลับ',
+          consequenceTh: res.died ? 'ตบะแตกซ่านถึงแก่ชีวิต' : ('ได้รับบาดเจ็บจากตบะย้อนกลับ (ระดับ ' + (res.sev || 1) + ')'),
+          followUpTh: res.died ? 'ตรวจสอบป้ายวิญญาณและผู้สืบทอดหน้าที่' : 'ควรส่งตัวเข้าหอหมอยาหรือจัดสรรโอสถรักษาอาการบาดเจ็บและเตรียมโอสถทะลวงด่านรอบหน้า',
+          factDeltas: { chancePct: btChancePct, died: !!res.died, injurySeverity: res.sev || 1 },
+          severity: res.died ? 'CRITICAL' : 'MAJOR',
+          promoteChronicle: true
+        });
+        AI.mem(W, n, 'ทะลวงขั้นล้มเหลว', 1); if (res.died) AI.kill(W, n, 'ตบะแตกระหว่างทะลวงขั้น'); else AI.injure(W, n, res.sev || 1, 'ตบะย้อนกลับ');
+      }
     },
     inside: false, important: true
   };
@@ -105860,7 +105937,14 @@ JD.ITEMS.items.forEach(it => {
           n.merit += 1.5 * r.tier;
           W.sect.produced = (W.sect.produced || 0) + 1;
         } else {
-          W.log('craft', n.h.name.given + ' ควบคุมเพลิงผิดจังหวะ การผลิต' + (r ? '「' + r.outNameTh + '」' : '') + ' ล้มเหลว สูญเสียวัตถุดิบบางส่วน', [n.id]);
+          const chPct = r ? Math.round(ECO.successChance(n, r) * 100) : 50;
+          W.log('craft', n.h.name.given + ' ควบคุมเพลิงผิดจังหวะ การผลิต' + (r ? '「' + r.outNameTh + '」' : '') + ' ล้มเหลว สูญเสียวัตถุดิบบางส่วน', [n.id], {
+            originCauseTh: 'ความชำนาญและสมาธิขณะหลอม (' + chPct + '%) ไม่ผ่านเกณฑ์ตำรับระดับ T' + (r ? r.tier : 1),
+            consequenceTh: 'สูญเสียวัตถุดิบรอบนี้และอารมณ์ผู้ผลิตลดลง (-5)',
+            followUpTh: 'ตรวจสอบระดับทักษะช่าง/นักปรุงโอสถ หรือสำรองวัตถุดิบในคลังก่อนสั่งผลิตรอบถัดไป',
+            factDeltas: { chancePct: chPct, recipeId: r && r.id, tier: r && r.tier },
+            promoteChronicle: !!(r && r.tier >= 3)
+          });
           HC.feel(n, { mood: -5 });
         }
       },
@@ -110171,7 +110255,7 @@ JD.ITEMS.items.forEach(it => {
     ctx.cd = C.attack(W, f, u, t);
   };
 
-  /* สร้างสรุปเหตุการณ์ศึกสำหรับเชื่อมเข้าพงศาวดาร (Unified Combat Chronicle Payload) */
+  /* สร้างสรุปเหตุการณ์ศึกสำหรับเชื่อมเข้าพงศาวดาร (Unified Combat Chronicle Payload — JS2-v2.6.0) */
   C.buildFightChroniclePayload = (W, f) => {
     if (!f) return null;
     const fTac = C.ensureFightTac(f, W && W.t);
@@ -110180,20 +110264,86 @@ JD.ITEMS.items.forEach(it => {
     const st = fTac.stats || {};
     const parts = [];
     if (st.intercepts > 0) parts.push('เข้าคุ้มกัน/ขวางแนวยิง ' + st.intercepts + ' ครั้ง');
+    if (st.losBlocks > 0) parts.push('ใช้สิ่งกีดขวางบังวิถี ' + st.losBlocks + ' ครั้ง');
     if (st.zocStrikes > 0) parts.push('สกัดกั้นเขตคุกคาม ' + st.zocStrikes + ' ครั้ง');
     if (st.interrupts > 0) parts.push('ขัดจังหวะร่ายวิชา ' + st.interrupts + ' ครั้ง');
-    if (st.targetSwitches > 0) parts.push('ปรับเปลี่ยนเป้าหมายเชิงยุทธวิธี ' + st.targetSwitches + ' ครั้ง');
+    if (st.targetSwitches > 0) parts.push('เปลี่ยนเป้าหมายเชิงยุทธวิธี ' + st.targetSwitches + ' ครั้ง');
     const highlightText = highlights.map(h => h.textTh).filter(Boolean).slice(0, 3).join(' · ');
+    const tacticalSummaryTh = parts.length ? parts.join(' · ') : 'ปะทะแลกเปลี่ยนกระบวนท่าตามระยะ';
+
+    const unitsA = (f.A || []).map(id => C.unit(W, id)).filter(Boolean);
+    const unitsB = (f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+    const allUnits = unitsA.concat(unitsB);
+    const casualties = [];
+    const injuredIds = [];
+    const overdriveBacklashIds = [];
+    let mvp = null, bestScore = -1;
+
+    for (let i = 0; i < allUnits.length; i++) {
+      const u = allUnits[i];
+      if (!u || u.isSummon) continue;
+      const side = (f.A || []).includes(u.id) ? 'A' : 'B';
+      const uName = (u.h && u.h.name && g.HC && g.HC.fullName) ? g.HC.fullName(u) : C.name(u);
+      if (u.dead) {
+        casualties.push({ id: u.id, nameTh: uName, side, foe: !!u.foe });
+      } else {
+        const hpRatio = C.hp(u) / Math.max(1, C.hpMax(u));
+        if (hpRatio < 0.45 || (Array.isArray(u.inj) && u.inj.length > 0)) {
+          injuredIds.push(u.id);
+        }
+      }
+      if (u.meridians && u.meridians.overdriveUsedInFight) {
+        overdriveBacklashIds.push(u.id);
+      }
+      if (!u.foe) {
+        const ic = (u.tac && u.tac.interceptCount) || 0;
+        const kills = (u.stats && u.stats.kills) || 0;
+        const wonBonus = (f.winner && f.winner === side) ? 3 : 0;
+        const aliveBonus = u.dead ? 0 : 2;
+        const sc = wonBonus + aliveBonus + ic * 2.5 + (kills > 0 ? Math.min(4, kills * 0.5) : 0);
+        if (sc > bestScore) {
+          bestScore = sc;
+          mvp = { id: u.id, nameTh: uName, intercepts: ic, side, dead: !!u.dead };
+        }
+      }
+    }
+
+    const outcome = fTac.outcome || (f.winner === 'A' ? 'VICTORY_A' : f.winner === 'B' ? 'VICTORY_B' : 'DRAW');
+    const outcomeLabelTh = {
+      RAID_WIPED: 'กวาดล้างผู้บุกรุกสิ้นซาก',
+      PYRRHIC_DEFENSE: 'ต้านศึกสำเร็จแม้สูญเสียหนัก',
+      REPELLED_TIMEOUT: 'ตรึงแนวรับจนข้าศึกหมดกำลังล่าถอย',
+      CORE_BREACHED: 'แนวรับหน้าด่านแตกพ่าย',
+      VICTORY_A: 'ฝ่ายแรกคว้าชัย',
+      VICTORY_B: 'ฝ่ายหลังคว้าชัย',
+      MUTUAL_DOWN: 'สิ้นกำลังทั้งสองฝ่าย',
+      TIMEOUT_DRAW: 'ประลองครบกำหนดโดยไม่รู้ผลแพ้ชนะ',
+      DRAW: 'เสมอกัน'
+    }[outcome] || 'ยุติการปะทะ';
+
+    const summaryParts = [outcomeLabelTh + ' (' + durTicks + ' นาที)', tacticalSummaryTh];
+    if (mvp && mvp.nameTh) summaryParts.push('ผู้โดดเด่น: ' + mvp.nameTh);
+    if (casualties.length > 0) summaryParts.push('ผู้เสียชีวิต ' + casualties.length + ' ราย');
+    const summaryLineTh = summaryParts.filter(Boolean).join(' · ');
+
     return {
       fightId: f.id,
       kind: f.kind,
       winner: f.winner,
-      outcome: fTac.outcome || (f.winner === 'A' ? 'VICTORY_A' : f.winner === 'B' ? 'VICTORY_B' : 'DRAW'),
+      outcome,
+      outcomeLabelTh,
       durationTicks: durTicks,
       stats: Object.assign({}, st),
       highlights,
-      tacticalSummaryTh: parts.length ? parts.join(' · ') : 'ปะทะแลกเปลี่ยนกระบวนท่าตามระยะ',
-      narrativeHighlightTh: highlightText || ''
+      tacticalSummaryTh,
+      narrativeHighlightTh: highlightText || '',
+      summaryLineTh,
+      mvp,
+      casualties: casualties.slice(0, 6),
+      injuredIds: injuredIds.slice(0, 8),
+      overdriveBacklashIds: overdriveBacklashIds.slice(0, 4),
+      countA: unitsA.length,
+      countB: unitsB.length
     };
   };
 
@@ -117713,84 +117863,471 @@ JD.ITEMS.items.forEach(it => {
     return new U.RNG(baseSeed + ':v220:' + tag);
   }
 
+  /* =========================================================================
+   * JS2-v2.6.0 — Living Chronicle, Fact Snapshot, 12-Format Narrative Presenter,
+   * Periodic Sect Digest, Continuing Storyline Threads & News Intake Preferences
+   * ========================================================================= */
+
   X.CHRONICLE_REPORT_FORMATS = Object.freeze({
     PIGEON_DISPATCH: {
       id: 'PIGEON_DISPATCH',
       nameTh: '🕊️ สารลับพิราบสื่อสารหอข่าวกรอง',
       shortTh: '🕊️ สารลับพิราบ',
+      toneTh: 'กระชับ ฉับไว เน้นพิกัดแคว้น แหล่งข่าว และความเร่งด่วน',
+      leadPrefixTh: '【สารด่วนพิราบสื่อสาร】',
+      impactLabelTh: 'ผลต่อสถานการณ์ยุทธภพ',
+      followUpDefaultTh: 'ติดตามความเคลื่อนไหวในแคว้นที่เกี่ยวข้องหรือส่งสายสืบตรวจสอบเพิ่มเติม',
       descTh: 'รายงานข่าวกรองด่วนจากเครือข่ายพิราบสื่อสารและผู้ตรวจการยุทธภพ'
     },
     WAR_PAVILION_RECORD: {
       id: 'WAR_PAVILION_RECORD',
       nameTh: '⚔️ บันทึกศึกหอพิชัยยุทธ์',
       shortTh: '⚔️ บันทึกศึก',
+      toneTh: 'หนักแน่น แม่นยำ เน้นผลแพ้ชนะ จุดเปลี่ยนยุทธวิธี ผู้โดดเด่น และความสูญเสียจริง',
+      leadPrefixTh: '【ใบบอกศึกหอพิชัยยุทธ์】',
+      impactLabelTh: 'ผลลัพธ์ทางยุทธวิธีและกำลังพล',
+      followUpDefaultTh: 'ตรวจอาการบาดเจ็บของศิษย์ที่หอหมอยา ซ่อมบำรุงศาสตรา และทบทวนเวรยามหน้าด่าน',
       descTh: 'บันทึกรายงานการรบ กำลังพล กระบวนท่า และผลแพ้ชนะจากหอพิชัยยุทธ์'
     },
     DISCIPLINE_EDICT: {
       id: 'DISCIPLINE_EDICT',
       nameTh: '⚖️ ประกาศิตหอวินัยและสารคำขาด',
       shortTh: '⚖️ ประกาศิตหอวินัย',
+      toneTh: 'เด็ดขาด เป็นทางการ ระบุข้อกล่าวหา หลักฐาน ผู้ตัดสิน และบทลงโทษหรือคำขาด',
+      leadPrefixTh: '【ประกาศิตหอวินัย】',
+      impactLabelTh: 'ผลบังคับใช้ทางวินัยและการทูต',
+      followUpDefaultTh: 'ตรวจสอบความพึงพอใจของศิษย์ในสำนักหรือท่าทีของสำนักคู่กรณี',
       descTh: 'หมายจับ สารทวงตัวผู้ลี้ภัย มติสภา และการตัดสินโทษระหว่างสำนัก'
     },
     ANCESTRAL_INSCRIPTION: {
       id: 'ANCESTRAL_INSCRIPTION',
       nameTh: '🕯️ จารึกศิลาหอบรรพชน',
       shortTh: '🕯️ จารึกบรรพชน',
+      toneTh: 'ขรึมขลัง สง่างาม บันทึกการผลัดแผ่นดิน การสละชีพ หรือการบรรลุเซียนไว้เป็นอนุสรณ์',
+      leadPrefixTh: '【จารึกศิลาบรรพชน】',
+      impactLabelTh: 'มรดกสืบทอดและผลต่อรากฐานสำนัก',
+      followUpDefaultTh: 'สักการะป้ายวิญญาณในศาลบรรพชนหรือตรวจสอบสายการสืบทอดตำแหน่ง',
       descTh: 'จารึกเหตุการณ์เปลี่ยนผ่านยุคสมัย การผลัดแผ่นดิน และการสืบทอดมรดก'
     },
     TAVERN_BALLAD: {
       id: 'TAVERN_BALLAD',
       nameTh: '🍶 เรื่องเล่าขานและลำนำโรงเตี๊ยม',
       shortTh: '🍶 ลำนำโรงเตี๊ยม',
+      toneTh: 'มีชีวิตชีวาแบบนักเล่านิทาน แยกแยะชัดเจนว่าเป็นคำร่ำลือที่อาจต้องส่งคนไปพิสูจน์',
+      leadPrefixTh: '【คำร่ำลือจากโรงเตี๊ยม】',
+      impactLabelTh: 'เบาะแสและกระแสข่าวลือในยุทธภพ',
+      followUpDefaultTh: 'ส่งศิษย์ออกสืบข่าวลือหรือตรวจสอบเบาะแสก่อนตัดสินใจทุ่มกำลัง',
       descTh: 'ข่าวลือและลำนำขับขานของนักเล่านิทานเกี่ยวกับจอมยุทธ์พเนจรและแดนลับ'
     },
     LINEAGE_COMPANION_SCROLL: {
       id: 'LINEAGE_COMPANION_SCROLL',
       nameTh: '💞 สมุดหยกหอวาสนาและสายเลือดตระกูล',
       shortTh: '💞 สมุดหยกวาสนา',
+      toneTh: 'อบอุ่น ลุ่มลึก เน้นสายใยอาจารย์–ศิษย์ คู่บำเพ็ญ ทายาท และสภาพจิตมรรคา',
+      leadPrefixTh: '【บันทึกสมุดหยกหอวาสนา】',
+      impactLabelTh: 'ผลต่อสายสัมพันธ์และตบะสืบทอด',
+      followUpDefaultTh: 'ดูผังสายสืบทอดหรือจัดสรรทรัพยากรหนุนศิษย์และคู่บำเพ็ญที่เกี่ยวข้อง',
       descTh: 'บันทึกพิธีผูกด้ายแดงคู่บำเพ็ญ การกำเนิดทายาท และการตื่นรู้แห่งจิตมรรคา'
     },
     IMPERIAL_COUNCIL_DECREE: {
       id: 'IMPERIAL_COUNCIL_DECREE',
       nameTh: '🏛️ มติสภาผู้อาวุโสและราชโองการเจ้าสำนัก',
       shortTh: '🏛️ มติสภา/ราชโองการ',
+      toneTh: 'สุขุม รอบคอบ แสดงเหตุผลเชิงนโยบาย งบสำรองคลัง และมติขุนนางทั้ง 6 ฝ่าย',
+      leadPrefixTh: '【มติสภาและโองการสำนัก】',
+      impactLabelTh: 'ผลต่อการบริหารและงบประมาณสำนัก',
+      followUpDefaultTh: 'ตรวจดูสถานะหอทำงาน คลังศิลาวิญญาณ และความพร้อมของขุนนางผู้รับผิดชอบ',
       descTh: 'บันทึกการลงมติสภาผู้อาวุโส 4 ขั้วการเมือง วาระประจำฤดูกาล โควตาราชโองการ และการตรวจสอบผู้ถือตำแหน่ง'
     },
     SECRET_REALM_LOGBOOK: {
       id: 'SECRET_REALM_LOGBOOK',
       nameTh: '🧭 บันทึกการสำรวจแดนลับและหอโบราณคดี',
       shortTh: '🧭 บันทึกแดนลับ/โบราณคดี',
+      toneTh: 'บันทึกการเดินทาง ด่านที่ผ่าน ทรัพยากร/คัมภีร์ที่ค้นพบ และสภาพคณะสำรวจเมื่อกลับถึงสำนัก',
+      leadPrefixTh: '【สมุดปูมคณะสำรวจ】',
+      impactLabelTh: 'สิ่งค้นพบและทรัพยากรที่นำกลับสำนัก',
+      followUpDefaultTh: 'ตรวจสอบของวิเศษ/คัมภีร์ใหม่ในคลังสำนักและให้คณะสำรวจพักฟื้นกำลัง',
       descTh: 'บันทึกการเดินหมากโหนดแดนลับ ด่านตรวจทักษะ 12 มรรคา สายใยผู้ช่วยชีวิต และการบูรณะเศษคัมภีร์โบราณ'
     },
     CONTINENTAL_ASSEMBLY_GAZETTE: {
       id: 'CONTINENTAL_ASSEMBLY_GAZETTE',
       nameTh: '🏆 ประกาศเกียรติคุณมหาชุมนุมยุทธภพและหอการค้า',
       shortTh: '🏆 มหาชุมนุม/หอการค้า',
+      toneTh: 'ชัดเจนด้านตัวเลขการค้า การประมูล รางวัลการประชัน และดุลทรัพยากร',
+      leadPrefixTh: '【จดหมายเหตุการค้าและมหาชุมนุม】',
+      impactLabelTh: 'ดุลการค้า ชื่อเสียง และรางวัลที่ได้รับ',
+      followUpDefaultTh: 'ตรวจทานรายการคงคลังและราคาตลาดเพื่อวางแผนผลิตหรือค้าขายรอบถัดไป',
       descTh: 'บันทึกผลการประชัน 4 สายในมหาชุมนุมยุทธภพ งานเลี้ยงฉลองสำนักปราณโอชา กองคาราวาน และหอประมูลแดนเซียน'
     },
     HEAVENLY_DAO_OMEN_SCROLL: {
       id: 'HEAVENLY_DAO_OMEN_SCROLL',
       nameTh: '🌌 ลิขิตสวรรค์และบันทึกวัฏจักรยุคสมัย',
       shortTh: '🌌 ลิขิตสวรรค์/ยุคสมัย',
+      toneTh: 'ยิ่งใหญ่ระดับมหภาค ระบุผลคูณปราณฟ้าดิน ฮวงจุ้ย และเงื่อนไขยุคสมัยที่กระทบทั้งยุทธภพ',
+      leadPrefixTh: '【บันทึกปรากฏการณ์ฟ้าดิน】',
+      impactLabelTh: 'ผลกระทบระดับมหภาคและชีพจรปราณ',
+      followUpDefaultTh: 'ปรับแผนการบ่มเพาะหรือค่ายกลฮวงจุ้ยให้สอดคล้องกับกระแสปราณยุคสมัย',
       descTh: 'บันทึกการเปลี่ยนผ่านยุคสมัยแห่งปราณ บททดสอบจากผู้กำกับชะตาฟ้าดิน ค่ายกลฮวงจุ้ย 10 ธาตุ และตราหยกสำนัก'
     },
     PEAK_HALL_SCROLL: {
       id: 'PEAK_HALL_SCROLL',
       nameTh: '🏔️ ทำเนียบยอดเขาและพันธะสายสัมพันธ์',
       shortTh: '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์',
+      toneTh: 'สะท้อนชีวิตภายใน 8 ยอดเขา การแต่งตั้งเจ้าหุบเขา และการเกื้อหนุนระหว่างศิษย์ร่วมสำนัก',
+      leadPrefixTh: '【ทำเนียบ 8 ยอดเขาศักดิ์สิทธิ์】',
+      impactLabelTh: 'ผลต่อโบนัสยอดเขาและขวัญกำลังใจศิษย์',
+      followUpDefaultTh: 'ตรวจดูสมดุลสมาชิกและทรัพยากรประจำยอดเขาในหน้าต่างสำนัก',
       descTh: 'บันทึกการสถาปนายอดเขา การจัดสรรทรัพยากรหุบเขา การประลองระหว่างยอดเขา ยศผู้อาวุโส และสายใยความสัมพันธ์เชิงลึก'
+    },
+    PERIODIC_SECT_DIGEST: {
+      id: 'PERIODIC_SECT_DIGEST',
+      nameTh: '📊 สมุดสรุปสถานการณ์สำนักประจำรอบ',
+      shortTh: '📊 สรุปประจำรอบ',
+      toneTh: 'สรุปรอบด้านแบบเจ้าสำนักตรวจงาน: ดุลศิลา คงคลัง ผลงานเด่น ศิษย์ที่ติดปัญหา และความเสี่ยงที่ต้องตัดสินใจ',
+      leadPrefixTh: '【รายงานสรุปกิจการสำนักประจำรอบ】',
+      impactLabelTh: 'สถานะคงคลังและความเสี่ยงที่ต้องเฝ้าระวัง',
+      followUpDefaultTh: 'ใช้ข้อมูลสรุปรอบนี้ปรับคำสั่งหอผลิต จัดสรรโอสถ หรือช่วยเหลือศิษย์ที่บาดเจ็บ/ติดคอขวด',
+      descTh: 'สรุปรายวัน/รายสัปดาห์/รายเดือน แสดงดุลศิลาจริง คงคลัง การโอนภายใน ผู้ทำผลงาน ผู้ประสบปัญหา และความเสี่ยงสำนัก'
     }
   });
+
+  /* Pure deterministic 32-bit FNV-1a hash — NEVER touches W.rng or Math.random() */
+  X.chronicleHash = str => {
+    const s = String(str == null ? '' : str);
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0);
+  };
+
+  /* ---------- Pillar 4: News Intake & Notification Preferences (Separated from Archive Filters) ---------- */
+  X.NEWS_CATEGORIES = Object.freeze({
+    BATTLE: { id: 'BATTLE', nameTh: '⚔️ ศึกและการป้องกัน', logTypes: ['combat', 'raid', 'duel', 'spar', 'tournament', 'conflict', 'challenge', 'hunt', 'beast'] },
+    CULT: { id: 'CULT', nameTh: '✨ ตบะและการทะลวงด่าน', logTypes: ['breakthrough', 'insight', 'learn', 'cult', 'seclusion', 'train'] },
+    PEOPLE: { id: 'PEOPLE', nameTh: '👥 ชีวิตศิษย์และสายสัมพันธ์', logTypes: ['death', 'injury', 'heal', 'care', 'marriage', 'relation', 'recruit', 'disciple', 'awaken', 'desert', 'expel', 'punish'] },
+    CRAFT: { id: 'CRAFT', nameTh: '⚗️ การผลิตและสิ่งปลูกสร้าง', logTypes: ['craft', 'alchemy', 'forge', 'harvest', 'fish', 'organ', 'research', 'build', 'building'] },
+    ECONOMY: { id: 'ECONOMY', nameTh: '🪙 คลังและการค้า', logTypes: ['economy', 'finance', 'trade', 'shop', 'gear', 'welfare', 'donation', 'surplus', 'shortage', 'salary'] },
+    GOVERNANCE: { id: 'GOVERNANCE', nameTh: '🏛️ การปกครองและสภาสำนัก', logTypes: ['decision', 'appoint', 'dismiss', 'promote', 'demote', 'succession', 'politics', 'scandal', 'crisis', 'banquet', 'policy', 'sect', 'system'] },
+    JIANGHU: { id: 'JIANGHU', nameTh: '🧭 ยุทธภพและแดนลับ', logTypes: ['explore', 'mission', 'exped', 'diplomacy', 'legend', 'event'] },
+    RUMOR: { id: 'RUMOR', nameTh: '🍶 ข่าวลือโรงเตี๊ยม', logTypes: ['rumor'] }
+  });
+
+  X.NEWS_PRESETS = Object.freeze({
+    ALL: {
+      id: 'ALL',
+      nameTh: '📡 รับข่าวทั้งหมดตามปกติ',
+      descTh: 'แสดงข่าวในฟีดครบทุกหมวด แจ้งเตือนด่วนสำหรับเรื่องสำคัญและวิกฤต (ประวัติทุกเรื่องถูกบันทึกครบ)',
+      toastEnabled: true,
+      minToastSeverity: 'NOTABLE',
+      criticalAlertPolicy: 'ALWAYS_TOAST',
+      onlyTrackedInToast: false,
+      digestIntervalDays: 7,
+      channelByCategory: { BATTLE: 'INSTANT', CULT: 'INSTANT', PEOPLE: 'INSTANT', CRAFT: 'FEED_ONLY', ECONOMY: 'FEED_ONLY', GOVERNANCE: 'INSTANT', JIANGHU: 'INSTANT', RUMOR: 'FEED_ONLY' }
+    },
+    MAJOR_ONLY: {
+      id: 'MAJOR_ONLY',
+      nameTh: '⭐ เฉพาะเรื่องสำคัญและวิกฤต',
+      descTh: 'แจ้งเตือนด่วนเฉพาะหมุดหมายใหญ่และศึกวิกฤต เรื่องทั่วไปพับเก็บในสรุปประจำรอบและคลังประวัติ',
+      toastEnabled: true,
+      minToastSeverity: 'MAJOR',
+      criticalAlertPolicy: 'ALWAYS_TOAST',
+      onlyTrackedInToast: false,
+      digestIntervalDays: 7,
+      channelByCategory: { BATTLE: 'INSTANT', CULT: 'FEED_ONLY', PEOPLE: 'FEED_ONLY', CRAFT: 'DIGEST_ONLY', ECONOMY: 'DIGEST_ONLY', GOVERNANCE: 'INSTANT', JIANGHU: 'FEED_ONLY', RUMOR: 'DIGEST_ONLY' }
+    },
+    SECT_FOCUS: {
+      id: 'SECT_FOCUS',
+      nameTh: '🏯 โฟกัสกิจการภายในสำนัก',
+      descTh: 'เน้นข่าวศิษย์ ตบะ การปกครอง คลัง และศึกหน้าด่าน ลดเสียงรบกวนจากข่าวลือและยุทธภพภายนอก',
+      toastEnabled: true,
+      minToastSeverity: 'NOTABLE',
+      criticalAlertPolicy: 'ALWAYS_TOAST',
+      onlyTrackedInToast: false,
+      digestIntervalDays: 7,
+      channelByCategory: { BATTLE: 'INSTANT', CULT: 'INSTANT', PEOPLE: 'INSTANT', CRAFT: 'FEED_ONLY', ECONOMY: 'FEED_ONLY', GOVERNANCE: 'INSTANT', JIANGHU: 'DIGEST_ONLY', RUMOR: 'DIGEST_ONLY' }
+    },
+    TRACKED_ONLY: {
+      id: 'TRACKED_ONLY',
+      nameTh: '🎯 เฉพาะศิษย์ที่ติดตาม + วิกฤต',
+      descTh: 'ป้ายแจ้งเตือนด่วนแสดงเฉพาะเหตุการณ์ของศิษย์ที่ติดดาว (⭐) และภัยวิกฤตสำนัก',
+      toastEnabled: true,
+      minToastSeverity: 'NOTABLE',
+      criticalAlertPolicy: 'ALWAYS_TOAST',
+      onlyTrackedInToast: true,
+      digestIntervalDays: 7,
+      channelByCategory: { BATTLE: 'INSTANT', CULT: 'FEED_ONLY', PEOPLE: 'FEED_ONLY', CRAFT: 'DIGEST_ONLY', ECONOMY: 'DIGEST_ONLY', GOVERNANCE: 'FEED_ONLY', JIANGHU: 'DIGEST_ONLY', RUMOR: 'DIGEST_ONLY' }
+    },
+    QUIET_DIGEST: {
+      id: 'QUIET_DIGEST',
+      nameTh: '🌙 โหมดเงียบ (รวบอ่านสรุปประจำรอบ)',
+      descTh: 'ปิดป้ายแจ้งเตือนทั่วไปทั้งหมดเพื่อปล่อยเกมไหลลื่น ยกเว้นภัยวิกฤตตามนโยบายที่ตั้งไว้ และเก็บประวัติครบ 100%',
+      toastEnabled: false,
+      minToastSeverity: 'CRITICAL',
+      criticalAlertPolicy: 'ALWAYS_TOAST',
+      onlyTrackedInToast: false,
+      digestIntervalDays: 7,
+      channelByCategory: { BATTLE: 'FEED_ONLY', CULT: 'DIGEST_ONLY', PEOPLE: 'DIGEST_ONLY', CRAFT: 'DIGEST_ONLY', ECONOMY: 'DIGEST_ONLY', GOVERNANCE: 'FEED_ONLY', JIANGHU: 'DIGEST_ONLY', RUMOR: 'DIGEST_ONLY' }
+    },
+    CUSTOM: {
+      id: 'CUSTOM',
+      nameTh: '⚙️ กำหนดเอง',
+      descTh: 'ปรับแต่งช่องทางการรับข่าวและระดับความสำคัญด้วยตนเอง'
+    }
+  });
+
+  const SEVERITY_RANK = { ROUTINE: 1, NOTABLE: 2, MAJOR: 3, CRITICAL: 4 };
+
+  X.ensureNewsPrefs = W => {
+    if (!W || !W.sect) return null;
+    const def = X.NEWS_PRESETS.ALL;
+    if (!W.sect.newsPrefs || typeof W.sect.newsPrefs !== 'object') {
+      W.sect.newsPrefs = {
+        preset: 'ALL',
+        toastEnabled: true,
+        minToastSeverity: 'NOTABLE',
+        criticalAlertPolicy: 'ALWAYS_TOAST',
+        onlyTrackedInToast: false,
+        digestIntervalDays: 7,
+        dedupeCooldownMins: 15,
+        channelByCategory: Object.assign({}, def.channelByCategory),
+        mutedCategories: [],
+        readState: {
+          lastReadLogSeq: 0,
+          lastReadChronSeq: 0,
+          readIds: []
+        }
+      };
+    }
+    const np = W.sect.newsPrefs;
+    if (!np.preset || !X.NEWS_PRESETS[np.preset]) np.preset = 'ALL';
+    if (typeof np.toastEnabled !== 'boolean') np.toastEnabled = true;
+    if (!SEVERITY_RANK[np.minToastSeverity]) np.minToastSeverity = 'NOTABLE';
+    if (!['ALWAYS_TOAST', 'STRICT_MUTE'].includes(np.criticalAlertPolicy)) np.criticalAlertPolicy = 'ALWAYS_TOAST';
+    if (typeof np.onlyTrackedInToast !== 'boolean') np.onlyTrackedInToast = false;
+    if (![0, 1, 7, 30].includes(np.digestIntervalDays)) np.digestIntervalDays = 7;
+    if (!Number.isFinite(np.dedupeCooldownMins) || np.dedupeCooldownMins < 0) np.dedupeCooldownMins = 15;
+    if (!np.channelByCategory || typeof np.channelByCategory !== 'object') {
+      np.channelByCategory = Object.assign({}, def.channelByCategory);
+    } else {
+      Object.keys(def.channelByCategory).forEach(k => {
+        if (!['INSTANT', 'FEED_ONLY', 'DIGEST_ONLY'].includes(np.channelByCategory[k])) {
+          np.channelByCategory[k] = def.channelByCategory[k];
+        }
+      });
+    }
+    if (!Array.isArray(np.mutedCategories)) np.mutedCategories = [];
+    if (!np.readState || typeof np.readState !== 'object') {
+      np.readState = { lastReadLogSeq: 0, lastReadChronSeq: 0, readIds: [] };
+    }
+    if (!Number.isFinite(np.readState.lastReadLogSeq) || np.readState.lastReadLogSeq < 0) np.readState.lastReadLogSeq = 0;
+    if (!Number.isFinite(np.readState.lastReadChronSeq) || np.readState.lastReadChronSeq < 0) np.readState.lastReadChronSeq = 0;
+    if (!Array.isArray(np.readState.readIds)) np.readState.readIds = [];
+    if (np.readState.readIds.length > 200) np.readState.readIds = np.readState.readIds.slice(-200);
+    return np;
+  };
+
+  X.ensureNewsSystem = W => {
+    if (!W || !W.sect) return null;
+    X.ensureNewsPrefs(W);
+    if (!Array.isArray(W.sect.digestHistory)) W.sect.digestHistory = [];
+    if (W.sect.digestHistory.length > 24) W.sect.digestHistory = W.sect.digestHistory.slice(0, 24);
+    if (!W.sect.historicalPeople || typeof W.sect.historicalPeople !== 'object') W.sect.historicalPeople = {};
+    if (W.world) {
+      if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
+      W.chronicle = W.world.chronicles;
+    }
+    return W.sect.newsPrefs;
+  };
+
+  X.applyNewsPreset = (W, presetId) => {
+    const np = X.ensureNewsPrefs(W);
+    const p = X.NEWS_PRESETS[presetId];
+    if (!np || !p || presetId === 'CUSTOM') return np;
+    np.preset = presetId;
+    np.toastEnabled = p.toastEnabled;
+    np.minToastSeverity = p.minToastSeverity;
+    np.criticalAlertPolicy = p.criticalAlertPolicy;
+    np.onlyTrackedInToast = p.onlyTrackedInToast;
+    np.digestIntervalDays = p.digestIntervalDays;
+    np.channelByCategory = Object.assign({}, p.channelByCategory);
+    np.mutedCategories = Object.keys(np.channelByCategory).filter(k => np.channelByCategory[k] === 'DIGEST_ONLY');
+    return np;
+  };
+
+  X.classifyNewsCategory = item => {
+    if (!item) return 'JIANGHU';
+    if (item.isRumor || item.epistemicStatus === 'RUMOR' || item.reportFormat === 'TAVERN_BALLAD') return 'RUMOR';
+    if (item.category) {
+      const c = String(item.category);
+      if (c === 'BATTLE') return 'BATTLE';
+      if (c === 'SUCCESSION' || c === 'FACTION' || c === 'INTERNAL' || c === 'ELDER_COUNCIL_EDICT' || c === 'SECT_PEAK_POLITICS') return 'GOVERNANCE';
+      if (c === 'DAO_HEART_SUTRA') return 'CULT';
+      if (c === 'ECONOMY_AUCTION') return 'ECONOMY';
+      if (c === 'FENG_SHUI_ARRAY') return 'CRAFT';
+      return 'JIANGHU';
+    }
+    const t = String(item.type || '');
+    for (const [catKey, spec] of Object.entries(X.NEWS_CATEGORIES)) {
+      if (spec.logTypes.includes(t)) return catKey;
+    }
+    return 'JIANGHU';
+  };
+
+  X.classifyNewsSeverity = item => {
+    if (!item) return 'ROUTINE';
+    if (item.severity && SEVERITY_RANK[item.severity]) return item.severity;
+    const t = String(item.type || '');
+    const txt = String(item.text || item.titleTh || '');
+    if (['death', 'succession', 'crisis', 'scandal'].includes(t) || item.category === 'SUCCESSION' || (t === 'raid' && /กำลังบุกสำนัก|ถูกบุกและปล้น|แตกพ่าย/.test(txt))) {
+      return 'CRITICAL';
+    }
+    if (['marriage', 'tournament', 'challenge', 'expel', 'sect', 'policy', 'diplomacy', 'raid'].includes(t) || item.isMilestone || item.category === 'BATTLE') {
+      return 'MAJOR';
+    }
+    if (['breakthrough', 'recruit', 'research', 'build', 'explore', 'mission', 'legend'].includes(t) || item.id && String(item.id).startsWith('CHRON_')) {
+      return 'NOTABLE';
+    }
+    return 'ROUTINE';
+  };
+
+  X.shouldDeliverToast = (W, item) => {
+    if (!W || !W.sect || !item) return false;
+    const np = X.ensureNewsPrefs(W);
+    const sev = X.classifyNewsSeverity(item);
+    const cat = X.classifyNewsCategory(item);
+    const isCritical = sev === 'CRITICAL';
+
+    // Critical alert rule: honest and explicit!
+    if (isCritical) {
+      if (np.criticalAlertPolicy === 'STRICT_MUTE' && (!np.toastEnabled || np.channelByCategory[cat] === 'DIGEST_ONLY')) {
+        return false;
+      }
+      if (np.criticalAlertPolicy === 'ALWAYS_TOAST') {
+        return true;
+      }
+    }
+
+    if (!np.toastEnabled) return false;
+    const chan = np.channelByCategory[cat] || 'INSTANT';
+    if (chan !== 'INSTANT') return false;
+    if (Array.isArray(np.mutedCategories) && np.mutedCategories.includes(cat)) return false;
+    if ((SEVERITY_RANK[sev] || 1) < (SEVERITY_RANK[np.minToastSeverity] || 2)) return false;
+
+    if (np.onlyTrackedInToast) {
+      const tracked = (W.sect && Array.isArray(W.sect.trackedNpcIds)) ? W.sect.trackedNpcIds : [];
+      const itemIds = item.ids || item.npcIds || [];
+      if (!itemIds.some(id => tracked.includes(id))) return false;
+    }
+
+    // Deduplication cooldown check (on transient world cache so it never bloats save)
+    const cooldownTicks = Math.max(0, Number(np.dedupeCooldownMins) || 0);
+    if (cooldownTicks > 0) {
+      if (!W._toastDedupeMap) W._toastDedupeMap = {};
+      const sig = (item.eventKey || ((item.type || item.category || 'ev') + ':' + String(item.text || item.titleTh || '').slice(0, 36)));
+      const prevT = W._toastDedupeMap[sig];
+      const nowT = Number.isFinite(item.t) ? item.t : (W.t || 0);
+      if (prevT != null && Math.abs(nowT - prevT) < cooldownTicks && !isCritical) {
+        return false;
+      }
+      W._toastDedupeMap[sig] = nowT;
+    }
+    return true;
+  };
+
+  X.shouldShowInLiveFeed = (W, item, includeDigestMuted) => {
+    if (!W || !W.sect || !item) return true;
+    if (includeDigestMuted) return true;
+    const np = X.ensureNewsPrefs(W);
+    const sev = X.classifyNewsSeverity(item);
+    if (sev === 'CRITICAL' && np.criticalAlertPolicy === 'ALWAYS_TOAST') return true;
+    const cat = X.classifyNewsCategory(item);
+    if (np.channelByCategory[cat] === 'DIGEST_ONLY' || (Array.isArray(np.mutedCategories) && np.mutedCategories.includes(cat))) {
+      return false;
+    }
+    return true;
+  };
+
+  X.isEntryUnread = (W, item) => {
+    if (!W || !W.sect || !item) return false;
+    const np = X.ensureNewsPrefs(W);
+    const rs = np.readState;
+    const key = String(item.id || item.eventKey || '');
+    if (key && rs.readIds.includes(key)) return false;
+    if (typeof item.id === 'number') {
+      return item.id > (rs.lastReadLogSeq || 0);
+    }
+    if (typeof item.id === 'string' && item.id.startsWith('CHRON_')) {
+      const seq = Number(item.id.slice(6)) || 0;
+      return seq > (rs.lastReadChronSeq || 0);
+    }
+    return false;
+  };
+
+  X.markNewsRead = (W, opts) => {
+    if (!W || !W.sect) return null;
+    opts = opts || {};
+    const np = X.ensureNewsPrefs(W);
+    const rs = np.readState;
+    if (opts.all) {
+      rs.lastReadLogSeq = W.logSeq || 0;
+      rs.lastReadChronSeq = (W.world && W.world.chronicleSeq) || 0;
+      const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+      chrons.slice(0, 50).forEach(c => {
+        if (c && c.id && !rs.readIds.includes(String(c.id))) rs.readIds.push(String(c.id));
+      });
+      if (rs.readIds.length > 200) rs.readIds = rs.readIds.slice(-200);
+      return rs;
+    }
+    if (opts.id != null) {
+      const k = String(opts.id);
+      if (!rs.readIds.includes(k)) {
+        rs.readIds.push(k);
+        if (rs.readIds.length > 200) rs.readIds.shift();
+      }
+    }
+    return rs;
+  };
+
+  X.getUnreadNewsSummary = W => {
+    if (!W || !W.sect) return { unreadChronicles: 0, unreadMajorLogs: 0, unreadCritical: 0, totalUnread: 0 };
+    X.ensureNewsPrefs(W);
+    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+    const sChrons = (W.sect && Array.isArray(W.sect.sectChronicle)) ? W.sect.sectChronicle : [];
+    let unreadChronicles = 0, unreadMajorLogs = 0, unreadCritical = 0;
+    for (let i = 0; i < chrons.length; i++) {
+      const c = chrons[i];
+      if (c && X.isEntryUnread(W, c)) {
+        unreadChronicles++;
+        if (X.classifyNewsSeverity(c) === 'CRITICAL') unreadCritical++;
+      }
+    }
+    for (let i = 0; i < sChrons.length; i++) {
+      const sc = sChrons[i];
+      if (sc && X.isEntryUnread(W, sc)) {
+        unreadMajorLogs++;
+        if (X.classifyNewsSeverity(sc) === 'CRITICAL') unreadCritical++;
+      }
+    }
+    return {
+      unreadChronicles,
+      unreadMajorLogs,
+      unreadCritical,
+      totalUnread: unreadChronicles + unreadMajorLogs
+    };
+  };
 
   function inferChronicleReportFormat(entry) {
     if (entry.reportFormat && X.CHRONICLE_REPORT_FORMATS[entry.reportFormat]) return entry.reportFormat;
     const cat = entry.category || 'JIANGHU';
     const title = String(entry.titleTh || '');
+    if (cat === 'PERIODIC_DIGEST' || title.includes('สรุปสถานการณ์สำนักประจำรอบ')) return 'PERIODIC_SECT_DIGEST';
     if (cat === 'SECT_PEAK_POLITICS' || title.includes('ยอดเขา') || title.includes('หุบเขา') || title.includes('ผู้อาวุโสกิตติมศักดิ์')) return 'PEAK_HALL_SCROLL';
-    if (cat === 'ELDER_COUNCIL_EDICT' || title.includes('สภาผู้อาวุโส') || title.includes('ราชโองการ') || title.includes('ตรวจสอบตำแหน่ง')) return 'IMPERIAL_COUNCIL_DECREE';
-    if (cat === 'SECRET_REALM_NODE' || title.includes('บูรณะคัมภีร์โบราณ') || title.includes('โหนดแดนลับ') || title.includes('ผู้มีพระคุณช่วยชีวิต')) return 'SECRET_REALM_LOGBOOK';
-    if (cat === 'GRAND_ASSEMBLY' || cat === 'ECONOMY_AUCTION' || title.includes('มหาชุมนุม') || title.includes('งานเลี้ยงฉลอง') || title.includes('คาราวาน') || title.includes('ประมูล')) return 'CONTINENTAL_ASSEMBLY_GAZETTE';
-    if (cat === 'HEAVENLY_DAO_ERA' || cat === 'FENG_SHUI_ARRAY' || title.includes('ยุคสมัย') || title.includes('ผู้กำกับชะตาฟ้าดิน') || title.includes('ตราหยก')) return 'HEAVENLY_DAO_OMEN_SCROLL';
+    if (cat === 'ELDER_COUNCIL_EDICT' || title.includes('สภาผู้อาวุโส') || title.includes('ราชโองการ') || title.includes('ตรวจสอบตำแหน่ง') || title.includes('ธรรมนูญสำนัก') || title.includes('สภาแผนยุทธศาสตร์')) return 'IMPERIAL_COUNCIL_DECREE';
+    if (cat === 'SECRET_REALM_NODE' || title.includes('บูรณะคัมภีร์โบราณ') || title.includes('โหนดแดนลับ') || title.includes('ผู้มีพระคุณช่วยชีวิต') || title.includes('จุดสำรวจย่อย')) return 'SECRET_REALM_LOGBOOK';
+    if (cat === 'GRAND_ASSEMBLY' || cat === 'ECONOMY_AUCTION' || title.includes('มหาชุมนุม') || title.includes('งานเลี้ยงฉลอง') || title.includes('คาราวาน') || title.includes('ประมูล') || title.includes('ขบวนเสบียง')) return 'CONTINENTAL_ASSEMBLY_GAZETTE';
+    if (cat === 'HEAVENLY_DAO_ERA' || cat === 'FENG_SHUI_ARRAY' || title.includes('ยุคสมัย') || title.includes('ผู้กำกับชะตาฟ้าดิน') || title.includes('ตราหยก') || title.includes('ฮวงจุ้ย')) return 'HEAVENLY_DAO_OMEN_SCROLL';
     if (title.includes('คู่บำเพ็ญ') || title.includes('ทายาทสายเลือด') || cat === 'DAO_HEART_SUTRA') return 'LINEAGE_COMPANION_SCROLL';
     if (title.includes('สารทวงตัว') || title.includes('ฉีกสาร') || title.includes('ไถ่ถอนข้อกล่าวหา') || title.includes('ส่งตัวผู้ลี้ภัย') || title.includes('เชลยศึก') || cat === 'FACTION') return 'DISCIPLINE_EDICT';
     if (cat === 'BATTLE') return 'WAR_PAVILION_RECORD';
@@ -117799,102 +118336,293 @@ JD.ITEMS.items.forEach(it => {
     return 'PIGEON_DISPATCH';
   }
 
-  function buildDefaultCausalMeta(W, entry, fmtId) {
+  /* Deterministic causal story thread inference — ONLY assigns a thread when real entity/topic keys match */
+  X.inferStoryThread = (W, entry) => {
+    if (!entry) return { storyThreadId: null, storyThreadTitleTh: null };
+    if (entry.storyThreadId) {
+      return {
+        storyThreadId: String(entry.storyThreadId),
+        storyThreadTitleTh: entry.storyThreadTitleTh || ('เส้นเรื่อง: ' + (entry.titleTh || entry.storyThreadId))
+      };
+    }
+    const cat = entry.category || '';
+    const title = String(entry.titleTh || '');
+    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(Boolean) : [];
+    const day = Number.isFinite(entry.day) ? entry.day : ((W && W.day) || 0);
+    const sects = Array.isArray(entry.involvedSects) ? entry.involvedSects.filter(Boolean) : [];
+    const sectName = (W && W.sect && W.sect.name) || '';
+    const foreignSect = sects.find(s => s !== sectName) || sects[0] || '';
+
+    if (cat === 'SUCCESSION' || title.includes('ชิงบัลลังก์') || title.includes('สืบทอดตำแหน่งเจ้าสำนัก')) {
+      const targetSect = foreignSect || sectName || 'สำนัก';
+      return {
+        storyThreadId: 'thread:succ:' + targetSect + ':' + Math.floor(day / 30),
+        storyThreadTitleTh: 'วิกฤตสืบทอดอำนาจ: ' + targetSect
+      };
+    }
+    if (title.includes('สารทวงตัว') || title.includes('ผู้ลี้ภัย') || title.includes('แปรพักตร์') || title.includes('ทวงคืนหนี้แค้น')) {
+      const keyNpc = npcIds[0] || foreignSect || 'renegade';
+      return {
+        storyThreadId: 'thread:renegade:' + keyNpc,
+        storyThreadTitleTh: 'ปมผู้ลี้ภัยและหนี้แค้นยุทธภพ' + (foreignSect ? (' (' + foreignSect + ')') : '')
+      };
+    }
+    if (cat === 'BATTLE' && (title.includes('ศึกพิทักษ์สำนัก') || title.includes('วิกฤตศึกหน้าด่าน') || title.includes('บุกสำนัก'))) {
+      return {
+        storyThreadId: 'thread:raid:' + Math.floor(day / 5),
+        storyThreadTitleTh: 'ศึกป้องกันหน้าด่านสำนัก (ช่วงวันที่ ' + day + ')'
+      };
+    }
+    if (cat === 'DAO_HEART_SUTRA' && npcIds.length === 1) {
+      const figName = (Array.isArray(entry.involvedFigures) && entry.involvedFigures[0]) || npcIds[0];
+      return {
+        storyThreadId: 'thread:daoheart:' + npcIds[0],
+        storyThreadTitleTh: 'เส้นทางจิตมรรคาและศาสตราของ ' + figName
+      };
+    }
+    if ((cat === 'SECRET_REALM' || cat === 'SECRET_REALM_NODE') && entry.macroRegion) {
+      const regName = (X.WORLD_REGIONS && X.WORLD_REGIONS[entry.macroRegion] && X.WORLD_REGIONS[entry.macroRegion].shortTh) || entry.macroRegion;
+      return {
+        storyThreadId: 'thread:realm:' + entry.macroRegion + ':' + Math.floor(day / 30),
+        storyThreadTitleTh: 'การสำรวจแดนลับเขต' + regName
+      };
+    }
+    return { storyThreadId: null, storyThreadTitleTh: null };
+  };
+
+  function buildDefaultCausalMeta(W, entry, fmtId, actorSnapshots) {
     const cat = entry.category || "JIANGHU";
-    const isRumor = !!(entry.isRumor || fmtId === "TAVERN_BALLAD" && entry.unverified);
+    const isRumor = !!(entry.isRumor || entry.epistemicStatus === "RUMOR" || (fmtId === "TAVERN_BALLAD" && entry.unverified));
     const sects = Array.isArray(entry.involvedSects) && entry.involvedSects.length ? entry.involvedSects.join(" ↔ ") : ((W && W.sect && W.sect.name) || "สำนักเมฆาหยก");
-    const figs = Array.isArray(entry.involvedFigures) && entry.involvedFigures.length ? entry.involvedFigures.join(" · ") : "ผู้ฝึกตนในยุทธภพ";
+    const figs = Array.isArray(entry.involvedFigures) && entry.involvedFigures.length
+      ? entry.involvedFigures.join(" · ")
+      : (Array.isArray(actorSnapshots) && actorSnapshots.length ? actorSnapshots.map(a => a.fullName).filter(Boolean).join(" · ") : "ผู้ฝึกตนในยุทธภพ");
     const regName = (X.WORLD_REGIONS && entry.macroRegion && X.WORLD_REGIONS[entry.macroRegion] && X.WORLD_REGIONS[entry.macroRegion].nameTh) || "เขตแดนยุทธภพ";
     const cs = entry.combatSummary || null;
     const csHighlightTxt = cs && Array.isArray(cs.highlights) && cs.highlights.length
       ? cs.highlights.slice(0, 3).map(h => h.textTh || h).join(" · ")
-      : (cs && cs.summaryLineTh ? cs.summaryLineTh : "");
+      : (cs && (cs.summaryLineTh || cs.tacticalSummaryTh) ? (cs.summaryLineTh || cs.tacticalSummaryTh) : "");
+
+    const topActorWhy = (Array.isArray(actorSnapshots) && actorSnapshots[0] && actorSnapshots[0].topWhyTh)
+      ? ("แรงขับเคลื่อนหลัก: " + actorSnapshots[0].fullName + " (" + actorSnapshots[0].topWhyTh + ")")
+      : "";
 
     const defaultOrigin = {
-      BATTLE: "ความขัดแย้งทางยุทธศาสตร์และการประลองกำลังรบในเขต" + regName + (sects ? (" (" + sects + ")") : ""),
-      SUCCESSION: "การเปลี่ยนผ่านอำนาจและแรงขับดันตามบุคลิก (ความทะเยอทะยาน/คุณธรรม/ความภักดี) ภายใน " + sects,
-      FACTION: "พลวัตการทูตและการเจรจาผลประโยชน์ระหว่าง " + sects,
-      SECRET_REALM: "ชีพจรปราณฟ้าดินแปรปรวนในเขต" + regName + " จนผนึกโบราณคลายตัว",
-      LEGEND: "วัฏจักรการเร้นกายและทะลวงด่านของยอดคนในเขต" + regName,
-      VISITOR: "ชื่อเสียงของสำนักและกระแสการเดินทางของผู้ฝึกตนพเนจรมาถึงหน้าด่านสำนัก",
-      INTERNAL: "พลวัตชีวิตประจำวัน ความสัมพันธ์ และจิตมรรคาของศิษย์ภายในสำนัก",
-      FENG_SHUI_ARRAY: "การไหลเวียนของชีพจรปฐพี 10 ธาตุและโครงสร้างค่ายกลพิทักษ์สำนัก",
-      DAO_HEART_SUTRA: "สภาวะจิตใจ ปมมารในใจ และความผูกพันระหว่างผู้ฝึกตนกับศาสตราคู่กาย",
-      ECONOMY_AUCTION: "อุปสงค์-อุปทานของทรัพยากรยุทธภพและขบวนคาราวานการค้าข้ามแคว้น"
+      BATTLE: "การปะทะทางยุทธศาสตร์ในเขต" + regName + (sects ? (" (" + sects + ")") : ""),
+      SUCCESSION: "การเปลี่ยนผ่านอำนาจนำภายใน " + sects + (topActorWhy ? (" · " + topActorWhy) : ""),
+      FACTION: "การเจรจาและถ่วงดุลผลประโยชน์ระหว่าง " + sects,
+      SECRET_REALM: "ชีพจรปราณฟ้าดินในเขต" + regName + " เปิดทางสู่โบราณสถาน",
+      LEGEND: "ความเคลื่อนไหวของยอดฝีมือระดับสูงในเขต" + regName,
+      VISITOR: "ผู้ฝึกตนพเนจรเดินทางมาถึงหน้าด่าน " + sects,
+      INTERNAL: topActorWhy || ("เหตุการณ์ภายในและการตัดสินใจของสมาชิก " + sects),
+      FENG_SHUI_ARRAY: "การจัดวางค่ายกลฮวงจุ้ยและชีพจรปฐพีของ " + sects,
+      DAO_HEART_SUTRA: topActorWhy || "สภาวะจิตใจ ปมมารในใจ และความผูกพันกับศาสตราคู่กาย",
+      ECONOMY_AUCTION: "การหมุนเวียนทรัพยากรขบวนคาราวานและคลังสำนัก",
+      PERIODIC_DIGEST: "การประมวลผลบัญชีคลัง ผลงานศิษย์ และความเสี่ยงจริงตามรอบเวลา"
     }[cat] || ("เหตุปัจจัยเชื่อมโยงในเขต" + regName);
 
     const defaultImpact = {
-      BATTLE: entry.consequenceTh || (csHighlightTxt ? ("ผลศึกเชิงยุทธวิธี: " + csHighlightTxt) : "ส่งผลต่อกำลังรบ ขวัญกำลังใจ และชื่อเสียงสำนักที่เกี่ยวข้อง"),
-      SUCCESSION: entry.consequenceTh || "เปลี่ยนผู้นำและหลักนิยมสำนัก (Doctrine) พร้อมปรับสมดุลอำนาจภายใน",
-      FACTION: entry.consequenceTh || "ปรับเปลี่ยนท่าทีทางการทูตและคลังทรัพยากรระหว่างสำนัก",
-      SECRET_REALM: entry.consequenceTh || "ส่งผลต่อตบะ/ผลงานศิษย์ คัมภีร์หอคัมภีร์ และวัตถุดิบหลอมสร้าง",
-      LEGEND: entry.consequenceTh || "เปลี่ยนสมดุลยอดฝีมือระดับสูงในเขต" + regName,
-      VISITOR: entry.consequenceTh || "ส่งผลต่อไมตรีจอมยุทธ์พเนจร สุขภาพศิษย์ หรือคลังศิลาวิญญาณ",
-      INTERNAL: entry.consequenceTh || "ส่งผลต่อความพึงพอใจ (sat) อารมณ์ (mood) และสายสัมพันธ์ (rel) ในสำนัก",
-      FENG_SHUI_ARRAY: entry.consequenceTh || "ส่งผลต่อโบนัสสิ่งปลูกสร้าง อัตราบ่มเพาะตบะ และปราการป้องกันสำนัก",
-      DAO_HEART_SUTRA: entry.consequenceTh || "ส่งผลต่อโอกาสทะลวงด่าน พลังรบศาสตรา และมรดกวิชาประจำสำนัก",
-      ECONOMY_AUCTION: entry.consequenceTh || "ส่งผลต่อราคาซื้อขายตลาดกลาง คลังศิลาวิญญาณ และแร่/โอสถหายาก",
-      ELDER_COUNCIL_EDICT: entry.consequenceTh || "ส่งผลต่อมติสภาผู้อาวุโส โควตาคลังสำรอง และความโปร่งใสผู้ถือตำแหน่ง",
-      SECRET_REALM_NODE: entry.consequenceTh || "ส่งผลต่อการสำรวจโหนดแดนลับ สายใยผู้ช่วยชีวิต และการบูรณะคัมภีร์โบราณ",
-      GRAND_ASSEMBLY: entry.consequenceTh || "ส่งผลต่อผลการประชันมหาชุมนุม ชื่อเสียงยุทธภพ และความสามัคคีสำนัก",
-      HEAVENLY_DAO_ERA: entry.consequenceTh || "ส่งผลต่อวัฏจักรยุคสมัยแห่งปราณและบททดสอบชะตาฟ้าดิน",
-      SECT_PEAK_POLITICS: entry.consequenceTh || "ส่งผลต่อดุลอำนาจระหว่างยอดเขา การจัดสรรทรัพยากร และสายใยความสัมพันธ์"
+      BATTLE: entry.consequenceTh || (csHighlightTxt ? ("ผลศึกเชิงยุทธวิธี: " + csHighlightTxt) : "ส่งผลต่อกำลังพลและชื่อเสียงสำนักที่เกี่ยวข้อง"),
+      SUCCESSION: entry.consequenceTh || "เปลี่ยนผู้นำและสมดุลอำนาจการปกครองภายในสำนัก",
+      FACTION: entry.consequenceTh || "ปรับเปลี่ยนท่าทีทางการทูตและพันธะสัญญาระหว่างสำนัก",
+      SECRET_REALM: entry.consequenceTh || "ส่งผลต่อตบะ คัมภีร์ และวัตถุดิบที่นำกลับเข้าคลังสำนัก",
+      LEGEND: entry.consequenceTh || "เปลี่ยนดุลกำลังของยอดฝีมือในเขต" + regName,
+      VISITOR: entry.consequenceTh || "ส่งผลต่อไมตรีผู้มาเยือนและโอกาสแลกเปลี่ยนทรัพยากร",
+      INTERNAL: entry.consequenceTh || "ส่งผลต่อความพึงพอใจ อารมณ์ และสายสัมพันธ์ในสำนัก",
+      FENG_SHUI_ARRAY: entry.consequenceTh || "ส่งผลต่อโบนัสสิ่งปลูกสร้างและอัตราบ่มเพาะปราณ",
+      DAO_HEART_SUTRA: entry.consequenceTh || "ส่งผลต่อโอกาสทะลวงด่านและอานุภาพวิชาประจำตัว",
+      ECONOMY_AUCTION: entry.consequenceTh || "ส่งผลต่อดุลศิลาวิญญาณและพัสดุคงคลัง",
+      ELDER_COUNCIL_EDICT: entry.consequenceTh || "ส่งผลต่อมติสภาผู้อาวุโสและการใช้งบสำรองสำนัก",
+      SECRET_REALM_NODE: entry.consequenceTh || "ส่งผลต่อความคืบหน้าการสำรวจโหนดแดนลับและคัมภีร์โบราณ",
+      GRAND_ASSEMBLY: entry.consequenceTh || "ส่งผลต่อชื่อเสียงสำนักและรางวัลจากมหาชุมนุม",
+      HEAVENLY_DAO_ERA: entry.consequenceTh || "ส่งผลต่อกระแสปราณยุคสมัยและเงื่อนไขฟ้าดิน",
+      SECT_PEAK_POLITICS: entry.consequenceTh || "ส่งผลต่อโบนัสยอดเขาและสายสัมพันธ์ของศิษย์ในสังกัด",
+      PERIODIC_DIGEST: entry.consequenceTh || "สรุปสถานะคลัง ผลงาน และความเสี่ยงประจำรอบ"
     }[cat] || (entry.consequenceTh || "บันทึกไว้ในพงศาวดารยุทธภพ");
 
     const originCauseTh = entry.originCauseTh || defaultOrigin;
-    const actorChainTh = entry.actorChainTh || ("ผู้เกี่ยวข้อง: " + figs + " (" + sects + ")" + (cs && cs.mvp && cs.mvp.nameTh ? (" · ผู้โดดเด่นในศึก: " + cs.mvp.nameTh) : ""));
+    const actorChainTh = entry.actorChainTh || (
+      "ผู้เกี่ยวข้อง: " + figs + " (" + sects + ")" +
+      (cs && cs.mvp && cs.mvp.nameTh ? (" · ผู้โดดเด่นในศึก: " + cs.mvp.nameTh) : "") +
+      (topActorWhy && !originCauseTh.includes(topActorWhy) ? (" · " + topActorWhy) : "")
+    );
     const systemImpactTh = entry.systemImpactTh || defaultImpact;
+    const fmtSpec = X.CHRONICLE_REPORT_FORMATS[fmtId] || X.CHRONICLE_REPORT_FORMATS.PIGEON_DISPATCH;
+    const followUpTh = entry.followUpTh || fmtSpec.followUpDefaultTh || "ติดตามผลต่อเนื่องในหน้าต่างสำนักหรือแผนที่ยุทธภพ";
+
     const directorInsightTh = entry.directorInsightTh || (
-      (isRumor ? "[ข่าวลือโรงเตี๊ยม] " : "[บันทึกเหตุปัจจัย] ") +
-      "เหตุการณ์นี้เกิดจาก " + originCauseTh + " โดยมี " + figs + " เป็นผู้ขับเคลื่อน" +
-      (csHighlightTxt ? (" (" + csHighlightTxt + ")") : "")
+      (isRumor ? "[ข่าวลือโรงเตี๊ยม — รอการพิสูจน์] " : "[ข้อสังเกตเชิงระบบ] ") +
+      "ต้นเหตุจาก" + originCauseTh + " ➔ แนะนำให้" + followUpTh
     );
     const playerLensHighlights = entry.playerLensHighlights || {
       WORLD_WATCHER: "🌍 [มุมมองผู้เฝ้ามองโลก]: " + sects + " — " + systemImpactTh,
       NOVEL_READER: "📖 [มุมมองนักอ่านนิยาย]: " + (entry.storyTh || entry.titleTh || ""),
       NPC_OBSERVER: "🔍 [มุมมองผู้จับตาดู NPC]: " + actorChainTh,
-      GRAND_STRATEGIST: "♟️ [มุมมองนักวางแผนยุทธศาสตร์]: " + (csHighlightTxt || systemImpactTh)
+      GRAND_STRATEGIST: "♟️ [มุมมองนักวางแผนยุทธศาสตร์]: " + (csHighlightTxt ? (csHighlightTxt + " · " + followUpTh) : (systemImpactTh + " · " + followUpTh))
     };
     return {
       originCauseTh,
       actorChainTh,
       systemImpactTh,
+      followUpTh,
       directorInsightTh,
       playerLensHighlights,
       combatBreakdownTh: entry.combatBreakdownTh || csHighlightTxt || ""
     };
   }
 
+  /* Build authoritative fact snapshot at the exact moment of the event */
+  X.buildFactSnapshot = (W, entry, actorSnapshots, fmtId) => {
+    const isRumor = !!(entry.isRumor || (fmtId === 'TAVERN_BALLAD' && entry.unverified));
+    const epistemicStatus = entry.epistemicStatus || (isRumor ? 'RUMOR' : (entry.partiallyObserved ? 'OBSERVED' : 'VERIFIED'));
+    const certaintyLabelTh = epistemicStatus === 'RUMOR'
+      ? '🍶 ข่าวลือโรงเตี๊ยม (คำบอกเล่า ยังไม่ยืนยันข้อเท็จจริงทั้งหมด)'
+      : epistemicStatus === 'OBSERVED'
+      ? '👁️ รายงานสังเกตการณ์ (ข้อมูลเท่าที่สายสืบพบเห็น)'
+      : '📜 บันทึกข้อเท็จจริงยืนยันจากระบบ';
+
+    const cs = entry.combatSummary || null;
+    const verifiedFacts = [];
+    if (Array.isArray(actorSnapshots) && actorSnapshots.length) {
+      actorSnapshots.slice(0, 4).forEach(a => {
+        if (!a) return;
+        const stTxt = a.stageNameTh ? (' · ' + a.stageNameTh) : (a.stage ? (' · ขั้น ' + a.stage) : '');
+        const whyTxt = a.topWhyTh ? (' · แรงจูงใจขณะนั้น: ' + a.topWhyTh) : '';
+        verifiedFacts.push('ผู้เกี่ยวข้อง ณ เวลาเกิดเหตุ: ' + a.fullName + ' (' + (a.roleTh || 'ผู้ฝึกตน') + stTxt + ')' + whyTxt);
+      });
+    }
+    if (cs) {
+      if (cs.outcomeLabelTh || cs.outcome) {
+        verifiedFacts.push('ผลศึกที่บันทึก: ' + (cs.outcomeLabelTh || cs.outcome) + ' (ระยะเวลา ' + (cs.durationTicks || 1) + ' นาที)');
+      }
+      if (cs.stats) {
+        const stParts = [];
+        if (cs.stats.intercepts > 0) stParts.push('เข้าขวางคุ้มกัน ' + cs.stats.intercepts + ' ครั้ง');
+        if (cs.stats.zocStrikes > 0) stParts.push('สกัดเขตคุกคาม ' + cs.stats.zocStrikes + ' ครั้ง');
+        if (cs.stats.interrupts > 0) stParts.push('ขัดจังหวะวิชา ' + cs.stats.interrupts + ' ครั้ง');
+        if (cs.stats.targetSwitches > 0) stParts.push('เบนเป้าหมาย ' + cs.stats.targetSwitches + ' ครั้ง');
+        if (stParts.length) verifiedFacts.push('สถิติยุทธวิธีจริง: ' + stParts.join(' · '));
+      }
+      if (Array.isArray(cs.casualties) && cs.casualties.length) {
+        verifiedFacts.push('ผู้เสียชีวิตในศึก: ' + cs.casualties.map(x => x.nameTh).join(', '));
+      }
+    }
+    if (entry.factDeltas && typeof entry.factDeltas === 'object') {
+      for (const [dk, dv] of Object.entries(entry.factDeltas)) {
+        if (dv != null && dv !== '') verifiedFacts.push(dk + ': ' + dv);
+      }
+    }
+
+    return {
+      capturedAtTick: Number.isFinite(entry.t) ? entry.t : ((W && W.t) || 0),
+      capturedAtDay: Number.isFinite(entry.day) ? entry.day : ((W && W.day) || 0),
+      epistemicStatus,
+      certaintyLabelTh,
+      isRumor,
+      actorsAtEvent: (actorSnapshots || []).slice(0, 6).map(a => ({
+        id: a.id,
+        fullName: a.fullName,
+        given: a.given,
+        surname: a.surname,
+        roleTh: a.roleTh,
+        pathNameTh: a.pathNameTh || a.path || null,
+        stage: a.stage || 0,
+        stageNameTh: a.stageNameTh || null,
+        topWhyTh: a.topWhyTh || null,
+        deadAtEvent: !!a.dead
+      })),
+      factDeltas: entry.factDeltas ? Object.assign({}, entry.factDeltas) : null,
+      verifiedFacts,
+      unknownsTh: isRumor ? 'รายละเอียดบางส่วนมาจากคำบอกเล่าในโรงเตี๊ยม อาจคลาดเคลื่อนจากความจริงจนกว่าจะส่งคนไปพิสูจน์' : null
+    };
+  };
+
+  /* Trim W.world.chronicles to <= 200 while protecting milestone entries from routine eviction */
+  X.trimChroniclesWithMilestoneProtection = (W, maxCap, maxPinned) => {
+    if (!W || !W.world || !Array.isArray(W.world.chronicles)) return;
+    const cap = maxCap || 200;
+    const pinLim = maxPinned || 60;
+    const list = W.world.chronicles;
+    if (list.length <= cap) return;
+    const overflow = list.length - cap;
+    let removed = 0;
+    let pinnedCount = 0;
+    for (let i = list.length - 1; i >= 0 && removed < overflow; i--) {
+      const c = list[i];
+      const isPin = c && (c.isMilestone || c.severity === 'CRITICAL' || ['SUCCESSION', 'HEAVENLY_DAO_ERA'].includes(c.category));
+      if (isPin && pinnedCount < pinLim) {
+        pinnedCount++;
+        continue;
+      }
+      list.splice(i, 1);
+      removed++;
+    }
+    if (list.length > cap) {
+      list.length = cap;
+    }
+    W.world.chronicleTrimmedCount = (W.world.chronicleTrimmedCount || 0) + overflow;
+  };
+
   X.recordChronicle = (W, entry) => {
     if (!W || !W.world || !entry) return null;
     if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
     W.chronicle = W.world.chronicles;
+    if (W.sect) X.ensureNewsPrefs(W);
+
     const day = Number.isFinite(entry.day) ? entry.day : (Number.isFinite(W.day) ? W.day : 0);
     const t = Number.isFinite(entry.t) ? entry.t : (Number.isFinite(W.t) ? W.t : day * 1440);
     const eventKey = entry.eventKey || ((entry.category || "JIANGHU") + ":" + (entry.titleTh || "") + ":" + day);
-    const existing = W.world.chronicles.find(c => c && c.eventKey === eventKey && Math.abs((c.t || 0) - t) <= 10);
+    const dedupeWindow = Number.isFinite(entry.dedupeWindowTicks) ? entry.dedupeWindowTicks : 10;
+    const existing = W.world.chronicles.find(c => c && c.eventKey === eventKey && Math.abs((c.t || 0) - t) <= dedupeWindow);
     if (existing && !entry.allowDuplicate) return existing;
 
     W.world.chronicleSeq = (W.world.chronicleSeq || 0) + 1;
     const fmtId = inferChronicleReportFormat(entry);
     const fmtDef = X.CHRONICLE_REPORT_FORMATS[fmtId] || X.CHRONICLE_REPORT_FORMATS.PIGEON_DISPATCH;
-    const causal = buildDefaultCausalMeta(W, entry, fmtId);
     const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(Boolean) : [];
     const actorSnapshots = npcIds.map(id => {
       const live = W.byId && W.byId[id];
-      if (live && g.SIM && g.SIM.snapshotPerson) return g.SIM.snapshotPerson(W, live);
+      if (live && g.SIM && g.SIM.snapshotPerson) {
+        return Object.assign({}, g.SIM.snapshotPerson(W, live));
+      }
       const hp = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
-      if (hp) return hp;
-      return { id, fullName: id, given: id, surname: "", roleTh: "ผู้ฝึกตน" };
+      if (hp) return Object.assign({}, hp);
+      const fig = (W.world && W.world.figuresById && W.world.figuresById[id]) || null;
+      if (fig) {
+        return {
+          id,
+          fullName: fig.titleAndNameTh || fig.nameTh || id,
+          given: fig.nameTh || id,
+          surname: "",
+          roleTh: fig.roleTh || "จอมยุทธ์ยุทธภพ",
+          path: fig.cult && fig.cult.path,
+          stage: (fig.cult && fig.cult.stage) || 1,
+          statusTh: fig.sectNameTh || "จอมยุทธ์นอกสำนัก"
+        };
+      }
+      return { id, fullName: id, given: id, surname: "", roleTh: "ผู้ฝึกตน", statusTh: "ไม่ปรากฏข้อมูลปัจจุบัน" };
     });
+
+    const causal = buildDefaultCausalMeta(W, entry, fmtId, actorSnapshots);
     const isRumor = !!(entry.isRumor || (fmtId === "TAVERN_BALLAD" && entry.unverified));
+    const epistemicStatus = entry.epistemicStatus || (isRumor ? "RUMOR" : (entry.partiallyObserved ? "OBSERVED" : "VERIFIED"));
+    const threadInfo = X.inferStoryThread(W, Object.assign({}, entry, { day, npcIds }));
+    const factSnapshot = X.buildFactSnapshot(W, Object.assign({}, entry, { day, t, isRumor, epistemicStatus }), actorSnapshots, fmtId);
+    const severity = entry.severity || X.classifyNewsSeverity({ category: entry.category, titleTh: entry.titleTh, isMilestone: entry.isMilestone });
+    const isMilestone = !!(entry.isMilestone || severity === 'CRITICAL' || ['SUCCESSION', 'HEAVENLY_DAO_ERA'].includes(entry.category));
+
     const rec = {
       id: entry.id || ("CHRON_" + W.world.chronicleSeq),
       eventKey,
       day,
       t,
       isRumor,
-      verificationStatusTh: isRumor ? "🍶 ข่าวลือโรงเตี๊ยม" : (entry.verificationStatusTh || "📜 บันทึกยืนยัน"),
+      epistemicStatus,
+      severity,
+      isMilestone,
+      storyThreadId: threadInfo.storyThreadId,
+      storyThreadTitleTh: threadInfo.storyThreadTitleTh,
+      verificationStatusTh: isRumor ? "🍶 ข่าวลือโรงเตี๊ยม" : (epistemicStatus === "OBSERVED" ? "👁️ รายงานสังเกตการณ์" : (entry.verificationStatusTh || "📜 บันทึกยืนยัน")),
       reportFormat: fmtId,
       reportFormatTh: entry.reportFormatTh || fmtDef.nameTh,
       reportFormatShortTh: fmtDef.shortTh,
@@ -117914,7 +118642,8 @@ JD.ITEMS.items.forEach(it => {
         SECRET_REALM_NODE: "🧭 สำรวจโหนดแดนลับ & บูรณะคัมภีร์โบราณ",
         GRAND_ASSEMBLY: "🏆 มหาชุมนุมยุทธภพ 4 สาย & งานเลี้ยงปราณโอชา",
         HEAVENLY_DAO_ERA: "🌌 ผู้กำกับชะตาฟ้าดิน & วัฏจักรยุคสมัย",
-        SECT_PEAK_POLITICS: "🏔️ การเมืองยอดเขา · ยศผู้อาวุโส & สายใยความสัมพันธ์"
+        SECT_PEAK_POLITICS: "🏔️ การเมืองยอดเขา · ยศผู้อาวุโส & สายใยความสัมพันธ์",
+        PERIODIC_DIGEST: "📊 สรุปสถานการณ์สำนักประจำรอบ"
       }[entry.category || "JIANGHU"] || "📜 จดหมายเหตุยุทธภพ",
       icon: entry.icon || "📜",
       titleTh: entry.titleTh || "บันทึกเหตุการณ์ยุทธภพ",
@@ -117922,6 +118651,7 @@ JD.ITEMS.items.forEach(it => {
       originCauseTh: causal.originCauseTh,
       actorChainTh: causal.actorChainTh,
       systemImpactTh: causal.systemImpactTh,
+      followUpTh: causal.followUpTh,
       directorInsightTh: causal.directorInsightTh,
       playerLensHighlights: causal.playerLensHighlights,
       combatBreakdownTh: causal.combatBreakdownTh,
@@ -117933,16 +118663,572 @@ JD.ITEMS.items.forEach(it => {
         ? entry.involvedFigures
         : actorSnapshots.map(a => a.fullName).filter(Boolean),
       npcIds,
-      actorSnapshots
+      actorSnapshots,
+      factSnapshot,
+      digestPayload: entry.digestPayload || null
     };
     W.world.chronicles.unshift(rec);
-    if (W.world.chronicles.length > 200) W.world.chronicles.length = 200;
+    X.trimChroniclesWithMilestoneProtection(W, 200, 60);
     if (!entry.quiet && W.log && !W._founding) {
       const logType = entry.logType || (entry.category === "SUCCESSION" || entry.category === "FACTION" || entry.category === "INTERNAL" ? "politics" : entry.category === "SECRET_REALM" ? "explore" : "mission");
       const fullLog = rec.icon + " 【" + rec.titleTh + "】 " + rec.storyTh + (rec.consequenceTh ? " ➔ " + rec.consequenceTh : "");
-      W.log(logType, fullLog, npcIds, { eventKey, combatSummary: rec.combatSummary, chronicleId: rec.id });
+      W.log(logType, fullLog, npcIds, {
+        eventKey,
+        combatSummary: rec.combatSummary,
+        chronicleId: rec.id,
+        storyThreadId: rec.storyThreadId,
+        storyThreadTitleTh: rec.storyThreadTitleTh,
+        originCauseTh: rec.originCauseTh,
+        consequenceTh: rec.consequenceTh,
+        followUpTh: rec.followUpTh,
+        severity: rec.severity,
+        isMilestone: rec.isMilestone
+      });
     }
     return rec;
+  };
+
+  /* ---------- Pillar 2: Format-Specific Narrative Presenter (Pure Read-Only, Zero RNG) ---------- */
+  X.presentChronicleEntry = (W, rec) => {
+    if (!rec) return null;
+    const fmtId = (rec.reportFormat && X.CHRONICLE_REPORT_FORMATS[rec.reportFormat]) ? rec.reportFormat : 'PIGEON_DISPATCH';
+    const fmtDef = X.CHRONICLE_REPORT_FORMATS[fmtId];
+    const snap = rec.factSnapshot || X.buildFactSnapshot(W, rec, rec.actorSnapshots || [], fmtId);
+    const cs = rec.combatSummary || null;
+    const sev = rec.severity || X.classifyNewsSeverity(rec);
+    const sevBadge = {
+      CRITICAL: { labelTh: '🔥 วิกฤต', color: '#ef476f' },
+      MAJOR: { labelTh: '⭐ สำคัญ', color: '#ffd166' },
+      NOTABLE: { labelTh: '📌 น่าสนใจ', color: '#4fb2f2' },
+      ROUTINE: { labelTh: '· ทั่วไป', color: '#9aa5b1' }
+    }[sev] || { labelTh: '📌 บันทึก', color: '#4fb2f2' };
+
+    // Build non-redundant turning point / causal line based on format & real snapshot data
+    let turningPointLabelTh = '🌱 ต้นเหตุและจุดเปลี่ยน';
+    let turningPointBodyTh = '';
+    if (fmtId === 'WAR_PAVILION_RECORD') {
+      turningPointLabelTh = '⚔️ จังหวะชี้ขาดในสมรภูมิ';
+      const hlList = (cs && Array.isArray(cs.highlights) && cs.highlights.length)
+        ? cs.highlights.slice(0, 3).map(h => h.textTh || h).filter(Boolean)
+        : [];
+      const tacLine = (cs && (cs.tacticalSummaryTh || cs.summaryLineTh)) || rec.combatBreakdownTh || '';
+      const mvpTxt = (cs && cs.mvp && (cs.mvp.nameTh || cs.mvp.name)) ? ('ผู้โดดเด่น: ' + (cs.mvp.nameTh || cs.mvp.name) + (cs.mvp.intercepts > 0 ? (' (คุ้มกัน ' + cs.mvp.intercepts + ' ครั้ง)') : '')) : '';
+      turningPointBodyTh = [tacLine, hlList.join(' · '), mvpTxt].filter(Boolean).join(' — ');
+    } else if (fmtId === 'TAVERN_BALLAD') {
+      turningPointLabelTh = '🍶 ที่มาของคำร่ำลือ';
+      turningPointBodyTh = (rec.originCauseTh || 'นักเดินทางในโรงเตี๊ยมเล่าต่อกันมา') + (rec.isRumor ? ' (ยังไม่มีหลักฐานยืนยันครบทุกส่วน)' : '');
+    } else if (fmtId === 'IMPERIAL_COUNCIL_DECREE' || fmtId === 'DISCIPLINE_EDICT') {
+      turningPointLabelTh = '⚖️ เหตุผลและฐานอำนาจตัดสินใจ';
+      turningPointBodyTh = rec.originCauseTh || '';
+    } else if (fmtId === 'LINEAGE_COMPANION_SCROLL' || fmtId === 'ANCESTRAL_INSCRIPTION') {
+      turningPointLabelTh = '🕯️ สายใยเหตุปัจจัยและผู้สืบทอด';
+      turningPointBodyTh = [rec.originCauseTh, rec.actorChainTh].filter(Boolean).join(' · ');
+    } else if (fmtId === 'SECRET_REALM_LOGBOOK') {
+      turningPointLabelTh = '🧭 บันทึกเส้นทางและด่านทดสอบ';
+      turningPointBodyTh = rec.originCauseTh || '';
+    } else if (fmtId === 'PERIODIC_SECT_DIGEST') {
+      turningPointLabelTh = '📊 ภาพรวมดุลทรัพยากรและกำลังคน';
+      turningPointBodyTh = rec.originCauseTh || '';
+    } else {
+      turningPointBodyTh = rec.originCauseTh || '';
+    }
+
+    // Impact & actionable follow-up (avoiding duplicate text if storyTh already contains consequenceTh)
+    const impactTh = rec.consequenceTh || ( rec.systemImpactTh !== rec.storyTh ? rec.systemImpactTh : '' ) || '';
+    const followUpTh = rec.followUpTh || fmtDef.followUpDefaultTh || '';
+
+    // Structured collapsible numeric & reference details (with in-game meaning explanations!)
+    const numericDetails = [];
+    const cal = (g.SIM && g.SIM.calendar && Number.isFinite(rec.t)) ? g.SIM.calendar(rec.t) : null;
+    if (cal) {
+      numericDetails.push({
+        labelTh: 'เวลาเกิดเหตุในโลกจำลอง',
+        valueTh: 'ปีที่ ' + cal.year + ' เดือน ' + cal.month + ' วันที่ ' + cal.dom + ' (' + g.U.pad2(cal.hour) + ':' + g.U.pad2(cal.minute) + ' น.)',
+        meaningTh: 'อ้างอิงตามปฏิทินจำลอง 360 วัน/ปี (วันที่ ' + rec.day + ' นับจากก่อตั้ง)'
+      });
+    }
+    numericDetails.push({
+      labelTh: 'สถานะความน่าเชื่อถือของข้อมูล',
+      valueTh: snap.certaintyLabelTh,
+      meaningTh: snap.isRumor ? 'ข้อมูลจากข่าวลืออาจคลาดเคลื่อน ควรส่งศิษย์ตรวจสอบก่อนตัดสินใจใหญ่' : 'บันทึกจากเหตุการณ์ที่เกิดขึ้นจริงในระบบจำลอง ณ เวลานั้น'
+    });
+    if (Array.isArray(snap.actorsAtEvent) && snap.actorsAtEvent.length) {
+      snap.actorsAtEvent.forEach(a => {
+        const curLive = W && W.byId && W.byId[a.id];
+        const statusNow = curLive
+          ? (curLive.dead ? 'ปัจจุบันเสียชีวิตแล้ว' : (curLive.exiled ? 'ปัจจุบันออกจากสำนักแล้ว' : 'ปัจจุบันยังอยู่ในสำนัก'))
+          : 'ไม่อยู่ในทำเนียบปัจจุบัน (ดูได้จากระเบียนประวัติ)';
+        numericDetails.push({
+          labelTh: 'สถานะผู้เกี่ยวข้อง ณ เวลาเกิดเหตุ: ' + a.fullName,
+          valueTh: (a.roleTh || 'ผู้ฝึกตน') + (a.stageNameTh ? (' · ' + a.stageNameTh) : '') + (a.topWhyTh ? (' · เหตุผลขณะนั้น: ' + a.topWhyTh) : ''),
+          meaningTh: statusNow + ' (ข้อมูลนี้เก็บจาก Snapshot ณ เวลาเกิดเหตุ ไม่ถูกเขียนทับด้วยสถานะปัจจุบัน)'
+        });
+      });
+    }
+    if (cs) {
+      numericDetails.push({
+        labelTh: 'ระยะเวลาและผลลัพธ์การปะทะ',
+        valueTh: (cs.outcomeLabelTh || cs.outcome || 'ยุติศึก') + ' · ใช้เวลา ' + (cs.durationTicks || 1) + ' นาทีเกม',
+        meaningTh: '1 นาทีเกม = 1 Tick การจำลองสมรภูมิ'
+      });
+      if (cs.stats) {
+        const s = cs.stats;
+        numericDetails.push({
+          labelTh: 'ตัวเลขจังหวะยุทธวิธี (Tactical Counters)',
+          valueTh: 'คุ้มกัน ' + (s.intercepts || 0) + ' · บังวิถี ' + (s.losBlocks || 0) + ' · สกัดเขตคุกคาม ' + (s.zocStrikes || 0) + ' · ขัดจังหวะร่าย ' + (s.interrupts || 0) + ' · เปลี่ยนเป้า ' + (s.targetSwitches || 0),
+          meaningTh: 'จำนวนครั้งที่ระบบคำนวณระยะอาวุธและตำแหน่งทำงานจริงในศึกนี้'
+        });
+      }
+    }
+    if (snap.factDeltas) {
+      for (const [k, v] of Object.entries(snap.factDeltas)) {
+        if (v == null || v === '') continue;
+        const labelMap = {
+          chancePct: ['โอกาสสำเร็จที่คำนวณ ณ เวลานั้น', '%', 'คำนวณจากตบะ รากปราณ โอสถ และสภาพจิตใจขณะตัดสินใจ'],
+          targetPct: ['เกณฑ์ความมั่นใจขั้นต่ำของตัวละคร', '%', 'คำนวณจากนิสัยความรอบคอบ (Caution) เทียบความกล้า (Courage)'],
+          stonesNow: ['ศิลาวิญญาณคงคลังขณะตัดสินใจ', ' ศิลา', 'ยอดคงเหลือในคลังสำนัก (W.sect.stones) ณ เวลาเกิดเหตุ'],
+          cashReserve: ['เกณฑ์สำรองศิลาปลอดภัยขั้นต่ำ', ' ศิลา', 'กันชนงบประมาณที่หอคลังกันไว้สำหรับเบี้ยหวัดและยามฉุกเฉิน'],
+          buildCost: ['ค่าก่อสร้าง/ขยายอาคาร', ' ศิลา', 'ต้นทุนศิลาวิญญาณที่ต้องใช้ในการยกระดับอาคาร'],
+          neededTotal: ['ยอดศิลาที่ต้องมีรวมกันชนสำรอง', ' ศิลา', 'ค่าก่อสร้าง + เกณฑ์สำรองปลอดภัยขั้นต่ำ'],
+          embezzledAmt: ['ยอดศิลาที่ถูกยักยอกสะสม', ' ศิลา', 'จำนวนศิลาที่ผู้ดูแลคลังแอบเบียดบังไปก่อนถูกตรวจพบ'],
+          recoveredAmt: ['ยอดศิลาที่ยึดคืนเข้าคลัง', ' ศิลา', 'จำนวนศิลาที่หอวินัยริบคืนเข้าคลังสำนัก (60% ของยอดที่ยักยอก)'],
+          meritDelta: ['แต้มผลงานสำนัก (Merit) ที่เปลี่ยน', ' แต้ม', 'ส่งผลต่อการเลื่อนขั้นและสิทธิ์รับการจัดสรรของจากคลัง']
+        }[k];
+        if (labelMap) {
+          numericDetails.push({
+            labelTh: labelMap[0],
+            valueTh: String(v) + labelMap[1],
+            meaningTh: labelMap[2]
+          });
+        }
+      }
+    }
+
+    return {
+      id: rec.id,
+      day: rec.day,
+      t: rec.t,
+      formatId: fmtId,
+      formatNameTh: fmtDef.nameTh,
+      formatShortTh: fmtDef.shortTh,
+      leadPrefixTh: fmtDef.leadPrefixTh,
+      impactLabelTh: fmtDef.impactLabelTh,
+      category: rec.category,
+      categoryTh: rec.categoryTh,
+      severity: sev,
+      severityBadge: sevBadge,
+      epistemicStatus: snap.epistemicStatus,
+      epistemicBadgeTh: rec.verificationStatusTh || snap.certaintyLabelTh,
+      isRumor: snap.isRumor,
+      isUnread: X.isEntryUnread(W, rec),
+      storyThreadId: rec.storyThreadId || null,
+      storyThreadTitleTh: rec.storyThreadTitleTh || null,
+      headlineTh: (rec.icon || '📜') + ' ' + (rec.titleTh || 'บันทึกเหตุการณ์ยุทธภพ'),
+      leadTh: rec.storyTh || rec.titleTh || '',
+      turningPointLabelTh,
+      turningPointBodyTh,
+      impactTh,
+      followUpTh,
+      numericDetails,
+      npcIds: rec.npcIds || [],
+      actorSnapshots: rec.actorSnapshots || [],
+      digestPayload: rec.digestPayload || null
+    };
+  };
+
+  /* ---------- Pillar 3: Periodic Sect Digest & Continuing Storyline Threads ---------- */
+  X.computePeriodDigest = (W, opts) => {
+    if (!W || !W.sect) return null;
+    opts = opts || {};
+    const windowDays = Math.max(1, Math.min(90, Number(opts.windowDays) || 7));
+    const toTick = Number.isFinite(opts.toTick) ? opts.toTick : (W.t || 0);
+    const fromTick = Number.isFinite(opts.fromTick) ? opts.fromTick : Math.max(0, toTick - windowDays * 1440);
+    const toDay = Math.floor(toTick / 1440);
+    const fromDay = Math.floor(fromTick / 1440);
+
+    // 1. Treasury Ledger Analysis (External Stone Income vs Expense — strictly bounded to (fromTick, toTick])
+    const ledger = Array.isArray(W.sect.ledger) ? W.sect.ledger : [];
+    let stoneIncome = 0, stoneExpense = 0;
+    const incByReason = {}, expByReason = {};
+    for (let i = 0; i < ledger.length; i++) {
+      const tx = ledger[i];
+      if (!tx || !Number.isFinite(tx.t) || !Number.isFinite(tx.amt)) continue;
+      if (tx.t <= fromTick || tx.t > toTick) continue;
+      const why = String(tx.why || 'รายการทั่วไป').split(':')[0].trim();
+      if (tx.amt > 0) {
+        stoneIncome += tx.amt;
+        incByReason[why] = (incByReason[why] || 0) + tx.amt;
+      } else if (tx.amt < 0) {
+        const absAmt = Math.abs(tx.amt);
+        stoneExpense += absAmt;
+        expByReason[why] = (expByReason[why] || 0) + absAmt;
+      }
+    }
+    stoneIncome = Math.round(stoneIncome);
+    stoneExpense = Math.round(stoneExpense);
+    const netStones = stoneIncome - stoneExpense;
+    const topIncomeReasons = Object.entries(incByReason).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([why, amt]) => ({ why, amt: Math.round(amt) }));
+    const topExpenseReasons = Object.entries(expByReason).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([why, amt]) => ({ why, amt: Math.round(amt) }));
+
+    // 2. Stock & Internal Transfers vs Player Interventions (Never mixed with external stone income/expense!)
+    const closingStones = Math.round(W.sect.stones || 0);
+    const closingMeals = g.ECO ? g.ECO.count(W, 'meal') : 0;
+    const closingGrain = g.ECO ? g.ECO.count(W, 'grain') : 0;
+    const closingFoodEquiv = closingMeals + closingGrain * 3;
+    const aliveNpcs = (W.npcs || []).filter(n => n && !n.dead && !n.exiled);
+    const alivePop = Math.max(1, aliveNpcs.length);
+    const foodDaysRemaining = +(closingFoodEquiv / Math.max(1, alivePop * 2.2)).toFixed(1);
+    const generosity = (W.sect.policy && W.sect.policy.generosity != null) ? W.sect.policy.generosity : 50;
+    const cashReserveFloor = Math.max(300, alivePop * 20) + Math.round(alivePop * 10 * (1 - generosity / 200));
+
+    const logs = Array.isArray(W.logs) ? W.logs : [];
+    let internalGiftsCount = 0;
+    let internalCpPurchasesCount = 0;
+    let internalDonationsCount = 0;
+    let playerInterventionCount = 0;
+    let breakthroughSuccessCount = 0;
+    let breakthroughFailCount = 0;
+    let deathsInWindow = 0;
+    let recruitsInWindow = 0;
+    let battlesInWindow = 0;
+    let craftsInWindow = 0;
+    let craftFailsInWindow = 0;
+
+    const contribScores = {};
+    const addContrib = (npcId, pts, featTh) => {
+      if (!npcId) return;
+      if (!contribScores[npcId]) contribScores[npcId] = { id: npcId, score: 0, feats: [] };
+      contribScores[npcId].score += pts;
+      if (featTh && !contribScores[npcId].feats.includes(featTh) && contribScores[npcId].feats.length < 3) {
+        contribScores[npcId].feats.push(featTh);
+      }
+    };
+
+    for (let i = 0; i < logs.length; i++) {
+      const l = logs[i];
+      if (!l || !Number.isFinite(l.t) || l.t <= fromTick || l.t > toTick) continue;
+      const txKind = l.txKind || (l.meta && l.meta.txKind) || null;
+      const txt = String(l.text || '');
+      const primaryId = Array.isArray(l.ids) && l.ids[0] ? l.ids[0] : null;
+
+      if (txKind === 'player-spawn' || txKind === 'player-edit' || txKind === 'player-edit-undo' || txt.includes('[เสกโดยผู้เล่น]') || txt.includes('[แก้ไขโดยผู้เล่น]')) {
+        playerInterventionCount++;
+        continue;
+      }
+      if (txKind === 'gift' || txt.includes('[มอบของรางวัล]')) {
+        internalGiftsCount++;
+      } else if (txKind === 'purchase' && (l.type === 'shop' || l.type === 'gear' || txt.includes('แลกคุณูปการ'))) {
+        internalCpPurchasesCount++;
+      } else if (txKind === 'donation' || (l.type === 'economy' && txt.includes('บริจาค'))) {
+        internalDonationsCount++;
+        if (primaryId) addContrib(primaryId, 2, 'บริจาคพัสดุเข้าคลังสำนัก');
+      }
+
+      if (l.type === 'breakthrough') {
+        if (/สำเร็จ/.test(txt)) {
+          breakthroughSuccessCount++;
+          if (primaryId) addContrib(primaryId, 8, txt.replace(/^[^\s]+\s+/, ''));
+        } else if (/ล้มเหลว/.test(txt)) {
+          breakthroughFailCount++;
+        }
+      } else if (l.type === 'death') {
+        deathsInWindow++;
+      } else if (l.type === 'recruit' && /ผ่านการพิจารณา|เข้าสำนักเป็นศิษย์|ตามคณะสำรวจมาเข้าสำนัก/.test(txt)) {
+        recruitsInWindow++;
+      } else if (l.type === 'raid' || l.type === 'duel' || l.type === 'tournament') {
+        if (/ต้านการบุก|ชนะเลิศ|กำลังสำคัญในการป้องกัน/.test(txt)) {
+          battlesInWindow++;
+          if (primaryId) addContrib(primaryId, 7, txt);
+        }
+      } else if (l.type === 'craft') {
+        if (/ล้มเหลว/.test(txt)) {
+          craftFailsInWindow++;
+        } else if (/สำเร็จ|คุณภาพชั้นเลิศ/.test(txt)) {
+          craftsInWindow++;
+          if (primaryId) addContrib(primaryId, /คุณภาพชั้นเลิศ/.test(txt) ? 5 : 2, /คุณภาพชั้นเลิศ/.test(txt) ? 'สร้างผลงานคุณภาพชั้นเลิศ' : 'ผลิตพัสดุเข้าคลังสำนัก');
+        }
+      } else if ((l.type === 'mission' || l.type === 'explore') && /กลับจาก|สำเร็จ|พิชิต|ได้ของวิเศษ/.test(txt)) {
+        if (primaryId) addContrib(primaryId, 5, 'นำคณะสำรวจ/ภารกิจสำเร็จ');
+      }
+    }
+
+    const topContributors = Object.values(contribScores)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map(c => {
+        const n = W.byId && W.byId[c.id];
+        const hp = W.sect.historicalPeople && W.sect.historicalPeople[c.id];
+        const fullName = n ? g.HC.fullName(n) : (hp ? hp.fullName : c.id);
+        const roleTh = (n && g.SECT && g.SECT.title) ? g.SECT.title(n) : (hp ? hp.roleTh : 'สมาชิกสำนัก');
+        return {
+          id: c.id,
+          fullName,
+          roleTh,
+          score: c.score,
+          featsTh: c.feats.join(' · ') || 'ปฏิบัติหน้าที่สม่ำเสมอ'
+        };
+      });
+
+    // 3. Troubled Disciples (Injured, Bottlenecked, High Heart Demon, Detained, or Emergency Goal Suspension)
+    const troubledDisciples = [];
+    for (let i = 0; i < aliveNpcs.length; i++) {
+      const n = aliveNpcs[i];
+      const issues = [];
+      let urgency = 0;
+      if (Array.isArray(n.inj) && n.inj.length > 0) {
+        const maxSev = Math.max(...n.inj.map(x => x.sev || 1));
+        issues.push('บาดเจ็บ ' + n.inj.length + ' จุด (' + (n.inj[0].part || n.inj[0].why || ('ระดับ ' + maxSev)) + ')');
+        urgency += maxSev * 4;
+      }
+      const hd = (n.h && n.h.state && n.h.state.heartDemon) || 0;
+      if (hd >= 55) {
+        issues.push('มารในใจสูง (' + Math.round(hd) + '%)');
+        urgency += 5;
+      }
+      if (n.cult && n.cult.bn) {
+        issues.push('ติดคอขวด ' + (g.CULT && g.CULT.stageName ? g.CULT.stageName(n) : ('ขั้น ' + n.cult.stage)) + ' (' + (n.cult.bn.why || 'รอโอกาสทะลวง') + ')');
+        urgency += 4;
+      }
+      if (n.cognition && n.cognition.suspendedGoal && n.cognition.goal && n.cognition.goal.id === 'recovery') {
+        issues.push('พักเป้าหมาย「' + (n.cognition.suspendedGoal.title || n.cognition.suspendedGoal.id) + '」ชั่วคราวเพื่อฟื้นฟูร่างกาย');
+        urgency += 3;
+      }
+      if (n.jail && n.jail > toTick) {
+        issues.push('ถูกคุมขังตามวินัยสำนัก');
+        urgency += 3;
+      }
+      if (urgency > 0) {
+        troubledDisciples.push({
+          id: n.id,
+          fullName: g.HC.fullName(n),
+          roleTh: (g.SECT && g.SECT.title) ? g.SECT.title(n) : 'ศิษย์สำนัก',
+          urgency,
+          issuesTh: issues.join(' · ')
+        });
+      }
+    }
+    troubledDisciples.sort((a, b) => b.urgency - a.urgency);
+
+    // 4. Verified Active Risks & Pending Follow-Ups
+    const verifiedRisks = [];
+    if (W.threat && W.threat.raid) {
+      verifiedRisks.push({
+        severity: 'CRITICAL',
+        titleTh: 'ข้าศึกกำลังบุกประชิดสำนัก',
+        detailTh: 'ตรวจพบภัยคุกคามหน้าด่าน ควรตรวจสอบแนวป้องกันและอสูรเฝ้าประตูทันที'
+      });
+    }
+    if (foodDaysRemaining < 7) {
+      verifiedRisks.push({
+        severity: foodDaysRemaining < 3 ? 'CRITICAL' : 'MAJOR',
+        titleTh: 'เสบียงสำรองต่ำกว่าเกณฑ์ 7 วัน (เหลือราว ' + foodDaysRemaining + ' วัน)',
+        detailTh: 'มีอาหารปรุงสุก ' + closingMeals + ' ชุด และข้าวสาร ' + closingGrain + ' หน่วย สำหรับสมาชิก ' + alivePop + ' คน'
+      });
+    }
+    if (closingStones < cashReserveFloor) {
+      verifiedRisks.push({
+        severity: closingStones < cashReserveFloor * 0.5 ? 'CRITICAL' : 'MAJOR',
+        titleTh: 'ศิลาคงคลัง (' + closingStones + ') ต่ำกว่าเกณฑ์กันชนปลอดภัย (' + cashReserveFloor + ' ศิลา)',
+        detailTh: 'หอคลังจะชะลอการขยายอาคารและการสั่งซื้อสินค้าที่ไม่จำเป็นโดยอัตโนมัติ'
+      });
+    }
+    const shortages = (W.sect && Array.isArray(W.sect.shortageDirectives)) ? W.sect.shortageDirectives.filter(d => d && d.deficit > 0) : [];
+    if (shortages.length > 0) {
+      const topShort = shortages.slice(0, 3).map(d => (g.ECO ? g.ECO.name(d.id) : d.id) + ' (ขาด ' + d.deficit + ')').join(', ');
+      verifiedRisks.push({
+        severity: 'NOTABLE',
+        titleTh: 'พัสดุขาดแคลนตามคำสั่งหอคลัง (' + shortages.length + ' รายการ)',
+        detailTh: topShort
+      });
+    }
+    if (troubledDisciples.length > 0) {
+      verifiedRisks.push({
+        severity: troubledDisciples[0].urgency >= 6 ? 'MAJOR' : 'NOTABLE',
+        titleTh: 'มีศิษย์บาดเจ็บ/ติดคอขวด/มารในใจสูง ' + troubledDisciples.length + ' คน',
+        detailTh: troubledDisciples.slice(0, 2).map(d => d.fullName + ' (' + d.issuesTh + ')').join(' · ')
+      });
+    }
+
+    return {
+      periodKey: 'digest:' + fromDay + ':' + toDay + ':' + windowDays,
+      windowDays,
+      fromTick,
+      toTick,
+      fromDay,
+      toDay,
+      periodLabelTh: 'รอบ ' + windowDays + ' วัน (วันที่ ' + fromDay + ' – วันที่ ' + toDay + ')',
+      treasury: {
+        closingStones,
+        cashReserveFloor,
+        stoneIncome,
+        stoneExpense,
+        netStones,
+        topIncomeReasons,
+        topExpenseReasons
+      },
+      stockAndInternal: {
+        closingMeals,
+        closingGrain,
+        closingFoodEquiv,
+        foodDaysRemaining,
+        internalGiftsCount,
+        internalCpPurchasesCount,
+        internalDonationsCount,
+        playerInterventionCount
+      },
+      activity: {
+        alivePop,
+        breakthroughSuccessCount,
+        breakthroughFailCount,
+        deathsInWindow,
+        recruitsInWindow,
+        battlesInWindow,
+        craftsInWindow,
+        craftFailsInWindow
+      },
+      topContributors,
+      troubledDisciples: troubledDisciples.slice(0, 5),
+      verifiedRisks
+    };
+  };
+
+  X.recordPeriodicDigest = (W, opts) => {
+    if (!W || !W.sect) return null;
+    opts = opts || {};
+    X.ensureNewsSystem(W);
+    const d = X.computePeriodDigest(W, opts);
+    if (!d) return null;
+    const existing = W.sect.digestHistory.find(x => x && x.periodKey === d.periodKey);
+    if (existing && !opts.force) return existing;
+
+    W.sect.digestHistory.unshift(d);
+    if (W.sect.digestHistory.length > 24) W.sect.digestHistory.length = 24;
+
+    if (opts.alsoRecordChronicle !== false) {
+      const netSign = d.treasury.netStones >= 0 ? ('+' + d.treasury.netStones) : String(d.treasury.netStones);
+      const contribTxt = d.topContributors.length
+        ? ('ผู้ทำผลงานเด่น: ' + d.topContributors.slice(0, 2).map(c => c.fullName + ' (' + c.featsTh + ')').join(' · '))
+        : 'ยังไม่มีหมุดหมายผลงานใหญ่ในรอบนี้';
+      const riskTxt = d.verifiedRisks.length
+        ? ('ข้อควรระวัง: ' + d.verifiedRisks.map(r => r.titleTh).join(' · '))
+        : 'สถานะคลังและเสบียงอยู่ในเกณฑ์ปกติ';
+      X.recordChronicle(W, {
+        eventKey: d.periodKey,
+        category: 'PERIODIC_DIGEST',
+        reportFormat: 'PERIODIC_SECT_DIGEST',
+        icon: '📊',
+        titleTh: 'สมุดสรุปสถานการณ์สำนัก (' + d.periodLabelTh + ')',
+        storyTh: 'คงคลังศิลา ' + d.treasury.closingStones + ' ก้อน (รายรับ +' + d.treasury.stoneIncome + ' / รายจ่าย -' + d.treasury.stoneExpense + ' / สุทธิ ' + netSign + ' ศิลา) · เสบียงพอใช้ราว ' + d.stockAndInternal.foodDaysRemaining + ' วัน · ' + contribTxt,
+        originCauseTh: 'ประมวลผลจากสมุดบัญชีคลัง (แยกจากการโอนภายใน ' + (d.stockAndInternal.internalGiftsCount + d.stockAndInternal.internalCpPurchasesCount + d.stockAndInternal.internalDonationsCount) + ' รายการ) และเหตุการณ์จริงใน ' + d.periodLabelTh,
+        consequenceTh: riskTxt,
+        followUpTh: d.troubledDisciples.length ? ('ดูแลศิษย์ที่ติดปัญหา: ' + d.troubledDisciples.slice(0, 2).map(t => t.fullName).join(', ')) : 'ตรวจสอบคำสั่งหอผลิตและแผนการฝึกตามปกติ',
+        npcIds: d.topContributors.map(c => c.id).concat(d.troubledDisciples.map(t => t.id)).slice(0, 4),
+        digestPayload: d,
+        severity: d.verifiedRisks.some(r => r.severity === 'CRITICAL') ? 'CRITICAL' : (d.verifiedRisks.length ? 'MAJOR' : 'NOTABLE'),
+        quiet: true
+      });
+    }
+    return d;
+  };
+
+  X.dailyChronicleDigestTick = W => {
+    if (!W || !W.sect || W._founding) return;
+    const np = X.ensureNewsPrefs(W);
+    const interval = np.digestIntervalDays || 0;
+    if (interval <= 0 || !W.day || W.day <= 0) return;
+    if (W.day % interval === 0) {
+      X.recordPeriodicDigest(W, { windowDays: interval, alsoRecordChronicle: true });
+    }
+  };
+
+  /* Group continuing storylines across world.chronicles & sect.sectChronicle (Deterministic, Never Guessed) */
+  X.getStoryThreads = (W, filterThreadId) => {
+    if (!W || !W.sect) return [];
+    const byThread = {};
+    const addEvent = (id, titleTh, ev) => {
+      if (!id) return;
+      if (!byThread[id]) {
+        byThread[id] = {
+          threadId: id,
+          titleTh: titleTh || id,
+          events: [],
+          npcIds: new Set()
+        };
+      }
+      if (titleTh && (byThread[id].titleTh === id || byThread[id].titleTh.startsWith('เส้นเรื่อง:'))) {
+        byThread[id].titleTh = titleTh;
+      }
+      if (!byThread[id].events.some(x => x.eventKey === ev.eventKey && Math.abs((x.t || 0) - (ev.t || 0)) <= 5)) {
+        byThread[id].events.push(ev);
+      }
+      (ev.npcIds || []).forEach(nid => { if (nid) byThread[id].npcIds.add(nid); });
+    };
+
+    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+    for (let i = 0; i < chrons.length; i++) {
+      const c = chrons[i];
+      if (!c || !c.storyThreadId) continue;
+      addEvent(c.storyThreadId, c.storyThreadTitleTh, {
+        id: c.id,
+        eventKey: c.eventKey || c.id,
+        t: c.t || 0,
+        day: c.day || 0,
+        source: 'world',
+        headlineTh: (c.icon || '📜') + ' ' + c.titleTh,
+        summaryTh: c.storyTh || c.consequenceTh || '',
+        originCauseTh: c.originCauseTh || '',
+        consequenceTh: c.consequenceTh || '',
+        followUpTh: c.followUpTh || '',
+        npcIds: c.npcIds || []
+      });
+    }
+
+    const sChrons = (W.sect && Array.isArray(W.sect.sectChronicle)) ? W.sect.sectChronicle : [];
+    for (let i = 0; i < sChrons.length; i++) {
+      const sc = sChrons[i];
+      if (!sc || !sc.storyThreadId) continue;
+      addEvent(sc.storyThreadId, sc.storyThreadTitleTh, {
+        id: sc.id,
+        eventKey: sc.eventKey || ('sc:' + sc.id),
+        t: sc.t || 0,
+        day: sc.day != null ? sc.day : Math.floor((sc.t || 0) / 1440),
+        source: 'sect',
+        headlineTh: sc.text,
+        summaryTh: sc.consequenceTh || sc.text,
+        originCauseTh: sc.originCauseTh || '',
+        consequenceTh: sc.consequenceTh || '',
+        followUpTh: sc.followUpTh || '',
+        npcIds: sc.ids || []
+      });
+    }
+
+    const threads = Object.values(byThread).map(th => {
+      th.events.sort((a, b) => (a.t || 0) - (b.t || 0));
+      const firstEv = th.events[0];
+      const lastEv = th.events[th.events.length - 1];
+      const midEv = th.events.length > 2 ? th.events[Math.floor(th.events.length / 2)] : null;
+      const isResolved = /สำเร็จ|คลี่คลาย|ขึ้นเป็นเจ้าสำนัก|ยึดศิลา|เสร็จสมบูรณ์|ถึงแก่ชีวิต/.test(lastEv.headlineTh + ' ' + lastEv.consequenceTh);
+      return {
+        threadId: th.threadId,
+        titleTh: th.titleTh,
+        eventCount: th.events.length,
+        firstDay: firstEv ? firstEv.day : 0,
+        lastDay: lastEv ? lastEv.day : 0,
+        lastTick: lastEv ? lastEv.t : 0,
+        statusTh: isResolved ? '✅ คลี่คลายแล้ว' : '⏳ กำลังดำเนินอยู่ / รอติดตามผล',
+        originEvent: firstEv,
+        turningPointEvent: midEv,
+        latestEvent: lastEv,
+        followUpTh: (lastEv && lastEv.followUpTh) || 'ติดตามความคืบหน้าในบันทึกเหตุการณ์',
+        npcIds: Array.from(th.npcIds),
+        events: th.events
+      };
+    }).sort((a, b) => (b.lastTick - a.lastTick) || (b.eventCount - a.eventCount));
+
+    if (filterThreadId && filterThreadId !== 'all') {
+      return threads.filter(t => t.threadId === filterThreadId);
+    }
+    return threads;
   };
 
   X.generateProceduralSectFigure = (W, sectOrId, role, opts) => {
@@ -129653,9 +130939,12 @@ JD.ITEMS.items.forEach(it => {
   /* ---- แผนตัดสินใจของ NPC ---- */
   function estimate(W, n) {
     const c = n.cult, S = W.sect;
-    const p0 = CULT.breakthroughChance(n, { env: 0.05, pill: c.btBonus || 0 }) + (BN.heldPill(n) ? (ECO.pillInfo(BN.heldPill(n)).effect.breakthroughBonus || 0) : 0);
+    const heldKey = BN.heldPill(n);
+    const heldInfo = heldKey ? ECO.pillInfo(heldKey) : null;
+    const p0 = CULT.breakthroughChance(n, { env: 0.05, pill: c.btBonus || 0 }) + ((heldInfo && heldInfo.effect && heldInfo.effect.breakthroughBonus) || (heldKey ? 0.18 : 0));
     const key = BN.pillKey(c), tr = BN.treasureOf(c);
-    const pillObt = !BN.heldPill(n) && ECO.count(W, key) > 0 ? ECO.pillInfo(key).effect.breakthroughBonus : 0;
+    const keyInfo = ECO.pillInfo(key);
+    const pillObt = !heldKey && ECO.count(W, key) > 0 ? ((keyInfo && keyInfo.effect && keyInfo.effect.breakthroughBonus) || 0.18) : 0;
     const trObt = tr && c.treasure !== tr.id && ECO.count(W, tr.id) > 0 ? 0.46 : 0;
     return { p0, potential: p0 + pillObt + trObt, obtainable: pillObt + trObt > 0 };
   }
@@ -129673,7 +130962,34 @@ JD.ITEMS.items.forEach(it => {
     else if (waited >= limit) { plan = 'go'; why = urgent ? 'อายุขัยใกล้หมด จึงเสี่ยง' : 'รอนานพอแล้ว ตัดสินใจเสี่ยง'; }
     else { plan = 'wait'; why = est.obtainable ? 'รอโอสถ/สมบัติจากสำนัก' : tr && c.treasure !== tr.id ? 'ยังไม่มี' + tr.nameTh : 'ยังไม่มั่นใจ ขอตกผลึกก่อน'; }
     bn.target = target; bn.p0 = est.p0; bn.why = why; bn.limit = limit;
-    if (plan !== bn.plan) { bn.plan = plan; if (plan === 'go') { W.log('breakthrough', n.h.name.given + ' ตัดสินใจทะลวงคอขวดของ' + CULT.stageName(n) + ' (' + why + ')', [n.id]); } else if (waited === 0) { W.log('breakthrough', n.h.name.given + ' ตบะเต็มแล้วแต่ติดคอขวด — ' + why, [n.id]); } }
+    if (plan !== bn.plan) {
+      bn.plan = plan;
+      const bnThreadId = 'thread:cult:' + n.id + ':' + c.stage;
+      const bnThreadTitle = 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(n);
+      const p0Pct = Math.round((est.p0 || 0) * 100);
+      const tgtPct = Math.round((target || 0) * 100);
+      if (plan === 'go') {
+        W.log('breakthrough', n.h.name.given + ' ตัดสินใจทะลวงคอขวดของ' + CULT.stageName(n) + ' (' + why + ')', [n.id], {
+          storyThreadId: bnThreadId,
+          storyThreadTitleTh: bnThreadTitle,
+          originCauseTh: 'ประเมินโอกาสสำเร็จปัจจุบัน ' + p0Pct + '% เทียบเกณฑ์ความมั่นใจ ' + tgtPct + '% (' + why + ')',
+          consequenceTh: 'เข้าสู่ขั้นตอนเตรียมทะลวงด่าน',
+          followUpTh: 'ติดตามผลการทะลวงด่านและเตรียมโอสถฟื้นฟูหากเกิดตบะย้อนกลับ',
+          factDeltas: { chancePct: p0Pct, targetPct: tgtPct, waitedDays: waited },
+          promoteChronicle: true
+        });
+      } else if (waited === 0) {
+        W.log('breakthrough', n.h.name.given + ' ตบะเต็มแล้วแต่ติดคอขวด — ' + why, [n.id], {
+          storyThreadId: bnThreadId,
+          storyThreadTitleTh: bnThreadTitle,
+          originCauseTh: 'โอกาสทะลวงด่านปัจจุบัน (' + p0Pct + '%) ยังต่ำกว่าเกณฑ์ที่ยอมรับได้ (' + tgtPct + '%) — ' + why,
+          consequenceTh: 'ชะลอการทะลวงด่านเพื่อรอโอสถหรือสะสมความเข้าใจเต๋าเพิ่ม',
+          followUpTh: 'จัดหาโอสถทะลวงด่านประจำขั้นหรือสมบัติหนุนตบะเข้าคลังสำนัก',
+          factDeltas: { chancePct: p0Pct, targetPct: tgtPct, obtainableHelp: !!est.obtainable },
+          promoteChronicle: true
+        });
+      }
+    }
   };
 
   /* ---- รายวัน: คัดคนติดคอขวด จัดสรรของ ---- */
@@ -129714,7 +131030,14 @@ JD.ITEMS.items.forEach(it => {
       const cands = stuck.filter(n => n.cult.path === path && n.cult.stage === +st && !BN.heldPill(n) && !n.away).sort((a, b) => scoreFor(W, b) - scoreFor(W, a));
       const w = cands[0]; if (!w || scoreFor(W, w) < 0.35) return; // ที่เหลือไปซื้อเองที่ตลาด
       ECO.take(W, key, 1); w.inv.pills = w.inv.pills || {}; w.inv.pills[key] = (w.inv.pills[key] || 0) + 1; w.merit = (w.merit || 0) - 4;
-      W.log('breakthrough', 'สำนักมอบ' + ECO.name(key) + 'ให้ ' + w.h.name.given + ' ก่อนทะลวง', [w.id]);
+      W.log('breakthrough', 'สำนักมอบ' + ECO.name(key) + 'ให้ ' + w.h.name.given + ' ก่อนทะลวง', [w.id], {
+        storyThreadId: 'thread:cult:' + w.id + ':' + w.cult.stage,
+        storyThreadTitleTh: 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(w),
+        originCauseTh: 'จัดสรรโอสถทะลวงด่านจากคลังให้ศิษย์ที่ติดคอขวดตามคะแนนคุณูปการ',
+        consequenceTh: w.h.name.given + ' ได้รับ ' + ECO.name(key) + ' ×1 (หักคุณูปการ 4 แต้ม)',
+        followUpTh: 'พร้อมเข้าสู่การทะลวงด่านด้วยโอกาสสำเร็จที่สูงขึ้น',
+        promoteChronicle: true
+      });
     });
     // พ่อค้าเร่เสนอขายสมบัติ ถ้ามีคนต้องการ
     if (W.day % 15 === 0 && Object.keys(needTr).length && W.rng.chance(0.4)) {
@@ -134920,7 +136243,15 @@ JD.ITEMS.items.forEach(it => {
     const hasShortage = (S.shortageDirectives || []).length > 0 || needs.length > 0;
     if ((S.stones < cashReserve || budget <= 0) && hasShortage && !v.sectPostponedLogged) {
       v.sectPostponedLogged = true;
-      W.log('finance', 'หอคลังชะลอการจัดซื้อสินค้าจาก' + v.nameTh + ' เนื่องจากศิลาสำรองคงเหลือ (' + Math.round(S.stones) + ') ต้องคงไว้เหนือเกณฑ์ปลอดภัย (' + cashReserve + ' ศิลา)', []);
+      W.log('finance', 'หอคลังชะลอการจัดซื้อสินค้าจาก' + v.nameTh + ' เนื่องจากศิลาสำรองคงเหลือ (' + Math.round(S.stones) + ') ต้องคงไว้เหนือเกณฑ์ปลอดภัย (' + cashReserve + ' ศิลา)', [], {
+        storyThreadId: 'thread:supply:treasury_reserve',
+        storyThreadTitleTh: 'การบริหารงบสำรองคลังและการจัดซื้อ',
+        originCauseTh: 'แม้มีรายการของขาดแคลน แต่ศิลาคงเหลือ (' + Math.round(S.stones) + ' ศิลา) ต่ำกว่าเกณฑ์สำรองปลอดภัย (' + cashReserve + ' ศิลา)',
+        consequenceTh: 'งดสั่งซื้อสินค้าจาก ' + v.nameTh + ' ชั่วคราวเพื่อรักษาเสถียรภาพการเงินสำนัก',
+        followUpTh: 'ระบายสินค้าส่วนเกินหรือส่งคณะเดินทางหาศิลาเพิ่มหากต้องการซื้อวัตถุดิบเร่งด่วน',
+        factDeltas: { stonesNow: Math.round(S.stones), cashReserve },
+        promoteChronicle: true
+      });
     }
 
     if (!v.sectBuyDone) {
@@ -142681,9 +144012,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '2.5.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0'],
-    SAVE_SCHEMA_VERSION: '2.4.0-tactical-composable-grand-dao',
+    PATCH_VERSION: '2.6.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
+    SAVE_SCHEMA_VERSION: '2.6.0-living-chronicle-and-reporting',
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
@@ -142849,8 +144180,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     CULT.refreshLifespan(npc);
   };
   SIM.placeNear = (W, n, cx, cy, r) => {
-    for (let i = 0; i < 20; i++) { const f = MAP.nearestFree(W.map, cx + (W.rng.next() - 0.5) * 2 * r, cy + (W.rng.next() - 0.5) * 2 * r); if (f) { n.x = f.x + .5; n.y = f.y + .5; return; } }
-    n.x = cx + .5; n.y = cy + .5;
+    for (let i = 0; i < 20; i++) { const f = MAP.nearestFree(W.map, cx + (W.rng.next() - 0.5) * 2 * r, cy + (W.rng.next() - 0.5) * 2 * r); if (f) { n.x = f.x + .5; n.y = f.y + .5; n.px = n.x; n.py = n.y; return; } }
+    n.x = cx + .5; n.y = cy + .5; n.px = n.x; n.py = n.y;
   };
   SIM.CANDIDATE_COUNT = 3;
   SIM.masterOpts = (seed, i, archKey) => {
@@ -142995,6 +144326,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
     if (g.EXPLORE && g.EXPLORE.ensureMicroLocations) g.EXPLORE.ensureMicroLocations(W);
     if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
+    if (g.EXPED && g.EXPED.ensureNewsSystem) g.EXPED.ensureNewsSystem(W);
     SIM.dailyUpdate(W, true);
     return W;
   };
@@ -143002,23 +144334,57 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (!W || !W.sect || !n || !n.id || !n.h || !n.h.name) return null;
     if (!W.sect.historicalPeople || typeof W.sect.historicalPeople !== "object") W.sect.historicalPeople = {};
     const prev = W.sect.historicalPeople[n.id] || {};
-    const fullName = HC.fullName ? HC.fullName(n) : ((n.h.name.surname || n.h.name.family || "") + (n.h.name.given || ""));
+    const curGiven = n.h.name.given || prev.given || n.id;
+    const curSurname = n.h.name.surname || n.h.name.family || prev.surname || "";
+    const fullName = HC.fullName ? HC.fullName(n) : (curSurname + curGiven);
+    const formerSet = new Set(Array.isArray(prev.formerNames) ? prev.formerNames : []);
+    if (Array.isArray(n.h.name.formerNames)) {
+      n.h.name.formerNames.forEach(fn => { if (fn && fn !== fullName && fn !== curGiven) formerSet.add(fn); });
+    }
+    if (prev.fullName && prev.fullName !== fullName) formerSet.add(prev.fullName);
+    if (prev.given && prev.given !== curGiven) formerSet.add(prev.given);
+    n.h.name.formerNames = Array.from(formerSet).slice(0, 8);
+
     const roleTh = (g.SECT && g.SECT.title) ? g.SECT.title(n) : (prev.roleTh || "ศิษย์สำนัก");
-    const statusTh = statusOverride || (n.dead ? ("เสียชีวิตแล้ว" + (n.deathWhy ? " (" + n.deathWhy + ")" : "")) : n.exiled ? "ออกจากสำนักแล้ว" : (prev.statusTh || "สมาชิกสำนัก"));
+    const statusTh = statusOverride || (n.dead ? ("เสียชีวิตแล้ว" + (n.deathWhy ? " (" + n.deathWhy + ")" : "")) : n.exiled ? "ออกจากสำนักแล้ว" : (prev.statusTh && prev.dead && !n.dead ? "สมาชิกสำนัก" : (n.away ? "ปฏิบัติภารกิจนอกสำนัก" : "สมาชิกสำนัก")));
+    const pId = n.cult ? n.cult.path : (prev.path || null);
+    const subId = n.cult ? n.cult.sub : (prev.sub || null);
+    const pDef = (pId && CULT && CULT.PATHS && CULT.PATHS[pId]) || null;
+    const subEntry = (subId && CULT && CULT.subList && CULT.subList.find(x => x.sub && x.sub.id === subId)) || null;
+    const stgNameTh = (n.cult && CULT && CULT.stageName) ? CULT.stageName(n) : (prev.stageNameTh || (n.cult ? ("ขั้นที่ " + n.cult.stage) : "ปุถุชน"));
+    const topWhyTh = (Array.isArray(n.why) && n.why[0] && n.why[0][0]) ? String(n.why[0][0]) : (prev.topWhyTh || null);
+    const goalObj = (n.cognition && n.cognition.goal) || null;
+    const aspObj = (n.cognition && n.cognition.aspiration) || null;
     const snap = {
       id: n.id,
-      given: n.h.name.given || prev.given || n.id,
-      surname: n.h.name.surname || n.h.name.family || prev.surname || "",
+      given: curGiven,
+      surname: curSurname,
       fullName: fullName || prev.fullName || n.id,
-      formerNames: Array.isArray(n.h.name.formerNames) ? n.h.name.formerNames.slice() : (prev.formerNames || []),
+      formerNames: n.h.name.formerNames.slice(),
       roleTh,
-      path: n.cult ? n.cult.path : (prev.path || null),
-      sub: n.cult ? n.cult.sub : (prev.sub || null),
+      rank: n.rank != null ? n.rank : (prev.rank || 0),
+      post: n.post || prev.post || null,
+      path: pId,
+      pathNameTh: (pDef && pDef.nameTh) || prev.pathNameTh || pId || "คนธรรมดา",
+      sub: subId,
+      subNameTh: (subEntry && subEntry.sub && subEntry.sub.nameTh) || prev.subNameTh || subId || null,
       stage: n.cult ? n.cult.stage : (prev.stage || 0),
+      stageNameTh: stgNameTh,
       dead: !!n.dead,
       exiled: !!n.exiled,
       deathDay: n.deathDay != null ? n.deathDay : (prev.deathDay != null ? prev.deathDay : null),
-      statusTh
+      deathWhy: n.deathWhy || prev.deathWhy || null,
+      joinDay: n.joinDay != null ? n.joinDay : (prev.joinDay != null ? prev.joinDay : null),
+      merit: Math.round(n.merit != null ? n.merit : (prev.merit || 0)),
+      mentorId: n.mentorId || n.mentor || prev.mentorId || null,
+      companionId: n.companionId || prev.companionId || null,
+      topWhyTh,
+      goalId: (goalObj && goalObj.id) || prev.goalId || null,
+      goalTitleTh: (goalObj && goalObj.title) || prev.goalTitleTh || null,
+      aspirationId: (aspObj && aspObj.id) || prev.aspirationId || null,
+      statusTh,
+      snapshotDay: W.day || 0,
+      snapshotTick: W.t || 0
     };
     W.sect.historicalPeople[n.id] = snap;
     return snap;
@@ -143074,35 +144440,123 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
   SIM.log = (W, type, text, ids, meta) => {
     const cleanIds = (ids || []).filter(Boolean);
-    const names = cleanIds.map(id => {
+    const actorSnaps = [];
+    const names = cleanIds.map((id, idx) => {
       const n = W.byId && W.byId[id];
       if (n) {
         const hp0 = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
-        if (!hp0 || hp0.stage !== (n.cult ? n.cult.stage : 0) || hp0.dead !== !!n.dead || hp0.exiled !== !!n.exiled) SIM.snapshotPerson(W, n);
-        return HC.fullName(n);
+        const curFull = HC.fullName(n);
+        if (!hp0 || hp0.fullName !== curFull || hp0.stage !== (n.cult ? n.cult.stage : 0) || hp0.dead !== !!n.dead || hp0.exiled !== !!n.exiled || hp0.rank !== n.rank || hp0.post !== n.post) {
+          SIM.snapshotPerson(W, n);
+        }
+        const snap = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+        if (idx < 4 && snap) {
+          actorSnaps.push({
+            id: snap.id,
+            fullName: snap.fullName,
+            given: snap.given,
+            surname: snap.surname,
+            roleTh: snap.roleTh,
+            pathNameTh: snap.pathNameTh,
+            stage: snap.stage,
+            stageNameTh: snap.stageNameTh,
+            topWhyTh: (Array.isArray(n.why) && n.why[0] && n.why[0][0]) ? String(n.why[0][0]) : snap.topWhyTh,
+            goalTitleTh: (n.cognition && n.cognition.goal && n.cognition.goal.title) || snap.goalTitleTh || null,
+            dead: !!n.dead
+          });
+        }
+        return curFull;
       }
       const hp = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+      if (idx < 4 && hp) {
+        actorSnaps.push({
+          id: hp.id,
+          fullName: hp.fullName,
+          given: hp.given,
+          surname: hp.surname,
+          roleTh: hp.roleTh,
+          pathNameTh: hp.pathNameTh,
+          stage: hp.stage,
+          stageNameTh: hp.stageNameTh,
+          topWhyTh: hp.topWhyTh || null,
+          goalTitleTh: hp.goalTitleTh || null,
+          dead: !!hp.dead
+        });
+      }
       return hp ? hp.fullName : "";
     });
-    const e = { id: ++W.logSeq, t: W.t, type, text, ids: cleanIds, names };
+    const e = { id: ++W.logSeq, t: W.t, day: W.day || Math.floor((W.t || 0) / 1440), type, text, ids: cleanIds, names };
+    if (actorSnaps.length) e.actorSnaps = actorSnaps;
     if (meta && typeof meta === "object") {
       if (meta.txKind) e.txKind = meta.txKind;
+      if (meta.storyThreadId) e.storyThreadId = meta.storyThreadId;
+      if (meta.severity) e.severity = meta.severity;
       e.meta = Object.assign({}, meta);
     }
-    const majorType = ["death","succession","marriage","recruit","tournament","expel","legacy","challenge"].includes(type) ||
+    const isRoutineTraining = (type === "breakthrough" && /ฝึกประจำวัน/.test(text));
+    const majorType = !isRoutineTraining && (
+      ["death","succession","marriage","recruit","tournament","expel","legacy","challenge","scandal","crisis","sect","policy","diplomacy","desert"].includes(type) ||
       (type === "duel" && (meta && meta.combatSummary)) ||
-      (type === "breakthrough" && /ทะลวง.*(สำเร็จ|ล้มเหลว)|กลืนกิน/.test(text)) ||
-      (type === "raid" && /(ต้านการบุก|ถูกบุกและปล้น|สังหารผู้บุกรุก|ตีฝ่า)/.test(text)) ||
-      (["research","craft","heal","finance","decision"].includes(type) && /☯️|🌌|🪷|🗡️|📜|🐪|🔨/.test(text));
+      (type === "breakthrough" && (/ทะลวง.*(สำเร็จ|ล้มเหลว)|กลืนกิน|ติดคอขวด|ตัดสินใจทะลวง|ผ่าน「|วิวัฒนาการสายเลือด|ปลุกสายเลือด/.test(text) || (meta && meta.promoteChronicle))) ||
+      (type === "raid" && /(ต้านการบุก|ถูกบุกและปล้น|สังหารผู้บุกรุก|ตีฝ่า|กำลังบุกสำนัก|สหายร่วมสาบาน)/.test(text)) ||
+      (["research","craft","heal","finance","decision","exped","appoint","promote","demote","punish"].includes(type) && (
+        /☯️|🌌|🪷|🗡️|📜|🐪|🔨|🏛️|⛰️|👑|🕯️|⚡|🏮|⛺|🏯|ชะลอการขยาย|ชะลอการจัดซื้อ|ยักยอก|คุณภาพชั้นเลิศ|ล้มเหลว|วิจัยตำรับ/.test(text) ||
+        (meta && meta.promoteChronicle)
+      ))
+    );
     if (majorType && W.sect) {
       if (!Array.isArray(W.sect.sectChronicle)) W.sect.sectChronicle = [];
       const eventKey = (meta && meta.eventKey) || (type + ":" + text);
       const last = W.sect.sectChronicle[W.sect.sectChronicle.length - 1];
       if (!last || last.eventKey !== eventKey || Math.abs((W.t || 0) - (last.t || 0)) > 5) {
-        const chronItem = { id: e.id, t: e.t, type: e.type, text: e.text, ids: cleanIds.slice(), names: names.slice(), eventKey };
+        const isMilestone = ["death","succession","marriage","legacy"].includes(type) ||
+          (type === "raid" && /(ต้านการบุก|ถูกบุกและปล้น)/.test(text)) ||
+          (type === "breakthrough" && /ฝ่าทัณฑ์สวรรค์|ฉายาเซียนสูงสุด/.test(text)) ||
+          !!(meta && (meta.isMilestone || meta.severity === "CRITICAL"));
+        const severity = (meta && meta.severity) || (
+          (["death","succession","crisis","scandal"].includes(type) || (type === "raid" && /ถูกบุกและปล้น|กำลังบุกสำนัก/.test(text))) ? "CRITICAL" :
+          (["marriage","tournament","challenge","expel","sect","policy","diplomacy"].includes(type) || isMilestone) ? "MAJOR" : "NOTABLE"
+        );
+        const chronItem = {
+          id: e.id,
+          t: e.t,
+          day: e.day,
+          type: e.type,
+          text: e.text,
+          ids: cleanIds.slice(),
+          names: names.slice(),
+          eventKey,
+          severity,
+          isMilestone
+        };
+        if (actorSnaps.length) chronItem.actorSnaps = actorSnaps;
         if (meta && meta.combatSummary) chronItem.combatSummary = meta.combatSummary;
+        if (meta && meta.originCauseTh) chronItem.originCauseTh = meta.originCauseTh;
+        if (meta && meta.consequenceTh) chronItem.consequenceTh = meta.consequenceTh;
+        if (meta && meta.followUpTh) chronItem.followUpTh = meta.followUpTh;
+        if (meta && meta.storyThreadId) chronItem.storyThreadId = meta.storyThreadId;
+        if (meta && meta.storyThreadTitleTh) chronItem.storyThreadTitleTh = meta.storyThreadTitleTh;
+        if (meta && meta.factDeltas) chronItem.factDeltas = meta.factDeltas;
         W.sect.sectChronicle.push(chronItem);
-        if (W.sect.sectChronicle.length > 600) W.sect.sectChronicle.splice(0, W.sect.sectChronicle.length - 600);
+        if (W.sect.sectChronicle.length > 600) {
+          const overflow = W.sect.sectChronicle.length - 600;
+          let removed = 0;
+          let pinnedSeen = 0;
+          for (let ci = 0; ci < W.sect.sectChronicle.length && removed < overflow; ci++) {
+            const item = W.sect.sectChronicle[ci];
+            if (item && item.isMilestone && pinnedSeen < 160) {
+              pinnedSeen++;
+              continue;
+            }
+            W.sect.sectChronicle.splice(ci, 1);
+            ci--;
+            removed++;
+          }
+          if (W.sect.sectChronicle.length > 600) {
+            W.sect.sectChronicle.splice(0, W.sect.sectChronicle.length - 600);
+          }
+          W.sect.sectChronicleTrimmedCount = (W.sect.sectChronicleTrimmedCount || 0) + overflow;
+        }
       }
     }
     W.logs.push(e); if (W.logs.length > 1500) W.logs.splice(0, 400);
@@ -143452,6 +144906,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     const pop = W.npcs.filter(n => !n.dead).length;
     if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน'); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' หน่วย', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
     if (W.day % 30 === 15) W.npcs.forEach(n => { if (!n.dead) n.h.state.novelty = Math.max(0, n.h.state.novelty - 3); });
+    if (g.EXPED && g.EXPED.dailyChronicleDigestTick) g.EXPED.dailyChronicleDigestTick(W);
   };
   SIM.monthly = W => {
     SECT.monthly(W); EXPED.caravan(W);
@@ -143556,6 +145011,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
     const SUPPORTED_SAVE_SCHEMAS = new Set([
       SIM.SAVE_SCHEMA_VERSION,
+      '2.6.0-living-chronicle-and-reporting',
+      '2.5.0-pathbound-visuals-and-item-art',
       '2.4.0-tactical-composable-grand-dao',
       '2.3.0-grand-dao-deep-parity-release',
       '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle',
@@ -143734,6 +145191,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
         W.chronicle = W.world.chronicles;
       }
+      if (g.EXPED && g.EXPED.ensureNewsSystem) g.EXPED.ensureNewsSystem(W);
       if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
       return W;
     } catch (error) {
@@ -161064,11 +162522,30 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     } else si.classList.remove('show');
   };
   UI.toast = (text, type, npcId) => {
-    const el = document.createElement('div'); el.className = 'toast t-' + (type || ''); el.textContent = text; if (npcId) el.dataset.npc = npcId; $('toasts').appendChild(el);
-    while ($('toasts').children.length > 4) $('toasts').removeChild($('toasts').firstChild);
-    setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = 0; setTimeout(() => el.remove(), 450); }, 5200);
+    const box = $('toasts');
+    if (!box || typeof box.appendChild !== 'function') return;
+    const el = document.createElement('div'); el.className = 'toast t-' + (type || ''); el.textContent = text; if (npcId) el.dataset.npc = npcId; box.appendChild(el);
+    while (box.children && box.children.length > 4 && typeof box.removeChild === 'function') box.removeChild(box.firstChild);
+    setTimeout(() => { if (el.style) { el.style.transition = 'opacity .4s'; el.style.opacity = 0; } setTimeout(() => { if (typeof el.remove === 'function') el.remove(); }, 450); }, 5200);
   };
-  UI.onLog = e => { if (TOAST_TYPES.includes(e.type) && !UI.G.muted) { const sp = UI.G.speed; if (e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (sp > 0 && sp <= 16)) { const now = performance.now(); if (sp === 0 && now - (UI._lastBatchToast || 0) < 40) return; UI._lastBatchToast = now; UI.toast(e.text, e.type, e.ids[0]); } } };
+  UI.onLog = e => {
+    if (!e || !UI.G || UI.G.muted) return;
+    const W = UI.G.W;
+    if (W && EXPED && EXPED.shouldDeliverToast) {
+      if (!EXPED.shouldDeliverToast(W, e)) return;
+    } else if (!TOAST_TYPES.includes(e.type)) {
+      return;
+    }
+    const isCrit = (EXPED && EXPED.classifyNewsSeverity) ? EXPED.classifyNewsSeverity(e) === 'CRITICAL' : false;
+    if (!isCrit && !TOAST_TYPES.includes(e.type) && !['scandal', 'crisis', 'policy', 'sect', 'diplomacy'].includes(e.type)) return;
+    const sp = UI.G.speed;
+    if (isCrit || e.type === 'build' || e.type === 'research' || e.type === 'tournament' || (sp > 0 && sp <= 16)) {
+      const now = performance.now();
+      if (sp === 0 && now - (UI._lastBatchToast || 0) < 40) return;
+      UI._lastBatchToast = now;
+      UI.toast(e.text, e.type, e.ids && e.ids[0]);
+    }
+  };
 
   /* ---------- ระบบติดตามตัวละคร (Tracked Disciples) ---------- */
   UI.isTrackedNpc = (W, id) => {
@@ -161135,15 +162612,39 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     show('edit', '✏️ ศูนย์แก้ไขตัวละครและเสกไอเทม', [['char', '🧙 แก้ไขตัวละคร'], ['pet', '🐾 สัตว์อสูร/บัฟ/กลไก'], ['spawn', '✨ เสกไอเทม'], ['bag', '🎒 จัดการถุง/คลัง'], ['dip', '📜 การทูต/ยุทธภพ'], ['sanctum', '🏛️ วิหาร/ขัดเกลา'], ['backup', '💾 สำรองก่อนแก้']], subTab || 'char', true);
     UI.render();
   };
+  UI.findHistoricalPersonSnapshot = (W, id) => {
+    if (!W || !id) return null;
+    if (W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id]) {
+      return W.sect.historicalPeople[id];
+    }
+    const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+    for (let i = 0; i < chrons.length; i++) {
+      const c = chrons[i];
+      const a = c && Array.isArray(c.actorSnapshots) && c.actorSnapshots.find(x => x && x.id === id);
+      if (a) return a;
+    }
+    const sChrons = (W.sect && Array.isArray(W.sect.sectChronicle)) ? W.sect.sectChronicle : [];
+    for (let i = 0; i < sChrons.length; i++) {
+      const sc = sChrons[i];
+      const a = sc && Array.isArray(sc.actorSnaps) && sc.actorSnaps.find(x => x && x.id === id);
+      if (a) return a;
+    }
+    return null;
+  };
   UI.openNpc = (id, tab) => {
     const W = UI.G && UI.G.W;
     const n = W && W.byId[id];
     if (!n) {
-      const hp = W && W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+      const hp = UI.findHistoricalPersonSnapshot(W, id);
+      UI.histNpcId = id;
       if (hp) {
         UI.toast("📜 " + hp.fullName + " (" + (hp.roleTh || "อดีตสมาชิกสำนัก") + ") — " + (hp.statusTh || "ไม่อยู่ในสำนักแล้ว"));
+        show('hist_npc', '🕯️ จารึกประวัติบุคคล: ' + esc(hp.fullName || id) + ' <span class="muted" style="font-weight:400">' + esc(hp.roleTh || 'อดีตผู้ฝึกตน') + '</span>', [], null, true);
+        UI.render();
       } else {
         UI.toast("ไม่พบข้อมูลตัวละครนี้ (ออกจากสำนักหรือถูกลบแล้ว)");
+        show('hist_npc', '🕯️ ระเบียนประวัติบุคคล: ' + esc(id), [], null, false);
+        UI.render();
       }
       return;
     }
@@ -161204,6 +162705,103 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     else if (a === "sect-chronicle-more") { UI.sectChronicleLimit = (UI.sectChronicleLimit || 50) + 50; UI.render(); }
     else if (a === "world-chronicle-cat") { UI.worldChronicleCategory = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
     else if (a === "world-chronicle-fmt") { UI.worldChronicleFormat = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-sev") { UI.worldChronicleSeverity = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-epistemic") { UI.worldChronicleEpistemic = arg || "all"; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-days") { UI.worldChronicleWindowDays = Number(arg) || 0; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-unread") { UI.worldChronicleUnreadOnly = !UI.worldChronicleUnreadOnly; UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "world-chronicle-include-digest") { UI.worldChronicleIncludeDigest = UI.worldChronicleIncludeDigest === false ? true : false; UI.render(); }
+    else if (a === "chronicle-thread") { UI.worldChronicleThreadId = (UI.worldChronicleThreadId === arg ? "all" : (arg || "all")); UI.worldChronicleLimit = 15; UI.render(); }
+    else if (a === "reset-archive-filters") {
+      UI.worldChronicleCategory = "all";
+      UI.worldChronicleFormat = "all";
+      UI.worldChronicleSeverity = "all";
+      UI.worldChronicleEpistemic = "all";
+      UI.worldChronicleWindowDays = 0;
+      UI.worldChronicleSearch = "";
+      UI.worldChronicleThreadId = "all";
+      UI.worldChronicleUnreadOnly = false;
+      UI.worldChronicleIncludeDigest = true;
+      UI.chronicleFilter = "all";
+      UI.chronicleNpcId = null;
+      UI.sectChronicleSearch = "";
+      UI.logSubFilter = "all";
+      UI.render();
+    }
+    else if (a === "news-preset") {
+      if (W && EXPED && EXPED.applyNewsPreset) EXPED.applyNewsPreset(W, arg || "ALL");
+      UI.render();
+    }
+    else if (a === "toggle-news-toast") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        np.toastEnabled = !np.toastEnabled;
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "set-critical-policy") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        np.criticalAlertPolicy = (arg === "STRICT_MUTE") ? "STRICT_MUTE" : "ALWAYS_TOAST";
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "set-toast-severity") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        if (["ROUTINE", "NOTABLE", "MAJOR", "CRITICAL"].includes(arg)) np.minToastSeverity = arg;
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "toggle-tracked-toast") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        np.onlyTrackedInToast = !np.onlyTrackedInToast;
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "cycle-cat-channel") {
+      if (W && EXPED && EXPED.ensureNewsPrefs && arg) {
+        const np = EXPED.ensureNewsPrefs(W);
+        const order = ["INSTANT", "FEED_ONLY", "DIGEST_ONLY"];
+        const cur = np.channelByCategory[arg] || "INSTANT";
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        np.channelByCategory[arg] = next;
+        np.mutedCategories = Object.keys(np.channelByCategory).filter(k => np.channelByCategory[k] === "DIGEST_ONLY");
+        np.preset = "CUSTOM";
+      }
+      UI.render();
+    }
+    else if (a === "set-digest-interval") {
+      if (W && EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        const v = Number(arg);
+        if ([0, 1, 7, 30].includes(v)) np.digestIntervalDays = v;
+      }
+      UI.render();
+    }
+    else if (a === "digest-window") {
+      UI.digestWindowDays = Math.max(1, Number(arg) || 7);
+      UI.render();
+    }
+    else if (a === "record-digest-now") {
+      if (W && EXPED && EXPED.recordPeriodicDigest) {
+        EXPED.recordPeriodicDigest(W, { windowDays: UI.digestWindowDays || 7, force: true, alsoRecordChronicle: true });
+        UI.toast("📊 บันทึกสมุดสรุปสถานการณ์สำนักเข้าสู่พงศาวดารแล้ว");
+      }
+      UI.render();
+    }
+    else if (a === "mark-all-news-read") {
+      if (W && EXPED && EXPED.markNewsRead) EXPED.markNewsRead(W, { all: true });
+      UI.render();
+    }
+    else if (a === "mark-news-read") {
+      if (W && EXPED && EXPED.markNewsRead) EXPED.markNewsRead(W, { id: arg });
+      UI.render();
+    }
     else if (a === "world-chronicle-more") { UI.worldChronicleLimit = (UI.worldChronicleLimit || 15) + 20; UI.render(); }
     else if (a === "timeline-filter") { UI.timelineFilter = arg || "all"; UI.timelineLimit = 25; if (UI.audio) UI.audio.playGuqinChime(); UI.render(); }
     else if (a === "timeline-more") { UI.timelineLimit = (UI.timelineLimit || 25) + 25; UI.render(); }
@@ -163497,6 +165095,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       case 'building': html = UI.rBuilding(); break;
       case 'visitor': html = UI.rVisitor(); break;
       case 'clue': html = UI.rClueDetail(); break;
+      case 'hist_npc': html = UI.rHistoricalPerson(); break;
     }
     const isWideInv = UI.getInvViewMode() === "grid" && ((UI.sheet === "sect" && (UI.tab === "stockItems" || UI.tab === "shop")) || UI.sheet === "npc" || (UI.sheet === "edit" && UI.tab === "bag"));
     $("sheet").classList.toggle("wide-inv", !!isWideInv);
@@ -165466,18 +167065,91 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     };
     return '<p class="muted">แสดงสายที่มีข้อมูลในปัจจุบันและประวัติที่บันทึกไว้</p><div class="lineage-tree"><ul>' + roots.map(id => draw(id,new Set(),0)).join('') + '</ul></div>';
   };
+  UI.rHistoricalPerson = () => {
+    const W = UI.G && UI.G.W;
+    const id = UI.histNpcId;
+    if (!W || !id) return '<div class="muted">ไม่พบรหัสบุคคล</div>';
+    const hp = UI.findHistoricalPersonSnapshot(W, id);
+    if (!hp) {
+      return '<div class="card" style="border-color:var(--line)">' +
+        '<div><b>🕯️ ไม่พบระเบียนข้อมูลปัจจุบันของรหัส「' + esc(id) + '」</b></div>' +
+        '<div class="muted" style="margin-top:4px">บุคคลนี้อาจเป็นตัวละครนิรนามหรือเดินทางออกจากยุทธภพไปโดยไม่มีประวัติจารึกในสำนัก</div>' +
+        '<div style="margin-top:8px"><button type="button" class="btn" data-do="chronicle-person" data-arg="' + esc(id) + '">🔍 ค้นหาเหตุการณ์ที่อ้างอิงรหัสนี้ในบันทึก</button></div>' +
+        '</div>';
+    }
+    const inGrave = Array.isArray(W.graveyard) && W.graveyard.includes(id);
+    const formerTxt = (Array.isArray(hp.formerNames) && hp.formerNames.length)
+      ? ('<div class="muted" style="font-size:11.5px;margin-top:2px">🏷️ <b>นามเดิมที่บันทึกไว้:</b> ' + hp.formerNames.map(esc).join(', ') + '</div>')
+      : '';
+    const relatedEvents = [];
+    const seenKeys = new Set();
+    const sChrons = (W.sect && Array.isArray(W.sect.sectChronicle)) ? W.sect.sectChronicle : [];
+    sChrons.forEach(e => {
+      if (e && Array.isArray(e.ids) && e.ids.includes(id)) {
+        const k = 'sc:' + e.id;
+        if (!seenKeys.has(k)) { seenKeys.add(k); relatedEvents.push({ t: e.t || 0, text: e.text, causeTh: e.originCauseTh || '', impactTh: e.consequenceTh || '' }); }
+      }
+    });
+    const wChrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+    wChrons.forEach(c => {
+      if (c && Array.isArray(c.npcIds) && c.npcIds.includes(id)) {
+        const k = 'wc:' + c.id;
+        if (!seenKeys.has(k)) { seenKeys.add(k); relatedEvents.push({ t: c.t || 0, text: (c.icon || '📜') + ' ' + c.titleTh + ' — ' + c.storyTh, causeTh: c.originCauseTh || '', impactTh: c.consequenceTh || '' }); }
+      }
+    });
+    (W.logs || []).forEach(l => {
+      if (l && Array.isArray(l.ids) && l.ids.includes(id) && relatedEvents.length < 20) {
+        const k = 'lg:' + l.id;
+        if (!seenKeys.has(k)) { seenKeys.add(k); relatedEvents.push({ t: l.t || 0, text: l.text, causeTh: (l.meta && l.meta.originCauseTh) || '', impactTh: (l.meta && l.meta.consequenceTh) || '' }); }
+      }
+    });
+    relatedEvents.sort((a, b) => (b.t || 0) - (a.t || 0));
+
+    let h = '<div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.06)">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">';
+    h += '<div><div style="font-size:15px;font-weight:700;color:var(--gold)">🕯️ ' + esc(hp.fullName || id) + '</div>';
+    h += '<div class="muted">' + esc(hp.roleTh || 'อดีตผู้ฝึกตน') + ' · สถานะ: <b>' + esc(hp.statusTh || (inGrave ? 'ฝังในสุสานสำนัก' : 'ไม่อยู่ในสำนักแล้ว')) + '</b></div>';
+    h += formerTxt + '</div>';
+    h += '<span class="chip g">Snapshot วันที่ ' + (hp.snapshotDay != null ? hp.snapshotDay : (hp.deathDay || 0)) + '</span>';
+    h += '</div>';
+    h += '<div class="grid2" style="margin-top:8px;font-size:12px">';
+    h += '<div>✨ <b>มรรคาขณะบันทึก:</b> ' + esc(hp.pathNameTh || hp.path || 'ปุถุชน') + (hp.subNameTh ? (' (' + esc(hp.subNameTh) + ')') : '') + '</div>';
+    h += '<div>⚡ <b>ขอบเขตตบะ:</b> ' + esc(hp.stageNameTh || ('ขั้นที่ ' + (hp.stage || 0))) + '</div>';
+    if (hp.merit != null) h += '<div>🏅 <b>ผลงานสะสม:</b> ' + esc(hp.merit) + ' แต้ม</div>';
+    if (hp.deathDay != null) h += '<div>🪦 <b>วันที่จากไป:</b> วันที่ ' + esc(hp.deathDay) + (hp.deathWhy ? (' (' + esc(hp.deathWhy) + ')') : '') + '</div>';
+    if (hp.topWhyTh) h += '<div style="grid-column:1 / -1">💭 <b>แรงขับดันสุดท้ายที่บันทึกไว้:</b> ' + esc(hp.topWhyTh) + (hp.goalTitleTh ? (' · เป้าหมาย: ' + esc(hp.goalTitleTh)) : '') + '</div>';
+    h += '</div>';
+    h += '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">';
+    h += '<button type="button" class="btn pri" data-do="chronicle-person" data-arg="' + esc(id) + '">📖 ดูในพงศาวดารสำนัก</button>';
+    h += '</div></div>';
+
+    h += '<h3>📜 เหตุการณ์ที่จารึกไว้ในประวัติ (' + relatedEvents.length + ' รายการ)</h3>';
+    if (!relatedEvents.length) {
+      h += '<div class="muted">ไม่พบบันทึกเหตุการณ์ย่อยที่อ้างอิงถึงบุคคลนี้</div>';
+    } else {
+      h += '<div class="card">' + relatedEvents.slice(0, 15).map(ev => {
+        return '<div class="lineage-entry"><span class="lineage-date">' + dayStamp(ev.t) + '</span> ' + linkify(W, ev.text, [id]) +
+          (ev.causeTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">🌱 <b>สาเหตุ:</b> ' + esc(ev.causeTh) + '</div>') : '') +
+          (ev.impactTh ? ('<div class="muted" style="font-size:11px;color:#ffd166">➔ <b>ผลลัพธ์:</b> ' + esc(ev.impactTh) + '</div>') : '') +
+          '</div>';
+      }).join('') + '</div>';
+    }
+    return h;
+  };
+
   UI.sectChronicle = (W, category, npcId) => {
     const cats = {
-      people: ["death","marriage","recruit","expel","succession"],
+      people: ["death","marriage","recruit","expel","succession","desert","punish"],
       cult: ["breakthrough","heal"],
       battle: ["raid","tournament","mission","challenge","duel"],
-      heritage: ["legacy","research","craft","decision"],
-      economy: ["finance"]
+      heritage: ["legacy","research","craft","decision","policy","sect","diplomacy","exped"],
+      economy: ["finance","scandal"]
     };
     const all = ((W.sect && W.sect.sectChronicle) || []).slice();
     const known = new Set(all.map(e => e.id));
     (W.logs || []).forEach(e => {
       if (!known.has(e.id) && matchesLogSubFilter(e, UI.logSubFilter) && (cats.people.includes(e.type) || cats.cult.includes(e.type) || cats.battle.includes(e.type) || cats.heritage.includes(e.type) || cats.economy.includes(e.type))) {
+        if (e.type === "breakthrough" && /ฝึกประจำวัน/.test(e.text || "")) return;
         all.push(e);
       }
     });
@@ -165487,7 +167159,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       if (category && category !== "all" && !(cats[category] || []).includes(e.type)) return false;
       if (npcId && !(e.ids || []).includes(npcId)) return false;
       if (scSearch) {
-        const hay = ((e.text || "") + " " + ((e.names || []).join(" ")) + " " + ((e.combatSummary && e.combatSummary.summaryLineTh) || "")).toLowerCase();
+        const hay = ((e.text || "") + " " + ((e.names || []).join(" ")) + " " + ((e.originCauseTh || "") + " " + (e.consequenceTh || "")) + " " + ((e.combatSummary && e.combatSummary.summaryLineTh) || "")).toLowerCase();
         if (!hay.includes(scSearch)) return false;
       }
       return true;
@@ -165500,25 +167172,46 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         ? e.ids.map((id, idx) => e.names[idx] ? ({ kind: "npc", id, label: e.names[idx], fullName: e.names[idx] }) : null).filter(Boolean)
         : undefined;
       const cs = e.combatSummary || (e.meta && e.meta.combatSummary);
-      const csHtml = cs && cs.summaryLineTh
-        ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">⚔️ " + esc(cs.summaryLineTh) + "</div>")
+      const csLine = cs && (cs.summaryLineTh || cs.tacticalSummaryTh);
+      const csHtml = csLine
+        ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">⚔️ " + esc(csLine) + "</div>")
         : "";
-      return "<div class=\"lineage-entry\"><span class=\"lineage-date\">" + dayStamp(e.t) + "</span> " + linkify(W, e.text, e.ids, refs) + csHtml + "</div>";
+      const causeTxt = e.originCauseTh || (e.meta && e.meta.originCauseTh) || "";
+      const consTxt = e.consequenceTh || (e.meta && e.meta.consequenceTh) || "";
+      const followTxt = e.followUpTh || (e.meta && e.meta.followUpTh) || "";
+      const threadId = e.storyThreadId || (e.meta && e.meta.storyThreadId) || null;
+      const isUnread = (EXPED && EXPED.isEntryUnread) ? EXPED.isEntryUnread(W, e) : false;
+      const unreadChip = isUnread ? '<span class="chip g" style="padding:0 5px;font-size:10px" data-do="mark-news-read" data-arg="' + esc(e.id) + '" title="คลิกเพื่อทำเครื่องหมายว่าอ่านแล้ว">● ใหม่</span> ' : '';
+      const threadBtn = threadId ? (' <button type="button" class="chip b" style="cursor:pointer;padding:1px 6px;font-size:10px" data-do="chronicle-thread" data-arg="' + esc(threadId) + '">🧵 เส้นเรื่องต่อเนื่อง</button>') : '';
+      const causalHtml = (causeTxt || consTxt || followTxt)
+        ? ('<div class="chron-inline-causal">' +
+            (causeTxt ? ('<div>🌱 <b>เหตุปัจจัย:</b> ' + esc(causeTxt) + '</div>') : '') +
+            (consTxt ? ('<div style="color:#ffd166">➔ <b>ผลที่เกิด:</b> ' + esc(consTxt) + '</div>') : '') +
+            (followTxt ? ('<div style="color:#a8dadc">🔎 <b>ควรติดตามต่อ:</b> ' + esc(followTxt) + '</div>') : '') +
+          '</div>')
+        : '';
+      return "<div class=\"lineage-entry\">" + unreadChip + "<span class=\"lineage-date\">" + dayStamp(e.t) + "</span> " + linkify(W, e.text, e.ids, refs) + threadBtn + csHtml + causalHtml + "</div>";
     }).join("");
     if (filtered.length > shown.length) {
       html += "<div style=\"margin-top:6px\"><button type=\"button\" class=\"btn\" style=\"padding:3px 10px;font-size:11px\" data-do=\"sect-chronicle-more\">แสดงเพิ่มเติม (" + (filtered.length - shown.length) + " รายการ)</button></div>";
+    }
+    if (W.sect && W.sect.sectChronicleTrimmedCount > 0) {
+      html += '<div class="muted" style="font-size:10.5px;margin-top:4px">ℹ️ ระบบคงหมุดหมายสำคัญไว้และรวบรายการเก่าเกินเพดาน 600 รายการไปแล้ว ' + W.sect.sectChronicleTrimmedCount + ' รายการ</div>';
     }
     return html;
   };
   UI.lineageHistory = (W, npcId) => {
     const list = ((W.sect && W.sect.mentorship && W.sect.mentorship.history) || []).filter(e => e && (!npcId || e.mentorId === npcId || e.discipleId === npcId)).slice(0, 30);
     if (!list.length) return '<div class="muted">ยังไม่มีเหตุการณ์สายสืบทอดที่บันทึกไว้</div>';
-    const person = (id, name) => W.byId && W.byId[id] && !W.byId[id].dead && !W.byId[id].exiled ? nameLink(W.byId[id]) : '<b>' + esc(name || 'ไม่ทราบชื่อ') + '</b>';
+    const person = (id, name) => W.byId && W.byId[id] && !W.byId[id].dead && !W.byId[id].exiled
+      ? nameLink(W.byId[id])
+      : '<span class="link-ref gone" data-npc="' + esc(id || '') + '" style="cursor:pointer;text-decoration:underline dotted"><b>' + esc(name || 'ไม่ทราบชื่อ') + '</b></span>';
     return list.map(e => '<div class="lineage-entry"><span class="lineage-date">วันที่ ' + esc(e.day) + '</span> ' + (e.kind === 'bond' ? '🍵 ' + person(e.discipleId,e.discipleNameTh) + ' ฝากตัวเป็นศิษย์ของ ' + person(e.mentorId,e.mentorNameTh) : '✨ ' + person(e.mentorId,e.mentorNameTh) + ' ถ่ายทอดปราณให้ ' + person(e.discipleId,e.discipleNameTh) + ' · ตบะ +' + esc(e.surgePts) + (e.inheritedTechId ? ' · วิชา「' + esc((CULT.tech(e.inheritedTechId) || {}).nameTh || e.inheritedTechId) + '」' : '') + (e.occasion === 'dying' ? ' · ก่อนสิ้นชีวิต' : e.occasion === 'ascension' ? ' · ก่อนขึ้นสู่แดนเซียน' : '')) + '</div>').join('');
   };
 
   UI.rLog = () => {
     const W = UI.G.W;
+    if (EXPED && EXPED.ensureNewsSystem) EXPED.ensureNewsSystem(W);
     if (!UI.logFilters) UI.logFilters = new Set([(UI.tab && LOG_GROUPS[UI.tab]) ? UI.tab : 'all']);
     if (UI.tab && LOG_GROUPS[UI.tab] && (!UI.logFilters.has(UI.tab) && UI.logFilters.size === 1 && UI.logFilters.has('all') && UI.tab !== 'all')) {
       UI.logFilters = new Set([UI.tab]);
@@ -165558,7 +167251,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         h += '<div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.05);margin-top:6px">';
         h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">';
         h += '<div style="display:flex;gap:4px;flex-wrap:wrap">' + tlCats.map(([tk, tv]) => '<button type="button" class="btn ' + (tlFilter === tk ? 'pri' : '') + '" style="padding:2px 7px;font-size:11px" data-do="timeline-filter" data-arg="' + tk + '">' + tv + '</button>').join('') + '</div>';
-        h += '<div style="display:flex;gap:4px;align-items:center"><button type="button" class="btn" style="padding:2px 7px;font-size:11px" data-do="toggle-audio">' + (UI.audio && UI.audio.muted ? '🔇 เปิดเสียงบรรยากาศ' : '🔊 ปิดเสียงบรรยากาศ') + '</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="bell" title="ทดสอบเสียงระฆังทองสำนัก">🔔 ระฆัง</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="guqin" title="ทดสอบเสียงพิณโบราณ">🎶 พิณ</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="blade" title="ทดสอบเสียงศาสตราปะทะ">⚔️ ศาสตรา</button></div>';
+        h += '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap"><button type="button" class="btn" style="padding:2px 7px;font-size:11px" data-do="toggle-audio">' + (UI.audio && UI.audio.muted ? '🔇 เปิดเสียงบรรยากาศ' : '🔊 ปิดเสียงบรรยากาศ') + '</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="bell" title="ทดสอบเสียงระฆังทองสำนัก">🔔 ระฆัง</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="guqin" title="ทดสอบเสียงพิณโบราณ">🎶 พิณ</button><button type="button" class="btn" style="padding:2px 6px;font-size:10.5px" data-do="play-audio-demo" data-arg="blade" title="ทดสอบเสียงศาสตราปะทะ">⚔️ ศาสตรา</button></div>';
         h += '</div>';
         if (!tlList.length) {
           h += '<div class="muted">ยังไม่มีหมุดหมายประวัติศาสตร์ในหมวดที่เลือก</div>';
@@ -165572,6 +167265,133 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         }
         h += '</div></details>';
       }
+
+      /* ---------- JS2-v2.6.0: News Intake Settings vs Archive Filters, Periodic Digest & Story Threads ---------- */
+      if (EXPED && EXPED.ensureNewsPrefs) {
+        const np = EXPED.ensureNewsPrefs(W);
+        const unreadSum = EXPED.getUnreadNewsSummary ? EXPED.getUnreadNewsSummary(W) : { totalUnread: 0, unreadCritical: 0 };
+        const winDays = UI.digestWindowDays || 7;
+        const digest = EXPED.computePeriodDigest ? EXPED.computePeriodDigest(W, { windowDays: winDays }) : null;
+        const threads = EXPED.getStoryThreads ? EXPED.getStoryThreads(W) : [];
+
+        // 1. News Intake & Notification Settings Panel
+        h += '<details class="chron-v260-panel" data-news-prefs-panel>';
+        h += '<summary>📡 ตั้งค่าการรับข่าว & แจ้งเตือนด่วน · <span class="chip g">' + esc((EXPED.NEWS_PRESETS[np.preset] && EXPED.NEWS_PRESETS[np.preset].nameTh) || np.preset) + '</span>' +
+          (unreadSum.totalUnread > 0 ? (' <span class="chip b">ข่าวใหม่ยังไม่อ่าน ' + unreadSum.totalUnread + '</span>') : ' <span class="chip ok">อ่านครบแล้ว</span>') + '</summary>';
+        h += '<div class="card chron-v260-card">';
+        h += '<div class="chron-v260-note">🔔 <b>แยกการตั้งค่ารับข่าวออกจากคลังประวัติชัดเจน:</b> การปิดป้ายแจ้งเตือนด่วนหรือพับหมวดข่าวเข้าสรุปประจำรอบ <b>จะไม่ลบประวัติหรือหยุดการบันทึกของเกม</b> คุณสามารถค้นหาย้อนหลังได้ครบทุกเหตุการณ์เสมอ</div>';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 0">';
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
+        ['ALL', 'MAJOR_ONLY', 'SECT_FOCUS', 'TRACKED_ONLY', 'QUIET_DIGEST'].forEach(pk => {
+          const pDef = EXPED.NEWS_PRESETS[pk];
+          if (!pDef) return;
+          h += '<button type="button" class="btn ' + (np.preset === pk ? 'pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="news-preset" data-arg="' + pk + '" title="' + esc(pDef.descTh) + '">' + esc(pDef.nameTh) + '</button>';
+        });
+        h += '</div>';
+        h += '<button type="button" class="btn" style="padding:3px 9px;font-size:11px" data-do="mark-all-news-read">✓ ทำเครื่องหมายว่าอ่านแล้วทั้งหมด (' + unreadSum.totalUnread + ')</button>';
+        h += '</div>';
+
+        h += '<div class="chron-prefs-grid">';
+        h += '<div><b>ป้ายแจ้งเตือนมุมจอ (Toast):</b> <button type="button" class="btn ' + (np.toastEnabled ? 'pri' : '') + '" style="padding:2px 8px;font-size:11px" data-do="toggle-news-toast">' + (np.toastEnabled ? '🔔 เปิดแจ้งเตือน' : '🔕 ปิดแจ้งเตือนทั่วไป') + '</button></div>';
+        h += '<div><b>นโยบายข่าววิกฤต (ศึกบุก/สิ้นชีพ):</b> ' +
+          '<button type="button" class="btn ' + (np.criticalAlertPolicy === 'ALWAYS_TOAST' ? 'pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-critical-policy" data-arg="ALWAYS_TOAST">🚨 เตือนวิกฤตเสมอ</button>' +
+          '<button type="button" class="btn ' + (np.criticalAlertPolicy === 'STRICT_MUTE' ? 'pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-critical-policy" data-arg="STRICT_MUTE">🔇 ปิดเด็ดขาดตามโหมดเงียบ</button></div>';
+        h += '<div><b>ระดับความสำคัญขั้นต่ำที่เด้งเตือน:</b> ' +
+          [['ROUTINE', 'ทั่วไป'], ['NOTABLE', 'น่าสนใจ+'], ['MAJOR', 'สำคัญ+'], ['CRITICAL', 'วิกฤตเท่านั้น']].map(([sk, sv]) =>
+            '<button type="button" class="btn ' + (np.minToastSeverity === sk ? 'pri' : '') + '" style="padding:2px 6px;font-size:10.5px" data-do="set-toast-severity" data-arg="' + sk + '">' + sv + '</button>'
+          ).join('') + '</div>';
+        h += '<div><b>สรุปประจำรอบอัตโนมัติ:</b> ' +
+          [[0, 'ปิด'], [1, 'ทุกวัน'], [7, 'ทุก 7 วัน'], [30, 'ทุกเดือน']].map(([dk, dv]) =>
+            '<button type="button" class="btn ' + (np.digestIntervalDays === dk ? 'pri' : '') + '" style="padding:2px 6px;font-size:10.5px" data-do="set-digest-interval" data-arg="' + dk + '">' + dv + '</button>'
+          ).join('') + '</div>';
+        h += '</div>';
+
+        h += '<div style="margin-top:6px"><div class="muted" style="font-size:11px;margin-bottom:3px">📂 <b>ช่องทางรับข่าวรายหมวด (แตะเพื่อสลับ: ⚡ ด่วน+ฟีด ➔ 📖 เฉพาะฟีด ➔ 📊 พับเข้าสรุปรอบ):</b></div>';
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
+        Object.values(EXPED.NEWS_CATEGORIES).forEach(catSpec => {
+          const ch = np.channelByCategory[catSpec.id] || 'INSTANT';
+          const chLabel = ch === 'INSTANT' ? '⚡ ด่วน+ฟีด' : ch === 'FEED_ONLY' ? '📖 เฉพาะฟีด' : '📊 สรุปรอบ';
+          const chipCls = ch === 'INSTANT' ? 'ok' : ch === 'FEED_ONLY' ? 'b' : '';
+          h += '<button type="button" class="chip ' + chipCls + '" style="cursor:pointer;padding:3px 8px;font-size:11px" data-do="cycle-cat-channel" data-arg="' + catSpec.id + '">' + esc(catSpec.nameTh) + ': <b>' + chLabel + '</b></button>';
+        });
+        h += '</div></div></div></details>';
+
+        // 2. Periodic Sect Digest Panel
+        if (digest) {
+          const t = digest.treasury;
+          const s = digest.stockAndInternal;
+          const ac = digest.activity;
+          const netCol = t.netStones >= 0 ? '#5fd38a' : '#ef476f';
+          const netTxt = (t.netStones >= 0 ? '+' : '') + U.fmtNum(t.netStones);
+          h += '<details class="chron-v260-panel" open data-periodic-digest-panel>';
+          h += '<summary>📊 สมุดสรุปสถานการณ์สำนักประจำรอบ (' + esc(digest.periodLabelTh) + ')</summary>';
+          h += '<div class="card chron-v260-card">';
+          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">';
+          h += '<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ช่วงเวลาสรุป:</span>' +
+            [[1, 'รายวัน (1 วัน)'], [7, 'รายสัปดาห์ (7 วัน)'], [30, 'รายเดือน (30 วัน)']].map(([wd, wl]) =>
+              '<button type="button" class="btn ' + (winDays === wd ? 'pri' : '') + '" style="padding:2px 8px;font-size:11px" data-do="digest-window" data-arg="' + wd + '">' + wl + '</button>'
+            ).join('') + '</div>';
+          h += '<button type="button" class="btn" style="padding:2px 8px;font-size:11px" data-do="record-digest-now">📌 จารึกสรุปรอบนี้ลงพงศาวดาร</button>';
+          h += '</div>';
+
+          h += '<div class="chron-digest-grid">';
+          h += '<div class="chron-digest-box"><div class="muted" style="font-size:10.5px">💎 ดุลศิลาวิญญาณจริง (แยกโอนภายใน)</div>' +
+            '<div style="font-size:13px;font-weight:700;margin-top:2px">คงคลัง ' + U.fmtNum(t.closingStones) + ' ศิลา <span style="color:' + netCol + '">(' + netTxt + ')</span></div>' +
+            '<div class="muted" style="font-size:11px">รายรับ +' + U.fmtNum(t.stoneIncome) + ' · รายจ่าย -' + U.fmtNum(t.stoneExpense) + ' · เกณฑ์สำรอง ' + U.fmtNum(t.cashReserveFloor) + '</div></div>';
+          h += '<div class="chron-digest-box"><div class="muted" style="font-size:10.5px">🍚 เสบียง & การหมุนเวียนภายในสำนัก</div>' +
+            '<div style="font-size:13px;font-weight:700;margin-top:2px">พอใช้ราว ' + s.foodDaysRemaining + ' วัน (' + U.fmtNum(s.closingFoodEquiv) + ' หน่วยอาหาร)</div>' +
+            '<div class="muted" style="font-size:11px">โอนภายใน: มอบรางวัล ' + s.internalGiftsCount + ' · แลก CP ' + s.internalCpPurchasesCount + ' · บริจาค ' + s.internalDonationsCount + (s.playerInterventionCount ? (' · เสก/แก้ ' + s.playerInterventionCount) : '') + '</div></div>';
+          h += '<div class="chron-digest-box"><div class="muted" style="font-size:10.5px">⚡ ความเคลื่อนไหวสำคัญในรอบ ' + winDays + ' วัน</div>' +
+            '<div style="font-size:12.5px;font-weight:600;margin-top:2px">ทะลวงสำเร็จ ' + ac.breakthroughSuccessCount + ' (พลาด ' + ac.breakthroughFailCount + ') · ศึกชนะ ' + ac.battlesInWindow + '</div>' +
+            '<div class="muted" style="font-size:11px">ผลิตสำเร็จ ' + ac.craftsInWindow + ' (พลาด ' + ac.craftFailsInWindow + ') · รับศิษย์ใหม่ ' + ac.recruitsInWindow + ' · สิ้นชีพ ' + ac.deathsInWindow + '</div></div>';
+          h += '</div>';
+
+          if (digest.topContributors.length) {
+            h += '<div style="margin-top:7px;font-size:11.5px">🏅 <b>ผู้สร้างผลงานเด่นประจำรอบ:</b> ' +
+              digest.topContributors.map(c => linkify(W, c.fullName, [c.id]) + ' <span class="muted">(' + esc(c.featsTh) + ')</span>').join(' · ') + '</div>';
+          }
+          if (digest.troubledDisciples.length) {
+            h += '<div style="margin-top:5px;font-size:11.5px">🩹 <b>ศิษย์ที่ติดปัญหา/ควรดูแล (' + digest.troubledDisciples.length + ' คน):</b> ' +
+              digest.troubledDisciples.map(d => linkify(W, d.fullName, [d.id]) + ' <span style="color:#ffd166">(' + esc(d.issuesTh) + ')</span>').join(' · ') + '</div>';
+          }
+          if (digest.verifiedRisks.length) {
+            h += '<div style="margin-top:6px;padding:6px 8px;border-radius:8px;background:rgba(224,88,74,0.12);border:1px solid rgba(224,88,74,0.45);font-size:11.5px">';
+            h += '<div>⚠️ <b>ความเสี่ยงและเรื่องค้างที่ยืนยันจากสถานะจริง:</b></div>';
+            h += digest.verifiedRisks.map(r => '<div style="margin-top:2px">• <b>' + esc(r.titleTh) + ':</b> <span class="muted">' + esc(r.detailTh) + '</span></div>').join('');
+            h += '</div>';
+          } else {
+            h += '<div class="muted" style="margin-top:6px;font-size:11.5px;color:#7ff5ad">✅ สถานะคลังศิลา เสบียง และแนวป้องกันอยู่ในเกณฑ์มั่นคง</div>';
+          }
+          h += '</div></details>';
+        }
+
+        // 3. Continuing Storyline Threads Panel
+        if (threads.length > 0) {
+          const activeThreadFilter = UI.worldChronicleThreadId || 'all';
+          h += '<details class="chron-v260-panel" open data-story-threads-panel>';
+          h += '<summary>🧵 เส้นเรื่องต่อเนื่องในสำนักและยุทธภพ (' + threads.length + ' เส้นเรื่อง)</summary>';
+          h += '<div class="card chron-v260-card">';
+          h += '<div class="muted" style="font-size:11px;margin-bottom:6px">เชื่อมโยงเหตุการณ์ที่มีรหัสต้นเหตุเดียวกันจริง (ต้นเหตุ ➔ จุดเปลี่ยน/ความพยายาม ➔ ผลลัพธ์ล่าสุด) แตะเพื่อกรองดูเฉพาะเส้นเรื่องนั้น</div>';
+          if (activeThreadFilter !== 'all') {
+            h += '<div style="margin-bottom:6px"><span class="chip g">กำลังกรองเฉพาะเส้นเรื่อง: ' + esc(activeThreadFilter) + '</span> <button type="button" class="btn" style="padding:2px 7px;font-size:11px" data-do="chronicle-thread" data-arg="all">ดูทุกเส้นเรื่อง</button></div>';
+          }
+          h += threads.slice(0, 6).map(th => {
+            const isSel = activeThreadFilter === th.threadId;
+            return '<div class="chron-thread-item' + (isSel ? ' sel' : '') + '">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap">' +
+                '<div><b>🧵 ' + esc(th.titleTh) + '</b> <span class="chip">' + th.eventCount + ' เหตุการณ์</span> <span class="chip ' + (th.statusTh.includes('คลี่คลาย') ? 'ok' : 'b') + '">' + esc(th.statusTh) + '</span></div>' +
+                '<button type="button" class="btn ' + (isSel ? 'pri' : '') + '" style="padding:2px 8px;font-size:10.5px" data-do="chronicle-thread" data-arg="' + esc(th.threadId) + '">' + (isSel ? '✓ กำลังกรอง' : '🔍 ดูเส้นเรื่องนี้') + '</button>' +
+              '</div>' +
+              '<div style="font-size:11.5px;margin-top:4px;line-height:1.45">' +
+                (th.originEvent ? ('<div>🌱 <b>ต้นเหตุ (วันที่ ' + th.originEvent.day + '):</b> ' + linkify(W, th.originEvent.headlineTh, th.originEvent.npcIds) + '</div>') : '') +
+                (th.turningPointEvent ? ('<div>⚡ <b>จุดเปลี่ยน (วันที่ ' + th.turningPointEvent.day + '):</b> ' + linkify(W, th.turningPointEvent.headlineTh, th.turningPointEvent.npcIds) + '</div>') : '') +
+                (th.latestEvent && th.latestEvent !== th.originEvent ? ('<div style="color:#ffd166">➔ <b>ล่าสุด (วันที่ ' + th.latestEvent.day + '):</b> ' + linkify(W, th.latestEvent.headlineTh, th.latestEvent.npcIds) + '</div>') : '') +
+                '<div class="muted" style="font-size:11px;margin-top:2px">🔎 <b>สิ่งที่น่าติดตามต่อ:</b> ' + esc(th.followUpTh) + '</div>' +
+              '</div></div>';
+          }).join('');
+          h += '</div></details>';
+        }
+      }
     }
 
     h += '<div class="log-subfilter-bar" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">';
@@ -165582,9 +167402,15 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     h += '</div>';
 
     const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
-    if (chrons.length && UI.logFilters.has('all')) {
+    if (UI.logFilters.has('all')) {
       const cFilter = UI.worldChronicleCategory || 'all';
       const fFilter = UI.worldChronicleFormat || 'all';
+      const sevFilter = UI.worldChronicleSeverity || 'all';
+      const epFilter = UI.worldChronicleEpistemic || 'all';
+      const winFilter = Number(UI.worldChronicleWindowDays) || 0;
+      const thFilter = UI.worldChronicleThreadId || 'all';
+      const unreadOnly = !!UI.worldChronicleUnreadOnly;
+      const includeDigest = UI.worldChronicleIncludeDigest !== false;
       const cSearch = (UI.worldChronicleSearch || '').trim().toLowerCase();
       const catList = [
         ['all', 'ทั้งหมด'],
@@ -165601,7 +167427,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         ['SECRET_REALM_NODE', '🧭 โหนดแดนลับ/ตำราโบราณ'],
         ['GRAND_ASSEMBLY', '🏆 มหาชุมนุม 4 สาย/งานเลี้ยง'],
         ['HEAVENLY_DAO_ERA', '🌌 ลิขิตฟ้าดิน/ยุคสมัย'],
-        ['SECT_PEAK_POLITICS', '🏔️ ยอดเขา/ผู้อาวุโส/สายสัมพันธ์']
+        ['SECT_PEAK_POLITICS', '🏔️ ยอดเขา/ผู้อาวุโส/สายสัมพันธ์'],
+        ['PERIODIC_DIGEST', '📊 สรุปประจำรอบ']
       ];
       const fmtList = [
         ['all', 'รูปแบบทั้งหมด'],
@@ -165615,13 +167442,24 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         ['SECRET_REALM_LOGBOOK', '🧭 บันทึกแดนลับ/โบราณคดี'],
         ['CONTINENTAL_ASSEMBLY_GAZETTE', '🏆 มหาชุมนุม/หอการค้า'],
         ['HEAVENLY_DAO_OMEN_SCROLL', '🌌 ลิขิตสวรรค์/ยุคสมัย'],
-        ['PEAK_HALL_SCROLL', '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์']
+        ['PEAK_HALL_SCROLL', '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์'],
+        ['PERIODIC_SECT_DIGEST', '📊 สรุปประจำรอบ']
       ];
       let filteredChrons = chrons.filter(c => {
+        if (!c) return false;
+        if (!includeDigest && EXPED && EXPED.shouldShowInLiveFeed && !EXPED.shouldShowInLiveFeed(W, c, false)) return false;
         if (cFilter !== 'all' && c.category !== cFilter) return false;
         if (fFilter !== 'all' && (c.reportFormat || 'PIGEON_DISPATCH') !== fFilter) return false;
+        if (sevFilter !== 'all' && (c.severity || (EXPED && EXPED.classifyNewsSeverity && EXPED.classifyNewsSeverity(c)) || 'NOTABLE') !== sevFilter) return false;
+        if (epFilter !== 'all') {
+          const ep = c.epistemicStatus || (c.isRumor ? 'RUMOR' : 'VERIFIED');
+          if (ep !== epFilter) return false;
+        }
+        if (winFilter > 0 && ((W.day || 0) - (c.day || 0)) > winFilter) return false;
+        if (thFilter !== 'all' && c.storyThreadId !== thFilter) return false;
+        if (unreadOnly && EXPED && EXPED.isEntryUnread && !EXPED.isEntryUnread(W, c)) return false;
         if (cSearch) {
-          const hay = ((c.titleTh || '') + ' ' + (c.storyTh || '') + ' ' + (c.consequenceTh || '') + ' ' + (c.originCauseTh || '') + ' ' + (c.systemImpactTh || '') + ' ' + (c.involvedSects || []).join(' ') + ' ' + (c.involvedFigures || []).join(' ')).toLowerCase();
+          const hay = ((c.titleTh || '') + ' ' + (c.storyTh || '') + ' ' + (c.consequenceTh || '') + ' ' + (c.originCauseTh || '') + ' ' + (c.systemImpactTh || '') + ' ' + (c.followUpTh || '') + ' ' + (c.involvedSects || []).join(' ') + ' ' + (c.involvedFigures || []).join(' ')).toLowerCase();
           if (!hay.includes(cSearch)) return false;
         }
         return true;
@@ -165629,33 +167467,70 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
       h += '<details class="lineage-chronicle" open><summary>📜 จดหมายเหตุยุทธภพ & พงศาวดารพิราบสื่อสาร (' + filteredChrons.length + '/' + chrons.length + ' ฉบับ)</summary><div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.04);margin-top:6px">';
       h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">' + catList.map(([ck, cv]) => '<button class="btn ' + (cFilter === ck ? 'pri' : '') + '" style="padding:2px 7px;font-size:11px" data-do="world-chronicle-cat" data-arg="' + ck + '">' + cv + '</button>').join('') + '</div>';
-      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;align-items:center"><span class="muted" style="font-size:10.5px">รูปแบบพงศาวดาร:</span>' + fmtList.map(([fk, fv]) => '<button class="btn ' + (fFilter === fk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-fmt" data-arg="' + fk + '">' + fv + '</button>').join('') + '</div>';
+      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center"><span class="muted" style="font-size:10.5px">รูปแบบพงศาวดาร:</span>' + fmtList.map(([fk, fv]) => '<button class="btn ' + (fFilter === fk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-fmt" data-arg="' + fk + '">' + fv + '</button>').join('') + '</div>';
+
+      // Archive reading filters (Severity, Epistemic Status, Time Window, Unread, Reset)
+      h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center">';
+      h += '<span class="muted" style="font-size:10.5px">กรองคลังประวัติ:</span>';
+      [['all', 'ทุกระดับ'], ['CRITICAL', '🔥 วิกฤต'], ['MAJOR', '⭐ สำคัญ'], ['NOTABLE', '📌 น่าสนใจ']].forEach(([sk, sv]) => {
+        h += '<button type="button" class="btn ' + (sevFilter === sk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-sev" data-arg="' + sk + '">' + sv + '</button>';
+      });
+      [['all', 'ทุกแหล่งข่าว'], ['VERIFIED', '📜 ยืนยันแล้ว'], ['RUMOR', '🍶 ข่าวลือโรงเตี๊ยม']].forEach(([ek, ev]) => {
+        h += '<button type="button" class="btn ' + (epFilter === ek ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-epistemic" data-arg="' + ek + '">' + ev + '</button>';
+      });
+      [[0, 'ทุกช่วงเวลา'], [1, 'วันนี้'], [7, '7 วันล่าสุด'], [30, '30 วันล่าสุด']].forEach(([wk, wv]) => {
+        h += '<button type="button" class="btn ' + (winFilter === wk ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-days" data-arg="' + wk + '">' + wv + '</button>';
+      });
+      h += '<button type="button" class="btn ' + (unreadOnly ? 'pri' : '') + '" style="padding:1px 6px;font-size:10.5px" data-do="world-chronicle-unread">● เฉพาะยังไม่อ่าน</button>';
+      h += '<button type="button" class="btn" style="padding:1px 7px;font-size:10.5px" data-do="reset-archive-filters">🔄 ล้างตัวกรองค้นหาทั้งหมด</button>';
+      h += '</div>';
+
       h += '<div style="margin-bottom:8px"><input id="worldChronicleSearch" type="search" placeholder="ค้นหาเหตุการณ์/ชื่อบุคคล/ชื่อสำนัก/แหล่งที่มาในยุทธภพ…" value="' + esc(UI.worldChronicleSearch || '') + '" style="font-size:11.5px;padding:4px 8px;width:100%"></div>';
 
       if (!filteredChrons.length) {
-        h += '<div class="muted">ไม่พบบันทึกจดหมายเหตุยุทธภพที่ตรงกับเงื่อนไขการค้นหา</div>';
+        h += '<div class="muted">ไม่พบบันทึกจดหมายเหตุยุทธภพที่ตรงกับเงื่อนไขการค้นหา <button type="button" class="btn" style="padding:2px 8px;font-size:11px" data-do="reset-archive-filters">แสดงประวัติทั้งหมด</button></div>';
       } else {
         const wcLim = Math.max(10, UI.worldChronicleLimit || 15);
         const wcShown = filteredChrons.slice(0, wcLim);
         h += wcShown.map(c => {
+          const p = (EXPED && EXPED.presentChronicleEntry) ? EXPED.presentChronicleEntry(W, c) : null;
           const vBadge = c.verificationStatusTh ? (" <span class=\"chip\">" + esc(c.verificationStatusTh) + "</span>") : "";
+          const sevBadge = p && p.severityBadge ? (' <span class="chip" style="border-color:' + p.severityBadge.color + ';color:' + p.severityBadge.color + '">' + esc(p.severityBadge.labelTh) + '</span>') : '';
+          const unreadChip = (p && p.isUnread) ? (' <span class="chip g" style="cursor:pointer;padding:0 5px;font-size:10px" data-do="mark-news-read" data-arg="' + esc(c.id) + '">● ใหม่</span>') : '';
+          const threadChip = c.storyThreadId ? (' <button type="button" class="chip b" style="cursor:pointer;padding:1px 6px;font-size:10px" data-do="chronicle-thread" data-arg="' + esc(c.storyThreadId) + '">🧵 เส้นเรื่องต่อเนื่อง</button>') : '';
+          const fmtCls = 'chron-fmt-' + String(c.reportFormat || 'PIGEON_DISPATCH').toLowerCase();
           const cHighs = (c.combatSummary && Array.isArray(c.combatSummary.highlights) && c.combatSummary.highlights.length)
             ? ("<div class=\"muted\" style=\"font-size:10.5px;margin-top:2px;color:#a8dadc\">🎯 <b>จังหวะยุทธวิธี:</b> " + c.combatSummary.highlights.slice(0, 4).map(hl => esc(hl.textTh || hl)).join(" · ") + "</div>")
             : "";
-          return "<div style=\"padding:6px 0;border-bottom:1px dotted var(--line,#3a3f4a)\"><div><span class=\"chip g\">" + esc(c.categoryTh || "จดหมายเหตุ") + "</span>" + (c.reportFormatTh ? (" <span class=\"chip b\">" + esc(c.reportFormatTh) + "</span>") : "") + vBadge + " <b>" + esc(c.icon || "📜") + " " + esc(c.titleTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(วันที่ " + c.day + ")</span></div>" +
-          "<div style=\"font-size:12px;margin-top:3px;line-height:1.45\">" + linkify(W, c.storyTh, c.npcIds) + "</div>" +
-          (c.originCauseTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">🌱 <b>ต้นทาง/สาเหตุ:</b> " + esc(c.originCauseTh) + "</div>" : "") +
-          (c.actorChainTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:1px\">👤 <b>ผู้กระทำ/ที่มา:</b> " + esc(c.actorChainTh) + "</div>" : "") +
-          (c.systemImpactTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:1px;color:#8ecae6\">🔗 <b>การเชื่อมโยงระบบ:</b> " + esc(c.systemImpactTh) + "</div>" : "") +
-          (c.directorInsightTh ? "<div class=\"muted\" style=\"font-size:10.5px;margin-top:1px;color:#cdb4db\">🎬 <b>มุมมองผู้กำกับ:</b> " + esc(c.directorInsightTh) + "</div>" : "") +
-          (c.combatBreakdownTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">⚔️ " + esc(c.combatBreakdownTh) + "</div>" : "") +
-          cHighs +
-          (c.consequenceTh ? "<div style=\"font-size:11.5px;color:#ffd166;margin-top:2px\">➔ <b>ผลลัพธ์:</b> " + esc(c.consequenceTh) + "</div>" : "") +
-          "</div>";
+          const numDrawerHtml = (p && Array.isArray(p.numericDetails) && p.numericDetails.length)
+            ? ('<details class="chron-numeric-drawer"><summary>📊 ดูรายละเอียดตัวเลขและ Snapshot ณ เวลาเกิดเหตุ (' + p.numericDetails.length + ' รายการ)</summary>' +
+                '<div class="chron-numeric-list">' +
+                p.numericDetails.map(nd =>
+                  '<div class="chron-numeric-row"><div><b>' + esc(nd.labelTh) + ':</b> <span style="color:var(--gold)">' + esc(nd.valueTh) + '</span></div>' +
+                  '<div class="muted" style="font-size:10.5px">' + esc(nd.meaningTh) + '</div></div>'
+                ).join('') +
+                '</div></details>')
+            : '';
+
+          return "<div class=\"chron-card " + fmtCls + "\" style=\"padding:7px 8px;margin-bottom:6px;border-bottom:1px dotted var(--line,#3a3f4a);border-radius:8px\">" +
+            "<div><span class=\"chip g\">" + esc(c.categoryTh || "จดหมายเหตุ") + "</span>" +
+            (c.reportFormatTh ? (" <span class=\"chip b\">" + esc(c.reportFormatTh) + "</span>") : "") +
+            sevBadge + vBadge + unreadChip + threadChip +
+            " <b>" + esc(c.icon || "📜") + " " + esc(c.titleTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(วันที่ " + c.day + ")</span></div>" +
+            "<div style=\"font-size:12px;margin-top:4px;line-height:1.48\">" + (p && p.leadPrefixTh ? ("<span class=\"muted\" style=\"font-size:11px\">" + esc(p.leadPrefixTh) + "</span> ") : "") + linkify(W, c.storyTh, c.npcIds) + "</div>" +
+            (p && p.turningPointBodyTh ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:3px\">" + esc(p.turningPointLabelTh) + ": " + linkify(W, p.turningPointBodyTh, c.npcIds) + "</div>") : (c.originCauseTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">🌱 <b>ต้นทาง/สาเหตุ:</b> " + esc(c.originCauseTh) + "</div>" : "")) +
+            cHighs +
+            (c.consequenceTh ? "<div style=\"font-size:11.5px;color:#ffd166;margin-top:3px\">➔ <b>" + esc((p && p.impactLabelTh) || "ผลลัพธ์") + ":</b> " + linkify(W, c.consequenceTh, c.npcIds) + "</div>" : (c.systemImpactTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">🔗 <b>ผลกระทบ:</b> " + esc(c.systemImpactTh) + "</div>" : "")) +
+            (p && p.followUpTh ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#a8dadc\">🔎 <b>สิ่งที่น่าติดตามต่อ:</b> " + esc(p.followUpTh) + "</div>") : "") +
+            numDrawerHtml +
+            "</div>";
         }).join("");
         if (filteredChrons.length > wcShown.length) {
           h += "<div style=\"margin-top:6px\"><button type=\"button\" class=\"btn\" style=\"padding:3px 10px;font-size:11px\" data-do=\"world-chronicle-more\">แสดงจดหมายเหตุเพิ่มเติม (" + (filteredChrons.length - wcShown.length) + " ฉบับ)</button></div>";
         }
+      }
+      if (W.world && W.world.chronicleTrimmedCount > 0) {
+        h += '<div class="muted" style="font-size:10.5px;margin-top:4px">ℹ️ คลังจดหมายเหตุคงหมุดหมายสำคัญไว้และตัดข่าวทั่วไปที่เก่าเกิน 200 ฉบับไปแล้ว ' + W.world.chronicleTrimmedCount + ' ฉบับ</div>';
       }
       h += '</div></details>';
     }
@@ -165674,6 +167549,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       if (allowed.size > 0) {
         list = list.filter(l => allowed.has(l.type));
       }
+    } else if (EXPED && EXPED.shouldShowInLiveFeed && UI.worldChronicleIncludeDigest === false) {
+      list = list.filter(l => EXPED.shouldShowInLiveFeed(W, l, false));
     }
     if (hasTrackedFilter) {
       list = list.filter(l => {
@@ -165704,7 +167581,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       raid: ['⚔️ ศึกป้องกันสำนัก', '#ff6b35'],
       marriage: ['💞 มงคลคู่บำเพ็ญ', '#ff9ebb'],
       succession: ['👑 สืบทอดเจ้าสำนัก', '#c77dff'],
-      legend: ['🐉 ตำนานยุทธภพ', '#90e0ef']
+      legend: ['🐉 ตำนานยุทธภพ', '#90e0ef'],
+      scandal: ['⚖️ คดีทุจริต/หอวินัย', '#ef476f']
     };
     return h + list.map(l => {
       const mb = majorBanners[l.type];

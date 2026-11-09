@@ -7,19 +7,19 @@
 > - ข้อกำหนดในเอกสารนี้มีผลบังคับใช้สูงสุด เป็นธรรมนูญและกฎเหล็กขององค์กรที่ทุกคนต้องยึดถืออย่างเคร่งครัด
 > - สิ่งที่อยู่นอกเหนือจากกฏเหล็กในเอกสารนี้ ai ที่ทำหน้าที่อัพเดทแพทช์สามารถคิดและตัดสินใจเองได้อย่างอิสระตามขอบเขตงาน
 
-JianghuSect Evolution is a Thai browser game. Current package: **JianghuSect 2 (ภาค 2)** — เวอร์ชันฐานปัจจุบันคือ **`JS2-v2.5.0`** (runtime patch identifier: 2.5.0, Save Schema: 2.4.0-tactical-composable-grand-dao, 43 Major Paths, 286 subpaths, 32 Sect Archetypes, 142/142 test groups passing [141 test suites + 1 syntax check across 217 JS files])
+JianghuSect Evolution is a Thai browser game. Current package: **JianghuSect 2 (ภาค 2)** — เวอร์ชันฐานปัจจุบันคือ **`JS2-v2.6.0`** (runtime patch identifier: 2.6.0, Save Schema: 2.6.0-living-chronicle-and-reporting, 43 Major Paths, 286 subpaths, 32 Sect Archetypes, 148/148 test groups passing [147 test suites + 1 syntax check across 225 JS files])
 
 > [!NOTE]
 > **ธรรมนูญระบบนับเวอร์ชันของเกม (Game Franchise & Versioning Architecture Mandate):**  
 > - **JianghuSect 1 (ภาค 1):** มีวิวัฒนาการมาตั้งแต่ยุคที่ 1 ถึง ยุคที่ 5 (สิ้นสุดอย่างเป็นทางการที่ `v5.8.0`)  
-> - **JianghuSect 2 (ภาค 2 — The Grand Dao Epoch):** คือการก้าวสู่ภาค 2 อย่างเป็นทางการ มีการยกเครื่องโครงสร้างเกม มหาวิถี 43 สาย และระบบคำนวณใหม่ทั้งหมด จึงเริ่มนับวงรอบการพัฒนาศักราชใหม่ที่ Season 2 โดยใช้รหัสเวอร์ชันทางการว่า **`JianghuSect 2 v...`** หรือ **`JS2-v...`** (ปัจจุบันคือฐาน `JS2-v2.5.0` และมุ่งสู่ `JS2-v2.6.0`)  
+> - **JianghuSect 2 (ภาค 2 — The Grand Dao Epoch):** คือการก้าวสู่ภาค 2 อย่างเป็นทางการ มีการยกเครื่องโครงสร้างเกม มหาวิถี 43 สาย และระบบคำนวณใหม่ทั้งหมด จึงเริ่มนับวงรอบการพัฒนาศักราชใหม่ที่ Season 2 โดยใช้รหัสเวอร์ชันทางการว่า **`JianghuSect 2 v...`** หรือ **`JS2-v...`** (ปัจจุบันคือฐาน `JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว)  
 > - **ข้อพึงระวังสำหรับ AI และนักพัฒนา:** ตัวเลข `v2.x.x` ในปัจจุบันคือเลขเวอร์ชันของ **"ภาค 2 (JS2)"** มิใช่การนับเลขย้อนหลังของภาค 1 ให้ระบุคำนำหน้า `JianghuSect 2` หรือ `JS2-v...` ในการอ้างอิงเอกสาร โค้ด และการสื่อสารเสมอ ห้ามสับสนว่าเวอร์ชันต่ำกว่าภาค 1
 
 > ฐาน JS2-v2.5.0 มี Legendary Visual Identity refinement (2026-11-09) แล้ว: 50 วิชาตำนาน / 27 อุปกรณ์, รายละเอียดและผลทดสอบปัจจุบันใน `PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md`; ตัวเลขชุดทดสอบฐานด้านบนเป็นผลก่อน refinement
 
 ฐานเพิ่มเติม All Equipment Tier Art (9 sheets / 576 cells, 28 equipment + 13 other Tier families) ใช้ generated atlases และ `GAME_SOURCE/docs/ITEM_ART_CATALOG.json`; เมื่อแก้ mapping ให้รัน `node GAME_SOURCE/tools/build_item_art.js` แล้ว build single ใหม่ อย่าเขียนภาพทับแผ่นใหม่ด้วย legacy atlas generator แผ่น Tier ใหม่ต้องจัดช่องด้วย `tools/normalize_item_sheet.js` และ layout ที่ตรงกับภาพต้นฉบับ ดูผลตรวจล่าสุดใน `PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md`
 
-> **Active handoff:** เป้าหมาย JS2-v2.6.0 ปัจจุบันคือพงศาวดาร/รายงาน/ตัวกรองตาม `START_HERE_FOR_AI.md` ไม่ใช่ข้อเสนอ authorship/barter เดิม ผู้ใช้ให้ผู้พัฒนาตรวจ คิดและตัดสินใจเองโดยใช้พรอมต์เป็นแนวอ้างอิง
+> **Active handoff (`JS2-v2.6.0` Completed):** แพตช์พงศาวดารมีชีวิต การรายงานยุทธภพ และตัวกรองการรับข่าว (`JS2-v2.6.0`) พัฒนาและทดสอบเสร็จสมบูรณ์แล้ว (148/148 PASS) ดูรายละเอียดใน `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md` และ `START_HERE_FOR_AI.md` ข้อเสนอ authorship/barter ใน `docs/deferred/` ยังคงถูกพักไว้ ห้ามเริ่มทำเองโดยที่ผู้ใช้ไม่ได้สั่ง
 
 ## ก่อนเริ่มงาน
 

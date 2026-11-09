@@ -871,8 +871,34 @@
       if (hadRealTrib && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent && !n.dead && !res.died) {
         g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'TRIBULATION_SURVIVED_OR_SCARRED', 'bt:' + (W.day || 0) + ':' + c.stage);
       }
-      if (res.ok) { W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage); }
-      else { W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + Math.round(res.p * 100) + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id]); AI.mem(W, n, 'ทะลวงขั้นล้มเหลว', 1); if (res.died) AI.kill(W, n, 'ตบะแตกระหว่างทะลวงขั้น'); else AI.injure(W, n, res.sev || 1, 'ตบะย้อนกลับ'); }
+      const btThreadId = 'thread:cult:' + n.id + ':' + (res.ok ? Math.max(1, c.stage - 1) : c.stage);
+      const btThreadTitle = 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(n);
+      const btChancePct = Math.round((res.p || 0) * 100);
+      if (res.ok) {
+        W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id], {
+          storyThreadId: btThreadId,
+          storyThreadTitleTh: btThreadTitle,
+          originCauseTh: 'สะสมตบะครบเกณฑ์และผ่านการตัดสินใจทะลวงคอขวด (โอกาสสำเร็จ ' + btChancePct + '%)',
+          consequenceTh: 'ก้าวขึ้นสู่ ' + CULT.stageName(n) + ' · คุณูปการ +40 · ชื่อเสียงสำนัก +' + (1 + c.stage),
+          followUpTh: 'ตรวจสอบวิชาและอุปกรณ์ที่รองรับขั้นตบะใหม่ในหอคัมภีร์หรือคลังแสง',
+          factDeltas: { chancePct: btChancePct, meritDelta: 40, fameDelta: 1 + c.stage, newStage: c.stage },
+          severity: c.stage >= 5 ? 'MAJOR' : 'NOTABLE',
+          promoteChronicle: true
+        });
+        AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage);
+      } else {
+        W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + btChancePct + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id], {
+          storyThreadId: btThreadId,
+          storyThreadTitleTh: btThreadTitle,
+          originCauseTh: 'ตัดสินใจเสี่ยงทะลวงด่านที่โอกาสสำเร็จ ' + btChancePct + '% แต่ปราณตีกลับ',
+          consequenceTh: res.died ? 'ตบะแตกซ่านถึงแก่ชีวิต' : ('ได้รับบาดเจ็บจากตบะย้อนกลับ (ระดับ ' + (res.sev || 1) + ')'),
+          followUpTh: res.died ? 'ตรวจสอบป้ายวิญญาณและผู้สืบทอดหน้าที่' : 'ควรส่งตัวเข้าหอหมอยาหรือจัดสรรโอสถรักษาอาการบาดเจ็บและเตรียมโอสถทะลวงด่านรอบหน้า',
+          factDeltas: { chancePct: btChancePct, died: !!res.died, injurySeverity: res.sev || 1 },
+          severity: res.died ? 'CRITICAL' : 'MAJOR',
+          promoteChronicle: true
+        });
+        AI.mem(W, n, 'ทะลวงขั้นล้มเหลว', 1); if (res.died) AI.kill(W, n, 'ตบะแตกระหว่างทะลวงขั้น'); else AI.injure(W, n, res.sev || 1, 'ตบะย้อนกลับ');
+      }
     },
     inside: false, important: true
   };
@@ -1099,7 +1125,14 @@
           n.merit += 1.5 * r.tier;
           W.sect.produced = (W.sect.produced || 0) + 1;
         } else {
-          W.log('craft', n.h.name.given + ' ควบคุมเพลิงผิดจังหวะ การผลิต' + (r ? '「' + r.outNameTh + '」' : '') + ' ล้มเหลว สูญเสียวัตถุดิบบางส่วน', [n.id]);
+          const chPct = r ? Math.round(ECO.successChance(n, r) * 100) : 50;
+          W.log('craft', n.h.name.given + ' ควบคุมเพลิงผิดจังหวะ การผลิต' + (r ? '「' + r.outNameTh + '」' : '') + ' ล้มเหลว สูญเสียวัตถุดิบบางส่วน', [n.id], {
+            originCauseTh: 'ความชำนาญและสมาธิขณะหลอม (' + chPct + '%) ไม่ผ่านเกณฑ์ตำรับระดับ T' + (r ? r.tier : 1),
+            consequenceTh: 'สูญเสียวัตถุดิบรอบนี้และอารมณ์ผู้ผลิตลดลง (-5)',
+            followUpTh: 'ตรวจสอบระดับทักษะช่าง/นักปรุงโอสถ หรือสำรองวัตถุดิบในคลังก่อนสั่งผลิตรอบถัดไป',
+            factDeltas: { chancePct: chPct, recipeId: r && r.id, tier: r && r.tier },
+            promoteChronicle: !!(r && r.tier >= 3)
+          });
           HC.feel(n, { mood: -5 });
         }
       },

@@ -106,3 +106,9 @@ Always run idempotent `ensure*` hooks at the end of `SIM.deserialize`:
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 receipt ประตูธาตุ, ของขวัญคนพเนจร และวันประลองใช้ field ปกติที่ไม่ขึ้นต้นขีดล่าง; เซฟ whitelist ท่วงท่า สแต็กต้าน ดาเมจสะสม และ cooldown โอนสถานะ/ขโมยจังหวะ; มี regression โหลดซ้ำสำหรับประตูและวันประลอง แต่ transient state อื่นยังต้องตรวจ ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+
+## Patch JS2-v2.6.0 Save Schema (`2.6.0-living-chronicle-and-reporting`)
+- `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`.
+- `SIM.SUPPORTED_SAVE_SCHEMAS` includes `'2.4.0-tactical-composable-grand-dao'`, `'2.5.0-pathbound-visuals-and-item-art'`, and `'2.6.0-living-chronicle-and-reporting'`.
+- `SIM.create` and `SIM.deserialize` call `EXPED.ensureNewsSystem(W)` to initialize/hydrate `W.sect.newsPrefs` (preset, criticalBypassMode, digestIntervalDays, categories, trackedNpcIds, trackedSectIds, readLogWatermarkId, readChronicleWatermarkSeq, readEntryKeys), `W.sect.digestHistory`, `W.sect.sectChronicleTrimmedCount`, and `W.world.chronicleTrimmedCount`.

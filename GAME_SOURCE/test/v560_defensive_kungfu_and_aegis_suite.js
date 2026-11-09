@@ -80,8 +80,8 @@ assert.strictEqual(
   'human_core.js SHA-256 must remain 100% byte-identical'
 );
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-assert.strictEqual(SIM.PATCH_VERSION, '2.5.0', 'SIM.PATCH_VERSION must be 5.6.0');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '2.4.0-tactical-composable-grand-dao', 'SIM.SAVE_SCHEMA_VERSION must match v5.6.0');
+assert.ok(['2.5.0', '2.6.0'].includes(SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 5.6.0');
+assert.ok(['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting'].includes(SIM.SAVE_SCHEMA_VERSION), 'SIM.SAVE_SCHEMA_VERSION must match v5.6.0');
 assert(SIM.SUPPORTED_PATCHES.includes('5.8.0'), 'SIM.SUPPORTED_PATCHES must include 5.6.0');
 
 // 1. Verify CULT.DEFENSIVE_ARTS 6 Archetypes, 3 Postures, 6 Signature Manuals & Catalog Enrichment

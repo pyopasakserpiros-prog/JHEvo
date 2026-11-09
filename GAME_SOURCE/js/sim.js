@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '2.5.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0'],
-    SAVE_SCHEMA_VERSION: '2.4.0-tactical-composable-grand-dao',
+    PATCH_VERSION: '2.6.0',
+    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
+    SAVE_SCHEMA_VERSION: '2.6.0-living-chronicle-and-reporting',
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
@@ -174,8 +174,8 @@
     CULT.refreshLifespan(npc);
   };
   SIM.placeNear = (W, n, cx, cy, r) => {
-    for (let i = 0; i < 20; i++) { const f = MAP.nearestFree(W.map, cx + (W.rng.next() - 0.5) * 2 * r, cy + (W.rng.next() - 0.5) * 2 * r); if (f) { n.x = f.x + .5; n.y = f.y + .5; return; } }
-    n.x = cx + .5; n.y = cy + .5;
+    for (let i = 0; i < 20; i++) { const f = MAP.nearestFree(W.map, cx + (W.rng.next() - 0.5) * 2 * r, cy + (W.rng.next() - 0.5) * 2 * r); if (f) { n.x = f.x + .5; n.y = f.y + .5; n.px = n.x; n.py = n.y; return; } }
+    n.x = cx + .5; n.y = cy + .5; n.px = n.x; n.py = n.y;
   };
   SIM.CANDIDATE_COUNT = 3;
   SIM.masterOpts = (seed, i, archKey) => {
@@ -320,6 +320,7 @@
     if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
     if (g.EXPLORE && g.EXPLORE.ensureMicroLocations) g.EXPLORE.ensureMicroLocations(W);
     if (g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
+    if (g.EXPED && g.EXPED.ensureNewsSystem) g.EXPED.ensureNewsSystem(W);
     SIM.dailyUpdate(W, true);
     return W;
   };
@@ -327,23 +328,57 @@
     if (!W || !W.sect || !n || !n.id || !n.h || !n.h.name) return null;
     if (!W.sect.historicalPeople || typeof W.sect.historicalPeople !== "object") W.sect.historicalPeople = {};
     const prev = W.sect.historicalPeople[n.id] || {};
-    const fullName = HC.fullName ? HC.fullName(n) : ((n.h.name.surname || n.h.name.family || "") + (n.h.name.given || ""));
+    const curGiven = n.h.name.given || prev.given || n.id;
+    const curSurname = n.h.name.surname || n.h.name.family || prev.surname || "";
+    const fullName = HC.fullName ? HC.fullName(n) : (curSurname + curGiven);
+    const formerSet = new Set(Array.isArray(prev.formerNames) ? prev.formerNames : []);
+    if (Array.isArray(n.h.name.formerNames)) {
+      n.h.name.formerNames.forEach(fn => { if (fn && fn !== fullName && fn !== curGiven) formerSet.add(fn); });
+    }
+    if (prev.fullName && prev.fullName !== fullName) formerSet.add(prev.fullName);
+    if (prev.given && prev.given !== curGiven) formerSet.add(prev.given);
+    n.h.name.formerNames = Array.from(formerSet).slice(0, 8);
+
     const roleTh = (g.SECT && g.SECT.title) ? g.SECT.title(n) : (prev.roleTh || "ศิษย์สำนัก");
-    const statusTh = statusOverride || (n.dead ? ("เสียชีวิตแล้ว" + (n.deathWhy ? " (" + n.deathWhy + ")" : "")) : n.exiled ? "ออกจากสำนักแล้ว" : (prev.statusTh || "สมาชิกสำนัก"));
+    const statusTh = statusOverride || (n.dead ? ("เสียชีวิตแล้ว" + (n.deathWhy ? " (" + n.deathWhy + ")" : "")) : n.exiled ? "ออกจากสำนักแล้ว" : (prev.statusTh && prev.dead && !n.dead ? "สมาชิกสำนัก" : (n.away ? "ปฏิบัติภารกิจนอกสำนัก" : "สมาชิกสำนัก")));
+    const pId = n.cult ? n.cult.path : (prev.path || null);
+    const subId = n.cult ? n.cult.sub : (prev.sub || null);
+    const pDef = (pId && CULT && CULT.PATHS && CULT.PATHS[pId]) || null;
+    const subEntry = (subId && CULT && CULT.subList && CULT.subList.find(x => x.sub && x.sub.id === subId)) || null;
+    const stgNameTh = (n.cult && CULT && CULT.stageName) ? CULT.stageName(n) : (prev.stageNameTh || (n.cult ? ("ขั้นที่ " + n.cult.stage) : "ปุถุชน"));
+    const topWhyTh = (Array.isArray(n.why) && n.why[0] && n.why[0][0]) ? String(n.why[0][0]) : (prev.topWhyTh || null);
+    const goalObj = (n.cognition && n.cognition.goal) || null;
+    const aspObj = (n.cognition && n.cognition.aspiration) || null;
     const snap = {
       id: n.id,
-      given: n.h.name.given || prev.given || n.id,
-      surname: n.h.name.surname || n.h.name.family || prev.surname || "",
+      given: curGiven,
+      surname: curSurname,
       fullName: fullName || prev.fullName || n.id,
-      formerNames: Array.isArray(n.h.name.formerNames) ? n.h.name.formerNames.slice() : (prev.formerNames || []),
+      formerNames: n.h.name.formerNames.slice(),
       roleTh,
-      path: n.cult ? n.cult.path : (prev.path || null),
-      sub: n.cult ? n.cult.sub : (prev.sub || null),
+      rank: n.rank != null ? n.rank : (prev.rank || 0),
+      post: n.post || prev.post || null,
+      path: pId,
+      pathNameTh: (pDef && pDef.nameTh) || prev.pathNameTh || pId || "คนธรรมดา",
+      sub: subId,
+      subNameTh: (subEntry && subEntry.sub && subEntry.sub.nameTh) || prev.subNameTh || subId || null,
       stage: n.cult ? n.cult.stage : (prev.stage || 0),
+      stageNameTh: stgNameTh,
       dead: !!n.dead,
       exiled: !!n.exiled,
       deathDay: n.deathDay != null ? n.deathDay : (prev.deathDay != null ? prev.deathDay : null),
-      statusTh
+      deathWhy: n.deathWhy || prev.deathWhy || null,
+      joinDay: n.joinDay != null ? n.joinDay : (prev.joinDay != null ? prev.joinDay : null),
+      merit: Math.round(n.merit != null ? n.merit : (prev.merit || 0)),
+      mentorId: n.mentorId || n.mentor || prev.mentorId || null,
+      companionId: n.companionId || prev.companionId || null,
+      topWhyTh,
+      goalId: (goalObj && goalObj.id) || prev.goalId || null,
+      goalTitleTh: (goalObj && goalObj.title) || prev.goalTitleTh || null,
+      aspirationId: (aspObj && aspObj.id) || prev.aspirationId || null,
+      statusTh,
+      snapshotDay: W.day || 0,
+      snapshotTick: W.t || 0
     };
     W.sect.historicalPeople[n.id] = snap;
     return snap;
@@ -399,35 +434,123 @@
 
   SIM.log = (W, type, text, ids, meta) => {
     const cleanIds = (ids || []).filter(Boolean);
-    const names = cleanIds.map(id => {
+    const actorSnaps = [];
+    const names = cleanIds.map((id, idx) => {
       const n = W.byId && W.byId[id];
       if (n) {
         const hp0 = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
-        if (!hp0 || hp0.stage !== (n.cult ? n.cult.stage : 0) || hp0.dead !== !!n.dead || hp0.exiled !== !!n.exiled) SIM.snapshotPerson(W, n);
-        return HC.fullName(n);
+        const curFull = HC.fullName(n);
+        if (!hp0 || hp0.fullName !== curFull || hp0.stage !== (n.cult ? n.cult.stage : 0) || hp0.dead !== !!n.dead || hp0.exiled !== !!n.exiled || hp0.rank !== n.rank || hp0.post !== n.post) {
+          SIM.snapshotPerson(W, n);
+        }
+        const snap = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+        if (idx < 4 && snap) {
+          actorSnaps.push({
+            id: snap.id,
+            fullName: snap.fullName,
+            given: snap.given,
+            surname: snap.surname,
+            roleTh: snap.roleTh,
+            pathNameTh: snap.pathNameTh,
+            stage: snap.stage,
+            stageNameTh: snap.stageNameTh,
+            topWhyTh: (Array.isArray(n.why) && n.why[0] && n.why[0][0]) ? String(n.why[0][0]) : snap.topWhyTh,
+            goalTitleTh: (n.cognition && n.cognition.goal && n.cognition.goal.title) || snap.goalTitleTh || null,
+            dead: !!n.dead
+          });
+        }
+        return curFull;
       }
       const hp = W.sect && W.sect.historicalPeople && W.sect.historicalPeople[id];
+      if (idx < 4 && hp) {
+        actorSnaps.push({
+          id: hp.id,
+          fullName: hp.fullName,
+          given: hp.given,
+          surname: hp.surname,
+          roleTh: hp.roleTh,
+          pathNameTh: hp.pathNameTh,
+          stage: hp.stage,
+          stageNameTh: hp.stageNameTh,
+          topWhyTh: hp.topWhyTh || null,
+          goalTitleTh: hp.goalTitleTh || null,
+          dead: !!hp.dead
+        });
+      }
       return hp ? hp.fullName : "";
     });
-    const e = { id: ++W.logSeq, t: W.t, type, text, ids: cleanIds, names };
+    const e = { id: ++W.logSeq, t: W.t, day: W.day || Math.floor((W.t || 0) / 1440), type, text, ids: cleanIds, names };
+    if (actorSnaps.length) e.actorSnaps = actorSnaps;
     if (meta && typeof meta === "object") {
       if (meta.txKind) e.txKind = meta.txKind;
+      if (meta.storyThreadId) e.storyThreadId = meta.storyThreadId;
+      if (meta.severity) e.severity = meta.severity;
       e.meta = Object.assign({}, meta);
     }
-    const majorType = ["death","succession","marriage","recruit","tournament","expel","legacy","challenge"].includes(type) ||
+    const isRoutineTraining = (type === "breakthrough" && /ฝึกประจำวัน/.test(text));
+    const majorType = !isRoutineTraining && (
+      ["death","succession","marriage","recruit","tournament","expel","legacy","challenge","scandal","crisis","sect","policy","diplomacy","desert"].includes(type) ||
       (type === "duel" && (meta && meta.combatSummary)) ||
-      (type === "breakthrough" && /ทะลวง.*(สำเร็จ|ล้มเหลว)|กลืนกิน/.test(text)) ||
-      (type === "raid" && /(ต้านการบุก|ถูกบุกและปล้น|สังหารผู้บุกรุก|ตีฝ่า)/.test(text)) ||
-      (["research","craft","heal","finance","decision"].includes(type) && /☯️|🌌|🪷|🗡️|📜|🐪|🔨/.test(text));
+      (type === "breakthrough" && (/ทะลวง.*(สำเร็จ|ล้มเหลว)|กลืนกิน|ติดคอขวด|ตัดสินใจทะลวง|ผ่าน「|วิวัฒนาการสายเลือด|ปลุกสายเลือด/.test(text) || (meta && meta.promoteChronicle))) ||
+      (type === "raid" && /(ต้านการบุก|ถูกบุกและปล้น|สังหารผู้บุกรุก|ตีฝ่า|กำลังบุกสำนัก|สหายร่วมสาบาน)/.test(text)) ||
+      (["research","craft","heal","finance","decision","exped","appoint","promote","demote","punish"].includes(type) && (
+        /☯️|🌌|🪷|🗡️|📜|🐪|🔨|🏛️|⛰️|👑|🕯️|⚡|🏮|⛺|🏯|ชะลอการขยาย|ชะลอการจัดซื้อ|ยักยอก|คุณภาพชั้นเลิศ|ล้มเหลว|วิจัยตำรับ/.test(text) ||
+        (meta && meta.promoteChronicle)
+      ))
+    );
     if (majorType && W.sect) {
       if (!Array.isArray(W.sect.sectChronicle)) W.sect.sectChronicle = [];
       const eventKey = (meta && meta.eventKey) || (type + ":" + text);
       const last = W.sect.sectChronicle[W.sect.sectChronicle.length - 1];
       if (!last || last.eventKey !== eventKey || Math.abs((W.t || 0) - (last.t || 0)) > 5) {
-        const chronItem = { id: e.id, t: e.t, type: e.type, text: e.text, ids: cleanIds.slice(), names: names.slice(), eventKey };
+        const isMilestone = ["death","succession","marriage","legacy"].includes(type) ||
+          (type === "raid" && /(ต้านการบุก|ถูกบุกและปล้น)/.test(text)) ||
+          (type === "breakthrough" && /ฝ่าทัณฑ์สวรรค์|ฉายาเซียนสูงสุด/.test(text)) ||
+          !!(meta && (meta.isMilestone || meta.severity === "CRITICAL"));
+        const severity = (meta && meta.severity) || (
+          (["death","succession","crisis","scandal"].includes(type) || (type === "raid" && /ถูกบุกและปล้น|กำลังบุกสำนัก/.test(text))) ? "CRITICAL" :
+          (["marriage","tournament","challenge","expel","sect","policy","diplomacy"].includes(type) || isMilestone) ? "MAJOR" : "NOTABLE"
+        );
+        const chronItem = {
+          id: e.id,
+          t: e.t,
+          day: e.day,
+          type: e.type,
+          text: e.text,
+          ids: cleanIds.slice(),
+          names: names.slice(),
+          eventKey,
+          severity,
+          isMilestone
+        };
+        if (actorSnaps.length) chronItem.actorSnaps = actorSnaps;
         if (meta && meta.combatSummary) chronItem.combatSummary = meta.combatSummary;
+        if (meta && meta.originCauseTh) chronItem.originCauseTh = meta.originCauseTh;
+        if (meta && meta.consequenceTh) chronItem.consequenceTh = meta.consequenceTh;
+        if (meta && meta.followUpTh) chronItem.followUpTh = meta.followUpTh;
+        if (meta && meta.storyThreadId) chronItem.storyThreadId = meta.storyThreadId;
+        if (meta && meta.storyThreadTitleTh) chronItem.storyThreadTitleTh = meta.storyThreadTitleTh;
+        if (meta && meta.factDeltas) chronItem.factDeltas = meta.factDeltas;
         W.sect.sectChronicle.push(chronItem);
-        if (W.sect.sectChronicle.length > 600) W.sect.sectChronicle.splice(0, W.sect.sectChronicle.length - 600);
+        if (W.sect.sectChronicle.length > 600) {
+          const overflow = W.sect.sectChronicle.length - 600;
+          let removed = 0;
+          let pinnedSeen = 0;
+          for (let ci = 0; ci < W.sect.sectChronicle.length && removed < overflow; ci++) {
+            const item = W.sect.sectChronicle[ci];
+            if (item && item.isMilestone && pinnedSeen < 160) {
+              pinnedSeen++;
+              continue;
+            }
+            W.sect.sectChronicle.splice(ci, 1);
+            ci--;
+            removed++;
+          }
+          if (W.sect.sectChronicle.length > 600) {
+            W.sect.sectChronicle.splice(0, W.sect.sectChronicle.length - 600);
+          }
+          W.sect.sectChronicleTrimmedCount = (W.sect.sectChronicleTrimmedCount || 0) + overflow;
+        }
       }
     }
     W.logs.push(e); if (W.logs.length > 1500) W.logs.splice(0, 400);
@@ -777,6 +900,7 @@
     const pop = W.npcs.filter(n => !n.dead).length;
     if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน'); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' หน่วย', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
     if (W.day % 30 === 15) W.npcs.forEach(n => { if (!n.dead) n.h.state.novelty = Math.max(0, n.h.state.novelty - 3); });
+    if (g.EXPED && g.EXPED.dailyChronicleDigestTick) g.EXPED.dailyChronicleDigestTick(W);
   };
   SIM.monthly = W => {
     SECT.monthly(W); EXPED.caravan(W);
@@ -881,6 +1005,8 @@
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
     const SUPPORTED_SAVE_SCHEMAS = new Set([
       SIM.SAVE_SCHEMA_VERSION,
+      '2.6.0-living-chronicle-and-reporting',
+      '2.5.0-pathbound-visuals-and-item-art',
       '2.4.0-tactical-composable-grand-dao',
       '2.3.0-grand-dao-deep-parity-release',
       '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle',
@@ -1059,6 +1185,7 @@
         if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
         W.chronicle = W.world.chronicles;
       }
+      if (g.EXPED && g.EXPED.ensureNewsSystem) g.EXPED.ensureNewsSystem(W);
       if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
       return W;
     } catch (error) {
