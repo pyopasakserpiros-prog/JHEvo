@@ -84,3 +84,10 @@ node test/long_simulation.js
 ## Patch JS2-v2.5.0 Baseline & Render Purity Verification
 - `SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'`.
 - All 43 path halos (`drawCultivatorRealmHalo`), motes (`drawPathSignatureMotes`), and current 45 signature skill VFX (`drawSignatureSkillVfx`) are pure read-only functions that never touch `W.rng` or mutate `npc` state (`apCache` is stored on the renderer instance). Historical timing measurements are not a current benchmark guarantee; use `test/browser_mobile_perf.js` for the current environment and the `<= 3.5 ms/tick` 80-NPC budget.
+
+
+## Common T1/T2 VFX refinement on JS2-v2.6.0 (2026-11-09)
+- `SK.COMMON_VFX_CATALOG` has 30 forms; explicit common technique/passive/status maps cover 66 / 12 / 22 entries. Check `docs/audits/COMMON_SKILL_VFX_REGISTRY.md` as well as the Signature registry to avoid duplicate work.
+- `Render.methods.drawCommonSkillVfx` is compact and render-only; `resolveCommonVfx` preserves explicit Signature/Legendary art. The renderer uses real cast tech/move IDs, not new save metadata. Basic casts use 540 ms / 11–15 px; no elemental burst overlay.
+- `drawCommonStatusAuras`: at most one live positive and one live harmful state on actual NPC/foe/wild-beast recipients; expired/hidden/dead states skipped. `drawCommonPassiveAura`: one eligible active passive, restrained underfoot, only relevant activities or selected actor. Never infer a buff from a skill name.
+- Run `test/common_skill_vfx_suite.js` and `test/common_skill_vfx_browser.js` alongside old weapon/Signature/Legendary regressions. Browser previews live in `docs/visuals/common-skill-vfx/`. Existing Signature count stays 45.

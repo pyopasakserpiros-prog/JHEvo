@@ -7,7 +7,7 @@
 > - ข้อกำหนดในเอกสารนี้มีผลบังคับใช้สูงสุด เป็นธรรมนูญและกฎเหล็กขององค์กรที่ทุกคนต้องยึดถืออย่างเคร่งครัด
 > - สิ่งที่อยู่นอกเหนือจากกฏเหล็กในเอกสารนี้ ai ที่ทำหน้าที่อัพเดทแพทช์สามารถคิดและตัดสินใจเองได้อย่างอิสระตามขอบเขตงาน
 
-JianghuSect Evolution is a Thai browser game. Current package: **JianghuSect 2 (ภาค 2)** — เวอร์ชันฐานปัจจุบันคือ **`JS2-v2.6.0`** (runtime patch identifier: 2.6.0, Save Schema: 2.6.0-living-chronicle-and-reporting, 43 Major Paths, 286 subpaths, 32 Sect Archetypes). The latest refinement tree has 152 test groups [151 suites + syntax across 229 JavaScript files]; the last parallel run passed 150, with one known `startup_ui` overlay-interception timeout and one variable mobile backlog sample that passed on isolated retry.
+JianghuSect Evolution is a Thai browser game. Current package: **JianghuSect 2 (ภาค 2)** — เวอร์ชันฐานปัจจุบันคือ **`JS2-v2.6.0`** (runtime patch identifier: 2.6.0, Save Schema: 2.6.0-living-chronicle-and-reporting, 43 Major Paths, 286 subpaths, 32 Sect Archetypes). The latest refinement tree has 154 test groups [153 suites + syntax across 231 JavaScript files]; the last parallel run passed 152, with one existing `startup_ui` overlay-interception timeout and one concurrent v410 tick-budget failure. The v410 isolated retry passed all 121 assertions at 1.685 ms/tick; mobile performance passed in the combined run. Common low-tier VFX coverage is recorded in `docs/audits/COMMON_SKILL_VFX_REGISTRY.md` (30 forms / 66 T1–T2 techniques / 12 passives / 22 statuses).
 
 > [!NOTE]
 > **ธรรมนูญระบบนับเวอร์ชันของเกม (Game Franchise & Versioning Architecture Mandate):**  

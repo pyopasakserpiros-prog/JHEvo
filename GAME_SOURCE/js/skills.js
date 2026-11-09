@@ -2392,6 +2392,251 @@
     TECH_V200_ARENA_GLORY_ACT_03: 'sig_arena_crowd_roar'
   };
 
+  // Common T1/T2 presentation is separate from rare Signature/Legendary art.
+  // These tables are visual metadata only; combat events and saved state stay unchanged.
+  SK.COMMON_VFX_CATALOG = {
+  "qi_palm": {
+    "nameTh": "ฝ่ามือปราณอ่อน",
+    "primary": "#91cbb5"
+  },
+  "stone_fist": {
+    "nameTh": "หมัดหิน",
+    "primary": "#c1a88a"
+  },
+  "heart_ward": {
+    "nameTh": "ศรัทธาคุ้มใจ",
+    "primary": "#dfca86"
+  },
+  "blood_drop": {
+    "nameTh": "หยดโลหิต",
+    "primary": "#c97482"
+  },
+  "mind_ripple": {
+    "nameTh": "ระลอกจิต",
+    "primary": "#b69ac9"
+  },
+  "paw_signal": {
+    "nameTh": "รอยเท้าอสูร",
+    "primary": "#bbbd88"
+  },
+  "heal_sprout": {
+    "nameTh": "ต้นอ่อนสมานแผล",
+    "primary": "#8ac89c"
+  },
+  "qi_thread": {
+    "nameTh": "เส้นปราณประสาน",
+    "primary": "#87bfc9"
+  },
+  "forge_spark": {
+    "nameTh": "สะเก็ดเตาหลอม",
+    "primary": "#dba574"
+  },
+  "gear_tick": {
+    "nameTh": "ฟันจักรเล็ก",
+    "primary": "#a8b7b6"
+  },
+  "sword_drizzle": {
+    "nameTh": "พิรุณกระบี่เบา",
+    "primary": "#a1c6d5"
+  },
+  "thorn_whip": {
+    "nameTh": "แส้เถาวัลย์",
+    "primary": "#9fbd87"
+  },
+  "silver_pin": {
+    "nameTh": "เข็มเงิน",
+    "primary": "#c0cdd5"
+  },
+  "twin_balance": {
+    "nameTh": "คมคู่สมดุล",
+    "primary": "#c6b9ce"
+  },
+  "star_guard": {
+    "nameTh": "เกราะดาวเล็ก",
+    "primary": "#b3c9d4"
+  },
+  "bronze_skin": {
+    "nameTh": "แผ่นเกราะสำริด",
+    "primary": "#c3ab7b"
+  },
+  "frost_knuckle": {
+    "nameTh": "ผลึกหมัดเย็น",
+    "primary": "#94c4d6"
+  },
+  "thunder_tap": {
+    "nameTh": "ประกายอัสนี",
+    "primary": "#c8ba77"
+  },
+  "incense_wisp": {
+    "nameTh": "ควันธูปบาง",
+    "primary": "#b5a5c2"
+  },
+  "ink_bind": {
+    "nameTh": "หมึกสะกดจุด",
+    "primary": "#91acb6"
+  },
+  "dream_haze": {
+    "nameTh": "หมอกฝัน",
+    "primary": "#b6a6cf"
+  },
+  "poison_barb": {
+    "nameTh": "หยดพิษเงี่ยงเข็ม",
+    "primary": "#a5be7b"
+  },
+  "soul_needle": {
+    "nameTh": "เข็มจิต",
+    "primary": "#baa2d1"
+  },
+  "straight_jab": {
+    "nameTh": "หมัดตรง",
+    "primary": "#d1b097"
+  },
+  "draw_cut": {
+    "nameTh": "คมชักดาบ",
+    "primary": "#c3cbd2"
+  },
+  "arrow_fletch": {
+    "nameTh": "ศรขนนก",
+    "primary": "#b6c9a4"
+  },
+  "staff_broom": {
+    "nameTh": "พลองกวาดฝุ่น",
+    "primary": "#bdab8e"
+  },
+  "spear_point": {
+    "nameTh": "ปลายทวน",
+    "primary": "#c4b9ac"
+  },
+  "seal_knot": {
+    "nameTh": "ปมตราผนึก",
+    "primary": "#c3a58c"
+  },
+  "root_stance": {
+    "nameTh": "รากยืนมั่น",
+    "primary": "#a6b08b"
+  }
+};
+  SK.TECH_TO_COMMON_VFX = {
+  "MP_BASE_XIAN": "qi_palm",
+  "ART190_XIAN_003": "qi_palm",
+  "MP_BASE_BODY": "stone_fist",
+  "ART190_BODY_001": "stone_fist",
+  "MP_BASE_GOD": "heart_ward",
+  "ART190_GOD_001": "heart_ward",
+  "MP_BASE_DEMON": "blood_drop",
+  "ART_DEMON_BLOOD_SIPHON_CLAW_T1": "blood_drop",
+  "MP_SPEAR_BLOOD_IMPALE_T2": "blood_drop",
+  "MP_BASE_HEART_SOUL": "mind_ripple",
+  "ART_SOUL_ZEN_BELL_T1": "mind_ripple",
+  "MP_BASE_BEAST_SOVEREIGN": "paw_signal",
+  "MP_BASE_SAGE_SUPPORT": "heal_sprout",
+  "ART190_GOD_031": "heal_sprout",
+  "INNATE_ELIXIR_DAO_CAULDRON": "heal_sprout",
+  "INNATE_MERCY_DEITY_LOTUS_GRACE": "heal_sprout",
+  "ART190_XIAN_061": "qi_thread",
+  "ART190_XIAN_062": "qi_thread",
+  "MP_BASE_CRAFT_CREATION": "forge_spark",
+  "MP_BLADE_FLAME_SABER_T2": "forge_spark",
+  "MP_BASE_MECH_PUPPET": "gear_tick",
+  "ART190_XIAN_001": "sword_drizzle",
+  "SRC110_NW_ART_002": "sword_drizzle",
+  "ART190_XIAN_011": "thorn_whip",
+  "MP_STAFF_VINE_SWEEP_T1": "thorn_whip",
+  "ART190_XIAN_021": "silver_pin",
+  "MP_FOCUS_ACUPOINT_NEEDLE_T2": "silver_pin",
+  "ART190_XIAN_053": "silver_pin",
+  "ART190_XIAN_013": "twin_balance",
+  "INNATE_YIN_YANG_TAIJI_WHEEL": "twin_balance",
+  "ART190_XIAN_023": "star_guard",
+  "MP_STAFF_WALL": "star_guard",
+  "MP_AGNOSTIC_BREATH_SHIELD_T2": "star_guard",
+  "ART190_BODY_012": "bronze_skin",
+  "ART190_BODY_031": "bronze_skin",
+  "ART190_BODY_021": "frost_knuckle",
+  "ART_DEMON_NETHER_PALM_T1": "frost_knuckle",
+  "ART190_BODY_013": "thunder_tap",
+  "ART190_GOD_011": "thunder_tap",
+  "MP_SPEAR_THUNDER_COIL_T2": "thunder_tap",
+  "ART190_GOD_033": "incense_wisp",
+  "ART_SOUL_INK_DOT_T1": "ink_bind",
+  "ART_V112_SOUL_SPIRIT_INK_STROKE_T2": "ink_bind",
+  "ART_SOUL_MIST_DREAM_T1": "dream_haze",
+  "ART_DEMON_VENOM_NEEDLE_T1": "poison_barb",
+  "ART_V112_DEMON_FIVE_VENOM_PALM_T2": "poison_barb",
+  "MP_BOW_VENOM_BARB_T1": "poison_barb",
+  "ART_SOUL_MIND_NEEDLE_T1": "soul_needle",
+  "ART_SOUL_TELEKINESIS_BLADE_T2": "soul_needle",
+  "MP_FIST_IRON_JAB_T1": "straight_jab",
+  "MP_BLADE_SWIFT_DRAW_T1": "draw_cut",
+  "MP_BLADE_IRON_CLEAVER_T2": "draw_cut",
+  "MP_BLADE_SHADOW": "draw_cut",
+  "ART_DEMON_SHADOW_STRIKE_T1": "draw_cut",
+  "MP_BOW_BASIC": "arrow_fletch",
+  "MP_BOW_IRON_DRAW_T1": "arrow_fletch",
+  "MP_BOW_RAIN": "arrow_fletch",
+  "MP_BOW_RAPID_VOLLEY_T2": "arrow_fletch",
+  "MP_STAFF_SWEEP_BASIC_T1": "staff_broom",
+  "MP_STAFF_IRON_REVOLVE_T2": "staff_broom",
+  "MP_SPEAR_MILITARY_DRILL_T1": "spear_point",
+  "MP_SPEAR_LINE": "spear_point",
+  "MP_SPEAR_WIND_THRUST_T1": "spear_point",
+  "MP_FOCUS_SEAL": "seal_knot",
+  "ART190_GOD_012": "seal_knot",
+  "MP_FIST_JOINT_LOCK_CLAW_T2": "root_stance"
+};
+  SK.PASSIVE_TO_COMMON_VFX = {
+  "PASS_IRON_SHIRT_T1": "bronze_skin",
+  "PASS_ROOTED_STANCE_T2": "root_stance",
+  "MP_STAFF_ROOT": "root_stance",
+  "PASS_QUIET_HEART_T1": "mind_ripple",
+  "PASS_DEEP_RESERVOIR_T1": "qi_thread",
+  "MP_FIST_BREATH": "qi_palm",
+  "PASS_LASTING_BREATH_T2": "heal_sprout",
+  "MP_BOW_FOCUS": "arrow_fletch",
+  "PASS_BOW_STILLNESS_T1": "arrow_fletch",
+  "MP_ROBE_WARD": "star_guard",
+  "PASS_SWORD_FAMILIAR_T1": "draw_cut",
+  "PASS_MEASURED_FOOTWORK_T1": "staff_broom"
+};
+  SK.STATUS_TO_COMMON_VFX = {
+  "burn": "forge_spark",
+  "bleed": "blood_drop",
+  "poison": "poison_barb",
+  "slow": "root_stance",
+  "stun": "star_guard",
+  "silence": "seal_knot",
+  "weaken": "mind_ripple",
+  "blind": "dream_haze",
+  "armorbreak": "bronze_skin",
+  "mdefbreak": "ink_bind",
+  "exposed": "bronze_skin",
+  "leech": "thorn_whip",
+  "guardUp": "bronze_skin",
+  "shield": "star_guard",
+  "counter": "twin_balance",
+  "haste": "qi_thread",
+  "evadeUp": "incense_wisp",
+  "morale": "heart_ward",
+  "holyAura": "star_guard",
+  "critUp": "thunder_tap",
+  "vitalRegen": "heal_sprout",
+  "qiConduit": "qi_thread"
+};
+  SK.resolveCommonVfx = (techOrMove, moveOpt) => {
+    if (!techOrMove) return null;
+    const id = techOrMove.tech || techOrMove.id;
+    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    if (!tech || tech.legendary || tech.tier > 2 || tech.signatureVfx || tech.fxKind ||
+        SK.TECH_TO_SIGNATURE_VFX[id] || techOrMove.signatureVfx ||
+        (moveOpt && moveOpt.signatureVfx)) return null;
+    const moveId = moveOpt && moveOpt.id;
+    const move = (tech.moveDefs || []).find(m => m.id === moveId);
+    if (move && (move.signatureVfx || move.fxKind || move.legendary)) return null;
+    // The starter healer has a healing move and a qi-support move, not one image for both.
+    if (id === 'MP_BASE_SAGE_SUPPORT' && moveId === 'MP_BASE_SAGE_SUPPORT_M2') return 'qi_thread';
+    return SK.TECH_TO_COMMON_VFX[id] || null;
+  };
+
   SK.resolveSignatureVfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const tid = techOrMove.tech || techOrMove.id || '';

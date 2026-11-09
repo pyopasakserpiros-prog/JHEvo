@@ -209,3 +209,10 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
   - Each card displays headline, epistemic certainty badge (`📜 บันทึกยืนยัน` / `👁️ รายงานสังเกตการณ์` / `🍶 ข่าวลือโรงเตี๊ยม`), lead paragraph, turning point/causality, impact/follow-up, and a collapsible `<details>` numeric & actor-snapshot breakdown explaining what each number means in the game.
 - **Historical Person Memorial Fallback (`UI.openNpc`, `UI.findHistoricalPersonSnapshot`, `UI.rHistoricalPerson`)**:
   - Clicking `[data-npc]` for a deceased, buried (`W.graveyard`), exiled (`W.gone`), or renamed NPC opens `UI.sheet = 'hist_npc'` showing their saved snapshot, `formerNames`, cultivation stage, cause of death/departure, and related chronicle/log events.
+
+
+## Common T1/T2 VFX refinement on JS2-v2.6.0 (2026-11-09)
+- `SK.COMMON_VFX_CATALOG` has 30 forms; explicit common technique/passive/status maps cover 66 / 12 / 22 entries. Check `docs/audits/COMMON_SKILL_VFX_REGISTRY.md` as well as the Signature registry to avoid duplicate work.
+- `Render.methods.drawCommonSkillVfx` is compact and render-only; `resolveCommonVfx` preserves explicit Signature/Legendary art. The renderer uses real cast tech/move IDs, not new save metadata. Basic casts use 540 ms / 11–15 px; no elemental burst overlay.
+- `drawCommonStatusAuras`: at most one live positive and one live harmful state on actual NPC/foe/wild-beast recipients; expired/hidden/dead states skipped. `drawCommonPassiveAura`: one eligible active passive, restrained underfoot, only relevant activities or selected actor. Never infer a buff from a skill name.
+- Run `test/common_skill_vfx_suite.js` and `test/common_skill_vfx_browser.js` alongside old weapon/Signature/Legendary regressions. Browser previews live in `docs/visuals/common-skill-vfx/`. Existing Signature count stays 45.

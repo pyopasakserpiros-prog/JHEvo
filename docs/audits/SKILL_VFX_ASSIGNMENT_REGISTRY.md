@@ -6,6 +6,8 @@
 
 This ledger records exact technique IDs and art direction so another developer or AI can avoid adding the same visual again. Treat the ID, signature ID, shape, and description together as an assigned motif. Check the current source before extending the ledger because future patches may supersede or intentionally share an entry.
 
+> Low-tier coverage is tracked separately in [Common Skill VFX Registry](COMMON_SKILL_VFX_REGISTRY.md): 30 common forms, 66 T1/T2 techniques, 12 passive routes and 22 status routes. Check both registries before extending effects.
+
 ## Baseline audit
 
 Before adding these entries, the v2.6.0 baseline had 30 entries in `SK.SIGNATURE_VFX_CATALOG`. Each selected parent technique returned `null` from `SK.resolveSignatureVfx`, with no explicit `signatureVfx` field or direct technique mapping. The two selected newer three-stage techniques were checked stage-by-stage after temporarily removing the new parent route: all six `moveDefs` also returned `null`. The other 13 technique records contain authored move names as strings rather than separate `moveDefs`, so their runtime skill inherits the parent technique's signature.

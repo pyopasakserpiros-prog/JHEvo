@@ -156,3 +156,10 @@ Earlier claims of 97/97 are historical and do not establish the status of the cu
 - `test/signature_vfx_catalog_browser_audit.js` now expects 45 Signature forms, checks all pixel hashes remain unique, retains all 43 path-crown checks, and compares a single-recipient faith cast against its actual multi-recipient drawing.
 - Run these with `test/skill_visual_events.js`, `test/weapon_motion_vfx_suite.js`, `test/weapon_motion_vfx_browser.js`, the full test runner, schema validation and standalone build. A pixel-distinct gallery does not certify physical-device FPS.
 - Latest parallel result: `152 groups, 150 pass, 1 fail, 1 timeout` across 151 suites + syntax (229 files). `browser_mobile_perf` was the variable failure (8× backlog 18.73 vs <16) but passed on isolated retry (1.4 ms/tick / 178.6× cap); `startup_ui` still times out because startup-overlay content intercepts pointer clicks. Do not attribute either browser-only result to Signature VFX without a reproduction.
+
+
+## Common T1/T2 VFX refinement on JS2-v2.6.0 (2026-11-09)
+- `SK.COMMON_VFX_CATALOG` has 30 forms; explicit common technique/passive/status maps cover 66 / 12 / 22 entries. Check `docs/audits/COMMON_SKILL_VFX_REGISTRY.md` as well as the Signature registry to avoid duplicate work.
+- `Render.methods.drawCommonSkillVfx` is compact and render-only; `resolveCommonVfx` preserves explicit Signature/Legendary art. The renderer uses real cast tech/move IDs, not new save metadata. Basic casts use 540 ms / 11–15 px; no elemental burst overlay.
+- `drawCommonStatusAuras`: at most one live positive and one live harmful state on actual NPC/foe/wild-beast recipients; expired/hidden/dead states skipped. `drawCommonPassiveAura`: one eligible active passive, restrained underfoot, only relevant activities or selected actor. Never infer a buff from a skill name.
+- Run `test/common_skill_vfx_suite.js` and `test/common_skill_vfx_browser.js` alongside old weapon/Signature/Legendary regressions. Browser previews live in `docs/visuals/common-skill-vfx/`. Existing Signature count stays 45.

@@ -345,3 +345,10 @@ node test/v209_facilities_party_synergy_suite.js
 - Cast location and team membership stay owned by the existing combat event. The faith network uses only the saved `castFx.targetPoints`; the generic marker still shows each actual recipient. Status auras continue on their owner rather than following the cast.
 - Verify `test/skill_vfx_expansion_suite.js` (15 baseline audits plus real cast snapshots) and `test/signature_vfx_catalog_browser_audit.js` (all 45 pixel-distinct forms and 43 path crowns).
 - The queue remains capped at 24; Canvas vectors do not consume combat RNG, wear equipment, or modify damage/status. Verify `test/weapon_motion_vfx_suite.js` and `test/weapon_motion_vfx_browser.js`.
+
+
+## Common T1/T2 VFX refinement on JS2-v2.6.0 (2026-11-09)
+- `SK.COMMON_VFX_CATALOG` has 30 forms; explicit common technique/passive/status maps cover 66 / 12 / 22 entries. Check `docs/audits/COMMON_SKILL_VFX_REGISTRY.md` as well as the Signature registry to avoid duplicate work.
+- `Render.methods.drawCommonSkillVfx` is compact and render-only; `resolveCommonVfx` preserves explicit Signature/Legendary art. The renderer uses real cast tech/move IDs, not new save metadata. Basic casts use 540 ms / 11–15 px; no elemental burst overlay.
+- `drawCommonStatusAuras`: at most one live positive and one live harmful state on actual NPC/foe/wild-beast recipients; expired/hidden/dead states skipped. `drawCommonPassiveAura`: one eligible active passive, restrained underfoot, only relevant activities or selected actor. Never infer a buff from a skill name.
+- Run `test/common_skill_vfx_suite.js` and `test/common_skill_vfx_browser.js` alongside old weapon/Signature/Legendary regressions. Browser previews live in `docs/visuals/common-skill-vfx/`. Existing Signature count stays 45.

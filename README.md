@@ -15,13 +15,15 @@
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
-> 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  
-> - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)  
+> 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**
+> - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)
 > - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือ **`JS2-v2.6.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
-**📑 รายงานการพัฒนาแพตช์ล่าสุด:** 
+**📑 รายงานการพัฒนาแพตช์ล่าสุด:**
+
+- [COMMON_SKILL_VFX_JS2_V2_6_0.md](PATCH_REPORTS/COMMON_SKILL_VFX_JS2_V2_6_0.md) — 30 ลายพื้นฐานสำหรับ 66 วิชา T1–T2, พาสซีฟ 12 วิชา และสถานะจริง 22 แบบ พร้อมทะเบียนกันทำซ้ำ
 - [SKILL_VFX_EXPANSION_JS2_V2_6_0.md](PATCH_REPORTS/SKILL_VFX_EXPANSION_JS2_V2_6_0.md) (refinement บน main v2.6.0: 15 ลายใหม่, Signature 45 แบบ, มีทะเบียน mapping และภาพเทียบ)
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) (`JS2-v2.6.0`: พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว — 148/148 กลุ่มทดสอบผ่าน 100%)
 - [WEAPON_MOTION_VFX_JS2_V2_5_0.md](PATCH_REPORTS/WEAPON_MOTION_VFX_JS2_V2_5_0.md) (`JS2-v2.5.0` VFX refinement on v2.6.0 main: 17 ตระกูลอาวุธ, หลายเป้าหมาย, ออร่าบัฟผู้รับ)

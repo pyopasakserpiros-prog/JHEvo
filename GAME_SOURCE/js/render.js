@@ -1843,6 +1843,12 @@
         const x = event.x * TS, y = event.y * TS;
         if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x - this.cam.x) > hw + 96 || Math.abs(y - this.cam.y) > hh + 96) return;
         const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
+        const authoredMove = techObj && (techObj.moveDefs || []).find(move => move.id === event.moveId);
+        const automaticSignature = g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(techObj || event, { ...(authoredMove || {}), arch: event.arch }) : null;
+        // Preserve an explicit per-event override too; only demote the old automatic
+        // high-tier heuristic for the selected basic curricula.
+        const eventArtOverride = event.fxKind || (event.signatureVfx && event.signatureVfx !== automaticSignature);
+        const commonVfx = !eventArtOverride && g.SK && g.SK.resolveCommonVfx ? g.SK.resolveCommonVfx(techObj || event, { id: event.moveId }) : null;
         const forbidden = event.kind === 'forbidden';
         const motif = event.motif || event.fxKind || (forbidden ? 'forbidden' : 'normal');
         const isLegend = !!(event.legendary || (techObj && techObj.legendary) || (motif && String(motif).startsWith('legend_')));
@@ -1857,6 +1863,7 @@
           motif,
           fxKind: event.fxKind || (isLegend ? motif : null),
           signatureVfx: event.signatureVfx || (techObj && techObj.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(techObj || event) : null) || null,
+          commonVfx: forbidden || isLegend ? null : commonVfx,
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
@@ -1875,7 +1882,7 @@
             .slice(0, 8).map(point => ({ x: point.x * TS, y: point.y * TS, team: point.team !== false })) : [],
           angle: Math.atan2(y - originY, x - originX),
           start: this.castClock,
-          life: isLegend ? 1500 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))
+          life: isLegend ? 1500 : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450)))
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -2537,6 +2544,8 @@
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryArtVfx(ctx,fx,p,reduced);
           if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+        } else if (fx.commonVfx) {
+          this.drawCommonSkillVfx(ctx, fx.commonVfx, p, reduced ? 12 : 11 + p * 4, reduced, fx.angle);
         } else if (fx.signatureVfx) {
           this.drawSignatureSkillVfx(ctx, fx, p, r, reduced);
           if (!fx.legendary && fx.weaponType) this.drawWeaponMotionVfx(ctx, fx, p, r * 0.82, reduced, 0.42);
@@ -2609,7 +2618,117 @@
         .slice(0, 3);
     },
 
+    // Quiet common motifs: <= 3 repeated marks per form, muted colors, no bloom or screen wash.
+    drawCommonSkillVfx(ctx, id, p, radius, reduced, angle = 0, harmful = false) {
+      const spec = g.SK && g.SK.COMMON_VFX_CATALOG[id];
+      if (!ctx || !spec) return false;
+      const q = reduced ? 0.5 : clamp(p, 0, 1), r = Math.min(17, radius);
+      ctx.save(); ctx.scale(r, r); ctx.lineWidth = 1.2 / r;
+      ctx.strokeStyle = harmful ? '#c58c9b' : spec.primary;
+      ctx.fillStyle = harmful ? '#b87789' : spec.primary;
+      ctx.globalAlpha *= 0.78; ctx.lineCap = 'round';
+      const line = (pts, close = false) => { ctx.beginPath(); for (let i = 0; i < pts.length; i++) { const [x,y] = pts[i]; i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); } if (close) ctx.closePath(); ctx.stroke(); };
+      const oval = (x,y,rx,ry) => { ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); ctx.stroke(); };
+      const dot = (x,y,s) => { ctx.beginPath(); ctx.arc(x,y,s,0,Math.PI*2); ctx.fill(); };
+      switch (id) {
+        case 'qi_palm':
+          ctx.rotate(angle); line([[-.6,.3],[-.2,-.15],[.1,-.15],[.1,-.65],[.25,-.68],[.4,-.12],[.55,-.5],[.7,-.38],[.63,.2],[.2,.52],[-.3,.52]]); break;
+        case 'stone_fist':
+          line([[-.6,.25],[-.6,-.35],[-.3,-.55],[.42,-.55],[.65,-.1],[.5,.42],[-.3,.48]],true); line([[-.3,-.5],[-.3,-.05],[.3,.05]]); break;
+        case 'heart_ward':
+          ctx.beginPath(); ctx.moveTo(0,.65); ctx.bezierCurveTo(-1,-.05,-.65,-.85,0,-.35); ctx.bezierCurveTo(.65,-.85,1,-.05,0,.65); ctx.stroke(); break;
+        case 'blood_drop':
+          ctx.beginPath(); ctx.moveTo(0,-.75); ctx.bezierCurveTo(-.8,.2,-.45,.65,0,.65); ctx.bezierCurveTo(.45,.65,.8,.2,0,-.75); ctx.stroke(); line([[-.15,.25],[.08,.4]]); break;
+        case 'mind_ripple':
+          for(let i=0;i<3;i++) { ctx.beginPath(); ctx.arc(0,.08,.22+i*.23,-2.6,2.6); ctx.stroke(); } break;
+        case 'paw_signal':
+          oval(0,.25,.3,.23); for(let i=0;i<3;i++) dot((i-1)*.33,-.25-Math.abs(i-1)*-.1,.11); break;
+        case 'heal_sprout':
+          line([[0,.65],[0,-.2]]); ctx.beginPath();ctx.moveTo(0,.1);ctx.quadraticCurveTo(-.8,.08,-.52,-.48);ctx.quadraticCurveTo(-.02,-.4,0,.1);ctx.moveTo(0,-.05);ctx.quadraticCurveTo(.8,-.05,.5,-.65);ctx.quadraticCurveTo(.02,-.5,0,-.05);ctx.stroke(); break;
+        case 'qi_thread':
+          for(let i=0;i<2;i++){ctx.beginPath();ctx.moveTo(-.7,(i-.5)*.45);ctx.bezierCurveTo(-.2,-.65+i*.4,.2,.65-i*.4,.7,(i-.5)*.45);ctx.stroke();} dot(-.5+q,.03,.1);break;
+        case 'forge_spark':
+          for(let i=0;i<3;i++){const a=-2.4+i*.8;line([[Math.cos(a)*.2,Math.sin(a)*.2],[Math.cos(a)*(.55+q*.15),Math.sin(a)*(.55+q*.15)]]);} line([[-.5,.4],[.5,.4]]); break;
+        case 'gear_tick':
+          oval(0,0,.4,.4); for(let i=0;i<3;i++){const a=i*Math.PI*2/3;line([[Math.cos(a)*.4,Math.sin(a)*.4],[Math.cos(a)*.7,Math.sin(a)*.7]]);}dot(0,0,.09);break;
+        case 'sword_drizzle':
+          ctx.rotate(angle); for(let i=-1;i<=1;i++)line([[i*.4-.1,-.55],[i*.4+.15,.55],[i*.4-.02,.36]]);break;
+        case 'thorn_whip':
+          ctx.beginPath();ctx.moveTo(-.75,.3);ctx.bezierCurveTo(-.5,-.85,.3,.6,.75,-.3);ctx.stroke();line([[-.3,-.15],[-.4,-.45]]);line([[.3,.08],[.4,.38]]);break;
+        case 'silver_pin':
+          ctx.rotate(angle);line([[-.75,0],[.7,0],[.45,-.12]]);oval(-.52,0,.13,.08);break;
+        case 'twin_balance':
+          for(let i=0;i<2;i++){ctx.beginPath();ctx.arc(0,0,.55,i*Math.PI+.2,i*Math.PI+2.7);ctx.stroke();dot(Math.cos(i*Math.PI+.5)*.3,Math.sin(i*Math.PI+.5)*.3,.08);}break;
+        case 'star_guard':
+          line([[-.55,-.45],[0,-.65],[.55,-.45],[.4,.3],[0,.65],[-.4,.3]],true);line([[0,-.3],[0,.26]]);break;
+        case 'bronze_skin':
+          for(let i=-1;i<=1;i++)line([[i*.34,-.45],[i*.34+.2,-.4],[i*.34+.18,.35],[i*.34,.45]],true);break;
+        case 'frost_knuckle':
+          for(let i=0;i<3;i++){ctx.save();ctx.rotate(i*Math.PI*2/3);line([[0,0],[0,-.7],[-.15,-.45],[0,-.55],[.15,-.45]]);ctx.restore();}break;
+        case 'thunder_tap':
+          line([[.15,-.75],[-.36,.03],[.15,-.06],[-.15,.7],[.5,-.15],[.03,-.06]]);break;
+        case 'incense_wisp':
+          for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(i*.35,.55);ctx.bezierCurveTo(i*.35-.35,-.1,i*.35+.3,-.2,i*.35,-.65);ctx.stroke();}break;
+        case 'ink_bind':
+          line([[-.6,-.5],[.55,-.35],[-.3,.15],[.6,.55]]);dot(-.4,.5,.12);dot(.55,-.6,.08);break;
+        case 'dream_haze':
+          for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse((i-1)*.25,(i-1)*.27,.45,.15,-.2,0,Math.PI*1.7);ctx.stroke();}break;
+        case 'poison_barb':
+          line([[-.65,.45],[.5,-.6],[.15,-.5],[.5,-.6],[.4,-.2]]);dot(-.25,-.4,.14);dot(.4,.4,.1);break;
+        case 'soul_needle':
+          line([[-.75,.1],[.5,-.15],[.25,-.3],[.75,-.2],[.3,.18],[.5,-.15]]);oval(-.4,.05,.17,.3);break;
+        case 'straight_jab':
+          ctx.rotate(angle);line([[-.75,-.2],[.35,-.2],[.6,0],[.35,.3],[-.75,.3]]);line([[-.3,-.2],[-.3,.3]]);break;
+        case 'draw_cut':
+          ctx.rotate(angle);ctx.beginPath();ctx.moveTo(-.7,.4);ctx.quadraticCurveTo(-.05,-.1,.7,-.5);ctx.quadraticCurveTo(.25,.3,-.7,.4);ctx.stroke();break;
+        case 'arrow_fletch':
+          ctx.rotate(angle);line([[-.75,0],[.7,0],[.42,-.2],[.7,0],[.42,.2]]);line([[-.7,-.23],[-.45,0],[-.7,.23]]);break;
+        case 'staff_broom':
+          ctx.beginPath();ctx.arc(0,0,.7,-.15,2.8);ctx.stroke();line([[-.65,-.4],[.65,.35]]);dot(-.55,.5,.06);break;
+        case 'spear_point':
+          ctx.rotate(angle);line([[-.8,0],[.18,0],[.18,-.22],[.75,0],[.18,.22],[.18,0]]);break;
+        case 'seal_knot':
+          line([[-.4,-.6],[.4,-.6],[.4,.6],[-.4,.6]],true);line([[-.6,0],[.6,0],[0,-.4],[0,.4]]);break;
+        case 'root_stance':
+          line([[0,-.55],[0,.15],[-.6,.6],[-.3,.15],[.3,.15],[.6,.6]]);line([[-.65,.65],[.65,.65]]);break;
+      }
+      ctx.restore(); return true;
+    },
+
+    // Select one beneficial and one harmful live status. Never purge or extend simulation statuses.
+    drawCommonStatusAuras(ctx, n, by = 0) {
+      if (!ctx || !n || n.dead || n.away || n.gone || n.hidden || !this.W || !g.SK || !Array.isArray(n.sx)) return 0;
+      const slots = [null,null];
+      for (const entry of n.sx) {
+        if (!entry || !Number.isFinite(entry.until) || entry.until <= this.W.t) continue;
+        const id = g.SK.STATUS_TO_COMMON_VFX[entry.k], spec = g.SK.STATUS[entry.k];
+        if (!id || !spec) continue;
+        const positive = !!(spec.isBuff || ['guardUp','shield','counter','haste','evadeUp','morale','holyAura','critUp'].includes(entry.k));
+        const slot = positive ? 0 : 1;
+        if (!slots[slot]) slots[slot] = { id, harmful: !positive };
+      }
+      const reduced = this.isReducedMotion(), p = reduced ? .5 : ((this.t || 0) * .35) % 1;
+      let count = 0;
+      for (let i=0;i<slots.length;i++) if(slots[i]) {
+        ctx.save(); ctx.translate(i ? 9 : -9, -8 + by*.2); ctx.globalAlpha *= .72;
+        this.drawCommonSkillVfx(ctx, slots[i].id, p, 5.5, reduced, 0, slots[i].harmful);
+        ctx.restore(); count++;
+      }
+      return count;
+    },
+
+    drawCommonPassiveAura(ctx, n, act, by = 0) {
+      if (!ctx || !n || n.dead || n.away || n.gone || n.hidden || !g.SK ||
+          !['fight','practice','cultivate','breakthrough'].includes(act) && this.selected !== n.id) return false;
+      const tech = this.readOnlyActivePassives(n).find(t => !t.legendary && g.SK.PASSIVE_TO_COMMON_VFX[t.id]);
+      if (!tech) return false;
+      ctx.save(); ctx.translate(0, 3 + by*.2); ctx.globalAlpha *= .38;
+      this.drawCommonSkillVfx(ctx, g.SK.PASSIVE_TO_COMMON_VFX[tech.id], .5, 7, true);
+      ctx.restore(); return tech.id;
+    },
+
     drawAppliedBuffAura(ctx, n, by) {
+      const commonCount = this.drawCommonStatusAuras(ctx, n, by);
       if (!ctx || !n || !Array.isArray(n.sx) || !this.W || !g.SK || !g.SK.STATUS) return false;
       const positive = n.sx.filter(entry => {
         if (!entry || !Number.isFinite(entry.until) || entry.until <= this.W.t) return false;
@@ -2624,6 +2743,7 @@
         : /vital|regen|clarity|meridian|lotus|healing/i.test(ids.join('|')) ? 'life'
           : /haste|swift|wind|step|mirage|evade/i.test(ids.join('|')) ? 'wind'
             : /morale|fervor|might|frenzy|critUp|command/i.test(ids.join('|')) ? 'power' : 'qi';
+      if (commonCount && positive.every(entry => g.SK.STATUS_TO_COMMON_VFX[entry.k])) return family;
       const palette = { guard: ['#72efdd', '#d4fff6'], life: ['#79d98c', '#e4ffb5'], wind: ['#80deea', '#e0fbff'], power: ['#ffd166', '#fff2bd'], qi: ['#c792ea', '#f0dcff'] }[family];
       const reduced = this.isReducedMotion(), phase = reduced ? 0.5 : (Number.isFinite(this.t) ? this.t : 0) + (n.n || 0) * 0.41;
       ctx.save(); ctx.globalAlpha *= 0.58 + (reduced ? 0 : Math.sin(phase * 2.1) * 0.08);
@@ -3415,6 +3535,7 @@
       }
       this.drawEquipmentTierAura(ctx, n, ap, -bob);
       this.drawAppliedBuffAura(ctx, n, -bob);
+      this.drawCommonPassiveAura(ctx, n, act, -bob);
       this.drawLegendaryEquipmentAura(ctx, n, ap, -bob);
       this.drawWeaponSoulAndSetResonance(ctx, n, ap, -bob);
 
@@ -4097,6 +4218,7 @@
 
       ctx.save();
       ctx.translate(x, y);
+      if (this.cam.z >= .42) this.drawCommonStatusAuras(ctx, b, 0);
       ctx.fillStyle = 'rgba(0,0,0,.22)';
       ctx.beginPath(); ctx.ellipse(0, 1, large ? 13 : 9, large ? 5 : 3.5, 0, 0, 7); ctx.fill();
 
@@ -4198,6 +4320,7 @@
       ctx.translate(x, y);
       ctx.fillStyle = 'rgba(0,0,0,.28)';
       ctx.beginPath(); ctx.ellipse(0, 1, 8, 3, 0, 0, 7); ctx.fill();
+      this.drawCommonStatusAuras(ctx, f, 0);
       ctx.scale(f.face >= 0 ? 1 : -1, 1);
       const s = 0.9 + f.tier * 0.12, bob = Math.abs(Math.sin(t * 8)) * 1.5;
       if (f.kind === 'beast') {

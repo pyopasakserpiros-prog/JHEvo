@@ -119,3 +119,10 @@ When full browser layout, computed CSS styles (`getBoundingClientRect()`), Canva
 - `test/skill_vfx_expansion_suite.js`: verifies the 15 exact technique-to-shape assignments, temporarily removes each new mapping to confirm the prior resolver had no parent/child effect, and checks real `COMBAT.attack → castFx` routing. It also checks the faith-link skill snapshots an actual ally.
 - `test/signature_vfx_catalog_browser_audit.js`: updated to test all 45 signature forms for pixel-distinct output, retain the 43 path-crown audit, check that extra real recipient coordinates change the faith network, and report browser page errors. `SIGNATURE_VFX_GALLERY=/absolute/path.png` selects the gallery output.
 - These tests prove the mapped drawing and the tested browser pixels; they do not certify performance on physical low-end devices. Existing browser/mobile performance suites remain the frame-timing checks.
+
+
+## Common T1/T2 VFX refinement on JS2-v2.6.0 (2026-11-09)
+- `SK.COMMON_VFX_CATALOG` has 30 forms; explicit common technique/passive/status maps cover 66 / 12 / 22 entries. Check `docs/audits/COMMON_SKILL_VFX_REGISTRY.md` as well as the Signature registry to avoid duplicate work.
+- `Render.methods.drawCommonSkillVfx` is compact and render-only; `resolveCommonVfx` preserves explicit Signature/Legendary art. The renderer uses real cast tech/move IDs, not new save metadata. Basic casts use 540 ms / 11–15 px; no elemental burst overlay.
+- `drawCommonStatusAuras`: at most one live positive and one live harmful state on actual NPC/foe/wild-beast recipients; expired/hidden/dead states skipped. `drawCommonPassiveAura`: one eligible active passive, restrained underfoot, only relevant activities or selected actor. Never infer a buff from a skill name.
+- Run `test/common_skill_vfx_suite.js` and `test/common_skill_vfx_browser.js` alongside old weapon/Signature/Legendary regressions. Browser previews live in `docs/visuals/common-skill-vfx/`. Existing Signature count stays 45.
