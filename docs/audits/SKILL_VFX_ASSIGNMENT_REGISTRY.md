@@ -1,5 +1,7 @@
 # Skill Signature VFX Assignment Registry
 
+> T3 additions and future ordinary-tier scale reservations: [T3 Registry & Tier Scale](T3_SKILL_VFX_AND_TIER_SCALE.md). Search all three registries before assigning another effect.
+
 **Current game base:** JS2-v2.6.0 (`2.6.0-living-chronicle-and-reporting`)
 **Implementation base commit:** `01061d32f1ea9967d7717bcb4fab8803b13bf5ee` (`feat(vfx): expand weapon motion and combat target effects`)
 **Registry update:** 2026-11-09; 15 new assignments, 45 catalog shapes total.

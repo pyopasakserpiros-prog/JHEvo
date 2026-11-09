@@ -1849,6 +1849,7 @@
         // high-tier heuristic for the selected basic curricula.
         const eventArtOverride = event.fxKind || (event.signatureVfx && event.signatureVfx !== automaticSignature);
         const commonVfx = !eventArtOverride && g.SK && g.SK.resolveCommonVfx ? g.SK.resolveCommonVfx(techObj || event, { id: event.moveId }) : null;
+        const t3Vfx = !eventArtOverride && g.SK && g.SK.resolveT3Vfx ? g.SK.resolveT3Vfx(techObj || event, { id: event.moveId }) : null;
         const forbidden = event.kind === 'forbidden';
         const motif = event.motif || event.fxKind || (forbidden ? 'forbidden' : 'normal');
         const isLegend = !!(event.legendary || (techObj && techObj.legendary) || (motif && String(motif).startsWith('legend_')));
@@ -1864,6 +1865,7 @@
           fxKind: event.fxKind || (isLegend ? motif : null),
           signatureVfx: event.signatureVfx || (techObj && techObj.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(techObj || event) : null) || null,
           commonVfx: forbidden || isLegend ? null : commonVfx,
+          t3Vfx: forbidden || isLegend ? null : t3Vfx,
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
@@ -1882,7 +1884,7 @@
             .slice(0, 8).map(point => ({ x: point.x * TS, y: point.y * TS, team: point.team !== false })) : [],
           angle: Math.atan2(y - originY, x - originX),
           start: this.castClock,
-          life: isLegend ? 1500 : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450)))
+          life: isLegend ? 1500 : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))))
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -2544,6 +2546,9 @@
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryArtVfx(ctx,fx,p,reduced);
           if (fx.element || fx.fusion) this.drawElementalCastAndFusionVfx(ctx, fx, p, r);
+        } else if (fx.t3Vfx) {
+          const budget = g.SK.NONLEGENDARY_VFX_BUDGET[3];
+          this.drawT3SkillVfx(ctx, fx.t3Vfx, p, reduced ? 18 : budget.rMin + (budget.rMax - budget.rMin) * p, reduced, fx.angle, fx.arch);
         } else if (fx.commonVfx) {
           this.drawCommonSkillVfx(ctx, fx.commonVfx, p, reduced ? 12 : 11 + p * 4, reduced, fx.angle);
         } else if (fx.signatureVfx) {
@@ -2616,6 +2621,88 @@
         .map(id => CULT.tech(id))
         .filter(t => t && (t.passive || t.cat === 'PASSIVE') && (!M || (M.isTechCompatible(n, t) && M.conditionMatches(n, t))))
         .slice(0, 3);
+    },
+
+    // T3: one main silhouette + one restrained echo. Larger tiers retain room to grow.
+    drawT3SkillVfx(ctx, id, p, radius, reduced, angle = 0, arch = null) {
+      const spec = g.SK && g.SK.T3_VFX_CATALOG[id];
+      if (!ctx || !spec) return false;
+      const q = reduced ? .5 : clamp(p,0,1), r = clamp(radius,1,g.SK.NONLEGENDARY_VFX_BUDGET[3].rMax);
+      const low = this.resolveQuality && this.resolveQuality() === 'low';
+      ctx.save(); ctx.scale(r,r); ctx.strokeStyle=spec.primary;ctx.fillStyle=spec.primary;
+      ctx.lineWidth=1.35/r;ctx.lineCap='round';ctx.lineJoin='round';
+      const line=(pts,closed=false)=>{ctx.beginPath();for(let i=0;i<pts.length;i++)i?ctx.lineTo(...pts[i]):ctx.moveTo(...pts[i]);if(closed)ctx.closePath();ctx.stroke();};
+      const ellipse=(x,y,rx,ry,rot=0)=>{ctx.beginPath();ctx.ellipse(x,y,rx,ry,rot,0,Math.PI*2);ctx.stroke();};
+      const arc=(x,y,rr,a,b)=>{ctx.beginPath();ctx.arc(x,y,rr,a,b);ctx.stroke();};
+      switch(id){
+        case 'violet_point':
+          ctx.rotate(angle);line([[-.85,0],[-.3,-.12],[-.05,.12],[.3,-.12],[.85,0],[.56,.2]]);ellipse(.36,0,.21,.35);break;
+        case 'moon_pool':
+          arc(-.08,-.24,.48,-1.9,1.3);arc(.1,-.27,.39,-1.85,1.3);ellipse(0,.56,.78,.16);line([[-.32,.53],[.45,.53]]);break;
+        case 'layered_mist':
+          for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-.75+i*.08,-.55+i*.32);ctx.bezierCurveTo(-.22,-.95+i*.32,.2,.12+i*.25,.74-i*.08,-.45+i*.3);ctx.stroke();}break;
+        case 'autumn_blades':
+          for(let i=0;i<3;i++){ctx.save();ctx.translate((i-1)*.45,(i%2)*.3-.25);ctx.rotate(-.5+q*.4+i*.2);line([[0,-.34],[.17,-.05],[0,.34],[-.15,.05]],true);line([[0,-.2],[0,.32]]);ctx.restore();}break;
+        case 'solar_knuckle':
+          line([[-.6,.2],[-.62,-.36],[-.3,-.55],[.3,-.55],[.57,-.15],[.4,.35]],true);
+          for(let i=0;i<3;i++){const x=(i-1)*.28;line([[x,.1],[x,.6],[x+.12,.78]]);}break;
+        case 'frost_rake':
+          for(let i=0;i<3;i++){const x=(i-1)*.45;line([[x-.15,-.65],[x+.08,-.25],[x-.02,.18],[x+.2,.65]]);}line([[-.7,.4],[.7,-.4]]);break;
+        case 'thorn_guard':
+          ellipse(0,0,.48,.58);for(let i=0;i<4;i++){const a=i*Math.PI/2;line([[Math.cos(a)*.48,Math.sin(a)*.58],[Math.cos(a)*.8,Math.sin(a)*.85],[Math.cos(a+.2)*.48,Math.sin(a+.2)*.58]]);}break;
+        case 'faith_lamella':
+          for(let i=-1;i<=1;i++)line([[i*.35-.16,-.5],[i*.35+.16,-.5],[i*.35+.13,.26],[i*.35,.5],[i*.35-.13,.26]],true);
+          if(!arch || ['guard','shield','counter','support','buff','heal','harmonize'].includes(arch)) arc(0,-.1,.75,Math.PI,Math.PI*2);
+          else { line([[-.72,-.25],[-.44,-.05]]);line([[.44,.05],[.72,.25]]); }
+          break;
+        case 'curse_eye':
+          line([[-.8,0],[-.3,-.4],[.3,-.4],[.8,0],[.3,.4],[-.3,.4]],true);ellipse(0,0,.23,.23);line([[-.25,.64],[.25,.64]]);break;
+        case 'thread_shear':
+          line([[-.8,-.5],[-.15,-.06],[.16,.08],[.8,.5]]);line([[-.8,.5],[-.15,.06],[.15,-.06],[.8,-.5]]);
+          arc(0,0,.34,-.85,.85);line([[0,-.62],[0,-.35]]);break;
+        case 'shadow_stiletto':
+          ctx.rotate(angle);line([[-.75,.25],[-.28,.08],[.75,-.35],[.3,.15],[-.25,.3]],true);line([[-.4,-.05],[-.25,.47]]);line([[-.6,.55],[.45,.18]]);break;
+        case 'bone_ribs':
+          line([[0,-.7],[0,.65]]);for(let i=0;i<3;i++){const y=-.44+i*.35;ctx.beginPath();ctx.moveTo(-.58,y-.15);ctx.quadraticCurveTo(-.7,y+.36,0,y+.24);ctx.quadraticCurveTo(.7,y+.36,.58,y-.15);ctx.stroke();}break;
+        case 'blood_furnace':
+          line([[-.55,-.2],[-.42,.58],[.42,.58],[.55,-.2]],true);ellipse(0,-.2,.55,.16);
+          line([[-.15,-.28],[-.32,-.58],[-.03,-.9],[.19,-.55],[.12,-.28]]);break;
+        case 'cloud_bodkin':
+          ctx.rotate(angle);line([[-.82,0],[.4,0],[.25,-.2],[.88,0],[.25,.2],[.4,0]]);
+          arc(-.2,-.13,.4,Math.PI,Math.PI*1.9);arc(-.15,.18,.4,.1,Math.PI);break;
+        case 'iron_breach':
+          ctx.rotate(angle);line([[-.85,0],[.75,0],[.42,-.18],[.75,0],[.42,.18]]);
+          line([[.05,-.75],[-.05,-.27],[.12,-.12]]);line([[.15,.15],[-.02,.31],[.1,.72]]);break;
+        case 'gravity_staff':
+          line([[-.25,-.85],[.16,.15],[.4,.05],[0,-.93]],true);line([[-.75,.65],[-.22,.33],[.02,.6],[.33,.38],[.75,.62]]);break;
+        case 'cross_execution':
+          ctx.rotate(angle);line([[-.7,-.7],[.7,.7],[.28,.08]],true);line([[-.7,.7],[.7,-.7],[.1,-.16]],true);break;
+        case 'abacus_grid':
+          line([[-.72,-.55],[.72,-.55],[.72,.55],[-.72,.55]],true);
+          for(let i=-1;i<=1;i++){line([[i*.38,-.48],[i*.38,.48]]);ellipse(i*.38,(i%2)*.17,.12,.07);}break;
+        case 'baji_impact':
+          line([[-.62,-.65],[-.2,-.65],[.03,-.25],[.3,-.08],[.22,.4],[-.38,.55],[-.62,.1]],true);
+          for(let i=0;i<2;i++)arc(-.1,0,.64+i*.24,-.8,.8);break;
+        case 'blade_disc':
+          ctx.rotate(reduced?0:q*.8);ellipse(0,0,.28,.28);for(let i=0;i<4;i++){ctx.save();ctx.rotate(i*Math.PI/2);line([[.2,-.15],[.62,-.55],[.85,-.12],[.36,.1]],true);ctx.restore();}break;
+        case 'karma_links':
+          for(let i=0;i<3;i++)ellipse((i-1)*.48,(i-1)*.2,.34,.2,.4);line([[-.65,.45],[-.45,.7]]);break;
+        case 'healing_chime':
+          line([[-.46,.2],[-.3,-.45],[0,-.58],[.3,-.45],[.46,.2],[-.46,.2]]);ellipse(0,.2,.46,.13);line([[0,.2],[0,.4]]);
+          arc(0,.1,.72,.55,2.6);break;
+        case 'zither_breeze':
+          for(let i=0;i<3;i++){const y=(i-1)*.28;ctx.beginPath();ctx.moveTo(-.75,y);ctx.bezierCurveTo(-.25,y-.32,.2,y+.3,.75,y);ctx.stroke();}
+          line([[-.62,-.65],[-.62,.6]]);ellipse(.55,-.44,.13,.08);break;
+        case 'frost_harmony':
+          line([[-.65,-.44],[.65,-.44],[.55,.44],[-.55,.44]],true);for(let i=-1;i<=1;i++)line([[i*.3,-.4],[i*.3,.4]]);
+          line([[0,-.75],[0,-.48],[-.15,-.63],[0,-.53],[.15,-.63]]);break;
+      }
+      if(!low){
+        // A single understated echo, not the multiple layers reserved for T4–T7.
+        ctx.strokeStyle=spec.accent;ctx.lineWidth=.8/r;ctx.globalAlpha*=.5;
+        arc(0,.15,.9,reduced?.2:q*.55,1.15+(reduced?.2:q*.55));
+      }
+      ctx.restore();return true;
     },
 
     // Quiet common motifs: <= 3 repeated marks per form, muted colors, no bloom or screen wash.
@@ -2701,17 +2788,19 @@
       const slots = [null,null];
       for (const entry of n.sx) {
         if (!entry || !Number.isFinite(entry.until) || entry.until <= this.W.t) continue;
-        const id = g.SK.STATUS_TO_COMMON_VFX[entry.k], spec = g.SK.STATUS[entry.k];
+        const t3 = !!g.SK.STATUS_TO_T3_VFX[entry.k];
+        const id = g.SK.STATUS_TO_COMMON_VFX[entry.k] || g.SK.STATUS_TO_T3_VFX[entry.k], spec = g.SK.STATUS[entry.k];
         if (!id || !spec) continue;
         const positive = !!(spec.isBuff || ['guardUp','shield','counter','haste','evadeUp','morale','holyAura','critUp'].includes(entry.k));
         const slot = positive ? 0 : 1;
-        if (!slots[slot]) slots[slot] = { id, harmful: !positive };
+        if (!slots[slot]) slots[slot] = { id, harmful: !positive, t3 };
       }
       const reduced = this.isReducedMotion(), p = reduced ? .5 : ((this.t || 0) * .35) % 1;
       let count = 0;
       for (let i=0;i<slots.length;i++) if(slots[i]) {
         ctx.save(); ctx.translate(i ? 9 : -9, -8 + by*.2); ctx.globalAlpha *= .72;
-        this.drawCommonSkillVfx(ctx, slots[i].id, p, 5.5, reduced, 0, slots[i].harmful);
+        if(slots[i].t3) this.drawT3SkillVfx(ctx, slots[i].id, p, 6.5, reduced);
+        else this.drawCommonSkillVfx(ctx, slots[i].id, p, 5.5, reduced, 0, slots[i].harmful);
         ctx.restore(); count++;
       }
       return count;
@@ -2720,10 +2809,11 @@
     drawCommonPassiveAura(ctx, n, act, by = 0) {
       if (!ctx || !n || n.dead || n.away || n.gone || n.hidden || !g.SK ||
           !['fight','practice','cultivate','breakthrough'].includes(act) && this.selected !== n.id) return false;
-      const tech = this.readOnlyActivePassives(n).find(t => !t.legendary && g.SK.PASSIVE_TO_COMMON_VFX[t.id]);
+      const tech = this.readOnlyActivePassives(n).find(t => !t.legendary && (g.SK.PASSIVE_TO_COMMON_VFX[t.id] || g.SK.PASSIVE_TO_T3_VFX[t.id]));
       if (!tech) return false;
       ctx.save(); ctx.translate(0, 3 + by*.2); ctx.globalAlpha *= .38;
-      this.drawCommonSkillVfx(ctx, g.SK.PASSIVE_TO_COMMON_VFX[tech.id], .5, 7, true);
+      if(g.SK.PASSIVE_TO_T3_VFX[tech.id]) this.drawT3SkillVfx(ctx, g.SK.PASSIVE_TO_T3_VFX[tech.id], .5, 8, true);
+      else this.drawCommonSkillVfx(ctx, g.SK.PASSIVE_TO_COMMON_VFX[tech.id], .5, 7, true);
       ctx.restore(); return tech.id;
     },
 
@@ -2743,7 +2833,7 @@
         : /vital|regen|clarity|meridian|lotus|healing/i.test(ids.join('|')) ? 'life'
           : /haste|swift|wind|step|mirage|evade/i.test(ids.join('|')) ? 'wind'
             : /morale|fervor|might|frenzy|critUp|command/i.test(ids.join('|')) ? 'power' : 'qi';
-      if (commonCount && positive.every(entry => g.SK.STATUS_TO_COMMON_VFX[entry.k])) return family;
+      if (commonCount && positive.every(entry => g.SK.STATUS_TO_COMMON_VFX[entry.k] || g.SK.STATUS_TO_T3_VFX[entry.k])) return family;
       const palette = { guard: ['#72efdd', '#d4fff6'], life: ['#79d98c', '#e4ffb5'], wind: ['#80deea', '#e0fbff'], power: ['#ffd166', '#fff2bd'], qi: ['#c792ea', '#f0dcff'] }[family];
       const reduced = this.isReducedMotion(), phase = reduced ? 0.5 : (Number.isFinite(this.t) ? this.t : 0) + (n.n || 0) * 0.41;
       ctx.save(); ctx.globalAlpha *= 0.58 + (reduced ? 0 : Math.sin(phase * 2.1) * 0.08);

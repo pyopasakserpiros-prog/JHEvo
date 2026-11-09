@@ -1,6 +1,6 @@
 # JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (Updated for JianghuSect 2 JS2-v2.6.0)
 
-All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 154 registered test groups [153 suites + syntax across 231 JS files]; see the latest audit note below for observed browser-only limitations.
+All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 156 registered test groups [155 suites + syntax across 233 JS files]; see the latest audit note below for observed browser-only limitations.
 
 ## Keeping the skills current
 
@@ -36,4 +36,8 @@ Parallel audit before the common low-tier refinement: `SUMMARY {"total":152,"pas
 
 Common low-tier VFX (JS2-v2.6.0): 30 common forms, 66 T1/T2 techniques, 12 eligible passive routes, 22 real status routes; see `docs/audits/COMMON_SKILL_VFX_REGISTRY.md` before assigning effects. Combat/UI/testing/QA/performance skills updated.
 
-Latest common-refinement parallel audit: 152/154 PASS, one startup-overlay timeout and one concurrent v410 tick-budget failure. The latter passed its isolated retry at 1.685 ms/tick; mobile performance passed at 1.465 ms/tick. See `PATCH_REPORTS/COMMON_SKILL_VFX_JS2_V2_6_0.md` for final targeted rechecks and exact limits.
+Parallel audit before the T3 refinement: 152/154 PASS, one startup-overlay timeout and one concurrent v410 tick-budget failure. The latter passed its isolated retry at 1.685 ms/tick; mobile performance passed at 1.465 ms/tick. See `PATCH_REPORTS/COMMON_SKILL_VFX_JS2_V2_6_0.md` for final targeted rechecks and exact limits.
+
+T3 VFX refinement (JS2-v2.6.0): 24 forms / 26 T3 techniques / 8 passive routes / 6 existing named statuses. Combat/UI/performance/testing/QA skills document `SK.NONLEGENDARY_VFX_BUDGET` and the T4–T7 reservations. See `docs/audits/T3_SKILL_VFX_AND_TIER_SCALE.md`.
+
+Latest T3-refinement combined audit: 155/156 PASS, zero FAIL, one existing startup-overlay timeout; mobile 1.553 ms/tick, v410 1.901 ms/tick. Final targeted rechecks after the scale/role refinements passed. See `PATCH_REPORTS/T3_SKILL_VFX_JS2_V2_6_0.md`.

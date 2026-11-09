@@ -2637,6 +2637,241 @@
     return SK.TECH_TO_COMMON_VFX[id] || null;
   };
 
+
+  // Ordinary-tier progression contract. T4–T7 are reserved design budgets, not enabled routes.
+  SK.NONLEGENDARY_VFX_BUDGET = {
+    "1": {
+      "life": 540,
+      "rMin": 11,
+      "rMax": 15,
+      "marks": 3,
+      "planned": false
+    },
+    "2": {
+      "life": 540,
+      "rMin": 11,
+      "rMax": 15,
+      "marks": 3,
+      "planned": false
+    },
+    "3": {
+      "life": 680,
+      "rMin": 16,
+      "rMax": 20,
+      "marks": 5,
+      "planned": false
+    },
+    "4": {
+      "life": 800,
+      "rMin": 21,
+      "rMax": 23,
+      "marks": 6,
+      "planned": true
+    },
+    "5": {
+      "life": 940,
+      "rMin": 24,
+      "rMax": 26,
+      "marks": 8,
+      "planned": true
+    },
+    "6": {
+      "life": 1080,
+      "rMin": 27,
+      "rMax": 29,
+      "marks": 10,
+      "planned": true
+    },
+    "7": {
+      "life": 1240,
+      "rMin": 30,
+      "rMax": 32,
+      "marks": 12,
+      "planned": true
+    }
+  };
+
+  SK.T3_VFX_CATALOG = {
+    "violet_point": {
+      "nameTh": "ดัชนีอัสนีม่วง",
+      "primary": "#b6a2d6",
+      "accent": "#d6c7ec"
+    },
+    "moon_pool": {
+      "nameTh": "กระบี่จันทร์สะท้อนสระ",
+      "primary": "#9bbfd3",
+      "accent": "#d4e1e8"
+    },
+    "layered_mist": {
+      "nameTh": "ฝ่ามือม่านหมอก",
+      "primary": "#b8adc9",
+      "accent": "#ddd5e5"
+    },
+    "autumn_blades": {
+      "nameTh": "คมใบไม้สารท",
+      "primary": "#c7ab79",
+      "accent": "#e6d3a7"
+    },
+    "solar_knuckle": {
+      "nameTh": "หมัดเพลิงหลอมเหล็ก",
+      "primary": "#d5a173",
+      "accent": "#efd2a0"
+    },
+    "frost_rake": {
+      "nameTh": "กรงเล็บหมีเหมันต์",
+      "primary": "#95bdcf",
+      "accent": "#cde3eb"
+    },
+    "thorn_guard": {
+      "nameTh": "กายาหนามสะท้อนแผล",
+      "primary": "#a4b2a2",
+      "accent": "#d0d6ba"
+    },
+    "faith_lamella": {
+      "nameTh": "เกราะศรัทธาซ้อนแผ่น",
+      "primary": "#d0bc83",
+      "accent": "#eee0b1"
+    },
+    "curse_eye": {
+      "nameTh": "เนตรสะท้อนคำสาป",
+      "primary": "#b5b2cc",
+      "accent": "#e1d9ed"
+    },
+    "thread_shear": {
+      "nameTh": "ตัดสายใยมาร",
+      "primary": "#b0c7bb",
+      "accent": "#e0e7ca"
+    },
+    "shadow_stiletto": {
+      "nameTh": "มีดสั้นเงาจาง",
+      "primary": "#a29aae",
+      "accent": "#d1bfd0"
+    },
+    "bone_ribs": {
+      "nameTh": "เกราะกระดูกค้ำกาย",
+      "primary": "#c8c4ae",
+      "accent": "#e6ddc7"
+    },
+    "blood_furnace": {
+      "nameTh": "เตาหลอมโลหิต",
+      "primary": "#c2838c",
+      "accent": "#e2b69a"
+    },
+    "cloud_bodkin": {
+      "nameTh": "ศรทะลวงเมฆ",
+      "primary": "#9ebcca",
+      "accent": "#d9e1dc"
+    },
+    "iron_breach": {
+      "nameTh": "ทวนทลายค่าย",
+      "primary": "#b7b7aa",
+      "accent": "#e1d6b9"
+    },
+    "gravity_staff": {
+      "nameTh": "พลองทุบศิลา",
+      "primary": "#b8a78c",
+      "accent": "#ddcdb1"
+    },
+    "cross_execution": {
+      "nameTh": "ดาบสะบั้นไขว้",
+      "primary": "#c1a0a1",
+      "accent": "#e1c7b8"
+    },
+    "abacus_grid": {
+      "nameTh": "ลูกคิดคำนวณศึก",
+      "primary": "#b9bb8f",
+      "accent": "#e0dbb3"
+    },
+    "baji_impact": {
+      "nameTh": "ไหล่กระแทกแปดขั้ว",
+      "primary": "#bfa88d",
+      "accent": "#e4d2b7"
+    },
+    "blade_disc": {
+      "nameTh": "กงล้อใบมีด",
+      "primary": "#a9b8c1",
+      "accent": "#dae0de"
+    },
+    "karma_links": {
+      "nameTh": "ห่วงโซ่ชะตา",
+      "primary": "#b8a6c4",
+      "accent": "#ded2db"
+    },
+    "healing_chime": {
+      "nameTh": "ระฆังหยกประโลม",
+      "primary": "#9fc8b3",
+      "accent": "#d5e7c7"
+    },
+    "zither_breeze": {
+      "nameTh": "สายพิณประสานวายุ",
+      "primary": "#93bdbe",
+      "accent": "#c9dfd1"
+    },
+    "frost_harmony": {
+      "nameTh": "พิณเหมันต์ชโลมปราณ",
+      "primary": "#a0c3d0",
+      "accent": "#d8e5ed"
+    }
+  };
+  SK.TECH_TO_T3_VFX = {
+    "ART190_XIAN_004": "violet_point",
+    "ART190_XIAN_005": "moon_pool",
+    "ART190_XIAN_015": "layered_mist",
+    "ART190_XIAN_035": "autumn_blades",
+    "ART190_BODY_004": "solar_knuckle",
+    "ART190_BODY_005": "frost_rake",
+    "ART190_BODY_036": "thorn_guard",
+    "ART190_GOD_015": "faith_lamella",
+    "ART190_GOD_016": "curse_eye",
+    "ART190_GOD_025": "thread_shear",
+    "ART_V112_DEMON_SILENT_DAGGER_T3": "shadow_stiletto",
+    "ART_V112_DEMON_BONE_ARMOR_SHIELD_T3": "bone_ribs",
+    "ART_DEMON_CRIMSON_FURNACE_T3": "blood_furnace",
+    "MP_BOW_PIERCE_CLOUD": "cloud_bodkin",
+    "MP_BOW_ARMOR_BODKIN_T3": "cloud_bodkin",
+    "MP_SPEAR_IRON_BREAKER_T3": "iron_breach",
+    "MP_STAFF_CRUSHING_BLOW_T3": "gravity_staff",
+    "MP_BLADE_CROSS_EXECUTION_T3": "cross_execution",
+    "MP_FOCUS_ABACUS_TACTIC_T3": "abacus_grid",
+    "MP_FIST_BAJI_SHOULDER_T3": "baji_impact",
+    "ART_MECH_PUPPET_005": "blade_disc",
+    "ART_KARMA_SAMSARA_007": "karma_links",
+    "ART_V210_AUX_SOUL_CHIME": "healing_chime",
+    "ART_SAGE_SUP_002": "zither_breeze",
+    "ART_V212_XIAN_ZITHER_T3": "zither_breeze",
+    "TECH_V222_09": "frost_harmony"
+  };
+  SK.PASSIVE_TO_T3_VFX = {
+    "PASS_BOW_HAWK_EYE_T3": "cloud_bodkin",
+    "PASS_IRON_SHIRT_T3": "faith_lamella",
+    "PASS_BROKEN_RHYTHM_T3": "thread_shear",
+    "PASS_MIRROR_HEART_T3": "curse_eye",
+    "PASS_FOCUS_MERIDIAN_T3": "violet_point",
+    "PASS_SWORD_INTENT_T3": "autumn_blades",
+    "PASS_GHOST_SHADOW_STEP_T3": "shadow_stiletto",
+    "PASS_POISON_BLOOD_AFFINITY_T3": "blood_furnace"
+  };
+  SK.STATUS_TO_T3_VFX = {
+    "swiftWind": "zither_breeze",
+    "clarityLotus": "healing_chime",
+    "qiBarrierShell": "faith_lamella",
+    "frostBarrier": "frost_harmony",
+    "boneArmor": "bone_ribs",
+    "parryCounter": "cross_execution"
+  };
+  SK.resolveT3Vfx = (techOrMove, moveOpt) => {
+    if (!techOrMove) return null;
+    const id = techOrMove.tech || techOrMove.id;
+    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    if (!tech || tech.tier !== 3 || tech.legendary || tech.fxKind || tech.signatureVfx ||
+        techOrMove.signatureVfx || SK.TECH_TO_SIGNATURE_VFX[id] ||
+        (moveOpt && (moveOpt.signatureVfx || moveOpt.fxKind || moveOpt.legendary))) return null;
+    const moveId = moveOpt && (moveOpt.moveId || moveOpt.id);
+    const move = (tech.moveDefs || []).find(m => m.id === moveId);
+    if (move && (move.signatureVfx || move.fxKind || move.legendary || move.arch === 'forbid')) return null;
+    return SK.TECH_TO_T3_VFX[id] || null;
+  };
+
   SK.resolveSignatureVfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const tid = techOrMove.tech || techOrMove.id || '';

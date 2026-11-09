@@ -1,5 +1,6 @@
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
+- **T3 VFX บน JS2-v2.6.0:** [T3_SKILL_VFX_JS2_V2_6_0.md](T3_SKILL_VFX_JS2_V2_6_0.md) — 24 ลาย / 26 วิชา T3 / 8 พาสซีฟ / 6 สถานะ พร้อมเพดานภาพสำหรับ T4–T7 ในอนาคต
 - **Common low-tier VFX บน JS2-v2.6.0:** [COMMON_SKILL_VFX_JS2_V2_6_0.md](COMMON_SKILL_VFX_JS2_V2_6_0.md) — 30 ลายพื้นฐาน / 66 วิชา / 12 พาสซีฟ / 22 สถานะจริง
 - **VFX refinement บน `JS2-v2.6.0` main:** [`SKILL_VFX_EXPANSION_JS2_V2_6_0.md`](SKILL_VFX_EXPANSION_JS2_V2_6_0.md) — เพิ่ม 15 ลาย Signature ของวิชาที่ไม่เคยมีเอฟเฟกต์ที่ resolver เลือกได้; รวม 45 ลาย พร้อม [ทะเบียนชื่อ/ID/ลายเพื่อป้องกันการทำซ้ำ](../docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md) และ [ภาพ Canvas เทียบทั้งหมด](../docs/visuals/skill-vfx-expansion/skill-vfx-gallery.png)
 - **ล่าสุด (`JS2-v2.6.0`):** [`PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) — JianghuSect 2 v2.6.0: พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (Fact Snapshot ณ เวลาเกิดเหตุ, ประวัติบุคคลย้อนหลังแม้ตาย/ถูกขับ/เปลี่ยนชื่อ, รายงาน 12 รูปแบบพร้อมลิ้นชักอธิบายตัวเลข, สมุดสรุปสถานการณ์ประจำรอบ 1/7/30 วันแยกบัญชีไม่บวกซ้ำ, เส้นเรื่องต่อเนื่อง, แยกตั้งค่ารับข่าว 5 โหมดออกจากตัวกรองค้นอ่านคลัง, คุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง, 148/148 กลุ่มชุดทดสอบผ่าน 100%)
