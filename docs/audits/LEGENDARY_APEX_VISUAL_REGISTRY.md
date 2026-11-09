@@ -1,5 +1,7 @@
 # Legendary Apex Visual Registry — JS2-v2.6.0
 
+> Current frontier update: selected T6 group art is now implemented (50 forms / 114 actual active skills / 207 child routes, 8 passives). See [T6 registry](T6_GROUP_VFX_REGISTRY.md); next requested frontier [T5](../handovers/NEXT_T5_VISUAL_PATCH.md). Counts and next-tier statements below describe this registry’s original patch unless explicitly updated.
+
 > T7 is now implemented: [T7 Registry](T7_VISUAL_ASSIGNMENT_REGISTRY.md). T4–T6 remain planned; next patch is T6. The original implementation history below is retained.
 
 Base `main aaf8c1a`. **Implemented:** 47 active Legendary skill scenes, 3 upgraded active-passive crowns, and 27 named Legendary equipment scenes (20 weapons, 3 armor, 4 accessories). Uses 27 thematic apparition families and preserves the distinct authored identity of every skill/item at its center. Lower-tier Common/T3/Signature catalogs are retained.

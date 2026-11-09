@@ -1,3 +1,7 @@
+# T6 handoff — completed for the selected scope
+
+**Superseded by the delivered T6 patch:** 50 shared forms / 114 real active skills / 207 child routes, 8 passives and 117 equipment templates. Exact coverage and exclusions: [T6 registry](../audits/T6_GROUP_VFX_REGISTRY.md). Next requested frontier: [T5](NEXT_T5_VISUAL_PATCH.md). The text below records the original handoff; do not start T6 again from it.
+
 # Next visual patch — T6 (not implemented by the T7 patch)
 
 The user requested descending visual work after Legendary Apex: T7 → T6 → T5 → T4. T1/T2 and T3 already have their own earlier coverage. This handoff is ready for the next requested patch; do not execute another tier merely because this document exists.

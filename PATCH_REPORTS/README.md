@@ -1,5 +1,6 @@
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
+- **T6 shared group VFX บน JS2-v2.6.0:** [T6_GROUP_VFX_JS2_V2_6_0.md](T6_GROUP_VFX_JS2_V2_6_0.md) — 50 ลาย / 114 วิชา / 207 ท่าย่อย + 8 พาสซีฟ และ 117 อุปกรณ์; เตรียม T5
 - **Ordinary T7 VFX บน JS2-v2.6.0:** [T7_VISUALS_JS2_V2_6_0.md](T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา / 157 ท่าย่อย / 85 อุปกรณ์ใน 25 ประเภท พร้อมส่งต่อ T6
 - **Legendary Apex บน JS2-v2.6.0:** [LEGENDARY_APEX_JS2_V2_6_0.md](LEGENDARY_APEX_JS2_V2_6_0.md) — ฉากสำแดง 47 วิชา / 3 พาสซีฟ / 27 อุปกรณ์ พร้อมขยายพื้นที่ภาพ T4–T7 ในอนาคต
 - **T3 VFX บน JS2-v2.6.0:** [T3_SKILL_VFX_JS2_V2_6_0.md](T3_SKILL_VFX_JS2_V2_6_0.md) — 24 ลาย / 26 วิชา T3 / 8 พาสซีฟ / 6 สถานะ พร้อมเพดานภาพสำหรับ T4–T7 ในอนาคต

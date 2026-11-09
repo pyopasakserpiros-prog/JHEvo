@@ -2680,7 +2680,7 @@
       "rMin": 42,
       "rMax": 47,
       "marks": 10,
-      "planned": true
+      "planned": false
     },
     "7": {
       "life": 1450,
@@ -3307,6 +3307,445 @@
     const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
     if (!tech || tech.tier !== 7 || tech.legendary || techOrMove.legendary || tech.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary))) return null;
     return SK.T7_VFX_CATALOG[id] || null;
+  };
+
+
+  // T6 deliberately shares group art; no per-technique shape or decoration seed.
+  SK.T6_VFX_FAMILIES = {
+    "storm": {
+      "nameTh": "อัสนีพันศาสตรา",
+      "primary": "#a8c5ed",
+      "accent": "#e0e7f3",
+      "motion": "pulse"
+    },
+    "blood": {
+      "nameTh": "คมโลหิตอสูร",
+      "primary": "#c88796",
+      "accent": "#e6bcb3",
+      "motion": "sweep"
+    },
+    "void": {
+      "nameTh": "คมสุญตาเร้นเงา",
+      "primary": "#b9a5d6",
+      "accent": "#d9d4e6",
+      "motion": "weave"
+    },
+    "bulwark": {
+      "nameTh": "ปราการกายายุทธ์",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "gather"
+    },
+    "projectile": {
+      "nameTh": "เจตคมพุ่งเจาะ",
+      "primary": "#a8cbd5",
+      "accent": "#d6e8df",
+      "motion": "sweep"
+    },
+    "mirror": {
+      "nameTh": "ม่านกระจกจิต",
+      "primary": "#b6bdce",
+      "accent": "#e2d8ec",
+      "motion": "weave"
+    },
+    "forge": {
+      "nameTh": "เปลวเตาหลอม",
+      "primary": "#cfaa80",
+      "accent": "#ecd3ae",
+      "motion": "rise"
+    },
+    "grove": {
+      "nameTh": "พฤกษาเมตตา",
+      "primary": "#9cc6aa",
+      "accent": "#d9e6bd",
+      "motion": "rise"
+    },
+    "sound": {
+      "nameTh": "คีตาคลื่นประสาน",
+      "primary": "#96c7c7",
+      "accent": "#d7e3d0",
+      "motion": "pulse"
+    },
+    "puppet": {
+      "nameTh": "สายใยหุ่นวิญญาณ",
+      "primary": "#bc9fbe",
+      "accent": "#dec6d4",
+      "motion": "weave"
+    },
+    "seal": {
+      "nameTh": "อักขระผนึกจิต",
+      "primary": "#acbda8",
+      "accent": "#dce0c3",
+      "motion": "gather"
+    },
+    "banner": {
+      "nameTh": "พยุหะหนุนทัพ",
+      "primary": "#c9ba84",
+      "accent": "#e5dbb3",
+      "motion": "rise"
+    },
+    "venom": {
+      "nameTh": "พิษกู่กัดกร่อน",
+      "primary": "#b1c58b",
+      "accent": "#d7e2b1",
+      "motion": "weave"
+    },
+    "beast": {
+      "nameTh": "เขี้ยวราชันอสูร",
+      "primary": "#c6a78c",
+      "accent": "#e6d5b8",
+      "motion": "pulse"
+    },
+    "jade_guard": {
+      "nameTh": "เกราะหยกซ้อนชั้น",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "gather"
+    },
+    "dawn_sword": {
+      "nameTh": "กระบี่รุ่งอรุณ",
+      "primary": "#a8cbd5",
+      "accent": "#d6e8df",
+      "motion": "rise"
+    },
+    "mist_palm": {
+      "nameTh": "บุปผาหมอกพิษ",
+      "primary": "#b1c58b",
+      "accent": "#d7e2b1",
+      "motion": "weave"
+    },
+    "mist_veil": {
+      "nameTh": "ม่านหมอกลวงตา",
+      "primary": "#b9a5d6",
+      "accent": "#d9d4e6",
+      "motion": "weave"
+    },
+    "cleanse": {
+      "nameTh": "ธารชำระคำสาป",
+      "primary": "#9cc6aa",
+      "accent": "#d9e6bd",
+      "motion": "rise"
+    },
+    "qi_siphon": {
+      "nameTh": "เกลียวสูบปราณ",
+      "primary": "#c88796",
+      "accent": "#e6bcb3",
+      "motion": "gather"
+    },
+    "array_ruin": {
+      "nameTh": "แกนค่ายกลแตกสลาย",
+      "primary": "#acbda8",
+      "accent": "#dce0c3",
+      "motion": "pulse"
+    },
+    "flesh_gate": {
+      "nameTh": "ประตูโลหิตเปิดกายา",
+      "primary": "#c88796",
+      "accent": "#e6bcb3",
+      "motion": "pulse"
+    },
+    "blood_pins": {
+      "nameTh": "หมุดโลหิตตรึงร่าง",
+      "primary": "#c88796",
+      "accent": "#e6bcb3",
+      "motion": "gather"
+    },
+    "beast_pact": {
+      "nameTh": "พันธสัญญาอสูร",
+      "primary": "#c6a78c",
+      "accent": "#e6d5b8",
+      "motion": "pulse"
+    },
+    "sacred_flame": {
+      "nameTh": "เปลวสักการะ",
+      "primary": "#cfaa80",
+      "accent": "#ecd3ae",
+      "motion": "rise"
+    },
+    "moon_bow": {
+      "nameTh": "ศรจันทราพยากรณ์",
+      "primary": "#a8cbd5",
+      "accent": "#d6e8df",
+      "motion": "sweep"
+    },
+    "fate_cut": {
+      "nameTh": "ด้ายชะตาขาดสะบั้น",
+      "primary": "#b6bdce",
+      "accent": "#e2d8ec",
+      "motion": "weave"
+    },
+    "faith_link": {
+      "nameTh": "สายศรัทธาหนุนปราณ",
+      "primary": "#c9ba84",
+      "accent": "#e5dbb3",
+      "motion": "gather"
+    },
+    "altar_burst": {
+      "nameTh": "กระถางสักการะร้าว",
+      "primary": "#cfaa80",
+      "accent": "#ecd3ae",
+      "motion": "pulse"
+    },
+    "sky_tribunal": {
+      "nameTh": "ตราทัณฑ์สายฟ้า",
+      "primary": "#a8c5ed",
+      "accent": "#e0e7f3",
+      "motion": "pulse"
+    },
+    "traceless_sword": {
+      "nameTh": "กระบี่ไร้ร่องรอย",
+      "primary": "#b9a5d6",
+      "accent": "#d9d4e6",
+      "motion": "sweep"
+    },
+    "sun_bow": {
+      "nameTh": "ศรสุริยัน",
+      "primary": "#a8cbd5",
+      "accent": "#d6e8df",
+      "motion": "gather"
+    },
+    "ocean_trident": {
+      "nameTh": "ตรีศูลเกลียวสมุทร",
+      "primary": "#a8cbd5",
+      "accent": "#d6e8df",
+      "motion": "sweep"
+    },
+    "frost_tide": {
+      "nameTh": "ฝ่ามือวาฬเหมันต์",
+      "primary": "#b6bdce",
+      "accent": "#e2d8ec",
+      "motion": "pulse"
+    },
+    "cloud_brush": {
+      "nameTh": "พู่กันเมฆาคล้อย",
+      "primary": "#acbda8",
+      "accent": "#dce0c3",
+      "motion": "weave"
+    },
+    "vajra": {
+      "nameTh": "วัชระทองคำ",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "gather"
+    },
+    "earth_step": {
+      "nameTh": "ก้าวสะท้านปฐพี",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "pulse"
+    },
+    "gu_swarm": {
+      "nameTh": "ฝูงกู่กลืนปราณ",
+      "primary": "#b1c58b",
+      "accent": "#d7e2b1",
+      "motion": "weave"
+    },
+    "dream_silk": {
+      "nameTh": "แพรฝันจิตวิญญาณ",
+      "primary": "#b6bdce",
+      "accent": "#e2d8ec",
+      "motion": "weave"
+    },
+    "spirit_thread": {
+      "nameTh": "สายใยคุ้มชีพ",
+      "primary": "#9cc6aa",
+      "accent": "#d9e6bd",
+      "motion": "gather"
+    },
+    "array_gates": {
+      "nameTh": "ประตูยันต์แปดทิศ",
+      "primary": "#acbda8",
+      "accent": "#dce0c3",
+      "motion": "gather"
+    },
+    "stone_seal": {
+      "nameTh": "ผนึกขุนเขา",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "gather"
+    },
+    "hidden_bastion": {
+      "nameTh": "ปราการกลศึก",
+      "primary": "#c9ba84",
+      "accent": "#e5dbb3",
+      "motion": "pulse"
+    },
+    "star_gate": {
+      "nameTh": "ประตูพยากรณ์ดารา",
+      "primary": "#c9ba84",
+      "accent": "#e5dbb3",
+      "motion": "weave"
+    },
+    "dharma": {
+      "nameTh": "เจดีย์ธรรมสยบมาร",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "rise"
+    },
+    "cloud_step": {
+      "nameTh": "ย่างก้าวเหยียบเมฆา",
+      "primary": "#b9a5d6",
+      "accent": "#d9d4e6",
+      "motion": "rise"
+    },
+    "debt_balance": {
+      "nameTh": "ตราชั่งวิบาก",
+      "primary": "#c9ba84",
+      "accent": "#e5dbb3",
+      "motion": "weave"
+    },
+    "dragon_fault": {
+      "nameTh": "รอยเลื่อนมังกรหยก",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "sweep"
+    },
+    "gravity_fist": {
+      "nameTh": "หมัดเพิ่มมวลศิลา",
+      "primary": "#c7b28b",
+      "accent": "#e0d4b5",
+      "motion": "gather"
+    },
+    "epoch_seal": {
+      "nameTh": "กลไกผนึกกาล",
+      "primary": "#b6bdce",
+      "accent": "#e2d8ec",
+      "motion": "weave"
+    }
+  };
+  SK.TECH_TO_T6_VFX = {
+    "MP_SPEAR_CELESTIAL_TEMPEST_T6": "storm",
+    "MP_BLADE_THUNDER_GOD_SLASH_T6": "storm",
+    "ART_V212_BODY_THUNDER_T6": "storm",
+    "MP_SPEAR_FORBIDDEN_BLOOD_LANCE_T6": "blood",
+    "MP_BLADE_ASHURA_THOUSAND_CUTS_T6": "blood",
+    "MP_BLADE_SHADOW_REAPER_T6": "blood",
+    "ART_V212_DEMON_BLOOD_SPEAR_T6": "blood",
+    "ART_V112_DEMON_VOID_SHADOW_KILL_T6": "void",
+    "MP_HYB_SPEAR_STAFF_VOID_T6": "void",
+    "ART_V212_SOUL_VOID_SPEAR_T6": "void",
+    "TECH_V200_VOID_SPACE_ACT_05": "void",
+    "MP_STAFF_HEAVEN_PILLAR_T6": "bulwark",
+    "MP_STAFF_ARHAT_SANCTUARY_T6": "bulwark",
+    "MP_FIST_GRANDMASTER_PINNACLE_T6": "bulwark",
+    "MP_STAFF_FORBIDDEN_EARTHQUAKE_T6": "bulwark",
+    "MP_BOW_HEARTSEEKER_SNIPE_T6": "projectile",
+    "MP_BOW_ABYSSAL_ECLIPSE_T6": "projectile",
+    "ART_V212_XIAN_PHANTOM_T6": "projectile",
+    "MP_SPEAR_DIVINE_JUDGMENT_T6": "projectile",
+    "MP_FOCUS_FATE_MIRROR_T6": "mirror",
+    "ART_V212_SOUL_DREAM_T6": "mirror",
+    "ART_V212_KARMA_MIRROR_T6": "mirror",
+    "TECH_V200_CHRONO_EPOCH_ACT_05": "epoch_seal",
+    "MP_FOCUS_CAULDRON_FIRE_T6": "forge",
+    "TECH_V234_CRAFT_CREATION_ACT_05": "forge",
+    "TECH_V234_CRAFT_CREATION_ACT_11": "forge",
+    "ART_SAGE_SUP_007": "grove",
+    "ART_CROSS_V208_012": "grove",
+    "ART_V112_SOUL_BUDDHA_PALM_VOID_T6": "dharma",
+    "ART_V212_XIAN_ZITHER_T6": "sound",
+    "TECH_V215_ZITHER_ACT_07": "sound",
+    "TECH_V222_14": "sound",
+    "TECH_V200_SONIC_HARMONY_ACT_05": "sound",
+    "MP_STAFF_NETHER_SCEPTER_T6": "puppet",
+    "ART_V212_DEMON_GHOST_T6": "puppet",
+    "TECH_V215_WHIP_ACT_07": "puppet",
+    "TECH_V200_SOUL_PUPPETRY_ACT_05": "puppet",
+    "ART_V112_SOUL_HEAVEN_BRUSH_DECREE_T6": "seal",
+    "TECH_V215_BRUSH_ACT_07": "seal",
+    "TECH_V200_INK_LITERATI_ACT_05": "seal",
+    "TECH_V240_BRUSH_03": "seal",
+    "MP_FOCUS_GRANDMASTER_FAN_T6": "banner",
+    "MP_SPEAR_WARLORD_OVERLORD_T6": "banner",
+    "TECH_V200_ASTRO_DIVINATION_ACT_05": "star_gate",
+    "TECH_V240_ABACUS_03": "debt_balance",
+    "ART_V112_DEMON_MYRIAD_VENOM_DOMAIN_T6": "mist_palm",
+    "TECH_V200_VENOM_GU_ACT_05": "venom",
+    "TECH_V240_NEEDLE_02": "venom",
+    "TECH_V200_PRIMORDIAL_SHIFTER_ACT_05": "beast",
+    "TECH_UNI_V230_018": "beast",
+    "TECH_V240_CLAW_02": "beast",
+    "TECH_V234_XIAN_ACT_11": "jade_guard",
+    "ART190_XIAN_020": "dawn_sword",
+    "ART190_XIAN_050": "mist_veil",
+    "TECH_V200_CELESTIAL_WEATHER_ACT_05": "mist_veil",
+    "ART190_XIAN_060": "cleanse",
+    "ART190_XIAN_074": "qi_siphon",
+    "ART_C117_INNATE_HEAVEN_DEVOURING_DEMON": "qi_siphon",
+    "ART190_XIAN_077": "array_ruin",
+    "ART190_BODY_074": "flesh_gate",
+    "TECH_UNI_V230_011": "flesh_gate",
+    "ART190_BODY_077": "blood_pins",
+    "ART190_BODY_080": "beast_pact",
+    "TECH_V234_GOD_ACT_05": "sacred_flame",
+    "ART190_GOD_020": "moon_bow",
+    "TECH_V234_HEART_SOUL_ACT_11": "fate_cut",
+    "ART190_GOD_060": "faith_link",
+    "ART190_GOD_077": "altar_burst",
+    "ART190_GOD_080": "sky_tribunal",
+    "ART190_XIAN_080": "sky_tribunal",
+    "TECH_V234_GOD_ACT_11": "sky_tribunal",
+    "MP_SWORD_SAINT_TRACELESS_T6": "traceless_sword",
+    "ART_V212_GOD_SUN_BOW_T6": "sun_bow",
+    "ART_V212_GOD_OCEAN_T6": "ocean_trident",
+    "TECH_UNI_V230_024": "ocean_trident",
+    "TECH_V222_10": "frost_tide",
+    "TECH_V234_XIAN_ACT_05": "cloud_brush",
+    "TECH_V234_BODY_ACT_05": "vajra",
+    "TECH_V240_ROSARY_02": "vajra",
+    "TECH_UNI_V230_015": "vajra",
+    "TECH_V234_BODY_ACT_11": "earth_step",
+    "ART190_BODY_050": "earth_step",
+    "TECH_V234_DEMON_ACT_05": "gu_swarm",
+    "TECH_V234_HEART_SOUL_ACT_05": "dream_silk",
+    "TECH_V234_SAGE_SUPPORT_ACT_11": "spirit_thread",
+    "ART190_BODY_060": "spirit_thread",
+    "TECH_V234_ARRAY_TALISMAN_ACT_05": "array_gates",
+    "TECH_V234_ARRAY_TALISMAN_ACT_11": "stone_seal",
+    "TECH_V234_STRATEGY_GOVERNANCE_ACT_05": "hidden_bastion",
+    "TECH_V234_STRATEGY_GOVERNANCE_ACT_11": "hidden_bastion",
+    "TECH_UNI_V230_027": "star_gate",
+    "TECH_V240_ASTROLABE_02": "star_gate",
+    "TECH_V200_BUDDHA_DHARMA_ACT_05": "dharma",
+    "TECH_V200_WANDERING_DAO_ACT_05": "cloud_step",
+    "TECH_V200_MERCANTILE_DAO_ACT_05": "debt_balance",
+    "TECH_UNI_V230_030": "debt_balance",
+    "TECH_V200_DRAGON_VEIN_GEOMANCY_ACT_05": "dragon_fault",
+    "TECH_V200_GRAVITY_DAO_ACT_05": "gravity_fist",
+    "ART190_BODY_020": "beast",
+    "TECH_V234_BEAST_SOVEREIGN_ACT_05": "beast",
+    "TECH_V234_BEAST_SOVEREIGN_ACT_11": "beast",
+    "TECH_V240_WHIP_02": "beast",
+    "ART190_GOD_050": "seal",
+    "ART190_GOD_074": "mirror",
+    "TECH_V234_DEMON_ACT_11": "venom",
+    "TECH_V234_SAGE_SUPPORT_ACT_05": "sound",
+    "TECH_V240_ZITHER_02": "sound",
+    "TECH_UNI_V230_021": "puppet",
+    "TECH_V240_FAN_02": "mist_veil",
+    "TECH_V234_MECH_PUPPET_ACT_05": "projectile",
+    "TECH_V234_MECH_PUPPET_ACT_11": "hidden_bastion",
+    "TECH_V234_KARMA_SAMSARA_ACT_05": "mirror",
+    "TECH_V234_KARMA_SAMSARA_ACT_11": "mirror",
+    "TECH_V200_PRIMORDIAL_CHAOS_ACT_05": "grove"
+  };
+  SK.PASSIVE_TO_T6_VFX = {
+    "PASS_NON_ELEM_GRANDMASTER_T6": "bulwark",
+    "TECH_V215_ZITHER_PAS_04": "sound",
+    "TECH_V215_BRUSH_PAS_04": "seal",
+    "TECH_V215_WHIP_PAS_04": "puppet",
+    "TECH_V234_BODY_PAS_04": "bulwark",
+    "TECH_V234_HEART_SOUL_PAS_04": "mirror",
+    "TECH_V234_SAGE_SUPPORT_PAS_04": "grove",
+    "TECH_V234_BEAST_SOVEREIGN_PAS_04": "beast"
+  };
+  SK.resolveT6Vfx = (techOrMove,moveOpt) => {
+    if(!techOrMove)return null;
+    const id=techOrMove.tech||techOrMove.id,tech=g.CULT&&g.CULT.tech?g.CULT.tech(id):techOrMove;
+    if(!tech||tech.tier!==6||tech.legendary||techOrMove.legendary||tech.fxKind||techOrMove.fxKind||(moveOpt&&(moveOpt.fxKind||moveOpt.legendary||moveOpt.signatureVfx)))return null;
+    const move=moveOpt&&(tech.moveDefs||[]).find(m=>m.id===moveOpt.id);
+    if(move&&(move.fxKind||move.legendary||move.signatureVfx))return null;
+    return SK.TECH_TO_T6_VFX[id]||null;
   };
 
   SK.resolveSignatureVfx = (techOrMove, moveOpt) => {

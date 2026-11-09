@@ -1,5 +1,7 @@
 # Skill Signature VFX Assignment Registry
 
+> Current frontier update: selected T6 group art is now implemented (50 forms / 114 actual active skills / 207 child routes, 8 passives). See [T6 registry](T6_GROUP_VFX_REGISTRY.md); next requested frontier [T5](../handovers/NEXT_T5_VISUAL_PATCH.md). Counts and next-tier statements below describe this registry’s original patch unless explicitly updated.
+
 > Current descending frontier: [ordinary T7 is implemented](T7_VISUAL_ASSIGNMENT_REGISTRY.md); [T6 is next](../handovers/NEXT_T6_VISUAL_PATCH.md). Check all VFX registries before choosing another technique.
 
 > Legendary apex and updated T4–T7 reservations: [Legendary Apex Registry](LEGENDARY_APEX_VISUAL_REGISTRY.md). Named skill/item identities are preserved in the new scene architecture.

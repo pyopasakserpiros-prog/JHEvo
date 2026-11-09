@@ -23,7 +23,9 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:**
 
-- [T7_VISUALS_JS2_V2_6_0.md](PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา T7 / 157 ท่าย่อย พร้อมออร่า 85 อุปกรณ์ใน 25 ประเภท; งานต่อไปเตรียม T6
+- [T6_GROUP_VFX_JS2_V2_6_0.md](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md) — 50 ลายกลุ่ม / 114 วิชา T6 / 207 ท่าย่อย + 8 พาสซีฟ, อุปกรณ์ 117 รายการ; [ดูภาพทั้ง 50 ลาย](docs/visuals/t6-group-vfx/art.png), [ภาพเคลื่อนไหว](docs/visuals/t6-group-vfx/release.gif); ถัดไป T5
+
+- [T7_VISUALS_JS2_V2_6_0.md](PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา T7 / 157 ท่าย่อย พร้อมออร่า 85 อุปกรณ์ใน 25 ประเภท; ส่งต่อ T6 แล้ว
 - [LEGENDARY_APEX_JS2_V2_6_0.md](PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md) — ยกระดับ 47 วิชาตำนาน / 3 พาสซีฟ / 27 อุปกรณ์ เป็นฉากสำแดงสี่ช่วง พร้อม [ภาพเคลื่อนไหว](docs/visuals/legendary-apex/manifestation-demo.gif)
 - [T3_SKILL_VFX_JS2_V2_6_0.md](PATCH_REPORTS/T3_SKILL_VFX_JS2_V2_6_0.md) — T3 ใหม่ 24 ลาย / 26 วิชา พร้อมแผนสเกลภาพ T4–T7 ที่สงวนไว้สำหรับแพตช์ถัดไป
 - [COMMON_SKILL_VFX_JS2_V2_6_0.md](PATCH_REPORTS/COMMON_SKILL_VFX_JS2_V2_6_0.md) — 30 ลายพื้นฐานสำหรับ 66 วิชา T1–T2, พาสซีฟ 12 วิชา และสถานะจริง 22 แบบ พร้อมทะเบียนกันทำซ้ำ
@@ -36,7 +38,9 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (`JS2-v2.4.0` Release)
 - [สารบัญรายงานทั้งหมดแบบละเอียด](PATCH_REPORTS/README.md)
 
-**สถานะชุดทดสอบ (`JS2-v2.6.0`):** ชุดทดสอบทั้งหมด **148/148 กลุ่ม** (147 ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` + 1 กลุ่มตรวจ Syntax 225 ไฟล์) ผ่านครบ 100% PASS (รวมชุดเบราว์เซอร์ Chromium ทั้งหมด), Schema Validation ผ่าน 0 errors / 0 warnings (1,177 items, 1,402 recipes, 43 paths, 286 subpaths, 1,243 techniques), และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
+**ผล VFX refinement ล่าสุด:** Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. ดู [รายงาน T6](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md).
+
+**สถานะชุดทดสอบฐานพงศาวดารก่อน VFX refinement (`JS2-v2.6.0`):** ชุดทดสอบทั้งหมด **148/148 กลุ่ม** (147 ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` + 1 กลุ่มตรวจ Syntax 225 ไฟล์) ผ่านครบ 100% PASS (รวมชุดเบราว์เซอร์ Chromium ทั้งหมด), Schema Validation ผ่าน 0 errors / 0 warnings (1,177 items, 1,402 recipes, 43 paths, 286 subpaths, 1,243 techniques), และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
 
 ```bash
 cd GAME_SOURCE

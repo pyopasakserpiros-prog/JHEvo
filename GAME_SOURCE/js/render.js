@@ -1886,15 +1886,17 @@
         // high-tier heuristic for the selected basic curricula.
         const eventArtOverride = event.fxKind || (event.signatureVfx && event.signatureVfx !== automaticSignature);
         const commonVfx = !eventArtOverride && g.SK && g.SK.resolveCommonVfx ? g.SK.resolveCommonVfx(techObj || event, { id: event.moveId }) : null;
+        const t6Vfx = !eventArtOverride && g.SK && g.SK.resolveT6Vfx ? g.SK.resolveT6Vfx(techObj || event,{id:event.moveId}) : null;
         const t7Vfx = !eventArtOverride && g.SK && g.SK.resolveT7Vfx ? g.SK.resolveT7Vfx(techObj || event, { id:event.moveId }) : null;
         const t3Vfx = !eventArtOverride && g.SK && g.SK.resolveT3Vfx ? g.SK.resolveT3Vfx(techObj || event, { id: event.moveId }) : null;
         const forbidden = event.kind === 'forbidden';
         const motif = event.motif || event.fxKind || (forbidden ? 'forbidden' : 'normal');
         const isLegend = !!(event.legendary || (techObj && techObj.legendary) || (motif && String(motif).startsWith('legend_')));
         const shown=this.castActive.get(key);
-        // Coalesce rapid repeats of the same ordinary T7 until its release is visible.
+        // Coalesce rapid repeats of the same selected ordinary T6/T7 until release is visible.
         // Keep the original factual snapshot; a different art, explicit override or Legendary cast bypasses this.
         if(t7Vfx&&!isLegend&&shown&&shown.t7Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.55)return;
+        if(t6Vfx&&!isLegend&&shown&&shown.t6Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.55)return;
         this.castActive.delete(key);
         if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
         const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
@@ -1910,6 +1912,7 @@
           commonVfx: forbidden || isLegend ? null : commonVfx,
           t3Vfx: forbidden || isLegend ? null : t3Vfx,
           t7Vfx: isLegend ? null : (t7Vfx && event.techId),
+          t6Vfx: isLegend ? null : t6Vfx,
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
@@ -1928,7 +1931,7 @@
             .slice(0, 8).map(point => ({ x: point.x * TS, y: point.y * TS, team: point.team !== false })) : [],
           angle: Math.atan2(y - originY, x - originX),
           start: this.castClock,
-          life: isLegend ? R.legendarySceneLife({techId:event.techId}) : (t7Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[7].life : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450)))))
+          life: isLegend ? R.legendarySceneLife({techId:event.techId}) : (t6Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[6].life : (t7Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[7].life : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))))))
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -2782,6 +2785,8 @@
       }
       const t7Full=new Set(),t7Owners=new Set(),t7Limit=fullScenes.size?1:(this.resolveQuality()==='low'?1:3);
       for(const f of candidates){if(t7Full.size>=t7Limit)break;if(!f.t7Vfx||f.legendary||f.relicId||(f.ownerId&&(t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t7Full.add(f);if(f.ownerId)t7Owners.add(f.ownerId);}
+      const t6Full=new Set(),t6Owners=new Set(),t6Limit=fullScenes.size||t7Full.size?1:(this.resolveQuality()==='low'?1:3);
+      for(const f of candidates){if(t6Full.size>=t6Limit)break;if(!f.t6Vfx||f.legendary||f.relicId||(f.ownerId&&(t6Owners.has(f.ownerId)||t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t6Full.add(f);if(f.ownerId)t6Owners.add(f.ownerId);}
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
         this.drawCastTargetMarks(ctx, fx, p, reduced);
@@ -2790,6 +2795,8 @@
           this.drawLegendaryRelicScene(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryArtVfx(ctx,fx,p,reduced,fullScenes.has(fx));
+        } else if (fx.t6Vfx) {
+          this.drawT6SkillVfx(ctx,fx,p,reduced,t6Full.has(fx));
         } else if (fx.t7Vfx) {
           this.drawT7SkillVfx(ctx,fx,p,reduced,t7Full.has(fx));
         } else if (fx.t3Vfx) {
@@ -2867,6 +2874,146 @@
         .map(id => CULT.tech(id))
         .filter(t => t && (t.passive || t.cat === 'PASSIVE') && (!M || (M.isTechCompatible(n, t) && M.conditionMatches(n, t))))
         .slice(0, 3);
+    },
+
+    // Shared T6 group art: technique IDs never alter the silhouette, palette or ornament count.
+    drawT6FamilyGlyph(ctx,key,p,radius,reduced,low=false){
+      const spec=g.SK&&g.SK.T6_VFX_FAMILIES[key];if(!ctx||!spec)return false;
+      const q=reduced?.5:clamp(p,0,1),r=clamp(radius,1,g.SK.NONLEGENDARY_VFX_BUDGET[6].rMax),count=low?3:5;
+      ctx.save();ctx.scale(r,r);
+      // Family-level motion only: no technique ID, RNG or unique seal seed.
+      const beat=Math.sin(q*Math.PI),turn=(q-.5)*.12;
+      if(spec.motion==='sweep')ctx.rotate(turn);
+      else if(spec.motion==='rise')ctx.translate(0,-beat*.07);
+      else if(spec.motion==='weave')ctx.scale(1,1-beat*.06);
+      else if(spec.motion==='gather')ctx.scale(.9+beat*.1,.9+beat*.1);
+      else if(spec.motion==='pulse')ctx.scale(.94+beat*.06,.94+beat*.06);
+      ctx.strokeStyle=spec.primary;ctx.fillStyle=spec.accent;ctx.lineWidth=1.35/r;ctx.lineCap='round';ctx.lineJoin='round';
+      const line=(ps,close=false)=>{ctx.beginPath();ps.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(close)ctx.closePath();ctx.stroke();};
+      const oval=(x,y,rx,ry,a=0)=>{ctx.beginPath();ctx.ellipse(x,y,rx,ry,a,0,Math.PI*2);ctx.stroke();};
+      switch(key){
+        case 'storm':
+          for(let i=-1;i<=1;i++){const x=i*.47;line([[x+.14,-.8],[x-.13,-.12],[x+.12,-.2],[x-.1,.45]]);}oval(0,.58,.7,.16);break;
+        case 'blood':
+          for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(d*.7,-.65);ctx.quadraticCurveTo(d*.22,-.12,d*.78,.55);ctx.stroke();line([[d*.68,-.52],[d*.45,-.22]]);}line([[0,-.65],[-.15,-.3],[0,-.05],[.15,-.3],[0,-.65]]);break;
+        case 'void':
+          line([[-.82,.55],[-.28,.15],[-.12,-.26],[.78,-.65]]);line([[-.62,.7],[-.12,.3],[.08,-.1],[.82,-.48]]);for(const d of [-1,1])line([[d*.7,-d*.35],[d*.85,-d*.08],[d*.62,d*.1]]);break;
+        case 'bulwark':
+          line([[-.65,.5],[-.65,-.45],[0,-.8],[.65,-.45],[.65,.5]],true);line([[-.4,-.28],[0,-.48],[.4,-.28],[.3,.3],[-.3,.3]],true);line([[-.85,.65],[.85,.65]]);break;
+        case 'projectile':
+          line([[-.86,0],[.54,0],[.32,-.16],[.86,0],[.32,.16],[.54,0]]);for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(-.7,d*.42);ctx.quadraticCurveTo(-.12,d*.65,.45,d*.22);ctx.stroke();}break;
+        case 'mirror':
+          oval(0,-.05,.45,.66);oval(0,-.05,.32,.52);for(const d of [-1,1])line([[d*.7,-.5],[d*.82,-.12],[d*.62,.3],[d*.75,.55]]);break;
+        case 'forge':
+          line([[-.65,-.25],[-.5,.47],[.5,.47],[.65,-.25]],true);oval(0,-.25,.65,.15);for(let i=-1;i<=1;i++){const x=i*.34;line([[x,-.44],[x-.1,-.62],[x+.06,-.86]]);}break;
+        case 'grove':
+          for(let i=0;i<count;i++){const a=i*Math.PI*2/count;ctx.save();ctx.rotate(a);ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-.4,-.45,0,-.83);ctx.quadraticCurveTo(.4,-.45,0,0);ctx.stroke();ctx.restore();}oval(0,.52,.65,.15);break;
+        case 'sound':
+          for(let i=0;i<count;i++){const y=(i-(count-1)/2)*.25;ctx.beginPath();ctx.moveTo(-.8,y);ctx.bezierCurveTo(-.3,y-.21,.3,y+.21,.8,y);ctx.stroke();}for(const d of [-1,1])line([[d*.86,-.6],[d*.86,.6]]);break;
+        case 'puppet':
+          line([[-.8,-.65],[.8,-.65]]);for(let i=-1;i<=1;i++){const x=i*.5;oval(x,-.65,.055,.055);ctx.beginPath();ctx.moveTo(x,-.6);ctx.quadraticCurveTo(-x*.55,-.12,x*.8,.3);ctx.stroke();oval(x*.8,.4,.09,.13);}break;
+        case 'seal':
+          line([[-.6,-.65],[.6,-.65],[.6,.6],[-.6,.6]],true);line([[-.35,-.4],[.3,-.4],[-.12,0],[.35,.38],[-.3,.38]]);for(const d of [-1,1])line([[d*.78,-.25],[d*.78,.25]]);break;
+        case 'banner':
+          for(const d of [-1,1])line([[d*.65,.65],[d*.65,-.7],[d*.2,-.52],[d*.65,-.2]]);line([[-.35,.15],[0,-.1],[.35,.15],[0,.4]],true);break;
+        case 'venom':
+          for(let i=0;i<count;i++){const a=i*Math.PI*2/count;oval(Math.cos(a)*.65,Math.sin(a)*.45,.13,.075,a);}
+          line([[0,-.55],[-.24,.02],[0,.42],[.24,.02],[0,-.55]]);break;
+        case 'beast':
+          line([[-.7,-.25],[-.65,-.7],[-.3,-.48],[0,-.6],[.3,-.48],[.65,-.7],[.7,-.25],[.4,.38],[0,.6],[-.4,.38]],true);for(const d of [-1,1])line([[d*.42,-.1],[d*.18,.02],[d*.25,.28]]);break;
+        case 'jade_guard':
+          for(let i=0;i<3;i++){const d=.78-i*.2;line([[-d,-d*.5],[0,-d],[d,-d*.5],[d*.8,d*.65],[0,d],[-d*.8,d*.65]],true);}break;
+        case 'dawn_sword':
+          line([[-.6,.65],[.55,-.72],[.43,-.32],[.1,-.17],[-.6,.65]]);ctx.beginPath();ctx.arc(-.05,.25,.65,Math.PI,Math.PI*2);ctx.stroke();for(let i=0;i<3;i++)line([[.15+i*.22,-.55],[.23+i*.22,-.72]]);break;
+        case 'mist_palm':
+          oval(0,0,.3,.4);for(let i=0;i<count;i++){const a=i*Math.PI*2/count;oval(Math.cos(a)*.62,Math.sin(a)*.52,.22,.1,a);}line([[-.45,.7],[0,.8],[.45,.7]]);break;
+        case 'mist_veil':
+          for(let i=0;i<3;i++){const y=(i-1)*.4;ctx.beginPath();ctx.moveTo(-.85,y);ctx.bezierCurveTo(-.4,y-.4,.3,y+.4,.85,y);ctx.stroke();}line([[-.32,-.1],[0,-.26],[.32,-.1],[0,.05]],true);break;
+        case 'cleanse':
+          line([[0,-.85],[-.38,-.16],[0,.24],[.38,-.16],[0,-.85]]);for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(d*.6,-.3);ctx.quadraticCurveTo(d*.9,.6,0,.75);ctx.stroke();}line([[-.2,.48],[.2,.48],[0,.3],[0,.65]]);break;
+        case 'qi_siphon':
+          for(let i=0;i<count;i++){const a=i*Math.PI*2/count;ctx.save();ctx.rotate(a);ctx.beginPath();ctx.moveTo(.1,.1);ctx.bezierCurveTo(.1,-.35,.85,-.1,.7,-.55);ctx.stroke();ctx.restore();}oval(0,0,.12,.12);break;
+        case 'array_ruin':
+          for(let i=0;i<4;i++){ctx.save();ctx.rotate(i*Math.PI/2);line([[.12,-.35],[.4,-.75],[.75,-.4],[.35,-.12]]);line([[.15,-.6],[.12,-.88]]);ctx.restore();}line([[-.2,.12],[0,-.25],[.2,.12]],true);break;
+        case 'flesh_gate':
+          for(const d of [-1,1]){line([[d*.6,.7],[d*.6,-.5],[d*.3,-.78],[d*.3,.5]]);line([[d*.75,.3],[d*.85,-.2]]);}oval(0,0,.14,.38);break;
+        case 'blood_pins':
+          for(let i=0;i<4;i++){ctx.save();ctx.rotate(i*Math.PI/2+.3);line([[0,-.85],[0,-.3],[-.1,-.45],[0,-.18],[.1,-.45]]);oval(0,-.85,.07,.04);ctx.restore();}oval(0,0,.32,.32);break;
+        case 'beast_pact':
+          oval(-.26,0,.48,.6);oval(.26,0,.48,.6);for(const d of [-1,1])line([[d*.57,-.35],[d*.8,-.65],[d*.75,-.1]]);line([[-.12,.05],[0,.27],[.12,.05]]);break;
+        case 'sacred_flame':
+          ctx.beginPath();ctx.moveTo(0,-.86);ctx.bezierCurveTo(.6,-.3,.75,.5,0,.65);ctx.bezierCurveTo(-.75,.5,-.5,-.2,0,-.86);ctx.stroke();line([[-.7,.76],[.7,.76]]);line([[0,-.25],[-.15,.24],[.15,.24],[0,-.25]]);break;
+        case 'moon_bow':
+          ctx.beginPath();ctx.arc(-.1,0,.72,-1.25,1.25);ctx.stroke();line([[.13,-.68],[-.3,0],[.13,.68]]);line([[-.8,0],[.8,0],[.6,-.12],[.8,0],[.6,.12]]);break;
+        case 'fate_cut':
+          for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(-.8,d*.48);ctx.bezierCurveTo(-.4,-d*.15,-.15,d*.18,-.07,d*.06);ctx.stroke();ctx.beginPath();ctx.moveTo(.12,-d*.15);ctx.quadraticCurveTo(.45,-d*.7,.8,-d*.4);ctx.stroke();}line([[-.25,.6],[.28,-.65]]);break;
+        case 'faith_link':
+          for(let i=-1;i<=1;i++){const x=i*.58,y=i===0?-.48:.38;oval(x,y,.16,.16);if(i){ctx.beginPath();ctx.moveTo(0,-.32);ctx.quadraticCurveTo(x,-.1,x,.22);ctx.stroke();}}line([[-.18,-.76],[.18,-.76]]);break;
+        case 'altar_burst':
+          line([[-.72,-.2],[-.44,.5],[-.1,.25],[.12,.6],[.5,.4],[.72,-.2]]);oval(0,-.2,.72,.15);for(let i=-1;i<=1;i++)line([[i*.4,-.4],[i*.5,-.8]]);break;
+        case 'sky_tribunal':
+          line([[-.65,-.66],[0,-.85],[.65,-.66],[.5,-.35],[-.5,-.35]],true);line([[.12,-.35],[-.22,.13],[.12,.07],[-.08,.76]]);for(const d of [-1,1])line([[d*.65,-.07],[d*.42,.36],[d*.65,.28]]);break;
+        case 'traceless_sword':
+          for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(-.83,d*.3);ctx.quadraticCurveTo(-.1,-d*.25,.78,-d*.58);ctx.stroke();}line([[-.45,.63],[.64,-.63],[.53,-.22]]);break;
+        case 'sun_bow':
+          oval(-.3,0,.4,.4);for(let i=0;i<count;i++){const a=i*Math.PI*2/count;line([[-.3+Math.cos(a)*.49,Math.sin(a)*.49],[-.3+Math.cos(a)*.64,Math.sin(a)*.64]]);}line([[-.65,0],[.82,0],[.58,-.15],[.82,0],[.58,.15]]);break;
+        case 'ocean_trident':
+          line([[0,.8],[0,-.8],[-.1,-.6],[0,-.8],[.1,-.6]]);line([[-.44,-.62],[-.35,-.12],[.35,-.12],[.44,-.62]]);for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(-.8,.38+i*.18);ctx.quadraticCurveTo(-.2,.1+i*.18,.8,.38+i*.18);ctx.stroke();}break;
+        case 'frost_tide':
+          ctx.beginPath();ctx.moveTo(-.8,.45);ctx.bezierCurveTo(-.65,-.5,.4,-.7,.75,-.1);ctx.quadraticCurveTo(.1,-.38,.2,.2);ctx.stroke();for(let i=-1;i<=1;i++)line([[i*.42,.6],[i*.42,.24],[i*.42-.1,.35],[i*.42,.24],[i*.42+.1,.35]]);break;
+        case 'cloud_brush':
+          line([[-.62,.7],[.28,-.62],[.45,-.5],[-.4,.8]],true);for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-.7+i*.35,-.2);ctx.bezierCurveTo(-.8+i*.35,-.7,-.3+i*.35,-.65,-.35+i*.35,-.3);ctx.stroke();}break;
+        case 'vajra':
+          for(const d of [-1,1]){line([[d*.8,0],[d*.45,-.3],[d*.2,0],[d*.45,.3],[d*.8,0]]);line([[d*.45,-.3],[d*.45,.3]]);}oval(0,0,.15,.26);line([[0,-.8],[-.17,-.5],[0,-.32],[.17,-.5],[0,-.8]]);break;
+        case 'earth_step':
+          oval(-.25,-.28,.15,.32,-.4);oval(.3,.05,.15,.32,-.4);for(let i=0;i<3;i++){const y=.48+i*.15;line([[-.8+i*.12,y],[-.24,y-.08],[.12,y+.04],[.78-i*.1,y-.1]]);}break;
+        case 'gu_swarm':
+          for(let i=0;i<count;i++){const a=i*Math.PI*2/count,x=Math.cos(a)*.6,y=Math.sin(a)*.5;oval(x,y,.07,.14,a);line([[x-.12,y-.08],[x+.12,y+.08]]);line([[x-.12,y+.08],[x+.12,y-.08]]);}break;
+        case 'dream_silk':
+          for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(d*.7,-.6);ctx.bezierCurveTo(-d*.8,-.2,d*.8,.3,-d*.7,.65);ctx.stroke();}oval(0,0,.4,.19,-.4);oval(0,0,.4,.19,.4);break;
+        case 'spirit_thread':
+          for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(i*.6,.7);ctx.bezierCurveTo(i*.65,.1,-i*.5,-.3,0,-.65);ctx.stroke();oval(i*.6,.7,.09,.09);}line([[-.15,-.52],[0,-.82],[.15,-.52]],true);break;
+        case 'array_gates':
+          for(let i=0;i<(low?4:8);i++){ctx.save();ctx.rotate(i*Math.PI*2/(low?4:8));line([[-.1,-.56],[-.1,-.8],[.1,-.8],[.1,-.56]]);ctx.restore();}line([[-.22,0],[0,-.22],[.22,0],[0,.22]],true);break;
+        case 'stone_seal':
+          line([[-.8,.62],[-.52,-.23],[-.28,.12],[.05,-.78],[.42,-.17],[.56,-.4],[.85,.62]],true);line([[-.28,-.04],[-.28,-.5],[.28,-.5],[.28,-.04]]);break;
+        case 'hidden_bastion':
+          line([[-.82,.6],[-.82,-.32],[-.6,-.32],[-.6,-.6],[-.35,-.6],[-.35,-.32],[.35,-.32],[.35,-.6],[.6,-.6],[.6,-.32],[.82,-.32],[.82,.6]],true);line([[-.17,.6],[-.17,.12],[.17,.12],[.17,.6]]);break;
+        case 'star_gate':
+          for(let i=0;i<count;i++){const a=i*Math.PI*2/count,x=Math.cos(a)*.68,y=Math.sin(a)*.68;line([[x-.07,y],[x+.07,y],[x,y-.07],[x,y+.07]]);}line([[-.34,.47],[-.34,-.38],[0,-.62],[.34,-.38],[.34,.47]]);break;
+        case 'dharma':
+          line([[-.6,.65],[.6,.65],[-.4,.37],[.4,.37],[-.27,.04],[.27,.04],[0,-.75]],false);for(let i=0;i<3;i++){const y=.48-i*.32,d=.48-i*.12;line([[-d,y],[d,y]]);}oval(0,-.66,.15,.15);break;
+        case 'cloud_step':
+          for(let i=0;i<3;i++){const x=(i-1)*.55,y=(i%2)*.38;ctx.beginPath();ctx.moveTo(x-.25,y);ctx.bezierCurveTo(x-.4,y-.45,x+.45,y-.45,x+.25,y);ctx.stroke();}line([[-.3,.7],[.1,.25],[.42,-.65]]);break;
+        case 'debt_balance':
+          line([[0,-.8],[0,.65],[-.35,.65],[.35,.65]]);line([[-.75,-.4],[.75,-.4]]);for(const d of [-1,1]){line([[d*.58,-.4],[d*.58,.16]]);ctx.beginPath();ctx.arc(d*.58,.16,.2,0,Math.PI);ctx.stroke();}break;
+        case 'dragon_fault':
+          line([[-.82,.58],[-.4,.15],[-.55,-.12],[-.1,-.35],[.12,-.76],[.42,-.55],[.62,-.7]]);line([[-.55,.7],[0,.25],[-.1,-.03],[.3,-.16],[.48,-.42],[.8,-.25]]);break;
+        case 'gravity_fist':
+          for(let i=0;i<3;i++)oval(0,.25,.78-i*.19,.22+i*.12);line([[-.26,-.25],[-.26,-.7],[.26,-.7],[.26,-.25]],true);line([[-.7,-.4],[-.4,-.05],[.4,-.05],[.7,-.4]]);break;
+        case 'epoch_seal':
+          for(const d of [-1,1]){line([[-.42,d*.7],[.42,d*.7],[0,0],[-.42,d*.7]]);line([[-.62,d*.78],[.62,d*.78]]);}oval(0,0,.68,.4,Math.PI/2);break;
+        default:ctx.restore();return false;
+      }
+      if(!low){ctx.strokeStyle=spec.accent;ctx.lineWidth=.75/r;ctx.globalAlpha*=.55;ctx.beginPath();ctx.arc(0,0,.92,.25+(reduced?0:q*.2),1.25+(reduced?0:q*.2));ctx.stroke();}
+      ctx.restore();return true;
+    },
+
+    drawT6SkillVfx(ctx,fx,p,reduced,full=true){
+      const key=fx.t6Vfx||(g.SK&&g.SK.TECH_TO_T6_VFX[fx.techId]),spec=g.SK&&g.SK.T6_VFX_FAMILIES[key];if(!ctx||!spec)return false;
+      const q=reduced?.5:clamp(p,0,1),low=this.resolveQuality()==='low',b=g.SK.NONLEGENDARY_VFX_BUDGET[6];
+      const radius=full?(reduced?44.5:b.rMin+(b.rMax-b.rMin)*Math.sin(Math.min(1,q/.65)*Math.PI/2)):18;
+      ctx.save();ctx.globalAlpha*=1-clamp((q-.76)/.24,0,1);
+      this.drawT6FamilyGlyph(ctx,key,q,radius,reduced,low);
+      if(full){
+        const wave=Math.sin(clamp((q-.25)/.45,0,1)*Math.PI),supportive=['heal','support','buff','harmonize','guard','shield','counter','evade','blink'].includes(fx.arch);
+        ctx.strokeStyle=spec.accent;ctx.lineWidth=1.3;ctx.globalAlpha*=.6*wave;
+        ctx.beginPath();
+        if(supportive){ctx.moveTo(-radius*.5,radius*.2);ctx.quadraticCurveTo(0,-radius*.55,radius*.5,radius*.2);}
+        else{ctx.rotate(Number.isFinite(fx.angle)?fx.angle:0);ctx.moveTo(-radius*.65,0);ctx.lineTo(radius*.75,0);ctx.lineTo(radius*.52,-4);}
+        ctx.stroke();
+      }
+      ctx.restore();return true;
     },
 
     // Ordinary T7: local technique geometry, not a Legendary apparition or environment scene.
@@ -2955,6 +3102,7 @@
     // T7 equipment has owner-bound, type-aware accents, not fabricated relic procs.
     drawT7EquipmentGlyph(ctx,type,r){
       if(!ctx)return false;
+      type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY'})[type]||type;
       if(R.WEAPON_MOTION_VFX[type])return this.drawWeaponMotionVfx(ctx,{weaponType:type,tier:7,angle:-.35},.5,r,true,.66);
       ctx.save();ctx.scale(r,r);ctx.strokeStyle='#d4ca9d';ctx.lineWidth=1/r;
       const line=(ps,closed=false)=>{ctx.beginPath();ps.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(closed)ctx.closePath();ctx.stroke();};
@@ -2974,15 +3122,17 @@
       ctx.restore();return true;
     },
 
-    drawT7EquipmentAura(ctx,n,ap,by=0){
+    drawT7EquipmentAura(ctx,n,ap,by=0){return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by,[7]);},
+    drawT6EquipmentAura(ctx,n,ap,by=0){return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by,[6]);},
+    drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by=0,tiers=[6,7]){
       if(!ctx||!n||n.dead||n.hidden||n.away||n.gone)return false;
       const items=Object.values(n.equip||{});let drawn=0;
       for(const it of items){
         if(drawn>=3)break;
-        if(!it||it.tier!==7||it.legendary||R.resolveLegendaryGearVisual(it)||(g.MARTIAL&&g.MARTIAL.gearUsable&&!g.MARTIAL.gearUsable(n,it)))continue;
-        const type=it.gearType||it.subType,armor=['HEAVY','LIGHT','ROBE'].includes(type),weapon=!!R.WEAPON_MOTION_VFX[type];
-        ctx.save();ctx.translate(weapon?10:armor?0:-10,weapon?-12+by:armor?-9+by:-16+by);ctx.globalAlpha*=armor?.35:.55;
-        const ok=this.drawT7EquipmentGlyph(ctx,type,armor?7:weapon?4.6:4.2);ctx.restore();if(ok)drawn++;
+        if(!it||!tiers.includes(it.tier)||it.legendary||R.resolveLegendaryGearVisual(it)||(g.MARTIAL&&g.MARTIAL.gearUsable&&!g.MARTIAL.gearUsable(n,it)))continue;
+        const rawType=it.gearType||it.subType,type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY'})[rawType]||rawType,finish=it.tier===6?.82:1,armor=['HEAVY','LIGHT','ROBE'].includes(type),weapon=!!R.WEAPON_MOTION_VFX[type];
+        ctx.save();ctx.translate(weapon?10:armor?0:-10,weapon?-12+by:armor?-9+by:-16+by);ctx.globalAlpha*=(armor?.35:.55)*finish;
+        const ok=this.drawT7EquipmentGlyph(ctx,type,(armor?7:weapon?4.6:4.2)*finish);ctx.restore();if(ok)drawn++;
       }
       if(drawn>0){
         const nodes=Math.min(3,Math.ceil(((ap&&ap.totalGearStars)||0)/2)),phase=this.isReducedMotion()?0:(this.t||0)+(n.n||0)*.8;
@@ -3179,10 +3329,11 @@
     drawCommonPassiveAura(ctx, n, act, by = 0) {
       if (!ctx || !n || n.dead || n.away || n.gone || n.hidden || !g.SK ||
           !['fight','practice','cultivate','breakthrough'].includes(act) && this.selected !== n.id) return false;
-      const tech = this.readOnlyActivePassives(n).find(t => !t.legendary && (g.SK.PASSIVE_TO_COMMON_VFX[t.id] || g.SK.PASSIVE_TO_T3_VFX[t.id]));
+      const tech = this.readOnlyActivePassives(n).find(t => !t.legendary && (g.SK.PASSIVE_TO_COMMON_VFX[t.id] || g.SK.PASSIVE_TO_T3_VFX[t.id] || g.SK.PASSIVE_TO_T6_VFX[t.id]));
       if (!tech) return false;
       ctx.save(); ctx.translate(0, 3 + by*.2); ctx.globalAlpha *= .38;
-      if(g.SK.PASSIVE_TO_T3_VFX[tech.id]) this.drawT3SkillVfx(ctx, g.SK.PASSIVE_TO_T3_VFX[tech.id], .5, 8, true);
+      if(g.SK.PASSIVE_TO_T6_VFX[tech.id]) this.drawT6FamilyGlyph(ctx,g.SK.PASSIVE_TO_T6_VFX[tech.id],.5,9.5,true,this.resolveQuality()==='low');
+      else if(g.SK.PASSIVE_TO_T3_VFX[tech.id]) this.drawT3SkillVfx(ctx, g.SK.PASSIVE_TO_T3_VFX[tech.id], .5, 8, true);
       else this.drawCommonSkillVfx(ctx, g.SK.PASSIVE_TO_COMMON_VFX[tech.id], .5, 7, true);
       ctx.restore(); return tech.id;
     },
@@ -7399,7 +7550,8 @@
     drawEquipmentTierAura(ctx, n, ap, by) {
       const maxTier = (ap && ap.highestGearTier) || 0;
       if (maxTier < 3) return false;
-      if(maxTier===7&&Object.values(n.equip||{}).some(it=>it&&it.tier===7&&!it.legendary))return this.drawT7EquipmentAura(ctx,n,ap,by);
+      // A lower ordinary piece must not replace the existing higher Legendary halo.
+      if(maxTier>=6&&Object.values(n.equip||{}).some(it=>it&&it.tier===maxTier&&!it.legendary))return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by);
       const spec = R.GEAR_TIER_GLOWS[clamp(maxTier, 1, 7)] || R.GEAR_TIER_GLOWS[3];
       const stars = clamp((ap && ap.totalGearStars) || 0, 0, 9);
       const t = this.t + (n.n || 0) * 0.8;

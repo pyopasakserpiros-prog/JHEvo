@@ -4,8 +4,8 @@
 
 - Legendary Apex ทำแล้ว: 47 วิชาที่ร่ายได้ / 3 พาสซีฟ / 27 อุปกรณ์ตำนาน
 - **T7 ทำแล้ว:** 71 วิชาทั่วไป / 157 ท่าย่อย / 85 อุปกรณ์ใน 25 ประเภท ดู [รายงาน](PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md) และ [ทะเบียน](docs/audits/T7_VISUAL_ASSIGNMENT_REGISTRY.md)
-- **แพตช์ภาพถัดไป: T6** มี [เอกสารส่งต่องาน](docs/handovers/NEXT_T6_VISUAL_PATCH.md) เตรียมไว้ เมื่อผู้ใช้สั่งทำต่อ ให้เริ่มจาก T6 ตามสถานะจริง ไม่ทำ T7 หรือพงศาวดารซ้ำ
-- ผลทดสอบของ refinement ล่าสุดให้ดูรายงาน T7; ตัวเลขรับรองพงศาวดารด้านล่างเป็นผลของฐานเดิม
+- **T6 selected group art:** 50 ลายรูปทรงต่างกัน ใช้ร่วมกันตามกลุ่ม ครอบคลุม 114 วิชา / 207 ท่าย่อย, พาสซีฟที่เข้าเงื่อนไข 8 วิชา และอุปกรณ์เดิม 117 รายการ / 25 ประเภทจริง (27 raw tags). สเกล 42–47 px / 1,250 ms; ไม่เพิ่มค่าสถานะหรือเปลี่ยนเซฟ. ดู [ทะเบียน](docs/audits/T6_GROUP_VFX_REGISTRY.md) และ [รายงาน](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md). งานถัดไปเมื่อผู้ใช้สั่ง: [T5](docs/handovers/NEXT_T5_VISUAL_PATCH.md).
+- ผลทดสอบ refinement ล่าสุด: Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. ดูรายละเอียดในรายงาน T6; ตัวเลขพงศาวดาร 148/148 ด้านล่างเป็นผลของฐานเดิม
 
 
 ## สถานะปัจจุบันของแพ็กเกจนี้ (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว)
@@ -15,7 +15,7 @@
   - รายงานการพัฒนาฉบับเต็ม: [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md)
   - ตารางสำรวจ Producer → UI Coverage Matrix: [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
   - สำเนาใบสั่งงานที่ดำเนินการเสร็จแล้ว: [`docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md)
-- **ผลการตรวจรับรองล่าสุดของแพ็กเกจนี้**:
+- **ผลการตรวจรับรองฐานพงศาวดารก่อน VFX refinement** (ผลล่าสุดอยู่ด้านบน):
   - `node GAME_SOURCE/test/core_lock.js`: **PASS** (`155:2f9c9dd7`, SHA-256 ของ `js/human_core.js` = `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542` byte-identical)
   - `node GAME_SOURCE/tools/validate_data_schema.js`: **PASS** (`Errors: 0, Warnings: 0`)
   - `node GAME_SOURCE/tools/run_parallel_tests.js`: **PASS (`148/148` กลุ่มทดสอบผ่าน 100% จาก 147 ชุดทดสอบ + 1 กลุ่มตรวจ Syntax 225 ไฟล์)**

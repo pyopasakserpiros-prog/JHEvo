@@ -1,5 +1,7 @@
 # T7 Ordinary Apex VFX Registry — JS2-v2.6.0
 
+> Current frontier update: selected T6 group art is now implemented (50 forms / 114 actual active skills / 207 child routes, 8 passives). See [T6 registry](T6_GROUP_VFX_REGISTRY.md); next requested frontier [T5](../handovers/NEXT_T5_VISUAL_PATCH.md). Counts and next-tier statements below describe this registry’s original patch unless explicitly updated.
+
 Base `main 550a909`. **Implemented:** 71 reviewed ordinary T7 skill routes (all current runtime T7 techniques with `legendary === false`), 157 authored move-stage metadata routes, 24 thematic composition families, and owner-bound T7 equipment accents for 85 existing templates across 25 current gear types. Named Legendary 47 skill scenes / 3 crowns / 27 relic scenes and previous Common/T3/Signature catalogs remain intact.
 
 ## Design and rarity audit

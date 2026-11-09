@@ -1,5 +1,7 @@
 # JS2-v2.6.0 — T3 Skill VFX and Ordinary-Tier Progression
 
+> Current frontier update: selected T6 group art is now implemented (50 forms / 114 actual active skills / 207 child routes, 8 passives). See [T6 registry](T6_GROUP_VFX_REGISTRY.md); next requested frontier [T5](../handovers/NEXT_T5_VISUAL_PATCH.md). Counts and next-tier statements below describe this registry’s original patch unless explicitly updated.
+
 > T7 is now implemented: [T7 Registry](T7_VISUAL_ASSIGNMENT_REGISTRY.md). T4–T6 remain planned; next patch is T6. The original implementation history below is retained.
 
 Base: `main 6b26f58`. **Implemented:** 24 new forms / 26 selected T3 active techniques / 8 eligible passive routes / 6 named-status routes. Existing Common 30/66/12/22 and Signature 45/256 catalogs remain intact. This is a refinement of the current JS2-v2.6.0 game, not a second playable version.
