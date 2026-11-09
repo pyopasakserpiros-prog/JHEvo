@@ -43,8 +43,8 @@
 | `node test/core_lock.js` | **PASS** (`155:2f9c9dd7`) |
 | `node tools/validate_data_schema.js` | **PASS** (`Errors: 0, Warnings: 0` — 1,153 items, 1,371 recipes, 286 subpaths across 43 paths, 1,243 techniques, 1,221 item effects, 5,724 editor entries) |
 | `node test/v240_composable_keywords_and_tactical_combat_suite.js` | **PASS** (`45 assertions passed`) |
-| `node test/run_all.js` | **PASS** (`140/140 test groups passed — 100%`) |
-| `node tools/build_single.js` | **PASS** (`single file 9017 KB`) |
+| `node test/run_all.js` | **PASS** (`141/141 test groups passed — 100%`) |
+| `node tools/build_single.js` | **PASS** (`single file 9137 KB`) |
 | `80-NPC Tick Performance (v330)` | **PASS** (`0.695 ms/tick`, เพดาน `<= 3.5 ms/tick`) |
 
 
@@ -64,3 +64,27 @@
      - Wired `CULT.VOLUNTARY_VOWS.violateVow` into `ECO.usePill` (`VOW_NO_MEDICINE`), `COMBAT` flee (`VOW_NO_RETREAT`), and `CULT.FORBIDDEN_ARTS.setForbiddenSealMode` (`VOW_ASCETIC_PRECEPT`).
      - Wired `CULT.EXPERIENCE_TRAITS.recordExperienceEvent` into `COMBAT.resolveRowBodyblock`, `COMBAT.conclude`, `A.breakthrough.done`, `A.study.done`, `SECT.runOfficerJurisdictionSingle` (`beastmaster`), and `SECT.daily`.
      - Wired `SECT.INFERNAL_SHRINE.monthlyTick(W)` and `CULT.tickMonthlyWorldHooks(W)` into `SIM.monthly(W)`, and wired `CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses` into `STATS` and `CULT.rate`.
+
+
+---
+
+## 9. Final Release-Ready QA & Deep Logic Bugfix Completion (9 พฤศจิกายน 2026)
+
+1. **Save/Load & Persistence (`SAVE-01`..`SAVE-11`, `V240-16`, `V240-17`, `NEW-01`)**:
+   - Synchronized `SIM.syncNextIdFromWorld(W)` and `SIM.syncChronicleAlias(W)` on both serialize and deserialize.
+   - Persisted `vassalDistressCalls`, `activeDistressCall`, `bountyBoard`, `secretRealms`, `outposts`, `beastMenagerie`, `pendingMultiPhaseEffects`, `armedConsumables`, `_justBrokeThrough`, and active combat state (`W.fighting` via `SIM._serializeFightingState` / `SIM._rehydrateFightingState`).
+   - Added `SIM.pruneSavePayload` for compact `localStorage` footprint and cleared `_cultRateBase = null` & `_wsBase = null` at the start of `SIM.serialize` for deterministic post-load parity.
+2. **Combat, 16 Composable Keywords & Martial Techniques (`COM-01`..`COM-09`, `TECH-P0-01`..`TECH-P2-16`, `QA-240-01`..`23`, `V240-03`, `V240-04`, `V240-08`..`12`)**:
+   - Implemented full spec behavior for all 16 keywords (`KW_LAST_BREATH` lethal guard, per-element `KW_ADAPTIVE_RESIST` with decay, per-target `KW_MARKSMAN_FOCUS`, `KW_CRIT_OVERFLOW > 90`, `KW_CRIT_BREAK` sunder, parry-triggered `KW_STATUS_TRANSFER`, enemy-slowing `KW_TEMPO_STEAL`, `KW_PIERCE` `pct`/`vsShield`/`line`, `40% MaxHP` `KW_ABSORB_RELEASE`, and unified `COMBAT.reflectOf` cap).
+   - Dispatched all 13 technique actions and mapped all elemental fusion reaction aliases; enforced support range checks, legendary/Shadow Samurai weapon constraints, mandatory `conditionFailed` suppression, dynamic front/back row promotion & melee-only bodyblocking, boss `anatomyParts` initialization, and `healBlock` enforcement.
+3. **Dao Paths, Subpaths, Voluntary Vows & Infernal Shrine (`DA-001`..`DA-017`, `V240-01`..`02`, `V240-05`..`06`, `V240-12`..`15`, `NEW-02`..`07`)**:
+   - Dispatched all 52 trait action opcodes and 21 condition types in `_evalSingleCondition` / `checkTraitTriggerCondition`.
+   - Wired gameplay acquisition and path gating for all 4 `SECONDARY_RESOURCES`, `TOXIN_SYNERGY_MATRIX` tick damage, `VOLUNTARY_VOWS` stat bonuses/caps/redemption/AI medicine guard/combat forbidden-art violation, `applyGravityField` `gravity_slow`, `triggerTemporalRewind` path/cooldown checks, `evaluateSubpathArchetypeMastery`, `INFERNAL_SHRINE` buffs/backlash/autonomous NPC actions, and `EXPERIENCE_TRAITS` distinct event keys, penalties, and recovery hooks.
+4. **Equipment, Economy & Outside Sect (`EQ-01`..`EQ-16`, `EC-01`..`EC-10`, `OUT-01`..`OUT-20`)**:
+   - Preserved rolled `affixes` across weapon kill evolutions (`baseSt` + `affixes` in `ST.gearStats`), wired all 16 equipment effect procs in `runItemEffectProcs`, validated rune socketing & cache invalidation, blocked equipping broken gear (`dur <= 0`), applied hourly cursed HP drain, fixed `Stance Flow` target Qi drain, enforced `pairId` on paired items, and scaled evolved weapon market price.
+   - Enforced catalog price in `CPE.buy`, blocked world-pool stone extraction from editor-spawned items (`spawnedMats`/`spawnedPills`), deducted real stock in `allocateCentralResourcesToPeaks`, validated organ buyer `wants`, and closed all 20 outside-sect exploits (`OUT-01`..`OUT-20`).
+5. **Final Verification Gate**:
+   - `node GAME_SOURCE/test/core_lock.js`: **PASS** (`155:2f9c9dd7`)
+   - `node GAME_SOURCE/tools/validate_data_schema.js`: **PASS** (`0 errors, 0 warnings`)
+   - `node --test GAME_SOURCE/test/v240_user_audit_regression.js`: **PASS (`60/60 subtests`)**
+   - `node GAME_SOURCE/tools/run_parallel_tests.js --concurrency=6`: **PASS (`141/141 test suites`, `0 failures`, `216 syntax files`)**

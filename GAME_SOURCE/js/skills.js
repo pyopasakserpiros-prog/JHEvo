@@ -157,7 +157,17 @@
     vowBacklash: { nameTh: 'ของเข้าตัว·ผิดสัจจะ', icon: '💔', pmods: { def: -.35, mdef: -.30 }, tags: ['#SEAL'] },
     boneArmor: { nameTh: 'เกราะกระดูกวิญญาณ', icon: '🦴', isBuff: true, shield: true, pmods: { def: .25, mdef: .14 }, tags: ['#SHIELD', '#BUFF'] },
     parryCounter: { nameTh: 'ปัดป้องสะท้อนคม', icon: '⚔️', isBuff: true, pmods: { atk: .16, def: .18 }, fmods: { crit: 18, pen: 16 }, tags: ['#BUFF'] },
-    sanityStrain: { nameTh: 'จิตใจปั่นป่วนนอกมิติ', icon: '👁️‍🗨️', isBuff: true, pmods: { matk: .36, def: -.12 }, fmods: { pen: 24, crit: 14 }, tags: ['#BUFF'] }
+    sanityStrain: { nameTh: 'จิตใจปั่นป่วนนอกมิติ', icon: '👁️‍🗨️', isBuff: true, pmods: { matk: .36, def: -.12 }, fmods: { pen: 24, crit: 14 }, tags: ['#BUFF'] },
+    taunted: { nameTh: 'ถูกยั่วยุ', icon: '💢', tags: ['#CONTROL'] },
+    ashenToxin: { nameTh: 'พิษเถ้าถ่านผลาญชีพ', icon: '⚱️', dot: true, pmods: { mdef: -.12 }, tags: ['#FIRE', '#POISON'] },
+    radiationBurn: { nameTh: 'เพลิงสุริยะแผดเผา', icon: '☀️', dot: true, pmods: { hp: -.10, mdef: -.15 }, tags: ['#FIRE', '#ASTRAL'] },
+    crimsonGuSwarm: { nameTh: 'ฝูงกู่โลหิตกลืนกิน', icon: '🪲', dot: true, pmods: { def: -.12, mdef: -.12 }, tags: ['#BLOOD', '#POISON'] },
+    sovereignPlague: { nameTh: 'โรคระบาดราชันย์หมื่นพิษ', icon: '☣️', dot: true, pmods: { def: -.18, mdef: -.18, atk: -.12 }, tags: ['#POISON', '#YIN'] },
+    stygianFreeze: { nameTh: 'ไอเย็นยมโลกสะกดวิญญาณ', icon: '🧊', mods: { cast: -35, move: -35 }, pmods: { eva: -.25 }, tags: ['#ICE', '#YIN', '#SEAL'] },
+    weaponMelt: { nameTh: 'ศาสตราหลอมละลาย', icon: '🫠', pmods: { atk: -.25, def: -.25 }, tags: ['#FIRE', '#METAL'] },
+    disarmed: { nameTh: 'ปลดศาสตรา', icon: '⚔️', pmods: { atk: -.25 }, mods: { acc: -15 }, tags: ['#CONTROL', '#METAL'] },
+    sporeSeed: { nameTh: 'เมล็ดกาฝากดูดปราณ', icon: '🍄', dot: true, isMark: true, maxStacks: 5, pmods: { mdef: -.10 }, tags: ['#WOOD', '#POISON'] },
+    delayedEcho: { nameTh: 'คลื่นสะท้อนเงาอดีต', icon: '⏳', tags: ['#ASTRAL'] }
   };
   const SUBW = {
     SWORD_IMMORTAL: { strike: 3, pierce: 3, flurry: 2, burst: 1.5, dot: .5 },
@@ -335,8 +345,9 @@
       action: m.action || (m.composable && m.composable.action) || t.action || (t.composable && t.composable.action) || null,
       actions: m.actions || (m.composable && m.composable.actions) || t.actions || (t.composable && t.composable.actions) || null,
       stanceShift: m.stanceShift || (m.composable && m.composable.stanceId) || t.stanceShift || null,
-      comboPrimer: !!(m.comboPrimer || (m.composable && m.composable.comboPrimer)),
-      comboFinisher: !!(m.comboFinisher || (m.composable && m.composable.comboFinisher)),
+      comboPrimer: !!(m.comboPrimer || m.action === 'COMBO_PRIMER' || (m.composable && (m.composable.comboPrimer || m.composable.action === 'COMBO_PRIMER'))),
+      comboFinisher: !!(m.comboFinisher || m.action === 'COMBO_FINISHER' || (m.composable && (m.composable.comboFinisher || m.composable.action === 'COMBO_FINISHER'))),
+      chargeRelease: !!(m.chargeRelease || (m.chargeStage || 0) > 0 || m.action === 'CHARGE_RELEASE' || (m.composable && (m.composable.chargeRelease || m.composable.action === 'CHARGE_RELEASE'))),
       markPrimer: m.markPrimer || (m.composable && m.composable.markPrimer) || null,
       markDetonate: m.markDetonate || (m.composable && m.composable.markDetonate) || null,
       elementalFusion: m.elementalFusion || (m.composable && m.composable.elementalFusion) || t.elementalFusion || null,
@@ -396,7 +407,7 @@
       const prof = Object.assign({}, m0, { id: t.id, tech: t.id, moveId: t.moveDefs[0].id, nameTh: t.nameTh, moves: t.moves || t.moveDefs.map(x => x.nameTh) });
       return (cache[t.id] = prof);
     } else return (cache[t.id] = null); // วิชาอาชีพ/ไม่ใช่การรบ
-    const A = SK.ARCH[arch], tier = t.tier, tierMult = 1 + 0.12 * (tier - 1) + 0.0006 * ((t.power || 40) - 40 * tier * 0.8 > 0 ? 0 : 0);
+    const A = SK.ARCH[arch], tier = t.tier, tierMult = 1 + 0.12 * (tier - 1) + Math.min(0.18, 0.0006 * Math.max(0, (t.power || 40) - 40 * tier * 0.8));
     const cd = Math.round(A.cd * (0.85 + 0.3 * rnd(h, 2)));
     const wind0 = Math.max(2, Math.round(A.wind * (0.9 + 0.2 * rnd(h, 4)))), hits = A.hits;
     const fill = (cd - wind0) / 4, tot = A.e * (cd / 4) * tierMult - fill;
@@ -588,10 +599,10 @@
     const eq = n.equip || {};
     const slotSig = it => {
       if (!it || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(n, it))) return '';
-      const mLen = Array.isArray(it.skillModifiers) ? it.skillModifiers.length : 0;
-      const rCnt = it.runeInscriptions ? Object.keys(it.runeInscriptions).length : 0;
-      const gLen = Array.isArray(it.grantedSkills) ? it.grantedSkills.length : 0;
-      return (it.uid || it.id || '') + ':' + mLen + ':' + rCnt + ':' + gLen;
+      const mSig = Array.isArray(it.skillModifiers) ? it.skillModifiers.map(m => m ? ((m.targetTechId || m.targetArch || '') + ':' + (m.multAdd || 0) + ':' + (m.hitsAdd || 0) + ':' + (m.cdDelta || 0) + ':' + (m.penAdd || 0) + ':' + (m.critAdd || 0) + ':' + (m.costMult || 1) + ':' + (m.addRider || '') + ':' + (m.grantBuff || '') + ':' + (m.addElementalFusion || '') + ':' + (m.composablePatch && m.composablePatch.action || '')) : '').join(';') : '';
+      const rSig = it.runeInscriptions ? Object.entries(it.runeInscriptions).map(([rk, rv]) => rk + ':' + (rv && (rv.reactionId || rv.mult || rv) || '')).join(';') : '';
+      const gSig = Array.isArray(it.grantedSkills) ? it.grantedSkills.join(',') : '';
+      return (it.uid || it.id || '') + ':' + (it._modVer || 0) + ':' + mSig + ':' + rSig + ':' + gSig;
     };
     const eqKey = slotSig(eq.WEAPON) + '|' + slotSig(eq.ARMOR) + '|' + slotSig(eq.ACCESSORY);
     const slc = n._skListCache;

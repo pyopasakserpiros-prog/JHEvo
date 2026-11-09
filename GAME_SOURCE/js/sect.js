@@ -3949,6 +3949,9 @@
     const idx = list.findIndex(g2 => g2 && (g2.uid === gearUidOrId || g2.id === gearUidOrId));
     if (idx < 0) return { ok: false, reason: 'ไม่พบอุปกรณ์ในถุงส่วนตัว' };
     const eq = list[idx];
+    if (eq.retired || eq.broken || (eq.procedural && eq.dur != null && eq.dur <= 0)) {
+      return { ok: false, reason: 'อุปกรณ์ชำรุดเสียหาย ต้องซ่อมบำรุงก่อนสวมใส่' };
+    }
     const paths = Array.isArray(eq.compatiblePath) ? eq.compatiblePath : (eq.compatiblePath ? [eq.compatiblePath] : ['ANY']);
     if (!paths.includes('ANY') && (!n.cult || !paths.includes(n.cult.path))) {
       return { ok: false, reason: 'วิถีไม่ตรงกับอุปกรณ์ (' + paths.join('/') + ')' };
@@ -5792,7 +5795,15 @@
     const master = W.byId && S.masterId ? W.byId[S.masterId] : null;
     const masterStage = (master && master.cult) ? (CULT.equivalentStage ? CULT.equivalentStage(master) : master.cult.stage) : 2;
     const maxStage = alive.reduce((mx, n) => Math.max(mx, n.cult ? (CULT.equivalentStage ? CULT.equivalentStage(n) : n.cult.stage) : 0), masterStage);
-    const totalPower = alive.reduce((sum, n) => sum + ((n._cs && n._cs.rating) || (CULT.power ? CULT.power(n) : 50)), 0);
+    // Read power through its cache validation; _cs.rating may be stale after
+    // time, HP, equipment or save/load changes.
+    const totalPower = alive.reduce((sum, n) => {
+      // Cached ratings intentionally tolerate small HP/energy changes for a
+      // few ticks. Daily tier scoring must not depend on when a cache was
+      // populated, particularly after loading a save that drops caches.
+      n._cs = null;
+      return sum + (CULT.power ? CULT.power(n) : 50);
+    }, 0);
 
     // At initial founding (3 members, fame 12, no building upgrades, no vassals/nodes), score is ~75 (< 160) -> Tier 1 SMALL (สำนักเล็ก)
     const popPts = Math.max(0, (pop - 3) * 10) + Math.max(0, (elders - 1) * 16);
@@ -6054,7 +6065,7 @@
         });
       });
       if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
-        CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'BEAST_NURTURE_AND_BOND', 1);
+        CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'BEAST_NURTURE_AND_BOND', 'tick:' + W.t);
       }
       summaryTh = n.h.name.given + ' (เจ้าอุทยานอสูร) ฟื้นฟูความเหนื่อยล้าและบำรุงสัตว์วิญญาณในสำนัก (' + caredCount + ' ตัว)';
       effect = { caredCount };
@@ -6664,8 +6675,11 @@
     if (SECT.AUTOMATION && SECT.AUTOMATION.runDailyAutomation) SECT.AUTOMATION.runDailyAutomation(W, { quiet: true });
     if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.recordExperienceEvent && Array.isArray(W.npcs)) {
       for (const m of W.npcs) {
-        if (m && !m.dead && m.voluntaryVows && Object.keys(m.voluntaryVows).some(k => m.voluntaryVows[k] && m.voluntaryVows[k].active)) {
-          CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, m, 'UPHELD_VOW_OR_CONTRACT', 1);
+        if (!m || m.dead) continue;
+        const hasActiveVow = !!(m.voluntaryVows && Object.keys(m.voluntaryVows).some(k => m.voluntaryVows[k] && m.voluntaryVows[k].active && !m.voluntaryVows[k].broken));
+        const hasOathOrContract = !!((m.daoOath && !m.daoOath.broken) || (m.soulContract && m.soulContract.active));
+        if (hasActiveVow || hasOathOrContract) {
+          CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, m, 'UPHELD_VOW_OR_CONTRACT', 'day:' + W.day);
         }
       }
     }
@@ -9196,13 +9210,18 @@
     const qty = opts.qty || 12;
     const dipBonus = 1 + Math.min(0.20, (((leader.h && leader.h.skills && leader.h.skills.diplomacy) || 30) / 300));
     const hostTaxBonus = (W.world && W.world.grandAssembly && W.world.grandAssembly.continentalHostSectId === 'PLAYER') ? (1 + (W.world.grandAssembly.hostMarketTaxBonus || 0.15)) : 1.0;
-    const revenue = Math.round(catDef.basePrice * (qty / 4) * (mEntry ? mEntry.multiplier : 1.1) * dipBonus * hostTaxBonus);
+    // This is payment for escorting a third-party caravan, not a sale of
+    // untracked sect inventory. The buyer pays from the world treasury.
+    const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
+    const quotedRevenue = Math.round(catDef.basePrice * (qty / 4) * (mEntry ? mEntry.multiplier : 1.1) * dipBonus * hostTaxBonus);
+    const revenue = Math.min(quotedRevenue, Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0);
+    pool.stones -= revenue;
 
     if (mEntry) {
       mEntry.volumeSold = (mEntry.volumeSold || 0) + qty;
     }
     if (ECO && ECO.earn) {
-      ECO.earn(W, revenue, 'กำไรกองคาราวานการค้าหมวด「' + catDef.nameTh + '」สู่' + (destSect ? destSect.nameTh : 'ต่างแคว้น'));
+      ECO.earn(W, revenue, 'ค่าคุ้มกันกองคาราวานหมวด「' + catDef.nameTh + '」สู่' + (destSect ? destSect.nameTh : 'ต่างแคว้น'));
     }
 
     // Escort event: guards repel highwaymen or bond with each other
@@ -9237,7 +9256,7 @@
       multiplier: mEntry ? mEntry.multiplier : 1.0,
       revenue,
       status: 'COMPLETED',
-      summaryTh: HC.fullName(leader) + ' นำกองคาราวาน (' + guards.map(gNpc => HC.fullName(gNpc)).join(', ') + ' คุ้มกัน) ส่ง「' + catDef.nameTh + '」ไปขายที่「' + (destSect ? destSect.nameTh : 'เมืองการค้า') + '」ในราคาตลาด ×' + (mEntry ? mEntry.multiplier.toFixed(2) : '1.00') + ' รับกำไร +' + revenue + ' ศิลาวิญญาณ!'
+      summaryTh: HC.fullName(leader) + ' นำศิษย์คุ้มกันคาราวานสินค้า「' + catDef.nameTh + '」สู่「' + (destSect ? destSect.nameTh : 'เมืองการค้า') + '」รับค่าจ้าง +' + revenue + ' ศิลาวิญญาณ!'
     };
     st.caravans.unshift(caravanRec);
     if (st.caravans.length > 20) st.caravans.length = 20;
@@ -9248,9 +9267,9 @@
       involvedSects: [W.sect.name, destSect && destSect.nameTh].filter(Boolean),
       involvedFigures: party.map(p => HC.fullName(p)),
       npcIds: party.map(p => p.id),
-      titleTh: 'ขบวนคาราวานการค้าศิษย์: 「' + HC.fullName(leader) + '」นำขบวนส่ง「' + catDef.nameTh + '」ฟันกำไร +' + revenue + ' ศิลา!',
+      titleTh: 'ขบวนคาราวานการค้าศิษย์: 「' + HC.fullName(leader) + '」คุ้มกัน「' + catDef.nameTh + '」รับค่าจ้าง +' + revenue + ' ศิลา!',
       storyTh: caravanRec.summaryTh,
-      originCauseTh: (mEntry && mEntry.reasonTh) || 'ส่วนต่างราคาตลาดยุทธภพเอื้อต่อการส่งออกสินค้า',
+      originCauseTh: (mEntry && mEntry.reasonTh) || 'พ่อค้าต่างแคว้นว่าจ้างศิษย์สำนักคุ้มกันขบวนสินค้า',
       actorChainTh: 'หัวหน้าขบวน: ' + HC.fullName(leader) + ' · องครักษ์คุ้มกัน: ' + guards.map(gNpc => HC.fullName(gNpc)).join(', '),
       systemImpactTh: 'เชื่อมโยง העולםสงคราม/ฤดูกาล ➔ ดัชนีตลาด (×' + (mEntry ? mEntry.multiplier.toFixed(2) : '1.00') + ') ➔ คลังศิลาสำนัก (+' + revenue + ') + ความสัมพันธ์สำนักคู่ค้า (+5) + มิตรภาพศิษย์คุ้มกัน (+8)',
       consequenceTh: 'คลังสำนัก +' + revenue + ' ศิลาวิญญาณ · คณะคุ้มกันได้รับตบะ +25 และ +18 CP',
@@ -11939,7 +11958,15 @@
       shareStones = Math.min(shareStones, Math.max(0, totalPoolStones - distributedSum));
       distributedSum += shareStones;
 
-      const sharePills = Math.max(0, Math.floor(shareStones / 35));
+      const desiredPills = Math.max(0, Math.floor(shareStones / 35));
+      let sharePills = 0;
+      if (desiredPills > 0 && W.sect && W.sect.stock) {
+        const pillKey = (W.sect.stock['P:BASIC_QI'] || 0) > 0 ? 'P:BASIC_QI' : Object.keys(W.sect.stock).find(k => ECO.isPill(k) && W.sect.stock[k] > 0);
+        if (pillKey) {
+          const takeAmt = Math.min(desiredPills, W.sect.stock[pillKey] || 0);
+          if (takeAmt > 0 && ECO.take(W, pillKey, takeAmt)) sharePills = takeAmt;
+        }
+      }
       pObj.treasuryStones = (pObj.treasuryStones || 0) + shareStones;
       pObj.pillReserve = (pObj.pillReserve || 0) + sharePills;
 
@@ -14753,9 +14780,6 @@
     W.world.resourcePool = W.world.resourcePool || { stones: 50000, herbs: 5000, ores: 5000 };
     const beforeStones = W.sect.stones || 0;
     const res = CARAVAN_AUCTION.dispatchTradeCaravan(W, categoryId, targetSectOrId, opts);
-    if (res && res.ok && res.revenue > 0) {
-      W.world.resourcePool.stones = Math.max(0, (W.world.resourcePool.stones || 50000) - res.revenue);
-    }
     return Object.assign({}, res, { beforeStones, afterStones: W.sect.stones || 0 });
   };
 
@@ -15239,7 +15263,12 @@
 
   const pushWorldChronicle = (W, entry) => {
     if (!W) return null;
-    if (!Array.isArray(W.chronicle)) W.chronicle = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
+    if (W.world) {
+      if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
+      W.chronicle = W.world.chronicles;
+    } else if (!Array.isArray(W.chronicle)) {
+      W.chronicle = [];
+    }
     let rec = null;
     if (g.EXPED && g.EXPED.recordChronicle) {
       rec = g.EXPED.recordChronicle(W, Object.assign({ allowDuplicate: true }, entry));
@@ -15331,7 +15360,8 @@
     }
     if (!Array.isArray(W.sect.outposts.convoys)) W.sect.outposts.convoys = [];
     if (!Array.isArray(W.sect.outposts.history)) W.sect.outposts.history = [];
-    if (!Array.isArray(W.chronicle)) W.chronicle = [];
+    if (W.world && Array.isArray(W.world.chronicles)) W.chronicle = W.world.chronicles;
+    else if (!Array.isArray(W.chronicle)) W.chronicle = [];
     return W.sect.outposts;
   };
 
@@ -16504,27 +16534,29 @@
       let soldCount = 0;
       let revenueStones = 0;
       const soldItems = [];
+      const remaining = [];
+      const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
 
       for (const sp of (scan.surplus || [])) {
-        const qty = sp.count || 0;
-        if (qty <= 0) continue;
+        const available = sp.count || 0;
+        const unitPrice = 1020; // 85% of 1200 base price
+        const funds = pool && Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0;
+        const qty = Math.min(available, Math.floor(funds / unitPrice));
+        if (qty <= 0) { if (available > 0) remaining.push(sp); continue; }
         if (g.ECO && g.ECO.take && g.ECO.take(W, sp.itemId, qty)) {
-          const unitPrice = 1020; // 85% of 1200 base price
           const rev = unitPrice * qty;
-          // Strict closed-loop conservation: transfer from world.resourcePool.stones when available
-          if (W.world && W.world.resourcePool && typeof W.world.resourcePool.stones === 'number') {
-            W.world.resourcePool.stones = Math.max(0, W.world.resourcePool.stones - rev);
-          }
+          pool.stones -= rev;
           if (g.ECO && g.ECO.earn) g.ECO.earn(W, rev, 'ขายคัมภีร์มหาวิถีซ้ำ (' + sp.itemId + ' ×' + qty + ') ให้คาราวาน');
           else W.sect.stones = (W.sect.stones || 0) + rev;
           soldCount += qty;
           revenueStones += rev;
           soldItems.push({ itemId: sp.itemId, pathId: sp.pathId, qty, revenue: rev });
-        }
+          if (available > qty) remaining.push(Object.assign({}, sp, { count: available - qty }));
+        } else remaining.push(sp);
       }
       lib.surplusManualsSold = (lib.surplusManualsSold || 0) + soldCount;
       lib.surplusRevenueStones = (lib.surplusRevenueStones || 0) + revenueStones;
-      lib.exportSurplusManuals = [];
+      lib.exportSurplusManuals = remaining;
       return { soldCount, revenueStones, soldItems };
     },
 
@@ -16896,17 +16928,25 @@
 
       const lords = pDef.lords || ['MARA_PAPIYAN'];
       let covenantsFormed = 0;
+      const isWillingForDemonPact = n => {
+        if (!n || n.dead || n.exiled || !n.cult) return false;
+        if (n.voluntaryVows && n.voluntaryVows.VOW_ASCETIC_PRECEPT && n.voluntaryVows.VOW_ASCETIC_PRECEPT.active) return false;
+        const p = n.h && n.h.personality;
+        if (p && (p.integrity || 50) >= 75 && (p.ambition || 50) < 60 && n.cult.path !== 'DEMON') return false;
+        return ['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'SOUL_PUPPETRY', 'VENOM_GU'].includes(n.cult.path) || (p && (p.ambition || 50) >= 68 && (p.integrity || 50) <= 42);
+      };
       if (demPantheon && typeof demPantheon.formDemonPact === 'function') {
         for (const n of (W.npcs || [])) {
-          if (!n || n.dead || n.exiled || !n.cult) continue;
-          if (['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'SOUL_PUPPETRY', 'VENOM_GU'].includes(n.cult.path)) {
-            const lPick = lords[covenantsFormed % lords.length];
-            demPantheon.formDemonPact(W, n, lPick, { free: true });
-            covenantsFormed++;
-          }
+          if (!isWillingForDemonPact(n)) continue;
+          const lPick = lords[covenantsFormed % lords.length];
+          const pactResult = demPantheon.formDemonPact(W, n, lPick, { free: true });
+          if (pactResult && pactResult.ok && !pactResult.unchanged) covenantsFormed++;
         }
       }
       sh.activeCovenantLordId = lords[0] || null;
+      if (W && Array.isArray(W.npcs) && g.STATS && g.STATS.dirty) {
+        for (const n of W.npcs) if (n && !n.dead) g.STATS.dirty(n);
+      }
 
       const rec = {
         day: W.day || 1,
@@ -16926,16 +16966,24 @@
     },
 
     signBloodCovenant(W, npcOrId, lordId, opts) {
-      opts = opts || {};
+      opts = Object.assign({}, opts || {});
       const sh = this.ensure(W);
       const demPantheon = CULT && CULT.DEMONIC_PANTHEON;
       if (!demPantheon || typeof demPantheon.formDemonPact !== 'function') {
         return { ok: false, reason: 'no-demonic-pantheon' };
       }
+      let spentFavor = false;
+      if (!opts.free && sh && (sh.infernalFavor || 0) >= 60) {
+        sh.infernalFavor -= 60;
+        opts.free = true;
+        spentFavor = true;
+      }
       const res = demPantheon.formDemonPact(W, npcOrId, lordId, opts);
-      if (res && res.ok && sh) {
+      if (res && res.ok && !res.unchanged && sh) {
         sh.activeCovenantLordId = res.lordId;
-        sh.infernalFavor = (sh.infernalFavor || 0) + 15;
+        if (!spentFavor) sh.infernalFavor = (sh.infernalFavor || 0) + 15;
+      } else if (spentFavor && sh) {
+        sh.infernalFavor += 60;
       }
       return res;
     },
@@ -16943,13 +16991,14 @@
     getShrineBuffs(W) {
       const sh = this.ensure(W);
       if (!sh || !sh.bloodTributes) return { active: false, altarLevel: 1, infernalFavor: 0, atkBonusPct: 0, demonicRateBonus: 0, backlashRisk: 0 };
+      const favorBonus = Math.min(0.06, Math.floor((sh.infernalFavor || 0) / 50) * 0.01);
       return {
         active: true,
         activePlaneId: sh.activePlaneId,
         altarLevel: sh.altarLevel,
         infernalFavor: sh.infernalFavor,
-        atkBonusPct: +(sh.altarLevel * 0.02).toFixed(3),
-        demonicRateBonus: +(sh.altarLevel * 0.03).toFixed(3),
+        atkBonusPct: +(sh.altarLevel * 0.02 + favorBonus * 0.5).toFixed(3),
+        demonicRateBonus: +(sh.altarLevel * 0.03 + favorBonus).toFixed(3),
         backlashRisk: sh.demonicBacklashRisk || 0
       };
     },
@@ -16958,6 +17007,13 @@
       const sh = this.ensure(W);
       if (!sh) return null;
       if (sh.demonicBacklashRisk > 0) {
+        if (W && W.rng && W.rng.chance(sh.demonicBacklashRisk) && Array.isArray(W.npcs)) {
+          for (const n of W.npcs) {
+            if (n && !n.dead && n.demonPact && n.h && n.h.state) {
+              n.h.state.heartDemon = clamp((n.h.state.heartDemon || 0) + 8, 0, 100);
+            }
+          }
+        }
         sh.demonicBacklashRisk = Math.max(0, +(sh.demonicBacklashRisk - 0.02).toFixed(3));
       }
       return sh;

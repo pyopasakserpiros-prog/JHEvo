@@ -88,12 +88,24 @@
   function rn(h, k) { let x = (h ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0; return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
   ST.gearStats = it => {
     if (it.st) return it.st;
-    const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '') + (it.uid || '')), f = 1 + 0.12 * tier, s = {};
+    const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '') + (it.procedural ? (it.uid || '') : '')), f = 1 + 0.12 * tier, s = {};
+    const hasRolledAffixes = Array.isArray(it.affixes) && it.affixes.length > 0;
     const pool = [['crit', () => (2.2 + 2 * rn(h, 5)) * f], ['critDmg', () => (8 + 8 * rn(h, 6)) * f], ['pen', () => (3 + 4 * rn(h, 7)) * f], ['acc', () => base * 0.12], ['cast', () => (3 + 4 * rn(h, 8)) * f], ['eva', () => base * 0.1], ['hp', () => base * 0.45], ['move', () => 3 + 3 * rn(h, 9)], ['mdef', () => base * 0.18], ['def', () => base * 0.18]];
-    const pickAff = (n, ex) => { const used = {}; for (let i = 0; i < n; i++) { let k = Math.floor(rn(h, 20 + i) * pool.length), tries = 0; while ((used[pool[k][0]] || (ex && ex.includes(pool[k][0]))) && tries++ < 12) k = (k + 1) % pool.length; used[pool[k][0]] = 1; s[pool[k][0]] = (s[pool[k][0]] || 0) + pool[k][1](); } };
-    if (it.slot === 'WEAPON') { const gType = it.gearType || it.weaponType || it.armorType || it.subType || JD.MARTIAL.classify(it.slot, it.nameTh); const isMag = ['FOCUS', 'ZITHER', 'BRUSH', 'ROSARY', 'FAN', 'ASTROLABE'].includes(gType); const isHyb = ['WHIP', 'NEEDLE', 'ABACUS'].includes(gType); s[isMag ? 'matk' : 'atk'] = base * (isHyb ? 0.44 : 0.55); s[isMag ? 'atk' : 'matk'] = base * (isHyb ? 0.34 : 0.1); pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
+    const pickAff = (n, ex) => { if (hasRolledAffixes) return; const used = {}; for (let i = 0; i < n; i++) { let k = Math.floor(rn(h, 20 + i) * pool.length), tries = 0; while ((used[pool[k][0]] || (ex && ex.includes(pool[k][0]))) && tries++ < 12) k = (k + 1) % pool.length; used[pool[k][0]] = 1; s[pool[k][0]] = (s[pool[k][0]] || 0) + pool[k][1](); } };
+    if (it.baseSt && typeof it.baseSt === 'object') {
+      const origTier = clamp(it.baseTier || tier, 1, 7), origQ = it.baseQ || q;
+      const scale = (GT[tier - 1] * q) / Math.max(1, GT[origTier - 1] * origQ);
+      for (const k in it.baseSt) {
+        s[k] = ['crit', 'critDmg', 'pen', 'move', 'cast'].includes(k) ? it.baseSt[k] : it.baseSt[k] * scale;
+      }
+    } else if (it.slot === 'WEAPON') { const gType = it.gearType || it.weaponType || it.armorType || it.subType || JD.MARTIAL.classify(it.slot, it.nameTh); const isMag = ['FOCUS', 'ZITHER', 'BRUSH', 'ROSARY', 'FAN', 'ASTROLABE'].includes(gType); const isHyb = ['WHIP', 'NEEDLE', 'ABACUS'].includes(gType); s[isMag ? 'matk' : 'atk'] = base * (isHyb ? 0.44 : 0.55); s[isMag ? 'atk' : 'matk'] = base * (isHyb ? 0.34 : 0.1); pickAff(tier >= 4 ? 2 : 1, ['hp', 'mdef', 'def', 'eva']); }
     else if (it.slot === 'ARMOR') { s.def = base * 0.55; s.mdef = base * 0.28; s.hp = base * 0.5; pickAff(tier >= 4 ? 1 : 0, ['crit', 'critDmg', 'pen']); if (tier >= 4 && rn(h, 3) < 0.5) s.eva = (s.eva || 0) + base * 0.06; }
     else { pickAff(2); const r = rn(h, 4); if (r < 0.3) s.atk = (s.atk || 0) + base * 0.2; else if (r < 0.6) s.matk = (s.matk || 0) + base * 0.2; }
+    if (hasRolledAffixes) {
+      for (const af of it.affixes) {
+        if (af && af.stat && Number.isFinite(af.val)) s[af.stat] = (s[af.stat] || 0) + af.val;
+      }
+    }
     (it.fx || it.effects || []).forEach(x => {
       const p = x.params || {};
       const eid = x.effectId || x.id || '';
@@ -112,11 +124,17 @@
         if (p.bonusCrit) s.crit = (s.crit || 0) + p.bonusCrit;
         if (p.bonusPen) s.pen = (s.pen || 0) + p.bonusPen;
         if (p.bonusCast) s.cast = (s.cast || 0) + p.bonusCast;
+        if (eid === 'EFX_V234_ELEMENTAL_REACTOR' && p.bonusMult) {
+          s.atk = (s.atk || 0) + base * p.bonusMult * 0.15;
+          s.matk = (s.matk || 0) + base * p.bonusMult * 0.15;
+        }
       }
     });
-    const type = it.gearType || it.weaponType || it.armorType || it.subType || JD.MARTIAL.classify(it.slot, it.nameTh);
-    const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, ROSARY: { matk: base * .12, mdef: base * .14, hp: base * .18 }, CLAW: { atk: base * .15, crit: 4, pen: 5 }, NEEDLE: { atk: base * .08, matk: base * .10, acc: base * .16, pen: 6 }, FAN: { matk: base * .13, cast: 5, eva: base * .08 }, ASTROLABE: { matk: base * .14, acc: base * .16, crit: 3 }, ABACUS: { atk: base * .10, matk: base * .10, pen: 5, def: base * .08 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
-    for (const k in typed) s[k] = (s[k] || 0) + typed[k];
+    if (!it.baseSt) {
+      const type = it.gearType || it.weaponType || it.armorType || it.subType || JD.MARTIAL.classify(it.slot, it.nameTh);
+      const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, ROSARY: { matk: base * .12, mdef: base * .14, hp: base * .18 }, CLAW: { atk: base * .15, crit: 4, pen: 5 }, NEEDLE: { atk: base * .08, matk: base * .10, acc: base * .16, pen: 6 }, FAN: { matk: base * .13, cast: 5, eva: base * .08 }, ASTROLABE: { matk: base * .14, acc: base * .16, crit: 3 }, ABACUS: { atk: base * .10, matk: base * .10, pen: 5, def: base * .08 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
+      for (const k in typed) s[k] = (s[k] || 0) + typed[k];
+    }
     for (const k in s) s[k] = Math.round(s[k] * 10) / 10;
     it.st = s; return s;
   };
@@ -202,8 +220,9 @@
     if (!u || u.foe || !u.equip) return false;
     for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
       const it = u.equip[slot];
-      if (!it) continue;
-      const efx = it.effects || it.fx || [];
+      if (!it || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(u, it))) continue;
+      const src = g.ECO && g.ECO.getItem && g.ECO.getItem(it.id);
+      const efx = it.effects || it.fx || (src && src.effects) || [];
       if (Array.isArray(efx) && efx.some(e => e && e.effectId === 'EFX_V234_STANCE_FLOW')) return true;
     }
     return false;
@@ -246,7 +265,14 @@
         const nextS = [];
         for (let i = 0; i < sLen; i++) {
           const x = sArr[i];
-          if (x && Number.isFinite(x.until) && x.until > tNow && x.until <= tNow + 43200) nextS.push(x);
+          if (!x || !Number.isFinite(x.until) || x.until > tNow + 43200) continue;
+          if (x.until > tNow) {
+            nextS.push(x);
+          } else if ((x.stacks || 1) > 1 && (x.stackDecayMode === 'LAYERED' || ['daoMark', 'starSeal', 'venomSeed', 'bloodBrand', 'sporeSeed', 'chill', 'poison', 'bleed', 'burn'].includes(x.k))) {
+            x.stacks -= 1;
+            x.until = tNow + Math.max(4, Math.round((x.dur || 8) * 0.5));
+            nextS.push(x);
+          }
         }
         u.sx = nextS;
         changed = true;
@@ -386,10 +412,6 @@
   function passiveCacheKey(n) {
     if (!n || !n.cult) return 0;
     const hpfBand = (n._hpf == null || n._hpf > 0.8) ? 2 : (n._hpf <= 0.4 ? 0 : (n._hpf <= 0.45 ? 1 : (n._hpf <= 0.5 ? 3 : 4)));
-    if ((!n.pets || !n.pets.length) && !n.mechState && !n.karmaState && !n._activeStance && !n._combatStance && (!n.meridians || !n.meridians.openedCount) && !n._beastFusedUntil && !n._beastSpiritPossessedUntil && (!n.experienceTraits || !n.experienceTraits.length) && !n.secondaryResources) {
-      const ext0 = (n.mentorImprint ? 0x8000 : 0) | (n.ancientBloodline && n.ancientBloodline.awakened ? 0x40000 : 0);
-      return (((n._passVer || 0) * 16) + hpfBand) ^ (ext0 << 4);
-    }
     let ext = 0;
     if (n.pets && n.pets.length) {
       for (let i = 0; i < n.pets.length; i++) {
@@ -410,6 +432,17 @@
     if (n._beastSpiritPossessedUntil && n._beastSpiritPossessedUntil > ST.now) ext = (ext ^ 0x80000) | 0;
     if (Array.isArray(n.experienceTraits) && n.experienceTraits.length) ext = (ext ^ (n.experienceTraits.length * 0x100000)) | 0;
     if (n.secondaryResources) ext = (ext ^ (((n.secondaryResources.FROST_QI || 0) + (n.secondaryResources.KILLING_INTENT || 0) * 3 + (n.secondaryResources.FORMATION_INK || 0) * 7 + (n.secondaryResources.MECH_GEARS || 0) * 11) << 12)) | 0;
+    if (n.demonPact && n.demonPact.patronId) ext = (ext ^ (n.demonPact.patronId.charCodeAt(0) * 4099 + (n.demonPact.tier || 1) * 97)) | 0;
+    if (n.deityPact && n.deityPact.deityId) ext = (ext ^ (n.deityPact.deityId.charCodeAt(0) * 8191)) | 0;
+    if (n.voluntaryVows) {
+      for (const vk in n.voluntaryVows) {
+        const vw = n.voluntaryVows[vk];
+        if (vw) ext = (ext * 33 + vk.charCodeAt(4 || 0) + (vw.active ? 7 : 3) + (vw.broken ? 13 : 0)) | 0;
+      }
+    }
+    if (n.apexDaoTitle && n.apexDaoTitle.id) ext = (ext ^ (n.apexDaoTitle.id.charCodeAt(0) * 65537)) | 0;
+    if (n.forbiddenArtState && n.forbiddenArtState.overdriveUntil > ST.now) ext = (ext ^ 0x200000) | 0;
+    if (n.passiveResonanceState && n.passiveResonanceState.unlockedCount) ext = (ext ^ (n.passiveResonanceState.unlockedCount * 0x400000)) | 0;
     return (((n._passVer || 0) * 16) + hpfBand) ^ (ext << 4);
   }
 
@@ -419,6 +452,13 @@
     const add = (k, label, kind, v) => { if (!v) return; if (k === 'move' && kind === 'f') { kind = 'p'; v /= 100; } const a = A[k]; a[kind] += v; if (a.parts) a.parts.push([label, kind, v]); };
     const addAll = (label, o, kind) => { for (const k in o) if (A[k]) add(k, label, kind, o[k]); };
     if (n.foe) return computeFoe(n, A, add, wp);
+    if (n.demonPact && CULT.DEMONIC_PANTHEON && CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses) {
+      const blessing = CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses(n);
+      if (blessing.active) {
+        addAll('พันธสัญญามาร', blessing.p || {}, 'p');
+        addAll('พันธสัญญามาร', blessing.f || {}, 'f');
+      }
+    }
     const c = n.cult, st = CULT.stageInfo(n), L = st.combatPower, sub = c ? CULT.subInfo(c.path, c.sub) : null;
     const Lo = L * (sub ? sub.combatBonus : 1), Ld = L * (sub ? sub.defenseBonus : 1), pw = PATHW[c && PATHW[c.path] ? c.path : 'NONE'], d = g.MARTIAL ? g.MARTIAL.derived(n) : HC.derived(n);
     const stLabel = c ? CULT.stageName(n) : 'ปุถุชน';
@@ -471,6 +511,20 @@
         else if (t.cat === 'DEFENSIVE_TECHNIQUE') { add('def', 'วิชาตั้งรับ「' + t.nameTh + '」', 'p', 0.018 * t.tier); add('mdef', 'วิชาตั้งรับ「' + t.nameTh + '」', 'p', 0.015 * t.tier); }
         else if ((t.cat === 'AUXILIARY_ART' && t.role !== 'PROFESSION_LIFESTYLE') || t.cat === 'SUPPORT_TECHNIQUE') add('mdef', 'วิชาเสริม「' + t.nameTh + '」', 'p', 0.015 * t.tier); });
       const tf = Math.min(0.3, 0.03 * techT); add('atk', 'วิชาต่อสู้ที่เรียน (Σระดับ ' + techT + ')', 'p', tf); add('matk', 'วิชาต่อสู้ที่เรียน', 'p', tf);
+      const daoTraits = CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.getActiveTraits ? CULT.GRAND_DAO_MECHANICS.getActiveTraits(n) : null;
+      if (daoTraits) {
+        const addTraitStats = (trait) => {
+          const bs = trait.bonusStats || {}, label = 'คุณลักษณะวิถี「' + (trait.nameTh || trait.id) + '」';
+          for (const k of ['atk', 'matk', 'def', 'mdef']) if (bs[k + 'Pct']) add(k, label, 'p', bs[k + 'Pct']);
+          for (const k of ['crit', 'critDmg', 'pen', 'acc']) if (bs[k]) add(k, label, 'f', bs[k]);
+          if (bs.hpPct) add('hp', label, 'p', bs.hpPct);
+          if (bs.eva) add('eva', label, 'p', bs.eva / 100);
+          if (bs.cast) add('cast', label, 'f', bs.cast);
+          if (bs.move) add('move', label, 'f', bs.move);
+        };
+        (daoTraits.pathTraits || []).forEach(tr => addTraitStats(tr, true));
+        (daoTraits.subpathTraits || []).forEach(tr => addTraitStats(tr, false));
+      }
       if (c.track) {
         const trRealm = CULT.trackRealm(n);
         if (trRealm) {
@@ -564,7 +618,7 @@
     const sp = HC.special(n, 'combat.powerMult') - 1; if (sp) { add('atk', 'คุณสมบัติพิเศษ', 'p', sp); add('matk', 'คุณสมบัติพิเศษ', 'p', sp); }
     if (n.mentorImprint) {
       const miLab = 'มรดกถ่ายทอดตบะ「' + (n.mentorImprint.mentorNameTh || 'อาจารย์') + '」';
-      const boost = n.mentorImprint.statBonusPct || 0.08;
+      const boost = clamp(n.mentorImprint.combatStatBonus || n.mentorImprint.statBonusPct || 0.08, 0, 0.18);
       ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => add(k, miLab, 'p', boost));
       add('cast', miLab, 'f', 8);
       add('acc', miLab, 'f', 10);
@@ -633,6 +687,35 @@
         addAll('อัตลักษณ์จากประสบการณ์ (' + n.experienceTraits.length + ')', etb.f || {}, 'f');
       }
     }
+    if (!n.foe && CULT.VOLUNTARY_VOWS && CULT.VOLUNTARY_VOWS.getStatBonuses && n.voluntaryVows) {
+      const vwb = CULT.VOLUNTARY_VOWS.getStatBonuses(n);
+      if (vwb && vwb.active) {
+        addAll('สัตย์สาบานพรต', vwb.p || {}, 'p');
+        addAll('สัตย์สาบานพรต', vwb.f || {}, 'f');
+      }
+    }
+    if (!n.foe && CULT.HIGHER_REALMS_PANTHEON && CULT.HIGHER_REALMS_PANTHEON.getUnitBlessingBonuses && n.deityPact) {
+      const dpb2 = CULT.HIGHER_REALMS_PANTHEON.getUnitBlessingBonuses(n);
+      if (dpb2 && dpb2.active) {
+        addAll('พรทวยเทพเบื้องบน', dpb2.p || {}, 'p');
+        addAll('พรทวยเทพเบื้องบน', dpb2.f || {}, 'f');
+      }
+    }
+    if (!n.foe && n.apexDaoTitle && n.apexDaoTitle.bonuses) {
+      const ab = n.apexDaoTitle.bonuses;
+      const aLab = 'ราชทินนามเอกะ「' + (n.apexDaoTitle.titleTh || n.apexDaoTitle.id) + '」';
+      if (ab.atkPct) add('atk', aLab, 'p', ab.atkPct);
+      if (ab.matkPct) add('matk', aLab, 'p', ab.matkPct);
+      if (ab.defPct) { add('def', aLab, 'p', ab.defPct); add('mdef', aLab, 'p', ab.defPct); }
+    }
+    if (!n.foe && g.SECT && g.SECT.INFERNAL_SHRINE && g.SECT.INFERNAL_SHRINE.getShrineBuffs) {
+      const wRefShrine = (g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+      const sb = wRefShrine ? g.SECT.INFERNAL_SHRINE.getShrineBuffs(wRefShrine) : null;
+      if (sb && sb.active && sb.atkBonusPct) {
+        add('atk', 'แท่นบูชาโลหิตอสูร', 'p', sb.atkBonusPct);
+        add('matk', 'แท่นบูชาโลหิตอสูร', 'p', sb.atkBonusPct);
+      }
+    }
     if (!n.foe && CULT.resolveMultiGaugeState && (n.secondaryResources || n.demonicRealmsGauge)) {
       const mgs = CULT.resolveMultiGaugeState(n);
       if (mgs && mgs.secondaryBuffs) {
@@ -682,10 +765,11 @@
     const cTrack = c && c.track ? c.track.ordinal : 0;
     const passKey = passiveCacheKey(n);
     const wRefKey = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
-    const postKey = (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0) + ':' + (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) ? n.combatHistory.unlockedTraits.length : 0);
-    const eqW = Eq.WEAPON || null, eqWdur = (eqW ? eqW.dur : 0) + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + postKey;
-    const eqA = Eq.ARMOR || null, eqAdur = eqA ? eqA.dur : 0;
-    const eqX = Eq.ACCESSORY || null, eqXdur = eqX ? eqX.dur : 0;
+    const shrineLv = (!n.foe && wRefKey && wRefKey.sect && wRefKey.sect.infernalShrine) ? (wRefKey.sect.infernalShrine.consecrationLevel || 0) : 0;
+    const postKey = (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + shrineLv + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0) + ':' + (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) ? n.combatHistory.unlockedTraits.length : 0);
+    const eqW = Eq.WEAPON || null, eqWdur = (eqW ? eqW.dur : 0) + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + (eqW ? (eqW.tier || 0) + ':' + (eqW.q || 1) + ':' + (eqW._modVer || 0) + ':' + (Array.isArray(eqW.socketedRunes) ? eqW.socketedRunes.length : 0) : '') + ':' + postKey;
+    const eqA = Eq.ARMOR || null, eqAdur = (eqA ? eqA.dur : 0) + ':' + (eqA ? (eqA.tier || 0) + ':' + (eqA.q || 1) + ':' + (eqA._modVer || 0) + ':' + (Array.isArray(eqA.socketedRunes) ? eqA.socketedRunes.length : 0) : '');
+    const eqX = Eq.ACCESSORY || null, eqXdur = (eqX ? eqX.dur : 0) + ':' + (eqX ? (eqX.tier || 0) + ':' + (eqX.q || 1) + ':' + (eqX._modVer || 0) + ':' + (Array.isArray(eqX.socketedRunes) ? eqX.socketedRunes.length : 0) : '');
     const cb = n._csBase;
     if (cb && cb.day === HC.nowDay && cb.ver === n._ver &&
         cb.cPath === cPath && cb.cStage === cStage && cb.cSub === cSub && cb.cMantra === cMantra &&
@@ -762,34 +846,33 @@
             }
           }
         }
-        if (CULT.DEMONIC_PANTHEON && CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses && n.demonicPact) {
+        if (CULT.DEMONIC_PANTHEON && CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses && n.demonPact) {
           const dpb = CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses(n);
           if (dpb && dpb.active) {
-            if (dpb.atkPct) addP('atk', dpb.atkPct);
-            if (dpb.matkPct) addP('matk', dpb.matkPct);
-            if (dpb.defPct) addP('def', dpb.defPct);
-            if (dpb.mdefPct) addP('mdef', dpb.mdefPct);
-            if (dpb.hpPct) addP('hp', dpb.hpPct);
-            if (dpb.crit) addF('crit', dpb.crit);
-            if (dpb.critDmg) addF('critDmg', dpb.critDmg);
-            if (dpb.pen) addF('pen', dpb.pen);
+            if (dpb.p) addAll(dpb.p, false);
+            if (dpb.f) addAll(dpb.f, true);
           }
         }
         const sDef = (c.sub && CULT.subInfo) ? CULT.subInfo(c.path, c.sub) : null;
         if (sDef && Array.isArray(sDef.subpathTraits)) {
-          const curOrd = (c.track && c.track.ordinal) ? c.track.ordinal : c.stage;
+          const curOrd = (c.track && c.track.ordinal) ? c.track.ordinal : ((c.path === 'BODY' || c.path === 'GOD') && CULT.normalizedStage ? Math.floor(CULT.normalizedStage(n)) : c.stage);
           for (let si = 0; si < sDef.subpathTraits.length; si++) {
             const stt = sDef.subpathTraits[si];
-            if (stt && curOrd >= (stt.realm || 1) && stt.bonusStats) {
+            const reqRealm = stt ? (stt.realmReq != null ? stt.realmReq : (stt.realm || 1)) : 1;
+            if (stt && curOrd >= reqRealm && stt.bonusStats) {
               const bs = stt.bonusStats;
               if (bs.atkPct) addP('atk', bs.atkPct);
               if (bs.matkPct) addP('matk', bs.matkPct);
               if (bs.defPct) addP('def', bs.defPct);
               if (bs.mdefPct) addP('mdef', bs.mdefPct);
+              if (bs.hpPct) addP('hp', bs.hpPct);
               if (bs.crit) addF('crit', bs.crit);
               if (bs.critDmg) addF('critDmg', bs.critDmg);
               if (bs.pen) addF('pen', bs.pen);
               if (bs.acc) addF('acc', bs.acc);
+              if (bs.eva) addP('eva', bs.eva / 100);
+              if (bs.cast) addF('cast', bs.cast);
+              if (bs.move) addF('move', bs.move);
             }
           }
         }
@@ -843,8 +926,8 @@
         else if (ks.stance === 'HUMAN') { addP('def', 0.14); addP('mdef', 0.14); addF('acc', 8); }
         else if (ks.stance === 'ANIMAL') { addF('move', 12); addP('atk', 0.12); addP('eva', 0.10); }
       }
-      if (n.mentorImprint && Number.isFinite(n.mentorImprint.combatStatBonus) && n.mentorImprint.combatStatBonus > 0) {
-        const boost = clamp(n.mentorImprint.combatStatBonus, 0, 0.18);
+      if (n.mentorImprint) {
+        const boost = clamp(n.mentorImprint.combatStatBonus || n.mentorImprint.statBonusPct || 0.08, 0, 0.18);
         ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => addP(k, boost));
         addF('cast', 8); addF('acc', 10);
       }
@@ -886,6 +969,25 @@
       if (!n.foe && CULT.EXPERIENCE_TRAITS && Array.isArray(n.experienceTraits) && n.experienceTraits.length) {
         const etb = CULT.EXPERIENCE_TRAITS.getStatBonuses(n);
         if (etb && etb.active) { if (etb.p) addAll(etb.p, false); if (etb.f) addAll(etb.f, true); }
+      }
+      if (!n.foe && CULT.VOLUNTARY_VOWS && CULT.VOLUNTARY_VOWS.getStatBonuses && n.voluntaryVows) {
+        const vwb = CULT.VOLUNTARY_VOWS.getStatBonuses(n);
+        if (vwb && vwb.active) { if (vwb.p) addAll(vwb.p, false); if (vwb.f) addAll(vwb.f, true); }
+      }
+      if (!n.foe && CULT.HIGHER_REALMS_PANTHEON && CULT.HIGHER_REALMS_PANTHEON.getUnitBlessingBonuses && n.deityPact) {
+        const dpb2 = CULT.HIGHER_REALMS_PANTHEON.getUnitBlessingBonuses(n);
+        if (dpb2 && dpb2.active) { if (dpb2.p) addAll(dpb2.p, false); if (dpb2.f) addAll(dpb2.f, true); }
+      }
+      if (!n.foe && n.apexDaoTitle && n.apexDaoTitle.bonuses) {
+        const ab = n.apexDaoTitle.bonuses;
+        if (ab.atkPct) addP('atk', ab.atkPct);
+        if (ab.matkPct) addP('matk', ab.matkPct);
+        if (ab.defPct) { addP('def', ab.defPct); addP('mdef', ab.defPct); }
+      }
+      if (!n.foe && g.SECT && g.SECT.INFERNAL_SHRINE && g.SECT.INFERNAL_SHRINE.getShrineBuffs) {
+        const wRefShrine = (g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+        const sb = wRefShrine ? g.SECT.INFERNAL_SHRINE.getShrineBuffs(wRefShrine) : null;
+        if (sb && sb.active && sb.atkBonusPct) { addP('atk', sb.atkBonusPct); addP('matk', sb.atkBonusPct); }
       }
       if (!n.foe && CULT.resolveMultiGaugeState && (n.secondaryResources || n.demonicRealmsGauge)) {
         const mgs = CULT.resolveMultiGaugeState(n);
@@ -1148,6 +1250,7 @@
   };
   ST.preFight = (W, n, hard) => {
     if (n.foe || !n.cult || (n.buffs && n.buffs.some(b => b.until > ST.now))) return;
+    if (n.voluntaryVows && n.voluntaryVows.VOW_NO_MEDICINE && n.voluntaryVows.VOW_NO_MEDICINE.active) return;
     const isCb = k => k.startsWith('P:CB_') || !!(ECO.pillInfo(k)?.effect?.cbBuff);
     const keys = []; if (n.inv && n.inv.pills) Object.keys(n.inv.pills).forEach(k => { if (isCb(k) && n.inv.pills[k] > 0) keys.push([k, 'own']); });
     if (!keys.length && n.rank >= 1) Object.keys(W.sect.stock).forEach(k => { if (isCb(k) && W.sect.stock[k] > 0) keys.push([k, 'sect']); });
@@ -1182,7 +1285,7 @@
   const oMint = ECO.mintGear;
   ECO.mintGear = (a, b, c, d) => {
     const gear = oMint(a, b, c, d);
-    const x = (a && a.sect && a.npcs) ? b : a;
+    const x = (a && (a.sect || a.rng || a.day !== undefined)) ? b : a;
     const it = x && x.outItemId ? ECO.itemById[x.outItemId] : (x && x.id && ECO.itemById[x.id] ? ECO.itemById[x.id] : (x && x.slot ? x : null));
     if (it) {
       if (it.effects && !gear.fx) gear.fx = it.effects;

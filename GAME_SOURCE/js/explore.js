@@ -8164,13 +8164,19 @@
     const reactionSpec = (CE && CE.resolveElementalReactionSpec && reqEls.length >= 2)
       ? CE.resolveElementalReactionSpec(reqEls.slice(0, -1), reqEls[reqEls.length - 1], gateSpec.requiredReaction)
       : null;
-    const rewardStones = solved ? (gateSpec.rewardStones || 350) : 0;
+    const gateId = String(gateSpec.id || ('GATE_' + reqEls.join('_')));
+    const claims = wRef && wRef.sect ? (wRef.sect.elementalGateClaims || (wRef.sect.elementalGateClaims = {})) : {};
+    const alreadyClaimed = !!claims[gateId];
+    let rewardStones = 0;
     let unlockedRecipeId = null;
-    if (solved && wRef && wRef.sect) {
-      wRef.sect.stones = (wRef.sect.stones || 0) + rewardStones;
-      if (Array.isArray(wRef.sect.ledger)) {
-        wRef.sect.ledger.push({ t: wRef.t || 0, amt: rewardStones, why: 'ไขปริศนาประตูกลไกธาตุโบราณ (' + gateSpec.id + ')' });
-      }
+    if (solved && !alreadyClaimed && wRef && wRef.sect) {
+      const pool = wRef.world && (wRef.world.resourcePool || (wRef.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+      const desired = Number.isFinite(gateSpec.rewardStones) ? Math.max(0, gateSpec.rewardStones) : 350;
+      rewardStones = Math.min(desired, pool && Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0);
+      if (pool) pool.stones -= rewardStones;
+      if (g.ECO && g.ECO.earn) g.ECO.earn(wRef, rewardStones, 'ไขปริศนาประตูกลไกธาตุโบราณ (' + gateId + ')');
+      else wRef.sect.stones = (wRef.sect.stones || 0) + rewardStones;
+      claims[gateId] = { day: wRef.day || 0, rewardStones };
       if (gateSpec.rewardRecipeId) {
         wRef.sect.knownRecipes = wRef.sect.knownRecipes || [];
         if (!wRef.sect.knownRecipes.includes(gateSpec.rewardRecipeId)) {
@@ -8183,7 +8189,8 @@
       ok: solved,
       solved,
       blockedMainPath: false,
-      gateId: gateSpec.id,
+      gateId,
+      alreadyClaimed,
       requiredElements: reqEls,
       partyElements: Array.from(partyElements),
       reactionTriggered: reactionSpec ? reactionSpec.id : (gateSpec.requiredReaction || 'THERMAL_VAPORIZE'),
@@ -8196,8 +8203,10 @@
   EX.emergencyTeleportToSect = function (W, npcOrParty) {
     const list = Array.isArray(npcOrParty) ? npcOrParty : [npcOrParty];
     const mh = (W && W.map && W.map.byId && W.map.byId.main_hall) || { x: 118, y: 128, w: 8, h: 6 };
+    const affectedExpIds = new Set();
     for (const n of list) {
       if (!n) continue;
+      if (n.expId != null) affectedExpIds.add(n.expId);
       n.away = false;
       n.hidden = false;
       n.fled = true;
@@ -8208,6 +8217,21 @@
       n.y = mh.y + (mh.h || 6) + 1;
       if (g.STATS && g.STATS.applyNamedBuff) {
         g.STATS.applyNamedBuff(n, 'voidPhase', 45, (W && W.t) || 0, { casterId: n.id });
+      }
+    }
+    if (W && W.world && Array.isArray(W.world.expeds)) {
+      const teleIds = new Set(list.filter(Boolean).map(n => n.id));
+      for (const ex of W.world.expeds) {
+        if (!ex || ex.done) continue;
+        if (affectedExpIds.has(ex.id) || (Array.isArray(ex.party) && ex.party.some(id => teleIds.has(id)))) {
+          ex.party = (ex.party || []).filter(id => !teleIds.has(id));
+          const remaining = ex.party.map(id => W.byId && W.byId[id]).filter(m => m && !m.dead && m.expId === ex.id);
+          if (!remaining.length) {
+            ex.done = true;
+            ex.retreated = true;
+            ex.state = 'retreated';
+          }
+        }
       }
     }
     return { ok: true, count: list.length, destination: 'main_hall' };
@@ -8366,10 +8390,10 @@
       }
     }
 
-    const stonesEarned = (loc.rewardStones || 150) + (choiceSpec.bonusStones || 0);
-    if (W.world && W.world.resourcePool && typeof W.world.resourcePool.stones === 'number') {
-      W.world.resourcePool.stones = Math.max(0, W.world.resourcePool.stones - stonesEarned);
-    }
+    const desiredStones = (loc.rewardStones || 150) + (choiceSpec.bonusStones || 0);
+    const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+    const stonesEarned = Math.min(desiredStones, pool && Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0);
+    if (pool) pool.stones -= stonesEarned;
     if (g.ECO && g.ECO.earn) {
       g.ECO.earn(W, stonesEarned, 'สำรวจจุดสำรวจย่อย「' + loc.nameTh + '」(' + choiceSpec.nameTh + ')');
     } else {
@@ -8379,18 +8403,29 @@
     const matsGranted = {};
     const baseQty = 1 + (choiceSpec.bonusMatQty || 1);
     (loc.rewardMats || []).forEach(matId => {
-      if (g.ECO && g.ECO.add) g.ECO.add(W, matId, baseQty);
-      else {
-        W.sect.stock = W.sect.stock || {};
-        W.sect.stock[matId] = (W.sect.stock[matId] || 0) + baseQty;
+      const isOre = String(matId).includes('_ORE_');
+      const poolKey = isOre ? 'ores' : 'herbs';
+      const avail = pool && Number.isFinite(pool[poolKey]) ? Math.max(0, pool[poolKey]) : baseQty;
+      const grantQty = Math.min(baseQty, avail);
+      if (pool && Number.isFinite(pool[poolKey])) pool[poolKey] -= grantQty;
+      if (grantQty > 0) {
+        if (g.ECO && g.ECO.add) g.ECO.add(W, matId, grantQty);
+        else {
+          W.sect.stock = W.sect.stock || {};
+          W.sect.stock[matId] = (W.sect.stock[matId] || 0) + grantQty;
+        }
+        matsGranted[matId] = (matsGranted[matId] || 0) + grantQty;
       }
-      matsGranted[matId] = (matsGranted[matId] || 0) + baseQty;
     });
 
     const xpGain = choiceSpec.bonusCultXp || 50;
     for (const m of members) {
       m.merit = (m.merit || 0) + 15;
-      m.cp = (m.cp || 0) + 20;
+      if (g.CPE && g.CPE.mint) g.CPE.mint(W, m, 20, 'สำรวจจุดสำรวจย่อย ' + loc.nameTh, true);
+      else m.cp = (m.cp || 0) + 20;
+      if (m.h && m.h.state) {
+        m.h.state.energy = Math.max(10, (m.h.state.energy || 60) - 16);
+      }
       if (m.cult && g.CULT && g.CULT.gain) g.CULT.gain(m, xpGain, W, 'micro_location_explore');
       if (choiceSpec.clearHeartDemon && m.h && m.h.state) {
         m.h.state.heartDemon = Math.max(0, (m.h.state.heartDemon || 0) - 25);
@@ -8418,7 +8453,12 @@
     if (st.history.length > 40) st.history.length = 40;
 
     if (!opts.quiet) {
-      if (!Array.isArray(W.chronicle)) W.chronicle = [];
+      if (W.world) {
+        if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
+        W.chronicle = W.world.chronicles;
+      } else if (!Array.isArray(W.chronicle)) {
+        W.chronicle = [];
+      }
       const cEntry = {
         category: 'SECRET_REALM_NODE',
         icon: loc.icon,

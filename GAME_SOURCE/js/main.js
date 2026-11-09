@@ -15,21 +15,35 @@
     G.W.runtimeTiming = { pendingTicks: G.acc, speed: G.speed };
   }
   function bindWorld(W) {
-    G.W = W; W.onLog = e => { if (G.opts.toast) UI.onLog(e); }; HC.nowDay = W.day;
-    G.R.setWorld(W); G.R.selected = null; G.R.follow = false; G.R.resize(); G.R.focus(118, 70, 1.0); G.R.clampCam();
-    const timing = W.runtimeTiming || {};
-    G.acc = Number.isFinite(timing.pendingTicks) && timing.pendingTicks >= 0 ? Math.min(1440, timing.pendingTicks) : 0;
-    const savedSpeed = Number.isFinite(timing.speed) && timing.speed >= 0 ? timing.speed : W.speed;
-    G.speed = Number.isFinite(savedSpeed) && savedSpeed >= 0 ? savedSpeed : 1;
-    last = performance.now();
-    syncRuntimeTiming();
-    UI.applyOpts(); G.lastRender = 0; UI.updateHud(true);
-    G.err = null; G.errShown = 0;
+    const prevW = G.W, prevAcc = G.acc, prevSpeed = G.speed, prevDay = HC.nowDay, prevErr = G.err, prevErrShown = G.errShown, prevLastRender = G.lastRender;
+    const prevOnLog = prevW ? prevW.onLog : undefined;
+    try {
+      G.W = W; W.onLog = e => { if (G.opts.toast) UI.onLog(e); }; HC.nowDay = W.day;
+      G.R.setWorld(W); G.R.selected = null; G.R.follow = false; if (G.R.resize) G.R.resize(); if (G.R.focus) G.R.focus(118, 70, 1.0); if (G.R.clampCam) G.R.clampCam();
+      const timing = W.runtimeTiming || {};
+      G.acc = typeof timing.pendingTicks === 'number' && Number.isFinite(timing.pendingTicks) && timing.pendingTicks >= 0 ? Math.min(100800, timing.pendingTicks) : 0;
+      const savedSpeed = typeof timing.speed === 'number' && Number.isFinite(timing.speed) && timing.speed >= 0 ? timing.speed : W.speed;
+      G.speed = typeof savedSpeed === 'number' && Number.isFinite(savedSpeed) && savedSpeed >= 0 ? savedSpeed : 1;
+      last = performance.now();
+      syncRuntimeTiming();
+      if (UI && UI.applyOpts) UI.applyOpts(); G.lastRender = 0; if (UI && UI.updateHud) UI.updateHud(true);
+      G.err = null; G.errShown = 0;
+    } catch (err) {
+      G.W = prevW; G.acc = prevAcc; G.speed = prevSpeed; HC.nowDay = prevDay; G.err = prevErr; G.errShown = prevErrShown; G.lastRender = prevLastRender;
+      if (prevW) {
+        prevW.onLog = prevOnLog;
+        if (g.ECO && g.ECO.resetDynamicItems) g.ECO.resetDynamicItems(prevW);
+      }
+      throw err;
+    }
   }
   G.newGame = (seed, idx, archId) => {
     const W = SIM.create(seed, { masterIdx: idx, archetype: archId });
-    bindWorld(W); const m = W.byId[W.sect.masterId]; G.R.focus(m.x, m.y, 1.1);
-    UI.toast('ยินดีต้อนรับ เจ้าสำนัก ' + m.h.name.given + ' — แตะตัวละครเพื่อดูว่าเขากำลังคิดอะไรอยู่');
+    bindWorld(W); const m = (W.byId && W.sect && W.byId[W.sect.masterId]) || (W.npcs && W.npcs[0]);
+    if (m) {
+      G.R.focus(m.x, m.y, 1.1);
+      UI.toast('ยินดีต้อนรับ เจ้าสำนัก ' + m.h.name.given + ' — แตะตัวละครเพื่อดูว่าเขากำลังคิดอะไรอยู่');
+    }
   };
   G.load = str => { const W = SIM.deserialize(str); bindWorld(W); };
   G.autosave = () => {
@@ -39,6 +53,7 @@
       localStorage.setItem('jhs_auto', SIM.serialize(G.W));
       localStorage.setItem('jhs_auto_meta', SIM.dateText(G.W.t));
       G.lastAutosaveError = null;
+      G._autosaveWarned = false;
       return true;
     } catch (e) {
       G.lastAutosaveError = e && e.message ? e.message : String(e);
@@ -72,7 +87,7 @@
           R.alpha = G.speed >= 16 ? 1 : Math.min(1, G.acc);
         } else R.alpha = 1;
         syncRuntimeTiming();
-        if (G.opts.autosave && ts - G.lastAuto > 180000) { G.lastAuto = ts; G.autosave(); }
+        if (G.opts.autosave && ts - G.lastAuto > 180000) { const ok = G.autosave(); G.lastAuto = ok ? ts : (ts - 150000); }
         // ที่ 16×/32× ลดอัตราวาดภาพเพื่อคืนเวลาประมวลผลให้ NPC; เมื่อหยุดเวลา (0×) วาดเฉพาะเมื่อสถานะ/กล้องเปลี่ยนหรือทุก 120ms
         const renderEvery = G.speed === 0 ? 120 : G.speed >= 32 ? 1000 / 30 : G.speed >= 16 ? 1000 / 40 : 0;
         if (!renderEvery || !G.lastRender || ts - G.lastRender >= renderEvery) {

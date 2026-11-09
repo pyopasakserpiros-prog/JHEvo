@@ -4854,7 +4854,7 @@
     const oathObj = npc.daoOath || (npc.ext && npc.ext.daoOath);
     const hasOath = !!(oathObj && oathObj.upheld && Number.isFinite(oathObj.cultSpeedBonus));
     const hasMeridianInj = !!(Array.isArray(npc.inj) && npc.inj.length > 0);
-    if (rc && !hasOath && !hasMeridianInj && !npc.voluntaryVows && !(npc.experienceTraits && npc.experienceTraits.length) && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0) && rc.lastRest === rest && rc.lastTox === c.toxic && rc.lastHd === hd && rc.lastPillT === (c.pillT > 0 ? c.pillBoost : -1) && (c.path !== "HEART_SOUL" || rc.lastStress === (npc.h.state.stress || 0)) && rc.dynMult !== undefined) {
+    if (rc && !hasOath && !hasMeridianInj && !npc.voluntaryVows && !npc.demonPact && !npc.demonicPact && !npc.apexDaoTitle && !(npc.experienceTraits && npc.experienceTraits.length) && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0) && rc.lastRest === rest && rc.lastTox === c.toxic && rc.lastHd === hd && rc.lastPillT === (c.pillT > 0 ? c.pillBoost : -1) && (c.path !== "HEART_SOUL" || rc.lastStress === (npc.h.state.stress || 0)) && rc.dynMult !== undefined) {
       return staticBase * rc.dynMult * (env || 1);
     }
     let toxic, dev;
@@ -4949,12 +4949,22 @@
       const et = CULT.EXPERIENCE_TRAITS.getCultivationMult(npc);
       if (et && et !== 1) vowAndTraitMult *= et;
     }
-    if (npc.demonicPact && CULT.DEMONIC_PANTHEON && CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses) {
+    if ((npc.demonPact || npc.demonicPact) && CULT.DEMONIC_PANTHEON && CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses) {
       const dpb = CULT.DEMONIC_PANTHEON.getUnitBlessingBonuses(npc);
       if (dpb && dpb.active && dpb.cultRatePct) vowAndTraitMult *= (1 + dpb.cultRatePct);
     }
+    if (npc.apexDaoTitle && npc.apexDaoTitle.bonuses && npc.apexDaoTitle.bonuses.cultRatePct) {
+      vowAndTraitMult *= (1 + npc.apexDaoTitle.bonuses.cultRatePct);
+    }
+    const wRefSh = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+    if (wRefSh && g.SECT && g.SECT.INFERNAL_SHRINE && g.SECT.INFERNAL_SHRINE.getShrineBuffs) {
+      const sb = g.SECT.INFERNAL_SHRINE.getShrineBuffs(wRefSh);
+      if (sb && sb.active && sb.demonicRateBonus > 0 && (['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'SOUL_PUPPETRY', 'VENOM_GU'].includes(c.path) || npc.demonPact || npc.demonicPact)) {
+        vowAndTraitMult *= (1 + sb.demonicRateBonus);
+      }
+    }
     const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult * mantraStanceMult * forbiddenAndPassiveMult * focusWindowMult * vowAndTraitMult;
-    if (rc && !npc.mantraState && !hasOath && !hasMeridianInj && !npc.voluntaryVows && !(npc.experienceTraits && npc.experienceTraits.length) && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
+    if (rc && !npc.mantraState && !hasOath && !hasMeridianInj && !npc.voluntaryVows && !npc.demonPact && !npc.demonicPact && !npc.apexDaoTitle && !(npc.experienceTraits && npc.experienceTraits.length) && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
       rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.dynMult = dynMult;
     }
     return staticBase * dynMult * (env || 1);
@@ -4971,14 +4981,18 @@
     const c = npc.cult; if (!c) return;
     const ascendedCount = (W && W.sect && W.sect.ascendedLegacyCount > 0 && W.byId && W.byId[npc.id] === npc) ? W.sect.ascendedLegacyCount : 0;
     if (ascendedCount) pts *= 1 + Math.min(5, ascendedCount) * 0.01;
-    if (CULT.hasActiveCompanionInSect(npc, W) && sourceTag !== 'dual_cult_raw') {
+    if (CULT.hasActiveCompanionInSect(npc, W) && sourceTag !== 'dual_cult_raw' && sourceTag !== 'cultivate_rate') {
       const synBonus = Number.isFinite(npc.companionSynergyBonus) ? npc.companionSynergyBonus : 0.25;
       pts *= (1 + synBonus);
       if (npc.h && npc.h.state && (npc.h.state.heartDemon || 0) > 0) {
         npc.h.state.heartDemon = Math.max(0, npc.h.state.heartDemon - 1.5);
       }
+    } else if (CULT.hasActiveCompanionInSect(npc, W) && sourceTag === 'cultivate_rate') {
+      if (npc.h && npc.h.state && (npc.h.state.heartDemon || 0) > 0) {
+        npc.h.state.heartDemon = Math.max(0, npc.h.state.heartDemon - 0.05);
+      }
     }
-    if (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.cultRateBonus) && sourceTag !== 'bloodline_raw') {
+    if (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.cultRateBonus) && sourceTag !== 'bloodline_raw' && sourceTag !== 'cultivate_rate') {
       pts *= (1 + npc.bloodlineTrait.cultRateBonus);
     }
     const th = CULT.threshold(npc);
@@ -5123,6 +5137,10 @@
       const over = Math.max(0, c.prog - CULT.threshold(npc));
       c.stage++; c.prog = over * 0.3; c.attempts = 0; c.lifeBonus = c.lifeBonus || 0;
       CULT.refreshLifespan(npc);
+      if (CULT.evaluateSubpathArchetypeMastery) CULT.evaluateSubpathArchetypeMastery(npc);
+      if (CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.hasTrait && CULT.EXPERIENCE_TRAITS.hasTrait(npc, 'EXP_TRAIT_DEFEAT_VETERAN')) {
+        CULT.EXPERIENCE_TRAITS.resolveTraitRecovery(W, npc, 'EXP_TRAIT_DEFEAT_VETERAN');
+      }
       const h = npc.h;
       h.physiology.meridianCapacity = Math.min(99, h.physiology.meridianCapacity + 1.2);
       h.physiology.spiritualFoundation = Math.min(99, h.physiology.spiritualFoundation + 0.8);
@@ -6092,6 +6110,7 @@
         HC.experience(npc, 'insight', 0.6);
       }
       CULT.refreshLifespan(npc);
+      if (CULT.evaluateSubpathArchetypeMastery) CULT.evaluateSubpathArchetypeMastery(npc);
       if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(npc);
       if (W && W.log) {
         W.log('breakthrough', npc.h.name.given + ' ทะลวงสายเฉพาะทางสู่「' + newRealm.nameTh + '」(ลำดับ ' + tr.ordinal + '/9)!', [npc.id]);
@@ -7387,22 +7406,24 @@
       }
     }
     // Also check equipped exploration/training/crafting tools
-    const eq = (npc.eq && typeof npc.eq === 'object') ? npc.eq : ((npc.h && npc.h.eq) || null);
+    const eq = npc.equip || ((npc.eq && typeof npc.eq === 'object') ? npc.eq : ((npc.h && npc.h.eq) || null));
     if (eq && g.ECO && g.ECO.getItem) {
       for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY', 'RELIC']) {
         const it = eq[slot];
+        if (!it || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(npc, it))) continue;
         const def = it ? (g.ECO.getItem(it.id || it.itemId) || it) : null;
-        if (!def || !Array.isArray(def.effects)) continue;
-        for (const ef of def.effects) {
+        const effects = it.effects || it.fx || (def && def.effects);
+        if (!Array.isArray(effects)) continue;
+        for (const ef of effects) {
           const eid = ef && ef.effectId;
           const p = (ef && ef.params) || {};
-          if (domainKey === 'cultRate' && (eid === 'EFX_V234_TRAINING_CATALYST' || eid === 'EFX_MEDITATION_ACCEL' || eid === 'EFX_MIND_ENLIGHTEN')) {
+          if (domainKey === 'cultRate' && (eid === 'EFX_V234_TRAINING_CATALYST' || eid === 'EFX_MEDITATION_ACCEL' || eid === 'EFX_MIND_ENLIGHTEN' || eid === 'EFX_CULTIVATION_ACCELERATOR' || eid === 'EFX_QI_PURITY_REFINEMENT' || eid === 'EFX_LEARNING_INSIGHT' || eid === 'EFX_HEART_DEMON_WARD')) {
             total += Number(p.cultSpeedPct || p.cultRatePct || p.bonusPct || 0.08);
-          } else if (domainKey === 'ALCHEMY' && (eid === 'EFX_HERB_POLLINATION' || eid === 'EFX_SOIL_PURIFICATION' || eid === 'EFX_ECOLOGY_HERB_NURTURE' || eid === 'EFX_V234_CRAFT_HARMONIZER')) {
+          } else if (domainKey === 'ALCHEMY' && (eid === 'EFX_HERB_POLLINATION' || eid === 'EFX_SOIL_PURIFICATION' || eid === 'EFX_ECOLOGY_HERB_NURTURE' || eid === 'EFX_V234_CRAFT_HARMONIZER' || eid === 'EFX_QI_PURITY_REFINEMENT' || eid === 'EFX_MERIDIAN_TOXIN_PURGE')) {
             total += Number(p.alchemyBonusPct || p.yieldBonusPct || 0.10);
-          } else if (domainKey === 'FORGING' && (eid === 'EFX_FORGING_STABILIZATION' || eid === 'EFX_V234_CRAFT_HARMONIZER')) {
+          } else if (domainKey === 'FORGING' && (eid === 'EFX_FORGING_STABILIZATION' || eid === 'EFX_V234_CRAFT_HARMONIZER' || eid === 'EFX_HEART_DEMON_WARD')) {
             total += Number(p.forgingBonusPct || p.stabilityPct || 0.10);
-          } else if (domainKey === 'EXPLORE' && (eid === 'EFX_V234_REALM_COMPASS' || eid === 'EFX_SKY_LEVITATION_DRIVE' || eid === 'EFX_BEAST_INTIMIDATION' || eid === 'EFX_SUPPLY_EFFICIENCY' || eid === 'EFX_CARGO_PRESERVATION')) {
+          } else if (domainKey === 'EXPLORE' && (eid === 'EFX_V234_REALM_COMPASS' || eid === 'EFX_SKY_LEVITATION_DRIVE' || eid === 'EFX_BEAST_INTIMIDATION' || eid === 'EFX_SUPPLY_EFFICIENCY' || eid === 'EFX_CARGO_PRESERVATION' || eid === 'EFX_SCENT_TRACE_BREAK' || eid === 'EFX_BEAST_BOND_CHANNEL')) {
             total += Number(p.exploreBonusPct || p.speedBonusPct || p.efficiencyPct || 0.10);
           }
         }
@@ -7972,9 +7993,9 @@
   CULT.isZeroQiSamurai = npc => !!(npc && npc.cult && npc.cult.path === 'SHADOW_SAMURAI');
 
   CULT.ensurePathGauge = npc => {
-    if (!npc || npc.foe) return null;
-    const pathKey = (npc.cult && npc.cult.path) || 'XIAN';
-    const spec = CULT.PATH_GAUGES[pathKey] || CULT.PATH_GAUGES.XIAN;
+    if (!npc || npc.foe || !npc.cult || !CULT.PATH_GAUGES[npc.cult.path]) return null;
+    const pathKey = npc.cult.path;
+    const spec = CULT.PATH_GAUGES[pathKey];
     const isSamurai = pathKey === 'SHADOW_SAMURAI';
     if (!npc.pathGauge || npc.pathGauge.id !== spec.id) {
       const initVal = isSamurai ? 100 : (spec.startValue || 0);
@@ -8007,18 +8028,45 @@
   CULT.triggerPathGaugeFinisher = (W, f, caster, target) => {
     const pg = CULT.ensurePathGauge(caster);
     if (!pg || pg.value < (pg.max || 100)) return { ok: false, reason: 'gauge-not-full' };
+    const combat = g.COMBAT, stats = g.STATS;
+    if (!W || !f || f.over || f.state !== 'fight' || !combat || !combat.alive(caster) || !combat.alive(target) || target.hidden || target.away || !combat.isHostile(f, caster.id, target.id)) {
+      return { ok: false, reason: 'invalid-target' };
+    }
+    if ((caster.act && caster.act.ctx && caster.act.ctx.channeling) || (stats && ['stun', 'paralyze', 'cryoStasis'].some(k => stats.has(caster, k, W.t)))) {
+      return { ok: false, reason: 'unable-to-act' };
+    }
+    const wProf = (g.SK && g.SK.weaponTacticalProfile) ? g.SK.weaponTacticalProfile(caster) : null;
+    const baseRange = g.SK && g.SK.resolveMoveSpatialSpec ? g.SK.resolveMoveSpatialSpec(null, caster) : { max: 1.7, requiresLoS: false };
+    const maxReach = Math.max(baseRange.max || 1.7, (wProf && wProf.prefMax) || 1.7, (caster.tac && caster.tac.cachedEngageRange) || 1.7);
+    const range = { max: maxReach, requiresLoS: maxReach > 2.2 || !!baseRange.requiresLoS };
+    if (!Number.isFinite(caster.x) || !Number.isFinite(caster.y) || !Number.isFinite(target.x) || !Number.isFinite(target.y) || combat.unitDist(caster, target) > range.max + 0.65) {
+      return { ok: false, reason: 'out-of-range' };
+    }
+    if (combat.checkLineOfSight && !combat.checkLineOfSight(W, f, caster, target, range).clear) return { ok: false, reason: 'line-of-sight-blocked' };
     const spec = CULT.PATH_GAUGES[pg.path] || CULT.PATH_GAUGES.XIAN;
     pg.value = 0;
     pg.ready = false;
     pg.triggeredCount = (pg.triggeredCount || 0) + 1;
+    let actualTarget = target;
+    let interceptMult = 1.0;
+    if (combat.resolveDefensiveInterception) {
+      const icp = combat.resolveDefensiveInterception(W, f, caster, target, { arch: maxReach > 2.2 ? 'blast' : 'strike', moveSpec: range });
+      if (icp && icp.interceptor && combat.alive(icp.interceptor)) {
+        actualTarget = icp.interceptor;
+        interceptMult = icp.dmgMult || 0.80;
+      }
+    }
     let dmgDealt = 0;
-    if (target && g.COMBAT && g.COMBAT.alive(target)) {
-      const baseHm = g.COMBAT.hpMax(target);
+    if (actualTarget && g.COMBAT && g.COMBAT.alive(actualTarget)) {
+      const baseHm = g.COMBAT.hpMax(actualTarget);
       const cStats = (g.STATS && g.STATS.get && caster && !caster.foe) ? g.STATS.get(caster) : null;
+      const tStats = (g.STATS && g.STATS.get) ? g.STATS.get(actualTarget) : null;
       const cAtk = cStats ? Math.max(cStats.atk || 0, cStats.matk || 0) : (caster && caster.power ? caster.power * 0.6 : 45);
-      const rawAtkDmg = cAtk * 2.8 + Math.min(cAtk * 1.5, baseHm * 0.06);
+      const defVal = tStats ? Math.min(tStats.def || 0, tStats.mdef || 0) * (1 - clamp((cStats ? cStats.pen || 0 : 0) / 100, 0, 0.75)) : 0;
+      const mit = 100 / (100 + Math.max(0, defVal * 0.55));
+      const rawAtkDmg = (cAtk * 2.8 + Math.min(cAtk * 1.5, baseHm * 0.06)) * mit * interceptMult;
       dmgDealt = Math.max(15, Math.round(rawAtkDmg * (spec.finisherMult || 1.65)));
-      g.COMBAT.applyDamage(W, f, caster, target, dmgDealt, spec.finisherNameTh);
+      g.COMBAT.applyDamage(W, f, caster, actualTarget, dmgDealt, spec.finisherNameTh);
     }
     if (spec.healPct && g.COMBAT) {
       const cHm = g.COMBAT.hpMax(caster);
@@ -8036,12 +8084,32 @@
   };
 
   /* ---------- Patch v3.4.0 [PROP-05]: 7 Archetype Subpaths 6-Tier Mastery ---------- */
-  CULT.evaluateSubpathArchetypeMastery = (npc, archetypeId, tierOverride) => {
+  CULT.inferDefaultArchetypeForNpc = npc => {
+    if (!npc || !npc.cult) return 'OATH_BOUND_DUELIST';
+    const p = npc.cult.path, s = npc.cult.sub || '';
+    if (['BODY', 'GRAVITY_DAO', 'DRAGON_VEIN_GEOMANCY', 'DEVOURING_FLESH', 'OCCULT_MAGE'].includes(p) || /GUARD|SHIELD|VAJRA|BASTION|TITAN/.test(s)) return 'WARDEN_TAUNTER';
+    if (['ASTRO_DIVINATION', 'CHRONO_EPOCH', 'KARMA_SAMSARA', 'FORTUNE_GAMBLER', 'DIVINE_CHANNELER'].includes(p) || /FATE|STAR|ORACLE|TIME/.test(s)) return 'FATE_WEAVER';
+    if (['ARRAY_TALISMAN', 'CELESTIAL_WEATHER', 'INK_LITERATI', 'LORE_ARCHIVIST', 'STRATEGY_GOVERNANCE'].includes(p) || /ARRAY|DOMAIN|SEAL|QIMEN/.test(s)) return 'DOMAIN_ARRAYIST';
+    if (['VENOM_GU', 'SPIRIT_HUSBANDRY', 'NETHER_GRAVE', 'VOID_HERETIC_PACT'].includes(p) || /POISON|VENOM|MIASMA|GU|TOXIN|ALCHEMIST/.test(s)) return 'CONTAGION_ALCHEMIST';
+    if (['SAGE_SUPPORT', 'SONIC_HARMONY', 'HEART_SOUL', 'BUDDHA_DHARMA', 'ANCESTRAL_RITUAL', 'DIVINE_SUMMONER'].includes(p) || /ZITHER|CHOIR|DUET|MERCY/.test(s)) return 'DUET_SAGE';
+    if (['NINPO_SHADOW', 'NINPO_ELEMENTAL', 'WANDERING_DAO', 'VOID_SPACE', 'PRIMORDIAL_SHIFTER', 'TIDE_VOYAGER'].includes(p) || /STANCE|SHADOW|WIND|STEP|DANCE/.test(s)) return 'STANCE_DANCER';
+    return 'OATH_BOUND_DUELIST';
+  };
+
+  CULT.evaluateSubpathArchetypeMastery = (npc, archetypeId, tierOverride, opts) => {
+    opts = opts || {};
     if (!npc || !g.SK || !g.SK.SUBPATH_ARCHETYPES_V235) return { ok: false, reason: 'invalid-npc-or-catalog' };
     const cat = g.SK.SUBPATH_ARCHETYPES_V235;
-    const archId = (archetypeId && cat[archetypeId]) ? archetypeId : (npc.subpathArchetype && cat[npc.subpathArchetype] ? npc.subpathArchetype : 'OATH_BOUND_DUELIST');
+    if (archetypeId && !cat[archetypeId]) return { ok: false, reason: 'unknown-archetype', archetypeId };
+    const archId = (archetypeId && cat[archetypeId]) ? archetypeId : (npc.subpathArchetype && cat[npc.subpathArchetype] ? npc.subpathArchetype : CULT.inferDefaultArchetypeForNpc(npc));
     const spec = cat[archId];
-    const tier = clamp(Math.round(tierOverride != null ? tierOverride : (npc.subpathArchetypeTier != null ? npc.subpathArchetypeTier : ((npc.cult && npc.cult.stage) || 1))), 1, 6);
+    if (opts.strictPath && npc.cult && Array.isArray(spec.recommendedPaths) && !spec.recommendedPaths.includes(npc.cult.path) && archId !== CULT.inferDefaultArchetypeForNpc(npc)) {
+      return { ok: false, reason: 'incompatible-path-for-archetype', path: npc.cult.path, archetypeId: archId };
+    }
+    const trOrd = (npc.cult && npc.cult.track && npc.cult.track.ordinal) ? npc.cult.track.ordinal : 0;
+    const effStg = npc.cult ? (CULT.normalizedStage ? Math.floor(CULT.normalizedStage(npc)) : (npc.cult.stage || 1)) : 1;
+    const derivedTier = clamp(Math.max(Math.ceil(trOrd * 6 / 9), Math.ceil(effStg * 6 / 9), 1), 1, 6);
+    const tier = clamp(Math.round(tierOverride != null ? tierOverride : derivedTier), 1, 6);
     npc.subpathArchetype = archId;
     npc.subpathArchetypeTier = tier;
     const tierSpec = (g.SK.ARCHETYPE_MASTERY_TIERS && g.SK.ARCHETYPE_MASTERY_TIERS[tier - 1]) || { tier, statMult: 1 + tier * 0.04 };
@@ -8540,6 +8608,7 @@
       }
       ELEM.syncSpecialAccess(npc);
       CULT.ensurePathGauge(npc);
+      if (CULT.evaluateSubpathArchetypeMastery) CULT.evaluateSubpathArchetypeMastery(npc);
       if (CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.ensureNpcState) {
         CULT.GRAND_DAO_MECHANICS.ensureNpcState(W, npc);
       }
@@ -8659,7 +8728,9 @@
         if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(npc);
         if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(npc);
         npc.pathGauge = null;
+        npc.secondaryResources = { FROST_QI: 0, KILLING_INTENT: 0, FORMATION_INK: 0, MECH_GEARS: 0 };
         CULT.ensurePathGauge(npc);
+        if (CULT.evaluateSubpathArchetypeMastery) CULT.evaluateSubpathArchetypeMastery(npc);
         if (CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.ensureNpcState) {
           CULT.GRAND_DAO_MECHANICS.ensureNpcState(W, npc);
         }
@@ -8900,6 +8971,7 @@
       const ledger = W.sect.contractLedger;
       const c = ledger.contracts.find(x => x && x.id === contractId);
       if (!c || c.state !== 'ACTIVE') return { ok: false, reason: 'contract-not-active' };
+      if (Number.isFinite(c.dueDay) && (W.day || 0) < c.dueDay) return { ok: false, reason: 'contract-not-due', dueDay: c.dueDay };
       // Strict zero-free-resource conservation: return exact escrow + transfer any trade settlement strictly from world.resourcePool.stones if available
       const escrow = c.escrowStones || 0;
       let poolTransfer = 0;
@@ -8997,8 +9069,13 @@
         pg.ready = pg.value >= (pg.max || 100);
       }
       caster._gravityFieldCdUntil = nowT + 6;
-      if (g.STATS && g.STATS.addBuff) {
-        g.STATS.addBuff(caster, 'massGuard', 6, nowT);
+      if (g.STATS) {
+        if (g.STATS.applyNamedBuff && !caster.foe) {
+          g.STATS.applyNamedBuff(caster, 'massGuard', 18, nowT, { casterId: caster.id });
+        } else if (g.STATS.addBuff) {
+          const def = g.STATS.BUFF_CATALOG && g.STATS.BUFF_CATALOG.massGuard;
+          g.STATS.addBuff(caster, Object.assign({ id: 'massGuard', name: 'มวลเกราะดูดซับแรง', dur: 18 }, def || {}), nowT);
+        }
       }
       let targetCrushed = false;
       let bossImmune = false;
@@ -9006,11 +9083,15 @@
         const isBoss = !!(target.isBoss || target.boss || target.rank === 'BOSS' || (target.tier && target.tier >= 7 && target.foe));
         if (isBoss) {
           bossImmune = true;
-          // Bosses are immune to hard gravity immobilize; only minor slow stacks
           target.slow = Math.max(target.slow || 0, 2);
+          if (g.STATS && g.STATS.addStatus) g.STATS.addStatus(target, 'slow', 6, { src: caster.id }, nowT);
         } else {
           target.gravityCrush = Math.max(target.gravityCrush || 0, 4);
           target.slow = Math.max(target.slow || 0, 4);
+          if (g.STATS && g.STATS.addStatus) {
+            g.STATS.addStatus(target, 'gravityCrush', 10, { src: caster.id }, nowT);
+            g.STATS.addStatus(target, 'slow', 10, { src: caster.id }, nowT);
+          }
           targetCrushed = true;
         }
       }
@@ -9018,8 +9099,18 @@
     },
 
     // 6. CHRONO_EPOCH: Temporal Rewind (Rewinds skill cooldowns & restores recent HP snapshot)
-    triggerTemporalRewind(W, npc) {
+    triggerTemporalRewind(W, npc, opts) {
+      opts = opts || {};
       if (!npc || !npc.cult) return { ok: false, reason: "no-cultivator" };
+      if (opts.strictPath && npc.cult.path !== 'CHRONO_EPOCH') return { ok: false, reason: 'requires-chrono-epoch-path' };
+      const nowT = (W && W.t != null) ? W.t : -1;
+      if (!opts.ignoreCooldown && nowT >= 0 && npc._temporalRewindCdUntil != null && npc._temporalRewindCdUntil > nowT && npc._temporalRewindLastTick === nowT) {
+        return { ok: false, reason: 'temporal-rewind-on-cooldown', cdUntil: npc._temporalRewindCdUntil };
+      }
+      if (nowT >= 0) {
+        npc._temporalRewindCdUntil = nowT + 12;
+        npc._temporalRewindLastTick = nowT;
+      }
       const st = this.ensureNpcState(W, npc);
       let rewoundCooldowns = 1;
       if (npc.act && npc.act.ctx && npc.act.ctx.cds) {
@@ -9028,9 +9119,9 @@
           rewoundCooldowns++;
         }
       }
-      st.temporalSnapshot = { day: (W && W.day) || 1, rewoundCooldowns };
+      st.temporalSnapshot = { day: (W && W.day) || 1, t: Math.max(0, nowT), rewoundCooldowns };
       CULT.gainPathGauge(npc, 35);
-      return { ok: true, rewoundCooldowns, snapshot: st.temporalSnapshot };
+      return { ok: true, rewoundCooldowns, snapshot: st.temporalSnapshot, cdUntil: npc._temporalRewindCdUntil };
     },
 
     // 7. INK_LITERATI: Issue Imperial Calligraphy Edict
@@ -9079,22 +9170,22 @@
 
     // 11. FORTUNE_GAMBLER: Wager Destiny Stake (Zero-Free-Resource Conservation)
     wagerDestinyStake(W, npc, stakeStones) {
-      if (!W || !W.sect || !npc || !npc.cult) return { ok: false, reason: 'invalid-state' };
-      const st = this.ensureNpcState(W, npc);
+      if (!W || !W.sect || !W.world || !npc || !npc.cult) return { ok: false, reason: 'invalid-state' };
       const wager = Math.max(0, Math.min(200, Math.round(Number(stakeStones) || 0)));
-      if (wager > 0) {
-        if ((W.sect.stones || 0) < wager) return { ok: false, reason: 'insufficient-stones', required: wager };
-        W.sect.stones -= wager;
-        if (W.world && W.world.resourcePool) W.world.resourcePool.stones = (W.world.resourcePool.stones || 0) + wager;
-      }
+      if (!wager) return { ok: false, reason: 'invalid-wager' };
+      if ((W.sect.stones || 0) < wager) return { ok: false, reason: 'insufficient-stones', required: wager };
+      const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
+      if (!Number.isFinite(pool.stones) || pool.stones < 0) return { ok: false, reason: 'invalid-world-pool' };
+      const st = this.ensureNpcState(W, npc);
+      W.sect.stones -= wager;
+      pool.stones += wager;
       const luck = (npc.h && npc.h.destiny && npc.h.destiny.luck) || 50;
       const win = (W.rng && W.rng.next ? W.rng.next() : 0.5) < clamp(0.48 + (luck - 50) * 0.004, 0.25, 0.78);
       let payout = 0;
-      if (win && wager > 0) {
-        const poolAvail = (W.world && W.world.resourcePool && W.world.resourcePool.stones) || 0;
-        const winBonus = Math.min(wager, poolAvail);
-        if (W.world && W.world.resourcePool) W.world.resourcePool.stones -= winBonus;
-        payout = wager + winBonus;
+      if (win) {
+        // The pool already contains the stake: debit the entire payout once.
+        payout = Math.min(wager * 2, pool.stones);
+        pool.stones -= payout;
         W.sect.stones = (W.sect.stones || 0) + payout;
       }
       st.destinyStake = clamp((st.destinyStake || 0) + (win ? 30 : 15), 0, 100);
@@ -9239,8 +9330,10 @@
           this.compileLoreIndex(W, n);
           actions++; pathsProcessed.push(p);
         } else if (p === 'FORTUNE_GAMBLER') {
-          this.wagerDestinyStake(W, n, (W.sect.stones || 0) >= 500 ? 20 : 0);
-          actions++; pathsProcessed.push(p);
+          if ((W.sect.stones || 0) >= 500) {
+            const wRes = this.wagerDestinyStake(W, n, 20);
+            if (wRes && wRes.ok) { actions++; pathsProcessed.push(p); }
+          }
         } else if (p === 'SPIRIT_HUSBANDRY') {
           this.advanceGrowthCycle(W, n);
           actions++; pathsProcessed.push(p);
@@ -9261,6 +9354,47 @@
           st.monthlyPracticeCount = (st.monthlyPracticeCount || 0) + 1;
           CULT.gainPathGauge(n, 20);
           actions++; pathsProcessed.push(p);
+        }
+        // V240-06: Monthly secondary resource accumulation for compatible paths
+        if (CULT.SECONDARY_RESOURCES && CULT.SECONDARY_RESOURCES.canUseResource) {
+          for (const resKey of ['FROST_QI', 'KILLING_INTENT', 'FORMATION_INK', 'MECH_GEARS']) {
+            if (CULT.SECONDARY_RESOURCES.canUseResource(n, resKey)) {
+              CULT.SECONDARY_RESOURCES.gain(n, resKey, 18);
+            }
+          }
+        }
+        // V240-15: Autonomous NPC Voluntary Vow swearing & Blood Covenant signing based on personality
+        const disc = HC.eff(n, 'personality.discipline') || 50;
+        const cou = HC.eff(n, 'personality.courage') || 50;
+        const amb = HC.eff(n, 'personality.ambition') || 50;
+        if (CULT.VOLUNTARY_VOWS && (!n.voluntaryVows || Object.keys(n.voluntaryVows).length === 0)) {
+          if (['BUDDHA_DHARMA', 'HEART_SOUL', 'GOD', 'SAGE_SUPPORT'].includes(p) && disc >= 62) {
+            CULT.VOLUNTARY_VOWS.swearVow(W, n, 'VOW_ASCETIC_PRECEPT');
+            actions++;
+          } else if (['BODY', 'SHADOW_SAMURAI', 'ARENA_GLORY'].includes(p) && cou >= 65 && disc >= 55) {
+            CULT.VOLUNTARY_VOWS.swearVow(W, n, 'VOW_NO_RETREAT');
+            actions++;
+          } else if (disc >= 72 && amb >= 62 && p !== 'CRAFT_CREATION') {
+            CULT.VOLUNTARY_VOWS.swearVow(W, n, 'VOW_NO_MEDICINE');
+            actions++;
+          }
+        }
+        if (!n.demonPact && g.SECT && g.SECT.INFERNAL_SHRINE && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(n) && (W.sect.stones || 0) >= 850) {
+          const lordPick = p === 'VOID_HERETIC_PACT' ? 'LUCIFER_MORNINGSTAR' : p === 'SHADOW_SAMURAI' ? 'DAIROKUTEN_MAOH' : 'CHIYOU_WARLORD';
+          g.SECT.INFERNAL_SHRINE.signBloodCovenant(W, n, lordPick, {});
+          actions++;
+        }
+      }
+      if (g.SECT && g.SECT.INFERNAL_SHRINE && (W.sect.stones || 0) >= 950) {
+        const master = W.byId && W.byId[W.sect.masterId];
+        const demonicLeader = (master && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(master))
+          ? master
+          : aliveCults.find(u => u.rank >= 4 && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(u));
+        if (demonicLeader) {
+          const planePick = demonicLeader.cult.path === 'VOID_HERETIC_PACT' ? 'INFERNAL_PANDEMONIUM'
+            : demonicLeader.cult.path === 'DEVOURING_FLESH' ? 'ASURA_BLOOD_SEA' : 'NINE_SERENITIES_HELL';
+          g.SECT.INFERNAL_SHRINE.offerInfernalTribute(W, planePick, {});
+          actions++;
         }
       }
       return { actions, pathsProcessed };
@@ -9462,9 +9596,40 @@
         cosmicFraction: scale.cosmicFraction,
         fractionLabelTh: scale.fractionLabelTh,
         combatPowerMult: scale.combatPowerMult,
+        atkPct: deity.atkMult ? +(deity.atkMult - 1).toFixed(3) : 0,
+        matkPct: deity.matkMult ? +(deity.matkMult - 1).toFixed(3) : 0,
+        defPct: deity.defMult ? +(deity.defMult - 1).toFixed(3) : 0,
+        mdefPct: deity.mdefMult ? +(deity.mdefMult - 1).toFixed(3) : 0,
+        penBonus: deity.penBonus || 0,
+        critBonus: deity.critBonus || 0,
+        evaBonus: deity.evaBonus || 0,
+        accBonus: deity.accBonus || 0,
+        reflectPct: deity.reflectPct || 0,
         formedDay: (W && W.day) || 1
       };
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
       return { ok: true, pact: npc.deityPact, scale };
+    },
+    getUnitBlessingBonuses(npc) {
+      if (!npc || !npc.deityPact) return { active: false, p: {}, f: {}, reflectPct: 0 };
+      const dp = npc.deityPact;
+      const dDef = this.DEITIES[dp.deityId] || (this.DEMON_LORDS && this.DEMON_LORDS[dp.deityId]) || {};
+      return {
+        active: true,
+        p: {
+          atk: dp.atkPct != null ? dp.atkPct : (dDef.atkMult ? +(dDef.atkMult - 1).toFixed(3) : 0),
+          matk: dp.matkPct != null ? dp.matkPct : (dDef.matkMult ? +(dDef.matkMult - 1).toFixed(3) : 0),
+          def: dp.defPct != null ? dp.defPct : (dDef.defMult ? +(dDef.defMult - 1).toFixed(3) : 0),
+          mdef: dp.mdefPct != null ? dp.mdefPct : (dDef.mdefMult ? +(dDef.mdefMult - 1).toFixed(3) : 0),
+          eva: (dp.evaBonus || dDef.evaBonus || 0) / 100
+        },
+        f: {
+          pen: dp.penBonus || dDef.penBonus || 0,
+          crit: dp.critBonus || dDef.critBonus || 0,
+          acc: dp.accBonus || dDef.accBonus || 0
+        },
+        reflectPct: dp.reflectPct || dDef.reflectPct || 0
+      };
     },
 
     invokeDivineManifestation(W, f, npc, target, mode) {
@@ -9644,35 +9809,51 @@
       }
       return npc.secondaryResources;
     },
-    gain(npc, resId, amount) {
+    canUseResource(npc, resId) {
+      const spec = this.SPECS[resId];
+      if (!npc || npc.foe || !npc.cult || !spec) return false;
+      return Array.isArray(spec.paths) && spec.paths.includes(npc.cult.path);
+    },
+    gain(npc, resId, amount, opts) {
       if (!npc || !this.SPECS[resId]) return 0;
+      if (opts && opts.strictPath && !this.canUseResource(npc, resId)) return 0;
       const st = this.ensureState(npc);
       st[resId] = clamp((st[resId] || 0) + (Number(amount) || 0), 0, this.SPECS[resId].max || 100);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
       return st[resId];
     },
-    consume(npc, resId, amount) {
+    consume(npc, resId, amount, opts) {
       if (!npc || !this.SPECS[resId]) return { ok: false, current: 0 };
+      if (opts && opts.strictPath && !this.canUseResource(npc, resId)) return { ok: false, reason: 'incompatible-path', current: 0 };
       const st = this.ensureState(npc);
       const req = Math.max(0, Number(amount) || 0);
       if ((st[resId] || 0) < req) return { ok: false, current: st[resId] || 0, required: req };
       st[resId] = Math.max(0, (st[resId] || 0) - req);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
       return { ok: true, spent: req, remaining: st[resId] };
     }
   };
 
   // Multi-Gauge Clash Resolution (BUG-P2-09): Primary path gauge is active for finisher; secondary gauges convert to passive stat buffs
   CULT.resolveMultiGaugeState = npc => {
-    if (!npc || !npc.cult) return { primaryGauge: null, secondaryBuffs: { p: {}, f: {} } };
+    if (!npc || !npc.cult) return { primaryGauge: null, secondaryBuffs: { p: {}, f: {}, chillChanceBonus: 0, shieldBonusPct: 0 } };
     const pg = CULT.ensurePathGauge(npc);
     const sec = CULT.SECONDARY_RESOURCES.ensureState(npc);
     const p = {}, f = {};
+    let chillChanceBonus = 0, shieldBonusPct = 0;
     if (sec) {
-      if ((sec.FROST_QI || 0) >= 25) p.mdef = +((p.mdef || 0) + (sec.FROST_QI / 100) * 0.14).toFixed(3);
+      if ((sec.FROST_QI || 0) >= 25) {
+        p.mdef = +((p.mdef || 0) + (sec.FROST_QI / 100) * 0.14).toFixed(3);
+        chillChanceBonus = +((sec.FROST_QI / 100) * (CULT.SECONDARY_RESOURCES.SPECS.FROST_QI.chillChanceBonus || 0.20)).toFixed(3);
+      }
       if ((sec.KILLING_INTENT || 0) >= 25) {
         f.crit = +((f.crit || 0) + (sec.KILLING_INTENT / 100) * 10).toFixed(1);
         f.pen = +((f.pen || 0) + (sec.KILLING_INTENT / 100) * 12).toFixed(1);
       }
-      if ((sec.FORMATION_INK || 0) >= 25) f.cast = Math.round((f.cast || 0) + (sec.FORMATION_INK / 100) * 14);
+      if ((sec.FORMATION_INK || 0) >= 25) {
+        f.cast = Math.round((f.cast || 0) + (sec.FORMATION_INK / 100) * 14);
+        shieldBonusPct = +((sec.FORMATION_INK / 100) * (CULT.SECONDARY_RESOURCES.SPECS.FORMATION_INK.shieldBonusPct || 0.15)).toFixed(3);
+      }
       if ((sec.MECH_GEARS || 0) >= 25) {
         p.def = +((p.def || 0) + (sec.MECH_GEARS / 100) * 0.14).toFixed(3);
         p.atk = +((p.atk || 0) + (sec.MECH_GEARS / 100) * 0.10).toFixed(3);
@@ -9684,11 +9865,12 @@
       if (sin >= 20) p.matk = +((p.matk || 0) + (sin / 100) * 0.12).toFixed(3);
       if (wrath >= 20) p.atk = +((p.atk || 0) + (wrath / 100) * 0.12).toFixed(3);
     }
-    return { primaryGauge: pg, secondaryBuffs: { p, f } };
+    return { primaryGauge: pg, secondaryBuffs: { p, f, chillChanceBonus, shieldBonusPct } };
   };
 
   // S07: Voluntary Vows / Binding Precepts (สัจจะสาบานแลกพลัง)
   CULT.VOLUNTARY_VOWS = {
+    MAX_ACTIVE_VOWS: 2,
     CATALOG: Object.freeze({
       VOW_NO_MEDICINE: {
         id: 'VOW_NO_MEDICINE',
@@ -9719,9 +9901,17 @@
         descTh: 'ถือศีลสมถะละเว้นวิชาต้องห้าม แลกกับความเร็วบ่มเพาะ +28% และป้องกันวิชา +20% หากใช้วิชาต้องห้ามจะเกิดของเข้าตัวทันที'
       }
     }),
-    swearVow(W, npc, vowId) {
+    swearVow(W, npc, vowId, opts) {
+      opts = opts || {};
       if (!npc || !this.CATALOG[vowId]) return { ok: false, reason: 'invalid-vow' };
       npc.voluntaryVows = npc.voluntaryVows || {};
+      const existing = npc.voluntaryVows[vowId];
+      if (existing && existing.violated) return { ok: false, reason: 'vow-violated', vow: existing };
+      if (existing && existing.active) return { ok: true, unchanged: true, vow: existing, spec: this.CATALOG[vowId] };
+      const activeCount = Object.values(npc.voluntaryVows).filter(v => v && v.active && !v.violated).length;
+      if (!opts.allowExceedCap && activeCount >= this.MAX_ACTIVE_VOWS) {
+        return { ok: false, reason: 'max-active-vows-reached', max: this.MAX_ACTIVE_VOWS };
+      }
       const spec = this.CATALOG[vowId];
       npc.voluntaryVows[vowId] = {
         id: vowId,
@@ -9730,9 +9920,35 @@
         violated: false,
         swornDay: (W && W.day) || 1
       };
+      if (vowId === 'VOW_ASCETIC_PRECEPT' && npc.forbiddenArtState) {
+        npc.forbiddenArtState.sealMode = 'SEALED_RESTRAINT';
+      }
       npc._cultRateBase = null;
       if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
       return { ok: true, vow: npc.voluntaryVows[vowId], spec };
+    },
+    redeemVow(W, npc, vowId, opts) {
+      opts = opts || {};
+      if (!npc || !npc.voluntaryVows || !npc.voluntaryVows[vowId] || !npc.voluntaryVows[vowId].violated) {
+        return { ok: false, reason: 'vow-not-violated' };
+      }
+      const v = npc.voluntaryVows[vowId];
+      const curDay = (W && W.day) || 1;
+      if (!opts.force && curDay - (v.violatedDay || 0) < 7) {
+        return { ok: false, reason: 'penance-cooldown', daysRemaining: 7 - (curDay - (v.violatedDay || 0)) };
+      }
+      const meritCost = opts.free ? 0 : 25;
+      if (meritCost > 0 && (npc.merit || 0) < meritCost) {
+        return { ok: false, reason: 'insufficient-merit', required: meritCost };
+      }
+      if (meritCost > 0) npc.merit -= meritCost;
+      delete npc.voluntaryVows[vowId];
+      if (npc.h && npc.h.state) {
+        npc.h.state.heartDemon = Math.max(0, (npc.h.state.heartDemon || 0) - 12);
+      }
+      npc._cultRateBase = null;
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      return { ok: true, redeemed: true, vowId };
     },
     violateVow(W, npc, vowId, reasonTh) {
       if (!npc || !npc.voluntaryVows || !npc.voluntaryVows[vowId] || !npc.voluntaryVows[vowId].active) {
@@ -9764,7 +9980,22 @@
         if (v.active && !v.violated && spec) mult *= (spec.cultRateMult || 1.0);
         else if (v.violated) mult *= 0.82;
       }
-      return +mult.toFixed(3);
+      return +Math.min(1.60, mult).toFixed(3);
+    },
+    getStatBonuses(npc) {
+      if (!npc || !npc.voluntaryVows) return { active: false, p: {}, f: {} };
+      const p = {}, f = {};
+      let active = false;
+      for (const [k, v] of Object.entries(npc.voluntaryVows)) {
+        if (!v || !v.active || v.violated) continue;
+        const spec = this.CATALOG[k];
+        if (!spec) continue;
+        active = true;
+        if (spec.atkBonusPct) p.atk = +((p.atk || 0) + spec.atkBonusPct).toFixed(3);
+        if (spec.mdefBonusPct) p.mdef = +((p.mdef || 0) + spec.mdefBonusPct).toFixed(3);
+        if (spec.penBonus) f.pen = (f.pen || 0) + spec.penBonus;
+      }
+      return { active, p, f };
     }
   };
 
@@ -9815,7 +10046,17 @@
           triggeredList.push(rx);
           bonusMult += rx.bonusDmgPct || 0.20;
           if (rx.applyStatus && g.STATS && g.STATS.addStatus && !activeKeys.has(rx.applyStatus)) {
-            g.STATS.addStatus(target, rx.applyStatus, 14, { fromToxinSynergy: rx.id }, tNow);
+            const dur = rx.healBlockDur || 14;
+            g.STATS.addStatus(target, rx.applyStatus, dur, { fromToxinSynergy: rx.id, armorShredPct: rx.armorShredPct || 0, castSlowAdd: rx.castSlowAdd || 0 }, tNow);
+          }
+          if (rx.qiDrainPct && !target.foe && target.cult && target.h && target.h.state) {
+            const qm = CULT.qiMax(target);
+            const drained = Math.round(qm * rx.qiDrainPct);
+            target.h.state.qi = Math.max(0, (target.h.state.qi || 0) - drained);
+            if (attacker && !attacker.foe && attacker.cult && attacker.h && attacker.h.state) {
+              const aQm = CULT.qiMax(attacker);
+              attacker.h.state.qi = Math.min(aQm, (attacker.h.state.qi || 0) + Math.round(drained * 0.6));
+            }
           }
         }
       }
@@ -9914,15 +10155,23 @@
       return { traits: npc.experienceTraits, log: npc.experienceEventLog };
     },
 
+    MAX_PROCESSED_KEYS: 64,
+    hasTrait(npc, traitId) {
+      return !!(npc && Array.isArray(npc.experienceTraits) && npc.experienceTraits.some(t => t && t.active && t.id === traitId));
+    },
     recordExperienceEvent(W, npc, eventKind, eventUniqueKey) {
       if (!npc || npc.foe) return { ok: false, reason: 'invalid-npc' };
       const st = this.ensureState(npc);
-      const uKey = eventUniqueKey ? String(eventUniqueKey) : null;
+      const uKey = eventUniqueKey == null ? null : String(eventKind) + ':' + String(eventUniqueKey);
       // Idempotent guard: never double-count the same unique event key
       if (uKey && st.log.processedKeys[uKey]) {
         return { ok: true, deduplicated: true, traits: st.traits };
       }
-      if (uKey) st.log.processedKeys[uKey] = (W && W.day) || 1;
+      if (uKey) {
+        const pKeys = Object.keys(st.log.processedKeys);
+        if (pKeys.length >= this.MAX_PROCESSED_KEYS) delete st.log.processedKeys[pKeys[0]];
+        st.log.processedKeys[uKey] = (W && W.day) || 1;
+      }
       st.log.counts[eventKind] = (st.log.counts[eventKind] || 0) + 1;
 
       const unlockedNow = [];
@@ -9978,12 +10227,16 @@
     getStatBonuses(npc) {
       if (!npc || !Array.isArray(npc.experienceTraits) || !npc.experienceTraits.length) return { active: false, p: {}, f: {} };
       const p = {}, f = {};
+      const hpf = (npc._hpf != null) ? npc._hpf : ((npc.h && npc.h.state && npc.h.state.hp != null && g.CULT && g.CULT.hpMax) ? (npc.h.state.hp / Math.max(1, g.CULT.hpMax(npc))) : 1);
       for (const tr of npc.experienceTraits) {
         if (!tr || !tr.active) continue;
         const spec = this.CATALOG[tr.id];
         if (!spec) continue;
         for (const [k, v] of Object.entries(spec.p || {})) p[k] = +((p[k] || 0) + v).toFixed(3);
         for (const [k, v] of Object.entries(spec.f || {})) f[k] = (f[k] || 0) + v;
+        if (tr.id === 'EXP_TRAIT_DEFEAT_VETERAN' && hpf < 0.35) {
+          p.def = +((p.def || 0) + 0.10).toFixed(3);
+        }
       }
       return { active: true, p, f };
     }
@@ -9995,6 +10248,7 @@
    * (4 พิภพมารอเวจีเบื้องล่าง & 15 จอมมาร/อสูร/ซาตาน/โยไค)
    * ========================================================================= */
   CULT.DEMONIC_PANTHEON = {
+    COVENANT_COST_STONES: 160,
     PLANES: Object.freeze({
       NINE_SERENITIES_HELL: {
         id: 'NINE_SERENITIES_HELL',
@@ -10049,6 +10303,20 @@
       const lKey = String(lordId || 'MARA_PAPIYAN').toUpperCase();
       const lDef = this.LORDS[lKey];
       if (!lDef) return { ok: false, reason: 'invalid-demon-lord', lordId: lKey };
+      if (npc.demonPact && npc.demonPact.lordId === lKey) {
+        return { ok: true, unchanged: true, lordId: lKey, pact: npc.demonPact };
+      }
+      const cost = opts.free ? 0 : this.COVENANT_COST_STONES;
+      if (cost) {
+        if (!W || !W.sect || !W.world) return { ok: false, reason: 'invalid-world' };
+        if ((W.sect.stones || 0) < cost) return { ok: false, reason: 'insufficient-stones', required: cost };
+        const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
+        if (!Number.isFinite(pool.stones) || pool.stones < 0) return { ok: false, reason: 'invalid-world-pool' };
+        if (g.ECO && g.ECO.pay) {
+          if (!g.ECO.pay(W, cost, 'ทำพันธสัญญาโลหิตกับ「' + lDef.nameTh + '」')) return { ok: false, reason: 'insufficient-stones', required: cost };
+        } else W.sect.stones -= cost;
+        pool.stones += cost;
+      }
       const pDef = this.PLANES[lDef.plane];
       npc.demonicRealmsGauge = npc.demonicRealmsGauge || { INFERNAL_SIN: 0, ASURA_WRATH: 0 };
       if (pDef && pDef.gaugeId) {
@@ -10067,18 +10335,21 @@
         bonusCrit: lDef.bonusCrit || 0,
         bonusPen: lDef.bonusPen || 0,
         bonusCast: lDef.bonusCast || 0,
+        lifestealBonus: lDef.lifestealBonus || 0,
+        cultRatePct: lDef.cultRatePct || 0.14,
         backlashRisk: lDef.backlashRisk || 0.08,
         avatarSkillNameTh: lDef.avatarSkillNameTh,
         signedDay: (W && W.day) || 1
       };
+      npc.demonicPact = npc.demonPact;
       npc.bloodCovenant = npc.demonPact;
       npc._cultRateBase = null;
       if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
       return { ok: true, lordId: lKey, pact: npc.demonPact };
     },
     getUnitBlessingBonuses(npc) {
-      if (!npc || !npc.demonPact) return { active: false, p: {}, f: {} };
-      const dp = npc.demonPact;
+      const dp = npc && (npc.demonPact || npc.demonicPact);
+      if (!dp) return { active: false, p: {}, f: {}, cultRatePct: 0, lifestealBonus: 0, backlashRisk: 0 };
       return {
         active: true,
         p: {
@@ -10092,7 +10363,10 @@
           crit: dp.bonusCrit || 0,
           pen: dp.bonusPen || 0,
           cast: dp.bonusCast || 0
-        }
+        },
+        cultRatePct: dp.cultRatePct || 0.14,
+        lifestealBonus: dp.lifestealBonus || 0,
+        backlashRisk: dp.backlashRisk || 0.08
       };
     }
   };

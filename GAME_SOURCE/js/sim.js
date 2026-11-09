@@ -91,11 +91,11 @@
         if (o.founderIndex === 0) {
           npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 70);
           const wItem = g.ECO && (g.ECO.itemById[wInfo.masterWeapon] || g.ECO.itemById[wInfo.starterWeapon]);
-          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(wItem, 1.15);
+          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(W, wItem, 1.15);
         } else if (o.founderIndex != null && o.founderIndex > 0) {
           npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 35);
           const wItem = g.ECO && g.ECO.itemById[wInfo.starterWeapon];
-          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(wItem, 1.0);
+          if (wItem) npc.equip.WEAPON = g.ECO.mintGear(W, wItem, 1.0);
         }
       }
     }
@@ -224,6 +224,7 @@
     const rng = new U.RNG(String(seed) + ':world');
     const W = { _founding: true, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
     if (g.STATS) g.STATS.now = W.t;
+    if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
     if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
     const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day;
     W.map = MAP.create(W.seed);
@@ -447,6 +448,7 @@
   /* ---------- วงจรจำลอง ---------- */
   SIM.tick = W => {
     g.STATS.now = W.t;
+    if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
     W.t++;
     const d = Math.floor(W.t / 1440);
     if (d !== W.day) { W.day = d; HC.nowDay = d; SIM.dailyUpdate(W); }
@@ -478,9 +480,21 @@
     if (g.CPE && g.CPE.retireNpc) g.CPE.retireNpc(W, n, 'ออกจากสำนัก');
     for (const k of Object.keys(n.equip || {})) { if (n.equip[k]) W.sect.gear.push(n.equip[k]); } n.equip = {};
     if (n.inv && Array.isArray(n.inv.gear)) { n.inv.gear.forEach(g2 => { if (g2) W.sect.gear.push(g2); }); n.inv.gear = []; }
-    for (const k of Object.keys((n.inv && n.inv.pills) || {})) ECO.add(W, k, n.inv.pills[k]);
+    for (const k of Object.keys((n.inv && n.inv.pills) || {})) {
+      ECO.add(W, k, n.inv.pills[k]);
+      if (n.inv.spawnedPills && n.inv.spawnedPills[k] > 0) {
+        W.sect.spawnedPills = W.sect.spawnedPills || {};
+        W.sect.spawnedPills[k] = (W.sect.spawnedPills[k] || 0) + n.inv.spawnedPills[k];
+      }
+    }
     if (g.MARTIAL) g.MARTIAL.returnKnowledge(W, n);
-    for (const k of Object.keys((n.inv && n.inv.mats) || {})) ECO.add(W, k, n.inv.mats[k]);
+    for (const k of Object.keys((n.inv && n.inv.mats) || {})) {
+      ECO.add(W, k, n.inv.mats[k]);
+      if (n.inv.spawnedMats && n.inv.spawnedMats[k] > 0) {
+        W.sect.spawnedMats = W.sect.spawnedMats || {};
+        W.sect.spawnedMats[k] = (W.sect.spawnedMats[k] || 0) + n.inv.spawnedMats[k];
+      }
+    }
     for (const id of ((n.inv && n.inv.techs) || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id);
     for (const id of ((n.inv && n.inv.recipes) || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; }
     if (n.inv) { n.inv.pills = {}; n.inv.mats = {}; n.inv.techs = []; n.inv.recipes = []; }
@@ -533,6 +547,13 @@
           for (const k in n.equip) {
             const it = n.equip[k];
             if (!it) continue;
+            if (ECO && ECO.evaluateSoulBoundCondition) {
+              const sb = ECO.evaluateSoulBoundCondition(n, it);
+              if (sb && sb.drawbackHpDrainPct > 0 && n.h && n.h.state) {
+                const drain = Math.max(1, Math.round(CULT.hpMax(n) * sb.drawbackHpDrainPct));
+                n.h.state.hp = Math.max(1, (n.h.state.hp || 1) - drain);
+              }
+            }
             if (it.dur != null && n.act.id === 'fight') {
               if (ECO && ECO.wearGear) ECO.wearGear(it, 0.5, W, n);
               else it.dur = Math.max(0, it.dur - 0.5);
@@ -849,7 +870,7 @@
       map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
     };
     const transientSet = SIM.TRANSIENT_CACHE_KEYS;
-    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq']);
+    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil']);
     return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && !PERSISTED_UNDERSCORE_KEYS.has(k))) ? undefined : v);
   };
   SIM.deserialize = str => {
@@ -905,19 +926,37 @@
     if (s.speed != null && (!Number.isFinite(s.speed) || s.speed < 0)) invalid('speed');
     for (const key of ['sect', 'world', 'market', 'weather', 'threat', 'map']) if (!object(s[key])) invalid(key);
     if (!Number.isFinite(s.sect.stones) || s.sect.stones < 0) invalid('sect.stones');
+    if (s.sect.stock != null) {
+      if (!object(s.sect.stock)) invalid('sect.stock');
+      for (const [mk, mv] of Object.entries(s.sect.stock)) {
+        if (mv != null && (typeof mv !== 'number' || !Number.isFinite(mv) || mv < 0 || mv > Number.MAX_SAFE_INTEGER)) invalid('sect.stock.' + mk);
+      }
+    }
     for (const key of ['npcs', 'logs', 'graveyard', 'gone']) if (!Array.isArray(s[key])) invalid(key);
     for (const key of ['buildings', 'extra']) if (!Array.isArray(s.map[key])) invalid('map.' + key);
     for (const key of ['duelQueue', 'fights', 'foes']) if (s[key] != null && !Array.isArray(s[key])) invalid(key);
     const npcIds = new Set();
     s.npcs.forEach(n => {
       if (!object(n) || typeof n.id !== 'string' || !n.id || npcIds.has(n.id)) invalid('npcs.id');
+      if (n.cult != null) {
+        if (!object(n.cult)) invalid('npcs.cult');
+        const maxSt = (CULT && CULT.PATHS && n.cult.path && CULT.PATHS[n.cult.path] && CULT.PATHS[n.cult.path].maxStage) || 12;
+        if (!Number.isInteger(n.cult.stage) || n.cult.stage < 1 || n.cult.stage > Math.max(12, maxSt)) invalid('npcs.cult.stage');
+      }
       npcIds.add(n.id);
     });
+    if (s.npcs.length > 0 && s.sect.masterId != null) {
+      const inGrave = Array.isArray(s.graveyard) && s.graveyard.some(g2 => g2 && g2.id === s.sect.masterId);
+      if (typeof s.sect.masterId !== 'string' || (!npcIds.has(s.sect.masterId) && !inGrave)) invalid('sect.masterId');
+    }
     const hadDay = Object.prototype.hasOwnProperty.call(HC, 'nowDay'), dayBefore = HC.nowDay;
     const stats = g.STATS, hadStatsTime = stats && Object.prototype.hasOwnProperty.call(stats, 'now'), statsTimeBefore = stats && stats.now;
+    const prevBoundWorld = ECO ? ECO._boundWorld : null;
     try {
       const W = SIM.create(s.seed, { masterIdx: 0 });
-      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; if (W.sect && !Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = []; W.world = s.world; W.threat = s.threat; if (s.explore) W.explore = s.explore; W.graveyard = s.graveyard; W.gone = s.gone; W.logs = s.logs; W.duelQueue = s.duelQueue || []; W.fights = s.fights || []; W.foes = s.foes || []; W.foeSeq = s.foeSeq; W.fightSeq = s.fightSeq;
+      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; if (W.sect && !Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = []; W.world = s.world;
+      if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
+      W.chronicle = W.world.chronicles; W.threat = s.threat; if (s.explore) W.explore = s.explore; W.graveyard = s.graveyard; W.gone = s.gone; W.logs = s.logs; W.duelQueue = s.duelQueue || []; W.fights = s.fights || []; W.foes = s.foes || []; W.foeSeq = s.foeSeq; W.fightSeq = s.fightSeq;
       W.foeById = {}; W.foes.forEach(u => W.foeById[u.id] = u);
       W.wildlife = s.wildlife || { seq: 0, beasts: [], kills: 0 };
       W.wildlife.beasts = W.wildlife.beasts.map(b => W.foeById[b.id] || b);
@@ -933,7 +972,7 @@
       W.byId = {}; W.npcs.forEach(n => { W.byId[n.id] = n; if (g.MARTIAL && g.MARTIAL.ensureSkills) g.MARTIAL.ensureSkills(n); });
       const M = W.map; M.extraSt = [];
       s.map.buildings.forEach(sb => { const b = M.byId[sb.id]; if (b) { b.level = sb.level; b.hp = sb.hp; b.building = sb.building; } });
-      s.map.extra.forEach(e => { const b = M.buildings.find(x => x.n === e.bid); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
+      s.map.extra.forEach(e => { if (!object(e)) invalid('map.extra'); const b = M.buildings.find(x => x.n === e.bid); if (!b) invalid('map.extra.bid'); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
       M.stations.forEach(st => { st.occ = null; if (st.owner != null) st.owner = null; });
       M.buildings.forEach(b => { b.inside = []; });
       W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
@@ -944,7 +983,7 @@
       W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));
       if (s.runtimeTiming && typeof s.runtimeTiming === 'object') {
         W.runtimeTiming = Object.assign({}, s.runtimeTiming, {
-          pendingTicks: clamp(Number.isFinite(s.runtimeTiming.pendingTicks) ? s.runtimeTiming.pendingTicks : 0, 0, 1440)
+          pendingTicks: clamp(typeof s.runtimeTiming.pendingTicks === 'number' && Number.isFinite(s.runtimeTiming.pendingTicks) ? s.runtimeTiming.pendingTicks : 0, 0, 100800)
         });
       }
       const legacyContent = !s.sect.contentVersion;
@@ -1016,9 +1055,14 @@
       }
 
       if (W.world && Array.isArray(W.world.wanderingFigures) && g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
+      if (W.world) {
+        if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
+        W.chronicle = W.world.chronicles;
+      }
+      if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
       return W;
     } catch (error) {
-      if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems();
+      if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems(prevBoundWorld || (g.G && g.G.W) || undefined);
       if (hadDay) HC.nowDay = dayBefore; else delete HC.nowDay;
       if (stats) { if (hadStatsTime) stats.now = statsTimeBefore; else delete stats.now; }
       throw error;

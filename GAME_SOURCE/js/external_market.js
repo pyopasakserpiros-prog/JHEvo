@@ -65,8 +65,8 @@
     if (id === 'meal') return 1.2;
     if (ECO.matById[id]) return ECO.matById[id].value || 5;
     if (ECO.isPill(id)) {
-      const r = ECO.recipeById[id.slice(2)];
-      return r ? 14 * Math.pow(2.05, (r.tier || 1) - 1) : 10;
+      // The economy catalog handles both P:<recipe> and finished item IDs.
+      return ECO.base(id);
     }
     const organId = id.startsWith('ORGAN:') ? id.slice(6) : id;
     if (g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[organId]) {
@@ -494,7 +494,9 @@
 
       const resFloor = EXT.reserveForSect(W, id);
       const curCount = ECO.count(W, id);
-      const surplus = Math.max(0, curCount - resFloor);
+      const spawnedCnt = (W.sect && ((W.sect.spawnedMats && W.sect.spawnedMats[id]) || (W.sect.spawnedPills && W.sect.spawnedPills[id]))) || 0;
+      const naturalCount = Math.max(0, curCount - spawnedCnt);
+      const surplus = Math.max(0, naturalCount - resFloor);
       const unit = EXT.quotePrice(W, id, 'sect-sell', skill);
       if (!surplus || !unit || v.stones < unit || !(v.wants && v.wants[id] > 0)) continue;
 
@@ -595,7 +597,7 @@
         const count = g.CONTENT.organCount(W, oid);
         const spawnedOrg = (W.sect.spawnedOrgans && W.sect.spawnedOrgans[oid]) || 0;
         const naturalCount = Math.max(0, count - spawnedOrg);
-        if (naturalCount > 2) {
+        if (naturalCount > 2 && v.wants && v.wants[oid] > 0) {
           const unit = EXT.quotePrice(W, oid, 'sect-sell', skill);
           if (unit > 0 && v.stones >= unit && g.CONTENT.takeOrgan(W, oid, 1)) {
             v.stones -= unit;
@@ -769,7 +771,9 @@
       }
       for (const id of Object.keys(n.inv.mats || {})) {
         const qtyHeld = n.inv.mats[id];
-        if (!EXT.isTradable(id) || !Number.isSafeInteger(qtyHeld) || qtyHeld <= 0 || !(v.wants && v.wants[id] > 0)) continue;
+        const spawnedMat = (n.inv.spawnedMats && n.inv.spawnedMats[id]) || 0;
+        const naturalMat = Math.max(0, (qtyHeld || 0) - spawnedMat);
+        if (!EXT.isTradable(id) || !Number.isSafeInteger(qtyHeld) || naturalMat <= 0 || !(v.wants && v.wants[id] > 0)) continue;
         const price = EXT.quotePrice(W, id, 'member-sell');
         if (!price || v.stones < price) continue;
         const priority = 0.45 + E(n, 'interests.trade') / 240 + E(n, 'values.wealthResource') / 380 + (n.h.skills.trading || 0) / 280 - E(n, 'values.sectDuty') / 1000;
@@ -777,7 +781,9 @@
       }
       for (const id of Object.keys(n.inv.pills || {})) {
         const held = n.inv.pills[id];
-        if (!EXT.isTradable(id) || !ECO.isPill(id) || !Number.isSafeInteger(held) || held < 2 || !(v.wants && v.wants[id] > 0) || pillNeed(n, id) > 0) continue;
+        const spawnedPill = (n.inv.spawnedPills && n.inv.spawnedPills[id]) || 0;
+        const naturalPill = Math.max(0, (held || 0) - spawnedPill);
+        if (!EXT.isTradable(id) || !ECO.isPill(id) || !Number.isSafeInteger(held) || held < 2 || naturalPill < 1 || !(v.wants && v.wants[id] > 0) || pillNeed(n, id) > 0) continue;
         const price = EXT.quotePrice(W, id, 'member-sell');
         if (!price || v.stones < price) continue;
         const priority = 0.35 + E(n, 'interests.trade') / 260 + E(n, 'values.wealthResource') / 420 + (n.h.skills.trading || 0) / 320;
@@ -808,7 +814,7 @@
       if (!it) return false;
       v.stock[id]--; if (!v.stock[id]) delete v.stock[id];
       n.inv.stones -= total; v.stones += total;
-      const minted = ECO.mintGear(it, 1.0);
+      const minted = ECO.mintGear(W, it, 1.0);
       n.equip = n.equip || {};
       if (n.equip[minted.slot]) {
         n.inv.gear = n.inv.gear || [];
@@ -850,7 +856,8 @@
       if (!n.inv.techs.includes(tid)) n.inv.techs.push(tid);
       record(W, v, 'member-buy', id, 1, fresh.price, total, n, fresh.reason);
     } else if (fresh.side === 'sell') {
-      if (!EXT.isTradable(id) || !(n.inv.mats && n.inv.mats[id] > 0) || !(v.wants && v.wants[id] > 0) || v.stones < total) return false;
+      const natMat = Math.max(0, ((n.inv.mats && n.inv.mats[id]) || 0) - ((n.inv.spawnedMats && n.inv.spawnedMats[id]) || 0));
+      if (!EXT.isTradable(id) || natMat <= 0 || !(v.wants && v.wants[id] > 0) || v.stones < total) return false;
       n.inv.mats[id]--;
       const remMat = n.inv.mats[id] || 0;
       if (remMat <= 0) delete n.inv.mats[id];
@@ -862,7 +869,8 @@
       v.stones -= total; n.inv.stones = (n.inv.stones || 0) + total;
       record(W, v, 'member-sell', id, 1, fresh.price, total, n);
     } else if (fresh.side === 'sell-pill') {
-      if (!EXT.isTradable(id) || !ECO.isPill(id) || !(n.inv.pills && n.inv.pills[id] >= 2) || pillNeed(n, id) > 0 || !(v.wants && v.wants[id] > 0) || v.stones < total) return false;
+      const natPill = Math.max(0, ((n.inv.pills && n.inv.pills[id]) || 0) - ((n.inv.spawnedPills && n.inv.spawnedPills[id]) || 0));
+      if (!EXT.isTradable(id) || !ECO.isPill(id) || !(n.inv.pills && n.inv.pills[id] >= 2) || natPill < 1 || pillNeed(n, id) > 0 || !(v.wants && v.wants[id] > 0) || v.stones < total) return false;
       n.inv.pills[id]--;
       const remPill = n.inv.pills[id] || 0;
       if (remPill <= 0) delete n.inv.pills[id];

@@ -384,10 +384,13 @@ M.classifyTechniqueAccess=tOrId=>{
 };
 M.weaponCompatibility=(n,tOrId)=>{
  const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
- if(!t||!t.weaponTypes||!t.weaponTypes.length)return {state:'UNRESTRICTED',mult:1,qiCostMult:1,accDelta:0,canUse:true,reasonTh:'ไม่จำกัดศาสตรา'};
  const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
+ if(n&&n.cult&&n.cult.path==='SHADOW_SAMURAI'&&(!t||t.path==='SHADOW_SAMURAI'||t.requiresWeapon)&&!['SWORD','BLADE'].includes(eqType)){
+  return {state:'BLOCKED_REQUIRED_WEAPON',mult:0,qiCostMult:1,accDelta:-99,canUse:false,reasonTh:'วิถีซามูไรไร้ปราณต้องถือดาบ (BLADE) หรือกระบี่ (SWORD) เท่านั้น'};
+ }
+ if(!t||!t.weaponTypes||!t.weaponTypes.length)return {state:'UNRESTRICTED',mult:1,qiCostMult:1,accDelta:0,canUse:true,reasonTh:'ไม่จำกัดศาสตรา'};
  if(t.weaponTypes.includes(eqType))return {state:'MATCHED',mult:1.15,qiCostMult:1,accDelta:4,canUse:true,reasonTh:'อาวุธตรงตามเคล็ดวิชา (×1.15)'};
- if(t.legendary)return {state:'LEGENDARY_QI_PROJECTION',mult:1.0,qiCostMult:1,accDelta:0,canUse:true,reasonTh:'วิชาตำนานสำแดงผ่านปราณจำแลงโดยไม่ติดขัด (×1.00 · ถือศาสตราตรงสายได้โบนัส ×1.15)'};
+ if(t.legendary&&!(n&&n.cult&&n.cult.path==='SHADOW_SAMURAI')&&!(t.requiresWeapon&&t.path==='SHADOW_SAMURAI'))return {state:'LEGENDARY_QI_PROJECTION',mult:1.0,qiCostMult:1,accDelta:0,canUse:true,reasonTh:'วิชาตำนานสำแดงผ่านปราณจำแลงโดยไม่ติดขัด (×1.00 · ถือศาสตราตรงสายได้โบนัส ×1.15)'};
  if(t.requiresWeapon)return {state:'BLOCKED_REQUIRED_WEAPON',mult:0,qiCostMult:1,accDelta:-99,canUse:false,reasonTh:'ต้องสวมใส่อาวุธ '+t.weaponTypes.join('/')};
  const severe=(t.weaponTypes.includes('BOW')&&eqType!=='BOW')||(eqType==='BOW'&&['SWORD','BLADE','SPEAR','STAFF','FIST'].some(w=>t.weaponTypes.includes(w)));
  if(severe)return {state:'SEVERE_MISMATCH',mult:0.65,qiCostMult:1.25,accDelta:-12,canUse:true,reasonTh:'อาวุธขัดแย้งกับท่วงท่าวิชา (×0.65 · แม่นยำลด · กินปราณเพิ่ม)'};
@@ -456,6 +459,11 @@ M.isTechCompatible=(n,t)=>{
  if(!n||!n.cult||!t)return false;
  const c=n.cult;
  const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):(c.stage||1);
+ if(c.path==='SHADOW_SAMURAI'){
+  const wList=Array.isArray(t.weaponTypes)?t.weaponTypes:(t.weapon?[t.weapon]:[]);
+  const hasSwordBlade=!wList.length||wList.includes('SWORD')||wList.includes('BLADE');
+  if(!hasSwordBlade||(t.path&&t.path!=='ANY'&&t.path!=='SHADOW_SAMURAI'&&t.path!=='XIAN'&&t.path!=='BODY'))return false;
+ }
  if(M.isInnateTech(t)){
   return c.path===t.path&&c.sub===t.innateSubpath&&(t.reqTier||t.tier||1)<=effSt;
  }
@@ -656,16 +664,27 @@ M.weaponConditionMatches=(n,t)=>{
 };
 M.conditionMatches=(n,t)=>{
  if(!t)return false;
- if(t.legendary)return true;
+ if(n&&n.cult&&n.cult.path==='SHADOW_SAMURAI'&&(t.path==='SHADOW_SAMURAI'||t.requiresWeapon)){
+  const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
+  if(!['SWORD','BLADE'].includes(eqType))return false;
+  return M.weaponConditionMatches(n,t);
+ }
+ if(t.legendary&&!t.requiresWeapon)return true;
  return M.weaponConditionMatches(n,t);
 };
 M.skillEfficiency=(n,p)=>{
  const t=CULT.tech(p.tech||p.id)||p;
+ if(n&&n.cult&&n.cult.path==='SHADOW_SAMURAI'&&(t.path==='SHADOW_SAMURAI'||t.requiresWeapon)){
+  const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
+  if(!['SWORD','BLADE'].includes(eqType))return 0;
+  if(!M.weaponConditionMatches(n,t))return 0;
+ }
  let equipmentMult=1;
  if(t.weaponTypes||t.armorTypes){
   if(M.weaponConditionMatches(n,t))equipmentMult=1.15;
-  else if(t.legendary)equipmentMult=1.0;
+  else if(t.legendary&&!t.requiresWeapon&&!p.requiresWeapon)equipmentMult=1.0;
   else if(t.requiresWeapon||p.requiresWeapon)return 0;
+  else if(t.legendary)equipmentMult=1.0;
   else equipmentMult=0.65;
  }
  if(!n||!n.cult)return equipmentMult;

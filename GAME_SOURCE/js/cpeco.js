@@ -77,7 +77,7 @@
     const minNoArb = Math.ceil(CPE.reward(W, id, 1) * 1.3) + 2;
     return Math.max(2, minNoArb, raw);
   };
-  CPE.gearPrice = (W, it) => { const c = CPE.S(W); const maxD = it.maxDur == null ? 100 : it.maxDur, curD = it.dur == null ? maxD : it.dur; const condK = clamp(curD / 100, 0.25, 1) * clamp(0.7 + 0.3 * (maxD / 100), 0.5, 1); return Math.max(5, Math.round((it.value || 20 * Math.pow(1.9, (it.tier || 1) - 1)) * 0.9 * (it.q || 1) * condK * c.price * c.markup)); };
+  CPE.gearPrice = (W, it) => { const c = CPE.S(W); const maxD = it.maxDur == null ? 100 : it.maxDur, curD = it.dur == null ? maxD : it.dur; const condK = clamp(curD / 100, 0.25, 1) * clamp(0.7 + 0.3 * (maxD / 100), 0.5, 1); const baseVal = Math.max(it.value || 0, Math.round(20 * Math.pow(1.9, (it.tier || 1) - 1))); return Math.max(5, Math.round(baseVal * 0.9 * (it.q || 1) * condK * c.price * c.markup)); };
   CPE.techFree = (W, t) => !t || CPE.S(W).freeLib.includes(t.id);
   CPE.techPrice = (W, t) => CPE.techFree(W, t) ? 0 : Math.round(28 * Math.pow(t.tier, 2.1) * CPE.S(W).price);
   CPE.techReward = (W, id) => { const t = CULT.tech(id); return t ? 28 * Math.pow(t.tier, 2.1) * 0.55 : 0; };
@@ -433,10 +433,10 @@
       return true;
     }
     if (!p || !Number.isFinite(p.price) || p.price <= 0 || !['pill','gear'].includes(p.kind)) return false;
-    const quote=p.kind==='pill'?CPE.priceOf(W,p.key):CPE.gearPrice(W,p.gear || {});
-    if(p.price!==quote || (p.kind==='pill' && (!ECO.isPill(p.key) || !ECO.pillInfo(p.key)))) return false;
     const c = CPE.S(W);
     if (p.kind === 'pill') {
+      const quote = CPE.priceOf(W, p.key);
+      if (p.price !== quote || !ECO.isPill(p.key) || !ECO.pillInfo(p.key)) return false;
       const quality = ECO.pillQuality(W, p.key);
       if (!ECO.take(W, p.key, 1)) return false;
       if (!CPE.spend(W, n, p.price, 'ซื้อ' + ECO.name(p.key))) { ECO.add(W, p.key, 1, quality); return false; }
@@ -445,11 +445,14 @@
         W.log('shop', '[ซื้อสินค้า] ' + n.h.name.given + ' แลกคุณูปการ ' + p.price + ' คป. ซื้อ「' + ECO.name(p.key) + '」×1 จากร้านสำนัก', [n.id], { txKind: 'purchase', itemId: p.key, qty: 1, recipientId: n.id });
       }
     } else {
-      const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
-      if (!n.cult || !['WEAPON', 'ARMOR', 'ACCESSORY'].includes(p.gear && p.gear.slot) || (p.gear.minStage || 1) > effSt + 1) return false;
+      if (!p.gear || !n || !n.cult) return false;
       const i = W.sect.gear.findIndex(x => x === p.gear || (p.gear.uid && x && x.uid === p.gear.uid)); if (i < 0) return false;
       const boughtGear = W.sect.gear[i];
-      if (!CPE.spend(W, n, p.price, 'ซื้อ' + boughtGear.nameTh)) return false;
+      const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
+      if (!['WEAPON', 'ARMOR', 'ACCESSORY'].includes(boughtGear && boughtGear.slot) || (boughtGear.minStage || 1) > effSt + 1) return false;
+      const quote = CPE.gearPrice(W, boughtGear);
+      if (p.price !== quote) return false;
+      if (!CPE.spend(W, n, quote, 'ซื้อ' + boughtGear.nameTh)) return false;
       W.sect.gear.splice(i, 1);
       boughtGear.boughtFromSectShop = true;
       boughtGear.lastBuyerId = n.id;

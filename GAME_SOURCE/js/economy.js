@@ -480,7 +480,7 @@
   };
   ECO.mintGear = (a, b, c, d) => {
     let W = null, itemOrRecipe = a, q = b, playerSpawned = !!c;
-    if (a && a.sect && a.npcs) {
+    if (a && (a.sect || a.rng || a.day !== undefined)) {
       W = a;
       itemOrRecipe = b;
       q = c;
@@ -539,7 +539,7 @@
     if (g.ELEM && g.ELEM.gainMastery) g.ELEM.gainMastery(npc, r, 'craft_finish', W, { sourceId: r.id });
     const peakQBonus = (npc && npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) ? (g.SECT.PEAKS.getUnitPeakBonuses(npc).craftQuality || 0) : 0;
     const kwBon = (npc && g.COMBAT && typeof g.COMBAT.keywordsOf === 'function') ? g.COMBAT.keywordsOf(npc) : null;
-    const kwPrecBonus = (kwBon && kwBon.craftPrecisionAdd > 0) ? kwBon.craftPrecisionAdd : 0;
+    const kwPrecBonus = (kwBon && Number.isFinite(kwBon.craftPrecision)) ? clamp(kwBon.craftPrecision, 0, 0.12) : 0;
     const q = clamp(0.85 + (skill - r.minMastery) / 160 + peakQBonus + kwPrecBonus + W.rng.gauss(0, 0.06), 0.7, 1.65 + kwPrecBonus);
     const out = { ok: true, q };
     if (r.outType === 'PILL') {
@@ -1341,6 +1341,8 @@
     }
     const effectiveBoost = cat.qualityBoost + (elementResonant ? 0.04 : 0);
     const targetQ = Math.min(capQ, +(oldQ + effectiveBoost).toFixed(2));
+    // Materialize uncached stats at the old quality before scaling them.
+    if (!gear.st && g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
     gear.q = targetQ;
     if (gear.quality !== undefined || gear.legendary) gear.quality = targetQ;
     const newQ = Number.isFinite(gear.q) ? gear.q : targetQ;
@@ -1355,7 +1357,6 @@
     gear.refinedCount = (gear.refinedCount || 0) + 1;
     if (elementResonant) gear.elementalResonanceCount = (gear.elementalResonanceCount || 0) + 1;
     gear.lastCatalystId = cat.id;
-    if (!gear.st && g.STATS && g.STATS.gearStats) g.STATS.gearStats(gear);
     if (gear.st && typeof gear.st === 'object') {
       for (const sk of Object.keys(gear.st)) {
         if (!['crit', 'critDmg', 'pen', 'move', 'cast'].includes(sk)) {
@@ -1363,10 +1364,22 @@
         }
       }
     }
+    gear._modVer = (gear._modVer || 0) + 1;
     if (npc) {
       if (ECO.grantCraftCultivation) ECO.grantCraftCultivation(W, npc, null, { tier: gTier, q: newQ, craft: 'FORGING', recipeId: cat.id });
       if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(npc);
       HC.bump(npc);
+    }
+    if (W && Array.isArray(W.npcs)) {
+      for (const holder of W.npcs) {
+        if (!holder || holder === npc || !holder.equip) continue;
+        if (holder.equip.WEAPON === gear || holder.equip.ARMOR === gear || holder.equip.ACCESSORY === gear) {
+          if (g.STATS && g.STATS.dirty) g.STATS.dirty(holder);
+          if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(holder);
+          HC.bump(holder);
+        }
+      }
     }
     if (!opts.quiet && W.log) {
       W.log('craft', '✨ ขัดเกลาศาสตรา「' + gear.nameTh + '」ด้วย「' + cat.nameTh + '」คุณภาพเพิ่มเป็น ' + oldQ.toFixed(2) + ' → ' + newQ.toFixed(2), npc ? [npc.id] : []);
@@ -1622,6 +1635,8 @@
       CHARM: { mdef: baseScale * 0.16, eva: baseScale * 0.10 }
     }[gearType] || {};
     for (const k in typedBase) st[k] = (st[k] || 0) + typedBase[k];
+    const baseSt = {};
+    for (const k in st) baseSt[k] = Math.round(st[k] * 10) / 10;
 
     const rolledAffixes = [];
     for (const af of pickedAffixes) {
@@ -1673,6 +1688,9 @@
       combatMult,
       defMult,
       st,
+      baseSt,
+      baseTier: tier,
+      baseQ: q,
       affixes: rolledAffixes,
       dur: 100,
       maxDur: 100,
@@ -1949,7 +1967,7 @@
       const idx = W.sect.gear.findIndex(match);
       if (idx >= 0) { gear = W.sect.gear[idx]; loc = 'sect'; slotKey = idx; }
     }
-    if (!gear) return { ok: false, reason: 'gear-not-found' };
+    if (!gear || !loc) return { ok: false, reason: 'gear-not-found' };
 
     gear.dur = 0;
     gear.broken = true;
@@ -2562,11 +2580,15 @@
     wpn.killTracker = wpn.killTracker || { kills: 0, bossKills: 0, evolutionStage: 0 };
     wpn.killTracker.kills += 1;
     if (victim && (victim.isBoss || (victim.tier || 1) >= 5)) wpn.killTracker.bossKills += 1;
+    if (wpn.noEvolution) return wpn.killTracker;
     const nextStage = wpn.killTracker.kills >= 25 ? 3 : (wpn.killTracker.kills >= 10 ? 2 : (wpn.killTracker.kills >= 3 ? 1 : 0));
     if (nextStage > wpn.killTracker.evolutionStage) {
       wpn.killTracker.evolutionStage = nextStage;
       wpn.tier = Math.min(7, (wpn.tier || 1) + 1);
       wpn.q = Math.round(((wpn.q || 1) + 0.08) * 100) / 100;
+      const affixBonus = 1 + (Array.isArray(wpn.affixes) ? wpn.affixes.length : 0) * 0.08;
+      wpn.value = Math.max(wpn.value || 0, Math.round((26 * Math.pow(1.92, (wpn.tier || 1) - 1)) * (wpn.q || 1) * affixBonus));
+      wpn._modVer = (wpn._modVer || 0) + 1;
       delete wpn.st;
       if (g.STATS && g.STATS.gearStats) g.STATS.gearStats(wpn);
       if (npc && g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
@@ -2577,7 +2599,7 @@
   // E02: Adaptive / Reactive Armor
   ECO.adaptArmorToElement = (npc, armor, incomingElement) => {
     const arm = armor || (npc && npc.equip && npc.equip.ARMOR);
-    if (!arm || !incomingElement) return null;
+    if (!arm || !incomingElement || arm.broken || arm.retired || (arm.procedural && arm.dur != null && arm.dur <= 0) || (npc && g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(npc, arm))) return null;
     const el = String(incomingElement).toUpperCase();
     arm.adaptiveState = arm.adaptiveState || { lastElement: null, stacks: 0, resistBonusPct: 0 };
     if (arm.adaptiveState.lastElement === el) {
@@ -2598,11 +2620,17 @@
     const a = usable(npc.equip.ARMOR) ? npc.equip.ARMOR : null;
     const x = usable(npc.equip.ACCESSORY) ? npc.equip.ACCESSORY : null;
     const validEl = el => !!(el && el !== 'NEUTRAL' && el !== 'NONE');
-    if (w && x && ((w.pairId && w.pairId === x.pairId) || (w.subpath && w.subpath === x.subpath) || (validEl(w.element) && validEl(x.element) && ((w.element === 'LIGHT_YANG' && (x.element === 'DARK_YIN' || x.element === 'YIN_SHADOW')) || (w.element === 'FIRE' && x.element === 'WATER_ICE') || w.element === x.element)))) {
-      return { active: true, pairNameTh: 'ศาสตราคู่ประสานหยินหยาง', bonusMult: 1.16, critBonus: 8, penBonus: 10 };
+    if (w && x && w.pairId && w.pairId === x.pairId) {
+      return { active: true, isNamedPair: true, pairNameTh: 'ศาสตราคู่ประสานหยินหยาง', bonusMult: 1.16, critBonus: 8, penBonus: 10 };
+    }
+    if (w && a && w.pairId && w.pairId === a.pairId) {
+      return { active: true, isNamedPair: true, pairNameTh: 'ศาสตราเกราะคู่ประสาน', bonusMult: 1.15, critBonus: 7, penBonus: 9 };
+    }
+    if (w && x && ((w.subpath && w.subpath === x.subpath) || (validEl(w.element) && validEl(x.element) && ((w.element === 'LIGHT_YANG' && (x.element === 'DARK_YIN' || x.element === 'YIN_SHADOW')) || (w.element === 'FIRE' && x.element === 'WATER_ICE') || w.element === x.element)))) {
+      return { active: true, isNamedPair: false, pairNameTh: 'ประสานปราณศาสตราและเครื่องประดับ', bonusMult: 1.06, critBonus: 3, penBonus: 4 };
     }
     if (w && a && w.subpath && w.subpath === a.subpath) {
-      return { active: true, pairNameTh: 'ศาสตราเกราะร่วมสายมรรคา', bonusMult: 1.12, critBonus: 5, penBonus: 6 };
+      return { active: true, isNamedPair: false, pairNameTh: 'ศาสตราเกราะร่วมสายมรรคา', bonusMult: 1.05, critBonus: 2, penBonus: 3 };
     }
     return { active: false, bonusMult: 1.0 };
   };
@@ -2795,12 +2823,29 @@
     };
   };
 
+  const VALID_RUNE_ELEMENTS = new Set(['FIRE', 'WATER_ICE', 'WIND', 'EARTH_METAL', 'WOOD_LIFE', 'LIGHTNING', 'LIGHT_YANG', 'DARK_YIN', 'YIN_SHADOW', 'BLOOD_DEMON', 'ASTRAL']);
   ECO.socketElementalRunes = (W, smith, gear, runeElements, opts) => {
     opts = opts || {};
-    if (!gear || !Array.isArray(runeElements) || !runeElements.length) return { ok: false, reason: 'invalid-gear-or-runes' };
-    const els = runeElements.map(e => String(e).toUpperCase()).slice(0, 4);
+    if (!gear || typeof gear !== 'object' || !Array.isArray(runeElements) || runeElements.length < 2) return { ok: false, reason: 'invalid-gear-or-runes' };
+    const els = runeElements.map(e => String(e || '').trim().toUpperCase()).slice(0, 4);
+    for (const el of els) {
+      if (!VALID_RUNE_ELEMENTS.has(el)) return { ok: false, reason: 'invalid-element', element: el };
+    }
+    if (new Set(els).size !== els.length) {
+      return { ok: false, reason: 'duplicate-runes-in-input' };
+    }
+
     if (Array.isArray(gear.elementalSockets) && gear.elementalSockets.join(',') === els.join(',')) {
       return { ok: false, reason: 'duplicate-runes', gear, embeddedReaction: gear.embeddedReaction };
+    }
+    const CE = g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE;
+    const catalyst = els[els.length - 1];
+    const primers = els.slice(0, -1);
+    const reactSpec = (CE && CE.resolveElementalReactionSpec && primers.length)
+      ? CE.resolveElementalReactionSpec(primers, catalyst)
+      : null;
+    if (!reactSpec) {
+      return { ok: false, reason: 'no-valid-reaction', elements: els };
     }
     if (W && W.sect && !opts.free) {
       const stoneCost = 15 * els.length;
@@ -2814,25 +2859,14 @@
         return { ok: false, reason: 'insufficient-resources' };
       }
     }
-    const CE = g.COMBAT && g.COMBAT.COMPOSABLE_ENGINE;
-    const catalyst = els[els.length - 1];
-    const primers = els.slice(0, -1);
-    const reactSpec = (CE && CE.resolveElementalReactionSpec && primers.length)
-      ? CE.resolveElementalReactionSpec(primers, catalyst)
-      : null;
     gear.elementalSockets = els;
-    gear.embeddedReaction = reactSpec ? {
+    gear.socketedRunes = els.slice();
+    gear.embeddedReaction = {
       code: reactSpec.code,
       id: reactSpec.id,
       nameTh: reactSpec.nameTh,
       mult: reactSpec.mult,
       elements: reactSpec.elements
-    } : {
-      code: '2E-01',
-      id: 'THERMAL_VAPORIZE',
-      nameTh: 'ไอน้ำระเบิดปราณ',
-      mult: 1.75,
-      elements: els
     };
     gear.skillModifiers = (Array.isArray(gear.skillModifiers) ? gear.skillModifiers : []).filter(m => !(m && (m._fromRuneSocket || m.addElementalFusion)));
     gear.skillModifiers.push({
@@ -2852,6 +2886,17 @@
     if (smith) {
       if (g.STATS && g.STATS.dirty) g.STATS.dirty(smith);
       if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(smith);
+      HC.bump(smith);
+    }
+    if (W && Array.isArray(W.npcs)) {
+      for (const holder of W.npcs) {
+        if (!holder || holder === smith || !holder.equip) continue;
+        if (holder.equip.WEAPON === gear || holder.equip.ARMOR === gear || holder.equip.ACCESSORY === gear) {
+          if (g.STATS && g.STATS.dirty) g.STATS.dirty(holder);
+          if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(holder);
+          HC.bump(holder);
+        }
+      }
     }
     return { ok: true, gear, embeddedReaction: gear.embeddedReaction };
   };

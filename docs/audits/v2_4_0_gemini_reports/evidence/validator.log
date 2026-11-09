@@ -1,0 +1,30 @@
+====================================================
+   JIANGHUSECT DATA & COMBAT INTEGRITY VALIDATOR    
+====================================================
+
+▶ [1/6] Auditing Items, Equipment & Composable Item Mechanics...
+  ✓ Audited 1177 items (grantedSkills=247, skillModifiers=277, multiPhasePills=48, chargeItems=24)
+
+▶ [2/6] Auditing Recipes, Dual-ID Mapping & Crafting DAG...
+  ✓ Audited 1402 recipes and verified acyclic crafting DAG
+
+▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...
+  ✓ Audited 286 subpaths across 43 cultivation paths
+
+▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...
+  ✓ Audited 1243 martial techniques (zero unknown archetypes, statuses, buffs, or composable keywords)
+
+▶ [5/6] Auditing Effects, Buffs, Parameters & Acquisition Sources...
+  ✓ Audited 1245 active/passive item effects and parameters
+
+▶ [6/6] Auditing Debug Editor Catalog, Spawner & Granted-Skill Lifecycle...
+  ✓ Verified Editor catalog (5803 entries across 12 categories, tested spawns: 12)
+
+====================================================
+                VALIDATION SUMMARY                  
+====================================================
+Errors:   0
+Warnings: 0
+
+✅ ALL DATA & COMBAT INTEGRITY CHECKS PASSED!
+

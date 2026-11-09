@@ -674,7 +674,8 @@
       // ใช้โอสถที่มี (ถ้าเหมาะ)
       const c = n.cult;
       const maxTox = c.path === 'DEMON' ? 52 : 35;
-      if (n.inv.pills) for (const k of Object.keys(n.inv.pills)) {
+      const hasNoMedVow = !!(n.voluntaryVows && n.voluntaryVows.VOW_NO_MEDICINE && n.voluntaryVows.VOW_NO_MEDICINE.active);
+      if (!hasNoMedVow && n.inv.pills) for (const k of Object.keys(n.inv.pills)) {
         const info = ECO.pillInfo(k); if (!info || n.inv.pills[k] <= 0 || (info.effect.compatiblePath && info.effect.compatiblePath !== c.path)) continue;
         if (info.effect.cultivationProgress && c.pillT <= 0 && CULT.equivalentStage(n) <= info.tier + 1 && c.toxic < maxTox) { n.inv.pills[k]--; if (n.inv.pills[k] <= 0) delete n.inv.pills[k]; const r = ECO.applyPill(W, n, k); if (r) AI.mem(W, n, 'ใช้ ' + info.name, 0.3); break; }
       }
@@ -683,7 +684,7 @@
     tick(n, W, ctx) {
       const c = n.cult, s = n.h.state;
       const r = CULT.rate(n, ctx.mult || 1) / 60;
-      CULT.gain(n, r); if (c.pillT > 0) c.pillT--;
+      CULT.gain(n, r, W, 'cultivate_rate'); if (c.pillT > 0) c.pillT--;
       if (CULT.MANTRA_SYSTEM && n.mantraState) CULT.MANTRA_SYSTEM.stepMeditationResonance(W, n);
       if (CULT.SUPPORT_ARTS && n.supportState && (W.t % 15 === 0)) CULT.SUPPORT_ARTS.stepFacilityAndDailySynergy(W, n);
       const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1));
@@ -781,9 +782,14 @@
       s.stress = Math.max(0, s.stress - 0.012);
       if (W.t % 15 === 0) { s.mp = (s.mp || 0); }
       // อาจเกิดจิตมาร/ตื่นรู้เล็กน้อย
-      if (W.t % 60 === 0) { if (W.rng.chance(0.0016 * (1 + s.heartDemon / 30))) { AI.insight(W, n); } }
+      if (W.t % 60 === 0) {
+        if (n.demonPact && W.rng.chance((n.demonPact.backlashRisk || 0.08) * 0.25)) {
+          s.heartDemon = clamp((s.heartDemon || 0) + 3, 0, 100);
+        }
+        if (W.rng.chance(0.0016 * (1 + s.heartDemon / 30))) { AI.insight(W, n); }
+      }
       if (s.energy < 12 || s.rest < 12) return 'done';
-      { const qm = (n._nd && n._nd.qiMax) ? n._nd.qiMax : CULT.qiMax(n); s.qi = Math.min(qm, (s.qi || 0) + 0.4); }
+      if (!CULT.isZeroQiSamurai || !CULT.isZeroQiSamurai(n)) { const qm = (n._nd && n._nd.qiMax) ? n._nd.qiMax : CULT.qiMax(n); s.qi = Math.min(qm, (s.qi || 0) + 0.4); }
       AI.vf(n, { martialPeak: 0.045 });
     },
     done(n, W) {
@@ -825,7 +831,8 @@
     start(n, W, ctx) {
       // ขอโอสถทะลวงจากคลังตามสิทธิ (ขึ้นกับเจ้าสำนัก/ความสัมพันธ์)
       const c = n.cult; c.btBonus = c.btBonus || 0;
-      if (c.btBonus < 0.1) {
+      const hasNoMedVow = !!(n.voluntaryVows && n.voluntaryVows.VOW_NO_MEDICINE && n.voluntaryVows.VOW_NO_MEDICINE.active);
+      if (!hasNoMedVow && c.btBonus < 0.1) {
         for (const k of Object.keys(W.sect.stock)) {
           const info = ECO.isPill(k) ? ECO.pillInfo(k) : null;
           if (info && info.effect.breakthroughBonus && !info.effect.btFor && info.tier <= CULT.equivalentStage(n) + 1 && W.sect.stock[k] > 0 && (n.rank >= 2)) { ECO.usePill(W, n, k); AI.mem(W, n, 'ได้รับ' + info.name + 'จากคลังสำนักก่อนทะลวงขั้น', 0.6); break; }
@@ -855,13 +862,14 @@
       if (!res) {
         res = CULT.breakthrough(W, n, { env, pill, guide });
       }
+      const hadRealTrib = !!(res.injured || !res.ok || (n.tribulationState && (n.tribulationState.strikesLanded || 0) > 0) || c.stage >= 3);
       if (CULT.TRIBULATION && n.tribulationState) {
         CULT.TRIBULATION.cleanup(W, n);
       }
       n.lastTribulationOutcome = null;
       n.sealedBt = false;
-      if (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent && !n.dead && !res.died) {
-        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'TRIBULATION_SURVIVED_OR_SCARRED', 1);
+      if (hadRealTrib && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent && !n.dead && !res.died) {
+        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'TRIBULATION_SURVIVED_OR_SCARRED', 'bt:' + (W.day || 0) + ':' + c.stage);
       }
       if (res.ok) { W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage); }
       else { W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + Math.round(res.p * 100) + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id]); AI.mem(W, n, 'ทะลวงขั้นล้มเหลว', 1); if (res.died) AI.kill(W, n, 'ตบะแตกระหว่างทะลวงขั้น'); else AI.injure(W, n, res.sev || 1, 'ตบะย้อนกลับ'); }
@@ -955,7 +963,7 @@
         const ancMult = (CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W ? W.t : null) : (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t))) && n.ancestralBlessing.studySpeedMult ? n.ancestralBlessing.studySpeedMult : 1;
         const sutraEdMult = (learnT && learnT.editionTier && learnT.editionTier > 1) ? (1 + Math.min(0.35, (learnT.editionTier - 1) * 0.10)) : 1;
         c.learning.got += (0.7 + E(n, 'intellect.learningSpeed') / 100 + E(n, 'intellect.comprehension') / 250) * elemLearnMult * ancMult * sutraEdMult * (n.insightT > 0 ? 1.45 : 1) * (g.MARTIAL ? g.MARTIAL.lifeMult(n, 'SCRIPTURE') * g.MARTIAL.skillEffects(n).study : 1);
-        if (c.learning.got >= c.learning.need) { const oldHp = n.h && n.h.state ? n.h.state.hp : null, oldQi = n.h && n.h.state ? n.h.state.qi : null; const t = CULT.tech(c.learning.id); if (!c.techs.includes(c.learning.id)) c.techs.push(c.learning.id); c.learning = null; if (CULT.pruneExcessActiveTechs) CULT.pruneExcessActiveTechs(n); if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(n); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); if (g.MARTIAL && g.MARTIAL.syncResourceCaps) g.MARTIAL.syncResourceCaps(n, oldHp, oldQi); const tName = t ? t.nameTh : ''; W.log('learn', n.h.name.given + ' เรียนรู้วิชา「' + tName + '」สำเร็จ', [n.id]); AI.mem(W, n, 'เรียนรู้ ' + tName, 0.6); HC.experience(n, 'craft_success', 0.6); return 'done'; }
+        if (c.learning.got >= c.learning.need) { const learnedId = c.learning.id; const oldHp = n.h && n.h.state ? n.h.state.hp : null, oldQi = n.h && n.h.state ? n.h.state.qi : null; const t = CULT.tech(learnedId); if (!c.techs.includes(learnedId)) c.techs.push(learnedId); c.learning = null; n._justCompletedStudyId = learnedId; if (CULT.pruneExcessActiveTechs) CULT.pruneExcessActiveTechs(n); if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(n); if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n); if (g.MARTIAL && g.MARTIAL.syncResourceCaps) g.MARTIAL.syncResourceCaps(n, oldHp, oldQi); const tName = t ? t.nameTh : ''; W.log('learn', n.h.name.given + ' เรียนรู้วิชา「' + tName + '」สำเร็จ', [n.id]); AI.mem(W, n, 'เรียนรู้ ' + tName, 0.6); HC.experience(n, 'craft_success', 0.6); return 'done'; }
       }
       const restMult = (n._nd && n._nd.restDrainMult != null) ? n._nd.restDrainMult : 1;
       s.energy = Math.max(0, s.energy - 0.025); s.rest = Math.max(0, s.rest - 0.03 * restMult); AI.vf(n, { knowledgeCraft: 0.05 });
@@ -967,7 +975,9 @@
         g.SECT.PATH_LIBRARY.canDiscipleStudyPath(W, n, n.cult.path);
       }
       if (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
-        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'MANUAL_STUDY_AND_ARCHIVE', 1);
+        const studyEvKey = n._justCompletedStudyId ? ('tech:' + n._justCompletedStudyId) : ('tick:' + W.t);
+        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'MANUAL_STUDY_AND_ARCHIVE', studyEvKey);
+        n._justCompletedStudyId = null;
       }
       if (g.ELEM && n.cult) {
         const t = (n.cult.learning && CULT.tech(n.cult.learning.id)) || (n.cult.techs.length && CULT.tech(n.cult.techs[n.cult.techs.length - 1]));
@@ -1258,6 +1268,13 @@
       const hm = (n._nd && n._nd.day === HC.nowDay) ? n._nd.hpMax : CULT.hpMax(n);
       if (n.h.state.hp >= hm * 0.95 && (!n.inj || !n.inj.length)) {
         W.log('heal', n.h.name.given + ' พักรักษาตัวที่หอหมอยาจนร่างกายและลมปราณฟื้นคืนสมบูรณ์', [n.id]);
+        if (Array.isArray(n.experienceTraits) && n.experienceTraits.length && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.resolveTraitRecovery) {
+          for (const tr of n.experienceTraits.slice()) {
+            if (tr && ['EXP_TRAIT_COMPANION_GUARDIAN', 'EXP_TRAIT_TRIBULATION_SURVIVOR'].includes(tr.id) && (W.day || 1) - (tr.grantedDay || 0) >= 14) {
+              CULT.EXPERIENCE_TRAITS.resolveTraitRecovery(W, n, tr.id, 'พักฟื้นบำบัดร่างกายและเส้นลมปราณสมบูรณ์');
+            }
+          }
+        }
       }
     },
     inside: true
@@ -1934,6 +1951,18 @@
       n.why = why;
       return true;
     }
+    // The hunger interruption above must lead to a meal when one is
+    // available. Otherwise the weighted choice can restart healing, which is
+    // interrupted again five ticks later while the disciple keeps starving.
+    if (n.h.state.satiety < 24 && !(n.cool && n.cool.eat > W.t) && ECO.count(W, 'meal') > 0) {
+      const where = A.eat.where(W, n);
+      const why = [['หิวจัด ต้องรับประทานอาหารก่อน', 3]];
+      if (where && AI.begin(W, n, 'eat', where, why)) {
+        n.why = why;
+        if (g.COG) g.COG.chosen(W, n, 'eat', why);
+        return true;
+      }
+    }
     if (g.COG) g.COG.prepare(W, n);
     const cands = [];
     const rec = n.recent, recLen = rec ? rec.length : 0, lastRec = recLen ? rec[recLen - 1] : null;
@@ -2068,7 +2097,7 @@
     if (id !== 'sleep' && id !== 'heal') { const hm = nr.hpMax; if (s.hp < hm && s.satiety > 15) s.hp = Math.min(hm, s.hp + hm * nr.recK); }
     if (s.hp <= 0 && !n.dead) { AI.kill(W, n, n.lastHurtBy ? 'บาดเจ็บสาหัส' : 'อาการทรุด'); }
     // ปราณฟื้น
-    if (n.cult && id !== 'cultivate' && s.qi < nr.qiMax) s.qi = Math.min(nr.qiMax, s.qi + ((n.buffs && n.buffs.length && g.STATS && g.STATS.hasBuff && g.STATS.hasBuff(n, 'qiConduit', W.t)) ? 0.22 : 0.12));
+    if (n.cult && (!CULT.isZeroQiSamurai || !CULT.isZeroQiSamurai(n)) && id !== 'cultivate' && s.qi < nr.qiMax) s.qi = Math.min(nr.qiMax, s.qi + ((n.buffs && n.buffs.length && g.STATS && g.STATS.hasBuff && g.STATS.hasBuff(n, 'qiConduit', W.t)) ? 0.22 : 0.12));
     if (n.foodBuff && g.FISHING) g.FISHING.tickFoodBuff(W, n);
   };
 

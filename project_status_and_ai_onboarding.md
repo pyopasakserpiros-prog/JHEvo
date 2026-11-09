@@ -2,7 +2,7 @@
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)  
 **ยุคและภาคปัจจุบัน**: **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
-**เวอร์ชันแพ็กเกจ**: **`JS2-v2.4.0`** (runtime patch identifier `2.4.0` | SIM Version `1.10.11` | Save Schema `2.4.0-tactical-composable-grand-dao` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.4.0 Complete 100% (140/140 Tests Pass)` | Active Target: `JS2-v2.5.0`)  
+**เวอร์ชันแพ็กเกจ**: **`JS2-v2.4.0`** (runtime patch identifier `2.4.0` | SIM Version `1.10.11` | Save Schema `2.4.0-tactical-composable-grand-dao` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.4.0 Release Ready — แก้ไขบั๊กครบ 100% ผ่านชุดทดสอบ 141/141 กลุ่ม` | Active Target: `JS2-v2.5.0`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  
@@ -13,10 +13,12 @@
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
 > เอกสารนี้คือ **สรุประบบปัจจุบันสำหรับตอบคำถามภาพรวม** ให้อ่านก่อนตอบว่าเกมมีอะไรหรือเสนอแนวทางพัฒนาต่อ เพื่อหลีกเลี่ยงการเสนอระบบที่มีอยู่แล้ว เมื่อจะลงมือแก้ไขหรือต้องการยืนยันรายละเอียดที่แน่นอน ให้ตรวจซอร์สและชุดทดสอบที่เกี่ยวข้องด้วย
 
+> **อัปเดตการตรวจและแก้บั๊ก v2.4.0 (Release Ready — 9 พฤศจิกายน 2026):** ดำเนินการแก้ไขบั๊กทั้งหมดจากรายงาน QA ทั้ง 7 ฉบับ + รายงาน Save/Load & Combat ชุดใหม่ + รายงานตรวจบั๊กเชิงตรรกะ และบั๊กที่ตรวจพบเพิ่มเองครบ 100% ผ่านชุดทดสอบรวม **141/141 กลุ่ม (100% PASS)** และสคริปต์จำลองบั๊ก QA ทั้ง 6 ชุด (0 บั๊กหลงเหลือ) ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md)
+
 > **สถานะปัจจุบันของแพตช์ JS2-v2.4.0 และผลการตรวจรับรอง (8 พฤศจิกายน 2026):**
 > 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
-> 3. ชุดทดสอบรวมผ่านครบ **140/140 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,177 ไอเทม, 1,402 ตำรับ
+> 3. ชุดทดสอบรวมผ่านครบ **141/141 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,177 ไอเทม, 1,402 ตำรับ
 > 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Grand Dao Ecosystem Synergy, Sect Dynasty Chronicles & World Event Depth Release)
 > 5. **📑 รายงานการพัฒนาแพตช์ล่าสุด:** [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (Release (1) ฉบับสมบูรณ์หลังแก้บั๊ก) และ [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (Initial Release) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 

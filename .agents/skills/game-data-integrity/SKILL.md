@@ -298,3 +298,8 @@ node test/resonance_tactics_assembly_suite.js
 ## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
 - **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
 - **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.
+
+
+## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
+
+resolver ปฏิกิริยาธาตุที่ระบุชื่อต้องพบ spec และธาตุที่จำเป็นจริง; ห้ามตีความ schema pass ว่า reaction/opcode ทั้ง catalog ทำงาน ตรวจรหัสที่ยังขาดในรายงาน audit ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ

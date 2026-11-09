@@ -1290,7 +1290,7 @@
     else if (a === 'interact-wandering-figure') {
       const [figId, actType] = String(arg || '').split('|');
       if (actType === 'DUEL' && UI.audio) UI.audio.playBladeClash();
-      const res = (EXPED && EXPED.interactWanderingFigure) ? EXPED.interactWanderingFigure(W, figId, actType || 'INTERACT', { free: true }) : { ok: false };
+      const res = (EXPED && EXPED.interactWanderingFigure) ? EXPED.interactWanderingFigure(W, figId, actType || 'INTERACT', {}) : { ok: false };
       UI.toast(res && res.ok && res.chronicle ? (res.chronicle.titleTh) : ('ไม่สามารถดำเนินการได้: ' + (res && res.reason ? res.reason : '')));
       UI.render();
       UI.updateHud(true);
@@ -2948,7 +2948,8 @@
       UI.render();
     }
     else if (a === 'harvest-resource-nodes') {
-      const res = (EXPED && EXPED.harvestResourceNodes) ? EXPED.harvestResourceNodes(W, { seasonal: true, includeMats: true }) : { ok: false, totalStones: 0 };
+      const isSeasonalDay = (W.day || 0) > 0 && (W.day % 90 === 0);
+      const res = (EXPED && EXPED.harvestResourceNodes) ? EXPED.harvestResourceNodes(W, { seasonal: isSeasonalDay, includeMats: true }) : { ok: false, totalStones: 0 };
       UI.toast(res.ok && res.totalStones > 0 ? ('💎 เก็บเกี่ยวผลผลิตจุดยุทธศาสตร์ได้ +' + res.totalStones + ' ศิลาวิญญาณ!') : 'ยังไม่มีจุดยุทธศาสตร์ที่ยึดครอง');
       UI.render();
       UI.updateHud(true);
@@ -5514,7 +5515,7 @@
       if (node.signatureTechNameTh) h += '<div class="atlas-fact">วิชาประจำตัว: ' + esc(node.signatureTechNameTh) + '</div>';
       h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">';
       if (node.archetypeId === 'SWORD_SEEKER') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|DUEL">⚔️ ท้าประลองยุทธ์</button>';
-      if (node.archetypeId === 'HERMIT_DOCTOR') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|HEAL_DISCIPLE">⚕️ ขอรับการรักษา</button>';
+      if (node.archetypeId === 'HERMIT_DOCTOR') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|HEAL_DISCIPLE">⚕️ ขอรับการรักษา (120 ศิลา)</button>';
       if (node.archetypeId === 'UNORTHODOX_BANDIT') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|BEFRIEND">🍶 ร่วมดื่มสุราผูกมิตร</button><button class="btn dan" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|SUPPRESS">⚔️ ปราบปราม</button>';
       if (node.archetypeId === 'ROGUE_ARRAYIST') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|REVEAL_SECRET_REALM">🧭 ถามพิกัดแดนลับ</button>';
       h += '<button class="btn ok" data-do="recruit-wandering-figure" data-arg="' + esc(node.figureId) + '">🤝 ชักชวนเข้าสำนัก</button></div>';
@@ -5955,7 +5956,7 @@
             '<div class="muted" style="font-size:11px;margin-top:2px">' + esc(wf.descTh || '') + '</div></div>' +
             '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
             (wf.archetypeId === 'SWORD_SEEKER' ? '<button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="interact-wandering-figure" data-arg="' + esc(wf.id) + '|DUEL">⚔️ ท้าประลองยุทธ์</button>' : '') +
-            (wf.archetypeId === 'HERMIT_DOCTOR' ? '<button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="interact-wandering-figure" data-arg="' + esc(wf.id) + '|HEAL_DISCIPLE">⚕️ ขอรับการรักษา/โอสถ</button>' : '') +
+            (wf.archetypeId === 'HERMIT_DOCTOR' ? '<button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="interact-wandering-figure" data-arg="' + esc(wf.id) + '|HEAL_DISCIPLE">⚕️ ขอรับการรักษา/โอสถ (120 ศิลา)</button>' : '') +
             (wf.archetypeId === 'UNORTHODOX_BANDIT' ? '<button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="interact-wandering-figure" data-arg="' + esc(wf.id) + '|BEFRIEND">🍶 ร่วมดื่มสุราผูกมิตร</button><button class="btn dan" style="padding:2px 7px;font-size:11px" data-do="interact-wandering-figure" data-arg="' + esc(wf.id) + '|SUPPRESS">⚔️ ปราบปราม</button>' : '') +
             (wf.archetypeId === 'ROGUE_ARRAYIST' ? '<button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="interact-wandering-figure" data-arg="' + esc(wf.id) + '|REVEAL_SECRET_REALM">🧭 ถามพิกัดแดนลับ</button>' : '') +
             '<button class="btn ok" style="padding:2px 7px;font-size:11px" data-do="recruit-wandering-figure" data-arg="' + esc(wf.id) + '">🤝 ชักชวนเข้าสำนัก</button>' +
@@ -6569,7 +6570,7 @@
         spawned: !!eq.playerSpawned,
         descTh: "ช่อง " + (eq.slot || "-") + " · " + gearEffectSummaryTh(eq),
         moreTh: "คุณภาพ: " + Math.round(qVal * 100) + "% · ขั้นขั้นต่ำ: " + (eq.minStage || 1) + (eq.compatiblePath ? " · วิถี: " + eq.compatiblePath : "") + (eq.literarySource ? " · ที่มา: " + eq.literarySource : ""),
-        canEquip: true,
+        canEquip: !(eq.retired || eq.broken || (eq.procedural && eq.dur != null && eq.dur <= 0)),
         canDonate: true
       });
     });
@@ -8366,19 +8367,43 @@
     else if (a === 'raid') { if (W.threat.raid) UI.toast('กำลังมีศัตรูบุกอยู่'); else { EXPED.spawnRaid(W, 'bandit'); UI.close(); } }
     else if (a === 'beast') { if (W.threat.raid) UI.toast('กำลังมีศัตรูบุกอยู่'); else { EXPED.spawnRaid(W, 'beast'); UI.close(); } }
     else if (a === 'recruit') { const n = EXPED.recruitApplicants(W); UI.toast(n ? 'มีผู้สมัครใหม่ ' + n + ' คน' : 'หอพักเต็มหรือคิวเต็ม ไม่มีผู้สมัครใหม่'); }
-    else if (a === 'banquet') { S.cd.banquet = 0; SECT.banquet(W, m); }
-    else if (a === 'tourney') { if (!S.tournament) SECT.tournament(W, m); }
-    else if (a === 'challenge') { const c = W.npcs.filter(n => !n.dead && !n.away && n.rank >= 3 && n.id !== m.id).sort((a, b) => CULT.power(b) - CULT.power(a))[0]; if (c) { W.duelQueue.push({ a: c.id, b: m.id, kind: 'leadership', serious: false }); W.log('challenge', c.h.name.given + ' ท้าชิงตำแหน่งเจ้าสำนักจาก ' + m.h.name.given + ' !', [c.id, m.id]); UI.close(); } }
+    else if (a === 'banquet') { if (!m) { UI.toast('ยังไม่มีเจ้าสำนัก'); return; } S.cd.banquet = 0; SECT.banquet(W, m); }
+    else if (a === 'tourney') { if (!m) { UI.toast('ยังไม่มีเจ้าสำนัก'); return; } if (!S.tournament) SECT.tournament(W, m); }
+    else if (a === 'challenge') { if (!m || m.dead) { UI.toast('ยังไม่มีเจ้าสำนักให้ท้าชิง'); return; } const c = W.npcs.filter(n => !n.dead && !n.away && n.rank >= 3 && n.id !== m.id).sort((a, b) => CULT.power(b) - CULT.power(a))[0]; if (c) { W.duelQueue.push({ a: c.id, b: m.id, kind: 'leadership', serious: false }); W.log('challenge', c.h.name.given + ' ท้าชิงตำแหน่งเจ้าสำนักจาก ' + m.h.name.given + ' !', [c.id, m.id]); UI.close(); } }
     else if (a === 'heal') { W.npcs.forEach(n => { if (!n.dead) { n.h.state.hp = CULT.hpMax(n); n.inj = []; } }); UI.toast('รักษาทุกคนแล้ว'); }
   };
 
   /* ---------- บันทึก/โหลด ---------- */
   UI.slotInfo = () => { const out = {}; [1, 2, 3].forEach(i => { try { const m = localStorage.getItem('jhs_meta_' + i); if (m) out[i] = JSON.parse(m); } catch (e) { } }); return out; };
   UI.saveSlot = i => {
-    try { UI.G.W.runtimeTiming = { pendingTicks: UI.G.acc || 0, speed: UI.G.speed }; UI.G.W.speed = UI.G.speed; const s = SIM.serialize(UI.G.W); localStorage.setItem('jhs_slot_' + i, s); const W = UI.G.W; localStorage.setItem('jhs_meta_' + i, JSON.stringify({ text: SIM.dateText(W.t) + ' · ' + W.npcs.filter(n => !n.dead).length + ' คน · ' + Math.round(s.length / 1024) + ' KB' })); UI.toast('บันทึกลงช่อง ' + i + ' แล้ว'); UI.render(); }
-    catch (e) { UI.toast('บันทึกไม่สำเร็จ (พื้นที่เก็บเต็ม?) ลองส่งออกเป็นไฟล์แทน'); }
+    const slotKey = 'jhs_slot_' + i, metaKey = 'jhs_meta_' + i;
+    let prevSlot = null, prevMeta = null, slotWritten = false, metaWritten = false;
+    try {
+      prevSlot = localStorage.getItem(slotKey);
+      prevMeta = localStorage.getItem(metaKey);
+      UI.G.W.runtimeTiming = { pendingTicks: UI.G.acc || 0, speed: UI.G.speed };
+      UI.G.W.speed = UI.G.speed;
+      const W = UI.G.W, s = SIM.serialize(W);
+      const metaStr = JSON.stringify({ text: SIM.dateText(W.t) + ' · ' + W.npcs.filter(n => !n.dead).length + ' คน · ' + Math.round(s.length / 1024) + ' KB' });
+      localStorage.setItem(metaKey, metaStr); metaWritten = true;
+      localStorage.setItem(slotKey, s); slotWritten = true;
+      UI.toast('บันทึกลงช่อง ' + i + ' แล้ว');
+      UI.render();
+    } catch (e) {
+      try {
+        if (metaWritten) {
+          if (prevMeta != null) localStorage.setItem(metaKey, prevMeta);
+          else if (typeof localStorage.removeItem === 'function') localStorage.removeItem(metaKey);
+        }
+        if (slotWritten) {
+          if (prevSlot != null) localStorage.setItem(slotKey, prevSlot);
+          else if (typeof localStorage.removeItem === 'function') localStorage.removeItem(slotKey);
+        }
+      } catch (_) {}
+      UI.toast('บันทึกไม่สำเร็จ (พื้นที่เก็บเต็ม?) ลองส่งออกเป็นไฟล์แทน');
+    }
   };
-  UI.loadSlot = i => { try { const s = localStorage.getItem('jhs_slot_' + i); if (!s) return; UI.G.load(s); UI.close(); UI.toast('โหลดช่อง ' + i + ' แล้ว'); } catch (e) { UI.toast('โหลดไม่สำเร็จ: ' + e.message); } };
+  UI.loadSlot = i => { try { const s = localStorage.getItem('jhs_slot_' + i); if (!s) return; UI.G.load(s); if ($('start')) $('start').classList.add('hidden'); UI.close(); UI.toast('โหลดช่อง ' + i + ' แล้ว'); } catch (e) { UI.toast('โหลดไม่สำเร็จ: ' + e.message); } };
   UI.exportFile = () => { UI.G.W.runtimeTiming = { pendingTicks: UI.G.acc || 0, speed: UI.G.speed }; UI.G.W.speed = UI.G.speed; const s = SIM.serialize(UI.G.W); const blob = new Blob([s], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'jianghu_sect_' + UI.G.W.seed + '_y' + SIM.calendar(UI.G.W.t).year + '.json'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); UI.toast('ส่งออกไฟล์แล้ว'); };
 
   /* ---------- หน้าเริ่มเกม ---------- */
@@ -8417,7 +8442,7 @@
     st.querySelectorAll('[data-pick-arch]').forEach(b => b.onclick = () => { UI.selectedArchetype = b.dataset.pickArch; UI.showStart(seed); });
     st.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { st.classList.add('hidden'); UI.G.newGame(seed, +b.dataset.pick, UI.selectedArchetype || 'sword'); });
     if ($('stAuto')) $('stAuto').onclick = () => { try { UI.G.load(localStorage.getItem('jhs_auto')); st.classList.add('hidden'); } catch (e) { UI.toast('โหลดออโตเซฟไม่ได้: ' + e.message); } };
-    $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { st.classList.add('hidden'); UI.open('menu'); };
+    $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { if (UI.G && UI.G.W) st.classList.add('hidden'); UI.open('menu'); };
     st.scrollTop = 0;
   };
   function hasAuto() { try { return !!localStorage.getItem('jhs_auto'); } catch (e) { return false; } }
@@ -8426,7 +8451,17 @@
   UI.init = G => {
     UI.G = G; UI.buildHud();
     const f = document.createElement('input'); f.type = 'file'; f.id = 'impFile'; f.accept = '.json,application/json'; f.style.display = 'none'; document.body.appendChild(f);
-    f.onchange = () => { const file = f.files[0]; if (!file) return; const r = new FileReader(); r.onload = () => { try { G.load(r.result); $('start').classList.add('hidden'); UI.close(); UI.toast('นำเข้าไฟล์สำเร็จ'); } catch (e) { UI.toast('ไฟล์ไม่ถูกต้อง: ' + e.message); } }; r.readAsText(file); f.value = ''; };
+    f.onchange = () => {
+      const file = f.files[0]; if (!file) return;
+      const r = new FileReader();
+      r.onerror = r.onabort = () => { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้'); if (!G.W && $('start')) $('start').classList.remove('hidden'); };
+      r.onload = () => {
+        try { G.load(r.result); if ($('start')) $('start').classList.add('hidden'); UI.close(); UI.toast('นำเข้าไฟล์สำเร็จ'); }
+        catch (e) { UI.toast('ไฟล์ไม่ถูกต้อง: ' + e.message); if (!G.W && $('start')) $('start').classList.remove('hidden'); }
+      };
+      try { r.readAsText(file); } catch (e) { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้: ' + e.message); }
+      f.value = '';
+    };
   };
   g.UI = UI;
   if (typeof module === "object" && module.exports) module.exports = UI;
