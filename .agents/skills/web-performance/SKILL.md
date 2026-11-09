@@ -116,3 +116,13 @@ node test/inventory_grid_ui_suite.js
 - Main scene scale 60–84 px; the local art envelope reserves 136 px and viewport admission padding is 176 px. Recipient links are separate and use real snapshots; no victim coordinates are invented for equipment. Bloom is small (3–4 px), omitted on Low/Reduced Motion, never screen-wide. Reduced Motion also fixes passive-crown phase.
 - Development Chromium 24-scene Canvas-only stress at 412×860 passed; timings vary with load and are recorded in `PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md`. This does not establish physical Android FPS or a whole-frame mobile budget.
 - Verify `legendary_apex_suite`, `legendary_apex_browser`, existing Legendary identity/browser tests and mobile performance. Full-scene caps are shared across skill + equipment events, not one separate cap for each.
+
+
+## Ordinary T7 visuals / next frontier T6 (JS2-v2.6.0 refinement)
+- `SK.T7_VFX_CATALOG` explicitly reviews all 71 runtime ordinary T7 records; `resolveT7Vfx` requires exact T7 and excludes named-Legendary/named-fx overrides. Prior Signature table/resolver stays unchanged. Some ordinary T7 records have Legendary grade / `LEG_` prefixes but `legendary:false`; do not classify by name alone.
+- Renderer-only `t7Vfx` routes `drawT7SkillVfx`: 50–56 px / 1,450 ms, 24 thematic frames retaining old per-move cores, local role-aware release, no Legendary apparition/bloom. Three full forms normally / one Low or with a full Legendary scene; one per owner, compact cores for the rest; total queue 24.
+- `drawT7EquipmentAura` / `drawT7EquipmentGlyph`: 85 existing T7 templates, 25 current types; actual equipped usable non-Legendary records only, at most three small owner accents. Broken T7 does not regain the old generic ring. No proc metadata is fabricated.
+- `NONLEGENDARY_VFX_BUDGET[7].planned` is now false. T4–T6 remain planned. Tests: `t7_skill_vfx_suite` (71 authored producers, 157 child metadata routes, targets/purity/caps/usability) and `t7_skill_vfx_browser` (all modes, 25 types, stress).
+- Exact IDs/roles/prior cores: `docs/audits/T7_VISUAL_ASSIGNMENT_REGISTRY.md`. Next requested visual patch: `docs/handovers/NEXT_T6_VISUAL_PATCH.md`; do not restart T7/Legendary or the completed chronicle feature.
+
+T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7/kind through 55% of its current lifetime so fast simulation reaches release. The held record keeps its original actual target snapshot; different techniques, explicit overrides and Legendary casts bypass the hold. Only renderer timing is affected. Covered by `t7_skill_vfx_suite`.

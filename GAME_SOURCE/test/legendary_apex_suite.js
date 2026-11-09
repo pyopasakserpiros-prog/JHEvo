@@ -5,7 +5,7 @@ function recorder(){let depth=0;const ops=[];const ctx=new Proxy({globalAlpha:1}
 function view(W){return Object.assign({W,t:.4,opts:{quality:'high'},cam:{x:120*16,y:70*16,z:1},vw:1000,vh:700,castClock:0,castLastTime:null,castSeen:new Map(),castActive:new Map(),npcPos:n=>n},R.methods);}
 assert.equal(Object.keys(R.LEGENDARY_SCENES).length,47);assert.equal(Object.keys(R.LEGENDARY_RELIC_SCENES).length,27);
 assert.equal(Object.keys(SK.COMMON_VFX_CATALOG).length,30);assert.equal(Object.keys(SK.T3_VFX_CATALOG).length,24);assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);
-assert(SK.NONLEGENDARY_VFX_BUDGET[7].planned);assert(SK.NONLEGENDARY_VFX_BUDGET[7].rMax<R.LEGENDARY_APEX_BUDGET.radiusMin);
+assert.equal(SK.NONLEGENDARY_VFX_BUDGET[7].planned,false);assert(SK.NONLEGENDARY_VFX_BUDGET[7].rMax<R.LEGENDARY_APEX_BUDGET.radiusMin);
 const W=SIM.create('legendary-apex'),r=view(W),phases=[.08,.34,.56,.9];
 for(const quality of ['high','low'])for(const reduced of [false,true]){
  r.opts.quality=quality;

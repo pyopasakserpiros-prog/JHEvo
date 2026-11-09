@@ -2687,7 +2687,7 @@
       "rMin": 50,
       "rMax": 56,
       "marks": 12,
-      "planned": true
+      "planned": false
     }
   };
 
@@ -2870,6 +2870,443 @@
     const move = (tech.moveDefs || []).find(m => m.id === moveId);
     if (move && (move.signatureVfx || move.fxKind || move.legendary || move.arch === 'forbid')) return null;
     return SK.TECH_TO_T3_VFX[id] || null;
+  };
+
+  // Reviewed T7 IDs, not an automatic route for future/unreviewed content.
+  SK.T7_VFX_CATALOG = {
+    "ART190_XIAN_040": {
+      "family": "myriad_blades",
+      "variant": 1,
+      "oldSignature": "sig_meteor_sword_rain",
+      "nameTh": "เพลงกระบี่เพลิงเมฆาผลาญศึก"
+    },
+    "ART190_XIAN_075": {
+      "family": "myriad_blades",
+      "variant": 2,
+      "oldSignature": "sig_blood_lotus_apocalypse",
+      "nameTh": "วิชาต้องห้าม • สังเวยอายุขัยเปิดเนตรดารามรณะ"
+    },
+    "ART190_XIAN_078": {
+      "family": "myriad_blades",
+      "variant": 3,
+      "oldSignature": "sig_meteor_sword_rain",
+      "nameTh": "วิชาต้องห้าม • ย้อนชีพจรฝืนทะลวงพันธนาการ"
+    },
+    "ART190_BODY_040": {
+      "family": "body_breaker",
+      "variant": 4,
+      "oldSignature": "sig_eight_directions_palm",
+      "nameTh": "หมัดบรรพกาลแยกแผ่นดิน"
+    },
+    "ART190_BODY_075": {
+      "family": "beast_totem",
+      "variant": 5,
+      "oldSignature": "sig_blood_lotus_apocalypse",
+      "nameTh": "วิชาต้องห้าม • กลืนกินแก่นอสูรสดกลางศึก"
+    },
+    "ART190_BODY_078": {
+      "family": "blood_furnace",
+      "variant": 6,
+      "oldSignature": "sig_blood_beast_claw",
+      "nameTh": "วิชาต้องห้าม • สูบเลือดศัตรูหล่อเลี้ยงกายา"
+    },
+    "ART190_GOD_040": {
+      "family": "celestial_edict",
+      "variant": 7,
+      "oldSignature": "sig_pantheon_deity_descent",
+      "nameTh": "มหาเวทอาณาจักรเทพจุติกลางศึก"
+    },
+    "ART190_GOD_075": {
+      "family": "beast_totem",
+      "variant": 8,
+      "oldSignature": "sig_soul_scorching_flame",
+      "nameTh": "วิชาต้องห้าม • บังคับวิญญาณอสูรสังเวยศึก"
+    },
+    "ART190_GOD_078": {
+      "family": "celestial_edict",
+      "variant": 9,
+      "oldSignature": "sig_nine_suns_eye",
+      "nameTh": "วิชาต้องห้าม • ลวงจิตสาวกมารสูบพลังชีวิต"
+    },
+    "ART_V112_DEMON_HEAVEN_DEVOURING_CANON_T7": {
+      "family": "blood_furnace",
+      "variant": 10,
+      "oldSignature": "sig_blood_lotus_apocalypse",
+      "nameTh": "มหาเทวคัมภีร์มารกลืนสวรรค์ทลายสามภพ"
+    },
+    "ART_V112_SOUL_FORMLESS_MIND_SWORD_T7": {
+      "family": "void_blade",
+      "variant": 11,
+      "oldSignature": "sig_void_spatial_slash",
+      "nameTh": "มหาเทวคัมภีร์กระบี่จิตไร้รูปสะบั้นวิญญาณ"
+    },
+    "MP_SPEAR_SOVEREIGN_SKY_SPLIT_T7": {
+      "family": "sky_spear",
+      "variant": 12,
+      "oldSignature": null,
+      "nameTh": "มหาคัมภีร์ทวนราชันย์แหวกสวรรค์"
+    },
+    "MP_SPEAR_PRIMORDIAL_VOID_T7": {
+      "family": "sky_spear",
+      "variant": 13,
+      "oldSignature": "sig_void_spatial_slash",
+      "nameTh": "มหาคัมภีร์ทวนจิตสุญตาบรรพกาล"
+    },
+    "MP_STAFF_WORLD_BREAKER_T7": {
+      "family": "earth_staff",
+      "variant": 14,
+      "oldSignature": null,
+      "nameTh": "มหาคัมภีร์พลองบรรพกาลทลายพิภพ"
+    },
+    "MP_STAFF_EARTH_GOD_BLESSING_T7": {
+      "family": "earth_staff",
+      "variant": 15,
+      "oldSignature": "sig_shennong_emerald_lotus",
+      "nameTh": "มหาเวทคฑาเทพปฐพีชุบชีวิตหมื่นพฤกษา"
+    },
+    "MP_BOW_NINE_SUNS_FALL_T7": {
+      "family": "sun_arrow",
+      "variant": 16,
+      "oldSignature": "sig_nine_suns_eye",
+      "nameTh": "มหาคัมภีร์ศรราชันย์ยิงดับเก้าตะวัน"
+    },
+    "MP_BOW_SUN_GOD_VERDICT_T7": {
+      "family": "sun_arrow",
+      "variant": 17,
+      "oldSignature": "sig_nine_suns_eye",
+      "nameTh": "มหาเทวคัมภีร์ศรสุริยเทพพิพากษาสามภพ"
+    },
+    "MP_BOW_ASTRAL_GALAXY_T7": {
+      "family": "galaxy_arrow",
+      "variant": 18,
+      "oldSignature": "sig_meteor_sword_rain",
+      "nameTh": "มหาคัมภีร์ศรทางช้างเผือกทะลวงจักรวาล"
+    },
+    "MP_BLADE_SOVEREIGN_HEAVEN_REND_T7": {
+      "family": "myriad_blades",
+      "variant": 19,
+      "oldSignature": null,
+      "nameTh": "มหาคัมภีร์จอมดาบผ่าสวรรค์ไร้พ่าย"
+    },
+    "MP_BLADE_HEART_SOUL_SEVER_T7": {
+      "family": "void_blade",
+      "variant": 20,
+      "oldSignature": "sig_void_spatial_slash",
+      "nameTh": "มหาคัมภีร์ดาบจิตตัดขาดวัฏสงสาร"
+    },
+    "MP_BLADE_FORBIDDEN_DEMON_EDGE_T7": {
+      "family": "beast_totem",
+      "variant": 21,
+      "oldSignature": "sig_blood_beast_claw",
+      "nameTh": "วิชาต้องห้าม • ดาบโลหิตอสูรกลืนอายุขัย"
+    },
+    "MP_FOCUS_PRIMORDIAL_BRUSH_T7": {
+      "family": "rune_brush",
+      "variant": 22,
+      "oldSignature": "sig_heaven_brush_astrolabe",
+      "nameTh": "มหาคัมภีร์พู่กันไร้ลักษณ์จารึกกฎเกณฑ์"
+    },
+    "MP_FOCUS_DREAM_TAPESTRY_T7": {
+      "family": "rune_brush",
+      "variant": 23,
+      "oldSignature": "sig_heaven_brush_astrolabe",
+      "nameTh": "มหาคัมภีร์พู่กันทอฝันสร้างโลกมายา"
+    },
+    "MP_SWORD_MYRIAD_RETURN_ONE_T7": {
+      "family": "myriad_blades",
+      "variant": 24,
+      "oldSignature": "sig_meteor_sword_rain",
+      "nameTh": "มหาคัมภีร์หมื่นกระบี่คืนสู่ความเรียบง่าย"
+    },
+    "MP_FIST_MORTAL_GOD_SHATTER_T7": {
+      "family": "body_breaker",
+      "variant": 25,
+      "oldSignature": "sig_eight_directions_palm",
+      "nameTh": "มหาคัมภีร์หมัดกายาเนื้อหนังทลายสวรรค์"
+    },
+    "ART_V212_SAGE_APEX_T7": {
+      "family": "vital_garden",
+      "variant": 26,
+      "oldSignature": "sig_shennong_emerald_lotus",
+      "nameTh": "มหาคัมภีร์อมตะเสินหนงชุบชีวาเก้าสวรรค์"
+    },
+    "ART_CRAFT_012": {
+      "family": "forge_lattice",
+      "variant": 27,
+      "oldSignature": "sig_divine_crucible_forge",
+      "nameTh": "มหาคัมภีร์รังสรรค์โอสถและศาสตราเทวะบรรพกาล"
+    },
+    "TECH_V215_ZITHER_ACT_08": {
+      "family": "zither_chords",
+      "variant": 28,
+      "oldSignature": "sig_heavens_sound_requiem",
+      "nameTh": "ทิพยสังคีตสวรรค์เก้าดารา"
+    },
+    "TECH_V215_BRUSH_ACT_08": {
+      "family": "rune_brush",
+      "variant": 29,
+      "oldSignature": "sig_heaven_brush_astrolabe",
+      "nameTh": "มหาพู่กันเทวะรังสรรค์หมื่นยันต์"
+    },
+    "TECH_V215_WHIP_ACT_08": {
+      "family": "fate_whip",
+      "variant": 30,
+      "oldSignature": "sig_taiji_yin_yang_crush",
+      "nameTh": "แส้เทวะสะบัดคว่ำแปดพิภพ"
+    },
+    "TECH_V234_XIAN_ACT_06": {
+      "family": "zither_chords",
+      "variant": 31,
+      "oldSignature": "sig_heavens_sound_requiem",
+      "nameTh": "เคล็ดวิชาพิณสวรรค์สุญตา (เซียนอมตะ)"
+    },
+    "TECH_V234_XIAN_ACT_12": {
+      "family": "cloud_thunder",
+      "variant": 32,
+      "oldSignature": "sig_imperial_eight_gates_banner",
+      "nameTh": "เคล็ดวิชาอัสนีม่วงไท่เสวียน (เซียนอมตะ)"
+    },
+    "TECH_V234_BODY_ACT_06": {
+      "family": "sky_spear",
+      "variant": 33,
+      "oldSignature": "sig_eight_directions_palm",
+      "nameTh": "เคล็ดวิชาทวนโลหิตผ่าปฐพี (หลอมกายา)"
+    },
+    "TECH_V234_BODY_ACT_12": {
+      "family": "forge_lattice",
+      "variant": 34,
+      "oldSignature": "sig_imperial_eight_gates_banner",
+      "nameTh": "เคล็ดวิชาชีพจรมังกรเหล็กไหล (หลอมกายา)"
+    },
+    "TECH_V234_GOD_ACT_06": {
+      "family": "celestial_edict",
+      "variant": 35,
+      "oldSignature": "sig_nine_suns_eye",
+      "nameTh": "เคล็ดวิชาโองการชะตาสวรรค์ (เทวานุภาพ)"
+    },
+    "TECH_V234_GOD_ACT_12": {
+      "family": "celestial_edict",
+      "variant": 36,
+      "oldSignature": "sig_imperial_eight_gates_banner",
+      "nameTh": "เคล็ดวิชาวิหารเทวานุภาพ (เทวานุภาพ)"
+    },
+    "TECH_V234_DEMON_ACT_06": {
+      "family": "fate_whip",
+      "variant": 37,
+      "oldSignature": "sig_nether_grave_soul_eruption",
+      "nameTh": "เคล็ดวิชาโซ่กระดูกยมโลก (วิถีมาร)"
+    },
+    "TECH_V234_DEMON_ACT_12": {
+      "family": "beast_totem",
+      "variant": 38,
+      "oldSignature": "sig_blood_lotus_apocalypse",
+      "nameTh": "เคล็ดวิชาค่ายกลหมื่นอสูรคลั่ง (วิถีมาร)"
+    },
+    "TECH_V234_HEART_SOUL_ACT_06": {
+      "family": "dream_loom",
+      "variant": 39,
+      "oldSignature": "sig_immortal_crane_feather_storm",
+      "nameTh": "เคล็ดวิชาม่านมายาความฝัน (จิตวิญญาณ)"
+    },
+    "TECH_V234_HEART_SOUL_ACT_12": {
+      "family": "rune_brush",
+      "variant": 40,
+      "oldSignature": "sig_imperial_eight_gates_banner",
+      "nameTh": "เคล็ดวิชาอักษรสวรรค์สะกดมาร (จิตวิญญาณ)"
+    },
+    "TECH_V234_MECH_PUPPET_ACT_06": {
+      "family": "puppet_lines",
+      "variant": 41,
+      "oldSignature": "sig_myriad_puppet_barrage",
+      "nameTh": "เคล็ดวิชากงล้อฟันเฟืองดารา (กลไกหุ่นเชิด)"
+    },
+    "TECH_V234_MECH_PUPPET_ACT_12": {
+      "family": "puppet_lines",
+      "variant": 42,
+      "oldSignature": "sig_myriad_puppet_barrage",
+      "nameTh": "เคล็ดวิชาค่ายกลจักรกลสังหาร (กลไกหุ่นเชิด)"
+    },
+    "TECH_V234_KARMA_SAMSARA_ACT_06": {
+      "family": "fate_whip",
+      "variant": 43,
+      "oldSignature": "sig_shennong_emerald_lotus",
+      "nameTh": "เคล็ดวิชาบัวขาวชำระวิบาก (วิบากวัฏสงสาร)"
+    },
+    "TECH_V234_KARMA_SAMSARA_ACT_12": {
+      "family": "celestial_edict",
+      "variant": 44,
+      "oldSignature": "sig_golden_buddha_bell",
+      "nameTh": "เคล็ดวิชาประกาศิตย้อนวิบาก (วิบากวัฏสงสาร)"
+    },
+    "TECH_V234_BEAST_SOVEREIGN_ACT_06": {
+      "family": "venom_hive",
+      "variant": 45,
+      "oldSignature": "sig_myriad_venom_miasma",
+      "nameTh": "เคล็ดวิชารังแมลงกู่หมื่นพิษ (ราชันอสูร)"
+    },
+    "TECH_V234_BEAST_SOVEREIGN_ACT_12": {
+      "family": "beast_totem",
+      "variant": 46,
+      "oldSignature": "sig_primordial_beast_totem",
+      "nameTh": "เคล็ดวิชาจิ้งจอกเก้าหางดารา (ราชันอสูร)"
+    },
+    "TECH_V234_SAGE_SUPPORT_ACT_06": {
+      "family": "vital_garden",
+      "variant": 47,
+      "oldSignature": "sig_shennong_emerald_lotus",
+      "nameTh": "เคล็ดวิชาน้ำอมฤตชุบวิญญาณ (ปราชญ์เมตตาหนุนนำ)"
+    },
+    "TECH_V234_SAGE_SUPPORT_ACT_12": {
+      "family": "rune_brush",
+      "variant": 48,
+      "oldSignature": "sig_heaven_brush_astrolabe",
+      "nameTh": "เคล็ดวิชาพู่กันประทานพร (ปราชญ์เมตตาหนุนนำ)"
+    },
+    "TECH_V234_CRAFT_CREATION_ACT_06": {
+      "family": "rune_brush",
+      "variant": 49,
+      "oldSignature": "sig_divine_crucible_forge",
+      "nameTh": "เคล็ดวิชาอักขระสลักคมกระบี่ (วิถีสรรค์สร้าง)"
+    },
+    "TECH_V234_CRAFT_CREATION_ACT_12": {
+      "family": "vital_garden",
+      "variant": 50,
+      "oldSignature": "sig_shennong_emerald_lotus",
+      "nameTh": "เคล็ดวิชาเข็มกลั่นแก่นสมุนไพร (วิถีสรรค์สร้าง)"
+    },
+    "TECH_V234_ARRAY_TALISMAN_ACT_06": {
+      "family": "cloud_thunder",
+      "variant": 51,
+      "oldSignature": "sig_thunder_god_halberd",
+      "nameTh": "เคล็ดวิชาอสนีฟ้าทัณฑ์เรียกสายฟ้า (ค่ายกลและยันต์อาคม)"
+    },
+    "TECH_V234_ARRAY_TALISMAN_ACT_12": {
+      "family": "rune_brush",
+      "variant": 52,
+      "oldSignature": "sig_taiji_yin_yang_crush",
+      "nameTh": "เคล็ดวิชาประตูกลฉีเหมินตุ้นเจี่ย (ค่ายกลและยันต์อาคม)"
+    },
+    "TECH_V234_STRATEGY_GOVERNANCE_ACT_06": {
+      "family": "celestial_edict",
+      "variant": 53,
+      "oldSignature": "sig_imperial_eight_gates_banner",
+      "nameTh": "เคล็ดวิชาสาส์นพันธมิตรเจ็ดแคว้น (พิชัยสงครามและรัฐกิจ)"
+    },
+    "TECH_V234_STRATEGY_GOVERNANCE_ACT_12": {
+      "family": "celestial_edict",
+      "variant": 54,
+      "oldSignature": "sig_imperial_eight_gates_banner",
+      "nameTh": "เคล็ดวิชาประกาศิตเจ้าสำนัก (พิชัยสงครามและรัฐกิจ)"
+    },
+    "TECH_V200_ASTRO_DIVINATION_ACT_06": {
+      "family": "astral_ladle",
+      "variant": 55,
+      "oldSignature": "sig_heaven_brush_astrolabe",
+      "nameTh": "เคล็ดวิชาสายกระบวยดาราต่อชะตา (โหราดวงดาว)"
+    },
+    "TECH_V200_BUDDHA_DHARMA_ACT_06": {
+      "family": "vital_garden",
+      "variant": 56,
+      "oldSignature": "sig_golden_buddha_bell",
+      "nameTh": "เคล็ดวิชาสายธุดงค์เพลิงกัลป์เผาวิบาก (พุทธธรรม)"
+    },
+    "TECH_V200_VOID_SPACE_ACT_06": {
+      "family": "void_blade",
+      "variant": 57,
+      "oldSignature": "sig_void_spatial_slash",
+      "nameTh": "เคล็ดวิชาสายกำแพงกระจกมิติสะท้อน (สุญญตามิติ)"
+    },
+    "TECH_V200_SONIC_HARMONY_ACT_06": {
+      "family": "zither_chords",
+      "variant": 58,
+      "oldSignature": "sig_heavens_sound_requiem",
+      "nameTh": "เคล็ดวิชาสายวาทยกรสวรรค์ประสานคีตา (คีตายุทธ)"
+    },
+    "TECH_V200_VENOM_GU_ACT_06": {
+      "family": "venom_hive",
+      "variant": 59,
+      "oldSignature": "sig_myriad_venom_miasma",
+      "nameTh": "เคล็ดวิชาสายพิษสลับอมฤตช่วยชีวิต (พิษหนอนกู่)"
+    },
+    "TECH_V200_PRIMORDIAL_SHIFTER_ACT_06": {
+      "family": "beast_totem",
+      "variant": 60,
+      "oldSignature": "sig_primordial_beast_totem",
+      "nameTh": "เคล็ดวิชาสายจำแลงจิ้งจอกเก้าหางพันหน้า (แปลงกายบรรพกาล)"
+    },
+    "TECH_V200_CELESTIAL_WEATHER_ACT_06": {
+      "family": "cloud_thunder",
+      "variant": 61,
+      "oldSignature": "sig_nine_suns_eye",
+      "nameTh": "เคล็ดวิชาสายอัญเชิญแสงสุริยันกลางหาว (เทวอากาศ)"
+    },
+    "TECH_V200_WANDERING_DAO_ACT_06": {
+      "family": "galaxy_arrow",
+      "variant": 62,
+      "oldSignature": "sig_immortal_crane_feather_storm",
+      "nameTh": "เคล็ดวิชาสายนักเขียนแผนที่หมื่นพิภพ (จาริกพิภพ)"
+    },
+    "TECH_V200_MERCANTILE_DAO_ACT_06": {
+      "family": "gold_balance",
+      "variant": 63,
+      "oldSignature": "sig_golden_abacus_wheel",
+      "nameTh": "เคล็ดวิชาสายเสนาบดีคลังสมดุลทองคำ (พาณิชย์มรรคา)"
+    },
+    "TECH_V200_DRAGON_VEIN_GEOMANCY_ACT_06": {
+      "family": "earth_veins",
+      "variant": 64,
+      "oldSignature": "sig_tidal_maelstrom_anchors",
+      "nameTh": "เคล็ดวิชาสายผู้พิทักษ์ยอดเขาศักดิ์สิทธิ์ (มังกรธรณี)"
+    },
+    "TECH_V200_GRAVITY_DAO_ACT_06": {
+      "family": "gravity_bands",
+      "variant": 65,
+      "oldSignature": "sig_taiji_yin_yang_crush",
+      "nameTh": "เคล็ดวิชาสายแรงดึงดูดพันธนาการคู่ศึก (แรงโน้มถ่วง)"
+    },
+    "TECH_V200_CHRONO_EPOCH_ACT_06": {
+      "family": "epoch_glass",
+      "variant": 66,
+      "oldSignature": "sig_heaven_brush_astrolabe",
+      "nameTh": "เคล็ดวิชาสายกระจกส่องอดีตและอนาคต (กาลเวลา)"
+    },
+    "TECH_V200_INK_LITERATI_ACT_06": {
+      "family": "rune_brush",
+      "variant": 67,
+      "oldSignature": "sig_heaven_brush_astrolabe",
+      "nameTh": "เคล็ดวิชาสายอาลักษณ์จารึกพงศาวดารฟ้า (อักษรปราชญ์)"
+    },
+    "TECH_V200_SOUL_PUPPETRY_ACT_06": {
+      "family": "puppet_lines",
+      "variant": 68,
+      "oldSignature": "sig_myriad_puppet_barrage",
+      "nameTh": "เคล็ดวิชาสายบรรเลงด้ายชะตาควบคุมองคาพยพ (เชิดเงาวิญญาณ)"
+    },
+    "TECH_V200_PRIMORDIAL_CHAOS_ACT_06": {
+      "family": "sky_spear",
+      "variant": 69,
+      "oldSignature": "sig_taiji_yin_yang_crush",
+      "nameTh": "เคล็ดวิชาสายทวนโกลาหลผ่าแยกฟ้าดิน (โกลาหลต้นกำเนิด)"
+    },
+    "LEG_V240_GOD": {
+      "family": "celestial_edict",
+      "variant": 70,
+      "oldSignature": "sig_pantheon_deity_descent",
+      "nameTh": "มหาเทวโองการสวรรค์เก้าชั้นฟ้าพิพากษาภพ"
+    },
+    "LEG_V240_CRAFT_CREATION": {
+      "family": "forge_lattice",
+      "variant": 71,
+      "oldSignature": "sig_divine_crucible_forge",
+      "nameTh": "มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา"
+    }
+  };
+  SK.resolveT7Vfx = (techOrMove, moveOpt) => {
+    if (!techOrMove) return null;
+    const id = techOrMove.tech || techOrMove.id;
+    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    if (!tech || tech.tier !== 7 || tech.legendary || techOrMove.legendary || tech.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary))) return null;
+    return SK.T7_VFX_CATALOG[id] || null;
   };
 
   SK.resolveSignatureVfx = (techOrMove, moveOpt) => {

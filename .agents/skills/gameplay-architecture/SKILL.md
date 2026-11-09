@@ -510,3 +510,13 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 - All new scene catalogs and four-phase painters stay in `js/render.js`; no additional script/module order or save-schema change. Existing `castFx` / `lastWeaponProc` remain authoritative gameplay boundaries. Renderer-only entries add `ownerId` to prevent simultaneous full cast/relic scenes from stacking on one actor; it is not written back to the actor or save.
 - `Render.legendarySceneLife` selects presentation duration from the 47 skill / 27 relic profiles. `drawLegacyLegendaryArtVfx` preserves old inner motifs; new scene/target conduction does not run simulation actions.
 - The shared cap is two full scenes (one Low) across all Legendary event types within the existing 24-event queue. Exact catalog, future T4–T7 reservations and tests: `docs/audits/LEGENDARY_APEX_VISUAL_REGISTRY.md`.
+
+
+## Ordinary T7 visuals / next frontier T6 (JS2-v2.6.0 refinement)
+- `SK.T7_VFX_CATALOG` explicitly reviews all 71 runtime ordinary T7 records; `resolveT7Vfx` requires exact T7 and excludes named-Legendary/named-fx overrides. Prior Signature table/resolver stays unchanged. Some ordinary T7 records have Legendary grade / `LEG_` prefixes but `legendary:false`; do not classify by name alone.
+- Renderer-only `t7Vfx` routes `drawT7SkillVfx`: 50–56 px / 1,450 ms, 24 thematic frames retaining old per-move cores, local role-aware release, no Legendary apparition/bloom. Three full forms normally / one Low or with a full Legendary scene; one per owner, compact cores for the rest; total queue 24.
+- `drawT7EquipmentAura` / `drawT7EquipmentGlyph`: 85 existing T7 templates, 25 current types; actual equipped usable non-Legendary records only, at most three small owner accents. Broken T7 does not regain the old generic ring. No proc metadata is fabricated.
+- `NONLEGENDARY_VFX_BUDGET[7].planned` is now false. T4–T6 remain planned. Tests: `t7_skill_vfx_suite` (71 authored producers, 157 child metadata routes, targets/purity/caps/usability) and `t7_skill_vfx_browser` (all modes, 25 types, stress).
+- Exact IDs/roles/prior cores: `docs/audits/T7_VISUAL_ASSIGNMENT_REGISTRY.md`. Next requested visual patch: `docs/handovers/NEXT_T6_VISUAL_PATCH.md`; do not restart T7/Legendary or the completed chronicle feature.
+
+T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7/kind through 55% of its current lifetime so fast simulation reaches release. The held record keeps its original actual target snapshot; different techniques, explicit overrides and Legendary casts bypass the hold. Only renderer timing is affected. Covered by `t7_skill_vfx_suite`.

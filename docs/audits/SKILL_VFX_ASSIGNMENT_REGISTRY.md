@@ -1,5 +1,7 @@
 # Skill Signature VFX Assignment Registry
 
+> Current descending frontier: [ordinary T7 is implemented](T7_VISUAL_ASSIGNMENT_REGISTRY.md); [T6 is next](../handovers/NEXT_T6_VISUAL_PATCH.md). Check all VFX registries before choosing another technique.
+
 > Legendary apex and updated T4–T7 reservations: [Legendary Apex Registry](LEGENDARY_APEX_VISUAL_REGISTRY.md). Named skill/item identities are preserved in the new scene architecture.
 
 > T3 additions and future ordinary-tier scale reservations: [T3 Registry & Tier Scale](T3_SKILL_VFX_AND_TIER_SCALE.md). Search all three registries before assigning another effect.

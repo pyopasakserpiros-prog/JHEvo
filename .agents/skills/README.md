@@ -1,6 +1,6 @@
 # JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (Updated for JianghuSect 2 JS2-v2.6.0)
 
-All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 158 registered test groups [157 suites + syntax across 235 JS files]; see the latest audit note below for observed browser-only limitations.
+All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 160 registered test groups [159 suites + syntax across 237 JS files]; see the latest audit note below for observed browser-only limitations.
 
 ## Keeping the skills current
 
@@ -44,4 +44,8 @@ Combined audit before the Legendary Apex refinement: 155/156 PASS, zero FAIL, on
 
 Legendary Apex (JS2-v2.6.0): 47 active scenes / 3 passive crowns / 27 relic scenes; combat/UI/performance/browser/QA skills updated for four-phase painting, real target constraints, shared per-owner spectacle limits and widened reserved T4–T7 ceilings. See `docs/audits/LEGENDARY_APEX_VISUAL_REGISTRY.md`.
 
-Latest Legendary Apex combined audit: 155/158 PASS, two concurrent v400/v410 simulation-budget failures and one existing startup-overlay timeout. Isolated unchanged retries passed at 1.133/2.358 ms/tick; mobile stress passed at 1.452 ms/tick. Final targeted Apex/identity/lower-tier/standalone rechecks passed. See `PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md`.
+Combined audit before the ordinary T7 refinement: 155/158 PASS, two concurrent v400/v410 simulation-budget failures and one existing startup-overlay timeout. Isolated unchanged retries passed at 1.133/2.358 ms/tick; mobile stress passed at 1.452 ms/tick. Final targeted Apex/identity/lower-tier/standalone rechecks passed. See `PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md`.
+
+Ordinary T7 refinement: all 71 ordinary T7 techniques / 157 move-stage routes, 85 equipment templates / 25 types; T7 now implemented, next frontier T6. Combat/UI/performance/testing/QA/architecture skills and `START_HERE_FOR_AI.md` updated. See `docs/audits/T7_VISUAL_ASSIGNMENT_REGISTRY.md`.
+
+Latest T7 combined audit: 157/160 PASS, lineage-startup and mobile-throughput failures both passed unchanged isolated retries; known startup-overlay timeout remains. Final T7/identity/standalone rechecks passed. See `PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md` for raw limits and retry measurements.

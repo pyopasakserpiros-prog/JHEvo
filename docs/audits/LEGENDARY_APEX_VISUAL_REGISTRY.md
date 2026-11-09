@@ -1,12 +1,14 @@
 # Legendary Apex Visual Registry — JS2-v2.6.0
 
+> T7 is now implemented: [T7 Registry](T7_VISUAL_ASSIGNMENT_REGISTRY.md). T4–T6 remain planned; next patch is T6. The original implementation history below is retained.
+
 Base `main aaf8c1a`. **Implemented:** 47 active Legendary skill scenes, 3 upgraded active-passive crowns, and 27 named Legendary equipment scenes (20 weapons, 3 armor, 4 accessories). Uses 27 thematic apparition families and preserves the distinct authored identity of every skill/item at its center. Lower-tier Common/T3/Signature catalogs are retained.
 
 ## Design decision
 
 The user delegated whether to improve the old presentation or replace it, and explicitly requested both skills and equipment to look worthy of the apex. Merely multiplying the old radius would constrain later creative work. Chosen approach: **replace the old shared outer presentation with a new local four-phase scene**, while retaining the old authored motif as the inner identity. This combines continuity with a new sequence, larger themed apparition, release behavior and afterimage.
 
-`drawLegacyLegendaryArtVfx` preserves the old renderer as a readable source/preview. It is now used at reduced scale for the inner identity, not as the new entire spectacle. No Legendary technique ID was reassigned to a lower tier. Future T4–T7 authors may adapt its generic visual grammar (runes, strokes, rings, low-detail motifs) where appropriate, but must not silently copy a named Legendary identity or the new apex scene wholesale. The existing `SK.SIGNATURE_VFX_CATALOG` remains the ordinary-specialist source. This patch does not implement T4–T7 effects.
+`drawLegacyLegendaryArtVfx` preserves the old renderer as a readable source/preview. It is now used at reduced scale for the inner identity, not as the new entire spectacle. No Legendary technique ID was reassigned to a lower tier. Future T4–T7 authors may adapt its generic visual grammar (runes, strokes, rings, low-detail motifs) where appropriate, but must not silently copy a named Legendary identity or the new apex scene wholesale. The existing `SK.SIGNATURE_VFX_CATALOG` remains the ordinary-specialist source. The Legendary patch originally reserved all T4–T7 effects; the subsequent T7 refinement now implements T7. T4–T6 remain reserved.
 
 ## Four phases and new ceiling
 
@@ -129,7 +131,7 @@ Equipment still manifests only after a real `lastWeaponProc.triggered` event and
 | T4 | 24–29 px | 850 ms | Reserved, not implemented |
 | T5 | 32–39 px | 1050 ms | Reserved, not implemented |
 | T6 | 42–47 px | 1250 ms | Reserved, not implemented |
-| T7 | 50–56 px | 1450 ms | Reserved, not implemented |
+| T7 | 50–56 px | 1450 ms | Implemented ordinary T7 compositions |
 
 These T4–T7 reservations replace the narrower pre-Apex plan in the T3 registry. T1–T3 gameplay and art are unchanged. Existing historical named Signature effects remain exceptions; the new contract does not retroactively rescale every old effect. The ordinary maximum is still actual T7, and the reserved ordinary apex stays below Legendary's main scale/lifetime. Use richer movement and themed detail progressively, not just larger copies of T3.
 

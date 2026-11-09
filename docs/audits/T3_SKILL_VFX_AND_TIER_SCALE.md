@@ -1,5 +1,7 @@
 # JS2-v2.6.0 — T3 Skill VFX and Ordinary-Tier Progression
 
+> T7 is now implemented: [T7 Registry](T7_VISUAL_ASSIGNMENT_REGISTRY.md). T4–T6 remain planned; next patch is T6. The original implementation history below is retained.
+
 Base: `main 6b26f58`. **Implemented:** 24 new forms / 26 selected T3 active techniques / 8 eligible passive routes / 6 named-status routes. Existing Common 30/66/12/22 and Signature 45/256 catalogs remain intact. This is a refinement of the current JS2-v2.6.0 game, not a second playable version.
 
 > The later-tier reservations below are updated by [Legendary Apex](LEGENDARY_APEX_VISUAL_REGISTRY.md). Existing T3 implementation is unchanged.
@@ -10,7 +12,7 @@ The user authorized selecting the T3 techniques and requested visual room for fu
 
 T3 gains a recognizable main silhouette and one faint echo at normal/high quality. Low quality omits the echo; Reduced Motion freezes decoration. It does not add a large ground circle, elemental burst, stacked weapon flourish, bloom, screen wash, giant apparition, or full-screen effect. Skills remain readable at their actual resolved target. More elaborate silhouettes, timing stages and surroundings remain available to later tiers.
 
-`SK.NONLEGENDARY_VFX_BUDGET` is the progression contract for NEW ordinary effects. **Only T1/T2 and T3 routes are implemented. T4–T7 values are reserved design ceilings; they do not create effects, grant skills or change existing art.** Radius is a motif scale parameter in world Canvas pixels; thin line edges and target markers are separate, so it is not a promise of an exact pixel bounding box.
+`SK.NONLEGENDARY_VFX_BUDGET` is the progression contract for NEW ordinary effects. **T1/T2, T3 and the subsequent T7 routes are implemented. T4–T6 values remain reserved design ceilings; they do not create effects or grant skills.** Radius is a motif scale parameter in world Canvas pixels; thin line edges and target markers are separate, so it is not a promise of an exact pixel bounding box.
 
 | Tier | Main radius scale | Cast lifetime | Max repeated marks | Presentation / status |
 |---|---|---|---|---|
@@ -20,7 +22,7 @@ T3 gains a recognizable main silhouette and one faint echo at normal/high qualit
 | T4 | 24–29 px | 850 ms | 6 | Reserved: clearer technique detail / brief secondary action |
 | T5 | 32–39 px | 1050 ms | 8 | Reserved: richer charge / release timing, more ornament |
 | T6 | 42–47 px | 1250 ms | 10 | Reserved: stronger local field / layered thematic movement |
-| T7 | 50–56 px | 1450 ms | 12 | Reserved ordinary apex: full local theme, restrained below Legendary |
+| T7 | 50–56 px | 1450 ms | 12 | Implemented ordinary T7 compositions — see T7 registry |
 
 Legendary Apex now has a separate 60–84 px main scene scale and 2,100–2,500 ms four-stage presentation; the former 34–53 / 1,500 ms wrapper is retained as an inner-identity legacy renderer. The new ordinary T7 reservation ends at 56 px / 1,450 ms. Size is only one distinction: unique Legendary storytelling and spectacle remain exclusive. Earlier named Signature effects (including some previously assigned T3 techniques) are preserved exceptions, not silently rescaled by this contract. Future authors should audit those individually before deciding whether to revise them; the reservation does not claim all old effects already follow it.
 

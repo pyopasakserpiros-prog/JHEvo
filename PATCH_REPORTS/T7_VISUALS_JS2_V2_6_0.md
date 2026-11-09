@@ -1,0 +1,24 @@
+# JS2-v2.6.0 refinement — Ordinary T7 Visuals
+
+Base `main 550a909`. Continues downward from Legendary Apex at the user's request. **T7 is implemented; T6 is the next prepared handoff, not part of this patch.**
+
+- All **71 current ordinary T7 techniques** receive a reviewed composition route across **24 thematic frame families**, preserving their prior actual Signature core or actual weapon fallback. Includes **157 authored move-stage metadata routes** and actual healing, team command, hostile, control and forbidden behavior.
+- Main composition 50–56 px / 1,450 ms, local cue/release/fade and role-aware release direction. It stays below Legendary's 60–84 / 2,100–2,500 ms apparition scenes, without bloom, environment-scale manifestations, stacked generic elemental bursts or time/camera effects.
+- Rapid same-T7 recasts coalesce through 55% of presentation lifetime so fast simulation still shows a release; the original factual snapshot is retained, while different arts/explicit overrides/Legendary events bypass. A regression first reproduced the reset-before-release issue, then passed with the renderer-only guard.
+- Shared crowd control: 3 full T7 compositions normally, 1 Low, 1 while a full Legendary scene is present; one per owner, with compact cores retained for other activations. Existing overall cap remains 24.
+- Owner-bound equipment accents cover **85 existing ordinary T7 templates / 25 current types**. Actual equipped/usable records decide display. Broken T7 does not fall through to a glowing generic ring; named Legendary and lower-tier gear keep their own paths. No invented equipment proc event or item images.
+- Existing data contains 42 ordinary T7 records with a Legendary grade label but `legendary:false`; two also have `LEG_` IDs. This patch preserves the runtime named-Legendary distinction instead of reclassifying by label/prefix. There are no native T7 passive records to invent effects for.
+- No change to damage, target selection, stats, learning, acquisition, cooldowns, status durations, simulation RNG or save schema. Renderer-only route metadata; existing lower-tier and Legendary catalogs remain intact.
+
+[Complete ID/family/old-core registry](../docs/audits/T7_VISUAL_ASSIGNMENT_REGISTRY.md), [71-technique gallery](../docs/visuals/t7-skill-vfx/art.png), [equipment accents](../docs/visuals/t7-skill-vfx/gear.png), [animation](../docs/visuals/t7-skill-vfx/demo.gif), and [T6 handoff](../docs/handovers/NEXT_T6_VISUAL_PATCH.md).
+
+## Verification
+
+- T7 node suite: PASS — 71 actual authored `COMBAT.useSkill` producers and renderer routes, 157 move-stage metadata snapshots, targeted `COMBAT.attack` examples, old Signature identity preservation, rarity/other-tier exclusions, actual recipients, mixed crowd limits, equipment template coverage, broken fallback, Canvas state/finite values and save/RNG purity. The producer test does not claim every art is AI-selectable in every arbitrary actor/position setup.
+- T7 browser suite: PASS — 71 distinct nonblank presentations in High/Low × normal/Reduced Motion, 25 equipment type identities, no page errors. Initial 412×860 24-cast Canvas-only average 0.563 ms; excludes whole-world/UI cost and is not an Android hardware FPS certificate.
+- Schema validator: PASS — 0 errors / 0 warnings.
+- Standalone build: PASS, rebuilt at 16,290 KB; Human Core is byte-identical to base, fingerprint unchanged, 40 script tags retained.
+- Full combined regression: **157/160 PASS**, 2 FAIL, 1 TIMEOUT (159 suites + syntax over 237 JS files). All T7/older visual suites, core/schema and standalone passed. `lineage_chronicle_browser` timed out finding the startup candidate button during the combined run; its unchanged isolated retry passed all mobile lineage/filter checks. `browser_mobile_perf` missed the 32× target-throughput threshold (92.8 vs 128 ticks/s) during integration; its unchanged isolated retry passed 360/412/1280 px, gestures, 24 panels, save/load, speed controls and 80-NPC stress at 3.427 ms/tick. `startup_ui` retains the known startup-overlay pointer interception timeout. Raw combined failed rows remain in `test/results/parallel_audit_latest.json`; isolated retries do not rewrite them.
+- Final targeted rechecks after move-stage/gear eligibility/attunement/rapid-repeat refinements: T7 node and browser, Legendary identity, standalone runtime and previous visual regressions as captured above. The combined run preceded the final small refinements, so its raw count is not a claim of 160 passing groups on the final tree. GIF verified as 45 browser-exported frames, 900×340; preview/galleries visually inspected.
+
+Relevant project skills, project status, README and registries are updated. `START_HERE_FOR_AI.md` points to the current T7 frontier and ready T6 handoff, while the completed chronicle patch and unrelated deferred gameplay ideas remain unchanged.

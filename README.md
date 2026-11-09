@@ -23,6 +23,7 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:**
 
+- [T7_VISUALS_JS2_V2_6_0.md](PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา T7 / 157 ท่าย่อย พร้อมออร่า 85 อุปกรณ์ใน 25 ประเภท; งานต่อไปเตรียม T6
 - [LEGENDARY_APEX_JS2_V2_6_0.md](PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md) — ยกระดับ 47 วิชาตำนาน / 3 พาสซีฟ / 27 อุปกรณ์ เป็นฉากสำแดงสี่ช่วง พร้อม [ภาพเคลื่อนไหว](docs/visuals/legendary-apex/manifestation-demo.gif)
 - [T3_SKILL_VFX_JS2_V2_6_0.md](PATCH_REPORTS/T3_SKILL_VFX_JS2_V2_6_0.md) — T3 ใหม่ 24 ลาย / 26 วิชา พร้อมแผนสเกลภาพ T4–T7 ที่สงวนไว้สำหรับแพตช์ถัดไป
 - [COMMON_SKILL_VFX_JS2_V2_6_0.md](PATCH_REPORTS/COMMON_SKILL_VFX_JS2_V2_6_0.md) — 30 ลายพื้นฐานสำหรับ 66 วิชา T1–T2, พาสซีฟ 12 วิชา และสถานะจริง 22 แบบ พร้อมทะเบียนกันทำซ้ำ

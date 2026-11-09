@@ -1886,10 +1886,15 @@
         // high-tier heuristic for the selected basic curricula.
         const eventArtOverride = event.fxKind || (event.signatureVfx && event.signatureVfx !== automaticSignature);
         const commonVfx = !eventArtOverride && g.SK && g.SK.resolveCommonVfx ? g.SK.resolveCommonVfx(techObj || event, { id: event.moveId }) : null;
+        const t7Vfx = !eventArtOverride && g.SK && g.SK.resolveT7Vfx ? g.SK.resolveT7Vfx(techObj || event, { id:event.moveId }) : null;
         const t3Vfx = !eventArtOverride && g.SK && g.SK.resolveT3Vfx ? g.SK.resolveT3Vfx(techObj || event, { id: event.moveId }) : null;
         const forbidden = event.kind === 'forbidden';
         const motif = event.motif || event.fxKind || (forbidden ? 'forbidden' : 'normal');
         const isLegend = !!(event.legendary || (techObj && techObj.legendary) || (motif && String(motif).startsWith('legend_')));
+        const shown=this.castActive.get(key);
+        // Coalesce rapid repeats of the same ordinary T7 until its release is visible.
+        // Keep the original factual snapshot; a different art, explicit override or Legendary cast bypasses this.
+        if(t7Vfx&&!isLegend&&shown&&shown.t7Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.55)return;
         this.castActive.delete(key);
         if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
         const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
@@ -1904,6 +1909,7 @@
           signatureVfx: event.signatureVfx || (techObj && techObj.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(techObj || event) : null) || null,
           commonVfx: forbidden || isLegend ? null : commonVfx,
           t3Vfx: forbidden || isLegend ? null : t3Vfx,
+          t7Vfx: isLegend ? null : (t7Vfx && event.techId),
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
@@ -1922,7 +1928,7 @@
             .slice(0, 8).map(point => ({ x: point.x * TS, y: point.y * TS, team: point.team !== false })) : [],
           angle: Math.atan2(y - originY, x - originX),
           start: this.castClock,
-          life: isLegend ? R.legendarySceneLife({techId:event.techId}) : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))))
+          life: isLegend ? R.legendarySceneLife({techId:event.techId}) : (t7Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[7].life : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450)))))
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -2774,6 +2780,8 @@
         if(f.ownerId&&sceneOwners.has(f.ownerId))continue;
         fullScenes.add(f);if(f.ownerId)sceneOwners.add(f.ownerId);
       }
+      const t7Full=new Set(),t7Owners=new Set(),t7Limit=fullScenes.size?1:(this.resolveQuality()==='low'?1:3);
+      for(const f of candidates){if(t7Full.size>=t7Limit)break;if(!f.t7Vfx||f.legendary||f.relicId||(f.ownerId&&(t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t7Full.add(f);if(f.ownerId)t7Owners.add(f.ownerId);}
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
         this.drawCastTargetMarks(ctx, fx, p, reduced);
@@ -2782,6 +2790,8 @@
           this.drawLegendaryRelicScene(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryArtVfx(ctx,fx,p,reduced,fullScenes.has(fx));
+        } else if (fx.t7Vfx) {
+          this.drawT7SkillVfx(ctx,fx,p,reduced,t7Full.has(fx));
         } else if (fx.t3Vfx) {
           const budget = g.SK.NONLEGENDARY_VFX_BUDGET[3];
           this.drawT3SkillVfx(ctx, fx.t3Vfx, p, reduced ? 18 : budget.rMin + (budget.rMax - budget.rMin) * p, reduced, fx.angle, fx.arch);
@@ -2857,6 +2867,130 @@
         .map(id => CULT.tech(id))
         .filter(t => t && (t.passive || t.cat === 'PASSIVE') && (!M || (M.isTechCompatible(n, t) && M.conditionMatches(n, t))))
         .slice(0, 3);
+    },
+
+    // Ordinary T7: local technique geometry, not a Legendary apparition or environment scene.
+    drawT7SkillVfx(ctx, fx, p, reduced, full = true) {
+      const spec=g.SK&&g.SK.T7_VFX_CATALOG[fx.techId];if(!ctx||!spec)return false;
+      const low=this.resolveQuality()==='low',q=reduced?.5:clamp(p,0,1),budget=g.SK.NONLEGENDARY_VFX_BUDGET[7];
+      const r=full?(reduced?53:budget.rMin+(budget.rMax-budget.rMin)*Math.sin(Math.min(1,q/.65)*Math.PI/2)):24;
+      const sig=fx.signatureVfx||spec.oldSignature,ink=g.SK.SIGNATURE_VFX_CATALOG[sig]||{primary:PATH_COL[(CULT.tech(fx.techId)||{}).path]||'#a5d9df',secondary:'#d3c8a4',accent:'#f0e1bf'};
+      const release=reduced?.55:clamp((q-.28)/.38,0,1),echo=1-clamp((q-.72)/.28,0,1);
+      ctx.save();ctx.globalAlpha*=echo;
+      // Keep the pre-existing signature identity at the center of the larger T7 composition.
+      if(sig&&g.SK.SIGNATURE_VFX_CATALOG[sig]){
+        ctx.save();ctx.globalAlpha*=.8;this.drawSignatureSkillVfx(ctx,{...fx,signatureVfx:sig},q,full?23:15,reduced);ctx.restore();
+      }else{
+        ctx.save();this.drawWeaponMotionVfx(ctx,{...fx,tier:7},q,full?22:14,reduced,.8);ctx.restore();
+      }
+      if(full){
+        ctx.save();ctx.scale(r,r);ctx.strokeStyle=ink.primary;ctx.fillStyle=ink.secondary;ctx.lineWidth=1.35/r;ctx.globalAlpha*=.35+.5*Math.sin(q*Math.PI);
+        const line=(ps,close=false)=>{ctx.beginPath();ps.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(close)ctx.closePath();ctx.stroke();};
+        const oval=(x,y,rx,ry,a=0)=>{ctx.beginPath();ctx.ellipse(x,y,rx,ry,a,0,Math.PI*2);ctx.stroke();};
+        const count=low?3:5;
+        switch(spec.family){
+          case 'sky_spear':
+            for(const d of [-1,1]){line([[d*.65,.45],[d*.65,-.6],[d*.65-.1,-.4],[d*.65,-.8],[d*.65+.1,-.4]]);}line([[-.5,.55],[0,.7],[.5,.55]]);break;
+          case 'earth_staff':
+            line([[-.85,-.5],[.75,-.5],[.75,-.4],[-.85,-.4]],true);for(let i=0;i<count;i++){const x=(i-(count-1)/2)*.3;line([[x-.12,.55],[x,.25],[x+.16,.62]]);}break;
+          case 'sun_arrow':
+            for(let i=0;i<3;i++){const x=(i-1)*.55;oval(x,-.55,.2,.2);line([[x,-.85],[x,-.78]]);}line([[-.75,.35],[.8,.35],[.55,.2],[.8,.35],[.55,.5]]);break;
+          case 'galaxy_arrow':
+            ctx.beginPath();ctx.arc(0,0,.82,-2.8,-.3);ctx.stroke();for(let i=0;i<count;i++){const a=-2.8+i*2.5/(count-1),x=Math.cos(a)*.82,y=Math.sin(a)*.82;line([[x-.04,y],[x+.04,y],[x,y-.04],[x,y+.04]]);}break;
+          case 'void_blade':
+            line([[-.85,.5],[-.2,.06],[.07,-.32],[.82,-.65]]);line([[-.64,.65],[-.05,.12],[.22,-.19],[.85,-.45]]);break;
+          case 'myriad_blades':
+            for(let i=0;i<count;i++){const x=(i-(count-1)/2)*.3;line([[x,-.4],[x,-.82],[x-.05,-.68],[x,-.9],[x+.05,-.68]]);}line([[-.7,.5],[0,.7],[.7,.5]]);break;
+          case 'body_breaker':
+            for(const d of [-1,1])line([[d*.4,-.75],[d*.75,-.5],[d*.82,.1],[d*.6,.3]]);for(let i=0;i<3;i++)line([[(i-1)*.3,.5],[(i-1)*.4,.8]]);break;
+          case 'rune_brush':
+            for(const d of [-1,1]){line([[d*.65,-.65],[d*.65,.4],[d*.45,.58]]);line([[d*.9,-.5],[d*.75,-.5],[d*.82,-.25],[d*.7,0]]);}break;
+          case 'dream_loom':
+            for(let i=0;i<3;i++){const x=(i-1)*.55;oval(x,-.5,.18,.3,(i-1)*.3);}ctx.beginPath();ctx.moveTo(-.85,.45);ctx.bezierCurveTo(-.2,.2,.15,.7,.85,.45);ctx.stroke();break;
+          case 'vital_garden':
+            for(let i=0;i<count;i++){const a=i*Math.PI*2/count,x=Math.cos(a)*.7,y=Math.sin(a)*.42;ctx.save();ctx.translate(x,y);ctx.rotate(a);oval(0,0,.12,.25);ctx.restore();}break;
+          case 'forge_lattice':
+            line([[-.85,.4],[-.6,.65],[.6,.65],[.85,.4]],true);for(let i=0;i<3;i++){const x=(i-1)*.45;line([[x,-.5],[x-.1,-.7],[x+.06,-.88]]);}break;
+          case 'zither_chords':
+            for(let i=0;i<count;i++){const y=(i-(count-1)/2)*.25;ctx.beginPath();ctx.moveTo(-.8,y);ctx.quadraticCurveTo(0,y+(i%2?.25:-.25),.8,y);ctx.stroke();}break;
+          case 'fate_whip':
+          case 'puppet_lines':
+            for(let i=0;i<3;i++){const x=(i-1)*.6;oval(x,-.7,.05,.05);ctx.beginPath();ctx.moveTo(x,-.7);ctx.bezierCurveTo(x*.6,-.45,-x*.7,.15,x*.8,.65);ctx.stroke();}break;
+          case 'celestial_edict':
+            for(let i=0;i<3;i++){const x=(i-1)*.6;line([[x,.3],[x,-.8],[x+.26,-.7],[x,-.4]]);}line([[-.85,.6],[.85,.6]]);break;
+          case 'venom_hive':
+            for(let i=0;i<count;i++){const a=i*Math.PI*2/count,x=Math.cos(a)*.76,y=Math.sin(a)*.6;oval(x,y,.1,.06);line([[x-.1,y-.1],[x+.1,y+.1]]);}break;
+          case 'beast_totem':
+            for(const d of [-1,1])line([[d*.4,-.65],[d*.65,-.8],[d*.85,-.4],[d*.55,.5],[d*.3,.65]]);break;
+          case 'gravity_bands':
+            for(let i=0;i<3;i++)oval(0,0,.82,.28+i*.13,(i-1)*.3);break;
+          case 'epoch_glass':
+            for(const d of [-1,1])line([[d*.7,-.65],[d*.4,-.65],[d*.62,-.05],[d*.4,.55],[d*.7,.55]],true);break;
+          case 'gold_balance':
+            line([[-.82,-.4],[.82,-.4],[0,-.6],[0,-.82]]);for(const d of [-1,1]){line([[d*.6,-.4],[d*.6,.2]]);oval(d*.6,.3,.22,.08);}break;
+          case 'astral_ladle':
+            line([[-.75,-.4],[-.45,-.7],[-.1,-.7],[.15,-.4],[.45,-.1],[.72,.2]]);for(let i=0;i<3;i++)oval(-.45+i*.32,-.7+i*.15,.06,.06);break;
+          case 'earth_veins':
+            line([[-.9,.6],[-.6,-.35],[-.2,.1],[.1,-.7],[.65,.2],[.9,.6]]);line([[-.4,.55],[0,.3],[.4,.55]]);break;
+          case 'blood_furnace':
+            for(let i=0;i<3;i++){const x=(i-1)*.6;line([[x,-.75],[x-.14,-.4],[x,-.18],[x+.14,-.4],[x,-.75]]);}line([[-.7,.5],[0,.72],[.7,.5]]);break;
+          case 'cloud_thunder':
+            for(let i=0;i<3;i++){const x=(i-1)*.55;line([[x,-.8],[x-.15,-.32],[x+.1,-.4],[x-.1,.1]]);}break;
+        }
+        ctx.strokeStyle=ink.accent||'#eee0bd';ctx.lineWidth=1/r;
+        for(let i=0;i<2;i++){const a=spec.variant*.37+i*.12,d=.82;line([[Math.cos(a)*d,Math.sin(a)*d*.7],[Math.cos(a)*(d+.09),Math.sin(a)*(d+.09)*.7]]);}
+        // Per-technique seal accents keep shared-family curricula distinguishable.
+        if(!low){ctx.strokeStyle=ink.accent||'#eee0bd';ctx.lineWidth=.75/r;const n=4+spec.variant%5;for(let i=0;i<n;i++){const a=i*Math.PI*2/n+spec.variant*.19+(reduced?0:q*.2),d=.92;line([[Math.cos(a)*d,Math.sin(a)*d*.7],[Math.cos(a)*(d+.06),Math.sin(a)*(d+.06)*.7]]);}}
+        ctx.restore();
+        // A focused release only; Legendary apparition and ambient-world layers remain exclusive.
+        const supportive=['heal','support','buff','harmonize','guard','shield','counter','evade','blink'].includes(fx.arch);
+        ctx.save();ctx.strokeStyle=ink.secondary;ctx.globalAlpha*=.6*Math.sin(release*Math.PI);ctx.lineWidth=1.3;
+        if(supportive){for(let i=0;i<3;i++){const x=(i-1)*r*.4;ctx.beginPath();ctx.moveTo(x,r*.25);ctx.quadraticCurveTo(x+7,-r*.2,x,-r*(.3+release*.45));ctx.stroke();}}
+        else {ctx.rotate(Number.isFinite(fx.angle)?fx.angle:0);for(let i=0;i<3;i++){const y=(i-1)*r*.18;ctx.beginPath();ctx.moveTo(-r*.5,y);ctx.lineTo(r*(.3+release*.55),y*.2);ctx.stroke();}}
+        ctx.restore();
+      }
+      ctx.restore();return true;
+    },
+
+    // T7 equipment has owner-bound, type-aware accents, not fabricated relic procs.
+    drawT7EquipmentGlyph(ctx,type,r){
+      if(!ctx)return false;
+      if(R.WEAPON_MOTION_VFX[type])return this.drawWeaponMotionVfx(ctx,{weaponType:type,tier:7,angle:-.35},.5,r,true,.66);
+      ctx.save();ctx.scale(r,r);ctx.strokeStyle='#d4ca9d';ctx.lineWidth=1/r;
+      const line=(ps,closed=false)=>{ctx.beginPath();ps.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(closed)ctx.closePath();ctx.stroke();};
+      const oval=(x,y,rx,ry)=>{ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.stroke();};
+      switch(type){
+        case 'HEAVY':line([[-.7,-.65],[0,-.85],[.7,-.65],[.5,.4],[0,.75],[-.5,.4]],true);line([[-.4,-.2],[.4,-.2],[0,-.2],[0,.45]]);break;
+        case 'LIGHT':line([[-.65,-.65],[-.3,-.65],[0,-.2],[.3,-.65],[.65,-.65],[.45,.7],[-.45,.7]],true);break;
+        case 'ROBE':line([[-.3,-.7],[-.8,-.15],[-.45,-.08],[-.6,.65],[.6,.65],[.45,-.08],[.8,-.15],[.3,-.7]],true);break;
+        case 'RING':oval(0,0,.55,.55);line([[-.15,-.55],[0,-.85],[.15,-.55]],true);break;
+        case 'NECKLACE':ctx.beginPath();ctx.arc(0,-.25,.65,0,Math.PI);ctx.stroke();line([[0,.4],[-.18,.65],[0,.85],[.18,.65]],true);break;
+        case 'BRACELET':oval(0,0,.7,.35);oval(0,0,.4,.2);break;
+        case 'CHARM':line([[-.4,-.65],[.4,-.65],[.4,.55],[-.4,.55]],true);line([[-.2,-.35],[.2,.1],[-.2,.3]]);break;
+        case 'ORNAMENT':line([[0,-.8],[0,-.4],[-.4,0],[0,.6],[.4,0],[0,-.4]]);break;
+        case 'AUX_TOOL':line([[-.7,.6],[.55,-.65],[.75,-.4],[.25,-.15],[-.7,.6]]);break;
+        default:ctx.restore();return false;
+      }
+      ctx.restore();return true;
+    },
+
+    drawT7EquipmentAura(ctx,n,ap,by=0){
+      if(!ctx||!n||n.dead||n.hidden||n.away||n.gone)return false;
+      const items=Object.values(n.equip||{});let drawn=0;
+      for(const it of items){
+        if(drawn>=3)break;
+        if(!it||it.tier!==7||it.legendary||R.resolveLegendaryGearVisual(it)||(g.MARTIAL&&g.MARTIAL.gearUsable&&!g.MARTIAL.gearUsable(n,it)))continue;
+        const type=it.gearType||it.subType,armor=['HEAVY','LIGHT','ROBE'].includes(type),weapon=!!R.WEAPON_MOTION_VFX[type];
+        ctx.save();ctx.translate(weapon?10:armor?0:-10,weapon?-12+by:armor?-9+by:-16+by);ctx.globalAlpha*=armor?.35:.55;
+        const ok=this.drawT7EquipmentGlyph(ctx,type,armor?7:weapon?4.6:4.2);ctx.restore();if(ok)drawn++;
+      }
+      if(drawn>0){
+        const nodes=Math.min(3,Math.ceil(((ap&&ap.totalGearStars)||0)/2)),phase=this.isReducedMotion()?0:(this.t||0)+(n.n||0)*.8;
+        ctx.save();ctx.fillStyle='#fff8c4';ctx.globalAlpha*=.85;
+        for(let i=0;i<nodes;i++){const a=phase*2+i*Math.PI*2/nodes;ctx.fillRect(Math.cos(a)*7.8-1,-12+by+Math.sin(a)*4.5-1,2,2);}
+        ctx.restore();
+      }
+      return drawn>0;
     },
 
     // T3: one main silhouette + one restrained echo. Larger tiers retain room to grow.
@@ -7265,6 +7399,7 @@
     drawEquipmentTierAura(ctx, n, ap, by) {
       const maxTier = (ap && ap.highestGearTier) || 0;
       if (maxTier < 3) return false;
+      if(maxTier===7&&Object.values(n.equip||{}).some(it=>it&&it.tier===7&&!it.legendary))return this.drawT7EquipmentAura(ctx,n,ap,by);
       const spec = R.GEAR_TIER_GLOWS[clamp(maxTier, 1, 7)] || R.GEAR_TIER_GLOWS[3];
       const stars = clamp((ap && ap.totalGearStars) || 0, 0, 9);
       const t = this.t + (n.n || 0) * 0.8;
