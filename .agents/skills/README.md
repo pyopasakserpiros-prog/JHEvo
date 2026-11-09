@@ -24,4 +24,4 @@ For each game patch, update every skill affected by the changes in the same chan
 
 Legendary Visual Identity (JS2-v2.5.0 refinement, 2026-11-09): see updated `game-ui-ux`, `web-performance`, `web-testing` and `combat-design` sections for the 50-art / 27-relic visual catalogs, real proc lifecycle, preview rarity and two new regression suites. Historical counts elsewhere are not a fresh full-skill audit.
 
-Item Art Variety (JS2-v2.5.0 refinement, 2026-11-09): game-ui-ux / game-data-integrity cover the fixed 256-cell generated atlas catalog and Tier/grade rules; web-performance / web-testing cover shared WebP resources, offline embedding and the two painted-art regression suites.
+Item Art Variety (JS2-v2.5.0 refinement, 2026-11-09): game-ui-ux / game-data-integrity cover the fixed 576-cell / nine-sheet generated atlas catalog and Tier/grade rules; web-performance / web-testing cover shared WebP resources, offline embedding and the painted-art and all-equipment tier regression suites.

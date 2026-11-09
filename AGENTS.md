@@ -17,7 +17,7 @@ JianghuSect Evolution is a Thai browser game. Current package: **JianghuSect 2 (
 
 > ฐาน JS2-v2.5.0 มี Legendary Visual Identity refinement (2026-11-09) แล้ว: 50 วิชาตำนาน / 27 อุปกรณ์, รายละเอียดและผลทดสอบปัจจุบันใน `PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md`; ตัวเลขชุดทดสอบฐานด้านบนเป็นผลก่อน refinement
 
-ฐานเพิ่มเติม Item Art Variety refinement ใช้ generated atlases และ `GAME_SOURCE/docs/ITEM_ART_CATALOG.json`; เมื่อแก้ mapping ให้รัน `node GAME_SOURCE/tools/build_item_art.js` แล้ว build single ใหม่ อย่าเขียนภาพทับแผ่นใหม่ด้วย legacy atlas generator ดูผลตรวจใน `PATCH_REPORTS/ITEM_ART_VARIETY_JS2_V2_5_0.md`
+ฐานเพิ่มเติม All Equipment Tier Art (9 sheets / 576 cells, 28 equipment + 13 other Tier families) ใช้ generated atlases และ `GAME_SOURCE/docs/ITEM_ART_CATALOG.json`; เมื่อแก้ mapping ให้รัน `node GAME_SOURCE/tools/build_item_art.js` แล้ว build single ใหม่ อย่าเขียนภาพทับแผ่นใหม่ด้วย legacy atlas generator แผ่น Tier ใหม่ต้องจัดช่องด้วย `tools/normalize_item_sheet.js` และ layout ที่ตรงกับภาพต้นฉบับ ดูผลตรวจล่าสุดใน `PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md`
 
 ## ก่อนเริ่มงาน
 

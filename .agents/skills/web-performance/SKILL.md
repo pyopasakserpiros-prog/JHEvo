@@ -90,6 +90,8 @@ node test/inventory_grid_ui_suite.js
 - Test visual identity in `legendary_visual_identity_suite` and `legendary_visual_browser`, together with `runtime_timing` and `browser_mobile_perf`. Distinct static pixel hashes prove visible identity at tested phases; they do not constitute an FPS guarantee on physical low-end phones.
 
 ## JS2-v2.5.0 generated item art (2026-11-09)
-- Four shared 1254² transparent WebP atlases (~3.8 MiB total), CSS background-position crops; no per-item texture file/request and no continuously animated icon shaders. Seven sword tiers use distinct cells; grade finishes use bounded CSS filters and static accents.
-- Modular UI stores asset URLs in one generated catalog; build_single embeds each sheet once as a WebP data URI (~15.3 MiB total single HTML). Browser engine shares atlas resources across inventory cells. This raises decoded image memory versus the old vector atlas; physical low-end Android FPS is not certified by desktop viewport tests.
+- Nine shared transparent WebP atlases (four 1254² + five normalized 768²; 5,331,484 bytes total), CSS background-position crops; no per-item texture file/request and no continuously animated icon shaders. All 28 equipment families and 13 other groups use tier cells; grade finishes use bounded CSS filters and static accents.
+- Modular UI stores asset URLs in one generated catalog; build_single embeds each sheet once as a WebP data URI (~17.1 MiB total single HTML). Browser engine shares atlas resources across inventory cells. This raises decoded image memory versus the old vector atlas; physical low-end Android FPS is not certified by desktop viewport tests.
 - Icon resolution reads simulation/catalog metadata, never generates items or consumes world RNG. Inventory remains paginated. Validate actual atlas decoding at 360/412/1280 widths and standalone with item_art_browser.
+
+- The five new sheets add ~11.25 MiB decoded RGBA pixels; all nine total ~35.25 MiB before browser overhead. Lower-resolution normalized sheets prevent a need to decode five additional 1254² textures. No additional animation shaders; the UI stays paginated.

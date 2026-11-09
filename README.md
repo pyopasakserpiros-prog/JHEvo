@@ -1,6 +1,6 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.5.0 (Pathbound Ascendant Visuals & Signature Arts Release)
 
-> **Item Art Variety refinement (2026-11-09):** เพิ่ม atlas ภาพไอเท็ม 4 แผ่น / 256 ช่อง, คัมภีร์ตำนานเฉพาะ 50 บท, อุปกรณ์ตำนานเฉพาะ 27 ชิ้น และภาพ Tier/เกรด ดู [รายงานและภาพตัวอย่าง](PATCH_REPORTS/ITEM_ART_VARIETY_JS2_V2_5_0.md). ฐานยังเป็น JS2-v2.5.0; JS2-v2.6.0 เป็นงานถัดไป
+> **All Equipment Tier Art (2026-11-09):** atlas ภาพไอเท็ม 9 แผ่น / 576 ช่อง; ภาพ T1–T7 ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา คงภาพเฉพาะตำนาน 50+27 รายการ ดู [รายงานและภาพตัวอย่าง](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md). ฐานยังเป็น JS2-v2.5.0; JS2-v2.6.0 เป็นงานถัดไป
 
 > **ฐานเพิ่มเติม 2026-11-09:** JS2-v2.5.0 มี Legendary Visual Identity refinement ครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนานแล้ว ดู [รายงานและผลทดสอบ](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). งาน JS2-v2.6.0 ยังคงเป็นแพตช์ถัดไป
 

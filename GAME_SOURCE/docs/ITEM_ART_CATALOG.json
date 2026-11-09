@@ -1,10 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "grid": {
     "columns": 8,
     "rows": 8
   },
-  "style": "Generated painterly wuxia inventory art, transparent atlases; WebP quality 88, source composition unchanged.",
+  "style": "Generated painterly wuxia inventory art, transparent shared atlases; WebP quality 88. Five tier sheets normalized into fixed 96px cells with subject bounds <=80px; prior four named/manual/material sheets unchanged.",
   "sheets": {
     "manuals": {
       "url": "assets/item_art_manuals.webp",
@@ -289,6 +289,361 @@
         "pill-demonic",
         "pill-ascension"
       ]
+    },
+    "arsenala": {
+      "url": "assets/item_art_arsenala.webp",
+      "width": 768,
+      "height": 768,
+      "cells": [
+        "blade-t1",
+        "blade-t2",
+        "blade-t3",
+        "blade-t4",
+        "blade-t5",
+        "blade-t6",
+        "blade-t7",
+        "blade-mythic",
+        "spear-t1",
+        "spear-t2",
+        "spear-t3",
+        "spear-t4",
+        "spear-t5",
+        "spear-t6",
+        "spear-t7",
+        "spear-mythic",
+        "staff-t1",
+        "staff-t2",
+        "staff-t3",
+        "staff-t4",
+        "staff-t5",
+        "staff-t6",
+        "staff-t7",
+        "staff-mythic",
+        "fist-t1",
+        "fist-t2",
+        "fist-t3",
+        "fist-t4",
+        "fist-t5",
+        "fist-t6",
+        "fist-t7",
+        "fist-mythic",
+        "bow-t1",
+        "bow-t2",
+        "bow-t3",
+        "bow-t4",
+        "bow-t5",
+        "bow-t6",
+        "bow-t7",
+        "bow-mythic",
+        "focus-t1",
+        "focus-t2",
+        "focus-t3",
+        "focus-t4",
+        "focus-t5",
+        "focus-t6",
+        "focus-t7",
+        "focus-mythic",
+        "dagger-t1",
+        "dagger-t2",
+        "dagger-t3",
+        "dagger-t4",
+        "dagger-t5",
+        "dagger-t6",
+        "dagger-t7",
+        "dagger-mythic",
+        "zither-t1",
+        "zither-t2",
+        "zither-t3",
+        "zither-t4",
+        "zither-t5",
+        "zither-t6",
+        "zither-t7",
+        "zither-mythic"
+      ]
+    },
+    "arsenalb": {
+      "url": "assets/item_art_arsenalb.webp",
+      "width": 768,
+      "height": 768,
+      "cells": [
+        "brush-t1",
+        "brush-t2",
+        "brush-t3",
+        "brush-t4",
+        "brush-t5",
+        "brush-t6",
+        "brush-t7",
+        "brush-mythic",
+        "whip-t1",
+        "whip-t2",
+        "whip-t3",
+        "whip-t4",
+        "whip-t5",
+        "whip-t6",
+        "whip-t7",
+        "whip-mythic",
+        "rosary-t1",
+        "rosary-t2",
+        "rosary-t3",
+        "rosary-t4",
+        "rosary-t5",
+        "rosary-t6",
+        "rosary-t7",
+        "rosary-mythic",
+        "claw-t1",
+        "claw-t2",
+        "claw-t3",
+        "claw-t4",
+        "claw-t5",
+        "claw-t6",
+        "claw-t7",
+        "claw-mythic",
+        "needle-t1",
+        "needle-t2",
+        "needle-t3",
+        "needle-t4",
+        "needle-t5",
+        "needle-t6",
+        "needle-t7",
+        "needle-mythic",
+        "fan-t1",
+        "fan-t2",
+        "fan-t3",
+        "fan-t4",
+        "fan-t5",
+        "fan-t6",
+        "fan-t7",
+        "fan-mythic",
+        "astrolabe-t1",
+        "astrolabe-t2",
+        "astrolabe-t3",
+        "astrolabe-t4",
+        "astrolabe-t5",
+        "astrolabe-t6",
+        "astrolabe-t7",
+        "astrolabe-mythic",
+        "abacus-t1",
+        "abacus-t2",
+        "abacus-t3",
+        "abacus-t4",
+        "abacus-t5",
+        "abacus-t6",
+        "abacus-t7",
+        "abacus-mythic"
+      ]
+    },
+    "attire": {
+      "url": "assets/item_art_attire.webp",
+      "width": 768,
+      "height": 768,
+      "cells": [
+        "heavy-t1",
+        "heavy-t2",
+        "heavy-t3",
+        "heavy-t4",
+        "heavy-t5",
+        "heavy-t6",
+        "heavy-t7",
+        "heavy-mythic",
+        "light-t1",
+        "light-t2",
+        "light-t3",
+        "light-t4",
+        "light-t5",
+        "light-t6",
+        "light-t7",
+        "light-mythic",
+        "robe-t1",
+        "robe-t2",
+        "robe-t3",
+        "robe-t4",
+        "robe-t5",
+        "robe-t6",
+        "robe-t7",
+        "robe-mythic",
+        "boots-t1",
+        "boots-t2",
+        "boots-t3",
+        "boots-t4",
+        "boots-t5",
+        "boots-t6",
+        "boots-t7",
+        "boots-mythic",
+        "helmet-t1",
+        "helmet-t2",
+        "helmet-t3",
+        "helmet-t4",
+        "helmet-t5",
+        "helmet-t6",
+        "helmet-t7",
+        "helmet-mythic",
+        "ring-t1",
+        "ring-t2",
+        "ring-t3",
+        "ring-t4",
+        "ring-t5",
+        "ring-t6",
+        "ring-t7",
+        "ring-mythic",
+        "necklace-t1",
+        "necklace-t2",
+        "necklace-t3",
+        "necklace-t4",
+        "necklace-t5",
+        "necklace-t6",
+        "necklace-t7",
+        "necklace-mythic",
+        "bracelet-t1",
+        "bracelet-t2",
+        "bracelet-t3",
+        "bracelet-t4",
+        "bracelet-t5",
+        "bracelet-t6",
+        "bracelet-t7",
+        "bracelet-mythic"
+      ]
+    },
+    "supplies": {
+      "url": "assets/item_art_supplies.webp",
+      "width": 768,
+      "height": 768,
+      "cells": [
+        "charm-t1",
+        "charm-t2",
+        "charm-t3",
+        "charm-t4",
+        "charm-t5",
+        "charm-t6",
+        "charm-t7",
+        "charm-mythic",
+        "ornament-t1",
+        "ornament-t2",
+        "ornament-t3",
+        "ornament-t4",
+        "ornament-t5",
+        "ornament-t6",
+        "ornament-t7",
+        "ornament-mythic",
+        "aux_tool-t1",
+        "aux_tool-t2",
+        "aux_tool-t3",
+        "aux_tool-t4",
+        "aux_tool-t5",
+        "aux_tool-t6",
+        "aux_tool-t7",
+        "aux_tool-mythic",
+        "pill_heal-t1",
+        "pill_heal-t2",
+        "pill_heal-t3",
+        "pill_heal-t4",
+        "pill_heal-t5",
+        "pill_heal-t6",
+        "pill_heal-t7",
+        "pill_heal-mythic",
+        "pill_qi-t1",
+        "pill_qi-t2",
+        "pill_qi-t3",
+        "pill_qi-t4",
+        "pill_qi-t5",
+        "pill_qi-t6",
+        "pill_qi-t7",
+        "pill_qi-mythic",
+        "pill_break-t1",
+        "pill_break-t2",
+        "pill_break-t3",
+        "pill_break-t4",
+        "pill_break-t5",
+        "pill_break-t6",
+        "pill_break-t7",
+        "pill_break-mythic",
+        "pill_detox-t1",
+        "pill_detox-t2",
+        "pill_detox-t3",
+        "pill_detox-t4",
+        "pill_detox-t5",
+        "pill_detox-t6",
+        "pill_detox-t7",
+        "pill_detox-mythic",
+        "pill_body-t1",
+        "pill_body-t2",
+        "pill_body-t3",
+        "pill_body-t4",
+        "pill_body-t5",
+        "pill_body-t6",
+        "pill_body-t7",
+        "pill_body-mythic"
+      ]
+    },
+    "resources": {
+      "url": "assets/item_art_resources.webp",
+      "width": 768,
+      "height": 768,
+      "cells": [
+        "pill_soul-t1",
+        "pill_soul-t2",
+        "pill_soul-t3",
+        "pill_soul-t4",
+        "pill_soul-t5",
+        "pill_soul-t6",
+        "pill_soul-t7",
+        "pill_soul-mythic",
+        "mat_ore-t1",
+        "mat_ore-t2",
+        "mat_ore-t3",
+        "mat_ore-t4",
+        "mat_ore-t5",
+        "mat_ore-t6",
+        "mat_ore-t7",
+        "mat_ore-mythic",
+        "mat_herb-t1",
+        "mat_herb-t2",
+        "mat_herb-t3",
+        "mat_herb-t4",
+        "mat_herb-t5",
+        "mat_herb-t6",
+        "mat_herb-t7",
+        "mat_herb-mythic",
+        "mat_hide-t1",
+        "mat_hide-t2",
+        "mat_hide-t3",
+        "mat_hide-t4",
+        "mat_hide-t5",
+        "mat_hide-t6",
+        "mat_hide-t7",
+        "mat_hide-mythic",
+        "mat_bone-t1",
+        "mat_bone-t2",
+        "mat_bone-t3",
+        "mat_bone-t4",
+        "mat_bone-t5",
+        "mat_bone-t6",
+        "mat_bone-t7",
+        "mat_bone-mythic",
+        "mat_core-t1",
+        "mat_core-t2",
+        "mat_core-t3",
+        "mat_core-t4",
+        "mat_core-t5",
+        "mat_core-t6",
+        "mat_core-t7",
+        "mat_core-mythic",
+        "mat_crystal-t1",
+        "mat_crystal-t2",
+        "mat_crystal-t3",
+        "mat_crystal-t4",
+        "mat_crystal-t5",
+        "mat_crystal-t6",
+        "mat_crystal-t7",
+        "mat_crystal-mythic",
+        "fish-t1",
+        "fish-t2",
+        "fish-t3",
+        "fish-t4",
+        "fish-t5",
+        "fish-t6",
+        "fish-t7",
+        "fish-mythic"
+      ]
     }
   },
   "manualPaths": {
@@ -416,5 +771,604 @@
     "LEG_V230_FORTUNE_GAMBLER": 47,
     "LEG_V230_SPIRIT_HUSBANDRY": 48,
     "LEG_V230_ARENA_GLORY": 49
+  },
+  "tierFamilies": {
+    "SWORD": {
+      "sheet": "materials",
+      "cells": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        62
+      ],
+      "group": "equipment"
+    },
+    "BLADE": {
+      "sheet": "arsenala",
+      "cells": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "group": "equipment"
+    },
+    "SPEAR": {
+      "sheet": "arsenala",
+      "cells": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "group": "equipment"
+    },
+    "STAFF": {
+      "sheet": "arsenala",
+      "cells": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "group": "equipment"
+    },
+    "FIST": {
+      "sheet": "arsenala",
+      "cells": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "group": "equipment"
+    },
+    "BOW": {
+      "sheet": "arsenala",
+      "cells": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "group": "equipment"
+    },
+    "FOCUS": {
+      "sheet": "arsenala",
+      "cells": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "group": "equipment"
+    },
+    "DAGGER": {
+      "sheet": "arsenala",
+      "cells": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "group": "equipment"
+    },
+    "ZITHER": {
+      "sheet": "arsenala",
+      "cells": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "group": "equipment"
+    },
+    "BRUSH": {
+      "sheet": "arsenalb",
+      "cells": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "group": "equipment"
+    },
+    "WHIP": {
+      "sheet": "arsenalb",
+      "cells": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "group": "equipment"
+    },
+    "ROSARY": {
+      "sheet": "arsenalb",
+      "cells": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "group": "equipment"
+    },
+    "CLAW": {
+      "sheet": "arsenalb",
+      "cells": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "group": "equipment"
+    },
+    "NEEDLE": {
+      "sheet": "arsenalb",
+      "cells": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "group": "equipment"
+    },
+    "FAN": {
+      "sheet": "arsenalb",
+      "cells": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "group": "equipment"
+    },
+    "ASTROLABE": {
+      "sheet": "arsenalb",
+      "cells": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "group": "equipment"
+    },
+    "ABACUS": {
+      "sheet": "arsenalb",
+      "cells": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "group": "equipment"
+    },
+    "HEAVY": {
+      "sheet": "attire",
+      "cells": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "group": "equipment"
+    },
+    "LIGHT": {
+      "sheet": "attire",
+      "cells": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "group": "equipment"
+    },
+    "ROBE": {
+      "sheet": "attire",
+      "cells": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "group": "equipment"
+    },
+    "BOOTS": {
+      "sheet": "attire",
+      "cells": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "group": "equipment"
+    },
+    "HELMET": {
+      "sheet": "attire",
+      "cells": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "group": "equipment"
+    },
+    "RING": {
+      "sheet": "attire",
+      "cells": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "group": "equipment"
+    },
+    "NECKLACE": {
+      "sheet": "attire",
+      "cells": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "group": "equipment"
+    },
+    "BRACELET": {
+      "sheet": "attire",
+      "cells": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "group": "equipment"
+    },
+    "CHARM": {
+      "sheet": "supplies",
+      "cells": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "group": "equipment"
+    },
+    "ORNAMENT": {
+      "sheet": "supplies",
+      "cells": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "group": "equipment"
+    },
+    "AUX_TOOL": {
+      "sheet": "supplies",
+      "cells": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "group": "equipment"
+    },
+    "PILL_HEAL": {
+      "sheet": "supplies",
+      "cells": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "group": "pill"
+    },
+    "PILL_QI": {
+      "sheet": "supplies",
+      "cells": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "group": "pill"
+    },
+    "PILL_BREAK": {
+      "sheet": "supplies",
+      "cells": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "group": "pill"
+    },
+    "PILL_DETOX": {
+      "sheet": "supplies",
+      "cells": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "group": "pill"
+    },
+    "PILL_BODY": {
+      "sheet": "supplies",
+      "cells": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "group": "pill"
+    },
+    "PILL_SOUL": {
+      "sheet": "resources",
+      "cells": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "group": "pill"
+    },
+    "MAT_ORE": {
+      "sheet": "resources",
+      "cells": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "group": "material"
+    },
+    "MAT_HERB": {
+      "sheet": "resources",
+      "cells": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "group": "material"
+    },
+    "MAT_HIDE": {
+      "sheet": "resources",
+      "cells": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "group": "material"
+    },
+    "MAT_BONE": {
+      "sheet": "resources",
+      "cells": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "group": "material"
+    },
+    "MAT_CORE": {
+      "sheet": "resources",
+      "cells": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "group": "material"
+    },
+    "MAT_CRYSTAL": {
+      "sheet": "resources",
+      "cells": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "group": "material"
+    },
+    "FISH": {
+      "sheet": "resources",
+      "cells": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "group": "fish"
+    }
+  },
+  "typeAliases": {
+    "SABER": "BLADE",
+    "GAUNTLET": "FIST",
+    "FIST_PALM": "FIST",
+    "HEAVY_ARMOR": "HEAVY",
+    "LIGHT_ARMOR": "LIGHT",
+    "PENDANT": "NECKLACE",
+    "HEADGEAR": "HELMET",
+    "SHOES": "BOOTS"
+  },
+  "normalization": {
+    "layouts": "docs/ITEM_ART_TIER_CROPS.json",
+    "tool": "tools/normalize_item_sheet.js",
+    "cellSize": 96,
+    "innerSize": 80,
+    "newSheets": [
+      "arsenala",
+      "arsenalb",
+      "attire",
+      "supplies",
+      "resources"
+    ]
   }
 }
