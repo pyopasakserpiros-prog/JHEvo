@@ -217,7 +217,7 @@ require(path.join(ROOT, 'js/ui.js'));
 
   // 3. Pillar 3: 15 Signature Martial Arts & Unique Skill VFX
   const cat = SK.SIGNATURE_VFX_CATALOG;
-  assert.strictEqual(Object.keys(cat).length, 30, 'Must have 15 Signature Skill VFX entries in SK.SIGNATURE_VFX_CATALOG');
+  assert.strictEqual(Object.keys(cat).length, 45, 'Must preserve 30 existing and 15 newly added Signature Skill VFX entries');
   const expectedIds = [
     'sig_meteor_sword_rain',
     'sig_eight_directions_palm',

@@ -1977,6 +1977,66 @@
       secondary: '#90e0ef',
       accent: '#52b788',
       descTh: 'วังวนน้ำวนเหมันต์เก้าสมุทรผสานเสามังกรธรณีพุ่งทะลวงขึ้นสะกดสมรภูมิ'
+    },
+    sig_bamboo_reed_sword: {
+      id: 'sig_bamboo_reed_sword', nameTh: 'กระบี่ไผ่เขียวลู่ลม', icon: '🎋', shape: 'bamboo_reed_parry', role: 'DEFENSE',
+      primary: '#4dab77', secondary: '#d9f99d', accent: '#f7ffe7', descTh: 'ลำไผ่หยกโค้งรับแรงแล้วดีดคืนเป็นคมใบไผ่ ปิดท้ายด้วยแนวไผ่สะบัดวายุ'
+    },
+    sig_magnetic_arsenal_draw: {
+      id: 'sig_magnetic_arsenal_draw', nameTh: 'วงแหวนดูดศาสตราแม่เหล็ก', icon: '🧲', shape: 'magnetic_weapon_orbit', role: 'CONTROL',
+      primary: '#67e8f9', secondary: '#f59e0b', accent: '#e0f7ff', descTh: 'ศาสตราเงาสี่ชิ้นถูกแรงแม่เหล็กเหนี่ยวนำหมุนเข้าหาแกนหยกกลางวง'
+    },
+    sig_iron_rhino_ramming: {
+      id: 'sig_iron_rhino_ramming', nameTh: 'อสนีคชสารพุ่งชน', icon: '🦏', shape: 'iron_rhino_rampart', role: 'OFFENSE',
+      primary: '#c0a07a', secondary: '#495057', accent: '#ffd166', descTh: 'เงาแรดเหล็กก้มเขาพุ่งทะลวงแนวหน้า ทิ้งรอยฝุ่นและแรงกระแทกเป็นชั้น'
+    },
+    sig_eightfold_earthquake: {
+      id: 'sig_eightfold_earthquake', nameTh: 'แผ่นดินแปดทิศสะเทือน', icon: '⛰️', shape: 'octagonal_ground_quake', role: 'DOMAIN_CONTROL',
+      primary: '#e9c46a', secondary: '#bc6c25', accent: '#f4f1de', descTh: 'วงแผ่นดินแตกร้าวแปดทิศแผ่ออกจากจุดกระทืบ พร้อมรอยแยกชี้ตำแหน่งใต้ดิน'
+    },
+    sig_twin_thunder_hammers: {
+      id: 'sig_twin_thunder_hammers', nameTh: 'ค้อนคู่ฟาดทั่งอัสนี', icon: '🔨', shape: 'twin_hammer_anvil', role: 'OFFENSE',
+      primary: '#ffe45e', secondary: '#6c63ff', accent: '#e0fbfc', descTh: 'ค้อนสายฟ้าสองข้างฟาดประสานบนทั่งปราณ เกิดเส้นอัสนีแตกเป็นแรงสะเทือนวงกว้าง'
+    },
+    sig_divine_bell_mind_ripple: {
+      id: 'sig_divine_bell_mind_ripple', nameTh: 'ระฆังเทวัญกังวานสะเทือนจิต', icon: '🔔', shape: 'mind_bell_resonance', role: 'CONTROL',
+      primary: '#fff1a8', secondary: '#55d6be', accent: '#c77dff', descTh: 'ระฆังเทวัญใบเล็กลอยเหนือศีรษะ ปล่อยคลื่นเสียงเป็นวงตัดจังหวะเวทและปลุกสติ'
+    },
+    sig_primordial_stone_tortoise: {
+      id: 'sig_primordial_stone_tortoise', nameTh: 'เต่าศิลาบรรพกาลค้ำฟ้า', icon: '🐢', shape: 'primordial_stone_tortoise', role: 'DEFENSE',
+      primary: '#7f8c70', secondary: '#a3cef1', accent: '#e9ecef', descTh: 'เกราะกระดองศิลาลายหกเหลี่ยมก่อตัวเหนือพื้น พร้อมเสาหินสี่ขาค้ำรับแรงหนัก'
+    },
+    sig_thousand_faith_link: {
+      id: 'sig_thousand_faith_link', nameTh: 'ข่ายศรัทธาสาวกหมื่นจิต', icon: '✨', shape: 'linked_votive_network', role: 'TEAM_SUPPORT',
+      primary: '#f4d35e', secondary: '#71e0cf', accent: '#fffdf4', descTh: 'จุดศรัทธาผูกถึงผู้ร่วมรบที่ได้รับผลจริงด้วยเส้นแสงและตราคุ้มครองรายคน'
+    },
+    sig_mountain_river_scroll: {
+      id: 'sig_mountain_river_scroll', nameTh: 'ภาพม้วนขุนเขาแม่น้ำพันลี้', icon: '🏞️', shape: 'landscape_scroll_expansion', role: 'DOMAIN_CONTROL',
+      primary: '#d4a373', secondary: '#4d908e', accent: '#fefae0', descTh: 'ม้วนภาพหยกคลี่ออก เผยชั้นภูผาและธารหมึกที่กักขังพื้นที่รอบเป้าหมาย'
+    },
+    sig_seven_emotion_mirage: {
+      id: 'sig_seven_emotion_mirage', nameTh: 'มายาฝันเจ็ดอารมณ์', icon: '🎭', shape: 'seven_emotion_mask_orbit', role: 'DEBUFF',
+      primary: '#bc6c8e', secondary: '#7868e6', accent: '#f7ede2', descTh: 'หน้ากากมายาเจ็ดอารมณ์โคจรรอบจิตเป้าหมาย ก่อนยุบรวมเป็นตราฝัน'
+    },
+    sig_mind_blade_flash: {
+      id: 'sig_mind_blade_flash', nameTh: 'ประกายกระบี่จิตทะลวงเนตร', icon: '🗡️', shape: 'psychic_mind_blade', role: 'OFFENSE',
+      primary: '#e9ecef', secondary: '#74c0fc', accent: '#c77dff', descTh: 'แนวสายตากระจ่างวาบก่อนกระบี่จิตเล่มเดียวพุ่งตรงทะลวงจุดหมาย'
+    },
+    sig_myriad_beast_pack: {
+      id: 'sig_myriad_beast_pack', nameTh: 'ฝูงอสูรขย้ำสังหารหมู่', icon: '🐾', shape: 'beast_pack_pounce', role: 'OFFENSE',
+      primary: '#c77d3e', secondary: '#9ccf70', accent: '#fff0c2', descTh: 'เงาฝูงอสูรหลายทิศล้อมเป้าหมาย ก่อนรอยเขี้ยวและฝ่าเท้าจะพุ่งเข้าพร้อมกัน'
+    },
+    sig_gu_insect_swarm: {
+      id: 'sig_gu_insect_swarm', nameTh: 'วังวนฝูงแมลงกู่กลืนปราณ', icon: '🪲', shape: 'gu_insect_spiral', role: 'DEBUFF',
+      primary: '#6abf69', secondary: '#f72585', accent: '#e2ffbf', descTh: 'ฝูงแมลงกู่เป็นจุดปีกเล็กหมุนเป็นเกลียวปกคลุมชีพจรและกัดกร่อนปราณ'
+    },
+    sig_iron_thorn_vine_bind: {
+      id: 'sig_iron_thorn_vine_bind', nameTh: 'เถาวัลย์หนามเหล็กพันธนาการ', icon: '🌿', shape: 'iron_thorn_vine_lattice', role: 'CONTROL',
+      primary: '#738b43', secondary: '#c1121f', accent: '#e9edc9', descTh: 'เถาวัลย์เหล็กไขว้รัดจากพื้นพร้อมหนามล็อกข้อต่อ ไม่ซ้ำกับภาพบัวหรือหมอกพิษ'
+    },
+    sig_arena_crowd_roar: {
+      id: 'sig_arena_crowd_roar', nameTh: 'สังเวียนกึกก้องเสียงเชียร์', icon: '🏟️', shape: 'arena_crowd_roar', role: 'COMBAT_SUPPORT',
+      primary: '#f77f00', secondary: '#e9c46a', accent: '#fff3b0', descTh: 'แนวอัฒจันทร์โค้งล้อมวงประลอง ปล่อยคลื่นเสียงเชียร์เป็นจังหวะหนุนหมัดเด็ด'
     }
   };
   SK.SIGNATURE_VFX_CATALOG.sig_divine_crucible_forge = {
@@ -2311,7 +2371,25 @@
     DEF_MYRIAD_SWORD_CURTAIN_T3: 'sig_meteor_sword_rain',
     DEF_TAIJI_STAR_SHIFT_T3: 'sig_taiji_yin_yang_crush',
     DEF_FIVE_ELEMENT_THORN_T4: 'sig_blazing_dragon_wave',
-    SUP_GOLDEN_NEEDLE_MERIDIAN_T3: 'sig_shennong_emerald_lotus'
+    SUP_GOLDEN_NEEDLE_MERIDIAN_T3: 'sig_shennong_emerald_lotus',
+
+    // JS2-v2.6.0 additions: selected techniques had no explicit or fallback
+    // Signature VFX in the baseline catalog; see docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md.
+    ART190_XIAN_016: 'sig_bamboo_reed_sword',
+    ART190_XIAN_028: 'sig_magnetic_arsenal_draw',
+    ART190_BODY_008: 'sig_iron_rhino_ramming',
+    ART190_BODY_025: 'sig_eightfold_earthquake',
+    ART190_BODY_035: 'sig_twin_thunder_hammers',
+    ART190_GOD_007: 'sig_divine_bell_mind_ripple',
+    ART190_GOD_024: 'sig_primordial_stone_tortoise',
+    ART190_GOD_035: 'sig_thousand_faith_link',
+    ART_V112_SOUL_MOUNTAIN_RIVER_SCROLL_T4: 'sig_mountain_river_scroll',
+    ART_V112_SOUL_SEVEN_EMOTION_MIRAGE_T4: 'sig_seven_emotion_mirage',
+    ART_V112_SOUL_MIND_BLADE_FLASH_T3: 'sig_mind_blade_flash',
+    ART_BEAST_SOV_003: 'sig_myriad_beast_pack',
+    ART_BEAST_SOV_006: 'sig_gu_insect_swarm',
+    TECH_V200_SPIRIT_HUSBANDRY_ACT_02: 'sig_iron_thorn_vine_bind',
+    TECH_V200_ARENA_GLORY_ACT_03: 'sig_arena_crowd_roar'
   };
 
   SK.resolveSignatureVfx = (techOrMove, moveOpt) => {

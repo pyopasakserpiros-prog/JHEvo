@@ -6160,6 +6160,15 @@
         accent: '#ffffff'
       };
       const rot = reduced ? 0 : p * Math.PI * 2;
+      const phase = reduced ? 0.5 : p;
+      const strokePoints = (points, close = false) => {
+        ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        if (close) ctx.closePath(); ctx.stroke();
+      };
+      const fillPoints = points => {
+        ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        ctx.closePath(); ctx.fill();
+      };
 
       ctx.save();
       // Ground impact aura ring
@@ -6619,6 +6628,190 @@
           }
           ctx.fillStyle = spec.accent;
           ctx.fillRect(-2.2, -20, 4.4, 16);
+          break;
+        }
+        case 'sig_bamboo_reed_sword': {
+          // Three flexible culms receive the strike, then loose jade leaves cut back.
+          ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.2;
+          for (let i = -1; i <= 1; i++) {
+            const bx = i * r * 0.36, sway = i * 4 + (reduced ? 0 : Math.sin(p * Math.PI * 2) * 3);
+            ctx.strokeStyle = i === 0 ? spec.primary : spec.secondary;
+            ctx.beginPath(); ctx.moveTo(bx - sway * 0.35, 12); ctx.quadraticCurveTo(bx + sway, -2, bx - sway * 0.25, -21); ctx.stroke();
+            for (let leaf = 0; leaf < 3; leaf++) {
+              const ly = 4 - leaf * 7, lx = bx + sway * (leaf / 3);
+              ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lx + (leaf % 2 ? -8 : 8), ly - 2, lx + (leaf % 2 ? -11 : 11), ly - 7); ctx.stroke();
+            }
+          }
+          ctx.fillStyle = spec.accent; ctx.beginPath(); ctx.arc(0, -20, 2.1, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'sig_magnetic_arsenal_draw': {
+          // Floating blades are visibly pulled inward to a horseshoe magnet core.
+          ctx.lineCap = 'round'; ctx.strokeStyle = spec.secondary; ctx.lineWidth = 2.3;
+          ctx.beginPath(); ctx.moveTo(-5, -10); ctx.lineTo(-5, 1); ctx.quadraticCurveTo(0, 8, 5, 1); ctx.lineTo(5, -10); ctx.stroke();
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.5;
+          for (let i = 0; i < 4; i++) {
+            const a = i * Math.PI / 2 + phase * 0.18, ox = Math.cos(a) * r * 0.9, oy = -5 + Math.sin(a) * r * 0.45;
+            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox * 0.48, oy * 0.42 - 3); ctx.stroke();
+            ctx.save(); ctx.translate(ox, oy); ctx.rotate(a + Math.PI / 2);
+            strokePoints([[-2, 4], [0, -5], [2, 4]]); ctx.beginPath(); ctx.moveTo(-3, 1); ctx.lineTo(3, 1); ctx.stroke(); ctx.restore();
+          }
+          ctx.fillStyle = spec.accent; ctx.beginPath(); ctx.arc(0, -2, 2.6, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'sig_iron_rhino_ramming': {
+          // A lowered horn and plated brow form a single forward-rushing rhino mask.
+          ctx.lineJoin = 'round'; ctx.fillStyle = spec.primary;
+          fillPoints([[-13, -8], [-8, -16], [-3, -11], [3, -11], [9, -16], [14, -7], [9, 1], [4, 1], [0, 13], [-4, 1], [-10, 1]]);
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth = 2.4;
+          strokePoints([[-1, -10], [0, -23], [5, -17]]);
+          strokePoints([[-9, -6], [-15, -12], [-12, -1]]); strokePoints([[9, -6], [15, -12], [12, -1]]);
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.6;
+          for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-r * 0.8, 8 + i * 3); ctx.lineTo(-r * 0.35, 8 + i * 3); ctx.moveTo(r * 0.8, 8 + i * 3); ctx.lineTo(r * 0.35, 8 + i * 3); ctx.stroke(); }
+          break;
+        }
+        case 'sig_eightfold_earthquake': {
+          // Eight separated fault lines break outward from a heavy ground impact.
+          ctx.lineWidth = 2; ctx.strokeStyle = spec.secondary;
+          for (let ring = 0; ring < 3; ring++) {
+            const radius = r * (0.36 + ring * 0.28), yScale = 0.46;
+            ctx.beginPath();
+            for (let i = 0; i <= 8; i++) { const a = (i * Math.PI / 4) + Math.PI / 8; const x = Math.cos(a) * radius, y = 5 + Math.sin(a) * radius * yScale; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+            ctx.stroke();
+          }
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.8;
+          for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; const x = Math.cos(a), y = Math.sin(a) * 0.46;
+            ctx.beginPath(); ctx.moveTo(x * r * 0.18, 5 + y * r * 0.18); ctx.lineTo(x * r * 0.48, 5 + y * r * 0.48); ctx.lineTo(x * r * 0.57, 5 + y * r * 0.41); ctx.lineTo(x * r * 0.86, 5 + y * r * 0.86); ctx.stroke(); }
+          ctx.fillStyle = spec.accent; ctx.fillRect(-4, -1, 8, 5);
+          break;
+        }
+        case 'sig_twin_thunder_hammers': {
+          // Twin hammer heads land on one anvil line; no single polearm silhouette.
+          ctx.lineCap = 'square'; ctx.strokeStyle = spec.secondary; ctx.lineWidth = 2.6;
+          strokePoints([[-13, -18], [-5, -12], [-2, -2]]); strokePoints([[13, -18], [5, -12], [2, -2]]);
+          ctx.fillStyle = spec.primary;
+          fillPoints([[-19, -21], [-8, -21], [-7, -15], [-20, -15]]); fillPoints([[8, -21], [19, -21], [20, -15], [7, -15]]);
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(-15, 2); ctx.lineTo(15, 2); ctx.lineTo(11, 7); ctx.lineTo(-11, 7); ctx.closePath(); ctx.stroke();
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.5;
+          for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 4, -3 + Math.sin(a) * 3); ctx.lineTo(Math.cos(a) * 10, -3 + Math.sin(a) * 7); ctx.stroke(); }
+          break;
+        }
+        case 'sig_divine_bell_mind_ripple': {
+          // Hanging bell with an audible clapper; outward crescents distinguish it from a dome ward.
+          ctx.lineCap = 'round'; ctx.strokeStyle = spec.primary; ctx.lineWidth = 2.3;
+          ctx.beginPath(); ctx.moveTo(-3, -20); ctx.arc(0, -20, 3, Math.PI, 0); ctx.lineTo(3, -17); ctx.quadraticCurveTo(4, -12, 8, -5); ctx.lineTo(-8, -5); ctx.quadraticCurveTo(-4, -12, -3, -17); ctx.closePath(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-10, -4); ctx.lineTo(10, -4); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(0, 0); ctx.stroke();
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth = 1.6;
+          for (let i = 0; i < 3; i++) { const radius = 12 + i * 5; ctx.beginPath(); ctx.arc(0, -8, radius, 0.68, 2.46); ctx.stroke(); ctx.beginPath(); ctx.arc(0, -8, radius, 3.82, 5.60); ctx.stroke(); }
+          ctx.fillStyle = spec.accent; ctx.beginPath(); ctx.arc(0, 1, 2, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'sig_primordial_stone_tortoise': {
+          // Hex-plated carapace sits low over four load-bearing stone legs.
+          ctx.fillStyle = spec.primary; ctx.strokeStyle = spec.secondary; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.ellipse(0, -5, r * 0.76, r * 0.39, 0, Math.PI, Math.PI * 2); ctx.lineTo(r * 0.76, -5); ctx.ellipse(0, -5, r * 0.76, r * 0.39, 0, 0, Math.PI); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.2;
+          strokePoints([[-12, -7], [-7, -14], [0, -15], [7, -14], [12, -7], [7, -1], [0, 0], [-7, -1]], true);
+          strokePoints([[-7, -14], [-6, -6], [0, 0], [6, -6], [7, -14]]);
+          ctx.fillStyle = spec.primary; fillPoints([[-12, -3], [-18, -1], [-19, 4], [-10, 4]]); fillPoints([[12, -3], [18, -1], [19, 4], [10, 4]]);
+          fillPoints([[-9, 1], [-14, 5], [-12, 9], [-5, 4]]); fillPoints([[9, 1], [14, 5], [12, 9], [5, 4]]);
+          ctx.fillStyle = spec.secondary; fillPoints([[0, -7], [r * 0.92, -9], [r * 1.05, -5], [r * 0.84, -1]]);
+          break;
+        }
+        case 'sig_thousand_faith_link': {
+          // Connect only actual recipients saved by combat; local points are the fallback glyphs.
+          const recipients = Array.isArray(fx.targetPoints) ? fx.targetPoints.filter(point => point && Number.isFinite(point.x) && Number.isFinite(point.y)).slice(0, 8) : [];
+          const nodes = recipients.map(point => ({ x: point.x - fx.x, y: point.y - fx.y + 7, team: point.team !== false }));
+          if (!nodes.length) for (let i = 0; i < 7; i++) { const a = i * Math.PI * 2 / 7 - Math.PI / 2; nodes.push({ x: Math.cos(a) * r * 0.82, y: -4 + Math.sin(a) * r * 0.42, team: true }); }
+          ctx.lineCap = 'round'; ctx.globalAlpha *= 0.9; ctx.lineWidth = 2.8; ctx.strokeStyle = spec.secondary;
+          nodes.forEach((node, i) => { if (i === 0) return; ctx.beginPath(); ctx.moveTo(nodes[0].x, nodes[0].y); ctx.lineTo(node.x, node.y); ctx.stroke(); });
+          for (const [i, node] of nodes.entries()) {
+            ctx.strokeStyle = node.team ? spec.accent : '#ffd0dd'; ctx.fillStyle = node.team ? spec.primary : '#ff718f'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(node.x, node.y, i === 0 ? 7.5 : 5.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(node.x, node.y - 4.1); ctx.lineTo(node.x + 4.1, node.y); ctx.lineTo(node.x, node.y + 4.1); ctx.lineTo(node.x - 4.1, node.y); ctx.closePath(); ctx.fill(); ctx.stroke();
+          }
+          break;
+        }
+        case 'sig_mountain_river_scroll': {
+          // Rolled ends frame inked peaks and a winding water line across a landscape scroll.
+          ctx.fillStyle = spec.primary; ctx.fillRect(-r * 0.78, -16, r * 1.56, 30);
+          ctx.fillStyle = spec.accent; ctx.fillRect(-r * 0.68, -13, r * 1.36, 24);
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(-r * 0.66, 5); ctx.lineTo(-r * 0.37, -7); ctx.lineTo(-r * 0.18, 1); ctx.lineTo(r * 0.05, -11); ctx.lineTo(r * 0.35, 4); ctx.lineTo(r * 0.58, -3); ctx.stroke();
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.7;
+          ctx.beginPath(); ctx.moveTo(-r * 0.58, 9); ctx.bezierCurveTo(-r * 0.24, 2, -r * 0.06, 13, r * 0.12, 5); ctx.bezierCurveTo(r * 0.26, -1, r * 0.39, 7, r * 0.62, 1); ctx.stroke();
+          ctx.fillStyle = spec.secondary; ctx.fillRect(-r * 0.84, -18, 4, 34); ctx.fillRect(r * 0.76, -18, 4, 34);
+          break;
+        }
+        case 'sig_seven_emotion_mirage': {
+          // Seven dream masks, each with a distinct eye pair and turning mouth.
+          for (let i = 0; i < 7; i++) {
+            const a = i * Math.PI * 2 / 7 + rot * 0.14, x = Math.cos(a) * r * 0.72, y = -5 + Math.sin(a) * r * 0.38;
+            ctx.save(); ctx.translate(x, y); ctx.rotate(a + Math.PI / 2);
+            ctx.strokeStyle = i % 2 ? spec.primary : spec.secondary; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.ellipse(0, 0, 4.8, 5.5, 0, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = spec.accent; ctx.fillRect(-2.7, -1.2, 1.4, 1.4); ctx.fillRect(1.3, -1.2, 1.4, 1.4);
+            ctx.beginPath(); ctx.moveTo(-1.8, 2.2); ctx.quadraticCurveTo(0, i % 2 ? 4 : 1, 1.8, 2.2); ctx.stroke(); ctx.restore();
+          }
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, -5, r * 0.28, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'sig_mind_blade_flash': {
+          // One telekinetic blade crosses a focused eye-line; no rain or weapon barrage.
+          ctx.rotate((Number.isFinite(fx.angle) ? fx.angle : 0) - 0.38);
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(-r * 0.52, -6, r * 0.35, -0.8, 0.8); ctx.stroke();
+          ctx.fillStyle = spec.primary; fillPoints([[-r * 0.68, 5], [r * 0.72, -13], [r * 0.45, -5], [-r * 0.68, 5]]);
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.7; strokePoints([[-r * 0.68, 5], [r * 0.72, -13], [r * 0.45, -5]]);
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-r * 0.94, 10); ctx.lineTo(-r * 0.66, 5); ctx.moveTo(-r * 0.82, 13); ctx.lineTo(-r * 0.54, 8); ctx.stroke();
+          break;
+        }
+        case 'sig_myriad_beast_pack': {
+          // Four independent beast heads close a hunting ring, unlike one claw swipe or one totem.
+          for (let i = 0; i < 4; i++) {
+            const a = i * Math.PI / 2 + rot * 0.12, x = Math.cos(a) * r * 0.72, y = -4 + Math.sin(a) * r * 0.34;
+            ctx.save(); ctx.translate(x, y); ctx.rotate(a + Math.PI / 2);
+            ctx.fillStyle = i % 2 ? spec.secondary : spec.primary;
+            fillPoints([[-5, -3], [-4, -7], [-1, -4], [2, -5], [5, -7], [5, -2], [2, 4], [-2, 4]]);
+            ctx.strokeStyle = spec.accent; ctx.lineWidth = 1; strokePoints([[-2, 0], [-1, 2]]); strokePoints([[2, 0], [1, 2]]);
+            ctx.restore();
+          }
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.4;
+          for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.58, -4 + Math.sin(a) * r * 0.28); ctx.lineTo(Math.cos(a) * r * 0.18, -4 + Math.sin(a) * r * 0.09); ctx.stroke(); }
+          break;
+        }
+        case 'sig_gu_insect_swarm': {
+          // A coil of tiny winged bodies reads as a swarm, not as the older serpent miasma.
+          ctx.strokeStyle = spec.secondary; ctx.lineWidth = 1.3;
+          ctx.beginPath(); for (let i = 0; i <= 28; i++) { const a = i * Math.PI / 7, d = r * (0.14 + i / 28 * 0.82), x = Math.cos(a) * d, y = -5 + Math.sin(a) * d * 0.44; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
+          for (let i = 0; i < 12; i++) {
+            const a = i * Math.PI * 2 / 12 + phase * 0.12, d = r * (0.33 + (i % 3) * 0.13), x = Math.cos(a) * d, y = -5 + Math.sin(a) * d * 0.46;
+            ctx.fillStyle = i % 3 ? spec.primary : spec.accent; ctx.beginPath(); ctx.ellipse(x, y, 2.1, 1.2, a, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = spec.secondary; ctx.beginPath(); ctx.moveTo(x - 2, y - 1); ctx.lineTo(x - 4, y - 3); ctx.moveTo(x + 2, y - 1); ctx.lineTo(x + 4, y - 3); ctx.stroke();
+          }
+          break;
+        }
+        case 'sig_iron_thorn_vine_bind': {
+          // Three cross-woven stems cinch around the target, with hooked iron thorns.
+          ctx.lineCap = 'round'; ctx.lineWidth = 2.1;
+          for (let i = -1; i <= 1; i++) {
+            ctx.strokeStyle = i ? spec.primary : spec.secondary; const y = i * 6;
+            ctx.beginPath(); ctx.moveTo(-r * 0.86, y + 8); ctx.bezierCurveTo(-r * 0.35, y - 16, r * 0.18, y + 16, r * 0.84, y - 6); ctx.stroke();
+            for (const x of [-r * 0.5, 0, r * 0.48]) { ctx.beginPath(); ctx.moveTo(x, y + (x < 0 ? -1 : 1)); ctx.lineTo(x + (x < 0 ? 5 : -5), y - 5); ctx.lineTo(x + (x < 0 ? 4 : -4), y + 1); ctx.stroke(); }
+          }
+          ctx.strokeStyle = spec.accent; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(0, 0, r * 0.38, r * 0.24, 0, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'sig_arena_crowd_roar': {
+          // Bowl-shaped stands and audience beats push a visible roar toward the arena floor.
+          ctx.lineWidth = 2; ctx.strokeStyle = spec.secondary;
+          for (let row = 0; row < 3; row++) { ctx.beginPath(); ctx.arc(0, 7, r * (0.72 + row * 0.2), Math.PI * 1.18, Math.PI * 1.82); ctx.stroke(); }
+          for (let i = 0; i < 9; i++) {
+            const x = (i - 4) * r * 0.18, y = -6 - Math.abs(i - 4) * 1.5;
+            ctx.fillStyle = i % 2 ? spec.primary : spec.accent; ctx.beginPath(); ctx.arc(x, y, 1.8, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = spec.secondary; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(x, y + 2); ctx.lineTo(x, y + 5); ctx.stroke();
+          }
+          ctx.strokeStyle = spec.primary; ctx.lineWidth = 1.8;
+          for (let i = 0; i < 3; i++) { const y = -1 + i * 4; ctx.beginPath(); ctx.moveTo(-r * 0.46, y); ctx.quadraticCurveTo(0, y + (i - 1) * 2, r * 0.46, y); ctx.stroke(); }
           break;
         }
         case 'sig_immortal_crane_feather_storm':

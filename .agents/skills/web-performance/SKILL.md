@@ -103,3 +103,8 @@ node test/inventory_grid_ui_suite.js
 - `drawWeaponMotionVfx` uses no gradients, images, random values or persistent particle allocation. Its maximum families draw at most 8 rays/beads per active effect; Low and Reduced Motion use 4 ticks or fewer/static orientation.
 - Named Legendary Art does not draw a second weapon flourish. Non-legendary Signature gets one restrained family layer; ordinary casts replace the common crescent with one weapon-family motif. Visual work is limited to existing visible/current cast effects.
 - `test/weapon_motion_vfx_suite.js` validates low/reduced geometry path and pure read-only rendering; `test/weapon_motion_vfx_browser.js` verifies actual Canvas pixels. These checks do not certify FPS on physical low-end phones; use `browser_mobile_perf.js` for current browser timing.
+
+## JS2-v2.6.0 Signature VFX expansion
+- `drawSignatureSkillVfx` now has 45 authored technique signatures. A cast still renders one signature inside the existing `castActive` queue capped at 24; the team faith motif links at most the eight recipient points already captured by combat.
+- The 15 new forms use Canvas paths only, allocate no persistent particles and read no simulation RNG. Reduced Motion fixes ornament phases; low-end physical-device FPS is not certified by catalog pixel tests.
+- Compare [`docs/visuals/skill-vfx-expansion/skill-vfx-gallery.png`](../../../docs/visuals/skill-vfx-expansion/skill-vfx-gallery.png). The suite `test/signature_vfx_catalog_browser_audit.js` pixel-tests all 45 signatures and actual-recipient network variation.

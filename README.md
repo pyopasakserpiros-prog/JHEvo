@@ -7,6 +7,7 @@
 > - **การรายงาน 12 รูปแบบ (`EXPED.presentChronicleEntry`)**: พาดหัว ➔ บทนำตามน้ำเสียง ➔ จุดเปลี่ยน/เหตุและผล ➔ ผลกระทบ/สิ่งที่น่าติดตาม ➔ ลิ้นชักตัวเลขและ Snapshot ที่อธิบายความหมายในเกมจริง พร้อมป้ายความน่าเชื่อถือ (`VERIFIED` / `OBSERVED` / `RUMOR`)
 > - **สมุดสรุปสถานการณ์สำนักประจำรอบ 1/7/30 วัน (`EXPED.computePeriodDigest`) & เส้นเรื่องต่อเนื่อง (`EXPED.getStoryThreads`)**: แยกปริมาณคงคลัง, กระแสศิลาวิญญาณรับ–จ่ายภายนอก, การโอนภายในสำนัก, และรายการเสกของผู้เล่นออกจากกันอย่างเด็ดขาด ไม่บวกซ้ำ
 > - **แยกตั้งค่าการรับข่าว (`W.sect.newsPrefs`) ออกจากตัวกรองค้นอ่านคลังประวัติ (`UI.logFilters`)**: มี 5 โหมดสำเร็จรูป (`ALL`, `MAJOR_ONLY`, `SECT_FOCUS`, `TRACKED_ONLY`, `QUIET_DIGEST`), นโยบายข่าววิกฤต 3 ระดับ, ปักหมุดศิษย์คนสำคัญ, สถานะอ่านแล้ว/ยังไม่อ่าน, และการคุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง (`Milestone-Protected Retention`)
+> - **VFX refinement บน main v2.6.0:** 15 ลายวิชาใหม่ รวม Signature เป็น 45 แบบ พร้อมทะเบียนชื่อวิชา/ID/ลายและภาพเทียบครบ 45 แบบ ดู [รายงาน](PATCH_REPORTS/SKILL_VFX_EXPANSION_JS2_V2_6_0.md) และ [ทะเบียนป้องกันงานซ้ำ](docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md)
 
 > **ฐานภาพจาก `JS2-v2.5.0` ที่รักษาไว้ครบถ้วน:**
 > - **All Equipment Tier Art:** atlas ภาพไอเท็ม 9 แผ่น / 576 ช่อง; ภาพ T1–T7 ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา ดู [รายงาน](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md)
@@ -21,6 +22,7 @@
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:** 
+- [SKILL_VFX_EXPANSION_JS2_V2_6_0.md](PATCH_REPORTS/SKILL_VFX_EXPANSION_JS2_V2_6_0.md) (refinement บน main v2.6.0: 15 ลายใหม่, Signature 45 แบบ, มีทะเบียน mapping และภาพเทียบ)
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) (`JS2-v2.6.0`: พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว — 148/148 กลุ่มทดสอบผ่าน 100%)
 - [WEAPON_MOTION_VFX_JS2_V2_5_0.md](PATCH_REPORTS/WEAPON_MOTION_VFX_JS2_V2_5_0.md) (`JS2-v2.5.0` VFX refinement on v2.6.0 main: 17 ตระกูลอาวุธ, หลายเป้าหมาย, ออร่าบัฟผู้รับ)
 - [ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md) (`JS2-v2.5.0`: All Equipment Tier Art 9 แผ่น / 576 ช่อง)

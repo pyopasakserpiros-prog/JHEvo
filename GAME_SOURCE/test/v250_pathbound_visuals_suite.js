@@ -249,7 +249,7 @@ globalThis.window = globalThis.window || {
   // -------------------------------------------------------------------------
   const vfxCatalog = SK.SIGNATURE_VFX_CATALOG;
   const vfxKeys = Object.keys(vfxCatalog);
-  assert.strictEqual(vfxKeys.length, 30, `Expected 30 entries in SK.SIGNATURE_VFX_CATALOG, got ${vfxKeys.length}`);
+  assert.strictEqual(vfxKeys.length, 45, `Expected 45 entries in SK.SIGNATURE_VFX_CATALOG, got ${vfxKeys.length}`);
 
   // Verify every catalog entry renders cleanly with balanced context
   for (const sigId of vfxKeys) {
@@ -281,7 +281,7 @@ globalThis.window = globalThis.window || {
       `Path ${pid} must have at least 4 real active techniques with resolved signature VFX (found ${resolvedTechs.length})`
     );
   }
-  console.log('  ✓ [2/5] P1: All 30 Signature Skill VFX Specs & 43/43 Path High-Tier Technique Mappings Verified');
+  console.log('  ✓ [2/5] P1: All 45 Signature Skill VFX Specs & 43/43 Path High-Tier Technique Mappings Verified');
 
   // -------------------------------------------------------------------------
   // 3. End-to-End Combat Activation -> castFx -> Render Ingestion & Drawing

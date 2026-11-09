@@ -499,3 +499,8 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 - Add bounded `targetPoints` from combat resolution for self, single/area heals, team support, mixed command attacks, and area strikes. Team tint comes from `COMBAT.isAlly`, not the broad NPC `foe` property. Command keeps the enemy as its primary visual while marking friendly recipients.
 - Persistent passive/mantra/path/equipment auras remain attached to their owner. Active positive combat statuses may add a small owner-bound aura while `until > W.t`; read snapshots directly and never call mutating status purge helpers from rendering.
 - No new timers, save schema, or gameplay state. Run `test/skill_visual_events.js`, `test/weapon_motion_vfx_suite.js`, and `test/weapon_motion_vfx_browser.js` for target routing and read-only visual behavior.
+
+## JS2-v2.6.0 Skill VFX catalog extension
+- Signature catalog grew from 30 to 45 Canvas shapes and from 241 to 256 direct technique mappings. New techniques are assigned only after auditing their current resolver result and any object-based child move definitions.
+- Combat remains the source of truth for cast anchor, team and actual recipients. The renderer reads the existing event; the faith network draws links from the actual recipient snapshot (bounded at eight units). No combat state or save schema was added.
+- See [`docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md`](../../../docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md) for exact mappings and do-not-repeat motifs, and `test/skill_vfx_expansion_suite.js` plus `test/signature_vfx_catalog_browser_audit.js` for producer-to-render checks.

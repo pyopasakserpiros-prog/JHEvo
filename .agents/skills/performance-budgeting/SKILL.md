@@ -83,4 +83,4 @@ node test/long_simulation.js
 
 ## Patch JS2-v2.5.0 Baseline & Render Purity Verification
 - `SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'`.
-- All 43 path halos (`drawCultivatorRealmHalo`), motes (`drawPathSignatureMotes`), and 30 signature skill VFX (`drawSignatureSkillVfx`) are 100% pure read-only functions that never touch `W.rng`, never mutate `npc` state (`apCache` is stored on the renderer instance), and preserve 80-NPC tick performance (`~0.64 ms/tick`, budget `<= 3.5 ms/tick`).
+- All 43 path halos (`drawCultivatorRealmHalo`), motes (`drawPathSignatureMotes`), and current 45 signature skill VFX (`drawSignatureSkillVfx`) are pure read-only functions that never touch `W.rng` or mutate `npc` state (`apCache` is stored on the renderer instance). Historical timing measurements are not a current benchmark guarantee; use `test/browser_mobile_perf.js` for the current environment and the `<= 3.5 ms/tick` 80-NPC budget.

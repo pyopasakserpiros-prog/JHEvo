@@ -150,3 +150,9 @@ Earlier claims of 97/97 are historical and do not establish the status of the cu
 - Updated `GAME_SOURCE/tools/cdp_playwright.js` (`bundleFileUrlHtml`) to inline `assets/item_art_*.webp` as data URIs when `Page.setDocumentContent` is used on `file://` URLs, and synced `n.px = n.x; n.py = n.y;` in `SIM.placeNear` (`js/sim.js`).
 - Total registered test groups in `test/run_all.js` and `tools/run_parallel_tests.js`: **148 groups** (**147 test suites** + **1 syntax check group** across 225 JS files), including all Chromium browser suites.
 - Latest `node tools/run_parallel_tests.js` result: **`SUMMARY {"total":148,"pass":148,"fail":0,"timeout":0} syntaxFiles=225`**.
+
+## JS2-v2.6.0 main Skill VFX regression coverage
+- Registered `test/skill_vfx_expansion_suite.js` before the Signature browser audit. It verifies 15 exact new technique assignments, baseline no-effect results for parent/object-based child moves, real combat cast routing, and a friendly multi-recipient cast.
+- `test/signature_vfx_catalog_browser_audit.js` now expects 45 Signature forms, checks all pixel hashes remain unique, retains all 43 path-crown checks, and compares a single-recipient faith cast against its actual multi-recipient drawing.
+- Run these with `test/skill_visual_events.js`, `test/weapon_motion_vfx_suite.js`, `test/weapon_motion_vfx_browser.js`, the full test runner, schema validation and standalone build. A pixel-distinct gallery does not certify physical-device FPS.
+- Latest parallel result: `152 groups, 150 pass, 1 fail, 1 timeout` across 151 suites + syntax (229 files). `browser_mobile_perf` was the variable failure (8× backlog 18.73 vs <16) but passed on isolated retry (1.4 ms/tick / 178.6× cap); `startup_ui` still times out because startup-overlay content intercepts pointer clicks. Do not attribute either browser-only result to Signature VFX without a reproduction.

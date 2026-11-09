@@ -165,6 +165,12 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 ## JS2-v2.5.0 Weapon Motion VFX refinement (2026-11-09)
 - `Render.WEAPON_MOTION_VFX` / `Render.methods.drawWeaponMotionVfx(ctx, fx, p, r, reduced, intensity)` provide 17 distinct ordinary-weapon motion forms (Sword, Blade, Spear, Fist, Bow, Staff, Focus, Dagger, Zither, Brush, Whip, Rosary, Claw, Needle, Fan, Astrolabe, Abacus).
 - `drawCastEffects` uses the family form for regular casts, layers a subtle family flourish under non-legendary Signature forms, and preserves the legendary-first route. Do not route a named legend through the ordinary weapon renderer.
+
+## JS2-v2.6.0 Skill Signature VFX expansion
+- The Signature catalog now has 45 distinct Canvas forms, including 15 newly authored technique motifs. They are not per-item images; each actual technique ID routes through `SK.TECH_TO_SIGNATURE_VFX` into `drawSignatureSkillVfx`.
+- The faith-network shape links only actual `castFx.targetPoints`. Existing markers still show ally/enemy identity for resolved additional recipients; do not infer target side from the visual name. Cast signatures remain brief, while persistent status auras stay attached to affected characters.
+- The full mapping, source technique names, target notes, no-duplicate baseline audit and visual gallery are in [`SKILL_VFX_ASSIGNMENT_REGISTRY.md`](../../../docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md) and [`skill-vfx-gallery.png`](../../../docs/visuals/skill-vfx-expansion/skill-vfx-gallery.png).
+- All 45 catalog forms remain pixel-distinct in the browser audit. Reduced Motion fixes decorative movement without changing the cast target or gameplay state.
 - Canvas vectors are static/deterministic, tier affects visual scale only, low quality reduces tick/bead detail and reduced motion freezes decorative rotation. The active queue remains capped at 24.
 - `castFx` carries a snapshot of usable equipment family (otherwise technique weapon family, then `FIST`), technique tier/arch and origin tile. Effects render at the recorded target; orientation runs from cast origin to target. Support/self-target events keep their recorded recipient anchor.
 - Multi-target casts also carry up to eight resolved recipient points. Healing/team buffs draw distinct ally marks, mixed command/strike visuals retain the enemy as the primary image while marking allies, and area attacks mark each selected enemy. Persistent cultivator auras remain attached to their owner.

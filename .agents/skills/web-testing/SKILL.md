@@ -114,3 +114,8 @@ When full browser layout, computed CSS styles (`getBoundingClientRect()`), Canva
 - `test/weapon_motion_vfx_suite.js`: asserts all 17 renderer families produce distinct geometry under High/Low and Full/Reduced Motion, snapshots real combat weapon/tier/origin metadata, validates orientation and `ctx.save/restore`, checks save/RNG purity and legendary route precedence.
 - `test/weapon_motion_vfx_browser.js`: boots the actual game in Chromium, checks pixel uniqueness for the 17 family silhouettes, ingests a real-format cast snapshot and verifies no page errors or world/RNG mutation. It writes `/tmp/weapon-motion-vfx-gallery.png` by default; set `WEAPON_VFX_GALLERY` to choose another output path.
 - The browser suite auto-selects `/usr/bin/chromium` where present. If `file://` is blocked, start an HTTP server from `GAME_SOURCE/` and set `BROWSER_TEST_BASE_URL=http://127.0.0.1:8765`.
+
+## JS2-v2.6.0 Skill Signature VFX regression coverage
+- `test/skill_vfx_expansion_suite.js`: verifies the 15 exact technique-to-shape assignments, temporarily removes each new mapping to confirm the prior resolver had no parent/child effect, and checks real `COMBAT.attack → castFx` routing. It also checks the faith-link skill snapshots an actual ally.
+- `test/signature_vfx_catalog_browser_audit.js`: updated to test all 45 signature forms for pixel-distinct output, retain the 43 path-crown audit, check that extra real recipient coordinates change the faith network, and report browser page errors. `SIGNATURE_VFX_GALLERY=/absolute/path.png` selects the gallery output.
+- These tests prove the mapped drawing and the tested browser pixels; they do not certify performance on physical low-end devices. Existing browser/mobile performance suites remain the frame-timing checks.

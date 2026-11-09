@@ -337,4 +337,11 @@ node test/v209_facilities_party_synergy_suite.js
 - Active positive statuses continue a small recipient-bound aura while their recorded `until` is in the future. This is visual only and reads existing status snapshots without calling purge/mutation APIs.
 - Audit distinction: passive/mantra/equipment/path auras remain attached to their owning character in the character render pass. Cast recipient markers are short-lived and follow resolved targets; they do not replace or relocate those persistent auras.
 - Named Legendary Art remains ahead of Signature and weapon motion. Non-legendary Signature remains the main image with a restrained weapon flourish; regular casts use the family silhouette instead of the shared default crescent.
+
+## JS2-v2.6.0 main refinement: 45 Skill Signature Motifs
+- Current source has **45** `SK.SIGNATURE_VFX_CATALOG` entries and **256** direct `SK.TECH_TO_SIGNATURE_VFX` mappings (the 30/241 figures above describe the v2.5.0 snapshot). The v2.6.0 main refinement authored 15 shapes for previously uncovered technique IDs.
+- The new mappings cover bamboo parry, magnetic weapon draw, rhino rush, eightfold ground quake, twin thunder hammers, mind-ringing divine bell, stone tortoise, recipient-linked faith network, mountain-river scroll, seven-emotion mirage, mind blade, beast pack, Gu swarm, thorn-vine binding, and arena crowd roar.
+- Read [`docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md`](../../../docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md) before choosing another technique. It records exact IDs, subpaths, prior `null` resolver results and silhouette rules to prevent repeat assignments.
+- Cast location and team membership stay owned by the existing combat event. The faith network uses only the saved `castFx.targetPoints`; the generic marker still shows each actual recipient. Status auras continue on their owner rather than following the cast.
+- Verify `test/skill_vfx_expansion_suite.js` (15 baseline audits plus real cast snapshots) and `test/signature_vfx_catalog_browser_audit.js` (all 45 pixel-distinct forms and 43 path crowns).
 - The queue remains capped at 24; Canvas vectors do not consume combat RNG, wear equipment, or modify damage/status. Verify `test/weapon_motion_vfx_suite.js` and `test/weapon_motion_vfx_browser.js`.
