@@ -9,21 +9,21 @@
 
 - **ภาคปัจจุบัน (Game Franchise Status):** **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
   *(ประวัติ: ภาค 1 วิวัฒนาการจาก ยุค 1 สิ้นสุดที่ `v5.8.0`; ภาค 2 เริ่มต้นนับศักราชใหม่ที่ Season 2 โดยใช้รหัสแพตช์ทางการว่า `JS2-v...` ไม่ใช่การนับเลขถอยหลัง)*
-- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** **`JS2-v2.4.0`** (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 141/141 กลุ่ม!**)
+- **เวอร์ชันฐานปัจจุบัน (Current Baseline):** **`JS2-v2.5.0`** (Pathbound Ascendant Visuals & Signature Arts — 43/43 Path Ascendant Halos at True `maxStage` 4/5/8/9, Multi-Tier Motes & 30 Signature Skill VFX across 241 Mapped Techniques — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 142/142 กลุ่ม [141 ชุดทดสอบ + 1 syntax check]!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (**`JS2-v2.5.0`**: Pathbound Ascendant Visuals & Signature Arts)
+  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (**`JS2-v2.6.0`**: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
 - **🗺️ แผนที่นำทางและคลังไอเดียรวม (Master Roadmap & Composable Mechanics):**
   👉 [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
+  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md) (`JianghuSect 2 v2.5.0` / `JS2-v2.5.0` — Pathbound Ascendant Visuals & Signature Arts)
   - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (`JianghuSect 2 v2.4.0` / `JS2-v2.4.0` Release (1) — ฉบับสมบูรณ์หลังแก้บั๊ก)
-  - [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (`JianghuSect 2 v2.4.0` / `JS2-v2.4.0` Initial — ฉบับก่อนแก้บั๊ก)
 
 ---
 
 ## 🧭 ขั้นตอนการปฏิบัติงานมาตรฐาน 10 ขั้น (10-Step Execution & Daisy-Chain Protocol)
 
 ### ขั้นที่ 1: อ่านใบสั่งงานแพตช์ปัจจุบัน (`ACTIVE_PATCH_PROMPT`)
-1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md)) อย่างละเอียดทุกบรรทัด
+1. เปิดอ่านไฟล์ที่ระบุในหัวข้อ **🔥 ใบสั่งงานแพตช์ปัจจุบัน** ด้านบน ([`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md)) อย่างละเอียดทุกบรรทัด
 2. ตรวจสอบตารางรายการข้อเสนอ (Proposals) เป้าหมาย ไฟล์ที่ต้องแก้ไข และเกณฑ์การผ่านทดสอบ (Acceptance Criteria)
 
 ### ขั้นที่ 2: อ่านภาพรวมสถาปัตยกรรมและกฎเหล็กของโปรเจกต์
@@ -44,7 +44,7 @@
 - แก้ระบบเซฟ/โหลด (`SIM.serialize` / `SIM.deserialize`) ➔ `.agents/skills/save-system-patterns/SKILL.md`
 
 ### ขั้นที่ 4: ลงมือพัฒนาโค้ดตามใบสั่งงาน (100% Complete Code Implementation)
-- ทำงานตามใบสั่งงานปัจจุบัน ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md ให้ครบ โดยทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริงก่อน
+- ทำงานตามใบสั่งงานปัจจุบัน ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md ให้ครบ โดยทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริงก่อน
 - ห้ามตัดทอนโค้ดหรือใส่โค้ดจำลอง (Stub/Placeholder)
 - เชื่อมออร่ากับ renderer และเอฟเฟกต์วิชากับเส้นทางใช้วิชาจริงตามระบบที่มี
 
@@ -68,7 +68,7 @@ cd GAME_SOURCE && node tools/build_single.js
 อัปเดต project_status_and_ai_onboarding.md และสกิลที่ได้รับผลจริง โดยระบุ API, coverage, วิธีทดสอบและข้อจำกัดที่ยืนยันแล้ว ปรับ .agents/skills/README.md หากขอบเขตสกิลเปลี่ยน เพื่อให้ AI ตัวอื่นเข้าใจสถานะเกมล่าสุด
 
 ### ขั้นที่ 9: 🔗 กฎลูกโซ่อัตโนมัติ — สร้างใบสั่งงานแพตช์ถัดไป (The Daisy-Chain Mandate)
-1. หลัง JS2-v2.5.0 เสร็จ ให้ตรวจ project_status_and_ai_onboarding.md และ FUTURE_ROADMAP_AND_IDEAS.md เพื่อเลือกงานถัดไปจากสถานะจริง
+1. หลัง JS2-v2.6.0 เสร็จ ให้ตรวจ project_status_and_ai_onboarding.md และ FUTURE_ROADMAP_AND_IDEAS.md เพื่อเลือกงานถัดไปจากสถานะจริง
 2. สร้างใบสั่งงานแพตช์ถัดไป โดยอ้างซอร์สและผลตรวจจริง ไม่คัดลอก roadmap เก่าที่ขัดกับสถานะปัจจุบัน
 3. อัปเดต Current Pointer ใน START_HERE_FOR_AI.md ให้ชี้ใบสั่งงาน active จริง พร้อมระบุ baseline ที่เพิ่งตรวจเสร็จ
 

@@ -221,3 +221,7 @@ Exterior figures (deputies, successors, prodigies) from foreign sects defecting 
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 การสาบานซ้ำไม่ล้างการละเมิด; พันธสัญญามารคิด 160 ศิลาเมื่อไม่ใช่การชำระผ่านเครื่องบูชา และการทำซ้ำไม่เพิ่ม favor; event key แยกตามชนิด/เหตุการณ์ที่แก้ ยังไม่มีเส้นทางไถ่สัตย์ในรอบนี้ ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Patch JS2-v2.5.0 Additions: 43-Path `maxStage` Visual Equivalence (`js/render.js`, `js/cultivation.js`)
+- All 43 Major Cultivation Paths (`Object.keys(CULT.PATHS)`) use their true `CULT.PATHS[pathId].maxStage` ceiling (`GOD: 4`, `BODY: 5`, `XIAN`/`DEMON`/`HEART_SOUL`: `9`, and the remaining 38 paths: `8`) in `Render.resolveCultivationVisualState(npc)` and `CULT.normalizedStage(npc)`.
+- Reaching `npc.cult.stage >= CULT.PATHS[pathId].maxStage` immediately activates the path's Ascendant Apex visual tier (`isApex: true`, `normStage: 9`, `hasSilkRibbon: true`).

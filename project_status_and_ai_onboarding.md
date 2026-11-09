@@ -2,12 +2,12 @@
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)  
 **ยุคและภาคปัจจุบัน**: **JianghuSect 2 (ภาค 2: The Grand Dao Epoch)**  
-**เวอร์ชันแพ็กเกจ**: **`JS2-v2.4.0`** (runtime patch identifier `2.4.0` | SIM Version `1.10.11` | Save Schema `2.4.0-tactical-composable-grand-dao` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.4.0 Release Ready — แก้ไขบั๊กครบ 100% ผ่านชุดทดสอบ 141/141 กลุ่ม` | Active Target: `JS2-v2.5.0`)
+**เวอร์ชันแพ็กเกจ**: **`JS2-v2.5.0`** (runtime patch identifier `2.5.0` | SIM Version `1.10.11` | Save Schema `2.4.0-tactical-composable-grand-dao` | Human Core Fingerprint `155:2f9c9dd7` | Status: `JS2-v2.5.0 Release Ready — 43/43 Path Ascendant Visuals & 30 Signature VFX ครบสมบูรณ์ ผ่านชุดทดสอบ 142/142 กลุ่ม (141 test suites + 1 syntax check)` | Active Target: `JS2-v2.6.0`)
 **รูปแบบการทำงาน**: Vanilla JavaScript (ES6+ IIFE Modules) + HTML5 Canvas 2D + CSS3 รันบนเบราว์เซอร์แบบ 100% Offline-First (ไม่ต้องพึ่งพาเซิร์ฟเวอร์ภายนอก)
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  
 > - **JianghuSect 1 (ภาค 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)  
-> - **JianghuSect 2 (ภาค 2 — The Grand Dao Epoch):** คือเกมภาคใหม่ที่ยกเครื่องโครงสร้างระบบและมหาวิถีทั้งหมด จึงเริ่มนับวงรอบการพัฒนาใหม่ที่ Season 2 โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** หรือ **`JianghuSect 2 v...`** (ปัจจุบันคือฐาน **`JS2-v2.4.0`** และกำลังมุ่งสู่ **`JS2-v2.5.0`**)  
+> - **JianghuSect 2 (ภาค 2 — The Grand Dao Epoch):** คือเกมภาคใหม่ที่ยกเครื่องโครงสร้างระบบและมหาวิถีทั้งหมด จึงเริ่มนับวงรอบการพัฒนาใหม่ที่ Season 2 โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** หรือ **`JianghuSect 2 v...`** (ปัจจุบันคือฐาน **`JS2-v2.5.0`** และกำลังมุ่งสู่ **`JS2-v2.6.0`**)  
 > - *หมายเหตุสำหรับ AI:* เลขเวอร์ชัน `v2.x.x` ในปัจจุบันคือของ **"ภาค 2"** มิใช่การนับเลขย้อนหลังของภาค 1
 
 > **คำแนะนำสำหรับ AI ที่ได้รับไฟล์นี้หรือไฟล์ ZIP ของโครงการ**:
@@ -19,7 +19,7 @@
 > 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
 > 3. ชุดทดสอบรวมผ่านครบ **141/141 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,177 ไอเทม, 1,402 ตำรับ
-> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts)
+> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
 > 5. **📑 รายงานการพัฒนาแพตช์ล่าสุด:** [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (Release (1) ฉบับสมบูรณ์หลังแก้บั๊ก) และ [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (Initial Release) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 
 ---
@@ -74,7 +74,7 @@
 
 ## 4. คำแนะนำสำหรับ AI ในการเริ่มงานรอบถัดไป (Active AI Guidance for Next Turn)
 
-> **ใบสั่งงาน active:** [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) — JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts
+> **ใบสั่งงาน active:** [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) — JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts
 
 1. อ่าน START_HERE_FOR_AI.md, AGENTS.md และใบสั่งงาน active ให้ครบ แล้วตรวจซอร์ส/ชุดทดสอบจาก ZIP ล่าสุดก่อนเริ่ม
 2. ทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริง โดยใช้ maxStage ของแต่ละวิถี ตรวจเอกลักษณ์ การต่อเข้าระบบ และประสิทธิภาพตามใบสั่งงาน
@@ -98,3 +98,15 @@
 - **Pillar A — งานชุมนุมวิสัชนาธรรม 43 มหาวิถี (`SECT.GRAND_DAO_DEBATE`):** จัดประชันความเข้าใจเต๋าข้ามสำนัก เพิ่ม `daoComprehension` ให้คนธรรมดาและชิงคัมภีร์วิถี (`MANUAL_PATH_*`) / ผลึกวิถี (`CRYSTAL_PATH_*`)
 - **Pillar B — บททดสอบจอมราชัน 43 มหาวิถี (`CULT.APEX_DAO_TRIALS` & `EXPLORE.NINE_DAO_PAGODA.attemptApexTrial`):** มอบฉายาเซียนสูงสุดประจำวิถี (`apexDaoTitle`) และโบนัสถาวร
 - **การแก้ไขจุดบกพร่องครบทั้ง 20 ข้อ (`B-01` ถึง `B-20`):** ปรับสมดุลเวลาเปิดตันเถียนคนธรรมดา (~60 วันเกม), แก้ไขการใช้ `MANUAL_PATH_*` และ `CRYSTAL_PATH_*` ครบ 54 ชิ้น, ผูก 15 วิถีใหม่เข้ากับ 8 ยอดเขา (`SECT.PEAKS`), เพิ่ม 17 Archetype สำนักใหม่ (รวม 32 Archetypes ครบ 27 วิถี), เพิ่ม `PATH_MANUAL`/`PATH_CRYSTAL` ใน Item Spawner พร้อมกรอง Innate Tech ออก (4,815 รายการเสกผ่าน 100%), เชื่อมต่อ `evaluateCrossPathSynergies`, `monthlyAutonomousTick`, `CULT.rate` บัฟอาหาร, `ECO.spend` สมุดบัญชีสำนัก และตัด `Math.random()` ออกจากโมดูลจำลอง 100%
+
+
+### 🌟 ไฮไลต์ระบบใหม่ล่าสุดใน JianghuSect 2 (`JS2-v2.5.0`: Pathbound Ascendant Visuals & Signature Arts)
+- **P0 — ออร่าขั้นสูงสุดประจำวิถีครบ 43/43 มหาวิถี (`R.PATH_VISUAL_SIGNATURES`, `R.resolveCultivationVisualState`, `drawPathApexCrownGeometry` ใน `js/render.js`):**
+  - ขยาย `R.PATH_VISUAL_SIGNATURES` จาก 12 คีย์ยุคเก่าให้ครอบคลุมรหัสวิถีจริงใน `Object.keys(CULT.PATHS)` ครบทั้ง **43/43 มหาวิถี** (พร้อม `R.LEGACY_PATH_VISUAL_SIGNATURES` และ `R.resolvePathVisualSignature` สำหรับคีย์เก่า) ไม่มีวิถีใดตกไปใช้ fallback ลายกระบี่เริ่มต้นอีกต่อไป
+  - ตรวจเพดานขั้นสูงสุดตาม `CULT.PATHS[pathId].maxStage` จริงครบทั้ง 4 เพดาน ได้แก่ ขั้น 4 (`GOD`), ขั้น 5 (`BODY`), ขั้น 8 (38 มหาวิถี), และขั้น 9 (`XIAN`, `DEMON`, `HEART_SOUL`) เมื่อศิษย์บรรลุ `stage >= maxStage` จะแสดงมณฑลออร่าขั้นสูงสุดเฉพาะวิถี (`drawPathApexCrownGeometry` 43 รูปทรงเรขาคณิตที่ไม่ซ้ำกัน) พร้อมแพรทิพย์เซียน (`hasSilkRibbon = true`) ทั้งในฉากแผนที่โลก (`drawNpc`), รูปโปรไฟล์ (`Render.portrait`), และฉากจำลองตัวละคร (`Render.diorama`)
+- **P2 — การไล่ระดับละอองปราณและรัศมีหลายช่วงขั้น (`INITIATE` ➔ `MID` ➔ `PENULTIMATE` ➔ `APEX`):**
+  - แยกความหนาแน่นและโครงสร้างของละอองปราณเอกลักษณ์ (`drawSinglePathMoteShape` ใน `drawPathSignatureMotes`) และวงรัศมีด้านหลังตามสัดส่วนความก้าวหน้าในวิถี พร้อมรองรับโหมด `reducedMotion` และ `effectiveQuality === 'low'`
+- **P1 — เอฟเฟกต์วิชาระดับสูง/ตำนาน/วิชาต้องห้ามครบ 43 วิถี (`SK.SIGNATURE_VFX_CATALOG` 30 รูปแบบ & `SK.TECH_TO_SIGNATURE_VFX` 241 รายการ ใน `js/skills.js`, `js/combat.js`, `js/render.js`):**
+  - ขยาย `SK.SIGNATURE_VFX_CATALOG` จาก 22 เป็น **30 รูปแบบ** (เพิ่ม 8 รูปแบบสำหรับบทบาทรักษา/ชุบชีวา `sig_shennong_emerald_lotus`, พิชัยสงคราม/ธงบัญชาทัพ `sig_imperial_eight_gates_banner`, โทเท็มอัญเชิญอสูร `sig_primordial_beast_totem`, พู่กันจารึกจานดารา/กาลเวลา `sig_heaven_brush_astrolabe`, ลูกคิดทองและกงล้อเดิมพัน `sig_golden_abacus_wheel`, บัวโลหิตอเวจีต้องห้าม `sig_blood_lotus_apocalypse`, เตาหลอมสวรรค์เก้ามังกร `sig_divine_crucible_forge`, และวังวนคลื่นสมุทรมังกรปฐพี `sig_tidal_maelstrom_anchors`)
+  - เชื่อมโยงรหัสวิชาจริง 241 รายการใน `SK.TECH_TO_SIGNATURE_VFX` และ `SK.PATH_PRIMARY_SIGNATURE_VFX` ให้ทำงานผ่านสายพานการรบจริง `COMBAT.attack / useSkill ➔ a.castFx ➔ Render.updateCastEffects ➔ Render.drawCastEffects ➔ drawSignatureSkillVfx` (ครอบคลุมครบทั้ง 43/43 วิถี อย่างน้อยวิถีละ 4–49 วิชาจริง)
+- **การตรวจรับรอง (`142/142 PASS`):** เพิ่มชุดทดสอบ `GAME_SOURCE/test/v250_pathbound_visuals_suite.js` ยืนยันความบริสุทธิ์แบบ Read-Only 100% (`SIM.serialize(W)` และ `W.rng` ไม่เปลี่ยนก่อน/หลังวาด), สมดุล `ctx.save()/restore()`, และการตรวจภาพด้วย Headless Chromium จริง ดูรายงานฉบับเต็มที่ [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md)

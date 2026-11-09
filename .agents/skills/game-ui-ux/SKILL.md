@@ -150,3 +150,14 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 ปุ่มหมอยาพเนจรที่ผู้เล่นกดแสดงค่ารักษา 120 ศิลาและใช้เส้นทางชำระเงิน; เหตุการณ์อัตโนมัติอาจเป็นการช่วยฟรีตามเงื่อนไขของเหตุการณ์ ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Patch JS2-v2.5.0 Additions: 43-Path Ascendant Visual Signatures, Multi-Tier Motes & 30 Signature Skill VFX (`js/render.js`, `js/skills.js`)
+- **`Render.PATH_VISUAL_SIGNATURES` (43/43 Grand Dao Paths) & `Render.LEGACY_PATH_VISUAL_SIGNATURES` (12 Legacy Keys)**:
+  - Every path in `Object.keys(CULT.PATHS)` (all 43 paths) has an exact visual signature entry `{ id, nameTh, moteShape, apexCrownShape, family, primary, secondary, accent, maxStage }` resolved via `Render.resolvePathVisualSignature(pathId)`. Zero valid paths fallback to generic sword motes.
+- **True `maxStage` Visual Resolution (`Render.resolveCultivationVisualState(npc)`)**:
+  - Reads `CULT.PATHS[pathId].maxStage` (`4` for `GOD`, `5` for `BODY`, `8` for 38 paths, `9` for `XIAN`/`DEMON`/`HEART_SOUL`) and `CULT.normalizedStage(npc)`.
+  - Returns `{ rawStage, maxStage, normStage, tierBand ('INITIATE'|'MID'|'PENULTIMATE'|'APEX'), isApex, isPenultimate, isMidTier, pathId, sig }`.
+  - When `rawStage >= maxStage`, `isApex === true`, `normStage === 9`, and `ap.hasSilkRibbon === true` across `drawCultivatorRealmHalo`, `drawPathSignatureMotes`, `Render.portrait`, and `Render.characterDiorama` (`Render.diorama` also dynamically sizes its top-left badge box via `measureCached` so full Thai path names never clip).
+- **43 Bespoke Ascendant Crown Geometries (`drawPathApexCrownGeometry`) & Multi-Stage Motes (`drawSinglePathMoteShape`)**:
+  - Draws distinct geometric silhouettes behind the cultivator at penultimate/apex stages (e.g., Taiji sword lotus for `XIAN`, octagonal Vajra gear + blood-gold pillars for `BODY`, 12-ray solar shrine for `GOD`, blood eclipse + twin horns for `DEMON`, 3 interlocking gears for `MECH_PUPPET`, 6-realm wheel for `KARMA_SAMSARA`, 12-tick sundial clock with dual hands for `CHRONO_EPOCH`, tilting balance scale for `MERCANTILE_DAO`, crimson moon sliced by 3 Iai slashes for `SHADOW_SAMURAI`, 4-point shuriken for `NINPO_SHADOW`, 5-chakra drums for `NINPO_ELEMENTAL`, eldritch eyes & tentacles for `VOID_HERETIC_PACT`, 9-spire Khmer yantra for `OCCULT_MAGE`, World-Tree canopy for `SPIRIT_HUSBANDRY`, etc.).
+- **Verification**: `node GAME_SOURCE/test/v250_pathbound_visuals_suite.js`.

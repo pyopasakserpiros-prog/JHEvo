@@ -2404,7 +2404,7 @@
     a.fx = { t: W.t, text: p.icon + ' ' + label };
     // One lightweight visual event per actual activation; text/damage feedback stays independent.
     const tech = p.tech && CULT.tech(p.tech), target = p.self || p.team || ['heal', 'support', 'buff', 'summon'].includes(p.arch) ? a : d || a;
-    const isForbid = p.arch === 'forbid' || !!(tech && (tech.cat === 'FORBIDDEN_ART' || tech.cat === 'FORBIDDEN_TECHNIQUE'));
+    const isForbid = p.arch === 'forbid' || !!(tech && (tech.cat === 'FORBIDDEN_ART' || tech.cat === 'FORBIDDEN_TECHNIQUE' || tech.cat === 'FORBIDDEN_GRAND_DAO'));
     if (isForbid && !a.foe && a.voluntaryVows && a.voluntaryVows.VOW_ASCETIC_PRECEPT && a.voluntaryVows.VOW_ASCETIC_PRECEPT.active && CULT && CULT.VOLUNTARY_VOWS && CULT.VOLUNTARY_VOWS.violateVow) {
       CULT.VOLUNTARY_VOWS.violateVow(W, a, 'VOW_ASCETIC_PRECEPT', 'ร่ายวิชาต้องห้าม「' + (tech ? tech.nameTh : p.nameTh) + '」');
     }

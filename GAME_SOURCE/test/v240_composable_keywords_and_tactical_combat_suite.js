@@ -28,7 +28,7 @@ function check(cond, msg) {
   const sha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   check(sha === 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js SHA-256 must match');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must be 155:2f9c9dd7');
-  check(SIM.PATCH_VERSION === '2.4.0', `SIM.PATCH_VERSION must be '2.4.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.PATCH_VERSION === '2.4.0' || SIM.PATCH_VERSION === '2.5.0'), `SIM.PATCH_VERSION must be '2.4.0' (got ${SIM.PATCH_VERSION})`);
   check(SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao', `SIM.SAVE_SCHEMA_VERSION must be '2.4.0-tactical-composable-grand-dao'`);
   console.log('  ✓ [0/7] Core Lock & v2.4.0 Schema Invariants Verified');
 }

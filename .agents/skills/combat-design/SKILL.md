@@ -316,3 +316,11 @@ node test/v209_facilities_party_synergy_suite.js
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 `C.keywordsOf` ไม่เปลี่ยนข้อมูลส่วนตัวเมื่อรวมอุปกรณ์; proc ตรวจ `params.chance` ผ่าน RNG โลก; การทำลายโล่ต้องมีโล่; transmute แยกสามโหมดในข้อมูล; finisher ตรวจสถานะ/ระยะและใช้เทิร์น ตรวจรายละเอียดและกรณีที่ยังเปิดในรายงาน audit ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Patch JS2-v2.5.0 Additions: 30 Signature Skill VFX Catalog & 43-Path Combat `castFx` Pipeline (`js/skills.js`, `js/combat.js`, `js/render.js`)
+- **`SK.SIGNATURE_VFX_CATALOG` (30 Archetypes)**:
+  - Expanded from 22 to **30** distinct signature VFX presets rendered in `Render.methods.drawSignatureSkillVfx(ctx, fx, p, r, reduced)`, adding role-specific visuals for healing/support (`sig_shennong_emerald_lotus`), battlefield command (`sig_imperial_eight_gates_banner`), beast totem summon (`sig_primordial_beast_totem`), astrolabe/calligraphy/chrono arrays (`sig_heaven_brush_astrolabe`), mercantile/fortune roulette (`sig_golden_abacus_wheel`), forbidden blood-lotus apocalypse (`sig_blood_lotus_apocalypse`), nine-dragon forge cauldron (`sig_divine_crucible_forge`), and tidal/geomancy maelstrom (`sig_tidal_maelstrom_anchors`).
+- **`SK.TECH_TO_SIGNATURE_VFX` (241 Direct Mappings), `SK.PATH_PRIMARY_SIGNATURE_VFX` (43 Paths) & `SK.resolveSignatureVfx`**:
+  - Maps 241 real high-tier, legendary, forbidden, defensive, and support techniques across all 43 paths. Every single one of the 43 paths has between 4 and 49 real active techniques that resolve a bespoke `signatureVfx`.
+  - In `js/combat.js` (`useSkill`), `isForbid` now recognizes `FORBIDDEN_GRAND_DAO` (`TECH_V230_*_FORBIDDEN`) in addition to `FORBIDDEN_ART` and `FORBIDDEN_TECHNIQUE`, emitting `a.castFx = { kind: 'forbidden', signatureVfx, ... }` during live combat.
+- **Verification**: `node GAME_SOURCE/test/v250_pathbound_visuals_suite.js` and `node GAME_SOURCE/test/skill_visual_events.js`.

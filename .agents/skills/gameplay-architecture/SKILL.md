@@ -475,3 +475,7 @@ Whenever modifying system architecture, macro lifecycle, or sect governance:
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 ผลหลังศึกสำนักใช้ได้ผ่านเส้นทางชัยชนะ, ของขวัญคนพเนจรและรางวัลประตูธาตุจำกัดซ้ำ, duel คนเดิมจำกัดรายวัน คำขอหมดเวลาไม่รับรางวัล และกองรักษาจุดทรัพยากรรับเฉพาะพื้นที่ผู้เล่น/สมาชิกที่ไม่ถูกส่งออก เมื่อเสียพื้นที่จะคืนข้อมูลกองเป็นของฝ่ายใหม่ เก็บ receipt ที่จำเป็นในข้อมูลเซฟปกติ ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Patch JS2-v2.5.0 Version & Architecture Update
+- `SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'` (`'2.5.0'` added to `SIM.SUPPORTED_PATCHES` in `js/sim.js`).
+- Preserves `GAME_SOURCE/js/human_core.js` byte-identical (`HC.FINGERPRINT === '155:2f9c9dd7'`, SHA-256 `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`) and the exact 40 `<script>` tag load order.

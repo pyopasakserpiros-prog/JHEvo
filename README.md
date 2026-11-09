@@ -1,20 +1,21 @@
-# JianghuSect 2 (ภาค 2) — JS2-v2.4.0 (Tactical Composable Grand Dao Release)
+# JianghuSect 2 (ภาค 2) — JS2-v2.5.0 (Pathbound Ascendant Visuals & Signature Arts Release)
 
 เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**  
 > - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)  
-> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือฐาน **`JS2-v2.4.0`** และกำลังมุ่งสู่ **`JS2-v2.5.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
+> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือฐาน **`JS2-v2.5.0`** และกำลังมุ่งสู่ **`JS2-v2.6.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
-**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts)
+**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:** 
-- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (รายงานฉบับสมบูรณ์หลังแก้บั๊ก — Release (1))
+- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts — 43/43 วิถี & 30 Signature VFX)
+- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (JS2-v2.4.0 Release (1) — ฉบับสมบูรณ์หลังแก้บั๊ก)
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (รายงานฉบับแรกก่อนแก้บั๊ก — Initial Release)
 
-**สถานะชุดทดสอบ (`JS2-v2.4.0`):** ชุดทดสอบทั้งหมด **140/140 ชุด** ใน `GAME_SOURCE/test/run_all.js` ผ่านครบ 100% PASS (130 กลุ่ม Node.js), Schema Validation ผ่าน 0 errors / 0 warnings (1,177 items, 1,402 recipes, 43 paths, 286 subpaths, 1,243 techniques), และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
+**สถานะชุดทดสอบ (`JS2-v2.5.0`):** ชุดทดสอบทั้งหมด **142/142 กลุ่ม** (141 ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` + 1 กลุ่มตรวจ Syntax 217 ไฟล์) ผ่านครบ 100% PASS (รวมชุดเบราว์เซอร์ Chromium ทั้ง 10 ชุด), Schema Validation ผ่าน 0 errors / 0 warnings (1,177 items, 1,402 recipes, 43 paths, 286 subpaths, 1,243 techniques), และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
 
 ```bash
 cd GAME_SOURCE

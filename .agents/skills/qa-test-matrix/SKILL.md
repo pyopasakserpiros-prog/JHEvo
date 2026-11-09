@@ -132,3 +132,8 @@ Earlier claims of 97/97 are historical and do not establish the status of the cu
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 เพิ่ม `test/v240_user_audit_regression.js` และลงทะเบียนใน runner ครอบคลุมบั๊กกับกรณีขอบเฉพาะที่ระบุในรายงาน; การผ่าน schema และชุดทดสอบเดิมไม่ยืนยันว่าบั๊กทั้งรายงานหมด ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Patch JS2-v2.5.0 Master QA Matrix Update (`142/142 Groups Passing`)
+- Added `GAME_SOURCE/test/v250_pathbound_visuals_suite.js` to `GAME_SOURCE/test/run_all.js`.
+- Total registered test groups in `test/run_all.js` and `tools/run_parallel_tests.js`: **142 groups** (**141 test suites** + **1 syntax check group** across 217 JS files), including all 10 Chromium browser suites (`skill_visual_browser`, `outside_visual_browser`, `world_atlas_browser`, `lineage_chronicle_browser`, `ancestor_profile_browser`, `browser_mobile_perf`, etc.).
+- Latest `node tools/run_parallel_tests.js --concurrency=6` result: **`SUMMARY {"total":142,"pass":142,"fail":0,"timeout":0}`**.

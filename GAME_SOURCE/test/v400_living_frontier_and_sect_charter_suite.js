@@ -40,7 +40,7 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Patch Version Lock (4.0.0)
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (4.0.0)...');
 {
-  check((SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || SIM.PATCH_VERSION === '2.4.0')))))), `SIM.PATCH_VERSION must be '4.0.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || SIM.PATCH_VERSION === '2.5.0'))))))), `SIM.PATCH_VERSION must be '4.0.0' (got ${SIM.PATCH_VERSION})`);
   check((SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter' || (SIM.SAVE_SCHEMA_VERSION === '5.8.0-forbidden-arts-passive-awakening-and-blood-altar' || (SIM.SAVE_SCHEMA_VERSION === '2.0.0-grand-dao-epoch-mortal-awakening' || (SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao')))))), `SIM.SAVE_SCHEMA_VERSION must be '4.0.0-living-frontier-charter' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));

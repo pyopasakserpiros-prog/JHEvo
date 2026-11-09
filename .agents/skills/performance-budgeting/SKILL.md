@@ -80,3 +80,7 @@ node test/long_simulation.js
 ## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
 - **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
 - **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.
+
+## Patch JS2-v2.5.0 Baseline & Render Purity Verification
+- `SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'`.
+- All 43 path halos (`drawCultivatorRealmHalo`), motes (`drawPathSignatureMotes`), and 30 signature skill VFX (`drawSignatureSkillVfx`) are 100% pure read-only functions that never touch `W.rng`, never mutate `npc` state (`apCache` is stored on the renderer instance), and preserve 80-NPC tick performance (`~0.64 ms/tick`, budget `<= 3.5 ms/tick`).

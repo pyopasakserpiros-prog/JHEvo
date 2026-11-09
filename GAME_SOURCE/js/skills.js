@@ -1646,13 +1646,14 @@
 
   SK.get = id => (g.CULT && g.CULT.tech) ? g.CULT.tech(id) : null;
 
-  /* ---------- Patch v5.3.0 [Pillar 3]: 15 Signature Martial Arts & Unique Skill VFX Catalog ---------- */
+  /* ---------- Patch v5.3.0 & JS2-v2.5.0: Signature Martial Arts & 43-Path Unique Skill VFX Catalog ---------- */
   SK.SIGNATURE_VFX_CATALOG = {
     sig_meteor_sword_rain: {
       id: 'sig_meteor_sword_rain',
       nameTh: 'เพลงกระบี่ดาวตกถล่มสวรรค์',
       icon: '☄️',
       shape: 'meteor_sword_rain',
+      role: 'OFFENSE',
       primary: '#00f5d4',
       secondary: '#ffd166',
       accent: '#ffffff',
@@ -1663,6 +1664,7 @@
       nameTh: 'ฝ่ามือสยบมารแปดทิศ',
       icon: '✋',
       shape: 'colossal_golden_palm',
+      role: 'OFFENSE',
       primary: '#ffd740',
       secondary: '#ff9e00',
       accent: '#fff8d6',
@@ -1673,6 +1675,7 @@
       nameTh: 'เนตรสุริยันเก้าเพลิง',
       icon: '☀️',
       shape: 'nine_suns_solar_eye',
+      role: 'OFFENSE',
       primary: '#ff6d00',
       secondary: '#ffd740',
       accent: '#ffffff',
@@ -1683,6 +1686,7 @@
       nameTh: 'เพลิงผลาญวิญญาณ',
       icon: '🔥',
       shape: 'nether_soul_fire_vortex',
+      role: 'FORBIDDEN',
       primary: '#9d4edd',
       secondary: '#00f5d4',
       accent: '#e0aaff',
@@ -1693,6 +1697,7 @@
       nameTh: 'คลื่นมังกรเพลิงพุ่งทะยาน',
       icon: '🐉',
       shape: 'coiling_fire_dragon',
+      role: 'OFFENSE',
       primary: '#ff4d6d',
       secondary: '#ffd166',
       accent: '#fff3b0',
@@ -1703,6 +1708,7 @@
       nameTh: 'กรงเล็บอสูรโลหิตฉีกนภา',
       icon: '🐾',
       shape: 'crimson_beast_claws',
+      role: 'OFFENSE',
       primary: '#d90429',
       secondary: '#ff758f',
       accent: '#2b2d42',
@@ -1713,6 +1719,7 @@
       nameTh: 'เขตแดนบัวหิมะหมื่นปี',
       icon: '❄️',
       shape: 'crystalline_frost_lotus',
+      role: 'DOMAIN',
       primary: '#90e0ef',
       secondary: '#00b4d8',
       accent: '#ffffff',
@@ -1723,6 +1730,7 @@
       nameTh: 'ทวนอัสนีเทพพิโรธ',
       icon: '⚡',
       shape: 'thunder_god_halberd_strike',
+      role: 'OFFENSE',
       primary: '#c77dff',
       secondary: '#ffd740',
       accent: '#ffffff',
@@ -1733,6 +1741,7 @@
       nameTh: 'ค่ายกลหุ่นเชิดหมื่นด้ายสังหาร',
       icon: '⚙️',
       shape: 'clockwork_puppet_threads',
+      role: 'CONSTRUCT',
       primary: '#ffb703',
       secondary: '#00f5d4',
       accent: '#fde4cf',
@@ -1743,6 +1752,7 @@
       nameTh: 'พิณสวรรค์สะท้านวิญญาณ',
       icon: '🎶',
       shape: 'celestial_zither_requiem',
+      role: 'SUPPORT',
       primary: '#72efdd',
       secondary: '#ff9ebb',
       accent: '#ffd166',
@@ -1753,6 +1763,7 @@
       nameTh: 'ระฆังทองคำอรหันต์คุ้มกายา',
       icon: '🔔',
       shape: 'golden_arhat_bell_dome',
+      role: 'DEFENSE',
       primary: '#ffd740',
       secondary: '#ff9e00',
       accent: '#fff8d6',
@@ -1763,6 +1774,7 @@
       nameTh: 'คมดาบผ่ามิติว่างเปล่า',
       icon: '🌌',
       shape: 'dimensional_void_rift',
+      role: 'OFFENSE',
       primary: '#7209b7',
       secondary: '#4cc9f0',
       accent: '#ffffff',
@@ -1773,6 +1785,7 @@
       nameTh: 'หมอกพิษกู่หมื่นอสรพิษ',
       icon: '🐍',
       shape: 'venom_gu_serpent_miasma',
+      role: 'DEBUFF',
       primary: '#52b788',
       secondary: '#9d4edd',
       accent: '#d8f3dc',
@@ -1783,6 +1796,7 @@
       nameTh: 'มหาค่ายกลหยินหยางบดขยี้',
       icon: '☯️',
       shape: 'taiji_millstone_crush',
+      role: 'ARRAY',
       primary: '#f8f9fa',
       secondary: '#212529',
       accent: '#00f5d4',
@@ -1793,6 +1807,7 @@
       nameTh: 'พายุขนนกกระเรียนเซียน',
       icon: '🦢',
       shape: 'immortal_crane_feather_tempest',
+      role: 'OFFENSE',
       primary: '#e0fbfc',
       secondary: '#ffd166',
       accent: '#ff4d6d',
@@ -1803,6 +1818,7 @@
       nameTh: 'เพลงดาบอิไอผ่าจันทราโลหิตไร้ปราณ',
       icon: '⚔️',
       shape: 'iai_crimson_moon_slash',
+      role: 'OFFENSE',
       primary: '#e63946',
       secondary: '#f1faee',
       accent: '#ffd166',
@@ -1813,6 +1829,7 @@
       nameTh: 'ค่ายกลเงาแยกสังหารแปดทิศ',
       icon: '🥷',
       shape: 'shinobi_phantom_clone_ambush',
+      role: 'OFFENSE',
       primary: '#4a4e69',
       secondary: '#c77dff',
       accent: '#e0fbfc',
@@ -1823,6 +1840,7 @@
       nameTh: 'มหาเวทย์ประสานอินเพลิงอัสนีถล่มภพ',
       icon: '🔥',
       shape: 'shinobi_mudra_firestorm',
+      role: 'OFFENSE',
       primary: '#f77f00',
       secondary: '#fcbf49',
       accent: '#00f5d4',
@@ -1833,6 +1851,7 @@
       nameTh: 'มหาเทวาลัยเบื้องบนจุติข้ามพิภพ',
       icon: '👑',
       shape: 'pantheon_deity_descent',
+      role: 'SUMMON',
       primary: '#ffd166',
       secondary: '#4cc9f0',
       accent: '#ffffff',
@@ -1843,6 +1862,7 @@
       nameTh: 'รอยแยกเนตรอเวจีนอกมิติกลืนสติ',
       icon: '👁️',
       shape: 'eldritch_void_rift',
+      role: 'FORBIDDEN',
       primary: '#7209b7',
       secondary: '#f72585',
       accent: '#4cc9f0',
@@ -1853,6 +1873,7 @@
       nameTh: 'มหายันต์เก้ายอดอาคมขอมคงกระพัน',
       icon: '📿',
       shape: 'khmer_sacred_yantra_seal',
+      role: 'DEFENSE',
       primary: '#d97706',
       secondary: '#fef08a',
       accent: '#ef4444',
@@ -1863,14 +1884,162 @@
       nameTh: 'สุสานยมโลกปะทุวิญญาณบรรพชน',
       icon: '🪦',
       shape: 'nether_grave_soul_eruption',
+      role: 'FORBIDDEN',
       primary: '#6c757d',
       secondary: '#80ffdb',
       accent: '#c77dff',
       descTh: 'ศิลาจารึกสุสานผุดขึ้นพร้อมเพลิงวิญญาณสีเขียวครามของเหล่าบรรพชนผู้ล่วงลับ'
+    },
+    sig_shennong_emerald_lotus: {
+      id: 'sig_shennong_emerald_lotus',
+      nameTh: 'บัวหยกเสินหนงโปรยน้ำค้างชุบชีวา',
+      icon: '🪷',
+      shape: 'shennong_emerald_lotus_bloom',
+      role: 'HEAL_SUPPORT',
+      primary: '#52b788',
+      secondary: '#b9f6ca',
+      accent: '#ffd166',
+      descTh: 'ดอกบัวหยกอมฤตผลิบานใต้ฝ่าเท้าพร้อมละอองน้ำค้างทิพย์สมานชีพจรและชุบวิญญาณ'
+    },
+    sig_imperial_eight_gates_banner: {
+      id: 'sig_imperial_eight_gates_banner',
+      nameTh: 'ธงรบฉีเหมินแปดพยุหะบัญชาทัพ',
+      icon: '🚩',
+      shape: 'imperial_eight_gates_command',
+      role: 'COMMAND_SUPPORT',
+      primary: '#d4bb78',
+      secondary: '#e63946',
+      accent: '#fff3b0',
+      descTh: 'ธงศึกทองคำแปดพยุหะปักล้อมสมรภูมิพร้อมคลื่นกลองศึกและตราหยกเจ้าสำนัก'
+    },
+    sig_primordial_beast_totem: {
+      id: 'sig_primordial_beast_totem',
+      nameTh: 'เสาโทเท็มอัญเชิญจตุรเทพราชันอสูร',
+      icon: '🐺',
+      shape: 'primordial_beast_totem_gate',
+      role: 'SUMMON',
+      primary: '#e09f3e',
+      secondary: '#51cf66',
+      accent: '#ff4d6d',
+      descTh: 'เสาโทเท็มบรรพกาลผุดขึ้นพร้อมเงาปีกคุนเผิงและเขี้ยวอสูรเทาเที่ยคำรามสะท้านภพ'
+    },
+    sig_heaven_brush_astrolabe: {
+      id: 'sig_heaven_brush_astrolabe',
+      nameTh: 'พู่กันเทวะจารึกจานดาราเหอถูลั่วซู',
+      icon: '🖌️',
+      shape: 'heaven_brush_astrolabe_script',
+      role: 'ARRAY_CHRONO',
+      primary: '#74c0fc',
+      secondary: '#ffd166',
+      accent: '#e599f7',
+      descTh: 'จานดาราเหอถูลั่วซูหมุนซ้อนพร้อมพู่กันทองคำตวัดอักขระสวรรค์สะกดกาลเวลาและดวงดาว'
+    },
+    sig_golden_abacus_wheel: {
+      id: 'sig_golden_abacus_wheel',
+      nameTh: 'กงล้อโชคชะตาและลูกคิดทองไฉ่ซิง',
+      icon: '🪙',
+      shape: 'golden_abacus_fortune_wheel',
+      role: 'MERCANTILE_FORTUNE',
+      primary: '#ffd43b',
+      secondary: '#ef476f',
+      accent: '#fff3b0',
+      descTh: 'กงล้อเดิมพันชะตาและลูกคิดทองคำดีดคำนวณบุญบาปโปรยเหรียญสวรรค์พิพากษาศึก'
+    },
+    sig_blood_lotus_apocalypse: {
+      id: 'sig_blood_lotus_apocalypse',
+      nameTh: 'บัวโลหิตอเวจีสูบดาวทลายสามภพ',
+      icon: '🩸',
+      shape: 'blood_lotus_abyss_vortex',
+      role: 'FORBIDDEN_ULTIMATE',
+      primary: '#9b2226',
+      secondary: '#ff0055',
+      accent: '#7209b7',
+      descTh: 'วังวนบัวโลหิตต้องห้ามและโซ่ตรวนมารฉีกกระชากชีพจรสูบกลืนพลังชีวิตและดวงดาว'
+    },
+    sig_divine_crucible_forge: {
+      id: 'sig_divine_crucible_forge',
+      nameTh: 'เตาหลอมสวรรค์เก้ามังกรรังสรรค์ศาสตรา',
+      icon: '🏺',
+      shape: 'divine_crucible_nine_dragons',
+      role: 'CRAFT_FORGE',
+      primary: '#f4a261',
+      secondary: '#ffd166',
+      accent: '#ff4d00',
+      descTh: 'เตาหลอมสามขาสวรรค์ลอยเด่นกลางหาวพร้อมเพลิงสาม昧และค้อนเทวะตีหลอมศาสตรา'
+    },
+    sig_tidal_maelstrom_anchors: {
+      id: 'sig_tidal_maelstrom_anchors',
+      nameTh: 'วังวนคลื่นยักษ์เก้าสมุทรและมังกรปฐพี',
+      icon: '🌊',
+      shape: 'tidal_geomancy_maelstrom',
+      role: 'DOMAIN_CONTROL',
+      primary: '#0077b6',
+      secondary: '#90e0ef',
+      accent: '#52b788',
+      descTh: 'วังวนน้ำวนเหมันต์เก้าสมุทรผสานเสามังกรธรณีพุ่งทะลวงขึ้นสะกดสมรภูมิ'
     }
   };
+  SK.SIGNATURE_VFX_CATALOG.sig_divine_crucible_forge = {
+    id: 'sig_divine_crucible_forge',
+    nameTh: 'เตาหลอมสวรรค์เก้ามังกรรังสรรค์ศาสตรา',
+    icon: '🏺',
+    shape: 'divine_crucible_nine_dragons',
+    role: 'CRAFT_FORGE',
+    primary: '#f4a261',
+    secondary: '#ffd166',
+    accent: '#ff4d00',
+    descTh: 'เตาหลอมสามขาสวรรค์ลอยเด่นกลางหาวพร้อมเพลิงสาม昧และค้อนเทวะตีหลอมศาสตรา'
+  };
+
+  // Primary Signature VFX per Cultivation Path (43/43 Grand Dao Paths)
+  SK.PATH_PRIMARY_SIGNATURE_VFX = Object.freeze({
+    XIAN: 'sig_meteor_sword_rain',
+    BODY: 'sig_eight_directions_palm',
+    GOD: 'sig_nine_suns_eye',
+    DEMON: 'sig_blood_lotus_apocalypse',
+    HEART_SOUL: 'sig_immortal_crane_feather_storm',
+    MECH_PUPPET: 'sig_myriad_puppet_barrage',
+    KARMA_SAMSARA: 'sig_golden_buddha_bell',
+    BEAST_SOVEREIGN: 'sig_primordial_beast_totem',
+    SAGE_SUPPORT: 'sig_shennong_emerald_lotus',
+    CRAFT_CREATION: 'sig_divine_crucible_forge',
+    ARRAY_TALISMAN: 'sig_heaven_brush_astrolabe',
+    STRATEGY_GOVERNANCE: 'sig_imperial_eight_gates_banner',
+    ASTRO_DIVINATION: 'sig_heaven_brush_astrolabe',
+    BUDDHA_DHARMA: 'sig_golden_buddha_bell',
+    VOID_SPACE: 'sig_void_spatial_slash',
+    SONIC_HARMONY: 'sig_heavens_sound_requiem',
+    VENOM_GU: 'sig_myriad_venom_miasma',
+    PRIMORDIAL_SHIFTER: 'sig_blood_beast_claw',
+    CELESTIAL_WEATHER: 'sig_thunder_god_halberd',
+    WANDERING_DAO: 'sig_immortal_crane_feather_storm',
+    MERCANTILE_DAO: 'sig_golden_abacus_wheel',
+    DRAGON_VEIN_GEOMANCY: 'sig_taiji_yin_yang_crush',
+    GRAVITY_DAO: 'sig_taiji_yin_yang_crush',
+    CHRONO_EPOCH: 'sig_heaven_brush_astrolabe',
+    INK_LITERATI: 'sig_heaven_brush_astrolabe',
+    SOUL_PUPPETRY: 'sig_myriad_puppet_barrage',
+    PRIMORDIAL_CHAOS: 'sig_nine_suns_eye',
+    SHADOW_SAMURAI: 'sig_iai_crimson_moon_slash',
+    NINPO_SHADOW: 'sig_shinobi_phantom_clone_ambush',
+    NINPO_ELEMENTAL: 'sig_shinobi_mudra_firestorm',
+    DIVINE_SUMMONER: 'sig_pantheon_deity_descent',
+    DIVINE_POSSESSION: 'sig_pantheon_deity_descent',
+    DIVINE_CHANNELER: 'sig_thunder_god_halberd',
+    VOID_HERETIC_PACT: 'sig_eldritch_void_rift',
+    OCCULT_MAGE: 'sig_khmer_sacred_yantra_seal',
+    DEVOURING_FLESH: 'sig_blood_lotus_apocalypse',
+    NETHER_GRAVE: 'sig_nether_grave_soul_eruption',
+    ANCESTRAL_RITUAL: 'sig_nether_grave_soul_eruption',
+    TIDE_VOYAGER: 'sig_tidal_maelstrom_anchors',
+    LORE_ARCHIVIST: 'sig_heaven_brush_astrolabe',
+    FORTUNE_GAMBLER: 'sig_golden_abacus_wheel',
+    SPIRIT_HUSBANDRY: 'sig_shennong_emerald_lotus',
+    ARENA_GLORY: 'sig_imperial_eight_gates_banner'
+  });
 
   SK.TECH_TO_SIGNATURE_VFX = {
+    // Original 40 entries (preserved for backward compatibility)
     MP_BOW_METEOR_STORM: 'sig_meteor_sword_rain',
     MP_SWORD_MYRIAD_RETURN_ONE_T7: 'sig_meteor_sword_rain',
     ART_QI_009: 'sig_meteor_sword_rain',
@@ -1888,7 +2057,7 @@
     MP_BLADE_EIGHT_DESOLATIONS_T7: 'sig_blazing_dragon_wave',
     ART_BEAST_SOV_005: 'sig_blood_beast_claw',
     MP_BLADE_ASHURA_EXTINCTION_T7: 'sig_blood_beast_claw',
-    ART_BEAST_SOV_010: 'sig_blood_beast_claw',
+    ART_BEAST_SOV_010: 'sig_primordial_beast_totem',
     MP_SWORD_FROST_MOON_SLASH_T5: 'sig_frost_lotus_domain',
     ART_V212_XIAN_FROST_T6: 'sig_frost_lotus_domain',
     MP_SPEAR_CELESTIAL_TEMPEST_T6: 'sig_thunder_god_halberd',
@@ -1910,27 +2079,280 @@
     LEG_FIST_QIANKUN_SHIFT: 'sig_taiji_yin_yang_crush',
     ART_ARRAY_010: 'sig_taiji_yin_yang_crush',
     MP_SWORD_SAINT_TRACELESS_T6: 'sig_immortal_crane_feather_storm',
-    LEG_SWORD_FEIXIAN: 'sig_immortal_crane_feather_storm'
+    LEG_SWORD_FEIXIAN: 'sig_immortal_crane_feather_storm',
+
+    // JS2-v2.5.0: Verified Real Technique IDs across all 43 Cultivation Paths (Offense, Defense, Support/Heal, Summon, Array, Forbidden)
+    // 1. XIAN
+    LEG_COMBAT_DUGU_NINE_SWORDS: 'sig_meteor_sword_rain',
+    LEG_COMBAT_NINE_HEAVENS_GUANG_LING: 'sig_heavens_sound_requiem',
+    LEG_AUX_QIANKUN_SHIFT: 'sig_taiji_yin_yang_crush',
+    LEG_LIGHT_LINGBO_STEP: 'sig_immortal_crane_feather_storm',
+    DEF_IMMORTAL_HEAVEN_AEGIS_T6: 'sig_golden_buddha_bell',
+    TECH_V234_XIAN_SUP_03: 'sig_shennong_emerald_lotus',
+    ART190_XIAN_040: 'sig_meteor_sword_rain',
+    ART190_XIAN_075: 'sig_blood_lotus_apocalypse',
+    QG_IMMORTAL_VOID_LEVITATION_T7: 'sig_immortal_crane_feather_storm',
+    QG_IMPERIAL_SWORD_FLIGHT_T5: 'sig_meteor_sword_rain',
+
+    // 2. BODY
+    LEG_COMBAT_DRAGON_SUBDUING_PALMS: 'sig_eight_directions_palm',
+    ART190_BODY_040: 'sig_eight_directions_palm',
+    ART190_BODY_075: 'sig_blood_lotus_apocalypse',
+    ART190_BODY_078: 'sig_blood_beast_claw',
+    MP_STAFF_MOUNTAIN_ANCHOR_T5: 'sig_golden_buddha_bell',
+    TECH_V234_BODY_SUP_03: 'sig_imperial_eight_gates_banner',
+
+    // 3. GOD
+    LEG_V240_GOD: 'sig_pantheon_deity_descent',
+    ART190_GOD_040: 'sig_pantheon_deity_descent',
+    ART190_GOD_075: 'sig_soul_scorching_flame',
+    MP_STAFF_EARTH_GOD_BLESSING_T7: 'sig_shennong_emerald_lotus',
+    TECH_V234_GOD_ACT_06: 'sig_nine_suns_eye',
+    TECH_V234_GOD_SUP_03: 'sig_pantheon_deity_descent',
+
+    // 4. DEMON
+    LEG_FORB_STAR_ABSORBING_VORTEX: 'sig_blood_lotus_apocalypse',
+    LEG_FORB_BLOOD_LOTUS_SACRIFICE: 'sig_blood_lotus_apocalypse',
+    LEG_LIGHT_MOON_BAT_SHADOW: 'sig_shinobi_phantom_clone_ambush',
+    ART_V112_DEMON_HEAVEN_DEVOURING_CANON_T7: 'sig_blood_lotus_apocalypse',
+    MP_BLADE_FORBIDDEN_DEMON_EDGE_T7: 'sig_blood_beast_claw',
+    TECH_V234_DEMON_ACT_06: 'sig_nether_grave_soul_eruption',
+    TECH_V234_DEMON_ACT_12: 'sig_blood_lotus_apocalypse',
+    DEF_GOLDEN_CICADA_MOLT_T5: 'sig_shinobi_phantom_clone_ambush',
+
+    // 5. HEART_SOUL
+    LEG_COMBAT_FEIXIAN_ONE_SWORD: 'sig_immortal_crane_feather_storm',
+    LEG_AUX_LINGXI_ONE_FINGER: 'sig_heaven_brush_astrolabe',
+    ART_V112_SOUL_FORMLESS_MIND_SWORD_T7: 'sig_void_spatial_slash',
+    MP_BLADE_HEART_SOUL_SEVER_T7: 'sig_void_spatial_slash',
+    MP_FOCUS_PRIMORDIAL_BRUSH_T7: 'sig_heaven_brush_astrolabe',
+    ART_V210_FORB_VOID_SOUL_SEVER: 'sig_soul_scorching_flame',
+    MP_FOCUS_SOUL_BELL_T3: 'sig_golden_buddha_bell',
+    TECH_V234_HEART_SOUL_SUP_03: 'sig_shennong_emerald_lotus',
+
+    // 6. MECH_PUPPET
+    LEG_COMBAT_SAMSARA_PUPPET_THREADS: 'sig_myriad_puppet_barrage',
+    TECH_V234_MECH_PUPPET_ACT_06: 'sig_myriad_puppet_barrage',
+    TECH_V234_MECH_PUPPET_ACT_12: 'sig_myriad_puppet_barrage',
+    TECH_V215_WHIP_ACT_07: 'sig_myriad_puppet_barrage',
+    TECH_V234_MECH_PUPPET_SUP_03: 'sig_golden_buddha_bell',
+    ART_MECH_PUPPET_008: 'sig_myriad_puppet_barrage',
+
+    // 7. KARMA_SAMSARA
+    LEG_FORB_SAMSARA_KARMA_REVERSAL: 'sig_taiji_yin_yang_crush',
+    SUP_BODHI_SOVEREIGN_CHANT_T6: 'sig_golden_buddha_bell',
+    TECH_V215_WHIP_ACT_08: 'sig_taiji_yin_yang_crush',
+    TECH_V234_KARMA_SAMSARA_ACT_06: 'sig_shennong_emerald_lotus',
+    TECH_V234_KARMA_SAMSARA_ACT_12: 'sig_golden_buddha_bell',
+    ART_V212_KARMA_MIRROR_T6: 'sig_frost_lotus_domain',
+    TECH_V215_BRUSH_ACT_07: 'sig_heaven_brush_astrolabe',
+
+    // 8. BEAST_SOVEREIGN
+    LEG_LIGHT_KUNPENG_ASTRAL_WINGS: 'sig_primordial_beast_totem',
+    TECH_V234_BEAST_SOVEREIGN_ACT_06: 'sig_myriad_venom_miasma',
+    TECH_V234_BEAST_SOVEREIGN_ACT_12: 'sig_primordial_beast_totem',
+    TECH_V234_BEAST_SOVEREIGN_ACT_05: 'sig_primordial_beast_totem',
+    TECH_V234_BEAST_SOVEREIGN_SUP_03: 'sig_primordial_beast_totem',
+    TECH_UNI_V230_018: 'sig_blood_beast_claw',
+    TECH_V240_CLAW_02: 'sig_blood_beast_claw',
+
+    // 9. SAGE_SUPPORT
+    LEG_COMBAT_JADE_NIRVANA_HARMONY: 'sig_shennong_emerald_lotus',
+    ART_V212_SAGE_APEX_T7: 'sig_shennong_emerald_lotus',
+    TECH_V215_ZITHER_ACT_08: 'sig_heavens_sound_requiem',
+    TECH_V234_SAGE_SUPPORT_ACT_06: 'sig_shennong_emerald_lotus',
+    TECH_V234_SAGE_SUPPORT_ACT_12: 'sig_heaven_brush_astrolabe',
+    ART_SAGE_SUP_005: 'sig_shennong_emerald_lotus',
+    ART_SAGE_SUP_006: 'sig_imperial_eight_gates_banner',
+    ART_SAGE_SUP_007: 'sig_shennong_emerald_lotus',
+    ART_SAGE_SUP_004: 'sig_golden_buddha_bell',
+
+    // 10. CRAFT_CREATION
+    ART_CRAFT_012: 'sig_divine_crucible_forge',
+    LEG_V240_CRAFT_CREATION: 'sig_divine_crucible_forge',
+    TECH_V234_CRAFT_CREATION_ACT_06: 'sig_divine_crucible_forge',
+    TECH_V234_CRAFT_CREATION_ACT_12: 'sig_shennong_emerald_lotus',
+    TECH_V234_CRAFT_CREATION_SUP_03: 'sig_divine_crucible_forge',
+    ART_V214_CELESTIAL_ARMOR_ARTISAN_T4: 'sig_golden_buddha_bell',
+
+    // 11. ARRAY_TALISMAN
+    LEG_AUX_HEAVEN_INSCRIPTION_SEAL: 'sig_heaven_brush_astrolabe',
+    SUP_ASTRAL_FATE_COMPASS_T5: 'sig_heaven_brush_astrolabe',
+    TECH_V234_ARRAY_TALISMAN_ACT_06: 'sig_thunder_god_halberd',
+    TECH_V234_ARRAY_TALISMAN_ACT_12: 'sig_taiji_yin_yang_crush',
+    TECH_V234_ARRAY_TALISMAN_SUP_03: 'sig_taiji_yin_yang_crush',
+    ART_V214_EARTH_VEIN_WARDEN_T4: 'sig_taiji_yin_yang_crush',
+
+    // 12. STRATEGY_GOVERNANCE
+    LEG_AUX_IMPERIAL_EIGHT_GATES: 'sig_imperial_eight_gates_banner',
+    SUP_QIMEN_COMMAND_BANNER_T4: 'sig_imperial_eight_gates_banner',
+    TECH_V234_STRATEGY_GOVERNANCE_ACT_06: 'sig_imperial_eight_gates_banner',
+    TECH_V234_STRATEGY_GOVERNANCE_ACT_12: 'sig_imperial_eight_gates_banner',
+    TECH_V234_STRATEGY_GOVERNANCE_ACT_05: 'sig_imperial_eight_gates_banner',
+    TECH_V234_STRATEGY_GOVERNANCE_SUP_03: 'sig_imperial_eight_gates_banner',
+    ART_V214_BATTLEFIELD_STRATEGIST_T4: 'sig_imperial_eight_gates_banner',
+
+    // 13-27. Grand Dao Paths (Batch 1) — High-Tier Active & Weapon Arts
+    TECH_V200_ASTRO_DIVINATION_ACT_06: 'sig_heaven_brush_astrolabe',
+    TECH_V200_ASTRO_DIVINATION_ACT_05: 'sig_nine_suns_eye',
+    TECH_V240_ASTROLABE_01: 'sig_heaven_brush_astrolabe',
+    TECH_V200_BUDDHA_DHARMA_ACT_06: 'sig_golden_buddha_bell',
+    TECH_V200_BUDDHA_DHARMA_ACT_05: 'sig_eight_directions_palm',
+    TECH_V200_VOID_SPACE_ACT_06: 'sig_void_spatial_slash',
+    TECH_V200_VOID_SPACE_ACT_05: 'sig_void_spatial_slash',
+    TECH_V200_SONIC_HARMONY_ACT_06: 'sig_heavens_sound_requiem',
+    TECH_V200_SONIC_HARMONY_ACT_05: 'sig_heavens_sound_requiem',
+    TECH_V200_VENOM_GU_ACT_06: 'sig_myriad_venom_miasma',
+    TECH_V200_VENOM_GU_ACT_05: 'sig_blood_beast_claw',
+    TECH_V240_NEEDLE_02: 'sig_myriad_venom_miasma',
+    TECH_V200_PRIMORDIAL_SHIFTER_ACT_06: 'sig_primordial_beast_totem',
+    TECH_V200_PRIMORDIAL_SHIFTER_ACT_05: 'sig_blood_beast_claw',
+    TECH_V200_CELESTIAL_WEATHER_ACT_06: 'sig_nine_suns_eye',
+    TECH_V200_CELESTIAL_WEATHER_ACT_05: 'sig_frost_lotus_domain',
+    TECH_V240_FAN_02: 'sig_thunder_god_halberd',
+    TECH_V200_WANDERING_DAO_ACT_06: 'sig_immortal_crane_feather_storm',
+    TECH_V200_WANDERING_DAO_ACT_05: 'sig_immortal_crane_feather_storm',
+    TECH_V200_MERCANTILE_DAO_ACT_06: 'sig_golden_abacus_wheel',
+    TECH_V200_MERCANTILE_DAO_ACT_05: 'sig_golden_abacus_wheel',
+    TECH_V240_ABACUS_03: 'sig_golden_abacus_wheel',
+    TECH_V200_DRAGON_VEIN_GEOMANCY_ACT_06: 'sig_tidal_maelstrom_anchors',
+    TECH_V200_DRAGON_VEIN_GEOMANCY_ACT_05: 'sig_taiji_yin_yang_crush',
+    TECH_V200_GRAVITY_DAO_ACT_06: 'sig_taiji_yin_yang_crush',
+    TECH_V200_GRAVITY_DAO_ACT_05: 'sig_eight_directions_palm',
+    TECH_UNI_V230_026: 'sig_taiji_yin_yang_crush',
+    TECH_V200_CHRONO_EPOCH_ACT_06: 'sig_heaven_brush_astrolabe',
+    TECH_V200_CHRONO_EPOCH_ACT_05: 'sig_void_spatial_slash',
+    TECH_V240_ASTROLABE_02: 'sig_heaven_brush_astrolabe',
+    TECH_UNI_V230_027: 'sig_heaven_brush_astrolabe',
+    TECH_V200_INK_LITERATI_ACT_06: 'sig_heaven_brush_astrolabe',
+    TECH_V200_INK_LITERATI_ACT_05: 'sig_heaven_brush_astrolabe',
+    TECH_V240_BRUSH_03: 'sig_heaven_brush_astrolabe',
+    TECH_V200_SOUL_PUPPETRY_ACT_06: 'sig_myriad_puppet_barrage',
+    TECH_V200_SOUL_PUPPETRY_ACT_05: 'sig_myriad_puppet_barrage',
+    TECH_UNI_V230_021: 'sig_myriad_puppet_barrage',
+    TECH_V200_PRIMORDIAL_CHAOS_ACT_06: 'sig_taiji_yin_yang_crush',
+    TECH_V200_PRIMORDIAL_CHAOS_ACT_05: 'sig_nine_suns_eye',
+
+    // 28-43. Grand Dao Paths (Batch 2) — Combat, Forbidden, Support & Defense Arts
+    TECH_V230_SHADOW_SAMURAI_FORBIDDEN: 'sig_iai_crimson_moon_slash',
+    TECH_V200_SHADOW_SAMURAI_ACT_04: 'sig_iai_crimson_moon_slash',
+    TECH_V230_SHADOW_SAMURAI_SUPPORT: 'sig_imperial_eight_gates_banner',
+    TECH_V230_SHADOW_SAMURAI_DEFENSE: 'sig_iai_crimson_moon_slash',
+    TECH_V230_NINPO_SHADOW_FORBIDDEN: 'sig_shinobi_phantom_clone_ambush',
+    TECH_V200_NINPO_SHADOW_ACT_04: 'sig_shinobi_phantom_clone_ambush',
+    TECH_V230_NINPO_SHADOW_SUPPORT: 'sig_shinobi_phantom_clone_ambush',
+    TECH_V230_NINPO_SHADOW_DEFENSE: 'sig_shinobi_phantom_clone_ambush',
+    TECH_V230_NINPO_ELEMENTAL_FORBIDDEN: 'sig_shinobi_mudra_firestorm',
+    TECH_V200_NINPO_ELEMENTAL_ACT_04: 'sig_shinobi_mudra_firestorm',
+    TECH_V230_NINPO_ELEMENTAL_SUPPORT: 'sig_shinobi_mudra_firestorm',
+    TECH_V230_NINPO_ELEMENTAL_DEFENSE: 'sig_shinobi_mudra_firestorm',
+    TECH_V230_DIVINE_SUMMONER_FORBIDDEN: 'sig_pantheon_deity_descent',
+    TECH_V200_DIVINE_SUMMONER_ACT_04: 'sig_pantheon_deity_descent',
+    TECH_V230_DIVINE_SUMMONER_SUPPORT: 'sig_pantheon_deity_descent',
+    TECH_V230_DIVINE_SUMMONER_DEFENSE: 'sig_golden_buddha_bell',
+    TECH_UNI_V230_015: 'sig_pantheon_deity_descent',
+    TECH_V230_DIVINE_POSSESSION_FORBIDDEN: 'sig_pantheon_deity_descent',
+    TECH_V200_DIVINE_POSSESSION_ACT_04: 'sig_pantheon_deity_descent',
+    TECH_V230_DIVINE_POSSESSION_SUPPORT: 'sig_pantheon_deity_descent',
+    TECH_V230_DIVINE_POSSESSION_DEFENSE: 'sig_golden_buddha_bell',
+    TECH_V230_DIVINE_CHANNELER_FORBIDDEN: 'sig_thunder_god_halberd',
+    TECH_V200_DIVINE_CHANNELER_ACT_04: 'sig_thunder_god_halberd',
+    TECH_V230_DIVINE_CHANNELER_SUPPORT: 'sig_pantheon_deity_descent',
+    TECH_V230_DIVINE_CHANNELER_DEFENSE: 'sig_thunder_god_halberd',
+    TECH_V230_VOID_HERETIC_PACT_FORBIDDEN: 'sig_eldritch_void_rift',
+    TECH_V200_VOID_HERETIC_PACT_ACT_04: 'sig_eldritch_void_rift',
+    TECH_V230_VOID_HERETIC_PACT_SUPPORT: 'sig_eldritch_void_rift',
+    TECH_V230_VOID_HERETIC_PACT_DEFENSE: 'sig_eldritch_void_rift',
+    TECH_V230_OCCULT_MAGE_FORBIDDEN: 'sig_khmer_sacred_yantra_seal',
+    TECH_V200_OCCULT_MAGE_ACT_04: 'sig_khmer_sacred_yantra_seal',
+    TECH_V230_OCCULT_MAGE_SUPPORT: 'sig_khmer_sacred_yantra_seal',
+    TECH_V230_OCCULT_MAGE_DEFENSE: 'sig_khmer_sacred_yantra_seal',
+    TECH_V240_FOCUS_02: 'sig_khmer_sacred_yantra_seal',
+    TECH_V230_DEVOURING_FLESH_FORBIDDEN: 'sig_blood_lotus_apocalypse',
+    TECH_V200_DEVOURING_FLESH_ACT_04: 'sig_blood_lotus_apocalypse',
+    TECH_V230_DEVOURING_FLESH_SUPPORT: 'sig_blood_beast_claw',
+    TECH_V230_DEVOURING_FLESH_DEFENSE: 'sig_blood_beast_claw',
+    TECH_V230_NETHER_GRAVE_FORBIDDEN: 'sig_nether_grave_soul_eruption',
+    TECH_V200_NETHER_GRAVE_ACT_04: 'sig_nether_grave_soul_eruption',
+    TECH_V230_NETHER_GRAVE_SUPPORT: 'sig_nether_grave_soul_eruption',
+    TECH_V230_NETHER_GRAVE_DEFENSE: 'sig_nether_grave_soul_eruption',
+    TECH_V230_ANCESTRAL_RITUAL_FORBIDDEN: 'sig_nether_grave_soul_eruption',
+    TECH_V200_ANCESTRAL_RITUAL_ACT_04: 'sig_nether_grave_soul_eruption',
+    TECH_V230_ANCESTRAL_RITUAL_SUPPORT: 'sig_golden_buddha_bell',
+    TECH_V230_ANCESTRAL_RITUAL_DEFENSE: 'sig_golden_buddha_bell',
+    TECH_V230_TIDE_VOYAGER_FORBIDDEN: 'sig_tidal_maelstrom_anchors',
+    TECH_V200_TIDE_VOYAGER_ACT_04: 'sig_tidal_maelstrom_anchors',
+    TECH_V230_TIDE_VOYAGER_SUPPORT: 'sig_shennong_emerald_lotus',
+    TECH_V230_TIDE_VOYAGER_DEFENSE: 'sig_frost_lotus_domain',
+    TECH_UNI_V230_024: 'sig_tidal_maelstrom_anchors',
+    TECH_V230_LORE_ARCHIVIST_FORBIDDEN: 'sig_heaven_brush_astrolabe',
+    TECH_V200_LORE_ARCHIVIST_ACT_04: 'sig_heaven_brush_astrolabe',
+    TECH_V230_LORE_ARCHIVIST_SUPPORT: 'sig_heaven_brush_astrolabe',
+    TECH_V230_LORE_ARCHIVIST_DEFENSE: 'sig_heaven_brush_astrolabe',
+    TECH_UNI_V230_030: 'sig_golden_abacus_wheel',
+    TECH_V230_FORTUNE_GAMBLER_FORBIDDEN: 'sig_golden_abacus_wheel',
+    TECH_V200_FORTUNE_GAMBLER_ACT_04: 'sig_golden_abacus_wheel',
+    TECH_V230_FORTUNE_GAMBLER_SUPPORT: 'sig_golden_abacus_wheel',
+    TECH_V230_FORTUNE_GAMBLER_DEFENSE: 'sig_golden_abacus_wheel',
+    TECH_V230_SPIRIT_HUSBANDRY_FORBIDDEN: 'sig_myriad_venom_miasma',
+    TECH_V200_SPIRIT_HUSBANDRY_ACT_04: 'sig_shennong_emerald_lotus',
+    TECH_V230_SPIRIT_HUSBANDRY_SUPPORT: 'sig_shennong_emerald_lotus',
+    TECH_V230_SPIRIT_HUSBANDRY_DEFENSE: 'sig_shennong_emerald_lotus',
+    TECH_V230_ARENA_GLORY_FORBIDDEN: 'sig_blazing_dragon_wave',
+    TECH_V200_ARENA_GLORY_ACT_04: 'sig_imperial_eight_gates_banner',
+    TECH_V230_ARENA_GLORY_SUPPORT: 'sig_imperial_eight_gates_banner',
+    TECH_V230_ARENA_GLORY_DEFENSE: 'sig_golden_buddha_bell',
+
+    // Additional Era-5 Signature Manuals (Defense / Support / Forbidden / Qinggong)
+    FORB_VOID_APOCALYPSE_TABOO_T6: 'sig_eldritch_void_rift',
+    FORB_LIFESPAN_HEAVEN_DEFIANCE_T5: 'sig_blood_lotus_apocalypse',
+    FORB_SOUL_DEVOURING_ABYSS_T4: 'sig_soul_scorching_flame',
+    FORB_CORPSE_GU_NECROMANCY_T3: 'sig_nether_grave_soul_eruption',
+    DEF_MYRIAD_SWORD_CURTAIN_T3: 'sig_meteor_sword_rain',
+    DEF_TAIJI_STAR_SHIFT_T3: 'sig_taiji_yin_yang_crush',
+    DEF_FIVE_ELEMENT_THORN_T4: 'sig_blazing_dragon_wave',
+    SUP_GOLDEN_NEEDLE_MERIDIAN_T3: 'sig_shennong_emerald_lotus'
   };
 
   SK.resolveSignatureVfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
+    const tid = techOrMove.tech || techOrMove.id || '';
+    if (SK.TECH_TO_SIGNATURE_VFX[tid] && SK.SIGNATURE_VFX_CATALOG[SK.TECH_TO_SIGNATURE_VFX[tid]]) {
+      return SK.TECH_TO_SIGNATURE_VFX[tid];
+    }
     if (moveOpt && moveOpt.signatureVfx && SK.SIGNATURE_VFX_CATALOG[moveOpt.signatureVfx]) {
       return moveOpt.signatureVfx;
     }
     if (techOrMove.signatureVfx && SK.SIGNATURE_VFX_CATALOG[techOrMove.signatureVfx]) {
       return techOrMove.signatureVfx;
     }
-    const tid = techOrMove.tech || techOrMove.id || '';
-    if (SK.TECH_TO_SIGNATURE_VFX[tid]) return SK.TECH_TO_SIGNATURE_VFX[tid];
 
-    // Also match high-tier/legendary techniques by Thai name or element/weapon archetype so all major ultimates shine
-    const tier = techOrMove.tier || 1;
-    const isHigh = !!(techOrMove.legendary || tier >= 5 || techOrMove.arch === 'burst' || techOrMove.arch === 'forbid');
+    // Match high-tier/legendary/forbidden/specialist techniques by Thai name, role, and path
+    const tier = techOrMove.tier || (moveOpt && moveOpt.tier) || 1;
+    const cat = String(techOrMove.cat || '');
+    const arch = String((moveOpt && moveOpt.arch) || techOrMove.combatArch || techOrMove.arch || '');
+    const isForbid = arch === 'forbid' || /FORBIDDEN/.test(cat);
+    const isSupportOrDef = /SUPPORT|DEFENSIVE|AUXILIARY/.test(cat) || ['heal', 'support', 'harmonize', 'command', 'shield', 'guard'].includes(arch);
+    const isHigh = !!(techOrMove.legendary || tier >= 5 || arch === 'burst' || isForbid || (isSupportOrDef && tier >= 4));
     if (!isHigh) return null;
 
     const nm = String((moveOpt && moveOpt.nameTh) || techOrMove.nameTh || '');
-    if (/ดาวตก|พิรุณกระบี่|หมื่นกระบี่/.test(nm)) return 'sig_meteor_sword_rain';
+    if (/ดาวตก|พิรุณกระบี่|หมื่นกระบี่|เก้ากระบี่/.test(nm)) return 'sig_meteor_sword_rain';
+    if (/อิไอ|ซามูไร|ไร้เงา/.test(nm)) return 'sig_iai_crimson_moon_slash';
+    if (/นินจาเร้น|เงาแยก|ดาวกระจาย/.test(nm)) return 'sig_shinobi_phantom_clone_ambush';
+    if (/มุทรา|คาถาธาตุ|ยันต์ระเบิด/.test(nm)) return 'sig_shinobi_mudra_firestorm';
+    if (/ทวยเทพ|เทวะสถิต|มหาเทวาลัย|ร่างทรง/.test(nm)) return 'sig_pantheon_deity_descent';
+    if (/นอกรีต|นอกมิติ|เนตรอเวจี|ดูดกลืนมิติ/.test(nm)) return 'sig_eldritch_void_rift';
+    if (/ขมังเวท|ไสยศาสตร์|ยันต์เก้ายอด|กุมารทอง|ควายธนู/.test(nm)) return 'sig_khmer_sacred_yantra_seal';
+    if (/สุสาน|ยมโลก|ปลุกศพ|ป้ายวิญญาณ|บรรพชน/.test(nm)) return 'sig_nether_grave_soul_eruption';
+    if (/เสินหนง|ชุบชีวา|น้ำอมฤต|บัวหยก|สมานวิญญาณ|พฤกษาโอสถ/.test(nm)) return 'sig_shennong_emerald_lotus';
+    if (/แปดพยุหะ|บัญชาทัพ|กลองศึก|ธงรบ|ประกาศิตเจ้าสำนัก|สาส์นพันธมิตร|พิชัยสงคราม/.test(nm)) return 'sig_imperial_eight_gates_banner';
+    if (/โทเท็ม|คุนเผิง|จิ้งจอกเก้าหาง|ราชันอสูร|เทพอสูร/.test(nm)) return 'sig_primordial_beast_totem';
+    if (/เหอถูลั่วซู|จานดารา|พู่กัน|จารึก|อาลักษณ์|ชุนชิว|ย้อนรอยกัป|บิดเบือนกาล/.test(nm)) return 'sig_heaven_brush_astrolabe';
+    if (/ลูกคิด|ไฉ่ซิง|เดิมพัน|รูเล็ตต์|เสนาบดีคลัง|ทวงหนี้/.test(nm)) return 'sig_golden_abacus_wheel';
+    if (/เตาหลอม|เบ้าหลอม|รังสรรค์โอสถและศาสตรา/.test(nm)) return 'sig_divine_crucible_forge';
+    if (/นาวิกสมุทร|พลิกคลื่น|ไข่มุกสมุทร|วังวน/.test(nm)) return 'sig_tidal_maelstrom_anchors';
+    if (/บัวโลหิต|ดูดดาว|กลืนหลอมสรีระ|กระเพาะหลุมดำ|สูบเลือด/.test(nm)) return 'sig_blood_lotus_apocalypse';
     if (/ฝ่ามือ|แปดทิศ|ตถาคต|สยบมาร/.test(nm)) return 'sig_eight_directions_palm';
     if (/สุริยัน|เก้าตะวัน|เก้าเพลิง/.test(nm)) return 'sig_nine_suns_eye';
     if (/ผลาญวิญญาณ|เพลิงอเวจี|เพลิงมาร/.test(nm)) return 'sig_soul_scorching_flame';
@@ -1945,6 +2367,18 @@
     if (/หมอกพิษ|กู่|หมื่นพิษ/.test(nm)) return 'sig_myriad_venom_miasma';
     if (/หยินหยาง|ไท่เก๊ก|แปดทิศบดขยี้/.test(nm)) return 'sig_taiji_yin_yang_crush';
     if (/กระเรียน|เหินเซียน|ขนนก/.test(nm)) return 'sig_immortal_crane_feather_storm';
+
+    // Role & Path-based deterministic resolution for remaining high-tier (T5+) techniques
+    if (tier >= 5 || techOrMove.legendary || isForbid) {
+      if (arch === 'heal' || arch === 'harmonize') return 'sig_shennong_emerald_lotus';
+      if (arch === 'command') return 'sig_imperial_eight_gates_banner';
+      if (arch === 'shield' || arch === 'guard') return 'sig_golden_buddha_bell';
+      if (arch === 'summon') return 'sig_primordial_beast_totem';
+      const pKey = techOrMove.path || (moveOpt && moveOpt.path) || '';
+      if (pKey && SK.PATH_PRIMARY_SIGNATURE_VFX[pKey]) {
+        return SK.PATH_PRIMARY_SIGNATURE_VFX[pKey];
+      }
+    }
     return null;
   };
 

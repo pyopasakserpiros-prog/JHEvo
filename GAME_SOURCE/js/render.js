@@ -1135,21 +1135,97 @@
     9: { stage: 9, tierGroup: 'TRUE_IMMORTAL', nameTh: 'เซียนแท้จริงจุติ', haloType: 'immortal_divine_wheel', color: '#fff59d', secondary: '#00f5d4', radius: 14.2, silkRibbon: true }
   });
 
-  // Pillar 1B: 12 Cultivation Path Visual Signatures
-  R.PATH_VISUAL_SIGNATURES = Object.freeze({
-    SWORD:     { id: 'SWORD',     nameTh: 'วิถีกระบี่',     moteShape: 'sword_qi',      primary: '#4fc3f7', secondary: '#e1f5fe' },
-    BODY:      { id: 'BODY',      nameTh: 'วิถีกายา',      moteShape: 'blood_amber',   primary: '#ffb74d', secondary: '#ff6f00' },
-    MAGIC:     { id: 'MAGIC',     nameTh: 'วิถีเวทธาตุ',    moteShape: 'element_sparks',primary: '#ce93d8', secondary: '#7c4dff' },
-    ARRAY:     { id: 'ARRAY',     nameTh: 'วิถีค่ายกล',     moteShape: 'bagua_glyph',   primary: '#ffd54f', secondary: '#fff9c4' },
-    PILL:      { id: 'PILL',      nameTh: 'วิถีโอสถ',      moteShape: 'emerald_leaf',  primary: '#66bb6a', secondary: '#b9f6ca' },
-    TALISMAN:  { id: 'TALISMAN',  nameTh: 'วิถีอักขระยันต์', moteShape: 'paper_talisman',primary: '#ffca28', secondary: '#ef5350' },
-    SOUL:      { id: 'SOUL',      nameTh: 'วิถีวิญญาณ',    moteShape: 'will_o_wisp',   primary: '#80cbc4', secondary: '#b388ff' },
-    BEAST:     { id: 'BEAST',     nameTh: 'วิถีอสูร',      moteShape: 'totem_fang',    primary: '#a1887f', secondary: '#ffcc80' },
-    SOUND:     { id: 'SOUND',     nameTh: 'วิถีดนตรีปราณ',  moteShape: 'harmonic_wave', primary: '#80deea', secondary: '#f48fb1' },
-    PUPPET:    { id: 'PUPPET',    nameTh: 'วิถีเชิดหุ่น',   moteShape: 'spirit_thread', primary: '#b0bec5', secondary: '#ea80fc' },
-    POISON:    { id: 'POISON',    nameTh: 'วิถีพิษกู่',     moteShape: 'miasma_spore',  primary: '#9ccc65', secondary: '#ab47bc' },
-    DIVINE:    { id: 'DIVINE',    nameTh: 'วิถีเทวะชะตา',   moteShape: 'starlight_orb', primary: '#ffe082', secondary: '#ffffff' }
+  // Pillar 1B & JS2-v2.5.0: Complete 43 Grand Dao Path Visual Signatures + Legacy 12 Aliases
+  R.LEGACY_PATH_VISUAL_SIGNATURES = Object.freeze({
+    SWORD:     { id: 'SWORD',     nameTh: 'วิถีกระบี่',     moteShape: 'jade_sword_feather',   apexCrownShape: 'taiji_sword_lotus',        family: 'BLADE_SWORD',     primary: '#4fc3f7', secondary: '#e1f5fe', accent: '#ffd166', maxStage: 9 },
+    BODY:      { id: 'BODY',      nameTh: 'วิถีกายา',      moteShape: 'vajra_hex_plate',      apexCrownShape: 'vajra_blood_pillar',       family: 'BODY_FORTRESS',   primary: '#e07d5b', secondary: '#ffd166', accent: '#ff6f00', maxStage: 5 },
+    MAGIC:     { id: 'MAGIC',     nameTh: 'วิถีเวทธาตุ',    moteShape: 'element_sparks',       apexCrownShape: 'elemental_storm_eye',      family: 'WEATHER_NATURE',  primary: '#ce93d8', secondary: '#7c4dff', accent: '#00f5d4', maxStage: 8 },
+    ARRAY:     { id: 'ARRAY',     nameTh: 'วิถีค่ายกล',     moteShape: 'talisman_slip_bagua',  apexCrownShape: 'bagua_eight_gates',        family: 'ARRAY_GEOMANCY',  primary: '#ffd54f', secondary: '#fff9c4', accent: '#64c3ce', maxStage: 8 },
+    PILL:      { id: 'PILL',      nameTh: 'วิถีโอสถ',      moteShape: 'jade_needle_dew',      apexCrownShape: 'shennong_gourd_canopy',    family: 'LIFE_ALCHEMY',    primary: '#66bb6a', secondary: '#b9f6ca', accent: '#ffd166', maxStage: 8 },
+    TALISMAN:  { id: 'TALISMAN',  nameTh: 'วิถีอักขระยันต์', moteShape: 'talisman_slip_bagua',  apexCrownShape: 'bagua_eight_gates',        family: 'ARRAY_GEOMANCY',  primary: '#ffca28', secondary: '#ef5350', accent: '#64c3ce', maxStage: 8 },
+    SOUL:      { id: 'SOUL',      nameTh: 'วิถีวิญญาณ',    moteShape: 'zen_mirror_petal',     apexCrownShape: 'bodhi_mind_mirror',        family: 'MIND_DHARMA',     primary: '#80cbc4', secondary: '#b388ff', accent: '#ffffff', maxStage: 9 },
+    BEAST:     { id: 'BEAST',     nameTh: 'วิถีอสูร',      moteShape: 'primal_claw_fang',     apexCrownShape: 'four_symbols_totem',       family: 'BEAST_TOTEM',     primary: '#a1887f', secondary: '#ffcc80', accent: '#51cf66', maxStage: 8 },
+    SOUND:     { id: 'SOUND',     nameTh: 'วิถีดนตรีปราณ',  moteShape: 'qin_ripple_wave',      apexCrownShape: 'nine_heavens_zither',      family: 'SONIC_LITERATI',  primary: '#80deea', secondary: '#f48fb1', accent: '#ffd166', maxStage: 8 },
+    PUPPET:    { id: 'PUPPET',    nameTh: 'วิถีเชิดหุ่น',   moteShape: 'clockwork_cog',        apexCrownShape: 'clockwork_golem_Halo',     family: 'MECH_PUPPETRY',   primary: '#b0bec5', secondary: '#ea80fc', accent: '#ffb703', maxStage: 8 },
+    POISON:    { id: 'POISON',    nameTh: 'วิถีพิษกู่',     moteShape: 'gu_centipede_spore',   apexCrownShape: 'myriad_gu_mandala',        family: 'SHADOW_VENOM',    primary: '#9ccc65', secondary: '#ab47bc', accent: '#00f5d4', maxStage: 8 },
+    DIVINE:    { id: 'DIVINE',    nameTh: 'วิถีเทวะชะตา',   moteShape: 'faith_incense_lamp',   apexCrownShape: 'divine_pantheon_shrine',   family: 'DIVINE_PANTHEON', primary: '#ffe082', secondary: '#ffffff', accent: '#ff6d00', maxStage: 4 }
   });
+
+  R.PATH_VISUAL_SIGNATURES = Object.freeze({
+    XIAN:                 { id: 'XIAN',                 nameTh: 'วิถีเซียน',              moteShape: 'jade_sword_feather',     apexCrownShape: 'taiji_sword_lotus',          family: 'BLADE_SWORD',     primary: '#5ab4d8', secondary: '#e0f7fa', accent: '#ffd166', maxStage: 9 },
+    BODY:                 { id: 'BODY',                 nameTh: 'วิถีกายา',              moteShape: 'vajra_hex_plate',        apexCrownShape: 'vajra_blood_pillar',         family: 'BODY_FORTRESS',   primary: '#e07d5b', secondary: '#ffd166', accent: '#ff5252', maxStage: 5 },
+    GOD:                  { id: 'GOD',                  nameTh: 'วิถีเทพ',               moteShape: 'faith_incense_lamp',     apexCrownShape: 'divine_pantheon_shrine',     family: 'DIVINE_PANTHEON', primary: '#e6c055', secondary: '#fff8e1', accent: '#ff9e00', maxStage: 4 },
+    DEMON:                { id: 'DEMON',                nameTh: 'วิถีมารอสูร',            moteShape: 'blood_crescent_horn',    apexCrownShape: 'eclipse_demon_throne',       family: 'ABYSS_DEMON',     primary: '#b28cd9', secondary: '#ef233c', accent: '#ff758f', maxStage: 9 },
+    HEART_SOUL:           { id: 'HEART_SOUL',           nameTh: 'วิถีจิตวิญญาณ',          moteShape: 'zen_mirror_petal',       apexCrownShape: 'bodhi_mind_mirror',          family: 'MIND_DHARMA',     primary: '#8ec8d0', secondary: '#f3e5f5', accent: '#00f5d4', maxStage: 9 },
+    MECH_PUPPET:          { id: 'MECH_PUPPET',          nameTh: 'วิถีกลจักรเชิดหุ่น',      moteShape: 'clockwork_cog',          apexCrownShape: 'clockwork_golem_halo',       family: 'MECH_PUPPETRY',   primary: '#8ecae6', secondary: '#d9a97c', accent: '#ffb703', maxStage: 8 },
+    KARMA_SAMSARA:        { id: 'KARMA_SAMSARA',        nameTh: 'วิถีกรรมวัฏ',            moteShape: 'red_fate_knot',          apexCrownShape: 'six_paths_samsara_wheel',    family: 'MIND_DHARMA',     primary: '#b5838d', secondary: '#fcc419', accent: '#ff4d6d', maxStage: 8 },
+    BEAST_SOVEREIGN:      { id: 'BEAST_SOVEREIGN',      nameTh: 'วิถีราชันย์อสูร',         moteShape: 'primal_claw_fang',       apexCrownShape: 'four_symbols_totem',         family: 'BEAST_TOTEM',     primary: '#e09f3e', secondary: '#51cf66', accent: '#ff6b6b', maxStage: 8 },
+    SAGE_SUPPORT:         { id: 'SAGE_SUPPORT',         nameTh: 'วิถีปราชญ์หนุนนำ',        moteShape: 'jade_needle_dew',        apexCrownShape: 'shennong_gourd_canopy',      family: 'LIFE_ALCHEMY',    primary: '#76c893', secondary: '#b9f6ca', accent: '#ffd166', maxStage: 8 },
+    CRAFT_CREATION:       { id: 'CRAFT_CREATION',       nameTh: 'วิถีรังสรรค์ศาสตรา',      moteShape: 'crucible_flame_hammer',  apexCrownShape: 'nine_dragon_cauldron',       family: 'LIFE_ALCHEMY',    primary: '#f4a261', secondary: '#ffd166', accent: '#ff4d00', maxStage: 8 },
+    ARRAY_TALISMAN:       { id: 'ARRAY_TALISMAN',       nameTh: 'วิถีค่ายกลยันต์',         moteShape: 'talisman_slip_bagua',    apexCrownShape: 'bagua_eight_gates',          family: 'ARRAY_GEOMANCY',  primary: '#64c3ce', secondary: '#ffd54f', accent: '#ef5350', maxStage: 8 },
+    STRATEGY_GOVERNANCE:  { id: 'STRATEGY_GOVERNANCE',  nameTh: 'วิถีพิชัยอภิบาล',        moteShape: 'command_pennant_seal',   apexCrownShape: 'imperial_war_chariot_flags', family: 'COMMAND_MARTIAL', primary: '#d4bb78', secondary: '#fff3b0', accent: '#e63946', maxStage: 8 },
+    ASTRO_DIVINATION:     { id: 'ASTRO_DIVINATION',     nameTh: 'วิถีโหราดวงดาว',         moteShape: 'astrolabe_star_cross',   apexCrownShape: 'big_dipper_armillary',       family: 'COSMIC_TIME',     primary: '#74c0fc', secondary: '#e0fbfc', accent: '#ffd166', maxStage: 8 },
+    BUDDHA_DHARMA:        { id: 'BUDDHA_DHARMA',        nameTh: 'วิถีพุทธธรรม',           moteShape: 'dharma_swastika_lotus',  apexCrownShape: 'thousand_palm_arhat_halo',   family: 'MIND_DHARMA',     primary: '#fcc419', secondary: '#fff9db', accent: '#ff9e00', maxStage: 8 },
+    VOID_SPACE:           { id: 'VOID_SPACE',           nameTh: 'วิถีสุญญตามิติ',         moteShape: 'spatial_prism_shard',    apexCrownShape: 'dimensional_void_tesseract', family: 'COSMIC_TIME',     primary: '#9775fa', secondary: '#4cc9f0', accent: '#ffffff', maxStage: 8 },
+    SONIC_HARMONY:        { id: 'SONIC_HARMONY',        nameTh: 'วิถีเสียงประสาน',        moteShape: 'qin_ripple_wave',        apexCrownShape: 'nine_heavens_zither',        family: 'SONIC_LITERATI',  primary: '#63e6be', secondary: '#f48fb1', accent: '#ffd166', maxStage: 8 },
+    VENOM_GU:             { id: 'VENOM_GU',             nameTh: 'วิถีพิษกู่โบราณ',         moteShape: 'gu_centipede_spore',     apexCrownShape: 'myriad_gu_mandala',          family: 'SHADOW_VENOM',    primary: '#a9e34b', secondary: '#ab47bc', accent: '#00f5d4', maxStage: 8 },
+    PRIMORDIAL_SHIFTER:   { id: 'PRIMORDIAL_SHIFTER',   nameTh: 'วิถีแปลงกายบรรพกาล',     moteShape: 'dragon_scale_feather',   apexCrownShape: 'primordial_chimera_wings',   family: 'BEAST_TOTEM',     primary: '#ff8787', secondary: '#ff7b00', accent: '#ffd166', maxStage: 8 },
+    CELESTIAL_WEATHER:    { id: 'CELESTIAL_WEATHER',    nameTh: 'วิถีเทวอากาศ',           moteShape: 'thunder_cloud_snow',     apexCrownShape: 'four_seasons_storm_crown',   family: 'WEATHER_NATURE',  primary: '#4dabf7', secondary: '#ffd166', accent: '#c77dff', maxStage: 8 },
+    WANDERING_DAO:        { id: 'WANDERING_DAO',        nameTh: 'วิถีจาริกพิภพ',          moteShape: 'wind_leaf_compass',      apexCrownShape: 'horizon_compass_cloud',      family: 'WEATHER_NATURE',  primary: '#69db7c', secondary: '#e9ecef', accent: '#4cc9f0', maxStage: 8 },
+    MERCANTILE_DAO:       { id: 'MERCANTILE_DAO',       nameTh: 'วิถีพาณิชย์มรรคา',        moteShape: 'ancient_coin_ingot',     apexCrownShape: 'celestial_scales_coin_ring', family: 'FORTUNE_TRADE',   primary: '#ffd43b', secondary: '#f4a261', accent: '#ffffff', maxStage: 8 },
+    DRAGON_VEIN_GEOMANCY: { id: 'DRAGON_VEIN_GEOMANCY', nameTh: 'วิถีมังกรธรณี',          moteShape: 'luopan_jade_pillar',     apexCrownShape: 'earth_dragon_luopan',        family: 'ARRAY_GEOMANCY',  primary: '#d9a97c', secondary: '#52b788', accent: '#ffd166', maxStage: 8 },
+    GRAVITY_DAO:          { id: 'GRAVITY_DAO',          nameTh: 'วิถีแรงโน้มถ่วง',        moteShape: 'singularity_orbit_rock', apexCrownShape: 'trinary_gravity_rings',      family: 'COSMIC_TIME',     primary: '#845ef7', secondary: '#adb5bd', accent: '#4cc9f0', maxStage: 8 },
+    CHRONO_EPOCH:         { id: 'CHRONO_EPOCH',         nameTh: 'วิถีกาลเวลา',            moteShape: 'hourglass_pendulum',     apexCrownShape: 'twelve_epoch_sundial',       family: 'COSMIC_TIME',     primary: '#e599f7', secondary: '#ffd60a', accent: '#e0fbfc', maxStage: 8 },
+    INK_LITERATI:         { id: 'INK_LITERATI',         nameTh: 'วิถีอักษรปราชญ์',         moteShape: 'calligraphy_ink_stroke', apexCrownShape: 'imperial_scroll_brush',      family: 'SONIC_LITERATI',  primary: '#adb5bd', secondary: '#212529', accent: '#ffd166', maxStage: 8 },
+    SOUL_PUPPETRY:        { id: 'SOUL_PUPPETRY',        nameTh: 'วิถีเชิดเงาวิญญาณ',      moteShape: 'shadow_marionette_cross',apexCrownShape: 'nine_shadow_marionette_beam',family: 'MECH_PUPPETRY',   primary: '#da77f2', secondary: '#495057', accent: '#00f5d4', maxStage: 8 },
+    PRIMORDIAL_CHAOS:     { id: 'PRIMORDIAL_CHAOS',     nameTh: 'วิถีโกลาหลต้นกำเนิด',     moteShape: 'chaos_swirl_seed',       apexCrownShape: 'hundun_chaos_millstone',     family: 'COSMIC_TIME',     primary: '#ff6b6b', secondary: '#e0aaff', accent: '#ffd166', maxStage: 8 },
+    SHADOW_SAMURAI:       { id: 'SHADOW_SAMURAI',       nameTh: 'วิถีซามูไรไร้เงา',        moteShape: 'katana_crescent_sakura', apexCrownShape: 'crimson_moon_iaijutsu',      family: 'BLADE_SWORD',     primary: '#e63946', secondary: '#f8f9fa', accent: '#ffd166', maxStage: 8 },
+    NINPO_SHADOW:         { id: 'NINPO_SHADOW',         nameTh: 'วิถีนินจาเร้นเงา',        moteShape: 'shuriken_four_star',     apexCrownShape: 'shinobi_mirage_shuriken',    family: 'SHADOW_VENOM',    primary: '#4a4e69', secondary: '#c77dff', accent: '#e0fbfc', maxStage: 8 },
+    NINPO_ELEMENTAL:      { id: 'NINPO_ELEMENTAL',      nameTh: 'วิถีนินจาคาถาธาตุ',       moteShape: 'explosive_kuji_tag',     apexCrownShape: 'five_chakra_magatama_drums', family: 'WEATHER_NATURE',  primary: '#f77f00', secondary: '#ffbe0b', accent: '#00f5d4', maxStage: 8 },
+    DIVINE_SUMMONER:      { id: 'DIVINE_SUMMONER',      nameTh: 'วิถีอัญเชิญเทวะ',         moteShape: 'pantheon_pillar_rune',   apexCrownShape: 'five_pantheon_gate',         family: 'DIVINE_PANTHEON', primary: '#ffd166', secondary: '#ffffff', accent: '#4cc9f0', maxStage: 8 },
+    DIVINE_POSSESSION:    { id: 'DIVINE_POSSESSION',    nameTh: 'วิถีเทวะสถิตร่าง',        moteShape: 'avatar_third_eye_flame', apexCrownShape: 'deity_avatar_six_arms',      family: 'DIVINE_PANTHEON', primary: '#ff9f1c', secondary: '#ff0055', accent: '#fff8d6', maxStage: 8 },
+    DIVINE_CHANNELER:     { id: 'DIVINE_CHANNELER',     nameTh: 'วิถียืมพลังเทวะ',        moteShape: 'heaven_edict_lightning', apexCrownShape: 'celestial_law_conduit',      family: 'DIVINE_PANTHEON', primary: '#4cc9f0', secondary: '#ffd166', accent: '#c77dff', maxStage: 8 },
+    VOID_HERETIC_PACT:    { id: 'VOID_HERETIC_PACT',    nameTh: 'วิถีสัญญานอกมิติ',       moteShape: 'eldritch_eye_tentacle',  apexCrownShape: 'outer_god_abyssal_eyes',     family: 'ABYSS_DEMON',     primary: '#7209b7', secondary: '#f72585', accent: '#4cc9f0', maxStage: 8 },
+    OCCULT_MAGE:          { id: 'OCCULT_MAGE',          nameTh: 'วิถีจอมขมังเวท',         moteShape: 'sak_yant_takrut',        apexCrownShape: 'nine_spire_sacred_yantra',   family: 'ARRAY_GEOMANCY',  primary: '#d97706', secondary: '#fef08a', accent: '#ef4444', maxStage: 8 },
+    DEVOURING_FLESH:      { id: 'DEVOURING_FLESH',      nameTh: 'วิถีกลืนหลอมสรีระ',       moteShape: 'abyss_maw_fang',         apexCrownShape: 'taotie_devouring_maw',       family: 'ABYSS_DEMON',     primary: '#9b2226', secondary: '#ff4d6d', accent: '#ffb703', maxStage: 8 },
+    NETHER_GRAVE:         { id: 'NETHER_GRAVE',         nameTh: 'วิถีสุสานยมโลก',         moteShape: 'soul_lantern_bone',      apexCrownShape: 'yellow_springs_grave_gate',  family: 'ABYSS_DEMON',     primary: '#6c757d', secondary: '#48cae4', accent: '#80ffdb', maxStage: 8 },
+    ANCESTRAL_RITUAL:     { id: 'ANCESTRAL_RITUAL',     nameTh: 'วิถีพิธีบรรพชน',          moteShape: 'ancestral_tablet_incense',apexCrownShape: 'ancestral_lineage_shrine',   family: 'DIVINE_PANTHEON', primary: '#e9c46a', secondary: '#f4a261', accent: '#ffffff', maxStage: 8 },
+    TIDE_VOYAGER:         { id: 'TIDE_VOYAGER',         nameTh: 'วิถีนาวิกสมุทร',         moteShape: 'cresting_wave_ice',      apexCrownShape: 'nine_seas_maelstrom_trident',family: 'WEATHER_NATURE',  primary: '#0077b6', secondary: '#90e0ef', accent: '#00f5d4', maxStage: 8 },
+    LORE_ARCHIVIST:       { id: 'LORE_ARCHIVIST',       nameTh: 'วิถีอาลักษณ์หอคัมภีร์',    moteShape: 'bamboo_slip_glyph',      apexCrownShape: 'myriad_canon_archive_wheel', family: 'SONIC_LITERATI',  primary: '#8ecae6', secondary: '#ffd166', accent: '#ffffff', maxStage: 8 },
+    FORTUNE_GAMBLER:      { id: 'FORTUNE_GAMBLER',      nameTh: 'วิถีเดิมพันชะตา',         moteShape: 'fate_dice_card',         apexCrownShape: 'heavenly_roulette_dice',     family: 'FORTUNE_TRADE',   primary: '#ffb703', secondary: '#ef476f', accent: '#06d6a0', maxStage: 8 },
+    SPIRIT_HUSBANDRY:     { id: 'SPIRIT_HUSBANDRY',     nameTh: 'วิถีเกษตรวิญญาณ',        moteShape: 'sprouting_vine_flower',  apexCrownShape: 'world_tree_canopy_roots',    family: 'LIFE_ALCHEMY',    primary: '#52b788', secondary: '#ffd166', accent: '#b7e4c7', maxStage: 8 },
+    ARENA_GLORY:          { id: 'ARENA_GLORY',          nameTh: 'วิถีเกียรติยุทธ์ประลอง',   moteShape: 'champion_laurel_halberd',apexCrownShape: 'gladiator_champion_crown',   family: 'COMMAND_MARTIAL', primary: '#f4a261', secondary: '#e63946', accent: '#ffd166', maxStage: 8 }
+  });
+
+  R.resolvePathVisualSignature = pKey => {
+    if (pKey && R.PATH_VISUAL_SIGNATURES[pKey]) return R.PATH_VISUAL_SIGNATURES[pKey];
+    if (pKey && R.LEGACY_PATH_VISUAL_SIGNATURES[pKey]) return R.LEGACY_PATH_VISUAL_SIGNATURES[pKey];
+    return R.PATH_VISUAL_SIGNATURES.XIAN;
+  };
+
+  R.resolveCultivationVisualState = n => {
+    const c = n && n.cult;
+    if (!c) {
+      return { rawStage: 0, maxStage: 9, normStage: 0, tierBand: 'MORTAL', isApex: false, isPenultimate: false, isMidTier: false, pathId: 'MORTAL', sig: null };
+    }
+    const pKey = c.path || 'XIAN';
+    const pathDef = (g.CULT && g.CULT.PATHS && g.CULT.PATHS[pKey]) || null;
+    const sig = R.resolvePathVisualSignature(pKey);
+    const maxStage = (pathDef && pathDef.maxStage) || (sig && sig.maxStage) || 9;
+    const rawStage = clamp(c.stage || 1, 1, 9);
+    const isApex = rawStage >= maxStage;
+    let normStage = rawStage;
+    if (pathDef && g.CULT && typeof g.CULT.normalizedStage === 'function') {
+      normStage = clamp(Math.round(g.CULT.normalizedStage(n)), 1, 9);
+    } else if (maxStage !== 9) {
+      normStage = isApex ? 9 : clamp(Math.round(1 + ((rawStage - 1) / Math.max(1, maxStage - 1)) * 8), 1, 9);
+    }
+    if (isApex) normStage = 9;
+    const isPenultimate = !isApex && (rawStage === maxStage - 1 || normStage >= 7);
+    const isMidTier = !isApex && !isPenultimate && (normStage >= 4 || rawStage >= Math.ceil(maxStage * 0.5));
+    const tierBand = isApex ? 'APEX' : isPenultimate ? 'PENULTIMATE' : isMidTier ? 'MID' : 'INITIATE';
+    return { rawStage, maxStage, normStage, tierBand, isApex, isPenultimate, isMidTier, pathId: pKey, sig };
+  };
 
   // Pillar 2A: 12 Elements & 34 Elemental Fusions VFX Palette
   R.ELEMENT_VFX_PALETTE = Object.freeze({
@@ -2828,6 +2904,9 @@
         accessoryVisualKey: accObj && accObj.visualKey ? accObj.visualKey : null,
         cultStage: cStage,
         cultPath: cPath,
+        visualRealmStage: n && n.cult ? R.resolveCultivationVisualState(n).normStage : 0,
+        isPathApex: n && n.cult ? R.resolveCultivationVisualState(n).isApex : false,
+        tierBand: n && n.cult ? R.resolveCultivationVisualState(n).tierBand : 'MORTAL',
         weaponTier: wTier,
         armorTier: aTier,
         accessoryTier: accTier,
@@ -2836,9 +2915,9 @@
         weaponStars: wStars,
         weaponElement: (wpnObj && (wpnObj.element || (Array.isArray(wpnObj.runes) && wpnObj.runes[0]))) || (n && n.cult && n.cult.element) || null,
         activeSetCount: [wpnObj, armObj, accObj].filter(Boolean).length,
-        hasFlyingSword: !!(wUsable && (wTier >= 4 || (wpnObj && wpnObj.legendary) || (cStage >= 3 && (cPath === 'SWORD' || wpnObj)))),
+        hasFlyingSword: !!(wUsable && (wTier >= 4 || (wpnObj && wpnObj.legendary) || (cStage >= 3 && (cPath === 'SWORD' || cPath === 'XIAN' || wpnObj)))),
         hasWeaponSoul: !!(wUsable && (wTier >= 6 || (wpnObj && (wpnObj.legendary || wpnObj.weaponSoul || wpnObj.spiritNameTh)))),
-        hasSilkRibbon: cStage >= 7 || (armObj && armObj.visualKey === 'vis_celestial_crane_robe'),
+        hasSilkRibbon: (n && n.cult ? R.resolveCultivationVisualState(n).normStage >= 7 : cStage >= 7) || (armObj && armObj.visualKey === 'vis_celestial_crane_robe'),
         hasPet: !!petObj,
         petSpeciesId: petObj ? (petObj.speciesId || petObj.id || 'SPIRIT_BEAST') : null,
         petTier: petObj ? (petObj.tier || petObj.stage || 2) : 0,
@@ -3871,20 +3950,633 @@
       }
     },
 
-    /* ---------- Patch v5.0.0 [Pillar 1]: 9-Stage Realm Halos, Silk Ribbons, 12-Path Motes & Spirit Pets ---------- */
+    /* ---------- Patch v5.0.0 & JS2-v2.5.0: 43-Path Ascendant Halos (P0) & Multi-Tier Path Motes (P2) ---------- */
+    drawPathApexCrownGeometry(ctx, pKey, sig, hy, t, isApex, lowQuality) {
+      const col1 = sig.primary || '#00f5d4';
+      const col2 = sig.secondary || '#ffd166';
+      const acc = sig.accent || '#ffffff';
+      const sc = isApex ? 1.0 : 0.78;
+      ctx.save();
+      ctx.translate(0, hy);
+      ctx.scale(sc, sc);
+      ctx.strokeStyle = col1;
+      ctx.fillStyle = col2;
+      ctx.lineWidth = isApex ? 1.55 : 1.2;
+
+      switch (pKey) {
+        case 'XIAN':
+        case 'SWORD': {
+          // วงล้อไท่เก๊กเก้าชั้นฟ้า & กระบี่บินคู่ไร้ลักษณ์ (Taiji Wheel + Radial Immortal Swords)
+          ctx.beginPath(); ctx.arc(0, 0, 8.8, 0, Math.PI * 2); ctx.stroke();
+          const blades = lowQuality ? 4 : 6;
+          for (let i = 0; i < blades; i++) {
+            const a = t * 1.4 + (i * Math.PI * 2) / blades;
+            ctx.strokeStyle = i % 2 === 0 ? col1 : col2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * 6.0, Math.sin(a) * 6.0);
+            ctx.lineTo(Math.cos(a) * 12.2, Math.sin(a) * 12.2);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'BODY': {
+          // วงแหวนฟันเฟืองวัชระแปดเหลี่ยม & เสาโลหิตทองคำทลายสวรรค์ (Vajra Octagon + Blood-Gold Pillars)
+          ctx.beginPath();
+          for (let i = 0; i <= 8; i++) {
+            const a = t * 0.9 + (i * Math.PI) / 4;
+            const r = i % 2 === 0 ? 10.2 : 7.8;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.fillStyle = col2;
+          ctx.fillRect(-10.5, 2, 2.2, 10);
+          ctx.fillRect(8.3, 2, 2.2, 10);
+          break;
+        }
+        case 'GOD':
+        case 'DIVINE': {
+          // มหาอาณาจักรเทวะ & มงกุฎสุริยะ 12 แฉก (Divine Torii Arch + 12-Ray Solar Sovereign Halo)
+          ctx.strokeStyle = col1;
+          ctx.beginPath(); ctx.arc(0, 0, 9.6, 0, Math.PI * 2); ctx.stroke();
+          const rays = lowQuality ? 6 : 12;
+          for (let i = 0; i < rays; i++) {
+            const a = t * 0.8 + (i * Math.PI * 2) / rays;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * 7.2, Math.sin(a) * 7.2);
+            ctx.lineTo(Math.cos(a) * 12.0, Math.sin(a) * 12.0);
+            ctx.stroke();
+          }
+          ctx.fillStyle = acc;
+          ctx.fillRect(-7.5, -8.8, 15.0, 1.8);
+          break;
+        }
+        case 'DEMON': {
+          // บัลลังก์จันทร์โลหิตสุริยุปราคา & เขาจักรพรรดิมารคู่ (Blood Eclipse + Twin Demon Horns)
+          ctx.fillStyle = '#190a28';
+          ctx.beginPath(); ctx.arc(0, 0, 7.6, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(-6, -2); ctx.quadraticCurveTo(-12, -10, -7, -14);
+          ctx.moveTo(6, -2); ctx.quadraticCurveTo(12, -10, 7, -14);
+          ctx.stroke();
+          break;
+        }
+        case 'HEART_SOUL':
+        case 'SOUL': {
+          // คันฉ่องทะเลจิตแปดเหลี่ยม & ดวงตาโพธิญาณ (Octagonal Mind Mirror + Third Eye Lotus)
+          ctx.beginPath();
+          for (let i = 0; i <= 8; i++) {
+            const a = -t * 0.6 + (i * Math.PI) / 4;
+            const px = Math.cos(a) * 9.0, py = Math.sin(a) * 9.0;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          ctx.beginPath(); ctx.ellipse(0, -3.5, 4.2, 2.0, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = acc;
+          ctx.beginPath(); ctx.arc(0, -3.5, 1.4, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'MECH_PUPPET':
+        case 'PUPPET': {
+          // มหานครกลจักร 3 ฟันเฟืองขบกัน (Interlocking Triple Clockwork Gears)
+          const gears = [[-5.5, -2.5, 4.8, 1], [5.5, -2.5, 4.8, -1], [0, -7.2, 4.2, 1]];
+          for (let gIdx = 0; gIdx < gears.length; gIdx++) {
+            const [gx, gy, gr, dir] = gears[gIdx];
+            ctx.strokeStyle = gIdx === 2 ? col2 : col1;
+            ctx.beginPath(); ctx.arc(gx, gy, gr, 0, Math.PI * 2); ctx.stroke();
+            for (let k = 0; k < 6; k++) {
+              const a = t * 1.8 * dir + (k * Math.PI) / 3;
+              ctx.beginPath();
+              ctx.moveTo(gx + Math.cos(a) * gr, gy + Math.sin(a) * gr);
+              ctx.lineTo(gx + Math.cos(a) * (gr + 1.8), gy + Math.sin(a) * (gr + 1.8));
+              ctx.stroke();
+            }
+          }
+          break;
+        }
+        case 'KARMA_SAMSARA': {
+          // กงล้อสังสารวัฏหกภพ (Six-Realm Samsara Dharma Wheel + 6 Colored Realm Nodes)
+          ctx.beginPath(); ctx.arc(0, 0, 9.5, 0, Math.PI * 2); ctx.stroke();
+          const realmCols = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#9d4edd', '#f8f9fa'];
+          for (let i = 0; i < 6; i++) {
+            const a = t * 1.1 + (i * Math.PI) / 3;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * 9.5, Math.sin(a) * 9.5); ctx.stroke();
+            ctx.fillStyle = realmCols[i];
+            ctx.beginPath(); ctx.arc(Math.cos(a) * 9.5, Math.sin(a) * 9.5, 1.7, 0, Math.PI * 2); ctx.fill();
+          }
+          break;
+        }
+        case 'BEAST_SOVEREIGN':
+        case 'BEAST': {
+          // ตราประทับจตุรเทพราชันย์หมื่นอสูร & เขามังกรบรรพกาล (Four-Symbols Totem Ring + Dragon Horns)
+          ctx.beginPath(); ctx.arc(0, 0, 9.0, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = col2;
+          ctx.beginPath();
+          ctx.moveTo(-4, -5); ctx.lineTo(-9, -13); ctx.lineTo(-5, -10);
+          ctx.moveTo(4, -5); ctx.lineTo(9, -13); ctx.lineTo(5, -10);
+          ctx.stroke();
+          for (let i = 0; i < 4; i++) {
+            const a = t * 1.3 + (i * Math.PI) / 2;
+            ctx.fillStyle = i % 2 === 0 ? col1 : col2;
+            ctx.fillRect(Math.cos(a) * 9.0 - 1.5, Math.sin(a) * 9.0 - 1.5, 3.0, 3.0);
+          }
+          break;
+        }
+        case 'SAGE_SUPPORT':
+        case 'PILL': {
+          // น้ำเต้าสวรรค์ประทานพร & ดอกบัวหยกชุบชีวา (Celestial Jade Gourd + Healing Lotus Petals)
+          ctx.fillStyle = col1;
+          ctx.beginPath(); ctx.arc(0, -6.5, 2.6, 0, Math.PI * 2); ctx.arc(0, -1.8, 3.8, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = col2;
+          for (let i = 0; i < 6; i++) {
+            const a = t + (i * Math.PI) / 3;
+            ctx.beginPath();
+            ctx.ellipse(Math.cos(a) * 8.5, Math.sin(a) * 8.5, 2.8, 1.2, a, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'CRAFT_CREATION': {
+          // เตาหลอมสวรรค์สามขา & เพลิงสาม昧 (Tripod Immortal Cauldron + Samadhi Flame Ring)
+          ctx.fillStyle = col1;
+          ctx.fillRect(-5.5, -5.0, 11.0, 6.5);
+          ctx.beginPath();
+          ctx.moveTo(-4.5, 1.5); ctx.lineTo(-6.0, 5.5);
+          ctx.moveTo(0, 1.5); ctx.lineTo(0, 5.8);
+          ctx.moveTo(4.5, 1.5); ctx.lineTo(6.0, 5.5);
+          ctx.stroke();
+          ctx.strokeStyle = acc;
+          ctx.beginPath(); ctx.arc(0, -1.5, 9.8, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+          break;
+        }
+        case 'ARRAY_TALISMAN':
+        case 'ARRAY':
+        case 'TALISMAN': {
+          // มหาค่ายกลปากั้วแปดประตู & แผ่นยันต์ทอง 8 ทิศ (Bagua Octagon + 8 Orbiting Talismans)
+          ctx.beginPath();
+          for (let i = 0; i <= 8; i++) {
+            const a = (i * Math.PI) / 4;
+            const px = Math.cos(a) * 8.8, py = Math.sin(a) * 8.8;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          const cnt = lowQuality ? 4 : 8;
+          for (let i = 0; i < cnt; i++) {
+            const a = -t * 1.4 + (i * Math.PI * 2) / cnt;
+            ctx.fillStyle = i % 2 === 0 ? col2 : acc;
+            ctx.fillRect(Math.cos(a) * 10.6 - 1.3, Math.sin(a) * 10.6 - 2.2, 2.6, 4.4);
+          }
+          break;
+        }
+        case 'STRATEGY_GOVERNANCE': {
+          // ราชรถธงบัญชาทัพ 4 ผืน & ตราหยกจักรพรรดิ (4 Command War Pennants + Imperial Seal)
+          for (let f = -1.5; f <= 1.5; f += 1) {
+            const fx = f * 4.6;
+            ctx.strokeStyle = col1;
+            ctx.beginPath(); ctx.moveTo(fx * 0.6, 5); ctx.lineTo(fx * 1.25, -10); ctx.stroke();
+            ctx.fillStyle = Math.abs(f) > 1 ? acc : col2;
+            ctx.beginPath();
+            ctx.moveTo(fx * 1.25, -10);
+            ctx.lineTo(fx * 1.25 + (f < 0 ? -4.5 : 4.5), -7.5);
+            ctx.lineTo(fx * 1.05, -4.5);
+            ctx.closePath();
+            ctx.fill();
+          }
+          break;
+        }
+        case 'ASTRO_DIVINATION': {
+          // ทรงกลมดาราศาสตร์ซ้อน 2 วง & กลุ่มดาวเจ็ดดาราเหนือ (Armillary Sphere + Big Dipper)
+          ctx.beginPath(); ctx.ellipse(0, 0, 10.2, 4.5, t * 0.7, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = col2;
+          ctx.beginPath(); ctx.ellipse(0, 0, 10.2, 4.5, -t * 0.7 + 1.1, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = acc;
+          for (let i = 0; i < 7; i++) {
+            const sx = (i - 3) * 2.6, sy = Math.sin(i * 0.9) * 3.2 - 5.5;
+            ctx.beginPath(); ctx.arc(sx, sy, 1.3, 0, Math.PI * 2); ctx.fill();
+          }
+          break;
+        }
+        case 'BUDDHA_DHARMA': {
+          // ประภามณฑลพุทธะซ้อน 2 ชั้น & บัวทองแปดกลีบ (Dual Dharmachakra + 8-Petal Golden Lotus)
+          ctx.beginPath(); ctx.arc(0, 0, 10.4, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, 0, 7.0, 0, Math.PI * 2); ctx.stroke();
+          for (let i = 0; i < 8; i++) {
+            const a = t * 0.6 + (i * Math.PI) / 4;
+            ctx.fillStyle = col1;
+            ctx.beginPath();
+            ctx.ellipse(Math.cos(a) * 8.8, Math.sin(a) * 8.8, 2.4, 1.1, a, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'VOID_SPACE': {
+          // รอยแยกมิติสี่เหลี่ยมซ้อนบิดเบี้ยว (Dimensional Tesseract Rhombus + Void Rift)
+          for (let rIdx = 0; rIdx < 2; rIdx++) {
+            const a0 = t * (rIdx === 0 ? 1.1 : -1.1) + rIdx * (Math.PI / 4);
+            ctx.strokeStyle = rIdx === 0 ? col1 : col2;
+            ctx.beginPath();
+            for (let k = 0; k <= 4; k++) {
+              const a = a0 + (k * Math.PI) / 2;
+              const px = Math.cos(a) * 9.5, py = Math.sin(a) * 9.5;
+              if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'SONIC_HARMONY':
+        case 'SOUND': {
+          // มหาสังคีตพิณเก้าสวรรค์ (5 Acoustic Chord Arcs + Resonant Jade Notes)
+          for (let s = -2; s <= 2; s++) {
+            ctx.strokeStyle = s % 2 === 0 ? col1 : col2;
+            ctx.beginPath();
+            ctx.arc(0, 2, 6.5 + Math.abs(s) * 2.1, Math.PI * 1.12, Math.PI * 1.88);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'VENOM_GU':
+        case 'POISON': {
+          // ราชันย์หนอนกู่ทองคำ & วงแหวนรังพิษหกเหลี่ยม (Hexagonal Gu Hive + Winged Golden Gu)
+          ctx.beginPath();
+          for (let i = 0; i <= 6; i++) {
+            const a = t * 0.9 + (i * Math.PI) / 3;
+            const px = Math.cos(a) * 9.2, py = Math.sin(a) * 9.2;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          ctx.fillStyle = col2;
+          ctx.beginPath(); ctx.ellipse(-4.5, -4, 3.2, 1.5, -0.5, 0, Math.PI * 2); ctx.ellipse(4.5, -4, 3.2, 1.5, 0.5, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'PRIMORDIAL_SHIFTER': {
+          // ปีกเทพอสูรบรรพกาลกางสยายสองข้าง (Outstretched Primordial Chimera Wings)
+          ctx.fillStyle = col1;
+          ctx.beginPath();
+          ctx.moveTo(-2, 2); ctx.quadraticCurveTo(-14, -10, -16, -2); ctx.quadraticCurveTo(-11, 4, -2, 4);
+          ctx.moveTo(2, 2); ctx.quadraticCurveTo(14, -10, 16, -2); ctx.quadraticCurveTo(11, 4, 2, 4);
+          ctx.fill();
+          ctx.strokeStyle = col2;
+          ctx.stroke();
+          break;
+        }
+        case 'CELESTIAL_WEATHER':
+        case 'MAGIC': {
+          // เมฆาทัณฑ์อสนีเก้าชั้นฟ้า & สายฟ้าฟาด (Celestial Storm Cloud + Zigzag Lightning Bolts)
+          ctx.fillStyle = col1;
+          ctx.beginPath();
+          ctx.arc(-4.5, -7.5, 3.5, 0, Math.PI * 2);
+          ctx.arc(0, -9.0, 4.2, 0, Math.PI * 2);
+          ctx.arc(4.5, -7.5, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = col2;
+          ctx.beginPath();
+          ctx.moveTo(-3, -4); ctx.lineTo(-6, 1); ctx.lineTo(-2, 1); ctx.lineTo(-5, 7);
+          ctx.moveTo(3, -4); ctx.lineTo(6, 1); ctx.lineTo(2, 1); ctx.lineTo(5, 7);
+          ctx.stroke();
+          break;
+        }
+        case 'WANDERING_DAO': {
+          // เข็มทิศสี่ทิศหมื่นขุนเขา & เกลียวเมฆาคนจร (4-Point Cardinal Compass Star + Wind Swirl)
+          ctx.beginPath(); ctx.arc(0, 0, 8.8, 0, Math.PI * 2); ctx.stroke();
+          for (let i = 0; i < 4; i++) {
+            const a = t * 0.8 + (i * Math.PI) / 2;
+            ctx.fillStyle = i % 2 === 0 ? col1 : col2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * 11.5, Math.sin(a) * 11.5);
+            ctx.lineTo(Math.cos(a + 0.35) * 4.0, Math.sin(a + 0.35) * 4.0);
+            ctx.lineTo(Math.cos(a - 0.35) * 4.0, Math.sin(a - 0.35) * 4.0);
+            ctx.closePath();
+            ctx.fill();
+          }
+          break;
+        }
+        case 'MERCANTILE_DAO': {
+          // ตราชั่งสวรรค์พิพากษาคุณค่า & เหรียญทองโบราณ (Celestial Balance Scale + Square-Hole Coin)
+          const tilt = Math.sin(t * 2.0) * 0.18;
+          ctx.save();
+          ctx.rotate(tilt);
+          ctx.strokeStyle = col1;
+          ctx.beginPath(); ctx.moveTo(-9.5, -5.5); ctx.lineTo(9.5, -5.5); ctx.stroke();
+          ctx.fillStyle = col2;
+          ctx.beginPath(); ctx.arc(-9.5, -1.5, 2.6, 0, Math.PI); ctx.arc(9.5, -1.5, 2.6, 0, Math.PI); ctx.fill();
+          ctx.restore();
+          ctx.strokeRect(-2.4, -8.0, 4.8, 4.8);
+          break;
+        }
+        case 'DRAGON_VEIN_GEOMANCY': {
+          // จานหลัวผานฟ้ากลมดินเหลี่ยม & ยอดเขามังกรหยก (Heaven-Round Earth-Square Luopan + Jade Peaks)
+          ctx.strokeRect(-7.8, -7.8, 15.6, 15.6);
+          ctx.beginPath(); ctx.arc(0, 0, 9.8, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = col2;
+          ctx.beginPath();
+          ctx.moveTo(-6, -7.8); ctx.lineTo(-3, -13.0); ctx.lineTo(0, -7.8);
+          ctx.lineTo(3, -14.2); ctx.lineTo(6, -7.8);
+          ctx.fill();
+          break;
+        }
+        case 'GRAVITY_DAO': {
+          // วงโคจรความโน้มถ่วงบิดโค้ง 3 ระนาบ & หลุมดำมวลหนัก (3 Tilted Gravity Ellipses + Singularity Core)
+          for (let k = 0; k < 3; k++) {
+            ctx.strokeStyle = k === 0 ? col1 : col2;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 10.8, 3.6, t * 0.9 + (k * Math.PI) / 3, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          ctx.fillStyle = '#10002b';
+          ctx.beginPath(); ctx.arc(0, 0, 3.0, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'CHRONO_EPOCH': {
+          // หน้าปัดนาฬิกาดาราจักร 12 ยาม & เข็มสั้นเข็มยาว (12-Tick Sundial Clock + Dual Hands)
+          ctx.beginPath(); ctx.arc(0, 0, 9.6, 0, Math.PI * 2); ctx.stroke();
+          const ticks = lowQuality ? 6 : 12;
+          for (let i = 0; i < ticks; i++) {
+            const a = (i * Math.PI * 2) / ticks;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * 7.8, Math.sin(a) * 7.8);
+            ctx.lineTo(Math.cos(a) * 9.6, Math.sin(a) * 9.6);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = col2;
+          ctx.beginPath();
+          ctx.moveTo(0, 0); ctx.lineTo(Math.cos(t * 2.4) * 7.5, Math.sin(t * 2.4) * 7.5);
+          ctx.moveTo(0, 0); ctx.lineTo(Math.cos(t * 0.4) * 5.0, Math.sin(t * 0.4) * 5.0);
+          ctx.stroke();
+          break;
+        }
+        case 'INK_LITERATI': {
+          // ม้วนคัมภีร์หยกขาวลอยโค้ง & พู่กันประกาศิต (Floating Jade Scroll + Calligraphy Brush)
+          ctx.fillStyle = '#f8f9fa';
+          ctx.fillRect(-9.5, -9.5, 19.0, 4.2);
+          ctx.strokeStyle = col2;
+          ctx.strokeRect(-9.5, -9.5, 19.0, 4.2);
+          ctx.strokeStyle = acc;
+          ctx.beginPath(); ctx.moveTo(-6, -7.4); ctx.lineTo(6, -7.4); ctx.stroke();
+          break;
+        }
+        case 'SOUL_PUPPETRY': {
+          // คานไม้เชิดหุ่นเก้าเงา & เส้นด้ายวิญญาณ (Marionette Control Crossbar + Soul Strings)
+          ctx.strokeStyle = col1;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(-9.5, -10.5); ctx.lineTo(9.5, -10.5);
+          ctx.moveTo(-5.0, -13.0); ctx.lineTo(5.0, -8.0);
+          ctx.stroke();
+          ctx.lineWidth = 0.9;
+          ctx.strokeStyle = acc;
+          for (let s = -2; s <= 2; s++) {
+            ctx.beginPath(); ctx.moveTo(s * 3.8, -10.5); ctx.lineTo(s * 2.4, 4.0); ctx.stroke();
+          }
+          break;
+        }
+        case 'PRIMORDIAL_CHAOS': {
+          // โม่หินสวรรค์หุ่นตุ้น 2 ชั้นหมุนบดสวนทาง (Counter-Rotating Hundun Chaos Millstones)
+          ctx.beginPath(); ctx.arc(0, 0, 9.8, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = col1;
+          ctx.beginPath(); ctx.arc(0, 0, 6.2, t, t + Math.PI); ctx.fill();
+          ctx.fillStyle = col2;
+          ctx.beginPath(); ctx.arc(0, 0, 6.2, t + Math.PI, t + Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'SHADOW_SAMURAI': {
+          // พระจันทร์สีชาดถูกผ่าครึ่งด้วยคมดาบอิไอ 3 เส้น (Crimson Full Moon Sliced by 3 Iai Slashes)
+          ctx.fillStyle = col1;
+          ctx.beginPath(); ctx.arc(0, -1.5, 8.2, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 1.7;
+          ctx.beginPath();
+          ctx.moveTo(-11.5, -5.0); ctx.lineTo(11.5, 1.5);
+          ctx.moveTo(-9.5, 3.0); ctx.lineTo(10.5, -6.5);
+          ctx.stroke();
+          break;
+        }
+        case 'NINPO_SHADOW': {
+          // ดาวกระจายยักษ์ 4 แฉกหมุนหลังแผ่นหลัง (Giant 4-Pointed Shinobi Shuriken Star)
+          ctx.fillStyle = col2;
+          ctx.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = t * 2.2 + (i * Math.PI) / 4;
+            const r = i % 2 === 0 ? 10.6 : 3.2;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = acc;
+          ctx.stroke();
+          break;
+        }
+        case 'NINPO_ELEMENTAL': {
+          // วงแหวนกลองไทโกะจักระ 5 ธาตุหลังไหล่ (5 Elemental Chakra Magatama Drums)
+          const elCols = ['#ff4d00', '#00b4d8', '#ffd166', '#52b788', '#9d4edd'];
+          for (let i = 0; i < 5; i++) {
+            const a = -Math.PI * 0.85 + (i * Math.PI * 0.7) / 4;
+            const dx = Math.cos(a) * 9.8, dy = Math.sin(a) * 9.8;
+            ctx.fillStyle = elCols[i];
+            ctx.beginPath(); ctx.arc(dx, dy, 2.3, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = col2;
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'DIVINE_SUMMONER': {
+          // ซุ้มประตูเทวสภา 5 มหาพิภพ & เสาวิหารทองคำ (Golden Pantheon Temple Pillars & Pediment)
+          ctx.fillStyle = col1;
+          ctx.fillRect(-8.5, -6.5, 2.2, 11.0);
+          ctx.fillRect(6.3, -6.5, 2.2, 11.0);
+          ctx.beginPath();
+          ctx.moveTo(-10.5, -6.5); ctx.lineTo(0, -13.0); ctx.lineTo(10.5, -6.5);
+          ctx.closePath();
+          ctx.fill();
+          break;
+        }
+        case 'DIVINE_POSSESSION': {
+          // เนตรที่สามเทวะสถิตร่าง & กรอบแขนทิพย์ 4 กร (Vertical Divine Third Eye + 4 Astral Arms)
+          ctx.fillStyle = col1;
+          ctx.beginPath(); ctx.ellipse(0, -9.5, 2.0, 4.2, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(-4, 0); ctx.lineTo(-11.5, -6.5);
+          ctx.moveTo(4, 0); ctx.lineTo(11.5, -6.5);
+          ctx.moveTo(-4, 3); ctx.lineTo(-11.5, 2.5);
+          ctx.moveTo(4, 3); ctx.lineTo(11.5, 2.5);
+          ctx.stroke();
+          break;
+        }
+        case 'DIVINE_CHANNELER': {
+          // วงแหวนโองการกฎฟ้า & หอกสายฟ้าสวรรค์ (Celestial Law Ring + Vertical Lightning Conduit)
+          ctx.beginPath(); ctx.arc(0, 0, 9.2, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          ctx.moveTo(0, -14.0); ctx.lineTo(-2.5, -4.0); ctx.lineTo(2.5, -2.0); ctx.lineTo(0, 8.0);
+          ctx.stroke();
+          break;
+        }
+        case 'VOID_HERETIC_PACT': {
+          // เนตรอวกาศมืด 3 ดวง & ระยางค์เทพอสูรนอกมิติ (Eldritch Abyssal Eyes + Writhing Tentacles)
+          for (let i = 0; i < 6; i++) {
+            const a = t * 1.2 + (i * Math.PI) / 3;
+            ctx.strokeStyle = i % 2 === 0 ? col1 : col2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(Math.cos(a + 0.4) * 6.5, Math.sin(a + 0.4) * 6.5, Math.cos(a) * 11.2, Math.sin(a) * 11.2);
+            ctx.stroke();
+          }
+          ctx.fillStyle = col2;
+          ctx.beginPath(); ctx.ellipse(0, -5.5, 3.8, 2.0, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#000';
+          ctx.fillRect(-0.6, -7.2, 1.2, 3.4);
+          break;
+        }
+        case 'OCCULT_MAGE': {
+          // มงกุฎมหายันต์เก้ายอดบรมครู & ตะกรุดทองแดง (9-Spire Sacred Khmer Yantra Crown)
+          ctx.strokeStyle = col1;
+          ctx.beginPath();
+          for (let s = -2; s <= 2; s++) {
+            const sx = s * 3.4;
+            const sh = 11.5 - Math.abs(s) * 1.8;
+            ctx.moveTo(sx - 1.5, -2.0);
+            ctx.lineTo(sx, -sh);
+            ctx.lineTo(sx + 1.5, -2.0);
+          }
+          ctx.stroke();
+          ctx.fillStyle = col2;
+          ctx.beginPath(); ctx.arc(0, -12.8, 1.5, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'DEVOURING_FLESH': {
+          // กระเพาะหลุมดำเขี้ยวอสูรเทาเที่ยกลืนสวรรค์ (Taotie Fang Maw Ring Pulling Inward)
+          ctx.fillStyle = '#2b0912';
+          ctx.beginPath(); ctx.arc(0, 0, 8.8, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = col2;
+          ctx.stroke();
+          for (let i = 0; i < 8; i++) {
+            const a = -t * 1.5 + (i * Math.PI) / 4;
+            ctx.fillStyle = col2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * 8.8, Math.sin(a) * 8.8);
+            ctx.lineTo(Math.cos(a + 0.2) * 5.2, Math.sin(a + 0.2) * 5.2);
+            ctx.lineTo(Math.cos(a - 0.2) * 5.2, Math.sin(a - 0.2) * 5.2);
+            ctx.closePath();
+            ctx.fill();
+          }
+          break;
+        }
+        case 'NETHER_GRAVE': {
+          // ป้ายสุสานแม่น้ำเหลืองยมโลก & ลูกไฟวิญญาณสีคราม (Nether Stele + Ghost Will-o'-Wisps)
+          ctx.fillStyle = col1;
+          ctx.fillRect(-4.2, -9.5, 8.4, 11.0);
+          ctx.strokeStyle = col2;
+          ctx.strokeRect(-4.2, -9.5, 8.4, 11.0);
+          for (let i = 0; i < 4; i++) {
+            const a = t * 1.4 + (i * Math.PI) / 2;
+            ctx.fillStyle = acc;
+            ctx.beginPath(); ctx.arc(Math.cos(a) * 9.5, Math.sin(a) * 6.5 - 2.0, 1.8, 0, Math.PI * 2); ctx.fill();
+          }
+          break;
+        }
+        case 'ANCESTRAL_RITUAL': {
+          // ศาลป้ายทองคำบรรพชนนิรันดร์ & รัศมีสายเลือด (Golden Ancestral Tablet Shrine)
+          ctx.fillStyle = col1;
+          ctx.fillRect(-3.6, -11.0, 7.2, 11.5);
+          ctx.strokeStyle = acc;
+          ctx.strokeRect(-3.6, -11.0, 7.2, 11.5);
+          ctx.beginPath(); ctx.arc(0, -2.5, 9.6, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+          break;
+        }
+        case 'TIDE_VOYAGER': {
+          // มงกุฎตรีศูลเก้าสมุทร & เกลียวคลื่นยักษ์ (Nine-Seas Trident Crown + Cresting Wave Ring)
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 1.7;
+          ctx.beginPath();
+          ctx.moveTo(0, 4); ctx.lineTo(0, -12.5);
+          ctx.moveTo(-4.5, -5.5); ctx.lineTo(-4.5, -10.5);
+          ctx.moveTo(4.5, -5.5); ctx.lineTo(4.5, -10.5);
+          ctx.moveTo(-4.5, -5.5); ctx.lineTo(4.5, -5.5);
+          ctx.stroke();
+          ctx.strokeStyle = col1;
+          ctx.beginPath(); ctx.arc(0, 0, 9.2, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'LORE_ARCHIVIST': {
+          // ตำราเปิดกาง 4 เล่มหมุนถอดรหัสอักขระสวรรค์ (4 Open Floating Tomes + Glyph Ring)
+          ctx.beginPath(); ctx.arc(0, 0, 8.8, 0, Math.PI * 2); ctx.stroke();
+          for (let i = 0; i < 4; i++) {
+            const a = t * 0.9 + (i * Math.PI) / 2;
+            const bx = Math.cos(a) * 9.2, by2 = Math.sin(a) * 9.2;
+            ctx.fillStyle = col2;
+            ctx.fillRect(bx - 2.6, by2 - 1.8, 5.2, 3.6);
+          }
+          break;
+        }
+        case 'FORTUNE_GAMBLER': {
+          // กงล้อรูเล็ตต์เดิมพันชะตา 8 ช่องสลับสีทอง-แดง (8-Wedge Wheel of Fortune + Fate Dice)
+          ctx.beginPath(); ctx.arc(0, 0, 9.4, 0, Math.PI * 2); ctx.stroke();
+          for (let i = 0; i < 8; i++) {
+            const a = t * 1.8 + (i * Math.PI) / 4;
+            ctx.strokeStyle = i % 2 === 0 ? col1 : col2;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * 9.4, Math.sin(a) * 9.4); ctx.stroke();
+          }
+          break;
+        }
+        case 'SPIRIT_HUSBANDRY': {
+          // เรือนยอดต้นไม้โลกเสิ่นหนง & ดอกไม้ทิพย์ผลิบาน (World-Tree Canopy Branches + Golden Blossoms)
+          ctx.strokeStyle = '#8d5b4c';
+          ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          ctx.moveTo(0, 6); ctx.lineTo(0, -6);
+          ctx.lineTo(-6.5, -11.5); ctx.moveTo(0, -6); ctx.lineTo(6.5, -11.5);
+          ctx.stroke();
+          ctx.fillStyle = col1;
+          ctx.beginPath();
+          ctx.arc(-6.5, -11.5, 3.8, 0, Math.PI * 2);
+          ctx.arc(0, -12.8, 4.4, 0, Math.PI * 2);
+          ctx.arc(6.5, -11.5, 3.8, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+        case 'ARENA_GLORY':
+        default: {
+          // ช่อมงกุฎชัยพฤกษ์เจ้ายุทธจักร & คมทวนคู่ไขว้ (Champion Laurel Wreath + Crossed Halberds)
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(-8.5, 5.5); ctx.lineTo(8.5, -10.5);
+          ctx.moveTo(8.5, 5.5); ctx.lineTo(-8.5, -10.5);
+          ctx.stroke();
+          ctx.strokeStyle = col1;
+          ctx.beginPath();
+          ctx.arc(0, -1.5, 9.2, Math.PI * 0.7, Math.PI * 2.3);
+          ctx.stroke();
+          break;
+        }
+      }
+      ctx.restore();
+    },
+
     drawCultivatorRealmHalo(ctx, n, ap, act, by) {
       if (!n || !n.cult) return false;
-      const stg = clamp(n.cult.stage || 1, 1, 9);
+      const vState = R.resolveCultivationVisualState(n);
+      const stg = vState.normStage;
+      const sig = vState.sig || R.PATH_VISUAL_SIGNATURES.XIAN;
       const spec = R.REALM_VISUAL_TIERS[stg] || R.REALM_VISUAL_TIERS[1];
       const t = this.t + (n.n || 0) * 0.5;
       const isMeditating = act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining';
+      const lowQ = this.effectiveQuality === 'low';
 
       ctx.save();
-      // 1. Stages 1-2: Subtle Breathing Foundation Qi Ring at feet
+      // 1. Initiate Tier (Normalized Stages 1-2): Subtle Breathing Foundation Qi Ring at feet
       if (stg <= 2) {
         if (isMeditating || stg === 2 || this.selected === n.id) {
           const pulse = 0.5 + 0.5 * Math.sin(t * 2.6);
-          ctx.strokeStyle = spec.color;
+          ctx.strokeStyle = sig.primary || spec.color;
           ctx.globalAlpha = isMeditating ? 0.55 : 0.28 + pulse * 0.14;
           ctx.lineWidth = stg === 2 ? 1.3 : 1.0;
           ctx.beginPath();
@@ -3892,11 +4584,11 @@
           ctx.stroke();
         }
       }
-      // 2. Stages 3-4: Golden Core (金丹) Orbiting Bead & Radiant Dantian Ring
+      // 2. Early-Mid Tier (Normalized Stages 3-4): Golden Core (金丹) Orbiting Bead & Path-Tinted Dantian Ring
       else if (stg <= 4) {
         const pulse = 0.5 + 0.5 * Math.sin(t * 3.0);
-        ctx.strokeStyle = spec.color;
-        ctx.globalAlpha = 0.42 + pulse * 0.18;
+        ctx.strokeStyle = sig.primary || spec.color;
+        ctx.globalAlpha = 0.44 + pulse * 0.18;
         ctx.lineWidth = 1.4;
         ctx.beginPath();
         ctx.ellipse(0, 1.2, spec.radius, spec.radius * 0.42, 0, 0, Math.PI * 2);
@@ -3905,19 +4597,19 @@
         for (let i = 0; i < orbCount; i++) {
           const ang = t * 2.2 + i * Math.PI;
           const ox = Math.cos(ang) * 8.2, oy = -10.5 + by + Math.sin(ang * 1.5) * 3.2;
-          ctx.fillStyle = spec.secondary;
+          ctx.fillStyle = sig.secondary || spec.secondary;
           ctx.globalAlpha = 0.88;
           ctx.beginPath(); ctx.arc(ox, oy, 1.9, 0, Math.PI * 2); ctx.fill();
-          ctx.strokeStyle = spec.color;
+          ctx.strokeStyle = sig.primary || spec.color;
           ctx.lineWidth = 0.9;
           ctx.stroke();
         }
       }
-      // 3. Stages 5-6: Nascent Soul / Spirit Severing Rotating Back Halo & Lotus Wheel (脑后光轮)
+      // 3. Upper-Mid Tier (Normalized Stages 5-6): Nascent Soul / Spirit Severing Back Halo & Path Ground Array
       else if (stg <= 6) {
         const hy = -15.5 + by;
-        ctx.strokeStyle = spec.color;
-        ctx.globalAlpha = 0.58;
+        ctx.strokeStyle = sig.primary || spec.color;
+        ctx.globalAlpha = 0.60;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(0, hy, 7.6, 0, Math.PI * 2);
@@ -3930,40 +4622,33 @@
           ctx.lineTo(Math.cos(a) * 8.6, hy + Math.sin(a) * 8.6);
           ctx.stroke();
         }
-        // Lotus ground ring
-        ctx.strokeStyle = spec.secondary;
-        ctx.globalAlpha = 0.45;
+        ctx.strokeStyle = sig.secondary || spec.secondary;
+        ctx.globalAlpha = 0.46;
         ctx.beginPath();
         ctx.ellipse(0, 1.2, spec.radius, spec.radius * 0.44, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
-      // 4. Stages 7-9: Celestial Immortal Mandala + Flowing Dunhuang Silk Ribbon (仙家披帛)
+      // 4. Penultimate & Apex Ascendant Tiers (Normalized Stages 7-9 / maxStage of any of the 43 Paths)
       else {
         const hy = -16.0 + by;
-        // Double counter-rotating divine mandala wheel behind shoulders/head
-        ctx.strokeStyle = spec.color;
-        ctx.globalAlpha = 0.72;
-        ctx.lineWidth = 1.6;
+        const isApex = vState.isApex || stg >= 9;
+        // Ground Ascendant Domain Ring
+        ctx.strokeStyle = sig.primary || spec.color;
+        ctx.globalAlpha = isApex ? 0.68 : 0.50;
+        ctx.lineWidth = isApex ? 1.7 : 1.3;
         ctx.beginPath();
-        ctx.arc(0, hy, 9.2, 0, Math.PI * 2);
+        ctx.ellipse(0, 1.2, spec.radius * (isApex ? 1.08 : 0.96), spec.radius * 0.45, 0, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.strokeStyle = spec.secondary;
-        ctx.lineWidth = 1.1;
-        ctx.beginPath();
-        ctx.arc(0, hy, 6.4, 0, Math.PI * 2);
-        ctx.stroke();
-        for (let i = 0; i < 8; i++) {
-          const a = -t * 1.5 + (i * Math.PI) / 4;
-          ctx.fillStyle = i % 2 === 0 ? spec.color : spec.secondary;
-          ctx.beginPath();
-          ctx.arc(Math.cos(a) * 9.2, hy + Math.sin(a) * 9.2, 1.35, 0, Math.PI * 2);
-          ctx.fill();
-        }
+
+        // Bespoke 43-Path Crown / Mandala Silhouette behind cultivator
+        ctx.globalAlpha = isApex ? 0.86 : 0.68;
+        this.drawPathApexCrownGeometry(ctx, vState.pathId, sig, hy, t, isApex, lowQ);
+
         // Flowing Celestial Silk Ribbon (披帛) arching gracefully around shoulders
         const wave = Math.sin(t * 2.4) * 2.2;
-        ctx.strokeStyle = stg >= 9 ? '#00f5d4' : '#ffd740';
-        ctx.globalAlpha = 0.78;
-        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = isApex ? (sig.accent || '#00f5d4') : (sig.secondary || '#ffd740');
+        ctx.globalAlpha = isApex ? 0.84 : 0.72;
+        ctx.lineWidth = isApex ? 1.9 : 1.6;
         ctx.beginPath();
         ctx.moveTo(-7.5, -9.5 + by);
         ctx.quadraticCurveTo(-11.5, -18.5 + by + wave, 0, -23.5 + by - wave * 0.4);
@@ -3974,43 +4659,167 @@
       return true;
     },
 
-    drawPathSignatureMotes(ctx, n, ap, act, by) {
-      if (!n || !n.cult) return false;
-      const stg = n.cult.stage || 1;
-      const active = act === 'cultivate' || act === 'practice' || act === 'skillDrill' || act === 'fight' || act === 'breakthrough' || stg >= 3 || this.selected === n.id;
-      if (!active) return false;
-
-      const pKey = n.cult.path || 'SWORD';
-      const sig = R.PATH_VISUAL_SIGNATURES[pKey] || R.PATH_VISUAL_SIGNATURES.SWORD;
-      const t = this.t + (n.n || 0) * 0.9;
-      const count = stg >= 6 ? 4 : stg >= 3 ? 3 : 2;
-
-      ctx.save();
-      ctx.globalAlpha = 0.76;
-      for (let i = 0; i < count; i++) {
-        const a = t * 1.7 + (i * Math.PI * 2) / count;
-        const mx = Math.cos(a) * (7.5 + (i % 2) * 2.0);
-        const my = -9.5 + by + Math.sin(a * 1.3) * 4.5;
-        ctx.fillStyle = i % 2 === 0 ? sig.primary : sig.secondary;
-        ctx.strokeStyle = sig.primary;
-        ctx.lineWidth = 1.0;
-
-        if (pKey === 'SWORD') {
+    drawSinglePathMoteShape(ctx, moteShape, mx, my, a, sig) {
+      switch (moteShape) {
+        case 'jade_sword_feather':
+        case 'sword_qi': {
+          ctx.beginPath();
+          ctx.moveTo(mx, my - 2.8);
+          ctx.lineTo(mx, my + 2.8);
+          ctx.moveTo(mx - 1.4, my - 1.0);
+          ctx.lineTo(mx + 1.4, my - 1.0);
+          ctx.stroke();
+          break;
+        }
+        case 'katana_crescent_sakura': {
+          ctx.beginPath();
+          ctx.arc(mx, my, 2.5, a - 0.9, a + 0.9);
+          ctx.stroke();
+          break;
+        }
+        case 'vajra_hex_plate':
+        case 'blood_amber':
+        case 'gu_centipede_spore':
+        case 'miasma_spore': {
+          ctx.beginPath();
+          for (let k = 0; k < 6; k++) {
+            const hk = a + (k * Math.PI) / 3;
+            const px = mx + Math.cos(hk) * 2.1, py = my + Math.sin(hk) * 2.1;
+            if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fill();
+          break;
+        }
+        case 'talisman_slip_bagua':
+        case 'paper_talisman':
+        case 'bagua_glyph':
+        case 'bamboo_slip_glyph':
+        case 'explosive_kuji_tag':
+        case 'ancestral_tablet_incense': {
+          ctx.fillRect(mx - 1.4, my - 2.2, 2.8, 4.4);
+          ctx.strokeRect(mx - 1.4, my - 2.2, 2.8, 4.4);
+          break;
+        }
+        case 'qin_ripple_wave':
+        case 'harmonic_wave':
+        case 'cresting_wave_ice': {
+          ctx.beginPath();
+          ctx.arc(mx, my, 2.2, -0.85, 0.85);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(mx, my, 1.2, -0.85, 0.85);
+          ctx.stroke();
+          break;
+        }
+        case 'clockwork_cog':
+        case 'spirit_thread': {
+          ctx.beginPath();
+          ctx.arc(mx, my, 1.8, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(mx - 2.5, my); ctx.lineTo(mx + 2.5, my);
+          ctx.moveTo(mx, my - 2.5); ctx.lineTo(mx, my + 2.5);
+          ctx.stroke();
+          break;
+        }
+        case 'shuriken_four_star':
+        case 'astrolabe_star_cross':
+        case 'starlight_orb': {
+          ctx.beginPath();
+          ctx.moveTo(mx, my - 2.6); ctx.lineTo(mx + 0.9, my - 0.9);
+          ctx.lineTo(mx + 2.6, my); ctx.lineTo(mx + 0.9, my + 0.9);
+          ctx.lineTo(mx, my + 2.6); ctx.lineTo(mx - 0.9, my + 0.9);
+          ctx.lineTo(mx - 2.6, my); ctx.lineTo(mx - 0.9, my - 0.9);
+          ctx.closePath();
+          ctx.fill();
+          break;
+        }
+        case 'ancient_coin_ingot':
+        case 'fate_dice_card': {
+          ctx.beginPath();
+          ctx.arc(mx, my, 2.1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.clearRect(mx - 0.7, my - 0.7, 1.4, 1.4);
+          break;
+        }
+        case 'hourglass_pendulum':
+        case 'spatial_prism_shard': {
+          ctx.beginPath();
+          ctx.moveTo(mx - 1.8, my - 2.2); ctx.lineTo(mx + 1.8, my - 2.2);
+          ctx.lineTo(mx - 1.8, my + 2.2); ctx.lineTo(mx + 1.8, my + 2.2);
+          ctx.closePath();
+          ctx.stroke();
+          break;
+        }
+        case 'blood_crescent_horn':
+        case 'primal_claw_fang':
+        case 'totem_fang':
+        case 'abyss_maw_fang': {
+          ctx.beginPath();
+          ctx.moveTo(mx - 1.8, my + 1.8);
+          ctx.quadraticCurveTo(mx, my - 2.8, mx + 2.0, my + 0.8);
+          ctx.stroke();
+          break;
+        }
+        case 'thunder_cloud_snow':
+        case 'heaven_edict_lightning':
+        case 'element_sparks': {
+          ctx.beginPath();
+          ctx.moveTo(mx - 1.2, my - 2.5);
+          ctx.lineTo(mx + 0.8, my - 0.3);
+          ctx.lineTo(mx - 0.8, my + 0.3);
+          ctx.lineTo(mx + 1.2, my + 2.5);
+          ctx.stroke();
+          break;
+        }
+        case 'command_pennant_seal':
+        case 'champion_laurel_halberd':
+        case 'sak_yant_takrut':
+        case 'luopan_jade_pillar':
+        case 'pantheon_pillar_rune': {
           ctx.beginPath();
           ctx.moveTo(mx, my - 2.6);
-          ctx.lineTo(mx, my + 2.6);
-          ctx.stroke();
-        } else if (pKey === 'TALISMAN' || pKey === 'ARRAY') {
-          ctx.fillRect(mx - 1.4, my - 2.0, 2.8, 4.0);
-        } else if (pKey === 'SOUND') {
-          ctx.beginPath();
-          ctx.arc(mx, my, 2.1, -0.8, 0.8);
-          ctx.stroke();
-        } else {
-          ctx.beginPath();
-          ctx.arc(mx, my, 1.5, 0, Math.PI * 2);
+          ctx.lineTo(mx + 2.2, my + 1.8);
+          ctx.lineTo(mx - 2.2, my + 1.8);
+          ctx.closePath();
           ctx.fill();
+          break;
         }
+        default: {
+          // Lotus / Leaf / Flame / Eye / Mirror / Needle / Thread organic curve
+          ctx.beginPath();
+          ctx.ellipse(mx, my, 2.2, 1.2, a, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+      }
+    },
+
+    drawPathSignatureMotes(ctx, n, ap, act, by) {
+      if (!n || !n.cult) return false;
+      const vState = R.resolveCultivationVisualState(n);
+      const stg = vState.normStage;
+      const active = act === 'cultivate' || act === 'practice' || act === 'skillDrill' || act === 'fight' || act === 'breakthrough' || (n.cult.stage || 1) >= 2 || stg >= 3 || this.selected === n.id;
+      if (!active) return false;
+
+      const sig = vState.sig || R.PATH_VISUAL_SIGNATURES.XIAN;
+      const t = this.t + (n.n || 0) * 0.9;
+      const lowQ = this.effectiveQuality === 'low';
+      const baseCount = vState.isApex ? 6 : vState.isPenultimate ? 5 : stg >= 4 ? 3 : 2;
+      const count = lowQ ? Math.max(2, Math.ceil(baseCount * 0.5)) : baseCount;
+
+      ctx.save();
+      ctx.globalAlpha = vState.isApex ? 0.88 : 0.76;
+      for (let i = 0; i < count; i++) {
+        const a = t * 1.7 + (i * Math.PI * 2) / count;
+        const rx = (vState.isApex ? 9.2 : 7.5) + (i % 2) * 2.0;
+        const mx = Math.cos(a) * rx;
+        const my = -9.5 + by + Math.sin(a * 1.3) * 4.5;
+        ctx.fillStyle = i % 2 === 0 ? sig.primary : sig.secondary;
+        ctx.strokeStyle = i % 2 === 0 ? sig.primary : (sig.accent || sig.secondary);
+        ctx.lineWidth = vState.isApex ? 1.25 : 1.0;
+        this.drawSinglePathMoteShape(ctx, sig.moteShape, mx, my, a, sig);
       }
       ctx.restore();
       return true;
@@ -5280,6 +6089,132 @@
           }
           break;
         }
+        case 'sig_shennong_emerald_lotus': {
+          // 23. บัวหยกเสินหนงโปรยน้ำค้างชุบชีวา (Healing Emerald Lotus + Rising Vitality Dew)
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 + rot * 0.35;
+            ctx.fillStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.beginPath();
+            ctx.ellipse(Math.cos(a) * r * 0.58, 2 + Math.sin(a) * r * 0.28, r * 0.34, r * 0.15, a, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = spec.accent;
+          for (let d = 0; d < 5; d++) {
+            const dx = (d - 2) * (r * 0.32);
+            const dy = -4 - ((p * 18 + d * 4) % 18);
+            ctx.beginPath();
+            ctx.arc(dx, dy, 2.1, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_imperial_eight_gates_banner': {
+          // 24. ธงรบฉีเหมินแปดพยุหะบัญชาทัพ (4 planted war banners + Octagonal tactical array)
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          for (let i = 0; i <= 8; i++) {
+            const a = (i * Math.PI) / 4 + rot * 0.2;
+            const px = Math.cos(a) * r * 1.05, py = 3 + Math.sin(a) * r * 0.48;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          for (let b = -1.5; b <= 1.5; b += 1) {
+            const bx = b * (r * 0.42);
+            ctx.strokeStyle = spec.accent;
+            ctx.beginPath(); ctx.moveTo(bx, 4); ctx.lineTo(bx, -18); ctx.stroke();
+            ctx.fillStyle = spec.secondary;
+            ctx.beginPath(); ctx.moveTo(bx, -18); ctx.lineTo(bx + 7, -14); ctx.lineTo(bx, -10); ctx.closePath(); ctx.fill();
+          }
+          break;
+        }
+        case 'sig_primordial_beast_totem': {
+          // 25. เสาโทเท็มอัญเชิญจตุรเทพราชันอสูร (Totem Pillars + Kunpeng Wings & Fangs)
+          ctx.fillStyle = spec.primary;
+          ctx.fillRect(-r * 0.55, -20, 4.5, 22);
+          ctx.fillRect(r * 0.55 - 4.5, -20, 4.5, 22);
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(0, -10); ctx.quadraticCurveTo(-r * 0.95, -24, -r * 1.15, -6);
+          ctx.moveTo(0, -10); ctx.quadraticCurveTo(r * 0.95, -24, r * 1.15, -6);
+          ctx.stroke();
+          break;
+        }
+        case 'sig_heaven_brush_astrolabe': {
+          // 26. พู่กันเทวะจารึกจานดาราเหอถูลั่วซู (Rotating Astrolabe + Descending Calligraphy Brush)
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.ellipse(0, -6, r * 0.88, r * 0.42, rot * 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 2.6;
+          const bx = Math.sin(p * Math.PI * 2) * (r * 0.35);
+          ctx.beginPath(); ctx.moveTo(bx + 6, -26); ctx.lineTo(bx, -6); ctx.stroke();
+          ctx.fillStyle = spec.accent;
+          ctx.beginPath(); ctx.arc(bx, -5, 3.0, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'sig_golden_abacus_wheel': {
+          // 27. กงล้อโชคชะตาและลูกคิดทองไฉ่ซิง (8-Spoke Roulette + Golden Abacus Frame)
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 2.2;
+          ctx.strokeRect(-r * 0.55, -18, r * 1.1, 14);
+          for (let i = 0; i < 6; i++) {
+            const a = (i * Math.PI) / 3 + rot;
+            ctx.fillStyle = i % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * r * 0.78, -4 + Math.sin(a) * r * 0.36, 2.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_blood_lotus_apocalypse': {
+          // 28. บัวโลหิตอเวจีสูบดาวทลายสามภพ (Crimson-Black Forbidden Vortex + Chains)
+          ctx.fillStyle = spec.primary;
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 - rot * 0.8;
+            ctx.beginPath();
+            ctx.moveTo(0, -6);
+            ctx.quadraticCurveTo(Math.cos(a - 0.25) * r * 0.8, -6 + Math.sin(a - 0.25) * r * 0.4, Math.cos(a) * r * 1.05, -6 + Math.sin(a) * r * 0.52);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 2.0;
+          ctx.beginPath(); ctx.arc(0, -6, r * 0.42, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'sig_divine_crucible_forge': {
+          // 29. เตาหลอมสวรรค์เก้ามังกรรังสรรค์ศาสตรา (Immortal Cauldron + Ascending Fire Pillars)
+          ctx.fillStyle = spec.primary;
+          ctx.fillRect(-r * 0.38, -16, r * 0.76, 12);
+          ctx.strokeStyle = spec.secondary;
+          ctx.lineWidth = 2.2;
+          ctx.strokeRect(-r * 0.38, -16, r * 0.76, 12);
+          for (let f = -1; f <= 1; f++) {
+            ctx.fillStyle = spec.accent;
+            ctx.beginPath();
+            ctx.arc(f * (r * 0.35), -18 - p * 8, 3.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'sig_tidal_maelstrom_anchors': {
+          // 30. วังวนคลื่นยักษ์เก้าสมุทรและมังกรปฐพี (Spiral Maelstrom Waves + Jade Pillars)
+          for (let w = 0; w < 3; w++) {
+            const a = rot + (w * Math.PI * 2) / 3;
+            ctx.strokeStyle = w % 2 === 0 ? spec.primary : spec.secondary;
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.arc(0, -2, r * (0.45 + w * 0.22), a, a + Math.PI * 1.15);
+            ctx.stroke();
+          }
+          ctx.fillStyle = spec.accent;
+          ctx.fillRect(-2.2, -20, 4.4, 16);
+          break;
+        }
         case 'sig_immortal_crane_feather_storm':
         default: {
           // 15. พายุขนนกกระเรียนเซียน: Whirling Tempest of White-Jade & Gold Feather Blades
@@ -5990,18 +6925,21 @@
 
     // Era 5 Pillar 1: Cultivation Realm Mandala & Path Aura in Portrait Background
     if (n.cult) {
-      const stg = clamp(n.cult.stage || 1, 1, 9);
+      const vState = R.resolveCultivationVisualState(n);
+      const stg = vState.normStage;
+      const pSig = vState.sig || R.PATH_VISUAL_SIGNATURES.XIAN;
       const rSpec = R.REALM_VISUAL_TIERS[stg] || R.REALM_VISUAL_TIERS[1];
-      c.strokeStyle = col + '66';
+      c.strokeStyle = (pSig.primary || col) + '88';
       c.lineWidth = 1.4;
       c.beginPath(); c.arc(20, 18, 15, 0, Math.PI * 2); c.stroke();
       if (stg >= 3) {
-        c.strokeStyle = rSpec.color;
+        c.strokeStyle = vState.isApex ? (pSig.primary || rSpec.color) : rSpec.color;
         c.lineWidth = stg >= 7 ? 1.8 : 1.2;
         c.beginPath(); c.arc(20, 17, 16.8, 0, Math.PI * 2); c.stroke();
       }
       if (stg >= 5) {
         const spokes = stg >= 7 ? 12 : 8;
+        c.strokeStyle = vState.isApex ? (pSig.secondary || rSpec.color) : rSpec.color;
         for (let i = 0; i < spokes; i++) {
           const a = (i * Math.PI * 2) / spokes;
           c.beginPath();
@@ -6012,7 +6950,7 @@
       }
       if (stg >= 7) {
         // Immortal Flowing Silk Ribbon (仙家披帛) in Portrait
-        c.strokeStyle = stg >= 9 ? '#00f5d4' : '#ffd740';
+        c.strokeStyle = vState.isApex ? (pSig.accent || '#00f5d4') : '#ffd740';
         c.lineWidth = 1.6;
         c.beginPath();
         c.arc(20, 22, 17.5, Math.PI * 1.08, Math.PI * 1.92);
@@ -6260,10 +7198,11 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
+    const vState = R.resolveCultivationVisualState(n);
     const stg = clamp((n.cult && n.cult.stage) || 1, 1, 9);
-    const pKey = (n.cult && n.cult.path) || 'SWORD';
-    const rSpec = R.REALM_VISUAL_TIERS[stg] || R.REALM_VISUAL_TIERS[1];
-    const pSig = R.PATH_VISUAL_SIGNATURES[pKey] || R.PATH_VISUAL_SIGNATURES.SWORD;
+    const pKey = (n.cult && n.cult.path) || 'XIAN';
+    const rSpec = R.REALM_VISUAL_TIERS[vState.normStage || stg] || R.REALM_VISUAL_TIERS[1];
+    const pSig = R.resolvePathVisualSignature(pKey);
 
     // 1. Scenic Xianxia Night-Mountain & Celestial Aurora Backdrop
     const bg = ctx.createLinearGradient(0, 0, 0, h);
@@ -6333,15 +7272,17 @@
     }
 
     // 4. Top-Left Realm & Path Badge Overlay + Border Frame
-    ctx.fillStyle = 'rgba(10,18,24,0.78)';
-    ctx.fillRect(6, 6, 118, 18);
-    ctx.strokeStyle = rSpec.color;
-    ctx.lineWidth = 1.0;
-    ctx.strokeRect(6, 6, 118, 18);
-    ctx.fillStyle = '#fff5d6';
+    const badgeTxt = 'ขั้น ' + stg + ' ' + rSpec.nameTh + ' · ' + pSig.nameTh;
     ctx.font = '600 10px ' + FONT;
+    const badgeW = clamp(Math.ceil(measureCached(ctx, ctx.font, badgeTxt)) + 14, 118, Math.max(118, w - 12));
+    ctx.fillStyle = 'rgba(10,18,24,0.82)';
+    ctx.fillRect(6, 6, badgeW, 18);
+    ctx.strokeStyle = vState.isApex ? (pSig.primary || rSpec.color) : rSpec.color;
+    ctx.lineWidth = 1.0;
+    ctx.strokeRect(6, 6, badgeW, 18);
+    ctx.fillStyle = '#fff5d6';
     ctx.textAlign = 'left';
-    ctx.fillText('ขั้น ' + stg + ' ' + rSpec.nameTh + ' · ' + pSig.nameTh, 11, 18);
+    ctx.fillText(badgeTxt, 11, 18);
 
     ctx.strokeStyle = 'rgba(233,205,133,0.65)';
     ctx.lineWidth = 1.4;

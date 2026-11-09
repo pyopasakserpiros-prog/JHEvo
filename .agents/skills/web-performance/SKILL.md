@@ -78,3 +78,7 @@ node test/inventory_grid_ui_suite.js
 ## JianghuSect 2 v2.0.0 Note (The 27 Grand Dao Epoch)
 - **Patch / Schema**: `SIM.PATCH_VERSION = '2.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.1.0-grand-dao-debates-apex-trials'`
 - **Scale**: 27 Major Cultivation Paths (`3^3`), 222 Subpaths, `CULT.MORTAL_INITIATION`, `SECT.PATH_LIBRARY` (1 starter path + 27 Manuals + 27 Crystals), 6 new weapon classes (`ROSARY`, `CLAW`, `NEEDLE`, `FAN`, `ASTROLABE`, `ABACUS`), 15 new Composable Triggers & Actions, 137/137 test suites passing.
+
+## Patch JS2-v2.5.0 Quality Scaling & Reduced Motion Guardrails (`js/render.js`)
+- `drawCultivatorRealmHalo` and `drawPathSignatureMotes` scale geometric detail when `this.effectiveQuality === 'low'` (halving orbiting mote counts and simplifying spoke loops) while maintaining balanced `ctx.save()` / `ctx.restore()` depth.
+- All 43 path aura animations derive phase strictly from `this.t` (which freezes when paused or when `reducedMotion` is enabled) and deterministic NPC index `n.n`.
