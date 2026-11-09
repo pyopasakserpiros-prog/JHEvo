@@ -8,7 +8,7 @@
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 
-**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Grand Dao Ecosystem Synergy, Sect Dynasty Chronicles & World Event Depth Release)
+**🔥 ใบสั่งงานแพตช์ถัดไป (Active Next-Patch Specification):** อ่าน [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts)
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:** 
 - [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (รายงานฉบับสมบูรณ์หลังแก้บั๊ก — Release (1))

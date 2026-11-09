@@ -19,7 +19,7 @@
 > 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
 > 3. ชุดทดสอบรวมผ่านครบ **141/141 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,177 ไอเทม, 1,402 ตำรับ
-> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Grand Dao Ecosystem Synergy, Sect Dynasty Chronicles & World Event Depth Release)
+> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts)
 > 5. **📑 รายงานการพัฒนาแพตช์ล่าสุด:** [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (Release (1) ฉบับสมบูรณ์หลังแก้บั๊ก) และ [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (Initial Release) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 
 ---
@@ -59,6 +59,8 @@
 
 ## 3. แผนแม่บท 5 ระยะสำหรับข้อเสนอสร้างสรรค์ 36 ข้อ (5-Phase Master Roadmap: PROP-01 ถึง PROP-36)
 
+> หมายเหตุ: ตาราง v3.x ด้านล่างเป็น roadmap รุ่นก่อนและใช้เป็นข้อมูลประวัติ ไม่ใช่งาน active ปัจจุบัน งานถัดไปของ JianghuSect 2 คือใบสั่งงาน JS2-v2.5.0 ที่ระบุไว้ใน Current Pointer ด้านบน
+
 | ระยะ (Phase) | เวอร์ชันเป้าหมาย | ข้อเสนอที่ครอบคลุม | หัวใจสำคัญของระบบ | สถานะ |
 | :---: | :---: | :--- | :--- | :---: |
 | **Phase 0** | **v3.1.1** | แก้ไข 21 ข้อค้นพบจากการ Audit | ระบบเศรษฐกิจแบบปิด, ปิดช่องโหว่เสกศิลา/โอสถ, คูลดาวน์ขุนนาง, เชื่อม Vanguard | **✅ สำเร็จแล้ว** |
@@ -72,12 +74,13 @@
 
 ## 4. คำแนะนำสำหรับ AI ในการเริ่มงานรอบถัดไป (Active AI Guidance for Next Turn)
 
-> **ข้อควรปฏิบัติสำหรับ AI:**
-> 1. **อ่าน [`START_HERE_FOR_AI.md`](START_HERE_FOR_AI.md) และ [`ACTIVE_PATCH_PROMPT_V3_5_0.md`](ACTIVE_PATCH_PROMPT_V3_5_0.md)** เป็นลำดับแรกเพื่อลงมือปฏิบัติงานแพตช์ v3.3.0 ทันทีโดยไม่ต้องรอพรอมต์เพิ่มเติมจากผู้ใช้
-> 2. ยึดมั่นกฎเหล็กของประธานบริษัทใน [`AGENTS.md`](AGENTS.md): รักษา `human_core.js` ให้ byte-identical (`HC.FINGERPRINT === '155:2f9c9dd7'`), รักษาสคริปต์ครบ 40 แท็ก, และควบคุมงบเวลาจำลอง `<= 3.5 ms/tick` (80 NPCs)
-> 3. เขียนโค้ดเต็มสมบูรณ์ 100% ห้ามย่อ ห้ามตัดทอน หรือใส่ Placeholder
-> 4. สร้างชุดทดสอบ `GAME_SOURCE/test/v350_macro_world_politics_and_alchemy_suite.js` และรวมไฟล์เดี่ยว `node tools/build_single.js`
-> 5. **⭐ ปฏิบัติตามกฎลูกโซ่อัตโนมัติ (Daisy-Chain Protocol):** เมื่อส่งมอบงานแพตช์ v3.3.0 ให้ร่าง `ACTIVE_PATCH_PROMPT_V3_5_0.md` สำหรับแพตช์ถัดไป และอัปเดตตัวชี้ใน `START_HERE_FOR_AI.md` ทันที เพื่อให้ผู้ใช้นำ ZIP ไปเริ่มแชทใหม่ได้เลยโดยไม่ต้องพิมพ์พรอมต์อีกรอบ!
+> **ใบสั่งงาน active:** [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) — JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts
+
+1. อ่าน START_HERE_FOR_AI.md, AGENTS.md และใบสั่งงาน active ให้ครบ แล้วตรวจซอร์ส/ชุดทดสอบจาก ZIP ล่าสุดก่อนเริ่ม
+2. ทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริง โดยใช้ maxStage ของแต่ละวิถี ตรวจเอกลักษณ์ การต่อเข้าระบบ และประสิทธิภาพตามใบสั่งงาน
+3. ก่อนแก้โค้ด ให้อ่านสกิลที่เกี่ยวข้องใน .agents/skills/ และรักษา human_core.js, ลำดับสคริปต์, save/load และกฎใน AGENTS.md
+4. เมื่อแพตช์เสร็จ ให้อัปเดตเอกสารสถานะ สกิลที่ได้รับผล รายงานแพตช์ สารบัญเอกสาร และ Current Pointer ตามใบสั่งงาน โดยระบุจำนวน coverage และผลตรวจจริง
+5. ตาราง v3.x และคำสั่งเก่าที่อ้าง ACTIVE_PATCH_PROMPT_V3_5_0.md ด้านล่างเป็นข้อมูลประวัติ ไม่ใช้แทนใบสั่งงาน JS2-v2.5.0 ปัจจุบัน
 
 ---
 *เอกสารนี้ได้รับการปรับปรุงสมบูรณ์ตามสถานะแพตช์ v4.0.0 (ครบ 36 ข้อเสนอ + 5 เสาหลัก Phase 6, ผ่านการทดสอบ 124/124 ชุดทดสอบ) ณ วันที่ 6 พฤศจิกายน 2026*

@@ -11,7 +11,7 @@
   *(ประวัติ: ภาค 1 วิวัฒนาการจาก ยุค 1 สิ้นสุดที่ `v5.8.0`; ภาค 2 เริ่มต้นนับศักราชใหม่ที่ Season 2 โดยใช้รหัสแพตช์ทางการว่า `JS2-v...` ไม่ใช่การนับเลขถอยหลัง)*
 - **เวอร์ชันฐานปัจจุบัน (Current Baseline):** **`JS2-v2.4.0`** (Tactical Composable Grand Dao, Demonic Higher Realms & Comprehensive Bugfix Release — **พัฒนาและส่งมอบครบสมบูรณ์ 100% ผ่านชุดทดสอบ 141/141 กลุ่ม!**)
 - **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที (Active Next-Patch Specification):**
-  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (**`JS2-v2.5.0`**: Grand Dao Ecosystem Synergy, Sect Dynasty Chronicles & World Event Depth Release)
+  👉 [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md) (**`JS2-v2.5.0`**: Pathbound Ascendant Visuals & Signature Arts)
 - **🗺️ แผนที่นำทางและคลังไอเดียรวม (Master Roadmap & Composable Mechanics):**
   👉 [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 - **รายงานแพตช์ล่าสุดที่ทำเสร็จแล้ว:**
@@ -44,23 +44,14 @@
 - แก้ระบบเซฟ/โหลด (`SIM.serialize` / `SIM.deserialize`) ➔ `.agents/skills/save-system-patterns/SKILL.md`
 
 ### ขั้นที่ 4: ลงมือพัฒนาโค้ดตามใบสั่งงาน (100% Complete Code Implementation)
-- เขียนโค้ดจริงที่ทำงานได้สมบูรณ์ครบทุกเงื่อนไขตามที่ระบุใน `ACTIVE_PATCH_PROMPT_V3_5_0.md`
-- **ห้ามตัดทอนโค้ด (`// ... existing code ...`) หรือใส่โค้ดจำลอง (Stub/Placeholder)**
-- ตรวจสอบว่าทุกฟังก์ชันที่สร้างใหม่ถูกผูกเข้ากับวงจรเวลาจริง (`SIM.tick`, `SIM.hourly`, `SIM.dailyUpdate`, `COMBAT.fightStep`, `SECT.daily`) และมีปุ่มกดหรือการแสดงผลใน `js/ui.js` ครบถ้วน
+- ทำงานตามใบสั่งงานปัจจุบัน ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md ให้ครบ โดยทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริงก่อน
+- ห้ามตัดทอนโค้ดหรือใส่โค้ดจำลอง (Stub/Placeholder)
+- เชื่อมออร่ากับ renderer และเอฟเฟกต์วิชากับเส้นทางใช้วิชาจริงตามระบบที่มี
 
 ### ขั้นที่ 5: สร้างและรันชุดทดสอบ (Automated Verification & Test Suite)
-1. สร้างไฟล์ชุดทดสอบใหม่ประจำแพตช์ (`GAME_SOURCE/test/v350_macro_world_politics_and_alchemy_suite.js`) และเพิ่มชื่อชุดทดสอบลงใน `GAME_SOURCE/test/run_all.js`
-2. รันคำสั่งตรวจสอบความถูกต้องทั้งหมด:
-   ```bash
-   node GAME_SOURCE/test/core_lock.js
-   node GAME_SOURCE/tools/validate_data_schema.js
-   node GAME_SOURCE/test/v350_macro_world_politics_and_alchemy_suite.js
-   node GAME_SOURCE/test/v340_combat_depth_and_duet_synergies_suite.js
-   node GAME_SOURCE/test/v330_living_sect_and_daily_loop_suite.js
-   node GAME_SOURCE/test/v320_dormant_awakening_suite.js
-   node GAME_SOURCE/test/v311_economy_dungeon_and_peaks_invariants_suite.js
-   ```
-3. ทุกชุดทดสอบ Node.js ต้องผ่าน **100% (0 Errors, 0 Warnings, 0 Failures)**
+1. สร้าง GAME_SOURCE/test/v250_pathbound_visuals_suite.js และลงทะเบียนใน runner ที่ใช้จริง
+2. รันชุดทดสอบเฉพาะทาง, regression, schema, core lock และ build ตามคำสั่งในใบสั่งงานปัจจุบันและ AGENTS.md
+3. ตรวจภาพจริงในเบราว์เซอร์/มือถือเมื่อเครื่องมือรองรับ และรายงานสิ่งที่ตรวจไม่ได้ตามจริง
 
 ### ขั้นที่ 6: รวมไฟล์เดี่ยว (`Single-File HTML Rebuild`)
 รันคำสั่งรวมไฟล์เดี่ยวทุกครั้งหลังแก้โค้ดเสร็จ:
@@ -69,24 +60,25 @@ cd GAME_SOURCE && node tools/build_single.js
 ```
 เพื่ออัปเดต `GAME_SOURCE/JianghuSect_single.html` ให้ตรงกับซอร์สโค้ดล่าสุด
 
-### ขั้นที่ 7: เขียนรายงานผลการพัฒนาแพตช์ (`PATCH_REPORTS/`)
-1. สร้างรายงานสรุปผลการพัฒนาฉบับสมบูรณ์ เช่น `PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_5_0.md`
-2. อัปเดตสารบัญใน `PATCH_REPORTS/README.md` และอัปเดตตัวเลขเวอร์ชันและตารางระบบใน `project_status_and_ai_onboarding.md`
+### ขั้นที่ 7: เขียนรายงานผลการพัฒนาแพตช์ (PATCH_REPORTS/)
+1. สร้าง PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md
+2. อัปเดต PATCH_REPORTS/README.md, README.md และ project_status_and_ai_onboarding.md ให้ตรงกับผลตรวจจริง
 
-### ขั้นที่ 8: อัปเดตความรู้ใน `.agents/skills/`
-หากแพตช์นี้มีการเพิ่มฟังก์ชันหลัก กลไกใหม่ หรือกฎ Invariant ใหม่ ให้บันทึกสรุปสั้นๆ เพิ่มเติมลงในไฟล์ `.agents/skills/<skill-name>/SKILL.md` ที่เกี่ยวข้อง เพื่อให้ AI รุ่นถัดไปรับทราบสถาปัตยกรรมล่าสุด
+### ขั้นที่ 8: อัปเดตความรู้ใน .agents/skills/
+อัปเดต project_status_and_ai_onboarding.md และสกิลที่ได้รับผลจริง โดยระบุ API, coverage, วิธีทดสอบและข้อจำกัดที่ยืนยันแล้ว ปรับ .agents/skills/README.md หากขอบเขตสกิลเปลี่ยน เพื่อให้ AI ตัวอื่นเข้าใจสถานะเกมล่าสุด
 
 ### ขั้นที่ 9: 🔗 กฎลูกโซ่อัตโนมัติ — สร้างใบสั่งงานแพตช์ถัดไป (The Daisy-Chain Mandate)
-> **สำคัญที่สุด!** ก่อนจบงานและแพ็กไฟล์ ZIP ส่งผู้ใช้ คุณต้องเตรียมงานให้พร้อมสำหรับแชทถัดไปตามตาราง **5-Phase Master Roadmap** ด้านล่าง:
-1. ดูตาราง Roadmap ด้านล่างว่าแพตช์ถัดไปคือเวอร์ชันใด (เมื่อจบ `v3.5.0` แล้ว แพตช์ถัดไปคือ `v3.6.0`)
-2. สร้างไฟล์ใบสั่งงานใหม่ที่รูทของโปรเจกต์ เช่น **`ACTIVE_PATCH_PROMPT_V3_6_0.md`** โดยเขียนรายละเอียดทางเทคนิค โจทย์แต่ละ Proposal ของเฟสถัดไป ไฟล์ที่ต้องแก้ และเกณฑ์การทดสอบให้ละเอียดสมบูรณ์เทียบเท่า `ACTIVE_PATCH_PROMPT_V3_5_0.md`
-3. **อัปเดตไฟล์ `START_HERE_FOR_AI.md` ฉบับนี้** ในหัวข้อ `📍 สถานะปัจจุบันและงานที่ต้องทำทันที (Current Pointer)` ด้านบนสุด ให้ชี้ไปยังไฟล์ `ACTIVE_PATCH_PROMPT_V3_6_0.md` ตัวใหม่ พร้อมอัปเดตเลข Baseline เป็นเวอร์ชันที่คุณเพิ่งทำเสร็จ (`v3.5.0`)!
+1. หลัง JS2-v2.5.0 เสร็จ ให้ตรวจ project_status_and_ai_onboarding.md และ FUTURE_ROADMAP_AND_IDEAS.md เพื่อเลือกงานถัดไปจากสถานะจริง
+2. สร้างใบสั่งงานแพตช์ถัดไป โดยอ้างซอร์สและผลตรวจจริง ไม่คัดลอก roadmap เก่าที่ขัดกับสถานะปัจจุบัน
+3. อัปเดต Current Pointer ใน START_HERE_FOR_AI.md ให้ชี้ใบสั่งงาน active จริง พร้อมระบุ baseline ที่เพิ่งตรวจเสร็จ
 
 ### ขั้นที่ 10: แพ็กเกจโปรเจกต์เป็นไฟล์ ZIP ที่สมบูรณ์และส่งมอบ
 - บีบอัดโครงสร้างโปรเจกต์ทั้งหมด (ต้องมี Directory Entries ครบถ้วน และตรวจด้วย `zipfile.testzip()` ว่าไม่เสียหาย)
 - ส่งมอบไฟล์ ZIP พร้อมสรุปรายงานสิ่งที่ทำสำเร็จในแพตช์นี้ และแจ้งผู้ใช้ว่า **"เตรียมใบสั่งงานแพตช์ถัดไปไว้ใน `START_HERE_FOR_AI.md` เรียบร้อยแล้ว"**
 
 ---
+
+> หมายเหตุ: ตาราง roadmap รุ่นเก่าด้านล่างเป็นประวัติอ้างอิง Current Pointer และใบสั่งงาน JS2 ล่าสุดด้านบนเป็นตัวกำหนดงาน active; หากข้อมูลขัดกัน ให้ยึดซอร์สและใบสั่งงานล่าสุด
 
 ## 🗺️ ตารางแผนแม่บท 5 ระยะ (5-Phase Master Roadmap: v3.1.1 ➔ v3.6.0)
 
