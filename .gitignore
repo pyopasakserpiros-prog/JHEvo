@@ -7,5 +7,4 @@ __pycache__/
 .agent_out
 .agent_status
 agent_runner.sh
-*.zip
 runner.log
