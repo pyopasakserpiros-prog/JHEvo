@@ -5,7 +5,7 @@ const ids=Object.keys(SK.TECH_TO_T3_VFX),forms=Object.keys(SK.T3_VFX_CATALOG);
 assert.equal(forms.length,24);assert.equal(ids.length,26);assert.equal(Object.keys(SK.PASSIVE_TO_T3_VFX).length,8);
 const tiers=Object.values(SK.NONLEGENDARY_VFX_BUDGET);
 assert.equal(Math.max(...JD.TECH.techniques.filter(t=>!t.legendary).map(t=>t.tier)),7);
-for(let i=2;i<tiers.length;i++){assert(tiers[i].rMin>tiers[i-1].rMax);assert(tiers[i].life>tiers[i-1].life);assert.equal(tiers[i].planned,i>2&&i<5);}
+for(let i=2;i<tiers.length;i++){assert(tiers[i].rMin>tiers[i-1].rMax);assert(tiers[i].life>tiers[i-1].life);assert.equal(tiers[i].planned,false);}
 assert(tiers[6].rMax<Render.LEGENDARY_APEX_BUDGET.radiusMin,'reserved ordinary T7 remains below the expanded Legendary apex');
 assert(tiers[6].life<Math.min(...Object.values(Render.LEGENDARY_SCENES).map(s=>s.life)),'ordinary T7 retains a shorter cast than Legendary');
 assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,256);

@@ -30,7 +30,11 @@
 เอฟเฟกต์เป็น Canvas vector และไม่มี RNG/ผลต่อบาลานซ์; metadata เพิ่มอยู่ใน castFx ล่าสุดตาม serialization เดิม โดยไม่เพิ่ม save schema คิวเดิมจำกัด 24 รายการและลดรายละเอียดตาม Low/Reduced Motion ตรวจลายใหม่ 17 ตระกูล และตรวจลายเดิมในเบราว์เซอร์แล้ว: ก่อนส่วนขยายนี้ Signature 30/30 และ crown วิถี 43/43 แยกภาพได้ครบ; Signature ปัจจุบันตรวจครบ 45/45 ตามหัวข้อด้านล่าง; Legendary 47/47 และอุปกรณ์ 27/27 ผ่าน pixel identity ทั้ง desktop/mobile อยู่ในชุดทดสอบเดิม ผล full suite ของฐานก่อนส่วนขยาย 15 ลายคือ 150/151 groups; ผลล่าสุดหลังเพิ่มลายอยู่ในหัวข้อด้านล่าง; `startup_ui` timeout เพราะ overlay หน้าเริ่มเกมขวาง Playwright click; browser VFX, mobile performance, schema validator และ standalone build ผ่าน ดู [รายงาน Weapon Motion VFX](PATCH_REPORTS/WEAPON_MOTION_VFX_JS2_V2_5_0.md) และ [ภาพเทียบตระกูลอาวุธ](docs/visuals/weapon-motion-vfx/weapon-family-gallery.png)
 
 
-## T6 shared group VFX — current visual frontier (JS2-v2.6.0, 2026-11-09)
+## Complete Tier-Scaled VFX (T1–T7 >= 64 forms/tier), Sub-Path/Grand Dao Motifs, Equipment & Combat Action VFX & Targeting Audit (JS2-v2.6.0, 2026-11-09)
+
+ขยายวิชวลเอฟเฟกต์ครบทุกระดับขั้น T1–T7 โดยใช้รูปแบบกลุ่มร่วมที่มีอย่างน้อย 64 รูปแบบต่อระดับขั้น (T1: 64, T2: 64, T3: 68, T4: 72, T5: 68, T6: 64, T7: 71) ครอบคลุมวิชาทั่วไปที่ร่ายได้ครบ 100% (1,286 วิชา) และพาสซีฟ/มนตราทุกระดับ พร้อมตราประจำวิถี/สายย่อย/มรรคา 64 รูปแบบ (`SK.SUBPATH_VFX_MOTIFS`), คัมภีร์ปราณ 122 บท (`SK.MANTRA_TO_VFX_MOTIF`), เอฟเฟกต์ทักษะอุปกรณ์ 64 รูปแบบ + เซ็ตเรโซแนนซ์ 31 ชุด (`SK.EQUIP_EFFECT_VFX_CATALOG`), และเอฟเฟกต์แอคชั่นระบบการรบ 36 รูปแบบ (`SK.COMBAT_ACTION_VFX_CATALOG`) พร้อมตรวจแก้กลไกการยึดพิกัดเป้าหมาย (`blink`, `selectTargets`, `actualReceiverId`, `isRanged`, `isGapCloser`, `HYBRID_HARMONIZE`) และป้องกันการวาดรอยดาบฟันตัวเองขณะยืนรอคูลดาวน์ ดู [รายงาน](PATCH_REPORTS/COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md) และ [ทะเบียน](docs/audits/V2_6_0_COMPLETE_TIER_SUBPATH_EQUIP_VFX_REGISTRY.md).
+
+## T6 shared group VFX — earlier visual milestone (JS2-v2.6.0, 2026-11-09)
 
 **T6 selected group art:** 50 ลายรูปทรงต่างกัน ใช้ร่วมกันตามกลุ่ม ครอบคลุม 114 วิชา / 207 ท่าย่อย, พาสซีฟที่เข้าเงื่อนไข 8 วิชา และอุปกรณ์เดิม 117 รายการ / 25 ประเภทจริง (27 raw tags). สเกล 42–47 px / 1,250 ms; ไม่เพิ่มค่าสถานะหรือเปลี่ยนเซฟ. ดู [ทะเบียน](docs/audits/T6_GROUP_VFX_REGISTRY.md) และ [รายงาน](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md). งานถัดไปเมื่อผู้ใช้สั่ง: [T5](docs/handovers/NEXT_T5_VISUAL_PATCH.md).
 

@@ -23,6 +23,7 @@ Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). 
 
 **📑 รายงานการพัฒนาแพตช์ล่าสุด:**
 
+- [COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md](PATCH_REPORTS/COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md) — วิชวลเอฟเฟกต์ครบทุกระดับขั้น T1–T7 (>= 64 ลาย/ระดับ: T1:64, T2:64, T3:68, T4:72, T5:68, T6:64, T7:71), ตราประจำวิถี/สายย่อย/มรรคา 64 ลาย + มนตรา 122 บท, เอฟเฟกต์ทักษะอุปกรณ์ 64 แบบ + เซ็ต 31 แบบ, แอคชั่นระบบการรบ 36 แบบ และการแก้กลไกพิกัดเป้าหมาย/ระยะไกล-ประชิดครบ 100% (164/164 PASS); ดู [ทะเบียน](docs/audits/V2_6_0_COMPLETE_TIER_SUBPATH_EQUIP_VFX_REGISTRY.md)
 - [T6_GROUP_VFX_JS2_V2_6_0.md](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md) — 50 ลายกลุ่ม / 114 วิชา T6 / 207 ท่าย่อย + 8 พาสซีฟ, อุปกรณ์ 117 รายการ; [ดูภาพทั้ง 50 ลาย](docs/visuals/t6-group-vfx/art.png), [ภาพเคลื่อนไหว](docs/visuals/t6-group-vfx/release.gif); ถัดไป T5
 
 - [T7_VISUALS_JS2_V2_6_0.md](PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา T7 / 157 ท่าย่อย พร้อมออร่า 85 อุปกรณ์ใน 25 ประเภท; ส่งต่อ T6 แล้ว

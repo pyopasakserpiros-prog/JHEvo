@@ -8076,9 +8076,14 @@
     caster.lastPathGaugeFinisher = {
       t: (W && W.t) || 0,
       gaugeId: pg.id,
+      path: pg.path,
       finisherNameTh: spec.finisherNameTh,
       dmgDealt,
-      targetId: target ? target.id : null
+      targetId: target ? target.id : null,
+      targetX: (actualTarget && Number.isFinite(actualTarget.x)) ? actualTarget.x : (target && Number.isFinite(target.x) ? target.x : caster.x),
+      targetY: (actualTarget && Number.isFinite(actualTarget.y)) ? actualTarget.y : (target && Number.isFinite(target.y) ? target.y : caster.y),
+      originX: caster.x,
+      originY: caster.y
     };
     return { ok: true, gaugeId: pg.id, finisherNameTh: spec.finisherNameTh, dmgDealt, triggeredCount: pg.triggeredCount };
   };

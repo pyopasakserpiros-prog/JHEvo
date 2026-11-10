@@ -1,1148 +1,1162 @@
 {
-  "date": "2026-11-09T16:49:20.657Z",
-  "node": "v24.22.1",
+  "date": "2026-11-10T04:22:26.910Z",
+  "node": "v26.3.1",
   "mode": "parallel regression audit",
   "maxWorkers": 2,
   "perTestTimeoutMs": 110000,
-  "durationSec": 242.547,
+  "durationSec": 229.161,
   "summary": {
-    "total": 162,
-    "pass": 161,
-    "fail": 0,
-    "timeout": 1
+    "total": 164,
+    "pass": 145,
+    "fail": 19,
+    "timeout": 0
   },
   "results": [
     {
       "test": "successor_and_archetypes_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.333,
+      "durationSec": 2.686,
       "output": "--- TEST SUITE: SUCCESSOR DISCIPLE & SECT ARCHETYPES ---\nPASS 1: Successor election with weighted voting and elevation to rank >= 3\nPASS 2: Successor immediately inherits Sect Master title upon master death\nPASS 3: Headless recovery cascades down to surviving disciples\nPASS 4: Daily update self-heals existing dead master saves\nPASS 5: Archetype sword (สำนักกระบี่เซียน) verified with 64 techniques and proper subpaths\nPASS 5: Archetype blade (สำนักดาบคลั่ง) verified with 61 techniques and proper subpaths\nPASS 5: Archetype spear (สำนักทวนมังกร) verified with 62 techniques and proper subpaths\nPASS 5: Archetype fist (สำนักหมัดกายทอง) verified with 62 techniques and proper subpaths\nPASS 5: Archetype alchemy (สำนักโอสถเต๋า) verified with 58 techniques and proper subpaths\nPASS 5: Archetype bow (สำนักเกาทัณฑ์ดาราสวรรค์) verified with 62 techniques and proper subpaths\nPASS 5: Archetype staff (สำนักพลองโพธิ์วัชระ) verified with 58 techniques and proper subpaths\nPASS 5: Archetype focus (สำนักศาสตราอาคมดารา) verified with 61 techniques and proper subpaths\n--- ALL SUCCESSOR & ARCHETYPE TESTS PASSED SUCCESSFULLY! ---\n"
     },
     {
       "test": "v214_legacy_combat",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 4.861,
+      "durationSec": 12.231,
       "output": "PASS v214 legacy combat: summon scaling/save and equal-realm combat pills\n"
     },
     {
       "test": "v214_content",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.921,
+      "durationSec": 2.308,
       "output": "PASS v2.0.14 content: 2 paths, 12 differentiated subpaths, real runtime identities/skills/tracks/arts/innates and retained broad craft.\n"
     },
     {
       "test": "v214_governance",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.923,
+      "durationSec": 4.351,
       "output": "v2.0.14 governance, progression and formation checks passed\n"
     },
     {
       "test": "v214_professions",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 3.257,
+      "durationSec": 5.027,
       "output": "v214 profession runtime: PASS\n"
     },
     {
       "test": "v214_path_selection",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 11.213,
+      "durationSec": 23.194,
       "output": "PASS v214 major path selection (seed 214, sample 3000): {\"XIAN\":233,\"BODY\":174,\"GOD\":42,\"DEMON\":407,\"HEART_SOUL\":101,\"MECH_PUPPET\":43,\"KARMA_SAMSARA\":44,\"BEAST_SOVEREIGN\":178,\"SAGE_SUPPORT\":210,\"CRAFT_CREATION\":341,\"ARRAY_TALISMAN\":85,\"STRATEGY_GOVERNANCE\":70,\"ASTRO_DIVINATION\":33,\"BUDDHA_DHARMA\":45,\"VOID_SPACE\":26,\"SONIC_HARMONY\":27,\"VENOM_GU\":15,\"PRIMORDIAL_SHIFTER\":37,\"CELESTIAL_WEATHER\":30,\"WANDERING_DAO\":67,\"MERCANTILE_DAO\":34,\"DRAGON_VEIN_GEOMANCY\":22,\"GRAVITY_DAO\":71,\"CHRONO_EPOCH\":48,\"INK_LITERATI\":30,\"SOUL_PUPPETRY\":12,\"PRIMORDIAL_CHAOS\":50,\"SHADOW_SAMURAI\":37,\"NINPO_SHADOW\":19,\"NINPO_ELEMENTAL\":18,\"DIVINE_SUMMONER\":18,\"DIVINE_POSSESSION\":47,\"DIVINE_CHANNELER\":12,\"VOID_HERETIC_PACT\":20,\"OCCULT_MAGE\":11,\"DEVOURING_FLESH\":46,\"NETHER_GRAVE\":17,\"ANCESTRAL_RITUAL\":41,\"TIDE_VOYAGER\":16,\"LORE_ARCHIVIST\":36,\"FORTUNE_GAMBLER\":37,\"SPIRIT_HUSBANDRY\":41,\"ARENA_GLORY\":109}\n"
     },
     {
       "test": "martial_retraining",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.832,
-      "output": "PASS29 skill effects/training, matching weapons, atomic explicit retraining, cost-aware preparation and review regressions\n"
+      "durationSec": 4.167,
+      "output": "PASS29 skill effects/training, matching weapons, atomic explicit retraining, cost-aware preparation and review regressions\n(node:12412) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "martial_paths",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 4.187,
+      "durationSec": 7.983,
       "output": "PASS martial paths: finite knowledge, economy, rarity, exclusive paths, typed gear, progression and pure scoring\n"
     },
     {
       "test": "core_lock",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.705,
+      "durationSec": 1.757,
       "output": "PASS fingerprint 155:2f9c9dd7 == 155:2f9c9dd7\nPASS personality 14 / values 8 / aptitudes 6\nPASS validate 3 npcs\nPASS compare A≠B (26%), A=A (100%)\nPASS save carries fingerprint\n"
     },
     {
       "test": "legendary_spawn_gate",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.778,
+      "durationSec": 1.453,
       "output": "PASS legendary shared rarity gate across all zones\n"
     },
     {
       "test": "npc_cognition",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.893,
+      "durationSec": 2.938,
       "output": "PASS cognition: read-only explanation, authority, emergencies, goal continuity, outcome memory, bounded save-safe state\n"
     },
     {
       "test": "npc_offices",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.333,
+      "durationSec": 2.892,
       "output": "PASS new offices: real appointments, suitability, work locations, useful directives, authority and personality\n"
     },
     {
       "test": "npc_command",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.005,
+      "durationSec": 1.527,
       "output": "PASS commander leads real raid and future offices remain dormant\n"
     },
     {
       "test": "npc_social_help",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.964,
+      "durationSec": 1.503,
       "output": "PASS social help: real transferred medicine, preserved quality, no free pills or points\n"
     },
     {
       "test": "cp_economy",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.991,
+      "durationSec": 2.464,
       "output": "PASS contribution economy: scarcity pricing, basic recipes, sourced crafting, truthful handover, personal donation, one-time study payment, no free starting pills, zero-balance preservation, save/load inventory, true pill consumption, premium pill shop, adaptive price index, paid guidance service, paid training sink\n"
     },
     {
       "test": "speed_controls",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.134,
+      "durationSec": 0.298,
       "output": "PASS speed button list: 0×, 1×, 2×, 4×, 8×, 16×, 32×, 48×\nPASS clicking 16× and 32× changes G.speed and refreshes the HUD\nPASS mobile speed-button layout rule and 32× performance test coverage\nNOTE: full simulation throughput still needs a browser/device benchmark\n"
     },
     {
       "test": "time_controls",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.079,
+      "durationSec": 0.229,
       "output": "PASS time controls: 16×, 32×, 48× retained; pending ticks preserved; high-speed rendering throttled; mobile layout responsive\n"
     },
     {
       "test": "runtime_timing",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.112,
+      "durationSec": 0.276,
       "output": "PASS runtime timing: 1/2/4/8/16/32/48x, full stalled elapsed time, 12 ms budget, preserved backlog, pause, save/load, fresh world clocks, legacy save defaults\nPASS runtime error recovery: load/new game clear stale errors and subsequent failures pause again\nPASS legacy browser load restores paused and accelerated saves without runtimeTiming\n"
     },
     {
       "test": "craft_transactions",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.225,
+      "durationSec": 2.655,
       "output": "PASS inventory rejects negative and non-finite quantities\nPASS craft completion without paid inputs produces nothing\nPASS starting one action twice spends its ingredients once\nPASS basic crafting grants output and contribution rewards once\nPASS brew completes its paid recipe and grants native rewards once\nPASS forge completes its paid recipe and grants native rewards once\nPASS paid craft survives save/load and rejects replay after another reload\nPASS a receipt cannot pay for another actor or recipe\nPASS failed crafting can return paid materials only once\nPASS duplicate recipe inputs are reserved atomically\nPASS legacy direct API still requires a consumable reservation\nPASS legacy paid action adoption does not charge its inputs again\nPASS a replacement craft invalidates an interrupted receipt without refunds\nPASS stale actor receipts can be pruned without returning consumed materials\nPASS discoverable recipes require knowledge as well as the normal tier gate\nPASS native crafting revalidates discovered recipe requirements at start\nPASS craft duration uses its captured recipe when the hall order changes\n"
     },
     {
       "test": "content_expansion",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.73,
+      "durationSec": 2.495,
       "output": "PASS content integrity, new branches/combat, discovery gates, renewable stocks, exactly-once handover, compatibility\n"
     },
     {
       "test": "content_economy",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.809,
+      "durationSec": 2.585,
       "output": "PASS new subpaths have distinctive stat and affinity effects\nPASS physical imported goods can be donated, sold, consumed with exact transfers\nPASS stale or forged shop prices cannot charge or create corrupt balances\nPASS wrong cultivation affinity does not buy or consume specialized medicine\nPASS new regional expedition resolves once, roundtrips outcomes and formula access\nPASS paid imported technique selects and charges the same manual only once\nPASS legacy paid crafting migrates without consuming inputs a second time\nPASS 7 content economy integration checks\n"
     },
     {
       "test": "content_discovery",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.294,
+      "durationSec": 1.69,
       "output": "PASS starting curriculum gating and regional acquisition provenance\n"
     },
     {
       "test": "exploration_replay",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.391,
+      "durationSec": 2.125,
       "output": "PASS cave/realm rewards, progress, logs and RNG settle once across reload\n"
     },
     {
       "test": "ui_content",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.331,
-      "output": "PASS native UI content, discovery locks, personal formula scrolls, external market panel/map marker and existing world/sect tab renderers\n"
+      "durationSec": 2.065,
+      "output": "PASS native UI content, discovery locks, personal formula scrolls, external market panel/map marker and existing world/sect tab renderers\n(node:12979) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "legacy_save",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.003,
+      "durationSec": 1.708,
       "output": "PASS v2 save schema & synthetic save: v2 roots/mastery, identities, progression, inventory, CP, library, RNG, season and paid craft resume\n"
     },
     {
       "test": "save_integrity",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.615,
+      "durationSec": 3.242,
       "output": "PASS a paused save remains paused after loading\nPASS missing legacy speed still defaults to normal playback\nPASS a failed map import preserves the running game clocks\nPASS a failure during extension migration preserves the running game clocks\nPASS rejects nonnumeric simulation time without affecting the running game\nPASS rejects incomplete RNG state without affecting the running game\nPASS rejects duplicate NPC identities without affecting the running game\nPASS rejects missing log storage without affecting the running game\nPASS rejects negative playback speed without affecting the running game\nPASS rejects missing map seed without affecting the running game\nPASS rejects missing NPC sequence without affecting the running game\nPASS rejects missing log sequence without affecting the running game\nPASS a successful import publishes the restored simulation clocks\n"
     },
     {
       "test": "test_runner",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.081,
+      "durationSec": 0.334,
       "output": "PASS test runner: denied spawn, timeout, assertion failure, and successful child process\n"
     },
     {
       "test": "beast_ecology",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.857,
+      "durationSec": 1.675,
       "output": "PASS regional beasts stay in their habitats; native sect raids cannot create rare parts\n"
     },
     {
       "test": "external_market",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.001,
+      "durationSec": 2.511,
       "output": "PASS external market: sect purchase/sale, member purchase/sale, quote safety, save/load, and visit cycle\n"
     },
     {
       "test": "recipe_scroll_lifecycle",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.447,
+      "durationSec": 2.113,
       "output": "PASS recipe scroll lifecycle & anti-arbitrage: single discovery, keep/copy/trade/donate, 0-CP duplicate donation, one-time authorization fee, save/estate recovery, and zero purchase/donate arbitrage\n"
     },
     {
       "test": "specialization_tracks",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.209,
+      "durationSec": 1.674,
       "output": "Testing independent specialization tracks (v1.10.3)...\nPASS 1: Catalog & Track registry preserves all 9 ordinals without position compression\nPASS 2: Track state initialization and awakening lifecycle\nPASS 3: Dual progression and thresholds\nPASS 4: Explicit skill and resource gates validation\nPASS 5: Breakthrough resolution, cost deduction, and failure retreat\nPASS 6: Functional combat power and cross-path power comparison\nPASS 7: Specialization track realm buffs applied to combat stats\nPASS 8: Serialization and save compatibility\nALL SPECIALIZATION TRACK CHECKS PASSED.\n"
     },
     {
       "test": "combat_passives",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.204,
+      "durationSec": 1.843,
       "output": "Testing richer path-specific passives & combat profiles (v1.10.4)...\nPASS 1: Explicit combat profiles (support, heal, summon, channel) & summary text\nPASS 2: Support target handler (C.alliesOf) and party buff execution\nPASS 3: Heal target handler (lowestAlly) and debuff cleanse execution\nPASS 4: Summon creation, target aggregation, damage absorption, and clean despawn\nPASS 5: Channeled ability tick execution, interrupt handling, and completion\nPASS 6: Subpath passives alignment and descriptive text matching native effects\nALL COMBAT PASSIVES AND SPECIALIZATION PROFILE CHECKS PASSED.\n"
     },
     {
       "test": "skill_visual_events",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.8,
+      "durationSec": 2.917,
       "output": "PASS shared skill visuals: ordinary/forbidden active casts, target binding, cooldown, silence, stun, nonlethal gate, basic attacks\n"
     },
     {
       "test": "skill_visual_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 2.79,
-      "output": "PASS browser skill visuals: two shared styles, pause, expiry, no replay, load baseline and 24-effect cap\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.337,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/skill_visual_browser.js:4:41\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/skill_visual_browser.js:21:34)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "weapon_motion_vfx_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.153,
+      "durationSec": 1.897,
       "output": "PASS weapon motion VFX: 17 families × quality/motion modes, real combat metadata, direction, purity and legendary priority\n"
     },
     {
       "test": "weapon_motion_vfx_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 2.986,
-      "output": "PASS browser weapon motion VFX: 17 distinct Canvas silhouettes, real event ingest, serialization/RNG purity, no page errors\nGallery: /tmp/weapon-motion-vfx-gallery.png\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.257,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/weapon_motion_vfx_browser.js:9:34\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/weapon_motion_vfx_browser.js:78:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "skill_vfx_expansion_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.089,
+      "durationSec": 2.433,
       "output": "PASS skill VFX expansion: 15 unique technique assignments, baseline no-effect audit, and move-stage inheritance\n"
     },
     {
       "test": "common_skill_vfx_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.669,
+      "durationSec": 4.726,
       "output": "PASS common VFX: 30 forms, 66 low-tier cast routes, 12 passive routes, 22 real statuses; expiry, eligibility, target and RNG/save purity\n"
     },
     {
       "test": "common_skill_vfx_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 2.46,
-      "output": "PASS common VFX browser: 30 distinct forms full/reduced, 22 recipient status previews, no page errors; /tmp/common-vfx-gallery\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.255,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/common_skill_vfx_browser.js:5:31\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/common_skill_vfx_browser.js:40:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "t3_skill_vfx_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 3.574,
+      "durationSec": 5.571,
       "output": "PASS T3 VFX: 24 forms / 26 active routes / 8 passive routes / 6 statuses, real target casts, old artwork precedence and T1–T7 headroom\n"
     },
     {
       "test": "t3_skill_vfx_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 2.64,
-      "output": "PASS T3 VFX browser: 24 distinct forms full/reduced, 6 recipient status previews, no page errors; /tmp/t3-vfx-gallery\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.365,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/t3_skill_vfx_browser.js:5:31\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/t3_skill_vfx_browser.js:42:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "legendary_apex_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.992,
+      "durationSec": 2.56,
       "output": "PASS Legendary Apex: 47 skill scenes + 27 relic scenes, four phases, 3 passive crowns, real target snapshots, full-scene caps, Reduced Motion and save/RNG purity\n"
     },
     {
       "test": "legendary_apex_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 4.126,
-      "output": "PASS Legendary Apex browser: 47 arts / 27 relic scenes distinct in High/Low × normal/Reduced Motion, no page errors; Canvas 24-scene stress [{\"quality\":\"high\",\"avg\":1.0057142855865615,\"p95\":3.2999999970197678},{\"quality\":\"low\",\"avg\":0.43714285705770767,\"p95\":1.1000000014901161}]\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.261,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/legendary_apex_browser.js:5:31\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/legendary_apex_browser.js:37:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "t7_skill_vfx_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 8.375,
+      "durationSec": 9.987,
       "output": "PASS T7 VFX: 71 ordinary T7 skills, old Signature identity preservation, targets/purity/rarity/crowd limits, 85 equipment templates / 25 current types\n"
     },
     {
       "test": "t7_skill_vfx_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 3.639,
-      "output": "PASS T7 browser: 71 distinct presentations High/Low × normal/Reduced Motion, 25 equipment types, no page errors; 24-cast Canvas stress 0.410 ms\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.26,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/t7_skill_vfx_browser.js:3:41\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/t7_skill_vfx_browser.js:20:35)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "t6_group_vfx_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 7.143,
+      "durationSec": 12.831,
       "output": "PASS T6: 50 shared shapes, 114 real skill producers / 207 authored move routes, 8 eligible passives, targets/purity/modes/caps, 117 gear templates / 25 semantic types (27 raw tags)\n"
     },
     {
       "test": "t6_group_vfx_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 3.29,
-      "output": "PASS T6 browser: 50 distinct shared shapes High/Low × normal/Reduced, 256 same-group pixel comparisons, 25 semantic gear types, no page errors; mixed 24-cast Canvas 0.700 ms\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.202,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/t6_group_vfx_browser.js:4:41\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/t6_group_vfx_browser.js:28:35)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "signature_vfx_catalog_browser_audit",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 2.658,
-      "output": "PASS VFX browser audit: 45/45 Signature forms in full and Reduced Motion and 43/43 Path crowns pixel-distinct, no page errors\nSignature gallery: /tmp/signature-vfx-catalog-gallery.png\nPath crown gallery: /tmp/path-apex-vfx-catalog-gallery.png\nFaith recipient preview: /tmp/faith-network-recipient-links.png\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.177,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/signature_vfx_catalog_browser_audit.js:9:34\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/signature_vfx_catalog_browser_audit.js:88:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "cave_pools",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.902,
+      "durationSec": 1.449,
       "output": "PASS ten cave themes, weighted bounded subsets, seeded variety, actual expedition journal, save/resume, guardians and replay protection\n"
     },
     {
       "test": "coherent_regions_recipes",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.779,
+      "durationSec": 2.117,
       "output": "PASS coherent_regions_recipes: 6 biomes, 10 beasts, 14 recipes, 40 materials, 100% closed-loop ecology and dependency completeness\n"
     },
     {
       "test": "welfare_production_policies",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.504,
+      "durationSec": 1.38,
       "output": "Testing Wider Welfare & Production Policies (v1.10.6)...\nPASS welfare_production_policies: reserve directives, visible shortages, need/bias welfare, premium protection, and save compatibility verified.\n"
     },
     {
       "test": "welfare_authority",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.8,
+      "durationSec": 1.172,
       "output": "PASS welfare authority: appointed acting officer, restoration, physical stock, absence\nPASS acting deputy, stable audit record, save/load and master fallback\n"
     },
     {
       "test": "personal_crafting",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.742,
+      "durationSec": 1.202,
       "output": "PASS personal crafting purchase, quality and once-only donation\nPASS purchased-only anti-arbitrage and failed purchase rollback\nPASS autonomous personal production selects an actual alchemy station and uses result\nPASS donated quality persists into stock and improves actual healing\nPASS hunter uses and consumes crafted medicine during combat\n"
     },
     {
       "test": "cp_supply_pressure",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.4,
+      "durationSec": 0.951,
       "output": "PASS contribution rewards respond to extreme oversupply and stay positive without shop arbitrage\n"
     },
     {
       "test": "onmap_wildlife",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.961,
+      "durationSec": 1.124,
       "output": "PASS on-map wildlife zones, neutral behavior, real drops, no replay, legendary expiry and save\nPASS deterministic spawning, peaceful proximity, exterior boundary and autonomous hunter route\n"
     },
     {
       "test": "browser_mobile_perf",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 21.467,
-      "output": "PASS browser_mobile_perf: 360px/412px/1280px viewports, gestures, 24 panel tabs, save/load, 0x-48x speeds, 80-NPC stress (1.417 ms/tick, 176.5x cap)\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.281,
+      "output": "/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27\n  throw new Error('No Chromium executable found');\n        ^\n\nError: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/browser_mobile_perf.js:26:28\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/browser_mobile_perf.js:410:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n\nNode.js v26.3.1\n"
     },
     {
       "test": "input_cancellation",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 4.523,
-      "output": "PASS input cancellation: selection/follow preserved, ordinary tap works, minimap drag stops\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.157,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/input_cancellation.js:7:34\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/input_cancellation.js:49:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "startup_ui",
-      "status": "TIMEOUT",
-      "exitCode": null,
-      "durationSec": 110.004,
-      "output": "PASS startup load menu exposes only actions available without a world\nFAIL cancelling startup load restores the same selectable candidates: page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#shClose')\u001b[22m\n\u001b[2m    - locator resolved to <button id=\"shClose\" aria-label=\"ปิดหน้าต่าง\">✕</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"vl\">สูง</div> from <div id=\"start\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  54 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"vl\">สูง</div> from <div id=\"start\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\nFAIL gameplay navigation before loading returns safely to startup: page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-nav=\"people\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button data-nav=\"people\" aria-label=\"ผู้คน\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"muted\">เมล็ดโลก 45150 (เมล็ดเดียวกัน = โลกเดียวกัน)</div> from <div id=\"start\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"muted\">เมล็ดโลก 45150 (เมล็ดเดียวกัน = โลกเดียวกัน)</div> from <div id=\"start\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"muted\">เมล็ดโลก 45150 (เมล็ดเดียวกัน = โลกเดียวกัน)</div> from <div id=\"start\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\nFAIL loading a saved slot enters the world and retains the normal game menu: page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-do=\"load\"][data-arg=\"1\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"btn\" data-arg=\"1\" data-do=\"load\">📂 โหลด</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <button data-pick=\"1\" class=\"btn pri\">เลือกท่านนี้เป็นเจ้าสำนัก</button> from <div id=\"start\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  55 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <button data-pick=\"1\" class=\"btn pri\">เลือกท่านนี้เป็นเจ้าสำนัก</button> from <div id=\"start\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.173,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/startup_ui.js:8:34\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/startup_ui.js:117:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "demon_heartsoul_paths",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.24,
-      "output": "Testing Priority P3: Native DEMON and HEART_SOUL paths (v1.10.8)...\nPASS 1: Native DEMON and HEART_SOUL major paths (9 stages, 4 subpaths each) registered\nPASS 2: All 8 DEMON and HEART_SOUL subpaths have 9-realm independent tracks with lifestealPct/reflectPct\nPASS 3: Autonomous path selection and awakening for DEMON and HEART_SOUL\nPASS 4: Distinct strategic training costs, risks, and cultivation tick mechanics verified\nPASS 5: Stats parity, mantras, bottleneck pills/treasures, and skill profiles verified\nPASS 6: Combat lifesteal, reflection, blood harvest, and spar tempering verified\nPASS 7: UI rendering and save/load roundtrip verified\nALL DEMON AND HEART_SOUL PATH CHECKS PASSED (v1.10.8).\n"
+      "durationSec": 1.203,
+      "output": "Testing Priority P3: Native DEMON and HEART_SOUL paths (v1.10.8)...\nPASS 1: Native DEMON and HEART_SOUL major paths (9 stages, 4 subpaths each) registered\nPASS 2: All 8 DEMON and HEART_SOUL subpaths have 9-realm independent tracks with lifestealPct/reflectPct\nPASS 3: Autonomous path selection and awakening for DEMON and HEART_SOUL\nPASS 4: Distinct strategic training costs, risks, and cultivation tick mechanics verified\nPASS 5: Stats parity, mantras, bottleneck pills/treasures, and skill profiles verified\nPASS 6: Combat lifesteal, reflection, blood harvest, and spar tempering verified\nPASS 7: UI rendering and save/load roundtrip verified\nALL DEMON AND HEART_SOUL PATH CHECKS PASSED (v1.10.8).\n(node:13929) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "organs_experiments_politics",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.347,
-      "output": "PASS v1.10.9 rare organs, property experimentation, factions/world politics, synergies, save/load, and UI rendering\n"
+      "durationSec": 1.302,
+      "output": "PASS v1.10.9 rare organs, property experimentation, factions/world politics, synergies, save/load, and UI rendering\n(node:13940) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "standalone",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.514,
+      "durationSec": 1.848,
       "output": "PASS standalone:40 actual inline scripts, no external runtime files, initialized globals,external market,wild resources,24-hour native simulation and save/load\n"
     },
     {
       "test": "recipe_coverage",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.626,
+      "durationSec": 1.941,
       "output": "PASS all 14 imported recipes: native skill gates, actual inputs, functional outputs and replay rejection\n"
     },
     {
       "test": "autonomous_economy_facilities",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.647,
-      "output": "Testing Autonomous Economy & Facility Expansion...\n  PASS: Scenario 1 - Inventory overflow and surplus sales\n  PASS: Scenario 2 - Shortages and external purchasing\n  PASS: Scenario 3 - No merchant availability\n  PASS: Scenario 4 - Insufficient spirit stones / cash reserve protection\n  PASS: Scenario 5 - Emergency and welfare reserve protection\n  PASS: Scenario 6 - Duplicate transaction prevention\n  PASS: Scenario 7 - Donation-crafting-purchase arbitrage protection\n  PASS: Scenario 8 - CP issuance, spending, and circulation tracking\n  PASS: Scenario 9 - Sustained facility congestion tracking\n  PASS: Scenario 10 - Construction completion and usable capacity expansion\n  PASS: Scenario 11 - Multiple simultaneous NPC demands\n  PASS: Scenario 12 - Save/load continuity\n  PASS: Scenario 13 - Multiple deterministic simulation seeds\n  PASS: Scenario 14 - Facility demand decay resets stale congestion\n  PASS: Scenario 15 - Active sustained congestion triggers upgrade lifecycle and prevents duplicate expansion\n  PASS: Scenario 16 - Multi-zone outer beasts, multi-pools, perimeter gates, and loot flow\n  PASS: Scenario 17 - Rich wuxia event logging and multi-category filtering\nALL 17 AUTONOMOUS ECONOMY, WILDLIFE & LOGGING TESTS PASSED.\n"
+      "durationSec": 2.019,
+      "output": "Testing Autonomous Economy & Facility Expansion...\n  PASS: Scenario 1 - Inventory overflow and surplus sales\n  PASS: Scenario 2 - Shortages and external purchasing\n  PASS: Scenario 3 - No merchant availability\n  PASS: Scenario 4 - Insufficient spirit stones / cash reserve protection\n  PASS: Scenario 5 - Emergency and welfare reserve protection\n  PASS: Scenario 6 - Duplicate transaction prevention\n  PASS: Scenario 7 - Donation-crafting-purchase arbitrage protection\n  PASS: Scenario 8 - CP issuance, spending, and circulation tracking\n  PASS: Scenario 9 - Sustained facility congestion tracking\n  PASS: Scenario 10 - Construction completion and usable capacity expansion\n  PASS: Scenario 11 - Multiple simultaneous NPC demands\n  PASS: Scenario 12 - Save/load continuity\n  PASS: Scenario 13 - Multiple deterministic simulation seeds\n  PASS: Scenario 14 - Facility demand decay resets stale congestion\n  PASS: Scenario 15 - Active sustained congestion triggers upgrade lifecycle and prevents duplicate expansion\n  PASS: Scenario 16 - Multi-zone outer beasts, multi-pools, perimeter gates, and loot flow\n  PASS: Scenario 17 - Rich wuxia event logging and multi-category filtering\nALL 17 AUTONOMOUS ECONOMY, WILDLIFE & LOGGING TESTS PASSED.\n(node:14020) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "ecology_expansion",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.334,
+      "durationSec": 1.586,
       "output": "Testing Living Beast & Craft Ecology Expansion (v1.10.12)...\n  Testing Catalog Integrity & Manifest Counts...\n    PASS: 80 species, 160 materials, 80 recipes (48 pills + 32 equipment) verified unique with zero dangling IDs\n  Testing Wildlife Spawning, Legendary Cap & Ordinary Isolation...\n    PASS: Wildlife spawning, ordinary isolation, and global legendary cap 1 verified\n  Testing Combat Victory, Drops, Merit & Idempotency...\n    PASS: Real combat victory awards drops & merit idempotently with no double-loot\n  Testing Material Donation, CP Minting & Anti-Arbitrage...\n    PASS: Personal beast material donation converts to sect stock and CP correctly\n  Testing Crafting Lifecycle for ECO2_ Pills and Equipment...\n    PASS: Real crafting lifecycle for pills and equipment functions accurately\n  Testing NPC Purchase of ECO2_ Combat Pills & preFight Consumption...\n    PASS: Member purchases and consumes ECO2_ combat buff pills before battle\n  Testing Save/Load Round-Trip Continuity & Determinism...\n    PASS: Save/load serialization and deterministic seed execution verified\n  Testing Autonomous & In-Fight Usage of ECO2_ Healing Pills...\n    PASS: NPC healing pill selection, consumption decrement, threshold gating, and fightUse verified\n  Testing Combat Poison (clearPoison) vs Cultivation Toxic (clearToxic)...\n    PASS: clearPoison clears combat status from npc.sx without confusing with cult.toxic\n  Testing Terrestrial vs Aquatic Habitat Isolation & Full 80 Species Encounter Coverage...\n    PASS: 0 aquatic beasts on land map; water expedition encounters verified; 100% of 80 species reachable\n  Testing External Market High-Tier Materials, ECO2_ Pills & Arbitrage Protection...\n    PASS: External market high-tier material & pill trading, stone exchange, and reserve floor verified\nALL ECOLOGY EXPANSION TESTS PASSED.\n"
     },
     {
       "test": "world_rank",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.998,
+      "durationSec": 1.319,
       "output": "--- Testing World Rank & Rank-Based Pools ---\nPASS monotonic mapping across all 5 paths and all stages\nPASS rational arithmetic boundary rounding (> 0.75 remainder)\nPASS gear/buff/HP/mental invariance of world rank\nPASS retraining stage reset updates world rank\nPASS party departure snapshots partyRank and commits site/pool\nPASS Fortune registry data-driven 4 ranks x 3 themes x 2 pools\nPASS Myriad Worlds 12 worlds x 4 ranked areas with static calibrated reference foe power\nPASS Myriad Worlds departure records partyRank and rankArea\nALL World Rank & Rank-Based Pools tests PASSED.\n"
     },
     {
       "test": "wild_resources",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.048,
+      "durationSec": 1.236,
       "output": "--- Testing Finite Outdoor Resource Gathering & Medicine Economy ---\nPASS active node cap 48 respected\nPASS nodes placed strictly outside wall and herbs in safe belt vicinity\nDistribution over 1500 nodes: BasicHerb=70.4%, Ore=12.0%\nPASS resource categories and basic herb weights verified\nPASS claim leasing, mutual exclusion, and robust release on interruption\nPASS finite harvesting directly into n.inv.mats with 0 CP minted\nPASS node exhaustion removal\nPASS SECT.donateMat material deduction, sect stock addition, and CP reward\nPASS donated herbs -> actual brewing -> shop purchase -> healing and unit consumption\nPASS save/load serialization preserves wildResources\nALL Finite Outdoor Resource Gathering & Medicine Economy tests PASSED.\n"
     },
     {
       "test": "wildlife_batches",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.679,
+      "durationSec": 0.986,
       "output": "--- Testing Bounded Wildlife Batches & Safe Belt Isolation ---\nPASS initial batch refill spawned 2 beasts (within 1..3 bounds)\nPASS hard cap 12 respected over multiple ticks (count: 10)\nPASS refills distributed across least-populated exterior zones\nPASS aggressive and tier >= 3 beasts excluded from spawning in safe belt\nPASS aggressive beasts blocked from initiating combat inside safe belt\nPASS aggressive beasts wander and aggro boundary excludes safe belt\nPASS legendary cap <= 1 strictly preserved\nALL Bounded Wildlife Batches & Safe Belt Isolation tests PASSED.\n"
     },
     {
       "test": "wildlife_spawn_integrity",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.748,
+      "durationSec": 1.037,
       "output": "Testing wildlife spawn habitat, pool, tier, and rarity integrity...\n  PASS: 133 pool species references match their declared tier, habitat, and drop data\n  PASS: targeted spawns enforce zone, pool, tier, and ordinary/legendary constraints\n  PASS: empty named pools fail safely without losing habitat identity\n  PASS: tier-4 blood fiend hound is no longer excluded by its pool range\nALL WILDLIFE SPAWN INTEGRITY TESTS PASSED.\n"
     },
     {
       "test": "outside_audit",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.216,
+      "durationSec": 1.565,
       "output": "PASS safe gathering remains reachable through the two tiles just outside the gate\nPASS basic herb job refuses an unsafe destination even when it is the only node\nPASS legendary spawn cannot bypass safe-belt exclusion\nPASS resource placement rejects isolated passable islands\nPASS learned recipes outside the scroll bag can motivate retaining gathered herbs\nPASS alchemy fortune trial uses learned ALCHEMY proficiency\nPASS invalid donation quantities cannot consume stock or mint contribution points\nPASS failed movement releases the resource lease immediately\nPASS beginner gathering preference uses cultivation rank rather than sect office rank\nPASS uncollected dangerous nodes cannot fill the slots needed for safe basic herb supply\nPASS a real gathering action settles exactly once across a mid-action save/load\n"
     },
     {
       "test": "outside_visual_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 2.277,
-      "output": "PASS real Canvas resource rendering: both herb categories have leaves and material-specific petals\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.183,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/outside_visual_browser.js:5:34\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/outside_visual_browser.js:32:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "gameplay_findings_patch",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.009,
+      "durationSec": 1.275,
       "output": "--- Testing Gameplay Findings Patch (v1.10.14) ---\nPASS natural outdoor resource pool excludes manufactured formation flags\nPASS gathering duration and extraction efficiency scale gradually with skill\nPASS fortune proficiency check is strictly monotonic with no zero-skill discontinuity\nPASS expedition depart fairly distributes site selection among all matching biome sites\nPASS all 12 worlds have 2 distinct subpools per rank with calibrated non-combat DC\nPASS injured member with craft aptitude retains gathered herb, brews personal pill, and consumes for healing\nPASS broke disciple donates gathered herb for CP to survive\n\nALL GAMEPLAY FINDINGS PATCH TESTS PASSED (7/7).\n"
     },
     {
       "test": "review_fixes",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.884,
+      "durationSec": 1.188,
       "output": "PASS personal medicine responds to injury, toxicity and heart demon\n"
     },
     {
       "test": "recruitment_queue_review",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.804,
+      "durationSec": 1.155,
       "output": "PASS multiple applicants admitted without exceeding capacity\n"
     },
     {
       "test": "phase1_recruitment_facilities",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.982,
-      "output": "Testing Phase 1: Recruitment Pipeline, Talent Distribution, CA/PA Privacy & Facility Caps...\n  PASS: Authoritative housing capacity (46 -> 100) and per-facility max levels\n  PASS: 5-tier applicant talent distribution and fame scaling\n  PASS: Strict CA vs PA separation in evaluation and UI\n  PASS: Queue cap, sanitization, officer availability, expiry, and recruitment drive\nALL PHASE 1 TESTS PASSED.\n"
+      "durationSec": 1.284,
+      "output": "Testing Phase 1: Recruitment Pipeline, Talent Distribution, CA/PA Privacy & Facility Caps...\n  PASS: Authoritative housing capacity (46 -> 100) and per-facility max levels\n  PASS: 5-tier applicant talent distribution and fame scaling\n  PASS: Strict CA vs PA separation in evaluation and UI\n  PASS: Queue cap, sanitization, officer availability, expiry, and recruitment drive\nALL PHASE 1 TESTS PASSED.\n(node:14128) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "phase2_edit_hub_inventory",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.965,
-      "output": "Testing Phase 2: Character Editor, Item Spawner, Anti-Minting & Bag/Stock UI...\n  PASS: Character editor validation, cultivation/gear reconciliation, derived stats, and undo\n  PASS: Item spawner across all categories, anti-minting guards, personal bag actions, and Edit Hub UI\nALL PHASE 2 TESTS PASSED.\n"
+      "durationSec": 1.251,
+      "output": "Testing Phase 2: Character Editor, Item Spawner, Anti-Minting & Bag/Stock UI...\n  PASS: Character editor validation, cultivation/gear reconciliation, derived stats, and undo\n  PASS: Item spawner across all categories, anti-minting guards, personal bag actions, and Edit Hub UI\nALL PHASE 2 TESTS PASSED.\n(node:14138) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "phase3_stock_distribution_log",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.93,
-      "output": "Testing Phase 3: Dynamic Stock Awareness, Autonomous Stock Distribution & Log Linking/Filtering...\n  PASS: Dynamic stock awareness, reserve protection, and autonomous gift distribution\n  PASS: Single-pass positional log linking (duplicate names, renames, buildings, deleted IDs) & sub-filters\n  PASS: Save/load round-trip preserves Phase 1-3 state\nALL PHASE 3 TESTS PASSED.\n"
+      "durationSec": 1.245,
+      "output": "Testing Phase 3: Dynamic Stock Awareness, Autonomous Stock Distribution & Log Linking/Filtering...\n  PASS: Dynamic stock awareness, reserve protection, and autonomous gift distribution\n  PASS: Single-pass positional log linking (duplicate names, renames, buildings, deleted IDs) & sub-filters\n  PASS: Save/load round-trip preserves Phase 1-3 state\nALL PHASE 3 TESTS PASSED.\n(node:14154) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "technique_overhaul_suites",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.774,
+      "durationSec": 1.108,
       "output": "PASS catalog IDs, passive availability, tier distribution and save/RNG\n"
     },
     {
       "test": "patch_v1_12_suites",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.716,
+      "durationSec": 0.969,
       "output": "PASS actual rank 1 tier 7 discovery and innate exclusion\n"
     },
     {
       "test": "npc_life_authority_overhaul",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.496,
+      "durationSec": 1.634,
       "output": "Running test/npc_life_authority_overhaul.js ...\nPASS npc_life_authority_overhaul: aspirations, goal continuity, station starvation fix, bounded knowledge, CA/PA separation, gear/loadout, commitments/reciprocity, office authority/delegation/abuse, flattery, and save/load determinism\n"
     },
     {
       "test": "graphics_overhaul_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.099,
+      "durationSec": 1.309,
       "output": "PASS graphics_overhaul_suite: determinism, read-only purity, weapon/appearance cache invalidation, building Lv.1-3 sprites, 31 legendary motifs, and pause freeze verified\n"
     },
     {
       "test": "visitors_clues_weapons_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.805,
+      "durationSec": 2.314,
       "output": "=== Running Visitors, Living Clues & Legendary Weapons Suite ===\nPASS visitors_clues_weapons_suite: 60/60 clue chains, 21/21 legendary equipment, outsider isolation, provenance & idempotency verified\n"
     },
     {
       "test": "merchant_guest_lifecycle",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.697,
+      "durationSec": 0.997,
       "output": "PASS merchant guest lifecycle: wallet/stock/wants survive return; malformed trader records are rebuilt by EXT; explicit merchants use market initialization\n"
     },
     {
       "test": "elemental_generation_api",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.723,
+      "durationSec": 0.979,
       "output": "PASS elemental generation API: normalized case-insensitive tags and deterministic forced roots work through SIM.buildNpc and SIM.addNpc\n"
     },
     {
       "test": "codex_combined_review",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 3.86,
-      "output": "PASS story rewards require all completed nodes\nPASS legendary weapon cooldown survives save/load\nPASS expired clues cannot grant even with forced trial success\nPASS daily planning does not complete local activity\nPASS completed clues do not exhaust the active opportunity budget\nPASS clue departures preserve protected work and sleep\nPASS Item 1: Guardian encounter tactical combat & zero-survivor expedition guard\nPASS Item 2: 7 distinct clue resolution approaches\nPASS Item 3: Multi-region exterior traversal & knowledge scoping without leaking future steps or truth\nPASS Item 4: Companion consent, refusal reasons, and sect resource authorization\nPASS Item 5: Two-stage rarity roll and visitor general world news\nPASS Item 6: Readiness forecast, exponential backoff, and history cap\nPASS Item 7: Unique weapon lifecycle on death/retire and guest registry pruning\nPASS Item 8: Yitian shield-sever proc, Dagou redirection proc, and weapon balance benchmark\nPASS Item 9: Deterministic SECT.examineApplicant without PA leak & investigate_clue goal\nPASS Additional Requirement: Wuxia Item Icon Atlas (64 cells, 11 Legendary Weapons + 22 Legendary Techs unique, 0 border bleed)\nPASS Additional Requirement: Personal Bag, Sect Stock, and Sect Shop data builders & transaction parity\n"
+      "durationSec": 2.907,
+      "output": "PASS story rewards require all completed nodes\nPASS legendary weapon cooldown survives save/load\nPASS expired clues cannot grant even with forced trial success\nPASS daily planning does not complete local activity\nPASS completed clues do not exhaust the active opportunity budget\nPASS clue departures preserve protected work and sleep\nPASS Item 1: Guardian encounter tactical combat & zero-survivor expedition guard\nPASS Item 2: 7 distinct clue resolution approaches\nPASS Item 3: Multi-region exterior traversal & knowledge scoping without leaking future steps or truth\nPASS Item 4: Companion consent, refusal reasons, and sect resource authorization\nPASS Item 5: Two-stage rarity roll and visitor general world news\nPASS Item 6: Readiness forecast, exponential backoff, and history cap\nPASS Item 7: Unique weapon lifecycle on death/retire and guest registry pruning\nPASS Item 8: Yitian shield-sever proc, Dagou redirection proc, and weapon balance benchmark\nPASS Item 9: Deterministic SECT.examineApplicant without PA leak & investigate_clue goal\nPASS Additional Requirement: Wuxia Item Icon Atlas (64 cells, 11 Legendary Weapons + 22 Legendary Techs unique, 0 border bleed)\nPASS Additional Requirement: Personal Bag, Sect Stock, and Sect Shop data builders & transaction parity\n(node:14308) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "inventory_grid_ui_suite",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 6.485,
-      "output": "Testing Wuxia Inventory Grid/List, Sect Stock & Shop UI...\n  PASS: 104-cell atlas, unique keys, and fish/container/trash mappings\n  PASS: 4 responsive page geometries and saved grid/list preference\n  PASS: personal bag, sect stock and shop builders preserve data and transaction rows\n  PASS: Personal Bag, Sect Stock and Sect Shop render in Grid and Classic List modes\n  PASS: Chromium UI interactions at 360x800, 800x360 and 1280x800; no horizontal overflow or browser errors\n  VIEWPORTS: [{\"width\":360,\"height\":800,\"cols\":5,\"rows\":3,\"perPage\":15,\"cssCols\":5,\"overflow\":false},{\"width\":800,\"height\":360,\"cols\":8,\"rows\":2,\"perPage\":16,\"cssCols\":8,\"overflow\":false},{\"width\":1280,\"height\":800,\"cols\":10,\"rows\":3,\"perPage\":30,\"cssCols\":10,\"overflow\":false}]\nALL INVENTORY GRID UI TESTS PASSED.\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 1.264,
+      "output": "Testing Wuxia Inventory Grid/List, Sect Stock & Shop UI...\n  PASS: 104-cell atlas, unique keys, and fish/container/trash mappings\n  PASS: 4 responsive page geometries and saved grid/list preference\n  PASS: personal bag, sect stock and shop builders preserve data and transaction rows\n  PASS: Personal Bag, Sect Stock and Sect Shop render in Grid and Classic List modes\n(node:14321) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\nError: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/inventory_grid_ui_suite.js:172:34\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/inventory_grid_ui_suite.js:250:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "fishing_river_suite",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 17.275,
-      "output": "Testing Southern Spirit River, Fishing, Mysterious Containers & Fish Utilization (v1.12.3)...\n  1. Testing Map Expansion (240x192), Southern Spirit River, Bridges & Station Reachability...\n    PASS: 240x192 map, impassable river water, 3 bridges, and 26 reachable fishing stations verified.\n  2. Testing Legacy Save Migration & Save/Load Round-Trip Idempotency...\n    PASS: Legacy save migration, receipt idempotency, and save/load round-trip verified.\n  3. Testing 10-Species Fish Catalog, Bounded Zone Depletion & Daily Recovery...\n    PASS: 10 fish species, bounded pool depletion, and daily natural recovery verified.\n  4. Testing Exact Probability Tables (4, 5, 6, 7 Tiers) & 100,000-Trial Monte Carlo Verification...\n    PASS: 100,000-sample Monte Carlo verified: Catch(Fish=89.94%, Box=10.06%), Open(Trash=49.89%, Ordinary=49.66%, Legendary=0.446%).\n  5. Testing Unique Legendary Artifact Non-Duplication & Empty-Pool Fallback...\n    PASS: All 82 unique legendaries claimed without duplication, and empty-pool fallback verified.\n  6. Testing Trash Non-Arbitrage, Fish Cooking, Bounded Food Buffs & Alchemy Recipes...\n    PASS: Trash protection, canteen fish cooking, foodBuff + appetite gate, and fish alchemy verified.\n  7. Testing Real NPC Fishing Activity (AI.ACTS.riverFish) Lifecycle...\n    PASS: Real NPC fishing lifecycle, movement, skill gain, and station release verified.\n  8. Testing Headless Chromium UI: River Dock Sheet, Atlas Cells 64..71, Container Opening, Cooking & Eating...\n    PASS: Headless Chromium UI verification passed with 0 errors and 0 overflow.\nALL SOUTHERN RIVER & FISHING TESTS PASSED.\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 27.44,
+      "output": "Testing Southern Spirit River, Fishing, Mysterious Containers & Fish Utilization (v1.12.3)...\n  1. Testing Map Expansion (240x192), Southern Spirit River, Bridges & Station Reachability...\n    PASS: 240x192 map, impassable river water, 3 bridges, and 26 reachable fishing stations verified.\n  2. Testing Legacy Save Migration & Save/Load Round-Trip Idempotency...\n    PASS: Legacy save migration, receipt idempotency, and save/load round-trip verified.\n  3. Testing 10-Species Fish Catalog, Bounded Zone Depletion & Daily Recovery...\n    PASS: 10 fish species, bounded pool depletion, and daily natural recovery verified.\n  4. Testing Exact Probability Tables (4, 5, 6, 7 Tiers) & 100,000-Trial Monte Carlo Verification...\n    PASS: 100,000-sample Monte Carlo verified: Catch(Fish=89.94%, Box=10.06%), Open(Trash=49.89%, Ordinary=49.66%, Legendary=0.446%).\n  5. Testing Unique Legendary Artifact Non-Duplication & Empty-Pool Fallback...\n    PASS: All 82 unique legendaries claimed without duplication, and empty-pool fallback verified.\n  6. Testing Trash Non-Arbitrage, Fish Cooking, Bounded Food Buffs & Alchemy Recipes...\n    PASS: Trash protection, canteen fish cooking, foodBuff + appetite gate, and fish alchemy verified.\n  7. Testing Real NPC Fishing Activity (AI.ACTS.riverFish) Lifecycle...\n    PASS: Real NPC fishing lifecycle, movement, skill gain, and station release verified.\n  8. Testing Headless Chromium UI: River Dock Sheet, Atlas Cells 64..71, Container Opening, Cooking & Eating...\nError: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/fishing_river_suite.js:330:28\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/fishing_river_suite.js:426:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "elemental_balance_v202",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.023,
+      "durationSec": 2.693,
       "output": "PASS elemental_balance_v202: 56/56 assertions; calibrated root-count rarity, grade cohorts, natural sampling, metadata consistency and capacity-only traits verified\n"
     },
     {
       "test": "elemental_balance_v203",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.316,
+      "durationSec": 1.465,
       "output": "PASS elemental_balance_v203: 25/25 assertions; weighted weapon resonance, accuracy, control/DOT propagation, offensive AI scoring, foe symmetry and raid initialization verified\n"
     },
     {
       "test": "elemental_overhaul_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.631,
+      "durationSec": 3.32,
       "output": "PASS elemental_overhaul_suite: 78/78 focused assertions; root validation, progression, special access, compatibility contexts, equipment synergy and save integrity verified\n"
     },
     {
       "test": "sect_library_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.74,
-      "output": "Testing Priority B: Dedicated Sect Library Tab & Study Pipeline...\n  PASS: Spawning, UI discovery, CP fee deduction, main study, and subpath study verified\nALL SECT LIBRARY TESTS PASSED.\n"
+      "durationSec": 1.895,
+      "output": "Testing Priority B: Dedicated Sect Library Tab & Study Pipeline...\n  PASS: Spawning, UI discovery, CP fee deduction, main study, and subpath study verified\nALL SECT LIBRARY TESTS PASSED.\n(node:14564) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "unified_donation_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.729,
+      "durationSec": 3.852,
       "output": "Testing Priority C: Unified Donation, Appraisal, Warehouse & Surplus Semantics...\n  PASS: Duplicate manuals, sub manuals, recipe scrolls surplus retention and 999-overflow verified\nALL UNIFIED DONATION TESTS PASSED.\n"
     },
     {
       "test": "external_market_expansion_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.385,
+      "durationSec": 1.855,
       "output": "--- TEST 1: isTradable & basePrice across all item families ---\n--- TEST 2: Sect surplus manual and recipe liquidation ---\n--- TEST 3: Anti-minting invariant for spawned surplus ---\n--- TEST 4: Demand-driven purchasing of knowledge crystals ---\nALL EXTERNAL MARKET EXPANSION TESTS PASSED\n"
     },
     {
       "test": "npc_sheet_tabs_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.188,
-      "output": "--- TEST 1: NPC Sheet tab configuration ---\n--- TEST 2: Overview tab (ov) is concise without huge dumps ---\n--- TEST 3: Bag tab (bag) renders personal bag ---\n--- TEST 4: Tech tab (tech) renders mantra, moves, passives, study ---\n--- TEST 5: Sub tab (sub) renders specialization, track, gates, retraining ---\n--- TEST 6: Mortal handling in tech and sub tabs ---\nALL NPC SHEET TABS TESTS PASSED\n"
+      "durationSec": 2.33,
+      "output": "--- TEST 1: NPC Sheet tab configuration ---\n--- TEST 2: Overview tab (ov) is concise without huge dumps ---\n--- TEST 3: Bag tab (bag) renders personal bag ---\n--- TEST 4: Tech tab (tech) renders mantra, moves, passives, study ---\n--- TEST 5: Sub tab (sub) renders specialization, track, gates, retraining ---\n--- TEST 6: Mortal handling in tech and sub tabs ---\nALL NPC SHEET TABS TESTS PASSED\n(node:15349) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "elemental_effect_scaling_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.909,
+      "durationSec": 1.96,
       "output": "Testing Priority F: Elemental Coherence & Effect Scaling...\n✓ All Priority F elemental tests passed successfully!\n"
     },
     {
       "test": "weapon_subpath_gear_expansion_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.593,
+      "durationSec": 1.308,
       "output": "=== Running Weapon, Subpath & Gear Expansion Suite (v2.0.4) ===\nPASS weapon_subpath_gear_expansion_suite: 96 subpaths, 747 techniques, 96 mantras, 420 items, 578 recipes verified\n"
     },
     {
       "test": "resonance_tactics_assembly_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.824,
+      "durationSec": 1.725,
       "output": "=== Running Resonance, Tactics & Grand Assembly Suite (v2.0.5) ===\n  PASS: human_core.js byte-for-byte lock verified (155:2f9c9dd7)\n  PASS: 31 resonance sets verified covering all 96 subpaths\n  PASS: evaluateResonanceSet 2-piece and 3-piece evaluation & STATS integration verified\n  PASS: new specialist baseline coverage and exact Pagoda piece activation\n  PASS: Tactical Weapon AI (7 weapon families, kiting, guard-shatter, polearm advantage) verified\n  PASS: Grand Sect Martial Assembly (3 brackets, tailored rewards, history recording) verified\n=== All Resonance, Tactics & Grand Assembly Tests Passed! (PASS) ===\n"
     },
     {
       "test": "unified_weapon_skills_and_archetypes_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.027,
+      "durationSec": 2.903,
       "output": "=== Running Unified Weapon Skills & Sect Archetypes Suite ===\n  PASS 1: human_core.js byte-for-byte lock verified (155:2f9c9dd7)\n  PASS 2: Centralized skill read/set/add/practice API for BOW, STAFF, FOCUS in h.skills verified\n  PASS 3: Weapon skills affect combat power, accuracy and stats through h.skills verified\n  PASS 4: All 8 archetypes candidate consistency, starting master/disciple gear, skills and rule-compliant techniques verified\n  PASS 5: Post-founding recruits diversify naturally without archetype lock (BEAST_SOVEREIGN, BODY, GRAVITY_DAO, LORE_ARCHIVIST, CRAFT_CREATION, HEART_SOUL, ARENA_GLORY, PRIMORDIAL_SHIFTER, DEMON, SAGE_SUPPORT, WANDERING_DAO, ANCESTRAL_RITUAL, MERCANTILE_DAO, DEVOURING_FLESH, SHADOW_SAMURAI, DIVINE_CHANNELER, FORTUNE_GAMBLER) and acquire subpaths via crystals\n  PASS 6: Save & load roundtrip with unified skills and HC validation verified\n=== All Unified Weapon Skills & Sect Archetypes Tests Passed! (PASS) ===\n"
     },
     {
       "test": "diplomacy_sanctum_ancestral_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.586,
+      "durationSec": 5.643,
       "output": "=== Running Next Patch Integration, NPC Decisions & Progression Validation Suite ===\n  PASS Area 1: MOVEMENT 15->30 bottleneck detection, targeted training, teacher pairing, impossibility explanation, and advancement verified\n  PASS Area 2a: Diplomacy treaties, exchanges, cooldowns, rival envoy challenges, failure modes, and save/load verified\n  PASS Area 2b: Sanctum 4%/8%/12% depth bonus rolls, 1-per-run cap, rarity weights, uniqueness protection, retreat, NPC refinement, and 200-run economy verified (bonus=24/200, leg=0)\n  PASS Area 2c: Ancestral legacy tablet inscription, prayer, W.t clock consistency, study/guidedStudy, breakthrough shield, and save/load verified\n  PASS Area 2d: All 22 Legendaries cross-path/subpath eligibility, non-weapon unrestricted check, and weapon compatibility combat math verified\n  PASS Multi-Seed Bounded Simulation: Action diversity, survival attention, and bottleneck skill progression verified\nPASS diplomacy, sanctum, ancestral, bottleneck & technique catalog suite\n"
     },
     {
       "test": "edithub_crosssect_progression_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.114,
-      "output": "=== Running Edit Hub Diplomacy & Sanctums, 50-Subpath Progression & Cross-Sect Assembly Suite ===\n  PASS Area 1: Edit Hub Diplomacy management & actions verified\n  PASS Area 2: Edit Hub Sanctum management, instant runs & gear refinement verified\n  PASS Area 3: 50-Subpath specialization track progression bridge verified\n  PASS Area 4: Cross-Sect invited martial assembly & guest prodigy duels verified\n  PASS Area 5: Edit Hub UI rendering smoke test verified\nALL EDIT HUB, CROSS-SECT ASSEMBLY & 50-SUBPATH PROGRESSION CHECKS PASSED.\n"
+      "durationSec": 3.226,
+      "output": "=== Running Edit Hub Diplomacy & Sanctums, 50-Subpath Progression & Cross-Sect Assembly Suite ===\n  PASS Area 1: Edit Hub Diplomacy management & actions verified\n  PASS Area 2: Edit Hub Sanctum management, instant runs & gear refinement verified\n  PASS Area 3: 50-Subpath specialization track progression bridge verified\n  PASS Area 4: Cross-Sect invited martial assembly & guest prodigy duels verified\n  PASS Area 5: Edit Hub UI rendering smoke test verified\nALL EDIT HUB, CROSS-SECT ASSEMBLY & 50-SUBPATH PROGRESSION CHECKS PASSED.\n(node:15482) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v208_paths_and_beast_pets_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.045,
+      "durationSec": 3.062,
       "output": "=== Running Patch v2.0.8 + Support/Heal/Buff Path Expansion Suite ===\n  PASS 0: human_core.js SHA-256 lock and 40 <script> tag invariant verified\n  PASS 1: All registered paths, subpaths, 9-realm tracks, and stage equivalence verified\n  PASS 2: Cross-path techniques, weapon/element bindings, baseline resonance sets, and all-path Pagoda sets verified\n  PASS 3: Universal Spirit Beast Pet System (1 vs 2..4 cap, live capture conservation, Sovereign evolution) verified\n  PASS 4: Self/Ally healing, 8 diverse buff archetypes, and strict buff expiration (0 permanent buff bugs) verified\n  PASS 5: MECH_PUPPET, KARMA_SAMSARA, BEAST_SOVEREIGN, SAGE_SUPPORT combat mechanics, AI supportBless, and save/load roundtrip verified\n=== All Patch v2.0.8 + Support/Heal/Buff Path Expansion Tests Passed! (PASS) ===\n"
     },
     {
       "test": "v209_facilities_party_synergy_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.255,
+      "durationSec": 3.221,
       "output": "Running v2.0.9 + Deep Audit Verification Suite...\nPASS v209_facilities_party_synergy_suite\n"
     },
     {
       "test": "v210_pagoda_warbeasts_conference_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.944,
+      "durationSec": 3.999,
       "output": "PASS v210_pagoda_warbeasts_conference_suite\n"
     },
     {
       "test": "v211_tribulation_ascension_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.095,
+      "durationSec": 2.267,
       "output": "=== Running v2.0.11 Tribulation, Ascension & Design Audit Suite ===\nPASS v211_tribulation_ascension_suite\n"
     },
     {
       "test": "v212_weapon_build_improvisation_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.573,
+      "durationSec": 1.127,
       "output": "PASS restored v212 authored build-depth techniques and adaptive passive registration\n"
     },
     {
       "test": "v213_procedural_equipment_and_review_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.891,
+      "durationSec": 1.576,
       "output": "PASS restored v213 generated instance, best repair, distinct copy and save regression\n"
     },
     {
       "test": "v215_equipment_and_legendary_expansion_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.836,
+      "durationSec": 1.872,
       "output": "PASS v215_equipment_and_legendary_expansion_suite\n"
     },
     {
       "test": "v216_mentorship_jianghu_legendary_relics_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.768,
+      "durationSec": 1.724,
       "output": "PASS v216_mentorship_jianghu_legendary_relics_suite\n"
     },
     {
       "test": "v217_deep_cohesion_and_relic_trinity_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.716,
+      "durationSec": 1.562,
       "output": "PASS v217_deep_cohesion_and_relic_trinity_suite\n"
     },
     {
       "test": "v218_world_map_hegemony_beasts_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.736,
+      "durationSec": 1.501,
       "output": "PASS v218_world_map_hegemony_beasts_suite\n"
     },
     {
       "test": "v219_sect_tiers_alliances_internal_politics_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.694,
+      "durationSec": 1.496,
       "output": "PASS v219_sect_tiers_alliances_internal_politics_suite\n"
     },
     {
       "test": "v222_beasts_anatomy_techs_equipment_keywords_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.697,
+      "durationSec": 1.482,
       "output": "PASS v222_beasts_anatomy_techs_equipment_keywords_suite\n"
     },
     {
       "test": "data_integrity_test",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.828,
+      "durationSec": 2.318,
       "output": "====================================================\n   JIANGHUSECT DATA & COMBAT INTEGRITY VALIDATOR    \n====================================================\n\n▶ [1/6] Auditing Items, Equipment & Composable Item Mechanics...\n  ✓ Audited 1177 items (grantedSkills=247, skillModifiers=277, multiPhasePills=48, chargeItems=24)\n\n▶ [2/6] Auditing Recipes, Dual-ID Mapping & Crafting DAG...\n  ✓ Audited 1402 recipes and verified acyclic crafting DAG\n\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...\n  ✓ Audited 286 subpaths across 43 cultivation paths\n\n▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...\n  ✓ Audited 1243 martial techniques (zero unknown archetypes, statuses, buffs, or composable keywords)\n\n▶ [5/6] Auditing Effects, Buffs, Parameters & Acquisition Sources...\n  ✓ Audited 1245 active/passive item effects and parameters\n\n▶ [6/6] Auditing Debug Editor Catalog, Spawner & Granted-Skill Lifecycle...\n  ✓ Verified Editor catalog (5803 entries across 12 categories, tested spawns: 12)\n\n====================================================\n                VALIDATION SUMMARY                  \n====================================================\nErrors:   0\nWarnings: 0\n\n✅ ALL DATA & COMBAT INTEGRITY CHECKS PASSED!\n\n"
     },
     {
       "test": "world_atlas",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.284,
-      "output": "PASS world atlas coverage, authoritative geography, truthful travel and RNG stability\n"
+      "durationSec": 2.962,
+      "output": "PASS world atlas coverage, authoritative geography, truthful travel and RNG stability\n(node:15984) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "world_atlas_standalone",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.115,
+      "durationSec": 0.549,
       "output": "PASS atlas terrain is embedded in the offline standalone\n"
     },
     {
       "test": "world_atlas_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 11.76,
-      "output": "PASS world atlas browser 390x844\nPASS world atlas browser 800x360\nPASS world atlas browser 1280x800\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.317,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/world_atlas_browser.js:5:34\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/world_atlas_browser.js:117:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "lineage_history",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.878,
-      "output": "PASS lineage history, reassignment, cycles, real transmission and save/load\n"
+      "durationSec": 3.37,
+      "output": "PASS lineage history, reassignment, cycles, real transmission and save/load\n(node:16121) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "lineage_chronicle",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.903,
-      "output": "PASS multiple-generation lineage tree, chronicle selection and save/load\n"
+      "durationSec": 3.511,
+      "output": "PASS multiple-generation lineage tree, chronicle selection and save/load\n(node:16153) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "lineage_chronicle_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 3.53,
-      "output": "PASS mobile multi-generation tree and chronicle filters\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.312,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/lineage_chronicle_browser.js:4:41\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/lineage_chronicle_browser.js:6:1129)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "ancestor_profile",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.918,
-      "output": "PASS ancestor profile snapshot, truthfulness, historical fallback and save/load\n"
+      "durationSec": 2.09,
+      "output": "PASS ancestor profile snapshot, truthfulness, historical fallback and save/load\n(node:16533) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "ancestor_profile_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 3.607,
-      "output": "PASS mobile ancestor profile\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.255,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/ancestor_profile_browser.js:3:41\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/ancestor_profile_browser.js:3:1085)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "v225_release_readiness_audit_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.348,
+      "durationSec": 2.255,
       "output": "PASS v225_release_readiness_audit_suite\n"
     },
     {
       "test": "v229_figure_hydration_and_epic_chronicle_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.951,
-      "output": "--- TEST SUITE: JIANGHU FIGURE HYDRATION & CHRONICLE ENHANCEMENTS ---\nTesting Hydration for Figure: หวังเมิ่งเฉิน 「รัศมีกระบี่ผู้ไร้พ่าย」 { given: 'เมิ่งเฉิน', ambition: 73, integrity: 84, aggression: 63 }\nPASS 1: Figure hydrated to Full Resident NPC with exact personality & identity preserved!\nPASS 2: Defeated successor escaped and joined player sect as resident NPC: ซางเฟิงเหลย\nPASS 3: Epic chronicle multi-category and search filtering verified in UI!\nPASS 4: 100% Save/Load roundtrip verified for hydrated NPC and chronicles!\n=== ALL TESTS PASSED SUCCESSFULLY! ===\n"
+      "durationSec": 3.037,
+      "output": "--- TEST SUITE: JIANGHU FIGURE HYDRATION & CHRONICLE ENHANCEMENTS ---\nTesting Hydration for Figure: หวังเมิ่งเฉิน 「รัศมีกระบี่ผู้ไร้พ่าย」 { given: 'เมิ่งเฉิน', ambition: 73, integrity: 84, aggression: 63 }\nPASS 1: Figure hydrated to Full Resident NPC with exact personality & identity preserved!\nPASS 2: Defeated successor escaped and joined player sect as resident NPC: ซางเฟิงเหลย\nPASS 3: Epic chronicle multi-category and search filtering verified in UI!\nPASS 4: 100% Save/Load roundtrip verified for hydrated NPC and chronicles!\n=== ALL TESTS PASSED SUCCESSFULLY! ===\n(node:16829) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v230_expanded_figures_and_pursuit_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.902,
+      "durationSec": 3.174,
       "output": "ALL v2.0.30 EXPANDED FIGURES, PURSUIT, PRODIGY & ANCIENT RUINS TESTS PASSED!\n"
     },
     {
       "test": "v231_strategic_proposal_flagships_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.707,
+      "durationSec": 2.241,
       "output": "ALL v2.0.31 STRATEGIC PROPOSAL FLAGSHIPS TESTS PASSED!\n"
     },
     {
       "test": "v232_council_nodes_assembly_director_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.947,
+      "durationSec": 1.701,
       "output": "ALL v2.0.32 COUNCIL, RESOURCE NODES, MARTIAL ASSEMBLY & DIRECTOR TESTS PASSED!\n"
     },
     {
       "test": "v233_peaks_elder_rank_social_cognition_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.732,
+      "durationSec": 1.485,
       "output": "ALL v2.0.33 PEAKS, ELDER STATUS, SOCIAL MATRIX & COGNITION TESTS PASSED!\n"
     },
     {
       "test": "v234_massive_content_and_composable_mechanics_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.899,
+      "durationSec": 1.478,
       "output": "====================================================\n   JIANGHUSECT DATA & COMBAT INTEGRITY VALIDATOR    \n====================================================\n\n▶ [1/6] Auditing Items, Equipment & Composable Item Mechanics...\n  ✓ Audited 1177 items (grantedSkills=247, skillModifiers=277, multiPhasePills=48, chargeItems=24)\n\n▶ [2/6] Auditing Recipes, Dual-ID Mapping & Crafting DAG...\n  ✓ Audited 1402 recipes and verified acyclic crafting DAG\n\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...\n  ✓ Audited 286 subpaths across 43 cultivation paths\n\n▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...\n  ✓ Audited 1243 martial techniques (zero unknown archetypes, statuses, buffs, or composable keywords)\n\n▶ [5/6] Auditing Effects, Buffs, Parameters & Acquisition Sources...\n  ✓ Audited 1245 active/passive item effects and parameters\n\n▶ [6/6] Auditing Debug Editor Catalog, Spawner & Granted-Skill Lifecycle...\n  ✓ Verified Editor catalog (5803 entries across 12 categories, tested spawns: 12)\n\n====================================================\n                VALIDATION SUMMARY                  \n====================================================\nErrors:   0\nWarnings: 0\n\n✅ ALL DATA & COMBAT INTEGRITY CHECKS PASSED!\n\nPASS: v234_massive_content_and_composable_mechanics_suite (1457 assertions passed)\n"
     },
     {
       "test": "v235_comprehensive_mechanics_and_elemental_fusion_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.734,
-      "output": "===================================================================\n   JIANGHUSECT v2.0.35 COMPREHENSIVE MECHANICS & FUSION SUITE      \n===================================================================\n\n▶ [1/8] Testing Pillar 1: Central Condition Evaluator (29 Conditions)...\n  ✓ All 29 conditions evaluated accurately with per-tick cache\n▶ [2/8] Testing Pillar 2: Trigger Case Normalization & Combat Event Hooks...\n  ✓ Verified 18 normalized trigger pairs\n▶ [3/8] Testing Pillar 3: Active Stance State Machine...\n  ✓ All 7 canonical stances modify STATS.calcCombatStats dynamically\n▶ [4/8] Testing Pillar 4: Composable Actions & Section 10.1 C01-C12...\n  ✓ Verified all 16 composable actions and Phoenix Clause\n▶ [5/8] Testing Pillar 5: 100% Item effectId Runtime Coverage (129/129)...\n  ✓ All 129 unique item effectIds (including all 40 remediated IDs) verified at runtime\n▶ [6/8] Testing Pillar 6: Battlefield Domains Engine...\n  ✓ All 8 battlefield domains deployed and ticked\n▶ [7/8] Testing Section 11: Multi-Tier Elemental Fusion Engine (2E / 3E / 4E)...\n  ✓ All 16 Dual (2E), 12 Tri (3E), 6 Tetra (4E) reactions + Cross-System Alchemy/Smithing/Puzzles verified\n▶ [8/8] Testing Sections 12-14: Meridians, Weapon Souls, Totems/Bloodlines, Celestial, Beast Symbiosis, Destiny/Karma, Leylines & Perf...\n  ✓ Deep creative systems verified · Simulation tick speed: 0.450 ms/tick (< 3.0 ms budget)\n\n✅ PASS: v235_comprehensive_mechanics_and_elemental_fusion_suite (481 assertions passed)\n"
+      "durationSec": 1.423,
+      "output": "===================================================================\n   JIANGHUSECT v2.0.35 COMPREHENSIVE MECHANICS & FUSION SUITE      \n===================================================================\n\n▶ [1/8] Testing Pillar 1: Central Condition Evaluator (29 Conditions)...\n  ✓ All 29 conditions evaluated accurately with per-tick cache\n▶ [2/8] Testing Pillar 2: Trigger Case Normalization & Combat Event Hooks...\n  ✓ Verified 18 normalized trigger pairs\n▶ [3/8] Testing Pillar 3: Active Stance State Machine...\n  ✓ All 7 canonical stances modify STATS.calcCombatStats dynamically\n▶ [4/8] Testing Pillar 4: Composable Actions & Section 10.1 C01-C12...\n  ✓ Verified all 16 composable actions and Phoenix Clause\n▶ [5/8] Testing Pillar 5: 100% Item effectId Runtime Coverage (129/129)...\n  ✓ All 129 unique item effectIds (including all 40 remediated IDs) verified at runtime\n▶ [6/8] Testing Pillar 6: Battlefield Domains Engine...\n  ✓ All 8 battlefield domains deployed and ticked\n▶ [7/8] Testing Section 11: Multi-Tier Elemental Fusion Engine (2E / 3E / 4E)...\n  ✓ All 16 Dual (2E), 12 Tri (3E), 6 Tetra (4E) reactions + Cross-System Alchemy/Smithing/Puzzles verified\n▶ [8/8] Testing Sections 12-14: Meridians, Weapon Souls, Totems/Bloodlines, Celestial, Beast Symbiosis, Destiny/Karma, Leylines & Perf...\n  ✓ Deep creative systems verified · Simulation tick speed: 0.650 ms/tick (< 3.0 ms budget)\n\n✅ PASS: v235_comprehensive_mechanics_and_elemental_fusion_suite (481 assertions passed)\n"
     },
     {
       "test": "v300_tactical_combat_and_living_chronicle_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.173,
+      "durationSec": 1.65,
       "output": "===================================================================\n   JIANGHUSECT v3.0.0 TACTICAL COMBAT & LIVING CHRONICLE SUITE     \n===================================================================\n\n▶ [1/5] Testing 5-Band Range System & Move Spatial Specs...\n▶ [2/5] Testing Weapon Tactics, LoS, Vanguard Interception & DSH...\n▶ [3/5] Testing 5 Cognitive Archetypes, Pure Eval Invariant & Channeling...\n▶ [4/5] Testing Phoenix Clause Nonlethal Yield & Mid-Fight Save/Load...\n▶ [5/5] Testing Living Causal Chronicle v3.0 & Historical People...\n\n✅ PASS: v300_tactical_combat_and_living_chronicle_suite (57 assertions passed)\n"
     },
     {
       "test": "v310_autonomous_governance_and_peaks_sanctuary_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.484,
-      "output": "=========================================================================\n   JIANGHUSECT v3.1.0 AUTONOMOUS GOVERNANCE & PEAKS SANCTUARY SUITE      \n=========================================================================\n\n▶ [1/6] Testing Version Metadata, Core Lock & 25-Office Catalog...\n  ✓ Verified 6 Directorates, 25 Offices, Alias Resolution & Core Lock\n▶ [2/6] Testing Autonomous Jurisdiction Execution Across All 25 Offices...\n  ✓ All 25 Office Jurisdictions Executed & Logged with Real State Mutations\n▶ [3/6] Testing Office Stipends (stipendBonus) & Elder Council Authority...\n  ✓ Verified Office Stipends & Elder Council Authority Weighting\n▶ [4/6] Testing Dedicated Peaks Sanctuary Subsystems & UI...\n  ✓ Verified Dedicated Peaks Sanctuary Subsystems & Mobile-Friendly UI\n▶ [5/6] Testing Dungeon & Prisoner Management + 4D Chronicle Causal Links...\n  ✓ Verified Prisoner Ransom, Interrogation, Defector Recruitment & Living Chronicle\n▶ [6/6] Testing v3.1.0 Save/Load Determinism & UI Sub-Tabs...\n  ✓ Verified v3.1.0 Save/Load Round-Trip Determinism & UI Tabs\n\n✅ PASS: v310_autonomous_governance_and_peaks_sanctuary_suite (423 assertions passed)\n"
+      "durationSec": 2.827,
+      "output": "=========================================================================\n   JIANGHUSECT v3.1.0 AUTONOMOUS GOVERNANCE & PEAKS SANCTUARY SUITE      \n=========================================================================\n\n▶ [1/6] Testing Version Metadata, Core Lock & 25-Office Catalog...\n  ✓ Verified 6 Directorates, 25 Offices, Alias Resolution & Core Lock\n▶ [2/6] Testing Autonomous Jurisdiction Execution Across All 25 Offices...\n  ✓ All 25 Office Jurisdictions Executed & Logged with Real State Mutations\n▶ [3/6] Testing Office Stipends (stipendBonus) & Elder Council Authority...\n  ✓ Verified Office Stipends & Elder Council Authority Weighting\n▶ [4/6] Testing Dedicated Peaks Sanctuary Subsystems & UI...\n  ✓ Verified Dedicated Peaks Sanctuary Subsystems & Mobile-Friendly UI\n▶ [5/6] Testing Dungeon & Prisoner Management + 4D Chronicle Causal Links...\n  ✓ Verified Prisoner Ransom, Interrogation, Defector Recruitment & Living Chronicle\n▶ [6/6] Testing v3.1.0 Save/Load Determinism & UI Sub-Tabs...\n  ✓ Verified v3.1.0 Save/Load Round-Trip Determinism & UI Tabs\n\n✅ PASS: v310_autonomous_governance_and_peaks_sanctuary_suite (423 assertions passed)\n(node:17289) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v311_economy_dungeon_and_peaks_invariants_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.942,
+      "durationSec": 5.329,
       "output": "=========================================================================\n   JIANGHUSECT v3.1.1 ADVERSARIAL ECONOMY & STATE INVARIANTS SUITE       \n=========================================================================\n\n▶ [1/6] Testing Version Locks & Byte-Identical Human Core...\n  ✓ Core lock & SHA-256 intact\n▶ [2/6] Testing Closed-Loop Economy & Resource Conservation Invariants...\n  ✓ Closed-loop economy invariants verified: 0-minting confirmed\n▶ [3/6] Testing Payroll Exact Single-Stone Conservation Invariant...\n  ✓ Payroll exact single-stone conservation verified across budget spectrum\n▶ [4/6] Testing Dungeon & Prisoner Adversarial Invariants...\n  ✓ Dungeon prisoner security gates & state purity verified\n▶ [5/6] Testing Anti-Spam Idempotency & Precondition Gates...\n  ✓ Anti-spam cooldowns & precondition gates verified\n▶ [6/6] Testing System Wiring & Serialization Non-Destructiveness...\n  ✓ Tactical wiring, peak bonus, and serialization purity verified\n\n=========================================================================\n✅ ALL 6 PHASES PASSED: v311_economy_dungeon_and_peaks_invariants_suite\n=========================================================================\n\n"
     },
     {
       "test": "v320_dormant_awakening_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.483,
-      "output": "=========================================================================\n   JIANGHUSECT v3.2.0 PHASE 1: DORMANT CODE AWAKENING TEST SUITE         \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.2.0)...\n  ✓ Core lock, SHA-256 & Patch Version 3.2.0 verified\n▶ [Phase 1 / PROP-01] Testing Eight Extraordinary Meridians, Overdrive & Backlash...\n  ✓ Phase 1 (PROP-01) passed\n▶ [Phase 2 / PROP-02] Testing Voluntary Dao Vows, Vow Breaking & Dao Seals...\n  ✓ Phase 2 (PROP-02) passed\n▶ [Phase 3 / PROP-07] Testing Vanguard Formations, Combat Posture & Interception Cap...\n  ✓ Phase 3 (PROP-07) passed\n▶ [Phase 4 / PROP-12] Testing Living Destiny Threads & Karmic Ledger...\n  ✓ Phase 4 (PROP-12) passed\n▶ [Phase 5 / PROP-15] Testing 8 Peaks Domain Bonuses & Array Upgrade...\n  ✓ Phase 5 (PROP-15) passed\n▶ [Phase 6 / PROP-17] Testing Succession Crisis on Sect Master Death...\n  ✓ Phase 6 (PROP-17) passed\n▶ [Phase 7 / PROP-18 & PROP-20] Testing Fiscal Stipend Cooldowns & World Command UI...\n  ✓ Phase 7 (PROP-18 & PROP-20) passed\n▶ [Phase 8 / PROP-25] Testing Elemental Puzzle Gates & Auxiliary Modifiers...\n  ✓ Phase 8 (PROP-25) passed\n▶ [Phase 9 / PROP-30] Testing Advanced Gear Mechanics E01–E06...\n  ✓ Phase 9 (PROP-30) passed\n▶ [Phase 10 / PROP-33] Testing Totems & Beast Symbiosis Save/Load Persistence + 80-NPC Perf...\n  ✓ Phase 10 (PROP-33) & 80-NPC performance (0.860 ms/tick) passed\n\n✅ ALL 10 PHASES PASSED (72 assertions verified in v320_dormant_awakening_suite.js)!\n"
+      "durationSec": 4.975,
+      "output": "=========================================================================\n   JIANGHUSECT v3.2.0 PHASE 1: DORMANT CODE AWAKENING TEST SUITE         \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.2.0)...\n  ✓ Core lock, SHA-256 & Patch Version 3.2.0 verified\n▶ [Phase 1 / PROP-01] Testing Eight Extraordinary Meridians, Overdrive & Backlash...\n  ✓ Phase 1 (PROP-01) passed\n▶ [Phase 2 / PROP-02] Testing Voluntary Dao Vows, Vow Breaking & Dao Seals...\n  ✓ Phase 2 (PROP-02) passed\n▶ [Phase 3 / PROP-07] Testing Vanguard Formations, Combat Posture & Interception Cap...\n  ✓ Phase 3 (PROP-07) passed\n▶ [Phase 4 / PROP-12] Testing Living Destiny Threads & Karmic Ledger...\n  ✓ Phase 4 (PROP-12) passed\n▶ [Phase 5 / PROP-15] Testing 8 Peaks Domain Bonuses & Array Upgrade...\n  ✓ Phase 5 (PROP-15) passed\n▶ [Phase 6 / PROP-17] Testing Succession Crisis on Sect Master Death...\n  ✓ Phase 6 (PROP-17) passed\n▶ [Phase 7 / PROP-18 & PROP-20] Testing Fiscal Stipend Cooldowns & World Command UI...\n  ✓ Phase 7 (PROP-18 & PROP-20) passed\n▶ [Phase 8 / PROP-25] Testing Elemental Puzzle Gates & Auxiliary Modifiers...\n  ✓ Phase 8 (PROP-25) passed\n▶ [Phase 9 / PROP-30] Testing Advanced Gear Mechanics E01–E06...\n  ✓ Phase 9 (PROP-30) passed\n▶ [Phase 10 / PROP-33] Testing Totems & Beast Symbiosis Save/Load Persistence + 80-NPC Perf...\n  ✓ Phase 10 (PROP-33) & 80-NPC performance (2.040 ms/tick) passed\n\n✅ ALL 10 PHASES PASSED (72 assertions verified in v320_dormant_awakening_suite.js)!\n(node:17476) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v330_living_sect_and_daily_loop_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.132,
-      "output": "=========================================================================\n   JIANGHUSECT v3.3.0 PHASE 2: LIVING SECT & DAILY LOOP TEST SUITE       \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.3.0)...\n  ✓ Core lock, SHA-256 & Patch Version 3.3.0 verified\n▶ [Phase 1 / PROP-04] Testing Closed-Door Bottleneck Seclusion & Protector Bond...\n  ✓ Phase 1 (PROP-04) passed\n▶ [Phase 2 / PROP-11] Testing Defector Retaliation, Ultimatum & Closed-Loop Compensation...\n  ✓ Phase 2 (PROP-11) passed\n▶ [Phase 3 / PROP-16] Testing Peak-Sponsored Expeditions & 70/30 Resource Split...\n  ✓ Phase 3 (PROP-16) passed\n▶ [Phase 4 / PROP-19] Testing Discipline Hall Tribunal & Autonomous Adjudication...\n  ✓ Phase 4 (PROP-19) passed\n▶ [Phase 5 / PROP-21] Testing Leyline Anchor Guard, Contestation & Repair...\n  ✓ Phase 5 (PROP-21) passed\n▶ [Phase 6 / PROP-31] Testing Weapon Soul Stage 5 Avatar in Combat & Elder Soul Imbuement on Death...\n  ✓ Phase 6 (PROP-31) passed\n▶ [Phase 7 / PROP-35] Testing Sect Automation, Executive Alerts, UI, Save/Load & 80-NPC Perf...\n  ✓ Phase 7 (PROP-35) & 80-NPC performance (0.710 ms/tick) passed\n\n✅ ALL 8 PHASES PASSED (48 assertions verified in v330_living_sect_and_daily_loop_suite.js)!\n"
+      "durationSec": 3.68,
+      "output": "=========================================================================\n   JIANGHUSECT v3.3.0 PHASE 2: LIVING SECT & DAILY LOOP TEST SUITE       \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.3.0)...\n  ✓ Core lock, SHA-256 & Patch Version 3.3.0 verified\n▶ [Phase 1 / PROP-04] Testing Closed-Door Bottleneck Seclusion & Protector Bond...\n  ✓ Phase 1 (PROP-04) passed\n▶ [Phase 2 / PROP-11] Testing Defector Retaliation, Ultimatum & Closed-Loop Compensation...\n  ✓ Phase 2 (PROP-11) passed\n▶ [Phase 3 / PROP-16] Testing Peak-Sponsored Expeditions & 70/30 Resource Split...\n  ✓ Phase 3 (PROP-16) passed\n▶ [Phase 4 / PROP-19] Testing Discipline Hall Tribunal & Autonomous Adjudication...\n  ✓ Phase 4 (PROP-19) passed\n▶ [Phase 5 / PROP-21] Testing Leyline Anchor Guard, Contestation & Repair...\n  ✓ Phase 5 (PROP-21) passed\n▶ [Phase 6 / PROP-31] Testing Weapon Soul Stage 5 Avatar in Combat & Elder Soul Imbuement on Death...\n  ✓ Phase 6 (PROP-31) passed\n▶ [Phase 7 / PROP-35] Testing Sect Automation, Executive Alerts, UI, Save/Load & 80-NPC Perf...\n  ✓ Phase 7 (PROP-35) & 80-NPC performance (0.756 ms/tick) passed\n\n✅ ALL 8 PHASES PASSED (48 assertions verified in v330_living_sect_and_daily_loop_suite.js)!\n(node:17790) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v340_combat_depth_and_duet_synergies_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.032,
-      "output": "=========================================================================\n   JIANGHUSECT v3.4.0 PHASE 3: COMBAT DEPTH & DUET SYNERGIES SUITE       \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.4.0)...\n  ✓ Core lock, SHA-256 & Patch Version 3.4.0 verified\n▶ [Phase 1 / PROP-03] Testing Path-Specific Secondary Combat Gauges & Finishers...\n  ✓ Phase 1 (PROP-03) passed\n▶ [Phase 2 / PROP-05] Testing 7 Archetype Subpaths 6-Tier Mastery & Signature Finishers...\n  ✓ Phase 2 (PROP-05) passed\n▶ [Phase 3 / PROP-06] Testing Dual-Caster Duet Resonance Skills...\n  ✓ Phase 3 (PROP-06) passed\n▶ [Phase 4 / PROP-08] Testing Five-Element Sect Barrier & Closed-Loop Recharge...\n  ✓ Phase 4 (PROP-08) passed\n▶ [Phase 5 / PROP-09] Testing Multi-Turn Charged Skills, Poise Shield & Interrupt Backlash...\n  ✓ Phase 5 (PROP-09) passed\n▶ [Phase 6 / PROP-10] Testing Boss Beast Anatomy Part-Breaking & Guaranteed Organ Drops...\n  ✓ Phase 6 (PROP-10) passed\n▶ [Phase 7 / PROP-32] Testing Ancestral Pavilion, Founder Phantom, Save/Load & 80-NPC Perf...\n  ✓ Phase 7 (PROP-32) & 80-NPC performance (1.480 ms/tick) passed\n\n✅ ALL 8 PHASES PASSED (38 assertions verified in v340_combat_depth_and_duet_synergies_suite.js)!\n"
+      "durationSec": 3.203,
+      "output": "=========================================================================\n   JIANGHUSECT v3.4.0 PHASE 3: COMBAT DEPTH & DUET SYNERGIES SUITE       \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.4.0)...\n  ✓ Core lock, SHA-256 & Patch Version 3.4.0 verified\n▶ [Phase 1 / PROP-03] Testing Path-Specific Secondary Combat Gauges & Finishers...\n  ✓ Phase 1 (PROP-03) passed\n▶ [Phase 2 / PROP-05] Testing 7 Archetype Subpaths 6-Tier Mastery & Signature Finishers...\n  ✓ Phase 2 (PROP-05) passed\n▶ [Phase 3 / PROP-06] Testing Dual-Caster Duet Resonance Skills...\n  ✓ Phase 3 (PROP-06) passed\n▶ [Phase 4 / PROP-08] Testing Five-Element Sect Barrier & Closed-Loop Recharge...\n  ✓ Phase 4 (PROP-08) passed\n▶ [Phase 5 / PROP-09] Testing Multi-Turn Charged Skills, Poise Shield & Interrupt Backlash...\n  ✓ Phase 5 (PROP-09) passed\n▶ [Phase 6 / PROP-10] Testing Boss Beast Anatomy Part-Breaking & Guaranteed Organ Drops...\n  ✓ Phase 6 (PROP-10) passed\n▶ [Phase 7 / PROP-32] Testing Ancestral Pavilion, Founder Phantom, Save/Load & 80-NPC Perf...\n  ✓ Phase 7 (PROP-32) & 80-NPC performance (1.120 ms/tick) passed\n\n✅ ALL 8 PHASES PASSED (38 assertions verified in v340_combat_depth_and_duet_synergies_suite.js)!\n(node:17836) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v350_macro_jianghu_and_alchemy_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.96,
-      "output": "=========================================================================\n   JIANGHUSECT v3.5.0 PHASE 4: MACRO JIANGHU & ALCHEMY TEST SUITE        \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.5.0+)...\n  ✓ Core lock, SHA-256 & Patch Version verified\n▶ [Phase 1 / PROP-13] Testing Political Faction Rebellion, Shadow Coup & Seal Duel...\n  ✓ Phase 1 (PROP-13) passed\n▶ [Phase 2 / PROP-14] Testing 3-Chapter Mysterious Origin Story Arc & Destiny Awakening...\n  ✓ Phase 2 (PROP-14) passed\n▶ [Phase 3 / PROP-22] Testing Cross-Sect Exchange Disciples & Double-Agent Espionage...\n  ✓ Phase 3 (PROP-22) passed\n▶ [Phase 4 / PROP-23] Testing Tavern Rumors & Closed-Loop Bounty Hunter Contracts...\n  ✓ Phase 4 (PROP-23) passed\n▶ [Phase 5 / PROP-24] Testing Midnight Black Market Secret Auction & Caravan Escort...\n  ✓ Phase 5 (PROP-24) passed\n▶ [Phase 6 / PROP-26 & PROP-29] Testing Monthly Celestial Alignments & 48 Multi-Phase Pills...\n  ✓ Phase 6 (PROP-26 & PROP-29) passed\n▶ [Phase 7] Testing UI Buttons, Save/Load Persistence (celestialAlignment & customPills) & 80-NPC Perf...\n  ✓ Phase 7 & 80-NPC performance (1.060 ms/tick) passed\n\n✅ ALL 8 PHASES PASSED (38 assertions verified in v350_macro_jianghu_and_alchemy_suite.js)!\n"
+      "durationSec": 2.946,
+      "output": "=========================================================================\n   JIANGHUSECT v3.5.0 PHASE 4: MACRO JIANGHU & ALCHEMY TEST SUITE        \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.5.0+)...\n  ✓ Core lock, SHA-256 & Patch Version verified\n▶ [Phase 1 / PROP-13] Testing Political Faction Rebellion, Shadow Coup & Seal Duel...\n  ✓ Phase 1 (PROP-13) passed\n▶ [Phase 2 / PROP-14] Testing 3-Chapter Mysterious Origin Story Arc & Destiny Awakening...\n  ✓ Phase 2 (PROP-14) passed\n▶ [Phase 3 / PROP-22] Testing Cross-Sect Exchange Disciples & Double-Agent Espionage...\n  ✓ Phase 3 (PROP-22) passed\n▶ [Phase 4 / PROP-23] Testing Tavern Rumors & Closed-Loop Bounty Hunter Contracts...\n  ✓ Phase 4 (PROP-23) passed\n▶ [Phase 5 / PROP-24] Testing Midnight Black Market Secret Auction & Caravan Escort...\n  ✓ Phase 5 (PROP-24) passed\n▶ [Phase 6 / PROP-26 & PROP-29] Testing Monthly Celestial Alignments & 48 Multi-Phase Pills...\n  ✓ Phase 6 (PROP-26 & PROP-29) passed\n▶ [Phase 7] Testing UI Buttons, Save/Load Persistence (celestialAlignment & customPills) & 80-NPC Perf...\n  ✓ Phase 7 & 80-NPC performance (0.940 ms/tick) passed\n\n✅ ALL 8 PHASES PASSED (38 assertions verified in v350_macro_jianghu_and_alchemy_suite.js)!\n(node:17862) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v360_immortal_endgame_dynasty_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.934,
-      "output": "=========================================================================\n   JIANGHUSECT v3.6.0 PHASE 5: IMMORTAL ENDGAME & DYNASTY TEST SUITE     \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.6.0)...\n  ✓ Core lock, SHA-256 & Final Patch Version 3.6.0 verified\n▶ [Phase 1 / PROP-27] Testing 3-Layer Ancient Immortal Tomb Excavation & Legacies...\n  ✓ Phase 1 (PROP-27) passed\n▶ [Phase 2 / PROP-28] Testing Multi-Chapter World Crisis Endgame Saga...\n  ✓ Phase 2 (PROP-28) passed\n▶ [Phase 3 / PROP-34] Testing Gen 2–3 Clan Bloodline Inheritance & Mythic Chimera Mutation...\n  ✓ Phase 3 (PROP-34) passed\n▶ [Phase 4 / PROP-36] Testing Resilient Save Whitelist, UI Buttons & 80-NPC Tick Budget...\n  ✓ Phase 4 (PROP-36) & 80-NPC performance (1.050 ms/tick) passed\n\n✅ ALL PHASES PASSED (25 assertions verified in v360_immortal_endgame_dynasty_suite.js)!\n"
+      "durationSec": 3.059,
+      "output": "=========================================================================\n   JIANGHUSECT v3.6.0 PHASE 5: IMMORTAL ENDGAME & DYNASTY TEST SUITE     \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.6.0)...\n  ✓ Core lock, SHA-256 & Final Patch Version 3.6.0 verified\n▶ [Phase 1 / PROP-27] Testing 3-Layer Ancient Immortal Tomb Excavation & Legacies...\n  ✓ Phase 1 (PROP-27) passed\n▶ [Phase 2 / PROP-28] Testing Multi-Chapter World Crisis Endgame Saga...\n  ✓ Phase 2 (PROP-28) passed\n▶ [Phase 3 / PROP-34] Testing Gen 2–3 Clan Bloodline Inheritance & Mythic Chimera Mutation...\n  ✓ Phase 3 (PROP-34) passed\n▶ [Phase 4 / PROP-36] Testing Resilient Save Whitelist, UI Buttons & 80-NPC Tick Budget...\n  ✓ Phase 4 (PROP-36) & 80-NPC performance (1.350 ms/tick) passed\n\n✅ ALL PHASES PASSED (25 assertions verified in v360_immortal_endgame_dynasty_suite.js)!\n(node:17909) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v400_living_frontier_and_sect_charter_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.92,
-      "output": "=========================================================================\n   JIANGHUSECT v4.0.0 PHASE 6: LIVING FRONTIER & SECT CHARTER SUITE      \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (4.0.0)...\n  ✓ Core lock, SHA-256 & Patch Version 4.0.0 verified\n▶ [Phase 1 / Pillar 1] Testing Outpost Logistics, 4 Camp Types & Closed-Loop Supply Convoys...\n  ✓ Phase 1 (Pillar 1: Outpost Logistics) passed\n▶ [Phase 2 / Pillar 2] Testing Action-Derived Behavioral Mastery Traits & Chronicle Logging...\n  ✓ Phase 2 (Pillar 2: Behavioral Mastery Traits) passed\n▶ [Phase 3 / Pillar 3] Testing 5 Sect Charters, 50-Stone Ceremony & System Perks...\n  ✓ Phase 3 (Pillar 3: Sect Charter & Doctrine) passed\n▶ [Phase 4 / Pillar 4] Testing 6-Officer Strategic Council Assembly & 3 Strategic Agendas...\n  ✓ Phase 4 (Pillar 4: Strategic Council Assembly) passed\n▶ [Phase 5 / Pillar 5] Testing 4 Micro-Locations, UI Integration, Save/Load & 80-NPC Perf...\n  ✓ Phase 5 (Micro-Locations, Save/Load & 80-NPC perf: 1.083 ms/tick) passed\n\n✅ ALL PHASES PASSED (76 assertions verified in v400_living_frontier_and_sect_charter_suite.js)!\n"
+      "durationSec": 4.461,
+      "output": "=========================================================================\n   JIANGHUSECT v4.0.0 PHASE 6: LIVING FRONTIER & SECT CHARTER SUITE      \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (4.0.0)...\n  ✓ Core lock, SHA-256 & Patch Version 4.0.0 verified\n▶ [Phase 1 / Pillar 1] Testing Outpost Logistics, 4 Camp Types & Closed-Loop Supply Convoys...\n  ✓ Phase 1 (Pillar 1: Outpost Logistics) passed\n▶ [Phase 2 / Pillar 2] Testing Action-Derived Behavioral Mastery Traits & Chronicle Logging...\n  ✓ Phase 2 (Pillar 2: Behavioral Mastery Traits) passed\n▶ [Phase 3 / Pillar 3] Testing 5 Sect Charters, 50-Stone Ceremony & System Perks...\n  ✓ Phase 3 (Pillar 3: Sect Charter & Doctrine) passed\n▶ [Phase 4 / Pillar 4] Testing 6-Officer Strategic Council Assembly & 3 Strategic Agendas...\n  ✓ Phase 4 (Pillar 4: Strategic Council Assembly) passed\n▶ [Phase 5 / Pillar 5] Testing 4 Micro-Locations, UI Integration, Save/Load & 80-NPC Perf...\n  ✓ Phase 5 (Micro-Locations, Save/Load & 80-NPC perf: 1.133 ms/tick) passed\n\n✅ ALL PHASES PASSED (76 assertions verified in v400_living_frontier_and_sect_charter_suite.js)!\n(node:17925) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v410_sect_expansion_and_architecture_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.842,
-      "output": "=========================================================================\n   JIANGHUSECT v4.1.0 PHASE 7: SECT EXPANSION & 8-PEAK SANCTUARY SUITE   \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants, Script Tags & Version Lock (4.1.0)...\n  ✓ Phase 0 passed: Patch 4.1.0, SHA-256 lock, and 40-script-tag invariant verified\n▶ [Phase 1 / Pillar 1] Testing 8-Peak Physical Ground Layout, 18 Sub-Stations & Spirit Roads...\n  ✓ Phase 1 passed: All 8 Peak Sanctuaries, 144 sub-stations, and 1.8x Spirit Roads verified\n▶ [Phase 2 / Pillar 2] Testing Conditional Peak Awakening, Station Gating & Mist Dissipation...\n  ✓ Phase 2 passed: Unfounded station lock, mist rendering, awakening unlock, and camera focus verified\n▶ [Phase 3 / Pillar 3] Testing 3-Tier Architectural Visual Evolution (Tier 1, 2, 3)...\n  ✓ Phase 3 passed: 3-Tier Architectural Evolution verified across core and 8-Peak buildings\n▶ [Phase 4 / Pillar 4 & 5] Testing Directional Sun Shadows, 5-Element Barrier Dome & Leylines...\n  ✓ Phase 4 passed: Directional shadows, 5-Element Barrier Dome, water caustics, and 8-Peak leylines verified\n▶ [Phase 5] Testing Save/Load Persistence & 80-NPC Tick Budget (<= 3.5 ms/tick)...\n  ✓ Phase 5 passed: Save/Load 100% deterministic & 80-NPC tick speed = 1.843 ms/tick (<= 3.5 ms/tick)\n\n✅ ALL 121 ASSERTIONS IN v4.1.0 SECT EXPANSION & ARCHITECTURE SUITE PASSED 100%!\n"
+      "durationSec": 4.926,
+      "output": "=========================================================================\n   JIANGHUSECT v4.1.0 PHASE 7: SECT EXPANSION & 8-PEAK SANCTUARY SUITE   \n=========================================================================\n\n▶ [Phase 0] Verifying Core Architectural Invariants, Script Tags & Version Lock (4.1.0)...\n  ✓ Phase 0 passed: Patch 4.1.0, SHA-256 lock, and 40-script-tag invariant verified\n▶ [Phase 1 / Pillar 1] Testing 8-Peak Physical Ground Layout, 18 Sub-Stations & Spirit Roads...\n  ✓ Phase 1 passed: All 8 Peak Sanctuaries, 144 sub-stations, and 1.8x Spirit Roads verified\n▶ [Phase 2 / Pillar 2] Testing Conditional Peak Awakening, Station Gating & Mist Dissipation...\n  ✓ Phase 2 passed: Unfounded station lock, mist rendering, awakening unlock, and camera focus verified\n▶ [Phase 3 / Pillar 3] Testing 3-Tier Architectural Visual Evolution (Tier 1, 2, 3)...\n  ✓ Phase 3 passed: 3-Tier Architectural Evolution verified across core and 8-Peak buildings\n▶ [Phase 4 / Pillar 4 & 5] Testing Directional Sun Shadows, 5-Element Barrier Dome & Leylines...\n  ✓ Phase 4 passed: Directional shadows, 5-Element Barrier Dome, water caustics, and 8-Peak leylines verified\n▶ [Phase 5] Testing Save/Load Persistence & 80-NPC Tick Budget (<= 3.5 ms/tick)...\n  ✓ Phase 5 passed: Save/Load 100% deterministic & 80-NPC tick speed = 2.938 ms/tick (<= 3.5 ms/tick)\n\n✅ ALL 121 ASSERTIONS IN v4.1.0 SECT EXPANSION & ARCHITECTURE SUITE PASSED 100%!\n"
     },
     {
       "test": "v500_celestial_visual_overhaul_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.969,
+      "durationSec": 2.299,
       "output": "--- Running Patch v5.0.0 (Era 5: Grand Celestial Visual Overhaul) Verification Suite ---\nALL 6 PHASES OF v500_celestial_visual_overhaul_suite PASSED!\n"
     },
     {
       "test": "v510_interactive_visual_dioramas_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.328,
+      "durationSec": 2.459,
       "output": "--- Running Patch v5.1.0 (Interactive Visual Dioramas, Sect Ceremonies & Martial Arena Camera) Suite ---\nALL 5 PHASES OF v510_interactive_visual_dioramas_suite PASSED!\n"
     },
     {
       "test": "v520_subtabs_and_world_visuals_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.174,
+      "durationSec": 2.645,
       "output": "--- Running Patch v5.2.0 (Sub-Category Navigation Overhaul, World Atlas Convoys, Portal FX & Relic Showcase) Suite ---\nALL 5 PHASES OF v520_subtabs_and_world_visuals_suite PASSED!\n"
     },
     {
       "test": "v530_heavenly_tribulation_and_skill_vfx_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.295,
-      "output": "--- Running Patch v5.3.0 (Multi-Phase Heavenly Tribulation, Path Resonance & 15 Signature Skill VFX) Suite ---\n  ✓ Pillar 1 (15-Tick 3-Phase Heavenly Tribulation & 1/3/6/9 Bolt Scaling) verified\n  ✓ Pillar 2 (Path-Specific Breakthrough Resonance across all 12 paths) verified\n  ✓ Pillar 3 (15 Signature Martial Arts & Unique Skill VFX + Pure Read-Only Invariant) verified\n  ✓ Pillar 4 (Building Showcase, Building/Edit Sub-Tabs, Tribulation Tracker & Chronicle Banners) verified\n  ✓ Pillar 5 (Determinism & Simulation Performance): 0.606 ms/tick (budget <= 3.5 ms/tick)\n✅ ALL PATCH v5.3.0 HEAVENLY TRIBULATION & SIGNATURE SKILL VFX CHECKS PASSED!\n"
+      "durationSec": 2.471,
+      "output": "--- Running Patch v5.3.0 (Multi-Phase Heavenly Tribulation, Path Resonance & 15 Signature Skill VFX) Suite ---\n  ✓ Pillar 1 (15-Tick 3-Phase Heavenly Tribulation & 1/3/6/9 Bolt Scaling) verified\n  ✓ Pillar 2 (Path-Specific Breakthrough Resonance across all 12 paths) verified\n  ✓ Pillar 3 (15 Signature Martial Arts & Unique Skill VFX + Pure Read-Only Invariant) verified\n  ✓ Pillar 4 (Building Showcase, Building/Edit Sub-Tabs, Tribulation Tracker & Chronicle Banners) verified\n  ✓ Pillar 5 (Determinism & Simulation Performance): 1.386 ms/tick (budget <= 3.5 ms/tick)\n✅ ALL PATCH v5.3.0 HEAVENLY TRIBULATION & SIGNATURE SKILL VFX CHECKS PASSED!\n"
     },
     {
       "test": "v540_qinggong_movement_and_flight_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.87,
-      "output": "--- Running Patch v5.4.0 Qinggong Locomotion, Sword Flight & Celestial Levitation Suite ---\n--- Patch v5.4.0 Qinggong Locomotion, Sword Flight & Celestial Levitation Suite: ALL PASSED ---\n"
+      "durationSec": 2.076,
+      "output": "--- Running Patch v5.4.0 Qinggong Locomotion, Sword Flight & Celestial Levitation Suite ---\n--- Patch v5.4.0 Qinggong Locomotion, Sword Flight & Celestial Levitation Suite: ALL PASSED ---\n(node:18534) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v550_mantra_resonance_and_formation_warfare_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.235,
-      "output": "--- Running Patch v5.5.0 Mantra Resonance, Dynamic Weather & Grand Formation Warfare Suite ---\n--- Patch v5.5.0 Mantra Resonance, Dynamic Weather & Grand Formation Warfare Suite: ALL PASSED ---\n"
+      "durationSec": 2.102,
+      "output": "--- Running Patch v5.5.0 Mantra Resonance, Dynamic Weather & Grand Formation Warfare Suite ---\n--- Patch v5.5.0 Mantra Resonance, Dynamic Weather & Grand Formation Warfare Suite: ALL PASSED ---\n(node:18596) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v560_defensive_kungfu_and_aegis_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.913,
-      "output": "--- Running Patch v5.6.0 Defensive Kungfu & Protective Aegis Overhaul Suite ---\n--- Patch v5.6.0 Defensive Kungfu & Protective Aegis Overhaul Suite: ALL PASSED ---\n"
+      "durationSec": 2.056,
+      "output": "--- Running Patch v5.6.0 Defensive Kungfu & Protective Aegis Overhaul Suite ---\n--- Patch v5.6.0 Defensive Kungfu & Protective Aegis Overhaul Suite: ALL PASSED ---\n(node:18604) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v570_support_and_auxiliary_arts_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.931,
-      "output": "--- Running Patch v5.7.0 Support & Auxiliary Arts Overhaul (5 Pillars) Suite ---\n--- Patch v5.7.0 Support & Auxiliary Arts Overhaul (5 Pillars) Suite: ALL PASSED ---\n"
+      "durationSec": 1.94,
+      "output": "--- Running Patch v5.7.0 Support & Auxiliary Arts Overhaul (5 Pillars) Suite ---\n--- Patch v5.7.0 Support & Auxiliary Arts Overhaul (5 Pillars) Suite: ALL PASSED ---\n(node:18622) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v580_forbidden_arts_and_passive_constellations_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.15,
-      "output": "--- Running Patch v5.8.0 Mega 6-Pillar Expansion (Forbidden Arts, Passive Constellations & Blood Altar) Suite ---\n--- Patch v5.8.0 Mega 6-Pillar Expansion Suite: ALL PASSED ---\n"
+      "durationSec": 1.951,
+      "output": "--- Running Patch v5.8.0 Mega 6-Pillar Expansion (Forbidden Arts, Passive Constellations & Blood Altar) Suite ---\n--- Patch v5.8.0 Mega 6-Pillar Expansion Suite: ALL PASSED ---\n(node:18635) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "edit_spawner_id_resolution_test",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 2.114,
+      "durationSec": 2.673,
       "output": "=== Running Edit Spawner & Item ID Resolution Test ===\nPASS: All 5803 catalog items spawned successfully\nPASS: All 12 crafted pills spawnable via item ID, recipe ID, and P: prefix\nPASS: Equipment dual ID resolution verified\nPASS: Search blob indexes both recipe IDs and item IDs\n=== All Edit Spawner ID Resolution Tests Passed! ===\n"
     },
     {
       "test": "v200_jianghusect2_grand_dao_epoch_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.603,
-      "output": "======================================================================\n   JIANGHUSECT 2 (v2.0.0: THE 27 GRAND DAO EPOCH) MASTER TEST SUITE   \n======================================================================\n  ✓ [0/6] Core Lock & v2.0.0 Schema Invariants Verified\n  ✓ [1/6] Pillar 1: Mortal Cultivation Initiation Lifecycle Verified\n  ✓ [2/6] Pillar 2: Single Starter Path, 27 Manuals & 27 Crystals Verified\n  ✓ [3/6] Pillar 3: 27 Grand Paths, 222 Subpaths, Realm Traits & 15 Composable Actions Verified\n  ✓ [4/6] Pillar 4: 6 New Weapon Classes (T1-T7, Procedural, Proficiencies & 6 Legendaries) Verified\n  ✓ [5/6] Pillar 5: 15 Cross-Path Synergies & 27-Floor Nine-Dao Pagoda Verified\n  ✓ [6/6] Save/Load Roundtrip Integrity Verified\n\n✅ PASS: v200_jianghusect2_grand_dao_epoch_suite (794 assertions passed)\n\n"
+      "durationSec": 2.118,
+      "output": "======================================================================\n   JIANGHUSECT 2 (v2.0.0: THE 27 GRAND DAO EPOCH) MASTER TEST SUITE   \n======================================================================\n  ✓ [0/6] Core Lock & v2.0.0 Schema Invariants Verified\n  ✓ [1/6] Pillar 1: Mortal Cultivation Initiation Lifecycle Verified\n  ✓ [2/6] Pillar 2: Single Starter Path, 27 Manuals & 27 Crystals Verified\n  ✓ [3/6] Pillar 3: 27 Grand Paths, 222 Subpaths, Realm Traits & 15 Composable Actions Verified\n  ✓ [4/6] Pillar 4: 6 New Weapon Classes (T1-T7, Procedural, Proficiencies & 6 Legendaries) Verified\n  ✓ [5/6] Pillar 5: 15 Cross-Path Synergies & 27-Floor Nine-Dao Pagoda Verified\n  ✓ [6/6] Save/Load Roundtrip Integrity Verified\n\n✅ PASS: v200_jianghusect2_grand_dao_epoch_suite (794 assertions passed)\n\n(node:18657) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v210_grand_dao_debates_and_bugfix_audit_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 3.397,
-      "output": "========================================================================\n   JIANGHUSECT 2 (v2.1.0: GRAND DAO DEBATES, APEX TRIALS & BUG AUDIT)   \n========================================================================\n  ✓ [0/7] Core Lock & v2.1.0 Schema Invariants Verified\n  ✓ [1/7] B-01, B-14, B-15: Mortal Awakening Pacing & Skill/Session Accounting Verified\n  ✓ [2/7] B-02 & B-03: All 27 Path Manuals & 27 Path Crystals Verified via useConsumableItem\n  ✓ [3/7] B-04, B-05, B-06, B-16, B-17: 27-Path Peak Mapping, 32 Archetypes & Refugee Init Verified\n  ✓ [4/7] B-07 & B-08: Editor Catalog & Spawner Verified (54 Path Items + 0 Innate Leaks)\n  ✓ [5/7] B-09..B-13, B-18, B-19: Integration, Food Buff, Ledger & RNG Determinism Verified\n  ✓ [6/7] v2.1.0 Pillar A (Inter-Sect Grand Dao Debates) & Pillar B (27 Apex Dao Trials) Verified\n\n✅ PASS: v210_grand_dao_debates_and_bugfix_audit_suite (438 assertions passed)\n\n"
+      "durationSec": 6.292,
+      "output": "========================================================================\n   JIANGHUSECT 2 (v2.1.0: GRAND DAO DEBATES, APEX TRIALS & BUG AUDIT)   \n========================================================================\n  ✓ [0/7] Core Lock & v2.1.0 Schema Invariants Verified\n  ✓ [1/7] B-01, B-14, B-15: Mortal Awakening Pacing & Skill/Session Accounting Verified\n  ✓ [2/7] B-02 & B-03: All 27 Path Manuals & 27 Path Crystals Verified via useConsumableItem\n  ✓ [3/7] B-04, B-05, B-06, B-16, B-17: 27-Path Peak Mapping, 32 Archetypes & Refugee Init Verified\n  ✓ [4/7] B-07 & B-08: Editor Catalog & Spawner Verified (54 Path Items + 0 Innate Leaks)\n  ✓ [5/7] B-09..B-13, B-18, B-19: Integration, Food Buff, Ledger & RNG Determinism Verified\n  ✓ [6/7] v2.1.0 Pillar A (Inter-Sect Grand Dao Debates) & Pillar B (27 Apex Dao Trials) Verified\n\n✅ PASS: v210_grand_dao_debates_and_bugfix_audit_suite (438 assertions passed)\n\n(node:18680) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v220_cosmic_pantheon_shinobi_and_manual_lifecycle_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.091,
-      "output": "============================================================================\n   JIANGHUSECT 2 (v2.2.0: 43 GRAND DAO PATHS, PANTHEON & MANUAL LIFECYCLE)  \n============================================================================\n  ✓ [0/6] Core Lock & v2.2.0 Schema Invariants Verified\n  ✓ [1/6] Pillar 1: P0 Bug #1, P0 Bug #2 & Grand Dao Manual Lifecycle Pipeline Verified\n  ✓ [2/6] Pillar 2: 5 Higher Realms, 20 True Deities, 10^-12..5% Scaling & Cosmic Shrine Verified\n  ✓ [3/6] Pillar 3: 43 Grand Paths, 286 Subpaths & Zero-Qi Bushido Samurai Verified\n  ✓ [4/6] Pillar 4: Shadow Clone, Substitution, Parry Counter, Bone Armor & 10 New Actions Verified\n  ✓ [5/6] Pillar 5: Devouring Flesh & Nether Grave World-System Mechanics Verified\n\n✅ PASS: v220_cosmic_pantheon_shinobi_and_manual_lifecycle_suite (134 assertions passed)\n\n"
+      "durationSec": 2.072,
+      "output": "============================================================================\n   JIANGHUSECT 2 (v2.2.0: 43 GRAND DAO PATHS, PANTHEON & MANUAL LIFECYCLE)  \n============================================================================\n  ✓ [0/6] Core Lock & v2.2.0 Schema Invariants Verified\n  ✓ [1/6] Pillar 1: P0 Bug #1, P0 Bug #2 & Grand Dao Manual Lifecycle Pipeline Verified\n  ✓ [2/6] Pillar 2: 5 Higher Realms, 20 True Deities, 10^-12..5% Scaling & Cosmic Shrine Verified\n  ✓ [3/6] Pillar 3: 43 Grand Paths, 286 Subpaths & Zero-Qi Bushido Samurai Verified\n  ✓ [4/6] Pillar 4: Shadow Clone, Substitution, Parry Counter, Bone Armor & 10 New Actions Verified\n  ✓ [5/6] Pillar 5: Devouring Flesh & Nether Grave World-System Mechanics Verified\n\n✅ PASS: v220_cosmic_pantheon_shinobi_and_manual_lifecycle_suite (134 assertions passed)\n\n(node:18700) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v230_grand_dao_deep_parity_and_universal_arsenal_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.036,
-      "output": "============================================================================\n   JIANGHUSECT 2 (v2.3.0: GRAND DAO DEEP PARITY & UNIVERSAL ARSENAL SUITE)  \n============================================================================\n  ✓ [0/6] Core Lock & v2.3.0 Schema Invariants Verified\n  ✓ [1/6] Pillar 1: 43-Path Technique Parity, 31 Legendary Arts & 30 Universal/Shared Weapon Arts Verified\n  ✓ [2/6] Pillar 2: Procedural Templates, 24 Materials, 15+ Weapons/Class & 31 Legendary Path Relics Verified\n  ✓ [3/6] Pillar 3: Era-5 Systems & Tribulation Styles Verified Across All 43 Paths\n  ✓ [4/6] Pillar 4: 43-Path Peak Sub-Sanctuaries, 16 Armament Wills & Duet Catalog Verified\n  ✓ [5/6] Pillar 5: 22 Signature Skill VFX & NPC Gear Suitability Verified Across All 43 Paths\n\n✅ PASS: v230_grand_dao_deep_parity_and_universal_arsenal_suite (262 assertions passed)\n\n"
+      "durationSec": 2.066,
+      "output": "============================================================================\n   JIANGHUSECT 2 (v2.3.0: GRAND DAO DEEP PARITY & UNIVERSAL ARSENAL SUITE)  \n============================================================================\n  ✓ [0/6] Core Lock & v2.3.0 Schema Invariants Verified\n  ✓ [1/6] Pillar 1: 43-Path Technique Parity, 31 Legendary Arts & 30 Universal/Shared Weapon Arts Verified\n  ✓ [2/6] Pillar 2: Procedural Templates, 24 Materials, 15+ Weapons/Class & 31 Legendary Path Relics Verified\n  ✓ [3/6] Pillar 3: Era-5 Systems & Tribulation Styles Verified Across All 43 Paths\n  ✓ [4/6] Pillar 4: 43-Path Peak Sub-Sanctuaries, 16 Armament Wills & Duet Catalog Verified\n  ✓ [5/6] Pillar 5: 22 Signature Skill VFX & NPC Gear Suitability Verified Across All 43 Paths\n\n✅ PASS: v230_grand_dao_deep_parity_and_universal_arsenal_suite (262 assertions passed)\n\n(node:18742) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v240_composable_keywords_and_tactical_combat_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.356,
-      "output": "==================================================================================\n   JIANGHUSECT 2 (v2.4.0: TACTICAL COMPOSABLE GRAND DAO & BUGFIX AUDIT SUITE)     \n==================================================================================\n  ✓ [0/7] Core Lock & v2.4.0 Schema Invariants Verified\n  ✓ [1/7] Pillar 1: 16 Composable Combat Keywords & Single-Pass Reflection Caps Verified\n  ✓ [2/7] Pillar 2: Tactical 2-Row Positioning, Bodyblock & Broken Weapon Penalty Verified\n  ✓ [3/7] Pillar 3: Abyssal Higher Realms, Infernal Shrine & Blood Covenant Verified\n  ✓ [4/7] Pillar 4: Secondary Resources, Voluntary Vows, Toxin Synergy & Experience Traits Verified\n  ✓ [5/7] Pillar 5: Market, Detained NPCs, Mentorship & Diplomacy Bugfixes Verified\n  ✓ [6/7] Pillar 6: Save/Load Round-Trip Persistence & Strict Validation Verified\n  ✓ [7/7] Pillar 7: Deep Audit Bugfixes, Live Hooks, 0 Orphan Materials & Content Expansion Verified\n\n✅ PASS: v240_composable_keywords_and_tactical_combat_suite (147 assertions passed)\n\n"
+      "durationSec": 2.063,
+      "output": "==================================================================================\n   JIANGHUSECT 2 (v2.4.0: TACTICAL COMPOSABLE GRAND DAO & BUGFIX AUDIT SUITE)     \n==================================================================================\n  ✓ [0/7] Core Lock & v2.4.0 Schema Invariants Verified\n  ✓ [1/7] Pillar 1: 16 Composable Combat Keywords & Single-Pass Reflection Caps Verified\n  ✓ [2/7] Pillar 2: Tactical 2-Row Positioning, Bodyblock & Broken Weapon Penalty Verified\n  ✓ [3/7] Pillar 3: Abyssal Higher Realms, Infernal Shrine & Blood Covenant Verified\n  ✓ [4/7] Pillar 4: Secondary Resources, Voluntary Vows, Toxin Synergy & Experience Traits Verified\n  ✓ [5/7] Pillar 5: Market, Detained NPCs, Mentorship & Diplomacy Bugfixes Verified\n  ✓ [6/7] Pillar 6: Save/Load Round-Trip Persistence & Strict Validation Verified\n  ✓ [7/7] Pillar 7: Deep Audit Bugfixes, Live Hooks, 0 Orphan Materials & Content Expansion Verified\n\n✅ PASS: v240_composable_keywords_and_tactical_combat_suite (147 assertions passed)\n\n(node:18791) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v240_user_audit_regression",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 5.308,
-      "output": "✔ equipment keyword reads do not mutate the owner or survive unequipping (237.622527ms)\n✔ changing keywords on the same equipped item updates the derived profile (107.126424ms)\n✔ broken procedural equipment does not grant combat keywords (67.373319ms)\n✔ equipment effects honor their configured chance using the world RNG (73.44185ms)\n✔ venom seed damage grows linearly with four stacks (63.61623ms)\n✔ winning a wager cannot create stones from an empty world pool (70.551414ms)\n✔ a zero wager cannot grant gambler progress or gauge (56.401656ms)\n✔ surplus manuals sell only as many copies as the world can afford (57.87611ms)\n✔ demonic covenant bonuses reach actual computed combat stats (72.252444ms)\n✔ repeating a demon covenant grants neither extra favor nor gauge (58.851258ms)\n✔ an unpaid covenant cannot grant a pact, gauge or favor (54.940938ms)\n✔ re-swearing a broken vow cannot erase its consequences (49.616738ms)\n✔ experience deduplicates within an event kind without discarding other kinds (56.121788ms)\n✔ separate completed study actions count as separate experiences (90.964909ms)\n✔ a wandering bandit cannot pay the same gift repeatedly (60.553372ms)\n✔ a wandering arrayist reveals a realm and grants catalysts only once (59.821244ms)\n✔ unknown wandering actions cannot bypass the arrayist gift receipt (57.44559ms)\n✔ an elemental gate pays a given reward once and debits its source (55.147777ms)\n✔ micro exploration cannot pay stones from an empty world pool (52.376407ms)\n✔ an expired vassal distress call cannot award help after the deadline (46.844979ms)\n✔ a stunned cultivator cannot spend a path gauge or damage a distant enemy (67.215619ms)\n✔ a path finisher cannot hit an enemy outside the weapon reach (48.086009ms)\n✔ mortals cannot acquire a cultivation path gauge by default (45.514178ms)\n✔ an active subpath trait applies its declared debuff to the target (60.007252ms)\n✔ evaluating a charged skill does not start channeling or damage the target (51.81152ms)\n✔ starting a charged skill spends its action and sets a cooldown (56.461575ms)\n✔ a commercial contract cannot settle before its due day (54.644335ms)\n✔ a removed gear object cannot be salvaged a second time (51.473079ms)\n✔ caravan escort wages transfer from the world pool exactly once (115.920162ms)\n✔ the detailed stat breakdown includes an active realm trait (51.768798ms)\n✔ refining identical equipment is independent of whether stats were viewed first (67.600716ms)\n✔ broken equipment cannot amplify an active combat stance (49.164737ms)\n✔ an equipped auxiliary tool grants its exploration bonus (55.331963ms)\n✔ broken armor cannot accumulate elemental adaptation (60.825156ms)\n✔ all-enemy selection respects a skill range (69.244411ms)\n✔ a cast-time rewind action occurs once even with duplicate declarations and multiple hits (62.946198ms)\n✔ a duplicated hit action in two fields resolves only once per hit (103.153089ms)\n✔ an explicit elemental reaction requires its other element on the target (62.727298ms)\n✔ post-siege outcomes require a real victory and cannot be replayed (78.278874ms)\n✔ a wandering sword seeker grants duel rewards only once per day, including after reload (148.259206ms)\n✔ the manual doctor button charges the stated fee and rejects insufficient funds (110.057812ms)\n✔ an elemental gate cannot pay again after the save is reloaded (153.706987ms)\n✔ shield shatter damages and breaks armor only when a shield exists (76.760163ms)\n✔ status transmutation performs only the chosen mode (167.186245ms)\n✔ a finisher declared in the action field receives its combo multiplier (39.886085ms)\n✔ a starving injured disciple chooses food instead of repeatedly restarting treatment (41.057179ms)\n✔ sect tier evaluation refreshes stale cached combat ratings (31.955894ms)\n✔ an active combat stance and its stat bonuses survive saving and loading (73.069655ms)\n✔ craft precision increases paid crafting quality with otherwise identical inputs (107.330422ms)\n✔ combat keyword stacks, stored damage and cooldowns survive save and load (128.044433ms)\n✔ craft keyword profile updates when a craft skill improves (45.783304ms)\n✔ external traders price both finished-pill IDs and recipe-prefixed pills from the same economy catalog (54.137028ms)\n✔ a player cannot appoint a garrison to an enemy resource node (46.997996ms)\n✔ a disciple leaving on an expedition stops defending their resource node (45.297816ms)\n✔ an enemy capture removes the player garrison from the occupied node (35.199659ms)\n✔ a disciple listed twice cannot double their garrison defense (32.137493ms)\n✔ SAVE-01..SAVE-11 & V240-16/17: active combat state, nextId, chronicle, distress calls, bounties, and multi-phase effects survive save/load (245.245527ms)\n✔ COM-01..COM-09: row bodyblock range/incapacity, LoS obstacle, single fight enrollment, surrender stop, guardian 1 HP survival, and point-locked AoE (161.954899ms)\n✔ DA-001..DA-017 & V240-01..15: voluntary vows cap/redemption/stats, secondary resources, gravity field, temporal rewind, and experience trait cap/recovery (86.982448ms)\n✔ EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixes, rune socket validation, broken gear block, and seasonal vs daily node harvest (113.731586ms)\nℹ tests 60\nℹ suites 0\nℹ pass 60\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4630.70346\n"
+      "durationSec": 4.854,
+      "output": "✔ equipment keyword reads do not mutate the owner or survive unequipping (170.576875ms)\n✔ changing keywords on the same equipped item updates the derived profile (72.171563ms)\n✔ broken procedural equipment does not grant combat keywords (56.802187ms)\n✔ equipment effects honor their configured chance using the world RNG (44.027969ms)\n✔ venom seed damage grows linearly with four stacks (42.881563ms)\n✔ winning a wager cannot create stones from an empty world pool (50.698437ms)\n✔ a zero wager cannot grant gambler progress or gauge (45.736667ms)\n✔ surplus manuals sell only as many copies as the world can afford (113.925156ms)\n✔ demonic covenant bonuses reach actual computed combat stats (61.292968ms)\n✔ repeating a demon covenant grants neither extra favor nor gauge (72.737969ms)\n✔ an unpaid covenant cannot grant a pact, gauge or favor (67.27125ms)\n✔ re-swearing a broken vow cannot erase its consequences (54.78901ms)\n✔ experience deduplicates within an event kind without discarding other kinds (70.460104ms)\n✔ separate completed study actions count as separate experiences (74.03125ms)\n✔ a wandering bandit cannot pay the same gift repeatedly (60.734479ms)\n✔ a wandering arrayist reveals a realm and grants catalysts only once (58.498802ms)\n✔ unknown wandering actions cannot bypass the arrayist gift receipt (49.425938ms)\n✔ an elemental gate pays a given reward once and debits its source (97.402187ms)\n✔ micro exploration cannot pay stones from an empty world pool (60.813802ms)\n✔ an expired vassal distress call cannot award help after the deadline (52.508177ms)\n✔ a stunned cultivator cannot spend a path gauge or damage a distant enemy (81.439218ms)\n✔ a path finisher cannot hit an enemy outside the weapon reach (49.799375ms)\n✔ mortals cannot acquire a cultivation path gauge by default (55.724791ms)\n✔ an active subpath trait applies its declared debuff to the target (54.714218ms)\n✔ evaluating a charged skill does not start channeling or damage the target (54.447553ms)\n✔ starting a charged skill spends its action and sets a cooldown (73.672292ms)\n✔ a commercial contract cannot settle before its due day (50.187344ms)\n✔ a removed gear object cannot be salvaged a second time (60.631771ms)\n✔ caravan escort wages transfer from the world pool exactly once (112.026719ms)\n✔ the detailed stat breakdown includes an active realm trait (83.423541ms)\n✔ refining identical equipment is independent of whether stats were viewed first (61.617917ms)\n✔ broken equipment cannot amplify an active combat stance (55.079844ms)\n✔ an equipped auxiliary tool grants its exploration bonus (50.79875ms)\n✔ broken armor cannot accumulate elemental adaptation (48.603178ms)\n✔ all-enemy selection respects a skill range (59.579583ms)\n✔ a cast-time rewind action occurs once even with duplicate declarations and multiple hits (53.632864ms)\n✔ a duplicated hit action in two fields resolves only once per hit (127.165885ms)\n✔ an explicit elemental reaction requires its other element on the target (61.961407ms)\n✔ post-siege outcomes require a real victory and cannot be replayed (77.87974ms)\n✔ a wandering sword seeker grants duel rewards only once per day, including after reload (153.385ms)\n✔ the manual doctor button charges the stated fee and rejects insufficient funds (58.000886ms)\n✔ an elemental gate cannot pay again after the save is reloaded (90.770313ms)\n✔ shield shatter damages and breaks armor only when a shield exists (31.240885ms)\n✔ status transmutation performs only the chosen mode (92.913749ms)\n✔ a finisher declared in the action field receives its combo multiplier (40.691718ms)\n✔ a starving injured disciple chooses food instead of repeatedly restarting treatment (41.802031ms)\n✔ sect tier evaluation refreshes stale cached combat ratings (35.390937ms)\n✔ an active combat stance and its stat bonuses survive saving and loading (89.473437ms)\n✔ craft precision increases paid crafting quality with otherwise identical inputs (67.998333ms)\n✔ combat keyword stacks, stored damage and cooldowns survive save and load (89.860104ms)\n✔ craft keyword profile updates when a craft skill improves (34.167604ms)\n✔ external traders price both finished-pill IDs and recipe-prefixed pills from the same economy catalog (35.678958ms)\n✔ a player cannot appoint a garrison to an enemy resource node (30.119844ms)\n✔ a disciple leaving on an expedition stops defending their resource node (35.298177ms)\n✔ an enemy capture removes the player garrison from the occupied node (35.426146ms)\n✔ a disciple listed twice cannot double their garrison defense (31.658646ms)\n✔ SAVE-01..SAVE-11 & V240-16/17: active combat state, nextId, chronicle, distress calls, bounties, and multi-phase effects survive save/load (91.217187ms)\n✔ COM-01..COM-09: row bodyblock range/incapacity, LoS obstacle, single fight enrollment, surrender stop, guardian 1 HP survival, and point-locked AoE (33.764218ms)\n✔ DA-001..DA-017 & V240-01..15: voluntary vows cap/redemption/stats, secondary resources, gravity field, temporal rewind, and experience trait cap/recovery (34.597812ms)\n✔ EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixes, rune socket validation, broken gear block, and seasonal vs daily node harvest (34.413907ms)\nℹ tests 60\nℹ suites 0\nℹ pass 60\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3860.284217\n(node:19061) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v250_pathbound_visuals_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.64,
-      "output": "============================================================================\n   JIANGHUSECT 2 (JS2-v2.5.0: PATHBOUND ASCENDANT VISUALS & SIGNATURE ARTS) \n============================================================================\n  ✓ [0/5] Core Lock, 40-Script Invariant & SIM.PATCH_VERSION = 2.5.0 Verified\n  ✓ [1/5] P0 & P2: All 43 Path Signatures, True maxStage (4/5/8/9) Apex Halos & Distinct Geometries Verified\n  ✓ [2/5] P1: All 45 Signature Skill VFX Specs & 43/43 Path High-Tier Technique Mappings Verified\n  ✓ [3/5] End-to-End Combat -> castFx -> Render Pipeline Verified Across Offense, Defense, Heal, Summon & Forbidden Arts\n  ✓ [4/5] 100% Read-Only Serialization & RNG Purity + Reduced Motion / Low Quality / Unknown Fallback Verified\n\n✅ ALL JS2-v2.5.0 PATHBOUND ASCENDANT VISUALS & SIGNATURE ARTS CHECKS PASSED!\n\n"
+      "durationSec": 1.711,
+      "output": "============================================================================\n   JIANGHUSECT 2 (JS2-v2.5.0: PATHBOUND ASCENDANT VISUALS & SIGNATURE ARTS) \n============================================================================\n  ✓ [0/5] Core Lock, 40-Script Invariant & SIM.PATCH_VERSION = 2.5.0 Verified\n  ✓ [1/5] P0 & P2: All 43 Path Signatures, True maxStage (4/5/8/9) Apex Halos & Distinct Geometries Verified\n  ✓ [2/5] P1: All 45 Signature Skill VFX Specs & 43/43 Path High-Tier Technique Mappings Verified\n  ✓ [3/5] End-to-End Combat -> castFx -> Render Pipeline Verified Across Offense, Defense, Heal, Summon & Forbidden Arts\n  ✓ [4/5] 100% Read-Only Serialization & RNG Purity + Reduced Motion / Low Quality / Unknown Fallback Verified\n\n✅ ALL JS2-v2.5.0 PATHBOUND ASCENDANT VISUALS & SIGNATURE ARTS CHECKS PASSED!\n\n(node:19080) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "legendary_visual_identity_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.189,
+      "durationSec": 1.783,
       "output": "PASS legendary visual identity: 50 arts / 47 active unique, 27 unique relics; routing, silhouette coverage, rarity/usability cache, event lifetime/pause/load, purity and fallback\n"
     },
     {
       "test": "legendary_visual_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 9.352,
-      "output": "PASS browser legendary VFX 1280: real preview routing, 47 unique art pixel images, 27 unique relics, pause, serialization/RNG purity, no JS errors\nPASS browser legendary VFX 412: real preview routing, 47 unique art pixel images, 27 unique relics, pause, serialization/RNG purity, no JS errors\nPASS standalone legendary catalogs and startup\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.169,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/legendary_visual_browser.js:5:31\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/legendary_visual_browser.js:62:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "item_art_catalog_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.274,
-      "output": "PASS item art: 576 cells, 50 unique legendary manuals, 27 unique relics, 7 sword tiers, 5 grades, real metadata/aliases, material anatomy, purity, escaping and nine offline atlases\n"
+      "durationSec": 1.121,
+      "output": "PASS item art: 576 cells, 50 unique legendary manuals, 27 unique relics, 7 sword tiers, 5 grades, real metadata/aliases, material anatomy, purity, escaping and nine offline atlases\n(node:19379) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "item_art_browser",
-      "status": "PASS",
-      "exitCode": 0,
-      "durationSec": 12.434,
-      "output": "PASS item art browser 360: nine loaded atlases, 28 equipment + 13 other families × 7 tier pixels, 5 grade pixels, 50 unique manuals / 27 relic pixels, purity, no overflow/errors\nPASS item art browser 412: nine loaded atlases, 28 equipment + 13 other families × 7 tier pixels, 5 grade pixels, 50 unique manuals / 27 relic pixels, purity, no overflow/errors\nPASS item art browser 1280: nine loaded atlases, 28 equipment + 13 other families × 7 tier pixels, 5 grade pixels, 50 unique manuals / 27 relic pixels, purity, no overflow/errors\nPASS offline single HTML: all nine atlases decode from embedded WebP without external image URLs\n"
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationSec": 0.164,
+      "output": "Error: No Chromium executable found\n    at findChromiumExecutable (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:27:9)\n    at Object.launch (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/tools/cdp_playwright.js:531:17)\n    at /data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/item_art_browser.js:5:31\n    at Object.<anonymous> (/data/data/com.termux/files/home/jhevo-work/.tmp_unpack/v24/JHEvo-main/GAME_SOURCE/test/item_art_browser.js:69:3)\n    at Module._compile (node:internal/modules/cjs/loader:1873:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:2013:10)\n    at Module.load (node:internal/modules/cjs/loader:1596:32)\n    at Module._load (node:internal/modules/cjs/loader:1398:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n"
     },
     {
       "test": "equipment_tier_art_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 0.812,
-      "output": "PASS equipment tier art: 28 equipment families × 7 tiers, aliases and 898 real equipment records; six pill/six material families + fish; semantic exceptions and purity\n"
+      "durationSec": 1.134,
+      "output": "PASS equipment tier art: 28 equipment families × 7 tiers, aliases and 898 real equipment records; six pill/six material families + fish; semantic exceptions and purity\n(node:19431) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
     },
     {
       "test": "v260_living_chronicle_and_reporting_suite",
       "status": "PASS",
       "exitCode": 0,
-      "durationSec": 1.818,
-      "output": "============================================================================\n   JIANGHUSECT 2 (JS2-v2.6.0: LIVING CHRONICLE & JIANGHU REPORTING SUITE)   \n============================================================================\n  ✓ [0/6] Core Lock, 40-Script Invariant, SIM.PATCH_VERSION = 2.6.0 & Save Hydration Verified\n  ✓ [1/6] Producer -> Fact Snapshot -> 12 Formats & Continuing Storyline Threads Verified\n  ✓ [2/6] Snapshot Immutability, Renamed/Buried Historical Fallback & Rumor Labeling Verified\n  ✓ [3/6] Periodic Sect Digest Ledger Separation & Zero Double-Counting Verified\n  ✓ [4/6] News Intake Preferences, Critical Policy, Unread Tracking & Archive Filters Verified\n  ✓ [5/6] Milestone-Protected Retention, 100% RNG/Serialize Purity & XSS Escaping Verified\n\n✅ ALL JS2-v2.6.0 LIVING CHRONICLE & JIANGHU REPORTING CHECKS PASSED!\n"
+      "durationSec": 2.056,
+      "output": "============================================================================\n   JIANGHUSECT 2 (JS2-v2.6.0: LIVING CHRONICLE & JIANGHU REPORTING SUITE)   \n============================================================================\n  ✓ [0/6] Core Lock, 40-Script Invariant, SIM.PATCH_VERSION = 2.6.0 & Save Hydration Verified\n  ✓ [1/6] Producer -> Fact Snapshot -> 12 Formats & Continuing Storyline Threads Verified\n  ✓ [2/6] Snapshot Immutability, Renamed/Buried Historical Fallback & Rumor Labeling Verified\n  ✓ [3/6] Periodic Sect Digest Ledger Separation & Zero Double-Counting Verified\n  ✓ [4/6] News Intake Preferences, Critical Policy, Unread Tracking & Archive Filters Verified\n  ✓ [5/6] Milestone-Protected Retention, 100% RNG/Serialize Purity & XSS Escaping Verified\n\n✅ ALL JS2-v2.6.0 LIVING CHRONICLE & JIANGHU REPORTING CHECKS PASSED!\n(node:19438) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "test": "t5_group_vfx_suite",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSec": 16.574,
+      "output": "PASS T5 VFX: 68 shared shapes, 158 active skill routes, 91 passive routes, T5 equipment auras, purity & Reduced Motion\n"
+    },
+    {
+      "test": "v260_vfx_tier_subpath_equip_suite",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSec": 2.758,
+      "output": "--- Running v2.6.0 Comprehensive Tier-Scaled VFX, Subpath Motifs, Targeting & Equipment/Action VFX Suite ---\n  ✓ [1/6] Verified >= 64 VFX forms per tier (T1:64, T2:64, T3:68, T4:72, T5:68, T6:64, T7:71) and strict tier scale ceiling\n  ✓ [2/6] Verified 100% active ordinary technique coverage across all 1286 techniques (T1–T7)\n  ✓ [3/6] Verified 64 Path/Sub-path/Grand Dao motifs across 412 specialty arts and 122 mantras\n  ✓ [4/6] Verified offensive blink anchoring, selectTargets override, ranged projectile trajectory & hybrid harmonize wave\n  ✓ [5/6] Verified 64 Equipment Skill VFX, 31 Resonance Sets, Trinity Surge, target-anchored Relic procs & 36 Combat Action VFX\n  ✓ [6/6] Verified T4 equipment auras, idle fight self-slash prevention, and ranged weapon release cues\n✅ ALL v2.6.0 TIER-SCALED VFX, SUBPATH MOTIFS, TARGETING AUDIT & EQUIPMENT/ACTION VFX CHECKS PASSED!\n"
     },
     {
       "test": "syntax_check_all_js",
       "status": "PASS",
-      "files": 239,
+      "files": 241,
       "failures": []
     }
   ]

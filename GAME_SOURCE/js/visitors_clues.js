@@ -1587,6 +1587,20 @@
         if (!triggeredProc) triggeredProc = surgeOut;
         else triggeredProc.trinitySurge = surgeOut;
       }
+      if (triggeredProc && attacker) {
+        const isSelfOnly = triggeredProc.effectId === 'EFX_LEG_BODHI_HEART_LOTUS';
+        triggeredProc.originX = attacker.x;
+        triggeredProc.originY = attacker.y;
+        triggeredProc.targetX = (!isSelfOnly && defender && Number.isFinite(defender.x)) ? defender.x : attacker.x;
+        triggeredProc.targetY = (!isSelfOnly && defender && Number.isFinite(defender.y)) ? defender.y : attacker.y;
+        triggeredProc.isOffensive = !isSelfOnly;
+      }
+      if (attacker && attacker.lastTrinitySurge && attacker.lastTrinitySurge.t === W.t) {
+        attacker.lastTrinitySurge.originX = attacker.x;
+        attacker.lastTrinitySurge.originY = attacker.y;
+        attacker.lastTrinitySurge.targetX = (defender && Number.isFinite(defender.x)) ? defender.x : attacker.x;
+        attacker.lastTrinitySurge.targetY = (defender && Number.isFinite(defender.y)) ? defender.y : attacker.y;
+      }
       return triggeredProc;
     } finally {
       if (f) f._inWpnProc = false;

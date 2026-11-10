@@ -1,5 +1,6 @@
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
+- **Complete Tier-Scaled VFX (T1–T7), Sub-Path Motifs, Equipment & Combat Action VFX บน JS2-v2.6.0:** [COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md](COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md) — ครบทุกระดับ T1–T7 (>= 64 ลาย/ระดับ), 64 ตราสายย่อย/มรรคา, 122 มนตรา, 64 เอฟเฟกต์อุปกรณ์, 36 แอคชั่นการรบ และตรวจแก้พิกัดเป้าหมาย/ระยะไกล-ประชิด (164/164 PASS)
 - **T6 shared group VFX บน JS2-v2.6.0:** [T6_GROUP_VFX_JS2_V2_6_0.md](T6_GROUP_VFX_JS2_V2_6_0.md) — 50 ลาย / 114 วิชา / 207 ท่าย่อย + 8 พาสซีฟ และ 117 อุปกรณ์; เตรียม T5
 - **Ordinary T7 VFX บน JS2-v2.6.0:** [T7_VISUALS_JS2_V2_6_0.md](T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา / 157 ท่าย่อย / 85 อุปกรณ์ใน 25 ประเภท พร้อมส่งต่อ T6
 - **Legendary Apex บน JS2-v2.6.0:** [LEGENDARY_APEX_JS2_V2_6_0.md](LEGENDARY_APEX_JS2_V2_6_0.md) — ฉากสำแดง 47 วิชา / 3 พาสซีฟ / 27 อุปกรณ์ พร้อมขยายพื้นที่ภาพ T4–T7 ในอนาคต

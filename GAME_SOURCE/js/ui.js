@@ -1469,18 +1469,23 @@
         const previewTech = CULT.tech(sigOrTechId);
         const sigKey = (g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigOrTechId])
           ? sigOrTechId
-          : (g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(CULT.tech(sigOrTechId) || { id: sigOrTechId, legendary: true })) || 'sig_meteor_sword_rain';
-        const spec = (g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigKey]) || { nameTh: sigKey, icon: '✨' };
+          : (g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(previewTech || { id: sigOrTechId, legendary: true })) || (!previewTech ? 'sig_meteor_sword_rain' : null);
+        const spec = (sigKey && g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigKey])
+          || (previewTech ? { nameTh: previewTech.nameTh, icon: '✨' } : { nameTh: sigKey || sigOrTechId, icon: '✨' });
+        const nx = Number.isFinite(n.x) ? n.x : 118, ny = Number.isFinite(n.y) ? n.y : 75;
         n.castFx = {
           seq: ((n.castFx && n.castFx.seq) || 0) + 1,
           t: W.t,
-          kind: 'normal',
+          kind: (previewTech && /FORBIDDEN/.test(previewTech.cat || '')) ? 'forbidden' : 'normal',
           signatureVfx: sigKey,
           legendary: !!(previewTech && previewTech.legendary),
-          motif: previewTech && previewTech.fxKind || null,
+          motif: (previewTech && previewTech.fxKind) || null,
           techId: sigOrTechId || sigKey,
-          x: (Number.isFinite(n.x) ? n.x : 118) + 3,
-          y: Number.isFinite(n.y) ? n.y : 75
+          tier: (previewTech && previewTech.tier) || 5,
+          originX: nx,
+          originY: ny,
+          x: nx + 3,
+          y: ny
         };
         if (G.R && G.R.updateCastEffects) G.R.updateCastEffects(performance.now());
         if (UI.audio) UI.audio.playBladeClash();

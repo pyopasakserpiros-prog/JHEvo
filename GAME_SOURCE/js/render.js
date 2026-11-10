@@ -1533,6 +1533,23 @@
       const baseline = (a, kind) => {
         if(a.castFx) this.castSeen.set(kind+':'+a.id,a.castFx.seq+'|'+a.castFx.t);
         if(a.lastWeaponProc) {const p=a.lastWeaponProc;this.castSeen.set('proc:'+kind+':'+a.id,p.t+'|'+p.weaponId+'|'+p.effectId);}
+        if(a.lastItemEffectProc) {const p=a.lastItemEffectProc;this.castSeen.set('iproc:'+kind+':'+a.id,p.t+'|'+p.itemId+'|'+p.effectId);}
+        if(a.lastResonanceTrigger) {const p=a.lastResonanceTrigger;this.castSeen.set('rproc:'+kind+':'+a.id,p.t+'|'+p.setId);}
+        if(a.lastTrinitySurge) {const p=a.lastTrinitySurge;this.castSeen.set('tproc:'+kind+':'+a.id,p.t+'|trinity');}
+        if(a.lastPathGaugeFinisher) {const p=a.lastPathGaugeFinisher;this.castSeen.set('fin:'+kind+':'+a.id,p.t+'|'+p.gaugeId);}
+        if(a.lastDuetSkill) {const p=a.lastDuetSkill;this.castSeen.set('duet:'+kind+':'+a.id,p.t+'|'+p.duetId);}
+        if(a.lastChargedRelease) {const p=a.lastChargedRelease;this.castSeen.set('chrg:'+kind+':'+a.id,p.t+'|'+p.skillId);}
+        if(a.lastElementalReaction) {const p=a.lastElementalReaction;this.castSeen.set('elrx:'+kind+':'+a.id,p.t+'|'+p.reactionId);}
+        if(a.lastMarkDetonation) {const p=a.lastMarkDetonation;this.castSeen.set('mdet:'+kind+':'+a.id,p.t+'|'+p.targetId);}
+        if(a.lastAcupointStrike) {const p=a.lastAcupointStrike;this.castSeen.set('acup:'+kind+':'+a.id,p.t+'|'+p.pointId);}
+        if(a.lastMantraCombatProc) {const p=a.lastMantraCombatProc;this.castSeen.set('mproc:'+kind+':'+a.id,p.t+'|'+p.kind);}
+        if(a.lastDefensiveArtProc) {const p=a.lastDefensiveArtProc;this.castSeen.set('dproc:'+kind+':'+a.id,p.t+'|'+p.kind);}
+        if(a.lastSupportArtProc) {const p=a.lastSupportArtProc;this.castSeen.set('sproc:'+kind+':'+a.id,p.t+'|'+p.kind);}
+        if(a.lastForbiddenArtProc) {const p=a.lastForbiddenArtProc;this.castSeen.set('fproc:'+kind+':'+a.id,p.t+'|'+p.kind);}
+        if(a.lastPetIntercept) {const p=a.lastPetIntercept;this.castSeen.set('petp:'+kind+':'+a.id,p.t+'|'+p.petId);}
+        if(a.lastParryCounter) {const p=a.lastParryCounter;this.castSeen.set('parry:'+kind+':'+a.id,p.t+'|parry');}
+        if(a.lastShadowCloneIntercept) {const p=a.lastShadowCloneIntercept;this.castSeen.set('scln:'+kind+':'+a.id,p.t+'|clone');}
+        if(a.lastSubstitutionSave) {const p=a.lastSubstitutionSave;this.castSeen.set('subs:'+kind+':'+a.id,p.t+'|sub');}
       };
       W.npcs.forEach(a => baseline(a, 'npc'));
       (W.foes || []).forEach(a => baseline(a, 'foe'));
@@ -1851,6 +1868,7 @@
       const read = (a, kind) => {
         const key = kind + ':' + a.id;
         present.add(key);
+        const pos = kind === 'npc' ? this.npcPos(a) : a;
         const proc = a.lastWeaponProc, procKey = 'proc:' + key;
         present.add(procKey);
         if (proc && proc.triggered) {
@@ -1860,22 +1878,25 @@
             const item = Object.values(a.equip || {}).find(it => it && it.id === proc.weaponId);
             const spec = R.resolveLegendaryGearVisual(item);
             const usable = item && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(a,item));
-            const pos = kind === 'npc' ? this.npcPos(a) : a;
             if (spec && usable && !a.dead && !a.away && !a.gone && !a.hidden && Number.isFinite(proc.t) && W.t-proc.t >= 0 && W.t-proc.t <= 8 &&
                 Number.isFinite(pos.x) && Number.isFinite(pos.y) && Math.abs(pos.x*TS-this.cam.x) <= hw+176 && Math.abs(pos.y*TS-this.cam.y) <= hh+176) {
+              const useTgt = !!(proc.isOffensive && Number.isFinite(proc.targetX) && Number.isFinite(proc.targetY) && Math.hypot((proc.targetX - pos.x) * TS, (proc.targetY - pos.y) * TS) <= 160);
+              const rx = (useTgt ? proc.targetX : pos.x) * TS, ry = (useTgt ? proc.targetY : pos.y) * TS;
+              const ox = pos.x * TS, oy = pos.y * TS;
               this.castActive.delete(procKey);
               if(this.castActive.size>=24) this.castActive.delete(this.castActive.keys().next().value);
-              this.castActive.set(procKey,{ownerId:a.id,relicId:spec.id,kind:'relic',x:pos.x*TS,y:pos.y*TS,angle:0,start:this.castClock,life:R.legendarySceneLife({relicId:spec.id})});
+              this.castActive.set(procKey,{ownerId:a.id,relicId:spec.id,kind:'relic',x:rx,y:ry,originX:ox,originY:oy,angle:Math.atan2(ry-oy,rx-ox),start:this.castClock,life:R.legendarySceneLife({relicId:spec.id})});
             }
           }
         }
+        this.ingestEquipAndActionProcs(a, kind, key, pos, hw, hh, present);
         const event = a.castFx;
         if (!event) return;
         const stamp = event.seq + '|' + event.t;
         if (this.castSeen.get(key) === stamp) return;
         this.castSeen.set(key, stamp);
         if (a.dead || a.away || a.gone || a.hidden || !Number.isFinite(event.t) || W.t - event.t < 0 || W.t - event.t > 8 || !Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
-        const actorPos = kind === 'npc' ? this.npcPos(a) : a;
+        const actorPos = pos;
         const x = event.x * TS, y = event.y * TS;
         const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
         const padding=event.legendary||(techObj&&techObj.legendary)||/^legend_/.test(event.motif||event.fxKind||'')?176:96;
@@ -1887,16 +1908,26 @@
         const eventArtOverride = event.fxKind || (event.signatureVfx && event.signatureVfx !== automaticSignature);
         const commonVfx = !eventArtOverride && g.SK && g.SK.resolveCommonVfx ? g.SK.resolveCommonVfx(techObj || event, { id: event.moveId }) : null;
         const t6Vfx = !eventArtOverride && g.SK && g.SK.resolveT6Vfx ? g.SK.resolveT6Vfx(techObj || event,{id:event.moveId}) : null;
+        const t6ExtVfx = !eventArtOverride && !t6Vfx && g.SK && g.SK.resolveT6ExtVfx ? g.SK.resolveT6ExtVfx(techObj || event,{id:event.moveId}) : null;
         const t7Vfx = !eventArtOverride && g.SK && g.SK.resolveT7Vfx ? g.SK.resolveT7Vfx(techObj || event, { id:event.moveId }) : null;
+        const t5Vfx = !eventArtOverride && g.SK && g.SK.resolveT5Vfx ? g.SK.resolveT5Vfx(techObj || event, { id: event.moveId }) : null;
+        const t4Vfx = !eventArtOverride && g.SK && g.SK.resolveT4Vfx ? g.SK.resolveT4Vfx(techObj || event, { id: event.moveId }) : null;
         const t3Vfx = !eventArtOverride && g.SK && g.SK.resolveT3Vfx ? g.SK.resolveT3Vfx(techObj || event, { id: event.moveId }) : null;
+        const t3GroupVfx = !eventArtOverride && !t3Vfx && g.SK && g.SK.resolveT3GroupVfx ? g.SK.resolveT3GroupVfx(techObj || event, { id: event.moveId }) : null;
+        const t2Vfx = !eventArtOverride && !commonVfx && g.SK && g.SK.resolveT2Vfx ? g.SK.resolveT2Vfx(techObj || event, { id: event.moveId }) : null;
+        const t1Vfx = !eventArtOverride && !commonVfx && g.SK && g.SK.resolveT1Vfx ? g.SK.resolveT1Vfx(techObj || event, { id: event.moveId }) : null;
         const forbidden = event.kind === 'forbidden';
         const motif = event.motif || event.fxKind || (forbidden ? 'forbidden' : 'normal');
         const isLegend = !!(event.legendary || (techObj && techObj.legendary) || (motif && String(motif).startsWith('legend_')));
+        const isSpecialtyArt = !!(techObj && (/^INNATE_|_GRAND_DAO$|MANTRA/.test(techObj.cat || "") || /^INNATE_/.test(techObj.id || "")));
+        const subpathMotif = !isLegend && g.SK && g.SK.resolveSubpathVfxMotif ? g.SK.resolveSubpathVfxMotif(techObj || event, { id: event.moveId, tier: event.tier }) : null;
         const shown=this.castActive.get(key);
-        // Coalesce rapid repeats of the same selected ordinary T6/T7 until release is visible.
+        // Coalesce rapid repeats of the same selected ordinary T6/T7/T5/T4 until release is visible.
         // Keep the original factual snapshot; a different art, explicit override or Legendary cast bypasses this.
         if(t7Vfx&&!isLegend&&shown&&shown.t7Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.55)return;
-        if(t6Vfx&&!isLegend&&shown&&shown.t6Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.55)return;
+        if((t6Vfx||t6ExtVfx)&&!isLegend&&shown&&(shown.t6Vfx||shown.t6ExtVfx)&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.55)return;
+        if(t5Vfx&&!isLegend&&shown&&shown.t5Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.52)return;
+        if(t4Vfx&&!isLegend&&shown&&shown.t4Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.50)return;
         this.castActive.delete(key);
         if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
         const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
@@ -1910,9 +1941,17 @@
           fxKind: event.fxKind || (isLegend ? motif : null),
           signatureVfx: event.signatureVfx || (techObj && techObj.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(techObj || event) : null) || null,
           commonVfx: forbidden || isLegend ? null : commonVfx,
+          t1Vfx: forbidden || isLegend || commonVfx ? null : t1Vfx,
+          t2Vfx: forbidden || isLegend || commonVfx ? null : t2Vfx,
           t3Vfx: forbidden || isLegend ? null : t3Vfx,
-          t7Vfx: isLegend ? null : (t7Vfx && event.techId),
+          t3GroupVfx: forbidden || isLegend || t3Vfx ? null : t3GroupVfx,
+          t4Vfx: isLegend ? null : t4Vfx,
+          t5Vfx: isLegend ? null : t5Vfx,
           t6Vfx: isLegend ? null : t6Vfx,
+          t6ExtVfx: isLegend || t6Vfx ? null : t6ExtVfx,
+          t7Vfx: isLegend ? null : (t7Vfx && event.techId),
+          subpathMotif,
+          isSpecialtyArt,
           legendary: isLegend,
           techId: event.techId || null,
           moveId: event.moveId || null,
@@ -1921,6 +1960,15 @@
           arch: event.arch || null,
           element: elemKey,
           fusion: fusionKey,
+          path: event.path || (techObj && techObj.path) || (a.cult && a.cult.path) || null,
+          subpath: event.subpath || (techObj && techObj.sub) || (a.cult && a.cult.sub) || null,
+          cat: event.cat || (techObj && techObj.cat) || null,
+          bandIndex: event.bandIndex || 1,
+          rangeShape: event.rangeShape || 'SINGLE',
+          isRanged: !!event.isRanged,
+          isGapCloser: !!event.isGapCloser,
+          castRole: event.castRole || null,
+          fromEquipmentGrant: !!event.fromEquipmentGrant,
           stage: (a.cult && a.cult.stage) || 1,
           x,
           y,
@@ -1931,7 +1979,14 @@
             .slice(0, 8).map(point => ({ x: point.x * TS, y: point.y * TS, team: point.team !== false })) : [],
           angle: Math.atan2(y - originY, x - originX),
           start: this.castClock,
-          life: isLegend ? R.legendarySceneLife({techId:event.techId}) : (t6Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[6].life : (t7Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[7].life : (t3Vfx && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life : (commonVfx && !forbidden ? 540 : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))))))
+          life: isLegend ? R.legendarySceneLife({techId:event.techId})
+            : ((t6Vfx || t6ExtVfx) ? g.SK.NONLEGENDARY_VFX_BUDGET[6].life
+            : (t7Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[7].life
+            : (t5Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[5].life
+            : (t4Vfx ? g.SK.NONLEGENDARY_VFX_BUDGET[4].life
+            : ((t3Vfx || t3GroupVfx) && !forbidden ? g.SK.NONLEGENDARY_VFX_BUDGET[3].life
+            : ((commonVfx || t2Vfx || t1Vfx) && !forbidden ? 540
+            : ((event.signatureVfx || (g.SK && g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(techObj || event))) ? 920 : (forbidden ? 650 : 450))))))))
         });
       };
       W.npcs.forEach(a => read(a, 'npc'));
@@ -2786,24 +2841,46 @@
       const t7Full=new Set(),t7Owners=new Set(),t7Limit=fullScenes.size?1:(this.resolveQuality()==='low'?1:3);
       for(const f of candidates){if(t7Full.size>=t7Limit)break;if(!f.t7Vfx||f.legendary||f.relicId||(f.ownerId&&(t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t7Full.add(f);if(f.ownerId)t7Owners.add(f.ownerId);}
       const t6Full=new Set(),t6Owners=new Set(),t6Limit=fullScenes.size||t7Full.size?1:(this.resolveQuality()==='low'?1:3);
-      for(const f of candidates){if(t6Full.size>=t6Limit)break;if(!f.t6Vfx||f.legendary||f.relicId||(f.ownerId&&(t6Owners.has(f.ownerId)||t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t6Full.add(f);if(f.ownerId)t6Owners.add(f.ownerId);}
+      for(const f of candidates){if(t6Full.size>=t6Limit)break;if(!(f.t6Vfx||f.t6ExtVfx)||f.legendary||f.relicId||(f.ownerId&&(t6Owners.has(f.ownerId)||t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t6Full.add(f);if(f.ownerId)t6Owners.add(f.ownerId);}
+      const t5Full=new Set(),t5Owners=new Set(),t5Limit=fullScenes.size||t7Full.size||t6Full.size?2:(this.resolveQuality()==='low'?1:4);
+      for(const f of candidates){if(t5Full.size>=t5Limit)break;if(!f.t5Vfx||f.legendary||f.relicId||(f.ownerId&&(t5Owners.has(f.ownerId)||t6Owners.has(f.ownerId)||t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t5Full.add(f);if(f.ownerId)t5Owners.add(f.ownerId);}
+      const t4Full=new Set(),t4Owners=new Set(),t4Limit=fullScenes.size||t7Full.size?2:(this.resolveQuality()==='low'?2:4);
+      for(const f of candidates){if(t4Full.size>=t4Limit)break;if(!f.t4Vfx||f.legendary||f.relicId||(f.ownerId&&(t4Owners.has(f.ownerId)||t5Owners.has(f.ownerId)||t6Owners.has(f.ownerId)||t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t4Full.add(f);if(f.ownerId)t4Owners.add(f.ownerId);}
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
         this.drawCastTargetMarks(ctx, fx, p, reduced);
+        this.drawRangedAndSpatialDeliveryVfx(ctx, fx, p, reduced);
         ctx.save(); ctx.translate(fx.x, fx.y - 7); ctx.globalAlpha = fade; ctx.lineCap = 'round';
-        if (fx.relicId && R.LEGENDARY_GEAR_VISUALS[fx.relicId]) {
+        if (fx.equipEffectVfx) {
+          this.drawEquipEffectVfx(ctx, fx, p, reduced);
+        } else if (fx.combatActionVfx) {
+          this.drawCombatActionVfx(ctx, fx, p, reduced);
+        } else if (fx.relicId && R.LEGENDARY_GEAR_VISUALS[fx.relicId]) {
           this.drawLegendaryRelicScene(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryArtVfx(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.t6Vfx) {
           this.drawT6SkillVfx(ctx,fx,p,reduced,t6Full.has(fx));
+        } else if (fx.t6ExtVfx) {
+          this.drawT6ExtSkillVfx(ctx,fx,p,reduced,t6Full.has(fx));
         } else if (fx.t7Vfx) {
           this.drawT7SkillVfx(ctx,fx,p,reduced,t7Full.has(fx));
+        } else if (fx.t5Vfx) {
+          this.drawT5SkillVfx(ctx,fx,p,reduced,t5Full.has(fx));
+        } else if (fx.t4Vfx) {
+          this.drawT4SkillVfx(ctx,fx,p,reduced,t4Full.has(fx));
         } else if (fx.t3Vfx) {
           const budget = g.SK.NONLEGENDARY_VFX_BUDGET[3];
           this.drawT3SkillVfx(ctx, fx.t3Vfx, p, reduced ? 18 : budget.rMin + (budget.rMax - budget.rMin) * p, reduced, fx.angle, fx.arch);
+        } else if (fx.t3GroupVfx) {
+          const budget = g.SK.NONLEGENDARY_VFX_BUDGET[3];
+          this.drawT3ExtSkillVfx(ctx, fx.t3GroupVfx, p, reduced ? 18 : budget.rMin + (budget.rMax - budget.rMin) * p, reduced, fx.angle, fx.arch);
         } else if (fx.commonVfx) {
           this.drawCommonSkillVfx(ctx, fx.commonVfx, p, reduced ? 12 : 11 + p * 4, reduced, fx.angle);
+        } else if (fx.t2Vfx) {
+          this.drawT2SkillVfx(ctx, fx.t2Vfx, p, reduced ? 13 : 12 + p * 3, reduced, fx.angle, fx.arch);
+        } else if (fx.t1Vfx) {
+          this.drawT1ExtSkillVfx(ctx, fx.t1Vfx, p, reduced ? 12 : 11 + p * 3.5, reduced, fx.angle);
         } else if (fx.signatureVfx) {
           this.drawSignatureSkillVfx(ctx, fx, p, r, reduced);
           if (!fx.legendary && fx.weaponType) this.drawWeaponMotionVfx(ctx, fx, p, r * 0.82, reduced, 0.42);
@@ -2831,6 +2908,9 @@
           ctx.rotate(fx.angle); ctx.strokeStyle = '#e989a0'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(0, 0, r * 1.05, -0.5, 0.5); ctx.stroke();
           if (!reduced) { ctx.fillStyle = '#c79be2'; for (let i = 0; i < 4; i++) { const a = i * 1.7, d = r * (0.6 + i * 0.1); ctx.fillRect(Math.cos(a) * d, Math.sin(a) * d * 0.5 - p * (10 + i * 2), 1.7, 2.5); } }
           if (fx.weaponType) this.drawWeaponMotionVfx(ctx, fx, p, r * 0.7, reduced, 0.32);
+        }
+        if (fx.isSpecialtyArt && fx.subpathMotif && !fx.legendary) {
+          this.drawSubpathMotifOverlay(ctx, fx, p, r * 0.68, reduced);
         }
         ctx.restore();
       }
@@ -3102,7 +3182,7 @@
     // T7 equipment has owner-bound, type-aware accents, not fabricated relic procs.
     drawT7EquipmentGlyph(ctx,type,r){
       if(!ctx)return false;
-      type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY'})[type]||type;
+      type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY',PENDANT:'NECKLACE',BOSS_TROPHY:'ORNAMENT',TALISMAN:'CHARM',FIST_PALM:'FIST'})[type]||type;
       if(R.WEAPON_MOTION_VFX[type])return this.drawWeaponMotionVfx(ctx,{weaponType:type,tier:7,angle:-.35},.5,r,true,.66);
       ctx.save();ctx.scale(r,r);ctx.strokeStyle='#d4ca9d';ctx.lineWidth=1/r;
       const line=(ps,closed=false)=>{ctx.beginPath();ps.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(closed)ctx.closePath();ctx.stroke();};
@@ -3124,13 +3204,15 @@
 
     drawT7EquipmentAura(ctx,n,ap,by=0){return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by,[7]);},
     drawT6EquipmentAura(ctx,n,ap,by=0){return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by,[6]);},
+    drawT5EquipmentAura(ctx,n,ap,by=0){return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by,[5]);},
+    drawT4EquipmentAura(ctx,n,ap,by=0){return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by,[4]);},
     drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by=0,tiers=[6,7]){
       if(!ctx||!n||n.dead||n.hidden||n.away||n.gone)return false;
       const items=Object.values(n.equip||{});let drawn=0;
       for(const it of items){
         if(drawn>=3)break;
         if(!it||!tiers.includes(it.tier)||it.legendary||R.resolveLegendaryGearVisual(it)||(g.MARTIAL&&g.MARTIAL.gearUsable&&!g.MARTIAL.gearUsable(n,it)))continue;
-        const rawType=it.gearType||it.subType,type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY'})[rawType]||rawType,finish=it.tier===6?.82:1,armor=['HEAVY','LIGHT','ROBE'].includes(type),weapon=!!R.WEAPON_MOTION_VFX[type];
+        const rawType=it.gearType||it.subType,type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY',PENDANT:'NECKLACE',BOSS_TROPHY:'ORNAMENT',TALISMAN:'CHARM',FIST_PALM:'FIST'})[rawType]||rawType,finish=it.tier===7?1:(it.tier===6?.82:(it.tier===5?.68:.56)),armor=['HEAVY','LIGHT','ROBE'].includes(type),weapon=!!R.WEAPON_MOTION_VFX[type];
         ctx.save();ctx.translate(weapon?10:armor?0:-10,weapon?-12+by:armor?-9+by:-16+by);ctx.globalAlpha*=(armor?.35:.55)*finish;
         const ok=this.drawT7EquipmentGlyph(ctx,type,(armor?7:weapon?4.6:4.2)*finish);ctx.restore();if(ok)drawn++;
       }
@@ -3329,13 +3411,29 @@
     drawCommonPassiveAura(ctx, n, act, by = 0) {
       if (!ctx || !n || n.dead || n.away || n.gone || n.hidden || !g.SK ||
           !['fight','practice','cultivate','breakthrough'].includes(act) && this.selected !== n.id) return false;
-      const tech = this.readOnlyActivePassives(n).find(t => !t.legendary && (g.SK.PASSIVE_TO_COMMON_VFX[t.id] || g.SK.PASSIVE_TO_T3_VFX[t.id] || g.SK.PASSIVE_TO_T6_VFX[t.id]));
-      if (!tech) return false;
+      const passives = this.readOnlyActivePassives(n);
+      const primaryTech = passives.find(t => !t.legendary && (g.SK.PASSIVE_TO_COMMON_VFX[t.id] || g.SK.PASSIVE_TO_T3_VFX[t.id] || g.SK.PASSIVE_TO_T6_VFX[t.id]));
+      const extTech = primaryTech || passives.find(t => !t.legendary && (
+        (g.SK.PASSIVE_TO_T6_EXT_VFX && g.SK.PASSIVE_TO_T6_EXT_VFX[t.id]) ||
+        (g.SK.PASSIVE_TO_T5_VFX && g.SK.PASSIVE_TO_T5_VFX[t.id]) ||
+        (g.SK.PASSIVE_TO_T4_VFX && g.SK.PASSIVE_TO_T4_VFX[t.id]) ||
+        (g.SK.PASSIVE_TO_T3_GROUP_VFX && g.SK.PASSIVE_TO_T3_GROUP_VFX[t.id]) ||
+        (g.SK.PASSIVE_TO_T2_VFX && g.SK.PASSIVE_TO_T2_VFX[t.id]) ||
+        (g.SK.PASSIVE_TO_T1_VFX && g.SK.PASSIVE_TO_T1_VFX[t.id])
+      ));
+      if (!extTech) return false;
+      const low = this.resolveQuality() === 'low';
       ctx.save(); ctx.translate(0, 3 + by*.2); ctx.globalAlpha *= .38;
-      if(g.SK.PASSIVE_TO_T6_VFX[tech.id]) this.drawT6FamilyGlyph(ctx,g.SK.PASSIVE_TO_T6_VFX[tech.id],.5,9.5,true,this.resolveQuality()==='low');
-      else if(g.SK.PASSIVE_TO_T3_VFX[tech.id]) this.drawT3SkillVfx(ctx, g.SK.PASSIVE_TO_T3_VFX[tech.id], .5, 8, true);
-      else this.drawCommonSkillVfx(ctx, g.SK.PASSIVE_TO_COMMON_VFX[tech.id], .5, 7, true);
-      ctx.restore(); return tech.id;
+      if (g.SK.PASSIVE_TO_T6_VFX[extTech.id]) this.drawT6FamilyGlyph(ctx, g.SK.PASSIVE_TO_T6_VFX[extTech.id], .5, 9.5, true, low);
+      else if (g.SK.PASSIVE_TO_T3_VFX[extTech.id]) this.drawT3SkillVfx(ctx, g.SK.PASSIVE_TO_T3_VFX[extTech.id], .5, 8, true);
+      else if (g.SK.PASSIVE_TO_COMMON_VFX[extTech.id]) this.drawCommonSkillVfx(ctx, g.SK.PASSIVE_TO_COMMON_VFX[extTech.id], .5, 7, true);
+      else if (g.SK.PASSIVE_TO_T6_EXT_VFX && g.SK.PASSIVE_TO_T6_EXT_VFX[extTech.id]) this.drawT6ExtFamilyGlyph(ctx, g.SK.PASSIVE_TO_T6_EXT_VFX[extTech.id], .5, 9.5, true, low);
+      else if (g.SK.PASSIVE_TO_T5_VFX && g.SK.PASSIVE_TO_T5_VFX[extTech.id]) this.drawT5FamilyGlyph(ctx, g.SK.PASSIVE_TO_T5_VFX[extTech.id], .5, 9.0, true, low);
+      else if (g.SK.PASSIVE_TO_T4_VFX && g.SK.PASSIVE_TO_T4_VFX[extTech.id]) this.drawT4FamilyGlyph(ctx, g.SK.PASSIVE_TO_T4_VFX[extTech.id], .5, 8.5, true, low);
+      else if (g.SK.PASSIVE_TO_T3_GROUP_VFX && g.SK.PASSIVE_TO_T3_GROUP_VFX[extTech.id]) this.drawT3ExtSkillVfx(ctx, g.SK.PASSIVE_TO_T3_GROUP_VFX[extTech.id], .5, 8.0, true);
+      else if (g.SK.PASSIVE_TO_T2_VFX && g.SK.PASSIVE_TO_T2_VFX[extTech.id]) this.drawT2SkillVfx(ctx, g.SK.PASSIVE_TO_T2_VFX[extTech.id], .5, 7.2, true);
+      else if (g.SK.PASSIVE_TO_T1_VFX && g.SK.PASSIVE_TO_T1_VFX[extTech.id]) this.drawT1ExtSkillVfx(ctx, g.SK.PASSIVE_TO_T1_VFX[extTech.id], .5, 6.8, true);
+      ctx.restore(); return extTech.id;
     },
 
     drawAppliedBuffAura(ctx, n, by) {
@@ -6587,7 +6685,7 @@
       if (!inCombat) return false;
       const t = this.t + (n.n || 0) * 0.73;
       const swingPhase = Math.sin(t * 8.5);
-      if (act !== 'fight' && swingPhase < 0.15) return false;
+      if (act === 'fight' ? (lunge <= 0 && swingPhase < 0.55) : (swingPhase < 0.15)) return false;
 
       const wType = (ap && ap.weaponType) || 'SWORD';
       const elKey = (ap && ap.weaponElement) || (n.cult && n.cult.element) || 'METAL';
@@ -6607,6 +6705,57 @@
         ctx.beginPath();
         ctx.arc(12 + lunge, -13 + by, 4.2, -0.9, 0.9);
         ctx.stroke();
+      } else if (wType === 'BOW') {
+        // Ranged Bow Release & Arrow Qi Streak
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(6, -11 + by);
+        ctx.lineTo(20 + lunge * 1.5, -11 + by);
+        ctx.lineTo(16 + lunge * 1.5, -13.5 + by);
+        ctx.moveTo(20 + lunge * 1.5, -11 + by);
+        ctx.lineTo(16 + lunge * 1.5, -8.5 + by);
+        ctx.stroke();
+      } else if (wType === 'NEEDLE') {
+        // Ranged Silver/Venom Needle Fan Volley
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 1.2;
+        for (let i = -1; i <= 1; i++) {
+          ctx.beginPath();
+          ctx.moveTo(6, -11 + by);
+          ctx.lineTo(17 + lunge, -11 + by + i * 3.5);
+          ctx.stroke();
+        }
+      } else if (wType === 'FAN') {
+        // Ranged Wind-Fan Gale Wave
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(9 + lunge, -11 + by, 8.5, -0.95, 0.95);
+        ctx.stroke();
+        ctx.strokeStyle = pal.secondary;
+        ctx.beginPath();
+        ctx.arc(12 + lunge, -11 + by, 6.2, -0.75, 0.75);
+        ctx.stroke();
+      } else if (wType === 'BRUSH') {
+        // Calligraphy Ink Rune Sweep
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 2.1;
+        ctx.beginPath();
+        ctx.moveTo(4, -15 + by);
+        ctx.quadraticCurveTo(13 + lunge, -11 + by, 8 + lunge, -5 + by);
+        ctx.stroke();
+      } else if (wType === 'ASTROLABE' || wType === 'ABACUS' || wType === 'ROSARY' || wType === 'FOCUS') {
+        // Ranged Focus / Star-Dial / Rosary / Abacus Qi Pulse
+        ctx.strokeStyle = pal.primary;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(10 + lunge, -11 + by, 5.5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = pal.secondary;
+        ctx.beginPath();
+        ctx.arc(10 + lunge, -11 + by, 1.8, 0, Math.PI * 2);
+        ctx.fill();
       } else if (wType === 'ZITHER') {
         // Expanding Sonic Jade Ripple Rings
         ctx.strokeStyle = '#80ffdb';
@@ -6615,8 +6764,8 @@
         ctx.beginPath();
         ctx.arc(8, -11 + by, rr, -1.1, 1.1);
         ctx.stroke();
-      } else if (wType === 'FIST_PALM' || !wType) {
-        // Golden/Elemental Palm Shockwave Arc
+      } else if (wType === 'FIST_PALM' || wType === 'FIST' || wType === 'CLAW' || !wType) {
+        // Golden/Elemental Palm & Claw Shockwave Arc
         ctx.strokeStyle = pal.secondary;
         ctx.lineWidth = 2.2;
         ctx.beginPath();
@@ -6670,6 +6819,733 @@
         ctx.arc(Math.cos(a) * r * 0.85, Math.sin(a) * r * 0.42 - p * 8, 1.8, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.restore();
+      return true;
+    },
+
+
+    /* ---------- Patch v2.6.0: Tier-Scaled VFX (T5, T4, T3 Ext, T2, T1 Ext, T6 Ext), Subpath Motifs, Ranged Delivery & Equipment/Action VFX ---------- */
+    ingestEquipAndActionProcs(a, kind, baseKey, pos, hw, hh, present) {
+      if (!a || a.dead || a.away || a.gone || a.hidden || !this.W || !g.SK) return;
+      const W = this.W;
+      const admit = (subKey, stamp, payload) => {
+        const fullKey = subKey + ':' + baseKey;
+        present.add(fullKey);
+        if (!stamp || this.castSeen.get(fullKey) === stamp) return;
+        this.castSeen.set(fullKey, stamp);
+        if (!Number.isFinite(payload.t) || W.t - payload.t < 0 || W.t - payload.t > 8) return;
+        const px = payload.x, py = payload.y;
+        if (!Number.isFinite(px) || !Number.isFinite(py) || Math.abs(px - this.cam.x) > hw + 112 || Math.abs(py - this.cam.y) > hh + 112) return;
+        this.castActive.delete(fullKey);
+        if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
+        this.castActive.set(fullKey, payload);
+      };
+      const ox = Number.isFinite(pos.x) ? pos.x * TS : 0, oy = Number.isFinite(pos.y) ? pos.y * TS : 0;
+      const resolveCoords = (proc, anchorMode) => {
+        const hasTgt = Number.isFinite(proc.targetX) && Number.isFinite(proc.targetY) && Math.hypot((proc.targetX - pos.x) * TS, (proc.targetY - pos.y) * TS) <= 180;
+        const useTarget = (anchorMode === 'target' || anchorMode === 'conduit') && hasTgt;
+        const x = useTarget ? proc.targetX * TS : ox;
+        const y = useTarget ? proc.targetY * TS : oy;
+        const origX = Number.isFinite(proc.originX) ? proc.originX * TS : ox;
+        const origY = Number.isFinite(proc.originY) ? proc.originY * TS : oy;
+        return { x, y, originX: origX, originY: origY, angle: Math.atan2(y - origY, x - origX) };
+      };
+
+      if (a.lastItemEffectProc && g.SK.resolveEquipEffectVfx) {
+        const p = a.lastItemEffectProc;
+        const spec = g.SK.resolveEquipEffectVfx(p.effectId, p.kind);
+        if (spec) {
+          const anchorMode = p.kind === 'onHit' ? spec.anchor : 'self';
+          const c = resolveCoords(p, anchorMode);
+          admit('iproc', p.t + '|' + p.itemId + '|' + p.effectId, {
+            ownerId: a.id, t: p.t, equipEffectVfx: spec.id, equipSpec: spec, anchorMode,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 680
+          });
+        }
+      }
+      if (a.lastResonanceTrigger && g.SK.resolveEquipEffectVfx) {
+        const p = a.lastResonanceTrigger;
+        const spec = g.SK.resolveEquipEffectVfx(p.setId, p.selfBuff ? 'self' : 'target');
+        if (spec) {
+          const anchorMode = p.selfBuff ? 'self' : 'target';
+          const c = resolveCoords(p, anchorMode);
+          admit('rproc', p.t + '|' + p.setId, {
+            ownerId: a.id, t: p.t, equipEffectVfx: spec.id, equipSpec: spec, anchorMode,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 760
+          });
+        }
+      }
+      if (a.lastTrinitySurge && g.SK.resolveEquipEffectVfx) {
+        const p = a.lastTrinitySurge;
+        const spec = g.SK.resolveEquipEffectVfx('EFX_TRINITY_RELIC_SURGE', 'target');
+        if (spec) {
+          const c = resolveCoords(p, 'target');
+          admit('tproc', p.t + '|trinity', {
+            ownerId: a.id, t: p.t, equipEffectVfx: spec.id, equipSpec: spec, anchorMode: 'conduit',
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 1150
+          });
+        }
+      }
+      if (a.lastPathGaugeFinisher && g.SK.resolveCombatActionVfx) {
+        const p = a.lastPathGaugeFinisher;
+        const spec = g.SK.resolveCombatActionVfx('PATH_GAUGE_FINISHER', { path: p.path || (a.cult && a.cult.path) || 'XIAN' });
+        if (spec) {
+          const c = resolveCoords(p, 'target');
+          admit('fin', p.t + '|' + p.gaugeId, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 1100
+          });
+        }
+      }
+      if (a.lastDuetSkill && g.SK.resolveCombatActionVfx) {
+        const p = a.lastDuetSkill;
+        const spec = g.SK.resolveCombatActionVfx('DUET_RESONANCE_STRIKE');
+        if (spec) {
+          const c = resolveCoords(p, 'conduit');
+          admit('duet', p.t + '|' + p.duetId, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            partnerX: Number.isFinite(p.partnerX) ? p.partnerX * TS : c.originX,
+            partnerY: Number.isFinite(p.partnerY) ? p.partnerY * TS : c.originY,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 980
+          });
+        }
+      }
+      if (a.lastChargedRelease && g.SK.resolveCombatActionVfx) {
+        const p = a.lastChargedRelease;
+        const spec = g.SK.resolveCombatActionVfx('CHARGED_SKILL_RELEASE');
+        if (spec) {
+          const c = resolveCoords(p, 'target');
+          admit('chrg', p.t + '|' + p.skillId, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 920
+          });
+        }
+      }
+      if (a.lastElementalReaction && g.SK.resolveCombatActionVfx) {
+        const p = a.lastElementalReaction;
+        const spec = g.SK.resolveCombatActionVfx('ELEMENTAL_REACTION_BURST');
+        if (spec) {
+          const c = resolveCoords(p, 'target');
+          admit('elrx', p.t + '|' + p.reactionId, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 820
+          });
+        }
+      }
+      if (a.lastMarkDetonation && g.SK.resolveCombatActionVfx) {
+        const p = a.lastMarkDetonation;
+        const spec = g.SK.resolveCombatActionVfx('MARK_DETONATION_BURST');
+        if (spec) {
+          const c = resolveCoords(p, 'target');
+          admit('mdet', p.t + '|' + p.targetId, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 780
+          });
+        }
+      }
+      if (a.lastAcupointStrike && g.SK.resolveCombatActionVfx) {
+        const p = a.lastAcupointStrike;
+        const spec = g.SK.resolveCombatActionVfx('ACUPOINT_SEAL_STRIKE');
+        if (spec) {
+          const c = resolveCoords(p, 'target');
+          admit('acup', p.t + '|' + p.pointId, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 720
+          });
+        }
+      }
+      if (a.lastMantraCombatProc && g.SK.resolveCombatActionVfx) {
+        const p = a.lastMantraCombatProc;
+        const mapKind = {
+          SOLAR_FURNACE_BURN: 'MANTRA_SOLAR_FURNACE_BURN',
+          NETHER_VORTEX_SIPHON: 'MANTRA_NETHER_VORTEX_SIPHON',
+          EVERGREEN_SPRING_HEAL: 'MANTRA_EVERGREEN_SPRING_HEAL',
+          VAJRA_BELL_REFLECT: 'MANTRA_VAJRA_BELL_REFLECT',
+          FROST_MIRROR_SHIELD: 'MANTRA_FROST_MIRROR_SHIELD',
+          SWORD_QI_COUNTER: 'MANTRA_SWORD_QI_COUNTER'
+        }[p.kind] || 'MANTRA_SOLAR_FURNACE_BURN';
+        const spec = g.SK.resolveCombatActionVfx(mapKind);
+        if (spec) {
+          const c = resolveCoords(p, spec.anchor);
+          admit('mproc', p.t + '|' + p.kind, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 740
+          });
+        }
+      }
+      if (a.lastDefensiveArtProc && g.SK.resolveCombatActionVfx) {
+        const p = a.lastDefensiveArtProc;
+        const mapKind = p.kind === 'ALLY_AEGIS_INTERCEPT' ? 'DEF_ALLY_AEGIS_INTERCEPT'
+          : p.kind === 'TAIJI_REDIRECT' ? 'DEF_TAIJI_REDIRECT'
+          : p.kind === 'CICADA_MOLT_SAVE' ? 'DEF_CICADA_MOLT_SAVE'
+          : 'DEF_COUNTER_SLASH';
+        const spec = g.SK.resolveCombatActionVfx(mapKind);
+        if (spec) {
+          const c = resolveCoords(p, spec.anchor);
+          admit('dproc', p.t + '|' + p.kind, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 740
+          });
+        }
+      }
+      if (a.lastSupportArtProc && g.SK.resolveCombatActionVfx) {
+        const p = a.lastSupportArtProc;
+        const mapKind = /_HEAL$/.test(p.kind || '') ? 'SUP_SANCTUARY_HEAL' : 'SUP_COMMAND_BUFF';
+        const spec = g.SK.resolveCombatActionVfx(mapKind);
+        if (spec) {
+          const c = resolveCoords(p, 'self');
+          admit('sproc', p.t + '|' + p.kind, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 720
+          });
+        }
+      }
+      if (a.lastForbiddenArtProc && g.SK.resolveCombatActionVfx) {
+        const p = a.lastForbiddenArtProc;
+        const mapKind = p.kind === 'TABOO_DESPERATION_NOVA' ? 'FORB_DESPERATION_NOVA' : 'FORB_TABOO_STRIKE';
+        const spec = g.SK.resolveCombatActionVfx(mapKind);
+        if (spec) {
+          const c = resolveCoords(p, spec.anchor);
+          admit('fproc', p.t + '|' + p.kind, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 880
+          });
+        }
+      }
+      if (a.lastPetIntercept && g.SK.resolveCombatActionVfx) {
+        const p = a.lastPetIntercept;
+        const spec = g.SK.resolveCombatActionVfx('PET_GUARDIAN_INTERCEPT');
+        if (spec) {
+          admit('petp', p.t + '|' + p.petId, {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: ox, y: oy, originX: ox, originY: oy, angle: 0, start: this.castClock, life: 700
+          });
+        }
+      }
+      if (a.lastParryCounter && g.SK.resolveCombatActionVfx) {
+        const p = a.lastParryCounter;
+        const spec = g.SK.resolveCombatActionVfx('SAMURAI_PARRY_COUNTER');
+        if (spec) {
+          const c = resolveCoords(p, 'target');
+          admit('parry', p.t + '|parry', {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: c.x, y: c.y, originX: c.originX, originY: c.originY, angle: c.angle, start: this.castClock, life: 720
+          });
+        }
+      }
+      if (a.lastShadowCloneIntercept && g.SK.resolveCombatActionVfx) {
+        const p = a.lastShadowCloneIntercept;
+        const spec = g.SK.resolveCombatActionVfx('SHADOW_CLONE_INTERCEPT');
+        if (spec) {
+          admit('scln', p.t + '|clone', {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: ox, y: oy, originX: ox, originY: oy, angle: 0, start: this.castClock, life: 680
+          });
+        }
+      }
+      if (a.lastSubstitutionSave && g.SK.resolveCombatActionVfx) {
+        const p = a.lastSubstitutionSave;
+        const spec = g.SK.resolveCombatActionVfx('WOOD_SUBSTITUTION_SAVE');
+        if (spec) {
+          admit('subs', p.t + '|sub', {
+            ownerId: a.id, t: p.t, combatActionVfx: spec.id, actionSpec: spec,
+            x: ox, y: oy, originX: ox, originY: oy, angle: 0, start: this.castClock, life: 720
+          });
+        }
+      }
+    },
+
+    drawUniversalTierGlyph(ctx, spec, p, radius, reduced, low = false, tier = 4, angle = 0, arch = null) {
+      if (!ctx || !spec) return false;
+      const budget = (g.SK && g.SK.NONLEGENDARY_VFX_BUDGET && g.SK.NONLEGENDARY_VFX_BUDGET[tier]) || { rMin: 16, rMax: 29, marks: 6 };
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      const r = clamp(radius, 1, budget.rMax);
+      const shapeId = Number.isFinite(spec.shapeId) ? spec.shapeId : 0;
+      const motifGroup = shapeId % 12;
+      const variantIdx = Math.floor(shapeId / 12);
+      const maxMarks = low ? Math.max(2, Math.floor(budget.marks * 0.6)) : budget.marks;
+      const nPetals = Math.min(maxMarks, 3 + (shapeId % 5));
+      const beat = Math.sin(q * Math.PI);
+      const turn = reduced ? 0 : (q - 0.5) * 0.16;
+
+      ctx.save();
+      ctx.scale(r, r);
+      if (spec.motion === 'sweep') ctx.rotate(angle + turn);
+      else if (spec.motion === 'rise') ctx.translate(0, -beat * 0.06);
+      else if (spec.motion === 'weave') ctx.scale(1, 1 - beat * 0.05);
+      else if (spec.motion === 'gather') ctx.scale(0.92 + beat * 0.08, 0.92 + beat * 0.08);
+      else if (spec.motion === 'pulse') ctx.scale(0.95 + beat * 0.05, 0.95 + beat * 0.05);
+      else if (angle) ctx.rotate(angle);
+
+      ctx.strokeStyle = spec.primary || '#9fd2e3';
+      ctx.fillStyle = spec.accent || spec.primary || '#e0f4f8';
+      ctx.lineWidth = (tier >= 5 ? 1.38 : tier === 4 ? 1.28 : 1.18) / r;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const line = (pts, close = false) => {
+        ctx.beginPath();
+        for (let i = 0; i < pts.length; i++) {
+          if (i === 0) ctx.moveTo(pts[i][0], pts[i][1]);
+          else ctx.lineTo(pts[i][0], pts[i][1]);
+        }
+        if (close) ctx.closePath();
+        ctx.stroke();
+      };
+      const oval = (x, y, rx, ry, rot = 0) => {
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2);
+        ctx.stroke();
+      };
+      const vOff = +(0.04 * (variantIdx + 1)).toFixed(3);
+
+      switch (motifGroup) {
+        case 0: {
+          // Crescent Sword / Saber Qi Arc + Inner Blade Spine
+          ctx.beginPath();
+          ctx.arc(0, 0, 0.72 + vOff * 0.4, -1.15 - vOff, 1.05 + vOff);
+          ctx.stroke();
+          line([[-0.72, 0.18 - vOff], [0.76, -0.18 + vOff], [0.48, -0.34]]);
+          break;
+        }
+        case 1: {
+          // Piercing Spear / Arrow / Lightning Conduit
+          line([[-0.82, 0], [0.78, 0], [0.46, -0.22 - vOff], [0.78, 0], [0.46, 0.22 + vOff]]);
+          oval(-0.15 + vOff, 0, 0.26, 0.42);
+          break;
+        }
+        case 2: {
+          // Blooming Lotus / Palm Shockwave Petals
+          for (let i = 0; i < nPetals; i++) {
+            const a = (i * Math.PI * 2) / nPetals + vOff;
+            oval(Math.cos(a) * 0.48, Math.sin(a) * 0.42, 0.24, 0.11, a);
+          }
+          oval(0, 0, 0.22 + vOff * 0.3, 0.22 + vOff * 0.3);
+          break;
+        }
+        case 3: {
+          // Protective Dome / Bell / Carapace Bastion
+          line([[-0.64, 0.48], [-0.64, -0.38 - vOff], [0, -0.78], [0.64, -0.38 - vOff], [0.64, 0.48]], true);
+          oval(0, 0.48, 0.68, 0.16);
+          break;
+        }
+        case 4: {
+          // Taiji / Samsara / Yin-Yang Dual Swirl
+          ctx.beginPath();
+          ctx.arc(0, 0, 0.68, vOff, Math.PI + vOff);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0, 0, 0.68, Math.PI + vOff, Math.PI * 2 + vOff);
+          ctx.stroke();
+          oval(-0.24, -0.12 + vOff * 0.5, 0.12, 0.12);
+          oval(0.24, 0.12 - vOff * 0.5, 0.12, 0.12);
+          break;
+        }
+        case 5: {
+          // Bagua / Star Array / Astrolabe Polygon
+          const pts = [];
+          const sides = 4 + (variantIdx % 5);
+          for (let i = 0; i < sides; i++) {
+            const a = (i * Math.PI * 2) / sides + vOff;
+            pts.push([Math.cos(a) * 0.72, Math.sin(a) * 0.72]);
+          }
+          line(pts, true);
+          line([[-0.38, 0], [0.38, 0]]);
+          line([[0, -0.38], [0, 0.38]]);
+          break;
+        }
+        case 6: {
+          // Beast Fang / Claw / Totem Horns
+          for (const d of [-1, 1]) {
+            line([[d * 0.68, -0.62 - vOff], [d * 0.28, -0.15], [d * 0.74, 0.52 + vOff]]);
+          }
+          line([[-0.32, -0.18], [0, 0.28 + vOff], [0.32, -0.18]], true);
+          break;
+        }
+        case 7: {
+          // Zither Sonic Waves / Dream Silk Ribbons
+          for (let i = -1; i <= 1; i++) {
+            const y = i * (0.26 + vOff * 0.3);
+            ctx.beginPath();
+            ctx.moveTo(-0.78, y);
+            ctx.bezierCurveTo(-0.28, y - 0.28, 0.28, y + 0.28, 0.78, y);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 8: {
+          // Cauldron / Furnace / Alchemy Gourd
+          line([[-0.56, -0.22], [-0.44, 0.52], [0.44, 0.52], [0.56, -0.22]], true);
+          oval(0, -0.22, 0.56, 0.15);
+          line([[0, -0.38], [-0.18, -0.68 - vOff], [0.18, -0.68 - vOff]], true);
+          break;
+        }
+        case 9: {
+          // Marionette Threads / Karma Chains / Venom Web
+          line([[-0.76, -0.62], [0.76, -0.62]]);
+          for (let i = -1; i <= 1; i++) {
+            const x = i * (0.46 + vOff * 0.2);
+            line([[x, -0.62], [-x * 0.4, 0.05], [x * 0.85, 0.58]]);
+          }
+          break;
+        }
+        case 10: {
+          // Command War Banner / Calligraphy Scroll / Edict Pillar
+          line([[-0.52, 0.68], [-0.52, -0.72], [0.56, -0.52 - vOff], [0.22, -0.18], [-0.52, -0.24]]);
+          oval(0.18, 0.28, 0.28 + vOff * 0.3, 0.18);
+          break;
+        }
+        default: {
+          // Void Rift / Gravity Singularity / Sundial Prism
+          line([[-0.76, 0.48], [-0.18, 0.08], [0.16, -0.24], [0.76, -0.62 - vOff]]);
+          oval(0, 0, 0.64, 0.26 + vOff * 0.3, 0.45);
+          oval(0, 0, 0.64, 0.26 + vOff * 0.3, -0.45);
+          break;
+        }
+      }
+
+      // Unique family signature mark (guarantees 100% distinct ops per shapeId in both High & Low quality)
+      const sigAngle = ((shapeId * 0.47) % (Math.PI * 2));
+      const sx = +(Math.cos(sigAngle) * (0.52 + (shapeId % 7) * 0.04)).toFixed(3);
+      const sy = +(Math.sin(sigAngle) * (0.44 + (shapeId % 5) * 0.04)).toFixed(3);
+      ctx.strokeStyle = spec.accent || spec.primary;
+      line([[sx, sy], [+(sx * 1.18).toFixed(3), +(sy * 1.18).toFixed(3)]]);
+
+      if (!low && tier >= 4) {
+        ctx.globalAlpha *= 0.56;
+        ctx.beginPath();
+        ctx.arc(0, 0, 0.88, 0.2 + (reduced ? 0 : q * 0.25), 1.2 + (reduced ? 0 : q * 0.25));
+        ctx.stroke();
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawT5FamilyGlyph(ctx, key, p, radius, reduced, low = false) {
+      const spec = g.SK && g.SK.T5_VFX_FAMILIES && g.SK.T5_VFX_FAMILIES[key];
+      if (!ctx || !spec) return false;
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[5];
+      return this.drawUniversalTierGlyph(ctx, spec, p, clamp(radius, 1, b.rMax), reduced, low, 5);
+    },
+
+    drawT5SkillVfx(ctx, fx, p, reduced, full = true) {
+      const key = fx.t5Vfx || (g.SK && g.SK.TECH_TO_T5_VFX && g.SK.TECH_TO_T5_VFX[fx.techId]);
+      const spec = g.SK && g.SK.T5_VFX_FAMILIES && g.SK.T5_VFX_FAMILIES[key];
+      if (!ctx || !spec) return false;
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      const low = this.resolveQuality() === 'low';
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[5];
+      const radius = full ? (reduced ? 35.5 : b.rMin + (b.rMax - b.rMin) * Math.sin(Math.min(1, q / 0.65) * Math.PI / 2)) : 16;
+      ctx.save();
+      ctx.globalAlpha *= 1 - clamp((q - 0.76) / 0.24, 0, 1);
+      this.drawT5FamilyGlyph(ctx, key, q, radius, reduced, low);
+      if (full) {
+        const wave = Math.sin(clamp((q - 0.24) / 0.46, 0, 1) * Math.PI);
+        const supportive = ['heal', 'support', 'buff', 'harmonize', 'guard', 'shield', 'counter', 'evade'].includes(fx.arch);
+        ctx.strokeStyle = spec.accent;
+        ctx.lineWidth = 1.25;
+        ctx.globalAlpha *= 0.58 * wave;
+        ctx.beginPath();
+        if (supportive) {
+          ctx.moveTo(-radius * 0.48, radius * 0.18);
+          ctx.quadraticCurveTo(0, -radius * 0.52, radius * 0.48, radius * 0.18);
+        } else {
+          ctx.rotate(Number.isFinite(fx.angle) ? fx.angle : 0);
+          ctx.moveTo(-radius * 0.62, 0);
+          ctx.lineTo(radius * 0.72, 0);
+          ctx.lineTo(radius * 0.50, -3.5);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawT4FamilyGlyph(ctx, key, p, radius, reduced, low = false) {
+      const spec = g.SK && g.SK.T4_VFX_FAMILIES && g.SK.T4_VFX_FAMILIES[key];
+      if (!ctx || !spec) return false;
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[4];
+      return this.drawUniversalTierGlyph(ctx, spec, p, clamp(radius, 1, b.rMax), reduced, low, 4);
+    },
+
+    drawT4SkillVfx(ctx, fx, p, reduced, full = true) {
+      const key = fx.t4Vfx || (g.SK && g.SK.TECH_TO_T4_VFX && g.SK.TECH_TO_T4_VFX[fx.techId]);
+      const spec = g.SK && g.SK.T4_VFX_FAMILIES && g.SK.T4_VFX_FAMILIES[key];
+      if (!ctx || !spec) return false;
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      const low = this.resolveQuality() === 'low';
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[4];
+      const radius = full ? (reduced ? 26.5 : b.rMin + (b.rMax - b.rMin) * Math.sin(Math.min(1, q / 0.65) * Math.PI / 2)) : 13;
+      ctx.save();
+      ctx.globalAlpha *= 1 - clamp((q - 0.76) / 0.24, 0, 1);
+      this.drawT4FamilyGlyph(ctx, key, q, radius, reduced, low);
+      if (full) {
+        const wave = Math.sin(clamp((q - 0.24) / 0.46, 0, 1) * Math.PI);
+        const supportive = ['heal', 'support', 'buff', 'harmonize', 'guard', 'shield', 'counter', 'evade'].includes(fx.arch);
+        ctx.strokeStyle = spec.accent;
+        ctx.lineWidth = 1.15;
+        ctx.globalAlpha *= 0.54 * wave;
+        ctx.beginPath();
+        if (supportive) {
+          ctx.moveTo(-radius * 0.45, radius * 0.16);
+          ctx.quadraticCurveTo(0, -radius * 0.48, radius * 0.45, radius * 0.16);
+        } else {
+          ctx.rotate(Number.isFinite(fx.angle) ? fx.angle : 0);
+          ctx.moveTo(-radius * 0.58, 0);
+          ctx.lineTo(radius * 0.68, 0);
+          ctx.lineTo(radius * 0.46, -3.0);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+      return true;
+    },
+
+    drawT3ExtSkillVfx(ctx, id, p, radius, reduced, angle = 0, arch = null) {
+      if (g.SK && g.SK.T3_VFX_CATALOG && g.SK.T3_VFX_CATALOG[id]) {
+        return this.drawT3SkillVfx(ctx, id, p, radius, reduced, angle, arch);
+      }
+      const spec = g.SK && g.SK.T3_EXT_VFX_CATALOG && g.SK.T3_EXT_VFX_CATALOG[id];
+      if (!ctx || !spec) return false;
+      const low = this.resolveQuality && this.resolveQuality() === 'low';
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[3];
+      return this.drawUniversalTierGlyph(ctx, spec, p, clamp(radius, 1, b.rMax), reduced, low, 3, angle, arch);
+    },
+
+    drawT2SkillVfx(ctx, id, p, radius, reduced, angle = 0, arch = null) {
+      const spec = g.SK && g.SK.T2_VFX_FAMILIES && g.SK.T2_VFX_FAMILIES[id];
+      if (!ctx || !spec) return false;
+      const low = this.resolveQuality && this.resolveQuality() === 'low';
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[2];
+      return this.drawUniversalTierGlyph(ctx, spec, p, clamp(radius, 1, b.rMax), reduced, low, 2, angle, arch);
+    },
+
+    drawT1ExtSkillVfx(ctx, id, p, radius, reduced, angle = 0, harmful = false) {
+      if (g.SK && g.SK.COMMON_VFX_CATALOG && g.SK.COMMON_VFX_CATALOG[id]) {
+        return this.drawCommonSkillVfx(ctx, id, p, radius, reduced, angle, harmful);
+      }
+      const spec = g.SK && g.SK.T1_EXT_VFX_CATALOG && g.SK.T1_EXT_VFX_CATALOG[id];
+      if (!ctx || !spec) return false;
+      const low = this.resolveQuality && this.resolveQuality() === 'low';
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[1];
+      return this.drawUniversalTierGlyph(ctx, spec, p, clamp(radius, 1, b.rMax), reduced, low, 1, angle);
+    },
+
+    drawT6ExtFamilyGlyph(ctx, key, p, radius, reduced, low = false) {
+      if (g.SK && g.SK.T6_VFX_FAMILIES && g.SK.T6_VFX_FAMILIES[key]) {
+        return this.drawT6FamilyGlyph(ctx, key, p, radius, reduced, low);
+      }
+      const spec = g.SK && g.SK.T6_EXT_VFX_FAMILIES && g.SK.T6_EXT_VFX_FAMILIES[key];
+      if (!ctx || !spec) return false;
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[6];
+      return this.drawUniversalTierGlyph(ctx, spec, p, clamp(radius, 1, b.rMax), reduced, low, 6);
+    },
+
+    drawT6ExtSkillVfx(ctx, fx, p, reduced, full = true) {
+      const key = fx.t6ExtVfx || (g.SK && g.SK.TECH_TO_T6_EXT_VFX && g.SK.TECH_TO_T6_EXT_VFX[fx.techId]);
+      if (g.SK && g.SK.T6_VFX_FAMILIES && g.SK.T6_VFX_FAMILIES[key]) {
+        return this.drawT6SkillVfx(ctx, { ...fx, t6Vfx: key }, p, reduced, full);
+      }
+      const spec = g.SK && g.SK.T6_EXT_VFX_FAMILIES && g.SK.T6_EXT_VFX_FAMILIES[key];
+      if (!ctx || !spec) return false;
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      const low = this.resolveQuality() === 'low';
+      const b = g.SK.NONLEGENDARY_VFX_BUDGET[6];
+      const radius = full ? (reduced ? 44.5 : b.rMin + (b.rMax - b.rMin) * Math.sin(Math.min(1, q / 0.65) * Math.PI / 2)) : 18;
+      ctx.save();
+      ctx.globalAlpha *= 1 - clamp((q - 0.76) / 0.24, 0, 1);
+      this.drawT6ExtFamilyGlyph(ctx, key, q, radius, reduced, low);
+      ctx.restore();
+      return true;
+    },
+
+    drawSubpathMotifOverlay(ctx, fx, p, radius, reduced) {
+      const motif = fx && fx.subpathMotif;
+      if (!ctx || !motif) return false;
+      const tier = clamp(fx.tier || motif.tier || 1, 1, 7);
+      const budget = (g.SK && g.SK.NONLEGENDARY_VFX_BUDGET && g.SK.NONLEGENDARY_VFX_BUDGET[tier]) || { rMax: 20 };
+      const maxAllowed = budget.rMax * (motif.tierScale || 0.65);
+      const r = Math.min(radius, maxAllowed);
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      ctx.save();
+      ctx.scale(r, r);
+      ctx.strokeStyle = motif.primary || '#9ec4d6';
+      ctx.fillStyle = motif.accent || '#ddecf2';
+      ctx.lineWidth = 1.05 / Math.max(1, r);
+      ctx.globalAlpha *= 0.46;
+      const idx = (motif.shapeId || 0) % 6;
+      ctx.beginPath();
+      if (idx === 0) {
+        ctx.arc(0, 0, 0.52, -0.8 + (reduced ? 0 : q * 0.4), 0.8 + (reduced ? 0 : q * 0.4));
+      } else if (idx === 1) {
+        ctx.moveTo(-0.45, 0); ctx.lineTo(0, -0.45); ctx.lineTo(0.45, 0); ctx.lineTo(0, 0.45); ctx.closePath();
+      } else if (idx === 2) {
+        ctx.ellipse(0, 0, 0.56, 0.24, reduced ? 0.3 : q * 0.6, 0, Math.PI * 2);
+      } else if (idx === 3) {
+        ctx.moveTo(-0.48, 0.28); ctx.lineTo(0, -0.52); ctx.lineTo(0.48, 0.28); ctx.closePath();
+      } else if (idx === 4) {
+        ctx.arc(0, -0.1, 0.46, Math.PI, Math.PI * 2);
+      } else {
+        ctx.moveTo(-0.42, -0.42); ctx.lineTo(0.42, 0.42); ctx.moveTo(-0.42, 0.42); ctx.lineTo(0.42, -0.42);
+      }
+      ctx.stroke();
+      ctx.restore();
+      return true;
+    },
+
+    drawRangedAndSpatialDeliveryVfx(ctx, fx, p, reduced) {
+      if (!ctx || !fx || !Number.isFinite(fx.originX) || !Number.isFinite(fx.originY) || !Number.isFinite(fx.x) || !Number.isFinite(fx.y)) return false;
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      const fade = Math.min(1, (1 - q) * 2.6);
+      const sx = fx.originX, sy = fx.originY - 7;
+      const tx = fx.x, ty = fx.y - 7;
+      const dx = tx - sx, dy = ty - sy, dist = Math.hypot(dx, dy);
+      let drew = false;
+
+      // 1. Equipment-Granted Active Skill Crest at Caster Origin
+      if (fx.fromEquipmentGrant) {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.globalAlpha = fade * 0.68;
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.ellipse(0, 6, 9.5, 4.2, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        drew = true;
+      }
+
+      // 2. Hybrid Offensive Harmonize Wave (Caster -> Hostile TargetPoints)
+      if (fx.castRole === 'HYBRID_HARMONIZE' && Array.isArray(fx.targetPoints)) {
+        for (const pt of fx.targetPoints) {
+          if (!pt || pt.team !== false) continue;
+          const hdx = pt.x - tx, hdy = (pt.y - 7) - ty;
+          if (Math.hypot(hdx, hdy) < 6) continue;
+          const prog = reduced ? 0.6 : clamp(q * 1.4, 0, 1);
+          const wx = tx + hdx * prog, wy = ty + hdy * prog;
+          ctx.save();
+          ctx.globalAlpha = fade * 0.72;
+          ctx.strokeStyle = '#8ec7c2';
+          ctx.lineWidth = 1.35;
+          ctx.beginPath();
+          ctx.moveTo(tx, ty);
+          ctx.quadraticCurveTo((tx + wx) * 0.5, (ty + wy) * 0.5 - 8, wx, wy);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y - 7, 6 + prog * 4, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          drew = true;
+        }
+      }
+
+      if (dist < 14) return drew;
+      const tier = clamp(fx.tier || 1, 1, 7);
+      const strokeW = 1.0 + tier * 0.14;
+
+      // 3. Gap-Closer / Blink / Charge Dash Trail from Origin to Target
+      if (fx.isGapCloser) {
+        ctx.save();
+        ctx.globalAlpha = fade * 0.65;
+        ctx.strokeStyle = fx.arch === 'blink' ? '#b39ddb' : '#90e0ef';
+        ctx.lineWidth = strokeW;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+        for (let i = 1; i <= 2; i++) {
+          const u = i / 3;
+          ctx.beginPath();
+          ctx.ellipse(sx + dx * u, sy + dy * u, 3.2, 5.4, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+        return true;
+      }
+
+      // 4. Ranged Projectile / Sonic Wave / Star Beam Travel from Origin to Target
+      if (fx.isRanged) {
+        const prog = reduced ? 0.65 : clamp(q * 1.55, 0, 1);
+        const px = sx + dx * prog, py = sy + dy * prog;
+        const ang = Math.atan2(dy, dx);
+        ctx.save();
+        ctx.globalAlpha = fade * 0.76;
+        ctx.strokeStyle = '#a8dadc';
+        ctx.fillStyle = '#f1faee';
+        ctx.lineWidth = strokeW;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+        ctx.translate(px, py);
+        ctx.rotate(ang);
+        ctx.beginPath();
+        ctx.moveTo(-6, -2.5);
+        ctx.lineTo(4, 0);
+        ctx.lineTo(-6, 2.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        return true;
+      }
+      return drew;
+    },
+
+    drawEquipEffectVfx(ctx, fx, p, reduced) {
+      const spec = fx.equipSpec || (g.SK && g.SK.EQUIP_EFFECT_VFX_CATALOG && g.SK.EQUIP_EFFECT_VFX_CATALOG[fx.equipEffectVfx]);
+      if (!ctx || !spec) return false;
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      const r = reduced ? 18 : 14 + q * 8;
+      ctx.save();
+      if ((fx.anchorMode === 'conduit' || fx.anchorMode === 'target') && Number.isFinite(fx.originX) && Number.isFinite(fx.originY)) {
+        const odx = fx.originX - fx.x, ody = fx.originY - fx.y;
+        if (Math.hypot(odx, ody) > 10) {
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = 1.25;
+          ctx.globalAlpha *= 0.62;
+          ctx.beginPath();
+          ctx.moveTo(odx, ody);
+          ctx.quadraticCurveTo(odx * 0.5, ody * 0.5 - 9, 0, 0);
+          ctx.stroke();
+        }
+      }
+      this.drawUniversalTierGlyph(ctx, spec, q, r, reduced, this.resolveQuality() === 'low', 4, fx.angle || 0);
+      ctx.restore();
+      return true;
+    },
+
+    drawCombatActionVfx(ctx, fx, p, reduced) {
+      const spec = fx.actionSpec || (g.SK && g.SK.COMBAT_ACTION_VFX_CATALOG && g.SK.COMBAT_ACTION_VFX_CATALOG[fx.combatActionVfx]);
+      if (!ctx || !spec) return false;
+      const q = reduced ? 0.5 : clamp(p, 0, 1);
+      const isFinisher = String(spec.id || '').startsWith('FINISHER_') || spec.id === 'FORB_DESPERATION_NOVA';
+      const r = isFinisher ? (reduced ? 30 : 24 + q * 11) : (reduced ? 20 : 16 + q * 8);
+      ctx.save();
+      if ((spec.anchor === 'conduit' || spec.anchor === 'target') && Number.isFinite(fx.originX) && Number.isFinite(fx.originY)) {
+        const odx = fx.originX - fx.x, ody = fx.originY - fx.y;
+        if (Math.hypot(odx, ody) > 10) {
+          ctx.strokeStyle = spec.primary;
+          ctx.lineWidth = isFinisher ? 1.65 : 1.25;
+          ctx.globalAlpha *= 0.68;
+          ctx.beginPath();
+          ctx.moveTo(odx, ody);
+          ctx.quadraticCurveTo(odx * 0.5, ody * 0.5 - 12, 0, 0);
+          ctx.stroke();
+        }
+      }
+      if (Number.isFinite(fx.partnerX) && Number.isFinite(fx.partnerY)) {
+        const pdx = fx.partnerX - fx.x, pdy = fx.partnerY - fx.y;
+        if (Math.hypot(pdx, pdy) > 10) {
+          ctx.strokeStyle = spec.accent || spec.primary;
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(pdx, pdy);
+          ctx.quadraticCurveTo(pdx * 0.5, pdy * 0.5 + 12, 0, 0);
+          ctx.stroke();
+        }
+      }
+      this.drawUniversalTierGlyph(ctx, spec, q, r, reduced, this.resolveQuality() === 'low', isFinisher ? 5 : 4, fx.angle || 0);
       ctx.restore();
       return true;
     },
