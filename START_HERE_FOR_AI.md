@@ -1,62 +1,45 @@
-# งานปัจจุบันในสาขา company — เกมบริษัทเวอร์ชันแรกและแกนมนุษย์ (ยังไม่เริ่ม)
+# 🚀 จุดเริ่มต้นสำหรับ AI (START HERE FOR AI — Company Survival Sim Onboarding)
 
-ผู้ใช้มอบหมายให้ AGY ใช้โมเดล Opus สร้างเกมบริษัทเวอร์ชันแรกที่เล่นได้จริง พร้อมตัวละคร โซนออฟฟิศและโรงงานที่ใช้งานได้ และออกแบบแกนบุคลิก ค่านิยม ความสามารถเป็นรากฐาน อ่านและดำเนินการตาม [ใบสั่งงานแกนมนุษย์](COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md) ก่อนเริ่มงานอื่น โดยใช้ดุลพินิจและตรวจซอร์สจริงตามที่ระบุ เอกสารใบสั่งงานเป็นข้อกำหนดงาน ไม่ใช่หลักฐานว่าแกนได้ถูกพัฒนาแล้ว
-
----
-
-# 🏢 สาขา Company — แนวคิดเกมใหม่ "Company Survival Simulation" (สำหรับ Codex & ทีมพัฒนา)
-
-> [!NOTE]
-> **สถานะสาขา `company` (Active R&D Branch):**  
-> สาขานี้ถูกสร้างขึ้นเพื่อบันทึกการระดมสมองและข้อเสนอการพัฒนาเกมใหม่แนว **"จำลองชีวิตในสำนักงานบริษัทที่กำลังจะเจ๊ง (SME Crisis)"**  
-> โดยยึดปรัชญาเดิมของ JS2: **NPC ตัดสินใจเองตามธรรมชาติ 100% (Autonomous NPC Life Simulation)**  
-> 📖 **กรุณาอ่านเอกสารแม่บทฉบับเต็มที่: [`COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md`](COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md)**  
-> เพื่อศึกษาแนวคิด สถาปัตยกรรมการแสดงผล Canvas 2D, การแปลง `human_core.js`, วงจรชีวิตพนักงาน, ระบบเศรษฐกิจมหภาค และร่วมตอบคำถามหารือในส่วนท้ายของเอกสาร
+> [!IMPORTANT]
+> **คำสั่งด่วนสำหรับ AI (Claude Opus / Sonnet / Codex / Antigravity):**  
+> คุณกำลังทำงานอยู่บนสาขา Git: **`company`**  
+> โครงการเดิม (JianghuSect 2 / JS2) ถูก **พักการพัฒนาไว้ชั่วคราว** ห้ามแตะต้องหรือแก้ไขไฟล์ใน `GAME_SOURCE/`  
+> ขณะนี้ผู้ใช้มอบหมายให้พัฒนา **"เกมใหม่: Company Survival Simulation (SME Crisis)"** ซึ่งเป็นเกมจำลองชีวิตพนักงานในบริษัทที่กำลังจะเจ๊ง มีทั้ง **โซนออฟฟิศและโซนโรงงานผลิตสินค้า** ที่มองเห็นและเล่นได้จริงตั้งแต่เวอร์ชันแรก โดยใช้เอนจิน NPC ตัดสินใจเองตามธรรมชาติ 100%  
+> **งานของคุณในรอบนี้ถูกกำหนดไว้ครบถ้วนแล้วในเอกสารสารบัญด้านล่าง ไม่ต้องเสียโควต้าสำรวจไฟล์อื่นในคลังโดยไม่จำเป็น!**
 
 ---
 
-# เริ่มงานที่นี่ — JianghuSect 2
+## 📍 สรุปพิกัดเอกสารสำคัญ (Quick Navigation Map)
 
-## ล่าสุด: งานภาพไล่ระดับครบทุกระดับขั้น T1–T7, สายย่อย/มรรคา และเอฟเฟกต์อุปกรณ์/แอคชั่นการรบ (`JS2-v2.6.0` Complete VFX Expansion)
+| เอกสาร | ลิงก์ไฟล์ | วัตถุประสงค์ |
+| :--- | :--- | :--- |
+| **ใบสั่งงานแกนมนุษย์ (Codex Mandate)** | [`COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md`](COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md) | **[ต้องอ่าน]** ข้อกำหนดการออกแบบแกนมนุษย์แบบมิติผสม, วงจรผลิตโรงงาน+ออฟฟิศ, และการล็อกแกน |
+| **ใบสั่งงานสถาปัตยกรรม (Active Specification)** | [`ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md`](ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md) | **[ต้องอ่าน]** สเปก 7 เสาหลักทางเทคนิคในการสร้างระบบ `COMPANY_SOURCE/` |
+| **แผนแม่บทสถาปัตยกรรม (Full Blueprint)** | [`COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md`](COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md) | ผังออฟฟิศ 2D, แบบแปลนสินค้า T1–T7, โลกภายนอก, และประเด็นหารือ |
+| **ระบบจิตวิทยาอ้างอิงเดิม (Reference Only)** | [`GAME_SOURCE/js/human_core.js`](GAME_SOURCE/js/human_core.js) | โค้ดต้นแบบคณิตศาสตร์จิตวิทยา Seed RNG (เปิดดูเฉพาะเมื่อต้องการเทียบตรรกะ) |
 
-- **ครบทุกระดับขั้น T1–T7 (>= 64 ลายต่อระดับ) + สายย่อย + อุปกรณ์/แอคชั่นการรบ ทำเสร็จสมบูรณ์แล้ว:** T1 (64 ลาย / 213 วิชา), T2 (64 ลาย / 148 วิชา), T3 (68 ลาย / 169 วิชา), T4 (72 ลาย / 395 วิชา + 143 อุปกรณ์), T5 (68 ลาย / 158 วิชา + 143 อุปกรณ์), T6 (64 ลาย / 132 วิชา + 117 อุปกรณ์), T7 (71 ลาย / 71 วิชา + 85 อุปกรณ์), ตราประจำสายย่อย/มรรคา 64 รูปแบบ + คัมภีร์ปราณ 122 บท, เอฟเฟกต์ทักษะอุปกรณ์ 64 รูปแบบ + 31 เซ็ตเรโซแนนซ์, แอคชั่นการรบ 36 รูปแบบ, และแก้ไขพิกัดเป้าหมาย/วิถีระยะไกล-ประชิดครบ 100% (**164/164 PASS, 0 FAIL, 0 TIMEOUT**). ดู [รายงาน](PATCH_REPORTS/COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md) และ [ทะเบียน](docs/audits/V2_6_0_COMPLETE_TIER_SUBPATH_EQUIP_VFX_REGISTRY.md).
+---
 
-- Legendary Apex ทำแล้ว: 47 วิชาที่ร่ายได้ / 3 พาสซีฟ / 27 อุปกรณ์ตำนาน
-- **T7 ทำแล้ว:** 71 วิชาทั่วไป / 157 ท่าย่อย / 85 อุปกรณ์ใน 25 ประเภท ดู [รายงาน](PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md) และ [ทะเบียน](docs/audits/T7_VISUAL_ASSIGNMENT_REGISTRY.md)
-- **T6 selected group art:** 50 ลายรูปทรงต่างกัน ใช้ร่วมกันตามกลุ่ม ครอบคลุม 114 วิชา / 207 ท่าย่อย, พาสซีฟที่เข้าเงื่อนไข 8 วิชา และอุปกรณ์เดิม 117 รายการ / 25 ประเภทจริง (27 raw tags). สเกล 42–47 px / 1,250 ms; ไม่เพิ่มค่าสถานะหรือเปลี่ยนเซฟ. ดู [ทะเบียน](docs/audits/T6_GROUP_VFX_REGISTRY.md) และ [รายงาน](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md). งานถัดไปเมื่อผู้ใช้สั่ง: [T5](docs/handovers/NEXT_T5_VISUAL_PATCH.md).
-- ผลทดสอบ refinement ล่าสุด: Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. ดูรายละเอียดในรายงาน T6; ตัวเลขพงศาวดาร 148/148 ด้านล่างเป็นผลของฐานเดิม
+## 🛠️ โครงสร้างโฟลเดอร์สำหรับงานนี้ (Workspace Boundary)
+การพัฒนาทั้งหมดในสาขานี้ ต้องสร้างขึ้นในโฟลเดอร์ **`COMPANY_SOURCE/`** เท่านั้น:
+```
+COMPANY_SOURCE/
+├── index.html                   # หน้าจอเกม Standalone 100% Offline (แสดงทั้งโซนออฟฟิศและโรงงาน)
+├── js/
+│   ├── company_human_core.js    # จิตวิทยาแกนมนุษย์ มิติบุคลิกภาพ ค่านิยม ความถนัด และสถานะเปลี่ยนได้
+│   ├── company_office.js        # ผังพื้นที่ Grid (โซนออฟฟิศ + โซนโรงงาน/สายผลิต + สถานีทำงาน)
+│   ├── company_blueprints.js    # สายธุรกิจ, แบบแปลนสินค้า, สัญญาลูกค้า และวัตถุดิบการผลิต
+│   ├── company_sim.js           # เอนจินเวลา 09:00-18:00, Daily Routine, Cash Runway & บันทึก/โหลด
+│   └── company_render.js        # เรนเดอร์ Canvas 2D ออฟฟิศ+โรงงาน และ Sprite พนักงาน
+└── test/
+    └── company_core_test.js     # ชุดทดสอบอัตโนมัติบน Node.js (รันผ่าน 100%)
+```
 
+---
 
-## สถานะปัจจุบันของแพ็กเกจนี้ (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว)
-
-- **เวอร์ชันปัจจุบัน**: **`JS2-v2.6.0 — พงศาวดารมีชีวิตและการรายงานยุทธภพ`** (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, `HC.FINGERPRINT = '155:2f9c9dd7'`)
-- **สถานะใบสั่งงาน `ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`**: **ดำเนินการพัฒนา ทดสอบ และส่งมอบเสร็จสมบูรณ์แล้ว 100%**
-  - รายงานการพัฒนาฉบับเต็ม: [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md)
-  - ตารางสำรวจ Producer → UI Coverage Matrix: [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
-  - สำเนาใบสั่งงานที่ดำเนินการเสร็จแล้ว: [`docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md)
-- **ผลการตรวจรับรองฐานพงศาวดารก่อน VFX refinement** (ผลล่าสุดอยู่ด้านบน):
-  - `node GAME_SOURCE/test/core_lock.js`: **PASS** (`155:2f9c9dd7`, SHA-256 ของ `js/human_core.js` = `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542` byte-identical)
-  - `node GAME_SOURCE/tools/validate_data_schema.js`: **PASS** (`Errors: 0, Warnings: 0`)
-  - `node GAME_SOURCE/tools/run_parallel_tests.js`: **PASS (`148/148` กลุ่มทดสอบผ่าน 100% จาก 147 ชุดทดสอบ + 1 กลุ่มตรวจ Syntax 225 ไฟล์)**
-  - `GAME_SOURCE/JianghuSect_single.html`: สร้างใหม่ตรงกับซอร์ส `JS2-v2.6.0` (ฝัง WebP 9 แผ่นครบ)
-
-## สิ่งที่มีอยู่ในฐาน `JS2-v2.6.0` นี้
-
-1. **พงศาวดารมีชีวิตและการรายงานยุทธภพ (`JS2-v2.6.0`)**:
-   - **Fact Snapshot & Epistemic Status (`js/expedition.js`, `js/sim.js`)**: เก็บข้อเท็จจริงและ Snapshot ผู้เกี่ยวข้อง ณ เวลาเกิดเหตุ (`factSnapshot`, `actorSnapshots`, `formerNames`), แยกสถานะความน่าเชื่อถือ (`VERIFIED` / `OBSERVED` / `RUMOR`), และเปิดดูระเบียนประวัติย้อนหลังได้แม้ตัวละครเสียชีวิต ฝังสุสาน ถูกขับไล่ หรือเปลี่ยนชื่อ (`UI.rHistoricalPerson`)
-   - **รายงาน 12 รูปแบบพร้อมลิ้นชักอธิบายตัวเลข (`EXPED.presentChronicleEntry`)**: พาดหัว ➔ บทนำตามน้ำเสียง ➔ จุดเปลี่ยน/เหตุและผล ➔ ผลกระทบ/สิ่งที่น่าติดตาม ➔ ลิ้นชักตัวเลขและ Snapshot ที่อธิบายความหมายในเกมจริงโดยไม่แต่งเรื่อง
-   - **สมุดสรุปสถานการณ์สำนักประจำรอบ 1/7/30 วัน (`EXPED.computePeriodDigest` / `EXPED.recordPeriodicDigest`)**: แยกปริมาณคงคลังปลายงวด, กระแสศิลาวิญญาณรับ–จ่ายภายนอก, การโอนภายในสำนัก (แจกของ/แลก CP/บริจาค), และการเสกของผู้เล่นออกจากกันอย่างเด็ดขาด ไม่บวกซ้ำ
-   - **เส้นเรื่องต่อเนื่อง (`EXPED.getStoryThreads`)**: ติดตามต้นเหตุ ➔ จุดเปลี่ยน ➔ สถานะล่าสุด จาก `storyThreadId` จริง
-   - **แยกการตั้งค่ารับข่าว (`W.sect.newsPrefs`) ออกจากการค้นอ่านคลังประวัติ (`UI.logFilters`)**: มี 5 โหมดสำเร็จรูป (`ALL`, `MAJOR_ONLY`, `SECT_FOCUS`, `TRACKED_ONLY`, `QUIET_DIGEST`), นโยบายข่าววิกฤต 3 ระดับ (`ALWAYS_ALERT`, `FEED_ONLY`, `STRICT_MUTE`), ปักหมุดติดตามศิษย์คนสำคัญ, สถานะอ่านแล้ว/ยังไม่อ่าน, และการคุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง (`Milestone-Protected Retention`)
-2. **ฐานระบบและภาพจาก `JS2-v2.5.0` ที่รักษาไว้ครบถ้วน**:
-   - 43 มหาวิถี / 286 สายย่อย พร้อมออร่าขั้นสูงสุดครบ 43 วิถีตาม `maxStage` จริง (4/5/8/9)
-   - Legendary Visual Identity ครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนาน ([รายงาน](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md))
-   - All Equipment Tier Art 9 แผ่น / 576 ช่อง ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา ([รายงาน](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md))
-
-## แนวทางสำหรับ AI ในรอบถัดไป (Next Turn Guidance)
-
-1. **ห้ามรันพัฒนา `JS2-v2.6.0` ซ้ำโดยไม่จำเป็น** เพราะพัฒนาและทดสอบครบอยู่ในโค้ดชุดนี้แล้ว หากผู้ใช้สั่งตรวจหรือปรับปรุงเพิ่มเติม ให้เริ่มจากตรวจซอร์สจริงและรายงาน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md)
-2. **สถานะเอกสารอื่น**:
-   - ข้อเสนอ [NPC authorship / barter / relic biography](docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md) ยังคงถูกพักไว้ใน `docs/deferred/` **ห้ามหยิบมาทำเองโดยที่ผู้ใช้ไม่ได้สั่งอนุมัติ**
-   - `docs/historical_prompts/` และ [FUTURE_ROADMAP_AND_IDEAS.md](FUTURE_ROADMAP_AND_IDEAS.md) เป็นคลังประวัติและแนวคิดอ้างอิง ไม่ใช่ใบสั่งงานบังคับ
-   - หากผู้ใช้ยังไม่ได้ระบุหัวข้อแพตช์ใหม่ (`JS2-v2.7.0`) ให้สอบถามหรือรับคำสั่งจากผู้ใช้ก่อนเริ่มฟีเจอร์ใหญ่เรื่องใหม่ หรือหากผู้ใช้สั่งงานเฉพาะเรื่อง ให้ปฏิบัติตาม [AGENTS.md](AGENTS.md) และอ่านสกิลใน [.agents/skills/README.md](.agents/skills/README.md) ทุกครั้ง
+## ⚡ 5 ลำดับการลงมือทำงานทันที (Immediate Execution Steps)
+1. **อ่าน [`COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md`](COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md) และ [`ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md`](ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md)**
+2. **สร้างแกนมนุษย์ `company_human_core.js`** ตามข้อกำหนด (มิติบุคลิกภาพ, ค่านิยม, ทักษะที่ฝึกได้ vs ความถนัดพื้นฐาน, สถานะเปลี่ยนได้, Seed Determinism)
+3. **สร้างผังพื้นที่ `company_office.js`** ที่มีทั้ง **โซนออฟฟิศ (จัดการ/ขาย/วางแผน)** และ **โซนโรงงาน (ผลิต/ตรวจสอบ/สต็อกวัตถุดิบ)**
+4. **สร้างระบบจำลอง `company_sim.js` และหน้าจอ `index.html` + `company_render.js`** ที่เล่นได้จริง มีวงจรรับงาน ➔ ผลิต ➔ ส่งมอบ ➔ รับเงิน ➔ จ่ายเงินเดือน/ค่าเช่า ➔ บันทึก/โหลดได้
+5. **รันการทดสอบ** `node COMPANY_SOURCE/test/company_core_test.js` เพื่อรับรองความเสถียร งบเวลา `<= 2.0 ms/tick` และบันทึก Fingerprint ล็อกแกนมนุษย์
