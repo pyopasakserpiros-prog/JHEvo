@@ -172,7 +172,7 @@
         "invalid facility state");
       if (record(f) && record(f.levels) && Array.isArray(w.finance.entries)) {
         for (const id of ids) {
-          const entries = w.finance.entries.filter((e) => e.kind === "equipment" && e.reference === "facility:" + id);
+          const entries = w.finance.entries.filter((e) => e && e.kind === "equipment" && e.reference === "facility:" + id);
           add(entries.length === f.levels[id] - 1 && entries.every((e, i) => e.delta === -S.FACILITY_RULES[id].cost * (i + 1)),
             "facility investment ledger mismatch: " + id);
         }

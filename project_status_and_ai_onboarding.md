@@ -32,5 +32,6 @@ Human Core 1.0.0 ล็อกถาวร: บุคลิก 14, ค่าน�
 - COMPANY_SOURCE/test/campus-behavior.test.cjs: ตรวจการเดิน การตัดสินใจ NPC การลงทุน ผลอาคาร สถานีฝึก และ Edit Hub
 - COMPANY_SOURCE/test/campus-browser.cjs: ตรวจมือถือ/เดสก์ท็อป ปุ่มปิด ซูม เมนูสังเกตการณ์ Edit Hub ระดับอาคาร และ standalone build
 - รัน npm ci, npm run check, npm test, npm run build และ npm run test:browser ใน COMPANY_SOURCE ตาม README
+- ผลตรวจล่าสุด: npm test ผ่าน 102 tests, npm run check ผ่าน และ npm run test:browser ผ่าน 6 tests ใน Chromium จำลอง viewport
 
 เอกสารพิมพ์เขียวและรายงานที่ล้าสมัยอยู่ docs/company/history; ideas/company เป็นไอเดียอนาคต ไม่ต้องอ่านทั้งหมดเมื่อรับงานเล็ก

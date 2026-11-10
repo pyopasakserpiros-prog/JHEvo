@@ -131,6 +131,12 @@ test("invalid facility levels or investment ledger cannot be loaded", () => {
   assert.throws(() => Save.deserialize(JSON.stringify(world)));
 });
 
+test("a malformed finance entry is reported instead of crashing save validation", () => {
+  const world = S.create("bad-ledger-entry");
+  world.finance.entries.push(null);
+  assert.ok(Save.validate(world).length > 0);
+});
+
 test("editing one person's personality is validated, isolated and remains a valid profile", () => {
   const world = S.create("edit-person");
   const person = world.people[0];

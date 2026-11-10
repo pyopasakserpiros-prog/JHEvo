@@ -16,9 +16,9 @@
 
 ## ผลตรวจ
 
-- npm test: 101 tests ผ่านทั้งหมดในรอบตรวจหลังพัฒนาซอร์ส
+- npm test: 102 tests ผ่านทั้งหมดในรอบตรวจหลังพัฒนาซอร์ส
 - npm run check: ผ่าน syntax, schema และ SHA-256 แกนมนุษย์
-- npm run test:browser: 5 กรณีผ่านในรอบตรวจเต็ม และกรณีเล่นโดยไม่สั่งบริหารผ่านแยกเพิ่มเติม; ใช้ Chromium จำลอง viewport
+- npm run test:browser: 6 กรณีผ่านทั้งหมด; ใช้ Chromium จำลอง viewport
 - Node benchmark: 8 คนเฉลี่ยประมาณ 0.27 ms/tick, p95 ประมาณ 0.98 ms; 30 คนเฉลี่ยประมาณ 1.77 ms/tick, p95 ประมาณ 6.96 ms. วัดเฉพาะ simulation ไม่ใช่ FPS หรือผลบน Android จริง
 
 ## ข้อจำกัด

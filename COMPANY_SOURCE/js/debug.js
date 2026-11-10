@@ -880,7 +880,7 @@
     const nodes = [];
     const headCard = el("div", "card");
     headCard.append(
-      el("h3", "", `${b.icon} ${b.nameTh} • ระดับ ${b.level} (${b.subtitleTh})`),
+      el("h3", "", `${b.icon} ${b.nameTh}${b.id === "gate" ? "" : ` • ระดับ ${b.level}`} (${b.subtitleTh})`),
       el(
         "div",
         "muted",
