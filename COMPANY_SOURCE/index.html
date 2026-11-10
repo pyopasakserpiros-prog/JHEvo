@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Company Foundation — เครื่องมือตรวจระบบ</title>
+    <link rel="stylesheet" href="css/debug.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Company Foundation <small>เครื่องมือตรวจโครงระบบ</small></h1>
+      <p>
+        แกนมนุษย์ 1.0.0 ผ่านการตรวจรับและล็อกแล้ว • งานภาพ ตัวละคร พื้นที่บริษัท และ UI
+        ฉบับจริงเป็นขั้นตอนภายหลัง
+      </p>
+    </header>
+    <main>
+      <section aria-label="ควบคุมการจำลอง">
+        <label
+          >Seed <input id="seed" value="company-demo" maxlength="100"
+        /></label>
+        <button id="new-game">เริ่มบริษัทใหม่</button>
+        <label
+          >ความเร็ว
+          <select id="speed">
+            <option value="0">หยุด</option>
+            <option value="1">1×</option>
+            <option value="2">2×</option>
+            <option value="5">5×</option>
+            <option value="10">10×</option>
+            <option value="20">20×</option>
+          </select></label
+        >
+        <button id="advance-hour">จำลอง 1 ชั่วโมง</button>
+        <button id="advance-day">จำลอง 1 วัน</button>
+        <button id="save-local">บันทึกในเครื่อง</button>
+        <button id="load-local">โหลดในเครื่อง</button>
+        <button id="export-save">ส่งออกเซฟ</button>
+        <label
+          >นำเข้าเซฟ
+          <input id="import-save" type="file" accept=".json,application/json"
+        /></label>
+        <button id="audit">ตรวจความถูกต้อง</button>
+      </section>
+      <p id="notice" role="status" aria-live="polite"></p>
+      <section id="overview" aria-label="สถานะบริษัท"></section>
+      <section aria-label="นโยบาย">
+        <h2>นโยบายและการเงิน</h2>
+        <label
+          ><input id="auto-buy" type="checkbox" checked />
+          ซื้อวัตถุดิบตามงานค้าง</label
+        >
+        <label
+          ><input id="auto-accept" type="checkbox" /> รับข้อเสนออัตโนมัติ</label
+        >
+        <label
+          >งานสำคัญ
+          <select id="priority">
+            <option value="balanced">สมดุล</option>
+            <option value="delivery">ส่งมอบ</option>
+            <option value="research">วิจัย</option>
+          </select></label
+        >
+        <label
+          >OT ที่ขอ (ชั่วโมง)
+          <input
+            id="ot-hours"
+            type="number"
+            min="0"
+            max="3"
+            step="0.5"
+            value="0"
+        /></label>
+        <button id="apply-ot">ขอ OT ตามนโยบาย</button>
+        <label
+          >จำนวนเงิน (บาท)
+          <input id="money" type="number" min="1" step="1" value="10000"
+        /></label>
+        <button id="borrow">กู้เงิน</button><button id="repay">ชำระหนี้</button
+        ><button id="pay-arrears">จ่ายค่าใช้จ่ายค้าง</button>
+      </section>
+      <section>
+        <h2>ข้อเสนอลูกค้า</h2>
+        <div id="offers" class="scroll"></div>
+      </section>
+      <section>
+        <h2>คำสั่งซื้อและงานค้าง</h2>
+        <div id="orders" class="scroll"></div>
+        <div id="jobs" class="scroll"></div>
+      </section>
+      <section>
+        <h2>วัตถุดิบ</h2>
+        <div id="materials" class="scroll"></div>
+      </section>
+      <section>
+        <h2>พนักงาน</h2>
+        <div id="people" class="scroll"></div>
+        <label
+          >รายละเอียด
+          <select id="person-select"></select
+        ></label>
+        <div id="person-details"></div>
+      </section>
+      <section>
+        <h2>พื้นที่บริษัท (ข้อมูลสำหรับกราฟิก)</h2>
+        <p>ตำแหน่งใช้หน่วยช่อง แกน X ไปขวา แกน Y ลงล่าง</p>
+        <button id="expand">ขยายพื้นที่ด้านขวา 4 ช่อง</button>
+        <div id="stations" class="scroll"></div>
+      </section>
+      <section>
+        <h2>บันทึกเหตุการณ์จริง</h2>
+        <div id="events"></div>
+      </section>
+    </main>
+    <script src="js/human-core.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/economy.js"></script>
+    <script src="js/sim.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/debug.js"></script>
+  </body>
+</html>

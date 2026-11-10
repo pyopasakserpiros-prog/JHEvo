@@ -1,0 +1,106 @@
+{
+  "retrievedOn": "2026-11-10",
+  "method": "Direct HTTP retrieval and reading primary source content; no search snippets used as evidence.",
+  "purpose": "General human abilities, dispositions and values for extensible game design, not clinical validation.",
+  "sources": [
+    {
+      "title": "O*NET content model",
+      "url": "https://www.onetcenter.org/content.html",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 2000000,
+      "retrievedSha256": "ed7e5320b6ea93b7aa82af3f5c6503a1ac30aecdb9e4963333ab4dc90640043f"
+    },
+    {
+      "title": "O*NET abilities",
+      "url": "https://www.onetonline.org/find/descriptor/browse/1.A",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 78358,
+      "retrievedSha256": "fcf4b189cb8001f0f2dfbfd38974fc145a3ac7865c2aa893a4f639af2366580e"
+    },
+    {
+      "title": "O*NET essential skills",
+      "url": "https://www.onetonline.org/find/descriptor/browse/2.A",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 42771,
+      "retrievedSha256": "3c2a3e1fe38cf243dccf7f8474b229c55403bc7fd88308223c86976fc8227e25"
+    },
+    {
+      "title": "HEXACO scale descriptions",
+      "url": "https://hexaco.org/scaledescriptions",
+      "organizationOrAuthor": "Kibeom Lee and Michael C. Ashton",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 14461,
+      "retrievedSha256": "3e3f8cacba1f14784afe274d3e396f7bd92eb397b1fe1d55b7cd3289cf8055d0"
+    },
+    {
+      "title": "Schwartz 2012 basic values overview",
+      "url": "https://scholarworks.gvsu.edu/orpc/vol2/iss1/11/",
+      "organizationOrAuthor": "Shalom H. Schwartz",
+      "type": "primary",
+      "publicationDate": "2012-12",
+      "retrievedBytes": 37917,
+      "retrievedSha256": "b421df425f4325f651e39318a46e4d188a33910d1417953eca96b69f3ba8f229"
+    },
+    {
+      "title": "O*NET occupation 17-2011.00",
+      "url": "https://www.onetonline.org/link/summary/17-2011.00",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 220515,
+      "retrievedSha256": "43393a5334a5a8368a6ad2fd57f81ef68459333f2ce9f30cecbd00ec47b4de8d"
+    },
+    {
+      "title": "O*NET occupation 49-3023.00",
+      "url": "https://www.onetonline.org/link/summary/49-3023.00",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 220872,
+      "retrievedSha256": "caad79ad4ec204074142f71c767407972734d468bf1d815b6960af478994897f"
+    },
+    {
+      "title": "O*NET occupation 13-2051.00",
+      "url": "https://www.onetonline.org/link/summary/13-2051.00",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 168194,
+      "retrievedSha256": "be76e76bdd75fa7ff478e021e159b8eba26ebb14e84e0432f2d9484f9b9376a6"
+    },
+    {
+      "title": "O*NET occupation 39-2021.00",
+      "url": "https://www.onetonline.org/link/summary/39-2021.00",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 184927,
+      "retrievedSha256": "34342bd3e9eee76337f33061bf6e7d39473c3d44183c259d4965f37d55b7eb49"
+    },
+    {
+      "title": "O*NET occupation 35-1011.00",
+      "url": "https://www.onetonline.org/link/summary/35-1011.00",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 226881,
+      "retrievedSha256": "0654aea533d554bf6f0c5e5e5d0e57bdd1bc7958f1f1873672c3d6c49e1dd1f9"
+    },
+    {
+      "title": "O*NET occupation 47-2061.00",
+      "url": "https://www.onetonline.org/link/summary/47-2061.00",
+      "organizationOrAuthor": "US Department of Labor / ETA",
+      "type": "primary",
+      "publicationDate": null,
+      "retrievedBytes": 201007,
+      "retrievedSha256": "4f69a00b3c95be4ab129b84f4139882fa63436865012ea5594c70e96fd55ec18"
+    }
+  ]
+}

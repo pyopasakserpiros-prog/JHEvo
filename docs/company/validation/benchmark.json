@@ -1,0 +1,22 @@
+{
+  "node": "v24.22.1",
+  "scope": "Simulation-only Node benchmark, not whole-frame or physical mobile performance",
+  "samples": [
+    {
+      "people": 8,
+      "ticks": 576,
+      "averageMs": 0.17704070312499917,
+      "p95Ms": 0.6142500000000268,
+      "maxMs": 2.2727339999999856,
+      "saveBytes": 78562
+    },
+    {
+      "people": 30,
+      "ticks": 576,
+      "averageMs": 0.39693669965277806,
+      "p95Ms": 1.4194680000000517,
+      "maxMs": 3.9864239999999995,
+      "saveBytes": 211288
+    }
+  ]
+}

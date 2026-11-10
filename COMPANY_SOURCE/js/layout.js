@@ -1,0 +1,205 @@
+(function (root, factory) {
+  "use strict";
+  const value = factory();
+  if (typeof module === "object" && module.exports) module.exports = value;
+  else root.CompanyLayout = value;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+  const clone = (o) => JSON.parse(JSON.stringify(o)),
+    point = (p) => p && Number.isSafeInteger(p.x) && Number.isSafeInteger(p.y),
+    key = (p) => p.x + "," + p.y;
+  function createLayout() {
+    const map = {
+      width: 32,
+      height: 20,
+      revision: 1,
+      entrance: { x: 2, y: 18 },
+      zones: [
+        { id: "office", nameTh: "ออฟฟิศ", x: 1, y: 1, width: 15, height: 18 },
+        { id: "factory", nameTh: "โรงงาน", x: 17, y: 1, width: 14, height: 18 },
+      ],
+      blocked: [],
+      stations: {},
+    };
+    for (let y = 1; y < 19; y++)
+      if (![6, 14].includes(y)) map.blocked.push({ x: 16, y });
+    const add = (id, kind, x, y, ax, ay, capacity = 1) => {
+      map.stations[id] = {
+        id,
+        kind,
+        cell: { x, y },
+        access: { x: ax, y: ay },
+        capacity,
+        visualKey: "station." + kind,
+      };
+      map.blocked.push({ x, y });
+    };
+    add("sales", "sales", 4, 4, 4, 5);
+    add("admin", "admin", 8, 4, 8, 5);
+    add("research", "research", 12, 4, 12, 5);
+    add("manager", "manager", 4, 8, 4, 9);
+    add("assembly1", "assembly", 20, 4, 20, 5);
+    add("assembly2", "assembly", 24, 4, 24, 5);
+    add("assembly3", "assembly", 28, 4, 28, 5);
+    add("quality1", "quality", 20, 9, 20, 10);
+    add("quality2", "quality", 24, 9, 24, 10);
+    add("packing", "packing", 28, 9, 28, 10);
+    add("stock", "stock", 20, 15, 21, 15, 3);
+    add("finished", "finished", 24, 15, 24, 16, 3);
+    add("receiving", "receiving", 26, 16, 26, 17, 2);
+    add("shipping", "shipping", 28, 15, 28, 16, 2);
+    add("pantry", "pantry", 4, 13, 4, 14, 8);
+    add("lounge", "lounge", 8, 13, 8, 14, 8);
+    add("meal", "meal", 12, 13, 12, 14, 8);
+    return map;
+  }
+  const inside = (m, p) =>
+    point(p) && p.x >= 1 && p.y >= 1 && p.x < m.width - 1 && p.y < m.height - 1;
+  const walkable = (m, p) =>
+    inside(m, p) && !m.blocked.some((b) => b.x === p.x && b.y === p.y);
+  function findPath(m, from, to) {
+    if (!walkable(m, from) || !walkable(m, to)) return null;
+    if (key(from) === key(to)) return [];
+    const blocked = new Set(m.blocked.map(key)),
+      q = [{ ...from }],
+      seen = new Set([key(from)]),
+      parents = new Map();
+    let index = 0;
+    while (index < q.length) {
+      const at = q[index++];
+      for (const [dx, dy] of [
+        [0, -1],
+        [1, 0],
+        [0, 1],
+        [-1, 0],
+      ]) {
+        const next = { x: at.x + dx, y: at.y + dy },
+          k = key(next);
+        if (!inside(m, next) || seen.has(k) || blocked.has(k)) continue;
+        seen.add(k);
+        parents.set(k, at);
+        if (k === key(to)) {
+          const path = [next];
+          let p = at;
+          while (key(p) !== key(from)) {
+            path.push(p);
+            p = parents.get(key(p));
+          }
+          return path.reverse();
+        }
+        q.push(next);
+      }
+    }
+    return null;
+  }
+  function zoneAt(m, p) {
+    const z = m.zones.find(
+      (z) =>
+        p.x >= z.x && p.y >= z.y && p.x < z.x + z.width && p.y < z.y + z.height,
+    );
+    return z ? z.id : "corridor";
+  }
+  function validateLayout(m) {
+    const e = [];
+    if (
+      !m ||
+      !Number.isSafeInteger(m.width) ||
+      !Number.isSafeInteger(m.height) ||
+      m.width < 8 ||
+      m.height < 8 ||
+      m.width > 96 ||
+      m.height > 64 ||
+      !Array.isArray(m.blocked) ||
+      !Array.isArray(m.zones) ||
+      !m.stations ||
+      typeof m.stations !== "object"
+    )
+      return ["invalid layout shape"];
+    if (!walkable(m, m.entrance)) return ["entrance blocked"];
+    const cells = new Set();
+    for (const p of m.blocked) {
+      if (!inside(m, p) || cells.has(key(p)))
+        e.push("invalid/duplicate blocked cell");
+      cells.add(key(p));
+    }
+    for (const z of m.zones)
+      if (
+        typeof z.id !== "string" ||
+        !Number.isSafeInteger(z.x) ||
+        !Number.isSafeInteger(z.y) ||
+        !Number.isSafeInteger(z.width) ||
+        !Number.isSafeInteger(z.height) ||
+        z.width < 1 ||
+        z.height < 1 ||
+        z.x < 1 ||
+        z.y < 1 ||
+        z.x + z.width > m.width - 1 ||
+        z.y + z.height > m.height - 1
+      )
+        e.push("invalid zone");
+    for (const [id, s] of Object.entries(m.stations)) {
+      if (
+        !s ||
+        id !== s.id ||
+        !inside(m, s.cell) ||
+        !point(s.access) ||
+        !Number.isSafeInteger(s.capacity) ||
+        s.capacity < 1 ||
+        !cells.has(key(s.cell)) ||
+        Math.abs(s.cell.x - s.access.x) + Math.abs(s.cell.y - s.access.y) !==
+          1 ||
+        findPath(m, m.entrance, s.access) === null
+      )
+        e.push("invalid/unreachable station " + id);
+    }
+    return e;
+  }
+  function expand(m, extraWidth, extraHeight) {
+    if (
+      !Number.isSafeInteger(extraWidth) ||
+      !Number.isSafeInteger(extraHeight) ||
+      extraWidth < 0 ||
+      extraHeight < 0 ||
+      extraWidth + extraHeight === 0 ||
+      m.width + extraWidth > 96 ||
+      m.height + extraHeight > 64
+    )
+      throw new TypeError("invalid expansion");
+    const next = clone(m);
+    next.width += extraWidth;
+    next.height += extraHeight;
+    next.revision++;
+    const factory = next.zones.find((z) => z.id === "factory");
+    if (factory) factory.width += extraWidth;
+    for (const z of next.zones) z.height += extraHeight;
+    const errors = validateLayout(next);
+    if (errors.length) throw new TypeError(errors.join("; "));
+    return next;
+  }
+  function addStation(m, s) {
+    const next = clone(m);
+    if (
+      !s ||
+      next.stations[s.id] ||
+      !inside(m, s.cell) ||
+      !walkable(m, s.cell) ||
+      !walkable(m, s.access)
+    )
+      throw new TypeError("invalid station placement");
+    next.stations[s.id] = clone(s);
+    next.blocked.push({ ...s.cell });
+    next.revision++;
+    const errors = validateLayout(next);
+    if (errors.length) throw new TypeError(errors.join("; "));
+    return next;
+  }
+  return Object.freeze({
+    createLayout,
+    validateLayout,
+    findPath,
+    zoneAt,
+    walkable,
+    expand,
+    addStation,
+  });
+});

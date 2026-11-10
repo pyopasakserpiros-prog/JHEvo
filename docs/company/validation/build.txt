@@ -1,0 +1,5 @@
+
+> company-simulation-foundation@0.1.0 build
+> node tools/build.cjs
+
+Built CompanyFoundation_single.html: 212052 UTF-8 bytes; inspection interface, graphics pending

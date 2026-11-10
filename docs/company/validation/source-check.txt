@@ -1,0 +1,6 @@
+
+> company-simulation-foundation@0.1.0 check
+> node tools/verify.cjs
+
+PASS permanently locked human core 1.0.0: fa83eaa0ef3407f26f21675161f632a4365242f67fea7b0c192e59e75b9d5c32
+PASS source syntax and initial catalog/layout/accounting/save schema

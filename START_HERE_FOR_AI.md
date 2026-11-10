@@ -1,46 +1,60 @@
-# 🚀 จุดเริ่มต้นสำหรับ AI (START HERE FOR AI — Company Survival Sim Onboarding)
+# 🚀 จุดเริ่มต้นสำหรับ AI (START HERE FOR AI — Company Simulation Onboarding)
 
 > [!IMPORTANT]
-> **คำสั่งด่วนสำหรับ AI (Claude Opus / Sonnet / Codex / Antigravity):**  
+> **คำสั่งด่วนสำหรับ AI (Gemini / Claude / Codex):**  
 > คุณกำลังทำงานอยู่บนสาขา Git: **`company`**  
-> โครงการเดิม (JianghuSect 2 / JS2) ถูก **พักการพัฒนาไว้ชั่วคราว** ห้ามแตะต้องหรือแก้ไขไฟล์ใน `GAME_SOURCE/`  
-> ขณะนี้ผู้ใช้มอบหมายให้พัฒนา **"เกมใหม่: Company Survival Simulation (SME Crisis)"** ซึ่งเป็นเกมจำลองชีวิตพนักงานในบริษัทที่กำลังจะเจ๊ง มีทั้ง **โซนออฟฟิศและโซนโรงงานผลิตสินค้า** ที่มองเห็นและเล่นได้จริงตั้งแต่เวอร์ชันแรก โดยใช้เอนจิน NPC ตัดสินใจเองตามธรรมชาติ 100%  
-> **งานของคุณในรอบนี้ถูกกำหนดไว้ครบถ้วนแล้วในเอกสารสารบัญด้านล่าง ไม่ต้องเสียโควต้าสำรวจไฟล์อื่นในคลังโดยไม่จำเป็น!**
+> โครงการเดิม (JianghuSect 2 / JS2) ถูก **พักการพัฒนาไว้ชั่วคราว** (โค้ดทั้งหมดอยู่ใน `GAME_SOURCE/` ห้ามแตะต้องหรือแก้ไขเด็ดขาด)  
+> ขณะนี้ผู้ใช้มอบหมายให้พัฒนา **"เกมใหม่: SME Crisis (Company Simulation)"** เวอร์ชันฐาน **`v0.1.0`** ในโฟลเดอร์ **`COMPANY_SOURCE/`**  
+> หัวใจสำคัญของเกม: **"ผู้เล่นเป็นผู้สังเกตการณ์ (God View) เหมือน JS2"** มีพื้นที่ดินภายนอก (Campus) พร้อมอาคารต่าง ๆ และ NPC ดำเนินชีวิต/ทำงานเอง 100%
 
 ---
 
-## 📍 สรุปพิกัดเอกสารสำคัญ (Quick Navigation Map)
+## 📍 สรุปเอกสารสำคัญที่ต้องอ่าน (Document Navigation Map)
 
-| เอกสาร | ลิงก์ไฟล์ | วัตถุประสงค์ |
+| เอกสาร | ลิงก์ไฟล์ | สิ่งที่คุณจะได้รับ |
 | :--- | :--- | :--- |
-| **พิมพ์เขียวความคิดฉบับเต็มของ Opus (Opus Master Blueprint)** | [`COMPANY_OPUS_MASTER_BLUEPRINT.md`](COMPANY_OPUS_MASTER_BLUEPRINT.md) | **[สำคัญสูงสุด]** ถอดความคิดเชิงลึก 32,722 tokens ของ Opus: โมเดลเศรษฐกิจ, ตัวเลข ฿85k/฿150k, แกนมนุษย์ CHC, สูตรคุณภาพ/ประสิทธิภาพ, ผัง 32x20, และวงจร Closed-Loop |
-| **ใบสั่งงานแกนมนุษย์ (Codex Mandate)** | [`COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md`](COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md) | **[ต้องอ่าน]** ข้อกำหนดการออกแบบแกนมนุษย์แบบมิติผสม, วงจรผลิตโรงงาน+ออฟฟิศ, และการล็อกแกน |
-| **ใบสั่งงานสถาปัตยกรรม (Active Specification)** | [`ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md`](ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md) | **[ต้องอ่าน]** สเปก 7 เสาหลักทางเทคนิคในการสร้างระบบ `COMPANY_SOURCE/` |
-| **แผนแม่บทสถาปัตยกรรม (Full Blueprint)** | [`COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md`](COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md) | ผังออฟฟิศ 2D, แบบแปลนสินค้า T1–T7, โลกภายนอก, และประเด็นหารือ |
-| **ระบบจิตวิทยาอ้างอิงเดิม (Reference Only)** | [`GAME_SOURCE/js/human_core.js`](GAME_SOURCE/js/human_core.js) | โค้ดต้นแบบคณิตศาสตร์จิตวิทยา Seed RNG (เปิดดูเฉพาะเมื่อต้องการเทียบตรรกะ) |
+| **ใบสั่งงานแพตช์ปัจจุบัน (Active Patch Prompt)** | [`ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md`](ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md) | **[สำคัญที่สุด — เริ่มอ่านที่นี่]** ขอบเขตงาน ขั้นตอนสร้าง 2D Campus, Autonomous Simulation, และเกณฑ์ส่งมอบ v0.1.0 |
+| **กฎเหล็กของประธานบริษัท (Supreme Mandate)** | [`AGENTS.md`](AGENTS.md) | **[ต้องปฏิบัติตาม 100%]** กฎเหล็ก 6 ข้อ: ผู้เล่นสังเกตการณ์, ผัง Campus นอกอาคาร, ห้ามแก้ `human-core.js`, บัญชีปิด, เกณฑ์เทสต์ |
+| **พิมพ์เขียวสถาปัตยกรรมฉบับสมบูรณ์ของ Opus** | [`COMPANY_OPUS_MASTER_BLUEPRINT.md`](COMPANY_OPUS_MASTER_BLUEPRINT.md) | **[แหล่งข้อมูลอ้างอิงเชิงลึก]** ถอดความคิดเชิงลึก 32,722 tokens ของ Claude Opus: สูตรคณิตศาสตร์, Yerkes-Dodson Curve, Closed-loop Economy |
+| **แบบจำลองแกนมนุษย์ 1.0.0** | [`docs/company/HUMAN_CORE_MODEL.md`](docs/company/HUMAN_CORE_MODEL.md) | รายละเอียด 14 บุคลิกภาพ, 18 ค่านิยม, 30 ความถนัด, 12 สถานะชีพ |
+| **การรองรับธุรกิจใหม่ในอนาคต** | [`docs/company/FUTURE_BUSINESS_CORE_RESEARCH.md`](docs/company/FUTURE_BUSINESS_CORE_RESEARCH.md) | หลักฐานและโครงสร้างการขยายประเภทธุรกิจ (ซอฟต์แวร์, ร้านอาหาร, อวกาศ, โลจิสติกส์ ฯลฯ) ผ่าน Data Registry |
 
 ---
 
-## 🛠️ โครงสร้างโฟลเดอร์สำหรับงานนี้ (Workspace Boundary)
-การพัฒนาทั้งหมดในสาขานี้ ต้องสร้างขึ้นในโฟลเดอร์ **`COMPANY_SOURCE/`** เท่านั้น:
+## 🛠️ โครงสร้างซอร์สโค้ดใน `COMPANY_SOURCE/`
+
 ```
 COMPANY_SOURCE/
-├── index.html                   # หน้าจอเกม Standalone 100% Offline (แสดงทั้งโซนออฟฟิศและโรงงาน)
+├── CORE_LOCK.json               # SHA-256 Lock สำหรับ human-core.js (ล็อกถาวร)
+├── package.json                 # สคริปต์รันเทสต์และบิลด์ (npm test, npm run check, npm run build)
+├── index.html                   # หน้าจอเกมหลัก
 ├── js/
-│   ├── company_human_core.js    # จิตวิทยาแกนมนุษย์ มิติบุคลิกภาพ ค่านิยม ความถนัด และสถานะเปลี่ยนได้
-│   ├── company_office.js        # ผังพื้นที่ Grid (โซนออฟฟิศ + โซนโรงงาน/สายผลิต + สถานีทำงาน)
-│   ├── company_blueprints.js    # สายธุรกิจ, แบบแปลนสินค้า, สัญญาลูกค้า และวัตถุดิบการผลิต
-│   ├── company_sim.js           # เอนจินเวลา 09:00-18:00, Daily Routine, Cash Runway & บันทึก/โหลด
-│   └── company_render.js        # เรนเดอร์ Canvas 2D ออฟฟิศ+โรงงาน และ Sprite พนักงาน
-└── test/
-    └── company_core_test.js     # ชุดทดสอบอัตโนมัติบน Node.js (รันผ่าน 100%)
+│   ├── human-core.js            # [LOCKED 1.0.0] แกนมนุษย์และจิตวิทยา (ห้ามแก้ไข)
+│   ├── data.js                  # แค็ตตาล็อกทักษะ, สินค้า, วัตถุดิบ, กฎการเงิน
+│   ├── sim.js                   # กลไกจำลองเวลา, การผลิต, และพฤติกรรมอัตโนมัติของ NPC
+│   ├── layout.js                # โครงสร้างผังและสถานีของนิคมบริษัท
+│   ├── campus-render.js         # เรนเดอร์ 2D Canvas แสดงพื้นที่ผืนดิน, อาคารภายนอก และ Sprite ตัวละคร
+│   ├── api.js                   # Public Facade / Snapshot API สำหรับ UI
+│   └── save.js                  # ระบบบันทึกและโหลดสถานะเกม
+├── test/                        # ชุดทดสอบ Unit Tests อัตโนมัติ (รันผ่าน 100%)
+└── tools/
+    ├── test.cjs                 # รันชุดทดสอบทั้งหมด
+    ├── verify.cjs               # ตรวจสอบไวยากรณ์และ Hash Lock
+    └── build.cjs                # รวมโค้ดเป็นไฟล์เดี่ยว Company_single.html
 ```
 
 ---
 
-## ⚡ 5 ลำดับการลงมือทำงานทันที (Immediate Execution Steps)
-1. **อ่าน [`COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md`](COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md) และ [`ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md`](ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md)**
-2. **สร้างแกนมนุษย์ `company_human_core.js`** ตามข้อกำหนด (มิติบุคลิกภาพ, ค่านิยม, ทักษะที่ฝึกได้ vs ความถนัดพื้นฐาน, สถานะเปลี่ยนได้, Seed Determinism)
-3. **สร้างผังพื้นที่ `company_office.js`** ที่มีทั้ง **โซนออฟฟิศ (จัดการ/ขาย/วางแผน)** และ **โซนโรงงาน (ผลิต/ตรวจสอบ/สต็อกวัตถุดิบ)**
-4. **สร้างระบบจำลอง `company_sim.js` และหน้าจอ `index.html` + `company_render.js`** ที่เล่นได้จริง มีวงจรรับงาน ➔ ผลิต ➔ ส่งมอบ ➔ รับเงิน ➔ จ่ายเงินเดือน/ค่าเช่า ➔ บันทึก/โหลดได้
-5. **รันการทดสอบ** `node COMPANY_SOURCE/test/company_core_test.js` เพื่อรับรองความเสถียร งบเวลา `<= 2.0 ms/tick` และบันทึก Fingerprint ล็อกแกนมนุษย์
+## ⚡ คำสั่งตรวจสอบงานก่อนส่งมอบ (Quality Commands)
+
+ก่อนส่งมอบงาน ให้รันคำสั่งเหล่านี้ใน `COMPANY_SOURCE/`:
+```bash
+# 1. รันชุดทดสอบความถูกต้องของระบบ
+node tools/test.cjs
+
+# 2. ตรวจสอบไวยากรณ์และความปลอดภัยของ Hash Lock
+node tools/verify.cjs
+
+# 3. คอมไพล์ไฟล์เดี่ยวเล่นออฟไลน์
+node tools/build.cjs
+```

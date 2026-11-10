@@ -1,0 +1,11 @@
+{
+  "status": "review",
+  "permanentLock": false,
+  "coreVersion": "0.1.0-review.2",
+  "algorithm": "sha256",
+  "files": {
+    "js/human-core.js": "05c8817fc54816f52fd97d940754efefbc8b14fc97c2382a6cd2401a8f7dfd5d"
+  },
+  "reviewSequence": 6,
+  "note": "Provisional baseline for Gemini Argon4 -> Codex review. This is NOT final user acceptance or a permanent lock."
+}

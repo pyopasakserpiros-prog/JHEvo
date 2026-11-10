@@ -1,0 +1,132 @@
+/* Functional inspection surface; visual design is intentionally delegated. */
+:root {
+  font-family: system-ui, sans-serif;
+  color: #222;
+  background: #f4f4f4;
+}
+body {
+  margin: 0;
+}
+header,
+main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 12px;
+}
+h1 {
+  font-size: 1.4rem;
+}
+h1 small {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+h2 {
+  font-size: 1.1rem;
+  margin-top: 0;
+}
+section {
+  background: white;
+  border: 1px solid #bbb;
+  padding: 12px;
+  margin: 10px 0;
+}
+label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin: 5px;
+}
+input,
+select,
+button {
+  font: inherit;
+  padding: 7px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+button {
+  cursor: pointer;
+  margin: 4px;
+  min-height: 40px;
+}
+button:disabled {
+  cursor: default;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+th,
+td {
+  text-align: left;
+  border: 1px solid #ddd;
+  padding: 7px;
+  white-space: normal;
+}
+th {
+  background: #eee;
+}
+.scroll {
+  overflow: auto;
+  max-width: 100%;
+  margin: 8px 0;
+}
+#notice {
+  min-height: 1.5em;
+  overflow-wrap: anywhere;
+}
+#overview {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+.metric {
+  min-width: 110px;
+}
+.metric strong {
+  display: block;
+}
+#person-details {
+  overflow-wrap: anywhere;
+}
+#events p {
+  margin: 5px 0;
+}
+input[type="number"] {
+  width: 130px;
+}
+input[type="file"] {
+  width: 240px;
+}
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+pre {
+  overflow: auto;
+}
+section {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  header,
+  main {
+    padding: 8px;
+  }
+  section {
+    padding: 8px;
+  }
+  h1 {
+    font-size: 1.2rem;
+  }
+  th,
+  td {
+    padding: 5px;
+  }
+  button {
+    font-size: 0.9rem;
+  }
+}

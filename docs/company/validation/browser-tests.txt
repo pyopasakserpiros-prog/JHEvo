@@ -1,0 +1,7 @@
+
+> company-simulation-foundation@0.1.0 test:browser
+> node test/browser.cjs
+
+PASS inspection UI 1280×800 source HTML
+PASS inspection UI 390×844 embedded standalone
+PASS actual commands, 7-day fulfilment, local/invalid save handling, immutable reads and no uncaught browser errors

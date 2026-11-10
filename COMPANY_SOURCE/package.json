@@ -1,0 +1,16 @@
+{
+  "name": "company-simulation-foundation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Company simulation foundation with a permanently locked extensible human core; graphics handoff ready",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node tools/test.cjs",
+    "check": "node tools/verify.cjs",
+    "build": "node tools/build.cjs",
+    "test:browser": "node test/browser.cjs",
+    "core:check": "node tools/core-review.cjs"
+  }
+}

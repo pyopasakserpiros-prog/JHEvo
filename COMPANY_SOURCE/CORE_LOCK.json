@@ -1,0 +1,18 @@
+{
+  "status": "locked",
+  "permanentLock": true,
+  "coreVersion": "1.0.0",
+  "algorithm": "sha256",
+  "files": {
+    "js/human-core.js": "fa83eaa0ef3407f26f21675161f632a4365242f67fea7b0c192e59e75b9d5c32"
+  },
+  "acceptedOn": "2026-11-10",
+  "acceptedBy": "Codex final review under the user instruction to continue and decide after Gemini review.2",
+  "dimensions": {
+    "personality": 14,
+    "values": 18,
+    "aptitudes": 30,
+    "state": 12
+  },
+  "note": "Permanent intrinsic model and pure formulas. New skills, businesses, life content and rendering belong outside this file. No automatic rebaseline. Early development does not require old-save compatibility; see AGENTS.md."
+}
