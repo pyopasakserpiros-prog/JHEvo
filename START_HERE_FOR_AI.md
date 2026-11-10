@@ -1,3 +1,14 @@
+# 🏢 สาขา Company — แนวคิดเกมใหม่ "Company Survival Simulation" (สำหรับ Codex & ทีมพัฒนา)
+
+> [!NOTE]
+> **สถานะสาขา `company` (Active R&D Branch):**  
+> สาขานี้ถูกสร้างขึ้นเพื่อบันทึกการระดมสมองและข้อเสนอการพัฒนาเกมใหม่แนว **"จำลองชีวิตในสำนักงานบริษัทที่กำลังจะเจ๊ง (SME Crisis)"**  
+> โดยยึดปรัชญาเดิมของ JS2: **NPC ตัดสินใจเองตามธรรมชาติ 100% (Autonomous NPC Life Simulation)**  
+> 📖 **กรุณาอ่านเอกสารแม่บทฉบับเต็มที่: [`COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md`](COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md)**  
+> เพื่อศึกษาแนวคิด สถาปัตยกรรมการแสดงผล Canvas 2D, การแปลง `human_core.js`, วงจรชีวิตพนักงาน, ระบบเศรษฐกิจมหภาค และร่วมตอบคำถามหารือในส่วนท้ายของเอกสาร
+
+---
+
 # เริ่มงานที่นี่ — JianghuSect 2
 
 ## ล่าสุด: งานภาพไล่ระดับครบทุกระดับขั้น T1–T7, สายย่อย/มรรคา และเอฟเฟกต์อุปกรณ์/แอคชั่นการรบ (`JS2-v2.6.0` Complete VFX Expansion)
