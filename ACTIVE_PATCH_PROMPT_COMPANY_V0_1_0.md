@@ -30,8 +30,11 @@
    * กฎการเงิน (ทุนตั้งต้น ฿120,000, หนี้สิน ฿60,000, ค่าเช่าวันละ ฿800, ดอกเบี้ย 0.02%/วัน)
 3. **`COMPANY_SOURCE/tools/test.cjs` & `verify.cjs`:**
    * ชุดทดสอบ Unit Test 83 ข้อ ผ่าน 100% (ตรวจสอบ Math, Bounded traits, Closed-loop ledger)
-4. **พิมพ์เขียวระบบการผลิตและคลังสินค้าสมจริง (New Manufacturing Spec):**
-   * อ่านรายละเอียดใน [`docs/company/MANUFACTURING_SUPPLY_CHAIN_AND_INVENTORY_SPEC.md`](docs/company/MANUFACTURING_SUPPLY_CHAIN_AND_INVENTORY_SPEC.md) สำหรับการขยายวัตถุดิบ 16 ชนิดจริง, คลัง 3 ระดับ (วัตถุดิบ ➔ WIP ➔ สินค้าสำเร็จรูป), และสูตร BOM ของลำโพง/โคมไฟ ให้ Gemini นำไปปรับปรุงฐานข้อมูลให้สมจริง ไม่เป็นเด็กเล่นขายของ
+4. **เอกสารสรุปข้อมูลนำเสนอและกรอบงานสำหรับ Gemini (Gemini Executive Briefing):**
+   * อ่านสรุปภาพรวมและกรอบงานที่ [`docs/company/GEMINI_BRIEFING_NEXT_PATCH.md`](docs/company/GEMINI_BRIEFING_NEXT_PATCH.md)
+   * **ระบบการผลิตและคลังสินค้าสมจริง:** อ่านแนวคิดวัตถุดิบ 16 ชนิดจริง, คลัง 3 ระดับ (วัตถุดิบ ➔ WIP ➔ สินค้าสำเร็จรูป) ใน [`docs/company/MANUFACTURING_SUPPLY_CHAIN_AND_INVENTORY_SPEC.md`](docs/company/MANUFACTURING_SUPPLY_CHAIN_AND_INVENTORY_SPEC.md)
+   * **ระบบกำลังพลสองระดับ (สถิติตัวเลข + หัวหน้ากลุ่มตัวคูณ):** อ่านแนวคิดการรองรับคนงานหลักพันคน โดยหัวหน้ากลุ่มคูณผลงาน *10 หรือ *100 และการเลื่อนขั้น ใน [`docs/company/HIERARCHICAL_WORKFORCE_AND_PROMOTION_SYSTEM.md`](docs/company/HIERARCHICAL_WORKFORCE_AND_PROMOTION_SYSTEM.md)
+   * *(หมายเหตุ: วางเป็นกรอบภาพรวมเท่านั้น Gemini มีอิสระเต็มที่ 100% ในการออกแบบและตัดสินใจเลือกสูตรและสถาปัตยกรรมที่เหมาะสมด้วยตนเอง)*
 
 ---
 
