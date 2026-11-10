@@ -1,53 +1,65 @@
-# JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
+# SME Crisis: The Electronics Workshop Sim (Company Simulation)
 
-**สถานะส่งมอบปัจจุบัน (`JS2-v2.6.0`):** พัฒนา ทดสอบ และส่งมอบแพตช์ **พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (`JS2-v2.6.0`)** เสร็จสมบูรณ์แล้ว ดูรายละเอียดได้ที่ [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจระบบที่ [JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
+> [!IMPORTANT]
+> **สาขา Git: `company` (Active Development)**  
+> โครงการนี้คือเกมจำลองชีวิตพนักงานและวิกฤตบริษัทอิเล็กทรอนิกส์ขนาดเล็ก (SME) ในยุคปัจจุบัน  
+> - **โฟลเดอร์ซอร์สโค้ดของเกมทั้งหมด:** อยู่ใน **[`COMPANY_SOURCE/`](COMPANY_SOURCE/)**  
+> - **ผู้เล่นเป็นผู้สังเกตการณ์ 100% (God View / Zero-Player Observer):** แบบเดียวกับ JianghuSect 2 (JS2) พนักงานแต่ละคนจะตัดสินใจ หาออเดอร์ ซื้อของ ประกอบสินค้า ตรวจ QC และใช้ชีวิตด้วยตัวเอง  
+> - *(หมายเหตุ: โค้ดของโครงการเดิม JianghuSect 2 ถูกเก็บรักษาไว้อย่างปลอดภัยบนสาขา `main`)*
 
-> **ไฮไลต์ `JS2-v2.6.0` (2026-11-09):**
-> - **Fact Snapshot & ประวัติบุคคลย้อนหลัง (`SIM.snapshotPerson`, `EXPED.buildFactSnapshot`, `UI.rHistoricalPerson`)**: เก็บข้อมูลตัวละคร ณ เวลาเกิดเหตุ พร้อมประวัติชื่อเดิม (`formerNames`) และหน้าต่างแผ่นป้ายจารึกประวัติสำหรับผู้ที่เสียชีวิต ฝังสุสาน ถูกขับไล่ หรือเปลี่ยนชื่อ
-> - **การรายงาน 12 รูปแบบ (`EXPED.presentChronicleEntry`)**: พาดหัว ➔ บทนำตามน้ำเสียง ➔ จุดเปลี่ยน/เหตุและผล ➔ ผลกระทบ/สิ่งที่น่าติดตาม ➔ ลิ้นชักตัวเลขและ Snapshot ที่อธิบายความหมายในเกมจริง พร้อมป้ายความน่าเชื่อถือ (`VERIFIED` / `OBSERVED` / `RUMOR`)
-> - **สมุดสรุปสถานการณ์สำนักประจำรอบ 1/7/30 วัน (`EXPED.computePeriodDigest`) & เส้นเรื่องต่อเนื่อง (`EXPED.getStoryThreads`)**: แยกปริมาณคงคลัง, กระแสศิลาวิญญาณรับ–จ่ายภายนอก, การโอนภายในสำนัก, และรายการเสกของผู้เล่นออกจากกันอย่างเด็ดขาด ไม่บวกซ้ำ
-> - **แยกตั้งค่าการรับข่าว (`W.sect.newsPrefs`) ออกจากตัวกรองค้นอ่านคลังประวัติ (`UI.logFilters`)**: มี 5 โหมดสำเร็จรูป (`ALL`, `MAJOR_ONLY`, `SECT_FOCUS`, `TRACKED_ONLY`, `QUIET_DIGEST`), นโยบายข่าววิกฤต 3 ระดับ, ปักหมุดศิษย์คนสำคัญ, สถานะอ่านแล้ว/ยังไม่อ่าน, และการคุ้มครองหมุดหมายสำคัญเมื่อตัดคลัง (`Milestone-Protected Retention`)
-> - **VFX refinement บน main v2.6.0:** 15 ลายวิชาใหม่ รวม Signature เป็น 45 แบบ พร้อมทะเบียนชื่อวิชา/ID/ลายและภาพเทียบครบ 45 แบบ ดู [รายงาน](PATCH_REPORTS/SKILL_VFX_EXPANSION_JS2_V2_6_0.md) และ [ทะเบียนป้องกันงานซ้ำ](docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md)
+---
 
-> **ฐานภาพจาก `JS2-v2.5.0` ที่รักษาไว้ครบถ้วน:**
-> - **All Equipment Tier Art:** atlas ภาพไอเท็ม 9 แผ่น / 576 ช่อง; ภาพ T1–T7 ครบ 28 กลุ่มอุปกรณ์ + 13 กลุ่มโอสถ/วัตถุดิบ/ปลา ดู [รายงาน](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md)
-> - **Legendary Visual Identity:** ภาพและเอฟเฟกต์เฉพาะครบ 50 วิชาตำนาน / 27 อุปกรณ์ตำนาน ดู [รายงาน](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md)
+## 📍 พิกัดเอกสารสำคัญสำหรับผู้พัฒนาและ AI
 
-เกมบริหารสำนักและยุทธภพ เล่นได้จาก [ไฟล์เกมออฟไลน์](GAME_SOURCE/JianghuSect_single.html) หรือเปิด [เกมจากไฟล์ต้นฉบับ](GAME_SOURCE/index.html)
+| เอกสาร | ลิงก์ไฟล์ | คำอธิบาย |
+| :--- | :--- | :--- |
+| **ใบสั่งงานแพตช์ปัจจุบัน (Active Patch Prompt)** | [`ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md`](ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md) | **[ต้องอ่านก่อนเริ่มงาน]** ขอบเขตงานสร้าง 2D Campus, Autonomous NPC Loop และ HUD |
+| **กฎเหล็กของประธานบริษัท (Supreme Mandate)** | [`AGENTS.md`](AGENTS.md) | **[ต้องปฏิบัติตาม 100%]** กฎเหล็ก 6 ข้อ: ผู้เล่นสังเกตการณ์, ผัง Campus นอกอาคาร, แกนมนุษย์ล็อกถาวร, บัญชีปิด |
+| **จุดเริ่มต้นสำหรับ AI (AI Onboarding)** | [`START_HERE_FOR_AI.md`](START_HERE_FOR_AI.md) | สรุปโครงสร้างระบบและสถาปัตยกรรมสำหรับ AI ทุกค่าย |
+| **พิมพ์เขียวสถาปัตยกรรมฉบับสมบูรณ์ของ Opus** | [`COMPANY_OPUS_MASTER_BLUEPRINT.md`](COMPANY_OPUS_MASTER_BLUEPRINT.md) | แหล่งอ้างอิงสูตรคณิตศาสตร์จิตวิทยา, โมเดลเศรษฐกิจปิด และ Yerkes-Dodson Curve |
+| **คลังไอเดียระบบแห่งอนาคต** | [`ideas/company/README.md`](ideas/company/README.md) | ไอเดียพนักงานดีเด่น, สวัสดิการ, ชมรมหลังเลิกงาน, และการขยายอาคารโรงงาน |
 
-> 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**
-> - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)
-> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือ **`JS2-v2.6.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
+---
 
-Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
+## 🛠️ โครงสร้างซอร์สโค้ด (`COMPANY_SOURCE/`)
 
-**📑 รายงานการพัฒนาแพตช์ล่าสุด:**
+ซอร์สโค้ด ระบบจำลอง ชุดทดสอบ และเครื่องมือทั้งหมดของเกมนี้ อยู่ในโฟลเดอร์ **`COMPANY_SOURCE/`**:
 
-- [COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md](PATCH_REPORTS/COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md) — วิชวลเอฟเฟกต์ครบทุกระดับขั้น T1–T7 (>= 64 ลาย/ระดับ: T1:64, T2:64, T3:68, T4:72, T5:68, T6:64, T7:71), ตราประจำวิถี/สายย่อย/มรรคา 64 ลาย + มนตรา 122 บท, เอฟเฟกต์ทักษะอุปกรณ์ 64 แบบ + เซ็ต 31 แบบ, แอคชั่นระบบการรบ 36 แบบ และการแก้กลไกพิกัดเป้าหมาย/ระยะไกล-ประชิดครบ 100% (164/164 PASS); ดู [ทะเบียน](docs/audits/V2_6_0_COMPLETE_TIER_SUBPATH_EQUIP_VFX_REGISTRY.md)
-- [T6_GROUP_VFX_JS2_V2_6_0.md](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md) — 50 ลายกลุ่ม / 114 วิชา T6 / 207 ท่าย่อย + 8 พาสซีฟ, อุปกรณ์ 117 รายการ; [ดูภาพทั้ง 50 ลาย](docs/visuals/t6-group-vfx/art.png), [ภาพเคลื่อนไหว](docs/visuals/t6-group-vfx/release.gif); ถัดไป T5
+```
+COMPANY_SOURCE/
+├── index.html                   # หน้าจอเกมหลัก
+├── CompanyFoundation_single.html# ไฟล์เกมเวอร์ชันเดี่ยวออฟไลน์
+├── CORE_LOCK.json               # SHA-256 Lock สำหรับ human-core.js (ล็อกถาวร)
+├── package.json                 # สคริปต์คำสั่ง Node.js
+├── js/
+│   ├── human-core.js            # [LOCKED 1.0.0] แกนมนุษย์และจิตวิทยา O*NET 30 ความถนัด
+│   ├── data.js                  # แค็ตตาล็อกทักษะ, สินค้า (ลำโพง/โคมไฟ), วัตถุดิบ, กฎการเงิน
+│   ├── sim.js                   # วงรอบจำลองเวลา, การผลิต และพฤติกรรมอัตโนมัติของ NPC
+│   ├── layout.js                # โครงสร้างผังและสถานีของนิคมบริษัท
+│   ├── api.js                   # Facade API สำหรับอ่าน snapshot ไปแสดงผลที่หน้าจอ
+│   └── save.js                  # ระบบบันทึกและโหลดสถานะเกมแบบ Idempotent
+├── test/                        # ชุดทดสอบอัตโนมัติ Unit Tests 83 ข้อ (PASS 100%)
+└── tools/
+    ├── test.cjs                 # คำสั่งรันชุดทดสอบทั้งหมด
+    ├── verify.cjs               # ตรวจสอบไวยากรณ์และความปลอดภัยของ Hash Lock
+    └── build.cjs                # รวมโค้ดเป็นไฟล์เดี่ยวเล่นออฟไลน์
+```
 
-- [T7_VISUALS_JS2_V2_6_0.md](PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา T7 / 157 ท่าย่อย พร้อมออร่า 85 อุปกรณ์ใน 25 ประเภท; ส่งต่อ T6 แล้ว
-- [LEGENDARY_APEX_JS2_V2_6_0.md](PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md) — ยกระดับ 47 วิชาตำนาน / 3 พาสซีฟ / 27 อุปกรณ์ เป็นฉากสำแดงสี่ช่วง พร้อม [ภาพเคลื่อนไหว](docs/visuals/legendary-apex/manifestation-demo.gif)
-- [T3_SKILL_VFX_JS2_V2_6_0.md](PATCH_REPORTS/T3_SKILL_VFX_JS2_V2_6_0.md) — T3 ใหม่ 24 ลาย / 26 วิชา พร้อมแผนสเกลภาพ T4–T7 ที่สงวนไว้สำหรับแพตช์ถัดไป
-- [COMMON_SKILL_VFX_JS2_V2_6_0.md](PATCH_REPORTS/COMMON_SKILL_VFX_JS2_V2_6_0.md) — 30 ลายพื้นฐานสำหรับ 66 วิชา T1–T2, พาสซีฟ 12 วิชา และสถานะจริง 22 แบบ พร้อมทะเบียนกันทำซ้ำ
-- [SKILL_VFX_EXPANSION_JS2_V2_6_0.md](PATCH_REPORTS/SKILL_VFX_EXPANSION_JS2_V2_6_0.md) (refinement บน main v2.6.0: 15 ลายใหม่, Signature 45 แบบ, มีทะเบียน mapping และภาพเทียบ)
-- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) (`JS2-v2.6.0`: พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว — 148/148 กลุ่มทดสอบผ่าน 100%)
-- [WEAPON_MOTION_VFX_JS2_V2_5_0.md](PATCH_REPORTS/WEAPON_MOTION_VFX_JS2_V2_5_0.md) (`JS2-v2.5.0` VFX refinement on v2.6.0 main: 17 ตระกูลอาวุธ, หลายเป้าหมาย, ออร่าบัฟผู้รับ)
-- [ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md](PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md) (`JS2-v2.5.0`: All Equipment Tier Art 9 แผ่น / 576 ช่อง)
-- [LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md) (`JS2-v2.5.0`: Legendary Visual Identity 50 วิชา / 27 อุปกรณ์)
-- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md) (`JS2-v2.5.0`: Pathbound Ascendant Visuals & Signature Arts — 43/43 วิถี & 30 Signature VFX)
-- [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (`JS2-v2.4.0` Release)
-- [สารบัญรายงานทั้งหมดแบบละเอียด](PATCH_REPORTS/README.md)
+---
 
-**ผล VFX refinement ล่าสุด:** Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. ดู [รายงาน T6](PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md).
+## ⚡ คำสั่งตรวจสอบและคอมไพล์งาน (Quality Commands)
 
-**สถานะชุดทดสอบฐานพงศาวดารก่อน VFX refinement (`JS2-v2.6.0`):** ชุดทดสอบทั้งหมด **148/148 กลุ่ม** (147 ชุดทดสอบใน `GAME_SOURCE/test/run_all.js` + 1 กลุ่มตรวจ Syntax 225 ไฟล์) ผ่านครบ 100% PASS (รวมชุดเบราว์เซอร์ Chromium ทั้งหมด), Schema Validation ผ่าน 0 errors / 0 warnings (1,177 items, 1,402 recipes, 43 paths, 286 subpaths, 1,243 techniques), และ Core Lock Invariant คงเดิมที่ `155:2f9c9dd7`
+ก่อนส่งมอบงาน ให้เข้าไปรันคำสั่งใน `COMPANY_SOURCE/`:
 
 ```bash
-cd GAME_SOURCE
-node tools/build_single.js
-node tools/validate_data_schema.js
-node test/core_lock.js
-node test/v260_living_chronicle_and_reporting_suite.js
-node tools/run_parallel_tests.js
+cd COMPANY_SOURCE
+
+# 1. รันชุดทดสอบ Unit Tests ทั้งหมด (ต้องผ่าน 100%)
+node tools/test.cjs
+
+# 2. ตรวจสอบไวยากรณ์และ Hash Lock ของแกนมนุษย์
+node tools/verify.cjs
+
+# 3. รวมไฟล์เกมเป็น HTML เดี่ยวสำหรับเล่นออฟไลน์
+node tools/build.cjs
 ```
