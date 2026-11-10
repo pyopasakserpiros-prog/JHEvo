@@ -25,5 +25,5 @@ fs.writeFileSync(path.join(root, "CompanyFoundation_single.html"), html);
 console.log(
   "Built CompanyFoundation_single.html:",
   Buffer.byteLength(html),
-  "UTF-8 bytes; inspection interface, graphics pending",
+  "UTF-8 bytes; autonomous campus simulation",
 );

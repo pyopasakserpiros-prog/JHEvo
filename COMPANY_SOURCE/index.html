@@ -2,116 +2,138 @@
 <html lang="th">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Company Foundation — เครื่องมือตรวจระบบ</title>
+    <link rel="icon" href="data:," />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#10221e" />
+    <title>SME Crisis: นิคมอิเล็กทรอนิกส์สยาม — Autonomous Company Sim v0.1.0</title>
     <link rel="stylesheet" href="css/debug.css" />
   </head>
   <body>
-    <header>
-      <h1>Company Foundation <small>เครื่องมือตรวจโครงระบบ</small></h1>
-      <p>
-        แกนมนุษย์ 1.0.0 ผ่านการตรวจรับและล็อกแล้ว • งานภาพ ตัวละคร พื้นที่บริษัท และ UI
-        ฉบับจริงเป็นขั้นตอนภายหลัง
-      </p>
-    </header>
-    <main>
-      <section aria-label="ควบคุมการจำลอง">
-        <label
-          >Seed <input id="seed" value="company-demo" maxlength="100"
-        /></label>
-        <button id="new-game">เริ่มบริษัทใหม่</button>
-        <label
-          >ความเร็ว
-          <select id="speed">
-            <option value="0">หยุด</option>
-            <option value="1">1×</option>
-            <option value="2">2×</option>
-            <option value="5">5×</option>
-            <option value="10">10×</option>
-            <option value="20">20×</option>
-          </select></label
-        >
-        <button id="advance-hour">จำลอง 1 ชั่วโมง</button>
-        <button id="advance-day">จำลอง 1 วัน</button>
-        <button id="save-local">บันทึกในเครื่อง</button>
-        <button id="load-local">โหลดในเครื่อง</button>
-        <button id="export-save">ส่งออกเซฟ</button>
-        <label
-          >นำเข้าเซฟ
-          <input id="import-save" type="file" accept=".json,application/json"
-        /></label>
-        <button id="audit">ตรวจความถูกต้อง</button>
+    <div id="app">
+      <!-- 2D Bird's-Eye Campus Grounds Canvas -->
+      <canvas id="map" aria-label="แผนที่นิคมบริษัท"></canvas>
+      <canvas id="minimap" title="แผนที่ย่อนิคม (แตะเพื่อเลื่อนกล้อง)"></canvas>
+
+      <!-- Top HUD (JS2 Style) -->
+      <header id="hudTop" aria-label="แถบสถานะหลัก">
+        <div id="dateLine">
+          <div id="dateTxt">☀️ วันที่ 1 • 09:00 น. • กะเช้า</div>
+          <div id="speedBar" role="group" aria-label="ควบคุมความเร็วเวลา">
+            <button type="button" data-speed="0" title="หยุดเวลา">⏸</button>
+            <button type="button" data-speed="1" class="on" title="ความเร็ว 1×">1×</button>
+            <button type="button" data-speed="2" title="ความเร็ว 2×">2×</button>
+            <button type="button" data-speed="5" title="ความเร็ว 5×">5×</button>
+            <button type="button" data-speed="10" title="ความเร็ว 10×">10×</button>
+            <button type="button" data-speed="20" title="ความเร็ว 20×">20×</button>
+          </div>
+        </div>
+        <div id="resRow" aria-label="ตัวชี้วัดบริษัท"></div>
+        <div id="tickerRow">
+          <button type="button" id="tickerBtn" class="pill ticker-pill" title="คลิกเพื่อดูบันทึกพงศาวดารและรายงาน">
+            <span class="ticker-ic">📢</span>
+            <span id="notice" role="status" aria-live="polite">เริ่มบริษัท: พนักงานแต่ละแผนกกำลังปฏิบัติงานอัตโนมัติ</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Floating Toast Notifications -->
+      <div id="toasts" aria-live="polite"></div>
+
+      <!-- Floating Camera Action Buttons (JS2 Style) -->
+      <div id="fabs" role="group" aria-label="ควบคุมมุมมองกล้อง">
+        <button type="button" id="fFollow" title="ติดตามพนักงานที่เลือก" aria-label="ติดตามตัวละคร">🎯</button>
+        <button type="button" id="fZoomIn" title="ซูมเข้า" aria-label="ขยายแผนที่">＋</button>
+        <button type="button" id="fZoomOut" title="ซูมออก" aria-label="ย่อแผนที่">－</button>
+        <button type="button" id="fHome" title="กลับกึ่งกลางนิคม" aria-label="กลับกลางนิคม">🏠</button>
+      </div>
+
+      <!-- Quick Selection Info Banner Above Bottom Nav -->
+      <div id="selInfo" role="region" aria-label="ข้อมูลสิ่งที่เลือก"></div>
+
+      <!-- Bottom Navigation Bar (6 Tabs — JS2 Style) -->
+      <nav id="hudBottom" role="navigation" aria-label="เมนูหลัก">
+        <button type="button" data-nav="people" aria-label="พนักงาน">
+          <span>👥</span>ผู้คน
+        </button>
+        <button type="button" data-nav="campus" aria-label="อาคารนิคม">
+          <span>🏢</span>อาคารนิคม
+        </button>
+        <button type="button" data-nav="log" aria-label="บันทึกเหตุการณ์">
+          <span>📋</span>บันทึก
+        </button>
+        <button type="button" data-nav="market" aria-label="ตลาดและวิจัย">
+          <span>📦</span>ตลาด/วิจัย
+        </button>
+        <button type="button" data-nav="policy" aria-label="นโยบายประธาน">
+          <span>⚖️</span>นโยบาย CEO
+        </button>
+        <button type="button" data-nav="menu" aria-label="เมนูและแก้ไข">
+          <span>⚙️</span>เมนู/แก้ไข
+        </button>
+      </nav>
+
+      <!-- Slide-Up Inspect Drawer / Sheet (Building, Character & Management Sheets) -->
+      <section id="sheet" aria-label="หน้าต่างข้อมูลเชิงลึก">
+        <div id="shHead">
+          <div id="shTitle">ข้อมูลนิคมบริษัท</div>
+          <div class="sh-actions">
+            <button type="button" id="shTall" title="ขยาย/ย่อหน้าต่าง" aria-label="สลับความสูงหน้าต่าง">⤢</button>
+            <button type="button" id="shClose" title="ปิดหน้าต่าง" aria-label="ปิดหน้าต่าง">✕</button>
+          </div>
+        </div>
+        <div id="shTabs" role="tablist"></div>
+        <div id="shBody"></div>
       </section>
-      <p id="notice" role="status" aria-live="polite"></p>
-      <section id="overview" aria-label="สถานะบริษัท"></section>
-      <section aria-label="นโยบาย">
-        <h2>นโยบายและการเงิน</h2>
-        <label
-          ><input id="auto-buy" type="checkbox" checked />
-          ซื้อวัตถุดิบตามงานค้าง</label
-        >
-        <label
-          ><input id="auto-accept" type="checkbox" /> รับข้อเสนออัตโนมัติ</label
-        >
-        <label
-          >งานสำคัญ
-          <select id="priority">
-            <option value="balanced">สมดุล</option>
-            <option value="delivery">ส่งมอบ</option>
-            <option value="research">วิจัย</option>
-          </select></label
-        >
-        <label
-          >OT ที่ขอ (ชั่วโมง)
-          <input
-            id="ot-hours"
-            type="number"
-            min="0"
-            max="3"
-            step="0.5"
-            value="0"
-        /></label>
-        <button id="apply-ot">ขอ OT ตามนโยบาย</button>
-        <label
-          >จำนวนเงิน (บาท)
-          <input id="money" type="number" min="1" step="1" value="10000"
-        /></label>
-        <button id="borrow">กู้เงิน</button><button id="repay">ชำระหนี้</button
-        ><button id="pay-arrears">จ่ายค่าใช้จ่ายค้าง</button>
-      </section>
-      <section>
-        <h2>ข้อเสนอลูกค้า</h2>
-        <div id="offers" class="scroll"></div>
-      </section>
-      <section>
-        <h2>คำสั่งซื้อและงานค้าง</h2>
-        <div id="orders" class="scroll"></div>
-        <div id="jobs" class="scroll"></div>
-      </section>
-      <section>
-        <h2>วัตถุดิบ</h2>
-        <div id="materials" class="scroll"></div>
-      </section>
-      <section>
-        <h2>พนักงาน</h2>
-        <div id="people" class="scroll"></div>
-        <label
-          >รายละเอียด
-          <select id="person-select"></select
-        ></label>
+
+      <!-- Hidden / Direct-Access Controls for Automated Test Harnesses & Quick Shortcuts -->
+      <div id="compat-controls" class="sr-compat" aria-hidden="true">
+        <input id="seed" value="company-demo" maxlength="100" />
+        <button type="button" id="new-game">เริ่มบริษัทใหม่</button>
+        <select id="speed">
+          <option value="0">หยุด</option>
+          <option value="1">1×</option>
+          <option value="2">2×</option>
+          <option value="5">5×</option>
+          <option value="10">10×</option>
+          <option value="20">20×</option>
+        </select>
+        <button type="button" id="advance-hour">+1 ชม.</button>
+        <button type="button" id="advance-day">+1 วัน</button>
+        <button type="button" id="save-local">บันทึกในเครื่อง</button>
+        <button type="button" id="load-local">โหลดในเครื่อง</button>
+        <button type="button" id="export-save">ส่งออกเซฟ</button>
+        <input id="import-save" type="file" accept=".json,application/json" />
+        <button type="button" id="audit">ตรวจความถูกต้อง</button>
+        <input id="auto-buy" type="checkbox" checked />
+        <input id="auto-accept" type="checkbox" checked />
+        <select id="priority">
+          <option value="balanced">สมดุล</option>
+          <option value="delivery">ส่งมอบ</option>
+          <option value="research">วิจัย</option>
+        </select>
+        <input id="ot-hours" type="number" min="0" max="3" step="0.5" value="0" />
+        <button type="button" id="apply-ot">ตั้งค่า OT</button>
+        <input id="money" type="number" min="1" step="1" value="10000" />
+        <button type="button" id="borrow">กู้เงิน</button>
+        <button type="button" id="repay">ชำระหนี้</button>
+        <button type="button" id="pay-arrears">จ่ายค่าใช้จ่ายค้าง</button>
+        <button type="button" id="expand">ขยายพื้นที่</button>
+        <div id="overview"></div>
+        <div id="offers"></div>
+        <div id="orders"></div>
+        <div id="jobs"></div>
+        <div id="materials"></div>
+        <div id="people"></div>
+        <select id="person-select"></select>
         <div id="person-details"></div>
-      </section>
-      <section>
-        <h2>พื้นที่บริษัท (ข้อมูลสำหรับกราฟิก)</h2>
-        <p>ตำแหน่งใช้หน่วยช่อง แกน X ไปขวา แกน Y ลงล่าง</p>
-        <button id="expand">ขยายพื้นที่ด้านขวา 4 ช่อง</button>
-        <div id="stations" class="scroll"></div>
-      </section>
-      <section>
-        <h2>บันทึกเหตุการณ์จริง</h2>
+        <div id="stations"></div>
         <div id="events"></div>
-      </section>
-    </main>
+      </div>
+    </div>
+
     <script src="js/human-core.js"></script>
     <script src="js/data.js"></script>
     <script src="js/layout.js"></script>
@@ -119,6 +141,7 @@
     <script src="js/sim.js"></script>
     <script src="js/save.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/campus-render.js"></script>
     <script src="js/debug.js"></script>
   </body>
 </html>

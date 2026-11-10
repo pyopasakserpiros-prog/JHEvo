@@ -1,32 +1,28 @@
-# Company Foundation v0.1.0 — human core 1.0.0
+# Company Simulation — วิธีเปิดและพัฒนา
 
-> ผู้ใช้กำหนดทิศทางใหม่: ผู้เล่นเป็นผู้สังเกตการณ์ NPC/CEO บริหารเอง และโลกหลักเป็นที่ดินกว้างกับอาคารภายนอก. Build v0.2.0 ใน ZIP ที่ Gemini จะรับช่วงต่อถูกปฏิเสธ; ดู ../GEMINI_REORIENTATION_HANDOFF.md
+## เล่น
 
-โครงเกมบริษัทออฟฟิศ/โรงงานผ่าน Codex → Gemini → Codex ตรวจรับแล้ว แกนมนุษย์ล็อกถาวร งานถัดไป Claude ออกแบบกราฟิก ตัวละคร ฉากและ UI ตาม `../CLAUDE_GRAPHICS_HANDOFF.md` หน้า debug ปัจจุบันเป็นเครื่องมือตรวจ ไม่ใช่แบบภาพบังคับ
+เปิด CompanyFoundation_single.html ในเบราว์เซอร์ที่อนุญาตไฟล์ในเครื่อง หรือรันในโฟลเดอร์นี้:
 
-## เปิดเล่น/ตรวจ
+    python3 -m http.server 8000
 
-เปิด `CompanyFoundation_single.html` หรือรัน `python -m http.server 8000` ในโฟลเดอร์นี้แล้วเข้า http://localhost:8000/index.html ไฟล์รวมฝัง CSS/JS ไม่มีบริการภายนอก เลือกรับงานหรือเปิดรับข้อเสนออัตโนมัติแล้วเดินเวลา ดูงาน คน คลังและเงินตามจริง
+จากนั้นเข้า http://localhost:8000/index.html. เกมใช้ Canvas และไม่มีบริการภายนอกขณะเล่น ซูมด้วยปุ่ม +/−, ล้อเมาส์ หรือบีบนิ้ว ลากแผนที่เพื่อเลื่อน แตะคนหรืออาคารเพื่อดูข้อมูล แถบเลือกตัวละครมีปุ่มปิด
 
-## พัฒนาและตรวจ (ไม่มี npm dependency)
+NPC/CEO ดำเนินกิจการเอง ผู้เล่นปรับเวลา/มุมมอง ตรวจข้อมูล เสกวัตถุดิบ และแก้ชื่อตัวละคร นิสัย ค่านิยม หรือฝึกทักษะในเมนู/แก้ไขได้ การแก้ตัวละครไม่เปลี่ยนไฟล์สูตรแกน
 
-Node >=18 สำหรับ runtime/tools; ผลรอบนี้ตรวจบน Node24.22.1 ใช้ Chromium สำหรับ browser suite
+## สร้างและทดสอบ
 
-```sh
-npm test
-npm run check
-npm run build
-npm run core:check
-node tools/benchmark.cjs
-CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
-```
+ใช้ Node 20 ขึ้นไป การเล่นไฟล์ HTML ไม่ต้องติดตั้ง npm:
 
-ไม่ต้อง npm install ตัว browser runner ใช้ WebSocket ใน Nodeใหม่ มี LocalWS fallback เดิมแต่ไม่ได้รับรอง Node18 จากผลรันรอบนี้ ตรวจ source1280×800 และ embedded standalone390×844 ผ่าน local HTTP ใน managed environment ที่นโยบายบล็อก file:// ไม่ข้ามนโยบายและไม่อ้างว่าทดสอบ Android จริง
+    npm ci
+    npm run check
+    npm test
+    npm run build
+    npx playwright install chromium
+    npm run test:browser
 
-CORE_LOCK.json ลงทะเบียน SHA-256 ของ js/human-core.js เครื่องมือ core-review.cjs อ่าน/ตรวจอย่างเดียว ไม่มี refresh หรือ fallback ห้ามเปลี่ยนแกน/ไฟล์ล็อก/ปิดตัวตรวจโดยไม่มีคำสั่งผู้ใช้ ไฟล์ baseline review ของ Geminiเก็บเป็นประวัติใน ../docs/company/validation/gemini-review-baseline.json
+หากมี Chromium ติดตั้งแล้ว กำหนด CHROMIUM_PATH แทนการดาวน์โหลด browser ได้ ตั้ง COMPANY_SCREENSHOTS_DIR เพื่อบันทึกภาพทดสอบ browser. ชุด test:browser จะ build HTML ก่อนและตรวจทั้งหน้าซอร์สกับไฟล์เดี่ยวบนขนาดมือถือ/เดสก์ท็อป
 
-**กฎผู้ใช้ล่าสุด:** ระยะต้นไม่ต้องรักษาเซฟข้ามเวอร์ชัน เริ่มใหม่ได้ ไม่ต้องทำ migration ทุกแพตช์จนกว่าจะสั่งเปลี่ยน AGENTS กฎนี้ไม่ปลดล็อกแกน
+tools/build.cjs รวม index.html, css/debug.css และ js/ ตามลำดับใน index เป็น CompanyFoundation_single.html ไฟล์เดียว อย่าแก้ HTML ที่ build โดยไม่แก้ซอร์สต้นทาง
 
-## เอกสาร
-
-เริ่ม ../START_HERE_FOR_AI.md คู่มือ ../docs/company/HUMAN_CORE_MODEL.md, FUTURE_BUSINESS_CORE_RESEARCH.md, PRESENTATION_API.md และ CODEX_CORE_ACCEPTANCE_REPORT.md กิจการปัจจุบันยังเป็นออฟฟิศ/โรงงาน แม่แบบทักษะ 26 แบบคือฐานขยาย ไม่ใช่ 26 ธุรกิจที่สร้างแล้ว
+เซฟเก่าข้ามแพตช์ไม่จำเป็นต้องรองรับในช่วงพัฒนาแรก ตาม AGENTS.md; เก็บไฟล์เซฟจริงของผู้ใช้ไว้เสมอ

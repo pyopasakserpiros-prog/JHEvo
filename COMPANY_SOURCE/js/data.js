@@ -420,7 +420,7 @@
       assembler: { nameTh: "ช่างประกอบ", skill: "assembly" },
       inspector: { nameTh: "ตรวจคุณภาพ", skill: "quality" },
       logistics: { nameTh: "คลังและจัดส่ง", skill: "logistics" },
-      coordinator: { nameTh: "ประสานงาน", skill: "leadership" },
+      coordinator: { nameTh: "ผู้บริหาร/CEO", skill: "leadership" },
     },
     taskKinds: {},
     starters: [

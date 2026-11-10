@@ -6,7 +6,10 @@ const test = require("node:test"),
   Save = require("../js/save.js");
 const cmd = (w, type, data = {}) => S.command(w, { type, ...data });
 test("30 days of autonomous orders reconcile inventory, payroll and receipts at every day boundary", () => {
-  const w = S.create("steady");
+  const catalog = D.createCatalog();
+  // Keep the scenario running for the whole 30-day audit even if the CEO repays debt early.
+  catalog.rules.winCash = 1000000000;
+  const w = S.create("steady", { catalog });
   cmd(w, "setPolicy", { key: "autoAccept", value: true });
   for (let i = 0; i < 30; i++) {
     S.advance(w, 1440);
@@ -114,7 +117,8 @@ test("live company can add new industry skills, roles, products and custom task 
   assert(cmd(w, "setRole", { personId: w.people[2].id, role: "developer" }).ok);
   const task = S.enqueueTask(w, "firmwareAudit");
   assert(task.id);
-  S.advance(w, 240);
+  // The expanded campus and bounded walking can carry the work past lunch.
+  S.advance(w, 480);
   assert(w.history.tasks.some((t) => t.kind === "firmwareAudit"));
   assert.deepEqual(Save.validate(w), []);
   const reloaded = Save.deserialize(Save.serialize(w));

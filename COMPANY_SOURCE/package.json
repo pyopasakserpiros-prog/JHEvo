@@ -1,16 +1,19 @@
 {
-  "name": "company-simulation-foundation",
+  "name": "company-campus-simulation",
   "version": "0.1.0",
   "private": true,
-  "description": "Company simulation foundation with a permanently locked extensible human core; graphics handoff ready",
+  "description": "Autonomous company campus simulation with locked human core",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
     "test": "node tools/test.cjs",
     "check": "node tools/verify.cjs",
     "build": "node tools/build.cjs",
-    "test:browser": "node test/browser.cjs",
+    "test:browser": "npm run build && node --test test/campus-browser.cjs",
     "core:check": "node tools/core-review.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
   }
 }

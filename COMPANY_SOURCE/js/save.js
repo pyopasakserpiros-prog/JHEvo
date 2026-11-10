@@ -156,6 +156,28 @@
         w.lastSettledDay === Math.floor(w.clock.absoluteMinute / 1440),
       "invalid accounting day",
     );
+    if (w.facilities !== undefined) {
+      const f = w.facilities;
+      const ids = Object.keys(S.FACILITY_RULES);
+      add(record(f) && record(f.levels) && ids.every((id) => int(f.levels[id], 1, 3)) &&
+        Object.keys(f.levels || {}).every((id) => ids.includes(id)) &&
+        int(f.trainingMinutes) && f.trainingMinutes % S.TICK === 0 &&
+        int(f.lastDecisionDay, 0, Math.floor(w.clock.absoluteMinute / 1440) + 1) &&
+        (f.lastDecision === null || (record(f.lastDecision) &&
+          ids.includes(f.lastDecision.facilityId) &&
+          ["upgrade", "wait"].includes(f.lastDecision.decision) &&
+          typeof f.lastDecision.personId === "string" &&
+          int(f.lastDecision.cost) && int(f.lastDecision.reserve) &&
+          typeof f.lastDecision.score === "number" && Number.isFinite(f.lastDecision.score))),
+        "invalid facility state");
+      if (record(f) && record(f.levels) && Array.isArray(w.finance.entries)) {
+        for (const id of ids) {
+          const entries = w.finance.entries.filter((e) => e.kind === "equipment" && e.reference === "facility:" + id);
+          add(entries.length === f.levels[id] - 1 && entries.every((e, i) => e.delta === -S.FACILITY_RULES[id].cost * (i + 1)),
+            "facility investment ledger mismatch: " + id);
+        }
+      }
+    }
     add(
       ["running", "won", "lost"].includes(w.status) &&
         finite(w.reputation, 0, 100) &&

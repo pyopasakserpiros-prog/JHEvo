@@ -38,6 +38,28 @@
       research: "research",
       sales: "sales",
     };
+    // Levels are simulation state; amounts are integer satang, not visual-only upgrades.
+    const FACILITY_RULES = Object.freeze({
+      hq: { nameTh: "สำนักงานใหญ่", cost: 1000000 },
+      factory: { nameTh: "โรงงานผลิต", cost: 1800000 },
+      warehouse: { nameTh: "คลังสินค้า", cost: 1200000 },
+      rnd: { nameTh: "อาคารวิจัย", cost: 1400000 },
+      canteen: { nameTh: "โรงอาหาร", cost: 800000 },
+      courtyard: { nameTh: "สวนพักผ่อน", cost: 600000 },
+      training: { nameTh: "ศูนย์ฝึกอบรม", cost: 900000 },
+    });
+    const freshFacilities = () => ({
+      levels: Object.fromEntries(Object.keys(FACILITY_RULES).map((key) => [key, 1])),
+      trainingMinutes: 0,
+      lastDecisionDay: 0,
+      lastDecision: null,
+    });
+    const facilityLevel = (w, key) => w.facilities?.levels?.[key] || 1;
+    const facilityForJob = (kind) => ({
+      sales: "hq", purchase: "hq", invoice: "hq", research: "rnd",
+      assembly: "factory", rework: "factory", qa: "factory",
+      packing: "warehouse", shipping: "warehouse",
+    })[kind];
     const clone = (o) => JSON.parse(JSON.stringify(o)),
       clamp = (n, a, b) => Math.max(a, Math.min(b, n));
     const now = (w) => w.clock.absoluteMinute,
@@ -227,10 +249,11 @@
             .filter((p) => p.researchRequired === 0)
             .map((p) => p.id),
         },
+        facilities: freshFacilities(),
         reputation: 45,
         policies: {
           autoBuy: true,
-          autoAccept: false,
+          autoAccept: Boolean(options.autonomous),
           workPriority: "balanced",
           overtimeHours: 0,
           overtimeMultiplier: 1.5,
@@ -254,7 +277,7 @@
       event(
         w,
         "companyStarted",
-        "เริ่มบริษัท: เลือกรับงานเพื่อให้ทีมเริ่มผลิต",
+        "เริ่มบริษัท: ทีมงานพร้อมดำเนินกิจการในนิคมอุตสาหกรรม",
       );
       return w;
     }
@@ -392,7 +415,7 @@
     }
     function move(p) {
       p.previousPosition = { ...p.position };
-      const steps = p.path.splice(0, 24);
+      const steps = p.path.splice(0, 4);
       if (steps.length) p.position = { ...steps.at(-1) };
     }
     function ability(w, p, skill, context = {}) {
@@ -454,6 +477,8 @@
     }
     function planPurchases(w) {
       if (!w.policies.autoBuy) return;
+      const buyer = w.people.find((p) => p.employed && p.atWork && ["admin", "logistics", "coordinator"].includes(p.role));
+      if (!buyer) return;
       const needed = Object.fromEntries(
         Object.keys(w.catalog.materials).map((k) => [k, 0]),
       );
@@ -463,10 +488,21 @@
             w.catalog.products[u.productId].bom,
           ))
             needed[m] += n;
-      const reserveCash =
-        w.people
-          .filter((p) => p.employed)
-          .reduce((s, p) => s + p.pay.dailyWage, 0) * 2;
+      const employed = w.people.filter((p) => p.employed),
+        reserveCash = employed.reduce((s, p) => s + p.pay.dailyWage, 0) * 2;
+      if (
+        w.finance.debt === 0 &&
+        w.finance.cash > reserveCash + w.catalog.rules.winCash + 2500000
+      ) {
+        for (const prodId of w.research.unlocked) {
+          const prod = w.catalog.products[prodId];
+          if (prod && prod.bom) {
+            for (const m of Object.keys(prod.bom)) {
+              if (needed[m] < 10) needed[m] = 10;
+            }
+          }
+        }
+      }
       for (const [m, n] of Object.entries(needed)) {
         const incoming = Object.values(w.purchases)
             .filter((p) => p.materialId === m && p.status !== "received")
@@ -485,12 +521,16 @@
                   ? short
                   : maxAffordable;
           if (count > 0 && w.finance.cash - count * unitCost >= reserveCash)
-            placePurchase(w, m, count);
+            placePurchase(w, m, count, buyer);
         }
       }
     }
-    function placePurchase(w, materialId, quantity) {
+    function placePurchase(w, materialId, quantity, actor = null) {
       const mat = w.catalog.materials[materialId],
+        buyer = actor ||
+          w.people.find(
+            (p) => p.employed && ["admin", "logistics"].includes(p.role),
+          ) || w.people.find((p) => p.employed),
         p = {
           id: id(w, "purchase"),
           materialId,
@@ -503,14 +543,20 @@
       post(w, "materials", -p.cost, p.id);
       w.purchases[p.id] = p;
       job(w, "purchase", { purchaseId: p.id, required: 15 });
-      event(w, "purchaseOrdered", "สั่งซื้อวัตถุดิบ", {
-        purchaseId: p.id,
-        materialId,
-        quantity,
-      });
+      event(
+        w,
+        "purchaseOrdered",
+        `ฝ่ายจัดซื้อ (${buyer ? buyer.name : "ระบบ"}) สั่งซื้อวัตถุดิบ ${mat.nameTh} ${quantity} ชิ้น`,
+        {
+          purchaseId: p.id,
+          materialId,
+          quantity,
+          personId: buyer ? buyer.id : null,
+        },
+      );
       return p;
     }
-    function accept(w, offer) {
+    function accept(w, offer, actor = null, decision = null) {
       const total = offer.quantity * offer.unitPrice,
         deposit = Math.floor(total * offer.depositPct);
       if (
@@ -521,6 +567,11 @@
       )
         return null;
       const oid = id(w, "order"),
+        prod = w.catalog.products[offer.productId],
+        salesActor =
+          actor ||
+          w.people.find((p) => p.employed && p.role === "sales") ||
+          w.people.find((p) => p.employed),
         o = {
           id: oid,
           offerId: offer.id,
@@ -541,11 +592,18 @@
       w.orders[oid] = o;
       if (deposit) post(w, "sales", deposit, oid + ":deposit");
       for (let i = 0; i < o.quantity; i++) addUnit(w, o);
-      event(w, "orderAccepted", "รับคำสั่งซื้อ", {
-        orderId: oid,
-        productId: o.productId,
-        quantity: o.quantity,
-      });
+      event(
+        w,
+        "orderAccepted",
+        `ฝ่ายขาย (${salesActor ? salesActor.name : "บริษัท"}) ปิดดีลออเดอร์${prod ? prod.nameTh : offer.productId} ${o.quantity} ชิ้น สำเร็จ!`,
+        {
+          orderId: oid,
+          productId: o.productId,
+          quantity: o.quantity,
+          personId: salesActor ? salesActor.id : null,
+          decision,
+        },
+      );
       return o;
     }
     function autoAccept(w) {
@@ -553,14 +611,163 @@
       const open = activeOrders(w).filter((o) => o.status === "accepted"),
         queued = Object.keys(w.units).length;
       if (open.length >= 2 || queued >= 24) return;
-      const offer = Object.values(w.offers).find(
-        (o) =>
-          o.status === "open" &&
-          o.deadline > now(w) + 1440 &&
-          w.research.unlocked.includes(o.productId) &&
-          queued + o.quantity <= w.catalog.rules.maxUnits,
-      );
-      if (offer) accept(w, offer);
+      const salesPerson =
+        w.people.find((p) => p.employed && p.atWork && p.role === "sales") ||
+        w.people.find((p) => p.employed && p.atWork && p.role === "coordinator");
+      if (!salesPerson) return;
+      const roleSkill = w.catalog.roles[salesPerson.role].skill;
+      const proficiency = salesPerson.skills[roleSkill]?.level || 0;
+      const personality = salesPerson.profile.personality;
+      const evaluated = Object.values(w.offers).filter((o) =>
+        o.status === "open" && o.deadline > now(w) + 1440 &&
+        w.research.unlocked.includes(o.productId) &&
+        queued + o.quantity <= w.catalog.rules.maxUnits,
+      ).map((offer) => {
+        const product = w.catalog.products[offer.productId];
+        const materialCost = Object.entries(product.bom).reduce((sum, [id, qty]) =>
+          sum + w.catalog.materials[id].unitCost * qty, 0);
+        const profitPerUnit = offer.unitPrice - materialCost;
+        const margin = profitPerUnit / Math.max(1, offer.unitPrice);
+        const timeDays = (offer.deadline - now(w)) / 1440;
+        const pressure = (queued + offer.quantity) / Math.max(1, w.catalog.rules.maxUnits);
+        const score = margin * 60 + proficiency * 0.15 +
+          (salesPerson.profile.values.achievement ?? 50) * 0.08 +
+          (personality.riskTaking ?? 50) * 0.04 -
+          (personality.prudence ?? 50) * pressure * 0.06 - Math.max(0, 3 - timeDays) * 4;
+        return { offer, profitPerUnit, score };
+      }).filter((item) => item.profitPerUnit > 0 && item.score >= 10)
+        .sort((a, b) => b.score - a.score || a.offer.id.localeCompare(b.offer.id));
+      const choice = evaluated[0];
+      if (choice) accept(w, choice.offer, salesPerson, {
+        score: Math.round(choice.score * 10) / 10,
+        profitPerUnit: choice.profitPerUnit,
+        reason: "เปรียบเทียบราคากับต้นทุนวัตถุดิบ กำหนดส่ง งานค้าง และลักษณะผู้ตัดสินใจ",
+      });
+    }
+    function evaluateAutonomousHiring(w, options = {}) {
+      const employed = w.people.filter((p) => p.employed);
+      const ceo = employed.find((p) => p.role === "coordinator");
+      if (!ceo) return false;
+      if (employed.length >= w.catalog.rules.maxPeople) return false;
+      const burn =
+        w.catalog.rules.rentDaily +
+        Math.round(w.finance.debt * w.catalog.rules.interestDaily) +
+        employed.reduce((n, p) => n + p.pay.dailyWage, 0) +
+        w.policies.wellbeingDaily * employed.length;
+      const runwayDays = burn > 0 ? w.finance.cash / burn : 999;
+      const openJobs = Object.values(w.jobs).filter((j) => !j.assignee);
+      const overloaded =
+        options.force ||
+        (openJobs.length >= Math.max(4, employed.length) &&
+          runwayDays > 30 &&
+          w.finance.cash >= w.catalog.rules.hireFee + burn * 30);
+      if (!overloaded || w.finance.cash < w.catalog.rules.hireFee) return false;
+      const list = candidates(w);
+      if (!list.length) return false;
+      const preferredRole =
+        options.role ||
+        (openJobs.some((j) => j.kind === "assembly" || j.kind === "rework")
+          ? "assembler"
+          : openJobs.some((j) => j.kind === "qa")
+            ? "inspector"
+            : openJobs.some((j) => j.kind === "packing" || j.kind === "shipping")
+              ? "logistics"
+              : "assembler");
+      const role = own(w.catalog.roles, preferredRole);
+      const skillSpec = role && own(w.catalog.skills, role.skill);
+      if (!skillSpec) return false;
+      const scored = list.map((candidate) => {
+        const skill = H.createSkill(candidate.profile, skillSpec);
+        const ability = H.evaluateAbility(candidate.profile, H.createState(candidate.profile), skill, skillSpec);
+        const score = ability.aptitudeFit * 0.55 + skill.level * 0.25 +
+          candidate.profile.personality.conscientiousness * 0.08 +
+          candidate.profile.personality.integrity * 0.06 -
+          (ceo.profile.personality.prudence ?? 50) * candidate.dailyWage / 1000000;
+        return { candidate, score };
+      }).sort((a, b) => b.score - a.score || a.candidate.id.localeCompare(b.candidate.id));
+      const pick = scored[0];
+      const res = command(w, {
+        type: "hire",
+        candidateId: pick.candidate.id,
+        role: preferredRole,
+      });
+      if (res.ok) event(w, "recruitmentDecision", `${ceo.name} เลือก ${pick.candidate.name} เข้าร่วมทีม`, {
+        personId: ceo.id, candidateId: res.personId, role: preferredRole,
+        score: Math.round(pick.score * 10) / 10,
+        reason: "ประเมินความถนัด ทักษะ นิสัย และค่าจ้างตามตำแหน่งที่ขาด",
+      });
+      return res.ok ? true : false;
+    }
+    function evaluateFacilityInvestment(w) {
+      if (!w.policies.autoAccept || day(w) < 2) return;
+      if (!w.facilities) w.facilities = freshFacilities();
+      const f = w.facilities;
+      if (day(w) - f.lastDecisionDay < 3 && f.lastDecisionDay > 0) return;
+      const ceo = w.people.find((p) => p.employed && p.atWork && p.role === "coordinator");
+      if (!ceo) return;
+      const employees = w.people.filter((p) => p.employed);
+      const dailyBurn = w.catalog.rules.rentDaily +
+        Math.round(w.finance.debt * w.catalog.rules.interestDaily) +
+        employees.reduce((sum, p) => sum + p.pay.dailyWage + w.policies.wellbeingDaily, 0);
+      const obligations = w.finance.payables.rent + w.finance.payables.interest +
+        employees.reduce((sum, p) => sum + p.pay.dueBase + p.pay.dueOT, 0);
+      const reserve = dailyBurn * 20 + obligations + Math.min(w.finance.debt, dailyBurn * 10);
+      const jobs = Object.values(w.jobs);
+      const needs = {
+        factory: 12 + jobs.filter((j) => ["assembly", "rework", "qa"].includes(j.kind)).length * 3,
+        warehouse: 9 + jobs.filter((j) => ["packing", "shipping"].includes(j.kind)).length * 3,
+        hq: 0,
+        rnd: 10 + jobs.filter((j) => j.kind === "research").length * 3,
+        canteen: 8 + employees.reduce((n, p) => n + p.state.hunger, 0) / Math.max(1, employees.length) / 8,
+        courtyard: 8 + employees.reduce((n, p) => n + p.state.stress, 0) / Math.max(1, employees.length) / 7,
+        training: 10 + employees.length,
+      };
+      needs.hq = 8 + Object.values(w.offers).filter((o) => o.status === "open").length * 2;
+      const personality = ceo.profile.personality;
+      const ranked = Object.entries(FACILITY_RULES).filter(([key]) => (f.levels[key] || 1) < 3)
+        .map(([key, spec]) => {
+          const level = f.levels[key] || 1;
+          const cost = spec.cost * level;
+          const score = needs[key] + ceo.skills.leadership.level * 0.08 +
+            (personality.ambition ?? 50) * 0.08 + (personality.riskTaking ?? 50) * 0.04 -
+            (personality.prudence ?? 50) * 0.04 - level * 3 - cost / Math.max(w.finance.cash, 1) * 15;
+          return { key, spec, level, cost, score };
+        }).sort((a, b) => b.score - a.score || a.key.localeCompare(b.key));
+      const choice = ranked[0];
+      f.lastDecisionDay = day(w);
+      if (!choice) return;
+      const affordable = w.finance.arrearsSince === null && w.finance.cash >= reserve + choice.cost;
+      f.lastDecision = {
+        day: day(w), personId: ceo.id, facilityId: choice.key,
+        decision: affordable && choice.score >= 12 ? "upgrade" : "wait",
+        score: Math.round(choice.score * 10) / 10, cost: choice.cost, reserve,
+        reason: affordable ? "ประเมินภาระงานและประโยชน์ของอาคาร" : "รักษาเงินสำรองและภาระค้างจ่าย",
+      };
+      if (f.lastDecision.decision !== "upgrade") return;
+      post(w, "equipment", -choice.cost, "facility:" + choice.key);
+      f.levels[choice.key] = choice.level + 1;
+      event(w, "facilityUpgraded", `${ceo.name} ตัดสินใจพัฒนา${choice.spec.nameTh}เป็นระดับ ${choice.level + 1}`, {
+        personId: ceo.id, facilityId: choice.key, level: choice.level + 1, cost: choice.cost,
+        reason: f.lastDecision.reason,
+      });
+    }
+    function evaluateDebtRepayment(w) {
+      if (!w.policies.autoAccept || w.finance.debt <= 0 || w.finance.arrearsSince !== null) return;
+      const ceo = w.people.find((p) => p.employed && p.atWork && p.role === "coordinator");
+      if (!ceo) return;
+      const employees = w.people.filter((p) => p.employed);
+      const dailyBurn = w.catalog.rules.rentDaily + Math.round(w.finance.debt * w.catalog.rules.interestDaily) +
+        employees.reduce((sum, p) => sum + p.pay.dailyWage + w.policies.wellbeingDaily, 0);
+      const due = w.finance.payables.rent + w.finance.payables.interest +
+        employees.reduce((sum, p) => sum + p.pay.dueBase + p.pay.dueOT, 0);
+      const reserveDays = 15 + Math.floor((ceo.profile.personality.prudence ?? 50) / 10);
+      const reserve = dailyBurn * reserveDays + due;
+      const amount = Math.min(w.finance.debt, Math.max(0, w.finance.cash - reserve));
+      if (!Number.isSafeInteger(amount) || amount <= 0) return;
+      post(w, "debtRepayment", -amount, "bank");
+      event(w, "ceoDebtRepayment", `${ceo.name} ชำระเงินต้นโดยกันเงินสำรองไว้ก่อน`, {
+        personId: ceo.id, amount, reserve, reserveDays,
+      });
     }
     function processDue(w) {
       for (const p of Object.values(w.purchases))
@@ -568,10 +775,17 @@
           w.inventory.materials[p.materialId] += p.quantity;
           w.inventory.purchased[p.materialId] += p.quantity;
           p.status = "received";
-          event(w, "materialsReceived", "วัตถุดิบมาถึงแล้ว", {
-            purchaseId: p.id,
-            quantity: p.quantity,
-          });
+          const matName =
+            w.catalog.materials[p.materialId]?.nameTh || p.materialId;
+          event(
+            w,
+            "materialsReceived",
+            `วัตถุดิบ${matName} ${p.quantity} ชิ้น มาส่งถึงคลังแล้ว`,
+            {
+              purchaseId: p.id,
+              quantity: p.quantity,
+            },
+          );
         }
       for (const i of Object.values(w.invoices))
         if (i.status === "unpaid" && i.dueAt <= now(w)) {
@@ -581,10 +795,15 @@
           w.orders[i.orderId].status = "paid";
           w.metrics.ordersPaid++;
           w.metrics.receipts++;
-          event(w, "paymentReceived", "ลูกค้าชำระเงิน", {
-            invoiceId: i.id,
-            amount: i.amount,
-          });
+          event(
+            w,
+            "paymentReceived",
+            `ลูกค้าชำระเงินค่าสินค้าเข้าบัญชีแล้ว (${(i.amount / 100).toLocaleString("th-TH")} บาท)`,
+            {
+              invoiceId: i.id,
+              amount: i.amount,
+            },
+          );
         }
     }
     function finishJob(w, p, j, a) {
@@ -627,15 +846,20 @@
             orderId: u.orderId,
             required: Math.ceil(product.assemblyMinutes * 0.4),
           });
-          event(w, "reworkNeeded", "ชิ้นงานไม่ผ่าน QC ส่งซ่อม", {
-            unitId: u.id,
-            orderId: u.orderId,
-          });
+          event(
+            w,
+            "reworkNeeded",
+            `ชิ้นงานไม่ผ่าน QC โดย ${p.name} ส่งช่างซ่อมแซม`,
+            {
+              unitId: u.id,
+              orderId: u.orderId,
+            },
+          );
         } else {
           w.production.scrapped[u.productId]++;
           w.metrics.unitsScrapped++;
           delete w.units[u.id];
-          event(w, "unitScrapped", "ชิ้นงานเสีย ตรวจสอบวัตถุดิบและภาระงาน", {
+          event(w, "unitScrapped", "ชิ้นงานเสียเกินซ่อม ตัดเป็นของเสีย", {
             orderId: u.orderId,
           });
         }
@@ -665,11 +889,16 @@
         );
         w.reputation = clamp(w.reputation + (late ? -0.5 : 2), 0, 100);
         job(w, "invoice", { orderId: o.id, required: 10 });
-        event(w, "orderShipped", "ส่งมอบสินค้าแล้ว", {
-          orderId: o.id,
-          quantity: o.quantity,
-          lateMinutes: late,
-        });
+        event(
+          w,
+          "orderShipped",
+          `ฝ่ายคลัง (${p.name}) ส่งมอบสินค้า ${o.quantity} ชิ้นขึ้นรถขนส่งแล้ว`,
+          {
+            orderId: o.id,
+            quantity: o.quantity,
+            lateMinutes: late,
+          },
+        );
       } else if (j.kind === "invoice") {
         const o = w.orders[j.orderId],
           i = {
@@ -697,9 +926,14 @@
             !w.research.unlocked.includes(prod.id)
           ) {
             w.research.unlocked.push(prod.id);
-            event(w, "productUnlocked", "ทีมวิจัยสินค้าใหม่สำเร็จ", {
-              productId: prod.id,
-            });
+            event(
+              w,
+              "productUnlocked",
+              `ห้องแล็บ R&D (${p.name}) วิจัยแบบแปลน "${prod.nameTh}" สำเร็จ!`,
+              {
+                productId: prod.id,
+              },
+            );
           }
       } else if (j.kind === "sales") {
         const products = w.research.unlocked,
@@ -1037,6 +1271,11 @@
         p.atWork = true;
         p.activity = "idle";
       }
+      if (p.path.length && !p.taskId && p.intent.code === "selfStudy" &&
+          Object.values(w.jobs).some((j) => !j.assignee && j.skill === w.catalog.roles[p.role].skill)) {
+        p.path = [];
+        p.stationId = null;
+      }
       if (p.path.length) {
         move(p);
         p.activity = "walking";
@@ -1062,6 +1301,12 @@
                 : "rest",
           minutes: TICK,
         });
+        if (p.activity === "eating" && facilityLevel(w, "canteen") > 1)
+          p.state.hunger = clamp(p.state.hunger - (facilityLevel(w, "canteen") - 1) * 0.4, 0, 100);
+        if (p.activity === "resting" && facilityLevel(w, "courtyard") > 1) {
+          p.state.stress = clamp(p.state.stress - (facilityLevel(w, "courtyard") - 1) * 0.3, 0, 100);
+          p.state.energy = clamp(p.state.energy + (facilityLevel(w, "courtyard") - 1) * 0.2, 0, 100);
+        }
         updateSocial(w, p);
         return;
       }
@@ -1168,6 +1413,7 @@
             (p.profile.personality.agreeableness > 45 ||
               p.profile.values.belonging > 65)
           ) {
+            if (p.stationId === "training") p.stationId = null;
             const target = helpPick.person,
               inter = helpPick.inter;
             p.activity = "helping";
@@ -1228,6 +1474,11 @@
             p.skills[primarySkill].level <
               H.skillCap(p.profile, w.catalog.skills[primarySkill])
           ) {
+            const training = w.layout.stations.training;
+            if (training && p.stationId !== training.id &&
+                w.people.filter((other) => other.employed && other.stationId === training.id).length < training.capacity) {
+              if (destination(w, p, training, "blocked", "selfStudy")) return;
+            }
             p.intent = { code: "selfStudy", reasons: [primarySkill] };
             p.decision = {
               at: now(w),
@@ -1236,12 +1487,18 @@
               roleMatch: true,
               motives: waitOptions[0].contributions,
             };
+            const learningAtTraining = training && p.stationId === training.id &&
+              p.position.x === training.access.x && p.position.y === training.access.y;
             p.skills[primarySkill] = H.learn(
               p.profile,
               p.skills[primarySkill],
               w.catalog.skills[primarySkill],
-              TICK * 0.35,
+              TICK * 0.35 * (learningAtTraining ? 1 + (facilityLevel(w, "training") - 1) * 0.15 : 1),
             );
+            if (learningAtTraining) {
+              if (!w.facilities) w.facilities = freshFacilities();
+              w.facilities.trainingMinutes += TICK;
+            }
             p.state = H.tickState(p.profile, p.state, {
               activity: "learn",
               minutes: TICK,
@@ -1249,6 +1506,7 @@
             });
             return;
           }
+          if (p.stationId === "training") p.stationId = null;
           p.intent = {
             code: Object.keys(w.units).length
               ? "waitingForWorkOrMaterials"
@@ -1297,7 +1555,8 @@
       }
       j.progress = Math.min(
         j.required,
-        j.progress + TICK * a.speedMultiplier * help,
+        j.progress + TICK * a.speedMultiplier * help *
+          (1 + (facilityLevel(w, facilityForJob(j.kind)) - 1) * 0.12),
       );
       p.activity = "working";
       p.intent = { code: j.kind, reasons: [j.id] };
@@ -1450,7 +1709,7 @@
               action: voice.action,
               reasons: voice.reasons,
             };
-            event(w, "employeeConcern", "พนักงานแจ้งข้อกังวล", {
+            event(w, "employeeConcern", `พนักงาน (${p.name}) แจ้งข้อกังวล`, {
               personId: p.id,
               reasons: voice.reasons,
             });
@@ -1468,7 +1727,7 @@
               p.position = { ...w.layout.entrance };
               p.previousPosition = { ...p.position };
               p.intent = { code: "leftCompany", reasons: voice.reasons };
-              event(w, "employeeLeft", "พนักงานตัดสินใจลาออก", {
+              event(w, "employeeLeft", `พนักงาน (${p.name}) ตัดสินใจลาออก`, {
                 personId: p.id,
                 reasons: voice.reasons,
               });
@@ -1511,6 +1770,11 @@
     }
     function step(w) {
       if (w.status !== "running") return false;
+      if (tod(w) === 570) evaluateDebtRepayment(w);
+      if (tod(w) === 600) evaluateFacilityInvestment(w);
+      if (tod(w) === 660 && day(w) >= 5 && w.policies.autoAccept &&
+          w.people.some((p) => p.employed && p.atWork && p.role === "coordinator"))
+        evaluateAutonomousHiring(w);
       processDue(w);
       ensureJobs(w);
       autoAccept(w);
@@ -1535,10 +1799,15 @@
             ...answer,
           };
           if (w.policies.overtimeHours > 0)
-            event(w, "overtimeResponse", "คำตอบเรื่อง OT", {
-              personId: p.id,
-              ...answer,
-            });
+            event(
+              w,
+              "overtimeResponse",
+              `${p.name} ตอบรับคำขอ OT: ${answer.decision === "accept" ? "ตกลงทำเต็มเวลา" : answer.decision === "negotiate" ? "ขอทำบางส่วน" : "ปฏิเสธ"}`,
+              {
+                personId: p.id,
+                ...answer,
+              },
+            );
         }
       for (const p of w.people) personStep(w, p);
       w.clock.absoluteMinute += TICK;
@@ -1739,7 +2008,12 @@
           post(w, "hiring", -w.catalog.rules.hireFee, p.id);
           w.people.push(p);
           w.nextCandidate += 3;
-          event(w, "employeeHired", "รับพนักงานเข้าทำงาน", { personId: p.id });
+          event(
+            w,
+            "employeeHired",
+            `ฝ่ายบุคคลว่าจ้าง ${p.name} เข้าทำงานตำแหน่ง${w.catalog.roles[c.role].nameTh}`,
+            { personId: p.id },
+          );
           return { ok: true, personId: p.id };
         }
         case "expandSite": {
@@ -1829,6 +2103,151 @@
                 L.findPath(map, p.position, map.stations[p.stationId].access) ||
                 [];
           return { ok: true, stationId: sid };
+        }
+        case "directorEdit": {
+          // Sandbox Edit Hub (JS2-inspired) — strictly preserves accounting & material conservation invariants
+          if (!c.action || typeof c.action !== "string")
+            return failure("invalidEdit", "คำสั่งแก้ไขไม่ถูกต้อง");
+          if (c.action === "setTrait") {
+            const dimensions = c.group === "personality" ? H.PERSONALITY : c.group === "values" ? H.VALUES : [];
+            if (!person || !dimensions.includes(c.key) || typeof c.value !== "number" ||
+                !Number.isFinite(c.value) || c.value < 0 || c.value > 100)
+              return failure("invalidEdit", "ค่านิสัยหรือค่านิยมไม่ถูกต้อง");
+            const profile = clone(person.profile);
+            profile[c.group][c.key] = c.value;
+            const errors = H.validateProfile(profile);
+            if (errors.length) return failure("invalidEdit", errors.join("; "));
+            person.profile = H.freezeProfile(profile);
+            event(w, "directorEdit", `[ศูนย์แก้ไข] ปรับข้อมูลตัวละคร ${person.name}`, {
+              action: "setTrait", personId: person.id, group: c.group, key: c.key, value: c.value,
+            });
+            return { ok: true };
+          }
+          if (c.action === "grantCash") {
+            if (!int(c.amount, 100, 1000000000))
+              return failure("invalidEdit", "จำนวนเงินไม่ถูกต้อง");
+            w.finance.openingCash += c.amount;
+            w.finance.cash += c.amount;
+            event(
+              w,
+              "directorEdit",
+              `[ศูนย์แก้ไข] อัดฉีดเงินทุนสำรอง +${(c.amount / 100).toLocaleString("th-TH")} บาท`,
+              { action: "grantCash", amount: c.amount },
+            );
+            return { ok: true };
+          }
+          if (c.action === "grantMaterial" || c.action === "addMaterials") {
+            if (!int(c.quantity, 1, 500) ||
+                (c.action === "grantMaterial" && !own(w.catalog.materials, c.materialId)))
+              return failure("invalidEdit", "วัตถุดิบหรือจำนวนไม่ถูกต้อง");
+            const qty = c.quantity;
+            const targets = c.action === "grantMaterial" ? [c.materialId] : Object.keys(w.catalog.materials);
+            if (targets.some((id) => !int(w.inventory.opening[id] + qty) || !int(w.inventory.materials[id] + qty)))
+              return failure("invalidEdit", "จำนวนวัตถุดิบเกินขีดจำกัด");
+            if (c.materialId && own(w.catalog.materials, c.materialId)) {
+              const mat = w.catalog.materials[c.materialId];
+              w.inventory.opening[c.materialId] += qty;
+              w.inventory.materials[c.materialId] += qty;
+              event(
+                w,
+                "directorEdit",
+                `[ศูนย์แก้ไข] เพิ่มสต็อกตั้งต้น ${mat.nameTh} +${qty} ชิ้น`,
+                { action: "grantMaterial", materialId: c.materialId, quantity: qty },
+              );
+            } else {
+              for (const mId of Object.keys(w.catalog.materials)) {
+                w.inventory.opening[mId] += qty;
+                w.inventory.materials[mId] += qty;
+              }
+              event(
+                w,
+                "directorEdit",
+                `[ศูนย์แก้ไข] เติมวัตถุดิบทุกชนิด +${qty} ชิ้นเข้าคลัง`,
+                { action: "addMaterials", quantity: qty },
+              );
+            }
+            return { ok: true };
+          }
+          if (c.action === "grantResearch" || c.action === "addResearch") {
+            const pts = int(c.points, 1, 5000) ? c.points : 100;
+            w.research.points += pts;
+            for (const prod of Object.values(w.catalog.products)) {
+              if (
+                prod.researchRequired <= w.research.points &&
+                !w.research.unlocked.includes(prod.id)
+              ) {
+                w.research.unlocked.push(prod.id);
+              }
+            }
+            event(
+              w,
+              "directorEdit",
+              `[ศูนย์แก้ไข] เพิ่มแต้มวิจัย R&D +${pts} แต้ม`,
+              { action: "grantResearch", points: pts },
+            );
+            return { ok: true };
+          }
+          if (c.action === "setReputation") {
+            const rawRep = typeof c.value === "number" ? c.value : c.reputation;
+            if (typeof rawRep !== "number" || !Number.isFinite(rawRep))
+              return failure("invalidEdit", "ค่าชื่อเสียงไม่ถูกต้อง");
+            w.reputation = clamp(Math.round(rawRep), 0, 100);
+            checkOutcome(w);
+            return { ok: true };
+          }
+          if (c.action === "refreshPerson") {
+            const targets = person
+              ? [person]
+              : w.people.filter((p) => p.employed);
+            if (!targets.length) return failure("invalidEdit", "ไม่พบพนักงาน");
+            for (const tp of targets) {
+              tp.state = H.normaliseState({
+                ...tp.state,
+                energy: 100,
+                focus: 100,
+                hunger: 0,
+                stress: 8,
+                burnout: 0,
+                morale: 95,
+                health: 100,
+                sleepDebt: 0,
+              });
+              tp.concern = null;
+            }
+            event(
+              w,
+              "directorEdit",
+              person
+                ? `[ศูนย์แก้ไข] ฟื้นฟูพลังงานและขวัญกำลังใจของ ${person.name} เต็ม 100%`
+                : `[ศูนย์แก้ไข] ฟื้นฟูพลังงานและขวัญกำลังใจพนักงานทุกคนเต็ม 100%`,
+              { action: "refreshPerson", personId: person ? person.id : null },
+            );
+            return { ok: true };
+          }
+          if (c.action === "trainSkill") {
+            if (!person || !own(w.catalog.skills, c.skillId))
+              return failure("invalidEdit", "ไม่พบพนักงานหรือทักษะ");
+            person.skills[c.skillId] = H.learn(
+              person.profile,
+              person.skills[c.skillId],
+              w.catalog.skills[c.skillId],
+              600,
+            );
+            event(
+              w,
+              "directorEdit",
+              `[ศูนย์แก้ไข] ฝึกอบรมทักษะ ${w.catalog.skills[c.skillId].nameTh} ให้ ${person.name}`,
+              { action: "trainSkill", personId: person.id, skillId: c.skillId },
+            );
+            return { ok: true };
+          }
+          if (c.action === "renamePerson") {
+            if (!person || typeof c.name !== "string" || !c.name.trim())
+              return failure("invalidEdit", "ชื่อไม่ถูกต้อง");
+            person.name = c.name.trim().slice(0, 32);
+            return { ok: true };
+          }
+          return failure("invalidEdit", "ไม่รู้จักคำสั่งแก้ไข");
         }
         default:
           return failure("unknownCommand", "ไม่รู้จักคำสั่ง");
@@ -2050,11 +2469,15 @@
       VERSION,
       SCHEMA,
       TICK,
+      FACILITY_RULES,
       create,
       step,
       advance,
       command,
+      applyCommand: command,
+      acceptOffer: (w, offerId) => command(w, { type: "acceptOffer", offerId }),
       candidates,
+      evaluateAutonomousHiring,
       addSkill,
       addRole,
       addProduct,

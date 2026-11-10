@@ -10,19 +10,19 @@
     key = (p) => p.x + "," + p.y;
   function createLayout() {
     const map = {
-      width: 32,
-      height: 20,
+      width: 40,
+      height: 25,
       revision: 1,
-      entrance: { x: 2, y: 18 },
+      entrance: { x: 2, y: 23 },
       zones: [
-        { id: "office", nameTh: "ออฟฟิศ", x: 1, y: 1, width: 15, height: 18 },
-        { id: "factory", nameTh: "โรงงาน", x: 17, y: 1, width: 14, height: 18 },
+        { id: "office", nameTh: "ออฟฟิศ", x: 1, y: 1, width: 15, height: 23 },
+        { id: "factory", nameTh: "โรงงาน", x: 17, y: 1, width: 22, height: 23 },
       ],
       blocked: [],
       stations: {},
     };
-    for (let y = 1; y < 19; y++)
-      if (![6, 14].includes(y)) map.blocked.push({ x: 16, y });
+    for (let y = 1; y < 24; y++)
+      if (![6, 14, 20].includes(y)) map.blocked.push({ x: 16, y });
     const add = (id, kind, x, y, ax, ay, capacity = 1) => {
       map.stations[id] = {
         id,
@@ -36,21 +36,22 @@
     };
     add("sales", "sales", 4, 4, 4, 5);
     add("admin", "admin", 8, 4, 8, 5);
-    add("research", "research", 12, 4, 12, 5);
+    add("research", "research", 14, 4, 14, 5);
     add("manager", "manager", 4, 8, 4, 9);
-    add("assembly1", "assembly", 20, 4, 20, 5);
-    add("assembly2", "assembly", 24, 4, 24, 5);
-    add("assembly3", "assembly", 28, 4, 28, 5);
-    add("quality1", "quality", 20, 9, 20, 10);
-    add("quality2", "quality", 24, 9, 24, 10);
-    add("packing", "packing", 28, 9, 28, 10);
-    add("stock", "stock", 20, 15, 21, 15, 3);
-    add("finished", "finished", 24, 15, 24, 16, 3);
-    add("receiving", "receiving", 26, 16, 26, 17, 2);
-    add("shipping", "shipping", 28, 15, 28, 16, 2);
-    add("pantry", "pantry", 4, 13, 4, 14, 8);
-    add("lounge", "lounge", 8, 13, 8, 14, 8);
-    add("meal", "meal", 12, 13, 12, 14, 8);
+    add("assembly1", "assembly", 23, 4, 23, 5);
+    add("assembly2", "assembly", 27, 4, 27, 5);
+    add("assembly3", "assembly", 31, 4, 31, 5);
+    add("quality1", "quality", 23, 9, 23, 10);
+    add("quality2", "quality", 27, 9, 27, 10);
+    add("packing", "packing", 31, 16, 31, 17);
+    add("stock", "stock", 22, 18, 23, 18, 3);
+    add("finished", "finished", 26, 18, 26, 19, 3);
+    add("receiving", "receiving", 28, 19, 28, 20, 2);
+    add("shipping", "shipping", 30, 18, 30, 19, 2);
+    add("pantry", "pantry", 14, 16, 14, 17, 8);
+    add("lounge", "lounge", 6, 13, 6, 14, 8);
+    add("meal", "meal", 12, 16, 12, 17, 8);
+    add("training", "training", 35, 14, 35, 15, 4);
     return map;
   }
   const inside = (m, p) =>
