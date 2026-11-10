@@ -13,6 +13,7 @@
 
 | เอกสาร | ลิงก์ไฟล์ | วัตถุประสงค์ |
 | :--- | :--- | :--- |
+| **พิมพ์เขียวความคิดฉบับเต็มของ Opus (Opus Master Blueprint)** | [`COMPANY_OPUS_MASTER_BLUEPRINT.md`](COMPANY_OPUS_MASTER_BLUEPRINT.md) | **[สำคัญสูงสุด]** ถอดความคิดเชิงลึก 32,722 tokens ของ Opus: โมเดลเศรษฐกิจ, ตัวเลข ฿85k/฿150k, แกนมนุษย์ CHC, สูตรคุณภาพ/ประสิทธิภาพ, ผัง 32x20, และวงจร Closed-Loop |
 | **ใบสั่งงานแกนมนุษย์ (Codex Mandate)** | [`COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md`](COMPANY_HUMAN_CORE_ASSIGNMENT_TH.md) | **[ต้องอ่าน]** ข้อกำหนดการออกแบบแกนมนุษย์แบบมิติผสม, วงจรผลิตโรงงาน+ออฟฟิศ, และการล็อกแกน |
 | **ใบสั่งงานสถาปัตยกรรม (Active Specification)** | [`ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md`](ACTIVE_PATCH_PROMPT_COMPANY_V0_1_0.md) | **[ต้องอ่าน]** สเปก 7 เสาหลักทางเทคนิคในการสร้างระบบ `COMPANY_SOURCE/` |
 | **แผนแม่บทสถาปัตยกรรม (Full Blueprint)** | [`COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md`](COMPANY_SIMULATION_CONCEPT_AND_ARCHITECTURE.md) | ผังออฟฟิศ 2D, แบบแปลนสินค้า T1–T7, โลกภายนอก, และประเด็นหารือ |
