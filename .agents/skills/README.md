@@ -1,5 +1,8 @@
-# ข้อมูลสำหรับ AI ใน branch company
+# สกิลสำหรับ AI ในโปรเจกต์ Company Simulation (นิคมอิเล็กทรอนิกส์สยาม)
 
-สกิลเก่า 13 ชุดในโฟลเดอร์นี้อ้างอิง API และระบบ JS2 โดยเฉพาะ จึงนำออกจาก branch company ตามคำขอผู้ใช้ JS2 ยังอยู่ branch main
+โฟลเดอร์นี้บรรจุสกิลเฉพาะสำหรับเกมบริษัท (`COMPANY_SOURCE/`) โดยแยกออกจากสกิลของ JS2 อย่างชัดเจน:
 
-สำหรับเกมบริษัท อ่าน AGENTS.md, START_HERE_FOR_AI.md, project_status_and_ai_onboarding.md และ COMPANY_SOURCE/README.md ก่อน เลือกใช้สกิลของสภาพแวดล้อมที่ตรงกับงานเมื่อจำเป็น
+1. **`company-evolution-dev/SKILL.md`** (และสำเนาที่ `SKILL.md` รากโปรเจกต์):
+   - Master Skill ภาพรวมสถาปัตยกรรมและระบบทั้งหมดของเกมบริษัท (อัปเดตถึงแพตช์ **v0.2.0**) ต้องอัปเดตไฟล์นี้ทุกครั้งหลังจบแพตช์ใหม่
+2. **`company-for-every-patch/SKILL.md`**:
+   - Evergreen Skill สำหรับใช้กับทุกแพตช์ กำหนดขั้นตอนก่อนทำแพตช์ กฎเหล็ก (Locked Human Core 1.0.0, Closed-Loop Accounting, 100% Autonomous NPC) และรายการตรวจสอบบังคับหลังทำแพตช์เสร็จ

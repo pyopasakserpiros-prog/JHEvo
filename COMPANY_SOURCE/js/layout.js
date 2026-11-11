@@ -8,21 +8,29 @@
   const clone = (o) => JSON.parse(JSON.stringify(o)),
     point = (p) => p && Number.isSafeInteger(p.x) && Number.isSafeInteger(p.y),
     key = (p) => p.x + "," + p.y;
+
+  // High-speed pure LRU path cache for 200-500 concurrent NPC pathfinding
+  const pathCache = new Map();
+  const MAX_PATH_CACHE = 8192;
+
   function createLayout() {
+    // 56x34 Greenfield Industrial Estate Campus:
+    // - West wing (x: 1..15, y: 1..32): Office HQ + greenfield reserve for Trade Annex, Solar Grid, Dormitory, Expo Hall
+    // - East wing (x: 17..54, y: 1..32): Main Factory Line A + vast greenfield land reserves for Lines B, C, D, Raw Depot, QA Lab, Dispatch Hub, Utility Plant
     const map = {
-      width: 40,
-      height: 25,
+      width: 56,
+      height: 34,
       revision: 1,
       entrance: { x: 2, y: 23 },
       zones: [
-        { id: "office", nameTh: "ออฟฟิศ", x: 1, y: 1, width: 15, height: 23 },
-        { id: "factory", nameTh: "โรงงาน", x: 17, y: 1, width: 22, height: 23 },
+        { id: "office", nameTh: "ออฟฟิศ", x: 1, y: 1, width: 15, height: 32 },
+        { id: "factory", nameTh: "โรงงาน", x: 17, y: 1, width: 38, height: 32 },
       ],
       blocked: [],
       stations: {},
     };
-    for (let y = 1; y < 24; y++)
-      if (![6, 14, 20].includes(y)) map.blocked.push({ x: 16, y });
+    for (let y = 1; y < 33; y++)
+      if (![6, 14, 20, 27].includes(y)) map.blocked.push({ x: 16, y });
     const add = (id, kind, x, y, ax, ay, capacity = 1) => {
       map.stations[id] = {
         id,
@@ -61,6 +69,26 @@
   function findPath(m, from, to) {
     if (!walkable(m, from) || !walkable(m, to)) return null;
     if (key(from) === key(to)) return [];
+    const cacheKey =
+      m.width +
+      "x" +
+      m.height +
+      ":r" +
+      (m.revision || 1) +
+      ":b" +
+      m.blocked.length +
+      ":" +
+      from.x +
+      "," +
+      from.y +
+      "->" +
+      to.x +
+      "," +
+      to.y;
+    const hit = pathCache.get(cacheKey);
+    if (hit !== undefined) {
+      return hit === null ? null : hit.map((pt) => ({ x: pt.x, y: pt.y }));
+    }
     const blocked = new Set(m.blocked.map(key)),
       q = [{ ...from }],
       seen = new Set([key(from)]),
@@ -86,11 +114,16 @@
             path.push(p);
             p = parents.get(key(p));
           }
-          return path.reverse();
+          path.reverse();
+          if (pathCache.size >= MAX_PATH_CACHE) pathCache.clear();
+          pathCache.set(cacheKey, path);
+          return path.map((pt) => ({ x: pt.x, y: pt.y }));
         }
         q.push(next);
       }
     }
+    if (pathCache.size >= MAX_PATH_CACHE) pathCache.clear();
+    pathCache.set(cacheKey, null);
     return null;
   }
   function zoneAt(m, p) {
@@ -106,6 +139,7 @@
       !m ||
       !Number.isSafeInteger(m.width) ||
       !Number.isSafeInteger(m.height) ||
+      !Number.isSafeInteger(m.revision) ||
       m.width < 8 ||
       m.height < 8 ||
       m.width > 96 ||

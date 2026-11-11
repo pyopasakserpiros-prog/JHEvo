@@ -10,7 +10,7 @@
   else root.CompanySave = value;
 })(typeof globalThis !== "undefined" ? globalThis : this, function (H, S, L) {
   "use strict";
-  const MAX_BYTES = 8 * 1024 * 1024,
+  const MAX_BYTES = 16 * 1024 * 1024,
     record = (v) => v && typeof v === "object" && !Array.isArray(v),
     int = (v, a = 0, b = Number.MAX_SAFE_INTEGER) =>
       Number.isSafeInteger(v) && v >= a && v <= b,
@@ -19,7 +19,7 @@
   function checkJsonTree(w) {
     let nodes = 0;
     function tree(v, depth = 0) {
-      if (++nodes > 500000 || depth > 40) throw Error("save structure limit");
+      if (++nodes > 2500000 || depth > 40) throw Error("save structure limit");
       if (typeof v === "number" && !Number.isFinite(v))
         throw Error("non-finite number");
       if (
@@ -82,8 +82,6 @@
             const units = Object.values(copy.units || {}).filter(
               (u) => u.orderId === o.id,
             );
-            // review.1 had no durable order flag: after scrap, per-order provenance is lost.
-            // Conservatively disallow cancellation if the same product has historical scrap.
             o.materialConsumed =
               units.some((u) => u.materialConsumed) ||
               (o.status !== "accepted" && o.status !== "cancelled") ||
@@ -132,10 +130,10 @@
     ])
       add(record(w[k]), k + " missing");
     add(
-      Array.isArray(w.people) && w.people.length > 0 && w.people.length <= 256,
+      Array.isArray(w.people) && w.people.length > 0 && w.people.length <= 600,
       "invalid people",
     );
-    add(Array.isArray(w.events) && w.events.length <= 120, "invalid events");
+    add(Array.isArray(w.events) && w.events.length <= 160, "invalid events");
     if (errors.length) return errors;
     add(
       typeof w.seed === "string" &&
@@ -159,24 +157,72 @@
     if (w.facilities !== undefined) {
       const f = w.facilities;
       const ids = Object.keys(S.FACILITY_RULES);
-      add(record(f) && record(f.levels) && ids.every((id) => int(f.levels[id], 1, 3)) &&
-        Object.keys(f.levels || {}).every((id) => ids.includes(id)) &&
-        int(f.trainingMinutes) && f.trainingMinutes % S.TICK === 0 &&
-        int(f.lastDecisionDay, 0, Math.floor(w.clock.absoluteMinute / 1440) + 1) &&
-        (f.lastDecision === null || (record(f.lastDecision) &&
-          ids.includes(f.lastDecision.facilityId) &&
-          ["upgrade", "wait"].includes(f.lastDecision.decision) &&
-          typeof f.lastDecision.personId === "string" &&
-          int(f.lastDecision.cost) && int(f.lastDecision.reserve) &&
-          typeof f.lastDecision.score === "number" && Number.isFinite(f.lastDecision.score))),
-        "invalid facility state");
+      add(
+        record(f) &&
+          record(f.levels) &&
+          ids.every((id) => int(f.levels[id], 1, 3)) &&
+          Object.keys(f.levels || {}).every((id) => ids.includes(id)) &&
+          int(f.trainingMinutes) &&
+          f.trainingMinutes % S.TICK === 0 &&
+          int(
+            f.lastDecisionDay,
+            0,
+            Math.floor(w.clock.absoluteMinute / 1440) + 1,
+          ) &&
+          (f.machineCondition === undefined ||
+            finite(f.machineCondition, 0, 100)) &&
+          (f.maintenanceCount === undefined || int(f.maintenanceCount, 0)) &&
+          (f.totalPromotions === undefined || int(f.totalPromotions, 0)) &&
+          (f.totalBonusesPaid === undefined || int(f.totalBonusesPaid, 0)) &&
+          (f.constructedPlots === undefined ||
+            Array.isArray(f.constructedPlots)) &&
+          (f.lastDecision === null ||
+            (record(f.lastDecision) &&
+              ids.includes(f.lastDecision.facilityId) &&
+              ["upgrade", "wait"].includes(f.lastDecision.decision) &&
+              typeof f.lastDecision.personId === "string" &&
+              int(f.lastDecision.cost) &&
+              int(f.lastDecision.reserve) &&
+              typeof f.lastDecision.score === "number" &&
+              Number.isFinite(f.lastDecision.score))),
+        "invalid facility state",
+      );
       if (record(f) && record(f.levels) && Array.isArray(w.finance.entries)) {
         for (const id of ids) {
-          const entries = w.finance.entries.filter((e) => e && e.kind === "equipment" && e.reference === "facility:" + id);
-          add(entries.length === f.levels[id] - 1 && entries.every((e, i) => e.delta === -S.FACILITY_RULES[id].cost * (i + 1)),
-            "facility investment ledger mismatch: " + id);
+          const entries = w.finance.entries.filter(
+            (e) =>
+              e && e.kind === "equipment" && e.reference === "facility:" + id,
+          );
+          add(
+            entries.length === f.levels[id] - 1 &&
+              entries.every(
+                (e, i) => e.delta === -S.FACILITY_RULES[id].cost * (i + 1),
+              ),
+            "facility investment ledger mismatch: " + id,
+          );
         }
       }
+    }
+    if (w.logistics !== undefined) {
+      add(
+        record(w.logistics) &&
+          Array.isArray(w.logistics.b2bDeals) &&
+          Array.isArray(w.logistics.inboundShipments) &&
+          Array.isArray(w.logistics.outboundShipments) &&
+          record(w.logistics.productionLines),
+        "invalid logistics state",
+      );
+    }
+    if (w.externalWorld !== undefined) {
+      add(
+        record(w.externalWorld) &&
+          record(w.externalWorld.clients) &&
+          record(w.externalWorld.suppliers) &&
+          record(w.externalWorld.competitors) &&
+          record(w.externalWorld.government) &&
+          record(w.externalWorld.stockMarket),
+        "invalid externalWorld state",
+      );
     }
     add(
       ["running", "won", "lost"].includes(w.status) &&
@@ -201,9 +247,9 @@
     );
     add(
       Array.isArray(w.history.tasks) &&
-        w.history.tasks.length <= 160 &&
+        w.history.tasks.length <= 240 &&
         Array.isArray(w.history.days) &&
-        w.history.days.length <= 120,
+        w.history.days.length <= 180,
       "invalid history",
     );
     add(
@@ -267,6 +313,23 @@
             Object.hasOwn(w.catalog.roles, p.role),
           "invalid employee",
         );
+        if (p.identity !== undefined && p.identity !== null) {
+          add(
+            record(p.identity) &&
+              typeof p.identity.nationality === "string" &&
+              int(p.identity.age, 18, 80),
+            "invalid employee identity",
+          );
+        }
+        if (p.career !== undefined && p.career !== null) {
+          add(
+            record(p.career) &&
+              int(p.career.level, 1, 10) &&
+              finite(p.career.satisfaction, 0, 100) &&
+              finite(p.career.kpiScore, 0, 100),
+            "invalid employee career",
+          );
+        }
         add(
           record(p.pay) &&
             int(p.pay.dailyWage) &&
@@ -392,7 +455,7 @@
           record(o) &&
             o.id === id &&
             Object.hasOwn(w.catalog.products, o.productId) &&
-            int(o.quantity, 1, 100) &&
+            int(o.quantity, 1, 200) &&
             int(o.unitPrice, 1) &&
             int(o.deadline) &&
             int(o.expiresAt) &&
@@ -407,7 +470,7 @@
             o.id === id &&
             Object.hasOwn(w.offers, o.offerId) &&
             Object.hasOwn(w.catalog.products, o.productId) &&
-            int(o.quantity, 1, 100) &&
+            int(o.quantity, 1, 200) &&
             int(o.unitPrice, 1) &&
             o.total === o.quantity * o.unitPrice &&
             int(o.deposit) &&
@@ -511,7 +574,7 @@
           record(p) &&
             p.id === id &&
             Object.hasOwn(w.catalog.materials, p.materialId) &&
-            int(p.quantity, 1, 200) &&
+            int(p.quantity, 1, 500) &&
             int(p.cost, 1) &&
             ["paperwork", "transit", "received"].includes(p.status) &&
             (p.status === "paperwork" ? p.dueAt === null : int(p.dueAt)),
@@ -563,7 +626,7 @@
       throw new TypeError("Cannot save: " + errors.slice(0, 5).join("; "));
     const text = JSON.stringify(w);
     if (new TextEncoder().encode(text).length > MAX_BYTES)
-      throw new RangeError("save exceeds 8 MiB limit");
+      throw new RangeError("save exceeds 16 MiB limit");
     return text;
   }
   function deserialize(text) {
