@@ -5,7 +5,8 @@
 # ทุกครั้งที่ AI บันทึกไฟล์ สคริปต์นี้จะตรวจจับและ git push ขึ้น GitHub ให้เอง 100%
 # ==============================================================================
 
-cd /data/data/com.termux/files/home/jhevo-work || exit 1
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR" || exit 1
 echo "🚀 [Auto-Push Watcher] กำลังทำงาน..."
 echo "💡 ทุกครั้งที่ AI แก้ไขหรือบันทึกไฟล์ สคริปต์นี้จะ commit & push ขึ้น GitHub ให้อัตโนมัติทุก 4 วินาที"
 echo "กด Ctrl+C เพื่อหยุดทำงาน"
