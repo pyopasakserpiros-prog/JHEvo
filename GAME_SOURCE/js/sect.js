@@ -7132,7 +7132,7 @@
           : ((pDef.subPaths && pDef.subPaths[0] && pDef.subPaths[0].id) || 'NONE');
         newNpc.cult.sub = chosenSub;
         if (CULT.initTrack) {
-          newNpc.cult.track = CULT.initTrack(pKey, chosenSub, pris.stage || newNpc.cult.stage || 2);
+          newNpc.cult.track = CULT.initTrack(chosenSub, Math.min(9, Math.max(1, pris.stage || newNpc.cult.stage || 2)), (W && W.day) || 1);
         }
         const mList = (JD && JD.TECH && Array.isArray(JD.TECH.mantras)) ? JD.TECH.mantras.filter(m => m && m.path === pKey && (m.tier || 1) <= (newNpc.cult.stage || 2)) : [];
         if (mList.length) {
@@ -7151,15 +7151,22 @@
         newNpc.cult.innateTechs = [];
         newNpc.cult.passiveLoadout = [];
         if (g.MARTIAL && g.MARTIAL.syncInnateTechs) g.MARTIAL.syncInnateTechs(newNpc);
-        if (CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.ensureState) {
+        if (g.MARTIAL && g.MARTIAL.reconcileInnate) g.MARTIAL.reconcileInnate(newNpc, W);
+        if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(newNpc);
+        if (g.ELEM && g.ELEM.syncSpecialAccess) g.ELEM.syncSpecialAccess(newNpc);
+        if (CULT.ensurePathGauge) CULT.ensurePathGauge(newNpc);
+        if (CULT.SECONDARY_RESOURCES && CULT.SECONDARY_RESOURCES.ensureState) CULT.SECONDARY_RESOURCES.ensureState(newNpc);
+        if (CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.ensureNpcState) {
           delete newNpc.cult.grandDaoState;
-          CULT.GRAND_DAO_MECHANICS.ensureState(newNpc);
+          CULT.GRAND_DAO_MECHANICS.ensureNpcState(W, newNpc);
         }
+        if (CULT.evaluateAutonomousPostures) CULT.evaluateAutonomousPostures(W, newNpc, { trigger: 'awaken' });
         if (pKey === 'SHADOW_SAMURAI' && newNpc.h && newNpc.h.state) {
           newNpc.h.state.qi = 0;
           newNpc.cult.qi = 0;
           newNpc.cult.maxQi = 0;
         }
+        if (CULT.refreshLifespan) CULT.refreshLifespan(newNpc);
         if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(newNpc);
         if (g.STATS && g.STATS.dirty) g.STATS.dirty(newNpc);
       }
@@ -16218,17 +16225,21 @@
       }
       return W.sect.forbiddenVault;
     },
-    setVaultPolicy(W, policyId) {
+    setVaultPolicy(W, policyId, opts) {
       if (!W || !W.sect || !this.POLICIES[policyId]) return { ok: false, reason: 'invalid-policy' };
       const fv = this.ensure(W);
       fv.policy = policyId;
       const spec = this.POLICIES[policyId];
+      const autonomous = !!(opts && opts.autonomous);
       if (Array.isArray(W.npcs)) {
         W.npcs.forEach(n => {
           if (!n || n.dead || !n.cult) return;
-          if (policyId === 'STRICT_ORTHODOX_BAN') {
+          const hasAsceticVow = !!(n.voluntaryVows && n.voluntaryVows.VOW_ASCETIC_PRECEPT && n.voluntaryVows.VOW_ASCETIC_PRECEPT.active);
+          if (policyId === 'STRICT_ORTHODOX_BAN' || hasAsceticVow) {
             if (n.forbiddenArtState) n.forbiddenArtState.sealMode = 'SEALED_RESTRAINT';
-            if (n.h && n.h.state) n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - 8);
+            if (policyId === 'STRICT_ORTHODOX_BAN' && n.h && n.h.state) n.h.state.heartDemon = Math.max(0, (n.h.state.heartDemon || 0) - 8);
+          } else if (autonomous && CULT && CULT.evaluateAutonomousPostures) {
+            CULT.evaluateAutonomousPostures(W, n, { trigger: 'vault_policy' });
           } else if (policyId === 'UNRESTRICTED_BLOOD_CULT' && CULT && CULT.FORBIDDEN_ARTS) {
             CULT.FORBIDDEN_ARTS.setForbiddenSealMode(W, n, 'HALF_UNSEALED_FLOW');
           }
@@ -16236,6 +16247,58 @@
         });
       }
       return { ok: true, policyId, spec, state: fv };
+    },
+    evaluateAutonomousSectVault(W) {
+      if (!W || !W.sect || !Array.isArray(W.npcs)) return null;
+      const fv = this.ensure(W);
+      const alive = W.npcs.filter(u => u && !u.dead && !u.away && !u.foe && u.cult);
+      if (!alive.length) return null;
+      const decisionMaker = alive.find(u => u.role === 'master') || alive.find(u => u.role === 'elder') || alive[0];
+      const pStats = decisionMaker.h && decisionMaker.h.personality || {};
+      const integ = pStats.integrity != null ? pStats.integrity : 50;
+      const agg = pStats.aggression != null ? pStats.aggression : 50;
+      const darkPaths = new Set(['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'OCCULT_MAGE', 'VENOM_GU']);
+      const isDarkLeader = darkPaths.has(decisionMaker.cult.path);
+      const darkShare = alive.filter(u => darkPaths.has(u.cult.path)).length / alive.length;
+      const inDanger = !!(W.activeRaid || (g.COMBAT && g.COMBAT.fights && g.COMBAT.fights.some(f => f && !f.done && f.kind === 'raid')));
+      let avgStrain = 0, avgHd = 0, btReady = 0;
+      for (let i = 0; i < alive.length; i++) {
+        const u = alive[i];
+        avgStrain += (u.forbiddenArtState && u.forbiddenArtState.tabooStrain) || 0;
+        avgHd += (u.h && u.h.state && u.h.state.heartDemon) || 0;
+        if (CULT && CULT.ready && CULT.ready(u)) btReady++;
+      }
+      avgStrain /= alive.length;
+      avgHd /= alive.length;
+      let wantPol = 'ELDER_LICENSED_ACCESS';
+      let whyTh = 'สภาผู้อาวุโสและเจ้าสำนักเปิดใช้คัมภีร์ต้องห้ามเฉพาะศิษย์แกนกลางเพื่อถ่วงดุลความเสี่ยง';
+      if ((integ >= 64 && !isDarkLeader && darkShare < 0.35 && !inDanger) || avgHd >= 42 || avgStrain >= 45) {
+        wantPol = 'STRICT_ORTHODOX_BAN';
+        whyTh = (avgHd >= 42 || avgStrain >= 45)
+          ? 'จิตมารและแรงสะท้อนปราณสะสมสูง เจ้าสำนักสั่งปิดผนึกหอต้องห้ามเพื่อฟื้นฟูชีพจร'
+          : 'เจ้าสำนักยึดมั่นวิถีธรรม ปิดผนึกหอคัมภีร์ต้องห้ามเพื่อรักษาเกียรติภูมิและปราบจิตมาร';
+      } else if (isDarkLeader || darkShare >= 0.45 || (inDanger && (integ < 52 || agg >= 62))) {
+        wantPol = 'UNRESTRICTED_BLOOD_CULT';
+        whyTh = inDanger
+          ? 'สำนักเผชิญภัยคุกคามรุนแรง เจ้าสำนักปลดผนึกหอต้องห้ามเต็มพิกัดเพื่อทุ่มกำลังรบป้องกันสำนัก'
+          : 'รากฐานสำนักเอนเอียงสู่สายมาร/ต้องห้าม เจ้าสำนักเปิดเสรีคัมภีร์เพื่อเร่งตบะและอานุภาพสูงสุด';
+      }
+      if (fv.policy !== wantPol) {
+        this.setVaultPolicy(W, wantPol, { autonomous: true });
+      }
+      fv.whyTh = whyTh;
+      if ((W.t - (fv.lastAltarTick || -999)) >= 120) {
+        if (avgStrain >= 35 || avgHd >= 38) {
+          fv.lastAltarTick = W.t;
+          this.performAltarRitual(W, 'PURIFY_TABOO_BACKLASH');
+          fv.whyTh = 'ผู้อาวุโสนำทำพิธีชำระล้างปราณต้องห้ามและคลายชีพจรสะสมให้ศิษย์';
+        } else if (wantPol !== 'STRICT_ORTHODOX_BAN' && (inDanger || btReady >= Math.max(2, Math.floor(alive.length * 0.3))) && (fv.bloodlineSurgeUntil || 0) <= (W.t || 0)) {
+          fv.lastAltarTick = W.t;
+          this.performAltarRitual(W, 'AWAKEN_BLOODLINE_ALTAR');
+          fv.whyTh = inDanger ? 'ปลุกพลังแท่นโลหิตบรรพกาลหนุนศิษย์ต้านภัยวิกฤต' : 'ปลุกแท่นสายเลือดบรรพกาลเสริมกำลังทะลวงด่านของสำนัก';
+        }
+      }
+      return fv;
     },
     performAltarRitual(W, ritualId) {
       if (!W || !W.sect || !this.ALTAR_RITUALS[ritualId]) return { ok: false, reason: 'invalid-ritual' };
@@ -16444,6 +16507,14 @@
         });
       }
       const pDef = CULT.PATHS[pKey];
+      // Also register starter subpath of the newly unlocked path into W.sect.subLibrary
+      if (pDef && Array.isArray(pDef.subPaths) && pDef.subPaths.length && opts.source !== 'sect_founding') {
+        W.sect.subLibrary = Array.isArray(W.sect.subLibrary) ? W.sect.subLibrary : [];
+        const starterSub = pDef.subPaths[0];
+        if (starterSub && starterSub.id && !W.sect.subLibrary.includes(starterSub.id)) {
+          W.sect.subLibrary.push(starterSub.id);
+        }
+      }
       if (!already) {
         const resolvedById = opts.byId || (opts.byNpc && opts.byNpc.id) || null;
         lib.history.unshift({
@@ -17045,6 +17116,151 @@
       return sh;
     }
   };
+
+  /* ======================= JS2-v2.7.0: GOD Divine Faith Ecology Hooks ======================= */
+  const sectDailyPreFaith = SECT.daily;
+  SECT.daily = W => {
+    const res = sectDailyPreFaith ? sectDailyPreFaith(W) : undefined;
+    if (!W || !W.sect || !CULT || !CULT.ensureFaithState) return res;
+    const st = CULT.ensureFaithState(W);
+    if (!st || st.lastDailyTickDay === (W.day || 0)) return res;
+    st.lastDailyTickDay = W.day || 0;
+
+    const repOrFame = W.sect.rep != null ? W.sect.rep : (W.sect.fame || 0);
+    const outpostsCount = Object.keys((W.sect.outposts && W.sect.outposts.byNodeId) || {}).length;
+    const shrineLvl = (W.map && W.map.byId && W.map.byId.shrine && W.map.byId.shrine.level) || 1;
+    const cosmicPts = (W.sect.cosmicShrine && W.sect.cosmicShrine.faithPoints) || 0;
+    const distressCount = (W.world && Array.isArray(W.world.vassalDistressCalls))
+      ? W.world.vassalDistressCalls.filter(c => c && !c.resolved).length
+      : 0;
+    const suspicion = W.sect.suspicion || 0;
+    const npcs = Array.isArray(W.npcs) ? W.npcs : [];
+    const livingGods = npcs.filter(n => n && !n.dead && !n.exiled && n.cult && n.cult.path === 'GOD');
+    const avgSin = livingGods.length
+      ? livingGods.reduce((s, n) => s + ((n.karmicLedger && n.karmicLedger.sinKarma) || 0), 0) / livingGods.length
+      : 0;
+
+    let delta = 0;
+    delta += (shrineLvl - 1) * 0.45;
+    delta += clamp((repOrFame - 12) / 140, -0.45, 1.8);
+    delta += Math.min(1.6, outpostsCount * 0.45);
+    if (cosmicPts > 0) delta += Math.min(1.2, cosmicPts / 120);
+    if ((st.deedsToday || 0) > 0) delta += Math.min(2.2, st.deedsToday * 0.55);
+    else if (livingGods.length > 0 && st.pool > 30) delta -= 0.45;
+
+    delta -= distressCount * 2.2;
+    if (avgSin >= 20) delta -= Math.min(2.5, (avgSin - 15) * 0.06);
+    if (suspicion >= 40) delta -= 0.8;
+
+    st.deedsToday = 0;
+    CULT.updateDivineFaith(W, +delta.toFixed(2), 'daily_ecology');
+
+    if (st.pool < 20) st.lowFaithDays = (st.lowFaithDays || 0) + 1;
+    else st.lowFaithDays = 0;
+    if (st.pool <= 0) st.zeroFaithDays = (st.zeroFaithDays || 0) + 1;
+    else st.zeroFaithDays = 0;
+
+    for (const n of livingGods) {
+      const df = CULT.getDivineFaith(W, n);
+      n.ext = n.ext || {};
+      if (df <= 0) {
+        n.ext._faithZeroDays = (n.ext._faithZeroDays || 0) + 1;
+        if (n.ext._faithZeroDays >= 3 && n.cult.stage > 1 && n._demotedAtDay !== (W.day || 0)) {
+          n.cult.stage -= 1;
+          n.cult.prog = 0;
+          n.ext._faithZeroDays = 0;
+          n._demotedAtDay = W.day || 0;
+          n._cultRateBase = null;
+          if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+          const stageNm = CULT.stageName ? CULT.stageName(n) : ('ขั้น ' + n.cult.stage);
+          if (W.log) {
+            W.log('cultivation', HC.fullName(n) + ' สูญสิ้นแรงศรัทธาจากปวงชนติดต่อกัน จนตบะเทพเสื่อมถอยลงสู่ ' + stageNm, [n.id], {
+              severity: 'MAJOR',
+              promoteChronicle: true
+            });
+          }
+          if (g.EXPED && g.EXPED.recordChronicle) {
+            g.EXPED.recordChronicle(W, {
+              category: 'DISASTER',
+              reportFormat: 'ANCESTRAL_INSCRIPTION',
+              icon: '🕯️',
+              titleTh: 'ศรัทธาดับสูญ: ตบะเทพของ ' + HC.fullName(n) + ' เสื่อมถอย',
+              storyTh: HC.fullName(n) + ' ขาดแรงศรัทธาหล่อเลี้ยงจนเทวาลัยหมองหม่น ตบะลดลงสู่ ' + stageNm,
+              npcIds: [n.id],
+              quiet: true
+            });
+          }
+        }
+      } else {
+        n.ext._faithZeroDays = 0;
+      }
+    }
+
+    if (SECT.PATH_LIBRARY) {
+      if (typeof SECT.PATH_LIBRARY.processVaultManuals === 'function') {
+        SECT.PATH_LIBRARY.processVaultManuals(W, { quiet: true });
+      }
+      // Autonomous elder primer inscription & CRYSTAL_PATH_* bestowal to fitting initiates
+      const elderWriter = SECT.holder(W, 'scripture') || W.byId[W.sect.masterId];
+      if (elderWriter && !elderWriter.dead && !elderWriter.away && elderWriter.cult && !SECT.PATH_LIBRARY.isPathUnlocked(W, elderWriter.cult.path)) {
+        const stg = CULT.effectiveTechStage ? CULT.effectiveTechStage(elderWriter) : (elderWriter.cult.stage || 1);
+        if (stg >= 3) {
+          SECT.PATH_LIBRARY.unlockPath(W, elderWriter.cult.path, { source: 'elder_inscription', byId: elderWriter.id, byNpc: elderWriter });
+        }
+      }
+      const stock = W.sect.stock || {};
+      const pathCrystalKeys = Object.keys(stock).filter(k => k.startsWith('CRYSTAL_PATH_') && stock[k] > 0);
+      if (pathCrystalKeys.length && SECT.PATH_LIBRARY.bestowPathCrystal) {
+        const mentor = SECT.isOfficerAvailable(W, elderWriter) ? elderWriter : W.npcs.find(u => u && !u.dead && !u.away && u.rank >= 4);
+        if (mentor) {
+          const candidates = npcs.filter(u => u && !u.dead && !u.away && !u.exiled && !u.cult && !(u.mortalCult && u.mortalCult.enlightenedByCrystal));
+          for (const ck of pathCrystalKeys) {
+            if (!candidates.length) break;
+            const pKey = ck.replace(/^CRYSTAL_PATH_/, '');
+            if (!CULT.PATHS[pKey]) continue;
+            let bestCand = null, bestSc = -1e9;
+            for (const cand of candidates) {
+              const rows = CULT.majorPathScores ? CULT.majorPathScores(cand) : [];
+              const row = rows.find(r => r.path === pKey);
+              const sc = (row ? row.score : 50) + (cand.mortalCult && cand.mortalCult.targetPath === pKey ? 8 : 0);
+              if (sc > bestSc) { bestSc = sc; bestCand = cand; }
+            }
+            if (bestCand && bestSc >= 45) {
+              const bRes = SECT.PATH_LIBRARY.bestowPathCrystal(W, bestCand, pKey, { quiet: false });
+              if (bRes && bRes.ok) {
+                const idx = candidates.indexOf(bestCand);
+                if (idx >= 0) candidates.splice(idx, 1);
+              }
+            }
+          }
+        }
+      }
+    }
+    return res;
+  };
+
+  if (SECT.COSMIC_SHRINE && typeof SECT.COSMIC_SHRINE.consecrateOffering === 'function') {
+    const preConsecrate = SECT.COSMIC_SHRINE.consecrateOffering;
+    SECT.COSMIC_SHRINE.consecrateOffering = function (W, actor, deityId, riteId, opts) {
+      const res = preConsecrate.call(this, W, actor, deityId, riteId, opts);
+      if (res && res.ok && W && CULT && CULT.updateDivineFaith) {
+        CULT.updateDivineFaith(W, 5, 'cosmic_shrine_offering', actor ? { npc: actor } : undefined);
+      }
+      return res;
+    };
+  }
+
+  if (typeof SECT.prayAtAncestralShrine === 'function') {
+    const prePrayShrine = SECT.prayAtAncestralShrine;
+    SECT.prayAtAncestralShrine = (W, n, tabletId) => {
+      const res = prePrayShrine(W, n, tabletId);
+      if (W && CULT && CULT.updateDivineFaith && n && !n.dead) {
+        const isGod = n.cult && n.cult.path === 'GOD';
+        CULT.updateDivineFaith(W, isGod ? 2.5 : 0.8, 'ancestral_prayer', isGod ? { npc: n } : undefined);
+      }
+      return res;
+    };
+  }
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;

@@ -800,6 +800,9 @@
     const e = info.effect, c = npc.cult, s = npc.h.state; const msgs = [];
     if (e.cultivationProgress && c) { CULT.gain(npc, e.cultivationProgress); msgs.push('ปราณ +' + e.cultivationProgress); }
     if (e.rateBoost && c) { c.pillT = 360; c.pillBoost = e.rateBoost; }
+    if (c && c.path === 'BODY' && (e.cultivationProgress || e.rateBoost || e.hp || (e.grantBuff && /blood|iron|body|vital|fury|armor/i.test(String(e.grantBuff))) || /BODY|BLOOD|VITAL|IRON|TEMPER|PHYSIQUE|DRAGON|TIGER/i.test(String(key || '')))) {
+      c.bodyTemperT = Math.max(c.bodyTemperT || 0, 360);
+    }
     if (e.healHealth) { s.hp = Math.min(CULT.hpMax(npc), s.hp + CULT.hpMax(npc) * e.healHealth / 100 * 1.2); msgs.push('ฟื้นพลัง'); }
     if (e.healInjury && npc.inj && npc.inj.length) { npc.inj.forEach(i => { i.until -= e.healInjury * 360; }); msgs.push('สมานบาดแผล'); }
     if (e.breakthroughBonus && c) { c.btBonus = Math.max(c.btBonus || 0, e.breakthroughBonus); msgs.push('เตรียมทะลวง'); }

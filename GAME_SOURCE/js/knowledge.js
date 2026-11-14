@@ -157,7 +157,23 @@ M._unusedOldProbTable=opts=>{
 };
 
 M.techKey=id=>'T:'+id;M.subKey=id=>'S:'+id;
-const branches=Object.values(CULT.PATHS).flatMap(p=>p.subPaths.map(s=>({id:s.id,path:p.id,nameTh:s.nameTh,tier:JD.MARTIAL.subPaths.some(x=>x.id===s.id)?2:1})));
+const _subMinTechTier=(()=>{const mp=Object.create(null);const techs=(JD&&JD.TECH&&Array.isArray(JD.TECH.techniques))?JD.TECH.techniques:[];for(let i=0;i<techs.length;i++){const t=techs[i];if(!t||!t.sub)continue;const tr=t.reqTier||t.tier||1;if(!mp[t.sub]||tr<mp[t.sub])mp[t.sub]=tr;}return mp;})();
+const _LEGACY_SUB_TIERS={VENOM_GU_SOVEREIGN:1,STAR_ARCHER:2,STAFF_GUARD:2,FROST_MOON_IMMORTAL:2,ASTRAL_ARRAY:2,TIME_VOID:3,FATE_ORACLE:3,UNDERWORLD_JUDGE:3,DREAM_ILLUSION_WEAVER:3,MIND_SWORD_TELEKINESIS:3,HEAVEN_DEVOURING_DEMON:3,THUNDER_BODY:2,JADE_IMMORTAL_BODY:2,TITAN_MOUNTAIN_BODY:2};
+const _HIGH_EPOCH_PATHS=new Set(['CHRONO_EPOCH','VOID_SPACE','PRIMORDIAL_CHAOS','GRAVITY_DAO','DIVINE_SUMMONER','DIVINE_POSSESSION','DIVINE_CHANNELER','VOID_HERETIC_PACT','DEVOURING_FLESH','NETHER_GRAVE']);
+function computeSubpathTier(p,s,idx){
+ if(_LEGACY_SUB_TIERS[s.id])return Math.min(_LEGACY_SUB_TIERS[s.id],Math.max(1,(p.maxStage||9)-1));
+ if(idx===0||s.id==='SWORD_IMMORTAL'||s.id==='SOLAR_FORGE'||s.id==='WAR_DEITY'||s.id==='FIVE_ELEMENTS'||s.id==='ELIXIR_DAO')return 1;
+ const maxCap=Math.min(5,Math.max(1,(p.maxStage||9)-1));
+ let tier=1;
+ if(_HIGH_EPOCH_PATHS.has(p.id))tier+=idx>=4?3:idx>=2?2:1;
+ else tier+=idx>=5?3:idx>=3?2:idx>=1?1:0;
+ const statPow=(s.combatBonus||1)+(s.defenseBonus||1)+(s.cultivationBonus||1);
+ if(statPow>=3.36)tier+=1;
+ const minTechT=_subMinTechTier[s.id];
+ if(minTechT&&minTechT>=4&&tier<minTechT-1)tier=minTechT-1;
+ return Math.max(1,Math.min(maxCap,tier));
+}
+const branches=Object.values(CULT.PATHS).flatMap(p=>p.subPaths.map((s,idx)=>({id:s.id,path:p.id,nameTh:s.nameTh,tier:computeSubpathTier(p,s,idx)})));
 const subById=Object.fromEntries(branches.map(s=>[s.id,s]));
 const _kCache = Object.create(null);
 M.knowledge=key=>{
@@ -415,7 +431,13 @@ M.rollHierarchicalDiscovery=(W,opts)=>{
 
  // Subpath specialization manual/crystal branch
  if(kind==='subManual'||kind==='subCrystal'){
-  const pool=branches.filter(s=>(!opts.path||s.path===opts.path)&&!(kind==='subManual'&&(W.sect.subLibrary||[]).includes(s.id)));
+  const tierWeights=M.TIER_WEIGHTS_BY_RANK[sourceRank]||M.TIER_WEIGHTS_BY_RANK.UNRANKED;
+  const maxSubCap=Math.min(5,opts.hardMaxTier||5);
+  const rolledSubTier=Math.min(maxSubCap,Math.max(1,Number(opts.forceTier||rollWeightedKey(W.rng,tierWeights,opts.tierRoll))||1));
+  const eligibleSubs=branches.filter(s=>(!opts.path||s.path===opts.path)&&s.tier<=maxSubCap&&!(kind==='subManual'&&(W.sect.subLibrary||[]).includes(s.id)));
+  let pool=eligibleSubs.filter(s=>s.tier===rolledSubTier);
+  if(!pool.length)pool=eligibleSubs.filter(s=>Math.abs(s.tier-rolledSubTier)<=1);
+  if(!pool.length)pool=eligibleSubs;
   if(!pool.length)return null;
   const sub=W.rng.pick(pool);
   const drop=kind==='subManual'?{kind:'subManual',id:sub.id,tier:sub.tier,sourceRank}:{kind:'crystal',id:M.subKey(sub.id),tier:sub.tier,sourceRank};

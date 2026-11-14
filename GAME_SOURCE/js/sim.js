@@ -88,11 +88,11 @@
     if (o.archetypeKey && g.SECT && g.SECT.ARCHETYPE_WEAPON) {
       const wInfo = g.SECT.ARCHETYPE_WEAPON[o.archetypeKey];
       if (wInfo) {
-        if (o.founderIndex === 0) {
+        if (o.isFounderMaster || o.founderIndex === 0) {
           npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 70);
           const wItem = g.ECO && (g.ECO.itemById[wInfo.masterWeapon] || g.ECO.itemById[wInfo.starterWeapon]);
           if (wItem) npc.equip.WEAPON = g.ECO.mintGear(W, wItem, 1.15);
-        } else if (o.founderIndex != null && o.founderIndex > 0) {
+        } else if (!o.isFounderMaster && o.founderIndex != null && o.founderIndex > 0) {
           npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 35);
           const wItem = g.ECO && g.ECO.itemById[wInfo.starterWeapon];
           if (wItem) npc.equip.WEAPON = g.ECO.mintGear(W, wItem, 1.0);
@@ -125,8 +125,20 @@
         ? g.CULT.PATHS[primaryPath].subPaths.map(s => s.id)
         : archDef.subs;
       const validPool = samePathSubs.length ? samePathSubs : fallbackPathSubs;
-      const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % validPool.length;
-      const chosenSub = validPool[subIdx] || validPool[0];
+      const scoreRows = (g.CULT && g.CULT.pathScores) ? g.CULT.pathScores(npc).filter(r => r.path === primaryPath && validPool.includes(r.sub)) : [];
+      let chosenSub = validPool[0];
+      if (scoreRows.length) {
+        if (o.founderIndex === 0) {
+          chosenSub = scoreRows[0].sub;
+        } else {
+          const topBand = scoreRows.slice(0, Math.min(3, scoreRows.length));
+          const picked = (rng && rng.weighted) ? rng.weighted(topBand, r => Math.exp(Math.max(-20, (r.score - topBand[0].score) / 6))) : topBand[0];
+          chosenSub = (picked && picked.sub) || topBand[0].sub;
+        }
+      } else {
+        const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % validPool.length;
+        chosenSub = validPool[subIdx] || validPool[0];
+      }
       const memberPath = primaryPath;
       const mant = CULT.bestMantra(memberPath, 1, npc);
       npc.cult = { path: memberPath, sub: chosenSub, stage: 1, prog: 0, mantra: mant ? mant.id : null, techs: [], learning: null, toxic: 0, lifeBonus: 0, since: W.day, attempts: 0, secl: null, rate: 0, pillT: 0 };
@@ -198,7 +210,8 @@
     if (archKey) {
       opts.archetypeKey = archKey;
       opts.isFounder = true;
-      opts.founderIndex = 0;
+      opts.isFounderMaster = true;
+      opts.founderIndex = Number.isInteger(i) ? i : 0;
     }
     return { r, o: opts };
   };
@@ -226,7 +239,7 @@
     if (g.STATS) g.STATS.now = W.t;
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
     if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
-    const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day;
+    const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day; HC.nowSeason = W.season;
     W.map = MAP.create(W.seed);
     W.market = ECO.newMarket(rng);
     W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta);
@@ -666,6 +679,7 @@
         AI.healTick(W, n);
         g.STATS.recover(n);
         g.CPE.autoUse(W, n);
+        if (CULT && CULT.evaluateAutonomousPostures) CULT.evaluateAutonomousPostures(W, n, { trigger: 'hourly' });
         if (n.equip) {
           for (const k in n.equip) {
             const it = n.equip[k];
@@ -692,6 +706,12 @@
         }
       }
     });
+    if (W.t % 24 === 0 && g.SECT && g.SECT.FORBIDDEN_VAULT && g.SECT.FORBIDDEN_VAULT.evaluateAutonomousSectVault) {
+      g.SECT.FORBIDDEN_VAULT.evaluateAutonomousSectVault(W);
+    }
+    if (W.t % 12 === 0 && g.CULT && g.CULT.SUPPORT_ARTS && g.CULT.SUPPORT_ARTS.evaluateAutonomousEmergencySupport) {
+      g.CULT.SUPPORT_ARTS.evaluateAutonomousEmergencySupport(W);
+    }
     W.map.buildings.forEach(b => { if (b.building && W.t >= b.building.until) SIM.finishBuilding(W, b); });
     if (W.map && W.map.buildings && g.SECT && g.SECT.ensureFacilityDemand) {
       g.SECT.ensureFacilityDemand(W);
@@ -811,7 +831,7 @@
 
   /* ---------- รายวัน ---------- */
   SIM.dailyUpdate = (W, silent) => {
-    const rng = W.rng; const cal = SIM.calendar(W.t); W.season = cal.season; HC.nowDay = W.day;
+    const rng = W.rng; const cal = SIM.calendar(W.t); W.season = cal.season; HC.nowDay = W.day; HC.nowSeason = W.season;
     if (g.CULT && g.CULT.TRIBULATION && g.CULT.TRIBULATION.tickAll) g.CULT.TRIBULATION.tickAll(W);
       for (let i = 0; i < W.npcs.length; i++) {
       const n = W.npcs[i];
@@ -1076,11 +1096,12 @@
       if (typeof s.sect.masterId !== 'string' || (!npcIds.has(s.sect.masterId) && !inGrave)) invalid('sect.masterId');
     }
     const hadDay = Object.prototype.hasOwnProperty.call(HC, 'nowDay'), dayBefore = HC.nowDay;
+    const hadSeason = Object.prototype.hasOwnProperty.call(HC, 'nowSeason'), seasonBefore = HC.nowSeason;
     const stats = g.STATS, hadStatsTime = stats && Object.prototype.hasOwnProperty.call(stats, 'now'), statsTimeBefore = stats && stats.now;
     const prevBoundWorld = ECO ? ECO._boundWorld : null;
     try {
       const W = SIM.create(s.seed, { masterIdx: 0 });
-      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; if (W.sect && !Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = []; W.world = s.world;
+      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; HC.nowSeason = W.season; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; if (W.sect && !Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = []; W.world = s.world;
       if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
       W.chronicle = W.world.chronicles; W.threat = s.threat; if (s.explore) W.explore = s.explore; W.graveyard = s.graveyard; W.gone = s.gone; W.logs = s.logs; W.duelQueue = s.duelQueue || []; W.fights = s.fights || []; W.foes = s.foes || []; W.foeSeq = s.foeSeq; W.fightSeq = s.fightSeq;
       W.foeById = {}; W.foes.forEach(u => W.foeById[u.id] = u);
@@ -1157,7 +1178,7 @@
       if (W.sect && Array.isArray(W.sect.queue) && g.SECT && g.SECT.sanitizeQueue) g.SECT.sanitizeQueue(W);
       if (W.sect && Array.isArray(W.sect.queue)) W.sect.queue.forEach(a => { if (g.ELEM) g.ELEM.ensureNpcElementalState(a); if (HC.touch) HC.touch(a); });
       if (W.sect && Array.isArray(W.sect.beasts) && g.CULT && g.CULT.ensureMenagerie) g.CULT.ensureMenagerie(W);
-      W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if ((Array.isArray(n.pets) || n.pet) && g.CULT && g.CULT.ensurePets) g.CULT.ensurePets(n); if (HC.touch) HC.touch(n); });
+      W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if ((Array.isArray(n.pets) || n.pet) && g.CULT && g.CULT.ensurePets) g.CULT.ensurePets(n); if (g.CULT && g.CULT.HIGHER_REALMS_PANTHEON && g.CULT.HIGHER_REALMS_PANTHEON.healPact) g.CULT.HIGHER_REALMS_PANTHEON.healPact(n); if (HC.touch) HC.touch(n); });
       if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
       if (g.SECT && g.SECT.ensureCompanionsAndBloodlines) g.SECT.ensureCompanionsAndBloodlines(W);
       if (g.SECT && g.SECT.FENG_SHUI && !W.sect.fengShui) g.SECT.FENG_SHUI.ensure(W);

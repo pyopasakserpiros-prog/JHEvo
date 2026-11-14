@@ -304,10 +304,15 @@
       ? CULT.QINGGONG.evaluatePartyExpeditionBonus(W, members, { terrain: isWaterRoute ? 'water' : opts.terrain, nameTh: opts.regionId || '' })
       : { durationMultiplier: 1.0, capacityMultiplier: 1.0, hazardReduction: 0, dominantMode: 'MORTAL_WALK', summaryTh: 'เดินเท้าปกติ' };
     const applyQinggongToTrip = opts.useQinggong === true || (opts.useQinggong !== false && CULT && CULT.QINGGONG && members.some(m => CULT.QINGGONG.hasExplicitWorldQinggong(m)));
+    const hasDragonShipNav = members.some(m => m && m.cult && (m.cult.sub === 'DRAGON_SHIP_NAVIGATOR' || m.cult.path === 'TIDE_VOYAGER'));
+    const hasPocketArch = members.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT');
     const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : (hasMount ? 0.75 : 1);
     const mountCapMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
-    const durMult = applyQinggongToTrip ? +(Math.max(0.45, mountDurMult * qgBonus.durationMultiplier)).toFixed(3) : mountDurMult;
-    const capMult = applyQinggongToTrip ? +(mountCapMult * qgBonus.capacityMultiplier).toFixed(2) : mountCapMult;
+    const navDurFactor = (isWaterRoute && hasDragonShipNav) ? (members.some(m => m && m.cult && m.cult.sub === 'DRAGON_SHIP_NAVIGATOR') ? 0.82 : 0.90) : 1;
+    const rawDurMult = applyQinggongToTrip ? mountDurMult * qgBonus.durationMultiplier : mountDurMult;
+    const durMult = +(Math.max(0.45, rawDurMult * navDurFactor)).toFixed(3);
+    const rawCapMult = applyQinggongToTrip ? mountCapMult * qgBonus.capacityMultiplier : mountCapMult;
+    const capMult = +(rawCapMult * (hasPocketArch ? 1.25 : 1)).toFixed(2);
     let supportHazRed = 0;
     if (CULT && CULT.SUPPORT_ARTS) {
       for (let i = 0; i < members.length; i++) {
@@ -1112,6 +1117,7 @@
         combatSummary: cPayload, outcome: fOutcome, slain, loot
       });
       W.fame(3 + slain * 0.3);
+      if (g.CULT && g.CULT.updateDivineFaith) g.CULT.updateDivineFaith(W, 6, 'raid_victory');
       foes.forEach(u => { if (u.dead && u.drops) { const d = W.rng.pick(u.drops); ECO.add(W, d, 1 + W.rng.int(0, 1)); } });
       defenders.forEach(d => { if (!d.dead) { d.merit += 15 + (d.h.state.hp < CULT.hpMax(d) * 0.5 ? 10 : 0); HC.experience(d, 'duel_win', 0.6); d.sat = Math.min(100, (d.sat || 60) + 6); if (d.cult) CULT.gain(d, CULT.threshold(d) * 0.04); } });
       const best = defenders.filter(d => !d.dead).sort((a, b) => ((b.tac && b.tac.interceptCount || 0) * 2 + (b.stats && b.stats.kills || 0)) - ((a.tac && a.tac.interceptCount || 0) * 2 + (a.stats && a.stats.kills || 0)))[0];
@@ -1142,6 +1148,7 @@
         combatSummary: cPayload, outcome: fOutcome, loss
       });
       W.fame(-4);
+      if (g.CULT && g.CULT.updateDivineFaith) g.CULT.updateDivineFaith(W, -8, 'raid_defeat');
       W.npcs.forEach(n => { if (!n.dead) { HC.experience(n, 'duel_lose', 0.3); n.sat = Math.max(0, (n.sat || 60) - 6); } });
       if (X.recordChronicle) {
         X.recordChronicle(W, {

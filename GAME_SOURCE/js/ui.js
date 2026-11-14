@@ -1200,176 +1200,8 @@
       UI.render();
       const sb = $('shBody'); if (sb) sb.scrollTop = 0;
     }
-    else if (a === 'set-npc-forbidden-seal') {
-      const [npcIdArg, sealKey, archKey] = String(arg || '').split('|');
-      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
-      if (n && CULT.FORBIDDEN_ARTS) {
-        const res = CULT.FORBIDDEN_ARTS.setForbiddenSealMode(W, n, sealKey || 'SEALED_RESTRAINT', archKey || null);
-        if (res) {
-          UI.dioramaPose = 'forbidden';
-          UI.toast(res.sealSpec.icon + ' ปรับผนึกวิชาต้องห้ามของ「' + HC.fullName(n) + '」เป็น: ' + res.sealSpec.nameTh);
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'demo-forbidden-taboo') {
-      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
-      const n = targetId && W && W.byId && W.byId[targetId];
-      if (n && CULT.FORBIDDEN_ARTS) {
-        const res = CULT.FORBIDDEN_ARTS.setForbiddenSealMode(W, n, 'BLOOD_TABOO_UNLEASHED');
-        UI.dioramaPose = 'forbidden';
-        if (G.R) {
-          G.R.selected = n.id;
-          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
-        }
-        if (res) {
-          UI.toast(res.spec.icon + ' ' + HC.fullName(n) + ' ปลดผนึก「' + res.spec.nameTh + '」(โจมตี +' + Math.round(res.effAtkBonusPct * 100) + '%)!');
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'set-npc-passive-constellation') {
-      const [npcIdArg, constKey] = String(arg || '').split('|');
-      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
-      if (n && CULT.PASSIVE_RESONANCE) {
-        const res = CULT.PASSIVE_RESONANCE.setFocusConstellation(W, n, constKey || 'AUTO');
-        if (res) {
-          UI.toast(res.spec.icon + ' เชื่อมโยงดาราจักรวิชาติดตัวของ「' + HC.fullName(n) + '」เข้ากับ: ' + res.spec.nameTh);
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'set-sect-forbidden-policy') {
-      if (SECT.FORBIDDEN_VAULT) {
-        const res = SECT.FORBIDDEN_VAULT.setVaultPolicy(W, arg || 'ELDER_LICENSED_ACCESS');
-        if (res && res.ok) {
-          UI.toast(res.spec.icon + ' ประกาศนโยบายหอผนึกคัมภีร์ต้องห้าม:「' + res.spec.nameTh + '」!');
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'perform-forbidden-altar-ritual') {
-      if (SECT.FORBIDDEN_VAULT) {
-        const res = SECT.FORBIDDEN_VAULT.performAltarRitual(W, arg || 'AWAKEN_BLOODLINE_ALTAR');
-        if (res && res.ok) {
-          UI.toast(res.spec.icon + ' ประกอบ「' + res.spec.nameTh + '」สำเร็จ (' + res.affectedCount + ' คน)!');
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'set-npc-support-posture') {
-      const [npcIdArg, postureKey, archKey] = String(arg || '').split('|');
-      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
-      if (n && CULT.SUPPORT_ARTS) {
-        const res = CULT.SUPPORT_ARTS.setSupportPosture(W, n, postureKey || 'SOUL_MELODY_HARMONY', archKey || null);
-        if (res) {
-          UI.dioramaPose = 'support';
-          UI.toast(res.postureSpec.icon + ' ปรับท่วงท่าสายสนับสนุนของ「' + HC.fullName(n) + '」เป็น: ' + res.postureSpec.nameTh);
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'demo-support-art-aura') {
-      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
-      const n = targetId && W && W.byId && W.byId[targetId];
-      if (n && CULT.SUPPORT_ARTS) {
-        CULT.SUPPORT_ARTS.ensureState(n);
-        const res = CULT.SUPPORT_ARTS.stepFacilityAndDailySynergy(W, n);
-        UI.dioramaPose = 'support';
-        if (G.R) {
-          G.R.selected = n.id;
-          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
-        }
-        if (res && res.supportProfile) {
-          const sp = res.supportProfile;
-          UI.toast(sp.spec.icon + ' ' + HC.fullName(n) + ' สำแดง「' + sp.spec.nameTh + '」หนุนศิษย์รอบข้าง ' + res.affected + ' คน!');
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'trigger-sect-emergency-support') {
-      if (CULT.SUPPORT_ARTS) {
-        const res = CULT.SUPPORT_ARTS.triggerSectEmergencySupport(W, arg || 'ZITHER_PURGE_HEART_DEMON');
-        if (res && res.ok) {
-          const msgMap = {
-            ZITHER_PURGE_HEART_DEMON: '🎶 บรรเลงคีตเวทย์พิณขลุ่ยหยกสลายจิตมารและหนุนโอกาสทะลวงด่านทั้งสำนัก (' + res.affectedCount + ' คน)!',
-            INFIRMARY_ACUPOINT_HEAL: '🪡 ระดมเข็มทองสมานแผลและขับพิษโอสถศิษย์ทั้งสำนัก (' + res.affectedCount + ' คน)!',
-            QIMEN_BANNER_RALLY: '🚩 ชูธงรบฉีเหมินฟื้นฟูแรงกายและปราณพร้อมรบทั้งสำนัก (' + res.affectedCount + ' คน)!'
-          };
-          UI.toast(msgMap[res.mode] || '🎶 สำแดงวิชาสนับสนุนทั้งสำนักสำเร็จ!');
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'set-npc-defensive-posture') {
-      const [npcIdArg, postureKey, archKey] = String(arg || '').split('|');
-      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
-      if (n && CULT.DEFENSIVE_ARTS) {
-        const res = CULT.DEFENSIVE_ARTS.setDefensivePosture(W, n, postureKey || 'COUNTER_PARRY_STANCE', archKey || null);
-        if (res) {
-          UI.dioramaPose = 'defensive';
-          UI.toast(res.postureSpec.icon + ' ปรับท่าตั้งรับวิชาคุ้มกายของ「' + HC.fullName(n) + '」เป็น: ' + res.postureSpec.nameTh);
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'demo-defensive-aegis') {
-      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
-      const n = targetId && W && W.byId && W.byId[targetId];
-      if (n && CULT.DEFENSIVE_ARTS) {
-        CULT.DEFENSIVE_ARTS.ensureState(n);
-        const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, n);
-        UI.dioramaPose = 'defensive';
-        if (G.R) {
-          G.R.selected = n.id;
-          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
-        }
-        if (df) {
-          UI.toast(df.spec.icon + ' ' + HC.fullName(n) + ' สำแดง「' + df.spec.nameTh + '」(ลดดาเมจ -' + Math.round(df.effDmgRedPct * 100) + '%)!');
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'set-npc-mantra-stance') {
-      const [npcIdArg, stanceKey] = String(arg || '').split('|');
-      const n = (npcIdArg && W.byId[npcIdArg]) || (UI.npcId && W.byId[UI.npcId]) || W.byId[W.sect.masterId];
-      if (n && CULT.MANTRA_SYSTEM) {
-        const res = CULT.MANTRA_SYSTEM.setMantraStance(W, n, stanceKey || 'HARMONIOUS_CIRCULATION');
-        if (res) {
-          UI.dioramaPose = 'mantra';
-          UI.toast(res.stanceSpec.icon + ' ปรับจังหวะโคจรปราณของ「' + HC.fullName(n) + '」เป็น: ' + res.stanceSpec.nameTh);
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
-    }
-    else if (a === 'demo-mantra-resonance') {
-      const targetId = arg || UI.npcId || (W && W.sect && W.sect.masterId);
-      const n = targetId && W && W.byId && W.byId[targetId];
-      if (n && CULT.MANTRA_SYSTEM) {
-        CULT.MANTRA_SYSTEM.ensureState(n);
-        const mr = CULT.MANTRA_SYSTEM.stepMeditationResonance(W, n);
-        UI.dioramaPose = 'mantra';
-        if (G.R) {
-          G.R.selected = n.id;
-          if (G.R.focus) G.R.focus(n.x, n.y, 2.25);
-        }
-        if (mr) {
-          UI.toast(mr.spec.icon + ' ' + HC.fullName(n) + ' สำแดง「' + mr.spec.nameTh + '」(×' + mr.effectiveCultMult.toFixed(2) + ')!');
-        }
-      }
-      UI.render();
-      UI.updateHud(true);
+    else if (a === 'set-npc-forbidden-seal' || a === 'demo-forbidden-taboo' || a === 'set-npc-passive-constellation' || a === 'set-sect-forbidden-policy' || a === 'perform-forbidden-altar-ritual' || a === 'set-npc-support-posture' || a === 'demo-support-art-aura' || a === 'trigger-sect-emergency-support' || a === 'set-npc-defensive-posture' || a === 'demo-defensive-aegis' || a === 'set-npc-mantra-stance' || a === 'demo-mantra-resonance') {
+      UI.toast('ระบบขับเคลื่อนด้วยตนเอง: ตัวละครและเจ้าสำนักตัดสินใจท่วงท่าและผนึกเองตามสถานการณ์ (โหมดสังเกตการณ์)');
     }
     else if (a === 'set-sect-formation-stance') {
       if (SECT.FORMATION_WARFARE) {
@@ -2778,20 +2610,7 @@
       UI.updateHud(true);
     }
     else if (a === 'switch-mantra') {
-      const parts = String(arg || '').split('|');
-      const npc = W.byId[parts[0]], mId = parts[1];
-      if (npc && npc.cult && mId && (npc.cult.unlockedMantras || []).includes(mId)) {
-        const chk = (g.MARTIAL && g.MARTIAL.canActivateMantra) ? g.MARTIAL.canActivateMantra(npc, mId) : { ok: true };
-        if (!chk.ok) {
-          UI.toast('ไม่สามารถโคจรคัมภีร์นี้ได้: ' + (chk.reason || 'ไม่ตรงสายวิถี'));
-          return;
-        }
-        npc.cult.mantra = mId;
-        HC.bump(npc);
-        if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(npc);
-        UI.render();
-        UI.toast('เปลี่ยนคัมภีร์ลมปราณหลักเป็น「' + (CULT.tech(mId) ? CULT.tech(mId).nameTh : mId) + '」');
-      }
+      UI.toast('ระบบอัตโนมัติ: ศิษย์เลือกโคจรคัมภีร์ลมปราณหลักด้วยตนเองตามระดับวิถีและธาตุ');
     }
     else if (a === 'donate-personal') {
       const [npcId, kind, itemId] = String(arg || '').split('|');
@@ -4564,7 +4383,6 @@
             '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="focus-tribulation" data-arg="' + esc(m ? m.id : '') + '">⚡ ส่องดูทัณฑ์สวรรค์</button>' +
             '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="preview-signature-vfx" data-arg="' + esc((m ? m.id : '') + '|sig_meteor_sword_rain') + '">☄️ ทดสอบเอฟเฟกต์วิชาเฉพาะตัว</button>' +
             '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="demo-qinggong-flight" data-arg="' + esc(m ? m.id : '') + '">🗡️ ทดสอบวิชาตัวเบา/ขี่กระบี่บิน</button>' +
-            '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="demo-mantra-resonance" data-arg="' + esc(m ? m.id : '') + '">☯️ สำแดงคัมภีร์ปราณบ่มเพาะ</button>' +
             '</div>';
           if (SECT.FORMATION_WARFARE) {
             const fw = SECT.FORMATION_WARFARE.ensure(W);
@@ -4578,23 +4396,12 @@
               '</div>';
           }
           if (CULT.SUPPORT_ARTS) {
-            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🎶 คำสั่งฉุกเฉินวิชาสายสนับสนุน & อาคารสำนัก (Support & Facility Synergy v5.7.0):</b></div>';
-            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
-              '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="trigger-sect-emergency-support" data-arg="ZITHER_PURGE_HEART_DEMON">🎶 บรรเลงคีตเวทย์สลายจิตมารทั้งสำนัก</button>' +
-              '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="trigger-sect-emergency-support" data-arg="INFIRMARY_ACUPOINT_HEAL">🪡 ระดมเข็มทองสมานแผลหอพยาบาล</button>' +
-              '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-sect-emergency-support" data-arg="QIMEN_BANNER_RALLY">🚩 ชูธงรบฉีเหมินปลุกขวัญทั้งสำนัก</button>' +
-              '</div>';
+            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🎶 ระบบสนับสนุนและฟื้นฟูสำนัก (Autonomous Support & Facility Synergy):</b> <span class="chip ok">ประสานงานอัตโนมัติโดยผู้รับผิดชอบหอ</span><div class="muted" style="font-size:11px;margin-top:3px">ศิษย์สายคีตเวทย์ แพทย์ และกุนซือฉีเหมินประเมินสภาพสำนักและตอบสนองต่อเหตุฉุกเฉินด้วยตนเอง</div></div>';
           }
           if (SECT.FORBIDDEN_VAULT) {
             const fv = SECT.FORBIDDEN_VAULT.ensure(W);
-            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🩸 หอผนึกคัมภีร์ต้องห้าม & แท่นสังเวยโลหิตบรรพกาล (Forbidden Vault & Blood Altar v5.8.0):</b></div>';
-            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
-              Object.values(SECT.FORBIDDEN_VAULT.POLICIES).map(pol => '<button class="btn' + (fv.policy === pol.id ? (pol.id === 'UNRESTRICTED_BLOOD_CULT' ? ' dan' : ' pri') : '') + '" style="padding:3px 8px;font-size:11px" data-do="set-sect-forbidden-policy" data-arg="' + esc(pol.id) + '">' + esc(pol.icon + ' ' + pol.shortTh) + '</button>').join('') +
-              '</div>';
-            h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
-              '<button class="btn dan" style="padding:3px 8px;font-size:11px" data-do="perform-forbidden-altar-ritual" data-arg="AWAKEN_BLOODLINE_ALTAR">🩸 ปลุกสายเลือดบรรพกาลบนแท่นสังเวย</button>' +
-              '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="perform-forbidden-altar-ritual" data-arg="PURIFY_TABOO_BACKLASH">🪷 พิธีชำระล้างปราณต้องห้ามและคลายชีพจร</button>' +
-              '</div>';
+            const curPol = (SECT.FORBIDDEN_VAULT.POLICIES && SECT.FORBIDDEN_VAULT.POLICIES[fv.policy]) || { icon: '🔒', shortTh: fv.policy || 'ผนึก' };
+            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🩸 หอผนึกคัมภีร์ต้องห้าม & แท่นสังเวยโลหิตบรรพกาล (Autonomous Vault Policy):</b> <span class="chip ' + (fv.policy === 'UNRESTRICTED_BLOOD_CULT' ? 'r' : 'pri') + '">' + esc(curPol.icon + ' ' + curPol.shortTh) + '</span>' + (fv.whyTh ? (' <span class="muted" style="font-size:11px">— ' + esc(fv.whyTh) + '</span>') : '<div class="muted" style="font-size:11px;margin-top:3px">เจ้าสำนักและสภาผู้อาวุโสกำหนดนโยบายและพิธีแท่นโลหิตตามวิถีสำนักและสถานการณ์เอง</div>') + '</div>';
           }
         }
         h += '</div>';
@@ -7534,12 +7341,17 @@
     } else {
       h += '<div class="muted">ยังไม่ได้โคจรคัมภีร์ลมปราณหลัก</div>';
     }
-    const unlockedMantras = (c.unlockedMantras || []).filter(id => id !== c.mantra && (!M || !M.canActivateMantra || M.canActivateMantra(n, id).ok));
+    const unlockedMantras = (c.unlockedMantras || []).filter(id => {
+      if (id === c.mantra) return false;
+      if (!M || !M.canActivateMantra) return true;
+      const r = M.canActivateMantra(n, id);
+      return r === true || !!(r && r.ok);
+    });
     if (unlockedMantras.length) {
-      h += '<div style="margin-top:6px;border-top:1px solid var(--line,#3a3f4a);padding-top:4px"><b>คัมภีร์ปราณอื่นที่ตื่นรู้แล้ว:</b></div>' + unlockedMantras.map(id => {
+      h += '<div style="margin-top:6px;border-top:1px solid var(--line,#3a3f4a);padding-top:4px"><b>คัมภีร์ปราณอื่นที่ตื่นรู้แล้ว (ศิษย์เลือกโคจรอัตโนมัติ):</b></div>' + unlockedMantras.map(id => {
         const mt = CULT.tech(id);
         if (!mt) return '';
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0"><span>' + esc(mt.nameTh) + ' ' + gradeChip(mt) + '</span><button class="btn" style="padding:1px 6px;font-size:11px" data-do="switch-mantra" data-arg="' + n.id + '|' + id + '">เปลี่ยนมาใช้เล่มนี้</button></div>';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0"><span>' + esc(mt.nameTh) + ' ' + gradeChip(mt) + '</span><span class="chip ok">พร้อมโคจรอัตโนมัติ</span></div>';
       }).join('');
     }
     h += '</div>';
@@ -7737,30 +7549,26 @@
         const fb = CULT.FORBIDDEN_ARTS.resolveNpcForbidden(W, n);
         if (fb && fb.spec) {
           const fSt = n.forbiddenArtState || { sealMode: 'SEALED_RESTRAINT', tabooStrain: 0, totalBloodSacrificed: 0, totalDesperationNovas: 0 };
-          h += '<h3>🩸 คัมภีร์วิชาต้องห้ามและการปลดผนึกโลหิต (Forbidden Arts & Taboo Seals v5.8.0)</h3><div class="card" style="border-color:' + esc(fb.spec.color || '#ef233c') + '">';
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<h3>🩸 คัมภีร์วิชาต้องห้ามและการปลดผนึกโลหิต (Forbidden Arts & Taboo Seals · อัตโนมัติ)</h3><div class="card" style="border-color:' + esc(fb.spec.color || '#ef233c') + '">';
           h += '<div><span class="chip r" style="border-color:' + esc(fb.spec.color || '#ef233c') + '">' + fb.spec.icon + ' <b>' + esc(fb.spec.nameTh) + '</b></span> <span class="chip b">สถานะผนึก: ' + esc(fb.sealSpec.shortTh) + '</span>' + (fb.isUnsealed ? ' <span class="chip r">🔥 พลังโจมตี +' + Math.round(fb.effAtkBonusPct * 100) + '% · เร่งตบะ ×' + fb.effCultMult.toFixed(2) + '</span>' : ' <span class="chip ok">🔒 ปลอดภัยไร้ผลสะท้อน</span>') + '</div>';
-          h += '<button class="btn dan" style="padding:2px 8px;font-size:11px" data-do="demo-forbidden-taboo" data-arg="' + esc(n.id) + '">🩸 สำแดงปราณต้องห้าม</button>';
-          h += '</div>';
-          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>อานุภาพต้องห้าม:</b> ' + esc(fb.spec.prosTh) + '<br><b>ราคาที่ต้องจ่าย:</b> ' + esc(fb.spec.consTh) + '<br><b>สถิติต้องห้าม:</b> ชีพจรตึงเครียดสะสม ' + Math.round(fSt.tabooStrain || 0) + '/100 · สังเวยโลหิตสะสม ' + Math.round(fSt.totalBloodSacrificed || 0) + ' HP · ระเบิดพลีชีพฝืนฟ้า ' + (fSt.totalDesperationNovas || 0) + ' ครั้ง</div>';
-          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ระดับการคลายผนึกต้องห้าม:</span>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>อานุภาพต้องห้าม:</b> ' + esc(fb.spec.prosTh) + '<br><b>ราคาที่ต้องจ่าย:</b> ' + esc(fb.spec.consTh) + '<br><b>สถิติต้องห้าม:</b> ชีพจรตึงเครียดสะสม ' + Math.round(fSt.tabooStrain || 0) + '/100 · สังเวยโลหิตสะสม ' + Math.round(fSt.totalBloodSacrificed || 0) + ' HP · ระเบิดพลีชีพฝืนฟ้า ' + (fSt.totalDesperationNovas || 0) + ' ครั้ง' + (fSt.whyTh ? ('<br><b>การตัดสินใจของศิษย์:</b> ' + esc(fSt.whyTh)) : '') + '</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ระดับการคลายผนึก (ประเมินเอง):</span>';
           Object.values(CULT.FORBIDDEN_ARTS.SEAL_MODES).forEach(sSpec => {
-            h += '<button class="btn' + (fb.sealModeId === sSpec.id ? (sSpec.id === 'BLOOD_TABOO_UNLEASHED' ? ' dan' : ' pri') : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-forbidden-seal" data-arg="' + esc(n.id + '|' + sSpec.id) + '">' + esc(sSpec.icon + ' ' + sSpec.shortTh) + '</button>';
+            h += '<span class="chip' + (fb.sealModeId === sSpec.id ? (sSpec.id === 'BLOOD_TABOO_UNLEASHED' ? ' r' : ' b') : '') + '" style="opacity:' + (fb.sealModeId === sSpec.id ? '1' : '0.45') + '">' + esc(sSpec.icon + ' ' + sSpec.shortTh) + '</span>';
           });
           h += '</div></div>';
         }
       }
       if (CULT.PASSIVE_RESONANCE && n.cult) {
         const pr = CULT.PASSIVE_RESONANCE.resolveNpcConstellation(W, n);
+        const pSt = CULT.PASSIVE_RESONANCE.ensureState ? CULT.PASSIVE_RESONANCE.ensureState(n) : null;
         if (pr && pr.spec) {
-          h += '<h3>🌟 ดาราจักรวิชาติดตัวและเคล็ดสายย่อยประสานชีพจร (Passive & Innate Constellations v5.8.0)</h3><div class="card" style="border-color:' + esc(pr.spec.color || '#00f5d4') + '">';
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<h3>🌟 ดาราจักรวิชาติดตัวและเคล็ดสายย่อยประสานชีพจร (Passive Constellations · อัตโนมัติ)</h3><div class="card" style="border-color:' + esc(pr.spec.color || '#00f5d4') + '">';
           h += '<div><span class="chip g" style="border-color:' + esc(pr.spec.color || '#00f5d4') + '">' + pr.spec.icon + ' <b>' + esc(pr.spec.nameTh) + '</b></span> <span class="chip b">ดาราจักรขั้นที่ ' + pr.setTier + '/3</span> <span class="chip ok">โจมตี +' + Math.round(pr.atkBonusPct * 100) + '% · ลดดาเมจ -' + Math.round(pr.dmgRedPct * 100) + '% · บ่มเพาะ +' + Math.round(pr.cultRateBonusPct * 100) + '%</span></div>';
-          h += '</div>';
-          h += '<div class="muted" style="font-size:11.5px;margin-top:4px">' + esc(pr.spec.descTh) + '</div>';
-          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">เปลี่ยนดาราจักรประสานหลัก:</span>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px">' + esc(pr.spec.descTh) + (pSt && pSt.whyTh ? ('<br><b>การตัดสินใจของศิษย์:</b> ' + esc(pSt.whyTh)) : '') + '</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ดาราจักรประสานหลัก:</span>';
           Object.values(CULT.PASSIVE_RESONANCE.CONSTELLATIONS).forEach(cSpec => {
-            h += '<button class="btn' + (pr.constellationId === cSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-passive-constellation" data-arg="' + esc(n.id + '|' + cSpec.id) + '">' + esc(cSpec.icon + ' ' + cSpec.shortTh) + '</button>';
+            h += '<span class="chip' + (pr.constellationId === cSpec.id ? ' b' : '') + '" style="opacity:' + (pr.constellationId === cSpec.id ? '1' : '0.45') + '">' + esc(cSpec.icon + ' ' + cSpec.shortTh) + '</span>';
           });
           h += '</div></div>';
         }
@@ -7769,15 +7577,12 @@
         const sup = CULT.SUPPORT_ARTS.resolveNpcSupport(W, n);
         if (sup && sup.spec) {
           const sSt = n.supportState || { posture: 'SOUL_MELODY_HARMONY', totalAlliesHealed: 0, totalHeartDemonCleansed: 0, totalCommandBuffs: 0, breakthroughBlessingsGranted: 0 };
-          h += '<h3>🎶 วิชาสายสนับสนุนและวิชาเสริม (Support & Auxiliary Arts v5.7.0)</h3><div class="card" style="border-color:' + esc(sup.spec.color || '#48cae4') + '">';
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<h3>🎶 วิชาสายสนับสนุนและวิชาเสริม (Support & Auxiliary Arts · อัตโนมัติ)</h3><div class="card" style="border-color:' + esc(sup.spec.color || '#48cae4') + '">';
           h += '<div><span class="chip g" style="border-color:' + esc(sup.spec.color || '#48cae4') + '">' + sup.spec.icon + ' <b>' + esc(sup.spec.nameTh) + '</b></span> <span class="chip b">อาคารประสาน: ' + esc(sup.spec.facilityNameTh) + '</span> <span class="chip ok">หนุนทะลวงด่าน +' + Math.round(sup.effBreakthroughBonus * 100) + '%</span></div>';
-          h += '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="demo-support-art-aura" data-arg="' + esc(n.id) + '">🎶 แผ่รัศมีวิชาสนับสนุน</button>';
-          h += '</div>';
-          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>เอกลักษณ์และผลกระทบต่อเนื่อง:</b> ' + esc(sup.spec.prosTh) + '<br><b>ข้อจำกัด:</b> ' + esc(sup.spec.consTh) + '<br><b>สถิติสนับสนุนสำนัก:</b> ชะล้างจิตมารสะสม ' + Math.round(sSt.totalHeartDemonCleansed || 0) + ' แต้ม · สมานแผลสหาย ' + Math.round(sSt.totalAlliesHealed || 0) + ' HP · อวยพรทะลวงด่าน ' + (sSt.breakthroughBlessingsGranted || 0) + ' ครั้ง</div>';
-          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ท่วงท่ายุทธวิธีสายสนับสนุน:</span>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>เอกลักษณ์และผลกระทบต่อเนื่อง:</b> ' + esc(sup.spec.prosTh) + '<br><b>ข้อจำกัด:</b> ' + esc(sup.spec.consTh) + '<br><b>สถิติสนับสนุนสำนัก:</b> ชะล้างจิตมารสะสม ' + Math.round(sSt.totalHeartDemonCleansed || 0) + ' แต้ม · สมานแผลสหาย ' + Math.round(sSt.totalAlliesHealed || 0) + ' HP · อวยพรทะลวงด่าน ' + (sSt.breakthroughBlessingsGranted || 0) + ' ครั้ง' + (sSt.whyTh ? ('<br><b>การตัดสินใจของศิษย์:</b> ' + esc(sSt.whyTh)) : '') + '</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ท่วงท่ายุทธวิธี (ประเมินเอง):</span>';
           Object.values(CULT.SUPPORT_ARTS.POSTURES).forEach(pSpec => {
-            h += '<button class="btn' + (sup.postureId === pSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-support-posture" data-arg="' + esc(n.id + '|' + pSpec.id) + '">' + esc(pSpec.icon + ' ' + pSpec.shortTh) + '</button>';
+            h += '<span class="chip' + (sup.postureId === pSpec.id ? ' b' : '') + '" style="opacity:' + (sup.postureId === pSpec.id ? '1' : '0.45') + '">' + esc(pSpec.icon + ' ' + pSpec.shortTh) + '</span>';
           });
           h += '</div></div>';
         }
@@ -7786,15 +7591,12 @@
         const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, n);
         if (df && df.spec) {
           const dSt = n.defensiveArtState || { posture: 'COUNTER_PARRY_STANCE', totalDamageMitigated: 0, totalDamageRedirected: 0, totalAllyIntercepts: 0 };
-          h += '<h3>🛡️ วิชาคุ้มกายและปราณเกราะพิทักษ์ (Defensive Kungfu & Aegis v5.6.0)</h3><div class="card" style="border-color:' + esc(df.spec.color || '#72efdd') + '">';
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<h3>🛡️ วิชาคุ้มกายและปราณเกราะพิทักษ์ (Defensive Kungfu & Aegis · อัตโนมัติ)</h3><div class="card" style="border-color:' + esc(df.spec.color || '#72efdd') + '">';
           h += '<div><span class="chip g" style="border-color:' + esc(df.spec.color || '#72efdd') + '">' + df.spec.icon + ' <b>' + esc(df.spec.nameTh) + '</b></span> <span class="chip b">ลดดาเมจ -' + Math.round(df.effDmgRedPct * 100) + '%</span>' + (df.effRedirectPct > 0 ? ' <span class="chip ok">☯️ ยืมแรงสะท้อน ' + Math.round(df.effRedirectPct * 100) + '%</span>' : '') + (df.effCounterPct > 0 ? ' <span class="chip ok">⚔️ สวนกลับ ' + Math.round(df.effCounterPct * 100) + '%</span>' : '') + (df.allyInterceptActive ? ' <span class="chip g">👑 คุ้มครองสหาย 5.5 ช่อง</span>' : '') + '</div>';
-          h += '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="demo-defensive-aegis" data-arg="' + esc(n.id) + '">🛡️ สำแดงปราณคุ้มกาย</button>';
-          h += '</div>';
-          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>จุดเด่นวิชาคุ้มกาย:</b> ' + esc(df.spec.prosTh) + '<br><b>ข้อจำกัด:</b> ' + esc(df.spec.consTh) + '<br><b>สถิติการป้องกัน:</b> สลายดาเมจสะสม ' + Math.round(dSt.totalDamageMitigated || 0) + ' หน่วย · สะท้อน/สวนกลับ ' + Math.round(dSt.totalDamageRedirected || 0) + ' หน่วย · รับเคราะห์แทนสหาย ' + (dSt.totalAllyIntercepts || 0) + ' ครั้ง</div>';
-          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ท่าตั้งรับปราณคุ้มกาย:</span>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>จุดเด่นวิชาคุ้มกาย:</b> ' + esc(df.spec.prosTh) + '<br><b>ข้อจำกัด:</b> ' + esc(df.spec.consTh) + '<br><b>สถิติการป้องกัน:</b> สลายดาเมจสะสม ' + Math.round(dSt.totalDamageMitigated || 0) + ' หน่วย · สะท้อน/สวนกลับ ' + Math.round(dSt.totalDamageRedirected || 0) + ' หน่วย · รับเคราะห์แทนสหาย ' + (dSt.totalAllyIntercepts || 0) + ' ครั้ง' + (dSt.whyTh ? ('<br><b>การตัดสินใจของศิษย์:</b> ' + esc(dSt.whyTh)) : '') + '</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">ท่าตั้งรับปราณคุ้มกาย (ประเมินเอง):</span>';
           Object.values(CULT.DEFENSIVE_ARTS.POSTURES).forEach(pSpec => {
-            h += '<button class="btn' + (df.postureId === pSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-defensive-posture" data-arg="' + esc(n.id + '|' + pSpec.id) + '">' + esc(pSpec.icon + ' ' + pSpec.shortTh) + '</button>';
+            h += '<span class="chip' + (df.postureId === pSpec.id ? ' b' : '') + '" style="opacity:' + (df.postureId === pSpec.id ? '1' : '0.45') + '">' + esc(pSpec.icon + ' ' + pSpec.shortTh) + '</span>';
           });
           h += '</div></div>';
         }
@@ -7803,15 +7605,12 @@
         const mr = CULT.MANTRA_SYSTEM.resolveNpcMantra(W, n);
         if (mr && mr.spec) {
           const mSt = n.mantraState || { stance: 'HARMONIOUS_CIRCULATION', resonanceStacks: 0, totalAutonomousGain: 0, totalCombatProcs: 0 };
-          h += '<h3>☯️ คัมภีร์ปราณบ่มเพาะและเอกลักษณ์การเดินลมปราณ (Mantra Resonance v5.5.0)</h3><div class="card" style="border-color:' + esc(mr.spec.color || '#ffd166') + '">';
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">';
+          h += '<h3>☯️ คัมภีร์ปราณบ่มเพาะและเอกลักษณ์การเดินลมปราณ (Mantra Resonance · อัตโนมัติ)</h3><div class="card" style="border-color:' + esc(mr.spec.color || '#ffd166') + '">';
           h += '<div><span class="chip g" style="border-color:' + esc(mr.spec.color || '#ffd166') + '">' + mr.spec.icon + ' <b>' + esc(mr.spec.nameTh) + '</b></span> <span class="chip b">คัมภีร์: ' + esc(mr.mantraNameTh) + '</span> <span class="chip ok">ตัวคูณเดินปราณ ×' + mr.effectiveCultMult.toFixed(2) + '</span>' + (mr.weatherResonanceActive ? ' <span class="chip g">🌌 สอดคล้องฟ้าดิน (+' + Math.round((mr.spec.weatherBonusPct || 0.2) * 100) + '%)</span>' : '') + '</div>';
-          h += '<button class="btn pri" style="padding:2px 8px;font-size:11px" data-do="demo-mantra-resonance" data-arg="' + esc(n.id) + '">☯️ สำแดงวงจรคัมภีร์ปราณ</button>';
-          h += '</div>';
-          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>เอกลักษณ์คัมภีร์ปราณ:</b> ' + esc(mr.spec.prosTh) + '<br><b>ข้อจำกัดเฉพาะทาง:</b> ' + esc(mr.spec.consTh) + '<br><b>จังหวะปัจจุบัน:</b> ' + esc(mr.stanceSpec.icon + ' ' + mr.stanceSpec.nameTh) + ' — ' + esc(mr.stanceSpec.descTh) + '</div>';
-          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">เปลี่ยนจังหวะการเดินลมปราณ:</span>';
+          h += '<div class="muted" style="font-size:11.5px;margin-top:4px"><b>เอกลักษณ์คัมภีร์ปราณ:</b> ' + esc(mr.spec.prosTh) + '<br><b>ข้อจำกัดเฉพาะทาง:</b> ' + esc(mr.spec.consTh) + '<br><b>จังหวะปัจจุบัน:</b> ' + esc(mr.stanceSpec.icon + ' ' + mr.stanceSpec.nameTh) + ' — ' + esc(mr.stanceSpec.descTh) + (mSt.whyTh ? ('<br><b>การตัดสินใจของศิษย์:</b> ' + esc(mSt.whyTh)) : '') + '</div>';
+          h += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:11px">จังหวะเดินลมปราณ (ประเมินเอง):</span>';
           Object.values(CULT.MANTRA_SYSTEM.STANCES).forEach(stSpec => {
-            h += '<button class="btn' + (mr.stanceId === stSpec.id ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-npc-mantra-stance" data-arg="' + esc(n.id + '|' + stSpec.id) + '">' + esc(stSpec.icon + ' ' + stSpec.shortTh) + '</button>';
+            h += '<span class="chip' + (mr.stanceId === stSpec.id ? ' b' : '') + '" style="opacity:' + (mr.stanceId === stSpec.id ? '1' : '0.45') + '">' + esc(stSpec.icon + ' ' + stSpec.shortTh) + '</span>';
           });
           h += '</div></div>';
         }

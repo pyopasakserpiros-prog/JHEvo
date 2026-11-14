@@ -539,24 +539,44 @@
     SUB_MANUAL: 4
   });
 
-  // จัดลำดับความหายาก 4 ขั้น (Rarity Tier 1..4) ของสายย่อยทั้ง 37 สายสำหรับการสุ่มหีบปริศนา
-  // (โดยไม่กระทบค่า k.tier = 1..2 ที่ใช้ตรวจสิทธิ์หอคัมภีร์ใน studySubpath)
-  const SUBPATH_LOOT_TIER = Object.freeze({
-    // Tier 1 (15 สายพื้นฐานหลัก)
+  // จัดลำดับความหายาก 4 ขั้น (Rarity Tier 1..4) ของสายย่อยทั้ง 286 สายสำหรับการสุ่มหีบปริศนา
+  // (รักษา 37 สายดั้งเดิม และคำนวณอัตโนมัติสำหรับทุกสายย่อยที่เหลือ)
+  const LEGACY_SUBPATH_LOOT_TIER = Object.freeze({
     SWORD_IMMORTAL: 1, FIVE_ELEMENTS: 1, ELIXIR_DAO: 1, ASTRAL_ARRAY: 1,
     TIGER_SOVEREIGN: 1, VAJRA_BODHI: 1, SOLAR_FORGE: 1, WOOD_SPRING_BODY: 1,
     WAR_DEITY: 1, MERCY_DEITY: 1, HARVEST_EARTH_GOD: 1, MEDICINE_BODHI_GOD: 1,
     SHADOW_ASSASSIN: 1, ZEN_VOID_MIND: 1, CALLIGRAPHY_PAINTING_SAGE: 1,
-    // Tier 2 (12 สายเฉพาะทางธาตุและกายา)
     BLOOD_DEMON: 2, PHANTOM_SOUL: 2, SOUND_ZITHER: 2, YIN_YANG_HARMONY: 2,
     BLOOD_DRAGON: 2, THUNDER_BODY: 2, JADE_IMMORTAL_BODY: 2, TITAN_MOUNTAIN_BODY: 2,
     TOTEM_BEAST_GOD: 2, OCEAN_SOVEREIGN: 2, VENOM_GU_SOVEREIGN: 2, NETHER_GHOST_KING: 2,
-    // Tier 3 (6 สายลี้ลับและสายเสริมยุทธภพ)
     FROST_MOON_IMMORTAL: 3, STAR_ARCHER: 3, DEVOURING_FIEND: 3, STAFF_GUARD: 3,
     FATE_ORACLE: 3, TIME_VOID: 3,
-    // Tier 4 (4 สายยอดวิชาล้ำลึกหายาก)
     UNDERWORLD_JUDGE: 4, HEAVEN_DEVOURING_DEMON: 4, DREAM_ILLUSION_WEAVER: 4, MIND_SWORD_TELEKINESIS: 4
   });
+  const SUBPATH_LOOT_TIER = Object.assign({}, LEGACY_SUBPATH_LOOT_TIER);
+  const RARE_APEX_LOOT_PATHS = new Set(['CHRONO_EPOCH', 'VOID_SPACE', 'PRIMORDIAL_CHAOS', 'GRAVITY_DAO', 'DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE']);
+  FISHING.resolveSubpathLootTier = (subObjOrId, pathId, idx) => {
+    const id = typeof subObjOrId === 'string' ? subObjOrId : (subObjOrId && subObjOrId.id);
+    if (id && LEGACY_SUBPATH_LOOT_TIER[id] != null) return LEGACY_SUBPATH_LOOT_TIER[id];
+    if (id && g.MARTIAL && typeof g.MARTIAL.knowledge === 'function') {
+      const k = g.MARTIAL.knowledge('S:' + id);
+      if (k && Number.isFinite(k.tier)) return Math.max(1, Math.min(4, k.tier >= 5 ? 4 : k.tier));
+    }
+    const i = Number.isFinite(idx) ? idx : 0;
+    const isApex = RARE_APEX_LOOT_PATHS.has(pathId);
+    if (i === 0) return isApex ? 2 : 1;
+    if (isApex) return i >= 4 ? 4 : i >= 2 ? 3 : 2;
+    return i >= 5 ? 4 : i >= 3 ? 3 : 2;
+  };
+  if (CULT && CULT.PATHS) {
+    Object.values(CULT.PATHS).forEach(p => {
+      (p.subPaths || []).forEach((s, idx) => {
+        if (s && s.id && SUBPATH_LOOT_TIER[s.id] == null) {
+          SUBPATH_LOOT_TIER[s.id] = FISHING.resolveSubpathLootTier(s, p.id, idx);
+        }
+      });
+    });
+  }
   FISHING.SUBPATH_LOOT_TIER = SUBPATH_LOOT_TIER;
 
   FISHING.getTierProbabilityTable = tierCount => {
@@ -875,12 +895,16 @@
       };
     }
 
+    const isTideVoyager = !!(npc && npc.cult && npc.cult.path === 'TIDE_VOYAGER');
+    const tideStage = isTideVoyager ? Math.max(1, npc.cult.stage || 1) : 0;
     const sk = npc ? FISHING.skillOf(W, npc) : (opts.anglerSkill || 15);
-    const species = FISHING.pickSpeciesForZone(W, zid, sk, opts.speciesRoll);
+    const effSk = isTideVoyager ? Math.min(100, sk + 10 + tideStage) : sk;
+    const species = FISHING.pickSpeciesForZone(W, zid, effSk, opts.speciesRoll);
     const fourSym = (g.CULT && g.CULT.sectFourSymbolSummary) ? g.CULT.sectFourSymbolSummary(W) : null;
     const hasAzure = !!(fourSym && fourSym.hasAzureDragon);
-    const q = clamp(+(FISHING.computeFishQuality(W, npc, species) + (hasAzure ? 0.12 : 0)).toFixed(2), 0.75, 1.55);
-    const qty = hasAzure ? 2 : 1;
+    const q = clamp(+(FISHING.computeFishQuality(W, npc, species) + (hasAzure ? 0.12 : 0) + (isTideVoyager ? (0.06 + tideStage * 0.01) : 0)).toFixed(2), 0.75, 1.55);
+    const tideBonusCatch = (isTideVoyager && W && W.rng && W.rng.chance && W.rng.chance(Math.min(0.45, 0.18 + tideStage * 0.04))) ? 1 : 0;
+    const qty = (hasAzure ? 2 : 1) + tideBonusCatch;
 
     f.stats.fishCaught += qty;
     f.stats.bySpecies[species.id] = (f.stats.bySpecies[species.id] || 0) + qty;
@@ -993,11 +1017,11 @@
       const isManual = category === 'SUB_MANUAL';
       const subLib = (W && W.sect && Array.isArray(W.sect.subLibrary)) ? W.sect.subLibrary : [];
       const heldSub = (openerNpc && openerNpc.inv && Array.isArray(openerNpc.inv.subManuals)) ? openerNpc.inv.subManuals : [];
-      const allSubs = Object.values(CULT.PATHS).flatMap(p => p.subPaths.map(s => ({
+      const allSubs = Object.values(CULT.PATHS).flatMap(p => p.subPaths.map((s, idx) => ({
         id: s.id,
         path: p.id,
         nameTh: s.nameTh,
-        lootTier: SUBPATH_LOOT_TIER[s.id] || 1
+        lootTier: SUBPATH_LOOT_TIER[s.id] != null ? SUBPATH_LOOT_TIER[s.id] : FISHING.resolveSubpathLootTier(s, p.id, idx)
       })));
       let list = allSubs.filter(s => {
         if (s.lootTier !== tier) return false;

@@ -763,8 +763,41 @@
         && Number.isFinite(access[el].affinity) && Array.isArray(access[el].sources));
   }
 
-  const ASTRAL_SUBS = new Set(['ASTRAL_ARRAY', 'TIME_VOID', 'FATE_ORACLE', 'MIND_SWORD_TELEKINESIS', 'STAR_ARCHER', 'VOID_SPEAR_MIND', 'ASTRAL_CLOCKWORK_PRIME', 'PAST_LIFE_MIRROR', 'SEAL_SCRIPT_EXORCIST', 'QIMEN_TALISMAN_PATRON', 'CELESTIAL_ZITHER_ENVOY', 'STAR_CHART_ORACLE', 'HEAVENLY_SECRET_SEER', 'ECLIPSE_DOOM_PROPHET', 'BIG_DIPPER_FORMATION', 'DESTINY_THREAD_ARBITER', 'METEOR_CALLER_SAGE', 'DIMENSIONAL_BLINK_STRIDER', 'SPATIAL_POCKET_ARCHITECT', 'VOID_RIFT_SLAYER', 'FOLDED_HORIZON_ARCHER', 'BANISHMENT_SEAL_WARDEN', 'ASTRAL_LABYRINTH_WEAVER', 'SINGULARITY_COLLAPSE', 'ORBITAL_TIDE_SAGE', 'RIVER_OF_TIME_WATCHER', 'DAWN_DUSK_REWINDER', 'ACCELERATED_AEON_MONK', 'FROZEN_MOMENT_EXECUTIONER', 'ANCESTRAL_ECHO_SUMMONER', 'ETERNAL_KALPA_SAGE', 'WUJI_ORIGIN_SEEKER', 'YIN_YANG_INVERSION_LORD', 'FIVE_ELEMENT_COLLAPSE', 'PRIMAL_MIST_WEAVER', 'ENTROPY_DEVOURER', 'CREATION_DESTRUCTION_SAGE']);
-  const BLOOD_SUBS = new Set(['BLOOD_DEMON', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'HEAVEN_DEVOURING_DEMON', 'BLOOD_SPEAR_ASURA', 'PRIMORDIAL_BLOOD_MUTATOR', 'BLOOD_PARASITE_LORD', 'ANCIENT_TAOTIE_MAW', 'NINE_TAILED_MYSTIC_FOX', 'BLOODLINE_CHIMERA_SOVEREIGN', 'BLOOD_DEBT_COLLECTOR', 'NETHER_MARIONETTE_LORD']);
+  const ASTRAL_MAJOR_PATHS = new Set(['ARRAY_TALISMAN', 'ASTRO_DIVINATION', 'VOID_SPACE', 'CHRONO_EPOCH', 'PRIMORDIAL_CHAOS', 'DIVINE_CHANNELER', 'LORE_ARCHIVIST', 'FORTUNE_GAMBLER', 'VOID_HERETIC_PACT']);
+  const BLOOD_MAJOR_PATHS = new Set(['DEMON', 'DEVOURING_FLESH', 'VENOM_GU', 'PRIMORDIAL_SHIFTER']);
+  let _specialSubCache = null;
+  function getSpecialSubSets() {
+    const subs = Array.isArray(CULT.subList) ? CULT.subList : [];
+    if (_specialSubCache && _specialSubCache.len === subs.length && subs.length > 0) return _specialSubCache;
+    const astral = new Set(['ASTRAL_ARRAY', 'TIME_VOID', 'FATE_ORACLE', 'MIND_SWORD_TELEKINESIS', 'STAR_ARCHER', 'VOID_SPEAR_MIND', 'ASTRAL_CLOCKWORK_PRIME', 'PAST_LIFE_MIRROR', 'SEAL_SCRIPT_EXORCIST', 'QIMEN_TALISMAN_PATRON', 'CELESTIAL_ZITHER_ENVOY', 'STAR_CHART_PROPHET', 'HEAVENLY_SECRET_SEER', 'ECLIPSE_DOOM_PROPHET', 'BIG_DIPPER_FORMATION', 'DESTINY_THREAD_ARBITER', 'METEOR_CALLER_SAGE', 'DIMENSIONAL_BLINK_STRIDER', 'SPATIAL_POCKET_ARCHITECT', 'VOID_RIFT_SLAYER', 'FOLDED_HORIZON_ARCHER', 'BANISHMENT_SEAL_WARDEN', 'ASTRAL_LABYRINTH_WEAVER', 'SINGULARITY_COLLAPSE', 'ORBITAL_TIDE_SAGE', 'RIVER_OF_TIME_WATCHER', 'DAWN_DUSK_REWINDER', 'ACCELERATED_AEON_MONK', 'FROZEN_MOMENT_EXECUTIONER', 'ANCESTRAL_ECHO_SUMMONER', 'ETERNAL_KALPA_SAGE', 'WUJI_ORIGIN_SEEKER', 'YIN_YANG_INVERSION_LORD', 'FIVE_ELEMENT_COLLAPSE', 'PRIMAL_MIST_WEAVER', 'ENTROPY_DEVOURER', 'CREATION_DESTRUCTION_SAGE']);
+    const blood = new Set(['BLOOD_DEMON', 'BLOOD_DRAGON', 'DEVOURING_FIEND', 'HEAVEN_DEVOURING_DEMON', 'BLOOD_SPEAR_ASURA', 'PRIMORDIAL_BLOOD_MUTATOR', 'BLOOD_PARASITE_LORD', 'ANCIENT_TAOTIE_MAW', 'NINE_TAILED_MYSTIC_FOX', 'BLOODLINE_CHIMERA_SOVEREIGN', 'BLOOD_DEBT_COLLECTOR', 'NETHER_MARIONETTE_LORD']);
+    for (let i = 0; i < subs.length; i++) {
+      const sObj = subs[i] && subs[i].sub;
+      if (!sObj || !sObj.id) continue;
+      const prof = ELEM.getProfile(sObj);
+      if (prof && prof.weights) {
+        if (prof.weights.ASTRAL) astral.add(sObj.id);
+        if (prof.weights.BLOOD_DEMON) blood.add(sObj.id);
+      }
+    }
+    _specialSubCache = { len: subs.length, astral, blood };
+    return _specialSubCache;
+  }
+
+  function detectSpecialFromCult(c) {
+    if (!c) return { astral: false, blood: false, pathAstral: false, pathBlood: false, subAstral: false, subBlood: false, canonSub: null };
+    const subSets = getSpecialSubSets();
+    const pDef = CULT.PATHS && c.path ? CULT.PATHS[c.path] : null;
+    const pProf = pDef ? ELEM.getProfile(pDef) : null;
+    const canonSub = c.sub ? (CULT.resolveSubId ? CULT.resolveSubId(c.sub) : c.sub) : null;
+    const subDef = (canonSub && canonSub !== 'NONE' && CULT.subInfo) ? CULT.subInfo(c.path, canonSub) : null;
+    const sProf = subDef ? ELEM.getProfile(subDef) : null;
+    const pathAstral = !!(ASTRAL_MAJOR_PATHS.has(c.path) || (pProf && pProf.weights && pProf.weights.ASTRAL));
+    const pathBlood = !!(BLOOD_MAJOR_PATHS.has(c.path) || (pProf && pProf.weights && pProf.weights.BLOOD_DEMON));
+    const subAstral = !!(canonSub && canonSub !== 'NONE' && (subSets.astral.has(canonSub) || (sProf && sProf.weights && sProf.weights.ASTRAL)));
+    const subBlood = !!(canonSub && canonSub !== 'NONE' && (subSets.blood.has(canonSub) || (sProf && sProf.weights && sProf.weights.BLOOD_DEMON)));
+    return { astral: pathAstral || subAstral, blood: pathBlood || subBlood, pathAstral, pathBlood, subAstral, subBlood, canonSub };
+  }
 
   ELEM.syncSpecialAccess = npc => {
     if (!npc || !npc.h) return null;
@@ -778,10 +811,11 @@
     const bloodSources = new Set(sourceArray('BLOOD_DEMON'));
 
     if (c) {
-      if (c.path === 'ARRAY_TALISMAN') astralSources.add('PATH:ARRAY_TALISMAN');
-      if (ASTRAL_SUBS.has(c.sub)) astralSources.add('SUBPATH:' + c.sub);
-      if (c.path === 'DEMON') bloodSources.add('PATH:DEMON');
-      if (BLOOD_SUBS.has(c.sub)) bloodSources.add('SUBPATH:' + c.sub);
+      const spCult = detectSpecialFromCult(c);
+      if (spCult.pathAstral) astralSources.add('PATH:' + c.path);
+      if (spCult.pathBlood) bloodSources.add('PATH:' + c.path);
+      if (spCult.subAstral) astralSources.add('SUBPATH:' + spCult.canonSub);
+      if (spCult.subBlood) bloodSources.add('SUBPATH:' + spCult.canonSub);
       const learnedTechs = Array.isArray(c.techs) ? c.techs : [];
       const checkIds = Array.from(new Set(learnedTechs.concat(c.mantra ? [c.mantra] : [], Array.isArray(c.unlockedMantras) ? c.unlockedMantras : [])));
       for (const id of checkIds) {
@@ -792,11 +826,15 @@
         if (prof.weights && prof.weights.BLOOD_DEMON) bloodSources.add('TECH:' + id);
       }
     }
-    if (npc.h.constitution === 'CON_STAR_MARROW' || npc.h.constitution === 'CON_VOID_SPIRIT') {
-      astralSources.add('CONSTITUTION:' + npc.h.constitution);
+    const con = npc.h.constitution;
+    if (con === 'CONST_STAR_MIND' || con === 'CON_STAR_MARROW' || con === 'CON_VOID_SPIRIT') {
+      astralSources.add('CONSTITUTION:' + con);
     }
-    if (npc.h.constitution === 'CON_BLOOD_FIEND' || npc.h.constitution === 'CON_ASURA_WAR') {
-      bloodSources.add('CONSTITUTION:' + npc.h.constitution);
+    if (con === 'CONST_BEAST_BLOOD' || con === 'CONST_DRAGON_MARROW' || con === 'CON_BLOOD_FIEND' || con === 'CON_ASURA_WAR') {
+      bloodSources.add('CONSTITUTION:' + con);
+    }
+    if (Array.isArray(npc.h.traits) && npc.h.traits.some(tr => tr && tr.id === 'TR_BL_BLOOD_CURSE')) {
+      bloodSources.add('TRAIT:TR_BL_BLOOD_CURSE');
     }
 
     const aList = Array.from(astralSources);
@@ -868,9 +906,10 @@
           : clamp(Math.round((aff > 45 ? (aff - 45) * 0.15 : 0) * 10) / 10, 0, 25);
         mastery[el] = baseM;
       });
+      const initSp = detectSpecialFromCult(npc.cult);
       const specialMastery = {
-        ASTRAL: (npc.cult && ASTRAL_SUBS.has(npc.cult.sub)) ? clamp(8 + (npc.cult.stage || 1) * 4, 5, 55) : 0,
-        BLOOD_DEMON: (npc.cult && (npc.cult.path === 'DEMON' || BLOOD_SUBS.has(npc.cult.sub))) ? clamp(8 + (npc.cult.stage || 1) * 4, 5, 55) : 0
+        ASTRAL: initSp.astral ? clamp(8 + (npc.cult.stage || 1) * 4, 5, 55) : 0,
+        BLOOD_DEMON: initSp.blood ? clamp(8 + (npc.cult.stage || 1) * 4, 5, 55) : 0
       };
       sys = npc.ext.elementalSystem = {
         version: 2,
@@ -1604,6 +1643,7 @@
 
   /* ---------- Wire Option A Root-Capacity Traits & Zero-RNG-Shift HC.generate Wrapper ---------- */
   if (HC) {
+    const SEASON_NAMES = ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'];
     const origTraitDef = HC.traitDef;
     HC.traitDef = id => {
       const d = origTraitDef ? origTraitDef(id) : null;
@@ -1611,11 +1651,168 @@
       return (JD.CORE && JD.CORE.rootCapacityTraits && JD.CORE.rootCapacityTraits[id]) || null;
     };
     const origTraitMods = HC.traitMods;
+    const findRawTraitMod = (rawMods, m, idx) => {
+      if (!Array.isArray(rawMods)) return null;
+      const cand = rawMods[idx];
+      if (cand && (cand.stat === m.stat || (cand.stat === 'physiology.poisonResistance' && m.stat === 'physiology.immunity'))) return cand;
+      return rawMods.find(rm => rm && (rm.stat === m.stat || (rm.stat === 'physiology.poisonResistance' && m.stat === 'physiology.immunity')) && (rm.op === m.op || (rm.op === 'MAX_CAP' && m.op === 'MULT'))) || null;
+    };
+    const isGrudgeTarget = (npc, target) => {
+      if (!npc || !target || !target.id) return false;
+      const rel = npc.rels && npc.rels[target.id];
+      if (!rel) return false;
+      if ((rel.grudge || 0) >= 20 || (rel.hatred || 0) >= 20) return true;
+      return Array.isArray(rel.tags) && (rel.tags.includes('KILLER') || rel.tags.includes('GRUDGE') || rel.tags.includes('ENEMY') || rel.tags.includes('BETRAYED'));
+    };
+    let _inEvalCond = false;
+    const evalTraitCondition = (npc, cond, ctx) => {
+      if (!cond) return true;
+      if (!npc || !npc.h) return false;
+      if (cond.requiredSeason) {
+        const sIdx = HC.nowSeason != null ? HC.nowSeason : ((g.W && g.W.season != null) ? g.W.season : 0);
+        const sName = typeof sIdx === 'string' ? sIdx : (SEASON_NAMES[sIdx] || 'SPRING');
+        if (sName !== cond.requiredSeason && sIdx !== cond.requiredSeason) return false;
+      }
+      if (cond.maxHealth != null) {
+        if (_inEvalCond) return false;
+        _inEvalCond = true;
+        try {
+          const hp = npc.h.state ? npc.h.state.hp : null;
+          let hpMax = (npc._d && npc._d.hpMax) || (npc.h.state && npc.h.state.hpMax);
+          if (!hpMax && HC.derived) {
+            const d = HC.derived(npc);
+            hpMax = d && d.hpMax;
+          }
+          if (hp == null || !hpMax || hpMax <= 0) return false;
+          if ((hp / hpMax) * 100 > cond.maxHealth) return false;
+        } finally {
+          _inEvalCond = false;
+        }
+      }
+      if (cond.inCombatAgainstGrudge) {
+        if (ctx && ctx.inCombatAgainstGrudge != null) return !!ctx.inCombatAgainstGrudge;
+        const tgt = (ctx && ctx.target) || npc._activeOpponent || npc._combatTarget || (npc.act && npc.act.targetId && g.W && g.W.byId ? g.W.byId[npc.act.targetId] : null);
+        if (!isGrudgeTarget(npc, tgt)) return false;
+      }
+      return true;
+    };
     HC.traitMods = (id, lv) => {
       if (JD.CORE && JD.CORE.rootCapacityTraits && JD.CORE.rootCapacityTraits[id]) {
         return [];
       }
-      return origTraitMods ? origTraitMods(id, lv) : [];
+      const mods = origTraitMods ? origTraitMods(id, lv) : [];
+      if (!Array.isArray(mods) || !mods.length) return mods;
+      const def = HC.traitDef(id);
+      const rawMods = def && def.modifiers;
+      if (!Array.isArray(rawMods) || !rawMods.length) return mods;
+      const filtered = [];
+      for (let i = 0; i < mods.length; i++) {
+        const m = mods[i];
+        const rawM = findRawTraitMod(rawMods, m, i);
+        if (rawM && (rawM.op === 'MAX_CAP' || rawM.condition)) continue;
+        if (m.stat === 'physiology.poisonResistance') {
+          filtered.push(Object.assign({}, m, { stat: 'physiology.immunity' }));
+        } else {
+          filtered.push(m);
+        }
+      }
+      return filtered;
+    };
+    const origEff = HC.eff;
+    HC.eff = (npc, path, ctx) => {
+      let val = origEff ? origEff(npc, path) : 50;
+      const traits = npc && npc.h && npc.h.traits;
+      if (!Array.isArray(traits) || !traits.length) return val;
+      for (let ti = 0; ti < traits.length; ti++) {
+        const tr = traits[ti];
+        if (!tr || !tr.id) continue;
+        const def = HC.traitDef(tr.id);
+        const rawMods = def && def.modifiers;
+        if (!Array.isArray(rawMods)) continue;
+        let capVal = null;
+        let condAdd = 0;
+        let condMult = 1;
+        let hasCond = false;
+        const scaledMods = origTraitMods ? origTraitMods(tr.id, tr.lv || 1) : rawMods;
+        for (let i = 0; i < rawMods.length; i++) {
+          const rm = rawMods[i];
+          if (!rm) continue;
+          const mappedStat = rm.stat === 'physiology.poisonResistance' ? 'physiology.immunity' : rm.stat;
+          if (mappedStat !== path) continue;
+          if (rm.op === 'MAX_CAP') {
+            if (evalTraitCondition(npc, rm.condition, ctx)) {
+              capVal = capVal == null ? rm.value : Math.min(capVal, rm.value);
+            }
+          } else if (rm.condition && evalTraitCondition(npc, rm.condition, ctx)) {
+            const sm = (Array.isArray(scaledMods) && scaledMods[i] && scaledMods[i].stat === rm.stat) ? scaledMods[i] : rm;
+            if (rm.op === 'ADD') { condAdd += sm.value; hasCond = true; }
+            else if (rm.op === 'MULT') { condMult *= sm.value; hasCond = true; }
+          }
+        }
+        if (hasCond) val = clamp(Math.round((val * condMult + condAdd) * 100) / 100, 1, 99);
+        if (capVal != null) val = Math.min(val, capVal);
+      }
+      return val;
+    };
+    const origSpecial = HC.special;
+    HC.special = (npc, path, ctx) => {
+      let val = origSpecial ? origSpecial(npc, path) : (path === 'combat.powerMult' ? 1 : 0);
+      const traits = npc && npc.h && npc.h.traits;
+      if (!Array.isArray(traits) || !traits.length) return val;
+      for (let ti = 0; ti < traits.length; ti++) {
+        const tr = traits[ti];
+        if (!tr || !tr.id) continue;
+        const def = HC.traitDef(tr.id);
+        const rawMods = def && def.modifiers;
+        if (!Array.isArray(rawMods)) continue;
+        const scaledMods = origTraitMods ? origTraitMods(tr.id, tr.lv || 1) : rawMods;
+        for (let i = 0; i < rawMods.length; i++) {
+          const rm = rawMods[i];
+          if (!rm || rm.stat !== path || !rm.condition) continue;
+          if (!evalTraitCondition(npc, rm.condition, ctx)) continue;
+          const sm = (Array.isArray(scaledMods) && scaledMods[i] && scaledMods[i].stat === rm.stat) ? scaledMods[i] : rm;
+          if (rm.op === 'MULT') val *= sm.value;
+          else if (rm.op === 'ADD') val += sm.value;
+        }
+      }
+      return val;
+    };
+    HC.hasUnlockTag = (npc, tag) => {
+      const traits = npc && npc.h && npc.h.traits;
+      if (!Array.isArray(traits) || !tag) return false;
+      for (let i = 0; i < traits.length; i++) {
+        const tr = traits[i];
+        const def = tr && tr.id ? HC.traitDef(tr.id) : null;
+        const tags = def && def.behaviorMods && def.behaviorMods.unlockTags;
+        if (Array.isArray(tags) && tags.includes(tag)) return true;
+      }
+      return false;
+    };
+    HC.decisionBias = (npc, key) => {
+      const traits = npc && npc.h && npc.h.traits;
+      if (key) {
+        if (!Array.isArray(traits) || !traits.length) return 0;
+        let sum = 0;
+        for (let i = 0; i < traits.length; i++) {
+          const tr = traits[i];
+          const def = tr && tr.id ? HC.traitDef(tr.id) : null;
+          const db = def && def.behaviorMods && def.behaviorMods.decisionBias;
+          if (db && typeof db[key] === 'number') sum += db[key];
+        }
+        return sum;
+      }
+      const out = {};
+      if (!Array.isArray(traits) || !traits.length) return out;
+      for (let i = 0; i < traits.length; i++) {
+        const tr = traits[i];
+        const def = tr && tr.id ? HC.traitDef(tr.id) : null;
+        const db = def && def.behaviorMods && def.behaviorMods.decisionBias;
+        if (!db || typeof db !== 'object') continue;
+        for (const k of Object.keys(db)) {
+          if (typeof db[k] === 'number') out[k] = (out[k] || 0) + db[k];
+        }
+      }
+      return out;
     };
     const origGenerate = HC.generate;
     HC.generate = (rng, opts) => {
@@ -1650,8 +1847,8 @@
   CULT.PATH_IDS = Object.keys(CULT.PATHS);
   CULT.THRESH = {
     XIAN: [260, 700, 1800, 4500, 11000, 27000, 65000, 150000],
-    BODY: [230, 800, 3200, 12000],
-    GOD: [300, 1200, 5200],
+    BODY: [1200, 6800, 28000, 96000],
+    GOD: [2400, 22000, 105000],
     DEMON: [240, 650, 1680, 4200, 10400, 25500, 61500, 142000],
     HEART_SOUL: [250, 680, 1750, 4400, 10800, 26500, 63500, 146000],
     MECH_PUPPET: [245, 670, 1720, 4350, 10700, 26200, 63000],
@@ -1809,6 +2006,14 @@
       if (sub.id === 'FIVE_ELEMENTS' && rootCount >= 3) elemScore += (rootCount - 2) * 5.5;
       else if (sub.id === 'YIN_YANG_HARMONY' && rootCount >= 2 && npc.h.root.elements.includes('LIGHT_YANG') && npc.h.root.elements.includes('YIN_SHADOW')) elemScore += 7.5;
       s += elemScore;
+      if (HC.decisionBias) {
+        const bodyBias = HC.decisionBias(npc, 'preferBodyPath');
+        if (bodyBias && path === 'BODY') s += bodyBias * 0.25;
+        const swordBias = HC.decisionBias(npc, 'studySword');
+        if (swordBias && (sub.id === 'SWORD_IMMORTAL' || /SWORD/.test(sub.id))) s += swordBias * 0.15;
+        const bodhiBias = HC.decisionBias(npc, 'forgiveAndMediate');
+        if (bodhiBias && (path === 'KARMA_SAMSARA' || path === 'BUDDHA_DHARMA' || path === 'SAGE_SUPPORT')) s += bodhiBias * 0.12;
+      }
       if (bias && bias[sub.id]) s += bias[sub.id];
       if (g.MARTIAL && g.MARTIAL.pathSkillAffinity) s += g.MARTIAL.pathSkillAffinity(npc, path, sub.id);
       out.push({ path, sub: sub.id, score: s, elemScore: +elemScore.toFixed(2), elemTier: elemComp.tier });
@@ -1874,7 +2079,33 @@
     BATTLE_ARRAY_TACTICIAN: 'BATTLEFIELD_STRATEGIST',
     BLOOD_SEA_FIEND: 'BLOOD_SPEAR_ASURA',
     PILL_FLAME_SOVEREIGN: 'PILL_FURNACE_IMMORTAL',
-    IMPERIAL_PEACE_SOVEREIGN: 'SECT_STEWARD'
+    IMPERIAL_PEACE_SOVEREIGN: 'SECT_STEWARD',
+    ALCHEMIST_IMMORTAL: 'PILL_FURNACE_IMMORTAL',
+    BLACKSMITH_SAINT: 'HEAVENLY_ANVIL_SMITH',
+    SWORD_FORGER: 'SPIRIT_SWORD_ARTIFICER',
+    MOUNT_CHARGER: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+    ASTRAL_MOUNT: 'CELESTIAL_ASTRAL_FAIRY_TAMER',
+    SIX_PATHS_REINCARNATION: 'SIX_PATHS_WHEEL',
+    SIX_PATHS_REINCARCARNATION: 'SIX_PATHS_WHEEL',
+    IRON_LEGION_MARSHAL: 'BATTLEFIELD_STRATEGIST',
+    HEAVENLY_MANDATE_CHANCELLOR: 'IMPERIAL_SEAL_CHANCELLOR',
+    DIPLOMATIC_HEGEMON: 'DIPLOMATIC_ENVOY',
+    DIVINE_FORGE_ARTISAN: 'HEAVENLY_ANVIL_SMITH',
+    IMPERIAL_DECREE_CALLIGRAPHER: 'IMPERIAL_EDICT_CALLIGRAPHER',
+    GRAND_HISTORIAN_SCHOLAR: 'HISTORIANS_DESTINY_QUILL',
+    TREASURY_SOVEREIGN: 'GOLDEN_ABACUS_ARBITER',
+    BODHI_SALVATION_MONK: 'BODHI_VOW_GUARDIAN',
+    SAMSARA_WHEEL_ARBITER: 'GOLDEN_WHEEL_ARBITER',
+    BLOOD_MARROW_DEVOURER: 'BEAST_FLESH_CONSUMER',
+    DIVINE_PHYSICIAN_HEALER: 'GOLDEN_NEEDLE_SAINT',
+    MYRIAD_POISON_APOTHECARY: 'MYRIAD_VENOM_APOTHECARY',
+    GALE_CLOUD_CONDUCTOR: 'TYPHOON_GALE_SOVEREIGN',
+    THUNDER_MONSOON_SOVEREIGN: 'THUNDER_CLOUD_CALLER',
+    STARLIGHT_ASTROLOGER: 'POLARIS_FATE_WEAVER',
+    EPOCH_HOURGLASS_KEEPER: 'HOURGLASS_SAND_REAPER',
+    SPIRIT_THREAD_PUPPETEER: 'PHANTOM_SILK_PUPPETEER',
+    ELEMENTAL_GRIMOIRE_SAGE: 'SACRED_GOLEM_TAMER',
+    STAR_CHART_ORACLE: 'STAR_CHART_PROPHET'
   }, (JD.MARTIAL && JD.MARTIAL.SUBPATH_ALIASES) || {});
   CULT.resolveSubId = sub => (sub && CULT.SUB_ALIASES && CULT.SUB_ALIASES[sub]) || (sub && JD.MARTIAL && JD.MARTIAL.SUBPATH_ALIASES && JD.MARTIAL.SUBPATH_ALIASES[sub]) || sub;
   const _SUB_INFO_MAP = Object.create(null);
@@ -1934,7 +2165,7 @@
     if (c.path === "BODY") mapped = [1, 2, 4, 6, 7][Math.min(4, st - 1)] || st;
     else if (c.path === "GOD") mapped = [1, 3, 5, 7][Math.min(3, st - 1)] || st;
     else if ((CULT.PATHS[c.path] && CULT.PATHS[c.path].maxStage === 8)) mapped = [1, 2, 3, 4, 5, 6, 7, 7][Math.min(7, st - 1)] || st;
-    return Math.max(st, mapped, trOrd);
+    return Math.max(st, mapped) + (trOrd >= mapped + 2 ? 1 : 0);
   };
   CULT.worldRankFromRaw = raw => {
     if (!Number.isFinite(raw) || raw <= 0) return 0;
@@ -1968,10 +2199,114 @@
     return life;
   };
   CULT.refreshLifespan = npc => { npc.lifespanMax = CULT.lifespan(npc); HC.touch(npc); };
+  const _pd = (resourceModel, archetypeRole, stations, scaling, cult) => Object.freeze({
+    resourceModel, archetypeRole, stations: Object.freeze(stations), scaling: Object.freeze(scaling), cult: Object.freeze(cult || {})
+  });
+  const _ST_MARTIAL = [{ kind: 'lift', bk: 'training_ground', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.44 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.35 }, { kind: 'anvil', bk: 'forge', mult: 1.30 }];
+  const _ST_QI = [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.55 }, { kind: 'relax', bk: 'spirit_pond', mult: 1.44 }, { kind: 'read', bk: 'scripture', mult: 1.36 }];
+  const _ST_SCHOLAR = [{ kind: 'read', bk: 'scripture', mult: 1.54 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.46 }, { kind: 'relax', bk: 'spirit_pond', mult: 1.38 }];
+  const _ST_DIVINE = [{ kind: 'worship', bk: 'shrine', mult: 1.52 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.45 }, { kind: 'relax', bk: 'spirit_pond', mult: 1.35 }];
+  const _ST_OCCULT = [{ kind: 'explore', bk: 'ruin', mult: 1.52 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.46 }, { kind: 'array', bk: 'forge', mult: 1.40 }];
+  const _ST_CRAFT_ALC = [{ kind: 'cauldron', bk: 'alchemy', mult: 1.54 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.42 }, { kind: 'relax', bk: 'spirit_pond', mult: 1.36 }];
+  const _ST_ARRAY = [{ kind: 'array', bk: 'forge', mult: 1.54 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.48 }, { kind: 'read', bk: 'scripture', mult: 1.40 }];
+  const _ST_TRADE = [{ kind: 'browse', bk: 'market', mult: 1.52 }, { kind: 'work', bk: 'main_hall', mult: 1.45 }, { kind: 'read', bk: 'scripture', mult: 1.38 }];
+
+  CULT.PATH_DESCRIPTORS = Object.freeze({
+    XIAN: _pd('QI_CORE', 'SWORD_CASTER', _ST_QI, { hpGrowthPerNormStage: 0, mantraPerTier: { p: { matk: 0.04, mdef: 0.02 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.92 }, { s1: 'SWORD', s2: 'MOVEMENT', mind: 'focus' }),
+    BODY: _pd('BODY_STAMINA', 'JUGGERNAUT', _ST_MARTIAL, { hpGrowthPerNormStage: 0.09, mantraPerTier: { p: { def: 0.04, hp: 0.03, atk: 0.02 }, f: {} }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.88 }, { s1: 'BODY_REFINING', s2: 'FIST_PALM', mind: 'willpower' }),
+    GOD: _pd('FAITH_VOW', 'DIVINE_BASTION', _ST_DIVINE, { hpGrowthPerNormStage: 0.11, mantraPerTier: { p: { mdef: 0.04, hp: 0.03, matk: 0.03, def: 0.02 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.89 }, { s1: 'ritual', s2: 'SOUL_DIVINE', mind: 'willpower' }),
+    DEMON: _pd('QI_CORE', 'BERSERKER', _ST_OCCULT, { hpGrowthPerNormStage: 0, mantraPerTier: { p: { atk: 0.03, matk: 0.03 }, f: { crit: 0.8 } }, combatOffenseBaseMult: 1.13, combatDefenseTakenMult: 0.93 }, { s1: 'BLADE', s2: 'SOUL_DIVINE', mind: 'willpower' }),
+    HEART_SOUL: _pd('QI_CORE', 'PSIONIC_MYSTIC', _ST_QI, { hpGrowthPerNormStage: 0, mantraPerTier: { p: { matk: 0.04, mdef: 0.03 }, f: { cast: 1.2 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.92 }, { s1: 'SOUL_DIVINE', s2: 'SCRIPTURE', mind: 'wisdom' }),
+    MECH_PUPPET: _pd('MECH_CORE', 'CONSTRUCT_ENGINEER', [{ kind: 'anvil', bk: 'forge', mult: 1.54 }, { kind: 'array', bk: 'forge', mult: 1.48 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.40 }], { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { def: 0.035, atk: 0.025, matk: 0.025 }, f: {} }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.90 }, { s1: 'FORGING', s2: 'ARRAY', mind: 'inventiveness' }),
+    KARMA_SAMSARA: _pd('KARMA_CYCLE', 'KARMIC_SHIFT', _ST_QI, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { mdef: 0.04, matk: 0.035, hp: 0.02 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.91 }, { s1: 'SOUL_DIVINE', s2: 'ritual', mind: 'wisdom' }),
+    BEAST_SOVEREIGN: _pd('BEAST_BOND', 'BEAST_PACK', _ST_MARTIAL, { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { atk: 0.035, hp: 0.035 }, f: { move: 1.0 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.90 }, { s1: 'BEAST_TAMING', s2: 'SPEAR', mind: 'willpower' }),
+    SAGE_SUPPORT: _pd('QI_CORE', 'MEDIC_SUPPORT', _ST_QI, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { mdef: 0.04, hp: 0.035 }, f: { cast: 1.2 } }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.91 }, { s1: 'MEDICINE', s2: 'ALCHEMY', mind: 'comprehension' }),
+    CRAFT_CREATION: _pd('QI_CORE', 'ARTISAN_HYBRID', [{ kind: 'cauldron', bk: 'alchemy', mult: 1.52 }, { kind: 'anvil', bk: 'forge', mult: 1.52 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.42 }], { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { atk: 0.03, matk: 0.035, def: 0.03, mdef: 0.03 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.90 }, { s1: 'ALCHEMY', s2: 'FORGING', mind: 'inventiveness' }),
+    ARRAY_TALISMAN: _pd('QI_CORE', 'FORMATION_TACTICIAN', _ST_ARRAY, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { matk: 0.04, mdef: 0.035 }, f: { cast: 1.2 } }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.93, usesFormationMastery: true }, { s1: 'ARRAY', s2: 'TALISMAN', mind: 'planning' }),
+    STRATEGY_GOVERNANCE: _pd('QI_CORE', 'FORMATION_TACTICIAN', [{ kind: 'work', bk: 'main_hall', mult: 1.54 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.42 }], { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { atk: 0.03, matk: 0.03, def: 0.035, mdef: 0.035 }, f: {} }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.93, usesFormationMastery: true }, { s1: 'administration', s2: 'SPEAR', mind: 'planning' }),
+    ASTRO_DIVINATION: _pd('PATH_GAUGE', 'FORMATION_TACTICIAN', _ST_ARRAY, { hpGrowthPerNormStage: 0.03, mantraPerTier: { p: { matk: 0.04, mdef: 0.035 }, f: { cast: 1.2, crit: 0.5 } }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.93, usesFormationMastery: true }, { s1: 'ARRAY', s2: 'SCRIPTURE', mind: 'intuition', gaugePerTick: 0.45 }),
+    BUDDHA_DHARMA: _pd('PATH_GAUGE', 'DIVINE_BASTION', _ST_DIVINE, { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { mdef: 0.042, def: 0.035, hp: 0.03, matk: 0.02 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.90 }, { s1: 'BODY_REFINING', s2: 'SOUL_DIVINE', mind: 'willpower', gaugePerTick: 0.45 }),
+    VOID_SPACE: _pd('PATH_GAUGE', 'ASSASSIN_VANGUARD', _ST_OCCULT, { hpGrowthPerNormStage: 0.03, mantraPerTier: { p: { matk: 0.04, mdef: 0.025 }, f: { cast: 1.1, move: 0.8 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.92 }, { s1: 'MOVEMENT', s2: 'ARRAY', mind: 'spatial', gaugePerTick: 0.45 }),
+    SONIC_HARMONY: _pd('PATH_GAUGE', 'MEDIC_SUPPORT', [{ kind: 'relax', bk: 'spirit_pond', mult: 1.54 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.48 }, { kind: 'read', bk: 'scripture', mult: 1.40 }], { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { matk: 0.036, mdef: 0.034 }, f: { cast: 1.3 } }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.92 }, { s1: 'arts', s2: 'SOUL_DIVINE', mind: 'focus', gaugePerTick: 0.45 }),
+    VENOM_GU: _pd('PATH_GAUGE', 'PACT_WARLOCK', _ST_CRAFT_ALC, { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { matk: 0.038, mdef: 0.028, def: 0.02 }, f: { cast: 0.9 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.92 }, { s1: 'POISON', s2: 'ALCHEMY', mind: 'perceptiveness', gaugePerTick: 0.45 }),
+    PRIMORDIAL_SHIFTER: _pd('PATH_GAUGE', 'JUGGERNAUT', _ST_MARTIAL, { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { atk: 0.036, def: 0.036, hp: 0.03 }, f: { move: 0.8 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.90 }, { s1: 'BODY_REFINING', s2: 'FIST_PALM', mind: 'willpower', gaugePerTick: 0.50 }),
+    CELESTIAL_WEATHER: _pd('PATH_GAUGE', 'PSIONIC_MYSTIC', [{ kind: 'relax', bk: 'spirit_pond', mult: 1.54 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.48 }, { kind: 'worship', bk: 'shrine', mult: 1.42 }], { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { matk: 0.04, mdef: 0.032, hp: 0.015 }, f: { cast: 1.0 } }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.92 }, { s1: 'SOUL_DIVINE', s2: 'ARRAY', mind: 'intuition', gaugePerTick: 0.45 }),
+    WANDERING_DAO: _pd('PATH_GAUGE', 'GATHERER_SCHOLAR', [{ kind: 'relax', bk: 'spirit_pond', mult: 1.52 }, { kind: 'dummy', bk: 'training_ground', mult: 1.46 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.44 }], { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { atk: 0.03, mdef: 0.03, def: 0.025 }, f: { move: 1.4, cast: 0.8 } }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.91 }, { s1: 'MOVEMENT', s2: 'survival', mind: 'perceptiveness', gaugePerTick: 0.50 }),
+    MERCANTILE_DAO: _pd('PATH_GAUGE', 'GATHERER_SCHOLAR', _ST_TRADE, { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { atk: 0.028, matk: 0.032, def: 0.03, mdef: 0.032 }, f: {} }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.93, usesFormationMastery: true }, { s1: 'trading', s2: 'administration', mind: 'judgement', gaugePerTick: 0.45 }),
+    DRAGON_VEIN_GEOMANCY: _pd('PATH_GAUGE', 'FORMATION_TACTICIAN', _ST_ARRAY, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { def: 0.036, mdef: 0.036, matk: 0.03, hp: 0.02 }, f: {} }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.92, usesFormationMastery: true }, { s1: 'ARRAY', s2: 'construction', mind: 'spatial', gaugePerTick: 0.45 }),
+    GRAVITY_DAO: _pd('PATH_GAUGE', 'JUGGERNAUT', _ST_MARTIAL, { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { atk: 0.035, def: 0.04, hp: 0.03, mdef: 0.025 }, f: {} }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.90 }, { s1: 'FIST_PALM', s2: 'BODY_REFINING', mind: 'willpower', gaugePerTick: 0.45 }),
+    CHRONO_EPOCH: _pd('PATH_GAUGE', 'PSIONIC_MYSTIC', _ST_QI, { hpGrowthPerNormStage: 0.03, mantraPerTier: { p: { matk: 0.04, mdef: 0.032 }, f: { cast: 1.4, move: 0.6 } }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.92 }, { s1: 'SOUL_DIVINE', s2: 'SCRIPTURE', mind: 'planning', gaugePerTick: 0.45 }),
+    INK_LITERATI: _pd('PATH_GAUGE', 'GATHERER_SCHOLAR', _ST_SCHOLAR, { hpGrowthPerNormStage: 0.03, mantraPerTier: { p: { matk: 0.04, mdef: 0.034 }, f: { cast: 1.2 } }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.92 }, { s1: 'SCRIPTURE', s2: 'arts', mind: 'comprehension', gaugePerTick: 0.45 }),
+    SOUL_PUPPETRY: _pd('PATH_GAUGE', 'CONSTRUCT_ENGINEER', _ST_OCCULT, { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { matk: 0.036, mdef: 0.034, def: 0.024 }, f: { cast: 0.8 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.91 }, { s1: 'SOUL_DIVINE', s2: 'TALISMAN', mind: 'focus', gaugePerTick: 0.45 }),
+    PRIMORDIAL_CHAOS: _pd('PATH_GAUGE', 'PSIONIC_MYSTIC', _ST_OCCULT, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { atk: 0.03, matk: 0.038, def: 0.026, mdef: 0.03 }, f: {} }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.91 }, { s1: 'SOUL_DIVINE', s2: 'SWORD', mind: 'intuition', gaugePerTick: 0.50 }),
+    SHADOW_SAMURAI: _pd('ZERO_QI_IAI', 'ASSASSIN_VANGUARD', [{ kind: 'dummy', bk: 'training_ground', mult: 1.56 }, { kind: 'lift', bk: 'training_ground', mult: 1.48 }, { kind: 'anvil', bk: 'forge', mult: 1.38 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.34 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.044, def: 0.028, hp: 0.02 }, f: { crit: 1.1, pen: 1.4 } }, combatOffenseBaseMult: 1.14, combatDefenseTakenMult: 0.92 }, { s1: 'BLADE', s2: 'SWORD', mind: 'explosiveness', gaugePerTick: 0.90 }),
+    NINPO_SHADOW: _pd('PATH_GAUGE', 'ASSASSIN_VANGUARD', [{ kind: 'dummy', bk: 'training_ground', mult: 1.52 }, { kind: 'explore', bk: 'ruin', mult: 1.48 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.40 }], { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { atk: 0.038, mdef: 0.024 }, f: { eva: 1.2, move: 1.2, crit: 0.8 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.92 }, { s1: 'stealth', s2: 'MOVEMENT', mind: 'reflex', gaugePerTick: 0.55 }),
+    NINPO_ELEMENTAL: _pd('PATH_GAUGE', 'ASSASSIN_VANGUARD', [{ kind: 'array', bk: 'forge', mult: 1.52 }, { kind: 'dummy', bk: 'training_ground', mult: 1.48 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.42 }], { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { matk: 0.036, atk: 0.026, mdef: 0.028 }, f: { cast: 1.1 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.92 }, { s1: 'TALISMAN', s2: 'MOVEMENT', mind: 'focus', gaugePerTick: 0.50 }),
+    DIVINE_SUMMONER: _pd('FAITH_VOW', 'SUMMONER_ORACLE', _ST_DIVINE, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { matk: 0.038, mdef: 0.036, hp: 0.02 }, f: { cast: 1.0 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.91 }, { s1: 'ritual', s2: 'SOUL_DIVINE', mind: 'focus', gaugePerTick: 0.50 }),
+    DIVINE_POSSESSION: _pd('FAITH_VOW', 'DIVINE_BASTION', _ST_DIVINE, { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { atk: 0.036, def: 0.036, hp: 0.03, mdef: 0.026 }, f: {} }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.90 }, { s1: 'ritual', s2: 'SPEAR', mind: 'willpower', gaugePerTick: 0.50 }),
+    DIVINE_CHANNELER: _pd('FAITH_VOW', 'SUMMONER_ORACLE', _ST_DIVINE, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { matk: 0.04, mdef: 0.036, def: 0.02 }, f: { cast: 1.0 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.91 }, { s1: 'ritual', s2: 'SCRIPTURE', mind: 'wisdom', gaugePerTick: 0.50 }),
+    VOID_HERETIC_PACT: _pd('PATH_GAUGE', 'PACT_WARLOCK', _ST_OCCULT, { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { matk: 0.042, atk: 0.026, mdef: 0.026 }, f: { crit: 0.8 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.92 }, { s1: 'SOUL_DIVINE', s2: 'ritual', mind: 'willpower', gaugePerTick: 0.50 }),
+    OCCULT_MAGE: _pd('PATH_GAUGE', 'PACT_WARLOCK', _ST_OCCULT, { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { matk: 0.042, mdef: 0.036, def: 0.02 }, f: { cast: 1.1 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.91 }, { s1: 'TALISMAN', s2: 'ritual', mind: 'focus', gaugePerTick: 0.50 }),
+    DEVOURING_FLESH: _pd('PATH_GAUGE', 'JUGGERNAUT', [{ kind: 'lift', bk: 'training_ground', mult: 1.52 }, { kind: 'explore', bk: 'ruin', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.44 }], { hpGrowthPerNormStage: 0.08, mantraPerTier: { p: { atk: 0.038, hp: 0.042, def: 0.032 }, f: {} }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.90 }, { s1: 'BODY_REFINING', s2: 'FIST_PALM', mind: 'willpower', gaugePerTick: 0.50 }),
+    NETHER_GRAVE: _pd('PATH_GAUGE', 'PACT_WARLOCK', _ST_OCCULT, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { matk: 0.038, mdef: 0.034, hp: 0.024 }, f: { cast: 0.9 } }, combatOffenseBaseMult: 1.12, combatDefenseTakenMult: 0.91 }, { s1: 'SOUL_DIVINE', s2: 'POISON', mind: 'willpower', gaugePerTick: 0.50 }),
+    ANCESTRAL_RITUAL: _pd('PATH_GAUGE', 'DIVINE_BASTION', _ST_DIVINE, { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { def: 0.036, mdef: 0.036, hp: 0.03, atk: 0.024 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.90, usesFormationMastery: true }, { s1: 'ritual', s2: 'BODY_REFINING', mind: 'willpower', gaugePerTick: 0.50 }),
+    TIDE_VOYAGER: _pd('PATH_GAUGE', 'PSIONIC_MYSTIC', [{ kind: 'relax', bk: 'spirit_pond', mult: 1.55 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.46 }, { kind: 'dummy', bk: 'training_ground', mult: 1.40 }], { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { matk: 0.038, mdef: 0.034, hp: 0.02 }, f: { move: 0.9, cast: 0.9 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.91 }, { s1: 'MOVEMENT', s2: 'SWORD', mind: 'focus', gaugePerTick: 0.50 }),
+    LORE_ARCHIVIST: _pd('PATH_GAUGE', 'GATHERER_SCHOLAR', _ST_SCHOLAR, { hpGrowthPerNormStage: 0.03, mantraPerTier: { p: { matk: 0.038, mdef: 0.036, def: 0.02 }, f: { cast: 1.1 } }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.93, usesFormationMastery: true }, { s1: 'SCRIPTURE', s2: 'ARRAY', mind: 'comprehension', gaugePerTick: 0.50 }),
+    FORTUNE_GAMBLER: _pd('PATH_GAUGE', 'ASSASSIN_VANGUARD', _ST_TRADE, { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { atk: 0.032, matk: 0.032, eva: 0 }, f: { crit: 1.3, eva: 0.8 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.92 }, { s1: 'trading', s2: 'MOVEMENT', mind: 'intuition', gaugePerTick: 0.50 }),
+    SPIRIT_HUSBANDRY: _pd('PATH_GAUGE', 'MEDIC_SUPPORT', _ST_CRAFT_ALC, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { mdef: 0.038, hp: 0.034, matk: 0.028 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.91 }, { s1: 'herbalism', s2: 'BEAST_TAMING', mind: 'wisdom', gaugePerTick: 0.50 }),
+    ARENA_GLORY: _pd('PATH_GAUGE', 'JUGGERNAUT', [{ kind: 'dummy', bk: 'training_ground', mult: 1.56 }, { kind: 'lift', bk: 'training_ground', mult: 1.50 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.36 }], { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { atk: 0.04, def: 0.034, hp: 0.03 }, f: { crit: 0.8 } }, combatOffenseBaseMult: 1.13, combatDefenseTakenMult: 0.90 }, { s1: 'SPEAR', s2: 'FIST_PALM', mind: 'courage', gaugePerTick: 0.55 })
+  });
+
+  CULT.getPathDescriptor = pathId => CULT.PATH_DESCRIPTORS[pathId] || null;
+
+  CULT.resolvePathStations = (W, n, purpose) => {
+    if (!W || !n || !n.cult || !g.AI || !g.AI.freeStation) return null;
+    const p = n.cult.path;
+    const desc = CULT.getPathDescriptor(p) || CULT.PATH_DESCRIPTORS.XIAN;
+    const AI = g.AI, MAP = g.MAP;
+    // 1. Awakened Peak Sanctuary priority when disc belongs cleanly to a founded peak (excluding specialist cauldron/anvil artisan primary choices unless crafting unavailable)
+    if (n.peakId && !n.isIndependentFromPeak && MAP && MAP.getPeakBuilding && MAP.isPeakBuildingActive) {
+      const pb = MAP.getPeakBuilding(W.map, n.peakId);
+      if (pb && MAP.isPeakBuildingActive(W, pb) && p !== 'CRAFT_CREATION' && p !== 'MECH_PUPPET') {
+        const isPhysical = ['BODY', 'BEAST_SOVEREIGN', 'SHADOW_SAMURAI', 'NINPO_SHADOW', 'NINPO_ELEMENTAL', 'ARENA_GLORY', 'DEVOURING_FLESH', 'PRIMORDIAL_SHIFTER', 'GRAVITY_DAO'].includes(p);
+        const peakKind = isPhysical ? 'practice' : 'meditate';
+        const peakSt = AI.freeStation(W, n, peakKind, pb.id) || AI.freeStation(W, n, isPhysical ? 'meditate' : 'practice', pb.id);
+        if (peakSt) {
+          return { st: peakSt, mult: +(1.58 + 0.16 * Math.max(0, (pb.level || 1) - 1)).toFixed(2), fromPeak: pb.id };
+        }
+      }
+    }
+    // 2. Path Descriptor stations
+    let stList = desc.stations || _ST_QI;
+    if (p === 'CRAFT_CREATION') {
+      const sk = (n.h && n.h.skills) || {};
+      const preferAlc = (sk.ALCHEMY || 0) >= (sk.FORGING || 0) || n.cult.sub === 'PILL_FURNACE_IMMORTAL' || n.cult.sub === 'POISON_VENOM_CAULDRON';
+      stList = preferAlc
+        ? [{ kind: 'cauldron', bk: 'alchemy', mult: 1.54 }, { kind: 'anvil', bk: 'forge', mult: 1.48 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.40 }]
+        : [{ kind: 'anvil', bk: 'forge', mult: 1.54 }, { kind: 'cauldron', bk: 'alchemy', mult: 1.48 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.40 }];
+    }
+    for (let i = 0; i < stList.length; i++) {
+      const e = stList[i];
+      const s = AI.freeStation(W, n, e.kind, e.bk);
+      if (s) {
+        const b = W.map && W.map.byId && W.map.byId[e.bk];
+        const lvBoost = (b && b.level > 1 && i === 0) ? 0.14 * (b.level - 1) : 0;
+        return { st: s, mult: +(e.mult + lvBoost).toFixed(2) };
+      }
+    }
+    // 3. Universal sect fallback + bed
+    const fall = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond') || AI.freeStation(W, n, 'dummy', 'training_ground');
+    if (fall) return { st: fall, mult: purpose === 'cultivate' ? 1.35 : 1.25 };
+    if (n.bed != null && W.map && W.map.stations && W.map.stations[n.bed]) return { st: W.map.stations[n.bed], mult: 0.72, room: true };
+    return null;
+  };
+
   CULT.hpMult = npc => {
     if (!npc || !npc.cult) return 1;
     const ns = CULT.normalizedStage(npc);
-    const pathAdd = npc.cult.path === "BODY" ? 0.09 * (ns - 1) : npc.cult.path === "GOD" ? 0.11 * (ns - 1) : npc.cult.path === "BEAST_SOVEREIGN" ? 0.07 * (ns - 1) : (npc.cult.path === "MECH_PUPPET" || npc.cult.path === "KARMA_SAMSARA" || npc.cult.path === "SAGE_SUPPORT" || npc.cult.path === "CRAFT_CREATION" || npc.cult.path === "ARRAY_TALISMAN" || npc.cult.path === "STRATEGY_GOVERNANCE") ? 0.05 * (ns - 1) : 0;
+    const desc = CULT.getPathDescriptor(npc.cult.path);
+    const perStage = (desc && desc.scaling && Number.isFinite(desc.scaling.hpGrowthPerNormStage)) ? desc.scaling.hpGrowthPerNormStage : 0;
+    const pathAdd = perStage * (ns - 1);
     return 1 + 0.42 * (ns - 1) + 0.25 + pathAdd;
   };
   CULT.hpMax = npc => {
@@ -3132,6 +3467,7 @@
       n._cultRateBase = null;
       n._qgUnlockCache = null;
       n._wsBase = null;
+      n._kwCache = null;
       return this.resolveNpcMantra(W, n);
     },
 
@@ -4130,6 +4466,36 @@
         }
       });
       return { ok: true, mode, affectedCount: count };
+    },
+
+    evaluateAutonomousEmergencySupport(W) {
+      if (!W || !W.sect || !Array.isArray(W.npcs)) return null;
+      if ((W.t - (W.sect.lastSupportEmergencyTick || -999)) < 72) return null;
+      const alive = W.npcs.filter(u => u && !u.dead && !u.away && !u.foe && u.h && u.h.state);
+      if (!alive.length) return null;
+      const responder = alive.find(u =>
+        (u.cult && ['SAGE_SUPPORT', 'SONIC_HARMONY', 'STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN'].includes(u.cult.path)) ||
+        u.role === 'physician' || u.office === 'physician' || u.role === 'elder' || u.role === 'master' ||
+        (u.h.skills && ((u.h.skills.MEDICINE || 0) >= 15 || (u.h.skills.arts || 0) >= 15))
+      );
+      if (!responder) return null;
+      let injured = 0, sumHd = 0;
+      for (let i = 0; i < alive.length; i++) {
+        const u = alive[i];
+        if ((u.inj && u.inj.length > 0) || u.h.state.hp < CULT.hpMax(u) * 0.55) injured++;
+        sumHd += (u.h.state.heartDemon || 0);
+      }
+      const avgHd = sumHd / alive.length;
+      const inRaid = !!(W.activeRaid || (g.COMBAT && g.COMBAT.fights && g.COMBAT.fights.some(f => f && !f.done && f.kind === 'raid')));
+      let mode = null;
+      if (injured >= Math.max(2, Math.ceil(alive.length * 0.3))) mode = 'INFIRMARY_ACUPOINT_HEAL';
+      else if (avgHd >= 38) mode = 'ZITHER_PURGE_HEART_DEMON';
+      else if (inRaid) mode = 'QIMEN_BANNER_RALLY';
+      if (!mode) return null;
+      W.sect.lastSupportEmergencyTick = W.t || 0;
+      const res = this.triggerSectEmergencySupport(W, mode);
+      if (res && res.ok) res.responderId = responder.id;
+      return res;
     }
   };
   CULT.SUPPORT_ARTS.initCatalog();
@@ -4733,6 +5099,182 @@
   };
   CULT.PASSIVE_RESONANCE.initCatalog();
 
+  CULT.evaluateAutonomousPostures = (W, n, ctx) => {
+    if (!n || !n.cult || n.dead || n.exiled || n.foe) return null;
+    ctx = ctx || {};
+    const trigger = ctx.trigger || 'hourly';
+    const M = g.MARTIAL;
+    const effFn = (u, k) => (M && M.eff) ? M.eff(u, k) : (HC && HC.eff ? HC.eff(u, k) : 50);
+    const amb = effFn(n, 'personality.ambition');
+    const cou = effFn(n, 'personality.courage');
+    const caut = effFn(n, 'personality.caution');
+    const disc = effFn(n, 'personality.discipline');
+    const agg = effFn(n, 'personality.aggression');
+    const integ = effFn(n, 'personality.integrity');
+    const comp = effFn(n, 'personality.empathy');
+    const s = (n.h && n.h.state) || {};
+    const hm = Math.max(1, CULT.hpMax(n));
+    const hpPct = (s.hp != null ? s.hp : hm) / hm;
+    const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n));
+    const qm = isZeroQi ? 100 : Math.max(1, CULT.qiMax(n));
+    const qiPct = isZeroQi ? 1 : ((s.qi != null ? s.qi : qm) / qm);
+    const hd = s.heartDemon || 0;
+    const stress = s.stress || 0;
+    const tox = n.cult.toxic || 0;
+    const th = CULT.threshold ? Math.max(1, CULT.threshold(n)) : 100;
+    const progPct = (n.cult.prog || 0) / th;
+    const p = n.cult.path;
+    const f = ctx.fight || (g.COMBAT && g.COMBAT.fightOf ? g.COMBAT.fightOf(W, n) : null);
+    const inCombat = !!(ctx.inCombat || trigger === 'combat' || (n.act && n.act.id === 'fight') || f);
+    const isSerious = !!(inCombat && (!f || f.serious || f.kind === 'raid' || f.kind === 'leadership' || f.kind === 'duel'));
+
+    // 1. Mantra Stance
+    if (CULT.MANTRA_SYSTEM) {
+      const mSt = CULT.MANTRA_SYSTEM.ensureState(n);
+      let wantM = 'HARMONIOUS_CIRCULATION';
+      let whyM = 'รักษาสมดุลโคจรลมปราณตามปกติ';
+      if (hd >= 32 || stress >= 52 || tox >= 28 || hpPct < 0.45 || ['BUDDHA_DHARMA', 'HEART_SOUL', 'SAGE_SUPPORT', 'KARMA_SAMSARA', 'SONIC_HARMONY'].includes(p) || (disc >= 72 && caut >= 60)) {
+        wantM = 'SERENE_PURIFICATION';
+        whyM = hd >= 32 ? 'สลายจิตมารและความตึงเครียดสะสม' : 'คุมสมาธิและรักษาชีพจรอย่างมั่นคง';
+      } else if (
+        ((inCombat && hpPct >= 0.55 && qiPct >= 0.35 && hd < 38 && stress < 58 && (amb >= 65 || cou >= 68)) ||
+        (!inCombat && progPct >= 0.90 && hpPct >= 0.70 && hd < 32 && amb >= 66 && caut < 58)) &&
+        (!n.voluntaryVows || !n.voluntaryVows.VOW_ASCETIC_PRECEPT)
+      ) {
+        wantM = 'OVERDRIVE_COMBUSTION';
+        whyM = inCombat ? 'เร่งปราณปะทุในศึกเพื่อชิงความได้เปรียบ' : 'เร่งโคจรปราณเตรียมทะลวงคอขวด';
+      }
+      if (mSt.stance !== wantM) CULT.MANTRA_SYSTEM.setMantraStance(W, n, wantM);
+      mSt.whyTh = whyM;
+    }
+
+    // 2. Defensive Posture
+    if (CULT.DEFENSIVE_ARTS) {
+      const dSt = CULT.DEFENSIVE_ARTS.ensureState(n);
+      let wantD = 'PASSIVE_AURA_GUARD';
+      let whyD = 'แผ่ปราณคุ้มกายพื้นฐานประหยัดพลัง';
+      if ((inCombat && (hpPct < 0.48 || (f && f.kind === 'raid'))) || ['BODY', 'GOD', 'BUDDHA_DHARMA', 'GRAVITY_DAO', 'STRATEGY_GOVERNANCE', 'DIVINE_POSSESSION'].includes(p) || (caut >= 68 && hpPct < 0.80)) {
+        wantD = 'FORTRESS_BASTION_LOCK';
+        whyD = hpPct < 0.48 ? 'พลังชีวิตต่ำ ตั้งค่ายปราการลดความเสียหายสูงสุด' : 'ยืนแนวหน้าคุ้มครองตนเองและสหายร่วมสำนัก';
+      } else if (
+        inCombat || agg >= 58 || cou >= 64 ||
+        ['SHADOW_SAMURAI', 'NINPO_SHADOW', 'NINPO_ELEMENTAL', 'ARENA_GLORY', 'DEMON', 'XIAN', 'DEVOURING_FLESH'].includes(p)
+      ) {
+        if (qiPct >= 0.25) {
+          wantD = 'COUNTER_PARRY_STANCE';
+          whyD = 'ตั้งท่าสวนกลับและเบี่ยงวิถีโจมตีศัตรู';
+        }
+      }
+      if (dSt.posture !== wantD) CULT.DEFENSIVE_ARTS.setDefensivePosture(W, n, wantD);
+      dSt.whyTh = whyD;
+    }
+
+    // 3. Support Posture
+    if (CULT.SUPPORT_ARTS) {
+      const sSt = CULT.SUPPORT_ARTS.ensureState(n);
+      let wantS = 'SOUL_MELODY_HARMONY';
+      let whyS = 'ผสานปราณสงบจิตใจและฟื้นฟูความเข้าใจ';
+      let injuredAllies = (hpPct < 0.72 || (n.inj && n.inj.length > 0)) ? 1 : 0;
+      if (!inCombat && W && Array.isArray(W.npcs) && (trigger === 'hourly' || trigger === 'cultivate')) {
+        for (let i = 0; i < W.npcs.length; i++) {
+          const al = W.npcs[i];
+          if (al && !al.dead && !al.away && ((al.inj && al.inj.length) || (al.h && al.h.state && al.h.state.hp < CULT.hpMax(al) * 0.72))) {
+            injuredAllies++;
+            break;
+          }
+        }
+      }
+      if (injuredAllies > 0 || ['SAGE_SUPPORT', 'SPIRIT_HUSBANDRY'].includes(p) || (comp >= 68 && ['BUDDHA_DHARMA', 'GOD'].includes(p))) {
+        wantS = 'BENEVOLENT_HEALER_AURA';
+        whyS = 'เน้นสมานแผลและเยียวยาอาการบาดเจ็บ';
+      } else if (inCombat || ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'ASTRO_DIVINATION', 'DRAGON_VEIN_GEOMANCY', 'SHADOW_SAMURAI', 'ARENA_GLORY', 'DIVINE_SUMMONER', 'DIVINE_CHANNELER'].includes(p)) {
+        wantS = 'TACTICAL_ARRAY_COMMAND';
+        whyS = 'หนุนพลังรบและจังหวะเข้าตีของฝ่ายตน';
+      }
+      if (sSt.posture !== wantS) CULT.SUPPORT_ARTS.setSupportPosture(W, n, wantS);
+      sSt.whyTh = whyS;
+    }
+
+    // 4. Forbidden Arts Seal Mode (respecting voluntary vows & Sect Forbidden Vault policy)
+    if (CULT.FORBIDDEN_ARTS) {
+      const fSt = CULT.FORBIDDEN_ARTS.ensureState(n);
+      const hasAsceticVow = !!(n.voluntaryVows && n.voluntaryVows.VOW_ASCETIC_PRECEPT && n.voluntaryVows.VOW_ASCETIC_PRECEPT.active);
+      const fvPolicy = (W && W.sect && W.sect.forbiddenVault && W.sect.forbiddenVault.policy) || 'ELDER_LICENSED_ACCESS';
+      const strain = fSt.tabooStrain || 0;
+      const darkPath = ['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'OCCULT_MAGE', 'VENOM_GU', 'SHADOW_SAMURAI', 'NINPO_SHADOW'].includes(p);
+      const licensed = fvPolicy === 'UNRESTRICTED_BLOOD_CULT' || (fvPolicy === 'ELDER_LICENSED_ACCESS' && ((n.rank || 0) >= 2 || darkPath || integ < 42));
+      let wantF = 'SEALED_RESTRAINT';
+      let whyF = 'คงผนึกวิชาต้องห้ามเพื่อถนอมชีพจร';
+      if (hasAsceticVow) {
+        wantF = 'SEALED_RESTRAINT';
+        whyF = 'ยึดมั่นคำสาบานถือศีลพรต ไม่คลายผนึกต้องห้าม';
+      } else if (isSerious && strain < 65 && hpPct > 0.14 && (licensed || hpPct < 0.30)) {
+        if (hpPct < 0.36 && (cou >= 58 || integ < 45 || darkPath)) {
+          wantF = 'BLOOD_TABOO_UNLEASHED';
+          whyF = 'เข้าตาจนกลางศึก ยอมแลกโลหิตปลดผนึกต้องห้ามขั้นสูงสุด';
+        } else if (agg >= 55 || darkPath || fvPolicy === 'UNRESTRICTED_BLOOD_CULT') {
+          wantF = 'HALF_UNSEALED_FLOW';
+          whyF = 'คลายผนึกบางส่วนเพื่อเพิ่มอานุภาพในศึกตัดสิน';
+        }
+      }
+      if (fSt.sealMode !== wantF) CULT.FORBIDDEN_ARTS.setForbiddenSealMode(W, n, wantF);
+      fSt.whyTh = whyF;
+    }
+
+    // 5. Passive Constellation Auto-Focus
+    if (CULT.PASSIVE_RESONANCE) {
+      const pSt = CULT.PASSIVE_RESONANCE.ensureState(n);
+      const pr = CULT.PASSIVE_RESONANCE.resolveNpcConstellation(W, n);
+      if (pr && pr.countsByConstellation) {
+        let bestC = null, bestCnt = 0;
+        for (const k in pr.countsByConstellation) {
+          if (pr.countsByConstellation[k] > bestCnt) { bestCnt = pr.countsByConstellation[k]; bestC = k; }
+        }
+        const targetFocus = bestCnt > 0 && bestC ? bestC : 'AUTO';
+        if (pSt.focusConstellation !== targetFocus) CULT.PASSIVE_RESONANCE.setFocusConstellation(W, n, targetFocus);
+        pSt.whyTh = bestCnt > 0 ? ('ผสานกับวิชาติดตัวที่เชี่ยวชาญที่สุด (' + bestCnt + ' วิชา)') : 'ปรับตามกลุ่มวิชาและสายวิถีโดยอัตโนมัติ';
+      }
+    }
+
+    // 6. Auto-select strongest unlocked compatible Mantra outside rapid battle ticks
+    if (!inCombat && M && M.canActivateMantra && Array.isArray(n.cult.unlockedMantras) && n.cult.unlockedMantras.length > 1) {
+      const curM = n.cult.mantra ? TECH_BY_ID[n.cult.mantra] : null;
+      const scoreM = mt => {
+        if (!mt) return -999;
+        const sc = (mt.tier || 1) * 25 + (mt.power || 0) * 0.4 + (mt.sub && mt.sub === n.cult.sub ? 18 : 0);
+        return sc;
+      };
+      let bestId = n.cult.mantra, bestScore = scoreM(curM);
+      for (let i = 0; i < n.cult.unlockedMantras.length; i++) {
+        const cid = n.cult.unlockedMantras[i];
+        if (cid === n.cult.mantra) continue;
+        const can = M.canActivateMantra(n, cid);
+        if (!(can === true || (can && can.ok))) continue;
+        const cs = scoreM(TECH_BY_ID[cid]);
+        if (cs > bestScore + 5) { bestScore = cs; bestId = cid; }
+      }
+      if (bestId && bestId !== n.cult.mantra) {
+        n.cult.mantra = bestId;
+        if (HC && HC.bump) HC.bump(n);
+        if (M.reconcilePassives) M.reconcilePassives(n);
+      }
+    }
+
+    // 7. Mech Puppet mid-combat mode switch
+    if (p === 'MECH_PUPPET' && CULT.ensureMechState) {
+      const ms = CULT.ensureMechState(n);
+      if (inCombat) {
+        const enemies = f ? (n.side === 'A' ? f.B.length : f.A.length) : 1;
+        if (hpPct < 0.44 || (ms.integrity || 100) < 38) ms.mode = 'BASTION';
+        else if ((ms.charge || 0) >= 60 && (ms.heat || 0) < 70) ms.mode = 'OVERDRIVE';
+        else if (enemies >= 2) ms.mode = 'SWARM';
+        else ms.mode = 'SIEGE';
+      }
+    }
+
+    return true;
+  };
+
   /* ----- ตั้งต้นการบำเพ็ญ: เปิดเส้นลมปราณ (awakening) ----- */
   CULT.awaken = (npc, rng, bias, day) => {
     ELEM.ensureNpc(npc);
@@ -4819,6 +5361,9 @@
         const artSkill = Math.max(npc.h.skills.ARRAY || 0, npc.h.skills.TALISMAN || 0);
         const arrayApt = (Math.max(HC.eff(npc, 'affinities.ARRAY'), HC.eff(npc, 'affinities.TALISMAN')) * 0.30 + HC.eff(npc, 'intellect.planning') * 0.25 + HC.eff(npc, 'intellect.comprehension') * 0.20 + HC.eff(npc, 'aptitudes.crafting') * 0.15 + artSkill * 0.20) / 54;
         base = 1.00 * clamp(arrayApt, 0.40, 2.40) * (0.90 + 0.16 * root.cultivationMult);
+      } else if (c.path === 'GOD') {
+        const worshipBase = (HC.eff(npc, 'social.charisma') * 0.28 + HC.eff(npc, 'intellect.willpower') * 0.24 + HC.eff(npc, 'interests.worship') * 0.24 + HC.eff(npc, 'affinities.SOUL_DIVINE') * 0.16 + ((npc.h && npc.h.skills && npc.h.skills.ritual) || 0) * 0.16) / 52;
+        base = 0.96 * clamp(worshipBase, 0.38, 2.40) * (0.88 + 0.18 * root.cultivationMult);
       } else if (c.path === 'STRATEGY_GOVERNANCE') {
         const civicSkill = Math.max(npc.h.skills.administration || 0, npc.h.skills.diplomacy || 0, npc.h.skills.trading || 0);
         const civicApt = (HC.eff(npc, 'intellect.planning') * 0.25 + HC.eff(npc, 'intellect.judgement') * 0.20 + HC.eff(npc, 'social.leadership') * 0.20 + HC.eff(npc, 'values.sectDuty') * 0.15 + civicSkill * 0.25) / 54;
@@ -4851,10 +5396,20 @@
     const rest = npc.h.state.rest < 30 ? 0.6 : npc.h.state.rest < 55 ? 0.85 : 1;
     const hd = npc.h.state.heartDemon || 0;
     rc = npc._cultRateBase;
+    const df = (c.path === 'GOD' && CULT.getDivineFaith) ? CULT.getDivineFaith(null, npc) : -1;
+    const faithMult = c.path === 'GOD' ? (df < 20 ? 0.55 : clamp(0.65 + (df / 100) * 0.70, 0.65, 1.35)) : 1;
+    const bodyTempFlag = c.path === 'BODY' ? ((c.bodyTemperT > 0 ? 1 : 0) + (c.pillT > 0 ? 2 : 0)) : -1;
+    const bodyTempMult = (c.path === 'BODY' && c.bodyTemperT > 0) ? 1.15 : 1;
     const oathObj = npc.daoOath || (npc.ext && npc.ext.daoOath);
     const hasOath = !!(oathObj && oathObj.upheld && Number.isFinite(oathObj.cultSpeedBonus));
     const hasMeridianInj = !!(Array.isArray(npc.inj) && npc.inj.length > 0);
-    if (rc && !hasOath && !hasMeridianInj && !npc.voluntaryVows && !npc.demonPact && !npc.demonicPact && !npc.apexDaoTitle && !(npc.experienceTraits && npc.experienceTraits.length) && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0) && rc.lastRest === rest && rc.lastTox === c.toxic && rc.lastHd === hd && rc.lastPillT === (c.pillT > 0 ? c.pillBoost : -1) && (c.path !== "HEART_SOUL" || rc.lastStress === (npc.h.state.stress || 0)) && rc.dynMult !== undefined) {
+    const kwNow = (g.COMBAT && g.COMBAT.keywordsOf) ? g.COMBAT.keywordsOf(npc) : null;
+    const hasFocusWin = !!(kwNow && kwNow.focusWindow);
+    const wRefGlobal = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
+    const fwActive = !!(wRefGlobal && wRefGlobal.sect && wRefGlobal.sect.formationWarfare && wRefGlobal.sect.formationWarfare.activeStance === 'FIVE_ELEMENT_NURTURE');
+    const hasInfernalShrine = !!(wRefGlobal && g.SECT && g.SECT.INFERNAL_SHRINE && g.SECT.INFERNAL_SHRINE.getShrineBuffs && (['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'SOUL_PUPPETRY', 'VENOM_GU'].includes(c.path) || npc.demonPact || npc.demonicPact));
+    const canCacheDyn = !npc.mantraState && !hasOath && !hasMeridianInj && !npc.voluntaryVows && !npc.demonPact && !npc.demonicPact && !npc.apexDaoTitle && !(npc.experienceTraits && npc.experienceTraits.length) && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0) && !npc.mentorImprint && !(npc.companionId || (npc.h && npc.h.companionId)) && !npc.bloodlineTrait && !npc.charterLoyaltyBonus && !npc.forbiddenArtState && !npc.passiveResonanceState && !fwActive && !hasInfernalShrine;
+    if (rc && canCacheDyn && rc.lastFocusWin === hasFocusWin && rc.lastRest === rest && rc.lastTox === c.toxic && rc.lastHd === hd && rc.lastPillT === (c.pillT > 0 ? c.pillBoost : -1) && (c.path !== "HEART_SOUL" || rc.lastStress === (npc.h.state.stress || 0)) && rc.lastFaith === df && rc.lastBodyTemp === bodyTempFlag && rc.dynMult !== undefined) {
       return staticBase * rc.dynMult * (env || 1);
     }
     let toxic, dev;
@@ -4933,12 +5488,9 @@
       if (pr && pr.cultRateBonusPct > 0) forbiddenAndPassiveMult *= (1 + pr.cultRateBonusPct);
     }
     let focusWindowMult = 1;
-    if (g.COMBAT && g.COMBAT.keywordsOf) {
-      const kw = g.COMBAT.keywordsOf(npc);
-      if (kw && kw.focusWindow) {
-        const stg = c.stage || 1;
-        focusWindowMult = stg <= 3 ? 1.15 : (stg >= 7 ? 0.90 : 1.05);
-      }
+    if (hasFocusWin) {
+      const stg = c.stage || 1;
+      focusWindowMult = stg <= 3 ? 1.15 : (stg >= 7 ? 0.90 : 1.05);
     }
     let vowAndTraitMult = 1;
     if (npc.voluntaryVows && CULT.VOLUNTARY_VOWS) {
@@ -4963,9 +5515,9 @@
         vowAndTraitMult *= (1 + sb.demonicRateBonus);
       }
     }
-    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult * mantraStanceMult * forbiddenAndPassiveMult * focusWindowMult * vowAndTraitMult;
-    if (rc && !npc.mantraState && !hasOath && !hasMeridianInj && !npc.voluntaryVows && !npc.demonPact && !npc.demonicPact && !npc.apexDaoTitle && !(npc.experienceTraits && npc.experienceTraits.length) && !(npc.originArc && npc.originArc.awakenedDestinyTrait) && !npc.peakId && !npc.isIndependentFromPeak && !(npc.buffs && npc.buffs.length > 0)) {
-      rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.dynMult = dynMult;
+    const dynMult = rest * toxic * dev * pill * buffMult * imprintMult * compMult * bloodMult * oathMult * meridianInjMult * peakMult * originMult * charterMult * mantraStanceMult * forbiddenAndPassiveMult * focusWindowMult * vowAndTraitMult * faithMult * bodyTempMult;
+    if (rc && canCacheDyn) {
+      rc.lastFocusWin = hasFocusWin; rc.lastRest = rest; rc.lastTox = c.toxic; rc.lastHd = hd; rc.lastPillT = c.pillT > 0 ? c.pillBoost : -1; rc.lastStress = npc.h.state.stress || 0; rc.lastFaith = df; rc.lastBodyTemp = bodyTempFlag; rc.dynMult = dynMult;
     }
     return staticBase * dynMult * (env || 1);
   };
@@ -5019,6 +5571,10 @@
     const st = CULT.stageInfo(npc);
     let cp = st.combatPower;
     if (npc.cult) { const si = CULT.subInfo(npc.cult.path, npc.cult.sub); cp *= si.combatBonus; }
+    if (npc.cult && npc.cult.path === 'GOD') {
+      const df = CULT.getDivineFaith ? CULT.getDivineFaith(null, npc) : 55;
+      if (df < 20 || npc.divineWaning) cp *= 0.75;
+    }
     const f_body = 0.7 + d.physicalIndex / 100 * 0.6;
     const sk = npc.h.skills; const martial = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0, sk.ROSARY || 0, sk.CLAW || 0, sk.NEEDLE || 0, sk.FAN || 0, sk.ASTROLABE || 0, sk.ABACUS || 0, sk.BODY_REFINING || 0, sk.SOUL_DIVINE || 0, sk.POISON || 0, sk.BEAST_TAMING || 0, sk.FORGING || 0, sk.ALCHEMY || 0, sk.MEDICINE || 0, sk.ARRAY || 0, sk.TALISMAN || 0, sk.SCRIPTURE || 0, sk.administration || 0, sk.diplomacy || 0);
     const f_skill = 0.75 + martial / 100 * 0.5;
@@ -5069,6 +5625,10 @@
     p += elemBt.breakthroughBonus * 0.5;
     p += (HC.eff(npc, 'personality.composure') - 50) / 50 * 0.08 + (HC.eff(npc, 'intellect.willpower') - 50) / 50 * 0.08 + (HC.eff(npc, 'physiology.spiritualFoundation') - 50) / 50 * 0.06;
     p += HC.special(npc, 'cultivation.breakthroughBonus');
+    const tribResBt = clamp(HC.special(npc, 'cultivation.tribulationResist') || 0, 0, 0.6);
+    if (tribResBt > 0 && (c.stage >= 3 || (prep && prep.tribulation) || (npc.tribulationState && npc.tribulationState.active))) {
+      p += tribResBt * 0.35;
+    }
     const hd = npc.h.state.heartDemon || 0;
     if (c.path === 'DEMON') {
       p += (HC.eff(npc, 'personality.ambition') - 50) / 50 * 0.05;
@@ -5112,6 +5672,17 @@
       );
       if (hasStageRes) p += 0.04;
     }
+    if (c && c.path === 'GOD') {
+      const df = CULT.getDivineFaith ? CULT.getDivineFaith((prep && prep.W) || null, npc) : 55;
+      if (df < 20) p -= 0.22;
+      else if (df >= 70) p += 0.06;
+      if (c.stage >= 2 && CULT.godStageGateStatus) {
+        const gs = CULT.godStageGateStatus((prep && prep.W) || null, npc);
+        if (!gs.faithOk || !gs.influenceOk) p -= 0.20;
+      }
+    } else if (c && c.path === 'BODY') {
+      if (c.bodyTemperT > 0 || (npc.stats && (npc.stats.kills || 0) > 0)) p += 0.04;
+    }
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
     return clamp(p, 0.03, 0.97);
   };
@@ -5121,15 +5692,141 @@
     const pDef = CULT.PATHS && CULT.PATHS[c.path];
     const st = pDef && pDef.stages ? pDef.stages[c.stage - 1] : null;
     const req = (st && st.resourceReq) || null;
-    if (!req) return { ok: true, resourceReq: null, satisfied: true };
-    const hasPersonal = !!(npc.inv && npc.inv.mats && Object.keys(npc.inv.mats).some(k => npc.inv.mats[k] > 0 && (k === req || k.includes('CRYSTAL') || k.includes('CORE') || k.includes('ESSENCE'))));
-    const hasSect = !!(W && W.sect && W.sect.stock && Object.keys(W.sect.stock).some(k => W.sect.stock[k] > 0 && (k === req || k.includes('CRYSTAL') || k.includes('CORE') || k.includes('ESSENCE'))));
-    const hasStones = !!((npc.inv && (npc.inv.stones || 0) >= 60 * c.stage) || (W && W.sect && (W.sect.stones || 0) >= 120 * c.stage));
-    return { ok: true, resourceReq: req, satisfied: hasPersonal || hasSect || hasStones, hasPersonal, hasSect, hasStones };
+    const godGate = (c.path === 'GOD' && c.stage >= 2 && CULT.godStageGateStatus) ? CULT.godStageGateStatus(W, npc) : null;
+    if (!req && !godGate) return { ok: true, resourceReq: null, satisfied: true };
+    const hasPersonal = !req ? true : !!(npc.inv && npc.inv.mats && Object.keys(npc.inv.mats).some(k => npc.inv.mats[k] > 0 && (k === req || k.includes('CRYSTAL') || k.includes('CORE') || k.includes('ESSENCE'))));
+    const hasSect = !req ? true : !!(W && W.sect && W.sect.stock && Object.keys(W.sect.stock).some(k => W.sect.stock[k] > 0 && (k === req || k.includes('CRYSTAL') || k.includes('CORE') || k.includes('ESSENCE'))));
+    const hasStones = !req ? true : !!((npc.inv && (npc.inv.stones || 0) >= 60 * c.stage) || (W && W.sect && (W.sect.stones || 0) >= 120 * c.stage));
+    const resOk = !req || hasPersonal || hasSect || hasStones;
+    const gateOk = !godGate || (godGate.faithOk && godGate.influenceOk);
+    return { ok: true, resourceReq: req, satisfied: resOk && gateOk, hasPersonal, hasSect, hasStones, godGate };
   };
+
+  CULT.ensureFaithState = W => {
+    if (!W || !W.sect) return null;
+    const repOrFame = W.sect.rep != null ? W.sect.rep : W.sect.fame;
+    const initPool = clamp(Math.round(48 + ((Number.isFinite(repOrFame) ? repOrFame : 12) - 12) * 0.35), 25, 85);
+    if (!W.sect.faithState || typeof W.sect.faithState !== 'object') {
+      W.sect.faithState = {
+        pool: initPool,
+        poolMax: 100,
+        shrineHarmony: 50,
+        lastDailyTickDay: -1,
+        lowFaithDays: 0,
+        zeroFaithDays: 0,
+        deedsToday: 0,
+        waning: false,
+        history: []
+      };
+    }
+    const st = W.sect.faithState;
+    if (!Number.isFinite(st.pool)) st.pool = initPool;
+    st.pool = clamp(st.pool, 0, st.poolMax || 100);
+    if (!Number.isFinite(st.poolMax) || st.poolMax <= 0) st.poolMax = 100;
+    if (!Number.isFinite(st.lowFaithDays) || st.lowFaithDays < 0) st.lowFaithDays = 0;
+    if (!Number.isFinite(st.zeroFaithDays) || st.zeroFaithDays < 0) st.zeroFaithDays = 0;
+    if (!Number.isFinite(st.deedsToday) || st.deedsToday < 0) st.deedsToday = 0;
+    if (!Array.isArray(st.history)) st.history = [];
+    st.waning = st.pool < 20;
+    return st;
+  };
+
+  CULT.getDivineFaith = (W, npc) => {
+    const st = (W && W.sect) ? CULT.ensureFaithState(W) : null;
+    const ext = npc && npc.ext;
+    if (ext && Number.isFinite(ext.divineFaith)) {
+      if (st && ext._syncedSectFaith === ext.divineFaith && ext._lastPool !== st.pool) {
+        const sin = (npc.karmicLedger && npc.karmicLedger.sinKarma) || 0;
+        const stg = (npc.cult && npc.cult.stage) || 1;
+        return +clamp(st.pool + Math.min(8, (stg - 1) * 2.5) - Math.min(35, sin * 0.35), 0, 100).toFixed(2);
+      }
+      return clamp(ext.divineFaith, 0, 100);
+    }
+    if (st) {
+      const sin = (npc && npc.karmicLedger && npc.karmicLedger.sinKarma) || 0;
+      const stg = (npc && npc.cult && npc.cult.stage) || 1;
+      return +clamp(st.pool + Math.min(8, (stg - 1) * 2.5) - Math.min(35, sin * 0.35), 0, 100).toFixed(2);
+    }
+    return 55;
+  };
+
+  CULT.syncDivineFaith = W => {
+    if (!W || !W.sect) return null;
+    const st = CULT.ensureFaithState(W);
+    for (const n of (W.npcs || [])) {
+      if (!n || n.dead || !n.cult || n.cult.path !== 'GOD') continue;
+      n.ext = n.ext || {};
+      const sin = (n.karmicLedger && n.karmicLedger.sinKarma) || 0;
+      const stg = n.cult.stage || 1;
+      const df = +clamp(st.pool + Math.min(8, (stg - 1) * 2.5) - Math.min(35, sin * 0.35), 0, 100).toFixed(2);
+      const prevWaning = !!n.divineWaning;
+      n.ext.divineFaith = df;
+      n.ext._syncedSectFaith = df;
+      n.ext._lastPool = st.pool;
+      n.divineWaning = df < 20;
+      n._cultRateBase = null;
+      if (prevWaning !== n.divineWaning && g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+    }
+    return st;
+  };
+
+  CULT.updateDivineFaith = (W, delta, reason, opts) => {
+    if (!W || !W.sect) return 55;
+    const st = CULT.ensureFaithState(W);
+    const d = Number.isFinite(delta) ? delta : 0;
+    const prev = st.pool;
+    st.pool = +clamp(st.pool + d, 0, st.poolMax || 100).toFixed(2);
+    st.waning = st.pool < 20;
+    if (reason && reason !== 'daily_ecology' && d > 0) st.deedsToday = (st.deedsToday || 0) + 1;
+    if (Math.abs(d) >= 0.5 && reason && reason !== 'daily_ecology') {
+      st.history.unshift({ day: W.day || 1, delta: +d.toFixed(2), pool: st.pool, reason });
+      if (st.history.length > 16) st.history.length = 16;
+    }
+    if (opts && opts.npc && opts.npc.ext && Number.isFinite(opts.npc.ext.divineFaith) && opts.npc.ext._syncedSectFaith !== opts.npc.ext.divineFaith) {
+      opts.npc.ext.divineFaith = +clamp(opts.npc.ext.divineFaith + d, 0, 100).toFixed(2);
+    }
+    CULT.syncDivineFaith(W);
+    if (prev !== st.pool && g.STATS && g.STATS.dirty) {
+      for (const n of (W.npcs || [])) {
+        if (n && !n.dead && n.cult && n.cult.path === 'GOD') g.STATS.dirty(n);
+      }
+    }
+    return st.pool;
+  };
+
+  CULT.godStageGateStatus = (W, npc) => {
+    const c = npc && npc.cult;
+    const stage = (c && c.stage) || 1;
+    const df = CULT.getDivineFaith(W, npc);
+    if (!c || c.path !== 'GOD' || stage < 2) {
+      return { required: false, df, needFaith: 0, rep: 0, needRep: 0, outpostsCount: 0, needOutposts: 0, faithOk: true, influenceOk: true };
+    }
+    const needFaith = stage === 2 ? 40 : 55;
+    const needRep = stage === 2 ? 45 : 90;
+    const needOutposts = stage - 1;
+    const rep = W && W.sect ? (W.sect.rep != null ? W.sect.rep : (W.sect.fame || 0)) : 50;
+    const outpostsCount = W && W.sect && W.sect.outposts && W.sect.outposts.byNodeId
+      ? Object.keys(W.sect.outposts.byNodeId).length
+      : 0;
+    const faithOk = df >= needFaith;
+    const influenceOk = W && W.sect ? (rep >= needRep || outpostsCount >= needOutposts) : true;
+    return { required: true, df, needFaith, rep, needRep, outpostsCount, needOutposts, faithOk, influenceOk };
+  };
+
+  if (typeof CULT.qiMax === 'function') {
+    const baseQiMaxPreFaith = CULT.qiMax;
+    CULT.qiMax = npc => {
+      const q = baseQiMaxPreFaith(npc);
+      if (!npc || !npc.cult || !CULT.trackRealm) return q;
+      const tr = CULT.trackRealm(npc);
+      const fm = tr && tr.capacityMultipliers && tr.capacityMultipliers.faithPoolMult;
+      if (fm && fm > 1) return Math.round(q * (1 + (fm - 1) * 0.45));
+      return q;
+    };
+  }
   CULT.breakthrough = (W, npc, prep) => {
     const c = npc.cult, rng = W.rng;
-    const p = CULT.breakthroughChance(npc, Object.assign({}, prep || {}, { now: W.t }));
+    const p = CULT.breakthroughChance(npc, Object.assign({}, prep || {}, { now: W.t, W }));
     c.attempts++;
     const ok = rng.next() < p;
     const res = { ok, p, injured: false, died: false, stageFrom: c.stage };
@@ -5219,9 +5916,12 @@
       }
     } else {
       c.prog = CULT.threshold(npc) * (0.5 + 0.2 * clamp(HC.eff(npc, 'intellect.willpower') / 100 * 0.6 + HC.eff(npc, 'personality.composure') / 100 * 0.4 + rng.gauss(0, 0.12), 0, 1));
-      const sev = rng.next() < 0.35 ? 2 : 1;
+      const tribRes = clamp(HC.special(npc, 'cultivation.tribulationResist') || 0, 0, 0.65);
+      const sev = rng.next() < 0.35 * (1 - tribRes * 0.5) ? 2 : 1;
       res.injured = true; res.sev = sev;
-      npc.h.state.hp = Math.max(1, npc.h.state.hp * (sev === 2 ? 0.35 : 0.6));
+      const rawKeepRatio = sev === 2 ? 0.35 : 0.6;
+      const keepRatio = clamp(rawKeepRatio + (1 - rawKeepRatio) * tribRes, rawKeepRatio, 0.92);
+      npc.h.state.hp = Math.max(1, npc.h.state.hp * keepRatio);
       HC.feel(npc, { mood: -18, stress: 18 });
       const hdGain = (npc.companionId || (npc.h && npc.h.companionId)) ? Math.max(2, Math.round(rng.int(5, 16) * 0.45)) : rng.int(5, 16);
       npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + hdGain, 0, 100);
@@ -5229,11 +5929,19 @@
         res.supremeRisk = 'DEMONIC_BACKLASH_FRENZY';
         npc.h.state.heartDemon = clamp(npc.h.state.heartDemon + 8, 0, 100);
         npc.h.state.hp = Math.max(1, Math.round(npc.h.state.hp * 0.85));
+        npc.demonicBacklashUntil = (W.t || 0) + 1440;
+        if (g.STATS && g.STATS.addBuff) {
+          g.STATS.addBuff(npc, { id: 'DEMONIC_BACKLASH_FRENZY', name: 'ปราณมารตีกลับคลุ้มคลั่ง', kind: 'debuff', dur: 1440, p: { atk: 0.14, def: -0.22, mdef: -0.22 }, f: { crit: 6 } }, W.t || 0);
+        }
       } else if (c.path === 'HEART_SOUL') {
         res.supremeRisk = 'SOUL_SHATTER_ILLUSION_LOST';
         npc.h.state.qi = 0;
         npc.h.state.rest = Math.max(5, (npc.h.state.rest || 50) - 25);
         npc.h.state.stress = clamp((npc.h.state.stress || 0) + 12, 0, 100);
+        npc.soulShatterUntil = (W.t || 0) + 2880;
+        if (g.STATS && g.STATS.addBuff) {
+          g.STATS.addBuff(npc, { id: 'SOUL_SHATTER_ILLUSION_LOST', name: 'จิตวิญญาณร้าวหลงมายา', kind: 'debuff', dur: 2880, p: { matk: -0.22, def: -0.15, mdef: -0.20 }, f: { cast: -15 } }, W.t || 0);
+        }
       } else if (c.path === 'MECH_PUPPET') {
         res.supremeRisk = 'AUTOMATON_CORE_OVERHEAT_BACKLASH';
         if (npc.mechState) { npc.mechState.integrity = Math.max(15, (npc.mechState.integrity || 100) - 35); npc.mechState.heat = Math.min(100, (npc.mechState.heat || 0) + 40); }
@@ -5258,13 +5966,18 @@
         res.supremeRisk = 'FORMATION_BACKLASH_DISARRAY';
         npc.h.state.qi = Math.max(0, Math.round((npc.h.state.qi || 0) * 0.25));
         npc.h.state.stress = clamp((npc.h.state.stress || 0) + 12, 0, 100);
+      } else if (c.path === 'GOD') {
+        res.supremeRisk = 'DIVINE_FAITH_BACKLASH';
+        npc.h.state.qi = Math.max(0, Math.round((npc.h.state.qi || 0) * 0.35));
+        npc.h.state.stress = clamp((npc.h.state.stress || 0) + 10, 0, 100);
       } else if (c.path === 'STRATEGY_GOVERNANCE') {
         res.supremeRisk = 'MANDATE_STRAIN_BACKLASH';
         npc.h.state.energy = Math.max(10, (npc.h.state.energy || 50) - 20);
         npc.h.state.stress = clamp((npc.h.state.stress || 0) + 14, 0, 100);
       }
       const eqSt = CULT.equivalentStage ? CULT.equivalentStage(npc) : c.stage;
-      const pd = eqSt >= 3 ? 0.012 * (eqSt - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) : 0;
+      const tribResPd = clamp(HC.special(npc, 'cultivation.tribulationResist') || 0, 0, 0.65);
+      const pd = eqSt >= 3 ? 0.012 * (eqSt - 2) * (1 - HC.eff(npc, 'intellect.willpower') / 160) * Math.max(0.15, 1 - tribResPd * 1.35) : 0;
       if (rng.next() < pd) res.died = true;
       if (CULT.isAncestralBlessingActive(npc, W ? W.t : null) && npc.ancestralBlessing.injuryShield && (!npc.ancestralBlessing.untilDay || !W || W.day == null || npc.ancestralBlessing.untilDay >= W.day)) {
         res.died = false;
@@ -5432,10 +6145,120 @@
     SHADOW_ARCHER: ["BOW", "stealth"]
   };
 
+  const FAITH_PATHS = new Set(['GOD', 'BUDDHA_DHARMA', 'DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'ANCESTRAL_RITUAL']);
+  const LIFESTEAL_PATHS = new Set(['DEMON', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'VOID_HERETIC_PACT']);
+  const REFLECT_PATHS = new Set(['HEART_SOUL', 'KARMA_SAMSARA', 'BUDDHA_DHARMA']);
+
+  CULT.buildTrackRealmStats = (subId, path, sub, idx0, gate) => {
+    const t = idx0 / 8; // 0..1 across realms 1..9
+    const prof = (g.MARTIAL && g.MARTIAL.PROFILES && g.MARTIAL.PROFILES[subId])
+      || (JD && JD.MARTIAL && JD.MARTIAL.subProfiles && JD.MARTIAL.subProfiles[subId])
+      || null;
+    const sw = (prof && prof[0]) || {};
+    const skw = (prof && prof[1]) || {};
+    const pace = (prof && prof[2]) || 'steady';
+    const weaps = (prof && prof[3]) || [];
+    const armors = (prof && prof[4]) || [];
+    const pSk = (gate && gate.primarySkill) || (sub && sub.primarySkill) || 'MOVEMENT';
+    const sSk = (gate && gate.secondarySkill) || ((sub && sub.secondarySkills && sub.secondarySkills[0]) || 'SCRIPTURE');
+
+    // Compute normalized archetype role weights from martial profile & subpath bonuses
+    const si = sub || {};
+    const cbBonus = Math.max(0.7, Number(si.combatBonus) || 1);
+    const dfBonus = Math.max(0.7, Number(si.defenseBonus) || 1);
+    const qiBonus = Math.max(0.7, Number(si.qiBonus) || 1);
+
+    const offRaw = (sw.strength || 0) * 0.85 + (sw.explosiveness || 0) * 1.1 + (sw.dexterity || 0) * 0.7
+      + ((skw.SWORD || 0) + (skw.BLADE || 0) + (skw.SPEAR || 0) + (skw.BOW || 0) + (skw.CLAW || 0) + (skw.POISON || 0) + (skw.hunting || 0)) * 35
+      + (cbBonus - 1) * 90 + (['SWORD', 'BLADE', 'SPEAR', 'BOW', 'FIST_PALM', 'CLAW'].includes(pSk) ? 14 : 0);
+    const defRaw = (sw.toughness || 0) * 1.05 + (sw.endurance || 0) * 0.9 + (sw.vitality || 0) * 0.75 + (sw.immunity || 0) * 0.7
+      + ((skw.BODY_REFINING || 0) + (skw.STAFF || 0) + (skw.MEDICINE || 0) + (skw.mining || 0)) * 30
+      + (dfBonus - 1) * 95 + (armors.includes('HEAVY') ? 16 : 0) + (['BODY_REFINING', 'STAFF', 'MEDICINE'].includes(pSk) ? 12 : 0);
+    const evaRaw = (sw.agility || 0) * 1.1 + (sw.reflex || 0) * 0.9 + Math.max(-10, sw.speed || 0) * 1.0 + (sw.flexibility || 0) * 0.8
+      + ((skw.survival || 0) + (skw.stealth || 0) + (skw.MOVEMENT || 0) + (skw.WHIP || 0) + (skw.FAN || 0)) * 35
+      + (armors.includes('LIGHT') ? 12 : armors.includes('HEAVY') ? -14 : 0)
+      + (['MOVEMENT', 'stealth', 'WHIP', 'FAN'].includes(pSk) || sSk === 'MOVEMENT' || sSk === 'stealth' ? 14 : 0);
+    const qiRaw = (sw.spiritualFoundation || 0) * 1.0 + (sw.meridianCapacity || 0) * 1.1 + (sw.recoveryRate || 0) * 0.6
+      + ((skw.ARRAY || 0) + (skw.SCRIPTURE || 0) + (skw.TALISMAN || 0) + (skw.ALCHEMY || 0) + (skw.SOUL_DIVINE || 0) + (skw.ZITHER || 0) + (skw.BRUSH || 0)) * 32
+      + (qiBonus - 1) * 90 + (armors.includes('ROBE') ? 12 : 0)
+      + (['ARRAY', 'TALISMAN', 'SCRIPTURE', 'SOUL_DIVINE', 'ALCHEMY', 'FOCUS', 'ZITHER', 'BRUSH', 'ASTROLABE'].includes(pSk) ? 14 : 0);
+    const vitRaw = (sw.vitality || 0) * 1.0 + (sw.recoveryRate || 0) * 0.95 + (sw.endurance || 0) * 0.75 + (sw.immunity || 0) * 0.6
+      + ((skw.MEDICINE || 0) + (skw.herbalism || 0) + (skw.BODY_REFINING || 0)) * 30
+      + (path === 'BODY' || path === 'DEVOURING_FLESH' ? 22 : 0);
+
+    // Deterministic per-subId micro-signature (-0.49..+0.49) so even close siblings remain distinct
+    let h = 2166136261;
+    for (let k = 0; k < subId.length; k++) { h ^= subId.charCodeAt(k); h = Math.imul(h, 16777619) >>> 0; }
+    const j1 = ((h & 255) / 255 - 0.5) * 0.9;
+    const j2 = (((h >> 8) & 255) / 255 - 0.5) * 0.9;
+    const j3 = (((h >> 16) & 255) / 255 - 0.5) * 0.9;
+    const j4 = (((h >> 24) & 255) / 255 - 0.5) * 0.9;
+
+    const paceMul = pace === 'early' ? (0.35 + 0.65 * Math.pow(t, 0.85)) : pace === 'late' ? Math.pow(t, 1.15) : t;
+    const step = idx0 === 0 ? 0.14 : (0.14 + 0.86 * paceMul);
+    const clampNum = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+    const nOff = clampNum(offRaw / 45, 0.45, 1.65);
+    const nDef = clampNum(defRaw / 45, 0.45, 1.65);
+    const nEva = clampNum(evaRaw / 42, 0.35, 1.75);
+    const nQi = clampNum(qiRaw / 45, 0.45, 1.65);
+    const nVit = clampNum(vitRaw / 45, 0.50, 1.65);
+
+    const zeroQi = path === 'SHADOW_SAMURAI';
+    const isFaith = FAITH_PATHS.has(path) || pSk === 'ritual' || sSk === 'ritual';
+    const hasLifesteal = LIFESTEAL_PATHS.has(path) || /BLOOD|DEVOUR|VAMPIRE|GHOUL|CORPSE|FLESH|SOUL_EATER/.test(subId);
+    const hasReflect = REFLECT_PATHS.has(path) || /MIRROR|RETRIBUTION|THORN|LOTUS|REFLECT/.test(subId);
+
+    const offMult = zeroQi ? 1.14 : 1.0;
+    const maxQiSpan = zeroQi ? 0 : (1.7 + nQi * 1.15 + j1 * 0.18);
+    const vitSpan = 1.2 + nVit * 0.95 + (zeroQi ? 0.25 : 0) + j2 * 0.14;
+    const faithSpan = isFaith ? (0.85 + nQi * 0.45 + (path === 'GOD' ? 0.25 : 0) + j3 * 0.10) : 0;
+    const senseTop = Math.round(18 + (nOff * 4 + nQi * 6 + nEva * 3) + (weaps.includes('BOW') || pSk === 'BOW' || pSk === 'NEEDLE' ? 6 : 0) + j4 * 3);
+
+    const offTop = (18.5 + nOff * 8.2) * offMult + j1 * 1.1;
+    const defTop = 13.0 + nDef * 6.8 + j2 * 0.9;
+    const penTop = (14.0 + (nOff * 4.5 + (weaps.includes('SWORD') || weaps.includes('SPEAR') || weaps.includes('BOW') ? 3.0 : 0))) * offMult + j3 * 0.8;
+    const cntTop = (9.5 + (nDef * 2.5 + nEva * 2.5 + (zeroQi || weaps.includes('SWORD') || weaps.includes('BLADE') ? 3.5 : 0))) + j4 * 0.7;
+    const evaTop = 6.8 + nEva * 5.2 + (zeroQi ? 2.5 : 0) + j1 * 0.7;
+    const qRegTop = zeroQi ? 0 : (9.5 + nQi * 5.5 + (isFaith ? 1.5 : 0) + j2 * 0.8);
+    const lsTop = hasLifesteal ? (8.5 + (path === 'DEMON' || path === 'DEVOURING_FLESH' ? 3.5 : 1.5) + nOff * 1.4 + j3 * 0.6) : 0;
+    const refTop = hasReflect ? (8.5 + (path === 'HEART_SOUL' ? 3.2 : 1.5) + nDef * 1.4 + j4 * 0.6) : 0;
+
+    return {
+      capacityMultipliers: {
+        maxQiMult: zeroQi ? 1 : +(1 + (idx0 === 0 ? 0 : t * maxQiSpan)).toFixed(2),
+        vitalityMult: +(1 + (idx0 === 0 ? 0 : t * vitSpan)).toFixed(2),
+        faithPoolMult: isFaith ? +(1 + (idx0 === 0 ? 0 : t * faithSpan)).toFixed(2) : 1,
+        senseBonus: idx0 === 0 ? 0 : Math.max(1, Math.round(t * senseTop))
+      },
+      realmBuffs: {
+        combatOffensePct: +Math.max(1.5, step * offTop).toFixed(1),
+        combatDefensePct: +Math.max(1.2, step * defTop).toFixed(1),
+        armorPenetrationPct: +Math.max(1.2, step * penTop).toFixed(1),
+        counterStrikePct: +Math.max(0.8, step * cntTop).toFixed(1),
+        lifestealPct: hasLifesteal ? +Math.max(1.2, step * lsTop).toFixed(1) : 0,
+        reflectPct: hasReflect ? +Math.max(1.2, step * refTop).toFixed(1) : 0,
+        evasionPct: +Math.max(0.6, step * evaTop).toFixed(1),
+        qiRegenBonusPct: zeroQi ? 0 : +Math.max(1.2, step * qRegTop).toFixed(1)
+      }
+    };
+  };
+
   CULT.registerTracks = () => {
+    const subMetaById = {};
+    if (Array.isArray(CULT.subList)) {
+      CULT.subList.forEach(({ path, sub }) => { if (sub && sub.id) subMetaById[sub.id] = { path, sub }; });
+    }
     if (JD && JD.EXPANSION && Array.isArray(JD.EXPANSION.progressionMapping)) {
       JD.EXPANSION.progressionMapping.forEach(pm => {
         if (pm.subPath && Array.isArray(pm.realms)) {
+          const meta = subMetaById[pm.subPath] || {};
+          const pathId = pm.targetMajorPath || pm.sourceMajorPath || meta.path || 'XIAN';
+          pm.realms.forEach((r, idx) => {
+            const st = CULT.buildTrackRealmStats(pm.subPath, pathId, meta.sub, idx, r.skillGate);
+            r.capacityMultipliers = st.capacityMultipliers;
+            r.realmBuffs = st.realmBuffs;
+          });
           CULT.TRACKS[pm.subPath] = pm;
           CULT.EXPANSION_TRACK_IDS.add(pm.subPath);
         }
@@ -5444,7 +6267,7 @@
         CULT.TRACKS.SHADOW_ASSASSIN.realms[1].skillGate.minPrimarySkill = 30;
       }
     }
-    // Register 50-Subpath Specialization Progression Bridge for base subpaths
+    // Register Specialization Progression Bridge for base/missing subpaths with distinct archetype profiles
     if (Array.isArray(CULT.subList)) {
       const mMapByPath = {
         XIAN: [1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -5467,9 +6290,25 @@
         const [pSk, sSk] = sub.primarySkill ? [sub.primarySkill, (sub.secondarySkills || [])[0] || "SCRIPTURE"] : (BASE_SUB_GATE_SKILLS[sub.id] || ["MOVEMENT", "SCRIPTURE"]);
         const mMap = mMapByPath[path] || ((CULT.PATHS[path] || {}).maxStage === 8 ? mMapByPath.MECH_PUPPET : mMapByPath.XIAN);
         const maxSt = (CULT.PATHS[path] && CULT.PATHS[path].maxStage) || 9;
+        const existing = CULT.ADVANCED_TRACKS[sub.id];
+        if (existing && Array.isArray(existing.realms) && existing.realms.length === 9) {
+          existing.realms.forEach((r, idx) => {
+            const st = CULT.buildTrackRealmStats(sub.id, path, sub, idx, r.skillGate);
+            r.capacityMultipliers = st.capacityMultipliers;
+            r.realmBuffs = st.realmBuffs;
+          });
+          return;
+        }
         const realms = [];
         for (let i = 0; i < 9; i++) {
           const ord = i + 1;
+          const skillGate = {
+            primarySkill: pSk,
+            minPrimarySkill: pMinTable[i],
+            secondarySkill: sSk,
+            minSecondarySkill: sMinTable[i]
+          };
+          const st = CULT.buildTrackRealmStats(sub.id, path, sub, i, skillGate);
           realms.push({
             ordinal: ord,
             id: "R_ADV_" + sub.id + "_0" + ord,
@@ -5477,32 +6316,13 @@
             lifespanMax: 95 + i * 35,
             functionalCombatPower: fcpTable[i],
             majorBandEquivalent: mMap[i],
-            skillGate: {
-              primarySkill: pSk,
-              minPrimarySkill: pMinTable[i],
-              secondarySkill: sSk,
-              minSecondarySkill: sMinTable[i]
-            },
+            skillGate,
             resourceCost: {
               stones: stoneTable[i],
               materialTier: Math.min(7, 1 + Math.floor(i / 2))
             },
-            capacityMultipliers: {
-              maxQiMult: +(1 + i * 0.06).toFixed(2),
-              vitalityMult: +(1 + i * 0.05).toFixed(2),
-              faithPoolMult: +(1 + i * 0.05).toFixed(2),
-              senseBonus: i * 2
-            },
-            realmBuffs: {
-              combatOffensePct: +(3.0 + i * 2.2).toFixed(1),
-              combatDefensePct: +(2.4 + i * 1.8).toFixed(1),
-              armorPenetrationPct: +(2.0 + i * 1.4).toFixed(1),
-              counterStrikePct: +(1.5 + i * 1.0).toFixed(1),
-              lifestealPct: path === "DEMON" ? +(1.5 + i * 1.1).toFixed(1) : 0,
-              reflectPct: path === "HEART_SOUL" ? +(1.5 + i * 1.2).toFixed(1) : 0,
-              evasionPct: pSk === "MOVEMENT" ? +(2.0 + i * 1.5).toFixed(1) : +(1.0 + i * 0.8).toFixed(1),
-              qiRegenBonusPct: +(2.0 + i * 1.5).toFixed(1)
-            },
+            capacityMultipliers: st.capacityMultipliers,
+            realmBuffs: st.realmBuffs,
             breakthroughBaseChance: +(0.76 - i * 0.045).toFixed(2)
           });
         }
@@ -5644,7 +6464,13 @@
     const h = npc.h || {};
     const skills = h.skills || {};
     const readSk = id => (g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(npc, id) : (skills[id] || 0);
-    const nameSk = id => (g.MARTIAL && g.MARTIAL.SKILL_INFO && g.MARTIAL.SKILL_INFO[id] ? g.MARTIAL.SKILL_INFO[id].nameTh : (HC.nameOf && HC.nameOf("skills." + id)) || id);
+    const nameSk = id => {
+      const cid = (g.MARTIAL && g.MARTIAL.resolveSkillId) ? g.MARTIAL.resolveSkillId(id) : id;
+      const info = g.MARTIAL && ((g.MARTIAL.SKILL_INFO && g.MARTIAL.SKILL_INFO[cid]) || (g.MARTIAL.ELEM_GATE_SKILLS && g.MARTIAL.ELEM_GATE_SKILLS[cid]));
+      if (info && info.nameTh) return info.nameTh;
+      const hName = HC.nameOf && HC.nameOf("skills." + cid);
+      return (hName && hName !== "skills." + cid) ? hName : cid;
+    };
     let skillOk = true;
     if (gate.primarySkill) {
       const curPrimary = readSk(gate.primarySkill);
@@ -6055,6 +6881,11 @@
     p += root.breakthroughBonus || 0;
     p += (HC.eff(npc, 'personality.composure') - 50) / 50 * 0.08 + (HC.eff(npc, 'intellect.willpower') - 50) / 50 * 0.08;
     p += HC.special(npc, 'cultivation.breakthroughBonus');
+    const tribResBt = clamp(HC.special(npc, 'cultivation.tribulationResist') || 0, 0, 0.6);
+    const trOrdBt = tr.ordinal || 0;
+    if (tribResBt > 0 && (trOrdBt >= 3 || (opts && opts.tribulation) || (npc.tribulationState && npc.tribulationState.active))) {
+      p += tribResBt * 0.35;
+    }
     const s = npc.h ? npc.h.state : {};
     p -= (s.heartDemon || 0) / 100 * 0.2 + (npc.cult.toxic || 0) / 100 * 0.12;
     if (CULT.isAncestralBlessingActive(npc, opts && Number.isFinite(opts.now) ? opts.now : null)) {
@@ -7840,7 +8671,7 @@
     if (season === 0 && (el === 'WOOD_LIFE' || (npc && npc.cult && npc.cult.path === 'SAGE_SUPPORT'))) return 1.25;
     if (season === 1 && (el === 'FIRE' || el === 'LIGHT_YANG' || (npc && npc.cult && npc.cult.path === 'BODY'))) return 1.25;
     if (season === 2 && (el === 'EARTH_METAL' || (npc && npc.cult && npc.cult.path === 'XIAN'))) return 1.25;
-    if (season === 3 && (el === 'WATER_ICE' || el === 'DARK_YIN' || (npc && npc.cult && npc.cult.path === 'HEART_SOUL'))) return 1.25;
+    if (season === 3 && (el === 'WATER_ICE' || el === 'YIN_SHADOW' || el === 'DARK_YIN' || (npc && npc.cult && npc.cult.path === 'HEART_SOUL'))) return 1.25;
     return 1.05;
   };
 
@@ -8464,8 +9295,18 @@
       const unlocked = this.getUnlockedSectPaths(W);
       const allowedSet = new Set(unlocked.filter(p => CULT.PATHS[p]));
       if (!allowedSet.size) allowedSet.add('XIAN');
+      const rootGrade = (npc.h && npc.h.root && npc.h.root.grade) || 'MORTAL';
+      const rootScore = (npc.h && npc.h.root && Number.isFinite(npc.h.root.aggregateScore)) ? npc.h.root.aggregateScore : 2.0;
+      const isWeakRoot = rootGrade === 'DEFECTIVE' || rootScore <= 1.15;
+      if (isWeakRoot && CULT.PATHS.BODY && (mc.studySessions >= 3 || (HC.eff(npc, 'personality.discipline') || 50) >= 48)) {
+        allowedSet.add('BODY');
+      }
 
-      const allMajor = CULT.majorPathScores(npc).filter(x => allowedSet.has(x.path));
+      const allMajor = CULT.majorPathScores(npc).filter(x => allowedSet.has(x.path)).map(x => {
+        if (isWeakRoot && x.path === 'BODY') return Object.assign({}, x, { score: x.score + 16 });
+        if (isWeakRoot && (x.path === 'XIAN' || x.path === 'CHRONO_EPOCH' || x.path === 'VOID_SPACE')) return Object.assign({}, x, { score: x.score - 8 });
+        return x;
+      }).sort((a, b) => b.score - a.score);
       const chosenMajor = allMajor.length ? allMajor[0].path : Array.from(allowedSet)[0];
       const branches = CULT.pathScores(npc).filter(x => x.path === chosenMajor);
       const chosenSub = (branches[0] && branches[0].sub) || (CULT.PATHS[chosenMajor] && CULT.PATHS[chosenMajor].subPaths[0] && CULT.PATHS[chosenMajor].subPaths[0].id) || 'NONE';
@@ -8491,9 +9332,12 @@
     computeQiGatherGain(W, npc, dtHours, envMult) {
       const h = (npc && npc.h) || {};
       const mc = this.ensureMortalState(npc, W);
-      const cultApt = (HC.eff(npc, 'aptitudes.cultivation') + HC.eff(npc, 'physiology.meridianCapacity') + HC.eff(npc, 'physiology.spiritualFoundation')) / 3;
+      const isBodyRoute = mc && mc.targetPath === 'BODY';
+      const cultApt = isBodyRoute
+        ? (HC.eff(npc, 'physiology.strength') + HC.eff(npc, 'physiology.vitality') + HC.eff(npc, 'physiology.endurance')) / 3
+        : (HC.eff(npc, 'aptitudes.cultivation') + HC.eff(npc, 'physiology.meridianCapacity') + HC.eff(npc, 'physiology.spiritualFoundation')) / 3;
       const rootScore = (h.root && Number.isFinite(h.root.aggregateScore)) ? h.root.aggregateScore : 2.0;
-      const rootFactor = 0.68 + rootScore * 0.18;
+      const rootFactor = isBodyRoute ? Math.max(0.88, 0.78 + rootScore * 0.12) : (0.68 + rootScore * 0.18);
       const daoBonus = 1 + ((mc ? (mc.daoComprehension || 0) : 0) / 100) * 0.75;
       const env = Math.max(0.8, Number(envMult) || 1.0);
       const rawHrs = Number(dtHours);
@@ -8505,7 +9349,8 @@
     stepStudyDao(W, npc, dtHours, envMult) {
       if (!npc || npc.dead || npc.cult) return { ok: false, reason: 'not-mortal' };
       const mc = this.ensureMortalState(npc, W);
-      if (!mc.targetPath || (!mc.enlightenedByCrystal && !this.getUnlockedSectPaths(W).includes(mc.targetPath))) {
+      const weakBodyHoldout = mc.targetPath === 'BODY' && (((npc.h && npc.h.root && npc.h.root.grade) || '') === 'DEFECTIVE' || ((npc.h && npc.h.root && npc.h.root.aggregateScore) || 2) <= 1.15);
+      if (!mc.targetPath || (!mc.enlightenedByCrystal && !weakBodyHoldout && !this.getUnlockedSectPaths(W).includes(mc.targetPath))) {
         this.chooseMortalStudyPath(W, npc, { forceRechoose: true });
       }
       const rawHrs = Number(dtHours);
@@ -8531,7 +9376,8 @@
     stepGatherQi(W, npc, dtHours, envMult) {
       if (!npc || npc.dead || npc.cult) return { ok: false, reason: 'not-mortal' };
       const mc = this.ensureMortalState(npc, W);
-      if (!mc.targetPath || (!mc.enlightenedByCrystal && !this.getUnlockedSectPaths(W).includes(mc.targetPath))) {
+      const weakBodyHoldout = mc.targetPath === 'BODY' && (((npc.h && npc.h.root && npc.h.root.grade) || '') === 'DEFECTIVE' || ((npc.h && npc.h.root && npc.h.root.aggregateScore) || 2) <= 1.15);
+      if (!mc.targetPath || (!mc.enlightenedByCrystal && !weakBodyHoldout && !this.getUnlockedSectPaths(W).includes(mc.targetPath))) {
         this.chooseMortalStudyPath(W, npc, { forceRechoose: true });
       }
       const rawHrs = Number(dtHours);
@@ -8563,7 +9409,8 @@
 
       let pathId = opts.path || mc.enlightenedByCrystal || mc.targetPath;
       const unlocked = this.getUnlockedSectPaths(W);
-      if (!pathId || !CULT.PATHS[pathId] || (!mc.enlightenedByCrystal && !opts.ignoreLibraryLock && unlocked.length && !unlocked.includes(pathId))) {
+      const weakBodyBypass = pathId === 'BODY' && (((npc.h && npc.h.root && npc.h.root.grade) || '') === 'DEFECTIVE' || ((npc.h && npc.h.root && npc.h.root.aggregateScore) || 2) <= 1.15);
+      if (!pathId || !CULT.PATHS[pathId] || (!mc.enlightenedByCrystal && !weakBodyBypass && !opts.ignoreLibraryLock && unlocked.length && !unlocked.includes(pathId))) {
         const chosen = this.chooseMortalStudyPath(W, npc, { forceRechoose: true });
         pathId = (chosen && chosen.path) || unlocked[0] || 'XIAN';
       }
@@ -8608,14 +9455,23 @@
       if (CULT.initTrack) {
         npc.cult.track = CULT.initTrack(subId, 1, day);
       }
+      if (g.MARTIAL && g.MARTIAL.reconcileInnate) {
+        g.MARTIAL.reconcileInnate(npc, W);
+      }
       if (g.MARTIAL && g.MARTIAL.reconcilePassives) {
         g.MARTIAL.reconcilePassives(npc);
       }
       ELEM.syncSpecialAccess(npc);
       CULT.ensurePathGauge(npc);
+      if (CULT.SECONDARY_RESOURCES && CULT.SECONDARY_RESOURCES.ensureState) {
+        CULT.SECONDARY_RESOURCES.ensureState(npc);
+      }
       if (CULT.evaluateSubpathArchetypeMastery) CULT.evaluateSubpathArchetypeMastery(npc);
       if (CULT.GRAND_DAO_MECHANICS && CULT.GRAND_DAO_MECHANICS.ensureNpcState) {
         CULT.GRAND_DAO_MECHANICS.ensureNpcState(W, npc);
+      }
+      if (CULT.evaluateAutonomousPostures) {
+        CULT.evaluateAutonomousPostures(W, npc, { trigger: 'awaken' });
       }
       CULT.refreshLifespan(npc);
       if ((npc.rank || 0) === 0) npc.rank = 1;
@@ -8852,7 +9708,8 @@
       const c = npc.cult;
       const pDef = CULT.PATHS[c.path];
       const stg = c.stage || 1;
-      const effStg = (c.path === 'BODY' || c.path === 'GOD') && CULT.normalizedStage ? Math.floor(CULT.normalizedStage(npc)) : stg;
+      const normStg = CULT.normalizedStage ? Math.floor(CULT.normalizedStage(npc)) : stg;
+      const effStg = Math.max(stg, normStg);
       const pathTraits = (pDef && Array.isArray(pDef.realmTraits))
         ? pDef.realmTraits.filter(rt => {
             if (!rt) return false;
@@ -8861,7 +9718,7 @@
           })
         : [];
       const sDef = CULT.subInfo(c.path, c.sub);
-      const trOrd = (c.track && c.track.ordinal) ? c.track.ordinal : effStg;
+      const trOrd = Math.max((c.track && c.track.ordinal) || 0, effStg);
       const subpathTraits = (sDef && Array.isArray(sDef.subpathTraits))
         ? sDef.subpathTraits.filter(st => {
             if (!st) return false;
@@ -9104,6 +9961,20 @@
     },
 
     // 6. CHRONO_EPOCH: Temporal Rewind (Rewinds skill cooldowns & restores recent HP snapshot)
+    recordTemporalHpSnapshot(W, npc, hpOverride) {
+      if (!npc || !npc.cult || npc.cult.path !== 'CHRONO_EPOCH') return null;
+      const st = this.ensureNpcState(W, npc);
+      const nowT = (W && W.t != null) ? W.t : 0;
+      const rawHp = Number.isFinite(hpOverride) ? hpOverride : (npc.h && npc.h.state && Number.isFinite(npc.h.state.hp) ? npc.h.state.hp : CULT.hpMax(npc));
+      const hm = Math.max(1, CULT.hpMax(npc));
+      const snap = { t: nowT, day: (W && W.day) || 1, hp: Math.round(clamp(rawHp, 1, hm)) };
+      st.hpSnapshots = Array.isArray(st.hpSnapshots) ? st.hpSnapshots : [];
+      const last = st.hpSnapshots[st.hpSnapshots.length - 1];
+      if (!last || last.t !== snap.t || snap.hp > last.hp) st.hpSnapshots.push(snap);
+      if (st.hpSnapshots.length > 6) st.hpSnapshots.splice(0, st.hpSnapshots.length - 6);
+      return snap;
+    },
+
     triggerTemporalRewind(W, npc, opts) {
       opts = opts || {};
       if (!npc || !npc.cult) return { ok: false, reason: "no-cultivator" };
@@ -9124,9 +9995,29 @@
           rewoundCooldowns++;
         }
       }
-      st.temporalSnapshot = { day: (W && W.day) || 1, t: Math.max(0, nowT), rewoundCooldowns };
+      let hpRestored = 0;
+      if (npc.h && npc.h.state && Array.isArray(st.hpSnapshots) && st.hpSnapshots.length) {
+        const hm = Math.max(1, CULT.hpMax(npc));
+        const curHp = Number.isFinite(npc.h.state.hp) ? npc.h.state.hp : hm;
+        let bestSnap = null;
+        for (const s of st.hpSnapshots) {
+          if (!s || !Number.isFinite(s.hp)) continue;
+          if (nowT >= 0 && s.t != null && (nowT - s.t) > 16) continue;
+          if (!bestSnap || s.hp > bestSnap.hp) bestSnap = s;
+        }
+        if (bestSnap && bestSnap.hp > curHp && (!st._lastHpRewindAt || nowT < 0 || (nowT - st._lastHpRewindAt) >= 12)) {
+          const maxRestore = Math.max(1, Math.round(hm * 0.20));
+          const targetHp = Math.min(hm, bestSnap.hp, curHp + maxRestore);
+          if (targetHp > curHp) {
+            npc.h.state.hp = targetHp;
+            hpRestored = Math.round(targetHp - curHp);
+            st._lastHpRewindAt = nowT;
+          }
+        }
+      }
+      st.temporalSnapshot = { day: (W && W.day) || 1, t: Math.max(0, nowT), rewoundCooldowns, hpRestored };
       CULT.gainPathGauge(npc, 35);
-      return { ok: true, rewoundCooldowns, snapshot: st.temporalSnapshot, cdUntil: npc._temporalRewindCdUntil };
+      return { ok: true, rewoundCooldowns, hpRestored, snapshot: st.temporalSnapshot, cdUntil: npc._temporalRewindCdUntil };
     },
 
     // 7. INK_LITERATI: Issue Imperial Calligraphy Edict
@@ -9174,15 +10065,19 @@
     },
 
     // 11. FORTUNE_GAMBLER: Wager Destiny Stake (Zero-Free-Resource Conservation)
-    wagerDestinyStake(W, npc, stakeStones) {
+    wagerDestinyStake(W, npc, stakeStones, opts) {
       if (!W || !W.sect || !W.world || !npc || !npc.cult) return { ok: false, reason: 'invalid-state' };
       const wager = Math.max(0, Math.min(200, Math.round(Number(stakeStones) || 0)));
       if (!wager) return { ok: false, reason: 'invalid-wager' };
-      if ((W.sect.stones || 0) < wager) return { ok: false, reason: 'insufficient-stones', required: wager };
+      const usePersonal = !!(opts && opts.usePersonal);
+      if (usePersonal && !npc.inv) npc.inv = { stones: 0 };
+      const curStones = usePersonal ? (npc.inv.stones || 0) : (W.sect.stones || 0);
+      if (curStones < wager) return { ok: false, reason: 'insufficient-stones', required: wager };
       const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
       if (!Number.isFinite(pool.stones) || pool.stones < 0) return { ok: false, reason: 'invalid-world-pool' };
       const st = this.ensureNpcState(W, npc);
-      W.sect.stones -= wager;
+      if (usePersonal) npc.inv.stones = curStones - wager;
+      else W.sect.stones = curStones - wager;
       pool.stones += wager;
       const luck = (npc.h && npc.h.destiny && npc.h.destiny.luck) || 50;
       const win = (W.rng && W.rng.next ? W.rng.next() : 0.5) < clamp(0.48 + (luck - 50) * 0.004, 0.25, 0.78);
@@ -9191,12 +10086,13 @@
         // The pool already contains the stake: debit the entire payout once.
         payout = Math.min(wager * 2, pool.stones);
         pool.stones -= payout;
-        W.sect.stones = (W.sect.stones || 0) + payout;
+        if (usePersonal) npc.inv.stones = (npc.inv.stones || 0) + payout;
+        else W.sect.stones = (W.sect.stones || 0) + payout;
       }
       st.destinyStake = clamp((st.destinyStake || 0) + (win ? 30 : 15), 0, 100);
       st.critVarianceBonus = win ? 0.22 : -0.05;
       CULT.gainPathGauge(npc, win ? 35 : 18);
-      return { ok: true, win, wager, payout, destinyStake: st.destinyStake, critVarianceBonus: st.critVarianceBonus };
+      return { ok: true, win, wager, payout, usePersonal, destinyStake: st.destinyStake, critVarianceBonus: st.critVarianceBonus };
     },
 
     // 12. SPIRIT_HUSBANDRY: Advance Growth Cycle for Herb Garden & Spirit Beasts
@@ -9234,12 +10130,15 @@
     invokeAncestralRite(W, npc) {
       if (!npc || !npc.cult) return { ok: false, reason: 'no-cultivator' };
       const st = this.ensureNpcState(W, npc);
-      st.riteFervor = clamp((st.riteFervor || 0) + 28, 0, 100);
+      const ancCount = (W && W.sect && Array.isArray(W.sect.ancestors)) ? W.sect.ancestors.length : 0;
+      const ancFervorBonus = Math.min(18, ancCount * 3);
+      st.riteFervor = clamp((st.riteFervor || 0) + 28 + ancFervorBonus, 0, 100);
       const tNow = (W && W.t) || ((g.STATS && g.STATS.now) || 0);
       const dayNow = (W && W.day) || 1;
       npc.ancestralBlessing = {
         active: true,
-        breakthroughBonus: +Math.min(0.16, 0.06 + (npc.cult.stage || 1) * 0.012).toFixed(3),
+        ancestorCount: ancCount,
+        breakthroughBonus: +Math.min(0.22, 0.06 + (npc.cult.stage || 1) * 0.012 + Math.min(0.06, ancCount * 0.01)).toFixed(3),
         injuryShield: true,
         until: tNow + 2880,
         untilDay: dayNow + 5
@@ -9247,8 +10146,8 @@
       if (g.STATS && g.STATS.applyNamedBuff && !npc.foe) {
         g.STATS.applyNamedBuff(npc, 'totemBlessing', 60, tNow, { casterId: npc.id });
       }
-      CULT.gainPathGauge(npc, 28);
-      return { ok: true, riteFervor: st.riteFervor, blessing: npc.ancestralBlessing };
+      CULT.gainPathGauge(npc, 28 + Math.min(12, ancCount * 2));
+      return { ok: true, riteFervor: st.riteFervor, ancestorCount: ancCount, blessing: npc.ancestralBlessing };
     },
 
     // 15. Autonomous Monthly Grand Dao World-System Routine (All 16+ Newer Grand Dao Paths)
@@ -9257,7 +10156,12 @@
       this.ensureWorldState(W);
       let actions = 0;
       const pathsProcessed = [];
-      const aliveCults = W.npcs.filter(n => n && !n.dead && !n.exiled && n.cult);
+      const aliveCults = W.npcs.filter(n => n && !n.dead && !n.exiled && !n.away && !n.sealed && !n.sealedBt && !(n.jail > W.t) && n.cult);
+      const hasTreasuryAuth = u => !!(u && W.sect && (
+        u.id === W.sect.masterId || u.id === W.sect.deputyId ||
+        u.post === 'treasury' || u.post === 'mission' || u.post === 'envoy' ||
+        (g.COG && g.COG.hasAuthority && g.COG.hasAuthority(W, u, 'treasury'))
+      ));
 
       // Settle or breach any active contracts whose dueDay has arrived
       const ledger = W.sect.contractLedger;
@@ -9271,43 +10175,43 @@
           }
         }
       }
-      // Ensure sect mercantile ledger & Grand Dao world hooks stay active even when specific path specialists are absent
-      if (ledger && ledger.activeCount < 1 && (W.sect.stones || 0) >= 600 && aliveCults.length > 0) {
-        const steward = aliveCults.find(u => u.cult.path === 'MERCANTILE_DAO') || aliveCults[0];
-        const off = this.offerContract(W, steward, { principalStones: 60, durationDays: 10 });
-        if (off && off.ok) {
-          this.acceptContract(W, off.contract.id);
-          actions++;
-        }
-      }
-      if (aliveCults.length > 0) {
-        const bodyRefiner = aliveCults.find(u => u.cult.path === 'DEVOURING_FLESH' || u.cult.path === 'BODY' || u.cult.path === 'DEMON') || aliveCults[0];
-        this.devourResourceForBody(W, bodyRefiner, null, { free: false });
-        const graveKeeper = aliveCults.find(u => u.cult.path === 'NETHER_GRAVE' || u.cult.path === 'KARMA_SAMSARA' || u.cult.path === 'ANCESTRAL_RITUAL') || aliveCults[0];
-        this.channelGraveyardEcho(W, graveKeeper);
-        if (g.SECT && g.SECT.COSMIC_SHRINE && typeof g.SECT.COSMIC_SHRINE.consecrateOffering === 'function' && (W.sect.stones || 0) >= 700) {
-          const ritualist = aliveCults.find(u => u.cult.path === 'DIVINE_SUMMONER' || u.cult.path === 'DIVINE_POSSESSION' || u.cult.path === 'DIVINE_CHANNELER' || u.cult.path === 'GOD') || aliveCults[0];
-          g.SECT.COSMIC_SHRINE.consecrateOffering(W, ritualist, 'HEAVENLY_COURT_DAO', null, { stoneFallback: 40 });
-        }
-      }
 
       for (const n of aliveCults) {
         const p = n.cult.path;
         const st = this.ensureNpcState(W, n);
+        const canSpendSectStones = hasTreasuryAuth(n);
         if (g.SECT && g.SECT.PATH_LIBRARY && typeof g.SECT.PATH_LIBRARY.canDiscipleStudyPath === 'function') {
           g.SECT.PATH_LIBRARY.canDiscipleStudyPath(W, n, p);
         }
         if (p === 'CELESTIAL_WEATHER' && (!W.sect.activeWeatherMelody || !W.sect.activeWeatherMelody.active || (W.day || 1) >= (W.sect.activeWeatherMelody.untilDay || 0))) {
           this.harmonizeSkyWeather(W, n, (W.weather && W.weather.kind) || 'spirit_aurora');
           actions++; pathsProcessed.push(p);
-        } else if (p === 'MERCANTILE_DAO' && (W.sect.stones || 0) >= 600 && ledger && ledger.activeCount < 2) {
-          const off = this.offerContract(W, n, { principalStones: 80, durationDays: 15 });
-          if (off && off.ok) {
-            this.acceptContract(W, off.contract.id);
+        } else if (p === 'MERCANTILE_DAO' && ledger && (ledger.activeCount || 0) < 2 && (W.sect.stones || 0) >= 600) {
+          const treasuryApprover = canSpendSectStones ? n : aliveCults.find(u => hasTreasuryAuth(u));
+          const pendingOffered = (ledger.contracts || []).filter(c => c && c.state === 'OFFERED').length;
+          if (treasuryApprover) {
+            const off = this.offerContract(W, n, { principalStones: 80, durationDays: 15 });
+            if (off && off.ok) {
+              this.acceptContract(W, off.contract.id);
+              actions++; pathsProcessed.push(p);
+            }
+          } else if (pendingOffered < 2) {
+            const off = this.offerContract(W, n, { principalStones: 80, durationDays: 15 });
+            if (off && off.ok) {
+              actions++; pathsProcessed.push(p);
+            }
+          } else {
+            CULT.gainPathGauge(n, 20);
             actions++; pathsProcessed.push(p);
           }
-        } else if (p === 'DRAGON_VEIN_GEOMANCY' && (W.sect.stones || 0) >= 900 && Object.keys(W.sect.geomancyState.anchoredNodes || {}).length < 2) {
+        } else if (p === 'MERCANTILE_DAO') {
+          CULT.gainPathGauge(n, 20);
+          actions++; pathsProcessed.push(p);
+        } else if (p === 'DRAGON_VEIN_GEOMANCY' && canSpendSectStones && (W.sect.stones || 0) >= 900 && Object.keys(W.sect.geomancyState.anchoredNodes || {}).length < 2) {
           this.anchorDragonVeinNode(W, n, n.peakId || 'MAIN_PEAK', 60);
+          actions++; pathsProcessed.push(p);
+        } else if (p === 'DRAGON_VEIN_GEOMANCY') {
+          CULT.gainPathGauge(n, 20);
           actions++; pathsProcessed.push(p);
         } else if (p === 'WANDERING_DAO') {
           this.gainRouteInsight(W, n, 12);
@@ -9335,9 +10239,15 @@
           this.compileLoreIndex(W, n);
           actions++; pathsProcessed.push(p);
         } else if (p === 'FORTUNE_GAMBLER') {
-          if ((W.sect.stones || 0) >= 500) {
+          if (canSpendSectStones && (W.sect.stones || 0) >= 500) {
             const wRes = this.wagerDestinyStake(W, n, 20);
             if (wRes && wRes.ok) { actions++; pathsProcessed.push(p); }
+          } else if (n.inv && (n.inv.stones || 0) >= 20) {
+            const wRes = this.wagerDestinyStake(W, n, 20, { usePersonal: true });
+            if (wRes && wRes.ok) { actions++; pathsProcessed.push(p); }
+          } else {
+            CULT.gainPathGauge(n, 18);
+            actions++; pathsProcessed.push(p);
           }
         } else if (p === 'SPIRIT_HUSBANDRY') {
           this.advanceGrowthCycle(W, n);
@@ -9349,7 +10259,7 @@
           this.invokeAncestralRite(W, n);
           actions++; pathsProcessed.push(p);
         } else if (p === 'DIVINE_SUMMONER' || p === 'DIVINE_POSSESSION' || p === 'DIVINE_CHANNELER') {
-          if (g.SECT && g.SECT.COSMIC_SHRINE && typeof g.SECT.COSMIC_SHRINE.consecrateOffering === 'function' && (W.sect.stones || 0) >= 800) {
+          if (canSpendSectStones && g.SECT && g.SECT.COSMIC_SHRINE && typeof g.SECT.COSMIC_SHRINE.consecrateOffering === 'function' && (W.sect.stones || 0) >= 800) {
             g.SECT.COSMIC_SHRINE.consecrateOffering(W, n, 'HEAVENLY_COURT_DAO', null, { stoneFallback: 40 });
           } else {
             CULT.gainPathGauge(n, 20);
@@ -9384,7 +10294,7 @@
             actions++;
           }
         }
-        if (!n.demonPact && g.SECT && g.SECT.INFERNAL_SHRINE && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(n) && (W.sect.stones || 0) >= 850) {
+        if (!n.demonPact && g.SECT && g.SECT.INFERNAL_SHRINE && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(n) && canSpendSectStones && (W.sect.stones || 0) >= 850) {
           const lordPick = p === 'VOID_HERETIC_PACT' ? 'LUCIFER_MORNINGSTAR' : p === 'SHADOW_SAMURAI' ? 'DAIROKUTEN_MAOH' : 'CHIYOU_WARLORD';
           g.SECT.INFERNAL_SHRINE.signBloodCovenant(W, n, lordPick, {});
           actions++;
@@ -9392,9 +10302,9 @@
       }
       if (g.SECT && g.SECT.INFERNAL_SHRINE && (W.sect.stones || 0) >= 950) {
         const master = W.byId && W.byId[W.sect.masterId];
-        const demonicLeader = (master && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(master))
+        const demonicLeader = (master && hasTreasuryAuth(master) && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(master))
           ? master
-          : aliveCults.find(u => u.rank >= 4 && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(u));
+          : aliveCults.find(u => hasTreasuryAuth(u) && u.rank >= 4 && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact && g.SECT.INFERNAL_SHRINE.isNpcWillingForDemonPact(u));
         if (demonicLeader) {
           const planePick = demonicLeader.cult.path === 'VOID_HERETIC_PACT' ? 'INFERNAL_PANDEMONIUM'
             : demonicLeader.cult.path === 'DEVOURING_FLESH' ? 'ASURA_BLOOD_SEA' : 'NINE_SERENITIES_HELL';
@@ -9601,10 +10511,10 @@
         cosmicFraction: scale.cosmicFraction,
         fractionLabelTh: scale.fractionLabelTh,
         combatPowerMult: scale.combatPowerMult,
-        atkPct: deity.atkMult ? +(deity.atkMult - 1).toFixed(3) : 0,
-        matkPct: deity.matkMult ? +(deity.matkMult - 1).toFixed(3) : 0,
-        defPct: deity.defMult ? +(deity.defMult - 1).toFixed(3) : 0,
-        mdefPct: deity.mdefMult ? +(deity.mdefMult - 1).toFixed(3) : 0,
+        atkPct: this._toBonusPct(deity.atkMult),
+        matkPct: this._toBonusPct(deity.matkMult),
+        defPct: this._toBonusPct(deity.defMult),
+        mdefPct: this._toBonusPct(deity.mdefMult),
         penBonus: deity.penBonus || 0,
         critBonus: deity.critBonus || 0,
         evaBonus: deity.evaBonus || 0,
@@ -9615,17 +10525,49 @@
       if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
       return { ok: true, pact: npc.deityPact, scale };
     },
+    _toBonusPct(val) {
+      if (val == null) return 0;
+      const num = Number(val) || 0;
+      return +(num > 1 ? num - 1 : num).toFixed(3);
+    },
+    healPact(npc) {
+      if (!npc) return npc;
+      const fixPact = pact => {
+        if (!pact || typeof pact !== 'object') return;
+        const id = pact.deityId || pact.lordId || pact.patronId;
+        const def = id && (this.DEITIES[id] || (this.DEMON_LORDS && this.DEMON_LORDS[id]));
+        const pairs = [['atkPct', 'atkMult'], ['matkPct', 'matkMult'], ['defPct', 'defMult'], ['mdefPct', 'mdefMult']];
+        for (let i = 0; i < pairs.length; i++) {
+          const pctK = pairs[i][0], multK = pairs[i][1];
+          if (pact[pctK] != null && pact[pctK] < 0) {
+            pact[pctK] = (def && def[multK] != null) ? this._toBonusPct(def[multK]) : Math.max(0, +(pact[pctK] + 1).toFixed(3));
+          } else if (def && def[multK] != null && (pact[pctK] == null || pact[pctK] === 0) && def[multK] > 0) {
+            pact[pctK] = this._toBonusPct(def[multK]);
+          }
+        }
+      };
+      fixPact(npc.deityPact);
+      fixPact(npc.demonPact);
+      return npc;
+    },
     getUnitBlessingBonuses(npc) {
       if (!npc || !npc.deityPact) return { active: false, p: {}, f: {}, reflectPct: 0 };
       const dp = npc.deityPact;
       const dDef = this.DEITIES[dp.deityId] || (this.DEMON_LORDS && this.DEMON_LORDS[dp.deityId]) || {};
+      const resolvePct = (pctVal, defVal) => {
+        if (pctVal != null) {
+          if (pctVal < 0) return defVal != null ? this._toBonusPct(defVal) : Math.max(0, +(pctVal + 1).toFixed(3));
+          return +Number(pctVal).toFixed(3);
+        }
+        return this._toBonusPct(defVal);
+      };
       return {
         active: true,
         p: {
-          atk: dp.atkPct != null ? dp.atkPct : (dDef.atkMult ? +(dDef.atkMult - 1).toFixed(3) : 0),
-          matk: dp.matkPct != null ? dp.matkPct : (dDef.matkMult ? +(dDef.matkMult - 1).toFixed(3) : 0),
-          def: dp.defPct != null ? dp.defPct : (dDef.defMult ? +(dDef.defMult - 1).toFixed(3) : 0),
-          mdef: dp.mdefPct != null ? dp.mdefPct : (dDef.mdefMult ? +(dDef.mdefMult - 1).toFixed(3) : 0),
+          atk: resolvePct(dp.atkPct, dDef.atkMult),
+          matk: resolvePct(dp.matkPct, dDef.matkMult),
+          def: resolvePct(dp.defPct, dDef.defMult),
+          mdef: resolvePct(dp.mdefPct, dDef.mdefMult),
           eva: (dp.evaBonus || dDef.evaBonus || 0) / 100
         },
         f: {
@@ -9687,13 +10629,37 @@
   CULT.GRAND_DAO_MECHANICS.devourResourceForBody = function (W, npc, itemId, opts) {
     opts = opts || {};
     if (!W || !W.sect || !npc || !npc.cult) return { ok: false, reason: 'invalid-state' };
-    // Strict Debit = Credit: must consume 1 real item from sect stock or personal inventory
+    const isBlocked = k => !k || k === 'grain' || k === 'meal' || /^(P:|REC:|ITEM_REPAIR_STONE_|MANUAL_|CRYSTAL_|SUB_|TECH_)/.test(k);
+    const isOrganicDevourable = k => !isBlocked(k) && (
+      /^MAT_BP_|^MAT_(BONE|HIDE|BLOOD|MEAT|ORGAN|HEART|CORE|FANG|CLAW|SCALE|VENOM|PELT|HAIR|FLESH|MARROW)_/.test(k) ||
+      /^MAT_.*_(BONE|HIDE|BLOOD|MEAT|ORGAN|HEART|CORE|FANG|CLAW|SCALE|VENOM|PELT|FLESH)/.test(k) ||
+      !!(g.ECO && g.ECO.isBeastDrop && g.ECO.isBeastDrop(k))
+    );
+    // Strict Debit = Credit: prefer personal organic/beast drops first, then sect organic drops
     let consumed = null;
-    if (itemId && g.ECO && g.ECO.count(W, itemId) > 0 && g.ECO.take(W, itemId, 1)) {
-      consumed = itemId;
-    } else if (!itemId && g.ECO && W.sect.stock) {
-      const candKey = Object.keys(W.sect.stock).find(k => W.sect.stock[k] > 0 && !k.startsWith('MANUAL_PATH_') && !k.startsWith('CRYSTAL_PATH_'));
-      if (candKey && g.ECO.take(W, candKey, 1)) consumed = candKey;
+    const pm = npc.inv && npc.inv.mats;
+    if (itemId) {
+      if (!isOrganicDevourable(itemId)) return { ok: false, reason: 'ineligible-devour-resource' };
+      if (pm && (pm[itemId] || 0) > 0) {
+        pm[itemId] -= 1;
+        if (pm[itemId] <= 0) delete pm[itemId];
+        consumed = itemId;
+      } else if (g.ECO && g.ECO.count(W, itemId) > 0 && g.ECO.take(W, itemId, 1)) {
+        consumed = itemId;
+      }
+    } else {
+      if (pm) {
+        const pKey = Object.keys(pm).find(k => (pm[k] || 0) > 0 && isOrganicDevourable(k));
+        if (pKey) {
+          pm[pKey] -= 1;
+          if (pm[pKey] <= 0) delete pm[pKey];
+          consumed = pKey;
+        }
+      }
+      if (!consumed && g.ECO && W.sect.stock) {
+        const candKey = Object.keys(W.sect.stock).find(k => (W.sect.stock[k] || 0) > 0 && isOrganicDevourable(k));
+        if (candKey && g.ECO.take(W, candKey, 1)) consumed = candKey;
+      }
     }
     if (!consumed && !opts.free) return { ok: false, reason: 'no-resource-to-devour' };
     const st = this.ensureNpcState(W, npc);

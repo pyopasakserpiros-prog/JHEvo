@@ -78,26 +78,15 @@ const profiles={
  ZITHER_HEART_BOW:[{"dexterity":24,"spiritualFoundation":20,"reflex":18},{"ZITHER":0.28,"BOW":0.25,"FOCUS":0.22,"arts":0.25},"late",["ZITHER","BOW","FOCUS"],["ROBE","LIGHT"]],
  HEART_BLADE_MEDITATION:[{"reflex":26,"dexterity":24,"spiritualFoundation":16},{"BLADE":0.26,"FOCUS":0.2,"SCRIPTURE":0.16},"late",["BLADE","FOCUS"],["LIGHT","ROBE"]],
  VOID_SPEAR_MIND:[{"spiritualFoundation":24,"reflex":20,"meridianCapacity":18},{"SPEAR":0.25,"STAFF":0.2,"ARRAY":0.18},"late",["SPEAR","STAFF"],["ROBE","LIGHT"]],
- IRON_COLOSSUS:[{toughness:30,strength:24,endurance:22},{FORGING:.35,mining:.22},'steady',['STAFF','SPEAR','FIST'],['HEAVY']],
- THOUSAND_THREAD_PUPPETEER:[{dexterity:28,reflex:24,spiritualFoundation:18},{WHIP:.28,FOCUS:.24,TALISMAN:.24,ARRAY:.18},'late',['WHIP','FOCUS','BLADE'],['LIGHT','ROBE']],
- SPIRIT_ARTILLERY_ENGINEER:[{dexterity:26,reflex:22,meridianCapacity:18},{BOW:.28,FORGING:.25,ARRAY:.20},'steady',['BOW','FOCUS'],['LIGHT','HEAVY']],
- CLOCKWORK_SWARM_WEAVER:[{dexterity:26,agility:22,reflex:20},{FORGING:.26,ARRAY:.26,TALISMAN:.18},'early',['FOCUS','BOW'],['LIGHT','ROBE']],
  SOUL_VESSEL_AVATAR:[{spiritualFoundation:26,vitality:22,toughness:20},{SOUL_DIVINE:.26,FORGING:.22,TALISMAN:.20},'late',['FOCUS','STAFF'],['ROBE','HEAVY']],
- FORTRESS_BASTION_ARCHITECT:[{toughness:28,endurance:24,meridianCapacity:18},{ARRAY:.34,FORGING:.24,construction:.22},'late',['STAFF','FOCUS','SPEAR'],['HEAVY','ROBE']],
  ASTRAL_CLOCKWORK_PRIME:[{spiritualFoundation:26,dexterity:24,reflex:22},{ARRAY:.32,FORGING:.26,SCRIPTURE:.18},'late',['FOCUS','SWORD'],['ROBE','LIGHT']],
- RED_THREAD_ARBITER:[{spiritualFoundation:26,reflex:22,meridianCapacity:18},{WHIP:.26,SCRIPTURE:.28,TALISMAN:.24,SOUL_DIVINE:.20},'late',['WHIP','FOCUS','SWORD'],['ROBE','LIGHT']],
  SIX_PATHS_WHEEL:[{spiritualFoundation:24,vitality:22,endurance:20},{SCRIPTURE:.28,ritual:.26,SOUL_DIVINE:.20},'late',['STAFF','FOCUS'],['ROBE','HEAVY']],
  ASURA_JUDGMENT_BLADE:[{strength:24,explosiveness:24,spiritualFoundation:18},{BLADE:.28,SWORD:.20,ritual:.18},'early',['BLADE','SWORD','SPEAR'],['HEAVY','LIGHT']],
  LOTUS_MERCY_PURIFIER:[{vitality:26,recoveryRate:26,spiritualFoundation:20},{MEDICINE:.36,ritual:.24,SCRIPTURE:.20},'steady',['FOCUS','STAFF'],['ROBE']],
- PAST_LIFE_CHRONICLER:[{spiritualFoundation:28,reflex:20,meridianCapacity:20},{SCRIPTURE:.36,SOUL_DIVINE:.26,arts:.18},'late',['FOCUS','SWORD'],['ROBE']],
  REVERSED_RETRIBUTION:[{toughness:26,vitality:24,endurance:20},{BODY_REFINING:.24,ritual:.24,SCRIPTURE:.18},'steady',['STAFF','BLADE','FIST'],['HEAVY','ROBE']],
  BODHI_VOW_GUARDIAN:[{toughness:28,vitality:26,spiritualFoundation:20},{STAFF:.24,MEDICINE:.24,ritual:.26},'late',['STAFF','FOCUS'],['HEAVY','ROBE']],
  MYRIAD_BEAST_PACK:[{agility:22,reflex:22,vitality:20},{BEAST_TAMING:.38,hunting:.26,survival:.20},'early',['SPEAR','BOW','STAFF'],['LIGHT','HEAVY']],
- SYMBIOTIC_FANG_FUSION:[{strength:26,agility:24,explosiveness:22},{BEAST_TAMING:.34,FIST_PALM:.26,BODY_REFINING:.20},'early',['FIST','BLADE','SPEAR'],['LIGHT','HEAVY']],
  COLOSSUS_SHIELD_TAMER:[{toughness:30,vitality:28,endurance:22},{BEAST_TAMING:.34,BODY_REFINING:.26,STAFF:.20},'steady',['STAFF','SPEAR','FIST'],['HEAVY']],
- MOUNT_CHARGER:[{speed:26,strength:24,agility:22},{BEAST_TAMING:.34,SPEAR:.28,MOVEMENT:.22},'early',['SPEAR','BOW'],['LIGHT','HEAVY']],
- PRIMORDIAL_BLOOD_AWAKENER:[{vitality:28,strength:24,spiritualFoundation:20},{BEAST_TAMING:.36,ALCHEMY:.24,MEDICINE:.20},'late',['FIST','SPEAR','FOCUS'],['HEAVY','ROBE']],
- SWARM_INSECT_EMPEROR:[{immunity:28,dexterity:22,reflex:20},{BEAST_TAMING:.34,POISON:.32,herbalism:.20},'steady',['FOCUS','BOW','BLADE'],['ROBE','LIGHT']],
  ABYSSAL_DRAGON_TOTEM:[{strength:26,vitality:26,spiritualFoundation:22},{BEAST_TAMING:.36,SPEAR:.26,ritual:.20},'late',['SPEAR','STAFF','FIST'],['HEAVY','ROBE']],
  HEAVENLY_GOLEM:[{toughness:30,strength:24,endurance:22},{FORGING:.35,mining:.22},'steady',['STAFF','SPEAR','FIST'],['HEAVY']],
  THOUSAND_THREAD_ASSASSIN:[{dexterity:28,reflex:24,spiritualFoundation:18},{WHIP:.28,FOCUS:.24,TALISMAN:.24,ARRAY:.18},'late',['WHIP','BLADE','FOCUS','SWORD'],['LIGHT','ROBE']],
@@ -129,6 +118,7 @@ Object.assign(profiles, D.subProfiles || {});
 if(D.pathProfiles){for(const [k,v] of Object.entries(D.pathProfiles))if(!paths[k])paths[k]=v;else if(Array.isArray(v.weapons)){for(const w of v.weapons)if(!paths[k].weapons.includes(w))paths[k].weapons.push(w);}}
 if(D.subProfiles){for(const [k,v] of Object.entries(D.subProfiles))if(!profiles[k])profiles[k]=v;else if(Array.isArray(v[3]))profiles[k][3]=v[3].slice();}
 M.PATHS=paths;M.PROFILES=profiles;
+if(g.CULT&&g.CULT.registerTracks)g.CULT.registerTracks();
 if(D.SYNERGIES){for(const [sk,pr] of Object.entries(profiles)){const syn=D.SYNERGIES[sk];if(syn){if(Array.isArray(pr[3]))syn.weaponTypes=pr[3].slice();if(Array.isArray(pr[4]))syn.armorTypes=pr[4].slice();}}}
 
 M.invalidateMartialCaches=n=>{
@@ -1058,20 +1048,19 @@ M.lifeMult=(n,skill)=>{
  return val;
 };
 
-M.subStats=(n,fx,stage)=>{if(!n.cult||!CULT.PATHS[n.cult.path].subPaths.some(s=>s.id===n.cult.sub))return {p:{},f:{}};const scale=M.progression(n,stage).scale;return {p:Object.fromEntries(Object.entries(fx.p||{}).map(([k,v])=>[k,v*scale])),f:Object.fromEntries(Object.entries(fx.f||{}).map(([k,v])=>[k,v*scale]))};};
+M.subStats=(n,fx,stage)=>{const cSub=n&&n.cult&&(CULT.resolveSubId?CULT.resolveSubId(n.cult.sub):n.cult.sub);if(!cSub||!CULT.PATHS[n.cult.path].subPaths.some(s=>s.id===cSub))return {p:{},f:{}};const scale=M.progression(n,stage).scale;return {p:Object.fromEntries(Object.entries(fx.p||{}).map(([k,v])=>[k,v*scale])),f:Object.fromEntries(Object.entries(fx.f||{}).map(([k,v])=>[k,v*scale]))};};
 M.SUB_EQUIP_BONUSES={
  SWORD_IMMORTAL:{w:['SWORD'],a:['LIGHT','ROBE'],wb:{p:{atk:0.08,matk:0.06},f:{pen:8,crit:4},reasonTh:'ถือกระบี่ตรงสายเซียนกระบี่'},ab:{p:{eva:0.06},f:{move:4},reasonTh:'สวมเกราะเบา/อาภรณ์คล่องตัว'}},
  PURE_SWORD_SAINT:{w:['SWORD','BLADE'],a:['LIGHT','ROBE'],wb:{p:{atk:0.09},f:{crit:5,pen:8},reasonTh:'ถือกระบี่/ดาบตรงสายนักพรตกระบี่บริสุทธิ์'},ab:{p:{eva:0.06},f:{},reasonTh:'สวมเกราะเบา/อาภรณ์นักกระบี่'}},
  STAR_ARCHER:{w:['BOW'],a:['LIGHT','ROBE'],wb:{p:{atk:0.08},f:{acc:12,crit:4},reasonTh:'ถือธนูตรงสายเซียนศรดารา'},ab:{p:{eva:0.06},f:{move:4},reasonTh:'สวมเกราะเบายิงศรคล่องตัว'}},
  STAFF_GUARD:{w:['STAFF','SPEAR'],a:['HEAVY'],wb:{p:{def:0.10},f:{acc:6},reasonTh:'ถือพลอง/ทวนตรงสายองครักษ์พลองเหล็ก'},ab:{p:{def:0.10,hp:0.06},f:{},reasonTh:'สวมเกราะหนักตั้งปราการ'}},
  SOUND_ZITHER:{w:['ZITHER','FOCUS'],a:['ROBE','LIGHT'],wb:{p:{matk:0.10},f:{cast:6,acc:8},reasonTh:'บรรเลงพิณคีตเวทย์ตรงสายพิณสัจธรรม'},ab:{p:{mdef:0.08},f:{eva:5},reasonTh:'สวมอาภรณ์รับคลื่นคีตเวทย์'}},
- SOUL_MUSICIAN:{w:['ZITHER','FOCUS'],a:['ROBE','LIGHT'],wb:{p:{matk:0.10},f:{acc:8,cast:6},reasonTh:'บรรเลงพิณคีตเวทย์สะกดวิญญาณ'},ab:{p:{mdef:0.09},f:{cast:4},reasonTh:'สวมอาภรณ์นักดนตรีวิญญาณ'}},
+ SEVEN_EMOTIONS_ZITHER:{w:['ZITHER','FOCUS'],a:['ROBE','LIGHT'],wb:{p:{matk:0.10},f:{acc:8,cast:6},reasonTh:'บรรเลงพิณคีตเวทย์สะกดวิญญาณ'},ab:{p:{mdef:0.09},f:{cast:4},reasonTh:'สวมอาภรณ์นักดนตรีวิญญาณ'}},
  ZITHER_HEART_BOW:{w:['ZITHER','BOW','FOCUS'],a:['ROBE','LIGHT'],wb:{p:{matk:0.09,atk:0.06},f:{acc:10,crit:4},reasonTh:'ผสานพิณคีตเวทย์และคันศร'},ab:{p:{mdef:0.08},f:{eva:6},reasonTh:'สวมอาภรณ์เบาสายพิณศร'}},
  CALLIGRAPHY_PAINTING_SAGE:{w:['BRUSH','FOCUS','SWORD'],a:['ROBE','LIGHT'],wb:{p:{matk:0.11},f:{acc:10,cast:6},reasonTh:'ถือพู่กันอาคมวาดอักขระสัจธรรม'},ab:{p:{mdef:0.08},f:{eva:5},reasonTh:'สวมอาภรณ์บัณฑิตพริ้วไหว'}},
  SEAL_SCRIPT_EXORCIST:{w:['BRUSH','FOCUS','SWORD'],a:['ROBE','LIGHT'],wb:{p:{matk:0.10},f:{acc:8,pen:6},reasonTh:'ถือพู่กันอาคมจารึกยันต์สะกดมาร'},ab:{p:{mdef:0.09},f:{cast:4},reasonTh:'สวมอาภรณ์ลงยันต์คุ้มกาย'}},
  THUNDER_TALISMAN_ADEPT:{w:['BRUSH','FOCUS','SWORD'],a:['ROBE','LIGHT'],wb:{p:{matk:0.11},f:{cast:6,crit:4},reasonTh:'ถือพู่กันอาคมเขียนยันต์อสนี'},ab:{p:{mdef:0.08},f:{eva:5},reasonTh:'สวมอาภรณ์นำกระแสสายฟ้า'}},
- GRAND_FORMATION_ARCHITECT:{w:['BRUSH','FOCUS','STAFF'],a:['ROBE','LIGHT'],wb:{p:{matk:0.09,mdef:0.07},f:{acc:10,cast:5},reasonTh:'ถือพู่กันอาคมวางผังค่ายกลใหญ่'},ab:{p:{def:0.06,mdef:0.09},f:{},reasonTh:'สวมอาภรณ์เชื่อมชีพจรค่ายกล'}},
- SPIRIT_THREAD_PUPPET:{w:['WHIP','FOCUS','BLADE'],a:['LIGHT','ROBE'],wb:{p:{atk:0.08,matk:0.08},f:{acc:9,cast:5},reasonTh:'ใช้แส้และด้ายปราณเชิดหุ่นศึก'},ab:{p:{def:0.06,mdef:0.06},f:{eva:5},reasonTh:'สวมเกราะเบาคล่องตัวเชิดหุ่น'}},
+ EARTH_VEIN_WARDEN:{w:['BRUSH','FOCUS','STAFF'],a:['ROBE','LIGHT'],wb:{p:{matk:0.09,mdef:0.07},f:{acc:10,cast:5},reasonTh:'ถือพู่กันอาคมวางผังค่ายกลใหญ่'},ab:{p:{def:0.06,mdef:0.09},f:{},reasonTh:'สวมอาภรณ์เชื่อมชีพจรค่ายกล'}},
  THOUSAND_THREAD_ASSASSIN:{w:['WHIP','BLADE','FOCUS'],a:['LIGHT','ROBE'],wb:{p:{atk:0.10,matk:0.06},f:{crit:5,pen:10},reasonTh:'ใช้ด้ายปราณและมีดสังหารเงา'},ab:{p:{def:0.05},f:{eva:8,move:4},reasonTh:'สวมเกราะเบาเร้นกาย'}},
  FATE_SEVERING_THREAD:{w:['WHIP','FOCUS','SWORD'],a:['ROBE','LIGHT'],wb:{p:{matk:0.10,atk:0.06},f:{acc:10,pen:8},reasonTh:'ใช้ด้ายชะตาและแส้ปราณตัดวาสนา'},ab:{p:{mdef:0.09},f:{eva:5},reasonTh:'สวมอาภรณ์พริ้วหลบเคราะห์กรรม'}},
  CELESTIAL_ARMOR_ARTISAN:{w:['STAFF','FOCUS','BLADE','BRUSH'],a:['HEAVY','LIGHT','ROBE'],wb:{p:{def:0.09,mdef:0.08},f:{acc:6},reasonTh:'ถือค้อนพลอง/พู่กันเขียนผังเกราะ'},ab:{p:{def:0.12,mdef:0.10},f:{},reasonTh:'เข้าถึงแก่นแท้ของเกราะที่สวมใส่'}}
@@ -1079,7 +1068,7 @@ M.SUB_EQUIP_BONUSES={
 const EMPTY_SUB_EQ_BONUS=Object.freeze({active:false,matchedCount:0,weaponMatched:false,armorMatched:false,accessoryMatched:false,wType:'FIST',aType:null,xType:null,preferredWeapons:[],preferredArmor:[],p:{},f:{},reasonsTh:[],summaryTh:''});
 M.evaluateSubEquipmentBonus=n=>{
  if(!n||n.foe||!n.cult||!n.cult.sub||n.cult.sub==='NONE')return EMPTY_SUB_EQ_BONUS;
- const subId=n.cult.sub,cPath=n.cult.path,eq=n.equip||{};
+ const subId=(CULT.resolveSubId?CULT.resolveSubId(n.cult.sub):n.cult.sub),cPath=n.cult.path,eq=n.equip||{};
  const sec=n._subEqCache;
  if(sec&&sec.path===cPath&&sec.sub===subId&&sec.eqW===eq.WEAPON&&sec.eqA===eq.ARMOR&&sec.eqX===eq.ACCESSORY&&sec.st===n.cult.stage&&sec.ver===(n._passVer||0)){
   return sec.out;
@@ -1148,7 +1137,7 @@ M.gearSuitability=(n,it,price)=>{
    }
   }
  }
- const path=paths[c.path]||paths.XIAN,sub=profiles[c.sub],type=M.gearType(it),weapons=sub?sub[3]:path.weapons,armor=sub?sub[4]:path.armor,reasons=[],s=it.st||ST.gearStats(Object.assign({},it));
+ const path=paths[c.path]||paths.XIAN,cSub=(CULT.resolveSubId?CULT.resolveSubId(c.sub):c.sub),sub=profiles[cSub],type=M.gearType(it),weapons=sub?sub[3]:path.weapons,armor=sub?sub[4]:path.armor,reasons=[],s=it.st||ST.gearStats(Object.assign({},it));
  let fit=1;
  if(it.slot==='WEAPON'){
   const wIdx=weapons.indexOf(type);

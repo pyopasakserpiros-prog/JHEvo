@@ -176,6 +176,8 @@ function check(cond, msg) {
     'SUBSTITUTION negates fatal blow and heals 25% Max HP');
 
   // 4.3 Test PARRY_COUNTER melee counter-slash
+  d.x = a.x + 1.0;
+  d.y = a.y;
   COMBAT.COMPOSABLE_ENGINE.executeAction(W, f, d, a, 'IAI_ZERO_QI_SLASH', {}, { triggerKind: 'onHit', dmgDealt: 20 });
   const aHpBeforeParry = COMBAT.hp(a);
   COMBAT.applyDamage(W, f, a, d, 60, 'โจมตีทดสอบอิไอปัดป้อง');
@@ -200,10 +202,12 @@ function check(cond, msg) {
 {
   const W = SIM.create('v220-devour-grave', { masterIdx: 0, archetype: 'devourer' });
   const master = W.byId[W.sect.masterId];
-  ECO.add(W, 'MAT190_ORE_001', 2);
-  const devRes = CULT.GRAND_DAO_MECHANICS.devourResourceForBody(W, master, 'MAT190_ORE_001');
-  check(devRes && devRes.ok === true && ECO.count(W, 'MAT190_ORE_001') === 1,
-    'DEVOURING_FLESH devourResourceForBody consumes real inventory item (Debit = Credit)');
+  const oreReject = CULT.GRAND_DAO_MECHANICS.devourResourceForBody(W, master, 'MAT190_ORE_001');
+  check(oreReject && oreReject.ok === false, 'DEVOURING_FLESH refuses non-organic ore resources');
+  ECO.add(W, 'MAT_BP_BEAST_HEART', 2);
+  const devRes = CULT.GRAND_DAO_MECHANICS.devourResourceForBody(W, master, 'MAT_BP_BEAST_HEART');
+  check(devRes && devRes.ok === true && ECO.count(W, 'MAT_BP_BEAST_HEART') === 1,
+    'DEVOURING_FLESH devourResourceForBody consumes real organic inventory item (Debit = Credit)');
 
   W.graveyard.push({ id: 'fallen_1', nameTh: 'ศิษย์บรรพชน 1' }, { id: 'fallen_2', nameTh: 'ศิษย์บรรพชน 2' });
   const grvRes = CULT.GRAND_DAO_MECHANICS.channelGraveyardEcho(W, master);

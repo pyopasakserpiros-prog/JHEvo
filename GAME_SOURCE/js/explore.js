@@ -7140,7 +7140,16 @@
     else if (k === 'person') { const q = clamp(rng.gauss(1.1, 0.5), 0, 2.5); const nn = W.makeNpc({ quality: q, ageYears: rng.int(16, 30), rank: 0, rootBias: 1, fromExped: true }); if (nn) { nn.x = (ex.px || MAP.EXIT.x) + .5; nn.y = (ex.py || MAP.EXIT.y) + .5; nn.travel = null; nn.h.origin.region = site.nameTh; nn.joinDay = W.day; txt = e[2] + ' ' + nn.h.name.given + ' ขอติดตามเข้าสำนัก'; W.log('recruit', nn.h.name.given + ' ผู้พเนจรจาก' + site.nameTh + ' ตามคณะสำรวจมาเข้าสำนัก', [nn.id]); } }
     else if (k === 'relic') { const r = EX.RELICS[p1]; if (r) { if (dex(W).relics.includes(p1)) { out.stones += 220; txt = 'พบ' + r.nameTh + 'อีกชิ้น (ซ้ำกับที่มี) แปลงเป็นศิลา 220'; } else { dex(W).relics.push(p1); dex(W).codex.relics.push({ id: p1, d: W.day, from: site.nameTh }); out.rep += 4; txt = '★ ได้ของวิเศษ「' + r.nameTh + '」— ' + r.desc; W.log('explore', '★ ' + ex.partyNames + ' ได้ของวิเศษ「' + r.nameTh + '」จาก' + site.nameTh + ' — ' + r.desc, ex.party); note(W, 'ได้ของวิเศษ ' + r.nameTh); } } }
     if (txt) { const c = cdx.found[e.id] = cdx.found[e.id] || { n: 0, d: W.day, by: nm }; c.n++; ex.journal.push(txt); if (e[5] >= 3) out.notes.push(txt); out.rep += 0.15 * e[5]; }
+    if (label !== '_pocketBonus' && ex && (ex._pocketLootRolls || 0) < 2 && Array.isArray(alive) && alive.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT')) {
+      ex._pocketLootRolls = (ex._pocketLootRolls || 0) + 1;
+      lootRoll(W, ex, alive, out, site, d, '_pocketBonus');
+    }
     return txt;
+  }
+  function hazardMitigation(W, ex, alive, auxMods) {
+    const mods = auxMods || (ex && ex.auxiliaryModifiers) || (EX.partyAuxiliaryModifiers ? EX.partyAuxiliaryModifiers(alive, W) : null);
+    const hasWhisper = Array.isArray(alive) && alive.some(m => m && m.cult && m.cult.sub === 'PHRAY_SPIRIT_WHISPER');
+    return clamp(((mods && mods.hazardResistPct) || 0) + (hasWhisper ? 0.16 : 0), 0, 0.65);
   }
   function dmgOne(W, alive, frac, why) { const v = W.rng.pick(alive); v.h.state.hp = Math.max(1, v.h.state.hp - CULT.hpMax(v) * frac); if (frac > 0.3) AI.injure(W, v, frac > 0.5 ? 2 : 1, why); return v; }
   function runEnc(W, ex, alive, out, site, d, enc) {
@@ -7158,9 +7167,10 @@
       const per = best(m => E(m, 'intellect.perceptiveness')), chk = per * 0.7 + (luck - 45) / 6 + rng.gauss(0, 10) + (k === 'gather' ? best(m => (m.h.skills.herbalism || 0) + (m.h.skills.mining || 0)) * 0.25 : 0);
       if (chk > 28 + d * 8) { ex.journal.push('พบ' + text); lootRoll(W, ex, alive, out, site, d); if (k === 'gather' || rng.chance(0.3)) lootRoll(W, ex, alive, out, site, d); } else if (rng.chance(0.4)) { ex.journal.push(text + ' เป็นกับดัก'); dmgOne(W, alive, 0.08 + rng.next() * 0.12, 'ติดกับดัก'); } else ex.journal.push('สำรวจ' + text + ' แต่ไม่พบอะไร');
     } else if (k === 'hazard') {
-      const chk = avg(m => E(m, 'physiology.endurance') * 0.4 + E(m, 'intellect.intuition') * 0.4) + surv * 0.3 + (luck - 45) / 8 + rng.gauss(0, 11);
+      const hazRes = hazardMitigation(W, ex, alive);
+      const chk = avg(m => E(m, 'physiology.endurance') * 0.4 + E(m, 'intellect.intuition') * 0.4) + surv * 0.3 + (luck - 45) / 8 + hazRes * 35 + rng.gauss(0, 11);
       if (chk > 26 + d * 9) { ex.journal.push('ผ่าน' + text + ' ไปได้'); alive.forEach(m => (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(m, 'survival', 0.4, 1)); }
-      else { ex.journal.push('ถูก' + text + 'เล่นงาน'); const v = dmgOne(W, alive, 0.1 + rng.next() * 0.25 * (d / 3 + 0.5), 'ถูก' + text); alive.forEach(m => HC.feel(m, { stress: 3 })); }
+      else { ex.journal.push('ถูก' + text + 'เล่นงาน'); const hazFrac = (0.1 + rng.next() * 0.25 * (d / 3 + 0.5)) * (1 - hazRes * 0.70); const v = dmgOne(W, alive, hazFrac, 'ถูก' + text); alive.forEach(m => HC.feel(m, { stress: 3 })); }
     } else if (k === 'lore') {
       const chk = best(m => E(m, 'intellect.comprehension') * 0.5 + E(m, 'intellect.reasoning') * 0.3 + (m.h.skills.SCRIPTURE || 0) * 0.3) + rng.gauss(0, 9);
       if (chk > 32 + d * 6) { const v = rng.weighted(alive, a => 1 + E(a, 'intellect.comprehension') / 50); if (v.cult) CULT.gain(v, CULT.threshold(v) * 0.07); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(v, 'SCRIPTURE', 2.5, 1.3); HC.experience(v, 'insight', 0.5); const wd = dex(W).codex.worlds[site.id] = dex(W).codex.worlds[site.id] || { visits: 0, lore: 0 }; wd.lore = (wd.lore || 0) + 1; ex.journal.push('ถอดความ' + text + ' ได้'); if (wd.lore % 3 === 0) { site.loot.length && lootRoll(W, ex, alive, out, site, d + 0.5); } } else ex.journal.push('ไม่เข้าใจ' + text);
@@ -7727,8 +7737,14 @@
         }
         ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ปราบ' + fl.guardianNameTh + ' [ชุดสัจธรรม 3/3 · ' + fl.weaponType + '] สำเร็จ รับ「' + (ECO.REFINEMENT_CATALYSTS[fl.catalystId]?.nameTh || fl.catalystId) + '」');
         alive.forEach(m => HC.experience(m, 'duel_win', 0.55));
+        if (alive.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT')) {
+          const pocketBonus = 30 + fl.floor * 12;
+          out.stones += pocketBonus;
+          out._pocketArchitectBonus = (out._pocketArchitectBonus || 0) + pocketBonus;
+        }
+        const hazMit = 1 - hazardMitigation(W, ex, alive, auxMods) * 0.55;
         if (!ex.forceClear && fl.floor < sc.floors.length) {
-          dmgOne(W, alive, clamp((1 - winProb) * 0.35, 0.04, 0.24), 'ปะทะผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
+          dmgOne(W, alive, clamp((1 - winProb) * 0.35 * hazMit, 0.025, 0.24), 'ปะทะผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
           const avgHp = alive.reduce((s, m) => s + (m.h.state.hp / Math.max(1, CULT.hpMax(m))), 0) / alive.length;
           if (avgHp < 0.38) {
             out.retreated = true;
@@ -7742,7 +7758,8 @@
         out.retreated = true;
         out.failedFloor = fl.floor;
         out.retreatReason = 'defeated';
-        dmgOne(W, alive, 0.25, 'พ่ายต่อผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
+        const hazMitDefeat = 1 - hazardMitigation(W, ex, alive, auxMods) * 0.45;
+        dmgOne(W, alive, clamp(0.25 * hazMitDefeat, 0.12, 0.25), 'พ่ายต่อผู้พิทักษ์วิหาร ' + fl.guardianNameTh);
         ex.journal.push('ชั้น ' + fl.floor + ' (' + fl.nameTh + '): ต้านพลังชุดสัจธรรมของ' + fl.guardianNameTh + ' ไม่ไหว ต้องถอยกลับ');
         break;
       }

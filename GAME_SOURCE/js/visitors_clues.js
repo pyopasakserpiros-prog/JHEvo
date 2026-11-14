@@ -458,7 +458,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ANY'],
-      preferredSubs: ['SOUND_ZITHER', 'SOUL_MUSICIAN', 'ZITHER_HEART_BOW', 'CHANT_RESONANCE', 'CELESTIAL_ZITHER_ENVOY'],
+      preferredSubs: ['SOUND_ZITHER', 'SEVEN_EMOTIONS_ZITHER', 'ZITHER_HEART_BOW', 'CELESTIAL_ZITHER_ENVOY'],
       fixedStats: { atk: 360, matk: 880, mdef: 275, acc: 240, crit: 12, critDmg: 26, cast: 18, pen: 16 },
       effects: [
         {
@@ -494,7 +494,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['ARRAY_TALISMAN', 'SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'KARMA_SAMSARA', 'ANY'],
-      preferredSubs: ['CALLIGRAPHY_PAINTING_SAGE', 'GRAND_FORMATION_ARCHITECT', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'GRAND_STRATEGIST', 'UNDERWORLD_DECREE'],
+      preferredSubs: ['CALLIGRAPHY_PAINTING_SAGE', 'EARTH_VEIN_WARDEN', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'BATTLEFIELD_STRATEGIST', 'SIX_PATHS_WHEEL'],
       fixedStats: { atk: 380, matk: 860, def: 210, mdef: 265, acc: 255, crit: 11, critDmg: 26, cast: 16, pen: 18 },
       effects: [
         {
@@ -530,7 +530,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['MECH_PUPPET', 'KARMA_SAMSARA', 'DEMON', 'BEAST_SOVEREIGN', 'ANY'],
-      preferredSubs: ['SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'PACK_COMMAND_HUNT', 'THOUSAND_THREAD_PUPPETEER', 'RED_THREAD_ARBITER'],
+      preferredSubs: ['THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'MYRIAD_BEAST_PACK'],
       fixedStats: { atk: 690, matk: 620, def: 195, mdef: 215, acc: 245, crit: 13, critDmg: 28, pen: 22, move: 8 },
       effects: [
         {
@@ -815,7 +815,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ARRAY_TALISMAN', 'ANY'],
-      preferredSubs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY', 'CALLIGRAPHY_PAINTING_SAGE', 'GRAND_FORMATION_ARCHITECT', 'SWORD_IMMORTAL'],
+      preferredSubs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY', 'CALLIGRAPHY_PAINTING_SAGE', 'EARTH_VEIN_WARDEN', 'SWORD_IMMORTAL'],
       fixedStats: { hp: 920, def: 340, mdef: 520, matk: 280, eva: 145, cast: 18, move: 14 },
       effects: [
         {
@@ -855,7 +855,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['DEMON', 'MECH_PUPPET', 'BEAST_SOVEREIGN', 'KARMA_SAMSARA', 'ANY'],
-      preferredSubs: ['SHADOW_ASSASSIN', 'SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'SYMBIOTIC_FANG_FUSION', 'FATE_SEVERING_THREAD'],
+      preferredSubs: ['SHADOW_ASSASSIN', 'THOUSAND_THREAD_ASSASSIN', 'SYMBIOTIC_BEAST_WARRIOR', 'FATE_SEVERING_THREAD'],
       fixedStats: { hp: 1080, def: 460, mdef: 410, atk: 240, crit: 10, critDmg: 24, eva: 130, move: 12 },
       effects: [
         {
@@ -895,7 +895,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['BODY', 'GOD', 'STRATEGY_GOVERNANCE', 'CRAFT_CREATION', 'ANY'],
-      preferredSubs: ['TITAN_MOUNTAIN_BODY', 'VAJRA_BODHI', 'IRON_COLOSSUS', 'IRON_LEGION_MARSHAL', 'COLOSSUS_SHIELD_TAMER'],
+      preferredSubs: ['TITAN_MOUNTAIN_BODY', 'VAJRA_BODHI', 'HEAVENLY_GOLEM', 'BATTLEFIELD_STRATEGIST', 'COLOSSUS_SHIELD_TAMER'],
       fixedStats: { hp: 1450, def: 640, mdef: 540, atk: 190, pen: 10 },
       effects: [
         {
@@ -938,7 +938,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['KARMA_SAMSARA', 'DEMON', 'XIAN', 'MECH_PUPPET', 'ANY'],
-      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'RED_THREAD_ARBITER', 'PAST_LIFE_MIRROR'],
+      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'PAST_LIFE_MIRROR'],
       fixedStats: { atk: 260, matk: 310, hp: 520, crit: 12, critDmg: 26, pen: 16, acc: 140 },
       effects: [
         {
@@ -1018,7 +1018,7 @@
       craft: 'ARRAY',
       durability: 100,
       compatiblePath: ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'CRAFT_CREATION', 'XIAN', 'ANY'],
-      preferredSubs: ['GRAND_STRATEGIST', 'IMPERIAL_PEACE_SOVEREIGN', 'IRON_LEGION_MARSHAL', 'GRAND_FORMATION_ARCHITECT', 'QIMEN_TALISMAN_PATRON'],
+      preferredSubs: ['BATTLEFIELD_STRATEGIST', 'SECT_STEWARD', 'EARTH_VEIN_WARDEN', 'QIMEN_TALISMAN_PATRON'],
       fixedStats: { atk: 290, matk: 290, def: 260, mdef: 260, hp: 560, cast: 15, move: 10, pen: 14 },
       effects: [
         {
@@ -1058,7 +1058,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['XIAN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'BEAST_SOVEREIGN', 'ANY'],
-      preferredSubs: ['YIN_YANG_HARMONY', 'CELESTIAL_ZITHER_ENVOY', 'PILL_FLAME_SOVEREIGN', 'SYMBIOTIC_FANG_FUSION', 'GOLDEN_NEEDLE_SAINT'],
+      preferredSubs: ['YIN_YANG_HARMONY', 'CELESTIAL_ZITHER_ENVOY', 'PILL_FURNACE_IMMORTAL', 'SYMBIOTIC_BEAST_WARRIOR', 'GOLDEN_NEEDLE_SAINT'],
       fixedStats: { atk: 270, matk: 320, def: 250, mdef: 290, hp: 610, cast: 18, eva: 120, crit: 10 },
       effects: [
         {
@@ -1345,11 +1345,21 @@
             attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
           }
         } else if (eid === 'EFX_LEG_XIAOLI_TRUE_STRIKE') {
+          const isZeroQi = !!(CULT && CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker));
           const qm = CULT.qiMax(attacker);
           const needQi = Math.max(1, Math.round(qm * (p.qiCostPct || 0.04)));
-          if ((attacker.h.state.qi || 0) >= needQi) {
+          const needGauge = p.iaiCost || 8;
+          const canPay = isZeroQi
+            ? (attacker.pathGauge && (attacker.pathGauge.value || 0) >= needGauge)
+            : ((attacker.h.state.qi || 0) >= needQi);
+          if (canPay) {
             attacker.wpnProcCds[eid] = W.t + icd;
-            attacker.h.state.qi = Math.max(0, attacker.h.state.qi - needQi);
+            if (isZeroQi) {
+              attacker.pathGauge.value = Math.max(0, (attacker.pathGauge.value || 0) - needGauge);
+              if (attacker.pathGauge.value < (attacker.pathGauge.max || 100)) attacker.pathGauge.ready = false;
+            } else {
+              attacker.h.state.qi = Math.max(0, attacker.h.state.qi - needQi);
+            }
             if (strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
               const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.20)));
               COMBAT.applyDamage(W, f, attacker, defender, extra, 'มีดบินเสี่ยวหลี่');
@@ -1663,7 +1673,11 @@
     // If wielder has Xiaoli Heart Dagger and proc is ready, guarantee hit (forced: true)
     if (a && !a.foe && a.equip && a.equip.WEAPON && a.equip.WEAPON.id === 'LEG_WPN_XIAOLI_HEART_DAGGER' && (!M.gearUsable || M.gearUsable(a, a.equip.WEAPON))) {
       const cd = (a.wpnProcCds && a.wpnProcCds.EFX_LEG_XIAOLI_TRUE_STRIKE) || 0;
-      if (W.t >= cd && (a.h.state.qi || 0) >= Math.max(1, CULT.qiMax(a) * 0.04)) {
+      const isZeroQi = !!(CULT && CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(a));
+      const canTrigger = isZeroQi
+        ? (a.pathGauge && (a.pathGauge.value || 0) >= 8)
+        : ((a.h.state.qi || 0) >= Math.max(1, CULT.qiMax(a) * 0.04));
+      if (W.t >= cd && canTrigger) {
         oMod.forced = true;
       }
     }

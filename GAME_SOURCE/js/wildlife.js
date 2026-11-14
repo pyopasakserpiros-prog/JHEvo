@@ -406,6 +406,7 @@
     can: (n, W) => { const bs = W.wildlife && W.wildlife.beasts; if (!(bs && bs.length && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > (n._nd ? n._nd.hpMax : CULT.hpMax(n)) * 0.6)) return false; let minP = Infinity; for (let i = 0; i < bs.length; i++) { const b = bs[i]; if (!b.dead && !b.gone && !b.fighting && b.power < minP) minP = b.power; } if (minP === Infinity) return false; return CULT.power(n) >= minP * 0.8; },
     score(n, W, S) {
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
+      if (n.cult && n.cult.path === 'BODY') S.add('ขัดเกลากายาผ่านการล่าอสูร', 0.85);
       S.add('ต้องการวัตถุดิบ', 0.35);
       if (n.rank <= 2) S.add('ฝึกฝนความกล้า', 0.2);
     },

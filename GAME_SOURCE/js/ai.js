@@ -148,31 +148,52 @@
     let best = null, bd = 1e9;
     const stations = W.map.stations;
     const nx = n ? n.x : 118, ny = n ? n.y : 70;
-    if (typeof bkeys === 'string') {
-      const b = W.map.byId[bkeys] || (MAP.getPeakBuilding && MAP.getPeakBuilding(W.map, bkeys));
-      if (!b) return null;
-      if (b.isPeakSanctuary && MAP.isPeakBuildingActive && !MAP.isPeakBuildingActive(W, b)) return null;
+    const matchKindFor = (s, isPeak) => {
+      if (s.kind === kind) return true;
+      if (kind === 'eat' && (s.kind === 'pantry' || s.kind === 'eat')) return true;
+      if (kind === 'sleep' && s.kind === 'bed') return true;
+      if (kind === 'dummy' && s.kind === 'practice') return true;
+      if (isPeak) {
+        if ((kind === 'lift' || kind === 'practice') && s.kind === 'practice') return true;
+        if (kind === 'bed' && s.kind === 'bed') return true;
+      }
+      return false;
+    };
+    const scanBuilding = (b, distMult) => {
+      if (!b || !Array.isArray(b.stations)) return;
+      if (b.isPeakSanctuary && MAP.isPeakBuildingActive && !MAP.isPeakBuildingActive(W, b)) return;
+      const isPeak = !!b.isPeakSanctuary;
       const stIds = b.stations;
       for (let i = 0; i < stIds.length; i++) {
         const s = stations[stIds[i]];
         if (!s || s.occ) continue;
         if (s.peakId && s.active === false) continue;
-        const matchKind = s.kind === kind || (kind === 'eat' && s.kind === 'pantry') || (kind === 'dummy' && s.kind === 'practice');
-        if (!matchKind) continue;
+        if (!matchKindFor(s, isPeak)) continue;
         if (owner != null && s.owner != null && s.owner !== owner) continue;
-        const d = Math.abs(s.x - nx) + Math.abs(s.y - ny);
+        const d = (Math.abs(s.x - nx) + Math.abs(s.y - ny)) * (distMult || 1);
         if (d < bd) { bd = d; best = s; }
       }
-      // If disciple belongs to an awakened Peak Sanctuary and is looking for food at canteen, also check their Peak's local pantry
-      if (n && n.peakId && bkeys === 'canteen' && kind === 'eat' && MAP.getPeakBuilding) {
+    };
+    if (typeof bkeys === 'string') {
+      if (bkeys === 'PEAK_SELF') {
+        if (!n || !n.peakId || n.isIndependentFromPeak || !MAP.getPeakBuilding) return null;
         const pb = MAP.getPeakBuilding(W.map, n.peakId);
-        if (pb && MAP.isPeakBuildingActive(W, pb)) {
-          for (let i = 0; i < pb.stations.length; i++) {
-            const s = stations[pb.stations[i]];
-            if (!s || s.occ || (s.kind !== 'pantry' && s.kind !== 'eat')) continue;
-            const d = Math.abs(s.x - nx) + Math.abs(s.y - ny);
-            if (d < bd) { bd = d; best = s; }
-          }
+        scanBuilding(pb, 1);
+        return best;
+      }
+      const b = W.map.byId[bkeys] || (MAP.getPeakBuilding && MAP.getPeakBuilding(W.map, bkeys));
+      if (!b) return null;
+      if (b.isPeakSanctuary && MAP.isPeakBuildingActive && !MAP.isPeakBuildingActive(W, b)) return null;
+      scanBuilding(b, 1);
+      // If disciple belongs to an awakened Peak Sanctuary, also consider their Peak Sanctuary stations for equivalent daily/training roles
+      if (!b.isPeakSanctuary && n && n.peakId && !n.isIndependentFromPeak && MAP.getPeakBuilding) {
+        const mapPeakRole = (bkeys === 'canteen' && kind === 'eat')
+          || (bkeys === 'meditation_hall' && kind === 'meditate')
+          || (bkeys === 'training_ground' && (kind === 'dummy' || kind === 'lift' || kind === 'practice'))
+          || ((bkeys.startsWith('dorm_') || bkeys === 'elder_quarters') && (kind === 'bed' || kind === 'sleep'));
+        if (mapPeakRole) {
+          const pb = MAP.getPeakBuilding(W.map, n.peakId);
+          scanBuilding(pb, 0.9);
         }
       }
       return best;
@@ -180,18 +201,7 @@
     const list = bkeys ? bkeys : W.map.buildings;
     for (let j = 0; j < list.length; j++) {
       const b = typeof list[j] === 'string' ? (W.map.byId[list[j]] || (MAP.getPeakBuilding && MAP.getPeakBuilding(W.map, list[j]))) : list[j];
-      if (!b) continue;
-      if (b.isPeakSanctuary && MAP.isPeakBuildingActive && !MAP.isPeakBuildingActive(W, b)) continue;
-      const stIds = b.stations;
-      for (let i = 0; i < stIds.length; i++) {
-        const s = stations[stIds[i]];
-        if (!s || s.occ) continue;
-        if (s.peakId && s.active === false) continue;
-        if (s.kind !== kind) continue;
-        if (owner != null && s.owner != null && s.owner !== owner) continue;
-        const d = Math.abs(s.x - nx) + Math.abs(s.y - ny);
-        if (d < bd) { bd = d; best = s; }
-      }
+      scanBuilding(b, 1);
     }
     return best;
   };
@@ -649,28 +659,36 @@
         if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
         return null;
       }
-      if (c.path === 'MERCANTILE_DAO') {
-        const sMc = AI.freeStation(W, n, 'browse', 'market') || AI.freeStation(W, n, 'work', 'main_hall') || AI.freeStation(W, n, 'read', 'scripture');
-        if (sMc) return { st: sMc, mult: 1.50 };
-        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
+      if (['XIAN', 'BODY', 'GOD'].includes(c.path)) {
+        const kind = c.path === 'XIAN' ? 'meditate' : c.path === 'BODY' ? 'lift' : 'worship';
+        const bk = c.path === 'XIAN' ? 'meditation_hall' : c.path === 'BODY' ? 'training_ground' : 'shrine';
+        const s = AI.freeStation(W, n, kind, bk);
+        if (s) {
+          const mult = (s.peakId && MAP && MAP.getPeakBuilding)
+            ? 1.58 + 0.16 * Math.max(0, ((MAP.getPeakBuilding(W.map, s.peakId) || {}).level || 1) - 1)
+            : (kind === 'meditate' ? 1.55 + 0.2 * (W.map.byId.meditation_hall.level - 1) : kind === 'lift' ? 1.15 + 0.12 * (W.map.byId.training_ground.level - 1) : 1.25);
+          return { st: s, mult };
+        }
+        if (c.path === 'XIAN' && n.bed != null) return { st: W.map.stations[n.bed], mult: 0.6, room: true };
+        if (c.path === 'BODY') {
+          const d = AI.freeStation(W, n, 'dummy', 'training_ground');
+          if (d) return { st: d, mult: 0.95 };
+          const anv = AI.freeStation(W, n, 'anvil', 'forge');
+          if (anv) return { st: anv, mult: 0.90 };
+          const med = AI.freeStation(W, n, 'meditate', 'meditation_hall');
+          if (med) return { st: med, mult: 0.85, passiveSit: true };
+          if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.6, room: true, passiveSit: true };
+        }
         return null;
       }
-      if (c.path === 'VOID_SPACE' || c.path === 'CELESTIAL_WEATHER' || c.path === 'WANDERING_DAO' || c.path === 'DRAGON_VEIN_GEOMANCY' || c.path === 'GRAVITY_DAO' || c.path === 'SOUL_PUPPETRY' || c.path === 'PRIMORDIAL_CHAOS' || ['SHADOW_SAMURAI','NINPO_SHADOW','NINPO_ELEMENTAL','DIVINE_SUMMONER','DIVINE_POSSESSION','DIVINE_CHANNELER','VOID_HERETIC_PACT','OCCULT_MAGE','DEVOURING_FLESH','NETHER_GRAVE','ANCESTRAL_RITUAL','TIDE_VOYAGER','LORE_ARCHIVIST','FORTUNE_GAMBLER','SPIRIT_HUSBANDRY','ARENA_GLORY'].includes(c.path)) {
-        const sGd = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond') || AI.freeStation(W, n, 'array', 'forge');
-        if (sGd) return { st: sGd, mult: 1.52 };
-        if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
-        return null;
+      if (CULT && CULT.resolvePathStations) {
+        return CULT.resolvePathStations(W, n, 'cultivate');
       }
-      const kind = c.path === 'XIAN' ? 'meditate' : c.path === 'BODY' ? 'lift' : 'worship';
-      const bk = c.path === 'XIAN' ? 'meditation_hall' : c.path === 'BODY' ? 'training_ground' : 'shrine';
-      const s = AI.freeStation(W, n, kind, bk);
-      if (s) return { st: s, mult: kind === 'meditate' ? 1.55 + 0.2 * (W.map.byId.meditation_hall.level - 1) : kind === 'lift' ? 1.1 + 0.1 * (W.map.byId.training_ground.level - 1) : 1.25 };
-      if (c.path === 'XIAN' && n.bed != null) return { st: W.map.stations[n.bed], mult: 0.6, room: true };
-      if (c.path === 'BODY') { const d = AI.freeStation(W, n, 'dummy', 'training_ground'); if (d) return { st: d, mult: 0.8 }; }
       return null;
     },
     dur: n => Math.round(100 + E(n, 'personality.discipline') * 1.4 + E(n, 'intellect.focus') * 0.6),
     start(n, W, ctx) {
+      if (CULT && CULT.evaluateAutonomousPostures) CULT.evaluateAutonomousPostures(W, n, { trigger: 'cultivate' });
       // ใช้โอสถที่มี (ถ้าเหมาะ)
       const c = n.cult;
       const maxTox = c.path === 'DEMON' ? 52 : 35;
@@ -682,9 +700,14 @@
       return true;
     },
     tick(n, W, ctx) {
+      ctx = ctx || (n.act && n.act.ctx) || {};
       const c = n.cult, s = n.h.state;
-      const r = CULT.rate(n, ctx.mult || 1) / 60;
-      CULT.gain(n, r, W, 'cultivate_rate'); if (c.pillT > 0) c.pillT--;
+      const passiveBodyPen = (c.path === 'BODY' && ctx && (ctx.passiveSit || ctx.room) && !(c.bodyTemperT > 0 || c.pillT > 0)) ? 0.75 : 1;
+      const r = CULT.rate(n, (ctx.mult || 1) * passiveBodyPen) / 60;
+      CULT.gain(n, r, W, 'cultivate_rate'); if (c.pillT > 0) c.pillT--; if (c.bodyTemperT > 0) c.bodyTemperT--;
+      if (c.path === 'XIAN' && (CULT.resolveSubId ? CULT.resolveSubId(c.sub) : c.sub) === 'BLOOD_DEMON' && s && (s.heartDemon || 0) < 95) {
+        s.heartDemon = Math.min(95, (s.heartDemon || 0) + 0.025);
+      }
       if (CULT.MANTRA_SYSTEM && n.mantraState) CULT.MANTRA_SYSTEM.stepMeditationResonance(W, n);
       if (CULT.SUPPORT_ARTS && n.supportState && (W.t % 15 === 0)) CULT.SUPPORT_ARTS.stepFacilityAndDailySynergy(W, n);
       const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1));
@@ -776,8 +799,18 @@
           HC.trainMind(n, 'planning', 0.9);
           HC.gainWisdom(n, 0.006);
         }
-      } else if (W.t % 30 === 0) {
-        HC.trainMind(n, 'focus', 1); HC.gainWisdom(n, 0.004);
+      } else {
+        const pd = CULT.getPathDescriptor && CULT.getPathDescriptor(c.path);
+        const pc = pd && pd.cult;
+        const isBuddha = c.path === 'BUDDHA_DHARMA';
+        s.heartDemon = Math.max(0, (s.heartDemon || 0) - (isBuddha ? 0.06 : 0.03));
+        if (isBuddha) s.stress = Math.max(0, (s.stress || 0) - 0.012);
+        if (W.t % 25 === 0) {
+          if (pc && pc.s1) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, pc.s1, 0.075, 1.15);
+          if (pc && pc.s2) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, pc.s2, 0.055, 1.10);
+          HC.trainMind(n, (pc && pc.mind) || 'focus', isBuddha ? 1.15 : 0.9);
+          HC.gainWisdom(n, isBuddha ? 0.007 : 0.005);
+        }
       }
       s.stress = Math.max(0, s.stress - 0.012);
       if (W.t % 15 === 0) { s.mp = (s.mp || 0); }
@@ -790,6 +823,8 @@
       }
       if (s.energy < 12 || s.rest < 12) return 'done';
       if (!CULT.isZeroQiSamurai || !CULT.isZeroQiSamurai(n)) { const qm = (n._nd && n._nd.qiMax) ? n._nd.qiMax : CULT.qiMax(n); s.qi = Math.min(qm, (s.qi || 0) + 0.4); }
+      const _gpd = CULT.getPathDescriptor && CULT.getPathDescriptor(c.path);
+      if (_gpd && _gpd.cult && _gpd.cult.gaugePerTick && CULT.gainPathGauge) CULT.gainPathGauge(n, _gpd.cult.gaugePerTick);
       AI.vf(n, { martialPeak: 0.045 });
     },
     done(n, W) {
@@ -825,8 +860,12 @@
       S.add('ตบะเต็มพร้อมทะลวง', 1.8);
       S.add('โอกาสสำเร็จ ' + Math.round(p * 100) + '%', (p - 0.45) * 2.2 * (0.6 + (E(n, 'personality.courage') - 30) / 120) - (E(n, 'personality.caution') - 50) / 90 * (1 - p));
       S.add('ทะเยอทะยาน', (E(n, 'personality.ambition') - 50) / 120);
+      if (n.cult && n.cult.path === 'GOD' && n.cult.stage >= 2 && CULT.godStageGateStatus) {
+        const gs = CULT.godStageGateStatus(W, n);
+        if (!gs.faithOk || !gs.influenceOk) S.add('ศรัทธาหรือบารมีสำนักยังไม่พร้อมต่อยอดเทวาลัย', -1.45);
+      }
     },
-    where(W, n) { const c = n.cult; const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT'].includes(c.path); const isCraft = c.path === 'CRAFT_CREATION'; const preferAlc = isCraft && ((n.h.skills.ALCHEMY || 0) >= (n.h.skills.FORGING || 0) || c.sub === 'PILL_FURNACE_IMMORTAL' || c.sub === 'POISON_VENOM_CAULDRON'); const kind = isMed ? 'meditate' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'lift' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'anvil' : (isCraft && preferAlc) ? 'cauldron' : c.path === 'DEMON' ? 'explore' : 'worship'; const bk = isMed ? 'meditation_hall' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'training_ground' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'forge' : (isCraft && preferAlc) ? 'alchemy' : c.path === 'DEMON' ? 'ruin' : 'shrine'; let s = AI.freeStation(W, n, kind, bk); if (!s) s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond'); return s ? { st: s } : (n.bed != null ? { st: W.map.stations[n.bed], room: true } : null); },
+    where(W, n) { const r = CULT.resolvePathStations && CULT.resolvePathStations(W, n, 'breakthrough'); if (r && r.st) return { st: r.st }; let s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond'); return s ? { st: s } : (n.bed != null ? { st: W.map.stations[n.bed], room: true } : null); },
     dur: n => 15,
     start(n, W, ctx) {
       // ขอโอสถทะลวงจากคลังตามสิทธิ (ขึ้นกับเจ้าสำนัก/ความสัมพันธ์)
@@ -933,6 +972,7 @@
     tick(n, W, ctx) {
       const s = n.h.state; const head = SECT.holder(W, 'martial'); const q = 1 + (head && !head.dead ? 0.25 + E(head, 'social.teaching') / 300 : 0) + 0.1 * (W.map.byId.training_ground.level - 1);
       (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, ctx.skill, 1 / 60, q);
+      if (n.cult && n.cult.path === 'BODY') CULT.gain(n, CULT.rate(n, 3.5) / 60, W, 'body_practice');
       if (W.t % 25 === 0) { HC.trainBody(n, 'strength', 1); HC.trainBody(n, 'reflex', 1); HC.trainBody(n, 'agility', 1); HC.trainBody(n, 'explosiveness', 0.8); }
       if (W.t % 45 === 0 && n.cult && Array.isArray(n.cult.techs) && n.cult.techs.length && g.SK && g.SK.gainMastery) {
         const activeIds = (g.MARTIAL && g.MARTIAL.activeTechs) ? g.MARTIAL.activeTechs(n) : n.cult.techs;
@@ -997,8 +1037,12 @@
     },
     done(n, W) {
       n.merit += 0.3;
-      if (n.cult && g.SECT && g.SECT.PATH_LIBRARY && typeof g.SECT.PATH_LIBRARY.canDiscipleStudyPath === 'function') {
-        g.SECT.PATH_LIBRARY.canDiscipleStudyPath(W, n, n.cult.path);
+      if (n.cult && n.cult.path && g.SECT && g.SECT.PATH_LIBRARY && !g.SECT.PATH_LIBRARY.isPathUnlocked(W, n.cult.path)) {
+        const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult.stage || 1);
+        const canAuthorPrimer = (n.rank >= 4 || n.post === 'scripture' || (W.sect && n.id === W.sect.masterId)) && effSt >= 3 && (E(n, 'intellect.comprehension') >= 45 || (n.h && n.h.skills && (n.h.skills.SCRIPTURE || 0) >= 25));
+        if (canAuthorPrimer) {
+          g.SECT.PATH_LIBRARY.unlockPath(W, n.cult.path, { source: 'elder_inscription', byId: n.id, byNpc: n });
+        }
       }
       if (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
         const studyEvKey = n._justCompletedStudyId ? ('tech:' + n._justCompletedStudyId) : ('tick:' + W.t);
@@ -1027,6 +1071,7 @@
     }
     const ids = CULT.learnable(n, lib).map(id => CULT.tech(id)).filter(t => {
       if (!t || (t.reqTier || t.tier) > cap) return false;
+      if (t.path && t.path !== 'ANY' && g.SECT && g.SECT.PATH_LIBRARY && !g.SECT.PATH_LIBRARY.canDiscipleStudyPath(W, n, t.path)) return false;
       if (t.passive || t.cat === 'PASSIVE' || t.legendary || t.isSectHeritage) return true;
       if (activeKnown.length >= maxAct && CULT.techRetentionScore) {
         return CULT.techRetentionScore(n, t) > minReplaceScore + 15;
@@ -1102,7 +1147,7 @@
         const r = ECO.recipeById[ctx.rid];
         return !!r && ECO.craftEligible(W, n, r, hall) && (n.h.skills[r.craft] || 0) + 20 >= r.minMastery && ECO.reserveInputs(W, r, ctx, n);
       },
-      tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); n.h.state.rest -= 0.02; AI.vf(n, { knowledgeCraft: 0.05, sectDuty: 0.02 }); if (W.t % 45 === 0) HC.trainBody(n, 'dexterity', 0.8); if (n.cult && (n.cult.path === 'CRAFT_CREATION' || (Array.isArray(n.cult.techs) && n.cult.techs.includes('PASS_CROSS_CRAFT_004')))) { const cMult = n.cult.path === 'CRAFT_CREATION' ? 1.35 : 0.65; CULT.gain(n, CULT.rate(n, cMult) / 60, W, 'craft_tick'); } },
+      tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); n.h.state.rest -= 0.02; AI.vf(n, { knowledgeCraft: 0.05, sectDuty: 0.02 }); if (W.t % 45 === 0) HC.trainBody(n, 'dexterity', 0.8); if (n.cult && (n.cult.path === 'CRAFT_CREATION' || (Array.isArray(n.cult.techs) && n.cult.techs.includes('PASS_CROSS_CRAFT_004')))) { const cMult = n.cult.path === 'CRAFT_CREATION' ? 1.35 : 0.65; CULT.gain(n, CULT.rate(n, cMult) / 60, W, 'craft_tick'); } if (n.cult && n.cult.path === 'BODY' && hall === 'forge') { CULT.gain(n, CULT.rate(n, 3.5) / 60, W, 'body_forge'); if (W.t % 30 === 0) HC.trainBody(n, 'strength', 0.6); } },
       done(n, W, ctx) {
         if (ctx && ctx.catalystRefine) {
           const refRes = ECO.refineGearWithCatalyst ? ECO.refineGearWithCatalyst(W, ctx.gearUid, ctx.catalystId, n) : null;
@@ -1168,21 +1213,33 @@
     tick(n, W, ctx) {
       n.h.state.energy = Math.max(0, n.h.state.energy - 0.06); n.h.state.rest -= 0.03; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'herbalism', 1 / 60, 1);
       if (W.t % 60 === 0) {
+        const isHus = !!(n.cult && (n.cult.path === 'SPIRIT_HUSBANDRY' || n.cult.sub === 'IMMORTAL_HERB_PLANTER' || n.cult.sub === 'SPIRIT_GRAIN_SOVEREIGN'));
+        const harvestHours = isHus ? 1.35 : 1;
         if (ctx.herb) {
-          const got = ECO.harvestHerb(W, n, 1);
+          const got = ECO.harvestHerb(W, n, harvestHours);
           ctx.got = (ctx.got || 0) + got.length;
           if (got.length && (W.t + n.n) % 3 === 0) {
             W.log('craft', n.h.name.given + ' เก็บเกี่ยวสมุนไพรวิญญาณ ' + ECO.name(got[0]) + ' จากแปลงสมุนไพร', [n.id]);
           }
         } else {
-          ctx.got = (ctx.got || 0) + ECO.harvestGrain(W, n, 1);
+          ctx.got = (ctx.got || 0) + ECO.harvestGrain(W, n, harvestHours);
+        }
+        if (isHus) {
+          CULT.gain(n, 0.85, W, 'spirit_husbandry_farm');
+          (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'herbalism', 0.35, 1.15);
         }
         HC.trainBody(n, 'endurance', 0.8);
       }
       AI.vf(n, { sectDuty: 0.03, freedom: 0.01 });
       if (n.h.state.energy < 12) return 'done';
     },
-    done(n, W, ctx) { n.merit += 0.4 + (ctx.got || 0) * 0.04; }
+    done(n, W, ctx) {
+      n.merit += 0.4 + (ctx.got || 0) * 0.04;
+      if (n.cult && n.cult.path === 'GOD') {
+        if (CULT.updateDivineFaith) CULT.updateDivineFaith(W, 0.9, 'god_stewardship', { npc: n });
+        CULT.gain(n, 2.0, W, 'god_steward_deed');
+      }
+    }
   };
   A.mine = {
     nameTh: 'ขุดแร่', icon: '⛏️', color: '#9aa0a6',
@@ -1200,6 +1257,7 @@
     dur: () => 200,
     tick(n, W, ctx) {
       n.h.state.energy = Math.max(0, n.h.state.energy - 0.09); n.h.state.rest -= 0.03; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'mining', 1 / 60, 1);
+      if (n.cult && n.cult.path === 'BODY') CULT.gain(n, CULT.rate(n, 3.5) / 60, W, 'body_mine');
       if (W.t % 60 === 0) { const r = ECO.mineYield(W, n, 1); ctx.got = (ctx.got || 0) + r.out.length; if (W.rng.chance(0.012 * (1 - E(n, 'intellect.perceptiveness') / 160))) AI.injure(W, n, 1, 'ถ้ำถล่มเล็กน้อย'); HC.trainBody(n, 'strength', 0.9); }
       AI.vf(n, { sectDuty: 0.02, wealthResource: 0.05 });
       if (n.h.state.energy < 14) return 'done';
@@ -1221,7 +1279,13 @@
     dur: () => 150,
     start(n, W, ctx) { return ECO.reserveCooking(W, n, ctx); },
     tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.045); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'cooking', 1 / 60, 1); AI.vf(n, { sectDuty: 0.04, familyClan: 0.02 }); },
-    done(n, W, ctx) { const res = ECO.finishCooking(W, n, ctx); if (!res.ok) return; ctx.m = res.meals; n.merit += 0.6; },
+    done(n, W, ctx) {
+      const res = ECO.finishCooking(W, n, ctx); if (!res.ok) return; ctx.m = res.meals; n.merit += 0.6;
+      if (n.cult && n.cult.path === 'GOD') {
+        if (CULT.updateDivineFaith) CULT.updateDivineFaith(W, 0.9, 'god_stewardship', { npc: n });
+        CULT.gain(n, 2.0, W, 'god_steward_deed');
+      }
+    },
     cleanup(n, W) { if (ECO && ECO.cancelCraft) ECO.cancelCraft(W, n, 'interrupted'); },
     inside: true
   };
@@ -1381,7 +1445,13 @@
       const tgt = (ctx && ctx.targetId && W.byId[ctx.targetId]) || AI.findSupportBlessTarget(W, n) || n;
       if (CULT.castHealOrBuff) {
         const res = CULT.castHealOrBuff(W, n, tgt, { now: W.t });
-        if (res && res.ok) n.merit = (n.merit || 0) + 0.8;
+        if (res && res.ok) {
+          n.merit = (n.merit || 0) + 0.8;
+          if (n.cult && n.cult.path === 'GOD') {
+            if (CULT.updateDivineFaith) CULT.updateDivineFaith(W, 1.8, 'god_blessing', { npc: n });
+            CULT.gain(n, 3.0, W, 'god_heal_deed');
+          }
+        }
       }
     }
   };
@@ -1421,7 +1491,10 @@
     where: (W, n) => { const s = AI.freeStation(W, n, 'pray', 'ancestral') || AI.freeStation(W, n, 'worship', 'shrine'); return s ? { st: s } : null; },
     dur: () => 40,
     tick(n) { n.h.state.stress = Math.max(0, n.h.state.stress - 0.12); n.h.state.heartDemon = Math.max(0, n.h.state.heartDemon - 0.05); AI.vf(n, { honorLegacy: 0.18 }); },
-    done(n, W) { if (SECT && SECT.prayAtAncestralShrine) SECT.prayAtAncestralShrine(W, n); }
+    done(n, W) {
+      if (SECT && SECT.prayAtAncestralShrine) SECT.prayAtAncestralShrine(W, n);
+      if (n.cult && n.cult.path === 'GOD') CULT.gain(n, 4.5, W, 'god_pray');
+    }
   };
   A.leisure = {
     nameTh: 'พักผ่อนสำราญ', icon: '🍵', color: '#f2b5d4',
@@ -1954,9 +2027,28 @@
   };
 
   const _FastS = { u: 0, _fast: true, add(_, v) { this.u += v; return this; } };
+  function _pathActionBias(W, n, id, S) {
+    const c = n && n.cult;
+    if (!c) return;
+    if (c.path === 'BODY') {
+      if (id === 'practice') S.add('กายาแกร่งใฝ่ฝึกกระบวนท่า', 0.72);
+      else if (id === 'mine') S.add('หลอมกล้ามเนื้อด้วยงานเหมือง', 0.48);
+      else if (id === 'forge') S.add('ตีเหล็กหลอมกาย', 0.45);
+      else if (id === 'cultivate' && !(c.bodyTemperT > 0 || c.pillT > 0)) {
+        const hasTrainStation = !!(AI.freeStation(W, n, 'lift', 'training_ground') || AI.freeStation(W, n, 'dummy', 'training_ground') || AI.freeStation(W, n, 'anvil', 'forge'));
+        if (!hasTrainStation) S.add('กายาไม่ถนัดนั่งสมาธิเปล่า (ไร้โอสถ/การเคี่ยวกรำ)', -0.95);
+      }
+    } else if (c.path === 'GOD') {
+      const df = CULT.getDivineFaith ? CULT.getDivineFaith(W, n) : 55;
+      if (id === 'pray' || id === 'supportBless' || id === 'duty') {
+        S.add(df < 35 ? 'เร่งฟื้นฟูศรัทธามหาชน' : 'บำเพ็ญบารมีโปรดสัตว์', df < 35 ? 0.95 : 0.42);
+      }
+    }
+  }
   function _buildWhy(W, n, id, recLen, lastRec, repPenBase) {
     const S = Sc();
     A[id].score(n, W, S);
+    _pathActionBias(W, n, id, S);
     if (g.COG) g.COG.modifiers(W, n, id, S);
     if (recLen && id !== 'pair') {
       const rec = n.recent;
@@ -2007,6 +2099,7 @@
       if (a.can && !a.can(n, W)) continue;
       _FastS.u = 0;
       a.score(n, W, _FastS);
+      _pathActionBias(W, n, id, _FastS);
       if (g.COG) g.COG.modifiers(W, n, id, _FastS);
       if (recLen) {
         let rep = 0; for (let ri = 0; ri < recLen; ri++) if (rec[ri] === id) rep++;

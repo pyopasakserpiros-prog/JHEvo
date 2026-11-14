@@ -336,7 +336,16 @@
   };
 
   /* ----- ร้านค้าสำนัก ----- */
-  CPE.shopItems = W => { const S = W.sect, out = []; Object.keys(S.stock).forEach(k => { if (ECO.isPill(k) && S.stock[k] > 0) out.push({ kind: 'pill', key: k, n: S.stock[k], price: CPE.priceOf(W, k) }); }); S.gear.forEach(gr => out.push({ kind: 'gear', gear: gr, price: CPE.gearPrice(W, gr) })); return out; };
+  const pathCrystalPrice = (W, key) => Math.max(25, Math.round(((ECO.price && ECO.price(W, key)) || 120) * 0.45));
+  CPE.shopItems = W => {
+    const S = W.sect, out = [];
+    Object.keys(S.stock).forEach(k => {
+      if (ECO.isPill(k) && S.stock[k] > 0) out.push({ kind: 'pill', key: k, n: S.stock[k], price: CPE.priceOf(W, k) });
+      else if (k.startsWith('CRYSTAL_PATH_') && S.stock[k] > 0) out.push({ kind: 'path_crystal', key: k, n: S.stock[k], price: pathCrystalPrice(W, k) });
+    });
+    S.gear.forEach(gr => out.push({ kind: 'gear', gear: gr, price: CPE.gearPrice(W, gr) }));
+    return out;
+  };
   const effOf = k => { const i = ECO.pillInfo(k); return i ? i.effect : {}; };
   CPE.pickPurchase = (W, n) => {
     const cp = n.cp || 0, c = n.cult; if (cp < 4) return null;
@@ -345,7 +354,7 @@
     if (W.t > 0 && n._pickCache && (n._pickCache.t === W.t || (W.t > n._pickCache.t && W.t - n._pickCache.t < 180 && n._pickCache.sSeq === sSeq && n._pickCache.ver === n._ver)) && n._pickCache.path === (c && c.path) && n._pickCache.stage === (c && c.stage) && (W.t === n._pickCache.t ? n._pickCache.cp === cp : (Math.abs(cp - n._pickCache.cp) < 3 && (cp | 0) === (n._pickCache.cp | 0))) && n._pickCache.hpBand === hpBand && n._pickCache.gearLen === W.sect.gear.length && n._pickCache.injLen === injLen) return n._pickCache.val;
     let best = null, bs = 0;
     const have = k => (n.inv.pills && n.inv.pills[k]) || 0;
-    const consider = (it, s, why) => { if (it.price == null) it.price = CPE.priceOf(W, it.key); if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
+    const consider = (it, s, why) => { if (it.price == null) it.price = it.kind === 'path_crystal' ? pathCrystalPrice(W, it.key) : CPE.priceOf(W, it.key); if (it.price > cp * 0.9) return; s -= it.price / Math.max(40, cp) * 0.4; if (s > bs) { bs = s; best = Object.assign({ why, s }, it); } };
     const hpRatio = n.h.state.hp / Math.max(1, hm0), th0 = c ? CULT.threshold(n) : 0, eqSt0 = c ? (n._nd ? n._nd.eqStage : CULT.equivalentStage(n)) : 0;
     if (W._pillStockKeysSeq !== (W._pillSeq || 0) || !W._pillStockKeys) {
       const pks = [];
@@ -360,7 +369,7 @@
       const k = pillKeys[pki];
       if (W.sect.stock[k] <= 0) continue; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
       const info = ECO.pillInfo(k);
-      if (BASIC_IDS.includes(k)) { const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); continue; }
+      if (BASIC_IDS.includes(k)) { const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n)); const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (!isZeroQi && e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); continue; }
       if (!info || (e.compatiblePath && (!c || e.compatiblePath !== c.path))) continue;
       if (e.healHealth && hpRatio < 0.72 && have(k) < 1) consider(it, 0.65 + (1 - hpRatio) * 1.5, 'โอสถรักษาระดับสูง');
       if (e.healInjury && n.inj && n.inj.length && have(k) < 1) consider(it, 1.1 + Math.min(0.8, n.inj.length * 0.2), 'รักษาบาดแผลหนัก');
@@ -378,6 +387,21 @@
         continue;
       }
       if (e.cultivationProgress && info.tier <= eqSt0 + 1 && c.prog < th0 * 0.85 && (c.toxic || 0) < (c.path === 'DEMON' ? 50 : 35)) consider(it, 0.5 + e.cultivationProgress / 160 + (E(n, 'personality.ambition') - 50) / 250, 'เร่งตบะ');
+    }
+    // Mortals (or stage<=1 uncommitted disciples) may purchase CRYSTAL_PATH_* matching their aptitude
+    if (!c && W.sect && W.sect.stock) {
+      const mRows = CULT.majorPathScores ? CULT.majorPathScores(n) : [];
+      const topScore = mRows[0] ? mRows[0].score : 50;
+      for (const k in W.sect.stock) {
+        if (!k.startsWith('CRYSTAL_PATH_') || W.sect.stock[k] <= 0) continue;
+        const pKey = k.replace(/^CRYSTAL_PATH_/, '');
+        if (!CULT.PATHS[pKey]) continue;
+        const row = mRows.find(r => r.path === pKey);
+        const fitScore = row ? row.score : 45;
+        if (fitScore >= topScore - 10) {
+          consider({ kind: 'path_crystal', key: k, price: null }, 1.25 + Math.max(0, (fitScore - 40) / 80), 'ผลึกเบิกเนตรมหาวิถี');
+        }
+      }
     }
     const savingForTech = n.cognition?.goal?.id === "scripture" && n.cognition.goal.targetId ? CULT.tech(n.cognition.goal.targetId) : null;
     const reserveTechCp = savingForTech ? CPE.techPrice(W, savingForTech) : 0;
@@ -418,6 +442,23 @@
     return best;
   };
   CPE.buy = (W, n, p) => {
+    if (p && p.kind === 'path_crystal' && p.key && p.key.startsWith('CRYSTAL_PATH_') && Number.isFinite(p.price) && p.price > 0) {
+      const pKey = p.key.replace(/^CRYSTAL_PATH_/, '');
+      const quote = pathCrystalPrice(W, p.key);
+      if (!CULT.PATHS[pKey] || p.price !== quote || !ECO.take(W, p.key, 1)) return false;
+      if (!CPE.spend(W, n, quote, 'แลก' + ECO.name(p.key))) { ECO.add(W, p.key, 1); return false; }
+      const bRes = (CULT.MORTAL_INITIATION && CULT.MORTAL_INITIATION.bestowPathCrystal)
+        ? CULT.MORTAL_INITIATION.bestowPathCrystal(W, n, pKey, { free: true, fromShop: true })
+        : { ok: false };
+      if (!bRes || !bRes.ok) {
+        CPE.mint(W, n, quote, 'คืนแต้มผลึกมรรคาไม่เข้าเกณฑ์');
+        ECO.add(W, p.key, 1);
+        return false;
+      }
+      CPE.S(W).sales++;
+      W.log('shop', '[ซื้อสินค้า] ' + n.h.name.given + ' แลกคุณูปการ ' + quote + ' คป. ใช้「' + ECO.name(p.key) + '」', [n.id], { txKind: 'purchase', itemId: p.key, qty: 1, recipientId: n.id });
+      return true;
+    }
     if (p && p.kind === 'stone_grant' && Number.isFinite(p.price) && p.price > 0 && Number.isFinite(p.stones) && p.stones > 0) {
       if (!W || !W.sect || !n || !n.cult || !n.cult.track || !CULT.checkTrackGates) return false;
       const tg = CULT.checkTrackGates(W, n);
@@ -559,14 +600,11 @@
       S.add('ฝึกปกติก็พอ', -Math.max(0, (n.cult.prog / Math.max(1, CULT.threshold(n))) - 0.65) * 0.8);
     },
     where(W, n) {
-      const c = n.cult;
-      const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE'].includes(c.path);
-      const isBody = ['BODY', 'BEAST_SOVEREIGN'].includes(c.path);
-      const isForge = ['MECH_PUPPET', 'CRAFT_CREATION'].includes(c.path);
-      const kind = isMed ? 'meditate' : isBody ? 'lift' : isForge ? 'anvil' : c.path === 'DEMON' ? 'explore' : 'worship';
-      const hall = isMed ? 'meditation_hall' : isBody ? 'training_ground' : isForge ? 'forge' : c.path === 'DEMON' ? 'ruin' : 'shrine';
-      let st = AI.freeStation(W, n, kind, hall);
-      if (!st) st = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'dummy', 'training_ground') || AI.freeStation(W, n, 'read', 'scripture');
+      if (CULT && CULT.resolvePathStations) {
+        const res = CULT.resolvePathStations(W, n, 'paidTraining');
+        if (res && res.st) return { st: res.st };
+      }
+      const st = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'dummy', 'training_ground') || AI.freeStation(W, n, 'read', 'scripture');
       return st ? { st } : null;
     },
     dur: () => 90,
@@ -714,14 +752,15 @@
   };
   CPE.fightUse = (W, n, ctx) => {
     if (!n.inv || (ctx.pillAt || 0) > W.t) return false; const s = n.h.state, R = JD.CP.RECOVERY; let k;
-    const owned = s.hp < CULT.hpMax(n) * 0.38 && pickCrafted(n, 'healHealth') || n.cult && s.qi != null && s.qi < CULT.qiMax(n) * 0.2 && pickCrafted(n, 'qiRestore');
+    const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n));
+    const owned = s.hp < CULT.hpMax(n) * 0.38 && pickCrafted(n, 'healHealth') || n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * 0.2 && pickCrafted(n, 'qiRestore');
     if (owned && CPE.consumeCrafted(W, n, owned)) { ctx.pillAt = W.t + 6; n.fx = {t:W.t,text:'💊'}; return true; }
     if (!n.inv.pills) return false;
     if (n.sx && n.sx.some(x => x.k === 'poison') && (k = pickPill(n, 'clearPoison', null))) {
       ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; }
     }
     if (s.hp < CULT.hpMax(n) * 0.38 && (k = pickPill(n, 'healHealth', R.hp))) { ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; } }
-    if (n.cult && s.qi != null && s.qi < CULT.qiMax(n) * 0.2 && (k = pickPill(n, 'qiRestore', R.qi))) { ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; } }
+    if (n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * 0.2 && (k = pickPill(n, 'qiRestore', R.qi))) { ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; } }
     return false;
   };
   CPE.welfareOfficer = W => {

@@ -23,7 +23,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 15,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -58,7 +58,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 25,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -93,7 +93,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 35,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 16
           },
           "resourceCost": {
@@ -128,7 +128,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 45,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 24
           },
           "resourceCost": {
@@ -163,7 +163,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 55,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 32
           },
           "resourceCost": {
@@ -198,7 +198,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 65,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 40
           },
           "resourceCost": {
@@ -233,7 +233,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 75,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 48
           },
           "resourceCost": {
@@ -268,7 +268,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 85,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 56
           },
           "resourceCost": {
@@ -303,7 +303,7 @@ const data={
           "skillGate": {
             "primarySkill": "WATER_ICE",
             "minPrimarySkill": 95,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "SWORD",
             "minSecondarySkill": 64
           },
           "resourceCost": {
@@ -1718,7 +1718,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 15,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -1753,7 +1753,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 25,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -1788,7 +1788,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 35,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 16
           },
           "resourceCost": {
@@ -1823,7 +1823,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 45,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 24
           },
           "resourceCost": {
@@ -1858,7 +1858,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 55,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 32
           },
           "resourceCost": {
@@ -1893,7 +1893,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 65,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 40
           },
           "resourceCost": {
@@ -1928,7 +1928,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 75,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 48
           },
           "resourceCost": {
@@ -1963,7 +1963,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 85,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 56
           },
           "resourceCost": {
@@ -1998,7 +1998,7 @@ const data={
           "skillGate": {
             "primarySkill": "SOUL_DIVINE",
             "minPrimarySkill": 95,
-            "secondarySkill": "ALCHEMY",
+            "secondarySkill": "ritual",
             "minSecondarySkill": 64
           },
           "resourceCost": {
@@ -2057,7 +2057,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 15,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -2092,7 +2092,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 25,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -2127,7 +2127,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 35,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 16
           },
           "resourceCost": {
@@ -2162,7 +2162,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 45,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 24
           },
           "resourceCost": {
@@ -2197,7 +2197,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 55,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 32
           },
           "resourceCost": {
@@ -2232,7 +2232,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 65,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 40
           },
           "resourceCost": {
@@ -2267,7 +2267,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 75,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 48
           },
           "resourceCost": {
@@ -2302,7 +2302,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 85,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 56
           },
           "resourceCost": {
@@ -2337,7 +2337,7 @@ const data={
           "skillGate": {
             "primarySkill": "FIST_PALM",
             "minPrimarySkill": 95,
-            "secondarySkill": "FORGING",
+            "secondarySkill": "BODY_REFINING",
             "minSecondarySkill": 64
           },
           "resourceCost": {
@@ -2733,9 +2733,9 @@ const data={
           "functionalCombatPower": 118,
           "majorBandEquivalent": 1,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 15,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -2768,9 +2768,9 @@ const data={
           "functionalCombatPower": 255,
           "majorBandEquivalent": 2,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 25,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 10
           },
           "resourceCost": {
@@ -2803,9 +2803,9 @@ const data={
           "functionalCombatPower": 530,
           "majorBandEquivalent": 3,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 35,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 16
           },
           "resourceCost": {
@@ -2838,9 +2838,9 @@ const data={
           "functionalCombatPower": 1080,
           "majorBandEquivalent": 4,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 45,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 24
           },
           "resourceCost": {
@@ -2873,9 +2873,9 @@ const data={
           "functionalCombatPower": 2200,
           "majorBandEquivalent": 5,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 55,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 32
           },
           "resourceCost": {
@@ -2908,9 +2908,9 @@ const data={
           "functionalCombatPower": 4350,
           "majorBandEquivalent": 6,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 65,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 40
           },
           "resourceCost": {
@@ -2943,9 +2943,9 @@ const data={
           "functionalCombatPower": 8500,
           "majorBandEquivalent": 7,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 75,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 48
           },
           "resourceCost": {
@@ -2978,9 +2978,9 @@ const data={
           "functionalCombatPower": 16000,
           "majorBandEquivalent": 8,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 85,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 56
           },
           "resourceCost": {
@@ -3013,9 +3013,9 @@ const data={
           "functionalCombatPower": 30500,
           "majorBandEquivalent": 9,
           "skillGate": {
-            "primarySkill": "TALISMAN",
+            "primarySkill": "BRUSH",
             "minPrimarySkill": 95,
-            "secondarySkill": "ARRAY",
+            "secondarySkill": "SCRIPTURE",
             "minSecondarySkill": 64
           },
           "resourceCost": {

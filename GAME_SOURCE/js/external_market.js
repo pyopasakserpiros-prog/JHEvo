@@ -107,16 +107,20 @@
     }
     return ECO.base(id) || 5;
   };
-  EXT.quotePrice = (W, id, side, skill) => {
+  EXT.quotePrice = (W, id, side, skillOrNpc) => {
     if (!EXT.isTradable(id)) return 0;
     const base = (EXT.basePrice(W, id) || ECO.price(W, id)) * ((W.market && W.market.mult[id]) || 1);
     if (!Number.isFinite(base) || base <= 0) return 0;
-    skill = clamp(Number.isFinite(skill) ? skill : 40, 0, 100);
+    const npcObj = (skillOrNpc && typeof skillOrNpc === 'object') ? skillOrNpc : null;
+    const rawSkill = npcObj ? ((npcObj.h && npcObj.h.skills && npcObj.h.skills.trading) || 40) : skillOrNpc;
+    const skill = clamp(Number.isFinite(rawSkill) ? rawSkill : 40, 0, 100);
+    const isAppraiserSub = !!(npcObj && npcObj.cult && npcObj.cult.sub === 'TREASURE_APPRAISER_SAGE');
+    const isMerchantPath = !!(npcObj && npcObj.cult && npcObj.cult.path === 'MERCANTILE_DAO');
     let mult = 1;
     if (side === 'sect-buy') mult = 1.15 - skill / 850;          // sect buys at a modest premium
     else if (side === 'sect-sell') mult = 0.78 + skill / 900;   // sect sells below retail
-    else if (side === 'member-buy') mult = 1.18;
-    else if (side === 'member-sell') mult = 0.76;
+    else if (side === 'member-buy') mult = 1.18 * (isAppraiserSub ? 0.92 : (isMerchantPath ? 0.96 : 1));
+    else if (side === 'member-sell') mult = 0.76 * (isAppraiserSub ? 1.10 : (isMerchantPath ? 1.05 : 1));
     return Math.max(1, Math.round(base * clamp(mult, 0.65, 1.2)));
   };
 
@@ -703,9 +707,10 @@
   function pillNeed(n, id) {
     const info = ECO.pillInfo(id); if (!info) return 0;
     const e = info.effect || {}, s = n.h.state, hm = Math.max(1, CULT.hpMax(n));
+    const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n));
     if (e.healInjury && n.inj && n.inj.length) return 1.5 + Math.min(0.6, n.inj.length * 0.15);
     if (e.healHealth && s.hp < hm * 0.72) return 0.8 + (1 - s.hp / hm) * 1.5;
-    if (e.qiRestore && n.cult && s.qi < CULT.qiMax(n) * 0.25) return 0.8 + (1 - s.qi / Math.max(1, CULT.qiMax(n)));
+    if (e.qiRestore && n.cult && !isZeroQi && s.qi < CULT.qiMax(n) * 0.25) return 0.8 + (1 - s.qi / Math.max(1, CULT.qiMax(n)));
     if (e.clearToxic && n.cult && (n.cult.toxic || 0) > 25) return 0.8 + n.cult.toxic / 150;
     if (e.clearHeartDemon && s.heartDemon > 35) return 0.8 + s.heartDemon / 150;
     if (e.energyRestore && s.energy < 25) return 0.6;
@@ -720,7 +725,7 @@
       if (onlyVisitorId && v.id !== onlyVisitorId) continue;
       for (const id of Object.keys(v.stock || {})) {
         if (!EXT.isTradable(id) || !ECO.isPill(id) || !(v.stock[id] > 0) || ((n.inv.pills || {})[id] || 0) > 0) continue;
-        const price = EXT.quotePrice(W, id, 'member-buy');
+        const price = EXT.quotePrice(W, id, 'member-buy', n);
         let need = pillNeed(n, id), reason = 'ต้องการโอสถรักษา/ฟื้นฟู';
         if (!need && n.rank >= 1 && n.cult && (n.inv.stones || 0) >= price * 3) {
           const medicine = E(n, 'interests.medicine'), trade = E(n, 'interests.trade');
@@ -735,7 +740,7 @@
         if (id.startsWith('EQ:') && n.cult && g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
           const eqId = id.slice(3);
           const it = ECO.itemById && ECO.itemById[eqId];
-          const price = EXT.quotePrice(W, id, 'member-buy');
+          const price = EXT.quotePrice(W, id, 'member-buy', n);
           if (it && price > 0 && (n.inv.stones || 0) >= price) {
             const cls = g.MARTIAL.classifyGearForNpc(W, n, it, 0);
             if (cls && cls.category === 'useful-now') {
@@ -746,7 +751,7 @@
           const tid = id.replace(/^(TECH_MANUAL:|TM:)/, '');
           const tObj = CULT.tech(tid);
           const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
-          const price = EXT.quotePrice(W, id, 'member-buy');
+          const price = EXT.quotePrice(W, id, 'member-buy', n);
           if (tObj && (tObj.reqTier || tObj.tier || 1) <= effSt + 1 && price > 0 && (n.inv.stones || 0) >= price && !n.cult.techs.includes(tid) && !(W.sect.library || []).includes(tid) && CULT.learnable(n, [tid]).length > 0) {
             const rawPref = g.COG && g.COG.techPreference ? g.COG.techPreference(n, tObj) : 6;
             const pref = (rawPref && typeof rawPref === 'object') ? Number(rawPref.score) : Number(rawPref);
@@ -760,7 +765,7 @@
             return eq && eq.procedural && (eq.maxDur || 100) > 20 && (eq.dur == null ? 100 : eq.dur) <= (eq.maxDur || 100) * 0.6;
           });
           const haveStone = Object.keys(ECO.REPAIR_STONES).some(sid => ((n.inv.mats && n.inv.mats[sid]) || 0) > 0);
-          const price = EXT.quotePrice(W, id, 'member-buy');
+          const price = EXT.quotePrice(W, id, 'member-buy', n);
           if (needRepair && !haveStone && price > 0 && (n.inv.stones || 0) >= price) {
             choose({ side: 'buy-stone', itemId: id, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority: 1.42, reason: 'ซื้อหินซ่อมศาสตราไว้ซ่อมบำรุงอุปกรณ์ประจำตัว' });
           }
@@ -782,7 +787,7 @@
         const spawnedMat = (n.inv.spawnedMats && n.inv.spawnedMats[id]) || 0;
         const naturalMat = Math.max(0, (qtyHeld || 0) - spawnedMat);
         if (!EXT.isTradable(id) || !Number.isSafeInteger(qtyHeld) || naturalMat <= 0 || !(v.wants && v.wants[id] > 0)) continue;
-        const price = EXT.quotePrice(W, id, 'member-sell');
+        const price = EXT.quotePrice(W, id, 'member-sell', n);
         if (!price || v.stones < price) continue;
         const priority = 0.45 + E(n, 'interests.trade') / 240 + E(n, 'values.wealthResource') / 380 + (n.h.skills.trading || 0) / 280 - E(n, 'values.sectDuty') / 1000;
         choose({ side: 'sell', itemId: id, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority, reason: 'พ่อค้าต้องการวัตถุดิบส่วนตัว' });
@@ -792,7 +797,7 @@
         const spawnedPill = (n.inv.spawnedPills && n.inv.spawnedPills[id]) || 0;
         const naturalPill = Math.max(0, (held || 0) - spawnedPill);
         if (!EXT.isTradable(id) || !ECO.isPill(id) || !Number.isSafeInteger(held) || held < 2 || naturalPill < 1 || !(v.wants && v.wants[id] > 0) || pillNeed(n, id) > 0) continue;
-        const price = EXT.quotePrice(W, id, 'member-sell');
+        const price = EXT.quotePrice(W, id, 'member-sell', n);
         if (!price || v.stones < price) continue;
         const priority = 0.35 + E(n, 'interests.trade') / 260 + E(n, 'values.wealthResource') / 420 + (n.h.skills.trading || 0) / 320;
         choose({ side: 'sell-pill', itemId: id, qty: 1, price, total: price, visitorId: v.id, visitorName: v.nameTh, priority, reason: 'ขายโอสถส่วนเกิน' });

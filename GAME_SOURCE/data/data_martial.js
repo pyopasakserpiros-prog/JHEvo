@@ -9762,7 +9762,7 @@ const EXP_V204 = {
           "functionalCombatPower": 140,
           "majorBandEquivalent": 1,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 15,
             "secondarySkill": "ritual",
             "minSecondarySkill": 10
@@ -9797,7 +9797,7 @@ const EXP_V204 = {
           "functionalCombatPower": 280,
           "majorBandEquivalent": 1.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 25,
             "secondarySkill": "ritual",
             "minSecondarySkill": 16
@@ -9832,7 +9832,7 @@ const EXP_V204 = {
           "functionalCombatPower": 580,
           "majorBandEquivalent": 2,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 35,
             "secondarySkill": "ritual",
             "minSecondarySkill": 22
@@ -9867,7 +9867,7 @@ const EXP_V204 = {
           "functionalCombatPower": 1200,
           "majorBandEquivalent": 2.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 45,
             "secondarySkill": "ritual",
             "minSecondarySkill": 28
@@ -9902,7 +9902,7 @@ const EXP_V204 = {
           "functionalCombatPower": 2450,
           "majorBandEquivalent": 3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 55,
             "secondarySkill": "ritual",
             "minSecondarySkill": 34
@@ -9937,7 +9937,7 @@ const EXP_V204 = {
           "functionalCombatPower": 4600,
           "majorBandEquivalent": 3.3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 65,
             "secondarySkill": "ritual",
             "minSecondarySkill": 40
@@ -9972,7 +9972,7 @@ const EXP_V204 = {
           "functionalCombatPower": 8600,
           "majorBandEquivalent": 3.7,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 75,
             "secondarySkill": "ritual",
             "minSecondarySkill": 46
@@ -10007,7 +10007,7 @@ const EXP_V204 = {
           "functionalCombatPower": 16200,
           "majorBandEquivalent": 3.9,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 85,
             "secondarySkill": "ritual",
             "minSecondarySkill": 52
@@ -10042,7 +10042,7 @@ const EXP_V204 = {
           "functionalCombatPower": 31000,
           "majorBandEquivalent": 4,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 95,
             "secondarySkill": "ritual",
             "minSecondarySkill": 58
@@ -10100,7 +10100,7 @@ const EXP_V204 = {
           "functionalCombatPower": 140,
           "majorBandEquivalent": 1,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 15,
             "secondarySkill": "ritual",
             "minSecondarySkill": 10
@@ -10135,7 +10135,7 @@ const EXP_V204 = {
           "functionalCombatPower": 280,
           "majorBandEquivalent": 1.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 25,
             "secondarySkill": "ritual",
             "minSecondarySkill": 16
@@ -10170,7 +10170,7 @@ const EXP_V204 = {
           "functionalCombatPower": 580,
           "majorBandEquivalent": 2,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 35,
             "secondarySkill": "ritual",
             "minSecondarySkill": 22
@@ -10205,7 +10205,7 @@ const EXP_V204 = {
           "functionalCombatPower": 1200,
           "majorBandEquivalent": 2.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 45,
             "secondarySkill": "ritual",
             "minSecondarySkill": 28
@@ -10240,7 +10240,7 @@ const EXP_V204 = {
           "functionalCombatPower": 2450,
           "majorBandEquivalent": 3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 55,
             "secondarySkill": "ritual",
             "minSecondarySkill": 34
@@ -10275,7 +10275,7 @@ const EXP_V204 = {
           "functionalCombatPower": 4600,
           "majorBandEquivalent": 3.3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 65,
             "secondarySkill": "ritual",
             "minSecondarySkill": 40
@@ -10310,7 +10310,7 @@ const EXP_V204 = {
           "functionalCombatPower": 8600,
           "majorBandEquivalent": 3.7,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 75,
             "secondarySkill": "ritual",
             "minSecondarySkill": 46
@@ -10345,7 +10345,7 @@ const EXP_V204 = {
           "functionalCombatPower": 16200,
           "majorBandEquivalent": 3.9,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 85,
             "secondarySkill": "ritual",
             "minSecondarySkill": 52
@@ -10380,7 +10380,7 @@ const EXP_V204 = {
           "functionalCombatPower": 31000,
           "majorBandEquivalent": 4,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 95,
             "secondarySkill": "ritual",
             "minSecondarySkill": 58
@@ -43367,7 +43367,7 @@ EXP_V208.newResonanceSets.forEach(rs => {
     THOUSAND_THREAD_PUPPETEER: 'THOUSAND_THREAD_ASSASSIN',
     SPIRIT_ARTILLERY_ENGINEER: 'CELESTIAL_BALLISTA',
     CLOCKWORK_SWARM_WEAVER: 'FLYING_BLADE_ORBITER',
-    FORTRESS_BASTION_ARCHITECT: 'BEAST_CHIMERA_MECH',
+    FORTRESS_BASTION_ARCHITECT: 'HEAVENLY_GOLEM',
     RED_THREAD_ARBITER: 'FATE_SEVERING_THREAD',
     PAST_LIFE_CHRONICLER: 'PAST_LIFE_MIRROR',
     SYMBIOTIC_FANG_FUSION: 'SYMBIOTIC_BEAST_WARRIOR',
@@ -44687,7 +44687,52 @@ EXP_V208.newResonanceSets.forEach(rs => {
     DIVINE_FORGE_FOUNDER: 'HEAVENLY_ANVIL_SMITH',
     BATTLE_ARRAY_TACTICIAN: 'BATTLEFIELD_STRATEGIST',
     BLOOD_SEA_FIEND: 'BLOOD_SPEAR_ASURA',
-    PILL_FLAME_SOVEREIGN: 'PILL_FURNACE_IMMORTAL'
+    PILL_FLAME_SOVEREIGN: 'PILL_FURNACE_IMMORTAL',
+    IMPERIAL_PEACE_SOVEREIGN: 'SECT_STEWARD',
+    IRON_LEGION_MARSHAL: 'BATTLEFIELD_STRATEGIST',
+    HEAVENLY_MANDATE_CHANCELLOR: 'IMPERIAL_SEAL_CHANCELLOR',
+    DIPLOMATIC_HEGEMON: 'DIPLOMATIC_ENVOY',
+    DIVINE_FORGE_ARTISAN: 'HEAVENLY_ANVIL_SMITH',
+    IMPERIAL_DECREE_CALLIGRAPHER: 'IMPERIAL_EDICT_CALLIGRAPHER',
+    GRAND_HISTORIAN_SCHOLAR: 'HISTORIANS_DESTINY_QUILL',
+    TREASURY_SOVEREIGN: 'GOLDEN_ABACUS_ARBITER',
+    BODHI_SALVATION_MONK: 'BODHI_VOW_GUARDIAN',
+    SAMSARA_WHEEL_ARBITER: 'GOLDEN_WHEEL_ARBITER',
+    BLOOD_MARROW_DEVOURER: 'BEAST_FLESH_CONSUMER',
+    DIVINE_PHYSICIAN_HEALER: 'GOLDEN_NEEDLE_SAINT',
+    MYRIAD_POISON_APOTHECARY: 'MYRIAD_VENOM_APOTHECARY',
+    GALE_CLOUD_CONDUCTOR: 'TYPHOON_GALE_SOVEREIGN',
+    THUNDER_MONSOON_SOVEREIGN: 'THUNDER_CLOUD_CALLER',
+    STARLIGHT_ASTROLOGER: 'POLARIS_FATE_WEAVER',
+    EPOCH_HOURGLASS_KEEPER: 'HOURGLASS_SAND_REAPER',
+    SPIRIT_THREAD_PUPPETEER: 'PHANTOM_SILK_PUPPETEER',
+    ELEMENTAL_GRIMOIRE_SAGE: 'SACRED_GOLEM_TAMER',
+    STAR_CHART_ORACLE: 'STAR_CHART_PROPHET',
+    FORTRESS_BASTION_ARCHITECT: 'HEAVENLY_GOLEM',
+    CELESTIAL_PUPPET_MASTER: 'HEAVENLY_GOLEM',
+    HEAVENLY_PUPPETEER: 'HEAVENLY_GOLEM',
+    MECHANICAL_FORTRESS_MASTER: 'HEAVENLY_GOLEM',
+    THOUSAND_PUPPET_LORD: 'THOUSAND_THREAD_ASSASSIN',
+    SPIRIT_WEAPON_FORGER: 'FLYING_BLADE_ORBITER',
+    CELESTIAL_CLOCKWORK_ARCHITECT: 'ASTRAL_CLOCKWORK_PRIME',
+    KARMIC_FLAME_ARHAT: 'REVERSED_RETRIBUTION',
+    RED_LOTUS_KARMA_FLAME: 'REVERSED_RETRIBUTION',
+    CAUSAL_JUSTICIAR: 'REVERSED_RETRIBUTION',
+    SIX_REALMS_TRANSCENDENT: 'SIX_PATHS_WHEEL',
+    SIX_PATHS_REINCARNATION: 'SIX_PATHS_WHEEL',
+    FATE_THREAD_WEAVER: 'FATE_SEVERING_THREAD',
+    SAMSARA_NIRVANA_SHEPHERD: 'LOTUS_MERCY_PURIFIER',
+    SAMSARA_BUDDHA_HEART: 'BODHI_VOW_GUARDIAN',
+    MYRIAD_BEAST_EMPEROR: 'MYRIAD_BEAST_PACK',
+    TEN_THOUSAND_BEAST_KING: 'MYRIAD_BEAST_PACK',
+    PRIMORDIAL_MYRIAD_BEAST_EMPEROR: 'MYRIAD_BEAST_PACK',
+    CHIMERA_BLOODLINE_FUSIONIST: 'PRIMORDIAL_BLOOD_MUTATOR',
+    TOTEMIC_WAR_CHIEFTAIN: 'ABYSSAL_DRAGON_TOTEM',
+    ANCIENT_SUN_GOD: 'SUN_BOW_DEITY',
+    STAR_LORD_GOD: 'FATE_ORACLE',
+    OCEAN_GOD: 'OCEAN_SOVEREIGN',
+    THUNDER_LORD_GOD: 'WAR_DEITY',
+    ACUPUNCTURE_SAINT: 'GOLDEN_NEEDLE_SAINT'
   });
 
   const craftSubStats = {
@@ -46214,17 +46259,17 @@ JD.ITEMS.items.forEach(it => {
   const v215TechSpecs = [
     // ZITHER Actives (8)
     { id: 'TECH_V215_ZITHER_ACT_01', nameTh: 'คีตเวทย์สายลมพลิ้วใบหลิว', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 1, grade: 'Common', el: 'WIND', w: ['ZITHER'], arch: 'wave', M: 1.24, cd: 6, pen: 10, aoe: true, status: 'slow', dur: 4 },
-    { id: 'TECH_V215_ZITHER_ACT_02', nameTh: 'เพลงขลุ่ยน้ำค้างแข็งสะกดใจ', path: 'HEART_SOUL', sub: 'SOUL_MUSICIAN', tier: 2, grade: 'Common', el: 'WATER_ICE', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.32, cd: 7, pen: 12, aoe: false, status: 'chill', dur: 5 },
+    { id: 'TECH_V215_ZITHER_ACT_02', nameTh: 'เพลงขลุ่ยน้ำค้างแข็งสะกดใจ', path: 'HEART_SOUL', sub: 'SEVEN_EMOTIONS_ZITHER', tier: 2, grade: 'Common', el: 'WATER_ICE', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.32, cd: 7, pen: 12, aoe: false, status: 'chill', dur: 5 },
     { id: 'TECH_V215_ZITHER_ACT_03', nameTh: 'พิณเจ็ดสายคลื่นวารีตัดเมฆ', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 3, grade: 'Refined', el: 'WATER_ICE', w: ['ZITHER'], arch: 'wave', M: 1.44, cd: 8, pen: 15, aoe: true, status: 'weaken', dur: 5 },
-    { id: 'TECH_V215_ZITHER_ACT_04', nameTh: 'ลำนำมารสะกดวิญญาณรัตติกาล', path: 'HEART_SOUL', sub: 'ILLUSION_MIND', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'fear', dur: 5 },
-    { id: 'TECH_V215_ZITHER_ACT_05', nameTh: 'คีตธรรมกังวานระฆังโพธิ์', path: 'SAGE_SUPPORT', sub: 'CHANT_RESONANCE', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'STAFF'], arch: 'burst', M: 1.52, cd: 9, pen: 16, aoe: true, status: 'morale', dur: 6 },
+    { id: 'TECH_V215_ZITHER_ACT_04', nameTh: 'ลำนำมารสะกดวิญญาณรัตติกาล', path: 'HEART_SOUL', sub: 'DREAM_ILLUSION_WEAVER', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'fear', dur: 5 },
+    { id: 'TECH_V215_ZITHER_ACT_05', nameTh: 'คีตธรรมกังวานระฆังโพธิ์', path: 'SAGE_SUPPORT', sub: 'CELESTIAL_ZITHER_ENVOY', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'STAFF'], arch: 'burst', M: 1.52, cd: 9, pen: 16, aoe: true, status: 'morale', dur: 6 },
     { id: 'TECH_V215_ZITHER_ACT_06', nameTh: 'พิณศรดาราพายุคลื่นเสียง', path: 'HEART_SOUL', sub: 'ZITHER_HEART_BOW', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['ZITHER', 'BOW'], arch: 'pierce', M: 1.68, cd: 10, pen: 22, aoe: true, status: 'silence', dur: 5 },
     { id: 'TECH_V215_ZITHER_ACT_07', nameTh: 'มหาคีตเวทย์หงส์เพลิงคำราม', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 6, grade: 'Exceptional', el: 'FIRE', w: ['ZITHER'], arch: 'wave', M: 1.82, cd: 11, pen: 25, aoe: true, status: 'burn', dur: 6 },
-    { id: 'TECH_V215_ZITHER_ACT_08', nameTh: 'ทิพยสังคีตสวรรค์เก้าดารา', path: 'SAGE_SUPPORT', sub: 'CHANT_RESONANCE', tier: 7, grade: 'Exceptional', el: 'ASTRAL', w: ['ZITHER', 'FOCUS'], arch: 'burst', M: 1.98, cd: 12, pen: 28, aoe: true, status: 'stun', dur: 4 },
+    { id: 'TECH_V215_ZITHER_ACT_08', nameTh: 'ทิพยสังคีตสวรรค์เก้าดารา', path: 'SAGE_SUPPORT', sub: 'CELESTIAL_ZITHER_ENVOY', tier: 7, grade: 'Exceptional', el: 'ASTRAL', w: ['ZITHER', 'FOCUS'], arch: 'burst', M: 1.98, cd: 12, pen: 28, aoe: true, status: 'stun', dur: 4 },
     // ZITHER Passives (4)
     { id: 'TECH_V215_ZITHER_PAS_01', nameTh: 'เคล็ดสดับเสียงสายพิณ', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 1, grade: 'Common', el: 'WIND', w: ['ZITHER', 'FOCUS'], passive: { f: { acc: 8, cast: 4 }, p: { matk: 0.05 } } },
-    { id: 'TECH_V215_ZITHER_PAS_02', nameTh: 'ใจพิณประสานวิญญาณ', path: 'HEART_SOUL', sub: 'SOUL_MUSICIAN', tier: 3, grade: 'Refined', el: 'WATER_ICE', w: ['ZITHER', 'BOW', 'FOCUS'], passive: { f: { acc: 12, cast: 6, mdef: 18 }, p: { matk: 0.08, mdef: 0.06 } } },
-    { id: 'TECH_V215_ZITHER_PAS_03', nameTh: 'กายาคลื่นเสียงสะท้อนปราณ', path: 'SAGE_SUPPORT', sub: 'CHANT_RESONANCE', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'FOCUS'], passive: { f: { cast: 10, eva: 8, mdef: 28 }, p: { matk: 0.11, mdef: 0.09 } } },
+    { id: 'TECH_V215_ZITHER_PAS_02', nameTh: 'ใจพิณประสานวิญญาณ', path: 'HEART_SOUL', sub: 'SEVEN_EMOTIONS_ZITHER', tier: 3, grade: 'Refined', el: 'WATER_ICE', w: ['ZITHER', 'BOW', 'FOCUS'], passive: { f: { acc: 12, cast: 6, mdef: 18 }, p: { matk: 0.08, mdef: 0.06 } } },
+    { id: 'TECH_V215_ZITHER_PAS_03', nameTh: 'กายาคลื่นเสียงสะท้อนปราณ', path: 'SAGE_SUPPORT', sub: 'CELESTIAL_ZITHER_ENVOY', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'FOCUS'], passive: { f: { cast: 10, eva: 8, mdef: 28 }, p: { matk: 0.11, mdef: 0.09 } } },
     { id: 'TECH_V215_ZITHER_PAS_04', nameTh: 'สัจธรรมคีตเวทย์ไร้ลักษณ์', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['ZITHER'], passive: { f: { acc: 16, cast: 12, crit: 5 }, p: { matk: 0.14, mdef: 0.10 } } },
 
     // BRUSH Actives (8)
@@ -46232,29 +46277,29 @@ JD.ITEMS.items.forEach(it => {
     { id: 'TECH_V215_BRUSH_ACT_02', nameTh: 'ตวัดหมึกวาดค่ายกลศิลา', path: 'ARRAY_TALISMAN', sub: 'SEAL_SCRIPT_EXORCIST', tier: 2, grade: 'Common', el: 'EARTH_METAL', w: ['BRUSH', 'FOCUS'], arch: 'wave', M: 1.34, cd: 7, pen: 12, aoe: true, status: 'slow', dur: 5 },
     { id: 'TECH_V215_BRUSH_ACT_03', nameTh: 'อักขระอสนีฟาดผ่าแปดทิศ', path: 'ARRAY_TALISMAN', sub: 'THUNDER_TALISMAN_ADEPT', tier: 3, grade: 'Refined', el: 'LIGHTNING', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.46, cd: 8, pen: 16, aoe: true, status: 'paralyze', dur: 4 },
     { id: 'TECH_V215_BRUSH_ACT_04', nameTh: 'ภาพวาดขุนเขาและสายน้ำกักมาร', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 4, grade: 'Rare', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], arch: 'wave', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'root', dur: 5 },
-    { id: 'TECH_V215_BRUSH_ACT_05', nameTh: 'พู่กันประกาศิตพิชัยสงคราม', path: 'STRATEGY_GOVERNANCE', sub: 'GRAND_STRATEGIST', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'STAFF', 'FOCUS'], arch: 'strike', M: 1.54, cd: 9, pen: 18, aoe: true, status: 'armorbreak', dur: 5 },
-    { id: 'TECH_V215_BRUSH_ACT_06', nameTh: 'จารึกดาราปิดกั้นฟ้าดิน', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.70, cd: 10, pen: 22, aoe: true, status: 'silence', dur: 5 },
-    { id: 'TECH_V215_BRUSH_ACT_07', nameTh: 'พู่กันยมทูตขีดเส้นตายวัฏสงสาร', path: 'KARMA_SAMSARA', sub: 'UNDERWORLD_DECREE', tier: 6, grade: 'Exceptional', el: 'YIN_SHADOW', w: ['BRUSH', 'FOCUS'], arch: 'soul', M: 1.84, cd: 11, pen: 26, aoe: false, status: 'curse', dur: 6 },
+    { id: 'TECH_V215_BRUSH_ACT_05', nameTh: 'พู่กันประกาศิตพิชัยสงคราม', path: 'STRATEGY_GOVERNANCE', sub: 'BATTLEFIELD_STRATEGIST', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'STAFF', 'FOCUS'], arch: 'strike', M: 1.54, cd: 9, pen: 18, aoe: true, status: 'armorbreak', dur: 5 },
+    { id: 'TECH_V215_BRUSH_ACT_06', nameTh: 'จารึกดาราปิดกั้นฟ้าดิน', path: 'ARRAY_TALISMAN', sub: 'EARTH_VEIN_WARDEN', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.70, cd: 10, pen: 22, aoe: true, status: 'silence', dur: 5 },
+    { id: 'TECH_V215_BRUSH_ACT_07', nameTh: 'พู่กันยมทูตขีดเส้นตายวัฏสงสาร', path: 'KARMA_SAMSARA', sub: 'SIX_PATHS_WHEEL', tier: 6, grade: 'Exceptional', el: 'YIN_SHADOW', w: ['BRUSH', 'FOCUS'], arch: 'soul', M: 1.84, cd: 11, pen: 26, aoe: false, status: 'curse', dur: 6 },
     { id: 'TECH_V215_BRUSH_ACT_08', nameTh: 'มหาพู่กันเทวะรังสรรค์หมื่นยันต์', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 7, grade: 'Exceptional', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 2.00, cd: 12, pen: 30, aoe: true, status: 'stun', dur: 4 },
     // BRUSH Passives (4)
     { id: 'TECH_V215_BRUSH_PAS_01', nameTh: 'เคล็ดเดินพู่กันมั่นคงดั่งขุนเขา', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 1, grade: 'Common', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], passive: { f: { acc: 9, cast: 4 }, p: { matk: 0.05 } } },
     { id: 'TECH_V215_BRUSH_PAS_02', nameTh: 'หมึกปราณซึมลึกทะลวงเกราะ', path: 'ARRAY_TALISMAN', sub: 'SEAL_SCRIPT_EXORCIST', tier: 3, grade: 'Refined', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], passive: { f: { acc: 12, pen: 8, cast: 6 }, p: { matk: 0.08, mdef: 0.05 } } },
-    { id: 'TECH_V215_BRUSH_PAS_03', nameTh: 'จิตอักขระประสานค่ายกล', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS', 'STAFF'], passive: { f: { acc: 15, cast: 10, mdef: 26 }, p: { matk: 0.11, def: 0.06, mdef: 0.08 } } },
+    { id: 'TECH_V215_BRUSH_PAS_03', nameTh: 'จิตอักขระประสานค่ายกล', path: 'ARRAY_TALISMAN', sub: 'EARTH_VEIN_WARDEN', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS', 'STAFF'], passive: { f: { acc: 15, cast: 10, mdef: 26 }, p: { matk: 0.11, def: 0.06, mdef: 0.08 } } },
     { id: 'TECH_V215_BRUSH_PAS_04', nameTh: 'สัจธรรมพู่กันสวรรค์ลิขิตฟ้า', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['BRUSH'], passive: { f: { acc: 18, cast: 12, pen: 12 }, p: { matk: 0.14, mdef: 0.10 } } },
 
     // WHIP Actives (8)
     { id: 'TECH_V215_WHIP_ACT_01', nameTh: 'เพลงแส้อสรพิษฉกเงา', path: 'DEMON', sub: 'VENOM_GU_SOVEREIGN', tier: 1, grade: 'Common', el: 'WOOD_LIFE', w: ['WHIP'], arch: 'slash', M: 1.26, cd: 6, pen: 12, aoe: false, status: 'poison', dur: 4 },
-    { id: 'TECH_V215_WHIP_ACT_02', nameTh: 'ด้ายปราณร้อยรัดหุ่นศึก', path: 'MECH_PUPPET', sub: 'SPIRIT_THREAD_PUPPET', tier: 2, grade: 'Common', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'pierce', M: 1.35, cd: 7, pen: 14, aoe: false, status: 'slow', dur: 5 },
+    { id: 'TECH_V215_WHIP_ACT_02', nameTh: 'ด้ายปราณร้อยรัดหุ่นศึก', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 2, grade: 'Common', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'pierce', M: 1.35, cd: 7, pen: 14, aoe: false, status: 'slow', dur: 5 },
     { id: 'TECH_V215_WHIP_ACT_03', nameTh: 'ด้ายไหมสังหารตัดชีพจร', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 3, grade: 'Refined', el: 'YIN_SHADOW', w: ['WHIP', 'BLADE'], arch: 'pierce', M: 1.48, cd: 8, pen: 18, aoe: false, status: 'bleed', dur: 5 },
-    { id: 'TECH_V215_WHIP_ACT_04', nameTh: 'แส้อสนีพันธนาการพยัคฆ์', path: 'BEAST_SOVEREIGN', sub: 'PACK_COMMAND_HUNT', tier: 4, grade: 'Rare', el: 'LIGHTNING', w: ['WHIP', 'SPEAR'], arch: 'slash', M: 1.58, cd: 9, pen: 18, aoe: true, status: 'paralyze', dur: 4 },
-    { id: 'TECH_V215_WHIP_ACT_05', nameTh: 'โซ่ยมโลกกระชากวิญญาณ', path: 'KARMA_SAMSARA', sub: 'REINCARNATION_WARDEN', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['WHIP', 'SPEAR'], arch: 'soul', M: 1.56, cd: 9, pen: 20, aoe: false, status: 'curse', dur: 5 },
+    { id: 'TECH_V215_WHIP_ACT_04', nameTh: 'แส้อสนีพันธนาการพยัคฆ์', path: 'BEAST_SOVEREIGN', sub: 'MYRIAD_BEAST_PACK', tier: 4, grade: 'Rare', el: 'LIGHTNING', w: ['WHIP', 'SPEAR'], arch: 'slash', M: 1.58, cd: 9, pen: 18, aoe: true, status: 'paralyze', dur: 4 },
+    { id: 'TECH_V215_WHIP_ACT_05', nameTh: 'โซ่ยมโลกกระชากวิญญาณ', path: 'KARMA_SAMSARA', sub: 'SIX_PATHS_WHEEL', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['WHIP', 'SPEAR'], arch: 'soul', M: 1.56, cd: 9, pen: 20, aoe: false, status: 'curse', dur: 5 },
     { id: 'TECH_V215_WHIP_ACT_06', nameTh: 'ด้ายแดงสะบั้นวาสนา', path: 'KARMA_SAMSARA', sub: 'FATE_SEVERING_THREAD', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['WHIP', 'FOCUS'], arch: 'pierce', M: 1.72, cd: 10, pen: 24, aoe: true, status: 'weaken', dur: 6 },
-    { id: 'TECH_V215_WHIP_ACT_07', nameTh: 'ค่ายด้ายสวรรค์เชิดร้อยหุ่นสังหาร', path: 'MECH_PUPPET', sub: 'SPIRIT_THREAD_PUPPET', tier: 6, grade: 'Exceptional', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'burst', M: 1.86, cd: 11, pen: 26, aoe: true, status: 'bleed', dur: 6 },
+    { id: 'TECH_V215_WHIP_ACT_07', nameTh: 'ค่ายด้ายสวรรค์เชิดร้อยหุ่นสังหาร', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 6, grade: 'Exceptional', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'burst', M: 1.86, cd: 11, pen: 26, aoe: true, status: 'bleed', dur: 6 },
     { id: 'TECH_V215_WHIP_ACT_08', nameTh: 'แส้เทวะสะบัดคว่ำแปดพิภพ', path: 'KARMA_SAMSARA', sub: 'FATE_SEVERING_THREAD', tier: 7, grade: 'Exceptional', el: 'ASTRAL', w: ['WHIP'], arch: 'slash', M: 2.02, cd: 12, pen: 30, aoe: true, status: 'stun', dur: 4 },
     // WHIP Passives (4)
-    { id: 'TECH_V215_WHIP_PAS_01', nameTh: 'เคล็ดนิ้ว灵เชิดเส้นด้ายปราณ', path: 'MECH_PUPPET', sub: 'SPIRIT_THREAD_PUPPET', tier: 1, grade: 'Common', el: 'WIND', w: ['WHIP', 'FOCUS'], passive: { f: { acc: 8, crit: 3, pen: 4 }, p: { atk: 0.05 } } },
+    { id: 'TECH_V215_WHIP_PAS_01', nameTh: 'เคล็ดนิ้ว灵เชิดเส้นด้ายปราณ', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 1, grade: 'Common', el: 'WIND', w: ['WHIP', 'FOCUS'], passive: { f: { acc: 8, crit: 3, pen: 4 }, p: { atk: 0.05 } } },
     { id: 'TECH_V215_WHIP_PAS_02', nameTh: 'ก้าวเงาซ่อนไหมสังหาร', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 3, grade: 'Refined', el: 'YIN_SHADOW', w: ['WHIP', 'BLADE'], passive: { f: { crit: 5, critDmg: 10, pen: 8 }, p: { atk: 0.08, matk: 0.04 } } },
-    { id: 'TECH_V215_WHIP_PAS_03', nameTh: 'ปราณแส้พันธนาการอสูร', path: 'BEAST_SOVEREIGN', sub: 'PACK_COMMAND_HUNT', tier: 5, grade: 'Rare', el: 'WOOD_LIFE', w: ['WHIP', 'SPEAR'], passive: { f: { acc: 14, pen: 10, eva: 8 }, p: { atk: 0.10, def: 0.06 } } },
+    { id: 'TECH_V215_WHIP_PAS_03', nameTh: 'ปราณแส้พันธนาการอสูร', path: 'BEAST_SOVEREIGN', sub: 'MYRIAD_BEAST_PACK', tier: 5, grade: 'Rare', el: 'WOOD_LIFE', w: ['WHIP', 'SPEAR'], passive: { f: { acc: 14, pen: 10, eva: 8 }, p: { atk: 0.10, def: 0.06 } } },
     { id: 'TECH_V215_WHIP_PAS_04', nameTh: 'สัจธรรมด้ายชะตาไร้ร่องรอย', path: 'KARMA_SAMSARA', sub: 'FATE_SEVERING_THREAD', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['WHIP'], passive: { f: { acc: 16, crit: 6, pen: 14 }, p: { atk: 0.12, matk: 0.10 } } }
   ];
 
@@ -46348,7 +46393,7 @@ JD.ITEMS.items.forEach(it => {
       path: 'XIAN',
       sub: 'SOUND_ZITHER',
       compatiblePaths: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ANY'],
-      preferredSubs: ['SOUND_ZITHER', 'SOUL_MUSICIAN', 'ZITHER_HEART_BOW', 'CHANT_RESONANCE'],
+      preferredSubs: ['SOUND_ZITHER', 'SEVEN_EMOTIONS_ZITHER', 'ZITHER_HEART_BOW', 'CELESTIAL_ZITHER_ENVOY'],
       tier: 7,
       reqTier: 5,
       grade: 'Legendary',
@@ -46381,9 +46426,9 @@ JD.ITEMS.items.forEach(it => {
       role: 'ACTIVE',
       combatArch: 'burst',
       path: 'ARRAY_TALISMAN',
-      sub: 'GRAND_FORMATION_ARCHITECT',
+      sub: 'EARTH_VEIN_WARDEN',
       compatiblePaths: ['ARRAY_TALISMAN', 'SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'ANY'],
-      preferredSubs: ['GRAND_FORMATION_ARCHITECT', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'CALLIGRAPHY_PAINTING_SAGE', 'GRAND_STRATEGIST'],
+      preferredSubs: ['EARTH_VEIN_WARDEN', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'CALLIGRAPHY_PAINTING_SAGE', 'BATTLEFIELD_STRATEGIST'],
       tier: 7,
       reqTier: 5,
       grade: 'Legendary',
@@ -46416,9 +46461,9 @@ JD.ITEMS.items.forEach(it => {
       role: 'ACTIVE',
       combatArch: 'pierce',
       path: 'MECH_PUPPET',
-      sub: 'SPIRIT_THREAD_PUPPET',
+      sub: 'THOUSAND_THREAD_ASSASSIN',
       compatiblePaths: ['MECH_PUPPET', 'KARMA_SAMSARA', 'DEMON', 'BEAST_SOVEREIGN', 'ANY'],
-      preferredSubs: ['SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'PACK_COMMAND_HUNT'],
+      preferredSubs: ['THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'MYRIAD_BEAST_PACK'],
       tier: 7,
       reqTier: 5,
       grade: 'Legendary',
@@ -46664,9 +46709,9 @@ JD.ITEMS.items.forEach(it => {
       combatArch: 'command',
       grantBuff: 'tacticalCommand',
       path: 'STRATEGY_GOVERNANCE',
-      sub: 'GRAND_STRATEGIST',
+      sub: 'BATTLEFIELD_STRATEGIST',
       compatiblePaths: ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'GOD', 'XIAN', 'ANY'],
-      preferredSubs: ['GRAND_STRATEGIST', 'BATTLE_ARRAY_TACTICIAN', 'IRON_LEGION_MARSHAL', 'IMPERIAL_PEACE_SOVEREIGN', 'HEAVENLY_MANDATE_CHANCELLOR', 'GRAND_FORMATION_ARCHITECT'],
+      preferredSubs: ['BATTLEFIELD_STRATEGIST', 'SECT_STEWARD', 'IMPERIAL_SEAL_CHANCELLOR', 'EARTH_VEIN_WARDEN'],
       tier: 7,
       reqTier: 5,
       origTier: 7,
@@ -46916,9 +46961,9 @@ JD.ITEMS.items.forEach(it => {
       combatArch: 'blink',
       grantBuff: 'astralMirage',
       path: 'BEAST_SOVEREIGN',
-      sub: 'ASTRAL_LEVIATHAN_KRAKEN',
+      sub: 'ABYSSAL_DRAGON_TOTEM',
       compatiblePaths: ['BEAST_SOVEREIGN', 'XIAN', 'DEMON', 'HEART_SOUL', 'ANY'],
-      preferredSubs: ['ASTRAL_LEVIATHAN_KRAKEN', 'MOUNT_CHARGER', 'TIME_VOID', 'SHADOW_ASSASSIN', 'PHANTOM_SOUL'],
+      preferredSubs: ['ABYSSAL_DRAGON_TOTEM', 'CELESTIAL_ASTRAL_FAIRY_TAMER', 'TIME_VOID', 'SHADOW_ASSASSIN', 'PHANTOM_SOUL'],
       tier: 7,
       reqTier: 5,
       origTier: 7,
@@ -47003,7 +47048,7 @@ JD.ITEMS.items.forEach(it => {
       path: 'KARMA_SAMSARA',
       sub: 'REVERSED_RETRIBUTION',
       compatiblePaths: ['KARMA_SAMSARA', 'DEMON', 'HEART_SOUL', 'GOD', 'ANY'],
-      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'RED_THREAD_ARBITER', 'ASURA_JUDGMENT_BLADE'],
+      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'ASURA_JUDGMENT_BLADE'],
       tier: 7,
       reqTier: 6,
       origTier: 7,
@@ -47117,9 +47162,9 @@ JD.ITEMS.items.forEach(it => {
     cat: 'MANTRA',
     role: 'MANTRA',
     path: 'STRATEGY_GOVERNANCE',
-    sub: 'IMPERIAL_PEACE_SOVEREIGN',
+    sub: 'SECT_STEWARD',
     compatiblePaths: ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'GOD', 'HEART_SOUL', 'ANY'],
-    preferredSubs: ['IMPERIAL_PEACE_SOVEREIGN', 'GRAND_STRATEGIST', 'HEAVENLY_MANDATE_CHANCELLOR', 'IRON_LEGION_MARSHAL', 'BATTLE_ARRAY_TACTICIAN', 'DIPLOMATIC_HEGEMON'],
+    preferredSubs: ['SECT_STEWARD', 'BATTLEFIELD_STRATEGIST', 'IMPERIAL_SEAL_CHANCELLOR', 'DIPLOMATIC_ENVOY'],
     tier: 7,
     reqTier: 5,
     grade: 'Legendary',
@@ -47154,7 +47199,7 @@ JD.ITEMS.items.forEach(it => {
   const v222TechSpecs = [
     // --- BLOOD_DEMON Actives (5) + Passives (2) = 7 ---
     {
-      id: "TECH_V222_01", nameTh: "หมัดมารโลหิตกิเลนคลั่ง", path: "BODY", sub: "BLOOD_FURNACE", tier: 3, grade: "Refined",
+      id: "TECH_V222_01", nameTh: "หมัดมารโลหิตกิเลนคลั่ง", path: "BODY", sub: "DEVOURING_FIEND", tier: 3, grade: "Refined",
       el: "BLOOD_DEMON", el2: "FIRE", w: ["FIST", "BLADE"], arch: "charge",
       obtainSources: ["FORTUNE:f1_blood_thorn_hollow", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
       sourceInfoTh: "จุดวาสนาโพรงหนามโลหิตชายเขา · แดนหมื่นพิภพจันทร์โลหิตหมื่นอสูร · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
@@ -47190,7 +47235,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_04", nameTh: "คีตมารโลหิตกล่อมวิญญาณคลั่ง", path: "HEART_SOUL", sub: "SOUL_MUSICIAN", tier: 4, grade: "Rare",
+      id: "TECH_V222_04", nameTh: "คีตมารโลหิตกล่อมวิญญาณคลั่ง", path: "HEART_SOUL", sub: "SEVEN_EMOTIONS_ZITHER", tier: 4, grade: "Rare",
       el: "BLOOD_DEMON", el2: "YIN_SHADOW", w: ["ZITHER", "WHIP"], arch: "harmonize",
       obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:bloodmoon", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
       sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพจันทร์โลหิต · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
@@ -47202,7 +47247,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_05", nameTh: "ทวนมารพยัคฆ์โลหิตบัญชาศึก", path: "BEAST_SOVEREIGN", sub: "PACK_COMMAND_HUNT", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_05", nameTh: "ทวนมารพยัคฆ์โลหิตบัญชาศึก", path: "BEAST_SOVEREIGN", sub: "MYRIAD_BEAST_PACK", tier: 5, grade: "Exceptional",
       el: "BLOOD_DEMON", el2: "EARTH_METAL", w: ["SPEAR", "FIST", "BLADE"], arch: "command",
       obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
       sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพจันทร์โลหิต · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
@@ -47240,7 +47285,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_08", nameTh: "ศรเหมันต์อสรพิษแช่แข็งวิญญาณ", path: "BEAST_SOVEREIGN", sub: "BEAST_BLOOD_FUSION", tier: 5, grade: "Rare",
+      id: "TECH_V222_08", nameTh: "ศรเหมันต์อสรพิษแช่แข็งวิญญาณ", path: "BEAST_SOVEREIGN", sub: "SYMBIOTIC_BEAST_WARRIOR", tier: 5, grade: "Rare",
       el: "WATER_ICE", el2: "YIN_SHADOW", w: ["BOW", "WHIP"], arch: "dot",
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:frostabyss", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
@@ -47264,7 +47309,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_10", nameTh: "ฝ่ามือวาฬสมุทรเหมันต์กลืนคลื่น", path: "XIAN", sub: "TIDAL_WATER_MIRROR", tier: 6, grade: "Exceptional",
+      id: "TECH_V222_10", nameTh: "ฝ่ามือวาฬสมุทรเหมันต์กลืนคลื่น", path: "XIAN", sub: "FROST_MOON_IMMORTAL", tier: 6, grade: "Exceptional",
       el: "WATER_ICE", el2: "ASTRAL", w: ["FIST", "ZITHER", "SPEAR"], arch: "channel",
       obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:frostabyss", "SECRET_REALM:REALM_NINE_NETHER_BLOOD_SEA"],
       sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · วังบาดาลสมุทรโลหิตเก้ายมโลก",
@@ -47278,7 +47323,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- LIGHTNING Actives (4) + Passives (1) = 5 ---
     {
-      id: "TECH_V222_11", nameTh: "ดาบเขี้ยวเสือดาวอสนีพริบตา", path: "BODY", sub: "LIGHTNING_TEMPERED_BODY", tier: 3, grade: "Refined",
+      id: "TECH_V222_11", nameTh: "ดาบเขี้ยวเสือดาวอสนีพริบตา", path: "BODY", sub: "THUNDER_BODY", tier: 3, grade: "Refined",
       el: "LIGHTNING", el2: "WIND", w: ["BLADE", "FIST"], arch: "blink",
       obtainSources: ["FORTUNE:f2_thunder_echo_cliff", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาผาอสนีสะท้อนพิณ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47290,7 +47335,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_12", nameTh: "ศรสายฟ้ากระเรียนพายุทะลวงเมฆ", path: "GOD", sub: "THUNDER_PUNISHMENT_ENVOY", tier: 4, grade: "Rare",
+      id: "TECH_V222_12", nameTh: "ศรสายฟ้ากระเรียนพายุทะลวงเมฆ", path: "GOD", sub: "STORM_THUNDER_EMPEROR", tier: 4, grade: "Rare",
       el: "LIGHTNING", el2: "WIND", w: ["BOW", "SPEAR"], arch: "channel",
       obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47328,7 +47373,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- WIND Actives (2) + Passives (1) = 3 ---
     {
-      id: "TECH_V222_15", nameTh: "ดาบเขี้ยววายุคลั่งตัดพายุ", path: "XIAN", sub: "WIND_SHADOW_ROAMER", tier: 3, grade: "Refined",
+      id: "TECH_V222_15", nameTh: "ดาบเขี้ยววายุคลั่งตัดพายุ", path: "XIAN", sub: "PHANTOM_SOUL", tier: 3, grade: "Refined",
       el: "WIND", el2: "LIGHTNING", w: ["BLADE", "SWORD", "WHIP"], arch: "evade",
       obtainSources: ["FORTUNE:f2_venom_lotus_marsh", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_EMPEROR_SWORD_TOMB"],
       sourceInfoTh: "จุดวาสนาบึงบัวพิษหมื่นบุปผา · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · สุสานกระบี่จักรพรรดิบรรพกาล",
@@ -47354,7 +47399,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- FIRE Actives (2) + Passives (1) = 3 ---
     {
-      id: "TECH_V222_17", nameTh: "หมัดเพลิงสุริยันหลอมศิลา", path: "CRAFT_CREATION", sub: "DIVINE_FORGE_FOUNDER", tier: 4, grade: "Rare",
+      id: "TECH_V222_17", nameTh: "หมัดเพลิงสุริยันหลอมศิลา", path: "CRAFT_CREATION", sub: "HEAVENLY_ANVIL_SMITH", tier: 4, grade: "Rare",
       el: "FIRE", el2: "EARTH_METAL", w: ["FIST", "BLADE", "SWORD"], arch: "dot",
       obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_ASTRAL_GOD_RUINS"],
       sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพดาราจักรสุญตา · ซากวิหารดาราจักรเทพโบราณ",
@@ -47366,7 +47411,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_18", nameTh: "เกาทัณฑ์เพลิงผลาญกัลป์สั่งทัพ", path: "STRATEGY_GOVERNANCE", sub: "BATTLE_ARRAY_TACTICIAN", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_18", nameTh: "เกาทัณฑ์เพลิงผลาญกัลป์สั่งทัพ", path: "STRATEGY_GOVERNANCE", sub: "BATTLEFIELD_STRATEGIST", tier: 5, grade: "Exceptional",
       el: "FIRE", el2: "LIGHT_YANG", w: ["BOW", "SPEAR", "SWORD"], arch: "command",
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_ASTRAL_GOD_RUINS"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพดาราจักรสุญตา · ซากวิหารดาราจักรเทพโบราณ",
@@ -47380,7 +47425,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- 6 Passive Techniques with Rare Procs (onHit & combatTick) ---
     {
-      id: "TECH_V222_19", nameTh: "เคล็ดชีพจรโลหิตอสูรสูบปราณ", path: "DEMON", sub: "BLOOD_SEA_FIEND", tier: 4, grade: "Rare",
+      id: "TECH_V222_19", nameTh: "เคล็ดชีพจรโลหิตอสูรสูบปราณ", path: "DEMON", sub: "BLOOD_SPEAR_ASURA", tier: 4, grade: "Rare",
       el: "BLOOD_DEMON", el2: "YIN_SHADOW", w: ["FIST", "BLADE", "WHIP"],
       obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
       sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพจันทร์โลหิต · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
@@ -47423,7 +47468,7 @@ JD.ITEMS.items.forEach(it => {
       }
     },
     {
-      id: "TECH_V222_22", nameTh: "เคล็ดชีพจรสายฟ้าสวรรค์สะท้อนศึก", path: "GOD", sub: "THUNDER_PUNISHMENT_ENVOY", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_22", nameTh: "เคล็ดชีพจรสายฟ้าสวรรค์สะท้อนศึก", path: "GOD", sub: "STORM_THUNDER_EMPEROR", tier: 5, grade: "Exceptional",
       el: "LIGHTNING", el2: "FIRE", w: ["BLADE", "BOW", "WHIP", "SWORD"],
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47438,7 +47483,7 @@ JD.ITEMS.items.forEach(it => {
       }
     },
     {
-      id: "TECH_V222_23", nameTh: "เคล็ดลมหายใจวายุเมฆาไร้เหน็ดเหนื่อย", path: "HEART_SOUL", sub: "SOUL_MUSICIAN", tier: 4, grade: "Rare",
+      id: "TECH_V222_23", nameTh: "เคล็ดลมหายใจวายุเมฆาไร้เหน็ดเหนื่อย", path: "HEART_SOUL", sub: "SEVEN_EMOTIONS_ZITHER", tier: 4, grade: "Rare",
       el: "WIND", el2: "WATER_ICE", w: ["ZITHER", "BOW", "SWORD", "WHIP"],
       obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47453,7 +47498,7 @@ JD.ITEMS.items.forEach(it => {
       }
     },
     {
-      id: "TECH_V222_24", nameTh: "เคล็ดเตาหลอมอัคคีสุริยันนิรันดร์", path: "CRAFT_CREATION", sub: "PILL_FLAME_SOVEREIGN", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_24", nameTh: "เคล็ดเตาหลอมอัคคีสุริยันนิรันดร์", path: "CRAFT_CREATION", sub: "PILL_FURNACE_IMMORTAL", tier: 5, grade: "Exceptional",
       el: "FIRE", el2: "LIGHT_YANG", w: ["FIST", "BLADE", "SWORD", "SPEAR"],
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_PRIMORDIAL_ALCHEMIST_PALACE"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพดาราจักรสุญตา · ตำหนักโอสถเทวะหมื่นกัลป์",
@@ -52493,39 +52538,39 @@ JD.ITEMS.items.forEach(it => {
   const v240SingleWeaponAndLegendarySpecs = [
     // 2 Missing Path Legendaries (GOD & CRAFT_CREATION)
     { id: 'LEG_V240_GOD', nameTh: 'มหาเทวโองการสวรรค์เก้าชั้นฟ้าพิพากษาภพ', path: 'GOD', sub: 'WAR_DEITY', tier: 7, legendary: true, wt: 'SPEAR', el: 'LIGHT_YANG', arch: 'burst', action: 'SUMMON_DEITY_PROJECTION', buff: 'divineResonance', debuff: 'stun', kw: ['KW_SHATTER_ARMOR', 'KW_AURA_PULSE', 'KW_EXECUTE_CULL'] },
-    { id: 'LEG_V240_CRAFT_CREATION', nameTh: 'มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา', path: 'CRAFT_CREATION', sub: 'DIVINE_FORGE_ARTISAN', tier: 7, legendary: true, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'qiBarrierShell', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_SHATTER_ARMOR', 'KW_ABSORB_RELEASE'] },
+    { id: 'LEG_V240_CRAFT_CREATION', nameTh: 'มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา', path: 'CRAFT_CREATION', sub: 'HEAVENLY_ANVIL_SMITH', tier: 7, legendary: true, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'qiBarrierShell', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_SHATTER_ARMOR', 'KW_ABSORB_RELEASE'] },
     // BRUSH (3 strict single-weapon techniques: 0 -> 3)
-    { id: 'TECH_V240_BRUSH_01', nameTh: 'พู่กันหยกตวัดอักษรสะกดวิญญาณ', path: 'INK_LITERATI', sub: 'IMPERIAL_DECREE_CALLIGRAPHER', tier: 3, wt: 'BRUSH', el: 'ASTRAL', arch: 'pierce', action: 'IMPERIAL_INK_DECREE', buff: 'literatiDecree', debuff: 'silence', kw: ['KW_MARKSMAN_FOCUS', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_BRUSH_01', nameTh: 'พู่กันหยกตวัดอักษรสะกดวิญญาณ', path: 'INK_LITERATI', sub: 'IMPERIAL_EDICT_CALLIGRAPHER', tier: 3, wt: 'BRUSH', el: 'ASTRAL', arch: 'pierce', action: 'IMPERIAL_INK_DECREE', buff: 'literatiDecree', debuff: 'silence', kw: ['KW_MARKSMAN_FOCUS', 'KW_TEMPO_STEAL'] },
     { id: 'TECH_V240_BRUSH_02', nameTh: 'พู่กันหมึกสวรรค์จารึกค่ายกลแปดทิศ', path: 'HEART_SOUL', sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 5, wt: 'BRUSH', el: 'LIGHT_YANG', arch: 'strike', action: 'IMPERIAL_INK_DECREE', buff: 'clarityLotus', debuff: 'weaken', kw: ['KW_FOCUS_WINDOW', 'KW_STATUS_TRANSFER'] },
-    { id: 'TECH_V240_BRUSH_03', nameTh: 'พู่กันชุนชิวพิพากษาชะตาดารา', path: 'INK_LITERATI', sub: 'GRAND_HISTORIAN_SCHOLAR', tier: 6, wt: 'BRUSH', el: 'ASTRAL', arch: 'burst', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_MARKSMAN_FOCUS', 'KW_CRIT_OVERFLOW', 'KW_DELAYED_DETONATION'] },
+    { id: 'TECH_V240_BRUSH_03', nameTh: 'พู่กันชุนชิวพิพากษาชะตาดารา', path: 'INK_LITERATI', sub: 'HISTORIANS_DESTINY_QUILL', tier: 6, wt: 'BRUSH', el: 'ASTRAL', arch: 'burst', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_MARKSMAN_FOCUS', 'KW_CRIT_OVERFLOW', 'KW_DELAYED_DETONATION'] },
     // ABACUS (3 strict single-weapon techniques: 3 -> 6)
     { id: 'TECH_V240_ABACUS_01', nameTh: 'ลูกคิดเหล็กคำนวณจุดตายร้อยก้าว', path: 'MERCANTILE_DAO', sub: 'GOLDEN_ABACUS_ARBITER', tier: 3, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'strike', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_BREAK'] },
-    { id: 'TECH_V240_ABACUS_02', nameTh: 'ลูกคิดหยกดีดเม็ดทองทลายค่ายกล', path: 'STRATEGY_GOVERNANCE', sub: 'GRAND_STRATEGIST', tier: 5, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'pierce', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'contractDefault', kw: ['KW_ARMOR_READ', 'KW_TEMPO_STEAL'] },
-    { id: 'TECH_V240_ABACUS_03', nameTh: 'มหาลูกคิดไฉ่ซิงชั่งตวงบุญบาปสวรรค์', path: 'MERCANTILE_DAO', sub: 'TREASURY_SOVEREIGN', tier: 6, wt: 'ABACUS', el: 'LIGHT_YANG', arch: 'burst', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_OVERFLOW', 'KW_SHATTER_ARMOR'] },
+    { id: 'TECH_V240_ABACUS_02', nameTh: 'ลูกคิดหยกดีดเม็ดทองทลายค่ายกล', path: 'STRATEGY_GOVERNANCE', sub: 'BATTLEFIELD_STRATEGIST', tier: 5, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'pierce', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'contractDefault', kw: ['KW_ARMOR_READ', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_ABACUS_03', nameTh: 'มหาลูกคิดไฉ่ซิงชั่งตวงบุญบาปสวรรค์', path: 'MERCANTILE_DAO', sub: 'GOLDEN_ABACUS_ARBITER', tier: 6, wt: 'ABACUS', el: 'LIGHT_YANG', arch: 'burst', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_OVERFLOW', 'KW_SHATTER_ARMOR'] },
     // ROSARY (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_ROSARY_01', nameTh: 'ประคำโพธิ์ร้อยแปดเม็ดสยบมาร', path: 'KARMA_SAMSARA', sub: 'BODHI_SALVATION_MONK', tier: 4, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'strike', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'weaken', kw: ['KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
-    { id: 'TECH_V240_ROSARY_02', nameTh: 'มหาประคำวัชระสะท้อนกรรมเก้าภพ', path: 'KARMA_SAMSARA', sub: 'SAMSARA_WHEEL_ARBITER', tier: 6, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'burst', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'silence', kw: ['KW_ABSORB_RELEASE', 'KW_REFLECT_CONSOLIDATE', 'KW_OVERHEAL_BARRIER'] },
+    { id: 'TECH_V240_ROSARY_01', nameTh: 'ประคำโพธิ์ร้อยแปดเม็ดสยบมาร', path: 'KARMA_SAMSARA', sub: 'BODHI_VOW_GUARDIAN', tier: 4, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'strike', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'weaken', kw: ['KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
+    { id: 'TECH_V240_ROSARY_02', nameTh: 'มหาประคำวัชระสะท้อนกรรมเก้าภพ', path: 'KARMA_SAMSARA', sub: 'GOLDEN_WHEEL_ARBITER', tier: 6, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'burst', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'silence', kw: ['KW_ABSORB_RELEASE', 'KW_REFLECT_CONSOLIDATE', 'KW_OVERHEAL_BARRIER'] },
     // CLAW (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_CLAW_01', nameTh: 'กรงเล็บอสูรโลหิตฉีกกระชากหัวใจ', path: 'DEVOURING_FLESH', sub: 'BLOOD_MARROW_DEVOURER', tier: 4, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'pierce', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'bleed', kw: ['KW_EXECUTE_CULL', 'KW_SHATTER_ARMOR'] },
+    { id: 'TECH_V240_CLAW_01', nameTh: 'กรงเล็บอสูรโลหิตฉีกกระชากหัวใจ', path: 'DEVOURING_FLESH', sub: 'BEAST_FLESH_CONSUMER', tier: 4, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'pierce', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'bleed', kw: ['KW_EXECUTE_CULL', 'KW_SHATTER_ARMOR'] },
     { id: 'TECH_V240_CLAW_02', nameTh: 'กรงเล็บเทาเที่ยกลืนกินดารา', path: 'BEAST_SOVEREIGN', sub: 'TIGER_SOVEREIGN', tier: 6, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'burst', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'armorbreak', kw: ['KW_EXECUTE_CULL', 'KW_LAST_BREATH', 'KW_CRIT_BREAK'] },
     // NEEDLE (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_NEEDLE_01', nameTh: 'เข็มเงินเก้าดาราสะกดจุดตันเถียน', path: 'SAGE_SUPPORT', sub: 'DIVINE_PHYSICIAN_HEALER', tier: 4, wt: 'NEEDLE', el: 'WOOD_LIFE', arch: 'pierce', action: 'MERIDIAN_SEAL', buff: 'clarityLotus', debuff: 'meridianSeal', kw: ['KW_MARKSMAN_FOCUS', 'KW_STATUS_TRANSFER'] },
-    { id: 'TECH_V240_NEEDLE_02', nameTh: 'เข็มบุปผาพิษเร้นเงาสังหารไร้เสียง', path: 'VENOM_GU', sub: 'MYRIAD_POISON_APOTHECARY', tier: 6, wt: 'NEEDLE', el: 'DARK_YIN', arch: 'burst', action: 'GU_SOUL_LEECH', buff: 'shadowClone', debuff: 'poison', kw: ['KW_MARKSMAN_FOCUS', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] },
+    { id: 'TECH_V240_NEEDLE_01', nameTh: 'เข็มเงินเก้าดาราสะกดจุดตันเถียน', path: 'SAGE_SUPPORT', sub: 'GOLDEN_NEEDLE_SAINT', tier: 4, wt: 'NEEDLE', el: 'WOOD_LIFE', arch: 'pierce', action: 'MERIDIAN_SEAL', buff: 'clarityLotus', debuff: 'meridianSeal', kw: ['KW_MARKSMAN_FOCUS', 'KW_STATUS_TRANSFER'] },
+    { id: 'TECH_V240_NEEDLE_02', nameTh: 'เข็มบุปผาพิษเร้นเงาสังหารไร้เสียง', path: 'VENOM_GU', sub: 'MYRIAD_VENOM_APOTHECARY', tier: 6, wt: 'NEEDLE', el: 'DARK_YIN', arch: 'burst', action: 'GU_SOUL_LEECH', buff: 'shadowClone', debuff: 'poison', kw: ['KW_MARKSMAN_FOCUS', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] },
     // FAN (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_FAN_01', nameTh: 'พัดขนนกเมฆาโบกสะบัดพายุหมุน', path: 'CELESTIAL_WEATHER', sub: 'GALE_CLOUD_CONDUCTOR', tier: 4, wt: 'FAN', el: 'WIND', arch: 'strike', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TEMPO_STEAL'] },
-    { id: 'TECH_V240_FAN_02', nameTh: 'พัดเทวะสี่ฤดูพลิกผันฟ้าดิน', path: 'CELESTIAL_WEATHER', sub: 'THUNDER_MONSOON_SOVEREIGN', tier: 6, wt: 'FAN', el: 'LIGHTNING', arch: 'burst', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_DELAYED_DETONATION', 'KW_AURA_PULSE'] },
+    { id: 'TECH_V240_FAN_01', nameTh: 'พัดขนนกเมฆาโบกสะบัดพายุหมุน', path: 'CELESTIAL_WEATHER', sub: 'TYPHOON_GALE_SOVEREIGN', tier: 4, wt: 'FAN', el: 'WIND', arch: 'strike', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_FAN_02', nameTh: 'พัดเทวะสี่ฤดูพลิกผันฟ้าดิน', path: 'CELESTIAL_WEATHER', sub: 'THUNDER_CLOUD_CALLER', tier: 6, wt: 'FAN', el: 'LIGHTNING', arch: 'burst', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_DELAYED_DETONATION', 'KW_AURA_PULSE'] },
     // ASTROLABE (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_ASTROLABE_01', nameTh: 'จานดาราเจ็ดดาวเหนือล็อกชะตา', path: 'ASTRO_DIVINATION', sub: 'STARLIGHT_ASTROLOGER', tier: 4, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'pierce', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_MARKSMAN_FOCUS'] },
-    { id: 'TECH_V240_ASTROLABE_02', nameTh: 'มหาจานสวรรค์เหอถูลั่วซูบิดเบือนกาล', path: 'CHRONO_EPOCH', sub: 'EPOCH_HOURGLASS_KEEPER', tier: 6, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'burst', action: 'TEMPORAL_SAND_REWIND', buff: 'temporalHaste', debuff: 'entropyDecay', kw: ['KW_FOCUS_WINDOW', 'KW_TEMPO_STEAL', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_ASTROLABE_01', nameTh: 'จานดาราเจ็ดดาวเหนือล็อกชะตา', path: 'ASTRO_DIVINATION', sub: 'POLARIS_FATE_WEAVER', tier: 4, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'pierce', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_MARKSMAN_FOCUS'] },
+    { id: 'TECH_V240_ASTROLABE_02', nameTh: 'มหาจานสวรรค์เหอถูลั่วซูบิดเบือนกาล', path: 'CHRONO_EPOCH', sub: 'HOURGLASS_SAND_REAPER', tier: 6, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'burst', action: 'TEMPORAL_SAND_REWIND', buff: 'temporalHaste', debuff: 'entropyDecay', kw: ['KW_FOCUS_WINDOW', 'KW_TEMPO_STEAL', 'KW_TETHER_LINK'] },
     // WHIP (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_WHIP_01', nameTh: 'แส้ไหมเหล็กพันธนาการเงาอสรพิษ', path: 'SOUL_PUPPETRY', sub: 'SPIRIT_THREAD_PUPPETEER', tier: 4, wt: 'WHIP', el: 'DARK_YIN', arch: 'strike', action: 'MARIONETTE_SOUL_SWAP', buff: 'marionetteLink', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK'] },
-    { id: 'TECH_V240_WHIP_02', nameTh: 'แส้เทวะเทียนฉานกระชากวิญญาณเก้าชั้นฟ้า', path: 'BEAST_SOVEREIGN', sub: 'BLOOD_DRAGON', tier: 6, wt: 'WHIP', el: 'LIGHTNING', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'windStride', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK', 'KW_SHATTER_ARMOR'] },
+    { id: 'TECH_V240_WHIP_01', nameTh: 'แส้ไหมเหล็กพันธนาการเงาอสรพิษ', path: 'SOUL_PUPPETRY', sub: 'PHANTOM_SILK_PUPPETEER', tier: 4, wt: 'WHIP', el: 'DARK_YIN', arch: 'strike', action: 'MARIONETTE_SOUL_SWAP', buff: 'marionetteLink', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_WHIP_02', nameTh: 'แส้เทวะเทียนฉานกระชากวิญญาณเก้าชั้นฟ้า', path: 'BEAST_SOVEREIGN', sub: 'ABYSSAL_DRAGON_TOTEM', tier: 6, wt: 'WHIP', el: 'LIGHTNING', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'windStride', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK', 'KW_SHATTER_ARMOR'] },
     // ZITHER (2 strict single-weapon techniques: 4 -> 6)
     { id: 'TECH_V240_ZITHER_01', nameTh: 'พิณหยกเจ็ดสายบรรเลงคลื่นสยบมาร', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 4, wt: 'ZITHER', el: 'WIND', arch: 'strike', action: 'SONIC_TEMPO_BREAK', buff: 'clarityLotus', debuff: 'weaken', kw: ['KW_AURA_PULSE', 'KW_TEMPO_STEAL'] },
     { id: 'TECH_V240_ZITHER_02', nameTh: 'มหาพิณหงส์สวรรค์เก้าชั้นฟ้าสะท้านวิญญาณ', path: 'HEART_SOUL', sub: 'DREAM_ILLUSION_WEAVER', tier: 6, wt: 'ZITHER', el: 'ASTRAL', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'starDestinyWard', debuff: 'silence', kw: ['KW_AURA_PULSE', 'KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION'] },
     // FOCUS (2 strict single-weapon techniques: 4 -> 6)
-    { id: 'TECH_V240_FOCUS_01', nameTh: 'ศาสตราอาคมผนึกค่ายกลดาราผูกวิญญาณ', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 4, wt: 'FOCUS', el: 'ASTRAL', arch: 'pierce', action: 'VOID_POCKET_DEFENSE', buff: 'qiBarrierShell', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_TETHER_LINK'] },
-    { id: 'TECH_V240_FOCUS_02', nameTh: 'มหาตราประทับเทวะบัญชาห้าธาตุบรรพกาล', path: 'OCCULT_MAGE', sub: 'ELEMENTAL_GRIMOIRE_SAGE', tier: 6, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MUDRA_EXPLOSIVE_SEAL', buff: 'divineResonance', debuff: 'burn', kw: ['KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] }
+    { id: 'TECH_V240_FOCUS_01', nameTh: 'ศาสตราอาคมผนึกค่ายกลดาราผูกวิญญาณ', path: 'ARRAY_TALISMAN', sub: 'EARTH_VEIN_WARDEN', tier: 4, wt: 'FOCUS', el: 'ASTRAL', arch: 'pierce', action: 'VOID_POCKET_DEFENSE', buff: 'qiBarrierShell', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_FOCUS_02', nameTh: 'มหาตราประทับเทวะบัญชาห้าธาตุบรรพกาล', path: 'OCCULT_MAGE', sub: 'SACRED_GOLEM_TAMER', tier: 6, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MUDRA_EXPLOSIVE_SEAL', buff: 'divineResonance', debuff: 'burn', kw: ['KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] }
   ];
 
   for (const sp of v240SingleWeaponAndLegendarySpecs) {

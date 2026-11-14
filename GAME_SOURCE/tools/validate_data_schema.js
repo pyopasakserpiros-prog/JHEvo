@@ -13,7 +13,7 @@
  */
 
 const G = require('../test/load');
-const { JD, ECO, SIM, SECT, SK, STATS, COMBAT, CULT, MARTIAL } = G;
+const { JD, ECO, SIM, SECT, SK, STATS, COMBAT, CULT, MARTIAL, VC } = G;
 
 const errors = [];
 const warnings = [];
@@ -195,14 +195,34 @@ for (const sp of allSubPaths) {
   check(tr && Array.isArray(tr.realms) && tr.realms.length === 9,
     `Subpath ${sp.id} missing 9-stage progression track in CULT.trackDef`);
 }
+  if (CULT && CULT.PATH_DESCRIPTORS) {
+    for (const pk of majorPaths) {
+      const desc = CULT.PATH_DESCRIPTORS[pk];
+      check(desc && desc.resourceModel && desc.archetypeRole, `Path ${pk} missing PATH_DESCRIPTORS resourceModel/archetypeRole`);
+      check(desc && Array.isArray(desc.stations) && desc.stations.length >= 2, `Path ${pk} missing PATH_DESCRIPTORS stations`);
+      const sc = desc && desc.scaling;
+      check(sc && Number.isFinite(sc.hpGrowthPerNormStage) && sc.mantraPerTier, `Path ${pk} missing PATH_DESCRIPTORS scaling`);
+      check(sc && sc.combatOffenseBaseMult >= 1.09 && sc.combatDefenseTakenMult <= 0.93, `Path ${pk} combat base mult out of parity bounds`);
+    }
+  }
 console.log(`  ✓ Audited ${allSubPaths.length} subpaths across ${majorPaths.length} cultivation paths`);
 
 // 4. Audit Martial Arts, Techniques, Composable Keywords & Strict Arch/Status/Buff Checks
 console.log('\n▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...');
-const techniques = [
-  ...(Array.isArray(JD.MARTIAL?.techniques) ? JD.MARTIAL.techniques : Object.values(JD.MARTIAL?.techniques || {})),
-  ...(Array.isArray(JD.MARTIAL?.v200Techniques) ? JD.MARTIAL.v200Techniques : [])
-];
+const _techSeen = new Set();
+const techniques = [];
+for (const _arr of [
+  Array.isArray(JD.MARTIAL?.techniques) ? JD.MARTIAL.techniques : Object.values(JD.MARTIAL?.techniques || {}),
+  Array.isArray(JD.MARTIAL?.v200Techniques) ? JD.MARTIAL.v200Techniques : [],
+  Array.isArray(JD.TECH?.techniques) ? JD.TECH.techniques : Object.values(JD.TECH?.techniques || {})
+]) {
+  for (const _t of _arr) {
+    if (_t && !_techSeen.has(_t)) {
+      _techSeen.add(_t);
+      techniques.push(_t);
+    }
+  }
+}
 check(techniques.length > 0, 'JD.MARTIAL.techniques must not be empty');
 
 const validPaths = new Set([...Object.keys(JD.CULT.paths), 'ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'CONFUCIAN', 'EXTERNAL']);
@@ -214,6 +234,16 @@ for (const tech of techniques) {
 
   if (tech.path) {
     check(validPaths.has(tech.path), `Technique ${tech.id} has invalid path: ${tech.path}`);
+  }
+  if (tech.sub && tech.sub !== 'NONE') {
+    check(subPathIds.has(tech.sub), `Technique ${tech.id} references non-canonical subpath: ${tech.sub}`);
+  }
+  if (Array.isArray(tech.preferredSubs)) {
+    for (const ps of tech.preferredSubs) {
+      if (ps && ps !== 'NONE') {
+        check(subPathIds.has(ps), `Technique ${tech.id} preferredSubs contains non-canonical subpath: ${ps}`);
+      }
+    }
   }
 
   // Strict composable spec validation (no silent fallbacks!)
@@ -253,6 +283,21 @@ for (const tech of techniques) {
       check(typeof move.cd === 'number' && !isNaN(move.cd) && move.cd >= 0, `Technique ${tech.id} move ${move.id} invalid cooldown cd: ${move.cd}`);
     }
   }
+}
+for (const [legKey, legItem] of Object.entries((VC && VC.LEGENDARY_EQUIPMENT) || {})) {
+  if (legItem && Array.isArray(legItem.preferredSubs)) {
+    for (const ps of legItem.preferredSubs) {
+      if (ps && ps !== 'NONE') {
+        check(subPathIds.has(ps), `LEGENDARY_EQUIPMENT[${legKey}] (${legItem.id || ''}) preferredSubs contains non-canonical subpath: ${ps}`);
+      }
+    }
+  }
+}
+for (const pk of Object.keys((MARTIAL && MARTIAL.PROFILES) || {})) {
+  check(subPathIds.has(pk), `MARTIAL.PROFILES contains non-canonical subpath key: ${pk}`);
+}
+for (const sk of Object.keys((MARTIAL && MARTIAL.SUB_EQUIP_BONUSES) || {})) {
+  check(subPathIds.has(sk), `MARTIAL.SUB_EQUIP_BONUSES contains non-canonical subpath key: ${sk}`);
 }
 console.log(`  ✓ Audited ${techniques.length} martial techniques (zero unknown archetypes, statuses, buffs, or composable keywords)`);
 

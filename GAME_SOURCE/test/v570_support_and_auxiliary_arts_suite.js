@@ -241,7 +241,7 @@ assert(npcHtml.includes('วิชาสายสนับสนุนและ�
 UI.sheet = 'sect';
 UI.tab = 'visuals';
 const sectHtml = UI.rSect();
-assert(sectHtml.includes('คำสั่งฉุกเฉินวิชาสายสนับสนุน'), 'UI.rSect must render Emergency Sect Support controls');
+assert(sectHtml.includes('ระบบสนับสนุนและฟื้นฟูสำนัก') && !sectHtml.includes('data-do="trigger-sect-emergency-support"'), 'UI.rSect must render autonomous Support & Facility observation card without player command buttons');
 
 // Verify Save/Load round-trip preserves supportState
 const savedJson = SIM.serialize(W);

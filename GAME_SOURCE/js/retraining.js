@@ -15,8 +15,9 @@ M.retrainingQuote=(W,n,key,opts)=>{
  if(n.dead||n.away||n.exiled||n.act&&n.act.id==='fight')return {ok:false,reason:'ต้องปลอดภัยและอยู่ในสำนักก่อน'};
  if(W.day<(n.retrainUntil||0))return {ok:false,reason:'พักปรับฐานวิถีถึงวันที่ '+n.retrainUntil,cooldownUntil:n.retrainUntil};
  const id=target.knowledge.id,ownedCrystal=(n.inv&&n.inv.crystals&&n.inv.crystals[key]||0)>0,ownedManual=(n.inv&&n.inv.subManuals||[]).includes(id),sectManual=(W.sect.subLibrary||[]).includes(id)&&SECT.canLearnTier(W,n)>=target.knowledge.tier;
- const source=opts.source||(ownedCrystal?'crystal':ownedManual?'personalManual':sectManual?'sectManual':null);
- if(!source||source==='crystal'&&!ownedCrystal||source==='personalManual'&&!ownedManual||source==='sectManual'&&!sectManual||!['crystal','personalManual','sectManual'].includes(source))return {ok:false,reason:'ไม่มีผลึกหรือคัมภีร์ที่เข้าถึงได้จริง'};
+ const pathAllowed=!g.SECT||!g.SECT.PATH_LIBRARY||typeof g.SECT.PATH_LIBRARY.canDiscipleStudyPath!=='function'||g.SECT.PATH_LIBRARY.canDiscipleStudyPath(W,n,target.knowledge.path);
+ const source=opts.source||(ownedCrystal?'crystal':(pathAllowed&&ownedManual)?'personalManual':(pathAllowed&&sectManual)?'sectManual':null);
+ if(!source||source==='crystal'&&!ownedCrystal||source==='personalManual'&&(!ownedManual||!pathAllowed)||source==='sectManual'&&(!sectManual||!pathAllowed)||!['crystal','personalManual','sectManual'].includes(source))return {ok:false,reason:!pathAllowed&&(ownedManual||sectManual)?'หอคัมภีร์ยังไม่ปลดล็อกวิถีเป้าหมาย':'ไม่มีผลึกหรือคัมภีร์ที่เข้าถึงได้จริง'};
  const fee=source==='crystal'?0:M.studyFee(W,key),cooldownDays=target.pathChanged?60:30;
  if(opts.price!=null&&opts.price!==fee)return {ok:false,reason:'ค่าเรียนเปลี่ยนไป'};
  return Object.assign({},target,{ok:true,key,source,fee,lostStages:n.cult.stage-target.newStage,cooldownDays,affordable:Number.isFinite(n.cp)&&(n.cp>=fee)});
@@ -28,10 +29,40 @@ M.retrain=(W,n,key,opts)=>{
  // No RNG or fallible operation follows payment; consume a unit only on this successful commit.
  if(quote.source==='crystal')M.consumeCrystalUnit(n,key);else CPE.S(W).techSales+=quote.fee;
  const old=n.cult,from=old.path+'/'+old.sub,before=old.stage,k=quote.knowledge;
- n.cult={path:k.path,sub:k.id,stage:quote.newStage,prog:0,mantra:null,unlockedMantras:Array.isArray(old.unlockedMantras)?old.unlockedMantras.filter(id=>{const m=CULT.tech(id);return !!(m&&(!m.path||m.path==="ANY"||m.path===k.path));}):[],techs:Array.from(new Set(old.techs||[])),learning:null,toxic:old.toxic||0,lifeBonus:old.lifeBonus||0,since:W.day,attempts:0,secl:null,rate:0,pillT:0,tm:old.tm||{}};
+ const prevLifeMax=CULT.lifespan?CULT.lifespan(n):(((CULT.PATHS[old.path]&&CULT.PATHS[old.path].stages[old.stage-1]&&CULT.PATHS[old.path].stages[old.stage-1].lifespanMax)||70)+(old.lifeBonus||0));
+ const newBaseLife=(CULT.PATHS[k.path]&&CULT.PATHS[k.path].stages[quote.newStage-1]&&CULT.PATHS[k.path].stages[quote.newStage-1].lifespanMax)||70;
+ const ageNow=HC.ageYears(n),lifeDelta=Math.max(0,prevLifeMax-newBaseLife);
+ let nextLifeBonus=old.lifeBonus||0;
+ if(!quote.pathChanged){
+  nextLifeBonus=Math.max(nextLifeBonus,Math.round(lifeDelta*.85));
+  if(ageNow+15>newBaseLife+nextLifeBonus)nextLifeBonus=Math.max(nextLifeBonus,Math.min(lifeDelta,Math.ceil(ageNow+15-newBaseLife)));
+ }else if(ageNow+10>newBaseLife+nextLifeBonus){
+  nextLifeBonus=Math.max(nextLifeBonus,Math.min(Math.round(lifeDelta*.6),Math.ceil(ageNow+10-newBaseLife)));
+ }
+ n.cult={path:k.path,sub:k.id,stage:quote.newStage,prog:0,mantra:null,unlockedMantras:Array.isArray(old.unlockedMantras)?old.unlockedMantras.filter(id=>{const m=CULT.tech(id);return !!(m&&(!m.path||m.path==="ANY"||m.path===k.path));}):[],techs:Array.from(new Set(old.techs||[])),learning:null,toxic:old.toxic||0,lifeBonus:nextLifeBonus,since:W.day,attempts:0,secl:null,rate:0,pillT:0,tm:old.tm||{}};
  n.cult.mantra=(CULT.bestMantra(k.path,quote.newStage,n)||{}).id||null;
- if(CULT.isExpansionTrack?CULT.isExpansionTrack(k.id):(CULT.EXPANSION_TRACK_IDS&&CULT.EXPANSION_TRACK_IDS.has(k.id)))n.cult.track=CULT.initTrack(k.id,1,W.day);
+ if(CULT.isExpansionTrack?CULT.isExpansionTrack(k.id):(CULT.EXPANSION_TRACK_IDS&&CULT.EXPANSION_TRACK_IDS.has(k.id))){
+  const trDef=CULT.trackDef&&CULT.trackDef(k.id),trMax=(trDef&&Array.isArray(trDef.realms)&&trDef.realms.length)||9;
+  const trOrd=!quote.pathChanged?Math.min(trMax,Math.max(1,quote.newStage)):1;
+  n.cult.track=CULT.initTrack(k.id,trOrd,W.day);
+ }
+ if(quote.pathChanged){
+  n.pathGauge=null;n.mechState=null;n.karmaState=null;n.divineWaning=false;n.demonicRealmsGauge=null;
+  n.secondaryResources={FROST_QI:0,KILLING_INTENT:0,FORMATION_INK:0,MECH_GEARS:0};
+  if(n.grandDaoState)n.grandDaoState=null;
+  if(n.ext){delete n.ext._faithZeroDays;delete n.ext.grandDaoPosture;}
+ }
+ if(n.equip&&M.gearUsable){
+  n.inv=n.inv||{};n.inv.gear=n.inv.gear||[];
+  for(const slot of ['WEAPON','ARMOR','ACCESSORY']){
+   const eq=n.equip[slot];
+   if(eq&&!M.gearUsable(n,eq)){n.inv.gear.push(eq);n.equip[slot]=null;}
+  }
+ }
+ if(CULT.ensurePathGauge)CULT.ensurePathGauge(n);
  if(CULT.ensurePets&&n.pets)CULT.ensurePets(n);if(k.path==='MECH_PUPPET'&&CULT.ensureMechState)CULT.ensureMechState(n);if(k.path==='KARMA_SAMSARA'&&CULT.ensureKarmaState)CULT.ensureKarmaState(n);
+ if(CULT.GRAND_DAO_MECHANICS&&CULT.GRAND_DAO_MECHANICS.ensureNpcState)CULT.GRAND_DAO_MECHANICS.ensureNpcState(W,n);
+ if(CULT.evaluateAutonomousPostures)CULT.evaluateAutonomousPostures(W,n,{trigger:'retrain'});
  if(M.reconcileInnate)M.reconcileInnate(n,W);
  if(M.reconcilePassives)M.reconcilePassives(n);
  n.buffs=[];n.sx=[];n.castFx=null;n._pickCache=null;if(M.invalidateMartialCaches)M.invalidateMartialCaches(n);
@@ -61,7 +92,11 @@ M.evaluateRetraining=(W,n,key)=>{
  const elemAdv=clamp((tgtElem-curElem)*32,-12,14);
  const skillAdv=(targetSkill-currentSkill)*.35,investment=quote.lostStages*(5+caution*.20+rational*.07)+lost.reduce((s,t)=>s+t.tier,0)*(1+caution/70),prepared=(gearReady?11:0)+Math.min(18,sourcePool.length*9);
  const advantage=affinityAdv+elemAdv+skillAdv+(ambition-50)*.3+(curiosity-50)*.1+prepared+(compatible.length?3:0);
- const ageRisk=HC.ageYears(n)>CULT.PATHS[k.path].stages[quote.newStage-1].lifespanMax-8?100:0,needs=n.h.state.energy<35||n.h.state.satiety<35||n.h.state.hp<CULT.hpMax(n)*.6;
+ const curLifeMax=CULT.lifespan?CULT.lifespan(n):(((CULT.PATHS[n.cult.path]&&CULT.PATHS[n.cult.path].stages[n.cult.stage-1]&&CULT.PATHS[n.cult.path].stages[n.cult.stage-1].lifespanMax)||70)+(n.cult.lifeBonus||0));
+ const projBaseLife=(CULT.PATHS[k.path]&&CULT.PATHS[k.path].stages[quote.newStage-1]&&CULT.PATHS[k.path].stages[quote.newStage-1].lifespanMax)||70;
+ const projDelta=Math.max(0,curLifeMax-projBaseLife);
+ const projLife=projBaseLife+(n.cult.lifeBonus||0)+(!quote.pathChanged?Math.round(projDelta*.85):Math.round(projDelta*.4));
+ const ageRisk=HC.ageYears(n)>projLife-8?100:0,needs=n.h.state.energy<35||n.h.state.satiety<35||n.h.state.hp<CULT.hpMax(n)*.6;
  const score=advantage-investment-ageRisk-(needs?35:0)-(!quote.affordable?25:0);
  const reasons=['อาวุธเป้าหมาย '+preferred.map(x=>M.TYPES[x]).join('/')+' ฝีมือ '+Math.round(targetSkill),'ความสอดคล้องธาตุสายย่อย '+Math.round(tgtElem*100)+'% (เทียบสายเดิม '+Math.round(curElem*100)+'%)','เสียขั้น '+n.cult.stage+' → '+quote.newStage+' และพัก '+quote.cooldownDays+' วัน','วิชาเดิมจะหยุดทำงาน '+lost.length+' · ยังใช้ได้ '+compatible.length,'เตรียมอุปกรณ์ '+(gearReady?'พร้อม':'ยังไม่พร้อม')+' / วิชาทดแทน '+sourcePool.length,'นิสัยและความถนัดสุทธิ '+Math.round(advantage)+' · ต้นทุนฝึกใหม่ '+Math.round(investment)];
  if(needs)reasons.push('ต้องดูแลสุขภาพ/อาหารก่อน');if(ageRisk)reasons.push('อายุขัยขั้นใหม่เสี่ยงเกินไป');
@@ -69,7 +104,7 @@ M.evaluateRetraining=(W,n,key)=>{
  return Object.assign(base,{quote,score,accessible:true,action:worth&&gearReady&&techReady&&!needs&&quote.affordable?'switch':(targetSkill>=50&&advantage>investment*.5&&!needs?'prepare':'retain'),reasons,gearReady,techReady,targetSkill,lostTechniques:lost.map(t=>t.id),availableTechniques:sourcePool.map(t=>t.id),elemAdv});
 };
 M.availableRetraining=(W,n)=>Array.from(new Set(Object.keys(n.inv&&n.inv.crystals||{}).filter(key=>key.startsWith('S:')&&n.inv.crystals[key]>0).concat((n.inv&&n.inv.subManuals||[]).map(M.subKey),(W.sect.subLibrary||[]).map(M.subKey))));
-M.pickRetraining=(W,n)=>{if(!n||!n.cult||n.cult.stage<2||W.day<(n.retrainUntil||0))return null;const subLibLen=(W.sect.subLibrary||[]).length,crysLen=Object.keys(n.inv&&n.inv.crystals||{}).length,manLen=(n.inv&&n.inv.subManuals||[]).length;if(!subLibLen&&!crysLen&&!manLen)return null;const rc=n._retrainPickCache;if(rc&&rc.day===W.day&&rc.ver===n._ver&&rc.stage===n.cult.stage&&rc.sub===n.cult.sub&&rc.cp===(n.cp||0)&&rc.subLibLen===subLibLen&&rc.crysLen===crysLen&&rc.manLen===manLen)return rc.val;const val=M.availableRetraining(W,n).map(key=>M.evaluateRetraining(W,n,key)).filter(x=>x.accessible).sort((a,b)=>b.score-a.score)[0]||null;n._retrainPickCache={day:W.day,ver:n._ver,stage:n.cult.stage,sub:n.cult.sub,cp:n.cp||0,subLibLen,crysLen,manLen,val};return val;};
+M.pickRetraining=(W,n)=>{if(!n||!n.cult||n.cult.stage<2||W.day<(n.retrainUntil||0))return null;const subLibLen=(W.sect.subLibrary||[]).length,crysLen=Object.keys(n.inv&&n.inv.crystals||{}).length,manLen=(n.inv&&n.inv.subManuals||[]).length,pathLibLen=(W.sect.pathLibrary&&Array.isArray(W.sect.pathLibrary.unlockedPaths))?W.sect.pathLibrary.unlockedPaths.length:0;if(!subLibLen&&!crysLen&&!manLen)return null;const rc=n._retrainPickCache;if(rc&&rc.day===W.day&&rc.ver===n._ver&&rc.stage===n.cult.stage&&rc.sub===n.cult.sub&&rc.cp===(n.cp||0)&&rc.subLibLen===subLibLen&&rc.crysLen===crysLen&&rc.manLen===manLen&&rc.pathLibLen===pathLibLen)return rc.val;const val=M.availableRetraining(W,n).map(key=>M.evaluateRetraining(W,n,key)).filter(x=>x.accessible).sort((a,b)=>b.score-a.score)[0]||null;n._retrainPickCache={day:W.day,ver:n._ver,stage:n.cult.stage,sub:n.cult.sub,cp:n.cp||0,subLibLen,crysLen,manLen,pathLibLen,val};return val;};
 const decision=M.crystalDecision;M.crystalDecision=(W,n,key)=>{
  const k=M.knowledge(key);
  if(k&&k.kind==='sub'&&M.retrainingTarget(n,key).ok){const d=M.evaluateRetraining(W,n,key);if(d.accessible&&(d.action==='switch'||d.action==='prepare'||d.targetSkill>=55))return {action:'retain',reason:d.action==='switch'?'รอฝึกเปลี่ยนสายอย่างรอบคอบ':d.reasons.join(' · '),fit:d.targetSkill||50};}
