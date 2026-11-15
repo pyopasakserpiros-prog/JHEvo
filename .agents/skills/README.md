@@ -86,3 +86,6 @@ T6 shared-group refinement: 50 shapes / 114 actual active skills / 207 child rou
 
 
 2026-11-15: งาน UI/AI ต้องใช้ observer action policy และเส้นทาง NPC ในรายงาน04; สกิล AI, UI, architecture, progression, economy, procedural, data, QA และ performance อัปเดตขอบเขตแล้ว ปุ่มสั่งในตัวอย่างประวัติศาสตร์ไม่ใช่แนวทางปัจจุบัน.
+
+### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
+- Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).

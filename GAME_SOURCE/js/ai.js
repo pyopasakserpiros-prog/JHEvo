@@ -965,25 +965,42 @@
       const btThreadId = 'thread:cult:' + n.id + ':' + (res.ok ? Math.max(1, c.stage - 1) : c.stage);
       const btThreadTitle = 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(n);
       const btChancePct = Math.round((res.p || 0) * 100);
+      const hasNoMedVow = Array.isArray(n.voluntaryVows) && n.voluntaryVows.includes('VOW_NO_MEDICINE');
+      const lifeRatio = (HC.ageYears && CULT.lifespan) ? (HC.ageYears(n) / Math.max(1, n.lifespanMax || CULT.lifespan(n))) : 0;
+      const btOriginTh = hasNoMedVow
+        ? ('ยึดมั่นสัจจะไม่พึ่งพาโอสถแม้แต่เม็ดเดียว อาศัยรากฐานบริสุทธิ์ของตนเข้าฝ่าด่านตรงๆ (โอกาสสำเร็จ ' + btChancePct + '%)')
+        : (lifeRatio >= 0.88
+          ? ('อายุขัยจวนเจียนดับสูญ จึงจำต้องทุ่มเดิมพันครั้งสุดท้ายฝ่าด่านต่อชะตา (โอกาสสำเร็จ ' + btChancePct + '%)')
+          : ((n.mentorId || n.mentor)
+            ? ('บ่มเพาะตบะจนเปี่ยมล้นและได้รับบารมีชี้แนะจากอาจารย์ก่อนเข้าด่าน (ประเมินโอกาสสำเร็จ ' + btChancePct + '%)')
+            : ('บ่มเพาะตบะจนเปี่ยมล้นถึงขีดสุดและตั้งจิตเข้าฝ่าด่านคอขวด (ประเมินโอกาสสำเร็จ ' + btChancePct + '%)')));
       if (res.ok) {
-        W.log('breakthrough', n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id], {
+        const btProseOk = (SIM && SIM.PROSE && SIM.PROSE.breakthroughProse)
+          ? SIM.PROSE.breakthroughProse(W, n, true, btChancePct, CULT.stageName(n), false)
+          : (n.h.name.given + ' ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!');
+        W.log('breakthrough', btProseOk, [n.id], {
           storyThreadId: btThreadId,
           storyThreadTitleTh: btThreadTitle,
-          originCauseTh: 'สะสมตบะครบเกณฑ์และผ่านการตัดสินใจทะลวงคอขวด (โอกาสสำเร็จ ' + btChancePct + '%)',
+          originCauseTh: btOriginTh,
           consequenceTh: 'ก้าวขึ้นสู่ ' + CULT.stageName(n) + ' · คุณูปการ +40 · ชื่อเสียงสำนัก +' + (1 + c.stage),
-          followUpTh: 'ตรวจสอบวิชาและอุปกรณ์ที่รองรับขั้นตบะใหม่ในหอคัมภีร์หรือคลังแสง',
+          followUpTh: 'บัดนี้ขอบเขตตบะและอายุขัยขยายเพิ่มขึ้น เจ้าตัวเตรียมมุ่งหน้าศึกษาเคล็ดวิชาขั้นสูงขึ้นและปรับเปลี่ยนศาสตราให้สมศักดิ์ศรีด้วยตนเอง',
           factDeltas: { chancePct: btChancePct, meritDelta: 40, fameDelta: 1 + c.stage, newStage: c.stage },
           severity: c.stage >= 5 ? 'MAJOR' : 'NOTABLE',
           promoteChronicle: true
         });
         AI.mem(W, n, 'ทะลวงสู่ ' + CULT.stageName(n), 1); n.merit += 40; W.fame(1 + c.stage);
       } else {
-        W.log('breakthrough', n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + btChancePct + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''), [n.id], {
+        const btProseFail = (SIM && SIM.PROSE && SIM.PROSE.breakthroughProse)
+          ? SIM.PROSE.breakthroughProse(W, n, false, btChancePct, CULT.stageName(n), !!res.died)
+          : (n.h.name.given + ' ทะลวงขั้นล้มเหลว (โอกาส ' + btChancePct + '%) บาดเจ็บ' + (res.died ? ' ถึงแก่ชีวิต' : ''));
+        W.log('breakthrough', btProseFail, [n.id], {
           storyThreadId: btThreadId,
           storyThreadTitleTh: btThreadTitle,
-          originCauseTh: 'ตัดสินใจเสี่ยงทะลวงด่านที่โอกาสสำเร็จ ' + btChancePct + '% แต่ปราณตีกลับ',
+          originCauseTh: btOriginTh + ' แต่กระแสปราณตีกลับกลางคัน',
           consequenceTh: res.died ? 'ตบะแตกซ่านถึงแก่ชีวิต' : ('ได้รับบาดเจ็บจากตบะย้อนกลับ (ระดับ ' + (res.sev || 1) + ')'),
-          followUpTh: res.died ? 'ตรวจสอบป้ายวิญญาณและผู้สืบทอดหน้าที่' : 'ควรส่งตัวเข้าหอหมอยาหรือจัดสรรโอสถรักษาอาการบาดเจ็บและเตรียมโอสถทะลวงด่านรอบหน้า',
+          followUpTh: res.died
+            ? 'ร่างไร้วิญญาณได้รับการจารึกนามขึ้นป้ายบรรพชน ทิ้งมรดกและรอยโศกเศร้าไว้เบื้องหลังแก่ศิษย์ร่วมสายและผู้ใกล้ชิด'
+            : ('บอบช้ำภายในระดับ ' + (res.sev || 1) + ' จำต้องพักปณิธานเดิมชั่วคราวเพื่อเยียวยาเส้นชีพจรในหอหมอยา ก่อนสะสมรากฐานกลับมาท้าทายคอขวดใหม่'),
           factDeltas: { chancePct: btChancePct, died: !!res.died, injurySeverity: res.sev || 1 },
           severity: res.died ? 'CRITICAL' : 'MAJOR',
           promoteChronicle: true
@@ -1213,12 +1230,13 @@
         }
         const r = ECO.recipeById[ctx.rid]; const res = ECO.finishCraft(W, n, r, ctx); if (res.rejected) return;
         if (res.ok) {
-          const craftVerb = hall === 'alchemy' ? 'หลอมโอสถบรรลุผลยอดเยี่ยม' : 'หลอมศาสตราบรรลุผลยอดเยี่ยม';
+          const actorLbl = (SIM && SIM.proseName) ? SIM.proseName(W, n) : n.h.name.given;
+          const craftVerb = hall === 'alchemy' ? 'คุมเพลิงปราณหลอมโอสถไร้ที่ติ' : 'คุมเพลิงปราณตีหลอมศาสตราไร้ที่ติ';
           if (r.tier >= 2 && res.q >= 1.15) {
-            W.log('craft', n.h.name.given + ' ' + craftVerb + ' กำเนิด「' + res.text + '」คุณภาพชั้นเลิศ', [n.id]);
+            W.log('craft', 'กลิ่นหอมโอสถและแสงปราณส่องสว่างทะลุหลังคา! ' + actorLbl + ' ' + craftVerb + ' กำเนิด「' + res.text + '」คุณภาพชั้นเลิศ สำเร็จงดงาม!', [n.id]);
             AI.mem(W, n, 'ผลิต ' + res.text + ' ได้คุณภาพยอดเยี่ยม', 0.5);
           } else {
-            W.log('craft', n.h.name.given + ' ผลิต ' + res.text + ' สำเร็จ นำเข้าคลังสำนัก', [n.id]);
+            W.log('craft', actorLbl + ' ผลิต ' + res.text + ' สำเร็จ นำเข้าคลังสำนัก', [n.id]);
           }
           HC.experience(n, 'craft_success', 0.4);
           n.merit += 1.5 * r.tier;
@@ -1230,10 +1248,11 @@
           W.sect.produced = (W.sect.produced || 0) + 1;
         } else {
           const chPct = r ? Math.round(ECO.successChance(n, r) * 100) : 50;
-          W.log('craft', n.h.name.given + ' ควบคุมเพลิงผิดจังหวะ การผลิต' + (r ? '「' + r.outNameTh + '」' : '') + ' ล้มเหลว สูญเสียวัตถุดิบบางส่วน', [n.id], {
-            originCauseTh: 'ความชำนาญและสมาธิขณะหลอม (' + chPct + '%) ไม่ผ่านเกณฑ์ตำรับระดับ T' + (r ? r.tier : 1),
-            consequenceTh: 'สูญเสียวัตถุดิบรอบนี้และอารมณ์ผู้ผลิตลดลง (-5)',
-            followUpTh: 'ตรวจสอบระดับทักษะช่าง/นักปรุงโอสถ หรือสำรองวัตถุดิบในคลังก่อนสั่งผลิตรอบถัดไป',
+          const actorLbl = (SIM && SIM.proseName) ? SIM.proseName(W, n) : n.h.name.given;
+          W.log('craft', 'เสียงปะทุทึบดังขึ้นจากเตาหลอม! ' + actorLbl + ' จังหวะไฟปราณสะดุดขณะหลอม' + (r ? '「' + r.outNameTh + '」' : '') + ' (โอกาสเดิม ' + chPct + '%) ล้มเหลว สูญเสียวัตถุดิบบางส่วน', [n.id], {
+            originCauseTh: 'ความชำนาญและสมาธิขณะคุมไฟปราณ (' + chPct + '%) ไม่ผ่านเกณฑ์ตำรับชั้นที่ ' + (r ? r.tier : 1),
+            consequenceTh: 'ควันดำพวยพุ่งทำลายวัตถุดิบรอบนี้สูญเปล่า และผู้หลอมเสียขวัญหงุดหงิดใจจากควันไฟตีกลับ',
+            followUpTh: 'เจ้าตัวพักฟื้นสมาธิและจะเบิกวัตถุดิบสำรองจากคลังตามโควตาเพื่อฝึกฝนความชำนาญในรอบถัดไปเอง',
             factDeltas: { chancePct: chPct, recipeId: r && r.id, tier: r && r.tier },
             promoteChronicle: !!(r && r.tier >= 3)
           });
@@ -1812,7 +1831,7 @@
         AI.mem(W, x, (nb === 'ศัตรู' ? 'เริ่มเป็นศัตรูกับ ' : nb === 'คนรัก' ? 'ตกหลุมรัก ' : nb === 'คู่ครอง' ? 'ผูกพันเป็นคู่ครองกับ ' : nb === 'คู่แข่ง' ? 'กลายเป็นคู่แข่งกับ ' : 'สนิทสนมเป็นสหายกับ ') + other.h.name.given, 0.7, other.id);
         if (x.id < other.id) { W.log('relation', x.h.name.given + ' กับ ' + other.h.name.given + (nb === 'ศัตรู' ? ' เป็นศัตรูกัน' : nb === 'คนรัก' ? ' เริ่มเป็นคนรักกัน' : nb === 'คู่ครอง' ? ' ผูกพันเป็นคู่ครอง' : nb === 'คู่แข่ง' ? ' เป็นคู่แข่งกัน' : ' กลายเป็นสหายสนิท'), [x.id, other.id]); }
         HC.experience(x, nb === 'ศัตรู' ? 'betrayed' : nb === 'คนรัก' || nb === 'คู่ครอง' ? 'fell_in_love' : 'friendship', nb === 'ศัตรู' ? 0.2 : 0.6);
-        if (nb === 'คู่ครอง' && !x.h.life.family.spouse && !other.h.life.family.spouse) { const b = W.byId[other.id]; if (b && SECT.rel(b, x.id).bond === 'คู่ครอง') { x.h.life.family.spouse = other.id; b.h.life.family.spouse = x.id; if (!x.companionId) x.companionId = b.id; if (!b.companionId) b.companionId = x.id; if (SECT && SECT.bindTaoistCompanions) SECT.bindTaoistCompanions(W, x, b, { quiet: true }); if (g.COMBAT && g.COMBAT.KARMIC_THREADS && g.COMBAT.KARMIC_THREADS.bindThread) g.COMBAT.KARMIC_THREADS.bindThread(W, x, b, 'RED_THREAD', 'ประกอบพิธีแต่งงานผูกด้ายแดงคู่ครอง'); W.log('marriage', x.h.name.given + ' และ ' + b.h.name.given + ' ประกอบพิธีแต่งงานในสำนัก', [x.id, b.id]); W.fame(1); } }
+        if (nb === 'คู่ครอง' && !x.h.life.family.spouse && !other.h.life.family.spouse) { const b = W.byId[other.id]; if (b && SECT.rel(b, x.id).bond === 'คู่ครอง') { x.h.life.family.spouse = other.id; b.h.life.family.spouse = x.id; if (!x.companionId) x.companionId = b.id; if (!b.companionId) b.companionId = x.id; if (SECT && SECT.bindTaoistCompanions) SECT.bindTaoistCompanions(W, x, b, { quiet: true }); if (g.COMBAT && g.COMBAT.KARMIC_THREADS && g.COMBAT.KARMIC_THREADS.bindThread) g.COMBAT.KARMIC_THREADS.bindThread(W, x, b, 'RED_THREAD', 'ประกอบพิธีแต่งงานผูกด้ายแดงคู่ครอง'); W.log('marriage', 'โคมแดงสว่างไสวทั่วลานสำนัก! ' + x.h.name.given + ' และ ' + b.h.name.given + ' ก้มกราบฟ้าดินและป้ายบรรพชน ประกอบพิธีแต่งงานในสำนัก ผูกด้ายแดงเป็นคู่บำเพ็ญร่วมเป็นร่วมตาย', [x.id, b.id]); W.fame(1); } }
       }
     }
   };
@@ -2054,12 +2073,9 @@
     n.dead = true; n.deathDay = W.day; n.deathWhy = why; n.hidden = false; n.path = null;
     if (n.post) { W.sect.posts[n.post] = null; n.post = null; }
     AI.freeBed(W, n);
-    const dPhrases = [
-      n.h.name.given + ' เสียชีวิตลง (' + why + ') ท่ามกลางความอาลัยของศิษย์ร่วมสำนัก',
-      n.h.name.given + ' สิ้นใจอย่างสงบในสำนัก (' + why + ') ละสังขารคืนสู่ฟ้าดิน',
-      n.h.name.given + ' ดับขันธ์ลาโลก (' + why + ') ดวงวิญญาณหวนคืนสู่ห้วงวัฏสงสาร'
-    ];
-    const dTxt = dPhrases[Math.abs(((n.n || 0) + (W.t || 0)) % dPhrases.length)];
+    const dTxt = (SIM && SIM.PROSE && SIM.PROSE.deathEulogy)
+      ? SIM.PROSE.deathEulogy(W, n, why)
+      : (n.h.name.given + ' เสียชีวิตลง (' + why + ') ท่ามกลางความอาลัยของศิษย์ร่วมสำนัก');
     W.log('death', dTxt, [n.id]);
     W.deaths = (W.deaths || 0) + 1;
     // ผลกระทบต่อคนใกล้ชิด

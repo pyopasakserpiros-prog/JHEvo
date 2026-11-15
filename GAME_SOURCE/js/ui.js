@@ -2953,7 +2953,7 @@
       {
         const curPrev = (UI.G && UI.G.R && UI.G.R.opts && UI.G.R.opts.celestialPreview) || 'AUTO';
         const shaders = (g.Render && g.Render.CELESTIAL_SHADERS) ? Object.values(g.Render.CELESTIAL_SHADERS) : [];
-        h += '</div><div class="subcat-pane" data-subcat="VISUALS"' + ((sSub === 'ALL' || sSub === 'VISUALS') ? '' : ' style="display:none"') + '><h3>✨ ศูนย์ควบคุมกราฟิกเซียนยุคที่ 5 (Era 5 Grand Celestial Visuals v5.0.0)</h3><div class="card" style="border-color:var(--gold);background:rgba(255,215,64,0.05)">';
+        h += '</div><div class="subcat-pane" data-subcat="VISUALS"' + ((sSub === 'ALL' || sSub === 'VISUALS') ? '' : ' style="display:none"') + '><h3>✨ ศูนย์ควบคุมทัศนียภาพฟ้าดินและรัศมีเซียน</h3><div class="card" style="border-color:var(--gold);background:rgba(255,215,64,0.05)">';
         h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div><b>ทัศนียภาพฟ้าดิน (Celestial Phenomenon Shader):</b> เลือกชมบรรยากาศแสงสีและปรากฏการณ์ฟ้าดินเหนือสำนักได้ทันที</div><button class="btn pri" style="padding:3px 9px;font-size:11.5px" data-do="cycle-celestial-preview">🌌 สลับปรากฏการณ์ฟ้าดิน</button></div>';
         if (shaders.length) {
           h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + shaders.map(sh => '<button class="btn' + (curPrev === sh.id ? ' ok' : '') + '" style="padding:3px 8px;font-size:11px" data-do="cycle-celestial-preview" data-arg="' + esc(sh.id) + '">' + esc(sh.icon + ' ' + sh.nameTh) + '</button>').join('') + '</div>';
@@ -2961,10 +2961,10 @@
         const curCer = (UI.G && UI.G.R && UI.G.R.opts && UI.G.R.opts.ceremonyPreview) || 'AUTO';
         const ceremonies = (g.Render && g.Render.CEREMONY_PRESETS) ? Object.values(g.Render.CEREMONY_PRESETS) : [];
         if (ceremonies.length) {
-          h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🎎 ฉากคัตซีนพิธีกรรม & สนามประลองยุทธ์บนแผนที่ (v5.1.0):</b></div>';
+          h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🎎 ฉากคัตซีนพิธีกรรม & สนามประลองยุทธ์บนแผนที่:</b></div>';
           h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' + ceremonies.map(cm => '<button class="btn' + (curCer === cm.id ? ' pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="cycle-ceremony-preview" data-arg="' + esc(cm.id) + '">' + esc(cm.icon + ' ' + cm.nameTh) + '</button>').join('') + '</div>';
           h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px"><button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="focus-plaza-ceremony" data-arg="BANQUET">🎆 ส่องกล้องชมพลุลานแปดทิศ</button><button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="focus-martial-arena">🏆 ส่องกล้องชมเวทีประลองยุทธ์</button></div>';
-          h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>⚡ ทัณฑ์สวรรค์ 3 จังหวะ & 15 เอฟเฟกต์วิชาเฉพาะตัว (v5.3.0):</b></div>';
+          h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>⚡ ทัณฑ์สวรรค์ 3 จังหวะ & เอฟเฟกต์วิชาเฉพาะตัว:</b></div>';
           h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
             '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="start-tribulation-ritual" data-arg="' + esc(m ? m.id : '') + '">⛈️ อัญเชิญทัณฑ์สวรรค์ทะลวงด่าน</button>' +
             '<button class="btn ok" style="padding:3px 8px;font-size:11px" data-do="focus-tribulation" data-arg="' + esc(m ? m.id : '') + '">⚡ ส่องดูทัณฑ์สวรรค์</button>' +
@@ -2974,7 +2974,7 @@
           if (SECT.FORMATION_WARFARE) {
             const fw = SECT.FORMATION_WARFARE.ensure(W);
             const curW = (W.weather && (W.weather.kind || W.weather)) || 'clear';
-            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🏯 มหาค่ายกลพิทักษ์สำนัก 3 รูปแบบ & ปรากฏการณ์ฟ้าดินหนุนคัมภีร์ปราณ (v5.5.0):</b></div>';
+            h += '<div style="margin-top:8px;padding-top:6px;border-top:1px dotted var(--line,#3a3f4a)"><b>🏯 มหาค่ายกลพิทักษ์สำนัก 3 รูปแบบ & ปรากฏการณ์ฟ้าดินหนุนคัมภีร์ปราณ:</b></div>';
             h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">' +
               Object.values(SECT.FORMATION_WARFARE.STANCES).map(fs => '<button class="btn' + (fw.activeStance === fs.id ? ' pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="set-sect-formation-stance" data-arg="' + esc(fs.id) + '">' + esc(fs.icon + ' ' + fs.shortTh) + '</button>').join('') +
               '</div>';
@@ -3017,7 +3017,7 @@
         h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">' +
           '<button class="btn pri" style="padding:3px 8px;font-size:11px" data-do="convene-elder-council" data-arg="EXPAND_PRODUCTION_QUOTAS">🏛️ เปิดลงมติสภาผู้อาวุโส</button>' +
           '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="execute-standing-edicts">📜 เดินสายพานโควตาราชโองการ</button>' +
-          '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="audit-officer-conduct">⚖️ ตรวจสอบความโปร่งใส 22 ตำแหน่ง</button>' +
+          '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="audit-officer-conduct">⚖️ ตรวจสอบความโปร่งใสทำเนียบขุนนาง 25 ตำแหน่ง</button>' +
           '<button class="btn" style="padding:3px 8px;font-size:11px" data-do="host-spirit-banquet">🍲 จัดงานเลี้ยงฉลองปราณโอชา</button>' +
           '</div>';
         if (lastVote) {
@@ -3096,7 +3096,7 @@
     } else if (tab === 'posts') {
       const pSub = UI.sectPostsSubTab || 'OFFICES';
       h += renderSubTabBar('set-sect-posts-subtab', pSub, [
-        ['OFFICES', '🎖️ ทำเนียบ 6 ฝ่าย 22 ตำแหน่ง'],
+        ['OFFICES', '🎖️ ทำเนียบขุนนาง 6 ฝ่าย 25 ตำแหน่ง'],
         ['POLITICS', '🌊 ก๊กการเมือง & คลื่นใต้น้ำ'],
         ['PRISON', '⛓️ ลานเทศนาธรรม & คุกเชลยศึก'],
         ['ALL', '📋 ดูทั้งหมด']
@@ -3594,7 +3594,7 @@
       h += '<div class="muted" style="margin-bottom:6px">คนธรรมดาและศิษย์ในสำนักสามารถศึกษาและเปิดเส้นลมปราณได้เฉพาะมหาวิถีที่มีคัมภีร์ต้นกำเนิดในหอคัมภีร์สำนัก (หรือใช้ผลึกมรดกวิถีชี้แนะโดยตรง)</div>';
       h += '<div style="display:flex;gap:4px;flex-wrap:wrap">' + plSum.unlockedPaths.map(pid => { const pd = CULT.PATHS[pid]; return '<span class="chip ok">' + esc((pd && pd.icon) || '☯') + ' ' + esc((pd && pd.nameTh) || pid) + '</span>'; }).join('') + '</div>';
       if (plSum.lockedPaths.length) {
-        h += '<div class="muted" style="font-size:11px;margin-top:6px">🔒 มหาวิถีที่ยังไม่มีคัมภีร์ในสำนัก (' + plSum.lockedPaths.length + ' วิถี): ค้นหาได้จากเจดีย์ 27 วิถี, คาราวานพ่อค้าแดนไกล, บรรณาการสำนักพันธมิตร หรือโบราณสถาน</div>';
+        h += '<div class="muted" style="font-size:11px;margin-top:6px">🔒 มหาวิถีที่ยังไม่มีคัมภีร์ในสำนัก (' + plSum.lockedPaths.length + ' วิถี): ค้นหาได้จากมหาเจดีย์ 43 วิถี, คาราวานพ่อค้าแดนไกล, บรรณาการสำนักพันธมิตร หรือโบราณสถาน</div>';
       }
       h += '</div>';
     }
@@ -4026,6 +4026,14 @@
           } else {
             h += '<div class="muted" style="margin-top:6px;font-size:11.5px;color:#7ff5ad">✅ สถานะคลังศิลา เสบียง และแนวป้องกันอยู่ในเกณฑ์มั่นคง</div>';
           }
+          if (Array.isArray(digest.memorialSections) && digest.memorialSections.length) {
+            h += '<details style="margin-top:7px;font-size:11.5px" open><summary style="cursor:pointer;color:var(--gold);font-weight:700">📜 สมุดฎีกาถวายรายงานหกหอประจำรอบ (' + digest.memorialSections.length + ' หอ)</summary>';
+            h += '<div style="display:grid;gap:5px;margin-top:5px">' + digest.memorialSections.map(ms =>
+              '<div style="padding:5px 7px;border-radius:6px;background:rgba(255,255,255,0.03);border-left:3px solid var(--gold)">' +
+              '<div><b>' + esc(ms.icon + ' ' + ms.titleTh) + '</b> <span class="chip">' + esc(ms.headerTh) + '</span></div>' +
+              '<div class="muted" style="margin-top:2px;line-height:1.45">“' + esc(ms.bodyTh) + '”</div></div>'
+            ).join('') + '</div></details>';
+          }
           h += '</div></details>';
         }
 
@@ -4050,7 +4058,7 @@
                 (th.originEvent ? ('<div>🌱 <b>ต้นเหตุ (วันที่ ' + th.originEvent.day + '):</b> ' + linkify(W, th.originEvent.headlineTh, th.originEvent.npcIds) + '</div>') : '') +
                 (th.turningPointEvent ? ('<div>⚡ <b>จุดเปลี่ยน (วันที่ ' + th.turningPointEvent.day + '):</b> ' + linkify(W, th.turningPointEvent.headlineTh, th.turningPointEvent.npcIds) + '</div>') : '') +
                 (th.latestEvent && th.latestEvent !== th.originEvent ? ('<div style="color:#ffd166">➔ <b>ล่าสุด (วันที่ ' + th.latestEvent.day + '):</b> ' + linkify(W, th.latestEvent.headlineTh, th.latestEvent.npcIds) + '</div>') : '') +
-                '<div class="muted" style="font-size:11px;margin-top:2px">🔎 <b>สิ่งที่น่าติดตามต่อ:</b> ' + esc(th.followUpTh) + '</div>' +
+                '<div class="muted" style="font-size:11px;margin-top:2px">🌊 <b>แรงกระเพื่อมและท่าทีต่อจากนี้:</b> ' + esc(th.followUpTh) + '</div>' +
               '</div></div>';
           }).join('');
           h += '</div></details>';
@@ -4185,7 +4193,7 @@
             (p && p.turningPointBodyTh ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:3px\">" + esc(p.turningPointLabelTh) + ": " + linkify(W, p.turningPointBodyTh, c.npcIds) + "</div>") : (c.originCauseTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px\">🌱 <b>ต้นทาง/สาเหตุ:</b> " + esc(c.originCauseTh) + "</div>" : "")) +
             cHighs +
             (c.consequenceTh ? "<div style=\"font-size:11.5px;color:#ffd166;margin-top:3px\">➔ <b>" + esc((p && p.impactLabelTh) || "ผลลัพธ์") + ":</b> " + linkify(W, c.consequenceTh, c.npcIds) + "</div>" : (c.systemImpactTh ? "<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#8ecae6\">🔗 <b>ผลกระทบ:</b> " + esc(c.systemImpactTh) + "</div>" : "")) +
-            (p && p.followUpTh ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#a8dadc\">🔎 <b>สิ่งที่น่าติดตามต่อ:</b> " + esc(p.followUpTh) + "</div>") : "") +
+            (p && p.followUpTh ? ("<div class=\"muted\" style=\"font-size:11px;margin-top:2px;color:#a8dadc\">🌊 <b>แรงกระเพื่อมและท่าทีต่อจากนี้:</b> " + esc(p.followUpTh) + "</div>") : "") +
             numDrawerHtml +
             "</div>";
         }).join("");
@@ -6097,7 +6105,7 @@
         const rSpec = (g.Render && g.Render.REALM_VISUAL_TIERS && g.Render.REALM_VISUAL_TIERS[stg]) || { nameTh: 'หลอมปราณ' };
         const petObj = (Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n.pet || null);
         h += '<div class="card" style="border-color:var(--gold);background:rgba(255,215,64,0.04);margin:6px 0">';
-        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:6px"><b>✨ แท่นจำลองรัศมีเซียน & ศาสตราคู่กาย (Era 5 Visual Diorama)</b><div style="display:flex;gap:4px">' +
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:6px"><b>✨ แท่นจำลองรัศมีเซียน & ศาสตราคู่กาย</b><div style="display:flex;gap:4px">' +
           [['cultivate', '🧘 โคจรปราณ'], ['mantra', '☯️ คัมภีร์ปราณ'], ['defensive', '🛡️ วิชาคุ้มกาย'], ['support', '🎶 วิชาหนุนเสริม'], ['forbidden', '🩸 วิชาต้องห้าม'], ['fight', '⚔️ สำแดงวิชา'], ['qinggong', '🗡️ วิชาตัวเบา/เหินเวหา'], ['breakthrough', '⚡ ทัณฑ์สวรรค์']].map(([pk, pl]) => '<button class="btn' + (curPose === pk ? ' pri' : '') + '" style="padding:2px 7px;font-size:10.5px" data-do="set-diorama-pose" data-arg="' + pk + '">' + pl + '</button>').join('') +
           '</div></div>';
         h += dioramaHtml(n, 220, 136);
@@ -6196,7 +6204,7 @@
         h += '</div>';
       }
       h += '<h3>กำลังทำอะไร</h3><div class="card"><div style="font-size:15px;font-weight:600">' + esc(actText(n)) + '</div>';
-      if (n.why && n.why.length && !n.dead) h += '<div class="muted" style="margin-top:4px">เพราะ:</div><ul class="why" style="margin:2px 0 0 16px;padding:0">' + n.why.map(w => '<li>' + esc(w[0]) + ' <span class="muted">(' + (w[1] > 0 ? '+' : '') + w[1] + ')</span></li>').join('') + '</ul>';
+      if (n.why && n.why.length && !n.dead) h += '<div class="muted" style="margin-top:4px">💭 เสียงรำพึงในใจ (เหตุผลตัดสินใจ):</div><ul class="why" style="margin:2px 0 0 16px;padding:0">' + n.why.map(w => '<li>' + esc(UI.formatNpcInnerThought ? UI.formatNpcInnerThought(n, w[0], w[1]) : w[0]) + ' <span class="muted">[' + esc(w[0]) + ' ' + (w[1] > 0 ? '+' : '') + w[1] + ']</span></li>').join('') + '</ul>';
       if (n.lastScores) h += '<div class="muted" style="margin-top:6px">ตัวเลือกที่ชั่งใจ: ' + n.lastScores.slice(0, 5).map(x => (AI.ACTS[x.id] ? AI.ACTS[x.id].nameTh : x.id === 'pair' ? 'พบปะ' : x.id) + ' ' + x.u).join(' · ') + '</div>';
       h += '</div>';
       h += '</div><div class="subcat-pane" data-subcat="MIND"' + ((nSub === 'ALL' || nSub === 'MIND') ? '' : ' style="display:none"') + '>';
@@ -6226,7 +6234,7 @@
             h += '<div class="muted" style="margin-top:3px;color:var(--gold);font-size:11.5px">⛔ <b>ข้อจำกัดในทางปฏิบัติ:</b> ' + sit.practicalBlockers.map(esc).join(' · ') + '</div>';
           }
         }
-        if (!n.dead && mind.suspendedGoal) h += '<div class="muted" style="font-size:11.5px">⏸ แผนที่พักไว้ชั่วคราว: ' + esc(mind.suspendedGoal.title) + ' (' + esc(mind.suspendedGoal.reason) + ')</div>';
+        if (!n.dead && mind.suspendedGoal) h += '<div class="muted" style="font-size:11.5px;color:#ffd166">⏸ พักปณิธาน「' + esc(mind.suspendedGoal.title) + '」ไว้ชั่วคราว — เนื่องจากร่างกายกำลังบาดเจ็บหรืออ่อนล้า (' + esc(mind.suspendedGoal.reason) + ') จึงจำต้องดูแลชีวิตตนเองให้รอดก่อน</div>';
         if (!n.dead && mind.commitment) {
           const partner = W.byId[mind.commitment.partnerId];
           h += '<div class="muted" style="font-size:11.5px">🤝 พันธะสัญญา: นัดหมายกับ ' + esc(partner ? partner.h.name.given : mind.commitment.partnerId) + '</div>';
@@ -7235,7 +7243,7 @@
       const qNames = { low: 'ประหยัดพลังงาน', standard: 'มาตรฐาน', high: 'คมชัดสูง' };
       h += '<div class="card"><b>คุณภาพกราฟิกและการเคลื่อนไหว</b><div class="edit-field" style="margin-top:6px"><label>ระดับความละเอียดภาพ (ใช้งานจริง: ' + esc(qNames[effQ] || effQ) + ')</label><select id="gfxQualitySel">' + [['auto', 'อัตโนมัติ (ปรับตามขนาดจอและเฟรมเรต)'], ['low', 'ประหยัดพลังงาน (Low — ลดเงาและละออง)'], ['standard', 'มาตรฐาน (Standard — สมดุลคมชัด)'], ['high', 'คมชัดสูง (High — เต็มพิกัด DPR 2×)']].map(([k, v]) => '<option value="' + k + '"' + ((o.quality || 'auto') === k ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></div>';
       h += '<label class="sw" style="border-bottom:0;padding-bottom:2px"><span>ลดการเคลื่อนไหว (หยุดอนิเมชันน้ำ/ควัน/ประกาย)</span><input type="checkbox" data-set="reducedMotion" ' + (o.reducedMotion ? 'checked' : '') + '></label><div class="edit-field" style="margin-top:6px"><label>รูปแบบแสดงผลถุงสัมภาระ คลังสำนัก และร้านค้า</label><select id="invViewModeSel"><option value="grid"' + (UI.getInvViewMode() === 'grid' ? ' selected' : '') + '>⊞ ตารางไอคอนแบบแบ่งหน้า (Paginated Icon-Grid)</option><option value="list"' + (UI.getInvViewMode() === 'list' ? ' selected' : '') + '>☰ รายการแบบดั้งเดิม (Classic List View)</option></select></div></div>';
-      h += '<div class="card" style="border-color:var(--gold)"><b>✨ กราฟิกเซียนยุคที่ 5 (Era 5 Celestial Visual Overhaul v5.0.0)</b><div class="muted" style="font-size:11.5px;margin-top:2px">ควบคุมรัศมีตบะ 9 ขั้น · กระบี่บินโคจร · ปราณศาสตรา 7 ระดับ · ค่ายกลแปดทิศ · นกกระเรียนเซียน และปรากฏการณ์ฟ้าดิน</div>';
+      h += '<div class="card" style="border-color:var(--gold)"><b>✨ ทัศนียภาพฟ้าดินและรัศมีเซียน</b><div class="muted" style="font-size:11.5px;margin-top:2px">ควบคุมรัศมีตบะ 9 ขั้น · กระบี่บินโคจร · ปราณศาสตรา 7 ระดับ · ค่ายกลแปดทิศ · นกกระเรียนเซียน และปรากฏการณ์ฟ้าดิน</div>';
       const curPrev = (G.R && G.R.opts && G.R.opts.celestialPreview) || o.celestialPreview || 'AUTO';
       const shaders = (g.Render && g.Render.CELESTIAL_SHADERS) ? Object.values(g.Render.CELESTIAL_SHADERS) : [];
       h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + shaders.map(sh => '<button type="button" class="btn' + (curPrev === sh.id ? ' pri' : '') + '" style="padding:3px 8px;font-size:11px" data-do="cycle-celestial-preview" data-arg="' + esc(sh.id) + '">' + esc(sh.icon + ' ' + sh.nameTh) + '</button>').join('') + '</div>';
@@ -7370,6 +7378,106 @@
     const presenter = UI[name];
     if (presenter) UI[name] = function (...args) { return UI.filterPlayerControls(presenter.apply(this,args), sheet); };
   }
+
+  /* ---------- 14C Section 1 & 2: Canonical Thai Term Dictionary & Persona-Tinted Inner Monologue ---------- */
+  UI.TERM_TH = Object.freeze({
+    // 11 Elements
+    FIRE: 'อัคคีผลาญ',
+    WATER_ICE: 'วารีเหมันต์',
+    WOOD_LIFE: 'พฤกษาปราณชีวิต',
+    EARTH_METAL: 'ปฐพีโลหะทอง',
+    LIGHTNING: 'อสนีบาต',
+    WIND: 'วายุคลั่ง',
+    LIGHT_YANG: 'สุริยันหยางบริสุทธิ์',
+    YIN_SHADOW: 'จันทราหยินเร้นเงา',
+    DARK_YIN: 'จันทราหยินเร้นเงา',
+    ASTRAL: 'ดาราจักรพยากรณ์',
+    BLOOD_DEMON: 'โลหิตมารบรรพกาล',
+    NEUTRAL: 'ปราณไร้ลักษณ์',
+    // Samsara 6 Realms
+    DEVA: 'ภพเทวาจำแลง',
+    ASURA: 'ภพอสูรสงคราม',
+    HUMAN: 'ภพมนุษย์เที่ยงแท้',
+    ANIMAL: 'ภพเดรัจฉานสัญชาตญาณ',
+    BEAST: 'ภพเดรัจฉานสัญชาตญาณ',
+    PRETA: 'ภพเปรตกลืนปราณ',
+    NARAKA: 'ภพนรกอเวจีทัณฑ์',
+    // Mech Puppet Modes
+    GUARD: 'ค่ายกลเกราะพิทักษ์',
+    SIEGE: 'ค่ายกลทลายปราการ',
+    SWARM: 'ค่ายกลฝูงหุ่นรุมสังหาร',
+    OVERDRIVE: 'เร่งแกนกลไกเต็มพิกัด',
+    // Root / Talent Grades
+    MORTAL: 'รากปุถุชนสามัญ',
+    EARTH: 'รากปฐพี',
+    HEAVEN: 'รากสวรรค์',
+    IMMORTAL: 'รากเทวะไร้เทียมทาน',
+    SUPREME: 'รากเทวะไร้เทียมทาน'
+  });
+
+  UI.termTh = rawKey => {
+    if (!rawKey) return '';
+    const k = String(rawKey).trim();
+    return UI.TERM_TH[k] || k;
+  };
+
+  UI.formatNpcInnerThought = (n, rawReason, score) => {
+    const raw = String(rawReason || '').trim();
+    if (!raw) return '';
+    const p = (n && n.h && n.h.personality) || {};
+    const v = (n && n.h && n.h.values) || {};
+    const disc = p.discipline != null ? p.discipline : 50;
+    const pride = p.pride != null ? p.pride : 50;
+    const aggr = p.aggression != null ? p.aggression : 50;
+    const emp = p.empathy != null ? p.empathy : 50;
+    const free = v.freedom != null ? v.freedom : 50;
+    const style = (pride >= 65 || aggr >= 65) ? 'FIERCE'
+      : (disc >= 65 ? 'DISCIPLINED'
+      : ((emp >= 65 || free >= 65) ? 'GENTLE' : 'DISCIPLINED'));
+
+    if (raw.includes('ง่วง') || raw.includes('ดึกแล้ว') || raw.includes('พักผ่อน')) {
+      if (style === 'FIERCE') return '“เปลือกตาหนักอึ้งนัก... ฝืนไปก็รังแต่จะเสียจังหวะดาบ”';
+      if (style === 'GENTLE') return '“สายลมยามค่ำเย็นสบาย กลับเรือนไปงีบหลับสักตื่นดีกว่า”';
+      return '“ราตรีดึกสงัด พักฟื้นดวงจิตให้พร้อมรับวันพรุ่งก่อนเถิด”';
+    }
+    if (raw.includes('หิว')) {
+      if (style === 'FIERCE') return '“ท้องร้องโครกครากน่ารำคาญนัก รีบไปหาอะไรยัดท้องเสียให้จบเรื่อง!”';
+      if (style === 'GENTLE') return '“กลิ่นข้าวหุงใหม่ลอยมาจากโรงครัว ช่างหอมชวนน้ำลายสอจริงๆ”';
+      return '“กองทัพต้องเดินด้วยท้อง เติมเรี่ยวแรงที่โรงครัวก่อนค่อยกลับมาฝึกต่อ”';
+    }
+    if (raw.includes('ตบะเต็ม') || raw.includes('ทะลวง')) {
+      if (style === 'FIERCE') return '“กำแพงคอขวดแค่นี้ขวางข้าไม่อยู่หรอก วันนี้แหละข้าจะบดขยี้มันให้แหลก!”';
+      if (style === 'GENTLE') return '“หัวใจเต้นรัวเหลือเกิน... หวังว่าฟ้าดินจะเมตตาเปิดทางให้ข้าก้าวผ่านไปได้”';
+      return '“ปราณในตันเถียนเปี่ยมล้นถึงขีดสุด ถึงเวลาตั้งจิตท้าทายด่านคอขวดแล้ว”';
+    }
+    if (raw.includes('ใฝ่ตบะ') || raw.includes('วิถียุทธ์') || raw.includes('พื้นฐานบำเพ็ญ') || raw.includes('สัญชาตญาณนักสู้')) {
+      if (style === 'FIERCE') return '“ข้าจักไม่ยอมหยุดอยู่แค่นี้ สักวันหนึ่งทั่วทั้งยุทธภพต้องแหงนมองนามของข้า!”';
+      if (style === 'GENTLE') return '“ค่อยๆ ซึมซับปราณธรรมชาติไปตามจังหวะลมหายใจ ไม่ต้องเร่งร้อน”';
+      return '“มรรคายาวไกลหมื่นลี้ หากวันนี้เกียจคร้าน วันหน้าจะเอาอะไรไปสู้ฟ้าดิน”';
+    }
+    if (raw.includes('เสบียง') || raw.includes('อาหารใกล้หมด') || raw.includes('งานประจำ')) {
+      if (style === 'FIERCE') return '“หึ! ขืนปล่อยให้โรงครัวข้าวสารหมด ข้าเองก็อดกินเนื้อน่ะสิ ลงมือทำเองก็ได้!”';
+      if (style === 'GENTLE') return '“ไม่อยากเห็นพี่น้องร่วมสำนักต้องทนหิว ไปช่วยดูแลแปลงนาและโรงครัวดีกว่า”';
+      return '“ยุ้งฉางของสำนักเริ่มพร่องลง ในฐานะศิษย์ต้องรีบลงแรงช่วยแบ่งเบา”';
+    }
+    if (raw.includes('อยากพบผู้คน') || raw.includes('เหงา') || raw.includes('มิตรภาพ')) {
+      if (style === 'FIERCE') return '“อุดอู้อยู่คนเดียวชักเบื่อ ออกไปหาคู่ซ้อมมือแก้คันไม้คันมือที่ลานกว้างดีกว่า!”';
+      if (style === 'GENTLE') return '“นั่งคนเดียวใจชักหงอยเหงา แวะไปศาลาชงชาหาเพื่อนคุยคลายเหงาสักหน่อยเถิด”';
+      return '“เก็บตัวเงียบมานาน ออกไปสนทนาแลกเปลี่ยนความรู้กับสหายร่วมสำนักสักหน่อย”';
+    }
+    if (raw.includes('บาดเจ็บ') || raw.includes('รักษา')) {
+      if (style === 'FIERCE') return '“แผลแค่นี้ยังไม่ตายหรอก... แต่ถ้ารักษาให้หายไวขึ้น ข้าก็กลับไปเอาคืนได้เร็วขึ้น!”';
+      if (style === 'GENTLE') return '“เจ็บแปลบไปทั้งร่างเลย แวะไปให้ท่านหมอช่วยพันแผลสักหน่อยดีกว่า”';
+      return '“บาดแผลภายในยังร้าวระบม ต้องไปพึ่งหอหมอยาประคองชีพจรให้หายขาด”';
+    }
+    if (raw.includes('จิตมาร') || raw.includes('สงบจิต')) {
+      if (style === 'FIERCE') return '“เสียงกระซิบบัดซบในหัวนี่ชักเหิมเกริมเกินไปแล้ว ข้าไม่ยอมตกเป็นทาสจิตมารเด็ดขาด!”';
+      if (style === 'GENTLE') return '“ใจคอว้าวุ่นพิกล ไปคุกเข่าฟังเสียงระฆังหน้าหอบรรพชนให้ใจร่มลงสักครู่เถิด”';
+      return '“เงามืดในจิตใจเริ่มก่อกวนสมาธิ ต้องไปจุดธูปหน้าป้ายบรรพชนชำระจิตด่วน”';
+    }
+    return '“' + raw + '”';
+  };
+
   g.UI = UI;
   if (typeof module === "object" && module.exports) module.exports = UI;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -262,17 +262,17 @@ console.log('PASS 6: Combat lifesteal, reflection, blood harvest, and spar tempe
 UI.G = { W, R: { opts: {} }, opts: {} };
 UI.tab = 'over';
 const sectHtml = UI.rSect();
-assert(sectHtml.includes('มารอสูร'), 'Sect overview displays DEMON count');
-assert(sectHtml.includes('จิต·เซน'), 'Sect overview displays HEART_SOUL count');
+assert(sectHtml.includes('วิถีมาร') || sectHtml.includes('มารอสูร'), 'Sect overview displays DEMON count');
+assert(sectHtml.includes('วิถีจิตเซน') || sectHtml.includes('จิต·เซน'), 'Sect overview displays HEART_SOUL count');
 
 const contentHtml = UI.rContent();
-assert(contentHtml.includes('สายนักฆ่าเงาไร้ลักษณ์'), 'Content tab renders DEMON specialization tracks');
-assert(contentHtml.includes('สายปราชญ์เซนสุญตา'), 'Content tab renders HEART_SOUL specialization tracks');
+assert(contentHtml.includes('นักฆ่าไร้เงา') || contentHtml.includes('สายนักฆ่าเงาไร้ลักษณ์'), 'Content tab renders DEMON specialization tracks');
+assert(contentHtml.includes('จิตเซนสุญตา') || contentHtml.includes('สายปราชญ์เซนสุญตา'), 'Content tab renders HEART_SOUL specialization tracks');
 
 UI.npcId = nDemon.id;
 UI.tab = 'ov';
 const demonNpcHtml = UI.rNpc();
-assert(demonNpcHtml.includes('มารอสูร'), 'NPC sheet renders DEMON path info');
+assert(demonNpcHtml.includes('วิถีมาร') || demonNpcHtml.includes('มารอสูร'), 'NPC sheet renders DEMON path info');
 
 const saved = SIM.serialize(W);
 const W2 = SIM.deserialize(saved);

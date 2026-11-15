@@ -452,7 +452,7 @@
             const ft = C.ensureFightTac(f, tNow);
             ft.stats.zocStrikes = (ft.stats.zocStrikes || 0) + 1;
             en.fx = { t: tNow, text: '🛡️ สกัดกั้น!' };
-            C.recordTacticalHighlight(W, f, 'ZOC_INTERCEPT', C.name(en) + ' คุมพื้นที่สกัดกั้นการเคลื่อนผ่านของ ' + C.name(u), {
+            C.recordTacticalHighlight(W, f, 'ZOC_INTERCEPT', C.name(en) + ' แผ่รัศมีศาสตราคุมพื้นที่ สกัดกั้นจังหวะบุกทะลวงของ ' + C.name(u) + ' อย่างเฉียบขาด', {
               actorId: en.id, targetId: u.id
             });
             C.strike(W, f, en, u, { M: 0.68, type: 'p', noCounter: true, noReflect: true, silent: true, label: 'สกัดกั้น' });
@@ -1442,7 +1442,7 @@
         const ft = C.ensureFightTac(f, tNow);
         ft.stats.losBlocks = (ft.stats.losBlocks || 0) + 1;
         ft.stats.intercepts = (ft.stats.intercepts || 0) + 1;
-        const reasonTh = C.name(blk) + ' ยืนขวางแนวยิง รับการโจมตีแทน ' + C.name(d);
+        const reasonTh = 'ในเสี้ยวพริบตาเป็นตาย ' + C.name(blk) + ' พุ่งทะยานเข้าขวางแนวยิง คุ้มกันรับคมศาสตราแทน ' + C.name(d) + ' อย่างไม่คิดชีวิต!';
         blk.fx = { t: tNow, text: '🛡️ ขวางแนวยิง!' };
         blk.lastInterceptEvent = { t: tNow, kind: 'LOS_COVER', protectedId: d.id, attackerId: a.id, reasonTh };
         C.recordTacticalHighlight(W, f, 'LOS_COVER', reasonTh, {
@@ -1541,7 +1541,7 @@
       }
       const ft = C.ensureFightTac(f, tNow);
       ft.stats.intercepts = (ft.stats.intercepts || 0) + 1;
-      const reasonTh = C.name(gUnit) + ' พุ่งเข้าขวางคมศาสตราคุ้มกัน' + bestGuard.bondLabel + ' ' + C.name(d);
+      const reasonTh = 'ในเสี้ยวพริบตาเป็นตาย ' + C.name(gUnit) + ' พุ่งทะยานเข้าขวางคมศาสตราคุ้มกัน' + bestGuard.bondLabel + ' ' + C.name(d) + ' อย่างไม่คิดชีวิต!';
       gUnit.fx = { t: tNow, text: '🛡️ คุ้มกัน ' + C.name(d) + '!' };
       gUnit.lastInterceptEvent = { t: tNow, kind: 'BODYGUARD_INTERCEPT', protectedId: d.id, attackerId: a.id, bondLabel: bestGuard.bondLabel, reasonTh, interceptChance: bestGuard.interceptChance };
       C.recordTacticalHighlight(W, f, 'BODYGUARD_INTERCEPT', reasonTh, {
@@ -3338,7 +3338,7 @@
     if (f) {
       const ft = C.ensureFightTac(f, W.t);
       ft.stats.interrupts = (ft.stats.interrupts || 0) + 1;
-      C.recordTacticalHighlight(W, f, 'CHANNEL_INTERRUPT', C.name(u) + ' ถูกขัดจังหวะขณะร่าย「' + skName + '」(' + (reason || 'เสียสมาธิ') + ')', {
+      C.recordTacticalHighlight(W, f, 'CHANNEL_INTERRUPT', (interrupter ? (C.name(interrupter) + ' อ่านจังหวะขาดสะบั้น พุ่งสกัดจุดทำลายการร่ายมหาวิชา「' + skName + '」ของ ' + C.name(u) + ' จนปราณตีกลับกลางคัน!') : (C.name(u) + ' ถูกขัดจังหวะขณะร่าย「' + skName + '」(' + (reason || 'เสียสมาธิ') + ')')), {
         actorId: interrupter ? interrupter.id : null, targetId: u.id, skillNameTh: skName, reasonTh: reason
       });
     }

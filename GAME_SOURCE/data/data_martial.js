@@ -51820,7 +51820,7 @@ JD.ITEMS.items.forEach(it => {
         'PAGODA_TRIAL:' + pid,
         'ANCIENT_RUIN_EXPEDITION'
       ],
-      sourceInfoTh: 'พ่อค้าคาราวานแดนไกล · บรรณาการสำนักบริวาร · รางวัลชนะศึกสำนัก · หอเจดีย์ 27 วิถี · โบราณสถานแดนลับ',
+      sourceInfoTh: 'พ่อค้าคาราวานแดนไกล · บรรณาการสำนักบริวาร · รางวัลชนะศึกสำนัก · มหาเจดีย์ 43 วิถี · โบราณสถานแดนลับ',
       descTh: 'มหาคัมภีร์รากฐานฉบับสมบูรณ์ของ「' + pObj.nameTh + '」เมื่อบริจาคเข้าหอคัมภีร์วิถีสำนัก จะปลดล็อกให้ศิษย์และปุถุชนในสำนักศึกษาวิถีนี้ได้เป็นการถาวร',
       v200: true
     };
@@ -51868,23 +51868,23 @@ JD.ITEMS.items.forEach(it => {
   // ============================================================================
 
   const V230_MATERIALS = [
-    { id: 'MAT_V230_001', nameTh: 'แร่เหล็กทามาฮากาเนะพันทบ', icon: '🪨', tier: 3, cat: 'ORE', el: 'EARTH_METAL', price: 95, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.08, elementBiases: ['EARTH_METAL', 'WIND'] }, sources: ['WILD_GATHER:mountain', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
-    { id: 'MAT_V230_002', nameTh: 'โลหะจักระเงาเร้นคุโรอิ', icon: '🌑', tier: 3, cat: 'ORE', el: 'DARK_YIN', price: 100, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.09, elementBiases: ['DARK_YIN', 'LIGHTNING'] }, sources: ['WILD_GATHER:cave', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
-    { id: 'MAT_V230_003', nameTh: 'ชาดอาคมบรรพกาลบึงทมิฬทักษิณพันปี', icon: '🩸', tier: 4, cat: 'TALISMAN_MAT', el: 'FIRE', price: 145, station: 'TALISMAN', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['FIRE', 'EARTH_METAL'] }, sources: ['ANCIENT_RUIN_EXPEDITION', 'CARAVAN_MERCHANT', 'PAGODA_TRIAL:OCCULT_MAGE'] },
+    { id: 'MAT_V230_001', nameTh: 'แร่เหล็กพับพันทบเงาบูรพา', icon: '🪨', tier: 3, cat: 'ORE', el: 'EARTH_METAL', price: 95, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.08, elementBiases: ['EARTH_METAL', 'WIND'] }, sources: ['WILD_GATHER:mountain', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
+    { id: 'MAT_V230_002', nameTh: 'โลหะทมิฬดูดกลืนเงาเร้นลับ', icon: '🌑', tier: 3, cat: 'ORE', el: 'DARK_YIN', price: 100, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.09, elementBiases: ['DARK_YIN', 'LIGHTNING'] }, sources: ['WILD_GATHER:cave', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
+    { id: 'MAT_V230_003', nameTh: 'ชาดอาถรรพ์บึงทมิฬโบราณ', icon: '🩸', tier: 4, cat: 'TALISMAN_MAT', el: 'FIRE', price: 145, station: 'TALISMAN', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['FIRE', 'EARTH_METAL'] }, sources: ['ANCIENT_RUIN_EXPEDITION', 'CARAVAN_MERCHANT', 'PAGODA_TRIAL:OCCULT_MAGE'] },
     { id: 'MAT_V230_004', nameTh: 'เถ้ากระดูกบรรพชนสุสานมรณะ', icon: '🦴', tier: 4, cat: 'CATALYST', el: 'DARK_YIN', price: 150, station: 'FORGE', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['DARK_YIN', 'BLOOD_DEMON'] }, sources: ['ANCIENT_RUIN_EXPEDITION', 'PAGODA_TRIAL:NETHER_GRAVE', 'SECT_GRAVEYARD_RITE'] },
     { id: 'MAT_V230_005', nameTh: 'หัวใจอสูรกลายพันธุ์บรรพกาล', icon: '🫀', tier: 5, cat: 'BEAST_PART', el: 'BLOOD_DEMON', price: 240, station: 'ALCHEMY', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['BLOOD_DEMON', 'FIRE'] }, sources: ['BEAST_HUNT:apex', 'EXPEDITION_LOOT', 'PAGODA_TRIAL:DEVOURING_FLESH'] },
-    { id: 'MAT_V230_006', nameTh: 'ทองคำเทวโลกสุวรรณภูมิ', icon: '✨', tier: 6, cat: 'ORE', el: 'LIGHT_YANG', price: 380, station: 'FORGE', mods: { tierShift: 0.80, qShift: 0.15, elementBiases: ['LIGHT_YANG', 'ASTRAL'] }, sources: ['HIGHER_REALM_SHRINE', 'PAGODA_TRIAL:DIVINE_SUMMONER', 'CARAVAN_RARE_MERCHANT'] },
+    { id: 'MAT_V230_006', nameTh: 'ทองคำเทวโลกป่าหิมพานต์', icon: '✨', tier: 6, cat: 'ORE', el: 'LIGHT_YANG', price: 380, station: 'FORGE', mods: { tierShift: 0.80, qShift: 0.15, elementBiases: ['LIGHT_YANG', 'ASTRAL'] }, sources: ['HIGHER_REALM_SHRINE', 'PAGODA_TRIAL:DIVINE_SUMMONER', 'CARAVAN_RARE_MERCHANT'] },
     { id: 'MAT_V230_007', nameTh: 'หยาดทิพย์หิมพานต์นิรันดร์', icon: '💧', tier: 6, cat: 'HERB', el: 'WOOD_LIFE', price: 390, station: 'ALCHEMY', mods: { tierShift: 0.80, qShift: 0.15, elementBiases: ['WOOD_LIFE', 'WATER_ICE'] }, sources: ['HIGHER_REALM_SHRINE', 'PAGODA_TRIAL:SPIRIT_HUSBANDRY', 'MYRIAD_WORLD:spiritforest'] },
     { id: 'MAT_V230_008', nameTh: 'ผลึกสุญตานอกมิติบิดเบี้ยว', icon: '🔮', tier: 7, cat: 'ARTIFACT_MAT', el: 'ASTRAL', price: 620, station: 'FORGE', mods: { tierShift: 1.0, qShift: 0.18, elementBiases: ['ASTRAL', 'DARK_YIN'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:VOID_HERETIC_PACT', 'APEX_DAO_TRIAL'] },
     { id: 'MAT_V230_009', nameTh: 'ไม้โพธิ์ทองคำพันปี', icon: '🌳', tier: 5, cat: 'HERB', el: 'LIGHT_YANG', price: 250, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['LIGHT_YANG', 'WOOD_LIFE'] }, sources: ['WILD_GATHER:forest', 'PAGODA_TRIAL:BUDDHA_DHARMA', 'CARAVAN_MERCHANT'] },
     { id: 'MAT_V230_010', nameTh: 'เขี้ยวราชันพยัคฆ์โลหิต', icon: '🦷', tier: 5, cat: 'BEAST_PART', el: 'BLOOD_DEMON', price: 255, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['BLOOD_DEMON', 'EARTH_METAL'] }, sources: ['BEAST_HUNT:tiger', 'PAGODA_TRIAL:PRIMORDIAL_SHIFTER', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_011', nameTh: 'ไหมพิษแมงมุมแม่ม่ายสวรรค์', icon: '🕸️', tier: 5, cat: 'BEAST_PART', el: 'WOOD_LIFE', price: 260, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['WOOD_LIFE', 'DARK_YIN'] }, sources: ['BEAST_HUNT:venom', 'PAGODA_TRIAL:VENOM_GU', 'EXPEDITION_LOOT'] },
-    { id: 'MAT_V230_012', nameTh: 'ขนนกการเวก वายุสวรรค์', icon: '🪶', tier: 5, cat: 'BEAST_PART', el: 'WIND', price: 265, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['WIND', 'LIGHTNING'] }, sources: ['BEAST_HUNT:sky', 'PAGODA_TRIAL:CELESTIAL_WEATHER', 'EXPEDITION_LOOT'] },
+    { id: 'MAT_V230_012', nameTh: 'ขนนกการเวกวายุสวรรค์', icon: '🪶', tier: 5, cat: 'BEAST_PART', el: 'WIND', price: 265, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['WIND', 'LIGHTNING'] }, sources: ['BEAST_HUNT:sky', 'PAGODA_TRIAL:CELESTIAL_WEATHER', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_013', nameTh: 'หยกดาราจักรหลัวผานโบราณ', icon: '🧭', tier: 6, cat: 'ARTIFACT_MAT', el: 'ASTRAL', price: 410, station: 'ARRAY', mods: { tierShift: 0.85, qShift: 0.15, elementBiases: ['ASTRAL', 'EARTH_METAL'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:ASTRO_DIVINATION', 'ANCIENT_RUIN_EXPEDITION'] },
     { id: 'MAT_V230_014', nameTh: 'ไข่มุกทองคำคำนวณชะตา', icon: '🟡', tier: 6, cat: 'ARTIFACT_MAT', el: 'EARTH_METAL', price: 415, station: 'FORGE', mods: { tierShift: 0.85, qShift: 0.15, elementBiases: ['EARTH_METAL', 'LIGHT_YANG'] }, sources: ['CARAVAN_RARE_MERCHANT', 'PAGODA_TRIAL:MERCANTILE_DAO', 'SECT_TREASURY_AUCTION'] },
     { id: 'MAT_V230_015', nameTh: 'ศิลาแรงโน้มถ่วงดารายุบตัว', icon: '☄️', tier: 6, cat: 'ORE', el: 'EARTH_METAL', price: 420, station: 'FORGE', mods: { tierShift: 0.85, qShift: 0.16, elementBiases: ['EARTH_METAL', 'ASTRAL'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:GRAVITY_DAO', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_016', nameTh: 'ทรายกาลเวลาบรรพกาล', icon: '⏳', tier: 7, cat: 'CATALYST', el: 'ASTRAL', price: 640, station: 'ARRAY', mods: { tierShift: 1.0, qShift: 0.18, elementBiases: ['ASTRAL', 'WATER_ICE'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:CHRONO_EPOCH', 'APEX_DAO_TRIAL'] },
-    { id: 'MAT_V230_017', nameTh: 'หมึกสวรรค์ปราชญ์ขงจื๊อ', icon: '🖋️', tier: 5, cat: 'TALISMAN_MAT', el: 'LIGHT_YANG', price: 270, station: 'TALISMAN', mods: { tierShift: 0.65, qShift: 0.12, elementBiases: ['LIGHT_YANG', 'WIND'] }, sources: ['PAGODA_TRIAL:INK_LITERATI', 'PAGODA_TRIAL:LORE_ARCHIVIST', 'CARAVAN_MERCHANT'] },
+    { id: 'MAT_V230_017', nameTh: 'หมึกสวรรค์มหาปราชญ์บรรพกาล', icon: '🖋️', tier: 5, cat: 'TALISMAN_MAT', el: 'LIGHT_YANG', price: 270, station: 'TALISMAN', mods: { tierShift: 0.65, qShift: 0.12, elementBiases: ['LIGHT_YANG', 'WIND'] }, sources: ['PAGODA_TRIAL:INK_LITERATI', 'PAGODA_TRIAL:LORE_ARCHIVIST', 'CARAVAN_MERCHANT'] },
     { id: 'MAT_V230_018', nameTh: 'ด้ายวิญญาณเชิดหุ่นพันปี', icon: '🧵', tier: 5, cat: 'ARTIFACT_MAT', el: 'DARK_YIN', price: 275, station: 'FORGE', mods: { tierShift: 0.65, qShift: 0.12, elementBiases: ['DARK_YIN', 'ASTRAL'] }, sources: ['PAGODA_TRIAL:SOUL_PUPPETRY', 'ANCIENT_RUIN_EXPEDITION', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_019', nameTh: 'แก่นปราณโกลาหลหุ่นตุ้น', icon: '🌀', tier: 7, cat: 'CATALYST', el: 'ASTRAL', price: 680, station: 'ALCHEMY', mods: { tierShift: 1.0, qShift: 0.20, elementBiases: ['ASTRAL', 'FIRE', 'WATER_ICE'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:PRIMORDIAL_CHAOS', 'APEX_DAO_TRIAL'] },
     { id: 'MAT_V230_020', nameTh: 'ปะการังสมุทรดาราเจ็ดคาบสมุทร', icon: '🪸', tier: 4, cat: 'HERB', el: 'WATER_ICE', price: 160, station: 'ALCHEMY', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['WATER_ICE', 'WIND'] }, sources: ['WILD_GATHER:river', 'PAGODA_TRIAL:TIDE_VOYAGER', 'EXPEDITION_LOOT'] },
@@ -51930,7 +51930,7 @@ JD.ITEMS.items.forEach(it => {
       { tier: 7, nameTh: 'มหาประคำจักรวาลพระไวโรจนะ', path: 'BUDDHA_DHARMA', mat1: 'MAT_V230_006', mat2: 'MAT_V230_019', legendary: true }
     ],
     CLAW: [
-      { tier: 2, nameTh: 'กรงเล็บเหล็กดำคุโระนินจา', path: 'NINPO_SHADOW', mat1: 'MAT_V230_002', mat2: 'MAT_V234_002' },
+      { tier: 2, nameTh: 'กรงเล็บเหล็กดำทมิฬเร้นเงา', path: 'NINPO_SHADOW', mat1: 'MAT_V230_002', mat2: 'MAT_V234_002' },
       { tier: 3, nameTh: 'กรงเล็บกระดูกผีดิบดูดเลือด', path: 'DEVOURING_FLESH', mat1: 'MAT_V230_004', mat2: 'MAT_V230_005' },
       { tier: 4, nameTh: 'กรงเล็บพยัคฆ์สมิงไสยเวทย์บรรพกาลบึงทมิฬทักษิณ', path: 'OCCULT_MAGE', mat1: 'MAT_V230_003', mat2: 'MAT_V230_010' },
       { tier: 5, nameTh: 'กรงเล็บราชันอสูรฉีกวิญญาณ', path: 'PRIMORDIAL_SHIFTER', mat1: 'MAT_V230_010', mat2: 'MAT_V230_005' },
@@ -51946,7 +51946,7 @@ JD.ITEMS.items.forEach(it => {
       { tier: 7, nameTh: 'มหาเข็มเทวะชี้ชะตาอมตะ', path: 'SOUL_PUPPETRY', mat1: 'MAT_V230_018', mat2: 'MAT_V230_008', legendary: true }
     ],
     FAN: [
-      { tier: 2, nameTh: 'พัดเหล็กนินจาคาถาเพลิง', path: 'NINPO_ELEMENTAL', mat1: 'MAT_V230_002', mat2: 'MAT_V230_012' },
+      { tier: 2, nameTh: 'พัดเหล็กมุทราคาถาเพลิง', path: 'NINPO_ELEMENTAL', mat1: 'MAT_V230_002', mat2: 'MAT_V230_012' },
       { tier: 3, nameTh: 'พัดปะการังคลื่นสมุทรคราม', path: 'TIDE_VOYAGER', mat1: 'MAT_V230_020', mat2: 'MAT_V230_012' },
       { tier: 4, nameTh: 'พัดจารึกพงศาวดารปราชญ์', path: 'LORE_ARCHIVIST', mat1: 'MAT_V230_017', mat2: 'MAT_V230_012' },
       { tier: 5, nameTh: 'พัดสายลมคีตเวทย์สวรรค์', path: 'SONIC_HARMONY', mat1: 'MAT_V230_012', mat2: 'MAT_V230_017' },
@@ -51958,7 +51958,7 @@ JD.ITEMS.items.forEach(it => {
       { tier: 3, nameTh: 'จานเสี่ยงทายชะตาฟ้าดิน', path: 'FORTUNE_GAMBLER', mat1: 'MAT_V230_021', mat2: 'MAT_V230_013' },
       { tier: 4, nameTh: 'จานหลัวผานชีพจรมังกรทอง', path: 'DRAGON_VEIN_GEOMANCY', mat1: 'MAT_V230_013', mat2: 'MAT_V230_015' },
       { tier: 5, nameTh: 'จานแรงโน้มถ่วงดาราถล่ม', path: 'GRAVITY_DAO', mat1: 'MAT_V230_015', mat2: 'MAT_V230_013' },
-      { tier: 6, nameTh: 'จานทวยเทพโอลิมปัสดาราจักร', path: 'DIVINE_SUMMONER', mat1: 'MAT_V230_006', mat2: 'MAT_V230_013' },
+      { tier: 6, nameTh: 'จานทวยเทพเทวสภาดาราจักร', path: 'DIVINE_SUMMONER', mat1: 'MAT_V230_006', mat2: 'MAT_V230_013' },
       { tier: 7, nameTh: 'มหาจานกาลเวลาหมื่นกัปนิรันดร์', path: 'CHRONO_EPOCH', mat1: 'MAT_V230_016', mat2: 'MAT_V230_019', legendary: true }
     ],
     ABACUS: [
@@ -52735,4 +52735,271 @@ JD.ITEMS.items.forEach(it => {
   }
   const procDagger = items.find(x => x && x.id === 'ITEM_PROC_DAGGER');
   if (procDagger) procDagger.visualSubtype = 'DAGGER';
+})();
+
+
+// System-Wide Thai Naming Polish & Cosmology Lore Canon Sync (Doc 15, 16A, 16B, LORE_02A-02D)
+(function applyV260NamingAndLoreCanonSync() {
+  const gObj = typeof globalThis !== "undefined" ? globalThis : window;
+  const JD = gObj.JD || {};
+  const PATH_NAMES = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์"};
+  const SUB_NAMES = {"SWORD_IMMORTAL":"กระบี่สวรรค์","FIVE_ELEMENTS":"เบญจธาตุสมดุล","ELIXIR_DAO":"โอสถอมฤต","ASTRAL_ARRAY":"ค่ายกลดารา","BLOOD_DEMON":"ปราณโลหิตแดง","PHANTOM_SOUL":"วิญญาณมายา","TIME_VOID":"กาลมิติเร้น","SOUND_ZITHER":"พิณสะกดจิต","YIN_YANG_HARMONY":"หยินหยางไร้ลักษณ์","FROST_MOON_IMMORTAL":"จันทราเหมันต์","STAR_ARCHER":"เซียนศรดารา","CLOUD_DRAGON_SPEAR":"ทวนมังกรเมฆา","PURE_SWORD_SAINT":"กระบี่ไร้ลักษณ์","CELESTIAL_STAR_SWORD":"กระบี่ผ่าดารา","KUNLUN_JADE_CAULDRON":"หม้อหยกกลั่นปราณ","NINE_HEAVENS_THUNDER_SEAL":"ตราอสนีเก้าฟ้า","TIGER_SOVEREIGN":"พยัคฆ์คลั่ง","BLOOD_DRAGON":"มังกรโลหิต","VAJRA_BODHI":"กายาวัชระ","DEVOURING_FIEND":"อสูรกลืนปราณ","SOLAR_FORGE":"เพลิงสุริยัน","THUNDER_BODY":"กายาอสนีบาต","JADE_IMMORTAL_BODY":"กายาหยกพิสุทธิ์","TITAN_MOUNTAIN_BODY":"ยักษ์แบกขุนเขา","WOOD_SPRING_BODY":"กายาพฤกษา","STAFF_GUARD":"พลองเหล็กพิทักษ์","WAR_SPEAR_SOVEREIGN":"ทวนศึกทลายทัพ","IRON_BOW_SENTINEL":"เกาทัณฑ์ศิลาเหล็ก","OVERLORD_HEAVY_BLADE":"จอมดาบผ่าผา","METEOR_IRON_FIST":"หมัดเหล็กดาวตก","NINE_SUNS_FURNACE_BODY":"เตาหลอมเก้าตะวัน","ABYSSAL_LEVIATHAN_BONE":"กระดูกมังกรบาดาล","WAR_DEITY":"เทพสงคราม","MERCY_DEITY":"เทพเมตตา","FATE_ORACLE":"เทพพยากรณ์","TOTEM_BEAST_GOD":"เทพอสูรบรรพกาล","UNDERWORLD_JUDGE":"ตุลาการยมโลก","OCEAN_SOVEREIGN":"เทพเจ้าสมุทร","HARVEST_EARTH_GOD":"เทพบิดรพืชพรรณ","MEDICINE_BODHI_GOD":"เทพโอสถเมตตา","SUN_BOW_DEITY":"เทพศรสุริยัน","GOLDEN_ARHAT_STAFF":"พลองทองพิทักษ์","SOLAR_CHARIOT_SOVEREIGN":"ราชรถสุริยัน","STYX_FERRYMAN_JUDGE":"คนแจวเรือข้ามแม่น้ำลืมเลือน","STORM_THUNDER_EMPEROR":"เทพพายุสายฟ้า","SHADOW_ASSASSIN":"นักฆ่าไร้เงา","VENOM_GU_SOVEREIGN":"จอมราชันย์หมื่นพิษกู่","NETHER_GHOST_KING":"ราชันภูตผี","HEAVEN_DEVOURING_DEMON":"จอมมารกลืนสวรรค์","SHADOW_ARCHER":"ศรเงาปลิดชีพ","BLOOD_SPEAR_ASURA":"ทวนโลหิตอสูร","ASHURA_SLAUGHTER_BLADE":"ดาบมารไร้ปรานี","CRIMSON_MOON_EXECUTIONER":"เพชฌฆาตจันทร์เลือด","MYRIAD_MIASMA_ALCHEMIST":"หมอกพิษมรณะ","ABYSSAL_SOUL_EATER":"มารกลืนวิญญาณ","ZEN_VOID_MIND":"จิตเซนสุญตา","CALLIGRAPHY_PAINTING_SAGE":"พู่กันภาพมายา","DREAM_ILLUSION_WEAVER":"ทอมายาสุบิน","MIND_SWORD_TELEKINESIS":"กระบี่จิตไร้รูป","ZITHER_HEART_BOW":"ศรพิณสะกดจิต","HEART_BLADE_MEDITATION":"มีดบินประสานใจ","VOID_SPEAR_MIND":"ทวนจิตสุญตา","CELESTIAL_CHESS_SCHOLAR":"หมากล้อมบัญชาจิต","SEVEN_EMOTIONS_ZITHER":"พิณมารเจ็ดอารมณ์สะกดจิต","VOID_LOTUS_CONTEMPLATOR":"ปทุมแก้วส่องจิต","HEAVENLY_GOLEM":"หุ่นศิลาเทวะ","THOUSAND_THREAD_ASSASSIN":"ใยไหมสังหาร","BEAST_CHIMERA_MECH":"พยัคฆ์กลเหล็ก","CELESTIAL_BALLISTA":"หน้าไม้กลดารา","SOUL_VESSEL_AVATAR":"หุ่นกายทิพย์","FLYING_BLADE_ORBITER":"กงล้อพันกระบี่","ASTRAL_CLOCKWORK_PRIME":"เฟืองดาราคำนวณ","THUNDER_CORE_ARTILLERY":"ท่ออสนีถล่มค่าย","JADE_SPIDER_WEAVER":"หุ่นแมงมุมหยก","SOLAR_BRONZE_COLOSSUS":"หุ่นยักษ์สำริด","REVERSED_RETRIBUTION":"วิบากย้อนกรรม","SIX_PATHS_WHEEL":"กงล้อหกภพ","FATE_SEVERING_THREAD":"ด้ายตัดวาสนา","LOTUS_MERCY_PURIFIER":"ปทุมชำระบาป","ASURA_JUDGMENT_BLADE":"ดาบทัณฑ์อสูร","PAST_LIFE_MIRROR":"กระจกชาติภพ","BODHI_VOW_GUARDIAN":"ปณิธานคุ้มภพ","CAUSE_EFFECT_LEDGER":"สมุดบัญชีกรรม","NETHER_RIVER_REAPER":"โซ่ยมทูตลืมเลือน","GOLDEN_WHEEL_ARBITER":"กงล้อทองตัดสิน","MYRIAD_BEAST_PACK":"จ้าวฝูงหมื่นอสูร","PRIMORDIAL_BLOOD_MUTATOR":"ปลุกเลือดบรรพกาล","SYMBIOTIC_BEAST_WARRIOR":"นักรบผสานอสูร","COLOSSUS_SHIELD_TAMER":"อสูรยักษ์คุ้มด่าน","SWARM_GU_HIVE_MASTER":"จ้าวฝูงแมลงพิษ","CELESTIAL_ASTRAL_FAIRY_TAMER":"พันธะภูตพฤกษา","ABYSSAL_DRAGON_TOTEM":"มังกรสมุทรอัสนี","KUNPENG_WIND_RIDER":"ขี่พญาคุนเผิง","QILIN_THUNDER_HERALD":"กิเลนอสนี","NINE_NETHER_SERPENT_LORD":"อสรพิษเก้ายมโลก","GOLDEN_NEEDLE_SAINT":"ปราชญ์เข็มทอง","CELESTIAL_ZITHER_ENVOY":"พิณทิพย์ชูใจ","DIVINE_NECTAR_APOTHECARY":"หมอนํ้าค้างทิพย์","QIMEN_TALISMAN_PATRON":"ยันต์ฉีเหมินคุ้มทัพ","SOUL_LANTERN_SHEPHERD":"โคมวิญญาณคุ้มชีพ","WAR_BANNER_CHORISTER":"ธงศึกปลุกขวัญ","WOOD_SPIRIT_SYMBIONT":"ปราณพฤกษาชุบชีพ","IMMORTAL_PEACH_APOTHECARY":"โอสถท้อต่อชะตา","EIGHT_TRIGRAMS_BANNER_SAGE":"ธงแปดทิศหนุนทัพ","CELESTIAL_INK_CHRONICLER":"หมึกทองจารึกคุณ","PILL_FURNACE_IMMORTAL":"เตาโอสถเก้าทวาร","POISON_VENOM_CAULDRON":"หม้อหลอมร้อยพิษ","HEAVENLY_ANVIL_SMITH":"ทั่งเหล็กร้อยหลอม","SPIRIT_SWORD_ARTIFICER":"ช่างกระบี่วิญญาณ","RUNE_ARRAY_ENGRAVER":"สลักอักขระศาสตรา","DIVINE_FLAME_SMELTER":"อัคคีหลอมแร่","SPIRIT_FEAST_HEALER":"ครัวทิพย์ฟื้นชีวา","JADE_MEAL_PREPARER":"สำรับหยกบำเพ็ญ","CELESTIAL_ARMOR_ARTISAN":"ช่างเกราะไหมเหล็ก","STAR_METEOR_WEAPONSMITH":"ช่างเหล็กดาวตก","NINE_REVOLUTIONS_ALCHEMIST":"โอสถเก้าวัฏจักร","PUPPET_RELIC_ARTIFICER":"ช่างหลอมของวิเศษ","EARTH_VEIN_WARDEN":"ค่ายกลชีพจรดิน","SEAL_SCRIPT_EXORCIST":"ยันต์ผนึกปราบมาร","THUNDER_TALISMAN_ADEPT":"ยันต์อสนีทลายทัพ","MIRAGE_ARRAY_WEAVER":"ค่ายกลพรางเงา","ASTRAL_STARFALL_ARRAY":"ค่ายกลดาวตก","VERMILION_SEAL_TALISMAN":"ยันต์ชาดสุริยัน","LABYRINTH_MIST_FORMATION":"ค่ายกลหมอกวงกต","BATTLEFIELD_STRATEGIST":"กุนซือธงศึก","SECT_STEWARD":"พ่อบ้านดูแลสำนัก","DIPLOMATIC_ENVOY":"ทูตประสานไมตรี","CARAVAN_QUARTERMASTER":"พลาธิการคาราวาน","CIVIL_TEACHING_MENTOR":"อาจารย์อบรมศิษย์","IMPERIAL_SEAL_CHANCELLOR":"เสนาบดีตราหยก","SHADOW_INTELLIGENCE_MARSHAL":"ข่าวกรองเงาจันทร์","GRAND_LOGISTICS_COMMANDER":"ส่งบำรุงหมื่นลี้","STAR_CHART_PROPHET":"พยากรณ์ผังดาว","POLARIS_FATE_WEAVER":"ทอชะตาดาวเหนือ","ECLIPSE_DOOM_SEER":"เนตรสุริยคราส","METEOR_OMEN_CALLER":"เพรียกดาวตก","QIMEN_EIGHT_GATES_DIVINER":"ฉีเหมินแปดประตู","BIG_DIPPER_LONGEVITY_SAGE":"กระบวยดาราต่อชะตาฟ้า","VAJRA_WRATH_GUARDIAN":"ธรรมบาลวัชระพิโรธปราบมาร","GOLDEN_LOTUS_CHAN":"ฌานบัวทอง","SUTRA_CHANT_ARHAT":"อรหันต์สวดมนต์","THOUSAND_PALM_BODHISATTVA":"มหาเมตตาโพธิสัตว์พันกร","RELIC_PAGODA_KEEPER":"พิทักษ์เจดีย์ธาตุ","KARMA_FIRE_ASCETIC":"เพลิงกัลป์เผาวิบาก","DIMENSIONAL_BLADE_REAPER":"คมดาบตัดมิติ","VOID_BLINK_STRIDER":"ก้าวพริบตาข้ามว่าง","POCKET_REALM_ARCHITECT":"เนรมิตมิติย่อย","SINGULARITY_COLLAPSE_MAGE":"หลุมดำกลืนมิติ","PHASE_MIRAGE_ASSASSIN":"เร้นเงาเหลื่อมภพ","SPATIAL_BARRIER_WARDEN":"ม่านกระจกมิติ","SEVEN_STRINGS_ANNIHILATION":"พิณเจ็ดสายสังหาร","JADE_FLUTE_SOUL_CHARMER":"ขลุ่ยหยกสะกดจิต","WAR_DRUM_TEMPEST_HERALD":"กลองศึกสะท้านภพ","RESONANT_BELL_EXORCIST":"กระดิ่งสลายมาร","SILENT_WAVE_ASSASSIN":"คลื่นเสียงไร้รูป","CELESTIAL_CHOIR_CONDUCTOR":"จ้าวทำนองประสาน","GOLDEN_SILKWORM_GU_LORD":"ราชันกู่ไหมทอง","MYRIAD_VENOM_APOTHECARY":"หมอพิษหมื่นบุปผา","BLOOD_PARASITE_HEXER":"กู่โลหิตสูบชีพ","CORROSIVE_MIASMA_WEAVER":"หมอกพิษกัดเกราะ","SCORPION_CLAW_EXECUTIONER":"กรงเล็บแมงป่องพิษ","IMMORTAL_NECTAR_TOXIN_SAGE":"หัตถ์พิษแปรเปลี่ยนเป็นน้ำอมฤต","AZURE_DRAGON_SCALE_SHIFTER":"เกล็ดมังกรคราม","WHITE_TIGER_FANG_RAVAGER":"เขี้ยวพยัคฆ์ขาว","VERMILION_PHOENIX_WING_ASCENDANT":"ปีกหงส์เพลิงคืนชีพ","BLACK_TORTOISE_SHELL_COLOSSUS":"กระดองเต่าดำ","FIEND_APE_TITAN_MORPH":"พญาวานรทลายผา","NINE_TAIL_MIRAGE_SHIFTER":"จิ้งจอกเก้าหาง","THUNDER_CLOUD_CALLER":"เมฆาอสนีบาต","MONSOON_RAIN_WEAVER":"พิรุณสลายเพลิง","BLIZZARD_FROST_HERALD":"พายุหิมะเยือกแข็ง","TYPHOON_GALE_SOVEREIGN":"พายุคลั่งกวาดทัพ","MIRAGE_FOG_SHROUDER":"หมอกทึบพรางสัมผัส","SOLAR_ZENITH_INVOKER":"แสงสุริยันแผดเผา","HORIZON_WIND_WALKER":"คนจรสุดขอบฟ้า","RUIN_PATHFINDER_SAGE":"บุกเบิกซากโบราณ","CARAVAN_ESCORT_VANGUARD":"คุ้มภัยคาราวาน","WILDERNESS_BEAST_TRACKER":"พรานแกะรอยอสูร","CLOUD_STEP_HERMIT":"ฤๅษีเหยียบเมฆา","REALM_MAPPER_CHRONICLER":"วาดแผนที่หมื่นลี้","GOLDEN_ABACUS_ARBITER":"ลูกคิดทองคำ","BLOOD_CONTRACT_NOTARY":"พันธสัญญาโลหิต","CARAVAN_SYNDICATE_MAGNATE":"เจ้าสัวคาราวาน","TREASURE_APPRAISER_SAGE":"ปราชญ์ดูของวิเศษ","DEBT_FORECLOSURE_ENFORCER":"ผู้คุมกฎทวงหนี้","EQUITY_SHIELD_CHANCELLOR":"ตราชั่งคลังสมดุล","LUOPAN_GEOMANCER_SAGE":"หลัวผานชี้มงคล","MOUNTAIN_SPINE_ANCHOR":"ตรึงสันหลังขุนเขา","LEYLINE_WARD_ARCHITECT":"ผังค่ายชีพจรดิน","EARTH_DRAGON_AWAKENER":"ปลุกชีพมังกรดิน","JADE_FAULT_CRUSHER":"รอยเลื่อนทลายด่าน","SANCTUARY_PEAK_CUSTODIAN":"พิทักษ์ยอดเขาเซียน","HEAVY_STAR_CRUSHER":"ดาราหนักหมื่นชั่ง","ZERO_GRAVITY_DRIFTER":"กายาเบาเหินหาว","ORBITAL_REPULSION_WARDEN":"ม่านผลักศาสตรา","SINGULARITY_WELL_CONTROLLER":"เขตแดนถ่วงทัพ","METEOR_WEIGHT_STRIKER":"หมัดศิลาถ่วงหนัก","TIDAL_LOCK_ARBITER":"แรงดึงตรึงคู่ศึก","SUNDIAL_EPOCH_CHRONICLER":"เงาตะวันจารึกยุค","HOURGLASS_SAND_REAPER":"ทรายเวลาพรากชีพ","REWIND_SPRING_HEALER":"ย้อนวสันต์คืนชีพ","ACCELERATED_BLADE_FLASH":"ดาบเร่งพริบตา","STASIS_SEAL_WARDEN":"ผนึกหยุดเวลา","PAST_FUTURE_MIRROR_SAGE":"กระจกอดีตอนาคต","IMPERIAL_EDICT_CALLIGRAPHER":"พู่กันราชโองการสวรรค์","LANDSCAPE_SCROLL_PAINTER":"ภาพวาดขุนเขานํ้า","SWORD_POEM_IMMORTAL":"กวีกระบี่ร่ายมนตร์","CLASSICS_LAW_ARBITER":"บัญญัติมณเฑียรบาล","VERMILION_CRITIQUE_CENSOR":"หมึกชาดสลายวิชา","HISTORIANS_DESTINY_QUILL":"พู่กันพงศาวดาร","PHANTOM_SILK_PUPPETEER":"เชิดเงาไหมล่องหน","SOUL_STITCH_NEEDLE_MASTER":"เข็มเย็บวิญญาณ","PAPER_EFFIGY_CONJURER":"หุ่นกระดาษรับเคราะห์","CORPSE_FLAME_MARIONETTE":"หุ่นเชิดเพลิงผี","MIRROR_SHADOW_TWIN":"เงาแฝดกระจก","FATE_STRING_CONDUCTOR":"ชักใยด้ายชะตา","HUN_DUN_ORIGIN_DEVOURER":"กลืนกินปฐมโกลาหลหุ่นตุ้น","YIN_YANG_MILLSTONE_SAGE":"โม่หินหยินหยาง","FIVE_PHASE_INVERSION_ADEPT":"ย้อนทวนเบญจธาตุ","ENTROPY_FLAME_SOVEREIGN":"เพลิงโกลาหล","GENESIS_LOTUS_CREATOR":"บัวกำเนิดปราณ","ABYSSAL_CHAOS_HALBERD":"ทวนผ่าโกลาหล","IAI_FLASH_SLICER":"เพลงดาบชักฝักสะบั้นพริบตา","MURAMASA_BLOOD_EDGE":"ดาบปีศาจกระหายโลหิตสังหาร","UNBROKEN_IRON_STANCE":"ปราการดาบเหล็กจิตไม่สั่นคลอน","KENJUTSU_SWORD_SAINT":"คมดาบตัดวิญญาณ","CLONE_MIRAGE_WEAVER":"แยกร่างเงามายา","SMOKE_MIST_ASSASSIN":"หมอกควันปลิดชีพ","CONCEALED_WEAPON_STRIKER":"ซัดดาวอาวุธลับ","SHADOW_BIND_STRATEGIST":"ตรึงเงาสะกดร่าง","EXPLOSIVE_TAG_TRAPPER":"กับดักยันต์ระเบิด","FIVE_SEAL_ELEMENTALIST":"มุทราเบญจธาตุ","SUBSTITUTION_ESCAPE":"สลับร่างท่อนไม้","CHAKRA_SCROLL_SEALER":"ม้วนผนึกอาคม","CELESTIAL_BEAST_HERALD":"อัญเชิญสัตว์เทวะ","WAR_DEITY_CONVOKER":"อัญเชิญขุนพลฟ้า","NETHER_GATE_CALLER":"เพรียกประตูนรก","PANTHEON_CHOIR_CONDUCTOR":"โองการชุมนุมเทพ","SOLAR_AVATAR_VESSEL":"ร่างทรงสุริยเทพ","STORM_WRATH_MEDIUM":"ร่างทรงเทพอสนี","VAJRA_EARTH_ANCHOR":"ร่างทรงเทพปฐพี","MAHADEVA_DESTROYER":"ร่างทรงเทพผลาญภพ","JUDGMENT_SCALE_BORROWER":"ตราชั่งชั่งวิญญาณ","THUNDERBOLT_WIELDER":"ศาสตราอสนีเทพ","THIRD_EYE_INSIGHT":"เนตรทิพย์สามภพ","SERPENT_GRACE_BORROWER":"บารมีนาคราช","MADNESS_WHISPERER":"สาวกเสียงกระซิบโพ้นม่านฟ้า","FLESH_MUTATION_ADEPT":"ผลัดเนื้ออสูรว่าง","VOID_WARPING_HERETIC":"ฉีกบิดห้วงสุญตา","SANITY_SACRIFICE_WARLOCK":"สังเวยจิตแลกฤทธิ์","YANTRA_IRON_SKIN":"ยันต์คงกระพัน","BLACK_ARTS_HEXER":"คุณไสยมนต์ดำ","PHRAY_SPIRIT_WHISPER":"พรายกระซิบเตือน","SACRED_GOLEM_TAMER":"พยนต์อาคม","IRON_BONE_DEVOURER":"กลืนแร่กระดูกเหล็ก","BEAST_FLESH_CONSUMER":"กลืนเลือดอสูร","INTERNAL_ORGAN_REFINER":"หลอมอวัยวะมาร","PRIMORDIAL_STOMACH_TITAN":"เตาหลอมเลือดเนื้อกลืนหมื่นอสูร","ANCESTRAL_GRAVE_KEEPER":"เฝ้าสุสานโบราณ","BONE_PUPPET_REFINER":"หุ่นกระดูกวัชระ","SOUL_SIPHON_REAPER":"สูบวิญญาณชิงชีพ","CORPSE_EXPLOSION_ACOLYTE":"ระเบิดซากศพ","MARROW_HERITAGE_SHAMAN":"ปลุกเลือดบรรพชน","ANCESTRAL_TABLET_CHANTER":"สวดป้ายบูรพาจารย์","HEROIC_SPIRIT_SPEARMAN":"ทวนวิญญาณวีรชน","CHRONICLE_TOTEM_GUARDIAN":"เสาหลักวงศ์ตระกูล","ABYSSAL_TIDE_SPEAR":"ทวนคลื่นบาดาล","FROST_MAELSTROM_CALLER":"นํ้าวนเหมันต์","DRAGON_SHIP_NAVIGATOR":"นายท้ายสำเภามังกร","DEEP_PEARL_APOTHECARY":"ไข่มุกสมุทร","ANCIENT_RUBBING_DECODER":"ถอดศิลาจารึก","SUTRA_COMPILER_SAGE":"สังคายนาคัมภีร์","TECHNIQUE_MIRROR_SCHOLAR":"เนตรกระจกสะท้อนหมื่นวิชา","FORBIDDEN_SCROLL_CUSTODIAN":"เฝ้าหอต้องห้าม","JADE_DICE_HIGH_ROLLER":"เต๋าหยกท้าชะตา","FATE_COIN_FLIPPER":"เหรียญพลิกเป็นตาย","KARMA_ROULETTE_DEALER":"กงล้อเสี่ยงทาย","ALL_IN_DESPERADO_BLADE":"เดิมพันชะตาฟ้าแลกชีวิต","IMMORTAL_HERB_PLANTER":"ปลูกสมุนไพรเซียน","IRON_THORN_VINE_WEAVER":"เถาวัลย์หนามเหล็ก","SPIRIT_GRAIN_SOVEREIGN":"รวงข้าววิญญาณ","PARASITIC_SPORE_CULTIVATOR":"เกสรกลืนปราณ","GRAND_TOURNEY_CHAMPION":"เจ้ายุทธเจ็ดศาสตรา","DUELIST_HONOR_BLADE":"ดาบดวลเกียรติยศ","CROWD_ROAR_BRAWLER":"หมัดก้องสังเวียน","BANNER_GLORY_MARSHAL":"ธงชัยเกียรติยุทธ์"};
+  const ELEM_TH = {
+    FIRE: "เพลิง", WATER_ICE: "น้ำแข็ง", LIGHTNING: "อสนี", EARTH_METAL: "ดินโลหะ",
+    WOOD_LIFE: "พฤกษา", WIND: "วายุ", ASTRAL: "ดารา", YIN_SHADOW: "หยินเงา",
+    DARK_YIN: "หยินเงา", LIGHT_YANG: "หยางแสง", BLOOD_DEMON: "โลหิตมาร", NEUTRAL: "ไร้ธาตุ"
+  };
+  const SCRIPTURE_NAMES = {
+    LEG_V230_ASTRO_DIVINATION: "คัมภีร์ดาราพยากรณ์ทอชะตาเก้าสวรรค์",
+    LEG_V230_BUDDHA_DHARMA: "มหาไวโรจนสูตรบัวทองนิพพาน",
+    LEG_V230_VOID_SPACE: "คัมภีร์ผ่าสุญตาทะลวงพันพิภพ",
+    LEG_V230_SONIC_HARMONY: "ลำนำสวรรค์เก้าทำนองสะท้านวิญญาณ",
+    LEG_V230_VENOM_GU: "คัมภีร์ราชันย์กู่หมื่นพิษกลืนสวรรค์",
+    LEG_V230_PRIMORDIAL_SHIFTER: "คัมภีร์อสูรบรรพกาลคืนสายเลือดแท้",
+    LEG_V230_CELESTIAL_WEATHER: "คัมภีร์บัญชาสี่ฤดูเรียกพายุอสนี",
+    LEG_V230_WANDERING_DAO: "บันทึกย่างก้าวคนจรท่องหมื่นขุนเขา",
+    LEG_V230_MERCANTILE_DAO: "คัมภีร์ตราชั่งทองคำชั่งตวงวาสนา",
+    LEG_V230_DRAGON_VEIN_GEOMANCY: "ตำราผนึกชีพจรมังกรเคลื่อนขุนเขา",
+    LEG_V230_GRAVITY_DAO: "คัมภีร์ดารายุบตัวหนักหมื่นขุนเขา",
+    LEG_V230_CHRONO_EPOCH: "คัมภีร์วัฏจักรกาลเวลาย้อนอดีตภพ",
+    LEG_V230_INK_LITERATI: "คัมภีร์อักษรสวรรค์หนึ่งขีดชี้เป็นตาย",
+    LEG_V230_SOUL_PUPPETRY: "คัมภีร์ไหมวิญญาณเชิดเงาร้อยชะตา",
+    LEG_V230_PRIMORDIAL_CHAOS: "มหาคัมภีร์ปฐมโกลาหลบุกเบิกฟ้าดิน",
+    LEG_V230_SHADOW_SAMURAI: "คัมภีร์ดาบไร้ใจหนึ่งตวัดสะบั้นเงา",
+    LEG_V230_NINPO_SHADOW: "คัมภีร์พันเงามายาไร้ร่องรอยสังหาร",
+    LEG_V230_NINPO_ELEMENTAL: "คัมภีร์มุทราห้าธาตุยันต์เพลิงกัมปนาท",
+    LEG_V230_DIVINE_SUMMONER: "มหาโองการอัญเชิญเงาทวยเทพข้ามม่านฟ้า",
+    LEG_V230_DIVINE_POSSESSION: "คัมภีร์ภาชนะเทวะประทับร่างสะท้านภพ",
+    LEG_V230_DIVINE_CHANNELER: "คัมภีร์สื่อศาสตราสวรรค์ยืมกฎสายฟ้า",
+    LEG_V230_VOID_HERETIC_PACT: "คัมภีร์เสียงกระซิบวิปลาสโพ้นสุญตา",
+    LEG_V230_OCCULT_MAGE: "คัมภีร์มหาอาคมเจ็ดป่าช้าคงกระพันชาตรี",
+    LEG_V230_DEVOURING_FLESH: "คัมภีร์เตาหลอมเลือดเนื้อกลืนหมื่นอสูร",
+    LEG_V230_NETHER_GRAVE: "คัมภีร์โองการยมโลกปลุกทัพหมื่นสุสาน",
+    LEG_V230_ANCESTRAL_RITUAL: "คัมภีร์สังเวยโลหิตปลุกวิญญาณบรรพชน",
+    LEG_V230_TIDE_VOYAGER: "คัมภีร์จ้าวสมุทรแหวกคลื่นหมื่นโยชน์",
+    LEG_V230_LORE_ARCHIVIST: "สารานุกรมสวรรค์ส่องทะลุหมื่นเคล็ดวิชา",
+    LEG_V230_FORTUNE_GAMBLER: "คัมภีร์เต๋าสวรรค์พลิกชะตาเดิมพันชีวิต",
+    LEG_V230_SPIRIT_HUSBANDRY: "คัมภีร์สวนอมฤตเพาะเลี้ยงพฤกษาหมื่นปี",
+    LEG_V230_ARENA_GLORY: "คัมภีร์ราชันย์สังเวียนไร้พ่ายร้อยศึก",
+    LEG_V240_GOD: "มหาคัมภีร์ศรัทธาหมื่นราษฎร์หลอมเทวรูปทอง",
+    LEG_V240_CRAFT_CREATION: "มหาคัมภีร์เตาหลอมฟ้าดินเนรมิตศาสตราเทพ",
+    MP_BOW_ASTRAL_GALAXY_T7: "มหาคัมภีร์ศรธารดาราทะลวงพิภพ",
+    TECH_V200_SONIC_HARMONY_ACT_06: "เคล็ดวิชาจ้าวสังคีตประสานทำนองฟ้า"
+  };
+  const RELIC_NAMES = {
+    REL_V230_ASTRO_DIVINATION: "จานดาราจักรทอชะตาฟ้าดิน",
+    REL_V230_BUDDHA_DHARMA: "ประคำโพธิสัตว์พันกรสยบมาร",
+    REL_V230_VOID_SPACE: "เข็มไร้รูปผ่าม่านสุญตา",
+    REL_V230_SONIC_HARMONY: "พิณหยกเก้าสวรรค์กล่อมสามภพ",
+    REL_V230_VENOM_GU: "เข็มกระดูกกู่ราชันย์หมื่นพิษ",
+    REL_V230_PRIMORDIAL_SHIFTER: "กรงเล็บราชันย์อสูรทลายบรรพต",
+    REL_V230_CELESTIAL_WEATHER: "พัดขนนกเมฆาอสนีบัญชาฟ้า",
+    REL_V230_WANDERING_DAO: "พลองไม้ไผ่หยกท่องหมื่นลี้",
+    REL_V230_MERCANTILE_DAO: "ลูกคิดทองคำชั่งกรรมหมื่นตำลึง",
+    REL_V230_DRAGON_VEIN_GEOMANCY: "จานหลัวผานผนึกชีพจรมังกร",
+    REL_V230_GRAVITY_DAO: "จานดาราเหล็กนิลถ่วงดาราหมื่นชั่ง",
+    REL_V230_CHRONO_EPOCH: "จานทรายกาลเวลาหมุนย้อนยุคสมัย",
+    REL_V230_INK_LITERATI: "พู่กันหยกขาวจารึกราชโองการฟ้า",
+    REL_V230_SOUL_PUPPETRY: "แส้ไหมวิญญาณร้อยด้ายเชิดชะตา",
+    REL_V230_PRIMORDIAL_CHAOS: "กรงเล็บปฐมโกลาหลแยกหยินหยาง",
+    REL_V230_SHADOW_SAMURAI: "ดาบเงาจันทร์เสี้ยวไร้ปราณ",
+    REL_V230_NINPO_SHADOW: "เข็มเงาจันทร์เร้นลับปลิดวิญญาณ",
+    REL_V230_NINPO_ELEMENTAL: "เข็มอัคคีมุทราห้าธาตุถล่มค่าย",
+    REL_V230_DIVINE_SUMMONER: "จานดาราทองคำอัญเชิญเงาเทวสภา",
+    REL_V230_DIVINE_POSSESSION: "ทวนศึกประทับเงามหาเทพสงคราม",
+    REL_V230_DIVINE_CHANNELER: "กระบี่ศิลาสื่อสายฟ้าทัณฑ์เทวราช",
+    REL_V230_VOID_HERETIC_PACT: "ตราอาคมกระดูกดำจารึกสัญญานอกภพ",
+    REL_V230_OCCULT_MAGE: "ลูกประคำอาคมเขาควายธนูสะกดวิญญาณ",
+    REL_V230_DEVOURING_FLESH: "กรงเล็บเขี้ยวอสูรกลืนกินเลือดเนื้อ",
+    REL_V230_NETHER_GRAVE: "พลองโซ่ตรวนยมทูตล่ามวิญญาณ",
+    REL_V230_ANCESTRAL_RITUAL: "พลองกระดูกบรรพชนค้ำชูตระกูล",
+    REL_V230_TIDE_VOYAGER: "ทวนสมอเกล็ดมังกรสมุทรแหวกคลื่น",
+    REL_V230_LORE_ARCHIVIST: "พู่กันปราชญ์คัดลอกหมื่นคัมภีร์",
+    REL_V230_FORTUNE_GAMBLER: "พัดหยกพนันชะตาพลิกฟ้าคว่ำดิน",
+    REL_V230_SPIRIT_HUSBANDRY: "พลองพฤกษาทิพย์เร่งผลิสวนเซียน",
+    REL_V230_ARENA_GLORY: "ทวนศึกราชันย์สังเวียนพิชิตหล้า"
+  };
+  const PROTOTYPE_OWNERS = {
+    WANDERING_DAO: "พญาวานรคนจร ซูเหยียน (#17)",
+    VOID_HERETIC_PACT: "มหาเทวราชครู เสิ่นเทียนจุน (#28)",
+    FORTUNE_GAMBLER: "เซียนพนันเก้าชะตา ไป๋อวี้ (#35)",
+    OCCULT_MAGE: "จอมขมังเวทย์บรรพกาล ปู่เจ้าสมิงพราย (#40)",
+    SHADOW_SAMURAI: "นักดาบไร้เงา เคนชิน (#41)"
+  };
+
+  // 1. Update Paths & Subpaths in JD.CULT.paths and JD.MARTIAL.subPaths
+  if (JD.CULT && JD.CULT.paths) {
+    for (const [pid, p] of Object.entries(JD.CULT.paths)) {
+      if (PATH_NAMES[pid]) {
+        p.nameTh = PATH_NAMES[pid];
+        p.shortTh = PATH_NAMES[pid];
+      }
+      if (Array.isArray(p.realmTraits)) {
+        for (const rt of p.realmTraits) {
+          if (rt.stage === 2) rt.nameTh = "รากฐาน" + p.nameTh;
+          else if (rt.stage === 4) rt.nameTh = "แก่นแท้" + p.nameTh;
+          else if (rt.stage === 6) rt.nameTh = "เขตแดน" + p.nameTh;
+          else if (rt.stage === 8) rt.nameTh = "ปรมาจารย์" + p.nameTh;
+          rt.descTh = "เสริมรากฐานและตบะประจำ" + p.nameTh;
+        }
+      }
+      if (Array.isArray(p.subPaths)) {
+        for (const sp of p.subPaths) {
+          if (SUB_NAMES[sp.id]) sp.nameTh = SUB_NAMES[sp.id];
+          if (Array.isArray(sp.subpathTraits)) {
+            for (const st of sp.subpathTraits) {
+              if (st.realm === 3) { st.nameTh = "เปิดมรรคา · " + sp.nameTh; st.descTh = "ปลดล็อกเคล็ดลับขั้นต้นของ " + sp.nameTh; }
+              else if (st.realm === 6) { st.nameTh = "ชำนาญศึก · " + sp.nameTh; st.descTh = "ยกระดับความเชี่ยวชาญของ " + sp.nameTh; }
+              else if (st.realm === 9) { st.nameTh = "บรรลุสัจธรรม · " + sp.nameTh; st.descTh = "เข้าถึงแก่นแท้สูงสุดของ " + sp.nameTh; }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (JD.MARTIAL && JD.MARTIAL.subPaths) {
+    for (const [sid, sp] of Object.entries(JD.MARTIAL.subPaths)) {
+      if (SUB_NAMES[sid]) sp.nameTh = SUB_NAMES[sid];
+      if (Array.isArray(sp.subpathTraits)) {
+        for (const st of sp.subpathTraits) {
+          if (st.realm === 3) { st.nameTh = "เปิดมรรคา · " + sp.nameTh; st.descTh = "ปลดล็อกเคล็ดลับขั้นต้นของ " + sp.nameTh; }
+          else if (st.realm === 6) { st.nameTh = "ชำนาญศึก · " + sp.nameTh; st.descTh = "ยกระดับความเชี่ยวชาญของ " + sp.nameTh; }
+          else if (st.realm === 9) { st.nameTh = "บรรลุสัจธรรม · " + sp.nameTh; st.descTh = "เข้าถึงแก่นแท้สูงสุดของ " + sp.nameTh; }
+        }
+      }
+    }
+  }
+  if (JD.MARTIAL && Array.isArray(JD.MARTIAL.SYNERGIES)) {
+    for (const syn of JD.MARTIAL.SYNERGIES) {
+      if (syn && syn.subpath && SUB_NAMES[syn.subpath] && String(syn.id || "").startsWith("SYN_V234_")) {
+        syn.nameTh = "สอดประสานมรรคา · " + SUB_NAMES[syn.subpath];
+        syn.descTh = "สอดประสานอาวุธและชุดเกราะประจำสายย่อย「" + SUB_NAMES[syn.subpath] + "」เพิ่มอานุภาพวิชาและปฏิกิริยาธาตุ";
+      }
+    }
+  }
+
+  // 2. Update Techniques & Legendary Scriptures
+  const allTechs = [
+    ...((JD.TECH && JD.TECH.techniques) || []),
+    ...((JD.TECH && JD.TECH.mantras) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.techniques) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.v200Techniques) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.legendaryTechniques) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.legendaryMantras) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.innateTechniques) || [])
+  ];
+  for (const t of allTechs) {
+    if (!t || !t.id) continue;
+    if (SCRIPTURE_NAMES[t.id]) {
+      t.nameTh = SCRIPTURE_NAMES[t.id];
+      if (t.id.startsWith("LEG_V240_") && Array.isArray(t.moveDefs) && t.moveDefs[0]) {
+        t.moveDefs[0].nameTh = "กระบวนท่าที่ 1 • " + t.nameTh;
+        t.moves = [t.moveDefs[0].nameTh];
+      }
+    }
+    if (t.id.startsWith("INNATE_V234_") && t.sub && SUB_NAMES[t.sub]) {
+      const sName = SUB_NAMES[t.sub];
+      t.nameTh = "วิชาเฉพาะสาย · " + sName;
+      t.sourceInfoTh = "วิชาติดตัวเฉพาะสายย่อย「" + sName + "」ปลดล็อกอัตโนมัติเมื่อเลือกสายย่อย";
+      t.descTh = "วิชาต้นกำเนิดประจำสายย่อย「" + sName + "」เปิดท่วงท่าประจำตัว ฝังตราประทับ และจุดระเบิดปฏิกิริยาธาตุ";
+    }
+    if (t.id.startsWith("LEG_V230_")) {
+      const pid = t.id.replace(/^LEG_V230_/, "");
+      const pName = PATH_NAMES[pid] || pid;
+      if (pid === "DIVINE_SUMMONER" || pid === "DIVINE_POSSESSION" || pid === "DIVINE_CHANNELER") {
+        t.descTh = "คัมภีร์ชั้นสูงสุดของ「" + pName + "」ที่มหาเทวราชครู เสิ่นเทียนจุน (#28) รวบรวมจากเศษใบปลิวบทสวดคนรับใช้หน้าประตูวัดชั้นนอกที่ปลิวตกจากรอยแยกม่านกั้นภพ หอคัมภีร์โลกล่างขนานนามด้วยความหลงลำพองว่าเป็นมหาคัมภีร์พิชิตสวรรค์ ทั้งที่แท้จริงเป็นเพียงเคล็ดขยายชีพจรรับเศษเสี้ยวเงาพลัง 1%–5% จากเทวสภาเบื้องบน";
+      } else {
+        t.descTh = "สุดยอดคัมภีร์ระดับ 7 แห่งโลกเบื้องล่างประจำ「" + pName + "」ซึ่งหอคัมภีร์มนุษย์จัดไว้ในชั้นสูงสุด (ระดับพิชิตสวรรค์ของปุถุชนใต้แผ่นฟ้า) สำแดงอานุภาพสูงสุดของมรรคาในแดนมนุษย์";
+      }
+    }
+    if (t.id === "LEG_V240_CRAFT_CREATION") {
+      t.descTh = "มหาคัมภีร์หลอมศาสตราสูงสุดของโลกเบื้องล่างที่ปรมาจารย์ตีเหล็ก โอวหยางเหยียน (#14) รจนาขึ้นจากการควบแน่นไฟแก่นพิภพจำลองความร้อนตามจินตนาการถึงเตาหลอมสวรรค์";
+    }
+    if (t.id === "LEG_V240_GOD") {
+      t.descTh = "มหาคัมภีร์ศรัทธาสูงสุดของโลกเบื้องล่าง รวบรวมแรงอธิษฐานและควันธูปจากปวงชนชาวบ้านแปรเป็นกายทิพย์เทวรูปทองคุ้มครองแผ่นดินมนุษย์";
+    }
+    if (t.id === "LEG_FORB_BLOOD_LOTUS_SACRIFICE") {
+      t.descTh = "วิชาต้องห้ามสูงสุดของแม่ทัพหญิง มู่หรงเสวี่ย (#7) ที่เผาผลาญอายุขัยและแก่นโลหิตทั้งหมดระเบิดทำลายร่างทรงผู้ตรวจการจากโลกเบื้องบนซึ่งลักลอบส่งเศษเสี้ยวจิต 0.1% ลงมาสถิตในร่างแม่ทัพศัตรู ทหารมนุษย์ที่เห็นร่างทรงเทวะหลั่งเลือดเป็นครั้งแรกจึงขนานนามว่าบงกชโลหิตสังหารเทพ";
+    }
+    if (t.id === "LEG_COMBAT_FEIXIAN_ONE_SWORD") {
+      t.descTh = "สุดยอดเพลงกระบี่ที่เซียนกระบี่เมามาย จิ้วเจี้ยนเซียน (#39) บัญญัติขึ้นในโลกเบื้องล่าง ยามแทงกระบี่ขึ้นสู่ดวงจันทร์เหนือซากอุทยานสวรรค์หลวง รวดเร็วและบริสุทธิ์จนผู้คนนึกว่าเซียนเหินลงมาจากนอกนภา แม้ปลายคมกระบี่จะเพียงสะกิดผิวม่านกั้นภพเป็นรูเข็มเสี้ยววินาทีก็ตาม";
+    }
+    if (t.id === "LEG_MANTRA_CELESTIAL_MANDATE_CANON") {
+      t.descTh = "คัมภีร์ที่ซือหม่าชุน (#4) คัดลอกจากแผ่นหยกร้าวของเสมียนตรวจส่วยชั้นปลายแถวบนโลกเบื้องบนที่ตบะแตกสลายในยุคสงคราม เดิมเป็นเพียงสมุดระเบียบคุมทะเบียนแรงงานส่วยและป้ายคำสัตย์ชั้นนอก แต่เมื่อนำมาดัดแปลงในโลกเบื้องล่างกลับกลายเป็นมหาคัมภีร์โองการสวรรค์คู่ราชสำนักตงหวง";
+    }
+    if (t.id === "LEG_MANTRA_TAIXUAN_SCRIPTURE") {
+      t.descTh = "จารึกปริศนาบนเกาะร้างที่คนโลกล่างยกย่องเป็นคัมภีร์เซียน แท้จริงคือแผ่นหินการบ้านคัดลายมือที่เด็กชายวัยหกขวบบนโลกเบื้องบนขีดเขียนบิดเบี้ยวแล้วขว้างทิ้งลงเหวเมฆ ผู้ที่ยึดติดกับตำราเดิมเกินไปจึงตีความไม่ออก แต่ผู้ไร้กรอบกลับบรรลุถึงรากฐานปราณอันเรียบง่าย";
+    }
+    if (t.id === "LEG_PASS_NINE_YANG_MERIDIAN") {
+      t.descTh = "เคล็ดวิชาที่แกะรอยจากบทเพลงกล่อมเด็กฝึกหายใจกันแดดเก้าตะวัน ซึ่งปักอยู่บนเศษผ้าอ้อมขาดๆ จากโลกเบื้องบนที่ตกลงมาในโพรงหินตาน้ำอุ่น สำหรับทารกแดนบนเป็นเพียงเพลงกันลมแดด แต่สำหรับผู้ฝึกตนโลกล่างคือสุดยอดคัมภีร์ปราณหยางนิรันดร์";
+    }
+    if (t.id === "LEG_MANTRA_EIGHT_DESOLATIONS_GOD") {
+      t.descTh = "เคล็ดวิชาที่สลักไว้ในวิหารปฏิทินศิลาแปดทิศ แท้จริงมีที่มาจากแผ่นพับท่ายืดเส้นและเดินลมหายใจก่อนเข้ากะของคนงานแบกหินชายขอบสวรรค์ที่ปลิวตกผ่านรอยแยกม่านฟ้า แม้เป็นเพียงท่าบริหารกายของแรงงานเบื้องบน แต่กลับช่วยให้ร่างกายปุถุชนโลกล่างผลัดเซลล์คืนความเยาว์วัยได้อย่างอัศจรรย์";
+    }
+    if (t.id === "LEG_LIGHT_KUNPENG_ASTRAL_WINGS") {
+      t.descTh = "สุดยอดวิชาตัวเบาของโลกเบื้องล่างที่บูรพาจารย์บัญญัติขึ้นจากการเฝ้ามองพญาวาฬมังกรสมุทร (#3 Beast King) กระโจนทะยานขึ้นจากทะเลหมอกบูรพาเพื่อเลียนแบบบรรพชนคุนเผิงในสายเลือด";
+    }
+  }
+
+  // 3. Update Items & Recipes (MANUAL_PATH_*, CRYSTAL_PATH_*, MAT_V230_*, REL_V230_*, REC_REL_V230_*)
+  const items = (JD.ITEMS && JD.ITEMS.items) || [];
+  const recipes = (JD.ITEMS && JD.ITEMS.recipes) || [];
+  for (const it of items) {
+    if (!it || !it.id) continue;
+    if (it.id.startsWith("MANUAL_PATH_")) {
+      const pid = it.id.replace(/^MANUAL_PATH_/, "");
+      const pName = PATH_NAMES[pid] || (it.path && PATH_NAMES[it.path]);
+      if (pName) {
+        it.nameTh = "มหาคัมภีร์ต้นกำเนิด · " + pName;
+        it.sourceInfoTh = "พ่อค้าคาราวานแดนไกล · บรรณาการสำนักบริวาร · รางวัลชนะศึกสำนัก · มหาเจดีย์ 43 วิถี · โบราณสถานแดนลับ";
+        it.descTh = "มหาคัมภีร์รากฐานฉบับสมบูรณ์ของ「" + pName + "」เมื่อบริจาคเข้าหอคัมภีร์วิถีสำนัก จะปลดล็อกให้ศิษย์และปุถุชนในสำนักศึกษาวิถีนี้ได้เป็นการถาวร";
+      }
+    } else if (it.id.startsWith("CRYSTAL_PATH_")) {
+      const pid = it.id.replace(/^CRYSTAL_PATH_/, "");
+      const pName = PATH_NAMES[pid] || (it.path && PATH_NAMES[it.path]);
+      if (pName) {
+        it.nameTh = "ผลึกมรรคาสำเร็จรูป · " + pName;
+        it.descTh = "ผลึกปราณบรรจุเศษเสี้ยวสัจธรรมของ「" + pName + "」(ใช้ครั้งเดียวแล้วสลาย) มอบให้ศิษย์หรือปุถุชนเพียง 1 คนเพื่อเปิดชีพจรเข้าสู่วิถีนี้ได้ทันทีแม้หอคัมภีร์สำนักจะยังไม่มีคัมภีร์วิถีนี้";
+      }
+    } else if (it.id.startsWith("MAT_V230_")) {
+      const elTh = ELEM_TH[it.element] || "ปราณ";
+      if (it.id === "MAT_V230_006") {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") ตะกรันขี้โลหะก้นเบ้าหลอมจากโรงงานชั้นนอกบนโลกเบื้องบนที่ไร้ปราณต้นกำเนิดจึงร่วงผ่านรอยแยกม่านกั้นภพลงมา ช่างหลอมโลกล่างผู้ไม่เคยเห็นโลหะเซียนแท้จริงต่างยกย่องว่าเป็นทองคำเทวโลก";
+      } else if (it.id === "MAT_V230_007") {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") น้ำค้างปราณโลกียะที่ควบแน่นรอบแท่นสักการะโบราณในป่าลึก ล้ำค่าอย่างยิ่งสำหรับปรุงโอสถชั้นสูงของมนุษย์";
+      } else if (it.id === "MAT_V230_008") {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") เศษผลึกมิติที่สูญเสียปราณต้นกำเนิดจนม่านกั้นภพปล่อยผ่าน ใช้เป็นแกนหลอมศาสตราจำลองระดับสูงสุดของโลกเบื้องล่าง";
+      } else {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") สำหรับหลอมศาสตรา โอสถ และค่ายกลชั้นสูงในโลกเบื้องล่าง";
+      }
+    } else if (RELIC_NAMES[it.id]) {
+      it.nameTh = RELIC_NAMES[it.id];
+      const pid = it.id.replace(/^REL_V230_/, "");
+      const pName = PATH_NAMES[pid] || pid;
+      const legTechName = SCRIPTURE_NAMES["LEG_V230_" + pid] || ("LEG_V230_" + pid);
+      if (pid === "DIVINE_SUMMONER" || pid === "DIVINE_POSSESSION" || pid === "DIVINE_CHANNELER") {
+        it.descTh = it.nameTh + " — ศาสตราสื่อสัญญาณธูปสังเวยระดับ 7 ประจำ「" + pName + "」ที่ช่างมนุษย์ตีขึ้นเลียนแบบรูปเคารพเพื่อดึงเศษเสี้ยวพลัง 0.1%–1% ที่รั่วซึมผ่านม่านกั้นภพ สำแดงวิชา「" + legTechName + "」";
+      } else if (PROTOTYPE_OWNERS[pid]) {
+        it.descTh = it.nameTh + " — ศาสตราประจำ「" + pName + "」(ศาสตราต้นกำเนิดคู่ชีพปฐมปรมาจารย์อยู่ที่ " + PROTOTYPE_OWNERS[pid] + " ส่วนชิ้นที่โรงหลอมสำนักสร้างขึ้นคือศาสตราจำลองภาชนะมรรคาขั้นสูงสุดของโลกเบื้องล่าง) สำแดงวิชา「" + legTechName + "」";
+      } else {
+        it.descTh = it.nameTh + " — ศาสตราจำลองภาชนะมรรคาระดับ 7 ขั้นสูงสุดของโลกเบื้องล่างประจำ「" + pName + "」เมื่อสวมใส่จะสามารถสำแดงวิชาตำนาน「" + legTechName + "」";
+      }
+    }
+  }
+  for (const rc of recipes) {
+    if (!rc || !rc.id) continue;
+    if (rc.id.startsWith("REC_REL_V230_")) {
+      const relId = rc.outItemId || rc.id.replace(/^REC_/, "");
+      if (RELIC_NAMES[relId]) {
+        rc.nameTh = "ตำราหลอมศาสตราจำลอง · " + RELIC_NAMES[relId];
+        rc.outNameTh = RELIC_NAMES[relId];
+      }
+    } else if (rc.id === "REC_V230_WPN_CLAW_01") {
+      rc.nameTh = "ตำราหลอม · กรงเล็บเหล็กดำทมิฬเร้นเงา";
+    } else if (rc.id === "REC_V230_WPN_FAN_01") {
+      rc.nameTh = "ตำราหลอม · พัดเหล็กมุทราคาถาเพลิง";
+    } else if (rc.id === "REC_V230_WPN_ASTROLABE_05") {
+      rc.nameTh = "ตำราหลอม · จานทวยเทพเทวสภาดาราจักร";
+    }
+  }
 })();

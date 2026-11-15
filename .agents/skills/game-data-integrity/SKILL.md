@@ -318,3 +318,6 @@ resolver ปฏิกิริยาธาตุที่ระบุชื่�
 Schema validator ตรวจ facilityLevel ของ ALCHEMY/FORGING/ARRAY/TALISMAN เทียบ SECT.FACILITY_SPECS จริง ไม่ใช่แค่สูตรมีชื่อ/วัตถุดิบครบ แก้ REC_V222_EQ_05/06/10/11/13/16/22/24 ให้ใช้ forge สูงสุด3 และทดสอบ actual craft ผลผลิตต้องเป็น outItemId ไม่ใช่ recipe ID โอสถหลายระยะ48แบบมีสูตร (ไม่ใช่รับรองอัตราได้ของทุกเซฟ)
 
 รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
+- Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).

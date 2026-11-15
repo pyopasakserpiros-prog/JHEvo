@@ -1048,7 +1048,7 @@
         }
       }
     }
-    if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน', { toPool: true }); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' หน่วย', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
+    if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน', { toPool: true }); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' กระสอบ', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
     if (W.day % 30 === 15) W.npcs.forEach(n => { if (!n.dead) n.h.state.novelty = Math.max(0, n.h.state.novelty - 3); });
     if (g.EXPED && g.EXPED.dailyChronicleDigestTick) g.EXPED.dailyChronicleDigestTick(W);
   };
@@ -1380,6 +1380,170 @@
       throw error;
     }
   };
+
+
+  /* ---------- Deterministic Literary Prose Composer (14A/14B/14C — Zero W.rng) ---------- */
+  SIM.PROSE = {
+    pick(seedInt, variants) {
+      if (!Array.isArray(variants) || !variants.length) return '';
+      return variants[Math.abs(seedInt | 0) % variants.length];
+    },
+    actorLabel(W, n) {
+      if (!n || !n.h) return 'ผู้ไร้นาม';
+      const full = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : ((n.h.name.family || '') + (n.h.name.given || ''));
+      if (W && W.sect && W.sect.masterId === n.id) return 'เจ้าสำนัก ' + full;
+      if (n.post && g.SECT && g.SECT.POSTS && g.SECT.POSTS[n.post]) {
+        return g.SECT.POSTS[n.post].nameTh + ' ' + full;
+      }
+      const rkTitle = (g.SECT && g.SECT.RANKS && g.SECT.RANKS[n.rank]) ? g.SECT.RANKS[n.rank].nameTh : 'ศิษย์';
+      return rkTitle + ' ' + full;
+    },
+    atmospherePrefix(W, seedInt) {
+      const cal = SIM.calendar((W && W.t) || 0);
+      const wKind = (W && W.weather && (W.weather.kind || W.weather)) || 'clear';
+      const isNight = cal.hour >= 20 || cal.hour < 5;
+      const isDawn = cal.hour >= 5 && cal.hour < 8;
+      const seasonTh = (SIM.SEASON_TH && SIM.SEASON_TH[cal.season]) || 'วสันตฤดู';
+      if (wKind === 'snow') return isNight ? 'ท่ามกลางหิมะโปรยปรายในคืนเหน็บหนาว ' : 'ใต้ละอองหิมะขาวเหนือยอดเขา ';
+      if (wKind === 'rain') return isNight ? 'ท่ามกลางสายฝนพรำและเสียงฟ้าร้องยามวิกาล ' : 'ใต้สายฝนฉ่ำชื้นที่โปรยอาบอาราม ';
+      if (wKind === 'fog') return 'ท่ามกลางม่านหมอกหนาที่ปกคลุมหุบเขา ';
+      if (isDawn) return 'รับแสงอรุณแรกแห่ง' + seasonTh + ' ';
+      if (isNight) return 'ภายใต้แสงจันทร์เงียบสงัดยามรัตติกาล ';
+      return this.pick(seedInt, [
+        'ณ ยามสายลมปราณพัดผ่านยอดเขา ',
+        'ท่ามกลางบรรยากาศอันคึกคักของ' + seasonTh + ' ',
+        'ภายใต้ท้องฟ้ากระจ่างเหนือขุนเขา '
+      ]);
+    },
+    oddsDramaPhrase(ok, chancePct) {
+      const pct = Number.isFinite(chancePct) ? Math.round(chancePct) : 50;
+      if (ok) {
+        if (pct <= 30) return 'ฝืนชะตาฟ้าสำเร็จราวปาฏิหาริย์ ทั้งที่มีโอกาสเพียงริบหรี่ (' + pct + '%)';
+        if (pct <= 55) return 'กัดฟันฝ่าวิกฤตห้าสิบห้าสิบไปได้อย่างหวุดหวิด (โอกาส ' + pct + '%)';
+        if (pct >= 85) return 'ทะลวงผ่านอย่างมั่นคงไร้ข้อกังขาสมดังที่เตรียมการไว้พร้อมสรรพ (โอกาส ' + pct + '%)';
+        return 'โคจรปราณฝ่าด่านสำเร็จลุล่วง (โอกาส ' + pct + '%)';
+      } else {
+        if (pct >= 78) return 'เกิดเหตุพลิกผันน่าตกตะลึง พลาดท่าล้มเหลวทั้งที่มีโอกาสสูงถึง ' + pct + '%!';
+        if (pct <= 35) return 'ไม่อาจฝืนกำแพงคอขวดอันสูงชันไปได้ตามคาด (โอกาสเพียง ' + pct + '%)';
+        return 'ปราณสะดุดกลางคันจนด่านตบะตีกลับ (โอกาส ' + pct + '%)';
+      }
+    },
+    pathFamily(pathId) {
+      const p = String(pathId || 'XIAN');
+      if (['XIAN', 'CELESTIAL_WEATHER', 'TIDE_VOYAGER', 'SPIRIT_HUSBANDRY'].includes(p)) return 'QI_IMMORTAL';
+      if (['BODY', 'ARENA_GLORY', 'PRIMORDIAL_SHIFTER'].includes(p)) return 'BODY_CRUCIBLE';
+      if (['GOD', 'DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'ANCESTRAL_RITUAL'].includes(p)) return 'DIVINE_FAITH';
+      if (['DEMON', 'VENOM_GU', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'VOID_HERETIC_PACT', 'OCCULT_MAGE'].includes(p)) return 'DEMON_ABYSS';
+      if (['BUDDHA_DHARMA', 'HEART_SOUL', 'KARMA_SAMSARA', 'SOUL_PUPPETRY'].includes(p)) return 'DHARMA_SOUL';
+      if (['INK_LITERATI', 'LORE_ARCHIVIST', 'SONIC_HARMONY', 'STRATEGY_GOVERNANCE', 'MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'WANDERING_DAO'].includes(p)) return 'SCHOLAR_HARMONY';
+      if (['SHADOW_SAMURAI', 'NINPO_SHADOW', 'NINPO_ELEMENTAL'].includes(p)) return 'BUSHIDO_SHINOBI';
+      if (['CRAFT_CREATION', 'MECH_PUPPET', 'ARRAY_TALISMAN', 'SAGE_SUPPORT', 'BEAST_SOVEREIGN'].includes(p)) return 'ARTIFICER_SAGE';
+      return 'COSMIC_LAW';
+    },
+    awakenProse(W, n, pathNameTh) {
+      const seed = ((n && n.n) || 1) + ((W && W.t) || 0);
+      const atm = this.atmospherePrefix(W, seed);
+      const lbl = this.actorLabel(W, n);
+      const fam = this.pathFamily(n && n.cult && n.cult.path);
+      const pName = pathNameTh || 'วิถีเซียน';
+      if (fam === 'BODY_CRUCIBLE') {
+        return atm + 'เสียงกระดูกและเส้นเอ็นของ ' + lbl + ' ลั่นสะท้านดั่งสายธนูตึงตัว! เลือดลมในกายเดือดพล่านหลอมรวมเป็นปราณโลหิต ก้าวพ้นสังขารคนสามัญเข้าสู่วิถี「' + pName + '」สำเร็จ!';
+      }
+      if (fam === 'BUSHIDO_SHINOBI') {
+        return atm + 'แม้ไร้จุดตันเถียนกักปราณเยี่ยงเซียนทั่วไป แต่ ' + lbl + ' ตวัดคมดาบซ้ำแล้วซ้ำเล่าจนจิตสังหารและลมหายใจรวมเป็นหนึ่งเดียว ก้าวเข้าสู่วิถี「' + pName + '」ด้วยเจตจำนงเหล็กกล้าสำเร็จ!';
+      }
+      if (fam === 'DHARMA_SOUL' || fam === 'SCHOLAR_HARMONY') {
+        return atm + 'ทะเลสำนึกของ ' + lbl + ' พลันสว่างกระจ่างดั่งกระจกไร้ฝุ่น ตื่นรู้สัจธรรมเบื้องต้นและเบิกเนตรวิญญาณเข้าสู่วิถี「' + pName + '」สำเร็จ!';
+      }
+      if (fam === 'DEMON_ABYSS') {
+        return atm + 'กลิ่นอายเย็นเยียบแผ่ซ่านออกจากร่างของ ' + lbl + ' ดวงตาฉายประกายอำมหิตหลังกลืนกินปราณหยินเปิดชีพจรต้องห้าม ก้าวเข้าสู่วิถี「' + pName + '」สำเร็จ!';
+      }
+      return atm + lbl + ' ชักนำปราณฟ้าดินสายแรกทะลวงจุดตันเถียนที่ปิดตายมาแต่กำเนิดได้สำเร็จ! ไอขุ่นปุถุชนถูกขับออกทางรูขุมขน ก้าวเท้าเข้าสู่ทำเนียบผู้บำเพ็ญ「' + pName + '」อย่างเต็มภาคภูมิ';
+    },
+    breakthroughProse(W, n, ok, chancePct, stageNameTh, died) {
+      const seed = ((n && n.n) || 1) + ((W && W.t) || 0);
+      const atm = this.atmospherePrefix(W, seed);
+      const lbl = this.actorLabel(W, n);
+      const fam = this.pathFamily(n && n.cult && n.cult.path);
+      const drama = this.oddsDramaPhrase(ok, chancePct);
+      const stg = stageNameTh || 'ขั้นถัดไป';
+      if (ok) {
+        const mapOk = {
+          QI_IMMORTAL: lbl + ' ชักนำกระแสปราณฟ้าดินหมุนวนเก้ารอบ ทะลวงสู่ ' + stg + ' สำเร็จ! กลิ่นอายปราณบริสุทธิ์พวยพุ่งเหนือยอดเขา — ' + drama,
+          BODY_CRUCIBLE: lbl + ' คำรามก้องฟ้า ใช้เลือดเนื้อรับแรงบดขยี้จนกระดูกผลัดเปลี่ยนสีทองคำ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          DIVINE_FAITH: lbl + ' อาบแสงควันธูปและเสียงกังวานจากฟากฟ้า ขยายภาชนะวิญญาณ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          DEMON_ABYSS: lbl + ' กลืนกินไออาฆาตและเสียงกระซิบมืดมิด ฉีกกระชากโซ่ตรวนคอขวด ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          DHARMA_SOUL: lbl + ' สยบมารในใจจนนิ่งสงบดั่งสระบัวไร้ระลอกคลื่น บรรลุญาณทัศนะ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          SCHOLAR_HARMONY: lbl + ' ร้อยเรียงสัจธรรมแห่งโลกหล้าเข้าเป็นหนึ่งเดียว ทะลวงสู่ ' + stg + ' สำเร็จ! ท่ามกลางเสียงกังวานแห่งมรรคา — ' + drama,
+          BUSHIDO_SHINOBI: lbl + ' นั่งขัดสมาธิสงบนิ่งก่อนชักดาบผ่าอากาศสะบั้นความลังเลในใจ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          ARTIFICER_SAGE: lbl + ' ประสานเพลิงปราณและผังค่ายกลเข้ากับชีพจรตนเอง ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          COSMIC_LAW: lbl + ' สัมผัสระลอกคลื่นกฎฟ้าดินใต้ผืนม่านภพ บิดเกลียวปราณ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama
+        };
+        return atm + (mapOk[fam] || mapOk.QI_IMMORTAL);
+      } else {
+        const injSuffix = 'บาดเจ็บ' + (died ? ' ถึงแก่ชีวิต' : '');
+        const mapFail = {
+          QI_IMMORTAL: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') กระแสปราณในตันเถียนปั่นป่วนตีกลับจนกระอักโลหิต ' + injSuffix,
+          BODY_CRUCIBLE: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') เส้นเอ็นและกล้ามเนื้อปริแตกจากแรงอัดปราณโลหิตเกินพิกัด ' + injSuffix,
+          DIVINE_FAITH: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') กายเนื้อรับแรงกดดันเทวานุภาพไม่ไหวจนวิญญาณสั่นคลอน ' + injSuffix,
+          DEMON_ABYSS: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') พิษมารและจิตคลุ้มคลั่งย้อนกัดกินอวัยวะภายใน ' + injSuffix,
+          DHARMA_SOUL: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') ภาพมายาและวิบากในใจปะทุขึ้นรบกวนสมาธิจนทะเลสำนึกร้าวฉาน ' + injSuffix,
+          SCHOLAR_HARMONY: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') คำนวณจังหวะฟ้าดินคลาดเคลื่อนไปเพียงเสี้ยวลมหายใจ ' + injSuffix,
+          BUSHIDO_SHINOBI: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') จังหวะลมหายใจสะดุดกลางคันจนคมเจตจำนงย้อนบาดตนเอง ' + injSuffix,
+          ARTIFICER_SAGE: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') สมดุลธาตุติดขัดตีกลับเข้าสู่เส้นชีพจร ' + injSuffix,
+          COSMIC_LAW: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') แรงบีบอัดของกฎมิติและชีพจรดินสะท้อนกลับบดขยี้ร่าง ' + injSuffix
+        };
+        return atm + (mapFail[fam] || mapFail.QI_IMMORTAL);
+      }
+    },
+    deathEulogy(W, n, why) {
+      const lbl = this.actorLabel(W, n);
+      const wStr = String(why || 'สิ้นอายุขัย');
+      const stg = (n && n.cult && n.cult.stage) || 0;
+      let closeFriends = 0, affSum = 0, affCnt = 0;
+      const hasComp = !!(n && n.companionId);
+      if (W && Array.isArray(W.npcs) && n) {
+        for (let i = 0; i < W.npcs.length; i++) {
+          const o = W.npcs[i];
+          if (!o || o.dead || o.id === n.id || !o.h || !o.h.mind || !o.h.mind.relations) continue;
+          const r = o.h.mind.relations[n.id];
+          if (!r) continue;
+          if (typeof r.a === 'number') {
+            affSum += r.a;
+            affCnt++;
+            if (r.a >= 55) closeFriends++;
+          }
+        }
+      }
+      const avgAff = affCnt > 0 ? (affSum / affCnt) : 0;
+      const condolence = (hasComp || closeFriends >= 3)
+        ? 'ท่ามกลางเสียงร่ำไห้ปิ่มว่าจะขาดใจของคู่บำเพ็ญและศิษย์ผู้ใกล้ชิด'
+        : (affCnt >= 2 && avgAff < -20)
+        ? 'ทิ้งไว้เพียงความเงียบงันและถอนหายใจโล่งอกของผู้คนที่เคยถูกข่มเหง'
+        : 'ท่ามกลางความอาลัยของศิษย์ร่วมสำนัก';
+
+      if (wStr === 'ชราภาพ' || wStr.includes('ชราภาพ') || wStr.includes('อายุขัย')) {
+        if (stg >= 5) {
+          return lbl + ' นั่งขัดสมาธิหลับตาละสังขารอย่างสงบเมื่อสิ้นอายุขัย (' + wStr + ') ทิ้งตำนานแห่งยุคไว้ให้ศิษย์รุ่นหลังก้มกราบ';
+        }
+        return lbl + ' ตะเกียงชีวิตมอดดับลงอย่างสงบตามกฎสังสารวัฏ (' + wStr + ') ' + condolence;
+      }
+      if (wStr.includes('ทะลวง') || wStr.includes('ฟ้าทัณฑ์') || wStr.includes('ตบะแตก')) {
+        return lbl + ' ฝืนชะตาทะลวงด่านแต่ปราณแตกซ่านย้อนทำลายชีพจรจนสิ้นชีพคาแท่นปิดด่าน (' + wStr + ') เสียงสายฟ้าและกลิ่นคาวโลหิตสะเทือนใจผู้คนทั้งหุบเขา';
+      }
+      if (wStr === 'อดอยาก' || wStr.includes('อดอยาก')) {
+        return 'โศกนาฏกรรมยามข้าวยากหมากแพง! ' + lbl + ' สิ้นไร้เรี่ยวแรงล้มตายลงเพราะความอดอยาก (' + wStr + ') สร้างความตื่นตระหนกและสะเทือนขวัญไปทั่วทั้งสำนัก!';
+      }
+      if (wStr.includes('ดวล') || wStr.includes('ประหาร')) {
+        return lbl + ' จบชีวิตลงท่ามกลางคมศาสตราแห่งความบาดหมาง (' + wStr + ') ปิดฉากหนี้แค้นด้วยเลือดเนื้อ — ' + condolence;
+      }
+      if (wStr.includes('ศึก') || wStr.includes('สังหาร') || wStr.includes('ปกป้อง') || wStr.includes('สละชีพ') || wStr.includes('บาดเจ็บ') || wStr.includes('อาการทรุด')) {
+        return lbl + ' ยืนหยัดหลั่งเลือดหยดสุดท้ายจนสิ้นลมหายใจกลางสมรภูมิ (' + wStr + ') เลือดนักรบย้อมผืนดินสำนักไม่ยอมถอยแม้ครึ่งก้าว! — ' + condolence;
+      }
+      return lbl + ' เสียชีวิตลง (' + wStr + ') ' + condolence;
+    }
+  };
+  SIM.proseName = (W, n) => SIM.PROSE.actorLabel(W, n);
 
   g.SIM = SIM;
   if (typeof module === 'object' && module.exports) module.exports = SIM;
