@@ -162,7 +162,7 @@
   /* ---------- Applicant Talent Tier Distribution & CA/PA Privacy ---------- */
   SECT.TALENT_TIERS = {
     COMMON: { id: 'COMMON', nameTh: 'สามัญ', quality: [0.34, 0.50], rootGrades: ['DEFECTIVE', 'MORTAL'], traitCount: [1, 2], isGifted: false, isExceptional: false },
-    STEADY: { id: 'STEADY', nameTh: 'มุ่งมั่น', quality: [0.46, 0.60], rootGrades: ['MORTAL', 'SPIRIT'], traitCount: [2, 3], isGifted: false, isExceptional: false },
+    STEADY: { id: 'STEADY', nameTh: 'รากฐานมั่นคง', quality: [0.46, 0.60], rootGrades: ['MORTAL', 'SPIRIT'], traitCount: [2, 3], isGifted: false, isExceptional: false },
     GIFTED: { id: 'GIFTED', nameTh: 'พรสวรรค์เด่น', quality: [0.58, 0.72], rootGrades: ['SPIRIT', 'TRUE'], traitCount: [2, 3], isGifted: true, isExceptional: false },
     PRODIGY: { id: 'PRODIGY', nameTh: 'อัจฉริยะ', quality: [0.72, 0.85], rootGrades: ['TRUE', 'HEAVENLY'], traitCount: [3, 4], isGifted: true, isExceptional: true },
     HEAVENLY_CHILD: { id: 'HEAVENLY_CHILD', nameTh: 'บุตรสวรรค์', quality: [0.85, 0.96], rootGrades: ['HEAVENLY'], traitCount: [3, 4], isGifted: true, isExceptional: true }
@@ -350,13 +350,13 @@
   SECT.POSTS = {
     martial: { id: 'martial', nameTh: 'ผู้อาวุโสหอยุทธ์', category: 'war', categoryNameTh: 'ทำเนียบยุทธการและการศึก', hall: 'training_ground', minRank: 4, stipendBonus: 25, authority: 75, cliqueId: 'HAWK_MARTIAL', skillsRequired: ['combat', 'teaching'], desc: 'ฝึกศิษย์ จัดประลอง กำหนดหลักสูตรยุทธ์', descTh: 'ฝึกศิษย์ จัดประลอง กำหนดหลักสูตรยุทธ์และชี้แนะเคล็ดวิชา' },
     alchemy: { id: 'alchemy', nameTh: 'ผู้อาวุโสหอโอสถ', category: 'craft', categoryNameTh: 'ทำเนียบเต๋า โอสถ และช่างศาสตรา', hall: 'alchemy', minRank: 4, stipendBonus: 30, authority: 75, cliqueId: 'BENEVOLENT_SAGE', skillsRequired: ['ALCHEMY'], desc: 'กำหนดการปรุงโอสถ ดูแลคุณภาพและสต็อกยา', descTh: 'กำหนดการปรุงโอสถ วิจัยตำรับยาผสานธาตุ ดูแลคุณภาพและสต็อกยา' },
-    forge: { id: 'forge', nameTh: 'ผู้อาวุโสโรงหลอม', category: 'craft', categoryNameTh: 'ทำเนียบเต๋า โอสถ และช่างศาสตรา', hall: 'forge', minRank: 4, stipendBonus: 30, authority: 75, cliqueId: 'PRAGMATIC_COMMERCE', skillsRequired: ['FORGING'], desc: 'ดูแลหลอมอาวุธ เกราะ ยันต์ ค่ายกล', descTh: 'ดูแลหลอมอาวุธ เกราะ ซ่อมแซมศาสตรา และปลุกจิตวิญญาณศาสตรา (Soul Forge)' },
+    forge: { id: 'forge', nameTh: 'ผู้อาวุโสโรงหลอม', category: 'craft', categoryNameTh: 'ทำเนียบเต๋า โอสถ และช่างศาสตรา', hall: 'forge', minRank: 4, stipendBonus: 30, authority: 75, cliqueId: 'PRAGMATIC_COMMERCE', skillsRequired: ['FORGING'], desc: 'ดูแลหลอมอาวุธ เกราะ ยันต์ ค่ายกล', descTh: 'ดูแลหลอมอาวุธ เกราะ ซ่อมแซมศาสตรา และปลุกจิตวิญญาณศาสตรา' },
     scripture: { id: 'scripture', nameTh: 'ผู้อาวุโสหอคัมภีร์', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'scripture', minRank: 4, stipendBonus: 25, authority: 75, cliqueId: 'ORTHODOX_TRADITION', skillsRequired: ['SCRIPTURE', 'comprehension'], desc: 'คุมตำราวิชา วิจัยตำรับใหม่ ควบคุมการเข้าถึงวิชา', descTh: 'คุมตำราวิชา วิจัยตำรับใหม่ ขัดเกลาคัมภีร์มรดก และควบคุมการเข้าถึงวิชา' },
     discipline: { id: 'discipline', nameTh: 'ผู้คุมกฎสำนัก', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'discipline', minRank: 4, stipendBonus: 35, authority: 85, cliqueId: 'ORTHODOX_TRADITION', skillsRequired: ['integrity', 'judgement'], desc: 'บังคับใช้กฎ ลงโทษ สืบสวนทุจริต', descTh: 'บังคับใช้กฎ ลงโทษผู้กระทำผิด สืบสวนทุจริต และชำระข้อร้องเรียนศิษย์' },
     treasury: { id: 'treasury', nameTh: 'ผู้อาวุโสหอคลัง', category: 'economy', categoryNameTh: 'ทำเนียบทรัพยากรและเศรษฐการ', hall: 'treasury', minRank: 4, stipendBonus: 35, authority: 85, cliqueId: 'PRAGMATIC_COMMERCE', skillsRequired: ['administration', 'numeracy'], desc: 'คุมศิลาวิญญาณ จัดสรรเบี้ยหวัด สั่งซื้อวัตถุดิบ', descTh: 'คุมศิลาวิญญาณ จัดสรรเบี้ยหวัด สวัสดิการโอสถ และงบประมาณสำนัก' },
     mission: { id: 'mission', nameTh: 'ผู้อาวุโสฝ่ายกิจการนอกสำนัก', category: 'diplomacy', categoryNameTh: 'ทำเนียบวิเทศสัมพันธ์และข่าวกรอง', hall: 'mission_hall', minRank: 3, stipendBonus: 22, authority: 68, cliqueId: 'HAWK_MARTIAL', skillsRequired: ['planning', 'survival'], desc: 'จัดคณะเดินทางนอกสำนัก ค้าขาย ล่าอสูร หาศิษย์ใหม่', descTh: 'จัดคณะเดินทางนอกสำนัก ค้าขาย ล่าอสูร และประสานเส้นทางสำรวจ' },
     guard: { id: 'guard', nameTh: 'หัวหน้าองครักษ์', category: 'war', categoryNameTh: 'ทำเนียบยุทธการและการศึก', hall: 'gate', minRank: 3, stipendBonus: 18, authority: 60, cliqueId: 'HAWK_MARTIAL', skillsRequired: ['combat', 'perceptiveness'], desc: 'เฝ้าประตู สำนัก ตรวจตรา ป้องกันศัตรู', descTh: 'เฝ้าประตูสำนัก จัดเวรยามตรวจตรา และป้องกันศัตรูบุกรุก' },
-    registry: { id: 'registry', nameTh: 'ผู้อาวุโสหอทะเบียน', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'main_hall', minRank: 4, stipendBonus: 20, authority: 65, cliqueId: 'ORTHODOX_TRADITION', skillsRequired: ['readPeople', 'administration'], desc: 'พิจารณาผู้สมัครเข้าสำนัก จัดทำทะเบียนศิษย์ แทนเจ้าสำนัก', descTh: 'พิจารณาผู้สมัครเข้าสำนักด้วยสายตาประเมิน CA และจัดทำทะเบียนศิษย์แทนเจ้าสำนัก' },
+    registry: { id: 'registry', nameTh: 'ผู้อาวุโสหอทะเบียน', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'main_hall', minRank: 4, stipendBonus: 20, authority: 65, cliqueId: 'ORTHODOX_TRADITION', skillsRequired: ['readPeople', 'administration'], desc: 'พิจารณาผู้สมัครเข้าสำนัก จัดทำทะเบียนศิษย์ แทนเจ้าสำนัก', descTh: 'พิเคราะห์หน่วยก้านผู้สมัครเข้าสำนักและจัดทำทะเบียนศิษย์แทนเจ้าสำนัก' },
     healer: { id: 'healer', nameTh: 'หมอหลวงสำนัก', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'infirmary', minRank: 3, stipendBonus: 20, authority: 65, cliqueId: 'BENEVOLENT_SAGE', skillsRequired: ['MEDICINE', 'empathy'], desc: 'รักษาผู้บาดเจ็บ ดูแลสุขภาพทั้งสำนัก', descTh: 'รักษาผู้บาดเจ็บ ดูแลสุขภาพทั้งสำนัก ชำระพิษโอสถและคลายปมมารในใจ' },
     disciples: { id: 'disciples', nameTh: 'ศิษย์สืบทอด', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'main_hall', minRank: 3, stipendBonus: 25, authority: 80, cliqueId: 'ORTHODOX_TRADITION', skillsRequired: ['combat', 'leadership'], desc: 'ศิษย์เอกผู้สืบทอดตำแหน่งเจ้าสำนัก ได้รับการเสนอชื่อและโหวตเลือกจากเจ้าสำนักและเหล่าผู้อาวุโส', descTh: 'ศิษย์เอกผู้สืบทอดตำแหน่งเจ้าสำนัก ผ่านการเลือกตั้งและโหวตรับรองจากสภา' }
   };
@@ -371,14 +371,14 @@
     provision: { id: 'provision', nameTh: 'ผู้อาวุโสฝ่ายเสบียง', category: 'economy', categoryNameTh: 'ทำเนียบทรัพยากรและเศรษฐการ', hall: 'canteen', minRank: 3, stipendBonus: 15, authority: 55, cliqueId: 'BENEVOLENT_SAGE', skillsRequired: ['cooking', 'farming'], desc: 'ตรวจอาหารสำรอง วางแผนเพาะปลูกและประกอบอาหาร', descTh: 'ตรวจอาหารสำรอง วางแผนเพาะปลูกและปรุงอาหารปราณแจกจ่าย' },
     herbal: { id: 'herbal', nameTh: 'ผู้อาวุโสฝ่ายสมุนไพร', category: 'craft', categoryNameTh: 'ทำเนียบเต๋า โอสถ และช่างศาสตรา', hall: 'herb_garden', minRank: 2, stipendBonus: 15, authority: 50, cliqueId: 'BENEVOLENT_SAGE', skillsRequired: ['herbalism'], desc: 'ประเมินสมุนไพรที่ขาดและประสานการปลูกหรือเก็บ', descTh: 'ประเมินสมุนไพรที่ขาด ประสานการเพาะปลูกและเก็บเกี่ยวสมุนไพรวิญญาณ' },
     wildwarden: { id: 'wildwarden', nameTh: 'ผู้อาวุโสฝ่ายลาดตระเวนอสูร', category: 'beasts', categoryNameTh: 'ทำเนียบสัตว์วิญญาณและนิเวศ', hall: 'gate', minRank: 3, stipendBonus: 18, authority: 60, cliqueId: 'HAWK_MARTIAL', skillsRequired: ['survival', 'combat'], desc: 'ตรวจพื้นที่อสูร แจ้งความเสี่ยงและความพร้อมของผู้ล่า', descTh: 'ตรวจพื้นที่อสูรนอกสำนัก ลาดตระเวนรังอสูร และแจ้งเตือนภัย' },
-    steward: { id: 'steward', nameTh: 'ผู้อาวุโสฝ่ายอาคารสถานที่', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'main_hall', minRank: 3, stipendBonus: 18, authority: 60, cliqueId: 'PRAGMATIC_COMMERCE', skillsRequired: ['construction', 'planning'], desc: 'ตรวจสถานีแออัดและเสนอขยายโดยเจ้าสำนักอนุมัติ', descTh: 'ตรวจสถานีแออัด เสนอการบูรณะและขยายสิ่งปลูกสร้างในสำนัก' },
+    steward: { id: 'steward', nameTh: 'ผู้อาวุโสฝ่ายอาคารสถานที่', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'main_hall', minRank: 3, stipendBonus: 18, authority: 60, cliqueId: 'PRAGMATIC_COMMERCE', skillsRequired: ['construction', 'planning'], desc: 'ตรวจสถานีแออัดและเสนอขยายโดยเจ้าสำนักอนุมัติ', descTh: 'ตรวจตราหอที่คับคั่ง เสนอการบูรณะและขยายสิ่งปลูกสร้างในสำนัก' },
     envoy: { id: 'envoy', nameTh: 'ทูตยุทธภพและกิจการบริวาร', category: 'diplomacy', categoryNameTh: 'ทำเนียบวิเทศสัมพันธ์และข่าวกรอง', hall: 'main_hall', minRank: 4, stipendBonus: 30, authority: 80, cliqueId: 'PRAGMATIC_COMMERCE', bureauId: 'diplomacy', skillsRequired: ['diplomacy', 'charisma'], desc: 'เจรจาสนธิสัญญา กำหนดนโยบายบรรณาการสำนักบริวาร และประสานสมาพันธ์ยุทธภพ', descTh: 'เจรจาสนธิสัญญา 19 สำนัก กำหนดนโยบายบรรณาการสำนักบริวาร และประสานสมาพันธ์ยุทธภพ' },
     spymaster: { id: 'spymaster', nameTh: 'เจ้าหอข่าวกรองและเบาะแส', category: 'diplomacy', categoryNameTh: 'ทำเนียบวิเทศสัมพันธ์และข่าวกรอง', hall: 'mission_hall', minRank: 4, stipendBonus: 28, authority: 70, cliqueId: 'HAWK_MARTIAL', bureauId: 'intelligence', skillsRequired: ['stealth', 'perceptiveness'], desc: 'สืบข่าวลือโรงเตี๊ยม ตรวจจับวาสนาฟ้าดิน และสอดส่องคลื่นใต้น้ำในสำนัก', descTh: 'สืบข่าวลือโรงเตี๊ยม ตรวจจับวาสนาฟ้าดิน และสอดส่องคลื่นใต้น้ำในสำนัก' },
     beastmaster: { id: 'beastmaster', nameTh: 'เจ้าอุทยานอสูรและพาหนะ', category: 'beasts', categoryNameTh: 'ทำเนียบสัตว์วิญญาณและนิเวศ', hall: 'gate', minRank: 4, stipendBonus: 25, authority: 70, cliqueId: 'HAWK_MARTIAL', bureauId: 'beastcare', skillsRequired: ['BEAST_TAMING'], desc: 'ดูแลโรงเพาะเลี้ยงสัตว์วิญญาณ ฟื้นฟูพาหนะ และจัดทัพอสูรพิทักษ์ด่าน', descTh: 'ดูแลโรงเพาะเลี้ยงสัตว์วิญญาณ ให้อาหาร ฟื้นฟูพาหนะ และจัดทัพอสูรพิทักษ์ด่าน' },
     arraymaster: { id: 'arraymaster', nameTh: 'ปรมาจารย์ค่ายกลและปราการ', category: 'craft', categoryNameTh: 'ทำเนียบเต๋า โอสถ และช่างศาสตรา', hall: 'forge', minRank: 4, stipendBonus: 28, authority: 75, cliqueId: 'ORTHODOX_TRADITION', bureauId: 'formation', skillsRequired: ['ARRAY', 'TALISMAN'], desc: 'บำรุงรักษาค่ายกลพิทักษ์สำนัก เสริมปราการจุดยุทธศาสตร์ และคุมม่านพลังป้องกัน', descTh: 'บำรุงรักษาค่ายกลพิทักษ์สำนัก ปรับจูนชีพจรฮวงจุ้ยอาคาร และคุมม่านพลังป้องกัน' },
     censor: { id: 'censor', nameTh: 'ผู้ตรวจการสภาและคลื่นใต้น้ำ', category: 'governance', categoryNameTh: 'ทำเนียบจารีต กฎระเบียบ และการปกครองใน', hall: 'discipline', minRank: 4, stipendBonus: 30, authority: 80, cliqueId: 'ORTHODOX_TRADITION', skillsRequired: ['integrity', 'readPeople'], desc: 'ถ่วงดุลก๊กการเมืองภายในสำนัก ตรวจสอบการใช้อำนาจ และระงับคลื่นใต้น้ำ', descTh: 'ถ่วงดุลก๊กการเมืองภายในสำนัก ตรวจสอบการใช้อำนาจขุนนาง และระงับคลื่นใต้น้ำ' },
     quartermaster: { id: 'quartermaster', nameTh: 'แม่ทัพยุทธปัจจัยและคาราวาน', category: 'economy', categoryNameTh: 'ทำเนียบทรัพยากรและเศรษฐการ', hall: 'treasury', minRank: 4, stipendBonus: 25, authority: 70, cliqueId: 'PRAGMATIC_COMMERCE', skillsRequired: ['trading', 'administration'], desc: 'จัดสรรเสบียงทัพ ควบคุมเส้นทางคาราวานการค้าเสรี และดูแลคลังยุทธปัจจัย', descTh: 'จัดสรรเสบียงทัพ ควบคุมเส้นทางคาราวานการค้าเสรี และดูแลคลังยุทธปัจจัย' },
-    vanguard: { id: 'vanguard', nameTh: 'ผู้อาวุโสกองหน้าพิทักษ์ด่าน', category: 'war', categoryNameTh: 'ทำเนียบยุทธการและการศึก', hall: 'gate', minRank: 3, stipendBonus: 20, authority: 65, cliqueId: 'HAWK_MARTIAL', skillsRequired: ['combat', 'toughness'], desc: 'สกัดกั้นแนวหน้า บัญชาการ Zone of Control และเข้าคุ้มกันศิษย์แถวหลัง', descTh: 'สกัดกั้นแนวหน้า บัญชาการ Zone of Control และเข้าคุ้มกันศิษย์แถวหลัง' },
+    vanguard: { id: 'vanguard', nameTh: 'ผู้อาวุโสกองหน้าพิทักษ์ด่าน', category: 'war', categoryNameTh: 'ทำเนียบยุทธการและการศึก', hall: 'gate', minRank: 3, stipendBonus: 20, authority: 65, cliqueId: 'HAWK_MARTIAL', skillsRequired: ['combat', 'toughness'], desc: 'สกัดกั้นแนวหน้า ตรึงเขตคุกคามสกัดทัพศัตรู และคุ้มกันศิษย์แนวหลัง', descTh: 'สกัดกั้นแนวหน้า บัญชาการ Zone of Control และเข้าคุ้มกันศิษย์แถวหลัง' },
     warden: { id: 'warden', nameTh: 'ผู้คุมทัณฑ์และเชลยศึก', category: 'diplomacy', categoryNameTh: 'ทำเนียบวิเทศสัมพันธ์และข่าวกรอง', hall: 'discipline', minRank: 3, stipendBonus: 18, authority: 65, cliqueId: 'ORTHODOX_TRADITION', skillsRequired: ['intimidation', 'judgement'], desc: 'ควบคุมคุกใต้ดิน เรียกค่าไถ่เชลยศึก เค้นคัมภีร์ยุทธ์ และกล่อมแปรพักตร์', descTh: 'ควบคุมคุกใต้ดิน เรียกค่าไถ่เชลยศึก เค้นคัมภีร์ยุทธ์ และกล่อมเชลยแปรพักตร์' },
     marketmaster: { id: 'marketmaster', nameTh: 'นายวาณิชย์ตลาดภายนอก', category: 'economy', categoryNameTh: 'ทำเนียบทรัพยากรและเศรษฐการ', hall: 'mission_hall', minRank: 2, stipendBonus: 15, authority: 50, cliqueId: 'PRAGMATIC_COMMERCE', skillsRequired: ['trading'], desc: 'ดูแลการค้าตลาดภายนอก แลกเปลี่ยนวัตถุดิบและตั้งราคาที่เป็นธรรม', descTh: 'ดูแลการค้าตลาดภายนอก แลกเปลี่ยนวัตถุดิบ ระบายอุปกรณ์ล้นคลัง และเจรจาพ่อค้าเร่' }
   });
@@ -533,7 +533,7 @@
     },
     artisan: {
       id: 'artisan',
-      nameTh: 'สำนักรังสรรค์โอสถและศาสตราเทวะ',
+      nameTh: 'สำนักเตาโอสถและทั่งศาสตรา',
       titleTh: 'วิถีรังสรรค์โอสถและศาสตราเทวะ',
       descTh: 'สำนักปรมาจารย์เตาโอสถและทั่งตีเหล็กสวรรค์ ใช้การปรุงโอสถ การตีศาสตรา และการจารึกอักขระเป็นหัวใจของการบำเพ็ญตบะ',
       path: 'CRAFT_CREATION',
@@ -1573,9 +1573,9 @@
   };
   /* ---------- Grand Sect Martial Assembly & Peak Trial Arena (v2.0.5 Pillar C) ---------- */
   SECT.ASSEMBLY_BRACKETS = {
-    JUNIOR: { id: 'JUNIOR', nameTh: 'รุ่นเยาว์·หลอมปราณ (T1–T2)', minStage: 1, maxStage: 2, cpReward: 50, runnerUpCp: 22, stonePrize: 60, minGearTier: 3, maxGearTier: 3, fameReward: 2 },
-    CORE: { id: 'CORE', nameTh: 'รุ่นแกนหลัก·แก่นทองคำ (T3–T4)', minStage: 3, maxStage: 4, cpReward: 100, runnerUpCp: 45, stonePrize: 120, minGearTier: 3, maxGearTier: 5, fameReward: 4 },
-    ELDER_PEAK: { id: 'ELDER_PEAK', nameTh: 'รุ่นผู้อาวุโส·ยอดเขายุทธ์ (T5–T7)', minStage: 5, maxStage: 7, cpReward: 180, runnerUpCp: 85, stonePrize: 220, minGearTier: 5, maxGearTier: 6, fameReward: 6 }
+    JUNIOR: { id: 'JUNIOR', nameTh: 'รุ่นเยาว์·ขอบเขตหลอมปราณ', minStage: 1, maxStage: 2, cpReward: 50, runnerUpCp: 22, stonePrize: 60, minGearTier: 3, maxGearTier: 3, fameReward: 2 },
+    CORE: { id: 'CORE', nameTh: 'รุ่นแกนหลัก·ขอบเขตแก่นทองคำ', minStage: 3, maxStage: 4, cpReward: 100, runnerUpCp: 45, stonePrize: 120, minGearTier: 3, maxGearTier: 5, fameReward: 4 },
+    ELDER_PEAK: { id: 'ELDER_PEAK', nameTh: 'รุ่นผู้อาวุโส·ขอบเขตจอมยุทธ์ยอดเขา', minStage: 5, maxStage: 7, cpReward: 180, runnerUpCp: 85, stonePrize: 220, minGearTier: 5, maxGearTier: 6, fameReward: 6 }
   };
   SECT.ASSEMBLY_BRACKET_IDS = ['JUNIOR', 'CORE', 'ELDER_PEAK'];
 
@@ -2183,7 +2183,7 @@
           storyThreadTitleTh: 'การขยาย' + bestBlockedByTreasury.b.nameTh + 'และงบสำรองคลัง',
           originCauseTh: 'พบความต้องการใช้งานสูง (' + bestBlockedByTreasury.reason + ') แต่ต้องรักษากันชนศิลาสำรองขั้นต่ำ ' + cashReserve + ' ศิลา',
           consequenceTh: 'ชะลอโครงการขยาย ' + bestBlockedByTreasury.b.nameTh + ' (ค่าก่อสร้าง ' + bestBlockedByTreasury.cost + ' ศิลา) เพื่อป้องกันวิกฤตขาดสภาพคล่อง',
-          followUpTh: 'สะสมศิลาวิญญาณให้ถึง ' + bestBlockedByTreasury.needed + ' ศิลา (ขาดอีก ' + Math.max(0, bestBlockedByTreasury.needed - curSt) + ' ศิลา) เพื่อให้ขยายอาคารได้ปลอดภัย',
+          followUpTh: 'หอคลังจะรอให้ศิลาวิญญาณสะสมถึง ' + bestBlockedByTreasury.needed + ' ศิลา (ขาดอีก ' + Math.max(0, bestBlockedByTreasury.needed - curSt) + ' ศิลา) ก่อนอนุมัติขยายอาคารรอบหน้าโดยอัตโนมัติ',
           factDeltas: { stonesNow: curSt, cashReserve, buildCost: bestBlockedByTreasury.cost, neededTotal: bestBlockedByTreasury.needed },
           promoteChronicle: true
         });
@@ -2209,7 +2209,7 @@
       storyThreadTitleTh: 'การขยาย' + best.b.nameTh + 'และงบสำรองคลัง',
       originCauseTh: 'พบความแออัดต่อเนื่อง (' + best.reason + ') และศิลาคงคลังสูงกว่าเกณฑ์สำรองปลอดภัย',
       consequenceTh: 'เริ่มก่อสร้างขยาย ' + best.b.nameTh + ' สู่ระดับ ' + (best.b.level + 1) + ' (จ่าย ' + best.cost + ' ศิลา)',
-      followUpTh: 'รอการก่อสร้างแล้วเสร็จเพื่อเพิ่มสถานีรองรับศิษย์',
+      followUpTh: 'พ่อบ้านสำนักและคณะช่างกำลังดำเนินการก่อสร้างเพื่อเพิ่มพื้นที่รองรับศิษย์',
       factDeltas: { buildCost: best.cost, targetLevel: best.b.level + 1 },
       promoteChronicle: true
     });
@@ -2263,12 +2263,12 @@
   };
   SECT.exposeEmbezzle = (W, tre, by) => {
     const amt = tre.embezzled; tre.embezzled = 0;
-    W.log('scandal', 'ตรวจพบ ' + tre.h.name.given + ' ยักยอกคลังรวม ' + Math.round(amt) + ' ศิลา!', [tre.id].concat(by ? [by.id] : []), {
+    W.log('scandal', 'สะเทือนเลือนลั่นไปทั้งโถงสภา! ตรวจพบ ' + tre.h.name.given + ' ยักยอกคลังรวม ' + Math.round(amt) + ' ศิลา! หอวินัยบุกยึดทรัพย์คืนคลังได้ ' + Math.round(amt * 0.6) + ' ก้อน พร้อมถอดถอนตำแหน่งทันที!', [tre.id].concat(by ? [by.id] : []), {
       storyThreadId: 'thread:governance:audit_' + tre.id,
       storyThreadTitleTh: 'คดีตรวจสอบคลังสำนักของ ' + HC.fullName(tre),
       originCauseTh: 'หอวินัยและเจ้าสำนักตรวจสอบบัญชีคลังหลังพบพิรุธสะสม',
       consequenceTh: 'ยึดศิลาคืนเข้าคลัง ' + Math.round(amt * 0.6) + ' ก้อน และลงโทษถอดถอน/คุมขังผู้กระทำผิด',
-      followUpTh: 'แต่งตั้งผู้ดูแลคลังคนใหม่ที่มีความซื่อสัตย์ (Integrity) สูงขึ้น',
+      followUpTh: 'เจ้าสำนักและโถงสภาจะคัดเลือกผู้ดูแลคลังคนใหม่ที่มีความซื่อสัตย์สุจริตขึ้นมาดำรงตำแหน่งแทนโดยอัตโนมัติ',
       factDeltas: { embezzledAmt: Math.round(amt), recoveredAmt: Math.round(amt * 0.6) },
       severity: 'CRITICAL',
       promoteChronicle: true
@@ -2360,7 +2360,7 @@
     if (!W || !W.sect) return null;
     if (!W.sect.specialistFacilities) {
       W.sect.specialistFacilities = {
-        mech_workshop: { level: 1, maxLevel: 3, nameTh: 'โรงประดิษฐ์กลจักรและหุ่นเชิด', costBase: 800, descTh: 'เร่งการฟื้นฟู Construct Readiness ของหุ่นเชิด และสร้างหุ่นพิทักษ์สำนัก' },
+        mech_workshop: { level: 1, maxLevel: 3, nameTh: 'โรงประดิษฐ์กลจักรและหุ่นเชิด', costBase: 800, descTh: 'เร่งการซ่อมบำรุงความพร้อมรบของหุ่นเชิดกลไก และสร้างหุ่นพิทักษ์สำนัก' },
         beast_menagerie: { level: 1, maxLevel: 3, nameTh: 'โรงเพาะเลี้ยงสัตว์วิญญาณ', costBase: 800, descTh: 'เพิ่มอัตราความสำเร็จในการผสมพันธุ์สัตว์วิญญาณ และดูแลอาหาร/ความเหนื่อยล้าอสูรสำนัก' },
         harmonic_pavilion: { level: 1, maxLevel: 3, nameTh: 'หอคีตเวทย์และค่ายกลหนุนนำ', costBase: 800, descTh: 'เพิ่มประสิทธิภาพการรักษาและระยะเวลาบัฟของสายซัพพอร์ต +15% ต่อระดับ' }
       };
@@ -9834,7 +9834,7 @@
     },
     STRICT_ANTI_CORRUPTION_AUDIT: {
       id: 'STRICT_ANTI_CORRUPTION_AUDIT',
-      nameTh: 'ญัตติประกาศิตหอวินัยตรวจสอบความโปร่งใส 22 ตำแหน่ง',
+      nameTh: 'ญัตติประกาศิตหอวินัยตรวจสอบความโปร่งใส 25 ตำแหน่ง',
       icon: '⚖️',
       favoredCliques: ['ORTHODOX_TRADITION', 'HAWK_MARTIAL'],
       opposedCliques: ['PRAGMATIC_COMMERCE'],
@@ -10303,7 +10303,7 @@
       storyTh: summaryTh,
       originCauseTh: 'อุปนิสัยจริงของผู้ถือตำแหน่ง ' + postNameTh + ' (ความซื่อตรง ' + Math.round(integ) + ' · ความติดยึดทรัพย์สิน ' + Math.round(greed) + ' · สังกัด' + cqDef.nameTh + ')',
       actorChainTh: 'ผู้ตรวจสอบ: ' + (auditor ? HC.fullName(auditor) : 'หอวินัย') + ' ➔ ผู้รับการตรวจ: ' + HC.fullName(officer) + ' (' + postNameTh + ')',
-      systemImpactTh: 'เชื่อมโยง 22 ตำแหน่งบริหาร (W.sect.posts) ➔ นิสัย HC ➔ ก๊กการเมือง 4 ขั้ว ➔ คลังสำนักและคลื่นใต้น้ำ',
+      systemImpactTh: 'เชื่อมโยง 25 ตำแหน่งบริหาร (W.sect.posts) ➔ นิสัย HC ➔ ก๊กการเมือง 4 ขั้ว ➔ คลังสำนักและคลื่นใต้น้ำ',
       consequenceTh,
       quiet: opts.quiet
     }) : null;

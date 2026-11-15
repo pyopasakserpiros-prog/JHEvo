@@ -265,3 +265,6 @@ Invalid/aborted import restores startup only when no drawer remains open; an ope
 UI.playerActionKind/isPlayerActionAllowed อนุญาต observation 114 action และ state edits 29 action เฉพาะ edit; ปิด unknown/default และคำสั่ง NPC เดิม 157 action ทั้ง handler และ HTML filter ห้ามนำตัวอย่างปุ่มเก่าใน skill กลับมาใช้ เครื่องมือเสก/แก้สถานะเป็นข้อยกเว้นตาม AGENTS ไม่ใช่สิทธิ์สั่ง NPC
 
 รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
+- Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).

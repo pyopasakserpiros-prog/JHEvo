@@ -101,7 +101,7 @@
           storyThreadTitleTh: bnThreadTitle,
           originCauseTh: 'ประเมินโอกาสสำเร็จปัจจุบัน ' + p0Pct + '% เทียบเกณฑ์ความมั่นใจ ' + tgtPct + '% (' + why + ')',
           consequenceTh: 'เข้าสู่ขั้นตอนเตรียมทะลวงด่าน',
-          followUpTh: 'ติดตามผลการทะลวงด่านและเตรียมโอสถฟื้นฟูหากเกิดตบะย้อนกลับ',
+          followUpTh: 'เจ้าตัวเตรียมเข้าปิดด่านท้าทายคอขวดและมีหอหมอยาคอยเฝ้าระวังหากเกิดตบะย้อนกลับ',
           factDeltas: { chancePct: p0Pct, targetPct: tgtPct, waitedDays: waited },
           promoteChronicle: true
         });
@@ -111,7 +111,7 @@
           storyThreadTitleTh: bnThreadTitle,
           originCauseTh: 'โอกาสทะลวงด่านปัจจุบัน (' + p0Pct + '%) ยังต่ำกว่าเกณฑ์ที่ยอมรับได้ (' + tgtPct + '%) — ' + why,
           consequenceTh: 'ชะลอการทะลวงด่านเพื่อรอโอสถหรือสะสมความเข้าใจเต๋าเพิ่ม',
-          followUpTh: 'จัดหาโอสถทะลวงด่านประจำขั้นหรือสมบัติหนุนตบะเข้าคลังสำนัก',
+          followUpTh: 'เจ้าตัวชะลอการฝ่าด่านเพื่อรอรับการจัดสรรโอสถทะลวงด่านและสมบัติหนุนตบะจากคลังสำนัก',
           factDeltas: { chancePct: p0Pct, targetPct: tgtPct, obtainableHelp: !!est.obtainable },
           promoteChronicle: true
         });
@@ -162,7 +162,7 @@
         storyThreadTitleTh: 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(w),
         originCauseTh: 'จัดสรรโอสถทะลวงด่านจากคลังให้ศิษย์ที่ติดคอขวดตามคะแนนคุณูปการ',
         consequenceTh: w.h.name.given + ' ได้รับ ' + ECO.name(key) + ' ×1 (หักคุณูปการ 4 แต้ม)',
-        followUpTh: 'พร้อมเข้าสู่การทะลวงด่านด้วยโอกาสสำเร็จที่สูงขึ้น',
+        followUpTh: 'เมื่อได้รับโอสถหนุนนำแล้ว เจ้าตัวพร้อมเข้าปิดด่านทะลวงขั้นด้วยความมั่นใจที่สูงขึ้น',
         promoteChronicle: true
       });
     });

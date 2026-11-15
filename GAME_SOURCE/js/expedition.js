@@ -1325,7 +1325,7 @@
       danger: 2,
       center: { x: 80, y: 48 },
       color: '#9ec459',
-      descTh: 'ทุ่งราบเมฆา ชุมทางการค้าเจียงหนาน แดนพฤกษากำเนิดชีพ และหุบเขาสมุนไพรหมื่นปี'
+      descTh: 'ทุ่งราบเมฆา ชุมทางการค้าหุบเขาสองแคว แดนพฤกษากำเนิดชีพ และหุบเขาสมุนไพรหมื่นปี'
     },
     WESTERN_BADLANDS: {
       id: 'WESTERN_BADLANDS',
@@ -1415,7 +1415,7 @@
     },
     TOLL_JIANGNAN_CROSSWAY: {
       id: 'TOLL_JIANGNAN_CROSSWAY',
-      nameTh: 'ด่านเก็บค่าผ่านทางเจียงหนาน',
+      nameTh: 'ด่านเก็บค่าผ่านทางลำน้ำหยกภาคกลาง',
       category: 'TRADE_TOLL',
       categoryTh: 'ด่านภาษีเส้นทางการค้า',
       icon: '🏮',
@@ -1429,7 +1429,7 @@
       mats: ['MAT_HERB_JADE_LOTUS_2'],
       garrisonPowerBase: 360,
       defaultOwnerFactionId: 'FAC_LONGMEN',
-      descTh: 'ด่านชุมทางการค้าตะวันออก เก็บค่าผ่านทางจากขบวนคาราวานและพ่อค้าเร่ทั่วเจียงหนาน'
+      descTh: 'ด่านชุมทางการค้าตะวันออก เก็บค่าผ่านทางจากขบวนคาราวานและพ่อค้าเร่ทั่วลุ่มน้ำหยกภาคกลาง'
     },
     TOLL_SOUTHERN_WATERWAY: {
       id: 'TOLL_SOUTHERN_WATERWAY',
@@ -2293,13 +2293,13 @@
       baseDays: 2,
       ownerSectId: 'NEUTRAL',
       ownerNameTh: 'แดนทดสอบบรรพกาล',
-      descTh: 'เจดีย์ 12 ชั้นทดสอบ 12 มรรคา ปลดล็อกชุดสัจธรรมและเคล็ดวิชาประจำสาย'
+      descTh: 'มหาเจดีย์สี่สิบสามชั้นพิสูจน์สัจธรรมแห่งมรรคา ปลดล็อกชุดสัจธรรมและเคล็ดวิชาประจำสาย'
     };
 
     nodes.NODE_JIANGNAN_CROSSWAY = {
       id: 'NODE_JIANGNAN_CROSSWAY',
       kind: 'TRADE_HUB',
-      nameTh: 'ชุมทางการค้าเจียงหนาน',
+      nameTh: 'ชุมทางการค้าหุบเขาสองแคว',
       icon: '🏮',
       macroRegion: 'EASTERN_PLAINS',
       terrain: 'plains',
@@ -2307,7 +2307,7 @@
       x: 84, y: 56,
       baseDays: 3,
       ownerSectId: 'NEUTRAL',
-      ownerNameTh: 'สมาคมการค้าเจียงหนาน',
+      ownerNameTh: 'สมาคมการค้าหุบเขาสองแคว',
       descTh: 'ศูนย์กลางแลกเปลี่ยนสินค้า คาราวานโอสถ และข่าวสารยุทธภพแดนตะวันออก'
     };
 
@@ -4105,123 +4105,124 @@
   X.CHRONICLE_REPORT_FORMATS = Object.freeze({
     PIGEON_DISPATCH: {
       id: 'PIGEON_DISPATCH',
-      nameTh: '🕊️ สารลับพิราบสื่อสารหอข่าวกรอง',
+      nameTh: '🕊️ สารพิราบสื่อวิญญาณด่วนพิเศษ',
       shortTh: '🕊️ สารลับพิราบ',
-      toneTh: 'กระชับ ฉับไว เน้นพิกัดแคว้น แหล่งข่าว และความเร่งด่วน',
-      leadPrefixTh: '【สารด่วนพิราบสื่อสาร】',
+      toneTh: 'กระชับ ฉับไว ดั่งกระบอกสารผูกขาพิราบปราณจากหน่วยลาดตระเวนหรือกองคาราวานแดนไกล',
+      leadPrefixTh: '【สารด่วนพิราบสื่อวิญญาณ】',
       impactLabelTh: 'ผลต่อสถานการณ์ยุทธภพ',
-      followUpDefaultTh: 'ติดตามความเคลื่อนไหวในแคว้นที่เกี่ยวข้องหรือส่งสายสืบตรวจสอบเพิ่มเติม',
-      descTh: 'รายงานข่าวกรองด่วนจากเครือข่ายพิราบสื่อสารและผู้ตรวจการยุทธภพ'
+      followUpDefaultTh: 'เครือข่ายสายสืบของหอข่าวกรองกำลังเฝ้าจับตาความเคลื่อนไหวในแคว้นที่เกี่ยวข้องอย่างใกล้ชิด',
+      descTh: 'รายงานข่าวกรองด่วนจากเครือข่ายพิราบสื่อวิญญาณและผู้ตรวจการยุทธภพ'
     },
     WAR_PAVILION_RECORD: {
       id: 'WAR_PAVILION_RECORD',
-      nameTh: '⚔️ บันทึกศึกหอพิชัยยุทธ์',
+      nameTh: '⚔️ จดหมายเหตุศึกหอยุทธ์โลหิต',
       shortTh: '⚔️ บันทึกศึก',
-      toneTh: 'หนักแน่น แม่นยำ เน้นผลแพ้ชนะ จุดเปลี่ยนยุทธวิธี ผู้โดดเด่น และความสูญเสียจริง',
-      leadPrefixTh: '【ใบบอกศึกหอพิชัยยุทธ์】',
+      toneTh: 'น้ำเสียงขุนพลบันทึกการรบ เน้นสภาพสมรภูมิ จังหวะพลิกผันจริง ผู้กอบกู้ศึก และความสูญเสีย',
+      leadPrefixTh: '【จดหมายเหตุศึกหอยุทธ์โลหิต】',
       impactLabelTh: 'ผลลัพธ์ทางยุทธวิธีและกำลังพล',
-      followUpDefaultTh: 'ตรวจอาการบาดเจ็บของศิษย์ที่หอหมอยา ซ่อมบำรุงศาสตรา และทบทวนเวรยามหน้าด่าน',
-      descTh: 'บันทึกรายงานการรบ กำลังพล กระบวนท่า และผลแพ้ชนะจากหอพิชัยยุทธ์'
+      followUpDefaultTh: 'ศิษย์ที่บาดเจ็บกำลังทยอยเข้าหอหมอยา ส่วนโรงหลอมและเวรยามหน้าด่านกำลังฟื้นฟูแนวป้องกันตามลำดับ',
+      descTh: 'บันทึกรายงานการรบ กำลังพล กระบวนท่า และผลแพ้ชนะจากหอยุทธ์โลหิต'
     },
     DISCIPLINE_EDICT: {
       id: 'DISCIPLINE_EDICT',
-      nameTh: '⚖️ ประกาศิตหอวินัยและสารคำขาด',
-      shortTh: '⚖️ ประกาศิตหอวินัย',
-      toneTh: 'เด็ดขาด เป็นทางการ ระบุข้อกล่าวหา หลักฐาน ผู้ตัดสิน และบทลงโทษหรือคำขาด',
-      leadPrefixTh: '【ประกาศิตหอวินัย】',
+      nameTh: '⛓️ หมายอาญาและคำพิพากษาหอวินัย',
+      shortTh: '⛓️ หมายอาญาหอวินัย',
+      toneTh: 'เฉียบขาด เที่ยงธรรมดั่งไม้บรรทัดเหล็ก บันทึกคดีทุจริต การฝ่าฝืนกฎ และโทษทัณฑ์ที่ได้รับ',
+      leadPrefixTh: '【หมายอาญาและคำพิพากษาหอวินัย】',
       impactLabelTh: 'ผลบังคับใช้ทางวินัยและการทูต',
-      followUpDefaultTh: 'ตรวจสอบความพึงพอใจของศิษย์ในสำนักหรือท่าทีของสำนักคู่กรณี',
-      descTh: 'หมายจับ สารทวงตัวผู้ลี้ภัย มติสภา และการตัดสินโทษระหว่างสำนัก'
+      followUpDefaultTh: 'ผู้คุมกฎหอวินัยและโถงสภากำลังบังคับใช้บทลงโทษและเฝ้าดูคลื่นใต้น้ำภายในสำนักต่อเนื่อง',
+      descTh: 'หมายจับ สารทวงตัวผู้ลี้ภัย มติสภา และการตัดสินโทษโดยหอวินัย'
     },
     ANCESTRAL_INSCRIPTION: {
       id: 'ANCESTRAL_INSCRIPTION',
-      nameTh: '🕯️ จารึกศิลาหอบรรพชน',
+      nameTh: '🕯️ ศิลาจารึกหอบรรพชนและทำเนียบเซียน',
       shortTh: '🕯️ จารึกบรรพชน',
-      toneTh: 'ขรึมขลัง สง่างาม บันทึกการผลัดแผ่นดิน การสละชีพ หรือการบรรลุเซียนไว้เป็นอนุสรณ์',
-      leadPrefixTh: '【จารึกศิลาบรรพชน】',
+      toneTh: 'เปี่ยมความเคารพและโศกนาฏกรรม บันทึกการดับขันธ์ของยอดคน การสลักป้ายวิญญาณ และการผลัดแผ่นดิน',
+      leadPrefixTh: '【ศิลาจารึกหอบรรพชน】',
       impactLabelTh: 'มรดกสืบทอดและผลต่อรากฐานสำนัก',
-      followUpDefaultTh: 'สักการะป้ายวิญญาณในศาลบรรพชนหรือตรวจสอบสายการสืบทอดตำแหน่ง',
-      descTh: 'จารึกเหตุการณ์เปลี่ยนผ่านยุคสมัย การผลัดแผ่นดิน และการสืบทอดมรดก'
+      followUpDefaultTh: 'เหล่าศิษย์ร่วมสายกำลังทยอยเข้าจุดธูปคารวะป้ายวิญญาณและรับช่วงสืบทอดเจตจำนงในหอบรรพชน',
+      descTh: 'จารึกเหตุการณ์เปลี่ยนผ่านยุคสมัย การผลัดแผ่นดิน และการสืบทอดมรดกบรรพชน'
     },
     TAVERN_BALLAD: {
       id: 'TAVERN_BALLAD',
-      nameTh: '🍶 เรื่องเล่าขานและลำนำโรงเตี๊ยม',
+      nameTh: '🍶 ลำนำซุบซิบจากโรงเตี๊ยมริมทาง',
       shortTh: '🍶 ลำนำโรงเตี๊ยม',
-      toneTh: 'มีชีวิตชีวาแบบนักเล่านิทาน แยกแยะชัดเจนว่าเป็นคำร่ำลือที่อาจต้องส่งคนไปพิสูจน์',
-      leadPrefixTh: '【คำร่ำลือจากโรงเตี๊ยม】',
+      toneTh: 'น้ำเสียงนักเล่านิทานเคาะกรับไม้ในโรงน้ำชา แยกแยะชัดเจนว่าเป็นคำร่ำลือในวงสุราที่รอการพิสูจน์',
+      leadPrefixTh: '【ลำนำซุบซิบจากโรงเตี๊ยม】',
       impactLabelTh: 'เบาะแสและกระแสข่าวลือในยุทธภพ',
-      followUpDefaultTh: 'ส่งศิษย์ออกสืบข่าวลือหรือตรวจสอบเบาะแสก่อนตัดสินใจทุ่มกำลัง',
+      followUpDefaultTh: 'เรื่องนี้ยังเป็นเพียงคำร่ำลือในวงสุรา ศิษย์สายข่าวกรองและผู้ใฝ่หาความจริงจะทยอยออกพิสูจน์เบาะแส',
       descTh: 'ข่าวลือและลำนำขับขานของนักเล่านิทานเกี่ยวกับจอมยุทธ์พเนจรและแดนลับ'
     },
     LINEAGE_COMPANION_SCROLL: {
       id: 'LINEAGE_COMPANION_SCROLL',
-      nameTh: '💞 สมุดหยกหอวาสนาและสายเลือดตระกูล',
-      shortTh: '💞 สมุดหยกวาสนา',
-      toneTh: 'อบอุ่น ลุ่มลึก เน้นสายใยอาจารย์–ศิษย์ คู่บำเพ็ญ ทายาท และสภาพจิตมรรคา',
-      leadPrefixTh: '【บันทึกสมุดหยกหอวาสนา】',
+      nameTh: '🧧 ม้วนแพรแดงสายสัมพันธ์และสืบทอดมรรคา',
+      shortTh: '🧧 ม้วนแพรแดงวาสนา',
+      toneTh: 'อบอุ่น ลึกซึ้ง กินใจ บันทึกพิธีคำนับน้ำชา การผูกด้ายแดงคู่บำเพ็ญ และการกำเนิดทายาทสายเลือดใหม่',
+      leadPrefixTh: '【บันทึกม้วนแพรแดงหอวาสนา】',
       impactLabelTh: 'ผลต่อสายสัมพันธ์และตบะสืบทอด',
-      followUpDefaultTh: 'ดูผังสายสืบทอดหรือจัดสรรทรัพยากรหนุนศิษย์และคู่บำเพ็ญที่เกี่ยวข้อง',
-      descTh: 'บันทึกพิธีผูกด้ายแดงคู่บำเพ็ญ การกำเนิดทายาท และการตื่นรู้แห่งจิตมรรคา'
+      followUpDefaultTh: 'สายสัมพันธ์อาจารย์–ศิษย์และคู่บำเพ็ญจะส่งผลเกื้อหนุนการฝึกฝนและการคุ้มกันในสมรภูมิโดยอัตโนมัติ',
+      descTh: 'บันทึกพิธีผูกด้ายแดงคู่บำเพ็ญ การกำเนิดทายาท และการสืบทอดเจตจำนงแห่งจิตมรรคา'
     },
     IMPERIAL_COUNCIL_DECREE: {
       id: 'IMPERIAL_COUNCIL_DECREE',
-      nameTh: '🏛️ มติสภาผู้อาวุโสและราชโองการเจ้าสำนัก',
-      shortTh: '🏛️ มติสภา/ราชโองการ',
-      toneTh: 'สุขุม รอบคอบ แสดงเหตุผลเชิงนโยบาย งบสำรองคลัง และมติขุนนางทั้ง 6 ฝ่าย',
-      leadPrefixTh: '【มติสภาและโองการสำนัก】',
+      nameTh: '🏛️ ประกาศิตโถงสภาและตราเจ้าสำนัก',
+      shortTh: '🏛️ ประกาศิตโถงสภา',
+      toneTh: 'ขลัง สง่างาม ดั่งราชโองการประทับตราหยก แสดงเหตุผลเชิงนโยบาย งบสำรองคลัง และมติขุนนางทั้ง 25 ตำแหน่ง',
+      leadPrefixTh: '【ประกาศิตโถงสภาและตราเจ้าสำนัก】',
       impactLabelTh: 'ผลต่อการบริหารและงบประมาณสำนัก',
-      followUpDefaultTh: 'ตรวจดูสถานะหอทำงาน คลังศิลาวิญญาณ และความพร้อมของขุนนางผู้รับผิดชอบ',
+      followUpDefaultTh: 'ขุนนางผู้รับผิดชอบแต่ละหอกำลังนำมติสภาและโควตาราชโองการไปบังคับใช้ตามสายงาน',
       descTh: 'บันทึกการลงมติสภาผู้อาวุโส 4 ขั้วการเมือง วาระประจำฤดูกาล โควตาราชโองการ และการตรวจสอบผู้ถือตำแหน่ง'
     },
     SECRET_REALM_LOGBOOK: {
       id: 'SECRET_REALM_LOGBOOK',
-      nameTh: '🧭 บันทึกการสำรวจแดนลับและหอโบราณคดี',
-      shortTh: '🧭 บันทึกแดนลับ/โบราณคดี',
-      toneTh: 'บันทึกการเดินทาง ด่านที่ผ่าน ทรัพยากร/คัมภีร์ที่ค้นพบ และสภาพคณะสำรวจเมื่อกลับถึงสำนัก',
-      leadPrefixTh: '【สมุดปูมคณะสำรวจ】',
+      nameTh: '🧭 สมุดบันทึกบุกเบิกแดนลับและโบราณสถาน',
+      shortTh: '🧭 บันทึกแดนลับ/โบราณสถาน',
+      toneTh: 'น้ำเสียงผจญภัยลี้ลับ บันทึกชั้นมหาเจดีย์ 43 วิถี ปริศนาประตูธาตุ ร่องรอยยุคเทียนกู่ และสมบัติที่กู้คืนมาได้',
+      leadPrefixTh: '【สมุดปูมบุกเบิกแดนลับ】',
       impactLabelTh: 'สิ่งค้นพบและทรัพยากรที่นำกลับสำนัก',
-      followUpDefaultTh: 'ตรวจสอบของวิเศษ/คัมภีร์ใหม่ในคลังสำนักและให้คณะสำรวจพักฟื้นกำลัง',
-      descTh: 'บันทึกการเดินหมากโหนดแดนลับ ด่านตรวจทักษะ 12 มรรคา สายใยผู้ช่วยชีวิต และการบูรณะเศษคัมภีร์โบราณ'
+      followUpDefaultTh: 'คณะสำรวจนำของวิเศษและเศษคัมภีร์เข้าเก็บรักษาในคลังสำนัก ก่อนแยกย้ายไปพักฟื้นกำลัง',
+      descTh: 'บันทึกการเดินหมากโหนดแดนลับ ด่านตรวจทักษะมรรคา สายใยผู้ช่วยชีวิต และการบูรณะเศษคัมภีร์โบราณ'
     },
     CONTINENTAL_ASSEMBLY_GAZETTE: {
       id: 'CONTINENTAL_ASSEMBLY_GAZETTE',
-      nameTh: '🏆 ประกาศเกียรติคุณมหาชุมนุมยุทธภพและหอการค้า',
-      shortTh: '🏆 มหาชุมนุม/หอการค้า',
-      toneTh: 'ชัดเจนด้านตัวเลขการค้า การประมูล รางวัลการประชัน และดุลทรัพยากร',
-      leadPrefixTh: '【จดหมายเหตุการค้าและมหาชุมนุม】',
+      nameTh: '🌏 ประกาศทำเนียบยุทธภพและหอการค้าใหญ่',
+      shortTh: '🌏 ทำเนียบยุทธภพ/การค้า',
+      toneTh: 'น้ำเสียงจดหมายเหตุระดับมหาทวีป รายงานผลการประลองชุมนุมเซียน สนธิสัญญาการค้า และตลาดประมูล',
+      leadPrefixTh: '【ประกาศทำเนียบยุทธภพและหอการค้า】',
       impactLabelTh: 'ดุลการค้า ชื่อเสียง และรางวัลที่ได้รับ',
-      followUpDefaultTh: 'ตรวจทานรายการคงคลังและราคาตลาดเพื่อวางแผนผลิตหรือค้าขายรอบถัดไป',
+      followUpDefaultTh: 'หอคลังและหอทูตกำลังปรับแผนแลกเปลี่ยนสินค้าและท่าทีทางการทูตตามดุลอำนาจใหม่',
       descTh: 'บันทึกผลการประชัน 4 สายในมหาชุมนุมยุทธภพ งานเลี้ยงฉลองสำนักปราณโอชา กองคาราวาน และหอประมูลแดนเซียน'
     },
     HEAVENLY_DAO_OMEN_SCROLL: {
       id: 'HEAVENLY_DAO_OMEN_SCROLL',
-      nameTh: '🌌 ลิขิตสวรรค์และบันทึกวัฏจักรยุคสมัย',
-      shortTh: '🌌 ลิขิตสวรรค์/ยุคสมัย',
-      toneTh: 'ยิ่งใหญ่ระดับมหภาค ระบุผลคูณปราณฟ้าดิน ฮวงจุ้ย และเงื่อนไขยุคสมัยที่กระทบทั้งยุทธภพ',
-      leadPrefixTh: '【บันทึกปรากฏการณ์ฟ้าดิน】',
+      nameTh: '🌌 จารึกนิมิตดาราและลางแปรปรวนแห่งม่านฟ้า',
+      shortTh: '🌌 นิมิตดารา/ม่านฟ้า',
+      toneTh: 'น้ำเสียงพยากรณ์ระดับมหากาพย์ บันทึกปรากฏการณ์ดาวเรียงตัว จันทร์สีเลือด รอยร้าวม่านกั้นภพ และวัฏจักรยุคสมัย',
+      leadPrefixTh: '【จารึกนิมิตดาราและม่านฟ้า】',
       impactLabelTh: 'ผลกระทบระดับมหภาคและชีพจรปราณ',
-      followUpDefaultTh: 'ปรับแผนการบ่มเพาะหรือค่ายกลฮวงจุ้ยให้สอดคล้องกับกระแสปราณยุคสมัย',
+      followUpDefaultTh: 'เหล่าผู้บำเพ็ญและหอค่ายกลกำลังปรับจังหวะโคจรปราณให้สอดรับกับกระแสฟ้าดินยุคใหม่',
       descTh: 'บันทึกการเปลี่ยนผ่านยุคสมัยแห่งปราณ บททดสอบจากผู้กำกับชะตาฟ้าดิน ค่ายกลฮวงจุ้ย 10 ธาตุ และตราหยกสำนัก'
     },
     PEAK_HALL_SCROLL: {
       id: 'PEAK_HALL_SCROLL',
-      nameTh: '🏔️ ทำเนียบยอดเขาและพันธะสายสัมพันธ์',
-      shortTh: '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์',
-      toneTh: 'สะท้อนชีวิตภายใน 8 ยอดเขา การแต่งตั้งเจ้าหุบเขา และการเกื้อหนุนระหว่างศิษย์ร่วมสำนัก',
-      leadPrefixTh: '【ทำเนียบ 8 ยอดเขาศักดิ์สิทธิ์】',
+      aliasId: 'SECT_SCRIBE_SCROLL',
+      nameTh: '📜 ม้วนไม้ไผ่หออาลักษณ์และทำเนียบแปดยอดเขา',
+      shortTh: '📜 หออาลักษณ์/แปดยอดเขา',
+      toneTh: 'น้ำเสียงอาลักษณ์ประจำสำนัก สะท้อนชีวิตภายใน 8 ยอดเขา การแต่งตั้งเจ้าหุบเขา และสายใยระหว่างศิษย์ร่วมสำนัก',
+      leadPrefixTh: '【ม้วนไม้ไผ่หออาลักษณ์สำนัก】',
       impactLabelTh: 'ผลต่อโบนัสยอดเขาและขวัญกำลังใจศิษย์',
-      followUpDefaultTh: 'ตรวจดูสมดุลสมาชิกและทรัพยากรประจำยอดเขาในหน้าต่างสำนัก',
+      followUpDefaultTh: 'เจ้าหุบเขาและศิษย์ประจำยอดเขากำลังดำเนินกิจวัตรและเกื้อหนุนกันตามสายสัมพันธ์ภายในสำนัก',
       descTh: 'บันทึกการสถาปนายอดเขา การจัดสรรทรัพยากรหุบเขา การประลองระหว่างยอดเขา ยศผู้อาวุโส และสายใยความสัมพันธ์เชิงลึก'
     },
     PERIODIC_SECT_DIGEST: {
       id: 'PERIODIC_SECT_DIGEST',
-      nameTh: '📊 สมุดสรุปสถานการณ์สำนักประจำรอบ',
-      shortTh: '📊 สรุปประจำรอบ',
-      toneTh: 'สรุปรอบด้านแบบเจ้าสำนักตรวจงาน: ดุลศิลา คงคลัง ผลงานเด่น ศิษย์ที่ติดปัญหา และความเสี่ยงที่ต้องตัดสินใจ',
-      leadPrefixTh: '【รายงานสรุปกิจการสำนักประจำรอบ】',
+      nameTh: '📊 สมุดฎีกาสรุปราชการหกหอประจำรอบ',
+      shortTh: '📊 สมุดฎีกาหกหอ',
+      toneTh: 'รายงานสังเคราะห์ประจำรอบด้วยน้ำเสียงขุนนางประจำหอ แยกบัญชีคลังหลวง การโอนภายใน คอขวดตบะ วิกฤตอายุขัย และความแออัดอาคาร',
+      leadPrefixTh: '【สมุดฎีกาถวายรายงานหกหอประจำรอบ】',
       impactLabelTh: 'สถานะคงคลังและความเสี่ยงที่ต้องเฝ้าระวัง',
-      followUpDefaultTh: 'ใช้ข้อมูลสรุปรอบนี้ปรับคำสั่งหอผลิต จัดสรรโอสถ หรือช่วยเหลือศิษย์ที่บาดเจ็บ/ติดคอขวด',
-      descTh: 'สรุปรายวัน/รายสัปดาห์/รายเดือน แสดงดุลศิลาจริง คงคลัง การโอนภายใน ผู้ทำผลงาน ผู้ประสบปัญหา และความเสี่ยงสำนัก'
+      followUpDefaultTh: 'ขุนนางทั้งหกหอและศิษย์ในสำนักกำลังปรับแผนการผลิต การบ่มเพาะ และการดูแลผู้บาดเจ็บตามฎีกาฉบับนี้โดยอัตโนมัติ',
+      descTh: 'สรุปรายวัน/รายสัปดาห์/รายเดือน แสดงดุลศิลาจริง คงคลัง การโอนภายใน 28 ตัวชี้วัดเชิงลึก และฎีกาถวายรายงานจากขุนนางทั้ง 6 หอ'
     }
   });
 
@@ -4553,6 +4554,7 @@
   };
 
   function inferChronicleReportFormat(entry) {
+    if (entry.reportFormat === 'SECT_SCRIBE_SCROLL') return 'PEAK_HALL_SCROLL';
     if (entry.reportFormat && X.CHRONICLE_REPORT_FORMATS[entry.reportFormat]) return entry.reportFormat;
     const cat = entry.category || 'JIANGHU';
     const title = String(entry.titleTh || '');
@@ -4686,7 +4688,7 @@
 
     const directorInsightTh = entry.directorInsightTh || (
       (isRumor ? "[ข่าวลือโรงเตี๊ยม — รอการพิสูจน์] " : "[ข้อสังเกตเชิงระบบ] ") +
-      "ต้นเหตุจาก" + originCauseTh + " ➔ แนะนำให้" + followUpTh
+      "ต้นเหตุจาก" + originCauseTh + " ➔ แนวโน้มต่อจากนี้: " + followUpTh
     );
     const playerLensHighlights = entry.playerLensHighlights || {
       WORLD_WATCHER: "🌍 [มุมมองผู้เฝ้ามองโลก]: " + sects + " — " + systemImpactTh,
@@ -4925,7 +4927,8 @@
   /* ---------- Pillar 2: Format-Specific Narrative Presenter (Pure Read-Only, Zero RNG) ---------- */
   X.presentChronicleEntry = (W, rec) => {
     if (!rec) return null;
-    const fmtId = (rec.reportFormat && X.CHRONICLE_REPORT_FORMATS[rec.reportFormat]) ? rec.reportFormat : 'PIGEON_DISPATCH';
+    const rawFmt = rec.reportFormat === 'SECT_SCRIBE_SCROLL' ? 'PEAK_HALL_SCROLL' : rec.reportFormat;
+    const fmtId = (rawFmt && X.CHRONICLE_REPORT_FORMATS[rawFmt]) ? rawFmt : 'PIGEON_DISPATCH';
     const fmtDef = X.CHRONICLE_REPORT_FORMATS[fmtId];
     const snap = rec.factSnapshot || X.buildFactSnapshot(W, rec, rec.actorSnapshots || [], fmtId);
     const cs = rec.combatSummary || null;
@@ -4984,7 +4987,7 @@
     numericDetails.push({
       labelTh: 'สถานะความน่าเชื่อถือของข้อมูล',
       valueTh: snap.certaintyLabelTh,
-      meaningTh: snap.isRumor ? 'ข้อมูลจากข่าวลืออาจคลาดเคลื่อน ควรส่งศิษย์ตรวจสอบก่อนตัดสินใจใหญ่' : 'บันทึกจากเหตุการณ์ที่เกิดขึ้นจริงในระบบจำลอง ณ เวลานั้น'
+      meaningTh: snap.isRumor ? 'ข้อมูลจากข่าวลืออาจคลาดเคลื่อน คณะสอดแนมของหอข่าวกรองและผู้ใฝ่รู้จะทยอยพิสูจน์ความจริงตามลำดับ' : 'บันทึกจากเหตุการณ์ที่เกิดขึ้นจริงในระบบจำลอง ณ เวลานั้น'
     });
     if (Array.isArray(snap.actorsAtEvent) && snap.actorsAtEvent.length) {
       snap.actorsAtEvent.forEach(a => {
@@ -5008,7 +5011,7 @@
       if (cs.stats) {
         const s = cs.stats;
         numericDetails.push({
-          labelTh: 'ตัวเลขจังหวะยุทธวิธี (Tactical Counters)',
+          labelTh: 'จังหวะแก้ทางยุทธวิธี (Tactical Counters)',
           valueTh: 'คุ้มกัน ' + (s.intercepts || 0) + ' · บังวิถี ' + (s.losBlocks || 0) + ' · สกัดเขตคุกคาม ' + (s.zocStrikes || 0) + ' · ขัดจังหวะร่าย ' + (s.interrupts || 0) + ' · เปลี่ยนเป้า ' + (s.targetSwitches || 0),
           meaningTh: 'จำนวนครั้งที่ระบบคำนวณระยะอาวุธและตำแหน่งทำงานจริงในศึกนี้'
         });
@@ -5261,7 +5264,7 @@
       verifiedRisks.push({
         severity: foodDaysRemaining < 3 ? 'CRITICAL' : 'MAJOR',
         titleTh: 'เสบียงสำรองต่ำกว่าเกณฑ์ 7 วัน (เหลือราว ' + foodDaysRemaining + ' วัน)',
-        detailTh: 'มีอาหารปรุงสุก ' + closingMeals + ' ชุด และข้าวสาร ' + closingGrain + ' หน่วย สำหรับสมาชิก ' + alivePop + ' คน'
+        detailTh: 'มีอาหารปรุงสุก ' + closingMeals + ' ชุด และข้าวสาร ' + closingGrain + ' กระสอบ สำหรับสมาชิก ' + alivePop + ' คน'
       });
     }
     if (closingStones < cashReserveFloor) {
@@ -5287,6 +5290,198 @@
         detailTh: troubledDisciples.slice(0, 2).map(d => d.fullName + ' (' + d.issuesTh + ')').join(' · ')
       });
     }
+
+    // 5. Compute the 28 Untapped Simulation Metrics (14A Section 2 — 100% Deterministic, Zero W.rng)
+    const calNow = (g.SIM && g.SIM.calendar) ? g.SIM.calendar(toTick) : { season: 0, year: 1 };
+    const dyingLampElders = aliveNpcs.filter(n => {
+      const age = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 20;
+      const maxL = n.lifespanMax || (g.CULT && g.CULT.lifespan ? g.CULT.lifespan(n) : 80);
+      return maxL > 0 && (age / maxL) >= 0.88;
+    });
+    const bottleneckedNpcs = aliveNpcs.filter(n => n.cult && n.cult.bn);
+    const qiDeviationRiskNpcs = aliveNpcs.filter(n => ((n.h && n.h.state && n.h.state.heartDemon) || 0) >= 65 || ((n.cult && n.cult.toxic) || 0) >= 35 || ((n.forbiddenArtState && n.forbiddenArtState.tabooStrain) || 0) >= 60);
+    const suspendedGoalNpcs = aliveNpcs.filter(n => n.cognition && n.cognition.suspendedGoal);
+    const facDem = (W.sect && W.sect.facilityDemand) || {};
+    let topCongestedId = null, topCongestedHours = 0, topUnmet = 0;
+    Object.entries(facDem).forEach(([bid, fd]) => {
+      const ch = (fd && fd.congestedHours) || 0;
+      if (ch > topCongestedHours) { topCongestedHours = ch; topCongestedId = bid; topUnmet = (fd && fd.unmetDemands) || 0; }
+    });
+    const bedlessCount = aliveNpcs.filter(n => !n.away && n.bed == null).length;
+    const cpPriceMult = +((W.sect && W.sect.cp && W.sect.cp.price) || 1.0).toFixed(2);
+    const personalStonesArr = aliveNpcs.map(n => (n.inv && n.inv.stones) || 0).sort((a, b) => b - a);
+    const richestStones = personalStonesArr[0] || 0;
+    const needSum = (g.ECO && g.ECO.needSummary) ? g.ECO.needSummary(W) : { noWeapon: 0, noArmor: 0 };
+    let topRelicKills = 0, topRelicName = 'ยังไม่มีศาสตราดื่มโลหิต';
+    aliveNpcs.forEach(n => {
+      const wpn = n.equip && n.equip.WEAPON;
+      if (wpn && (wpn.kills || 0) > topRelicKills) { topRelicKills = wpn.kills; topRelicName = wpn.nameTh || wpn.id; }
+    });
+    const pathCounts = {};
+    aliveNpcs.forEach(n => { const p = (n.cult && n.cult.path) || 'MORTAL'; pathCounts[p] = (pathCounts[p] || 0) + 1; });
+    const dominantPathEntry = Object.entries(pathCounts).sort((a, b) => b[1] - a[1])[0] || ['XIAN', 0];
+    const mentorCount = aliveNpcs.filter(n => Array.isArray(n.apprenticeIds) && n.apprenticeIds.length > 0).length;
+    let romancePairs = 0, feudPairs = 0;
+    aliveNpcs.forEach(n => {
+      const rels = (n.h && n.h.mind && n.h.mind.relations) || {};
+      Object.entries(rels).forEach(([oid, r]) => {
+        if (n.id < oid && r) {
+          if ((r.l || 0) >= 45 || r.bond === 'คนรัก' || r.bond === 'คู่ครอง' || r.bond === 'TAOIST_COMPANION') romancePairs++;
+          if ((r.a || 0) < -30 && (r.v || 0) > 40) feudPairs++;
+        }
+      });
+    });
+    const cliqueCount = (W.sect && W.sect.cliques && Object.keys(W.sect.cliques).length) || 4;
+    const suspicionVal = Math.round((W.sect && W.sect.suspicion) || 0);
+    const petitionsCount = (W.sect && Array.isArray(W.sect.petitions) && W.sect.petitions.length) || 0;
+    const peaksCount = (W.sect && W.sect.peaks && Object.keys(W.sect.peaks).length) || 8;
+    const fsScore = (W.sect && W.sect.fengShui && W.sect.fengShui.sectAverageScore) || 68;
+    const reservePetsCount = (W.sect && Array.isArray(W.sect.reservePets) && W.sect.reservePets.length) || 0;
+    const worldSects = (W.world && Array.isArray(W.world.sects)) ? W.world.sects : [];
+    const hostileSectsCount = worldSects.filter(s => s && (s.relation || 0) <= -35).length;
+    const worldPoolStones = Math.round((W.world && W.world.resourcePool && W.world.resourcePool.stones) || 50000);
+    const pagodaFloorMax = (W.sect && W.sect.pagoda && W.sect.pagoda.highestFloorCleared) || (W.explore && W.explore.maxPagodaFloor) || 1;
+    const vowKeepersCount = aliveNpcs.filter(n => (Array.isArray(n.voluntaryVows) && n.voluntaryVows.length > 0) || n.daoOath).length;
+
+    const metrics28 = {
+      M01_famineRunwayDays: foodDaysRemaining,
+      M02_dyingLampEldersCount: dyingLampElders.length,
+      M03_bottleneckStalledCount: bottleneckedNpcs.length,
+      M04_qiDeviationRiskCount: qiDeviationRiskNpcs.length,
+      M05_suspendedGoalsCount: suspendedGoalNpcs.length,
+      M06_topCongestedHall: { buildingId: topCongestedId, congestedHours: topCongestedHours, unmetDemands: topUnmet },
+      M07_bedlessDisciplesCount: bedlessCount,
+      M08_cpInflationMult: cpPriceMult,
+      M09_topPersonalStones: richestStones,
+      M10_cashReserveGap: closingStones - cashReserveFloor,
+      M11_workshopCraftSummary: { crafted: craftsInWindow, failed: craftFailsInWindow },
+      M12_unarmedDisciplesCount: needSum.noWeapon || 0,
+      M13_topBloodiedWeapon: { nameTh: topRelicName, kills: topRelicKills },
+      M14_dominantPath: { pathId: dominantPathEntry[0], count: dominantPathEntry[1] },
+      M15_activeMentorsCount: mentorCount,
+      M16_buddingRomancesCount: romancePairs,
+      M17_festeringFeudsCount: feudPairs,
+      M18_elderCliquesCount: cliqueCount,
+      M19_corruptionAndPetitions: { suspicion: suspicionVal, petitions: petitionsCount },
+      M20_sacredPeaksActive: peaksCount,
+      M21_fengShuiScore: fsScore,
+      M22_orphanedSpiritBeasts: reservePetsCount,
+      M23_sectFame: Math.round(W.sect.fame || 0),
+      M24_hostileRivalSects: hostileSectsCount,
+      M25_worldStonePoolRemaining: worldPoolStones,
+      M26_pagodaFrontierFloor: pagodaFloorMax,
+      M27_battlesWonInWindow: battlesInWindow,
+      M28_vowKeepersCount: vowKeepersCount
+    };
+
+    // 6. Build the 6 Officer-Voiced Court Memorial Sections (สมุดฎีกาถวายรายงานหกหอ — 14A Section 3)
+    const buildOfficerHeader = (postId, fallbackPostNameTh) => {
+      const holder = (g.SECT && g.SECT.holder) ? g.SECT.holder(W, postId) : null;
+      const pNameTh = (g.SECT && g.SECT.POSTS && g.SECT.POSTS[postId] && g.SECT.POSTS[postId].nameTh) || fallbackPostNameTh;
+      if (!holder) {
+        return {
+          postId,
+          postNameTh: pNameTh,
+          officerId: null,
+          officerNameTh: 'เสมียนเวรประจำหอ',
+          headerTh: 'บันทึกชั่วคราวโดยเสมียนเวร (ตำแหน่ง ' + pNameTh + ' ยังว่างเว้นผู้ดูแล)',
+          tone: 'CLERK'
+        };
+      }
+      const full = (g.HC && g.HC.fullName) ? g.HC.fullName(holder) : holder.h.name.given;
+      const p = (holder.h && holder.h.personality) || {};
+      const integrity = p.integrity != null ? p.integrity : 50;
+      const caution = p.caution != null ? p.caution : 50;
+      const ambition = p.ambition != null ? p.ambition : 50;
+      const aggression = p.aggression != null ? p.aggression : 50;
+      const tone = (integrity < 42 && (holder.embezzled || 0) > 0) ? 'CORRUPT_SMOOTH'
+        : (caution >= 65 ? 'CAUTIOUS'
+        : ((ambition >= 65 || aggression >= 65) ? 'BOLD' : 'BALANCED'));
+      return {
+        postId,
+        postNameTh: pNameTh,
+        officerId: holder.id,
+        officerNameTh: full,
+        headerTh: 'ฎีกาจาก ' + pNameTh + ' · ' + full,
+        tone
+      };
+    };
+
+    const treOff = buildOfficerHeader('treasury', 'เจ้าหอคลังและบรรณาการ');
+    const cultOff = buildOfficerHeader('scripture', 'เจ้าหอคัมภีร์');
+    const marOff = buildOfficerHeader('martial', 'เจ้าหอยุทธ์');
+    const crfOff = buildOfficerHeader('alchemy', 'เจ้าหอปรุงโอสถ');
+    const govOff = buildOfficerHeader('discipline', 'ผู้คุมกฎหอวินัย');
+    const dipOff = buildOfficerHeader('diplomat', 'ทูตยุทธภพ');
+
+    const netSignStr = netStones >= 0 ? ('+' + netStones) : String(netStones);
+    const winterWarn = calNow.season === 2 ? ' อนึ่ง อีกไม่นานจะย่างเข้าสู่เหมันตฤดูที่นาข้าวชะงักงัน สมควรสำรองเสบียงไว้แต่เนิ่นๆ' : '';
+    const treClosingLine = treOff.tone === 'CORRUPT_SMOOTH'
+      ? 'บัญชีคลังหลวงเรียบร้อยร่มเย็นเป็นสุข มิมีสิ่งใดน่ากังวลขอรับ'
+      : (treOff.tone === 'CAUTIOUS'
+        ? ('สมควรรักษากันชนสำรอง ' + cashReserveFloor + ' ก้อนไว้อย่างเคร่งครัดเพื่อรับมือเหตุฉุกเฉิน' + winterWarn)
+        : ('ดุลการค้าหมุนเวียนคล่องตัว พร้อมหนุนการเติบโตของสำนักในรอบหน้า' + winterWarn));
+
+    const memorialSections = [
+      {
+        id: 'TREASURY',
+        icon: '💰',
+        titleTh: 'ฎีกาหอคลังและยุ้งฉาง',
+        headerTh: treOff.headerTh,
+        officerId: treOff.officerId,
+        tone: treOff.tone,
+        bodyTh: 'ในรอบ ' + windowDays + ' วันที่ผ่านมา รายรับศิลาวิญญาณจากภายนอก +' + stoneIncome + ' ก้อน หักรายจ่าย -' + stoneExpense + ' ก้อน คงเหลือสุทธิ ' + netSignStr + ' ก้อน (ยอดคลังหลวงรวม ' + closingStones + ' ก้อน · หมุนเวียนภายในผ่านการแลกแต้มคุณูปการ ' + internalCpPurchasesCount + ' รายการ และศิษย์ส่งของเข้าคลัง ' + internalDonationsCount + ' รายการ) ส่วนยุ้งฉางมีเสบียงพอเลี้ยงดูสมาชิกทั้ง ' + alivePop + ' ชีวิตไปได้อีกราว ' + foodDaysRemaining + ' วัน — ' + treClosingLine
+      },
+      {
+        id: 'CULTIVATION',
+        icon: '🕯️',
+        titleTh: 'ฎีกาหอบำเพ็ญและชะตาชีวิต',
+        headerTh: cultOff.headerTh,
+        officerId: cultOff.officerId,
+        tone: cultOff.tone,
+        bodyTh: 'เวลานี้มีศิษย์ติดคอขวดด่านใหญ่รอวันฝ่าทัณฑ์สวรรค์ ' + bottleneckedNpcs.length + ' คน (ทะลวงสำเร็จในรอบนี้ ' + breakthroughSuccessCount + ' ครั้ง / พลาด ' + breakthroughFailCount + ' ครั้ง) ' +
+          (dyingLampElders.length > 0 ? ('อนึ่ง ตะเกียงอายุขัยของ ' + dyingLampElders.slice(0, 2).map(e => g.HC.fullName(e)).join(', ') + ' เหลือเวลาชีวิตน้อยกว่า 12% กำลังเร่งหาทางทะลวงขั้นต่อชะตาหรือสั่งเสียผู้สืบทอด ') : 'ผู้ฝึกตนอาวุโสยังมีปราณอายุขัยมั่นคง ') +
+          (topCongestedHours > 0 ? ('ส่วนความแออัด อาคาร ' + topCongestedId + ' มีผู้แย่งเบาะนั่งเต็มพิกัดรวม ' + topCongestedHours + ' ชั่วยาม') : 'เบาะนั่งบำเพ็ญและหอคัมภีร์ยังรองรับศิษย์ได้เพียงพอ')
+      },
+      {
+        id: 'MARTIAL',
+        icon: '⚔️',
+        titleTh: 'ฎีกาหอยุทธ์และคลังแสง',
+        headerTh: marOff.headerTh,
+        officerId: marOff.officerId,
+        tone: marOff.tone,
+        bodyTh: 'ในรอบนี้เกิดศึกปะทะสำคัญ ' + battlesInWindow + ' ครั้ง · ศิษย์ไร้ศาสตราคู่กายต้องออกศึกมือเปล่า ' + (needSum.noWeapon || 0) + ' คน และไร้เสื้อเกราะ ' + (needSum.noArmor || 0) + ' คน · ศาสตราที่ดื่มโลหิตสูงสุดคือ「' + topRelicName + '」(' + topRelicKills + ' ศพ) ' +
+          (feudPairs > 0 ? ('ด้านคลื่นใต้น้ำในลานฝึก มีคู่ศิษย์บาดหมางรุนแรง ' + feudPairs + ' คู่ ที่เสี่ยงชักดาบดวลสะสางแค้น') : 'ระเบียบวินัยในลานฝึกยุทธ์ยังเรียบร้อยดี')
+      },
+      {
+        id: 'CRAFT',
+        icon: '⚗️',
+        titleTh: 'ฎีกาหอโอสถและโรงหลอม',
+        headerTh: crfOff.headerTh,
+        officerId: crfOff.officerId,
+        tone: crfOff.tone,
+        bodyTh: 'เตาหลอมโอสถและทั่งตีเหล็กผลิตผลงานสำเร็จเข้าคลัง ' + craftsInWindow + ' ชิ้น และเกิดเหตุไฟปราณสะดุดสูญเสียวัตถุดิบ ' + craftFailsInWindow + ' ครั้ง · ดัชนีค่าครองชีพแต้มคุณูปการปัจจุบันอยู่ที่ ×' + cpPriceMult + ' · ' +
+          (shortages.length > 0 ? ('มีรายการพัสดุขาดแคลนเร่งด่วน ' + shortages.length + ' รายการที่ศิษย์สายผลิตกำลังเร่งมือ') : 'วัตถุดิบหลักในคลังยังหมุนเวียนได้ตามปกติ')
+      },
+      {
+        id: 'GOVERNANCE',
+        icon: '⚖️',
+        titleTh: 'ฎีกาโถงสภาและหอวินัย',
+        headerTh: govOff.headerTh,
+        officerId: govOff.officerId,
+        tone: govOff.tone,
+        bodyTh: 'ศิษย์ที่ต้องพับปณิธานชั่วคราวเพื่อรักษาชีวิตมี ' + suspendedGoalNpcs.length + ' คน · ศิษย์ไร้เตียงประจำต้องนอนตากน้ำค้าง ' + bedlessCount + ' คน · ศิษย์ที่มารในใจหรือพิษโอสถสะสมสูงมี ' + qiDeviationRiskNpcs.length + ' คน · ระดับพิรุธทางบัญชีคลังอยู่ที่ ' + suspicionVal + '/100 และมีฎีการ้องทุกข์ค้างพิจารณา ' + petitionsCount + ' ฉบับ'
+      },
+      {
+        id: 'DIPLOMACY',
+        icon: '🌏',
+        titleTh: 'ฎีกาหอทูตและสำรวจยุทธภพ',
+        headerTh: dipOff.headerTh,
+        officerId: dipOff.officerId,
+        tone: dipOff.tone,
+        bodyTh: 'บารมีสำนักในยุทธภพอยู่ที่ ' + Math.round(W.sect.fame || 0) + ' แต้ม · มีสำนักต่างแดนตั้งตนเป็นอริ ' + hostileSectsCount + '/' + worldSects.length + ' สำนัก · ชีพจรแร่ศิลาปราณทั่วแผ่นดินคงเหลือ ' + worldPoolStones + ' ก้อน · สถิติบุกเบิกมหาเจดีย์ 43 วิถีไปถึงชั้นที่ ' + pagodaFloorMax
+      }
+    ];
 
     return {
       periodKey: 'digest:' + fromDay + ':' + toDay + ':' + windowDays,
@@ -5327,7 +5522,9 @@
       },
       topContributors,
       troubledDisciples: troubledDisciples.slice(0, 5),
-      verifiedRisks
+      verifiedRisks,
+      metrics28,
+      memorialSections
     };
   };
 
@@ -5360,7 +5557,7 @@
         storyTh: 'คงคลังศิลา ' + d.treasury.closingStones + ' ก้อน (รายรับ +' + d.treasury.stoneIncome + ' / รายจ่าย -' + d.treasury.stoneExpense + ' / สุทธิ ' + netSign + ' ศิลา) · เสบียงพอใช้ราว ' + d.stockAndInternal.foodDaysRemaining + ' วัน · ' + contribTxt,
         originCauseTh: 'ประมวลผลจากสมุดบัญชีคลัง (แยกจากการโอนภายใน ' + (d.stockAndInternal.internalGiftsCount + d.stockAndInternal.internalCpPurchasesCount + d.stockAndInternal.internalDonationsCount) + ' รายการ) และเหตุการณ์จริงใน ' + d.periodLabelTh,
         consequenceTh: riskTxt,
-        followUpTh: d.troubledDisciples.length ? ('ดูแลศิษย์ที่ติดปัญหา: ' + d.troubledDisciples.slice(0, 2).map(t => t.fullName).join(', ')) : 'ตรวจสอบคำสั่งหอผลิตและแผนการฝึกตามปกติ',
+        followUpTh: d.troubledDisciples.length ? ('หอหมอยาและผู้อาวุโสกำลังประคองอาการของ ' + d.troubledDisciples.slice(0, 2).map(t => t.fullName).join(', ') + ' อย่างใกล้ชิด') : 'ขุนนางทั้งหกหอดำเนินการจัดสรรทรัพยากรและแผนการฝึกตามปกติ',
         npcIds: d.topContributors.map(c => c.id).concat(d.troubledDisciples.map(t => t.id)).slice(0, 4),
         digestPayload: d,
         severity: d.verifiedRisks.some(r => r.severity === 'CRITICAL') ? 'CRITICAL' : (d.verifiedRisks.length ? 'MAJOR' : 'NOTABLE'),
@@ -8772,8 +8969,129 @@
       53: { id: 'FIG_53_WAN_JINNIANG', nameTh: 'นายหญิงหอการค้า ว่านจินเหนียง (#53)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ประมุขเครือข่ายการค้าหมื่นสมุทรแห่งตงหวง' },
       54: { id: 'FIG_54_YAN_LUO', nameTh: 'หัวหน้าสำนักตรวจการ เอี๊ยนหลัว (#54)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ผู้ถือมีดสั้นเสี่ยวหลี่และพู่กันพิพากษาแห่งตงหวง' },
       57: { id: 'FIG_57_TUOBA_HONGLIAN', nameTh: 'แม่ทัพหญิงเพลิงโลหิต ทัวป๋าหงเหลียน (#57)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'จอมทัพหน้าแห่งจักรวรรดิซีหรงแดนตะวันตก' }
+    }),
+    STORY_RIPPLE_CANON_SYNC: Object.freeze({
+      'STORY-SYNC-01': 'ยายเมิ่ง (#24) แบ่งเศษผ้ารองถาดน้ำชาแช่เย็นจากเรือสำราญสวรรค์เป็น 2 ส่วน: แกนกลางเป็นภูษาชั้นในผนึกเหมันต์ที่กู่หลิงเฟย (#2) สวมจำศีล ส่วนเศษด้ายขอบนอกทอเป็นอาภรณ์ขนนกกระเรียนสวรรค์ในซากอุทยานหลวง และปราณหยกใสหมิงยวี่ที่กู่เทียนเฉิน (#46) ฝึกโดยไร้ผ้าคุ้มกายจึงค่อยๆ แช่แข็งหัวใจตนเอง',
+      'STORY-SYNC-02': 'ซือหม่าชุน (#4) ดัดแปลงสมุดระเบียบคุมทะเบียนทาสเหมืองและอักขระแปะผนึกลังส่วยของสวรรค์เป็นระบบปกครองตงหวง และคุณชายสาม ซือหม่าชิง (#52) แสร้งเสเพลกว้านซื้อของเก่าชำรุดทั่วแผ่นดินเพราะรู้ความจริงว่ามีเพียงของขยะไร้ปราณเซียนเท่านั้นที่รอดม่านกั้นภพลงมาได้',
+      'STORY-SYNC-03': 'เถ้าแก่เฉียน (#22) นำโครงลูกคิดเหล็กเบี้ยวที่เสมียนเหมืองสวรรค์โยนทิ้งมาใส่ลูกปัดทองคำคลังหลวง 99 เม็ดซ่อนไว้ในเจดีย์หินริมผา และเก็บลูกปัดแม่กุญแจเม็ดที่ 100 ไว้ที่โต๊ะคิดเงินโรงเตี๊ยมไร้ชื่อริมทาง (อีเวนต์ #32)',
+      'STORY-SYNC-04': 'ซิงเฉินจื่อ (#16) ใช้แผ่นจานจำลองกลุ่มดาวของเล่นเด็กจากตระกูลโหรสวรรค์ที่เฟืองบิ่นสองซี่ส่องพบว่าม่านกั้นภพหักเหดวงดาวและมีเงามืดเบื้องบนชักใย จึงซ่อนจานสวรรค์ไว้นอกหอดูดาวก่อนเวลาหยุดนิ่ง (อีเวนต์ #29) และส่งต่อภารกิจแก่ซิงอวิ๋น (#49)',
+      'STORY-SYNC-05': 'ตราพยัคฆ์ไท่จี๋ประกาศิตทัพของทัวป๋าเลี่ย (#5) หล่อเป็น 2 ซีกคู่กัน: ทัวป๋ากัง (#60) เฝ้าซีกพยัคฆ์ขวาบนผาหินแดงซีหรงเพื่อถ่วงดุลทัวป๋าเจิ้นเทียน (#56) ส่วนซีกไท่จี๋ซ้ายจมอยู่ในค่ายทะเลทรายโบราณ (เควสต์เบาะแส)',
+      'STORY-SYNC-06': 'กำไลหยกมังกรหงส์คู่สวรรค์ถูกแกะสลักเป็น 2 วงคู่กันจากหยกหลวงเทียนกู่: วงมังกรเหมันต์อยู่กับองค์หญิงกู่ชิงเสวี่ย (#47) ในฐานะตราตั้งรัชทายาทเป่ยหมิง ส่วนวงหงส์มังกรคู่บำเพ็ญตกค้างอยู่ในตำหนักหยกคู่กลางซากอุทยานหลวง',
+      'STORY-SYNC-07': 'พญาอสูรคลั่ง โซ่วหวง (#31) นำเศษคราบปลอกเล็บผุของสุนัขคุ้ยซากสายเลือดเทาเที่ยเจือจางที่ร่วงจากรอยแยกอเวจีมาตีเป็นกรงเล็บเทาเที่ย จนคืนจันทร์สีเลือดสัญชาตญาณตะกละในคราบอเวจีปลุกฝูงสัตว์เลี้ยงหันกลับมาฉีกเนื้อโซ่วหวงกินทั้งเป็น (อีเวนต์ #12)',
+      'STORY-SYNC-08': 'แม่ทัพหญิง มู่หรงเสวี่ย (#7) เผาอายุขัยและแก่นโลหิตทั้งหมดเป็นบงกชโลหิตระเบิดสังหารร่างทรงที่อัญเชิญเศษเสี้ยวจิตหนึ่งในพันส่วนของผู้ตรวจการโลกเบื้องบนลงมาประทับกลางสนามรบ (อีเวนต์ #20)',
+      'STORY-SYNC-09': 'เซียนกระบี่ขี้เมา จิ้วเจี้ยนเซียน (#39) แทงหนึ่งกระบี่เซียนเหินจากฟากฟ้าสะกิดม่านกั้นภพเป็นรูเข็มเหนือซากอุทยานหลวง และเห็นคนกวาดถนนชั้นต่ำบนโลกเบื้องบนสะบัดไม้กวาดปัดปราณกระบี่สูงสุดของเขาดับวูบเหมือนปัดขี้เถ้าไฟ (อีเวนต์ #35)',
+      'STORY-SYNC-10': 'ทูตตกสวรรค์ ขงหมิง (#21) คืออดีตผู้เหินหาวที่ถูกส่งลงมาเป็นเบี้ยสงครามและถูกแรงระเบิดประตูมิติหลวงบดขยี้ตันเถียนจนตบะร่วงต่ำกว่าเกณฑ์ม่านฟ้า จึงติดค้างในโลกล่างถาวร ส่วนเสิ่นเทียนจุน (#28) ใช้เศษใบปลิวบทสวดคนรับใช้หน้าประตูวัดสวรรค์ทำพิธีจนถูกม่านฟ้าตบสวน (อีเวนต์ #25)',
+      'STORY-SYNC-11': 'ศาสตรา REL_V230_* ของปรมาจารย์ทั้ง 5 (#17 ซูเหยียน, #28 เสิ่นเทียนจุน, #35 ไป๋อวี่, #40 ปู่เจ้าสมิงพราย, #41 เคนชิน) คือศาสตราต้นกำเนิดคู่ชีพปฐมครู ส่วน REC_REL_V230_* ที่สำนักหลอมขึ้นคือศาสตราจำลองภาชนะมรรคา และโซ่ตรวนอาญาสวรรค์เทียนกู่ทำงานโดยสกัดจุดตัดการเชื่อมต่อของร่างทรงในโลกล่าง',
+      'STORY-SYNC-12': 'ซากอุทยานสวรรค์คือซากพระราชอุทยานหลวงเทียนกู่ที่จักรพรรดิกู่เสวียนหยวน (#1) สร้างจำลองสวรรค์และรวบรวมเศษวัตถุตกจากฟากฟ้า ส่วนเศษหยกโลกเบื้องบนในอีเวนต์ #7 คือเศษกรวดหางแร่ก้นเหมืองศิลาเซียนที่ทาสผู้เหินหาวสลักอักษรเลือดเตือนภัยทิ้งลงเหวมิติ'
     })
   });
+
+  X.TAVERN_BALLAD_TEMPLATES = Object.freeze([
+    {
+      id: 'BALLAD_01_BEIMING_FROST',
+      macroRegion: 'NORTHERN_PEAKS',
+      titleTh: 'ข่าวลือพายุหิมะตำหนักน้ำแข็งเป่ยหมิง',
+      storyTh: 'นักเดินทางจากแดนเหนือร่ำลือในวงสุราว่า พายุหิมะรอบตำหนักน้ำแข็งต้องห้ามแห่งเป่ยหมิงทวีความหนาวเหน็บผิดปกติ คล้ายผู้ครองบัลลังก์กำลังเร่งเสาะหาโอสถธาตุหยางล้ำค่ามารักษาโรคร้ายในสายเลือด',
+      involvedSects: ['ราชสำนักเป่ยหมิง'],
+      involvedFigures: ['กู่เทียนเฉิน (#46)', 'กู่ชิงเสวี่ย (#47)']
+    },
+    {
+      id: 'BALLAD_02_DONGHUANG_CURIOS',
+      macroRegion: 'EASTERN_PLAINS',
+      titleTh: 'ข่าวลือคุณชายตงหวงกว้านซื้อถ้วยชามร้าวโบราณ',
+      storyTh: 'พ่อค้าของเก่าจากเมืองตงหวงหัวเราะเล่าว่า ช่วงนี้มีคนของหอการค้าใหญ่เที่ยวเดินกว้านซื้อถ้วยชามร้าวและเศษพัดพังๆ ตามแผงแบกะดินด้วยราคาสูงลิ่ว ไม่มีใครเข้าใจว่าซื้อเศษของเก่าไปทำไม',
+      involvedSects: ['หอการค้าตงหวง'],
+      involvedFigures: ['ว่านจินเหนียง (#53)', 'ซือหม่าชิง (#52)']
+    },
+    {
+      id: 'BALLAD_03_XIRONG_PHANTOM_SPEARS',
+      macroRegion: 'WESTERN_BADLANDS',
+      titleTh: 'ข่าวลือเสียงทวนปะทะกลางพายุทรายสีเลือด',
+      storyTh: 'ทหารรับจ้างชายแดนตะวันตกโจษจันกันว่า ยามค่ำคืนที่มีพายุทรายสีเลือด มักได้ยินเสียงทวนเหล็กปะทะกันดังกึกก้องมาจากซากป้อมโบราณ ราวกับกองทัพเมื่อแสนปีก่อนยังไม่รู้ตัวว่าสงครามจบสิ้นแล้ว',
+      involvedSects: ['กองทัพซีหรง'],
+      involvedFigures: ['ทัวป๋าหงเหลียน (#57)', 'เฮ่อเหลียนม่อ (#19)']
+    },
+    {
+      id: 'BALLAD_04_SOUTHERN_GHOST_JUNK',
+      macroRegion: 'SOUTHERN_WATERS',
+      titleTh: 'ข่าวลือสำเภาโบราณฝ่าทะเลหมอกทักษิณ',
+      storyTh: 'ชาวประมงริมทะเลหมอกทักษิณเล่าขานด้วยความหวาดผวาว่า ในคืนไร้จันทร์จะมีเงาสำเภาโบราณขาดวิ่นแล่นฝ่าม่านหมอกเข้ามาเทียบท่า พร้อมสินค้านอกแผ่นดินที่ไม่เคยมีใครพบเห็นมาก่อน',
+      involvedSects: ['สมาคมการค้าหุบเขาสองแคว'],
+      involvedFigures: ['ปู่เจ้าสมิงพราย (#40)']
+    },
+    {
+      id: 'BALLAD_05_VALLEY_STONE_HEARTBEAT',
+      macroRegion: 'CENTRAL_HEARTLAND',
+      titleTh: 'ข่าวลือเสียงหัวใจศิลาเต้นใต้ก้นเหวหุบเขาสองแคว',
+      storyTh: 'พรานเฒ่าในหุบเขาสองแควกระซิบว่า บางคืนที่ได้แนบหูกับพื้นหินก้นเหว จะได้ยินเสียงหัวใจศิลาเต้นเป็นจังหวะทุ้มลึกอยู่ใต้ผืนดินที่ตั้งสำนักใหญ่ใจกลางหุบเขา',
+      involvedSects: [],
+      involvedFigures: ['ผู้เฝ้าประตูไร้หน้า (#25)']
+    },
+    {
+      id: 'BALLAD_06_FALLING_ENVOY_CHESS',
+      macroRegion: 'CENTRAL_HEARTLAND',
+      titleTh: 'ข่าวลือนักพรตพเนจรวางหมากหินริมผาเมฆา',
+      storyTh: 'เสี่ยวเอ้อร์โรงเตี๊ยมด่านหน้าเล่าว่า มีนักพรตชราในชุดผ้าป่านขาดวิ่นเคยวางเศษหยกสลักอักษรประหลาดจ่ายค่าสุรา ก่อนถอนหายใจแหงนมองม่านฟ้าเหมือนคนคิดถึงบ้านที่ไม่มีวันกลับไปได้',
+      involvedSects: [],
+      involvedFigures: ['ทูตตกสวรรค์ ขงหมิง (#21)']
+    },
+    {
+      id: 'BALLAD_07_IRON_SWORD_MOUND',
+      macroRegion: 'NORTHERN_PEAKS',
+      titleTh: 'ข่าวลือเสียงกระบี่เหล็กนิลคร่ำครวญหน้าซากกำแพงหลวง',
+      storyTh: 'คนตัดฟืนแถบเทือกเขาเหนือยืนยันว่า ยามสายลมเหมันต์พัดผ่านเนินกระบี่ร้าง จะได้ยินเสียงโลหะหนักอึ้งสั่นสะท้านตอบรับ ราวกับดวงวิญญาณองครักษ์โบราณยังคงยืนเฝ้าประตูเมืองที่พังทลายไปแล้ว',
+      involvedSects: [],
+      involvedFigures: ['หลี่เจี้ยนซิน (#6)']
+    },
+    {
+      id: 'BALLAD_08_GOLDEN_PEACOCK_GEAR',
+      macroRegion: 'WESTERN_BADLANDS',
+      titleTh: 'ข่าวลือขนนกยูงทองคำในสุสานจักรพรรดิกลไก',
+      storyTh: 'นักขุดสุสานที่รอดตายกลับมาเพ้อในโรงน้ำชาว่า ลึกเข้าไปในสุสานกลไกพันปีมีหุ่นหยกขาวที่ยังขยับนิ้วดีดลูกคิดและซ่อมแซมกระบอกกลไกขนนกยูงอยู่ลำพังในความมืด',
+      involvedSects: [],
+      involvedFigures: ['กงซูจี (#15)', 'ม่อจี๋ (#30)']
+    },
+    {
+      id: 'BALLAD_09_THOUSAND_YEAR_COCOON',
+      macroRegion: 'SOUTHERN_WATERS',
+      titleTh: 'ข่าวลือกลิ่นหอมโอสถเก้าดารากลางบึงหมอกพิษ',
+      storyTh: 'คนเก็บสมุนไพรร่ำลือว่า ทุกคืนวันเพ็ญจะมีผีเสื้อแสงดาวบินออกจากโพรงไม้โบราณกลางบึงทักษิณ พร้อมกลิ่นหอมโอสถที่เพียงสูดดมก็ช่วยให้บาดแผลเรื้อรังทุเลาลงอย่างน่าอัศจรรย์',
+      involvedSects: [],
+      involvedFigures: ['หมอหลวง ไป๋เฉ่า (#13)']
+    },
+    {
+      id: 'BALLAD_10_YAN_LUO_SHADOW_DECREE',
+      macroRegion: 'EASTERN_PLAINS',
+      titleTh: 'ข่าวลือสำนักตรวจการตงหวงออกตามล่าเศษแผ่นหยกดำ',
+      storyTh: 'คนเดินม้าต่างโจษจันกันทั่วโต๊ะสุราว่า มือปราบชุดดำของเอี๊ยนหลัวกำลังตั้งด่านตรวจค้นขบวนสินค้าอย่างเข้มงวด เพื่อตามหาเศษแผ่นหยกดำที่มีอักษรโบราณจากยุคเทียนกู่',
+      involvedSects: ['สำนักตรวจการตงหวง'],
+      involvedFigures: ['เอี๊ยนหลัว (#54)', 'ซิงอวิ๋น (#49)']
+    }
+  ]);
+
+  X.recordTavernBalladRumor = (W, idxOrId) => {
+    if (!W || !W.world) return null;
+    const pool = X.TAVERN_BALLAD_TEMPLATES;
+    const tpl = (typeof idxOrId === 'string' && pool.find(b => b.id === idxOrId))
+      || pool[Math.abs(Number(idxOrId) || ((W.day || 1) + (W.world.chronicleSeq || 0))) % pool.length];
+    if (!tpl) return null;
+    return X.recordChronicle(W, {
+      eventKey: 'ballad:' + tpl.id + ':' + (W.day || 0),
+      category: 'LEGEND',
+      reportFormat: 'TAVERN_BALLAD',
+      isRumor: true,
+      unverified: true,
+      icon: '🍶',
+      titleTh: tpl.titleTh,
+      storyTh: tpl.storyTh,
+      originCauseTh: 'นักเดินทางและคนเดินม้าเล่าขานต่อกันมาในโรงเตี๊ยมริมทาง',
+      consequenceTh: 'เรื่องนี้ยังเป็นเพียงคำร่ำลือในวงสุรา รอสายสืบสำนักพิสูจน์ความจริง',
+      macroRegion: tpl.macroRegion,
+      involvedSects: tpl.involvedSects,
+      involvedFigures: tpl.involvedFigures,
+      quiet: true
+    });
+  };
   if (g.MAP) g.MAP.WORLD_LORE = X.WORLD_LORE;
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);

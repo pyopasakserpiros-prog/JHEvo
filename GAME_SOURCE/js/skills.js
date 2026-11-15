@@ -64,7 +64,7 @@
   };
   SK.STATUS = {
     burn: { nameTh: 'เผาไหม้', icon: '🔥', dot: true }, bleed: { nameTh: 'เลือดไหล', icon: '🩸', dot: true }, poison: { nameTh: 'พิษ', icon: '☠️', dot: true },
-    slow: { nameTh: 'ชะงัก', icon: '🐌', mods: { cast: -30, move: -30 }, pmods: { eva: -.1 } }, stun: { nameTh: 'มึนงง', icon: '💫' }, silence: { nameTh: 'ผนึกวิชา', icon: '🤐' },
+    slow: { nameTh: 'ฝีเท้าเชื่องช้า', icon: '🐌', mods: { cast: -30, move: -30 }, pmods: { eva: -.1 } }, stun: { nameTh: 'มึนงง', icon: '💫' }, silence: { nameTh: 'ผนึกวิชา', icon: '🤐' },
     weaken: { nameTh: 'อ่อนแรง', icon: '⬇️', pmods: { atk: -.2, matk: -.2 } }, blind: { nameTh: 'ตาพร่า', icon: '🌫️', pmods: { acc: -.3 } },
     armorbreak: { nameTh: 'เกราะแตก', icon: '🧩', pmods: { def: -.15, mdef: -.05 } }, mdefbreak: { nameTh: 'ม่านวิชาแตก', icon: '🔮', pmods: { mdef: -.2 } },
     critUp: { nameTh: 'อสนีสะสม', icon: '⚡', mods: { crit: 10 } }, haste: { nameTh: 'ลมหนุน', icon: '🍃', mods: { cast: 15, move: 10 } }, leech: { nameTh: 'พฤกษาเกาะ', icon: '🌿' },
@@ -104,7 +104,7 @@
     windStride: { nameTh: 'เหินวายุไร้รอย', icon: '🌪️', isBuff: true, pmods: { eva: .22 }, mods: { move: 20, cast: 14, acc: 10 } },
     solarWard: { nameTh: 'ม่านเพลิงสุริยัน', icon: '☀️', isBuff: true, pmods: { def: .18, mdef: .18, atk: .12 }, mods: { pen: 8 } },
     starlightAegis: { nameTh: 'เกราะแสงดาราพิทักษ์', icon: '✨', isBuff: true, pmods: { mdef: .24, def: .16 }, mods: { acc: 14, cast: 10 } },
-    puppetOverclock: { nameTh: 'กลไกเร่งพิกัดสูงสุด', icon: '⚙️', isBuff: true, pmods: { atk: .18, matk: .18, def: .12 }, mods: { cast: 16, pen: 12 } },
+    puppetOverclock: { nameTh: 'กลไกเร่งเฟืองถึงขีดสุด', icon: '⚙️', isBuff: true, pmods: { atk: .18, matk: .18, def: .12 }, mods: { cast: 16, pen: 12 } },
     beastPackFury: { nameTh: 'สัญชาตญาณฝูงอสูรคลั่ง', icon: '🐾', isBuff: true, pmods: { atk: .20, hp: .12 }, mods: { move: 16, crit: 8, pen: 10 } },
     artisanFocus: { nameTh: 'สมาธิเตาหลอมเทวะ', icon: '🔨', isBuff: true, pmods: { atk: .14, matk: .16, def: .14, mdef: .14 }, mods: { acc: 12, pen: 10 } },
     alchemicalHarmony: { nameTh: 'ปราณโอสถประสานชีพจร', icon: '⚗️', hot: true, isBuff: true, pmods: { hp: .14, mdef: .16 }, mods: { cast: 12 } },
@@ -112,7 +112,7 @@
     taunt: { nameTh: 'ยั่วยุดึงความสนใจ', icon: '🤬', tags: ['#CONTROL'] },
     grounded: { nameTh: 'ตรึงปฐพีห้ามเหิน', icon: '🪨', mods: { move: -60 }, pmods: { eva: -.30 }, tags: ['#CONTROL', '#EARTH'] },
     hemorrhage: { nameTh: 'แผลฉีกขาดเลือดทะลัก', icon: '🩸', dot: true, pmods: { def: -.12 }, tags: ['#BLOOD', '#PHYSICAL'] },
-    sporeBloom: { nameTh: 'ดอกสปอร์พิษกลืนชีพ', icon: '🍄', dot: true, pmods: { mdef: -.10 }, tags: ['#WOOD', '#POISON'] },
+    sporeBloom: { nameTh: 'เกสรราพิษกลืนชีพ', icon: '🍄', dot: true, pmods: { mdef: -.10 }, tags: ['#WOOD', '#POISON'] },
     bloodfrostShard: { nameTh: 'ผลึกโลหิตเยือกแข็ง', icon: '🧊', dot: true, mods: { cast: -20, move: -20 }, tags: ['#ICE', '#BLOOD'] },
     healBlock: { nameTh: 'เพลิงพิษผนึกการรักษา', icon: '🚫', pmods: { mdef: -.15 }, tags: ['#FIRE', '#POISON', '#SEAL'] },
     poiseBroken: { nameTh: 'ท่าร่างพังทลาย', icon: '💥', pmods: { def: -.30, mdef: -.30, eva: -.40 }, tags: ['#CONTROL', '#PHYSICAL'] },
@@ -131,7 +131,7 @@
     asuraBloodFrenzy: { nameTh: 'โลหิตมารคลั่งชีพ', icon: '👹', isBuff: true, pmods: { atk: .50, matk: .50, def: -.10 }, mods: { crit: 12, critDmg: 25 }, tags: ['#BLOOD', '#DEMON'] },
     meridianOverdrive: { nameTh: 'ระเบิดชีพจรทะลวงขีดจำกัด', icon: '⚡', isBuff: true, pmods: { atk: 1.0, matk: 1.0 }, mods: { move: 100, cast: 100, crit: 20 }, tags: ['#ACUPOINT'] },
     finalStandImmortal: { nameTh: 'ปราการอมตะเฮือกสุดท้าย', icon: '🛡️', isBuff: true, pmods: { def: .80, mdef: .80 }, tags: ['#SHIELD'] },
-    totemBlessing: { nameTh: 'พรเสาโทเทมบรรพชน', icon: '🗿', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { acc: 10, cast: 10 }, tags: ['#ASTRAL'] },
+    totemBlessing: { nameTh: 'พรเสาวิญญาณบรรพชน', icon: '🗿', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { acc: 10, cast: 10 }, tags: ['#ASTRAL'] },
     beastSpiritPossessed: { nameTh: 'สถิตร่างรวมวิญญาณอสูร', icon: '🐉', isBuff: true, pmods: { atk: .24, matk: .20, def: .22, mdef: .20 }, mods: { move: 28, crit: 10, pen: 12 }, tags: ['#SUMMON'] },
     massGuard: { nameTh: 'มวลเกราะดูดซับแรง', icon: '🪐', isBuff: true, pmods: { def: .24, mdef: .18, hp: .10 }, tags: ['#EARTH', '#SHIELD'] },
     sonicHarmonyAura: { nameTh: 'รัศมีคีตาประสาน', icon: '🎵', isBuff: true, pmods: { matk: .16, eva: .12 }, mods: { cast: 18, move: 14, acc: 10 }, tags: ['#SOUND', '#WIND'] },
@@ -143,7 +143,7 @@
     temporalHaste: { nameTh: 'กระแสเวลาเร่งพิกัด', icon: '⏳', isBuff: true, pmods: { matk: .16, eva: .18 }, mods: { cast: 24, move: 22, crit: 8 }, tags: ['#ASTRAL'] },
     literatiDecree: { nameTh: 'โองการอักษรสวรรค์', icon: '🖌️', isBuff: true, pmods: { matk: .20, mdef: .18, acc: .15 }, mods: { pen: 14, cast: 14 }, tags: ['#YANG', '#SEAL'] },
     marionetteLink: { nameTh: 'เส้นไหมเชิดเงาเชื่อมจิต', icon: '🧵', isBuff: true, isTether: true, pmods: { atk: .16, matk: .16, eva: .20 }, mods: { acc: 14, crit: 10 }, tags: ['#YIN', '#CONTROL'] },
-    chaosEntropyShield: { nameTh: 'ม่านหุ่นตุ้นกลืนสรรพธาตุ', icon: '🌌', isBuff: true, pmods: { atk: .18, matk: .18, def: .18, mdef: .18 }, mods: { pen: 16 }, tags: ['#ASTRAL', '#SHIELD'] },
+    chaosEntropyShield: { nameTh: 'ม่านปฐมโกลาหลกลืนสรรพธาตุ', icon: '🌌', isBuff: true, pmods: { atk: .18, matk: .18, def: .18, mdef: .18 }, mods: { pen: 16 }, tags: ['#ASTRAL', '#SHIELD'] },
     meridianSeal: { nameTh: 'เข็มพิษผนึกจุดชีพจร', icon: '🪡', mods: { cast: -35, move: -20 }, pmods: { atk: -.15, matk: -.15 }, tags: ['#ACUPOINT', '#SEAL'] },
     tempoBreak: { nameTh: 'คลื่นเสียงสลายจังหวะ', icon: '🎵', mods: { cast: -30, acc: -14 }, pmods: { eva: -.16 }, tags: ['#SOUND', '#CONTROL'] },
     guLeech: { nameTh: 'คำสาปหนอนกู่สูบวิญญาณ', icon: '🦂', dot: true, pmods: { def: -.14, mdef: -.14 }, tags: ['#POISON', '#WOOD'] },
@@ -1853,14 +1853,14 @@
     },
     sig_iai_crimson_moon_slash: {
       id: 'sig_iai_crimson_moon_slash',
-      nameTh: 'เพลงดาบอิไอผ่าจันทราโลหิตไร้ปราณ',
+      nameTh: 'ดาบชักฝักจันทร์สีชาดสะบั้นพริบตา',
       icon: '⚔️',
       shape: 'iai_crimson_moon_slash',
       role: 'OFFENSE',
       primary: '#e63946',
       secondary: '#f1faee',
       accent: '#ffd166',
-      descTh: 'ประกายดาบอิไอไร้ปราณชักฟันเสี้ยววินาทีเกิดเป็นวงพระจันทร์เสี้ยวสีชาดตัดผ่ามิติ'
+      descTh: 'ประกายดาบชักฝักไร้ปราณชักฟันเสี้ยววินาทีเกิดเป็นวงพระจันทร์เสี้ยวสีชาดตัดผ่ามิติ'
     },
     sig_shinobi_phantom_clone_ambush: {
       id: 'sig_shinobi_phantom_clone_ambush',
@@ -1908,7 +1908,7 @@
     },
     sig_khmer_sacred_yantra_seal: {
       id: 'sig_khmer_sacred_yantra_seal',
-      nameTh: 'มหายันต์เก้ายอดอาคมขอมคงกระพัน',
+      nameTh: 'มหายันต์อาคมโบราณคงกระพันชาตรี',
       icon: '📿',
       shape: 'khmer_sacred_yantra_seal',
       role: 'DEFENSE',
@@ -1952,14 +1952,14 @@
     },
     sig_primordial_beast_totem: {
       id: 'sig_primordial_beast_totem',
-      nameTh: 'เสาโทเท็มอัญเชิญจตุรเทพราชันอสูร',
+      nameTh: 'เสาขวัญวิญญาณหมื่นอสูรบรรพกาล',
       icon: '🐺',
       shape: 'primordial_beast_totem_gate',
       role: 'SUMMON',
       primary: '#e09f3e',
       secondary: '#51cf66',
       accent: '#ff4d6d',
-      descTh: 'เสาโทเท็มบรรพกาลผุดขึ้นพร้อมเงาปีกคุนเผิงและเขี้ยวอสูรเทาเที่ยคำรามสะท้านภพ'
+      descTh: 'เสาขวัญวิญญาณบรรพกาลผุดขึ้นพร้อมเงาปีกคุนเผิงและเขี้ยวอสูรเทาเที่ยคำรามสะท้านภพ'
     },
     sig_heaven_brush_astrolabe: {
       id: 'sig_heaven_brush_astrolabe',
@@ -2003,7 +2003,7 @@
       primary: '#f4a261',
       secondary: '#ffd166',
       accent: '#ff4d00',
-      descTh: 'เตาหลอมสามขาสวรรค์ลอยเด่นกลางหาวพร้อมเพลิงสาม昧และค้อนเทวะตีหลอมศาสตรา'
+      descTh: 'เตาหลอมสามขาสวรรค์ลอยเด่นกลางหาวพร้อมเพลิงสมาธิแท้และค้อนเทวะตีหลอมศาสตรา'
     },
     sig_tidal_maelstrom_anchors: {
       id: 'sig_tidal_maelstrom_anchors',
@@ -2073,8 +2073,8 @@
       primary: '#738b43', secondary: '#c1121f', accent: '#e9edc9', descTh: 'เถาวัลย์เหล็กไขว้รัดจากพื้นพร้อมหนามล็อกข้อต่อ ไม่ซ้ำกับภาพบัวหรือหมอกพิษ'
     },
     sig_arena_crowd_roar: {
-      id: 'sig_arena_crowd_roar', nameTh: 'สังเวียนกึกก้องเสียงเชียร์', icon: '🏟️', shape: 'arena_crowd_roar', role: 'COMBAT_SUPPORT',
-      primary: '#f77f00', secondary: '#e9c46a', accent: '#fff3b0', descTh: 'แนวอัฒจันทร์โค้งล้อมวงประลอง ปล่อยคลื่นเสียงเชียร์เป็นจังหวะหนุนหมัดเด็ด'
+      id: 'sig_arena_crowd_roar', nameTh: 'สังเวียนกึกก้องเสียงโห่ร้อง', icon: '🏟️', shape: 'arena_crowd_roar', role: 'COMBAT_SUPPORT',
+      primary: '#f77f00', secondary: '#e9c46a', accent: '#fff3b0', descTh: 'แนวอัฒจันทร์โค้งล้อมวงประลอง ปล่อยคลื่นเสียงโห่ร้องเป็นจังหวะหนุนหมัดเด็ด'
     }
   };
   SK.SIGNATURE_VFX_CATALOG.sig_divine_crucible_forge = {
@@ -3018,7 +3018,7 @@
       "family": "galaxy_arrow",
       "variant": 18,
       "oldSignature": "sig_meteor_sword_rain",
-      "nameTh": "มหาคัมภีร์ศรทางช้างเผือกทะลวงจักรวาล"
+      "nameTh": "มหาคัมภีร์ศรธารดาราทะลวงพิภพ"
     },
     "MP_BLADE_SOVEREIGN_HEAVEN_REND_T7": {
       "family": "myriad_blades",
@@ -3258,7 +3258,7 @@
       "family": "zither_chords",
       "variant": 58,
       "oldSignature": "sig_heavens_sound_requiem",
-      "nameTh": "เคล็ดวิชาสายวาทยกรสวรรค์ประสานคีตา (คีตายุทธ)"
+      "nameTh": "เคล็ดวิชาจ้าวสังคีตประสานทำนองฟ้า"
     },
     "TECH_V200_VENOM_GU_ACT_06": {
       "family": "venom_hive",
@@ -4138,7 +4138,7 @@
     "shapeId": 39
   },
   "t5_samadhi_furnace_fire": {
-    "nameTh": "เพลิงสามเณรเตาหลอม",
+    "nameTh": "เพลิงสมาธิแท้หลอมสวรรค์",
     "primary": "#e08e6d",
     "accent": "#f7d5c6",
     "motion": "rise",
@@ -4243,7 +4243,7 @@
     "shapeId": 54
   },
   "t5_void_rift_prism": {
-    "nameTh": "ปริซึมผ่ามิติว่างเปล่า",
+    "nameTh": "ผลึกเจ็ดแสงผ่ามิติสุญตา",
     "primary": "#a594c9",
     "accent": "#e0d8f0",
     "motion": "sweep",
@@ -9020,3 +9020,18 @@
   g.SK = SK;
   if (typeof module === 'object' && module.exports) module.exports = SK;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+;(function syncSkillsPolishV260() {
+  const gObj = typeof globalThis !== "undefined" ? globalThis : window;
+  const SK = gObj.SK;
+  if (!SK) return;
+  if (SK.STATUS && SK.STATUS.slow) SK.STATUS.slow.nameTh = "ฝีเท้าเชื่องช้า";
+  if (SK.SUBPATH_ARCHETYPES_V235) {
+    for (const spec of Object.values(SK.SUBPATH_ARCHETYPES_V235)) {
+      if (spec && typeof spec.nameTh === "string") {
+        spec.nameTh = spec.nameTh.replace(/\s*\([A-Za-z\s\-]+\)\s*$/, "").trim();
+      }
+    }
+  }
+})();
