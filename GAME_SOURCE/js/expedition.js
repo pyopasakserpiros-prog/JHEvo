@@ -3271,7 +3271,7 @@
       const isSeasonal = !!opts.seasonal;
       const rawStones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
       const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
-      const stones = (pool && Number.isFinite(pool.stones) && pool.stones > 0) ? Math.min(rawStones, Math.max(0, Math.round(pool.stones))) : rawStones;
+      const stones = pool && Number.isFinite(pool.stones) ? Math.min(rawStones, Math.max(0, Math.floor(pool.stones))) : 0;
       if (stones > 0) {
         if (pool && Number.isFinite(pool.stones) && pool.stones >= stones) pool.stones -= stones;
         ECO.earn(W, stones, 'รายได้จากจุดยุทธศาสตร์「' + rn.nameTh + '」');

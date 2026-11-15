@@ -1,0 +1,7 @@
+PASS startup load menu exposes only actions available without a world
+PASS cancelling startup load restores the same selectable candidates
+PASS gameplay navigation before loading returns safely to startup
+PASS loading a saved slot enters the world and retains the normal game menu
+PASS a corrupt saved slot remains recoverable
+PASS a failed file import can be retried with a valid save
+PASS a successful import dismisses an open startup overlay

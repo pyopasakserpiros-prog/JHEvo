@@ -186,3 +186,6 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 ขัดเกลา materialize สเตตัสก่อนเปลี่ยน quality เพื่อไม่คูณซ้ำ; ปลดระวางต้องเป็นอุปกรณ์ที่ยังมีที่อยู่จริง; ไม่อ้างว่าแก้การเติบโตและ affix ของอาวุธแล้ว ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Post-13 resource-node correction (2026-11-15)
+`EXPED.harvestResourceNodes` caps stone payouts to the nonnegative integer portion of the finite world pool. A zero, invalid or fractional reserve below one yields no stones. It never rounds a fractional reserve up. Regression: `test/post13_economy_review_suite.js`. Other external reward sources still require separate conservation review.

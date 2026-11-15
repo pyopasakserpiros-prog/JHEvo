@@ -308,3 +308,6 @@ const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 หากศิษย์หิวต่ำกว่า 24 และมีอาหารกับสถานีว่าง `AI.decide` เลือกกินก่อนเพื่อไม่ให้ `AI.interrupt` ยกเลิกการรักษาแล้วสุ่มกลับไปรักษาซ้ำ กิจกรรมคุมขังยังมาก่อน การเดินทางและการต่อสู้มีเส้นทางของตน ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Post-13 counsel correction (2026-11-15)
+`AI.pairEnd` for `counsel` calls `SECT.HEART_DEMON.counselHeartDemon(W,a,b,null,{quiet:true})`, in addition to reducing the scalar gauge. The previously referenced `counsel` helper does not exist. This resolves one unresolved persistent knot and uses existing scar/reward semantics. Repeated sessions cannot resolve the same knot twice. Regression: `test/post13_economy_review_suite.js`.

@@ -72,3 +72,5 @@ node tools/run_parallel_tests.js
 - ชุดทดสอบถดถอย: `GAME_SOURCE/test/v260_bugfix_categories_09_10_suite.js`
 
 - **Wave 5 (Categories 11–12 Human Core Bridge, Psychology, Social/Karma, UI, Visuals, Sect Map Layout & Build Pipeline)**: See `PATCH_REPORTS/BUGFIX_CATEGORIES_11_12_JS2_V2_6_0.md` and `GAME_SOURCE/test/v260_bugfix_categories_11_12_suite.js`.
+
+Post-13 review: [ผลตรวจและข้อจำกัด](after%20debug/02_POST13_REVIEW_AND_NEXT_PATCH.md) · [แผนแพตช์ต่อไป](after%20debug/03_NEXT_PATCH_POST13.md).

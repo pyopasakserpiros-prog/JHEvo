@@ -290,7 +290,9 @@
         const spawnedUsed = Math.min(give, spawnedHeld);
         const rewardable = Math.max(0, give - spawnedUsed);
         const before = ECO.count(W, k), v = rewardable > 0 ? CPE.reward(W, k, rewardable, before) : 0;
-        ECO.add(W, k, give); n.inv.mats[k] -= give; if (n.inv.mats[k] <= 0) delete n.inv.mats[k];
+        if (rewardable > 0) ECO.add(W, k, rewardable);
+        if (spawnedUsed > 0) ECO.add(W, k, spawnedUsed, { playerSpawned: true });
+        n.inv.mats[k] -= give; if (n.inv.mats[k] <= 0) delete n.inv.mats[k];
         if (spawnedUsed > 0 && n.inv.spawnedMats) {
           n.inv.spawnedMats[k] -= spawnedUsed;
           if (n.inv.spawnedMats[k] <= 0) delete n.inv.spawnedMats[k];

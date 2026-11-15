@@ -8814,7 +8814,7 @@
     st.querySelectorAll('[data-pick-arch]').forEach(b => b.onclick = () => { UI.selectedArchetype = b.dataset.pickArch; UI.showStart(seed); });
     st.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { st.classList.add('hidden'); UI.G.newGame(seed, +b.dataset.pick, UI.selectedArchetype || 'sword'); });
     if ($('stAuto')) $('stAuto').onclick = () => { try { UI.G.load(localStorage.getItem('jhs_auto')); st.classList.add('hidden'); } catch (e) { UI.toast('โหลดออโตเซฟไม่ได้: ' + e.message); } };
-    $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { if (UI.G && UI.G.W) st.classList.add('hidden'); UI.open('menu'); };
+    $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { st.classList.add('hidden'); UI.open('menu'); };
     st.scrollTop = 0;
   };
   function hasAuto() { try { return !!localStorage.getItem('jhs_auto'); } catch (e) { return false; } }
@@ -8826,10 +8826,10 @@
     f.onchange = () => {
       const file = f.files[0]; if (!file) return;
       const r = new FileReader();
-      r.onerror = r.onabort = () => { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้'); if (!G.W && $('start')) $('start').classList.remove('hidden'); };
+      r.onerror = r.onabort = () => { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้'); if (!G.W && !UI.sheet && $('start')) $('start').classList.remove('hidden'); };
       r.onload = () => {
         try { G.load(r.result); if ($('start')) $('start').classList.add('hidden'); UI.close(); UI.toast('นำเข้าไฟล์สำเร็จ'); }
-        catch (e) { UI.toast('ไฟล์ไม่ถูกต้อง: ' + e.message); if (!G.W && $('start')) $('start').classList.remove('hidden'); }
+        catch (e) { UI.toast('ไฟล์ไม่ถูกต้อง: ' + e.message); if (!G.W && !UI.sheet && $('start')) $('start').classList.remove('hidden'); }
       };
       try { r.readAsText(file); } catch (e) { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้: ' + e.message); }
       f.value = '';

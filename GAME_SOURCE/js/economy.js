@@ -762,7 +762,8 @@
         if (npc.inv.spawnedPills[id] <= 0) delete npc.inv.spawnedPills[id];
         if (!Object.keys(npc.inv.spawnedPills).length) delete npc.inv.spawnedPills;
       }
-      ECO.add(W, id, count, q);
+      if (rewardableCount > 0) ECO.add(W, id, rewardableCount, q);
+      if (spawnedUsed > 0) ECO.add(W, id, spawnedUsed, { quality: q, playerSpawned: true });
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, id);
       if (CPE && reward > 0) {
         CPE.mint(W, npc, reward, "บริจาคโอสถส่วนตัว", true);
@@ -787,7 +788,8 @@
         npc.inv.spawnedMats[id] -= spawnedUsed;
         if (npc.inv.spawnedMats[id] <= 0) delete npc.inv.spawnedMats[id];
       }
-      ECO.add(W, id, count);
+      if (rewardableCount > 0) ECO.add(W, id, rewardableCount);
+      if (spawnedUsed > 0) ECO.add(W, id, spawnedUsed, { playerSpawned: true });
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, id);
       if (CPE && reward > 0) {
         CPE.mint(W, npc, reward, 'บริจาควัตถุดิบเข้าคลังสำนัก', true);
@@ -803,7 +805,7 @@
     const p = products[index], CPE = g.CPE;
     if (!CPE || !ECO.pillInfo(p.key) || !Number.isFinite(p.qty) || p.qty <= 0 || !Number.isFinite(p.q)) return { ok: false };
     if (p.playerSpawned) {
-      if (!ECO.add(W, p.key, p.qty, p.q)) return { ok: false };
+      if (!ECO.add(W, p.key, p.qty, { quality: p.q, playerSpawned: true })) return { ok: false };
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, p.key);
       products.splice(index, 1);
       if (CPE.S) CPE.S(W).arbitrageBlocked = (CPE.S(W).arbitrageBlocked || 0) + 1;

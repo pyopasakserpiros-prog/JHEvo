@@ -861,7 +861,8 @@ test('EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixe
   other.inv.gear = [brokenWpn];
   assert.equal(SECT.EDITOR.equipPersonalGear(W, other.id, brokenWpn.uid).ok, false);
 
-  // Seasonal vs daily resource node harvest
+  // Seasonal vs daily scheduling requires a funded pool; depletion is checked separately.
+  W.world.resourcePool.stones = 1000;
   const rnId = Object.keys(W.world.resourceNodes)[0];
   const rn = W.world.resourceNodes[rnId];
   rn.ownerSectId = 'PLAYER';
@@ -870,4 +871,5 @@ test('EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixe
   assert.equal(sRes.totalStones, 0);
   const dRes = EXPED.harvestResourceNodes(W, { seasonal: false, includeMats: true });
   assert.ok(dRes.totalStones > 0);
+  assert.equal(W.world.resourcePool.stones + dRes.totalStones, 1000);
 });

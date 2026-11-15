@@ -236,3 +236,8 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 ## สถานะปล่อยตัวเต็ม (Final Release Ready — 174/174 Test Suites PASS)
 - ตรวจสอบและเก็บรายละเอียดครบทุกหมวด **01 ถึง 13** พร้อมชุดทดสอบตรวจสอบขั้นสุดท้าย `GAME_SOURCE/test/v260_final_release_audit_suite.js` และรายงานสรุป `PATCH_REPORTS/FINAL_RELEASE_MASTER_AUDIT_01_13_JS2_V2_6_0.md`
 - ชุดทดสอบทั้งหมด **174/174 ชุด** (`node tools/run_parallel_tests.js` และ `node tools/validate_data_schema.js`) ผ่านครบ 100% (`0 errors, 0 warnings, 0 failures`)
+
+## Post-13 review — 2026-11-15
+ตรวจฐาน `9a61f6a`: แก้ป้ายของเสกหายระหว่างบริจาค 4 เส้นทาง, จุดทรัพยากรจ่ายศิลาเกินกองกลางที่หมด/เหลือเศษ และกิจกรรม counsel เรียก helper ผิดทำให้ปมจิตมารไม่คลาย เพิ่ม regression `GAME_SOURCE/test/post13_economy_review_suite.js` และ build single ใหม่ รายละเอียดหลักฐาน ขอบเขตที่ยังไม่ยืนยัน และงานออกแบบค้างอยู่ใน `after debug/02_POST13_REVIEW_AND_NEXT_PATCH.md` การตรวจรอบนี้ไม่รับรองว่าข้อค้นพบใน PDF ทั้ง 13 หมวดปิดครบทุกข้อ
+
+แก้เพิ่ม: ปุ่มโหลดเกมก่อนเริ่มโลกซ่อนหน้าเลือกเจ้าสำนักชั่วคราว เพื่อให้กดเมนูโหลดได้จริง และคืนตัวเลือกเดิมเมื่อยกเลิก ตรวจด้วย startup_ui ใน Chromium ผ่าน HTTP

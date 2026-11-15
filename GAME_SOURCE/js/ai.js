@@ -1991,7 +1991,7 @@
         b.h.state.heartDemon = Math.max(0, (b.h.state.heartDemon || 0) - 16);
         b.h.state.stress = Math.max(0, (b.h.state.stress || 0) - 10);
       }
-      if (g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.counsel) g.SECT.HEART_DEMON.counsel(W, a, b);
+      if (g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.counselHeartDemon) g.SECT.HEART_DEMON.counselHeartDemon(W, a, b, null, { quiet: true });
       AI.vf(a, { sectDuty: 0.22, honorLegacy: 0.18 });
       AI.mem(W, b, 'ได้รับคำชี้แนะขจัดจิตมารจาก ' + a.h.name.given, 0.65, a.id);
     }

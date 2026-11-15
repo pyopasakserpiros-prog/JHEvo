@@ -273,3 +273,6 @@ node GAME_SOURCE/test/test_procedural_equipment_system.js
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 คัมภีร์ขายตามกำลังจ่ายของกองทุน พนันโอนเงินจากกองทุน คาราวานเป็นค่าจ้างคุ้มกันสินค้าภายนอกหักกองทุน สัญญารอ dueDay, ตลาดภายนอกใช้ `ECO.base` สำหรับรหัสโอสถทั้งสองรูปแบบ และ Craft Precision เพิ่มคุณภาพผลิตตามคีย์เวิร์ดที่คำนวณจริง; ยังไม่ได้ปิดข้อเศรษฐกิจทุกข้อในรายงาน ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Post-13 review (2026-11-15)
+`ECO.donatePersonalProduct` and `AI.ACTS.donate.done` preserve exact spawned provenance when transferring mixed legitimate/spawned stock. Add legitimate and spawned portions separately; pills keep their quality. Test: `node GAME_SOURCE/test/post13_economy_review_suite.js` (four donation routes and save/load).

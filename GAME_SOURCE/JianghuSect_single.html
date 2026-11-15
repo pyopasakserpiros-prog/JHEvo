@@ -86956,7 +86956,8 @@ JD.ITEMS.items.forEach(it => {
         if (npc.inv.spawnedPills[id] <= 0) delete npc.inv.spawnedPills[id];
         if (!Object.keys(npc.inv.spawnedPills).length) delete npc.inv.spawnedPills;
       }
-      ECO.add(W, id, count, q);
+      if (rewardableCount > 0) ECO.add(W, id, rewardableCount, q);
+      if (spawnedUsed > 0) ECO.add(W, id, spawnedUsed, { quality: q, playerSpawned: true });
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, id);
       if (CPE && reward > 0) {
         CPE.mint(W, npc, reward, "บริจาคโอสถส่วนตัว", true);
@@ -86981,7 +86982,8 @@ JD.ITEMS.items.forEach(it => {
         npc.inv.spawnedMats[id] -= spawnedUsed;
         if (npc.inv.spawnedMats[id] <= 0) delete npc.inv.spawnedMats[id];
       }
-      ECO.add(W, id, count);
+      if (rewardableCount > 0) ECO.add(W, id, rewardableCount);
+      if (spawnedUsed > 0) ECO.add(W, id, spawnedUsed, { playerSpawned: true });
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, id);
       if (CPE && reward > 0) {
         CPE.mint(W, npc, reward, 'บริจาควัตถุดิบเข้าคลังสำนัก', true);
@@ -86997,7 +86999,7 @@ JD.ITEMS.items.forEach(it => {
     const p = products[index], CPE = g.CPE;
     if (!CPE || !ECO.pillInfo(p.key) || !Number.isFinite(p.qty) || p.qty <= 0 || !Number.isFinite(p.q)) return { ok: false };
     if (p.playerSpawned) {
-      if (!ECO.add(W, p.key, p.qty, p.q)) return { ok: false };
+      if (!ECO.add(W, p.key, p.qty, { quality: p.q, playerSpawned: true })) return { ok: false };
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W, p.key);
       products.splice(index, 1);
       if (CPE.S) CPE.S(W).arbitrageBlocked = (CPE.S(W).arbitrageBlocked || 0) + 1;
@@ -109258,7 +109260,7 @@ JD.ITEMS.items.forEach(it => {
         b.h.state.heartDemon = Math.max(0, (b.h.state.heartDemon || 0) - 16);
         b.h.state.stress = Math.max(0, (b.h.state.stress || 0) - 10);
       }
-      if (g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.counsel) g.SECT.HEART_DEMON.counsel(W, a, b);
+      if (g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.counselHeartDemon) g.SECT.HEART_DEMON.counselHeartDemon(W, a, b, null, { quiet: true });
       AI.vf(a, { sectDuty: 0.22, honorLegacy: 0.18 });
       AI.mem(W, b, 'ได้รับคำชี้แนะขจัดจิตมารจาก ' + a.h.name.given, 0.65, a.id);
     }
@@ -120525,7 +120527,7 @@ JD.ITEMS.items.forEach(it => {
       const isSeasonal = !!opts.seasonal;
       const rawStones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
       const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
-      const stones = (pool && Number.isFinite(pool.stones) && pool.stones > 0) ? Math.min(rawStones, Math.max(0, Math.round(pool.stones))) : rawStones;
+      const stones = pool && Number.isFinite(pool.stones) ? Math.min(rawStones, Math.max(0, Math.floor(pool.stones))) : 0;
       if (stones > 0) {
         if (pool && Number.isFinite(pool.stones) && pool.stones >= stones) pool.stones -= stones;
         ECO.earn(W, stones, 'รายได้จากจุดยุทธศาสตร์「' + rn.nameTh + '」');
@@ -145451,7 +145453,9 @@ JD.ITEMS.items.forEach(it => {
         const spawnedUsed = Math.min(give, spawnedHeld);
         const rewardable = Math.max(0, give - spawnedUsed);
         const before = ECO.count(W, k), v = rewardable > 0 ? CPE.reward(W, k, rewardable, before) : 0;
-        ECO.add(W, k, give); n.inv.mats[k] -= give; if (n.inv.mats[k] <= 0) delete n.inv.mats[k];
+        if (rewardable > 0) ECO.add(W, k, rewardable);
+        if (spawnedUsed > 0) ECO.add(W, k, spawnedUsed, { playerSpawned: true });
+        n.inv.mats[k] -= give; if (n.inv.mats[k] <= 0) delete n.inv.mats[k];
         if (spawnedUsed > 0 && n.inv.spawnedMats) {
           n.inv.spawnedMats[k] -= spawnedUsed;
           if (n.inv.spawnedMats[k] <= 0) delete n.inv.spawnedMats[k];
@@ -184109,7 +184113,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     st.querySelectorAll('[data-pick-arch]').forEach(b => b.onclick = () => { UI.selectedArchetype = b.dataset.pickArch; UI.showStart(seed); });
     st.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { st.classList.add('hidden'); UI.G.newGame(seed, +b.dataset.pick, UI.selectedArchetype || 'sword'); });
     if ($('stAuto')) $('stAuto').onclick = () => { try { UI.G.load(localStorage.getItem('jhs_auto')); st.classList.add('hidden'); } catch (e) { UI.toast('โหลดออโตเซฟไม่ได้: ' + e.message); } };
-    $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { if (UI.G && UI.G.W) st.classList.add('hidden'); UI.open('menu'); };
+    $('stReroll').onclick = () => UI.showStart(); $('stLoad').onclick = () => { st.classList.add('hidden'); UI.open('menu'); };
     st.scrollTop = 0;
   };
   function hasAuto() { try { return !!localStorage.getItem('jhs_auto'); } catch (e) { return false; } }
@@ -184121,10 +184125,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     f.onchange = () => {
       const file = f.files[0]; if (!file) return;
       const r = new FileReader();
-      r.onerror = r.onabort = () => { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้'); if (!G.W && $('start')) $('start').classList.remove('hidden'); };
+      r.onerror = r.onabort = () => { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้'); if (!G.W && !UI.sheet && $('start')) $('start').classList.remove('hidden'); };
       r.onload = () => {
         try { G.load(r.result); if ($('start')) $('start').classList.add('hidden'); UI.close(); UI.toast('นำเข้าไฟล์สำเร็จ'); }
-        catch (e) { UI.toast('ไฟล์ไม่ถูกต้อง: ' + e.message); if (!G.W && $('start')) $('start').classList.remove('hidden'); }
+        catch (e) { UI.toast('ไฟล์ไม่ถูกต้อง: ' + e.message); if (!G.W && !UI.sheet && $('start')) $('start').classList.remove('hidden'); }
       };
       try { r.readAsText(file); } catch (e) { UI.toast('ไม่สามารถอ่านไฟล์เซฟได้: ' + e.message); }
       f.value = '';
