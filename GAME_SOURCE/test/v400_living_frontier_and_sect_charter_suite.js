@@ -217,7 +217,7 @@ console.log('▶ [Phase 5 / Pillar 5] Testing 4 Micro-Locations, UI Integration,
   UI.tab = 'over';
   const sectHtml = UI.rSect(W);
   UI.tab = 'ov';
-  check(sectHtml.includes('data-do="establish-outpost"') && sectHtml.includes('data-do="enact-sect-charter"') && sectHtml.includes('data-do="convene-strategic-council"'), 'UI.rSect renders v4.0.0 Outpost, Charter, and Council buttons');
+  check(!sectHtml.includes('data-do="establish-outpost"') && !sectHtml.includes('data-do="enact-sect-charter"') && !sectHtml.includes('data-do="convene-strategic-council"'), 'Observer UI excludes Outpost, Charter, and Council commands');
   const npcHtml = UI.rNpc();
   check(npcHtml.includes('รอยชำนาญจากพฤติกรรมจริงในสนามรบ') && npcHtml.includes('กระบี่ตอบโต้'), 'UI.rNpc renders Behavioral Mastery Traits');
   const mapHtml = UI.rWorldMap(W);

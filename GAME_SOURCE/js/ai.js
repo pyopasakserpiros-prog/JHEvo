@@ -1678,6 +1678,15 @@
     dur: () => 120,
     tick(n, W) { const s = n.h.state; s.mood = Math.min(100, s.mood + 0.12); s.social = Math.min(100, s.social + 0.18); s.novelty = Math.min(100, s.novelty + 0.08); s.stress = Math.max(0, s.stress - 0.1); s.satiety = Math.min(100, s.satiety + 0.1); AI.vf(n, { familyClan: .08, freedom: .02 }); if (W.t % 20 === 0) { const o = AI.nearbyOther(W, n, 3); if (o) { AI.interact(W, n, o, 'chat', 0.6); if (g.COG && g.COG.shareKnowledgeOnInteract) g.COG.shareKnowledgeOnInteract(W, n, o, 'chat'); } } }
   };
+  A.opportunity = {
+    nameTh: 'พิจารณาวาสนาและภารกิจ', icon: '💭', color: '#9dc5b1',
+    can: (n,W) => !!SECT.AUTONOMY && SECT.AUTONOMY.opportunities(W,n).length > 0,
+    score(n,W,S) { S.add('พิจารณาสิ่งที่ตนทำได้และสนใจ',0.5 + E(n,'personality.curiosity')/180 + E(n,'personality.ambition')/250); },
+    where: (W,n) => ({pos:{x:n.x,y:n.y}}),
+    dur: () => 30,
+    cooldown: 360,
+    done(n,W) { SECT.AUTONOMY.consider(W,n); }
+  };
   A.idle = {
     nameTh: 'เดินเล่น', icon: '🚶', color: '#9aa',
     can: () => true,
@@ -2307,8 +2316,10 @@
     const mx = cands[0].u;
     const winCut = mx - Math.max(0.65, temp * 3.5);
     const top = cands.filter((c, idx) => idx < 6 || (idx < 12 && c.u >= winCut));
+    const optionalOpportunity = cands.find(c => c.id === 'opportunity');
+    if (optionalOpportunity && !top.includes(optionalOpportunity)) top.push(optionalOpportunity);
     const order = []; const pool = top.slice();
-    while (pool.length) { const pick = W.rng.weighted(pool, c => Math.exp((c.u - mx) / temp)); order.push(pick); pool.splice(pool.indexOf(pick), 1); }
+    while (pool.length) { const pick = W.rng.weighted(pool, c => Math.max(1e-9, Math.exp((c.u - mx) / temp))); order.push(pick); pool.splice(pool.indexOf(pick), 1); }
     // Defect #2 Fix: If all top-6 stations are occupied, allow up to 2 valid fallbacks from remaining candidates
     if (cands.length > 6) {
       const rest = cands.slice(6).filter(c => c.u > -0.5);

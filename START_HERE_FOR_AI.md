@@ -77,3 +77,8 @@
 ## สถานะปล่อยตัวเต็ม (Final Release Ready — 174/174 Test Suites PASS)
 - ตรวจสอบและเก็บรายละเอียดครบทุกหมวด **01 ถึง 13** พร้อมชุดทดสอบตรวจสอบขั้นสุดท้าย `GAME_SOURCE/test/v260_final_release_audit_suite.js` และรายงานสรุป `PATCH_REPORTS/FINAL_RELEASE_MASTER_AUDIT_01_13_JS2_V2_6_0.md`
 - ชุดทดสอบทั้งหมด **174/174 ชุด** (`node tools/run_parallel_tests.js` และ `node tools/validate_data_schema.js`) ผ่านครบ 100% (`0 errors, 0 warnings, 0 failures`)
+
+
+อัปเดต 2026-11-15: ถอดคำสั่ง NPC 157 action เพิ่มทางเลือกอัตโนมัติ 31 กลุ่มและเหตุการณ์โลกที่เลือกไม่เกิดได้ แก้สูตรโรงหลอมที่เข้าไม่ถึง 8 สูตร/รหัสผลผลิต ดู [รายงานและข้อจำกัด](after%20debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md). เครื่องมือแก้สถานะ/เสกของยังใช้ได้ตาม AGENTS.md; ผลทดสอบปัจจุบันอยู่ท้ายรายงาน.
+
+Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วและสิ่งที่ต้องตรวจต่อ](after%20debug/05_CHECKPOINT_FOR_AGY.md). ยังต้องรัน full sweep บน snapshot สุดท้ายเดียวกัน.

@@ -258,3 +258,10 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 ## Post-13 startup loading correction (2026-11-15)
 `UI.showStart` hides the startup candidate overlay whenever `stLoad` opens the load menu, including before a world exists. `UI.close` restores the original candidate selection when no world was loaded. Without this, the higher-z-index startup overlay blocks real pointer access to the load drawer. `test/startup_ui.js` covers cancel, navigation, valid/corrupt slots, import failure/retry and overlay dismissal.
 Invalid/aborted import restores startup only when no drawer remains open; an open load drawer stays accessible for retry.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+UI.playerActionKind/isPlayerActionAllowed อนุญาต observation 114 action และ state edits 29 action เฉพาะ edit; ปิด unknown/default และคำสั่ง NPC เดิม 157 action ทั้ง handler และ HTML filter ห้ามนำตัวอย่างปุ่มเก่าใน skill กลับมาใช้ เครื่องมือเสก/แก้สถานะเป็นข้อยกเว้นตาม AGENTS ไม่ใช่สิทธิ์สั่ง NPC
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.

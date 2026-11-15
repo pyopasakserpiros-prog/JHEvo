@@ -74,3 +74,8 @@ node tools/run_parallel_tests.js
 - **Wave 5 (Categories 11–12 Human Core Bridge, Psychology, Social/Karma, UI, Visuals, Sect Map Layout & Build Pipeline)**: See `PATCH_REPORTS/BUGFIX_CATEGORIES_11_12_JS2_V2_6_0.md` and `GAME_SOURCE/test/v260_bugfix_categories_11_12_suite.js`.
 
 Post-13 review: [ผลตรวจและข้อจำกัด](after%20debug/02_POST13_REVIEW_AND_NEXT_PATCH.md) · [แผนแพตช์ต่อไป](after%20debug/03_NEXT_PATCH_POST13.md).
+
+
+อัปเดต 2026-11-15: ถอดคำสั่ง NPC 157 action เพิ่มทางเลือกอัตโนมัติ 31 กลุ่มและเหตุการณ์โลกที่เลือกไม่เกิดได้ แก้สูตรโรงหลอมที่เข้าไม่ถึง 8 สูตร/รหัสผลผลิต ดู [รายงานและข้อจำกัด](after%20debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md). เครื่องมือแก้สถานะ/เสกของยังใช้ได้ตาม AGENTS.md; ผลทดสอบปัจจุบันอยู่ท้ายรายงาน.
+
+Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วและสิ่งที่ต้องตรวจต่อ](after%20debug/05_CHECKPOINT_FOR_AGY.md). ยังต้องรัน full sweep บน snapshot สุดท้ายเดียวกัน.

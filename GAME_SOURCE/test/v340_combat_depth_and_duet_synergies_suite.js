@@ -226,7 +226,7 @@ console.log('▶ [Phase 7 / PROP-32] Testing Ancestral Pavilion, Founder Phantom
 
   // Verify UI buttons exist in UI.rSect(W)
   const sectHtml = UI.rSect(W);
-  check(sectHtml.includes('data-do="recharge-elemental-barrier"') && sectHtml.includes('data-do="invoke-founder-phantom"'), 'UI.rSect includes v3.4.0 barrier & founder phantom buttons');
+  check(!sectHtml.includes('data-do="recharge-elemental-barrier"') && !sectHtml.includes('data-do="invoke-founder-phantom"'), 'Observer UI excludes v3.4.0 barrier & founder phantom buttons');
 
   // Save/Load Round-Trip verification
   W.fights = []; W.foes = [];

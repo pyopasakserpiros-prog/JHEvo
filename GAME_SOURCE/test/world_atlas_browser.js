@@ -70,39 +70,25 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
           UI.doAction('atlas-select', node.id);
           return {id:node.id, owner:node.ownerSectId, days:travel.days};
         });
-        await page.click('.atlas-detail [data-do="atlas-depart"]');
-        const sent = await page.evaluate(id => ({
-          ex:G.W.world.expeds.find(e => e.kind === 'resource_claim' && e.targetNodeId === id && !e.done),
-          owner:G.W.world.resourceNodes[id].ownerSectId
-        }), choice.id);
-        assert(sent.ex, 'the map action must launch a real resource expedition');
-        assert.strictEqual(sent.owner, choice.owner, 'the location must not change hands before arrival');
-        assert.strictEqual(sent.ex.days, choice.days, 'displayed travel must match the expedition timer');
+        assert.strictEqual(await page.locator('.atlas-detail [data-do="atlas-depart"]').count(),0,'Map has no expedition command');
         for (const kind of ['NEIGHBOR_SECT','RESOURCE_NODE','WORLD_ANOMALY','FORTUNE_SITE','EXPEDITION_REGION','SANCTUM','PAGODA','ELEMENTAL_REALM']) {
           await page.evaluate(kind => {
-            G.speed = 0; G.W = SIM.create('atlas-browser-action-' + kind);
+            G.speed = 0; G.W = SIM.create('atlas-browser-observer-' + kind);
             UI.atlasSelectedId = null; UI.atlasGroupIds = null; UI.open('world','map');
             if (kind === 'WORLD_ANOMALY') EXPED.spawnWorldAnomaly(G.W,{durationDays:20});
             const node = UI.buildWorldAtlas(G.W).nodes.find(n => n.kind === kind && (kind !== 'FORTUNE_SITE' || UI.atlasParty(G.W,n).length) && (kind !== 'ELEMENTAL_REALM' || EXPLORE.elementalRealmAt(G.W.day).id === n.id));
             if (!node) throw Error('No available fixture for ' + kind);
-            const estimate = UI.atlasTravelInfo(G.W,node,UI.atlasParty(G.W,node));
             UI.doAction('atlas-select',node.id);
-            if (!document.querySelector('.atlas-detail [data-do="atlas-depart"]')) throw Error('Missing action for ' + kind);
-            UI.doAction('atlas-depart',node.id);
-            const ex = G.W.world.expeds.find(e => !e.done);
-            const expected = {NEIGHBOR_SECT:'sect_siege',RESOURCE_NODE:'resource_claim',WORLD_ANOMALY:'world_anomaly',FORTUNE_SITE:'fortune',EXPEDITION_REGION:'gather',SANCTUM:'sanctum',PAGODA:'nine_dao_pagoda',ELEMENTAL_REALM:'elemental_realm'}[kind];
-            if (!ex || ex.kind !== expected) throw Error('Wrong expedition for ' + kind);
-            if (kind === 'FORTUNE_SITE' && ex.siteId !== node.siteId) throw Error('Wrong fortune target');
-            if (estimate.days != null && estimate.days !== ex.days) throw Error('Wrong travel estimate for ' + kind);
-            if (estimate.minDays != null && (ex.ret-ex.t0)/1440 > estimate.maxDays + 0.06) throw Error('Journey exceeds estimated range');
-            UI.open('world','exp');
-            if (!document.getElementById('shBody').innerText.includes(node.rawNameTh || node.nameTh)) throw Error('Travel list missing ' + kind);
+            if (document.querySelector('.atlas-detail [data-do="atlas-depart"]')) throw Error('Player command exposed for ' + kind);
+            const before=SIM.serialize(G.W);
+            if(UI.doAction('atlas-depart',node.id)!==false)throw Error('Command accepted for '+kind);
+            if(SIM.serialize(G.W)!==before)throw Error('Blocked command changed the world for '+kind);
           }, kind);
         }
         for (const args of [['DIMENSION_GATE','atlas-open-discovery','disc'],['SECRET_REALM_SITE','atlas-open-realms','sects'],['WANDERING_LEGEND','atlas-open-legends','sects']]) {
           await page.evaluate(([kind,action,tab]) => {
             const node = UI.buildWorldAtlas(G.W).nodes.find(n => n.kind === kind);
-            UI.open('world','map'); UI.doAction('atlas-select',node.id);
+            UI.close(); UI.open('world','map'); UI.doAction('atlas-select',node.id);
             if (!document.querySelector('.atlas-detail [data-do="' + action + '"]')) throw Error('Missing link for ' + kind);
             UI.doAction(action);
             if (UI.tab !== tab) throw Error('Wrong tab for ' + kind);

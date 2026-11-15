@@ -311,3 +311,10 @@ const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
 
 ## Post-13 counsel correction (2026-11-15)
 `AI.pairEnd` for `counsel` calls `SECT.HEART_DEMON.counselHeartDemon(W,a,b,null,{quiet:true})`, in addition to reducing the scalar gauge. The previously referenced `counsel` helper does not exist. This resolves one unresolved persistent knot and uses existing scar/reward semantics. Repeated sessions cannot resolve the same knot twice. Regression: `test/post13_economy_review_suite.js`.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+AI.ACTS.opportunity เข้าตัวเลือก utility ตามปกติ มีสิทธิ์ไม่ทำ/รอและ cooldown; SECT.AUTONOMY สร้างตัวเลือก 31 กลุ่มจากสภาพจริงโดยไม่ใช้ RNG ระหว่างประเมิน ตรวจเงื่อนไขใหม่ตอนลงมือ เก็บประวัติในเซฟไม่เกิน 80 คีย์ ห้ามบังคับการเลือกเพียงเพื่อต้องการให้เห็นเหตุการณ์
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.

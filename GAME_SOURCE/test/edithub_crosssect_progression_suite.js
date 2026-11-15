@@ -320,7 +320,7 @@ console.log('=== Running Edit Hub Diplomacy & Sanctums, 50-Subpath Progression &
   const dipHtml = UI.rEdit();
   assert(dipHtml.includes('editDipSectSel'), 'Dip tab must contain editDipSectSel selector');
   assert(dipHtml.includes('edit-dip-attitude'), 'Dip tab must contain edit-dip-attitude button');
-  assert(dipHtml.includes('edit-dip-exchange'), 'Dip tab must contain edit-dip-exchange button');
+  assert(!dipHtml.includes('edit-dip-exchange'), 'Dip tab must exclude the ally-exchange command');
 
   // Add a T4 gear so refinement select is rendered
   const swordRecipe = Object.values(ECO.recipeById).find(r => r.outType === 'EQUIPMENT' && r.tier >= 4) ||
@@ -333,8 +333,8 @@ console.log('=== Running Edit Hub Diplomacy & Sanctums, 50-Subpath Progression &
   UI.tab = 'sanctum';
   const sanctumHtml = UI.rEdit();
   assert(sanctumHtml.includes('editSanctumSel'), 'Sanctum tab must contain editSanctumSel selector');
-  assert(sanctumHtml.includes('edit-sanctum-run'), 'Sanctum tab must contain edit-sanctum-run button');
-  assert(sanctumHtml.includes('edit-sanctum-refine'), 'Sanctum tab must contain edit-sanctum-refine button');
+  assert(!sanctumHtml.includes('edit-sanctum-run'), 'Sanctum tab must exclude instant expedition commands');
+  assert(!sanctumHtml.includes('edit-sanctum-refine'), 'Sanctum tab must exclude NPC refinement orders');
 
   console.log('  PASS Area 5: Edit Hub UI rendering smoke test verified');
 }

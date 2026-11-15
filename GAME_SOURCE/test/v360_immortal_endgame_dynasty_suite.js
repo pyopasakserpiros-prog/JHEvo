@@ -125,7 +125,7 @@ console.log('▶ [Phase 4 / PROP-36] Testing Resilient Save Whitelist, UI Button
   W.npcs[0]._btBonusPct = 0.14;
 
   const sectHtml = UI.rSect(W);
-  check(sectHtml.includes('data-do="excavate-immortal-tomb"') && sectHtml.includes('data-do="advance-world-crisis"'), 'UI.rSect includes v3.6.0 Immortal Tomb & World Crisis buttons');
+  check(!sectHtml.includes('data-do="excavate-immortal-tomb"') && !sectHtml.includes('data-do="advance-world-crisis"'), 'Observer UI excludes v3.6.0 Immortal Tomb & World Crisis buttons');
 
   const rawSave = SIM.serialize(W);
   const WLoaded = SIM.deserialize(rawSave);

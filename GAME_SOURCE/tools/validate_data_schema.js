@@ -122,6 +122,11 @@ const recipeIds = new Set();
 const outToInputsGraph = new Map();
 
 for (const r of allRecipes) {
+  if (['ALCHEMY','FORGING','ARRAY','TALISMAN'].includes(r.craft)) {
+    const hall = r.craft === 'ALCHEMY' ? 'alchemy' : 'forge';
+    const cap = SECT.FACILITY_SPECS[hall] && SECT.FACILITY_SPECS[hall].maxLevel;
+    check(!cap || (r.facilityLevel || 1) <= cap, `Recipe ${r.id} requires unreachable ${hall} level ${r.facilityLevel} (cap ${cap})`);
+  }
   check(r.id && typeof r.id === 'string', `Recipe missing valid id: ${JSON.stringify(r)}`);
   recipeIds.add(r.id);
 

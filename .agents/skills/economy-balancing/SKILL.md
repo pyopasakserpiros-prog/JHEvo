@@ -276,3 +276,12 @@ node GAME_SOURCE/test/test_procedural_equipment_system.js
 
 ## Post-13 review (2026-11-15)
 `ECO.donatePersonalProduct` and `AI.ACTS.donate.done` preserve exact spawned provenance when transferring mixed legitimate/spawned stock. Add legitimate and spawned portions separately; pills keep their quality. Test: `node GAME_SOURCE/test/post13_economy_review_suite.js` (four donation routes and save/load).
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+ECO.mintGear ให้ outItemId มาก่อน slot เมื่อรับสูตร เพื่อใช้ authored item ID/value/stats จริง 8 สูตร V222 ที่เคย require forge4–5 ใช้ cap3 ตามสถานที่จริง การจ่าย craft elder/appease โอน toPool; ally aid/nemesis reward โอน fromPool ตรวจ conservation ของทางเลือกใหม่ การแก้นี้ไม่ได้ปิด audit แหล่งเงินทั้งเกม
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+ศึกปิดล้อมจบเองหลัง 20 วันโดยใช้กำลังป้องกันจริงหากยังไม่มีการตอบสนอง ไม่ต้องรอพันธมิตร ข่าวแพ้/ชนะต้องตรงผล รางวัลศึกไม่เกิน world pool และต้องโอน fromPool.

@@ -517,7 +517,7 @@ test('a wandering sword seeker grants duel rewards only once per day, including 
   assert.equal(EXPED.interactWanderingFigure(restored, loadedFig, 'DUEL', { forceWin: true }).ok, true);
 });
 
-test('the manual doctor button charges the stated fee and rejects insufficient funds', () => {
+test('observer cannot command a doctor; the simulation doctor API charges its fee', () => {
   const G = require('./load');
   G.document = { getElementById() { return { querySelectorAll() { return []; }, style: {}, classList: { add() {}, remove() {} } }; } };
   require('../js/ui.js');
@@ -528,11 +528,14 @@ test('the manual doctor button charges the stated fee and rejects insufficient f
   UI.G = { W, R: {}, opts: {}, speed: 1 };
   UI.toast = () => {}; UI.render = () => {}; UI.updateHud = () => {};
   W.sect.stones = 1000;
-  UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE');
+  assert.strictEqual(UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE'),false);
+  assert.equal(W.sect.stones,1000);
+  EXPED.interactWanderingFigure(W,fig.id,'HEAL_DISCIPLE');
   assert.equal(W.sect.stones, 880);
   W.sect.stones = 119;
   const affinity = fig.affinity;
-  UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE');
+  assert.strictEqual(UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE'),false);
+  EXPED.interactWanderingFigure(W,fig.id,'HEAL_DISCIPLE');
   assert.equal(W.sect.stones, 119);
   assert.equal(fig.affinity, affinity);
 });

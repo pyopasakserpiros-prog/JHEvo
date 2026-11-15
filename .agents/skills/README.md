@@ -83,3 +83,6 @@ T6 shared-group refinement: 50 shapes / 114 actual active skills / 207 child rou
 ## สถานะปล่อยตัวเต็ม (Final Release Ready — 174/174 Test Suites PASS)
 - ตรวจสอบและเก็บรายละเอียดครบทุกหมวด **01 ถึง 13** พร้อมชุดทดสอบตรวจสอบขั้นสุดท้าย `GAME_SOURCE/test/v260_final_release_audit_suite.js` และรายงานสรุป `PATCH_REPORTS/FINAL_RELEASE_MASTER_AUDIT_01_13_JS2_V2_6_0.md`
 - ชุดทดสอบทั้งหมด **174/174 ชุด** (`node tools/run_parallel_tests.js` และ `node tools/validate_data_schema.js`) ผ่านครบ 100% (`0 errors, 0 warnings, 0 failures`)
+
+
+2026-11-15: งาน UI/AI ต้องใช้ observer action policy และเส้นทาง NPC ในรายงาน04; สกิล AI, UI, architecture, progression, economy, procedural, data, QA และ performance อัปเดตขอบเขตแล้ว ปุ่มสั่งในตัวอย่างประวัติศาสตร์ไม่ใช่แนวทางปัจจุบัน.

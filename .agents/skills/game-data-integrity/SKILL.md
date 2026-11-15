@@ -311,3 +311,10 @@ resolver ปฏิกิริยาธาตุที่ระบุชื่�
 - Verify `test/equipment_tier_art_suite.js`, `test/item_art_catalog_suite.js` and `test/item_art_browser.js`; old semantic atlas still supplies compatibility keys and headband/trash/unknown fallback categories; fish now have tier artwork. Historical item counts elsewhere in this skill were not fully re-audited by this graphics patch.
 
 - Tier mapping is presentation only: it creates no new items or fish species. Prepared T6/T7 fish artwork does not imply those species/tiers are currently obtainable. Specific roots, organs, named materials and element-specific crystals retain semantic images; generic families use the new tier rows. All 898 equipment records were checked for a supported image, not re-certified for every gameplay effect.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+Schema validator ตรวจ facilityLevel ของ ALCHEMY/FORGING/ARRAY/TALISMAN เทียบ SECT.FACILITY_SPECS จริง ไม่ใช่แค่สูตรมีชื่อ/วัตถุดิบครบ แก้ REC_V222_EQ_05/06/10/11/13/16/22/24 ให้ใช้ forge สูงสุด3 และทดสอบ actual craft ผลผลิตต้องเป็น outItemId ไม่ใช่ recipe ID โอสถหลายระยะ48แบบมีสูตร (ไม่ใช่รับรองอัตราได้ของทุกเซฟ)
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.

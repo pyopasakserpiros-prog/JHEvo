@@ -531,3 +531,10 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 - T4 24–29 px / 850 ms and T5 32–39 / 1,050 remain planned; selected T6 and T7 are implemented (`planned:false`). Future lower tiers should share broader mechanic/element/action groups more; no forced reduction of existing lower-tier special catalogs.
 - Tests: `t6_group_vfx_suite` (114 real producers / 207 child metadata routes, actual attack-role examples, eligibility/modes/purity/caps/gear); `t6_group_vfx_browser` (50 distinct shapes in all modes, 256 same-group pixel comparisons, 25 gear glyphs, mixed 24-cast Canvas stress). Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. Development Canvas timings do not certify physical Android performance.
 - Exact assignments, selected exclusions, old artwork and previews: `docs/audits/T6_GROUP_VFX_REGISTRY.md`. Handoff `docs/handovers/NEXT_T5_VISUAL_PATCH.md` starts only when user requests T5; do not repeat T6/T7/Legendary or the completed chronicle feature. Core/save schema and 40-script order unchanged.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+NPC opportunities อยู่ใน AI → SECT.AUTONOMY → native effects; เหตุการณ์ศัตรูล้อม/วิกฤตธรรมชาติใช้ EXPED.considerNaturalEndgameEvents ใน tick โลกทุก 10 วัน ไม่สร้างผลจาก UI หรือยืนยันผลสำเร็จ มีทางเลือกรอและตรวจวันซ้ำ ห้ามถือ wrapper API อย่างเดียวว่าเชื่อม simulation แล้ว
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.

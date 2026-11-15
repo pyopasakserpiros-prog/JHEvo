@@ -10675,7 +10675,7 @@
       tier: es.tier,
       minStage: es.minStage,
       minMastery: Math.max(10, es.tier * 12),
-      facilityLevel: Math.min(5, Math.max(1, es.tier - 1)),
+      facilityLevel: Math.min(3, Math.max(1, es.tier - 1)), // Forge progression ends at level 3.
       compatiblePath: 'ANY',
       inputs: [
         { matId: es.mat1, count: 2 },

@@ -189,3 +189,12 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
 
 ## Post-13 resource-node correction (2026-11-15)
 `EXPED.harvestResourceNodes` caps stone payouts to the nonnegative integer portion of the finite world pool. A zero, invalid or fractional reserve below one yields no stones. It never rounds a fractional reserve up. Regression: `test/post13_economy_review_suite.js`. Other external reward sources still require separate conservation review.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+เส้นทางเสริม: สำรวจ micro ตามความสนใจ/อันตราย ยึด node ด้วย timed expedition และเสบียงจริง; tomb-discovery ตาม tier/ความสนใจและไม่ค้น template ซ้ำ, tomb ขุดทีละชั้นกับผู้มีทักษะ; coalition เดินทางจริงไม่ immediate win เหตุการณ์โลกมีทางเลือกรอ ตรวจข้อจำกัดในรายงาน04
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+ศึกปิดล้อมจบเองหลัง 20 วันโดยใช้กำลังป้องกันจริงหากยังไม่มีการตอบสนอง ไม่ต้องรอพันธมิตร ข่าวแพ้/ชนะต้องตรงผล รางวัลศึกไม่เกิน world pool และต้องโอน fromPool.

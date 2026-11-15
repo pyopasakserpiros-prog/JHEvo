@@ -225,3 +225,10 @@ Exterior figures (deputies, successors, prodigies) from foreign sects defecting 
 ## Patch JS2-v2.5.0 Additions: 43-Path `maxStage` Visual Equivalence (`js/render.js`, `js/cultivation.js`)
 - All 43 Major Cultivation Paths (`Object.keys(CULT.PATHS)`) use their true `CULT.PATHS[pathId].maxStage` ceiling (`GOD: 4`, `BODY: 5`, `XIAN`/`DEMON`/`HEART_SOUL`: `9`, and the remaining 38 paths: `8`) in `Render.resolveCultivationVisualState(npc)` and `CULT.normalizedStage(npc)`.
 - Reaching `npc.cult.stage >= CULT.PATHS[pathId].maxStage` immediately activates the path's Ascendant Apex visual tier (`isApex: true`, `normStage: 9`, `hasSilkRibbon: true`).
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+Dao seals ผูก sparStreak/soloBossWins ที่บันทึกจาก combat จริง; core ใช้ของจริงเหลือสำรอง จำกัด distinct3/โบนัสต่อชิ้น; marrow ต้องมี latent bloodline และบ่อจริง คำสัตย์มีโอกาสเลือกเองไม่ใช่ผู้เล่นแจกตรา การทดสอบเส้นทางไม่ได้รับประกันว่าจะเกิดในทุกเซฟ
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.

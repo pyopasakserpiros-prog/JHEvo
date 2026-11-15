@@ -201,12 +201,12 @@ console.log('▶ [Phase 7] Testing UI Buttons, Save/Load Persistence (celestialA
 
   const sectHtml = UI.rSect(W);
   check(
-    sectHtml.includes('data-do="resolve-faction-schism"') &&
-    sectHtml.includes('data-do="dispatch-exchange-disciple"') &&
-    sectHtml.includes('data-do="claim-bounty-hunt"') &&
-    sectHtml.includes('data-do="bid-black-market"') &&
-    sectHtml.includes('data-do="brew-multiphase-pill"'),
-    'UI.rSect includes all v3.5.0 interactive buttons'
+    !sectHtml.includes('data-do="resolve-faction-schism"') &&
+    !sectHtml.includes('data-do="dispatch-exchange-disciple"') &&
+    !sectHtml.includes('data-do="claim-bounty-hunt"') &&
+    !sectHtml.includes('data-do="bid-black-market"') &&
+    !sectHtml.includes('data-do="brew-multiphase-pill"'),
+    'Observer UI excludes all v3.5.0 interactive buttons'
   );
 
   const rawSave = SIM.serialize(W);

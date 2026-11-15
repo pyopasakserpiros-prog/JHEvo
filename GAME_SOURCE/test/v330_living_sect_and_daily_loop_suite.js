@@ -266,7 +266,7 @@ console.log('▶ [Phase 7 / PROP-35] Testing Sect Automation, Executive Alerts, 
   // Verify UI renders new v3.3.0 buttons
   const sectHtml = UI.rSect(W);
   for (const cmd of ['toggle-automation-rule', 'tribunal-adjudicate', 'assign-leyline-guard', 'repair-leyline-anchor', 'resolve-defector-ultimatum']) {
-    check(sectHtml.includes(`data-do="${cmd}"`), `UI.rSect includes ${cmd}`);
+    check(!sectHtml.includes(`data-do="${cmd}"`), `Observer UI excludes ${cmd}`);
   }
 
   // Save/Load Round-Trip verification

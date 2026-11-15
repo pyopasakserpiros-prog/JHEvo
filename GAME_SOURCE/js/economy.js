@@ -581,7 +581,7 @@
     }
     q = clamp(Number.isFinite(q) ? q : 1, 0.7, 1.5);
     if (itemOrRecipe.outItemId || itemOrRecipe.slot) {
-      const it = itemOrRecipe.slot ? itemOrRecipe : itemById[itemOrRecipe.outItemId];
+      const it = itemOrRecipe.outItemId ? itemById[itemOrRecipe.outItemId] : itemOrRecipe;
       const wp = it.slot === 'WEAPON', ar = it.slot === 'ARMOR';
       const cm = (wp ? 0.05 : ar ? 0.015 : 0.014) * it.tier * q, dm = (ar ? 0.05 : wp ? 0.012 : 0.012) * it.tier * q;
       const gOut = { uid: ECO.nextGearUid(W, it.id), id: it.id, nameTh: it.nameTh, slot: it.slot, gearType: it.gearType || it.weaponType || it.armorType || it.subType || undefined, subType: it.subType || it.weaponType || it.armorType || it.gearType || undefined, weaponType: it.weaponType || undefined, armorType: it.armorType || undefined, tier: it.tier, element: it.element || 'NEUTRAL', elementProfile: it.elementProfile || null, q: Math.round(q * 100) / 100, combatMult: cm, defMult: dm, dur: 100, maxDur: 100, repairCount: 0, minStage: it.minStage || 1, value: it.value, listedAtDay: W ? (W.day || 0) : 0, listedTick: W ? (W.t || 0) : 0 };

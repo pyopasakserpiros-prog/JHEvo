@@ -204,3 +204,10 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 
 ## Post-13 review checks (2026-11-15)
 `test/post13_economy_review_suite.js` is registered in `run_all.js`: spawned provenance across four donations/save-load, depleted/fractional node reserves, persistent counsel knot/replay. A passing Final Release suite only establishes its assertions; its 180-tick conservation check does not cover all event payouts or all UI actions. For managed Chromium use `BROWSER_TEST_BASE_URL` with a local server and an available browser executable; classify launch failures separately from game assertions.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+เพิ่ม observer_controls_browser และ observer_autonomy_suite ใน run_all: ตรวจ UI denied/no mutation, editor exception, 31 optional opportunity families, สอง natural events, actual craft 8 สูตร และ normal seeded simulation 30,000 ticks; fixture ที่เลือกทางแยกพิสูจน์การทำงาน ไม่พิสูจน์อัตราเกิดจริง v320 performance รันเดี่ยวใน parallel runner เพื่อตัดการแย่ง CPU จาก browser
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.

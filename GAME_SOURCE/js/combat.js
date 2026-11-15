@@ -69,7 +69,7 @@
     if (W.rng.chance(0.04 + (E(l, 'personality.aggression') - 50) / 800)) { AI.injure(W, l, 1, 'ได้รับบาดเจ็บขณะประลอง'); }
     AI.mem(W, w, 'ประลองกับ ' + l.h.name.given + (close ? ' เสมอกันหวุดหวิด' : ' และเป็นฝ่ายชนะ'), 0.3, l.id);
     AI.mem(W, l, 'ประลองกับ ' + w.h.name.given + (close ? ' เสมอกันหวุดหวิด' : ' และพ่ายแพ้'), 0.3, w.id);
-    w.stats = w.stats || {}; l.stats = l.stats || {}; w.stats.sparWin = (w.stats.sparWin || 0) + 1; l.stats.sparLoss = (l.stats.sparLoss || 0) + 1;
+    w.stats = w.stats || {}; l.stats = l.stats || {}; w.stats.sparWin = (w.stats.sparWin || 0) + 1; w.stats.sparStreak = (w.stats.sparStreak || 0) + 1; l.stats.sparStreak = 0; l.stats.sparLoss = (l.stats.sparLoss || 0) + 1;
     if (!close && (CULT.power(w) > CULT.power(l) * 1.5 || W.rng.chance(0.15))) W.log('spar', w.h.name.given + ' ประลองชนะ ' + l.h.name.given, [w.id, l.id]);
   };
 
@@ -3542,7 +3542,15 @@
       if (victim.foe) {
         if (killer) {
           W.log('combat', C.name(killer) + ' สังหาร' + victim.name, killer.foe ? [] : [killer.id]);
-          if (!killer.foe) { killer.stats = killer.stats || {}; killer.stats.kills = (killer.stats.kills || 0) + 1; HC.experience(killer, 'duel_win', 0.6); killer.merit += 3 + victim.tier * 2; }
+          if (!killer.foe) {
+            killer.stats = killer.stats || {};
+            killer.stats.kills = (killer.stats.kills || 0) + 1;
+            const ownSide = f && (f.A?.includes(killer.id) ? f.A : f.B?.includes(killer.id) ? f.B : null);
+            if (C.isBossUnit(victim) && ownSide?.length === 1 && !(CULT.activePets && CULT.activePets(killer).length)) {
+              killer.stats.soloBossWins = (killer.stats.soloBossWins || 0) + 1;
+            }
+            HC.experience(killer, 'duel_win', 0.6); killer.merit += 3 + victim.tier * 2;
+          }
         }
         return;
       }

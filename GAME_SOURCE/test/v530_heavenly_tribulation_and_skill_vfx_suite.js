@@ -280,7 +280,9 @@ require(path.join(ROOT, 'js/ui.js'));
   assert.ok(ePetHtml.includes('set-edit-pet-subtab') && ePetHtml.includes('MECH_KARMA') && ePetHtml.includes('FACILITIES'), 'UI.rEdit (pet) must render sub-tabs');
 
   // Test UI tribulation ritual & preview-signature-vfx actions
-  UI.doAction('start-tribulation-ritual', W.sect.masterId);
+  assert.strictEqual(UI.doAction('start-tribulation-ritual', W.sect.masterId),false);
+  assert(!W.byId[W.sect.masterId].tribulationState?.active,'Player ritual command is blocked');
+  CULT.TRIBULATION.start(W,W.byId[W.sect.masterId],{prep:0.25,totalTicks:15,announce:true,standaloneRitual:true});
   assert.ok(W.byId[W.sect.masterId].tribulationState && W.byId[W.sect.masterId].tribulationState.active, 'start-tribulation-ritual must activate tribulationState');
   UI.tab = 'over';
   UI.sectSubTab = 'CORE';

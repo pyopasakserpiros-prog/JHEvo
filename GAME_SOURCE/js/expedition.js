@@ -3836,7 +3836,7 @@
     // Daily resource node income & hegemony tick
     if (W.day > 0) {
       X.harvestResourceNodes(W, { seasonal: W.day % 90 === 0, includeMats: W.day % 5 === 0 });
-      if (W.day % 10 === 0) X.tickHegemony(W);
+      if (W.day % 10 === 0) { X.tickHegemony(W); X.considerNaturalEndgameEvents(W); }
       if (W.day % 12 === 0 || W.day % 15 === 0) X.tickGrandAlliancePolitics(W);
       if (W.day % 14 === 0 && X.tickAllianceCouncil) X.tickAllianceCouncil(W);
       if (W.day % 16 === 0 && X.tickAutonomousVisitorsV2) X.tickAutonomousVisitorsV2(W);
@@ -7806,7 +7806,7 @@
       return { ok: false, reason: 'insufficient-stones', required: cost };
     }
     if (cost > 0 && ECO && ECO.pay) {
-      ECO.pay(W, cost, 'แลกเปลี่ยนโอสถและแร่ปราณกับผู้อาวุโสหลอมสร้างแห่ง「' + s.nameTh + '」');
+      ECO.pay(W, cost, 'แลกเปลี่ยนโอสถและแร่ปราณกับผู้อาวุโสหลอมสร้างแห่ง「' + s.nameTh + '」', { toPool: true });
     }
     const ce = s.figures.craftElder;
     const alch = (ce.h && ce.h.skills && ce.h.skills.ALCHEMY) || 80;
@@ -8503,6 +8503,26 @@
     });
   };
 
+  // World-side opportunities: hostility and advanced cultivation permit events, never guarantee them.
+  X.considerNaturalEndgameEvents = W => {
+    if (!W?.world || !W.sect || W.world.lastNaturalEndgameDay === W.day) return;
+    W.world.lastNaturalEndgameDay = W.day;
+    const living=(W.npcs||[]).filter(n=>n&&!n.dead&&!n.exiled&&n.cult);
+    const stage=Math.max(0,...living.map(n=>CULT.effectiveTechStage(n)));
+    const options=[{id:'wait',score:1}];
+    const old=W.world.activeEnemySiege;
+    if(old?.status==='BESIEGING' && W.day-(old.day||0)>=20)return X.triggerSiegeReinforcementBeacon(W,{requestReinforcements:false});
+    if(stage>=3 && (!old || old.status!=='BESIEGING' && W.day-(old.resolvedDay||old.day||0)>=90)) {
+      for(const s of W.world.allSects||[])if(s&&!s.destroyed&&!s.isVassal&&(s.attitude||0)<=-60 && (s.power||0)*320 >= living.reduce((p,n)=>p+CULT.power(n),0)*0.65)
+        options.push({id:'siege:'+s.id,score:0.01,run:()=>X.startEnemyGrandSiege(W,s.id)});
+    }
+    const crisis=W.world.worldCrisisState;
+    if(stage>=6 && (!crisis?.activeArc || crisis.activeArc.completed && W.day-(crisis.activeArc.completedDay||0)>=180))
+      options.push({id:'crisis',score:0.015,run:()=>g.SECT.WORLD_CRISIS.startWorldCrisis(W,null,{deferChapter1:true})});
+    const picked=W.rng.weighted(options,o=>o.score);
+    return picked?.run ? picked.run() : {ok:false,reason:'wait'};
+  };
+
   X.startEnemyGrandSiege = (W, attackerSectOrId, opts) => {
     opts = opts || {};
     if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
@@ -8544,7 +8564,7 @@
     if (!siege || siege.status !== 'BESIEGING' || siege.beaconLit) return { ok: false, reason: 'no-active-siege' };
 
     const allSects = W.world.allSects || [];
-    let helpers = allSects.filter(s => s && s.id !== siege.attackerSectId && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty)));
+    let helpers = opts.requestReinforcements === false ? [] : allSects.filter(s => s && s.id !== siege.attackerSectId && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty)));
     if (!helpers.length && opts.forceReinforcement === true) {
       helpers = allSects.filter(s => s && s.id !== siege.attackerSectId).slice(0, 1);
     }
@@ -8568,24 +8588,24 @@
     const totalDefense = Math.round(playerPower + reinforcementPower);
     const won = opts.forceLose ? false : (opts.forceWin === true ? true : (totalDefense >= siege.enemyPower * 0.65));
 
-    siege.beaconLit = true;
-    siege.status = won ? 'REPELLED_BY_COALITION' : 'BREACHED';
+    siege.beaconLit = opts.requestReinforcements !== false;
+    siege.status = won ? (reinforcementLeaders.length ? 'REPELLED_BY_COALITION' : 'REPELLED') : 'BREACHED';
     siege.reinforcements = reinforcementLeaders;
     siege.resolvedDay = W.day || 360;
     if (W.threat && W.threat.raid && won) {
       W.threat.raid = null;
     }
 
-    const spoilsStones = won ? 360 : 0;
+    const spoilsStones = won ? Math.min(360, Math.max(0, W.world.resourcePool?.stones || 0)) : 0;
     if (won) {
-      if (ECO && ECO.earn) ECO.earn(W, spoilsStones, 'ยึดเสบียงศึกจากการตีขนาบทัพศัตรูที่มาปิดล้อม');
+      if (ECO && ECO.earn) ECO.earn(W, spoilsStones, 'ยึดเสบียงศึกจากการตีขนาบทัพศัตรูที่มาปิดล้อม', {fromPool:true});
       W.fame(10);
     }
 
     const helperText = reinforcementLeaders.map(r => '「' + r.sectNameTh + '」(นำโดย ' + r.marshalNameTh + ')').join(' และ ');
-    const titleTh = 'จุดพลุสัญญาณพันธมิตร! กองหนุนจาก ' + (helperText || 'สำนักพันธมิตร') + ' บุกตีขนาบหลังทัพ「' + siege.attackerSectNameTh + '」แตกพ่าย!';
-    const storyTh = 'ท่ามกลางวิกฤตที่กองทัพของ「' + siege.attackerSectNameTh + '」นำโดย ' + siege.commanderNameTh + ' ยกพลมาปิดล้อมสำนักเรา เจ้าสำนักได้สั่งจุดควันสัญญาณฉุกเฉินและส่งพิราบสื่อสารขอความช่วยเหลือ ทันใดนั้นกองทัพพันธมิตรจาก ' + (helperText || 'พันธมิตรยุทธภพ') + ' ก็ยกทัพม้าศึกบุกเข้าตีขนาบตลบหลังค่ายศัตรู ประสานกับศิษย์ในสำนักที่พุ่งทะลวงออกมารับศึก จนทัพของ「' + siege.attackerSectNameTh + '」แตกพ่ายยับเยิน!';
-    const consequenceTh = 'ทำลายวงล้อมของ ' + siege.attackerSectNameTh + ' สำเร็จ · ยึดศิลาวิญญาณ +' + spoilsStones + ' ก้อน · ชื่อเสียงสำนัก +10';
+    const titleTh = won ? 'สำนักต้านทัพปิดล้อม「' + siege.attackerSectNameTh + '」สำเร็จ' : 'ทัพ「' + siege.attackerSectNameTh + '」ฝ่าวงป้องกันสำนัก';
+    const storyTh = 'กองทัพของ「' + siege.attackerSectNameTh + '」นำโดย ' + siege.commanderNameTh + ' เข้าปะทะแนวป้องกันสำนัก' + (reinforcementLeaders.length ? ' โดยมีทัพหนุนจาก ' + helperText : ' โดยสำนักรับศึกด้วยกำลังของตนเอง') + (won ? ' ฝ่ายป้องกันขับไล่ผู้รุกรานสำเร็จ' : ' ฝ่ายป้องกันไม่อาจหยุดการบุกได้');
+    const consequenceTh = won ? 'ทำลายวงล้อมสำเร็จ · ยึดศิลาวิญญาณ +' + spoilsStones + ' ก้อน · ชื่อเสียงสำนัก +10' : 'แนวป้องกันถูกฝ่า · ไม่ได้รับรางวัลชัยชนะ';
 
     const chron = X.recordChronicle(W, {
       category: 'BATTLE',
@@ -8595,7 +8615,7 @@
       involvedFigures: [siege.commanderNameTh].concat(reinforcementLeaders.map(r => r.marshalNameTh)),
       titleTh,
       storyTh,
-      combatBreakdownTh: 'กำลังป้องกันสำนัก (' + Math.round(playerPower) + ') + กองหนุนพันธมิตร (+' + reinforcementPower + ') = ' + totalDefense + ' เอาชนะทัพปิดล้อม (' + siege.enemyPower + ')',
+      combatBreakdownTh: 'กำลังป้องกันสำนัก (' + Math.round(playerPower) + ') + กองหนุนพันธมิตร (+' + reinforcementPower + ') = ' + totalDefense + (won ? ' ต้านทัพปิดล้อมสำเร็จ (' : ' ไม่อาจต้านทัพปิดล้อม (') + siege.enemyPower + ')',
       consequenceTh,
       quiet: opts.quiet
     });
