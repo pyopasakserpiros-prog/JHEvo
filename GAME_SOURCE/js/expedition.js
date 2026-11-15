@@ -2342,6 +2342,7 @@
       REALM_EARTH: { macroRegion: 'NORTHERN_PEAKS', x: 62, y: 28, icon: '🪨', nameTh: 'แดนปฐพีหยกเร้น', catalystId: 'CAT_PRIMORDIAL_EARTH' }
     };
     Object.entries(realmCoords).forEach(([rid, rc]) => {
+      const catTh = (ECO && ECO.REFINEMENT_CATALYSTS && ECO.REFINEMENT_CATALYSTS[rc.catalystId] && ECO.REFINEMENT_CATALYSTS[rc.catalystId].nameTh) || rc.catalystId;
       nodes[rid] = {
         id: rid,
         kind: 'ELEMENTAL_REALM',
@@ -2355,7 +2356,7 @@
         catalystId: rc.catalystId,
         ownerSectId: 'NEUTRAL',
         ownerNameTh: 'แดนปฐมภูมิเบญจธาตุ',
-        descTh: 'แดนลับเบญจธาตุ ดรอปแก่นปฐมธาตุ (' + rc.catalystId + ') สำหรับปลุกสายเลือด 4 เทพอสูร'
+        descTh: 'แดนลับเบญจธาตุ แหล่งกำเนิดแก่นปฐมธาตุ「' + catTh + '」สำหรับปลุกสายเลือด 4 เทพอสูร'
       };
     });
 
@@ -3526,7 +3527,8 @@
     members.forEach(m => { m.merit = (m.merit || 0) + 22; HC.experience(m, 'duel_win', 0.7); });
     W.fame(4.5);
     X.ensureWorldTopology(W);
-    W.log('explore', '🌟 ช่วงชิงวาสนาฟ้าดิน「' + anomaly.nameTh + '」สำเร็จก่อน' + anomaly.rivalSectNameTh + '! ได้รับศิลา ' + rewards.stones + ' ก้อน และแก่นวิเศษ ' + rewards.catalysts.join(', '), members.map(m => m.id));
+    const catalystNamesTh = rewards.catalysts.map(cId => (ECO && ECO.REFINEMENT_CATALYSTS && ECO.REFINEMENT_CATALYSTS[cId] && ECO.REFINEMENT_CATALYSTS[cId].nameTh) || cId);
+    W.log('explore', '🌟 ช่วงชิงวาสนาฟ้าดิน「' + anomaly.nameTh + '」สำเร็จก่อน' + anomaly.rivalSectNameTh + '! ได้รับศิลาวิญญาณ ' + rewards.stones + ' ก้อน และแก่นวิเศษ「' + catalystNamesTh.join(', ') + '」', members.map(m => m.id));
     return { ok: true, won: true, claimedBy: 'PLAYER', anomalyId: anomaly.id, arrivedBeforeRival, travelDays: travel.days, rewards };
   };
 
@@ -4583,7 +4585,7 @@
     }
     const cat = entry.category || '';
     const title = String(entry.titleTh || '');
-    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(Boolean) : [];
+    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(id => id && !/^(?:GUEST|ENVOY)_/.test(String(id))) : [];
     const day = Number.isFinite(entry.day) ? entry.day : ((W && W.day) || 0);
     const sects = Array.isArray(entry.involvedSects) ? entry.involvedSects.filter(Boolean) : [];
     const sectName = (W && W.sect && W.sect.name) || '';
@@ -4815,7 +4817,7 @@
     W.world.chronicleSeq = (W.world.chronicleSeq || 0) + 1;
     const fmtId = inferChronicleReportFormat(entry);
     const fmtDef = X.CHRONICLE_REPORT_FORMATS[fmtId] || X.CHRONICLE_REPORT_FORMATS.PIGEON_DISPATCH;
-    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(Boolean) : [];
+    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(id => id && !/^(?:GUEST|ENVOY)_/.test(String(id))) : [];
     const actorSnapshots = npcIds.map(id => {
       const live = W.byId && W.byId[id];
       if (live && g.SIM && g.SIM.snapshotPerson) {
@@ -7642,10 +7644,10 @@
       involvedSects: [fig.sectNameTh || 'สำนักภายนอก', W.sect.name || 'สำนักของเรา'],
       involvedFigures: [HC.fullName(fullNpc)],
       titleTh: 'ยอดฝีมือแปรพักตร์สวามิภักดิ์! 「' + HC.fullName(fullNpc) + '」เข้าสู่สำนัก',
-      storyTh: 'หลังเหตุการณ์คลื่นลมผันผวนในยุทธภพ 「' + HC.fullName(fullNpc) + '」(' + (fig.roleTh || 'อดีตยอดฝีมือ') + 'แห่ง' + (fig.sectNameTh || 'สำนักภายนอก') + ') ผู้มีตบะ' + (fullNpc.cult ? fullNpc.cult.path + ' ขั้น ' + fullNpc.cult.stage : '') + ' และความทะเยอทะยาน (' + Math.round(figTrait(fig, 'personality.ambition')) + ') ได้เดินทางมาขอกราบคารวะเข้าพึ่งพิงสำนัก「' + (W.sect.name || 'สำนักของเรา') + '」! เจ้าสำนักพิจารณาแล้วรับเข้าเป็นศิษย์ชั้นสูงทันที!',
-      originCauseTh: fullNpc.renegadeOrigin ? ('วิกฤตชิงบัลลังก์/ความขัดแย้งภายใน「' + (fig.sectNameTh || 'สำนักเดิม') + '」บีบให้ต้องลี้ภัย') : ('ความเลื่อมใสในชื่อเสียงของสำนักเราและการชักชวนยอดฝีมือพเนจร'),
+      storyTh: 'หลังเหตุการณ์คลื่นลมผันผวนในยุทธภพ 「' + HC.fullName(fullNpc) + '」(' + (fig.roleTh || 'อดีตยอดฝีมือ') + 'แห่ง' + (fig.sectNameTh || 'สำนักภายนอก') + ') ผู้บำเพ็ญ' + (fullNpc.cult ? (((CULT.PATHS && CULT.PATHS[fullNpc.cult.path] && CULT.PATHS[fullNpc.cult.path].nameTh) || fullNpc.cult.path) + ' ขั้น ' + fullNpc.cult.stage) : '') + ' มีความทะเยอทะยาน (' + Math.round(figTrait(fig, 'personality.ambition')) + ') ได้เดินทางมาขอกราบคารวะเข้าพึ่งพิงสำนัก「' + (W.sect.name || 'สำนักของเรา') + '」! เจ้าสำนักพิจารณาแล้วรับเข้าเป็นศิษย์ชั้นสูงทันที!',
+      originCauseTh: fullNpc.renegadeOrigin ? ('วิกฤตชิงบัลลังก์และความขัดแย้งภายใน「' + (fig.sectNameTh || 'สำนักเดิม') + '」บีบให้ต้องลี้ภัย') : ('ความเลื่อมใสในชื่อเสียงของสำนักเราและการชักชวนยอดฝีมือพเนจร'),
       actorChainTh: HC.fullName(fullNpc) + ' (' + (fig.roleTh || 'ยอดฝีมือ') + ') ➔ เดินทางเข้าพึ่งใบบุญ「' + (W.sect.name || 'สำนักของเรา') + '」',
-      systemImpactTh: 'แปลงข้อมูลเป็น NPC เต็มรูปแบบใน W.npcs (รักษาแกนมนุษย์ 155 มิติ + วิชา + อาวุธเดิม) · บันทึกชีวประวัติ h.life.bio' + (fullNpc.renegadeOrigin ? ' · ตั้งเวลาสารทวงตัวจากหอวินัยสำนักเดิมและเกิดปมมารในใจรอการชี้แนะ' : ''),
+      systemImpactTh: 'ขึ้นทำเนียบเป็นศิษย์ประจำสำนักอย่างเป็นทางการ โดยคงพื้นฐานนิสัย วิชา และศาสตราเดิมครบถ้วน' + (fullNpc.renegadeOrigin ? ' · สำนักเดิมอาจส่งหน่วยล่าสังหารตามทวงตัว และศิษย์ผู้นี้ยังคงมีปมในใจรอการชี้แนะ' : ''),
       consequenceTh: HC.fullName(fullNpc) + ' เข้าร่วมเป็นสมาชิกสำนักเราอย่างสมบูรณ์ รักษาอุปนิสัยและวิชาเดิมครบถ้วน!',
       quiet: opts.quiet
     });
@@ -8091,7 +8093,7 @@
       storyTh: 'สำนักเราส่งทูตการค้าไปแลกเปลี่ยนวัตถุดิบและตำรับหลอมสร้างกับ「' + ce.titleAndNameTh + '」(ผู้อาวุโสหอโอสถ/หลอมสร้างแห่ง「' + s.nameTh + '」) ได้รับ ' + rewardItems.join(' และ ') + ' เข้าสู่คลังสำนัก!',
       originCauseTh: 'ผู้อาวุโสสายหลอมสร้าง (Tier 2: ' + ce.fullNameTh + ' · ทักษะปรุงยา ' + Math.round(alch) + '/ตีเหล็ก ' + Math.round(forg) + ') เปิดช่องทางแลกเปลี่ยนผลผลิตส่วนเกินระหว่างสำนัก',
       actorChainTh: (W.sect.name || 'สำนักเรา') + ' ➔ เจรจาแลกเปลี่ยนกับ ' + ce.titleAndNameTh + ' (' + s.nameTh + ')',
-      systemImpactTh: 'เชื่อมโยงระบบการทูตสำนักนอก (Tier 2 Craft Elder) ➔ คลังวัตถุดิบ/โอสถสำนัก (ECO) ➔ ระบบแก่นชีพจรฮวงจุ้ย (SECT.FENG_SHUI)',
+      systemImpactTh: 'การทูตสายช่างหลอมโอสถจากสำนักพันธมิตร ➔ เติมเต็มคลังวัตถุดิบและโอสถหายาก ➔ หนุนเนื่องแก่นชีพจรฮวงจุ้ยประจำสำนัก',
       consequenceTh: 'ได้รับ ' + rewardItems.join(' · ') + ' · ไมตรีกับ ' + s.nameTh + ' +6',
       quiet: opts.quiet
     });
@@ -8477,7 +8479,7 @@
       storyTh,
       originCauseTh: 'สารคำขาดจากหอวินัยแห่ง「' + ult.sectNameTh + '」(นำโดย ' + ult.disciplineElderNameTh + ') เรียกร้องให้ส่งตัวผู้ลี้ภัย「' + ult.npcNameTh + '」',
       actorChainTh: ult.disciplineElderNameTh + ' (ยื่นคำขาด) ➔ เจ้าสำนัก「' + W.sect.name + '」(ตัดสินใจ: ' + ult.resolvedChoice + ') ➔ ' + ult.npcNameTh,
-      systemImpactTh: 'เชื่อมโยงระบบผู้ลี้ภัย (renegadeOrigin) ➔ ความภักดีและความทรงจำ NPC (h.mind.memories / SECT.rel) ➔ ท่าทีการทูตและหน่วยมือสังหารหอวินัย (s.assassinThreat) ➔ ขวัญกำลังใจศิษย์ในสำนัก',
+      systemImpactTh: 'การตัดสินใจต่อชะตาผู้ลี้ภัย ➔ ตราตรึงความจงรักภักดีและความทรงจำของศิษย์ ➔ แรงกระเพื่อมต่อไมตรีและหน่วยสังหารหอวินัยสำนักเดิม ➔ ขวัญกำลังใจศิษย์ทั้งสำนัก',
       consequenceTh,
       quiet: opts.quiet
     });
@@ -8642,7 +8644,7 @@
       storyTh,
       originCauseTh: 'หนี้แค้นชิงบัลลังก์ของ「' + HC.fullName(npc) + '」(ความซาบซึ้งต่อสำนักเรา ' + Math.round(ro.gratitude || 50) + ') เมื่อบ่มเพาะตบะถึงขั้น ' + curStage,
       actorChainTh: HC.fullName(npc) + ' + ทัพหน้า「' + W.sect.name + '」➔ โค่นล้ม ' + (usurperMaster ? usurperMaster.titleAndNameTh : 'เจ้าสำนักผู้ทรยศ') + ' ➔ ขึ้นครอง「' + targetSect.nameTh + '」',
-      systemImpactTh: 'ย้าย ' + HC.fullName(npc) + ' จาก W.npcs ขึ้นเป็นเจ้าสำนัก ' + targetSect.nameTh + ' · ผูกสัญญา ETERNAL_SWORN_ALLY (บรรณาการ ' + immediateTribute + ' ศิลา/ปี) · สร้างสายสัมพันธ์ SWORN_ALLY ใน W.world.jianghu.bonds · สั่งสมจิตศาสตรา (SOUL_FORGE)',
+      systemImpactTh: HC.fullName(npc) + ' ก้าวขึ้นครองตำแหน่งเจ้าสำนัก「' + targetSect.nameTh + '」· ผูกสัตย์สาบานเป็นพันธมิตรนิรันดร์ (ส่งบรรณาการ ' + immediateTribute + ' ศิลา/ปี) · ขยายเครือข่ายสายใยยุทธภพและสั่งสมบารมีศาสตราคู่กาย',
       combatBreakdownTh: 'กำลังทัพทวงคืน ' + Math.round(partyPower) + ' บดขยี้ค่ายของ ' + targetSect.nameTh + ' (' + enemyPower + ')',
       consequenceTh,
       quiet: opts.quiet

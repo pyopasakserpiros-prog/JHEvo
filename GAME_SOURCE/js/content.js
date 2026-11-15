@@ -567,7 +567,11 @@
       if(exp.poisonous && npc.cult) {
         npc.cult.toxic=clamp((npc.cult.toxic||0)+6,0,100);
       }
-      if(!opts.quiet) W.log('research',npc.h.name.given+' ทดลอง「'+exp.nameTh+'」ยังไม่สำเร็จ แต่บันทึกคุณสมบัติ ('+(exp.requiredPropertyTags||[]).join(', ')+') ไว้ต่อยอด',[npc.id]);
+      if(!opts.quiet){
+        const EXP_TAG_TH={COOLING:'ฤทธิ์เย็น',HEAL_FLESH:'สมานเนื้อ',ADHESIVE:'ยึดประสาน',CORDYCEPS:'เชื้อถั่งเช่า',BONE_NOURISH:'บำรุงกระดูก',STONE_LOTUS_ROOT:'รากบัวศิลา',EXPEL_COLD:'ขับไอเย็น',FIRE_MERIDIAN:'ทะลวงชีพจรเพลิง',WIND_FIRE_SPICE:'เครื่องเทศวายุอัคคี',THORN_FANG:'เขี้ยวหนามพิษ',BLOOD_RUST:'สนิมโลหิต',IRON_WOOD:'แก่นไม้เหล็ก',TOUGH_SILK:'ใยไหมเหนียวแกร่ง',IRIDESCENT_ELYTRA:'ปีกแข็งเจ็ดสี',SWAMP_SINEW:'เอ็นอสูรบึงพิษ',VOLCANIC_COPPER:'ทองแดงภูเขาไฟ',FIRE_CONDUCT:'นำพาอัคคี',THERMAL_SPRING:'น้ำพุร้อนผสาน',GLIDE_FUR:'ขนร่อนเวหา',PINE_SOOT:'เขม่าสนโบราณ',ECHO_BAMBOO:'ไผ่ก้องกังวาน',BAGUA_DISK:'จานแปดทิศ',THUNDER_SALT:'เกลืออัสนี',AMETHYST_SOUL:'ผลึกม่วงวิญญาณ'};
+        const tagList=(exp.requiredPropertyTags||[]).map(t=>EXP_TAG_TH[t]||t).join(', ');
+        W.log('research',npc.h.name.given+' ทดลอง「'+exp.nameTh+'」ยังไม่สำเร็จ แต่จดบันทึกคุณสมบัติ ('+tagList+') ไว้ต่อยอด',[npc.id]);
+      }
     }
     expState.history.push({day:W.day,expId:exp.id,npcId:npc.id,ok:success,usedCatalyst,unlockedRecipeId});
     if(expState.history.length>40) expState.history.splice(0,expState.history.length-40);

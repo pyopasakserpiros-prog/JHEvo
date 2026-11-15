@@ -591,7 +591,7 @@
               role: (histNpc.roleTh ? histNpc.roleTh + " · " : "") + (histNpc.statusTh || "ไม่อยู่ในสำนักแล้ว"),
               exists: false
             });
-          } else {
+          } else if (!/^(?:GUEST|ENVOY)_/.test(String(id))) {
             out.push({
               kind: "npc",
               id,
@@ -3066,7 +3066,11 @@
       const asmHist = (S.assemblyHistory || []).slice(0, 4);
       if (asmHist.length) {
         h += '<h3>🏆 ทำเนียบแชมป์ชุมนุมยุทธ์สำนัก & ยอดเขายุทธ์</h3><div class="card">' + asmHist.map(a => {
-          const brHtml = (a.brackets || []).map(b => '<div style="font-size:11.5px;padding:2px 0">• <b>' + esc(b.nameTh) + ':</b> ' + esc(b.championName) + ' <span class="chip g">' + esc(b.weaponNameTh) + ' · ' + esc(b.signatureTechName) + '</span> <span class="muted">(+' + b.cpAwarded + ' CP' + (b.rewardItemNameTh ? ' · รับ「' + esc(b.rewardItemNameTh) + '」' : '') + ')</span></div>').join('');
+          const brHtml = (a.brackets || []).map(b => {
+            const isGuestWin = b.isGuest || /^(?:GUEST|ENVOY)_/.test(String(b.championId || '')) || !(b.cpAwarded > 0);
+            const rewardLabel = isGuestWin ? 'แขกรับเชิญพันธมิตร' : ('+' + b.cpAwarded + ' คป.');
+            return '<div style="font-size:11.5px;padding:2px 0">• <b>' + esc(b.nameTh) + ':</b> ' + esc(b.championName) + ' <span class="chip g">' + esc(b.weaponNameTh) + ' · ' + esc(b.signatureTechName) + '</span> <span class="muted">(' + rewardLabel + (b.rewardItemNameTh ? ' · รับศาสตรา「' + esc(b.rewardItemNameTh) + '」' : '') + ')</span></div>';
+          }).join('');
           return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><b>ปีที่ ' + a.year + ' (วันที่ ' + a.day + ') — แชมป์เปี้ยนสูงสุด: ' + esc(a.championName) + '</b> <span class="chip b">+' + (a.fameGained || 0) + ' ชื่อเสียงสำนัก</span></div>' + brHtml + '</div>';
         }).join('') + '</div>';
       }

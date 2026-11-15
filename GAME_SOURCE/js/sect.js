@@ -1748,7 +1748,7 @@
         sectId: rival.id,
         treaty: rival.treaty || 'NONE',
         outcome: won ? 'VICTORY' : 'DEFEAT',
-        summaryTh: HC.fullName(champ) + (won ? ' เอาชนะ' : ' พ่ายต่อ') + envoyUnit.nameTh + ' จาก' + rival.nameTh + (won ? (' (+' + cpGain + ' CP' + (stonePrize > 0 ? ', +' + stonePrize + ' ศิลา' : '') + ')') : '')
+        summaryTh: HC.fullName(champ) + (won ? ' ประมือเอาชนะ ' : ' พ่ายเชิงต่อ ') + envoyUnit.nameTh + ' แห่ง' + rival.nameTh + (won ? (' (+' + cpGain + ' คป.' + (stonePrize > 0 ? ', +' + stonePrize + ' ศิลา' : '') + ')') : '')
       });
     }
     if (!opts.quiet && W.log) {
@@ -1802,15 +1802,18 @@
           const guestStage = clamp(spec.minStage + (sIdx % (spec.maxStage - spec.minStage + 1)), spec.minStage, spec.maxStage);
           const wTypes = ['SWORD', 'BLADE', 'SPEAR', 'FIST', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP'];
           const gWpn = wTypes[Math.floor((W.day || 0) + (s.power || 1) + sIdx) % wTypes.length];
+          const gWpnTh = (g.JD && g.JD.MARTIAL && g.JD.MARTIAL.types && g.JD.MARTIAL.types[gWpn]) || gWpn;
+          const guestRolePrefix = spec.minStage <= 2 ? 'ศิษย์เอกรุ่นเยาว์แห่ง' : spec.minStage <= 4 ? 'ยอดฝีมือแกนหลักแห่ง' : 'ผู้อาวุโสรับเชิญแห่ง';
+          const gNameTh = guestRolePrefix + (s.shortTh || s.nameTh);
           const gPow = Math.round(180 * Math.pow(1.35, guestStage - 1) * (0.85 + (s.power || 2) * 0.05));
           const guest = {
             id: 'GUEST_' + s.id + '_' + spec.id + '_' + (W.day || 0),
             isGuest: true,
             guestSectId: s.id,
             guestSectNameTh: s.shortTh || s.nameTh,
-            name: 'ยอดฝีมือ' + (s.shortTh || s.nameTh),
+            name: gNameTh,
             h: {
-              name: { given: 'ยอดฝีมือ' + (s.shortTh || s.nameTh), family: '' },
+              name: { given: gNameTh, family: '' },
               state: { hp: 1000, satiety: 100, rest: 100, energy: 100 },
               skills: { [gWpn]: guestStage * 12 },
               personality: { bravery: 70 },
@@ -1821,7 +1824,7 @@
             stage: guestStage,
             power: gPow,
             cult: { path: s.majorPath || 'XIAN', stage: guestStage, sub: 'NONE', techs: [] },
-            equip: { WEAPON: { slot: 'WEAPON', gearType: gWpn, nameTh: gWpn, tier: guestStage } }
+            equip: { WEAPON: { slot: 'WEAPON', gearType: gWpn, nameTh: gWpnTh, tier: guestStage } }
           };
           guestEntrants.push(guest);
         });
@@ -1897,6 +1900,7 @@
         bouts,
         championId: champ.id,
         championName: HC.fullName(champ),
+        isGuest: !!champ.isGuest,
         runnerUpId: runnerUp ? runnerUp.id : null,
         runnerUpName: runnerUp ? HC.fullName(runnerUp) : null,
         subpath: sig.subpath,
@@ -1906,7 +1910,7 @@
         signatureTechId: sig.techId,
         signatureTechName: sig.techNameTh,
         signatureMoveName: sig.moveNameTh,
-        cpAwarded: spec.cpReward,
+        cpAwarded: champ.isGuest ? 0 : spec.cpReward,
         runnerUpCp: spec.runnerUpCp,
         stonePrize: spec.stonePrize,
         rewardItemId: reward.item ? reward.item.id : null,
@@ -1943,14 +1947,19 @@
       signatureTechName: grandSig.techNameTh,
       fameGained: totalFameGained,
       brackets: bracketResults,
-      summaryTh: 'ชุมนุมยุทธ์ใหญ่ปีที่ ' + cal.year + ': ' + bracketResults.map(b => b.nameTh + ' แชมป์คือ ' + b.championName + ' (' + b.weaponNameTh + '·' + b.signatureTechName + ', +' + b.cpAwarded + ' CP' + (b.rewardItemNameTh ? ', รับ「' + b.rewardItemNameTh + '」' : '') + ')').join(' | ')
+      summaryTh: 'ชุมนุมยุทธ์ใหญ่ประจำปีที่ ' + cal.year + ': ' + bracketResults.map(b =>
+        b.nameTh + ' ผู้ครองชัยคือ ' + b.championName + ' (' + b.weaponNameTh + '·' + b.signatureTechName +
+        (b.isGuest ? ', แขกรับเชิญพันธมิตร' : (', +' + b.cpAwarded + ' คป.')) +
+        (b.rewardItemNameTh ? ', รับศาสตรา「' + b.rewardItemNameTh + '」' : '') + ')'
+      ).join(' | ')
     };
     if (!opts.skipEnvoy && W.world && Array.isArray(W.world.sects) && W.world.sects.length) {
       record.envoyChallenge = SECT.resolveRivalEnvoyChallenge(W, grandChamp, opts.rivalSect, opts);
     }
     S.assemblyHistory.unshift(record);
     if (S.assemblyHistory.length > 24) S.assemblyHistory.length = 24;
-    W.log('tournament', '🏆 ' + record.summaryTh, bracketResults.map(b => b.championId));
+    const logNpcIds = bracketResults.map(b => b.championId).filter(id => id && W.byId && W.byId[id] && !/^(?:GUEST|ENVOY)_/.test(String(id)));
+    W.log('tournament', '🏆 ' + record.summaryTh, logNpcIds);
     return { ok: true, assembly: record, brackets: bracketResults, champion: grandChamp };
   };
 
@@ -1969,7 +1978,7 @@
       prize: Math.round(80 + (W.sect.policy ? W.sect.policy.generosity : 50))
     };
     if (host) {
-      W.log('decision', host.h.name.given + ' ประกาศจัดชุมนุมประลองยุทธ์สำนัก 3 รุ่น (T1–T2, T3–T4, T5–T7) ในอีก 1 วัน รางวัลรวมศิลา แต้มคุณูปการ (CP) และศาสตราประจำสาย', [host.id]);
+      W.log('decision', host.h.name.given + ' ประกาศจัดชุมนุมประลองยุทธ์สำนัก 3 รุ่น (T1–T2, T3–T4, T5–T7) ในอีก 1 วัน รางวัลรวมศิลา แต้มคุณูปการ (คป.) และศาสตราประจำสาย', [host.id]);
     }
     return W.sect.tournament;
   };
@@ -6565,8 +6574,8 @@
           titleTh: 'การใช้อำนาจหน้าที่ประจำตำแหน่ง: ' + pSpec.nameTh + ' (' + HC.fullName(n) + ')',
           storyTh: summaryTh,
           originCauseTh: 'อำนาจหน้าที่ตามทำเนียบตำแหน่ง「' + pSpec.nameTh + '」(บารมี ' + (pSpec.authority || 65) + ') และอุปนิสัยของผู้ดำรงตำแหน่ง',
-          actorChainTh: HC.fullName(n) + ' (' + pSpec.nameTh + ') ➔ ปฏิบัติหน้าที่ ณ ' + (pSpec.hall || 'main_hall'),
-          systemImpactTh: 'เชื่อมโยง SECT.runOfficerJurisdictionSingle(' + post + ') ➔ ขับเคลื่อนระบบสำนักและการเมืองภายใน',
+          actorChainTh: HC.fullName(n) + ' (' + pSpec.nameTh + ') ➔ ปฏิบัติหน้าที่ ณ ' + (pSpec.hall || 'ตำหนักใหญ่'),
+          systemImpactTh: 'การใช้อำนาจหน้าที่ตำแหน่ง「' + pSpec.nameTh + '」➔ ขับเคลื่อนกิจการสำนักและการเมืองภายใน',
           directorInsightTh: 'ขุนนางแต่ละตำแหน่งตัดสินใจตามบุคลิกภาพและทักษะจริง ทำให้สำนักดำเนินไปอย่างมีชีวิตชีวา',
           consequenceTh: summaryTh,
           quiet: true
@@ -8610,7 +8619,7 @@
         storyTh: HC.fullName(caster) + ' สำรวจเส้นชีพจรปราณใต้พิภพของ ' + bld.nameTh + ' และทำพิธีฝังแกน「' + elMeta.nameTh + '」เชื่อมโยงปราณเกื้อหนุนกับอาคารข้างเคียง จนระดับฮวงจุ้ยพุ่งขึ้นสู่เกรด ' + node.grade + ' (' + node.fengShuiScore + '/100)!',
         originCauseTh: 'ความต้องการยกระดับฮวงจุ้ยของ ' + bld.nameTh + ' ให้สอดคล้องกับรากปราณของศิษย์และอาคารข้างเคียง',
         actorChainTh: HC.fullName(caster) + ' (ทักษะค่ายกล ' + arrSkill + ' · ตำแหน่ง/สายค่ายกล)',
-        systemImpactTh: 'เชื่อมโยง FENG_SHUI ➔ อัตราบ่มเพาะตบะในอาคาร (×' + node.cultMult.toFixed(2) + ') + โบนัสคุณภาพการหลอมสร้าง (+' + Math.round(node.craftBonus * 100) + '%)',
+        systemImpactTh: 'ชีพจรปราณฮวงจุ้ย ➔ อัตราบ่มเพาะตบะในอาคาร (×' + node.cultMult.toFixed(2) + ') · โบนัสคุณภาพการหลอมสร้าง (+' + Math.round(node.craftBonus * 100) + '%)',
         consequenceTh: bld.nameTh + ' ฮวงจุ้ยเกรด ' + node.grade + ' · เร่งตบะ ×' + node.cultMult.toFixed(2),
         quiet: opts.quiet
       });
@@ -8670,7 +8679,7 @@
       storyTh: 'เมื่อแกนชีพจรปราณของอาคารหลักถูกปรับจูนครบถ้วน 「' + HC.fullName(caster) + '」ได้ขึ้นแท่นบูชาชักนำปราณฟ้าดินผสานเข้าเป็น「' + def.nameTh + '」ครอบคลุมทั่วขุนเขา!',
       originCauseTh: 'แกนชีพจรปราณอาคารหลักในสำนักถูกปรับจูนครบเกณฑ์ (' + attunedNodes.length + ' อาคาร)',
       actorChainTh: HC.fullName(caster) + ' (ผู้วางค่ายกลประจำสำนัก)',
-      systemImpactTh: 'เชื่อมโยง FENG_SHUI ➔ ป้องกันศึกบุกสำนัก (+' + Math.round(def.defenseBonus * 100) + '%) + รับสายฟ้าด่านเคราะห์สวรรค์ (+' + Math.round(def.tribulationShieldBonus * 100) + '%) + เร่งตบะทั้งสำนัก (+' + Math.round(def.cultRateBonus * 100) + '%)',
+      systemImpactTh: 'มหาค่ายกลฮวงจุ้ยพิทักษ์สำนัก ➔ ต้านศึกบุกสำนัก (+' + Math.round(def.defenseBonus * 100) + '%) · รับอสนีบาตด่านเคราะห์สวรรค์ (+' + Math.round(def.tribulationShieldBonus * 100) + '%) · เร่งตบะทั้งสำนัก (+' + Math.round(def.cultRateBonus * 100) + '%)',
       consequenceTh: 'ป้องกันสำนัก +' + Math.round(def.defenseBonus * 100) + '% · โอกาสผ่านด่านเคราะห์สวรรค์ +' + Math.round(def.tribulationShieldBonus * 100) + '%',
       quiet: opts.quiet
     }) : null;
@@ -9244,7 +9253,7 @@
       storyTh: 'เมื่อ「' + HC.fullName(deadNpc) + '」สิ้นใจลง ศาสตราคู่กายที่มีจิตวิญญาณ「' + ws.spiritNameTh + '」(ขั้นที่ ' + ws.stage + ' · ผ่านศึก ' + (ws.battlesFought || 1) + ' ครั้ง) ได้ส่งเสียงกังวานอาลัย ก่อนจะพุ่งทะยานไปหยุดลงตรงหน้า「' + HC.fullName(heir) + '」ผู้มีสายสัมพันธ์และรากปราณสอดคล้องกัน เพื่อสืบทอดเจตนารมณ์ต่อไป!',
       originCauseTh: 'การเสียชีวิตของเจ้าของศาสตราเดิม (' + HC.fullName(deadNpc) + ')',
       actorChainTh: 'จิตศาสตรา「' + ws.spiritNameTh + '」เลือกผู้สืบทอด: ' + HC.fullName(heir),
-      systemImpactTh: 'เชื่อมโยง AI.kill ➔ SOUL_FORGE ➔ สืบทอดอาวุธระดับสูงพร้อมโบนัสจิตศาสตรา (+' + Math.round((ws.multBonus || 0.05) * 100) + '%) โดยไม่ต้องสร้างใหม่',
+      systemImpactTh: 'ผู้ครอบครองเดิมสิ้นชีพ ➔ จิตศาสตราเลือกผู้สืบทอดสายสัมพันธ์ ➔ สืบทอดอาวุธคู่กายพร้อมโบนัสจิตศาสตรา (+' + Math.round((ws.multBonus || 0.05) * 100) + '%) ข้ามรุ่น',
       consequenceTh: HC.fullName(heir) + ' สวมใส่「' + wpn.nameTh + '」(' + ws.spiritNameTh + ') สืบทอดต่อเป็นรุ่นที่ ' + (ws.formerOwners.length + 1),
       quiet: opts.quiet
     }) : null;
@@ -9321,7 +9330,7 @@
       storyTh: HC.fullName(scholar) + ' ได้ศึกษาคัมภีร์ประจำสำนัก「' + art.nameTh + '」(ที่บัญญัติไว้โดย ' + (art.creatorNameTh || 'ปรมาจารย์รุ่นก่อน') + ') จนแตกฉาน จึงเขียนอรรถาธิบายเสริมเคล็ดวิชาลงในม้วนคัมภีร์ ยกระดับขึ้นเป็น「' + edSpec.nameTh + '」เพื่อให้ศิษย์รุ่นหลังเรียนรู้ได้รวดเร็วยิ่งขึ้น!',
       originCauseTh: 'การสั่งสมความเข้าใจในคัมภีร์มรดกสำนักของศิษย์/บรรณารักษ์รุ่นปัจจุบัน',
       actorChainTh: 'ผู้บัญญัติต้นฉบับ: ' + (art.creatorNameTh || '-') + ' ➔ ผู้เขียนอรรถาธิบายรุ่นที่ ' + art.annotations.length + ': ' + HC.fullName(scholar),
-      systemImpactTh: 'เชื่อมโยง SOUL_FORGE ➔ A.study (เร่งความเร็วเรียนคัมภีร์นี้ให้ศิษย์รุ่นหลัง +' + Math.round((nextEdition - 1) * 10) + '%) + พลังวิชา (+' + Math.round(edSpec.bonusCap * 100) + '%)',
+      systemImpactTh: 'จารึกอรรถกถามรดกวิชา ➔ ศิษย์รุ่นหลังศึกษารวดเร็วยิ่งขึ้น (+' + Math.round((nextEdition - 1) * 10) + '%) และเสริมอานุภาพวิชา (+' + Math.round(edSpec.bonusCap * 100) + '%)',
       consequenceTh: 'คัมภีร์「' + art.nameTh + '」เลื่อนเป็น ' + edSpec.nameTh + ' (โบนัสเพดาน +' + Math.round(edSpec.bonusCap * 100) + '%)',
       quiet: opts.quiet
     }) : null;
@@ -9586,8 +9595,8 @@
       storyTh: caravanRec.summaryTh,
       originCauseTh: (mEntry && mEntry.reasonTh) || 'พ่อค้าต่างแคว้นว่าจ้างศิษย์สำนักคุ้มกันขบวนสินค้า',
       actorChainTh: 'หัวหน้าขบวน: ' + HC.fullName(leader) + ' · องครักษ์คุ้มกัน: ' + guards.map(gNpc => HC.fullName(gNpc)).join(', '),
-      systemImpactTh: 'เชื่อมโยง העולםสงคราม/ฤดูกาล ➔ ดัชนีตลาด (×' + (mEntry ? mEntry.multiplier.toFixed(2) : '1.00') + ') ➔ คลังศิลาสำนัก (+' + revenue + ') + ความสัมพันธ์สำนักคู่ค้า (+5) + มิตรภาพศิษย์คุ้มกัน (+8)',
-      consequenceTh: 'คลังสำนัก +' + revenue + ' ศิลาวิญญาณ · คณะคุ้มกันได้รับตบะ +25 และ +18 CP',
+      systemImpactTh: 'สถานการณ์สงครามและฤดูกาลหนุนดัชนีตลาด (×' + (mEntry ? mEntry.multiplier.toFixed(2) : '1.00') + ') ➔ เติมคลังศิลาสำนัก (+' + revenue + ') · ผูกไมตรีสำนักคู่ค้า (+5) · กระชับสัมพันธ์ศิษย์คุ้มกัน (+8)',
+      consequenceTh: 'คลังสำนักรับรายได้ +' + revenue + ' ศิลาวิญญาณ · คณะศิษย์คุ้มกันได้รับตบะ +25 และความดีความชอบ +18 คป.',
       quiet: opts.quiet
     }) : null;
     return { ok: true, caravan: caravanRec, revenue, multiplier: mEntry ? mEntry.multiplier : 1.0, chronicle: chron };
@@ -9722,7 +9731,7 @@
       storyTh: (bidder ? HC.fullName(bidder) : 'ตัวแทนสำนักเรา') + ' เคาะราคาประมูลเฉือนชนะตัวแทนสำนักคู่แข่งในหอประมูลแดนเซียน คว้า「' + lot.nameTh + '」มาครองและนำไปใช้ยกระดับสำนักทันที!',
       originCauseTh: 'การเปิดประมูลสมบัติหายากประจำฤดูกาล ณ หอประมูลแดนเซียน',
       actorChainTh: 'ผู้ประมูล: ' + (bidder ? HC.fullName(bidder) : 'เจ้าสำนัก') + ' (ใช้ศิลาสำนัก ' + winPrice + ' ก้อน)',
-      systemImpactTh: 'เชื่อมโยง CARAVAN_AUCTION ➔ ' + effectSummaryTh,
+      systemImpactTh: 'ประมูลสมบัติหอแดนเซียนสำเร็จ ➔ ' + effectSummaryTh,
       consequenceTh: effectSummaryTh,
       quiet: opts.quiet
     }) : null;
@@ -10575,9 +10584,9 @@
       npcIds: party.map(m => m.id),
       titleTh: 'บันทึกสำรวจแดนลับ 5 โหนด: 「' + HC.fullName(leader) + '」นำทัพฝ่าด่าน 12 มรรคา คว้าเศษคัมภีร์โบราณ +' + scrollFragmentsGained + ' ชิ้น!',
       storyTh: runRec.summaryTh,
-      originCauseTh: 'หัวหน้าทีม ' + HC.fullName(leader) + ' วางกลยุทธ์เดินหมาก「' + docDef.nameTh + '」และใช้ทักษะเฉพาะทางของสมาชิก (' + partyPaths.join(', ') + ') แก้ปริศนาแต่ละโหนด',
-      actorChainTh: 'หัวหน้าทีม: ' + HC.fullName(leader) + ' · ผู้เชี่ยวชาญแก้ด่าน: ' + (matchedSpecialists.map(s => s.npcNameTh + '(' + s.path + ')').join(', ') || HC.fullName(leader)) + (lifeSaviorEvent ? (' · ผู้ช่วยชีวิต: ' + lifeSaviorEvent.saviorNameTh + ' ➔ ' + lifeSaviorEvent.savedNameTh) : ''),
-      systemImpactTh: 'เชื่อมโยง SECRET_REALM_NODES ➔ สายใยผู้ช่วยชีวิต (LIFE_SAVIOR) ➔ เศษคัมภีร์โบราณ (+' + scrollFragmentsGained + ') ➔ จิตศาสตรา (SOUL_FORGE) ➔ คลังศิลา (+' + actualStonesGained + ')',
+      originCauseTh: 'หัวหน้าทีม ' + HC.fullName(leader) + ' วางกลยุทธ์เดินหมาก「' + docDef.nameTh + '」และใช้ทักษะเฉพาะทางของสมาชิก (' + (partyPaths || []).map(p => (CULT.PATHS && CULT.PATHS[p] && CULT.PATHS[p].nameTh) || p).join(', ') + ') แก้ปริศนาแต่ละโหนด',
+      actorChainTh: 'หัวหน้าทีม: ' + HC.fullName(leader) + ' · ผู้เชี่ยวชาญแก้ด่าน: ' + (matchedSpecialists.map(s => s.npcNameTh + ' (' + ((CULT.PATHS && CULT.PATHS[s.path] && CULT.PATHS[s.path].nameTh) || s.path) + ')').join(', ') || HC.fullName(leader)) + (lifeSaviorEvent ? (' · ผู้ช่วยชีวิต: ' + lifeSaviorEvent.saviorNameTh + ' ➔ ' + lifeSaviorEvent.savedNameTh) : ''),
+      systemImpactTh: 'พิชิตแดนลับ 5 โหนด ➔ ก่อเกิดสายใยผู้ร่วมเป็นร่วมตาย ➔ เก็บกู้เศษคัมภีร์โบราณ (+' + scrollFragmentsGained + ') · สั่งสมบารมีจิตศาสตรา · เพิ่มพูนคลังศิลา (+' + actualStonesGained + ')',
       consequenceTh: 'ศิลา +' + actualStonesGained + ' · เศษคัมภีร์โบราณสะสม ' + ne.ancientScrollFragments + ' ชิ้น' + (lifeSaviorEvent ? (' · ผูกพันธะผู้ช่วยชีวิต ' + lifeSaviorEvent.saviorNameTh + ' & ' + lifeSaviorEvent.savedNameTh) : ''),
       quiet: opts.quiet
     }) : null;
@@ -10643,7 +10652,7 @@
       storyTh: summaryTh,
       originCauseTh: 'การรวบรวมเศษคัมภีร์โบราณจากการสำรวจโหนดแดนลับครบ 2 ชิ้น และความเชี่ยวชาญคัมภีร์ของ ' + HC.fullName(archivist),
       actorChainTh: 'ผู้บูรณะคัมภีร์: ' + HC.fullName(archivist) + ' (หอคัมภีร์) ➔ สืบทอดสู่ศิษย์ทั้งสำนัก',
-      systemImpactTh: 'เชื่อมโยง SECRET_REALM_NODES (เศษคัมภีร์) ➔ SOUL_FORGE (ขัดเกลาคัมภีร์มรดกสำนัก) ➔ วาระก๊กจารีต (ORTHODOX_TRADITION)',
+      systemImpactTh: 'บูรณะเศษคัมภีร์จากแดนลับ ➔ จารึกเสริมคัมภีร์มรดกประจำสำนัก ➔ ตอบสนองปณิธานสายอนุรักษนิยมจารีต',
       consequenceTh: restRec.sutraNameTh + ' เลื่อนระดับสู่ ' + restRec.editionNameTh + ' · เศษคัมภีร์คงเหลือ ' + ne.ancientScrollFragments + ' ชิ้น',
       quiet: opts.quiet
     }) : null;
@@ -11131,10 +11140,10 @@
       involvedSects: [W.sect.name],
       involvedFigures: ['ผู้กำกับชะตาฟ้าดิน'],
       titleTh: 'วัฏจักรฟ้าดินเปลี่ยนผ่านสู่「' + eraDef.nameTh + '」!',
-      storyTh: 'กระแสชีพจรปราณทั่วทั้งทวีปแปรเปลี่ยนครั้งใหญ่ ก้าวเข้าสู่「' + eraDef.nameTh + '」— ' + eraDef.descTh + ' ส่งผลให้ปราณธาตุ (' + eraDef.boostedElements.join('/') + ') และวิถี (' + eraDef.boostedPaths.join('/') + ') ได้รับแรงหนุนจากฟ้าดิน ×' + eraDef.cultMult.toFixed(2) + '!',
+      storyTh: 'กระแสชีพจรปราณทั่วทั้งทวีปแปรเปลี่ยนครั้งใหญ่ ก้าวเข้าสู่「' + eraDef.nameTh + '」— ' + eraDef.descTh + ' ส่งผลให้ปราณธาตุ (' + (eraDef.boostedElements || []).map(el => (SECT.FENG_SHUI && SECT.FENG_SHUI.ELEMENT_META[el] && SECT.FENG_SHUI.ELEMENT_META[el].nameTh) || el).join(' · ') + ') และสายวิถี (' + (eraDef.boostedPaths || []).map(p => (CULT.PATHS && CULT.PATHS[p] && CULT.PATHS[p].nameTh) || p).join(' · ') + ') ได้รับแรงหนุนจากฟ้าดิน ×' + eraDef.cultMult.toFixed(2) + '!',
       originCauseTh: 'การหมุนเวียนของวัฏจักรปราณฟ้าดินและดวงดาวตามกฎธรรมชาติของยุทธภพ',
       actorChainTh: 'ชีพจรฟ้าดิน ➔ ค่ายกลฮวงจุ้ยสำนัก (FENG_SHUI) ➔ ดัชนีตลาดยุทธภพ (CARAVAN_AUCTION) ➔ ผู้ฝึกตนทั้ง 19 สำนัก',
-      systemImpactTh: 'เชื่อมโยง HEAVENLY_DAO_DIRECTOR ➔ FENG_SHUI (ปรากฏการณ์ฟ้าดิน) ➔ CARAVAN_AUCTION (ราคาหมวด ' + eraDef.marketFocusCat + ' พุ่งขึ้น) ➔ โบนัสตบะสาย ' + eraDef.boostedPaths.join('/'),
+      systemImpactTh: 'กระแสแห่งมหายุคปลุกปรากฏการณ์ชัยภูมิและชีพจรธาตุ ➔ ราคาสินค้าหมวด「' + ((SECT.CARAVAN_AUCTION && SECT.CARAVAN_AUCTION.CATEGORIES && SECT.CARAVAN_AUCTION.CATEGORIES[eraDef.marketFocusCat] && SECT.CARAVAN_AUCTION.CATEGORIES[eraDef.marketFocusCat].nameTh) || eraDef.marketFocusCat) + '」ในกองคาราวานพุ่งสูง ➔ เร่งตบะศิษย์สาย ' + (eraDef.boostedPaths || []).map(p => (CULT.PATHS && CULT.PATHS[p] && CULT.PATHS[p].nameTh) || p).join(' · '),
       consequenceTh: 'เข้าสู่ ' + eraDef.nameTh + ' · เร่งตบะสายที่สอดคล้อง ×' + eraDef.cultMult.toFixed(2),
       quiet: opts.quiet
     }) : null;
@@ -11246,7 +11255,7 @@
       storyTh: hd.lastChapterStoryTh,
       originCauseTh: 'ผู้กำกับชะตาฟ้าดินประเมินค่าความตึงเครียด (' + hd.tensionScore + '/100) และความมั่งคั่ง (' + hd.prosperityScore + '/100) ของสำนัก',
       actorChainTh: 'ผู้กำกับชะตาฟ้าดิน (' + HEAVENLY_DAO_DIRECTOR.PERSONAS[hd.persona].nameTh + ') ➔ ตัวเอกประจำบท: ' + spName,
-      systemImpactTh: 'เชื่อมโยง HEAVENLY_DAO_DIRECTOR ➔ ' + interventionType + ' ➔ มุมมองผู้เล่น 4 สไตล์ (' + hd.playerLensMode + ')',
+      systemImpactTh: 'ผู้กำกับชะตาฟ้าดิน ➔ ' + ({ FORTUITOUS_DAO_RAIN: 'พิรุณเต๋าประทานวาสนา', HEAVENLY_TRIAL_TEMPERING: 'อสนีบททดสอบชะตา', KARMIC_SCROLL_DISCOVERY: 'วาสนาค้นพบคัมภีร์โบราณ', BALANCED_EPIPHANY: 'คลื่นปราณเกื้อหนุนสมดุล' }[interventionType] || interventionType) + ' ➔ สะท้อนผลลัพธ์ผ่านมุมมองยุทธภพ',
       directorInsightTh: '[Director (' + hd.persona + ')]: Tension=' + hd.tensionScore + ', Prosperity=' + hd.prosperityScore + ', Drama=' + hd.dramaDensity + ' ➔ ขับเคลื่อนเรื่องราวผ่าน ' + spName,
       playerLensHighlights: ArchetypeReports.allLenses,
       consequenceTh: interventionSummaryTh,
@@ -11366,9 +11375,9 @@
       npcIds: hostRep ? [hostRep.id] : [],
       titleTh: 'เทียบเชิญตราหยกข้ามสำนัก: คณะทูต「' + hd.guestSectDelegation.sectNameTh + '」มาเยือนแลกเปลี่ยนคัมภีร์「' + hd.guestSectDelegation.sutraNameTh + '」!',
       storyTh: hd.guestSectDelegation.summaryTh,
-      originCauseTh: 'การเปิดผนึกตราหยกเทียบเชิญข้ามสำนัก (Asynchronous Jade Seal Code Sharing — I01)',
+      originCauseTh: 'การเปิดผนึกตราหยกเทียบเชิญข้ามสำนักเพื่อแลกเปลี่ยนภูมิปัญญา',
       actorChainTh: 'คณะผู้แทน ' + hd.guestSectDelegation.sectNameTh + ' ➔ ผู้รับรอง: ' + hd.guestSectDelegation.hostRepNameTh,
-      systemImpactTh: 'เชื่อมโยง HEAVENLY_DAO_DIRECTOR (I01 Jade Seal) ➔ แลกเปลี่ยนความเข้าใจคัมภีร์ (+1 เศษคัมภีร์โบราณ) + ตบะ (+45)',
+      systemImpactTh: 'เทียบเชิญตราหยกข้ามสำนัก ➔ แลกเปลี่ยนอรรถกถาคัมภีร์ (+1 เศษคัมภีร์โบราณ) และเพิ่มพูนตบะ (+45)',
       consequenceTh: hd.guestSectDelegation.summaryTh,
       quiet: opts.quiet
     }) : null;
@@ -12153,10 +12162,10 @@
       involvedFigures: [HC.fullName(master), HC.fullName(deputy)],
       npcIds: members.map(m => m.id),
       titleTh: 'สถาปนายอดเขาใหม่ในสำนัก: เปิด「' + pObj.nameTh + '」นำโดยเจ้าหุบเขา「' + HC.fullName(master) + '」!',
-      storyTh: 'เมื่อผู้ฝึกตนวิถี (' + pObj.paths.join('/') + ') ในสำนักรวมตัวกันครบ ' + members.length + ' คน ผู้อาวุโส「' + HC.fullName(master) + '」จึงได้รับตราตั้งขึ้นเป็นผู้นำ「' + pObj.nameTh + '」(มีศักดิ์เทียบเท่ารองเจ้าสำนัก) โดยมี「' + HC.fullName(deputy) + '」เป็นรองผู้นำยอดเขา และประกาศใช้นโยบาย「' + pObj.policy.allocationRuleTh + '」!',
-      originCauseTh: 'สมาชิกวิถี ' + pObj.paths.join('/') + ' มีจำนวนครบเกณฑ์ (' + members.length + ' คน) และมีผู้อาวุโสพร้อมขึ้นนำยอดเขา',
+      storyTh: 'เมื่อผู้ฝึกตนสายวิถี (' + (pObj.paths || []).map(p => (CULT.PATHS && CULT.PATHS[p] && CULT.PATHS[p].nameTh) || p).join(' · ') + ') ในสำนักรวมตัวกันครบ ' + members.length + ' คน ผู้อาวุโส「' + HC.fullName(master) + '」จึงได้รับตราตั้งขึ้นเป็นผู้นำ「' + pObj.nameTh + '」(มีศักดิ์เทียบเท่ารองเจ้าสำนัก) โดยมี「' + HC.fullName(deputy) + '」เป็นรองผู้นำยอดเขา และประกาศใช้นโยบาย「' + pObj.policy.allocationRuleTh + '」!',
+      originCauseTh: 'สมาชิกสายวิถี ' + (pObj.paths || []).map(p => (CULT.PATHS && CULT.PATHS[p] && CULT.PATHS[p].nameTh) || p).join(' · ') + ' มีจำนวนครบเกณฑ์ (' + members.length + ' คน) และมีผู้อาวุโสพร้อมขึ้นนำยอดเขา',
       actorChainTh: 'ผู้นำยอดเขา: ' + HC.fullName(master) + ' ➔ รองผู้นำ: ' + HC.fullName(deputy) + ' ➔ สมาชิก: ' + check.memberCandidates.map(m => HC.fullName(m)).join(', '),
-      systemImpactTh: 'เชื่อมโยง SECT.PEAKS ➔ แสดงยอดเขาในหน้า UI ➔ สิทธิ์โหวตศิษย์สืบทอดเทียบเท่ารองเจ้าสำนัก (2.5) ➔ การจัดสรรทรัพยากรหุบเขา',
+      systemImpactTh: 'สถาปนายอดเขาฝ่ายย่อย ➔ เปิดทำเนียบหุบเขาและสิทธิ์ออกเสียงในสภาอาวุโส (เทียบเท่ารองเจ้าสำนัก) ➔ จัดสรรทรัพยากรบำรุงศิษย์ร่วมสาย',
       consequenceTh: 'เปิดแสดงผล「' + pObj.nameTh + '」(' + members.length + ' สมาชิก) · นโยบาย: ' + pObj.policy.allocationRuleTh,
       quiet: opts.quiet
     }) : null;
@@ -12166,7 +12175,7 @@
         milestoneType: 'FOUNDING',
         icon: pObj.icon || '🏔️',
         titleTh: 'สถาปนา「' + pObj.nameTh + '」นำโดย ' + HC.fullName(master),
-        descTh: 'รองรับวิถี ' + pObj.paths.join('/') + ' · สมาชิกเริ่มต้น ' + members.length + ' คน',
+        descTh: 'รองรับสายวิถี ' + (pObj.paths || []).map(p => (CULT.PATHS && CULT.PATHS[p] && CULT.PATHS[p].nameTh) || p).join(' · ') + ' · สมาชิกเริ่มต้น ' + members.length + ' คน',
         involvedIds: members.map(m => m.id),
         quiet: true
       });
@@ -12377,7 +12386,7 @@
       storyTh: allocations.map(a => '「' + a.peakNameTh + '」รับ ' + a.shareStones + ' ศิลา & โอสถ ' + a.sharePills + ' เม็ด (' + a.biasNoteTh + ') ➔ เจ้าหุบเขา ' + a.masterNameTh + ' แจกจ่ายลูกศิษย์ตามหลัก「' + (a.memberDistribution && a.memberDistribution.ruleTh ? a.memberDistribution.ruleTh : 'ผลงาน') + '」').join(' · '),
       originCauseTh: 'รอบการจัดสรรงบประมาณรายเดือนจากหอคลังส่วนกลางสู่ยอดเขาทั้ง ' + foundedPeaks.length + ' แห่ง',
       actorChainTh: 'ส่วนกลาง (' + (master ? HC.fullName(master) : 'เจ้าสำนัก') + ') ➔ ผู้นำยอดเขา ➔ สมาชิกในแต่ละยอดเขา (ศิษย์อิสระไม่ได้รับส่วนแบ่งนี้)',
-      systemImpactTh: 'เชื่อมโยง คลังส่วนกลาง ➔ คลังยอดเขา (SECT.PEAKS) ➔ ความสัมพันธ์ผู้นำยอดเขากับลูกศิษย์ (SOCIAL_MATRIX)',
+      systemImpactTh: 'หอคลังส่วนกลาง ➔ คลังทรัพยากรประจำยอดเขา ➔ กระชับความสัมพันธ์ระหว่างเจ้าหุบเขากับศิษย์ในสังกัด',
       consequenceTh: 'กระจายศิลารวม ' + distributedSum + ' ก้อนสู่สมาชิกยอดเขา',
       quiet: opts.quiet
     }) : null;
@@ -12569,7 +12578,7 @@
       runnerUpPeakNameTh: runnerUp.peak.nameTh,
       runnerUpNameTh: HC.fullName(runnerUp.rep),
       participatingPeaksCount: foundedPeaks.length,
-      summaryTh: '🏆 การประลองใหญ่ระหว่าง ' + foundedPeaks.length + ' ยอดเขา: 「' + HC.fullName(champ) + '」ตัวแทนจาก「' + winPeak.nameTh + '」เอาชนะ「' + HC.fullName(runnerUp.rep) + '」(' + runnerUp.peak.shortTh + ') คว้าแชมป์ไปครอง! รับรางวัลส่วนตัว (+90 ศิลา · +40 CP · +55 ตบะ) และส่งผลให้「' + winPeak.nameTh + '」ได้รับโควตางบส่วนกลางเพิ่มขึ้น +25% และปราณเร่งตบะทั้งยอดเขา!'
+      summaryTh: '🏆 การประลองใหญ่ระหว่าง ' + foundedPeaks.length + ' ยอดเขา: 「' + HC.fullName(champ) + '」ตัวแทนจาก「' + winPeak.nameTh + '」เอาชนะ「' + HC.fullName(runnerUp.rep) + '」(' + runnerUp.peak.shortTh + ') คว้าแชมป์ไปครอง! รับรางวัลส่วนตัว (+90 ศิลา · +40 คป. · +55 ตบะ) และส่งผลให้「' + winPeak.nameTh + '」ได้รับโควตางบส่วนกลางเพิ่มขึ้น +25% พร้อมปราณเร่งตบะทั้งยอดเขา!'
     };
     pk.tournamentHistory.unshift(tRec);
     if (pk.tournamentHistory.length > 15) pk.tournamentHistory.length = 15;
@@ -12585,7 +12594,7 @@
       storyTh: tRec.summaryTh,
       originCauseTh: 'การแข่งขันวัดศักยภาพระหว่างยอดเขาที่ก่อตั้งแล้วทั้ง ' + foundedPeaks.length + ' แห่ง เพื่อชิงโควตาทรัพยากรส่วนกลางและเกียรติภูมิหุบเขา',
       actorChainTh: 'แชมป์: ' + HC.fullName(champ) + ' (' + winPeak.shortTh + ') vs รองแชมป์: ' + HC.fullName(runnerUp.rep) + ' (' + runnerUp.peak.shortTh + ')',
-      systemImpactTh: 'เชื่อมโยง SECT.PEAKS ➔ รางวัลตัวแทน (+90 ศิลา, +40 CP, ฉายาแชมป์) ➔ รางวัลยอดเขา (งบส่วนกลาง +25%, Prestige +22) ➔ ความสัมพันธ์ข้ามยอดเขา (SOCIAL_MATRIX)',
+      systemImpactTh: 'ประลองชิงชัยระหว่างยอดเขา ➔ รางวัลตัวแทน (+90 ศิลา, +40 คป., สมญานามแชมป์) ➔ หนุนยอดเขาผู้ชนะ (งบส่วนกลาง +25%, เกียรติภูมิ +22) ➔ เชื่อมไมตรีและการชิงดีข้ามหุบเขา',
       consequenceTh: winPeak.nameTh + ' ครองแชมป์ยอดเขา · โควตางบ +25% · สมาชิกทั้งยอดเขาตบะ +20',
       quiet: opts.quiet
     }) : null;
@@ -12732,10 +12741,10 @@
       involvedFigures: [HC.fullName(target)],
       npcIds: [target.id],
       titleTh: 'สถาปนาผู้นำหุบเขา: 「' + HC.fullName(target) + '」ขึ้นดำรงตำแหน่ง' + roleTitleTh,
-      storyTh: 'เจ้าสำนักมอบตราหยกประจำหุบเขาแต่งตั้งให้「' + HC.fullName(target) + '」ขึ้นดำรงตำแหน่ง' + roleTitleTh + ' เพื่อกำกับดูแลศิษย์สาย ' + pObj.paths.join('/') + ' และบริหารทรัพยากรประจำยอดเขา',
+      storyTh: 'เจ้าสำนักมอบตราหยกประจำหุบเขาแต่งตั้งให้「' + HC.fullName(target) + '」ขึ้นดำรงตำแหน่ง' + roleTitleTh + ' เพื่อกำกับดูแลศิษย์สาย ' + (pObj.paths || []).map(p => (CULT.PATHS && CULT.PATHS[p] && CULT.PATHS[p].nameTh) || p).join(' · ') + ' และบริหารทรัพยากรประจำยอดเขา',
       originCauseTh: 'การจัดระเบียบสายปกครองของ「' + pObj.nameTh + '」ตามระดับตบะและบารมี',
       actorChainTh: 'เจ้าสำนัก ➔ แต่งตั้ง ' + HC.fullName(target) + ' (' + roleTitleTh + ')',
-      systemImpactTh: 'เชื่อมโยง SECT.PEAKS (' + peakId + ') ➔ สิทธิ์โหวตสภา ➔ นโยบายจัดสรรทรัพยากรยอดเขา',
+      systemImpactTh: 'แต่งตั้งตำแหน่งประจำ「' + pObj.nameTh + '」➔ มอบสิทธิ์ออกเสียงในสภาสำนักและวางระเบียบจัดสรรทรัพยากรประจำหุบเขา',
       directorInsightTh: 'ประธานยอดเขามีศักดิ์เทียบเท่ารองเจ้าสำนักและมีอิทธิพลโดยตรงต่อขวัญกำลังใจของศิษย์ในสังกัด',
       consequenceTh: HC.fullName(target) + ' ดำรงตำแหน่ง' + roleTitleTh,
       quiet: opts.quiet
