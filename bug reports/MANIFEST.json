@@ -1,0 +1,747 @@
+{
+  "source_branch": "main-debug",
+  "source_commit": "49697d1d638d3194d9b24035ab258cd47a6661c0",
+  "purpose": "Documentation supplement; preserve Gemini working game through category 06; implement 07-08 only before delivery.",
+  "files": [
+    {
+      "path": ".agents/skills/README.md",
+      "bytes": 10529,
+      "sha256": "ed7c91284709f80ab474efb80b122a855a4c2ecf93e19f2afcb0591865007ca5"
+    },
+    {
+      "path": ".agents/skills/ai-behavior-patterns/SKILL.md",
+      "bytes": 36063,
+      "sha256": "95df80d22dde4ee89ec1116988e01806b624043366c1aa6dcd19a8e45659d29c"
+    },
+    {
+      "path": ".agents/skills/combat-design/SKILL.md",
+      "bytes": 50278,
+      "sha256": "61914357d9cb6d2b71c87044d65360b8d91a52192cfd21c133ca4e62cada3834"
+    },
+    {
+      "path": ".agents/skills/economy-balancing/SKILL.md",
+      "bytes": 26300,
+      "sha256": "3f22f1f4fcfc9212f202a2a8e9f15397fd0cb7cccec44e2f296a68c697276f37"
+    },
+    {
+      "path": ".agents/skills/game-data-integrity/SKILL.md",
+      "bytes": 21691,
+      "sha256": "010aa9d25804545ff17ce13375a18384e6764bd04b60dd55be232170e3ba90fe"
+    },
+    {
+      "path": ".agents/skills/game-ui-ux/SKILL.md",
+      "bytes": 39074,
+      "sha256": "a1a9c962bb1e3c3d6666691f7dca899d6ee42fa13149e66d9e55f169f89c91b3"
+    },
+    {
+      "path": ".agents/skills/gameplay-architecture/SKILL.md",
+      "bytes": 44427,
+      "sha256": "16d376a353d193d76bc3fd1eaca48c5724a4186e822860d2b235adba4a271842"
+    },
+    {
+      "path": ".agents/skills/performance-budgeting/SKILL.md",
+      "bytes": 15888,
+      "sha256": "2b86023b3b512f5a844e2db881852b774ba7054cddd2d36926635139272f5bdf"
+    },
+    {
+      "path": ".agents/skills/procedural-gen/SKILL.md",
+      "bytes": 23438,
+      "sha256": "0cecdb759e378aa15635a9ffb08dfece301ef097d46722f38e0255dc87479316"
+    },
+    {
+      "path": ".agents/skills/progression-design/SKILL.md",
+      "bytes": 26253,
+      "sha256": "499f2790da06a08af81ae574ea9cc11617730d49ca7e110c3ee2ab49073507d8"
+    },
+    {
+      "path": ".agents/skills/qa-test-matrix/SKILL.md",
+      "bytes": 24489,
+      "sha256": "de5378fc4ceb5935743e35c8a991323037f296ef78f14fd7ec5bb439043b44b2"
+    },
+    {
+      "path": ".agents/skills/save-system-patterns/SKILL.md",
+      "bytes": 11245,
+      "sha256": "9c646e95666dd970ca8ed418378517dabc1a3300d6117e31c0b4a022a67a4462"
+    },
+    {
+      "path": ".agents/skills/web-performance/SKILL.md",
+      "bytes": 17584,
+      "sha256": "98a2ecb9634e1cdc57c3b18249333226b202eec8ae8f5c8333bcd266a687bbbc"
+    },
+    {
+      "path": ".agents/skills/web-testing/SKILL.md",
+      "bytes": 20144,
+      "sha256": "efb4f329e282b4e6f9424fc54aa4c9e4b4d1f9c10bdf414a0d0d2a1aa73da506"
+    },
+    {
+      "path": "ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md",
+      "bytes": 30898,
+      "sha256": "b52ca49f6cd53c19c7a0a960e5f554d76969671c42483d16c32a16ec66413c22"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 49928,
+      "sha256": "41610ec4de7f5d620c5de0a605094e64d95ec9a67acf41365dec30e83e7d29d3"
+    },
+    {
+      "path": "FUTURE_ROADMAP_AND_IDEAS.md",
+      "bytes": 32273,
+      "sha256": "3adb61b9cb3f18bcee9b34e9bb7163a90b768500a50662a1d953faae168f5b00"
+    },
+    {
+      "path": "GAME_SOURCE/README.md",
+      "bytes": 1516,
+      "sha256": "8ba084e1a7bc9cf8b7fd8732700bcf470895ba7df28950b777de26b508dcbac8"
+    },
+    {
+      "path": "PATCH_REPORTS/ALL_EQUIPMENT_TIER_ART_JS2_V2_5_0.md",
+      "bytes": 13397,
+      "sha256": "3157a25714db483878345d1234d15bbe9a3b180aa1692fd03a59609a0fe44b4d"
+    },
+    {
+      "path": "PATCH_REPORTS/COMMON_SKILL_VFX_JS2_V2_6_0.md",
+      "bytes": 4336,
+      "sha256": "72cd11d286b0ae22915f2a866c80ac61fde5904f6223cf68d61a86f8fa47df66"
+    },
+    {
+      "path": "PATCH_REPORTS/COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md",
+      "bytes": 15051,
+      "sha256": "6f7c750e5b5bde3f0571efa9e6390086a7295926fea27b204086df84eae4a730"
+    },
+    {
+      "path": "PATCH_REPORTS/ITEM_ART_VARIETY_JS2_V2_5_0.md",
+      "bytes": 13237,
+      "sha256": "93e875935f51eca805b4e011f92d777d40630ac31bca29ce27711b3f4492bd24"
+    },
+    {
+      "path": "PATCH_REPORTS/JHEvo_v3.1.0_Development_Proposals_and_Roadmap.pdf",
+      "bytes": 1575844,
+      "sha256": "cd328d157b84ce444f66a5bad25774879e88055e3a65f4fc44e31ef1e430a5a6"
+    },
+    {
+      "path": "PATCH_REPORTS/JHEvo_v3.1.0_Full_Game_Audit_Report.pdf",
+      "bytes": 1350293,
+      "sha256": "f0239378863b01539d93dfb894954eaefb808ea79c457dcd2c82d2c44031f0aa"
+    },
+    {
+      "path": "PATCH_REPORTS/Jianghu_Sect_Full_Game_Audit_2026-11-06.docx",
+      "bytes": 60100,
+      "sha256": "8469eff250bf848a4ae8d45eb8ec102b1bc20539164da449701e81f37af1eb6c"
+    },
+    {
+      "path": "PATCH_REPORTS/LEGENDARY_APEX_JS2_V2_6_0.md",
+      "bytes": 5559,
+      "sha256": "89f22f1162a0c023c03b5347c7193022ea2892d72bfcb4213442451505606bd6"
+    },
+    {
+      "path": "PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md",
+      "bytes": 9989,
+      "sha256": "d3442a371854a4221bc1b64db4352c8abf7ca1549e53ffa796a44605e4287a1c"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_0_0.md",
+      "bytes": 13888,
+      "sha256": "eeeb265ae296fb8156b2c4a24cddfe38f016c97c28c4b7c93087feef6a139ec0"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_1_0.md",
+      "bytes": 12677,
+      "sha256": "dde88554b3d72133c60b390846091df83962a28894e97486bcf0ef4b0ba0aa87"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_2_0.md",
+      "bytes": 8337,
+      "sha256": "1526690e31dfc5f9c4891ee04246f5d15e3257a6d685a30e728a7227e3b77798"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_3_0.md",
+      "bytes": 12075,
+      "sha256": "e3d3356acd51633bae38e1245f06789e7ce5534ebcc16d1f801644d5d25986c0"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md",
+      "bytes": 15843,
+      "sha256": "3ec5e2286ebc94077d431c82b59d201350cf70f078dc73d2f25e21d00406f3ea"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md",
+      "bytes": 9494,
+      "sha256": "9f454f9a7bb023e006a9d170612806fbe23a50f3b419f5a21a2004d6ab043af9"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_5_0.md",
+      "bytes": 28939,
+      "sha256": "abf2d3b0e16bb1c8b3a9bdf2f67a0ee7c315dbd322d389a46f8337fc2ea19171"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md",
+      "bytes": 41587,
+      "sha256": "14bf10522ba43f2f1a892bf8b687d6914d22288662339ae43a4695465252c416"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V3_6_0.md",
+      "bytes": 8622,
+      "sha256": "305fc55062bf725b807f8a7a19dd57b8565d1d995bc74de183f4e26bd49b64df"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_0_0.md",
+      "bytes": 15008,
+      "sha256": "423c695e13f8dd20692b62e74ee2872a473394317b9b7803b2ef158f0dd11c10"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V4_1_0.md",
+      "bytes": 14791,
+      "sha256": "8c6726fc564a0f12608a9282be9d944cf1d4a83c4a0185fe8492e59d29ebee6f"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_0_0.md",
+      "bytes": 8052,
+      "sha256": "b813df2f2b4eb7dbb1644677e43fef929fd19f439b3ff5f422b78c2215cbd439"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_1_0.md",
+      "bytes": 4768,
+      "sha256": "f25223c19222a0398674dd7b13e4e6a714dd99128c1e9c5808e06d0c252b6451"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_2_0.md",
+      "bytes": 7000,
+      "sha256": "862195b661be17f00d293e336383d4d141477bbcdb26718c15fc4111e669069b"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_3_0.md",
+      "bytes": 9492,
+      "sha256": "8a44148b7fcb92e4d7ffabc2762be9633a04e7b08d112571efa062f3e0cd50df"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_4_0.md",
+      "bytes": 6662,
+      "sha256": "2f2cf88d283561d5bd63732129ac247d113dfb063eb5ed56de5e018848316017"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_5_0.md",
+      "bytes": 5690,
+      "sha256": "4b623342f908e079f12bf3781951df7f1ff212684103155402f5d7635fd28bd6"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_6_0.md",
+      "bytes": 4631,
+      "sha256": "151c68bb1d266f539090cca72a50ee6a2da6f1192e6d2fe53305f764fb05d8ac"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_7_0.md",
+      "bytes": 5901,
+      "sha256": "6ff5c64b8a594602053dc3970c527ded34ba30c0eebc4ad2a516c19981f09a5b"
+    },
+    {
+      "path": "PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_V5_8_0.md",
+      "bytes": 5571,
+      "sha256": "b0918a0934f96e2778ce51ff9ca709888318d0e3b9c3ac8e3b5869885a757635"
+    },
+    {
+      "path": "PATCH_REPORTS/README.md",
+      "bytes": 11606,
+      "sha256": "af42bc4dff1b794619214ef0c11abe5477414c9a226ca5e2661f8dcbe253e7ac"
+    },
+    {
+      "path": "PATCH_REPORTS/SKILL_VFX_EXPANSION_JS2_V2_6_0.md",
+      "bytes": 4245,
+      "sha256": "2e02b8aca8faebecdb874a0d34f2ac6f8841bd64643ea80a35d5b662b59d8a08"
+    },
+    {
+      "path": "PATCH_REPORTS/T3_SKILL_VFX_JS2_V2_6_0.md",
+      "bytes": 4386,
+      "sha256": "8af8e44d67fc210502a4b1fd99c61008a8c5e0df4b83def32a0e11dba3067f09"
+    },
+    {
+      "path": "PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md",
+      "bytes": 10627,
+      "sha256": "eb9fb0c906b2c2aeca0ad4a2ec29c664d6f42af8918f002d3a045177da2dd213"
+    },
+    {
+      "path": "PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md",
+      "bytes": 4885,
+      "sha256": "cfff2146942ca1cf0517c37470e87760e0836edc82157b7a425d4fc1f5302a54"
+    },
+    {
+      "path": "PATCH_REPORTS/WEAPON_MOTION_VFX_JS2_V2_5_0.md",
+      "bytes": 9751,
+      "sha256": "b1bb04c7a5214fa58aaf19096c15296bbe2d4d3f2a46bef5b649835fa080b131"
+    },
+    {
+      "path": "README.md",
+      "bytes": 11411,
+      "sha256": "11dbc06e5c02a563de6f704a7bced51eb0a70f58c773e3f6e098d453ac22b944"
+    },
+    {
+      "path": "START_HERE_FOR_AI.md",
+      "bytes": 11225,
+      "sha256": "d0bbe97700d09178e7d8fcd680e9e0619755a44f7d05a5f78ce461fa0ab602cd"
+    },
+    {
+      "path": "after debug/01_หมวด01_งานค้างและแผนตรวจต่อ.md",
+      "bytes": 12214,
+      "sha256": "ea55c22f3a4ecd443b4bf2e5e028e6264d4b7e149cb7f506340fbb12c4a3cfdb"
+    },
+    {
+      "path": "bug reports/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "bug reports/00_JS2_MASTER_INDEX_and_MultiWave_AI_Patch_Orchestration_Protocol_12D.pdf",
+      "bytes": 281511,
+      "sha256": "09588e2de5a654914142d68af0445f7fece8c50331df8178cf6d460f2d258ab5"
+    },
+    {
+      "path": "bug reports/01A_JS2_Deep_Audit_Paths_and_Subpaths_Part1_Lifecycle_Selection_Retraining.pdf",
+      "bytes": 369871,
+      "sha256": "90b2f53ece59ee967c3f968048db0b54d40849074cbcdd7cc4511058f544a8c2"
+    },
+    {
+      "path": "bug reports/01B_JS2_Deep_Audit_Paths_and_Subpaths_Part2_Progression_WaveParity_and_Autonomy.pdf",
+      "bytes": 334634,
+      "sha256": "5b7af80c210ca241795c0084bfb55fff52d647bdad2f9619c79165b495e88168"
+    },
+    {
+      "path": "bug reports/01C_JS2_Deep_Audit_Paths_Part3_Five_Founding_Pillars_Xian_Body_God_Demon_HeartSoul_and_65_Subpaths.pdf",
+      "bytes": 288401,
+      "sha256": "f5637113cfe49954f8164d5fb973162f3a757d56955c71fe71524425affca0cd"
+    },
+    {
+      "path": "bug reports/01D_JS2_Deep_Audit_Paths_Part4_Seven_Specialist_Paths_Mech_Karma_Beast_Sage_Craft_Array_Governance.pdf",
+      "bytes": 255128,
+      "sha256": "dbbaade58a37a96de6331045e8da2ae87495236c918e33c37a6ec51e48756d9e"
+    },
+    {
+      "path": "bug reports/01E_JS2_Deep_Audit_Paths_Part5_Grand_Dao_Cosmic_Weather_Spacetime_Dharma_Geomancy_and_Chaos.pdf",
+      "bytes": 251350,
+      "sha256": "77e97bb7e018a02b50fe2538d91dc0b255bbf03ca314dd8a5ffe93301191dc8c"
+    },
+    {
+      "path": "bug reports/01F_JS2_Deep_Audit_Paths_Part6_Grand_Dao_Mercantile_Literati_Archivist_Wandering_Sonic_Venom_Puppetry_and_Shifter.pdf",
+      "bytes": 240885,
+      "sha256": "8b0e94c1649986acf1f1ebc8c9356329db50e6c5d95cc634aa83d0de1226e1f6"
+    },
+    {
+      "path": "bug reports/01G_JS2_Deep_Audit_Paths_Part7_Grand_Dao_Bushido_Shinobi_Arena_Gambler_Voyager_Husbandry_and_Ancestral.pdf",
+      "bytes": 245564,
+      "sha256": "5b0d06a849f86f5f5e2e61270877b5a80e341dcff093f31cf36238f14d84c030"
+    },
+    {
+      "path": "bug reports/01H_JS2_Deep_Audit_Paths_Part8_Higher_Realm_Pantheon_Occult_Eldritch_DevouringFlesh_and_NetherGrave.pdf",
+      "bytes": 240610,
+      "sha256": "346c2f4943d13cdb174bdd57b635ddde0dd43bf14166206943c80d26dda859ac"
+    },
+    {
+      "path": "bug reports/02A_JS2_Deep_Audit_NPC_Brain_Part1_Epistemic_Knowledge_and_Information_Asymmetry.pdf",
+      "bytes": 308227,
+      "sha256": "bda6fdac7eb0ab25d2bf67de2716dd41aac49579479d5f0c5904ac8a7b110027"
+    },
+    {
+      "path": "bug reports/02B_JS2_Deep_Audit_NPC_Brain_Part2_Orphaned_Systems_Utility_Math_and_Goal_Loops.pdf",
+      "bytes": 209689,
+      "sha256": "c7db73237968ce03cb17cd3865c0abfb90c3ba2bd6ad2777dad95c983e69a1ad"
+    },
+    {
+      "path": "bug reports/02C_JS2_Deep_Audit_NPC_Brain_Part3_Executive_Autonomy_CombatAI_SocialLineage_and_HiddenTypos.pdf",
+      "bytes": 236086,
+      "sha256": "8c62b68d6b11013213cecd838d220239795c5ce332e79877e9880f200586ba67"
+    },
+    {
+      "path": "bug reports/03A_JS2_Deep_Audit_Martial_Arts_Part1_Combat_Moves_Architecture_Unlocking_AI_and_Spatial_Execution.pdf",
+      "bytes": 334090,
+      "sha256": "862af6df856e219d398119b48b7f3cc351708f0019d5a61785ab7c1fd41baa13"
+    },
+    {
+      "path": "bug reports/03B_JS2_Deep_Audit_Martial_Arts_Part2_Composable_Engine_Elemental_Fusion_Passives_Mantras_and_Synergies.pdf",
+      "bytes": 259873,
+      "sha256": "52f37f0ae3b2efe8846c7e99abc1d94767376a382c0e564d208ebddd0d25b2fe"
+    },
+    {
+      "path": "bug reports/03C_JS2_Deep_Audit_Martial_Arts_Part3_Mantras_Inner_Circulation_Weather_Resonance_and_Formation_Warfare.pdf",
+      "bytes": 287450,
+      "sha256": "6506e0e12240b3ed0c764d73b747474cc51888af31ba88d61bc9fe605a3175a9"
+    },
+    {
+      "path": "bug reports/03D_JS2_Deep_Audit_Martial_Arts_Part4_Qinggong_Flight_Stealth_Recon_and_Combat_Mobility.pdf",
+      "bytes": 292902,
+      "sha256": "14e179575bc5b1d34b5c38cb513dad70fe0fe7d142b360cf99df1467b8dd8ba3"
+    },
+    {
+      "path": "bug reports/03E_JS2_Deep_Audit_Martial_Arts_Part5_Defensive_Kungfu_Passives_Innate_Arts_and_Constellations.pdf",
+      "bytes": 273647,
+      "sha256": "4c1a3e08666d02f4e9b910244c9f8172b36db53d143dd86c62e0d789fe35c30a"
+    },
+    {
+      "path": "bug reports/03F_JS2_Deep_Audit_Martial_Arts_Part6_Support_Healing_Training_and_Profession_Auxiliary_Arts.pdf",
+      "bytes": 261171,
+      "sha256": "e2a0dd505e3a02b1021f960d381aa216b2bc265946a6cde10d1d781d79cd6e20"
+    },
+    {
+      "path": "bug reports/03G_JS2_Deep_Audit_Martial_Arts_Part7_Forbidden_Arts_Lifespan_Sacrifice_Taboo_Vault_and_Karmic_Law.pdf",
+      "bytes": 222138,
+      "sha256": "5b96d83c73bb357d7b6ee21eb619e6c75ac8b3236a332b095b1130241bc912eb"
+    },
+    {
+      "path": "bug reports/04A_JS2_Deep_Audit_Weapons_Part1_Bladed_and_Polearm_Arsenal_Sword_Blade_Spear_Staff.pdf",
+      "bytes": 284938,
+      "sha256": "f6825c54a093d5990eb9a20917669dad35b4cd314e8d7646adb8dc5b146f88f9"
+    },
+    {
+      "path": "bug reports/04B_JS2_Deep_Audit_Weapons_Part2_Brawling_Ballistic_and_Flexible_Arsenal_Fist_Claw_Bow_Needle_Whip.pdf",
+      "bytes": 238956,
+      "sha256": "9e88d70018cd97beda27e12ba6d472eb1662c36a3c8a6aacf7e4fcdfb0a0b96c"
+    },
+    {
+      "path": "bug reports/04C_JS2_Deep_Audit_Weapons_Part3_Scholarly_Musical_and_Dharma_Conduits_Focus_Zither_Brush_Rosary.pdf",
+      "bytes": 253223,
+      "sha256": "2c355114fb6cc91515af7b86979f604f8bfa4af48e00752a70be33939b818eff"
+    },
+    {
+      "path": "bug reports/04D_JS2_Deep_Audit_Weapons_Part4_Grand_Dao_Tactical_Implements_Fan_Astrolabe_Abacus.pdf",
+      "bytes": 223304,
+      "sha256": "075dc7c8adcac8a165635c96e66a060c56def1f885012b4052503f1288494f3a"
+    },
+    {
+      "path": "bug reports/04E_JS2_Deep_Audit_Weapons_Part5_Holistic_Weapon_Ecosystem_SoulForge_Evolution_Relics_and_CatchAll.pdf",
+      "bytes": 207047,
+      "sha256": "033fe27b7c35d8eb6e83a6c2aae4e4a8d6d9b168c9d2806b4208137d02ba38bc"
+    },
+    {
+      "path": "bug reports/05A_JS2_Deep_Audit_Equipment_Part1_Body_Armor_Arsenal_Heavy_Light_Robe_Headgear_Adaptive_and_Legendary_Armors.pdf",
+      "bytes": 234668,
+      "sha256": "3e3f098d10c435a56605229f1eba7ba1d510bd77d17cf9e095da22995667c1b1"
+    },
+    {
+      "path": "bug reports/05B_JS2_Deep_Audit_Equipment_Part2_Personal_Jewelry_and_Wearables_Ring_Necklace_Bracelet_Charm_Shoes_Storage_and_Legendary_Accessories.pdf",
+      "bytes": 242759,
+      "sha256": "a2ae7183fa92f3391f38b22812fd9aaeb98c9333f7c1fad12516d8122f11bb70"
+    },
+    {
+      "path": "bug reports/05C_JS2_Deep_Audit_Equipment_Part3_Talismans_Formation_Cores_and_Profession_Exploration_Tools.pdf",
+      "bytes": 196996,
+      "sha256": "79cfc170f60e2eaf40772e3ce9ee17f766a78b783e5c4aaf50a810914b11a85f"
+    },
+    {
+      "path": "bug reports/05D_JS2_Deep_Audit_Equipment_Part4_Resonance_Sets_Paired_Items_Cursed_SoulBound_Catalysts_and_Legendary_Trinity.pdf",
+      "bytes": 185304,
+      "sha256": "258e7ef339eeb58e79a5e12a8fae4e40864f8b3d252d949487263a54d6ada016"
+    },
+    {
+      "path": "bug reports/05E_JS2_Deep_Audit_Equipment_Part5_Holistic_NonWeapon_Overview_SlotCongestion_StatFormulas_and_ForgeDemand.pdf",
+      "bytes": 187693,
+      "sha256": "639745003f12e2881d97721a3e6d760b4a0b141d63d2cff366162e9ec0f36f19"
+    },
+    {
+      "path": "bug reports/05F_JS2_Deep_Audit_Equipment_Part6_Procedural_Engine_Templates_SlotOptions_Affixes_Durability_and_Salvage.pdf",
+      "bytes": 199400,
+      "sha256": "46101f3a7746686d1b81e071eb581de755d1439aee41863af91d9c6f92e7fee6"
+    },
+    {
+      "path": "bug reports/05G_JS2_Deep_Audit_Equipment_Part7_Grand_Finale_Master_Ecosystem_Synthesis_898_Items_Economy_AI_Combat_and_Architecture.pdf",
+      "bytes": 210787,
+      "sha256": "bf1087ceccdb69fd8d3a27f10dd2a448d93fe1534a2d770e8071ad357cdebf51"
+    },
+    {
+      "path": "bug reports/05H_CODE_REVIEW_ADDENDUM_FOR_GEMINI.md",
+      "bytes": 10283,
+      "sha256": "1c790a0f7b86386e8af152b9d3b57c251314e188748b5f1f3ad4746c05c5ec5d"
+    },
+    {
+      "path": "bug reports/06A_JS2_Deep_Audit_Pills_Part1_Basic_Welfare_Vital_Recovery_Injury_Detox_and_Mind_Calming_Elixirs.pdf",
+      "bytes": 209839,
+      "sha256": "164eecea38244885aba787ce243b75a35b6efa419bb188cfa5cb95b9c83a9d4f"
+    },
+    {
+      "path": "bug reports/06B_JS2_Deep_Audit_Pills_Part2_Cultivation_Tempering_Meridian_Bloodline_Insight_FishAlchemy_and_Longevity_Elixirs.pdf",
+      "bytes": 222510,
+      "sha256": "4d180beace50cb50333c1cbb15e932d0ba9820495d22432a0cd307dab6d766d5"
+    },
+    {
+      "path": "bug reports/06C_JS2_Deep_Audit_Pills_Part3_Breakthrough_Pills_Bottleneck_Treasures_Resistance_and_43Path_Coverage.pdf",
+      "bytes": 237865,
+      "sha256": "3ecda1c0d1d2b2f50813ff858991d590fa207d35069f60c6dab326a09dcdd027"
+    },
+    {
+      "path": "bug reports/06D_JS2_Deep_Audit_Pills_Part4_Combat_Buff_Pills_Tactical_Stealth_BeastBond_and_Forbidden_Blood_Overdrive.pdf",
+      "bytes": 211186,
+      "sha256": "544c6944ea2c8686baa6234b56a4cbac365fdecf52a15781489ef5cfc45b8923"
+    },
+    {
+      "path": "bug reports/06E_JS2_Deep_Audit_Pills_Part5_MultiPhase_Elixirs_Elemental_Fusion_Alchemy_and_Experimental_Formulas.pdf",
+      "bytes": 156082,
+      "sha256": "bd969290cd4961ecc90f735061789dfce2095065a7ce6603922968b89cfbf37d"
+    },
+    {
+      "path": "bug reports/06F_JS2_Deep_Audit_Pills_Part6_Holistic_Overview_Unified_Consumption_QualityScaling_DualKeyStock_Toxicity_and_Market.pdf",
+      "bytes": 195401,
+      "sha256": "2a86ac642241771b4765218cc41e740152c5aa8a18c619e4057b1592f429aa01"
+    },
+    {
+      "path": "bug reports/07A_JS2_Deep_Audit_Sect_Governance_Part1_Leadership_25_Offices_Jurisdictions_Stipends_Appraisal_and_Audits.pdf",
+      "bytes": 169838,
+      "sha256": "88ae9ebb20fa0da9b4b2695f39e76ad3436664cfdc8028ee4a89d10c83c23f50"
+    },
+    {
+      "path": "bug reports/07B_JS2_Deep_Audit_Sect_Governance_Part2_Eight_Sacred_Peaks_144_Stations_Vaults_Sanctuaries_and_Peak_Autonomy.pdf",
+      "bytes": 150265,
+      "sha256": "99954e11e935bd08331440973cea7f9eb2097acccd5e1dcc967618b93c1bb232"
+    },
+    {
+      "path": "bug reports/07C_JS2_Deep_Audit_Sect_Governance_Part3_Buildings_HousingCaps_FengShui_Leylines_Barrier_Totems_and_Shrines.pdf",
+      "bytes": 133379,
+      "sha256": "31fb92547bf5ebc9230b2341ddaaf06eecb41a808c2d851d364e0cd35585b576"
+    },
+    {
+      "path": "bug reports/07D_JS2_Deep_Audit_Sect_Governance_Part4_Politics_Cliques_Charters_Council_Tribunal_Dungeon_Dynasty_and_Mutiny.pdf",
+      "bytes": 146203,
+      "sha256": "b3fd5c2488532e19b89364a27e4ab65f8477c86ae2a2b84102e5a7d1fef32856"
+    },
+    {
+      "path": "bug reports/07E_JS2_Deep_Audit_Sect_Governance_Part5_Holistic_Living_Sect_Overview_MacroFiscals_Lifecycle_RetireGrave_and_Autonomy.pdf",
+      "bytes": 170132,
+      "sha256": "9a6af5c2ea3f5ed1e383538e303d1d38acbee4412d119d94d7cb3dd2011951ac"
+    },
+    {
+      "path": "bug reports/08A_JS2_Deep_Audit_Outside_World_Part1_Geopolitics_19_Rival_Sects_Diplomacy_ResourceNodes_Vassals_and_SiegeWarfare.pdf",
+      "bytes": 131201,
+      "sha256": "2081e551f5718a59f2fd0ac2e3cb742c1c6baec6833ecb9ef5edcbfb3ae11900"
+    },
+    {
+      "path": "bug reports/08B_JS2_Deep_Audit_Outside_World_Part2_Expeditions_Caravans_BlackMarket_Bounties_Espionage_and_LivingChronicle.pdf",
+      "bytes": 153243,
+      "sha256": "4369ef447ed781fa628c086d00c2a7618b5f658da82c0b6f2a035fea756fc9be"
+    },
+    {
+      "path": "bug reports/08C_JS2_Deep_Audit_Outside_World_Part3_SecretRealms_43FloorPagoda_Sanctums_PuzzleGates_MicroLocations_and_ImmortalTombs.pdf",
+      "bytes": 134189,
+      "sha256": "235b454e002f868ce2c5e6958d09c1a051f56e3cdc398d4c83f06cc129f39059"
+    },
+    {
+      "path": "bug reports/08D_JS2_Deep_Audit_Outside_World_Part4_Wilderness_Ecology_BeastPacks_Menagerie_Pets_Symbiosis_and_WildResources.pdf",
+      "bytes": 180939,
+      "sha256": "c0aa5fd3d40c2a30d383808404046cdd5e1aae337000bdfd6be20b559ae88130"
+    },
+    {
+      "path": "bug reports/08E_JS2_Deep_Audit_Outside_World_Part5_Fishing_SpiritCuisine_UnderwaterChests_WanderingFigures_Visitors_and_ClueQuests.pdf",
+      "bytes": 158862,
+      "sha256": "c83def6df19bef05dfc7a5ceb84291e4164808ad3588eb474114bce8fcca981a"
+    },
+    {
+      "path": "bug reports/08F_JS2_Deep_Audit_Outside_World_Part6_Holistic_Overview_WorldPool_DeploymentLocks_200YearScaling_and_MasterRoadmap.pdf",
+      "bytes": 174241,
+      "sha256": "717724e559dc77f254de3dd2953f243b03a40d9153bdc61f18e04797d6d4d2b7"
+    },
+    {
+      "path": "bug reports/09A_JS2_Deep_Audit_Combat_Engine_Part1_DamageMath_HpMaxParadox_StatSplitBrain_ElementalGaps_and_MasteryTraits.pdf",
+      "bytes": 177227,
+      "sha256": "7c4d0175777de1c69a2687b7894a2a1acabb6500403e475d3bad7a8b33f627d5"
+    },
+    {
+      "path": "bug reports/09B_JS2_Deep_Audit_Combat_Engine_Part2_Spatial_Geometry_MovementAsymmetry_24TileRowBlock_Interception_and_Targeting.pdf",
+      "bytes": 180378,
+      "sha256": "8e5bb6781607a6da1cef6a8d5dc59147c8fc04303c9a70fd80f95f4ab5e681d2"
+    },
+    {
+      "path": "bug reports/09C_JS2_Deep_Audit_Combat_Engine_Part3_ActionEconomy_Channeling_DoTReflectLoops_ShieldOverwrite_Acupoints_and_BossAnatomy.pdf",
+      "bytes": 186281,
+      "sha256": "0c3683e1471eed868502d26f801a440aeec4eb30ac102cc61099b0eb8d4712bc"
+    },
+    {
+      "path": "bug reports/09D_JS2_Deep_Audit_Combat_Engine_Part4_Summons_ShadowClones_Constructs_PetAssists_Avatars_Phantoms_and_PartySynergies.pdf",
+      "bytes": 152558,
+      "sha256": "7786306808972b1fa6e4c49afdcaf925efd4fa2559c54fef1d398e21615b79de"
+    },
+    {
+      "path": "bug reports/09E_JS2_Deep_Audit_Combat_Engine_Part5_FightModes_RaidBreachAI_SelfDefenseJail_CheatDeathStacking_and_HeavenlyTribulations.pdf",
+      "bytes": 159164,
+      "sha256": "8c7ee43f7c55ab38e851b7d669629ef693826c9598bb9c5da2fa5c839d1b8304"
+    },
+    {
+      "path": "bug reports/09F_JS2_Deep_Audit_Combat_Engine_Part6_Holistic_Overview_FoeScaling_ReflectConsolidation_OnMapVsOffMap_Perf_and_Roadmap.pdf",
+      "bytes": 151592,
+      "sha256": "a302b42e32e6593e3e36d2e913cd7ed182aeefc5489d8e85fa23b2d933742cb2"
+    },
+    {
+      "path": "bug reports/10A_JS2_Deep_Audit_Economy_Part1_Primary_Production_Food_Bigu_Mining_Herbology_Organs_and_Reserves.pdf",
+      "bytes": 146208,
+      "sha256": "2d74f87ac034777e32aa47f71d76888112b2399dd551577212d42ec0a2fe7226"
+    },
+    {
+      "path": "bug reports/10B_JS2_Deep_Audit_Economy_Part2_Workshops_MultiDisciplineQueues_CraftReceipts_Salvage_and_CraftXP.pdf",
+      "bytes": 129925,
+      "sha256": "fb6c0367bc57d9232fa03b9be69b6c56b369e33aa027411c18b204358e2e4516"
+    },
+    {
+      "path": "bug reports/10C_JS2_Deep_Audit_Economy_Part3_CP_MonetaryEngine_StoneGrantDrain_Stagflation_and_ServiceLoops.pdf",
+      "bytes": 141491,
+      "sha256": "6a8fa93829b355447740149466fd83ada634e87c6063f08e134161c379197728"
+    },
+    {
+      "path": "bug reports/10D_JS2_Deep_Audit_Economy_Part4_ExternalMarket_InstantGearLiquidation_ZeroBargaining_and_SpawnedItemTaint.pdf",
+      "bytes": 167439,
+      "sha256": "778c5d6ad9b9fd9f54357ae2e21b3a14a9ace6db58dd29361e490154cf0e78cd"
+    },
+    {
+      "path": "bug reports/10E_JS2_Deep_Audit_Economy_Part5_Holistic_Overview_AtomicTransferKernel_EC08_ArbitrageProof_and_MasterRoadmap.pdf",
+      "bytes": 151822,
+      "sha256": "480d95a6b84b3134037d9582fbc2bb6d3b04da9d1bfef47d5c8f902fc4f08586"
+    },
+    {
+      "path": "bug reports/11A_JS2_Deep_Audit_Human_Foundation_Part1_Genome_Constitutions_Roots_Traits_DataCoreBugs_and_ImmortalAging.pdf",
+      "bytes": 204848,
+      "sha256": "c90f6bc28f7bff0df08d5b02cac1b56023192910ea5ae5bc7597c0973eb57e79"
+    },
+    {
+      "path": "bug reports/11B_JS2_Deep_Audit_Human_Foundation_Part2_ExperienceTraits_DaoScars_DualVows_and_MeridianOverdriveBug.pdf",
+      "bytes": 128121,
+      "sha256": "6181fa362cdc9fb75cc6ffda542827c7ae6a40c8d585568c82f081ff50e74c01"
+    },
+    {
+      "path": "bug reports/11C_JS2_Deep_Audit_Human_Foundation_Part3_DynamicPsychology_InvertedHunger_FrozenEmotions_FulfilLoops_and_HeartDemons.pdf",
+      "bytes": 135879,
+      "sha256": "b1c67811ec42f50a35258a53880b5682207b25c6ab1bed7bfd6ebb962af92f59"
+    },
+    {
+      "path": "bug reports/11D_JS2_Deep_Audit_Human_Foundation_Part4_SocialGraph_RomanceKinshipTaboo_CompanionSplit_Offspring_and_Mentorship.pdf",
+      "bytes": 154572,
+      "sha256": "48b754d5fe856f1181ac9ecebfa0a04aa31f028cf2a9cf73d3e15f7b24ec4ffd"
+    },
+    {
+      "path": "bug reports/11E_JS2_Deep_Audit_Human_Foundation_Part5_Holistic_Overview_DestinyThreads_KarmicLedger_Idle155Stats_and_MasterRoadmap.pdf",
+      "bytes": 164662,
+      "sha256": "16b1638e68477272d697793b298c32128b80f97abebe362d0c8e5c0f1f0b30bf"
+    },
+    {
+      "path": "bug reports/12A_JS2_Deep_Audit_UI_Render_System_Part1_PlayerAgencyBoundary_EditHubSafety_Minimap_and_StartupTimeoutFix.pdf",
+      "bytes": 172621,
+      "sha256": "937fdcd2d686864650b299102e9f56cc086debc0a0b427f510c853c8f7bbbbae"
+    },
+    {
+      "path": "bug reports/12B2_JS2_Deep_Audit_VFX_and_ItemArt_AtlasCatalog_54MantraTrap_ReactionScaling_Domains_and_QueuePriority.pdf",
+      "bytes": 176799,
+      "sha256": "58ca30cd381396d94a6f424d0543d4e8330782576340b3c767e88dfd9154dd8f"
+    },
+    {
+      "path": "bug reports/12B_JS2_Deep_Audit_UI_Render_System_Part2_Canvas2D_RelicAuraGap_VisualLoreFidelity_ChannelVfx_and_Purity.pdf",
+      "bytes": 152915,
+      "sha256": "2c89c45c0b89ddd2c0e8bd7ecc5bfccf6571d11682c16cb5a2ce72bcbcaf1a93"
+    },
+    {
+      "path": "bug reports/12C_JS2_Deep_Audit_SaveLoad_ScriptOrder_ValidatorBlindSpots_LocalStorageQuota_and_SingleFileBuild.pdf",
+      "bytes": 146687,
+      "sha256": "9e6bed179da5fe1834e59475130bdc091677c00be34b54cc2a19190f37db74f4"
+    },
+    {
+      "path": "bug reports/JS2 Category 04 (Weapons Arsenal) Verification Audit and Remediation Backlog.docx",
+      "bytes": 15764,
+      "sha256": "0a03f96f3733312277c661a43dee67515bb7e7188543ca5db5817b92b8182a3b"
+    },
+    {
+      "path": "bug reports/JS2 v2.6.0 — Equipment Audit (Cat. 05) Verification & Errata.docx",
+      "bytes": 12748,
+      "sha256": "c3ab2afa42038ea77a988c4a1f49548dd6607d18ef4502139a6eeef251ec9436"
+    },
+    {
+      "path": "bug reports/JS2_v2.6.0_Logic_and_Contextual_Audit_for_AI.pdf",
+      "bytes": 389644,
+      "sha256": "9d8ce1691f027d1cc697032e6f98854f3f22e4a1c5c9b166f622dfcff0b67082"
+    },
+    {
+      "path": "docs/audits/COMMON_SKILL_VFX_REGISTRY.md",
+      "bytes": 19172,
+      "sha256": "0db321253813bb468c707691ffab9cfd3a3d05e8615bf0f4a614067867ff8011"
+    },
+    {
+      "path": "docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md",
+      "bytes": 42211,
+      "sha256": "b58a35a511c0cc7bab0658499942c5a3897c27ac6a704b4bc46cfbcae453d068"
+    },
+    {
+      "path": "docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md",
+      "bytes": 16410,
+      "sha256": "d0669bba431bb0a3eef48ab310d58c9f8217161d66782569ffa516dc14072423"
+    },
+    {
+      "path": "docs/audits/LEGENDARY_APEX_VISUAL_REGISTRY.md",
+      "bytes": 24922,
+      "sha256": "5ea4c4cdd5d61b3e24727327f0782e1b5ef2158c451bc9960270275a15d4e6fa"
+    },
+    {
+      "path": "docs/audits/SKILL_VFX_ASSIGNMENT_REGISTRY.md",
+      "bytes": 12580,
+      "sha256": "b6d983f23f9c57574dd62597d52007202d3757957d9b54b9ead561cce50f7555"
+    },
+    {
+      "path": "docs/audits/T3_SKILL_VFX_AND_TIER_SCALE.md",
+      "bytes": 15698,
+      "sha256": "bf4894a7b8c23da6f58abb9dee461be6b4fcd798aa58776109212100398f551e"
+    },
+    {
+      "path": "docs/audits/T6_GROUP_VFX_REGISTRY.md",
+      "bytes": 42148,
+      "sha256": "064337dea127a804e2171dc0902dd82f03b19b63ae937559fa702f3266f56a8b"
+    },
+    {
+      "path": "docs/audits/T7_VISUAL_ASSIGNMENT_REGISTRY.md",
+      "bytes": 24287,
+      "sha256": "2311e798621aca664eef45114db1cbf96bea2cef6216390ed4941b547be8d8f2"
+    },
+    {
+      "path": "docs/audits/V2_6_0_COMPLETE_TIER_SUBPATH_EQUIP_VFX_REGISTRY.md",
+      "bytes": 5832,
+      "sha256": "a5704e0a58bddd255be46ecb67360e764070d11daf8c332ae42debfd53c17c6b"
+    },
+    {
+      "path": "docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md",
+      "bytes": 15055,
+      "sha256": "544b847bfec648de3de4424dbbd6b866cadc2effb2f4167f1b86570dae57230a"
+    },
+    {
+      "path": "docs/handovers/NEXT_T5_VISUAL_PATCH.md",
+      "bytes": 3353,
+      "sha256": "3a63fa82f1d9e8fb7b0b9a2789fcaf2ba100829581d72ecb5f685babbfd93fc1"
+    },
+    {
+      "path": "docs/handovers/NEXT_T6_VISUAL_PATCH.md",
+      "bytes": 3284,
+      "sha256": "61386fddff147409fee41714b9d9b1757296728fa8fbfe019bc4e1fe3b2cd0b1"
+    },
+    {
+      "path": "docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md",
+      "bytes": 29261,
+      "sha256": "f109ed7cf634115baf55dfd891ff103f56084ff96ee37c27e9cdedd766a8ae87"
+    },
+    {
+      "path": "docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md",
+      "bytes": 30898,
+      "sha256": "b52ca49f6cd53c19c7a0a960e5f554d76969671c42483d16c32a16ec66413c22"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-09-t6-group-vfx.md",
+      "bytes": 3799,
+      "sha256": "8d39a3ebb54c3d24623d8d4cc4b1aab65465d6587a87e0d26dd553e74107af8d"
+    },
+    {
+      "path": "ideas/คลังข้อมูลและข้อเสนอ_v2_4_0/00_รายงานตรวจสุขภาพเกม_v2.4.0_ระบบNPCตัดสินใจเอง_และสารบัญคลังข้อมูล.md",
+      "bytes": 30375,
+      "sha256": "14586b3f5432a31a1a3d27be5f3be4603e0bab34e7b7b8124c5417e79193f06c"
+    },
+    {
+      "path": "ideas/คลังข้อมูลและข้อเสนอ_v2_4_0/01_ข้อมูลและระบบที่เกมมีอยู่แล้วใน_v2.4.0_แยกตามหมวดหมู่.md",
+      "bytes": 165806,
+      "sha256": "169dc2b452c2df1bfbcac0ae0cd36563814ca834f4ccea91cc3c4f12ba26e946"
+    },
+    {
+      "path": "ideas/คลังข้อมูลและข้อเสนอ_v2_4_0/11_ข้อเสนอไอเดียออกแบบใหม่โดย_Gemini/11_ข้อเสนอไอเดียและระบบใหม่ออกแบบโดย_Gemini_เน้นNPCตัดสินใจเอง.md",
+      "bytes": 60147,
+      "sha256": "7e8a274e2a266bb56ef1b682345e7d40d6dcd34f8c9d32440689be4220a53e28"
+    },
+    {
+      "path": "project_status_and_ai_onboarding.md",
+      "bytes": 66493,
+      "sha256": "f6643e64150079dac885a3e8c9141b58ba69b8be22f6edd5843e01e07499d801"
+    }
+  ]
+}

@@ -276,7 +276,7 @@ for (const tech of techniques) {
       if (move.arch) {
         check(!!(SK.ARCH && SK.ARCH[move.arch]), `Technique ${tech.id} move ${move.id} uses unregistered arch: ${move.arch}`);
       }
-      const isDefensiveOrBuff = move.arch === 'guard' || move.arch === 'heal' || move.arch === 'buff' || move.arch === 'shield' || move.arch === 'evade' || move.arch === 'stance' || move.type === 'p' || move.type === 'b' || move.M === 0;
+      const isDefensiveOrBuff = ['guard', 'heal', 'buff', 'shield', 'evade', 'stance', 'support', 'command', 'harmonize', 'karmaReversal', 'meditate', 'field', 'stealth'].includes(move.arch) || move.type === 'b';
       if (!isDefensiveOrBuff) {
         check(typeof move.M === 'number' && !isNaN(move.M) && move.M > 0, `Technique ${tech.id} move ${move.id} invalid attack multiplier M: ${move.M}`);
       }
@@ -299,7 +299,12 @@ for (const pk of Object.keys((MARTIAL && MARTIAL.PROFILES) || {})) {
 for (const sk of Object.keys((MARTIAL && MARTIAL.SUB_EQUIP_BONUSES) || {})) {
   check(subPathIds.has(sk), `MARTIAL.SUB_EQUIP_BONUSES contains non-canonical subpath key: ${sk}`);
 }
-console.log(`  ✓ Audited ${techniques.length} martial techniques (zero unknown archetypes, statuses, buffs, or composable keywords)`);
+const mantrasList = Array.isArray(JD.TECH?.mantras) ? JD.TECH.mantras : [];
+for (const mt of mantrasList) {
+  check(mt && typeof mt.id === 'string', `Mantra missing id`);
+  check(mt.nameTh && typeof mt.nameTh === 'string' && !/[\u4e00-\u9fff]/.test(mt.nameTh), `Mantra ${mt.id} missing or unlocalized nameTh: ${mt.nameTh}`);
+}
+console.log(`  ✓ Audited ${techniques.length} martial techniques and ${mantrasList.length} mantras (zero unknown archetypes, statuses, buffs, or composable keywords)`);
 
 // 5. Audit Effects, Buffs, Parameters & Source Integrity
 console.log('\n▶ [5/6] Auditing Effects, Buffs, Parameters & Acquisition Sources...');

@@ -248,9 +248,24 @@
       }
     });
     if (!it.baseSt) {
-      const type = it.gearType || it.weaponType || it.armorType || it.subType || JD.MARTIAL.classify(it.slot, it.nameTh);
+      const type = (g.MARTIAL && g.MARTIAL.gearType) ? g.MARTIAL.gearType(it) : (it.gearType || it.weaponType || it.armorType || it.subType || JD.MARTIAL.classify(it.slot, it.nameTh));
       const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, ROSARY: { matk: base * .12, mdef: base * .14, hp: base * .18 }, CLAW: { atk: base * .15, crit: 4, pen: 5 }, NEEDLE: { atk: base * .08, matk: base * .10, acc: base * .16, pen: 6 }, FAN: { matk: base * .13, cast: 5, eva: base * .08 }, ASTROLABE: { matk: base * .14, acc: base * .16, crit: 3 }, ABACUS: { atk: base * .10, matk: base * .10, pen: 5, def: base * .08 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
       for (const k in typed) s[k] = (s[k] || 0) + typed[k];
+    }
+    if (!it.procedural && Number.isFinite(it.combatMult) && it.combatMult > 0) {
+      for (const ok of ['atk', 'matk']) {
+        if (Number.isFinite(s[ok])) s[ok] = s[ok] * (1 + Math.min(0.35, it.combatMult * 0.25));
+      }
+    }
+    if (!it.procedural && Number.isFinite(it.defMult) && it.defMult > 0) {
+      for (const dk of ['def', 'mdef']) {
+        if (Number.isFinite(s[dk])) s[dk] = s[dk] * (1 + Math.min(0.35, it.defMult * 0.25));
+      }
+    }
+    if (it.artisan && Number.isFinite(it.artisan.defenseBonus) && it.artisan.defenseBonus > 0) {
+      for (const dk of ['def', 'mdef']) {
+        if (Number.isFinite(s[dk])) s[dk] = s[dk] * (1 + it.artisan.defenseBonus);
+      }
     }
     for (const k in s) s[k] = Math.round(s[k] * 10) / 10;
     it.st = s; return s;
@@ -261,6 +276,7 @@
   ST.BUFF_CATALOG = Object.freeze({
     vitalRegen: { id: 'vitalRegen', name: 'ปราณน้ำค้างฟื้นฟู', icon: '🌿', kind: 'regen', defaultDur: 60, p: { hp: 0.10, def: 0.06 }, f: {}, hotPct: 0.035, descTh: 'ฟื้นฟูพลังชีวิตต่อเนื่อง +3.5%/รอบ และเพิ่มพลังชีวิต +10%, ป้องกัน +6%' },
     fervorMight: { id: 'fervorMight', name: 'โลหิตศึกฮึกเหิม', icon: '🔥', kind: 'offense', defaultDur: 45, p: { atk: 0.16, matk: 0.16 }, f: { crit: 8, critDmg: 22, pen: 10 }, descTh: 'เพิ่มโจมตี/โจมตีวิชา +16%, คริ +8%, แรงคริ +22%, เจาะเกราะ +10%' },
+    ironSkin: { id: 'ironSkin', name: 'กายาเหล็กคงกระพัน', icon: '🛡️', kind: 'defense', defaultDur: 45, p: { def: 0.24, mdef: 0.20, hp: 0.10 }, f: {}, shieldPct: 0.16, descTh: 'ยันต์คุ้มกายคงกระพัน เพิ่มป้องกัน +24%, ป้องกันวิชา +20% และสร้างม่านคุ้มกาย' },
     aegisWard: { id: 'aegisWard', name: 'ปราการฉีเหมินคุ้มกาย', icon: '🛡️', kind: 'defense', defaultDur: 60, p: { def: 0.22, mdef: 0.22, hp: 0.08 }, f: {}, shieldPct: 0.18, descTh: 'เพิ่มป้องกัน/ป้องกันวิชา +22%, พลังชีวิต +8% และสร้างม่านคุ้มกาย' },
     swiftWind: { id: 'swiftWind', name: 'วายุพิณทะยานฟ้า', icon: '🍃', kind: 'haste', defaultDur: 50, p: { eva: 0.18 }, f: { move: 18, cast: 14, acc: 10 }, descTh: 'เพิ่มหลบหลีก +18%, ความเร็วเดินทาง +18, ร่ายวิชา +14, แม่นยำ +10' },
     qiConduit: { id: 'qiConduit', name: 'ชีพจรปราณหมุนเวียน', icon: '💠', kind: 'qi', defaultDur: 60, p: { matk: 0.14, mdef: 0.12 }, f: { cast: 18 }, qiRegenBonus: 0.015, descTh: 'เพิ่มโจมตีวิชา +14%, ป้องกันวิชา +12%, ร่ายวิชา +18 และฟื้นปราณไวขึ้น' },
@@ -425,7 +441,9 @@
   };
 
   ST.isConstructOrUndead = u => {
-    if (!u || u.foe || !u.cult) return false;
+    if (!u) return false;
+    if (u.isConstruct) return true;
+    if (u.foe || !u.cult) return false;
     if (_CONSTRUCT_UNDEAD_PATHS.has(u.cult.path)) return true;
     const CRef = g.CULT || CULT;
     const subId = (CRef && CRef.resolveSubId) ? CRef.resolveSubId(u.cult.sub) : u.cult.sub;
@@ -433,6 +451,9 @@
   };
   ST.addStatus = (u, k, dur, extra, now) => {
     if (!u || !k) return null;
+    if (k === 'blind' && !u.foe && ((HC && HC.hasUnlockTag && HC.hasUnlockTag(u, 'ILLUSION_IMMUNE')) || (u.h && Array.isArray(u.h.traits) && u.h.traits.some(t => t && t.id === 'TR_IN_BLIND_SWORD_EAR')))) {
+      return null;
+    }
     const tNow = (now != null && Number.isFinite(now)) ? now : ST.now;
     ST.purgeExpired(u, tNow);
     let effDur = Math.round(Number(dur) || 10);
@@ -449,9 +470,20 @@
     }
     const cleanDur = clamp(effDur, 1, 2880);
     const until = tNow + cleanDur;
+    if (SK && SK.STATUS && SK.STATUS[k] && SK.STATUS[k].dot && (!extra || !extra.per)) {
+      extra = Object.assign({ per: 0.015 }, extra || {});
+    }
+    if (k === 'tempoBreak' && u && u.act && u.act.ctx && u.act.ctx.cds) {
+      for (const ck of Object.keys(u.act.ctx.cds)) {
+        if (u.act.ctx.cds[ck] > tNow) u.act.ctx.cds[ck] += 2;
+      }
+    }
     u.sx = u.sx || [];
     const ex = u.sx.find(x => x.k === k);
     if (ex) {
+      if (k === 'shield' && extra && Number.isFinite(extra.amt)) {
+        extra = Object.assign({}, extra, { amt: Math.max(ex.amt || 0, extra.amt) });
+      }
       ex.until = Math.min(tNow + 2880, Math.max(ex.until, until));
       ex.dur = cleanDur;
       if (extra) Object.assign(ex, extra);
@@ -576,7 +608,15 @@
     if (n.meridians && n.meridians.openedCount) ext = (ext ^ (n.meridians.openedCount << 11) ^ (n.meridians.overdriveUntil > ST.now ? 0x20000 : 0)) | 0;
     if (n.ancientBloodline && n.ancientBloodline.awakened) ext = (ext ^ 0x40000) | 0;
     if (n._beastSpiritPossessedUntil && n._beastSpiritPossessedUntil > ST.now) ext = (ext ^ 0x80000) | 0;
-    if (Array.isArray(n.experienceTraits) && n.experienceTraits.length) ext = (ext ^ (n.experienceTraits.length * 0x100000)) | 0;
+    if (Array.isArray(n.experienceTraits) && n.experienceTraits.length) {
+      let exHash = 0;
+      for (let i = 0; i < n.experienceTraits.length; i++) {
+        const et = n.experienceTraits[i];
+        if (et) exHash = (exHash * 31 + (et.id ? et.id.charCodeAt(et.id.length - 1) : 1) + (et.recovered ? 17 : 3)) | 0;
+      }
+      ext = (ext ^ ((exHash & 0x7fff) << 9) ^ (n.experienceTraits.length * 0x100000)) | 0;
+    }
+    if (Array.isArray(n.daoScars) && n.daoScars.length) ext = (ext ^ (n.daoScars.length * 0x800000)) | 0;
     if (n.secondaryResources) ext = (ext ^ (((n.secondaryResources.FROST_QI || 0) + (n.secondaryResources.KILLING_INTENT || 0) * 3 + (n.secondaryResources.FORMATION_INK || 0) * 7 + (n.secondaryResources.MECH_GEARS || 0) * 11) << 12)) | 0;
     if (n.demonPact && n.demonPact.patronId) ext = (ext ^ (n.demonPact.patronId.charCodeAt(0) * 4099 + (n.demonPact.tier || 1) * 97)) | 0;
     if (n.deityPact && n.deityPact.deityId) ext = (ext ^ (n.deityPact.deityId.charCodeAt(0) * 8191)) | 0;
@@ -704,6 +744,13 @@
       add('cast', miLab, 'f', 8);
       add('acc', miLab, 'f', 10);
     }
+    if (Array.isArray(n.daoScars) && n.daoScars.length) {
+      const scarBoost = clamp(n.daoScars.reduce((sum, sc) => sum + ((sc && sc.combatPowerBonus) || 0), 0), 0, 0.24);
+      if (scarBoost > 0) {
+        const scLab = 'รอยจารึกเต๋า (' + n.daoScars.length + ' รอย)';
+        ['atk', 'matk', 'mdef'].forEach(k => add(k, scLab, 'p', scarBoost));
+      }
+    }
     const stanceSpec = ST.getActiveStanceSpec(n);
     if (stanceSpec) {
       const stMult = ST.hasStanceFlowAmplifier(n) ? 1.15 : 1.0;
@@ -821,7 +868,8 @@
       const it = Eq[k];
       if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n, it))) continue;
       const gs = ST.gearStats(it);
-      let df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1);
+      const _maxD = Math.max(20, it.maxDur == null ? 100 : it.maxDur), _curR = it.dur == null ? 1 : (it.dur / _maxD);
+      let df = it.dur == null ? 1 : (_curR >= 0.50 ? 1.0 : clamp(0.30 + (_curR / 0.50) * 0.70, 0.30, 1.0));
       if (g.ECO && g.ECO.evaluateSoulBoundCondition) {
         const sb = g.ECO.evaluateSoulBoundCondition(n, it);
         if (sb && Number.isFinite(sb.powerMult)) df *= sb.powerMult;
@@ -837,7 +885,7 @@
     conditionMods(n, add);
     return finish(A, wp);
   }
-  function getBaseFast(n) {
+  function getBaseFast(n) { if (n && n._hpf == null) n._hpf = 1;
     const c = n.cult, Eq = n.equip || {};
     if (c && c.path === 'MECH_PUPPET' && !n.mechState && CULT.ensureMechState) CULT.ensureMechState(n);
     if (c && c.path === 'KARMA_SAMSARA' && !n.karmaState && CULT.ensureKarmaState) CULT.ensureKarmaState(n);
@@ -923,6 +971,12 @@
         ['hp', 'atk', 'matk', 'def', 'mdef'].forEach(k => addP(k, boost));
         addF('cast', 8); addF('acc', 10);
       }
+      if (Array.isArray(n.daoScars) && n.daoScars.length) {
+        const scarBoost = clamp(n.daoScars.reduce((sum, sc) => sum + ((sc && sc.combatPowerBonus) || 0), 0), 0, 0.24);
+        if (scarBoost > 0) {
+          addP('atk', scarBoost); addP('matk', scarBoost); addP('mdef', scarBoost);
+        }
+      }
       const stanceSpec = ST.getActiveStanceSpec(n);
       if (stanceSpec) {
         const stMult = ST.hasStanceFlowAmplifier(n) ? 1.15 : 1.0;
@@ -1001,7 +1055,8 @@
         const it = Eq[k];
         if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(n, it))) continue;
         const gs = ST.gearStats(it);
-        let df = it.dur == null ? 1 : clamp(it.dur / 100, 0.3, 1);
+        const _maxD2 = Math.max(20, it.maxDur == null ? 100 : it.maxDur), _curR2 = it.dur == null ? 1 : (it.dur / _maxD2);
+        let df = it.dur == null ? 1 : (_curR2 >= 0.50 ? 1.0 : clamp(0.30 + (_curR2 / 0.50) * 0.70, 0.30, 1.0));
         if (g.ECO && g.ECO.evaluateSoulBoundCondition) {
           const sb = g.ECO.evaluateSoulBoundCondition(n, it);
           if (sb && Number.isFinite(sb.powerMult)) df *= sb.powerMult;
@@ -1139,10 +1194,12 @@
       });
       statusMods(u, add); conditionMods(u, add); return finish(A, wp);
     }
-    const P = u.power || 20, beast = u.kind === 'beast', t = u.tier || 1;
-    A.atk.b = P * (beast ? 0.62 : 0.55); A.matk.b = P * (beast ? 0.25 : 0.2); A.def.b = P * (beast ? 0.5 : 0.48) * (0.95 + 0.03 * t); A.mdef.b = P * (beast ? 0.32 : 0.3); A.acc.b = P * 0.55; A.eva.b = P * (beast ? 0.62 : 0.5);
-    A.hp.b = u.hpMax; A.crit.b = 5 + t; A.critDmg.b = 150; A.cast.b = 100 + t * 3; A.move.b = 100; A.pen.b = t;
+    const P = u.power || 20, beast = u.kind === 'beast' || u.kind === 'boss', t = u.tier || 1;
+    const isMagFoe = (u.element && u.element !== 'NEUTRAL') || (Array.isArray(u.skl) && u.skl.some(s => s && s.type === 'm'));
+    A.atk.b = P * (beast ? 0.62 : 0.55); A.matk.b = P * (isMagFoe ? 0.52 : (beast ? 0.35 : 0.32)); A.def.b = P * (beast ? 0.5 : 0.48) * (0.95 + 0.03 * t); A.mdef.b = P * (beast ? 0.40 : 0.38) * (0.95 + 0.03 * t); A.acc.b = P * 0.55; A.eva.b = P * (beast ? 0.62 : 0.5);
+    A.hp.b = u.hpMax; A.crit.b = 5 + t; A.critDmg.b = 150; A.cast.b = 100 + t * 3; A.move.b = 100; A.pen.b = Math.min(35, t * 3 + (u.boss || u.isBoss || u.kind === 'boss' ? 8 : 0));
     if (wp) { ['atk', 'matk', 'def', 'mdef', 'acc', 'eva', 'hp', 'crit', 'critDmg', 'cast', 'move', 'pen'].forEach(k => A[k].parts.push(['ฐานของ' + (beast ? 'อสูร' : 'ศัตรู') + ' ระดับ ' + t, 'b', A[k].b])); }
+    (u.buffs || []).forEach(b => { if (b.until <= ST.now && ST.now > 0) return; const bLab = 'บัฟ「' + (b.name || b.nameTh || b.id) + '」'; for (const k in (b.p || {})) add(k, bLab, 'p', b.p[k]); for (const k in (b.f || {})) add(k, bLab, 'f', b.f[k]); });
     const stanceSpec = ST.getActiveStanceSpec(u);
     if (stanceSpec) {
       const stLab = 'ท่วงท่า「' + stanceSpec.nameTh + '」';
@@ -1186,15 +1243,17 @@
     }
     const eq = n.equip || {}, pk = passiveCacheKey(n), s0 = n.h && n.h.state, injL = n.inj ? n.inj.length : 0;
     if (c && ST.now > 0 && ST.now >= c.t && ST.now - c.t < ttl && (!c.nextExp || ST.now < c.nextExp) && c.eqW === eq.WEAPON && c.eqA === eq.ARMOR && c.eqX === eq.ACCESSORY && c.ver === n._ver && c.sub === (n.cult && n.cult.sub) && c.stage === (n.cult && n.cult.stage) && c.passKey === pk && (!s0 || (c.injL === injL && Math.abs(s0.hp - c.hp0) < 4 && Math.abs(s0.energy - c.en0) < 6))) return c.v;
-    n._hpf = clamp(s0.hp / Math.max(1, hpMaxBase(n)), 0, 1);
+    const hmEff = (n.buffs && n.buffs.length) ? ST.hpMax(n) : hpMaxBase(n);
+    n._hpMaxHint = hmEff;
+    if (n._hpf == null) n._hpf = 1; n._hpf = clamp(s0.hp / Math.max(1, hmEff), 0, 1);
     const v = computeFast(n); n._cs = { t: ST.now, v, nextExp: earliestExpiry(n), eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: pk, hp0: s0.hp, en0: s0.energy, injL }; return v;
   };
   function hpMaxBase(n) { const h = n.foe ? n.hpMax : getBaseFast(n).hpVal; n._hpMaxHint = h; return h; }
-  ST.explain = n => { if (!n.foe) n._hpf = clamp(n.h.state.hp / Math.max(1, hpMaxBase(n)), 0, 1); return compute(n, true); };
+  ST.explain = n => { if (!n.foe) { const hmEff = (n.buffs && n.buffs.length) ? ST.hpMax(n) : hpMaxBase(n); n._hpMaxHint = hmEff; if (n._hpf == null) n._hpf = 1; n._hpf = clamp(n.h.state.hp / Math.max(1, hmEff), 0, 1); } return compute(n, true); };
   ST.hpMax = n => {
     if (n.foe) return n.hpMax;
     const base = getBaseFast(n);
-    if (!n.buffs || !n.buffs.length) return base.hpVal;
+    if (!n.buffs || !n.buffs.length) { n._lastHpMax = base.hpVal; return base.hpVal; }
     let pHp = base.p.hp, fHp = base.f.hp;
     for (let i = 0; i < n.buffs.length; i++) {
       const bf = n.buffs[i];
@@ -1202,7 +1261,9 @@
       if (bf.p && bf.p.hp) pHp += bf.p.hp;
       if (bf.f && bf.f.hp) fHp += bf.f.hp;
     }
-    return Math.round(Math.max(1, base.b.hp * (1 + pHp) + fHp));
+    const finalHp = Math.round(Math.max(1, base.b.hp * (1 + pHp) + fHp));
+    n._lastHpMax = finalHp;
+    return finalHp;
   };
   ST.moveMult = n => {
     if (!n.foe && (!n.buffs || !n.buffs.length) && (!n.sx || !n.sx.length)) {
@@ -1234,18 +1295,18 @@
 
   /* ---------- ชุบไอเท็ม: โอสถบัฟการรบ + การเตรียมตัวก่อนศึกหนัก ---------- */
   const oApplyPill = ECO.applyPill;
-  ECO.applyPill = (W, npc, key) => {
+  ECO.applyPill = (W, npc, key, qualityOpt) => {
     const info = ECO.pillInfo(key);
-    if (!info || !info.effect.cbBuff) return oApplyPill(W, npc, key);
-    const b = info.effect.cbBuff; ST.addBuff(npc, b); if (npc.cult) npc.cult.toxic = Math.min(100, (npc.cult.toxic || 0) + (info.effect.toxicity || 0));
+    if (!info || !info.effect.cbBuff) return oApplyPill(W, npc, key, qualityOpt);
+    const b = Object.assign({ kind: 'cbPill' }, info.effect.cbBuff); ST.addBuff(npc, b); if (npc.cult) npc.cult.toxic = Math.min(100, (npc.cult.toxic || 0) + (info.effect.toxicity || 0));
     HC.bump(npc); return { info, msgs: ['บัฟ「' + b.name + '」'] };
   };
   ST.preFight = (W, n, hard) => {
-    if (n.foe || !n.cult || (n.buffs && n.buffs.some(b => b.until > ST.now))) return;
-    if (n.voluntaryVows && n.voluntaryVows.VOW_NO_MEDICINE && n.voluntaryVows.VOW_NO_MEDICINE.active) return;
+    if (n.foe || !n.cult || (n.buffs && n.buffs.some(b => b.until > ST.now && (b.kind === 'cbPill' || (b.id && String(b.id).startsWith('CB_')))))) return;
+    if (CULT.isAbstainingFromPills ? CULT.isAbstainingFromPills(n) : (n.voluntaryVows && n.voluntaryVows.VOW_NO_MEDICINE && n.voluntaryVows.VOW_NO_MEDICINE.active)) return;
     const isCb = k => k.startsWith('P:CB_') || !!(ECO.pillInfo(k)?.effect?.cbBuff);
     const keys = []; if (n.inv && n.inv.pills) Object.keys(n.inv.pills).forEach(k => { if (isCb(k) && n.inv.pills[k] > 0) keys.push([k, 'own']); });
-    if (!keys.length && n.rank >= 1) Object.keys(W.sect.stock).forEach(k => { if (isCb(k) && W.sect.stock[k] > 0) keys.push([k, 'sect']); });
+    if (!keys.length && n.rank >= 1 && !n.away && W && W.sect && W.sect.stock) Object.keys(W.sect.stock).forEach(k => { if (isCb(k) && W.sect.stock[k] > 0) keys.push([k, 'sect']); });
     if (!keys.length) return;
     const c = n.cult, pref = (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? ['STONE', 'FURY'] : (c.path === 'XIAN' || c.path === 'HEART_SOUL' || c.path === 'ARRAY_TALISMAN' || c.path === 'SAGE_SUPPORT') ? ['SPIRIT', 'EYE', 'WIND'] : c.path === 'DEMON' ? ['FURY', 'WIND', 'STONE'] : ['STONE', 'SPIRIT', 'FURY', 'EYE'];
     let best = null, bs = -1;
@@ -1259,7 +1320,7 @@
     });
     if (!best) return;
     let r;
-    if (best[1] === 'own') { n.inv.pills[best[0]]--; if (n.inv.pills[best[0]] <= 0) delete n.inv.pills[best[0]]; r = ECO.applyPill(W, n, best[0]); }
+    if (best[1] === 'own') { const q = (n.inv.pillQuality && n.inv.pillQuality[best[0]]) || 1; n.inv.pills[best[0]]--; if (n.inv.pills[best[0]] <= 0) { delete n.inv.pills[best[0]]; if (n.inv.pillQuality) delete n.inv.pillQuality[best[0]]; } r = ECO.applyQualityPill ? ECO.applyQualityPill(W, n, best[0], q) : ECO.applyPill(W, n, best[0]); }
     else r = ECO.usePill(W, n, best[0]);
     if (r) AI_mem(W, n, 'กิน' + r.info.name + 'ก่อนออกศึก');
   };

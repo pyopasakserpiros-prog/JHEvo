@@ -12,4 +12,9 @@ html = html.replace(/<script src="([^"]+)"><\/script>/g, (m, f) => '<script>\n/*
 // Embed generated item atlases exactly once per sheet for Android/offline use.
 html = html.replace(/(['"])(assets\/item_art_[a-z]+\.webp)\1/g, (_, quote, file) =>
   JSON.stringify('data:image/webp;base64,' + fs.readFileSync(path.join(root,file)).toString('base64')));
+const wuxiaAtlasPath = path.join(root, 'assets', 'wuxia_item_atlas.png');
+if (fs.existsSync(wuxiaAtlasPath)) {
+  html = html.replace(/(['"])(assets\/wuxia_item_atlas\.png)\1/g, () =>
+    JSON.stringify('data:image/png;base64,' + fs.readFileSync(wuxiaAtlasPath).toString('base64')));
+}
 fs.writeFileSync(path.join(root, 'JianghuSect_single.html'), html); console.log('single file', Math.round(html.length / 1024), 'KB');

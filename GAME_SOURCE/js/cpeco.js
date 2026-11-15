@@ -78,8 +78,8 @@
     return Math.max(2, minNoArb, raw);
   };
   CPE.gearPrice = (W, it) => { const c = CPE.S(W); const maxD = it.maxDur == null ? 100 : it.maxDur, curD = it.dur == null ? maxD : it.dur; const condK = clamp(curD / 100, 0.25, 1) * clamp(0.7 + 0.3 * (maxD / 100), 0.5, 1); const baseVal = Math.max(it.value || 0, Math.round(20 * Math.pow(1.9, (it.tier || 1) - 1))); return Math.max(5, Math.round(baseVal * 0.9 * (it.q || 1) * condK * c.price * c.markup)); };
-  CPE.techFree = (W, t) => !t || CPE.S(W).freeLib.includes(t.id);
-  CPE.techPrice = (W, t) => CPE.techFree(W, t) ? 0 : Math.round(28 * Math.pow(t.tier, 2.1) * CPE.S(W).price);
+  CPE.techFree = (W, t, n) => !t || CPE.S(W).freeLib.includes(t.id) || !!(n && n.studyWaivers && n.studyWaivers[t.id]);
+  CPE.techPrice = (W, t, n) => CPE.techFree(W, t, n) ? 0 : Math.round(28 * Math.pow(t.tier, 2.1) * CPE.S(W).price);
   CPE.techReward = (W, id) => { const t = CULT.tech(id); return t ? 28 * Math.pow(t.tier, 2.1) * 0.55 : 0; };
   CPE.donorValue = (W, out) => {
     const a = { total: 0, parts: [] };
@@ -87,6 +87,10 @@
     Object.keys(out.pills || {}).forEach(k => { const before = out.stockBefore && out.stockBefore[k]; a.total += CPE.reward(W, k, out.pills[k], before); });
     (out.gear || []).forEach(gr => { a.total += CPE.gearPrice(W, gr) * 0.5; });
     (out.techs || []).forEach(id => { if (out.techsAccepted || !W.sect.library.includes(id)) a.total += CPE.techReward(W, id); });
+    Object.keys(out.organs || {}).forEach(k => {
+      const o = g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[k];
+      a.total += (o ? 12 * (o.tier || 1) : 15) * (out.organs[k] || 0);
+    });
     if (out.stones > 0) a.total += out.stones * 0.2;
     return a.total;
   };
@@ -140,7 +144,7 @@
     },
     done(n, W, ctx) { const v = ctx.cpValue || 0, c = Object.values(ctx.items || {}).reduce((s, x) => s + x, 0); n.merit += 0.3 + c * 0.03; CPE.mint(W, n, v, 'เก็บสมุนไพร ' + c + ' ต้น', true); CPE.S(W).donated += v; }
   };
-  const HERB_POOL = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1', 'MAT_ZITHER_PARASOL_WOOD_1', 'MAT_BRUSH_SPIRIT_WEASEL_HAIR_1', 'MAT_WHIP_IRON_SILKWORM_THREAD_1'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_MERIDIAN_FLOWER_3', 'MAT_ZITHER_ICE_SILK_STRING_3', 'MAT_BRUSH_STARLIGHT_CINNABAR_3', 'MAT_WHIP_SHADOW_PYTHON_TENDON_3'] };
+  const HERB_POOL = { 1: ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_CINDER_LEAF_1'], 2: ['MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2'], 3: ['MAT_HERB_BLOOD_GINSENG_3', 'MAT_HERB_VENOM_VINE_3', 'MAT_HERB_MERIDIAN_FLOWER_3'] };
   ECO.herbPool = t => HERB_POOL[t] || HERB_POOL[1];
   CPE.drive = n => clamp((E(n, 'values.wealthResource') * 0.45 + E(n, 'personality.ambition') * 0.3 + E(n, 'personality.discipline') * 0.25) / 100, 0.1, 1);
   function interestTerm(n, id, S, w) { const v = (E(n, 'interests.' + id) - 50) / 100 * w; S.add('สนใจ' + id, v); }
@@ -163,23 +167,25 @@
     return mask;
   }
   function pickBasic(W, n) {
-    if (W && W.t > 0 && n._pbTick === W.t) return n._pbVal;
+    if (W && n._pbTick === W.t && n._pbSeq === W._stockSeq) return n._pbVal;
     const mask = getBasicMask(W);
     if (mask === 0) {
-      if (W && W.t > 0) n._pbTick = W.t;
+      if (W) { n._pbTick = W.t; n._pbSeq = W._stockSeq; }
       return (n._pbVal = null);
     }
     let best = null, bs = -1e9; const sk = n.h.skills.ALCHEMY || 0;
     const basics = JD.CP.BASIC;
+    const nSeed = (n.n || 1) * 31 + ((W && W.day) || 0) * 17;
     for (let i = 0; i < basics.length; i++) {
       if ((mask & (1 << i)) === 0) continue;
       const r = basics[i];
       if (r.tier > 1 && sk + 25 < r.minMastery) continue;
       const key = 'P:' + r.id, have = ECO.count(W, key), tgt = CPE.target(W, key);
-      const s = (tgt - have) / tgt + W.rng.next() * 0.1 - r.tier * 0.05;
+      const detTie = (((nSeed + i * 29) & 0x7fffffff) % 100) / 1000;
+      const s = (tgt - have) / tgt + detTie - r.tier * 0.05;
       if (s > bs) { bs = s; best = { r, short: s }; }
     }
-    if (W && W.t > 0) n._pbTick = W.t;
+    if (W) { n._pbTick = W.t; n._pbSeq = W._stockSeq; }
     return (n._pbVal = best);
   }
   A.brewBasic = {
@@ -242,17 +248,19 @@
     return { equipped, retired, surplusCount: surplus.length, surplus };
   };
   const personalDonateFrac = n => clamp(0.38 + E(n, 'personality.integrity') / 260 + E(n, 'personality.loyalty') / 360 - E(n, 'values.wealthResource') / 520, 0.25, 0.92);
+  const personalOrgansList = n => Object.keys((n && n.inv && n.inv.organs) || {}).filter(k => n.inv.organs[k] > 0);
   const hasDonatableMats = n => { const m = n && n.inv && n.inv.mats; if (!m) return false; let f = -1; for (const k in m) { const q = m[k]; if (q > 0 && !ECO.REPAIR_STONES[k]) { if (q > 1) return true; if (f < 0) f = personalDonateFrac(n); if (f >= 0.68) return true; } } return false; };
   A.donate = {
     nameTh: 'นำของส่วนตัวบริจาค', icon: '🎁', color: '#c6a4f5',
-    can: (n, W) => n.h.state.energy > 15 && n.h.state.satiety > 15 && (hasDonatableMats(n) || personalTechs(n, W).length > 0 || personalRecipes(n).length > 0 || personalSurplusGear(n, W).length > 0),
+    can: (n, W) => n.h.state.energy > 15 && n.h.state.satiety > 15 && (hasDonatableMats(n) || personalOrgansList(n).length > 0 || personalTechs(n, W).length > 0 || personalRecipes(n).length > 0 || personalSurplusGear(n, W).length > 0),
     score(n, W, S) {
-      const ids = personalMats(n), techs = personalTechs(n, W), recipes = personalRecipes(n), gears = personalSurplusGear(n, W);
-      if (!ids.length && !techs.length && !recipes.length && !gears.length) return;
+      const ids = personalMats(n), orgIds = personalOrgansList(n), techs = personalTechs(n, W), recipes = personalRecipes(n), gears = personalSurplusGear(n, W);
+      if (!ids.length && !orgIds.length && !techs.length && !recipes.length && !gears.length) return;
       let value = 0, shortage = 0;
       ids.forEach(k => { const q = n.inv.mats[k] || 0, sc = CPE.scarcity(W, k); value += CPE.reward(W, k, q); shortage += Math.max(0, sc - 0.7); });
       techs.forEach(id => { value += CPE.techReward(W, id); });
       recipes.forEach(id => { if (!W.sect.knownRecipes.includes(id)) value += g.CONTENT && g.CONTENT.recipeReward ? g.CONTENT.recipeReward(W, id) : 12 * (ECO.recipeById[id].tier || 1); });
+      orgIds.forEach(oid => { const o = g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[oid]; value += (o ? 12 * (o.tier || 1) : 15) * (n.inv.organs[oid] || 0); });
       gears.forEach(eq => { value += Math.floor(CPE.gearPrice(W, eq) * 0.55); });
       S.add('อยากได้แต้มไว้แลกของ', clamp((150 - (n.cp || 0)) / 150, -0.2, 0.8) * 0.65);
       S.add('ซื่อสัตย์และภักดี', (E(n, 'personality.integrity') - 45) / 180 + (E(n, 'personality.loyalty') - 45) / 220);
@@ -270,8 +278,8 @@
     dur: n => 25 + Math.round((100 - E(n, 'personality.integrity')) * 0.15),
     done(n, W) {
       CPE.evaluatePersonalBagGear(W, n);
-      const ids = personalMats(n), techs = personalTechs(n, W), recipes = personalRecipes(n), gears = personalSurplusGear(n, W);
-      if (!ids.length && !techs.length && !recipes.length && !gears.length) return;
+      const ids = personalMats(n), orgIds = personalOrgansList(n), techs = personalTechs(n, W), recipes = personalRecipes(n), gears = personalSurplusGear(n, W);
+      if (!ids.length && !orgIds.length && !techs.length && !recipes.length && !gears.length) return;
       const loyalty = E(n, 'personality.loyalty'), frac = personalDonateFrac(n);
       let total = 0, units = 0, scrolls = 0, formulas = 0, formulaCp = 0, gearCount = 0, gearCp = 0; const accepted = {};
       ids.forEach(k => {
@@ -315,6 +323,17 @@
         }
       });
       gears.forEach(eq => {
+        const cls = (g.MARTIAL && g.MARTIAL.classifyGearForNpc) ? g.MARTIAL.classifyGearForNpc(W, n, eq, 0) : null;
+        if (cls && cls.category === 'gift-worthy' && cls.targetNpcId && g.COG && typeof g.COG.giveGearGift === 'function') {
+          const targetNpc = W.byId && W.byId[cls.targetNpcId];
+          if (targetNpc && !targetNpc.dead && !targetNpc.away) {
+            const giftRes = g.COG.giveGearGift(W, n, targetNpc, eq);
+            if (giftRes && giftRes.ok) {
+              gearCount++;
+              return;
+            }
+          }
+        }
         if (SECT && SECT.EDITOR && SECT.EDITOR.donatePersonalGear) {
           const gRes = SECT.EDITOR.donatePersonalGear(W, n.id, eq.uid || eq.id);
           if (gRes && gRes.ok) {
@@ -323,7 +342,15 @@
           }
         }
       });
-      if (!units && !scrolls && !formulas && !gearCount) { HC.feel(n, { mood: -0.2 }); return; }
+      let organCount = 0, organCp = 0;
+      orgIds.forEach(oid => {
+        const qty = (n.inv && n.inv.organs && n.inv.organs[oid]) || 0;
+        if (qty > 0 && g.CONTENT && g.CONTENT.donateOrgan) {
+          const res = g.CONTENT.donateOrgan(W, n, oid, qty);
+          if (res && res.ok) { organCount += qty; organCp += res.reward || 0; }
+        }
+      });
+      if (!units && !organCount && !scrolls && !formulas && !gearCount) { HC.feel(n, { mood: -0.2 }); return; }
       if (g.SECT && g.SECT.notifyStockChanged) g.SECT.notifyStockChanged(W);
       if (total > 0) { CPE.mint(W, n, total, 'บริจาควัตถุดิบส่วนตัว', true); CPE.S(W).donated += total; }
       const grandTotal = total + formulaCp + gearCp;
@@ -343,7 +370,10 @@
       if (ECO.isPill(k) && S.stock[k] > 0) out.push({ kind: 'pill', key: k, n: S.stock[k], price: CPE.priceOf(W, k) });
       else if (k.startsWith('CRYSTAL_PATH_') && S.stock[k] > 0) out.push({ kind: 'path_crystal', key: k, n: S.stock[k], price: pathCrystalPrice(W, k) });
     });
-    S.gear.forEach(gr => out.push({ kind: 'gear', gear: gr, price: CPE.gearPrice(W, gr) }));
+    S.gear.forEach(gr => {
+      if (!gr || gr.broken || gr.retired || (gr.procedural && (gr.dur || 0) <= 0)) return;
+      out.push({ kind: 'gear', gear: gr, price: CPE.gearPrice(W, gr) });
+    });
     return out;
   };
   const effOf = k => { const i = ECO.pillInfo(k); return i ? i.effect : {}; };
@@ -364,11 +394,14 @@
       W._pillStockKeys = pks;
       W._pillStockKeysSeq = W._pillSeq || 0;
     }
-    const pillKeys = W._pillStockKeys;
+    const abstainingPills = !!(CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n));
+    const mappedBtKey = (c && g.BN && g.BN.resolveBreakthroughPillKey) ? g.BN.resolveBreakthroughPillKey(c) : (c ? ("P:BT_" + c.path + "_" + c.stage) : "");
+    const pillKeys = abstainingPills ? [] : W._pillStockKeys;
     for (let pki = 0; pki < pillKeys.length; pki++) {
       const k = pillKeys[pki];
       if (W.sect.stock[k] <= 0) continue; const e = effOf(k), it = { kind: 'pill', key: k, price: null };
       const info = ECO.pillInfo(k);
+      if (e.taboo && (!c || c.path !== 'DEMON') && E(n, 'personality.integrity') > 35) continue;
       if (BASIC_IDS.includes(k)) { const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n)); const need = (e.healHealth && have(k) < 2 ? 0.7 : 0) + (e.healInjury && n.inj && n.inj.length ? 1.2 : 0) + (!isZeroQi && e.qiRestore && c && have(k) < 1 && n.rank >= 1 ? 0.35 : 0) + (e.clearHeartDemon && n.h.state.heartDemon > 25 ? 0.7 : 0) + (e.clearToxic && c && c.toxic > 20 ? 0.7 : 0) + (e.energyRestore && n.h.state.energy < 40 ? 0.4 : 0); if (need > 0 && have(k) < 3) consider(it, need * (1 - (E(n, 'personality.caution') < 30 ? 0.3 : 0)), 'สำรองไว้ใช้'); continue; }
       if (!info || (e.compatiblePath && (!c || e.compatiblePath !== c.path))) continue;
       if (e.healHealth && hpRatio < 0.72 && have(k) < 1) consider(it, 0.65 + (1 - hpRatio) * 1.5, 'โอสถรักษาระดับสูง');
@@ -377,7 +410,14 @@
       if (e.clearHeartDemon && n.h.state.heartDemon > 32 && have(k) < 1) consider(it, 0.7 + n.h.state.heartDemon / 120, 'ระงับจิตมาร');
       if (e.insight && c && have(k) < 1 && (c.learning || E(n, 'personality.curiosity') > 65)) consider(it, 0.65 + E(n, 'personality.curiosity') / 250, 'เพิ่มความเข้าใจคัมภีร์');
       if (!c) continue;
-      if (e.btFor) { if (e.btFor.path === c.path && e.btFor.stage === c.stage && have(k) < 1 && (c.bn || c.prog >= th0 * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น'); continue; }
+      if (e.btFor) {
+        if (((e.btFor.path === c.path && e.btFor.stage === c.stage) || k === mappedBtKey) && have(k) < 1 && (c.bn || c.prog >= th0 * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น');
+        continue;
+      }
+      if (e.breakthroughBonus && !e.btFor && have(k) < 1 && (c.bn || c.prog >= th0 * 0.75) && info.tier <= eqSt0 + 1) {
+        consider(it, c.bn ? 2.8 : 2.0, 'โอสถหนุนทะลวงด่าน');
+        continue;
+      }
       if (e.cbBuff) {
         const combatInt = E(n, 'interests.combat') || 50;
         const courage = E(n, 'personality.courage') || 50;
@@ -415,11 +455,12 @@
       if (W.sect.gear.length > 0) ["WEAPON", "ARMOR", "ACCESSORY"].forEach(slot => {
         let cs = null;
         W.sect.gear.forEach(gr => {
-          if (gr.slot !== slot || (gr.minStage || 1) > effSt + 1) return;
+          if (!gr || gr.broken || gr.retired || (gr.procedural && (gr.dur || 0) <= 0)) return;
+          if (gr.slot !== slot || (gr.minStage || 1) > effSt || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(n, gr))) return;
           const price = CPE.gearPrice(W, gr);
           if (price > cp * 0.9) return;
-          if (cs === null) { const cur = n.equip && n.equip[slot]; cs = cur ? g.MARTIAL.gearSuitability(n, cur).score : 0; }
-          const fit = g.MARTIAL.gearSuitability(n, gr, price), gs = fit.score;
+          if (cs === null) { const cur = n.equip && n.equip[slot]; cs = cur ? g.MARTIAL.gearSuitability(n, cur, 0).score : 0; }
+          const fit = g.MARTIAL.gearSuitability(n, gr, 0), gs = fit.score;
           const isGoalTarget = n.cognition?.goal?.id === "gear_upgrade" && n.cognition.goal.targetId === (gr.uid || gr.id);
           if (gs > cs * multReq + flatReq || (isGoalTarget && gs > cs + 6)) {
             const goalBonus = isGoalTarget ? 0.65 : 0;
@@ -430,8 +471,10 @@
     }
     if (c && c.track && CULT.checkTrackGates && (CULT.trackReady(n) || c.track.prog >= CULT.trackThreshold(n) * 0.65)) {
       const tg = CULT.checkTrackGates(W, n);
-      if (!tg.resourceOk && tg.missingStones && tg.missingStones.deficit > 0 && W.sect && (W.sect.stones || 0) >= 10 && cp >= 8) {
-        const grantStones = Math.min(tg.missingStones.deficit, Math.floor(W.sect.stones * 0.25), Math.floor(cp * 2.5));
+      if (tg.skillOk !== false && !tg.resourceOk && tg.missingStones && tg.missingStones.deficit > 0 && W.sect && (W.sect.stones || 0) >= 10 && cp >= 8) {
+        const kScope = (g.COG && g.COG.knowledgeScope) ? g.COG.knowledgeScope(W, n) : null;
+        const maxGrantCap = (!kScope || kScope.canSeeFullTreasury) ? Math.floor(W.sect.stones * 0.25) : Math.min(80, Math.floor(W.sect.stones * 0.20));
+        const grantStones = Math.min(tg.missingStones.deficit, maxGrantCap, Math.floor(cp * 2.5));
         if (grantStones >= 5) {
           const grantPrice = Math.max(4, Math.ceil(grantStones / 2.5));
           consider({ kind: 'stone_grant', key: 'STONE_GRANT', nameTh: 'เบิกศิลาวิญญาณ ×' + grantStones, stones: grantStones, price: grantPrice }, 2.75, 'สะสมศิลาวิญญาณเพื่อทะลวงสายเฉพาะทาง');
@@ -469,8 +512,14 @@
       const expectedPrice = Math.max(4, Math.ceil(reqStones / 2.5));
       if (p.price !== expectedPrice || (W.sect.stones || 0) < reqStones) return false;
       if (!CPE.spend(W, n, expectedPrice, 'แลกศิลาวิญญาณทะลวงสายเฉพาะทาง')) return false;
-      W.sect.stones -= reqStones;
-      n.inv.stones = (n.inv.stones || 0) + reqStones;
+      if (ECO.transferStones) {
+        ECO.transferStones(W, { from: 'sect', to: 'npc:' + n.id, amount: reqStones, why: 'แลกศิลาวิญญาณทะลวงสายเฉพาะทาง' });
+      } else {
+        ECO.pay(W, reqStones, 'แลกศิลาวิญญาณทะลวงสายเฉพาะทาง', { internalTransfer: true });
+        n.inv.stones = (n.inv.stones || 0) + reqStones;
+        n.personalStones = n.inv.stones;
+      }
+      n.inv.earmarkedTrackStones = (n.inv.earmarkedTrackStones || 0) + reqStones;
       return true;
     }
     if (!p || !Number.isFinite(p.price) || p.price <= 0 || !['pill','gear'].includes(p.kind)) return false;
@@ -489,6 +538,7 @@
       if (!p.gear || !n || !n.cult) return false;
       const i = W.sect.gear.findIndex(x => x === p.gear || (p.gear.uid && x && x.uid === p.gear.uid)); if (i < 0) return false;
       const boughtGear = W.sect.gear[i];
+      if (!boughtGear || boughtGear.broken || boughtGear.retired || (boughtGear.procedural && (boughtGear.dur || 0) <= 0)) return false;
       const effSt = n.cult ? (CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage) : 0;
       if (!['WEAPON', 'ARMOR', 'ACCESSORY'].includes(boughtGear && boughtGear.slot) || (boughtGear.minStage || 1) > effSt + 1) return false;
       const quote = CPE.gearPrice(W, boughtGear);
@@ -526,7 +576,7 @@
 
   /* ----- บริการชี้แนะจากหอคัมภีร์: ใช้แต้มเป็นค่าครูและเผาออกจากระบบ ----- */
   CPE.guidanceTeacher = (W, n) => {
-    const eligible = t => !!(t && t !== n && !t.dead && !t.away && !t.exiled && !(t.guidanceUntil > W.t) && (t.rank > n.rank || (t.cult && n.cult && (CULT.equivalentStage ? CULT.equivalentStage(t) > CULT.equivalentStage(n) : t.cult.stage > n.cult.stage))));
+    const eligible = t => !!(t && t !== n && !t.dead && !t.away && !t.exiled && !(t.jail && t.jail > W.t) && (!t.act || (t.act.id !== 'sleep' && t.act.id !== 'fight')) && !(g.COMBAT && g.COMBAT.isUnitInActiveFight && g.COMBAT.isUnitInActiveFight(W, t)) && !(t.guidanceUntil > W.t) && (t.rank > n.rank || (t.cult && n.cult && (CULT.equivalentStage ? CULT.equivalentStage(t) > CULT.equivalentStage(n) : t.cult.stage > n.cult.stage))));
     const head = SECT.holder(W, 'scripture'); if (eligible(head)) return head;
     const master = W.byId[W.sect.masterId]; if (eligible(master)) return master;
     return W.npcs.find(eligible) || null;
@@ -557,7 +607,9 @@
       const teacher = CPE.guidanceTeacher(W, n), fee = CPE.guidanceFee(W, n);
       if (!teacher || !n.cult || !n.cult.learning || (n.insightT || 0) > 0 || W.day - (n.guidanceDay == null ? -999 : n.guidanceDay) < 16) return false;
       if (!CPE.spend(W, n, fee, 'ค่าชี้แนะจากหอคัมภีร์')) return false;
-      ctx.teacherId = teacher.id; ctx.fee = fee; teacher.guidanceUntil = W.t + 36;
+      const honorarium = Math.max(1, Math.floor(fee * 0.30));
+      CPE.mint(W, teacher, honorarium, 'ค่าบูชาครูชี้แนะ ' + n.h.name.given, true);
+      ctx.teacherId = teacher.id; ctx.fee = fee; ctx.honorarium = honorarium; teacher.guidanceUntil = W.t + 36;
       const tier = (CULT.tech(n.cult.learning.id) || {}).tier || 1;
       ctx.rate = clamp(0.0035 + tier * 0.00045 + (teacher.h.skills.SCRIPTURE || 0) / 30000 + E(teacher, 'intellect.comprehension') / 50000, 0.004, 0.009);
       n.guidanceDay = W.day; n.insightT = 360;
@@ -568,7 +620,8 @@
       const learning = n.cult && n.cult.learning;
       if (!learning) return 'done';
       const ancMult = (CULT.isAncestralBlessingActive ? CULT.isAncestralBlessingActive(n, W ? W.t : null) : (n.ancestralBlessing && (!n.ancestralBlessing.until || n.ancestralBlessing.until >= W.t))) && n.ancestralBlessing.studySpeedMult ? n.ancestralBlessing.studySpeedMult : 1;
-      learning.got = Math.min(learning.need, learning.got + learning.need * (ctx.rate || 0.005) * ancMult);
+      const fbStudy = (g.FISHING && g.FISHING.activeFoodBuff) ? ((g.FISHING.activeFoodBuff(W, n) || {}).studyMult || 1) : ((n.foodBuff && (!W || !Number.isFinite(W.t) || W.t < n.foodBuff.until) && n.foodBuff.studyMult) || 1);
+      learning.got = Math.min(learning.need, learning.got + learning.need * (ctx.rate || 0.005) * ancMult * fbStudy);
       (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 30, 1.1);
       const teacher = W.byId[ctx.teacherId]; if (teacher && !teacher.dead) { (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(teacher, 'SCRIPTURE', 1 / 60, 0.8); teacher.merit = (teacher.merit || 0) + 0.005; }
       n.h.state.energy = Math.max(10, n.h.state.energy - 0.012); n.h.state.rest = Math.max(10, n.h.state.rest - 0.006);
@@ -653,7 +706,14 @@
     let out = null;
     if (ids.length) {
       if (goalTgt) { const desired = ids.find(t => t.id === goalTgt); if (desired) out = desired; }
-      if (!out) { ids.sort((a,b)=>g.COG?g.COG.techPreference(n,b)-g.COG.techPreference(n,a):b.power-a.power); out = ids[0]; }
+      if (!out) {
+        ids.sort((a, b) => {
+          const prefDiff = g.COG ? (g.COG.techPreference(n, b) - g.COG.techPreference(n, a)) : (b.power - a.power);
+          const retDiff = (CULT && CULT.techRetentionScore) ? (CULT.techRetentionScore(n, b) - CULT.techRetentionScore(n, a)) * 0.25 : 0;
+          return prefDiff + retDiff;
+        });
+        out = ids[0];
+      }
     }
     n._nextTechCache = { t: W.t, cpBand, st: c.stage, sub: c.sub, tl: c.techs.length, libLen, goalTgt, rank: n.rank, out };
     return out;
@@ -675,14 +735,7 @@
     return oStart.apply(this, arguments);
   };
 
-  /* ----- โอสถฟื้นฟู: ผลเพิ่มเติม + การใช้ + สวัสดิการ ----- */
-  const oApplyPill = ECO.applyPill;
-  ECO.applyPill = (W, npc, key) => {
-    const r = oApplyPill(W, npc, key); if (!r) return r; const e = r.info.effect, s = npc.h.state;
-    if (e.qiRestore && npc.cult) { const q = CULT.qiMax(npc); s.qi = Math.min(q, (s.qi == null ? 0 : s.qi) + q * e.qiRestore); r.msgs.push('ฟื้นปราณ'); }
-    if (e.energyRestore) { s.energy = Math.min(100, s.energy + e.energyRestore); r.msgs.push('คลายเหนื่อย'); } if (e.restRestore) s.rest = Math.min(100, s.rest + e.restRestore);
-    return r;
-  };
+  /* ----- โอสถฟื้นฟู: ผลเพิ่มเติม + การใช้ + สวัสดิการ (รวมศูนย์ใน ECO.applyPill แล้ว) ----- */
   const isPillAllowed = (n, key) => {
     const info = ECO.pillInfo(key);
     if (!info) return false;
@@ -735,6 +788,10 @@
   function pickCrafted(n, effect) { return (n.inv && n.inv.craftedPills || []).find(p => p.intent === 'keep' && p.qty > 0 && ECO.pillInfo(p.key)?.effect[effect]); }
   CPE.autoUse = (W, n) => {
     if (n.dead || !n.inv || (n.act && n.act.id === 'fight')) return;
+    if (CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n)) {
+      if (Array.isArray(n.inv.gear) && n.inv.gear.length > 0) CPE.evaluatePersonalBagGear(W, n);
+      return;
+    }
     if (Array.isArray(n.inv.gear) && n.inv.gear.length > 0) CPE.evaluatePersonalBagGear(W, n);
     let hasPills = !!(n.inv.craftedPills && n.inv.craftedPills.length);
     if (!hasPills && n.inv.pills) { for (const _k in n.inv.pills) { hasPills = true; break; } }
@@ -751,7 +808,7 @@
     if (s.energy < 18 && (k = pickPill(n, 'energyRestore', R.vigor))) return consume(W, n, k);
   };
   CPE.fightUse = (W, n, ctx) => {
-    if (!n.inv || (ctx.pillAt || 0) > W.t) return false; const s = n.h.state, R = JD.CP.RECOVERY; let k;
+    if (!n.inv || (ctx.pillAt || 0) > W.t || (CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n))) return false; const s = n.h.state, R = JD.CP.RECOVERY; let k;
     const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n));
     const owned = s.hp < CULT.hpMax(n) * 0.38 && pickCrafted(n, 'healHealth') || n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * 0.2 && pickCrafted(n, 'qiRestore');
     if (owned && CPE.consumeCrafted(W, n, owned)) { ctx.pillAt = W.t + 6; n.fx = {t:W.t,text:'💊'}; return true; }
@@ -813,7 +870,7 @@
       return true;
     };
 
-    const candidates = W.npcs.filter(n => !n.dead && !n.away && !n.exiled);
+    const candidates = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && !(CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n)));
     const evaluated = candidates.map(n => {
       const s = n.h.state, hm = CULT.hpMax(n), needs = [];
       let needScore = 0;
@@ -925,7 +982,19 @@
     const S = W.sect, c = CPE.S(W); if (S.library && !c.freeLib) c.freeLib = S.library.filter(id => { const t = CULT.tech(id); return t && t.tier <= 1 && !t.overhaulPack; });
     W.npcs.forEach(n => {
       if (n.cp == null) n.cp = 20;
-      if (n.inv && n.inv.techs) n.inv.techs = n.inv.techs.filter(id => CULT.tech(id) && !S.library.includes(id));
+      if (n.inv && n.inv.techs) {
+        n.inv.techs = n.inv.techs.filter(id => {
+          if (!CULT.tech(id)) return false;
+          if (S.library.includes(id)) {
+            if (!n.cult || !Array.isArray(n.cult.techs) || !n.cult.techs.includes(id)) {
+              n.studyWaivers = n.studyWaivers || {};
+              n.studyWaivers[id] = true;
+            }
+            return false;
+          }
+          return true;
+        });
+      }
       if (n.inv && n.inv.recipes) n.inv.recipes = n.inv.recipes.filter(id => !!ECO.recipeById[id]);
     });
     CPE.welfareDaily(W);
@@ -938,8 +1007,9 @@
     const cap = tgt * 4, balances = al.map(n => clamp(n.cp || 0, 0, cap));
     const avg = balances.length ? balances.reduce((s, v) => s + v, 0) / balances.length : 0;
     const median = balances.length ? balances.slice().sort((a, b) => a - b)[balances.length >> 1] : 0;
-    if (avg > tgt * 1.25) c.price = Math.min(4, c.price * 1.004);
-    else if (avg < tgt * 0.78) c.price = Math.max(0.6, c.price / 1.0045);
+    const refBal = 0.45 * avg + 0.55 * median;
+    if (refBal > tgt * 1.25) c.price = Math.min(4, c.price * 1.004);
+    else if (refBal < tgt * 0.78) c.price = Math.max(0.6, c.price / 1.0045);
     c.circulation = Math.round(al.reduce((s, n) => s + (n.cp || 0), 0) * 10) / 10;
     c.hist.push({ d: W.day, avg: Math.round(avg), median: Math.round(median), price: Math.round(c.price * 100) / 100, mint: Math.round(c.dayMint), burn: Math.round(c.dayBurn), circulation: c.circulation, retired: Math.round(c.retired || 0) }); if (c.hist.length > 60) c.hist.shift();
     c.dayMint = 0; c.dayBurn = 0;

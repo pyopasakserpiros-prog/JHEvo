@@ -136,8 +136,18 @@
   R.LEGENDARY_GEAR_VISUALS = Object.freeze(Object.fromEntries(((g.VC && g.VC.LEGENDARY_EQUIPMENT) || [])
     .filter(it => relicByVisual[it.visualKey]).map(it => [it.id, Object.freeze({ ...relicByVisual[it.visualKey],
       id: it.id, nameTh: it.nameTh, slot: it.slot })])));
+  const v230RelicList = ((g.JD && g.JD.ITEMS && g.JD.ITEMS.items) || []).filter(it => it && /^REL_V230_/.test(it.id));
+  R.GRAND_DAO_RELIC_VISUALS = Object.freeze(Object.fromEntries(v230RelicList.map(it => {
+    const vk = it.visualKey || 'vis_yitian_sword';
+    const base = relicByVisual[vk] || relicByVisual.vis_yitian_sword;
+    return [it.id, Object.freeze({ ...base, id: it.id, nameTh: it.nameTh, slot: it.slot || 'WEAPON' })];
+  })));
+  R.APEX_PATH_ART_VISUALS = Object.freeze({
+    LEG_V240_GOD: Object.freeze({ id: 'LEG_V240_GOD', motif: 'legend_celestial_mandate', path: 'GOD', primary: '#ffd166', secondary: '#ff9e00', accent: '#ffffff', passive: false }),
+    LEG_V240_CRAFT_CREATION: Object.freeze({ id: 'LEG_V240_CRAFT_CREATION', motif: 'legend_qiankun_taiji', path: 'CRAFT_CREATION', primary: '#ff4d00', secondary: '#ffd166', accent: '#fff3b0', passive: false })
+  });
   R.resolveLegendaryGearVisual = item => item && item.legendary === true
-    ? (R.LEGENDARY_GEAR_VISUALS[item.id] || null) : null;
+    ? (R.LEGENDARY_GEAR_VISUALS[item.id] || (R.GRAND_DAO_RELIC_VISUALS && R.GRAND_DAO_RELIC_VISUALS[item.id]) || null) : null;
 
 
   // Legendary apex presentation: exact identities, themed scenes, and bounded spectacle.
@@ -1326,20 +1336,30 @@
     return { rawStage, maxStage, normStage, tierBand, isApex, isPenultimate, isMidTier, pathId: pKey, sig };
   };
 
-  // Pillar 2A: 12 Elements & 34 Elemental Fusions VFX Palette
+  // Pillar 2A: 12 Elements, Canonical ELEM Keys & 34 Elemental Fusions VFX Palette
   R.ELEMENT_VFX_PALETTE = Object.freeze({
-    METAL:     { primary: '#f8f9fa', secondary: '#ffd166', accent: '#90e0ef', style: 'razor_silver' },
-    WOOD:      { primary: '#52b788', secondary: '#b7e4c7', accent: '#f8c2d8', style: 'vine_blossom' },
-    WATER:     { primary: '#00b4d8', secondary: '#90e0ef', accent: '#caf0f8', style: 'tidal_wave' },
-    FIRE:      { primary: '#ff4d00', secondary: '#ffb703', accent: '#fff3b0', style: 'lotus_inferno' },
-    EARTH:     { primary: '#d4a373', secondary: '#e9c46a', accent: '#ccd5ae', style: 'monolith_amber' },
-    WIND:      { primary: '#80ed99', secondary: '#c7f9cc', accent: '#ffffff', style: 'gale_vortex' },
-    LIGHTNING: { primary: '#7209b7', secondary: '#4cc9f0', accent: '#f72585', style: 'thunder_arc' },
-    ICE:       { primary: '#48cae4', secondary: '#ade8f4', accent: '#ffffff', style: 'frost_crystal' },
-    LIGHT:     { primary: '#ffd60a', secondary: '#ffc300', accent: '#ffffff', style: 'radiant_sun' },
-    DARK:      { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
-    SPACE:     { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
-    TIME:      { primary: '#f4a261', secondary: '#e9c46a', accent: '#e0fbfc', style: 'chrono_wheel' },
+    METAL:       { primary: '#f8f9fa', secondary: '#ffd166', accent: '#90e0ef', style: 'razor_silver' },
+    EARTH_METAL: { primary: '#d4a373', secondary: '#ffd166', accent: '#f8f9fa', style: 'razor_silver' },
+    WOOD:        { primary: '#52b788', secondary: '#b7e4c7', accent: '#f8c2d8', style: 'vine_blossom' },
+    WOOD_LIFE:   { primary: '#52b788', secondary: '#b7e4c7', accent: '#f8c2d8', style: 'vine_blossom' },
+    WATER:       { primary: '#00b4d8', secondary: '#90e0ef', accent: '#caf0f8', style: 'tidal_wave' },
+    WATER_ICE:   { primary: '#48cae4', secondary: '#90e0ef', accent: '#caf0f8', style: 'frost_crystal' },
+    FIRE:        { primary: '#ff4d00', secondary: '#ffb703', accent: '#fff3b0', style: 'lotus_inferno' },
+    EARTH:       { primary: '#d4a373', secondary: '#e9c46a', accent: '#ccd5ae', style: 'monolith_amber' },
+    WIND:        { primary: '#80ed99', secondary: '#c7f9cc', accent: '#ffffff', style: 'gale_vortex' },
+    LIGHTNING:   { primary: '#7209b7', secondary: '#4cc9f0', accent: '#f72585', style: 'thunder_arc' },
+    ICE:         { primary: '#48cae4', secondary: '#ade8f4', accent: '#ffffff', style: 'frost_crystal' },
+    LIGHT:       { primary: '#ffd60a', secondary: '#ffc300', accent: '#ffffff', style: 'radiant_sun' },
+    LIGHT_YANG:  { primary: '#ffd60a', secondary: '#ffc300', accent: '#ffffff', style: 'radiant_sun' },
+    DARK:        { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
+    YIN_SHADOW:  { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
+    DARK_YIN:    { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
+    SPACE:       { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
+    VOID:        { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
+    ASTRAL:      { primary: '#74c0fc', secondary: '#4361ee', accent: '#e0fbfc', style: 'void_rift' },
+    BLOOD_DEMON: { primary: '#d90429', secondary: '#9b2226', accent: '#ffccd5', style: 'abyss_eclipse' },
+    NEUTRAL:     { primary: '#a5d9df', secondary: '#e9cd85', accent: '#ffffff', style: 'razor_silver' },
+    TIME:        { primary: '#f4a261', secondary: '#e9c46a', accent: '#e0fbfc', style: 'chrono_wheel' },
     FUSION_SAMADHI_FIRE:    { primary: '#ff0055', secondary: '#ffbe0b', accent: '#ffffff', style: 'fusion_dual_spiral' },
     FUSION_FROST_THUNDER:   { primary: '#00f5d4', secondary: '#9b5de5', accent: '#ffffff', style: 'fusion_dual_spiral' },
     FUSION_KARMA_BLOOD:     { primary: '#d90429', secondary: '#7209b7', accent: '#ffccd5', style: 'fusion_dual_spiral' },
@@ -1745,10 +1765,12 @@
         items.push({ y: MAP.BTYPES[b.type].open ? b.y - 100 : b.y + b.h, b, k: 'b' });
       });
       W.npcs.forEach(n => {
-        if (n.dead || n.away || (n.hidden && !n.travel)) return;
+        if (n.dead || n.away) return;
+        const showIndoor = n.hidden && !n.travel && (c.z >= 1.65 || this.selected === n.id);
+        if (n.hidden && !n.travel && !showIndoor) return;
         const p = this.npcPos(n);
         if (p.x * TS < c.x - hw - 40 || p.x * TS > c.x + hw + 40 || p.y * TS < c.y - hh - 60 || p.y * TS > c.y + hh + 40) return;
-        items.push({ y: p.y, n, p, k: 'n' });
+        items.push({ y: p.y + (showIndoor ? 6 : 0), n, p, k: 'n' });
       });
       (W.foes || []).forEach(f => {
         if (!f.gone && !f.dead && Math.abs(f.x * TS - c.x) < hw + 50 && Math.abs(f.y * TS - c.y) < hh + 50) items.push({ y: f.y, f, k: 'f' });
@@ -1884,7 +1906,11 @@
               const rx = (useTgt ? proc.targetX : pos.x) * TS, ry = (useTgt ? proc.targetY : pos.y) * TS;
               const ox = pos.x * TS, oy = pos.y * TS;
               this.castActive.delete(procKey);
-              if(this.castActive.size>=24) this.castActive.delete(this.castActive.keys().next().value);
+              if(this.castActive.size>=24) {
+                let evKey = null;
+                for (const [k2, fx2] of this.castActive) { if (!fx2.legendary && !fx2.relicId && (fx2.tier || 1) <= 2) { evKey = k2; break; } }
+                this.castActive.delete(evKey || this.castActive.keys().next().value);
+              }
               this.castActive.set(procKey,{ownerId:a.id,relicId:spec.id,kind:'relic',x:rx,y:ry,originX:ox,originY:oy,angle:Math.atan2(ry-oy,rx-ox),start:this.castClock,life:R.legendarySceneLife({relicId:spec.id})});
             }
           }
@@ -1929,7 +1955,14 @@
         if(t5Vfx&&!isLegend&&shown&&shown.t5Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.52)return;
         if(t4Vfx&&!isLegend&&shown&&shown.t4Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.50)return;
         this.castActive.delete(key);
-        if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
+        if (this.castActive.size >= 24) {
+          let evKey = null;
+          for (const [k2, fx2] of this.castActive) { if (!fx2.legendary && !fx2.relicId && (fx2.tier || 1) <= 2) { evKey = k2; break; } }
+          if (!evKey && isLegend) {
+            for (const [k2, fx2] of this.castActive) { if (!fx2.legendary && !fx2.relicId) { evKey = k2; break; } }
+          }
+          this.castActive.delete(evKey || this.castActive.keys().next().value);
+        }
         const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
         const fusionKey = event.fusionId || event.fusion || null;
         const originX = Number.isFinite(event.originX) ? event.originX * TS : actorPos.x * TS;
@@ -2855,7 +2888,7 @@
           this.drawEquipEffectVfx(ctx, fx, p, reduced);
         } else if (fx.combatActionVfx) {
           this.drawCombatActionVfx(ctx, fx, p, reduced);
-        } else if (fx.relicId && R.LEGENDARY_GEAR_VISUALS[fx.relicId]) {
+        } else if (fx.relicId && (R.LEGENDARY_GEAR_VISUALS[fx.relicId] || (R.GRAND_DAO_RELIC_VISUALS && R.GRAND_DAO_RELIC_VISUALS[fx.relicId]))) {
           this.drawLegendaryRelicScene(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryArtVfx(ctx,fx,p,reduced,fullScenes.has(fx));
@@ -3817,7 +3850,15 @@
       ctx.restore();
 
       const shell = this.getBuildingSprite(b);
-      ctx.drawImage(shell, x - 22, y - 44, w + 48, h + 68);
+      const isCutaway = (z >= 1.65 && b.inside && b.inside.length > 0) || (this.selected && b.inside && b.inside.includes(this.selected));
+      if (isCutaway) {
+        ctx.save();
+        ctx.globalAlpha = 0.36;
+        ctx.drawImage(shell, x - 22, y - 44, w + 48, h + 68);
+        ctx.restore();
+      } else {
+        ctx.drawImage(shell, x - 22, y - 44, w + 48, h + 68);
+      }
 
       // If Peak Sanctuary was recently founded, render dissipating mist fade-out
       if (b.isPeakSanctuary && b.mistFadeStartT != null && this.W && (this.W.t - b.mistFadeStartT) < 60) {
@@ -4012,22 +4053,13 @@
         ctx.strokeStyle = 'rgba(92,68,42,.55)';
         ctx.lineWidth = 1.6;
         ctx.strokeRect(x + 3, y + 3, w - 6, h - 6);
-      } else if (b.type === 'spirit_pond') {
-        ctx.strokeStyle = 'rgba(115,108,92,.75)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, y, w, h);
-      } else if (b.type === 'river_dock' || b.type === 'river_west' || b.type === 'river_east') {
-        // วาดเสาไม้ท่าน้ำและราวสะพานข้ามธารน้ำปราณทักษิณ
-        ctx.strokeStyle = 'rgba(122,88,52,.65)';
-        ctx.lineWidth = 1.6;
-        if (b.type === 'river_dock') {
-          const bx0 = 116 * TS, bx1 = 121 * TS, by0 = 165 * TS, by1 = 176 * TS;
-          ctx.strokeRect(bx0, by0, bx1 - bx0, by1 - by0);
-          ctx.fillStyle = '#6e4726';
-          for (let py = by0; py <= by1; py += 16) {
-            ctx.fillRect(bx0 - 2, py - 2, 4, 4);
-            ctx.fillRect(bx1 - 2, py - 2, 4, 4);
-          }
+      } else if (b.type === 'river_dock') {
+        // วาดเสาไม้ท่าน้ำข้ามธารน้ำปราณทักษิณโดยไม่มีกรอบเส้นทึบปิดกั้นผืนน้ำ
+        const bx0 = 116 * TS, bx1 = 121 * TS, by0 = 165 * TS, by1 = 176 * TS;
+        ctx.fillStyle = '#6e4726';
+        for (let py = by0; py <= by1; py += 16) {
+          ctx.fillRect(bx0 - 2, py - 2, 4, 4);
+          ctx.fillRect(bx1 - 2, py - 2, 4, 4);
         }
       }
       this.drawSpot(ctx, b, x, y, w, h);
@@ -4065,31 +4097,35 @@
       const eqAcc = accObj ? (accObj.visualKey || accObj.id || '') : '';
       const cPath = (n && n.cult) ? n.cult.path : 'MORTAL';
       const cStage = (n && n.cult && n.cult.stage) ? n.cult.stage : 0;
-      const wUsable = !!(wpnObj && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
+      const wUsable = !!(wpnObj && (wpnObj.weaponSoul || !g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
       const wTier = wpnObj ? (wpnObj.tier || 1) : 0;
       const aTier = armObj ? (armObj.tier || 1) : 0;
       const accTier = accObj ? (accObj.tier || 1) : 0;
-      const wStars = wpnObj ? (wpnObj.stars || wpnObj.star || (wpnObj.quality === 'Masterwork' || wpnObj.legendary ? 3 : wpnObj.quality === 'Refined' ? 2 : wTier >= 5 ? 2 : wTier >= 3 ? 1 : 0)) : 0;
-      const aStars = armObj ? (armObj.stars || armObj.star || (armObj.legendary ? 3 : aTier >= 5 ? 2 : aTier >= 3 ? 1 : 0)) : 0;
-      const accStars = accObj ? (accObj.stars || accObj.star || (accObj.legendary ? 3 : accTier >= 5 ? 2 : accTier >= 3 ? 1 : 0)) : 0;
+      const wStars = wpnObj ? (wpnObj.attunedStars || wpnObj.stars || wpnObj.star || (wpnObj.quality === 'Masterwork' || wpnObj.legendary ? 3 : wpnObj.quality === 'Refined' ? 2 : wTier >= 5 ? 2 : wTier >= 3 ? 1 : 0)) : 0;
+      const aStars = armObj ? (armObj.attunedStars || armObj.stars || armObj.star || (armObj.legendary ? 3 : aTier >= 5 ? 2 : aTier >= 3 ? 1 : 0)) : 0;
+      const accStars = accObj ? (accObj.attunedStars || accObj.stars || accObj.star || (accObj.legendary ? 3 : accTier >= 5 ? 2 : accTier >= 3 ? 1 : 0)) : 0;
       const petObj = (n && Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n && n.pet ? n.pet : null);
       const petSig = petObj ? `${petObj.speciesId || petObj.id || 'pet'}:${petObj.stage || petObj.tier || 1}:${petObj.awakenedSymbol || ''}` : '';
       const legendaryGear = Object.values((n && n.equip) || {}).filter(it => it && R.resolveLegendaryGearVisual(it) &&
         (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n,it))).map(it => R.resolveLegendaryGearVisual(it));
       const gearIdentity = Object.entries((n && n.equip) || {}).map(([slot,it]) => slot+':'+(it && it.id)+':'+!!(it && it.legendary)).join('|') + '|' + legendaryGear.map(it=>it.id).join(',');
-      const sig = `${gearIdentity}|${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${cStage}|${eqW}|${wUsable ? 1 : 0}|${wTier}:${wStars}|${eqA}:${aTier}:${aStars}|${eqAcc}:${accTier}:${accStars}|${petSig}`;
+      const bioAge = (n && g.HC && g.HC.bioAge) ? g.HC.bioAge(n) : ((n && g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22);
+      const ageY = (n && g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;
+      const marksLen = (b.marks && b.marks.length) || 0;
+      const sig = `${gearIdentity}|${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${cStage}|${eqW}|${wUsable ? 1 : 0}|${wTier}:${wStars}|${eqA}:${aTier}:${aStars}|${eqAcc}:${accTier}:${accStars}|${petSig}|${bioAge >= 62 ? 1 : 0}|${marksLen}`;
 
       if (this.apCache && n && n.id) {
         const cached = this.apCache.get(n.id);
         if (cached && cached.sig === sig) return cached;
       }
 
-      const ageY = (n && g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;
       const isF = n?.h?.sex === 'F';
+      const wTypeResolved = (wpnObj && g.MARTIAL && g.MARTIAL.gearType) ? g.MARTIAL.gearType(wpnObj) : (eqW || null);
+      const resEval = (n && !n.foe && g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(n) : null;
       const ap = {
         sig,
         skin: b.skinHex || '#e8c49c',
-        hair: ageY >= 62 ? '#b8bec4' : (b.hairHex || '#222024'),
+        hair: (b.hairHex === '#e9edf5') ? '#e9edf5' : (bioAge >= 62 ? '#b8bec4' : (b.hairHex || '#222024')),
         eye: b.eyeHex || '#222024',
         long: /ยาว|ปล่อย|ถัก/.test(hs) || (isF && !/สั้น|โกน/.test(hs)),
         bun: /มวย|รวบ|ปิ่น/.test(hs) || (!/โกน/.test(hs) && (n?.rank >= 2 || !isF)),
@@ -4122,9 +4158,9 @@
         totalGearStars: Math.min(9, wStars + aStars + accStars),
         weaponStars: wStars,
         weaponElement: (wpnObj && (wpnObj.element || (Array.isArray(wpnObj.runes) && wpnObj.runes[0]))) || (n && n.cult && n.cult.element) || null,
-        activeSetCount: [wpnObj, armObj, accObj].filter(Boolean).length,
-        hasFlyingSword: !!(wUsable && (wTier >= 4 || (wpnObj && wpnObj.legendary) || (cStage >= 3 && (cPath === 'SWORD' || cPath === 'XIAN' || wpnObj)))),
-        hasWeaponSoul: !!(wUsable && (wTier >= 6 || (wpnObj && (wpnObj.legendary || wpnObj.weaponSoul || wpnObj.spiritNameTh)))),
+        activeSetCount: (resEval && resEval.active) ? (resEval.pieces || 3) : 0,
+        hasFlyingSword: !!(wUsable && (wTypeResolved === 'SWORD' || (wpnObj && wpnObj.type === 'SWORD') || cPath === 'SWORD_DOMAIN' || (cPath === 'XIAN' && (!wpnObj || wTypeResolved === 'SWORD'))) && (wTier >= 4 || (wpnObj && wpnObj.legendary) || cStage >= 3)),
+        hasWeaponSoul: !!(wUsable && (wTier >= 6 || (wpnObj && (wpnObj.legendary || wpnObj.weaponSpirit || wpnObj.imbuedElderSoul || wpnObj.weaponSoul || wpnObj.spiritNameTh)))),
         hasSilkRibbon: (n && n.cult ? R.resolveCultivationVisualState(n).normStage >= 7 : cStage >= 7) || (armObj && armObj.visualKey === 'vis_celestial_crane_robe'),
         hasPet: !!petObj,
         petSpeciesId: petObj ? (petObj.speciesId || petObj.id || 'SPIRIT_BEAST') : null,
@@ -4162,7 +4198,9 @@
       const sc = ap.scale * 1.15 * (n.rank === 6 ? 1.08 : 1);
       const qgInfo = (g.CULT && g.CULT.QINGGONG && n.cult) ? g.CULT.QINGGONG.resolveNpcMode(W, n) : null;
       const qgMode = (moving || act === 'qinggong') && qgInfo ? qgInfo.modeId : 'MORTAL_WALK';
-      const isAerialFlight = (moving || act === 'qinggong') && (qgMode === 'SWORD_FLIGHT' || qgMode === 'CELESTIAL_LEVITATION');
+      const remSteps = n.path ? Math.max(0, n.path.length - (n.pi || 0)) : 0;
+      const isShortHop = moving && !n.travel && remSteps > 0 && remSteps < 5;
+      const isAerialFlight = !isShortHop && (moving || act === 'qinggong') && (qgMode === 'SWORD_FLIGHT' || qgMode === 'CELESTIAL_LEVITATION');
       const isLeapBound = (moving || act === 'qinggong') && qgMode === 'LEAP_BOUND';
       const isWaterDrift = (moving || act === 'qinggong') && qgMode === 'WATER_LOTUS_DRIFT';
       const ph = this.t * (act === 'fight' || n.run ? 14 : (qgMode !== 'MORTAL_WALK' ? 13 : 9)) + (n.n || 0) * 1.7;
@@ -4180,9 +4218,10 @@
         ? (isAerialFlight ? aerialLift : (Math.abs(Math.sin(ph)) * 1.35 + aerialLift))
         : (act === 'qinggong' ? aerialLift : (act === 'cultivate' || act === 'sleep' ? 0 : Math.sin(this.t * 2 + (n.n || 0)) * 0.25));
       const face = n.face >= 0 ? 1 : -1;
-      const pose = (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra') ? 'sit'
-        : (act === 'sleep' && !n.hidden) ? 'lie'
-        : (act === 'pray' || act === 'flatter') ? 'bow'
+      const inDoStage = !moving && (!n.act || n.act.stage !== 'move');
+      const pose = (inDoStage && (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra')) ? 'sit'
+        : (inDoStage && act === 'sleep' && !n.hidden) ? 'lie'
+        : (inDoStage && (act === 'pray' || act === 'flatter')) ? 'bow'
         : 'stand';
 
       ctx.save();
@@ -4440,8 +4479,8 @@
         ctx.beginPath(); ctx.moveTo(0.5, hy + 2.8); ctx.lineTo(2.8, hy + 2.8); ctx.lineTo(1.8, hy + 5.6); ctx.closePath(); ctx.fill();
       }
 
-      // Rank Headwear / Coronet
-      if (n.rank === 6) {
+      // Rank Headwear / Coronet (suppress upright coronet when lying flat)
+      if (pose !== 'lie' && n.rank === 6) {
         ctx.fillStyle = '#f2cf52';
         ctx.fillRect(-3.6, hy - 6.4, 7.2, 2.1);
         ctx.fillRect(-1.1, hy - 8.8, 2.2, 2.6);
@@ -4473,7 +4512,8 @@
       const showName = this.opts.names && (z >= 1.05 || sel);
       ctx.textAlign = 'center';
       if (act === 'fight') {
-        this.hpBar(ctx, x, y - 30 * sc, n.h.state.hp / CULT.hpMax(n), 15);
+        const effHm = (g.COMBAT && g.COMBAT.hpMax) ? g.COMBAT.hpMax(n) : ((g.STATS && g.STATS.hpMax) ? g.STATS.hpMax(n) : CULT.hpMax(n));
+        this.hpBar(ctx, x, y - 30 * sc, n.h.state.hp / Math.max(1, effHm), 15);
       }
       if (showName) {
         ctx.font = (sel ? '600 ' : '') + '9px ' + FONT;
@@ -4631,7 +4671,10 @@
     /* ---------- Physical Outsider / Visitor Sprite on Sect Map (Pure Read-Only) ---------- */
     drawVisitor(ctx, v, hour) {
       const z = this.cam.z;
-      const x = v.x * TS, y = v.y * TS;
+      const a = this.alpha == null ? 1 : this.alpha;
+      const vx = (Number.isFinite(v._px) && Math.hypot(v.x - v._px, v.y - v._py) < 4) ? (v._px + (v.x - v._px) * a) : v.x;
+      const vy = (Number.isFinite(v._py) && Math.hypot(v.y - v._py, v.x - v._px) < 4) ? (v._py + (v.y - v._py) * a) : v.y;
+      const x = vx * TS, y = vy * TS;
       const roleColors = {
         merchant: '#d4a373',
         trader: '#d4a373',
@@ -4898,7 +4941,10 @@
     },
 
     drawWild(ctx, b) {
-      const x = b.x * TS, y = b.y * TS, id = b.speciesId || '', large = b.tier >= 6;
+      const a = this.alpha == null ? 1 : this.alpha;
+      const bx = (Number.isFinite(b._px) && Math.hypot(b.x - b._px, b.y - b._py) < 4) ? (b._px + (b.x - b._px) * a) : b.x;
+      const by = (Number.isFinite(b._py) && Math.hypot(b.y - b._py, b.x - b._px) < 4) ? (b._py + (b.y - b._py) * a) : b.y;
+      const x = bx * TS, y = by * TS, id = b.speciesId || '', large = b.tier >= 6;
       const sp = (g.JD && g.JD.BEASTS && g.JD.BEASTS.species && g.JD.BEASTS.species.find(s => s.id === id));
       const arch = sp?.archetype || (/PYTHON|SNAKE|SERPENT/.test(id) ? 'SERPENT' : /ROC|BIRD|PHOENIX|AVIAN/.test(id) ? 'AVIAN' : /TURTLE|TORTOISE|SHELL/.test(id) ? 'SHELL' : /FISH|AQUATIC|CARP|SHARK|WHALE/.test(id) ? 'AQUATIC' : 'CANINE');
       const body = sp?.visual?.body || (large ? '#78518b' : b.tier >= 3 ? '#b27b55' : '#9d8b70');
@@ -4998,7 +5044,10 @@
     },
 
     drawFoe(ctx, f) {
-      const x = f.x * TS, y = f.y * TS, z = this.cam.z, t = this.t + f.x;
+      const a = this.alpha == null ? 1 : this.alpha;
+      const fx = (Number.isFinite(f._px) && Math.hypot(f.x - f._px, f.y - f._py) < 4) ? (f._px + (f.x - f._px) * a) : f.x;
+      const fy = (Number.isFinite(f._py) && Math.hypot(f.y - f._py, f.x - f._px) < 4) ? (f._py + (f.y - f._py) * a) : f.y;
+      const x = fx * TS, y = fy * TS, z = this.cam.z, t = this.t + f.x;
       if (z < 0.42) {
         ctx.fillStyle = '#e0463a';
         ctx.beginPath(); ctx.arc(x, y - 4, Math.max(2.5 / z, 5), 0, 7); ctx.fill();
@@ -5090,6 +5139,20 @@
         ctx.font = '12px ' + FONT; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe27a'; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 3;
         ctx.strokeText('🏆 ประลองยุทธ์สำนัก', (tg.x + tg.w / 2) * TS, (tg.y - 0.3) * TS);
         ctx.fillText('🏆 ประลองยุทธ์สำนัก', (tg.x + tg.w / 2) * TS, (tg.y - 0.3) * TS);
+      }
+      if (Array.isArray(W.fights) && W.fights.length && this.cam.z >= 0.65) {
+        const KIND_LABELS = { spar: '🥋 ซ้อมมือ', feud: '🩸 ดวลสะสางแค้น', leadership: '👑 ชิงตำแหน่งเจ้าสำนัก', tourney: '🏆 ประลองยุทธ์', raid: '⚔️ ต้านผู้บุกรุก', hunt: '🐾 ล่าอสูร' };
+        W.fights.forEach(fg => {
+          if (!fg || fg.done) return;
+          const units = [].concat(fg.A || [], fg.B || []).map(id => (W.byId && W.byId[id]) || (W.foes && W.foes.find(x => x && x.id === id))).filter(u => u && !u.dead && Number.isFinite(u.x) && Number.isFinite(u.y));
+          if (!units.length) return;
+          const cx = units.reduce((s, u) => s + u.x, 0) / units.length * TS;
+          const cy = (units.reduce((s, u) => s + u.y, 0) / units.length - 2.6) * TS;
+          const fLabel = KIND_LABELS[fg.kind] || (fg.serious ? '⚔️ ศึกดวลเป็นตาย' : '🥋 ประลองยุทธ์');
+          ctx.font = '600 9.5px ' + FONT; ctx.textAlign = 'center';
+          ctx.fillStyle = fg.serious ? '#ffb27a' : '#a5f3fc'; ctx.strokeStyle = 'rgba(0,0,0,.78)'; ctx.lineWidth = 2.5;
+          ctx.strokeText(fLabel, cx, cy); ctx.fillText(fLabel, cx, cy);
+        });
       }
       if (W.sect.festival && W.sect.festival.until > W.t && W.sect.festival.kind === 'banquet') {
         const pl = W.map.byId.plaza;
@@ -8872,7 +8935,7 @@
       if (!tg) return false;
 
       const prev = this.opts && this.opts.ceremonyPreview;
-      const activeTourney = !!(W.sect && W.sect.tournament);
+      const activeTourney = !!(W.sect && W.sect.tournament && W.sect.tournament.state === 'run');
       const activeDuel = Array.isArray(W.duelQueue) && W.duelQueue.length > 0;
       const fightingOnArena = Array.isArray(W.npcs) && W.npcs.some(n => !n.dead && n.act && (n.act.id === 'fight' || (n.act.id === 'pair' && n.act.ctx && n.act.ctx.pair && n.act.ctx.pair.type === 'spar')));
       if (prev !== 'TOURNAMENT_ARENA' && !activeTourney && !activeDuel && !fightingOnArena) return false;
@@ -9080,6 +9143,7 @@
     const rk = SECT.RANKS[n.rank] || { color: '#888' };
     const b = (n.h && n.h.body) || {};
     const ageY = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;
+    const bioAge = (g.HC && g.HC.bioAge) ? g.HC.bioAge(n) : ageY;
     const isF = n.h && n.h.sex === 'F';
     const hs = b.hairStyle || '';
     const wpnObj = n.equip && n.equip.WEAPON;
@@ -9088,7 +9152,7 @@
     const wUsable = !!(wpnObj && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
     const ap = {
       skin: b.skinHex || '#e8c49c',
-      hair: ageY >= 62 ? '#b8bec4' : (b.hairHex || '#222024'),
+      hair: (b.hairHex === '#e9edf5') ? '#e9edf5' : (bioAge >= 62 ? '#b8bec4' : (b.hairHex || '#222024')),
       eye: b.eyeHex || '#222024',
       long: /ยาว|ปล่อย|ถัก/.test(hs) || (isF && !/สั้น|โกน/.test(hs)),
       bun: /มวย|รวบ|ปิ่น/.test(hs) || (!/โกน/.test(hs) && (n.rank >= 2 || !isF)),
@@ -9427,7 +9491,7 @@
     ctx.fill();
 
     // 2. Jade Lotus Meditation / Martial Pedestal
-    const cx = w * 0.5, gy = h * 0.82;
+    const cx = w * 0.5, gy = poseMode === 'qinggong' ? h * 0.88 : h * 0.82;
     ctx.fillStyle = 'rgba(12,24,28,0.75)';
     ctx.beginPath();
     ctx.ellipse(cx, gy + 4, 56, 15, 0, 0, Math.PI * 2);
@@ -9470,7 +9534,8 @@
     }
 
     // 4. Top-Left Realm & Path Badge Overlay + Border Frame
-    const badgeTxt = 'ขั้น ' + stg + ' ' + rSpec.nameTh + ' · ' + pSig.nameTh;
+    const stgTitle = (g.CULT && g.CULT.stageName && n.cult) ? g.CULT.stageName(n) : ('ขั้น ' + stg + ' ' + rSpec.nameTh);
+    const badgeTxt = stgTitle + ' · ' + pSig.nameTh;
     ctx.font = '600 10px ' + FONT;
     const badgeW = clamp(Math.ceil(measureCached(ctx, ctx.font, badgeTxt)) + 14, 118, Math.max(118, w - 12));
     ctx.fillStyle = 'rgba(10,18,24,0.82)';
@@ -9587,8 +9652,8 @@
     const eq = item.eq || item.gear || item;
     const tier = clamp(item.tier || eq.tier || 1, 1, 7);
     const gSpec = R.GEAR_TIER_GLOWS[tier] || R.GEAR_TIER_GLOWS[1];
-    const isLeg = !!(item.legendary || eq.legendary || tier >= 6);
-    const stars = clamp(eq.stars || eq.star || (isLeg ? 3 : tier >= 5 ? 2 : tier >= 3 ? 1 : 0), 0, 3);
+    const isLeg = !!(item.legendary || eq.legendary);
+    const stars = clamp(eq.attunedStars || eq.stars || eq.star || (isLeg ? 3 : tier >= 5 ? 2 : tier >= 3 ? 1 : 0), 0, 3);
     const elKey = eq.element || (Array.isArray(eq.runes) && eq.runes[0]) || 'METAL';
     const elPal = R.ELEMENT_VFX_PALETTE[elKey] || R.ELEMENT_VFX_PALETTE.METAL;
 
@@ -9661,19 +9726,20 @@
       } else if (wType === 'NEEDLE') {
         ctx.strokeStyle = '#06d6a0'; ctx.lineWidth = 1.6;
         ctx.beginPath(); ctx.moveTo(-16, 10); ctx.lineTo(16, -10); ctx.stroke();
+      } else {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        ctx.moveTo(-18, 12);
+        ctx.lineTo(18, -12);
+        ctx.stroke();
+        ctx.strokeStyle = gSpec.color;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-9, 9);
+        ctx.lineTo(-13, 3);
+        ctx.stroke();
       }
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.8;
-      ctx.beginPath();
-      ctx.moveTo(-18, 12);
-      ctx.lineTo(18, -12);
-      ctx.stroke();
-      ctx.strokeStyle = gSpec.color;
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(-9, 9);
-      ctx.lineTo(-13, 3);
-      ctx.stroke();
     }
     ctx.restore();
 
@@ -9699,7 +9765,8 @@
     ctx.fillStyle = '#fff5d6';
     ctx.font = '600 9.5px ' + FONT;
     ctx.textAlign = 'left';
-    ctx.fillText('T' + tier + ' ' + gSpec.nameTh + (elKey ? ' · ธาตุ ' + elKey : ''), 8, 15);
+    const elNameTh = (g.ELEM && g.ELEM.META && g.ELEM.META[elKey] && g.ELEM.META[elKey].shortTh) || elKey;
+    ctx.fillText('T' + tier + ' ' + gSpec.nameTh + (elNameTh ? ' · ธาตุ' + elNameTh : ''), 8, 15);
     ctx.strokeStyle = gSpec.color;
     ctx.lineWidth = 1.3;
     ctx.strokeRect(0.7, 0.7, w - 1.4, h - 1.4);

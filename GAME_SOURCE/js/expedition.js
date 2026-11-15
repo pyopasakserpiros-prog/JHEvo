@@ -37,7 +37,7 @@
   const SECT_NAMES = ['สำนักกระบี่เมฆขาว', 'สำนักบัวหยก', 'ตระกูลหลงเหมิน', 'สำนักเสือคำราม', 'หอสุริยาสีทอง', 'สำนักพิรุณหยิน', 'ศาลาฟ้าครามพิรุธ', 'สำนักมังกรหมอก'];
   X.initWorld = (W) => {
     const rng = W.rng; const names = rng.shuffle(SECT_NAMES.slice()).slice(0, 6);
-    W.world = { sects: names.map((nm, i) => ({ id: 'S' + i, nameTh: nm, power: Math.round(rng.gauss(1, 0.35) * 100) / 100, attitude: Math.round(rng.gauss(0, 25)), style: rng.pick(['เป็นธรรม', 'โลภ', 'ทะนง', 'ใฝ่สงบ', 'ก้าวร้าว']), contact: 0 })), expeds: [], seq: 0, visitors: [] };
+    W.world = { sects: names.map((nm, i) => ({ id: 'S' + i, nameTh: nm, power: Math.round(rng.gauss(1, 0.35) * 100) / 100, attitude: Math.round(rng.gauss(0, 25)), style: rng.pick(['เป็นธรรม', 'โลภ', 'ทะนง', 'ใฝ่สงบ', 'ก้าวร้าว']), contact: 0 })), expeds: [], seq: 0, visitors: [], resourcePool: { stones: 50000, herbs: 5000, ores: 5000 } };
     W.threat = { alert: 0, roadBlocked: 0, raidCooldown: W.day + 40 };
   };
 
@@ -50,7 +50,7 @@
     if (pw > 60) opts.push({ k: 'hunt', w: Math.max(0.1, (e('interests.combat') - 35) / 30 + (e('personality.courage') - 40) / 50 + (e('values.wealthResource') - 40) / 80) });
     opts.push({ k: 'gather', w: Math.max(0.1, (e('interests.herbs') + e('interests.alchemy') + e('interests.labor') - 120) / 50 + ((n.h.skills.herbalism || 0) + (n.h.skills.mining || 0)) / 80) });
     if (n.rank >= 2) opts.push({ k: 'trade', w: Math.max(0.1, (e('interests.trade') - 35) / 30 + (e('aptitudes.socialCommerce') - 45) / 50) });
-    if (n.rank >= 2) opts.push({ k: 'diplomacy', w: Math.max(0.1, (e('social.charisma') + e('interests.socializing') + e('social.diplomacy' in {} ? '' : 'personality.empathy') - 130) / 50) });
+    if (n.rank >= 2) opts.push({ k: 'diplomacy', w: Math.max(0.1, (e('social.charisma') + e('interests.socializing') + ((n.h.skills.diplomacy || 0) * 0.5 + e('personality.empathy') * 0.5) - 130) / 50) });
     if (n.rank >= 3) opts.push({ k: 'recruit', w: Math.max(0.1, (e('interests.teaching') - 35) / 30 + (e('values.sectDuty') - 45) / 50 + (e('intellect.judgement') - 45) / 60) });
     if (pw > 80) opts.push({ k: 'bounty', w: Math.max(0.1, (e('values.wealthResource') - 40) / 30 + (e('interests.combat') - 40) / 50) });
     const elder=SECT.holder(W,'mission'),master=W.byId[W.sect.masterId];
@@ -362,7 +362,20 @@
     const currentMeals = ECO.count(W, 'meal');
     const safetyReserve = (rd && rd.minMealReserve) || 15;
     const capPerDay = (rd && rd.expeditionMealCap) || 6;
-    const plannedFood = party.length * Math.min(days, capPerDay);
+    let supplySaveRatio = 0;
+    for (const pm of party) {
+      if (!pm) continue;
+      const bagAndEq = [pm.equip && pm.equip.ACCESSORY, pm.equip && pm.equip.ARMOR].concat((pm.inv && pm.inv.gear) || []).filter(Boolean);
+      for (const eq of bagAndEq) {
+        const fxL = eq.fx || eq.effects || (ECO && ECO.itemById && ECO.itemById[eq.id] && ECO.itemById[eq.id].effects) || [];
+        for (const fx of fxL) {
+          if (fx && fx.effectId === 'EFX_SUPPLY_EFFICIENCY') {
+            supplySaveRatio = Math.max(supplySaveRatio, (fx.params && fx.params.supplySavingRatio) || 0.25);
+          }
+        }
+      }
+    }
+    const plannedFood = Math.max(party.length, Math.round(party.length * Math.min(days, capPerDay) * (1 - clamp(supplySaveRatio, 0, 0.40))));
     let takeMax = Math.max(0, currentMeals - safetyReserve);
     if (takeMax < party.length && currentMeals > 0) {
       takeMax = Math.min(currentMeals, party.length);
@@ -704,7 +717,7 @@
     }
     else if (kind === 'scroll') { const drop = g.MARTIAL.discover(W, out, { tier: Math.max(2, reg.danger + 2), rank, danger: reg.danger, source: 'expedition' }); if (drop) { ex.journal.push('พบองค์ความรู้หายาก'); out.notes.push(v.h.name.given + ' พบองค์ความรู้หายาก'); } }
     else if (kind === 'master') { const sk = AI.pickTeachSkill(v, v); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(v, sk, 6, 2.2); if (v.cult) CULT.gain(v, CULT.threshold(v) * 0.08); HC.experience(v, 'insight', 0.9); ex.journal.push('พบผู้เฒ่าลึกลับชี้แนะ'); out.notes.push(v.h.name.given + ' ได้รับการชี้แนะจากผู้เฒ่าลึกลับ'); }
-    else if (kind === 'spring') { if (v.cult) { CULT.gain(v, CULT.threshold(v) * 0.15); } v.h.state.hp = CULT.hpMax(v); HC.trainBody(v, 'vitality' in {} ? '' : 'endurance', 4); HC.experience(v, 'insight', 0.5); ex.journal.push('พบสระปราณธรรมชาติ'); out.notes.push(v.h.name.given + ' พบสระปราณลับ ตบะก้าวหน้า'); }
+    else if (kind === 'spring') { if (v.cult) { CULT.gain(v, CULT.threshold(v) * 0.15); } v.h.state.hp = CULT.hpMax(v); HC.trainBody(v, 'vitality', 2); HC.trainBody(v, 'endurance', 2); HC.experience(v, 'insight', 0.5); ex.journal.push('พบสระปราณธรรมชาติ'); out.notes.push(v.h.name.given + ' พบสระปราณลับ ตบะก้าวหน้า'); }
     else { HC.feel(v, { stress: 10, mood: -6 }); v.h.state.heartDemon = clamp(v.h.state.heartDemon + 7, 0, 100); if (rng.chance(0.3)) AI.injure(W, v, 1, 'ถูกคำสาปโบราณ'); ex.journal.push('ต้องคำสาปโบราณ'); out.notes.push(v.h.name.given + ' ต้องคำสาปโบราณ'); }
     out.rep += 0.3;
   };
@@ -736,7 +749,7 @@
   };
   X.recruitResult = (W, ex, alive, out) => {
     const lead = alive[0]; if (!lead) return;
-    const eye = alive.reduce((m, a) => Math.max(m, E(a, 'intellect.judgement') * .5 + E(a, 'intellect.perceptiveness') * .3 + E(a, 'social.teaching' in {} ? '' : 'interests.teaching') * .2), 0);
+    const eye = alive.reduce((m, a) => Math.max(m, E(a, 'intellect.judgement') * .5 + E(a, 'intellect.perceptiveness') * .3 + (E(a, 'social.teaching') * .5 + E(a, 'interests.teaching') * .5) * .2), 0);
     const n = W.rng.chance(0.55 + (W.sect.policy.openness - 50) / 200 + W.sect.fame / 600) ? (W.rng.chance(0.25 + eye / 400) ? 2 : 1) : 0;
     for (let i = 0; i < n; i++) {
       const occ = SECT.memberOccupancy ? SECT.memberOccupancy(W) : W.npcs.filter(x => !x.dead && !x.exiled).length;
@@ -746,8 +759,9 @@
         break;
       }
       const nn = W.makeNpc({ ageYears: W.rng.int(14, 26), rank: 0, fromExped: true, useTalentTier: true });
-      nn.x = MAP.EXIT.x + .5 + i; nn.y = MAP.EXIT.y + .5; nn.travel = { to: 'home' }; nn.mentor = lead.id;
-      (lead.h.life.family.disciples = lead.h.life.family.disciples || []).push(nn.id); nn.h.life.family.master = lead.id;
+      nn.x = MAP.EXIT.x + .5 + i; nn.y = MAP.EXIT.y + .5; nn.travel = { to: 'home' };
+      if (SECT.MENTORSHIP && SECT.MENTORSHIP.linkMasterDisciple) SECT.MENTORSHIP.linkMasterDisciple(W, lead, nn);
+      else { nn.mentor = lead.id; nn.mentorId = lead.id; (lead.h.life.family.disciples = lead.h.life.family.disciples || []).push(nn.id); nn.h.life.family.master = lead.id; }
       out.newDisciples++;
       const r = SECT.rel(nn, lead.id); r.a = 25; r.t = 55; r.r = 55; r.bond = 'อาจารย์';
       const r2 = SECT.rel(lead, nn.id); r2.a = 12; r2.bond = 'ศิษย์';
@@ -927,8 +941,21 @@
     if (W.threat.roadBlocked > 0) { W.log('finance', 'ถนนถูกปิด คาราวานของสำนักเข้าไม่ถึง', []); return; }
     const skill = tre ? (E(tre, 'intellect.numeracy') + E(tre, 'aptitudes.socialCommerce')) / 2 : 40;
     (S.buyList || []).slice(0, 6).forEach(b => { const pr = Math.round(ECO.price(W, b.id) * (1.12 - skill / 600)); const n = b.n; const cost = pr * n; if (S.stones - spent >= cost + 150) { spent += cost; ECO.add(W, b.id, n); } });
-    if (spent) { S.stones -= spent; S.ledger.push({ t: W.t, amt: -spent, why: 'คาราวานซื้อวัตถุดิบ/เสบียง' }); }
-    Object.keys(S.stock).forEach(k => { if (ECO.isPill(k) && S.stock[k] > 10) { const n = S.stock[k] - 6; if (ECO.take(W, k, n)) { const v = Math.round(ECO.price(W, k) * 0.7 * n); ECO.earn(W, v, 'ขายโอสถส่วนเกิน'); sold += v; } } });
+    if (spent) {
+      S.stones -= spent;
+      S.ledger.push({ t: W.t, amt: -spent, why: 'คาราวานซื้อวัตถุดิบ/เสบียง' });
+      if (W.world && W.world.resourcePool && Number.isFinite(W.world.resourcePool.stones)) W.world.resourcePool.stones += spent;
+    }
+    Object.keys(S.stock).forEach(k => {
+      if (ECO.isPill(k) && S.stock[k] > 10) {
+        const n = S.stock[k] - 6;
+        if (ECO.take(W, k, n)) {
+          const v = Math.round(ECO.price(W, k) * 0.7 * n);
+          ECO.earn(W, v, 'ขายโอสถส่วนเกิน', { fromPool: true });
+          sold += v;
+        }
+      }
+    });
     // Patch v2.0.0: Caravan rare Grand Dao Path Manual & Path Crystal offering
     if (S.stones >= 1600 && g.SECT && g.SECT.PATH_LIBRARY && W.rng && W.rng.chance(0.35)) {
       const summary = g.SECT.PATH_LIBRARY.getSummary(W);
@@ -1200,6 +1227,13 @@
   /* ---------- เหตุการณ์สุ่มรายวัน ---------- */
   X.daily = W => {
     const rng = W.rng; const T = W.threat;
+    if (W.world && !T.raid && (W.day || 0) > 10 && (W.day % 6 === 0)) {
+      const activeAnom = Array.isArray(W.world.anomalies) && W.world.anomalies.find(a => a && !a.resolved && !a.expired && !(W.world.expeds || []).some(e => !e.done && e.kind === 'world_anomaly' && e.anomalyId === a.id));
+      if (activeAnom && X.departWorldAnomaly) {
+        const avail = (W.npcs || []).filter(n => X.isAvailableForExpedition && X.isAvailableForExpedition(W, n) && CULT.power(n) >= 65).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
+        if (avail.length >= 2) X.departWorldAnomaly(W, avail, activeAnom);
+      }
+    }
     if (T.alert > 0) T.alert--; if (T.roadBlocked > 0) T.roadBlocked--;
     if (W.day >= T.raidCooldown && !T.raid && rng.chance(X.raidChance(W))) {
       const tension = W.world.sects.some(s => s.attitude < -40);
@@ -1424,7 +1458,7 @@
       catalystId: 'CAT_RESONANCE_JADE_4',
       primordialId: 'CAT_PRIMORDIAL_METAL',
       grantManual: true,
-      descTh: 'ม่านค่ายกลพันปีสลายตัว เผยถ้ำพำนักของเซียนโบราณและคัมภีร์ยุทธ์ที่สาบสูญ สำนักคู่แข่งกำลังส่งยอดฝีมือมุ่งหน้าไป!'
+      descTh: 'ม่านค่ายกลพันปีสลายตัว เผยถ้ำพำนักของผู้ลงมาจากโลกเบื้องบนที่บาดเจ็บจนตบะร่วงหล่นติดค้างใต้ผืนฟ้า (เช่นเดียวกับทูตตกสวรรค์ ขงหมิง #21) และยอดฝีมือยุคเทียนกู่ สำนักคู่แข่งกำลังส่งยอดฝีมือมุ่งหน้าไป!'
     },
     BLOOM_CELESTIAL_LOTUS: {
       id: 'BLOOM_CELESTIAL_LOTUS',
@@ -2872,8 +2906,11 @@
     vassals.forEach(s => {
       if (!opts.force && s.lastVassalTributeDay != null && (curDay === s.lastVassalTributeDay || (curDay - s.lastVassalTributeDay < 90))) return;
       const polMult = s.tributePolicy === 'HARSH' ? 1.45 : s.tributePolicy === 'LENIENT' ? 0.75 : 1.0;
-      const baseStones = Math.max(80, Math.round((120 + (s.power || 1) * 45) * polMult));
-      ECO.earn(W, baseStones, 'บรรณาการตามฤดูกาลจากสำนักบริวาร ' + s.nameTh);
+      const rawStones = Math.max(80, Math.round((120 + (s.power || 1) * 45) * polMult));
+      const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+      const baseStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.round(pool.stones))) : rawStones;
+      if (pool && Number.isFinite(pool.stones)) pool.stones -= baseStones;
+      if (baseStones > 0) ECO.earn(W, baseStones, 'บรรณาการตามฤดูกาลจากสำนักบริวาร ' + s.nameTh);
       const matsGiven = {};
       const matPool = (Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) ? s.specialtyMatIds : ['MAT_HERB_JADE_LOTUS_2', 'MAT_ORE_COLD_STEEL_2'];
       matPool.slice(0, 2).forEach(mId => {
@@ -3232,8 +3269,11 @@
       X.recomputeNodeGarrison(W, rn);
       const mult = (rn.garrison && rn.garrison.yieldMultiplier) || 1.0;
       const isSeasonal = !!opts.seasonal;
-      const stones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
+      const rawStones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
+      const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+      const stones = (pool && Number.isFinite(pool.stones) && pool.stones > 0) ? Math.min(rawStones, Math.max(0, Math.round(pool.stones))) : rawStones;
       if (stones > 0) {
+        if (pool && Number.isFinite(pool.stones) && pool.stones >= stones) pool.stones -= stones;
         ECO.earn(W, stones, 'รายได้จากจุดยุทธศาสตร์「' + rn.nameTh + '」');
         totalStones += stones;
         rn.accumulatedStones = (rn.accumulatedStones || 0) + stones;
@@ -3431,8 +3471,12 @@
     }
 
     const tpl = X.ANOMALY_TEMPLATES[anomaly.templateId] || X.ANOMALY_TEMPLATES.GROTTO_ANCIENT_IMMORTAL;
-    const rewards = { stones: tpl.stones || 350, mats: {}, catalysts: [], manualId: null, recipeId: null };
-    ECO.earn(W, rewards.stones, 'พิชิตวาสนาฟ้าดิน「' + anomaly.nameTh + '」');
+    const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+    const rawStones = tpl.stones || 350;
+    const anomStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.round(pool.stones))) : rawStones;
+    if (pool && Number.isFinite(pool.stones)) pool.stones -= anomStones;
+    const rewards = { stones: anomStones, mats: {}, catalysts: [], manualId: null, recipeId: null };
+    if (anomStones > 0) ECO.earn(W, rewards.stones, 'พิชิตวาสนาฟ้าดิน「' + anomaly.nameTh + '」');
     if (tpl.mats) {
       Object.entries(tpl.mats).forEach(([mId, qty]) => {
         if (ECO.matById && ECO.matById[mId]) {
@@ -3973,7 +4017,8 @@
       social: {
         charisma: rTrait(),
         leadership: rTrait(),
-        persuasion: rTrait()
+        persuasion: rTrait(),
+        diplomacy: rTrait()
       },
       intellect: {
         comprehension: rTrait(),
@@ -4999,10 +5044,15 @@
     const ledger = Array.isArray(W.sect.ledger) ? W.sect.ledger : [];
     let stoneIncome = 0, stoneExpense = 0;
     const incByReason = {}, expByReason = {};
+    let internalLedgerTransferCount = 0;
     for (let i = 0; i < ledger.length; i++) {
       const tx = ledger[i];
       if (!tx || !Number.isFinite(tx.t) || !Number.isFinite(tx.amt)) continue;
       if (tx.t <= fromTick || tx.t > toTick) continue;
+      if (tx.internalTransfer) {
+        internalLedgerTransferCount++;
+        continue;
+      }
       const why = String(tx.why || 'รายการทั่วไป').split(':')[0].trim();
       if (tx.amt > 0) {
         stoneIncome += tx.amt;
@@ -7137,10 +7187,13 @@
       }
     }
 
-    // Ensure weapon skill matching fig.weaponType
+    // Ensure weapon skill matching fig.weaponType (both canonical uppercase and lowercase)
     if (fig.weaponType && fullNpc.h.skills) {
-      const wpnSkillKey = String(fig.weaponType).toLowerCase();
-      fullNpc.h.skills[wpnSkillKey] = Math.max(fullNpc.h.skills[wpnSkillKey] || 0, Math.round(55 + (fig.cult ? fig.cult.stage * 4 : 10)));
+      const wpnUpper = fig.weaponType === 'FIST' ? 'FIST_PALM' : String(fig.weaponType).toUpperCase();
+      const wpnLower = String(fig.weaponType).toLowerCase();
+      const targetVal = Math.round(55 + (fig.cult ? fig.cult.stage * 4 : 10));
+      fullNpc.h.skills[wpnUpper] = Math.max(fullNpc.h.skills[wpnUpper] || 0, targetVal);
+      fullNpc.h.skills[wpnLower] = Math.max(fullNpc.h.skills[wpnLower] || 0, targetVal);
     }
 
     // 3. Populate Resident State & Sect Membership
@@ -7160,11 +7213,17 @@
       mentor: null,
       bed: null,
       joinDay: W.day || 360,
-      inv: {
-        stones: (fig.inv && fig.inv.stones) ? fig.inv.stones : rng.int(50, 180),
-        pills: {},
-        mats: {}
-      },
+      inv: (() => {
+        const rawSt = (fig.inv && Number.isFinite(fig.inv.stones)) ? fig.inv.stones : rng.int(50, 180);
+        const pool = W.world && W.world.resourcePool;
+        const stVal = (pool && Number.isFinite(pool.stones)) ? Math.min(rawSt, Math.max(0, Math.round(pool.stones))) : rawSt;
+        if (pool && Number.isFinite(pool.stones)) pool.stones -= stVal;
+        return {
+          stones: stVal,
+          pills: {},
+          mats: {}
+        };
+      })(),
       equip: {},
       inj: [],
       cool: {},
@@ -7225,9 +7284,9 @@
 
     // Equip Starter / Existing Gear (with guaranteed weapon fallback for all weapon types)
     if (fig.weaponType && ECO && ECO.mintGear) {
-      const wpnRecipes = ECO.recipesFor ? ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.weaponType === fig.weaponType) : [];
-      const allRecipes = (!wpnRecipes.length && JD && JD.RECIPES && Array.isArray(JD.RECIPES.recipes))
-        ? JD.RECIPES.recipes.filter(r => r && r.outType === 'EQUIPMENT' && r.weaponType === fig.weaponType)
+      const wpnRecipes = ECO.recipesFor ? ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && (r.gearType === fig.weaponType || r.weaponType === fig.weaponType)) : [];
+      const allRecipes = (!wpnRecipes.length && JD && JD.ITEMS && Array.isArray(JD.ITEMS.recipes))
+        ? JD.ITEMS.recipes.filter(r => r && r.outType === 'EQUIPMENT' && (r.gearType === fig.weaponType || r.weaponType === fig.weaponType))
         : wpnRecipes;
       if (allRecipes.length) {
         const pickedR = allRecipes.find(r => r.tier === (fullNpc.cult ? fullNpc.cult.stage : 3)) || allRecipes[0];
@@ -7246,10 +7305,12 @@
         weaponType: wType,
         gearType: wType,
         tier: stg,
+        q: 1.15,
         quality: 1.15,
         combatMult: +(0.12 + stg * 0.04).toFixed(3),
         dur: 100,
-        maxDur: 100
+        maxDur: 100,
+        listedAtDay: W.day || 0
       };
     }
 
@@ -7289,8 +7350,15 @@
       }
     }
     // Register into World Simulation
+    fullNpc.personalStones = (fullNpc.inv && fullNpc.inv.stones) || 0;
+    if (W.sect && W.sect.totemPillars && Array.isArray(W.sect.totemPillars.activeTotems) && W.sect.totemPillars.activeTotems.length) {
+      fullNpc.sectTotems = W.sect.totemPillars.activeTotems.slice();
+      fullNpc._sectTotems = fullNpc.sectTotems;
+    }
     W.npcs.push(fullNpc);
     W.byId[fullNpc.id] = fullNpc;
+    if (g.AI && g.AI.assignBed && W.map) g.AI.assignBed(W, fullNpc);
+    if (g.SIM && g.SIM.snapshotPerson) g.SIM.snapshotPerson(W, fullNpc);
 
     if (fullNpc.renegadeOrigin && fullNpc.renegadeOrigin.offenseType === 'SUCCESSION_DEFECTION' && g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.spawnFromCause) {
       g.SECT.HEART_DEMON.spawnFromCause(W, fullNpc, 'DEFEAT_HUMILIATION', {
@@ -8545,4 +8613,77 @@
 
   g.EXPED = X;
   if (typeof module === 'object' && module.exports) module.exports = X;
+
+  /* ---------- Patch JS2-v2.6.0 Category 13: Tiangu & Three-Empires World Lore, Empire Spheres & 60 Canonical Legends ---------- */
+  const REGION_TO_EMPIRE_SPHERE = {
+    NORTHERN_PEAKS: { id: 'BEIMING', nameTh: 'เขตอิทธิพลจักรวรรดิเป่ยหมิง (สกุลกู่ · แดนเหนือ)' },
+    EASTERN_PLAINS: { id: 'DONGHUANG', nameTh: 'เขตอิทธิพลมหาอาณาจักรตงหวง (สกุลซือหม่า · แดนตะวันออก)' },
+    SOUTHERN_WATERS: { id: 'DONGHUANG', nameTh: 'เขตอิทธิพลมหาอาณาจักรตงหวงและแดนน้ำทักษิณ' },
+    WESTERN_DESERTS: { id: 'XIRONG', nameTh: 'เขตอิทธิพลจักรวรรดิซีหรง (สกุลทัวป๋า · แดนตะวันตก)' },
+    CENTRAL_HIGHLANDS: { id: 'BUFFER_INDEPENDENT', nameTh: 'เขตรอยต่อยุทธภพอิสระและซากนครหลวงเทียนกู่' }
+  };
+  if (Array.isArray(X.CANONICAL_SECTS)) {
+    X.CANONICAL_SECTS.forEach(s => {
+      if (!s) return;
+      const sph = REGION_TO_EMPIRE_SPHERE[s.macroRegion] || REGION_TO_EMPIRE_SPHERE.CENTRAL_HIGHLANDS;
+      try {
+        s.empireSphere = sph.id;
+        s.empireSphereNameTh = sph.nameTh;
+      } catch (_) {}
+    });
+  }
+  X.WORLD_LORE = Object.freeze({
+    VERSION: '2.6.0-tiangu-canon',
+    DIEGETIC_STAGE_NAMING_LORE_TH: g.CULT && g.CULT.LOWER_WORLD_CEILING_LORE_TH,
+    UPPER_WORLD_DESCENT_LAW: g.CULT && g.CULT.UPPER_WORLD_DESCENT_LAW,
+    ERAS: Object.freeze([
+      { id: 'ERA_1_ANCIENT_TIANGU', nameTh: 'ยุคที่ 1: มหาจักรวรรดิเทียนกู่และสงครามรุกรานข้ามมิติ' },
+      { id: 'ERA_2_SHATTERED_GATE', nameTh: 'ยุคที่ 2: การระเบิดประตูมิติหลวงและการผนึกม่านกั้นภพ' },
+      { id: 'ERA_3_THREE_EMPIRES', nameTh: 'ยุคที่ 3: ยุคสามมหาอาณาจักร (เป่ยหมิง · ตงหวง · ซีหรง) และ 19 สำนักยุทธภพ' },
+      { id: 'ERA_4_CURRENT_CONVERGENCE', nameTh: 'ยุคที่ 4: รอยร้าวประตูมิติใต้สำนักและการตื่นขึ้นของมรดกเทียนกู่' }
+    ]),
+    EMPIRES: Object.freeze({
+      TIANGU: { id: 'TIANGU', codeNum: 0, nameTh: 'มหาจักรวรรดิโบราณเทียนกู่', royalClanTh: 'ราชวงศ์กู่โบราณ' },
+      BEIMING: { id: 'BEIMING', codeNum: 1, nameTh: 'จักรวรรดิเป่ยหมิง (แดนเหนือ)', royalClanTh: 'สกุลกู่ (#46 กู่เทียนเฉิน / #47 กู่ชิงเสวี่ย)' },
+      DONGHUANG: { id: 'DONGHUANG', codeNum: 2, nameTh: 'มหาอาณาจักรตงหวง (แดนตะวันออก)', royalClanTh: 'สกุลซือหม่า (#52 มหาเสนาบดีซือหม่าชิง / #54 เอี๊ยนหลัว)' },
+      XIRONG: { id: 'XIRONG', codeNum: 3, nameTh: 'จักรวรรดิซีหรง (แดนตะวันตก)', royalClanTh: 'สกุลทัวป๋า (#57 ทัวป๋าหงเหลียน)' }
+    }),
+    ERA5_SURVIVOR_LONGEVITY_RULES: Object.freeze({
+      STASIS_SEAL: 'ผนึกน้ำแข็งนิรันดร์และค่ายกลหยุดเวลา (กู่เย่ #3, หลี่เจี้ยนซิน #6)',
+      SOUL_VESSEL_RELIC: 'ฝากดวงจิตไว้ในหุ่นหยกขาวและศาสตราเทพ (กงซูจี #15, โอวหยางเหยียน #14)',
+      THOUSAND_YEAR_COCOON: 'จำศีลผลัดเปลี่ยนเนื้อหนังในรังไหมบรรพกาล (ไป๋เฉ่า #13)',
+      CRIPPLED_UPPER_WORLD_STRANDING: 'ผู้มาจากโลกเบื้องบนที่บาดเจ็บจนตบะร่วงหล่นต่ำกว่าเกณฑ์ม่านฟ้า จึงไม่ถูกม่านกั้นภพดีดกลับ (ขงหมิง #21, เฮ่อเหลียนม่อ #19)'
+    }),
+    SCHEMA_REMAPPINGS: Object.freeze({
+      ASTRAL_NOMAD_STARSHIP_DAO: 'TIDE_VOYAGER',
+      CELESTIAL_JURISPRUDENCE_DAO: 'STRATEGY_GOVERNANCE',
+      REL_V250_ASTRAL_NOMAD_STARSHIP_DAO: 'REL_V230_TIDE_VOYAGER',
+      CURRENCY_GOLD_TO_STONES: 'ศิลาวิญญาณ (Closed-Loop ECO.transferStones)'
+    }),
+    NOTABLE_FIGURES: Object.freeze({
+      1: { id: 'FIG_01_GU_XUANYUAN', nameTh: 'จักรพรรดิองค์สุดท้าย กู่เสวียนหยวน (#1)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้สละราชบัลลังก์ระเบิดประตูมิติหลวงเพื่อผนึกม่านฟ้า' },
+      6: { id: 'FIG_06_LI_JIANXIN', nameTh: 'หัวหน้าองครักษ์หลวง หลี่เจี้ยนซิน (#6)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้ถือกระบี่เหล็กนิลไร้คมยืนหยัดหน้าประตูเมืองเทียนกู่ 7 วัน 7 คืน' },
+      8: { id: 'FIG_08_YE_QINGCANG', nameTh: 'ขุนพลตาเดียว เย่ชิงชาง (#8)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้เหนี่ยวธนูเหล็กไหลยิงนาวาฟ้าของทัพรุกรานร่วงหล่น' },
+      13: { id: 'FIG_13_BAI_CAO', nameTh: 'หมอหลวง ไป๋เฉ่า (#13)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้รจนาตำราฝังเข็มเก้าดาราและเตาหลอมหมื่นโอสถ' },
+      14: { id: 'FIG_14_OUYANG_YAN', nameTh: 'ปรมาจารย์ช่างหลอม โอวหยางเหยียน (#14)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้หลอมกระบี่อิงฟ้าพิฆาตมารและดาบฆ่ามังกรบัญชาหล้าจากเหล็กดาวตก' },
+      15: { id: 'FIG_15_GONGSHU_JI', nameTh: 'เจ้ากรมกลไก กงซูจี (#15)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้สร้างหุ่นเชิดกายทิพย์และขนนกยูงทองคำกลไกสวรรค์' },
+      16: { id: 'FIG_16_XINGCHENZI', nameTh: 'นักพรตดารา ซิงเฉินจื่อ (#16)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'เจ้าหอพยากรณ์ดาราผู้ทิ้งป้ายหยกดาราสืบทอดถึงซิงอวิ๋น (#49)' },
+      19: { id: 'FIG_19_HELIAN_MO', nameTh: 'แม่ทัพศัตรูตกค้าง เฮ่อเหลียนม่อ (#19)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'แม่ทัพผู้รุกรานที่บาดเจ็บจนตบะพังทลายและถูกผนึกพร้อมเศษศาสตรามาร' },
+      21: { id: 'FIG_21_KONG_MING', nameTh: 'ทูตตกสวรรค์ ขงหมิง (#21)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'ผู้มาจากโลกเบื้องบนที่บาดเจ็บจนตบะสูญสลาย จึงไม่ถูกม่านกั้นภพดีดกลับและเร้นกายทิ้งมรดกไว้ในโลกเบื้องล่าง' },
+      25: { id: 'FIG_25_FACELESS_GATEKEEPER', nameTh: 'ผู้เฝ้าประตูไร้หน้า (#25)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'ผู้พิทักษ์ซากประตูมิติหลวงใต้ฐานสำนัก' },
+      30: { id: 'FIG_30_MO_JI', nameTh: 'จักรพรรดิกลไก ม่อจี๋ (#30)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'ผู้วางรากฐานปราการศิลาจักรกลและสุสานจักรพรรดิกลไกพันปี' },
+      38: { id: 'FIG_38_HONG_QI', nameTh: 'ราชันย์พเนจรผู้ลี้ภัย หงชี (#38)', era: 'ERA_3_THREE_EMPIRES', roleTh: 'ผู้ถือพลองหยกเขียวมรกตปราบพยัคฆ์คุ้มครองคาราวานผู้ลี้ภัย' },
+      40: { id: 'FIG_40_PU_JAO_SAMING', nameTh: 'ปู่เจ้าสมิงพราย (#40)', era: 'ERA_3_THREE_EMPIRES', roleTh: 'ปรมาจารย์ไสยเวทย์บรรพกาลแห่งบึงทมิฬทักษิณ' },
+      41: { id: 'FIG_41_KENSHIN', nameTh: 'ปรมาจารย์ดาบไร้เงา เคนชิน (#41)', era: 'ERA_3_THREE_EMPIRES', roleTh: 'ผู้ก่อตั้งสายวิชาหมู่เกาะบูรพาผาเมฆานอกม่านหมอก' },
+      46: { id: 'FIG_46_GU_TIANCHEN', nameTh: 'จักรพรรดิเป่ยหมิง กู่เทียนเฉิน (#46)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ประมุขสกุลกู่แห่งแดนเหนือผู้หมายฟื้นฟูบัลลังก์เทียนกู่' },
+      47: { id: 'FIG_47_GU_QINGXUE', nameTh: 'องค์หญิงน้ำแข็ง กู่ชิงเสวี่ย (#47)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ทายาทสายเลือดเหมันต์แห่งราชวงศ์เป่ยหมิง' },
+      49: { id: 'FIG_49_XING_YUN', nameTh: 'ผู้สืบทอดดารา ซิงอวิ๋น (#49)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ทายาทผู้ถือป้ายหยกดาราของซิงเฉินจื่อ (#16)' },
+      52: { id: 'FIG_52_SIMA_QING', nameTh: 'มหาเสนาบดี ซือหม่าชิง (#52)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ผู้กุมอำนาจสูงสุดแห่งมหาอาณาจักรตงหวง' },
+      53: { id: 'FIG_53_WAN_JINNIANG', nameTh: 'นายหญิงหอการค้า ว่านจินเหนียง (#53)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ประมุขเครือข่ายการค้าหมื่นสมุทรแห่งตงหวง' },
+      54: { id: 'FIG_54_YAN_LUO', nameTh: 'หัวหน้าสำนักตรวจการ เอี๊ยนหลัว (#54)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ผู้ถือมีดสั้นเสี่ยวหลี่และพู่กันพิพากษาแห่งตงหวง' },
+      57: { id: 'FIG_57_TUOBA_HONGLIAN', nameTh: 'แม่ทัพหญิงเพลิงโลหิต ทัวป๋าหงเหลียน (#57)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'จอมทัพหน้าแห่งจักรวรรดิซีหรงแดนตะวันตก' }
+    })
+  });
+  if (g.MAP) g.MAP.WORLD_LORE = X.WORLD_LORE;
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

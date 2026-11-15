@@ -105,7 +105,7 @@
     const mh = Math.round(184 * MAP.H / MAP.W); if (cv.width !== 184 || cv.height !== mh) { cv.width = 184; cv.height = mh; }
     const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.drawImage(R.getMini(), 0, 0, 184, mh);
     const sx = 184 / MAP.W, sy = mh / MAP.H;
-    W.npcs.forEach(n => { if (n.dead || n.away) return; c.fillStyle = n.id === R.selected ? '#fff' : n.rank >= 4 ? '#f0cf4a' : n.cult ? (n.cult.path === 'BODY' ? '#f0714f' : n.cult.path === 'GOD' ? '#e8c43a' : n.cult.path === 'DEMON' ? '#e599f7' : n.cult.path === 'HEART_SOUL' ? '#a5d8ff' : '#4fb2f2') : '#ccc'; c.fillRect(n.x * sx - 1, n.y * sy - 1, 2.4, 2.4); });
+    W.npcs.forEach(n => { if (n.dead || n.away) return; const pSig = (n.cult && Render && Render.PATH_VISUAL_SIGNATURES && Render.PATH_VISUAL_SIGNATURES[n.cult.path]) || null; c.fillStyle = n.id === R.selected ? '#fff' : n.rank >= 4 ? '#f0cf4a' : n.cult ? ((pSig && pSig.primary) || (n.cult.path === 'BODY' ? '#f0714f' : n.cult.path === 'GOD' ? '#e8c43a' : n.cult.path === 'DEMON' ? '#e599f7' : n.cult.path === 'HEART_SOUL' ? '#a5d8ff' : '#4fb2f2')) : '#ccc'; c.fillRect(n.x * sx - 1, n.y * sy - 1, 2.4, 2.4); });
     (W.foes || []).forEach(f => { if (f.dead || f.gone) return; c.fillStyle = '#ff3b30'; c.fillRect(f.x * sx - 1.5, f.y * sy - 1.5, 3, 3); });
     const cam = R.cam, hw = R.vw / 2 / cam.z / TS, hh = R.vh / 2 / cam.z / TS; c.strokeStyle = '#fff'; c.lineWidth = 1; c.strokeRect((cam.x / TS - hw) * sx, (cam.y / TS - hh) * sy, hw * 2 * sx, hh * 2 * sy);
   }

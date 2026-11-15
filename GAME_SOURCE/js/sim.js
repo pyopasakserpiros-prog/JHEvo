@@ -238,7 +238,6 @@
     const W = { _founding: true, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
     if (g.STATS) g.STATS.now = W.t;
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
-    if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
     const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day; HC.nowSeason = W.season;
     W.map = MAP.create(W.seed);
     W.market = ECO.newMarket(rng);
@@ -246,6 +245,7 @@
     W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); };
     W.makeNpc = o => SIM.addNpc(W, o);
     W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [], assemblyHistory: [], trackedNpcIds: [] };
+    if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
     SECT.POST_IDS.forEach(p => W.sect.posts[p] = null);
     EXPED.initWorld(W); EXPLORE.init(W);
     // ---- ห้องสมุด/คลัง/ตำรับ และ Archetype ----
@@ -288,7 +288,9 @@
       const n = SIM.buildNpc(W, rng, discOpts);
       SIM.register(W, n);
       n.mentor = master.id;
+      n.mentorId = master.id;
       master.h.life.family.disciples.push(n.id);
+      master.apprenticeIds = master.h.life.family.disciples.slice();
       n.h.life.family.master = master.id;
     }
     W._founding = false;
@@ -396,7 +398,20 @@
     W.sect.historicalPeople[n.id] = snap;
     return snap;
   };
-  SIM.register = (W, n) => { n.n = ++W.seqN; W.npcs.push(n); W.byId[n.id] = n; SIM.snapshotPerson(W, n); return n; };
+  SIM.register = (W, n) => {
+    n.n = ++W.seqN;
+    if (W && W.sect && W.sect.totemPillars && Array.isArray(W.sect.totemPillars.activeTotems) && W.sect.totemPillars.activeTotems.length) {
+      n.sectTotems = W.sect.totemPillars.activeTotems.slice();
+      n._sectTotems = n.sectTotems;
+    }
+    if (n && n.inv && Number.isFinite(n.inv.stones) && n.personalStones == null) {
+      n.personalStones = n.inv.stones;
+    }
+    W.npcs.push(n);
+    W.byId[n.id] = n;
+    SIM.snapshotPerson(W, n);
+    return n;
+  };
   SIM.addNpc = (W, o) => {
     o = o || {};
     const id = 'n' + (W.seqN + 1) + '_' + W.rng.int(100, 999);
@@ -442,6 +457,20 @@
     n.joinDay = W.day; n.sat = 70;
     if (o.queue) { n.n = ++W.seqN; return n; }
     SIM.register(W, n);
+    if (!W._founding && W.npcs && W.npcs.length >= 10 && n.x === 0 && n.y === 0) {
+      if (W.map && W.map.byId && W.map.byId.plaza) {
+        const pl = W.map.byId.plaza;
+        n.x = pl.x + (n.n % Math.max(1, pl.w)) + 0.5;
+        n.y = pl.y + (Math.floor(n.n / Math.max(1, pl.w)) % Math.max(1, pl.h)) + 0.5;
+        n.px = n.x;
+        n.py = n.y;
+      }
+      if (n.act && n.act.id === 'idle' && n.act.left === 0) {
+        n.act.left = (n.n * 5) % 220;
+      }
+      if (HC && HC.derived) HC.derived(n);
+      if (CULT && CULT.rate && n.cult) CULT.rate(n, 1);
+    }
     return n;
   };
 
@@ -603,12 +632,65 @@
       if (n.away) continue;
       AI.step(W, n);
     }
+    if (W.wildlife && Array.isArray(W.wildlife.beasts)) {
+      for (let bi = 0; bi < W.wildlife.beasts.length; bi++) {
+        const b = W.wildlife.beasts[bi];
+        if (b) { b._px = b.x; b._py = b.y; }
+      }
+    }
+    if (Array.isArray(W.foes)) {
+      for (let fi = 0; fi < W.foes.length; fi++) {
+        const f = W.foes[fi];
+        if (f) { f._px = f.x; f._py = f.y; }
+      }
+    }
+    if (W.world && Array.isArray(W.world.visitors)) {
+      for (let vi = 0; vi < W.world.visitors.length; vi++) {
+        const v = W.world.visitors[vi];
+        if (v) { v._px = v.x; v._py = v.y; }
+      }
+    }
     if (g.WILD) g.WILD.tick(W);
     if (g.WILD_RES) g.WILD_RES.tick(W);
     if (W.foes.length) EXPED.raidTick(W);
     if (g.WILD) g.WILD.clampCombat(W);
+    if (W.sect && Array.isArray(W.sect.activeTribulations) && W.sect.activeTribulations.length > 0 && CULT.TRIBULATION && CULT.TRIBULATION.tickAll) {
+      CULT.TRIBULATION.tickAll(W);
+    }
     COMBAT.tick(W);
     if (W.t % 60 === 0) SIM.hourly(W);
+  };
+  SIM.cleanupDepartedNpcRefs = (W, n) => {
+    if (!W || !n || !n.id) return;
+    if (W.sect && W.sect.peaks && W.sect.peaks.byId) {
+      Object.values(W.sect.peaks.byId).forEach(pObj => {
+        if (!pObj) return;
+        if (Array.isArray(pObj.memberIds)) pObj.memberIds = pObj.memberIds.filter(id => id !== n.id);
+        if (pObj.masterId === n.id) { pObj.masterId = null; pObj.masterNameTh = null; }
+        if (pObj.deputyId === n.id) { pObj.deputyId = null; pObj.deputyNameTh = null; }
+      });
+    }
+    if (W.sect && W.sect.leylineGrid && W.sect.leylineGrid.anchors) {
+      Object.values(W.sect.leylineGrid.anchors).forEach(a => {
+        if (a && a.guardNpcId === n.id) a.guardNpcId = null;
+      });
+    }
+    if (W.sect && W.sect.outposts && W.sect.outposts.byNodeId) {
+      Object.values(W.sect.outposts.byNodeId).forEach(op => {
+        if (op && Array.isArray(op.garrisonNpcIds)) {
+          op.garrisonNpcIds = op.garrisonNpcIds.filter(id => id !== n.id);
+        }
+      });
+    }
+    if (Array.isArray(W.npcs)) {
+      W.npcs.forEach(o => {
+        if (!o || o.id === n.id) return;
+        if (o.closedDoorSeclusion) {
+          if (o.closedDoorSeclusion.protectorId === n.id) o.closedDoorSeclusion.protectorId = null;
+          if (o.closedDoorSeclusion.companionId === n.id) o.closedDoorSeclusion.companionId = null;
+        }
+      });
+    }
   };
   SIM.retire = (W, n) => {
     AI.cancelAct(W, n); AI.freeBed(W, n); if (n.post) { W.sect.posts[n.post] = null; n.post = null; }
@@ -623,7 +705,7 @@
         W.sect.spawnedPills[k] = (W.sect.spawnedPills[k] || 0) + n.inv.spawnedPills[k];
       }
     }
-    if (g.MARTIAL) g.MARTIAL.returnKnowledge(W, n);
+    if (!n.exiled && g.MARTIAL) g.MARTIAL.returnKnowledge(W, n);
     for (const k of Object.keys((n.inv && n.inv.mats) || {})) {
       ECO.add(W, k, n.inv.mats[k]);
       if (n.inv.spawnedMats && n.inv.spawnedMats[k] > 0) {
@@ -631,15 +713,38 @@
         W.sect.spawnedMats[k] = (W.sect.spawnedMats[k] || 0) + n.inv.spawnedMats[k];
       }
     }
-    for (const id of ((n.inv && n.inv.techs) || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id);
-    for (const id of ((n.inv && n.inv.recipes) || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; }
-    if (n.inv) { n.inv.pills = {}; n.inv.mats = {}; n.inv.techs = []; n.inv.recipes = []; }
+    if (!n.exiled) {
+      for (const id of ((n.inv && n.inv.techs) || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id);
+      for (const id of ((n.inv && n.inv.recipes) || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; }
+    }
+    const heldStones = Math.max(0, Math.round((n.inv && n.inv.stones) || 0));
+    if (heldStones > 0) {
+      if (!n.exiled) {
+        ECO.earn(W, heldStones, 'ส่งคืนศิลาส่วนตัวของ ' + (n.h && n.h.name ? n.h.name.given : n.id), { internalTransfer: true });
+      } else if (W.world && W.world.resourcePool && Number.isFinite(W.world.resourcePool.stones)) {
+        W.world.resourcePool.stones += heldStones;
+      }
+    }
+    if (Array.isArray(n.pets) && n.pets.length > 0) {
+      W.sect.reservePets = W.sect.reservePets || [];
+      while (n.pets.length > 0) {
+        const pt = n.pets.shift();
+        if (pt && !pt.dead) {
+          pt.active = false;
+          pt.formerOwnerId = n.id;
+          W.sect.reservePets.push(pt);
+        }
+      }
+    }
+    if (n.inv) { n.inv.stones = 0; n.inv.pills = {}; n.inv.mats = {}; n.inv.techs = []; n.inv.recipes = []; }
+    n.personalStones = 0;
+    SIM.cleanupDepartedNpcRefs(W, n);
     SIM.snapshotPerson(W, n, n.exiled ? "ถูกขับไล่/ออกจากสำนัก" : "ออกจากสำนักแล้ว");
     n.retired = true;
     const i = W.npcs.indexOf(n);
     if (i >= 0) W.npcs.splice(i, 1);
     if (W.byId && W.byId[n.id] === n) delete W.byId[n.id];
-    W.gone.push(n.id);
+    if (!W.gone.includes(n.id)) W.gone.push(n.id);
     if (n.id === W.sect.deputyId) W.sect.deputyId = null;
     if (W.sect && W.sect.successorId === n.id) W.sect.successorId = null;
     if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
@@ -699,7 +804,8 @@
               if (it.retired || (it.dur <= 0 && (it.maxDur || 100) <= 20)) {
                 if (ECO && ECO.retireGear) ECO.retireGear(W, n, it);
               } else if ((it.dur <= 0 || it.dur <= (it.maxDur || 100) * 0.45) && (it.maxDur || 100) > 20 && ECO && ECO.repairGear) {
-                ECO.repairGear(W, it, null, n);
+                const hasPersonalStone = n.inv && n.inv.mats && Object.keys(ECO.REPAIR_STONES || {}).some(sid => (n.inv.mats[sid] || 0) > 0);
+                if (!n.away || hasPersonalStone) ECO.repairGear(W, it, null, n);
               }
             }
           }
@@ -810,8 +916,11 @@
         const s0 = list[i % list.length];
         let x = s0.x, y = s0.y;
         if (!s0.inside) {
-          const f = MAP.nearestFree(M, s0.x + 1 + (i % 3), s0.y + 1 + ((i >> 1) % 2));
-          if (f && (!MAP.findPath || MAP.findPath(M, MAP.GATE_IN.x, MAP.GATE_IN.y, f.x, f.y))) {
+          const maxYardY = b.y + b.h + Math.max(1, (b.yard || 2) - 1);
+          const candX = Math.min(b.x + b.w - 1, Math.max(b.x, s0.x + (i % 3) - 1));
+          const candY = Math.min(maxYardY, Math.max(b.y + b.h, s0.y + ((i >> 1) % 2)));
+          const f = MAP.nearestFree(M, candX, candY);
+          if (f && f.y <= maxYardY && (!MAP.findPath || MAP.findPath(M, MAP.GATE_IN.x, MAP.GATE_IN.y, f.x, f.y))) {
             x = f.x;
             y = f.y;
           }
@@ -870,7 +979,7 @@
     W.avgMood = W.npcs.length ? W.npcs.reduce((s, n) => s + (n.dead ? 0 : n.h.state.mood), 0) / Math.max(1, W.npcs.filter(n => !n.dead).length) : 0;
     if (silent) return;
     W.npcs.forEach(n => { if (n.dead) return; const age = HC.ageYears(n), life = n.lifespanMax || CULT.lifespan(n); if (age > life * 0.92) { const p = clamp((age - life * 0.92) / (life * 0.08), 0, 1) * 0.06; if (rng.chance(p)) AI.kill(W, n, 'ชราภาพ'); } });
-    for (let i = W.npcs.length - 1; i >= 0; i--) { const n = W.npcs[i]; if (n.dead && W.day - n.deathDay > 4) { SIM.snapshotPerson(W, n, "เสียชีวิตและฝังในสุสานสำนัก"); W.npcs.splice(i, 1); W.graveyard.push(n.id); } }
+    for (let i = W.npcs.length - 1; i >= 0; i--) { const n = W.npcs[i]; if (n.dead && W.day - n.deathDay > 4) { SIM.snapshotPerson(W, n, "เสียชีวิตและฝังในสุสานสำนัก"); W.npcs.splice(i, 1); if (W.byId && W.byId[n.id] === n) delete W.byId[n.id]; if (!W.graveyard.includes(n.id)) W.graveyard.push(n.id); } }
     if (!W.byId[W.sect.masterId] || W.byId[W.sect.masterId].dead) {
       if (SECT.resolvePlayerSuccessionCrisis) SECT.resolvePlayerSuccessionCrisis(W, 'เจ้าสำนักเดิมถึงแก่อนิจกรรม');
       else SECT.succession(W, 'เจ้าสำนักว่าง');
@@ -881,6 +990,7 @@
     SECT.daily(W);
     if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
     W.npcs.forEach(n => { if (!n.dead && !n.away && g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n); });
+    if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
     EXPED.daily(W); EXPLORE.daily(W); BN.daily(W); CPE.daily(W); g.CONTENT.daily(W); if (g.EXT) g.EXT.daily(W); if (g.FISHING) g.FISHING.daily(W);
     W.npcs.forEach(n => {
       if (n.dead) {
@@ -888,7 +998,7 @@
           W.sect.reservePets = W.sect.reservePets || [];
           while (n.pets.length > 0) {
             const orphan = n.pets.shift();
-            if (orphan) { orphan.active = false; W.sect.reservePets.push(orphan); }
+            if (orphan) { orphan.active = false; orphan.formerOwnerId = n.id; W.sect.reservePets.push(orphan); }
           }
         }
         return;
@@ -918,7 +1028,27 @@
     SIM.researchTick(W);
     if (cal.dom === 1) SIM.monthly(W);
     const pop = W.npcs.filter(n => !n.dead).length;
-    if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน'); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' หน่วย', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
+    if (Array.isArray(W.sect.reservePets) && W.sect.reservePets.length > 0) {
+      for (let rpi = W.sect.reservePets.length - 1; rpi >= 0; rpi--) {
+        const rPet = W.sect.reservePets[rpi];
+        if (!rPet || rPet.dead) { W.sect.reservePets.splice(rpi, 1); continue; }
+        const adopter = W.npcs.find(cand => cand && !cand.dead && !cand.exiled && !cand.away && (!Array.isArray(cand.pets) || cand.pets.length === 0) && (
+          (rPet.formerOwnerId && (cand.mentor === rPet.formerOwnerId || cand.mentorId === rPet.formerOwnerId || cand.companionId === rPet.formerOwnerId)) ||
+          (cand.cult && ['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'SPIRIT_HUSBANDRY', 'WILDERNESS_RANGER'].includes(cand.cult.path)) ||
+          ((cand.h && cand.h.skills && (cand.h.skills.BEAST_TAMING || 0) >= 25))
+        ));
+        if (adopter) {
+          W.sect.reservePets.splice(rpi, 1);
+          rPet.active = true;
+          rPet.ownerId = adopter.id;
+          adopter.pets = Array.isArray(adopter.pets) ? adopter.pets : [];
+          adopter.pets.push(rPet);
+          adopter.pet = rPet;
+          W.log('craft', adopter.h.name.given + ' รับสืบทอดสัตว์วิญญาณสำรอง「' + (rPet.nameTh || rPet.name || 'สัตว์อสูร') + '」มาดูแลต่อ', [adopter.id]);
+        }
+      }
+    }
+    if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน', { toPool: true }); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' หน่วย', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
     if (W.day % 30 === 15) W.npcs.forEach(n => { if (!n.dead) n.h.state.novelty = Math.max(0, n.h.state.novelty - 3); });
     if (g.EXPED && g.EXPED.dailyChronicleDigestTick) g.EXPED.dailyChronicleDigestTick(W);
   };
@@ -948,6 +1078,29 @@
     if (CULT && CULT.tickMonthlyWorldHooks) {
       CULT.tickMonthlyWorldHooks(W);
     }
+    if (Array.isArray(W.npcs) && (Array.isArray(W.graveyard) || Array.isArray(W.gone))) {
+      const deadSet = new Set([...(W.graveyard || []).map(x => typeof x === 'string' ? x : (x && x.id)), ...(W.gone || [])]);
+      if (deadSet.size > 0) {
+        for (let ni = 0; ni < W.npcs.length; ni++) {
+          const u = W.npcs[ni];
+          const rels = u && u.h && u.h.mind && u.h.mind.relations;
+          if (!rels) continue;
+          const fam = (u.h.life && u.h.life.family) || {};
+          for (const rid of Object.keys(rels)) {
+            if (!deadSet.has(rid)) continue;
+            const r = rels[rid];
+            if (!r || r.bond) continue;
+            if (u.companionId === rid || u.mentorId === rid || u.mentor === rid || fam.spouse === rid || fam.master === rid) continue;
+            if (Array.isArray(fam.parents) && fam.parents.includes(rid)) continue;
+            if (Array.isArray(fam.children) && fam.children.includes(rid)) continue;
+            if (Array.isArray(fam.disciples) && fam.disciples.includes(rid)) continue;
+            if (Math.abs(r.a || 0) < 25 && (r.v || 0) < 25 && (r.l || 0) < 25 && (r.n || 0) <= 3) {
+              delete rels[rid];
+            }
+          }
+        }
+      }
+    }
   };
   SIM.guardRoster = W => {
     const pop = W.npcs.filter(n => !n.dead).length; const k = 2 + Math.floor(pop / 14);
@@ -966,7 +1119,8 @@
   };
   SIM.researchTick = W => {
     const S = W.sect; if (!S.research) return; const head = W.byId[S.research.lead];
-    const r = (head && !head.dead ? (E(head, 'intellect.comprehension') + (head.h.skills.SCRIPTURE || 0) + (head.h.skills.ALCHEMY || 0)) / 10 : 4) * (1 + 0.1 * (W.map.byId.scripture.level - 1)) * (1 + S.policy.focus.scholar);
+    const bestCraftSk = head && !head.dead ? Math.max(head.h.skills.ALCHEMY || 0, head.h.skills.FORGING || 0, head.h.skills.ARRAY || 0, head.h.skills.TALISMAN || 0) : 0;
+    const r = (head && !head.dead ? (E(head, 'intellect.comprehension') + (head.h.skills.SCRIPTURE || 0) + bestCraftSk) / 10 : 4) * (1 + 0.1 * (W.map.byId.scripture.level - 1)) * (1 + S.policy.focus.scholar);
     S.research.progress += r;
     if (S.research.progress >= S.research.need) { S.recipeTier = S.research.tier; W.log('research', 'หอคัมภีร์วิจัยตำรับระดับ ' + S.recipeTier + ' สำเร็จ! หอโอสถและโรงหลอมผลิตของใหม่ได้', head ? [head.id] : []); W.fame(2); if (head) { head.merit += 30; HC.experience(head, 'craft_success', 1); } S.research = null; }
   };
@@ -1014,7 +1168,7 @@
       map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
     };
     const transientSet = SIM.TRANSIENT_CACHE_KEYS;
-    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil']);
+    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil', '_elemAuras', '_poiseGauge', '_ccDrStacks', '_shadowClones', '_boneArmorHp', '_supHealIcd', '_cheatDeathSavesCount', '_salvaged']);
     return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && !PERSISTED_UNDERSCORE_KEYS.has(k))) ? undefined : v);
   };
   SIM.deserialize = str => {
@@ -1092,7 +1246,7 @@
       npcIds.add(n.id);
     });
     if (s.npcs.length > 0 && s.sect.masterId != null) {
-      const inGrave = Array.isArray(s.graveyard) && s.graveyard.some(g2 => g2 && g2.id === s.sect.masterId);
+      const inGrave = Array.isArray(s.graveyard) && s.graveyard.some(g2 => (typeof g2 === 'string' ? g2 === s.sect.masterId : g2 && g2.id === s.sect.masterId));
       if (typeof s.sect.masterId !== 'string' || (!npcIds.has(s.sect.masterId) && !inGrave)) invalid('sect.masterId');
     }
     const hadDay = Object.prototype.hasOwnProperty.call(HC, 'nowDay'), dayBefore = HC.nowDay;
@@ -1191,6 +1345,15 @@
     if (g.SECT && g.SECT.ELEMENTAL_BARRIER) g.SECT.ELEMENTAL_BARRIER.ensure(W);
     if (g.MAP && g.MAP.syncPeakSanctuaries) g.MAP.syncPeakSanctuaries(W);
       if (g.SECT && g.SECT.ensureDungeon) g.SECT.ensureDungeon(W);
+      if (g.SECT && g.SECT.ensureJurisdictionLog) g.SECT.ensureJurisdictionLog(W);
+      if (g.SECT && g.SECT.TOTEMS_BLOODLINES) g.SECT.TOTEMS_BLOODLINES.ensure(W);
+      if (g.SECT && g.SECT.CELESTIAL_ALIGNMENTS) g.SECT.CELESTIAL_ALIGNMENTS.ensure(W);
+      if (g.SECT && g.SECT.DESTINY_KARMA) g.SECT.DESTINY_KARMA.ensure(W);
+      if (g.SECT && g.SECT.LEYLINE_GRID) g.SECT.LEYLINE_GRID.ensure(W);
+      if (g.SECT && g.SECT.TRIBUNAL) g.SECT.TRIBUNAL.ensure(W);
+      if (g.SECT && g.SECT.AUTOMATION) g.SECT.AUTOMATION.ensure(W);
+      if (g.SECT && g.SECT.ensureDefectorPursuit) g.SECT.ensureDefectorPursuit(W);
+      if (g.SECT && g.SECT.ANCESTRAL_PAVILION) g.SECT.ANCESTRAL_PAVILION.ensure(W);
       if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS) g.SECT.OUTPOSTS_LOGISTICS.ensure(W);
       if (g.SECT && g.SECT.CHARTER_DOCTRINE) g.SECT.CHARTER_DOCTRINE.ensure(W);
       if (g.SECT && g.SECT.STRATEGIC_COUNCIL) g.SECT.STRATEGIC_COUNCIL.ensure(W);
@@ -1203,6 +1366,7 @@
 
       if (W.world && Array.isArray(W.world.wanderingFigures) && g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
       if (W.world) {
+        if (!W.world.resourcePool || typeof W.world.resourcePool !== "object") W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 };
         if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
         W.chronicle = W.world.chronicles;
       }

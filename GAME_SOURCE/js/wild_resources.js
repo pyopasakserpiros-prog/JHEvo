@@ -372,7 +372,7 @@
 
       if (isLowRank) S.add('งานปลอดภัยสำหรับศิษย์ใหม่', 1.0);
       const p = n.post;
-      if (p === 'medicine' || p === 'apothecary' || p === 'herbs') S.add('หน้าที่เก็บสมุนไพร', 1.5);
+      if (['herbal', 'alchemy', 'healer', 'wildwarden', 'medicine', 'apothecary', 'herbs'].includes(p) || n.assist === 'herbal' || n.assist === 'alchemy') S.add('หน้าที่เก็บสมุนไพร', 1.5);
     },
     where(W, n) {
       const node = pickBestResourceNode(W, n);

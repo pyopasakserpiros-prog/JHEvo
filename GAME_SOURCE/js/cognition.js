@@ -103,7 +103,7 @@
     if (!n || !n.h) return [{ id: 'peaceful_companion', score: 1, reasonTh: 'ใช้ชีวิตเรียบง่าย' }];
     const r = COG.role(W, n);
     const sk = n.h.skills || {};
-    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0);
+    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0, sk.ROSARY || 0, sk.CLAW || 0, sk.NEEDLE || 0, sk.FAN || 0, sk.ASTROLABE || 0, sk.ABACUS || 0);
     const scores = [
       {
         id: 'martial_master',
@@ -403,10 +403,32 @@
       return false;
     }
     if (kind === 'tablet') {
-      return Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length > 0;
+      if (!Array.isArray(W.sect.legacyTablets) || !W.sect.legacyTablets.length) return false;
+      if (!itemId) return true;
+      const rec = W.sect._recentHallAdditions && W.sect._recentHallAdditions['tablet:' + itemId];
+      if (!rec || (W.t || 0) <= 0 || (W.t - rec.at) >= 180 || rec.actorId === n.id) return true;
+      const roleId = COG.role(W, n).id;
+      if (['scripture', 'master', 'deputy'].includes(roleId)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      return !!(k && Array.isArray(k.knownTabletIds) && k.knownTabletIds.includes(itemId));
     }
     if (kind === 'catalyst') {
-      return !!(W.sect.catalysts && Object.values(W.sect.catalysts).some(v => v > 0));
+      if (!W.sect.catalysts || !Object.values(W.sect.catalysts).some(v => v > 0)) return false;
+      if (!itemId) return true;
+      const rec = W.sect._recentHallAdditions && W.sect._recentHallAdditions['catalyst:' + itemId];
+      if (!rec || (W.t || 0) <= 0 || (W.t - rec.at) >= 180 || rec.actorId === n.id) return true;
+      const roleId = COG.role(W, n).id;
+      if (['forge', 'master', 'deputy', 'treasury'].includes(roleId)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      return !!(k && Array.isArray(k.knownCatalysts) && k.knownCatalysts.includes(itemId));
+    }
+    if (kind === 'shortage') {
+      if (!itemId) return true;
+      const roleId = COG.role(W, n).id;
+      if (['treasury', 'master', 'deputy', 'quartermaster', 'provision', 'alchemy', 'herbal', 'forge'].includes(roleId)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      if (k && Array.isArray(k.knownShortageIds) && k.knownShortageIds.length > 0) return k.knownShortageIds.includes(itemId);
+      return true;
     }
     return true;
   };
@@ -427,15 +449,130 @@
     const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult?.stage || 1), SECT.canLearnTier(W, n));
     k.updatedAt = W.t;
     const rawLib = force || nearInfoHub ? (W.sect.library || []) : COG.visibleLibraryFor(W, n);
-    k.visibleTechIds = n.cult ? rawLib.filter(id => {
-      const t = CULT.tech(id);
-      return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path || t.legendary);
-    }).slice(0, 24) : [];
-    k.visibleGearIds = (W.sect.gear || []).filter(eq => eq && SECT.canAccessItem(W, n, eq)).map(eq => eq.uid || eq.id).slice(0, 16);
-    k.knownShortageIds = (W.sect.shortageDirectives || []).filter(d => d.deficit > 0).map(d => d.id).slice(0, 8);
-    k.knownTabletIds = (W.sect.legacyTablets || []).map(t => t.id).slice(0, 12);
+    if (n.cult) {
+      const matched = rawLib.filter(id => {
+        const t = CULT.tech(id);
+        return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path || t.legendary);
+      });
+      if (matched.length > 64) {
+        matched.sort((a, b) => {
+          const ta = CULT.tech(a), tb = CULT.tech(b);
+          const legDiff = (tb && tb.legendary ? 1 : 0) - (ta && ta.legendary ? 1 : 0);
+          if (legDiff !== 0) return legDiff;
+          return ((tb && (tb.reqTier || tb.tier || 1)) || 1) - ((ta && (ta.reqTier || ta.tier || 1)) || 1);
+        });
+        k.visibleTechIds = matched.slice(0, 64);
+      } else {
+        k.visibleTechIds = matched;
+      }
+    } else {
+      k.visibleTechIds = [];
+    }
+    k.visibleGearIds = (W.sect.gear || []).filter(eq => eq && SECT.canAccessItem(W, n, eq)).map(eq => eq.uid || eq.id).slice(0, 24);
+    k.knownShortageIds = (W.sect.shortageDirectives || []).filter(d => d.deficit > 0).map(d => d.id).slice(0, 12);
+    k.knownTabletIds = (W.sect.legacyTablets || []).map(t => t.id).slice(0, 16);
     k.knownCatalysts = Object.keys(W.sect.catalysts || {}).filter(id => (W.sect.catalysts[id] || 0) > 0);
     return k;
+  };
+
+  function _detHash01(str) {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return (h % 10000) / 10000;
+  }
+
+  // Deterministic bounded perception of target combat power (zero RNG consumption)
+  COG.estimateTargetPower = (W, observer, target) => {
+    const trueP = Math.max(1, (target && typeof target === 'object' && target.cult && CULT.power)
+      ? CULT.power(target)
+      : Number(target?.power ?? target?.cp ?? 60));
+    if (!observer || !observer.h) return trueP;
+    const sk = observer.h.skills || {};
+    const acuity = E(observer, 'intellect.perceptiveness') * 0.45 + E(observer, 'intellect.judgement') * 0.35 + (sk.SOUL_DIVINE || 0) * 0.40;
+    const tPath = target && target.cult ? target.cult.path : '';
+    const tStealth = (target && target.h && target.h.skills && target.h.skills.stealth) || 0;
+    const concealsAura = (tPath === 'SHADOW_SAMURAI' || tPath === 'NINPO_SHADOW' || tStealth >= 35);
+    const concealShift = concealsAura ? -clamp(0.18 - acuity / 500, 0.03, 0.18) : 0;
+    const maxErr = clamp(0.28 - acuity / 380, 0.03, 0.26);
+    const tKey = String((target && (target.id || target.zone || target.nameTh)) || 'tgt');
+    const u01 = _detHash01(String(observer.id || 'o') + ':' + tKey + ':' + String(W ? (W.day || 0) : 0));
+    const egoShift = (E(observer, 'personality.pride') - E(observer, 'personality.caution')) / 700;
+    const mult = clamp(1 + (u01 * 2 - 1) * maxErr + concealShift - egoShift * 0.5, 0.65, 1.45);
+    return Math.max(1, Math.round(trueP * mult));
+  };
+
+  // Subjective breakthrough confidence modulated by comprehension, ego, mentor diagnosis & backlash trauma (zero RNG)
+  COG.perceivedBreakthroughChance = (W, n, rawP) => {
+    const base = clamp(Number(rawP) || 0, 0.01, 0.99);
+    if (!n || !n.h || !n.cult) return base;
+    const k = n.cognition && n.cognition.knowledge;
+    if (k && k.mentorVerifiedStage === n.cult.stage) {
+      return clamp(base, 0.02, 0.98);
+    }
+    const sk = n.h.skills || {};
+    const acuity = E(n, 'intellect.comprehension') * 0.45 + (sk.SCRIPTURE || 0) * 0.30 + (sk.MEDICINE || 0) * 0.25;
+    const uncertainty = clamp(1 - acuity / 115, 0.15, 1.0);
+    const hd = (n.h.state && n.h.state.heartDemon) || 0;
+    let bias = ((E(n, 'personality.pride') - 50) * 0.0014 + (E(n, 'personality.ambition') - 50) * 0.0010 - (E(n, 'personality.caution') - 50) * 0.0012 + (hd > 40 ? 0.04 : 0)) * uncertainty;
+    const mems = (n.cognition && Array.isArray(n.cognition.memory)) ? n.cognition.memory : [];
+    const nowT = (W && W.t) || 0;
+    for (let i = 0; i < mems.length; i++) {
+      const m = mems[i];
+      if (m && (m.kind === 'bt_backlash' || m.kind === 'qi_deviation')) {
+        const fade = Math.max(0, 1 - Math.max(0, nowT - (m.at || 0)) / (14 * 1440));
+        bias -= (m.severity || 0.6) * 0.08 * fade;
+      }
+    }
+    return clamp(base + bias, 0.03, 0.98);
+  };
+
+  // Social word-of-mouth knowledge propagation during pair/festival interactions
+  COG.shareKnowledgeOnInteract = (W, a, b, mode) => {
+    if (!W || !W.sect || !a || !b || a.dead || b.dead) return;
+    const ca = COG.ensure(a), cb = COG.ensure(b);
+    const ka = ca.knowledge || COG.perceive(W, a, false);
+    const kb = cb.knowledge || COG.perceive(W, b, false);
+    if (!ka || !kb) return;
+    if ((ka.updatedAt || -9999) > (kb.updatedAt || -9999)) {
+      for (const tid of (ka.visibleTechIds || [])) {
+        if (!kb.visibleTechIds.includes(tid) && kb.visibleTechIds.length < 64) kb.visibleTechIds.push(tid);
+      }
+      for (const sid of (ka.knownShortageIds || [])) {
+        if (!kb.knownShortageIds.includes(sid) && kb.knownShortageIds.length < 12) kb.knownShortageIds.push(sid);
+      }
+      for (const cid of (ka.knownCatalysts || [])) {
+        if (!kb.knownCatalysts.includes(cid)) kb.knownCatalysts.push(cid);
+      }
+    } else if ((kb.updatedAt || -9999) > (ka.updatedAt || -9999)) {
+      for (const tid of (kb.visibleTechIds || [])) {
+        if (!ka.visibleTechIds.includes(tid) && ka.visibleTechIds.length < 64) ka.visibleTechIds.push(tid);
+      }
+      for (const sid of (kb.knownShortageIds || [])) {
+        if (!ka.knownShortageIds.includes(sid) && ka.knownShortageIds.length < 12) ka.knownShortageIds.push(sid);
+      }
+      for (const cid of (kb.knownCatalysts || [])) {
+        if (!ka.knownCatalysts.includes(cid)) ka.knownCatalysts.push(cid);
+      }
+    }
+    // Share recent hazard memories
+    for (const [src, dst] of [[ca, b], [cb, a]]) {
+      for (const m of (src.memory || [])) {
+        if (m && m.kind === 'hunt_loss' && m.zoneId && (W.t - (m.at || 0)) < 7 * 1440) {
+          const already = (dst.cognition?.memory || []).some(x => x.kind === 'hunt_loss' && x.zoneId === m.zoneId);
+          if (!already) COG.remember(W, dst, 'hunt_loss', m.zoneId, (m.severity || 0.5) * 0.7, 'รับฟังคำเตือนภัยอสูรจากสหาย');
+        }
+      }
+    }
+    if (mode === 'teach') {
+      if (a.cult && b.cult && ((a.cult.stage || 1) > (b.cult.stage || 1) || (a.rank || 0) > (b.rank || 0))) {
+        kb.mentorVerifiedStage = b.cult.stage;
+      } else if (a.cult && b.cult && ((b.cult.stage || 1) > (a.cult.stage || 1) || (b.rank || 0) > (a.rank || 0))) {
+        ka.mentorVerifiedStage = a.cult.stage;
+      }
+    }
   };
 
   // Inexpensive deterministic heuristic forecasting (never clones world or rolls RNG)
@@ -465,7 +602,7 @@
       };
     }
     if (kind === 'huntRisk') {
-      const bPower = Math.max(1, Number(target?.power ?? target?.cp ?? 60));
+      const bPower = COG.estimateTargetPower ? COG.estimateTargetPower(W, n, target) : Math.max(1, Number(target?.power ?? target?.cp ?? 60));
       const zoneId = target?.zone || target?.id || null;
       const ownPower = Math.max(1, CULT.power(n));
       const caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
@@ -573,6 +710,26 @@
         roleFit += Math.min(0.45, (t.moveDefs.length - 1) * 0.10) * rational;
       }
     }
+    if (t.cat === 'LIGHTNESS_ART' || t.cat === 'MOVEMENT_TECHNIQUE' || t.role === 'MOVEMENT_STEALTH_RECON' || t.qinggongMode) {
+      const hasAnyMoveArt = Array.isArray(n.cult?.techs) && n.cult.techs.some(id => {
+        const x = CULT.tech(id);
+        return x && (x.cat === 'LIGHTNESS_ART' || x.cat === 'MOVEMENT_TECHNIQUE' || x.role === 'MOVEMENT_STEALTH_RECON' || x.qinggongMode);
+      });
+      roleFit += (E(n, 'values.freedom') + E(n, 'interests.exploring') + E(n, 'physiology.agility')) / 320 + (hasAnyMoveArt ? 0.12 : 0.55);
+      if (['spymaster', 'wildwarden', 'mission'].includes(n.post)) roleFit += 0.45;
+    }
+    if (t.role === 'PROFESSION_LIFESTYLE' || t.cat === 'AUXILIARY_ART') {
+      const craftMatch = (n.post === 'alchemy' || n.post === 'herbal' || E(n, 'interests.alchemy') >= 58) ||
+        (n.post === 'forge' || n.post === 'arraymaster' || E(n, 'interests.forging') >= 58) ||
+        (n.post === 'beastmaster' || E(n, 'interests.beasts') >= 58);
+      if (craftMatch) roleFit += 0.48;
+    }
+    if (t.cat === 'FORBIDDEN_ART' || t.role === 'FORBIDDEN_BLOOD_SOUL' || t.forbiddenArchetype) {
+      const amb = E(n, 'personality.ambition') / 100, hd = ((n.h && n.h.state && n.h.state.heartDemon) || 0) / 100;
+      const integ = E(n, 'personality.integrity') / 100, comp = E(n, 'personality.compassion') / 100;
+      const isDarkPath = ['DEMON', 'DEVOURING_FLESH', 'ABYSSAL_CORRUPTION', 'VENOM_GU'].includes(n.cult?.path);
+      roleFit += (amb * 0.55 + hd * 0.75 + (isDarkPath ? 0.65 : 0)) - (integ * 0.85 + comp * 0.65);
+    }
     let elemFit = 0;
     if (g.ELEM && n.h) {
       let cCompat = tpc && tpc.elemMap && t.id ? tpc.elemMap[t.id] : undefined;
@@ -664,7 +821,8 @@
   COG.reconcileLoadout = (W, n) => {
     const M = g.MARTIAL;
     if (!M || !n || !n.cult || !Array.isArray(n.cult.techs)) return [];
-    const lSig = (n._ver || 0) + ':' + n.cult.stage + ':' + (n.cult.sub || '') + ':' + n.cult.techs.length + ':' + (n.passivePinned ? n.passivePinned.length : 0) + ':' + (n.passiveUnequipped ? n.passiveUnequipped.length : 0) + ':' + (n.equip && n.equip.WEAPON ? n.equip.WEAPON.id : '') + ':' + (n.equip && n.equip.ARMOR ? n.equip.ARMOR.id : '');
+    const eqW = n.equip && n.equip.WEAPON, eqA = n.equip && n.equip.ARMOR;
+    const lSig = (n._ver || 0) + ':' + n.cult.stage + ':' + (n.cult.sub || '') + ':' + n.cult.techs.length + ':' + (n.passivePinned ? n.passivePinned.length : 0) + ':' + (n.passiveUnequipped ? n.passiveUnequipped.length : 0) + ':' + (eqW ? (eqW.uid || eqW.id) + ':' + (M.gearUsable ? M.gearUsable(n, eqW) : 1) : '') + ':' + (eqA ? (eqA.uid || eqA.id) + ':' + (M.gearUsable ? M.gearUsable(n, eqA) : 1) : '');
     if (n._reconcileLoadoutSig === lSig && Array.isArray(n.passiveLoadout)) return n.passiveLoadout;
     n._reconcileLoadoutSig = lSig;
     const maxSlots = M.maxPassiveSlots(n);
@@ -1107,12 +1265,24 @@
               }
             }
           }
-          if (tKeys && tKeys.length && SECT.EDITOR && SECT.EDITOR.usePersonalItem) {
+          if (tKeys && tKeys.length && !n.cult.learning) {
             const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
             for (const tid of tKeys.slice()) {
               const tObj = CULT.tech(tid);
-              if (tObj && (tObj.reqTier || tObj.tier || 1) <= effSt && CULT.learnable(n, [tid]).length > 0 && (W.sect.library.includes(tid) || E(n, 'personality.loyalty') < 52)) {
-                SECT.EDITOR.usePersonalItem(W, n.id, 'TECH_MANUAL', tid);
+              if (!tObj || (tObj.reqTier || tObj.tier || 1) > effSt || CULT.learnable(n, [tid]).length === 0) continue;
+              const isForb = tObj.cat === 'FORBIDDEN_ART' || tObj.role === 'FORBIDDEN_BLOOD_SOUL' || !!tObj.forbiddenArchetype;
+              const vPol = W.sect && W.sect.forbiddenVault && W.sect.forbiddenVault.policy;
+              if (isForb && vPol === 'STRICT_ORTHODOX_BAN' && E(n, 'personality.integrity') >= 52 && ((n.h.state && n.h.state.heartDemon) || 0) < 48) continue;
+              const idx = n.inv.techs.indexOf(tid);
+              if (idx >= 0) {
+                n.inv.techs.splice(idx, 1);
+                n.cult.learning = {
+                  id: tid,
+                  need: Math.max(15, Math.round((CULT.studyCost ? CULT.studyCost(tObj, n) : 60) * 0.85)),
+                  got: 0,
+                  fromPersonalScroll: true,
+                  transcribeToLibrary: !W.sect.library.includes(tid) && E(n, 'personality.loyalty') >= 52
+                };
                 n._bagKnowSig = '';
                 break;
               }
@@ -1193,13 +1363,13 @@
 
     // Update active goal's current step & prerequisite status
     if (c.goal) {
-      if (!c.goal.step || W.t - (c.goal._stepAt || -999) >= 60) {
+      if (!c.goal.step || W.t - (n._goalStepAt || -999) >= 60) {
         const stInfo = computeGoalStep(W, n, c.goal);
         c.goal.step = stInfo.step;
         c.goal.stepTitle = stInfo.stepTitle;
         c.goal.missingPrereq = stInfo.missingPrereq;
         c.goal.status = stInfo.missingPrereq ? 'blocked_prereq' : 'active';
-        c.goal._stepAt = W.t;
+        n._goalStepAt = W.t;
       }
       if (!c.goal.progressSnap) c.goal.progressSnap = snapshotForGoal(W, n, c.goal);
       return c;
@@ -1306,12 +1476,12 @@
           add('craft', 'เก็บส่วนผสมเพื่อปรุง ' + recipes[0].nameTh, 0.2 + (E(n, 'interests.alchemy') + E(n, 'values.knowledgeCraft')) / 120, recipes[0].id, { startCrafted: n.stats?.crafted || 0 });
         }
         const rival = Object.entries(n.h.mind.relations || {}).find(([id, v]) => ['คู่แข่ง', 'ศัตรู'].includes(v.bond) && W.byId[id] && !W.byId[id].dead);
-        if (rival && CULT.power(W.byId[rival[0]]) >= CULT.power(n)) {
+        if (rival && (COG.estimateTargetPower ? COG.estimateTargetPower(W, n, W.byId[rival[0]]) : CULT.power(W.byId[rival[0]])) >= CULT.power(n) * 0.92) {
           add('rival', 'ฝึกฝนเพื่อก้าวข้าม ' + W.byId[rival[0]].h.name.given, Math.max(0, (E(n, 'personality.pride') + E(n, 'personality.ambition') - 100) / 65), rival[0]);
         }
       }
     }
-    options.push({ id: 'none', weight: 1.2 + E(n, 'values.freedom') / 100 });
+    options.push({ id: 'none', weight: options.length > 0 ? (0.18 + E(n, 'values.freedom') / 350) : 1.0 });
     const chosen = options.length === 1 ? options[0] : W.rng.weighted(options, x => x.weight);
     if (chosen.id !== 'none') {
       const gObj = {
@@ -1359,12 +1529,13 @@
     const isFast = !!(SAcc && SAcc._fast), out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = isFast ? ((_, x) => { if (x > 0.025 || x < -0.025) SAcc.u += (x < -2 ? -2 : x > 2 ? 2 : x); }) : ((why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } });
     let mc = n._cogModCtx;
     if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
-      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
+      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, iPl = n.h.intellect.planning, tSo = n.h.temperament.sociability, vFr = n.h.values.freedom, pCa = n.h.personality.caution, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
       const postsRef = W.sect && W.sect.posts;
       const safeNow = safe(n), hourBand = ((W.t % 1440) / 60) | 0, planAnchor = W.sect && W.sect.officePlans && W.sect.officePlans.alchemy ? W.sect.officePlans.alchemy.by : null;
       const officeRev = (W.sect && W.sect._officeOrderSeq) || 0;
+      const raidNow = !!(W.threat && W.threat.raid), alertNow = W.threat ? ((W.threat.alert || 0) > 0 ? 1 : 0) : 0, wKindNow = W.weather ? (W.weather.kind || '') : '';
       const pCmd = postsRef ? postsRef.commander : null, pAlc = postsRef ? postsRef.alchemy : null, pFrg = postsRef ? postsRef.forge : null, pMas = W.sect ? W.sect.masterId : null;
-      if (!mc || (W.t - mc.t >= 60 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.hourBand !== hourBand || mc.ver !== n._ver || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.officeRev !== officeRev || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || (curGoal && (curGoal.id === 'scripture' || curGoal.id === 'gear_upgrade') && mc.cp !== cpNow) || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
+      if (!mc || (W.t - mc.t >= 60 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.raid !== raidNow || mc.alert !== alertNow || mc.wKind !== wKindNow || mc.hourBand !== hourBand || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.officeRev !== officeRev || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.iPl !== iPl || mc.tSo !== tSo || mc.vFr !== vFr || mc.pCa !== pCa || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || (curGoal && (curGoal.id === 'scripture' || curGoal.id === 'gear_upgrade') && mc.cp !== cpNow) || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -1431,7 +1602,7 @@
       }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, hourBand, planAnchor, officeRev, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
+        t: W.t, raid: raidNow, alert: alertNow, wKind: wKindNow, hourBand, planAnchor, officeRev, ver: n._ver, hp: s.hp, vSd, pDi, pLo, iPl, tSo, vFr, pCa, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -1467,6 +1638,12 @@
     if (aspId === 'peaceful_companion' && (id === 'pair' || id === 'leisure')) push('วิถีชีวิต: รักความสงบและมิตรภาพ', 0.18);
     else if (aspId === 'martial_master' && (id === 'practice' || id === 'skillDrill')) push('ปณิธาน: ขัดเกลาวิชายุทธ์', 0.18);
     else if (aspId === 'benevolent_healer' && (id === 'shareMedicine' || id === 'heal')) push('ปณิธาน: ช่วยเหลือผู้บาดเจ็บ', 0.22);
+    else if (aspId === 'realm_ascendant' && (id === 'cultivate' || id === 'breakthrough' || id === 'consolidate')) push('ปณิธาน: มุ่งทะลวงขอบเขตตบะ', 0.20);
+    else if (aspId === 'master_alchemist' && (id === 'brew' || id === 'brewBasic' || id === 'personalBrew' || id === 'forage')) push('ปณิธาน: ปรมาจารย์ปรุงโอสถ', 0.20);
+    else if (aspId === 'master_artificer' && (id === 'forge' || id === 'mine')) push('ปณิธาน: ปรมาจารย์ช่างหลอมศาสตรา', 0.20);
+    else if (aspId === 'respected_mentor' && (id === 'pair' || id === 'guidedStudy' || id === 'study')) push('ปณิธาน: คุรุผู้สืบทอดวิชา', 0.18);
+    else if (aspId === 'wealthy_trader' && (id === 'outsideTrade' || id === 'shop' || id === 'errand')) push('ปณิธาน: มั่งคั่งและเชี่ยวชาญการค้า', 0.20);
+    else if (aspId === 'sect_pillar' && (id === 'duty' || id === 'guard' || id === 'donate')) push('ปณิธาน: เสาหลักค้ำจุนสำนัก', 0.20);
 
     if (goal) {
       if (mc.goalActs && mc.goalActs.includes(id)) push('เป้าหมาย: ' + goal.title, mc.goalVal);
@@ -1654,13 +1831,14 @@
     }
   };
 
-  COG.remember = (W, n, event) => {
+  COG.remember = (W, n, event, zoneIdArg, sevArg, noteArg) => {
+    const evObj = (event && typeof event === 'object') ? event : { kind: String(event || ''), zoneId: zoneIdArg || null, severity: sevArg || 0.5, noteTh: noteArg || '' };
     const c = COG.ensure(n), e = {
-      kind: event.kind,
-      zoneId: event.zoneId || null,
-      subjectId: event.subjectId || null,
-      at: W.t,
-      severity: clamp(event.severity || 0.5, 0.05, 1)
+      kind: evObj.kind,
+      zoneId: evObj.zoneId || null,
+      subjectId: evObj.subjectId || null,
+      at: W ? W.t : 0,
+      severity: clamp(evObj.severity || 0.5, 0.05, 1)
     };
     const old = c.memory.find(x => x.kind === e.kind && x.zoneId === e.zoneId && x.subjectId === e.subjectId);
     if (old) Object.assign(old, e);
@@ -1669,7 +1847,8 @@
   };
 
   COG.huntValue = (W, n, b) => {
-    const ratio = CULT.power(n) / Math.max(1, b.power), caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
+    const estBPower = COG.estimateTargetPower ? COG.estimateTargetPower(W, n, b) : Math.max(1, b.power);
+    const ratio = CULT.power(n) / Math.max(1, estBPower), caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
     let v = Math.log2(Math.max(0.05, ratio)) * (0.6 + caution) + (courage - 0.5) * 0.25;
     for (const m of n.cognition?.memory || []) {
       if (m.zoneId !== b.zone) continue;
@@ -2077,6 +2256,64 @@
     return pet;
   };
 
+  COG.processOpenPetitions = (W, officer, roleId) => {
+    if (!W || !W.sect || !Array.isArray(W.sect.petitions) || !W.sect.petitions.length || !officer) return 0;
+    let resolved = 0;
+    const nowT = W.t || 0;
+    for (let i = 0; i < W.sect.petitions.length; i++) {
+      const pet = W.sect.petitions[i];
+      if (!pet || pet.status !== 'open') continue;
+      if (pet.expiresAt && pet.expiresAt <= nowT) {
+        pet.status = 'expired';
+        continue;
+      }
+      const req = W.byId && W.byId[pet.npcId];
+      if (!req || req.dead || req.exiled) {
+        pet.status = 'closed';
+        continue;
+      }
+      if (pet.kind === 'medicine' && ['healer', 'alchemy', 'master', 'deputy'].includes(roleId)) {
+        const hm = CULT.hpMax(req);
+        req.h.state.hp = Math.min(hm, (req.h.state.hp || hm) + Math.round(hm * 0.25));
+        if (Array.isArray(req.inj) && req.inj.length) {
+          req.inj[0].until = Math.max(0, (req.inj[0].until || 60) - 180);
+          req.inj = req.inj.filter(x => x.until > 0);
+        }
+        pet.status = 'resolved';
+        pet.resolvedBy = officer.id;
+        pet.resolvedAt = nowT;
+        resolved++;
+        break;
+      }
+      if (pet.kind === 'equipment' && ['forge', 'treasury', 'quartermaster', 'master', 'deputy'].includes(roleId)) {
+        if (roleId === 'forge' && ECO.findCatalystRefinementCandidate && ECO.refineGearWithCatalyst) {
+          const rc = ECO.findCatalystRefinementCandidate(W, req, { allowByProxySmith: true });
+          if (rc && rc.gear && rc.cat) {
+            ECO.refineGearWithCatalyst(W, officer, rc.gear, rc.cat.id);
+          }
+        }
+        pet.status = 'resolved';
+        pet.resolvedBy = officer.id;
+        pet.resolvedAt = nowT;
+        resolved++;
+        break;
+      }
+      if (pet.kind === 'complaint' && ['discipline', 'censor', 'master', 'deputy'].includes(roleId)) {
+        req.h.state.stress = Math.max(0, (req.h.state.stress || 0) - 8);
+        req.sat = clamp((req.sat || 65) + 4, 0, 100);
+        if (W.sect.internalPolitics) {
+          W.sect.internalPolitics.undercurrent = clamp((W.sect.internalPolitics.undercurrent || 0) - 2, 0, 100);
+        }
+        pet.status = 'resolved';
+        pet.resolvedBy = officer.id;
+        pet.resolvedAt = nowT;
+        resolved++;
+        break;
+      }
+    }
+    return resolved;
+  };
+
   /* ---------- Office Reviews, Orders, Favoritism & Self-Dealing ---------- */
   COG.officeBias = (W, n, kind) => {
     const critical = (W.sect.shortageDirectives || []).some(x => x.priority === 'critical'), duty = E(n, 'values.sectDuty') / 100, empathy = E(n, 'personality.empathy') / 100;
@@ -2262,6 +2499,7 @@
       return false;
     }
     if (SECT.governancePractice) SECT.governancePractice(W, n, r.id);
+    if (COG.processOpenPetitions) COG.processOpenPetitions(W, n, r.id);
     if (['alchemy', 'forge'].includes(r.id)) {
       const o = ECO.pickOrder(W, r.id, n);
       W.sect.orders[r.id] = o.recipe ? { rid: o.recipe.id, why: o.why, by: n.id } : null;

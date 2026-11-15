@@ -84,13 +84,13 @@
     ['alchemy', 'alchemy', 128, 56, 18, 10, 4],
     ['forge', 'forge', 128, 74, 20, 10, 4],
     ['mission_hall', 'mission_hall', 100, 98, 10, 6, 3],
-    ['tea_garden', 'tea_garden', 114, 58, 12, 6, 4],
-    ['shrine', 'shrine', 62, 58, 10, 6, 3],
+    ['tea_garden', 'tea_garden', 114, 56, 12, 6, 3],
+    ['shrine', 'shrine', 62, 56, 10, 6, 3],
     ['mine', 'mine', 26, 16, 16, 10, 3]
   ];
   const PEAK_LAYOUT_SPECS = [
     { type: 'peak_sword', id: 'peak_sword', peakId: 'PEAK_AZURE_SWORD', aliasId: 'PEAK_SWORD', dir: 'NW', dirTh: 'ทิศตะวันตกเฉียงเหนือ', lx: 11, ly: 14, w: 13, h: 8, yard: 2, leylineColor: '#48cae4', bannerColor: '#0288d1' },
-    { type: 'peak_array', id: 'peak_array', peakId: 'PEAK_ASTRAL_MECHANISM', aliasId: 'PEAK_ARRAY', dir: 'W', dirTh: 'ทิศตะวันตก', lx: 11, ly: 66, w: 14, h: 8, yard: 2, leylineColor: '#64c3ce', bannerColor: '#0097a7' },
+    { type: 'peak_array', id: 'peak_array', peakId: 'PEAK_ASTRAL_MECHANISM', aliasId: 'PEAK_ARRAY', dir: 'W', dirTh: 'ทิศตะวันตก', lx: 11, ly: 41, w: 14, h: 7, yard: 2, leylineColor: '#64c3ce', bannerColor: '#0097a7' },
     { type: 'peak_body', id: 'peak_body', peakId: 'PEAK_VAJRA_BODY', aliasId: 'PEAK_BODY', dir: 'N', dirTh: 'ทิศเหนือ', lx: 64, ly: 7, w: 16, h: 6, yard: 2, leylineColor: '#f4a261', bannerColor: '#e65100' },
     { type: 'peak_alchemy', id: 'peak_alchemy', peakId: 'PEAK_DIVINE_CAULDRON', aliasId: 'PEAK_ALCHEMY', dir: 'NE', dirTh: 'ทิศตะวันออกเฉียงเหนือ', lx: 166, ly: 14, w: 16, h: 8, yard: 2, leylineColor: '#52b788', bannerColor: '#2e7d32' },
     { type: 'peak_beast', id: 'peak_beast', peakId: 'PEAK_DIVINE_BEAST', aliasId: 'PEAK_BEAST', dir: 'E', dirTh: 'ทิศตะวันออก', lx: 168, ly: 80, w: 16, h: 8, yard: 2, leylineColor: '#e09f3e', bannerColor: '#d97706' },
@@ -716,15 +716,18 @@
     }
     if (where === 'yard') {
       const cols = Math.max(2, Math.floor((b.w + 2) / 3));
-      const rows = Math.max(1, b.yard - 1);
-      let i = 0;
-      for (let r = 0; r < rows + 1 && out.length < count; r++) for (let c = 0; c < cols && out.length < count; c++) {
-        const x = b.x + 1 + Math.round(c * (b.w - 2) / Math.max(1, cols - 1)), y = b.y + b.h + 1 + r * 2;
-        if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y });
-        i++;
+      const maxYardY = b.y + b.h + Math.max(1, (b.yard || 2) - 1);
+      for (let y = b.y + b.h; y <= maxYardY && out.length < count; y++) {
+        for (let c = 0; c < cols && out.length < count; c++) {
+          const x = b.x + 1 + Math.round(c * (b.w - 2) / Math.max(1, cols - 1));
+          if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y });
+        }
       }
-      // เติมถ้าไม่พอ
-      for (let x = b.x; out.length < count && x < b.x + b.w; x++) { const y = b.y + b.h; if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y }); }
+      for (let y = b.y + b.h; y <= maxYardY && out.length < count; y++) {
+        for (let x = b.x; out.length < count && x < b.x + b.w; x++) {
+          if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y });
+        }
+      }
       return out;
     }
     if (where === 'shore') { // รอบสระ
@@ -733,13 +736,21 @@
       for (let i = 0; i < count; i++) { const p = r[Math.floor((i + 0.5) * r.length / count)]; out.push({ x: p.x, y: p.y }); }
       return out;
     }
-    // open: กระจายในพื้นที่
+    // open: กระจายในพื้นที่ (เลี่ยงจุดสิ่งกีดขวาง เช่น น้ำพุกลางลาน 95..97+OX, 66..68+OY)
     const cols = Math.max(2, Math.ceil(Math.sqrt(count * b.w / b.h)));
     const rows = Math.ceil(count / cols);
     for (let i = 0; i < count; i++) {
       const c = i % cols, r = Math.floor(i / cols);
-      const x = b.x + 2 + Math.floor(c * (b.w - 4) / Math.max(1, cols - 1)), y = b.y + 2 + Math.floor(r * (b.h - 4) / Math.max(1, rows - 1));
-      out.push({ x: Math.min(b.x + b.w - 2, x), y: Math.min(b.y + b.h - 2, y) });
+      let x = Math.min(b.x + b.w - 2, b.x + 2 + Math.floor(c * (b.w - 4) / Math.max(1, cols - 1)));
+      let y = Math.min(b.y + b.h - 2, b.y + 2 + Math.floor(r * (b.h - 4) / Math.max(1, rows - 1)));
+      if (b.id === 'plaza' && x >= 115 && x <= 117 && y >= 78 && y <= 80) {
+        x = 114;
+      }
+      if (!free(x, y) && MAP.nearestFree) {
+        const nf = MAP.nearestFree(M, x, y);
+        if (nf) { x = nf.x; y = nf.y; }
+      }
+      out.push({ x, y });
     }
     return out;
   }
@@ -818,6 +829,16 @@
   };
   let gScore = null, came = null, stamp = null, closed = null, curStamp = 0, sharedHeap = null;
   const _pcBySeed = new Map();
+  MAP.invalidatePathCache = function (M) {
+    if (M && M._pc) M._pc.clear();
+    _pcBySeed.clear();
+  };
+  const WALL_GATES = [
+    { id: 'S', inX: 118, inY: 130, midX: 118, midY: 131, outX: 118, outY: 133 },
+    { id: 'N', inX: 118, inY: 19,  midX: 118, midY: 18,  outX: 118, outY: 17 },
+    { id: 'W', inX: 31,  inY: 80,  midX: 30,  midY: 80,  outX: 29,  outY: 80 },
+    { id: 'E', inX: 209, inY: 80,  midX: 210, midY: 80,  outX: 211, outY: 80 }
+  ];
   MAP.findPath = function (M, sx, sy, gx, gy) {
     sx = Math.floor(sx); sy = Math.floor(sy); gx = Math.floor(gx); gy = Math.floor(gy);
     if (!(sx >= 0 && sy >= 0 && sx < W && sy < H && M.block[sy * W + sx] === 0)) {
@@ -840,12 +861,19 @@
       M._pc = pc;
     }
     if (pc.has(key)) return pc.get(key);
-    const sInWall = sx > 22 && sx < 218 && sy > 18 && sy < 131;
-    const gInWall = gx > 22 && gx < 218 && gy > 18 && gy < 131;
+    const w0 = (M.wall && M.wall.x0) || 30, w1 = (M.wall && M.wall.x1) || 210, wy0 = (M.wall && M.wall.y0) || 18, wy1 = (M.wall && M.wall.y1) || 132;
+    const sInWall = sx > w0 && sx < w1 && sy > wy0 && sy < wy1;
+    const gInWall = gx > w0 && gx < w1 && gy > wy0 && gy < wy1;
     if (sInWall !== gInWall) {
-      const p1 = sInWall ? MAP.findPath(M, sx, sy, 118, 130) : MAP.findPath(M, sx, sy, 118, 132);
-      const p2 = sInWall ? MAP.findPath(M, 118, 132, gx, gy) : MAP.findPath(M, 118, 130, gx, gy);
-      const joined = (p1 && p2) ? p1.concat([[118, 131]], p2) : null;
+      let bestGate = WALL_GATES[0], bestDist = 1e9;
+      for (let gi = 0; gi < WALL_GATES.length; gi++) {
+        const gt = WALL_GATES[gi];
+        const d = Math.abs(sx - gt.midX) + Math.abs(sy - gt.midY) + Math.abs(gx - gt.midX) + Math.abs(gy - gt.midY);
+        if (d < bestDist) { bestDist = d; bestGate = gt; }
+      }
+      const p1 = sInWall ? MAP.findPath(M, sx, sy, bestGate.inX, bestGate.inY) : MAP.findPath(M, sx, sy, bestGate.outX, bestGate.outY);
+      const p2 = sInWall ? MAP.findPath(M, bestGate.outX, bestGate.outY, gx, gy) : MAP.findPath(M, bestGate.inX, bestGate.inY, gx, gy);
+      const joined = (p1 && p2) ? p1.concat([[bestGate.midX, bestGate.midY]], p2) : null;
       if (pc.size >= 12000) { let ev = 0; for (const k of pc.keys()) { pc.delete(k); if (++ev >= 2000) break; } }
       pc.set(key, joined);
       return joined;
@@ -875,7 +903,7 @@
         if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
         const nk = ny * W + nx; if (closed[nk] === curStamp || cost[nk] === 0) continue;
         if (dx !== 0 && dy !== 0 && (cost[y * W + nx] === 0 || cost[ny * W + x] === 0)) continue; // กันตัดมุม
-        const nInWall = nx > 22 && nx < 218 && ny > 18 && ny < 131;
+        const nInWall = nx > w0 && nx < w1 && ny > wy0 && ny < wy1;
         if (nInWall !== gInWall) continue;
         const ng = gk0 + DC8[d] * cost[nk];
         if (stamp[nk] !== curStamp || ng < gScore[nk]) {

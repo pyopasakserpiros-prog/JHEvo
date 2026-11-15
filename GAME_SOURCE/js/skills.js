@@ -295,24 +295,24 @@
       elemTh: el.nameTh,
       cd: m.cd || A.cd,
       wind: m.wind || A.wind,
-      hits: m.hits != null ? m.hits : A.hits,
-      M: m.M != null ? m.M : (m.mult != null ? m.mult : 1.2),
+      hits: !A.off ? 0 : (m.hits != null ? m.hits : A.hits),
+      M: !A.off ? 0 : (m.M != null ? m.M : (m.mult != null ? m.mult : 1.2)),
       costPct: m.costPct != null ? m.costPct : (m.qiCost != null ? Math.round(m.qiCost * 0.45 * 10) / 10 : Math.round(4 * A.cost * (1 + 0.45 * (tier - 1)) * 10) / 10),
-      pen: m.pen != null ? m.pen : (m.penAdd != null ? m.penAdd : (A.penAdd || 0)),
+      pen: !A.off ? 0 : (m.pen != null ? m.pen : (m.penAdd != null ? m.penAdd : (A.penAdd || 0))),
       critAdd: m.critAdd || 0,
       aoe: m.aoe != null ? !!m.aoe : !!A.aoe,
       steal: m.steal != null ? m.steal : (A.steal || 0),
-      dot: m.dot || 0,
-      dotKind: m.dotKind || 'bleed',
+      dot: m.dot || (arch === 'dot' ? Math.round((0.45 + 0.12 * (tier - 1)) * 100) / 100 : 0),
+      dotKind: m.dotKind || (({ FIRE: 'burn', BLOOD_DEMON: 'bleed', WOOD_LIFE: 'poison' })[t.element] || 'bleed'),
       recoil: m.recoil != null ? m.recoil : (A.recoil || 0),
       self: !!(m.self || A.self),
       team: !!(m.team || A.team),
-      channel: m.channel || null,
+      channel: m.channel || (arch === 'channel' ? { ticks: 3, tickM: Math.round((0.45 + 0.08 * (tier - 1)) * 100) / 100, finishM: Math.round((0.90 + 0.15 * (tier - 1)) * 100) / 100, interruptForce: 15 } : null),
       shield: m.shield || ((arch === 'guard' || arch === 'shield') ? Math.round((0.14 + 0.035 * (tier - 1)) * 100) / 100 : 0),
       heal: m.heal || (arch === 'heal' ? Math.round((0.16 + 0.04 * (tier - 1)) * 100) / 100 : 0),
       grantBuff: m.grantBuff || t.grantBuff || null,
       support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: m.grantBuff || t.grantBuff || (m.sx && m.sx.k) || 'morale', dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
-      summon: m.summon || null,
+      summon: m.summon || (arch === 'summon' ? { dur: 14 + tier * 2, hpPct: Math.round((0.35 + 0.05 * (tier - 1)) * 100) / 100, statPct: Math.round((0.50 + 0.05 * (tier - 1)) * 100) / 100, nameSuffix: 'ร่างอวตาร' } : null),
       rider: m.rider !== undefined ? m.rider : (m.status && !A.ctrl ? m.status : ((m.sx && m.sx.k && !A.self && !A.team) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null))),
       ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? (m.status || (m.sx && m.sx.k) || el.ctrl) : null),
       shatterShield: !!m.shatterShield,
@@ -366,7 +366,8 @@
       requiresWeapon: t.requiresWeapon,
       moves: [m.nameTh]
     };
-    prof.range = m.range || t.range || SK.resolveMoveSpatialSpec(prof, null);
+    prof.explicitRange = m.range || t.range || null;
+    prof.range = prof.explicitRange || SK.resolveMoveSpatialSpec(prof, null);
     prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : '');
     return (moveCache[key] = prof);
   };
@@ -394,6 +395,18 @@
       const m0 = SK.moveProfile(t, t.moveDefs[0]);
       const prof = Object.assign({}, m0, { id: t.id, tech: t.id, moveId: t.moveDefs[0].id, nameTh: t.nameTh, moves: t.moves || t.moveDefs.map(x => x.nameTh) });
       return (cache[t.id] = prof);
+    } else if ((t.cat === 'QI_MANTRA' || t.cat === 'BODY_MANTRA' || t.cat === 'FAITH_MANTRA') && Array.isArray(t.moves) && t.moves.length) {
+      const nm = (t.nameTh || '') + ' ' + (t.moves[0] || '');
+      if (/ฟื้น|น้ำพุ|อายุวัฒนะ|เมตตา|โอสถ|เยียวยา/.test(nm)) arch = 'heal';
+      else if (/ระฆัง|เกราะ|วัชระ|คุ้มกาย|ปราการ|โล่/.test(nm)) arch = 'guard';
+      else if (/หนุน|อวยพร|ค่ายกล|ประสาน|ขวัญ/.test(nm)) arch = 'support';
+      else {
+        const w = Object.assign({}, SUBW[subId] || { strike: 3, flurry: 1, sweep: 1 });
+        if (t.tier < 3) { delete w.burst; delete w.summon; }
+        if (t.tier < 2) { delete w.control; delete w.counter; delete w.channel; }
+        const ks = Object.keys(w), tot = ks.reduce((s, k) => s + w[k], 0); let r = rnd(h, 1) * tot; arch = ks[ks.length - 1];
+        for (const k of ks) { r -= w[k]; if (r <= 0) { arch = k; break; } }
+      }
     } else return (cache[t.id] = null); // วิชาอาชีพ/ไม่ใช่การรบ
     const A = SK.ARCH[arch], tier = t.tier, tierMult = 1 + 0.12 * (tier - 1) + Math.min(0.18, 0.0006 * Math.max(0, (t.power || 40) - 40 * tier * 0.8));
     const cd = Math.round(A.cd * (0.85 + 0.3 * rnd(h, 2)));
@@ -413,7 +426,12 @@
     else if (P === 'GOD') type = (subId === 'WAR_DEITY' || subId === 'TOTEM_BEAST_GOD') ? 'p' : 'm';
     else if (P === 'DEMON') type = (subId === 'SHADOW_ASSASSIN' ? (rnd(h, 3) < 0.85 ? 'p' : 'm') : subId === 'HEAVEN_DEVOURING_DEMON' ? (rnd(h, 3) < 0.5 ? 'p' : 'm') : 'm');
     else if (P === 'HEART_SOUL') type = (subId === 'MIND_SWORD_TELEKINESIS' && rnd(h, 3) < 0.35) ? 'p' : 'm';
-    else type = (subId === 'SWORD_IMMORTAL' ? rnd(h, 3) < 0.7 : subId === 'BLOOD_DEMON' ? rnd(h, 3) < 0.4 : rnd(h, 3) < 0.12) ? 'p' : 'm';
+    else {
+      const pw = (g.CULT && g.CULT.PATHS && g.CULT.PATHS[P] && g.CULT.PATHS[P].statWeights) || (g.JD && g.JD.CULT && g.JD.CULT.paths && g.JD.CULT.paths[P] && g.JD.CULT.paths[P].statWeights);
+      if (pw && (pw.atk || 1) > (pw.matk || 1) + 0.06) type = 'p';
+      else if (pw && (pw.matk || 1) > (pw.atk || 1) + 0.06) type = 'm';
+      else type = (subId === 'SWORD_IMMORTAL' ? rnd(h, 3) < 0.7 : subId === 'BLOOD_DEMON' ? rnd(h, 3) < 0.4 : rnd(h, 3) < 0.35) ? 'p' : 'm';
+    }
     const prof = { id: t.id, tech: t.id, nameTh: t.nameTh, tier, grade: t.grade || 'Common', legendary: !!t.legendary, fxKind: t.fxKind || null, arch, archTh: A.nameTh, icon: A.icon, type, element: t.element, elementProfile: t.elementProfile || (g.ELEM && g.ELEM.getTargetProfile(t)) || null, elemTh: el.nameTh, cd,
       hits, wind: wind0, M: Math.round(M * 100) / 100, costPct: Math.round(4 * A.cost * (1 + 0.45 * (tier - 1)) * 10) / 10, pen: A.penAdd || 0, aoe: !!A.aoe, steal: A.steal || 0, dot: Math.round(dotTot * 100) / 100,
       recoil: A.recoil || 0, self: !!A.self, team: !!A.team, channel: !!A.channel, rider: !A.self && !A.team && A.off && !A.ctrl ? el.st : null, ctrl: A.ctrl ? el.ctrl : null, moves: t.moves || [] };
@@ -466,7 +484,8 @@
     prof.coCast = t.coCast || m0.coCast || null;
     prof.tags = t.tags || m0.tags || null;
     prof.weaponTypes = t.weaponTypes; prof.armorTypes = t.armorTypes; prof.requiresWeapon = t.requiresWeapon;
-    prof.range = t.range || m0.range || SK.resolveMoveSpatialSpec(prof, null);
+    prof.explicitRange = t.range || m0.range || null;
+    prof.range = prof.explicitRange || SK.resolveMoveSpatialSpec(prof, null);
     prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : ''); return (cache[t.id] = prof);
   };
 
@@ -561,6 +580,7 @@
     if (!n || !n.cult || !techId) return { gained: 0, unlockedNewStage: false };
     const t = CULT.tech(techId);
     const prevStage = t ? SK.unlockedStage(n, t) : 1;
+    const prevMoves = (t && Array.isArray(t.moveDefs)) ? SK.unlockedMoves(n, t).length : 0;
     n.cult.tm = n.cult.tm || {};
     const add = Number.isFinite(amt) && amt > 0 ? amt : 1;
     n.cult.tm[techId] = (n.cult.tm[techId] || 0) + add;
@@ -568,7 +588,9 @@
       g.ELEM.gainMastery(n, t, 'practice', W, { sourceId: techId, scale: Math.min(1.5, add) });
     }
     const newStage = t ? SK.unlockedStage(n, t) : 1;
-    if (newStage > prevStage) {
+    const newMoves = (t && Array.isArray(t.moveDefs)) ? SK.unlockedMoves(n, t).length : 0;
+    if (newStage > prevStage || newMoves > prevMoves) {
+      n._skListCache = null;
       if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(n); else if (g.STATS) g.STATS.dirty(n);
       if (W && W.log && t && Array.isArray(t.stages)) {
         const stObj = t.stages.find(s => s.stage === newStage);
@@ -585,16 +607,17 @@
     if (!n.cult) return [];
     const c = n.cult, tl = c.techs ? c.techs.length : 0, tSig = c.techs ? c.techs.join(',') : '';
     const eq = n.equip || {};
+    const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
     const slotSig = it => {
       if (!it || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(n, it))) return '';
-      const mSig = Array.isArray(it.skillModifiers) ? it.skillModifiers.map(m => m ? ((m.targetTechId || m.targetArch || '') + ':' + (m.multAdd || 0) + ':' + (m.hitsAdd || 0) + ':' + (m.cdDelta || 0) + ':' + (m.penAdd || 0) + ':' + (m.critAdd || 0) + ':' + (m.costMult || 1) + ':' + (m.addRider || '') + ':' + (m.grantBuff || '') + ':' + (m.addElementalFusion || '') + ':' + (m.composablePatch && m.composablePatch.action || '')) : '').join(';') : '';
+      const mSig = Array.isArray(it.skillModifiers) ? it.skillModifiers.map(m => m ? ((m.targetTechId || m.matchTechId || m.targetArch || m.matchArch || m.arch || m.matchElement || m.element || '') + ':' + (m.multAdd || 0) + ':' + (m.hitsAdd || 0) + ':' + (m.cdDelta || 0) + ':' + (m.penAdd || 0) + ':' + (m.critAdd || 0) + ':' + (m.costMult || 1) + ':' + (m.makeAoe ? 1 : 0) + ':' + (m.addRider || '') + ':' + (m.grantBuff || '') + ':' + (m.addElementalFusion || '') + ':' + (m.composablePatch && m.composablePatch.action || '')) : '').join(';') : '';
       const rSig = it.runeInscriptions ? Object.entries(it.runeInscriptions).map(([rk, rv]) => rk + ':' + (rv && (rv.reactionId || rv.mult || rv) || '')).join(';') : '';
       const gSig = Array.isArray(it.grantedSkills) ? it.grantedSkills.join(',') : '';
       return (it.uid || it.id || '') + ':' + (it._modVer || 0) + ':' + mSig + ':' + rSig + ':' + gSig;
     };
     const eqKey = slotSig(eq.WEAPON) + '|' + slotSig(eq.ARMOR) + '|' + slotSig(eq.ACCESSORY);
     const slc = n._skListCache;
-    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === c.stage && slc.mantra === c.mantra && slc.tl === tl && slc.tSig === tSig && slc.eqKey === eqKey && slc.ver === (n._passVer || 0)) {
+    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === effSt && slc.mantra === c.mantra && slc.tl === tl && slc.tSig === tSig && slc.eqKey === eqKey && slc.ver === (n._passVer || 0)) {
       return slc.out;
     }
     const activeIds = (g.MARTIAL ? g.MARTIAL.activeTechs(n) : n.cult.techs).slice();
@@ -605,7 +628,7 @@
     }
     if (n.cult.mantra && (!g.MARTIAL || !g.MARTIAL.canActivateMantra || g.MARTIAL.canActivateMantra(n, n.cult.mantra))) {
       const mTech = CULT.tech(n.cult.mantra);
-      if (mTech && Array.isArray(mTech.moveDefs) && mTech.moveDefs.length && !activeIds.includes(mTech.id)) {
+      if (mTech && ((Array.isArray(mTech.moveDefs) && mTech.moveDefs.length) || (Array.isArray(mTech.moves) && mTech.moves.length)) && !activeIds.includes(mTech.id)) {
         activeIds.push(mTech.id);
       }
     }
@@ -635,7 +658,15 @@
         }
       }
     }
-    n._skListCache = { path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, tl, tSig, eqKey, ver: n._passVer || 0, out };
+    if (SK.getArchetypeSignatureSkills && n.subpathArchetypeMastery) {
+      const sigSkills = SK.getArchetypeSignatureSkills(n);
+      if (Array.isArray(sigSkills)) {
+        for (const sm of sigSkills) {
+          if (sm && sm.id && !out.some(x => x.id === sm.id)) out.push(sm);
+        }
+      }
+    }
+    n._skListCache = { path: c.path, sub: c.sub, st: effSt, mantra: c.mantra, tl, tSig, eqKey, ver: n._passVer || 0, out };
     return out;
   };
 
@@ -743,10 +774,15 @@
     }
     const arch = p.arch || 'strike';
     const def = SK.ARCH_RANGE_DEFAULTS[arch] || SK.ARCH_RANGE_DEFAULTS.strike;
-    const explicit = p.range && typeof p.range === 'object' ? p.range : null;
-    const nameStr = ((p.nameTh || '') + ' ' + (p.parentNameTh || '')).trim();
-    const wTypes = Array.isArray(p.weaponTypes) ? p.weaponTypes : (p.reqWeapon || []);
-    const primaryWpn = wTypes[0] || (u && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u).weaponType : 'FIST');
+    const explicit = (p.explicitRange && typeof p.explicitRange === 'object')
+      ? p.explicitRange
+      : (p.range && typeof p.range === 'object' && !p.range.source ? p.range : null);
+    const moveNameOnly = (p.nameTh || '').trim();
+    const nameStr = (moveNameOnly + ' ' + (p.parentNameTh || '')).trim();
+    const wTypes = Array.isArray(p.weaponTypes) && p.weaponTypes.length ? p.weaponTypes : (Array.isArray(p.reqWeapon) && p.reqWeapon.length ? p.reqWeapon : []);
+    const primaryWpn = (u && SK.weaponTacticalProfile && (!wTypes.length || wTypes.includes(SK.weaponTacticalProfile(u).weaponType)))
+      ? SK.weaponTacticalProfile(u).weaponType
+      : (wTypes[0] || (u && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u).weaponType : 'FIST'));
 
     let minR = explicit && Number.isFinite(explicit.min) ? explicit.min : def.min;
     let maxR = explicit && Number.isFinite(explicit.max) ? explicit.max : def.max;
@@ -766,7 +802,7 @@
         if (arch === 'snipe' || /เกาทัณฑ์|ศร/.test(nameStr)) { minR = Math.max(minR, 1.35); minRangePenalty = Math.max(minRangePenalty, 0.35); }
         requiresLoS = !/อุกกาบาต|ดาราร่วง|สายฟ้าฟาด/.test(nameStr);
         source = 'TECHNIQUE_OVERRIDE_LONG';
-      } else if (/คลื่นเสียง|พิณ|ยันต์|ค่ายกล|อาคม|ลำแสง|คลื่นมังกร|คลื่นปราณ|พายุ|ซัดคลื่น|หอกโลหิต/.test(nameStr)) {
+      } else if (/คลื่นเสียง|พิณ|ยันต์|ค่ายกล|อาคม|ลำแสง|คลื่นมังกร|คลื่นปราณ|พายุ|ซัดคลื่น|หอกโลหิต/.test(nameStr) && !(p.type === 'p' && ['FIST', 'SPEAR', 'STAFF', 'BLADE', 'CLAW'].includes(primaryWpn) && !/ซัดคลื่น|ลำแสง|หอกโลหิต/.test(moveNameOnly))) {
         maxR = Math.max(maxR, 3.60);
         if (/คลื่นเสียง|พิณ/.test(nameStr) && p.aoe) { shape = 'CONE'; radius = Math.max(radius, 2.8); requiresLoS = false; }
         source = 'TECHNIQUE_OVERRIDE_MID';
@@ -1169,25 +1205,39 @@
       return { weaponType: 'FIST', reachClass: 'SHORT_SWIFT', engageRange: 1.7, isHeavyFist: false, hasLightness: false, hasDefenseTech: false, spec: SK.WEAPON_TACTICS.FIST };
     }
     const eqW = u.equip ? u.equip.WEAPON : (u.weaponType || null);
+    const vSub = (eqW && typeof eqW === 'object') ? (eqW.visualSubtype || '') : '';
     const stc = u._activeStance || u._combatStance || '';
     const cSub = (u.cult && u.cult.sub) || u.subPath || 'NONE';
     const cPath = (u.cult && u.cult.path) || u.path || 'NONE';
     const tl = (u.cult && u.cult.techs) ? u.cult.techs.length : (u.skl ? u.skl.length : 0);
     const wtc = u._wpTacCache;
-    if (wtc && wtc.eqW === eqW && wtc.stc === stc && wtc.cSub === cSub && wtc.cPath === cPath && wtc.tl === tl && wtc.pver === (u._passVer || 0)) return wtc.out;
+    if (wtc && wtc.eqW === eqW && wtc.vSub === vSub && wtc.stc === stc && wtc.cSub === cSub && wtc.cPath === cPath && wtc.tl === tl && wtc.pver === (u._passVer || 0)) return wtc.out;
     const wType = u.foe
       ? SK.inferFoeWeaponType(u)
       : ((g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(u) : (u.weaponType || 'FIST'));
     const sub = (u.cult && u.cult.sub) || u.subPath || 'NONE';
     const path = (u.cult && u.cult.path) || u.path || 'NONE';
     const isHeavyFist = wType === 'FIST' && (path === 'BODY' || SK.HEAVY_FIST_SUBPATHS.includes(sub) || (u.foe && (u.fourSymbol === 'BLACK_TORTOISE' || u.bloodlineTrait === 'IRON_CARAPACE')));
+    const isHeavyWeapon = vSub === 'HEAVY_SWORD' || vSub === 'HAMMER' || !!(eqW && eqW.reqStrength >= 55);
+    const isFlyingSwordSub = ['MIND_SWORD_TELEKINESIS', 'FLYING_BLADE_ORBITER', 'CELESTIAL_STAR_SWORD'].includes(sub) && ['SWORD', 'BLADE', 'FOCUS'].includes(wType);
+    const isThrowingDagger = vSub === 'DAGGER' && !!(eqW && (eqW.id === 'LEG_WPN_XIAOLI_HEART_DAGGER' || /มีดบิน/.test(eqW.nameTh || '')));
+    const isMeleeDagger = vSub === 'DAGGER' && !isThrowingDagger;
     const baseSpec = SK.WEAPON_TACTICS[wType] || SK.WEAPON_TACTICS.FIST;
-    const reachClass = isHeavyFist ? 'HEAVY_BREAKER' : baseSpec.reachClass;
+    const reachClass = (isHeavyFist || isHeavyWeapon)
+      ? 'HEAVY_BREAKER'
+      : isThrowingDagger
+        ? 'RANGED_KITE'
+        : isMeleeDagger
+          ? 'SHORT_SWIFT'
+          : isFlyingSwordSub
+            ? 'MID_TACTICAL'
+            : baseSpec.reachClass;
     const hasLightness = u.foe ? !!(u.hasLightness || (u.skl && u.skl.some(s => s.arch === 'charge' || s.arch === 'blink' || s.arch === 'evade'))) : SK.hasLightnessOrGapCloser(u);
     const hasDefenseTech = u.foe ? !!(u.hasDefenseTech || u.fourSymbol === 'BLACK_TORTOISE' || (u.skl && u.skl.some(s => s.arch === 'guard' || s.arch === 'shield'))) : SK.hasDefensiveTech(u);
     const stanceSpec = (!u.foe && g.STATS && g.STATS.getActiveStanceSpec) ? g.STATS.getActiveStanceSpec(u) : null;
     const stanceRangeDelta = (u._activeStance === 'THUNDER_STEP_STANCE' || u._activeStance === 'PUPPET_OVERDRIVE_MODE') ? 0.55 : 0;
-    const engageRange = +((baseSpec.engageRange || 1.7) + stanceRangeDelta).toFixed(2);
+    const baseEngage = isThrowingDagger ? 3.2 : isFlyingSwordSub ? 2.55 : isMeleeDagger ? 1.65 : (baseSpec.engageRange || 1.7);
+    const engageRange = +(baseEngage + stanceRangeDelta).toFixed(2);
     const bandObj = SK.classifyRangeBand(engageRange);
     const resObj = {
       weaponType: wType,
@@ -1205,7 +1255,7 @@
       descTh: baseSpec.descTh,
       spec: baseSpec
     };
-    u._wpTacCache = { eqW, stc, cSub, cPath, tl, pver: u._passVer || 0, out: resObj };
+    u._wpTacCache = { eqW, vSub, stc, cSub, cPath, tl, pver: u._passVer || 0, out: resObj };
     return resObj;
   };
 
@@ -2857,7 +2907,7 @@
     const moveId = moveOpt && (moveOpt.moveId || moveOpt.id);
     const move = (tech.moveDefs || []).find(m => m.id === moveId);
     if (move && (move.signatureVfx || move.fxKind || move.legendary || move.arch === 'forbid')) return null;
-    return SK.TECH_TO_T3_VFX[id] || null;
+    return SK.TECH_TO_T3_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 'bone_ribs' : tech.cat === 'FAITH_MANTRA' ? 'faith_lamella' : 'healing_chime') : null);
   };
 
   // Reviewed T7 IDs, not an automatic route for future/unreviewed content.
@@ -3294,7 +3344,7 @@
     const id = techOrMove.tech || techOrMove.id;
     const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
     if (!tech || tech.tier !== 7 || tech.legendary || techOrMove.legendary || tech.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary))) return null;
-    return SK.T7_VFX_CATALOG[id] || null;
+    return SK.T7_VFX_CATALOG[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? { family: 'myriad_blades', variant: 1, nameTh: tech.nameTh || 'มหาเคล็ดบ่มเพาะ' } : null);
   };
 
 
@@ -4546,7 +4596,7 @@
     if (!tech || tech.tier !== 5 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T5_VFX[id] || null;
+    return SK.TECH_TO_T5_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't5_totem_beast_crest' : tech.cat === 'FAITH_MANTRA' ? 't5_nether_ghost_lantern' : 't5_ocean_tide_trident') : null);
   };
 
   SK.T4_VFX_FAMILIES = {
@@ -5514,7 +5564,7 @@
     if (!tech || tech.tier !== 4 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T4_VFX[id] || null;
+    return SK.TECH_TO_T4_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't4_tactical_shield_wall' : tech.cat === 'FAITH_MANTRA' ? 't4_five_element_flags' : 't4_bagua_trigram_ring') : null);
   };
 
   SK.T3_EXT_VFX_CATALOG = {
@@ -6693,7 +6743,7 @@
     if (!tech || tech.tier !== 2 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T2_VFX[id] || null;
+    return SK.TECH_TO_T2_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't2_heavy_shoulder_ram' : tech.cat === 'FAITH_MANTRA' ? 't2_incense_prayer_wisp' : 't2_golden_shield_glint') : null);
   };
 
   SK.T1_EXT_VFX_CATALOG = {
@@ -7120,7 +7170,7 @@
     if (!tech || tech.tier !== 1 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T1_VFX[id] || null;
+    return SK.TECH_TO_T1_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 'iron_palm' : tech.cat === 'FAITH_MANTRA' ? 'incense_wisp' : 'twin_balance') : null);
   };
 
   SK.T6_EXT_VFX_FAMILIES = {
@@ -7281,7 +7331,7 @@
     if (!tech || tech.tier !== 6 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T6_EXT_VFX[id] || SK.TECH_TO_T6_VFX[id] || null;
+    return SK.TECH_TO_T6_EXT_VFX[id] || SK.TECH_TO_T6_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? 'void' : null);
   };
 
   SK.SUBPATH_VFX_MOTIFS = {

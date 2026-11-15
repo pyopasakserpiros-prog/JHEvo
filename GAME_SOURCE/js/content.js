@@ -1227,7 +1227,7 @@
         }
         const price=C.recipeTradePrice(W,id);
         if(!W.sect.knownRecipes.includes(id)) {
-          const buyer=W.npcs.find(b=>b!==holder && !b.dead && !b.away && ((b.post===(r.craft==='ALCHEMY'?'alchemy':'forge')) || (b.h.skills[r.craft]||0)>=r.minMastery-10) && (b.inv.stones||0)>=price*1.5 && !(b.inv.recipes||[]).includes(id));
+          const buyer=W.npcs.find(b=>b!==holder && !b.dead && !b.away && b.post!=='discipline' && b.post!=='censor' && (HC.eff(b,'personality.integrity')<68 || (SECT.relationScore && SECT.relationScore(holder,b)>=25)) && ((b.post===(r.craft==='ALCHEMY'?'alchemy':'forge')) || (b.h.skills[r.craft]||0)>=r.minMastery-10) && (b.inv.stones||0)>=price*1.5 && !(b.inv.recipes||[]).includes(id));
           if(buyer && HC.eff(holder,'values.wealthResource')>62 && W.rng.chance(0.35)) {
             if(skill>=15 && (holder.inv.stones||0)>=8*(r.tier||1)) C.copyRecipe(W,holder,id);
             C.tradeRecipe(W,holder,buyer,id,price);

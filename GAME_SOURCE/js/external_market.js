@@ -112,15 +112,19 @@
     const base = (EXT.basePrice(W, id) || ECO.price(W, id)) * ((W.market && W.market.mult[id]) || 1);
     if (!Number.isFinite(base) || base <= 0) return 0;
     const npcObj = (skillOrNpc && typeof skillOrNpc === 'object') ? skillOrNpc : null;
-    const rawSkill = npcObj ? ((npcObj.h && npcObj.h.skills && npcObj.h.skills.trading) || 40) : skillOrNpc;
+    const abacusBonus = (npcObj && npcObj.equip && npcObj.equip.WEAPON && (npcObj.equip.WEAPON.gearType === 'ABACUS' || npcObj.equip.WEAPON.weaponType === 'ABACUS')) ? 8 : 0;
+    const rawSkill = npcObj
+      ? (E(npcObj, 'intellect.numeracy') * 0.30 + E(npcObj, 'aptitudes.socialCommerce') * 0.30 + ((npcObj.h && npcObj.h.skills && npcObj.h.skills.trading) || 0) * 0.40 + abacusBonus)
+      : skillOrNpc;
     const skill = clamp(Number.isFinite(rawSkill) ? rawSkill : 40, 0, 100);
     const isAppraiserSub = !!(npcObj && npcObj.cult && npcObj.cult.sub === 'TREASURE_APPRAISER_SAGE');
     const isMerchantPath = !!(npcObj && npcObj.cult && npcObj.cult.path === 'MERCANTILE_DAO');
+    const hasFreeTrade = !!(W && W.world && Array.isArray(W.world.treaties) && W.world.treaties.some(t => t && t.active && (t.type === 'FREE_TRADE_TREATY' || t.kind === 'TRADE')));
     let mult = 1;
-    if (side === 'sect-buy') mult = 1.15 - skill / 850;          // sect buys at a modest premium
-    else if (side === 'sect-sell') mult = 0.78 + skill / 900;   // sect sells below retail
-    else if (side === 'member-buy') mult = 1.18 * (isAppraiserSub ? 0.92 : (isMerchantPath ? 0.96 : 1));
-    else if (side === 'member-sell') mult = 0.76 * (isAppraiserSub ? 1.10 : (isMerchantPath ? 1.05 : 1));
+    if (side === 'sect-buy') mult = (1.15 - skill / 850) * (hasFreeTrade ? 0.96 : 1);
+    else if (side === 'sect-sell') mult = (0.78 + skill / 900) * (hasFreeTrade ? 1.04 : 1);
+    else if (side === 'member-buy') mult = (1.18 - (skill - 40) / 900) * (isAppraiserSub ? 0.92 : (isMerchantPath ? 0.96 : 1));
+    else if (side === 'member-sell') mult = (0.76 + (skill - 40) / 950) * (isAppraiserSub ? 1.10 : (isMerchantPath ? 1.05 : 1));
     return Math.max(1, Math.round(base * clamp(mult, 0.65, 1.2)));
   };
 
@@ -150,7 +154,7 @@
     if (subtype === 'medicine' || subtype === 'rare' || W.rng.chance(0.35)) {
       const pills = Object.keys(ECO.recipeById || {})
         .filter(rid => ECO.recipeById[rid] && ECO.recipeById[rid].outType === 'PILL')
-        .map(rid => 'P:' + rid)
+        .map(rid => (ECO.recipeById[rid].outItemId && ECO.itemById[ECO.recipeById[rid].outItemId]) ? ECO.recipeById[rid].outItemId : ('P:' + rid))
         .filter(k => EXT.isTradable(k) && (subtype !== 'general' || BASIC_PILLS.has(k)));
       if (pills.length) { const id = W.rng.pick(pills); addStock(W, stock, id, 1, subtype === 'medicine' ? 4 : 2); }
     }
@@ -204,6 +208,10 @@
       const ssm = W.sect.surplusSubManuals.find(m => !(W.sect.spawnedSurplusSub && W.sect.spawnedSurplusSub.includes(m)));
       if (ssm) { wants['SUB_MANUAL:' + ssm] = 1; used.add('SUB_MANUAL:' + ssm); }
     }
+    if ((subtype === 'medicine' || subtype === 'caravan' || subtype === 'rare') && W.sect.surplusRecipes && W.sect.surplusRecipes.length > 0) {
+      const sr = W.sect.surplusRecipes.find(r => !(W.sect.spawnedSurplusRecipes && W.sect.spawnedSurplusRecipes.includes(r)));
+      if (sr) { wants['RECIPE_SCROLL:' + sr] = 1; used.add('RECIPE_SCROLL:' + sr); }
+    }
     if ((subtype === 'medicine' || subtype === 'rare') && g.CONTENT && W.sect.organs) {
       for (const oid of Object.keys(W.sect.organs)) {
         if (g.CONTENT.organCount(W, oid) > 2) { wants[oid] = 1; used.add(oid); break; }
@@ -215,7 +223,7 @@
       if (subtype === 'medicine' || subtype === 'rare' || W.rng.chance(0.25)) {
         const pills = Object.keys(ECO.recipeById || {})
           .filter(rid => ECO.recipeById[rid] && ECO.recipeById[rid].outType === 'PILL')
-          .map(rid => 'P:' + rid)
+          .map(rid => (ECO.recipeById[rid].outItemId && ECO.itemById[ECO.recipeById[rid].outItemId]) ? ECO.recipeById[rid].outItemId : ('P:' + rid))
           .filter(k => EXT.isTradable(k) && !used.has(k) && (subtype !== 'general' || BASIC_PILLS.has(k)));
         if (pills.length) id = W.rng.pick(pills);
       }
@@ -251,12 +259,18 @@
         gearStock.push(ECO.rollProceduralGear(W, { maxTier: maxGTier, minTier: subtype === 'rare' ? 2 : 1, source: 'merchant:' + subtype }));
       }
     }
+    const desiredStones = Number.isFinite(options.stones) ? Math.max(0, Math.round(options.stones)) : defaultStones;
+    const pool = W.world && W.world.resourcePool;
+    const usePool = !Number.isFinite(options.stones) && pool && Number.isFinite(pool.stones);
+    const allocatedStones = usePool ? Math.min(desiredStones, Math.max(0, Math.round(pool.stones))) : desiredStones;
+    if (usePool) pool.stones -= allocatedStones;
     const visitor = {
       id: options.id || ('trader_' + seq), kind: 'trader', subtype,
       nameTh: options.nameTh || W.rng.pick(nameList),
       arriveDay: W.day,
       untilDay: Number.isFinite(options.untilDay) ? options.untilDay : W.day + clamp(Math.round(options.stayDays || 2), 1, 4),
-      stones: Number.isFinite(options.stones) ? Math.max(0, Math.round(options.stones)) : defaultStones,
+      stones: allocatedStones,
+      _backedByPool: !!usePool,
       stock, gearStock, wants, sectTradeDay: null, sectBuyDone: false, tradeCount: 0
     };
     W.world.visitors.push(visitor);
@@ -286,7 +300,9 @@
   };
   function treasurySkill(W) {
     const tr = SECT.holder(W, 'treasury') || W.byId[W.sect.masterId];
-    return tr ? clamp((E(tr, 'intellect.numeracy') + E(tr, 'aptitudes.socialCommerce') + (tr.h.skills.trading || 0)) / 3, 0, 100) : 40;
+    const mm = SECT.holder ? SECT.holder(W, 'marketmaster') : (W.sect && W.sect.posts && W.byId[W.sect.posts.marketmaster]);
+    const calc = n => n ? clamp((E(n, 'intellect.numeracy') + E(n, 'aptitudes.socialCommerce') + (n.h.skills.trading || 0)) / 3 + (n.cult && n.cult.path === 'MERCANTILE_DAO' ? 10 : 0), 0, 100) : 40;
+    return Math.max(calc(tr), calc(mm));
   }
   function purchaseNeeds(W, v) {
     const out = [], seen = new Set();
@@ -452,7 +468,7 @@
           const it = ECO.itemById && ECO.itemById[eqId];
           if (it) {
             W.sect.gear = W.sect.gear || [];
-            for (let gi = 0; gi < qty; gi++) W.sect.gear.push(ECO.mintGear(it, 1.0));
+            for (let gi = 0; gi < qty; gi++) W.sect.gear.push(ECO.mintGear(W, it, 1.0));
           }
         } else if (g.CONTENT && g.CONTENT.organById && (g.CONTENT.organById[need.id] || (need.id.startsWith('ORGAN:') && g.CONTENT.organById[need.id.slice(6)]))) {
           const oid = need.id.startsWith('ORGAN:') ? need.id.slice(6) : need.id;
@@ -587,9 +603,11 @@
         const rid = W.sect.surplusRecipes[i];
         if (W.sect.spawnedSurplusRecipes && W.sect.spawnedSurplusRecipes.includes(rid)) continue; // Anti-minting
         const key = 'RECIPE_SCROLL:' + rid;
+        if (v.wants && Object.keys(v.wants).length > 0 && !(v.wants[key] > 0)) continue;
         const unit = EXT.quotePrice(W, key, 'sect-sell', skill);
         if (unit > 0 && v.stones >= unit) {
           W.sect.surplusRecipes.splice(i, 1);
+          if (v.wants && v.wants[key]) { v.wants[key]--; if (v.wants[key] <= 0) delete v.wants[key]; }
           v.stones -= unit;
           const rObj = ECO.recipeById && ECO.recipeById[rid];
           const rName = rObj ? rObj.nameTh : rid;
@@ -631,7 +649,7 @@
     }
 
     // 3. Sell stale unsold equipment from W.sect.gear (Step 3 & 4 of Sect Trading Cycle: permanently leaves world)
-    const staleRes = EXT.sellStaleSectGear(W, v, { skill });
+    const staleRes = EXT.sellStaleSectGear(W, v, { skill, boughtKeys });
     result.sold += staleRes.sold;
     result.sellRevenue += staleRes.revenue;
 
@@ -660,9 +678,11 @@
       const eq = W.sect.gear[i];
       if (!eq || !eq.slot) continue;
       if (eq.playerSpawned) continue; // Anti-minting: player-spawned gear never generates Spirit Stones
-      if (eq.legendary || (g.VC && g.VC.LEGENDARY_WEAPON_BY_ID && g.VC.LEGENDARY_WEAPON_BY_ID[eq.id])) continue;
+      if (eq.legendary || eq.unique || eq.isLegendaryRelic || eq.weaponSpirit || eq.imbuedElderSoul || eq.isSectHeritage || eq.soulBoundOwnerId || /^REL_V230_/.test(eq.id || '') || (g.VC && g.VC.LEGENDARY_WEAPON_BY_ID && g.VC.LEGENDARY_WEAPON_BY_ID[eq.id])) continue;
+      if (opts && opts.boughtKeys && opts.boughtKeys.has('EQ:' + eq.id)) continue;
       if (eq.uid && wantedUids.has(eq.uid)) continue;
-      const listedAt = eq.listedAtDay != null ? eq.listedAtDay : 0;
+      if (eq.listedAtDay == null) { eq.listedAtDay = W.day || 0; continue; }
+      const listedAt = eq.listedAtDay;
       const ageDays = (W.day || 0) - listedAt;
       if (ageDays < graceDays) continue;
 
@@ -705,25 +725,31 @@
   };
 
   function pillNeed(n, id) {
+    if (CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n)) return 0;
     const info = ECO.pillInfo(id); if (!info) return 0;
-    const e = info.effect || {}, s = n.h.state, hm = Math.max(1, CULT.hpMax(n));
+    const e = info.effect || {}, s = n.h.state, hm = Math.max(1, CULT.hpMax(n)), c = n.cult;
+    if (e.taboo && (!c || c.path !== 'DEMON')) return 0;
     const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n));
     if (e.healInjury && n.inj && n.inj.length) return 1.5 + Math.min(0.6, n.inj.length * 0.15);
     if (e.healHealth && s.hp < hm * 0.72) return 0.8 + (1 - s.hp / hm) * 1.5;
-    if (e.qiRestore && n.cult && !isZeroQi && s.qi < CULT.qiMax(n) * 0.25) return 0.8 + (1 - s.qi / Math.max(1, CULT.qiMax(n)));
-    if (e.clearToxic && n.cult && (n.cult.toxic || 0) > 25) return 0.8 + n.cult.toxic / 150;
+    if (e.qiRestore && c && !isZeroQi && s.qi < CULT.qiMax(n) * 0.25) return 0.8 + (1 - s.qi / Math.max(1, CULT.qiMax(n)));
+    if (e.clearToxic && c && (c.toxic || 0) > 25) return 0.8 + c.toxic / 150;
     if (e.clearHeartDemon && s.heartDemon > 35) return 0.8 + s.heartDemon / 150;
     if (e.energyRestore && s.energy < 25) return 0.6;
+    if (e.breakthroughBonus && c && (c.bn || c.prog >= CULT.threshold(n) * 0.78)) return 1.25;
+    if ((e.lifespanBonus || e.lifeBonus) && ((n.lifespanMax || CULT.lifespan(n)) - HC.ageYears(n) < 18)) return 1.4;
+    if (e.restoreBeastFatigue && Array.isArray(n.pets) && n.pets.some(pt => pt && (pt.fatigue || 0) >= 45)) return 0.9;
     return 0;
   }
   EXT.memberQuote = (W, n, onlyVisitorId) => {
     EXT.ensure(W);
     if (!n || n.dead || n.away || n.exiled || !n.inv) return null;
+    const abstaining = !!(CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n));
     let best = null, bestPriority = -Infinity;
     const choose = q => { if (q && q.priority > bestPriority) { best = q; bestPriority = q.priority; } };
     for (const v of EXT.activeVisitors(W)) {
       if (onlyVisitorId && v.id !== onlyVisitorId) continue;
-      for (const id of Object.keys(v.stock || {})) {
+      for (const id of (abstaining ? [] : Object.keys(v.stock || {}))) {
         if (!EXT.isTradable(id) || !ECO.isPill(id) || !(v.stock[id] > 0) || ((n.inv.pills || {})[id] || 0) > 0) continue;
         const price = EXT.quotePrice(W, id, 'member-buy', n);
         let need = pillNeed(n, id), reason = 'ต้องการโอสถรักษา/ฟื้นฟู';
@@ -774,7 +800,8 @@
       if (Array.isArray(v.gearStock) && v.gearStock.length > 0 && n.cult && g.MARTIAL && g.MARTIAL.classifyGearForNpc) {
         for (const gr of v.gearStock) {
           if (!gr || !gr.slot) continue;
-          const price = Math.max(8, Math.round((gr.value || 35) * 1.15));
+          const baseVal = gr.value || 35;
+          const price = EXT.quotePrice(W, 'EQ:' + gr.id, 'member-buy', n) || Math.max(8, Math.round(baseVal * 1.12));
           if ((n.inv.stones || 0) < price) continue;
           const cls = g.MARTIAL.classifyGearForNpc(W, n, gr, 0);
           if (cls && cls.category === 'useful-now') {
@@ -863,6 +890,8 @@
       const tid = id.replace(/^(TECH_MANUAL:|TM:)/, '');
       v.stock[id]--; if (!v.stock[id]) delete v.stock[id];
       n.inv.stones -= total; v.stones += total;
+      n.studyWaivers = n.studyWaivers || {};
+      n.studyWaivers[tid] = true;
       W.sect.library = W.sect.library || [];
       if (!W.sect.library.includes(tid)) W.sect.library.push(tid);
       n.inv.techs = n.inv.techs || [];
@@ -895,6 +924,7 @@
       v.stones -= total; n.inv.stones = (n.inv.stones || 0) + total;
       record(W, v, 'member-sell', id, 1, fresh.price, total, n);
     } else return false;
+    n.personalStones = n.inv.stones || 0;
     const isBuy = String(fresh.side || '').startsWith('buy');
     const dispName = fresh.itemNameTh || ECO.name(id);
     if (total >= 10) W.log('finance', n.h.name.given + (isBuy ? ' ซื้อ' : ' ขาย') + dispName + (isBuy ? ' จาก' : ' ให้') + v.nameTh + ' ' + total + ' ศิลา', [n.id], { txKind: isBuy ? 'purchase' : 'sale', itemId: id, qty: 1, actorId: n.id });
@@ -907,14 +937,16 @@
     can: (n, W) => {
       const vList = W && W.world && W.world.visitors;
       if (!vList || !vList.length) return false;
-      const stn = (n.inv && n.inv.stones) || 0, v0 = vList[0], vStn = v0 ? v0.stones : 0;
-      if (W.t > 0 && n._otCache && W.t > n._otCache.t && W.t - n._otCache.t < 30 && n._otCache.stn === stn && n._otCache.vLen === vList.length && n._otCache.vStn === vStn) {
+      const stn = (n.inv && n.inv.stones) || 0;
+      let vStn = 0; for (let vi = 0; vi < vList.length; vi++) { if (vList[vi]) vStn += (vList[vi].stones || 0); }
+      const bagVer = (n._ver || 0) + ':' + (n.inv && n.inv.gear ? n.inv.gear.length : 0);
+      if (W.t > 0 && n._otCache && W.t > n._otCache.t && W.t - n._otCache.t < 30 && n._otCache.stn === stn && n._otCache.vLen === vList.length && n._otCache.vStn === vStn && n._otCache.bagVer === bagVer) {
         n._otQuote = n._otCache.q;
         return !!n._otQuote;
       }
       const q = EXT.memberQuote(W, n);
       n._otQuote = q;
-      if (W.t > 0) n._otCache = { t: W.t, stn, vLen: vList.length, vStn, q };
+      if (W.t > 0) n._otCache = { t: W.t, stn, vLen: vList.length, vStn, bagVer, q };
       return !!q;
     },
     score(n, W, S) {
@@ -934,7 +966,15 @@
 
   EXT.daily = W => {
     const stats = EXT.ensure(W);
-    W.world.visitors = W.world.visitors.filter(v => !v || v.kind !== 'trader' || v.untilDay >= W.day);
+    const pool = W.world && W.world.resourcePool;
+    W.world.visitors = W.world.visitors.filter(v => {
+      if (!v || v.kind !== 'trader' || v.untilDay >= W.day) return true;
+      if (v._backedByPool && pool && Number.isFinite(pool.stones) && Number.isFinite(v.stones) && v.stones > 0) {
+        pool.stones += v.stones;
+        v.stones = 0;
+      }
+      return false;
+    });
     let active = EXT.activeVisitors(W);
     if (W.threat && W.threat.roadBlocked <= 0 && active.length < 2) {
       const openness = W.sect.policy ? W.sect.policy.openness : 50;

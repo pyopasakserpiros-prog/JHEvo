@@ -830,7 +830,8 @@
   FISHING.computeFishQuality = (W, npc, species) => {
     const sk = npc ? FISHING.skillOf(W, npc) : 0;
     const perc = npc && npc.h ? (E(npc, 'intellect.perceptiveness') || 50) : 50;
-    const base = 0.88 + clamp(sk / 180, 0, 0.35) + clamp((perc - 50) / 400, -0.06, 0.12);
+    const luck = npc && npc.h ? (E(npc, 'destiny.luck') || 50) : 50;
+    const base = 0.88 + clamp(sk / 180, 0, 0.35) + clamp((perc - 50) / 400, -0.06, 0.12) + clamp((luck - 50) / 500, -0.05, 0.08);
     const jitter = W && W.rng && W.rng.gauss ? W.rng.gauss(0, 0.05) : 0;
     return Math.round(clamp(base + jitter, 0.75, 1.45) * 100) / 100;
   };
@@ -1128,7 +1129,7 @@
       if (drop.kind === 'LEGENDARY_WEAPON' && VC && VC.mintLegendaryWeapon) {
         gear = VC.mintLegendaryWeapon(W, drop.id, 'fishing_container');
       } else {
-        gear = ECO.mintGear(drop.itemDef || drop.recipeDef || ECO.itemById[drop.id] || ECO.recipeById[drop.id], 1.05);
+        gear = ECO.mintGear(W, drop.itemDef || drop.recipeDef || ECO.itemById[drop.id] || ECO.recipeById[drop.id], 1.05);
       }
       if (gear) {
         if (openerNpc && !fromSectStock) {
@@ -1614,11 +1615,22 @@
       const origCanCook = AI.ACTS.cook.can;
       AI.ACTS.cook.can = (n, W) => origCanCook(n, W) || FISHING.countCookableFish(W) >= 1;
     }
+    FISHING.hasEdibleFishDish = (W, n) => {
+      if (!W || !n || n.dead) return false;
+      for (const d of FISH_DISHES) {
+        if (n.inv && n.inv.mats && (n.inv.mats[d.id] || 0) > 0) return true;
+        if (ECO.count(W, d.id) > 0) return true;
+      }
+      return false;
+    };
     if (AI.ACTS.eat) {
+      const origCanEat = AI.ACTS.eat.can;
+      AI.ACTS.eat.can = (n, W) => (origCanEat ? origCanEat(n, W) : ECO.count(W, 'meal') >= 1) || FISHING.hasEdibleFishDish(W, n);
       const origStartEat = AI.ACTS.eat.start;
       AI.ACTS.eat.start = function (n, W) {
-        // หากในคลังหรือในกระเป๋ามีอาหารจานปลาและยังไม่มีบัฟอาหาร ให้กินอาหารจานปลาก่อนเพื่อรับบัฟ
-        if (!FISHING.activeFoodBuff(W, n) && n.h.state.satiety < 85) {
+        // หากในคลังหรือในกระเป๋ามีอาหารจานปลาและยังไม่มีบัฟอาหาร (หรือในคลังไม่มี meal ปกติ) ให้กินอาหารจานปลาก่อน
+        const noRegularMeal = ECO.count(W, 'meal') < 1;
+        if ((noRegularMeal || !FISHING.activeFoodBuff(W, n)) && n.h.state.satiety < 88) {
           for (const d of FISH_DISHES) {
             if (n.inv && n.inv.mats && (n.inv.mats[d.id] || 0) > 0) {
               if (FISHING.eatFishDish(W, n, d.id, false).ok) {

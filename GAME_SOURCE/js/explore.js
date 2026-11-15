@@ -5,7 +5,9 @@
   'use strict';
   const U = g.U, HC = g.HC, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, MAP = g.MAP, X = g.EXPED, JD = g.JD;
   const clamp = U.clamp, E = (n, p) => HC.eff(n, p);
-  const EX = {};
+  const EX = {
+    REALM_GATE_LORE_TH: 'ประตูมิติใต้ฐานสำนักคือซากประตูมิติหลวงแห่งจักรวรรดิเทียนกู่ (#1, #25, #40) ที่แตกร้าวและถูกผนึกไว้ การเดินทางในระยะแรกจึงเป็นการก้าวเข้าสู่「ภาพสะท้อนเศษมิติรั่วไหลจากรอยร้าวประตูโบราณ」ก่อนที่ผู้เฝ้าประตูไร้หน้า (#25) จะตื่นขึ้นเมื่อสำนักเรืองอำนาจ'
+  };
 
   /* ======================= ข้อมูล ======================= */
   EX.SPOTS = {
@@ -7049,7 +7051,7 @@
         if (rng.chance(0.03 + luck / 6000)) { n.h.destiny.luck = Math.min(100, n.h.destiny.luck + 1); HC.touch(n); logText = nm + ' ได้พรจากวิญญาณน้ำพุ โชคชะตาดีขึ้น'; } if (s.visits % 30 === 0) { s.lvl++; s.max += 25; logText = 'ตาน้ำปราณลับขยายตัว (ระดับ ' + (s.lvl + 1) + ') เก็บปราณได้มากขึ้น'; note(W, logText); } }
       else { HC.feel(n, { mood: -1 }); }
     } else if (spot === 'ruin') {
-      const sc = per * 0.6 + E(n, 'intellect.intuition') * 0.3 + (luck - 45) / 8 + rng.gauss(0, 12) + (n.h.skills.survival || 0) * 0.2;
+      const sc = per * 0.6 + E(n, 'intellect.intuition') * 0.3 + (E(n, 'intellect.spatial') - 50) * 0.15 + (luck - 45) / 8 + rng.gauss(0, 12) + (n.h.skills.survival || 0) * 0.2;
       const r = rng.next();
       if (r < 0.14) { const dm = (50 - E(n, 'personality.courage')) / 100; if (rng.chance(clamp(0.5 + dm, 0.2, 0.8))) { HC.feel(n, { stress: 6 }); n.h.state.heartDemon = clamp(n.h.state.heartDemon + 4, 0, 100); logText = nm + ' เจอวิญญาณเก่าแก่ในซากเจดีย์ ตกใจแทบสิ้นสติ'; } else { HC.experience(n, 'duel_win', 0.3); logText = nm + ' สยบวิญญาณเฝ้าซากเจดีย์ได้'; } if (rng.chance(0.15)) AI.injure(W, n, 1, 'ถูกวิญญาณทำร้าย'); }
       else if (sc > 62 && r < 0.45) { const amt = rng.int(40, 130) + s.lvl * 25; ECO.earn(W, amt, 'ของเก่าในซากเจดีย์'); logText = nm + ' ขุดพบของเก่าในซากเจดีย์ มูลค่า ' + amt + ' ศิลา'; }
@@ -7067,7 +7069,7 @@
       else if (sc > 55) { const m = matOf('FORMATION_PART', 3, rng); if (m) { ECO.add(W, m.id, 1); } }
       (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'survival', 0.5, 1);
     } else if (spot === 'grove') {
-      const sc = per * 0.5 + (n.h.skills.herbalism || 0) * 0.5 + (luck - 45) / 8 + rng.gauss(0, 12) + s.lvl * 2;
+      const sc = per * 0.5 + (n.h.skills.herbalism || 0) * 0.5 + (E(n, 'physiology.smellTaste') - 50) * 0.15 + (luck - 45) / 8 + rng.gauss(0, 12) + s.lvl * 2;
       const tier = Math.min(5, 2 + s.lvl + (sc > 85 ? 1 : 0)); const m = matOf('HERB', sc > 60 ? tier : 3, rng, sc > 60 ? 2 : 1);
       if (m && sc > 38) { const q = 1 + (sc > 70 ? 1 : 0) + (rng.chance(0.25) ? 1 : 0); ECO.add(W, m.id, q); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'herbalism', 1.2, 1); if (sc > 85 && m.tier >= 4) { logText = nm + ' พบ' + m.nameTh + 'ในป่าลับ'; note(W, logText); big.push(1); } }
       if (rng.chance(0.08)) { const dm = PW(n); if (dm < 25 && rng.chance(0.5)) AI.injure(W, n, 1, 'ถูกสัตว์วิญญาณขวิด'); else HC.experience(n, 'duel_win', 0.15); }
@@ -7357,11 +7359,29 @@
     if (party.length < 2 && pw < 90) { n.lastTrip = W.day - 8; return true; }
     if (pick === 'sanctum') {
       const cPath = n.cult ? n.cult.path : 'XIAN';
-      const sId = cPath === 'BODY' ? 'SANCTUM_BLOOD_VAJRA' : (cPath === 'GOD' || cPath === 'DEMON') ? 'SANCTUM_ASTRAL_DIVINE' : 'SANCTUM_SWORD_ABYSS';
+      const isBeastSanctum = ['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'VENOM_GU', 'WILDERNESS_RANGER', 'DEVOURING_FLESH'].includes(cPath);
+      const sId = isBeastSanctum && EX.SANCTUMS.SANCTUM_MYRIAD_BEAST_TOTEM
+        ? 'SANCTUM_MYRIAD_BEAST_TOTEM'
+        : cPath === 'BODY'
+          ? 'SANCTUM_BLOOD_VAJRA'
+          : (cPath === 'GOD' || cPath === 'DEMON')
+            ? 'SANCTUM_ASTRAL_DIVINE'
+            : 'SANCTUM_SWORD_ABYSS';
       EX.departSanctum(W, party, sId);
       return true;
     }
-    if (pick === 'nine_dao_pagoda') { EX.departNineDaoPagoda(W, party, { maxFloor: 9 }); return true; }
+    if (pick === 'nine_dao_pagoda') {
+      const allFloors = (EX.NINE_DAO_PAGODA && EX.NINE_DAO_PAGODA.floors) || [];
+      let maxFloor = Math.min(allFloors.length || 43, Math.max(9, Math.ceil(pw / 35)));
+      for (const m of party) {
+        if (m && m.cult && m.cult.path) {
+          const pf = allFloors.find(f => f.path === m.cult.path);
+          if (pf && pf.floor > maxFloor) maxFloor = pf.floor;
+        }
+      }
+      EX.departNineDaoPagoda(W, party, { maxFloor });
+      return true;
+    }
     if (pick === 'elemental_realm') { EX.departElementalRealm(W, party, { realmId: activeElementRealm.id }); return true; }
     EX.depart(W, party, pick); return true;
   };
@@ -7488,8 +7508,11 @@
 
     let effectiveTierId = pickedTier.id;
     let fallbackUsed = null;
-    const sanctumPaths = sc && sc.id === 'SANCTUM_BLOOD_VAJRA' ? ['BODY', 'DEMON', 'BEAST_SOVEREIGN', 'MECH_PUPPET', 'CRAFT_CREATION'] : sc && sc.id === 'SANCTUM_ASTRAL_DIVINE' ? ['XIAN', 'GOD', 'DEMON', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'KARMA_SAMSARA'] : ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'KARMA_SAMSARA', 'ARRAY_TALISMAN'];
-    const sanctumSubs = (sc && Array.isArray(sc.floors)) ? sc.floors.slice(0, floor).map(f => f.subPath).filter(Boolean) : ['SWORD_IMMORTAL'];
+    const baseSanctumPaths = sc && sc.id === 'SANCTUM_MYRIAD_BEAST_TOTEM' ? ['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'VENOM_GU', 'WILDERNESS_RANGER', 'DEVOURING_FLESH', 'BODY'] : sc && sc.id === 'SANCTUM_BLOOD_VAJRA' ? ['BODY', 'DEMON', 'BEAST_SOVEREIGN', 'MECH_PUPPET', 'CRAFT_CREATION', 'ARENA_GLORY'] : sc && sc.id === 'SANCTUM_ASTRAL_DIVINE' ? ['XIAN', 'GOD', 'DEMON', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'KARMA_SAMSARA', 'ASTRO_DIVINATION', 'CELESTIAL_WEATHER'] : ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'KARMA_SAMSARA', 'ARRAY_TALISMAN', 'VOID_SPACE', 'SONIC_HARMONY'];
+    const partyPaths = Array.isArray(alive) ? alive.map(m => m && m.cult && m.cult.path).filter(Boolean) : [];
+    const sanctumPaths = Array.from(new Set([...baseSanctumPaths, ...partyPaths]));
+    const partySubs = Array.isArray(alive) ? alive.map(m => m && m.cult && m.cult.sub).filter(Boolean) : [];
+    const sanctumSubs = Array.from(new Set([...((sc && Array.isArray(sc.floors)) ? sc.floors.slice(0, floor).map(f => f.subPath).filter(Boolean) : ['SWORD_IMMORTAL']), ...partySubs]));
 
     // Helper: check if a manual is already owned in library or any living NPC
     const isManualOwned = tid => {
@@ -8013,6 +8036,10 @@
           if (g.CULT && g.CULT.GRAND_DAO_MECHANICS && g.CULT.GRAND_DAO_MECHANICS.gainRouteInsight) {
             g.CULT.GRAND_DAO_MECHANICS.gainRouteInsight(W, n, 15);
           }
+          const eqStNow = CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult.stage || 1);
+          if (eqStNow >= 7 && EX.NINE_DAO_PAGODA && EX.NINE_DAO_PAGODA.attemptApexTrial && (!n.apexDaoTrials || !n.apexDaoTrials[floor.path])) {
+            EX.NINE_DAO_PAGODA.attemptApexTrial(W, n, floor.path, { fromPagoda: true });
+          }
           if (!pagodaState.unlockedSets[floor.path]) {
             pagodaState.unlockedSets[floor.path] = W.day || 0;
             for (const piece of EX.pagodaSetPieces(floor.path, W.day)) if (!EX.hasResonancePiece(W, piece.uid)) out.gear.push(piece);
@@ -8121,6 +8148,15 @@
         mods.hazardResistPct += aux * 0.20;
         mods.lootYieldMult += aux * 0.16;
         mods.secretFindBonus += aux * 0.12;
+      }
+      if (g.CULT && g.CULT.RECON_STEALTH && g.CULT.RECON_STEALTH.getModifiers) {
+        const rs = g.CULT.RECON_STEALTH.getModifiers(n);
+        mods.hazardResistPct += rs.ambushEvadeBonus + rs.trapDetectBonus;
+        mods.secretFindBonus += rs.spyIntelBonus * 0.01;
+      }
+      if (g.CULT && g.CULT.PROFESSION_ARTS && g.CULT.PROFESSION_ARTS.getModifiers) {
+        const pm = g.CULT.PROFESSION_ARTS.getModifiers(n);
+        mods.supplySavePct += pm.supplySavePct || 0;
       }
       if (Array.isArray(n.pets) && n.pets.some(p => p && p.active !== false)) {
         mods.speedMult += 0.12;
