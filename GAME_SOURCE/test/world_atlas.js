@@ -116,7 +116,7 @@ const distress = EXPED.spawnVassalDistressCall(vassalWorld, vassal.id);
 assert(distress && !distress.resolved, 'vassal distress fixture must exist');
 UI.atlasSelectedId = vassal.nodeId;
 const vassalMap = UI.rWorldMap(vassalWorld);
-assert(vassalMap.includes('atlas-alert') && vassalMap.includes('respond-vassal-distress'), 'active requests and their response controls must remain reachable from the atlas');
+assert(vassalMap.includes('atlas-alert') && !vassalMap.includes('respond-vassal-distress'), 'active distress alert must remain observable on the atlas without player command buttons');
 UI.atlasSelectedId = null;
 const anomalyWorld = SIM.create('world-atlas-anomaly');
 const anomaly = EXPED.spawnWorldAnomaly(anomalyWorld, {durationDays:20});

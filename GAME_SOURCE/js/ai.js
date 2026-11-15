@@ -1326,7 +1326,7 @@
       if ((ctx.got || 0) > 0 && n.cult && n.cult.track && CULT.checkTrackGates && !CULT.checkTrackGates(W, n).resourceOk) {
         const pool = W.world && W.world.resourcePool;
         const rawGain = Math.min(18, Math.max(5, ctx.got * 6));
-        const gain = (pool && Number.isFinite(pool.stones)) ? Math.min(rawGain, Math.max(0, Math.round(pool.stones))) : rawGain;
+        const gain = (pool && Number.isFinite(pool.stones)) ? Math.min(rawGain, Math.max(0, Math.floor(pool.stones))) : rawGain;
         if (gain > 0) {
           if (pool && Number.isFinite(pool.stones)) pool.stones -= gain;
           n.inv.stones = (n.inv.stones || 0) + gain;
@@ -1637,7 +1637,7 @@
     dur: () => 25,
     done(n, W) {
       const want = AI.wantedPill(W, n); if (!want) return;
-      if (n.inv.stones >= want.price && ECO.take(W, want.key, 1)) { n.inv.stones -= want.price; ECO.earn(W, want.price, 'ขายยาให้ศิษย์'); n.inv.pills = n.inv.pills || {}; n.inv.pills[want.key] = (n.inv.pills[want.key] || 0) + 1; AI.mem(W, n, 'ซื้อ' + want.name, 0.2); }
+      if (n.inv.stones >= want.price && ECO.take(W, want.key, 1)) { n.inv.stones -= want.price; ECO.earn(W, want.price, 'ขายยาให้ศิษย์', { internalTransfer: true }); n.inv.pills = n.inv.pills || {}; n.inv.pills[want.key] = (n.inv.pills[want.key] || 0) + 1; AI.mem(W, n, 'ซื้อ' + want.name, 0.2); }
     }
   };
   AI.wantedPill = (W, n) => {

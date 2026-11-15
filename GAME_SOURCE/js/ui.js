@@ -4419,13 +4419,8 @@
       h += '<div class="atlas-fact">สนธิสัญญา <b>' + esc((g.CONTENT && g.CONTENT.TREATY_TH && g.CONTENT.TREATY_TH[node.treaty]) || (node.treaty === 'NONE' ? 'ยังไม่มี' : node.treaty)) + '</b></div>';
       if (node.isVassal) h += '<div class="atlas-fact">ความภักดี <b>' + Math.round(node.loyalty == null ? 50 : node.loyalty) + '/100</b></div>';
       if (node.isVassal) {
-        h += '<div class="atlas-fact">นโยบายบรรณาการ</div><div class="atlas-policy">';
-        [['LENIENT','ผ่อนปรน'],['STANDARD','มาตรฐาน'],['HARSH','เข้มงวด']].forEach(([policy,label]) => {
-          h += '<button class="btn" data-do="set-vassal-policy" data-arg="' + esc(node.sectId) + '|' + policy + '">' + label + '</button>';
-        });
-        h += '</div>';
         const call = (W.world.vassalDistressCalls || []).find(c => c && !c.resolved && c.sectId === node.sectId);
-        if (call) h += '<div class="atlas-distress-detail">🚨 ' + esc(call.threatNameTh) + ' · ตอบกลับก่อนวันที่ ' + esc(call.expiresDay) + '<div><button class="btn pri" data-do="respond-vassal-distress" data-arg="' + esc(call.id) + '|REINFORCE">🛡️ ช่วยเหลือทันที</button> <button class="btn" data-do="respond-vassal-distress" data-arg="' + esc(call.id) + '|REFUSE">ไม่ช่วย</button></div></div>';
+        if (call) h += '<div class="atlas-distress-detail">🚨 ' + esc(call.threatNameTh) + ' · กำหนดเหตุการณ์ถึงวันที่ ' + esc(call.expiresDay) + '</div>';
       }
     }
     if (node.kind === 'RESOURCE_NODE') {
@@ -4446,12 +4441,6 @@
       h += '<div class="atlas-fact">ประเภท <b>' + esc(node.archetypeBadgeTh || node.archetypeNameTh || 'จอมยุทธ์พเนจร') + '</b> · ไมตรี <b>' + Math.round(node.affinity || 25) + '/100</b></div>';
       h += '<div class="atlas-fact">พลัง <b>' + esc(node.power) + '</b> · ขั้นบ่มเพาะ <b>' + esc(node.stage) + '</b> · ศาสตรา: ' + esc(node.weaponNameTh || '-') + '</div>';
       if (node.signatureTechNameTh) h += '<div class="atlas-fact">วิชาประจำตัว: ' + esc(node.signatureTechNameTh) + '</div>';
-      h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">';
-      if (node.archetypeId === 'SWORD_SEEKER') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|DUEL">⚔️ ท้าประลองยุทธ์</button>';
-      if (node.archetypeId === 'HERMIT_DOCTOR') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|HEAL_DISCIPLE">⚕️ ขอรับการรักษา (120 ศิลา)</button>';
-      if (node.archetypeId === 'UNORTHODOX_BANDIT') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|BEFRIEND">🍶 ร่วมดื่มสุราผูกมิตร</button><button class="btn dan" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|SUPPRESS">⚔️ ปราบปราม</button>';
-      if (node.archetypeId === 'ROGUE_ARRAYIST') h += '<button class="btn pri" data-do="interact-wandering-figure" data-arg="' + esc(node.figureId) + '|REVEAL_SECRET_REALM">🧭 ถามพิกัดแดนลับ</button>';
-      h += '<button class="btn ok" data-do="recruit-wandering-figure" data-arg="' + esc(node.figureId) + '">🤝 ชักชวนเข้าสำนัก</button></div>';
     }
     if (node.kind === 'WORLD_ANOMALY') h += '<div class="atlas-fact">⏳ เหลือ ' + Math.max(0, (node.expiresDay || 0) - W.day) + ' วัน · ' + esc(node.rivalSectNameTh || 'คู่แข่ง') + ' ถึงวันที่ ' + esc(node.rivalEtaDay || '-') + '</div>';
     if (node.kind === 'DIMENSION_GATE') {
@@ -4478,14 +4467,9 @@
     if (travel) h += '<div class="atlas-travel">⏱ ' + esc(travel.label) + '</div>';
     if (party.length && travel && travel.days !== 0 && !['SECRET_REALM_SITE','TRADE_HUB','WANDERING_LEGEND'].includes(node.kind)) h += '<div class="atlas-note">คณะที่ใช้ประมาณ: ' + party.map(n => esc(HC.fullName(n))).join('、') + '</div>';
     if (node.kind === 'FORTUNE_SITE') h += '<p class="atlas-note">จุดวาสนานี้ผูกกับการสำรวจภูมิภาค ผลที่พบจะสุ่มจากรายการของจุดนั้น</p>';
-    const canGo = ['NEIGHBOR_SECT','RESOURCE_NODE','WORLD_ANOMALY','FORTUNE_SITE','PAGODA','SANCTUM','ELEMENTAL_REALM','EXPEDITION_REGION'].includes(node.kind) && !(node.kind === 'NEIGHBOR_SECT' && node.isVassal) && !(node.kind === 'RESOURCE_NODE' && node.ownerSectId === 'PLAYER');
-    const realmOpen = node.kind !== 'ELEMENTAL_REALM' || (g.EXPLORE && g.EXPLORE.elementalRealmAt(W.day).id === node.id);
-    if (node.kind === 'NEIGHBOR_SECT' && !node.isVassal) h += '<label class="atlas-choice">หลังชนะ <select id="atlasSiegeChoice"><option value="SUBJUGATE">รับเป็นสำนักบริวาร</option><option value="PILLAGE">ปล้นคลังสมบัติ</option><option value="FREE_TRADE">บังคับเปิดการค้าเสรี</option></select></label>';
-    if (canGo) h += '<button class="btn pri atlas-action" data-do="atlas-depart" data-arg="' + esc(node.id) + '"' + (!party.length || !realmOpen ? ' disabled' : '') + '>' + (node.kind === 'NEIGHBOR_SECT' ? '⚔️ ส่งทัพตีสำนัก' : node.kind === 'RESOURCE_NODE' ? '🚩 ส่งคณะเข้ายึด' : node.kind === 'WORLD_ANOMALY' ? '☄️ ส่งคณะช่วงชิง' : '🧭 ส่งคณะสำรวจ') + '</button>';
     if (node.kind === 'DIMENSION_GATE') h += '<button class="btn atlas-action" data-do="atlas-open-discovery">ดูข้อมูลแดนหมื่นพิภพ</button>';
     if (node.kind === 'SECRET_REALM_SITE') h += '<button class="btn atlas-action" data-do="atlas-open-realms">ดูเหตุการณ์แดนลับ</button>';
     if (node.kind === 'WANDERING_LEGEND') h += '<button class="btn atlas-action" data-do="atlas-open-legends">ดูทำเนียบยอดคน</button>';
-    if (node.kind === 'RESOURCE_NODE' && node.ownerSectId === 'PLAYER') h += '<button class="btn atlas-action" data-do="assign-node-garrison" data-arg="' + esc(node.id) + '">🛡️ จัดกำลังประจำการ</button>';
     return h + '</section>';
   }
   UI.rWorldMap = W => {
@@ -4497,17 +4481,6 @@
     const groups = UI.atlasGroups(nodes, view.zoom), labels = [];
     const regionCount = Object.values(atlas.topology.discoveredRegions || {}).filter(Boolean).length;
     let h = '<div class="atlas-header"><div><span class="atlas-kicker">บันทึกภูมิศาสตร์ยุทธภพ</span><h2>🧭 แผนที่ยุทธภพ</h2></div><span class="atlas-regions">สำรวจแล้ว ' + regionCount + '/5 แคว้น</span></div>';
-    h += '<div class="card" style="padding:6px 8px;margin-bottom:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">' +
-      '<button type="button" class="btn pri" style="padding:3px 8px;font-size:11px" data-do="collect-vassal-tribute" title="เบิกผลผลิตตามฤดูกาลจากสำนักที่ตกเป็นบริวาร">👑 เก็บเกี่ยวบรรณาการสำนักบริวาร</button>' +
-      '<button type="button" class="btn ok" style="padding:3px 8px;font-size:11px" data-do="harvest-resource-nodes" title="รวบรวมแร่และสมุนไพรจากจุดเหมืองโลกที่ส่งคนไปเฝ้า">💎 เก็บเกี่ยวผลผลิตจุดยุทธศาสตร์ทั้งหมด</button>' +
-      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-alliance-council" title="ประชุมเจรจาความร่วมมือและการค้ากับสำนักพันธมิตร (คูลดาวน์ 60 วัน)">⚖ เรียกประชุมสภาฝ่ายพันธมิตร</button>' +
-      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="trigger-secret-realm" title="ค้นหาพิกัดถ้ำโบราณที่ซ่อนอยู่ (คูลดาวน์ 90 วัน)">🌌 สำรวจร่องรอยแดนลับโบราณ</button>' +
-      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="evaluate-elder-ascensions" title="ประเมินศิษย์อาวุโสที่มีผลงานเด่นขึ้นเป็นผู้อาวุโส">🎖 ประเมินเลื่อนขั้นผู้อาวุโสกิตติมศักดิ์</button>' +
-      '<button type="button" class="btn pri" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_NAMELESS_SWORD_TOMB">🗡️ สุสานกระบี่นิรนาม</button>' +
-      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_ANCIENT_MECH_RUINS">⚙️ ซากนครกลไก</button>' +
-      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_MYRIAD_VENOM_FOREST">🐍 ป่าหมื่นพิษ</button>' +
-      '<button type="button" class="btn" style="padding:3px 8px;font-size:11px" data-do="explore-micro-location" data-arg="LOC_MOON_MIRROR_VALLEY">🌙 หุบเขากระจกจันทรา</button>' +
-      '</div>';
     h += '<div class="atlas-filters" aria-label="ประเภทสถานที่">' + ATLAS_FILTERS.map(([id,label]) => '<button type="button" class="atlas-filter' + (view.filter === id ? ' active' : '') + '" data-do="atlas-filter" data-arg="' + id + '">' + label + '</button>').join('') + '</div>';
     { const Ll = Object.assign({routes:true, fog:true, aura:true, parties:true, outposts:true, season:true}, view.layers || {});
       h += '<div class="atlas-filters atlas-layers" aria-label="ชั้นแผนที่">' + [['routes','🛤 เส้นทาง'],['aura','🔆 อิทธิพล/พันธมิตร'],['parties','🧭 คณะเดินทาง'],['outposts','⛺ ค่ายพัก/ขบวนเสบียง'],['fog','🌫 หมอกแคว้น'],['season','🍂 ฤดู/ยามค่ำ']].map(([id,label]) => '<button type="button" class="atlas-filter' + (Ll[id] ? ' active' : '') + '" data-do="atlas-layer" data-arg="' + id + '">' + label + '</button>').join('') + '</div>'; }
@@ -4683,7 +4656,7 @@
     }
     if (tab === 'exp') {
       const eSub = UI.worldExpSubTab || 'TRAVEL';
-      h += '<div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div><b>🗺️ แผนที่ยุทธภพ 5 มหาภูมิภาค & ศึกตีค่ายสำนัก</b><div class="muted">สำรวจจุดยุทธศาสตร์ เหมืองศิลา ด่านภาษี และสั่งการทัพตีค่ายสำนักเพื่อนบ้าน</div></div><button class="btn pri" data-do="open-world-map">🗺️ เปิดแผนที่ยุทธภพ</button></div>';
+      h += '<div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><div><b>🗺️ แผนที่ยุทธภพ 5 มหาภูมิภาค &amp; ความเคลื่อนไหวสำนัก</b><div class="muted">ติดตามจุดยุทธศาสตร์ เหมืองศิลา ด่านภาษี และเหตุการณ์ของสำนักเพื่อนบ้าน</div></div><button class="btn pri" data-do="open-world-map">🗺️ เปิดแผนที่ยุทธภพ</button></div>';
       h += renderSubTabBar('set-exp-subtab', eSub, [
         ['TRAVEL', '🚩 คณะเดินทาง & ประวัติสำรวจ'],
         ['RUMORS', '🍶 โรงเตี๊ยมข่าวลือ & สายสัมพันธ์ยุทธภพ'],
@@ -7393,7 +7366,7 @@
     };
   };
   // Apply the same policy to direct presenter calls and the mounted drawer.
-  for (const [name, sheet] of Object.entries({rPeople:'people',rSect:'sect',rLog:'log',rWorld:'world',rEdit:'edit',rMenu:'menu',rNpc:'npc',rBuilding:'building',rVisitor:'visitor',rClueDetail:'clue',rHistoricalPerson:'hist_npc'})) {
+  for (const [name, sheet] of Object.entries({rPeople:'people',rSect:'sect',rLog:'log',rWorld:'world',rWorldMap:'world',rEdit:'edit',rMenu:'menu',rNpc:'npc',rBuilding:'building',rVisitor:'visitor',rClueDetail:'clue',rHistoricalPerson:'hist_npc'})) {
     const presenter = UI[name];
     if (presenter) UI[name] = function (...args) { return UI.filterPlayerControls(presenter.apply(this,args), sheet); };
   }

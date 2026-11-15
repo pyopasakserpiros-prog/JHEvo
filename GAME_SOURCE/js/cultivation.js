@@ -10352,7 +10352,7 @@
       let payout = 0;
       if (win) {
         // The pool already contains the stake: debit the entire payout once.
-        payout = Math.min(wager * 2, pool.stones);
+        payout = Math.min(wager * 2, Math.floor(Math.max(0, pool.stones)));
         pool.stones -= payout;
         if (usePersonal) npc.inv.stones = (npc.inv.stones || 0) + payout;
         else W.sect.stones = (W.sect.stones || 0) + payout;

@@ -857,10 +857,13 @@
       }
     });
     if (out.stones > 0) {
-      const keep = Math.round(out.stones * keepFrac); donation.stones = out.stones - keep;
-      ECO.earn(W, donation.stones, 'รายได้จากคณะเดินทาง');
-      if (keep > 0) {
-        const holder = hoarder(); holder.inv.stones += keep;
+      const wantKeep = Math.round(out.stones * keepFrac), wantDonate = out.stones - wantKeep;
+      donation.stones = ECO.earnFromPool ? ECO.earnFromPool(W, wantDonate, 'รายได้จากคณะเดินทาง') : (ECO.earn(W, wantDonate, 'รายได้จากคณะเดินทาง') ? wantDonate : 0);
+      if (wantKeep > 0) {
+        const holder = hoarder();
+        const keep = ECO.transferStones
+          ? ECO.transferStones(W, { from: 'worldPool', to: 'npc:' + holder.id, amount: wantKeep, allowPartial: true }).moved
+          : (holder.inv.stones += wantKeep, wantKeep);
         if (keep > 20) { holder.h.state.stress += 1; W.sect.suspicion = (W.sect.suspicion || 0) + 1; }
       }
     } else if (out.stones < 0) ECO.pay(W, Math.min(-out.stones, W.sect.stones), 'สูญเสียระหว่างเดินทาง');
@@ -1138,9 +1141,11 @@
       const outcomeDesc = fOutcome === 'REPELLED_TIMEOUT'
         ? 'ตรึงแนวรับหน้าด่านจนผู้บุกหมดกำลังล่าถอย'
         : (fOutcome === 'PYRRHIC_DEFENSE' ? 'สละชีพต้านทานผู้บุกจนสิ้นซาก' : ('สังหาร ' + slain + ' ราย'));
-      const loot = Math.round(Math.min(260, 25 + (ctx.total || 80) * (fOutcome === 'REPELLED_TIMEOUT' ? 0.05 : 0.08)));
-      ECO.earn(W, loot, 'ยึดของจากผู้บุก');
-      W.log('raid', '✔ สำนักต้านการบุกของ' + ctx.label + ' สำเร็จ (' + outcomeDesc + ' · ยึดศิลา ' + loot + ')' + tacNote, defenders.map(d => d.id), {
+      const rawLoot = Math.round(Math.min(260, 25 + (ctx.total || 80) * (fOutcome === 'REPELLED_TIMEOUT' ? 0.05 : 0.08)));
+      const loot = ECO.earnFromPool
+        ? ECO.earnFromPool(W, rawLoot, 'ยึดของจากผู้บุก')
+        : (ECO.earn(W, rawLoot, 'ยึดของจากผู้บุก') ? rawLoot : 0);
+      W.log('raid', '✔ สำนักต้านการบุกของ' + ctx.label + ' สำเร็จ (' + outcomeDesc + (loot > 0 ? (' · ยึดศิลา ' + loot) : '') + ')' + tacNote, defenders.map(d => d.id), {
         combatSummary: cPayload, outcome: fOutcome, slain, loot
       });
       W.fame(3 + slain * 0.3);
@@ -1245,7 +1250,9 @@
       if (g.VC && g.EXT && typeof g.EXT.openVisit === 'function') {
         if ((g.EXT.activeVisitors(W) || []).length < 2) g.EXT.openVisit(W);
       } else {
-        const gain = Math.round(40 + rng.next() * 100); W.log('event', 'พ่อค้าเร่แวะสำนัก ซื้อโอสถและของเหลือใช้ ได้ ' + gain + ' ศิลา', []); ECO.earn(W, gain, 'พ่อค้าเร่');
+        const rawGain = Math.round(40 + rng.next() * 100);
+        const gain = ECO.earnFromPool ? ECO.earnFromPool(W, rawGain, 'พ่อค้าเร่') : (ECO.earn(W, rawGain, 'พ่อค้าเร่') ? rawGain : 0);
+        if (gain > 0) W.log('event', 'พ่อค้าเร่แวะสำนัก ซื้อโอสถและของเหลือใช้ ได้ ' + gain + ' ศิลา', []);
       }
     }
     if (rng.chance(0.012) && W.season !== 3) {
@@ -2801,8 +2808,10 @@
     const lead = party[0] || W.byId[W.sect.masterId];
 
     if (choice === 'PILLAGE') {
-      const stonesLoot = Math.max(350, Math.round(420 + (s.power || 1) * 240));
-      ECO.earn(W, stonesLoot, 'ปล้นคลังสมบัติของ' + s.nameTh);
+      const wantLoot = Math.max(350, Math.round(420 + (s.power || 1) * 240));
+      const stonesLoot = (ECO && ECO.earnFromPool)
+        ? ECO.earnFromPool(W, wantLoot, 'ปล้นคลังสมบัติของ' + s.nameTh, { rivalSect: s })
+        : ((ECO && ECO.earn && ECO.earn(W, wantLoot, 'ปล้นคลังสมบัติของ' + s.nameTh)) ? wantLoot : 0);
       const matsLoot = {};
       const matPool = (Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) ? s.specialtyMatIds : ['MAT_ORE_METEOR_IRON_5', 'MAT_HERB_SNOW_LOTUS_5'];
       matPool.forEach(mId => {
@@ -2840,10 +2849,12 @@
       s.tariffFree = true;
       s.bannerTh = '[ ด่านการค้าเสรี ]';
       s.attitude = clamp((s.attitude || 0) + 15, -20, 100);
-      const immediateDividend = alreadyFreeTrade ? 0 : 180;
-      if (immediateDividend > 0) {
-        ECO.earn(W, immediateDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh);
-      }
+      const wantDividend = alreadyFreeTrade ? 0 : 180;
+      const immediateDividend = wantDividend > 0
+        ? ((ECO && ECO.earnFromPool)
+          ? ECO.earnFromPool(W, wantDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh, { rivalSect: s })
+          : ((ECO && ECO.earn && ECO.earn(W, wantDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh)) ? wantDividend : 0))
+        : 0;
       if (!alreadyFreeTrade && W.market && W.market.mult && Array.isArray(s.specialtyMatIds)) {
         s.specialtyMatIds.forEach(mId => {
           W.market.mult[mId] = Math.round(clamp((W.market.mult[mId] || 1) * 0.80, 0.55, 1.5) * 100) / 100;
@@ -2908,7 +2919,7 @@
       const polMult = s.tributePolicy === 'HARSH' ? 1.45 : s.tributePolicy === 'LENIENT' ? 0.75 : 1.0;
       const rawStones = Math.max(80, Math.round((120 + (s.power || 1) * 45) * polMult));
       const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
-      const baseStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.round(pool.stones))) : rawStones;
+      const baseStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.floor(pool.stones))) : rawStones;
       if (pool && Number.isFinite(pool.stones)) pool.stones -= baseStones;
       if (baseStones > 0) ECO.earn(W, baseStones, 'บรรณาการตามฤดูกาลจากสำนักบริวาร ' + s.nameTh);
       const matsGiven = {};
@@ -3473,7 +3484,7 @@
     const tpl = X.ANOMALY_TEMPLATES[anomaly.templateId] || X.ANOMALY_TEMPLATES.GROTTO_ANCIENT_IMMORTAL;
     const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
     const rawStones = tpl.stones || 350;
-    const anomStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.round(pool.stones))) : rawStones;
+    const anomStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.floor(pool.stones))) : rawStones;
     if (pool && Number.isFinite(pool.stones)) pool.stones -= anomStones;
     const rewards = { stones: anomStones, mats: {}, catalysts: [], manualId: null, recipeId: null };
     if (anomStones > 0) ECO.earn(W, rewards.stones, 'พิชิตวาสนาฟ้าดิน「' + anomaly.nameTh + '」');
@@ -3664,9 +3675,11 @@
       const ourPower = activeParty.reduce((sum, m) => sum + CULT.power(m), 0) * dshMult;
       const theirPower = Math.round((targetSect.power || 1.1) * 190 * Math.max(1, (members.length || 1) * 0.65));
       const won = opts.forceWin === true ? true : opts.forceWin === false ? false : (ourPower >= theirPower * 0.82);
-      const stonesLoot = won ? Math.round(35 + (targetSect.tierLevel || 2) * 22) : 0;
+      const wantLoot = won ? Math.round(35 + (targetSect.tierLevel || 2) * 22) : 0;
+      const stonesLoot = (won && wantLoot > 0 && ECO)
+        ? (ECO.earnFromPool ? ECO.earnFromPool(W, wantLoot, 'ปราบศิษย์' + targetSect.nameTh + 'ระหว่างเดินทาง', { rivalSect: targetSect }) : (ECO.earn && ECO.earn(W, wantLoot, 'ปราบศิษย์' + targetSect.nameTh + 'ระหว่างเดินทาง') ? wantLoot : 0))
+        : 0;
       if (won) {
-        if (stonesLoot > 0 && ECO && ECO.earn) ECO.earn(W, stonesLoot, 'ปราบศิษย์' + targetSect.nameTh + 'ระหว่างเดินทาง');
         (members.length ? members : [lead]).forEach(m => { m.merit = (m.merit || 0) + 12; HC.experience(m, 'duel_win', 0.35); });
         W.fame(clashInfo.isOppositeAlignment ? 2.5 : 1.0);
         targetSect.attitude = clamp((targetSect.attitude || 0) - (clashInfo.isOppositeAlignment ? 10 : 6), -100, 100);
@@ -3861,6 +3874,33 @@
       });
       if (W.day % 24 === 0 && !(W.world.anomalies || []).some(a => a && !a.resolved && !a.expired)) {
         X.spawnWorldAnomaly(W);
+      }
+      // Natural expiration and non-forced occurrence of vassal distress calls under real geopolitical pressure
+      if (Array.isArray(W.world.vassalDistressCalls)) {
+        W.world.vassalDistressCalls.forEach(c => {
+          if (c && !c.resolved && Number.isFinite(c.expiresDay) && W.day > c.expiresDay) {
+            c.resolved = true;
+            c.outcome = 'EXPIRED';
+            c.resolvedDay = W.day;
+            const vs = X.findSect(W, c.sectId);
+            if (vs) vs.loyalty = clamp((vs.loyalty == null ? 60 : vs.loyalty) - 10, 0, 100);
+            if (W.world.politics && W.world.politics.activeDistressCall === c) W.world.politics.activeDistressCall = null;
+          }
+        });
+      }
+      if (W.day >= 30 && W.day % 18 === 0 && !(W.world.vassalDistressCalls || []).some(c => c && !c.resolved)) {
+        const vassals = (W.world.allSects || []).filter(s => s && (s.isVassal || s.treaty === 'VASSAL_TREATY') && (s.lastDistressDay == null || W.day - s.lastDistressDay >= 60));
+        if (vassals.length) {
+          const hostiles = (W.world.allSects || []).filter(s => s && !s.isVassal && s.treaty !== 'VASSAL_TREATY' && ((s.attitude || 0) <= -30 || s.treaty === 'RIVAL_FEUD'));
+          const candidate = vassals[Math.floor(W.day / 18) % vassals.length];
+          const chance = 0.22 + (hostiles.length ? 0.14 : 0) + ((candidate.loyalty != null && candidate.loyalty < 45) ? 0.12 : 0);
+          const rollHit = !W.rng ? false : (typeof W.rng.chance === 'function' ? W.rng.chance(chance) : (W.rng.next() < chance));
+          if (rollHit) {
+            const threat = hostiles.length ? ('กองกำลังของ「' + hostiles[W.day % hostiles.length].nameTh + '」บุกประชิดชายแดน') : 'ฝูงอสูรคลั่งและกองโจรป่าปิดล้อมชายแดน';
+            candidate.lastDistressDay = W.day;
+            X.spawnVassalDistressCall(W, candidate, { threatNameTh: threat });
+          }
+        }
       }
     }
   };
@@ -6653,7 +6693,11 @@
     }
 
     if (winEntry.entrantType === 'PLAYER_SECT') {
-      if (ECO && ECO.earn) ECO.earn(W, realm.stones || 500, 'คว้าชัยศึกชิงมรดกแดนลับ「' + realm.nameTh + '」');
+      const realmStones = realm.stones || 500;
+      if (ECO) {
+        if (ECO.earnFromPool) ECO.earnFromPool(W, realmStones, 'คว้าชัยศึกชิงมรดกแดนลับ「' + realm.nameTh + '」');
+        else if (ECO.earn) ECO.earn(W, realmStones, 'คว้าชัยศึกชิงมรดกแดนลับ「' + realm.nameTh + '」');
+      }
       if (realm.catalystId && ECO && ECO.addCatalyst) ECO.addCatalyst(W, realm.catalystId, 1);
       const rTpl = X.SECRET_REALM_TEMPLATES[realm.templateId] || {};
       if (Array.isArray(rTpl.rewardMatIds) && ECO && ECO.add) {
@@ -6739,14 +6783,16 @@
     if (kind === 'ENVOY_DELEGATION' && targetSect) {
       const fig = (targetSect.figures && targetSect.figures.deputy) || (targetSect.figures && targetSect.figures.master);
       const dipSkill = envoyOfficer ? ((envoyOfficer.h.skills.diplomacy || 0) + HC.eff(envoyOfficer, 'social.charisma')) : 90;
-      const giftStones = Math.round(65 + (targetSect.tierLevel || 2) * 28);
+      const wantGift = Math.round(65 + (targetSect.tierLevel || 2) * 28);
       if (dipSkill >= 85 || HC.eff(envoyOfficer || master, 'personality.empathy') >= 48) {
         targetSect.attitude = clamp((targetSect.attitude || 0) + 10, -100, 100);
-        if (ECO && ECO.earn) ECO.earn(W, giftStones, 'ของกำนัลเชื่อมไมตรีจากคณะทูต' + targetSect.nameTh);
+        const giftStones = (ECO && ECO.earnFromPool)
+          ? ECO.earnFromPool(W, wantGift, 'ของกำนัลเชื่อมไมตรีจากคณะทูต' + targetSect.nameTh, { rivalSect: targetSect })
+          : ((ECO && ECO.earn && ECO.earn(W, wantGift, 'ของกำนัลเชื่อมไมตรีจากคณะทูต' + targetSect.nameTh)) ? wantGift : 0);
         outcome = 'CORDIAL_ACCORD';
         titleTh = 'คณะทูตจาก「' + targetSect.nameTh + '」เดินทางมาเยือนหน้าประตูสำนัก';
-        storyTh = '「' + (fig ? fig.titleAndNameTh : targetSect.leaderNameTh) + '」นำคณะทูตจาก「' + targetSect.nameTh + '」(' + targetSect.tierNameTh + ') เดินทางมาเยือนสำนักของเรา 「' + (envoyOfficer ? HC.fullName(envoyOfficer) : 'ผู้แทนสำนัก') + '」ออกต้อนรับและเจรจาด้วยวาจาหลักแหลม จนบรรลุข้อตกลงแลกเปลี่ยนสิ่งของและมอบศิลาวิญญาณกำนัล ' + giftStones + ' ก้อน!';
-        consequenceTh = 'ความสัมพันธ์กับ ' + targetSect.nameTh + ' เพิ่มขึ้น +10 · ได้รับศิลาวิญญาณ +' + giftStones + ' ก้อน';
+        storyTh = '「' + (fig ? fig.titleAndNameTh : targetSect.leaderNameTh) + '」นำคณะทูตจาก「' + targetSect.nameTh + '」(' + targetSect.tierNameTh + ') เดินทางมาเยือนสำนักของเรา 「' + (envoyOfficer ? HC.fullName(envoyOfficer) : 'ผู้แทนสำนัก') + '」ออกต้อนรับและเจรจาด้วยวาจาหลักแหลม จนบรรลุข้อตกลงแลกเปลี่ยนสิ่งของ' + (giftStones > 0 ? ('และมอบศิลาวิญญาณกำนัล ' + giftStones + ' ก้อน!') : 'ด้วยความเคารพซึ่งกันและกัน!');
+        consequenceTh = 'ความสัมพันธ์กับ ' + targetSect.nameTh + ' เพิ่มขึ้น +10' + (giftStones > 0 ? (' · ได้รับศิลาวิญญาณ +' + giftStones + ' ก้อน') : '');
       } else {
         targetSect.attitude = clamp((targetSect.attitude || 0) - 6, -100, 100);
         outcome = 'TENSE_STANDOFF';
@@ -6977,9 +7023,11 @@
     const sfReport = '【รอบรองชนะเลิศ】 「' + champion.nameTh + '」สำแดงวิชา「' + champion.techNameTh + '」เอาชนะ「' + semi1.nameTh + '」ขณะที่「' + finalist.nameTh + '」ฟาดฟันด้วย' + finalist.weaponNameTh + 'เฉือนชนะ「' + semi2.nameTh + '」ผ่านเข้าสู่รอบชิงชนะเลิศ!';
     const finalReport = '【รอบชิงชนะเลิศยุทธภพสิบทิศ】 ท่ามกลางสายตาผู้ชมทั่วหล้า ณ ลานประลองของ「' + hostSect.nameTh + '」「' + champion.nameTh + '」(' + champion.sectNameTh + ') ปะทะเดือดกับ「' + finalist.nameTh + '」(' + finalist.sectNameTh + ') นานนับร้อยกระบวนท่า ก่อนที่ ' + champion.shortNameTh + ' จะเร่งปราณสูงสุดสำแดง「' + champion.techNameTh + '」คู่กับ' + champion.weaponNameTh + ' คว้าตำแหน่งเจ้ายุทธภพสิบทิศประจำปีไปครองอย่างยิ่งใหญ่!';
 
-    const stonePrize = 480;
+    let stonePrize = 0;
     if (champion.isPlayer) {
-      if (ECO && ECO.earn) ECO.earn(W, stonePrize, 'รางวัลชนะเลิศงานประลองยุทธภพสิบทิศ');
+      stonePrize = (ECO && ECO.earnFromPool)
+        ? ECO.earnFromPool(W, 480, 'รางวัลชนะเลิศงานประลองยุทธภพสิบทิศ')
+        : ((ECO && ECO.earn && ECO.earn(W, 480, 'รางวัลชนะเลิศงานประลองยุทธภพสิบทิศ')) ? 480 : 0);
       W.fame(12);
       const pm = W.byId[champion.npcId];
       if (pm && !pm.dead) {
@@ -7216,7 +7264,7 @@
       inv: (() => {
         const rawSt = (fig.inv && Number.isFinite(fig.inv.stones)) ? fig.inv.stones : rng.int(50, 180);
         const pool = W.world && W.world.resourcePool;
-        const stVal = (pool && Number.isFinite(pool.stones)) ? Math.min(rawSt, Math.max(0, Math.round(pool.stones))) : rawSt;
+        const stVal = (pool && Number.isFinite(pool.stones)) ? Math.min(rawSt, Math.max(0, Math.floor(pool.stones))) : rawSt;
         if (pool && Number.isFinite(pool.stones)) pool.stones -= stVal;
         return {
           stones: stVal,
@@ -7734,7 +7782,7 @@
     } else if (act === 'BEFRIEND' || act === 'SUPPRESS' || (act === 'INTERACT' && wf.archetypeId === 'UNORTHODOX_BANDIT')) {
       if (act === 'SUPPRESS') {
         const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
-        const bountyStones = Math.min(260, Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 260);
+        const bountyStones = Math.min(260, Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 260);
         if (Number.isFinite(pool.stones)) pool.stones -= bountyStones;
         if (ECO && ECO.earn) ECO.earn(W, bountyStones, 'รางวัลปราบปรามผู้บำเพ็ญนอกรีต');
         W.fame(8);
@@ -7747,7 +7795,7 @@
         consequenceTh = 'คลังสำนัก +' + bountyStones + ' ศิลาวิญญาณ · ชื่อเสียงสำนัก +8';
       } else {
         const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
-        const sharedStones = Math.min(220, Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0);
+        const sharedStones = Math.min(220, Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 0);
         pool.stones -= sharedStones;
         wf.banditGiftClaimed = true;
         if (ECO && ECO.earn) ECO.earn(W, sharedStones, 'ส่วนแบ่งคาราวานจากจอมโจรคุณธรรม');
@@ -8002,8 +8050,10 @@
     // Annual/Monthly Eternal Sworn Ally Tribute
     all.filter(s => s && s.eternalSwornAlly).forEach(s => {
       if (opts.collectSwornTribute || ((W.day || 360) % 360 === 0)) {
-        const trib = s.annualTributeStones || 450;
-        if (ECO && ECO.earn) ECO.earn(W, trib, 'บรรณาการพันธมิตรร่วมสาบานนิรันดร์จาก「' + s.nameTh + '」');
+        const wantTrib = s.annualTributeStones || 450;
+        const trib = (ECO && ECO.earnFromPool)
+          ? ECO.earnFromPool(W, wantTrib, 'บรรณาการพันธมิตรร่วมสาบานนิรันดร์จาก「' + s.nameTh + '」', { rivalSect: s })
+          : ((ECO && ECO.earn && ECO.earn(W, wantTrib, 'บรรณาการพันธมิตรร่วมสาบานนิรันดร์จาก「' + s.nameTh + '」')) ? wantTrib : 0);
         tierActions.push({ tier: 1, role: 'master', sectId: s.id, action: 'SWORN_ALLY_TRIBUTE', stones: trib });
       }
     });
@@ -8360,8 +8410,12 @@
       if (Array.isArray(W.gone) && !W.gone.includes(npc.id)) W.gone.push(npc.id);
     }
 
-    const immediateTribute = targetSect.annualTributeStones;
-    if (ECO && ECO.earn) ECO.earn(W, immediateTribute, 'บรรณาการฉลองชัยศึกทวงคืนสำนักจาก「' + targetSect.nameTh + '」');
+    const wantTribute = targetSect.annualTributeStones || 0;
+    const immediateTribute = (wantTribute > 0 && ECO)
+      ? (ECO.earnFromPool
+        ? ECO.earnFromPool(W, wantTribute, 'บรรณาการฉลองชัยศึกทวงคืนสำนักจาก「' + targetSect.nameTh + '」', { rivalSect: targetSect })
+        : ((ECO.earn && ECO.earn(W, wantTribute, 'บรรณาการฉลองชัยศึกทวงคืนสำนักจาก「' + targetSect.nameTh + '」')) ? wantTribute : 0))
+      : 0;
     W.fame(18);
 
     const titleTh = 'ศึกทวงคืนบัลลังก์สำเร็จ! สถาปนา「' + HC.fullName(npc) + '」ขึ้นครอง「' + targetSect.nameTh + '」เป็นพันธมิตรร่วมสาบานนิรันดร์!';
@@ -8466,12 +8520,22 @@
       coalitionAllies: coalitionLeaders
     }));
 
-    if (siegeRes && siegeRes.siege) {
+    if (!siegeRes || !siegeRes.ok) {
+      return Object.assign({}, siegeRes || { ok: false, reason: 'siege-rejected' }, {
+        isCoalitionOffensive: false,
+        coalitionAllies: coalitionLeaders,
+        coalitionBonusPower: 0
+      });
+    }
+
+    if (siegeRes.siege) {
       siegeRes.siege.isCoalitionOffensive = true;
       siegeRes.siege.coalitionAllies = coalitionLeaders;
       siegeRes.siege.coalitionBonusPower = coalitionBonusPower;
     }
 
+    const isQueued = !!siegeRes.queued;
+    const isWon = !isQueued && !!siegeRes.won;
     const allyNamesTh = coalitionLeaders.map(c => '「' + c.sectNameTh + '」(นำโดยแม่ทัพศึก ' + c.marshalNameTh + ')').join(' และ ');
     const chron = X.recordChronicle(W, {
       category: 'BATTLE',
@@ -8479,14 +8543,20 @@
       macroRegion: targetSect.macroRegion || 'CENTRAL_HEARTLAND',
       involvedSects: [W.sect.name].concat(coalitionLeaders.map(c => c.sectNameTh), [targetSect.nameTh]),
       involvedFigures: coalitionLeaders.map(c => c.marshalNameTh),
-      titleTh: 'ศึกพันธมิตรร่วมทัพ: 「' + W.sect.name + '」สนธิกำลังถล่มค่าย「' + targetSect.nameTh + '」!',
-      storyTh: 'สำนักเราส่งเทียบเชิญพันธมิตรไปยัง ' + (allyNamesTh || 'สำนักพันธมิตร') + ' ยกทัพใหญ่ข้ามพรมแดนมาสมทบกันเปิดศึกปิดล้อมค่ายของ「' + targetSect.nameTh + '」เสริมกำลังรบรวมอีก +' + coalitionBonusPower + ' จนสะท้านสะเทือนไปทั้งยุทธภพ!',
-      combatBreakdownTh: 'กำลังหนุนจากแม่ทัพศึกพันธมิตร (' + coalitionLeaders.length + ' สำนัก): +' + coalitionBonusPower + ' คะแนนรบ · ผลศึก: ' + (siegeRes && siegeRes.won ? 'คว้าชัยชนะทั้ง 3 ด่าน!' : 'กำลังเดินทัพ/ปะทะ'),
-      consequenceTh: siegeRes && siegeRes.won ? ('พิชิต「' + targetSect.nameTh + '」สำเร็จด้วยกำลังทัพพันธมิตร!') : 'กองทัพพันธมิตรร่วมรบเคียงบ่าเคียงไหล่',
+      titleTh: isQueued
+        ? ('ระดมทัพพันธมิตร: 「' + W.sect.name + '」เคลื่อนพลมุ่งหน้าสู่ค่าย「' + targetSect.nameTh + '」')
+        : ('ศึกพันธมิตรร่วมทัพ: 「' + W.sect.name + '」สนธิกำลัง' + (isWon ? 'ถล่ม' : 'ปะทะ') + 'ค่าย「' + targetSect.nameTh + '」!'),
+      storyTh: isQueued
+        ? ('สำนักเราส่งเทียบเชิญพันธมิตรไปยัง ' + (allyNamesTh || 'สำนักพันธมิตร') + ' จัดทัพสมทบกำลังรบ +' + coalitionBonusPower + ' ออกเดินทางมุ่งหน้าสู่ค่ายของ「' + targetSect.nameTh + '」')
+        : ('สำนักเราส่งเทียบเชิญพันธมิตรไปยัง ' + (allyNamesTh || 'สำนักพันธมิตร') + ' ยกทัพใหญ่ข้ามพรมแดนมาสมทบกันเปิดศึกปิดล้อมค่ายของ「' + targetSect.nameTh + '」เสริมกำลังรบรวมอีก +' + coalitionBonusPower + ' จนสะท้านสะเทือนไปทั้งยุทธภพ!'),
+      combatBreakdownTh: 'กำลังหนุนจากแม่ทัพศึกพันธมิตร (' + coalitionLeaders.length + ' สำนัก): +' + coalitionBonusPower + ' คะแนนรบ · ผลศึก: ' + (isQueued ? 'กำลังเดินทัพ (รอปะทะเมื่อถึงค่าย)' : (isWon ? 'คว้าชัยชนะทั้ง 3 ด่าน!' : 'ถอยตั้งหลัก/ไม่สำเร็จ')),
+      consequenceTh: isQueued
+        ? ('กองทัพพันธมิตรกำลังเดินทางสู่「' + targetSect.nameTh + '」')
+        : (isWon ? ('พิชิต「' + targetSect.nameTh + '」สำเร็จด้วยกำลังทัพพันธมิตร!') : ('ทัพพันธมิตรถอยจากค่าย「' + targetSect.nameTh + '」')),
       quiet: opts.quiet
     });
 
-    if (siegeRes && siegeRes.won && SECT && SECT.recordTimelineMilestone) {
+    if (isWon && SECT && SECT.recordTimelineMilestone) {
       SECT.recordTimelineMilestone(W, {
         milestoneType: 'WAR_VICTORY',
         icon: '🚩',
@@ -8596,7 +8666,7 @@
       W.threat.raid = null;
     }
 
-    const spoilsStones = won ? Math.min(360, Math.max(0, W.world.resourcePool?.stones || 0)) : 0;
+    const spoilsStones = won ? Math.min(360, Math.max(0, Math.floor(W.world.resourcePool?.stones || 0))) : 0;
     if (won) {
       if (ECO && ECO.earn) ECO.earn(W, spoilsStones, 'ยึดเสบียงศึกจากการตีขนาบทัพศัตรูที่มาปิดล้อม', {fromPool:true});
       W.fame(10);

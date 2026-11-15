@@ -214,7 +214,9 @@
     if (opts && opts.fromPool && W.world) {
       const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
       if (Number.isFinite(pool.stones)) {
-        amt = Math.min(amt, Math.max(0, pool.stones));
+        const avail = opts.exact ? Math.max(0, pool.stones) : Math.floor(Math.max(0, pool.stones));
+        const want = opts.exact ? amt : Math.floor(amt);
+        amt = Math.min(want, avail);
         if (amt <= 0) return false;
         pool.stones -= amt;
       }
@@ -226,6 +228,49 @@
     W.sect.ledger.push(entry);
     trimLedger(W);
     return true;
+  };
+  ECO.earnFromPool = (W, rawAmt, why, opts) => {
+    if (!W || !W.sect || !Number.isFinite(rawAmt) || rawAmt <= 0) return 0;
+    const exact = !!(opts && opts.exact);
+    let want = exact ? rawAmt : Math.floor(rawAmt);
+    if (want <= 0) return 0;
+    let fromRival = 0;
+    const rival = opts && opts.rivalSect;
+    if (rival && Number.isFinite(rival.treasury) && rival.treasury > 0) {
+      const rAvail = exact ? Math.max(0, rival.treasury) : Math.floor(Math.max(0, rival.treasury));
+      fromRival = Math.min(want, rAvail);
+      if (fromRival > 0) {
+        rival.treasury -= fromRival;
+        want -= fromRival;
+      }
+    }
+    let fromPool = 0;
+    if (want > 0) {
+      if (W.world) {
+        const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
+        if (Number.isFinite(pool.stones)) {
+          const pAvail = exact ? Math.max(0, pool.stones) : Math.floor(Math.max(0, pool.stones));
+          fromPool = Math.min(want, pAvail);
+          pool.stones -= fromPool;
+        } else {
+          fromPool = want;
+        }
+      } else {
+        fromPool = want;
+      }
+    }
+    const totalEarned = fromRival + fromPool;
+    if (totalEarned <= 0) return 0;
+    const label = typeof why === 'function' ? why(totalEarned) : why;
+    const earnOpts = opts && opts.fromPool ? Object.assign({}, opts, { fromPool: false }) : opts;
+    if (!ECO.earn(W, totalEarned, label, earnOpts)) {
+      if (rival && fromRival > 0) rival.treasury += fromRival;
+      if (fromPool > 0 && W.world && W.world.resourcePool && Number.isFinite(W.world.resourcePool.stones)) {
+        W.world.resourcePool.stones += fromPool;
+      }
+      return 0;
+    }
+    return totalEarned;
   };
   function trimLedger(W) { if (W.sect.ledger.length > 400) W.sect.ledger.splice(0, 200); }
 
@@ -419,6 +464,19 @@
     if (!Number.isSafeInteger(ledger.seq) || ledger.seq < 0 || ledger.seq >= Number.MAX_SAFE_INTEGER) return false;
     let usedSpawned = false;
     const taken = [];
+    const rollbackTaken = () => {
+      for (let rIdx = 0; rIdx < taken.length; rIdx++) {
+        const item = taken[rIdx];
+        ECO.add(W, item.matId, item.count);
+        if (item.spawnedUsed > 0 && W.sect) {
+          W.sect.spawnedMats = W.sect.spawnedMats || {};
+          W.sect.spawnedMats[item.matId] = Math.min(
+            ECO.count(W, item.matId),
+            (W.sect.spawnedMats[item.matId] || 0) + item.spawnedUsed
+          );
+        }
+      }
+    };
     for (let idx = 0; idx < inputs.length; idx++) {
       const inp = inputs[idx];
       const curStock = ECO.count(W, inp.matId);
@@ -426,14 +484,16 @@
       const spUsed = Math.max(0, inp.count - Math.max(0, curStock - spStock));
       if (spUsed > 0) usedSpawned = true;
       if (!ECO.take(W, inp.matId, inp.count)) {
-        for (let rIdx = 0; rIdx < taken.length; rIdx++) {
-          ECO.add(W, taken[rIdx].matId, taken[rIdx].count, taken[rIdx].spawnedUsed > 0 ? { playerSpawned: true } : undefined);
-        }
+        rollbackTaken();
         return false;
       }
       taken.push(Object.assign({}, inp, { spawnedUsed: spUsed }));
     }
     const okReg = registerCraft(W, npc, r, ctx, taken, materialMods);
+    if (!okReg) {
+      rollbackTaken();
+      return false;
+    }
     if (okReg && usedSpawned && ctx && ctx.craftReceipt) {
       ctx.craftReceipt.usedSpawned = true;
       if (W.sect && W.sect.craftTransactions && W.sect.craftTransactions.open && W.sect.craftTransactions.open[ctx.craftReceipt.id]) {
@@ -3350,7 +3410,7 @@
       }
       if (typeof ref === 'string' && ref.startsWith('peak:')) {
         const pid = ref.slice(5);
-        const pk = W.sect.peaks && W.sect.peaks.peaks ? W.sect.peaks.peaks[pid] : null;
+        const pk = W.sect.peaks ? ((W.sect.peaks.byId && W.sect.peaks.byId[pid]) || (W.sect.peaks.peaks && W.sect.peaks.peaks[pid])) : null;
         if (!pk) return null;
         return {
           kind: 'peak',
@@ -3377,7 +3437,9 @@
       }
       if (typeof ref === 'string' && ref.startsWith('visitor:')) {
         const vid = ref.slice(8);
-        const v = W.visitors && W.visitors.find(x => x && x.id === vid);
+        const v = (W.visitors && W.visitors.find(x => x && x.id === vid))
+          || (W.world && Array.isArray(W.world.visitors) && W.world.visitors.find(x => x && x.id === vid))
+          || null;
         if (!v) return null;
         return {
           kind: 'visitor',
@@ -3387,7 +3449,11 @@
       }
       if (typeof ref === 'string' && ref.startsWith('rival:')) {
         const rid = ref.slice(6);
-        const rv = W.world && Array.isArray(W.world.rivals) ? W.world.rivals.find(x => x && x.id === rid) : null;
+        const pools = W.world ? [W.world.allSects, W.world.sects, W.world.rivals] : [];
+        let rv = null;
+        for (let i = 0; i < pools.length && !rv; i++) {
+          if (Array.isArray(pools[i])) rv = pools[i].find(x => x && x.id === rid) || null;
+        }
         if (!rv) return null;
         return {
           kind: 'rival',
@@ -3400,11 +3466,12 @@
     const wFrom = resolveWallet(opts.from);
     const wTo = resolveWallet(opts.to);
     if (!wFrom || !wTo) return { ok: false, moved: 0, reason: 'invalid-wallet' };
-    const avail = wFrom.get();
+    const rawAvail = Math.max(0, Number(wFrom.get()) || 0);
+    const avail = Math.floor(rawAvail);
     const moved = opts.allowPartial ? Math.min(avail, rawAmt) : (avail >= rawAmt ? rawAmt : 0);
     if (moved <= 0) return { ok: false, moved: 0, reason: 'insufficient-funds' };
-    wFrom.set(avail - moved);
-    wTo.set(wTo.get() + moved);
+    wFrom.set(rawAvail - moved);
+    wTo.set((Number(wTo.get()) || 0) + moved);
     const isInternal = (wFrom.kind !== 'worldPool' && wFrom.kind !== 'visitor' && wFrom.kind !== 'rival') && (wTo.kind !== 'worldPool' && wTo.kind !== 'visitor' && wTo.kind !== 'rival');
     if (wFrom.kind === 'sect' && !isInternal) W.sect.expense = (W.sect.expense || 0) + moved;
     if (wTo.kind === 'sect' && !isInternal) W.sect.income = (W.sect.income || 0) + moved;

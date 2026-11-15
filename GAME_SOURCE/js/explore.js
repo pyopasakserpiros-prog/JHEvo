@@ -7054,7 +7054,7 @@
       const sc = per * 0.6 + E(n, 'intellect.intuition') * 0.3 + (E(n, 'intellect.spatial') - 50) * 0.15 + (luck - 45) / 8 + rng.gauss(0, 12) + (n.h.skills.survival || 0) * 0.2;
       const r = rng.next();
       if (r < 0.14) { const dm = (50 - E(n, 'personality.courage')) / 100; if (rng.chance(clamp(0.5 + dm, 0.2, 0.8))) { HC.feel(n, { stress: 6 }); n.h.state.heartDemon = clamp(n.h.state.heartDemon + 4, 0, 100); logText = nm + ' เจอวิญญาณเก่าแก่ในซากเจดีย์ ตกใจแทบสิ้นสติ'; } else { HC.experience(n, 'duel_win', 0.3); logText = nm + ' สยบวิญญาณเฝ้าซากเจดีย์ได้'; } if (rng.chance(0.15)) AI.injure(W, n, 1, 'ถูกวิญญาณทำร้าย'); }
-      else if (sc > 62 && r < 0.45) { const amt = rng.int(40, 130) + s.lvl * 25; ECO.earn(W, amt, 'ของเก่าในซากเจดีย์'); logText = nm + ' ขุดพบของเก่าในซากเจดีย์ มูลค่า ' + amt + ' ศิลา'; }
+      else if (sc > 62 && r < 0.45) { const rawAmt = rng.int(40, 130) + s.lvl * 25; const amt = ECO.earnFromPool ? ECO.earnFromPool(W, rawAmt, 'ของเก่าในซากเจดีย์') : (ECO.earn(W, rawAmt, 'ของเก่าในซากเจดีย์') ? rawAmt : 0); logText = amt > 0 ? (nm + ' ขุดพบของเก่าในซากเจดีย์ มูลค่า ' + amt + ' ศิลา') : (nm + ' สำรวจซากเจดีย์แต่สมบัติถูกเก็บไปหมดแล้ว'); }
       else if (sc > 75 && r < 0.6) {
         const gear = (ECO.rollProceduralGear && rng.chance(0.7))
           ? ECO.rollProceduralGear(W, { maxTier: clamp(1 + s.lvl, 1, 4), source: 'pagoda_ruin' })
@@ -7402,7 +7402,7 @@
       EX.openDimensionalGate(W, w.id, chosenGT.id);
     }
     const cv = e.cave; Object.keys(cv.guard).forEach(f => { if (cv.guard[f] && day - cv.guard[f] > 70 && f !== '10') { cv.guard[f] = 0; } });
-    e.relics.forEach(id => { const r = EX.RELICS[id]; if (r.fx === 'fame') W.fame(r.val); else if (r.fx === 'stones') ECO.earn(W, r.val, 'ของวิเศษ: ' + r.nameTh); else if (r.fx === 'grain') ECO.add(W, 'grain', r.val); else if (r.fx === 'qi') W.npcs.forEach(n => { if (!n.dead && !n.away && n.cult) CULT.gain(n, CULT.threshold(n) * 0.0015); }); });
+    e.relics.forEach(id => { const r = EX.RELICS[id]; if (r.fx === 'fame') W.fame(r.val); else if (r.fx === 'stones') { if (ECO.earnFromPool) ECO.earnFromPool(W, r.val, 'ของวิเศษ: ' + r.nameTh); else ECO.earn(W, r.val, 'ของวิเศษ: ' + r.nameTh); } else if (r.fx === 'grain') ECO.add(W, 'grain', r.val); else if (r.fx === 'qi') W.npcs.forEach(n => { if (!n.dead && !n.away && n.cult) CULT.gain(n, CULT.threshold(n) * 0.0015); }); });
   };
 
   /* ======================= วิหารโบราณหลายชั้นและผู้พิทักษ์ชุดสัจธรรม (v2.0.6 Pillar B) ======================= */
@@ -8225,7 +8225,7 @@
     if (solved && !alreadyClaimed && wRef && wRef.sect) {
       const pool = wRef.world && (wRef.world.resourcePool || (wRef.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
       const desired = Number.isFinite(gateSpec.rewardStones) ? Math.max(0, gateSpec.rewardStones) : 350;
-      rewardStones = Math.min(desired, pool && Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0);
+      rewardStones = Math.min(desired, pool && Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 0);
       if (pool) pool.stones -= rewardStones;
       if (g.ECO && g.ECO.earn) g.ECO.earn(wRef, rewardStones, 'ไขปริศนาประตูกลไกธาตุโบราณ (' + gateId + ')');
       else wRef.sect.stones = (wRef.sect.stones || 0) + rewardStones;
@@ -8445,7 +8445,7 @@
 
     const desiredStones = (loc.rewardStones || 150) + (choiceSpec.bonusStones || 0);
     const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
-    const stonesEarned = Math.min(desiredStones, pool && Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0);
+    const stonesEarned = Math.min(desiredStones, pool && Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 0);
     if (pool) pool.stones -= stonesEarned;
     if (g.ECO && g.ECO.earn) {
       g.ECO.earn(W, stonesEarned, 'สำรวจจุดสำรวจย่อย「' + loc.nameTh + '」(' + choiceSpec.nameTh + ')');

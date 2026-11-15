@@ -851,15 +851,15 @@
         if(s.treaty===tr.type) s.treaty='NONE';
       }
       if(s.treaty==='VASSAL_TREATY' && W.day>0 && W.day%90===0 && s.lastVassalTributeDay!==W.day) {
-        const tribute=Math.max(60,Math.round(100+(s.power||1)*35));
-        ECO.earn(W,tribute,'บรรณาการตามฤดูกาลจาก'+s.nameTh);
+        const wantTribute=Math.max(60,Math.round(100+(s.power||1)*35));
+        const tribute=ECO.earnFromPool?ECO.earnFromPool(W,wantTribute,'บรรณาการตามฤดูกาลจาก'+s.nameTh,{rivalSect:s}):(ECO.earn(W,wantTribute,'บรรณาการตามฤดูกาลจาก'+s.nameTh)?wantTribute:0);
         const validSpecialty=(s.specialtyMatIds||[]).find(id=>ECO.matById[id]&&ECO.matById[id].category==='HERB');
         const herbs=Object.values(ECO.matById||{}).filter(m=>m&&m.category==='HERB'&&(m.tier||1)>=2);
         const herbId=validSpecialty||(herbs.length?herbs[(W.day/90+idx)%herbs.length].id:null);
         if(herbId) ECO.add(W,herbId,2);
         s.lastVassalTributeDay=W.day;
         pol.stats.vassalTributes=(pol.stats.vassalTributes||0)+1;
-        pol.events.push({day:W.day,kind:'VASSAL_TRIBUTE',sectId:s.id,treaty:'VASSAL_TREATY',outcome:'PAID',stones:tribute,herbId,herbQty:herbId?2:0,summaryTh:'ได้รับบรรณาการ '+tribute+' ศิลา'+(herbId?' และสมุนไพร '+ECO.name(herbId)+' ×2':'')+' จาก'+s.nameTh});
+        pol.events.push({day:W.day,kind:'VASSAL_TRIBUTE',sectId:s.id,treaty:'VASSAL_TREATY',outcome:'PAID',stones:tribute,herbId,herbQty:herbId?2:0,summaryTh:(tribute>0?'ได้รับบรรณาการ '+tribute+' ศิลา':'บรรณาการศิลาว่างเปล่า')+(herbId?' และสมุนไพร '+ECO.name(herbId)+' ×2':'')+' จาก'+s.nameTh});
         if(pol.events.length>40) pol.events.splice(0,pol.events.length-40);
       }
       if(s.treaty!=='VASSAL_TREATY' && s.attitude<=-60 && s.treaty!=='EMBARGO') {

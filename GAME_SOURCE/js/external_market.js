@@ -262,7 +262,7 @@
     const desiredStones = Number.isFinite(options.stones) ? Math.max(0, Math.round(options.stones)) : defaultStones;
     const pool = W.world && W.world.resourcePool;
     const usePool = !Number.isFinite(options.stones) && pool && Number.isFinite(pool.stones);
-    const allocatedStones = usePool ? Math.min(desiredStones, Math.max(0, Math.round(pool.stones))) : desiredStones;
+    const allocatedStones = usePool ? Math.min(desiredStones, Math.max(0, Math.floor(pool.stones))) : desiredStones;
     if (usePool) pool.stones -= allocatedStones;
     const visitor = {
       id: options.id || ('trader_' + seq), kind: 'trader', subtype,

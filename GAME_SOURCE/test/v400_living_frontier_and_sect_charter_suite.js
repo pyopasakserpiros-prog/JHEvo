@@ -221,7 +221,7 @@ console.log('▶ [Phase 5 / Pillar 5] Testing 4 Micro-Locations, UI Integration,
   const npcHtml = UI.rNpc();
   check(npcHtml.includes('รอยชำนาญจากพฤติกรรมจริงในสนามรบ') && npcHtml.includes('กระบี่ตอบโต้'), 'UI.rNpc renders Behavioral Mastery Traits');
   const mapHtml = UI.rWorldMap(W);
-  check(mapHtml.includes('LOC_NAMELESS_SWORD_TOMB') && mapHtml.includes('LOC_MOON_MIRROR_VALLEY'), 'UI.rWorldMap renders 4 Micro-Location controls');
+  check(!mapHtml.includes('data-do="explore-micro-location"') && mapHtml.includes('atlas-filter'), 'Observer UI.rWorldMap excludes Micro-Location command button and keeps read-only atlas');
 
   // Verify Save/Load Round-Trip
   const rawSave = SIM.serialize(W);
