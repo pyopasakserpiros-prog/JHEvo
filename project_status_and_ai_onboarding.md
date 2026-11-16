@@ -1,5 +1,7 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
+> **งานที่ผู้ใช้อนุมัติรอบถัดไป:** Gemini Argon4 พัฒนาระบบฉายาทุกประเภท ประเมิน260ข้อและสำรวจฟีเจอร์จริงเพื่อสร้างฉายาเพิ่ม อิสระเลือกผลหรือไม่มีโบนัสภายใต้ AGENTS.md อ่าน [Active Prompt](ACTIVE_PATCH_PROMPT_EPITHETS.md) และ [เอกสารอ้างอิง](docs/handovers/EPITHET_PATCH_REFERENCE_FOR_GEMINI_ARGON4.md) ส่วนนี้เป็นงานส่งต่อ ยังไม่ได้เพิ่มระบบฉายาใหม่ในซอร์ส สถานะที่มีจริงยังต้องตรวจตามรายการด้านล่าง
+
 > **สถานะปัจจุบัน (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว — 9 พฤศจิกายน 2026):** พัฒนาและทดสอบแพตช์ **JS2-v2.6.0 พงศาวดารมีชีวิต การรายงานยุทธภพ และตัวกรองการรับข่าว** เสร็จสมบูรณ์ 100% (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, ผลฐานพงศาวดารผ่าน **148/148 กลุ่ม**; ผล VFX refinement ล่าสุดอยู่ในส่วน T6 ด้านล่าง) ดูรายละเอียดใน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจ [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md) งาน authorship/barter/relic biography เดิมยังคงถูกพักไว้ใน `docs/deferred/`
 
 ## JS2-v2.6.0 — Living Chronicle, Jianghu Reporting & News Filtering (2026-11-09)

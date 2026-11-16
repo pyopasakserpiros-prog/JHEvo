@@ -1,3 +1,5 @@
+> งานปัจจุบันสำหรับ Gemini Argon4 คือ [แพตช์ฉายา](../ACTIVE_PATCH_PROMPT_EPITHETS.md) มีเอกสาร EPITHET_01A/01B/01C ใน [from carbon](from%20carbon/) แนวคิดอื่นในคลังนี้เป็นข้อมูลประกอบตามความเกี่ยวข้อง ไม่ใช่คำสั่งให้เริ่มทุกระบบพร้อมกัน
+
 # 💡 คลังไอเดียและแนวคิดสำหรับอนาคต (Ideas & Knowledge Scrapbook)
 
 > [!WARNING]

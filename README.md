@@ -1,5 +1,7 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
 
+> **งานถัดไปสำหรับ Gemini Argon4: ระบบฉายา** — ผู้ใช้อนุมัติให้ตรวจ260ข้อและสร้างเพิ่มจากฟีเจอร์จริง อ่าน [START_HERE_FOR_AI](START_HERE_FOR_AI.md) แล้วลงมือตาม [Active Prompt](ACTIVE_PATCH_PROMPT_EPITHETS.md) คำสั่งอยู่ใน ZIP ครบแล้ว; ส่วนนี้เป็นใบสั่งงาน ยังไม่ใช่ฟีเจอร์ที่ลงโค้ดแล้ว
+
 > **main-debug — Living Hunt:** poolอสูรบก125ชนิด ข้อมูลต้นแบบและสกิลจริง เป้าหมาย48/เพดาน60 ดู [รายงานและข้อจำกัดการตรวจ](PATCH_REPORTS/LIVING_HUNT_VARIETY.md)
 
 **สถานะส่งมอบปัจจุบัน (`JS2-v2.6.0`):** พัฒนา ทดสอบ และส่งมอบแพตช์ **พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (`JS2-v2.6.0`)** เสร็จสมบูรณ์แล้ว ดูรายละเอียดได้ที่ [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจระบบที่ [JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)

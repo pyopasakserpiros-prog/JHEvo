@@ -1,4 +1,7 @@
 {
+  "snapshot_status": "HISTORICAL_REFERENCE_NOT_CURRENT_ASSIGNMENT",
+  "current_assignment": "../ACTIVE_PATCH_PROMPT_EPITHETS.md",
+  "snapshot_note": "The hashes, source commit and old purpose below describe an earlier supplement. They do not certify the current main-debug tree. Read the root START_HERE_FOR_AI.md for the current task.",
   "source_branch": "main-debug",
   "source_commit": "49697d1d638d3194d9b24035ab258cd47a6661c0",
   "purpose": "Documentation supplement; preserve Gemini working game through category 06; implement 07-08 only before delivery.",

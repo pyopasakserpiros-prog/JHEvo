@@ -1,3 +1,5 @@
+> **สำเนาอ้างอิงจากงานเก่า:** งานปัจจุบันคือแพตช์ฉายาสำหรับ Gemini Argon4 อ่าน [START_HERE_FOR_AI](../START_HERE_FOR_AI.md) และ [Active Prompt ปัจจุบัน](../ACTIVE_PATCH_PROMPT_EPITHETS.md) ที่รากโปรเจกต์ก่อน ข้อความสั่งงานเดิมด้านล่างเป็นประวัติ
+
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
 - **Complete Tier-Scaled VFX (T1–T7), Sub-Path Motifs, Equipment & Combat Action VFX บน JS2-v2.6.0:** [COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md](COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md) — ครบทุกระดับ T1–T7 (>= 64 ลาย/ระดับ), 64 ตราสายย่อย/มรรคา, 122 มนตรา, 64 เอฟเฟกต์อุปกรณ์, 36 แอคชั่นการรบ และตรวจแก้พิกัดเป้าหมาย/ระยะไกล-ประชิด (164/164 PASS)
