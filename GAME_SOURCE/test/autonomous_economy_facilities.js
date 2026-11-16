@@ -561,7 +561,10 @@ console.log('Testing Autonomous Economy & Facility Expansion...');
   testBeast.dead = true;
   const fakeFight = { id: 888, kind: 'wild', ctx: { beastId: testBeast.id, hunterId: hunter.id }, wildSettled: false };
   W.foeById[testBeast.id] = testBeast;
+  const originalDropChance = WILD.DROP_CHANCE;
+  WILD.DROP_CHANCE = 1; // Exercise the successful-drop branch under the reduced drop contract.
   WILD.finish(W, fakeFight, 'A');
+  WILD.DROP_CHANCE = originalDropChance;
   const mats = hunter.inv.mats || {};
   const matKeys = Object.keys(mats).filter(k => mats[k] > 0);
   assert(matKeys.length > 0, 'hunter must receive drop into personal inventory');
@@ -581,7 +584,7 @@ console.log('Testing Autonomous Economy & Facility Expansion...');
   for (let i = 0; i < 20; i++) WILD.spawn(W, 'meadow');
   WILD.tick(W);
   const activeCount = W.wildlife.beasts.filter(b => !b.gone && !b.dead).length;
-  assert(activeCount <= 12, 'active beast population must not exceed cap (got ' + activeCount + ')');
+  assert(activeCount <= WILD.MAX_ACTIVE_BEASTS, 'active beast population must not exceed cap (got ' + activeCount + ')');
 
   console.log('  PASS: Scenario 16 - Multi-zone outer beasts, multi-pools, perimeter gates, and loot flow');
 }

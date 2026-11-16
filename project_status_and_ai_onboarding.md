@@ -250,6 +250,8 @@ Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วแล�
 ### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
 - Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).
 
-## Living Hunt Phase 1 (2026-11-16)
+## Living Hunt — ประชากรและความหลากหลาย (2026-11-16)
 
-เริ่มเพิ่มความหนาแน่นและจังหวะการล่าใน main-debug: อสูรธรรมดาเป้าหมาย48/เพดานรวม60, HPเฉพาะพื้นที่4เท่า/ความเสียหาย60%, ลดวัตถุดิบและเพิ่มงบปราณแบ่งตามผลงานในศึก การเลือกเป้าหมายคิดเวลาเดินทางจากเส้นทางจริง มีบันทึก lore พื้นที่ลึกลับครั้งเดียว ดู `PATCH_REPORTS/LIVING_HUNT_PHASE1.md` สำหรับสูตร ข้อจำกัดและงานระยะถัดไป แผนที่ยัง240×192 และยังไม่เพิ่มการชวนกลุ่มล่า; ค่า1.2เป็นเป้าหมายสูตร ยังไม่ยืนยันผลบาลานซ์ระยะยาวจากเบราว์เซอร์
+อสูรธรรมดาเป้าหมาย48/เพดานรวม60 ตำนานไม่เกิน1, HPเฉพาะพื้นที่4เท่า/ความเสียหาย60% ลดวัตถุดิบและเพิ่มงบปราณแบ่งตามผลงานจริงในศึก ขยาย pool จาก113เป็น125ชนิด (ทุกชนิดบกจาก140รายการ; อีก15เป็นน้ำ) รวม241ช่องถิ่นอาศัย/ระดับ ตัวจริงเก็บข้อมูลต้นแบบครบและมี38ชุดท่าตามตระกูล/ระดับ พร้อมท่าที่มีชื่อจากspecialAbility ธาตุ รูปลักษณ์ anatomy ดรอป และกฎจับเลี้ยง การเลือกเป้าหมายประเมินเส้นทางจริงครั้งละ8ตัวเพื่อลดงานซ้ำ
+
+ดู `PATCH_REPORTS/LIVING_HUNT_VARIETY.md` สำหรับกลไก/ผลตรวจ/ข้อจำกัด และ `PATCH_REPORTS/LIVING_HUNT_PHASE1.md` สำหรับสูตรตั้งต้น แผนที่ยัง240×192และยังไม่เพิ่มการชวนกลุ่มล่า; ค่า1.2เป็นเป้าหมายสูตรปราณ ยังไม่ยืนยันบาลานซ์ระยะยาวทุกเซฟ Chromium80NPCวัด3.328ms/tick แต่cold Node benchmarkยังแกว่งและเทสต์โอกาสอัตโนมัติเดิมยังไม่ผ่านตามรายงาน ไม่ได้อ้างว่าfull suiteผ่านทั้งหมด

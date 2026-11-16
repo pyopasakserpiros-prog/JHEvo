@@ -322,3 +322,6 @@ AI.ACTS.opportunity เข้าตัวเลือก utility ตามปก
 ## Living Hunt phase 1
 
 `COG.huntValue` ใช้ `WILD.estimateTrip` (MAP.findPath และ AI.walkSpeed) คิดเวลาไปกลับ ตัด unreachable และลดการเลือกเหยื่ออ่อนกว่า ไม่สุ่มในคะแนน; ค่าเส้นทางใช้ cache เดิม. `wildHunt.where` บันทึกประมาณเวลาใน `landHuntTrip`; startFight เก็บ baseline CULT.rate ในctx. ยังไม่มี squad rally ใหม่ ดูรายงาน LIVING_HUNT_PHASE1.
+
+## Bounded wildlife target search (2026-11-16)
+`wildHunt.where` เรียงโอกาสจากระยะและช่องว่างพลัง แล้วประเมินCOG.huntValue/เส้นทางจริงครั้งละ8ตัว; ถ้าทั้งชุดเข้าไม่ถึงจึงตรวจชุดถัดไป. เลิกคำนวณคะแนนซ้ำในcomparator. ยังตัด unreachable และบันทึกเวลาไปกลับในlandHuntTrip. ไม่มีการสั่งล่าจากผู้เล่นหรือการบังคับสัดส่วนNPCที่ต้องล่า.

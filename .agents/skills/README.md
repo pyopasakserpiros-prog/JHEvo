@@ -91,3 +91,5 @@ T6 shared-group refinement: 50 shapes / 114 actual active skills / 207 child rou
 - Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).
 
 Living Hunt phase 1: ทบทวนส่วนเพิ่มใน ai-behavior-patterns, combat-design และ gameplay-architecture; แผน/ข้อจำกัดอยู่ที่ PATCH_REPORTS/LIVING_HUNT_PHASE1.md. ระยะแรกยังไม่เปลี่ยนขนาดผังสำนัก.
+
+Living Hunt variety: procedural-gen/game-data-integrity/combat-design/ai-behavior-patterns อัปเดตการขยายpool125ชนิด การสร้างหน่วยพร้อมข้อมูล/ท่า และการเลือกเป้าหมายแบบจำกัดงาน ดู PATCH_REPORTS/LIVING_HUNT_VARIETY.md.

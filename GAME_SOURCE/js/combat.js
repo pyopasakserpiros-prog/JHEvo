@@ -2896,6 +2896,7 @@
     }
     if (p.arch === 'counter') {
       ST.addStatus(a, 'counter', 10, { M: p.M || 1.35, type: p.type, pen: p.pen }, W.t);
+      if (a.wild && p.beastNativeAbility && p.shield > 0) ST.addStatus(a,'shield',10,{amt:Math.round(hm*p.shield)},W.t);
       if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(a, p.grantBuff, buffDur, W.t, { casterId: a.id });
       return;
     }
@@ -2920,6 +2921,10 @@
         const medicMult = (!a.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(a, 'TRAIT_COMBAT_MEDIC')) ? 1.20 : 1.0;
         const ashenMult = C.healMultiplier ? C.healMultiplier(tgt, W.t) : (ST.has(tgt, 'ashenToxin', W.t) ? 0.5 : (ST.has(tgt, 'stygianFreeze', W.t) ? 0 : 1.0));
         const healAmt = Math.max(0, Math.round(thm * (p.heal || 0.22) * sageBonus * medicMult * ashenMult));
+        if (a.wild && p.beastNativeAbility && p.overhealBarrier) {
+          const excess = Math.max(0, healAmt - thm * (1-beforeFrac));
+          if (excess > 0) ST.addStatus(tgt,'shield',12,{amt:Math.round(Math.min(thm*0.12,excess*0.5))},W.t);
+        }
         if (healAmt > 0) C.setHp(tgt, Math.min(thm, C.hp(tgt) + healAmt));
         if (p.shield > 0) ST.addStatus(tgt, 'shield', 12, { amt: Math.round(thm * p.shield * stanceShieldMult) }, W.t);
         const beforeSx = tgt.sx ? tgt.sx.length : 0;
@@ -2954,6 +2959,10 @@
         const hMult = C.healMultiplier ? C.healMultiplier(ally, W.t) : 1.0;
         if (p.heal > 0 && hMult > 0) C.setHp(ally, Math.min(ahm, C.hp(ally) + Math.max(1, Math.round(ahm * p.heal * hMult))));
         if (p.shield > 0) ST.addStatus(ally, 'shield', dur, { amt: Math.round(ahm * p.shield) }, W.t);
+        if (a.wild && p.beastNativeAbility === 'ABIL_BODHI_THORN_SANCTUARY' && d) {
+          const linked = C.enemiesOf(W,f,a.id).find(other=>other.id!==d.id && C.alive(other) && C.unitDist(other,d)<=4);
+          if (linked) ST.addStatus(d,'tetheredEnemy',12,{linkedToId:linked.id,shareRatio:0.2},W.t);
+        }
         if (ST.BUFF_CATALOG && ST.BUFF_CATALOG[buffKind] && ST.applyNamedBuff) {
           ST.applyNamedBuff(ally, buffKind, dur, W.t, { casterId: a.id });
         } else {

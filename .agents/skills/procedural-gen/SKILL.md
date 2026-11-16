@@ -198,3 +198,6 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
 รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
 
 ศึกปิดล้อมจบเองหลัง 20 วันโดยใช้กำลังป้องกันจริงหากยังไม่มีการตอบสนอง ไม่ต้องรอพันธมิตร ข่าวแพ้/ชนะต้องตรงผล รางวัลศึกไม่เกิน world pool และต้องโอน fromPool.
+
+## Living Hunt variety (2026-11-16)
+`WILD.expandPools` รวมทุกอสูรบก125ชนิด/241ช่องตามถิ่นอาศัยและระดับ; อัปเดตครั้งแรกและเมื่อcatalogมีจำนวนเปลี่ยน. `WILD.speciesDefinition` รวมราชันกับชนิดฐานและเติมelementProfileที่ขาดจากธาตุเดิม. Spawn deep-copyข้อมูลทุกฟิลด์ก่อนลงruntime, ลดน้ำหนักชนิด/poolที่มีซ้ำ, ไม่แก้ต้นแบบ. กฎจับใช้ `WILD.captureEligibility`; สมุนไพรต้องอยู่ในกระเป๋าจริง. รายละเอียดและผลตรวจ: PATCH_REPORTS/LIVING_HUNT_VARIETY.md.

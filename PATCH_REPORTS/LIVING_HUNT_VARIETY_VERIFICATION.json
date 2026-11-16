@@ -1,0 +1,156 @@
+{
+  "baseCommit": "5be07c3",
+  "scope": "wildlife variety and complete runtime identity",
+  "targeted": [
+    {
+      "test": "wildlife_variety_and_identity",
+      "exitCode": 0
+    },
+    {
+      "test": "wildlife_spawn_integrity",
+      "exitCode": 0
+    },
+    {
+      "test": "wildlife_batches",
+      "exitCode": 0
+    },
+    {
+      "test": "onmap_wildlife",
+      "exitCode": 0
+    },
+    {
+      "test": "land_hunt_rewards",
+      "exitCode": 0
+    },
+    {
+      "test": "ecology_expansion",
+      "exitCode": 0
+    },
+    {
+      "test": "autonomous_economy_facilities",
+      "exitCode": 0
+    },
+    {
+      "test": "combat_passives",
+      "exitCode": 0
+    },
+    {
+      "test": "skill_visual_events",
+      "exitCode": 0
+    },
+    {
+      "test": "npc_cognition",
+      "exitCode": 0
+    },
+    {
+      "test": "save_integrity",
+      "exitCode": 0
+    },
+    {
+      "test": "v240_composable_keywords_and_tactical_combat_suite",
+      "exitCode": 0
+    },
+    {
+      "test": "core_lock",
+      "exitCode": 0
+    }
+  ],
+  "browserRechecks": [
+    {
+      "test": "skill_visual_browser",
+      "code": 0
+    },
+    {
+      "test": "observer_controls_browser",
+      "code": 0
+    },
+    {
+      "test": "weapon_motion_vfx_browser",
+      "code": 0
+    },
+    {
+      "test": "common_skill_vfx_browser",
+      "code": 0
+    },
+    {
+      "test": "t3_skill_vfx_browser",
+      "code": 0
+    },
+    {
+      "test": "legendary_apex_browser",
+      "code": 0
+    },
+    {
+      "test": "t7_skill_vfx_browser",
+      "code": 0
+    },
+    {
+      "test": "signature_vfx_catalog_browser_audit",
+      "code": 0
+    },
+    {
+      "test": "t6_group_vfx_browser",
+      "code": 0
+    },
+    {
+      "test": "input_cancellation",
+      "code": 0
+    },
+    {
+      "test": "outside_visual_browser",
+      "code": 0
+    },
+    {
+      "test": "inventory_grid_ui_suite",
+      "code": 0
+    },
+    {
+      "test": "startup_ui",
+      "code": 0
+    },
+    {
+      "test": "world_atlas_browser",
+      "code": 0
+    },
+    {
+      "test": "fishing_river_suite",
+      "code": 0
+    },
+    {
+      "test": "lineage_chronicle_browser",
+      "code": 0
+    },
+    {
+      "test": "ancestor_profile_browser",
+      "code": 0
+    },
+    {
+      "test": "legendary_visual_browser",
+      "code": 0
+    },
+    {
+      "test": "item_art_browser",
+      "code": 0
+    }
+  ],
+  "browserMobilePerf": {
+    "passed": true,
+    "avgMsPerTick": 3.328,
+    "population": 80
+  },
+  "newCanvasBrowser": {
+    "passed": true,
+    "families": 12
+  },
+  "longSimulation": {
+    "passed": true,
+    "days": 30,
+    "ticks": 43200,
+    "elapsedMs": 18593
+  },
+  "knownChecksNotPassing": {
+    "observer_autonomy_suite": "same seeded opportunity assertion fails on base 5be07c3",
+    "v410_cold_node_perf": "4.538 / 3.893 / 4.041 ms per tick; strict 3.5ms assertion still fails"
+  },
+  "note": "Initial broad run and targeted rechecks; not a claim that one final full sweep passed."
+}

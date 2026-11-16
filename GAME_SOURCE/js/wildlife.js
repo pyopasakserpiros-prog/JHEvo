@@ -87,7 +87,7 @@
       nameTh: 'ป่าไผ่หมอกครามประจิม',
       dir: 'west',
       x0: 5, x1: 25, y0: 30, y1: 125,
-      min: 2, max: 4,
+      min: 1, max: 4,
       pools: [
         { id: 'west_hound_pool', nameTh: 'ฝูงอสูรหมาป่าโลหิตและหมูป่า', min: 2, max: 4, speciesIds: ['BEAST_IRON_BOAR', 'BEAST_BLOOD_FIEND_HOUND_4'], weight: 30 },
         { id: 'west_treant_pool', nameTh: 'ดงงูพฤกษาพันปีและกวางเมฆาคราม', min: 3, max: 4, speciesIds: ['BEAST_ANCIENT_TREANT_SERPENT_4', 'BEAST_THUNDER_HORN_STAG_4', 'BEAST_MIST_JADE_STAG'], weight: 25 },
@@ -102,7 +102,7 @@
       nameTh: 'หน้าผาหินแกร่งบูรพา',
       dir: 'east',
       x0: 215, x1: 235, y0: 30, y1: 125,
-      min: 3, max: 5,
+      min: 1, max: 5,
       pools: [
         { id: 'east_tortoise_pool', nameTh: 'ดงเต่าศิลาเพลิงพิภพ', min: 4, max: 4, speciesIds: ['BEAST_LAVA_FLAME_TORTOISE_4', 'BEAST_SAND_SCORPION'], weight: 25 },
         { id: 'east_drake_pool', nameTh: 'ผากิ้งก่ามังกรและเหยี่ยวดารา', min: 4, max: 5, speciesIds: ['BEAST_THUNDER_DRAKE_LIZARD', 'BEAST_ASTRAL_VOID_HAWK_5'], weight: 25 },
@@ -129,7 +129,57 @@
   };
   WILD.zones = zones;
 
+  const copy = value => JSON.parse(JSON.stringify(value));
+  WILD.speciesDefinition = id => {
+    const own = (JD.BEASTS.species || []).concat(JD.BEASTS.kings || []).find(s => s.id === id);
+    if (!own) return null;
+    const base = own.species && (JD.BEASTS.species || []).find(s => s.id === own.species);
+    const resolved = Object.assign({}, base || {}, own);
+    if (!resolved.elementProfile && resolved.element) resolved.elementProfile = resolved.element === 'NEUTRAL'
+      ? { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} }
+      : { mode: 'INTRINSIC_SINGLE', primary: resolved.element, weights: { [resolved.element]: 1 } };
+    return resolved;
+  };
+  WILD.isLandSpecies = s => {
+    const terrain = Array.isArray(s.terrain) ? s.terrain : [s.terrain];
+    return s.archetype !== 'AQUATIC' && s.family !== 'AQUATIC' &&
+      terrain.some(t => ['plains','forest','mountain','desert','ruin','ruins'].includes(t)) &&
+      Number.isFinite(s.cp) && s.cp > 0 && s.elementProfile &&
+      Array.isArray(s.drops) && s.drops.some(id => ECO.matById[id]);
+  };
+  let poolCatalogSize = -1;
+  WILD.expandPools = () => {
+    const all = (JD.BEASTS.species || []).concat(JD.BEASTS.kings || []);
+    if (poolCatalogSize === all.length) return;
+    poolCatalogSize = all.length;
+    const habitats = { meadow: ['plains'], ridge: ['mountain', 'desert', 'ruins', 'ruin'],
+      west_grove: ['forest'], east_crag: ['mountain', 'desert', 'ruins', 'ruin'], north_peak: ['mountain'],
+      legend: ['forest', 'plains', 'mountain', 'desert', 'ruins', 'ruin'] };
+    for (const [zoneId, accepted] of Object.entries(habitats)) {
+      const z = zones[zoneId];
+      z.pools = z.pools.filter(p => !p.catalogExpansion);
+      const existing = new Set(z.pools.flatMap(p => p.speciesIds || []));
+      const groups = new Map();
+      for (const raw of all) {
+        const sp = WILD.speciesDefinition(raw.id);
+        if (!WILD.isLandSpecies(sp) || existing.has(sp.id) || sp.tier < z.min || sp.tier > z.max) continue;
+        const terrain = Array.isArray(sp.terrain) ? sp.terrain : [sp.terrain];
+        if (!terrain.some(t => accepted.includes(t))) continue;
+        const rare = sp.tier >= 6 || sp.id.startsWith('KING_');
+        if (z.legendary && !rare) continue;
+        const key = sp.tier + (rare ? '_legendary' : '_ordinary');
+        if (!groups.has(key)) groups.set(key, { id: 'catalog_' + zoneId + '_' + key,
+          nameTh: z.nameTh + ' · อสูรระดับ ' + sp.tier, min: sp.tier, max: sp.tier,
+          legendary: rare, catalogExpansion: true, weight: 22, speciesIds: [] });
+        groups.get(key).speciesIds.push(sp.id);
+      }
+      z.pools.push(...groups.values());
+    }
+  };
+  WILD.expandPools();
+
   WILD.init = W => {
+    WILD.expandPools();
     if (!W.wildlife) W.wildlife = { seq: 0, beasts: [], kills: 0 };
     if (!W.wildlife.landLoreRecorded && typeof W.log === 'function') {
       W.wildlife.landLoreRecorded = true;
@@ -166,7 +216,7 @@
     } else if (z.pools && z.pools.length) {
       const choices = z.pools.filter(p => (!opts.ordinary || (!p.legendary && !z.legendary)) && (!opts.legendary || p.legendary || z.legendary));
       if (!choices.length) return null;
-      pool = W.rng.weighted ? W.rng.weighted(choices, p => p.weight || 10) : W.rng.pick(choices);
+      pool = W.rng.weighted ? W.rng.weighted(choices, p => (p.weight || 10) / (1 + active.filter(b=>b.zone===zoneId && b.pool===p.id).length)) : W.rng.pick(choices);
     }
 
     if (opts.ordinary && (z.legendary || pool?.legendary)) return null;
@@ -174,7 +224,7 @@
     const minTier = pool ? (pool.min == null ? z.min : pool.min) : z.min;
     const maxTier = pool ? (pool.max == null ? z.max : pool.max) : z.max;
     const isValidCandidate = s => {
-      if (!s || s.terrain === 'water' || s.archetype === 'AQUATIC') return false;
+      if (!s || !WILD.isLandSpecies(WILD.speciesDefinition(s.id))) return false;
       if (pool && pool.speciesIds && pool.speciesIds.length && !pool.speciesIds.includes(s.id)) return false;
       if (opts.ordinary && legendSpecies(s)) return false;
       if (opts.legendary && !legendSpecies(s) && !(pool && pool.legendary) && !z.legendary) return false;
@@ -192,11 +242,12 @@
       // Do not replace an empty/invalid named pool with an unrelated species from the zone.
       // The caller may retry another valid zone/pool on the next refill cycle.
       if (!cands.length) return null;
-      species = W.rng.pick(cands);
+      species = W.rng.weighted(cands, s => 1 / (1 + active.filter(b=>b.speciesId===s.id).length * 3));
     }
+    species = WILD.speciesDefinition(species.id);
     const isLegend = !!(pool && pool.legendary) || !!z.legendary || species.tier >= 6 || String(species.id).startsWith('KING_');
     if (isLegend && active.some(b => b.legendary)) return null;
-    const isAggressive = (z.peaceful || species.tier <= 2) ? false : ((species.aggro || 60) >= 70);
+    const isAggressive = (z.peaceful || species.tier <= 2) ? false : ((species.aggro ?? 60) >= 70);
     const legal = (x, y) => isOutsideWall(W.map, x, y) && !MAP.blocked(W.map, x, y) &&
       !((isAggressive || species.tier >= 3) && MAP.isInSafeBelt && MAP.isInSafeBelt(x + .5, y + .5));
     let x, y, placed = false;
@@ -213,8 +264,12 @@
     if (!placed) return null;
     const id = 'wild_' + (++W.wildlife.seq);
 
-    const b = {
+    const b = Object.assign(copy(species), {
       id,
+      kind: 'beast',
+      sp: species.id,
+      fleeAt: Math.max(0, Math.min(1, (species.flee || 0) / 100)),
+      combatKeywords: [...(species.combatKeywords || []), ...(species.specialAbility?.combatKeywords || [])],
       foe: true,
       wild: true,
       speciesId: species.id,
@@ -237,7 +292,11 @@
       dead: false,
       gone: false,
       skl: []
-    };
+    });
+    if (b.combatKeywords.includes('KW_REFLECT_CONSOLIDATE')) b.combatKeywords.push({id:'KW_REFLECT',value:0.10});
+    b.archetype = b.archetype || g.SK.beastFamily(b);
+    b.family = b.family || b.archetype;
+    b.skl = g.SK.foeSkills(b);
     b.hp = b.hpMax;
     W.wildlife.beasts.push(b);
 
@@ -265,6 +324,21 @@
     return true;
   };
 
+  WILD.captureEligibility = (n, b) => {
+    if (b.tameable === false) return { allowed:false, reason:'อสูรชนิดนี้ไม่ยอมรับการฝึก' };
+    const rule = b.captureRule || '';
+    const skill = g.MARTIAL && g.MARTIAL.skillRead ? g.MARTIAL.skillRead(n,'BEAST_TAMING') : (n.h.skills.BEAST_TAMING || 0);
+    const minSkill = /BEAST_TAMING_(\d+)/.exec(rule);
+    if (!rule || (minSkill && skill >= Number(minSkill[1]))) return {allowed:true};
+    const weak = /WEAKEN_BELOW_(\d+)_PCT/.exec(rule);
+    if (weak && b.hp / Math.max(1,b.hpMax) <= Number(weak[1])/100) return {allowed:true};
+    if (rule.startsWith('OFFER_SPIRIT_HERB')) {
+      const herb = Object.keys(n.inv?.mats || {}).find(id => n.inv.mats[id] > 0 && ECO.matById[id]?.category === 'HERB' && ECO.matById[id].tier >= b.tier-2);
+      if (herb) return {allowed:true,offeringMatId:herb};
+    }
+    return {allowed:false,reason:'ยังไม่ผ่านเงื่อนไขฝึกอสูร: ต้องเตรียมของบูชาหรือทักษะฝึกอสูรที่เหมาะสม'};
+  };
+
   WILD.startTameFight = (W, n, b, opts) => {
     return WILD.startFight(W, n, b, Object.assign({ tameIntent: true }, opts || {}));
   };
@@ -278,7 +352,11 @@
 
     if (!b.captured && f.ctx && f.ctx.tameIntent && winner === 'A' && n && !n.dead && CULT.attemptTameBeast) {
       b.hp = Math.min(b.hp || 1, Math.max(1, Math.round(b.hpMax * 0.15)));
-      CULT.attemptTameBeast(W, n, b, { force: !!f.ctx.forceTame });
+      const capture = f.ctx.forceTame ? {allowed:true} : WILD.captureEligibility(n,b);
+      if (capture.allowed) {
+        if (capture.offeringMatId) n.inv.mats[capture.offeringMatId]--;
+        CULT.attemptTameBeast(W, n, b, { force: !!f.ctx.forceTame });
+      } else W.log('explore',HC.fullName(n) + ' ไม่อาจผูกพันกับ ' + b.name + ': ' + capture.reason,[n.id]);
     }
     if (b.captured && n && !n.dead) {
       b.dead = false;
@@ -446,8 +524,17 @@
     },
     where(W, n) {
       const npw = CULT.power(n); const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8);
-      candidates.sort((a,b)=>g.COG?g.COG.huntValue(W,n,b)-g.COG.huntValue(W,n,a):Math.hypot(n.x-a.x,n.y-a.y)-Math.hypot(n.x-b.x,n.y-b.y));
-      const b = candidates[0];
+      // Bound A* work: inspect nearby, realm-appropriate opportunities first.
+      const nearby = candidates.map(beast => ({ beast, distance: Math.hypot(n.x-beast.x,n.y-beast.y) *
+        (1 + Math.abs(Math.log(Math.max(0.05,npw/Math.max(1,beast.power))))) }));
+      nearby.sort((a,b)=>a.distance-b.distance);
+      let b = null;
+      for (let offset=0; offset<nearby.length && !b; offset+=8) {
+        const ranked = nearby.slice(offset,offset+8).map(({beast}) => ({beast,
+          value:g.COG ? g.COG.huntValue(W,n,beast) : -Math.hypot(n.x-beast.x,n.y-beast.y)}));
+        ranked.sort((a,b)=>b.value-a.value);
+        b = ranked.find(entry=>Number.isFinite(entry.value))?.beast || null;
+      }
       if (b) n.landHuntTrip = { at: W.t, travel: WILD.estimateTrip(W, n, b) };
       return b ? { pos: { x: b.x, y: b.y }, beastId: b.id } : null;
     },

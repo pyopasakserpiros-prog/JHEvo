@@ -878,6 +878,14 @@
   };
 
   /* ศัตรู/ผู้ช่วยรบ: สร้างชุดวิชาที่มีระยะและบทบาทหลากหลายตามชนิด/อาวุธ/ระดับ */
+  SK.beastFamily = u => {
+    const id = String(u.speciesId || '');
+    return String(u.archetype || u.family || (/WOLF|HOUND/.test(id) ? 'CANINE' :
+      /TIGER|PANTHER|LION/.test(id) ? 'FELINE' : /BEAR/.test(id) ? 'URSINE' :
+      /BOAR/.test(id) ? 'BOAR' : /PYTHON|SERPENT|SNAKE|DRAGON/.test(id) ? 'SERPENT' :
+      /ROC|HAWK|GARUDA/.test(id) ? 'AVIAN' : /TURTLE|TORTOISE/.test(id) ? 'SHELL' :
+      /SCORPION|MOTH|SPIDER/.test(id) ? 'ARTHROPOD' : /STAG|KIRIN|QILIN/.test(id) ? 'UNGULATE' : 'CHIMERA')).toUpperCase();
+  };
   SK.foeSkills = u => {
     const species = u && JD.BEASTS && JD.BEASTS.species
       ? JD.BEASTS.species.find(s => s.id === u.speciesId || s.id === u.sp || s.nameTh === u.name)
@@ -908,9 +916,31 @@
     const t = u ? (u.tier || 1) : 1, L = [];
     const wProf = SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u) : { weaponType: 'FIST', reachClass: 'SHORT_SWIFT' };
     if (u && u.wild) {
-      L.push(mk('strike', 'ตะปบกัดฉีก', t, 'p', { range: { min: 0, max: 1.45, shape: 'SINGLE' } }));
-      if (t >= 3) L.push(mk('control', 'คำรามสะท้านใจ', t, 'm', { ctrl: 'stun', aoe: true, range: { min: 0, max: 2.6, shape: 'CIRCLE_SELF', radius: 2.4 } }));
-      if (t >= 4) L.push(mk('burst', 'พลังอสูรบรรพกาลปะทุ', t, 'm', { aoe: true, range: { min: 0, max: 3.2, shape: 'CIRCLE_TARGET', radius: 2.4 } }));
+      const fam = SK.beastFamily(u);
+      L.push(mk(['CANINE','FELINE'].includes(fam) && t >= 2 ? 'flurry' : 'strike',
+        ['BOAR','UNGULATE'].includes(fam) ? 'เขี้ยวเขากระแทก' : fam === 'AVIAN' ? 'กรงเล็บวิหค' : 'ตะปบกัดฉีก', t, 'p'));
+      if (['BOAR','UNGULATE','CANINE'].includes(fam)) L.push(mk('charge', 'อสูรพุ่งทะลวง',t,'p'));
+      if (['URSINE','SHELL'].includes(fam)) L.push(mk('guard', 'เกราะกายอสูร',t,'p',{shield:0.12,self:true}));
+      if (['AVIAN','PLANT','PLANT_SPIRIT','CHIMERA'].includes(fam))
+        L.push(mk('snipe', fam === 'AVIAN' ? 'ขนศรปราณวิหค' : 'ซัดปราณอสูร',t,'m'));
+      if (['SERPENT','ARTHROPOD'].includes(fam)) L.push(mk('dot','พิษเขี้ยวและหนามอสูร',t,'m',{dotKind:'poison'}));
+      if (['PLANT','PLANT_SPIRIT'].includes(fam)) L.push(mk('control','เถาวัลย์พันธนาการ',t,'m',{ctrl:'root'}));
+      if (t >= 3) L.push(mk('control','ปราณอสูรสะกดศัตรู',t,'m',
+        {ctrl:rawElement === 'WATER_ICE' ? 'slow' : rawElement === 'LIGHTNING' ? 'stun' : 'weaken'}));
+      if (t >= 5) L.push(mk('burst','ปราณอสูรบรรพกาลปะทุ',t,'m',{aoe:true}));
+      const ability = u.specialAbility;
+      if (ability) {
+        const defs = {
+          ABIL_IRON_MARROW_GUARD:['counter',{shield:0.12,self:true}],
+          ABIL_THUNDER_TUSK_STAMPEDE:['charge',{pen:25,ctrl:'armorbreak'}],
+          ABIL_SOLAR_STAR_AEGIS:['guard',{shield:0.18,self:true}],
+          ABIL_MIST_QILIN_BLESSING:['heal',{heal:0.10,overhealBarrier:true,team:true,aoe:true}],
+          ABIL_FROST_PEARL_MAELSTROM:['control',{ctrl:'slow',aoe:true}],
+          ABIL_BODHI_THORN_SANCTUARY:['support',{heal:0.06,shield:0.10,team:true,aoe:true,grantBuff:'vitalRegen'}]
+        };
+        const spec = defs[ability.id];
+        if (spec) L.push(mk(spec[0],ability.nameTh,t,'m',Object.assign({id:ability.id,beastNativeAbility:ability.id},spec[1])));
+      }
     } else if (u && u.kind === 'beast') {
       const fam = String(u.family || (species && species.family) || '').toUpperCase();
       const nm = String(u.name || '');

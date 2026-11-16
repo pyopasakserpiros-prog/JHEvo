@@ -321,3 +321,6 @@ Schema validator ตรวจ facilityLevel ของ ALCHEMY/FORGING/ARRAY/TALI
 
 ### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
 - Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).
+
+## Living Hunt identity (2026-11-16)
+สัตว์บก125/สัตว์น้ำ15จากJD.BEASTS140รายการ. `WILD.speciesDefinition` สืบทอดราชันผ่านspeciesก่อนspawn; ห้ามทำข้อมูลชื่อ/ธาตุ/visual/anatomy/drops/specialAbility/captureRuleหายเมื่อแปลงเป็นหน่วยรบ. ทดสอบ `wildlife_variety_and_identity` ตรวจเกิดจริงครบทุกช่องและเทียบข้อมูลครบทุกฟิลด์ที่ไม่ใช่runtime. elementProfileที่ต้นแบบไม่ได้กำหนดสร้างจากelementจริง; ห้ามสุ่มธาตุแทน. ดูรายงาน LIVING_HUNT_VARIETY.

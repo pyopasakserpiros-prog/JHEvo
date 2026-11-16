@@ -4946,13 +4946,16 @@
       const by = (Number.isFinite(b._py) && Math.hypot(b.y - b._py, b.x - b._px) < 4) ? (b._py + (b.y - b._py) * a) : b.y;
       const x = bx * TS, y = by * TS, id = b.speciesId || '', large = b.tier >= 6;
       const sp = (g.JD && g.JD.BEASTS && g.JD.BEASTS.species && g.JD.BEASTS.species.find(s => s.id === id));
-      const arch = sp?.archetype || (/PYTHON|SNAKE|SERPENT/.test(id) ? 'SERPENT' : /ROC|BIRD|PHOENIX|AVIAN/.test(id) ? 'AVIAN' : /TURTLE|TORTOISE|SHELL/.test(id) ? 'SHELL' : /FISH|AQUATIC|CARP|SHARK|WHALE/.test(id) ? 'AQUATIC' : 'CANINE');
-      const body = sp?.visual?.body || (large ? '#78518b' : b.tier >= 3 ? '#b27b55' : '#9d8b70');
-      const accent = sp?.visual?.accent || (large ? '#c99aeb' : '#e9c586');
+      const family = b.archetype || b.family || sp?.archetype || (g.SK && g.SK.beastFamily ? g.SK.beastFamily(b) : 'CANINE');
+      const arch = family === 'PLANT_SPIRIT' ? 'PLANT' : family;
+      const body = b.visual?.body || sp?.visual?.body || (large ? '#78518b' : b.tier >= 3 ? '#b27b55' : '#9d8b70');
+      const accent = b.visual?.accent || sp?.visual?.accent || (large ? '#c99aeb' : '#e9c586');
+      const bodyScale = Math.max(0.7, Math.min(1.6, Number((b.visual || sp?.visual)?.scale) || 1));
 
       ctx.save();
       ctx.translate(x, y);
       if (this.cam.z >= .42) this.drawCommonStatusAuras(ctx, b, 0);
+      ctx.scale(bodyScale, bodyScale);
       ctx.fillStyle = 'rgba(0,0,0,.22)';
       ctx.beginPath(); ctx.ellipse(0, 1, large ? 13 : 9, large ? 5 : 3.5, 0, 0, 7); ctx.fill();
 
