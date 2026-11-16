@@ -137,7 +137,7 @@ while (W.t < endT) {
     // 3. Wildlife invariants
     if (W.wildlife && W.wildlife.beasts) {
       const active = W.wildlife.beasts.filter(b => !b.gone && !b.dead);
-      assert(active.length <= 12, `Active beasts must not exceed 12: ${active.length}`);
+      assert(active.length <= WILD.MAX_ACTIVE_BEASTS, `Active beasts must not exceed 12: ${active.length}`);
       const legCount = active.filter(b => b.legendary).length;
       assert(legCount <= 1, `Active legendary beasts must not exceed 1: ${legCount}`);
       // Zero aquatic beasts on sect map

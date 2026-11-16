@@ -811,6 +811,9 @@
       W = { t: (g.STATS && g.STATS.now) || 0, rng: { chance: () => false, next: () => 0.5 }, byId: {} };
       f = { id: 0, serious: false, A: [d.id], B: [] };
     }
+    if (f && f.kind === 'wild' && dmg > 0) {
+      if (a && a.wild && a.landInfluence) dmg *= 0.6;
+    }
     // Patch v2.2.0: Shadow Clone 1-HP Decoy Interception runs before armor, shields, or posture mitigations
     if (d && dmg > 0 && note !== 'สะท้อนคมดาบอิไอ') {
       const ST = STs();
@@ -1253,6 +1256,10 @@
     }
     if (!d.foe && d.cult && d.cult.path === 'CHRONO_EPOCH' && g.CULT && g.CULT.GRAND_DAO_MECHANICS && g.CULT.GRAND_DAO_MECHANICS.recordTemporalHpSnapshot) {
       g.CULT.GRAND_DAO_MECHANICS.recordTemporalHpSnapshot(W, d, C.hp(d));
+    }
+    if (f && f.kind === 'wild' && a && !a.foe && d.wild && d.landInfluence && dmg > 0) {
+      f.ctx.landContributions = f.ctx.landContributions || {};
+      f.ctx.landContributions[a.id] = (f.ctx.landContributions[a.id] || 0) + Math.min(C.hp(d), dmg);
     }
     let hp = C.hp(d) - dmg;
     if (hp <= 0 && d.isGateBeast && (d.fourSymbol === 'VERMILION_PHOENIX' || d.fourSymbol === 'BLACK_TORTOISE' || d.bloodlineTrait === 'SOVEREIGN_AWAKENED' || d.bloodlineTrait === 'VERMILION_PHOENIX' || d.bloodlineTrait === 'BLACK_TORTOISE') && !d.sovereignGuardUsed) {
@@ -2923,6 +2930,11 @@
         }
         const bKind = p.grantBuff || ((!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 'vitalRegen' : null);
         if (bKind && ST.applyNamedBuff) ST.applyNamedBuff(tgt, bKind, buffDur, W.t, { casterId: a.id });
+        const effectiveLandHeal = Math.min(healAmt, Math.max(0, thm * (1-beforeFrac)));
+        if (f && f.kind === 'wild' && !a.foe && effectiveLandHeal > 0 && f.A.includes(a.id)) {
+          f.ctx.landContributions = f.ctx.landContributions || {};
+          f.ctx.landContributions[a.id] = (f.ctx.landContributions[a.id] || 0) + effectiveLandHeal;
+        }
         tgt.fx = { t: W.t, text: '💚 +' + healAmt };
         runPassiveProcs(W, f, a, tgt, 'onHeal', healAmt);
       });

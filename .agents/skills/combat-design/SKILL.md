@@ -399,3 +399,7 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 - **Path/Sub-Path & Specialty Motifs (`SK.SUBPATH_VFX_MOTIFS`)**: 64 motifs + 122 Mantra mappings (`SK.MANTRA_TO_VFX_MOTIF`), strictly bounded by `SK.TIER_MOTIF_SCALE_CEILING` (`T1: 0.42 .. T7: 1.08`).
 - **Equipment & Combat Action VFX**: `SK.EQUIP_EFFECT_VFX_CATALOG` (`64` forms + 31 Resonance Sets) and `SK.COMBAT_ACTION_VFX_CATALOG` (`36` forms).
 - **Targeting & Spatial Delivery Invariants**: Offensive `blink`/`stanceShift`/`tetherLink` moves with `M > 0`, explicit `selectTargets` selectors (`LOWEST_HP_ENEMY`, etc.), and in-range offensive relic procs anchor impact at the target (`x, y`) while preserving caster origin (`originX, originY`) for ranged projectile/beam/dash delivery (`drawRangedAndSpatialDeliveryVfx`).
+
+## Living Hunt phase 1
+
+เฉพาะตัว `wild && landInfluence`: spawn HP×4 และ C.applyDamage ลดความเสียหายผู้โจมตีเหลือ0.6ในศึกwild. ctx.landContributions บันทึกความเสียหายหลังบรรเทาและการรักษาจากท่าheal; ไม่เพิ่ม catalog species. WILD.awardLandQi แบ่งงบจำกัด ไม่ใช่คูณจำนวนสมาชิก; การช่วยบัฟ/คุมศัตรู/รับแทนยังรอทำต่อ. ดู PATCH_REPORTS/LIVING_HUNT_PHASE1.md.

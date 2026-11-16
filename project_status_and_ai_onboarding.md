@@ -249,3 +249,7 @@ Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วแล�
 
 ### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
 - Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).
+
+## Living Hunt Phase 1 (2026-11-16)
+
+เริ่มเพิ่มความหนาแน่นและจังหวะการล่าใน main-debug: อสูรธรรมดาเป้าหมาย48/เพดานรวม60, HPเฉพาะพื้นที่4เท่า/ความเสียหาย60%, ลดวัตถุดิบและเพิ่มงบปราณแบ่งตามผลงานในศึก การเลือกเป้าหมายคิดเวลาเดินทางจากเส้นทางจริง มีบันทึก lore พื้นที่ลึกลับครั้งเดียว ดู `PATCH_REPORTS/LIVING_HUNT_PHASE1.md` สำหรับสูตร ข้อจำกัดและงานระยะถัดไป แผนที่ยัง240×192 และยังไม่เพิ่มการชวนกลุ่มล่า; ค่า1.2เป็นเป้าหมายสูตร ยังไม่ยืนยันผลบาลานซ์ระยะยาวจากเบราว์เซอร์

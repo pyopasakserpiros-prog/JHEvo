@@ -1857,7 +1857,10 @@
       if (m.kind === 'hunt_win') v += 0.12 * fade;
     }
     const preferred = (b.x - n.x) ** 2 + (b.y - n.y) ** 2;
-    return v - Math.min(0.4, Math.sqrt(preferred) / 400);
+    const trip = g.WILD && g.WILD.estimateTrip ? g.WILD.estimateTrip(W,n,b) : Math.sqrt(preferred)*2;
+    if (!Number.isFinite(trip)) return -Infinity;
+    const fit = Math.exp(-Math.abs(Math.log(Math.max(0.05,ratio))) * 1.5);
+    return fit * 1.1 + v * 0.2 - Math.min(3,trip/100);
   };
 
   /* ============================================================================

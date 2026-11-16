@@ -318,3 +318,7 @@ const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
 AI.ACTS.opportunity เข้าตัวเลือก utility ตามปกติ มีสิทธิ์ไม่ทำ/รอและ cooldown; SECT.AUTONOMY สร้างตัวเลือก 31 กลุ่มจากสภาพจริงโดยไม่ใช้ RNG ระหว่างประเมิน ตรวจเงื่อนไขใหม่ตอนลงมือ เก็บประวัติในเซฟไม่เกิน 80 คีย์ ห้ามบังคับการเลือกเพียงเพื่อต้องการให้เห็นเหตุการณ์
 
 รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+## Living Hunt phase 1
+
+`COG.huntValue` ใช้ `WILD.estimateTrip` (MAP.findPath และ AI.walkSpeed) คิดเวลาไปกลับ ตัด unreachable และลดการเลือกเหยื่ออ่อนกว่า ไม่สุ่มในคะแนน; ค่าเส้นทางใช้ cache เดิม. `wildHunt.where` บันทึกประมาณเวลาใน `landHuntTrip`; startFight เก็บ baseline CULT.rate ในctx. ยังไม่มี squad rally ใหม่ ดูรายงาน LIVING_HUNT_PHASE1.

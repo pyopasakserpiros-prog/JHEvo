@@ -538,3 +538,7 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 NPC opportunities อยู่ใน AI → SECT.AUTONOMY → native effects; เหตุการณ์ศัตรูล้อม/วิกฤตธรรมชาติใช้ EXPED.considerNaturalEndgameEvents ใน tick โลกทุก 10 วัน ไม่สร้างผลจาก UI หรือยืนยันผลสำเร็จ มีทางเลือกรอและตรวจวันซ้ำ ห้ามถือ wrapper API อย่างเดียวว่าเชื่อม simulation แล้ว
 
 รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+## Living Hunt phase 1
+
+ใช้โมดูล wildlife/combat/cognition เดิมและลำดับ40scriptsเดิม ไม่ขยายแผนที่จริงในระยะแรก; เพดานอสูร60 เป้าหมาย48. ข้อมูลlandInfluenceและfight.ctx.landContributionsเป็นสถานะธรรมดา; loreพื้นที่บันทึกผ่านWILD.initครั้งเดียว. ดูแผนผังและข้อจำกัดใน PATCH_REPORTS/LIVING_HUNT_PHASE1.md; ไม่รับรองความเข้ากันได้เซฟเก่าหรือผลมือถือ.

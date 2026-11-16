@@ -3,6 +3,32 @@
   'use strict';
   const { U, MAP, AI, CULT, COMBAT, JD, HC, ECO } = g;
   const WILD = {};
+  WILD.MAX_ACTIVE_BEASTS = 60;
+  WILD.ORDINARY_TARGET = 48;
+  WILD.DROP_CHANCE = 0.18;
+  WILD.LAND_LORE_TH = 'อสูรรอบหุบเขาสะสมปราณจนร่างกายทนทานผิดธรรมดา แต่ปราณโจมตีกลับเบาบาง เมื่อสิ้นชีวิตปราณส่วนหนึ่งคลายออกสู่ผู้ร่วมศึก ยังไม่มีผู้ใดพิสูจน์ต้นเหตุของปรากฏการณ์นี้ได้';
+  WILD.estimateTrip = (W, n, b) => {
+    const path = MAP.findPath(W.map, n.x, n.y, b.x, b.y);
+    if (!path) return Infinity;
+    return Math.max(1, path.length * 2 / Math.max(0.3, AI.walkSpeed(W, n)));
+  };
+  WILD.awardLandQi = (W, f, b) => {
+    const contributors = Object.keys(f.ctx.landContributions || {}).map(id => W.byId[id])
+      .filter(n => n && !n.dead && n.cult && Math.hypot(n.x-b.x,n.y-b.y) <= 12);
+    if (!contributors.length) return;
+    const hunter = W.byId[f.ctx.hunterId];
+    const elapsed = Math.min(180, Math.max(1, W.t - (f.ctx.huntStartedAt ?? f.t0)));
+    const travel = Math.min(120, f.ctx.expectedTravel || 0);
+    const rate = Math.max(0, f.ctx.baseCultRate || 0);
+    const fit = Math.min(1, b.power / Math.max(1, hunter ? CULT.power(hunter) : b.power));
+    const total = rate / 60 * (elapsed + travel) * 1.2 * Math.max(0.02, fit);
+    const weight = contributors.reduce((a,n)=>a+f.ctx.landContributions[n.id],0);
+    for (const n of contributors) {
+      const gain = total * f.ctx.landContributions[n.id] / weight;
+      CULT.gain(n, gain, W, 'wild_land_qi');
+      W.log('cultivation', HC.fullName(n) + ' รับปราณหุบเขาจาก ' + b.name + ' ' + gain.toFixed(2) + ' หน่วย', [n.id]);
+    }
+  };
 
   function isOutsideWall(map, x, y) {
     if (!map || !map.wall) return true;
@@ -105,6 +131,10 @@
 
   WILD.init = W => {
     if (!W.wildlife) W.wildlife = { seq: 0, beasts: [], kills: 0 };
+    if (!W.wildlife.landLoreRecorded && typeof W.log === 'function') {
+      W.wildlife.landLoreRecorded = true;
+      W.log('explore', WILD.LAND_LORE_TH, []);
+    }
   };
 
   WILD.spawn = (W, zoneId, poolId, opts) => {
@@ -112,7 +142,7 @@
     const legendSpecies = s => s.tier >= 6 || String(s.id).startsWith('KING_');
     WILD.init(W);
     const active = W.wildlife.beasts.filter(b => !b.gone && !b.dead);
-    if (active.length >= 12) return null;
+    if (active.length >= WILD.MAX_ACTIVE_BEASTS) return null;
     const z = zones[zoneId];
     if (!z) return null;
 
@@ -191,7 +221,8 @@
       name: species.nameTh,
       tier: species.tier,
       power: species.cp,
-      hpMax: Math.round(species.cp * 1.3 + 30),
+      hpMax: Math.round((species.cp * 1.3 + 30) * 4),
+      landInfluence: true,
       x: x + 0.5,
       y: y + 0.5,
       px: x + 0.5,
@@ -224,7 +255,8 @@
 
     W.foes.push(b);
     W.foeById[b.id] = b;
-    const ctx = Object.assign({ beastId: b.id, hunterId: n.id }, opts || {});
+    const ctx = Object.assign({ beastId: b.id, hunterId: n.id, huntStartedAt: W.t, expectedTravel: n.landHuntTrip?.travel || 0, baseCultRate: CULT.rate(n, 1), landContributions: {} }, opts || {});
+    delete n.landHuntTrip;
     const f = COMBAT.startFight(W, [n.id], [b.id], 'wild', { serious: true, ctx });
     b.fighting = f.id;
     const z = zones[b.zone];
@@ -257,18 +289,19 @@
       HC.experience(n, 'duel_win', 0.8);
       n.merit += Math.max(1, Math.round(b.tier * 1.5));
     } else if (b.dead && winner === 'A' && n && !n.dead) {
+      WILD.awardLandQi(W, f, b);
       const allSpecies = (JD.BEASTS.species || []).concat(JD.BEASTS.kings || []);
       const species = allSpecies.find(s => s.id === b.speciesId);
       n.inv.mats = n.inv.mats || {};
       const drops = species ? (species.drops || []).filter(id => ECO.matById[id]) : [];
       let dropName = '';
-      if (drops.length) {
+      if (drops.length && W.rng.chance(b.legendary ? 0.65 : WILD.DROP_CHANCE)) {
         const id = W.rng.pick(drops);
         n.inv.mats[id] = (n.inv.mats[id] || 0) + 1;
         dropName = ECO.name(id);
       }
       let organName = '';
-      if (species && g.CONTENT && g.CONTENT.organByBeastId && g.CONTENT.organByBeastId[species.id]) {
+      if (W.rng.chance(b.legendary ? 0.5 : 0.12) && species && g.CONTENT && g.CONTENT.organByBeastId && g.CONTENT.organByBeastId[species.id]) {
         const out = {};
         const result = g.CONTENT.harvestOrgan(W, { kind: 'hunt', journal: [] }, [n], out, null, species);
         if (result.recovered && out.organs) {
@@ -282,7 +315,7 @@
       }
       const z = zones[b.zone];
       const zName = z ? z.nameTh : 'นอกสำนัก';
-      const dropText = [dropName, organName].filter(Boolean).join(' และ ') || 'วัตถุดิบอสูร';
+      const dropText = [dropName, organName].filter(Boolean).join(' และ ') || 'ไม่มีชิ้นส่วนสมบูรณ์สำหรับเก็บเกี่ยว';
       W.log('combat', n.h.name.given + ' ล่าสังหาร ' + b.name + ' ใน' + zName + ' สำเร็จ ได้รับ ' + dropText, [n.id]);
       if(g.COG)g.COG.remember(W,n,{kind:'hunt_win',zoneId:b.zone,subjectId:b.speciesId,severity:.4});
       W.wildlife.kills = (W.wildlife.kills || 0) + 1;
@@ -327,19 +360,19 @@
     WILD.init(W);
     const state = W.wildlife;
 
-    if (W.t % 60 === 0) {
+    if (W.t % 15 === 0) {
       let active = state.beasts.filter(b => !b.gone && !b.dead);
-      // เติมอสูรธรรมดาเป็นชุด (1..3 ตัว) เมื่อต่ำกว่าเป้าหมาย 10 ตัว ภายใต้เพดานรวม 12 ตัว
-      if (active.length < 10) {
-        const batchWanted = Math.min(W.rng.int(1, 3), 10 - active.length);
+      // เติมครั้งละ 2..4 ตัวทุก 15 นาทีเกม ภายใต้เป้าหมายและเพดานที่กำหนด
+      if (active.length < WILD.ORDINARY_TARGET) {
+        const batchWanted = Math.min(W.rng.int(2, 4), WILD.ORDINARY_TARGET - active.length);
         const zoneKeys = ['meadow', 'ridge', 'west_grove', 'east_crag', 'north_peak'];
         for (let i = 0; i < batchWanted; i++) {
           active = state.beasts.filter(b => !b.gone && !b.dead);
-          if (active.length >= 10) break;
+          if (active.length >= WILD.ORDINARY_TARGET) break;
           // เรียงโซนตามจำนวนสัตว์ที่มีอยู่น้อยที่สุดเพื่อกระจายทั่วทุกทิศ
           const candidates = zoneKeys
             .map(z => ({ zone: z, count: active.filter(b => b.zone === z).length }))
-            .filter(item => item.count < 3)
+            .filter(item => item.count < 10)
             .sort((a, b) => a.count - b.count);
           if (!candidates.length) break;
           const spawned = WILD.spawn(W, candidates[0].zone, null, { ordinary: true });
@@ -352,7 +385,7 @@
         }
       }
       // โอกาสสุ่มอสูรตำนาน: 1 ครั้งต่อชั่วโมงเกม (โอกาส 0.002) และมีได้ไม่เกิน 1 ตัวพร้อมกันทั่วโลก
-      if (!state.beasts.some(b => b.legendary && !b.gone && !b.dead) && W.rng.chance(0.002)) {
+      if (W.t % 60 === 0 && !state.beasts.some(b => b.legendary && !b.gone && !b.dead) && W.rng.chance(0.002)) {
         const rareZones = Object.keys(zones).filter(id => zones[id].legendary || zones[id].pools.some(p => p.legendary));
         WILD.spawn(W, W.rng.pick(rareZones), null, { legendary: true });
       }
@@ -407,13 +440,15 @@
     score(n, W, S) {
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
       if (n.cult && n.cult.path === 'BODY') S.add('ขัดเกลากายาผ่านการล่าอสูร', 0.85);
-      S.add('ต้องการวัตถุดิบ', 0.35);
+      S.add('รับปราณหุบเขาและโอกาสได้วัตถุดิบ', 0.55);
+      S.add('ยอมรับความเสี่ยงเพื่อฝึกฝน', (HC.eff(n, 'personality.courage') - HC.eff(n, 'personality.caution')) / 100);
       if (n.rank <= 2) S.add('ฝึกฝนความกล้า', 0.2);
     },
     where(W, n) {
       const npw = CULT.power(n); const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8);
       candidates.sort((a,b)=>g.COG?g.COG.huntValue(W,n,b)-g.COG.huntValue(W,n,a):Math.hypot(n.x-a.x,n.y-a.y)-Math.hypot(n.x-b.x,n.y-b.y));
       const b = candidates[0];
+      if (b) n.landHuntTrip = { at: W.t, travel: WILD.estimateTrip(W, n, b) };
       return b ? { pos: { x: b.x, y: b.y }, beastId: b.id } : null;
     },
     start(n, W, ctx) {
