@@ -8,6 +8,7 @@ const css = fs.readFileSync(__dirname + '/../css/style.css', 'utf8');
 assert(/\[16, '16×'/.test(ui), '16× speed control must remain available');
 assert(/\[32, '32×'/.test(ui), '32× speed control must be available');
 assert(/\[48, '48×'/.test(ui), 'existing 48× fast-forward control must remain available');
+assert(/\[96, '96×'/.test(ui), 'new 96× fast-forward control must be available');
 assert(/title=.*s\[0\] === 0/.test(ui) && /aria-label=.*เร่งเวลา /.test(ui), 'speed controls need accessible descriptions');
 assert(/SIM_BUDGET_MS = 12/.test(main), 'simulation must have a per-frame work budget');
 assert(/while \(G\.acc >= 1\)/.test(main), 'pending simulation ticks must be drained from the accumulator');

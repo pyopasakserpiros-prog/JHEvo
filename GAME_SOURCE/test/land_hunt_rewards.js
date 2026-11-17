@@ -18,7 +18,7 @@ if(helper){
  assert(Math.abs(received.reduce((a,x)=>a+x.amount,0)-60)<1e-8);
 }
 CULT.gain=old;
-for(const [x,y,gx,gy] of [[118,80,118,10],[118,80,20,80],[118,80,220,80],[118,80,118,145]])assert(MAP.findPath(W.map,x,y,gx,gy));
+for(const [x,y,gx,gy] of [[180,122,180,20],[180,122,30,123],[180,122,330,123],[180,122,180,235]])assert(MAP.findPath(W.map,x,y,gx,gy));
 assert.strictEqual(WILD.MAX_ACTIVE_BEASTS,60);
 console.log('PASS land qi budget, weak prey reduction, no spectator rewards, four gates');
 

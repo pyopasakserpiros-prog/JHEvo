@@ -257,3 +257,31 @@ Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วแล�
 อสูรธรรมดาเป้าหมาย48/เพดานรวม60 ตำนานไม่เกิน1, HPเฉพาะพื้นที่4เท่า/ความเสียหาย60% ลดวัตถุดิบและเพิ่มงบปราณแบ่งตามผลงานจริงในศึก ขยาย pool จาก113เป็น125ชนิด (ทุกชนิดบกจาก140รายการ; อีก15เป็นน้ำ) รวม241ช่องถิ่นอาศัย/ระดับ ตัวจริงเก็บข้อมูลต้นแบบครบและมี38ชุดท่าตามตระกูล/ระดับ พร้อมท่าที่มีชื่อจากspecialAbility ธาตุ รูปลักษณ์ anatomy ดรอป และกฎจับเลี้ยง การเลือกเป้าหมายประเมินเส้นทางจริงครั้งละ8ตัวเพื่อลดงานซ้ำ
 
 ดู `PATCH_REPORTS/LIVING_HUNT_VARIETY.md` สำหรับกลไก/ผลตรวจ/ข้อจำกัด และ `PATCH_REPORTS/LIVING_HUNT_PHASE1.md` สำหรับสูตรตั้งต้น แผนที่ยัง240×192และยังไม่เพิ่มการชวนกลุ่มล่า; ค่า1.2เป็นเป้าหมายสูตรปราณ ยังไม่ยืนยันบาลานซ์ระยะยาวทุกเซฟ Chromium80NPCวัด3.328ms/tick แต่cold Node benchmarkยังแกว่งและเทสต์โอกาสอัตโนมัติเดิมยังไม่ผ่านตามรายงาน ไม่ได้อ้างว่าfull suiteผ่านทั้งหมด
+
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Audit**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row decision ledger in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**:
+  - **Evidence & Anti-Farming (`npc.deedStats`)**: `recordDeed(W, npc, deedKey, amount, meta)` with `receiptId` idempotency and 6 anti-farming guards (blocks non-serious sparring, trivial targets >2 stages below, overhealing >=90% HP, zero-contribution AFK tag-alongs, and cauldron-explosion stat farming).
+  - **Witness & Epistemic Propagation (`VERIFIED` / `OBSERVED` / `RUMOR`)**: Unwitnessed wilderness feats stay in `npc.deedStats.unwitnessedDeeds` until verified via `verifySecretDeedWithProof`. `propagateRumor` (hooked into `COG.shareKnowledgeOnInteract`) deduplicates `originEventId` in `rumorLedger` to prevent echo-chamber `witnessCount` inflation. Supports `seedAccusationRumor` and `clearFalseAccusation`.
+  - **Multi-Perspective Perception (`evaluatePerception(W, observer, target)`)**: Pure zero-RNG, zero-mutation evaluation returning `attitudeDelta`, `trustDelta`, `fearDelta`, `respectDelta`, and `perceptionLabelTh`.
+  - **Shame Stigma & Autonomous Redemption (`wash_shame_epithet`)**: Shame epithets (`polarity === "SHAME"`) cannot be suppressed by stealth; upright/prideful NPCs activate `npc.epithets.redemptionDrive` and cognition goal `wash_shame_epithet`, redeeming stigma through real heroic deeds (`redeemShameEpithet`) with a 30-day `residualSkepticUntilDay` window.
+  - **12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`, `EPI_CRN_235..246`)**: Strictly 1 holder across `W.npcs`, `W.world.figuresById`, and `W.world.wanderingFigures`; supports direct duel transfer (`checkCrownDuelTransfer`), Tianji ranking reconciliation (`reconcileUniqueCrowns`) with tie-keeps-incumbent and >8% margin, age-28 vacation (`EPI_CRN_245`), immediate vacation on death (`vacateCrownOnDeath`), 2-day rumor lag (`publicKnownHolderId`), and max 1 Sovereign Aura in `ST._applyDaoTraits`.
+  - **Collective Group Epithets (`W.sect.collectiveEpithets`, `EPI_GRP_173..188`), Daoist Names (`EPI_DAO_077..084`), Lineage Seniority (`EPI_DAO_085..092`), Posthumous Tablets (`EPI_PST_247..260`) & Snapshot Immutability**: `bestowDaoName` preserves birth names; `bestowPosthumousTitle` engraves posthumous honorifics onto `W.sect.legacyTablets`; `SIM.snapshotPerson` and `EXPED.buildFactSnapshot` freeze `epithetAtEventTh` immutably.
+  - **Verification Suite**: `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+
+---
+## Latest Patch Update: Life-Experience Traits, Action Masteries, 360×304 Sect Expansion, 1.5× Day Length & 96× Speed (`JS2-v2.6.0` Next Patch)
+- **Life-Experience & Behavioral Action-Mastery Traits (`T01`–`T07`)**:
+  - Evaluated all **72 proposals** from `TRAIT_01B.pdf` + 6 existing `CULT.EXPERIENCE_TRAITS` + 4 existing `COMBAT.ACTION_MASTERY_TRAITS` + 6 Codex Life-Rhythm & Resilience traits (`88` cataloged entries in `docs/handovers/LIFE_TRAITS_72_REVIEW_TRACKER.csv` & `JD.LIFE_TRAITS_REGISTRY`).
+  - Expanded `CULT.EXPERIENCE_TRAITS.CATALOG` to **36** traits with wisdom-preserving recovery (`burdenActive = false, recovered = true`) and episode-watermark deduplication (`episodeWatermarks`).
+  - Expanded `COMBAT.ACTION_MASTERY_TRAITS.TRAIT_DEFS` to **24** masteries with an autonomous **3-slot active cap** (`activeMasteryIds`, max 3 with hysteresis) while retaining full lifetime history in `unlockedTraits`, plus `TRAIT_NONLETHAL_SUBDUER` 1 HP clamp.
+  - Enforced strict **Birth-Pool Guard** (`birthEligible: false` on all 27 Group E `TR_AC_*` traits and `CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits`).
+- **Expanded 360×304 Sect Compound & Wilderness (`M01`–`M06`)**:
+  - Expanded world grid from `240×192` to `360×304` (`109,440` tiles, `2.37×` area; `MAP.OX = 84, MAP.OY = 56`), inner compound wall `WX0 = 72, WY0 = 56, WX1 = 288, WY1 = 204` (`216×148`), central axis `x = 180`, plaza center `(180, 123)`.
+  - Placed all **8 Sacred Peaks** on outer-ring compound terraces with zero road/building overlaps, expanded `MAP.PLOTS` to **8**, added 4 directional gate outposts (`gate_north`, `gate_west`, `gate_east`, `gate`), and implemented true **4-Gate Dynamic Routing** (`S, N, W, E`) with blocked-gate fallback and `M.topologyRev` path-cache invalidation.
+  - Shifted Southern Spirit River to `y ≈ 268` (`3` bridges, `26` fishing stations), added **8 physical Beast Dens** (`W.wildlife.dens`), enforced `!MAP.blocked` on beast movement, and upgraded `COG.huntValue` for realm-appropriate hunting.
+- **1.5× Day Length & 96× Simulation Speed (`D01`–`D04`)**:
+  - `SIM.DAY_FACTOR = 1.5`, `SIM.WORK_STEPS_PER_DAY = 2160` work-steps per `1440`-minute calendar day with `W._isNewCalendarMinute` boundary-once guards and `1 / SIM.DAY_FACTOR` metabolic scaling.
+  - `UI.SPEEDS = [0, 1, 2, 4, 8, 16, 32, 48, 96]` with high-speed render throttling (`50ms` at `96×`) and automatic legacy `240×192` save coordinate migration `(+62, +42)`.

@@ -19,11 +19,11 @@
   ];
 
   const ZONES = {
-    safe_belt: { id: 'safe_belt', nameTh: 'แนวเก็บสมุนไพรปลอดภัยหน้าประตูสำนัก', x0: 80, x1: 156, y0: 135, y1: 155, safe: true },
-    exterior_south: { id: 'exterior_south', nameTh: 'ทุ่งธรรมชาติทิศใต้', x0: 25, x1: 215, y0: 136, y1: 156, safe: false },
-    exterior_west: { id: 'exterior_west', nameTh: 'ชายป่าไผ่ทิศตะวันตก', x0: 6, x1: 24, y0: 25, y1: 125, safe: false },
-    exterior_east: { id: 'exterior_east', nameTh: 'แนวผาศิลาทิศตะวันออก', x0: 216, x1: 234, y0: 25, y1: 125, safe: false },
-    exterior_north: { id: 'exterior_north', nameTh: 'ชายเขาเหมันต์ทิศเหนือ', x0: 35, x1: 205, y0: 4, y1: 14, safe: false }
+    safe_belt: { id: 'safe_belt', nameTh: 'แนวเก็บสมุนไพรปลอดภัยหน้าประตูสำนัก', x0: 124, x1: 236, y0: 206, y1: 228, safe: true },
+    exterior_south: { id: 'exterior_south', nameTh: 'ทุ่งธรรมชาติทิศใต้', x0: 36, x1: 324, y0: 208, y1: 244, safe: false },
+    exterior_west: { id: 'exterior_west', nameTh: 'ชายป่าไผ่ทิศตะวันตก', x0: 8, x1: 64, y0: 36, y1: 200, safe: false },
+    exterior_east: { id: 'exterior_east', nameTh: 'แนวผาศิลาทิศตะวันออก', x0: 296, x1: 352, y0: 36, y1: 200, safe: false },
+    exterior_north: { id: 'exterior_north', nameTh: 'ชายเขาเหมันต์ทิศเหนือ', x0: 50, x1: 310, y0: 6, y1: 48, safe: false }
   };
   WILD_RES.ZONES = ZONES;
 

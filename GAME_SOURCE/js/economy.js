@@ -3483,4 +3483,41 @@
 
   g.ECO = ECO;
   if (typeof module === 'object' && module.exports) module.exports = ECO;
+/* === LIVING_JIANGHU_EPITHETS_ECONOMY_HOOK_V260 === */
+
+  const _origFinishCraftEp = ECO.finishCraft;
+  ECO.finishCraft = (W, npc, r, ctx) => {
+    const res = _origFinishCraftEp(W, npc, r, ctx);
+    if (res && res.ok && npc && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.onCraftFinish) {
+      g.CULT.EPITHETS.onCraftFinish(W, npc, r, res.gear || res.out || null, ctx);
+    }
+    return res;
+  };
+  if (typeof ECO.brewMultiphaseElementalPill === 'function') {
+    const _origBrewMultiEp = ECO.brewMultiphaseElementalPill;
+    ECO.brewMultiphaseElementalPill = (W, alchemist, herbElements, fireElement, opts) => {
+      const res = _origBrewMultiEp(W, alchemist, herbElements, fireElement, opts);
+      if (res && res.ok && alchemist && g.CULT && g.CULT.EPITHETS) {
+        g.CULT.EPITHETS.recordDeed(W, alchemist, 'multiphase_pill_brew', 1, {
+          receiptId: 'mp_pill_' + alchemist.id + '_' + ((W && W.day) || 1) + '_' + ((W && W.t) || 0),
+          descTh: 'หลอมโอสถสามวัฏจักรธาตุสำเร็จ'
+        });
+      }
+      return res;
+    };
+  }
+  if (typeof ECO.refineGearWithCatalyst === 'function') {
+    const _origRefineCatEp = ECO.refineGearWithCatalyst;
+    ECO.refineGearWithCatalyst = (W, gearOrUid, catId, npc, opts) => {
+      const res = _origRefineCatEp(W, gearOrUid, catId, npc, opts);
+      if (res && res.ok && npc && g.CULT && g.CULT.EPITHETS) {
+        g.CULT.EPITHETS.recordDeed(W, npc, 'catalyst_3star_refine', 1, {
+          receiptId: 'cat_ref_' + npc.id + '_' + ((W && W.day) || 1) + '_' + ((W && W.t) || 0),
+          descTh: 'หลอมประสานศาสตราเทพด้วยตัวเร่งธาตุสำเร็จ'
+        });
+      }
+      return res;
+    };
+  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

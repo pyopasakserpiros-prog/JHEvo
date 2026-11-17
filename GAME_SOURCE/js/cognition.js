@@ -1848,8 +1848,14 @@
 
   COG.huntValue = (W, n, b) => {
     const estBPower = COG.estimateTargetPower ? COG.estimateTargetPower(W, n, b) : Math.max(1, b.power);
-    const ratio = CULT.power(n) / Math.max(1, estBPower), caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
-    let v = Math.log2(Math.max(0.05, ratio)) * (0.6 + caution) + (courage - 0.5) * 0.25;
+    const ownPower = Math.max(1, CULT.power(n));
+    const ratio = ownPower / Math.max(1, estBPower), caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
+    const nStage = Math.max(1, (CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult && n.cult.stage)) || 1);
+    const bTier = Math.max(1, b.tier || 1);
+    const tierGap = nStage - bTier;
+    // Realm-matching: elders/high-stage cultivators strongly prefer realm-matched beasts and avoid sniping T1-T2 critters from outer disciples
+    const realmMatchBonus = tierGap > 1 ? -(tierGap - 1) * 0.85 : (Math.abs(tierGap) <= 1 ? 0.55 : -Math.abs(tierGap) * 0.45);
+    let v = clamp(Math.log2(Math.max(0.05, ratio)), -2.5, 1.6) * (0.45 + caution * 0.5) + (courage - 0.5) * 0.35 + realmMatchBonus;
     for (const m of n.cognition?.memory || []) {
       if (m.zoneId !== b.zone) continue;
       const fade = Math.max(0, 1 - (W.t - m.at) / (14 * 1440));
@@ -1859,8 +1865,8 @@
     const preferred = (b.x - n.x) ** 2 + (b.y - n.y) ** 2;
     const trip = g.WILD && g.WILD.estimateTrip ? g.WILD.estimateTrip(W,n,b) : Math.sqrt(preferred)*2;
     if (!Number.isFinite(trip)) return -Infinity;
-    const fit = Math.exp(-Math.abs(Math.log(Math.max(0.05,ratio))) * 1.5);
-    return fit * 1.1 + v * 0.2 - Math.min(3,trip/100);
+    const fit = Math.exp(-Math.abs(Math.log(Math.max(0.05,ratio / 1.15))) * 1.65);
+    return fit * 1.45 + v * 0.35 - Math.min(2.4, trip / 135);
   };
 
   /* ============================================================================
@@ -2813,4 +2819,28 @@
 
   g.COG = COG;
   if (typeof module === 'object' && module.exports) module.exports = COG;
+/* === LIVING_JIANGHU_EPITHETS_COG_HOOK_V260 === */
+
+  const _origShareKnowEp = COG.shareKnowledgeOnInteract;
+  COG.shareKnowledgeOnInteract = (W, a, b, mode) => {
+    const res = _origShareKnowEp(W, a, b, mode);
+    if (W && a && b && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.propagateRumor) {
+      g.CULT.EPITHETS.propagateRumor(W, a, b);
+      g.CULT.EPITHETS.propagateRumor(W, b, a);
+    }
+    return res;
+  };
+
+  const _origCogExplainEp = COG.explain;
+  COG.explain = (W, n) => {
+    const base = _origCogExplainEp ? _origCogExplainEp(W, n) : {};
+    if (n && n.epithets && g.CULT && g.CULT.EPITHETS) {
+      base.epithetDisplayTh = g.CULT.EPITHETS.formatDisplayTitle(n, { includeDaoName: true, includePosthumous: true });
+      if (n.epithets.redemptionDrive && n.epithets.redemptionDrive.active) {
+        base.redemptionDriveTh = n.epithets.redemptionDrive.whyTh;
+      }
+    }
+    return base;
+  };
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

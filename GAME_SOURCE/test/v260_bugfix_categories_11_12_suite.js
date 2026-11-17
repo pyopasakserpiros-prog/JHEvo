@@ -170,7 +170,7 @@ function log(msg) { console.log('  ✓ ' + msg); }
   const blds = W.map.buildings;
   const peakArray = blds.find(b => b.id === 'peak_array');
   assert(peakArray, 'peak_array building must exist');
-  assert(peakArray.y + peakArray.h <= 79, 'peak_array must not block the West Gate highway at y=80..82 (ly=66..68)');
+  assert(peakArray.y + peakArray.h <= 121, 'peak_array must not block the West Gate highway at y=122..124 (ly=66..68)');
 
   for (let i = 0; i < blds.length; i++) {
     for (let j = i + 1; j < blds.length; j++) {
@@ -181,9 +181,9 @@ function log(msg) { console.log('  ✓ ' + msg); }
     }
   }
 
-  const pathNorth = MAP.findPath(W.map, 118, 48, 118, 30);
+  const pathNorth = MAP.findPath(W.map, 180, 80, 180, 30);
   assert(Array.isArray(pathNorth) && pathNorth.length >= 2, 'MAP.findPath must route across North Gate');
-  assert(pathNorth.some(wp => Math.abs((wp.y != null ? wp.y : wp[1]) - 40) <= 2), 'North route should pass near North Gate rather than looping via South Gate');
+  assert(pathNorth.some(wp => Math.abs((wp.y != null ? wp.y : wp[1]) - 56) <= 2), 'North route should pass near North Gate rather than looping via South Gate');
   log('10. [12B5] Sect map footprints non-overlapping, West Gate highway clear, and 4-gate routing verified');
 
   // 11. [12C] Build Pipeline & CSS Verification

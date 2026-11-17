@@ -41,7 +41,7 @@
       id: 'meadow',
       nameTh: 'ทุ่งหญ้าหน้าสำนัก',
       dir: 'south',
-      x0: 38, x1: 96, y0: 139, y1: 153,
+      x0: 44, x1: 116, y0: 210, y1: 244,
       min: 1, max: 2,
       peaceful: true,
       pools: [
@@ -57,7 +57,7 @@
       id: 'ridge',
       nameTh: 'แนวผาหินใต้สำนัก',
       dir: 'south',
-      x0: 140, x1: 202, y0: 139, y1: 153,
+      x0: 244, x1: 320, y0: 210, y1: 244,
       min: 3, max: 5,
       pools: [
         { id: 'ridge_serpents', nameTh: 'ดงเหลือมมรกตเจ็ดพิษ', min: 3, max: 3, speciesIds: ['BEAST_EMERALD_PYTHON', 'BEAST_YIN_SHADOW_BAT_3'], weight: 30 },
@@ -71,7 +71,7 @@
       id: 'legend',
       nameTh: 'แดนอสูรบรรพกาลเร้นลับ',
       dir: 'south',
-      x0: 140, x1: 202, y0: 139, y1: 153,
+      x0: 244, x1: 324, y0: 210, y1: 246,
       min: 6, max: 7,
       legendary: true,
       pools: [
@@ -86,7 +86,7 @@
       id: 'west_grove',
       nameTh: 'ป่าไผ่หมอกครามประจิม',
       dir: 'west',
-      x0: 5, x1: 25, y0: 30, y1: 125,
+      x0: 8, x1: 64, y0: 40, y1: 196,
       min: 1, max: 4,
       pools: [
         { id: 'west_hound_pool', nameTh: 'ฝูงอสูรหมาป่าโลหิตและหมูป่า', min: 2, max: 4, speciesIds: ['BEAST_IRON_BOAR', 'BEAST_BLOOD_FIEND_HOUND_4'], weight: 30 },
@@ -101,7 +101,7 @@
       id: 'east_crag',
       nameTh: 'หน้าผาหินแกร่งบูรพา',
       dir: 'east',
-      x0: 215, x1: 235, y0: 30, y1: 125,
+      x0: 296, x1: 352, y0: 40, y1: 196,
       min: 1, max: 5,
       pools: [
         { id: 'east_tortoise_pool', nameTh: 'ดงเต่าศิลาเพลิงพิภพ', min: 4, max: 4, speciesIds: ['BEAST_LAVA_FLAME_TORTOISE_4', 'BEAST_SAND_SCORPION'], weight: 25 },
@@ -115,7 +115,7 @@
       id: 'north_peak',
       nameTh: 'ยอดเขาเหมันต์อุดร',
       dir: 'north',
-      x0: 35, x1: 205, y0: 3, y1: 15,
+      x0: 50, x1: 310, y0: 6, y1: 48,
       min: 4, max: 6,
       pools: [
         { id: 'north_bear_pool', nameTh: 'หุบผาหมีขาวเหมันต์', min: 4, max: 4, speciesIds: ['BEAST_FROST_BEAR'], weight: 30 },
@@ -178,9 +178,30 @@
   };
   WILD.expandPools();
 
+  WILD.DEN_SPECS = Object.freeze([
+    { id: 'DEN_SOUTH_MEADOW_WOLF', nameTh: 'โพรงหมาป่าหมอกวายุ', zone: 'meadow', x: 76, y: 224, minTier: 1, maxTier: 2, radius: 14 },
+    { id: 'DEN_SOUTH_MEADOW_STAG', nameTh: 'ดงกวางหมอกมรกต', zone: 'meadow', x: 98, y: 234, minTier: 1, maxTier: 2, radius: 14 },
+    { id: 'DEN_SOUTH_RIDGE_SERPENT', nameTh: 'ถ้ำอสรพิษสันผาใต้', zone: 'ridge', x: 268, y: 222, minTier: 3, maxTier: 5, radius: 16 },
+    { id: 'DEN_SOUTH_RIDGE_THUNDER', nameTh: 'รังอสูรอัสนีผาใต้', zone: 'ridge', x: 298, y: 234, minTier: 3, maxTier: 5, radius: 16 },
+    { id: 'DEN_WEST_BAMBOO_HOUND', nameTh: 'ดงไผ่หมาป่าโลหิตประจิม', zone: 'west_grove', x: 32, y: 88, minTier: 1, maxTier: 4, radius: 18 },
+    { id: 'DEN_WEST_SHADOW_BAT', nameTh: 'โพรงค้างคาวเงาหยินประจิม', zone: 'west_grove', x: 28, y: 156, minTier: 2, maxTier: 4, radius: 18 },
+    { id: 'DEN_EAST_CRAG_DRAKE', nameTh: 'ชะง่อนผากิ้งก่ามังกรบูรพา', zone: 'east_crag', x: 324, y: 92, minTier: 1, maxTier: 5, radius: 18 },
+    { id: 'DEN_NORTH_GLACIER_BEAR', nameTh: 'ถ้ำน้ำแข็งหมีเหมันต์อุดร', zone: 'north_peak', x: 180, y: 24, minTier: 4, maxTier: 6, radius: 22 }
+  ]);
+
   WILD.init = W => {
     WILD.expandPools();
-    if (!W.wildlife) W.wildlife = { seq: 0, beasts: [], kills: 0 };
+    if (!W.wildlife) W.wildlife = { seq: 0, beasts: [], kills: 0, dens: [] };
+    if (!Array.isArray(W.wildlife.dens) || W.wildlife.dens.length === 0) {
+      W.wildlife.dens = WILD.DEN_SPECS.map(d => {
+        let px = d.x, py = d.y;
+        if (W && W.map && MAP.blocked && MAP.blocked(W.map, px, py) && MAP.nearestFree) {
+          const nf = MAP.nearestFree(W.map, px, py);
+          if (nf) { px = nf.x; py = nf.y; }
+        }
+        return Object.assign({}, d, { x: px, y: py, activeSpawns: 0 });
+      });
+    }
     if (!W.wildlife.landLoreRecorded && typeof W.log === 'function') {
       W.wildlife.landLoreRecorded = true;
       W.log('explore', WILD.LAND_LORE_TH, []);
@@ -250,9 +271,21 @@
     const isAggressive = (z.peaceful || species.tier <= 2) ? false : ((species.aggro ?? 60) >= 70);
     const legal = (x, y) => isOutsideWall(W.map, x, y) && !MAP.blocked(W.map, x, y) &&
       !((isAggressive || species.tier >= 3) && MAP.isInSafeBelt && MAP.isInSafeBelt(x + .5, y + .5));
-    let x, y, placed = false;
+    let x, y, placed = false, chosenDen = null;
+    const zoneDens = (W.wildlife && Array.isArray(W.wildlife.dens))
+      ? W.wildlife.dens.filter(d => d && d.zone === zoneId && species.tier >= (d.minTier || 1) && species.tier <= (d.maxTier || 7))
+      : [];
+    if (zoneDens.length) {
+      chosenDen = zoneDens[(W.wildlife.seq || 0) % zoneDens.length];
+    }
     for (let attempt = 0; attempt < 24; attempt++) {
-      x = W.rng.int(z.x0, z.x1); y = W.rng.int(z.y0, z.y1);
+      if (chosenDen && attempt < 12) {
+        const rad = chosenDen.radius || 14;
+        x = U.clamp(chosenDen.x + W.rng.int(-rad, rad), z.x0, z.x1);
+        y = U.clamp(chosenDen.y + W.rng.int(-rad, rad), z.y0, z.y1);
+      } else {
+        x = W.rng.int(z.x0, z.x1); y = W.rng.int(z.y0, z.y1);
+      }
       if (legal(x, y)) { placed = true; break; }
     }
     // Deterministic bounded fallback remains within the same habitat.
@@ -283,6 +316,7 @@
       px: x + 0.5,
       py: y + 0.5,
       zone: zoneId,
+      denId: chosenDen ? chosenDen.id : null,
       pool: pool ? pool.id : null,
       speed: 0.5,
       face: 1,
@@ -373,7 +407,7 @@
       n.inv.mats = n.inv.mats || {};
       const drops = species ? (species.drops || []).filter(id => ECO.matById[id]) : [];
       let dropName = '';
-      if (drops.length && W.rng.chance(b.legendary ? 0.65 : WILD.DROP_CHANCE)) {
+      if (drops.length && W.rng.chance(b.legendary ? 0.65 : ((W.wildlife.kills || 0) === 0 && WILD.DROP_CHANCE > 0 ? 1.0 : WILD.DROP_CHANCE))) {
         const id = W.rng.pick(drops);
         n.inv.mats[id] = (n.inv.mats[id] || 0) + 1;
         dropName = ECO.name(id);
@@ -438,7 +472,9 @@
     WILD.init(W);
     const state = W.wildlife;
 
-    if (W.t % 15 === 0) {
+    const isNewCalendarMinute = W._isNewCalendarMinute !== false && W._lastWildTickT !== W.t;
+    W._lastWildTickT = W.t;
+    if (isNewCalendarMinute && W.t % 15 === 0) {
       let active = state.beasts.filter(b => !b.gone && !b.dead);
       // เติมครั้งละ 2..4 ตัวทุก 15 นาทีเกม ภายใต้เป้าหมายและเพดานที่กำหนด
       if (active.length < WILD.ORDINARY_TARGET) {
@@ -492,13 +528,13 @@
         const n = W.npcs.find(n => !n.dead && !n.away && !n.hidden && !n.travel && isOutsideWall(W.map, n.x, n.y) && !(MAP.isInSafeBelt && MAP.isInSafeBelt(n.x, n.y)) && n.act.id !== 'fight' && Math.hypot(n.x - b.x, n.y - b.y) < 2.5);
         if (n) WILD.startFight(W, n, b);
       }
-      if (!b.fighting && W.t % 90 === 0) {
+      if (!b.fighting && isNewCalendarMinute && W.t % 90 === 0) {
         const z = zones[b.zone];
         if (z) {
           b.px = b.x; b.py = b.y;
           const nx = U.clamp(b.x + W.rng.int(-2, 2), z.x0, z.x1);
           const ny = U.clamp(b.y + W.rng.int(-1, 1), z.y0, z.y1);
-          if (isOutsideWall(W.map, nx, ny)) {
+          if (isOutsideWall(W.map, nx, ny) && (!W.map || !MAP.blocked || !MAP.blocked(W.map, nx, ny))) {
             // สัตว์ดุร้ายหรือระดับ 3 ขึ้นไป ห้ามเดินเพ่นพ่านเข้าไปในแนวปลอดภัย
             if (!((b.aggressive || b.tier >= 3) && MAP.isInSafeBelt && MAP.isInSafeBelt(nx, ny))) {
               b.x = nx; b.y = ny;

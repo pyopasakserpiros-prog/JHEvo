@@ -6,7 +6,7 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const UI = { G: null, sheet: null, tab: null, activePeakId: 'OVERVIEW', postDirFilter: 'ALL', lastHud: 0, logSubFilter: 'all', editNpcId: null, editStatGroup: 'personality', editDraft: null, spawnDest: 'sect', spawnSearch: '', spawnKind: 'ALL', spawnTier: 'ALL', spawnElement: 'ALL', spawnRarity: 'ALL', spawnPage: 1, spawnPageSize: 40, spawnQty: 1, spawnQuality: 1, stockSearch: '', stockType: 'ALL', stockTier: 'ALL', stockSort: 'qty', bagSearch: '', bagType: 'ALL', bagSort: 'tier', bagCat: 'ALL', bagPage: 1, bagSelKey: null, bagMoreOpen: false, stockCat: 'ALL', stockPage: 1, stockSelKey: null, stockMoreOpen: false, shopCat: 'ALL', shopSearch: '', shopSort: 'tier', shopPage: 1, shopSelKey: null, shopMoreOpen: false, shopBuyerId: null, sectSubTab: 'CORE', sectPostsSubTab: 'OFFICES', stockItemsSubTab: 'GRID', shopSubTab: 'EXCHANGE', npcSubTab: 'CORE', worldExpSubTab: 'TRAVEL', worldSectsSubTab: 'NEIGHBORS', worldDiscSubTab: 'PORTALS', worldContentSubTab: 'REGIONS', buildingSubTab: 'OVERVIEW', editCharSubTab: 'CULT_ECON', editPetSubTab: 'PETS_BUFFS' };
-  const SPEEDS = [[0, '⏸'], [1, '1×'], [2, '2×'], [4, '4×'], [8, '8×'], [16, '16×'], [32, '32×'], [48, '48×']];
+  const SPEEDS = [[0, '⏸'], [1, '1×'], [2, '2×'], [4, '4×'], [8, '8×'], [16, '16×'], [32, '32×'], [48, '48×'], [96, '96×']];
   UI.SPEEDS = SPEEDS.map(s => s[0]);
 
   const LOG_GROUPS = {
@@ -748,7 +748,7 @@
     $('shClose').onclick = () => UI.close();
     $('fZoomIn').onclick = () => UI.G.R.zoomAt(UI.G.R.vw / 2, UI.G.R.vh / 2, 1.35);
     $('fZoomOut').onclick = () => UI.G.R.zoomAt(UI.G.R.vw / 2, UI.G.R.vh / 2, 1 / 1.35);
-    $('fHome').onclick = () => { UI.G.R.follow = false; UI.G.R.focus(118, 70, 0.9); };
+    $('fHome').onclick = () => { UI.G.R.follow = false; UI.G.R.focus(180, 122, 0.9); };
     $('fFollow').onclick = () => { const R = UI.G.R; if (!R.selected) { UI.toast('เลือกตัวละครก่อน (แตะที่ตัวละครบนแผนที่)'); return; } R.follow = !R.follow; if (R.follow && R.cam.z < 1.6) R.cam.z = 2; $('fFollow').style.background = R.follow ? 'var(--gold)' : ''; };
     $('shBody').addEventListener('click', e => {
       const f = e.target.closest('[data-do]'); if (f) { UI.doAction(f.dataset.do, f.dataset.arg); return; }
@@ -771,13 +771,16 @@
     const pop = SECT.memberOccupancy ? SECT.memberOccupancy(W) : alive.length;
     const cap = SECT.housingCapacity ? SECT.housingCapacity(W) : 46;
     const activeTribs = (W.sect && Array.isArray(W.sect.activeTribulations)) ? W.sect.activeTribulations.filter(x => x && x.active) : [];
+    const activeWildFights = (W && Array.isArray(W.fights)) ? W.fights.filter(f => f && !f.over && f.kind === 'wild') : [];
+    const wildFightPill = activeWildFights.length ? '<button type="button" id="btnFocusWildHud" class="pill" style="cursor:pointer;border-color:#80ed99;color:#b7f7c6;background:rgba(128,237,153,0.14)" title="คลิกเพื่อส่องกล้องดูศิษย์กำลังปะทะสัตว์อสูรนอกกำแพง">🐺 ส่องศึกอสูร (' + activeWildFights.length + ')</button>' : '';
     const tribPill = activeTribs.length ? '<button type="button" id="btnFocusTribHud" class="pill" style="cursor:pointer;border-color:#ffd740;color:#ffe57f;background:rgba(255,215,64,0.14)" title="คลิกเพื่อส่องกล้องดูศิษย์กำลังฝ่าทัณฑ์สวรรค์">⚡ ส่องดูทัณฑ์สวรรค์ (' + activeTribs.length + ')</button>' : '';
-    const raid = (W.threat && W.threat.raid ? '<button type="button" id="btnFocusRaidHud" class="pill" style="cursor:pointer;border-color:#ff8a3a;color:#ffb27a;background:rgba(255,138,58,0.14)" title="คลิกเพื่อเลื่อนกล้องไปยังจุดปะทะผู้บุกรุก">⚠ ศัตรูบุก!</button>' : '') + tribPill;
+    const raid = (W.threat && W.threat.raid ? '<button type="button" id="btnFocusRaidHud" class="pill" style="cursor:pointer;border-color:#ff8a3a;color:#ffb27a;background:rgba(255,138,58,0.14)" title="คลิกเพื่อเลื่อนกล้องไปยังจุดปะทะผู้บุกรุก">⚠ ศัตรูบุก!</button>' : '') + tribPill + wildFightPill;
     const audioPill = '<button type="button" id="btnAudioToggle" class="pill" style="cursor:pointer;background:transparent;color:inherit" title="เปิด/ปิดเสียงบรรยากาศยุทธภพ">' + (UI.audio && UI.audio.muted ? '🔇 ปิดเสียง' : '🔊 เสียงยุทธภพ') + '</button>';
     $('resRow').innerHTML = '<span class="pill" title="ศิลาวิญญาณ">💎 ' + UI.icon('stones') + '<b>' + U.fmtNum(S.stones) + '</b></span><span class="pill" title="เสบียงรวม">🍚 ' + UI.icon('food') + '<b>' + U.fmtNum(ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3) + '</b></span><span class="pill" title="สมาชิกปัจจุบัน / ความจุเตียงพัก">👥 ' + UI.icon('people') + '<b>' + pop + '/' + cap + '</b>' + (away ? ' (นอก ' + away + ')' : '') + '</span><span class="pill" title="ชื่อเสียงสำนัก">🏅 ' + UI.icon('fame') + '<b>' + U.fmtNum(S.fame) + '</b></span>' + audioPill + raid + (G.acc >= 1 ? '<span class="pill" title="งานจำลองที่รอประมวลผลยังถูกเก็บไว้">⏳ รอ ' + Math.floor(G.acc) + ' นาทีเกม</span>' : '');
     const btnAud = $('btnAudioToggle'); if (btnAud) btnAud.onclick = () => UI.doAction('toggle-audio');
     const btnTrb = $('btnFocusTribHud'); if (btnTrb) btnTrb.onclick = () => UI.doAction('focus-tribulation');
     const btnRd = $('btnFocusRaidHud'); if (btnRd) btnRd.onclick = () => UI.doAction('focus-raid');
+    const btnWf = $('btnFocusWildHud'); if (btnWf) btnWf.onclick = () => UI.doAction('focus-wild-fight');
     const R = G.R, sel = R.selected && W.byId[R.selected]; const si = $('selInfo');
     if (sel && !UI.sheet) {
       si.classList.add('show'); const key = sel.id + ':' + sel.act.id + ':' + sel.rank + ':' + (sel.dead ? 1 : 0);
@@ -966,7 +969,7 @@
 
   function R_SHADERS_HAS(k) { return !!(g.Render && g.Render.CELESTIAL_SHADERS && g.Render.CELESTIAL_SHADERS[k]); }
   // Only observation and explicit state editing cross the player interaction boundary.
-  const OBSERVER_ACTIONS = new Set(["npc","chronicle-filter","chronicle-person","chronicle-clear-person","sect-chronicle-more","world-chronicle-cat","world-chronicle-fmt","world-chronicle-sev","world-chronicle-epistemic","world-chronicle-days","world-chronicle-unread","world-chronicle-include-digest","chronicle-thread","reset-archive-filters","news-preset","toggle-news-toast","set-critical-policy","set-toast-severity","toggle-tracked-toast","cycle-cat-channel","set-digest-interval","digest-window","record-digest-now","mark-all-news-read","mark-news-read","world-chronicle-more","timeline-filter","timeline-more","toggle-audio","play-audio-demo","cycle-celestial-preview","toggle-vfx-opt","cycle-ceremony-preview","focus-plaza-ceremony","focus-martial-arena","set-diorama-pose","set-sect-subtab","set-sect-posts-subtab","set-stock-subtab","set-shop-subtab","set-npc-subtab","set-exp-subtab","set-disc-subtab","set-content-subtab","set-building-subtab","set-edit-char-subtab","set-edit-pet-subtab","focus-raid","focus-tribulation","preview-signature-vfx","open-sect-peaks","select-peak-tab","focus-peak-camera","set-post-dir-filter","editnpc","spawnnpc","open-spawn-sect","deselect","locate","follow","goto-npc","toggle-track-npc","untrack-npc","clear-all-tracked","open-log-tracked","open-menu-tracked","open-people","locb","locv","toggle-clue-debug","open-visitor","open-clue","save","load","export","import","new","tool","cmp","logfilter","logsubfilter","spawn-page","set-inv-mode","bag-cat","bag-page","bag-sel","bag-close-detail","bag-toggle-more","stock-cat","stock-page","library-detail","stock-sel","stock-close-detail","stock-toggle-more","shop-cat","shop-page","shop-sel","shop-close-detail","shop-toggle-more","set-lib-cat","open-world-map","atlas-select","atlas-group","atlas-close","atlas-filter","atlas-layer","atlas-zoom","atlas-home","atlas-open-discovery","atlas-open-realms","atlas-open-legends","select-world-node","set-world-subtab","set-chronicle-filter"]);
+  const OBSERVER_ACTIONS = new Set(["npc","chronicle-filter","chronicle-person","chronicle-clear-person","sect-chronicle-more","world-chronicle-cat","world-chronicle-fmt","world-chronicle-sev","world-chronicle-epistemic","world-chronicle-days","world-chronicle-unread","world-chronicle-include-digest","chronicle-thread","reset-archive-filters","news-preset","toggle-news-toast","set-critical-policy","set-toast-severity","toggle-tracked-toast","cycle-cat-channel","set-digest-interval","digest-window","record-digest-now","mark-all-news-read","mark-news-read","world-chronicle-more","timeline-filter","timeline-more","toggle-audio","play-audio-demo","cycle-celestial-preview","toggle-vfx-opt","cycle-ceremony-preview","focus-plaza-ceremony","focus-martial-arena","set-diorama-pose","set-sect-subtab","set-sect-posts-subtab","set-stock-subtab","set-shop-subtab","set-npc-subtab","set-exp-subtab","set-disc-subtab","set-content-subtab","set-building-subtab","set-edit-char-subtab","set-edit-pet-subtab","focus-raid","focus-wild-fight","focus-tribulation","preview-signature-vfx","open-sect-peaks","select-peak-tab","focus-peak-camera","set-post-dir-filter","editnpc","spawnnpc","open-spawn-sect","deselect","locate","follow","goto-npc","toggle-track-npc","untrack-npc","clear-all-tracked","open-log-tracked","open-menu-tracked","open-people","locb","locv","toggle-clue-debug","open-visitor","open-clue","save","load","export","import","new","tool","cmp","logfilter","logsubfilter","spawn-page","set-inv-mode","bag-cat","bag-page","bag-sel","bag-close-detail","bag-toggle-more","stock-cat","stock-page","library-detail","stock-sel","stock-close-detail","stock-toggle-more","shop-cat","shop-page","shop-sel","shop-close-detail","shop-toggle-more","set-lib-cat","open-world-map","atlas-select","atlas-group","atlas-close","atlas-filter","atlas-layer","atlas-zoom","atlas-home","atlas-open-discovery","atlas-open-realms","atlas-open-legends","select-world-node","set-world-subtab","set-chronicle-filter"]);
   const STATE_EDIT_ACTIONS = new Set(["apply-char-edit","undo-char-edit","edit-pet-spawn","edit-pet-awaken","edit-pet-release","edit-gate-beast","edit-cast-buff","edit-clear-buffs","edit-save-mech","edit-save-karma","edit-save-doctrine","edit-upgrade-facility","heal-char-edit","spawn-item","spawn-equip-item","spawn-teach-item","edit-dip-attitude","edit-dip-treaty","edit-dip-cleartreaty","edit-dip-resetcd","edit-sanctum-setfloor","edit-sanctum-spawncat","edit-pet-four-symbol","equip-personal","unequip-bag","unequip-sect","equip-passive","unequip-passive","switch-mantra"]);
   const OBSERVER_TOOLS = new Set(['stones', 'food', 'heal']);
   UI.playerActionKind = action => OBSERVER_ACTIONS.has(action) ? 'observe' : STATE_EDIT_ACTIONS.has(action) ? 'edit' : 'blocked';
@@ -1228,6 +1231,20 @@
       UI.render();
       const sb = $('shBody'); if (sb) sb.scrollTop = 0;
     }
+    else if (a === 'focus-wild-fight') {
+      const wf = (W && Array.isArray(W.fights) && W.fights.find(f => f && !f.over && f.kind === 'wild')) || (W && Array.isArray(W.fights) && W.fights.find(f => f && !f.over)) || null;
+      const b0 = (wf && wf.ctx && wf.ctx.beastId && W.foeById && W.foeById[wf.ctx.beastId]) || (W && W.wildlife && Array.isArray(W.wildlife.beasts) && W.wildlife.beasts.find(b => b && !b.dead && !b.gone && b.fighting)) || (W && W.wildlife && Array.isArray(W.wildlife.beasts) && W.wildlife.beasts.find(b => b && !b.dead && !b.gone && b.legendary)) || null;
+      const n0 = (wf && wf.ctx && wf.ctx.hunterId && W.byId && W.byId[wf.ctx.hunterId]) || (wf && Array.isArray(wf.A) && W.byId && W.byId[wf.A[0]]) || null;
+      const tgt = b0 || n0;
+      if (tgt && G.R && G.R.focus) {
+        UI.close();
+        G.R.follow = false;
+        if (n0) G.R.selected = n0.id;
+        G.R.focus(tgt.x, tgt.y, Math.max(G.R.cam.z, 1.85));
+        UI.toast('🐺 เลื่อนกล้องส่องดูการล่าอสูรนอกกำแพง (' + (b0 ? b0.name : HC.fullName(n0)) + ')');
+      }
+      UI.updateHud(true);
+    }
     else if (a === 'focus-raid') {
       const f0 = (W && Array.isArray(W.foes) && W.foes.find(x => x && !x.dead && !x.gone && Number.isFinite(x.x) && Number.isFinite(x.y))) || null;
       if (f0 && G.R && G.R.focus) {
@@ -1238,7 +1255,7 @@
       } else if (G.R && G.R.focus) {
         UI.close();
         G.R.follow = false;
-        G.R.focus(118, 130, 1.5);
+        G.R.focus(180, 202, 1.5);
       }
       UI.updateHud(true);
     }
@@ -1269,7 +1286,7 @@
           : (g.SK.resolveSignatureVfx && g.SK.resolveSignatureVfx(previewTech || { id: sigOrTechId, legendary: true })) || (!previewTech ? 'sig_meteor_sword_rain' : null);
         const spec = (sigKey && g.SK.SIGNATURE_VFX_CATALOG && g.SK.SIGNATURE_VFX_CATALOG[sigKey])
           || (previewTech ? { nameTh: previewTech.nameTh, icon: '✨' } : { nameTh: sigKey || sigOrTechId, icon: '✨' });
-        const nx = Number.isFinite(n.x) ? n.x : 118, ny = Number.isFinite(n.y) ? n.y : 75;
+        const nx = Number.isFinite(n.x) ? n.x : 180, ny = Number.isFinite(n.y) ? n.y : 122;
         n.castFx = {
           seq: ((n.castFx && n.castFx.seq) || 0) + 1,
           t: W.t,
@@ -6553,7 +6570,21 @@
       h += '<h3>บุคลิกภาพ 14</h3><div class="card">' + statLayer(n, 'personality') + '</div><h3>อารมณ์พื้นฐาน</h3><div class="card">' + statLayer(n, 'temperament') + '</div>';
       const ints = HC.layerIds('interests').map(id => [id, HC.eff(n, 'interests.' + id)]).sort((a, b) => b[1] - a[1]); h += '<h3>สิ่งที่ชอบ (เรียงจากมากสุด)</h3><div class="card">' + ints.slice(0, 12).map(i => bar(HC.nameOf('interests.' + i[0]), i[1], { wide: true })).join('') + '</div>';
       h += '<h3>พรสวรรค์ 6</h3><div class="card">' + statLayer(n, 'aptitudes') + '</div>';
-      h += '<h3>จุดเด่น/ข้อจำกัด</h3><div class="card">' + ((n.h.traits || []).length ? n.h.traits.map(t => { const d = HC.traitDef(t.id); return d ? '<div><span class="chip ' + (d.isCurse ? 'r' : 'g') + '">' + esc(d.nameTh) + '</span><span class="muted">' + esc(d.descTh || '') + '</span></div>' : ''; }).join('') : '<span class="muted">ไม่มีลักษณะพิเศษ</span>') + '<div class="muted" style="margin-top:6px">รสนิยม: ชอบ' + esc(n.h.tastes.food) + ' · ' + esc(n.h.tastes.drink) + ' · สี' + esc(n.h.tastes.color) + ' · ' + esc(n.h.tastes.pastime) + ' · การผูกพัน: ' + esc(n.h.attachment) + '</div></div>';
+      h += '<h3>จุดเด่น/ข้อจำกัด (กำเนิดและชะตากรรม)</h3><div class="card">' + ((n.h.traits || []).length ? n.h.traits.map(t => { const d = HC.traitDef(t.id); return d ? '<div><span class="chip ' + (d.isCurse ? 'r' : (d.birthEligible === false ? 'v' : 'g')) + '">' + esc(d.nameTh) + (d.birthEligible === false ? ' · ชะตาชีวิต' : '') + '</span> <span class="muted">' + esc(d.descTh || '') + '</span></div>' : ''; }).join('') : '<span class="muted">ไม่มีลักษณะพิเศษ</span>') + '<div class="muted" style="margin-top:6px">รสนิยม: ชอบ' + esc(n.h.tastes.food) + ' · ' + esc(n.h.tastes.drink) + ' · สี' + esc(n.h.tastes.color) + ' · ' + esc(n.h.tastes.pastime) + ' · การผูกพัน: ' + esc(n.h.attachment) + '</div></div>';
+      const expTraits = Array.isArray(n.experienceTraits) ? n.experienceTraits : [];
+      const amState = (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS && g.COMBAT.ACTION_MASTERY_TRAITS.ensureState) ? g.COMBAT.ACTION_MASTERY_TRAITS.ensureState(n) : (n.combatActionMastery || { unlockedTraits: [], activeMasteryIds: [] });
+      const amDefs = (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS && g.COMBAT.ACTION_MASTERY_TRAITS.TRAIT_DEFS) || {};
+      const unlockedAm = Array.isArray(amState.unlockedTraits) ? amState.unlockedTraits : [];
+      const activeAm = new Set(Array.isArray(amState.activeMasteryIds) ? amState.activeMasteryIds : []);
+      h += '<h3>🔥 ตราประสบการณ์ชีวิตและภูมิปัญญาผ่านศึก (' + expTraits.length + ')</h3><div class="card">' + (expTraits.length ? expTraits.map(tr => {
+        const recChip = tr.recovered ? '<span class="chip ok">คลายภาระแล้ว · คงภูมิปัญญา</span>' : '<span class="chip r">ภาระยังส่งผล</span>';
+        return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a)"><div><b>' + esc(tr.icon || '🔥') + ' ' + esc(tr.nameTh) + '</b> ' + recChip + '</div><div class="muted" style="font-size:11.5px">ข้อดี: ' + esc(tr.prosTh || '-') + (tr.burdenActive === false ? (' · (เดิม: ' + esc(tr.consTh || '-') + ' → ฟื้นฟูแล้ว)') : (' · ภาระ: ' + esc(tr.consTh || '-'))) + '</div></div>';
+      }).join('') : '<span class="muted">ยังไม่มีตราประสบการณ์ชีวิตจากเหตุการณ์วิกฤต</span>') + '</div>';
+      h += '<h3>⚔️ ความชำนาญยุทธ์จากการกระทำจริง (ใช้จริง ' + activeAm.size + '/3 · บันทึกสะสม ' + unlockedAm.length + ')</h3><div class="card">' + (unlockedAm.length ? unlockedAm.map(id => {
+        const d = amDefs[id] || { id, nameTh: id, icon: '⚔️', descTh: '' };
+        const isOn = activeAm.has(id);
+        return '<div style="padding:3px 0"><span class="chip ' + (isOn ? 'g' : '') + '">' + esc(d.icon || '⚔️') + ' ' + esc(d.nameTh) + (isOn ? ' ★ ใช้จริง' : ' (ประวัติสะสม)') + '</span> <span class="muted" style="font-size:11.5px">' + esc(d.descTh || '') + '</span></div>';
+      }).join('') : '<span class="muted">ยังไม่มีความชำนาญยุทธ์จากการกระทำที่ปลดล็อก</span>') + '</div>';
     } else if (tab === "elem") {
       if (g.ELEM) g.ELEM.ensureNpc(n);
       const rt = n.h.root || {};
@@ -7484,4 +7515,187 @@
 
   g.UI = UI;
   if (typeof module === "object" && module.exports) module.exports = UI;
+/* === LIVING_JIANGHU_EPITHETS_UI_HOOK_V260 === */
+
+  UI.renderNpcEpithetsCard = (W, n) => {
+    if (!W || !n || !g.CULT || !g.CULT.EPITHETS) return '';
+    const EP = g.CULT.EPITHETS;
+    const ep = EP.peekNpcEpithets(n);
+    const ds = n.deedStats || { counters: {}, evidenceLog: [], unwitnessedDeeds: [] };
+
+    const crownChips = (ep.crownIds || []).map(cid => {
+      const cDef = EP.getDef(cid);
+      return '<span class="chip g" style="border-color:#ffd700;background:rgba(255,215,0,0.16);color:#ffd700;font-weight:700">👑 มงกุฎหนึ่งเดียวในใต้หล้า: 「' + esc(cDef ? cDef.titleTh : cid) + '」</span>';
+    }).join(' ');
+
+    const primaryBadge = ep.primaryTextTh
+      ? '<span class="chip b" style="font-weight:700">🏷️ สมญาหลัก: 「' + esc(ep.primaryTextTh) + '」</span>'
+      : '<span class="chip">🏷️ สมญาหลัก: ยังไร้สมญานามยุทธภพ</span>';
+    const campusBadge = ep.campusTextTh
+      ? ' <span class="chip">🏕️ ฉายาในสำนัก: 「' + esc(ep.campusTextTh) + '」</span>'
+      : '';
+    const daoBadge = ep.daoNameTh
+      ? ' <span class="chip v">☯️ ฉายาเต๋า/นามธรรม: 「' + esc(ep.daoNameTh) + '」</span>'
+      : '';
+    const linBadge = ep.lineageTitleTh
+      ? ' <span class="chip ok">🎓 ลำดับอาวุโส: ' + esc(ep.lineageTitleTh) + '</span>'
+      : '';
+    const grpBadge = ep.groupTitleTh
+      ? ' <span class="chip g">🤝 นามกลุ่มร่วมสาบาน: 「' + esc(ep.groupTitleTh) + '」</span>'
+      : '';
+    const pstBadge = ep.posthumousTitleTh
+      ? ' <span class="chip r">🕯️ สมญาปัจฉิมมรณะ: 「' + esc(ep.posthumousTitleTh) + '」</span>'
+      : '';
+
+    let h = '<h3>🏷️ ทำเนียบสมญานาม · ฉายาเต๋า · มงกุฎยุทธภพ & พยานหลักฐาน (Living Jianghu Epithets)</h3>';
+    h += '<div class="card" style="border-color:var(--gold);background:rgba(255,215,64,0.03)">';
+    h += '<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">' +
+      (crownChips ? crownChips + ' ' : '') +
+      primaryBadge + campusBadge + daoBadge + linBadge + grpBadge + pstBadge +
+      '</div>';
+
+    if (ep.redemptionDrive && ep.redemptionDrive.active) {
+      h += '<div style="margin-top:6px;padding:6px 8px;border-radius:6px;background:rgba(239,35,60,0.12);border:1px solid #ef233c;font-size:11.5px">' +
+        '🔥 <b>แรงขับกู้ศักดิ์ศรีอัตโนมัติ (wash_shame_epithet):</b> ' + esc(ep.redemptionDrive.whyTh) +
+        ' · ความคืบหน้า: <b>' + (ep.redemptionDrive.progress || 0) + '/' + (ep.redemptionDrive.required || 2) + ' วีรกรรม</b></div>';
+    }
+
+    // Peer perceptions sample (pure read-only)
+    const peers = (W.npcs || []).filter(o => o && !o.dead && o.id !== n.id).slice(0, 3);
+    if (peers.length > 0 && (ep.primaryId || ep.campusId || (ep.crownIds && ep.crownIds.length))) {
+      h += '<div class="muted" style="margin-top:6px;font-size:11.5px"><b>👁️ มุมมองจากผู้คนรอบข้าง (Multi-Perspective Perception):</b> ' +
+        peers.map(p => {
+          const pr = EP.evaluatePerception(W, p, n);
+          return esc(HC.fullName(p)) + ': <b>' + esc(pr.perceptionLabelTh) + '</b> (' + (pr.attitudeDelta >= 0 ? '+' : '') + pr.attitudeDelta + ')';
+        }).join(' · ') + '</div>';
+    }
+
+    // Expandable details for owned epithets, evidence log, and unwitnessed deeds
+    const ownedList = ep.owned || [];
+    const evList = ds.evidenceLog || [];
+    const unwList = ds.unwitnessedDeeds || [];
+    h += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:12px;color:var(--gold)">📜 เปิดดูทะเบียนสมญานามที่ครอบครอง (' + ownedList.length + ') · หลักฐานวีรกรรม (' + evList.length + ')' + (unwList.length ? ' · รอพิสูจน์พยาน (' + unwList.length + ')' : '') + '</summary>';
+    if (ownedList.length) {
+      h += '<div style="margin-top:6px">' + ownedList.map(r => {
+        const stBadge = r.epistemicStatus === 'RUMOR' ? '🍶 ข่าวลือ' : r.epistemicStatus === 'OBSERVED' ? '👁️ พบเห็น' : '📜 ยืนยัน';
+        const shTxt = r.polarity === 'SHAME' ? (r.shameActive ? ' · <span style="color:#ef233c">ตราบาปยังติดตัว</span>' : ' · <span style="color:#5fd38a">กู้ศักดิ์ศรีแล้ว</span>') : '';
+        return '<div class="lineage-entry" style="font-size:11.5px"><b>「' + esc(r.titleTh) + '」</b> <span class="chip" style="font-size:10px">' + esc(r.category) + ' · ' + esc(r.effectType) + ' · ' + stBadge + ' (พยาน ' + (r.witnessCount || 1) + ')</span>' + shTxt + '<div class="muted">' + esc(r.evidenceTh || '') + ' (วันที่ ' + (r.grantedDay || 1) + ')</div></div>';
+      }).join('') + '</div>';
+    } else {
+      h += '<div class="muted" style="margin-top:4px;font-size:11.5px">ยังไม่มีสมญานามที่จารึกไว้</div>';
+    }
+    if (unwList.length) {
+      h += '<div style="margin-top:6px;font-size:11.5px"><b>🌫️ วีรกรรมไร้พยานในแดนเปลี่ยว (รอหลักฐานยืนยันก่อนเกิดสมญานาม):</b>' +
+        unwList.slice(-4).map(u => '<div class="muted">• ' + esc(u.descTh) + ' (วันที่ ' + u.day + ')</div>').join('') + '</div>';
+    }
+    if (evList.length) {
+      h += '<div style="margin-top:6px;font-size:11.5px"><b>🧾 บันทึกใบเสร็จวีรกรรมล่าสุด:</b>' +
+        evList.slice(-5).map(e => '<div class="muted">• [วันที่ ' + e.day + '] ' + esc(e.descTh) + ' (พยาน: ' + (e.witnessIds && e.witnessIds.length ? e.witnessIds.length + ' คน' : 'ประจักษ์') + ')</div>').join('') + '</div>';
+    }
+    h += '</details></div>';
+    return h;
+  };
+
+  const _origRNpcEp = UI.rNpc;
+  UI.rNpc = () => {
+    let html = _origRNpcEp();
+    const W = UI.G && UI.G.W;
+    const n = W && W.byId && W.byId[UI.npcId];
+    if (W && n && (!UI.tab || UI.tab === 'ov' || UI.tab === 'lineage')) {
+      const epCard = UI.renderNpcEpithetsCard(W, n);
+      if (epCard && !html.includes('ทำเนียบสมญานาม · ฉายาเต๋า')) {
+        const marker = '<div class="muted">🏅 แต้มคุณูปการ';
+        if (html.includes(marker)) {
+          html = html.replace(marker, epCard + marker);
+        } else {
+          html += epCard;
+        }
+      }
+    }
+    return html;
+  };
+
+  const _origRPeopleEp = UI.rPeople;
+  UI.rPeople = () => {
+    let html = _origRPeopleEp();
+    const W = UI.G && UI.G.W;
+    if (!W || !g.CULT || !g.CULT.EPITHETS) return html;
+    const EP = g.CULT.EPITHETS;
+    for (const n of (W.npcs || [])) {
+      if (!n || n.dead || n.exiled) continue;
+      const disp = EP.formatDisplayTitle(n, { includeDaoName: true });
+      if (!disp) continue;
+      const needle = 'data-npc="' + n.id + '"';
+      const idx = html.indexOf(needle);
+      if (idx !== -1) {
+        const nmClose = html.indexOf('</div>', idx);
+        if (nmClose !== -1) {
+          const badgeHtml = ' <span class="chip v" style="font-size:10px" title="สมญานามยุทธภพ">' + esc(disp) + '</span>';
+          html = html.slice(0, nmClose) + badgeHtml + html.slice(nmClose);
+        }
+      }
+    }
+    return html;
+  };
+
+  const _origRWorldEp = UI.rWorld;
+  UI.rWorld = () => {
+    let html = _origRWorldEp();
+    const W = UI.G && UI.G.W;
+    if (!W || !W.world || !W.world.uniqueCrowns) return html;
+    const crowns = Object.values(W.world.uniqueCrowns);
+    if (!crowns.length) return html;
+    let cHtml = '<div class="card" style="margin-top:10px;border-color:var(--gold);background:rgba(255,215,64,0.04)">';
+    cHtml += '<h3>👑 ทำเนียบ 12 มงกุฎหนึ่งเดียวในใต้หล้า (One-in-the-World Moveable Crowns)</h3>';
+    cHtml += '<div class="muted" style="font-size:11.5px;margin-bottom:6px">สมญานามสูงสุดที่มีผู้ถือครองได้เพียง 1 คนในโลก ณ เวลาเดียวกัน เปลี่ยนมือเมื่อพ่ายแพ้ในการดวลจริง พ้นวัยเยาว์ หรือสิ้นชีพ</div>';
+    cHtml += '<div class="grid2" style="gap:6px;font-size:11.5px">';
+    crowns.forEach(cr => {
+      const hName = cr.publicKnownHolderNameTh || cr.holderNameTh || 'ว่าง (รอผู้พิชิต)';
+      const lagNote = (cr.holderId && cr.publicKnownHolderId && cr.holderId !== cr.publicKnownHolderId)
+        ? ' <span class="chip" style="font-size:9.5px">ข่าวลือกำลังเดินทาง</span>'
+        : '';
+      cHtml += '<div style="padding:5px 7px;border:1px solid var(--line);border-radius:6px">' +
+        '<div style="color:var(--gold);font-weight:700">👑 「' + esc(cr.titleTh) + '」</div>' +
+        '<div class="muted">ผู้ถือครอง: <b>' + esc(hName) + '</b>' + (cr.holderScore ? ' (แต้มประเมิน ' + cr.holderScore + ')' : '') + lagNote + '</div>' +
+        '</div>';
+    });
+    cHtml += '</div></div>';
+    return html + cHtml;
+  };
+
+  const _origRHistPersonEp = UI.rHistoricalPerson;
+  UI.rHistoricalPerson = () => {
+    let html = _origRHistPersonEp();
+    const W = UI.G && UI.G.W;
+    const id = UI.histNpcId;
+    const hp = (W && id && UI.findHistoricalPersonSnapshot) ? UI.findHistoricalPersonSnapshot(W, id) : null;
+    if (hp && (hp.epithetSnapshot || hp.posthumousTitleTh || hp.epithetAtEventTh)) {
+      const es = hp.epithetSnapshot || {};
+      const pst = hp.posthumousTitleTh || es.posthumousTitleTh;
+      const prim = es.primaryTextTh || hp.epithetAtEventTh;
+      const dao = es.daoNameTh;
+      let epLine = '<div style="margin-top:6px;font-size:12px">';
+      if (pst) epLine += '<span class="chip r">🕯️ สมญาปัจฉิมมรณะ: 「' + esc(pst) + '」</span> ';
+      if (prim) epLine += '<span class="chip b">🏷️ สมญาขณะมีชีวิต: 「' + esc(prim) + '」</span> ';
+      if (dao) epLine += '<span class="chip v">☯️ ฉายาเต๋า: 「' + esc(dao) + '」</span>';
+      epLine += '</div>';
+      html = epLine + html;
+    }
+    return html;
+  };
+
+  const _origAncestorProfileEp = UI.ancestorProfile;
+  UI.ancestorProfile = (W, tablet) => {
+    let html = _origAncestorProfileEp(W, tablet);
+    if (tablet && (tablet.posthumousTitleTh || tablet.primaryEpithetTh || tablet.daoNameTh)) {
+      let badge = '<div style="margin:4px 0">';
+      if (tablet.posthumousTitleTh) badge += '<span class="chip g">🕯️ สมญาปัจฉิมมรณะ: 「' + esc(tablet.posthumousTitleTh) + '」</span> ';
+      if (tablet.primaryEpithetTh) badge += '<span class="chip b">🏷️ สมญาเดิม: 「' + esc(tablet.primaryEpithetTh) + '」</span> ';
+      if (tablet.daoNameTh) badge += '<span class="chip v">☯️ ฉายาเต๋า: 「' + esc(tablet.daoNameTh) + '」</span>';
+      badge += '</div>';
+      html = html.replace('<div class="ancestor-profile">', '<div class="ancestor-profile">' + badge);
+    }
+    return html;
+  };
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -551,9 +551,9 @@ console.log('Testing Autonomous Economy & Facility Expansion...');
   });
 
   // 4. Perimeter gates allow pathfinding from sect inside to outer zones
-  assert(!MAP.blocked(W.map, wall.x0, 80), 'west gate tile must not be blocked');
-  assert(!MAP.blocked(W.map, wall.x1, 80), 'east gate tile must not be blocked');
-  assert(!MAP.blocked(W.map, 118, wall.y0), 'north gate tile must not be blocked');
+  assert(!MAP.blocked(W.map, wall.x0, 123), 'west gate tile must not be blocked');
+  assert(!MAP.blocked(W.map, wall.x1, 123), 'east gate tile must not be blocked');
+  assert(!MAP.blocked(W.map, 180, wall.y0), 'north gate tile must not be blocked');
 
   // 5. Hunt victory drops into personal inventory and can be donated to sect
   const hunter = W.npcs[0];

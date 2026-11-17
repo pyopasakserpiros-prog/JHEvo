@@ -9095,5 +9095,58 @@
     });
   };
   if (g.MAP) g.MAP.WORLD_LORE = X.WORLD_LORE;
+/* === LIVING_JIANGHU_EPITHETS_EXPED_HOOK_V260 === */
+
+  const _origHydrateFigEp = X.hydrateFigureToNpc;
+  X.hydrateFigureToNpc = (W, figOrId, opts) => {
+    const srcFig = (typeof figOrId === 'object' && figOrId) ? figOrId : (W && W.world && W.world.figuresById && W.world.figuresById[figOrId]);
+    const res = _origHydrateFigEp(W, figOrId, opts);
+    if (res && res.ok && res.npc && g.CULT && g.CULT.EPITHETS) {
+      g.CULT.EPITHETS.onHydrateExternalFigure(W, res.npc, srcFig || res.npc);
+    }
+    return res;
+  };
+
+  const _origBuildFactSnapEp = X.buildFactSnapshot;
+  X.buildFactSnapshot = (W, entry, actorSnapshots, fmtId) => {
+    const snap = _origBuildFactSnapEp(W, entry, actorSnapshots, fmtId);
+    if (snap && Array.isArray(snap.actorsAtEvent)) {
+      snap.actorsAtEvent.forEach((act, idx) => {
+        if (!act) return;
+        const srcA = (actorSnapshots && actorSnapshots[idx]) || (W && W.byId && W.byId[act.id]) || null;
+        if (srcA) {
+          const epSnap = srcA.epithetSnapshot || (srcA.epithets ? {
+            primaryId: srcA.epithets.primaryId,
+            primaryTextTh: srcA.epithets.primaryTextTh,
+            campusTextTh: srcA.epithets.campusTextTh,
+            daoNameTh: srcA.epithets.daoNameTh,
+            groupTitleTh: srcA.epithets.groupTitleTh,
+            crownIds: (srcA.epithets.crownIds || []).slice(),
+            posthumousTitleTh: srcA.epithets.posthumousTitleTh
+          } : null);
+          act.epithetAtEventTh = (srcA.epithetAtEventTh) ||
+            (epSnap && (epSnap.primaryTextTh || epSnap.daoNameTh || epSnap.campusTextTh)) ||
+            null;
+          act.epithetSnapshot = epSnap;
+        }
+      });
+    }
+    return snap;
+  };
+
+  if (typeof X.awakenAncientDaoLegacy === 'function') {
+    const _origAwakenDaoEp = X.awakenAncientDaoLegacy;
+    X.awakenAncientDaoLegacy = function(W, npcOrId, legacyId, opts) {
+      const res = _origAwakenDaoEp.apply(this, arguments);
+      const npc = typeof npcOrId === 'object' ? npcOrId : (W && W.byId && W.byId[npcOrId]);
+      if (res && res.ok && npc && g.CULT && g.CULT.EPITHETS) {
+        g.CULT.EPITHETS.recordDeed(W, npc, 'ancient_dao_legacy_awakened', 1, {
+          receiptId: 'dao_leg_' + npc.id + '_' + (legacyId || 'legacy'),
+          descTh: 'ปลุกมรดกมรรคาโบราณที่สาบสูญสำเร็จ'
+        });
+      }
+      return res;
+    };
+  }
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);

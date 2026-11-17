@@ -9,6 +9,9 @@
     PATCH_VERSION: '2.6.0',
     SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
     SAVE_SCHEMA_VERSION: '2.6.0-living-chronicle-and-reporting',
+    DAY_FACTOR: 1.5,
+    CALENDAR_MINS_PER_DAY: 1440,
+    WORK_STEPS_PER_DAY: 2160,
     MIN_PER_YEAR: 360 * 1440,
     TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
   };
@@ -73,6 +76,9 @@
   SIM.buildNpc = (W, rng, o) => {
     HC.nowDay = W.day;
     const npc = HC.generate(rng, { id: o.id, day: W.day, sex: o.sex, ageYears: o.ageYears, quality: o.quality || 0, archetype: o.archetype, rootGrade: o.rootGrade, _fromTierRoll: !!o._fromTierRoll, skillExp: o.skillExp, trainedness: o.trainedness, traitCount: o.traitCount, customRoots: o.customRoots, forceRootCount: o.forceRootCount, forceElements: o.forceElements, forceGrades: o.forceGrades });
+    if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits) {
+      CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits(npc);
+    }
     if (npc && npc.h && npc.h.name && npc.h.genome) {
       const gm = Math.abs(npc.h.genome | 0);
       if ((gm % 3) !== 0) {
@@ -612,11 +618,27 @@
 
   /* ---------- วงจรจำลอง ---------- */
   SIM.tick = W => {
-    g.STATS.now = W.t;
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
-    W.t++;
-    const d = Math.floor(W.t / 1440);
-    if (d !== W.day) { W.day = d; HC.nowDay = d; SIM.dailyUpdate(W); }
+    W.workSteps = (W.workSteps || 0) + 1;
+    // 1.5x Day Length Contract: 3 work-steps = 2 calendar minutes (2160 work-steps = 1440 calendar minutes = 1 calendar day)
+    W.timePhase = (W.timePhase || 0) + 2;
+    let advancedCalendarMinute = false;
+    if (W.timePhase >= 3) {
+      W.timePhase -= 3;
+      W.t++;
+      advancedCalendarMinute = true;
+    }
+    W._isNewCalendarMinute = advancedCalendarMinute;
+    g.STATS.now = W.t;
+    if (advancedCalendarMinute) {
+      const d = Math.floor(W.t / 1440);
+      if (d !== W.day && W._lastDailyUpdateDay !== d) {
+        W.day = d;
+        W._lastDailyUpdateDay = d;
+        HC.nowDay = d;
+        SIM.dailyUpdate(W);
+      }
+    }
     const npcs = W.npcs;
     if (true) {
       let ap = 0;
@@ -658,7 +680,10 @@
       CULT.TRIBULATION.tickAll(W);
     }
     COMBAT.tick(W);
-    if (W.t % 60 === 0) SIM.hourly(W);
+    if (advancedCalendarMinute && W.t % 60 === 0 && W._lastHourlyUpdateT !== W.t) {
+      W._lastHourlyUpdateT = W.t;
+      SIM.hourly(W);
+    }
   };
   SIM.cleanupDepartedNpcRefs = (W, n) => {
     if (!W || !n || !n.id) return;
@@ -989,7 +1014,13 @@
     if (CULT.tickClosedDoorSeclusion) CULT.tickClosedDoorSeclusion(W);
     SECT.daily(W);
     if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
-    W.npcs.forEach(n => { if (!n.dead && !n.away && g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n); });
+    W.npcs.forEach(n => {
+      if (!n.dead && !n.away) {
+        if (g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n);
+        if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.evaluateDaily) CULT.EXPERIENCE_TRAITS.evaluateDaily(W, n);
+        if (COMBAT && COMBAT.ACTION_MASTERY_TRAITS && COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries) COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries(n);
+      }
+    });
     if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
     EXPED.daily(W); EXPLORE.daily(W); BN.daily(W); CPE.daily(W); g.CONTENT.daily(W); if (g.EXT) g.EXT.daily(W); if (g.FISHING) g.FISHING.daily(W);
     W.npcs.forEach(n => {
@@ -1143,6 +1174,8 @@
       hc: HC.FINGERPRINT,
       seed: W.seed,
       t: W.t,
+      workSteps: W.workSteps || 0,
+      timePhase: W.timePhase || 0,
       speed: W.speed,
       rng: W.rng.getState(),
       seqN: W.seqN,
@@ -1165,7 +1198,7 @@
       foes: W.foes,
       foeSeq: W.foeSeq,
       fightSeq: W.fightSeq,
-      map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
+      map: { mapW: M.W, mapH: M.H, extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
     };
     const transientSet = SIM.TRANSIENT_CACHE_KEYS;
     const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil', '_elemAuras', '_poiseGauge', '_ccDrStacks', '_shadowClones', '_boneArmorHp', '_supHealIcd', '_cheatDeathSavesCount', '_salvaged']);
@@ -1547,4 +1580,124 @@
 
   g.SIM = SIM;
   if (typeof module === 'object' && module.exports) module.exports = SIM;
+/* === LIVING_JIANGHU_EPITHETS_SIM_HOOK_V260 === */
+
+  const _origSimCreateEp = SIM.create;
+  SIM.create = (seed, opts) => {
+    const W = _origSimCreateEp(seed, opts);
+    if (W && g.CULT && g.CULT.EPITHETS) {
+      g.CULT.EPITHETS.ensureWorldCrowns(W);
+      g.CULT.EPITHETS.ensureCollectiveGroups(W);
+      (W.npcs || []).forEach(n => {
+        g.CULT.EPITHETS.ensureNpcEpithets(n);
+        g.CULT.EPITHETS.ensureDeedStats(n);
+      });
+      g.CULT.EPITHETS.refreshLineageTitles(W);
+      g.CULT.EPITHETS.reconcileUniqueCrowns(W, { immediatePublic: true });
+    }
+    return W;
+  };
+
+  const _origSnapshotPersonEp = SIM.snapshotPerson;
+  SIM.snapshotPerson = (W, n, statusOverride) => {
+    const snap = _origSnapshotPersonEp(W, n, statusOverride);
+    if (snap && n && g.CULT && g.CULT.EPITHETS) {
+      const ep = g.CULT.EPITHETS.peekNpcEpithets(n);
+      snap.epithetSnapshot = {
+        primaryId: ep.primaryId || null,
+        primaryTextTh: ep.primaryTextTh || null,
+        campusId: ep.campusId || null,
+        campusTextTh: ep.campusTextTh || null,
+        daoNameTh: ep.daoNameTh || null,
+        lineageTitleTh: ep.lineageTitleTh || null,
+        groupTitleTh: ep.groupTitleTh || null,
+        crownIds: Array.isArray(ep.crownIds) ? ep.crownIds.slice() : [],
+        posthumousId: ep.posthumousId || null,
+        posthumousTitleTh: ep.posthumousTitleTh || null,
+        fullDisplayTitleTh: g.CULT.EPITHETS.formatDisplayTitle(n, { includeDaoName: true, includePosthumous: true })
+      };
+      snap.epithetAtEventTh = ep.primaryTextTh || ep.daoNameTh || ep.campusTextTh || null;
+      if (ep.posthumousTitleTh) snap.posthumousTitleTh = ep.posthumousTitleTh;
+    }
+    return snap;
+  };
+
+  const _origSimDailyEp = SIM.daily;
+  SIM.daily = (W, silent) => {
+    const res = _origSimDailyEp(W, silent);
+    if (!silent && W && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.onDailyTick) {
+      g.CULT.EPITHETS.onDailyTick(W);
+    }
+    return res;
+  };
+
+  const _origSimMonthlyEp = SIM.monthly;
+  SIM.monthly = W => {
+    const res = _origSimMonthlyEp(W);
+    if (W && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.onMonthlyAudit) {
+      g.CULT.EPITHETS.onMonthlyAudit(W);
+    }
+    return res;
+  };
+
+  const _origSimDeserializeEp = SIM.deserialize;
+  SIM.deserialize = str => {
+    const rawSnap = JSON.parse(str);
+    const isLegacy240Map = !rawSnap.map || !rawSnap.map.mapW || rawSnap.map.mapW < 360;
+    const W = _origSimDeserializeEp(str);
+    if (W) {
+      W.workSteps = Number.isSafeInteger(rawSnap.workSteps) && rawSnap.workSteps >= 0 ? rawSnap.workSteps : Math.round((W.t || 0) * (SIM.DAY_FACTOR || 1.5));
+      W.timePhase = Number.isInteger(rawSnap.timePhase) && rawSnap.timePhase >= 0 && rawSnap.timePhase < 3 ? rawSnap.timePhase : 0;
+      W._lastDailyUpdateDay = W.day;
+      if (isLegacy240Map && W.map) {
+        const dx = 62, dy = 42;
+        const shiftEntity = u => {
+          if (!u || typeof u !== 'object') return;
+          if (Number.isFinite(u.x)) u.x = clamp(u.x + dx, 3.5, W.map.W - 3.5);
+          if (Number.isFinite(u.y)) u.y = clamp(u.y + dy, 3.5, W.map.H - 3.5);
+          if (Number.isFinite(u.px)) u.px = u.x;
+          if (Number.isFinite(u.py)) u.py = u.y;
+          if (u.path) u.path = null;
+          if (W.map && MAP.blocked && MAP.nearestFree && Number.isFinite(u.x) && Number.isFinite(u.y) && !u.hidden && MAP.blocked(W.map, u.x, u.y)) {
+            const nf = MAP.nearestFree(W.map, u.x, u.y);
+            if (nf) { u.x = nf.x + 0.5; u.y = nf.y + 0.5; u.px = u.x; u.py = u.y; }
+          }
+        };
+        (W.npcs || []).forEach(shiftEntity);
+        (W.foes || []).forEach(shiftEntity);
+        if (W.world && Array.isArray(W.world.visitors)) W.world.visitors.forEach(shiftEntity);
+        if (W.wildlife && Array.isArray(W.wildlife.beasts)) W.wildlife.beasts.forEach(shiftEntity);
+        if (W.wildResources && Array.isArray(W.wildResources.nodes)) {
+          W.wildResources.nodes.forEach(nd => {
+            if (!nd) return;
+            nd.x = clamp(Math.floor((nd.x || 100) + dx), 4, W.map.W - 5);
+            nd.y = clamp(Math.floor((nd.y || 140) + dy), 4, W.map.H - 5);
+            if (MAP.blocked(W.map, nd.x, nd.y)) {
+              const nf = MAP.nearestFree(W.map, nd.x, nd.y);
+              if (nf) { nd.x = nf.x; nd.y = nf.y; }
+            }
+          });
+        }
+      }
+      if (g.WILD && g.WILD.init) g.WILD.init(W);
+      (W.npcs || []).forEach(n => {
+        if (g.CULT && g.CULT.EPITHETS) {
+          g.CULT.EPITHETS.ensureNpcEpithets(n);
+          g.CULT.EPITHETS.ensureDeedStats(n);
+        }
+        if (g.CULT && g.CULT.EXPERIENCE_TRAITS) {
+          g.CULT.EXPERIENCE_TRAITS.ensureState(n);
+        }
+        if (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS) {
+          g.COMBAT.ACTION_MASTERY_TRAITS.ensureHistory(n);
+        }
+      });
+      if (g.CULT && g.CULT.EPITHETS) {
+        g.CULT.EPITHETS.ensureWorldCrowns(W);
+        g.CULT.EPITHETS.ensureCollectiveGroups(W);
+      }
+    }
+    return W;
+  };
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

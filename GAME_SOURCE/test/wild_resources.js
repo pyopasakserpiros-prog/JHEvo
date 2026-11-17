@@ -11,12 +11,12 @@ assert.strictEqual(WILD_RES.MAX_NODES, 48, 'MAX_NODES must be 48');
 
 // 2. Map coordinates & safe belt
 assert(MAP.SAFE_BELT, 'MAP.SAFE_BELT must exist');
-assert.strictEqual(MAP.SAFE_BELT.x0, 80);
-assert.strictEqual(MAP.SAFE_BELT.x1, 156);
-assert(MAP.isInSafeBelt(118.5, 132.5), 'Safe belt must include the gate approach');
-assert.strictEqual(MAP.SAFE_BELT.y1, 156);
-assert(MAP.isInSafeBelt(100, 140), 'Point (100, 140) must be in safe belt');
-assert(!MAP.isInSafeBelt(50, 50), 'Point (50, 50) inside sect is not in safe belt');
+assert.strictEqual(MAP.SAFE_BELT.x0, 120);
+assert.strictEqual(MAP.SAFE_BELT.x1, 240);
+assert(MAP.isInSafeBelt(180.5, 205.5), 'Safe belt must include the gate approach');
+assert.strictEqual(MAP.SAFE_BELT.y1, 230);
+assert(MAP.isInSafeBelt(160, 215), 'Point (160, 215) must be in safe belt');
+assert(!MAP.isInSafeBelt(120, 100), 'Point (120, 100) inside sect is not in safe belt');
 
 const W = SIM.create('res-test');
 assert(W.wildResources, 'W.wildResources must be initialized');
@@ -36,7 +36,7 @@ W.wildResources.nodes.forEach(node => {
   assert(node.remaining > 0 && node.remaining <= node.initial, 'Node must have valid remaining quantity');
   if (node.category === 'HERB') {
     // Basic herbs spawn inside or close to safe collection belt
-    assert(node.x >= 75 && node.x <= 160 && node.y >= 130 && node.y <= 165, 'Herb node must be in exterior safe vicinity');
+    assert(node.x >= 115 && node.x <= 245 && node.y >= 204 && node.y <= 235, 'Herb node must be in exterior safe vicinity');
   }
 });
 console.log('PASS nodes placed strictly outside wall and herbs in safe belt vicinity');

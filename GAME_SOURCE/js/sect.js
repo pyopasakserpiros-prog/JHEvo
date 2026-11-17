@@ -17895,4 +17895,57 @@
 
   g.SECT = SECT;
   if (typeof module === 'object' && module.exports) module.exports = SECT;
+/* === LIVING_JIANGHU_EPITHETS_SECT_HOOK_V260 === */
+
+  if (typeof SECT.inscribeLegacyTablet === 'function') {
+    const _origInscribeTabEp = SECT.inscribeLegacyTablet;
+    SECT.inscribeLegacyTablet = (W, n, why, opts) => {
+      if (n && g.CULT && g.CULT.EPITHETS && (!n.epithets || !n.epithets.posthumousTitleTh)) {
+        g.CULT.EPITHETS.bestowPosthumousTitle(W, n, why, opts);
+      }
+      const tab = _origInscribeTabEp(W, n, why, opts);
+      if (tab && n && n.epithets) {
+        tab.posthumousId = n.epithets.posthumousId || 'EPI_PST_250';
+        tab.posthumousTitleTh = n.epithets.posthumousTitleTh || 'บรรพชนผู้ละสังขารอย่างสงบครบอายุขัย';
+        tab.primaryEpithetTh = n.epithets.primaryTextTh || null;
+        tab.daoNameTh = n.epithets.daoNameTh || null;
+      }
+      return tab;
+    };
+  }
+
+  if (typeof SECT.prayAtAncestralShrine === 'function') {
+    const _origPrayShrineEp = SECT.prayAtAncestralShrine;
+    SECT.prayAtAncestralShrine = (W, n, tabletId) => {
+      const res = _origPrayShrineEp(W, n, tabletId);
+      if (res && W && W.sect && n && g.CULT && g.CULT.EPITHETS) {
+        const tablets = SECT.ensureLegacyTablets ? SECT.ensureLegacyTablets(W) : [];
+        const tab = tablets.find(t => t && (t.id === res.tabletId || t.id === tabletId));
+        const pstTitle = (tab && tab.posthumousTitleTh) || (tab && tab.profile && tab.profile.posthumousTitleTh) || null;
+        if (pstTitle) {
+          res.posthumousTitleTh = pstTitle;
+          if (g.AI && g.AI.mem) {
+            g.AI.mem(W, n, 'โค้งคำนับป้ายวิญญาณ「' + pstTitle + '」รับกระแสปณิธานบรรพชน', 0.45);
+          }
+        }
+      }
+      return res;
+    };
+  }
+
+  if (typeof SECT.exposeEmbezzle === 'function') {
+    const _origExposeEmbEp = SECT.exposeEmbezzle;
+    SECT.exposeEmbezzle = (W, tre, by) => {
+      const res = _origExposeEmbEp(W, tre, by);
+      if (tre && g.CULT && g.CULT.EPITHETS) {
+        g.CULT.EPITHETS.recordDeed(W, tre, 'embezzle_exposed', 1, {
+          receiptId: 'embezzle_' + tre.id + '_' + ((W && W.day) || 1),
+          witnessIds: by ? [by.id] : ['SECT_TRIBUNAL'],
+          descTh: 'ถูกเปิดโปงยักยอกทรัพย์คลังสำนัก'
+        });
+      }
+      return res;
+    };
+  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

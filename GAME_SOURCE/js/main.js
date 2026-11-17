@@ -19,7 +19,7 @@
     const prevOnLog = prevW ? prevW.onLog : undefined;
     try {
       G.W = W; W.onLog = e => { if (G.opts.toast) UI.onLog(e); }; HC.nowDay = W.day;
-      G.R.setWorld(W); G.R.selected = null; G.R.follow = false; if (G.R.resize) G.R.resize(); if (G.R.focus) G.R.focus(118, 70, 1.0); if (G.R.clampCam) G.R.clampCam();
+      G.R.setWorld(W); G.R.selected = null; G.R.follow = false; if (G.R.resize) G.R.resize(); if (G.R.focus) G.R.focus(180, 122, 1.0); if (G.R.clampCam) G.R.clampCam();
       const timing = W.runtimeTiming || {};
       G.acc = typeof timing.pendingTicks === 'number' && Number.isFinite(timing.pendingTicks) && timing.pendingTicks >= 0 ? Math.min(100800, timing.pendingTicks) : 0;
       const savedSpeed = typeof timing.speed === 'number' && Number.isFinite(timing.speed) && timing.speed >= 0 ? timing.speed : W.speed;
@@ -89,7 +89,7 @@
         syncRuntimeTiming();
         if (G.opts.autosave && ts - G.lastAuto > 180000) { const ok = G.autosave(); G.lastAuto = ok ? ts : (ts - 150000); }
         // ที่ 16×/32× ลดอัตราวาดภาพเพื่อคืนเวลาประมวลผลให้ NPC; เมื่อหยุดเวลา (0×) วาดเฉพาะเมื่อสถานะ/กล้องเปลี่ยนหรือทุก 120ms
-        const renderEvery = G.speed === 0 ? 120 : G.speed >= 32 ? 1000 / 30 : G.speed >= 16 ? 1000 / 40 : 0;
+        const renderEvery = G.speed === 0 ? 120 : G.speed >= 96 ? 1000 / 20 : G.speed >= 32 ? 1000 / 30 : G.speed >= 16 ? 1000 / 40 : 0;
         if (!renderEvery || !G.lastRender || ts - G.lastRender >= renderEvery) {
           R.draw(ts); drawMini(); G.lastRender = ts;
         }
@@ -106,7 +106,25 @@
     const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.drawImage(R.getMini(), 0, 0, 184, mh);
     const sx = 184 / MAP.W, sy = mh / MAP.H;
     W.npcs.forEach(n => { if (n.dead || n.away) return; const pSig = (n.cult && Render && Render.PATH_VISUAL_SIGNATURES && Render.PATH_VISUAL_SIGNATURES[n.cult.path]) || null; c.fillStyle = n.id === R.selected ? '#fff' : n.rank >= 4 ? '#f0cf4a' : n.cult ? ((pSig && pSig.primary) || (n.cult.path === 'BODY' ? '#f0714f' : n.cult.path === 'GOD' ? '#e8c43a' : n.cult.path === 'DEMON' ? '#e599f7' : n.cult.path === 'HEART_SOUL' ? '#a5d8ff' : '#4fb2f2')) : '#ccc'; c.fillRect(n.x * sx - 1, n.y * sy - 1, 2.4, 2.4); });
+    if (W.wildlife && Array.isArray(W.wildlife.beasts)) {
+      W.wildlife.beasts.forEach(b => {
+        if (!b || b.dead || b.gone) return;
+        c.fillStyle = b.fighting ? '#ff2d55' : b.legendary ? '#ffd166' : b.aggressive ? '#ff9f1c' : '#80ed99';
+        const sz = b.legendary || b.fighting ? 3.2 : 2.2;
+        c.fillRect(b.x * sx - sz / 2, b.y * sy - sz / 2, sz, sz);
+      });
+    }
     (W.foes || []).forEach(f => { if (f.dead || f.gone) return; c.fillStyle = '#ff3b30'; c.fillRect(f.x * sx - 1.5, f.y * sy - 1.5, 3, 3); });
+    if (Array.isArray(W.fights) && W.fights.length) {
+      c.strokeStyle = '#ff3b30'; c.lineWidth = 1.2;
+      W.fights.forEach(fg => {
+        if (!fg || fg.over) return;
+        const u0 = (fg.A && W.byId && W.byId[fg.A[0]]) || (fg.B && W.foeById && W.foeById[fg.B[0]]);
+        if (u0 && Number.isFinite(u0.x) && Number.isFinite(u0.y)) {
+          c.strokeRect(u0.x * sx - 3.5, u0.y * sy - 3.5, 7, 7);
+        }
+      });
+    }
     const cam = R.cam, hw = R.vw / 2 / cam.z / TS, hh = R.vh / 2 / cam.z / TS; c.strokeStyle = '#fff'; c.lineWidth = 1; c.strokeRect((cam.x / TS - hw) * sx, (cam.y / TS - hh) * sy, hw * 2 * sx, hh * 2 * sy);
   }
   function miniNav(e) { const r = $('minimap').getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * MAP.W, y = (e.clientY - r.top) / r.height * MAP.H; G.R.follow = false; G.R.focus(x, y); e.preventDefault(); e.stopPropagation(); }

@@ -11683,3 +11683,2052 @@
     }
   }
 })();
+
+/* === LIVING_JIANGHU_EPITHETS_ENGINE_V260 === */
+
+  /* =========================================================================
+   * LIVING JIANGHU EPITHETS, SOBRIQUETS, DAOIST STYLES, GROUP TITLES,
+   * MOVEABLE CROWNS & POSTHUMOUS HONORIFICS ENGINE (สมญานามมีชีวิตแห่งยุทธภพ)
+   * Zero-RNG deterministic hash, evidence ledger, witness/epistemic rules,
+   * multi-perspective NPC perception, autonomous shame redemption,
+   * 12 One-in-the-World Moveable Crowns, Collective Brotherhoods,
+   * Daoist/Dharma names, Dynamic Lineage Seniority & Posthumous Tablets.
+   * ========================================================================= */
+  ;(function installLivingEpithetsV260(g) {
+  const CULT = g.CULT, HC = g.HC, JD = g.JD;
+  const EP = {
+    VERSION: '2.6.0-living-epithets',
+
+    detHash(str) {
+      const s = String(str || '');
+      let h = 2166136261 >>> 0;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619) >>> 0;
+      }
+      return h >>> 0;
+    },
+
+    getCatalog() {
+      return (typeof JD !== 'undefined' && JD.EPITHETS) ? JD.EPITHETS : { BY_ID: {}, LIST: [], CROWNS_SPEC: {}, DAO_STYLES_SPEC: {} };
+    },
+
+    getDef(id) {
+      if (!id) return null;
+      const cat = EP.getCatalog();
+      return (cat.BY_ID && cat.BY_ID[id]) || null;
+    },
+
+    ensureNpcEpithets(npc) {
+      if (!npc || typeof npc !== 'object') return null;
+      if (!npc.epithets || typeof npc.epithets !== 'object') {
+        npc.epithets = {
+          primaryId: null,
+          primaryTextTh: null,
+          campusId: null,
+          campusTextTh: null,
+          daoNameTh: null,
+          daoStyleFamilyId: null,
+          lineageTitleTh: null,
+          lineageTitleId: null,
+          groupTitleTh: null,
+          groupId: null,
+          crownIds: [],
+          posthumousTitleTh: null,
+          posthumousId: null,
+          owned: [],
+          history: [],
+          rumorLedger: {},
+          redemptionDrive: null
+        };
+      } else {
+        if (!Array.isArray(npc.epithets.crownIds)) npc.epithets.crownIds = [];
+        if (!Array.isArray(npc.epithets.owned)) npc.epithets.owned = [];
+        if (!Array.isArray(npc.epithets.history)) npc.epithets.history = [];
+        if (!npc.epithets.rumorLedger || typeof npc.epithets.rumorLedger !== 'object') npc.epithets.rumorLedger = {};
+      }
+      return npc.epithets;
+    },
+
+    ensureDeedStats(npc) {
+      if (!npc || typeof npc !== 'object') return null;
+      if (!npc.deedStats || typeof npc.deedStats !== 'object') {
+        npc.deedStats = {
+          counters: {},
+          evidenceLog: [],
+          unwitnessedDeeds: [],
+          receipts: {}
+        };
+      } else {
+        if (!npc.deedStats.counters || typeof npc.deedStats.counters !== 'object') npc.deedStats.counters = {};
+        if (!Array.isArray(npc.deedStats.evidenceLog)) npc.deedStats.evidenceLog = [];
+        if (!Array.isArray(npc.deedStats.unwitnessedDeeds)) npc.deedStats.unwitnessedDeeds = [];
+        if (!npc.deedStats.receipts || typeof npc.deedStats.receipts !== 'object') npc.deedStats.receipts = {};
+      }
+      return npc.deedStats;
+    },
+
+    ensureWorldCrowns(W) {
+      if (!W || !W.world) return null;
+      const specs = EP.getCatalog().CROWNS_SPEC || {};
+      if (!W.world.uniqueCrowns || typeof W.world.uniqueCrowns !== 'object') {
+        W.world.uniqueCrowns = {};
+      }
+      for (const cid of Object.keys(specs)) {
+        const sp = specs[cid];
+        if (!W.world.uniqueCrowns[cid]) {
+          W.world.uniqueCrowns[cid] = {
+            id: cid,
+            proposalNo: sp.proposalNo,
+            titleTh: sp.titleTh,
+            domain: sp.domain,
+            holderId: null,
+            holderNameTh: null,
+            holderSectId: null,
+            holderIsExternal: false,
+            holderScore: 0,
+            claimedDay: 0,
+            publicKnownHolderId: null,
+            publicKnownHolderNameTh: null,
+            rumorPropagatedDay: 0,
+            previousHolderId: null,
+            previousHolderNameTh: null,
+            history: []
+          };
+        } else {
+          if (!Array.isArray(W.world.uniqueCrowns[cid].history)) W.world.uniqueCrowns[cid].history = [];
+        }
+      }
+      return W.world.uniqueCrowns;
+    },
+
+    ensureCollectiveGroups(W) {
+      if (!W || !W.sect) return null;
+      if (!W.sect.collectiveEpithets || typeof W.sect.collectiveEpithets !== 'object') {
+        W.sect.collectiveEpithets = {
+          byId: {},
+          list: [],
+          history: []
+        };
+      } else {
+        if (!W.sect.collectiveEpithets.byId || typeof W.sect.collectiveEpithets.byId !== 'object') W.sect.collectiveEpithets.byId = {};
+        if (!Array.isArray(W.sect.collectiveEpithets.list)) W.sect.collectiveEpithets.list = [];
+        if (!Array.isArray(W.sect.collectiveEpithets.history)) W.sect.collectiveEpithets.history = [];
+      }
+      return W.sect.collectiveEpithets;
+    },
+
+    /* Pure read-only view of an NPC's epithets without mutating unregistered NPCs during UI render */
+    peekNpcEpithets(npc) {
+      if (!npc || !npc.epithets) {
+        return {
+          primaryId: null, primaryTextTh: null,
+          campusId: null, campusTextTh: null,
+          daoNameTh: null, daoStyleFamilyId: null,
+          lineageTitleTh: null, lineageTitleId: null,
+          groupTitleTh: null, groupId: null,
+          crownIds: [], posthumousTitleTh: null, posthumousId: null,
+          owned: [], history: [], rumorLedger: {}, redemptionDrive: null
+        };
+      }
+      return npc.epithets;
+    },
+
+    formatDisplayTitle(npc, opts) {
+      opts = opts || {};
+      const ep = EP.peekNpcEpithets(npc);
+      const parts = [];
+      if (ep.crownIds && ep.crownIds.length > 0) {
+        const cDef = EP.getDef(ep.crownIds[0]);
+        if (cDef) parts.push('👑「' + cDef.titleTh + '」');
+      }
+      if (ep.primaryTextTh) {
+        parts.push('「' + ep.primaryTextTh + '」');
+      } else if (ep.campusTextTh && opts.includeCampus !== false) {
+        parts.push('(' + ep.campusTextTh + ')');
+      }
+      if (ep.daoNameTh && opts.includeDaoName) {
+        parts.push('[' + ep.daoNameTh + ']');
+      }
+      if (ep.posthumousTitleTh && (npc.dead || opts.includePosthumous)) {
+        parts.push('🕯️「' + ep.posthumousTitleTh + '」');
+      }
+      return parts.join(' ');
+    },
+
+    /* Anti-Farming & Evidence-Backed Deed Recording */
+    recordDeed(W, npc, deedKey, amount, meta) {
+      if (!W || !npc || npc.foe || !deedKey) return { ok: false, reason: 'invalid-args' };
+      meta = meta || {};
+      const amt = Number.isFinite(amount) ? amount : 1;
+      if (amt <= 0) return { ok: false, reason: 'non-positive-amount' };
+
+      const combatDeeds = new Set([
+        'combat_kill', 'boss_kill', 'solo_boss_kill', 'outnumbered_win',
+        'low_hp_win', 'combat_win', 'defend_sect_win', 'duel_win',
+        'weapon_kill:SWORD', 'weapon_kill:SABER', 'weapon_kill:SPEAR',
+        'weapon_kill:FIST_PALM', 'weapon_kill:BOW', 'weapon_kill:ZITHER',
+        'iron_marrow_breaker'
+      ]);
+
+      // Anti-farming Guard 1: Non-serious sparring cannot farm combat/kill epithets
+      if ((meta.fightKind === 'spar' || meta.serious === false) && combatDeeds.has(deedKey) && deedKey !== 'spar_win') {
+        return { ok: false, reason: 'non-serious-spar-ignored' };
+      }
+
+      // Anti-farming Guard 2: Trivial prey (>2 stages below) cannot farm combat/kill epithets
+      if (meta.targetStage != null && combatDeeds.has(deedKey)) {
+        const myStage = (npc.cult && npc.cult.stage) || 1;
+        if (myStage - Number(meta.targetStage) > 2) {
+          return { ok: false, reason: 'trivial-prey-ignored' };
+        }
+      }
+
+      // Anti-farming Guard 3: Overhealing healthy targets (>= 90% HP) cannot farm healer epithets
+      if (deedKey === 'heal_patient' && meta.patientHpRatioBefore != null && Number(meta.patientHpRatioBefore) >= 0.90) {
+        return { ok: false, reason: 'overheal-ignored' };
+      }
+
+      // Anti-farming Guard 4: Zero-contribution AFK tag-along cannot farm party/raid deeds
+      if (meta.contributionScore != null && Number(meta.contributionScore) <= 0) {
+        return { ok: false, reason: 'zero-contribution-ignored' };
+      }
+
+      const ds = EP.ensureDeedStats(npc);
+      const ep = EP.ensureNpcEpithets(npc);
+      const day = (W && W.day) || 1;
+      const tick = (W && W.t) || 0;
+      const receiptId = meta.receiptId || ('rcpt_' + npc.id + '_' + deedKey + '_' + day + '_' + tick + '_' + (ds.evidenceLog.length + ds.unwitnessedDeeds.length));
+
+      // Anti-farming Guard 6: Strict receipt idempotency
+      if (ds.receipts[receiptId]) {
+        return { ok: false, reason: 'duplicate-receipt', receiptId };
+      }
+      ds.receipts[receiptId] = true;
+
+      // Determine witnesses
+      let witnessIds = Array.isArray(meta.witnessIds) ? meta.witnessIds.filter(id => id && id !== npc.id) : [];
+      if (!meta.unwitnessed && !meta.soloWilderness && witnessIds.length === 0 && !npc.away && W && Array.isArray(W.npcs)) {
+        for (let i = 0; i < W.npcs.length; i++) {
+          const o = W.npcs[i];
+          if (!o || o.dead || o.exiled || o.away || o.id === npc.id) continue;
+          const dx = (o.x || 0) - (npc.x || 0), dy = (o.y || 0) - (npc.y || 0);
+          if (dx * dx + dy * dy <= 400) witnessIds.push(o.id);
+          if (witnessIds.length >= 4) break;
+        }
+      }
+
+      const isUnwitnessedSolo = Boolean(
+        meta.unwitnessed === true ||
+        (meta.soloWilderness === true && witnessIds.length === 0 && !meta.hasPhysicalProof)
+      );
+      const originEventId = meta.originEventId || ('orig_' + npc.id + '_' + deedKey + '_' + day + '_' + tick);
+      const descTh = meta.descTh || ('บันทึกวีรกรรม ' + deedKey + ' (+' + amt + ')');
+
+      if (isUnwitnessedSolo) {
+        ds.unwitnessedDeeds.push({
+          deedKey,
+          amount: amt,
+          day,
+          t: tick,
+          descTh,
+          zoneId: meta.zoneId || null,
+          proofItemId: meta.proofItemId || null,
+          receiptId,
+          originEventId,
+          verifiedDay: null
+        });
+        if (ds.unwitnessedDeeds.length > 32) ds.unwitnessedDeeds.shift();
+        return { ok: true, unwitnessed: true, pendingProof: true, receiptId, originEventId };
+      }
+
+      ds.counters[deedKey] = (ds.counters[deedKey] || 0) + amt;
+      ds.evidenceLog.push({
+        deedKey,
+        amount: amt,
+        day,
+        t: tick,
+        descTh,
+        witnessed: true,
+        witnessIds: witnessIds.slice(0, 6),
+        zoneId: meta.zoneId || null,
+        receiptId,
+        originEventId
+      });
+      if (ds.evidenceLog.length > 48) ds.evidenceLog.shift();
+
+      // Check autonomous shame redemption progress if active
+      if (ep.redemptionDrive && ep.redemptionDrive.active) {
+        const redeemingDeeds = new Set([
+          'combat_win', 'combat_kill', 'boss_kill', 'solo_boss_kill',
+          'defend_sect_win', 'rescue_comrade', 'heal_patient',
+          'caravan_escort_flawless', 'leyline_anchor_guard', 'court_memorial_accepted'
+        ]);
+        if (redeemingDeeds.has(deedKey)) {
+          ep.redemptionDrive.progress = (ep.redemptionDrive.progress || 0) + 1;
+          if (npc.cognition && npc.cognition.goal && npc.cognition.goal.id === 'wash_shame_epithet') {
+            npc.cognition.goal.progress = Math.min(100, Math.round((ep.redemptionDrive.progress / Math.max(1, ep.redemptionDrive.required || 2)) * 100));
+          }
+          if (ep.redemptionDrive.progress >= (ep.redemptionDrive.required || 2)) {
+            EP.redeemShameEpithet(W, npc, ep.redemptionDrive.shameEpithetId, descTh);
+          }
+        }
+      }
+
+      const granted = EP.evaluateDeedThresholds(W, npc, deedKey, ds.counters[deedKey], {
+        descTh,
+        receiptId,
+        originEventId,
+        witnessIds,
+        epistemicStatus: witnessIds.length > 0 ? 'VERIFIED' : 'OBSERVED'
+      });
+
+      return { ok: true, unwitnessed: false, counter: ds.counters[deedKey], receiptId, originEventId, granted };
+    },
+
+    verifySecretDeedWithProof(W, npc, deedKey, proofDescTh) {
+      if (!W || !npc) return { ok: false, reason: 'invalid-args' };
+      const ds = EP.ensureDeedStats(npc);
+      const pending = ds.unwitnessedDeeds.filter(d => d && (!deedKey || d.deedKey === deedKey) && !d.verifiedDay);
+      if (!pending.length) return { ok: false, reason: 'no-unwitnessed-deed' };
+      const day = (W && W.day) || 1;
+      const grantedAll = [];
+      for (const item of pending) {
+        item.verifiedDay = day;
+        item.proofDescTh = proofDescTh || 'ยืนยันด้วยหลักฐานของจริงที่นำกลับสำนัก';
+        ds.counters[item.deedKey] = (ds.counters[item.deedKey] || 0) + item.amount;
+        ds.evidenceLog.push({
+          deedKey: item.deedKey,
+          amount: item.amount,
+          day,
+          t: (W && W.t) || 0,
+          descTh: item.descTh + ' (' + item.proofDescTh + ')',
+          witnessed: true,
+          witnessIds: ['PROOF_VERIFIED'],
+          zoneId: item.zoneId,
+          receiptId: item.receiptId,
+          originEventId: item.originEventId
+        });
+        const gList = EP.evaluateDeedThresholds(W, npc, item.deedKey, ds.counters[item.deedKey], {
+          descTh: item.descTh + ' — ' + item.proofDescTh,
+          receiptId: item.receiptId,
+          originEventId: item.originEventId,
+          witnessIds: ['PROOF_VERIFIED'],
+          epistemicStatus: 'VERIFIED'
+        });
+        if (Array.isArray(gList)) grantedAll.push(...gList);
+      }
+      ds.unwitnessedDeeds = ds.unwitnessedDeeds.filter(d => !d.verifiedDay);
+      return { ok: true, verifiedCount: pending.length, granted: grantedAll };
+    },
+
+    evaluateDeedThresholds(W, npc, deedKey, count, meta) {
+      const granted = [];
+      const tryGrant = (id, customMeta) => {
+        const res = EP.grantEpithet(W, npc, id, Object.assign({}, meta, customMeta || {}));
+        if (res && res.ok && res.newlyGranted) granted.push(id);
+      };
+
+      // Anti-farming Guard 5: Cauldron explosion grants campus eccentricity at 3x, and only grants master alchemist after subsequent real success
+      if (deedKey === 'cauldron_explode') {
+        if (count >= 3) tryGrant('EPI_CMP_033');
+        return granted;
+      }
+      if (deedKey === 'alchemy_success') {
+        const ds = EP.ensureDeedStats(npc);
+        if (count >= 5) tryGrant('EPI_ART_057');
+        if ((ds.counters.cauldron_explode || 0) >= 3 && count >= 3) tryGrant('EPI_ART_057', { descTh: 'หลอมโอสถสำเร็จหลังผ่านบทเรียนเตาระเบิดสามหน' });
+      }
+      if (deedKey === 'multiphase_pill_brew' && count >= 1) tryGrant('EPI_NEW_269');
+      if (deedKey === 'forge_success' && count >= 4) tryGrant('EPI_ART_058');
+      if (deedKey === 'catalyst_3star_refine' && count >= 1) tryGrant('EPI_NEW_270');
+      if (deedKey === 'heal_patient' && count >= 4) tryGrant('EPI_NEW_276');
+      if (deedKey === 'heal_critical' && count >= 2) tryGrant('EPI_ART_059');
+      if (deedKey === 'combat_kill' && count >= 5) tryGrant('EPI_CMB_001');
+      if (deedKey === 'outnumbered_win' && count >= 1) tryGrant('EPI_CMB_002');
+      if (deedKey === 'low_hp_win' && count >= 1) tryGrant('EPI_CMB_003');
+      if (deedKey === 'flawless_win' && count >= 2) tryGrant('EPI_CMB_004');
+      if (deedKey === 'solo_boss_kill' && count >= 1) tryGrant('EPI_EXP_139');
+      if (deedKey === 'iron_marrow_breaker' && count >= 1) tryGrant('EPI_NEW_262');
+      if (deedKey === 'herb_beast_tame' && count >= 1) tryGrant('EPI_NEW_261');
+      if (deedKey === 'weapon_kill:SWORD' && count >= 3) tryGrant('EPI_CMB_001');
+      if (deedKey === 'weapon_kill:SABER' && count >= 3) tryGrant('EPI_CMB_002');
+      if (deedKey === 'weapon_kill:SPEAR' && count >= 3) tryGrant('EPI_CMB_032');
+      if (deedKey === 'weapon_kill:FIST_PALM' && count >= 3) tryGrant('EPI_CMB_031');
+      if (deedKey === 'tourney_win_streak' && count >= 3) tryGrant('EPI_CMB_025');
+      if (deedKey === 'qinggong_flight_mastery' && count >= 1) tryGrant('EPI_NEW_263');
+      if (deedKey === 'mantra_weather_sync' && count >= 1) tryGrant('EPI_NEW_264');
+      if (deedKey === 'defensive_redirect_mastery' && count >= 1) tryGrant('EPI_NEW_265');
+      if (deedKey === 'support_blessing_mastery' && count >= 1) tryGrant('EPI_NEW_266');
+      if (deedKey === 'forbidden_blood_taboo_survived' && count >= 1) tryGrant('EPI_NEW_267');
+      if (deedKey === 'passive_constellation_tier3' && count >= 1) tryGrant('EPI_NEW_268');
+      if (deedKey === 'leyline_anchor_guard' && count >= 1) tryGrant('EPI_NEW_271');
+      if (deedKey === 'court_memorial_accepted' && count >= 1) tryGrant('EPI_NEW_272');
+      if (deedKey === 'micro_locations_all4' && count >= 1) tryGrant('EPI_NEW_273');
+      if (deedKey === 'ancient_dao_legacy_awakened' && count >= 1) tryGrant('EPI_NEW_274');
+      if (deedKey === 'spirit_fish_banquet' && count >= 1) tryGrant('EPI_NEW_275');
+      if (deedKey === 'flee_battle' && count >= 2) {
+        EP.triggerShameStigma(W, npc, 'EPI_INF_113', meta);
+        granted.push('EPI_INF_113');
+      }
+      if (deedKey === 'abandon_comrade' && count >= 1) {
+        EP.triggerShameStigma(W, npc, 'EPI_INF_114', meta);
+        granted.push('EPI_INF_114');
+      }
+      if (deedKey === 'embezzle_exposed' && count >= 1) {
+        EP.triggerShameStigma(W, npc, 'EPI_INF_115', meta);
+        granted.push('EPI_INF_115');
+      }
+      return granted;
+    },
+
+    grantEpithet(W, npc, epithetId, meta) {
+      if (!npc || !epithetId) return { ok: false, reason: 'invalid-args' };
+      const def = EP.getDef(epithetId);
+      if (!def) return { ok: false, reason: 'unknown-epithet-id' };
+      meta = meta || {};
+      const ep = EP.ensureNpcEpithets(npc);
+      const day = (W && W.day) || 1;
+      const tick = (W && W.t) || 0;
+
+      const existing = ep.owned.find(x => x && x.id === epithetId);
+      if (existing) {
+        if (meta.epistemicStatus === 'VERIFIED' && existing.epistemicStatus !== 'VERIFIED') {
+          existing.epistemicStatus = 'VERIFIED';
+          existing.publicKnown = true;
+        }
+        return { ok: true, newlyGranted: false, record: existing };
+      }
+
+      const isShame = def.polarity === 'SHAME';
+      // Low-profile / stealth disciples may suppress heroic public boasting, but can NEVER suppress SHAME!
+      const stealthSkill = (npc.h && npc.h.skills && npc.h.skills.STEALTH) || 0;
+      const humility = (npc.h && npc.h.values && npc.h.values.humility) || 50;
+      const wantsLowProfile = !isShame && (stealthSkill >= 75 && humility >= 75 && meta.forcePublic !== true);
+
+      const originEventId = meta.originEventId || ('epi_origin_' + npc.id + '_' + epithetId + '_' + day);
+      const witnessIds = Array.isArray(meta.witnessIds) ? meta.witnessIds.slice(0, 8) : [];
+      const record = {
+        id: def.id,
+        titleTh: def.titleTh,
+        category: def.category,
+        polarity: def.polarity,
+        effectType: def.effectType,
+        tier: def.tier || 2,
+        scope: def.scope || 'JIANGHU',
+        grantedDay: day,
+        grantedTick: tick,
+        evidenceTh: meta.descTh || def.effectSummaryTh || 'ประจักษ์ผลงานในยุทธภพ',
+        receiptId: meta.receiptId || null,
+        originEventId,
+        epistemicStatus: meta.epistemicStatus || 'VERIFIED',
+        witnessCount: Math.max(1, witnessIds.length),
+        witnessIds,
+        publicKnown: !wantsLowProfile && (def.scope !== 'CAMPUS'),
+        suppressedByStealth: wantsLowProfile,
+        shameActive: isShame,
+        redeemedDay: null,
+        redemptionEvidenceTh: null,
+        residualSkepticUntilDay: null
+      };
+
+      ep.owned.push(record);
+      ep.rumorLedger[originEventId] = {
+        id: def.id,
+        targetId: npc.id,
+        epistemicStatus: record.epistemicStatus,
+        learnedDay: day,
+        speakerId: npc.id
+      };
+
+      // Assign slot: CAMPUS scope -> campusId; UNIQUE_CROWN -> crownIds; POSTHUMOUS -> posthumousTitleTh; otherwise primaryId
+      if (def.category === 'POSTHUMOUS') {
+        ep.posthumousId = def.id;
+        ep.posthumousTitleTh = def.titleTh;
+      } else if (def.category === 'UNIQUE_CROWN') {
+        if (!ep.crownIds.includes(def.id)) ep.crownIds.push(def.id);
+      } else if (def.scope === 'CAMPUS' || def.category === 'CAMPUS') {
+        ep.campusId = def.id;
+        ep.campusTextTh = def.titleTh;
+        if (!ep.primaryId && !wantsLowProfile) {
+          ep.primaryId = def.id;
+          ep.primaryTextTh = def.titleTh;
+        }
+      } else if (isShame) {
+        // Shame stigma overrides primary public epithet until redeemed!
+        ep.primaryId = def.id;
+        ep.primaryTextTh = def.titleTh;
+      } else if (!wantsLowProfile) {
+        const curDef = ep.primaryId ? EP.getDef(ep.primaryId) : null;
+        const curIsActiveShame = curDef && curDef.polarity === 'SHAME' && ep.owned.some(x => x.id === curDef.id && x.shameActive);
+        if (!curIsActiveShame && (!curDef || (def.tier || 2) >= (curDef.tier || 2))) {
+          ep.primaryId = def.id;
+          ep.primaryTextTh = def.titleTh;
+        }
+      }
+
+      ep.history.push({
+        day,
+        t: tick,
+        kind: isShame ? 'SHAME_BRANDED' : 'EPITHET_GRANTED',
+        epithetId: def.id,
+        titleTh: def.titleTh,
+        evidenceTh: record.evidenceTh,
+        epistemicStatus: record.epistemicStatus
+      });
+      if (ep.history.length > 40) ep.history.shift();
+
+      if (typeof HC !== 'undefined' && HC.bump) HC.bump(npc);
+      return { ok: true, newlyGranted: true, record };
+    },
+
+    /* Shame Stigma & Autonomous Redemption Drive */
+    triggerShameStigma(W, npc, epithetId, meta) {
+      if (!npc) return { ok: false, reason: 'no-npc' };
+      const res = EP.grantEpithet(W, npc, epithetId || 'EPI_INF_113', Object.assign({}, meta || {}, { forcePublic: true }));
+      const ep = EP.ensureNpcEpithets(npc);
+      const def = EP.getDef(epithetId || 'EPI_INF_113');
+      const day = (W && W.day) || 1;
+      const pride = (npc.h && npc.h.ego && npc.h.ego.pride) || 50;
+      const integrity = (npc.h && npc.h.values && npc.h.values.integrity) || 50;
+      const courage = (npc.h && npc.h.personality && npc.h.personality.courage) || 50;
+
+      // Activate autonomous redemption drive (wash_shame_epithet)
+      if (pride >= 35 || integrity >= 35 || courage >= 35) {
+        ep.redemptionDrive = {
+          active: true,
+          shameEpithetId: def ? def.id : epithetId,
+          shameTitleTh: def ? def.titleTh : 'ฉายาอัปยศ',
+          startedDay: day,
+          targetDeedKey: 'redemption_deed',
+          progress: 0,
+          required: 2,
+          whyTh: 'มุ่งมั่นสร้างผลงานกู้ศักดิ์ศรีเพื่อล้างตราบาป「' + (def ? def.titleTh : epithetId) + '」'
+        };
+        npc.cognition = npc.cognition || {};
+        {
+          npc.cognition.goal = {
+            id: 'wash_shame_epithet',
+            title: 'ล้างตราบาปสมญานาม「' + (def ? def.titleTh : epithetId) + '」',
+            progress: 0,
+            target: 100
+          };
+        }
+        npc.why = Array.isArray(npc.why) ? npc.why : [];
+        npc.why.unshift([ep.redemptionDrive.whyTh, 95]);
+        if (npc.why.length > 6) npc.why.length = 6;
+      }
+      return res;
+    },
+
+    redeemShameEpithet(W, npc, shameEpithetId, redemptionEvidenceTh) {
+      if (!npc) return { ok: false, reason: 'no-npc' };
+      const ep = EP.ensureNpcEpithets(npc);
+      const day = (W && W.day) || 1;
+      const tick = (W && W.t) || 0;
+      const targetRec = ep.owned.find(r => r && r.polarity === 'SHAME' && r.shameActive && (!shameEpithetId || r.id === shameEpithetId));
+      if (!targetRec) return { ok: false, reason: 'no-active-shame' };
+
+      targetRec.shameActive = false;
+      targetRec.redeemedDay = day;
+      targetRec.redemptionEvidenceTh = redemptionEvidenceTh || 'พิสูจน์ความกล้าหาญในศึกจริงจนกู้ศักดิ์ศรีสำเร็จ';
+      targetRec.residualSkepticUntilDay = day + 30;
+
+      if (ep.redemptionDrive) {
+        ep.redemptionDrive.active = false;
+        ep.redemptionDrive.completedDay = day;
+      }
+      if (npc.cognition && npc.cognition.goal && npc.cognition.goal.id === 'wash_shame_epithet') {
+        npc.cognition.goal.progress = 100;
+      }
+
+      // Grant redemption honorific (e.g., EPI_FAT_228 or EPI_CHV_093)
+      const redeemId = 'EPI_FAT_228';
+      EP.grantEpithet(W, npc, redeemId, {
+        descTh: 'กู้ศักดิ์ศรีล้างตราบาป「' + targetRec.titleTh + '」: ' + targetRec.redemptionEvidenceTh,
+        epistemicStatus: 'VERIFIED',
+        forcePublic: true
+      });
+      const redDef = EP.getDef(redeemId);
+      if (redDef) {
+        ep.primaryId = redDef.id;
+        ep.primaryTextTh = redDef.titleTh;
+      }
+
+      ep.history.push({
+        day,
+        t: tick,
+        kind: 'SHAME_REDEEMED',
+        epithetId: targetRec.id,
+        titleTh: targetRec.titleTh,
+        redeemedById: redeemId,
+        evidenceTh: targetRec.redemptionEvidenceTh
+      });
+      if (typeof HC !== 'undefined' && HC.bump) HC.bump(npc);
+      return { ok: true, redeemedId: targetRec.id, newPrimaryId: ep.primaryId, residualSkepticUntilDay: targetRec.residualSkepticUntilDay };
+    },
+
+    /* Rumor Propagation, False Accusation & Tribunal Clearing */
+    propagateRumor(W, speaker, listener, originEventIdOpt) {
+      if (!W || !speaker || !listener || speaker.id === listener.id) return { ok: false, reason: 'invalid-actors' };
+      const epS = EP.ensureNpcEpithets(speaker);
+      const epL = EP.ensureNpcEpithets(listener);
+      const day = (W && W.day) || 1;
+
+      const candidateOrigins = originEventIdOpt
+        ? [originEventIdOpt]
+        : Object.keys(epS.rumorLedger || {});
+      let sharedCount = 0;
+
+      for (const origId of candidateOrigins) {
+        const entry = epS.rumorLedger[origId];
+        if (!entry) continue;
+        // Anti-echo-chamber: if listener already learned this exact originEventId, do NOT increment witnessCount!
+        if (epL.rumorLedger[origId]) continue;
+
+        epL.rumorLedger[origId] = {
+          id: entry.id,
+          targetId: entry.targetId,
+          epistemicStatus: entry.epistemicStatus,
+          learnedDay: day,
+          speakerId: speaker.id
+        };
+        const targetNpc = W.byId && W.byId[entry.targetId];
+        if (targetNpc && targetNpc.epithets && Array.isArray(targetNpc.epithets.owned)) {
+          const rec = targetNpc.epithets.owned.find(x => x && x.originEventId === origId);
+          if (rec) {
+            rec.witnessIds = Array.isArray(rec.witnessIds) ? rec.witnessIds : [];
+            if (!rec.witnessIds.includes(listener.id)) {
+              rec.witnessIds.push(listener.id);
+              rec.witnessCount = rec.witnessIds.length;
+            }
+          }
+        }
+        sharedCount++;
+        if (sharedCount >= 2) break;
+      }
+      return { ok: sharedCount > 0, sharedCount };
+    },
+
+    seedAccusationRumor(W, targetNpc, epithetId, accuserInfo) {
+      if (!W || !targetNpc) return { ok: false, reason: 'invalid-target' };
+      accuserInfo = accuserInfo || {};
+      const eid = epithetId || 'EPI_INF_124';
+      const day = (W && W.day) || 1;
+      const originEventId = accuserInfo.originEventId || ('rumor_accuse_' + targetNpc.id + '_' + eid + '_' + day);
+      const res = EP.grantEpithet(W, targetNpc, eid, {
+        descTh: accuserInfo.reasonTh || 'ข่าวลือกล่าวหาที่ยังไม่ได้รับการพิสูจน์ในหอวินัย',
+        epistemicStatus: 'RUMOR',
+        originEventId,
+        witnessIds: accuserInfo.accuserId ? [accuserInfo.accuserId] : ['RUMOR_MILL']
+      });
+      if (res && res.record) {
+        res.record.epistemicStatus = 'RUMOR';
+        res.record.verified = false;
+      }
+      if (accuserInfo.accuserNpc) {
+        const epA = EP.ensureNpcEpithets(accuserInfo.accuserNpc);
+        epA.rumorLedger[originEventId] = {
+          id: eid,
+          targetId: targetNpc.id,
+          epistemicStatus: 'RUMOR',
+          learnedDay: day,
+          speakerId: accuserInfo.accuserNpc.id
+        };
+      }
+      return { ok: true, originEventId, record: res && res.record };
+    },
+
+    clearFalseAccusation(W, targetNpc, epithetId, verifierNpc) {
+      if (!W || !targetNpc || !targetNpc.epithets) return { ok: false, reason: 'no-target' };
+      const ep = targetNpc.epithets;
+      const day = (W && W.day) || 1;
+      const idx = ep.owned.findIndex(r => r && (!epithetId || r.id === epithetId) && r.epistemicStatus === 'RUMOR');
+      if (idx === -1) return { ok: false, reason: 'rumor-not-found' };
+      const removed = ep.owned.splice(idx, 1)[0];
+      if (ep.primaryId === removed.id) {
+        const fallback = ep.owned.find(r => r && r.polarity !== 'SHAME' && !r.suppressedByStealth);
+        ep.primaryId = fallback ? fallback.id : null;
+        ep.primaryTextTh = fallback ? fallback.titleTh : null;
+      }
+      if (ep.redemptionDrive && ep.redemptionDrive.shameEpithetId === removed.id) {
+        ep.redemptionDrive.active = false;
+      }
+      ep.history.push({
+        day,
+        t: (W && W.t) || 0,
+        kind: 'FALSE_RUMOR_CLEARED',
+        epithetId: removed.id,
+        titleTh: removed.titleTh,
+        verifierId: verifierNpc ? verifierNpc.id : 'SECT_TRIBUNAL',
+        evidenceTh: 'หอวินัยสอบสวนพิสูจน์ความบริสุทธิ์ ล้างข่าวลือเท็จ「' + removed.titleTh + '」'
+      });
+      if (typeof HC !== 'undefined' && HC.bump) HC.bump(targetNpc);
+      return { ok: true, clearedId: removed.id };
+    },
+
+    /* Multi-Perspective NPC Perception (Pure, Zero-RNG, Zero-Mutation) */
+    evaluatePerception(W, observer, target) {
+      if (!observer || !target) {
+        return { attitudeDelta: 0, trustDelta: 0, fearDelta: 0, respectDelta: 0, knownEpithetTh: null, perceptionLabelTh: 'เฉยเมย', reasonTh: 'ไม่มีข้อมูลสมญานาม' };
+      }
+      const epT = EP.peekNpcEpithets(target);
+      const epO = EP.peekNpcEpithets(observer);
+      const day = (W && W.day) || 1;
+      const sameSect = Boolean(!observer.sectId && !target.sectId) || (observer.sectId && observer.sectId === target.sectId);
+
+      // Determine which epithet observer actually knows about target
+      let activeRec = null;
+      if (epT.primaryId) {
+        const cand = (epT.owned || []).find(r => r && r.id === epT.primaryId);
+        if (cand) {
+          const knowsRumor = Boolean(cand.originEventId && epO.rumorLedger && epO.rumorLedger[cand.originEventId]);
+          if (sameSect || cand.publicKnown || knowsRumor) activeRec = cand;
+        }
+      }
+      if (!activeRec && sameSect && epT.campusId) {
+        activeRec = (epT.owned || []).find(r => r && r.id === epT.campusId) || {
+          id: epT.campusId, titleTh: epT.campusTextTh, polarity: 'ECCENTRIC', epistemicStatus: 'VERIFIED'
+        };
+      }
+
+      const right = (observer.h && observer.h.values && observer.h.values.righteousness) != null ? observer.h.values.righteousness : 50;
+      const comp = (observer.h && observer.h.values && observer.h.values.compassion) != null ? observer.h.values.compassion : 50;
+      const integ = (observer.h && observer.h.values && observer.h.values.integrity) != null ? observer.h.values.integrity : 50;
+      const perc = (observer.h && observer.h.intellect && observer.h.intellect.perceptiveness) != null ? observer.h.intellect.perceptiveness : 50;
+      const aggr = (observer.h && observer.h.personality && observer.h.personality.aggression) != null ? observer.h.personality.aggression : 50;
+
+      let attitudeDelta = 0, trustDelta = 0, fearDelta = 0, respectDelta = 0;
+      let perceptionLabelTh = 'รับรู้ตามปกติ';
+      let reasonTh = 'ยังไม่มีสมญานามที่ส่งผลต่อมุมมองพิเศษ';
+
+      // Check redeemed shame residual skepticism
+      const redeemedShame = (epT.owned || []).find(r => r && r.polarity === 'SHAME' && !r.shameActive && r.redeemedDay != null);
+      if (redeemedShame && redeemedShame.residualSkepticUntilDay && day < redeemedShame.residualSkepticUntilDay) {
+        if (comp < 45 || aggr > 65) {
+          trustDelta -= 6;
+          respectDelta -= 4;
+          perceptionLabelTh = 'ยังเคลือบแคลงในอดีต';
+          reasonTh = 'แม้จะล้างตราบาป「' + redeemedShame.titleTh + '」แล้ว แต่ยังระแวงอดีตที่เคยด่างพร้อย';
+        } else {
+          attitudeDelta += 10;
+          respectDelta += 12;
+          perceptionLabelTh = 'ชื่นชมการกู้ศักดิ์ศรี';
+          reasonTh = 'นับถือที่สามารถล้างมลทิน「' + redeemedShame.titleTh + '」ด้วยวีรกรรมจริง';
+        }
+      }
+
+      if (activeRec) {
+        if (activeRec.epistemicStatus === 'RUMOR' && perc >= 72 && integ >= 65) {
+          return {
+            attitudeDelta: 0,
+            trustDelta: -2,
+            fearDelta: 0,
+            respectDelta: 0,
+            knownEpithetTh: activeRec.titleTh,
+            epistemicStatus: 'RUMOR',
+            perceptionLabelTh: 'รอพิสูจน์ข้อเท็จจริง',
+            reasonTh: 'ผู้สังเกตมีปัญญาเฉียบแหลม จึงยังไม่ปักใจเชื่อข่าวลือ「' + activeRec.titleTh + '」โดยไร้หลักฐาน'
+          };
+        }
+
+        if (activeRec.polarity === 'DREAD') {
+          fearDelta += 22;
+          if (right >= 60 || comp >= 60) {
+            attitudeDelta -= 18;
+            trustDelta -= 15;
+            perceptionLabelTh = 'รังเกียจและระแวดระวัง';
+            reasonTh = 'ยึดมั่นคุณธรรม จึงต่อต้านสมญานามสายอำมหิต「' + activeRec.titleTh + '」';
+          } else if (aggr >= 60 || right <= 40) {
+            attitudeDelta += 12;
+            respectDelta += 16;
+            perceptionLabelTh = 'ยำเกรงในอำนาจสังหาร';
+            reasonTh = 'ชื่นชมความเด็ดขาดของสมญานาม「' + activeRec.titleTh + '」';
+          }
+        } else if (activeRec.polarity === 'SHAME' && activeRec.shameActive !== false) {
+          respectDelta -= 20;
+          trustDelta -= 16;
+          attitudeDelta -= (integ >= 55 ? 14 : 6);
+          perceptionLabelTh = 'ดูแคลนตราบาป';
+          reasonTh = 'เสื่อมศรัทธาจากฉายาอัปยศ「' + activeRec.titleTh + '」';
+        } else if (activeRec.polarity === 'HEROIC') {
+          if (right >= 45 && !(redeemedShame && comp < 45)) {
+            attitudeDelta += 14;
+            trustDelta += 12;
+            respectDelta += 15;
+            perceptionLabelTh = 'เลื่อมใสศรัทธา';
+            reasonTh = 'ยกย่องเกียรติคุณของสมญานาม「' + activeRec.titleTh + '」';
+          } else {
+            attitudeDelta -= 8;
+            fearDelta += 8;
+            respectDelta += 6;
+            perceptionLabelTh = 'เขม่นระแวงศัตรูผู้ทรงธรรม';
+            reasonTh = 'มองผู้ถือสมญานาม「' + activeRec.titleTh + '」เป็นอุปสรรคขวางทาง';
+          }
+        } else if (activeRec.polarity === 'ECCENTRIC') {
+          attitudeDelta += 4;
+          perceptionLabelTh = 'เอ็นดูปนขบขัน';
+          reasonTh = 'คุ้นเคยกับฉายาประจำสำนัก「' + activeRec.titleTh + '」';
+        }
+      }
+
+      if (epT.crownIds && epT.crownIds.length > 0) {
+        const crDef = EP.getDef(epT.crownIds[0]);
+        respectDelta += 20;
+        fearDelta += 12;
+        if (crDef) {
+          perceptionLabelTh = 'ยำเกรงผู้ครองมงกุฎอันดับหนึ่ง';
+          reasonTh = 'เคารพรัศมีมงกุฎหนึ่งเดียวในใต้หล้า「' + crDef.titleTh + '」';
+        }
+      }
+
+      return {
+        attitudeDelta,
+        trustDelta,
+        fearDelta,
+        respectDelta,
+        knownEpithetTh: activeRec ? activeRec.titleTh : (epT.primaryTextTh || epT.campusTextTh || null),
+        epistemicStatus: activeRec ? activeRec.epistemicStatus : 'VERIFIED',
+        perceptionLabelTh,
+        reasonTh
+      };
+    },
+
+    /* -----------------------------------------------------------------------
+     * ONE-IN-THE-WORLD MOVEABLE CROWNS (#235-#246)
+     * ----------------------------------------------------------------------- */
+    scoreCandidateForCrown(W, cand, crownId) {
+      if (!cand || cand.dead) return -1;
+      const spec = (EP.getCatalog().CROWNS_SPEC || {})[crownId];
+      if (!spec) return -1;
+      const age = (cand && cand.h && cand.h.birthDay != null && typeof HC !== 'undefined' && HC.ageYears) ? HC.ageYears(cand) : (cand && cand.ageYears || 25);
+      if (spec.maxAge != null && age > spec.maxAge) return -1;
+
+      const stage = (cand.cult && cand.cult.stage) || cand.stage || 1;
+      const stInfo = (typeof CULT !== 'undefined' && CULT.STAGES && CULT.STAGES[stage - 1]) || { combatPower: stage * 120 };
+      const power = (typeof CULT !== 'undefined' && CULT.power && cand.h && cand.h.state)
+        ? CULT.power(cand)
+        : (cand.combatPower || (stInfo.combatPower * 1.25 + (cand.quality || 0) * 25));
+      const sk = (cand.h && cand.h.skills) || {};
+      const vals = (cand.h && cand.h.values) || {};
+
+      if (spec.demonicOnly) {
+        const isDem = (cand.cult && (cand.cult.path === 'DEMON' || cand.cult.path === 'BLOOD_ARTS' || cand.cult.path === 'CORPSE_PUPPET')) ||
+                      (vals.righteousness != null && vals.righteousness <= 32) ||
+                      (cand.alignment === 'DEMONIC');
+        if (!isDem) return -1;
+      }
+      if (spec.righteousOnly) {
+        const isRight = (vals.righteousness != null && vals.righteousness >= 68) || (cand.alignment === 'RIGHTEOUS');
+        if (!isRight) return -1;
+      }
+      const cPath = (cand.cult && cand.cult.path) || '';
+      if (spec.weaponType) {
+        const wEq = cand.equip && cand.equip.WEAPON;
+        const wType = String((wEq && (wEq.weaponType || wEq.type)) || cand.weaponType || '').toUpperCase();
+        const wSk = sk[spec.weaponType] || sk[String(spec.weaponType).toLowerCase()] || (spec.weaponType === 'SABER' ? (sk.BLADE || sk.blade || 0) : 0) || 0;
+        const matchWpn = wType === spec.weaponType || (spec.weaponType === 'SABER' && (wType === 'BLADE' || ['SHADOW_SAMURAI', 'BODY'].includes(cPath)));
+        if (!matchWpn && wSk < 55) return -1;
+        return power * 0.65 + wSk * 4.5 + stage * 45 + (matchWpn ? 120 : 0);
+      }
+      if (spec.skillKey) {
+        const sVal = sk[spec.skillKey] || sk[String(spec.skillKey).toLowerCase()] || 0;
+        const pathMatch =
+          (spec.skillKey === 'FORMATION' && ['ARRAY_TALISMAN', 'DRAGON_VEIN_GEOMANCY', 'ASTRO_DIVINATION'].includes(cPath)) ||
+          (spec.skillKey === 'COMMERCE' && (['MERCANTILE_DAO', 'STRATEGY_GOVERNANCE', 'FORTUNE_GAMBLER'].includes(cPath) || cand.canonicalSectId === 'FAC_LONGMEN')) ||
+          (spec.skillKey === 'ALCHEMY' && ['SAGE_SUPPORT', 'CRAFT_CREATION'].includes(cPath)) ||
+          (spec.skillKey === 'FORGING' && ['CRAFT_CREATION', 'MECH_PUPPET'].includes(cPath)) ||
+          (spec.skillKey === 'MEDICINE' && ['SAGE_SUPPORT', 'SPIRIT_HUSBANDRY'].includes(cPath)) ||
+          (spec.skillKey === 'STEALTH' && ['NINPO_SHADOW', 'VOID_SPACE', 'WANDERING_DAO'].includes(cPath));
+        if (sVal < 45 && !pathMatch) return -1;
+        return (sVal || (stage * 14)) * 6.0 + stage * 40 + power * 0.25 + (pathMatch ? 150 : 0);
+      }
+      if (spec.domain === 'YOUNG_PRODIGY_SUPREME') {
+        return power + (28 - age) * 18 + stage * 40;
+      }
+      if (spec.domain === 'RIGHTEOUS_SUPREME') {
+        return power * 0.6 + (vals.righteousness || 50) * 4 + (vals.compassion || 50) * 2 + (cand.merit || 0) * 0.5;
+      }
+      if (spec.domain === 'DEMON_SUPREME') {
+        return power * 0.75 + (100 - (vals.righteousness || 50)) * 3.5 + stage * 30;
+      }
+      return power + stage * 35;
+    },
+
+    findWorldActorById(W, actorId) {
+      if (!W || !actorId) return null;
+      if (W.byId && W.byId[actorId]) return { actor: W.byId[actorId], isExternal: false, sectId: 'PLAYER_SECT' };
+      const npcs = W.npcs || [];
+      for (let i = 0; i < npcs.length; i++) {
+        if (npcs[i] && npcs[i].id === actorId) return { actor: npcs[i], isExternal: false, sectId: 'PLAYER_SECT' };
+      }
+      if (W.world) {
+        if (W.world.figuresById && W.world.figuresById[actorId]) {
+          const fg = W.world.figuresById[actorId];
+          return { actor: fg, isExternal: true, sectId: fg.sectId || 'FOREIGN_SECT' };
+        }
+        const wFigs = W.world.wanderingFigures || [];
+        for (let i = 0; i < wFigs.length; i++) {
+          if (wFigs[i] && wFigs[i].id === actorId) return { actor: wFigs[i], isExternal: true, sectId: wFigs[i].sectId || 'WANDERING' };
+        }
+        const rivals = W.world.rivals || W.world.allSects || [];
+        for (let i = 0; i < rivals.length; i++) {
+          const rv = rivals[i];
+          if (!rv || !rv.figures) continue;
+          const figs = Array.isArray(rv.figures) ? rv.figures : Object.values(rv.figures);
+          for (let j = 0; j < figs.length; j++) {
+            const fg = figs[j];
+            if (fg && fg.id === actorId) return { actor: fg, isExternal: true, sectId: rv.id || 'FOREIGN_SECT' };
+          }
+        }
+      }
+      return null;
+    },
+
+    getActorNameTh(actor) {
+      if (!actor) return 'ผู้ฝึกตนนิรนาม';
+      if (actor.fullNameTh) return actor.fullNameTh;
+      if (actor.h && actor.h.name) {
+        if (actor.h.name.full) return actor.h.name.full;
+        const fam = actor.h.name.family || actor.h.name.surname || actor.h.name.sur || '';
+        const giv = actor.h.name.given || '';
+        if (fam || giv) return fam + giv;
+      }
+      return actor.nameTh || actor.name || actor.id || 'ผู้ฝึกตน';
+    },
+
+    assignCrownHolder(W, crownId, newHolder, meta) {
+      if (!W || !W.world || !crownId || !newHolder) return { ok: false, reason: 'invalid-args' };
+      meta = meta || {};
+      const crowns = EP.ensureWorldCrowns(W);
+      const cr = crowns[crownId];
+      if (!cr) return { ok: false, reason: 'unknown-crown' };
+      const day = (W && W.day) || 1;
+
+      // Remove from previous holder if different
+      if (cr.holderId && cr.holderId !== newHolder.id) {
+        const prevFound = EP.findWorldActorById(W, cr.holderId);
+        if (prevFound && prevFound.actor) {
+          const epPrev = EP.ensureNpcEpithets(prevFound.actor);
+          epPrev.crownIds = (epPrev.crownIds || []).filter(id => id !== crownId);
+          epPrev.history.push({
+            day,
+            t: (W && W.t) || 0,
+            kind: 'CROWN_LOST',
+            epithetId: crownId,
+            titleTh: cr.titleTh,
+            toHolderId: newHolder.id,
+            evidenceTh: meta.reasonTh || ('สูญเสียมงกุฎ「' + cr.titleTh + '」ให้แก่ ' + EP.getActorNameTh(newHolder))
+          });
+          if (typeof HC !== 'undefined' && HC.bump && !prevFound.isExternal) HC.bump(prevFound.actor);
+        }
+        cr.previousHolderId = cr.holderId;
+        cr.previousHolderNameTh = cr.holderNameTh;
+      }
+
+      const foundNew = EP.findWorldActorById(W, newHolder.id) || { actor: newHolder, isExternal: Boolean(newHolder.isExternal), sectId: newHolder.sectId || 'PLAYER_SECT' };
+      const holderNameTh = EP.getActorNameTh(newHolder);
+      cr.holderId = newHolder.id;
+      cr.holderNameTh = holderNameTh;
+      cr.holderSectId = foundNew.sectId;
+      cr.holderIsExternal = foundNew.isExternal;
+      cr.holderScore = Number.isFinite(meta.score) ? Math.round(meta.score) : Math.round(EP.scoreCandidateForCrown(W, newHolder, crownId));
+      cr.claimedDay = day;
+
+      // Rumor lag: unless immediatePublic is set, public knowledge updates after 2 days
+      if (meta.immediatePublic || !cr.publicKnownHolderId) {
+        cr.publicKnownHolderId = newHolder.id;
+        cr.publicKnownHolderNameTh = holderNameTh;
+        cr.rumorPropagatedDay = day;
+      } else {
+        cr.rumorPropagatedDay = day + 2;
+      }
+
+      cr.history.push({
+        holderId: newHolder.id,
+        holderNameTh,
+        claimedDay: day,
+        vacatedDay: null,
+        reasonTh: meta.reasonTh || 'ขึ้นครองมงกุฎอันดับหนึ่งแห่งยุทธภพ'
+      });
+      if (cr.history.length > 24) cr.history.shift();
+
+      const epNew = EP.ensureNpcEpithets(newHolder);
+      if (!epNew.crownIds.includes(crownId)) epNew.crownIds.push(crownId);
+      EP.grantEpithet(W, newHolder, crownId, {
+        descTh: meta.reasonTh || ('ครองมงกุฎหนึ่งเดียวในใต้หล้า「' + cr.titleTh + '」'),
+        epistemicStatus: 'VERIFIED',
+        forcePublic: true
+      });
+      if (typeof HC !== 'undefined' && HC.bump && !foundNew.isExternal) HC.bump(newHolder);
+      return { ok: true, crown: cr };
+    },
+
+    vacateCrown(W, crownId, reasonTh) {
+      if (!W || !W.world || !crownId) return { ok: false };
+      const crowns = EP.ensureWorldCrowns(W);
+      const cr = crowns[crownId];
+      if (!cr || !cr.holderId) return { ok: false, reason: 'already-vacant' };
+      const day = (W && W.day) || 1;
+      const prevFound = EP.findWorldActorById(W, cr.holderId);
+      if (prevFound && prevFound.actor && prevFound.actor.epithets) {
+        prevFound.actor.epithets.crownIds = (prevFound.actor.epithets.crownIds || []).filter(id => id !== crownId);
+        prevFound.actor.epithets.history.push({
+          day,
+          t: (W && W.t) || 0,
+          kind: 'CROWN_VACATED',
+          epithetId: crownId,
+          titleTh: cr.titleTh,
+          evidenceTh: reasonTh || 'สละมงกุฎหนึ่งเดียวในใต้หล้า'
+        });
+        if (typeof HC !== 'undefined' && HC.bump && !prevFound.isExternal) HC.bump(prevFound.actor);
+      }
+      cr.previousHolderId = cr.holderId;
+      cr.previousHolderNameTh = cr.holderNameTh;
+      if (cr.history.length > 0 && cr.history[cr.history.length - 1].vacatedDay == null) {
+        cr.history[cr.history.length - 1].vacatedDay = day;
+        cr.history[cr.history.length - 1].vacateReasonTh = reasonTh || 'ว่างลง';
+      }
+      cr.holderId = null;
+      cr.holderNameTh = null;
+      cr.holderSectId = null;
+      cr.holderIsExternal = false;
+      cr.holderScore = 0;
+      cr.publicKnownHolderId = null;
+      cr.publicKnownHolderNameTh = null;
+      return { ok: true, crownId, vacatedFrom: cr.previousHolderId };
+    },
+
+    vacateCrownOnDeath(W, npc) {
+      if (!W || !W.world || !npc) return [];
+      const crowns = EP.ensureWorldCrowns(W);
+      const vacated = [];
+      for (const cid of Object.keys(crowns)) {
+        const cr = crowns[cid];
+        if (cr && cr.holderId === npc.id) {
+          EP.vacateCrown(W, cid, 'ผู้ถือครองถึงแก่กรรม มงกุฎจึงว่างลงทันที');
+          vacated.push(cid);
+        }
+      }
+      if (npc.epithets && Array.isArray(npc.epithets.crownIds)) {
+        npc.epithets.crownIds = [];
+      }
+      if (typeof HC !== 'undefined' && HC.bump) HC.bump(npc);
+      return vacated;
+    },
+
+    syncPublicCrownKnowledge(W) {
+      if (!W || !W.world || !W.world.uniqueCrowns) return;
+      const day = (W && W.day) || 1;
+      for (const cid of Object.keys(W.world.uniqueCrowns)) {
+        const cr = W.world.uniqueCrowns[cid];
+        if (cr && cr.holderId && day >= (cr.rumorPropagatedDay || 0)) {
+          cr.publicKnownHolderId = cr.holderId;
+          cr.publicKnownHolderNameTh = cr.holderNameTh;
+        }
+      }
+    },
+
+    checkCrownDuelTransfer(W, fight, winner, loser) {
+      if (!W || !W.world || !winner || !loser || winner.dead) return [];
+      if (fight && (fight.kind === 'spar' || fight.serious === false)) return [];
+      const crowns = EP.ensureWorldCrowns(W);
+      const specs = EP.getCatalog().CROWNS_SPEC || {};
+      const transferred = [];
+
+      for (const cid of Object.keys(crowns)) {
+        const cr = crowns[cid];
+        if (!cr || cr.holderId !== loser.id) continue;
+        const sp = specs[cid];
+        if (!sp) continue;
+
+        // Check domain eligibility for direct duel transfer
+        let eligible = false;
+        if (sp.domain === 'COMBAT_SUPREME') eligible = true;
+        else if (sp.domain === 'YOUNG_PRODIGY_SUPREME') {
+          const age = (winner && winner.h && winner.h.birthDay != null && typeof HC !== 'undefined' && HC.ageYears) ? HC.ageYears(winner) : (winner && winner.ageYears || 20);
+          if (age <= (sp.maxAge || 27)) eligible = true;
+        } else if (sp.weaponType) {
+          const wEq = winner.equip && winner.equip.WEAPON;
+          const wType = (wEq && (wEq.weaponType || wEq.type)) || winner.weaponType || null;
+          const wSk = (winner.h && winner.h.skills && winner.h.skills[sp.weaponType]) || 0;
+          if (wType === sp.weaponType || wSk >= 55) eligible = true;
+        } else if (sp.domain === 'DEMON_SUPREME' || sp.domain === 'RIGHTEOUS_SUPREME') {
+          if (EP.scoreCandidateForCrown(W, winner, cid) > 0) eligible = true;
+        }
+
+        if (eligible) {
+          EP.assignCrownHolder(W, cid, winner, {
+            reasonTh: 'โค่นผู้ถือครองเดิม (' + EP.getActorNameTh(loser) + ') ในศึกดวลจริง จึงชิงมงกุฎ「' + cr.titleTh + '」มาครอง',
+            immediatePublic: Boolean(fight && (fight.kind === 'leadership' || fight.kind === 'tourney' || fight.gather))
+          });
+          transferred.push(cid);
+        }
+      }
+      return transferred;
+    },
+
+    reconcileUniqueCrowns(W, opts) {
+      if (!W || !W.world) return { ok: false };
+      opts = opts || {};
+      const crowns = EP.ensureWorldCrowns(W);
+      const specs = EP.getCatalog().CROWNS_SPEC || {};
+      const day = (W && W.day) || 1;
+
+      // Gather all living candidates: sect NPCs + wandering figures + rival notables
+      const candidates = [];
+      for (const n of (W.npcs || [])) {
+        if (n && !n.dead && !n.exiled) candidates.push(n);
+      }
+      const seenCandIds = new Set(candidates.map(x => x.id));
+      for (const fg of Object.values(W.world.figuresById || {})) {
+        if (fg && !fg.dead && !seenCandIds.has(fg.id)) {
+          seenCandIds.add(fg.id);
+          candidates.push(fg);
+        }
+      }
+      for (const wf of (W.world.wanderingFigures || [])) {
+        if (wf && !wf.dead && !seenCandIds.has(wf.id)) {
+          seenCandIds.add(wf.id);
+          candidates.push(wf);
+        }
+      }
+
+      const changes = [];
+      for (const cid of Object.keys(specs)) {
+        const cr = crowns[cid];
+        const sp = specs[cid];
+
+        // Validate incumbent first (check death or age-out on #245)
+        let incumbent = null;
+        let incumbentScore = -1;
+        if (cr.holderId) {
+          const found = EP.findWorldActorById(W, cr.holderId);
+          if (!found || !found.actor || found.actor.dead) {
+            EP.vacateCrown(W, cid, 'ผู้ถือครองเดิมเสียชีวิตหรือสาบสูญ');
+          } else {
+            const age = (found.actor && found.actor.h && found.actor.h.birthDay != null && typeof HC !== 'undefined' && HC.ageYears) ? HC.ageYears(found.actor) : (found.actor && found.actor.ageYears || 25);
+            if (sp.maxAge != null && age > sp.maxAge) {
+              EP.vacateCrown(W, cid, 'ก้าวพ้นวัยเยาว์ (อายุครบ ' + Math.floor(age) + ' ปี) สละมงกุฎดาวรุ่งสู่คนรุ่นหลัง');
+            } else {
+              incumbent = found.actor;
+              incumbentScore = EP.scoreCandidateForCrown(W, incumbent, cid);
+              cr.holderScore = Math.round(incumbentScore);
+            }
+          }
+        }
+
+        // Find best challenger
+        let bestCand = null;
+        let bestScore = -1;
+        for (let i = 0; i < candidates.length; i++) {
+          const c = candidates[i];
+          const sc = EP.scoreCandidateForCrown(W, c, cid);
+          // Strict tie rule: incumbent wins ties; among non-incumbents, deterministic id tie-breaker
+          if (sc > bestScore) {
+            bestScore = sc;
+            bestCand = c;
+          }
+        }
+
+        if (!bestCand || bestScore <= 0) continue;
+
+        if (!incumbent) {
+          EP.assignCrownHolder(W, cid, bestCand, {
+            score: bestScore,
+            reasonTh: 'หอเทียนจีประกาศทำเนียบผู้ครองมงกุฎ「' + sp.titleTh + '」',
+            immediatePublic: Boolean(opts.immediatePublic)
+          });
+          changes.push({ crownId: cid, holderId: bestCand.id });
+        } else if (bestCand.id !== incumbent.id) {
+          // Tie-keeps-incumbent & >8% margin required for non-duel ranking overtake
+          if (bestScore > incumbentScore * 1.08) {
+            EP.assignCrownHolder(W, cid, bestCand, {
+              score: bestScore,
+              reasonTh: 'ผลงานและตบะก้าวข้ามผู้ถือครองเดิมในการจัดทำเนียบหอเทียนจี',
+              immediatePublic: Boolean(opts.immediatePublic)
+            });
+            changes.push({ crownId: cid, holderId: bestCand.id, previousHolderId: incumbent.id });
+          }
+        }
+      }
+
+      EP.syncPublicCrownKnowledge(W);
+      return { ok: true, changes };
+    },
+
+    /* -----------------------------------------------------------------------
+     * COLLECTIVE GROUP EPITHETS (#173-#188)
+     * ----------------------------------------------------------------------- */
+    formCollectiveGroup(W, groupId, memberNpcIds, meta) {
+      if (!W || !W.sect || !groupId || !Array.isArray(memberNpcIds) || memberNpcIds.length < 2) {
+        return { ok: false, reason: 'invalid-group-args' };
+      }
+      meta = meta || {};
+      const cg = EP.ensureCollectiveGroups(W);
+      const def = EP.getDef(groupId) || { id: groupId, titleTh: meta.titleTh || 'กลุ่มร่วมสาบานยุทธภพ', effectType: 'MICRO' };
+      const day = (W && W.day) || 1;
+      const members = memberNpcIds.map(id => W.byId && W.byId[id]).filter(n => n && !n.dead && !n.exiled);
+      if (members.length < 2) return { ok: false, reason: 'insufficient-living-members' };
+
+      const grp = {
+        id: groupId,
+        titleTh: meta.titleTh || def.titleTh,
+        memberIds: members.map(m => m.id),
+        livingMemberIds: members.map(m => m.id),
+        fallenMemberIds: [],
+        formedDay: day,
+        status: 'ACTIVE', // ACTIVE | BEREAVED | SOLE_SURVIVOR | FRACTURED
+        groupBonusActive: true,
+        sharedDeedsCount: meta.sharedDeedsCount || 2,
+        history: [{
+          day,
+          kind: 'GROUP_FORMED',
+          textTh: 'ก่อตั้งนามกลุ่มร่วมสาบาน「' + (meta.titleTh || def.titleTh) + '」(' + members.map(m => EP.getActorNameTh(m)).join(', ') + ')'
+        }]
+      };
+      cg.byId[groupId] = grp;
+      cg.list = Object.values(cg.byId);
+
+      for (const m of members) {
+        const ep = EP.ensureNpcEpithets(m);
+        ep.groupId = groupId;
+        ep.groupTitleTh = grp.titleTh;
+        EP.grantEpithet(W, m, groupId, {
+          descTh: 'ร่วมก่อตั้งนามกลุ่ม「' + grp.titleTh + '」',
+          epistemicStatus: 'VERIFIED',
+          witnessIds: grp.memberIds.filter(id => id !== m.id)
+        });
+      }
+      return { ok: true, group: grp };
+    },
+
+    onGroupMemberDeath(W, deceasedNpc, killer) {
+      if (!W || !W.sect || !deceasedNpc) return { ok: false };
+      const cg = EP.ensureCollectiveGroups(W);
+      const epD = deceasedNpc.epithets;
+      const gid = epD && epD.groupId;
+      if (!gid || !cg.byId[gid]) return { ok: false, reason: 'not-in-group' };
+
+      const grp = cg.byId[gid];
+      const day = (W && W.day) || 1;
+      grp.livingMemberIds = (grp.livingMemberIds || []).filter(id => id !== deceasedNpc.id);
+      if (!grp.fallenMemberIds.includes(deceasedNpc.id)) grp.fallenMemberIds.push(deceasedNpc.id);
+
+      const survivors = grp.livingMemberIds.map(id => W.byId && W.byId[id]).filter(n => n && !n.dead);
+      if (survivors.length === 1) {
+        grp.status = 'SOLE_SURVIVOR';
+        const last = survivors[0];
+        EP.grantEpithet(W, last, 'EPI_CHV_096', {
+          descTh: 'ผู้รอดชีวิตคนสุดท้ายของกลุ่ม「' + grp.titleTh + '」หลังการจากไปของ ' + EP.getActorNameTh(deceasedNpc),
+          epistemicStatus: 'VERIFIED',
+          forcePublic: true
+        });
+      } else if (survivors.length > 1) {
+        grp.status = 'BEREAVED';
+        for (const s of survivors) {
+          EP.grantEpithet(W, s, 'EPI_CHV_101', {
+            descTh: 'ร่วมแบกรับปณิธานล้างแค้นให้สหายร่วมสาบาน「' + grp.titleTh + '」',
+            epistemicStatus: 'VERIFIED'
+          });
+        }
+      } else {
+        grp.status = 'EXTINCT';
+        grp.groupBonusActive = false;
+      }
+
+      grp.history.push({
+        day,
+        kind: 'MEMBER_FALLEN',
+        deceasedId: deceasedNpc.id,
+        killerId: killer ? killer.id : null,
+        textTh: EP.getActorNameTh(deceasedNpc) + ' สิ้นชีพ ทำให้นามกลุ่ม「' + grp.titleTh + '」เข้าสู่สถานะโศกนาฏกรรม (' + grp.status + ')'
+      });
+      return { ok: true, status: grp.status, group: grp };
+    },
+
+    onGroupMemberFracture(W, npcA, npcB, reasonTh) {
+      if (!W || !W.sect || !npcA) return { ok: false };
+      const cg = EP.ensureCollectiveGroups(W);
+      const gid = (npcA.epithets && npcA.epithets.groupId) || (npcB && npcB.epithets && npcB.epithets.groupId);
+      if (!gid || !cg.byId[gid]) return { ok: false, reason: 'no-shared-group' };
+      const grp = cg.byId[gid];
+      const day = (W && W.day) || 1;
+      grp.status = 'FRACTURED';
+      grp.groupBonusActive = false;
+      grp.history.push({
+        day,
+        kind: 'GROUP_FRACTURED',
+        textTh: 'นามกลุ่ม「' + grp.titleTh + '」แตกหักลง (' + (reasonTh || 'ความขัดแย้งรุนแรงหรือการทรยศ') + ')'
+      });
+      for (const mid of grp.memberIds) {
+        const m = W.byId && W.byId[mid];
+        if (m && m.epithets) {
+          m.epithets.groupTitleTh = grp.titleTh + ' (แตกหัก)';
+          m.epithets.history.push({
+            day,
+            t: (W && W.t) || 0,
+            kind: 'GROUP_FRACTURED',
+            epithetId: gid,
+            titleTh: grp.titleTh,
+            evidenceTh: reasonTh || 'พันธะกลุ่มร่วมสาบานแตกหัก'
+          });
+          if (typeof HC !== 'undefined' && HC.bump) HC.bump(m);
+        }
+      }
+      return { ok: true, status: grp.status, group: grp };
+    },
+
+    evaluateCollectiveGroups(W) {
+      if (!W || !W.sect || !Array.isArray(W.npcs)) return;
+      const cg = EP.ensureCollectiveGroups(W);
+      // Check existing groups for exile/feud fractures
+      for (const gid of Object.keys(cg.byId)) {
+        const grp = cg.byId[gid];
+        if (!grp || grp.status === 'FRACTURED' || grp.status === 'EXTINCT') continue;
+        for (let i = 0; i < grp.livingMemberIds.length; i++) {
+          const m1 = W.byId && W.byId[grp.livingMemberIds[i]];
+          if (!m1) continue;
+          if (m1.exiled) {
+            EP.onGroupMemberFracture(W, m1, null, EP.getActorNameTh(m1) + ' ถูกขับไล่ออกจากสำนัก');
+            break;
+          }
+          for (let j = i + 1; j < grp.livingMemberIds.length; j++) {
+            const m2 = W.byId && W.byId[grp.livingMemberIds[j]];
+            if (!m2) continue;
+            const rel = m1.h && m1.h.mind && m1.h.mind.relations && m1.h.mind.relations[m2.id];
+            if (rel && (rel.a <= -45 || rel.bond === 'ศัตรู')) {
+              EP.onGroupMemberFracture(W, m1, m2, 'สายสัมพันธ์ระหว่าง ' + EP.getActorNameTh(m1) + ' และ ' + EP.getActorNameTh(m2) + ' แปรเปลี่ยนเป็นศัตรู');
+              break;
+            }
+          }
+        }
+      }
+
+      // Auto-form sword duo (EPI_GRP_173) or sworn trio (EPI_GRP_176) when eligible
+      if (!cg.byId.EPI_GRP_173) {
+        const ungrouped = W.npcs.filter(n => n && !n.dead && !n.exiled && n.cult && n.cult.stage >= 2 && (!n.epithets || !n.epithets.groupId));
+        for (let i = 0; i < ungrouped.length; i++) {
+          const a = ungrouped[i];
+          for (let j = i + 1; j < ungrouped.length; j++) {
+            const b = ungrouped[j];
+            const rel = a.h && a.h.mind && a.h.mind.relations && a.h.mind.relations[b.id];
+            if (rel && (rel.a >= 65 || a.companionId === b.id)) {
+              EP.formCollectiveGroup(W, 'EPI_GRP_173', [a.id, b.id], {
+                titleTh: 'คู่กระบี่หงส์มังกรไร้พ่าย',
+                sharedDeedsCount: 3
+              });
+              break;
+            }
+          }
+          if (cg.byId.EPI_GRP_173) break;
+        }
+      }
+    },
+
+    /* -----------------------------------------------------------------------
+     * DAOIST/DHARMA NAMES (#077-#084), LINEAGE TITLES (#085-#092),
+     * AND POSTHUMOUS HONORIFICS (#247-#260)
+     * ----------------------------------------------------------------------- */
+    bestowDaoName(W, npc, opts) {
+      if (!npc || !npc.h || !npc.h.name) return { ok: false, reason: 'invalid-npc' };
+      opts = opts || {};
+      const ep = EP.ensureNpcEpithets(npc);
+      if (ep.daoNameTh && !opts.force) return { ok: true, daoNameTh: ep.daoNameTh, familyId: ep.daoStyleFamilyId, alreadyBestowed: true };
+
+      const cPath = (npc.cult && npc.cult.path) || 'XIAN';
+      let famId = 'EPI_DAO_077';
+      if (cPath === 'HEART_SOUL' || cPath === 'KARMA_SAMSARA') famId = 'EPI_DAO_078';
+      else if (cPath === 'ARRAY_TALISMAN' || cPath === 'SAGE_SUPPORT' || cPath === 'CELESTIAL_DIVINER') famId = 'EPI_DAO_079';
+      else if (cPath === 'DEMON' || cPath === 'BLOOD_ARTS' || cPath === 'CORPSE_PUPPET' || cPath === 'VENOM_GU') famId = 'EPI_DAO_080';
+      else if (cPath === 'SHADOW_ASSASSIN' || cPath === 'BLADE_SOVEREIGN') famId = 'EPI_DAO_081';
+      else if (cPath === 'BODY' || cPath === 'MARTIAL_GOD') famId = 'EPI_DAO_082';
+      else if (cPath === 'BEAST_SOVEREIGN' || cPath === 'PRIMORDIAL_SHIFTER' || cPath === 'TOTEM_SHAMAN') famId = 'EPI_DAO_083';
+      else if ((npc.h.skills && (npc.h.skills.COMMERCE || 0) >= 65)) famId = 'EPI_DAO_084';
+
+      const spec = (EP.getCatalog().DAO_STYLES_SPEC || {})[famId] || {
+        id: 'EPI_DAO_077', prefixes: ['นักพรต', 'เจิ้นเหริน'], stems: ['เมฆาคราม', 'ชิงอวิ๋น', 'เสวียนหยวน']
+      };
+      const hVal = EP.detHash(npc.id + ':' + (npc.h.name.given || '') + ':' + cPath);
+      const prefix = spec.prefixes[hVal % spec.prefixes.length];
+      const stem = spec.stems[(hVal >>> 4) % spec.stems.length];
+      const daoNameTh = opts.customDaoNameTh || (prefix + stem);
+
+      // Strictly preserve birth name in npc.h.name.given / family
+      ep.daoNameTh = daoNameTh;
+      ep.daoStyleFamilyId = famId;
+      EP.grantEpithet(W, npc, famId, {
+        descTh: 'รับฉายาเต๋า/นามธรรมะ「' + daoNameTh + '」เมื่อก้าวเข้าสู่ขอบเขตบำเพ็ญขั้นสูง',
+        epistemicStatus: 'VERIFIED'
+      });
+      return { ok: true, daoNameTh, familyId: famId };
+    },
+
+    refreshLineageTitles(W) {
+      if (!W || !W.sect || !Array.isArray(W.npcs)) return;
+      const living = W.npcs.filter(n => n && !n.dead && !n.exiled);
+      if (!living.length) return;
+
+      // Eldest/earliest-joined core disciple -> EPI_DAO_085 (ศิษย์พี่ใหญ่ผู้บุกเบิกสำนัก)
+      const disciples = living.filter(n => n.rank >= 1 && n.rank <= 3);
+      if (disciples.length > 0) {
+        disciples.sort((a, b) => (a.joinDay || 0) - (b.joinDay || 0) || (b.cult ? b.cult.stage : 0) - (a.cult ? a.cult.stage : 0));
+        const senior = disciples[0];
+        const epS = EP.ensureNpcEpithets(senior);
+        epS.lineageTitleId = 'EPI_DAO_085';
+        epS.lineageTitleTh = 'ศิษย์พี่ใหญ่ผู้บุกเบิกสำนัก';
+      }
+
+      // Direct heir of Sect Master -> EPI_DAO_092 (ผู้สืบทอดเจตจำนงบูรพาจารย์)
+      const masterId = W.sect.masterId;
+      for (const n of living) {
+        const ep = EP.ensureNpcEpithets(n);
+        if (masterId && (n.mentorId === masterId || n.mentor === masterId)) {
+          ep.lineageTitleId = 'EPI_DAO_092';
+          ep.lineageTitleTh = 'ผู้สืบทอดเจตจำนงบูรพาจารย์';
+        } else if (n.rank >= 5) {
+          ep.lineageTitleId = 'EPI_DAO_089';
+          ep.lineageTitleTh = 'เสาหลักค้ำจุนสามรัชสมัย';
+        }
+        if (n.cult && n.cult.stage >= 3 && !ep.daoNameTh) {
+          EP.bestowDaoName(W, n);
+        }
+      }
+    },
+
+    bestowPosthumousTitle(W, npc, why, opts) {
+      if (!npc) return { ok: false, reason: 'no-npc' };
+      opts = opts || {};
+      const ep = EP.ensureNpcEpithets(npc);
+      const wStr = String(why || npc.deathWhy || '');
+      let pid = opts.posthumousId || 'EPI_PST_250';
+
+      if (npc.rank === 6 || (W && W.sect && W.sect.masterId === npc.id)) pid = 'EPI_PST_247';
+      else if (wStr.includes('ทัณฑ์สวรรค์') || wStr.includes('ทะลวง')) pid = 'EPI_PST_249';
+      else if (wStr.includes('ศึก') || wStr.includes('ปกป้อง') || wStr.includes('ด่าน') || wStr.includes('ประลอง')) pid = 'EPI_PST_248';
+      else if (wStr.includes('ชราภาพ') || wStr.includes('อายุขัย')) pid = 'EPI_PST_250';
+      else if (npc.away || wStr.includes('แดนลับ') || wStr.includes('สำรวจ')) pid = 'EPI_PST_256';
+      else if ((npc.h && npc.h.skills && (npc.h.skills.MEDICINE || 0) >= 65)) pid = 'EPI_PST_253';
+      else if (ep.owned.some(x => x && x.polarity === 'SHAME' && x.shameActive)) pid = 'EPI_PST_259';
+
+      const def = EP.getDef(pid) || { id: 'EPI_PST_250', titleTh: 'บรรพชนผู้ละสังขารอย่างสงบครบอายุขัย' };
+      ep.posthumousId = def.id;
+      ep.posthumousTitleTh = def.titleTh;
+      EP.grantEpithet(W, npc, def.id, {
+        descTh: 'จารึกสมญานามปัจฉิมมรณะบนป้ายวิญญาณบรรพชน (' + (wStr || 'ละสังขาร') + ')',
+        epistemicStatus: 'VERIFIED',
+        forcePublic: true
+      });
+
+      if (W && W.sect && W.sect.historicalPeople && W.sect.historicalPeople[npc.id]) {
+        W.sect.historicalPeople[npc.id].posthumousTitleTh = def.titleTh;
+        W.sect.historicalPeople[npc.id].posthumousId = def.id;
+      }
+      return { ok: true, posthumousId: def.id, posthumousTitleTh: def.titleTh };
+    },
+
+    /* -----------------------------------------------------------------------
+     * STAT / COMBAT BONUSES (SOVEREIGN CAP = 1, MICRO CAP = 2, NO STACK BLOAT)
+     * ----------------------------------------------------------------------- */
+    getNpcStatBonuses(npc) {
+      if (!npc || npc.foe || npc.dead || !npc.epithets) return null;
+      const ep = npc.epithets;
+      const p = {};
+      const f = {};
+      const labels = [];
+
+      // 1. At most ONE Sovereign Crown aura (#235-#246)
+      if (Array.isArray(ep.crownIds) && ep.crownIds.length > 0) {
+        const cid = ep.crownIds[0];
+        const cSpec = (EP.getCatalog().CROWNS_SPEC || {})[cid];
+        if (cSpec) {
+          for (const k in (cSpec.p || {})) p[k] = (p[k] || 0) + cSpec.p[k];
+          for (const k in (cSpec.f || {})) f[k] = (f[k] || 0) + cSpec.f[k];
+          labels.push('มงกุฎ「' + cSpec.titleTh + '」');
+        }
+      }
+
+      // 2. At most TWO Micro-perk epithets (capped at +3% total per stat)
+      let microCount = 0;
+      const owned = ep.owned || [];
+      for (let i = 0; i < owned.length; i++) {
+        const rec = owned[i];
+        if (!rec || rec.effectType !== 'MICRO' || rec.shameActive || rec.suppressedByStealth) continue;
+        if (!['BATTLEFIELD', 'GROUP', 'CHIVALRY', 'FATE_SCARS', 'ELEMENT_DAO'].includes(rec.category)) continue;
+        if (rec.category === 'GROUP' && ep.groupId !== rec.id) continue;
+        p.atk = Math.min(0.11, (p.atk || 0) + 0.015);
+        p.def = Math.min(0.10, (p.def || 0) + 0.015);
+        labels.push('สมญา「' + rec.titleTh + '」');
+        microCount++;
+        if (microCount >= 2) break;
+      }
+
+      if (!labels.length) return null;
+      return { p, f, labelTh: labels.join(' · ') };
+    },
+
+    getCacheHash(npc) {
+      if (!npc || !npc.epithets) return 0;
+      const ep = npc.epithets;
+      let h = 0;
+      if (ep.crownIds && ep.crownIds.length) {
+        h ^= EP.detHash(ep.crownIds[0]) & 0xffff;
+      }
+      if (ep.primaryId) {
+        h ^= (EP.detHash(ep.primaryId) & 0x7fff) << 8;
+      }
+      if (ep.groupId) {
+        h ^= (EP.detHash(ep.groupId) & 0xff) << 16;
+      }
+      return h | 0;
+    },
+
+    /* -----------------------------------------------------------------------
+     * LIFECYCLE & EVENT HOOKS (COMBAT, CRAFT, HEAL, DAILY, MONTHLY, HYDRATE)
+     * ----------------------------------------------------------------------- */
+    onCombatConclude(W, fight) {
+      if (!W || !fight) return;
+      const isSerious = fight.kind !== 'spar' && fight.serious !== false;
+      const ws = fight.winner;
+      const winners = ws ? (ws === 'A' ? fight.A : fight.B).map(id => W.byId && W.byId[id]).filter(Boolean) : [];
+      const losers = ws ? (ws === 'A' ? fight.B : fight.A).map(id => (W.byId && W.byId[id]) || (W.foeById && W.foeById[id])).filter(Boolean) : [];
+
+      if (!isSerious) {
+        // Sparring only updates spar_win counter
+        for (const u of winners) {
+          if (!u.foe && !u.dead) {
+            EP.recordDeed(W, u, 'spar_win', 1, { fightKind: 'spar', serious: false, receiptId: 'spar_' + (fight.id || W.t) + '_' + u.id });
+          }
+        }
+        return;
+      }
+
+      const maxFoeStage = losers.reduce((m, x) => Math.max(m, (x.cult && x.cult.stage) || x.tier || 1), 1);
+      const hasBossFoe = losers.some(x => x && (x.boss || x.isBoss || x.kind === 'boss'));
+      const hasIronMarrowFoe = losers.some(x => x && Array.isArray(x.abilities) && (x.abilities.includes('ABIL_IRON_MARROW_GUARD') || x.abilities.includes('ABIL_SOLAR_STAR_AEGIS')));
+      const witnessIds = winners.filter(u => !u.foe && !u.dead).map(u => u.id);
+      const soloWilderness = (fight.kind === 'wild' || fight.kind === 'explore') && witnessIds.length <= 1;
+
+      for (const u of winners) {
+        if (!u || u.foe || u.dead) continue;
+        const fKey = 'fight_' + (fight.id || W.t) + '_' + u.id;
+        EP.recordDeed(W, u, 'combat_win', 1, {
+          fightKind: fight.kind,
+          serious: true,
+          targetStage: maxFoeStage,
+          witnessIds,
+          soloWilderness,
+          hasPhysicalProof: true,
+          receiptId: fKey + '_win',
+          descTh: 'คว้าชัยชนะในศึกจริง (' + (fight.kind || 'combat') + ')'
+        });
+
+        if (losers.length > winners.length) {
+          EP.recordDeed(W, u, 'outnumbered_win', 1, {
+            fightKind: fight.kind, serious: true, targetStage: maxFoeStage, witnessIds,
+            receiptId: fKey + '_outnum', descTh: 'ยืนหยัดคว้าชัยชนะแม้น้อยสู้มาก'
+          });
+        }
+
+        const hpNow = (u.h && u.h.state && u.h.state.hp) || 100;
+        const hpMax = (typeof CULT !== 'undefined' && CULT.hpMax) ? CULT.hpMax(u) : 100;
+        if (hpNow / Math.max(1, hpMax) <= 0.25) {
+          EP.recordDeed(W, u, 'low_hp_win', 1, {
+            fightKind: fight.kind, serious: true, targetStage: maxFoeStage, witnessIds,
+            receiptId: fKey + '_lowhp', descTh: 'รอดชีวิตคว้าชัยทั้งที่บาดเจ็บเจียนตาย'
+          });
+        } else if (hpNow / Math.max(1, hpMax) >= 0.98) {
+          EP.recordDeed(W, u, 'flawless_win', 1, {
+            fightKind: fight.kind, serious: true, targetStage: maxFoeStage, witnessIds,
+            receiptId: fKey + '_flawless', descTh: 'คว้าชัยชนะโดยอาภรณ์ไร้รอยโลหิต'
+          });
+        }
+
+        if (hasBossFoe && winners.length === 1) {
+          EP.recordDeed(W, u, 'solo_boss_kill', 1, {
+            fightKind: fight.kind, serious: true, targetStage: maxFoeStage, witnessIds,
+            hasPhysicalProof: true, receiptId: fKey + '_soloboss', descTh: 'พิชิตบอสอสูรหรือยอดฝีมือเพียงลำพัง'
+          });
+        }
+        if (hasIronMarrowFoe) {
+          EP.recordDeed(W, u, 'iron_marrow_breaker', 1, {
+            fightKind: fight.kind, serious: true, targetStage: maxFoeStage, witnessIds,
+            hasPhysicalProof: true, receiptId: fKey + '_ironmarrow', descTh: 'ผ่าเกราะไขกระดูกเหล็กอสูรบรรพกาลสำเร็จ'
+          });
+        }
+
+        const wEq = u.equip && u.equip.WEAPON;
+        const wType = (wEq && (wEq.weaponType || wEq.type)) || null;
+        if (wType) {
+          EP.recordDeed(W, u, 'weapon_kill:' + wType, 1, {
+            fightKind: fight.kind, serious: true, targetStage: maxFoeStage, witnessIds,
+            hasPhysicalProof: true, receiptId: fKey + '_wpn_' + wType, descTh: 'เผด็จศึกด้วยศาสตราคู่กาย (' + wType + ')'
+          });
+        }
+      }
+
+      // Direct Moveable Crown transfer on 1v1 or serious duel
+      if (winners.length >= 1 && losers.length >= 1 && !losers[0].foe) {
+        EP.checkCrownDuelTransfer(W, fight, winners[0], losers[0]);
+      }
+    },
+
+    onCraftFinish(W, npc, recipe, out, ctx) {
+      if (!W || !npc || !recipe) return;
+      const rId = recipe.id || 'craft';
+      const isPill = String(recipe.outItemId || '').startsWith('P:') || recipe.kind === 'alchemy' || recipe.station === 'alchemy';
+      const isForge = recipe.kind === 'forge' || recipe.station === 'forge' || (out && out.slot);
+      const rcpt = 'craft_' + npc.id + '_' + rId + '_' + ((W && W.day) || 1) + '_' + ((W && W.t) || 0);
+      if (isPill) {
+        EP.recordDeed(W, npc, 'alchemy_success', 1, {
+          receiptId: rcpt,
+          descTh: 'หลอมโอสถ「' + (recipe.nameTh || recipe.id) + '」สำเร็จ'
+        });
+      } else if (isForge) {
+        EP.recordDeed(W, npc, 'forge_success', 1, {
+          receiptId: rcpt,
+          descTh: 'ตีหลอมศาสตรา「' + (recipe.nameTh || recipe.id) + '」สำเร็จ'
+        });
+      }
+    },
+
+    onDailyTick(W) {
+      if (!W || !W.sect || !Array.isArray(W.npcs)) return;
+      EP.ensureWorldCrowns(W);
+      EP.ensureCollectiveGroups(W);
+      EP.syncPublicCrownKnowledge(W);
+
+      // Inspect 6-Pillar & Sect states for autonomous epithet unlocks
+      const ml = W.sect.microLocations;
+      const mlVisitedCount = (ml && ml.visitedById) ? Object.keys(ml.visitedById).length : 0;
+
+      for (let i = 0; i < W.npcs.length; i++) {
+        const n = W.npcs[i];
+        if (!n || n.dead || n.exiled) continue;
+        EP.ensureNpcEpithets(n);
+        EP.ensureDeedStats(n);
+
+        // Check 6-Pillar martial states
+        if (n.qinggongState && (n.qinggongState.flightTier >= 3 || n.qinggongState.evadeCount >= 10)) {
+          EP.recordDeed(W, n, 'qinggong_flight_mastery', 1, { receiptId: 'qg_mastery_' + n.id, descTh: 'บรรลุวิชาตัวเบาเหินเวหาเหนือแปดยอดเขา' });
+        }
+        if (n.mantraState && (n.mantraState.weatherResonanceCount >= 3 || n.mantraState.harmonyLevel >= 80)) {
+          EP.recordDeed(W, n, 'mantra_weather_sync', 1, { receiptId: 'mantra_sync_' + n.id, descTh: 'โคจรคัมภีร์ปราณประสานฟ้าดินตามฤดูกาล' });
+        }
+        if (n.defensiveArtState && ((n.defensiveArtState.totalDamageRedirected || 0) >= 250 || (n.defensiveArtState.totalAllyIntercepts || 0) >= 3)) {
+          EP.recordDeed(W, n, 'defensive_redirect_mastery', 1, { receiptId: 'def_redir_' + n.id, descTh: 'สะท้อนคลื่นศาสตราและคุ้มกันสหายด้วยวิชาคุ้มกาย' });
+        }
+        if (n.supportState && ((n.supportState.breakthroughBlessingsGranted || 0) >= 2 || (n.supportState.totalHeartDemonCleansed || 0) >= 40)) {
+          EP.recordDeed(W, n, 'support_blessing_mastery', 1, { receiptId: 'sup_bless_' + n.id, descTh: 'บรรเลงทำนองทิพย์ชะล้างจิตมารและอวยพรทะลวงด่าน' });
+        }
+        if (n.forbiddenArtState && n.forbiddenArtState.sealMode === 'BLOOD_TABOO_UNLEASHED' && (n.h && n.h.state && (n.h.state.heartDemon || 0) < 75)) {
+          EP.recordDeed(W, n, 'forbidden_blood_taboo_survived', 1, { receiptId: 'forb_blood_' + n.id, descTh: 'คลายผนึกโลหิตต้องห้ามขั้นสูงสุดแล้วยังครองสติไว้ได้' });
+        }
+        if (n.passiveResonanceState && (n.passiveResonanceState.setTier >= 3 || n.passiveResonanceState.unlockedCount >= 3)) {
+          EP.recordDeed(W, n, 'passive_constellation_tier3', 1, { receiptId: 'pass_const3_' + n.id, descTh: 'เรียงดาราจักรวิชาติดตัวครบสามขั้นสมบูรณ์' });
+        }
+        if (mlVisitedCount >= 4 && n.rank >= 2) {
+          EP.recordDeed(W, n, 'micro_locations_all4', 1, { receiptId: 'ml_all4_' + n.id, descTh: 'สำรวจครบสี่แดนเร้นลับบรรพกาลรอบสำนัก' });
+        }
+      }
+
+      // Check Leyline anchors
+      if (W.sect.leylineGrid && Array.isArray(W.sect.leylineGrid.anchors)) {
+        for (const a of W.sect.leylineGrid.anchors) {
+          if (a && a.guardNpcId && W.byId && W.byId[a.guardNpcId]) {
+            EP.recordDeed(W, W.byId[a.guardNpcId], 'leyline_anchor_guard', 1, {
+              receiptId: 'leyline_guard_' + a.guardNpcId,
+              descTh: 'พิทักษ์เสาชีพจรปฐพีประจำยอดเขา'
+            });
+          }
+        }
+      }
+
+      // Refresh lineage titles & reconcile crowns every 10 days (or on day 361)
+      if ((W.day || 0) % 10 === 1) {
+        EP.refreshLineageTitles(W);
+        EP.reconcileUniqueCrowns(W);
+        EP.evaluateCollectiveGroups(W);
+      }
+    },
+
+    onMonthlyAudit(W) {
+      if (!W || !W.sect) return;
+      EP.refreshLineageTitles(W);
+      EP.reconcileUniqueCrowns(W);
+      EP.evaluateCollectiveGroups(W);
+    },
+
+    onHydrateExternalFigure(W, fullNpc, srcFig) {
+      if (!fullNpc || !srcFig) return;
+      const ep = EP.ensureNpcEpithets(fullNpc);
+      EP.ensureDeedStats(fullNpc);
+      if (srcFig.epithets && typeof srcFig.epithets === 'object') {
+        ep.primaryId = srcFig.epithets.primaryId || ep.primaryId;
+        ep.primaryTextTh = srcFig.epithets.primaryTextTh || ep.primaryTextTh;
+        ep.daoNameTh = srcFig.epithets.daoNameTh || ep.daoNameTh;
+        ep.daoStyleFamilyId = srcFig.epithets.daoStyleFamilyId || ep.daoStyleFamilyId;
+        if (Array.isArray(srcFig.epithets.crownIds)) {
+          for (const cid of srcFig.epithets.crownIds) {
+            if (!ep.crownIds.includes(cid)) ep.crownIds.push(cid);
+          }
+        }
+        if (Array.isArray(srcFig.epithets.owned)) {
+          for (const rec of srcFig.epithets.owned) {
+            if (rec && !ep.owned.some(x => x.id === rec.id)) ep.owned.push(Object.assign({}, rec));
+          }
+        }
+      }
+      if (srcFig.titleTh && !ep.primaryTextTh) {
+        ep.primaryTextTh = srcFig.titleTh;
+      }
+      // Update world crowns holder reference if srcFig held any crown
+      if (W && W.world && W.world.uniqueCrowns) {
+        for (const cid of Object.keys(W.world.uniqueCrowns)) {
+          const cr = W.world.uniqueCrowns[cid];
+          if (cr && (cr.holderId === srcFig.id || cr.holderId === fullNpc.id)) {
+            cr.holderId = fullNpc.id;
+            cr.holderIsExternal = false;
+            cr.holderSectId = 'PLAYER_SECT';
+            if (!ep.crownIds.includes(cid)) ep.crownIds.push(cid);
+          }
+        }
+      }
+    }
+  };
+
+  CULT.EPITHETS = EP;
+  if (typeof g !== 'undefined') {
+    g.EPITHETS = EP;
+    if (g.SECT) g.SECT.EPITHETS = EP;
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+/* === LIFE_TRAITS_ENGINE_V260 === */
+
+;(function installLifeTraitsEngineV260(g) {
+  const CULT = g.CULT, HC = g.HC, JD = g.JD;
+  if (!CULT || !CULT.EXPERIENCE_TRAITS) return;
+  const ET = CULT.EXPERIENCE_TRAITS;
+
+  // 1. Expand CULT.EXPERIENCE_TRAITS.CATALOG from 6 to 36 (6 Existing + 24 Group F + 6 Codex Life Traits)
+  const mutableCatalog = Object.assign({}, ET.CATALOG);
+  const reg = (JD && JD.LIFE_TRAITS_REGISTRY) || { GROUP_F: [], CODEX_EXP: [] };
+  const allNewExp = [].concat(reg.GROUP_F || [], reg.CODEX_EXP || []);
+  for (let i = 0; i < allNewExp.length; i++) {
+    const sp = allNewExp[i];
+    mutableCatalog[sp.id] = {
+      id: sp.id,
+      proposalNo: sp.proposalNo || sp.proposalId || null,
+      nameTh: sp.nameTh,
+      triggerEvent: sp.triggerEvent,
+      threshold: sp.threshold || 2,
+      prosTh: sp.prosTh,
+      consTh: sp.consTh,
+      recoveryPathTh: sp.recoveryPathTh,
+      p: sp.p || {},
+      f: sp.f || {},
+      consF: sp.consF || {},
+      cultRateMult: sp.cultRateMult || 1.04
+    };
+  }
+  // Ensure existing 6 also have explicit consF for burden relief
+  if (mutableCatalog.EXP_TRAIT_COMPANION_GUARDIAN) mutableCatalog.EXP_TRAIT_COMPANION_GUARDIAN.consF = { eva: -3 };
+  if (mutableCatalog.EXP_TRAIT_TRIBULATION_SURVIVOR) mutableCatalog.EXP_TRAIT_TRIBULATION_SURVIVOR.consF = { move: -3 };
+  if (mutableCatalog.EXP_TRAIT_SKEPTICAL_ARCHIVIST) {
+    mutableCatalog.EXP_TRAIT_SKEPTICAL_ARCHIVIST.f = { acc: 14 };
+    mutableCatalog.EXP_TRAIT_SKEPTICAL_ARCHIVIST.consF = { move: -5 };
+  }
+  if (mutableCatalog.EXP_TRAIT_BEAST_COVENANT_CARETAKER) mutableCatalog.EXP_TRAIT_BEAST_COVENANT_CARETAKER.consF = { cast: -3 };
+  if (mutableCatalog.EXP_TRAIT_DEFEAT_VETERAN) {
+    mutableCatalog.EXP_TRAIT_DEFEAT_VETERAN.f = { pen: 8 };
+    mutableCatalog.EXP_TRAIT_DEFEAT_VETERAN.consF = { cast: -4 };
+  }
+  ET.CATALOG = Object.freeze(mutableCatalog);
+  ET.MAX_PROCESSED_KEYS = 512;
+
+  ET.ensureState = function(npc) {
+    if (!npc || typeof npc !== 'object') return null;
+    if (!Array.isArray(npc.experienceTraits)) npc.experienceTraits = [];
+    if (!npc.experienceEventLog || typeof npc.experienceEventLog !== 'object') {
+      npc.experienceEventLog = { counts: {}, processedKeys: {}, episodeWatermarks: {} };
+    } else {
+      if (!npc.experienceEventLog.counts || typeof npc.experienceEventLog.counts !== 'object') npc.experienceEventLog.counts = {};
+      if (!npc.experienceEventLog.processedKeys || typeof npc.experienceEventLog.processedKeys !== 'object') npc.experienceEventLog.processedKeys = {};
+      if (!npc.experienceEventLog.episodeWatermarks || typeof npc.experienceEventLog.episodeWatermarks !== 'object') npc.experienceEventLog.episodeWatermarks = {};
+    }
+    return { traits: npc.experienceTraits, log: npc.experienceEventLog };
+  };
+
+  ET.hasTrait = function(npc, traitId) {
+    return !!(npc && Array.isArray(npc.experienceTraits) && npc.experienceTraits.some(t => t && t.active && t.id === traitId));
+  };
+
+  ET.hasBurden = function(npc, traitId) {
+    return !!(npc && Array.isArray(npc.experienceTraits) && npc.experienceTraits.some(t => t && t.active && t.id === traitId && t.burdenActive !== false && !t.recovered));
+  };
+
+  ET.recordExperienceEvent = function(W, npc, eventKind, eventUniqueKey, opts) {
+    if (!npc || npc.foe || npc.dead || !eventKind) return { ok: false, reason: 'invalid-npc' };
+    opts = opts || {};
+    const st = ET.ensureState(npc);
+    const day = (W && W.day) || 1;
+    const tick = (W && W.t) || 0;
+    const uKey = eventUniqueKey == null ? null : String(eventKind) + ':' + String(eventUniqueKey);
+
+    if (uKey && st.log.processedKeys[uKey]) {
+      return { ok: true, deduplicated: true, count: st.log.counts[eventKind] || 0, unlockedNow: [], traits: st.traits };
+    }
+    if (uKey) {
+      const pKeys = Object.keys(st.log.processedKeys);
+      if (pKeys.length >= ET.MAX_PROCESSED_KEYS) {
+        delete st.log.processedKeys[pKeys[0]];
+      }
+      st.log.processedKeys[uKey] = day;
+    }
+
+    const inc = Math.max(1, Math.round(Number(opts.amount != null ? opts.amount : 1)));
+    st.log.counts[eventKind] = (st.log.counts[eventKind] || 0) + inc;
+    const totalCount = st.log.counts[eventKind];
+    const watermark = st.log.episodeWatermarks[eventKind] || 0;
+    const effectiveEpisodeCount = totalCount - watermark;
+
+    const unlockedNow = [];
+    for (const spec of Object.values(ET.CATALOG)) {
+      if (spec.triggerEvent !== eventKind) continue;
+      const existing = st.traits.find(t => t && t.id === spec.id);
+      if (!existing && effectiveEpisodeCount >= spec.threshold) {
+        const hasDrawback = Boolean((spec.consF && Object.keys(spec.consF).length > 0) || (spec.consTh && !spec.consTh.includes('ไร้ปม')));
+        const entry = {
+          id: spec.id,
+          nameTh: spec.nameTh,
+          prosTh: spec.prosTh,
+          consTh: spec.consTh,
+          recoveryPathTh: spec.recoveryPathTh,
+          grantedDay: day,
+          acquiredAt: tick,
+          sourceEvent: eventKind,
+          evidenceKey: uKey || (eventKind + ':' + day),
+          evidenceCount: totalCount,
+          stage: 1,
+          active: true,
+          burdenActive: hasDrawback,
+          recovered: !hasDrawback,
+          recoveredDay: hasDrawback ? null : day,
+          partnerId: opts.partnerId || npc.companionId || null
+        };
+        st.traits.push(entry);
+        unlockedNow.push(entry);
+      } else if (existing) {
+        existing.evidenceCount = totalCount;
+      }
+    }
+
+    if (unlockedNow.length) {
+      npc._cultRateBase = null;
+      if (typeof HC !== 'undefined' && HC.bump) HC.bump(npc);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    }
+    return { ok: true, count: totalCount, unlockedNow, traits: st.traits };
+  };
+
+  /* Resolve / heal psychological or physical burden while retaining learned wisdom! */
+  ET.resolveTraitRecovery = function(W, npc, traitId, recoveryReasonTh) {
+    if (!npc || !Array.isArray(npc.experienceTraits)) return { ok: false, reason: 'no-traits' };
+    const st = ET.ensureState(npc);
+    const entry = npc.experienceTraits.find(t => t && t.id === traitId);
+    if (!entry) return { ok: false, reason: 'trait-not-found' };
+
+    const spec = ET.CATALOG[traitId];
+    if (spec && spec.triggerEvent) {
+      // Advance episode watermark so the old event count never re-triggers burden immediately
+      st.log.episodeWatermarks[spec.triggerEvent] = st.log.counts[spec.triggerEvent] || 0;
+    }
+
+    entry.burdenActive = false;
+    entry.recovered = true;
+    entry.recoveredDay = (W && W.day) || 1;
+    entry.stage = 2;
+    entry.recoveryReasonTh = recoveryReasonTh || (spec && spec.recoveryPathTh) || 'คลายปมและตกผลึกเป็นภูมิปัญญาชีวิต';
+
+    if (npc.h && npc.h.state) {
+      npc.h.state.heartDemon = Math.max(0, (npc.h.state.heartDemon || 0) - 10);
+      npc.h.state.stress = Math.max(0, (npc.h.state.stress || 0) - 8);
+    }
+    // Also grant/progress EXP_TRAIT_RESILIENT_COMEBACK when overcoming a past burden
+    if (traitId !== 'EXP_TRAIT_RESILIENT_COMEBACK') {
+      ET.recordExperienceEvent(W, npc, 'OVERCOME_PAST_FAILURE', 'rec_' + traitId + '_' + ((W && W.day) || 1));
+    }
+    npc._cultRateBase = null;
+    if (typeof HC !== 'undefined' && HC.bump) HC.bump(npc);
+    if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    return {
+      ok: true,
+      recoveredTrait: entry,
+      burdenCleared: true,
+      wisdomRetained: true,
+      remainingTraits: npc.experienceTraits.length
+    };
+  };
+
+  ET.getCultivationMult = function(npc) {
+    if (!npc || !Array.isArray(npc.experienceTraits) || !npc.experienceTraits.length) return 1.0;
+    let mult = 1.0;
+    for (let i = 0; i < npc.experienceTraits.length; i++) {
+      const tr = npc.experienceTraits[i];
+      if (!tr || !tr.active) continue;
+      const spec = ET.CATALOG[tr.id];
+      if (spec && spec.cultRateMult) mult *= spec.cultRateMult;
+    }
+    return +Math.min(1.35, mult).toFixed(3);
+  };
+
+  ET.getStatBonuses = function(npc, W) {
+    if (!npc || !Array.isArray(npc.experienceTraits) || !npc.experienceTraits.length) return { active: false, p: {}, f: {} };
+    const wRef = W || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W) || null;
+    const p = {}, f = {};
+    const hpf = (npc._hpf != null) ? npc._hpf : ((npc.h && npc.h.state && npc.h.state.hp != null && g.CULT && g.CULT.hpMax) ? (npc.h.state.hp / Math.max(1, g.CULT.hpMax(npc))) : 1);
+    const cal = (wRef && g.SIM && g.SIM.calendar) ? g.SIM.calendar(wRef.t || 0) : null;
+    const hour = cal ? cal.hour : 12;
+    const isNight = hour < 6 || hour >= 19;
+    const isNoon = hour >= 11 && hour <= 14;
+
+    for (let i = 0; i < npc.experienceTraits.length; i++) {
+      const tr = npc.experienceTraits[i];
+      if (!tr || !tr.active) continue;
+      const spec = ET.CATALOG[tr.id];
+      if (!spec) continue;
+
+      // Context check for DUET_SOUL_SYNC: if partner died or exiled, do not apply duet bonus
+      if (tr.id === 'EXP_TRAIT_DUET_SOUL_SYNC') {
+        const pid = tr.partnerId || npc.companionId;
+        const part = pid && wRef && wRef.byId && wRef.byId[pid];
+        if (!part || part.dead || part.exiled) continue;
+      }
+
+      for (const [k, v] of Object.entries(spec.p || {})) p[k] = (p[k] || 0) + v;
+      for (const [k, v] of Object.entries(spec.f || {})) f[k] = (f[k] || 0) + v;
+
+      // Situational bonus adjustments
+      if (tr.id === 'EXP_TRAIT_DEFEAT_VETERAN' && hpf < 0.35) {
+        p.def = (p.def || 0) + 0.10;
+      }
+      if (tr.id === 'EXP_TRAIT_NIGHT_WATCH_SENTINEL') {
+        if (!isNight) f.acc = (f.acc || 0) - 6; // full +10 at night, +4 by day
+      }
+
+      // Apply drawback ONLY while burdenActive is true and not yet recovered!
+      if (tr.burdenActive !== false && !tr.recovered && spec.consF) {
+        for (const [ck, cv] of Object.entries(spec.consF)) {
+          if (tr.id === 'EXP_TRAIT_NIGHT_WATCH_SENTINEL' && ck === 'acc' && !isNoon) continue;
+          f[ck] = (f[ck] || 0) + cv;
+        }
+      }
+    }
+
+    // Enforce global Experience Trait stat caps so stacking never overflows
+    const capsP = { atk: 0.22, matk: 0.22, def: 0.24, mdef: 0.24, hp: 0.20, eva: 0.18, acc: 0.18 };
+    for (const k of Object.keys(p)) {
+      if (capsP[k] != null) p[k] = +Math.min(capsP[k], Math.max(-0.15, p[k])).toFixed(3);
+      else p[k] = +p[k].toFixed(3);
+    }
+    const capsF = { acc: 20, eva: 18, crit: 12, pen: 16, cast: 14, move: 10 };
+    for (const k of Object.keys(f)) {
+      if (capsF[k] != null) f[k] = Math.min(capsF[k], Math.max(-12, Math.round(f[k])));
+    }
+
+    return { active: Object.keys(p).length > 0 || Object.keys(f).length > 0, p, f };
+  };
+
+  /* Strict Birth-Pool Guard: newly generated NPCs never start with ACQUIRED / birthEligible:false traits */
+  ET.stripBirthIneligibleTraits = function(npc) {
+    if (!npc) return;
+    const curatedById = {};
+    if (JD && JD.CORE && JD.CORE.curatedTraits) {
+      if (Array.isArray(JD.CORE.curatedTraits)) {
+        for (const ct of JD.CORE.curatedTraits) {
+          if (ct && ct.id) curatedById[ct.id] = ct;
+        }
+      } else if (typeof JD.CORE.curatedTraits === 'object') {
+        Object.assign(curatedById, JD.CORE.curatedTraits);
+      }
+    }
+    const filterList = (arr) => arr.filter(tid => {
+      const id = typeof tid === 'string' ? tid : (tid && tid.id);
+      if (!id) return false;
+      if (String(id).startsWith('TR_AC_') || String(id).startsWith('EXP_TRAIT_')) return false;
+      const def = curatedById[id];
+      if (def && (def.birthEligible === false || def.category === 'ACQUIRED')) return false;
+      return true;
+    });
+    if (npc.h && Array.isArray(npc.h.traits)) npc.h.traits = filterList(npc.h.traits);
+    if (Array.isArray(npc.curatedTraits)) npc.curatedTraits = filterList(npc.curatedTraits);
+    if (npc.cult && Array.isArray(npc.cult.traits)) npc.cult.traits = filterList(npc.cult.traits);
+    if (Array.isArray(npc.experienceTraits)) npc.experienceTraits.length = 0;
+  };
+
+  /* Autonomous Activity & Recovery Hooks for Experience Traits */
+  ET.onActivityComplete = function(W, npc, actId, ctx) {
+    if (!W || !npc || npc.dead || npc.foe) return;
+    const day = W.day || 1;
+    const tick = W.t || 0;
+    const st = ET.ensureState(npc);
+
+    if (actId === 'mine') {
+      ET.recordExperienceEvent(W, npc, 'MINE_SHIFT_COMPLETED', 'mine_' + npc.id + '_' + tick);
+    } else if (actId === 'fish') {
+      ET.recordExperienceEvent(W, npc, 'RIVER_FISHING_MEDITATION', 'fish_' + npc.id + '_' + tick);
+      if (ET.hasBurden(npc, 'EXP_TRAIT_HEARTBROKEN_ASCETIC')) {
+        ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_HEARTBROKEN_ASCETIC', 'จิตสงบนิ่งจากการตกปลาริมธารน้ำปราณ');
+      }
+    } else if (actId === 'patrol' || actId === 'guard' || (actId === 'work' && ctx && ctx.kind === 'guard')) {
+      const cal = g.SIM && g.SIM.calendar ? g.SIM.calendar(W.t) : { hour: 12 };
+      if (cal.hour < 6 || cal.hour >= 19) {
+        ET.recordExperienceEvent(W, npc, 'NIGHT_GUARD_SHIFT_DONE', 'nguard_' + npc.id + '_' + day);
+      } else if (ET.hasBurden(npc, 'EXP_TRAIT_NIGHT_WATCH_SENTINEL')) {
+        ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_NIGHT_WATCH_SENTINEL', 'ผลัดเวรพักผ่อนและลาดตระเวนรับแสงตะวันยามเช้า');
+      }
+    } else if (actId === 'explore') {
+      const bkey = (ctx && ctx.st && ctx.st.bkey) || (ctx && ctx.bkey) || '';
+      if (bkey === 'stele' || bkey === 'ruin') {
+        ET.recordExperienceEvent(W, npc, 'ANCIENT_STELE_DECIPHERED', 'stele_' + npc.id + '_' + tick);
+      } else if (bkey === 'spring') {
+        if (ET.hasBurden(npc, 'EXP_TRAIT_POISON_TEST_SUBJECT')) {
+          ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_POISON_TEST_SUBJECT', 'แช่น้ำพุปราณลับชะล้างพิษตกค้างในเส้นลมปราณ');
+        }
+        if (ET.hasBurden(npc, 'EXP_TRAIT_TRIBULATION_SURVIVOR')) {
+          ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_TRIBULATION_SURVIVOR', 'แช่น้ำพุปราณลับสมานรอยแผลสายฟ้า');
+        }
+        if (ET.hasBurden(npc, 'EXP_TRAIT_FORGE_BURN_CALLUS')) {
+          ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_FORGE_BURN_CALLUS', 'แช่น้ำพุปราณลับฟื้นฟูความยืดหยุ่นของฝ่ามือ');
+        }
+      }
+    } else if (actId === 'leisure' || actId === 'pair') {
+      if (ET.hasBurden(npc, 'EXP_TRAIT_GATE_WALL_VETERAN')) {
+        ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_GATE_WALL_VETERAN', 'ผ่อนคลายความตึงเครียดด้วยการจิบชาสนทนากับสหาย');
+      }
+      if (ET.hasBurden(npc, 'EXP_TRAIT_SIEGE_ENGINEER_BREAKER')) {
+        ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_SIEGE_ENGINEER_BREAKER', 'ร่วมวงสนทนาในศาลาชาจนคลายความระแวงศึก');
+      }
+      if (ET.hasBurden(npc, 'EXP_TRAIT_ANCIENT_CIPHER_OBSESSED')) {
+        ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_ANCIENT_CIPHER_OBSESSED', 'พักสายตาจากอักขระโบราณมาสังสรรค์กับสหาย');
+      }
+    } else if (actId === 'eat') {
+      if (ET.hasBurden(npc, 'EXP_TRAIT_STARVATION_MEMORY') && W.sect && (W.sect.stock.meal || 0) >= 25) {
+        ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_STARVATION_MEMORY', 'อิ่มท้องในโรงอาหารที่มีเสบียงอุดมสมบูรณ์');
+      }
+    } else if (actId === 'wildHunt') {
+      if (npc.h && npc.h.state && npc.h.state.satiety >= 50 && npc.h.state.energy >= 45) {
+        ET.recordExperienceEvent(W, npc, 'PREPARED_WILD_HUNT_SUCCESS', 'prephunt_' + npc.id + '_' + day);
+      }
+      ET.recordExperienceEvent(W, npc, 'SAFE_RETURN_FROM_DEEP_WILD', 'retwild_' + npc.id + '_' + day);
+    }
+
+    // Balanced daily rhythm check
+    if (npc.h && npc.h.state && npc.h.state.satiety >= 55 && npc.h.state.rest >= 55 && npc.h.state.mood >= 55 && (npc.h.state.stress || 0) <= 20) {
+      ET.recordExperienceEvent(W, npc, 'BALANCED_DAILY_RHYTHM', 'rhythm_' + npc.id + '_' + day);
+    }
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+

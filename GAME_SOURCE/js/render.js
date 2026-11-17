@@ -1474,7 +1474,7 @@
       canvas,
       ctx: canvas.getContext('2d'),
       W: null,
-      cam: { x: 118 * TS, y: 70 * TS, z: 1.2 },
+      cam: { x: 180 * TS, y: 122 * TS, z: 1.2 },
       chunks: new Map(),
       buildingSprites: new Map(),
       apCache: new Map(),
@@ -3620,14 +3620,14 @@
       }
       // วาดคลื่นน้ำและเงาปลาใน「ธารน้ำปราณทักษิณ」(y = 165..176) เมื่อกล้องส่องลงมาด้านใต้
       const hh = this.vh / 2 / this.cam.z;
-      if (this.cam.y + hh >= 160 * TS && this.effectiveQuality !== 'low') {
+      if (this.cam.y + hh >= 248 * TS && this.effectiveQuality !== 'low') {
         ctx.save();
         ctx.strokeStyle = 'rgba(230,252,255,.34)';
         ctx.lineWidth = 0.9;
         for (let i = 0; i < 28; i++) {
           const rx = ((i * 83 + t * 9) % (216 * TS)) + 12 * TS;
           const tx = Math.floor(rx / TS);
-          if ((tx >= 62 && tx <= 64) || (tx >= 116 && tx <= 120) || (tx >= 172 && tx <= 174)) continue;
+          if ((tx >= 92 && tx <= 94) || (tx >= 178 && tx <= 182) || (tx >= 264 && tx <= 266)) continue;
           const cy = (MAP.riverCenterY ? MAP.riverCenterY(tx) : 170) * TS + ((i % 5) - 2) * 7;
           ctx.beginPath();
           ctx.moveTo(rx, cy);
@@ -3639,7 +3639,7 @@
         for (let i = 0; i < 12; i++) {
           const fx = ((i * 137 + t * (12 + (i % 3) * 4)) % (160 * TS)) + 40 * TS;
           const tx = Math.floor(fx / TS);
-          if ((tx >= 115 && tx <= 121) || (tx >= 61 && tx <= 65) || (tx >= 171 && tx <= 175)) continue;
+          if ((tx >= 177 && tx <= 183) || (tx >= 91 && tx <= 95) || (tx >= 263 && tx <= 267)) continue;
           const fy = (MAP.riverCenterY ? MAP.riverCenterY(tx) : 170) * TS + Math.sin(t * 1.6 + i) * 14;
           ctx.beginPath();
           ctx.ellipse(fx, fy, 4.2, 1.8, Math.sin(t * 2 + i) * 0.15, 0, Math.PI * 2);
@@ -3744,7 +3744,7 @@
       if (!isActive) return;
 
       const colHex = R.resolveBarrierColor(W);
-      const cx = 118 * TS, cy = 75 * TS, rx = 92 * TS, ry = 58 * TS;
+      const cx = 180 * TS, cy = 126 * TS, rx = 110 * TS, ry = 74 * TS;
       const pulse = 0.5 + 0.5 * Math.sin(this.t * 1.8);
 
       ctx.save();
@@ -6169,12 +6169,12 @@
       const stanceId = (fw && fw.activeStance) || 'FIVE_ELEMENT_NURTURE';
       const spec = g.SECT.FORMATION_WARFARE.STANCES[stanceId] || g.SECT.FORMATION_WARFARE.STANCES.FIVE_ELEMENT_NURTURE;
       const t = this.t;
-      const cx = 118 * TS, cy = 75 * TS;
+      const cx = 180 * TS, cy = 123 * TS;
       const anchors = [
-        [86 * TS, 42 * TS],
-        [150 * TS, 42 * TS],
-        [86 * TS, 106 * TS],
-        [150 * TS, 106 * TS]
+        [136 * TS, 84 * TS],
+        [224 * TS, 84 * TS],
+        [136 * TS, 162 * TS],
+        [224 * TS, 162 * TS]
       ];
       ctx.save();
       // Linked formation energy beams from Central Bagua Plaza to 4 cardinal formation anchors
@@ -6206,7 +6206,7 @@
       if (!W || !W.sect || !W.sect.forbiddenVault) return;
       const fv = W.sect.forbiddenVault;
       const t = this.t;
-      const ax = 118 * TS, ay = 62 * TS;
+      const ax = 180 * TS, ay = 104 * TS;
       const isBlood = fv.policy === 'UNRESTRICTED_BLOOD_CULT' || (fv.bloodlineSurgeUntil && fv.bloodlineSurgeUntil > (W.t || 0));
       ctx.save();
       ctx.strokeStyle = isBlood ? '#ef233c' : '#ffd166';

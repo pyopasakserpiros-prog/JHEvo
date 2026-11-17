@@ -16,7 +16,7 @@ button[disabled]{opacity:.48;cursor:not-allowed;filter:none}
 #dateLine{display:flex;justify-content:space-between;align-items:center;gap:6px}
 #dateTxt{white-space:nowrap;font-weight:600;font-size:13px;line-height:1.4;text-shadow:0 1px 3px #000c}
 #speedBar{display:flex;gap:4px}
-#speedBar button{padding:5px 9px;font-size:13px;background:#132822d8;border:1px solid #607664;min-width:36px;white-space:nowrap;font-variant-numeric:tabular-nums}
+#speedBar button{padding:5px 7px;font-size:12.5px;background:#132822d8;border:1px solid #607664;min-width:32px;white-space:nowrap;font-variant-numeric:tabular-nums}
 #speedBar button.on{background:linear-gradient(180deg,#f0d794,#dfb965);color:#1d1810;border-color:#f3de9e;font-weight:700;box-shadow:0 2px 8px #0006}
 @media(max-width:520px){
   #dateLine{flex-wrap:wrap;justify-content:flex-start}
@@ -101,7 +101,7 @@ canvas.pt{border:1px solid #6e836e;box-shadow:0 2px 6px #07130f66;background:#16
   #dateLine{flex-direction:column;align-items:stretch;gap:4px}
   #dateTxt{display:block;min-height:18px}
   #speedBar{width:100%;gap:3px}
-  #speedBar button{flex:1 1 0;min-width:0;padding:4px 1px;font-size:12px;white-space:nowrap}
+  #speedBar button{flex:1 1 0;min-width:0;padding:4px 1px;font-size:11px;white-space:nowrap}
   #minimap{top:calc(120px + var(--safe-t))}
   #toasts{top:calc(132px + var(--safe-t));right:106px}
 }

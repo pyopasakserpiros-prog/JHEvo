@@ -161,6 +161,23 @@
         if (cap.senseBonus) addStat('acc', trLab, 'f', cap.senseBonus);
       }
     }
+    if (CRef && CRef.EXPERIENCE_TRAITS && CRef.EXPERIENCE_TRAITS.getStatBonuses && Array.isArray(n.experienceTraits) && n.experienceTraits.length > 0) {
+      const wRef = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W) || null;
+      const expMods = CRef.EXPERIENCE_TRAITS.getStatBonuses(n, { world: wRef });
+      if (expMods) {
+        const expLab = 'ตราประสบการณ์ชีวิต';
+        if (expMods.p) for (const k in expMods.p) if (expMods.p[k]) addStat(k, expLab, 'p', expMods.p[k]);
+        if (expMods.f) for (const k in expMods.f) if (expMods.f[k]) addStat(k, expLab, 'f', expMods.f[k]);
+      }
+    }
+    if (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS && g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses && n.combatActionMastery && Array.isArray(n.combatActionMastery.unlockedTraits) && n.combatActionMastery.unlockedTraits.length > 0) {
+      const amMods = g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses(n);
+      if (amMods) {
+        const amLab = 'ความชำนาญยุทธ์จากการกระทำ';
+        if (amMods.p) for (const k in amMods.p) if (amMods.p[k]) addStat(k, amLab, 'p', amMods.p[k]);
+        if (amMods.f) for (const k in amMods.f) if (amMods.f[k]) addStat(k, amLab, 'f', amMods.f[k]);
+      }
+    }
   };
   ST._applyMechKarmaFaithMods = (n, addStat) => {
     const c = n && n.cult;
@@ -627,6 +644,7 @@
       }
     }
     if (n.apexDaoTitle && n.apexDaoTitle.id) ext = (ext ^ (n.apexDaoTitle.id.charCodeAt(0) * 65537)) | 0;
+    /* EPITHETS_CACHE_KEY_V260 */ if (n.epithets && CULT && CULT.EPITHETS && CULT.EPITHETS.getCacheHash) ext = (ext ^ CULT.EPITHETS.getCacheHash(n)) | 0;
     if (n.forbiddenArtState && n.forbiddenArtState.overdriveUntil > ST.now) ext = (ext ^ 0x200000) | 0;
     if (n.passiveResonanceState && n.passiveResonanceState.unlockedCount) ext = (ext ^ (n.passiveResonanceState.unlockedCount * 0x400000)) | 0;
     const c = n.cult;
@@ -1353,4 +1371,19 @@
   ST.calcCombatStats = ST.get;
   g.STATS = ST;
   if (typeof module === 'object' && module.exports) module.exports = ST;
+/* === LIVING_JIANGHU_EPITHETS_STATS_HOOK_V260 === */
+
+  const _origApplyDaoTraitsEp = ST._applyDaoTraits;
+  ST._applyDaoTraits = (n, addStat) => {
+    if (_origApplyDaoTraitsEp) _origApplyDaoTraitsEp(n, addStat);
+    if (n && !n.foe && !n.dead && n.epithets && CULT && CULT.EPITHETS && CULT.EPITHETS.getNpcStatBonuses) {
+      const eb = CULT.EPITHETS.getNpcStatBonuses(n);
+      if (eb) {
+        const lab = eb.labelTh || 'สมญานามยุทธภพ';
+        for (const k in (eb.p || {})) addStat(k, lab, 'p', eb.p[k]);
+        for (const k in (eb.f || {})) addStat(k, lab, 'f', eb.f[k]);
+      }
+    }
+  };
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -7508,4 +7508,221 @@
 
   g.COMBAT = C;
   if (typeof module === 'object' && module.exports) module.exports = C;
+/* === LIFE_TRAITS_COMBAT_HOOKS_V260 === */
+  const _origSetHpLife = C.setHp;
+  C.setHp = (u, v, ctx) => {
+    if (v <= 0 && u && ctx && ctx.attacker && !ctx.attacker.foe) {
+      const att = ctx.attacker;
+      const isNonLethal = (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.hasNonLethalSubduer && g.CULT.EXPERIENCE_TRAITS.hasNonLethalSubduer(att))
+        || (att.voluntaryVows && att.voluntaryVows.VOW_NO_KILL && !att.voluntaryVows.VOW_NO_KILL.violated);
+      if (isNonLethal) {
+        v = 1;
+        u.yield = true;
+        u._subduedNonLethal = true;
+      }
+    }
+    return _origSetHpLife(u, v, ctx);
+  };
+
+  const _origConcludeLife = C.conclude;
+  C.conclude = (W, f) => {
+    const wasOver = Boolean(f && f.over);
+    const res = _origConcludeLife(W, f);
+    if (!wasOver && f && f.over && W && g.CULT && g.CULT.EXPERIENCE_TRAITS) {
+      const expApi = g.CULT.EXPERIENCE_TRAITS;
+      const amApi = C.ACTION_MASTERY_TRAITS;
+      const allIds = [].concat(f.A || [], f.B || []);
+      for (const uid of allIds) {
+        const n = W.byId && W.byId[uid];
+        if (!n || n.foe || n.dead) continue;
+        const side = (f.A || []).includes(uid) ? 'A' : 'B';
+        const won = f.winner === side;
+        const hpRatio = C.hp(n) / Math.max(1, C.hpMax(n));
+        if (hpRatio <= 0.15) {
+          expApi.recordCounter(n, 'nearDeathSurvivals', 1);
+          if (won && amApi) amApi.recordCounter(W, n, 'lowHpCounterHits', 2);
+        }
+        if (won) {
+          if (f.kind === 'raid') {
+            expApi.recordCounter(n, 'raidDefenses', 1);
+            if (amApi) amApi.recordCounter(W, n, 'gateDefenseStands', 2);
+          }
+          if ((f.rounds || 0) <= 3 && amApi) {
+            amApi.recordCounter(W, n, 'firstStrikeOpens', 2);
+            amApi.recordCounter(W, n, 'executeConfirmations', 2);
+          }
+          if ((f.rounds || 0) >= 8 && amApi) {
+            amApi.recordCounter(W, n, 'longFightEnduranceRounds', 4);
+          }
+        } else if (f.fled && f.fled === uid) {
+          expApi.recordCounter(n, 'fledCount', 1);
+        } else if (f.winner && f.winner !== side) {
+          if (f.kind === 'duel' || f.kind === 'spar') expApi.recordCounter(n, 'duelLosses', 1);
+        }
+        expApi.evaluateAfterEvent(W, n, 'combat_conclude', { fight: f, won });
+        if (amApi && amApi.reconcileActiveMasteries) amApi.reconcileActiveMasteries(n);
+      }
+    }
+    return res;
+  };
+
+/* === LIVING_JIANGHU_EPITHETS_COMBAT_HOOK_V260 === */
+
+  const _origConcludeEp = C.conclude;
+  C.conclude = (W, f) => {
+    const alreadyDone = Boolean(f && f._tac && f._tac.concluded);
+    const res = _origConcludeEp(W, f);
+    if (!alreadyDone && f && f._tac && f._tac.concluded && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.onCombatConclude) {
+      g.CULT.EPITHETS.onCombatConclude(W, f);
+    }
+    return res;
+  };
+
+/* === LIFE_TRAITS_COMBAT_MASTERY_V260 === */
+
+  /* =========================================================================
+   * GROUP G: 24 ACTION-MASTERY TRAITS & AUTONOMOUS 3-SLOT ACTIVE LOADOUT CAP
+   * ========================================================================= */
+  (function upgradeActionMasteryTraitsV260() {
+    const AMT = C.ACTION_MASTERY_TRAITS;
+    if (!AMT) return;
+    const regG = (typeof JD !== 'undefined' && JD.LIFE_TRAITS_REGISTRY && JD.LIFE_TRAITS_REGISTRY.GROUP_G) || [];
+    const newDefs = Object.assign({}, AMT.TRAIT_DEFS);
+    // Add p/f stat definitions to the 4 existing masteries so they participate uniformly
+    if (newDefs.TRAIT_PARRY_COUNTER) newDefs.TRAIT_PARRY_COUNTER = Object.assign({}, newDefs.TRAIT_PARRY_COUNTER, { p: { def: 0.08 }, f: { crit: 4 } });
+    if (newDefs.TRAIT_VANGUARD_GUARD) newDefs.TRAIT_VANGUARD_GUARD = Object.assign({}, newDefs.TRAIT_VANGUARD_GUARD, { p: { def: 0.12, hp: 0.06 }, f: {} });
+    if (newDefs.TRAIT_COMBAT_MEDIC) newDefs.TRAIT_COMBAT_MEDIC = Object.assign({}, newDefs.TRAIT_COMBAT_MEDIC, { p: { mdef: 0.08, hp: 0.06 }, f: { cast: 5 } });
+    if (newDefs.TRAIT_FORMATION_STRATEGIST) newDefs.TRAIT_FORMATION_STRATEGIST = Object.assign({}, newDefs.TRAIT_FORMATION_STRATEGIST, { p: { matk: 0.08, mdef: 0.08 }, f: { acc: 6 } });
+
+    for (let i = 0; i < regG.length; i++) {
+      const gSp = regG[i];
+      newDefs[gSp.id] = {
+        id: gSp.id,
+        proposalNo: gSp.proposalNo,
+        nameTh: gSp.nameTh,
+        icon: gSp.icon || '⚔️',
+        statKey: gSp.statKey,
+        threshold: gSp.threshold || 15,
+        p: gSp.p || {},
+        f: gSp.f || {},
+        descTh: gSp.descTh
+      };
+    }
+    AMT.TRAIT_DEFS = Object.freeze(newDefs);
+    AMT.TRAITS = AMT.TRAIT_DEFS;
+    AMT.MAX_ACTIVE_MASTERIES = 3;
+    AMT.ensureState = AMT.ensureHistory;
+
+    const ALL_STAT_KEYS = Object.values(AMT.TRAIT_DEFS).map(d => d.statKey);
+
+    const _origEnsureHistory = AMT.ensureHistory;
+    AMT.ensureHistory = npc => {
+      const ch = _origEnsureHistory ? _origEnsureHistory(npc) : null;
+      if (!ch) return null;
+      for (let i = 0; i < ALL_STAT_KEYS.length; i++) {
+        const k = ALL_STAT_KEYS[i];
+        if (typeof ch[k] !== 'number') ch[k] = 0;
+      }
+      if (!Array.isArray(ch.activeMasteryIds)) {
+        ch.activeMasteryIds = ch.unlockedTraits.slice(0, AMT.MAX_ACTIVE_MASTERIES);
+      }
+      return ch;
+    };
+
+    /* Autonomous selection of up to 3 active masteries based on NPC path/role/weapon with hysteresis */
+    AMT.reconcileActiveMasteries = (W, npc, opts) => {
+      if (!npc || npc.foe) return [];
+      opts = opts || {};
+      const ch = AMT.ensureHistory(npc);
+      const unlocked = ch.unlockedTraits || [];
+      if (unlocked.length <= AMT.MAX_ACTIVE_MASTERIES) {
+        ch.activeMasteryIds = unlocked.slice();
+        return ch.activeMasteryIds;
+      }
+      const nowT = (W && W.t) || 0;
+      if (!opts.force && ch.lastReconciledAt != null && nowT - ch.lastReconciledAt < 60 && ch.activeMasteryIds.length === AMT.MAX_ACTIVE_MASTERIES) {
+        return ch.activeMasteryIds;
+      }
+      const cPath = (npc.cult && npc.cult.path) || 'XIAN';
+      const wType = (npc.equip && npc.equip.WEAPON && (npc.equip.WEAPON.weaponType || npc.equip.WEAPON.type)) || '';
+      const scored = unlocked.map(tid => {
+        const spec = AMT.TRAIT_DEFS[tid];
+        if (!spec) return { id: tid, sc: 0 };
+        let sc = (ch[spec.statKey] || 1) / Math.max(1, spec.threshold || 10);
+        if (cPath === 'SAGE_SUPPORT' && (tid === 'TRAIT_COMBAT_MEDIC' || tid === 'TRAIT_HARMONIC_CHORD_CONDUCTOR' || tid === 'TRAIT_NONLETHAL_SUBDUER')) sc += 5;
+        if ((cPath === 'BODY' || cPath === 'ARENA_GLORY') && (tid === 'TRAIT_VANGUARD_GUARD' || tid === 'TRAIT_POISE_SHATTER_BREAKER' || tid === 'TRAIT_BLOOD_BOIL_SURVIVO' || tid === 'TRAIT_OUTNUMBERED_LONE_WOLF')) sc += 4;
+        if ((cPath === 'BEAST_SOVEREIGN' || (npc.pets && npc.pets.length)) && tid === 'TRAIT_BEAST_PACK_TACTICIAN') sc += 5;
+        if ((cPath === 'MECH_PUPPET' || cPath === 'SOUL_PUPPETRY') && tid === 'TRAIT_PUPPET_SWARM_COMMANDER') sc += 5;
+        if (wType === 'BOW' && tid === 'TRAIT_LONG_RANGE_DEADEYE') sc += 5;
+        return { id: tid, sc };
+      });
+      scored.sort((a, b) => b.sc - a.sc || a.id.localeCompare(b.id));
+      ch.activeMasteryIds = scored.slice(0, AMT.MAX_ACTIVE_MASTERIES).map(x => x.id);
+      ch.lastReconciledAt = nowT;
+      return ch.activeMasteryIds;
+    };
+
+    AMT.isActiveTrait = (npc, traitId) => {
+      if (!npc || !traitId) return false;
+      const ch = npc.combatHistory;
+      if (!ch) return false;
+      const act = Array.isArray(ch.activeMasteryIds) ? ch.activeMasteryIds : (ch.unlockedTraits || []).slice(0, AMT.MAX_ACTIVE_MASTERIES);
+      return act.includes(traitId);
+    };
+
+    const _origRecordAction = AMT.recordAction;
+    AMT.recordAction = (W, npc, actionKey, amount, opts) => {
+      if (!npc || npc.foe || npc.dead) return { ok: false, reason: 'invalid-npc' };
+      opts = opts || {};
+      // Anti-farming: non-serious sparring cannot farm lethal/outnumbered/boss mastery
+      if (opts.fight && (opts.fight.kind === 'spar' || opts.fight.serious === false)) {
+        if (['finisherKills', 'outnumberedFights', 'lowHpCombatWins', 'bossPartsBroken'].includes(actionKey)) {
+          return { ok: false, reason: 'non-serious-spar-ignored' };
+        }
+      }
+      // Anti-farming: trivial prey (>2 stages below) cannot farm finisherKills
+      if (actionKey === 'finisherKills' && opts.targetStage != null) {
+        const myStg = (npc.cult && npc.cult.stage) || 1;
+        if (myStg - Number(opts.targetStage) > 2) return { ok: false, reason: 'trivial-prey-ignored' };
+      }
+      const ch = AMT.ensureHistory(npc);
+      if (actionKey in ch) {
+        const inc = Math.max(1, Math.round(Number(amount != null ? amount : 1)));
+        ch[actionKey] = (ch[actionKey] || 0) + inc;
+        const res = AMT.checkAndUnlockTraits(W, npc, opts);
+        AMT.reconcileActiveMasteries(W, npc, opts);
+        return {
+          ok: true,
+          statKey: actionKey,
+          newValue: ch[actionKey],
+          newlyUnlocked: res.newlyUnlocked,
+          unlockedTraits: res.unlockedTraits,
+          activeMasteryIds: ch.activeMasteryIds.slice()
+        };
+      }
+      const r = _origRecordAction(W, npc, actionKey, amount, opts);
+      AMT.reconcileActiveMasteries(W, npc, opts);
+      return r;
+    };
+
+    AMT.getStatBonuses = npc => {
+      if (!npc || npc.foe || npc.dead || !npc.combatHistory) return null;
+      const ch = npc.combatHistory;
+      const act = Array.isArray(ch.activeMasteryIds) && ch.activeMasteryIds.length
+        ? ch.activeMasteryIds.slice(0, AMT.MAX_ACTIVE_MASTERIES)
+        : (ch.unlockedTraits || []).slice(0, AMT.MAX_ACTIVE_MASTERIES);
+      if (!act.length) return null;
+      const p = {}, f = {}, labels = [];
+      for (let i = 0; i < act.length; i++) {
+        const spec = AMT.TRAIT_DEFS[act[i]];
+        if (!spec) continue;
+        for (const [k, v] of Object.entries(spec.p || {})) p[k] = (p[k] || 0) + v;
+        for (const [k, v] of Object.entries(spec.f || {})) f[k] = (f[k] || 0) + v;
+        labels.push('รอยชำนาญ「' + spec.nameTh + '」');
+      }
+      if (!labels.length) return null;
+      return { p, f, labelTh: labels.join(' · '), activeIds: act };
+    };
+  })();
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);
