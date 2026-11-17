@@ -1,4 +1,4 @@
-> **สำเนาอ้างอิงจากงานเก่า:** งานปัจจุบันคือแพตช์ฉายาสำหรับ Gemini Argon4 อ่าน [START_HERE_FOR_AI](../START_HERE_FOR_AI.md) และ [Active Prompt ปัจจุบัน](../ACTIVE_PATCH_PROMPT_EPITHETS.md) ที่รากโปรเจกต์ก่อน ข้อความสั่งงานเดิมด้านล่างเป็นประวัติ
+> Historical report archive. The active assignment is the root [Carbon compendia prompt](../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md); this index documents prior audits and releases.
 
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 

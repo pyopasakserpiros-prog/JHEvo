@@ -1,4 +1,4 @@
-งานปัจจุบันที่ผู้ใช้อนุมัติคือ ACTIVE_PATCH_PROMPT_EPITHETS.md ที่รากโปรเจกต์ อ่าน START_HERE_FOR_AI.md ก่อน คำสั่งเดิมด้านล่างเป็นประวัติอ้างอิง ไม่ใช่งานที่ให้เริ่มซ้ำ
+Archived bug-report bundle. The current assignment is the Carbon compendia prompt at ../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md. Read ../START_HERE_FOR_AI.md first; this bundle contains historical reports and snapshots.
 
 เริ่มที่ PROMPT_GEMINI_07_08_TH.txt
 

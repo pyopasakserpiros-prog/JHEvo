@@ -1,4 +1,4 @@
-> ARCHIVED: เอกสารก่อนใบสั่งงานฉายา ไม่ใช่งานปัจจุบัน อ่าน [START_HERE_FOR_AI](../../START_HERE_FOR_AI.md) และ [ใบสั่งงานฉายา](../../ACTIVE_PATCH_PROMPT_EPITHETS.md)
+> ARCHIVED prior Post-13 audit assignment. The current assignment is the root [Carbon compendia prompt](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md).
 
 # พรอมต์สำหรับ Gemini — แพตช์ถัดไปจากรายงานใหม่ 13 ฉบับ
 

@@ -4,7 +4,7 @@
 - **เวอร์ชันฐานต้นทาง (Baseline)**: `JS2-v2.4.0` (`SIM.PATCH_VERSION = '2.4.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'`, `141/141` กลุ่มทดสอบผ่าน)
 - **เวอร์ชันส่งมอบ (Target Release)**: **`JS2-v2.5.0`** (`SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'`, `HC.FINGERPRINT = '155:2f9c9dd7'`, **`142/142` กลุ่มทดสอบผ่าน 100%**)
 - **ใบสั่งงานอ้างอิง**: [`docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md`](../docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_5_0.md)
-- **ใบสั่งงานแพตช์ถัดไป (Daisy-Chain Next Patch)**: [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](../ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (`JS2-v2.6.0`: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
+- **ใบสั่งงานรุ่นถัดไปในอดีต**: [`LEGACY_JS2_V2_6_0_PROMPT_POINTER.md`](../docs/historical_prompts/LEGACY_JS2_V2_6_0_PROMPT_POINTER.md) (`JS2-v2.6.0`: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
 
 ---
 

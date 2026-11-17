@@ -1,4 +1,6 @@
-# ใบสั่งงานปัจจุบัน: JS2-v2.6.0 — พงศาวดารมีชีวิตและการรายงานยุทธภพ
+> **ARCHIVED — completed historical assignment. Do not execute as current work.** The current assignment is [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md); this file records the original JS2-v2.6.0 reporting prompt.
+
+# ARCHIVE: ใบสั่งงาน JS2-v2.6.0 — พงศาวดารมีชีวิตและการรายงานยุทธภพ
 
 ## คำสั่งจากผู้ใช้และอำนาจตัดสินใจ
 
@@ -18,7 +20,7 @@
 
 ฐานตรวจเตรียมงาน: main `478fbb9`, runtime JS2-v2.5.0, schema `2.4.0-tactical-composable-grand-dao`, 43 วิถี / 286 สายย่อย พร้อม Legendary VFX และ Item Art refinements ล่าสุด: 9 atlas / 576 ช่อง, 28 กลุ่มอุปกรณ์ + 13 กลุ่มอื่นมีภาพตาม Tier, named manuals 50 / relics 27 มีภาพเฉพาะ
 
-**ยังไม่ได้ลงมือทำ JS2-v2.6.0** ในการเตรียม ZIP นี้ งานถัดไปคือเอกสารนี้ ข้อเสนอเดิมเรื่อง NPC authorship / barter / relic biography ถูกพักใน `docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md` ไม่ต้องทำแทนงานรายงาน
+เมื่อจัดทำใบสั่งงานนี้ ยังไม่ได้ลงมือทำ JS2-v2.6.0; ข้อความนี้อธิบาย snapshot ในอดีตเท่านั้น และไม่สะท้อนสถานะซอร์สปัจจุบัน ข้อเสนอเดิมเรื่อง NPC authorship / barter / relic biography ถูกพักใน `docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md` ในเวลานั้น
 
 หลักฐานตั้งต้นจากซอร์ส (เป็นเบาะแส ไม่ใช่การรับรองว่าครบทุก producer):
 

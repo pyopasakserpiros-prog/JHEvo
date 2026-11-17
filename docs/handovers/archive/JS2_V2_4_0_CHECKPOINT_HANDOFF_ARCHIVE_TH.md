@@ -1,13 +1,15 @@
-# เช็กพอยต์ส่งต่องานแก้บั๊ก JianghuSect 2 v2.4.0
+> ARCHIVED historical checkpoint from the v2.4.0 work. Its unresolved-task statements and test results describe that old snapshot only; follow the root START_HERE_FOR_AI.md and active Carbon assignment instead.
 
-**สถานะ: งานยังไม่เสร็จ ให้พัฒนาและตรวจต่อจากไฟล์ใน ZIP นี้**
+# ARCHIVE: เช็กพอยต์ส่งต่องานแก้บั๊ก JianghuSect 2 v2.4.0
+
+**สถานะ ณ เวลาจัดทำ: งานยังไม่เสร็จ (historical snapshot; ไม่ใช่งานปัจจุบันและไม่ต้องทำต่อจากไฟล์นี้)**
 
 ZIP นี้เป็นโปรเจกต์ฉบับเต็มที่เริ่มจาก `main` commit `c2f990e005d9e166d73fc39eaef52563c1c683aa` พร้อมการแก้ไขที่ยังไม่ได้รวมเข้ากับ `main` ส่วนรายงานที่นำมาตรวจอยู่บนสาขา `Gemini` commit `8f0cbf3e02937d0cfa7e17cf1a318f3e9a8cc11f` โปรดใช้ซอร์สใน ZIP นี้เป็นฐานของเช็กพอยต์ ไม่ใช้ซอร์สเดิมในสาขา Gemini แทน เพราะสาขานั้นเป็นต้นทางของรายงานและอาจเก่ากว่า main
 
 ## อ่านก่อนทำต่อ
 
-1. อ่าน `AGENTS.md` และ `project_status_and_ai_onboarding.md` แล้วอ่าน [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) ทั้งฉบับ
-2. อ่านต้นฉบับรายงาน 7 ฉบับใน [`docs/audits/v2_4_0_gemini_reports/`](docs/audits/v2_4_0_gemini_reports/) และหลักฐานเก่าในโฟลเดอร์ `evidence/` ประกอบ ข้อมูลใน evidence เป็นผลก่อนการแก้ ไม่ใช่ผลทดสอบล่าสุด
+1. อ่าน `AGENTS.md` และ `project_status_and_ai_onboarding.md` แล้วอ่าน [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../audits/JS2_V2_4_0_FIX_TRACKER_TH.md) ทั้งฉบับ
+2. อ่านต้นฉบับรายงาน 7 ฉบับใน [`docs/audits/v2_4_0_gemini_reports/`](../../audits/v2_4_0_gemini_reports) และหลักฐานเก่าในโฟลเดอร์ `evidence/` ประกอบ ข้อมูลใน evidence เป็นผลก่อนการแก้ ไม่ใช่ผลทดสอบล่าสุด
 3. ตารางมี 121 รายการจากหลายรายงาน ซึ่งบางรายการซ้ำกัน: แก้จุดที่รายงานแล้ว 34, แก้บางส่วน 20 และคงค้าง/ยังไม่ยืนยัน 67 รายการ ตัวเลขนี้นับตามรหัสรายงาน ไม่ใช่จำนวนบั๊กไม่ซ้ำกัน
 4. ตรวจซ้ำกับโค้ดและพฤติกรรมจริงก่อนลงมือ แต่ละรายการอาจมีข้อเสนอที่ต้องตัดสินใจด้านการออกแบบ อย่าคิดว่ารายการที่ยังไม่ยืนยันเกิดขึ้นจริงทุกเส้นทาง หรือคิดว่ารายการแก้บางส่วนเสร็จแล้ว
 

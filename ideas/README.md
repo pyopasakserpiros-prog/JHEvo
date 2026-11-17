@@ -1,4 +1,4 @@
-> งานปัจจุบันสำหรับ Gemini Argon4 คือ [แพตช์ฉายา](../ACTIVE_PATCH_PROMPT_EPITHETS.md) มีเอกสาร EPITHET_01A/01B/01C ใน [from carbon](from%20carbon/) แนวคิดอื่นในคลังนี้เป็นข้อมูลประกอบตามความเกี่ยวข้อง ไม่ใช่คำสั่งให้เริ่มทุกระบบพร้อมกัน
+> Current Gemini Argon4 assignment: [Carbon compendia patch](../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](../docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). Epithet material below is historical implementation reference, not an active assignment.
 
 # 💡 คลังไอเดียและแนวคิดสำหรับอนาคต (Ideas & Knowledge Scrapbook)
 

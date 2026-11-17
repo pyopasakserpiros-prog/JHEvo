@@ -115,8 +115,8 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 > 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
 > 3. ชุดทดสอบรวมผ่านครบ **141/141 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,177 ไอเทม, 1,402 ตำรับ
-> 4. **ใบสั่งงานในประวัติ (ทำแล้ว/ต้องตรวจสถานะล่าสุด ไม่เริ่มซ้ำ):** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
-> 5. **📑 รายงานการพัฒนาแพตช์ล่าสุด:** [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (Release (1) ฉบับสมบูรณ์หลังแก้บั๊ก) และ [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (Initial Release) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
+> 4. **ใบสั่งงานในประวัติ (ทำแล้ว/ไม่ใช่งานปัจจุบัน):** [`LEGACY_JS2_V2_6_0_PROMPT_POINTER.md`](docs/historical_prompts/LEGACY_JS2_V2_6_0_PROMPT_POINTER.md) (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
+> 5. **📑 รายงานการพัฒนาแพตช์ล่าสุด:** [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (Release (1) ฉบับสมบูรณ์หลังแก้บั๊ก) และ [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (Initial Release) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](ideas/FUTURE_ROADMAP_AND_IDEAS.md)
 
 ---
 
@@ -155,7 +155,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 
 ## 3. แผนแม่บท 5 ระยะสำหรับข้อเสนอสร้างสรรค์ 36 ข้อ (5-Phase Master Roadmap: PROP-01 ถึง PROP-36)
 
-> หมายเหตุ: ตาราง v3.x ด้านล่างเป็น roadmap รุ่นก่อนและใช้เป็นข้อมูลประวัติ ไม่ใช่งาน active ปัจจุบัน งานถัดไปของ JianghuSect 2 คือใบสั่งงาน JS2-v2.5.0 ที่ระบุไว้ใน Current Pointer ด้านบน
+> หมายเหตุ: ตาราง v3.x ด้านล่างเป็น roadmap รุ่นก่อนและใช้เป็นข้อมูลประวัติ ไม่ใช่งาน active ปัจจุบัน งานปัจจุบันดูที่ `START_HERE_FOR_AI.md` และ `ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md`
 
 | ระยะ (Phase) | เวอร์ชันเป้าหมาย | ข้อเสนอที่ครอบคลุม | หัวใจสำคัญของระบบ | สถานะ |
 | :---: | :---: | :--- | :--- | :---: |
@@ -176,7 +176,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 2. ทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริง โดยใช้ maxStage ของแต่ละวิถี ตรวจเอกลักษณ์ การต่อเข้าระบบ และประสิทธิภาพตามใบสั่งงาน
 3. ก่อนแก้โค้ด ให้อ่านสกิลที่เกี่ยวข้องใน .agents/skills/ และรักษา human_core.js, ลำดับสคริปต์, save/load และกฎใน AGENTS.md
 4. เมื่อแพตช์เสร็จ ให้อัปเดตเอกสารสถานะ สกิลที่ได้รับผล รายงานแพตช์ สารบัญเอกสาร และ Current Pointer ตามใบสั่งงาน โดยระบุจำนวน coverage และผลตรวจจริง
-5. ตาราง v3.x และคำสั่งเก่าที่อ้าง ACTIVE_PATCH_PROMPT_V3_5_0.md ด้านล่างเป็นข้อมูลประวัติ ไม่ใช้แทนใบสั่งงาน JS2-v2.5.0 ปัจจุบัน
+5. ตาราง v3.x และคำสั่งเก่าที่อ้าง ACTIVE_PATCH_PROMPT_V3_5_0.md ด้านล่างเป็นข้อมูลประวัติ ไม่ใช้แทนใบสั่งงาน Carbon ปัจจุบัน
 
 ---
 *เอกสารนี้ได้รับการปรับปรุงสมบูรณ์ตามสถานะแพตช์ v4.0.0 (ครบ 36 ข้อเสนอ + 5 เสาหลัก Phase 6, ผ่านการทดสอบ 124/124 ชุดทดสอบ) ณ วันที่ 6 พฤศจิกายน 2026*
@@ -279,4 +279,4 @@ Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วแล�
 
 ทิศทางการต่อสู้ตามผู้ใช้: คล้ายจังหวะ Dungeon Village ของ Kairosoft ในแง่เห็นสมาชิกออกจากสำนักไปปะทะอสูร แล้วกลับพัก รักษา และใช้ชีวิตต่อ โดย NPC เลือกเองตามนิสัย ความสามารถ ความพร้อม และสถานการณ์ ผู้เล่นติดตามได้ ไม่สั่งทีม/เป้าหมาย อ้างอิงความรู้สึกของวงจรการเล่น ไม่ต้องคัดลอกเกมนั้นทั้งระบบหรือภาพ
 
-หลักฐานและข้อจำกัดปัจจุบันอยู่ใน [รายงาน260c repair](PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md), [ทะเบียนคุณลักษณะ](docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md), [สัญญาเวลา/ผัง](docs/audits/TIME_AND_MAP_CONTRACT.md) และ [จุดส่งต่องาน](ACTIVE_PATCH_PROMPT_AFTER_260C_REPAIR.md) ตัวเลขผลตรวจเก่าในประวัติไม่ใช่ผลของชุดปัจจุบัน; 96× เป็นความเร็วที่ขอ ประมวลผลได้จริงขึ้นกับเครื่อง
+หลักฐานและข้อจำกัดปัจจุบันอยู่ใน [รายงาน260c repair](PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md), [ทะเบียนคุณลักษณะ](docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md), [สัญญาเวลา/ผัง](docs/audits/TIME_AND_MAP_CONTRACT.md) และ [จุดส่งต่องาน](docs/handovers/archive/JS2_V2_6_0_260C_REPAIR_CHECKPOINT_ARCHIVE.md) ตัวเลขผลตรวจเก่าในประวัติไม่ใช่ผลของชุดปัจจุบัน; 96× เป็นความเร็วที่ขอ ประมวลผลได้จริงขึ้นกับเครื่อง

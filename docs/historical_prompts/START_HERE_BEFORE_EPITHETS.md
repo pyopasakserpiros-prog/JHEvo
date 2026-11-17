@@ -1,4 +1,4 @@
-> ARCHIVED: เอกสารก่อนใบสั่งงานฉายา ไม่ใช่งานปัจจุบัน อ่าน [START_HERE_FOR_AI](../../START_HERE_FOR_AI.md) และ [ใบสั่งงานฉายา](../../ACTIVE_PATCH_PROMPT_EPITHETS.md)
+> ARCHIVED historical pre-epithet notes. The current assignment is the root [Carbon compendia prompt](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md); the former epithet prompt is kept as an archive in this folder.
 
 > ตรวจหลังหมวด 01–13 (2026-11-15): ดู [รายงานผลตรวจและงานค้าง](../../after%20debug/02_POST13_REVIEW_AND_NEXT_PATCH.md) สำหรับข้อบกพร่องที่พบหลัง final-release และ [แผนแพตช์ถัดไป](../../after%20debug/03_NEXT_PATCH_POST13.md) ซึ่งรอผู้ใช้สั่งเริ่ม การผ่าน regression ไม่เท่ากับปิดทุกข้อในเอกสารต้นฉบับ
 
@@ -20,7 +20,7 @@
 - **สถานะใบสั่งงาน `ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`**: **ดำเนินการพัฒนา ทดสอบ และส่งมอบเสร็จสมบูรณ์แล้ว 100%**
   - รายงานการพัฒนาฉบับเต็ม: [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](../../PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md)
   - ตารางสำรวจ Producer → UI Coverage Matrix: [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](../../docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
-  - สำเนาใบสั่งงานที่ดำเนินการเสร็จแล้ว: [`docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](../../docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md)
+  - สำเนาใบสั่งงานที่ดำเนินการเสร็จแล้ว: [`ARCHIVE_JS2_V2_6_0_CHRONICLE_REPORTING_PROMPT.md`](ARCHIVE_JS2_V2_6_0_CHRONICLE_REPORTING_PROMPT.md)
 - **ผลการตรวจรับรองฐานพงศาวดารก่อน VFX refinement** (ผลล่าสุดอยู่ด้านบน):
   - `node GAME_SOURCE/test/core_lock.js`: **PASS** (`155:2f9c9dd7`, SHA-256 ของ `js/human_core.js` = `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542` byte-identical)
   - `node GAME_SOURCE/tools/validate_data_schema.js`: **PASS** (`Errors: 0, Warnings: 0`)
@@ -45,7 +45,7 @@
 1. **ห้ามรันพัฒนา `JS2-v2.6.0` ซ้ำโดยไม่จำเป็น** เพราะพัฒนาและทดสอบครบอยู่ในโค้ดชุดนี้แล้ว หากผู้ใช้สั่งตรวจหรือปรับปรุงเพิ่มเติม ให้เริ่มจากตรวจซอร์สจริงและรายงาน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](../../PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md)
 2. **สถานะเอกสารอื่น**:
    - ข้อเสนอ [NPC authorship / barter / relic biography](../../docs/deferred/JS2_AUTHORSHIP_BARTER_RELIC_BIOGRAPHY.md) ยังคงถูกพักไว้ใน `docs/deferred/` **ห้ามหยิบมาทำเองโดยที่ผู้ใช้ไม่ได้สั่งอนุมัติ**
-   - `docs/historical_prompts/` และ [FUTURE_ROADMAP_AND_IDEAS.md](../../FUTURE_ROADMAP_AND_IDEAS.md) เป็นคลังประวัติและแนวคิดอ้างอิง ไม่ใช่ใบสั่งงานบังคับ
+   - `docs/historical_prompts/` และ [FUTURE_ROADMAP_AND_IDEAS.md](../../ideas/FUTURE_ROADMAP_AND_IDEAS.md) เป็นคลังประวัติและแนวคิดอ้างอิง ไม่ใช่ใบสั่งงานบังคับ
    - หากผู้ใช้ยังไม่ได้ระบุหัวข้อแพตช์ใหม่ (`JS2-v2.7.0`) ให้สอบถามหรือรับคำสั่งจากผู้ใช้ก่อนเริ่มฟีเจอร์ใหญ่เรื่องใหม่ หรือหากผู้ใช้สั่งงานเฉพาะเรื่อง ให้ปฏิบัติตาม [AGENTS.md](../../AGENTS.md) และอ่านสกิลใน [.agents/skills/README.md](../../.agents/skills/README.md) ทุกครั้ง
 
 - **Patch JS2-v2.6.0 (Bugfix Categories 02–03: NPC Brain & Martial Arts)**: Remediated confirmed findings across `02A`–`02C` (Epistemic Knowledge, 16-Weapon Parity, Goal/Utility Loops, Autonomous Executive & Mentorship Sync) and `03A`–`03G` (Move Profiles, Active Mantra Moves, Composable/Elemental Normalization, Mantra/Formation/Defensive/Support/Forbidden Combat Guards & Lifespan Sacrifice). See `PATCH_REPORTS/BUGFIX_CATEGORIES_02_03_JS2_V2_6_0.md` and `GAME_SOURCE/test/v260_bugfix_categories_02_03_suite.js`.

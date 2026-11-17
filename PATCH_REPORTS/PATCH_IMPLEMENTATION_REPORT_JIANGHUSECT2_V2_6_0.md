@@ -3,7 +3,7 @@
 - **วันที่ส่งมอบ**: 9 พฤศจิกายน 2026
 - **เวอร์ชันฐานต้นทาง (Baseline)**: `JS2-v2.5.0` (`SIM.PATCH_VERSION = '2.5.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.4.0-tactical-composable-grand-dao'`, 43 มหาวิถี / 286 สายย่อย, Legendary Visual Identity 50 วิชา / 27 อุปกรณ์, All Equipment Tier Art 9 แผ่น / 576 ช่อง, `147/147` กลุ่มทดสอบผ่าน)
 - **เวอร์ชันส่งมอบ (Target Release)**: **`JS2-v2.6.0`** (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, `HC.FINGERPRINT = '155:2f9c9dd7'`, **`148/148` กลุ่มทดสอบผ่าน 100%** [147 ชุดทดสอบ + 1 กลุ่มตรวจ Syntax 225 ไฟล์])
-- **ใบสั่งงานอ้างอิง**: [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](../ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (สำเนาเก็บเข้าคลังประวัติที่ [`docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](../docs/historical_prompts/ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md))
+- **ใบสั่งงานอ้างอิงในอดีต**: [`JS2_V2_6_0_PROMPT_POINTER.md`](../docs/historical_prompts/LEGACY_JS2_V2_6_0_PROMPT_POINTER.md) (ฉบับเต็มเก็บไว้ที่ [`ARCHIVE_JS2_V2_6_0_CHRONICLE_REPORTING_PROMPT.md`](../docs/historical_prompts/ARCHIVE_JS2_V2_6_0_CHRONICLE_REPORTING_PROMPT.md))
 - **เอกสารตารางสำรวจ Producer → UI (Coverage Matrix)**: [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](../docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
 - **ภาพแคปหน้าจอจริงจาก Headless Chromium (Desktop & Mobile Viewports)**: [`GAME_SOURCE/docs/visuals/v260_chronicle/`](../GAME_SOURCE/docs/visuals/v260_chronicle/)
 

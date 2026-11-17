@@ -1,8 +1,8 @@
 # ข้อมูลและแนวทางเสนอ Gemini Argon4 — แพตช์ฉายา
 
-เอกสารนี้เป็นข้อมูลประกอบและข้อเสนอการออกแบบของ Codex สำหรับ [ใบสั่งงานปัจจุบัน](../../ACTIVE_PATCH_PROMPT_EPITHETS.md) ไม่ใช่ข้อกำหนดให้คัดลอกสถาปัตยกรรมหรือตัวเลขทุกข้อ Gemini ต้องตรวจ วิจารณ์ และพัฒนาแนวทางที่เหมาะกว่าได้เอง
+> Historical reference for the completed epithet implementation. The active assignment is the [Carbon compendia patch](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md). The design notes below are not active instructions.
 
-ฐานอ้างอิง `main-debug` commit `92e0d82`; เอกสารนี้ยังไม่ได้หมายความว่าระบบฉายาใหม่ถูกลงโค้ดแล้ว `AGENTS.md` เป็นกฎสูงสุดของโครงการ และคำสั่งผู้ใช้มีลำดับเหนือข้อเสนอในไฟล์นี้
+ฐานอ้างอิงในอดีต: `main-debug` commit `92e0d82` ข้อความต่อจากนี้บันทึกสถานะและข้อเสนอ ณ เวลานั้น ส่วนระบบฉายาได้รับการพัฒนาแล้ว `AGENTS.md` เป็นกฎสูงสุดของโครงการ และคำสั่งผู้ใช้มีลำดับเหนือข้อเสนอในไฟล์นี้
 
 ## 1. ภาพเกมที่แพตช์นี้ต้องสนับสนุน
 
