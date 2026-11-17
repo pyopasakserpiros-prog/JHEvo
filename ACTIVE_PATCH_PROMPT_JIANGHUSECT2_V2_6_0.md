@@ -1,7 +1,7 @@
-# Active Prompt — ทางเข้าชื่อไฟล์เดิม
+# Historical Prompt Pointer
 
-**ใบสั่งงานปัจจุบันย้ายไป [ACTIVE_PATCH_PROMPT_EPITHETS.md](ACTIVE_PATCH_PROMPT_EPITHETS.md)**
+This legacy filename no longer points to an active v2.6.0 or epithet assignment.
 
-ผู้ใช้ให้ Gemini Argon4 พัฒนาระบบฉายาครบทุกประเภท ประเมิน260ข้อและสร้างฉายาเพิ่มเติมจากการสำรวจฟีเจอร์เกมได้เอง อ่าน [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) แล้วเริ่มงานตามใบสั่งงานใหม่ ไม่ต้องรอผู้ใช้พิมพ์พรอมต์อีกครั้ง
+The active work for this main-debug handoff is [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md), with its [review guide covering all 31 PDFs from the two latest Carbon upload commits](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md).
 
-พรอมต์เดิมเรื่องรายงาน13ฉบับเก็บไว้ใน [คลังประวัติ](docs/historical_prompts/ACTIVE_PATCH_PROMPT_POST13_AUDIT_BEFORE_EPITHETS.md) เพื่ออ้างอิง ไม่ใช่งานที่ต้องทำซ้ำในแพตช์ฉายา
+The 260c repair and 274-epithet system are already present in the current project snapshot. Read START_HERE_FOR_AI.md and verify current source before making changes. Do not repeat earlier assignments or use a historical prompt as authority over AGENTS.md or the active assignment.

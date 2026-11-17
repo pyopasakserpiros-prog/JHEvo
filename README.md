@@ -1,6 +1,6 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
 
-> **สถานะปัจจุบัน:** แพตช์ฉายาและ260c repair ลงซอร์สแล้ว อ่าน [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และรายงาน260c repair; รอคำสั่งใหม่จากผู้ใช้ ไม่เริ่มงานเก่าซ้ำ
+> **Active assignment:** Gemini Argon4 should read [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
 
 > **main-debug — Living Hunt:** poolอสูรบก125ชนิด ข้อมูลต้นแบบและสกิลจริง เป้าหมาย48/เพดาน60 ดู [รายงานและข้อจำกัดการตรวจ](PATCH_REPORTS/LIVING_HUNT_VARIETY.md)
 

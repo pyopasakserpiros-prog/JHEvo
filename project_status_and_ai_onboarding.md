@@ -1,6 +1,6 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
-> **สถานะปัจจุบัน:** แพตช์ฉายาและ260c repair ลงซอร์สแล้ว อ่าน [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และรายงาน260c repair; รอคำสั่งใหม่จากผู้ใช้ ไม่เริ่มงานเก่าซ้ำ
+> **Active handoff:** The next assigned work is the 31-PDF Carbon compendia review and implementation. Start at [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), then read [the active prompt](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and [the review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). Prepared against main-debug commit 6670b49; preserve newer work. AGENTS.md remains immutable without explicit user authorization.
 
 > **สถานะปัจจุบัน (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว — 9 พฤศจิกายน 2026):** พัฒนาและทดสอบแพตช์ **JS2-v2.6.0 พงศาวดารมีชีวิต การรายงานยุทธภพ และตัวกรองการรับข่าว** เสร็จสมบูรณ์ 100% (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, ผลฐานพงศาวดารผ่าน **148/148 กลุ่ม**; ผล VFX refinement ล่าสุดอยู่ในส่วน T6 ด้านล่าง) ดูรายละเอียดใน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจ [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md) งาน authorship/barter/relic biography เดิมยังคงถูกพักไว้ใน `docs/deferred/`
 

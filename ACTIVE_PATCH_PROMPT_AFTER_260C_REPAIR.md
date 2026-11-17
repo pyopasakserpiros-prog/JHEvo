@@ -1,3 +1,5 @@
+> **Historical checkpoint — superseded:** The 260c repair is complete. The active assignment is now [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md), covering the 31 PDFs introduced by uploads 881fecf and 6670b49. Keep this file as a record of the prior checkpoint; do not use it to block or duplicate the current assignment.
+
 # จุดส่งต่องานหลัง 260c repair — รอคำสั่งผู้ใช้
 
 งานปัจจุบันคือรวม Gemini260c และแก้ข้อไม่สมบูรณ์/บัคที่เกี่ยวข้องบน `main-debug` เสร็จแล้ว ดู [รายงาน](PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md) และหลักฐานแนบ เอกสารนี้ทำหน้าที่ส่งต่องาน ไม่อนุมัติเริ่ม roadmap ต่อโดยอัตโนมัติ
