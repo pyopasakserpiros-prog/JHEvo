@@ -1,3 +1,5 @@
+> **รายงานรับเข้าจาก Gemini260c ก่อนแก้:** ข้ออ้างว่ามี producer/active effects/การตรวจครบด้านล่างพบว่าไม่จริงบางส่วน ห้ามใช้ยืนยันความสมบูรณ์ อ่าน [รายงานแก้260c](260C_REPAIR_JS2_V2_6_0.md) กับทะเบียนปัจจุบันแทน คงเอกสารนี้ไว้เป็นประวัติ
+
 # Patch Implementation Report — Life-Experience Traits, Action Masteries, 360×304 Sect Expansion, 1.5× Day Length & 96× Speed (`JS2-v2.6.0` Next Patch)
 
 ## 1. Executive Summary

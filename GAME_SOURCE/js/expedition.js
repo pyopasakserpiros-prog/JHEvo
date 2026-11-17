@@ -739,6 +739,7 @@
   }, 0));
   X.diplomacyResult = (W, ex, alive, out) => {
     const s = W.rng.weighted(W.world.sects, x => 1 + Math.max(0, 50 - x.attitude) / 50); const lead = alive[0]; if (!lead) return;
+    ex.lifeHostileRelation=s.attitude;
     const skill = alive.reduce((m, a) => Math.max(m, E(a, 'social.charisma') * .5 + E(a, 'personality.empathy') * .3 + (a.h.skills.diplomacy || 0) * .4), 0);
     const delta = Math.round((skill - 45) / 4 + W.rng.gauss(0, 4) - (s.style === 'ทะนง' ? 3 : 0) + (W.sect.policy.openness - 50) / 15 + X.envoyBonus(alive));
     s.attitude = clamp(s.attitude + delta, -100, 100); s.contact = W.day;
@@ -1226,7 +1227,7 @@
   X.raidTick = W => {
     if (!W.foes || !W.foes.length) return;
     W.foes.forEach(u => COMBAT.foeStep(W, u));
-    if (W.t % 20 === 0 && W.threat.raid) { const f = (W.fights || []).find(q => q.id === W.threat.raid); if (f && !f.over) X.rally(W, f); }
+    if ((W._isNewCalendarMinute !== false && W.t % 20 === 0) && W.threat.raid) { const f = (W.fights || []).find(q => q.id === W.threat.raid); if (f && !f.over) X.rally(W, f); }
   };
 
   /* ---------- เหตุการณ์สุ่มรายวัน ---------- */

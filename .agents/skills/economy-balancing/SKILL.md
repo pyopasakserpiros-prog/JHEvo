@@ -290,18 +290,8 @@ ECO.mintGear ให้ outItemId มาก่อน slot เมื่อรั�
 - **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
 - **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
 
+## 260c repair — JS2-v2.6.0 (2026-11-17)
 
----
-## Latest Patch Update: Life-Experience Traits, Action Masteries, 360×304 Sect Expansion, 1.5× Day Length & 96× Speed (`JS2-v2.6.0` Next Patch)
-- **Life-Experience & Behavioral Action-Mastery Traits (`T01`–`T07`)**:
-  - Evaluated all **72 proposals** from `TRAIT_01B.pdf` + 6 existing `CULT.EXPERIENCE_TRAITS` + 4 existing `COMBAT.ACTION_MASTERY_TRAITS` + 6 Codex Life-Rhythm & Resilience traits (`88` cataloged entries in `docs/handovers/LIFE_TRAITS_72_REVIEW_TRACKER.csv` & `JD.LIFE_TRAITS_REGISTRY`).
-  - Expanded `CULT.EXPERIENCE_TRAITS.CATALOG` to **36** traits with wisdom-preserving recovery (`burdenActive = false, recovered = true`) and episode-watermark deduplication (`episodeWatermarks`).
-  - Expanded `COMBAT.ACTION_MASTERY_TRAITS.TRAIT_DEFS` to **24** masteries with an autonomous **3-slot active cap** (`activeMasteryIds`, max 3 with hysteresis) while retaining full lifetime history in `unlockedTraits`, plus `TRAIT_NONLETHAL_SUBDUER` 1 HP clamp.
-  - Enforced strict **Birth-Pool Guard** (`birthEligible: false` on all 27 Group E `TR_AC_*` traits and `CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits`).
-- **Expanded 360×304 Sect Compound & Wilderness (`M01`–`M06`)**:
-  - Expanded world grid from `240×192` to `360×304` (`109,440` tiles, `2.37×` area; `MAP.OX = 84, MAP.OY = 56`), inner compound wall `WX0 = 72, WY0 = 56, WX1 = 288, WY1 = 204` (`216×148`), central axis `x = 180`, plaza center `(180, 123)`.
-  - Placed all **8 Sacred Peaks** on outer-ring compound terraces with zero road/building overlaps, expanded `MAP.PLOTS` to **8**, added 4 directional gate outposts (`gate_north`, `gate_west`, `gate_east`, `gate`), and implemented true **4-Gate Dynamic Routing** (`S, N, W, E`) with blocked-gate fallback and `M.topologyRev` path-cache invalidation.
-  - Shifted Southern Spirit River to `y ≈ 268` (`3` bridges, `26` fishing stations), added **8 physical Beast Dens** (`W.wildlife.dens`), enforced `!MAP.blocked` on beast movement, and upgraded `COG.huntValue` for realm-appropriate hunting.
-- **1.5× Day Length & 96× Simulation Speed (`D01`–`D04`)**:
-  - `SIM.DAY_FACTOR = 1.5`, `SIM.WORK_STEPS_PER_DAY = 2160` work-steps per `1440`-minute calendar day with `W._isNewCalendarMinute` boundary-once guards and `1 / SIM.DAY_FACTOR` metabolic scaling.
-  - `UI.SPEEDS = [0, 1, 2, 4, 8, 16, 32, 48, 96]` with high-speed render throttling (`50ms` at `96×`) and automatic legacy `240×192` save coordinate migration `(+62, +42)`.
+ET.onCraftOutcome อยู่หลัง ECO.finishCraft/personalCraft และ mineYield ที่มีผลจ่าย/ผลผลิตจริง finishCraft กัน receipt reservation ซ้ำ ไม่เรียก failed recipe ทุกครั้งว่าเตาระเบิด การค้าใช้ EXPED.tradeResult/resolve; สำรับปราณใช้ attendeeIds ของงานที่จ่ายจริง บ่มเพาะ passive/body/mine/forge/craft_tick ชดเชย 1/DAY_FACTOR ไม่ให้ยืดวันเพิ่มตบะรายวันเงียบๆ
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว

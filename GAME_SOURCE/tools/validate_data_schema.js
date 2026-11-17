@@ -348,6 +348,14 @@ console.log(`  ✓ Verified Editor catalog (${catalog.length} entries across ${k
 
 // Report Summary
 console.log('\n====================================================');
+for (const def of Object.values(JD.CORE.curatedTraits || {})) {
+  if (def.category !== 'ACQUIRED' || !String(def.id).startsWith('TR_AC_')) continue;
+  check(Array.isArray(def.modifiers), 'Acquired trait requires a modifier array: ' + def.id);
+  const specialChannels = new Set(['combat.powerMult','cultivation.breakthroughBonus','cultivation.tribulationResist','craft.successBonus','craft.inventionBonus','destiny.luck','destiny.karma']);
+  for (const m of def.modifiers || []) {
+    check(['ADD','MULT'].includes(m.op) && Number.isFinite(m.value) && (!!G.HC.DEF[m.stat] || specialChannels.has(m.stat)), 'Unsupported acquired modifier: ' + def.id + '/' + m.stat);
+  }
+}
 console.log('                VALIDATION SUMMARY                  ');
 console.log('====================================================');
 console.log(`Errors:   ${errors.length}`);

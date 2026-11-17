@@ -161,23 +161,7 @@
         if (cap.senseBonus) addStat('acc', trLab, 'f', cap.senseBonus);
       }
     }
-    if (CRef && CRef.EXPERIENCE_TRAITS && CRef.EXPERIENCE_TRAITS.getStatBonuses && Array.isArray(n.experienceTraits) && n.experienceTraits.length > 0) {
-      const wRef = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W) || null;
-      const expMods = CRef.EXPERIENCE_TRAITS.getStatBonuses(n, { world: wRef });
-      if (expMods) {
-        const expLab = 'ตราประสบการณ์ชีวิต';
-        if (expMods.p) for (const k in expMods.p) if (expMods.p[k]) addStat(k, expLab, 'p', expMods.p[k]);
-        if (expMods.f) for (const k in expMods.f) if (expMods.f[k]) addStat(k, expLab, 'f', expMods.f[k]);
-      }
-    }
-    if (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS && g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses && n.combatActionMastery && Array.isArray(n.combatActionMastery.unlockedTraits) && n.combatActionMastery.unlockedTraits.length > 0) {
-      const amMods = g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses(n);
-      if (amMods) {
-        const amLab = 'ความชำนาญยุทธ์จากการกระทำ';
-        if (amMods.p) for (const k in amMods.p) if (amMods.p[k]) addStat(k, amLab, 'p', amMods.p[k]);
-        if (amMods.f) for (const k in amMods.f) if (amMods.f[k]) addStat(k, amLab, 'f', amMods.f[k]);
-      }
-    }
+
   };
   ST._applyMechKarmaFaithMods = (n, addStat) => {
     const c = n && n.cult;
@@ -821,10 +805,13 @@
         add('def', 'ท่วงท่าการรบสำนัก (ตั้งรับพิทักษ์)', 'p', 0.10);
         add('mdef', 'ท่วงท่าการรบสำนัก (ตั้งรับพิทักษ์)', 'p', 0.10);
       }
-      if (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) && n.combatHistory.unlockedTraits.includes('TRAIT_VANGUARD_GUARD')) {
-        add('def', 'รอยชำนาญ「ทวนพิทักษ์」', 'p', 0.12);
-        add('mdef', 'รอยชำนาญ「ทวนพิทักษ์」', 'p', 0.12);
+      if (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS && g.COMBAT.ACTION_MASTERY_TRAITS.isActiveTrait(n, 'TRAIT_VANGUARD_GUARD')) {
+                add('mdef', 'รอยชำนาญ「ทวนพิทักษ์」', 'p', 0.12);
       }
+    }
+    if (!n.foe && g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses) {
+      const am = g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses(n);
+      if (am) { addAll(am.labelTh, am.p, 'p'); addAll(am.labelTh, am.f, 'f'); }
     }
     if (!n.foe && CULT.EXPERIENCE_TRAITS && Array.isArray(n.experienceTraits) && n.experienceTraits.length) {
       const etb = CULT.EXPERIENCE_TRAITS.getStatBonuses(n);
@@ -913,7 +900,8 @@
     const passKey = passiveCacheKey(n);
     const wRefKey = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || (g.G && g.G.W);
     const shrineLv = (!n.foe && wRefKey && wRefKey.sect && wRefKey.sect.infernalShrine) ? (wRefKey.sect.infernalShrine.consecrationLevel || 0) : 0;
-    const postKey = (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + shrineLv + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0) + ':' + (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) ? n.combatHistory.unlockedTraits.length : 0);
+    const lifeKey = CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.contextKey ? CULT.EXPERIENCE_TRAITS.contextKey(n, wRefKey) : '';
+    const postKey = lifeKey + ':' + (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + shrineLv + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0) + ':' + (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) ? n.combatHistory.unlockedTraits.length : 0);
     const eqW = Eq.WEAPON || null, eqWdur = (eqW ? eqW.dur : 0) + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + (eqW ? (eqW.tier || 0) + ':' + (eqW.q || 1) + ':' + (eqW._modVer || 0) + ':' + (Array.isArray(eqW.socketedRunes) ? eqW.socketedRunes.length : 0) : '') + ':' + postKey;
     const eqA = Eq.ARMOR || null, eqAdur = (eqA ? eqA.dur : 0) + ':' + (eqA ? (eqA.tier || 0) + ':' + (eqA.q || 1) + ':' + (eqA._modVer || 0) + ':' + (Array.isArray(eqA.socketedRunes) ? eqA.socketedRunes.length : 0) : '');
     const eqX = Eq.ACCESSORY || null, eqXdur = (eqX ? eqX.dur : 0) + ':' + (eqX ? (eqX.tier || 0) + ':' + (eqX.q || 1) + ':' + (eqX._modVer || 0) + ':' + (Array.isArray(eqX.socketedRunes) ? eqX.socketedRunes.length : 0) : '');
@@ -1026,9 +1014,13 @@
         const cPost = wRef && wRef.sect && wRef.sect.combatPosture;
         if (cPost === 'OFFENSIVE') addP('atk', 0.08);
         else if (cPost === 'DEFENSIVE') { addP('def', 0.10); addP('mdef', 0.10); }
-        if (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) && n.combatHistory.unlockedTraits.includes('TRAIT_VANGUARD_GUARD')) {
-          addP('def', 0.12); addP('mdef', 0.12);
+        if (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS && g.COMBAT.ACTION_MASTERY_TRAITS.isActiveTrait(n, 'TRAIT_VANGUARD_GUARD')) {
+          addP('mdef', 0.12);
         }
+      }
+      if (!n.foe && g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses) {
+        const am = g.COMBAT.ACTION_MASTERY_TRAITS.getStatBonuses(n);
+        if (am) { addAll(am.p, false); addAll(am.f, true); }
       }
       if (!n.foe && CULT.EXPERIENCE_TRAITS && Array.isArray(n.experienceTraits) && n.experienceTraits.length) {
         const etb = CULT.EXPERIENCE_TRAITS.getStatBonuses(n);
@@ -1251,12 +1243,15 @@
   }
   ST.get = n => {
     if ((n.buffs && n.buffs.length > 0) || (n.sx && n.sx.length > 0)) ST.purgeExpired(n, ST.now);
+    const lifeWorld=(g.SECT&&g.SECT.PEAKS&&g.SECT.PEAKS._activeWorld)||g.W;
+    const lifeCacheKey=!n.foe&&CULT.EXPERIENCE_TRAITS.contextKey?CULT.EXPERIENCE_TRAITS.contextKey(n,lifeWorld):'';
+    if(n._cs && n._cs.lifeCacheKey!==lifeCacheKey)n._cs=null;
     const c = n._cs, ttl = (n.act && n.act.id === 'fight') ? 3 : 30;
     if (n.foe) {
       const sxL = n.sx ? n.sx.length : 0, sxLast = sxL ? n.sx[sxL - 1] : null;
       if (c && ST.now > 0 && ST.now >= c.t && ST.now - c.t < ttl && (!c.nextExp || ST.now < c.nextExp) && c.sxL === sxL && c.sxLast === sxLast) return c.v;
       const r = compute(n, false);
-      n._cs = { t: ST.now, v: r.v, nextExp: earliestExpiry(n), sxL, sxLast };
+      n._cs = { lifeCacheKey, t: ST.now, v: r.v, nextExp: earliestExpiry(n), sxL, sxLast };
       return r.v;
     }
     const eq = n.equip || {}, pk = passiveCacheKey(n), s0 = n.h && n.h.state, injL = n.inj ? n.inj.length : 0;
@@ -1264,7 +1259,7 @@
     const hmEff = (n.buffs && n.buffs.length) ? ST.hpMax(n) : hpMaxBase(n);
     n._hpMaxHint = hmEff;
     if (n._hpf == null) n._hpf = 1; n._hpf = clamp(s0.hp / Math.max(1, hmEff), 0, 1);
-    const v = computeFast(n); n._cs = { t: ST.now, v, nextExp: earliestExpiry(n), eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: pk, hp0: s0.hp, en0: s0.energy, injL }; return v;
+    const v = computeFast(n); n._cs = { lifeCacheKey, t: ST.now, v, nextExp: earliestExpiry(n), eqW: eq.WEAPON, eqA: eq.ARMOR, eqX: eq.ACCESSORY, ver: n._ver, sub: n.cult && n.cult.sub, stage: n.cult && n.cult.stage, passKey: pk, hp0: s0.hp, en0: s0.energy, injL }; return v;
   };
   function hpMaxBase(n) { const h = n.foe ? n.hpMax : getBaseFast(n).hpVal; n._hpMaxHint = h; return h; }
   ST.explain = n => { if (!n.foe) { const hmEff = (n.buffs && n.buffs.length) ? ST.hpMax(n) : hpMaxBase(n); n._hpMaxHint = hmEff; if (n._hpf == null) n._hpf = 1; n._hpf = clamp(n.h.state.hp / Math.max(1, hmEff), 0, 1); } return compute(n, true); };

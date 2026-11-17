@@ -1,6 +1,6 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
 
-> **งานถัดไปสำหรับ Gemini Argon4: ระบบฉายา** — ผู้ใช้อนุมัติให้ตรวจ260ข้อและสร้างเพิ่มจากฟีเจอร์จริง อ่าน [START_HERE_FOR_AI](START_HERE_FOR_AI.md) แล้วลงมือตาม [Active Prompt](ACTIVE_PATCH_PROMPT_EPITHETS.md) คำสั่งอยู่ใน ZIP ครบแล้ว; ส่วนนี้เป็นใบสั่งงาน ยังไม่ใช่ฟีเจอร์ที่ลงโค้ดแล้ว
+> **สถานะปัจจุบัน:** แพตช์ฉายาและ260c repair ลงซอร์สแล้ว อ่าน [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และรายงาน260c repair; รอคำสั่งใหม่จากผู้ใช้ ไม่เริ่มงานเก่าซ้ำ
 
 > **main-debug — Living Hunt:** poolอสูรบก125ชนิด ข้อมูลต้นแบบและสกิลจริง เป้าหมาย48/เพดาน60 ดู [รายงานและข้อจำกัดการตรวจ](PATCH_REPORTS/LIVING_HUNT_VARIETY.md)
 
@@ -97,17 +97,12 @@ Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วแล�
   - **Verification Suite**: `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
 
 
----
-## Latest Patch Update: Life-Experience Traits, Action Masteries, 360×304 Sect Expansion, 1.5× Day Length & 96× Speed (`JS2-v2.6.0` Next Patch)
-- **Life-Experience & Behavioral Action-Mastery Traits (`T01`–`T07`)**:
-  - Evaluated all **72 proposals** from `TRAIT_01B.pdf` + 6 existing `CULT.EXPERIENCE_TRAITS` + 4 existing `COMBAT.ACTION_MASTERY_TRAITS` + 6 Codex Life-Rhythm & Resilience traits (`88` cataloged entries in `docs/handovers/LIFE_TRAITS_72_REVIEW_TRACKER.csv` & `JD.LIFE_TRAITS_REGISTRY`).
-  - Expanded `CULT.EXPERIENCE_TRAITS.CATALOG` to **36** traits with wisdom-preserving recovery (`burdenActive = false, recovered = true`) and episode-watermark deduplication (`episodeWatermarks`).
-  - Expanded `COMBAT.ACTION_MASTERY_TRAITS.TRAIT_DEFS` to **24** masteries with an autonomous **3-slot active cap** (`activeMasteryIds`, max 3 with hysteresis) while retaining full lifetime history in `unlockedTraits`, plus `TRAIT_NONLETHAL_SUBDUER` 1 HP clamp.
-  - Enforced strict **Birth-Pool Guard** (`birthEligible: false` on all 27 Group E `TR_AC_*` traits and `CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits`).
-- **Expanded 360×304 Sect Compound & Wilderness (`M01`–`M06`)**:
-  - Expanded world grid from `240×192` to `360×304` (`109,440` tiles, `2.37×` area; `MAP.OX = 84, MAP.OY = 56`), inner compound wall `WX0 = 72, WY0 = 56, WX1 = 288, WY1 = 204` (`216×148`), central axis `x = 180`, plaza center `(180, 123)`.
-  - Placed all **8 Sacred Peaks** on outer-ring compound terraces with zero road/building overlaps, expanded `MAP.PLOTS` to **8**, added 4 directional gate outposts (`gate_north`, `gate_west`, `gate_east`, `gate`), and implemented true **4-Gate Dynamic Routing** (`S, N, W, E`) with blocked-gate fallback and `M.topologyRev` path-cache invalidation.
-  - Shifted Southern Spirit River to `y ≈ 268` (`3` bridges, `26` fishing stations), added **8 physical Beast Dens** (`W.wildlife.dens`), enforced `!MAP.blocked` on beast movement, and upgraded `COG.huntValue` for realm-appropriate hunting.
-- **1.5× Day Length & 96× Simulation Speed (`D01`–`D04`)**:
-  - `SIM.DAY_FACTOR = 1.5`, `SIM.WORK_STEPS_PER_DAY = 2160` work-steps per `1440`-minute calendar day with `W._isNewCalendarMinute` boundary-once guards and `1 / SIM.DAY_FACTOR` metabolic scaling.
-  - `UI.SPEEDS = [0, 1, 2, 4, 8, 16, 32, 48, 96]` with high-speed render throttling (`50ms` at `96×`) and automatic legacy `240×192` save coordinate migration `(+62, +42)`.
+## สถานะล่าสุด: 260c repair บน JS2-v2.6.0
+
+นำชุด Gemini `260c.zip` มารวมบน `main-debug` และแก้เส้นทางเหตุการณ์/ค่าสถานะที่ตรวจพบแล้ว ระบบฉายา274รายการอยู่ในซอร์สแล้ว ไม่ต้องเริ่มแพตช์ฉายาซ้ำ มีวาสนาภายหลัง27 ประสบการณ์36 รอยชำนาญ24 (ทะเบียนข้อเสนอ88แถว รวมหนึ่งข้อที่รวมกับของเดิม) แผนที่360×304 วันยาว1.5เท่า และปุ่ม96×
+
+ประสบการณ์ให้ผลครั้งเดียว รอยชำนาญออกฤทธิ์เฉพาะสามช่องที่ NPC เลือกเอง การฟื้นภาระเก็บภูมิปัญญาและไม่แจกผลซ้ำ เชื่อมเหตุการณ์จริงด้านต่อสู้ รักษา ผลิต เดินทาง สำรวจ ตกปลา และชีวิตสำนัก เพิ่ม guard ของนาฬิกาเพื่อไม่ให้เหตุการณ์ซ้ำในนาทีค้าง และเก็บ workSteps/timePhase/หลักฐานระหว่างศึกในเซฟปัจจุบัน
+
+ทิศทางการต่อสู้ตามผู้ใช้: คล้ายจังหวะ Dungeon Village ของ Kairosoft ในแง่เห็นสมาชิกออกจากสำนักไปปะทะอสูร แล้วกลับพัก รักษา และใช้ชีวิตต่อ โดย NPC เลือกเองตามนิสัย ความสามารถ ความพร้อม และสถานการณ์ ผู้เล่นติดตามได้ ไม่สั่งทีม/เป้าหมาย อ้างอิงความรู้สึกของวงจรการเล่น ไม่ต้องคัดลอกเกมนั้นทั้งระบบหรือภาพ
+
+หลักฐานและข้อจำกัดปัจจุบันอยู่ใน [รายงาน260c repair](PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md), [ทะเบียนคุณลักษณะ](docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md), [สัญญาเวลา/ผัง](docs/audits/TIME_AND_MAP_CONTRACT.md) และ [จุดส่งต่องาน](ACTIVE_PATCH_PROMPT_AFTER_260C_REPAIR.md) ตัวเลขผลตรวจเก่าในประวัติไม่ใช่ผลของชุดปัจจุบัน; 96× เป็นความเร็วที่ขอ ประมวลผลได้จริงขึ้นกับเครื่อง

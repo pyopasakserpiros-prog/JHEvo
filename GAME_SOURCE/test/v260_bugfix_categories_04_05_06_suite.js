@@ -184,6 +184,8 @@ console.log('▶ [2/3] Testing Category 05 (Equipment, Armor, Accessories & Proc
 
   a.equip = { ARMOR: kirinCuirass };
   a.wpnProcCds = {};
+  // Test this counter against an active attacker, independently of earlier relics' surrender effects.
+  b.yield=false;b.fled=false;COMBAT.setHp(b,COMBAT.hpMax(b));
   const kirinProc = VC.runWeaponOnStruckProcs(W, f, a, b, { hit: true, dmg: 100 });
   assert(kirinProc && kirinProc.effectId === 'EFX_LEG_KIRIN_PHANTOM_COUNTER', 'Kirin Cuirass must trigger EFX_LEG_KIRIN_PHANTOM_COUNTER');
   assert(STATS.has(b, 'bleed', W.t), 'Kirin Cuirass counter must inflict bleed on attacker');

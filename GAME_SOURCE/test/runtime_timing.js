@@ -102,3 +102,8 @@ for (const speed of [0, 1, 16, 32, 48, 96]) {
   assert.equal(h.G.W.speed, speed, 'binding must not overwrite legacy world speed');
 }
 console.log('PASS legacy browser load restores paused and accelerated saves without runtimeTiming');
+
+{
+  const h=harness(), W=h.makeWorld();W.runtimeTiming={pendingTicks:250000.5,speed:96};h.G.load(JSON.stringify(W));
+  assert.equal(h.G.acc,250000.5,'large backlog must survive import without silently dropping time');
+}

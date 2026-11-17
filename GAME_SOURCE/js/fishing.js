@@ -1951,7 +1951,7 @@
         }
         if (ctx.mode === 'fish') {
           { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, Math.round((fk.skill + 0.01) * 1000) / 1000); }
-          if (W.t % 65 === 0) {
+          if ((W._isNewCalendarMinute !== false && W.t % 65 === 0)) {
             const f = FISHING.ensure(W);
             const zid = ctx.zoneId || (ctx.st && ctx.st.zoneId) || 'spirit_pond';
             const z = f.zones[zid];

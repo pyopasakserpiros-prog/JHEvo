@@ -833,7 +833,8 @@ test('DA-001..DA-017 & V240-01..15: voluntary vows cap/redemption/stats, seconda
   assert.equal(CULT.EXPERIENCE_TRAITS.hasTrait(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), true);
   const recRes = CULT.EXPERIENCE_TRAITS.resolveTraitRecovery(W, n, 'EXP_TRAIT_TRIBULATION_SURVIVOR', 'ทะลวงขั้นชำระแผลใจ');
   assert.equal(recRes.ok, true);
-  assert.equal(CULT.EXPERIENCE_TRAITS.hasTrait(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), false);
+  assert.equal(CULT.EXPERIENCE_TRAITS.hasTrait(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), true, 'recovery retains learned wisdom');
+  assert.equal(CULT.EXPERIENCE_TRAITS.hasBurden(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), false, 'recovery clears only the burden');
 });
 
 test('EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixes, rune socket validation, broken gear block, and seasonal vs daily node harvest', () => {

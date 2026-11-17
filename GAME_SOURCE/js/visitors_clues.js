@@ -7098,7 +7098,7 @@
             v.destX = v.x; v.destY = v.y;
           }
           v.face = dx >= 0 ? 1 : -1;
-        } else if (W.t % 120 === 0 && W.rng.chance(0.35)) {
+        } else if ((W._isNewCalendarMinute !== false && W.t % 120 === 0) && W.rng.chance(0.35)) {
           const bkey = VC.canVisitorAccessBuilding(v, v.targetBkey) ? v.targetBkey : 'plaza';
           const b = (W.map.byId && W.map.byId[bkey]) || W.map.byId.plaza;
           if (b) {

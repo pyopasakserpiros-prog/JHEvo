@@ -1,6 +1,6 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
-> **งานที่ผู้ใช้อนุมัติรอบถัดไป:** Gemini Argon4 พัฒนาระบบฉายาทุกประเภท ประเมิน260ข้อและสำรวจฟีเจอร์จริงเพื่อสร้างฉายาเพิ่ม อิสระเลือกผลหรือไม่มีโบนัสภายใต้ AGENTS.md อ่าน [Active Prompt](ACTIVE_PATCH_PROMPT_EPITHETS.md) และ [เอกสารอ้างอิง](docs/handovers/EPITHET_PATCH_REFERENCE_FOR_GEMINI_ARGON4.md) ส่วนนี้เป็นงานส่งต่อ ยังไม่ได้เพิ่มระบบฉายาใหม่ในซอร์ส สถานะที่มีจริงยังต้องตรวจตามรายการด้านล่าง
+> **สถานะปัจจุบัน:** แพตช์ฉายาและ260c repair ลงซอร์สแล้ว อ่าน [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และรายงาน260c repair; รอคำสั่งใหม่จากผู้ใช้ ไม่เริ่มงานเก่าซ้ำ
 
 > **สถานะปัจจุบัน (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว — 9 พฤศจิกายน 2026):** พัฒนาและทดสอบแพตช์ **JS2-v2.6.0 พงศาวดารมีชีวิต การรายงานยุทธภพ และตัวกรองการรับข่าว** เสร็จสมบูรณ์ 100% (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, ผลฐานพงศาวดารผ่าน **148/148 กลุ่ม**; ผล VFX refinement ล่าสุดอยู่ในส่วน T6 ด้านล่าง) ดูรายละเอียดใน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจ [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md) งาน authorship/barter/relic biography เดิมยังคงถูกพักไว้ใน `docs/deferred/`
 
@@ -93,7 +93,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 - ภาพทั้งหมดอ่านสถานะจริง ไม่เปลี่ยนโลกหรือ RNG; คิวรวมร่าย/อุปกรณ์ไม่เกิน 24 รายการ หยุดเวลาแล้วภาพหยุด โหลดโลกแล้วไม่ฉาย event เก่า โหมด Low ลดเครื่องประดับและ Reduced Motion คงรูปทรงโดยไม่หมุนอนุภาค
 - การเพิ่ม legend ใหม่ต้องเพิ่ม Motif หรือการสำแดงตามวิถี และเพิ่มธีมอุปกรณ์ใน `Render.LEGENDARY_GEAR_VISUALS` ตาม catalog จริง พร้อมทดสอบความต่างของภาพ ไม่รับรองว่า legend ที่เพิ่มในอนาคตจะมีภาพเฉพาะโดยอัตโนมัติ
 
-ผลตรวจและภาพ: [รายงาน refinement](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). ใบสั่งงานถัดไปยังเป็น `ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`.
+ผลตรวจและภาพ: [รายงาน refinement](PATCH_REPORTS/LEGENDARY_VISUAL_IDENTITY_JS2_V2_5_0.md). ใบสั่งงานที่กล่าวถึงในส่วนนี้เป็นประวัติ ก่อนฉายาและ260c repair.
 
 
 **ชื่อโครงการ**: JianghuSect Evolution (JHEvo) — เกมจำลองบริหารสำนักยุทธภพและบำเพ็ญเพียรแนวเทพเซียน (Wuxia/Xianxia Sect Management & Autonomous NPC Life Simulation)  
@@ -115,7 +115,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 > 1. `node tools/validate_data_schema.js` ผ่าน 100% (`0 errors, 0 warnings`) และสร้างไฟล์เดี่ยว `GAME_SOURCE/JianghuSect_single.html` ครบสมบูรณ์
 > 2. `node test/core_lock.js` ผ่าน fingerprint `155:2f9c9dd7` และไฟล์ `GAME_SOURCE/js/human_core.js` ถูกรักษาให้ byte-identical 100% กับฐานต้นฉบับ (`SHA-256: a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`)
 > 3. ชุดทดสอบรวมผ่านครบ **141/141 กลุ่ม (100% PASS)** ครอบคลุม 43 มหาวิถี, 286 สายย่อย, 1,243 วรยุทธ์, 1,177 ไอเทม, 1,402 ตำรับ
-> 4. **🔥 ใบสั่งงานแพตช์ถัดไปที่ต้องพัฒนาทันที:** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
+> 4. **ใบสั่งงานในประวัติ (ทำแล้ว/ต้องตรวจสถานะล่าสุด ไม่เริ่มซ้ำ):** [`ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md`](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) (JS2-v2.6.0: Emergent NPC Authorship, Peer Barter Economy & Named Relic Biography)
 > 5. **📑 รายงานการพัฒนาแพตช์ล่าสุด:** [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0.md) (Release (1) ฉบับสมบูรณ์หลังแก้บั๊ก) และ [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_4_0_INITIAL.md) (Initial Release) | **🗺️ แผนที่นำทางและไอเดีย:** [`FUTURE_ROADMAP_AND_IDEAS.md`](FUTURE_ROADMAP_AND_IDEAS.md)
 
 ---
@@ -162,7 +162,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 | **Phase 0** | **v3.1.1** | แก้ไข 21 ข้อค้นพบจากการ Audit | ระบบเศรษฐกิจแบบปิด, ปิดช่องโหว่เสกศิลา/โอสถ, คูลดาวน์ขุนนาง, เชื่อม Vanguard | **✅ สำเร็จแล้ว** |
 | **Phase 1** | **v3.2.0** | `PROP-01, 02, 07, 12, 15, 17, 18, 20, 25, 30, 33` | ปลุกโค้ดที่หลับใหล 80%: ชีพจร 8 เส้น, สัตย์สาบานเต๋า, ด้ายชะตา 3 สี, โบนัส 8 ยอดเขา, วิกฤตสืบทอดเจ้าสำนัก, ปุ่มยุทธภพ UI, ประตูธาตุดันเจี้ยน, ศาสตราเติบโต E01–E06, เสาโทเท็มและสถิตร่างอสูร | **✅ สำเร็จแล้ว** |
 | **Phase 2** | **v3.3.0** | `PROP-04, 11, 16, 19, 21, 31, 35` | ยกระดับวงจรชีวิตสำนัก: เข้าฌานกักตนคอขวด, แค้นเชลยศึกแปรพักตร์, ทัพสำรวจประจำยอดเขา, ศาลไต่สวนหอวินัย, สงครามเสาชีพจรปฐพี, จิตศาสตราขั้น 5, แดชบอร์ดอัตโนมัติ QoL | **✅ สำเร็จแล้ว (Baseline ปัจจุบัน)** |
-| **Phase 3** | **v3.4.0** | `PROP-03, 05, 06, 08, 09, 10, 32` | ยุทธวิธีและความลึกการต่อสู้: เกจพลังงานรองเฉพาะวิถี, 7 สายย่อยใหม่, สกิลร่ายคู่ประสานวิชา (Duet), ม่านพิทักษ์สำนัก 5 ธาตุ, สกิลชาร์จและขัดจังหวะ, เล็งทำลายชิ้นส่วนบอสอสูร, หอสมบัติบรรพชน | **🔥 งานที่กำลังทำ (`ACTIVE_PATCH_PROMPT_V3_5_0.md`)** |
+| **Phase 3** | **v3.4.0** | `PROP-03, 05, 06, 08, 09, 10, 32` | ยุทธวิธีและความลึกการต่อสู้: เกจพลังงานรองเฉพาะวิถี, 7 สายย่อยใหม่, สกิลร่ายคู่ประสานวิชา (Duet), ม่านพิทักษ์สำนัก 5 ธาตุ, สกิลชาร์จและขัดจังหวะ, เล็งทำลายชิ้นส่วนบอสอสูร, หอสมบัติบรรพชน | **ข้อมูล roadmap ในประวัติ ไม่ใช่ใบสั่งงานปัจจุบัน** |
 | **Phase 4** | **v3.5.0** | `PROP-13, 14, 22, 23, 24, 26, 29` | โลกาภิวัตน์และยุทธภพกว้างใหญ่: กบฏก๊กการเมือง, ศิษย์ปมชาติกำเนิดลึกลับ 3 บท, ศิษย์แลกเปลี่ยนข้ามสำนัก, กระดานล่าค่าหัวโรงเตี๊ยม, ประมูลลับตลาดมืด, ปรากฏการณ์ฟ้าดิน, โรงหลอมโอสถ 48 ชนิด | ⏳ รอเริ่มต่อ (Daisy Chain) |
 | **Phase 5** | **v3.6.0** | `PROP-27, 28, 34, 36` | มรดกตระกูลและเนื้อหาระดับ Endgame: สุสานเซียนขุดค้น 3 ชั้น, มหากาพย์วิกฤตยุทธภพหลายบท, มรดกสายเลือดตระกูลรุ่นที่ 2–3, ปรับจูน 80-NPC Tick Budget & Resilient Save Whitelist | ⏳ รอเริ่มต่อ (Daisy Chain) |
 
@@ -170,7 +170,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 
 ## 4. คำแนะนำสำหรับ AI ในการเริ่มงานรอบถัดไป (Active AI Guidance for Next Turn)
 
-> **ใบสั่งงาน active:** [ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md](ACTIVE_PATCH_PROMPT_JIANGHUSECT2_V2_6_0.md) — JS2-v2.5.0: Pathbound Ascendant Visuals & Signature Arts
+> **ส่วนอ้างอิงในประวัติ:** ข้อความต่อไปนี้อธิบายแพตช์ภาพเก่า; จุดส่งต่องานปัจจุบันอยู่ใน START_HERE_FOR_AI.md
 
 1. อ่าน START_HERE_FOR_AI.md, AGENTS.md และใบสั่งงาน active ให้ครบ แล้วตรวจซอร์ส/ชุดทดสอบจาก ZIP ล่าสุดก่อนเริ่ม
 2. ทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริง โดยใช้ maxStage ของแต่ละวิถี ตรวจเอกลักษณ์ การต่อเข้าระบบ และประสิทธิภาพตามใบสั่งงาน
@@ -271,17 +271,12 @@ Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วแล�
   - **Verification Suite**: `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
 
 
----
-## Latest Patch Update: Life-Experience Traits, Action Masteries, 360×304 Sect Expansion, 1.5× Day Length & 96× Speed (`JS2-v2.6.0` Next Patch)
-- **Life-Experience & Behavioral Action-Mastery Traits (`T01`–`T07`)**:
-  - Evaluated all **72 proposals** from `TRAIT_01B.pdf` + 6 existing `CULT.EXPERIENCE_TRAITS` + 4 existing `COMBAT.ACTION_MASTERY_TRAITS` + 6 Codex Life-Rhythm & Resilience traits (`88` cataloged entries in `docs/handovers/LIFE_TRAITS_72_REVIEW_TRACKER.csv` & `JD.LIFE_TRAITS_REGISTRY`).
-  - Expanded `CULT.EXPERIENCE_TRAITS.CATALOG` to **36** traits with wisdom-preserving recovery (`burdenActive = false, recovered = true`) and episode-watermark deduplication (`episodeWatermarks`).
-  - Expanded `COMBAT.ACTION_MASTERY_TRAITS.TRAIT_DEFS` to **24** masteries with an autonomous **3-slot active cap** (`activeMasteryIds`, max 3 with hysteresis) while retaining full lifetime history in `unlockedTraits`, plus `TRAIT_NONLETHAL_SUBDUER` 1 HP clamp.
-  - Enforced strict **Birth-Pool Guard** (`birthEligible: false` on all 27 Group E `TR_AC_*` traits and `CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits`).
-- **Expanded 360×304 Sect Compound & Wilderness (`M01`–`M06`)**:
-  - Expanded world grid from `240×192` to `360×304` (`109,440` tiles, `2.37×` area; `MAP.OX = 84, MAP.OY = 56`), inner compound wall `WX0 = 72, WY0 = 56, WX1 = 288, WY1 = 204` (`216×148`), central axis `x = 180`, plaza center `(180, 123)`.
-  - Placed all **8 Sacred Peaks** on outer-ring compound terraces with zero road/building overlaps, expanded `MAP.PLOTS` to **8**, added 4 directional gate outposts (`gate_north`, `gate_west`, `gate_east`, `gate`), and implemented true **4-Gate Dynamic Routing** (`S, N, W, E`) with blocked-gate fallback and `M.topologyRev` path-cache invalidation.
-  - Shifted Southern Spirit River to `y ≈ 268` (`3` bridges, `26` fishing stations), added **8 physical Beast Dens** (`W.wildlife.dens`), enforced `!MAP.blocked` on beast movement, and upgraded `COG.huntValue` for realm-appropriate hunting.
-- **1.5× Day Length & 96× Simulation Speed (`D01`–`D04`)**:
-  - `SIM.DAY_FACTOR = 1.5`, `SIM.WORK_STEPS_PER_DAY = 2160` work-steps per `1440`-minute calendar day with `W._isNewCalendarMinute` boundary-once guards and `1 / SIM.DAY_FACTOR` metabolic scaling.
-  - `UI.SPEEDS = [0, 1, 2, 4, 8, 16, 32, 48, 96]` with high-speed render throttling (`50ms` at `96×`) and automatic legacy `240×192` save coordinate migration `(+62, +42)`.
+## สถานะล่าสุด: 260c repair บน JS2-v2.6.0
+
+นำชุด Gemini `260c.zip` มารวมบน `main-debug` และแก้เส้นทางเหตุการณ์/ค่าสถานะที่ตรวจพบแล้ว ระบบฉายา274รายการอยู่ในซอร์สแล้ว ไม่ต้องเริ่มแพตช์ฉายาซ้ำ มีวาสนาภายหลัง27 ประสบการณ์36 รอยชำนาญ24 (ทะเบียนข้อเสนอ88แถว รวมหนึ่งข้อที่รวมกับของเดิม) แผนที่360×304 วันยาว1.5เท่า และปุ่ม96×
+
+ประสบการณ์ให้ผลครั้งเดียว รอยชำนาญออกฤทธิ์เฉพาะสามช่องที่ NPC เลือกเอง การฟื้นภาระเก็บภูมิปัญญาและไม่แจกผลซ้ำ เชื่อมเหตุการณ์จริงด้านต่อสู้ รักษา ผลิต เดินทาง สำรวจ ตกปลา และชีวิตสำนัก เพิ่ม guard ของนาฬิกาเพื่อไม่ให้เหตุการณ์ซ้ำในนาทีค้าง และเก็บ workSteps/timePhase/หลักฐานระหว่างศึกในเซฟปัจจุบัน
+
+ทิศทางการต่อสู้ตามผู้ใช้: คล้ายจังหวะ Dungeon Village ของ Kairosoft ในแง่เห็นสมาชิกออกจากสำนักไปปะทะอสูร แล้วกลับพัก รักษา และใช้ชีวิตต่อ โดย NPC เลือกเองตามนิสัย ความสามารถ ความพร้อม และสถานการณ์ ผู้เล่นติดตามได้ ไม่สั่งทีม/เป้าหมาย อ้างอิงความรู้สึกของวงจรการเล่น ไม่ต้องคัดลอกเกมนั้นทั้งระบบหรือภาพ
+
+หลักฐานและข้อจำกัดปัจจุบันอยู่ใน [รายงาน260c repair](PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md), [ทะเบียนคุณลักษณะ](docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md), [สัญญาเวลา/ผัง](docs/audits/TIME_AND_MAP_CONTRACT.md) และ [จุดส่งต่องาน](ACTIVE_PATCH_PROMPT_AFTER_260C_REPAIR.md) ตัวเลขผลตรวจเก่าในประวัติไม่ใช่ผลของชุดปัจจุบัน; 96× เป็นความเร็วที่ขอ ประมวลผลได้จริงขึ้นกับเครื่อง

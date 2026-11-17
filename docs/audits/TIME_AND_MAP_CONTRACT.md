@@ -21,24 +21,24 @@
   - `MAP.RIVER_BELT = { x0: 56, x1: 300, y0: 254, y1: 284 }`, centerline `y ≈ 268`, 3 stone bridges (`x = 92..94`, `x = 178..182`, `x = 264..266`), 4 fishing zones with `26` walkable bank tiles adjacent to water.
 - **8 Physical Beast Dens (`W.wildlife.dens`)**:
   - Persistent wilderness structures across all 4 directions (`DEN_NORTH_RIDGE`, `DEN_NORTH_ABYSS`, `DEN_WEST_BAMBOO`, `DEN_WEST_MIASMA`, `DEN_EAST_CLIFF`, `DEN_EAST_THUNDERTREE`, `DEN_SOUTH_MARSH`, `DEN_SOUTH_RIVERBANK`) with obstacle-checked beast movement (`!MAP.blocked(M, nx, ny)`).
-- **Legacy Save Migration (`240×192` → `360×304`)**:
-  - Automatically detects pre-expansion saves (`savedMapW < 360 || savedMapH < 304`) and shifts interior compound entities by `(+62, +42)` (`OX: 22 → 84`, `OY: 14 → 56`), clamping all coordinates to walkable tiles and clearing stale movement paths.
 
-## 2. 1.5× Day Length & Boundary-Once Time Contract
-- **Time Constants**:
-  - `SIM.DAY_FACTOR = 1.5`
-  - `SIM.CALENDAR_MINS_PER_DAY = 1440` (`24 × 60` calendar minutes)
-  - `SIM.WORK_STEPS_PER_DAY = 2160` (`1440 × 1.5` NPC activity/movement ticks per calendar day)
-- **Sub-Minute Fractional Accumulator**:
-  - Each `SIM.tick(W)` advances `W.workSteps += 1` and `W.timePhase += 1 / SIM.DAY_FACTOR` (`+2/3` calendar minute per work-step).
-  - Calendar minute `W.minute` increments only when `W.timePhase >= 1.0`, setting `W._isNewCalendarMinute = true` on those exact `1440` ticks per day (`2` out of every `3` work-steps).
-  - All calendar boundary hooks (`W.minute === 0` hourly upkeep, `W.hour === 0 && W.minute === 0` daily reset, wildlife spawn/season checks, scheduled duels, sect events) are guarded by `W._isNewCalendarMinute` so they fire **strictly once** per calendar hour/day/month/year.
-- **Metabolic & Progression Balance**:
-  - Passive hunger/rest drain per work-step is scaled by `1 / SIM.DAY_FACTOR` so total daily caloric and sleep needs remain identical per calendar day while NPCs enjoy `50%` more active walking, gathering, hunting, socializing, and training steps per day.
+## 2. นาฬิกา: วันยาว1.5เท่า โดยไม่คูณเหตุการณ์ปฏิทินซ้ำ
 
-## 3. 96× Simulation Speed & Render Throttling Contract
-- **Speed Tiers**:
-  - `UI.SPEEDS = [0, 1, 2, 4, 8, 16, 32, 48, 96]`
-- **Frame Loop & Render Throttling (`main.js`)**:
-  - `MAX_CATCHUP_TICKS`: `14` at `96×`, `10` at `48×`, `8` at `32×`, `6` at lower speeds.
-  - `RENDER_STRIDE_MS`: `50ms` (~20 FPS canvas draw) at `96×`, `33ms` (~30 FPS) at `48×`, freeing main-thread budget for `SIM.tick` while keeping UI buttons, touch events, and pause (`0×`) instantaneously responsive.
+- `SIM.DAY_FACTOR=1.5`, ปฏิทิน1440นาที/วัน, `SIM.WORK_STEPS_PER_DAY=2160` การเดิน/กิจกรรม/ต่อสู้ทำงานทุก work-step
+- `SIM.tick`: เพิ่ม `W.workSteps` หนึ่ง, เพิ่ม integer `W.timePhase` สอง; เมื่อ phase>=3 ให้ลบสามและเพิ่ม `W.t` หนึ่งนาที phaseมีค่า0..2 ห้ามสลับไปเป็นเศษทศนิยมโดยยังโหลดด้วยสัญญาเดิม
+- `W._isNewCalendarMinute` ระบุว่าขั้นนี้นาทีเปลี่ยนจริงหรือไม่ modulo hooks ของรายชั่วโมง/รายวัน/เทศกาล/จ่ายเงิน/เกิดอสูรที่แก้ต้องเช็คนี้ก่อน ไม่ห่อ SIM.tick ทั้งก้อนจน NPC หยุดทุกสามขั้น
+- เมตาบอลิซึม hunger/rest ที่ชดเชยแล้วและ passive cultivation/body practice/mine/forge/craft_tick ใช้ `1/DAY_FACTOR` เพื่อไม่เพิ่มตบะ/ความหิวรายวันตามจำนวน work-step โดยไม่ตั้งใจ เวลารอแบบ timestamp ยังใช้นาทีปฏิทิน กิจกรรมแบบขั้นงานยังใช้ work-step ไม่แปลงทุกระบบเป็นหน่วยเดียวแบบเหมารวม
+- `CULT.TRIBULATION.tickAll` กันเรียกซ้ำด้วย lastTickAllWorkStep; การนับรอยชำนาญฟ้าผ่าดู strikesLanded จริง ไม่ดูจำนวนครั้งเรียก
+
+## 3. ความเร็วและการแสดงผล
+
+- ความเร็ว `[0,1,2,4,8,16,32,48,96]`; 1×ร้องขอสี่ work-step/วินาที 96×ร้องขอ384 ไม่ได้ทำให้หนึ่งวันมีงานมากกว่า2160ขั้น
+- `main.js` ใช้ `SIM_BUDGET_MS=12` จำกัดเวลาจำลองต่อเฟรม ไม่ใช่ MAX_CATCHUP_TICKS ตามเอกสารรับเข้าเก่า เก็บงานค้างใน accumulator พร้อม runtimeTiming.pendingTicks; เซฟ/โหลดไม่ตัด backlog ที่100800อีก
+- ลดการวาดที่96×เป็น20fps, >=32×เป็น30fps, >=16×เป็น40fps; งบจำลองยังขึ้นกับ CPU และต้นทุน UI/render
+- การวัด throughput ต้องหารด้วย delta `W.workSteps` ไม่ใช่ delta `W.t` เพราะปฏิทินช้าลง1.5เท่า ปุ่ม96×ทำงานไม่ได้ยืนยัน sustained96ทุกเครื่อง ผลทดสอบ80NPC isolated2.788ms/step คิดเป็นเพดานทฤษฎี89.7×ก่อนต้นทุน render/UI ไม่ใช่ผลมือถือผู้ใช้
+
+## 4. เซฟและหลักฐาน
+
+เซฟปัจจุบันเก็บ workSteps/timePhase และหลักฐานระหว่างศึก f.lifeEvidence/lifeDamage/lifeSupport/lifeSettled; ห้ามใส่เฉพาะ _tac ที่ serializer ลบทิ้ง เริ่ม ET/AM state เมื่อสร้าง NPC เพื่อให้การเปิด UI ไม่เปลี่ยน world และโหลดแล้ว canonical ตรงต้นฉบับ ไม่กำหนดงานรองรับเซฟเก่า; โค้ด migration ที่รับมาบางส่วนยังอยู่แต่ไม่ใช่ข้อยืนยันว่าครอบคลุมทุกเซฟประวัติ
+
+แผนที่และจำนวนด้านบนตรวจด้วย life_traits_map_time_suite/fishing_river_suite และ regression ที่เกี่ยวข้อง การวัดเวลาเดินต้องอ่าน act.stage==='move' ไม่ใช่ 'walk': seed repair-final-80 รวม12,420ขั้น/6ขอบวัน ใช้เวลาเดิน309,284จาก993,600 NPC-step (31.13%) สมาชิก80คนยังอยู่ครบและมีการกิน/นอน/งาน/ฝึก/รักษา/สู้จริง ไม่สรุปว่าทุก seed หรือทุกตบะมีสัดส่วนนี้ ดู [รายงาน](../../PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md)

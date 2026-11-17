@@ -3092,7 +3092,7 @@
           if (nf) { n.x = nf.x + 0.5; n.y = nf.y + 0.5; }
         }
       }
-      if (W && (W.t % 45 === 0) && n.h && n.h.skills) {
+      if (W && ((W._isNewCalendarMinute !== false && W.t % 45 === 0)) && n.h && n.h.skills) {
         const pracFn = (g.MARTIAL && g.MARTIAL.skillPractice) ? g.MARTIAL.skillPractice : (HC && HC.practice);
         if (pracFn) pracFn(n, 'MOVEMENT', 0.04, 1.0);
         if (n.cult && Array.isArray(n.cult.techs)) {
@@ -3588,7 +3588,7 @@
       }
 
       // Group Meditation Resonance Circle (6-tile radius sect-mate support when mantraState is active)
-      if (st && W && Array.isArray(W.npcs) && (W.t % 10 === 0)) {
+      if (st && W && Array.isArray(W.npcs) && ((W._isNewCalendarMinute !== false && W.t % 10 === 0))) {
         const rad = spec.sectAuraRadius || 6.0;
         for (let i = 0; i < W.npcs.length; i++) {
           const ally = W.npcs[i];
@@ -9495,8 +9495,9 @@
         }
         // If NPC is actively running AI.ACTS.breakthrough in stage 'do', AI.ACTS.breakthrough.tick will call tick()
         const inAiDo = npc.act && npc.act.id === 'breakthrough' && npc.act.stage === 'do' && !entry.standaloneRitual;
-        if (!inAiDo && entry._lastTickAllT !== W.t) {
-          entry._lastTickAllT = W.t;
+        const workStamp=Number.isSafeInteger(W.workSteps)?W.workSteps:W.t;
+        if (!inAiDo && entry.lastTickAllWorkStep !== workStamp) {
+          entry.lastTickAllWorkStep = workStamp;
           this.tick(W, npc);
         }
       }
@@ -11419,7 +11420,6 @@
         return { ok: true, deduplicated: true, traits: st.traits };
       }
       if (uKey) {
-        const pKeys = Object.keys(st.log.processedKeys);
         if (pKeys.length >= this.MAX_PROCESSED_KEYS) delete st.log.processedKeys[pKeys[0]];
         st.log.processedKeys[uKey] = (W && W.day) || 1;
       }
@@ -13445,6 +13445,15 @@
     mutableCatalog.EXP_TRAIT_DEFEAT_VETERAN.f = { pen: 8 };
     mutableCatalog.EXP_TRAIT_DEFEAT_VETERAN.consF = { cast: -4 };
   }
+  const statNames={atk:'โจมตี',matk:'โจมตีวิชา',def:'ป้องกัน',mdef:'ป้องกันวิชา',hp:'พลังชีวิต',acc:'แม่นยำ',eva:'หลบหลีก',pen:'เจาะเกราะ',crit:'คริติคอล',move:'ความเร็วเคลื่อนที่',cast:'ความเร็วร่าย'};
+  const statText=(p,f)=>Object.entries(p||{}).map(([k,v])=>(statNames[k]||k)+' '+(v>=0?'+':'')+Math.round(v*100)+'%').concat(Object.entries(f||{}).map(([k,v])=>(statNames[k]||k)+' '+(v>=0?'+':'')+v)).join(', ');
+  for(const spec of Object.values(mutableCatalog)) {
+    spec.prosTh=statText(spec.p,spec.f)+(spec.cultRateMult&&spec.cultRateMult!==1?', อัตราบ่มเพาะ +'+Math.round((spec.cultRateMult-1)*100)+'%':'');
+    if(spec.bodyblockBonusChance)spec.prosTh+=', โอกาสรับการโจมตีแทนสหาย +'+Math.round(spec.bodyblockBonusChance*100)+'%';
+    spec.consTh=Object.keys(spec.consF||{}).length?statText({},spec.consF):'ไม่มีโทษค่าสถานะเพิ่มเติม';
+    if(spec.bodyblockBonusChance)spec.consTh+=', รับความเสียหายแทนเพิ่ม 10% ระหว่างมีภาระ';
+    if(spec.consF&&Object.keys(spec.consF).length&&!spec.recoveryPathTh.includes('เจ็ดวัน'))spec.recoveryPathTh+=' หรือพักฟื้นอย่างปลอดภัยติดต่อกันเจ็ดวัน';
+  }
   ET.CATALOG = Object.freeze(mutableCatalog);
   ET.MAX_PROCESSED_KEYS = 512;
 
@@ -13472,7 +13481,17 @@
   ET.recordExperienceEvent = function(W, npc, eventKind, eventUniqueKey, opts) {
     if (!npc || npc.foe || npc.dead || !eventKind) return { ok: false, reason: 'invalid-npc' };
     opts = opts || {};
+    const rawAmount = Number(opts.amount != null ? opts.amount : 1);
+    if (!Number.isFinite(rawAmount) || rawAmount <= 0) return { ok: false, reason: 'invalid-amount' };
+    const inc = Math.round(rawAmount);
+    if (!inc) return { ok: false, reason: 'invalid-amount' };
+
     const st = ET.ensureState(npc);
+    if (opts.channel && Number.isSafeInteger(opts.sequence)) {
+      const watermarks = st.log.sequenceWatermarks || (st.log.sequenceWatermarks = {});
+      if (watermarks[opts.channel] != null && opts.sequence <= watermarks[opts.channel]) return { ok: true, deduplicated: true, unlockedNow: [], traits: st.traits };
+      watermarks[opts.channel] = opts.sequence;
+    }
     const day = (W && W.day) || 1;
     const tick = (W && W.t) || 0;
     const uKey = eventUniqueKey == null ? null : String(eventKind) + ':' + String(eventUniqueKey);
@@ -13481,14 +13500,11 @@
       return { ok: true, deduplicated: true, count: st.log.counts[eventKind] || 0, unlockedNow: [], traits: st.traits };
     }
     if (uKey) {
-      const pKeys = Object.keys(st.log.processedKeys);
-      if (pKeys.length >= ET.MAX_PROCESSED_KEYS) {
-        delete st.log.processedKeys[pKeys[0]];
-      }
+        // Explicit external receipts are exact and persistent. Engine producers use
+      // channel sequence watermarks instead, so normal gameplay storage stays bounded.
       st.log.processedKeys[uKey] = day;
     }
 
-    const inc = Math.max(1, Math.round(Number(opts.amount != null ? opts.amount : 1)));
     st.log.counts[eventKind] = (st.log.counts[eventKind] || 0) + inc;
     const totalCount = st.log.counts[eventKind];
     const watermark = st.log.episodeWatermarks[eventKind] || 0;
@@ -13540,6 +13556,7 @@
     const entry = npc.experienceTraits.find(t => t && t.id === traitId);
     if (!entry) return { ok: false, reason: 'trait-not-found' };
 
+    if (entry.recovered || entry.burdenActive === false) return { ok: true, alreadyRecovered: true, recoveredTrait: entry };
     const spec = ET.CATALOG[traitId];
     if (spec && spec.triggerEvent) {
       // Advance episode watermark so the old event count never re-triggers burden immediately
@@ -13558,7 +13575,7 @@
     }
     // Also grant/progress EXP_TRAIT_RESILIENT_COMEBACK when overcoming a past burden
     if (traitId !== 'EXP_TRAIT_RESILIENT_COMEBACK') {
-      ET.recordExperienceEvent(W, npc, 'OVERCOME_PAST_FAILURE', 'rec_' + traitId + '_' + ((W && W.day) || 1));
+      ET.emit(W, npc, 'OVERCOME_PAST_FAILURE');
     }
     npc._cultRateBase = null;
     if (typeof HC !== 'undefined' && HC.bump) HC.bump(npc);
@@ -13663,6 +13680,7 @@
       return true;
     });
     if (npc.h && Array.isArray(npc.h.traits)) npc.h.traits = filterList(npc.h.traits);
+    if (g.STATS) g.STATS.dirty(npc);
     if (Array.isArray(npc.curatedTraits)) npc.curatedTraits = filterList(npc.curatedTraits);
     if (npc.cult && Array.isArray(npc.cult.traits)) npc.cult.traits = filterList(npc.cult.traits);
     if (Array.isArray(npc.experienceTraits)) npc.experienceTraits.length = 0;
@@ -13685,7 +13703,7 @@
     } else if (actId === 'patrol' || actId === 'guard' || (actId === 'work' && ctx && ctx.kind === 'guard')) {
       const cal = g.SIM && g.SIM.calendar ? g.SIM.calendar(W.t) : { hour: 12 };
       if (cal.hour < 6 || cal.hour >= 19) {
-        ET.recordExperienceEvent(W, npc, 'NIGHT_GUARD_SHIFT_DONE', 'nguard_' + npc.id + '_' + day);
+        ET.emit(W, npc, 'NIGHT_GUARD_SHIFT_DONE');
       } else if (ET.hasBurden(npc, 'EXP_TRAIT_NIGHT_WATCH_SENTINEL')) {
         ET.resolveTraitRecovery(W, npc, 'EXP_TRAIT_NIGHT_WATCH_SENTINEL', 'ผลัดเวรพักผ่อนและลาดตระเวนรับแสงตะวันยามเช้า');
       }
@@ -13725,10 +13743,323 @@
       ET.recordExperienceEvent(W, npc, 'SAFE_RETURN_FROM_DEEP_WILD', 'retwild_' + npc.id + '_' + day);
     }
 
-    // Balanced daily rhythm check
-    if (npc.h && npc.h.state && npc.h.state.satiety >= 55 && npc.h.state.rest >= 55 && npc.h.state.mood >= 55 && (npc.h.state.stress || 0) <= 20) {
-      ET.recordExperienceEvent(W, npc, 'BALANCED_DAILY_RHYTHM', 'rhythm_' + npc.id + '_' + day);
-    }
+
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
+/* Life-experience integration: authoritative outcomes, not notification text. */
+;(function(g) {
+  'use strict';
+  const ET = g.CULT.EXPERIENCE_TRAITS, HC = g.HC;
+  const life = n => { const l=n.lifeExperience||(n.lifeExperience={});l.activityDays=l.activityDays||{};l.recovery=l.recovery||{};l.counters=l.counters||{};return l; };
+  const bump = n => { HC.bump(n); n._cultRateBase = null; if (g.STATS) g.STATS.dirty(n); };
+  ET.contextKey = (n, W) => {
+    const traits = n.experienceTraits || [], ids = n.combatHistory && n.combatHistory.activeMasteryIds;
+    if (!traits.length && !(ids && ids.length)) return '';
+    const h = W ? Math.floor((W.t % 1440) / 60) : 12;
+    const duet=traits.find(t=>t.id==='EXP_TRAIT_DUET_SOUL_SYNC');
+    const partnerId=duet&&duet.partnerId||n.companionId;
+    const partner = partnerId && W && W.byId[partnerId];
+    return (ids || []).join(',') + ':' + (h < 6 || h >= 19 ? 'night' : h >= 11 && h <= 14 ? 'noon' : 'day') + ':' + (n._hpf < 0.35 ? 'low' : 'normal') + ':' + (!!partner && !partner.dead && !partner.exiled);
+  };
+  // At most one evidence unit of a given kind per actor/work-step. A large AoE
+  // therefore cannot replace a career of actual practice. Watermarks survive saves.
+  ET.emit = (W, n, kind, opts) => {
+    if (!W || !n || n.dead || n.foe || !kind) return { ok: false };
+    const seq = W.t * 3 + (W.timePhase || 0);
+    return ET.recordExperienceEvent(W, n, kind, null, Object.assign({}, opts, { channel: kind, sequence: seq }));
+  };
+  ET.grantAcquired = (W, n, id, evidence) => {
+    if (!n || !W || n.dead || !HC.traitDef(id)) return false;
+    if ((n.h.traits || []).some(t => t.id === id)) return false;
+    const def = HC.traitDef(id);
+    if ((def.conflictsWith || []).some(id2 => (n.h.traits || []).some(t => t.id === id2))) return false;
+    const got = HC.addTrait(n, W.rng, id);
+    if (!got) return false;
+    life(n).acquired = life(n).acquired || {};
+    life(n).acquired[id] = { t: W.t, day: W.day, evidence };
+    bump(n);
+    if (W.log) W.log('cultivation', HC.fullName(n) + ' สั่งสมประสบการณ์จนเกิดคุณลักษณะ「' + def.nameTh + '」', [n.id]);
+    return true;
+  };
+  ET.recover = (W, n, id, reason) => ET.hasBurden(n, id) ? ET.resolveTraitRecovery(W,n,id,reason) : null;
+  ET.onBreakthrough = (W,n,res) => {
+    if (!res) return;
+    const l=life(n);
+    if (!res.ok && !res.died) { ET.emit(W,n,'BOTTLENECK_FAILURE_ENDURED'); l.failedStage=res.stageFrom; }
+    if (res.ok) {
+      ET.recover(W,n,'EXP_TRAIT_BOTTLENECK_WALL_GRIT','เตรียมตัวจนทะลวงคอขวดเดิมได้จริง');
+      if (l.failedStage === res.stageFrom) ET.emit(W,n,'OVERCOME_PAST_FAILURE');
+      if (g.CULT.equivalentStage(n)>=7) ET.grantAcquired(W,n,'TR_AC_VEIL_TRUTH_AWAKENED','breakthrough:'+res.stageFrom);
+      if ((n.h.traits||[]).some(t=>t.id==='TR_AC_FROSTBITTEN_MERIDIAN_SCAR')) {n.h.traits=n.h.traits.filter(t=>t.id!=='TR_AC_FROSTBITTEN_MERIDIAN_SCAR');ET.grantAcquired(W,n,'TR_AC_REFINED_ICE_JADE_VESSEL','ice-scar-breakthrough');bump(n);}
+    }
+  };
+  ET.onCraftOutcome = (W,n,r,res,ctx) => {
+    if(typeof r==='string')r=g.ECO.recipeById[r];
+    if (!n || !r || !res) return;
+    const l=life(n), forge=r.craft==='FORGING' || r.outType==='EQUIPMENT' || r.station==='forge';
+    if (!res.ok) {
+      // Failed recipes are not explosions. The adapted trait describes cautious
+      // craftsmanship; actual injury is recorded only by the injury system.
+      if (res.reason==='failed' || res.failed || res.success===false) {
+        l.craftFailures=(l.craftFailures||0)+1; l.safeCraftStreak=0;
+        if (!forge) ET.emit(W,n,'CAULDRON_ACCIDENT_SURVIVED');
+      }
+      return;
+    }
+    l.safeCraftStreak=(l.safeCraftStreak||0)+1;
+    if (forge) ET.emit(W,n,'FORGE_CRAFT_COMPLETED');
+    if (l.safeCraftStreak>=3) ET.recover(W,n,'EXP_TRAIT_CAULDRON_BLAST_SCAR','สำเร็จงานปรุงยาหลายครั้งอย่างปลอดภัย');
+    if (l.craftFailures>=3 && (n.h.skills[r.craft]||0)>=65) ET.grantAcquired(W,n,'TR_AC_CAULDRON_ASH_VETERAN','craft-failures-and-recovery');
+    const inputIds=JSON.stringify(r.inputs||r.mats||r.in||r.materials||{});
+    if(forge && /STAR|METEOR/.test(inputIds)) ET.grantAcquired(W,n,'TR_AC_STAR_METEOR_MARROW','paid-meteor-recipe:'+r.id);
+    if(!forge && (n.h.affinities.FIRE||0)>=70 && g.CULT.equivalentStage(n)>=3 && l.safeCraftStreak>=12) ET.grantAcquired(W,n,'TR_AC_EARTH_FLAME_SWALLOWER','experienced-fire-craft');
+  };
+  ET.onDeath = (W,v,opts) => {
+    if(!W||!v)return;
+    const l=v.lifeExperience;
+    const healer=l&&l.lastHealerId&&W.byId[l.lastHealerId];
+    if(healer && !healer.dead && W.t-(l.lastHealedAt||0)<360) ET.emit(W,healer,'HEALER_WITNESSED_LOSS');
+    for(const n of W.npcs) {
+      if(n.dead||n.id===v.id)continue;
+      if(n.companionId===v.id)ET.emit(W,n,'RELATIONSHIP_HEARTBREAK');
+      if(v.mentorId===n.id || v.mentor===n.id || (n.apprenticeIds||[]).includes(v.id)) ET.emit(W,n,'APPRENTICE_FALLEN');
+    }
+  };
+  ET.onHealed = (W, healer, patient, actual, beforeRatio) => {
+    if(!healer||healer.foe||!patient||actual<=0)return;
+    life(patient).lastHealerId=healer.id; life(patient).lastHealedAt=W.t;
+    if(beforeRatio<0.25 && healer.id!==patient.id) {
+      ET.emit(W,healer,'ALLY_SAVED_IN_CRISIS');
+      if(g.COMBAT)g.COMBAT.ACTION_MASTERY_TRAITS.recordAction(W,healer,'clutchHealCount',1);
+    }
+    if(beforeRatio<0.9 && healer.id!==patient.id) {
+      const l=life(healer), seen=l.recovery.patients||(l.recovery.patients={});
+      if(seen[patient.id]===W.day)return;seen[patient.id]=W.day;
+      l.patientsHelped=(l.patientsHelped||0)+1;
+      if(l.patientsHelped>=20 && HC.eff(healer,'personality.empathy')>=65)ET.grantAcquired(W,healer,'TR_AC_MERCIFUL_SAINT_AURA','actual-healing');
+      if(l.patientsHelped>=10)ET.recover(W,healer,'EXP_TRAIT_MERCIFUL_DOCTOR_BURDEN','รักษาผู้ป่วยที่บาดเจ็บได้จริงอย่างต่อเนื่อง');
+    }
+  };
+  ET.onExpeditionReturn = (W,ex,party) => {
+    if(!ex || ex.lifeSettled)return; ex.lifeSettled=true;
+    const lost=(ex.party||ex.members||[]).some(id=>W.byId[id]&&W.byId[id].dead);
+    for(const n of party||[]) {
+      if(!n||n.dead)continue;
+      if(lost)ET.emit(W,n,'PARTY_CASUALTY_SURVIVED');
+      else {
+        ET.recover(W,n,'EXP_TRAIT_SOLE_PARTY_SURVIVOR','เดินทางร่วมกับสหายแล้วกลับมาอย่างปลอดภัย');
+        ET.emit(W,n,'SAFE_RETURN_FROM_DEEP_WILD');
+      }
+      if(ex.kind==='trade')ET.emit(W,n,'MARKET_DEAL_COMPLETED');
+      if(ex.kind==='diplomacy' && ((ex.danger||0)>=2 || (ex.lifeHostileRelation!=null&&ex.lifeHostileRelation<=-40)))ET.emit(W,n,'HAZARDOUS_ENVOY_RETURNED');
+    }
+  };
+  // daily observation is bounded per actor; events use actual episode transitions
+  // or completed work, never an assumed narrative from a threshold alone.
+  ET.evaluateDaily = (W,n) => {
+    if(!n||n.dead||!n.h)return;
+    const l=life(n), st=n.h.state;
+    if(l.pendingHunt && !n.travel && !n.away && !g.MAP.isOutsideWall(W.map,n.x,n.y)){
+      ET.emit(W,n,'SAFE_RETURN_FROM_DEEP_WILD');if(l.pendingHunt.prepared)ET.emit(W,n,'PREPARED_WILD_HUNT_SUCCESS');delete l.pendingHunt;
+    }
+    if(l.lastObservedDay===W.day)return;l.lastObservedDay=W.day;
+    if(st.satiety<10) { l.hungryDays=(l.hungryDays||0)+1; if(l.hungryDays>=2)l.famineEpisode=true; }
+    else if(st.satiety>=45 && l.famineEpisode) { ET.emit(W,n,'FAMINE_SURVIVED');
+      if(l.activityDays[W.day-1]&&l.activityDays[W.day-1].eat)ET.grantAcquired(W,n,'TR_AC_FAMINE_SAVIOR_GRACE','recovered-through-sect-food');
+      l.famineEpisode=false;l.hungryDays=0; }
+    else if(st.satiety>=45)l.hungryDays=0;
+    const poisoned=(n.sx||[]).some(x=>/poison|venom|plague/i.test(x.k)) || (n.cult&&n.cult.toxic>=60);
+    if(poisoned) {l.poisonEpisode=true;if(n.cult&&n.cult.toxic>=80)l.severePoison=true;}
+    if(!poisoned && l.poisonEpisode) { ET.emit(W,n,'POISON_SURVIVED_AND_CURED');l.poisonEpisode=false;if(l.severePoison){ET.grantAcquired(W,n,'TR_AC_HUNDRED_VENOM_SURVIVOR','severe-poison-cured');l.severePoison=false;} }
+    if(st.heartDemon>=75)l.severeHeartDemon=true;
+    if(l.severeHeartDemon && st.heartDemon<=25){ET.grantAcquired(W,n,'TR_AC_SOUL_SEIZURE_OVERCOME','heart-demon-recovery');l.severeHeartDemon=false;}
+    if((n.inj||[]).some(x=>x.id==='MERIDIAN_OVERDRIVE_BACKLASH'))l.meridianBacklash=true;
+    if(l.meridianBacklash && !(n.inj||[]).some(x=>x.id==='MERIDIAN_OVERDRIVE_BACKLASH') && st.hp>=g.CULT.hpMax(n)*0.95){ET.grantAcquired(W,n,'TR_AC_BROKEN_DANTIAN_REFORGED','overdrive-recovered');l.meridianBacklash=false;}
+    const days=l.activityDays[W.day-1];
+    if(days && days.eat && days.sleep && (days.cultivate||days.practice||days.mine||days.craft) && (days.pair||days.leisure) && st.satiety>=45 && st.rest>=45) ET.emit(W,n,'BALANCED_DAILY_RHYTHM');
+    for(const day of Object.keys(l.activityDays))if(Number(day)<W.day-2)delete l.activityDays[day];
+    if(n._origFigureId && n._recruitedFromSectTh && (n.merit||0)>=300 && HC.eff(n,'personality.loyalty')>=75)ET.emit(W,n,'REFORMED_LOYAL_SERVICE');
+    const injured=(n.inj||[]).some(i=>i.sev>=2);
+    if(!injured && !poisoned && (!n.cult || n.cult.toxic<15) && st.rest>=60 && st.stress<30) {
+      l.stableDays=(l.stableDays||0)+1;
+      if(l.stableDays>=7) {
+        for(const tr of (n.experienceTraits||[]))if(tr.burdenActive && !tr.recovered)ET.recover(W,n,tr.id,'พักฟื้นและใช้ชีวิตอย่างมั่นคงติดต่อกันเจ็ดวัน');
+        const before=n.h.traits.length;n.h.traits=n.h.traits.filter(t=>t.id!=='TR_AC_TOMB_CURSE_BRANDED');if(before!==n.h.traits.length)bump(n);
+      }
+    } else l.stableDays=0;
+  };
+  ET.activityBias = (W,n,id,S) => {
+    if(!n.experienceTraits||!n.experienceTraits.length)return;
+    // Small preferences remain subordinate to food, health, obligations and danger.
+    let v=0;
+    if(id==='leisure'||id==='pair'||id==='heal')v+=(n.experienceTraits.some(t=>t.burdenActive&&!t.recovered)?0.16:0);
+    if(ET.hasBurden(n,'EXP_TRAIT_STARVATION_MEMORY') && (id==='farm'||id==='cook'))v+=0.12;
+    if(ET.hasBurden(n,'EXP_TRAIT_HEARTBROKEN_ASCETIC') && id==='cultivate')v+=0.12;
+    if(ET.hasBurden(n,'EXP_TRAIT_GATE_WALL_VETERAN') && id==='wildHunt')v-=0.15;
+    if(v)S.add('บทเรียนและภาระจากประสบการณ์ชีวิต',v);
+  };
+  const complete=ET.onActivityComplete;
+  ET.onActivityComplete = (W,n,id,ctx) => {
+    if(!n||n.dead)return;
+    const l=life(n),day=W.day;
+    (l.activityDays[day]||(l.activityDays[day]={}))[id]=true;
+    // These require a paid/successful outcome, handled at its authoritative source.
+    if(!['mine','fish','explore','wildHunt'].includes(id))complete(W,n,id,ctx);
+    if(id==='guard'||id==='patrol') {
+      const hour=g.SIM.calendar(W.t).hour;
+      if(hour<6||hour>=19)ET.emit(W,n,'NIGHT_GUARD_SHIFT_DONE');
+    }
+    if((id==='cultivate'||id==='pray') && l.silenceExperienced){ET.grantAcquired(W,n,'TR_AC_SHATTERED_VOICE_SILENT_CHANT','practice-after-silence');l.silenceExperienced=false;}
+    if(id==='heal' && n.h.state.hp>=g.CULT.hpMax(n)*0.95) {
+      if(l.nearDeathPending){ l.nearDeathRecoveries=(l.nearDeathRecoveries||0)+1;l.nearDeathPending=false;if(l.nearDeathRecoveries>=2)ET.grantAcquired(W,n,'TR_AC_GHOST_GATE_RETURNEE','near-death-treated'); }
+    }
+    if(id==='pair' && ctx && (ctx.mode==='romance'||ctx.type==='romance') && (ctx.rejected||ctx.success===false)) ET.emit(W,n,'RELATIONSHIP_HEARTBREAK');
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+;(function(g) {
+  'use strict';
+  const ET=g.CULT.EXPERIENCE_TRAITS, HC=g.HC;
+  ET.installSystemHooks = () => {
+    if(ET.systemHooksInstalled)return;ET.systemHooksInstalled=true;
+    const wrap=(obj,key,after,before)=>{
+      if(!obj||typeof obj[key]!=='function')return;
+      const fn=obj[key];obj[key]=function(...args){const prior=before?before(...args):null;const result=fn.apply(this,args);after(result,args,prior);return result;};
+    };
+    wrap(g.CULT,'breakthrough',(r,[W,n])=>ET.onBreakthrough(W,n,r));
+    wrap(g.ECO,'finishCraft',(r,[W,n,recipe,ctx],prior)=>{if(!prior)ET.onCraftOutcome(W,n,recipe,r,ctx);},(W,n,r,ctx)=>!!(ctx&&ctx.lifeCraftSettled));
+    // finishCraft already has a settled reservation guard. Do not award a repeat
+    // invocation of a finished reservation, even when the old API returns its receipt.
+    const originalCraft=g.ECO.finishCraft;
+    g.ECO.finishCraft=(W,n,r,ctx)=>{if(ctx&&ctx.lifeCraftSettled)return originalCraft(W,n,r,ctx);const result=originalCraft(W,n,r,ctx);if(ctx&&!result?.rejected)ctx.lifeCraftSettled=true;return result;};
+    wrap(g.ECO,'personalCraft',(r,[W,n,recipe])=>ET.onCraftOutcome(W,n,recipe,r));
+    wrap(g.ECO,'mineYield',(r,[W,n])=>{if(r&&r.out&&r.out.length)ET.emit(W,n,'MINE_SHIFT_COMPLETED');});
+    wrap(g.AI,'kill',(r,[W,n,why,opts],wasDead)=>{if(!wasDead&&n.dead)ET.onDeath(W,n,opts);},(W,n)=>!!n.dead);
+    wrap(g.AI,'pairEnd',(r,[W,a,b,d])=>{
+      if(d && d.type==='date' && d.rejected) {ET.emit(W,a,'RELATIONSHIP_HEARTBREAK');ET.emit(W,b,'RELATIONSHIP_HEARTBREAK');}
+      if(a&&b&&g.SECT.rel(a,b.id).a>=60){ET.recover(W,a,'EXP_TRAIT_HEARTBROKEN_ASCETIC','ฟื้นความเชื่อใจจากสายสัมพันธ์จริง');ET.recover(W,b,'EXP_TRAIT_HEARTBROKEN_ASCETIC','ฟื้นความเชื่อใจจากสายสัมพันธ์จริง');}
+    });
+    wrap(g.EXPLORE,'visit',(r,[W,n,spot],before)=>{
+      const dex=W.sect.explore; // visit is authoritative even when it returns no value
+      if(spot==='stele'||spot==='ruin') {
+        ET.emit(W,n,'ANCIENT_STELE_DECIPHERED');
+        const count=n.experienceEventLog.counts.ANCIENT_STELE_DECIPHERED||0;
+        if(count>=8)ET.grantAcquired(W,n,'TR_AC_REFLECTION_WALL_INHERITOR','studied-ancient-stele');
+        if(count>=12 && (n.h.skills.SCRIPTURE||0)>=65)ET.grantAcquired(W,n,'TR_AC_ANCIENT_RING_MENTORED','advanced-ancient-stele-study');
+        if(spot==='ruin' && (n.sx||[]).some(x=>x.k==='curse'))ET.grantAcquired(W,n,'TR_AC_TOMB_CURSE_BRANDED','actual-ruin-curse');
+      }
+      if(spot==='spring')for(const id of ['EXP_TRAIT_POISON_TEST_SUBJECT','EXP_TRAIT_TRIBULATION_SURVIVOR','EXP_TRAIT_FORGE_BURN_CALLUS'])ET.recover(W,n,id,'พักฟื้นในน้ำพุปราณ');
+    });
+    wrap(g.FISHING,'resolveSuccessfulCatch',(r,[W,n,z,opts])=>{if(r&&r.ok&&r.outcome==='FISH'&&!(opts&&opts.ignoreStock))ET.emit(W,n,'RIVER_FISHING_MEDITATION');});
+    wrap(g.FISHING,'eatFishDish',(r,[W,n,id])=>{if(r&&r.ok){const dish=g.FISHING.DISH_BY_ID[id];if(dish&&(dish.tier||0)>=5)ET.grantAcquired(W,n,'TR_AC_DRAGON_CARP_ESSENCE','consumed-high-tier-fish-dish:'+id);}});
+    wrap(g.EXPED,'resolve',(r,[W,ex,members],prior)=>{if(!prior && ex.done)ET.onExpeditionReturn(W,ex,members.filter(n=>!n.dead));},(W,ex)=>!!(ex.done||ex.settlement));
+    wrap(g.EXPED,'tradeResult',(r,[W,ex,alive,out])=>{for(const n of alive)if(out.stones>0)ET.emit(W,n,'MARKET_DEAL_COMPLETED');});
+    wrap(g.EXPED,'diplomacyResult',(r,[W,ex,alive],prior)=>{
+      if(ex.lifeHostileRelation<=-40)for(const n of alive)ET.emit(W,n,'HAZARDOUS_ENVOY_RETURNED');
+    },(W,ex)=>{const s=(W.world.sects||[]).find(s=>s.id===ex.targetSect);return s?s.rel:0;});
+    wrap(g.SECT.GRAND_DAO_DEBATE,'holdDebate',(r,[W,opts])=>{
+      if(!r||!r.ok||!r.victory||opts&&(opts.free||opts.forceWin))return;
+      const n=W.byId[r.record.speakerId];if(!n)return;
+      const l=n.lifeExperience||(n.lifeExperience={activityDays:{},recovery:{},counters:{}});l.discourseWins=(l.discourseWins||0)+1;
+      if(l.discourseWins>=2 && (n.h.skills.SCRIPTURE||0)>=60)ET.grantAcquired(W,n,'TR_AC_MASTER_CHESS_ILLUMINATED','two-paid-dao-debate-wins');
+    });
+    wrap(g.SECT.BOUNTY_BOARD,'claimBountyHunt',(r,[W])=>{if(r&&r.ok&&r.hunterId){const n=W.byId[r.hunterId];ET.emit(W,n,'BOUNTY_OR_GRUDGE_RESOLVED');ET.recover(W,n,'EXP_TRAIT_BLOOD_DEBT_TRACKER','ปิดภารกิจค่าหัวด้วยผลงานจริง');}});
+    wrap(g.SECT.PEAKS,'foundPeak',(r,[W],prior)=>{
+      if(r&&r.ok&&!r.alreadyFounded&&r.peak)for(const id of new Set([r.peak.masterId,r.peak.deputyId,...(r.peak.memberIds||[])])){const n=W.byId[id];if(n)ET.emit(W,n,'PEAK_SANCTUARY_PIONEER');}
+    });
+    wrap(g.SECT.GRAND_ASSEMBLY_BANQUET,'hostSpiritCuisineBanquet',(r,[W])=>{
+      if(r&&r.ok)for(const id of (r.banquet&&r.banquet.attendeeIds)||[])if(W.byId[id])ET.grantAcquired(W,W.byId[id],'TR_AC_PEACH_IMMORTAL_SIP','paid-spirit-banquet');
+    });
+    wrap(g.SECT.TRIBUNAL,'adjudicateCase',(r,[W])=>{if(r&&r.ok&&r.caseItem){const n=W.byId[r.caseItem.offenderId];if(n&&/PARDON|ACQUIT|INNOCENT/.test(r.verdict))ET.recover(W,n,'EXP_TRAIT_UNJUSTLY_PUNISHED','ได้รับการชำระข้อกล่าวหาจากหอวินัย');}});
+    wrap(g.CULT.EPITHETS,'seedAccusationRumor',(r,[W,n])=>{if(r&&r.ok)ET.emit(W,n,'UNFAIR_DISCIPLINE_OR_RUMOR');});
+    wrap(g.CULT.EPITHETS,'clearFalseAccusation',(r,[W,n])=>{if(r&&r.ok)ET.recover(W,n,'EXP_TRAIT_UNJUSTLY_PUNISHED','พิสูจน์ข้อกล่าวหาแล้ว');});
+    wrap(g.CULT.EPITHETS,'recordDeed',(r,[W,n,key,amount,meta])=>{
+      if(!r||!r.ok)return;
+      if(key==='embezzle_exposed')ET.grantAcquired(W,n,'TR_AC_CORRUPT_GREED_TAINT','verified-embezzlement');
+      if(key==='ancient_dao_legacy_awakened')ET.grantAcquired(W,n,'TR_AC_ANCIENT_RING_MENTORED','awakened-existing-legacy');
+      if(key==='rescue_comrade')ET.emit(W,n,'ALLY_SAVED_IN_CRISIS');
+      if(key==='heal_patient')ET.recover(W,n,'EXP_TRAIT_MERCIFUL_DOCTOR_BURDEN','ช่วยรักษาผู้อื่นด้วยผลงานจริง');
+      if(key==='cauldron_explode')ET.emit(W,n,'CAULDRON_ACCIDENT_SURVIVED');
+      if(n.epithets && n.epithets.redemptionDrive && !n.epithets.redemptionDrive.active && n.epithets.redemptionDrive.completedDay===W.day){
+        ET.emit(W,n,'ATONED_MISTAKE_WITH_DEED');const before=n.h.traits.length;n.h.traits=n.h.traits.filter(t=>t.id!=='TR_AC_CORRUPT_GREED_TAINT');if(before!==n.h.traits.length){HC.bump(n);g.STATS.dirty(n);}
+      }
+    });
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+;(function(g) {
+  const ET=g.CULT.EXPERIENCE_TRAITS;
+  const install=ET.installSystemHooks;
+  ET.installSystemHooks=()=>{
+    if(ET.statusHookInstalled)return;
+    install(); ET.statusHookInstalled=true;
+    const ST=g.STATS, add=ST.addStatus;
+    ST.addStatus=function(u,k,dur,extra,now){
+      const prior=ST.statusOf(u,k), oldStacks=prior&&(prior.stacks||1), oldUntil=prior&&prior.until;
+      const result=add.apply(this,arguments), after=ST.statusOf(u,k);
+      const scope=g.COMBAT.lifeStatusContext;
+      const W=scope&&scope.W;
+      if(!after || (prior && after.until===oldUntil && (after.stacks||1)<=oldStacks))return result;
+      if(W && u && !u.foe) {
+        const l=u.lifeExperience||(u.lifeExperience={activityDays:{},recovery:{},counters:{}});
+        if(/poison|venom|plague/i.test(k))l.poisonEpisode=true;
+        if(k==='silence')l.silenceExperienced=true;
+        if(k==='chill' && dur>=10)ET.grantAcquired(W,u,'TR_AC_FROSTBITTEN_MERIDIAN_SCAR','actual-chill');
+      }
+      if(scope && scope.f && scope.actor && u && u.id!==scope.actor.id) {
+        const actor=extra&&extra.src&&W.byId[extra.src]||scope.actor;
+        if(['poison','bleed','curse','armorbreak','mdefbreak','stun','root','silence','paralyze','disarm'].includes(k))g.COMBAT.noteMastery(W,scope.f,actor,'debuffsLanded',1,u);
+        if(['stun','root','paralyze','disarm','tether'].includes(k))g.COMBAT.noteMastery(W,scope.f,actor,'hardCcLanded',1,u);
+      }
+      return result;
+    };
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+;(function(g) {
+  const ET=g.CULT.EXPERIENCE_TRAITS, HC=g.HC;
+  const install=ET.installSystemHooks;
+  ET.installSystemHooks=()=>{
+    if(ET.finalHooksInstalled)return;install();ET.finalHooksInstalled=true;
+    // Filter only the random birth pool, preserving core definitions and RNG API.
+    const gen=HC.generate;
+    HC.generate=function(...args){
+      const original=g.JD.CORE.curatedTraits;
+      const eligible=t=>t && t.birthEligible!==false && t.category!=='ACQUIRED';
+      g.JD.CORE.curatedTraits=Array.isArray(original)?original.filter(eligible):Object.fromEntries(Object.entries(original).filter(([,v])=>eligible(v)));
+      try{return gen.apply(this,args);}finally{g.JD.CORE.curatedTraits=original;}
+    };
+    const insight=g.AI.insight;
+    g.AI.insight=(W,n)=>{
+      const before=n.cult&&n.cult.prog, result=insight(W,n);
+      const nearWater=(n.x>=g.MAP.RIVER_BELT.x0 && n.x<=g.MAP.RIVER_BELT.x1 && Math.abs(n.y-g.MAP.riverCenterY(n.x))<=g.MAP.riverHalfWidth(n.x)+4) || (W.map.buildings||[]).some(b=>['spring','spirit_pond'].includes(b.key||b.type||b.id) && Math.hypot(n.x-(b.x+b.w/2),n.y-(b.y+b.h/2))<=Math.max(b.w,b.h)/2+3);
+      if(n.cult&&n.cult.prog>before && nearWater && W.weather && ['rain','storm'].includes(W.weather.kind) && HC.eff(n,'affinities.SWORD')>=60) ET.grantAcquired(W,n,'TR_AC_WATERFALL_SWORD_EPIPHANY','rain-river-insight');
+      return result;
+    };
+    const injure=g.AI.injure;
+    g.AI.injure=(W,n,sev,why)=>{
+      const before=(n.inj||[]).length, result=injure(W,n,sev,why);
+      const wound=(n.inj||[]).at(-1);
+      if(wound && (n.inj||[]).length>before && sev>=3 && ['แขน','ไหล่'].includes(wound.part) && HC.eff(n,'affinities.BLADE')>=50) ET.grantAcquired(W,n,'TR_AC_ONE_ARMED_BLADE_SOUL','actual-severe-arm-injury');
+      return result;
+    };
+    const step=g.CULT.TRIBULATION.tick;
+    g.CULT.TRIBULATION.tick=function(W,n){
+      const st=n&&n.tribulationState;
+      const before=st&&st.strikesLanded||0;
+      const r=step.apply(this,arguments);
+      const after=n&&n.tribulationState&&n.tribulationState.strikesLanded||0;
+      if(after>before && !n.dead)g.COMBAT.ACTION_MASTERY_TRAITS.recordAction(W,n,'tribulationBoltsSurvived',after-before);
+      return r;
+    };
+    const micro=g.EXPLORE.dispatchExploration;
+    g.EXPLORE.dispatchExploration=function(W,...args){
+      const r=micro.call(this,W,...args);
+      if(r&&r.ok)for(const id of r.partyIds||[]) {
+        const n=W.byId[id];if(!n||n.dead)continue;
+        const l=n.lifeExperience||(n.lifeExperience={activityDays:{},recovery:{},counters:{}});
+        const ids=l.microExploredIds||(l.microExploredIds={});ids[r.locationId]=true;
+        if(Object.keys(ids).length>=3)ET.grantAcquired(W,n,'TR_AC_RIFT_GRAVITY_ADAPTED','three-real-micro-locations');
+      }
+      return r;
+    };
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);

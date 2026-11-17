@@ -105,3 +105,7 @@ Living Hunt variety: procedural-gen/game-data-integrity/combat-design/ai-behavio
   - **12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`, `EPI_CRN_235..246`)**: Strictly 1 holder across `W.npcs`, `W.world.figuresById`, and `W.world.wanderingFigures`; supports direct duel transfer (`checkCrownDuelTransfer`), Tianji ranking reconciliation (`reconcileUniqueCrowns`) with tie-keeps-incumbent and >8% margin, age-28 vacation (`EPI_CRN_245`), immediate vacation on death (`vacateCrownOnDeath`), 2-day rumor lag (`publicKnownHolderId`), and max 1 Sovereign Aura in `ST._applyDaoTraits`.
   - **Collective Group Epithets (`W.sect.collectiveEpithets`, `EPI_GRP_173..188`), Daoist Names (`EPI_DAO_077..084`), Lineage Seniority (`EPI_DAO_085..092`), Posthumous Tablets (`EPI_PST_247..260`) & Snapshot Immutability**: `bestowDaoName` preserves birth names; `bestowPosthumousTitle` engraves posthumous honorifics onto `W.sect.legacyTablets`; `SIM.snapshotPerson` and `EXPED.buildFactSnapshot` freeze `epithetAtEventTh` immutably.
   - **Verification Suite**: `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair (JS2-v2.6.0)
+
+อัปเดต13สกิลตามตารางข้างต้น: stat/active mastery, real event producers, recovery/receipts, acquired modifiers, expanded geometry, work-step clock, current saves และ browser/performance checks ดู `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md` สถานะล่าสุดอยู่ใน `START_HERE_FOR_AI.md`; ข้อความแพตช์เก่าในสกิลเป็นประวัติ ไม่ใช่ใบสั่งงาน

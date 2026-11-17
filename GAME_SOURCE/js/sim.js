@@ -74,6 +74,7 @@
 
   /* ---------- สร้างตัวละคร ---------- */
   SIM.buildNpc = (W, rng, o) => {
+    if (CULT.EXPERIENCE_TRAITS.installSystemHooks) CULT.EXPERIENCE_TRAITS.installSystemHooks();
     HC.nowDay = W.day;
     const npc = HC.generate(rng, { id: o.id, day: W.day, sex: o.sex, ageYears: o.ageYears, quality: o.quality || 0, archetype: o.archetype, rootGrade: o.rootGrade, _fromTierRoll: !!o._fromTierRoll, skillExp: o.skillExp, trainedness: o.trainedness, traitCount: o.traitCount, customRoots: o.customRoots, forceRootCount: o.forceRootCount, forceElements: o.forceElements, forceGrades: o.forceGrades });
     if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits) {
@@ -113,6 +114,8 @@
     }
     npc.h.state.hp = CULT.hpMax(npc);
     npc.h.state.qi = CULT.qiMax(npc);
+    CULT.EXPERIENCE_TRAITS.ensureState(npc);
+    if(g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS)g.COMBAT.ACTION_MASTERY_TRAITS.ensureHistory(npc);
     return npc;
   };
   SIM.awaken = (W, rng, npc, stage, o) => {
@@ -238,10 +241,11 @@
 
   /* ---------- สร้างโลก ---------- */
   SIM.create = (seed, opts) => {
+    if (g.CULT && g.CULT.EXPERIENCE_TRAITS.installSystemHooks) g.CULT.EXPERIENCE_TRAITS.installSystemHooks();
     opts = opts || {};
     if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems();
     const rng = new U.RNG(String(seed) + ':world');
-    const W = { _founding: true, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
+    const W = { _founding: true, workSteps: 0, timePhase: 0, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
     if (g.STATS) g.STATS.now = W.t;
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
     const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day; HC.nowSeason = W.season;
@@ -1018,7 +1022,7 @@
       if (!n.dead && !n.away) {
         if (g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n);
         if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.evaluateDaily) CULT.EXPERIENCE_TRAITS.evaluateDaily(W, n);
-        if (COMBAT && COMBAT.ACTION_MASTERY_TRAITS && COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries) COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries(n);
+        if (COMBAT && COMBAT.ACTION_MASTERY_TRAITS && COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries) COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries(W,n);
       }
     });
     if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
@@ -1311,13 +1315,13 @@
       M.buildings.forEach(b => { b.inside = []; });
       W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
       W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta); W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); }; W.makeNpc = o => SIM.addNpc(W, o);
-      const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
+      const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'workSteps', 'timePhase', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
       if (s.celestialAlignment) W.celestialAlignment = s.celestialAlignment;
       if (s.celestialEvent) W.celestialEvent = s.celestialEvent;
       W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));
       if (s.runtimeTiming && typeof s.runtimeTiming === 'object') {
         W.runtimeTiming = Object.assign({}, s.runtimeTiming, {
-          pendingTicks: clamp(typeof s.runtimeTiming.pendingTicks === 'number' && Number.isFinite(s.runtimeTiming.pendingTicks) ? s.runtimeTiming.pendingTicks : 0, 0, 100800)
+          pendingTicks: Math.max(0, typeof s.runtimeTiming.pendingTicks === 'number' && Number.isFinite(s.runtimeTiming.pendingTicks) ? s.runtimeTiming.pendingTicks : 0)
         });
       }
       const legacyContent = !s.sect.contentVersion;

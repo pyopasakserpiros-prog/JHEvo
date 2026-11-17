@@ -6302,7 +6302,7 @@
         });
       });
       if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
-        CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'BEAST_NURTURE_AND_BOND', 'tick:' + W.t);
+        CULT.EXPERIENCE_TRAITS.emit(W, n, 'BEAST_NURTURE_AND_BOND');
       }
       if (g.EXPED && g.EXPED.assignGateBeast && (!Array.isArray(W.sect.gateBeasts) || W.sect.gateBeasts.length < 4)) {
         const candBeast = menagerie.find(b => b && !b.dead && !(W.sect.gateBeasts || []).includes(b.uid || b.id));
@@ -6984,7 +6984,7 @@
         const hasActiveVow = !!(m.voluntaryVows && Object.keys(m.voluntaryVows).some(k => m.voluntaryVows[k] && m.voluntaryVows[k].active && !m.voluntaryVows[k].broken));
         const hasOathOrContract = !!((m.daoOath && !m.daoOath.broken) || (m.soulContract && m.soulContract.active));
         if (hasActiveVow || hasOathOrContract) {
-          CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, m, 'UPHELD_VOW_OR_CONTRACT', 'day:' + W.day);
+          CULT.EXPERIENCE_TRAITS.emit(W, m, 'UPHELD_VOW_OR_CONTRACT');
         }
       }
     }
@@ -10926,6 +10926,7 @@
       chefNameTh: HC.fullName(chef),
       menuNameTh,
       attendeesCount: alive.length,
+      attendeeIds: alive.map(n=>n.id),
       bondedNamesTh,
       summaryTh: '🍲 พ่อครัวปราณ「' + HC.fullName(chef) + '」รังสรรค์เมนู「' + menuNameTh + '」จัดงานเลี้ยงฉลองทั่วสำนัก (' + alive.length + ' คน) ฟื้นฟูอารมณ์ +25 ลดจิตมาร -15 ลดคลื่นใต้น้ำการเมือง -15' + (bondedNamesTh ? (' และทำให้ ' + bondedNamesTh + ' ดื่มสุราร่วมสาบานเป็นพี่น้อง!') : '!')
     };

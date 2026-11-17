@@ -689,7 +689,7 @@
     (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(npc, r.craft, ECO.craftHours(r, skill), 1.1);
     if (!ok) {
       paid.inputs.forEach(i => { if (W.rng.chance(0.4)) ECO.add(W, i.matId, Math.min(i.count, Math.max(1, Math.floor(i.count / 2)))); });
-      return { ok: false, text: 'ล้มเหลว สูญวัตถุดิบ' };
+      return { ok: false, reason: 'failed', text: 'ล้มเหลว สูญวัตถุดิบ' };
     }
     if (g.ELEM && g.ELEM.gainMastery) g.ELEM.gainMastery(npc, r, 'craft_finish', W, { sourceId: r.id });
     const peakQBonus = (npc && npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) ? (g.SECT.PEAKS.getUnitPeakBonuses(npc).craftQuality || 0) : 0;

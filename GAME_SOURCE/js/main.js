@@ -21,7 +21,7 @@
       G.W = W; W.onLog = e => { if (G.opts.toast) UI.onLog(e); }; HC.nowDay = W.day;
       G.R.setWorld(W); G.R.selected = null; G.R.follow = false; if (G.R.resize) G.R.resize(); if (G.R.focus) G.R.focus(180, 122, 1.0); if (G.R.clampCam) G.R.clampCam();
       const timing = W.runtimeTiming || {};
-      G.acc = typeof timing.pendingTicks === 'number' && Number.isFinite(timing.pendingTicks) && timing.pendingTicks >= 0 ? Math.min(100800, timing.pendingTicks) : 0;
+      G.acc = typeof timing.pendingTicks === 'number' && Number.isFinite(timing.pendingTicks) && timing.pendingTicks >= 0 ? timing.pendingTicks : 0;
       const savedSpeed = typeof timing.speed === 'number' && Number.isFinite(timing.speed) && timing.speed >= 0 ? timing.speed : W.speed;
       G.speed = typeof savedSpeed === 'number' && Number.isFinite(savedSpeed) && savedSpeed >= 0 ? savedSpeed : 1;
       last = performance.now();

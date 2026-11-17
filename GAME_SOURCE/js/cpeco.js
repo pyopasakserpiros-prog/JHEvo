@@ -135,7 +135,7 @@
     start(n, W, ctx) { ctx.items = {}; ctx.cpValue = 0; return true; },
     tick(n, W, ctx) {
       n.h.state.energy = Math.max(0, n.h.state.energy - 0.06); n.h.state.rest -= 0.03; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'herbalism', 1 / 55, 1);
-      if (W.t % 60 === 0) {
+      if ((W._isNewCalendarMinute !== false && W.t % 60 === 0)) {
         const sk = n.h.skills.herbalism || 0, cnt = Math.max(1, Math.round((1.4 + sk / 55) * (0.7 + W.rng.next() * 0.6) * (W.season === 3 ? 0.6 : W.season === 0 ? 1.2 : 1)));
         for (let i = 0; i < cnt; i++) { const r = W.rng.next(); const tier = r < 0.02 + sk / 1500 ? 3 : r < 0.18 + sk / 400 ? 2 : 1; const pool = ECO.herbPool ? ECO.herbPool(tier) : null; const id = pool ? W.rng.pick(pool) : null; if (id) { ctx.cpValue += CPE.reward(W, id, 1); ECO.add(W, id, 1); ctx.items[id] = (ctx.items[id] || 0) + 1; } }
         HC.trainBody(n, 'endurance', 0.6); if (W.rng.chance(0.004 * (1 - E(n, 'intellect.perceptiveness') / 180))) AI.injure(W, n, 1, 'ถูกสัตว์ป่าทำร้ายในหุบเขา');
@@ -200,7 +200,7 @@
     where(W, n) { const p = pickBasic(W, n); if (!p) return null; const s = AI.freeStation(W, n, 'cauldron', 'alchemy'); return s ? { st: s, rid: p.r.id } : null; },
     dur: (n) => Math.round(65 * (1 - 0.3 * (n.h.skills.ALCHEMY || 0) / 100)),
     start(n, W, ctx) { const r = ECO.recipeById[ctx.rid]; return !!r && ECO.reserveInputs(W, r, ctx, n); },
-    tick(n, W) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); n.h.state.rest -= 0.02; if (W.t % 45 === 0) HC.trainBody(n, 'dexterity', 0.5); AI.vf(n, { knowledgeCraft: 0.04, sectDuty: 0.03 }); },
+    tick(n, W) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); n.h.state.rest -= 0.02; if ((W._isNewCalendarMinute !== false && W.t % 45 === 0)) HC.trainBody(n, 'dexterity', 0.5); AI.vf(n, { knowledgeCraft: 0.04, sectDuty: 0.03 }); },
     done(n, W, ctx) {
       const r = ECO.recipeById[ctx.rid]; if (!r) return;
       const key = r.outItemId || 'P:' + r.id, before = ECO.count(W, key), res = ECO.finishCraft(W, n, r, ctx); if (res.rejected) return;
@@ -676,7 +676,7 @@
       if (!n.cult) return 'done';
       const before = n.cult.prog; CULT.gain(n, ctx.perTick || 0.1); ctx.gained += Math.max(0, n.cult.prog - before);
       n.h.state.energy = Math.max(10, n.h.state.energy - 0.018); n.h.state.rest = Math.max(10, n.h.state.rest - 0.012);
-      if (W.t % 15 === 0) {
+      if ((W._isNewCalendarMinute !== false && W.t % 15 === 0)) {
         if (n.cult.path === 'BODY') (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'BODY_REFINING', 0.05, 1.1);
         else if (n.cult.path === 'DEMON') {
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, n.cult.sub === 'VENOM_GU_SOVEREIGN' ? 'POISON' : 'SOUL_DIVINE', 0.05, 1.15);

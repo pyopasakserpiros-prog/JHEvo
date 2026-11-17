@@ -1,0 +1,16 @@
+PASS experience modifier is applied once
+PASS active mastery affects derived stats
+PASS inactive guard mastery has no passive defence
+PASS recovery is a single terminal transition
+PASS old receipt cannot count again after 512 events
+PASS all acquired definitions obey the actual core modifier contract
+PASS fresh NPC generation excludes acquired traits before stat evaluation
+PASS completed mining produces experience through its real yield path
+PASS real landed ranged attacks unlock mastery without a grant call
+PASS mercy acts at the real damage/death decision
+PASS life counters and work-step phase survive a current-version save
+PASS life preferences do not mutate RNG or NPC state during scoring
+PASS every active mastery applies its declared modifiers to the stat pipeline
+PASS world-construction evidence does not block later work-step events
+PASS real paid discourse replaces an unreachable fictional chess activity
+PASS advanced real stele study can yield the adapted ancient guidance trait

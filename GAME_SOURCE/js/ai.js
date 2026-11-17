@@ -729,28 +729,28 @@
       ctx = ctx || (n.act && n.act.ctx) || {};
       const c = n.cult, s = n.h.state;
       const passiveBodyPen = (c.path === 'BODY' && ctx && (ctx.passiveSit || ctx.room) && !(c.bodyTemperT > 0 || c.pillT > 0)) ? 0.75 : 1;
-      const r = CULT.rate(n, (ctx.mult || 1) * passiveBodyPen) / 60;
+      const r = CULT.rate(n, (ctx.mult || 1) * passiveBodyPen) / (60 * (SIM.DAY_FACTOR || 1.5));
       CULT.gain(n, r, W, 'cultivate_rate'); if (c.pillT > 0) c.pillT--; if (c.bodyTemperT > 0) c.bodyTemperT--;
       if (c.path === 'XIAN' && (CULT.resolveSubId ? CULT.resolveSubId(c.sub) : c.sub) === 'BLOOD_DEMON' && s && (s.heartDemon || 0) < 95) {
         s.heartDemon = Math.min(95, (s.heartDemon || 0) + 0.025);
       }
       if (CULT.MANTRA_SYSTEM && n.mantraState) CULT.MANTRA_SYSTEM.stepMeditationResonance(W, n);
-      if (CULT.SUPPORT_ARTS && n.supportState && (W.t % 15 === 0)) CULT.SUPPORT_ARTS.stepFacilityAndDailySynergy(W, n);
+      if (CULT.SUPPORT_ARTS && n.supportState && ((W._isNewCalendarMinute !== false && W.t % 15 === 0))) CULT.SUPPORT_ARTS.stepFacilityAndDailySynergy(W, n);
       const eqStage = n._nd ? n._nd.eqStage : ((g.CULT && g.CULT.equivalentStage) ? g.CULT.equivalentStage(n) : (c.stage || 1));
       const eDrain = Math.max(0, (c.path === 'BODY' ? 0.13 : c.path === 'DEMON' ? 0.045 : c.path === 'HEART_SOUL' ? 0.02 : 0.015) - eqStage * 0.01);
       const rDrain = Math.max(0, (c.path === 'HEART_SOUL' ? 0.032 : c.path === 'DEMON' ? 0.025 : 0.02) - eqStage * 0.015);
       s.energy = Math.max(0, s.energy - eDrain);
       if (rDrain > 0) s.rest = Math.max(0, s.rest - rDrain);
       if (c.path === 'BODY') {
-        if (W.t % 20 === 0) { HC.trainBody(n, 'strength', 1.2); HC.trainBody(n, 'toughness', 1.2); HC.trainBody(n, 'endurance', 1.0); }
+        if ((W._isNewCalendarMinute !== false && W.t % 20 === 0)) { HC.trainBody(n, 'strength', 1.2); HC.trainBody(n, 'toughness', 1.2); HC.trainBody(n, 'endurance', 1.0); }
       } else if (c.path === 'DEMON') {
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           const dSkill = c.sub === 'VENOM_GU_SOVEREIGN' ? 'POISON' : c.sub === 'SHADOW_ASSASSIN' ? 'stealth' : 'SOUL_DIVINE';
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, dSkill, 0.08, 1.1);
           HC.trainMind(n, 'willpower', 0.6);
           HC.trainBody(n, 'explosiveness', 0.6);
         }
-        if (W.t % 60 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 60 === 0)) {
           s.heartDemon = clamp((s.heartDemon || 0) + 0.35, 0, 100);
           if (s.heartDemon >= 78 && W.rng.chance(0.06)) {
             s.hp = Math.max(1, s.hp - CULT.hpMax(n) * 0.08);
@@ -761,7 +761,7 @@
       } else if (c.path === 'HEART_SOUL') {
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.035);
         s.stress = Math.max(0, (s.stress || 0) - 0.012);
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           const hsSkill = c.sub === 'CALLIGRAPHY_PAINTING_SAGE' ? 'arts' : 'SOUL_DIVINE';
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, hsSkill, 0.08, 1.15);
           HC.trainMind(n, 'focus', 1.2);
@@ -779,31 +779,31 @@
           }
           n.mechState.overclockReady = n.mechState.charge >= 50;
         }
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'FORGING', 0.06, 1.1);
           HC.trainBody(n, 'dexterity', 0.8);
         }
       } else if (c.path === 'KARMA_SAMSARA') {
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.03);
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 0.07, 1.1);
           HC.gainWisdom(n, 0.006);
         }
       } else if (c.path === 'BEAST_SOVEREIGN') {
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'BEAST_TAMING', 0.08, 1.15);
           if (Array.isArray(n.pets)) n.pets.forEach(pt => { if (pt) { pt.fatigue = Math.max(0, (pt.fatigue || 0) - 1.5); pt.bond = Math.min(100, (pt.bond || 60) + 0.2); pt.loyalty = Math.round(pt.bond); if (pt.hpMax) pt.hp = pt.hpMax; } });
         }
       } else if (c.path === 'SAGE_SUPPORT') {
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.04);
         s.stress = Math.max(0, (s.stress || 0) - 0.02);
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'MEDICINE', 0.08, 1.15);
           HC.gainWisdom(n, 0.005);
         }
       } else if (c.path === 'CRAFT_CREATION') {
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.035);
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           const crSk = (c.sub === 'PILL_FURNACE_IMMORTAL' || c.sub === 'POISON_VENOM_CAULDRON' || (n.h.skills.ALCHEMY || 0) > (n.h.skills.FORGING || 0)) ? 'ALCHEMY' : (c.sub === 'RUNE_ARRAY_ENGRAVER' ? 'ARRAY' : 'FORGING');
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, crSk, 0.08, 1.18);
           HC.trainBody(n, 'dexterity', 0.8);
@@ -811,7 +811,7 @@
         }
       } else if (c.path === 'ARRAY_TALISMAN') {
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.035);
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           const arSk = (n.h.skills.TALISMAN || 0) > (n.h.skills.ARRAY || 0) ? 'TALISMAN' : 'ARRAY';
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, arSk, 0.08, 1.18);
           HC.trainMind(n, 'comprehension', 0.9);
@@ -819,7 +819,7 @@
         }
       } else if (c.path === 'STRATEGY_GOVERNANCE') {
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.04);
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 0.06, 1.15);
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'administration', 0.06, 1.15);
           HC.trainMind(n, 'planning', 0.9);
@@ -831,7 +831,7 @@
         const isBuddha = c.path === 'BUDDHA_DHARMA';
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - (isBuddha ? 0.06 : 0.03));
         if (isBuddha) s.stress = Math.max(0, (s.stress || 0) - 0.012);
-        if (W.t % 25 === 0) {
+        if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
           if (pc && pc.s1) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, pc.s1, 0.075, 1.15);
           if (pc && pc.s2) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, pc.s2, 0.055, 1.10);
           HC.trainMind(n, (pc && pc.mind) || 'focus', isBuddha ? 1.15 : 0.9);
@@ -839,9 +839,9 @@
         }
       }
       s.stress = Math.max(0, s.stress - 0.012);
-      if (W.t % 15 === 0) { s.mp = (s.mp || 0); }
+      if ((W._isNewCalendarMinute !== false && W.t % 15 === 0)) { s.mp = (s.mp || 0); }
       // อาจเกิดจิตมาร/ตื่นรู้เล็กน้อย
-      if (W.t % 60 === 0) {
+      if ((W._isNewCalendarMinute !== false && W.t % 60 === 0)) {
         if (n.demonPact && W.rng.chance((n.demonPact.backlashRisk || 0.08) * 0.25)) {
           s.heartDemon = clamp((s.heartDemon || 0) + 3, 0, 100);
         }
@@ -863,7 +863,7 @@
         }
         s.qi = Math.min(qm, (s.qi || 0) + 0.4);
       }
-      if (W.t % 60 === 0 && c.mantra && g.SK && g.SK.gainMastery) {
+      if ((W._isNewCalendarMinute !== false && W.t % 60 === 0) && c.mantra && g.SK && g.SK.gainMastery) {
         g.SK.gainMastery(W, n, c.mantra, 0.35);
       }
       const _gpd = CULT.getPathDescriptor && CULT.getPathDescriptor(c.path);
@@ -942,7 +942,7 @@
     tick(n, W) {
       n.h.state.energy = Math.max(10, n.h.state.energy - 0.01);
       n.h.state.stress += 0.01;
-      if (CULT.TRIBULATION && n.tribulationState && n.tribulationState.active) {
+      if (CULT.TRIBULATION && n.tribulationState && n.tribulationState.active && !n.tribulationState.standaloneRitual) {
         CULT.TRIBULATION.tick(W, n);
       }
     },
@@ -960,7 +960,7 @@
       n.lastTribulationOutcome = null;
       n.sealedBt = false;
       if (hadRealTrib && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent && !n.dead && !res.died) {
-        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'TRIBULATION_SURVIVED_OR_SCARRED', 'bt:' + (W.day || 0) + ':' + c.stage);
+        g.CULT.EXPERIENCE_TRAITS.emit(W, n, 'TRIBULATION_SURVIVED_OR_SCARRED');
       }
       const btThreadId = 'thread:cult:' + n.id + ':' + (res.ok ? Math.max(1, c.stage - 1) : c.stage);
       const btThreadTitle = 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(n);
@@ -1041,9 +1041,9 @@
     tick(n, W, ctx) {
       const s = n.h.state; const head = SECT.holder(W, 'martial'); const q = 1 + (head && !head.dead ? 0.25 + E(head, 'social.teaching') / 300 : 0) + 0.1 * (W.map.byId.training_ground.level - 1);
       (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, ctx.skill, 1 / 60, q);
-      if (n.cult && n.cult.path === 'BODY') CULT.gain(n, CULT.rate(n, 3.5) / 60, W, 'body_practice');
-      if (W.t % 25 === 0) { HC.trainBody(n, 'strength', 1); HC.trainBody(n, 'reflex', 1); HC.trainBody(n, 'agility', 1); HC.trainBody(n, 'explosiveness', 0.8); }
-      if (W.t % 45 === 0 && n.cult && Array.isArray(n.cult.techs) && n.cult.techs.length && g.SK && g.SK.gainMastery) {
+      if (n.cult && n.cult.path === 'BODY') CULT.gain(n, CULT.rate(n, 3.5) / (60 * (SIM.DAY_FACTOR || 1.5)), W, 'body_practice');
+      if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) { HC.trainBody(n, 'strength', 1); HC.trainBody(n, 'reflex', 1); HC.trainBody(n, 'agility', 1); HC.trainBody(n, 'explosiveness', 0.8); }
+      if ((W._isNewCalendarMinute !== false && W.t % 45 === 0) && n.cult && Array.isArray(n.cult.techs) && n.cult.techs.length && g.SK && g.SK.gainMastery) {
         const activeIds = (g.MARTIAL && g.MARTIAL.activeTechs) ? g.MARTIAL.activeTechs(n) : n.cult.techs;
         const multiTech = activeIds.map(id => CULT.tech(id)).find(t => t && !t.passive && t.cat !== 'PASSIVE' && ((Array.isArray(t.moveDefs) && t.moveDefs.length > 1) || (Array.isArray(t.stages) && t.stages.length > 1)));
         if (multiTech) g.SK.gainMastery(W, n, multiTech.id, 0.5);
@@ -1086,8 +1086,8 @@
     dur: n => 100 + Math.round(E(n, 'intellect.focus') * 0.5),
     start(n, W, ctx) { if (n.cult && !n.cult.learning) { const t = AI.nextTechToStudy(W, n); if (t) n.cult.learning = { id: t.id, need: CULT.studyCost(t, n), got: 0 }; } return true; },
     tick(n, W) {
-      const s = n.h.state; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 60, 1); if (W.t % 5 === 0) { if (E(n, 'affinities.ARRAY') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'ARRAY', 5 / 90, 1); if (E(n, 'affinities.TALISMAN') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'TALISMAN', 5 / 90, 1); }
-      if (W.t % 40 === 0) { HC.trainMind(n, 'comprehension', 1); HC.trainMind(n, 'memory', 0.8); HC.gainWisdom(n, 0.003); }
+      const s = n.h.state; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'SCRIPTURE', 1 / 60, 1); if ((W._isNewCalendarMinute !== false && W.t % 5 === 0)) { if (E(n, 'affinities.ARRAY') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'ARRAY', 5 / 90, 1); if (E(n, 'affinities.TALISMAN') >= 55) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'TALISMAN', 5 / 90, 1); }
+      if ((W._isNewCalendarMinute !== false && W.t % 40 === 0)) { HC.trainMind(n, 'comprehension', 1); HC.trainMind(n, 'memory', 0.8); HC.gainWisdom(n, 0.003); }
       const c = n.cult;
       if (c && c.learning) {
         const learnT = CULT.tech(c.learning.id);
@@ -1116,7 +1116,7 @@
       }
       if (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
         const studyEvKey = n._justCompletedStudyId ? ('tech:' + n._justCompletedStudyId) : ('tick:' + W.t);
-        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, n, 'MANUAL_STUDY_AND_ARCHIVE', studyEvKey);
+        g.CULT.EXPERIENCE_TRAITS.emit(W, n, 'MANUAL_STUDY_AND_ARCHIVE');
         n._justCompletedStudyId = null;
       }
       if (g.ELEM && n.cult) {
@@ -1218,7 +1218,7 @@
         const r = ECO.recipeById[ctx.rid];
         return !!r && ECO.craftEligible(W, n, r, hall) && (n.h.skills[r.craft] || 0) + 20 >= r.minMastery && ECO.reserveInputs(W, r, ctx, n);
       },
-      tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); n.h.state.rest -= 0.02; AI.vf(n, { knowledgeCraft: 0.05, sectDuty: 0.02 }); if (W.t % 45 === 0) HC.trainBody(n, 'dexterity', 0.8); if (n.cult && (n.cult.path === 'CRAFT_CREATION' || (Array.isArray(n.cult.techs) && n.cult.techs.includes('PASS_CROSS_CRAFT_004')))) { const cMult = n.cult.path === 'CRAFT_CREATION' ? 1.35 : 0.65; CULT.gain(n, CULT.rate(n, cMult) / 60, W, 'craft_tick'); } if (n.cult && n.cult.path === 'BODY' && hall === 'forge') { CULT.gain(n, CULT.rate(n, 3.5) / 60, W, 'body_forge'); if (W.t % 30 === 0) HC.trainBody(n, 'strength', 0.6); } },
+      tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.04); n.h.state.rest -= 0.02; AI.vf(n, { knowledgeCraft: 0.05, sectDuty: 0.02 }); if ((W._isNewCalendarMinute !== false && W.t % 45 === 0)) HC.trainBody(n, 'dexterity', 0.8); if (n.cult && (n.cult.path === 'CRAFT_CREATION' || (Array.isArray(n.cult.techs) && n.cult.techs.includes('PASS_CROSS_CRAFT_004')))) { const cMult = n.cult.path === 'CRAFT_CREATION' ? 1.35 : 0.65; CULT.gain(n, CULT.rate(n, cMult) / (60 * (SIM.DAY_FACTOR || 1.5)), W, 'craft_tick'); } if (n.cult && n.cult.path === 'BODY' && hall === 'forge') { CULT.gain(n, CULT.rate(n, 3.5) / (60 * (SIM.DAY_FACTOR || 1.5)), W, 'body_forge'); if ((W._isNewCalendarMinute !== false && W.t % 30 === 0)) HC.trainBody(n, 'strength', 0.6); } },
       done(n, W, ctx) {
         if (ctx && ctx.catalystRefine) {
           const refRes = ECO.refineGearWithCatalyst ? ECO.refineGearWithCatalyst(W, ctx.gearUid, ctx.catalystId, n) : null;
@@ -1290,7 +1290,7 @@
     dur: n => 150 + Math.round(E(n, 'personality.discipline') * 0.8),
     tick(n, W, ctx) {
       n.h.state.energy = Math.max(0, n.h.state.energy - 0.06); n.h.state.rest -= 0.03; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'herbalism', 1 / 60, 1);
-      if (W._isNewCalendarMinute !== false && W.t % 60 === 0) {
+      if ((W._isNewCalendarMinute !== false && W.t % 60 === 0)) {
         const isHus = !!(n.cult && (n.cult.path === 'SPIRIT_HUSBANDRY' || n.cult.sub === 'IMMORTAL_HERB_PLANTER' || n.cult.sub === 'SPIRIT_GRAIN_SOVEREIGN'));
         const harvestHours = isHus ? 1.35 : 1;
         if (ctx.herb) {
@@ -1335,8 +1335,8 @@
     dur: () => 200,
     tick(n, W, ctx) {
       n.h.state.energy = Math.max(0, n.h.state.energy - 0.09); n.h.state.rest -= 0.03; (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'mining', 1 / 60, 1);
-      if (n.cult && n.cult.path === 'BODY') CULT.gain(n, CULT.rate(n, 3.5) / 60, W, 'body_mine');
-      if (W._isNewCalendarMinute !== false && W.t % 60 === 0) { const r = ECO.mineYield(W, n, 1); ctx.got = (ctx.got || 0) + r.out.length; if (W.rng.chance(0.012 * (1 - E(n, 'intellect.perceptiveness') / 160))) AI.injure(W, n, 1, 'ถ้ำถล่มเล็กน้อย'); HC.trainBody(n, 'strength', 0.9); }
+      if (n.cult && n.cult.path === 'BODY') CULT.gain(n, CULT.rate(n, 3.5) / (60 * (SIM.DAY_FACTOR || 1.5)), W, 'body_mine');
+      if ((W._isNewCalendarMinute !== false && W.t % 60 === 0)) { const r = ECO.mineYield(W, n, 1); ctx.got = (ctx.got || 0) + r.out.length; if (W.rng.chance(0.012 * (1 - E(n, 'intellect.perceptiveness') / 160))) AI.injure(W, n, 1, 'ถ้ำถล่มเล็กน้อย'); HC.trainBody(n, 'strength', 0.9); }
       AI.vf(n, { sectDuty: 0.02, wealthResource: 0.05 });
       if (n.h.state.energy < 14) return 'done';
     },
@@ -1417,7 +1417,7 @@
     },
     done(n, W) { const ok = g.COG ? g.COG.performDuty(W, n) : false; W.sect.lastDuty[n.id] = W.t; if (ok) { n.merit += 2; W.sect.efficiency = (W.sect.efficiency || 0) + 1; } else { n.merit += 0.5; } }
   };
-  AI.teachClass = (W, n) => { /* หัวหน้าหอยุทธ์ได้ทักษะสอน + ฝึกลูกศิษย์ใกล้ ๆ ผ่าน q ใน practice */ if (W.t % 30 === 0) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'diplomacy', 0.2, 0.5); };
+  AI.teachClass = (W, n) => { /* หัวหน้าหอยุทธ์ได้ทักษะสอน + ฝึกลูกศิษย์ใกล้ ๆ ผ่าน q ใน practice */ if ((W._isNewCalendarMinute !== false && W.t % 30 === 0)) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'diplomacy', 0.2, 0.5); };
 
   A.guard = {
     nameTh: 'เฝ้ายาม', icon: '🛡️', color: '#6b9ac4',
@@ -1433,7 +1433,7 @@
     },
     where: (W, n) => { const s = AI.freeStation(W, n, 'guard', ['gate', 'tower0', 'tower1', 'tower2', 'tower3', 'discipline']); return s ? { st: s } : null; },
     dur: () => 240,
-    tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.025); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'survival', 1 / 80, 0.8); AI.vf(n, { sectDuty: 0.05, honorLegacy: .02 }); if (W.t % 30 === 0) HC.trainMind(n, 'perceptiveness', 0.8); },
+    tick(n, W, ctx) { n.h.state.energy = Math.max(0, n.h.state.energy - 0.025); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'survival', 1 / 80, 0.8); AI.vf(n, { sectDuty: 0.05, honorLegacy: .02 }); if ((W._isNewCalendarMinute !== false && W.t % 30 === 0)) HC.trainMind(n, 'perceptiveness', 0.8); },
     done(n, W) { n.merit += 1.8; }
   };
   A.heal = {
@@ -1450,10 +1450,12 @@
     where: (W, n) => { const s = AI.freeStation(W, n, 'patient', 'infirmary'); return s ? { st: s } : null; },
     dur: () => 360,
     tick(n, W) {
+      const healedBefore=n.h.state.hp;
       const s = n.h.state, hm = CULT.hpMax(n); const healer = SECT.holder(W, 'healer'); const k = 3 + (healer && !healer.dead ? E(healer, 'intellect.comprehension') / 60 : 0) + W.map.byId.infirmary.level * 0.3;
       s.hp = Math.min(hm, s.hp + hm * 0.00012 * k * (0.6 + E(n, 'physiology.recoveryRate') / 100) * (g.MARTIAL && healer ? g.MARTIAL.lifeMult(healer, 'MEDICINE') * g.MARTIAL.skillEffects(healer).medicine : 1)); s.rest = Math.min(100, s.rest + 0.05);
+      if(healer && !healer.dead && s.hp>healedBefore)CULT.EXPERIENCE_TRAITS.onHealed(W,healer,n,s.hp-healedBefore,healedBefore/hm);
       if (n.inj) n.inj.forEach(i => { i.until -= 3.2; });
-      if (healer && !healer.dead && W.t % 120 === 0) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(healer, 'MEDICINE', 0.5, 1.2);
+      if (healer && !healer.dead && (W._isNewCalendarMinute !== false && W.t % 120 === 0)) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(healer, 'MEDICINE', 0.5, 1.2);
       if (s.hp >= hm * 0.97 && (!n.inj || !n.inj.length)) return 'done';
     },
     done(n, W) {
@@ -1641,7 +1643,7 @@
     tick(n, W, ctx) {
       const s = n.h.state; s.stress = Math.max(0, s.stress - 0.1 * (ctx.mode === 'music' && g.MARTIAL ? g.MARTIAL.skillEffects(n).music : 1)); s.mood = Math.min(100, s.mood + 0.09 * (ctx.mode === 'music' && g.MARTIAL ? g.MARTIAL.skillEffects(n).music : 1)); s.novelty = Math.min(100, s.novelty + 0.08);
       if (ctx.mode === 'music') { (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'arts', 1 / 60, 1); AI.vf(n, { freedom: .03 }); }
-      if (ctx.mode === 'fish' && W._isNewCalendarMinute !== false && W.t % 90 === 0 && W.rng.chance(0.4)) ECO.add(W, 'meal', 2);
+      if (ctx.mode === 'fish' && (W._isNewCalendarMinute !== false && W.t % 90 === 0) && W.rng.chance(0.4)) ECO.add(W, 'meal', 2);
       AI.vf(n, { freedom: 0.035 }); s.energy = Math.min(100, s.energy + 0.05);
     }
   };
@@ -1695,7 +1697,7 @@
     score(n, W, S) { S.add('งานเลี้ยงสำนัก', 1.4 + (E(n, 'temperament.sociability') - 50) / 100 + (E(n, 'interests.socializing') - 50) / 120 - (E(n, 'interests.solitude') - 50) / 200); },
     where: (W, n) => { const s = AI.freeStation(W, n, 'stroll', 'plaza'); return s ? { st: s } : { pos: { x: W.map.byId.plaza.x + 8 + (n.id.charCodeAt(1) % 14), y: W.map.byId.plaza.y + 4 + (n.id.charCodeAt(2) % 8) } }; },
     dur: () => 120,
-    tick(n, W) { const s = n.h.state; s.mood = Math.min(100, s.mood + 0.12); s.social = Math.min(100, s.social + 0.18); s.novelty = Math.min(100, s.novelty + 0.08); s.stress = Math.max(0, s.stress - 0.1); s.satiety = Math.min(100, s.satiety + 0.1); AI.vf(n, { familyClan: .08, freedom: .02 }); if (W.t % 20 === 0) { const o = AI.nearbyOther(W, n, 3); if (o) { AI.interact(W, n, o, 'chat', 0.6); if (g.COG && g.COG.shareKnowledgeOnInteract) g.COG.shareKnowledgeOnInteract(W, n, o, 'chat'); } } }
+    tick(n, W) { const s = n.h.state; s.mood = Math.min(100, s.mood + 0.12); s.social = Math.min(100, s.social + 0.18); s.novelty = Math.min(100, s.novelty + 0.08); s.stress = Math.max(0, s.stress - 0.1); s.satiety = Math.min(100, s.satiety + 0.1); AI.vf(n, { familyClan: .08, freedom: .02 }); if ((W._isNewCalendarMinute !== false && W.t % 20 === 0)) { const o = AI.nearbyOther(W, n, 3); if (o) { AI.interact(W, n, o, 'chat', 0.6); if (g.COG && g.COG.shareKnowledgeOnInteract) g.COG.shareKnowledgeOnInteract(W, n, o, 'chat'); } } }
   };
   A.opportunity = {
     nameTh: 'พิจารณาวาสนาและภารกิจ', icon: '💭', color: '#9dc5b1',
@@ -2259,6 +2261,7 @@
   function _buildWhy(W, n, id, recLen, lastRec, repPenBase) {
     const S = Sc();
     A[id].score(n, W, S);
+    if(CULT.EXPERIENCE_TRAITS.activityBias)CULT.EXPERIENCE_TRAITS.activityBias(W,n,id,S);
     _pathActionBias(W, n, id, S);
     if (g.COG) g.COG.modifiers(W, n, id, S);
     if (recLen && id !== 'pair') {
@@ -2310,6 +2313,7 @@
       if (a.can && !a.can(n, W)) continue;
       _FastS.u = 0;
       a.score(n, W, _FastS);
+      if(CULT.EXPERIENCE_TRAITS.activityBias)CULT.EXPERIENCE_TRAITS.activityBias(W,n,id,_FastS);
       _pathActionBias(W, n, id, _FastS);
       if (g.COG) g.COG.modifiers(W, n, id, _FastS);
       if (recLen) {
@@ -2460,7 +2464,7 @@
     s.anger = Math.max(0, s.anger - 0.03); s.fear = Math.max(0, s.fear - 0.05);
     if (n.jail && n.jail > W.t && s.satiety < 40 && ECO.take(W, 'meal', 1)) s.satiety = Math.min(100, s.satiety + 60);
     // หิวจัด/ขาดการพักผ่อนทำลายสุขภาพ
-    if (s.satiety <= 2) { s.hp -= 0.12; s.stress += 0.02; if (W.t % 720 === 0 && s.hp < 5) AI.kill(W, n, 'อดอยาก'); }
+    if (s.satiety <= 2) { s.hp -= 0.12; s.stress += 0.02; if ((W._isNewCalendarMinute !== false && W.t % 720 === 0) && s.hp < 5) AI.kill(W, n, 'อดอยาก'); }
     if (s.rest <= 1) { s.energy = Math.max(0, s.energy - 0.05); }
     // ฟื้นฟูทั่วไป
     if (id !== 'sleep' && id !== 'heal') { const hm = nr.hpMax; if (s.hp < hm && s.satiety > 15) s.hp = Math.min(hm, s.hp + hm * nr.recK); }

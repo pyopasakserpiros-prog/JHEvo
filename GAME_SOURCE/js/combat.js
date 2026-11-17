@@ -1378,11 +1378,12 @@
         d.fx = { t: W.t, text: '💨 สลายร่าง' };
         return true;
       }
+      const aMasteryMercy = !!(a && !a.foe && !d.wild && d.kind!=='beast' && C.ACTION_MASTERY_TRAITS.isActiveTrait(a,'TRAIT_NONLETHAL_SUBDUER'));
       const aPacifistOath = !!(a && !a.foe && ((a.daoOath && a.daoOath.upheld && (a.daoOath.id === 'VOW_NO_KILL' || a.daoOath.id === 'VEGETARIAN_PACIFIST')) || (a.voluntaryVows && a.voluntaryVows.VOW_NO_KILL && a.voluntaryVows.VOW_NO_KILL.active)) && ((a.h && a.h.state && a.h.state.heartDemon) || 0) < 70 && !d.wild && d.kind !== 'beast');
-      if (nonlethal || (!d.foe && !f.serious) || aPacifistOath) {
+      if (nonlethal || (!d.foe && !f.serious) || aPacifistOath || aMasteryMercy) {
         hp = Math.max(1, Math.round(hm * 0.04));
         d.yield = true;
-        if (aPacifistOath) {
+        if (aPacifistOath || aMasteryMercy) {
           if (d.foe) d.fled = true;
           a.fx = { t: W.t, text: '🙏 ยั้งมือไว้ชีวิต!' };
         }
@@ -1444,7 +1445,7 @@
         bTac.interceptCount = (bTac.interceptCount || 0) + 1;
         if (!blk.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, blk, 'coverCount', 1);
     if (!blk.foe && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
-      g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, blk, 'PROTECTED_SECLUSION_OR_ALLY', 'tick:' + W.t + ':' + a.id + ':' + d.id);
+      g.CULT.EXPERIENCE_TRAITS.emit(W, blk, 'PROTECTED_SECLUSION_OR_ALLY');
     }
         const ft = C.ensureFightTac(f, tNow);
         ft.stats.losBlocks = (ft.stats.losBlocks || 0) + 1;
@@ -1530,7 +1531,7 @@
       gTac.interceptCount = (gTac.interceptCount || 0) + 1;
       if (!gUnit.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, gUnit, 'coverCount', 1);
       if (!gUnit.foe && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
-        g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, gUnit, 'PROTECTED_SECLUSION_OR_ALLY', 'bg:' + tNow + ':' + a.id + ':' + d.id);
+        g.CULT.EXPERIENCE_TRAITS.emit(W, gUnit, 'PROTECTED_SECLUSION_OR_ALLY');
       }
       if (!gUnit.foe && gUnit.h && gUnit.h.state) {
         gUnit.h.state.energy = Math.max(0, (gUnit.h.state.energy || 20) - 2.5);
@@ -1558,7 +1559,7 @@
       if (!gUnit.foe && W.sect && W.sect.vanguardPosture === 'IRON_SHIELD_WALL') {
         dmgMult = 0.70;
       }
-      if (!gUnit.foe && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.hasTrait && g.CULT.EXPERIENCE_TRAITS.hasTrait(gUnit, 'EXP_TRAIT_COMPANION_GUARDIAN')) {
+      if (!gUnit.foe && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.hasTrait && g.CULT.EXPERIENCE_TRAITS.hasBurden(gUnit, 'EXP_TRAIT_COMPANION_GUARDIAN')) {
         dmgMult = +(dmgMult * 1.10).toFixed(3);
       }
       return { interceptor: gUnit, kind: 'BODYGUARD_INTERCEPT', dmgMult, reasonTh, interceptChance: bestGuard.interceptChance, interceptCap: 0.85 };
@@ -1582,7 +1583,9 @@
     return true;
   };
   C.hit = C.strike = (W, f, a, d, o) => {
-    o = o || {};
+    o = Object.assign({}, o || {});
+    o.lifeBeforeHp=C.hp(d); o.lifeShield=(shieldOf(d)||{}).amt||0;
+    o.lifeBroken=d.anatomyParts?Object.values(d.anatomyParts).filter(x=>x&&x.broken).length:0;
     let originalTarget = d;
     const moveSpecCheck = o.moveSpec || ((o.skill && SKs() && SKs().resolveMoveSpatialSpec) ? SKs().resolveMoveSpatialSpec(o.skill, a) : null);
     if (f && !o.forced && moveSpecCheck && moveSpecCheck.requiresLoS && !moveSpecCheck.ignoresObstacles && a && d && Number.isFinite(a.x) && Number.isFinite(d.x)) {
@@ -1638,6 +1641,7 @@
       d._lastDodgeOrParryAt = W.t;
       if (!d.foe) HC.trainBody(d, 'reflex', 0.3);
       runPassiveProcs(W, f, d, a, 'onDodge', 0);
+      if (C.noteMastery) C.noteMastery(W,f,d,'dodgeCount',1,a);
       return { hit: false };
     }
     if (!o.forced && !d.foe && d.cult && d.cult.sub === 'TIME_VOID') {
@@ -1664,7 +1668,7 @@
         if (!d.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, d, 'parryCount', 1);
         C.tryTransferStatusOnParry(W, d, a);
         runPassiveProcs(W, f, d, a, 'onParry', 0);
-        const parryBonusM = (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(d, 'TRAIT_PARRY_COUNTER')) ? 1.15 : 1.0;
+        const parryBonusM = (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.isActiveTrait(d, 'TRAIT_PARRY_COUNTER')) ? 1.15 : 1.0;
         C.strike(W, f, d, a, { M: 1.45 * parryBonusM, type: 'm', pen: 25, forced: true, noCounter: true, noReflect: true, noProc: true });
         return { hit: false, countered: true, astralMirage: true };
       }
@@ -1676,7 +1680,7 @@
         if (!d.foe && C.ACTION_MASTERY_TRAITS) C.ACTION_MASTERY_TRAITS.recordAction(W, d, 'parryCount', 1);
         C.tryTransferStatusOnParry(W, d, a);
         runPassiveProcs(W, f, d, a, 'onParry', 0);
-        const parryBonusM = (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(d, 'TRAIT_PARRY_COUNTER')) ? 1.15 : 1.0;
+        const parryBonusM = (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.isActiveTrait(d, 'TRAIT_PARRY_COUNTER')) ? 1.15 : 1.0;
         C.strike(W, f, d, a, { M: cs.M * parryBonusM, type: cs.type, pen: cs.pen, forced: true, noCounter: true, noReflect: true, noProc: true });
         return { hit: false, countered: true };
       }
@@ -1908,7 +1912,7 @@
     }
     if (f && C.ACTION_MASTERY_TRAITS) {
       const dAllies = C.alliesOf(W, f, d.id);
-      if (dAllies.some(al => al && al.id !== d.id && !al.foe && C.alive(al) && C.unitDist(al, d) <= 2.8 && C.ACTION_MASTERY_TRAITS.hasTrait(al, 'TRAIT_VANGUARD_GUARD'))) {
+      if (dAllies.some(al => al && al.id !== d.id && !al.foe && C.alive(al) && C.unitDist(al, d) <= 2.8 && C.ACTION_MASTERY_TRAITS.isActiveTrait(al, 'TRAIT_VANGUARD_GUARD'))) {
         frac *= 0.88;
       }
     }
@@ -2235,6 +2239,7 @@
       }
       if (C.hp(d) <= C.hpMax(d) * 0.35 && C.alive(d)) runPassiveProcs(W, f, d, a, 'onLowHp', dmg);
     }
+    C.observeLifeHit(W,f,a,d,o,{hit:true,dmg,crit,killed});
     return {
       hit: true, dmg, crit, killed, lifesteal, reflected,
       actualReceiverId: d.id,
@@ -2642,6 +2647,11 @@
     return w;
   }
   function useSkill(W, f, a, d, p, ctx) {
+    const old=C.lifeStatusContext;
+    if(W && W.byId && a) C.lifeStatusContext={W,f,actor:a};
+    try { return useSkillImpl(W,f,a,d,p,ctx); } finally { C.lifeStatusContext=old; }
+  }
+  function useSkillImpl(W, f, a, d, p, ctx) {
     if (W && (W.h || W.foe) && f && (f.h || f.foe) && a && a.id && (!p || !p.id)) {
       const realW = d || { t: (g.STATS && g.STATS.now) || 0, rng: { chance: () => false, next: () => 0.5 }, byId: {} };
       const realA = W;
@@ -2915,17 +2925,18 @@
         if (idx === 0) { a.castFx.x = tgt.x; a.castFx.y = tgt.y; }
         const thm = C.hpMax(tgt);
         const beforeFrac = C.hp(tgt) / Math.max(1, thm);
-        if (beforeFrac < 0.25 && !a.foe && C.ACTION_MASTERY_TRAITS) {
-          C.ACTION_MASTERY_TRAITS.recordAction(W, a, 'clutchHealCount', 1);
-        }
-        const medicMult = (!a.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(a, 'TRAIT_COMBAT_MEDIC')) ? 1.20 : 1.0;
+        const medicMult = (!a.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.isActiveTrait(a, 'TRAIT_COMBAT_MEDIC')) ? 1.20 : 1.0;
         const ashenMult = C.healMultiplier ? C.healMultiplier(tgt, W.t) : (ST.has(tgt, 'ashenToxin', W.t) ? 0.5 : (ST.has(tgt, 'stygianFreeze', W.t) ? 0 : 1.0));
         const healAmt = Math.max(0, Math.round(thm * (p.heal || 0.22) * sageBonus * medicMult * ashenMult));
         if (a.wild && p.beastNativeAbility && p.overhealBarrier) {
           const excess = Math.max(0, healAmt - thm * (1-beforeFrac));
           if (excess > 0) ST.addStatus(tgt,'shield',12,{amt:Math.round(Math.min(thm*0.12,excess*0.5))},W.t);
         }
-        if (healAmt > 0) C.setHp(tgt, Math.min(thm, C.hp(tgt) + healAmt));
+        if (healAmt > 0) {
+          const actual=Math.min(healAmt,Math.max(0,thm-C.hp(tgt)));
+          C.setHp(tgt, Math.min(thm, C.hp(tgt) + healAmt));
+          if(actual>0) { const ft=C.ensureFightTac(f,W.t);(f.lifeSupport||(f.lifeSupport={}))[a.id]=true; CULT.EXPERIENCE_TRAITS.onHealed(W,a,tgt,actual,beforeFrac); }
+        }
         if (p.shield > 0) ST.addStatus(tgt, 'shield', 12, { amt: Math.round(thm * p.shield * stanceShieldMult) }, W.t);
         const beforeSx = tgt.sx ? tgt.sx.length : 0;
         ST.clearStatus(tgt, x => { const S = SK.STATUS[x.k]; return S && (S.dot || ['slow', 'weaken', 'blind', 'armorbreak', 'mdefbreak', 'silence', 'stun'].includes(x.k)); });
@@ -3344,6 +3355,7 @@
   C.interruptChannel = (W, f, u, reason, interrupter) => {
     if (!u || !u.act || !u.act.ctx || !u.act.ctx.channeling) return false;
     const ch = u.act.ctx.channeling;
+    if (interrupter && C.noteMastery) C.noteMastery(W,f,interrupter,'interruptCount',1,u);
     STs().clearStatus(u, x => x.k === 'channeling');
     u.act.ctx.cds = u.act.ctx.cds || {};
     u.act.ctx.cds[ch.skillId] = W.t + Math.round(((ch.skill && ch.skill.cd) || 16) * 0.65);
@@ -3429,6 +3441,7 @@
         C.COMPOSABLE_ENGINE.postHitSkill(W, f, a, actualT, ch.skill, r);
       }
     }
+    if(isFinal && r.hit && C.noteMastery)C.noteMastery(W,f,a,'completedChannels',1,t);
     if (isFinal && ch.isChargedSkill) {
       a.lastChargedRelease = { t: W.t, skillId: ch.skillId, mult: mult, releaseMult: ch.releaseMult || 1.65, targetId: t.id, targetX: t.x, targetY: t.y, originX: a.x, originY: a.y };
       const skObj = ch.skill || {};
@@ -3508,6 +3521,11 @@
       }
       victim.dead = true;
       if (f && !victim.isSummon) f._unconsumedCorpses = (f._unconsumedCorpses || 0) + 1;
+      if(killer && !killer.foe && f && f.serious && f.kind!=='spar') {
+        const l=killer.lifeExperience||(killer.lifeExperience={activityDays:{},recovery:{},counters:{}});
+        l.realKills=(l.realKills||0)+1;
+        if(l.realKills>=20 && E(killer,'personality.aggression')>=65) CULT.EXPERIENCE_TRAITS.grantAcquired(W,killer,'TR_AC_SLAUGHTER_INTENT_AURA','real-combat-kills');
+      }
       if (killer && !killer.foe && g.ECO && g.ECO.recordWeaponKill) {
         g.ECO.recordWeaponKill(W, killer, null, victim);
       }
@@ -3642,7 +3660,7 @@
       if (!n.foe && C.ACTION_MASTERY_TRAITS && f && ((f.activeDomain && f.activeDomain.casterId === n.id) || (n.cult && ['ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE'].includes(n.cult.path) && (f.A.length + f.B.length >= 3)))) {
         C.ACTION_MASTERY_TRAITS.recordAction(W, n, 'formationTicks', 1);
       }
-      const formTraitMult = (!n.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(n, 'TRAIT_FORMATION_STRATEGIST')) ? 1.15 : 1.0;
+      const formTraitMult = (!n.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.isActiveTrait(n, 'TRAIT_FORMATION_STRATEGIST')) ? 1.15 : 1.0;
       const qRegen = ((n.cult.path === 'XIAN' ? 0.0075 : 0.006) + (hasConduit ? 0.015 : 0)) * stQiMult * trQiMult * feQiMult * formTraitMult;
       n.h.state.qi = Math.min(qm, n.h.state.qi + qm * qRegen);
     }
@@ -3988,6 +4006,14 @@
         f._founderPhantomInvoked = true;
         if (C.invokeAncestralPhantom) C.invokeAncestralPhantom(W, f, { quiet: false });
       }
+      for(const caster of a.concat(b)) {
+        if(caster.foe)continue;
+        const allies=C.alliesOf(W,f,caster.id).filter(u=>u.id!==caster.id && C.alive(u));
+        if(allies.some(u=>(u.buffs||[]).some(v=>v.casterId===caster.id&&v.until>W.t))) {
+          C.noteMastery(W,f,caster,'aurasMaintainedTicks',1);
+          (f.lifeSupport||(f.lifeSupport={}))[caster.id]=true;
+        }
+      }
       const elapsedFight = W.t - (fTac.combatStartedAt || f.t0);
       const timeout = elapsedFight > (f.kind === 'raid' ? 900 : 300);
 
@@ -4038,6 +4064,7 @@
     if (fTac.concluded) return; // Strict idempotency guard: never pay rewards or record twice
     fTac.concluded = true;
     f.chroniclePayload = C.buildFightChroniclePayload(W, f);
+    if (C.recordLifeConclude) C.recordLifeConclude(W,f);
     const all = [].concat(f.A, f.B).map(id => C.unit(W, id)).filter(Boolean);
     const ws = f.winner; const winners = ws ? (ws === 'A' ? f.A : f.B).map(i => C.unit(W, i)).filter(u => u && !u.dead) : [];
     const losers = ws ? (ws === 'A' ? f.B : f.A).map(i => C.unit(W, i)).filter(Boolean) : [];
@@ -4064,7 +4091,7 @@
           STs().dirty(u);
         }
         if (C.hp(u) < C.hpMax(u) * 0.35 && g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent) {
-          g.CULT.EXPERIENCE_TRAITS.recordExperienceEvent(W, u, 'SURVIVED_HEAVY_DEFEAT', 'fight:' + (f.id || W.t));
+          g.CULT.EXPERIENCE_TRAITS.emit(W, u, 'SURVIVED_HEAVY_DEFEAT');
         }
         C.leave(W, u); u.yield = false; u._cheatDeathSavesCount = 0; u.fled = false;
         if (!u.act || u.act.id === 'fight') u.act = { id: 'idle', stage: 'do', left: 20, total: 20, ctx: {}, why: [] };
@@ -5228,6 +5255,7 @@
     } finally {
       if (f) f._composableDepth = Math.max(0, (f._composableDepth || 1) - 1);
     }
+    if(C.noteMastery && reactDmg>0)C.noteMastery(W,f,a,'reactionsTriggered',1,t);
     return { code: spec.code, id: spec.id, nameTh: spec.nameTh, dmg: reactDmg, tier: (spec.elements || []).length, spec };
   };
 
@@ -6875,6 +6903,10 @@
     caster.fx = { t: tNow, text: '☯️ ' + spec.nameTh + '!' };
     partner.fx = { t: tNow, text: '☯️ ประสานวิชาคู่!' };
     caster.lastDuetSkill = { t: tNow, duetId: spec.id, nameTh: spec.nameTh, partnerId: partner.id, targetId: target.id, dmg, targetX: target.x, targetY: target.y, originX: caster.x, originY: caster.y, partnerX: partner.x, partnerY: partner.y };
+    if(CULT.EXPERIENCE_TRAITS && dmg>0) {
+      CULT.EXPERIENCE_TRAITS.emit(W,caster,'DUET_RESONANCE_CAST',{partnerId:partner.id});
+      CULT.EXPERIENCE_TRAITS.emit(W,partner,'DUET_RESONANCE_CAST',{partnerId:caster.id});
+    }
     return { ok: true, duet: spec, dmg, partnerId: partner.id, targetId: target.id };
   };
 
@@ -7125,7 +7157,10 @@
     };
     const statKey = keyMap[actionKey] || actionKey;
     if (!(statKey in ch)) return { ok: false, reason: 'unknown-action-key' };
-    const inc = Math.max(1, Math.round(Number(amount != null ? amount : 1)));
+    const raw = Number(amount != null ? amount : 1);
+        if (!Number.isFinite(raw) || raw <= 0) return { ok: false, reason: 'invalid-amount' };
+        const inc = Math.round(raw);
+        if (!inc) return { ok: false, reason: 'invalid-amount' };
     ch[statKey] = (ch[statKey] || 0) + inc;
     const res = ACTION_MASTERY_TRAITS.checkAndUnlockTraits(W, npc, opts);
     return {
@@ -7378,7 +7413,7 @@
     const kwD = C.keywordsOf(d);
     if (kwD && kwD.reflectPct > 0) totalPct += kwD.reflectPct;
     if (!d.foe && d.deityPact && d.deityPact.reflectPct > 0) totalPct += d.deityPact.reflectPct;
-    if (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.hasTrait(d, 'TRAIT_PARRY_COUNTER')) totalPct += 0.15;
+    if (!d.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.isActiveTrait(d, 'TRAIT_PARRY_COUNTER')) totalPct += 0.15;
     if (!d.foe && (ST.has(d, 'karmicAegis', W && W.t) || (ST.hasBuff && ST.hasBuff(d, 'karmicAegis', W && W.t)))) totalPct += 0.22;
     const trD = (!d.foe && d.cult && CULT.trackRealm) ? CULT.trackRealm(d) : null;
     if (!d.foe && d.cult) {
@@ -7508,64 +7543,6 @@
 
   g.COMBAT = C;
   if (typeof module === 'object' && module.exports) module.exports = C;
-/* === LIFE_TRAITS_COMBAT_HOOKS_V260 === */
-  const _origSetHpLife = C.setHp;
-  C.setHp = (u, v, ctx) => {
-    if (v <= 0 && u && ctx && ctx.attacker && !ctx.attacker.foe) {
-      const att = ctx.attacker;
-      const isNonLethal = (g.CULT && g.CULT.EXPERIENCE_TRAITS && g.CULT.EXPERIENCE_TRAITS.hasNonLethalSubduer && g.CULT.EXPERIENCE_TRAITS.hasNonLethalSubduer(att))
-        || (att.voluntaryVows && att.voluntaryVows.VOW_NO_KILL && !att.voluntaryVows.VOW_NO_KILL.violated);
-      if (isNonLethal) {
-        v = 1;
-        u.yield = true;
-        u._subduedNonLethal = true;
-      }
-    }
-    return _origSetHpLife(u, v, ctx);
-  };
-
-  const _origConcludeLife = C.conclude;
-  C.conclude = (W, f) => {
-    const wasOver = Boolean(f && f.over);
-    const res = _origConcludeLife(W, f);
-    if (!wasOver && f && f.over && W && g.CULT && g.CULT.EXPERIENCE_TRAITS) {
-      const expApi = g.CULT.EXPERIENCE_TRAITS;
-      const amApi = C.ACTION_MASTERY_TRAITS;
-      const allIds = [].concat(f.A || [], f.B || []);
-      for (const uid of allIds) {
-        const n = W.byId && W.byId[uid];
-        if (!n || n.foe || n.dead) continue;
-        const side = (f.A || []).includes(uid) ? 'A' : 'B';
-        const won = f.winner === side;
-        const hpRatio = C.hp(n) / Math.max(1, C.hpMax(n));
-        if (hpRatio <= 0.15) {
-          expApi.recordCounter(n, 'nearDeathSurvivals', 1);
-          if (won && amApi) amApi.recordCounter(W, n, 'lowHpCounterHits', 2);
-        }
-        if (won) {
-          if (f.kind === 'raid') {
-            expApi.recordCounter(n, 'raidDefenses', 1);
-            if (amApi) amApi.recordCounter(W, n, 'gateDefenseStands', 2);
-          }
-          if ((f.rounds || 0) <= 3 && amApi) {
-            amApi.recordCounter(W, n, 'firstStrikeOpens', 2);
-            amApi.recordCounter(W, n, 'executeConfirmations', 2);
-          }
-          if ((f.rounds || 0) >= 8 && amApi) {
-            amApi.recordCounter(W, n, 'longFightEnduranceRounds', 4);
-          }
-        } else if (f.fled && f.fled === uid) {
-          expApi.recordCounter(n, 'fledCount', 1);
-        } else if (f.winner && f.winner !== side) {
-          if (f.kind === 'duel' || f.kind === 'spar') expApi.recordCounter(n, 'duelLosses', 1);
-        }
-        expApi.evaluateAfterEvent(W, n, 'combat_conclude', { fight: f, won });
-        if (amApi && amApi.reconcileActiveMasteries) amApi.reconcileActiveMasteries(n);
-      }
-    }
-    return res;
-  };
-
 /* === LIVING_JIANGHU_EPITHETS_COMBAT_HOOK_V260 === */
 
   const _origConcludeEp = C.conclude;
@@ -7631,13 +7608,15 @@
 
     /* Autonomous selection of up to 3 active masteries based on NPC path/role/weapon with hysteresis */
     AMT.reconcileActiveMasteries = (W, npc, opts) => {
+      if (!npc && W && W.h) { npc = W; W = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || null; }
       if (!npc || npc.foe) return [];
       opts = opts || {};
       const ch = AMT.ensureHistory(npc);
       const unlocked = ch.unlockedTraits || [];
+      const oldIds = (ch.activeMasteryIds || []).join('|');
+      const publish = ids => { ch.activeMasteryIds = ids; if (oldIds !== ids.join('|') && g.STATS) g.STATS.dirty(npc); return ids; };
       if (unlocked.length <= AMT.MAX_ACTIVE_MASTERIES) {
-        ch.activeMasteryIds = unlocked.slice();
-        return ch.activeMasteryIds;
+        return publish(unlocked.slice());
       }
       const nowT = (W && W.t) || 0;
       if (!opts.force && ch.lastReconciledAt != null && nowT - ch.lastReconciledAt < 60 && ch.activeMasteryIds.length === AMT.MAX_ACTIVE_MASTERIES) {
@@ -7650,16 +7629,15 @@
         if (!spec) return { id: tid, sc: 0 };
         let sc = (ch[spec.statKey] || 1) / Math.max(1, spec.threshold || 10);
         if (cPath === 'SAGE_SUPPORT' && (tid === 'TRAIT_COMBAT_MEDIC' || tid === 'TRAIT_HARMONIC_CHORD_CONDUCTOR' || tid === 'TRAIT_NONLETHAL_SUBDUER')) sc += 5;
-        if ((cPath === 'BODY' || cPath === 'ARENA_GLORY') && (tid === 'TRAIT_VANGUARD_GUARD' || tid === 'TRAIT_POISE_SHATTER_BREAKER' || tid === 'TRAIT_BLOOD_BOIL_SURVIVO' || tid === 'TRAIT_OUTNUMBERED_LONE_WOLF')) sc += 4;
+        if ((cPath === 'BODY' || cPath === 'ARENA_GLORY') && (tid === 'TRAIT_VANGUARD_GUARD' || tid === 'TRAIT_POISE_SHATTER_BREAKER' || tid === 'TRAIT_BLOOD_BOIL_SURVIVOR' || tid === 'TRAIT_OUTNUMBERED_LONE_WOLF')) sc += 4;
         if ((cPath === 'BEAST_SOVEREIGN' || (npc.pets && npc.pets.length)) && tid === 'TRAIT_BEAST_PACK_TACTICIAN') sc += 5;
         if ((cPath === 'MECH_PUPPET' || cPath === 'SOUL_PUPPETRY') && tid === 'TRAIT_PUPPET_SWARM_COMMANDER') sc += 5;
         if (wType === 'BOW' && tid === 'TRAIT_LONG_RANGE_DEADEYE') sc += 5;
         return { id: tid, sc };
       });
       scored.sort((a, b) => b.sc - a.sc || a.id.localeCompare(b.id));
-      ch.activeMasteryIds = scored.slice(0, AMT.MAX_ACTIVE_MASTERIES).map(x => x.id);
       ch.lastReconciledAt = nowT;
-      return ch.activeMasteryIds;
+      return publish(scored.slice(0, AMT.MAX_ACTIVE_MASTERIES).map(x => x.id));
     };
 
     AMT.isActiveTrait = (npc, traitId) => {
@@ -7687,7 +7665,10 @@
       }
       const ch = AMT.ensureHistory(npc);
       if (actionKey in ch) {
-        const inc = Math.max(1, Math.round(Number(amount != null ? amount : 1)));
+        const raw = Number(amount != null ? amount : 1);
+        if (!Number.isFinite(raw) || raw <= 0) return { ok: false, reason: 'invalid-amount' };
+        const inc = Math.round(raw);
+        if (!inc) return { ok: false, reason: 'invalid-amount' };
         ch[actionKey] = (ch[actionKey] || 0) + inc;
         const res = AMT.checkAndUnlockTraits(W, npc, opts);
         AMT.reconcileActiveMasteries(W, npc, opts);
@@ -7724,5 +7705,85 @@
       return { p, f, labelTh: labels.join(' · '), activeIds: act };
     };
   })();
+
+  /* Qualified combat evidence and one-time settlement. All hooks run after outcomes. */
+  C.noteMastery = (W, f, actor, key, amount, target) => {
+    if (!actor || actor.foe || actor.dead || !f || f.kind==='spar' || f.serious===false) return;
+    const own = CULT.equivalentStage(actor), other = target ? (target.foe ? target.tier||1 : CULT.equivalentStage(target)) : own;
+    if (target && own-other>2) return;
+    const ft=C.ensureFightTac(f,W.t);
+    const ledger=f.lifeEvidence || (f.lifeEvidence={});
+    const ak=actor.id+':'+key, stamp=Number.isSafeInteger(W.workSteps)?W.workSteps:W.t;
+    const rec=ledger[ak]||(ledger[ak]={count:0,last:-1});
+    if(rec.last===stamp || rec.count>=30)return;
+    rec.last=stamp;const inc=Math.min(30-rec.count,amount||1);rec.count+=inc;
+    C.ACTION_MASTERY_TRAITS.recordAction(W,actor,key,inc,{fight:f,targetStage:other});
+  };
+  C.observeLifeHit = (W,f,a,d,o,res) => {
+    if(!f||!a||!d||!res||!res.hit)return;
+    const ft=C.ensureFightTac(f,W.t), damage=f.lifeDamage||(f.lifeDamage={});
+    damage[a.id]=(damage[a.id]||0)+Math.max(0,res.dmg||0);
+    if(!a.foe && res.dmg>0) {
+      const dist=C.unitDist(a,d);
+      if(dist>=4.5)C.noteMastery(W,f,a,'longRangeHits',1,d);
+      if(dist<=2 && ['RANGED','CASTER'].includes(C.inferCombatRole(d)))C.noteMastery(W,f,a,'closeInStrikes',1,d);
+      if(res.crit && W.t-(ft.combatStartedAt||f.t0)<=4)C.noteMastery(W,f,a,'openingStrikeCrits',1,d);
+      if(res.killed && o.lifeBeforeHp/C.hpMax(d)<=0.35)C.noteMastery(W,f,a,'finisherKills',1,d);
+    }
+    if(o.type==='m' && C.alive(d) && res.dmg>0)C.noteMastery(W,f,d,'magicMitigatedCount',1,a);
+    if(o.lifeShield>0 && (!shieldOf(d)||shieldOf(d).amt<=0))C.noteMastery(W,f,a,'shieldsCracked',1,d);
+    if(d.anatomyParts) {
+      const broken=Object.values(d.anatomyParts).filter(p=>p&&p.broken).length;
+      if(broken>(o.lifeBroken||0))C.noteMastery(W,f,a,'bossPartsBroken',broken-(o.lifeBroken||0),d);
+    }
+    if(a.isSummon || a.isWeaponAvatar || a.isFounderPhantom) {
+      const owner=C.unit(W,a.ownerId||a.summonerId||a.casterId||a.masterId);if(owner)C.noteMastery(W,f,owner,'summonAssists',1,d);
+    }
+    if(o.isPetAssist)C.noteMastery(W,f,a,'petComboHits',1,d);
+    if(d.yield && !d.dead && !d.wild && d.kind!=='beast')C.noteMastery(W,f,a,'mercifulSubdues',1,d);
+  };
+  C.recordLifeConclude = (W,f) => {
+    const ft=C.ensureFightTac(f,W.t);if(f.lifeSettled)return;f.lifeSettled=true;
+    const ET=CULT.EXPERIENCE_TRAITS;
+    if(!ET)return;
+    const serious=f.kind!=='spar' && f.serious!==false;
+    const damage=f.lifeDamage||{}, all=[...(f.A||[]),...(f.B||[])];
+    for(const id of all) {
+      const n=W.byId[id];if(!n||n.dead)continue;
+      const side=f.A.includes(id)?'A':'B', own=side==='A'?f.A:f.B, enemy=side==='A'?f.B:f.A;
+      const won=f.winner===side, life=n.lifeExperience||(n.lifeExperience={activityDays:{},recovery:{},counters:{}});
+      const meaningful=(damage[id]||0)>0 || (f.lifeSupport&&f.lifeSupport[id]) || (f.lifeEvidence&&Object.keys(f.lifeEvidence).some(k=>k.startsWith(id+':')));
+      const enemies=enemy.map(i=>C.unit(W,i)).filter(Boolean);
+      const stage=Math.max(1,...enemies.map(e=>e.foe?e.tier||1:CULT.equivalentStage(e)));
+      const qualified=meaningful && CULT.equivalentStage(n)-stage<=2;
+      if(C.hp(n)<=C.hpMax(n)*0.05 && serious)life.nearDeathPending=true;
+      if((f.kind==='duel'||f.kind==='tourney') && f.winner) {
+        if(!won)ET.emit(W,n,'TOURNEY_OR_DUEL_HEARTBREAK');
+        else ET.recover(W,n,'EXP_TRAIT_TOURNEY_FINAL_CHOKER','คว้าชัยในการประลองที่มีผลแพ้ชนะจริง');
+      }
+      if(!serious||!qualified)continue;
+      if(f.kind==='raid' && side==='A' && won)ET.emit(W,n,'DEFEND_GATE_RAID');
+      if(f.kind==='raid' && ['ARRAY_TALISMAN','STRATEGY_GOVERNANCE'].includes(n.cult&&n.cult.path))ET.emit(W,n,'SIEGE_ARRAY_PARTICIPATION');
+      if(own.some(i=>{const u=C.unit(W,i);return u&&u.dead;}))ET.emit(W,n,'PARTY_CASUALTY_SURVIVED');
+      if(won) {
+        if(enemy.length>=3 && enemy.length>own.length)C.noteMastery(W,f,n,'outnumberedFights',1,enemies[0]);
+        if(C.hp(n)<C.hpMax(n)*0.35)C.noteMastery(W,f,n,'lowHpCombatWins',1,enemies[0]);
+        if(f.kind==='wild') {
+          if(enemies.some(e=>e.wild&&e.tier>=5&&e.dead))ET.emit(W,n,'GREAT_BEAST_HUNTED');
+          // Record success now; award return/travel learning only after physically back inside.
+          life.pendingHunt={t:W.t,prepared:!!(f.ctx && f.ctx.prepared),sourceFight:f.id};
+        }
+        if((n.pets||[]).some(p=>p.active&&!p.dead&&(p.bond||0)>=80))ET.grantAcquired(W,n,'TR_AC_SPIRIT_BEAST_BLOOD_PACT','won-with-bonded-pet');
+      }
+      if(f.kind==='raid' && won)ET.grantAcquired(W,n,'TR_AC_PRISON_IRON_WILL','survived-raid');
+      if(!won && stage>CULT.equivalentStage(n) && !n.fled)ET.grantAcquired(W,n,'TR_AC_SEVEN_SWORD_HEART_SCAR','survived-stronger-foe');
+    }
+  };
+
+  const strikeWithLifeScope=C.strike;
+  C.hit=C.strike=function(W,f,a,d,o){
+    const old=C.lifeStatusContext;if(W&&W.byId)C.lifeStatusContext={W,f,actor:a};
+    try{return strikeWithLifeScope(W,f,a,d,o);}finally{C.lifeStatusContext=old;}
+  };
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);

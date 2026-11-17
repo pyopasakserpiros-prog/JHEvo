@@ -348,7 +348,7 @@
 
     W.foes.push(b);
     W.foeById[b.id] = b;
-    const ctx = Object.assign({ beastId: b.id, hunterId: n.id, huntStartedAt: W.t, expectedTravel: n.landHuntTrip?.travel || 0, baseCultRate: CULT.rate(n, 1), landContributions: {} }, opts || {});
+    const ctx = Object.assign({ beastId: b.id, hunterId: n.id, huntStartedAt: W.t, expectedTravel: n.landHuntTrip?.travel || 0, baseCultRate: CULT.rate(n, 1), prepared: n.h.state.satiety>=50 && n.h.state.energy>=45 && n.h.state.rest>=40, landContributions: {} }, opts || {});
     delete n.landHuntTrip;
     const f = COMBAT.startFight(W, [n.id], [b.id], 'wild', { serious: true, ctx });
     b.fighting = f.id;
@@ -474,7 +474,7 @@
 
     const isNewCalendarMinute = W._isNewCalendarMinute !== false && W._lastWildTickT !== W.t;
     W._lastWildTickT = W.t;
-    if (isNewCalendarMinute && W.t % 15 === 0) {
+    if (isNewCalendarMinute && (W._isNewCalendarMinute !== false && W.t % 15 === 0)) {
       let active = state.beasts.filter(b => !b.gone && !b.dead);
       // เติมครั้งละ 2..4 ตัวทุก 15 นาทีเกม ภายใต้เป้าหมายและเพดานที่กำหนด
       if (active.length < WILD.ORDINARY_TARGET) {
@@ -499,7 +499,7 @@
         }
       }
       // โอกาสสุ่มอสูรตำนาน: 1 ครั้งต่อชั่วโมงเกม (โอกาส 0.002) และมีได้ไม่เกิน 1 ตัวพร้อมกันทั่วโลก
-      if (W.t % 60 === 0 && !state.beasts.some(b => b.legendary && !b.gone && !b.dead) && W.rng.chance(0.002)) {
+      if ((W._isNewCalendarMinute !== false && W.t % 60 === 0) && !state.beasts.some(b => b.legendary && !b.gone && !b.dead) && W.rng.chance(0.002)) {
         const rareZones = Object.keys(zones).filter(id => zones[id].legendary || zones[id].pools.some(p => p.legendary));
         WILD.spawn(W, W.rng.pick(rareZones), null, { legendary: true });
       }
@@ -523,12 +523,12 @@
         W.log('explore', b.name + ' จากพื้นที่' + zName + ' ไปแล้ว', []);
         continue;
       }
-      if (b.aggressive && W.t % 15 === 0) {
+      if (b.aggressive && (W._isNewCalendarMinute !== false && W.t % 15 === 0)) {
         // อสูรก้าวร้าวไม่โจมตีผู้คนที่อยู่ในแนวเก็บสมุนไพรปลอดภัยหน้าประตูสำนัก
         const n = W.npcs.find(n => !n.dead && !n.away && !n.hidden && !n.travel && isOutsideWall(W.map, n.x, n.y) && !(MAP.isInSafeBelt && MAP.isInSafeBelt(n.x, n.y)) && n.act.id !== 'fight' && Math.hypot(n.x - b.x, n.y - b.y) < 2.5);
         if (n) WILD.startFight(W, n, b);
       }
-      if (!b.fighting && isNewCalendarMinute && W.t % 90 === 0) {
+      if (!b.fighting && isNewCalendarMinute && (W._isNewCalendarMinute !== false && W.t % 90 === 0)) {
         const z = zones[b.zone];
         if (z) {
           b.px = b.x; b.py = b.y;
