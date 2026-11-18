@@ -1,6 +1,8 @@
-# JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (Updated for JianghuSect 2 JS2-v2.6.0)
+# JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (JianghuSect 2 JS2-v3.0.0)
 
-All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 160 registered test groups [159 suites + syntax across 237 JS files]; see the latest audit note below for observed browser-only limitations.
+All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '3.0.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.0.0-living-continent'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). Historical entries below describe their own patches. Read the current patch report for the latest test scope and results.
+
+**Living Continent:** Start with procedural-gen for the fixed geographic frame and route APIs. Game UI/UX covers atlas layers and the kingdom window, AI behavior covers hometowns and civil offices, and economy and save skills cover travel and convoy state. The [patch report](../../PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md) records their integration.
 
 ## Keeping the skills current
 

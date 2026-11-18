@@ -941,18 +941,18 @@
   };
   // New destinations share the existing volunteer/depart/travel/return flow.
   X.REGIONS.push(...D.regions);
-  C.chooseRegion=(W,party,kind,regs)=>{
+  C.chooseRegion=(W,party,kind,regs,travelWeight=()=>1)=>{
     const lead=party[0], power=party.reduce((v,n)=>v+CULT.power(n),0), caution=HC.eff(lead,'personality.caution');
     const eligible=regs.filter(r=> (!regionById[r.id] || !['hunt','gather'].includes(kind) || r.resources.some(e=>e.kind===(kind==='hunt'?'hunt':'gather'))));
     if(!eligible.length) return null;
     return W.rng.weighted(eligible,r=>{
-      if(!regionById[r.id]) return 1;
+      if(!regionById[r.id]) return travelWeight(r);
       const pool=r.resources.filter(e=>e.kind===(kind==='hunt'?'hunt':'gather'));
       const s=C.site(W,r);
       const demand=pool.reduce((v,e)=>v+CPE.scarcity(W,e.id)*Math.min(1,(s.stock[e.id]||0)/Math.max(1,e.cap/3)),0)/Math.max(1,pool.length);
       const interest=kind==='hunt'?HC.eff(lead,'interests.combat'):(HC.eff(lead,'interests.herbs')+HC.eff(lead,'interests.exploring'))/2;
       const discovery=r.recipes.some(id=>!C.formulaInWorld(W,id))||r.techniques.some(id=>!W.sect.library.includes(id));
-      return Math.max(.05,(.5+demand)*(0.5+interest/100)*(kind==='fortune'&&discovery?1.6:1)*(1-caution/170*r.danger/4));
+      return Math.max(.02,travelWeight(r)*(.5+demand)*(0.5+interest/100)*(kind==='fortune'&&discovery?1.6:1)*(1-caution/170*r.danger/4));
     });
   };
   C.gather=(W,ex,alive,out,reg,kind,beast)=>{

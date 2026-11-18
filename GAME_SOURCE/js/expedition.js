@@ -32,12 +32,14 @@
     bounty: { nameTh: 'รับงานจ้างคุ้มกัน', icon: '🛡️' },
     sect_siege: { nameTh: 'กรีฑาทัพตีค่ายสำนักอริ', icon: '⚔️' },
     resource_claim: { nameTh: 'ยึดครองจุดยุทธศาสตร์ทรัพยากร', icon: '🚩' },
+    city_visit: { nameTh: 'เยี่ยมเมือง', icon: '🏮' },
     world_anomaly: { nameTh: 'ช่วงชิงวาสนาฟ้าดินจำกัดเวลา', icon: '☄️' }
   };
   const SECT_NAMES = ['สำนักกระบี่เมฆขาว', 'สำนักบัวหยก', 'ตระกูลหลงเหมิน', 'สำนักเสือคำราม', 'หอสุริยาสีทอง', 'สำนักพิรุณหยิน', 'ศาลาฟ้าครามพิรุธ', 'สำนักมังกรหมอก'];
   X.initWorld = (W) => {
     const rng = W.rng; const names = rng.shuffle(SECT_NAMES.slice()).slice(0, 6);
     W.world = { sects: names.map((nm, i) => ({ id: 'S' + i, nameTh: nm, power: Math.round(rng.gauss(1, 0.35) * 100) / 100, attitude: Math.round(rng.gauss(0, 25)), style: rng.pick(['เป็นธรรม', 'โลภ', 'ทะนง', 'ใฝ่สงบ', 'ก้าวร้าว']), contact: 0 })), expeds: [], seq: 0, visitors: [], resourcePool: { stones: 50000, herbs: 5000, ores: 5000 } };
+    X.initContinent(W);
     W.threat = { alert: 0, roadBlocked: 0, raidCooldown: W.day + 40 };
   };
 
@@ -383,13 +385,32 @@
     const lead = party[0];
     const partyRank = Math.max(1, ...party.map(x => CULT.worldRank ? CULT.worldRank(x) : 1));
     const regs = X.REGIONS.filter(r => (kind !== 'trade' && kind !== 'diplomacy' || r.danger <= 2));
-    region = region || (g.CONTENT && g.CONTENT.chooseRegion(W, party, kind, regs)) || rng.weighted(regs, r => 1 + (kind === 'fortune' ? r.danger * 0.4 : 0) + (kind === 'gather' ? (E(lead, 'interests.herbs') > 55 ? (r.terrain === 'forest' || r.terrain === 'mountain' ? 1 : 0) : (r.terrain === 'mountain' ? 1 : 0)) : 0) + (kind === 'hunt' ? r.danger * 0.3 : 0));
+    const topo = X.ensureWorldTopology(W);
+    const travelWeight = r => {
+      const route = X.planContinentalRoute(W,topo,topo.nodes[r.id]);
+      const reluctance = clamp(.36 + (E(lead,'personality.caution') - E(lead,'interests.exploring')) / 185,.13,.64);
+      // Nearby work saves food and duty time. A distant resource still has a chance when there is a reason to go.
+      return 1 / (1 + Math.pow((route?.days ?? r.days) * reluctance,1.5));
+    };
+    if (!region) region = (g.CONTENT && g.CONTENT.chooseRegion(W,party,kind,regs,travelWeight)) ||
+      rng.weighted(regs,r => travelWeight(r) * (1 + (kind === 'fortune' || kind === 'hunt' ? r.danger * .32 : 0)));
     if (!region || !X.REGIONS.includes(region)) return null;
     const requestedSite = opts.siteId && kind === 'fortune' && (X.FORTUNE_REGISTRY[partyRank] || []).find(s => s.id === opts.siteId);
     if (opts.siteId && (!requestedSite || !(requestedSite.biome === region.terrain || (requestedSite.biome === 'ruins' && region.terrain === 'mountain')))) return null;
-    const baseDays = Math.max(2, Math.round(region.days * (0.7 + rng.next() * 0.6) * (kind === 'trade' ? 1.1 : kind === 'recruit' ? 1.4 : 1)));
-    const trip = X.createParty(W, party, { kind, regionId: region.id, baseDays });
-    const days = trip.days;
+    const seasonHours = (0.7 + rng.next() * 0.6) * (kind === 'trade' ? 1.1 : kind === 'recruit' ? 1.4 : 1);
+    const regionNode = topo.nodes[region.id];
+    const sites = kind === 'fortune' ? X.FORTUNE_REGISTRY[partyRank] || X.FORTUNE_REGISTRY[1] : [];
+    const matching = sites.filter(s => s.biome === region.terrain || (s.biome === 'ruins' && region.terrain === 'mountain'));
+    const matchSite = kind === 'fortune' ? requestedSite || rng.pick(matching.length ? matching : sites) : null;
+    // A region remains the source of encounter data. The marker identifies its trailhead.
+    const destination = matchSite ? X.fortuneMapPoint(topo, matchSite, partyRank, sites.indexOf(matchSite)) : regionNode;
+    const route = X.planContinentalRoute(W, topo, destination);
+    const fallbackDays = Math.max(2, Math.round(region.days * seasonHours));
+    const baseDays = route ? 2 * route.days + seasonHours * 0.65 : fallbackDays;
+    const trip = X.createParty(W, party, { kind, regionId: region.id, terrain:region.terrain, baseDays });
+    const journeyDays = route ? route.days * trip.durationMultiplier : 0;
+    const dwellMinutes = Math.round(seasonHours * 936);
+    const days = route ? +(journeyDays * 2 + dwellMinutes / 1440).toFixed(3) : trip.days;
     if (g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
     const rd = W.sect && W.sect.reserveDirectives;
     const currentMeals = ECO.count(W, 'meal');
@@ -418,11 +439,10 @@
     if (currentMeals - taken <= safetyReserve) {
       W.log('mission', 'คณะเดินทางเบิกเสบียง ' + taken + ' ชุด ทำให้เสบียงคลังเหลือ ' + (currentMeals - taken) + ' แตะเกณฑ์สำรองฉุกเฉิน (' + safetyReserve + ')', party.map(p => p.id));
     }
-    const ex = { id: ++w.seq, kind, region: region.id, party: party.map(p => p.id), partyRank, t0: W.t, ret: W.t + days * 1440 + rng.int(-300, 300), days, baseDays, mount: trip.mounts, hasMount: trip.hasMount, durationMultiplier: trip.durationMultiplier, capacityMultiplier: trip.capacityMultiplier, baseCarryCapacity: trip.baseCarryCapacity, carryCapacity: trip.carryCapacity, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false };
-    if (kind === 'fortune') {
-      const sites = X.FORTUNE_REGISTRY[partyRank] || X.FORTUNE_REGISTRY[1];
-      const matching = sites.filter(s => s.biome === region.terrain || (s.biome === 'ruins' && region.terrain === 'mountain'));
-      const matchSite = requestedSite || rng.pick(matching.length ? matching : sites);
+    const ex = { id: ++w.seq, kind, region: region.id, party: party.map(p => p.id), partyRank, t0: W.t, ret: W.t + Math.round(days * 1440) + (route ? 0 : rng.int(-300, 300)), days, baseDays, mount: trip.mounts, hasMount: trip.hasMount, durationMultiplier: trip.durationMultiplier, capacityMultiplier: trip.capacityMultiplier, baseCarryCapacity: trip.baseCarryCapacity, carryCapacity: trip.carryCapacity, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false };
+    setJourney(ex, route, journeyDays, dwellMinutes, true);
+    if (destination) ex.targetNodeId = destination.id;
+    if (matchSite) {
       const chosenPool = rng.pick(matchSite.pools);
       ex.siteId = matchSite.id;
       ex.poolId = chosenPool.id;
@@ -440,7 +460,7 @@
     w.expeds.push(ex);
     party.forEach(p => { AI.interruptFor(W, p); p.expId = ex.id; p.lastTrip = W.day; p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; p.travel = { to: 'exit', ex: ex.id, mountUid: tripMountUid(ex,p) }; p.path = null; p.run = false; });
     X.releaseDeployedGarrisons(W, party);
-    W.log('mission', party.map(p => p.h.name.given).join('、') + ' ออกเดินทาง「' + X.MISSIONS[kind].nameTh + '」ไปยัง' + region.nameTh + ' (ราว ' + days + ' วัน)', party.map(p => p.id));
+    W.log('mission', party.map(p => p.h.name.given).join('、') + ' ออกเดินทาง「' + X.MISSIONS[kind].nameTh + '」ไปยัง' + (destination?.nameTh || region.nameTh) + ' (ราว ' + days.toFixed(1) + ' วัน)', party.map(p => p.id), {location:stampPlace(destination)});
     return ex;
   };
   X.travelStep = (W, n) => {
@@ -467,12 +487,35 @@
       if (ex.done) return;
       const members = ex.party.map(i => W.byId[i]).filter(m => m && !m.dead && m.expId === ex.id && !m.fled);
       if (!members.length) { ex.done = true; return; }
-      if (ex.state === 'leaving' && members.every(m => m.away)) ex.state = 'away';
-      if (ex.state === 'away' && W.t >= ex.ret) {
-        if (ex.kind === 'sect_siege' && X.resolveSectSiege) X.resolveSectSiege(W, ex, { members });
-        else if (ex.kind === 'resource_claim' && X.resolveResourceClaim) X.resolveResourceClaim(W, ex, members);
-        else if (ex.kind === 'world_anomaly' && X.resolveWorldAnomaly) X.resolveWorldAnomaly(W, ex.anomalyId || ex, members, { ex });
-        else X.resolve(W, ex, members);
+      if (ex.state === 'leaving' && members.every(m => m.away)) {
+        ex.state = 'away';
+        startJourney(ex, W.t);
+      }
+      if (ex.route && ex.state === 'away' && ex.startedAt == null) startJourney(ex,ex.t0);
+      if (ex.route && ex.state === 'away' && W.t >= ex.arriveAt && !ex.arrivalRecorded) {
+        ex.arrivalRecorded = true;
+        if (ex.kind === 'city_visit') visitCity(W,ex,members);
+      }
+      if (ex.state !== 'away' || W.t < ex.ret) return;
+      const prior = W._expeditionLocation;
+      if (ex.route) W._expeditionLocation = routePlace(ex.route);
+      try {
+        if (ex.kind === 'city_visit' || ex.returnStartedAt != null) {
+          finishJourney(W, ex, members);
+        } else if (['sect_siege','resource_claim','world_anomaly'].includes(ex.kind)) {
+          if (ex.kind === 'sect_siege') X.resolveSectSiege(W, ex, { members });
+          else if (ex.kind === 'resource_claim') X.resolveResourceClaim(W, ex, members);
+          else X.resolveWorldAnomaly(W, ex.anomalyId || ex, members, { ex });
+          const returning = members.filter(m => !m.dead && !m.exiled && !m.fled && m.expId == null);
+          if (ex.route && ex.done && returning.length) {
+            ex.done = false;
+            ex.returnStartedAt = W.t; ex.ret = W.t + ex.travelMinutes;
+            for (const m of returning) { m.expId = ex.id; m.away = true; m.hidden = true; m.travel = null; }
+          }
+        } else X.resolve(W, ex, members);
+      } finally {
+        if (prior === undefined) delete W._expeditionLocation;
+        else W._expeditionLocation = prior;
       }
     });
     w.expeds = w.expeds.filter(e => !e.done || W.t - e.ret < 7 * 1440);
@@ -483,7 +526,8 @@
     const rng = W.rng; const reg = X.REGIONS.find(r => r.id === ex.region);
     const P = members.reduce((s, m) => s + CULT.power(m), 0);
     const perceive = Math.max(...members.map(m => E(m, 'intellect.perceptiveness'))), surv = Math.max(...members.map(m => m.h.skills.survival || 0)), luck = members.reduce((s, m) => s + E(m, 'destiny.luck'), 0) / members.length;
-    const nEnc = Math.max(2, Math.round(ex.days * 0.7)); const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], notes: [], rep: 0, newDisciples: 0 };
+    const workDays = ex.route ? reg.days || 3 : ex.days;
+    const nEnc = Math.max(2, Math.round(workDays * 0.7)); const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], notes: [], rep: 0, newDisciples: 0 };
     const alive = members.slice(); let totalDmg = 0;
     const dangerMult = 0.6 + reg.danger * 0.35;
     for (let i = 0; i < nEnc && alive.length; i++) {
@@ -551,7 +595,7 @@
       } else {
         const ev = rng.pick(['storm', 'lost', 'traveler', 'bandits']);
         if (ev === 'storm') { ex.journal.push('เจอพายุ ต้องหลบอยู่หลายวัน'); alive.forEach(a => HC.feel(a, { stress: 4, energy: -10 })); }
-        else if (ev === 'lost') { ex.journal.push('หลงทางในป่า'); ex.ret += Math.round(rng.int(60, 600)); }
+        else if (ev === 'lost') { ex.journal.push('หลงทางในป่า'); if (!ex.route) ex.ret += rng.int(60,600); }
         else if (ev === 'traveler') { const encRes = X.resolveDiscipleSectEncounter(W, alive, null, { quiet: true }); if (encRes && encRes.ok) { ex.journal.push(encRes.summaryTh); out.stones += (encRes.stonesLoot || 0); out.rep += encRes.didClash ? (encRes.won ? 0.5 : -0.1) : 0.25; } else { ex.journal.push('พบนักเดินทางร่วมทาง แลกเปลี่ยนเรื่องราว'); } alive.forEach(a => { HC.feel(a, { mood: 4, novelty: 8 }); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, 'diplomacy', 0.5, 1); }); }
         else {
           const bp = (30 + reg.danger * 70) * (0.6 + rng.next()), pw = alive.reduce((s, m) => s + CULT.power(m), 0);
@@ -588,7 +632,8 @@
     }
     const ppl = members.map(m => m.h.name.given).join('、');
     const brief = ex.kind === 'fortune' && out.notes.length ? out.notes.slice(0, 2).join(' / ') : Object.keys(out.mats).length || out.stones || out.gear.length ? ('ได้ ' + X.summarize(out)) : (ex.journal.slice(-1)[0] || 'ไม่ได้อะไรมากนัก');
-    W.log('mission', ppl + ' กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 — ' + brief, members.map(m => m.id));
+    W.log('mission', ppl + ' กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 — ' + brief,
+      members.map(m => m.id), {location:routePlace(ex.route)});
     W.fame(out.rep);
   };
   X.summarize = o => {
@@ -2484,26 +2529,31 @@
       };
     });
 
+    for (const city of Object.values(settlementById)) nodes[city.id] = city;
     topo.nodes = nodes;
-    topo.routes = X.WORLD_ROUTES;
+    topo.routes = makeContinentalRoutes(topo, nodes);
     if (!topo.selectedNodeId || !nodes[topo.selectedNodeId]) topo.selectedNodeId = 'NODE_HOME_SECT';
     return topo;
   };
 
   X.estimateTravelTime = (W, party, targetNodeId, opts) => {
     opts = opts || {};
-    const topo = X.ensureWorldTopology(W);
-    const node = (topo && topo.nodes && topo.nodes[targetNodeId]) ||
+    const topo = opts.topo || X.ensureWorldTopology(W);
+    const node = opts.target || (topo && topo.nodes && topo.nodes[targetNodeId]) ||
       Object.values((topo && topo.nodes) || {}).find(n => n.sectId === targetNodeId || n.factionId === targetNodeId);
-    const baseDays = Number.isFinite(opts.baseDays) ? opts.baseDays : (node && Number.isFinite(node.baseDays) ? node.baseDays : 4);
+    const route = X.planContinentalRoute(W, topo, node, opts.fromId);
+    const baseDays = route ? route.days : Number.isFinite(opts.baseDays) ? opts.baseDays
+      : (node && Number.isFinite(node.baseDays) ? node.baseDays : 4);
     if (baseDays <= 0) return { baseDays: 0, days: 0, durationMultiplier: 1, hasMount: false, hasPhoenixMount: false, hasAzureDragonMount: false };
     const cleanParty = Array.isArray(party) ? party.map(x => typeof x === 'string' ? (W && W.byId && W.byId[x]) : x).filter(Boolean) : [];
     const trip = cleanParty.length
       ? X.createParty(W, cleanParty, { baseDays, regionId: node ? node.id : targetNodeId, macroRegion: node ? node.macroRegion : null, terrain: node ? node.terrain : null, useSectPhoenixAura: !!opts.useSectPhoenixAura })
       : { ok: true, hasMount: false, hasPhoenixMount: false, hasAzureDragonMount: false, durationMultiplier: 1, days: baseDays, carryCapacity: 32 };
     const mult = trip.durationMultiplier || 1;
-    const days = Math.max(0.5, Math.round(baseDays * mult * 100) / 100);
+    const days = Math.max(route ? .08 : .5, Math.round(baseDays * mult * 100) / 100);
     return {
+      route,
+      distanceLi:route?.distanceLi,
       nodeId: node ? node.id : targetNodeId,
       macroRegion: node ? node.macroRegion : 'CENTRAL_HEARTLAND',
       terrain: node ? node.terrain : 'forest',
@@ -2649,10 +2699,11 @@
       done: false,
       state: 'away'
     };
+    setJourney(ex, travel.route, travel.days, 0, false);
     W.world.expeds.push(ex);
     members.forEach(m => { m.expId = ex.id; m.away = true; m.lastTrip = W.day; });
     X.releaseDeployedGarrisons(W, members);
-    W.log('mission', '⚔️ กรีฑาทัพ ' + members.map(m => m.h.name.given).join('、') + ' มุ่งหน้าตีค่าย「' + targetSect.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(m => m.id));
+    W.log('mission', '⚔️ กรีฑาทัพ ' + members.map(m => m.h.name.given).join('、') + ' มุ่งหน้าตีค่าย「' + targetSect.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(m => m.id), {location:routePlace(ex.route)});
     return { ok: true, queued: true, siege: siegeObj, expedition: ex, travel };
   };
   X.launchSectSiege = X.marshalStrikeForce;
@@ -3150,10 +3201,11 @@
       party: members.map(n => n.id), t0: W.t, ret: W.t + Math.round(travel.days * 1440), days: travel.days,
       baseDays: travel.baseDays, hasMount: travel.hasMount, durationMultiplier: travel.durationMultiplier,
       journal: ['ออกเดินทางสู่「' + node.nameTh + '」'], carry: [], supplies: 0, done: false, state: 'away' };
+    setJourney(ex, travel.route, travel.days, 0, false);
     W.world.expeds.push(ex);
     members.forEach(n => { AI.interruptFor(W, n); n.expId = ex.id; n.away = true; n.lastTrip = W.day; });
     X.releaseDeployedGarrisons(W, members);
-    W.log('mission', '🚩 ส่งคณะเข้ายึด「' + node.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(n => n.id));
+    W.log('mission', '🚩 ส่งคณะเข้ายึด「' + node.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(n => n.id), {location:routePlace(ex.route)});
     return { ok: true, queued: true, expedition: ex, travel };
   };
 
@@ -3412,6 +3464,11 @@
       descTh: tpl.descTh
     };
     W.world.anomalies.unshift(anomaly);
+    if (spec.rivalEtaDays == null && rival) {
+      const topo = X.ensureWorldTopology(W);
+      const route = X.planContinentalRoute(W,topo,topo.nodes[anomaly.id],rival.nodeId);
+      if (route) anomaly.rivalEtaDay = (W.t || 0) / 1440 + 1 + route.days;
+    }
     X.revealMacroRegion(W, macroRegion);
     X.ensureWorldTopology(W);
     W.log('explore', '☄️ วาสนาฟ้าดินปรากฏ ณ ' + (X.WORLD_REGIONS[macroRegion]?.shortTh || macroRegion) + ':「' + anomaly.nameTh + '」 (คงอยู่ ' + durationDays + ' วัน · ' + anomaly.rivalSectNameTh + ' กำลังส่งคนไปแย่งชิง!)', []);
@@ -3463,10 +3520,11 @@
       done: false,
       state: 'away'
     };
+    setJourney(ex, travel.route, travel.days, 0, false);
     W.world.expeds.push(ex);
     members.forEach(m => { m.expId = ex.id; m.away = true; m.lastTrip = W.day; });
     X.releaseDeployedGarrisons(W, members);
-    W.log('explore', '☄️ ส่งคณะของ ' + members.map(m => m.h.name.given).join('、') + ' เร่งเดินทางสู่「' + anomaly.nameTh + '」 (ใช้เวลา ' + travel.days + ' วัน)', members.map(m => m.id));
+    W.log('explore', '☄️ ส่งคณะของ ' + members.map(m => m.h.name.given).join('、') + ' เร่งเดินทางสู่「' + anomaly.nameTh + '」 (ใช้เวลา ' + travel.days + ' วัน)', members.map(m => m.id), {location:routePlace(ex.route)});
     return { ok: true, queued: true, anomaly, expedition: ex, travel };
   };
 
@@ -3482,7 +3540,7 @@
         opts.ex.done = true;
         const returned = (opts.ex.party || []).map(id => W.byId[id]).filter(n => n && !n.dead && n.expId === opts.ex.id);
         returned.forEach(n => { n.expId = null; n.away = false; n.hidden = false; n.travel = null; });
-        if (returned.length) W.log('explore', 'คณะเดินทางกลับมาแล้ว วาสนาฟ้าดินสิ้นสุดก่อนเดินทางถึง', returned.map(n => n.id));
+        if (returned.length) W.log('explore', 'คณะถึงจุดหมายหลังวาสนาฟ้าดินสิ้นสุด จึงเดินทางกลับ', returned.map(n => n.id));
       }
       return { ok: false, reason: anomaly ? 'already-resolved' : 'anomaly-not-found', claimedBy: anomaly && anomaly.claimedBy };
     }
@@ -3492,8 +3550,10 @@
       : (W.npcs || []).filter(n => n && !n.dead).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
     if (!members.length) return { ok: false, reason: 'no-party' };
 
-    const travel = opts.travel || X.estimateTravelTime(W, members, anomaly.id, { baseDays: anomaly.baseDays, useSectPhoenixAura: true });
-    const arrivalDay = (W.day || 0) + (opts.immediate ? travel.days : 0);
+    const travel = opts.travel || (opts.ex?.route && {days:opts.ex.travelMinutes / 1440, hasPhoenixMount:opts.ex.hasPhoenixMount}) ||
+      X.estimateTravelTime(W, members, anomaly.id, { baseDays: anomaly.baseDays, useSectPhoenixAura: true });
+    const arrivalDay = opts.ex?.arriveAt != null ? opts.ex.arriveAt / 1440 :
+      (W.day || 0) + (opts.immediate ? travel.days : 0);
     const arrivedBeforeRival = arrivalDay <= (anomaly.rivalEtaDay || 999999);
     const partyPower = members.reduce((s, m) => s + CULT.power(m), 0) * (travel.hasPhoenixMount ? 1.15 : 1.0);
     const wonContest = opts.forceRivalWin ? false : (opts.forceWin || (arrivedBeforeRival ? partyPower >= (anomaly.rivalPower || 250) * 0.65 : partyPower >= (anomaly.rivalPower || 250) * 1.25));
@@ -3881,8 +3941,10 @@
 
   const origDailyV218 = X.daily;
   X.daily = W => {
+    X.initContinent(W);
     origDailyV218(W);
     X.ensureWorldTopology(W);
+    X.tickContinentalCourts(W);
     // Daily resource node income & hegemony tick
     if (W.day > 0) {
       X.harvestResourceNodes(W, { seasonal: W.day % 90 === 0, includeMats: W.day % 5 === 0 });
@@ -4132,6 +4194,482 @@
   function makeChildRng(W, tag) {
     const baseSeed = (W && W.seed) ? String(W.seed) : 'jhevo_v220';
     return new U.RNG(baseSeed + ':v220:' + tag);
+  }
+
+  /* Continental geography and civil government. Distances use map units, never CSS pixels. */
+  const continent = JD.CONTINENT;
+  const homeId = 'NODE_HOME_SECT';
+  const settlementById = {};
+  const settlementIds = [homeId];
+  const terrainFor = { river:'plains', farm:'plains', ferry:'plains', academy:'plains', road:'plains',
+    port:'plains', forge:'mountain', mountain:'mountain', desert:'desert', marsh:'marsh', hunt:'forest' };
+  continent.rows.forEach(([id, nameTh, x, y, tier, owner, specialty], i) => {
+    const polity = continent.polities[owner];
+    settlementIds.push(id);
+    settlementById[id] = Object.freeze({
+      id, nameTh, x, y, tier, order:i + 1, specialty, polityId:polity?.id || null,
+      macroRegion:polity?.macroRegion || 'SOUTHERN_WATERS',
+      kind:'SETTLEMENT', icon:tier >= 4 ? '🏛️' : tier === 2 ? '🚩' : specialty === 'port' ? '⚓' : tier === 1 ? '🏘️' : '🏮',
+      terrain:terrainFor[specialty], danger:tier === 2 ? 2 : 1
+    });
+  });
+  const polityById = Object.fromEntries(continent.polities.map(p => [p.id, p]));
+  X.SETTLEMENTS = Object.freeze(settlementById);
+  X.POLITY_DEFS = Object.freeze(polityById);
+  Object.defineProperty(X,'LI_PER_MAP_UNIT',{value:10,enumerable:true});
+  const terrainPace = { plains:1, forest:1.13, mountain:1.32, desert:1.24, marsh:1.4, water:1.08 };
+  const mapDistance = (a,b) => Math.hypot(b.x - a.x,b.y - a.y);
+  function routeLeg(a, b, terrain, bends = []) {
+    const start = {x:a.x, y:a.y}, end = {x:b.x, y:b.y};
+    const points = [start,...bends.map(([x,y]) => ({x,y})),end];
+    const units = points.slice(1).reduce((sum,p,i) => sum + mapDistance(points[i],p),0);
+    const distanceLi = Math.round(units * X.LI_PER_MAP_UNIT);
+    const days = Math.max(.08, +(distanceLi / 123 * (terrainPace[terrain] || 1)).toFixed(3));
+    return {from:a.id, to:b.id, terrain, days, distanceLi, a:start, b:end, points, units};
+  }
+  const routeMaps = new WeakMap();
+  function makeContinentalRoutes(topo, nodes) {
+    const old = routeMaps.get(topo);
+    if (old) return old;
+    const links = [];
+    const linked = new Set();
+    function add(a, b, terrain, bends) {
+      if (!a || !b || a.id === b.id) return;
+      links.push(routeLeg(a, b, terrain || b.terrain || 'plains',bends));
+      linked.add(a.id); linked.add(b.id);
+    }
+    for (const [a,b,terrain,bends] of continent.roads) add(nodes[settlementIds[a]],nodes[settlementIds[b]],terrain,bends);
+    // Anchor old routes to the settled road network; cross-country trails fill out existing physical destinations.
+    for (const r of X.WORLD_ROUTES) {
+      if (r.from === homeId) continue;
+      add(nodes[r.from], nodes[r.to], r.terrain);
+    }
+    add(nodes['PASS_BM_HANLONG_GATE'],nodes.mountain,'mountain');
+    add(nodes['TOWN_YH_WUYUN_POST'],nodes.plains,'plains');
+    add(nodes['PASS_YH_XIFENG_GORGE'],nodes.forest,'forest');
+    add(nodes['TOWN_BM_BAIMEI_OLD_FORT'],nodes.SANCTUM_SWORD_ABYSS,'mountain');
+    add(nodes['CITY_BM_XINGYUN_CITADEL'],nodes.ruins,'mountain');
+    const anchors = ['forest','plains','mountain','desert','water','REG_SLEEPING_DRAGON_LAKE'];
+    for (const id of anchors) {
+      const n = nodes[id];
+      if (!n) continue;
+      const candidate = Object.values(settlementById).filter(s => n.terrain === 'water'
+        ? ['port','river','ferry'].includes(s.specialty) : s.specialty !== 'port');
+      add(nearestPlace(n, candidate), n);
+    }
+    const destinations = Object.values(nodes).filter(n => !linked.has(n.id) && n.id !== homeId &&
+      ['NEIGHBOR_SECT','EXPEDITION_REGION','RESOURCE_NODE','TRADE_HUB','PAGODA','SANCTUM','ELEMENTAL_REALM'].includes(n.kind));
+    for (const n of destinations) {
+      const nearby = Object.values(settlementById).concat(anchors.map(id => nodes[id]).filter(Boolean))
+        .filter(s => s.specialty !== 'port' || n.terrain === 'water');
+      add(nearestPlace(n, nearby), n);
+    }
+    routeMaps.set(topo, links);
+    return links;
+  }
+  function nearestPlace(point, options) {
+    let nearest = null, best = Infinity;
+    for (const other of options) {
+      const distance = Math.hypot(point.x - other.x, point.y - other.y);
+      if (distance < best) { best = distance; nearest = other; }
+    }
+    return nearest;
+  }
+  X.fortuneMapPoint = (topo, site, rank, index) => {
+    const id = topo.nodes[site.biome] ? site.biome : 'forest';
+    const anchor = topo.nodes[id];
+    return {id:'FORTUNE:' + site.id, anchorId:id, nameTh:site.nameTh, terrain:anchor.terrain,
+      macroRegion:anchor.macroRegion, x:clamp(anchor.x + ((index * 7 + rank * 3) % 11) - 5, 3, 97),
+      y:clamp(anchor.y + ((index * 5 + rank * 4) % 11) - 5, 3, 97)};
+  };
+  const roadCondition = (W, leg) => {
+    const a = W.world?.continent?.cities[leg.from], b = W.world?.continent?.cities[leg.to];
+    const average = ((a?.safety ?? 65) + (b?.safety ?? 65)) / 2;
+    return 1 + Math.max(0, 60 - average) / 160;
+  };
+  X.planContinentalRoute = (W, topo, target, fromId = homeId) => {
+    if (!target || !topo?.nodes?.[fromId]) return null;
+    if (target.id === fromId) return {fromId, targetId:target.id, legs:[], days:0, distanceLi:0};
+    const edges = topo.routes.slice();
+    if (!edges.some(e => e.to === target.id || e.from === target.id)) {
+      if (target.kind !== 'WORLD_ANOMALY' && !target.anchorId) return null;
+      const near = topo.nodes[target.anchorId] || nearestPlace(target, Object.values(settlementById).filter(s => s.specialty !== 'port'));
+      if (!near) return null;
+      edges.push(routeLeg(near, target, target.terrain));
+    }
+    const adjacency = new Map();
+    for (const leg of edges) {
+      if (!adjacency.has(leg.from)) adjacency.set(leg.from, []);
+      if (!adjacency.has(leg.to)) adjacency.set(leg.to, []);
+      const days = leg.days * roadCondition(W, leg);
+      adjacency.get(leg.from).push(Object.assign({}, leg, {days}));
+      adjacency.get(leg.to).push({...leg,from:leg.to,to:leg.from,days,a:leg.b,b:leg.a,points:leg.points.slice().reverse()});
+    }
+    const open = new Set([fromId]), costs = new Map([[fromId, 0]]), prev = new Map();
+    while (open.size) {
+      let id = null;
+      for (const candidate of open) if (id === null || costs.get(candidate) < costs.get(id)) id = candidate;
+      open.delete(id);
+      if (id === target.id) break;
+      for (const leg of adjacency.get(id) || []) {
+        const next = costs.get(id) + leg.days;
+        if (next >= (costs.get(leg.to) ?? Infinity)) continue;
+        costs.set(leg.to, next); prev.set(leg.to, leg); open.add(leg.to);
+      }
+    }
+    if (!prev.has(target.id)) return null;
+    const legs = [];
+    for (let id = target.id; id !== fromId;) {
+      const leg = prev.get(id);
+      legs.unshift(leg); id = leg.from;
+    }
+    return {fromId, targetId:target.id, nameTh:target.nameTh, macroRegion:target.macroRegion, legs, days:costs.get(target.id),
+      distanceLi:legs.reduce((sum, leg) => sum + leg.distanceLi, 0)};
+  };
+  X.routePosition = (route, fraction) => {
+    if (!route?.legs.length) return null;
+    let left = route.days * clamp(fraction, 0, 1);
+    for (const leg of route.legs) {
+      if (left <= leg.days) {
+        let distance = leg.units * clamp(left / leg.days,0,1);
+        for (let i = 1; i < leg.points.length; i++) {
+          const a = leg.points[i - 1], b = leg.points[i], length = mapDistance(a,b);
+          if (distance <= length && length) {
+            const f = distance / length;
+            return {x:a.x + (b.x-a.x)*f,y:a.y + (b.y-a.y)*f};
+          }
+          distance -= length;
+        }
+        return leg.b;
+      }
+      left -= leg.days;
+    }
+    return route.legs[route.legs.length - 1].b;
+  };
+  const stampPlace = n => n && {nodeId:n.id,nameTh:n.nameTh,x:n.x,y:n.y,macroRegion:n.macroRegion};
+  const routePlace = route => route?.legs.length && {
+    nodeId:route.targetId, nameTh:route.nameTh, macroRegion:route.macroRegion,
+    x:route.legs[route.legs.length - 1].b.x, y:route.legs[route.legs.length - 1].b.y
+  };
+  X.prepareTrialJourney = (W,ex,targetId,dwellDays,travel) => {
+    if (!travel.route) return;
+    ex.targetNodeId = targetId;
+    ex.days = +(2 * travel.days + dwellDays).toFixed(2);
+    ex.ret = ex.t0 + Math.round(ex.days * 1440);
+    setJourney(ex,travel.route,travel.days,Math.round(dwellDays * 1440),true);
+  };
+  X.locationOfJourney = ex => routePlace(ex.route);
+  function setJourney(ex, route, days, dwellMinutes, roundTrip) {
+    if (!route?.legs.length) return;
+    ex.route = route;
+    ex.travelMinutes = Math.max(1, Math.round(days * 1440));
+    ex.dwellMinutes = dwellMinutes;
+    ex.roundTrip = roundTrip;
+    ex.ret = ex.t0 + ex.travelMinutes * (roundTrip ? 2 : 1) + (roundTrip ? dwellMinutes : 0);
+    if (ex.state === 'away') startJourney(ex, ex.t0);
+  }
+  function startJourney(ex, start) {
+    if (!ex.route || ex.startedAt != null) return;
+    ex.startedAt = start;
+    ex.arriveAt = start + ex.travelMinutes;
+    ex.leaveAt = ex.arriveAt + ex.dwellMinutes;
+    ex.ret = ex.roundTrip ? ex.leaveAt + ex.travelMinutes : ex.arriveAt;
+  }
+  function finishJourney(W, ex, members) {
+    ex.done = true;
+    members.forEach(m => {
+      m.expId = null; m.away = false; m.hidden = false;
+      m.x = MAP.EXIT.x + .5; m.y = MAP.EXIT.y + .5;
+      m.path = null; m.travel = {to:'home', mountUid:tripMountUid(ex,m)};
+    });
+  }
+  X.journeyProgress = (W, ex) => {
+    if (!ex.route) return null;
+    const t = W.t || 0, start = ex.startedAt ?? t;
+    const back = ex.returnStartedAt != null || (ex.roundTrip && t >= (ex.leaveAt ?? Infinity));
+    const atDestination = !back && t >= (ex.arriveAt ?? Infinity);
+    const f = back ? 1 - (t - (ex.returnStartedAt ?? ex.leaveAt)) / ex.travelMinutes
+      : (t - start) / ex.travelMinutes;
+    return {point:X.routePosition(ex.route, f), back, atDestination, remaining:Math.max(0, ex.ret - t)};
+  };
+
+  const originGroups = {
+    'ภูเขาสูง':['mountain','hunt'], 'หมู่บ้านลุ่มน้ำ':['river','ferry','farm','marsh'],
+    'เมืองการค้า':['road','port','river','forge'], 'เมืองหลวง':['capital'], 'ที่ราบกลาง':['farm','road'],
+    'ชายฝั่งทะเล':['port'], 'ทะเลทรายตะวันตก':['desert'], 'ป่าลึก':['hunt','marsh'],
+    'วงศ์แพทย์':['academy','marsh'], 'ตระกูลยุทธ์':['mountain','capital']
+  };
+  X.assignHometown = (W, n, preferredId) => {
+    if (!n?.h || n.ext?.world?.hometownNodeId) return;
+    const tags = originGroups[n.h.origin?.region];
+    const pool = Object.values(settlementById).filter(s => s.tier !== 2 &&
+      (!tags || tags.includes(s.specialty) || (tags.includes('capital') && s.tier >= 4)));
+    const rng = makeChildRng(W, 'birthplace:' + n.id);
+    const city = settlementById[preferredId] || rng.weighted(pool, s => s.polityId === 'POL_YUNHE' ? 2.2 : 1);
+    if (!city) return;
+    n.ext = n.ext || {};
+    n.ext.world = Object.assign({}, n.ext.world, {
+      hometownNodeId:city.id, birthPolityId:city.polityId, originPublic:!!preferredId || !!tags
+    });
+  };
+  X.originView = n => {
+    const origin = n?.ext?.world;
+    if (!origin) return null;
+    const city = settlementById[origin.hometownNodeId];
+    const polity = polityById[origin.birthPolityId];
+    return city ? {city, polity} : null;
+  };
+  function borderKey(a, b) { return a < b ? a + ':' + b : b + ':' + a; }
+  X.polityOpinion = (W, a, b) => {
+    if (!a || !b || a === b) return 0;
+    return W.world?.continent?.relations[borderKey(a,b)] || 0;
+  };
+  X.homelandFeeling = (W, observer, other, relation) => {
+    const a = observer.ext?.world, b = other.ext?.world;
+    if (!a?.originPublic || !b?.originPublic || !a.birthPolityId || !b.birthPolityId) return 0;
+    const samePolity = a.birthPolityId === b.birthPolityId;
+    const opinion = samePolity ? 0 : X.polityOpinion(W,a.birthPolityId,b.birthPolityId);
+    const trust = relation?.t ?? 40;
+    if (!samePolity && (opinion >= -24 || trust >= 88)) return 0;
+    const rooted = clamp((E(observer,'values.familyClan') * .42 + E(observer,'personality.loyalty') * .34 +
+      E(observer,'values.honorLegacy') * .24 - E(observer,'values.freedom') * .30 - 22) / 48, 0, 1);
+    if (!rooted) return 0;
+    const familiarity = clamp(1 - (relation?.n || 0) / 70, .18, 1);
+    const local = a.hometownNodeId === b.hometownNodeId ? .24 : .15;
+    if (samePolity) return rooted * local * familiarity;
+    const openness = clamp((E(observer,'personality.empathy') + E(observer,'personality.trustfulness')) / 200, 0, 1);
+    return -(Math.min(1, (-opinion - 24) / 52) * rooted * (1 - openness * .65) *
+      clamp(1 - (trust - 40) / 48, 0, 1) * .33);
+  };
+
+  const civilRoles = {
+    ruler:['ผู้ปกครอง','social.leadership'],
+    minister:['อัครเสนาบดี','personality.rationality'],
+    governor:['เจ้าเมือง','social.leadership'],
+    marshal:['แม่ทัพประจำด่าน','personality.courage'],
+    revenue:['ขุนนางคลัง','aptitudes.socialCommerce'],
+    envoy:['ราชทูต','social.diplomacy'],
+    censor:['ผู้ตรวจการ','personality.integrity'],
+    scholar:['ราชครู','intellect.comprehension']
+  };
+  const rulerTitles = {council:'ประธานสภาเจ็ดวาณิช', dynasty:'เจ้าแผ่นดิน', bureaucracy:'จักรพรรดิ',
+    military:'จอมทัพผู้ปกครอง', guild:'ประธานสมาพันธ์ช่าง', monastic:'ประมุขสภาธรรม', tribal:'ผู้นำสภาชนเผ่า'};
+  const civilSeason = W => Math.floor((W.day || 0) / 30);
+  X.initContinent = W => {
+    if (W.world.continent) return;
+    const state = W.world.continent = {cities:{}, courts:{}, relations:{}, figures:{}, figureSeq:0, lastMonth:civilSeason(W), lastVisitDay:W.day};
+    const rng = makeChildRng(W, 'continent:courts');
+    Object.values(settlementById).forEach(n => {
+      state.cities[n.id] = {safety:67 + rng.int(-10, 10), prosperity:43 + n.tier * 7, visits:0};
+    });
+    function seedSeat(p, stationId, role, titleTh, vacant = false) {
+      const court = state.courts[p.id];
+      const id = p.id + ':' + role + ':' + stationId;
+      const seat = court.seats[id] = {id, role, nameTh:titleTh || civilRoles[role][0], stationId, holderId:null};
+      if (!vacant) seat.holderId = newCourtFigure(W, state, p, stationId, rng).id;
+    }
+    for (const p of continent.polities) {
+      const capital = settlementIds[p.capital];
+      state.courts[p.id] = {seats:{}, reserveIds:[], stability:65, policy:'balance'};
+      seedSeat(p,capital,'ruler',rulerTitles[p.government]);
+      seedSeat(p,capital,p.government === 'guild' ? 'revenue' : 'minister',
+        p.government === 'monastic' ? 'ผู้อำนวยการโรงทาน' : undefined);
+      if (p.government !== 'guild') seedSeat(p,capital,'revenue',p.government === 'council' ? 'นายคลังเจ็ดวาณิช' : undefined);
+      seedSeat(p,capital,'envoy');
+      seedSeat(p,capital,p.government === 'military' ? 'censor' : 'scholar',undefined,true);
+      for (const city of Object.values(settlementById)) {
+        if (city.polityId !== p.id) continue;
+        if (city.tier === 2) seedSeat(p,city.id,'marshal');
+        if (city.tier === 3) seedSeat(p,city.id,'governor');
+      }
+      for (let i = 0; i < 4; i++) {
+        state.courts[p.id].reserveIds.push(newCourtFigure(W,state,p,capital,rng).id);
+      }
+    }
+    for (const [a,b,opinion] of [
+      ['BEIMING','DONGHUANG',-58],['XIRONG','DONGHUANG',-49],['XIRONG','YUNHE',-29],
+      ['DONGHUANG','YUNXIAO',-40],['XIRONG','CHIYAN',-26],['BEIMING','YOUMING',19],
+      ['GUJIAO','SUVARNABODHI',-34],['YUNHE','SUVARNABODHI',23]
+    ]) state.relations[borderKey('POL_' + a, 'POL_' + b)] = opinion;
+  };
+  function newCourtFigure(W, state, polity, hometownId, rng) {
+    const id = 'court:' + (++state.figureSeq);
+    const h = generateFastFigureCore(rng, rng.chance(.5) ? 'F' : 'M');
+    const age = rng.int(21, 67);
+    const figure = {id, h, bornDay:W.day - age * 360, retirementAge:rng.int(62, 86),
+      residenceId:hometownId, officeSince:W.day,
+      ext:{world:{hometownNodeId:hometownId, birthPolityId:polity.id, originPublic:true}}};
+    state.figures[id] = figure;
+    return figure;
+  }
+  function courtEvent(W, seat, text) {
+    const city = settlementById[seat.stationId];
+    W.log('appoint','🏛️ ' + text + ' ณ ' + city.nameTh, [], {
+      location:stampPlace(city), storyThreadId:'court:' + city.polityId
+    });
+  }
+  X.tickContinentalCourts = W => {
+    const state = W.world.continent;
+    const month = civilSeason(W);
+    if (!state || month <= state.lastMonth) return;
+    state.lastMonth = month;
+    const rng = makeChildRng(W, 'continent:' + month);
+    const retired = new Set();
+    for (const p of continent.polities) {
+      const court = state.courts[p.id], capital = settlementIds[p.capital];
+      const seats = Object.values(court.seats);
+      for (const seat of seats) {
+        const f = state.figures[seat.holderId];
+        if (!f || (W.day - f.bornDay) / 360 < f.retirementAge) continue;
+        if (!rng.chance(.28)) continue;
+        retired.add(f.id); seat.holderId = null;
+        courtEvent(W, seat, figFullName(f) + ' วางมือจากตำแหน่ง' + seat.nameTh);
+      }
+      if (court.reserveIds.length < 4) court.reserveIds.push(newCourtFigure(W,state,p,capital,rng).id);
+      for (const seat of seats.filter(s => !s.holderId)) {
+        const applicants = court.reserveIds.map(id => state.figures[id]).filter(f => f &&
+          (W.day - f.bornDay) / 360 < f.retirementAge &&
+          rng.chance(clamp(.36 + (figTrait(f,'personality.ambition') - 50) / 105, .10, .73)));
+        if (!applicants.length || !rng.chance(seat.role === 'ruler' ? .83 : .62)) continue;
+        const sponsor = state.figures[seats.find(s => s.role === 'ruler')?.holderId];
+        const f = rng.weighted(applicants, candidate => {
+          const fit = figTrait(candidate, civilRoles[seat.role][1]);
+          const patronage = sponsor && candidate.h.name.sur === sponsor.h.name.sur
+            ? (100 - figTrait(sponsor,'personality.integrity')) / 20 : 0;
+          return 1 + Math.pow(fit / 35, 2) + patronage;
+        });
+        seat.holderId = f.id; f.officeSince = W.day; f.residenceId = seat.stationId;
+        court.reserveIds = court.reserveIds.filter(id => id !== f.id);
+        courtEvent(W,seat,figFullName(f) + ' เข้ารับตำแหน่ง' + seat.nameTh);
+      }
+      court.reserveIds = court.reserveIds.filter(id => {
+        const f = state.figures[id];
+        if (!f) return false;
+        if ((W.day - f.bornDay) / 360 < f.retirementAge) return true;
+        retired.add(id); return false;
+      });
+      const rulerSeat = seats.find(s => s.role === 'ruler');
+      const ruler = state.figures[rulerSeat.holderId];
+      const holder = role => state.figures[seats.find(s => s.role === role)?.holderId];
+      const coordination = holder('minister') ? (figTrait(holder('minister'),'personality.rationality') - 25) / 10 : 0;
+      const budgetSkill = holder('revenue') ? (figTrait(holder('revenue'),'aptitudes.socialCommerce') - 25) / 11 : 0;
+      const inspection = holder('censor') ? figTrait(holder('censor'),'personality.integrity') / 20 : 0;
+      const towns = Object.values(settlementById).filter(city => city.polityId === p.id);
+      const distress = towns.reduce((v,city) => v + Math.max(0, 65 - state.cities[city.id].safety),0) / towns.length;
+      const policies = [
+        ['guard', .8 + distress / 8 + (figTrait(ruler,'personality.caution') - 25) / 66],
+        ['market', .8 + (figTrait(ruler,'values.wealthResource') - 25) / 30],
+        ['balance', 1.2 + (figTrait(ruler,'personality.empathy') - 25) / 40]
+      ];
+      const policy = ruler ? rng.weighted(policies, ([id,w]) => Math.max(.1, w + (id === court.policy ? 1.4 : 0)))[0] : 'balance';
+      if (policy !== court.policy && W.day >= (court.lastPolicyDay || 0) + 90) {
+        court.policy = policy; court.lastPolicyDay = W.day;
+        const reason = {guard:'ให้รักษาด่านและคุ้มทาง', market:'หนุนตลาดและเสบียงเมือง', balance:'จัดกำลังดูแลทั้งตลาดและทางหลวง'};
+        courtEvent(W,rulerSeat,(ruler ? figFullName(ruler) : p.nameTh) + ' มีมติ' + reason[policy]);
+      }
+      for (const city of towns) {
+        const stats = state.cities[city.id];
+        const hasWatch = seats.some(s => s.stationId === city.id && s.holderId && (s.role === 'marshal' || s.role === 'governor'));
+        const pressure = 62 + coordination + inspection + (hasWatch ? 10 : 0) + (court.policy === 'guard' ? 11 : 0) - (ruler ? 0 : 5);
+        stats.safety = clamp(stats.safety + (pressure - stats.safety) * .20 + rng.int(-5,5), 25, 95);
+        const prosperity = 40 + budgetSkill + city.tier * 7 + (court.policy === 'market' ? 9 : 0) - Math.max(0, 65 - stats.safety) / 3;
+        stats.prosperity = clamp(stats.prosperity + (prosperity - stats.prosperity) * .22 + rng.int(-3,3),20,95);
+      }
+      court.stability = Math.round(towns.reduce((v,city) => v + (state.cities[city.id].safety + state.cities[city.id].prosperity) / 2,0) / towns.length);
+    }
+    for (const id of retired) delete state.figures[id];
+
+    const pairs = new Map();
+    for (const [i,j] of continent.roads) {
+      const a = settlementById[settlementIds[i]], b = settlementById[settlementIds[j]];
+      if (!a?.polityId || !b?.polityId || a.polityId === b.polityId) continue;
+      const key = borderKey(a.polityId,b.polityId);
+      if (!pairs.has(key)) pairs.set(key,[a,b]);
+    }
+    for (const [key,[a,b]] of pairs) {
+      const stateA = state.courts[a.polityId], stateB = state.courts[b.polityId];
+      const envoys = [stateA,stateB].map(c => state.figures[Object.values(c.seats).find(s => s.role === 'envoy')?.holderId]);
+      const base = state.relations[key] || 0;
+      const safety = (state.cities[a.id].safety + state.cities[b.id].safety) / 2;
+      const dialogue = envoys.every(Boolean) && rng.chance(.36 + (figTrait(envoys[0],'social.diplomacy') + figTrait(envoys[1],'social.diplomacy') - 100) / 300);
+      const delta = dialogue ? rng.int(1,5) : safety < 63 ? -rng.int(1,5) : rng.int(-3,1);
+      const next = state.relations[key] = clamp(base * .98 + delta, -85, 75);
+      if ((base < -24) !== (next < -24)) {
+        W.log('diplomacy', '🏛️ ' + polityById[a.polityId].nameTh + ' กับ ' + polityById[b.polityId].nameTh +
+          (next < -24 ? ' ตึงเครียดเรื่องชายแดน' : ' ลดความตึงเครียดชายแดน') + ' ที่ ' + a.nameTh, [], {location:stampPlace(a)});
+      }
+    }
+  };
+
+  X.cityVisitDrive = (W,npc) => {
+    const state = W.world?.continent;
+    if (!state || npc.rank < 1 || npc.id === W.sect.masterId || npc.sealed || npc.sealedBt ||
+      npc.inj?.length || W.day < state.lastVisitDay + 3 || W.threat?.roadBlocked || W.threat?.raid ||
+      W.day - (npc.lastTrip ?? -100) < 7 || ECO.count(W,'meal') < 12 ||
+      npc.h.state.rest < 40 || npc.h.state.satiety < 45 ||
+      (W.world.expeds || []).some(e => e.kind === 'city_visit' && !e.done)) return 0;
+    const residents = (W.npcs || []).filter(n => !n.dead && !n.exiled && !n.away && !n.expId).length;
+    if (residents < 3) return 0;
+    const stateNeeds = npc.h.state;
+    const belonging = E(npc,'values.familyClan') * .28 + E(npc,'temperament.sociability') * .23;
+    const exploration = E(npc,'personality.curiosity') * .24 + E(npc,'values.freedom') * .25;
+    return clamp((belonging + exploration - 16) / 56 + (stateNeeds.loneliness || 0) / 180, .1, 1.8);
+  };
+  X.departCityVisit = (W,npc) => {
+    if (!X.cityVisitDrive(W,npc) || !X.isAvailableForExpedition(W,npc) || npc.h.state.hp < CULT.hpMax(npc) * .65) {
+      return {ok:false,reason:'city-visit-unavailable'};
+    }
+    const state = W.world.continent, topo = X.ensureWorldTopology(W);
+    const rng = makeChildRng(W,'city-visit:' + W.day + ':' + npc.id);
+    const cities = Object.values(settlementById).filter(n => n.polityId === 'POL_YUNHE' && n.tier !== 2);
+    const origin = npc.ext?.world?.originPublic ? X.originView(npc) : null;
+    if (origin?.city && origin.city.tier !== 2 && origin.city.polityId !== 'POL_YUNHE') cities.push(origin.city);
+    const tolerance = E(npc,'personality.courage') > 65 ? 7 : 4.5;
+    const available = ECO.count(W,'meal') - 10;
+    const options = cities.map(city => {
+      const route = X.planContinentalRoute(W,topo,city);
+      const travel = X.createParty(W,[npc],{kind:'city_visit',regionId:city.id,terrain:city.terrain});
+      const days = (route?.days || 0) * (travel.durationMultiplier || 1);
+      return {city,route,travel,days,meals:Math.ceil(2 * days + .2)};
+    }).filter(o => o.route && o.travel.ok && o.days <= tolerance && o.meals <= available);
+    if (!options.length) return {ok:false,reason:'no-feasible-city'};
+    const stay = rng.weighted(options, ({city,days}) => {
+      const home = city.id === origin?.city.id ? E(npc,'values.familyClan') / 27 : .35;
+      const safety = state.cities[city.id].safety / 100;
+      const school = city.specialty === 'academy' ? E(npc,'values.knowledgeCraft') / 125 : 0;
+      return (home + .5 + school + (city.tier >= 3 ? E(npc,'interests.socializing') / 100 : 0)) *
+        Math.pow(safety, E(npc,'personality.caution') / 40) / (1 + days * .8);
+    });
+    const {travel,days:tripDays,meals} = stay;
+    if (!ECO.take(W,'meal',meals)) return {ok:false,reason:'insufficient-meals'};
+    const ex = {id:++W.world.seq, kind:'city_visit', region:stay.city.id, targetNodeId:stay.city.id, party:[npc.id],
+      t0:W.t, days:tripDays * 2 + .2, ret:W.t + Math.round((2 * tripDays + .2) * 1440), supplies:meals,
+      mount:travel.mounts, state:'leaving', done:false, carry:[], journal:[]};
+    setJourney(ex, stay.route, tripDays, 288, true);
+    W.world.expeds.push(ex);
+    state.lastVisitDay = W.day;
+    AI.interruptFor(W,npc);
+    npc.expId = ex.id; npc.lastTrip = W.day;
+    npc.act = {id:'idle',stage:'do',left:0,total:0,ctx:{},why:[]};
+    npc.travel = {to:'exit',ex:ex.id,mountUid:tripMountUid(ex,npc)}; npc.path = null;
+    X.releaseDeployedGarrisons(W,[npc]);
+    const reason = origin?.city.id === stay.city.id ? 'เดินทางกลับไปเยี่ยมบ้านเกิด' : 'ออกไปพบปะผู้คน';
+    W.log('mission',HC.fullName(npc) + ' ' + reason + 'ที่' + stay.city.nameTh,[npc.id],{location:stampPlace(stay.city)});
+    return {ok:true,expedition:ex};
+  };
+  function visitCity(W, ex, members) {
+    const city = settlementById[ex.targetNodeId], stats = W.world.continent?.cities[ex.targetNodeId];
+    if (!city || !stats) return;
+    stats.visits++;
+    stats.lastVisitDay = W.day;
+    for (const npc of members) {
+      const homecoming = X.originView(npc)?.city.id === city.id;
+      HC.feel(npc,{mood:homecoming ? 9 : 4, loneliness:homecoming ? -14 : -7, novelty:8});
+      HC.practice(npc,'diplomacy',.25,1);
+      AI.mem(W,npc,homecoming ? 'ได้กลับไปเยี่ยมบ้านเกิดที่' + city.nameTh : 'พบผู้คนใหม่ที่' + city.nameTh,.55);
+    }
+    W.log('mission',members.map(HC.fullName).join('、') + ' เดินทางถึง' + city.nameTh,
+      members.map(n => n.id),{location:stampPlace(city),storyThreadId:'city:' + city.id});
   }
 
   /* =========================================================================
@@ -4787,6 +5325,7 @@
     }
 
     return {
+      location:entry.location || entry.meta?.location || null,
       capturedAtTick: Number.isFinite(entry.t) ? entry.t : ((W && W.t) || 0),
       capturedAtDay: Number.isFinite(entry.day) ? entry.day : ((W && W.day) || 0),
       epistemicStatus,
@@ -4838,6 +5377,7 @@
 
   X.recordChronicle = (W, entry) => {
     if (!W || !W.world || !entry) return null;
+    if (W._expeditionLocation && !entry.location) entry = {...entry,location:W._expeditionLocation};
     if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
     W.chronicle = W.world.chronicles;
     if (W.sect) X.ensureNewsPrefs(W);
@@ -7637,6 +8177,7 @@
       fullNpc.sectTotems = W.sect.totemPillars.activeTotems.slice();
       fullNpc._sectTotems = fullNpc.sectTotems;
     }
+    X.assignHometown(W, fullNpc);
     W.npcs.push(fullNpc);
     W.byId[fullNpc.id] = fullNpc;
     if (g.AI && g.AI.assignBed && W.map) g.AI.assignBed(W, fullNpc);

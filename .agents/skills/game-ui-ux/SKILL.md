@@ -305,3 +305,8 @@ New Sovereign codices and gear use `vfxShape` and the Transcendent grade route. 
 ### Four-Symbol companion lifecycle
 
 `UI.sovereignCompanionCard` shows eggs and animals in the nursery and on the NPC sheet. `Render.drawSovereignCompanion` shares vector layers with the UI. Active companions use staged silhouettes in the map and final Four-Symbol aura. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+Players reach the map and dedicated kingdom directory through **ยุทธภพ**. `UI.rPolities` reads the actual capital, court seats, city data, diplomacy and recent news. `world-polity` links a city or NPC profile to that directory. `atlas-event` centers on the recorded coordinate, including an expired event. Filters distinguish cities, sects, fortune and special sites. Symbols stay screen-sized across 1×–10× zoom. At 2.8× detail tiles use the second terrain image, and city sketches appear from 5.5×. Both JPEGs are embedded by `tools/build_single.js`. `test/world_atlas_browser.js` exercises these controls.

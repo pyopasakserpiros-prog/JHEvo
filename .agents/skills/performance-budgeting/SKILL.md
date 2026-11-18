@@ -161,3 +161,8 @@ Transcendent scenes share the Legendary full-scene limit (2 high, 1 low), reuse 
 ### Four-Symbol companion lifecycle
 
 Four-Symbol body drawings reuse cached Path2D. The map renders at most two special companions per NPC, one in low quality. Daily incubation and growth skip undiscovered and inactive nursery entries. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+Court and city administration advances in a monthly pass. The AI admission check for visiting a city uses inexpensive tests; route planning and examination of viable destinations happen after an NPC picks the option. Route graph geometry is cached per topology. Visual tile generation runs outside simulation time, only for the visible map, and uses a 96-tile cache with a per-frame paint budget. Inspect `browser_mobile_perf` separately from atlas tests when changing these paths.

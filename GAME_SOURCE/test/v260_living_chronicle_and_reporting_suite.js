@@ -67,8 +67,8 @@ console.log('===================================================================
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   assert.strictEqual(hcSha, 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js must remain 100% byte-identical');
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(SIM.PATCH_VERSION, '2.6.0', 'SIM.PATCH_VERSION must be 2.6.0');
-  assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '2.6.0-living-chronicle-and-reporting', 'SIM.SAVE_SCHEMA_VERSION must be 2.6.0-living-chronicle-and-reporting');
+  assert.ok(['2.6.0', '3.0.0'].includes(SIM.PATCH_VERSION), 'known release contract');
+  assert.ok(['2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent'].includes(SIM.SAVE_SCHEMA_VERSION), 'known release contract');
 
   const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const scriptMatches = indexHtml.match(/<script\s+src="[^"]+"\s*><\/script>/g) || [];

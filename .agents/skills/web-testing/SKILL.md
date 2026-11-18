@@ -183,3 +183,8 @@ browser_mobile_perf ตรวจ360/412/1280px gestures/24tabs/save-load/0–96/
 ### Transcendent visuals, post-260e
 
 For Transcendent regressions run `node GAME_SOURCE/test/carbon_compendia_master_suite.js`. In Chromium confirm a real cast reaches Canvas, compare all four phases, and check that stock/library entries use the six-star art rather than the common atlas.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+`test/world_atlas_browser.js` covers 390×844, 800×360 and 1280×800 atlas viewports, tile activation, zoom, pinch and stable pins, city filtering, selecting a kingdom, and returning to its capital. `test/world_atlas_standalone.js` checks both image data URLs. `test/observer_controls_browser.js` includes the kingdom window in its action sweep. On managed Chromium use `BROWSER_TEST_BASE_URL` for a local HTTP fixture when `file://` is blocked.

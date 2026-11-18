@@ -138,3 +138,8 @@ receipt ประตูธาตุ, ของขวัญคนพเนจร 
 ### Four-Symbol companion lifecycle
 
 `W.sect.sovereignNursery` holds permanent discovery records and egg progress. `npc.pets` holds uid, care days, last tick and bonded growth stage. Keep these records separate from rendering and do not infer a new pet from an old discovery receipt. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+New saves identify `3.0.0-living-continent`. Save world stat changes under `W.world.continent`, public/historical origins under `npc.ext.world` and snapshots, expedition route legs with the departure/arrival/return schedule, and outpost cargo while en route. Preserve destination IDs, disjoint office holders and arrival markers on restore. Destination effects settle once even if saving at the boundary. `test/world_atlas.js` covers a running city visit crossing a save/load boundary, along with court and origin round trips.

@@ -63,6 +63,32 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
       await page.click('[data-do="atlas-home"]');
       assert.strictEqual(await page.locator('.atlas-marker.home').count(), 1, 'home control retains the player sect');
       if (viewport.width === 390) {
+        await page.click('[data-do="atlas-fit"]');
+        assert.strictEqual(await page.evaluate(() => UI.atlasView.zoom),1);
+        assert.strictEqual(await page.locator('.atlas-detail-tile').count(),0,'overview uses a single painting');
+        const iconSize = await page.evaluate(() => document.querySelector('.atlas-marker.home').offsetWidth);
+        for (let i=0;i<6;i++) await page.click('[data-do="atlas-zoom"][data-arg="in"]');
+        await page.waitForSelector('.atlas-detail-tile');
+        assert(await page.locator('.atlas-detail-tile').count() > 0);
+        assert.strictEqual(await page.evaluate(() => document.querySelector('.atlas-marker.home').offsetWidth),iconSize,'map symbols use screen pixels');
+        await page.click('[data-do="atlas-filter"][data-arg="CITY"]');
+        assert.strictEqual(await page.locator('.atlas-marker.home').count(),0,'city filter hides sect symbols');
+        await page.waitForSelector('.atlas-settlement-plan');
+        await page.evaluate(() => UI.doAction('atlas-select','CITY_YH_SHUANGJIANG'));
+        assert((await page.locator('.atlas-detail').textContent()).includes('ประธานสภาเจ็ดวาณิช'));
+        await page.click('.atlas-detail-close');
+        await page.click('[data-do="atlas-filter"][data-arg="ALL"]');
+        await page.click('[data-do="atlas-fit"]');
+        await page.click('#shTabs [data-t="polities"]');
+        assert.strictEqual(await page.locator('.polity-card').count(),9);
+        await page.click('.polity-card[data-arg="POL_BEIMING"]');
+        assert((await page.locator('.polity-hero h2').textContent()).includes('เป่ยหมิง'));
+        assert((await page.locator('.polity-section').first().textContent()).includes('เจ้าแผ่นดิน'));
+        await page.click('.polity-hero [data-do="atlas-event"]');
+        assert.strictEqual(await page.evaluate(() => UI.atlasSelectedId),'CITY_BM_HANYU_CAPITAL');
+        assert.strictEqual(await page.locator('.atlas-detail').count(),1);
+        await page.click('.atlas-detail-close');
+        await page.click('[data-do="atlas-fit"]');
         const choice = await page.evaluate(() => {
           const node = UI.buildWorldAtlas(G.W).nodes.find(n => n.kind === 'RESOURCE_NODE' && n.ownerSectId !== 'PLAYER');
           const party = UI.atlasParty(G.W, node);

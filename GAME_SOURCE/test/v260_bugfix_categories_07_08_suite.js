@@ -32,7 +32,7 @@ console.log('===================================================================
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   assert.strictEqual(hcSha, 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js must remain byte-identical');
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(SIM.PATCH_VERSION, '2.6.0', 'SIM.PATCH_VERSION must be 2.6.0');
+  assert.ok(['2.6.0', '3.0.0'].includes(SIM.PATCH_VERSION), 'known release contract');
   console.log('  ✓ [1/8] Core Lock & Architectural Invariants Verified');
 }
 

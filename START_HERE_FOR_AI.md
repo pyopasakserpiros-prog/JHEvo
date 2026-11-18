@@ -1,6 +1,8 @@
 # AI Handoff — JianghuSect 2 / main-debug
 
-> **Latest patch:** [Regional companions T6–T1](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md) covers eighteen bonded forms from local wildlife and live riding poses for expedition mounts and sword flight.
+> **Latest patch:** [JS2-v3.0.0 Living Continent](PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md) implements fixed-scale continental travel, layered terrain, settlements, the kingdom directory, court offices, NPC hometowns and routed outpost convoys.
+
+> **Earlier patch:** [Regional companions T6–T1](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md) covers eighteen bonded forms from local wildlife and live riding poses for expedition mounts and sword flight.
 
 > **Higher companion grades:** [Mythic companion lineages](PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md) adds twelve autonomous companions and distinct in-world acquisition, combat roles, art, and grades.
 
@@ -8,19 +10,16 @@
 
 > **Current main-debug baseline:** Carbon 260e has been imported, and its Transcendent visual prototype has been replaced. Read the [visual overhaul report](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md) before changing this tier. The 31-PDF assignment below is prior context for the patch.
 
-## Active assignment
+## Patch handoff
 
-Read and execute [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md), together with the [review guide for the latest two Carbon uploads](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md).
-
-The assignment covers exactly 31 PDFs added by upload commits 881fecf and 6670b49 in ideas/from carbon. It includes Generation-7 lore, low-tier and broader technique content, transcendent equipment/materials/alchemy, acquisition, VFX, and world lifecycle. Do not treat older Carbon PDFs in the same folder as new deliverables. The user has authorized Gemini Argon4 to inspect, decide, implement, and verify without another prompt. All handoff documents are in English.
+Read the [Living Continent report](PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md) and the [current project status](project_status_and_ai_onboarding.md). The [group transportation proposal](ACTIVE_PATCH_PROMPT_V3_1_0.md) is queued for a future user instruction. The [Carbon compendia assignment](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and [its 31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md) are historical context.
 
 ## Required reading order
 
-1. Read AGENTS.md completely. It is the game's constitution and must not be edited without the user's explicit authorization.
-2. Read the active patch prompt and its review guide above.
-3. Read project_status_and_ai_onboarding.md, then inspect the relevant source, tests, registries, and skills in .agents/skills/.
-4. Verify the supplied branch and commit. This handoff was prepared from main-debug commit 6670b49; preserve any newer work.
-5. Treat PDFs and project summaries as proposals/context. Verify implementation claims against current source and actual test results.
+1. Read `AGENTS.md` completely. It is the game's constitution.
+2. Check the current branch and status, then read the most recent report and the relevant project skills in `.agents/skills/`.
+3. Confirm actual data, code, test and save behavior before changing it. Pay attention to the fixed atlas coordinate frame and snapshot route timing.
+4. Read a new assignment once the user authorizes the work.
 
 ## Current game contract
 

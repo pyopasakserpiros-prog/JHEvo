@@ -359,6 +359,49 @@ for (const kind of kinds) {
 }
 console.log(`  ✓ Verified Editor catalog (${catalog.length} entries across ${kinds.size} categories, tested spawns: ${testedSpawns})`);
 
+// Continental data shares one coordinate frame with the atlas and travel graph.
+console.log('\n▶ Checking continental geography and court seats...');
+const {EXPED} = G, worldMap = EXPED.ensureWorldTopology(W);
+const cityIds = new Set();
+for (const [i,row] of JD.CONTINENT.rows.entries()) {
+  const [id,nameTh,x,y,tier,owner] = row;
+  check(/^(CITY|TOWN|PASS)_[A-Za-z0-9_]+$/.test(id) && !cityIds.has(id),'Duplicate or malformed city ID ' + id);
+  cityIds.add(id);
+  check(typeof nameTh === 'string' && nameTh.length > 0,'City name is missing: ' + id);
+  check([x,y].every(v => Number.isFinite(v) && v >= 0 && v <= 100),'City outside the coordinate frame: ' + id);
+  check(Number.isInteger(tier) && tier >= 1 && tier <= 5,'Invalid settlement tier: ' + id);
+  check(owner === -1 || !!JD.CONTINENT.polities[owner],'City has an invalid polity: ' + id);
+  const node = EXPED.SETTLEMENTS[id];
+  check(node?.order === i+1,'Gazetteer order differs from runtime: ' + id);
+  const route = EXPED.planContinentalRoute(W,worldMap,node);
+  check(route?.targetId === id && route.distanceLi > 0,'No path from the home sect: ' + id);
+}
+const edgeIds = new Set();
+for (const [a,b,terrain,bends = []] of JD.CONTINENT.roads) {
+  const key = [a,b].sort((x,y) => x-y).join(':');
+  check(!edgeIds.has(key) && Number.isInteger(a) && Number.isInteger(b) &&
+    a >= 0 && b >= 0 && a !== b && Math.max(a,b) <= cityIds.size,'Duplicate or invalid road ' + key);
+  edgeIds.add(key);
+  check(!terrain || ['forest','mountain','desert','plains','marsh','water'].includes(terrain),'Unknown road terrain at ' + key);
+  check(bends.every(p => p.length === 2 && p.every(n => Number.isFinite(n) && n >= 0 && n <= 100)),'Invalid road bend at ' + key);
+}
+const courtState = W.world.continent, holders = new Set();
+for (const def of JD.CONTINENT.polities) {
+  const row = JD.CONTINENT.rows[def.capital-1];
+  check(!!row && EXPED.SETTLEMENTS[row[0]]?.polityId === def.id && row[4] >= 4,'Invalid capital for ' + def.id);
+  const court = courtState.courts[def.id];
+  check(!!court && Object.values(court.seats).some(s => s.role === 'ruler'),'Court requires a governing office: ' + def.id);
+  for (const seat of Object.values(court?.seats || {})) {
+    check(EXPED.SETTLEMENTS[seat.stationId]?.polityId === def.id,'Office without a station in its polity: ' + seat.id);
+    if (seat.holderId) {
+      check(!!courtState.figures[seat.holderId] && !holders.has(seat.holderId),'Unknown or duplicate office holder: ' + seat.holderId);
+      holders.add(seat.holderId);
+    }
+  }
+}
+check(EXPED.LI_PER_MAP_UNIT === 10,'Continental scale must remain 10 li per map unit');
+console.log('  ✓ Verified ' + cityIds.size + ' settlements, ' + edgeIds.size + ' authored links and ' + JD.CONTINENT.polities.length + ' courts');
+
 // Report Summary
 console.log('\n====================================================');
 for (const def of Object.values(JD.CORE.curatedTraits || {})) {

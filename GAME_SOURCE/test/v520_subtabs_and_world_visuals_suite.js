@@ -112,9 +112,9 @@ require(path.join(ROOT, 'js/ui.js'));
     'human_core.js SHA-256 must remain 100% byte-identical'
   );
   assert.strictEqual(g.HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.ok(['2.5.0', '2.6.0'].includes(g.SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 5.2.0');
+  assert.ok(['2.5.0', '2.6.0', '3.0.0'].includes(g.SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 5.2.0');
   assert.ok(
-    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting'].includes(g.SIM.SAVE_SCHEMA_VERSION),
+    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent'].includes(g.SIM.SAVE_SCHEMA_VERSION),
     'SIM.SAVE_SCHEMA_VERSION must be 5.2.0-subtabs-and-world-visuals'
   );
 
@@ -210,12 +210,19 @@ require(path.join(ROOT, 'js/ui.js'));
   // =========================================================================
   // Phase 2: Pillar 2 — Grand World Atlas Visual Upgrade & Animated Supply Convoys
   // =========================================================================
-  if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS) {
-    g.SECT.OUTPOSTS_LOGISTICS.establishOutpost(W, 'MINE_CELESTIAL_STONE', 'CAMP_REST', { force: true });
-  }
+  const logistics = g.SECT.OUTPOSTS_LOGISTICS;
+  logistics.establishOutpost(W,'MINE_CELESTIAL_STONE','CAMP_REST',null,{force:true});
+  W.sect.stock.grain = Math.max(30,W.sect.stock.grain || 0);
+  assert(!UI.rWorldMap(W).includes('class="atlas-party atlas-convoy"'),'a stationary camp has no caravan in transit');
+  const shipment = logistics.dispatchSupplyConvoy(W,'MINE_CELESTIAL_STONE',5,0,{forceAmbush:false});
+  assert(shipment.ok && shipment.convoy.route.legs.length,'test sends a real supply convoy');
   const atlasHtml = UI.rWorldMap(W);
   assert(atlasHtml.includes('data-arg="outposts"'), 'World Atlas must expose the Outposts & Convoys layer toggle');
-  assert(atlasHtml.includes('atlas-convoy'), 'World Atlas must render animated supply convoy markers (🐪) for active outposts');
+  assert(atlasHtml.includes('class="atlas-party atlas-convoy"'), 'World Atlas follows the actual supply convoy');
+  W.t = shipment.convoy.arriveAt;
+  logistics.settleSupplyConvoys(W);
+  assert(!UI.rWorldMap(W).includes('class="atlas-party atlas-convoy"'),'convoy marker disappears on delivery');
+
 
   // =========================================================================
   // Phase 3: Pillar 3 — Secret Realm Portal Vortex, Ancient Cave & Stele Spectacles

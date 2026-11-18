@@ -304,3 +304,8 @@ ET.onCraftOutcome อยู่หลัง ECO.finishCraft/personalCraft แล�
 ### Sovereign archives
 
 Sovereign archive materials enter normal expedition handover. Pure recipes require discovery and enter `ECO.recipesFor`. Wildcard helpers debit the recipe bill and cannot mint refunds. Permanent marks apply once per mark. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+`SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy` debits the source immediately, requires an active destination, snapshots the route and blocks a second live cargo for the same camp. `settleSupplyConvoys` credits the camp at arrival or returns stranded cargo to the source after a return journey. Use the recorded pill quantities, quality and provenance for refunds. The quartermaster budgets upkeep during the trip while preserving sect reserves. A convoy indicator reads the live shipment, with no progress assigned to stationary camps.

@@ -382,3 +382,70 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .regional-pet-card .companion-grade { color: #cee5d7; }
 .regional-pet-card[data-tier="3"], .regional-pet-card[data-tier="4"] { border-color: #6e8592; }
 .regional-pet-card[data-tier="5"], .regional-pet-card[data-tier="6"] { border-color: #91966f; }
+
+/* Continental map symbols stay at the same screen size at every zoom. */
+.atlas-marker{width:23px;height:23px;min-width:23px;border-width:1px;border-color:var(--polity-color,#e6d17f)}
+.atlas-marker.home{width:29px;height:29px;min-width:29px}
+.atlas-marker.cluster{width:25px;height:25px;min-width:25px}
+.atlas-marker-icon{font-size:12px}
+.atlas-marker.home .atlas-marker-icon{font-size:15px}
+.atlas-marker::before{content:"";position:absolute;inset:-6px;border-radius:50%}
+.atlas-polity-label{position:absolute;z-index:1;transform:translate(-50%,-190%);pointer-events:none;white-space:nowrap;
+  font-size:10px;font-weight:bold;letter-spacing:.03em;text-shadow:0 1px 2px #071a1a,0 0 5px #071a1a}
+.atlas-distance-scale{position:absolute;z-index:5;bottom:8px;left:10px;text-align:center;color:#fff1cb;
+  border:1px solid #e5cf92;border-top:0;font-size:10px;background:#102624cc;text-shadow:0 1px #102624;pointer-events:none}
+.atlas-office{border-top:1px solid #8fa87c55;padding:4px 0;font-size:11px}
+.atlas-office summary{cursor:pointer;color:#f8e8b5;padding:2px 0}
+.atlas-office div{padding-left:8px;color:#d6e9d8}
+.atlas-location{cursor:pointer;white-space:normal}
+.npc-world-origin{padding:4px 0;color:#cce2cf;font-size:12px}
+
+.atlas-surface{isolation:isolate}
+.atlas-detail-source{background-image:url('../assets/world_atlas_detail.jpg')}
+.atlas-terrain-detail{position:absolute;inset:0;z-index:-1;pointer-events:none;display:none;opacity:.85}
+.atlas-show-detail .atlas-terrain-detail{display:block}
+.atlas-detail-tile{position:absolute;width:calc(100% / 24 + .25px);height:calc(100% / 24 + .25px)}
+.atlas-landmark{position:absolute;z-index:1;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;
+  font-size:11px;font-weight:600;letter-spacing:.05em;color:#fff4dc;text-shadow:0 1px 1px #101b16,0 0 4px #101b16}
+.atlas-settlement-plan{position:absolute;display:none;transform:translate(-50%,-50%) rotate(-13deg);pointer-events:none;
+  border:1px solid #dcc59499;border-radius:30%;background:#ba957344;box-shadow:0 1px 3px #1e2a20bd}
+.atlas-show-local .atlas-settlement-plan{display:block}
+.atlas-settlement-plan i{position:absolute;display:block;width:22%;height:16%;background:linear-gradient(135deg,#ffe9b4,var(--atlas-roof) 47%,#3c271b);
+  transform:skew(-10deg);border-radius:1px;box-shadow:1px 1px 1px #1d231fbd}
+.atlas-settlement-plan i:nth-child(1){left:37%;top:32%;width:30%;height:24%}
+.atlas-settlement-plan i:nth-child(2){left:17%;top:17%}
+.atlas-settlement-plan i:nth-child(3){right:12%;top:15%}
+.atlas-settlement-plan i:nth-child(4){left:12%;bottom:24%}
+.atlas-settlement-plan i:nth-child(5){left:43%;bottom:15%}
+.atlas-settlement-plan i:nth-child(6){right:11%;bottom:25%}
+.atlas-scale{top:162px}
+
+/* Kingdom directory and court ledger use the same accent as each kingdom's map pins. */
+.polity-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:3px 0 11px}
+.polity-header h2,.polity-hero h2{margin:0;color:#fff0bd;font-size:18px;line-height:1.3}
+.polity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:8px}
+.polity-card{text-align:left;display:flex;align-items:center;gap:9px;min-height:66px;padding:10px 11px;
+  color:#eff4e1;background:linear-gradient(120deg,#21483c,#152f2a);border:1px solid #637d66;border-left:3px solid var(--court-color);
+  border-radius:10px;cursor:pointer}
+.polity-card:focus-visible,.polity-card:hover{border-color:var(--court-color);background:#2a5347}
+.polity-card-glyph{font-size:21px}.polity-card-text{flex:1;min-width:0}
+.polity-card-text strong{font-size:13px;display:block;color:var(--court-color)}
+.polity-card-text small,.polity-row small{font-size:11px;color:#b8d1c3;display:block;margin-top:3px}
+.polity-card-arrow{color:var(--court-color);font-size:20px}
+.polity-back{margin:0 0 9px;cursor:pointer}
+.polity-hero{border:1px solid #6e8770;border-top:3px solid var(--court-color);border-radius:11px;
+  padding:13px;background:linear-gradient(138deg,#244a3e,#102d29)}
+.polity-hero-meta,.polity-hero-line,.polity-metrics small{font-size:11px;color:#bdd8c8}
+.polity-hero h2{margin:4px 0 5px;color:var(--court-color)}
+.polity-metrics{display:grid;grid-template-columns:1fr 1.6fr;gap:7px;margin:9px 0}
+.polity-metrics>div{border:1px solid #647b6966;border-radius:7px;background:#112a24;padding:7px 8px}
+.polity-metrics b{display:block;color:#ecdfaa;font-size:13px;margin-top:2px}
+.polity-section{border:1px solid #6e877088;border-radius:9px;padding:8px 10px;margin:9px 0;background:#193a30}
+.polity-section>summary{cursor:pointer;font-weight:700;color:#ffedb9;padding:3px 0}
+.polity-section>summary span{font-size:11px;font-weight:400;color:#bfd9c4;margin-left:3px}
+.polity-section h4{font-size:11px;color:#d5e6cf;margin:10px 0 3px}
+.polity-row,.polity-relation{padding:7px 0;border-top:1px solid #8fa87c44;font-size:12px;line-height:1.45}
+.polity-relation{display:flex;align-items:center;justify-content:space-between;gap:7px}
+.polity-relation>span{white-space:nowrap;font-size:11px;color:#c9dacf}
+.polity-relation>span.tense{color:#ffb7a2}.polity-relation>span.warm{color:#9de9ba}
+.atlas-office summary>span{color:#e2eed9;margin-left:8px}

@@ -1811,7 +1811,9 @@
     else if (type === 'argue') { da = -2.5 * k; dv = 2.5 * k; dt = -1.2 * k; HC.feel(a, { anger: 6, mood: -4, stress: 3 }); HC.feel(b, { anger: 6, mood: -4, stress: 3 }); }
     else if (type === 'gift') { da = 4 * k; dt = 2 * k; HC.feel(b, { mood: 6 }); }
     const upd = (r, x, y, other) => {
-      r.a = clamp(r.a + da * (1 + (HC.eff(x, 'personality.empathy') - 50) / 200), -100, 100); r.t = clamp(r.t + dt, 0, 100);
+      const homeland = type === 'chat' && g.EXPED?.homelandFeeling ? g.EXPED.homelandFeeling(W,x,other,r) : 0;
+      r.a = clamp(r.a + da * (1 + (HC.eff(x, 'personality.empathy') - 50) / 200) + homeland * k, -100, 100);
+      r.t = clamp(r.t + dt + homeland * .25 * k, 0, 100);
       r.r = clamp(r.r + dr, 0, 100); r.l = clamp(r.l + dl + (type === 'date' ? 0 : -0.01), 0, 100); r.v = clamp(r.v + dv - 0.03, 0, 100); r.n++; r.last = W.t;
       AI.updateBond(W, x, other, r);
     };
@@ -1870,6 +1872,7 @@
       if (AI.isProtectedAction(W, o, 'pair')) continue;
       const r = rel[o.id]; const c = AI.compat(n, o);
       let w = 0.3 + (r ? Math.max(0, r.a) / 60 + r.n / 40 + (r.g || 0) / 80 : 0) + c * 0.7;
+      if (g.EXPED?.homelandFeeling) w += g.EXPED.homelandFeeling(W,n,o,r);
       if (n.companionId && n.companionId === o.id) w += 2.6;
       if (r && (r.bond === 'LIFE_SAVIOR' || (r.lifeAndDeathCount || 0) > 0)) w += 2.4;
       if (n.peakId && o.peakId && n.peakId === o.peakId) w *= 1.45;
@@ -1918,6 +1921,7 @@
       p = 0.1 + (r ? r.l / 60 + r.a / 150 : 0) + ri.gratitude / 220 + (E(b, 'interests.romance') - 40) / 120 + attMod;
     }
     if (type === 'argue') p = def.fear >= 50 ? 0.25 : 0.85;
+    if (type === 'chat' && g.EXPED?.homelandFeeling) p += g.EXPED.homelandFeeling(W,b,a,r) * .42;
     if (type === 'chat') p -= (E(b, 'interests.solitude') - 55) / 250 + ((b.h.state.stress > 60) ? 0.2 : 0);
     if (b.act && b.act.id === 'duty') p -= 0.35 * dutyWeight(b); if (b.act && b.act.id === 'cultivate') p -= 0.35;
     return clamp(p, 0.02, 0.97);

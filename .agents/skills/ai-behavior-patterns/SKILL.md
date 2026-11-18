@@ -350,3 +350,8 @@ ET.activityBias เป็น pure scoring และเพิ่มน้ำห�
 ### Sovereign archives
 
 The archive follows the autonomous sanctum expedition flow. NPCs discover a manual, decide how to hand it over and study it through the normal library route. Only qualified post-expedition parties can find one. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+Public hometown and birth polity live in `npc.ext.world`. `EXPED.homelandFeeling` influences selection, acceptance and warmth of conversation. Keep the effect directional, bounded by loyalty, family ties, honor, freedom and openness, and weakened by trust or familiarity. The same birthplace does not declare a bond. Town visits enter `SECT.AUTONOMY.opportunities` as a discretionary action with a food/personnel reserve and a real route. Civil officeholders and candidates live outside the resident action loop. `EXPED.tickContinentalCourts` runs monthly, weighs willing applicants and uses role aptitude plus patronage. This civil roster uses stable office/holder IDs and stays separate from sect offices.

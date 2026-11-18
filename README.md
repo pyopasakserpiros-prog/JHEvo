@@ -1,4 +1,6 @@
-# JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
+# JianghuSect 2 (ภาค 2) — JS2-v3.0.0 Living Continent
+
+เปิด **ยุทธภพ → แผนที่ยุทธภพ** เพื่อดูทวีปเต็มผืน ซูมเข้าเพื่ออ่านภูมิประเทศและดูตำแหน่งจริงของคณะเดินทาง หรือเปิด **ยุทธภพ → อาณาจักร** เพื่อดูราชสำนัก เมือง และผู้ครองตำแหน่งทั้ง 9 อาณาจักร [รายงาน Living Continent](PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md)
 
 > **main-debug — คู่หูแห่งหุบเขา:** มีคู่หูประจำถิ่น 18 แบบ (T1–T2 ระดับละ 5) NPC ผูกพันธสัญญาเอง และมีท่าขี่พาหนะกับกระบี่บินบนแผนที่ [รายงานแพตช์](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md).
 
@@ -8,13 +10,13 @@
 
 > **main-debug — Transcendent VFX:** ภาพวิชาและอุปกรณ์เหนือตำนานชุดใหม่เชื่อมกับการต่อสู้และคลังแล้ว ดู [รายงานแพตช์](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
 
-> **Active assignment:** Gemini Argon4 should read [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
+> **Historical Carbon assignment:** Gemini Argon4 received [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
 
 > **main-debug — ล่าอสูรหุบเขา:** อสูรทั่วไป T1–T7 เกิดบนบกและในแม่น้ำ มินิบอสกับบอสให้คณะล่ารวมตัวเองตามกำลังและตบะ บอสเหนือตำนานต้องมีผู้พร้อมอย่างน้อย 51 คน บอสพำนักสงบจนถูกท้าทาย [รายงานแพตช์](PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md).
 
 > **main-debug — โมเดลอสูรรอบสำนัก:** อสูร 125 ชนิดใช้ 35 รูปทรงพื้นฐาน แยกด้วยลายเฉพาะและขนาด T1–T7 เห็นรูปลักษณ์เดิมต่อเนื่องจากเดินสำรวจถึงต่อสู้ [รายงานแพตช์](PATCH_REPORTS/WILD_BEAST_MODELS_JS2_V2_6_0.md).
 
-**สถานะส่งมอบปัจจุบัน (`JS2-v2.6.0`):** พัฒนา ทดสอบ และส่งมอบแพตช์ **พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (`JS2-v2.6.0`)** เสร็จสมบูรณ์แล้ว ดูรายละเอียดได้ที่ [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจระบบที่ [JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
+**แพตช์พงศาวดาร (`JS2-v2.6.0`):** พัฒนา ทดสอบ และส่งมอบแพตช์ **พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (`JS2-v2.6.0`)** เสร็จสมบูรณ์แล้ว ดูรายละเอียดได้ที่ [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจระบบที่ [JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
 
 > **ไฮไลต์ `JS2-v2.6.0` (2026-11-09):**
 > - **Fact Snapshot & ประวัติบุคคลย้อนหลัง (`SIM.snapshotPerson`, `EXPED.buildFactSnapshot`, `UI.rHistoricalPerson`)**: เก็บข้อมูลตัวละคร ณ เวลาเกิดเหตุ พร้อมประวัติชื่อเดิม (`formerNames`) และหน้าต่างแผ่นป้ายจารึกประวัติสำหรับผู้ที่เสียชีวิต ฝังสุสาน ถูกขับไล่ หรือเปลี่ยนชื่อ

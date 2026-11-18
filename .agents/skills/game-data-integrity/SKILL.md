@@ -345,3 +345,8 @@ JD.LIFE_TRAITS_REGISTRY มี88แถวข้อเสนอ แต่ runtime
 ### Sovereign archives
 
 Catalog now contains 46 Sovereign codices and five recoverable singleton artifacts, plus the inherited regalia. `EXPLORE.sovereignSanctumSource` is the source of obtainable archive routes. Resolve aliases through `CULT.tech` and `ECO.resolveTranscendentMat`. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+The schema tool now verifies the shared geography: settlement IDs, normalized coordinates, tiers, capital and owner relationships, route connectivity, unique roads and valid bends, and office stations and holders. `EXPED.LI_PER_MAP_UNIT` is a fixed interface. The road table denotes rows 1–54 of the gazetteer; keep endpoint links consistent when adding data. Test every new point from the home sect and make its location meaningful in both the rendered terrain and the simulation.

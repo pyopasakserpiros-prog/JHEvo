@@ -8,7 +8,7 @@ const {chromium}=(()=>{try{return require('playwright');}catch(_){return require
  const policy=require('../../docs/audits/OBSERVER_ACTION_POLICY.json');
  const result=await page.evaluate(policy=>{
   G.speed=0;const W=G.W,n=W.npcs[0];let inspected=0;
-  const checks=[['sect',['over','policy','posts','stock','stockItems','shop','bld','council','peaks','lineage','dao','visuals']],['world',['exp','disc','content','sects','hist','map']],['npc',['ov','meridian','pets','lineage','bag','tech','sub','elem','self','body','mind','skill','rel','life']],['menu',['main','tracked','set','tools','about']]];
+  const checks=[['sect',['over','policy','posts','stock','stockItems','shop','bld','council','peaks','lineage','dao','visuals']],['world',['exp','disc','content','sects','hist','map','polities']],['npc',['ov','meridian','pets','lineage','bag','tech','sub','elem','self','body','mind','skill','rel','life']],['menu',['main','tracked','set','tools','about']]];
   for(const [sheet,tabs]of checks)for(const tab of tabs){
    UI.close();if(sheet==='npc')UI.openNpc(n.id,tab);else UI.open(sheet,tab);
    for(const el of document.querySelectorAll('#shBody [data-do]')){

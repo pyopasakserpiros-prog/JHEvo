@@ -1,16 +1,16 @@
-# JianghuSect v3.1.1 — Source Tree
+# JianghuSect 2 v3.0.0 — Source Tree
 
 This folder contains the editable source and tests for the current game.
 
 ## Version identity
 
-- Package release: JS2-v2.4.0
+- Package release: JS2-v3.0.0 Living Continent
 - Runtime: `SIM.VERSION 1.10.11`
-- Patch: `SIM.PATCH_VERSION 2.4.0`
+- Patch: `SIM.PATCH_VERSION 3.0.0`
 - Elemental authority: `ELEM.VERSION 2.0.1`
-- Save marker: `2.4.0-tactical-composable-grand-dao`
+- Save marker: `3.0.0-living-continent`
 
-The runtime and patch version fields identify engine and data revisions; the package release is v3.1.0.
+The atlas uses the same fixed 1,000 × 1,000 li frame as its travel simulation. Both the overview painting and the detailed zoom art are embedded in the offline build. See the [Living Continent report](../PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md).
 
 ## Files
 

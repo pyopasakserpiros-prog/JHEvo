@@ -7636,7 +7636,8 @@
     const sc = EX.SANCTUMS[sanctumId] || EX.SANCTUMS.SANCTUM_SWORD_ABYSS;
     const b = (W.map && W.map.byId && (W.map.byId.gate_zone || W.map.byId.cave)) || { door: { x: 118, y: 130 } };
     const days = 1.5;
-    const food = party.length * 3;
+    const travel = X.estimateTravelTime(W,party,sc.id);
+    const food = Math.ceil(party.length * Math.min(6,days + 2 * travel.days));
     const taken = Math.min(food, ECO.count(W, 'meal'));
     ECO.take(W, 'meal', taken);
     const ex = {
@@ -7658,17 +7659,18 @@
       px: b.door.x,
       py: b.door.y
     };
+    X.prepareTrialJourney(W,ex,sc.id,days,travel);
     W.world.expeds.push(ex);
     party.forEach(p => {
       AI.interruptFor(W, p);
       p.expId = ex.id;
       p.lastTrip = W.day;
       p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] };
-      p.travel = { to: 'spot', ex: ex.id, x: b.door.x, y: b.door.y + 1 };
+      p.travel = { to: 'exit', ex: ex.id };
       p.path = null;
       p.run = false;
     });
-    W.log('explore', party.map(p => p.h.name.given).join('、') + ' ออกเดินทางสำรวจวิหารโบราณ「' + sc.nameTh + '」', party.map(p => p.id));
+    W.log('explore', party.map(p => p.h.name.given).join('、') + ' ออกเดินทางสำรวจวิหารโบราณ「' + sc.nameTh + '」', party.map(p => p.id),{location:X.locationOfJourney(ex)});
     return ex;
   };
 
@@ -8077,6 +8079,8 @@
     party = trip.members;
     const days = trip.days == null ? baseDays : trip.days;
     const ex = { id: ++W.world.seq, kind, region: opts.regionId || kind.toUpperCase(), realmId: opts.realmId || null, party: party.map(n => n.id), t0: W.t, ret: W.t + Math.round(days * 1440), days, baseDays, mount: trip.mounts || [], hasMount: !!trip.hasMount, durationMultiplier: trip.durationMultiplier || 1, capacityMultiplier: trip.capacityMultiplier || 1, baseCarryCapacity: trip.baseCarryCapacity, carryCapacity: trip.carryCapacity, journal: [], carry: [], supplies: 0, done: false, state: 'leaving', target: opts.target || 9, px: door.door.x, py: door.door.y };
+    const travel = X.estimateTravelTime(W,party,ex.region);
+    X.prepareTrialJourney(W,ex,ex.region,baseDays,travel);
     W.world.expeds.push(ex);
     for (const n of party) {
       AI.interruptFor(W, n); n.expId = ex.id; n.lastTrip = W.day;

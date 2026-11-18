@@ -6436,14 +6436,22 @@
           const ol = SECT.OUTPOSTS_LOGISTICS.ensure(W);
           for (const rn of Object.values(W.world.resourceNodes)) {
             if (!rn || rn.ownerSectId !== 'PLAYER') continue;
-            const op = ol && ol.outposts && ol.outposts[rn.id];
+            const op = ol?.byNodeId[rn.id];
             if (!op && (W.sect.stones || 0) >= 400) {
-              SECT.OUTPOSTS_LOGISTICS.establishOutpost(W, rn.id, 'CAMP_SUPPLY', null, { quiet: true });
-              break;
-            } else if (op && (op.grainStock || 0) < 8 && ECO && ECO.count(W, 'grain') >= 16) {
-              SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy(W, rn.id, 6, 1, { quiet: true });
+              const camp = SECT.OUTPOSTS_LOGISTICS.establishOutpost(W,rn.id,'CAMP_SUPPLY',null,{
+                quiet:true,claimNode:false,initialGrain:0,initialPills:0,seedInitialPillReserve:false
+              });
+              if (camp.ok) ECO.pay(W,180,'จัดตั้งค่ายเสบียงที่' + rn.nameTh,{toPool:true});
               break;
             }
+            if (!op?.active || ol.convoys.some(c => c.outpostNodeId === rn.id && ['OUTBOUND','RETURNING'].includes(c.status))) continue;
+            const travel = g.EXPED.estimateTravelTime(W,[],rn.id);
+            if (!travel.route) continue;
+            const daysToReach = Math.ceil(travel.days) + 1;
+            const upkeep = op.dailyGrainUpkeep || 2, reserve = Math.max(12,upkeep * 3);
+            if (op.grainStock > daysToReach * upkeep) continue;
+            const refill = Math.min((2 * daysToReach + 4) * upkeep - op.grainStock,ECO.count(W,'grain') - reserve);
+            if (refill > 0 && SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy(W,rn.id,refill,0,{quiet:true}).ok) break;
           }
         }
         summaryTh = n.h.name.given + ' (แม่ทัพยุทธปัจจัย) บริหารเส้นทางคาราวานและคลังเสบียง สร้างรายได้เสริม +' + bonusStones + ' ศิลา';
@@ -15862,13 +15870,15 @@
       const have = Number(st[k]) || 0;
       const take = Math.min(have, rem);
       if (take > 0) {
+        const quality = W.sect.pillQuality?.[k];
+        const spawned = Math.max(0,(W.sect.spawnedPills?.[k] || 0) - (have - take));
         if (ECO && ECO.take && k !== 'pills') ECO.take(W, k, take);
         else {
           st[k] = have - take;
           if (st[k] <= 0) delete st[k];
         }
         rem -= take;
-        keysUsed.push({ key: k, qty: take });
+        keysUsed.push({key:k,qty:take,quality,spawned});
       }
     }
     return { ok: true, deducted: pillQty - rem, keysUsed };
@@ -16030,18 +16040,22 @@
     if (!st) return { ok: false, reason: 'invalid-world' };
 
     const targetId = outpostNodeId || Object.keys(st.byNodeId)[0] || 'MINE_CELESTIAL_STONE';
-    let outpost = st.byNodeId[targetId];
-    if (!outpost) {
-      const est = OUTPOSTS_LOGISTICS.establishOutpost(W, targetId, 'CAMP_SUPPLY', null, { quiet: true });
-      outpost = est.outpost;
+    const outpost = st.byNodeId[targetId];
+    if (!outpost || !outpost.active) return { ok: false, reason: 'outpost-not-active' };
+    if (st.convoys.some(c => c.outpostNodeId === targetId && ['OUTBOUND','RETURNING'].includes(c.status))) {
+      return { ok:false, reason:'convoy-already-travelling' };
     }
-    if (!outpost) return { ok: false, reason: 'outpost-not-found' };
+    const travel = g.EXPED.estimateTravelTime(W,[],targetId);
+    if (!travel.route?.legs.length) return { ok:false, reason:'no-route-to-outpost' };
 
     const gQty = Math.max(0, Math.round(Number(grainQty != null ? grainQty : 20)));
     const pQty = Math.max(0, Math.round(Number(pillQty != null ? pillQty : 5)));
 
+    if (!(gQty > 0 || pQty > 0)) return {ok:false,reason:'empty-convoy'};
+
     const sectGrainBefore = (ECO && ECO.count) ? ECO.count(W, 'grain') : (W.sect.stock.grain || 0);
     const sectPillsBefore = countTotalSectPills(W);
+    const spawnedGrain = Math.max(0,(W.sect.spawnedMats?.grain || 0) - (sectGrainBefore - gQty));
 
     if (gQty > 0 && sectGrainBefore < gQty) {
       return { ok: false, reason: 'insufficient-grain', availableGrain: sectGrainBefore, requestedGrain: gQty };
@@ -16056,62 +16070,75 @@
       else W.sect.stock.grain = Math.max(0, (W.sect.stock.grain || 0) - gQty);
     }
     const pillDeductRes = pQty > 0 ? deductSectPills(W, pQty, opts.pillKey) : { ok: true, deducted: 0, keysUsed: [] };
-    if (!pillDeductRes.ok) return pillDeductRes;
+    if (!pillDeductRes.ok) {
+      if (gQty > 0) ECO.add(W,'grain',gQty);
+      return pillDeductRes;
+    }
 
     const sectGrainAfter = (ECO && ECO.count) ? ECO.count(W, 'grain') : (W.sect.stock.grain || 0);
     const sectPillsAfter = countTotalSectPills(W);
 
-    // Calculate caravan ambush risk (reduced by -40% when CAMP_GUARD is active)
-    const baseAmbushRisk = 0.25;
     const guardReduction = OUTPOSTS_LOGISTICS.getRegionalAmbushReduction(W, outpost.macroRegion);
-    const effectiveAmbushRisk = +(baseAmbushRisk * (1 - guardReduction)).toFixed(4);
-    const ambushed = opts.forceAmbush === true ? true : (opts.forceAmbush === false ? false : false);
-
-    const lossRatio = ambushed ? (guardReduction >= 0.40 ? 0.10 : 0.25) : 0;
-    const grainDelivered = Math.max(0, gQty - Math.floor(gQty * lossRatio));
-    const pillDelivered = Math.max(0, pQty - Math.floor(pQty * lossRatio));
-
-    outpost.grainStock = (outpost.grainStock || 0) + grainDelivered;
-    outpost.pillStock = (outpost.pillStock || 0) + pillDelivered;
-    outpost.morale = clamp((outpost.morale || 80) + 10, 0, 100);
-
-    const convoyRecord = {
-      id: 'CONVOY_' + (++st.seq),
-      day: W.day || 1,
-      outpostNodeId: targetId,
-      outpostNameTh: outpost.nameTh,
-      grainSent: gQty,
-      pillSent: pQty,
-      grainDelivered,
-      pillDelivered,
-      ambushed,
-      ambushRisk: effectiveAmbushRisk,
-      guardReduction
+    const travelMinutes = Math.max(1,Math.ceil(travel.days * 1440));
+    const convoy = {
+      id:'CONVOY_' + (++st.seq), status:'OUTBOUND', day:W.day, startAt:W.t, arriveAt:W.t + travelMinutes, travelMinutes,
+      outpostNodeId:targetId, outpostNameTh:outpost.nameTh,
+      route:travel.route, grainSent:gQty, spawnedGrain, pillSent:pQty, pillCargo:pillDeductRes.keysUsed,
+      grainDelivered:0, pillDelivered:0, ambushed:false, ambushRisk:+(.25 * (1 - guardReduction)).toFixed(4),
+      guardReduction, ambushOverride:typeof opts.forceAmbush === 'boolean' ? opts.forceAmbush : null
     };
-    st.convoys.unshift(convoyRecord);
-    if (st.convoys.length > 40) st.convoys.length = 40;
-
-    if (!opts.quiet) {
-      W.log('exped', '🐪 จัดส่งขบวนเสบียงยุทธปัจจัยสู่「' + outpost.nameTh + '」สำเร็จ (ข้าวสาร +' + grainDelivered + ', โอสถ +' + pillDelivered + ')', outpost.garrisonNpcIds || []);
+    st.convoys.unshift(convoy);
+    // Keep in-flight cargos even if many outposts are supplied in the same season.
+    const live = c => c.status === 'OUTBOUND' || c.status === 'RETURNING';
+    if (st.convoys.length > 40) {
+      let historySlots = Math.max(10,40 - st.convoys.filter(live).length);
+      st.convoys = st.convoys.filter(c => live(c) || historySlots-- > 0);
     }
+    if (!opts.quiet) {
+      W.log('exped','🐪 ขบวนเสบียงออกเดินทางสู่「' + outpost.nameTh + '」อีกประมาณ ' +
+        travel.days + ' วันจึงจะถึง', [], {location:g.EXPED.locationOfJourney(convoy)});
+    }
+    return {ok:true,queued:true,convoy,outpost,outpostNodeId:targetId,grainSent:gQty,pillSent:pQty,
+      sectGrainBefore,sectGrainAfter,sectPillsBefore,sectPillsAfter};
+  };
 
-    return {
-      ok: true,
-      outpostNodeId: targetId,
-      outpost,
-      convoy: convoyRecord,
-      grainSent: gQty,
-      pillSent: pQty,
-      grainDelivered,
-      pillDelivered,
-      ambushed,
-      ambushRisk: effectiveAmbushRisk,
-      guardReduction,
-      sectGrainBefore,
-      sectGrainAfter,
-      sectPillsBefore,
-      sectPillsAfter
-    };
+  OUTPOSTS_LOGISTICS.settleSupplyConvoys = W => {
+    const st = W.sect?.outposts;
+    if (!st) return;
+    for (const c of st.convoys) {
+      if (c.status === 'RETURNING' && W.t >= c.arriveAt) {
+        c.status = 'RETURNED';
+        ECO.add(W,'grain',c.grainSent - c.spawnedGrain);
+        ECO.add(W,'grain',c.spawnedGrain,{playerSpawned:true});
+        for (const cargo of c.pillCargo) {
+          ECO.add(W,cargo.key,cargo.qty - cargo.spawned,cargo.quality);
+          ECO.add(W,cargo.key,cargo.spawned,{quality:cargo.quality,playerSpawned:true});
+        }
+        c.pillCargo = [];
+        W.log('exped','🐪 ขบวนเสบียงจาก「' + c.outpostNameTh + '」ขนของกลับเข้าคลังสำนักแล้ว',[]);
+        continue;
+      }
+      if (c.status !== 'OUTBOUND' || W.t < c.arriveAt) continue;
+      const outpost = st.byNodeId[c.outpostNodeId];
+      const location = g.EXPED.locationOfJourney(c);
+      if (!outpost?.active) {
+        c.status = 'RETURNING'; c.startAt = W.t; c.arriveAt = W.t + c.travelMinutes;
+        W.log('exped','🐪 ขบวนเสบียงถึง「' + c.outpostNameTh + '」แต่ค่ายปิด จึงหันกลับ',[],{location});
+        continue;
+      }
+      const tripRng = new U.RNG(String(W.seed) + ':outpost-convoy:' + c.id);
+      c.ambushed = c.ambushOverride ?? tripRng.chance(c.ambushRisk);
+      const loss = c.ambushed ? (c.guardReduction >= .40 ? .10 : .25) : 0;
+      c.grainDelivered = c.grainSent - Math.floor(c.grainSent * loss);
+      c.pillDelivered = c.pillSent - Math.floor(c.pillSent * loss);
+      c.status = 'DELIVERED';
+      c.pillCargo = [];
+      outpost.grainStock = (outpost.grainStock || 0) + c.grainDelivered;
+      outpost.pillStock = (outpost.pillStock || 0) + c.pillDelivered;
+      outpost.morale = clamp((outpost.morale ?? 80) + (c.ambushed ? 3 : 10),0,100);
+      W.log('exped','🐪 ขบวนเสบียงถึง「' + outpost.nameTh + '」' +
+        (c.ambushed ? ' หลังถูกซุ่มโจมตีระหว่างทาง' : '') + ' ส่งข้าว ' + c.grainDelivered + ' และโอสถ ' + c.pillDelivered,[],{location});
+    }
   };
 
   OUTPOSTS_LOGISTICS.tickOutpostLogistics = (W, opts) => {
@@ -17713,6 +17740,8 @@
         if (groupedCooldowns.has(group) && history['@'+group] != null && day - history['@'+group] < days) return;
         out.push({ id, reasonTh, score: clamp(score, 0.05, 2), run });
       };
+      const cityVisitDrive = g.EXPED?.cityVisitDrive(W,n) || 0;
+      if (cityVisitDrive) add('city_visit','พิจารณาเยี่ยมบ้านเกิดหรือไปพบผู้คนในเมือง',cityVisitDrive,9,() => g.EXPED.departCityVisit(W,n));
       if (stage >= 3 && !n.daoOath && !n.ext?.daoOath && e('personality.integrity') >= 45) {
         const vows = Object.values(CULT.OATH_CATALOG || {});
         for (const vow of vows) {

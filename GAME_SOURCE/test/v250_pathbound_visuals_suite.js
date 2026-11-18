@@ -114,10 +114,10 @@ globalThis.window = globalThis.window || {
     'human_core.js must remain 100% byte-identical'
   );
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.ok(['2.5.0', '2.6.0'].includes(SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 2.5.0');
+  assert.ok(['2.5.0', '2.6.0', '3.0.0'].includes(SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 2.5.0');
   assert.ok(SIM.SUPPORTED_PATCHES.includes('2.5.0'), 'SIM.SUPPORTED_PATCHES must include 2.5.0');
   assert.ok(
-    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting'].includes(SIM.SAVE_SCHEMA_VERSION),
+    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent'].includes(SIM.SAVE_SCHEMA_VERSION),
     'SIM.SAVE_SCHEMA_VERSION must remain stable when no new persistent save schema is required'
   );
 

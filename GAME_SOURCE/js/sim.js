@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '2.6.0',
+    PATCH_VERSION: '3.0.0',
     SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
-    SAVE_SCHEMA_VERSION: '2.6.0-living-chronicle-and-reporting',
+    SAVE_SCHEMA_VERSION: '3.0.0-living-continent',
     DAY_FACTOR: 1.5,
     CALENDAR_MINS_PER_DAY: 1440,
     WORK_STEPS_PER_DAY: 2160,
@@ -389,6 +389,7 @@
       subNameTh: (subEntry && subEntry.sub && subEntry.sub.nameTh) || prev.subNameTh || subId || null,
       stage: n.cult ? n.cult.stage : (prev.stage || 0),
       stageNameTh: stgNameTh,
+      origin: n.ext?.world?.originPublic ? Object.assign({}, n.ext.world) : null,
       dead: !!n.dead,
       exiled: !!n.exiled,
       deathDay: n.deathDay != null ? n.deathDay : (prev.deathDay != null ? prev.deathDay : null),
@@ -409,6 +410,7 @@
     return snap;
   };
   SIM.register = (W, n) => {
+    EXPED.assignHometown(W, n);
     n.n = ++W.seqN;
     if (W && W.sect && W.sect.totemPillars && Array.isArray(W.sect.totemPillars.activeTotems) && W.sect.totemPillars.activeTotems.length) {
       n.sectTotems = W.sect.totemPillars.activeTotems.slice();
@@ -465,7 +467,7 @@
       };
     }
     n.joinDay = W.day; n.sat = 70;
-    if (o.queue) { n.n = ++W.seqN; return n; }
+    if (o.queue) { EXPED.assignHometown(W,n); n.n = ++W.seqN; return n; }
     SIM.register(W, n);
     if (!W._founding && W.npcs && W.npcs.length >= 10 && n.x === 0 && n.y === 0) {
       if (W.map && W.map.byId && W.map.byId.plaza) {
@@ -485,6 +487,7 @@
   };
 
   SIM.log = (W, type, text, ids, meta) => {
+    if (W._expeditionLocation && !meta?.location) meta = Object.assign({},meta,{location:W._expeditionLocation});
     const cleanIds = (ids || []).filter(Boolean);
     const actorSnaps = [];
     const names = cleanIds.map((id, idx) => {
@@ -537,6 +540,7 @@
       if (meta.txKind) e.txKind = meta.txKind;
       if (meta.storyThreadId) e.storyThreadId = meta.storyThreadId;
       if (meta.severity) e.severity = meta.severity;
+      if (meta.location?.nodeId) e.location = Object.assign({}, meta.location);
       e.meta = Object.assign({}, meta);
     }
     const isRoutineTraining = (type === "breakthrough" && /ฝึกประจำวัน/.test(text));
@@ -568,6 +572,7 @@
           t: e.t,
           day: e.day,
           type: e.type,
+          location: e.location || null,
           text: e.text,
           ids: cleanIds.slice(),
           names: names.slice(),
@@ -874,6 +879,7 @@
       });
     }
     EXPED.hourly(W);
+    SECT.OUTPOSTS_LOGISTICS?.settleSupplyConvoys(W);
     if (W.sect.gear.length && W.t % 360 === 0) SIM.distributeGear(W);
     W.npcs.forEach(n => { if (!n.dead && !n.away && n.inj && n.inj.length && n.h.state.hp < CULT.hpMax(n) * 0.5) { for (const k of Object.keys(W.sect.stock)) { const info = ECO.isPill(k) ? ECO.pillInfo(k) : null; if (info && k.startsWith('P:BASIC_') && (info.effect.healHealth || info.effect.healInjury) && W.sect.stock[k] > 0 && n.rank >= 1) { ECO.usePill(W, n, k); break; } } } });
   };
@@ -1248,7 +1254,7 @@
       }
     }
     if (s.patchVersion != null) {
-      if (typeof s.patchVersion !== 'string' || !SIM.SUPPORTED_PATCHES.includes(s.patchVersion)) {
+      if (typeof s.patchVersion !== 'string' || (s.patchVersion !== SIM.PATCH_VERSION && !SIM.SUPPORTED_PATCHES.includes(s.patchVersion))) {
         throw new Error('ไฟล์เซฟสร้างจาก Patch เวอร์ชันที่ใหม่กว่าหรือไม่รองรับ (' + s.patchVersion + ' > ' + SIM.PATCH_VERSION + ') ไม่สามารถโหลดได้');
       }
     }
@@ -1315,6 +1321,8 @@
       M.stations.forEach(st => { st.occ = null; if (st.owner != null) st.owner = null; });
       M.buildings.forEach(b => { b.inside = []; });
       W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
+      EXPED.initContinent(W);
+      (W.npcs || []).forEach(n => EXPED.assignHometown(W,n));
       W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta); W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); }; W.makeNpc = o => SIM.addNpc(W, o);
       const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'workSteps', 'timePhase', '_lastWildTickT', '_lastHourlyUpdateT', '_lastDailyUpdateDay', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
       if (s.celestialAlignment) W.celestialAlignment = s.celestialAlignment;
