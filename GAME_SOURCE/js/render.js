@@ -7,6 +7,407 @@
   const clamp = U.clamp, T = MAP.T, TS = 16;
   const R = { TILE_SIZE: TS };
   const FONT = '"Noto Sans Thai","Sarabun","Leelawadee UI",system-ui,sans-serif';
+  // Art coordinates are relative to the beast's feet. Each layer uses the
+  // species palette; lifted wings have their own pivot and animation.
+  const wildModels = {
+    wolf: { top: 24, layers: [
+      ['shade', 'M-11-10Q-19-6-24-10L-19-12-14-17Z M-9-10-7-1-3-1-4-12Z M6-12 7-2 11-2 11-13Z'],
+      ['body', 'M-15-11Q-15-19-5-18L3-18 7-21 9-27 13-22 17-24 17-19 23-15 21-12 13-12 10-6 8 0 4 0 4-9-6-8-11 0-15 0-12-9Z'],
+      ['light','M-12-14Q-9-19 2-16L7-19 13-18 10-13 3-10-3-12Z'],
+      ['eye','M15-18 18-17 15-16Z']
+    ] },
+    fox: { top: 26, layers: [
+      ['shade','M-9-9Q-27-5-25-20Q-21-12-10-17Z'],
+      ['light','M-25-20Q-25-13-21-12L-18-14Z'],
+      ['body','M-13-12Q-10-19 2-15L7-18 7-26 13-22 16-26 17-18 23-13 16-12 11-8 10-1 7-1 6-9-5-8-9 0-13 0-11-7Z'],
+      ['light','M9-17 16-17 23-13 16-12 11-8 6-9Z'],
+      ['eye','M15-17 18-16 15-15Z']
+    ] },
+    cat: { top: 22, layers: [
+      ['shade','M-11-13C-24-7-30-15-23-21L-21-20C-26-14-20-13-11-17Z M-9-12-5-2 0-2-3-10Z M8-13 11-2 15-2 14-12Z'],
+      ['body','M-16-11Q-16-19-5-17Q3-15 8-18L12-18Q11-24 16-21L18-19Q23-19 23-14L20-10 14-10 12-1 7-1 8-9-6-8-12 0-17 0-13-8Z'],
+      ['light','M-13-14Q-9-18 3-15L10-17 9-12Q-3-10-13-14Z M16-12 22-15 22-12 19-10Z'],
+      ['eye','M17-17 21-16 18-15Z']
+    ] },
+    bear: { top: 25, layers: [
+      ['shade','M-12-11-10-2-5-2-5-12Z M7-13 9-2 15-2 14-13Z'],
+      ['body','M-20-10Q-22-20-12-20Q-6-27 7-22L12-21Q11-26 16-25L19-22 25-17 24-12 17-10 16-1 10-1 8-9-6-7-12 0-19 0-17-8Z'],
+      ['light','M-14-19Q-4-27 7-21L12-17 7-11 0-12Z M18-17 25-17 24-12 19-12Z'],
+      ['eye','M18-19 21-18 19-17Z']
+    ] },
+    boar: { top: 26, layers: [
+      ['shade','M-14-10-12-2-8-2-7-11Z M5-12 6-2 11-2 13-12Z'],
+      ['body','M-19-7Q-22-18-13-19L-8-23-4-20 0-26 4-21 7-24 10-19 12-23 17-18 24-15 24-9 16-7 13 0 8 0 8-7-9-7-11 0-17 0-16-6Z'],
+      ['light','M-17-15-10-19-5-14-2-19 4-19 6-13 1-8-5-10-11-8Z M18-14 24-15 24-10 20-9Z'],
+      ['ivory','M15-9Q22-9 24-15Q24-7 21-6Q18-5 15-9Z'],
+      ['eye','M15-17 19-16 16-15Z']
+    ] },
+    stag: { top: 35, layers: [
+      ['shade','M-11-12-9-1-6-1-7-12Z M5-14 8-2 11-2 9-15Z'],
+      ['body','M-17-13Q-18-21-9-20L3-17 7-24 7-28 12-26 17-28 17-24 23-22 21-18 15-18 12-10 9 0 6 0 6-10-6-12-14 0-17 0-14-10Z'],
+      ['light','M-14-16Q-7-21 4-15L6-18 8-13 3-11-7-13Z M12-23 17-25 22-21 16-20Z'],
+      ['ivory','M13-26 10-31 4-33 2-37 6-35 9-35 7-39 11-36 13-31 16-32 19-37 19-32 17-29 15-25Z'],
+      ['eye','M16-24 19-23 16-22Z']
+    ] },
+    goat: { top: 31, layers: [
+      ['shade','M-12-11-9-1-6-1-7-12Z M8-13 10-2 13-2 12-13Z'],
+      ['body','M-17-17-13-22-13-18Q-8-20 1-17L7-21 11-26 15-25 18-23 22-21 20-17 16-16 15-12 12-16 9-6 8 0 5 0 5-11-6-9-12 0-16 0-12-10Q-18-13-17-17Z'],
+      ['ivory','M11-24Q6-29 8-34Q10-30 15-28L16-24Z M15-26Q14-32 19-34L18-29 19-25Z'],
+      ['light','M-14-17Q-7-19 1-15L6-18 5-13-1-10-8-12Z'],
+      ['eye','M16-23 19-22 16-21Z']
+    ] },
+    bull: { top: 28, layers: [
+      ['shade','M-13-12-11-2-7-2-7-12Z M8-13 9-2 14-2 13-14Z'],
+      ['body','M-20-7-17-16Q-10-22 1-21L10-24 16-21 21-22 25-17 24-10 19-8 13-11 11-1 6-1 7-10-7-10-13 0-18 0-15-9Z'],
+      ['ivory','M12-21Q7-21 6-27Q11-24 16-24L19-21Q26-22 27-27Q30-20 23-18L18-19Z'],
+      ['light','M-14-16 0-18 4-20 10-21 11-16 5-11-1-15-8-13Z'],
+      ['eye','M20-17 23-16 20-15Z']
+    ] },
+    serpent: { top: 25, shadow: 18, layers: [
+      ['body','M-23-7C-27-2-16 1-5-2C10-6 16-2 19-5C25-11 12-14 10-16C8-18 17-18 22-18L25-21 21-25 15-27 8-24C-3-18 3-12 10-10C-2-8-16-3-23-7Z'],
+      ['light','M-24-6C-17-3-10-7 2-9C-1-16 4-22 12-24L18-24C10-22 8-19 10-16C12-13 23-13 20-7C13-5 10-8-4-4C-14-1-22-2-24-6Z'],
+      ['eye','M18-24 22-22 19-21Z']
+    ] },
+    cobra: { top: 33, shadow: 16, layers: [
+      ['body','M-21-5C-25 1-10 1-1-3L11-3C23-4 16-12 5-12C3-13 5-16 7-17Q0-18 0-25Q0-34 11-33Q23-33 24-25Q24-18 16-16C11-14 19-17 21-9C25 0-8 6-21-5Z'],
+      ['light','M6-26Q1-29 10-31L19-29 21-25 17-20 13-22 10-19 4-22Z M14-14Q30-3 3-2L-8-2Q16-6 14-14Z'],
+      ['shade','M9-29 16-30 21-27 21-24 16-22 9-24 7-26Z'],
+      ['eye','M16-27 20-26 16-25Z']
+    ] },
+    bird: { top: 34, hover: 3, layers: [
+      ['shade','M-6-14-19-12-24-4-11-7 1-14Z'],
+      ['body','M-13-23Q-5-26 3-22L9-27 17-26 23-21 17-21 16-17 10-14 2-10-13-12-21-8-20-13-26-14Z'],
+      ['wing','M-1-15Q-15-19-24-37Q-16-34-12-28L-15-37Q-6-32-4-25L-5-34Q3-30 7-23L6-19Z'],
+      ['light','M-13-20Q-6-24 4-20L10-23 15-19 10-15 0-12Z M12-26 17-26 23-21 17-21Z'],
+      ['eye','M15-24 18-23 15-22Z']
+    ] },
+    crane: { top: 33, hover: 2, layers: [
+      ['shade','M-3-10-13-3-20-4-20-2-11-1 2-9Z'],
+      ['body','M-22-14-12-22Q-6-23 4-17L8-18Q12-22 8-26Q8-34 18-34L25-31 19-29 15-30Q18-23 16-19Q12-9-3-9Z'],
+      ['wing','M-4-12Q-18-13-24-28Q-14-27-10-23L-12-31Q-5-29 2-20L2-15Z'],
+      ['light','M-11-17Q-8-21 4-16L9-19 12-17 4-12-5-12Z'],
+      ['eye','M16-33 19-32 17-31Z']
+    ] },
+    bat: { top: 28, hover: 4, layers: [
+      ['wing','M-1-15Q-13-12-29-28L-25-16-26-7Q-20-12-14-6Q-9-12-3-7Z M5-13Q16-26 27-28L23-18 26-8Q18-13 13-6Q9-12 5-7Z'],
+      ['body','M-8-15-8-23-2-19Q2-22 6-19L12-23 11-16 13-12 8-8 4-3 1-8Q-9-8-8-15Z'],
+      ['light','M-4-14 1-17 8-16 11-12 7-10 1-11Z'],
+      ['eye','M7-15 10-14 7-13Z']
+    ] },
+    turtle: { top: 23, layers: [
+      ['shade','M-12-11-15-2-8-2-5-11Z M6-12 9-2 15-2 14-11Z'],
+      ['body','M-16-11Q-16-17-10-21L-2-24 7-22 13-18 16-12 17-15 23-16 26-13 25-9 15-7 14 0 8 0 6-6-7-5-11 0-17 0-15-5-23-5Z'],
+      ['light','M-14-12-9-18-4-15-6-10Z M-6-19-1-22 6-20 3-16-3-16Z M-4-14 3-14 6-10 2-7-5-10Z M5-15 8-19 12-15 14-11 8-11Z'],
+      ['eye','M21-14 24-13 22-12Z']
+    ] },
+    scorpion: { top: 30, layers: [
+      ['shade','M-10-13-18-8-21-3-18-3-11-8-5-9Z M-5-12-14-3-14 0-10-1-4-7 6-8Z M1-11-3-1-1 1 4-5 10-7Z'],
+      ['body','M-12-8Q-18-14-11-22Q-5-28 3-25L6-29 11-27 8-24 7-21C2-24-4-23-8-17L-9-14Q0-16 7-12L13-16 19-18 25-14 21-13 25-8 17-8 14-12 9-8 13-5 20-6 26-3 21-2 24 1 17 2 9-3 3-5-6-4Z'],
+      ['light','M-11-12-7-13-4-10-7-7-10-8Z M-3-13 2-13 5-11 1-7-3-8Z M7-11 11-12 14-9 11-6 8-7Z'],
+      ['eye','M9-10 11-10 10-8Z']
+    ] },
+    beetle: { top: 22, layers: [
+      ['shade','M-12-13-21-15-18-10-11-8-19-4-18-1-8-5-10 0-7 1-2-6 3-5 7 1 10 0 6-7 12-6 19-3 20-5 11-11Z'],
+      ['body','M-21-10Q-22-18-12-22Q-1-25 7-19L12-16 15-17 18-22 21-22 19-16 26-17 25-13 18-11 16-8 8-8 5-5Q-16 0-21-10Z'],
+      ['light','M-18-11Q-20-18-10-20Q-1-22 5-17L-9-12-17-8Z M-12-8 6-15 8-12 3-8-12-5Z'],
+      ['eye','M15-14 18-14 17-12Z']
+    ] },
+    spider: { top: 25, layers: [
+      ['shade','M-11-14-22-23-28-13-26-9-22-17-13-8Z M-5-14-17-19-22-4-19-1-16-13-8-7Z M2-14 7-22 16-13 17-8 8-16 6-10Z M5-10 14-16 24-10 24-5 14-10 10-5Z'],
+      ['body','M-22-13Q-22-23-11-24Q0-25 3-16Q8-18 14-14L17-12 22-11 19-7 13-9Q6-6 1-10Q-10-2-21-9Z'],
+      ['light','M-18-14Q-19-21-10-22Q-4-21-1-17L-5-11-14-9Z'],
+      ['eye','M11-14 16-12 13-10 11-12 8-11 8-13Z']
+    ] },
+    crawler: { top: 18, shadow: 19, layers: [
+      ['shade','M-18-11-24-12-25-8-20-5-17-5-22-9Z M-11-10-15-3-12-2-7-8Z M-2-9-4-2-1-1 3-9Z M7-13 8-3 11-3 12-11Z M16-16 22-21 23-19 20-13Z'],
+      ['body','M-24-10Q-18-14-13-10Q-9-15-4-11Q1-16 7-12Q8-19 15-16L20-18 25-15 25-11 19-7 13-8 9-6 3-6-4-4-10-4-15-5-22-6Z'],
+      ['light','M-21-10-17-11-13-9-17-7Z M-11-10-7-12-4-10-7-7Z M-2-11 2-13 6-11 3-7Z M8-13 12-16 15-13 13-10Z'],
+      ['eye','M19-15 23-14 20-12Z']
+    ] },
+    ant: { top: 21, layers: [
+      ['shade','M-11-10-19-18-24-13-23-10-18-14-9-6Z M-3-12-9-2-6-1 1-10Z M5-12 9-3 13-2 10-11Z M12-14 21-22 19-22 12-17Z'],
+      ['body','M-23-12Q-24-19-14-20Q-7-20-5-14L0-12Q0-17 6-17L11-13 13-18 19-17 22-13 25-17 26-13 23-8 19-7 13-9 9-9Q5-6 0-8L-6-9Q-14-3-22-8Z'],
+      ['light','M-20-14Q-16-20-9-16L-9-13-16-9Z M1-13 6-15 8-12 5-10Z'],
+      ['eye','M17-16 20-14 17-13Z']
+    ] },
+    mantis: { top: 26, layers: [
+      ['shade','M-10-12-16-4-22-3-24-1-14-1-7-8Z M-1-12 4-5 8-3 10-5 5-10Z'],
+      ['body','M-24-11Q-20-17-10-15L-2-11 6-17 8-23 14-26 19-24 20-20 13-17 11-12 16-9 21-17 24-17 21-7 16-5 9-9 3-8Q-10-5-24-11Z'],
+      ['light','M-23-11Q-18-16-11-14L0-11-9-9Z M10-22 14-25 18-23 16-20Z'],
+      ['eye','M14-23 17-22 15-21Z']
+    ] },
+    moth: { top: 31, hover: 4, layers: [
+      ['shade','M-5-15Q-19-13-20-5Q-12 2-5-6L3-14Z M6-15Q23-15 24-5Q19 3 10-6Z'],
+      ['wing','M-3-12Q-21-9-28-27Q-27-36-16-31Q-7-30 1-20Z M7-12Q23-10 29-27Q30-34 21-32Q11-29 4-20Z'],
+      ['light','M-5-17Q-17-15-24-26Q-23-32-14-27Q-7-25-5-17Z M10-17Q24-16 25-26Q24-29 17-26Q12-22 10-17Z'],
+      ['body','M-7-9-4-18 0-24-3-30 1-28 4-24 8-28 11-29 7-23Q13-20 10-15L5-10 0-4Z'],
+      ['eye','M6-22 9-21 7-19Z']
+    ] },
+    treant: { top: 36, layers: [
+      ['shade','M-6-16-13-5-23 0-13 1-9-1-4 2 0-6 4-4 12 1 17 0 9-4 7-16Z'],
+      ['body','M-11-24-18-26-23-31-25-30-22-23-12-17-6-12-9-5-2-4 2-14 6-11 8-5 15-5 12-12 10-21 19-23 22-29 26-31 23-34 19-31 15-30 14-34 11-33 10-27 7-25 5-31 2-36-2-34-3-29-8-31-11-36-15-36-13-31-12-27Z'],
+      ['light','M-9-27-2-29 3-26 8-26 9-21 5-19 2-21-2-17-6-19Z M-19-30-22-35-29-33-27-29Z M20-30 29-35 27-29Z'],
+      ['eye','M0-23 3-23 2-20Z M5-23 8-24 8-21Z']
+    ] },
+    mushroom: { top: 24, layers: [
+      ['body','M-8-13Q-20-12-17-18Q-11-26-1-25Q11-25 18-17Q21-13 12-12L5-13 7-2 13-1 7 2 1 0-4 2-12 0-6-4-5-12Z'],
+      ['light','M-15-17Q-8-25-1-23Q11-24 17-17L11-15 1-16-6-15Z'],
+      ['ivory','M-8-20-5-21-2-19-5-17Z M5-22 8-21 10-19 6-19Z'],
+      ['eye','M-1-10 2-10 1-8Z M4-10 6-10 6-8Z']
+    ] },
+    flower: { top: 28, layers: [
+      ['body','M-3-14Q-15-23-12-26Q-7-24-2-20L0-30 5-28 6-21 13-28 17-25 12-18Q26-21 22-16Q15-10 6-10L6-4 20-7 15-1 4 0-1 2-8 1-17-4-19-10-6-5-4-10Q-13-9-22-15Q-20-20-3-14Z'],
+      ['light','M-12-15-3-15 3-20 8-17 16-17 10-12 4-11-1-10-8-12Z'],
+      ['eye','M-1-16 1-18 6-17 8-15 4-13 0-14Z']
+    ] },
+    vine: { top: 29, shadow: 17, layers: [
+      ['shade','M-4-11Q-8-21-16-24L-22-22-24-17-21-19-16-19-8-6-23-3-24 0-10-1-4-5 0 1 10 2 14 0 7-1 5-8Z'],
+      ['body','M-8-7Q-13-15-7-23L-9-29-3-27 0-24 4-29 7-29 7-24 14-27 19-24 16-19 20-17Q25-21 24-26Q29-21 26-17Q22-11 13-12L7-16 9-7 17-5 24-5 19-1 8-2 2-9-2-8-7-1-14 0-12-4Z'],
+      ['light','M-9-13-4-22 1-20 4-23 9-21 13-22 14-19 6-15 2-16-2-12Z'],
+      ['eye','M6-20 10-20 8-18Z']
+    ] },
+    drake: { top: 26, shadow: 18, layers: [
+      ['shade','M-9-11-13-3-8-2-4-10Z M6-14 10-2 15-2 14-12Z'],
+      ['body','M-31-7Q-25-6-19-13L-14-17-13-22-8-19-6-24-1-21 4-25 9-22 13-25 16-23 18-20 23-21 25-18 29-17 28-12 20-12 15-10 13-1 7-1 6-9-7-8-15 0-21 0-17-8Q-25-3-31-7Z'],
+      ['light','M-16-13-8-17-4-14 0-19 4-16 9-20 15-19 12-13 1-11-7-12Z'],
+      ['eye','M20-19 24-18 21-16Z']
+    ] },
+    crocodile: { top: 17, shadow: 22, layers: [
+      ['shade','M-12-9-16-1-11 0-6-7Z M8-10 10-1 17-1 15-9Z'],
+      ['body','M-32-10Q-23-6-15-11L-13-16-7-14-4-18 2-16 6-18 11-14 17-15 22-12 32-11 33-9 21-7 32-6 31-3 17-3 10-7 4-6-12-6Q-27-2-32-10Z'],
+      ['light','M-14-11-8-14-5-11-1-14 3-11 6-14 12-11 8-8-12-8Z'],
+      ['eye','M16-14 19-13 17-11Z']
+    ] },
+    frog: { top: 20, layers: [
+      ['shade','M-1-7-8-2-16 0-23 0-19-3-11-7Z M6-8 15-1 21-1 18 1 11 1 5-3Z'],
+      ['body','M-22-8Q-23-17-14-18L-6-18Q1-25 7-19Q14-22 17-17L22-15 24-11 20-7 14-6 13-1 10 0 6-6-1-7-8-3-17-2-18-5Z'],
+      ['light','M-18-10Q-17-17-10-17Q-4-17 0-12L-3-9-9-7Z M14-12 23-12 20-8 12-8Z'],
+      ['eye','M14-17 18-16 16-14Z']
+    ] },
+    squirrel: { top: 31, layers: [
+      ['shade','M-13-6Q-25-3-28-16Q-31-22-26-28Q-22-34-15-29Q-9-25-14-19Q-22-22-20-15L-11-13Z'],
+      ['body','M-16-5Q-22-9-16-16L-7-18 1-15 6-23 7-29 12-30 14-23 18-23 23-18 21-14 16-14 12-9 12-4 19-3 19-1 8-1 5-9 0-6-10-3-8 0-17 0Z'],
+      ['light','M-18-10Q-9-17 2-12L7-15 10-12 5-7-2-7-12-5Z'],
+      ['eye','M16-21 19-20 17-18Z']
+    ] },
+    snail: { top: 22, layers: [
+      ['body','M-25-1-22-5-18-6Q-24-11-18-21Q-13-29-2-24Q9-21 7-9L11-7 15-13 13-19 16-19 18-13 21-19 23-18 20-12 25-8 23-4 18-3 16 0Z'],
+      ['light','M-17-12Q-20-17-14-21Q-10-24-5-20Q1-15-3-11Q-6-8-10-11Q-13-14-9-16L-7-13-5-14-6-18Q-16-20-16-13L-13-8Q-4-4 1-11Q4-17-1-21Q-10-27-17-20L-20-13Z'],
+      ['eye','M19-11 22-10 21-8Z']
+    ] },
+    porcupine: { top: 25, layers: [
+      ['body','M-21-8-27-14-19-14-26-22-15-19-17-27-8-21-5-28 1-21 6-25 8-18 13-21 16-17 23-13 25-9 20-6 12-6 11-1 6-1 5-6-10-6-13 0-18 0-17-6Z'],
+      ['light','M-21-17-14-16-19-23-10-18-12-24-5-19-3-24 2-18 5-21 6-15-1-11-10-13Z'],
+      ['eye','M16-15 19-14 17-12Z']
+    ] },
+    shark: { top: 29, hover: 4, shadow: 23, layers: [
+      ['body','M-18-14-28-10-27-28-17-21-10-20Q-5-22-1-22L5-34 10-23Q24-24 32-16L29-12 17-10 13-4 6-4 10-11-7-11-18-9Z'],
+      ['light','M-16-18Q-4-24 11-21Q25-22 31-16L24-14 11-15 0-13-9-15Z'],
+      ['ivory','M14-13 28-14 25-10 22-13 20-10 18-12 16-10Z'],
+      ['eye','M22-19 25-18 23-17Z']
+    ] },
+    dragon: { top: 37, hover: 4, shadow: 25, layers: [
+      ['shade','M-29-7Q-35-10-30-19L-29-13Q-19-24-14-22-12-26-8-23-6-29-2-26 2-31 4-24 7-27 9-21 12-28 15-23 21-30 21-21Q18-10 7-9Q-7-13-16-12Z'],
+      ['body','M-32-8Q-25-8-21-14Q-12-25-3-20Q5-16 11-22L14-30 17-32 19-35 22-31 26-32 28-29 33-28 34-24 27-22 21-22Q18-11 7-11Q-3-13-5-10L-5-4-11-1-12-4-8-7-8-13Q-14-15-18-11L-18-7-22-4-26-6-25-8Q-29-6-32-8Z'],
+      ['light','M-24-10Q-14-24-4-18Q6-14 13-21L19-29 25-30 28-27 33-27 31-24 23-24 18-20Q11-12 0-15Q-12-19-24-10Z'],
+      ['ivory','M19-30 14-35 9-36 7-40 12-38 16-37 17-39 19-35 23-33Z M26-24 30-24 28-20Z'],
+      ['eye','M24-29 27-28 25-26Z']
+    ] },
+    phoenix: { top: 38, hover: 5, shadow: 21, layers: [
+      ['shade','M-9-19Q-18-13-35-2Q-33-11-27-14Q-37-12-41-7Q-40-17-25-21Q-37-19-39-22Q-25-27-10-25Z'],
+      ['light','M-10-16Q-19-10-32-5Q-25-13-19-16L-34-13Q-25-21-11-23Z'],
+      ['body','M-19-20Q-6-27 5-22L9-27 10-32 15-30 16-35 19-31 23-32 24-28 31-26 24-23 20-20 14-15 4-15-5-11-17-14Z'],
+      ['wing','M-2-16Q-14-15-25-30L-28-39Q-19-37-14-28L-16-39Q-8-36-4-26L-6-37Q4-32 6-25L12-31Q13-21 4-17Z'],
+      ['ivory','M-3-20Q-9-23-13-29L-4-24Q-3-28-3-29L2-22 6-25 4-20Z M20-29 25-28 31-26 23-25Z'],
+      ['eye','M20-29 23-28 21-26Z']
+    ] },
+    taotie: { top: 33, shadow: 22, layers: [
+      ['shade','M-12-13-18-4-12-1-9-3-5-14Z M7-14 9-2 16-1 17-13Z M-16-15Q-24-10-28-16Q-21-16-22-24L-18-22Z'],
+      ['body','M-22-14-19-23-13-22-14-29-6-25 0-31 4-26 12-27 17-23 22-25 28-20 29-10 23-5 15-7 12 1 5 1 6-10-9-9-15 1-21 1-19-9Z'],
+      ['light','M-18-19-13-22-8-21-3-25 2-24 3-18 9-19 11-16 8-11 2-13-5-11-10-15-16-12Z M12-22 20-23 26-19 22-14 15-14Z'],
+      ['shade','M13-14Q20-17 28-15L27-9Q23-3 16-9Z'],
+      ['ivory','M15-15 20-15 18-11Z M23-15 27-15 25-11Z M19-8 21-11 23-7Z'],
+      ['eye','M19-20 23-19 20-17Z']
+    ] }
+  };
+
+  const wildFamilies = {
+    CANINE: 'wolf', FELINE: 'cat', URSINE: 'bear', BOAR: 'boar', UNGULATE: 'stag',
+    SERPENT: 'serpent', AVIAN: 'bird', SHELL: 'turtle', ARTHROPOD: 'beetle',
+    PLANT: 'treant', PLANT_SPIRIT: 'treant', CHIMERA: 'drake', AQUATIC: 'shark'
+  };
+  // Explicit art overrides for hybrids, special anatomy and legacy species
+  // whose combat archetype is broader than the animal described in the catalog.
+  const wildSpeciesArt = {
+    BEAST_MIST_WOLF: ['wolf', 'rime'],
+    BEAST_IRON_BOAR: ['boar', 'plates'],
+    BEAST_MIST_JADE_STAG: ['stag', 'leaves', null, ['#4f8174', '#c5f2ce']],
+    BEAST_EMERALD_PYTHON: ['serpent', 'scales'],
+    BEAST_SAND_SCORPION: ['scorpion', 'embers'],
+    BEAST_THUNDER_DRAKE_LIZARD: ['drake', 'bolt'],
+    BEAST_FROST_BEAR: ['bear', 'rime'],
+    BEAST_FROST_MIST_KIRIN: ['stag', 'kirin', 'rime'],
+    BEAST_THUNDER_ROC: ['bird', 'bolt'],
+    BEAST_BLOOD_TIGER: ['cat', 'stripes', 'fangs', ['#833b49', '#f8ad92']],
+    BEAST_ABYSSAL_DRAGON: ['dragon', null, 'hydra'],
+    BEAST_ABYSSAL_LEVIATHAN_TURTLE: ['turtle', 'spikes', 'dragonHead'],
+    BEAST_YIN_SHADOW_BAT_3: ['bat'],
+    BEAST_LAVA_FLAME_TORTOISE_4: ['turtle', 'embers'],
+    BEAST_BLOOD_FIEND_HOUND_4: ['wolf', 'fangs'],
+    BEAST_ANCIENT_TREANT_SERPENT_4: ['serpent', 'leaves'],
+    BEAST_THUNDER_HORN_STAG_4: ['stag', 'bolt'],
+    BEAST_ASTRAL_VOID_HAWK_5: ['bird', 'stars'],
+    BEAST_MYTHIC_TAOTIE_SHADOW: ['taotie', 'stars'],
+    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: ['stag', 'kirin', 'stars'],
+    BEAST_V222_MIRAGE_SILK_MOTH: ['moth'],
+    BEAST_V222_GALE_SABERTOOTH_TIGER: ['cat', 'stripes', 'fangs'],
+    BEAST_V222_BLOOD_KIRIN_WOLF: ['wolf', 'kirin'],
+    BEAST_V222_SHADOW_STALKER_PANTHER: ['cat', 'stars'],
+    BEAST_V222_THUNDER_ROC_FALCON: ['bird', 'bolt'],
+    BEAST_V222_FLAME_MANE_LION_BOAR: ['boar', 'embers'],
+    BEAST_V222_THUNDER_HOOF_QILIN_STAG: ['stag', 'kirin', 'bolt'],
+    BEAST_V222_NETHER_SCORPION_EMPEROR: ['scorpion', 'stars'],
+    BEAST_V222_IRON_WING_GARUDA: ['phoenix', 'plates'],
+    BEAST_V222_ASTRAL_NINE_TAIL_FOX: ['fox', 'stars', 'tails'],
+    BEAST_V222_VOID_DEVOURING_CHIMERA: ['taotie', 'embers', 'wings'],
+    BEAST_V240_ABYSSAL_IRON_BEAR: ['bear', 'plates'],
+    BEAST_V240_THUNDER_TUSK_BOAR_KING: ['boar', 'bolt', 'spikes'],
+    BEAST_V240_STARLIGHT_VOID_TORTOISE: ['turtle', 'stars', 'spikes'],
+    BEAST_V240_CELESTIAL_JADE_QILIN_STAG: ['stag', 'kirin', 'leaves'],
+    BEAST_V240_IMMORTAL_BODHI_TREANT: ['treant', 'stars', 'canopy'],
+    KING_EMERALD_SERPENT_SOUTH: ['serpent', 'scales', 'hydra'],
+    KING_FROST_SOVEREIGN_BEAR: ['bear', 'rime', 'spikes'],
+    KING_SCORPION_EMPEROR_WEST: ['scorpion', 'embers', 'spikes'],
+    KING_BLOOD_TIGER_CENTRAL: ['cat', 'stripes', 'spikes', ['#6e2939', '#f68e7f']],
+    KING_THUNDER_ROC_EAST: ['phoenix', 'bolt'],
+    KING_KUNLUN_DRAGON: ['dragon', 'plates', 'spikes'],
+    ECO2_BEAST_ARTHROPOD_1: ['mantis'],
+    ECO2_BEAST_ARTHROPOD_2: ['crawler', 'embers'],
+    ECO2_BEAST_ARTHROPOD_4: ['spider'],
+    ECO2_BEAST_ARTHROPOD_5: ['scorpion', 'bolt'],
+    ECO2_BEAST_AVIAN_2: ['crane'],
+    ECO2_BEAST_AVIAN_6: ['phoenix', 'embers'],
+    ECO2_BEAST_CANINE_5: ['fox', 'rime', 'tails'],
+    ECO2_BEAST_CHIMERA_1: ['fox', null, 'wings'],
+    ECO2_BEAST_CHIMERA_2: ['cat', 'stripes', 'wings'],
+    ECO2_BEAST_CHIMERA_3: ['goat', 'kirin', 'plates'],
+    ECO2_BEAST_CHIMERA_4: ['cat', 'stripes', 'feathers'],
+    ECO2_BEAST_CHIMERA_5: ['stag', 'kirin', 'embers'],
+    ECO2_BEAST_CHIMERA_6: ['taotie', 'stars', 'crystals'],
+    ECO2_BEAST_FELINE_1: ['cat', 'stripes'],
+    ECO2_BEAST_FELINE_2: ['cat', 'spots'],
+    ECO2_BEAST_FELINE_3: ['cat', 'stripes', 'fangs'],
+    ECO2_BEAST_FELINE_4: ['cat', 'spots', 'embers'],
+    ECO2_BEAST_FELINE_5: ['cat', 'stripes', 'rime'],
+    ECO2_BEAST_FELINE_6: ['cat', 'stripes', 'bolt'],
+    ECO2_BEAST_PLANT_SPIRIT_1: ['mushroom'],
+    ECO2_BEAST_PLANT_SPIRIT_2: ['vine'],
+    ECO2_BEAST_PLANT_SPIRIT_3: ['treant', 'leaves'],
+    ECO2_BEAST_PLANT_SPIRIT_4: ['flower'],
+    ECO2_BEAST_PLANT_SPIRIT_5: ['vine', 'spots', 'canopy'],
+    ECO2_BEAST_PLANT_SPIRIT_6: ['treant', 'plates', 'canopy'],
+    ECO2_BEAST_SERPENT_4: ['cobra', 'rime'],
+    ECO2_BEAST_SERPENT_6: ['cobra', 'stars', 'crystals'],
+    ECO2_BEAST_SHELL_1: ['turtle', 'leaves'],
+    ECO2_BEAST_SHELL_2: ['turtle', 'leaves'],
+    ECO2_BEAST_SHELL_3: ['turtle', 'plates', 'spikes'],
+    ECO2_BEAST_SHELL_4: ['turtle', 'embers'],
+    ECO2_BEAST_SHELL_6: ['turtle', 'plates', 'crystals'],
+    ECO2_BEAST_UNGULATE_1: ['stag', 'spots'],
+    ECO2_BEAST_UNGULATE_2: ['goat'],
+    ECO2_BEAST_UNGULATE_3: ['bull', 'plates'],
+    ECO2_BEAST_UNGULATE_5: ['bull', 'embers'],
+    ECO2_BEAST_MYTHIC_1: ['dragon', 'scales', 'sun'],
+    ECO2_BEAST_MYTHIC_2: ['phoenix', 'embers', 'sun'],
+    ECO2_BEAST_MYTHIC_4: ['cat', 'stripes', 'crystals'],
+    ECO2_BEAST_MYTHIC_5: ['stag', 'kirin', 'sun'],
+    ECO2_BEAST_MYTHIC_7: ['taotie', 'stars', 'wings'],
+    ECO2_BEAST_MYTHIC_8: ['treant', 'stars', 'canopy'],
+    SRC110_MW_BEAST_001: ['serpent', 'leaves'],
+    SRC110_MW_BEAST_002: ['squirrel'],
+    SRC110_MW_BEAST_003: ['beetle', 'leaves'],
+    SRC110_MW_BEAST_010: ['frog', 'spots'],
+    SRC110_MW_BEAST_011: ['crocodile', 'plates'],
+    SRC110_MW_BEAST_013: ['snail'],
+    SRC110_MW_BEAST_018: ['goat', 'rime'],
+    SRC110_MW_BEAST_026: ['porcupine', 'embers'],
+    SRC110_MW_BEAST_034: ['ant'],
+    SRC110_MW_BEAST_035: ['shark', 'plates']
+  };
+  const wildPalette = {
+    WIND: ['#597a78', '#c8f2b8'], WOOD_LIFE: ['#4c7966', '#c1ed86'],
+    FIRE: ['#9b4838', '#ffd17a'], LIGHTNING: ['#505a95', '#e0c6ff'],
+    WATER_ICE: ['#688ca5', '#d7f7ff'], EARTH_METAL: ['#776451', '#ebc688'],
+    ASTRAL: ['#554977', '#e8d6ff'], ASTRAL_VOID: ['#554977', '#e8d6ff'],
+    YIN_SHADOW: ['#444259', '#e6b6e9'], BLOOD_DEMON: ['#782c40', '#ffac9c'],
+    LIGHT_YANG: ['#967231', '#fff0a3'], NEUTRAL: ['#7c725e', '#efd8a6']
+  };
+  const wildMarkings = {
+    stripes: ['shade','M-13-17-9-17-11-11Z M-7-17-2-16-4-11Z M1-16 6-16 3-11Z M14-19 16-18 14-15Z'],
+    spots: ['ivory','M-13-15-10-16-9-14-11-12Z M-6-15-4-16-2-14-4-12Z M1-15 4-15 4-13 2-12Z'],
+    scales: ['light','M-9-8-6-10-3-9-6-7Z M1-11 4-12 7-11 4-9Z M10-17 13-19 16-18 14-16Z'],
+    plates: ['light','M-15-16-11-20-6-19-7-16-11-13Z M-4-17 0-21 5-18 3-15-1-13Z M7-18 11-21 15-19 12-14 8-14Z'],
+    leaves: ['light','M-8-16Q-16-16-21-23Q-11-24-8-16Z M-4-17Q-11-20-12-26Q-3-24-4-17Z M-1-15Q5-24 10-24Q10-17-1-15Z'],
+    stars: ['ivory','M-12-16-11-19-10-16-7-15-10-14-11-11-12-14-15-15Z M3-16 4-19 5-16 8-15 5-14 4-11 3-14 0-15Z'],
+    rime: ['ivory','M-13-17-9-23-6-19-3-22 0-19 5-21 4-16-2-15-6-17-10-14Z'],
+    embers: ['light','M-14-14Q-18-19-17-24Q-15-19-12-18Q-12-23-9-25Q-10-20-5-18Q-1-22 4-24Q0-19 1-15Z'],
+    bolt: ['ivory','M-6-20 5-20-1-15 6-15-5-9-2-14-8-14Z'],
+    kirin: ['ivory','M8-22Q4-30 8-38L10-29 13-26 14-21Z M-10-18-7-23-3-21-5-17Z M-4-17 1-22 5-20 2-16Z'],
+    fangs: ['ivory','M16-13 19-13 19-7 17-6Z M20-12 23-13 22-8Z'],
+    dragonHead: ['light','M16-12Q15-22 22-20L25-24 27-19 31-16 28-12Z'],
+    crystals: ['light','M-18-18-20-26-14-31-11-24-13-18Z M-10-19-10-30-4-36 1-29-2-20Z M1-20 6-34 11-33 10-24 7-18Z'],
+    spikes: ['light','M-16-18-16-27-10-21-8-31-2-23 0-34 7-26 10-30 14-22 9-19Z']
+  };
+  const wildBacks = {
+    tails: ['shade','M-8-9Q-25-5-35-12L-24-13Q-34-15-37-20L-23-19Q-34-23-35-28L-22-24Q-31-31-30-35L-18-29Q-25-37-22-40L-13-32Q-16-40-13-42L-7-31Q-8-40-3-43L-1-30Q1-38 7-40L6-28Q9-34 16-36L11-24Q7-12-8-9Z'],
+    wings: ['wing','M-6-10Q-28-16-32-32Q-19-29-10-24L-13-35Q2-32 6-17L7-13-4-14Z'],
+    feathers: ['wing','M-8-9Q-24-11-34-30L-24-26-28-35-17-28-18-38Q-9-34-4-25L0-31 4-21 2-15Z'],
+    sun: ['light','M-20-27-25-33-18-32-18-39-13-35-9-41-7-35-1-38-1-32 3-29-1-28Q-8-40-20-27Z'],
+    canopy: ['light','M-26-26-31-31-24-36-21-34-19-41-11-39-7-43 0-40 8-43 13-38 21-41 26-35 32-35 35-30 28-24 22-30 14-28 6-33 0-29-9-34-16-30-22-31Z'],
+    hydra: ['shade','M-13-7-9-10Q-11-15-29-16L-32-21-30-25-24-23-25-20Q-16-20-10-17Q-15-25-26-26L-28-30-24-34-19-32-20-29Q-14-29-10-24Q-12-35-18-35L-19-40-13-42-9-39-11-36Q-4-32-3-23Q-2-33-5-38L-3-43 3-43 6-39 2-37Q5-30 4-23Q6-30 9-33L7-37 11-41 16-40 17-36 14-34Q11-26 12-21Q20-27 23-33L22-37 27-40 31-37 32-33 27-31Q23-23 20-20Q29-25 33-26L35-31 39-30 42-26 40-22 35-22Q27-20 23-17Q36-19 38-17L43-20 46-16 46-12 41-10 36-12Q25-9 12-10L1-7Z']
+  };
+  const wildPaths = new Map();
+  const wildSpecies = new Map();
+  for (const species of g.JD.BEASTS.species || []) wildSpecies.set(species.id, species);
+  for (const king of g.JD.BEASTS.kings || []) wildSpecies.set(king.id, { ...wildSpecies.get(king.species), ...king });
+  const wildTierScale = [0, .77, .90, 1.01, 1.14, 1.29, 1.47, 1.69];
+  const wildTierMark = { 3: 'spots', 4: 'plates', 5: 'crystals', 6: 'spikes', 7: 'stars' };
+  const noWildOverrides = [];
+
+  R.resolveWildBeastArt = b => {
+    const id = b.speciesId || b.sp || '';
+    const species = wildSpecies.get(id);
+    const [shape, marking, trim, artPalette] = wildSpeciesArt[id] || noWildOverrides;
+    const family = b.archetype || b.family || species?.archetype || species?.family;
+    const model = wildModels[shape || wildFamilies[family] || 'drake'];
+    const tier = clamp(Math.floor(Number(b.tier || species?.tier) || 1), 1, 7);
+    const palette = artPalette || wildPalette[b.element || species?.element] || wildPalette.NEUTRAL;
+    const visual = b.visual || species?.visual;
+    const scale = wildTierScale[tier] * clamp(.9 + .1 * (Number(visual?.scale) || 1), .95, 1.06)
+      * (b.legendary ? 1.08 : 1);
+    return { model, tier, scale, palette, visual, marking, trim };
+  };
+
+  function paintWildLayer(ctx, layer, colors, flap) {
+    const [role, d] = layer;
+    if (!wildPaths.has(d)) wildPaths.set(d, new Path2D(d));
+    const path = wildPaths.get(d);
+    if (role === 'wing') {
+      ctx.save();
+      ctx.translate(1, -15);
+      ctx.rotate(flap);
+      ctx.translate(-1, 15);
+    }
+    ctx.fillStyle = colors[role];
+    if (role === 'wing' || role === 'body') {
+      ctx.lineWidth = 1.15;
+      ctx.strokeStyle = '#17242a';
+      ctx.stroke(path);
+    }
+    ctx.fill(path);
+    if (role === 'wing') ctx.restore();
+  }
+
   const TW_CACHE = new Map();
   function measureCached(ctx, font, text) {
     const k = font + '|' + text;
@@ -1773,7 +2174,8 @@
         items.push({ y: p.y + (showIndoor ? 6 : 0), n, p, k: 'n' });
       });
       (W.foes || []).forEach(f => {
-        if (!f.gone && !f.dead && Math.abs(f.x * TS - c.x) < hw + 50 && Math.abs(f.y * TS - c.y) < hh + 50) items.push({ y: f.y, f, k: 'f' });
+        const margin = f.wild ? 100 : 50;
+        if (!f.gone && !f.dead && Math.abs(f.x * TS - c.x) < hw + margin && Math.abs(f.y * TS - c.y) < hh + margin) items.push({ y: f.y, f, k: 'f' });
       });
       (W.world && Array.isArray(W.world.visitors) ? W.world.visitors : []).forEach(v => {
         if (!v || v.untilDay < W.day) return;
@@ -1782,7 +2184,7 @@
         if (Math.abs(v.x * TS - c.x) < hw + 45 && Math.abs(v.y * TS - c.y) < hh + 55) items.push({ y: v.y, v, k: 'v' });
       });
       (W.wildlife?.beasts || []).forEach(b => {
-        if (!b.fighting && !b.dead && !b.gone && Math.abs(b.x * TS - c.x) < hw + 50 && Math.abs(b.y * TS - c.y) < hh + 50) items.push({ y: b.y, w: b, k: 'w' });
+        if (!b.fighting && !b.dead && !b.gone && Math.abs(b.x * TS - c.x) < hw + 100 && Math.abs(b.y * TS - c.y) < hh + 100) items.push({ y: b.y, w: b, k: 'w' });
       });
       (W.wildResources?.nodes || []).forEach(rn => {
         if (rn.remaining > 0 && Math.abs(rn.x * TS - c.x) < hw + 40 && Math.abs(rn.y * TS - c.y) < hh + 40) items.push({ y: rn.y, res: rn, k: 'res' });
@@ -5010,64 +5412,87 @@
     },
 
     drawWild(ctx, b) {
-      const a = this.alpha == null ? 1 : this.alpha;
-      const bx = (Number.isFinite(b._px) && Math.hypot(b.x - b._px, b.y - b._py) < 4) ? (b._px + (b.x - b._px) * a) : b.x;
-      const by = (Number.isFinite(b._py) && Math.hypot(b.y - b._py, b.x - b._px) < 4) ? (b._py + (b.y - b._py) * a) : b.y;
-      const x = bx * TS, y = by * TS, id = b.speciesId || '', large = b.tier >= 6;
-      const sp = (g.JD && g.JD.BEASTS && g.JD.BEASTS.species && g.JD.BEASTS.species.find(s => s.id === id));
-      const family = b.archetype || b.family || sp?.archetype || (g.SK && g.SK.beastFamily ? g.SK.beastFamily(b) : 'CANINE');
-      const arch = family === 'PLANT_SPIRIT' ? 'PLANT' : family;
-      const body = b.visual?.body || sp?.visual?.body || (large ? '#78518b' : b.tier >= 3 ? '#b27b55' : '#9d8b70');
-      const accent = b.visual?.accent || sp?.visual?.accent || (large ? '#c99aeb' : '#e9c586');
-      const bodyScale = Math.max(0.7, Math.min(1.6, Number((b.visual || sp?.visual)?.scale) || 1));
+      const alpha = this.alpha == null ? 1 : this.alpha;
+      const dx = b.x - b._px, dy = b.y - b._py;
+      const localStep = dx * dx + dy * dy < 16;
+      const x = (localStep ? b._px + dx * alpha : b.x) * TS;
+      const y = (localStep ? b._py + dy * alpha : b.y) * TS;
+      const zoom = this.cam.z;
+      const { model, tier, scale, palette, visual, marking, trim } = R.resolveWildBeastArt(b);
+      const body = visual?.body || palette[0];
+      const light = visual?.accent || palette[1];
+      const ink = '#18232e';
+      const colors = { body, light, shade: ink, wing: body, ivory: palette[1],
+        eye: b.aggressive || b.fighting ? '#ffea8d' : '#fff3d5' };
+      const detail = zoom >= .42 && this.resolveQuality() !== 'low';
+      const reduced = this.isReducedMotion();
+      const moving = localStep && dx * dx + dy * dy > .001;
+      const time = reduced ? 0 : (this.t || 0) + (b.px || 0) * .37 + (b.py || 0) * .19;
+      const hover = model.hover || (trim === 'wings' || trim === 'feathers' ? 3 : 0);
+      const rate = hover ? 3.3 : moving ? 8 : 2.8;
+      const lift = hover + (reduced ? 0 : Math.sin(time * rate) * (hover ? 1.6 : moving ? 1.1 : .45));
+      const flap = reduced ? 0 : Math.sin(time * (b.fighting ? 6.6 : 4.4)) * .19;
+      const face = !b.fighting && moving && Math.abs(dx) > .015 ? Math.sign(dx) : (b.face < 0 ? -1 : 1);
+      const shadow = model.shadow || 14;
 
       ctx.save();
       ctx.translate(x, y);
-      if (this.cam.z >= .42) this.drawCommonStatusAuras(ctx, b, 0);
-      ctx.scale(bodyScale, bodyScale);
-      ctx.fillStyle = 'rgba(0,0,0,.22)';
-      ctx.beginPath(); ctx.ellipse(0, 1, large ? 13 : 9, large ? 5 : 3.5, 0, 0, 7); ctx.fill();
-
-      if (arch === 'SERPENT') {
-        ctx.strokeStyle = body; ctx.lineWidth = large ? 7 : 4.5;
-        ctx.beginPath(); ctx.moveTo(-11, -2); ctx.bezierCurveTo(-5, -12, 1, 5, 9, -6); ctx.stroke();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(9, -7, large ? 5 : 3.8, 0, 7); ctx.fill();
-      } else if (arch === 'AVIAN') {
-        ctx.fillStyle = body;
-        ctx.beginPath(); ctx.moveTo(large ? -16 : -11, -11); ctx.quadraticCurveTo(0, -3, large ? 16 : 11, -11); ctx.lineTo(large ? 7 : 5, 0); ctx.lineTo(large ? -7 : -5, 0); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(0, -8, large ? 5.5 : 4, 0, 7); ctx.fill();
-      } else if (arch === 'AQUATIC') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -7, large ? 12 : 8.5, large ? 6 : 4.5, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.moveTo(large ? -10 : -7, -7); ctx.lineTo(large ? -16 : -12, -12); ctx.lineTo(large ? -16 : -12, -2); ctx.closePath(); ctx.fill();
-      } else if (arch === 'SHELL') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.arc(0, -6, large ? 10 : 7.5, Math.PI, 0); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(large ? 9 : 6.5, -6, large ? 4 : 3, 0, 7); ctx.fill();
-      } else if (arch === 'ARTHROPOD') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -7, large ? 10 : 7, large ? 6 : 4.5, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = accent; ctx.fillRect(-7, -3, 2, 4); ctx.fillRect(-2, -3, 2, 4); ctx.fillRect(3, -3, 2, 4); ctx.fillRect(large ? 8 : 6, -10, 3, 3);
-      } else if (arch === 'PLANT') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -6, large ? 7 : 5, large ? 10 : 7.5, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(0, large ? -15 : -11, large ? 5 : 3.8, 0, 7); ctx.fill();
-      } else {
-        const radX = large ? 13 : (arch === 'BOAR' || arch === 'URSINE' ? 10.5 : 8.5);
-        const radY = large ? 8.5 : (arch === 'BOAR' || arch === 'URSINE' ? 7 : 5.5);
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -7, radX, radY, 0, 0, 7); ctx.fill();
-        ctx.fillRect(-radX * 0.7, -4, 2.6, 5); ctx.fillRect(radX * 0.5, -4, 2.6, 5);
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(radX * 0.75, -10, large ? 5.5 : 4.2, 0, 7); ctx.fill();
-        if (arch === 'UNGULATE' || arch === 'CHIMERA') {
-          ctx.strokeStyle = accent; ctx.lineWidth = 1.4;
-          ctx.beginPath(); ctx.moveTo(radX * 0.6, -13); ctx.lineTo(radX * 0.5, -18); ctx.stroke();
+      const groundRing = b.legendary || tier >= 6;
+      ctx.fillStyle = '#17252651';
+      ctx.beginPath();
+      ctx.ellipse(0, 1, shadow * scale, 3.9 * scale, 0, 0, 7);
+      ctx.fill();
+      if (groundRing) {
+        ctx.lineWidth = 1.05;
+        ctx.strokeStyle = light;
+        ctx.globalAlpha *= .68;
+        ctx.beginPath();
+        ctx.ellipse(0, 1, (shadow + 4) * scale, 5.2 * scale, 0, .25, 3.02);
+        ctx.stroke();
+        if (tier === 7 && detail) {
+          ctx.beginPath();
+          ctx.ellipse(0, 1, (shadow + 8) * scale, 8.1 * scale, 0, .42, 2.72);
+          ctx.stroke();
         }
+        ctx.globalAlpha /= .68;
       }
-      if (b.legendary) {
-        ctx.strokeStyle = 'rgba(219,160,255,.85)'; ctx.lineWidth = 1.8;
-        ctx.beginPath(); ctx.ellipse(0, 0, large ? 18 : 13, large ? 7.5 : 5.5, 0, 0, 7); ctx.stroke();
+      if (zoom >= .42) this.drawCommonStatusAuras(ctx, b, 0);
+
+      ctx.save();
+      ctx.translate(0, -lift * scale);
+      ctx.scale(face * scale, scale);
+      ctx.lineJoin = 'round';
+      if (typeof Path2D === 'function') {
+        const back = wildBacks[trim];
+        if (back) paintWildLayer(ctx, back, colors, flap);
+        for (const layer of model.layers) {
+          if (zoom >= .35 || (layer[0] !== 'eye' && layer[0] !== 'ivory')) paintWildLayer(ctx, layer, colors, flap);
+        }
+        if ((zoom >= .42 && marking) || detail || tier >= 5) {
+          const mark = wildMarkings[marking || (tier >= 3 && !trim ? wildTierMark[tier] : null)];
+          if (mark) paintWildLayer(ctx, mark, colors, flap);
+        }
+        if (wildMarkings[trim]) paintWildLayer(ctx, wildMarkings[trim], colors, flap);
+      } else {
+        ctx.fillStyle = body;
+        ctx.beginPath(); ctx.ellipse(0, -8, shadow * .8, 5, 0, 0, 7); ctx.fill();
       }
-      if (this.cam.z > 0.8) {
-        ctx.fillStyle = 'rgba(20,35,29,.78)';
-        ctx.font = '9px ' + FONT;
+      ctx.restore();
+
+      const top = Math.max(model.top, wildBacks[trim] ? 43 : 0, wildMarkings[trim] || marking === 'kirin' ? 38 : 0);
+      const labelY = -(top + lift + 6) * scale;
+      const showHealth = zoom >= .55 && b.fighting && Number.isFinite(b.hp) && b.hpMax > 0;
+      if (showHealth) this.hpBar(ctx, 0, labelY, b.hp / b.hpMax, shadow * scale * 1.5);
+      if (zoom > .8) {
+        ctx.font = (groundRing ? 'bold ' : '') + '9px ' + FONT;
         ctx.textAlign = 'center';
-        ctx.fillText(b.name + ' · ' + b.tier, 0, -24);
+        ctx.lineWidth = 2.3;
+        ctx.strokeStyle = '#1b2a28';
+        ctx.fillStyle = groundRing ? palette[1] : '#f8f2dc';
+        const label = (b.name || b.nameTh || '') + ' · T' + tier;
+        const textY = labelY - (showHealth ? 5 : 0);
+        ctx.strokeText(label, 0, textY);
+        ctx.fillText(label, 0, textY);
       }
       ctx.restore();
     },

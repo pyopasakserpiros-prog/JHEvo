@@ -13,6 +13,10 @@ This skill enforces the strict simulation CPU budget of **JianghuSect Evolution 
 
 ---
 
+## Sect map wild beasts (JS2-v2.6.0)
+
+`drawWild` compiles each authored vector path once into a shared `Path2D`. Species lookup is by ID. Render-time bobbing and wing poses read time and existing coordinates without adding work to the simulation tick. Offscreen beasts are culled with a wider margin for T7 profiles. Distant zoom skips small face details, low quality skips decorative detail, and reduced motion freezes the pose. No device frame-rate benchmark was run for this model refresh.
+
 ## 1. Frame & Tick Budget Architecture (`js/main.js` & `js/sim.js`)
 
 - **Frame Simulation Budget (`js/main.js` lines 6, 47–57):**

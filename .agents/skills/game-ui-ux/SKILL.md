@@ -7,6 +7,8 @@ category: ui-ux-design
 
 # JianghuSect Evolution — Wuxia UI/UX, Sprite Atlas & Edit Hub Blueprint (`js/ui.js`, `js/render.js`, `css/style.css`)
 
+Wild beasts on the sect map use `Render.resolveWildBeastArt` and `Render.methods.drawWild` for both roaming wildlife and active wild foes. Use the existing species ID overrides for anatomy, trim and color, with a family fallback for future species. Tier scales only the art. Fight HP bars and names are anchored above the body and stay upright when it faces left. See the [wild beast model report](../../../PATCH_REPORTS/WILD_BEAST_MODELS_JS2_V2_6_0.md).
+
 For eighteen ordinary regional companions, `Render.drawRegionalCompanion` shares path geometry with `Render.regionalCompanionSvg` and `UI.regionalCompanionCard`. The card shows live tier, age, readiness, trade-offs, and recorded encounter locations. Travel poses use `EXPED.travelMount` when the assigned animal is available and the owner is on the expedition path, or the active `AI.goTo` aerial route for sword flight. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
 
 Curated companion art is shared by the map, nursery, and profile through the sovereign companion renderer. Mythic lineages distinguish silhouettes and accessories by family, then grow visual scale and effect layers by age and grade. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
