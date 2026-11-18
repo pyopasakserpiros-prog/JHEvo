@@ -98997,8 +98997,7 @@ JD.ITEMS.items.forEach(it => {
       if (tierFilter && item.tier !== tierFilter) return false;
       if (elemFilter && item.element !== elemFilter) return false;
       if (rarityFilter) {
-        if (rarityFilter === "legendary" && !item.legendary) return false;
-        else if (rarityFilter !== "legendary" && String(item.grade || "").toLowerCase() !== rarityFilter && String(item.rarity || "").toLowerCase() !== rarityFilter) return false;
+        if (String(item.rarity || item.grade || "Common").toLowerCase() !== rarityFilter) return false;
       }
       if (destFilter === "sect" && !item.canSect) return false;
       if (destFilter === "npc" && !item.canNpc) return false;
@@ -99024,7 +99023,34 @@ JD.ITEMS.items.forEach(it => {
       total: all.length,
       page,
       pageSize,
-      totalPages
+      totalPages,
+      facets: EDITOR.catalogFacets(W)
+    };
+  };
+
+  EDITOR.catalogFacets = W => {
+    if (!EDITOR._catalogFacetCache) {
+      const kindCounts = Object.create(null);
+      const rarityCounts = Object.create(null);
+      EDITOR.catalog(W, {}).forEach(item => {
+        if (!item) return;
+        const kind = String(item.kind || '').trim();
+        const rarity = String(item.rarity || item.grade || 'Common').trim();
+        if (kind) kindCounts[kind] = (kindCounts[kind] || 0) + 1;
+        if (rarity) rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
+      });
+      const kindOrder = ['PROVISION','MATERIAL','PILL','CRAFTED_PILL','EQUIPMENT','TECH_MANUAL','CRYSTAL','SUB_MANUAL','PATH_MANUAL','PATH_CRYSTAL','RECIPE_SCROLL','ORGAN'];
+      const rarityOrder = ['Common','Uncommon','Refined','Rare','Exceptional','Legendary','Transcendent'];
+      const ordered = (counts, order) => Object.keys(counts).sort((a, b) => {
+        const ai = order.indexOf(a), bi = order.indexOf(b);
+        if (ai >= 0 || bi >= 0) return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+        return a.localeCompare(b);
+      }).map(id => ({ id, count: counts[id] }));
+      EDITOR._catalogFacetCache = { kinds: ordered(kindCounts, kindOrder), rarities: ordered(rarityCounts, rarityOrder) };
+    }
+    return {
+      kinds: EDITOR._catalogFacetCache.kinds.map(x => ({ id: x.id, count: x.count })),
+      rarities: EDITOR._catalogFacetCache.rarities.map(x => ({ id: x.id, count: x.count }))
     };
   };
 
@@ -113556,8 +113582,7 @@ JD.ITEMS.items.forEach(it => {
         if (tierFilter && item.tier !== tierFilter) return false;
         if (elemFilter && item.element !== elemFilter) return false;
         if (rarityFilter) {
-          if (rarityFilter === 'legendary' && !item.legendary) return false;
-          if (rarityFilter !== 'legendary' && String(item.grade || '').toLowerCase() !== rarityFilter && String(item.rarity || '').toLowerCase() !== rarityFilter) return false;
+          if (String(item.rarity || item.grade || 'Common').toLowerCase() !== rarityFilter) return false;
         }
         if (destFilter === 'sect' && !item.canSect) return false;
         if (destFilter === 'npc' && !item.canNpc) return false;
@@ -192232,18 +192257,55 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         pageSize: UI.spawnPageSize || 40
       });
       UI.spawnPage = paged.page;
+      const spawnFacets = paged.facets || { kinds: [], rarities: [] };
+      const spawnKindLabels = {
+        PROVISION: "เสบียง/ศิลา",
+        MATERIAL: "วัตถุดิบ",
+        PILL: "โอสถพื้นฐาน",
+        CRAFTED_PILL: "โอสถตำรับ",
+        EQUIPMENT: "อุปกรณ์ยุทธ์/ศาสตราวิเศษ",
+        TECH_MANUAL: "คัมภีร์วิชา/ปราณ",
+        CRYSTAL: "ผลึกวิชา/สายย่อย",
+        SUB_MANUAL: "คัมภีร์สายย่อย",
+        PATH_MANUAL: "มหาคัมภีร์วิถี",
+        PATH_CRYSTAL: "ผลึกมรรคา",
+        RECIPE_SCROLL: "ม้วนตำรับ",
+        ORGAN: "อวัยวะอสูร"
+      };
+      const spawnRarityLabels = {
+        Common: "Common (ทั่วไป)",
+        Uncommon: "Uncommon (ปานกลาง)",
+        Refined: "Refined (ขัดเกลา)",
+        Rare: "Rare (หายาก)",
+        Exceptional: "Exceptional (ยอดเยี่ยม)",
+        Legendary: "★ Legendary (ตำนาน)",
+        Transcendent: "✦ Transcendent (เหนือตำนาน)"
+      };
+      const spawnRarityClasses = {
+        Common: "",
+        Uncommon: "b",
+        Refined: "ok",
+        Rare: "b",
+        Exceptional: "g",
+        Legendary: "g",
+        Transcendent: "v"
+      };
+      const validKinds = new Set(spawnFacets.kinds.map(x => x.id));
+      const validRarities = new Set(spawnFacets.rarities.map(x => x.id));
+      if (UI.spawnKind && UI.spawnKind !== "ALL" && !validKinds.has(UI.spawnKind)) UI.spawnKind = "ALL";
+      if (UI.spawnRarity && UI.spawnRarity !== "ALL" && !validRarities.has(UI.spawnRarity)) UI.spawnRarity = "ALL";
       h += "<h3>✨ เสกไอเทม ศาสตราในตำนาน และคัมภีร์เข้าคลังหรือถุงส่วนตัว</h3><div class=\"card\">";
-      h += "<div class=\"muted\" style=\"margin-bottom:6px\">รองรับการค้นหาด้วยชื่อ รหัส ระดับความหายาก (เช่น <code>Legendary</code>, <code>LEG_WPN_</code>, <code>LEG_</code>) ธาตุ สายวิชา และรหัสเอฟเฟกต์ พร้อมระบบแบ่งหน้าแสดงผลครบทุกไอเทม</div>";
+      h += "<div class=\"muted\" style=\"margin-bottom:6px\">หมวดและเกรดดึงจากแค็ตตาล็อกปัจจุบันโดยตรง · ค้นหาด้วยชื่อ รหัส เกรด (เช่น <code>Transcendent</code>), ธาตุ สายวิชา หรือรหัสเอฟเฟกต์</div>";
       h += "<div class=\"edit-grid\">";
       h += "<div class=\"edit-field\"><label>ปลายทาง</label><select id=\"spawnDest\"><option value=\"sect\"" + (UI.spawnDest === "sect" ? " selected" : "") + ">🏯 คลังสำนัก</option><option value=\"npc\"" + (UI.spawnDest === "npc" ? " selected" : "") + ">🎒 ถุงส่วนตัวของ " + esc(n ? n.h.name.given : "ตัวละคร") + "</option></select></div>";
-      h += "<div class=\"edit-field\"><label>หมวดหมู่</label><select id=\"spawnKind\">" + [["ALL", "ทุกหมวดหมู่"], ["PROVISION", "เสบียง/ศิลา"], ["MATERIAL", "วัตถุดิบ"], ["PILL", "โอสถพื้นฐาน"], ["CRAFTED_PILL", "โอสถตำรับ"], ["EQUIPMENT", "อุปกรณ์ยุทธ์/ศาสตราตำนาน"], ["TECH_MANUAL", "คัมภีร์วิชา/ปราณตำนาน"], ["CRYSTAL", "ผลึกวิชา/สายย่อย"], ["SUB_MANUAL", "คัมภีร์สายย่อย"], ["RECIPE_SCROLL", "ม้วนตำรับ"], ["ORGAN", "อวัยวะอสูร"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.spawnKind === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
+      h += "<div class=\"edit-field\"><label>หมวดหมู่</label><select id=\"spawnKind\"><option value=\"ALL\"" + ((!UI.spawnKind || UI.spawnKind === "ALL") ? " selected" : "") + ">ทุกหมวดหมู่</option>" + spawnFacets.kinds.map(x => "<option value=\"" + esc(x.id) + "\"" + (UI.spawnKind === x.id ? " selected" : "") + ">" + esc(spawnKindLabels[x.id] || x.id) + " (" + x.count.toLocaleString("th-TH") + ")</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>ระดับ (Tier)</label><select id=\"spawnTier\">" + [["ALL", "ทุกระดับ"], ["1", "ระดับ 1"], ["2", "ระดับ 2"], ["3", "ระดับ 3"], ["4", "ระดับ 4"], ["5", "ระดับ 5"], ["6", "ระดับ 6"], ["7", "ระดับ 7"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.spawnTier === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>ธาตุ (Element)</label><select id=\"spawnElement\">" + [["ALL", "ทุกธาตุ"], ["FIRE", "🔥 ธาตุไฟ"], ["WATER_ICE", "❄️ ธาตุน้ำ-น้ำแข็ง"], ["LIGHTNING", "⚡ ธาตุสายฟ้า"], ["WIND", "🌪️ ธาตุลม"], ["EARTH_METAL", "⛰️ ธาตุดิน-โลหะ"], ["WOOD_LIFE", "🌿 ธาตุไม้-ชีวิต"], ["YIN_SHADOW", "🌑 ธาตุหยิน-เงา"], ["LIGHT_YANG", "☀️ ธาตุแสง-หยาง"], ["ASTRAL", "✨ ดารา-มิติ (พิเศษ)"], ["BLOOD_DEMON", "🩸 โลหิต-มาร (พิเศษ)"], ["NEUTRAL", "⚪ ไร้ธาตุเฉพาะ"]].map(([k, v]) => "<option value=\"" + k + "\"" + ((UI.spawnElement || "ALL") === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
-      h += "<div class=\"edit-field\"><label>ความหายาก (Rarity)</label><select id=\"spawnRarity\">" + [["ALL", "ทุกระดับความหายาก"], ["Legendary", "★ Legendary (ตำนาน)"], ["Rare", "Rare (หายาก)"], ["Uncommon", "Uncommon (ปานกลาง)"], ["Common", "Common (ทั่วไป)"]].map(([k, v]) => "<option value=\"" + k + "\"" + ((UI.spawnRarity || "ALL") === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
+      h += "<div class=\"edit-field\"><label>เกรด/ความหายาก</label><select id=\"spawnRarity\"><option value=\"ALL\"" + ((!UI.spawnRarity || UI.spawnRarity === "ALL") ? " selected" : "") + ">ทุกระดับความหายาก</option>" + spawnFacets.rarities.map(x => "<option value=\"" + esc(x.id) + "\"" + (UI.spawnRarity === x.id ? " selected" : "") + ">" + esc(spawnRarityLabels[x.id] || x.id) + " (" + x.count.toLocaleString("th-TH") + ")</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>จำนวนต่อหน้า</label><select id=\"spawnPageSize\">" + [["40", "40 รายการ/หน้า"], ["80", "80 รายการ/หน้า"], ["150", "150 รายการ/หน้า"]].map(([k, v]) => "<option value=\"" + k + "\"" + (String(UI.spawnPageSize || 40) === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
       h += "<div class=\"edit-field\"><label>จำนวนที่จะเสก</label><input id=\"spawnQty\" type=\"number\" min=\"1\" max=\"50000\" value=\"" + (UI.spawnQty || 1) + "\"></div>";
       h += "<div class=\"edit-field\"><label>คุณภาพอุปกรณ์</label><select id=\"spawnQuality\">" + [["0.85", "ธรรมดา (85%)"], ["1", "มาตรฐาน (100%)"], ["1.15", "ประณีต (115%)"], ["1.3", "ชั้นเลิศ (130%)"]].map(([k, v]) => "<option value=\"" + k + "\"" + (String(UI.spawnQuality) === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select></div>";
-      h += "<div class=\"edit-field\"><label>ค้นหาชื่อ/รหัส/Legendary/เอฟเฟกต์</label><input id=\"spawnSearch\" type=\"search\" placeholder=\"พิมพ์ชื่อ รหัส Legendary หรือธาตุ…\" value=\"" + esc(UI.spawnSearch || "") + "\"></div>";
+      h += "<div class=\"edit-field\"><label>ค้นหาชื่อ/รหัส/เกรด/เอฟเฟกต์</label><input id=\"spawnSearch\" type=\"search\" placeholder=\"พิมพ์ชื่อ รหัส Transcendent หรือธาตุ…\" value=\"" + esc(UI.spawnSearch || "") + "\"></div>";
       h += "</div></div>";
 
       h += "<div style=\"display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 4px\"><h3 style=\"margin:0\">รายการไอเทม (พบทั้งหมด " + paged.total + " รายการ · หน้า " + paged.page + "/" + paged.totalPages + ")</h3>";
@@ -192255,7 +192317,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         h += "<div class=\"muted\">ไม่พบไอเทมที่ตรงกับตัวกรอง</div>";
       } else {
         h += paged.items.map(item => {
-          const legChip = item.legendary ? " <span class=\"chip g\">★ Legendary</span>" : "";
+          const rarity = String(item.rarity || item.grade || "Common");
+          const gradeClass = spawnRarityClasses[rarity] || "";
+          const gradeIcon = rarity === "Transcendent" ? "✦ " : (rarity === "Legendary" ? "★ " : "");
+          const rarityChip = " <span class=\"chip " + gradeClass + "\" title=\"เกรดไอเทม\">" + gradeIcon + esc(rarity) + "</span>";
           const elChip = item.element && item.element !== "NEUTRAL" ? (" <span class=\"chip\">" + (item.elementIcon || "") + " " + esc(item.elementShortTh || item.element) + "</span>") : "";
           const famChip = item.crystalFamily === "TECH" ? " <span class=\"chip b\">ผลึกวิชา</span>" : (item.crystalFamily === "SUBPATH" ? " <span class=\"chip v\">ผลึกสายย่อย</span>" : "");
           const extraBtns = [];
@@ -192265,7 +192330,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           if (n && n.cult && item.kind === "TECH_MANUAL") {
             extraBtns.push("<button class=\"btn\" style=\"padding:4px 8px;font-size:11px\" data-do=\"spawn-teach-item\" data-arg=\"" + item.kind + "|" + item.id + "\">📖 ถ่ายทอด</button>");
           }
-          return "<div class=\"logrow\" style=\"align-items:center;gap:6px\"><div style=\"flex:1;min-width:0\"><span class=\"chip b\">" + esc(item.kind) + " T" + item.tier + "</span>" + famChip + legChip + elChip + " <b>" + esc(item.nameTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(" + esc(item.id) + ")</span><div class=\"muted\" style=\"font-size:11px\">" + esc(item.descTh || "") + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\">" + extraBtns.join("") + "<button class=\"btn pri\" style=\"padding:4px 10px;font-size:11.5px\" data-do=\"spawn-item\" data-arg=\"" + item.kind + "|" + item.id + "\">✨ เสก</button></div></div>";
+          return "<div class=\"logrow\" style=\"align-items:center;gap:6px\"><div style=\"flex:1;min-width:0\"><span class=\"chip b\">" + esc(item.kind) + " T" + item.tier + "</span>" + rarityChip + famChip + elChip + " <b>" + esc(item.nameTh) + "</b> <span class=\"muted\" style=\"font-size:11px\">(" + esc(item.id) + ")</span><div class=\"muted\" style=\"font-size:11px\">" + esc(item.descTh || "") + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\">" + extraBtns.join("") + "<button class=\"btn pri\" style=\"padding:4px 10px;font-size:11.5px\" data-do=\"spawn-item\" data-arg=\"" + esc(item.kind) + "|" + esc(item.id) + "\">✨ เสก</button></div></div>";
         }).join("");
       }
       h += "</div>";

@@ -3813,8 +3813,7 @@
       if (tierFilter && item.tier !== tierFilter) return false;
       if (elemFilter && item.element !== elemFilter) return false;
       if (rarityFilter) {
-        if (rarityFilter === "legendary" && !item.legendary) return false;
-        else if (rarityFilter !== "legendary" && String(item.grade || "").toLowerCase() !== rarityFilter && String(item.rarity || "").toLowerCase() !== rarityFilter) return false;
+        if (String(item.rarity || item.grade || "Common").toLowerCase() !== rarityFilter) return false;
       }
       if (destFilter === "sect" && !item.canSect) return false;
       if (destFilter === "npc" && !item.canNpc) return false;
@@ -3840,7 +3839,34 @@
       total: all.length,
       page,
       pageSize,
-      totalPages
+      totalPages,
+      facets: EDITOR.catalogFacets(W)
+    };
+  };
+
+  EDITOR.catalogFacets = W => {
+    if (!EDITOR._catalogFacetCache) {
+      const kindCounts = Object.create(null);
+      const rarityCounts = Object.create(null);
+      EDITOR.catalog(W, {}).forEach(item => {
+        if (!item) return;
+        const kind = String(item.kind || '').trim();
+        const rarity = String(item.rarity || item.grade || 'Common').trim();
+        if (kind) kindCounts[kind] = (kindCounts[kind] || 0) + 1;
+        if (rarity) rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
+      });
+      const kindOrder = ['PROVISION','MATERIAL','PILL','CRAFTED_PILL','EQUIPMENT','TECH_MANUAL','CRYSTAL','SUB_MANUAL','PATH_MANUAL','PATH_CRYSTAL','RECIPE_SCROLL','ORGAN'];
+      const rarityOrder = ['Common','Uncommon','Refined','Rare','Exceptional','Legendary','Transcendent'];
+      const ordered = (counts, order) => Object.keys(counts).sort((a, b) => {
+        const ai = order.indexOf(a), bi = order.indexOf(b);
+        if (ai >= 0 || bi >= 0) return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+        return a.localeCompare(b);
+      }).map(id => ({ id, count: counts[id] }));
+      EDITOR._catalogFacetCache = { kinds: ordered(kindCounts, kindOrder), rarities: ordered(rarityCounts, rarityOrder) };
+    }
+    return {
+      kinds: EDITOR._catalogFacetCache.kinds.map(x => ({ id: x.id, count: x.count })),
+      rarities: EDITOR._catalogFacetCache.rarities.map(x => ({ id: x.id, count: x.count }))
     };
   };
 
@@ -18372,8 +18398,7 @@
         if (tierFilter && item.tier !== tierFilter) return false;
         if (elemFilter && item.element !== elemFilter) return false;
         if (rarityFilter) {
-          if (rarityFilter === 'legendary' && !item.legendary) return false;
-          if (rarityFilter !== 'legendary' && String(item.grade || '').toLowerCase() !== rarityFilter && String(item.rarity || '').toLowerCase() !== rarityFilter) return false;
+          if (String(item.rarity || item.grade || 'Common').toLowerCase() !== rarityFilter) return false;
         }
         if (destFilter === 'sect' && !item.canSect) return false;
         if (destFilter === 'npc' && !item.canNpc) return false;

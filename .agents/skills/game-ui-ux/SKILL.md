@@ -68,7 +68,7 @@ This skill governs the DOM drawers, HUD, 104-cell item sprite atlas and illustra
 - **6 Edit Hub Tabs (`UI.tab`):**
   1. **`char` (Character Editor):** Edit Cultivation Path/Subpath/Stage/XP, Specialization Track, Stones/CP/Merit/Satisfaction, Spiritual Roots (`1–4` roots, elements, grades), Elemental Mastery (`0–100` + Special Element unlocks), and all 9 `SECT.EDITOR.EDITABLE_GROUPS` (`personality`, `values`, `interests`, `aptitudes`, `affinities`, `physiology`, `intellect`, `social`, `skills`) with live preview (`SECT.EDITOR.previewCharacterEdit`) and Undo stack (`W._editUndoStack`).
   2. **`pet` (Spirit Beasts, Timed Buffs, Mech/Karma & Doctrine):** Spawn/awaken/feed/breed Spirit Beasts (`SECT.EDITOR.petState`), cast any of the 12 Timed Buffs (`STATS.BUFF_CATALOG`), edit `MECH_PUPPET` / `KARMA_SAMSARA` state, configure `W.sect.supportDoctrine`, and upgrade Specialist Facilities.
-  3. **`spawn` (Paginated Universal Spawner):** Search and filter the runtime catalog across 10 categories (`SECT.EDITOR.catalogPaginated`) by destination (`sect` or `npc`), `kind`, `tier`, `element`, `rarity`, and `pageSize` (`40/80/150`), with 1-click **✨ เสก** (`spawn-item`), **⚔️ เสก+สวมใส่** (`spawn-equip-item`), and **📖 ถ่ายทอด** (`spawn-teach-item`).
+  3. **`spawn` (Paginated Universal Spawner):** Search and filter the runtime catalog through `SECT.EDITOR.catalogPaginated` by destination (`sect` or `npc`), `kind`, `tier`, `element`, `rarity`, and page size (`40/80/150`). Kind and rarity choices come from the actual catalog facets rather than a fixed UI list; the current catalog includes 12 kinds and Common, Uncommon, Refined, Rare, Exceptional, Legendary, and Transcendent grades. Each result shows its grade. Keep `PATH_MANUAL` and `PATH_CRYSTAL` visible as distinct kinds. Actions include **✨ เสก** (`spawn-item`), **⚔️ เสก+สวมใส่** (`spawn-equip-item`), and **📖 ถ่ายทอด** (`spawn-teach-item`).
   4. **`bag` (Personal Bag Inspector):** Inspect, equip, unequip, repair (`ECO.repairGear`), or transfer items in the target NPC's bag.
   5. **`dip` (Diplomacy & Political Events Hub):** Adjust rival sect `attitude` (`-100..100`), sign/clear treaties (`VASSAL_TREATY` etc.), reset cooldowns, trigger instant exchange caravans or envoy duels (`normal`/`win`/`loss`), and spawn/resolve Political Events.
   6. **`sanctum` (Ancient Sanctums, Pagoda & Catalysts Hub):** Unlock/clear sanctums, Nine-Dao Pagoda floors (`1–12`), grant T1–T7 catalysts, and reset cooldowns.
@@ -154,6 +154,10 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 ปุ่มหมอยาพเนจรที่ผู้เล่นกดแสดงค่ารักษา 120 ศิลาและใช้เส้นทางชำระเงิน; เหตุการณ์อัตโนมัติอาจเป็นการช่วยฟรีตามเงื่อนไขของเหตุการณ์ ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Edit Hub live catalog filters (JS2-v2.6.0, 2026-11-18)
+
+`SECT.EDITOR.catalogPaginated` returns cached kind/rarity facets derived from the full runtime item catalog. `UI.rEdit` uses those facets so newly added categories and grades become selectable without maintaining a second hardcoded list. Result rows display the actual item grade. The catalog facet cache is safe because these catalog definitions are static for a loaded game session; clear/rebuild it if a future runtime feature makes item definitions mutable after startup. See [`PATCH_REPORTS/EDIT_HUB_FILTERS_JS2_V2_6_0.md`](../../../PATCH_REPORTS/EDIT_HUB_FILTERS_JS2_V2_6_0.md).
 
 ## Patch JS2-v2.5.0 Additions: 43-Path Ascendant Visual Signatures, Multi-Tier Motes & 30 Signature Skill VFX (`js/render.js`, `js/skills.js`)
 - **`Render.PATH_VISUAL_SIGNATURES` (43/43 Grand Dao Paths) & `Render.LEGACY_PATH_VISUAL_SIGNATURES` (12 Legacy Keys)**:

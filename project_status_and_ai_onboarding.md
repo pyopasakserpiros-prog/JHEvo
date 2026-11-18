@@ -8,6 +8,8 @@
 
 > **สัตว์เทพสี่ทิศ:** มังกร หงส์ และเต่าเริ่มจากไข่ พยัคฆ์เริ่มจากลูกอสูร ผู้ดูแล NPC และเสบียงมีผลต่อการฟัก จากนั้นเติบโตสี่ระยะตามการดูแล ความผูกพัน และตบะของผู้ผูกพันธสัญญา ดูคอกอนุบาลในแผ่นข้อมูลสำนักและรายละเอียดที่โปรไฟล์เจ้าของ
 
+> **Edit Hub · ตัวเสกไอเทม:** หมวดและเกรดในตัวกรองสร้างจากแค็ตตาล็อกไอเทมจริงของเกม หมวดปัจจุบันมี 12 ชนิด รวมมหาคัมภีร์วิถีและผลึกมรรคา เกรดปัจจุบันมี Common, Uncommon, Refined, Rare, Exceptional, Legendary และ Transcendent; แถวไอเทมแสดงเกรดจริงทุกชิ้น ดู [รายละเอียดแพตช์](PATCH_REPORTS/EDIT_HUB_FILTERS_JS2_V2_6_0.md).
+
 > **ฐานพัฒนาหลัง 260e:** ภาพคัมภีร์เหนือตำนาน 38 วิชา ตราบรรพชน 24 รูปแบบ และอุปกรณ์ Pantheon/Genesis ใช้ภาพเฉพาะในคลังและหน้าตรวจสอบ ฉาก 4 จังหวะรับข้อมูลจริงจากการร่ายและการทำงานของอุปกรณ์ ดู [ขอบเขตและผลตรวจ](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
 
 > **Active handoff:** The next assigned work is the 31-PDF Carbon compendia review and implementation. Start at [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), then read [the active prompt](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and [the review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). Prepared against main-debug commit 6670b49; preserve newer work. AGENTS.md remains immutable without explicit user authorization.
