@@ -6,7 +6,37 @@
   WILD.MAX_ACTIVE_BEASTS = 60;
   WILD.ORDINARY_TARGET = 48;
   WILD.DROP_CHANCE = 0.18;
-  WILD.LAND_LORE_TH = 'อสูรรอบหุบเขาสะสมปราณจนร่างกายทนทานผิดธรรมดา แต่ปราณโจมตีกลับเบาบาง เมื่อสิ้นชีวิตปราณส่วนหนึ่งคลายออกสู่ผู้ร่วมศึก ยังไม่มีผู้ใดพิสูจน์ต้นเหตุของปรากฏการณ์นี้ได้';
+  WILD.LAND_LORE_TH = 'ปราณใต้หุบเขาซึมเข้ากายอสูรจนทนทานผิดธรรมดา ยิ่งตบะสูงยิ่งสะสมปราณได้มาก แต่พลังที่ปล่อยออกนอกกายกลับเบาบาง เมื่อสิ้นชีวิตปราณส่วนหนึ่งคลายออกสู่ผู้ร่วมศึก ผู้ที่ตบะสูงเกินกว่าอสูรดูดซับปราณส่วนนี้ได้น้อย ยังไม่มีผู้ใดรู้ว่าปราณใต้หุบเขามาจากไหน';
+  const landLoreRevision = 'valley-endurance';
+  const landCombatByTier = [
+    { hpMult: 4.5, damageOut: .48, hitCap: .33, partySize: 1 },
+    { hpMult: 5.0, damageOut: .48, hitCap: .31, partySize: 1 },
+    { hpMult: 5.4, damageOut: .50, hitCap: .29, partySize: 1 },
+    { hpMult: 5.9, damageOut: .52, hitCap: .28, partySize: 1 },
+    { hpMult: 6.4, damageOut: .54, hitCap: .205, partySize: 3 },
+    { hpMult: 7.2, damageOut: .56, hitCap: .18, partySize: 4 },
+    { hpMult: 8.2, damageOut: .58, hitCap: .15, partySize: 5 }
+  ];
+  const landCombatForTier = tier => landCombatByTier[U.clamp(Math.floor(tier) || 1, 1, landCombatByTier.length) - 1];
+  const baseBeastHp = power => (Number(power) || 0) * 1.3 + 30;
+  WILD.landCombatProfile = b => b?.wild && b.landInfluence ? landCombatForTier(b.tier) : null;
+  // Fixed fourfold reference from before tier scaling. More maximum HP cannot
+  // make incoming hits and percentage-based status damage grow with it.
+  WILD.landDamageReference = b => Math.round(baseBeastHp(b.power) * 4);
+  WILD.overmatchGap = (n, b) => Number.isFinite(b?.tier)
+    ? Math.max(0, CULT.equivalentStage(n) - b.tier - .25)
+    : 0;
+  const landQiAffinity = (n, b) => Math.pow(.66, WILD.overmatchGap(n, b));
+  WILD.needsHuntMaterial = (W, n, b) => {
+    const goal = n.cognition?.goal, drops = b.drops || [];
+    if (goal?.id === 'craft') {
+      const recipe = ECO.recipeById[goal.targetId];
+      return !!recipe?.inputs?.some(({ matId, count }) => drops.includes(matId) &&
+        (n.inv?.mats?.[matId] || 0) + ECO.count(W, matId) < count);
+    }
+    return goal?.id === 'crisis' && drops.includes(goal.targetId) &&
+      (W.sect.shortageDirectives || []).some(d => d.id === goal.targetId && d.deficit > 0);
+  };
   WILD.estimateTrip = (W, n, b) => {
     const path = MAP.findPath(W.map, n.x, n.y, b.x, b.y);
     if (!path) return Infinity;
@@ -14,17 +44,16 @@
   };
   WILD.awardLandQi = (W, f, b) => {
     const contributors = Object.keys(f.ctx.landContributions || {}).map(id => W.byId[id])
-      .filter(n => n && !n.dead && n.cult && Math.hypot(n.x-b.x,n.y-b.y) <= 12);
+      .filter(n => n && !n.dead && !n.away && n.cult && Math.hypot(n.x-b.x,n.y-b.y) <= 12);
     if (!contributors.length) return;
-    const hunter = W.byId[f.ctx.hunterId];
     const elapsed = Math.min(180, Math.max(1, W.t - (f.ctx.huntStartedAt ?? f.t0)));
     const travel = Math.min(120, f.ctx.expectedTravel || 0);
     const rate = Math.max(0, f.ctx.baseCultRate || 0);
-    const fit = Math.min(1, b.power / Math.max(1, hunter ? CULT.power(hunter) : b.power));
-    const total = rate / 60 * (elapsed + travel) * 1.2 * Math.max(0.02, fit);
+    const total = rate / 60 * (elapsed + travel) * 1.2;
     const weight = contributors.reduce((a,n)=>a+f.ctx.landContributions[n.id],0);
     for (const n of contributors) {
-      const gain = total * f.ctx.landContributions[n.id] / weight;
+      const fit = U.clamp(b.power / Math.max(1, CULT.power(n)), .02, 1);
+      const gain = total * f.ctx.landContributions[n.id] / weight * fit * landQiAffinity(n, b);
       CULT.gain(n, gain, W, 'wild_land_qi');
       W.log('cultivation', HC.fullName(n) + ' รับปราณหุบเขาจาก ' + b.name + ' ' + gain.toFixed(2) + ' หน่วย', [n.id]);
     }
@@ -202,8 +231,8 @@
         return Object.assign({}, d, { x: px, y: py, activeSpawns: 0 });
       });
     }
-    if (!W.wildlife.landLoreRecorded && typeof W.log === 'function') {
-      W.wildlife.landLoreRecorded = true;
+    if (W.wildlife.landLoreRecorded !== landLoreRevision && typeof W.log === 'function') {
+      W.wildlife.landLoreRecorded = landLoreRevision;
       W.log('explore', WILD.LAND_LORE_TH, []);
     }
   };
@@ -309,7 +338,7 @@
       name: species.nameTh,
       tier: species.tier,
       power: species.cp,
-      hpMax: Math.round((species.cp * 1.3 + 30) * 4),
+      hpMax: Math.round(baseBeastHp(species.cp) * landCombatForTier(species.tier).hpMult),
       landInfluence: true,
       x: x + 0.5,
       y: y + 0.5,
@@ -349,6 +378,63 @@
     return true;
   };
 
+  const supportActivities = new Set(['idle', 'leisure', 'guard']);
+  function supportReady(W, n) {
+    return n.rank >= 1 && !n.dead && !n.fled && !n.yield && !n.exiled && !n.away &&
+      !n.travel && !n.hidden && !n.sealed && !n.sealedBt && !g.SECT.isNpcDetained(W, n) &&
+      n.h.state.hp > CULT.hpMax(n) * .58 && n.h.state.energy >= 30 && n.h.state.satiety >= 28;
+  }
+  function joinLandHunt(W, n, b, fightId) {
+    const f = W.fights.find(f => f.id === fightId && !f.over);
+    const profile = WILD.landCombatProfile(b);
+    if (!f || f.kind !== 'wild' || !profile || f.ctx.tameIntent || b.fighting !== f.id ||
+        b.gone || !COMBAT.alive(b) || !supportReady(W, n) || n.act.id === 'fight' ||
+        f.A.includes(n.id) || f.A.filter(id => W.byId[id]).length >= profile.partySize ||
+        COMBAT.unitDist(n, b) > 5 || !isOutsideWall(W.map, n.x, n.y)) return false;
+    if (b.aggressive && MAP.isInSafeBelt?.(n.x, n.y)) return false;
+    f.A.push(n.id);
+    delete n.landHuntTrip;
+    COMBAT.enter(W, f, n.id);
+    COMBAT.assignCombatRows(W, f);
+    W.log('combat', HC.fullName(n) + ' เข้าสมทบศึกกับ ' + b.name, [f.ctx.hunterId, n.id]);
+    return true;
+  }
+  function offerLandSupport(W, f, b, profile) {
+    if (f.kind !== 'wild' || f.ctx?.beastId !== b.id || f.ctx.tameIntent || !COMBAT.alive(b) ||
+        W.t - f.t0 > 120 || (f.ctx.landSupportAt ?? -Infinity) > W.t ||
+        b.hp < b.hpMax * .2) return;
+    f.ctx.landSupportAt = W.t + 15;
+    const leader = f.A.map(id => W.byId[id]).find(COMBAT.alive);
+    if (!leader) return;
+    const pending = n => n.act?.id === 'wildHunt' && n.act.ctx?.supportFightId === f.id;
+    const slots = profile.partySize - f.A.filter(id => W.byId[id]).length -
+      W.npcs.filter(n => !n.dead && !n.away && pending(n)).length;
+    if (slots <= 0) return;
+    const radius = 20 + profile.partySize * 4;
+    const candidates = [];
+    for (const n of W.npcs) {
+      if (!supportActivities.has(n.act?.id) || f.A.includes(n.id)) continue;
+      const distance = COMBAT.unitDist(n, b);
+      if (distance > radius || !supportReady(W, n)) continue;
+      const support = ['SAGE_SUPPORT', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE'].includes(n.cult?.path);
+      const powerRatio = CULT.power(n) / Math.max(1, b.power);
+      if (powerRatio < (support ? .24 : .38)) continue;
+      const trust = g.COG?.relInfo(W, n, leader).trust ?? 40;
+      const traits = HC.eff(n, 'personality.courage') - HC.eff(n, 'personality.caution') +
+        HC.eff(n, 'personality.loyalty') - 45 + trust - 40;
+      const interest = HC.eff(n, support ? 'interests.medicine' : 'interests.combat');
+      const value = Math.min(1.5, powerRatio) + traits / 100 + (interest - 40) / 110 - distance / (radius * 2);
+      if (value >= .42) candidates.push({ n, value });
+    }
+    candidates.sort((a, b) => b.value - a.value);
+    for (let i = 0, sent = 0; i < Math.min(candidates.length, slots + 3) && sent < slots; i++) {
+      const { n } = candidates[i];
+      const why = [['พร้อมช่วยศิษย์ร่วมสำนักล่าอสูรขั้นสูง', 2]];
+      AI.interruptFor(W, n);
+      if (AI.begin(W, n, 'wildHunt', { pos: { x: b.x, y: b.y }, beastId: b.id, supportFightId: f.id }, why)) sent++;
+    }
+  }
+
   WILD.startFight = (W, n, b, opts) => {
     if (!canApproach(W, n, b)) return false;
     W.foes.push(b);
@@ -360,6 +446,8 @@
     const z = zones[b.zone];
     const zName = z ? z.nameTh : 'นอกสำนัก';
     W.log('combat', n.h.name.given + ' เผชิญหน้า ' + b.name + ' ใน' + zName, [n.id]);
+    const profile = WILD.landCombatProfile(b);
+    if (profile?.partySize > 1) offerLandSupport(W, f, b, profile);
     return true;
   };
 
@@ -386,8 +474,15 @@
     if (!f || f.wildSettled) return;
     f.wildSettled = true;
 
-    const b = W.foeById[f.ctx.beastId], n = W.byId[f.ctx.hunterId];
+    const b = W.foeById[f.ctx.beastId];
     if (!b) return;
+    let n = W.byId[f.ctx.hunterId];
+    if (winner === 'A' && (!n || n.dead || n.away)) {
+      const shares = f.ctx.landContributions || {};
+      n = (f.A || []).map(id => W.byId[id]).filter(hunter => hunter && !hunter.dead && !hunter.away &&
+        shares[hunter.id] > 0 && COMBAT.unitDist(hunter, b) <= 12)
+        .sort((a, b) => shares[b.id] - shares[a.id])[0] || n;
+    }
 
     if (!b.captured && f.ctx && f.ctx.tameIntent && winner === 'A' && n && !n.dead && CULT.attemptTameBeast) {
       b.hp = Math.min(b.hp || 1, Math.max(1, Math.round(b.hpMax * 0.15)));
@@ -410,7 +505,7 @@
       W.log('combat', n.h.name.given + ' สยบและผูกพันธสัญญาวิญญาณกับ ' + b.name + ' ใน' + zName + ' สำเร็จ (ไม่มีการชำแหละซากซ้ำ)', [n.id]);
       HC.experience(n, 'duel_win', 0.8);
       n.merit += Math.max(1, Math.round(b.tier * 1.5));
-    } else if (b.dead && winner === 'A' && n && !n.dead) {
+    } else if (b.dead && winner === 'A' && n && !n.dead && !n.away) {
       WILD.awardLandQi(W, f, b);
       if (WILD.awardSpiritBeastCrucible) WILD.awardSpiritBeastCrucible(W, n, b, { nonLethal: false });
       const allSpecies = (JD.BEASTS.species || []).concat(JD.BEASTS.kings || []);
@@ -453,6 +548,11 @@
 
     W.foes = W.foes.filter(x => x.id !== b.id);
     delete W.foeById[b.id];
+    if (f.ctx.landSupportAt != null) {
+      for (const helper of W.npcs) {
+        if (helper.act?.id === 'wildHunt' && helper.act.ctx?.supportFightId === f.id) AI.cancelAct(W, helper);
+      }
+    }
     b.fighting = null;
     if (b.dead) {
       b.gone = true;
@@ -523,6 +623,8 @@
         if (f) {
           const z = zones[b.zone];
           if (z && z.dir === 'south' && W.map && W.map.wall) b.y = Math.max(W.map.wall.y1 + 1.2, b.y);
+          const profile = WILD.landCombatProfile(b);
+          if (isNewCalendarMinute && profile?.partySize > 1) offerLandSupport(W, f, b, profile);
           continue;
         }
         b.fighting = null;
@@ -629,6 +731,23 @@
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
       if (n.cult && n.cult.path === 'BODY') S.add('ขัดเกลากายาผ่านการล่าอสูร', 0.85);
       S.add('รับปราณหุบเขาและโอกาสได้วัตถุดิบ', 0.55);
+      const goal = n.cognition?.goal?.id;
+      const stage = CULT.equivalentStage(n);
+      if (stage >= 3 || goal === 'craft' || goal === 'crisis') {
+        const power = CULT.power(n);
+        let material = false, training = false;
+        for (const b of W.wildlife.beasts) {
+          if (b.dead || b.gone || b.fighting || power < b.power * .8 ||
+              (n.x - b.x) ** 2 + (n.y - b.y) ** 2 > 90 ** 2) continue;
+          if (WILD.needsHuntMaterial(W, n, b)) { material = true; break; }
+          if (b.tier >= stage - .75) training = true;
+        }
+        if (material) S.add('ตามหาวัตถุดิบที่ขาดสำหรับงานของตน', .95);
+        else if (!training && stage >= 3) {
+          const regard = HC.eff(n, 'personality.empathy') + HC.eff(n, 'values.sectDuty');
+          S.add('อยากเว้นอสูรตบะต่ำให้รุ่นใหม่ฝึกฝนและได้ปราณ', -Math.min(.95, (stage - 2) * (.10 + regard / 1400)));
+        }
+      }
       S.add('ยอมรับความเสี่ยงเพื่อฝึกฝน', (HC.eff(n, 'personality.courage') - HC.eff(n, 'personality.caution')) / 100);
       if (n.rank <= 2) S.add('ฝึกฝนความกล้า', 0.2);
     },
@@ -636,7 +755,8 @@
       const npw = CULT.power(n); const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && npw >= b.power * 0.8);
       // Bound A* work: inspect nearby, realm-appropriate opportunities first.
       const nearby = candidates.map(beast => ({ beast, distance: Math.hypot(n.x-beast.x,n.y-beast.y) *
-        (1 + Math.abs(Math.log(Math.max(0.05,npw/Math.max(1,beast.power))))) }));
+        (1 + Math.abs(Math.log(Math.max(0.05,npw/Math.max(1,beast.power)))) + WILD.overmatchGap(n, beast) * .22) *
+        (WILD.needsHuntMaterial(W, n, beast) ? .35 : 1) }));
       nearby.sort((a,b)=>a.distance-b.distance);
       let b = null;
       for (let offset=0; offset<nearby.length && !b; offset+=8) {
@@ -651,6 +771,8 @@
     },
     start(n, W, ctx) {
       const b = W.wildlife.beasts.find(b => b.id === ctx.beastId);
+      if (ctx.supportFightId != null) return !!b && joinLandHunt(W, n, b, ctx.supportFightId);
+      if (b?.fighting) return joinLandHunt(W, n, b, b.fighting);
       return !!b && (tryRegionalBond(W, n, b) || WILD.startFight(W, n, b));
     },
     dur: () => 1,
@@ -671,7 +793,7 @@
     if (!W || !n || !n.cult || !b) return 0;
     const thresh = Math.max(10, CULT.threshold ? CULT.threshold(n) : 100);
     const bTier = Math.max(1, b.tier || 1);
-    const nStage = Math.max(1, n.cult.stage || 1);
+    const nStage = Math.max(1, CULT.equivalentStage(n));
     const ratio = Math.max(0.008, Math.min(0.022, 0.012 * (bTier / nStage)));
     const expBonus = +(thresh * ratio).toFixed(2);
     n._lastSpiritBeastCrucibleGain = expBonus;

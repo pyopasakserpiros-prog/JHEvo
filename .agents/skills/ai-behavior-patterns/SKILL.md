@@ -323,7 +323,7 @@ AI.ACTS.opportunity เข้าตัวเลือก utility ตามปก
 
 ## Living Hunt phase 1
 
-`COG.huntValue` ใช้ `WILD.estimateTrip` (MAP.findPath และ AI.walkSpeed) คิดเวลาไปกลับ ตัด unreachable และลดการเลือกเหยื่ออ่อนกว่า ไม่สุ่มในคะแนน; ค่าเส้นทางใช้ cache เดิม. `wildHunt.where` บันทึกประมาณเวลาใน `landHuntTrip`; startFight เก็บ baseline CULT.rate ในctx. ยังไม่มี squad rally ใหม่ ดูรายงาน LIVING_HUNT_PHASE1.
+`COG.huntValue` ใช้ `WILD.estimateTrip` (MAP.findPath และ AI.walkSpeed) คิดเวลาไปกลับ ตัด unreachable และลดการเลือกเหยื่ออ่อนกว่า ไม่สุ่มในคะแนน; ค่าเส้นทางใช้ cache เดิม. `wildHunt.where` บันทึกประมาณเวลาใน `landHuntTrip`; startFight เก็บ baseline CULT.rate ในctx. ศึกอสูรหุบเขา T5–T7 ใช้ `offerLandSupport` ประเมินความพร้อม ระยะ กำลัง บทบาท บุคลิก และความไว้ใจ NPC ที่ไปช่วยใช้เส้นทางกิจกรรม `wildHunt` เดิมและเข้าศึกเมื่อเดินถึง ไม่ดึงผู้ที่กำลังปิดด่านหรือทำกิจกรรมสำคัญ `COG.huntValue` และการคัดเป้าใช้ตบะเทียบเคียง ส่วนตำรับที่ขาดวัตถุดิบและคำสั่งจัดหาของแลกน้ำหนักกลับได้ [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
 
 ## Bounded wildlife target search (2026-11-16)
 `wildHunt.where` เรียงโอกาสจากระยะและช่องว่างพลัง แล้วประเมินCOG.huntValue/เส้นทางจริงครั้งละ8ตัว; ถ้าทั้งชุดเข้าไม่ถึงจึงตรวจชุดถัดไป. เลิกคำนวณคะแนนซ้ำในcomparator. ยังตัด unreachable และบันทึกเวลาไปกลับในlandHuntTrip. ไม่มีการสั่งล่าจากผู้เล่นหรือการบังคับสัดส่วนNPCที่ต้องล่า.

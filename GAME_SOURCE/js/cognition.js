@@ -1853,8 +1853,11 @@
     const nStage = Math.max(1, (CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult && n.cult.stage)) || 1);
     const bTier = Math.max(1, b.tier || 1);
     const tierGap = nStage - bTier;
-    // Realm-matching: elders/high-stage cultivators strongly prefer realm-matched beasts and avoid sniping T1-T2 critters from outer disciples
-    const realmMatchBonus = tierGap > 1 ? -(tierGap - 1) * 0.85 : (Math.abs(tierGap) <= 1 ? 0.55 : -Math.abs(tierGap) * 0.45);
+    const realmMatchBonus = Math.abs(tierGap) <= 1 ? 0.55 : -Math.abs(tierGap) * 0.45;
+    const overmatch = g.WILD?.overmatchGap(n, b) ?? Math.max(0, tierGap - .25);
+    const leaveForJuniors = (E(n, 'personality.empathy') + E(n, 'values.sectDuty')) / 200;
+    const needsMaterial = g.WILD?.needsHuntMaterial(W, n, b);
+    const realmDiscouragement = Math.min(3.4, overmatch * (.56 + .48 * leaveForJuniors));
     let v = clamp(Math.log2(Math.max(0.05, ratio)), -2.5, 1.6) * (0.45 + caution * 0.5) + (courage - 0.5) * 0.35 + realmMatchBonus;
     for (const m of n.cognition?.memory || []) {
       if (m.zoneId !== b.zone) continue;
@@ -1866,7 +1869,8 @@
     const trip = g.WILD && g.WILD.estimateTrip ? g.WILD.estimateTrip(W,n,b) : Math.sqrt(preferred)*2;
     if (!Number.isFinite(trip)) return -Infinity;
     const fit = Math.exp(-Math.abs(Math.log(Math.max(0.05,ratio / 1.15))) * 1.65);
-    return fit * 1.45 + v * 0.35 - Math.min(2.4, trip / 135);
+    return fit * 1.45 + v * 0.35 - Math.min(2.4, trip / 135) -
+      realmDiscouragement * (needsMaterial ? .15 : 1) + (needsMaterial ? 1.75 : 0);
   };
 
   /* ============================================================================

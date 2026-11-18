@@ -6,6 +6,7 @@
   const clamp = U.clamp;
   const C = {};
   const E = (n, p) => HC.eff(n, p);
+  const landRecovery = { hpThreshold: .46, qiThreshold: .26 };
 
   /* ---------- หน่วยรบทั่วไป ---------- */
   C.unit = (W, id) => W.byId[id] || (W.foeById && W.foeById[id]) || null;
@@ -814,9 +815,10 @@
       W = { t: (g.STATS && g.STATS.now) || 0, rng: { chance: () => false, next: () => 0.5 }, byId: {} };
       f = { id: 0, serious: false, A: [d.id], B: [] };
     }
-    if (f && f.kind === 'wild' && dmg > 0) {
-      if (a && a.wild && a.landInfluence) dmg *= 0.6;
-    }
+    const valley = f?.kind === 'wild' && g.WILD;
+    const landDefense = valley && valley.landCombatProfile(d);
+    const landOffense = valley && valley.landCombatProfile(a);
+    if (landOffense && dmg > 0) dmg *= landOffense.damageOut;
     // Patch v2.2.0: Shadow Clone 1-HP Decoy Interception runs before armor, shields, or posture mitigations
     if (d && dmg > 0 && note !== 'สะท้อนคมดาบอิไอ') {
       const ST = STs();
@@ -1260,7 +1262,10 @@
     if (!d.foe && d.cult && d.cult.path === 'CHRONO_EPOCH' && g.CULT && g.CULT.GRAND_DAO_MECHANICS && g.CULT.GRAND_DAO_MECHANICS.recordTemporalHpSnapshot) {
       g.CULT.GRAND_DAO_MECHANICS.recordTemporalHpSnapshot(W, d, C.hp(d));
     }
-    if (f && f.kind === 'wild' && a && !a.foe && d.wild && d.landInfluence && dmg > 0) {
+    if (landDefense && a !== d && dmg > 0) {
+      dmg = Math.min(dmg, valley.landDamageReference(d) * landDefense.hitCap);
+    }
+    if (landDefense && a && !a.foe && dmg > 0) {
       f.ctx.landContributions = f.ctx.landContributions || {};
       f.ctx.landContributions[a.id] = (f.ctx.landContributions[a.id] || 0) + Math.min(C.hp(d), dmg);
     }
@@ -1416,7 +1421,9 @@
     C.setHp(d, hp);
     const ratio = hp / hm;
     const hasNoRetreatVow = !!(d && !d.foe && d.voluntaryVows && d.voluntaryVows.VOW_NO_RETREAT && d.voluntaryVows.VOW_NO_RETREAT.active && ((d.h && d.h.state && d.h.state.fear) || 0) < 88);
-    if (ratio < (nonlethal ? yieldThreshold(d) : fleeThreshold(d)) && !d.yield && !d.fled) {
+    const landBoss = landDefense?.partySize > 1;
+    const fleeAt = landBoss ? Math.min(fleeThreshold(d), .05) : fleeThreshold(d);
+    if (ratio < (nonlethal ? yieldThreshold(d) : fleeAt) && !d.yield && !d.fled) {
       if (nonlethal) d.yield = true; else if (!hasNoRetreatVow && W.rng.chance(d.foe ? 0.7 : 0.5)) {
         d.fled = true; d.fx = { t: W.t, text: 'ถอย!' };
         if (!d.foe) {
@@ -2000,9 +2007,16 @@
     const maxSingleHitFrac = (dEqStage >= 5 && !o.forced) ? 0.48 : 1.85;
     frac = clamp(frac, minHitFrac, maxSingleHitFrac);
     if (nonlethal) frac *= 0.55;
-    const hm = C.hpMax(d), refHm = C.stageRefHp ? C.stageRefHp(d) : hm, beastGuard = !d.foe && g.MARTIAL && g.MARTIAL.isBeast(a) ? g.MARTIAL.skillEffects(d).beastDamage : 1, dmg = refHm * frac * beastGuard;
+    const hm = C.hpMax(d);
+    const valley = f?.kind === 'wild' && g.WILD;
+    const landDefense = valley && valley.landCombatProfile(d);
+    const landOffense = valley && valley.landCombatProfile(a);
+    const refHm = landDefense ? valley.landDamageReference(d) : C.stageRefHp(d);
+    const beastGuard = !d.foe && g.MARTIAL && g.MARTIAL.isBeast(a) ? g.MARTIAL.skillEffects(d).beastDamage : 1;
+    const dmg = refHm * (landDefense ? Math.min(frac, landDefense.hitCap) : frac) * beastGuard;
     a.fx = a.fx || {}; if (!o.silent) { a.fx = { t: W.t, text: o.label || (crit ? 'จุดตาย!' : type === 'p' ? W.rng.pick(FX_PHYS) : W.rng.pick(FX_MAG)) }; }
-    d.fx = { t: W.t, text: (avatarAssisted ? '⚡ ร่างจำแลงศาสตราประสานโจมตี! ' : (crit ? '✦' : '')) + '-' + Math.max(1, Math.round(dmg)) };
+    const forecastDamage = landOffense ? dmg * landOffense.damageOut : dmg;
+    d.fx = { t: W.t, text: (avatarAssisted ? '⚡ ร่างจำแลงศาสตราประสานโจมตี! ' : (crit ? '✦' : '')) + '-' + Math.max(1, Math.round(forecastDamage)) };
     if (!a.foe) { a.h.state.energy = Math.max(0, a.h.state.energy - 0.15); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, (g.MARTIAL ? ({ FIST: 'FIST_PALM' }[g.MARTIAL.equippedType(a)] || g.MARTIAL.equippedType(a)) : g.AI.pickTeachSkill(a, a)), 1 / 90, 1.1); HC.trainBody(a, 'reflex', 0.1); a.lastHurt = null; if (a.cult && a.cult.path === 'BODY') { CULT.gain(a, Math.min(2.4, 0.28 * (1 + (a.cult.stage || 1) * 0.25)), W, 'body_strike'); HC.trainBody(a, 'strength', 0.15); } }
     if (!a.foe && g.CULT && g.CULT.gainPathGauge) {
       const pSpec = g.CULT.PATH_GAUGES && a.cult ? g.CULT.PATH_GAUGES[a.cult.path] : null;
@@ -2944,7 +2958,8 @@
         const beforeFrac = C.hp(tgt) / Math.max(1, thm);
         const medicMult = (!a.foe && C.ACTION_MASTERY_TRAITS && C.ACTION_MASTERY_TRAITS.isActiveTrait(a, 'TRAIT_COMBAT_MEDIC')) ? 1.20 : 1.0;
         const ashenMult = C.healMultiplier ? C.healMultiplier(tgt, W.t) : (ST.has(tgt, 'ashenToxin', W.t) ? 0.5 : (ST.has(tgt, 'stygianFreeze', W.t) ? 0 : 1.0));
-        const healAmt = Math.max(0, Math.round(thm * (p.heal || 0.22) * sageBonus * medicMult * ashenMult));
+        const healingBase = f?.kind === 'wild' && g.WILD?.landCombatProfile(tgt) ? g.WILD.landDamageReference(tgt) : thm;
+        const healAmt = Math.max(0, Math.round(healingBase * (p.heal || 0.22) * sageBonus * medicMult * ashenMult));
         if (a.wild && p.beastNativeAbility && p.overhealBarrier) {
           const excess = Math.max(0, healAmt - thm * (1-beforeFrac));
           if (excess > 0) ST.addStatus(tgt,'shield',12,{amt:Math.round(Math.min(thm*0.12,excess*0.5))},W.t);
@@ -3356,11 +3371,14 @@
           const qm = CULT.qiMax(u);
           u.h.state.qi = Math.min(qm, (u.h.state.qi || 0) + qm * 0.03);
         }
-        C.applyDamage(W, f, src || null, u, C.hpMax(u) * x.per * stackMult * toxMult * dotResist * (f.serious ? 1 : 0.55) * (src && !src.foe && g.MARTIAL && ['poison','bleed'].includes(x.k) ? g.MARTIAL.skillEffects(src).poisonPower : 1), 'พิษ/แผลต่อเนื่อง');
+        const landDefense = f?.kind === 'wild' && g.WILD?.landCombatProfile(u);
+        const dotHp = landDefense ? g.WILD.landDamageReference(u) : C.hpMax(u);
+        C.applyDamage(W, f, src || null, u, dotHp * x.per * stackMult * toxMult * dotResist * (f.serious ? 1 : 0.55) * (src && !src.foe && g.MARTIAL && ['poison','bleed'].includes(x.k) ? g.MARTIAL.skillEffects(src).poisonPower : 1), 'พิษ/แผลต่อเนื่อง');
         u.fx = { t: W.t, text: S.icon };
       } else if (S.hot && !ST.has(u, 'stygianFreeze', W.t)) {
         const hMult = C.healMultiplier ? C.healMultiplier(u, W.t) : 1.0;
-        const hotAmt = Math.max(0, Math.round(C.hpMax(u) * (x.per || 0.035) * hMult));
+        const healingBase = f?.kind === 'wild' && g.WILD?.landCombatProfile(u) ? g.WILD.landDamageReference(u) : C.hpMax(u);
+        const hotAmt = Math.max(0, Math.round(healingBase * (x.per || 0.035) * hMult));
         if (hotAmt > 0) {
           C.setHp(u, Math.min(C.hpMax(u), C.hp(u) + hotAmt));
           u.fx = { t: W.t, text: S.icon + ' +' + hotAmt };
@@ -3697,6 +3715,12 @@
       return;
     }
 
+    const landHunt = f.kind === 'wild' && g.WILD?.landCombatProfile(C.unit(W, f.ctx.beastId));
+    // During a valley hunt a ready disciple can recover even while outside melee range.
+    if (landHunt && !ctx.channeling && (ctx.cd || 0) <= 1 && g.CPE?.fightUse(W, n, ctx, landRecovery)) {
+      ctx.cd = 2;
+      return;
+    }
     // Fast-path when on attack cooldown in range, or walking between 4-tick re-evaluations
     if (ctx.target && !ctx.channeling) {
       const fastT = C.unit(W, ctx.target);
@@ -3759,7 +3783,7 @@
     n.face = t.x >= n.x ? 1 : -1;
     n.path = null;
     if (--ctx.cd > 0) return;
-    if (g.CPE && g.CPE.fightUse(W, n, ctx)) { ctx.cd = 2; return; }
+    if (!landHunt && g.CPE && g.CPE.fightUse(W, n, ctx)) { ctx.cd = 2; return; }
     if (!n.foe && (!f || f.serious || f.kind === 'raid' || f.kind === 'wild' || f.kind === 'leadership') && C.tryExecuteDuetSkill && (!n._duetCdUntil || W.t >= n._duetCdUntil) && C.alive(t)) {
       const ST = STs();
       const allies = C.alliesOf(W, f, n.id).filter(al => al && al.id !== n.id && !al.foe && C.alive(al) && (!al._duetCdUntil || W.t >= al._duetCdUntil) && (!ST || !(ST.has(al, 'stun') || ST.has(al, 'paralyze') || ST.has(al, 'silence'))));

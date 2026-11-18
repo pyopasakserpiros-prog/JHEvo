@@ -406,7 +406,7 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 
 ## Living Hunt phase 1
 
-เฉพาะตัว `wild && landInfluence`: spawn HP×4 และ C.applyDamage ลดความเสียหายผู้โจมตีเหลือ0.6ในศึกwild. ctx.landContributions บันทึกความเสียหายหลังบรรเทาและการรักษาจากท่าheal; ไม่เพิ่ม catalog species. WILD.awardLandQi แบ่งงบจำกัด ไม่ใช่คูณจำนวนสมาชิก; การช่วยบัฟ/คุมศัตรู/รับแทนยังรอทำต่อ. ดู PATCH_REPORTS/LIVING_HUNT_PHASE1.md.
+เฉพาะอสูร `wild && landInfluence` ในศึก `wild` ใช้ตาราง `WILD.landCombatProfile`: HP สูงสุดตาม T1–T7, ฐานตีคงที่จาก `WILD.landDamageReference` และเพดานความเสียหายต่อครั้งหลังผลบรรเทา ท่ารักษาอสูรและสถานะฟื้นเลือดตามสัดส่วนใช้ฐานคงที่เช่นกัน `ctx.landContributions` นับความเสียหายและการรักษาจริง `CPE.fightUse` รับ threshold เฉพาะศึกหุบเขาเพื่อให้ NPC ใช้โอสถที่มีจากนอกระยะตีได้ [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
 
 ## Living Hunt named beast skills (2026-11-16)
 `SK.beastFamily` และbranch wildใน`SK.foeSkills` สร้าง38ชุดท่าตามตระกูล/ระดับ; ตัวเกิดจริงมีsklก่อนเข้าศึก. specialAbility5ชนิดบกมีprofileชื่อเดิมและผลผ่านCOMBATจริง (guard/counter,charge+armorbreak,heal+overhealBarrier,support+tether). อสูรมีkind:'beast' และcombatKeywordsจากต้นแบบ. สกิลcounterสร้างโล่เฉพาะbeastNativeAbility; การแปลงoverhealเป็นโล่จำกัด12%HP. ไม่เปลี่ยนbranchมนุษย์/อสูรนอกแผนที่. ดู PATCH_REPORTS/LIVING_HUNT_VARIETY.md.

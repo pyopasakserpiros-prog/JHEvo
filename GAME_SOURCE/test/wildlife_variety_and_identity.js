@@ -7,6 +7,7 @@ const catalogBefore = JSON.stringify(JD.BEASTS);
 const unique = new Set();
 const signatures = new Set();
 let entries = 0;
+const healthMultipliers = [4.5, 5, 5.4, 5.9, 6.4, 7.2, 8.2];
 for (const [zoneId,zone] of Object.entries(WILD.zones)) {
  for (const pool of zone.pools) for (const id of pool.speciesIds) {
   WILD.init(W);W.wildlife.beasts=[];
@@ -18,7 +19,8 @@ for (const [zoneId,zone] of Object.entries(WILD.zones)) {
    if (['id','family','archetype'].includes(key)) continue;
    assert.deepStrictEqual(b[key],value, `${id} loses source field ${key}`);
   }
-  assert.strictEqual(b.hpMax,Math.round((sp.cp*1.3+30)*4));
+  assert.strictEqual(b.hpMax, Math.round((sp.cp * 1.3 + 30) * healthMultipliers[sp.tier - 1]));
+  assert.strictEqual(WILD.landDamageReference(b), Math.round((sp.cp * 1.3 + 30) * 4));
   assert(b.elementProfile && b.element === b.elementProfile.primary);
   assert(b.skl.length>0 && b.skl.every(p=>SK.ARCH[p.arch]&&Number.isFinite(p.M)&&p.element===b.element));
   assert(b.drops.every(id=>ECO.matById[id]),`${id} has unusable drop IDs`);

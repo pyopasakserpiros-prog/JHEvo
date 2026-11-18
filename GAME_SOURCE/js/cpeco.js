@@ -809,17 +809,19 @@
     if (n.cult && n.cult.toxic > (n.cult.path === 'DEMON' ? 56 : 40) && (k = pickPill(n, 'clearToxic', R.detox))) return consume(W, n, k);
     if (s.energy < 18 && (k = pickPill(n, 'energyRestore', R.vigor))) return consume(W, n, k);
   };
-  CPE.fightUse = (W, n, ctx) => {
+  CPE.fightUse = (W, n, ctx, thresholds) => {
     if (!n.inv || (ctx.pillAt || 0) > W.t || (CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n))) return false; const s = n.h.state, R = JD.CP.RECOVERY; let k;
     const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n));
-    const owned = s.hp < CULT.hpMax(n) * 0.38 && pickCrafted(n, 'healHealth') || n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * 0.2 && pickCrafted(n, 'qiRestore');
+    const needsHp = s.hp < CULT.hpMax(n) * (thresholds?.hpThreshold ?? .38);
+    const needsQi = n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * (thresholds?.qiThreshold ?? .20);
+    const owned = needsHp && pickCrafted(n, 'healHealth') || needsQi && pickCrafted(n, 'qiRestore');
     if (owned && CPE.consumeCrafted(W, n, owned)) { ctx.pillAt = W.t + 6; n.fx = {t:W.t,text:'💊'}; return true; }
     if (!n.inv.pills) return false;
     if (n.sx && n.sx.some(x => x.k === 'poison') && (k = pickPill(n, 'clearPoison', null))) {
       ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; }
     }
-    if (s.hp < CULT.hpMax(n) * 0.38 && (k = pickPill(n, 'healHealth', R.hp))) { ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; } }
-    if (n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * 0.2 && (k = pickPill(n, 'qiRestore', R.qi))) { ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; } }
+    if (needsHp && (k = pickPill(n, 'healHealth', R.hp))) { ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; } }
+    if (needsQi && (k = pickPill(n, 'qiRestore', R.qi))) { ctx.pillAt = W.t + 6; if (consume(W, n, k)) { n.fx = { t: W.t, text: '💊' }; return true; } }
     return false;
   };
   CPE.welfareOfficer = W => {

@@ -202,7 +202,7 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
 ศึกปิดล้อมจบเองหลัง 20 วันโดยใช้กำลังป้องกันจริงหากยังไม่มีการตอบสนอง ไม่ต้องรอพันธมิตร ข่าวแพ้/ชนะต้องตรงผล รางวัลศึกไม่เกิน world pool และต้องโอน fromPool.
 
 ## Living Hunt variety (2026-11-16)
-`WILD.expandPools` รวมทุกอสูรบก125ชนิด/241ช่องตามถิ่นอาศัยและระดับ; อัปเดตครั้งแรกและเมื่อcatalogมีจำนวนเปลี่ยน. `WILD.speciesDefinition` รวมราชันกับชนิดฐานและเติมelementProfileที่ขาดจากธาตุเดิม. Spawn deep-copyข้อมูลทุกฟิลด์ก่อนลงruntime, ลดน้ำหนักชนิด/poolที่มีซ้ำ, ไม่แก้ต้นแบบ. กฎจับใช้ `WILD.captureEligibility`; สมุนไพรต้องอยู่ในกระเป๋าจริง. รายละเอียดและผลตรวจ: PATCH_REPORTS/LIVING_HUNT_VARIETY.md.
+`WILD.expandPools` รวมทุกอสูรบก125ชนิด/241ช่องตามถิ่นอาศัยและระดับ; อัปเดตครั้งแรกและเมื่อcatalogมีจำนวนเปลี่ยน. `WILD.speciesDefinition` รวมราชันกับชนิดฐานและเติมelementProfileที่ขาดจากธาตุเดิม. Spawn deep-copy ข้อมูลต้นแบบก่อนลง runtime ลดน้ำหนักชนิดและพูลที่มีซ้ำ HP เฉพาะตัวที่เกิดใช้ `landCombatForTier`; อสูรนอกแผนที่อ่านค่าของแหล่งเดิม. กฎจับใช้ `WILD.captureEligibility`; สมุนไพรต้องอยู่ในกระเป๋าจริง. รายละเอียดและผลตรวจ: PATCH_REPORTS/LIVING_HUNT_VARIETY.md.
 
 ## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
 - **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
