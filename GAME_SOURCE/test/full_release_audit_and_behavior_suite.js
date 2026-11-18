@@ -40,6 +40,8 @@ console.log('===================================================================
   assert.ok(life1 > life0, 'Transcendent Elixir must increase CULT.lifespan(npc)');
   master.cult.unlockedMantras = master.cult.unlockedMantras || [];
   master.cult.unlockedMantras.push('TMNT_SOV_02_ETERNAL_MOLTING_OUROBOROS');
+  assert.strictEqual(MARTIAL.canActivateMantra(master, 'TMNT_SOV_02_ETERNAL_MOLTING_OUROBOROS'), false, 'A lower realm cannot activate a Sovereign mantra');
+  master.cult.stage = 5;
   assert.strictEqual(MARTIAL.canActivateMantra(master, 'TMNT_SOV_02_ETERNAL_MOLTING_OUROBOROS'), true, 'Unlocked Sovereign Mantra must be activatable via MARTIAL.canActivateMantra');
   master.cult.mantra = 'TMNT_SOV_02_ETERNAL_MOLTING_OUROBOROS';
   const life2 = CULT.lifespan(master);
@@ -48,7 +50,9 @@ console.log('===================================================================
   // GAP-02: 7-day Nine-Color Pill-Cloud boosts CULT.rate(npc, env, W)
   W.sect.pillCloudBlessingUntil = 0;
   const rate0 = CULT.rate(master, 1, W);
-  ECO.brewWithTranscendentWildcard(W, master, 'REC140_ALC_QI_DEW_1', ['MAT_TR_ALC_01']);
+  for (const input of ECO.recipeById.REC140_ALC_QI_DEW_1.inputs) ECO.add(W, input.matId, input.count);
+  ECO.add(W, ECO.resolveTranscendentMat('MAT_TR_ALC_01').id, 1);
+  assert.ok(ECO.brewWithTranscendentWildcard(W, master, 'REC140_ALC_QI_DEW_1', ['MAT_TR_ALC_01']).ok);
   const rate1 = CULT.rate(master, 1, W);
   assert.ok(rate1 > rate0 * 1.20, 'Active 7-day Nine-Color Pill-Cloud must increase CULT.rate');
 
@@ -74,7 +78,7 @@ console.log('===================================================================
   const f = COMBAT.startFight(W, [master.id], [foe.id], 'duel', { serious: true, gather: false });
   f.state = 'fight';
   SECT.TRANSCENDENT_PANTHEON.claimWorldTranscendentArtifact(W, master, 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN');
-  COMBAT.spawnBattlefieldDaoScar(W, f, { kind: 'SCAR_VOID_ZERO_RIFT', casterId: master.id, side: 'A', dur: 4 });
+  COMBAT.spawnBattlefieldDaoScar(W, f, { kind: 'SCAR_VOID_ZERO_RIFT', casterId: master.id, side: 'A', x:foe.x, y:foe.y, dur: 4 });
   const foeHpBefore = COMBAT.hp(foe);
   COMBAT.tick(W);
   assert.ok(COMBAT.hp(foe) < foeHpBefore, 'COMBAT.tick must automatically tick Battlefield Dao-Scars');

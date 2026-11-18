@@ -6027,7 +6027,7 @@
         const ex = g.ELEM ? g.ELEM.explainCompatibility(n, t, 'COMBAT_SKILL') : null;
         const tc = (M && M.resolveTechCompatibility) ? M.resolveTechCompatibility(n, t) : null;
         const _catTh = ({ COMBAT_TECHNIQUE: 'กระบวนท่าต่อสู้', INNER_KUNGFU: 'คัมภีร์บ่มเพาะ', MOVEMENT_TECHNIQUE: 'วิชาตัวเบา', SUPPORT_TECHNIQUE: 'วิชาหนุนเสริม', DEFENSIVE_TECHNIQUE: 'วิชาคุ้มกาย', FORBIDDEN_ART: 'วิชาต้องห้าม', PASSIVE: 'วิชาติดตัว' })[t.cat] || (t.cat || 'วิชา');
-        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + art(t) + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(_catTh) + ')</span></div>' + (tc ? '<div class="muted" style="font-size:11px;color:#b8d8ff">⚖ ' + esc(tc.summaryTh) + '</div>' : '') + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
+        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + art(t) + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(_catTh) + ')</span></div>' + (Array.isArray(t.passiveForms) ? t.passiveForms.map(form => '<div class="muted">' + esc(form.nameTh + ' · ' + form.descTh) + '</div>').join('') : '') + (tc ? '<div class="muted" style="font-size:11px;color:#b8d8ff">⚖ ' + esc(tc.summaryTh) + '</div>' : '') + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่ได้เรียนรู้วิชาใด</div>';
@@ -6383,6 +6383,9 @@
           const maxP = CULT.maxActivePets ? CULT.maxActivePets(n) : 1;
           const actP = CULT.activePets ? CULT.activePets(n) : pList.filter(p => p && p.active);
           h += '<h3>🐾 สัตว์อสูรพันธสัญญา & สถิตร่างอสูร (' + actP.length + '/' + maxP + ' ตัวที่ออกรบ · ทั้งหมด ' + pList.length + ' ตัว)</h3><div class="card">' + pList.map(p => {
+            if (CULT.isSovereignCompanion(p)) return UI.sovereignCompanionCard(p.speciesId, p.growthStage || 1,
+              'ดูแลแล้ว ' + (p.careDays || 0) + ' วัน · ผูกพัน ' + Math.round(p.bond || 0) + '% · ' +
+              (p.active ? 'ร่วมทาง' : p.injured ? 'พักฟื้น' : 'สำรอง'));
             const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
             return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><div><b>' + (p.sovereignAwakened ? '👑 ' : '🐾 ') + esc(p.nameTh) + '</b> <span class="chip ' + (p.active ? 'ok' : '') + '">' + (p.active ? 'ร่วมรบ' : 'พักฟื้น') + ' · T' + (p.tier || 1) + '</span> <span class="chip b">' + esc(gNames[p.growthStage || 1] || 'วัยเยาว์') + '</span><div class="muted" style="font-size:11.5px">ความภักดี ' + Math.round(p.loyalty || 0) + '% · ความผูกพัน (Bond) ' + Math.round(p.bond != null ? p.bond : (p.bondXp || 0)) + '</div></div><button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|' + (p.uid || p.id || '')) + '">🐾 ประทับร่างอสูร</button></div>';
           }).join('') + '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn ok" style="padding:3px 9px;font-size:11px" data-do="ingest-beast-core" data-arg="' + esc(n.id) + '">🐉 กลืนแก่นอสูรหลอมตันเถียน</button><button class="btn" style="padding:3px 9px;font-size:11px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|') + '">⚡ สถิตร่างอสูรคู่สัญญา</button></div></div>';
@@ -7797,6 +7800,27 @@
       '<div>' + trBadge + '<b>' + esc(spec.nameTh || item.nameTh || 'สมบัติเหนือตำนาน') + '</b></div></div>';
   };
 
+  UI.sovereignCompanionCard = (speciesId, stage, note) => {
+    const spec = CULT.sovereignCompanionSpec(speciesId);
+    if (!spec || !g.Render?.sovereignCompanionSvg) return '';
+    return '<div class="sovereign-pet-card">' + g.Render.sovereignCompanionSvg(speciesId, stage) +
+      '<div><span class="transcendent-badge-6star">✦ เหนือตำนาน · ทิศ' + esc(spec.directionTh) + '</span><b>' +
+      esc(stage === 0 ? spec.eggTh : spec.nameTh) + '</b><div class="muted">' +
+      esc(CULT.sovereignCompanionStageTh(stage)) + (note ? ' · ' + esc(note) : '') + '</div></div></div>';
+  };
+
+  const nurseryCards = W => {
+    const pending = Object.values(W.sect.sovereignNursery || {}).filter(r => r.status !== 'bonded');
+    if (!pending.length) return '';
+    return '<h3>คอกอนุบาลสัตว์เทพสี่ทิศ</h3>' + pending.map(rec => {
+      const spec = CULT.sovereignCompanionSpec(rec.speciesId);
+      if (!spec) return '';
+      const egg = rec.status === 'egg';
+      return UI.sovereignCompanionCard(spec.id, egg ? 0 : 1,
+        egg ? 'บ่มไข่ ' + rec.caredDays + '/' + spec.eggDays + ' วัน' : 'รอผู้ดูแลรับพันธสัญญา');
+    }).join('');
+  };
+
   // Enhance UI.rSect with Gen-7 Lineage Plaques & Patriarch Regalia Pedestal Card (0 RNG, 0 State Mutation)
   if (typeof UI.rSect === 'function') {
     const _origRSectCarbon = UI.rSect;
@@ -7823,7 +7847,7 @@
           '</div>';
       }
       card += '</div>';
-      return html + card;
+      return html + card + nurseryCards(W);
     };
   }
 

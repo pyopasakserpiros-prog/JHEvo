@@ -1060,6 +1060,7 @@
         if (gate.ok) CULT.trackBreakthrough(W, n);
       }
     });
+    CULT.tickSovereignNursery(W);
     SIM.researchTick(W);
     if (cal.dom === 1) SIM.monthly(W);
     const pop = W.npcs.filter(n => !n.dead).length;

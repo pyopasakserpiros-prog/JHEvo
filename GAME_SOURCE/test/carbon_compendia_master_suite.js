@@ -147,6 +147,11 @@ console.log('===================================================================
   assert.strictEqual(ECO.canSubstituteTranscendentAlchemyMat({ craft: 'ALCHEMY' }, null, 'MAT_TR_ALC_01').ok, true);
   assert.strictEqual(ECO.canSubstituteTranscendentEquipmentMat({ craft: 'FORGING' }, null, 'MAT_TR_SOV_01').ok, true);
 
+  const brewRecipe = ECO.recipeById.REC140_ALC_QI_DEW_1;
+  assert.strictEqual(ECO.brewWithTranscendentWildcard(W, master, brewRecipe, ['MAT_TR_ALC_01']).ok, false);
+  for (const input of brewRecipe.inputs) ECO.add(W, input.matId, input.count);
+  for (const id of ['MAT_TR_ALC_01', 'MAT_TR_ALC_03']) ECO.add(W, ECO.resolveTranscendentMat(id).id, 1);
+
   // Brew with Transcendent Alchemy Wildcard -> composite key, 2-3x yield, 7-day Pill-Cloud
   const brewRes = ECO.brewWithTranscendentWildcard(W, master, 'REC140_ALC_QI_DEW_1', ['MAT_TR_ALC_01', 'MAT_TR_ALC_03']);
   assert.strictEqual(brewRes.ok, true);
@@ -167,7 +172,9 @@ console.log('===================================================================
   // Equipment wildcard non-destructive snapshot & 100% abort refund
   const abortRes = ECO.forgeWithTranscendentWildcard(W, master, 'REC_TR_PURE_WPN_GENESIS', ['MAT_TR_SOV_01', 'MAT_TR_SOV_04'], { abort: true });
   assert.strictEqual(abortRes.aborted, true);
-  assert.strictEqual(abortRes.refunded.refundedCount, 2, '100% of wildcard materials must be refunded on abort');
+  assert.strictEqual(ECO.count(W, ECO.resolveTranscendentMat('MAT_TR_SOV_01').id), 0, 'Aborting without a reservation must not mint inputs');
+  const forgeRecipe = ECO.recipeById.REC_TR_PURE_WPN_GENESIS;
+  for (const input of forgeRecipe.inputs) ECO.add(W, input.matId, input.count);
 
   const forgeRes = ECO.forgeWithTranscendentWildcard(W, master, 'REC_TR_PURE_WPN_GENESIS', ['MAT_TR_SOV_01', 'MAT_TR_SOV_04', 'MAT_TR_SOV_06', 'MAT_TR_SOV_08', 'MAT_TR_SOV_10']);
   assert.strictEqual(forgeRes.ok, true);
@@ -179,16 +186,18 @@ console.log('===================================================================
   console.log('  ✓ [5/7] Strict Domain-Separated Alchemy & Equipment Wildcards, Pure Elixirs & Genesis Set Verified');
 }
 
-// 6. All 352 Carbon Scriptures & Codices (170 Low + 144 Expansion + 38 Sovereign + 3-Verse Flow + 4th Verse + Dao-Scars + Cut-In)
+// 6. All 360 Carbon Scriptures & Codices (170 Low + 144 Expansion + 46 Sovereign + 3-Verse Flow + 4th Verse + Dao-Scars + Cut-In)
 {
   assert.strictEqual(JD.TECH.lowTierArts.length, 170, 'Must have 170 Low-Tier manuals');
   assert.strictEqual(JD.TECH.midHighNonCombatArts.length, 144, 'Must have 144 Expansion Non-Combat manuals');
-  assert.strictEqual(JD.TECH.transcendentCodices.length, 38, 'Must have 38 Sovereign Transcendent Codices');
+  assert.strictEqual(JD.TECH.transcendentCodices.length, 46, 'Must have 46 Sovereign Transcendent Codices');
 
   const W = SIM.create('carbon-sovereign-tech-test');
   const master = W.byId[W.sect.masterId];
   const f = { id: 'f_sov', A: [master.id], B: [W.npcs[1].id], t0: W.t, arena: { x: 180, y: 140 }, daoScars: [] };
 
+  master.cult.stage = 7;
+  assert.strictEqual(CULT.checkSovereignCombatAwakening(W, master, 'GATE_APEX_NEMESIS_DUEL', { techId:'TCMB_SOV_01' }).ok, false);
   // Awaken TCMB_SOV_01 via Gate & synthesize Self-Authored 4th Verse
   const awk = CULT.checkSovereignCombatAwakening(W, master, 'GATE_ANCESTRAL_SHRINE_RESONANCE', { techId: 'TCMB_SOV_01', quiet: true });
   assert.strictEqual(awk.ok, true);
@@ -212,7 +221,7 @@ console.log('===================================================================
   master.cult.techs.push('TPAS_SOV_01_SWORD_STAR_APEX_HEART');
   const constRes = CULT.PASSIVE_CONSTELLATION_SYSTEM.resolveNpcConstellation(W, master);
   assert.ok(constRes && constRes.totalStars >= 2, 'TPAS_SOV_01 must grant +2 constellation stars');
-  console.log('  ✓ [6/7] 352 Scriptures/Codices, 4-Verse Flow, Dao-Scars, Clash Cut-In & +2 Star Keystones Verified');
+  console.log('  ✓ [6/7] 360 Scriptures/Codices, 4-Verse Flow, Dao-Scars, Clash Cut-In & +2 Star Keystones Verified');
 }
 
 // 7. Live Transcendent visual routing, SVG art and save/load roundtrip
@@ -231,7 +240,7 @@ console.log('===================================================================
   assert.ok(svg1.includes('<svg') && svg2.includes('<svg') && svg3.includes('<svg') && svg4.includes('<svg') && svg5.includes('<svg') && svg6.includes('<svg') && svg7.includes('<svg'));
 
   const catalog = JD.TECH.transcendentCodices;
-  assert.strictEqual(catalog.length, 38);
+  assert.strictEqual(catalog.length, 46);
   for (const t of catalog) {
     assert.ok(Render.transcendentCastSpec(t, t.id).path);
     assert.ok(UI.renderAtlasIconHtml({ id: 'T:' + t.id, kind: 'TECH_MANUAL' }, 40).includes('data-art-grade="Transcendent"'));
@@ -265,7 +274,156 @@ console.log('===================================================================
   assert.ok(active.some(fx => fx.transcendentKind === 'arsenal'));
   assert.ok(COMBAT.transcendentVisualProcs(a).has('arsenal'));
   assert.equal(COMBAT.transcendentVisualProcs(SIM.deserialize(SIM.serialize(W)).byId[a.id]), undefined);
-  console.log('  ✓ [7/7] Live cast and artifact routing, 38 Codex icons, 24 Regalia forms, purity & save/load verified');
+  console.log('  ✓ [7/7] Live cast and artifact routing, 46 Codex icons, 24 Regalia forms, purity & save/load verified');
+}
+
+// Award through the same resolveSanctum -> handover route used by autonomous expeditions.
+{
+  const { EXPLORE: EX, AI, MARTIAL, STATS } = G;
+  const W = SIM.create('sovereign-archive-integration');
+  const leader = W.byId[W.sect.masterId], foe = W.npcs.find(n => n !== leader);
+  leader.cult.stage = 8;
+  leader.cult.path = 'XIAN';
+  W.day = 435;
+  W.t = W.day * 1440;
+  const realm = EX.SANCTUMS.SANCTUM_ASTRAL_DIVINE;
+  const fan = 'WPN_TRANSCENDENT_MOURNING_WEATHER_FAN';
+  const mantra = 'TMNT_SOV_06_LANTERN_BREATH';
+  const nativeWeighted = W.rng.weighted.bind(W.rng), nativePick = W.rng.pick.bind(W.rng), nativeChance = W.rng.chance.bind(W.rng);
+  let wantKind = 'gear', wantId = fan;
+  W.rng.chance = chance => chance === .30 || nativeChance(chance);
+  W.rng.weighted = (values, weigher) => values.find(x => x?.pool && x.kind === wantKind) || nativeWeighted(values, weigher);
+  W.rng.pick = values => values.find(x => x?.id === wantId) ?? nativePick(values);
+  const resolve = extra => EX.resolveSanctum(W,{ id:W.day, journal:[], sanctumId:realm.id, forceClear:true, ...extra },[leader]);
+  assert.equal(resolve({ forceFailFloor:2 }).sovereignArchive, null, 'a retreat cannot open the archive');
+  const found = resolve();
+  assert.equal(found.sovereignArchive.id, fan);
+  assert.equal(W.sect.gear.filter(x => x.id === fan).length, 1);
+  const gear = W.sect.gear.find(x => x.id === fan);
+  assert.equal(gear.transcendent, true);
+  assert.equal(gear.gearType, 'FAN');
+  assert.equal(SECT.TRANSCENDENT_PANTHEON.claimWorldTranscendentArtifact(W, null, fan).ok, false);
+  assert.equal(resolve().sovereignArchive, null, 'same site cannot pay twice during cooldown');
+  W.day += 8;
+  wantKind = 'manual'; wantId = mantra;
+  assert.equal(resolve().sovereignArchive.id, mantra);
+  // An expedition NPC may keep a copy. The trade/donation AI transfers it to the library on return.
+  assert.ok(W.sect.library.includes(mantra) || leader.inv.techs.includes(mantra));
+  if (!W.sect.library.includes(mantra)) W.sect.library.push(mantra);
+  assert.equal(AI.nextTechToStudy(W, leader)?.id, mantra);
+  leader.cult.learning = { id:mantra, got:100, need:100 };
+  AI.ACTS.study.tick(leader, W);
+  assert.ok(leader.cult.unlockedMantras.includes(mantra));
+  CULT.evaluateAutonomousPostures(W, leader);
+  assert.equal(leader.cult.mantra, mantra);
+  assert.equal(SK.list(leader).filter(x => x.tech === mantra).length, 1);
+  SK.gainMastery(W, leader, mantra, 70);
+  assert.equal(SK.list(leader).filter(x => x.tech === mantra).length, 2);
+
+  const recipe = JD.CORE.pureTranscendentRecipes.find(r => EX.sovereignSanctumSource(r) === realm.id);
+  W.day += 8; wantKind = 'recipe'; wantId = recipe.id;
+  assert.equal(resolve().sovereignArchive.id, recipe.id);
+  W.sect.recipeTier = 7;
+  assert.ok(ECO.recipesFor(W, [recipe.craft]).includes(recipe));
+  const material = JD.CORE.transcendentMaterials.find(m => EX.sovereignSanctumSource(m) === realm.id);
+  W.day += 8; wantKind = 'material'; wantId = material.id;
+  assert.equal(resolve().sovereignArchive.id, material.id);
+  assert.equal(ECO.count(W, material.id), 1);
+
+  leader.equip.WEAPON = gear;
+  STATS.now = W.t;
+  const fight = { id:'archive-combat', A:[leader.id], B:[foe.id], state:'fight' };
+  foe.act = { id:'fight', ctx:{ channeling:{ ticksLeft:4, skillId:'test' } } };
+  COMBAT.runPassiveProcs(W, fight, leader, foe, 'onHit', 5);
+  assert.equal(foe.act.ctx.channeling, undefined);
+  assert.ok(STATS.has(foe,'silence', W.t));
+  foe.act.ctx.channeling = { ticksLeft:4, skillId:'test' };
+  COMBAT.runPassiveProcs(W, fight, leader, foe, 'onHit', 5);
+  assert.ok(foe.act.ctx.channeling, 'fan cooldown prevents repeated interrupts');
+
+  const robe = ECO.itemById.ARM_TRANSCENDENT_PILGRIM_HORIZON_MAIL;
+  leader.equip.ARMOR = ECO.mintGear(W, robe, 1.3);
+  COMBAT.runPassiveProcs(W, fight, leader, foe, 'onDodge', 0);
+  assert.ok(STATS.has(leader, 'shield', W.t));
+  const loaded = SIM.deserialize(SIM.serialize(W));
+  assert.equal(SECT.TRANSCENDENT_PANTHEON.isClaimed(loaded, fan), true);
+
+  const newCodices = JD.TECH.transcendentCodices.filter(t => !!t.sanctum);
+  assert.equal(newCodices.length, 8);
+  assert.equal(new Set(newCodices.map(t => t.cat)).size, 8);
+  for (const t of newCodices) {
+    assert.ok(EX.SANCTUMS[t.sanctum]);
+    if (t.cat === 'PASSIVE') {
+      assert.equal(t.passiveForms.length, 2);
+      leader.cult.techs.push(t.id);
+      leader.passiveLoadout = [t.id];
+      MARTIAL.invalidateMartialCaches(leader);
+      assert.ok(MARTIAL.passiveStats(leader).procs.some(x => x.techId === t.id));
+    } else {
+      assert.equal(SK.allMoves(t).length, 2);
+      assert.notEqual(SK.allMoves(t)[0].arch, SK.allMoves(t)[1].arch);
+    }
+  }
+  console.log('PASS autonomous archive path, failed run, cooldown, stock and discovery, new gear procs, study and save replay');
+}
+
+// Every companion comes from its own actual archive, then uses daily nursery and pet state.
+{
+  const specs = JD.CORE.sovereignCompanions;
+  assert.equal(specs.length, 4);
+  assert.deepEqual(specs.filter(s => !s.eggDays).map(s => s.symbol), ['WHITE_TIGER']);
+  for (const spec of specs) {
+    const W = SIM.create('nursery-' + spec.id);
+    const owner = W.byId[W.sect.masterId];
+    owner.cult.stage = 8;
+    W.day = 445; W.t = W.day * 1440;
+    const original = W.rng.weighted.bind(W.rng), chance = W.rng.chance.bind(W.rng);
+    W.rng.chance = n => n === .30 || chance(n);
+    W.rng.weighted = (items, weight) => items.find(x => x?.kind === 'companion') || original(items, weight);
+    const ex = { id:'nursery', journal:[], sanctumId:spec.sanctum, forceClear:true };
+    const out = G.EXPLORE.resolveSanctum(W, ex, [owner]);
+    assert.equal(out.sovereignArchive.id, spec.id);
+    const record = W.sect.sovereignNursery[spec.id];
+    assert.equal(record.status, spec.eggDays ? 'egg' : 'juvenile');
+    assert.equal(CULT.recoverSovereignCompanion(W, spec, [owner]), false);
+    assert.equal(CULT.bindPet(W, owner, spec.id, { force:true }).ok, false);
+    assert.ok(!CULT.activePets(owner).some(p => p.speciesId === spec.id));
+    const day = () => { W.day++; W.t += 1440; CULT.tickSovereignNursery(W); };
+    if (spec.eggDays) {
+      W.sect.stock.grain = 0;
+      day();
+      assert.equal(record.caredDays, 0, 'egg incubation pauses during food shortage');
+      ECO.add(W, 'grain', spec.eggDays + 25);
+      day();
+      CULT.tickSovereignNursery(W);
+      assert.equal(record.caredDays, 1, 'one increment at most per day');
+      for (let i = 1; i < spec.eggDays; i++) day();
+    } else day();
+    assert.equal(record.status, 'bonded');
+    const keeper = W.npcs.find(n => n.pets?.some(p => p.uid === record.uid));
+    const pet = keeper.pets.find(p => p.uid === record.uid);
+    assert.equal(pet.growthStage, 1);
+    assert.equal(pet.fourSymbol, undefined, 'juveniles do not inherit final battle aura early');
+    assert.equal(CULT.evolvePet(W, keeper, pet.uid, { free:true, awakenSovereign:true }).ok, false);
+    keeper.cult.stage = 8;
+    pet.bond = 92;
+    pet.hunger = 40;
+    day();
+    assert.equal(pet.careDays, 0);
+    pet.hunger = 100;
+    for (const [end, stage] of [[20,2],[65,3],[140,4]]) {
+      for (let steps = 0; steps < 145 && pet.careDays < end; steps++) day();
+      assert.equal(pet.growthStage, stage);
+    }
+    assert.equal(pet.fourSymbol, spec.symbol);
+    const loaded = SIM.deserialize(SIM.serialize(W));
+    assert.equal(loaded.sect.sovereignNursery[spec.id].uid, pet.uid);
+    assert.equal(loaded.byId[keeper.id].pets.find(p => p.uid === pet.uid).growthStage, 4);
+    const variants = [1,2,3,4].map(stage => Render.sovereignCompanionSvg(spec.id, stage));
+    assert.equal(new Set(variants).size, 4);
+    assert.ok(variants.every(svg => svg.startsWith('<svg')));
+  }
+  console.log('PASS four rare companions, three eggs, one rescued cub, food and bonding gates, all growth stages and save replay');
 }
 
 console.log('✅ ALL CARBON COMPENDIA MASTER SUITE CHECKS PASSED!');

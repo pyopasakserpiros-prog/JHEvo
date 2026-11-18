@@ -425,3 +425,7 @@ COMBAT.observeLifeHit / recordLifeConclude รับผลโจมตีแล�
 ### Transcendent visuals, post-260e
 
 `COMBAT.attack` runs through `COMBAT.useSkill` for actual NPC casts. Render uses real `castFx` anchors and recipient snapshots. `COMBAT.noteTranscendentVisual` sends completed artifact procs to a renderer-only WeakMap.
+
+### Sovereign archives
+
+The fan proc requires a real hit on a channeling unit. The light mail proc requires a dodge and no shield. The original armor resolves before death and the damage window of Dao Scars uses a spatial radius. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.

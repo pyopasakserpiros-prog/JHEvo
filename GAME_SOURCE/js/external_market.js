@@ -677,7 +677,7 @@
     for (let i = W.sect.gear.length - 1; i >= 0 && out.sold < maxSell; i--) {
       const eq = W.sect.gear[i];
       if (!eq || !eq.slot) continue;
-      if (eq.playerSpawned) continue; // Anti-minting: player-spawned gear never generates Spirit Stones
+      if (eq.unsellable || eq.playerSpawned) continue; // Anti-minting: player-spawned gear never generates Spirit Stones
       if (eq.legendary || eq.unique || eq.isLegendaryRelic || eq.weaponSpirit || eq.imbuedElderSoul || eq.isSectHeritage || eq.soulBoundOwnerId || /^REL_V230_/.test(eq.id || '') || (g.VC && g.VC.LEGENDARY_WEAPON_BY_ID && g.VC.LEGENDARY_WEAPON_BY_ID[eq.id])) continue;
       if (opts && opts.boughtKeys && opts.boughtKeys.has('EQ:' + eq.id)) continue;
       if (eq.uid && wantedUids.has(eq.uid)) continue;

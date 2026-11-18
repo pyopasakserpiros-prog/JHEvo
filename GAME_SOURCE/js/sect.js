@@ -18259,37 +18259,46 @@
       }
       return gear;
     },
-    claimWorldTranscendentArtifact(W, npc, artifactId, opts) {
-      opts = opts || {};
+    isClaimed(W, artifactId) {
+      const world = W && W.world;
+      if (!world) return false;
+      return !!(world.transcendentSingletons?.[artifactId]?.discovered ||
+        world.roamingTranscendentWeapons?.some(it => it.id === artifactId && it.conqueredBySect) ||
+        g.VC?.isTargetAlreadyClaimed(W, { unique:true, targetId:artifactId, targetKind:'EQUIPMENT' }));
+    },
+    claimWorldTranscendentArtifact(W, npc, artifactId, opts = {}) {
+      if (!W || !W.sect || (npc && (npc.dead || npc.exiled))) return { ok:false, reason:'invalid-claimant' };
+      const def = JD.CORE.worldTranscendentArtifacts.find(it => it.id === artifactId && !it.isPatriarchRegalia &&
+        it.id !== 'REGALIA_ORIGIN_FORMLESS_STONE');
+      if (!def) return { ok:false, reason:'unknown-artifact' };
       this.ensureWorldState(W);
-      const def = ECO && ECO.itemById ? ECO.itemById[artifactId] : null;
-      if (!def) return { ok: false, reason: 'unknown-artifact' };
-      const gear = ECO && ECO.mintGear ? ECO.mintGear(def, 1.30) : Object.assign({}, def, { uid: 'tr_art_' + Date.now() });
-      gear.transcendent = true;
-      gear.grade = 'Transcendent';
-      gear.unsellable = true;
-      gear.indestructible = true;
-      if (npc) {
-        this.syncAdaptiveArtifact(npc, gear);
-        if (opts.equip !== false) {
-          npc.equip = npc.equip || {};
-          npc.equip[gear.slot || 'WEAPON'] = gear;
-        }
-      } else if (W && W.sect) {
-        W.sect.gear = W.sect.gear || [];
+      if (this.isClaimed(W, artifactId)) return { ok:false, reason:'already-claimed' };
+      const gear = ECO.mintGear(W, def, 1.30);
+      const roam = W.world.roamingTranscendentWeapons.find(it => it.id === artifactId);
+      if (roam) gear.digestedFamilies = [...roam.digestedFamilies];
+      if (npc) this.syncAdaptiveArtifact(npc, gear);
+      let owner = null;
+      if (opts.out) {
+        opts.out.gear.push(gear);
+      } else if (npc && opts.equip !== false) {
+        const gearBag = npc.inv || (npc.inv = {});
+        const belongings = gearBag.gear || (gearBag.gear = []);
+        const equip = npc.equip || (npc.equip = {});
+        const slot = gear.slot;
+        if (!equip[slot] && (!g.MARTIAL || g.MARTIAL.gearUsable(npc, gear))) equip[slot] = gear;
+        else belongings.push(gear);
+        owner = npc.id;
+      } else {
         W.sect.gear.push(gear);
       }
-      if (W.world.transcendentSingletons && W.world.transcendentSingletons[artifactId]) {
-        W.world.transcendentSingletons[artifactId].discovered = true;
-        W.world.transcendentSingletons[artifactId].ownerNpcId = npc ? npc.id : null;
-      }
-      const roam = (W.world.roamingTranscendentWeapons || []).find(r => r.id === artifactId);
+      const existing = W.world.transcendentSingletons[artifactId];
+      W.world.transcendentSingletons[artifactId] = { ...existing, id:artifactId, discovered:true, ownerNpcId:owner, claimUid:gear.uid };
       if (roam) {
         roam.conqueredBySect = true;
-        roam.holderKind = 'SECT_BEARER';
-        roam.ownerNpcId = npc ? npc.id : null;
+        roam.holderKind = owner ? 'SECT_BEARER' : 'SECT_VAULT';
+        roam.ownerNpcId = owner;
       }
-      return { ok: true, gear, artifactId };
+      return { ok:true, gear, artifactId };
     },
     tickRoamingNemesis(W) {
       this.ensureWorldState(W);
@@ -18311,9 +18320,9 @@
       let genesisCount = 0;
       for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
         const it = eq[slot];
-        if (!it) continue;
+        if (!it || (g.MARTIAL && !g.MARTIAL.gearUsable(npc, it))) continue;
         if (it.transcendent || it.isPatriarchRegalia || it.isTranscendentArmor || it.isTranscendentAccessory || it.isTranscendentWeapon || it.isPureTranscendentGenesis) {
-          pieces.push(it.id);
+          if (!pieces.includes(it.id)) pieces.push(it.id);
         }
         if (it.isPureTranscendentGenesis || it.setId === 'RES_TR_MORTAL_FORGED_GENESIS') {
           genesisCount++;

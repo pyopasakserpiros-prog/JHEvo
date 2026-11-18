@@ -2091,7 +2091,7 @@
   };
 
   ECO.wearGear = (it, amount, W, ownerNpc) => {
-    if (!it || typeof it !== 'object') return false;
+    if (!it || typeof it !== 'object' || it.indestructible) return false;
     const wear = Number.isFinite(amount) && amount > 0 ? amount : 0;
     if (wear <= 0) return false;
     if (it.maxDur == null) it.maxDur = 100;
@@ -3567,6 +3567,34 @@
     if (r.outItemId) defHidden(ECO.recipeByOutItemId, r.outItemId, r);
   });
 
+  // Discovered formulas are kept separate from generic loot/recipe enumeration.
+  const baseRecipesFor = ECO.recipesFor;
+  ECO.recipesFor = (W, crafts) => baseRecipesFor(W, crafts).concat(
+    (JD.CORE.pureTranscendentRecipes || []).filter(r => crafts.includes(r.craft) && ECO.recipeKnown(W, r))
+  );
+  const baseMint = ECO.mintGear;
+  ECO.mintGear = function(a, b, c, d) {
+    const gear = baseMint.apply(this, arguments);
+    const def = gear && ECO.transcendentItemById[gear.id];
+    if (!def || gear.slot == null || !def.transcendent) return gear;
+    const fields = ['grade', 'transcendent', 'worldSingleton', 'isTranscendentArmor', 'isTranscendentAccessory',
+      'isTranscendentWeapon', 'isPureTranscendentGenesis', 'setId', 'combatMult', 'defenseMult',
+      'isPatriarchRegalia', 'triWeightAdaptive', 'pentaSubtypeAdaptive', 'omniWeaponAdaptive', 'vfxShape'];
+    for (const key of fields) if (def[key] != null) gear[key] = def[key];
+    if (Number.isFinite(def.defenseMult)) gear.defMult = def.defenseMult;
+    if (def.worldSingleton || def.indestructible) { gear.noEvolution = true; gear.indestructible = true; }
+    if (def.worldSingleton || def.unsellable) gear.unsellable = true;
+    return gear;
+  };
+  const baseFinish = ECO.finishCraft;
+  ECO.finishCraft = function(W, npc, recipe, ctx) {
+    const result = baseFinish.apply(this, arguments);
+    if (result?.ok && result.gear && recipe?.triggersForgeTribulation) {
+      ECO.triggerForgeTribulation(W, npc, result.gear);
+    }
+    return result;
+  };
+
   // Preserve composite @TR: pills across resetDynamicItems
   const _origResetDyn = ECO.resetDynamicItems;
   ECO.resetDynamicItems = W => {
@@ -3638,6 +3666,21 @@
     return 'P:' + cleanBase + '@TR:' + shorts.join('+');
   };
 
+  const debitTranscendentInputs = (W, recipe, mats) => {
+    if (!W?.sect || !recipe) return false;
+    const counts = {};
+    for (const input of (recipe.inputs || [])) counts[input.matId] = (counts[input.matId] || 0) + input.count;
+    // Ingredients already required by a pure recipe are paid once in the base bill.
+    const extra = {};
+    for (const mat of mats) extra[mat.id] = (extra[mat.id] || 0) + 1;
+    for (const id of Object.keys(extra)) {
+      counts[id] = recipe.isPureTranscendentRecipe ? Math.max(counts[id] || 0, extra[id]) : (counts[id] || 0) + extra[id];
+    }
+    if (!Object.entries(counts).every(([id, qty]) => qty > 0 && ECO.count(W, id) >= qty)) return false;
+    for (const [id, qty] of Object.entries(counts)) ECO.take(W, id, qty);
+    return true;
+  };
+
   ECO.brewWithTranscendentWildcard = (W, npc, recipeOrId, wildcardMatIds, opts) => {
     opts = opts || {};
     const r = typeof recipeOrId === 'string' ? (ECO.recipeById[recipeOrId] || ECO.recipeByOutItemId[recipeOrId]) : recipeOrId;
@@ -3655,16 +3698,7 @@
       return { ok: false, aborted: true, refundedMats: resolvedMats.map(m => m.id) };
     }
 
-    if (W && W.sect && opts.consumeStock) {
-      for (const m of resolvedMats) {
-        const key = (W.sect.stock[m.id] > 0) ? m.id : (m.shortId && W.sect.stock[m.shortId] > 0 ? m.shortId : null);
-        if (!key) return { ok: false, reason: 'INSUFFICIENT_WILDCARD_MAT:' + m.id };
-      }
-      for (const m of resolvedMats) {
-        const key = (W.sect.stock[m.id] > 0) ? m.id : m.shortId;
-        W.sect.stock[key] = Math.max(0, (W.sect.stock[key] || 0) - 1);
-      }
-    }
+    if (!debitTranscendentInputs(W, r, resolvedMats)) return { ok: false, reason: 'INSUFFICIENT_RECIPE_INPUTS' };
 
     const baseId = (r && (r.outItemId || r.id)) || String(recipeOrId || 'REC_PILL_BASE');
     const compKey = ECO.makeCompositeTranscendentPillKey(baseId, resolvedMats.map(m => m.id));
@@ -3740,19 +3774,17 @@
         if (m && m.elixirMarkId) markIds.push(m.elixirMarkId);
       });
     }
-    for (const mk of markIds) {
-      if (mk && !npc.ext.transcendentElixirMarks.includes(mk)) {
-        npc.ext.transcendentElixirMarks.push(mk);
-      }
-    }
-    npc.ext.dantianBonusPct = +((npc.ext.dantianBonusPct || 0) + 0.18 * Math.max(1, markIds.length)).toFixed(3);
-    npc.ext.elixirCombatBonus = +((npc.ext.elixirCombatBonus || 0) + 0.12 * Math.max(1, markIds.length)).toFixed(3);
-    npc.ext.elixirLifespanBonus = (npc.ext.elixirLifespanBonus || 0) + 80 * Math.max(1, markIds.length);
+    const fresh = [...new Set(markIds.filter(Boolean))].filter(mk => !npc.ext.transcendentElixirMarks.includes(mk));
+    if (!fresh.length) return { ok:false, reason:'no-new-elixir-mark' };
+    npc.ext.transcendentElixirMarks.push(...fresh);
+    npc.ext.dantianBonusPct = Math.min(.80, +((npc.ext.dantianBonusPct || 0) + .12 * fresh.length).toFixed(3));
+    npc.ext.elixirCombatBonus = Math.min(.45, +((npc.ext.elixirCombatBonus || 0) + .08 * fresh.length).toFixed(3));
+    npc.ext.elixirLifespanBonus = Math.min(240, (npc.ext.elixirLifespanBonus || 0) + 50 * fresh.length);
     if (npc.h && npc.h.state) {
       npc.h.state.pillToxicity = 0;
       npc.h.state.heartDemon = Math.max(0, (npc.h.state.heartDemon || 0) - 35);
     }
-    if (npc.cult && CULT && CULT.gain) {
+    if (!opts.permanentOnly && npc.cult && CULT && CULT.gain) {
       const gainAmt = (def && def.effect && def.effect.cultivationProgress) || 400;
       CULT.gain(npc, gainAmt, W, 'transcendent_elixir');
     }
@@ -3763,6 +3795,17 @@
       dantianBonusPct: npc.ext.dantianBonusPct,
       zeroToxicity: true
     };
+  };
+
+  const baseApplyPill = ECO.applyPill;
+  ECO.applyPill = function(W, npc, key, quality) {
+    const info = ECO.pillInfo(key);
+    const result = baseApplyPill.apply(this, arguments);
+    const def = info?.item || ECO.getItem(key, W);
+    if (def?.isTranscendentElixir || def?.isPureTranscendentElixir) {
+      ECO.consumeTranscendentPill(W, npc, key, { permanentOnly:true });
+    }
+    return result;
   };
 
   ECO.inheritTranscendentElixirBloodline = (W, parentA, parentB, child) => {
@@ -3871,11 +3914,12 @@
   };
 
   ECO.triggerForgeTribulation = (W, npc, gear) => {
-    if (!gear) return { ok: false };
+    if (!gear || gear.forgeTribulationTempered) return { ok: false };
     gear.forgeTribulationTempered = true;
     if (g.COMBAT && g.COMBAT.noteTranscendentVisual) g.COMBAT.noteTranscendentVisual(W, npc, 'forge');
     gear.combatMult = +((gear.combatMult || 0.8) * 1.12).toFixed(3);
     gear.defenseMult = +((gear.defenseMult || 0.8) * 1.12).toFixed(3);
+    gear.defMult = gear.defenseMult;
     if (W && typeof W.log === 'function') {
       W.log('craft', '⚡ ทัณฑ์สวรรค์โรงหลอมฟาดลงชุบคม「' + (gear.nameTh || gear.id) + '」จนสำเร็จเป็นมหาศาสตราปฐมกาล!', npc ? [npc.id] : []);
     }
@@ -3895,10 +3939,8 @@
       resolvedMats.push(chk.mat);
     }
 
-    if (opts.abort || opts.simulateFailure) {
-      const ref = ECO.refundTranscendentWildcardsOnAbort(W, npc, resolvedMats.map(m => m.id));
-      return { ok: false, aborted: true, refunded: ref };
-    }
+    if (opts.abort || opts.simulateFailure) return { ok: false, aborted: true };
+    if (!debitTranscendentInputs(W, r, resolvedMats)) return { ok: false, reason: 'INSUFFICIENT_RECIPE_INPUTS' };
 
     const outDef = (r && r.outItemId && ECO.itemById[r.outItemId]) || (r && ECO.itemById[r.id]) || {
       id: (r && (r.outItemId || r.id)) || 'EQ_TR_CUSTOM_FORGED',
@@ -3910,7 +3952,7 @@
       combatMult: 0.55,
       defenseMult: 0.35
     };
-    const gear = ECO.mintGear ? ECO.mintGear(outDef, 1.25) : Object.assign({}, outDef, { uid: 'tr_gear_' + Date.now() });
+    const gear = ECO.mintGear ? ECO.mintGear(W, outDef, 1.25) : Object.assign({}, outDef, { uid: 'tr_gear_' + Date.now() });
     ECO.applyTranscendentMaterialInfusions(gear, resolvedMats.map(m => m.id), { slot: gear.slot });
     if ((r && r.triggersForgeTribulation) || resolvedMats.length >= 4 || gear.isPureTranscendentGenesis) {
       ECO.triggerForgeTribulation(W, npc, gear);

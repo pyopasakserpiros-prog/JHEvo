@@ -7672,6 +7672,81 @@
     return ex;
   };
 
+  const sovereignSites = [
+    'SANCTUM_SWORD_ABYSS', 'SANCTUM_BLOOD_VAJRA', 'SANCTUM_ASTRAL_DIVINE', 'SANCTUM_MYRIAD_BEAST_TOTEM'
+  ];
+  const legacyVaults = {
+    WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN: sovereignSites[0],
+    ARM_TRANSCENDENT_LOOM_OF_SCARS: sovereignSites[1],
+    ACC_TRANSCENDENT_OUROBOROS_SUNDIAL: sovereignSites[2]
+  };
+  EX.sovereignSanctumSource = entry => {
+    if (entry.sanctum || legacyVaults[entry.id]) return entry.sanctum || legacyVaults[entry.id];
+    const byElement = { WATER_ICE:0, EARTH_METAL:0, BLOOD_DEMON:1, FIRE:1, YIN_SHADOW:1,
+      ASTRAL_VOID:2, LIGHT_YANG:2, LIGHTNING:2, WIND:3, WOOD_LIFE:3 };
+    if (entry.isPureTranscendentRecipe) {
+      const index = JD.CORE.pureTranscendentRecipes.indexOf(entry);
+      return sovereignSites[[3, 2, 1, 0, 1, 2][index]];
+    }
+    return sovereignSites[byElement[entry.element] ?? 0];
+  };
+  for (const entry of [].concat(JD.TECH.transcendentCodices, JD.CORE.transcendentMaterials,
+      JD.CORE.worldTranscendentArtifacts, JD.CORE.pureTranscendentRecipes)) {
+    if (entry.isPatriarchRegalia || entry.id === 'REGALIA_ORIGIN_FORMLESS_STONE') continue;
+    entry.obtainSources = [EX.sovereignSanctumSource(entry) + ':SOVEREIGN_ARCHIVE'];
+  }
+
+  EX.findSovereignArchive = (W, sc, party, out) => {
+    if (out.retreated || out.floorsCleared !== sc.floors.length || W.day < 400) return null;
+    const qualified = party.filter(n => n && !n.dead && !n.exiled && n.cult);
+    const stages = qualified.map(n => CULT.equivalentStage(n));
+    if (!stages.some(s => s >= 7) && stages.filter(s => s >= 5).length < 2) return null;
+    const state = EX.ensureSanctums(W);
+    const archive = state.sovereignArchives || (state.sovereignArchives = {});
+    const site = archive[sc.id] || (archive[sc.id] = { claimedArts: [], nextDay: 0 });
+    if (W.day < site.nextDay || !W.rng.chance(.30)) return null;
+
+    const pantheon = SECT.TRANSCENDENT_PANTHEON;
+    const relics = JD.CORE.worldTranscendentArtifacts.filter(it =>
+      it.id !== 'REGALIA_ORIGIN_FORMLESS_STONE' && EX.sovereignSanctumSource(it) === sc.id && !pantheon.isClaimed(W, it.id));
+    const recipes = JD.CORE.pureTranscendentRecipes.filter(r =>
+      EX.sovereignSanctumSource(r) === sc.id && !W.sect.knownRecipes.includes(r.id));
+    const codices = JD.TECH.transcendentCodices.filter(t =>
+      EX.sovereignSanctumSource(t) === sc.id && !site.claimedArts.includes(t.id) &&
+      !g.VC.isTargetAlreadyClaimed(W, { unique:true, targetId:t.id, targetKind:'TECH_MANUAL' }));
+    const materials = JD.CORE.transcendentMaterials.filter(m => EX.sovereignSanctumSource(m) === sc.id);
+    const companions = (JD.CORE.sovereignCompanions || []).filter(sp =>
+      sp.sanctum === sc.id && !W.sect.sovereignNursery?.[sp.id]);
+    const options = [];
+    if (companions.length) options.push({ kind:'companion', pool:companions, w:10 });
+    if (relics.length) options.push({ kind:'gear', pool:relics, w:12 });
+    if (recipes.length) options.push({ kind:'recipe', pool:recipes, w:21 });
+    if (codices.length) options.push({ kind:'manual', pool:codices, w:32 });
+    if (materials.length) options.push({ kind:'material', pool:materials, w:35 });
+    if (!options.length) return null;
+    const selected = W.rng.weighted(options, entry => entry.w);
+    const reward = W.rng.pick(selected.pool);
+    if (selected.kind === 'companion') {
+      if (!CULT.recoverSovereignCompanion(W, reward, qualified)) return null;
+    } else if (selected.kind === 'gear') {
+      const result = pantheon.claimWorldTranscendentArtifact(W, null, reward.id, { out });
+      if (!result.ok) return null;
+    } else if (selected.kind === 'recipe') {
+      W.sect.knownRecipes.push(reward.id);
+      out.recipes.push(reward.id);
+    } else if (selected.kind === 'manual') {
+      out.techs.push(reward.id);
+      site.claimedArts.push(reward.id);
+    } else {
+      out.mats[reward.id] = (out.mats[reward.id] || 0) + 1;
+    }
+    // Per site regeneration leaves repeated visits meaningful without mass minting.
+    site.nextDay = W.day + 8;
+    const report = { kind: selected.kind, id: reward.id, nameTh: selected.kind === "companion" ? (reward.eggTh || "ลูก" + reward.nameTh) : reward.nameTh, sanctumId: sc.id };
+    W.log('explore', '✦ หลังโค่นผู้พิทักษ์ชั้นลึกสุดแห่ง「' + sc.nameTh + '」คณะสำรวจพบ「' + report.nameTh + '」ในกรุเหนือตำนาน', qualified.map(n => n.id));
+    return report;
+  };
+
   EX.resolveSanctum = (W, ex, members, opts) => {
     opts = opts || {};
     if (!W || !ex || ex.done || !Array.isArray(members) || !members.length) return null;
@@ -7804,6 +7879,10 @@
       ex.journal.push('★ รางวัลโบนัสวิหารโบราณ (ชั้นลึกสุด ' + out.floorsCleared + '): ได้รับ「' + bRes.reward.nameTh + '」');
     }
 
+    out.sovereignArchive = EX.findSovereignArchive(W, sc, alive, out);
+    if (out.sovereignArchive) {
+      ex.journal.push('✦ กรุด่านลึกสุด: ' + out.sovereignArchive.nameTh);
+    }
     out.rep = out.floorsCleared * 1.5;
     ex.done = true;
     ex.out = out;
@@ -7828,6 +7907,7 @@
       failedFloor: out.failedFloor,
       catalysts: Object.assign({}, out.catalysts),
       bonusReward: out.bonusReward,
+      sovereignArchive: out.sovereignArchive,
       floorLogs: out.floorLogs
     });
     if (sState.history.length > 20) sState.history.length = 20;

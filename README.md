@@ -1,5 +1,7 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
 
+> **main-debug — กรุเหนือตำนาน:** เพิ่มทางค้นพบจริงในวิหารโบราณ อุปกรณ์ใหม่ 2 ชิ้น และวิชาใหม่ครบ 8 ประเภท ดู [รายงานแพตช์](PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md).
+
 > **main-debug — Transcendent VFX:** ภาพวิชาและอุปกรณ์เหนือตำนานชุดใหม่เชื่อมกับการต่อสู้และคลังแล้ว ดู [รายงานแพตช์](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
 
 > **Active assignment:** Gemini Argon4 should read [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.

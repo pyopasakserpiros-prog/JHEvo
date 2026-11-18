@@ -357,3 +357,17 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   padding: 10px 12px;
   margin: 8px 0;
 }
+
+.sovereign-pet-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0;
+  padding: 8px;
+  color: #f9ecd7;
+  border: 1px solid #76628c;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at left, #3e486c, #141b2a 72%);
+}
+.sovereign-pet-card svg { display: block; width: min(34vw, 126px); flex: none; }
+.sovereign-pet-card b { display: block; margin: 3px 0; }

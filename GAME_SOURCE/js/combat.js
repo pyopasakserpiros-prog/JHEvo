@@ -687,6 +687,7 @@
     try {
       const SK = SKs(), ST = STs();
       const normTrigger = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(triggerKind) : triggerKind;
+      if (C.processNewSovereignGear) C.processNewSovereignGear(W, f, actor, target, normTrigger);
       const aTac = C.ensureUnitTac(actor);
       if (actor.cult && g.MARTIAL && g.MARTIAL.passiveStats) {
         const ps = g.MARTIAL.passiveStats(actor);
@@ -743,6 +744,7 @@
               C.COMPOSABLE_ENGINE.executeAction(W, f, actor, target, proc.action, proc, { triggerKind: normTrigger, dmgDealt });
             }
             actor.lastPassiveProc = { t: W.t, techId: proc.techId, kind: normTrigger };
+            if (proc.techId.startsWith('TPAS_SOV_07_')) C.noteTranscendentVisual(W, actor, 'heron');
           }
         }
       }
@@ -1260,6 +1262,16 @@
     if (f && f.kind === 'wild' && a && !a.foe && d.wild && d.landInfluence && dmg > 0) {
       f.ctx.landContributions = f.ctx.landContributions || {};
       f.ctx.landContributions[a.id] = (f.ctx.landContributions[a.id] || 0) + Math.min(C.hp(d), dmg);
+    }
+    if (dmg > 0 && f && a && opts?.sovereignIncoming && C.tryTranscendentCutIn) {
+      const clash = C.tryTranscendentCutIn(W, f, d, a, opts.sovereignIncoming);
+      if (clash.triggered) dmg *= clash.mitigationMult;
+    }
+    if (dmg > 0 && f && f.serious && C.processTranscendentArmorHit &&
+        d.equip?.ARMOR?.id === 'ARM_TRANSCENDENT_LOOM_OF_SCARS') {
+      const guard = C.processTranscendentArmorHit(W, f, d, a, dmg);
+      if (guard.cocoonTriggered) return false;
+      dmg = guard.dmg;
     }
     let hp = C.hp(d) - dmg;
     if (hp <= 0 && d.isGateBeast && (d.fourSymbol === 'VERMILION_PHOENIX' || d.fourSymbol === 'BLACK_TORTOISE' || d.bloodlineTrait === 'SOVEREIGN_AWAKENED' || d.bloodlineTrait === 'VERMILION_PHOENIX' || d.bloodlineTrait === 'BLACK_TORTOISE') && !d.sovereignGuardUsed) {
@@ -2000,7 +2012,10 @@
       if (g.CULT.SECONDARY_RESOURCES.canUseResource(a, 'FROST_QI') && (atkElem === 'WATER_ICE' || ST.has(d, 'chill', W.t))) g.CULT.SECONDARY_RESOURCES.gain(a, 'FROST_QI', 14);
       if (g.CULT.SECONDARY_RESOURCES.canUseResource(a, 'MECH_GEARS')) g.CULT.SECONDARY_RESOURCES.gain(a, 'MECH_GEARS', 12);
     }
-    const killed = C.applyDamage(W, f, a, d, dmg, null, { isAoeMultiTarget: !!o.isAoeMultiTarget });
+    const killed = C.applyDamage(W, f, a, d, dmg, null, {
+      isAoeMultiTarget: !!o.isAoeMultiTarget,
+      sovereignIncoming: !o.noProc && (o.M >= 1.8 || o.arch === 'burst') ? o : null
+    });
     if (!d.foe && !d.dead && d.cult && d.cult.path === 'BODY' && dmg > 0) {
       CULT.gain(d, Math.min(2.1, 0.22 * (1 + (d.cult.stage || 1) * 0.2)), W, 'body_temper_hit');
       HC.trainBody(d, 'toughness', 0.18);
@@ -7893,7 +7908,8 @@
       const enemyIds = sc.side === 'A' ? (f.B || []) : (f.A || []);
       for (const eid of enemyIds) {
         const u = C.unit ? C.unit(W, eid) : (W && W.byId && W.byId[eid]);
-        if (u && C.alive && C.alive(u)) {
+        if (u && C.alive && C.alive(u) && Number.isFinite(u.x) && Number.isFinite(u.y) &&
+            Math.hypot(u.x - sc.x, u.y - sc.y) <= sc.radius) {
           const dmg = Math.max(4, Math.round(C.hpMax(u) * 0.035 * (sc.potency || 0.18) / 0.18));
           C.setHp(u, Math.max(1, C.hp(u) - dmg));
           triggered++;
@@ -7939,13 +7955,14 @@
 
   // 4. Off-Turn Clash Cut-In (14-Tick ICD)
   C.tryTranscendentCutIn = (W, f, defender, attacker, incomingMove) => {
-    if (!defender || !attacker || defender.dead) return { triggered: false };
+    if (!defender || !attacker || defender.dead || !C.alive(attacker)) return { triggered: false };
     const tNow = (W && W.t) || 0;
     if (defender._lastSovCutInTick != null && (tNow - defender._lastSovCutInTick) < 14) {
       return { triggered: false, reason: 'icd' };
     }
     const hasSovTech = !!(defender.cult && Array.isArray(defender.cult.techs) && defender.cult.techs.some(id => /^TCMB_SOV_/.test(id)));
-    const reg = (SECT && SECT.PATRIARCH_REGALIA && SECT.PATRIARCH_REGALIA.getEquippedRegalia) ? SECT.PATRIARCH_REGALIA.getEquippedRegalia(W, defender) : null;
+    const reg = W?.sect?.masterId === defender.id ? W.sect.patriarchRegalia :
+      Object.values(defender.equip || {}).find(it => it?.isPatriarchRegalia);
     if (!hasSovTech && !(reg && (reg.awakeningStage || 0) >= 2)) {
       return { triggered: false, reason: 'no-sovereign-capability' };
     }
@@ -7970,6 +7987,7 @@
     if (!defender || !defender.equip || !defender.equip.ARMOR) return { dmg: rawDmg, cocoonTriggered: false };
     const arm = defender.equip.ARMOR;
     if (!arm.isTranscendentArmor && arm.id !== 'ARM_TRANSCENDENT_LOOM_OF_SCARS') return { dmg: rawDmg, cocoonTriggered: false };
+    if (g.MARTIAL && !g.MARTIAL.gearUsable(defender, arm)) return { dmg:rawDmg, cocoonTriggered:false };
     const tNow = (W && W.t) || 0;
     arm._woundLedgerPool = Math.min(2500, (arm._woundLedgerPool || 0) + Math.round(rawDmg * 0.25));
     let adjDmg = Math.round(rawDmg * 0.82);
@@ -7978,8 +7996,9 @@
     }
     const curHp = C.hp ? C.hp(defender) : 100;
     const maxHp = C.hpMax ? C.hpMax(defender) : 100;
-    if (curHp - adjDmg <= 0 && !defender._cocoonUsedInFight) {
-      defender._cocoonUsedInFight = true;
+    if (curHp - adjDmg <= 0 && f && !f.sovereignCocoons?.[defender.id]) {
+      f.sovereignCocoons = f.sovereignCocoons || {};
+      f.sovereignCocoons[defender.id] = true;
       defender._cocoonStasisUntil = tNow + 4;
       const rebHp = Math.max(10, Math.round(maxHp * 0.38));
       if (C.setHp) C.setHp(defender, rebHp);
@@ -8018,7 +8037,7 @@
     if (echoTriggered) {
       actor._pendingChronoEcho = { t: tNow, potency: 0.55, skillId: skillProfile && skillProfile.id };
       if (target && C.alive && C.alive(target)) {
-        const isHeal = skillProfile && (skillProfile.arch === 'heal' || skillProfile.arch === 'support');
+        const isHeal = skillProfile && ['heal','support','harmonize','buff'].includes(skillProfile.arch);
         if (isHeal) {
           const healAmt = Math.max(12, Math.round((C.hpMax ? C.hpMax(target) : 100) * 0.14));
           if (C.setHp && C.hp) C.setHp(target, Math.min(C.hpMax(target), C.hp(target) + healAmt));
@@ -8051,44 +8070,66 @@
     return { escortHits, digestedCount: wpn.digestedFamilies.length };
   };
 
-  // Wrap C.useSkill to trigger non-strike healer/support accessory echo & Sovereign 3-Verse Flow
-  if (typeof C.useSkill === 'function') {
-    const _origUseSkillCarbon = C.useSkill;
-    C.useSkill = function(W, f, a, t, p) {
-      if (a && a.equip && a.equip.ACCESSORY && (a.equip.ACCESSORY.isTranscendentAccessory || a.equip.ACCESSORY.id === 'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL')) {
-        C.processTranscendentAccessoryCast(W, f, a, t, p);
-      }
-      if (p && p.tech && /^TCMB_SOV_/.test(p.tech)) {
-        const flow = C.advanceSovereignVerseFlow(W, f, a, t, p.tech);
-        const previousFx = a.castFx;
-        const result = _origUseSkillCarbon.apply(this, arguments);
-        if (flow && a.castFx && a.castFx !== previousFx) a.castFx.sovereignVerse = flow.currentVerse;
-        return result;
-      }
-      return _origUseSkillCarbon.apply(this, arguments);
-    };
-  }
+  C.processNewSovereignGear = (W, f, actor, target, trigger) => {
+    const ST = g.STATS;
+    if (!ST || !f || !actor.equip) return;
+    const fan = trigger === 'onHit' && actor.equip.WEAPON?.id === 'WPN_TRANSCENDENT_MOURNING_WEATHER_FAN'
+      && target && C.alive(target) && target.act?.ctx?.channeling;
+    const robe = trigger === 'onDodge' && actor.equip.ARMOR?.id === 'ARM_TRANSCENDENT_PILGRIM_HORIZON_MAIL';
+    if (!fan && (!robe || ST.has(actor, 'shield', W.t))) return;
+    const item = fan ? actor.equip.WEAPON : actor.equip.ARMOR;
+    if (g.MARTIAL && !g.MARTIAL.gearUsable(actor, item)) return;
+    const key = fan ? 'stillWind' : 'horizon';
+    const cds = C.ensureUnitTac(actor).procCds;
+    if ((cds[key] || 0) > W.t) return;
+    cds[key] = W.t + (fan ? 26 : 30);
+    if (fan) {
+      C.interruptChannel(W, f, target, 'ถูกพัดบัญชาลมเงียบสะกดเสียง', actor);
+      ST.addStatus(target, 'silence', 5, null, W.t);
+      C.noteTranscendentVisual(W, actor, key, target);
+    } else {
+      ST.addStatus(actor, 'shield', 9, { amt:Math.round(C.hpMax(actor) * .12) }, W.t);
+      C.noteTranscendentVisual(W, actor, key);
+    }
+  };
 
-  // Wrap C.strike to automatically invoke Transcendent Weapon Strike, Cut-In, and Armor Chrysalis
-  if (typeof C.strike === 'function') {
-    const _origStrikeCarbon = C.strike;
-    C.hit = C.strike = function(W, f, a, d, o) {
-      if (d && d.cult && a && o && (o.M >= 1.8 || o.arch === 'burst')) {
-        C.tryTranscendentCutIn(W, f, d, a, o);
+  const baseUseSkill = C.useSkill;
+  C.useSkill = function(W, f, a, target, profile) {
+    const previous = a?.castFx;
+    const result = baseUseSkill.apply(this, arguments);
+    if (!a?.castFx || a.castFx === previous) return result;
+    const tech = a.castFx.techId;
+    if (/^TCMB_SOV_/.test(tech)) {
+      const flow = C.advanceSovereignVerseFlow(W, f, a, target, tech);
+      if (flow) a.castFx.sovereignVerse = flow.currentVerse;
+    }
+    const sundial = a.equip?.ACCESSORY;
+    if (sundial?.id === 'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL' && (!g.MARTIAL || g.MARTIAL.gearUsable(a, sundial))) {
+      const heal = ['heal','harmonize','support','buff'].includes(profile?.arch);
+      const anchors = a.castFx.targetPoints || [];
+      const units = (f?.A || []).concat(f?.B || []).map(id => C.unit(W, id));
+      const recipient = units.find(n => n && C.alive(n) && anchors.some(p => p.team === heal && p.x === n.x && p.y === n.y));
+      C.processTranscendentAccessoryCast(W, f, a, recipient || (heal ? a : null), profile);
+    }
+    return result;
+  };
+
+  const baseStrike = C.strike;
+  C.hit = C.strike = function(W, f, a, d, o) {
+    const result = baseStrike.apply(this, arguments);
+    if (!result?.hit || !(result.dmg > 0) || o?.noProc || !f) return result;
+    const receiver = C.unit(W, result.actualReceiverId) || d;
+    const weapon = a?.equip?.WEAPON;
+    if (weapon?.id === 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN' &&
+        (!g.MARTIAL || g.MARTIAL.gearUsable(a, weapon))) {
+      const cds = C.ensureUnitTac(a).procCds;
+      if ((cds.coffinEscort || 0) <= W.t) {
+        cds.coffinEscort = W.t + 14;
+        C.processTranscendentWeaponStrike(W, f, a, receiver);
       }
-      const res = _origStrikeCarbon.apply(this, arguments);
-      if (a && a.equip && a.equip.WEAPON && (a.equip.WEAPON.isTranscendentWeapon || a.equip.WEAPON.id === 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN')) {
-        C.processTranscendentWeaponStrike(W, f, a, d);
-      }
-      if (d && d.equip && d.equip.ARMOR && (d.equip.ARMOR.isTranscendentArmor || d.equip.ARMOR.id === 'ARM_TRANSCENDENT_LOOM_OF_SCARS')) {
-        C.processTranscendentArmorHit(W, f, d, a, (res && res.dmg) || 25);
-        if (d.dead && d._cocoonUsedInFight && C.hp(d) > 0) {
-          d.dead = false;
-        }
-      }
-      return res;
-    };
-  }
+    }
+    return result;
+  };
 
   // Wrap C.tick to automatically tick active Battlefield Dao-Scars (f.daoScars)
   if (typeof C.tick === 'function') {

@@ -1,5 +1,9 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
+> **กรุเหนือตำนาน:** NPC ที่ผ่านด่านลึกสุดของวิหารโบราณตามเงื่อนไขมีโอกาสพบวิชา คลังวัตถุดิบ ตำรับ หรือสมบัติหนึ่งเดียว ฐานปัจจุบันมีคัมภีร์เหนือตำนาน 46 วิชา สมบัติให้ค้นพบ 5 ชิ้น และตราบรรพชนสืบทอด 1 ชิ้น ดู [ที่มา กลไก และการตรวจ](PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md).
+
+> **สัตว์เทพสี่ทิศ:** มังกร หงส์ และเต่าเริ่มจากไข่ พยัคฆ์เริ่มจากลูกอสูร ผู้ดูแล NPC และเสบียงมีผลต่อการฟัก จากนั้นเติบโตสี่ระยะตามการดูแล ความผูกพัน และตบะของผู้ผูกพันธสัญญา ดูคอกอนุบาลในแผ่นข้อมูลสำนักและรายละเอียดที่โปรไฟล์เจ้าของ
+
 > **ฐานพัฒนาหลัง 260e:** ภาพคัมภีร์เหนือตำนาน 38 วิชา ตราบรรพชน 24 รูปแบบ และอุปกรณ์ Pantheon/Genesis ใช้ภาพเฉพาะในคลังและหน้าตรวจสอบ ฉาก 4 จังหวะรับข้อมูลจริงจากการร่ายและการทำงานของอุปกรณ์ ดู [ขอบเขตและผลตรวจ](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
 
 > **Active handoff:** The next assigned work is the 31-PDF Carbon compendia review and implementation. Start at [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), then read [the active prompt](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and [the review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). Prepared against main-debug commit 6670b49; preserve newer work. AGENTS.md remains immutable without explicit user authorization.

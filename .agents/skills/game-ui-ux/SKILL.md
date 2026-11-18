@@ -287,3 +287,11 @@ UI.rNpc แยก acquired/ภาระ/ภูมิปัญญาฟื้น�
 ### Transcendent visuals, post-260e
 
 The central icon entry point is `UI.renderAtlasIconHtml`. It resolves Transcendent instances, raw catalog IDs and composite pill keys. `UI.transcendentShowcaseHtml` shares the same art with inspection and library panels. NPC map and diorama gear use the same vector silhouettes.
+
+### Sovereign archives
+
+New Sovereign codices and gear use `vfxShape` and the Transcendent grade route. The passive displays its two conditional forms without advertising an active cast. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+### Four-Symbol companion lifecycle
+
+`UI.sovereignCompanionCard` shows eggs and animals in the nursery and on the NPC sheet. `Render.drawSovereignCompanion` shares vector layers with the UI. Active companions use staged silhouettes in the map and final Four-Symbol aura. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.

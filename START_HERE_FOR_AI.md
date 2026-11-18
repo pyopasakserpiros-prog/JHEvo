@@ -1,5 +1,7 @@
 # AI Handoff — JianghuSect 2 / main-debug
 
+> **Latest patch:** [Sovereign archive and origins audit](PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md) supersedes the original Carbon acquisition claims. The four existing sanctums now have runnable source routes.
+
 > **Current main-debug baseline:** Carbon 260e has been imported, and its Transcendent visual prototype has been replaced. Read the [visual overhaul report](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md) before changing this tier. The 31-PDF assignment below is prior context for the patch.
 
 ## Active assignment

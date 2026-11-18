@@ -153,3 +153,7 @@ v320_dormant_awakening_suite มีเพดาน wall time 80 NPC จึงอ
 ### Transcendent visuals, post-260e
 
 Transcendent scenes share the Legendary full-scene limit (2 high, 1 low), reuse cached Path2D silhouettes, and fall back to a compact scene. The queue is bounded at 24 and low mode draws at most three extra recipients.
+
+### Four-Symbol companion lifecycle
+
+Four-Symbol body drawings reuse cached Path2D. The map renders at most two special companions per NPC, one in low quality. Daily incubation and growth skip undiscovered and inactive nursery entries. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
