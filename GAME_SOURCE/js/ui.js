@@ -6383,7 +6383,7 @@
           const maxP = CULT.maxActivePets ? CULT.maxActivePets(n) : 1;
           const actP = CULT.activePets ? CULT.activePets(n) : pList.filter(p => p && p.active);
           h += '<h3>🐾 สัตว์อสูรพันธสัญญา & สถิตร่างอสูร (' + actP.length + '/' + maxP + ' ตัวที่ออกรบ · ทั้งหมด ' + pList.length + ' ตัว)</h3><div class="card">' + pList.map(p => {
-            if (CULT.isSovereignCompanion(p)) return UI.sovereignCompanionCard(p.speciesId, p.growthStage || 1,
+            if (CULT.isCuratedCompanion(p)) return UI.sovereignCompanionCard(p.speciesId, p.growthStage || 1,
               'ดูแลแล้ว ' + (p.careDays || 0) + ' วัน · ผูกพัน ' + Math.round(p.bond || 0) + '% · ' +
               (p.active ? 'ร่วมทาง' : p.injured ? 'พักฟื้น' : 'สำรอง'));
             const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
@@ -7801,19 +7801,24 @@
   };
 
   UI.sovereignCompanionCard = (speciesId, stage, note) => {
-    const spec = CULT.sovereignCompanionSpec(speciesId);
+    const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec || !g.Render?.sovereignCompanionSvg) return '';
-    return '<div class="sovereign-pet-card">' + g.Render.sovereignCompanionSvg(speciesId, stage) +
-      '<div><span class="transcendent-badge-6star">✦ เหนือตำนาน · ทิศ' + esc(spec.directionTh) + '</span><b>' +
+    const rank = spec.gradeRank || 3;
+    const grade = spec.gradeTh || 'เหนือตำนาน';
+    const stageTh = spec.gradeRank && stage === 4 ? 'ร่างสมบูรณ์' : CULT.sovereignCompanionStageTh(stage);
+    const details = spec.focusTh && stage > 0 ? '<p>' + esc(spec.descTh) + '</p><div class="muted">' +
+      esc(spec.focusTh) + '</div><div class="muted">' + esc(spec.drawbackTh) + '</div>' : '';
+    return '<div class="sovereign-pet-card rank-' + rank + '">' + g.Render.sovereignCompanionSvg(speciesId, stage) +
+      '<div><span class="companion-grade">' + esc(grade + ' · ' + (spec.directionTh ? 'ทิศ' + spec.directionTh : spec.familyTh)) + '</span><b>' +
       esc(stage === 0 ? spec.eggTh : spec.nameTh) + '</b><div class="muted">' +
-      esc(CULT.sovereignCompanionStageTh(stage)) + (note ? ' · ' + esc(note) : '') + '</div></div></div>';
+      esc(stageTh) + (note ? ' · ' + esc(note) : '') + '</div>' + details + '</div></div>';
   };
 
   const nurseryCards = W => {
     const pending = Object.values(W.sect.sovereignNursery || {}).filter(r => r.status !== 'bonded');
     if (!pending.length) return '';
-    return '<h3>คอกอนุบาลสัตว์เทพสี่ทิศ</h3>' + pending.map(rec => {
-      const spec = CULT.sovereignCompanionSpec(rec.speciesId);
+    return '<h3>คอกอนุบาลสัตว์คู่หู</h3>' + pending.map(rec => {
+      const spec = CULT.curatedCompanionSpec(rec.speciesId);
       if (!spec) return '';
       const egg = rec.status === 'egg';
       return UI.sovereignCompanionCard(spec.id, egg ? 0 : 1,

@@ -7,6 +7,8 @@ category: cultivation-progression
 
 # JianghuSect Progression: 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension, Mentorship & Living Jianghu
 
+The four mythic companion lineages use `JD.CORE.lineageCompanions`, `EXPLORE.resolveSanctum`, and the existing sovereign nursery. Keep grade separate from age. Each grade needs its own sanctum acquisition gates, and NPC care governs growth. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
+
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose

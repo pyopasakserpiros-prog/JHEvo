@@ -7367,7 +7367,7 @@
           : (cPath === 'GOD' || cPath === 'DEMON')
             ? 'SANCTUM_ASTRAL_DIVINE'
             : 'SANCTUM_SWORD_ABYSS';
-      EX.departSanctum(W, party, sId);
+      EX.departSanctum(W, party, EX.chooseLineageSanctum(W, party, sId));
       return true;
     }
     if (pick === 'nine_dao_pagoda') {
@@ -7696,6 +7696,67 @@
     entry.obtainSources = [EX.sovereignSanctumSource(entry) + ':SOVEREIGN_ARCHIVE'];
   }
 
+  const lineageGates = [
+    null,
+    { elapsed:0, floor:2, stage:4, odds:.34 },
+    { elapsed:30, floor:3, stage:5, odds:.17 },
+    { elapsed:80, floor:3, stage:7, odds:.075 }
+  ];
+  const lineageBySite = new Map();
+  for (const spec of JD.CORE.lineageCompanions || []) {
+    const entries = lineageBySite.get(spec.sanctum) || [];
+    entries.push(spec);
+    lineageBySite.set(spec.sanctum, entries);
+  }
+  const nextLineage = (W, siteId, stages, cleared) => {
+    const known = W.sect.sovereignNursery;
+    const entries = lineageBySite.get(siteId) || [];
+    for (const [i, spec] of entries.entries()) {
+      if (known?.[spec.id]) continue;
+      if (i > 0 && known?.[entries[i - 1].id]?.status !== 'bonded') return null;
+      const gate = lineageGates[spec.gradeRank];
+      if (W.day < 360 + gate.elapsed || cleared < gate.floor) return null;
+      const qualified = stages.some(s => s >= gate.stage) ||
+        (spec.gradeRank === 3 && stages.filter(s => s >= 6).length >= 2);
+      return qualified ? spec : null;
+    }
+    return null;
+  };
+
+  EX.chooseLineageSanctum = (W, party, familiarSite) => {
+    const lead = party[0];
+    const stages = party.map(CULT.equivalentStage);
+    if (!stages.some(s => s >= 4)) return familiarSite;
+    const adventurous = HC.eff(lead, 'interests.exploring') / 100;
+    const choices = [{ id:familiarSite, weight:1.8 }];
+    for (const [id] of lineageBySite) {
+      if (!EX.SANCTUMS[id]) continue;
+      const entry = nextLineage(W, id, stages, EX.SANCTUMS[id].floors.length);
+      if (!entry || (W.explore?.sanctums?.lineageClues?.[id] || 0) > W.day) continue;
+      const relation = entry.familyId === 'QILIN' ? 'personality.empathy' :
+        entry.familyId === 'BAIZE' ? 'intellect.comprehension' : 'personality.courage';
+      const wish = HC.eff(lead, relation) / 100;
+      choices.push({ id, weight:.28 + adventurous * .52 + wish * .48 });
+    }
+    return choices.length === 1 ? familiarSite : W.rng.weighted(choices, x => x.weight).id;
+  };
+
+  EX.findSanctumLineage = (W, sc, party, out) => {
+    if (out.failedFloor || out.sovereignArchive?.kind === 'companion' || !party.length) return null;
+    const witnesses = party.filter(n => n && !n.dead && !n.exiled && n.cult);
+    const spec = nextLineage(W, sc.id, witnesses.map(CULT.equivalentStage), out.floorsCleared);
+    if (!spec || (out.retreated && spec.gradeRank > 1)) return null;
+    const state = EX.ensureSanctums(W);
+    const cooldowns = state.lineageClues || (state.lineageClues = {});
+    if (W.day < (cooldowns[sc.id] || 0) || !W.rng.chance(lineageGates[spec.gradeRank].odds)) return null;
+    if (!CULT.recoverLineageCompanion(W, spec, witnesses)) return null;
+    cooldowns[sc.id] = W.day + 12;
+    const details = { id:spec.id, kind:'companion', grade:spec.grade, nameTh:spec.eggTh || spec.nameTh, sanctumId:sc.id };
+    W.log('explore', '✦ คณะสำรวจพบ「' + details.nameTh + '」สายสัตว์' + spec.gradeTh +
+      ' ในเขตพักพิงแห่ง' + sc.nameTh, witnesses.map(n => n.id));
+    return details;
+  };
+
   EX.findSovereignArchive = (W, sc, party, out) => {
     if (out.retreated || out.floorsCleared !== sc.floors.length || W.day < 400) return null;
     const qualified = party.filter(n => n && !n.dead && !n.exiled && n.cult);
@@ -7883,6 +7944,8 @@
     if (out.sovereignArchive) {
       ex.journal.push('✦ กรุด่านลึกสุด: ' + out.sovereignArchive.nameTh);
     }
+    out.lineageEncounter = EX.findSanctumLineage(W, sc, alive, out);
+    if (out.lineageEncounter) ex.journal.push('✦ พบสัตว์คู่หู: ' + out.lineageEncounter.nameTh);
     out.rep = out.floorsCleared * 1.5;
     ex.done = true;
     ex.out = out;
@@ -7908,6 +7971,7 @@
       catalysts: Object.assign({}, out.catalysts),
       bonusReward: out.bonusReward,
       sovereignArchive: out.sovereignArchive,
+      lineageEncounter: out.lineageEncounter,
       floorLogs: out.floorLogs
     });
     if (sState.history.length > 20) sState.history.length = 20;

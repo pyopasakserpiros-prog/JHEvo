@@ -7,6 +7,8 @@ category: combat-martial-arts
 
 # JianghuSect Combat Engine: Exact Formulas, 12 Combat Stats, 10 Weapon Types, 12 Timed Buffs, 21 Legendary Relics, 31 Resonance Sets, Formations & 12-Path Combat
 
+Mythic lineage assistance is conditional through `COMBAT.applyLineageCompanion` and `COMBAT.lineageAssistPower`. Preserve Kunpeng distance, fox enemy debuff, Qilin injured ally, and Bai Ze cleansing gates. Higher grades gain impact while using more fatigue and cooldown. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
+
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose

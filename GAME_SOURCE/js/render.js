@@ -2891,7 +2891,7 @@
       const transcendentFull = new Set();
       for (const f of candidates) {
         if (transcendentFull.size >= sceneLimit) break;
-        if (!f.transcendent || sceneOwners.has(f.ownerId)) continue;
+        if (!f.transcendent || (f.transcendent.presentationRank || 3) < 3 || sceneOwners.has(f.ownerId)) continue;
         transcendentFull.add(f);
         sceneOwners.add(f.ownerId);
       }
@@ -6164,12 +6164,13 @@
       const face = n.face >= 0 ? 1 : -1;
       const px = -face * 10.5;
       const py = 1.5 + Math.sin(t * 4.2) * 0.9;
-      const sovereign = pets.filter(CULT.isSovereignCompanion);
+      const sovereign = pets.filter(CULT.isCuratedCompanion);
       if (sovereign.length) {
         const cap = this.resolveQuality() === 'low' ? 1 : 2;
         sovereign.slice(0, cap).forEach((companion, i) => {
           const stage = companion.growthStage || 1;
-          const size = [0, .12, .20, .31, .49][stage] * (i ? .72 : 1);
+          const lineage = CULT.lineageCompanionSpec(companion.speciesId);
+          const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
           R.drawSovereignCompanion(ctx, companion.speciesId, stage,
             -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face);
         });
@@ -10005,6 +10006,10 @@
     forge: ['anvil', '#fff1b8', '#fb6740', '#cbb6ff', 'ทัณฑ์สวรรค์โรงหลอม'],
     stillWind: ['fan', '#ddfff0', '#299885', '#ffe8c8', 'พัดบัญชาลมเงียบ'],
     horizon: ['robe', '#bcfff3', '#33916a', '#edffb0', 'ม่านพรานเลียบขอบฟ้า'],
+    lineage_KUNPENG: ['wings','#caf9ff','#3676c5','#fbdf9c','คุนเผิงโฉบข้ามกระแสลม'],
+    lineage_FOX: ['eclipse','#f4daff','#7045b1','#ffd4b3','เก้าหางลวงจันทร์'],
+    lineage_QILIN: ['gate','#ebffd3','#368b69','#ffe29c','ม่านกิเลน'],
+    lineage_BAIZE: ['eye','#fff3d9','#7670b9','#fff1a1','ไป๋เจ๋ออ่านรอยอาคม'],
     heron: ['wings', '#d3fbff', '#5d84d5', '#f6fcaf', 'พักปีกเหนือผิวน้ำ'],
     awaken: ['stone', '#e0fcff', '#8f79ef', '#ffebb8', 'ตราบรรพชนตื่นรู้']
   };
@@ -10087,7 +10092,8 @@
     if (!proc) return null;
     const [key, light, ink, accent, name] = proc;
     const art = event.gear && R.transcendentArt(event.gear);
-    return art && event.kind === 'awaken' ? { ...art, name } : { key, light, ink, accent, name };
+    return art && event.kind === 'awaken' ? { ...art, name }
+      : { key, light, ink, accent, name, presentationRank:event.gear?.gradeRank || 3 };
   };
 
   R.methods.queueTranscendentCast = function(key, actor, event, art) {
@@ -10107,7 +10113,7 @@
     this.castActive.set(key, {
       ownerId: actor.id, transcendent: art, transcendentKind: event.kind, verse: event.sovereignVerse,
       x, y, originX, originY, angle: Math.atan2(y - originY, x - originX), recipients,
-      start: this.castClock, life: 3000
+      start: this.castClock, life: [0, 1100, 1820, 3000][art.presentationRank || 3]
     });
   };
 
@@ -10234,7 +10240,8 @@
     const release = Math.max(0, Math.min(1, (p - 0.43) / 0.28));
     const after = Math.max(0, (p - 0.69) / 0.31);
     const dormant = art.regalia && art.stage === 0;
-    const radius = full ? (dormant ? 68 : reduced ? 95 : 114 + Math.min(4, (fx.verse || 1) - 1) * 4) : 43;
+    const rank = art.presentationRank || 3;
+    const radius = full ? (dormant ? 68 : reduced ? 95 : 114 + Math.min(4, (fx.verse || 1) - 1) * 4) : [0,31,64,43][rank];
     const energy = ignition * (1 - after);
     const spin = reduced ? 0 : p * 1.7 * (fx.transcendentKind === 'rewind' ? -1 : 1);
     const theta = Number.isFinite(fx.angle) ? fx.angle : 0;
@@ -10390,7 +10397,7 @@
   };
 
   R.methods.drawTranscendentCutIn = function(ctx) {
-    const fx = [...this.castActive.values()].reverse().find(f => f.transcendent &&
+    const fx = [...this.castActive.values()].reverse().find(f => f.transcendent && (f.transcendent.presentationRank || 3) === 3 &&
       this.castClock - f.start > f.life * .13 && this.castClock - f.start < f.life * .56);
     if (!fx || !fx.transcendent.name || this.vw < 240 || this.vh < 320) return;
     const art = fx.transcendent, width = Math.min(this.vw - 32, 408);
@@ -10473,8 +10480,79 @@
       insignia:'M10 89Q40 113 76 103Q109 103 147 89M14 95Q43 118 81 107Q125 110 152 91M11 36q2-18 18-20'
     }
   };
+  const lineageArt = {
+    KUNPENG: {
+      colors:[
+        ['#183b50','#34758a','#73c7cd','#d8faf2','#e0d2ae'],
+        ['#16394e','#39759e','#7bd6ec','#e1ffff','#f8dc9f'],
+        ['#18233d','#4554a8','#6dd9fd','#eefdff','#ffe0a0']
+      ],
+      young:'M80 36Q103 21 131 24L116 34 146 33 130 47 147 52Q123 59 106 63L96 76 107 92 85 88 77 101 66 91 52 96 64 72Q37 61 17 55L29 49 13 37 40 41 23 26Q61 24 80 36Z',
+      body:'M77 37Q57 19 14 14L21 25 40 35 9 29 19 41 33 46 5 46 23 60 7 60 33 69 26 75 59 73 69 67 61 82 45 94 65 89 76 105 89 89 106 97 94 79 92 69 106 60 133 66 150 59 142 55 160 48 149 42 157 36 129 39 151 22 158 9Q112 15 94 34L84 22 75 23 67 30Z',
+      shade:'M24 26Q53 26 74 45L83 37 93 45Q116 28 148 19L128 39 103 56 94 59 91 75 84 83 81 99 75 83 66 88 73 69 58 62 42 64 17 56 39 57 25 49 48 53 23 39 43 43Z',
+      accents:'M71 34 80 22 89 28 95 36 84 33 81 38Z M76 39 83 35 89 41 81 48Z M55 68l19-6-6 10Z M109 62 95 57 99 64Z M112 32l-12 15 18-10Z M47 36l17 14-21-8Z',
+      detail:'M16 48Q43 49 59 60M25 57L56 64M145 42Q126 49 113 55M135 54l-24 6M53 42l14 10m26 2 17-13M73 80l7-6 7 7m-5-39 5 2m-4-10 2 0',
+      crest:'M74 29 71 16 77 20 81 9 87 17 87 24 93 20 90 32Z M20 23l-8-18 18 11 7 9Z M131 29l15-16 13-5-12 20Z',
+      crown:'M17 55Q46 78 71 52Q96 19 130 25Q114 31 112 40L153 32Q151 44 115 65Q99 81 93 89L121 97Q98 108 75 93Q51 97 36 92L53 84Q32 75 17 55Z',
+      insignia:'M11 80Q42 101 75 91Q106 83 151 80M15 97Q50 112 97 106Q133 100 152 88M9 29Q35 10 55 13M109 14Q138 1 153 9'
+    },
+    FOX: {
+      colors:[
+        ['#4b2c43','#93617e','#e8a5aa','#fff1eb','#ffceb7'],
+        ['#3c2f5a','#7f74ac','#c5bdff','#fff1fd','#ffdbad'],
+        ['#281e49','#61459f','#c1a5ff','#fff4fd','#ffda99']
+      ],
+      young:'M35 78Q25 57 36 47Q49 35 72 49L87 47 97 25 103 15 119 36 135 20 137 49 148 58 139 73 121 78 114 96 97 97 102 80 91 78 74 86 70 98 55 97 56 82Z',
+      body:'M33 76Q22 54 41 43Q62 36 81 46L92 44 100 30 102 6 120 32 139 12 143 38 139 48 154 55 146 67 127 75 121 94 116 101 100 99 104 87 109 75 96 75 79 86 75 98 58 100 58 91 61 84 48 78 39 89 24 92 24 84Z',
+      shade:'M34 67Q42 46 62 42Q81 44 91 49L107 48 117 35 133 37 138 47 151 55 132 60 115 62 102 68 85 69 70 80 58 75 48 71Q44 70 34 77Z',
+      accents:'M108 21l8 14-9 4Z M135 26l-2 11 7 4Z M117 48l7-2 7 4-7 3Z M143 54l10 1-5 5Z M115 63l15-2-9 8Z M75 55Q55 49 44 57L55 61 70 59Z',
+      detail:'M117 54l3 2m5 12 10-3m-24 25 8 0m-54 2 8-1M101 55Q93 64 85 66M111 43l5-4',
+      crest:'M113 39 119 29 124 40 126 25 132 33 134 46 123 51Z',
+      crown:'M94 71Q109 30 82 9Q102 5 110 22Q125 49 100 77Z',
+      insignia:'M12 76Q45 105 101 96Q139 91 153 64M9 46Q32 20 72 17M71 17q-7 10-3 14'
+    },
+    QILIN: {
+      colors:[
+        ['#1f473c','#4d8a63','#90d6a5','#e8ffce','#fcc778'],
+        ['#314437','#729159','#e0dc81','#fff5c2','#ffd272'],
+        ['#153733','#2a866c','#8ceac0','#f0ffcc','#ffdb88']
+      ],
+      young:'M25 76 16 67 23 60 33 62Q49 51 72 55L90 50 99 31 108 25 117 30 127 22 133 38 145 47 136 58 120 58 114 70 114 91 118 99 103 99 100 88 90 76 73 78 72 96 57 100 56 88 59 79 43 77 38 91 24 94Z',
+      body:'M15 72Q2 66 9 53L12 43 17 51 24 48 21 61 30 64Q48 44 75 46L91 43 100 25 105 21 111 7 115 21 126 18 134 6 134 23 138 38 154 47 145 57 133 59 121 54 114 63 112 74 112 92 118 99 115 102 98 101 96 94 98 76 88 73 76 79 70 101 56 102 54 95 60 87 60 76 45 75 39 85 40 94 29 97 21 90 25 82Z',
+      shade:'M33 64Q46 46 72 49L91 51 99 43 106 24 116 25 120 35 131 31 139 45 150 48 138 52 127 48 117 50 113 62 100 70 82 67 72 73 48 73 38 69Z',
+      accents:'M117 43l9-6 7 6-8 4Z M101 53l13-9-5 16-5 4Z M92 54l8 6-10 6-6-6Z M77 53l7 6-6 6-9-5Z M62 53l7 6-7 6-9-5Z M49 56l7 7-9 5-6-7Z M104 91l9 0 3 8-12 0Z M58 94l12 0-4 6-12 0Z M24 87l12-3 2 7-11 2Z',
+      detail:'M146 51l-8 2m-26-31-9 8m-25 33-12 4m14 7 10-4m16 1 6-5M18 58q2 7 8 9m91-22 7 0',
+      crest:'M100 28 91 24 88 13 79 5 85 5 95 15 93 7 97 2 100 14 106 18 107 29Z M123 30 129 15 140 7 143 7 141 15 135 23 142 19 148 20 139 27 129 34Z',
+      crown:'M77 62 73 40 66 31 71 26 74 34 82 38 87 29 85 21 93 22 98 37 91 59 84 65Z M120 90 128 75 138 65 132 82 124 94Z M28 95l-7-19 13 8 7 12Z',
+      insignia:'M13 91Q51 99 79 97Q113 93 146 77M13 99Q75 114 144 88M47 9q10 7 16 23m60-26q-5 8-5 16'
+    },
+    BAIZE: {
+      colors:[
+        ['#303748','#7f8a9d','#d8e1da','#fff9e2','#dbf5db'],
+        ['#303054','#717797','#b9d7e0','#f9f5dd','#ffe0a0'],
+        ['#24223e','#596898','#dfd9fc','#fff8df','#ffe3ac']
+      ],
+      young:'M19 69Q8 58 12 49L25 51 27 64Q50 39 85 39L99 42 103 25 110 18 116 30 128 28 135 18 140 31 136 43 152 53 142 69 127 74 118 93 102 96 100 88 103 75 84 79 75 95 57 94 60 81 39 80 30 95 17 93 18 83Z',
+      body:'M12 62Q2 55 5 46Q15 43 18 53L23 64 34 62Q57 40 81 43L97 40 99 23 104 13 113 27 123 24 129 6 137 4 141 14 134 31 143 41 154 44 159 53 150 68 139 65 127 76 124 93 129 99 113 104 101 96 104 79 92 80 85 91 81 103 64 103 61 96 64 85 50 80 45 91 45 99 30 101 25 93 32 79 20 75Z',
+      shade:'M15 67Q29 64 43 53 70 37 96 48L107 45 109 32 123 29 137 41 150 46 153 51 146 58 132 56 118 65 98 64 81 70 66 72 49 73 32 79Z',
+      accents:'M98 44l8-11 11 8-7 14Z M119 46l8-7 11 5-11 6Z M148 51l9 0-4 5Z M99 58l12 3-7 14-10 1Z M124 61l14 4-13 9-7 1Z M48 58q9-8 19 1-9 9-19-1Z M75 54q8-8 17 0-8 8-17 0Z',
+      detail:'M45 62q10 7 24 2m7-8 3-2m12 19q5-4 10-5m24-23 4 0m16 14-7 1m-16 32 7 1m-61-2 8 0m-48-1 7-1',
+      crest:'M100 34 94 25 91 12 96 6 104 17 108 33Z M125 34l1-13 7-14 7-4 0 15-9 18Z',
+      crown:'M32 66 21 48 31 34 45 32 57 23 68 24 76 19 89 28 96 29 99 43 91 57 78 63 67 56 52 60 41 58Z',
+      insignia:'M16 33Q77 -4 145 30M9 69Q22 95 54 103M109 101Q145 89 154 69M44 14l5 8m22-13 3 9m25-8-1 8'
+    }
+  };
+  const illustration = spec => {
+    if (spec.symbol) return art[spec.symbol];
+    const form = lineageArt[spec.familyId];
+    return form && { ...form, color:form.colors[spec.gradeRank - 1] };
+  };
+  const foxTail = (i, grade, stage) => {
+    const h = 21 + i * 6.6, spread = stage === 1 ? 17 : 27, reach = 31 + Math.sin(i * .45) * spread;
+    return `M52 75Q${reach} ${h + 22} ${7 + i * 2} ${h}Q${28 + i * 3} ${h - 13 - 2 * grade} ${reach + 18} ${h + 19}L55 75Z`;
+  };
   const look = (spec, stage) => {
-    const p = art[spec.symbol];
+    const p = illustration(spec);
     const [ink, mid, light, shine, gold] = p.color;
     if (stage === 0) {
       return [
@@ -10484,6 +10562,22 @@
         ['M83 27 88 34 83 41 78 34Z M95 75 99 81 95 87 91 81Z', gold, null, 0]
       ];
     }
+    if (spec.familyId) {
+      const rank = spec.gradeRank;
+      const layers = [];
+      if (stage >= 3 && rank >= 2) layers.push([p.insignia, null, gold, rank === 3 ? 2.6 : 1.3]);
+      if (stage >= 3 && rank === 3) layers.push([p.crown, ink, light, 1.65]);
+      if (spec.familyId === 'FOX') {
+        for (let i = 0; i < (stage === 1 ? 3 : 9); i++) {
+          layers.push([foxTail(i, rank, stage), i % 2 ? mid : light, i % 3 ? ink : gold, stage === 1 ? 1.7 : 1.25]);
+        }
+      }
+      layers.push([stage === 1 ? p.young : p.body, mid, ink, 2.8]);
+      if (stage > 1) layers.push([p.shade, light, null, 0], [p.detail, null, rank === 1 ? ink : gold, 1.15]);
+      layers.push([p.accents, shine, ink, 1.25]);
+      if (stage >= 3 || rank >= 2 && stage >= 2) layers.push([p.crest, mid, rank === 1 ? ink : gold, 1.5]);
+      return layers;
+    }
     if (stage === 1) {
       const eyes = { AZURE_DRAGON:'M112 34l6-2 3 4-6 2Z', VERMILION_PHOENIX:'M88 29l5 2-4 3-4-2Z',
         WHITE_TIGER:'M119 44l5-3 4 5-5 2Z M138 53l7 1-4 5Z',
@@ -10491,19 +10585,19 @@
       return [[p.young, mid, ink, 3.2], [eyes[spec.symbol], shine, ink, 1.25]];
     }
     const layers = [];
-    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 ? 2.3 : 1.05]);
+    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 && (spec.gradeRank || 3) >= 2 ? 2.3 : 1.05]);
     if (stage === 4) layers.push([p.crown, mid, shine, 1.75]);
     layers.push([p.body, mid, ink, stage === 1 ? 4.2 : 3.3], [p.shade, light, null, 0],
       [p.accents, stage === 1 ? light : shine, ink, 1.35], [p.detail, null, stage >= 3 ? gold : ink, 1.3]);
     return layers;
   };
   R.sovereignCompanionSvg = (speciesId, stage) => {
-    const spec = CULT.sovereignCompanionSpec(speciesId);
+    const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec) return '';
-    const [ink, mid, light, shine, gold] = art[spec.symbol].color;
+    const [ink, mid, light, shine, gold] = illustration(spec).color;
     return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
       '<ellipse cx="80" cy="96" rx="57" ry="9" fill="' + ink + '" opacity=".52"/>' +
-      (stage === 4 ? '<path d="M14 79Q79 59 146 79Q118 101 80 102Q41 102 14 79Z" fill="none" stroke="' + light + '" opacity=".7"/>' : '') +
+      (stage === 4 && (spec.gradeRank || 3) >= 2 ? '<path d="M14 79Q79 59 146 79Q118 101 80 102Q41 102 14 79Z" fill="none" stroke="' + light + '" opacity=".7"/>' : '') +
       look(spec, stage).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
         '" stroke="' + (stroke || 'none') + '" stroke-width="' + width +
         '" stroke-linecap="round" stroke-linejoin="round" />').join('') +
@@ -10513,10 +10607,10 @@
 
   const paths = new Map();
   R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face) => {
-    const spec = CULT.sovereignCompanionSpec(speciesId);
+    const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec || typeof Path2D !== 'function') return false;
-    const [ink, mid, light, shine, gold] = art[spec.symbol].color;
-    const floating = spec.symbol === 'AZURE_DRAGON' || spec.symbol === 'VERMILION_PHOENIX';
+    const [ink, mid, light, shine, gold] = illustration(spec).color;
+    const floating = spec.symbol === 'AZURE_DRAGON' || spec.symbol === 'VERMILION_PHOENIX' || spec.familyId === 'KUNPENG';
     ctx.save();
     ctx.translate(x, y - (floating ? Math.sin(time * 2.1) * 3 + scale * 13 : 0));
     ctx.scale((face || 1) * scale, scale);
@@ -10525,7 +10619,7 @@
     ctx.lineCap = 'round';
     ctx.fillStyle = '#11182670';
     ctx.beginPath(); ctx.ellipse(80, 103, stage === 4 ? 60 : 48, 11, 0, 0, Math.PI * 2); ctx.fill();
-    if (stage >= 3) {
+    if (stage >= 3 && (spec.gradeRank || 3) >= 2) {
       const aura = ctx.createRadialGradient(80, 58, 8, 80, 58, 76);
       aura.addColorStop(0, mid + 'a8');
       aura.addColorStop(1, mid + '00');
@@ -10546,7 +10640,7 @@
       }
       if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(path); }
     }
-    if (stage === 4) {
+    if (stage === 4 && (spec.gradeRank || 3) === 3) {
       ctx.strokeStyle = light + 'b0';
       ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.ellipse(80, 102, 64, 12, 0, 0, Math.PI * 2); ctx.stroke();

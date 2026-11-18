@@ -687,6 +687,7 @@
     try {
       const SK = SKs(), ST = STs();
       const normTrigger = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(triggerKind) : triggerKind;
+      if (C.applyLineageCompanion) C.applyLineageCompanion(W, f, actor, target, normTrigger);
       if (C.processNewSovereignGear) C.processNewSovereignGear(W, f, actor, target, normTrigger);
       const aTac = C.ensureUnitTac(actor);
       if (actor.cult && g.MARTIAL && g.MARTIAL.passiveStats) {
@@ -2188,7 +2189,8 @@
             const fs = pt.fourSymbol || (CULT.FOUR_SYMBOL_BLOODLINES && CULT.FOUR_SYMBOL_BLOODLINES[pt.bloodlineTrait] ? pt.bloodlineTrait : null);
             const awkMult = fs ? 1.45 : (pt.sovereignAwakened ? 1.25 : 1.0);
             const pMult = (0.18 + 0.035 * (pt.tier || 1) + 0.012 * (pt.level || 1)) * awkMult * sh;
-            assistM += pMult;
+            const lineage = CULT.lineageCompanionSpec(pt.speciesId);
+            assistM += pMult * (lineage ? C.lineageAssistPower(lineage, C.unitDist(a, d), d, W.t) : 1);
             if (pt.role === 'VENOM_SWARM' || pt.role === 'VENOM_STALKER') hasVenom = true;
             if (fs === 'WHITE_TIGER') hasWhiteTiger = true;
             if (fs === 'VERMILION_PHOENIX') hasPhoenix = true;
@@ -2198,7 +2200,7 @@
             const prevFat = pt.fatigue || 0;
             pt.fatigue = clamp(prevFat + 1.2, 0, 100);
             if ((prevFat < 90 && pt.fatigue >= 90) || (prevFat < 95 && pt.fatigue >= 95)) ST.dirty(a);
-            if (pt.exp >= (pt.level || 1) * 25 && (pt.level || 1) < 9) {
+            if (!CULT.isCuratedCompanion(pt) && pt.exp >= (pt.level || 1) * 25 && (pt.level || 1) < 9) {
               pt.level = (pt.level || 1) + 1;
               if (!pt.sovereignAwakened && !pt.fourSymbol) pt.growthStage = Math.min(3, Math.max(1, Math.ceil(pt.level / 3)));
               ST.dirty(a);
@@ -7871,7 +7873,7 @@
     if (!pending) visualProcs.set(actor, pending = new Map());
     pending.set(kind, { kind, t: W.t, x: target.x, y: target.y, originX: actor.x, originY: actor.y,
       gear: gear && { id: gear.id, currentForm: gear.currentForm, awakeningStage: gear.awakeningStage,
-        element: gear.element, secondaryElement: gear.secondaryElement } });
+        element: gear.element, secondaryElement: gear.secondaryElement, gradeRank:gear.gradeRank, nameTh:gear.nameTh } });
   };
 
   // 2. Persistent Battlefield Dao-Scars (max 3 active scars per arena)
@@ -8068,6 +8070,76 @@
     }
     C.noteTranscendentVisual(W, attacker, 'arsenal', defender || attacker);
     return { escortHits, digestedCount: wpn.digestedFamilies.length };
+  };
+
+  const lineageDisruptions = new Set(['slow','chill','blind','fear','weaken','exposed','armorbreak','silence','root','stun']);
+  const lightDisruptions = new Set(['slow','chill','blind','fear']);
+  const inflictedEffects = (unit, time, category) =>
+    (unit.sx || []).filter(sx => sx && sx.until > time && category.has(sx.k));
+
+  C.lineageAssistPower = (spec, distance, target, time) => {
+    if (!spec) return 1;
+    if (spec.familyId === 'KUNPENG') return distance >= 2.8 ? 1 + spec.impact * .34 : .56;
+    if (spec.familyId === 'FOX') return inflictedEffects(target, time, lineageDisruptions).length ? 1 + spec.impact * .19 : .72;
+    return spec.familyId === 'QILIN' ? .81 : .66;
+  };
+
+  C.applyLineageCompanion = (W, fight, actor, opponent, trigger) => {
+    if (!fight || !actor?.pets?.length || (trigger !== 'onHit' && trigger !== 'onStruck')) return null;
+    const ST = g.STATS;
+    const candidates = CULT.activePets(actor).filter(p =>
+      (p.growthStage || 1) >= 2 && p.hunger >= 30 && p.fatigue < 84 && CULT.lineageCompanionSpec(p.speciesId));
+    if (!candidates.length) return null;
+    const cds = C.ensureUnitTac(actor).procCds;
+    for (const pet of candidates) {
+      const spec = CULT.lineageCompanionSpec(pet.speciesId);
+      const offense = spec.familyId === 'KUNPENG' || spec.familyId === 'FOX';
+      if (offense !== (trigger === 'onHit') || (cds['lineage_' + spec.familyId] || 0) > W.t) continue;
+      const rank = spec.gradeRank, maturity = (pet.growthStage || 1) / 4;
+      let recipient;
+      if (offense) {
+        if (!opponent || !C.alive(opponent)) continue;
+        const fits = spec.familyId === 'KUNPENG'
+          ? C.unitDist(actor, opponent) >= 2.8
+          : inflictedEffects(opponent, W.t, lineageDisruptions).length > 0;
+        if (!fits) continue;
+        recipient = opponent;
+        if (spec.familyId === 'KUNPENG') {
+          ST.addStatus(opponent, 'slow', Math.ceil((3 + rank * 2) * maturity), null, W.t);
+          if (rank === 3 && maturity === 1) ST.addStatus(opponent, 'exposed', 5, null, W.t);
+        } else {
+          ST.addStatus(opponent, 'blind', Math.ceil((3 + rank * 2) * maturity), null, W.t);
+          if (rank === 3 && maturity === 1) ST.addStatus(opponent, 'weaken', 5, null, W.t);
+        }
+      } else {
+        const nearby = [actor, ...C.alliesOf(W, fight, actor.id).filter(unit =>
+          unit !== actor && !unit.foe && C.alive(unit) && C.unitDist(actor, unit) <= 4.2)];
+        if (spec.familyId === 'QILIN') {
+          const injured = nearby.map(unit => [unit, C.hp(unit) / Math.max(1, C.hpMax(unit))])
+            .filter(([unit, hp]) => hp <= .65 && !ST.has(unit, 'shield', W.t)).sort((a,b) => a[1] - b[1]);
+          recipient = injured[0]?.[0];
+          if (!recipient) continue;
+          ST.addStatus(recipient, 'shield', 6 + rank * 2, {
+            amt:Math.max(1, Math.round(C.hpMax(recipient) * [.07,.13,.22][rank - 1] * maturity))
+          }, W.t);
+        } else {
+          const statuses = rank === 1 ? lightDisruptions : lineageDisruptions;
+          const affected = nearby.map(unit => [unit, inflictedEffects(unit, W.t, statuses)])
+            .filter(([, effects]) => effects.length).sort((a,b) => b[1].length - a[1].length);
+          recipient = affected[0]?.[0];
+          if (!recipient) continue;
+          const selected = affected[0][1].slice(0, rank === 3 && maturity === 1 ? 2 : 1);
+          ST.clearStatus(recipient, sx => selected.includes(sx));
+          if (rank >= 2 && ST.applyNamedBuff) ST.applyNamedBuff(recipient, 'clarityLotus', rank === 3 ? 9 : 5, W.t);
+        }
+      }
+      cds['lineage_' + spec.familyId] = W.t + spec.cooldown;
+      pet.fatigue = Math.min(100, (pet.fatigue || 0) + spec.fatigue);
+      ST.dirty(actor);
+      C.noteTranscendentVisual(W, actor, 'lineage_' + spec.familyId, recipient, spec);
+      return { familyId:spec.familyId, grade:spec.grade, recipientId:recipient.id };
+    }
+    return null;
   };
 
   C.processNewSovereignGear = (W, f, actor, target, trigger) => {

@@ -12674,6 +12674,43 @@
     { id:'PET_TR_BLACK_TORTOISE', symbol:'BLACK_TORTOISE', nameTh:'เต่าดำภูผาราตรี', directionTh:'อุดร',
       eggTh:'ไข่เต่าดำแห่งบ่อหินจันทรา', eggDays:12, sanctum:beast, family:'SHELL_GUARDIAN', element:'YIN_SHADOW', role:'IRON_GUARDIAN', tier:3, cp:105 }
   ];
+  // These are living inheritances, distinct from the wild species that inspire them.
+  const lineageGrades = [
+    { grade:'Apex', gradeTh:'T7 ขั้นสูงสุด', impact:.62, fatigue:3, cooldown:18, scale:.81, cp:112 },
+    { grade:'Legendary', gradeTh:'ตำนาน', impact:.83, fatigue:6, cooldown:25, scale:.98, cp:132 },
+    { grade:'Transcendent', gradeTh:'เหนือตำนาน', impact:1.0, fatigue:10, cooldown:34, scale:1.21, cp:160 }
+  ];
+  const lineage = (familyId, familyTh, sanctum, role, family, element, forms, focusTh, drawbackTh, traits) =>
+    forms.map(([nameTh, descTh], i) => ({
+      ...lineageGrades[i], id:'PET_LINEAGE_' + familyId + '_' + (i + 1), familyId, familyTh, sanctum,
+      role, family, element, nameTh, descTh, focusTh, drawbackTh, traits, gradeRank:i + 1, tier:3,
+      eggDays:familyId === 'KUNPENG' ? [4,7,12][i] : 0,
+      eggTh:familyId === 'KUNPENG' ? 'ไข่ของ' + nameTh : '',
+      obtainSources:[sanctum + ':LINEAGE_' + lineageGrades[i].grade.toUpperCase()]
+    }));
+
+  JD.CORE.lineageCompanions = [
+    ...lineage('KUNPENG', 'คุนเผิง', abyss, 'MOUNT_CHARGER', 'AVIAN', 'WIND', [
+      ['เผิงปีกคลื่นคราม', 'ออกแรงสั้น ๆ ได้บ่อย เหมาะกับการไล่ตามศัตรูที่อยู่ไกล'],
+      ['คุนเผิงทะเลเมฆ', 'ปีกใหญ่สร้างลมกดศัตรู ทำให้เสียความเร็วช่วงสั้น'],
+      ['คุนเผิงแบกนภา', 'เงาปลาคุนปรากฏใต้ปีก ยิ่งมีที่ให้ร่อน ยิ่งช่วยเปิดแนวได้แรง']
+    ], 'โจมตีสนับสนุนจากระยะห่าง 2.8 ช่องขึ้นไป', 'ระยะประชิดแรงสนับสนุนลดลงและไม่ปล่อยลม', {move:7,eva:4,def:-.05}),
+    ...lineage('FOX', 'จิ้งจอกเก้าหาง', astral, 'MYSTIC_SUPPORT', 'CANINE', 'YIN_SHADOW', [
+      ['จิ้งจอกเก้าหางแพรหมอก', 'หางเล็กคล้ายพู่ไหม โจมตีซ้ำจังหวะศัตรูชะงักได้บ่อย'],
+      ['จิ้งจอกเก้าหางกระจกจันทร์', 'หางเงินแตกเป็นเงาจันทร์ ทำให้เป้าหมายที่เสียจังหวะมองผิดทิศ'],
+      ['จิ้งจอกเก้าหางจันทร์คราส', 'หางเก้าสายโอบจันทร์ดำ ย้ำภาพลวงจนเป้าหมายเสียทั้งสายตาและกำลัง']
+    ], 'ต่อยอดเมื่อศัตรูมีผลเสียอยู่แล้ว', 'ไม่มีภาพลวงพิเศษเมื่อศัตรูยังไม่เสียจังหวะ และตัวคู่หูช่วยป้องกันกายได้น้อย', {matk:.07,cast:4,def:-.04}),
+    ...lineage('QILIN', 'กิเลน', beast, 'IRON_GUARDIAN', 'UNGULATE', 'WOOD_LIFE', [
+      ['กิเลนกีบหยก', 'รับแนวหน้าและกางม่านเล็ก เมื่อสหายเริ่มเสียเปรียบ'],
+      ['กิเลนเกล็ดเมฆาทอง', 'เกล็ดทองพยุงม่านได้นานขึ้น เหมาะกับคณะเดินทางที่เจอศึกหนัก'],
+      ['กิเลนพิทักษ์ชีพจรแผ่นดิน', 'มงกุฎกิ่งหยกส่งปราณลงพื้น กางม่านใหญ่ให้ผู้บาดเจ็บที่สุด']
+    ], 'คุ้มกันผู้บาดเจ็บใกล้ตัวหลังผู้เลี้ยงโดนโจมตี', 'ม่านไม่ซ้อนกับโล่เดิม และช่วยไล่ล่าศัตรูได้ช้า', {def:.08,hp:.04,move:-4}),
+    ...lineage('BAIZE', 'ไป๋เจ๋อ', vajra, 'MYSTIC_SUPPORT', 'CHIMERA', 'LIGHT_YANG', [
+      ['ไป๋เจ๋อตาขาวอ่านลม', 'แยกพิรุธได้ทีละอย่าง เหมาะกับศึกที่มีผลรบกวนเบา ๆ'],
+      ['ไป๋เจ๋อผู้จารึกนามอสูร', 'ขนขาวแต้มลายอักขระ ช่วยผู้รับผลรบกวนฟื้นสมาธิ'],
+      ['ไป๋เจ๋อจักษุสารพัดภพ', 'ดวงตารอบเรือนกายอ่านทั้งร่องรอยและคำสาป ชะล้างผลเสียได้สองอย่างในจังหวะเดียว']
+    ], 'อ่านและล้างผลรบกวนของสหายใกล้ตัว', 'เสริมการโจมตีโดยตรงได้น้อย และไม่มีผลชะล้างเมื่อทีมยังปกติ', {mdef:.08,acc:5,atk:-.05})
+  ];
   JD.TECH.transcendentCodices = [].concat(JD.TECH.sovereignCombatArts, JD.TECH.sovereignMantras, JD.TECH.sovereignNonCombatArts);
   JD.TECH.transcendentArts = JD.TECH.transcendentCodices;
 

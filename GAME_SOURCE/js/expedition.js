@@ -286,10 +286,19 @@
     }
     const mounts = [];
     let hasPhoenixMount = false, hasAzureDragonMount = false;
+    let fastestMount = 1;
     for (const n of members) {
       const pets = (Array.isArray(n.pets) ? n.pets : []).concat(n.pet ? [n.pet] : []);
-      const pet = pets.find(p => p && p.active !== false && !p.dead && !p.injured && (p.fatigue || 0) < 95 && ((p.role === 'MOUNT_CHARGER') || p.family === 'AVIAN' || p.family === 'UNGULATE' || p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON'));
+      const pet = pets.find(p => {
+        if (!p || p.active === false || p.dead || p.injured || (p.fatigue || 0) >= 95) return false;
+        const lineage = CULT.lineageCompanionSpec(p.speciesId);
+        if (lineage) return lineage.familyId === 'KUNPENG' && p.growthStage >= 3 && p.hunger >= 38 && p.fatigue < 75;
+        return p.role === 'MOUNT_CHARGER' || p.family === 'AVIAN' || p.family === 'UNGULATE' ||
+          p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON';
+      });
       if (pet) {
+        const lineage = CULT.lineageCompanionSpec(pet.speciesId);
+        fastestMount = Math.min(fastestMount, lineage ? [.83, .75, .69][lineage.gradeRank - 1] : .75);
         if (pet.fourSymbol === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'VERMILION_PHOENIX') hasPhoenixMount = true;
         if (pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'AZURE_DRAGON') hasAzureDragonMount = true;
         mounts.push({ ownerId: n.id, uid: pet.uid || pet.id || null, nameTh: pet.nameTh || 'พาหนะวิญญาณ', role: pet.role || null, family: pet.family || null, fourSymbol: pet.fourSymbol || null, tier: pet.tier || 1 });
@@ -306,7 +315,7 @@
     const applyQinggongToTrip = opts.useQinggong === true || (opts.useQinggong !== false && CULT && CULT.QINGGONG && members.some(m => CULT.QINGGONG.hasExplicitWorldQinggong(m)));
     const hasDragonShipNav = members.some(m => m && m.cult && (m.cult.sub === 'DRAGON_SHIP_NAVIGATOR' || m.cult.path === 'TIDE_VOYAGER'));
     const hasPocketArch = members.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT');
-    const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : (hasMount ? 0.75 : 1);
+    const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : fastestMount;
     const mountCapMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
     const navDurFactor = (isWaterRoute && hasDragonShipNav) ? (members.some(m => m && m.cult && m.cult.sub === 'DRAGON_SHIP_NAVIGATOR') ? 0.82 : 0.90) : 1;
     const rawDurMult = applyQinggongToTrip ? mountDurMult * qgBonus.durationMultiplier : mountDurMult;

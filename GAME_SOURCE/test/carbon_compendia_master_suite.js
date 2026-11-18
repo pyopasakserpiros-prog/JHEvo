@@ -426,4 +426,104 @@ console.log('===================================================================
   console.log('PASS four rare companions, three eggs, one rescued cub, food and bonding gates, all growth stages and save replay');
 }
 
+
+// New lineages offer three earned grades with conditional support instead of globally stronger copies.
+{
+  const { EXPLORE:EX, STATS:ST } = G;
+  const families = new Set(JD.CORE.lineageCompanions.map(sp => sp.familyId));
+  assert.equal(families.size, 4);
+  assert.equal(JD.CORE.lineageCompanions.length, 12);
+  const castImages = new Set();
+  for (const family of families) {
+    const variants = JD.CORE.lineageCompanions.filter(spec => spec.familyId === family);
+    assert.deepEqual(variants.map(v => v.gradeRank), [1,2,3]);
+    const W = SIM.create('lineages-' + family);
+    const a = W.byId[W.sect.masterId], [enemy, ally] = W.npcs.filter(n => n.id !== a.id);
+    a.cult.stage = 8;
+    W.day = 450;
+    W.t = W.day * 1440;
+    ST.now = W.t;
+    const oldChance = W.rng.chance.bind(W.rng);
+    W.rng.chance = chance => [.34,.17,.075].includes(chance) || (chance !== .30 && oldChance(chance));
+    const sanctumId = variants[0].sanctum;
+    const run = inputs => EX.resolveSanctum(W, { id:W.day, journal:[], sanctumId, forceClear:true, ...inputs }, [a]);
+    const days = number => { for(let d=0; d<number; d++){ W.day++; W.t += 1440; CULT.tickSovereignNursery(W); } };
+    assert.equal(run({ maxFloor:1 }).lineageEncounter, null, 'requires meaningful sanctum progress');
+
+    for (const spec of variants) {
+      const out = run(spec.gradeRank === 1 ? { maxFloor:2 } : {});
+      assert.equal(out.lineageEncounter.id, spec.id);
+      assert.equal(out.lineageEncounter.grade, spec.grade);
+      assert.equal(CULT.recoverLineageCompanion(W, spec, [a]), false);
+      assert.equal(run().lineageEncounter, null, 'discovery cannot repeat or bypass a pending nursery record');
+      ECO.add(W,'grain',spec.eggDays + 30);
+      days(Math.max(1,spec.eggDays));
+      const animal = W.npcs.flatMap(n=>n.pets || []).find(p=>p.speciesId === spec.id);
+      assert.ok(animal);
+      assert.equal(animal.growthStage, 1);
+      assert.equal(animal.grade, spec.grade);
+      assert.equal(CULT.evolvePet(W, W.byId[animal.ownerId], animal.uid, { free:true }).ok, false);
+      if (family === 'KUNPENG' || family === 'QILIN') {
+        const keeper = W.byId[animal.ownerId];
+        const active = keeper.pets.map(p => p.active);
+        keeper.pets.forEach(p => { p.active = p === animal; });
+        const trip = () => G.EXPED.createParty(W, [keeper], { useQinggong:false });
+        assert.equal(trip().durationMultiplier, 1);
+        Object.assign(animal, { growthStage:3, hunger:90, fatigue:0 });
+        assert.equal(trip().durationMultiplier, family === 'KUNPENG' ? [.83,.75,.69][spec.gradeRank - 1] : 1);
+        animal.growthStage = 1;
+        keeper.pets.forEach((p, index) => { p.active = active[index]; });
+      }
+      castImages.add(Render.sovereignCompanionSvg(spec.id, 4));
+      days(12);
+    }
+
+    const spec = variants[2];
+    const pet = W.npcs.flatMap(n=>n.pets || []).find(p=>p.speciesId === spec.id);
+    const owner = W.byId[pet.ownerId];
+    assert.ok(owner && owner !== enemy && owner !== ally);
+    owner.pets.forEach(p => { p.active = p === pet; });
+    Object.assign(pet, { growthStage:4, level:9, tier:7, hunger:90, fatigue:0, bond:94 });
+    owner.x=20; owner.y=20;
+    ally.x=20; ally.y=21; enemy.x=21; enemy.y=20;
+    ST.now = W.t;
+    const fight = { id:family, state:'fight', A:[owner.id,ally.id], B:[enemy.id] };
+
+    if (family === 'KUNPENG') {
+      assert.equal(COMBAT.applyLineageCompanion(W, fight, owner, enemy, 'onHit'), null);
+      enemy.x=24;
+      assert.ok(COMBAT.applyLineageCompanion(W, fight, owner, enemy, 'onHit'));
+      assert.ok(ST.has(enemy,'slow',W.t));
+      assert.ok(COMBAT.lineageAssistPower(spec, 4, enemy, W.t) > COMBAT.lineageAssistPower(spec, 1, enemy, W.t));
+    } else if (family === 'FOX') {
+      enemy.sx=[];
+      assert.equal(COMBAT.applyLineageCompanion(W, fight, owner, enemy, 'onHit'), null);
+      ST.addStatus(enemy,'chill',10,null,W.t);
+      assert.ok(COMBAT.applyLineageCompanion(W, fight, owner, enemy, 'onHit'));
+      assert.ok(ST.has(enemy,'blind',W.t) && ST.has(enemy,'weaken',W.t));
+    } else if (family === 'QILIN') {
+      COMBAT.setHp(owner,COMBAT.hpMax(owner));
+      COMBAT.setHp(ally, Math.round(COMBAT.hpMax(ally) * .40));
+      const result=COMBAT.applyLineageCompanion(W, fight, owner, enemy, 'onStruck');
+      assert.equal(result?.recipientId, ally.id);
+      assert.ok(ST.has(ally,'shield',W.t));
+    } else {
+      ST.addStatus(ally,'blind',12,null,W.t);
+      ST.addStatus(ally,'slow',12,null,W.t);
+      assert.equal(COMBAT.applyLineageCompanion(W, fight, owner, enemy, 'onStruck')?.recipientId, ally.id);
+      assert.ok(!ST.has(ally,'blind',W.t) && !ST.has(ally,'slow',W.t));
+    }
+    assert.equal(pet.fatigue,spec.fatigue);
+    assert.equal(COMBAT.applyLineageCompanion(W, fight, owner, enemy, ['KUNPENG','FOX'].includes(family)?'onHit':'onStruck'), null);
+    const proc = COMBAT.transcendentVisualProcs(owner).get('lineage_' + family);
+    assert.equal(Render.transcendentProcSpec(proc).presentationRank,3);
+    assert.ok(variants[0].fatigue < spec.fatigue && variants[0].cooldown < spec.cooldown);
+    const loaded = SIM.deserialize(SIM.serialize(W));
+    assert.equal(loaded.sect.sovereignNursery[spec.id].uid,pet.uid);
+    assert.equal(loaded.byId[owner.id].pets.find(p=>p.uid===pet.uid).growthStage,4);
+  }
+  assert.equal(castImages.size,12);
+  console.log('PASS four companion lineages, three earned grades, all four specialties, cooldowns, art and save replay');
+}
+
 console.log('✅ ALL CARBON COMPENDIA MASTER SUITE CHECKS PASSED!');

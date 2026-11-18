@@ -381,6 +381,13 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .sovereign-pet-card svg { display: block; width: min(34vw, 126px); flex: none; }
 .sovereign-pet-card b { display: block; margin: 3px 0; }
 
+.sovereign-pet-card .companion-grade { color: #ffe5aa; font-size: 11px; font-weight: 700; }
+.sovereign-pet-card.rank-1 { border-color: #6e8c8e; }
+.sovereign-pet-card.rank-1 .companion-grade { color: #d0efe3; }
+.sovereign-pet-card.rank-2 { border-color: #ba9c61; }
+.sovereign-pet-card.rank-3 { border-color: #c191cf; box-shadow: inset 0 0 15px #a461c21d; }
+.sovereign-pet-card p { margin: 4px 0; font-size: 11.5px; }
+
 </style>
 </head>
 <body>
@@ -74607,6 +74614,43 @@ JD.ITEMS.items.forEach(it => {
     { id:'PET_TR_BLACK_TORTOISE', symbol:'BLACK_TORTOISE', nameTh:'เต่าดำภูผาราตรี', directionTh:'อุดร',
       eggTh:'ไข่เต่าดำแห่งบ่อหินจันทรา', eggDays:12, sanctum:beast, family:'SHELL_GUARDIAN', element:'YIN_SHADOW', role:'IRON_GUARDIAN', tier:3, cp:105 }
   ];
+  // These are living inheritances, distinct from the wild species that inspire them.
+  const lineageGrades = [
+    { grade:'Apex', gradeTh:'T7 ขั้นสูงสุด', impact:.62, fatigue:3, cooldown:18, scale:.81, cp:112 },
+    { grade:'Legendary', gradeTh:'ตำนาน', impact:.83, fatigue:6, cooldown:25, scale:.98, cp:132 },
+    { grade:'Transcendent', gradeTh:'เหนือตำนาน', impact:1.0, fatigue:10, cooldown:34, scale:1.21, cp:160 }
+  ];
+  const lineage = (familyId, familyTh, sanctum, role, family, element, forms, focusTh, drawbackTh, traits) =>
+    forms.map(([nameTh, descTh], i) => ({
+      ...lineageGrades[i], id:'PET_LINEAGE_' + familyId + '_' + (i + 1), familyId, familyTh, sanctum,
+      role, family, element, nameTh, descTh, focusTh, drawbackTh, traits, gradeRank:i + 1, tier:3,
+      eggDays:familyId === 'KUNPENG' ? [4,7,12][i] : 0,
+      eggTh:familyId === 'KUNPENG' ? 'ไข่ของ' + nameTh : '',
+      obtainSources:[sanctum + ':LINEAGE_' + lineageGrades[i].grade.toUpperCase()]
+    }));
+
+  JD.CORE.lineageCompanions = [
+    ...lineage('KUNPENG', 'คุนเผิง', abyss, 'MOUNT_CHARGER', 'AVIAN', 'WIND', [
+      ['เผิงปีกคลื่นคราม', 'ออกแรงสั้น ๆ ได้บ่อย เหมาะกับการไล่ตามศัตรูที่อยู่ไกล'],
+      ['คุนเผิงทะเลเมฆ', 'ปีกใหญ่สร้างลมกดศัตรู ทำให้เสียความเร็วช่วงสั้น'],
+      ['คุนเผิงแบกนภา', 'เงาปลาคุนปรากฏใต้ปีก ยิ่งมีที่ให้ร่อน ยิ่งช่วยเปิดแนวได้แรง']
+    ], 'โจมตีสนับสนุนจากระยะห่าง 2.8 ช่องขึ้นไป', 'ระยะประชิดแรงสนับสนุนลดลงและไม่ปล่อยลม', {move:7,eva:4,def:-.05}),
+    ...lineage('FOX', 'จิ้งจอกเก้าหาง', astral, 'MYSTIC_SUPPORT', 'CANINE', 'YIN_SHADOW', [
+      ['จิ้งจอกเก้าหางแพรหมอก', 'หางเล็กคล้ายพู่ไหม โจมตีซ้ำจังหวะศัตรูชะงักได้บ่อย'],
+      ['จิ้งจอกเก้าหางกระจกจันทร์', 'หางเงินแตกเป็นเงาจันทร์ ทำให้เป้าหมายที่เสียจังหวะมองผิดทิศ'],
+      ['จิ้งจอกเก้าหางจันทร์คราส', 'หางเก้าสายโอบจันทร์ดำ ย้ำภาพลวงจนเป้าหมายเสียทั้งสายตาและกำลัง']
+    ], 'ต่อยอดเมื่อศัตรูมีผลเสียอยู่แล้ว', 'ไม่มีภาพลวงพิเศษเมื่อศัตรูยังไม่เสียจังหวะ และตัวคู่หูช่วยป้องกันกายได้น้อย', {matk:.07,cast:4,def:-.04}),
+    ...lineage('QILIN', 'กิเลน', beast, 'IRON_GUARDIAN', 'UNGULATE', 'WOOD_LIFE', [
+      ['กิเลนกีบหยก', 'รับแนวหน้าและกางม่านเล็ก เมื่อสหายเริ่มเสียเปรียบ'],
+      ['กิเลนเกล็ดเมฆาทอง', 'เกล็ดทองพยุงม่านได้นานขึ้น เหมาะกับคณะเดินทางที่เจอศึกหนัก'],
+      ['กิเลนพิทักษ์ชีพจรแผ่นดิน', 'มงกุฎกิ่งหยกส่งปราณลงพื้น กางม่านใหญ่ให้ผู้บาดเจ็บที่สุด']
+    ], 'คุ้มกันผู้บาดเจ็บใกล้ตัวหลังผู้เลี้ยงโดนโจมตี', 'ม่านไม่ซ้อนกับโล่เดิม และช่วยไล่ล่าศัตรูได้ช้า', {def:.08,hp:.04,move:-4}),
+    ...lineage('BAIZE', 'ไป๋เจ๋อ', vajra, 'MYSTIC_SUPPORT', 'CHIMERA', 'LIGHT_YANG', [
+      ['ไป๋เจ๋อตาขาวอ่านลม', 'แยกพิรุธได้ทีละอย่าง เหมาะกับศึกที่มีผลรบกวนเบา ๆ'],
+      ['ไป๋เจ๋อผู้จารึกนามอสูร', 'ขนขาวแต้มลายอักขระ ช่วยผู้รับผลรบกวนฟื้นสมาธิ'],
+      ['ไป๋เจ๋อจักษุสารพัดภพ', 'ดวงตารอบเรือนกายอ่านทั้งร่องรอยและคำสาป ชะล้างผลเสียได้สองอย่างในจังหวะเดียว']
+    ], 'อ่านและล้างผลรบกวนของสหายใกล้ตัว', 'เสริมการโจมตีโดยตรงได้น้อย และไม่มีผลชะล้างเมื่อทีมยังปกติ', {mdef:.08,acc:5,atk:-.05})
+  ];
   JD.TECH.transcendentCodices = [].concat(JD.TECH.sovereignCombatArts, JD.TECH.sovereignMantras, JD.TECH.sovereignNonCombatArts);
   JD.TECH.transcendentArts = JD.TECH.transcendentCodices;
 
@@ -84025,6 +84069,7 @@ JD.ITEMS.items.forEach(it => {
   };
 
   const mythicSpecies = Object.fromEntries((JD.CORE.sovereignCompanions || []).map(spec => [spec.id, spec]));
+  const lineageSpecies = Object.fromEntries((JD.CORE.lineageCompanions || []).map(spec => [spec.id, spec]));
   const growthTitles = ['ไข่', 'วัยเยาว์', 'วัยฝึกพลัง', 'เติบโตเต็มวัย', 'จุติเต็มสี่ทิศ'];
   const milestones = [
     { days:20, bond:65, realm:4, tier:4, level:4 },
@@ -84034,9 +84079,15 @@ JD.ITEMS.items.forEach(it => {
   CULT.sovereignCompanionSpec = id => mythicSpecies[id] || null;
   CULT.sovereignCompanionStageTh = stage => growthTitles[stage] || growthTitles[1];
   CULT.isSovereignCompanion = pet => !!(pet && mythicSpecies[pet.speciesId]);
-
-  CULT.recoverSovereignCompanion = (W, spec, party) => {
-    if (!W?.sect || !mythicSpecies[spec?.id]) return false;
+  CULT.lineageCompanionSpec = id => Object.hasOwn(lineageSpecies, id) ? lineageSpecies[id] : null;
+  CULT.curatedCompanionSpec = id => CULT.sovereignCompanionSpec(id) || CULT.lineageCompanionSpec(id);
+  CULT.isCuratedCompanion = pet => !!(pet && CULT.curatedCompanionSpec(pet.speciesId));
+  CULT.recoverLineageCompanion = (W, spec, party) =>
+    CULT.lineageCompanionSpec(spec?.id) ? recoverCuratedCompanion(W, spec, party) : false;
+  CULT.recoverSovereignCompanion = (W, spec, party) =>
+    CULT.sovereignCompanionSpec(spec?.id) ? recoverCuratedCompanion(W, spec, party) : false;
+  function recoverCuratedCompanion(W, spec, party) {
+    if (!W?.sect) return false;
     const nursery = W.sect.sovereignNursery || (W.sect.sovereignNursery = {});
     if (nursery[spec.id]) return false;
     nursery[spec.id] = {
@@ -84045,7 +84096,7 @@ JD.ITEMS.items.forEach(it => {
       witnesses:party.filter(n => n && !n.dead).map(n => n.id)
     };
     return true;
-  };
+  }
 
   const chooseKeeper = (W, record) => {
     const paths = new Set(['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'SPIRIT_HUSBANDRY', 'WILDERNESS_RANGER']);
@@ -84056,10 +84107,34 @@ JD.ITEMS.items.forEach(it => {
       if (pets.filter(p => p && !p.dead).length >= CULT.maxActivePets(n) + CULT.maxReservePets(n)) continue;
       const affinity = (n.h?.skills?.BEAST_TAMING || 0) + HC.eff(n, 'personality.empathy') * .35;
       const score = affinity + (paths.has(n.cult.path) ? 22 : 0) + (record.witnesses.includes(n.id) ? 16 : 0)
-        - pets.filter(CULT.isSovereignCompanion).length * 30 - pets.length * 8;
+        - pets.filter(CULT.isCuratedCompanion).length * 30 - pets.length * 8;
       if (score > bestScore) { bestScore = score; best = n; }
     }
     return best;
+  };
+
+  const chooseLineageLoadout = n => {
+    if (n.act?.id === 'fight' || !(n.pets || []).some(p => p && CULT.lineageCompanionSpec(p.speciesId))) return;
+    const pets = n.pets.filter(p => p && !p.injured && !p.dead && p.hunger >= 38 && p.fatigue < 75);
+    const hp = n.h?.state?.hp / Math.max(1, CULT.hpMax(n));
+    const temperament = HC.eff(n, 'personality.caution');
+    const exploration = HC.eff(n, 'interests.exploring');
+    const study = HC.eff(n, 'intellect.comprehension');
+    const rank = p => {
+      const spec = CULT.lineageCompanionSpec(p.speciesId);
+      const wants = spec ? { KUNPENG:exploration, FOX:100-temperament, QILIN:hp < .70 ? 98 : temperament, BAIZE:study }[spec.familyId] : 48;
+      return (p.tier || 1) * 15 + (p.growthStage || 1) * 5 + (p.bond || 50) * .22 + wants * .3 -
+        (p.fatigue || 0) * .4 + (p.active ? 9 : 0);
+    };
+    const ready = pets.map(p => [p, rank(p)]).sort((a, b) => b[1] - a[1]);
+    const next = new Set(ready.slice(0, CULT.maxActivePets(n)).map(entry => entry[0]));
+    let changed = false;
+    for (const p of n.pets) {
+      if (!p || next.has(p) === !!p.active) continue;
+      p.active = next.has(p);
+      changed = true;
+    }
+    if (changed && g.STATS) g.STATS.dirty(n);
   };
 
   CULT.tickSovereignNursery = W => {
@@ -84068,7 +84143,7 @@ JD.ITEMS.items.forEach(it => {
     for (const record of Object.values(nursery)) {
       if (record.status === 'bonded' || record.lastProcessedDay >= W.day) continue;
       record.lastProcessedDay = W.day;
-      const spec = mythicSpecies[record.speciesId];
+      const spec = CULT.curatedCompanionSpec(record.speciesId);
       if (!spec) continue;
       const keeper = chooseKeeper(W, record);
       if (record.status === 'egg' && record.caredDays < spec.eggDays) {
@@ -84087,29 +84162,33 @@ JD.ITEMS.items.forEach(it => {
       });
       if (!result.ok) continue;
       const pet = result.pet;
-      pet.sovereignCompanion = true;
+      pet.sovereignCompanion = !!spec.symbol;
+      if (spec.grade) pet.grade = spec.grade;
       pet.careDays = 0;
       pet.lastGrowthDay = W.day;
       pet.growthStage = 1;
       record.status = 'bonded';
       record.uid = pet.uid;
-      W.log('craft', '✦ ' + HC.fullName(keeper) + ' รับดูแล「' + pet.nameTh + '」แห่งทิศ' + spec.directionTh, [keeper.id]);
+      W.log('craft', '✦ ' + HC.fullName(keeper) + ' รับดูแล「' + pet.nameTh + '」' + (spec.directionTh ? 'แห่งทิศ' + spec.directionTh : 'จากตระกูล' + spec.familyTh), [keeper.id]);
     }
 
     for (const n of W.npcs) {
       if (!n || n.dead || n.away || n.exiled || !n.cult || !Array.isArray(n.pets)) continue;
       for (const pet of n.pets) {
-        if (!CULT.isSovereignCompanion(pet) || pet.dead || pet.lastGrowthDay >= W.day || pet.growthStage >= 4) continue;
+        const spec = pet && CULT.curatedCompanionSpec(pet.speciesId);
+        if (!spec || pet.dead || pet.lastGrowthDay >= W.day || pet.growthStage >= 4) continue;
         pet.lastGrowthDay = W.day;
         if (pet.injured || pet.hunger < 55 || pet.fatigue > 75) continue;
         pet.careDays = (pet.careDays || 0) + 1;
         const next = milestones[(pet.growthStage || 1) - 1];
-        if (pet.careDays < next.days || pet.bond < next.bond || CULT.equivalentStage(n) < next.realm) continue;
+        const ageFactor = [1, .65, .82, 1][spec.gradeRank || 0];
+        const realm = Math.max(3, next.realm - (spec.gradeRank === 1 ? 1 : 0));
+        if (pet.careDays < Math.ceil(next.days * ageFactor) || pet.bond < next.bond || CULT.equivalentStage(n) < realm) continue;
         pet.growthStage++;
         pet.tier = next.tier;
         pet.level = next.level;
-        if (pet.growthStage === 4) {
-          pet.fourSymbol = mythicSpecies[pet.speciesId].symbol;
+        if (pet.growthStage === 4 && spec.symbol) {
+          pet.fourSymbol = spec.symbol;
           pet.sovereignAwakened = true;
         }
         CULT.ensurePets(n);
@@ -84117,8 +84196,9 @@ JD.ITEMS.items.forEach(it => {
         HC.bump(n);
         if (g.STATS) g.STATS.dirty(n);
         W.log('cultivation', '✦ 「' + pet.nameTh + '」ของ ' + HC.fullName(n) + ' เข้าสู่ระยะ' +
-          CULT.sovereignCompanionStageTh(pet.growthStage), [n.id]);
+          (spec.gradeRank && pet.growthStage === 4 ? 'ร่างสมบูรณ์' : CULT.sovereignCompanionStageTh(pet.growthStage)), [n.id]);
       }
+      chooseLineageLoadout(n);
     }
   };
 
@@ -84138,7 +84218,7 @@ JD.ITEMS.items.forEach(it => {
 
   CULT.beastSpeciesById = id => {
     if (!CULT._speciesById) CULT.allBeastSpecies();
-    return CULT.sovereignCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
+    return CULT.curatedCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
   };
 
   CULT.inferSpeciesFamily = sp => {
@@ -84230,7 +84310,7 @@ JD.ITEMS.items.forEach(it => {
         p.trait = 'SOVEREIGN_AWAKENED';
         p.sovereignAwakened = true;
         p.growthStage = 4;
-      } else if (!CULT.isSovereignCompanion(p)) {
+      } else if (!CULT.isCuratedCompanion(p)) {
         p.growthStage = Math.min(3, Math.max(1, Math.ceil((p.level || 1) / 3)));
       }
       if (p.injured && p.active) p.active = false;
@@ -84370,6 +84450,14 @@ JD.ITEMS.items.forEach(it => {
           if (tr.critAdd) f.crit = (f.crit || 0) + tr.critAdd * w;
           if (tr.penAdd) f.pen = (f.pen || 0) + tr.penAdd * w;
         }
+        const lineage = CULT.lineageCompanionSpec(pet.speciesId);
+        if (lineage) {
+          const factor = w * lineage.impact * (.48 + (pet.growthStage || 1) * .13);
+          for (const [stat, amount] of Object.entries(lineage.traits)) {
+            const lane = ['move','cast','acc','eva'].includes(stat) ? f : p;
+            lane[stat] = (lane[stat] || 0) + amount * factor;
+          }
+        }
         if (pet.mechArmored) {
           p.def = (p.def || 0) + 0.06 * w;
           f.pen = (f.pen || 0) + 4 * w;
@@ -84437,7 +84525,7 @@ JD.ITEMS.items.forEach(it => {
     const sp = CULT.beastSpeciesById(spId) || (typeof speciesOrBeast === 'object' ? speciesOrBeast : null) || (CULT.allBeastSpecies && CULT.allBeastSpecies()[0]);
     if (!sp) return { ok: false, reason: 'ไม่พบสายพันธุ์สัตว์อสูร: ' + spId };
 
-    if (CULT.sovereignCompanionSpec(sp.id) && (opts.provenance !== 'sovereign_sanctum' ||
+    if (CULT.curatedCompanionSpec(sp.id) && (opts.provenance !== 'sovereign_sanctum' ||
         W?.sect?.sovereignNursery?.[sp.id]?.status !== 'juvenile' || W.sect.sovereignNursery[sp.id].uid)) {
       return { ok:false, reason:'สายพันธุ์นี้ผูกพันธสัญญาได้จากกรุวิหารเท่านั้น' };
     }
@@ -84569,7 +84657,7 @@ JD.ITEMS.items.forEach(it => {
     if (!npc || !Array.isArray(npc.pets)) return { ok: false, reason: 'ไม่มีสัตว์อสูรคู่สัญญา' };
     const pet = petUid ? npc.pets.find(p => p && p.uid === petUid) : npc.pets[0];
     if (!pet) return { ok: false, reason: 'ไม่พบสัตว์อสูรเป้าหมาย' };
-    if (CULT.isSovereignCompanion(pet)) return { ok:false, reason:'อสูรจตุรทิศเติบโตจากการดูแลและสายสัมพันธ์ตามวัย' };
+    if (CULT.isCuratedCompanion(pet)) return { ok:false, reason:'สัตว์คู่หูสายพิเศษเติบโตจากการดูแลและสายสัมพันธ์ตามวัย' };
     if (!opts.free) {
       const stoneCost = (pet.tier || 1) * 80;
       if ((npc.inv && npc.inv.stones || 0) >= stoneCost) {
@@ -84646,7 +84734,7 @@ JD.ITEMS.items.forEach(it => {
       return { ok: false, reason: "สัตว์อสูรเหนื่อยล้าเกินไป ควรให้พักผ่อนก่อน" };
     }
 
-    if (CULT.isSovereignCompanion(parentA) || CULT.isSovereignCompanion(parentB)) return { ok:false, reason:'สัตว์เทพจตุรทิศไม่มีสายเพาะพันธุ์ซ้ำ' };
+    if (CULT.isCuratedCompanion(parentA) || CULT.isCuratedCompanion(parentB)) return { ok:false, reason:'สัตว์คู่หูสายพิเศษไม่เกิดซ้ำจากการเพาะพันธุ์' };
     const breeder = opts.breederId && W.byId && W.byId[opts.breederId] ? W.byId[opts.breederId] : (parentA.ownerId && W.byId[parentA.ownerId] ? W.byId[parentA.ownerId] : null);
     const tamingSk = (breeder && g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(breeder, "BEAST_TAMING") : (breeder && breeder.h && breeder.h.skills ? (breeder.h.skills.BEAST_TAMING || 0) : 30);
 
@@ -84799,7 +84887,7 @@ JD.ITEMS.items.forEach(it => {
     }
     if (!pet && npc && Array.isArray(npc.pets) && npc.pets.length) pet = npc.pets[0];
     if (!pet) return { ok: false, reason: 'pet-not-found', reasonTh: 'ไม่พบสัตว์อสูรเป้าหมาย' };
-    if (CULT.isSovereignCompanion(pet)) return { ok:false, reason:'requires-natural-growth', reasonTh:'อสูรจตุรทิศต้องเติบโตตามวัยก่อนจุติ' };
+    if (CULT.isCuratedCompanion(pet)) return { ok:false, reason:'requires-natural-growth', reasonTh:'สัตว์คู่หูสายพิเศษต้องเติบโตตามวัย' };
     if (pet.fourSymbol && FOUR_SYMBOL_BLOODLINES[pet.fourSymbol] && !opts.allowReawaken) {
       return { ok: false, reason: 'already-awakened-four-symbol', reasonTh: 'สัตว์อสูรตนนี้ปลุกสายเลือดสัตว์เทพจตุรทิศแล้ว (' + FOUR_SYMBOL_BLOODLINES[pet.fourSymbol].nameTh + ')' };
     }
@@ -116816,6 +116904,7 @@ JD.ITEMS.items.forEach(it => {
     try {
       const SK = SKs(), ST = STs();
       const normTrigger = (SK && SK.normalizeTrigger) ? SK.normalizeTrigger(triggerKind) : triggerKind;
+      if (C.applyLineageCompanion) C.applyLineageCompanion(W, f, actor, target, normTrigger);
       if (C.processNewSovereignGear) C.processNewSovereignGear(W, f, actor, target, normTrigger);
       const aTac = C.ensureUnitTac(actor);
       if (actor.cult && g.MARTIAL && g.MARTIAL.passiveStats) {
@@ -118317,7 +118406,8 @@ JD.ITEMS.items.forEach(it => {
             const fs = pt.fourSymbol || (CULT.FOUR_SYMBOL_BLOODLINES && CULT.FOUR_SYMBOL_BLOODLINES[pt.bloodlineTrait] ? pt.bloodlineTrait : null);
             const awkMult = fs ? 1.45 : (pt.sovereignAwakened ? 1.25 : 1.0);
             const pMult = (0.18 + 0.035 * (pt.tier || 1) + 0.012 * (pt.level || 1)) * awkMult * sh;
-            assistM += pMult;
+            const lineage = CULT.lineageCompanionSpec(pt.speciesId);
+            assistM += pMult * (lineage ? C.lineageAssistPower(lineage, C.unitDist(a, d), d, W.t) : 1);
             if (pt.role === 'VENOM_SWARM' || pt.role === 'VENOM_STALKER') hasVenom = true;
             if (fs === 'WHITE_TIGER') hasWhiteTiger = true;
             if (fs === 'VERMILION_PHOENIX') hasPhoenix = true;
@@ -118327,7 +118417,7 @@ JD.ITEMS.items.forEach(it => {
             const prevFat = pt.fatigue || 0;
             pt.fatigue = clamp(prevFat + 1.2, 0, 100);
             if ((prevFat < 90 && pt.fatigue >= 90) || (prevFat < 95 && pt.fatigue >= 95)) ST.dirty(a);
-            if (pt.exp >= (pt.level || 1) * 25 && (pt.level || 1) < 9) {
+            if (!CULT.isCuratedCompanion(pt) && pt.exp >= (pt.level || 1) * 25 && (pt.level || 1) < 9) {
               pt.level = (pt.level || 1) + 1;
               if (!pt.sovereignAwakened && !pt.fourSymbol) pt.growthStage = Math.min(3, Math.max(1, Math.ceil(pt.level / 3)));
               ST.dirty(a);
@@ -124000,7 +124090,7 @@ JD.ITEMS.items.forEach(it => {
     if (!pending) visualProcs.set(actor, pending = new Map());
     pending.set(kind, { kind, t: W.t, x: target.x, y: target.y, originX: actor.x, originY: actor.y,
       gear: gear && { id: gear.id, currentForm: gear.currentForm, awakeningStage: gear.awakeningStage,
-        element: gear.element, secondaryElement: gear.secondaryElement } });
+        element: gear.element, secondaryElement: gear.secondaryElement, gradeRank:gear.gradeRank, nameTh:gear.nameTh } });
   };
 
   // 2. Persistent Battlefield Dao-Scars (max 3 active scars per arena)
@@ -124197,6 +124287,76 @@ JD.ITEMS.items.forEach(it => {
     }
     C.noteTranscendentVisual(W, attacker, 'arsenal', defender || attacker);
     return { escortHits, digestedCount: wpn.digestedFamilies.length };
+  };
+
+  const lineageDisruptions = new Set(['slow','chill','blind','fear','weaken','exposed','armorbreak','silence','root','stun']);
+  const lightDisruptions = new Set(['slow','chill','blind','fear']);
+  const inflictedEffects = (unit, time, category) =>
+    (unit.sx || []).filter(sx => sx && sx.until > time && category.has(sx.k));
+
+  C.lineageAssistPower = (spec, distance, target, time) => {
+    if (!spec) return 1;
+    if (spec.familyId === 'KUNPENG') return distance >= 2.8 ? 1 + spec.impact * .34 : .56;
+    if (spec.familyId === 'FOX') return inflictedEffects(target, time, lineageDisruptions).length ? 1 + spec.impact * .19 : .72;
+    return spec.familyId === 'QILIN' ? .81 : .66;
+  };
+
+  C.applyLineageCompanion = (W, fight, actor, opponent, trigger) => {
+    if (!fight || !actor?.pets?.length || (trigger !== 'onHit' && trigger !== 'onStruck')) return null;
+    const ST = g.STATS;
+    const candidates = CULT.activePets(actor).filter(p =>
+      (p.growthStage || 1) >= 2 && p.hunger >= 30 && p.fatigue < 84 && CULT.lineageCompanionSpec(p.speciesId));
+    if (!candidates.length) return null;
+    const cds = C.ensureUnitTac(actor).procCds;
+    for (const pet of candidates) {
+      const spec = CULT.lineageCompanionSpec(pet.speciesId);
+      const offense = spec.familyId === 'KUNPENG' || spec.familyId === 'FOX';
+      if (offense !== (trigger === 'onHit') || (cds['lineage_' + spec.familyId] || 0) > W.t) continue;
+      const rank = spec.gradeRank, maturity = (pet.growthStage || 1) / 4;
+      let recipient;
+      if (offense) {
+        if (!opponent || !C.alive(opponent)) continue;
+        const fits = spec.familyId === 'KUNPENG'
+          ? C.unitDist(actor, opponent) >= 2.8
+          : inflictedEffects(opponent, W.t, lineageDisruptions).length > 0;
+        if (!fits) continue;
+        recipient = opponent;
+        if (spec.familyId === 'KUNPENG') {
+          ST.addStatus(opponent, 'slow', Math.ceil((3 + rank * 2) * maturity), null, W.t);
+          if (rank === 3 && maturity === 1) ST.addStatus(opponent, 'exposed', 5, null, W.t);
+        } else {
+          ST.addStatus(opponent, 'blind', Math.ceil((3 + rank * 2) * maturity), null, W.t);
+          if (rank === 3 && maturity === 1) ST.addStatus(opponent, 'weaken', 5, null, W.t);
+        }
+      } else {
+        const nearby = [actor, ...C.alliesOf(W, fight, actor.id).filter(unit =>
+          unit !== actor && !unit.foe && C.alive(unit) && C.unitDist(actor, unit) <= 4.2)];
+        if (spec.familyId === 'QILIN') {
+          const injured = nearby.map(unit => [unit, C.hp(unit) / Math.max(1, C.hpMax(unit))])
+            .filter(([unit, hp]) => hp <= .65 && !ST.has(unit, 'shield', W.t)).sort((a,b) => a[1] - b[1]);
+          recipient = injured[0]?.[0];
+          if (!recipient) continue;
+          ST.addStatus(recipient, 'shield', 6 + rank * 2, {
+            amt:Math.max(1, Math.round(C.hpMax(recipient) * [.07,.13,.22][rank - 1] * maturity))
+          }, W.t);
+        } else {
+          const statuses = rank === 1 ? lightDisruptions : lineageDisruptions;
+          const affected = nearby.map(unit => [unit, inflictedEffects(unit, W.t, statuses)])
+            .filter(([, effects]) => effects.length).sort((a,b) => b[1].length - a[1].length);
+          recipient = affected[0]?.[0];
+          if (!recipient) continue;
+          const selected = affected[0][1].slice(0, rank === 3 && maturity === 1 ? 2 : 1);
+          ST.clearStatus(recipient, sx => selected.includes(sx));
+          if (rank >= 2 && ST.applyNamedBuff) ST.applyNamedBuff(recipient, 'clarityLotus', rank === 3 ? 9 : 5, W.t);
+        }
+      }
+      cds['lineage_' + spec.familyId] = W.t + spec.cooldown;
+      pet.fatigue = Math.min(100, (pet.fatigue || 0) + spec.fatigue);
+      ST.dirty(actor);
+      C.noteTranscendentVisual(W, actor, 'lineage_' + spec.familyId, recipient, spec);
+      return { familyId:spec.familyId, grade:spec.grade, recipientId:recipient.id };
+    }
+    return null;
   };
 
   C.processNewSovereignGear = (W, f, actor, target, trigger) => {
@@ -124568,10 +124728,19 @@ JD.ITEMS.items.forEach(it => {
     }
     const mounts = [];
     let hasPhoenixMount = false, hasAzureDragonMount = false;
+    let fastestMount = 1;
     for (const n of members) {
       const pets = (Array.isArray(n.pets) ? n.pets : []).concat(n.pet ? [n.pet] : []);
-      const pet = pets.find(p => p && p.active !== false && !p.dead && !p.injured && (p.fatigue || 0) < 95 && ((p.role === 'MOUNT_CHARGER') || p.family === 'AVIAN' || p.family === 'UNGULATE' || p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON'));
+      const pet = pets.find(p => {
+        if (!p || p.active === false || p.dead || p.injured || (p.fatigue || 0) >= 95) return false;
+        const lineage = CULT.lineageCompanionSpec(p.speciesId);
+        if (lineage) return lineage.familyId === 'KUNPENG' && p.growthStage >= 3 && p.hunger >= 38 && p.fatigue < 75;
+        return p.role === 'MOUNT_CHARGER' || p.family === 'AVIAN' || p.family === 'UNGULATE' ||
+          p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON';
+      });
       if (pet) {
+        const lineage = CULT.lineageCompanionSpec(pet.speciesId);
+        fastestMount = Math.min(fastestMount, lineage ? [.83, .75, .69][lineage.gradeRank - 1] : .75);
         if (pet.fourSymbol === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'VERMILION_PHOENIX') hasPhoenixMount = true;
         if (pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'AZURE_DRAGON') hasAzureDragonMount = true;
         mounts.push({ ownerId: n.id, uid: pet.uid || pet.id || null, nameTh: pet.nameTh || 'พาหนะวิญญาณ', role: pet.role || null, family: pet.family || null, fourSymbol: pet.fourSymbol || null, tier: pet.tier || 1 });
@@ -124588,7 +124757,7 @@ JD.ITEMS.items.forEach(it => {
     const applyQinggongToTrip = opts.useQinggong === true || (opts.useQinggong !== false && CULT && CULT.QINGGONG && members.some(m => CULT.QINGGONG.hasExplicitWorldQinggong(m)));
     const hasDragonShipNav = members.some(m => m && m.cult && (m.cult.sub === 'DRAGON_SHIP_NAVIGATOR' || m.cult.path === 'TIDE_VOYAGER'));
     const hasPocketArch = members.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT');
-    const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : (hasMount ? 0.75 : 1);
+    const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : fastestMount;
     const mountCapMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
     const navDurFactor = (isWaterRoute && hasDragonShipNav) ? (members.some(m => m && m.cult && m.cult.sub === 'DRAGON_SHIP_NAVIGATOR') ? 0.82 : 0.90) : 1;
     const rawDurMult = applyQinggongToTrip ? mountDurMult * qgBonus.durationMultiplier : mountDurMult;
@@ -140806,7 +140975,7 @@ JD.ITEMS.items.forEach(it => {
           : (cPath === 'GOD' || cPath === 'DEMON')
             ? 'SANCTUM_ASTRAL_DIVINE'
             : 'SANCTUM_SWORD_ABYSS';
-      EX.departSanctum(W, party, sId);
+      EX.departSanctum(W, party, EX.chooseLineageSanctum(W, party, sId));
       return true;
     }
     if (pick === 'nine_dao_pagoda') {
@@ -141135,6 +141304,67 @@ JD.ITEMS.items.forEach(it => {
     entry.obtainSources = [EX.sovereignSanctumSource(entry) + ':SOVEREIGN_ARCHIVE'];
   }
 
+  const lineageGates = [
+    null,
+    { elapsed:0, floor:2, stage:4, odds:.34 },
+    { elapsed:30, floor:3, stage:5, odds:.17 },
+    { elapsed:80, floor:3, stage:7, odds:.075 }
+  ];
+  const lineageBySite = new Map();
+  for (const spec of JD.CORE.lineageCompanions || []) {
+    const entries = lineageBySite.get(spec.sanctum) || [];
+    entries.push(spec);
+    lineageBySite.set(spec.sanctum, entries);
+  }
+  const nextLineage = (W, siteId, stages, cleared) => {
+    const known = W.sect.sovereignNursery;
+    const entries = lineageBySite.get(siteId) || [];
+    for (const [i, spec] of entries.entries()) {
+      if (known?.[spec.id]) continue;
+      if (i > 0 && known?.[entries[i - 1].id]?.status !== 'bonded') return null;
+      const gate = lineageGates[spec.gradeRank];
+      if (W.day < 360 + gate.elapsed || cleared < gate.floor) return null;
+      const qualified = stages.some(s => s >= gate.stage) ||
+        (spec.gradeRank === 3 && stages.filter(s => s >= 6).length >= 2);
+      return qualified ? spec : null;
+    }
+    return null;
+  };
+
+  EX.chooseLineageSanctum = (W, party, familiarSite) => {
+    const lead = party[0];
+    const stages = party.map(CULT.equivalentStage);
+    if (!stages.some(s => s >= 4)) return familiarSite;
+    const adventurous = HC.eff(lead, 'interests.exploring') / 100;
+    const choices = [{ id:familiarSite, weight:1.8 }];
+    for (const [id] of lineageBySite) {
+      if (!EX.SANCTUMS[id]) continue;
+      const entry = nextLineage(W, id, stages, EX.SANCTUMS[id].floors.length);
+      if (!entry || (W.explore?.sanctums?.lineageClues?.[id] || 0) > W.day) continue;
+      const relation = entry.familyId === 'QILIN' ? 'personality.empathy' :
+        entry.familyId === 'BAIZE' ? 'intellect.comprehension' : 'personality.courage';
+      const wish = HC.eff(lead, relation) / 100;
+      choices.push({ id, weight:.28 + adventurous * .52 + wish * .48 });
+    }
+    return choices.length === 1 ? familiarSite : W.rng.weighted(choices, x => x.weight).id;
+  };
+
+  EX.findSanctumLineage = (W, sc, party, out) => {
+    if (out.failedFloor || out.sovereignArchive?.kind === 'companion' || !party.length) return null;
+    const witnesses = party.filter(n => n && !n.dead && !n.exiled && n.cult);
+    const spec = nextLineage(W, sc.id, witnesses.map(CULT.equivalentStage), out.floorsCleared);
+    if (!spec || (out.retreated && spec.gradeRank > 1)) return null;
+    const state = EX.ensureSanctums(W);
+    const cooldowns = state.lineageClues || (state.lineageClues = {});
+    if (W.day < (cooldowns[sc.id] || 0) || !W.rng.chance(lineageGates[spec.gradeRank].odds)) return null;
+    if (!CULT.recoverLineageCompanion(W, spec, witnesses)) return null;
+    cooldowns[sc.id] = W.day + 12;
+    const details = { id:spec.id, kind:'companion', grade:spec.grade, nameTh:spec.eggTh || spec.nameTh, sanctumId:sc.id };
+    W.log('explore', '✦ คณะสำรวจพบ「' + details.nameTh + '」สายสัตว์' + spec.gradeTh +
+      ' ในเขตพักพิงแห่ง' + sc.nameTh, witnesses.map(n => n.id));
+    return details;
+  };
+
   EX.findSovereignArchive = (W, sc, party, out) => {
     if (out.retreated || out.floorsCleared !== sc.floors.length || W.day < 400) return null;
     const qualified = party.filter(n => n && !n.dead && !n.exiled && n.cult);
@@ -141322,6 +141552,8 @@ JD.ITEMS.items.forEach(it => {
     if (out.sovereignArchive) {
       ex.journal.push('✦ กรุด่านลึกสุด: ' + out.sovereignArchive.nameTh);
     }
+    out.lineageEncounter = EX.findSanctumLineage(W, sc, alive, out);
+    if (out.lineageEncounter) ex.journal.push('✦ พบสัตว์คู่หู: ' + out.lineageEncounter.nameTh);
     out.rep = out.floorsCleared * 1.5;
     ex.done = true;
     ex.out = out;
@@ -141347,6 +141579,7 @@ JD.ITEMS.items.forEach(it => {
       catalysts: Object.assign({}, out.catalysts),
       bonusReward: out.bonusReward,
       sovereignArchive: out.sovereignArchive,
+      lineageEncounter: out.lineageEncounter,
       floorLogs: out.floorLogs
     });
     if (sState.history.length > 20) sState.history.length = 20;
@@ -176770,7 +177003,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const transcendentFull = new Set();
       for (const f of candidates) {
         if (transcendentFull.size >= sceneLimit) break;
-        if (!f.transcendent || sceneOwners.has(f.ownerId)) continue;
+        if (!f.transcendent || (f.transcendent.presentationRank || 3) < 3 || sceneOwners.has(f.ownerId)) continue;
         transcendentFull.add(f);
         sceneOwners.add(f.ownerId);
       }
@@ -180043,12 +180276,13 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const face = n.face >= 0 ? 1 : -1;
       const px = -face * 10.5;
       const py = 1.5 + Math.sin(t * 4.2) * 0.9;
-      const sovereign = pets.filter(CULT.isSovereignCompanion);
+      const sovereign = pets.filter(CULT.isCuratedCompanion);
       if (sovereign.length) {
         const cap = this.resolveQuality() === 'low' ? 1 : 2;
         sovereign.slice(0, cap).forEach((companion, i) => {
           const stage = companion.growthStage || 1;
-          const size = [0, .12, .20, .31, .49][stage] * (i ? .72 : 1);
+          const lineage = CULT.lineageCompanionSpec(companion.speciesId);
+          const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
           R.drawSovereignCompanion(ctx, companion.speciesId, stage,
             -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face);
         });
@@ -183884,6 +184118,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     forge: ['anvil', '#fff1b8', '#fb6740', '#cbb6ff', 'ทัณฑ์สวรรค์โรงหลอม'],
     stillWind: ['fan', '#ddfff0', '#299885', '#ffe8c8', 'พัดบัญชาลมเงียบ'],
     horizon: ['robe', '#bcfff3', '#33916a', '#edffb0', 'ม่านพรานเลียบขอบฟ้า'],
+    lineage_KUNPENG: ['wings','#caf9ff','#3676c5','#fbdf9c','คุนเผิงโฉบข้ามกระแสลม'],
+    lineage_FOX: ['eclipse','#f4daff','#7045b1','#ffd4b3','เก้าหางลวงจันทร์'],
+    lineage_QILIN: ['gate','#ebffd3','#368b69','#ffe29c','ม่านกิเลน'],
+    lineage_BAIZE: ['eye','#fff3d9','#7670b9','#fff1a1','ไป๋เจ๋ออ่านรอยอาคม'],
     heron: ['wings', '#d3fbff', '#5d84d5', '#f6fcaf', 'พักปีกเหนือผิวน้ำ'],
     awaken: ['stone', '#e0fcff', '#8f79ef', '#ffebb8', 'ตราบรรพชนตื่นรู้']
   };
@@ -183966,7 +184204,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     if (!proc) return null;
     const [key, light, ink, accent, name] = proc;
     const art = event.gear && R.transcendentArt(event.gear);
-    return art && event.kind === 'awaken' ? { ...art, name } : { key, light, ink, accent, name };
+    return art && event.kind === 'awaken' ? { ...art, name }
+      : { key, light, ink, accent, name, presentationRank:event.gear?.gradeRank || 3 };
   };
 
   R.methods.queueTranscendentCast = function(key, actor, event, art) {
@@ -183986,7 +184225,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     this.castActive.set(key, {
       ownerId: actor.id, transcendent: art, transcendentKind: event.kind, verse: event.sovereignVerse,
       x, y, originX, originY, angle: Math.atan2(y - originY, x - originX), recipients,
-      start: this.castClock, life: 3000
+      start: this.castClock, life: [0, 1100, 1820, 3000][art.presentationRank || 3]
     });
   };
 
@@ -184113,7 +184352,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     const release = Math.max(0, Math.min(1, (p - 0.43) / 0.28));
     const after = Math.max(0, (p - 0.69) / 0.31);
     const dormant = art.regalia && art.stage === 0;
-    const radius = full ? (dormant ? 68 : reduced ? 95 : 114 + Math.min(4, (fx.verse || 1) - 1) * 4) : 43;
+    const rank = art.presentationRank || 3;
+    const radius = full ? (dormant ? 68 : reduced ? 95 : 114 + Math.min(4, (fx.verse || 1) - 1) * 4) : [0,31,64,43][rank];
     const energy = ignition * (1 - after);
     const spin = reduced ? 0 : p * 1.7 * (fx.transcendentKind === 'rewind' ? -1 : 1);
     const theta = Number.isFinite(fx.angle) ? fx.angle : 0;
@@ -184269,7 +184509,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   };
 
   R.methods.drawTranscendentCutIn = function(ctx) {
-    const fx = [...this.castActive.values()].reverse().find(f => f.transcendent &&
+    const fx = [...this.castActive.values()].reverse().find(f => f.transcendent && (f.transcendent.presentationRank || 3) === 3 &&
       this.castClock - f.start > f.life * .13 && this.castClock - f.start < f.life * .56);
     if (!fx || !fx.transcendent.name || this.vw < 240 || this.vh < 320) return;
     const art = fx.transcendent, width = Math.min(this.vw - 32, 408);
@@ -184352,8 +184592,79 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       insignia:'M10 89Q40 113 76 103Q109 103 147 89M14 95Q43 118 81 107Q125 110 152 91M11 36q2-18 18-20'
     }
   };
+  const lineageArt = {
+    KUNPENG: {
+      colors:[
+        ['#183b50','#34758a','#73c7cd','#d8faf2','#e0d2ae'],
+        ['#16394e','#39759e','#7bd6ec','#e1ffff','#f8dc9f'],
+        ['#18233d','#4554a8','#6dd9fd','#eefdff','#ffe0a0']
+      ],
+      young:'M80 36Q103 21 131 24L116 34 146 33 130 47 147 52Q123 59 106 63L96 76 107 92 85 88 77 101 66 91 52 96 64 72Q37 61 17 55L29 49 13 37 40 41 23 26Q61 24 80 36Z',
+      body:'M77 37Q57 19 14 14L21 25 40 35 9 29 19 41 33 46 5 46 23 60 7 60 33 69 26 75 59 73 69 67 61 82 45 94 65 89 76 105 89 89 106 97 94 79 92 69 106 60 133 66 150 59 142 55 160 48 149 42 157 36 129 39 151 22 158 9Q112 15 94 34L84 22 75 23 67 30Z',
+      shade:'M24 26Q53 26 74 45L83 37 93 45Q116 28 148 19L128 39 103 56 94 59 91 75 84 83 81 99 75 83 66 88 73 69 58 62 42 64 17 56 39 57 25 49 48 53 23 39 43 43Z',
+      accents:'M71 34 80 22 89 28 95 36 84 33 81 38Z M76 39 83 35 89 41 81 48Z M55 68l19-6-6 10Z M109 62 95 57 99 64Z M112 32l-12 15 18-10Z M47 36l17 14-21-8Z',
+      detail:'M16 48Q43 49 59 60M25 57L56 64M145 42Q126 49 113 55M135 54l-24 6M53 42l14 10m26 2 17-13M73 80l7-6 7 7m-5-39 5 2m-4-10 2 0',
+      crest:'M74 29 71 16 77 20 81 9 87 17 87 24 93 20 90 32Z M20 23l-8-18 18 11 7 9Z M131 29l15-16 13-5-12 20Z',
+      crown:'M17 55Q46 78 71 52Q96 19 130 25Q114 31 112 40L153 32Q151 44 115 65Q99 81 93 89L121 97Q98 108 75 93Q51 97 36 92L53 84Q32 75 17 55Z',
+      insignia:'M11 80Q42 101 75 91Q106 83 151 80M15 97Q50 112 97 106Q133 100 152 88M9 29Q35 10 55 13M109 14Q138 1 153 9'
+    },
+    FOX: {
+      colors:[
+        ['#4b2c43','#93617e','#e8a5aa','#fff1eb','#ffceb7'],
+        ['#3c2f5a','#7f74ac','#c5bdff','#fff1fd','#ffdbad'],
+        ['#281e49','#61459f','#c1a5ff','#fff4fd','#ffda99']
+      ],
+      young:'M35 78Q25 57 36 47Q49 35 72 49L87 47 97 25 103 15 119 36 135 20 137 49 148 58 139 73 121 78 114 96 97 97 102 80 91 78 74 86 70 98 55 97 56 82Z',
+      body:'M33 76Q22 54 41 43Q62 36 81 46L92 44 100 30 102 6 120 32 139 12 143 38 139 48 154 55 146 67 127 75 121 94 116 101 100 99 104 87 109 75 96 75 79 86 75 98 58 100 58 91 61 84 48 78 39 89 24 92 24 84Z',
+      shade:'M34 67Q42 46 62 42Q81 44 91 49L107 48 117 35 133 37 138 47 151 55 132 60 115 62 102 68 85 69 70 80 58 75 48 71Q44 70 34 77Z',
+      accents:'M108 21l8 14-9 4Z M135 26l-2 11 7 4Z M117 48l7-2 7 4-7 3Z M143 54l10 1-5 5Z M115 63l15-2-9 8Z M75 55Q55 49 44 57L55 61 70 59Z',
+      detail:'M117 54l3 2m5 12 10-3m-24 25 8 0m-54 2 8-1M101 55Q93 64 85 66M111 43l5-4',
+      crest:'M113 39 119 29 124 40 126 25 132 33 134 46 123 51Z',
+      crown:'M94 71Q109 30 82 9Q102 5 110 22Q125 49 100 77Z',
+      insignia:'M12 76Q45 105 101 96Q139 91 153 64M9 46Q32 20 72 17M71 17q-7 10-3 14'
+    },
+    QILIN: {
+      colors:[
+        ['#1f473c','#4d8a63','#90d6a5','#e8ffce','#fcc778'],
+        ['#314437','#729159','#e0dc81','#fff5c2','#ffd272'],
+        ['#153733','#2a866c','#8ceac0','#f0ffcc','#ffdb88']
+      ],
+      young:'M25 76 16 67 23 60 33 62Q49 51 72 55L90 50 99 31 108 25 117 30 127 22 133 38 145 47 136 58 120 58 114 70 114 91 118 99 103 99 100 88 90 76 73 78 72 96 57 100 56 88 59 79 43 77 38 91 24 94Z',
+      body:'M15 72Q2 66 9 53L12 43 17 51 24 48 21 61 30 64Q48 44 75 46L91 43 100 25 105 21 111 7 115 21 126 18 134 6 134 23 138 38 154 47 145 57 133 59 121 54 114 63 112 74 112 92 118 99 115 102 98 101 96 94 98 76 88 73 76 79 70 101 56 102 54 95 60 87 60 76 45 75 39 85 40 94 29 97 21 90 25 82Z',
+      shade:'M33 64Q46 46 72 49L91 51 99 43 106 24 116 25 120 35 131 31 139 45 150 48 138 52 127 48 117 50 113 62 100 70 82 67 72 73 48 73 38 69Z',
+      accents:'M117 43l9-6 7 6-8 4Z M101 53l13-9-5 16-5 4Z M92 54l8 6-10 6-6-6Z M77 53l7 6-6 6-9-5Z M62 53l7 6-7 6-9-5Z M49 56l7 7-9 5-6-7Z M104 91l9 0 3 8-12 0Z M58 94l12 0-4 6-12 0Z M24 87l12-3 2 7-11 2Z',
+      detail:'M146 51l-8 2m-26-31-9 8m-25 33-12 4m14 7 10-4m16 1 6-5M18 58q2 7 8 9m91-22 7 0',
+      crest:'M100 28 91 24 88 13 79 5 85 5 95 15 93 7 97 2 100 14 106 18 107 29Z M123 30 129 15 140 7 143 7 141 15 135 23 142 19 148 20 139 27 129 34Z',
+      crown:'M77 62 73 40 66 31 71 26 74 34 82 38 87 29 85 21 93 22 98 37 91 59 84 65Z M120 90 128 75 138 65 132 82 124 94Z M28 95l-7-19 13 8 7 12Z',
+      insignia:'M13 91Q51 99 79 97Q113 93 146 77M13 99Q75 114 144 88M47 9q10 7 16 23m60-26q-5 8-5 16'
+    },
+    BAIZE: {
+      colors:[
+        ['#303748','#7f8a9d','#d8e1da','#fff9e2','#dbf5db'],
+        ['#303054','#717797','#b9d7e0','#f9f5dd','#ffe0a0'],
+        ['#24223e','#596898','#dfd9fc','#fff8df','#ffe3ac']
+      ],
+      young:'M19 69Q8 58 12 49L25 51 27 64Q50 39 85 39L99 42 103 25 110 18 116 30 128 28 135 18 140 31 136 43 152 53 142 69 127 74 118 93 102 96 100 88 103 75 84 79 75 95 57 94 60 81 39 80 30 95 17 93 18 83Z',
+      body:'M12 62Q2 55 5 46Q15 43 18 53L23 64 34 62Q57 40 81 43L97 40 99 23 104 13 113 27 123 24 129 6 137 4 141 14 134 31 143 41 154 44 159 53 150 68 139 65 127 76 124 93 129 99 113 104 101 96 104 79 92 80 85 91 81 103 64 103 61 96 64 85 50 80 45 91 45 99 30 101 25 93 32 79 20 75Z',
+      shade:'M15 67Q29 64 43 53 70 37 96 48L107 45 109 32 123 29 137 41 150 46 153 51 146 58 132 56 118 65 98 64 81 70 66 72 49 73 32 79Z',
+      accents:'M98 44l8-11 11 8-7 14Z M119 46l8-7 11 5-11 6Z M148 51l9 0-4 5Z M99 58l12 3-7 14-10 1Z M124 61l14 4-13 9-7 1Z M48 58q9-8 19 1-9 9-19-1Z M75 54q8-8 17 0-8 8-17 0Z',
+      detail:'M45 62q10 7 24 2m7-8 3-2m12 19q5-4 10-5m24-23 4 0m16 14-7 1m-16 32 7 1m-61-2 8 0m-48-1 7-1',
+      crest:'M100 34 94 25 91 12 96 6 104 17 108 33Z M125 34l1-13 7-14 7-4 0 15-9 18Z',
+      crown:'M32 66 21 48 31 34 45 32 57 23 68 24 76 19 89 28 96 29 99 43 91 57 78 63 67 56 52 60 41 58Z',
+      insignia:'M16 33Q77 -4 145 30M9 69Q22 95 54 103M109 101Q145 89 154 69M44 14l5 8m22-13 3 9m25-8-1 8'
+    }
+  };
+  const illustration = spec => {
+    if (spec.symbol) return art[spec.symbol];
+    const form = lineageArt[spec.familyId];
+    return form && { ...form, color:form.colors[spec.gradeRank - 1] };
+  };
+  const foxTail = (i, grade, stage) => {
+    const h = 21 + i * 6.6, spread = stage === 1 ? 17 : 27, reach = 31 + Math.sin(i * .45) * spread;
+    return `M52 75Q${reach} ${h + 22} ${7 + i * 2} ${h}Q${28 + i * 3} ${h - 13 - 2 * grade} ${reach + 18} ${h + 19}L55 75Z`;
+  };
   const look = (spec, stage) => {
-    const p = art[spec.symbol];
+    const p = illustration(spec);
     const [ink, mid, light, shine, gold] = p.color;
     if (stage === 0) {
       return [
@@ -184363,6 +184674,22 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         ['M83 27 88 34 83 41 78 34Z M95 75 99 81 95 87 91 81Z', gold, null, 0]
       ];
     }
+    if (spec.familyId) {
+      const rank = spec.gradeRank;
+      const layers = [];
+      if (stage >= 3 && rank >= 2) layers.push([p.insignia, null, gold, rank === 3 ? 2.6 : 1.3]);
+      if (stage >= 3 && rank === 3) layers.push([p.crown, ink, light, 1.65]);
+      if (spec.familyId === 'FOX') {
+        for (let i = 0; i < (stage === 1 ? 3 : 9); i++) {
+          layers.push([foxTail(i, rank, stage), i % 2 ? mid : light, i % 3 ? ink : gold, stage === 1 ? 1.7 : 1.25]);
+        }
+      }
+      layers.push([stage === 1 ? p.young : p.body, mid, ink, 2.8]);
+      if (stage > 1) layers.push([p.shade, light, null, 0], [p.detail, null, rank === 1 ? ink : gold, 1.15]);
+      layers.push([p.accents, shine, ink, 1.25]);
+      if (stage >= 3 || rank >= 2 && stage >= 2) layers.push([p.crest, mid, rank === 1 ? ink : gold, 1.5]);
+      return layers;
+    }
     if (stage === 1) {
       const eyes = { AZURE_DRAGON:'M112 34l6-2 3 4-6 2Z', VERMILION_PHOENIX:'M88 29l5 2-4 3-4-2Z',
         WHITE_TIGER:'M119 44l5-3 4 5-5 2Z M138 53l7 1-4 5Z',
@@ -184370,19 +184697,19 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       return [[p.young, mid, ink, 3.2], [eyes[spec.symbol], shine, ink, 1.25]];
     }
     const layers = [];
-    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 ? 2.3 : 1.05]);
+    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 && (spec.gradeRank || 3) >= 2 ? 2.3 : 1.05]);
     if (stage === 4) layers.push([p.crown, mid, shine, 1.75]);
     layers.push([p.body, mid, ink, stage === 1 ? 4.2 : 3.3], [p.shade, light, null, 0],
       [p.accents, stage === 1 ? light : shine, ink, 1.35], [p.detail, null, stage >= 3 ? gold : ink, 1.3]);
     return layers;
   };
   R.sovereignCompanionSvg = (speciesId, stage) => {
-    const spec = CULT.sovereignCompanionSpec(speciesId);
+    const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec) return '';
-    const [ink, mid, light, shine, gold] = art[spec.symbol].color;
+    const [ink, mid, light, shine, gold] = illustration(spec).color;
     return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
       '<ellipse cx="80" cy="96" rx="57" ry="9" fill="' + ink + '" opacity=".52"/>' +
-      (stage === 4 ? '<path d="M14 79Q79 59 146 79Q118 101 80 102Q41 102 14 79Z" fill="none" stroke="' + light + '" opacity=".7"/>' : '') +
+      (stage === 4 && (spec.gradeRank || 3) >= 2 ? '<path d="M14 79Q79 59 146 79Q118 101 80 102Q41 102 14 79Z" fill="none" stroke="' + light + '" opacity=".7"/>' : '') +
       look(spec, stage).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
         '" stroke="' + (stroke || 'none') + '" stroke-width="' + width +
         '" stroke-linecap="round" stroke-linejoin="round" />').join('') +
@@ -184392,10 +184719,10 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
 
   const paths = new Map();
   R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face) => {
-    const spec = CULT.sovereignCompanionSpec(speciesId);
+    const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec || typeof Path2D !== 'function') return false;
-    const [ink, mid, light, shine, gold] = art[spec.symbol].color;
-    const floating = spec.symbol === 'AZURE_DRAGON' || spec.symbol === 'VERMILION_PHOENIX';
+    const [ink, mid, light, shine, gold] = illustration(spec).color;
+    const floating = spec.symbol === 'AZURE_DRAGON' || spec.symbol === 'VERMILION_PHOENIX' || spec.familyId === 'KUNPENG';
     ctx.save();
     ctx.translate(x, y - (floating ? Math.sin(time * 2.1) * 3 + scale * 13 : 0));
     ctx.scale((face || 1) * scale, scale);
@@ -184404,7 +184731,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     ctx.lineCap = 'round';
     ctx.fillStyle = '#11182670';
     ctx.beginPath(); ctx.ellipse(80, 103, stage === 4 ? 60 : 48, 11, 0, 0, Math.PI * 2); ctx.fill();
-    if (stage >= 3) {
+    if (stage >= 3 && (spec.gradeRank || 3) >= 2) {
       const aura = ctx.createRadialGradient(80, 58, 8, 80, 58, 76);
       aura.addColorStop(0, mid + 'a8');
       aura.addColorStop(1, mid + '00');
@@ -184425,7 +184752,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       }
       if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(path); }
     }
-    if (stage === 4) {
+    if (stage === 4 && (spec.gradeRank || 3) === 3) {
       ctx.strokeStyle = light + 'b0';
       ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.ellipse(80, 102, 64, 12, 0, 0, Math.PI * 2); ctx.stroke();
@@ -190829,7 +191156,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
           const maxP = CULT.maxActivePets ? CULT.maxActivePets(n) : 1;
           const actP = CULT.activePets ? CULT.activePets(n) : pList.filter(p => p && p.active);
           h += '<h3>🐾 สัตว์อสูรพันธสัญญา & สถิตร่างอสูร (' + actP.length + '/' + maxP + ' ตัวที่ออกรบ · ทั้งหมด ' + pList.length + ' ตัว)</h3><div class="card">' + pList.map(p => {
-            if (CULT.isSovereignCompanion(p)) return UI.sovereignCompanionCard(p.speciesId, p.growthStage || 1,
+            if (CULT.isCuratedCompanion(p)) return UI.sovereignCompanionCard(p.speciesId, p.growthStage || 1,
               'ดูแลแล้ว ' + (p.careDays || 0) + ' วัน · ผูกพัน ' + Math.round(p.bond || 0) + '% · ' +
               (p.active ? 'ร่วมทาง' : p.injured ? 'พักฟื้น' : 'สำรอง'));
             const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
@@ -192247,19 +192574,24 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   };
 
   UI.sovereignCompanionCard = (speciesId, stage, note) => {
-    const spec = CULT.sovereignCompanionSpec(speciesId);
+    const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec || !g.Render?.sovereignCompanionSvg) return '';
-    return '<div class="sovereign-pet-card">' + g.Render.sovereignCompanionSvg(speciesId, stage) +
-      '<div><span class="transcendent-badge-6star">✦ เหนือตำนาน · ทิศ' + esc(spec.directionTh) + '</span><b>' +
+    const rank = spec.gradeRank || 3;
+    const grade = spec.gradeTh || 'เหนือตำนาน';
+    const stageTh = spec.gradeRank && stage === 4 ? 'ร่างสมบูรณ์' : CULT.sovereignCompanionStageTh(stage);
+    const details = spec.focusTh && stage > 0 ? '<p>' + esc(spec.descTh) + '</p><div class="muted">' +
+      esc(spec.focusTh) + '</div><div class="muted">' + esc(spec.drawbackTh) + '</div>' : '';
+    return '<div class="sovereign-pet-card rank-' + rank + '">' + g.Render.sovereignCompanionSvg(speciesId, stage) +
+      '<div><span class="companion-grade">' + esc(grade + ' · ' + (spec.directionTh ? 'ทิศ' + spec.directionTh : spec.familyTh)) + '</span><b>' +
       esc(stage === 0 ? spec.eggTh : spec.nameTh) + '</b><div class="muted">' +
-      esc(CULT.sovereignCompanionStageTh(stage)) + (note ? ' · ' + esc(note) : '') + '</div></div></div>';
+      esc(stageTh) + (note ? ' · ' + esc(note) : '') + '</div>' + details + '</div></div>';
   };
 
   const nurseryCards = W => {
     const pending = Object.values(W.sect.sovereignNursery || {}).filter(r => r.status !== 'bonded');
     if (!pending.length) return '';
-    return '<h3>คอกอนุบาลสัตว์เทพสี่ทิศ</h3>' + pending.map(rec => {
-      const spec = CULT.sovereignCompanionSpec(rec.speciesId);
+    return '<h3>คอกอนุบาลสัตว์คู่หู</h3>' + pending.map(rec => {
+      const spec = CULT.curatedCompanionSpec(rec.speciesId);
       if (!spec) return '';
       const egg = rec.status === 'egg';
       return UI.sovereignCompanionCard(spec.id, egg ? 0 : 1,

@@ -7408,6 +7408,7 @@
   };
 
   const mythicSpecies = Object.fromEntries((JD.CORE.sovereignCompanions || []).map(spec => [spec.id, spec]));
+  const lineageSpecies = Object.fromEntries((JD.CORE.lineageCompanions || []).map(spec => [spec.id, spec]));
   const growthTitles = ['ไข่', 'วัยเยาว์', 'วัยฝึกพลัง', 'เติบโตเต็มวัย', 'จุติเต็มสี่ทิศ'];
   const milestones = [
     { days:20, bond:65, realm:4, tier:4, level:4 },
@@ -7417,9 +7418,15 @@
   CULT.sovereignCompanionSpec = id => mythicSpecies[id] || null;
   CULT.sovereignCompanionStageTh = stage => growthTitles[stage] || growthTitles[1];
   CULT.isSovereignCompanion = pet => !!(pet && mythicSpecies[pet.speciesId]);
-
-  CULT.recoverSovereignCompanion = (W, spec, party) => {
-    if (!W?.sect || !mythicSpecies[spec?.id]) return false;
+  CULT.lineageCompanionSpec = id => Object.hasOwn(lineageSpecies, id) ? lineageSpecies[id] : null;
+  CULT.curatedCompanionSpec = id => CULT.sovereignCompanionSpec(id) || CULT.lineageCompanionSpec(id);
+  CULT.isCuratedCompanion = pet => !!(pet && CULT.curatedCompanionSpec(pet.speciesId));
+  CULT.recoverLineageCompanion = (W, spec, party) =>
+    CULT.lineageCompanionSpec(spec?.id) ? recoverCuratedCompanion(W, spec, party) : false;
+  CULT.recoverSovereignCompanion = (W, spec, party) =>
+    CULT.sovereignCompanionSpec(spec?.id) ? recoverCuratedCompanion(W, spec, party) : false;
+  function recoverCuratedCompanion(W, spec, party) {
+    if (!W?.sect) return false;
     const nursery = W.sect.sovereignNursery || (W.sect.sovereignNursery = {});
     if (nursery[spec.id]) return false;
     nursery[spec.id] = {
@@ -7428,7 +7435,7 @@
       witnesses:party.filter(n => n && !n.dead).map(n => n.id)
     };
     return true;
-  };
+  }
 
   const chooseKeeper = (W, record) => {
     const paths = new Set(['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'SPIRIT_HUSBANDRY', 'WILDERNESS_RANGER']);
@@ -7439,10 +7446,34 @@
       if (pets.filter(p => p && !p.dead).length >= CULT.maxActivePets(n) + CULT.maxReservePets(n)) continue;
       const affinity = (n.h?.skills?.BEAST_TAMING || 0) + HC.eff(n, 'personality.empathy') * .35;
       const score = affinity + (paths.has(n.cult.path) ? 22 : 0) + (record.witnesses.includes(n.id) ? 16 : 0)
-        - pets.filter(CULT.isSovereignCompanion).length * 30 - pets.length * 8;
+        - pets.filter(CULT.isCuratedCompanion).length * 30 - pets.length * 8;
       if (score > bestScore) { bestScore = score; best = n; }
     }
     return best;
+  };
+
+  const chooseLineageLoadout = n => {
+    if (n.act?.id === 'fight' || !(n.pets || []).some(p => p && CULT.lineageCompanionSpec(p.speciesId))) return;
+    const pets = n.pets.filter(p => p && !p.injured && !p.dead && p.hunger >= 38 && p.fatigue < 75);
+    const hp = n.h?.state?.hp / Math.max(1, CULT.hpMax(n));
+    const temperament = HC.eff(n, 'personality.caution');
+    const exploration = HC.eff(n, 'interests.exploring');
+    const study = HC.eff(n, 'intellect.comprehension');
+    const rank = p => {
+      const spec = CULT.lineageCompanionSpec(p.speciesId);
+      const wants = spec ? { KUNPENG:exploration, FOX:100-temperament, QILIN:hp < .70 ? 98 : temperament, BAIZE:study }[spec.familyId] : 48;
+      return (p.tier || 1) * 15 + (p.growthStage || 1) * 5 + (p.bond || 50) * .22 + wants * .3 -
+        (p.fatigue || 0) * .4 + (p.active ? 9 : 0);
+    };
+    const ready = pets.map(p => [p, rank(p)]).sort((a, b) => b[1] - a[1]);
+    const next = new Set(ready.slice(0, CULT.maxActivePets(n)).map(entry => entry[0]));
+    let changed = false;
+    for (const p of n.pets) {
+      if (!p || next.has(p) === !!p.active) continue;
+      p.active = next.has(p);
+      changed = true;
+    }
+    if (changed && g.STATS) g.STATS.dirty(n);
   };
 
   CULT.tickSovereignNursery = W => {
@@ -7451,7 +7482,7 @@
     for (const record of Object.values(nursery)) {
       if (record.status === 'bonded' || record.lastProcessedDay >= W.day) continue;
       record.lastProcessedDay = W.day;
-      const spec = mythicSpecies[record.speciesId];
+      const spec = CULT.curatedCompanionSpec(record.speciesId);
       if (!spec) continue;
       const keeper = chooseKeeper(W, record);
       if (record.status === 'egg' && record.caredDays < spec.eggDays) {
@@ -7470,29 +7501,33 @@
       });
       if (!result.ok) continue;
       const pet = result.pet;
-      pet.sovereignCompanion = true;
+      pet.sovereignCompanion = !!spec.symbol;
+      if (spec.grade) pet.grade = spec.grade;
       pet.careDays = 0;
       pet.lastGrowthDay = W.day;
       pet.growthStage = 1;
       record.status = 'bonded';
       record.uid = pet.uid;
-      W.log('craft', '✦ ' + HC.fullName(keeper) + ' รับดูแล「' + pet.nameTh + '」แห่งทิศ' + spec.directionTh, [keeper.id]);
+      W.log('craft', '✦ ' + HC.fullName(keeper) + ' รับดูแล「' + pet.nameTh + '」' + (spec.directionTh ? 'แห่งทิศ' + spec.directionTh : 'จากตระกูล' + spec.familyTh), [keeper.id]);
     }
 
     for (const n of W.npcs) {
       if (!n || n.dead || n.away || n.exiled || !n.cult || !Array.isArray(n.pets)) continue;
       for (const pet of n.pets) {
-        if (!CULT.isSovereignCompanion(pet) || pet.dead || pet.lastGrowthDay >= W.day || pet.growthStage >= 4) continue;
+        const spec = pet && CULT.curatedCompanionSpec(pet.speciesId);
+        if (!spec || pet.dead || pet.lastGrowthDay >= W.day || pet.growthStage >= 4) continue;
         pet.lastGrowthDay = W.day;
         if (pet.injured || pet.hunger < 55 || pet.fatigue > 75) continue;
         pet.careDays = (pet.careDays || 0) + 1;
         const next = milestones[(pet.growthStage || 1) - 1];
-        if (pet.careDays < next.days || pet.bond < next.bond || CULT.equivalentStage(n) < next.realm) continue;
+        const ageFactor = [1, .65, .82, 1][spec.gradeRank || 0];
+        const realm = Math.max(3, next.realm - (spec.gradeRank === 1 ? 1 : 0));
+        if (pet.careDays < Math.ceil(next.days * ageFactor) || pet.bond < next.bond || CULT.equivalentStage(n) < realm) continue;
         pet.growthStage++;
         pet.tier = next.tier;
         pet.level = next.level;
-        if (pet.growthStage === 4) {
-          pet.fourSymbol = mythicSpecies[pet.speciesId].symbol;
+        if (pet.growthStage === 4 && spec.symbol) {
+          pet.fourSymbol = spec.symbol;
           pet.sovereignAwakened = true;
         }
         CULT.ensurePets(n);
@@ -7500,8 +7535,9 @@
         HC.bump(n);
         if (g.STATS) g.STATS.dirty(n);
         W.log('cultivation', '✦ 「' + pet.nameTh + '」ของ ' + HC.fullName(n) + ' เข้าสู่ระยะ' +
-          CULT.sovereignCompanionStageTh(pet.growthStage), [n.id]);
+          (spec.gradeRank && pet.growthStage === 4 ? 'ร่างสมบูรณ์' : CULT.sovereignCompanionStageTh(pet.growthStage)), [n.id]);
       }
+      chooseLineageLoadout(n);
     }
   };
 
@@ -7521,7 +7557,7 @@
 
   CULT.beastSpeciesById = id => {
     if (!CULT._speciesById) CULT.allBeastSpecies();
-    return CULT.sovereignCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
+    return CULT.curatedCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
   };
 
   CULT.inferSpeciesFamily = sp => {
@@ -7613,7 +7649,7 @@
         p.trait = 'SOVEREIGN_AWAKENED';
         p.sovereignAwakened = true;
         p.growthStage = 4;
-      } else if (!CULT.isSovereignCompanion(p)) {
+      } else if (!CULT.isCuratedCompanion(p)) {
         p.growthStage = Math.min(3, Math.max(1, Math.ceil((p.level || 1) / 3)));
       }
       if (p.injured && p.active) p.active = false;
@@ -7753,6 +7789,14 @@
           if (tr.critAdd) f.crit = (f.crit || 0) + tr.critAdd * w;
           if (tr.penAdd) f.pen = (f.pen || 0) + tr.penAdd * w;
         }
+        const lineage = CULT.lineageCompanionSpec(pet.speciesId);
+        if (lineage) {
+          const factor = w * lineage.impact * (.48 + (pet.growthStage || 1) * .13);
+          for (const [stat, amount] of Object.entries(lineage.traits)) {
+            const lane = ['move','cast','acc','eva'].includes(stat) ? f : p;
+            lane[stat] = (lane[stat] || 0) + amount * factor;
+          }
+        }
         if (pet.mechArmored) {
           p.def = (p.def || 0) + 0.06 * w;
           f.pen = (f.pen || 0) + 4 * w;
@@ -7820,7 +7864,7 @@
     const sp = CULT.beastSpeciesById(spId) || (typeof speciesOrBeast === 'object' ? speciesOrBeast : null) || (CULT.allBeastSpecies && CULT.allBeastSpecies()[0]);
     if (!sp) return { ok: false, reason: 'ไม่พบสายพันธุ์สัตว์อสูร: ' + spId };
 
-    if (CULT.sovereignCompanionSpec(sp.id) && (opts.provenance !== 'sovereign_sanctum' ||
+    if (CULT.curatedCompanionSpec(sp.id) && (opts.provenance !== 'sovereign_sanctum' ||
         W?.sect?.sovereignNursery?.[sp.id]?.status !== 'juvenile' || W.sect.sovereignNursery[sp.id].uid)) {
       return { ok:false, reason:'สายพันธุ์นี้ผูกพันธสัญญาได้จากกรุวิหารเท่านั้น' };
     }
@@ -7952,7 +7996,7 @@
     if (!npc || !Array.isArray(npc.pets)) return { ok: false, reason: 'ไม่มีสัตว์อสูรคู่สัญญา' };
     const pet = petUid ? npc.pets.find(p => p && p.uid === petUid) : npc.pets[0];
     if (!pet) return { ok: false, reason: 'ไม่พบสัตว์อสูรเป้าหมาย' };
-    if (CULT.isSovereignCompanion(pet)) return { ok:false, reason:'อสูรจตุรทิศเติบโตจากการดูแลและสายสัมพันธ์ตามวัย' };
+    if (CULT.isCuratedCompanion(pet)) return { ok:false, reason:'สัตว์คู่หูสายพิเศษเติบโตจากการดูแลและสายสัมพันธ์ตามวัย' };
     if (!opts.free) {
       const stoneCost = (pet.tier || 1) * 80;
       if ((npc.inv && npc.inv.stones || 0) >= stoneCost) {
@@ -8029,7 +8073,7 @@
       return { ok: false, reason: "สัตว์อสูรเหนื่อยล้าเกินไป ควรให้พักผ่อนก่อน" };
     }
 
-    if (CULT.isSovereignCompanion(parentA) || CULT.isSovereignCompanion(parentB)) return { ok:false, reason:'สัตว์เทพจตุรทิศไม่มีสายเพาะพันธุ์ซ้ำ' };
+    if (CULT.isCuratedCompanion(parentA) || CULT.isCuratedCompanion(parentB)) return { ok:false, reason:'สัตว์คู่หูสายพิเศษไม่เกิดซ้ำจากการเพาะพันธุ์' };
     const breeder = opts.breederId && W.byId && W.byId[opts.breederId] ? W.byId[opts.breederId] : (parentA.ownerId && W.byId[parentA.ownerId] ? W.byId[parentA.ownerId] : null);
     const tamingSk = (breeder && g.MARTIAL && g.MARTIAL.skillRead) ? g.MARTIAL.skillRead(breeder, "BEAST_TAMING") : (breeder && breeder.h && breeder.h.skills ? (breeder.h.skills.BEAST_TAMING || 0) : 30);
 
@@ -8182,7 +8226,7 @@
     }
     if (!pet && npc && Array.isArray(npc.pets) && npc.pets.length) pet = npc.pets[0];
     if (!pet) return { ok: false, reason: 'pet-not-found', reasonTh: 'ไม่พบสัตว์อสูรเป้าหมาย' };
-    if (CULT.isSovereignCompanion(pet)) return { ok:false, reason:'requires-natural-growth', reasonTh:'อสูรจตุรทิศต้องเติบโตตามวัยก่อนจุติ' };
+    if (CULT.isCuratedCompanion(pet)) return { ok:false, reason:'requires-natural-growth', reasonTh:'สัตว์คู่หูสายพิเศษต้องเติบโตตามวัย' };
     if (pet.fourSymbol && FOUR_SYMBOL_BLOODLINES[pet.fourSymbol] && !opts.allowReawaken) {
       return { ok: false, reason: 'already-awakened-four-symbol', reasonTh: 'สัตว์อสูรตนนี้ปลุกสายเลือดสัตว์เทพจตุรทิศแล้ว (' + FOUR_SYMBOL_BLOODLINES[pet.fourSymbol].nameTh + ')' };
     }
