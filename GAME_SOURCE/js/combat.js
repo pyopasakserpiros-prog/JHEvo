@@ -7787,3 +7787,299 @@
   };
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_COMBAT_ENGINE_V260 === */
+(function initCarbonCombatEngine(g) {
+  const C = g.COMBAT, SK = g.SK, CULT = g.CULT, SECT = g.SECT, ST = g.STATS, HC = g.HC, U = g.U;
+  if (!C) return;
+
+  // 1. Sovereign, Transcendent, Expansion & Low-Tier Keywords Catalog (preserving C.KEYWORDS_CATALOG length === 16)
+  C.SOVEREIGN_KEYWORDS_CATALOG = Object.freeze({
+    // Patriarch Regalia 10 Sovereign Keywords
+    KW_SOV_ROLE_TRANSMUTE: { id: 'KW_SOV_ROLE_TRANSMUTE', group: 'REGALIA', nameTh: 'จำแลงบทบาทศาสตราไร้ลักษณ์' },
+    KW_SOV_MOMENTUM_EQUALIZE: { id: 'KW_SOV_MOMENTUM_EQUALIZE', group: 'REGALIA', nameTh: 'หักล้างแรงกดดันขอบเขต' },
+    KW_SOV_ORIGIN_SIPHON: { id: 'KW_SOV_ORIGIN_SIPHON', group: 'REGALIA', nameTh: 'สูบปราณต้นกำเนิดกลับคืน' },
+    KW_SOV_DUAL_LAW_CONVERGE: { id: 'KW_SOV_DUAL_LAW_CONVERGE', group: 'REGALIA', nameTh: 'ประสานทวิธาตุปฐมกาล' },
+    KW_SOV_MORPH_MASTERY: { id: 'KW_SOV_MORPH_MASTERY', group: 'REGALIA', nameTh: 'เชี่ยวชาญหมื่นศาสตราร่วมสาย' },
+    KW_SOV_LINEAGE_CHORD: { id: 'KW_SOV_LINEAGE_CHORD', group: 'REGALIA', nameTh: 'เงาบูรพาจารย์เจ็ดรุ่นประสานคม' },
+    KW_SOV_SPATIAL_TETHER: { id: 'KW_SOV_SPATIAL_TETHER', group: 'REGALIA', nameTh: 'ตรึงมิติห้ามหลบหนี' },
+    KW_SOV_VEIL_BLINDSPOT: { id: 'KW_SOV_VEIL_BLINDSPOT', group: 'REGALIA', nameTh: 'เร้นหินเทาไร้กลิ่นอาย' },
+    KW_SOV_AURA_CONCEALMENT: { id: 'KW_SOV_AURA_CONCEALMENT', group: 'REGALIA', nameTh: 'ซ่อนรัศมีศาสตราบรรพชน' },
+    KW_SOV_ZERO_EQUILIBRIUM: { id: 'KW_SOV_ZERO_EQUILIBRIUM', group: 'REGALIA', nameTh: 'สมดุลศูนย์ไร้พ่าย' },
+    // Sovereign Combat Keywords
+    KW_TCMB_REALM_DEFIANCE: { id: 'KW_TCMB_REALM_DEFIANCE', group: 'SOV_COMBAT', nameTh: 'ท้าทายขอบเขตสวรรค์' },
+    KW_TCMB_UNBROKEN_FLOW: { id: 'KW_TCMB_UNBROKEN_FLOW', group: 'SOV_COMBAT', nameTh: 'สามบทไร้รอยต่อ' },
+    KW_TCMB_WEAPON_OMNI_FORM: { id: 'KW_TCMB_WEAPON_OMNI_FORM', group: 'SOV_COMBAT', nameTh: 'ไร้จำกัดตระกูลอาวุธ' },
+    KW_TCMB_AUTHORED_SOUL_VERSE: { id: 'KW_TCMB_AUTHORED_SOUL_VERSE', group: 'SOV_COMBAT', nameTh: 'บัญญัติบทที่สี่ด้วยจิตตน' },
+    KW_TCMB_SCAR_DETONATOR: { id: 'KW_TCMB_SCAR_DETONATOR', group: 'SOV_COMBAT', nameTh: 'ระเบิดรอยแผลเต๋าสนามรบ' },
+    // Sovereign Material Keywords
+    KW_MAT_OMNI_SET_AND_ELEMENT_CHAMELEON: { id: 'KW_MAT_OMNI_SET_AND_ELEMENT_CHAMELEON', group: 'SOV_MAT', nameTh: 'ปรอทสุญตาผสานทุกชุดและธาตุ' },
+    KW_MAT_TEMPORAL_ECHO_SEAL: { id: 'KW_MAT_TEMPORAL_ECHO_SEAL', group: 'SOV_MAT', nameTh: 'อำพันกาลเวลาสะท้อนซ้ำ' },
+    KW_MAT_REALM_GROWTH_SYMBIOSIS: { id: 'KW_MAT_REALM_GROWTH_SYMBIOSIS', group: 'SOV_MAT', nameTh: 'แก่นพฤกษานิพพานเติบโตตามขั้น' },
+    KW_MAT_HEAVEN_PUNISHMENT_DETONATOR: { id: 'KW_MAT_HEAVEN_PUNISHMENT_DETONATOR', group: 'SOV_MAT', nameTh: 'ผลึกอสนีทัณฑ์สวรรค์ผ่าซ้ำ' },
+    KW_MAT_PHASE_BYPASS: { id: 'KW_MAT_PHASE_BYPASS', group: 'SOV_MAT', nameTh: 'ผลึกกระจกหมื่นจิตทะลวงเกราะ' },
+    KW_MAT_SINGULARITY_MASS: { id: 'KW_MAT_SINGULARITY_MASS', group: 'SOV_MAT', nameTh: 'ทรายดารายุบตัวถ่วงมิติ' },
+    KW_MAT_KARMIC_SILK_LINK: { id: 'KW_MAT_KARMIC_SILK_LINK', group: 'SOV_MAT', nameTh: 'ไหมสังสารวัฏผูกชะตาร่วมรับ' },
+    KW_MAT_DRAGON_DEVOUR_SCALE: { id: 'KW_MAT_DRAGON_DEVOUR_SCALE', group: 'SOV_MAT', nameTh: 'เกล็ดย้อนมังกรกลืนคมศาสตรา' },
+    KW_MAT_LAW_CALIBRATION: { id: 'KW_MAT_LAW_CALIBRATION', group: 'SOV_MAT', nameTh: 'หยกตราชั่งปรับสมดุลความเสียหาย' },
+    KW_MAT_CHAOS_EMBER_MELT: { id: 'KW_MAT_CHAOS_EMBER_MELT', group: 'SOV_MAT', nameTh: 'เถ้าไฟปฐมกาลหลอมเกราะ' },
+    // Sovereign Non-Combat Keywords
+    KW_TMNT_SELF_CONTAINED_STAR: { id: 'KW_TMNT_SELF_CONTAINED_STAR', group: 'SOV_MANTRA', nameTh: 'จักรวาลภายในผลิตปราณเอง' },
+    KW_TMNT_REJUVENATION_MOLT: { id: 'KW_TMNT_REJUVENATION_MOLT', group: 'SOV_MANTRA', nameTh: 'ผลัดคราบนิรันดร์ย้อนวัย' },
+    KW_TMNT_VOID_MIND_REFLECT: { id: 'KW_TMNT_VOID_MIND_REFLECT', group: 'SOV_MANTRA', nameTh: 'กระจกจิตสะท้อนมาร' },
+    KW_TMNT_OMNI_DIGESTION: { id: 'KW_TMNT_OMNI_DIGESTION', group: 'SOV_MANTRA', nameTh: 'เตาหลอมย่อยหมื่นพิษ' },
+    KW_TMNT_GODSLAYER_HEARTBEAT: { id: 'KW_TMNT_GODSLAYER_HEARTBEAT', group: 'SOV_MANTRA', nameTh: 'หัวใจปุถุชนสยบเซียน' },
+    KW_TQGG_METEOR_LANDING: { id: 'KW_TQGG_METEOR_LANDING', group: 'SOV_QGG', nameTh: 'ก้าวย่อแผ่นดินพุ่งชนดารา' },
+    KW_TQGG_CAUSAL_ERASURE: { id: 'KW_TQGG_CAUSAL_ERASURE', group: 'SOV_QGG', nameTh: 'ไร้ร่องรอยลบเหตุผล' },
+    KW_TQGG_OMNISCIENT_EYE: { id: 'KW_TQGG_OMNISCIENT_EYE', group: 'SOV_QGG', nameTh: 'เนตรทิพย์สดับเก้าพิภพ' },
+    KW_TDEF_SUMERU_CAP: { id: 'KW_TDEF_SUMERU_CAP', group: 'SOV_DEF', nameTh: 'ขุนเขาพระสุเมรุจำกัดความเสียหายต่อฮิต' },
+    KW_TDEF_ORIGIN_RESERVOIR: { id: 'KW_TDEF_ORIGIN_RESERVOIR', group: 'SOV_DEF', nameTh: 'สี่ตำลึงปัดหมื่นชั่งคืนฟ้าดิน' },
+    KW_TDEF_SQUAD_AEGIS: { id: 'KW_TDEF_SQUAD_AEGIS', group: 'SOV_DEF', nameTh: 'โดมเก้าบงกชรับแทนหมู่คณะ' },
+    KW_TDEF_PHASE_IMMUNITY: { id: 'KW_TDEF_PHASE_IMMUNITY', group: 'SOV_DEF', nameTh: 'กายาว่างเปล่าไร้ที่ให้ฟันต้อง' },
+    KW_TSUP_YAMA_RECALL: { id: 'KW_TSUP_YAMA_RECALL', group: 'SOV_SUP', nameTh: 'เข็มทองคำยื้อวิญญาณจากยมโลก' },
+    KW_TSUP_DAO_SYMPHONY: { id: 'KW_TSUP_DAO_SYMPHONY', group: 'SOV_SUP', nameTh: 'สังคีตประสานสี่สิบสามมรรคา' },
+    KW_TSUP_WAR_MATRIX: { id: 'KW_TSUP_WAR_MATRIX', group: 'SOV_SUP', nameTh: 'พยุหะธงแปดทิศพลิกกระดานศึก' },
+    KW_TSUP_CALAMITY_NECTAR: { id: 'KW_TSUP_CALAMITY_NECTAR', group: 'SOV_SUP', nameTh: 'พิรุณโพธิ์แปรพิษเป็นน้ำอมฤต' },
+    KW_TFRB_STEAL_MANDATE: { id: 'KW_TFRB_STEAL_MANDATE', group: 'SOV_FRB', nameTh: 'ช่วงชิงอาณัติสวรรค์' },
+    KW_TFRB_OBLIVION_SAVE: { id: 'KW_TFRB_OBLIVION_SAVE', group: 'SOV_FRB', nameTh: 'ลบนามตนเองคุ้มครองสหาย' },
+    KW_TFRB_ASURA_AVATAR: { id: 'KW_TFRB_ASURA_AVATAR', group: 'SOV_FRB', nameTh: 'จุติร่างอสูรโลหิตผ่าอเวจี' },
+    KW_TFRB_REINCARNATION_SEED: { id: 'KW_TFRB_REINCARNATION_SEED', group: 'SOV_FRB', nameTh: 'ฝากเมล็ดพันธุ์นิพพาน' }
+  });
+
+  // 2. Persistent Battlefield Dao-Scars (max 3 active scars per arena)
+  C.spawnBattlefieldDaoScar = (W, f, spec) => {
+    if (!f) return null;
+    f.daoScars = Array.isArray(f.daoScars) ? f.daoScars : [];
+    const scar = Object.assign({
+      id: 'SCAR_' + ((f.daoScars.length + 1)) + '_' + ((W && W.t) || 0),
+      kind: (spec && spec.kind) || 'SCAR_VOID_ZERO_RIFT',
+      nameTh: (spec && spec.nameTh) || 'รอยแผลเต๋าสุญตา',
+      casterId: spec && spec.casterId,
+      side: (spec && spec.side) || 'A',
+      x: (spec && Number.isFinite(spec.x)) ? spec.x : ((f.arena && f.arena.x) || 180),
+      y: (spec && Number.isFinite(spec.y)) ? spec.y : ((f.arena && f.arena.y) || 140),
+      radius: (spec && spec.radius) || 4.5,
+      remainingTicks: (spec && spec.dur) || 10,
+      potency: (spec && spec.potency) || 0.18
+    }, spec || {});
+    if (f.daoScars.length >= 3) f.daoScars.shift();
+    f.daoScars.push(scar);
+    return scar;
+  };
+
+  C.tickBattlefieldDaoScars = (W, f) => {
+    if (!f || !Array.isArray(f.daoScars) || !f.daoScars.length) return 0;
+    let triggered = 0;
+    for (let i = f.daoScars.length - 1; i >= 0; i--) {
+      const sc = f.daoScars[i];
+      if (!sc || sc.remainingTicks <= 0) {
+        f.daoScars.splice(i, 1);
+        continue;
+      }
+      sc.remainingTicks--;
+      const enemyIds = sc.side === 'A' ? (f.B || []) : (f.A || []);
+      for (const eid of enemyIds) {
+        const u = C.unit ? C.unit(W, eid) : (W && W.byId && W.byId[eid]);
+        if (u && C.alive && C.alive(u)) {
+          const dmg = Math.max(4, Math.round(C.hpMax(u) * 0.035 * (sc.potency || 0.18) / 0.18));
+          C.setHp(u, Math.max(1, C.hp(u) - dmg));
+          triggered++;
+        }
+      }
+      if (sc.remainingTicks <= 0) f.daoScars.splice(i, 1);
+    }
+    return triggered;
+  };
+
+  // 3. Linked 3-Verse Kata State Machine & Self-Authored 4th Verse Execution
+  C.advanceSovereignVerseFlow = (W, f, actor, target, techOrId) => {
+    if (!actor) return null;
+    const t = typeof techOrId === 'string' ? ((CULT && CULT.tech && CULT.tech(techOrId)) || (SK && SK.SOVEREIGN_COMBAT_TECHS && SK.SOVEREIGN_COMBAT_TECHS[techOrId])) : techOrId;
+    if (!t) return null;
+    const prev = actor._tcmbFlow;
+    const maxVerse = (actor.authoredSovereignVerses && actor.authoredSovereignVerses[t.id]) ? 4 : 3;
+    let nextVerse = 1;
+    if (prev && prev.techId === t.id && prev.currentVerse < maxVerse) {
+      nextVerse = prev.currentVerse + 1;
+    }
+    const multBonus = nextVerse === 1 ? 1.0 : (nextVerse === 2 ? 1.18 : (nextVerse === 3 ? 1.35 : 1.60));
+    actor._tcmbFlow = {
+      techId: t.id,
+      currentVerse: nextVerse,
+      maxVerse,
+      multBonus,
+      lastCastTick: (W && W.t) || 0,
+      chainCount: ((prev && prev.chainCount) || 0) + 1
+    };
+    if (nextVerse >= 3 && f) {
+      C.spawnBattlefieldDaoScar(W, f, {
+        kind: t.scarKind || 'SCAR_VOID_ZERO_RIFT',
+        nameTh: 'รอยแผลเต๋า · ' + t.nameTh,
+        casterId: actor.id,
+        side: (f.A && f.A.includes(actor.id)) ? 'A' : 'B',
+        dur: 10
+      });
+    }
+    return actor._tcmbFlow;
+  };
+
+  // 4. Off-Turn Clash Cut-In (14-Tick ICD)
+  C.tryTranscendentCutIn = (W, f, defender, attacker, incomingMove) => {
+    if (!defender || !attacker || defender.dead) return { triggered: false };
+    const tNow = (W && W.t) || 0;
+    if (defender._lastSovCutInTick != null && (tNow - defender._lastSovCutInTick) < 14) {
+      return { triggered: false, reason: 'icd' };
+    }
+    const hasSovTech = !!(defender.cult && Array.isArray(defender.cult.techs) && defender.cult.techs.some(id => /^TCMB_SOV_/.test(id)));
+    const reg = (SECT && SECT.PATRIARCH_REGALIA && SECT.PATRIARCH_REGALIA.getEquippedRegalia) ? SECT.PATRIARCH_REGALIA.getEquippedRegalia(W, defender) : null;
+    if (!hasSovTech && !(reg && (reg.awakeningStage || 0) >= 2)) {
+      return { triggered: false, reason: 'no-sovereign-capability' };
+    }
+    const isHeavyIncoming = !incomingMove || (incomingMove.M || 1.5) >= 1.8 || incomingMove.arch === 'burst';
+    if (!isHeavyIncoming) return { triggered: false, reason: 'not-heavy-cast' };
+
+    defender._lastSovCutInTick = tNow;
+    const counterDmg = Math.max(15, Math.round((C.hpMax ? C.hpMax(attacker) : 200) * 0.14));
+    if (C.setHp && C.hp) {
+      C.setHp(attacker, Math.max(1, C.hp(attacker) - counterDmg));
+    }
+    defender.fx = { t: tNow, text: '⚡ สวนคมเหนือตำนานผ่าจังหวะ!' };
+    if (f) {
+      f.lastTranscendentCutIn = { t: tNow, defenderId: defender.id, attackerId: attacker.id, counterDmg };
+    }
+    return { triggered: true, mitigationMult: 0.65, counterDmg };
+  };
+
+  // 5. Transcendent Armor, Accessory & Weapon Runtime Combat Hooks
+  C.processTranscendentArmorHit = (W, f, defender, attacker, rawDmg) => {
+    if (!defender || !defender.equip || !defender.equip.ARMOR) return { dmg: rawDmg, cocoonTriggered: false };
+    const arm = defender.equip.ARMOR;
+    if (!arm.isTranscendentArmor && arm.id !== 'ARM_TRANSCENDENT_LOOM_OF_SCARS') return { dmg: rawDmg, cocoonTriggered: false };
+    const tNow = (W && W.t) || 0;
+    arm._woundLedgerPool = Math.min(2500, (arm._woundLedgerPool || 0) + Math.round(rawDmg * 0.25));
+    let adjDmg = Math.round(rawDmg * 0.82);
+    if (defender._cocoonStasisUntil && tNow < defender._cocoonStasisUntil) {
+      adjDmg = Math.max(1, Math.round(adjDmg * 0.20));
+    }
+    const curHp = C.hp ? C.hp(defender) : 100;
+    const maxHp = C.hpMax ? C.hpMax(defender) : 100;
+    if (curHp - adjDmg <= 0 && !defender._cocoonUsedInFight) {
+      defender._cocoonUsedInFight = true;
+      defender._cocoonStasisUntil = tNow + 4;
+      const rebHp = Math.max(10, Math.round(maxHp * 0.38));
+      if (C.setHp) C.setHp(defender, rebHp);
+      defender.fx = { t: tNow, text: '🦋 ดักแด้ภูษาหมื่นชะตาชุบชีวิต!' };
+      return { dmg: 0, cocoonTriggered: true, woundPool: arm._woundLedgerPool };
+    }
+    return { dmg: adjDmg, cocoonTriggered: false, woundPool: arm._woundLedgerPool };
+  };
+
+  C.processTranscendentAccessoryCast = (W, f, actor, target, skillProfile) => {
+    if (!actor || !actor.equip || !actor.equip.ACCESSORY) return { echoTriggered: false, rewindTriggered: false };
+    const acc = actor.equip.ACCESSORY;
+    if (!acc.isTranscendentAccessory && acc.id !== 'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL') return { echoTriggered: false, rewindTriggered: false };
+    const tNow = (W && W.t) || 0;
+    acc._chronoBookmarks = Array.isArray(acc._chronoBookmarks) ? acc._chronoBookmarks : [];
+    const curHp = C.hp ? C.hp(actor) : 100;
+    const maxHp = C.hpMax ? C.hpMax(actor) : 100;
+    const curQi = (actor.h && actor.h.state && actor.h.state.qi) || 100;
+    acc._chronoBookmarks.push({ t: tNow, hp: curHp, qi: curQi });
+    if (acc._chronoBookmarks.length > 4) acc._chronoBookmarks.shift();
+
+    let rewindTriggered = false;
+    if (curHp < maxHp * 0.35 && acc._chronoBookmarks.length >= 2 && (!actor._lastChronoRewindTick || tNow - actor._lastChronoRewindTick >= 18)) {
+      const snap = acc._chronoBookmarks[0];
+      if (snap && snap.hp > curHp && C.setHp) {
+        C.setHp(actor, snap.hp);
+        actor._lastChronoRewindTick = tNow;
+        rewindTriggered = true;
+      }
+    }
+
+    acc._castCounter = (acc._castCounter || 0) + 1;
+    const echoTriggered = (acc._castCounter % 3 === 0);
+    if (echoTriggered) {
+      actor._pendingChronoEcho = { t: tNow, potency: 0.55, skillId: skillProfile && skillProfile.id };
+      if (target && C.alive && C.alive(target)) {
+        const isHeal = skillProfile && (skillProfile.arch === 'heal' || skillProfile.arch === 'support');
+        if (isHeal) {
+          const healAmt = Math.max(12, Math.round((C.hpMax ? C.hpMax(target) : 100) * 0.14));
+          if (C.setHp && C.hp) C.setHp(target, Math.min(C.hpMax(target), C.hp(target) + healAmt));
+        } else {
+          const echoDmg = Math.max(12, Math.round((C.hpMax ? C.hpMax(target) : 100) * 0.11));
+          if (C.setHp && C.hp) C.setHp(target, Math.max(1, C.hp(target) - echoDmg));
+        }
+      }
+    }
+    return { echoTriggered, rewindTriggered, castCounter: acc._castCounter };
+  };
+
+  C.processTranscendentWeaponStrike = (W, f, attacker, defender) => {
+    if (!attacker || !attacker.equip || !attacker.equip.WEAPON) return { escortHits: 0, digestedCount: 0 };
+    const wpn = attacker.equip.WEAPON;
+    if (!wpn.isTranscendentWeapon && wpn.id !== 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN') return { escortHits: 0, digestedCount: 0 };
+    wpn.digestedFamilies = Array.isArray(wpn.digestedFamilies) ? wpn.digestedFamilies : ['SWORD', 'BLADE', 'SPEAR', 'FIST'];
+    if (defender && defender.equip && defender.equip.WEAPON) {
+      const dFam = defender.equip.WEAPON.gearType || defender.equip.WEAPON.subType;
+      if (dFam && !wpn.digestedFamilies.includes(dFam)) wpn.digestedFamilies.push(dFam);
+    }
+    const escortHits = Math.min(4, Math.max(1, Math.floor(wpn.digestedFamilies.length / 4) + 1));
+    wpn.escortBladesCount = escortHits;
+    if (defender && (defender.h || defender.foe) && C.alive && C.alive(defender) && C.setHp && C.hp) {
+      const bonusDmg = escortHits * Math.max(6, Math.round((C.hpMax ? C.hpMax(defender) : 100) * 0.03));
+      C.setHp(defender, Math.max(1, C.hp(defender) - bonusDmg));
+    }
+    return { escortHits, digestedCount: wpn.digestedFamilies.length };
+  };
+
+  // Wrap C.useSkill to trigger non-strike healer/support accessory echo & Sovereign 3-Verse Flow
+  if (typeof C.useSkill === 'function') {
+    const _origUseSkillCarbon = C.useSkill;
+    C.useSkill = function(W, f, a, t, p) {
+      if (a && a.equip && a.equip.ACCESSORY && (a.equip.ACCESSORY.isTranscendentAccessory || a.equip.ACCESSORY.id === 'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL')) {
+        C.processTranscendentAccessoryCast(W, f, a, t, p);
+      }
+      if (p && p.tech && /^TCMB_SOV_/.test(p.tech)) {
+        C.advanceSovereignVerseFlow(W, f, a, t, p.tech);
+      }
+      return _origUseSkillCarbon.apply(this, arguments);
+    };
+  }
+
+  // Wrap C.strike to automatically invoke Transcendent Weapon Strike, Cut-In, and Armor Chrysalis
+  if (typeof C.strike === 'function') {
+    const _origStrikeCarbon = C.strike;
+    C.hit = C.strike = function(W, f, a, d, o) {
+      if (d && d.cult && a && o && (o.M >= 1.8 || o.arch === 'burst')) {
+        C.tryTranscendentCutIn(W, f, d, a, o);
+      }
+      const res = _origStrikeCarbon.apply(this, arguments);
+      if (a && a.equip && a.equip.WEAPON && (a.equip.WEAPON.isTranscendentWeapon || a.equip.WEAPON.id === 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN')) {
+        C.processTranscendentWeaponStrike(W, f, a, d);
+      }
+      if (d && d.equip && d.equip.ARMOR && (d.equip.ARMOR.isTranscendentArmor || d.equip.ARMOR.id === 'ARM_TRANSCENDENT_LOOM_OF_SCARS')) {
+        C.processTranscendentArmorHit(W, f, d, a, (res && res.dmg) || 25);
+        if (d.dead && d._cocoonUsedInFight && C.hp(d) > 0) {
+          d.dead = false;
+        }
+      }
+      return res;
+    };
+  }
+
+  // Wrap C.tick to automatically tick active Battlefield Dao-Scars (f.daoScars)
+  if (typeof C.tick === 'function') {
+    const _origTickCarbon = C.tick;
+    C.tick = function(W) {
+      if (W && Array.isArray(W.fights)) {
+        for (let i = 0; i < W.fights.length; i++) {
+          const f = W.fights[i];
+          if (f && !f.over && f.state === 'fight' && Array.isArray(f.daoScars) && f.daoScars.length > 0) {
+            C.tickBattlefieldDaoScars(W, f);
+          }
+        }
+      }
+      return _origTickCarbon.apply(this, arguments);
+    };
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);

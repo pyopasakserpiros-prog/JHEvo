@@ -2540,6 +2540,9 @@
       g.CULT.EPITHETS.onGroupMemberDeath(W, n, opts && opts.killer);
       g.CULT.EPITHETS.bestowPosthumousTitle(W, n, why, opts);
     }
+    if (!wasDead && n && n.dead && n.ext && Array.isArray(n.ext.transcendentElixirMarks) && n.ext.transcendentElixirMarks.length && g.ECO && g.ECO.crystallizeFallenElixirRelic) {
+      g.ECO.crystallizeFallenElixirRelic(W, n);
+    }
     return res;
   };
 

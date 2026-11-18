@@ -11028,3 +11028,1560 @@
 
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* =========================================================================
+ * CARBON COMPENDIA INTEGRATED DATA LAYER (31 PDFs: 881fecf & 6670b49)
+ * Preserves all legacy JD.TECH.techniques (1726) & JD.TECH.mantras (122) counts.
+ * ========================================================================= */
+(function initCarbonCompendiaData(g) {
+  const JD = g.JD || (g.JD = {});
+  JD.CORE = JD.CORE || {};
+  JD.TECH = JD.TECH || {};
+  JD.ITEMS = JD.ITEMS || {};
+  JD.EXPANSION = JD.EXPANSION || {};
+  JD.MARTIAL = JD.MARTIAL || {};
+
+  // 1. Unified Rarity & Progression Taxonomy: Grade 6 Transcendent (เหนือตำนาน · 6★)
+  JD.MARTIAL.GRADES = JD.MARTIAL.GRADES || {};
+  JD.MARTIAL.GRADES.Transcendent = {
+    id: 'Transcendent',
+    rank: 6,
+    stars: 6,
+    nameTh: 'เหนือตำนาน',
+    badgeTh: '✦ เหนือตำนาน · 6★',
+    color: '#ff9ef5',
+    border: '#ffd740',
+    glow: 'rgba(255, 158, 245, 0.55)'
+  };
+  JD.MARTIAL.GRADES.TRANSCENDENT = JD.MARTIAL.GRADES.Transcendent;
+
+  // 2. Gen-7 Sect Master Pre-History Ancestral Plaques (Gen 1-6, Zero Upper-World Spoilers)
+  JD.CORE.patriarchPreHistoryTemplates = [
+  {
+    "generation": 1,
+    "id": "PATRIARCH_GEN_1",
+    "titleTh": "ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 · ผู้เฒ่านิรนามแห่งหุบเขาเมฆาเร้น",
+    "eraTh": "ปลายยุคโบราณหลังม่านฟ้าปิดกั้น",
+    "relicLeftTh": "ตราหินเทาไร้ลักษณ์ (REGALIA_ORIGIN_FORMLESS_STONE)",
+    "inscriptionTh": "มรรคาไร้ชื่อ ศาสตราไร้รูป ผู้เฝ้ามองสายน้ำและขุนเขาย่อมเห็นความจริงเอง",
+    "deedSummaryTh": "เดินทางมาพำนักในหุบเขาเมฆาเร้นเพียงลำพัง วางค่ายกลกลมกลืนธรรมชาติคุ้มครองสัตว์วิญญาณและทิ้งตราหินเทาไร้ลักษณ์ไว้บนแท่นศิลาบรรพชนก่อนหายสาบสูญไปในม่านหมอก",
+    "causeOfPassingTh": "เดินหายเข้าไปในทะเลหมอกลึกท้ายหุบเขาโดยไม่ทิ้งร่องรอยสังขาร",
+    "mortalPerspectiveOnly": true
+  },
+  {
+    "generation": 2,
+    "id": "PATRIARCH_GEN_2",
+    "titleTh": "เจ้าสำนักรุ่นที่ 2 · ปรมาจารย์หลินชิงเสวียน (ผู้บุกเบิกแปดยอดเขา)",
+    "eraTh": "ยุคก่อร่างสำนักโบราณ",
+    "relicLeftTh": "หลักศิลาแบ่งเขตแปดยอดเขาและบันทึกเส้นชีพจรปฐพี",
+    "inscriptionTh": "แปดยอดเขาพึ่งพาอาศัย รากฐานมั่นคงจึงรับพายุใหญ่ได้",
+    "deedSummaryTh": "ศิษย์เอกผู้รับช่วงดูแลหุบเขา เปิดเส้นทางเชื่อมยอดเขาทั้งแปดและวางระเบียบหอคัมภีร์รุ่นแรก",
+    "causeOfPassingTh": "ละสังขารอย่างสงบหลังปิดด่านรักษาเส้นชีพจรปฐพีของสำนัก",
+    "mortalPerspectiveOnly": true
+  },
+  {
+    "generation": 3,
+    "id": "PATRIARCH_GEN_3",
+    "titleTh": "เจ้าสำนักรุ่นที่ 3 · แม่ทัพทวนหัก เสิ่นเจิ้นเทียน",
+    "eraTh": "ยุคศึกจลาจลชายแดนโบราณ",
+    "relicLeftTh": "รอยทวนพิทักษ์ซุ้มประตูเขา",
+    "inscriptionTh": "ยอมให้ทวนหักหน้าประตูเขา ดีกว่าให้ไฟสงครามลามถึงหอคัมภีร์",
+    "deedSummaryTh": "นำศิษย์รุ่นที่สามยืนหยัดต้านกองทัพโจรคลั่งและอสูรคลื่นพายุเจ็ดวันเจ็ดคืนจนสำนักรอดพ้นภัยล่มสลาย",
+    "causeOfPassingTh": "พิษบาดแผลเก่ากำเริบหลังศึกป้องกันประตูสำนัก",
+    "mortalPerspectiveOnly": true
+  },
+  {
+    "generation": 4,
+    "id": "PATRIARCH_GEN_4",
+    "titleTh": "เจ้าสำนักรุ่นที่ 4 · หมอเทวะหญิง ซูรั่วหลาน",
+    "eraTh": "ยุคฟื้นฟูสวนสมุนไพรและเตาโอสถ",
+    "relicLeftTh": "ตำรับโอสถต้มสมุนไพรพื้นฐานและร่องน้ำเลี้ยงสวนยา",
+    "inscriptionTh": "เมตตาต่อผู้ยากไร้และสรรพสัตว์ คือปราณคุ้มครองสำนักที่ยั่งยืนที่สุด",
+    "deedSummaryTh": "เปิดโรงทานโอสถช่วยเหลือชาวบ้านรอบหุบเขาและริเริ่มพันธสัญญาอยู่ร่วมกับสัตว์วิญญาณในหุบเขาอย่างสันติ",
+    "causeOfPassingTh": "สิ้นอายุขัยตามธรรมชาติท่ามกลางสวนสมุนไพรวิญญาณ",
+    "mortalPerspectiveOnly": true
+  },
+  {
+    "generation": 5,
+    "id": "PATRIARCH_GEN_5",
+    "titleTh": "เจ้าสำนักรุ่นที่ 5 · นักพรตพู่กันเหมันต์ กู้เหยียนจือ",
+    "eraTh": "ยุค쇠ถอยของตระกูลยุทธภพรอบนอก",
+    "relicLeftTh": "สมุดคัดลอกคัมภีร์โบราณที่ชำรุด",
+    "inscriptionTh": "ยามรุ่งเรืองอย่าลืมตน ยามตกต่ำอย่าทิ้งรากเหง้า",
+    "deedSummaryTh": "รวบรวมตำราชาวบ้านและเคล็ดวิชาที่กระจัดกระจายมาเก็บรักษาไว้ในหอคัมภีร์ แม้สำนักจะเริ่มขาดแคลนศิลาวิญญาณ",
+    "causeOfPassingTh": "ธาตุไฟเข้าแทรกขณะฝืนซ่อมค่ายกลคุ้มสำนักในคืนพายุหิมะ",
+    "mortalPerspectiveOnly": true
+  },
+  {
+    "generation": 6,
+    "id": "PATRIARCH_GEN_6",
+    "titleTh": "เจ้าสำนักรุ่นที่ 6 · ผู้อาวุโสตะเกียงริบหรี่ โม่ชางไห่ (อาจารย์ของเจ้าสำนักองค์ปัจจุบัน)",
+    "eraTh": "ยุคก่อนส่งมอบตำแหน่งสู่รุ่นที่ 7",
+    "relicLeftTh": "ตราหินเทาไร้ลักษณ์ที่ส่งมอบให้เจ้าสำนักรุ่นที่ 7 และคำสั่งเสียฟื้นฟูสำนัก",
+    "inscriptionTh": "ประคองไฟดวงสุดท้ายไว้ในมือเจ้า จงนำพาสำนักรุ่นที่เจ็ดกลับมายืนหยัดอีกครั้ง",
+    "deedSummaryTh": "ประคับประคองสำนักที่เหลือศิษย์เพียงไม่กี่คนผ่านพ้นวิกฤตหนี้สินและการคุกคามของสำนักคู่แข่ง ก่อนมอบตราหินเทาไร้ลักษณ์ให้ศิษย์รุ่นที่ 7 สืบทอดตำแหน่ง",
+    "causeOfPassingTh": "ละสังขารอย่างสงบหลังมอบตราประจำตำแหน่งให้เจ้าสำนักรุ่นที่ 7",
+    "mortalPerspectiveOnly": true
+  }
+];
+
+  // 3. Patriarch Origin Regalia Specifications (TRANSCENDENT_01A-01C & LORE_05B)
+  JD.CORE.PATRIARCH_REGALIA_SPECS = {
+    id: 'REGALIA_ORIGIN_FORMLESS_STONE',
+    nameTh: 'ตราหินเทาไร้ลักษณ์',
+    awakeningStages: [
+      { stage: 0, nameTh: 'ขั้นที่ 0 · หินเทาไร้ลักษณ์', minMasterStage: 1, combatMult: 0.38, defenseMult: 0.38, breakthroughBonus: 0.12, maxImprints: 1, dualElement: false },
+      { stage: 1, nameTh: 'ขั้นที่ 1 · หยกบรรพชนตื่นรู้', minMasterStage: 2, combatMult: 0.48, defenseMult: 0.48, breakthroughBonus: 0.15, maxImprints: 2, dualElement: false },
+      { stage: 2, nameTh: 'ขั้นที่ 2 · ศาสตราจำแลงพันลักษณ์', minMasterStage: 4, combatMult: 0.62, defenseMult: 0.58, breakthroughBonus: 0.18, maxImprints: 3, dualElement: false },
+      { stage: 3, nameTh: 'ขั้นที่ 3 · ตราบัญชาธาตุประสาน', minMasterStage: 5, combatMult: 0.76, defenseMult: 0.72, breakthroughBonus: 0.22, maxImprints: 4, dualElement: false },
+      { stage: 4, nameTh: 'ขั้นที่ 4 · จักรพรรดิเทวะทวิธาตุ', minMasterStage: 6, combatMult: 0.90, defenseMult: 0.85, breakthroughBonus: 0.26, maxImprints: 5, dualElement: true },
+      { stage: 5, nameTh: 'ขั้นที่ 5 · มหาศาสตราต้นกำเนิดไร้ขอบเขต', minMasterStage: 7, combatMult: 1.08, defenseMult: 1.02, breakthroughBonus: 0.32, maxImprints: 6, dualElement: true }
+    ],
+    forms: {
+      ORIGIN_STONE: { id: 'ORIGIN_STONE', nameTh: 'ตราหินเทาไร้ลักษณ์', slot: 'ACCESSORY', subType: 'CHARM', gearType: 'CHARM', role: 'BALANCED' },
+      SWORD: { id: 'SWORD', nameTh: 'กระบี่ไร้ลักษณ์บรรพกาล', slot: 'WEAPON', subType: 'SWORD', gearType: 'SWORD', role: 'OFFENSE' },
+      GREAT_SWORD: { id: 'GREAT_SWORD', nameTh: 'กระบี่ใหญ่ไร้คมผ่าขุนเขา', slot: 'WEAPON', subType: 'SWORD', gearType: 'SWORD', role: 'VANGUARD' },
+      TWIN_SWORD: { id: 'TWIN_SWORD', nameTh: 'กระบี่คู่หยินหยางไร้ลักษณ์', slot: 'WEAPON', subType: 'SWORD', gearType: 'SWORD', role: 'FLURRY' },
+      BLADE: { id: 'BLADE', nameTh: 'ดาบปฐมกาลสะบั้นชะตา', slot: 'WEAPON', subType: 'BLADE', gearType: 'BLADE', role: 'OFFENSE' },
+      SPEAR: { id: 'SPEAR', nameTh: 'ทวนมังกรศิลาทะลวงฟ้า', slot: 'WEAPON', subType: 'SPEAR', gearType: 'SPEAR', role: 'PIERCE' },
+      HALBERD: { id: 'HALBERD', nameTh: 'ง้าวราชันย์ศิลาพิทักษ์ด่าน', slot: 'WEAPON', subType: 'SPEAR', gearType: 'SPEAR', role: 'VANGUARD' },
+      FIST: { id: 'FIST', nameTh: 'สนับมือวัชระไร้ลักษณ์', slot: 'WEAPON', subType: 'FIST', gearType: 'FIST', role: 'BRAWLER' },
+      BOW: { id: 'BOW', nameTh: 'คันศรสายลมดาราไร้ลักษณ์', slot: 'WEAPON', subType: 'BOW', gearType: 'BOW', role: 'RANGED' },
+      STAFF: { id: 'STAFF', nameTh: 'พลองค้ำหุบเขาเมฆาเร้น', slot: 'WEAPON', subType: 'STAFF', gearType: 'STAFF', role: 'CONTROL' },
+      FOCUS: { id: 'FOCUS', nameTh: 'ศาสตราเวทลูกแก้วปฐมกาล', slot: 'WEAPON', subType: 'FOCUS', gearType: 'FOCUS', role: 'CASTER' },
+      FAN: { id: 'FAN', nameTh: 'พัดศิลาโบกเมฆาแปดทิศ', slot: 'WEAPON', subType: 'FAN', gearType: 'FAN', role: 'SUPPORT' },
+      ZITHER: { id: 'ZITHER', nameTh: 'พิณศิลาเจ็ดสายสะท้อนธรรม', slot: 'WEAPON', subType: 'ZITHER', gearType: 'ZITHER', role: 'HARMONY' },
+      BRUSH: { id: 'BRUSH', nameTh: 'พู่กันศิลาจารึกชะตา', slot: 'WEAPON', subType: 'BRUSH', gearType: 'BRUSH', role: 'SCHOLAR' },
+      WHIP: { id: 'WHIP', nameTh: 'แส้ศิลาพันธนาการอสูร', slot: 'WEAPON', subType: 'WHIP', gearType: 'WHIP', role: 'CONTROL' },
+      ROSARY: { id: 'ROSARY', nameTh: 'ประคำหินเทาหนึ่งร้อยแปดเม็ด', slot: 'WEAPON', subType: 'ROSARY', gearType: 'ROSARY', role: 'GUARDIAN' },
+      CLAW: { id: 'CLAW', nameTh: 'กรงเล็บศิลาฉีกม่านหมอก', slot: 'WEAPON', subType: 'CLAW', gearType: 'CLAW', role: 'ASSASSIN' },
+      NEEDLE: { id: 'NEEDLE', nameTh: 'เข็มศิลาไร้เงาช่วยชีวิต', slot: 'WEAPON', subType: 'NEEDLE', gearType: 'NEEDLE', role: 'MEDIC' },
+      ASTROLABE: { id: 'ASTROLABE', nameTh: 'จานดาราศิลาคำนวณฟ้า', slot: 'WEAPON', subType: 'ASTROLABE', gearType: 'ASTROLABE', role: 'DIVINER' },
+      ABACUS: { id: 'ABACUS', nameTh: 'ลูกคิดศิลาชั่งตวงบุญคุณ', slot: 'WEAPON', subType: 'ABACUS', gearType: 'ABACUS', role: 'MERCHANT' },
+      SACRED_ARMOR: { id: 'SACRED_ARMOR', nameTh: 'เกราะศิลาไร้ลักษณ์คุ้มกาย', slot: 'ARMOR', subType: 'HEAVY', gearType: 'HEAVY', role: 'AEGIS' },
+      CELESTIAL_ROBE: { id: 'CELESTIAL_ROBE', nameTh: 'อาภรณ์เมฆาหินเทาไร้รอยตะเข็บ', slot: 'ARMOR', subType: 'ROBE', gearType: 'ROBE', role: 'ROBE' },
+      ORIGIN_RING: { id: 'ORIGIN_RING', nameTh: 'แหวนศิลาบรรพชนครองสำนัก', slot: 'ACCESSORY', subType: 'RING', gearType: 'RING', role: 'CULTIVATION' },
+      OMNI_REGALIA: { id: 'OMNI_REGALIA', nameTh: 'มหาศาสตราจำแลงไร้ขอบเขต', slot: 'WEAPON', subType: 'SWORD', gearType: 'SWORD', role: 'SOVEREIGN_OMNI' }
+    },
+    elements: ['NEUTRAL','FIRE','WATER_ICE','LIGHTNING','WOOD_LIFE','EARTH_METAL','WIND','YIN_SHADOW','LIGHT_YANG','BLOOD_DEMON','ASTRAL_VOID'],
+    imprints: {
+      IMP_BLADE_VANGUARD: { id: 'IMP_BLADE_VANGUARD', nameTh: 'ตราประทับคมศาสตราทะลวงทัพ', atkBonus: 0.14, penAdd: 12 },
+      IMP_IRON_COLOSSUS: { id: 'IMP_IRON_COLOSSUS', nameTh: 'ตราประทับปราการศิลาแปดยอดเขา', defBonus: 0.16, dmgRedPct: 0.08 },
+      IMP_LOTUS_SAINT: { id: 'IMP_LOTUS_SAINT', nameTh: 'ตราประทับบงกชหมอเทวะรุ่นที่สี่', healBonus: 0.20, cleanToxic: true },
+      IMP_STAR_ARCANIST: { id: 'IMP_STAR_ARCANIST', nameTh: 'ตราประทับดาราพยากรณ์หมื่นกัลป์', matkBonus: 0.16, critAdd: 8 },
+      IMP_SHADOW_PHANTOM: { id: 'IMP_SHADOW_PHANTOM', nameTh: 'ตราประทับเงาเมฆาไร้ร่องรอย', evaAdd: 14, spdBonus: 0.12 },
+      IMP_DIVINE_ARTIFICER: { id: 'IMP_DIVINE_ARTIFICER', nameTh: 'ตราประทับเตาหลอมและหม้อยาบรรพชน', craftSuccessAdd: 0.15, qualityAdd: 0.12 },
+      IMP_GRAND_FORMATION: { id: 'IMP_GRAND_FORMATION', nameTh: 'ตราประทับค่ายกลพิทักษ์ประตูเขา', squadMitBonus: 0.10, arrayPower: 0.18 },
+      IMP_BEAST_PUPPET_LORD: { id: 'IMP_BEAST_PUPPET_LORD', nameTh: 'ตราประทับพันธสัญญาอสูรหุบเขา', petPowerBonus: 0.22, beastQiBonus: 0.25 },
+      IMP_KARMIC_JUDGE: { id: 'IMP_KARMIC_JUDGE', nameTh: 'ตราประทับตราชั่งเหตุผลและกรรม', reflectPct: 0.12, statusTransfer: true },
+      IMP_ABYSSAL_OVERLORD: { id: 'IMP_ABYSSAL_OVERLORD', nameTh: 'ตราประทับปณิธานฝ่าวิกฤตมรณะ', lowHpBurstBonus: 0.24, lifestealAdd: 0.10 },
+      IMP_HARMONIC_VIRTUOSO: { id: 'IMP_HARMONIC_VIRTUOSO', nameTh: 'ตราประทับคีตธรรมกล่อมเกลาจิต', qiRegenBonus: 0.20, clearHeartDemon: 2.5 },
+      IMP_GOLDEN_MAGNATE: { id: 'IMP_GOLDEN_MAGNATE', nameTh: 'ตราประทับคลังสมบัติฟื้นฟูสำนัก', fameGainBonus: 0.20, tradeBonus: 0.15 }
+    },
+    sovereignKeywords: [
+      'KW_SOV_ROLE_TRANSMUTE', 'KW_SOV_MOMENTUM_EQUALIZE', 'KW_SOV_ORIGIN_SIPHON',
+      'KW_SOV_DUAL_LAW_CONVERGE', 'KW_SOV_MORPH_MASTERY', 'KW_SOV_LINEAGE_CHORD',
+      'KW_SOV_SPATIAL_TETHER', 'KW_SOV_VEIL_BLINDSPOT', 'KW_SOV_AURA_CONCEALMENT',
+      'KW_SOV_ZERO_EQUILIBRIUM'
+    ]
+  };
+
+  // 4. World-Singleton & World-Roaming Candidate Matrices (TRANSCENDENT_02A-04B)
+  JD.CORE.TRANSCENDENT_ARMOR_CANDIDATES = {
+    CANDIDATE_A: { id: 'ARM_TRANSCENDENT_LOOM_OF_SCARS', nameTh: 'ภูษาทอรอยแผลหมื่นชะตา', selectedCanonical: true, role: 'CAUSAL_WOUND_LEDGER_AND_CHRYSALIS' },
+    CANDIDATE_B: { id: 'ARM_TRANSCENDENT_NINE_CAULDRON_HEART_FORGE', nameTh: 'เกราะเตาหลอมเก้า鼎หัวใจปฐพี', selectedCanonical: false, role: 'THERMAL_FORGE_BASTION' },
+    CANDIDATE_C: { id: 'ARM_TRANSCENDENT_EVENT_HORIZON_MANTLE', nameTh: 'เสื้อคลุมขอบฟ้าเหตุการณ์กลืนมิติ', selectedCanonical: false, role: 'VOID_PHASE_MANTLE' }
+  };
+  JD.CORE.TRANSCENDENT_ACCESSORY_CANDIDATES = {
+    CANDIDATE_A: { id: 'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL', nameTh: 'นาฬิกาแดดอูโรโบรอสย้อนกัลป์', selectedCanonical: true, role: 'CHRONO_BOOKMARK_AND_TWIN_ECHO' },
+    CANDIDATE_B: { id: 'ACC_TRANSCENDENT_MYRIAD_KNOT_LOOM', nameTh: 'กระสวยด้ายแดงหมื่นบุพเพ', selectedCanonical: false, role: 'KARMIC_BOND_WEAVER' },
+    CANDIDATE_C: { id: 'ACC_TRANSCENDENT_BABEL_MIND_PEARL', nameTh: 'มุกจิตวิญญาณสัพพัญญู', selectedCanonical: false, role: 'OMNISCIENT_STUDY_PEARL' }
+  };
+  JD.CORE.TRANSCENDENT_WEAPON_CANDIDATES = {
+    CANDIDATE_A: { id: 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN', nameTh: 'หีบศาสตราหมื่นสำนักกลืนสวรรค์', selectedCanonical: true, role: 'OMNI_ARSENAL_DIGESTION_AND_FLYING_SWORDS' },
+    CANDIDATE_B: { id: 'WPN_TRANSCENDENT_SEVERED_LAW_EDGE', nameTh: 'คมดาบสะบั้นกฎเกณฑ์ไร้ชื่อ', selectedCanonical: false, role: 'LAW_SEVERING_EXECUTIONER' },
+    CANDIDATE_C: { id: 'WPN_TRANSCENDENT_EQUILIBRIUM_GAVEL', nameTh: 'ค้อนตราชั่งสมดุลสวรรค์', selectedCanonical: false, role: 'REALM_EQUILIBRIUM_BREAKER' }
+  };
+
+  // 5. Register Transcendent Materials, Pure Elixirs, Pure Forged Genesis Artifacts & World Artifacts
+  JD.CORE.transcendentMaterials = [
+  {
+    "id": "MAT_TR_ALC_01_NINE_APERTURES_CHAOS_LOTUS",
+    "shortId": "MAT_TR_ALC_01",
+    "nameTh": "เกสรบัวโกลาหลเปิดเก้าทวารสวรรค์",
+    "descTh": "เปิดทวารสมองและรากวิญญาณแฝง เพิ่มความเร็วบำเพ็ญและโอกาสทะลวงคอขวดถาวร",
+    "cat": "HERB",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "ASTRAL_VOID",
+    "elementProfile": {
+      "primary": "ASTRAL_VOID",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "HERB",
+    "elixirMarkId": "MARK_NINE_APERTURES_CROWN",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_02_UNDYING_PHOENIX_BLOOD_MARROW",
+    "shortId": "MAT_TR_ALC_02",
+    "nameTh": "หยดไขกระดูกหงส์นิรันดร์ผลัดสังขาร",
+    "descTh": "สลักไขกระดูกหงส์อมตะ ฟื้นฟูบาดแผลสาหัสและกันความตาย 1 ครั้งต่อศึก",
+    "cat": "BEAST",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "FIRE",
+    "elementProfile": {
+      "primary": "FIRE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "BEAST_PART",
+    "elixirMarkId": "MARK_PHOENIX_NIRVANA_MARROW",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_03_DUAL_DANTIAN_ORIGIN_PEARL",
+    "shortId": "MAT_TR_ALC_03",
+    "nameTh": "มุกครรภ์สวรรค์เบิกตันเถียนที่สอง",
+    "descTh": "เบิกทะเลปราณตันเถียนที่สอง เพิ่มเพดานปราณสูงสุด +35% ถาวร",
+    "cat": "MINERAL",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "WATER_ICE",
+    "elementProfile": {
+      "primary": "WATER_ICE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "MINERAL_WATER",
+    "elixirMarkId": "MARK_SECOND_ORIGIN_DANTIAN",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_04_MYRIAD_VENOMS_SOVEREIGN_GALL",
+    "shortId": "MAT_TR_ALC_04",
+    "nameTh": "ดีราชันย์หมื่นพิษกลืนคำสาปถาวร",
+    "descTh": "เปลี่ยนพิษโอสถและพิษศัตรูให้กลายเป็นปราณบำรุงกายา 100%",
+    "cat": "BEAST",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "WOOD_LIFE",
+    "elementProfile": {
+      "primary": "WOOD_LIFE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "BEAST_PART",
+    "elixirMarkId": "MARK_OMNI_TOXIN_FURNACE",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_05_AKASHIC_DREAM_FRUIT_NECTAR",
+    "shortId": "MAT_TR_ALC_05",
+    "nameTh": "น้ำหวานผลไม้ฝันหมื่นชาติเปิดสมองเทวะ",
+    "descTh": "ยกระดับความเข้าใจคัมภีร์และความเชี่ยวชาญวิชา +40% ถาวร",
+    "cat": "HERB",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "LIGHT_YANG",
+    "elementProfile": {
+      "primary": "LIGHT_YANG",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "HERB",
+    "elixirMarkId": "MARK_AKASHIC_COMPREHENSION_EYE",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_06_THUNDER_EMPEROR_HEART_DEW",
+    "shortId": "MAT_TR_ALC_06",
+    "nameTh": "น้ำค้างหัวใจจักรพรรดิอสนีท้าทัณฑ์",
+    "descTh": "ดูดซับสายฟ้าทัณฑ์สวรรค์มาหล่อเลี้ยงชีพจร เพิ่มต้านทานทัณฑ์สวรรค์ถาวร",
+    "cat": "MINERAL",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "LIGHTNING",
+    "elementProfile": {
+      "primary": "LIGHTNING",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "MINERAL_WATER",
+    "elixirMarkId": "MARK_TRIBULATION_LIGHTNING_HEART",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_07_VAJRA_DRAGON_GOD_BONE_ASH",
+    "shortId": "MAT_TR_ALC_07",
+    "nameTh": "ผงกระดูกมังกรวัชระหลอมกายาเพชร",
+    "descTh": "โครงกระดูกทองคำวัชระ ลดความเสียหายกายภาพและป้องกันกระดูกหักถาวร",
+    "cat": "BEAST",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "EARTH_METAL",
+    "elementProfile": {
+      "primary": "EARTH_METAL",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "BEAST_PART",
+    "elixirMarkId": "MARK_VAJRA_DRAGON_SKELETON",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_08_VOID_MIRAGE_SOUL_AMBERGRIS",
+    "shortId": "MAT_TR_ALC_08",
+    "nameTh": "อำพันทะเลวิญญาณไร้ลักษณ์ซ่อนชะตา",
+    "descTh": "ซ่อนกลิ่นอายชะตาจากศัตรูและป้องกันการโจมตีทางจิตวิญญาณ",
+    "cat": "MINERAL",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "YIN_SHADOW",
+    "elementProfile": {
+      "primary": "YIN_SHADOW",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "MINERAL_WATER",
+    "elixirMarkId": "MARK_VOID_MIRAGE_SOUL",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_09_PRIMORDIAL_YIN_YANG_KOI_TEAR",
+    "shortId": "MAT_TR_ALC_09",
+    "nameTh": "น้ำตาปลามังกรหยินหยางหมุนกงล้อชะตา",
+    "descTh": "หนุนโชคชะตาและเปลี่ยนเคราะห์ร้ายในดันเจี้ยนเป็นวาสนา",
+    "cat": "BEAST",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "WATER_ICE",
+    "elementProfile": {
+      "primary": "WATER_ICE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "BEAST_PART",
+    "elixirMarkId": "MARK_YIN_YANG_FATE_WHEEL",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_ALC_10_SOVEREIGN_EMPEROR_DRAGON_QI_BLOOD",
+    "shortId": "MAT_TR_ALC_10",
+    "nameTh": "โลหิตมังกรจักรพรรดิบรรพกาลสืบทอดสายเลือด",
+    "descTh": "ยกระดับสายเลือดบรรพชนและส่งต่อตราโอสถสู่ทายาท 50%–75%",
+    "cat": "BEAST",
+    "craft": "ALCHEMY",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 18000,
+    "element": "BLOOD_DEMON",
+    "elementProfile": {
+      "primary": "BLOOD_DEMON",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": true,
+    "equipmentOnlyWildcard": false,
+    "wildcardDomain": "ALCHEMY_ONLY",
+    "wildcardTag": "BEAST_PART",
+    "elixirMarkId": "MARK_EMPEROR_DRAGON_BLOODLINE",
+    "batchYieldBonus": [
+      2,
+      3
+    ],
+    "pillCloudDays": 7,
+    "hereditaryChance": 0.65,
+    "unsellable": true,
+    "obtainSources": [
+      "CALAMITY_HERB_SOVEREIGN",
+      "METEOR_CRATER_HARVEST",
+      "ANCIENT_ALCHEMIST_TOMB"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_01_VOID_QUICKSILVER_HEART",
+    "shortId": "MAT_TR_SOV_01",
+    "nameTh": "หัวใจปรอทสุญตาจำแลงหมื่นธาตุ",
+    "descTh": "หัวใจปรอทสุญตาจำแลงหมื่นธาตุ · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "ASTRAL_VOID",
+    "elementProfile": {
+      "primary": "ASTRAL_VOID",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "ORE_METAL",
+    "isGenesisBridgeKeystone": true,
+    "infusionKeyword": "KW_MAT_OMNI_SET_AND_ELEMENT_CHAMELEON",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_OMNI_SET_AND_ELEMENT_CHAMELEON"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_OMNI_SET_AND_ELEMENT_CHAMELEON"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_OMNI_SET_AND_ELEMENT_CHAMELEON"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_02_IMMORTAL_AMBER_CHRONO_SAP",
+    "shortId": "MAT_TR_SOV_02",
+    "nameTh": "ยางอำพันกาลเวลาหมื่นกัลป์",
+    "descTh": "ยางอำพันกาลเวลาหมื่นกัลป์ · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "WOOD_LIFE",
+    "elementProfile": {
+      "primary": "WOOD_LIFE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "HERB_WOOD",
+    "isGenesisBridgeKeystone": true,
+    "infusionKeyword": "KW_MAT_TEMPORAL_ECHO_SEAL",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_TEMPORAL_ECHO_SEAL"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_TEMPORAL_ECHO_SEAL"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_TEMPORAL_ECHO_SEAL"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_03_NIRVANA_HEARTWOOD_MARROW",
+    "shortId": "MAT_TR_SOV_03",
+    "nameTh": "แก่นพฤกษานิพพานชุบวิญญาณมีชีวิต",
+    "descTh": "แก่นพฤกษานิพพานชุบวิญญาณมีชีวิต · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "WOOD_LIFE",
+    "elementProfile": {
+      "primary": "WOOD_LIFE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "HERB_WOOD",
+    "isGenesisBridgeKeystone": true,
+    "infusionKeyword": "KW_MAT_REALM_GROWTH_SYMBIOSIS",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_REALM_GROWTH_SYMBIOSIS"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_REALM_GROWTH_SYMBIOSIS"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_REALM_GROWTH_SYMBIOSIS"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_04_TRIBULATION_THUNDER_FULGURITE",
+    "shortId": "MAT_TR_SOV_04",
+    "nameTh": "ผลึกสายฟ้าทัณฑ์สวรรค์เก้าชั้นฟ้า",
+    "descTh": "ผลึกสายฟ้าทัณฑ์สวรรค์เก้าชั้นฟ้า · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "LIGHTNING",
+    "elementProfile": {
+      "primary": "LIGHTNING",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "CRYSTAL_GEM",
+    "isGenesisBridgeKeystone": false,
+    "infusionKeyword": "KW_MAT_HEAVEN_PUNISHMENT_DETONATOR",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_HEAVEN_PUNISHMENT_DETONATOR"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_HEAVEN_PUNISHMENT_DETONATOR"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_HEAVEN_PUNISHMENT_DETONATOR"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_05_MYRIAD_SOUL_MIRROR_PRISM",
+    "shortId": "MAT_TR_SOV_05",
+    "nameTh": "ผลึกกระจกหมื่นจิตสั่นพ้องจักรวาล",
+    "descTh": "ผลึกกระจกหมื่นจิตสั่นพ้องจักรวาล · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "ASTRAL_VOID",
+    "elementProfile": {
+      "primary": "ASTRAL_VOID",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "CRYSTAL_GEM",
+    "isGenesisBridgeKeystone": false,
+    "infusionKeyword": "KW_MAT_PHASE_BYPASS",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_PHASE_BYPASS"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_PHASE_BYPASS"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_PHASE_BYPASS"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_06_COLLAPSED_STAR_NEUTRON_SAND",
+    "shortId": "MAT_TR_SOV_06",
+    "nameTh": "ทรายเหล็กดารายุบตัวหนักหมื่นชั่ง",
+    "descTh": "ทรายเหล็กดารายุบตัวหนักหมื่นชั่ง · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "EARTH_METAL",
+    "elementProfile": {
+      "primary": "EARTH_METAL",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "ORE_METAL",
+    "isGenesisBridgeKeystone": true,
+    "infusionKeyword": "KW_MAT_SINGULARITY_MASS",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_SINGULARITY_MASS"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_SINGULARITY_MASS"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_SINGULARITY_MASS"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_07_SAMSARA_KARMA_SILK_COCOON",
+    "shortId": "MAT_TR_SOV_07",
+    "nameTh": "รังไหมสังสารวัฏถักทอสายใยกรรม",
+    "descTh": "รังไหมสังสารวัฏถักทอสายใยกรรม · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "YIN_SHADOW",
+    "elementProfile": {
+      "primary": "YIN_SHADOW",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "SILK_FIBER",
+    "isGenesisBridgeKeystone": false,
+    "infusionKeyword": "KW_MAT_KARMIC_SILK_LINK",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_KARMIC_SILK_LINK"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_KARMIC_SILK_LINK"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_KARMIC_SILK_LINK"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_08_ABYSSAL_DRAGON_REVERSE_SCALE",
+    "shortId": "MAT_TR_SOV_08",
+    "nameTh": "เกล็ดย้อนมังกรเหวลึกกลืนศาสตรา",
+    "descTh": "เกล็ดย้อนมังกรเหวลึกกลืนศาสตรา · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "BLOOD_DEMON",
+    "elementProfile": {
+      "primary": "BLOOD_DEMON",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "BEAST_SCALE",
+    "isGenesisBridgeKeystone": false,
+    "infusionKeyword": "KW_MAT_DRAGON_DEVOUR_SCALE",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_DRAGON_DEVOUR_SCALE"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_DRAGON_DEVOUR_SCALE"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_DRAGON_DEVOUR_SCALE"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_09_CELESTIAL_WEIGHING_JADE_TALLY",
+    "shortId": "MAT_TR_SOV_09",
+    "nameTh": "หยกตราชั่งสวรรค์ปรับสมดุลกฎเกณฑ์",
+    "descTh": "หยกตราชั่งสวรรค์ปรับสมดุลกฎเกณฑ์ · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "LIGHT_YANG",
+    "elementProfile": {
+      "primary": "LIGHT_YANG",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "JADE_STONE",
+    "isGenesisBridgeKeystone": false,
+    "infusionKeyword": "KW_MAT_LAW_CALIBRATION",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_LAW_CALIBRATION"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_LAW_CALIBRATION"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_LAW_CALIBRATION"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  },
+  {
+    "id": "MAT_TR_SOV_10_CHAOS_ORIGIN_ASH_EMBER",
+    "shortId": "MAT_TR_SOV_10",
+    "nameTh": "เถ้าถ่านไฟปฐมกาลหลอมละลายทุกสรรพสิ่ง",
+    "descTh": "เถ้าถ่านไฟปฐมกาลหลอมละลายทุกสรรพสิ่ง · วัตถุดิบไวลด์การ์ดสำหรับหลอมศาสตรา/เกราะ/เครื่องประดับเท่านั้น",
+    "cat": "ORE",
+    "craft": "FORGING",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 19500,
+    "element": "FIRE",
+    "elementProfile": {
+      "primary": "FIRE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentMaterial": true,
+    "alchemyOnlyWildcard": false,
+    "equipmentOnlyWildcard": true,
+    "wildcardDomain": "EQUIPMENT_ONLY",
+    "wildcardTag": "FIRE_ESSENCE",
+    "isGenesisBridgeKeystone": false,
+    "infusionKeyword": "KW_MAT_CHAOS_EMBER_MELT",
+    "slotMutations": {
+      "WEAPON": {
+        "combatMultAdd": 0.16,
+        "critAdd": 6,
+        "penAdd": 10,
+        "keyword": "KW_MAT_CHAOS_EMBER_MELT"
+      },
+      "ARMOR": {
+        "defenseMultAdd": 0.16,
+        "hpMaxPct": 0.12,
+        "dmgRedPct": 0.08,
+        "keyword": "KW_MAT_CHAOS_EMBER_MELT"
+      },
+      "ACCESSORY": {
+        "cultRateAdd": 0.14,
+        "qiMaxPct": 0.12,
+        "breakthroughAdd": 0.06,
+        "keyword": "KW_MAT_CHAOS_EMBER_MELT"
+      }
+    },
+    "unsellable": true,
+    "obtainSources": [
+      "WORLD_CALAMITY_BOSS",
+      "ABYSSAL_RIFT_EXPEDITION",
+      "CELESTIAL_METEOR_VEIN"
+    ]
+  }
+];
+  JD.CORE.pureTranscendentElixirs = [
+  {
+    "id": "PILL_TR_PURE_01_HEAVEN_DEFYING_GENESIS_ELIXIR",
+    "shortId": "PILL_TR_PURE_01",
+    "nameTh": "มหาโอสถเก้าวิวัฒน์ปั้นชะตาเซียน",
+    "descTh": "โอสถเหนือตำนานบริสุทธิ์ ยกระดับรากวิญญาณ ทะลวงคอขวดทันที และสลักตราเก้าทวารปฐมกาลถาวร",
+    "cat": "PILL",
+    "out": "PILL",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 45000,
+    "element": "ASTRAL_VOID",
+    "elementProfile": {
+      "primary": "ASTRAL_VOID",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentElixir": true,
+    "isPureTranscendentElixir": true,
+    "elixirMarkId": "MARK_PURE_GENESIS_IMMORTAL_BODY",
+    "effect": {
+      "cultivationProgress": 950,
+      "breakthroughBonus": 0.35,
+      "clearToxic": 100,
+      "clearHeartDemon": 100,
+      "lifespanAdd": 150
+    }
+  },
+  {
+    "id": "PILL_TR_PURE_02_IMMORTAL_SAMSARA_RESURRECTION_PILL",
+    "shortId": "PILL_TR_PURE_02",
+    "nameTh": "มหาโอสถนิพพานชุบวิญญาณคืนชีพผู้ล่วงลับ",
+    "descTh": "โอสถเหนือตำนานบริสุทธิ์ ชุบชีวิตหรือรักษาอาการบาดเจ็บปางตายสมบูรณ์ พร้อมสลักตราหงส์นิพพานอมตะ",
+    "cat": "PILL",
+    "out": "PILL",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 48000,
+    "element": "WOOD_LIFE",
+    "elementProfile": {
+      "primary": "WOOD_LIFE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentElixir": true,
+    "isPureTranscendentElixir": true,
+    "elixirMarkId": "MARK_PURE_SAMSARA_UNDYING_SOUL",
+    "effect": {
+      "hpRestore": 9999,
+      "qiRestore": 9999,
+      "cureAllInjuries": true,
+      "resurrectFallen": true,
+      "lifespanAdd": 180
+    }
+  },
+  {
+    "id": "PILL_TR_PURE_03_MYRIAD_DAOS_SOVEREIGN_BLOOD_PILL",
+    "shortId": "PILL_TR_PURE_03",
+    "nameTh": "มหาโอสถโลหิตจักรพรรดิรู้แจ้งหมื่นมรรคา",
+    "descTh": "โอสถเหนือตำนานบริสุทธิ์ ปลุกสายเลือดจักรพรรดิบรรพกาลและยกระดับความเชี่ยวชาญทุกวิถียุทธ์",
+    "cat": "PILL",
+    "out": "PILL",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 50000,
+    "element": "BLOOD_DEMON",
+    "elementProfile": {
+      "primary": "BLOOD_DEMON",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentElixir": true,
+    "isPureTranscendentElixir": true,
+    "elixirMarkId": "MARK_PURE_SOVEREIGN_DRAGON_PHYSIQUE",
+    "effect": {
+      "cultivationProgress": 1200,
+      "combatPowerMultAdd": 0.25,
+      "allSkillsAdd": 20,
+      "lifespanAdd": 160
+    }
+  }
+];
+  JD.CORE.pureForgedGenesisItems = [
+  {
+    "id": "EQ_TR_PURE_WPN_GENESIS",
+    "nameTh": "มหาศาสตราปฐมกาลหลอมสวรรค์",
+    "descTh": "มหาศาสตราที่หลอมขึ้นจากวัตถุดิบเหนือตำนานบริสุทธิ์ 5 ชนิดด้วยมือช่างยุทธภพ แปรเปลี่ยนรูปลักษณ์ตามวิชาของผู้ถือครอง",
+    "cat": "EQUIPMENT",
+    "out": "EQUIPMENT",
+    "slot": "WEAPON",
+    "subType": "SWORD",
+    "gearType": "SWORD",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 68000,
+    "element": "ASTRAL_VOID",
+    "elementProfile": {
+      "primary": "ASTRAL_VOID",
+      "secondary": "FIRE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isPureTranscendentGenesis": true,
+    "omniWeaponAdaptive": true,
+    "setId": "RES_TR_MORTAL_FORGED_GENESIS",
+    "combatMult": 0.92,
+    "defenseMult": 0.28,
+    "unsellable": true,
+    "indestructible": true
+  },
+  {
+    "id": "EQ_TR_PURE_ARM_GENESIS",
+    "nameTh": "มหาเกราะปฐมกาลค้ำจุนพิภพ",
+    "descTh": "มหาเกราะที่หลอมจากวัตถุดิบเหนือตำนานบริสุทธิ์ 5 ชนิด ปรับน้ำหนักเกราะอัตโนมัติและดูดซับแรงทัณฑ์สวรรค์",
+    "cat": "EQUIPMENT",
+    "out": "EQUIPMENT",
+    "slot": "ARMOR",
+    "subType": "ROBE",
+    "gearType": "ROBE",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 66000,
+    "element": "EARTH_METAL",
+    "elementProfile": {
+      "primary": "EARTH_METAL",
+      "secondary": "WOOD_LIFE",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isPureTranscendentGenesis": true,
+    "triWeightAdaptive": true,
+    "setId": "RES_TR_MORTAL_FORGED_GENESIS",
+    "combatMult": 0.34,
+    "defenseMult": 0.9,
+    "unsellable": true,
+    "indestructible": true
+  },
+  {
+    "id": "EQ_TR_PURE_ACC_GENESIS",
+    "nameTh": "มหาตราปฐมกาลหมุนกงล้อกาล",
+    "descTh": "มหาเครื่องประดับที่หลอมจากวัตถุดิบเหนือตำนานบริสุทธิ์ 4 ชนิด ย่นย่อกาลเวลาบำเพ็ญและเชื่อมโยงสายใยชะตาทั้งสำนัก",
+    "cat": "EQUIPMENT",
+    "out": "EQUIPMENT",
+    "slot": "ACCESSORY",
+    "subType": "CHARM",
+    "gearType": "CHARM",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 65000,
+    "element": "LIGHT_YANG",
+    "elementProfile": {
+      "primary": "LIGHT_YANG",
+      "secondary": "ASTRAL_VOID",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isPureTranscendentGenesis": true,
+    "pentaSubtypeAdaptive": true,
+    "setId": "RES_TR_MORTAL_FORGED_GENESIS",
+    "combatMult": 0.45,
+    "defenseMult": 0.45,
+    "breakthroughBonus": 0.18,
+    "unsellable": true,
+    "indestructible": true
+  }
+];
+  JD.CORE.worldTranscendentArtifacts = [
+  {
+    "id": "REGALIA_ORIGIN_FORMLESS_STONE",
+    "nameTh": "ตราหินเทาไร้ลักษณ์",
+    "descTh": "ศาสตราประจำตำแหน่งเจ้าสำนักที่สืบทอดมาแต่ปฐมบูรพาจารย์รุ่นที่ 1 ยามยังไม่ตื่นรู้เป็นเพียงตราหินสีเทาเรียบง่ายไร้คม แต่สามารถจำแลงได้ 24 รูปลักษณ์ตามวิถีของเจ้าสำนัก",
+    "cat": "EQUIPMENT",
+    "out": "EQUIPMENT",
+    "slot": "ACCESSORY",
+    "subType": "CHARM",
+    "gearType": "CHARM",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 99999,
+    "element": "NEUTRAL",
+    "elementProfile": {
+      "primary": "NEUTRAL",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isPatriarchRegalia": true,
+    "soulboundToMaster": true,
+    "unsellable": true,
+    "indestructible": true,
+    "combatMult": 0.38,
+    "defenseMult": 0.38,
+    "breakthroughBonus": 0.12
+  },
+  {
+    "id": "ARM_TRANSCENDENT_LOOM_OF_SCARS",
+    "nameTh": "ภูษาทอรอยแผลหมื่นชะตา",
+    "descTh": "มหาภูษาเหนือตำนานหนึ่งเดียวในแผ่นดิน ถักทอจากรอยแผลและปณิธานของผู้ไม่ยอมจำนน ปรับน้ำหนักเกราะได้ 3 รูปแบบ บันทึกสมุดบัญชีบาดแผล และเข้าสู่ดักแด้ชุบชีวิต 4 ลมหายใจเมื่อรับการโจมตีถึงตาย",
+    "cat": "EQUIPMENT",
+    "out": "EQUIPMENT",
+    "slot": "ARMOR",
+    "subType": "ROBE",
+    "gearType": "ROBE",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 88000,
+    "element": "BLOOD_DEMON",
+    "elementProfile": {
+      "primary": "BLOOD_DEMON",
+      "secondary": "ASTRAL_VOID",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentArmor": true,
+    "worldSingleton": true,
+    "triWeightAdaptive": true,
+    "unsellable": true,
+    "indestructible": true,
+    "combatMult": 0.42,
+    "defenseMult": 0.95,
+    "breakthroughBonus": 0.14
+  },
+  {
+    "id": "ACC_TRANSCENDENT_OUROBOROS_SUNDIAL",
+    "nameTh": "นาฬิกาแดดอูโรโบรอสย้อนกัลป์",
+    "descTh": "มหาเครื่องประดับเหนือตำนานหนึ่งเดียวในแผ่นดิน บันทึกจุดคั่นเวลา 4 ลมหายใจเพื่อย้อนคืนสังขาร สะท้อนวิชาซ้ำในจังหวะที่สาม และเร่งการศึกษารู้แจ้ง",
+    "cat": "EQUIPMENT",
+    "out": "EQUIPMENT",
+    "slot": "ACCESSORY",
+    "subType": "CHARM",
+    "gearType": "CHARM",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 88000,
+    "element": "ASTRAL_VOID",
+    "elementProfile": {
+      "primary": "ASTRAL_VOID",
+      "secondary": "LIGHT_YANG",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentAccessory": true,
+    "worldSingleton": true,
+    "pentaSubtypeAdaptive": true,
+    "unsellable": true,
+    "indestructible": true,
+    "combatMult": 0.52,
+    "defenseMult": 0.52,
+    "breakthroughBonus": 0.18
+  },
+  {
+    "id": "WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN",
+    "nameTh": "หีบศาสตราหมื่นสำนักกลืนสวรรค์",
+    "descTh": "มหาศาสตราพเนจรเหนือตำนานหนึ่งเดียวในแผ่นดิน กลืนกินตระกูลอาวุธทั้ง 16 สาย ปล่อยกระบี่บินคุ้มกันอัตโนมัติ และเปิดผนึกหีบหมื่นศาสตราถล่มสนามรบ",
+    "cat": "EQUIPMENT",
+    "out": "EQUIPMENT",
+    "slot": "WEAPON",
+    "subType": "SWORD",
+    "gearType": "SWORD",
+    "tier": 8,
+    "transcendentRank": 8,
+    "price": 92000,
+    "element": "EARTH_METAL",
+    "elementProfile": {
+      "primary": "EARTH_METAL",
+      "secondary": "ASTRAL_VOID",
+      "affinityWeight": 1.0
+    },
+    "grade": "Transcendent",
+    "transcendent": true,
+    "isTranscendentWeapon": true,
+    "worldSingleton": true,
+    "omniWeaponAdaptive": true,
+    "unsellable": true,
+    "indestructible": true,
+    "combatMult": 0.96,
+    "defenseMult": 0.35,
+    "breakthroughBonus": 0.12
+  }
+];
+  JD.CORE.pureTranscendentRecipes = [
+  {
+    "id": "REC_TR_PILL_PURE_01",
+    "nameTh": "ตำรับมหาโอสถเก้าวิวัฒน์ปั้นชะตาเซียน",
+    "craft": "ALCHEMY",
+    "tier": 7,
+    "facilityLevel": 3,
+    "minMastery": 75,
+    "outType": "PILL",
+    "outItemId": "PILL_TR_PURE_01_HEAVEN_DEFYING_GENESIS_ELIXIR",
+    "outNameTh": "มหาโอสถเก้าวิวัฒน์ปั้นชะตาเซียน",
+    "discoverable": true,
+    "isPureTranscendentRecipe": true,
+    "inputs": [
+      {
+        "matId": "MAT_TR_ALC_01_NINE_APERTURES_CHAOS_LOTUS",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_03_DUAL_DANTIAN_ORIGIN_PEARL",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_05_AKASHIC_DREAM_FRUIT_NECTAR",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_06_THUNDER_EMPEROR_HEART_DEW",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "REC_TR_PILL_PURE_02",
+    "nameTh": "ตำรับมหาโอสถนิพพานชุบวิญญาณคืนชีพผู้ล่วงลับ",
+    "craft": "ALCHEMY",
+    "tier": 7,
+    "facilityLevel": 3,
+    "minMastery": 75,
+    "outType": "PILL",
+    "outItemId": "PILL_TR_PURE_02_IMMORTAL_SAMSARA_RESURRECTION_PILL",
+    "outNameTh": "มหาโอสถนิพพานชุบวิญญาณคืนชีพผู้ล่วงลับ",
+    "discoverable": true,
+    "isPureTranscendentRecipe": true,
+    "inputs": [
+      {
+        "matId": "MAT_TR_ALC_02_UNDYING_PHOENIX_BLOOD_MARROW",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_04_MYRIAD_VENOMS_SOVEREIGN_GALL",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_08_VOID_MIRAGE_SOUL_AMBERGRIS",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_09_PRIMORDIAL_YIN_YANG_KOI_TEAR",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "REC_TR_PILL_PURE_03",
+    "nameTh": "ตำรับมหาโอสถโลหิตจักรพรรดิรู้แจ้งหมื่นมรรคา",
+    "craft": "ALCHEMY",
+    "tier": 7,
+    "facilityLevel": 3,
+    "minMastery": 78,
+    "outType": "PILL",
+    "outItemId": "PILL_TR_PURE_03_MYRIAD_DAOS_SOVEREIGN_BLOOD_PILL",
+    "outNameTh": "มหาโอสถโลหิตจักรพรรดิรู้แจ้งหมื่นมรรคา",
+    "discoverable": true,
+    "isPureTranscendentRecipe": true,
+    "inputs": [
+      {
+        "matId": "MAT_TR_ALC_01_NINE_APERTURES_CHAOS_LOTUS",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_07_VAJRA_DRAGON_GOD_BONE_ASH",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_10_SOVEREIGN_EMPEROR_DRAGON_QI_BLOOD",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_ALC_05_AKASHIC_DREAM_FRUIT_NECTAR",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "REC_TR_PURE_WPN_GENESIS",
+    "nameTh": "ตำรับหลอมมหาศาสตราปฐมกาลหลอมสวรรค์",
+    "craft": "FORGING",
+    "tier": 7,
+    "facilityLevel": 3,
+    "minMastery": 78,
+    "outType": "EQUIPMENT",
+    "outItemId": "EQ_TR_PURE_WPN_GENESIS",
+    "outNameTh": "มหาศาสตราปฐมกาลหลอมสวรรค์",
+    "discoverable": true,
+    "isPureTranscendentRecipe": true,
+    "triggersForgeTribulation": true,
+    "inputs": [
+      {
+        "matId": "MAT_TR_SOV_01_VOID_QUICKSILVER_HEART",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_04_TRIBULATION_THUNDER_FULGURITE",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_06_COLLAPSED_STAR_NEUTRON_SAND",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_08_ABYSSAL_DRAGON_REVERSE_SCALE",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_10_CHAOS_ORIGIN_ASH_EMBER",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "REC_TR_PURE_ARM_GENESIS",
+    "nameTh": "ตำรับหลอมมหาเกราะปฐมกาลค้ำจุนพิภพ",
+    "craft": "FORGING",
+    "tier": 7,
+    "facilityLevel": 3,
+    "minMastery": 78,
+    "outType": "EQUIPMENT",
+    "outItemId": "EQ_TR_PURE_ARM_GENESIS",
+    "outNameTh": "มหาเกราะปฐมกาลค้ำจุนพิภพ",
+    "discoverable": true,
+    "isPureTranscendentRecipe": true,
+    "triggersForgeTribulation": true,
+    "inputs": [
+      {
+        "matId": "MAT_TR_SOV_02_IMMORTAL_AMBER_CHRONO_SAP",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_03_NIRVANA_HEARTWOOD_MARROW",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_06_COLLAPSED_STAR_NEUTRON_SAND",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_07_SAMSARA_KARMA_SILK_COCOON",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_09_CELESTIAL_WEIGHING_JADE_TALLY",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "REC_TR_PURE_ACC_GENESIS",
+    "nameTh": "ตำรับหลอมมหาตราปฐมกาลหมุนกงล้อกาล",
+    "craft": "FORGING",
+    "tier": 7,
+    "facilityLevel": 3,
+    "minMastery": 76,
+    "outType": "EQUIPMENT",
+    "outItemId": "EQ_TR_PURE_ACC_GENESIS",
+    "outNameTh": "มหาตราปฐมกาลหมุนกงล้อกาล",
+    "discoverable": true,
+    "isPureTranscendentRecipe": true,
+    "triggersForgeTribulation": true,
+    "inputs": [
+      {
+        "matId": "MAT_TR_SOV_01_VOID_QUICKSILVER_HEART",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_02_IMMORTAL_AMBER_CHRONO_SAP",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_03_NIRVANA_HEARTWOOD_MARROW",
+        "count": 1
+      },
+      {
+        "matId": "MAT_TR_SOV_05_MYRIAD_SOUL_MIRROR_PRISM",
+        "count": 1
+      }
+    ]
+  }
+];
+
+  // Stored in JD.CORE.* and indexed via non-enumerable descriptors on ECO.itemById / ECO.matById / ECO.recipeById
+  // so legacy array-length assertions (1177 items, 1402 recipes, JD.EXPANSION regional validation) remain 100% intact.
+
+  // 6. Dedicated Scripture & Codex Catalogs (Preserving JD.TECH.mantras === 122 & JD.TECH.techniques === 1726)
+  JD.TECH.lowTierMantras = [{"id": "MNT_LOW_001", "nameTh": "เคล็ดสูดไอหมอกไก่ขันยามรุ่งสาง", "descTh": "เคล็ดสูดไอหมอกไก่ขันยามรุ่งสาง", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 15, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_EARLY_BIRD_DAWN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_002", "nameTh": "เคล็ดนับลมหายใจแบกนํ้าขึ้นบันไดหิน", "descTh": "เคล็ดนับลมหายใจแบกนํ้าขึ้นบันไดหิน", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 16, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHORE_BREATHING", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_003", "nameTh": "เคล็ดอุ่นท้องย่อยข้าวต้มธัญพืช", "descTh": "เคล็ดอุ่นท้องย่อยข้าวต้มธัญพืช", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 15, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_FULL_BELLY_VIGOR", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_004", "nameTh": "เคล็ดงีบหลับพิงเสาฟื้นกำลังไว", "descTh": "เคล็ดงีบหลับพิงเสาฟื้นกำลังไว", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 15, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_NAP_RECHARGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_005", "nameTh": "เคล็ดกางเสื้อฟางเดินฝ่าฝนหนาว", "descTh": "เคล็ดกางเสื้อฟางเดินฝ่าฝนหนาว", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 16, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WEATHER_HARDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_006", "nameTh": "เคล็ดเก็บออมลมปราณคนเบี้ยน้อย", "descTh": "เคล็ดเก็บออมลมปราณคนเบี้ยน้อย", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 15, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_007", "nameTh": "เคล็ดนั่งล้อมวงท่องมนต์หอนอก", "descTh": "เคล็ดนั่งล้อมวงท่องมนต์หอนอก", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 15, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CROWD_WARMTH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_008", "nameTh": "เคล็ดฟังเสียงจิ้งหรีดสงบใจยามดึก", "descTh": "เคล็ดฟังเสียงจิ้งหรีดสงบใจยามดึก", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 15, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_009", "nameTh": "เคล็ดกำหมัดเกร็งท้องรับไม้พลองครูฝึก", "descTh": "เคล็ดกำหมัดเกร็งท้องรับไม้พลองครูฝึก", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 16, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TEA_SOUP_DIGEST", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_010", "nameTh": "เคล็ดเพ่งเปลวตะเกียงนํ้ามันสน", "descTh": "เคล็ดเพ่งเปลวตะเกียงนํ้ามันสน", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 16, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_011", "nameTh": "เคล็ดสูดกลิ่นดินหลังฝนตกบำรุงม้าม", "descTh": "เคล็ดสูดกลิ่นดินหลังฝนตกบำรุงม้าม", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 16, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_012", "nameTh": "เคล็ดกลั้นใจฟังเสียงสายธนูตึง", "descTh": "เคล็ดกลั้นใจฟังเสียงสายธนูตึง", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "SHADOW_SAMURAI", "sub": "NONE", "power": 17, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_013", "nameTh": "เคล็ดเงาไม้ไผ่ซ่อนลมหายใจยามคํ่า", "descTh": "เคล็ดเงาไม้ไผ่ซ่อนลมหายใจยามคํ่า", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 16, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_MUD_ICE_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_014", "nameTh": "เคล็ดซึมซับโอสถลูกกลอนราคาถูก", "descTh": "เคล็ดซึมซับโอสถลูกกลอนราคาถูก", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 15, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHEAP_PILL_SPONGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_LOW_015", "nameTh": "เคล็ดจิบชาดอกเก๊กฮวยระบายพิษร้อน", "descTh": "เคล็ดจิบชาดอกเก๊กฮวยระบายพิษร้อน", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 31, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TEA_SOUP_DIGEST", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_016", "nameTh": "เคล็ดลมหายใจช่างตีเหล็กสูบลมคู่", "descTh": "เคล็ดลมหายใจช่างตีเหล็กสูบลมคู่", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 33, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHORE_BREATHING", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_017", "nameTh": "เคล็ดเดินลมปราณอุ่นฝ่าเท้าเดินทางไกล", "descTh": "เคล็ดเดินลมปราณอุ่นฝ่าเท้าเดินทางไกล", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 30, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_018", "nameTh": "เคล็ดตั้งสติอ่านตำราไม่สัปหงก", "descTh": "เคล็ดตั้งสติอ่านตำราไม่สัปหงก", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 31, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LIME_DUST_SLEEVE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_019", "nameTh": "เคล็ดปราณก้อนกรวดกลิ้งตามนํ้าไม่แตกหัก", "descTh": "เคล็ดปราณก้อนกรวดกลิ้งตามนํ้าไม่แตกหัก", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 32, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_020", "nameTh": "เคล็ดคนเรือโต้ลมแม่นํ้าสองแคว", "descTh": "เคล็ดคนเรือโต้ลมแม่นํ้าสองแคว", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 32, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HOT_BROTH_CANTEEN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_021", "nameTh": "เคล็ดคลายปมเส้นเอ็นหลังซ้อมหนัก", "descTh": "เคล็ดคลายปมเส้นเอ็นหลังซ้อมหนัก", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 33, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_COPPER_GONG_WAKE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_022", "nameTh": "เคล็ดสวดคุ้มภัยศาลเพียงตาข้างทาง", "descTh": "เคล็ดสวดคุ้มภัยศาลเพียงตาข้างทาง", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 31, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_DRAG_COLLAPSED_BUDDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_023", "nameTh": "เคล็ดเลี้ยงไอเย็นก้นบ่อบาดาล", "descTh": "เคล็ดเลี้ยงไอเย็นก้นบ่อบาดาล", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 32, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LEFTOVER_WOK_MAGIC", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_024", "nameTh": "เคล็ดลับมีดในใจพันครั้งก่อนชัก", "descTh": "เคล็ดลับมีดในใจพันครั้งก่อนชัก", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "SHADOW_SAMURAI", "sub": "NONE", "power": 34, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "MKW_ZANSHIN_BREATHLESS", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_025", "nameTh": "เคล็ดดักฟังเสียงลมลอดหน้าต่างโรงเตี๊ยม", "descTh": "เคล็ดดักฟังเสียงลมลอดหน้าต่างโรงเตี๊ยม", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 31, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_RIVER_BAIT_WHISPER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_026", "nameTh": "เคล็ดแบ่งลมหายใจอุ่นลูกสัตว์แรกเกิด", "descTh": "เคล็ดแบ่งลมหายใจอุ่นลูกสัตว์แรกเกิด", "cat": "QI_MANTRA", "tier": 2, "reqTier": 2, "path": "BEAST_SOVEREIGN", "sub": "NONE", "power": 32, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_STREET_HAGGLE_TONGUE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_LOW_027", "nameTh": "เคล็ดเตาอั้งโล่เคี่ยวไฟอ่อนข้ามคืน", "descTh": "เคล็ดเตาอั้งโล่เคี่ยวไฟอ่อนข้ามคืน", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 54, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_STIMULANT_BOIL", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_028", "nameTh": "เคล็ดต้นไผ่ลู่ลมสิบพายุไม่โค่น", "descTh": "เคล็ดต้นไผ่ลู่ลมสิบพายุไม่โค่น", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 55, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_RUST_BLOOD_SMEAR", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_029", "nameTh": "เคล็ดเดินปราณเก้าก้าวสลับเวรยาม", "descTh": "เคล็ดเดินปราณเก้าก้าวสลับเวรยาม", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 56, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHORE_BREATHING", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_030", "nameTh": "เคล็ดเก็บเสียงหัวใจซ่อนเงาใต้ชายคา", "descTh": "เคล็ดเก็บเสียงหัวใจซ่อนเงาใต้ชายคา", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 55, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_031", "nameTh": "เคล็ดตอกเสาเข็มทองคำสร้างฐานแก่นแท้", "descTh": "เคล็ดตอกเสาเข็มทองคำสร้างฐานแก่นแท้", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 56, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_032", "nameTh": "เคล็ดคำนวณกำไรขาดทุนทุกลมหายใจ", "descTh": "เคล็ดคำนวณกำไรขาดทุนทุกลมหายใจ", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "MERCANTILE_DAO", "sub": "NONE", "power": 55, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_033", "nameTh": "เคล็ดกลั่นหยาดเหงื่อเป็นปราณเหล็กกล้า", "descTh": "เคล็ดกลั่นหยาดเหงื่อเป็นปราณเหล็กกล้า", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 58, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "MKW_ZANSHIN_BREATHLESS", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_034", "nameTh": "เคล็ดโคมกระดาษส่องทางเพื่อนร่วมรบ", "descTh": "เคล็ดโคมกระดาษส่องทางเพื่อนร่วมรบ", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 54, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CROWD_WARMTH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_035", "nameTh": "เคล็ดกลืนหมอกพิษชายป่าแปลงเป็นเกราะ", "descTh": "เคล็ดกลืนหมอกพิษชายป่าแปลงเป็นเกราะ", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 56, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHEAP_PILL_SPONGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_LOW_036", "nameTh": "เคล็ดอ่านดาวหางกะพริบบอกลางร้าย", "descTh": "เคล็ดอ่านดาวหางกะพริบบอกลางร้าย", "cat": "QI_MANTRA", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 55, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_FULL_BELLY_VIGOR", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}];
+  JD.TECH.lowTierNonCombatArts = [{"id": "QGG_LOW_001", "nameTh": "ก้าวซอยเท้าส่งอาหารร้อนไม่หกสักหยด", "descTh": "ก้าวซอยเท้าส่งอาหารร้อนไม่หกสักหยด", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_001_M1", "nameTh": "กระบวนที่ 1 · ก้าวซอยเท้าส่งอาหารร้อนไม่หก", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_002", "nameTh": "วิชามุดรั้วหลบสุนัขเฝ้าบ้าน", "descTh": "วิชามุดรั้วหลบสุนัขเฝ้าบ้าน", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_002_M1", "nameTh": "กระบวนที่ 1 · วิชามุดรั้วหลบสุนัขเฝ้าบ้าน", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_003", "nameTh": "ท่ายํ่าโคลนคันนาด้วยรองเท้าฟาง", "descTh": "ท่ายํ่าโคลนคันนาด้วยรองเท้าฟาง", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_MUD_ICE_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_003_M1", "nameTh": "กระบวนที่ 1 · ท่ายํ่าโคลนคันนาด้วยรองเท้าฟ", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_004", "nameTh": "ก้าวเขย่งปลายเท้าเดินขึ้นหอพักยามดึก", "descTh": "ก้าวเขย่งปลายเท้าเดินขึ้นหอพักยามดึก", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_NAP_RECHARGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_004_M1", "nameTh": "กระบวนที่ 1 · ก้าวเขย่งปลายเท้าเดินขึ้นหอพ", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_005", "nameTh": "วิชาโหนเถาวัลย์ข้ามลำห้วย", "descTh": "วิชาโหนเถาวัลย์ข้ามลำห้วย", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHEAP_PILL_SPONGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_005_M1", "nameTh": "กระบวนที่ 1 · วิชาโหนเถาวัลย์ข้ามลำห้วย", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_006", "nameTh": "เคล็ดเหลียวหลังมองทางหนีทีไล่", "descTh": "เคล็ดเหลียวหลังมองทางหนีทีไล่", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WEATHER_HARDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_006_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเหลียวหลังมองทางหนีทีไล", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_007", "nameTh": "ก้าวสไลด์หลบไม้กวาดแม่ครัว", "descTh": "ก้าวสไลด์หลบไม้กวาดแม่ครัว", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CROWD_WARMTH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_007_M1", "nameTh": "กระบวนที่ 1 · ก้าวสไลด์หลบไม้กวาดแม่ครัว", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_008", "nameTh": "วิชาปีนต้นไม้ส่องรังนกและผลไม้ป่า", "descTh": "วิชาปีนต้นไม้ส่องรังนกและผลไม้ป่า", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TREE_ROOF_PERCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_008_M1", "nameTh": "กระบวนที่ 1 · วิชาปีนต้นไม้ส่องรังนกและผลไ", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_009", "nameTh": "จังหวะวิ่งผลัดคนส่งสารม้าเร็ว", "descTh": "จังหวะวิ่งผลัดคนส่งสารม้าเร็ว", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TEA_SOUP_DIGEST", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_009_M1", "nameTh": "กระบวนที่ 1 · จังหวะวิ่งผลัดคนส่งสารม้าเร็", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_010", "nameTh": "เคล็ดหมอบราบกลืนไปกับพงหญ้าสูง", "descTh": "เคล็ดหมอบราบกลืนไปกับพงหญ้าสูง", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_010_M1", "nameTh": "กระบวนที่ 1 · เคล็ดหมอบราบกลืนไปกับพงหญ้าส", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_LOW_011", "nameTh": "ท่าร่างหาบคู่ทรงตัวบนสะพานไม้ซุง", "descTh": "ท่าร่างหาบคู่ทรงตัวบนสะพานไม้ซุง", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_011_M1", "nameTh": "กระบวนที่ 1 · ท่าร่างหาบคู่ทรงตัวบนสะพานไม", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_012", "nameTh": "ก้าวฟันปลาหลบลูกธนูโจรภูเขา", "descTh": "ก้าวฟันปลาหลบลูกธนูโจรภูเขา", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_012_M1", "nameTh": "กระบวนที่ 1 · ก้าวฟันปลาหลบลูกธนูโจรภูเขา", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_013", "nameTh": "วิชาดีดตัวถีบกำแพงพลิกข้ามหัว", "descTh": "วิชาดีดตัวถีบกำแพงพลิกข้ามหัว", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_013_M1", "nameTh": "กระบวนที่ 1 · วิชาดีดตัวถีบกำแพงพลิกข้ามหั", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_014", "nameTh": "เคล็ดดมกลิ่นควันไฟรู้ที่ตั้งค่ายโจร", "descTh": "เคล็ดดมกลิ่นควันไฟรู้ที่ตั้งค่ายโจร", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TREE_ROOF_PERCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_014_M1", "nameTh": "กระบวนที่ 1 · เคล็ดดมกลิ่นควันไฟรู้ที่ตั้ง", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_015", "nameTh": "ย่างก้าวไถลนํ้าแข็งชาวเหนือ", "descTh": "ย่างก้าวไถลนํ้าแข็งชาวเหนือ", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_MUD_ICE_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_015_M1", "nameTh": "กระบวนที่ 1 · ย่างก้าวไถลนํ้าแข็งชาวเหนือ", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_016", "nameTh": "วิชาผูกก้อนหินถ่วงขาฝึกวิ่งขึ้นเขา", "descTh": "ปลดถุงทราย", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "BODY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WOK_PLANK_BLOCK", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_016_M1", "nameTh": "กระบวนที่ 1 · วิชาผูกก้อนหินถ่วงขาฝึกวิ่งข", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_017", "nameTh": "เคล็ดโปรยเมล็ดถั่วทำเครื่องหมายกันหลงถํ้า", "descTh": "เคล็ดโปรยเมล็ดถั่วทำเครื่องหมายกันหลงถํ้า", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ROLL_WITH_PUNCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_017_M1", "nameTh": "กระบวนที่ 1 · เคล็ดโปรยเมล็ดถั่วทำเครื่องห", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_018", "nameTh": "ก้าวหมุนลูกข่างสลัดมือที่คว้าจับ", "descTh": "ก้าวหมุนลูกข่างสลัดมือที่คว้าจับ", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LIME_DUST_SLEEVE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_018_M1", "nameTh": "กระบวนที่ 1 · ก้าวหมุนลูกข่างสลัดมือที่คว้", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_LOW_019", "nameTh": "ท่าร่างนกนางแอ่นโฉบแตะหลังคาเก๋ง", "descTh": "ท่าร่างนกนางแอ่นโฉบแตะหลังคาเก๋ง", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BAMBOO_SPLINT_WRAP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_019_M1", "nameTh": "กระบวนที่ 1 · ท่าร่างนกนางแอ่นโฉบแตะหลังคา", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_LOW_020", "nameTh": "วิชาตามรอยกิ่งไม้หักและคราบโคลน", "descTh": "วิชาตามรอยกิ่งไม้หักและคราบโคลน", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HOT_BROTH_CANTEEN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_020_M1", "nameTh": "กระบวนที่ 1 · วิชาตามรอยกิ่งไม้หักและคราบโ", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_LOW_021", "nameTh": "ก้าวเงาซ้อนหลอกจังหวะก้าวเท้า", "descTh": "ก้าวเงาซ้อนหลอกจังหวะก้าวเท้า", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 3, "path": "NINPO_SHADOW", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_COPPER_GONG_WAKE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_021_M1", "nameTh": "กระบวนที่ 1 · ก้าวเงาซ้อนหลอกจังหวะก้าวเท้", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_LOW_022", "nameTh": "เคล็ดเดินทัพเรียงเดี่ยวฝ่าหุบเขาหมอก", "descTh": "เคล็ดเดินทัพเรียงเดี่ยวฝ่าหุบเขาหมอก", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_DRAG_COLLAPSED_BUDDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_022_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเดินทัพเรียงเดี่ยวฝ่าหุ", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_LOW_023", "nameTh": "ท่าร่างกระต่ายป่าสามโพรงสลับทิศ", "descTh": "ท่าร่างกระต่ายป่าสามโพรงสลับทิศ", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_023_M1", "nameTh": "กระบวนที่ 1 · ท่าร่างกระต่ายป่าสามโพรงสลับ", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_LOW_024", "nameTh": "วิชาไต่เชือกข้ามเหวขนแร่พันชั่ง", "descTh": "วิชาไต่เชือกข้ามเหวขนแร่พันชั่ง", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_LOW_024_M1", "nameTh": "กระบวนที่ 1 · วิชาไต่เชือกข้ามเหวขนแร่พันช", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_LOW_001", "nameTh": "ท่ายกแขนสองข้างตั้งกาดบังขมับ", "descTh": "ท่ายกแขนสองข้างตั้งกาดบังขมับ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BRACE_SHIELD_CHIN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_001_M1", "nameTh": "กระบวนที่ 1 · ท่ายกแขนสองข้างตั้งกาดบังขมั", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_002", "nameTh": "วิชาสะพายกระทะเหล็กใบเก่าบังธนูข้างหลัง", "descTh": "วิชาสะพายกระทะเหล็กใบเก่าบังธนูข้างหลัง", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WOK_PLANK_BLOCK", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_002_M1", "nameTh": "กระบวนที่ 1 · วิชาสะพายกระทะเหล็กใบเก่าบัง", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_003", "nameTh": "เคล็ดทิ้งตัวกลิ้งคลุกฝุ่นผ่อนแรงถีบ", "descTh": "เคล็ดทิ้งตัวกลิ้งคลุกฝุ่นผ่อนแรงถีบ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ROLL_WITH_PUNCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_003_M1", "nameTh": "กระบวนที่ 1 · เคล็ดทิ้งตัวกลิ้งคลุกฝุ่นผ่อ", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_004", "nameTh": "ท่าสวมงอบไม้ไผ่สะบัดปัดนํ้าฝนและลูกดอก", "descTh": "ท่าสวมงอบไม้ไผ่สะบัดปัดนํ้าฝนและลูกดอก", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_NAP_RECHARGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_004_M1", "nameTh": "กระบวนที่ 1 · ท่าสวมงอบไม้ไผ่สะบัดปัดนํ้าฝ", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_005", "nameTh": "เคล็ดเกร็งหลังรับท่อนซุงไม่หลังยอก", "descTh": "เคล็ดเกร็งหลังรับท่อนซุงไม่หลังยอก", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHEAP_PILL_SPONGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_005_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเกร็งหลังรับท่อนซุงไม่ห", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_006", "nameTh": "วิชาคว้าม้านั่งไม้โรงเตี๊ยมขึ้นรับคมมีด", "descTh": "วิชาคว้าม้านั่งไม้โรงเตี๊ยมขึ้นรับคมมีด", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WEATHER_HARDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_006_M1", "nameTh": "กระบวนที่ 1 · วิชาคว้าม้านั่งไม้โรงเตี๊ยมข", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_007", "nameTh": "เคล็ดซ่อนมือในแขนเสื้อหนาปัดกรงเล็บ", "descTh": "เคล็ดซ่อนมือในแขนเสื้อหนาปัดกรงเล็บ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CROWD_WARMTH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_007_M1", "nameTh": "กระบวนที่ 1 · เคล็ดซ่อนมือในแขนเสื้อหนาปัด", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_008", "nameTh": "ท่าย่อเข่าตํ่าต้านลมกรรโชกหน้าด่าน", "descTh": "ท่าย่อเข่าตํ่าต้านลมกรรโชกหน้าด่าน", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_008_M1", "nameTh": "กระบวนที่ 1 · ท่าย่อเข่าตํ่าต้านลมกรรโชกหน", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_009", "nameTh": "วิชาสะบัดขี้เถ้าก้นเตาบังตาคนไล่ฟัน", "descTh": "วิชาสะบัดขี้เถ้าก้นเตาบังตาคนไล่ฟัน", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LIME_DUST_SLEEVE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_009_M1", "nameTh": "กระบวนที่ 1 · วิชาสะบัดขี้เถ้าก้นเตาบังตาค", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_010", "nameTh": "เคล็ดหดคอเหมือนเต่าหลบบ่วงบาศ", "descTh": "เคล็ดหดคอเหมือนเต่าหลบบ่วงบาศ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_010_M1", "nameTh": "กระบวนที่ 1 · เคล็ดหดคอเหมือนเต่าหลบบ่วงบา", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_LOW_011", "nameTh": "เคล็ดผ้ากันเปื้อนหนังวัวชุบนํ้ามันกันไฟเตา", "descTh": "เคล็ดผ้ากันเปื้อนหนังวัวชุบนํ้ามันกันไฟเตา", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_011_M1", "nameTh": "กระบวนที่ 1 · เคล็ดผ้ากันเปื้อนหนังวัวชุบน", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_012", "nameTh": "วิชาใช้ฝักดาบรับคมแทนตัวใบดาบ", "descTh": "วิชาใช้ฝักดาบรับคมแทนตัวใบดาบ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_012_M1", "nameTh": "กระบวนที่ 1 · วิชาใช้ฝักดาบรับคมแทนตัวใบดา", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_013", "nameTh": "ท่าชนไหล่คู่หูยืนพิงหลังต้านฝูงหมาป่า", "descTh": "ท่าชนไหล่คู่หูยืนพิงหลังต้านฝูงหมาป่า", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_MUD_ICE_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_013_M1", "nameTh": "กระบวนที่ 1 · ท่าชนไหล่คู่หูยืนพิงหลังต้าน", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_014", "nameTh": "เคล็ดผิวหนังด้านชาจากการฝึกตีท่อนไม้", "descTh": "เคล็ดผิวหนังด้านชาจากการฝึกตีท่อนไม้", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "BODY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TREE_ROOF_PERCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_014_M1", "nameTh": "กระบวนที่ 1 · เคล็ดผิวหนังด้านชาจากการฝึกต", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_015", "nameTh": "ม่านปราณตะเกียงเฝ้ายามกันไอมืด", "descTh": "ม่านปราณตะเกียงเฝ้ายามกันไอมืด", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BRACE_SHIELD_CHIN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_015_M1", "nameTh": "กระบวนที่ 1 · ม่านปราณตะเกียงเฝ้ายามกันไอม", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_016", "nameTh": "วิชาบิดข้อมือสลัดอาวุธที่ปักคาเกราะ", "descTh": "วิชาบิดข้อมือสลัดอาวุธที่ปักคาเกราะ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ROLL_WITH_PUNCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_016_M1", "nameTh": "กระบวนที่ 1 · วิชาบิดข้อมือสลัดอาวุธที่ปัก", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_017", "nameTh": "เคล็ดกางร่มกระดาษนํ้ามันหมุนปัดลูกปราย", "descTh": "เคล็ดกางร่มกระดาษนํ้ามันหมุนปัดลูกปราย", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ROLL_WITH_PUNCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_017_M1", "nameTh": "กระบวนที่ 1 · เคล็ดกางร่มกระดาษนํ้ามันหมุน", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_018", "nameTh": "ท่ายืนเฝ้าหีบสินค้าคาราวานไม่ยอมขยับ", "descTh": "ท่ายืนเฝ้าหีบสินค้าคาราวานไม่ยอมขยับ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LIME_DUST_SLEEVE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_018_M1", "nameTh": "กระบวนที่ 1 · ท่ายืนเฝ้าหีบสินค้าคาราวานไม", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_LOW_019", "nameTh": "เคล็ดระฆังสำริดชั้นต้นคุ้มหน้าอก", "descTh": "เคล็ดระฆังสำริดชั้นต้นคุ้มหน้าอก", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BAMBOO_SPLINT_WRAP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_019_M1", "nameTh": "กระบวนที่ 1 · เคล็ดระฆังสำริดชั้นต้นคุ้มหน", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_LOW_020", "nameTh": "วิชาม้วนชายผ้าคลุมพันแขนรับคมขวาน", "descTh": "วิชาม้วนชายผ้าคลุมพันแขนรับคมขวาน", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HOT_BROTH_CANTEEN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_020_M1", "nameTh": "กระบวนที่ 1 · วิชาม้วนชายผ้าคลุมพันแขนรับค", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_LOW_021", "nameTh": "ปราการยามเฝ้าประตูเขาเรียกตีเกราะสัญญาณ", "descTh": "ปราการยามเฝ้าประตูเขาเรียกตีเกราะสัญญาณ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_COPPER_GONG_WAKE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_021_M1", "nameTh": "กระบวนที่ 1 · ปราการยามเฝ้าประตูเขาเรียกตี", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_LOW_022", "nameTh": "เคล็ดเกล็ดปลาไหลลื่นหลุดจากการล็อกจับ", "descTh": "เคล็ดเกล็ดปลาไหลลื่นหลุดจากการล็อกจับ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_DRAG_COLLAPSED_BUDDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_022_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเกล็ดปลาไหลลื่นหลุดจากก", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_LOW_023", "nameTh": "วิชาเอาโล่ไม้ไผ่รับพิษแทนเพื่อนแนวหลัง", "descTh": "วิชาเอาโล่ไม้ไผ่รับพิษแทนเพื่อนแนวหลัง", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WOK_PLANK_BLOCK", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_023_M1", "nameTh": "กระบวนที่ 1 · วิชาเอาโล่ไม้ไผ่รับพิษแทนเพื", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_LOW_024", "nameTh": "เคล็ดหายใจเข้าซี่โครงเหล็กต้านแรงกระแทกอสูร", "descTh": "เคล็ดหายใจเข้าซี่โครงเหล็กต้านแรงกระแทกอสูร", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_SCRAP_SLAG_SIFTER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_LOW_024_M1", "nameTh": "กระบวนที่ 1 · เคล็ดหายใจเข้าซี่โครงเหล็กต้", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_LOW_001", "nameTh": "วิชาฉีกชายเสื้อพันห้ามเลือดสด", "descTh": "วิชาฉีกชายเสื้อพันห้ามเลือดสด", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_EARLY_BIRD_DAWN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_001_M1", "nameTh": "กระบวนที่ 1 · วิชาฉีกชายเสื้อพันห้ามเลือดส", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_002", "nameTh": "เคล็ดตบหลังทุบอกเรียกสติเพื่อนมึนงง", "descTh": "เคล็ดตบหลังทุบอกเรียกสติเพื่อนมึนงง", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_COPPER_GONG_WAKE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_002_M1", "nameTh": "กระบวนที่ 1 · เคล็ดตบหลังทุบอกเรียกสติเพื่", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_003", "nameTh": "วิชาโยนกระติกนํ้าขิงร้อนให้สหายดื่ม", "descTh": "วิชาโยนกระติกนํ้าขิงร้อนให้สหายดื่ม", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HOT_BROTH_CANTEEN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_003_M1", "nameTh": "กระบวนที่ 1 · วิชาโยนกระติกนํ้าขิงร้อนให้ส", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_004", "nameTh": "เสียงเป่านกหวีดไม้ไผ่นัดถอยพร้อมกัน", "descTh": "เสียงเป่านกหวีดไม้ไผ่นัดถอยพร้อมกัน", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_NAP_RECHARGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_004_M1", "nameTh": "กระบวนที่ 1 · เสียงเป่านกหวีดไม้ไผ่นัดถอยพ", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_005", "nameTh": "เคล็ดพอกโคลนสมุนไพรดูดเหล็กในแมลงพิษ", "descTh": "เคล็ดพอกโคลนสมุนไพรดูดเหล็กในแมลงพิษ", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHEAP_PILL_SPONGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_005_M1", "nameTh": "กระบวนที่ 1 · เคล็ดพอกโคลนสมุนไพรดูดเหล็กใ", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_006", "nameTh": "วิชาตะโกนบอกทิศลูกธนูล่วงหน้า", "descTh": "วิชาตะโกนบอกทิศลูกธนูล่วงหน้า", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WEATHER_HARDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_006_M1", "nameTh": "กระบวนที่ 1 · วิชาตะโกนบอกทิศลูกธนูล่วงหน้", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_007", "nameTh": "เคล็ดดามกิ่งไม้เข้าเฝือกข้อเท้าแพลง", "descTh": "เคล็ดดามกิ่งไม้เข้าเฝือกข้อเท้าแพลง", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BAMBOO_SPLINT_WRAP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_007_M1", "nameTh": "กระบวนที่ 1 · เคล็ดดามกิ่งไม้เข้าเฝือกข้อเ", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_008", "nameTh": "วิชาตีเกราะไม้ไผ่ปลุกใจยามเฝ้าประตู", "descTh": "วิชาตีเกราะไม้ไผ่ปลุกใจยามเฝ้าประตู", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_008_M1", "nameTh": "กระบวนที่ 1 · วิชาตีเกราะไม้ไผ่ปลุกใจยามเฝ", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_LOW_009", "nameTh": "วิชาหิ้วปีกพาสหายบาดเจ็บพ้นคมหอก", "descTh": "วิชาหิ้วปีกพาสหายบาดเจ็บพ้นคมหอก", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_DRAG_COLLAPSED_BUDDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_009_M1", "nameTh": "กระบวนที่ 1 · วิชาหิ้วปีกพาสหายบาดเจ็บพ้นค", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_LOW_010", "nameTh": "เคล็ดรมควันใบอ้ายเฉ่าขับไล่ไอชื้น", "descTh": "เคล็ดรมควันใบอ้ายเฉ่าขับไล่ไอชื้น", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_010_M1", "nameTh": "กระบวนที่ 1 · เคล็ดรมควันใบอ้ายเฉ่าขับไล่ไ", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_LOW_011", "nameTh": "วิชาฝังเข็มทองแดงคลายตะคริวเพิ่มแรงกาย", "descTh": "วิชาฝังเข็มทองแดงคลายตะคริวเพิ่มแรงกาย", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_011_M1", "nameTh": "กระบวนที่ 1 · วิชาฝังเข็มทองแดงคลายตะคริวเ", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_LOW_012", "nameTh": "เสียงตีฆ้องทองเหลืองสะท้านขวัญโจรป่า", "descTh": "เสียงตีฆ้องทองเหลืองสะท้านขวัญโจรป่า", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_COPPER_GONG_WAKE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_012_M1", "nameTh": "กระบวนที่ 1 · เสียงตีฆ้องทองเหลืองสะท้านขว", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_LOW_013", "nameTh": "เคล็ดขี้ผึ้งหมีขาวทาเคลือบแผลไฟลวก", "descTh": "เคล็ดขี้ผึ้งหมีขาวทาเคลือบแผลไฟลวก", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_MUD_ICE_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_013_M1", "nameTh": "กระบวนที่ 1 · เคล็ดขี้ผึ้งหมีขาวทาเคลือบแผ", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_LOW_014", "nameTh": "วิชาโบกธงสามเหลี่ยมจัดแถวแนวหอก", "descTh": "วิชาโบกธงสามเหลี่ยมจัดแถวแนวหอก", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TREE_ROOF_PERCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_014_M1", "nameTh": "กระบวนที่ 1 · วิชาโบกธงสามเหลี่ยมจัดแถวแนว", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_LOW_015", "nameTh": "เคล็ดนวดขมับคลายปวดหัวจากการอ่านตำรา", "descTh": "เคล็ดนวดขมับคลายปวดหัวจากการอ่านตำรา", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BRACE_SHIELD_CHIN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_015_M1", "nameTh": "กระบวนที่ 1 · เคล็ดนวดขมับคลายปวดหัวจากการ", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_LOW_016", "nameTh": "วิชาผ่าเอาหัวลูกศรออกกลางสนามรบ", "descTh": "วิชาผ่าเอาหัวลูกศรออกกลางสนามรบ", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BAMBOO_SPLINT_WRAP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_016_M1", "nameTh": "กระบวนที่ 1 · วิชาผ่าเอาหัวลูกศรออกกลางสนา", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_LOW_017", "nameTh": "เพลงขลุ่ยบ้านเกิดปลอบขวัญคนไกลบ้าน", "descTh": "เพลงขลุ่ยบ้านเกิดปลอบขวัญคนไกลบ้าน", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ROLL_WITH_PUNCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_017_M1", "nameTh": "กระบวนที่ 1 · เพลงขลุ่ยบ้านเกิดปลอบขวัญคนไ", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_LOW_018", "nameTh": "เคล็ดตั้งหม้อยาต้มด่วนหน้าค่ายพักแรม", "descTh": "เคล็ดตั้งหม้อยาต้มด่วนหน้าค่ายพักแรม", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LIME_DUST_SLEEVE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_018_M1", "nameTh": "กระบวนที่ 1 · เคล็ดตั้งหม้อยาต้มด่วนหน้าค่", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_LOW_019", "nameTh": "วิชาถ่ายลมปราณอุ่นช่วยศิษย์น้องฝ่าด่านแรก", "descTh": "วิชาถ่ายลมปราณอุ่นช่วยศิษย์น้องฝ่าด่านแรก", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BAMBOO_SPLINT_WRAP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_019_M1", "nameTh": "กระบวนที่ 1 · วิชาถ่ายลมปราณอุ่นช่วยศิษย์น", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_LOW_020", "nameTh": "โองการนายกองลาดตระเวนประสานโล่คู่", "descTh": "โองการนายกองลาดตระเวนประสานโล่คู่", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HOT_BROTH_CANTEEN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_LOW_020_M1", "nameTh": "กระบวนที่ 1 · โองการนายกองลาดตระเวนประสานโ", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_LOW_001", "nameTh": "เคล็ดผัดข้าวคลุกก้นกระทะหอมกรุ่นทั้งโรงครัว", "descTh": "เคล็ดผัดข้าวคลุกก้นกระทะหอมกรุ่นทั้งโรงครัว", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LEFTOVER_WOK_MAGIC", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_001_M1", "nameTh": "กระบวนที่ 1 · เคล็ดผัดข้าวคลุกก้นกระทะหอมก", "arch": "heal", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_002", "nameTh": "วิชาขุดไส้เดือนแดงปั้นเหยื่อตกปลาริมท่านํ้า", "descTh": "วิชาขุดไส้เดือนแดงปั้นเหยื่อตกปลาริมท่านํ้า", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_RIVER_BAIT_WHISPER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_002_M1", "nameTh": "กระบวนที่ 1 · วิชาขุดไส้เดือนแดงปั้นเหยื่อ", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_003", "nameTh": "เคล็ดผ่าฟืนตามลายไม้ไม่บิ่นคมขวาน", "descTh": "เคล็ดผ่าฟืนตามลายไม้ไม่บิ่นคมขวาน", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHORE_BREATHING", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_003_M1", "nameTh": "กระบวนที่ 1 · เคล็ดผ่าฟืนตามลายไม้ไม่บิ่นค", "arch": "heal", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_004", "nameTh": "วิชาตากใบชาและสมุนไพรบนกระด้งไม่ให้ขึ้นรา", "descTh": "วิชาตากใบชาและสมุนไพรบนกระด้งไม่ให้ขึ้นรา", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_NAP_RECHARGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_004_M1", "nameTh": "กระบวนที่ 1 · วิชาตากใบชาและสมุนไพรบนกระด้", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_005", "nameTh": "เคล็ดกวาดลานปัดฝุ่นหอนอนให้โปร่งโล่ง", "descTh": "เคล็ดกวาดลานปัดฝุ่นหอนอนให้โปร่งโล่ง", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHEAP_PILL_SPONGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_005_M1", "nameTh": "กระบวนที่ 1 · เคล็ดกวาดลานปัดฝุ่นหอนอนให้โ", "arch": "heal", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_006", "nameTh": "วิชาดูสีเปลือกหินแยกแร่เหล็กออกจากหินกรวด", "descTh": "วิชาดูสีเปลือกหินแยกแร่เหล็กออกจากหินกรวด", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WEATHER_HARDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_006_M1", "nameTh": "กระบวนที่ 1 · วิชาดูสีเปลือกหินแยกแร่เหล็ก", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_007", "nameTh": "เคล็ดต่อรองราคาผักปลาหน้าตลาดเช้า", "descTh": "เคล็ดต่อรองราคาผักปลาหน้าตลาดเช้า", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_STREET_HAGGLE_TONGUE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_007_M1", "nameTh": "กระบวนที่ 1 · เคล็ดต่อรองราคาผักปลาหน้าตลา", "arch": "heal", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_008", "nameTh": "วิชาแปรงขนเกาคางให้สัตว์เลี้ยงเชื่องไว", "descTh": "วิชาแปรงขนเกาคางให้สัตว์เลี้ยงเชื่องไว", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_008_M1", "nameTh": "กระบวนที่ 1 · วิชาแปรงขนเกาคางให้สัตว์เลี้", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_009", "nameTh": "เคล็ดพัดเตาต้มยาด้วยพัดใบตาลไม่ให้ก้นหม้อไหม้", "descTh": "เคล็ดพัดเตาต้มยาด้วยพัดใบตาลไม่ให้ก้นหม้อไหม้", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TEA_SOUP_DIGEST", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_009_M1", "nameTh": "กระบวนที่ 1 · เคล็ดพัดเตาต้มยาด้วยพัดใบตาล", "arch": "heal", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_010", "nameTh": "วิชาซ่อมรองเท้าสานและชุนเสื้อขาดด้วยตัวเอง", "descTh": "วิชาซ่อมรองเท้าสานและชุนเสื้อขาดด้วยตัวเอง", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_010_M1", "nameTh": "กระบวนที่ 1 · วิชาซ่อมรองเท้าสานและชุนเสื้", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_011", "nameTh": "เคล็ดทดนํ้าร่องสวนด้วยกระบอกไม้ไผ่", "descTh": "เคล็ดทดนํ้าร่องสวนด้วยกระบอกไม้ไผ่", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_011_M1", "nameTh": "กระบวนที่ 1 · เคล็ดทดนํ้าร่องสวนด้วยกระบอก", "arch": "heal", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_012", "nameTh": "วิชาจุดธูปกันยุงและแมลงกวนสมาธิ", "descTh": "วิชาจุดธูปกันยุงและแมลงกวนสมาธิ", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_012_M1", "nameTh": "กระบวนที่ 1 · วิชาจุดธูปกันยุงและแมลงกวนสม", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_LOW_013", "nameTh": "ศาสตร์ร่อนขี้เถ้าเตาหลอมเก็บเศษเหล็กไหลคืนคลัง", "descTh": "ศาสตร์ร่อนขี้เถ้าเตาหลอมเก็บเศษเหล็กไหลคืนคลัง", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_SCRAP_SLAG_SIFTER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_013_M1", "nameTh": "กระบวนที่ 1 · ศาสตร์ร่อนขี้เถ้าเตาหลอมเก็บ", "arch": "heal", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_014", "nameTh": "วิชาหินลับมีดสองหน้าชุบคมดาบศิษย์สายนอก", "descTh": "วิชาหินลับมีดสองหน้าชุบคมดาบศิษย์สายนอก", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TREE_ROOF_PERCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_014_M1", "nameTh": "กระบวนที่ 1 · วิชาหินลับมีดสองหน้าชุบคมดาบ", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_015", "nameTh": "ตำราหมักผักกาดเค็มและเนื้อตากแห้งเสบียงทัพ", "descTh": "ตำราหมักผักกาดเค็มและเนื้อตากแห้งเสบียงทัพ", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BRACE_SHIELD_CHIN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_015_M1", "nameTh": "กระบวนที่ 1 · ตำราหมักผักกาดเค็มและเนื้อตา", "arch": "heal", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_016", "nameTh": "เคล็ดจัดเรียงม้วนไม้ไผ่ติดป้ายหมวดหมู่หอตำรา", "descTh": "เคล็ดจัดเรียงม้วนไม้ไผ่ติดป้ายหมวดหมู่หอตำรา", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WOK_PLANK_BLOCK", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_016_M1", "nameTh": "กระบวนที่ 1 · เคล็ดจัดเรียงม้วนไม้ไผ่ติดป้", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_017", "nameTh": "วิชาชำแหละหนังและเขี้ยวอสูรไม่ให้ฉีกขาด", "descTh": "วิชาชำแหละหนังและเขี้ยวอสูรไม่ให้ฉีกขาด", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ROLL_WITH_PUNCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_017_M1", "nameTh": "กระบวนที่ 1 · วิชาชำแหละหนังและเขี้ยวอสูรไ", "arch": "heal", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_018", "nameTh": "ศาสตร์ดูเมฆพยากรณ์ฝนล่วงหน้าครึ่งวัน", "descTh": "ศาสตร์ดูเมฆพยากรณ์ฝนล่วงหน้าครึ่งวัน", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LIME_DUST_SLEEVE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_018_M1", "nameTh": "กระบวนที่ 1 · ศาสตร์ดูเมฆพยากรณ์ฝนล่วงหน้า", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_019", "nameTh": "เคล็ดต้มนํ้าสมุนไพรแช่ตัวคลายฟกชํ้าห้องพยาบาล", "descTh": "เคล็ดต้มนํ้าสมุนไพรแช่ตัวคลายฟกชํ้าห้องพยาบาล", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BAMBOO_SPLINT_WRAP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_019_M1", "nameTh": "กระบวนที่ 1 · เคล็ดต้มนํ้าสมุนไพรแช่ตัวคลา", "arch": "heal", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_020", "nameTh": "วิชาผูกเกวียนล้อเดียวเข็นของขึ้นทางลาด", "descTh": "วิชาผูกเกวียนล้อเดียวเข็นของขึ้นทางลาด", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HOT_BROTH_CANTEEN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_020_M1", "nameTh": "กระบวนที่ 1 · วิชาผูกเกวียนล้อเดียวเข็นของ", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_LOW_021", "nameTh": "ตำราหลอมลูกกลอนโอสถพื้นฐานทีละสิบเม็ด", "descTh": "ตำราหลอมลูกกลอนโอสถพื้นฐานทีละสิบเม็ด", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_COPPER_GONG_WAKE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_021_M1", "nameTh": "กระบวนที่ 1 · ตำราหลอมลูกกลอนโอสถพื้นฐานที", "arch": "heal", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_LOW_022", "nameTh": "ศาสตร์ตีเกราะเกล็ดเหล็กซ้อนทับทนคมเขี้ยว", "descTh": "ศาสตร์ตีเกราะเกล็ดเหล็กซ้อนทับทนคมเขี้ยว", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_DRAG_COLLAPSED_BUDDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_022_M1", "nameTh": "กระบวนที่ 1 · ศาสตร์ตีเกราะเกล็ดเหล็กซ้อนท", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_LOW_023", "nameTh": "วิชาทำบัญชีคลังสำนักตรวจของขาดล่วงหน้า", "descTh": "วิชาทำบัญชีคลังสำนักตรวจของขาดล่วงหน้า", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LEFTOVER_WOK_MAGIC", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_023_M1", "nameTh": "กระบวนที่ 1 · วิชาทำบัญชีคลังสำนักตรวจของข", "arch": "heal", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_LOW_024", "nameTh": "เคล็ดเพาะเห็ดหลินจือในถํ้าชื้นหลังเขา", "descTh": "เคล็ดเพาะเห็ดหลินจือในถํ้าชื้นหลังเขา", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_SCRAP_SLAG_SIFTER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_024_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเพาะเห็ดหลินจือในถํ้าชื", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_LOW_025", "nameTh": "วิชาฝึกนกพิราบสื่อสารส่งข่าวด่วนชายแดน", "descTh": "วิชาฝึกนกพิราบสื่อสารส่งข่าวด่วนชายแดน", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_RIVER_BAIT_WHISPER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_025_M1", "nameTh": "กระบวนที่ 1 · วิชาฝึกนกพิราบสื่อสารส่งข่าว", "arch": "heal", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_LOW_026", "nameTh": "ศาสตร์รุ่นพี่คุมแถวซ้อมเช้าศิษย์สายนอก", "descTh": "ศาสตร์รุ่นพี่คุมแถวซ้อมเช้าศิษย์สายนอก", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_STREET_HAGGLE_TONGUE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_LOW_026_M1", "nameTh": "กระบวนที่ 1 · ศาสตร์รุ่นพี่คุมแถวซ้อมเช้าศ", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "FRB_LOW_001", "nameTh": "เคล็ดกลืนผงชาดดิบเร่งไฟตันเถียน", "descTh": "เคล็ดกลืนผงชาดดิบเร่งไฟตันเถียน", "cat": "FORBIDDEN_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_EARLY_BIRD_DAWN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_001_M1", "nameTh": "กระบวนที่ 1 · เคล็ดกลืนผงชาดดิบเร่งไฟตันเถ", "arch": "burst", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "FRB_LOW_002", "nameTh": "วิชาป้ายเลือดผสมสนิมเหล็กใส่คมมีด", "descTh": "วิชาป้ายเลือดผสมสนิมเหล็กใส่คมมีด", "cat": "FORBIDDEN_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_RUST_BLOOD_SMEAR", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_002_M1", "nameTh": "กระบวนที่ 1 · วิชาป้ายเลือดผสมสนิมเหล็กใส่", "arch": "burst", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "FRB_LOW_003", "nameTh": "เคล็ดกัดปลายลิ้นพ่นโลหิตบังตาศัตรู", "descTh": "เคล็ดกัดปลายลิ้นพ่นโลหิตบังตาศัตรู", "cat": "FORBIDDEN_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHORE_BREATHING", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_003_M1", "nameTh": "กระบวนที่ 1 · เคล็ดกัดปลายลิ้นพ่นโลหิตบังต", "arch": "burst", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "FRB_LOW_004", "nameTh": "ตำราเถื่อนต้มเหล้าดองดีงูโด๊ปกล้ามเนื้อ", "descTh": "ตำราเถื่อนต้มเหล้าดองดีงูโด๊ปกล้ามเนื้อ", "cat": "FORBIDDEN_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_STIMULANT_BOIL", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_004_M1", "nameTh": "กระบวนที่ 1 · ตำราเถื่อนต้มเหล้าดองดีงูโด๊", "arch": "burst", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "FRB_LOW_005", "nameTh": "เคล็ดฝืนจุดตะเกียงอดนอนเจ็ดคืนรวด", "descTh": "เคล็ดฝืนจุดตะเกียงอดนอนเจ็ดคืนรวด", "cat": "FORBIDDEN_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_SLEEPLESS_CANDLE_BURN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_005_M1", "nameTh": "กระบวนที่ 1 · เคล็ดฝืนจุดตะเกียงอดนอนเจ็ดค", "arch": "burst", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "FRB_LOW_006", "nameTh": "วิชาสูบไอเลือดอุ่นจากซากอสูรป่าสดๆ", "descTh": "วิชาสูบไอเลือดอุ่นจากซากอสูรป่าสดๆ", "cat": "FORBIDDEN_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BEAST_CARCASS_SIPHON", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_006_M1", "nameTh": "กระบวนที่ 1 · วิชาสูบไอเลือดอุ่นจากซากอสูร", "arch": "burst", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "FRB_LOW_007", "nameTh": "อาคมผูกหุ่นฟางแช่งให้คู่แข่งสะดุดขา", "descTh": "อาคมผูกหุ่นฟางแช่งให้คู่แข่งสะดุดขา", "cat": "FORBIDDEN_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CROWD_WARMTH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_007_M1", "nameTh": "กระบวนที่ 1 · อาคมผูกหุ่นฟางแช่งให้คู่แข่ง", "arch": "burst", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "FRB_LOW_008", "nameTh": "เคล็ดแทงเข็มกระตุ้นจุดตายรีดแรงเฮือกท้าย", "descTh": "เคล็ดแทงเข็มกระตุ้นจุดตายรีดแรงเฮือกท้าย", "cat": "FORBIDDEN_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_008_M1", "nameTh": "กระบวนที่ 1 · เคล็ดแทงเข็มกระตุ้นจุดตายรีด", "arch": "burst", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "FRB_LOW_009", "nameTh": "วิชาโปรยผงกระดูกผีล่ออสูรไปรุมศัตรู", "descTh": "วิชาโปรยผงกระดูกผีล่ออสูรไปรุมศัตรู", "cat": "FORBIDDEN_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TEA_SOUP_DIGEST", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_009_M1", "nameTh": "กระบวนที่ 1 · วิชาโปรยผงกระดูกผีล่ออสูรไปร", "arch": "burst", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "FRB_LOW_010", "nameTh": "เคล็ดแอบดูดไอปราณรั่วไหลของคนข้างเบาะ", "descTh": "เคล็ดแอบดูดไอปราณรั่วไหลของคนข้างเบาะ", "cat": "FORBIDDEN_ART", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_010_M1", "nameTh": "กระบวนที่ 1 · เคล็ดแอบดูดไอปราณรั่วไหลของค", "arch": "burst", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "FRB_LOW_011", "nameTh": "วิชาอัดลมปราณระเบิดด้ามอาวุธพังแลกชีวิต", "descTh": "วิชาอัดลมปราณระเบิดด้ามอาวุธพังแลกชีวิต", "cat": "FORBIDDEN_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_011_M1", "nameTh": "กระบวนที่ 1 · วิชาอัดลมปราณระเบิดด้ามอาวุธ", "arch": "burst", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "FRB_LOW_012", "nameTh": "เคล็ดเลี้ยงแมงมุมพิษซ่อนในแขนเสื้อ", "descTh": "เคล็ดเลี้ยงแมงมุมพิษซ่อนในแขนเสื้อ", "cat": "FORBIDDEN_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ALLEY_SLIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_012_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเลี้ยงแมงมุมพิษซ่อนในแข", "arch": "burst", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "FRB_LOW_013", "nameTh": "มนต์ป้ายขี้เถ้าธูปผีพรางตัวหนีทัพ", "descTh": "มนต์ป้ายขี้เถ้าธูปผีพรางตัวหนีทัพ", "cat": "FORBIDDEN_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_MUD_ICE_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_013_M1", "nameTh": "กระบวนที่ 1 · มนต์ป้ายขี้เถ้าธูปผีพรางตัวห", "arch": "burst", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "FRB_LOW_014", "nameTh": "เคล็ดกลืนลูกกลอนเลือดอสูรดิบฝืนทะลวงขั้น", "descTh": "เคล็ดกลืนลูกกลอนเลือดอสูรดิบฝืนทะลวงขั้น", "cat": "FORBIDDEN_ART", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TREE_ROOF_PERCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_LOW_014_M1", "nameTh": "กระบวนที่ 1 · เคล็ดกลืนลูกกลอนเลือดอสูรดิบ", "arch": "burst", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "PAS_LOW_001", "nameTh": "คนกินง่ายอยู่ง่ายพุ้ยข้าวสามคำอิ่ม", "descTh": "คนกินง่ายอยู่ง่ายพุ้ยข้าวสามคำอิ่ม", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_FAST_EATER_BRAWLER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_002", "nameTh": "ตาไวเห็นเหรียญและสมุนไพรตกข้างทาง", "descTh": "ตาไวเห็นเหรียญและสมุนไพรตกข้างทาง", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_SCAVENGER_POCKETS", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_003", "nameTh": "มือด้านคนตัดฟืนจับด้ามดาบไม่หลุด", "descTh": "มือด้านคนตัดฟืนจับด้ามดาบไม่หลุด", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_IRON_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_004", "nameTh": "เด็กวัดเก่าตื่นเช้ากวาดลานไม่เคยสาย", "descTh": "เด็กวัดเก่าตื่นเช้ากวาดลานไม่เคยสาย", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_NAP_RECHARGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_005", "nameTh": "นิสัยขี้เหนียวเก็บออมปราณไว้ใช้ยามคับขัน", "descTh": "นิสัยขี้เหนียวเก็บออมปราณไว้ใช้ยามคับขัน", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CHEAP_PILL_SPONGE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_006", "nameTh": "ลูกชาวประมงกลั้นหายใจทนนํ้าเย็น", "descTh": "ลูกชาวประมงกลั้นหายใจทนนํ้าเย็น", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WEATHER_HARDY", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_007", "nameTh": "เด็กวิ่งส่งของชำนาญทางลัดในเมือง", "descTh": "เด็กวิ่งส่งของชำนาญทางลัดในเมือง", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_CROWD_WARMTH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_008", "nameTh": "คนหัวแข็งโดนเขกหัวไม่มึนง่าย", "descTh": "คนหัวแข็งโดนเขกหัวไม่มึนง่าย", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HUMBLE_FOUNDATION", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_009", "nameTh": "หนอนหนังสือสายตาสั้นอ่านตัวจิ๋วชัดแจ๋ว", "descTh": "หนอนหนังสือสายตาสั้นอ่านตัวจิ๋วชัดแจ๋ว", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TEA_SOUP_DIGEST", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_010", "nameTh": "ลูกมือหมอตำแยเห็นเลือดไม่ตกใจ", "descTh": "ลูกมือหมอตำแยเห็นเลือดไม่ตกใจ", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_MERIDIAN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_011", "nameTh": "คนอัธยาศัยดียิ้มรับแขกหน้าประตู", "descTh": "คนอัธยาศัยดียิ้มรับแขกหน้าประตู", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_PORTER_SPRINT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_012", "nameTh": "ใจสู้ลูกคนยากไม่ยอมแพ้คนรวยพรสวรรค์", "descTh": "ใจสู้ลูกคนยากไม่ยอมแพ้คนรวยพรสวรรค์", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BULLIED_UNDERDOG_GRIT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_LOW_013", "nameTh": "จมูกแม่ครัวดมกลิ่นพิษในอาหารออกทันที", "descTh": "จมูกแม่ครัวดมกลิ่นพิษในอาหารออกทันที", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_MUD_ICE_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_014", "nameTh": "ขาประจำโรงนํ้าชาจำข่าวลือแม่นยำ", "descTh": "ขาประจำโรงนํ้าชาจำข่าวลือแม่นยำ", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_TREE_ROOF_PERCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_015", "nameTh": "กระดูกเหนียวตกต้นไม้สิบครั้งไม่หัก", "descTh": "กระดูกเหนียวตกต้นไม้สิบครั้งไม่หัก", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BRACE_SHIELD_CHIN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_016", "nameTh": "คมมีดสั้นซ่อนในรองเท้าฟางจังหวะอับจน", "descTh": "คมมีดสั้นซ่อนในรองเท้าฟางจังหวะอับจน", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_WOK_PLANK_BLOCK", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_017", "nameTh": "ช่างซ่อมเกือกม้ารู้จุดอ่อนข้อต่อเกราะ", "descTh": "ช่างซ่อมเกือกม้ารู้จุดอ่อนข้อต่อเกราะ", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_ROLL_WITH_PUNCH", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_018", "nameTh": "คนเลี้ยงม้าเข้าใจภาษาสัตว์ป่า", "descTh": "คนเลี้ยงม้าเข้าใจภาษาสัตว์ป่า", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LIME_DUST_SLEEVE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_019", "nameTh": "นิสัยรอบคอบพกยาใส่แผลติดตัวเสมอ", "descTh": "นิสัยรอบคอบพกยาใส่แผลติดตัวเสมอ", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BAMBOO_SPLINT_WRAP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_020", "nameTh": "สมาธิคนตกปลาเฝ้ารอจังหวะสวนคม", "descTh": "สมาธิคนตกปลาเฝ้ารอจังหวะสวนคม", "cat": "PASSIVE", "tier": 2, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_HOT_BROTH_CANTEEN", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_LOW_021", "nameTh": "เขี้ยวเล็บศิษย์ก้นครัวล้มยักษ์บนลานประลอง", "descTh": "เขี้ยวเล็บศิษย์ก้นครัวล้มยักษ์บนลานประลอง", "cat": "PASSIVE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_BULLIED_UNDERDOG_GRIT", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_LOW_022", "nameTh": "มือทองประหยัดฟืนไฟร้อยเตาไม่สูญเปล่า", "descTh": "มือทองประหยัดฟืนไฟร้อยเตาไม่สูญเปล่า", "cat": "PASSIVE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_SCRAP_SLAG_SIFTER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_LOW_023", "nameTh": "ทหารผ่านศึกชายแดนหลับตาข้างเดียวระวังภัย", "descTh": "ทหารผ่านศึกชายแดนหลับตาข้างเดียวระวังภัย", "cat": "PASSIVE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_LEFTOVER_WOK_MAGIC", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_LOW_024", "nameTh": "พี่เลี้ยงหอนอกใจดีใครอยู่ใกล้ก็อุ่นใจ", "descTh": "พี่เลี้ยงหอนอกใจดีใครอยู่ใกล้ก็อุ่นใจ", "cat": "PASSIVE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_SCRAP_SLAG_SIFTER", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_LOW_025", "nameTh": "กล้ามเนื้อเหล็กไหลคนแบกศิลาสร้างกำแพง", "descTh": "กล้ามเนื้อเหล็กไหลคนแบกศิลาสร้างกำแพง", "cat": "PASSIVE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_THRIFTY_IRON_GRIP", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_LOW_026", "nameTh": "ปัญญาชนคนขยันจดบันทึกข้อผิดพลาดทุกศึก", "descTh": "ปัญญาชนคนขยันจดบันทึกข้อผิดพลาดทุกศึก", "cat": "PASSIVE", "tier": 3, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": true, "isExpansionNonCombatArt": false, "carbonKeyword": "LKW_STREET_HAGGLE_TONGUE", "obtainSources": ["SECT_LIBRARY", "PEDDLER_MARKET", "CHORE_EPIPHANY", "ORAL_HAND_ME_DOWN"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}];
+  JD.TECH.lowTierArts = [].concat(JD.TECH.lowTierMantras, JD.TECH.lowTierNonCombatArts);
+
+  JD.TECH.midHighMantras = [{"id": "MNT_EXP_001", "nameTh": "เคล็ดจุดธูปอธิษฐานรับอรุณ", "descTh": "เคล็ดจุดธูปอธิษฐานรับอรุณ", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "GOD", "sub": "NONE", "power": 17, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_EXP_002", "nameTh": "เคล็ดสมาธิฟังเสียงคมดาบในฝัก", "descTh": "เคล็ดสมาธิฟังเสียงคมดาบในฝัก", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "SHADOW_SAMURAI", "sub": "NONE", "power": 18, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ZANSHIN_BREATHLESS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_EXP_003", "nameTh": "เคล็ดลมหายใจวัวไถนาไม่รู้จักเหนื่อย", "descTh": "เคล็ดลมหายใจวัวไถนาไม่รู้จักเหนื่อย", "cat": "QI_MANTRA", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 16, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_DUAL_MIND_LABOR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.05, "cultRatePct": 0.04, "mdefPct": 0.03}}, {"id": "MNT_EXP_004", "nameTh": "เคล็ดซ่อนประกายหยกในก้อนกรวด", "descTh": "เคล็ดซ่อนประกายหยกในก้อนกรวด", "cat": "QI_MANTRA", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 32, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_EXP_005", "nameTh": "เคล็ดสูบไอร้อนหน้าเตาหลอมบำรุงเส้นเอ็น", "descTh": "เคล็ดสูบไอร้อนหน้าเตาหลอมบำรุงเส้นเอ็น", "cat": "QI_MANTRA", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 34, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_DUAL_MIND_LABOR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_EXP_006", "nameTh": "เคล็ดสดับเสียงพิรุณล้างใจขุ่นมัว", "descTh": "เคล็ดสดับเสียงพิรุณล้างใจขุ่นมัว", "cat": "QI_MANTRA", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 33, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_SOLAR_WEATHER_PULSE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_EXP_007", "nameTh": "เคล็ดเคี้ยวรากสมุนไพรดิบกลั่นตับม้าม", "descTh": "เคล็ดเคี้ยวรากสมุนไพรดิบกลั่นตับม้าม", "cat": "QI_MANTRA", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 34, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_TOXIN_FURNACE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_EXP_008", "nameTh": "เคล็ดนับลูกปัดชั่งลมหายใจเที่ยงตรง", "descTh": "เคล็ดนับลูกปัดชั่งลมหายใจเที่ยงตรง", "cat": "QI_MANTRA", "tier": 2, "reqTier": 1, "path": "MERCANTILE_DAO", "sub": "NONE", "power": 35, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ANTI_THEFT_CYPHER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.1, "cultRatePct": 0.08, "mdefPct": 0.06}}, {"id": "MNT_EXP_009", "nameTh": "เคล็ดนิทราเซียนขี้เซาฝันเห็นผีเสื้อ", "descTh": "เคล็ดนิทราเซียนขี้เซาฝันเห็นผีเสื้อ", "cat": "QI_MANTRA", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 56, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_DREAM_HIBERNATION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_EXP_010", "nameTh": "เคล็ดสุราเมรัยหมักปราณเก้าไห", "descTh": "เคล็ดสุราเมรัยหมักปราณเก้าไห", "cat": "QI_MANTRA", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 58, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_DUAL_MIND_LABOR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_EXP_011", "nameTh": "เคล็ดกลืนไอโลหิตสมรภูมิชุบกระดูก", "descTh": "เคล็ดกลืนไอโลหิตสมรภูมิชุบกระดูก", "cat": "QI_MANTRA", "tier": 3, "reqTier": 2, "path": "DEMON", "sub": "NONE", "power": 60, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_TOXIN_FURNACE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_EXP_012", "nameTh": "เคล็ดเดินปราณย้อนชีพจรซ่อนเงื่อนสำนัก", "descTh": "เคล็ดเดินปราณย้อนชีพจรซ่อนเงื่อนสำนัก", "cat": "QI_MANTRA", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 57, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ANTI_THEFT_CYPHER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_EXP_013", "nameTh": "เคล็ดผสานลมหายใจสัตว์คู่พันธะ", "descTh": "เคล็ดผสานลมหายใจสัตว์คู่พันธะ", "cat": "QI_MANTRA", "tier": 3, "reqTier": 2, "path": "BEAST_SOVEREIGN", "sub": "NONE", "power": 58, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_DREAM_HIBERNATION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.15, "cultRatePct": 0.12, "mdefPct": 0.09}}, {"id": "MNT_EXP_014", "nameTh": "เคล็ดจักรกลหัวใจไขลานไร้เหน็ดเหนื่อย", "descTh": "เคล็ดจักรกลหัวใจไขลานไร้เหน็ดเหนื่อย", "cat": "QI_MANTRA", "tier": 4, "reqTier": 3, "path": "MECH_PUPPET", "sub": "NONE", "power": 88, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_SOLAR_WEATHER_PULSE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.2, "cultRatePct": 0.16, "mdefPct": 0.12}}, {"id": "MNT_EXP_015", "nameTh": "เคล็ดดูดแสงดาวเหนือยามเที่ยงคืน", "descTh": "เคล็ดดูดแสงดาวเหนือยามเที่ยงคืน", "cat": "QI_MANTRA", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 90, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_SOLAR_WEATHER_PULSE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.2, "cultRatePct": 0.16, "mdefPct": 0.12}}, {"id": "MNT_EXP_016", "nameTh": "เคล็ดชีพจรนํ้าแข็งพันปีสะกดพิษไฟ", "descTh": "เคล็ดชีพจรนํ้าแข็งพันปีสะกดพิษไฟ", "cat": "QI_MANTRA", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 89, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ANTI_THEFT_CYPHER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.2, "cultRatePct": 0.16, "mdefPct": 0.12}}, {"id": "MNT_EXP_017", "nameTh": "เคล็ดหลอมสายฟ้าเก็บไว้ในจุดตานจง", "descTh": "เคล็ดหลอมสายฟ้าเก็บไว้ในจุดตานจง", "cat": "QI_MANTRA", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 92, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.2, "cultRatePct": 0.16, "mdefPct": 0.12}}, {"id": "MNT_EXP_018", "nameTh": "เคล็ดกู่พิษร้อยสมุนไพรเลี้ยงชีพจร", "descTh": "เคล็ดกู่พิษร้อยสมุนไพรเลี้ยงชีพจร", "cat": "QI_MANTRA", "tier": 4, "reqTier": 3, "path": "VENOM_GU", "sub": "NONE", "power": 90, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_TOXIN_FURNACE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.2, "cultRatePct": 0.16, "mdefPct": 0.12}}, {"id": "MNT_EXP_019", "nameTh": "เคล็ดนํ้านิ่งกระจกใสไร้ระลอก", "descTh": "เคล็ดนํ้านิ่งกระจกใสไร้ระลอก", "cat": "QI_MANTRA", "tier": 4, "reqTier": 3, "path": "HEART_SOUL", "sub": "NONE", "power": 88, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_TOXIN_FURNACE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.2, "cultRatePct": 0.16, "mdefPct": 0.12}}, {"id": "MNT_EXP_020", "nameTh": "เคล็ดจิตดาบสุญตาไร้ลมหายใจ", "descTh": "เคล็ดจิตดาบสุญตาไร้ลมหายใจ", "cat": "QI_MANTRA", "tier": 4, "reqTier": 3, "path": "SHADOW_SAMURAI", "sub": "NONE", "power": 92, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ZANSHIN_BREATHLESS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.2, "cultRatePct": 0.16, "mdefPct": 0.12}}, {"id": "MNT_EXP_021", "nameTh": "มหาเคล็ดแยกจิตสองวิถี · มือตีเหล็กใจเข้าฌาน", "descTh": "มหาเคล็ดแยกจิตสองวิถี · มือตีเหล็กใจเข้าฌาน", "cat": "QI_MANTRA", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 142, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_DUAL_MIND_LABOR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.25, "cultRatePct": 0.2, "mdefPct": 0.15}}, {"id": "MNT_EXP_022", "nameTh": "มหาเคล็ดแสร้งเป็นปุถุชนเดินดิน", "descTh": "มหาเคล็ดแสร้งเป็นปุถุชนเดินดิน", "cat": "QI_MANTRA", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 140, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.25, "cultRatePct": 0.2, "mdefPct": 0.15}}, {"id": "MNT_EXP_023", "nameTh": "มหาเคล็ดเต่าหยกพันปีจำศีลใต้บึง", "descTh": "มหาเคล็ดเต่าหยกพันปีจำศีลใต้บึง", "cat": "QI_MANTRA", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 138, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_LONGEVITY_CRANE_LOCK", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.25, "cultRatePct": 0.2, "mdefPct": 0.15}}, {"id": "MNT_EXP_024", "nameTh": "มหาเคล็ดกระถางธูปหมื่นครัวเรือนคุ้มเมือง", "descTh": "มหาเคล็ดกระถางธูปหมื่นครัวเรือนคุ้มเมือง", "cat": "QI_MANTRA", "tier": 5, "reqTier": 4, "path": "GOD", "sub": "NONE", "power": 144, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ANTI_THEFT_CYPHER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.25, "cultRatePct": 0.2, "mdefPct": 0.15}}, {"id": "MNT_EXP_025", "nameTh": "มหาเคล็ดด้ายวิญญาณชักเชิดหุ่นเงา", "descTh": "มหาเคล็ดด้ายวิญญาณชักเชิดหุ่นเงา", "cat": "QI_MANTRA", "tier": 5, "reqTier": 4, "path": "SOUL_PUPPETRY", "sub": "NONE", "power": 145, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.25, "cultRatePct": 0.2, "mdefPct": 0.15}}, {"id": "MNT_EXP_026", "nameTh": "มหาเคล็ดกลืนตะวันเที่ยงวันหลอมกายาทอง", "descTh": "มหาเคล็ดกลืนตะวันเที่ยงวันหลอมกายาทอง", "cat": "QI_MANTRA", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 205, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_SOLAR_WEATHER_PULSE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.3, "cultRatePct": 0.24, "mdefPct": 0.18}}, {"id": "MNT_EXP_027", "nameTh": "มหาเคล็ดวัฏจักรยี่สิบสี่ฤดูผันแปร", "descTh": "มหาเคล็ดวัฏจักรยี่สิบสี่ฤดูผันแปร", "cat": "QI_MANTRA", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 208, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_TOXIN_FURNACE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.3, "cultRatePct": 0.24, "mdefPct": 0.18}}, {"id": "MNT_EXP_028", "nameTh": "มหาเคล็ดย่อยสลายร้อยพิษหมื่นคำสาป", "descTh": "มหาเคล็ดย่อยสลายร้อยพิษหมื่นคำสาป", "cat": "QI_MANTRA", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 210, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_TOXIN_FURNACE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.3, "cultRatePct": 0.24, "mdefPct": 0.18}}, {"id": "MNT_EXP_029", "nameTh": "มหาเคล็ดคัมภีร์สลักกลไกป้องกันทรยศ", "descTh": "มหาเคล็ดคัมภีร์สลักกลไกป้องกันทรยศ", "cat": "QI_MANTRA", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 206, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ANTI_THEFT_CYPHER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.3, "cultRatePct": 0.24, "mdefPct": 0.18}}, {"id": "MNT_EXP_030", "nameTh": "มหาเคล็ดอสุรกายไร้ปราณผ่าเซียน", "descTh": "มหาเคล็ดอสุรกายไร้ปราณผ่าเซียน", "cat": "QI_MANTRA", "tier": 6, "reqTier": 5, "path": "SHADOW_SAMURAI", "sub": "NONE", "power": 212, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ZANSHIN_BREATHLESS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.3, "cultRatePct": 0.24, "mdefPct": 0.18}}, {"id": "MNT_EXP_031", "nameTh": "มหาคัมภีร์เต่ามังกรเก้าผลัดคราบอายุวัฒนะ", "descTh": "ผลัดคราบฟ", "cat": "QI_MANTRA", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 285, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_LONGEVITY_CRANE_LOCK", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.35, "cultRatePct": 0.28, "mdefPct": 0.21}}, {"id": "MNT_EXP_032", "nameTh": "มหาคัมภีร์ฝันร้อยชาติในหนึ่งคืน", "descTh": "มหาคัมภีร์ฝันร้อยชาติในหนึ่งคืน", "cat": "QI_MANTRA", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 290, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_DREAM_HIBERNATION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.35, "cultRatePct": 0.28, "mdefPct": 0.21}}, {"id": "MNT_EXP_033", "nameTh": "มหาคัมภีร์เบ้าหลอมปฐมกาลกลืนห้าธาตุ", "descTh": "มหาคัมภีร์เบ้าหลอมปฐมกาลกลืนห้าธาตุ", "cat": "QI_MANTRA", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 295, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.35, "cultRatePct": 0.28, "mdefPct": 0.21}}, {"id": "MNT_EXP_034", "nameTh": "มหาคัมภีร์คนธรรมดาแบกขุนเขาไม่ก้มหัว", "descTh": "มหาคัมภีร์คนธรรมดาแบกขุนเขาไม่ก้มหัว", "cat": "QI_MANTRA", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 292, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_ZANSHIN_BREATHLESS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.35, "cultRatePct": 0.28, "mdefPct": 0.21}}, {"id": "MNT_EXP_035", "nameTh": "มหาคัมภีร์เงาว่างเปล่าล่องหนจากชะตาฟ้า", "descTh": "หลบเลี่ยงเนตรสวรรค์ตรวจจับ", "cat": "QI_MANTRA", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 288, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_CONCEALED_AURA", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.35, "cultRatePct": 0.28, "mdefPct": 0.21}}, {"id": "MNT_EXP_036", "nameTh": "มหาคัมภีร์หมื่นชีพจรร่วมใจคํ้าจุนสำนัก", "descTh": "มหาคัมภีร์หมื่นชีพจรร่วมใจคํ้าจุนสำนัก", "cat": "QI_MANTRA", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 290, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "MKW_LONGEVITY_CRANE_LOCK", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "mantraBonus": {"qiMaxPct": 0.35, "cultRatePct": 0.28, "mdefPct": 0.21}}];
+  JD.TECH.midHighNonCombatOnly = [{"id": "QGG_EXP_001", "nameTh": "ย่างก้าวแมวขโมยไต่ชายคาไร้เสียง", "descTh": "ย่างก้าวแมวขโมยไต่ชายคาไร้เสียง", "cat": "LIGHTNESS_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_SHADOW_SEW_DODGE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_001_M1", "nameTh": "กระบวนที่ 1 · ย่างก้าวแมวขโมยไต่ชายคาไร้เส", "arch": "evade", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "QGG_EXP_002", "nameTh": "วิชาแนบหูฟังเสียงมดเดินสามสิบก้าว", "descTh": "วิชาแนบหูฟังเสียงมดเดินสามสิบก้าว", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_TREMORSENSE_RADAR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_002_M1", "nameTh": "กระบวนที่ 1 · วิชาแนบหูฟังเสียงมดเดินสามสิ", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_EXP_003", "nameTh": "ท่าร่างใบบัวลู่ลมหลบพายุ", "descTh": "ท่าร่างใบบัวลู่ลมหลบพายุ", "cat": "LIGHTNESS_ART", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_DRUNKEN_SLIPSTREAM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_003_M1", "nameTh": "กระบวนที่ 1 · ท่าร่างใบบัวลู่ลมหลบพายุ", "arch": "evade", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "QGG_EXP_004", "nameTh": "เคล็ดกลั้นใจเต่าจำศีลแกล้งสิ้นลม", "descTh": "เคล็ดกลั้นใจเต่าจำศีลแกล้งสิ้นลม", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_TORTOISE_FEIGN_DEATH", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_004_M1", "nameTh": "กระบวนที่ 1 · เคล็ดกลั้นใจเต่าจำศีลแกล้งสิ", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_EXP_005", "nameTh": "ก้าวพริบตาเหยียบเงาตอกหมุด", "descTh": "ก้าวพริบตาเหยียบเงาตอกหมุด", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 2, "path": "NINPO_SHADOW", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_SHADOW_SEW_DODGE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_005_M1", "nameTh": "กระบวนที่ 1 · ก้าวพริบตาเหยียบเงาตอกหมุด", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_EXP_006", "nameTh": "วิชาว่าวไม้ไผ่ร่อนลมข้ามหุบเหว", "descTh": "วิชาว่าวไม้ไผ่ร่อนลมข้ามหุบเหว", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 2, "path": "MECH_PUPPET", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_TORTOISE_FEIGN_DEATH", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_006_M1", "nameTh": "กระบวนที่ 1 · วิชาว่าวไม้ไผ่ร่อนลมข้ามหุบเ", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_EXP_007", "nameTh": "เคล็ดโปรยผงกำยานลบกลิ่นโลหิต", "descTh": "เคล็ดโปรยผงกำยานลบกลิ่นโลหิต", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_SHADOW_SEW_DODGE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_007_M1", "nameTh": "กระบวนที่ 1 · เคล็ดโปรยผงกำยานลบกลิ่นโลหิต", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_EXP_008", "nameTh": "ท่าร่างไต่ผาชันดั่งค่างขาว", "descTh": "ท่าร่างไต่ผาชันดั่งค่างขาว", "cat": "LIGHTNESS_ART", "tier": 3, "reqTier": 2, "path": "BODY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_TREMORSENSE_RADAR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_008_M1", "nameTh": "กระบวนที่ 1 · ท่าร่างไต่ผาชันดั่งค่างขาว", "arch": "evade", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "QGG_EXP_009", "nameTh": "วิชามุดดินดำพสุธาไร้ร่องรอย", "descTh": "วิชามุดดินดำพสุธาไร้ร่องรอย", "cat": "LIGHTNESS_ART", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_EARTH_SUBMERGE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_009_M1", "nameTh": "กระบวนที่ 1 · วิชามุดดินดำพสุธาไร้ร่องรอย", "arch": "evade", "type": "p", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "QGG_EXP_010", "nameTh": "เนตรกระจกส่องมายาผ่าร่างแยก", "descTh": "เนตรกระจกส่องมายาผ่าร่างแยก", "cat": "LIGHTNESS_ART", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_TREMORSENSE_RADAR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_010_M1", "nameTh": "กระบวนที่ 1 · เนตรกระจกส่องมายาผ่าร่างแยก", "arch": "evade", "type": "p", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "QGG_EXP_011", "nameTh": "ท่าร่างเหยียบเกลียวคลื่นขี่หลังปลาหลีฮื้อ", "descTh": "ท่าร่างเหยียบเกลียวคลื่นขี่หลังปลาหลีฮื้อ", "cat": "LIGHTNESS_ART", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_DRUNKEN_SLIPSTREAM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_011_M1", "nameTh": "กระบวนที่ 1 · ท่าร่างเหยียบเกลียวคลื่นขี่ห", "arch": "evade", "type": "p", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "QGG_EXP_012", "nameTh": "เคล็ดม่านหมอกค่ายกลพรางกำลังทัพ", "descTh": "เคล็ดม่านหมอกค่ายกลพรางกำลังทัพ", "cat": "LIGHTNESS_ART", "tier": 5, "reqTier": 4, "path": "ARRAY_TALISMAN", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_TORTOISE_FEIGN_DEATH", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_012_M1", "nameTh": "กระบวนที่ 1 · เคล็ดม่านหมอกค่ายกลพรางกำลัง", "arch": "evade", "type": "p", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "QGG_EXP_013", "nameTh": "มหาวิชากระบี่กว้างพาหมู่ศิษย์เหินเมฆา", "descTh": "มหาวิชากระบี่กว้างพาหมู่ศิษย์เหินเมฆา", "cat": "LIGHTNESS_ART", "tier": 5, "reqTier": 4, "path": "XIAN", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_SWORD_TAXI_ESCORT", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_013_M1", "nameTh": "กระบวนที่ 1 · มหาวิชากระบี่กว้างพาหมู่ศิษย", "arch": "evade", "type": "p", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "QGG_EXP_014", "nameTh": "ก้าวอัสนีพริบตาเดียวทิ้งเจ็ดเงาติดตา", "descTh": "ก้าวอัสนีพริบตาเดียวทิ้งเจ็ดเงาติดตา", "cat": "LIGHTNESS_ART", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_TREMORSENSE_RADAR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_014_M1", "nameTh": "กระบวนที่ 1 · ก้าวอัสนีพริบตาเดียวทิ้งเจ็ด", "arch": "evade", "type": "p", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "QGG_EXP_015", "nameTh": "ท่าร่างราชสีห์ทองกระโจนข้ามเก้ายอดเขา", "descTh": "ท่าร่างราชสีห์ทองกระโจนข้ามเก้ายอดเขา", "cat": "LIGHTNESS_ART", "tier": 6, "reqTier": 5, "path": "BODY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_SWORD_TAXI_ESCORT", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_015_M1", "nameTh": "กระบวนที่ 1 · ท่าร่างราชสีห์ทองกระโจนข้ามเ", "arch": "evade", "type": "p", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "QGG_EXP_016", "nameTh": "วิชาแกะรอยด้ายชะตาตามล่าสุดขอบฟ้า", "descTh": "วิชาแกะรอยด้ายชะตาตามล่าสุดขอบฟ้า", "cat": "LIGHTNESS_ART", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_EARTH_SUBMERGE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_016_M1", "nameTh": "กระบวนที่ 1 · วิชาแกะรอยด้ายชะตาตามล่าสุดข", "arch": "evade", "type": "p", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "QGG_EXP_017", "nameTh": "มหาท่าร่างลอกคราบจักจั่นเร้นสู่มิติว่าง", "descTh": "มหาท่าร่างลอกคราบจักจั่นเร้นสู่มิติว่าง", "cat": "LIGHTNESS_ART", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_DRUNKEN_SLIPSTREAM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_017_M1", "nameTh": "กระบวนที่ 1 · มหาท่าร่างลอกคราบจักจั่นเร้น", "arch": "evade", "type": "p", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "QGG_EXP_018", "nameTh": "มหาท่าร่างสำเภาเมฆาพยุหะหมื่นลี้", "descTh": "มหาท่าร่างสำเภาเมฆาพยุหะหมื่นลี้", "cat": "LIGHTNESS_ART", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "QKW_SWORD_TAXI_ESCORT", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "MOVEMENT_STEALTH_RECON", "moveDefs": [{"id": "QGG_EXP_018_M1", "nameTh": "กระบวนที่ 1 · มหาท่าร่างสำเภาเมฆาพยุหะหมื่", "arch": "evade", "type": "p", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "DEF_EXP_001", "nameTh": "เคล็ดคลุมผ้าเปียกกันไฟและควันพิษ", "descTh": "เคล็ดคลุมผ้าเปียกกันไฟและควันพิษ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_EMPTY_HAND_BLADE_CLAMP", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_001_M1", "nameTh": "กระบวนที่ 1 · เคล็ดคลุมผ้าเปียกกันไฟและควั", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_EXP_002", "nameTh": "ท่ายืนเสาเข็มฝังรากไม่ล้มคลุกฝุ่น", "descTh": "ท่ายืนเสาเข็มฝังรากไม่ล้มคลุกฝุ่น", "cat": "DEFENSIVE_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_COTTON_BELLY_BOUNCE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_002_M1", "nameTh": "กระบวนที่ 1 · ท่ายืนเสาเข็มฝังรากไม่ล้มคลุ", "arch": "guard", "type": "p", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "DEF_EXP_003", "nameTh": "วิชาพุงปุยฝ้ายยืดหยุ่นรับค้อนเหล็ก", "descTh": "วิชาพุงปุยฝ้ายยืดหยุ่นรับค้อนเหล็ก", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_COTTON_BELLY_BOUNCE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_003_M1", "nameTh": "กระบวนที่ 1 · วิชาพุงปุยฝ้ายยืดหยุ่นรับค้อ", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_EXP_004", "nameTh": "เคล็ดเบี่ยงไหล่รับคมแทนจุดตาย", "descTh": "เคล็ดเบี่ยงไหล่รับคมแทนจุดตาย", "cat": "DEFENSIVE_TECHNIQUE", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_ORGAN_SHIFT_GRAZE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_004_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเบี่ยงไหล่รับคมแทนจุดตา", "arch": "guard", "type": "p", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "DEF_EXP_005", "nameTh": "ม่านแขนเสื้อเหล็กปัดป้องเกาทัณฑ์", "descTh": "ม่านแขนเสื้อเหล็กปัดป้องเกาทัณฑ์", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_ORGAN_SHIFT_GRAZE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_005_M1", "nameTh": "กระบวนที่ 1 · ม่านแขนเสื้อเหล็กปัดป้องเกาท", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_EXP_006", "nameTh": "เคล็ดเกราะหนามกระดูกเม่นโลหิต", "descTh": "เคล็ดเกราะหนามกระดูกเม่นโลหิต", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 2, "path": "BODY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_PORCUPINE_BONE_SPUR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_006_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเกราะหนามกระดูกเม่นโลหิ", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_EXP_007", "nameTh": "วิชาสองนิ้วหนีบคมดาบมือเปล่า", "descTh": "วิชาสองนิ้วหนีบคมดาบมือเปล่า", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_EMPTY_HAND_BLADE_CLAMP", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_007_M1", "nameTh": "กระบวนที่ 1 · วิชาสองนิ้วหนีบคมดาบมือเปล่า", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_EXP_008", "nameTh": "โล่ปราณพี่ใหญ่กางกั้นหน้าศิษย์น้อง", "descTh": "โล่ปราณพี่ใหญ่กางกั้นหน้าศิษย์น้อง", "cat": "DEFENSIVE_TECHNIQUE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_SHARED_PHALANX_WALL", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_008_M1", "nameTh": "กระบวนที่ 1 · โล่ปราณพี่ใหญ่กางกั้นหน้าศิษ", "arch": "guard", "type": "p", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "DEF_EXP_009", "nameTh": "วิชาเคลื่อนย้ายอวัยวะภายในหลบคมสังหาร", "descTh": "วิชาเคลื่อนย้ายอวัยวะภายในหลบคมสังหาร", "cat": "DEFENSIVE_TECHNIQUE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_ORGAN_SHIFT_GRAZE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_009_M1", "nameTh": "กระบวนที่ 1 · วิชาเคลื่อนย้ายอวัยวะภายในหล", "arch": "guard", "type": "p", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "DEF_EXP_010", "nameTh": "ระฆังสุญตาปิดหกทวารสะกดเสียงมาร", "descTh": "ระฆังสุญตาปิดหกทวารสะกดเสียงมาร", "cat": "DEFENSIVE_TECHNIQUE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_ZEN_SOUNDPROOF_BELL", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_010_M1", "nameTh": "กระบวนที่ 1 · ระฆังสุญตาปิดหกทวารสะกดเสียง", "arch": "guard", "type": "p", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "DEF_EXP_011", "nameTh": "ม่านนํ้าวนเก้าชั้นดูดกลืนเพลิงคาถา", "descTh": "ม่านนํ้าวนเก้าชั้นดูดกลืนเพลิงคาถา", "cat": "DEFENSIVE_TECHNIQUE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_ORGAN_SHIFT_GRAZE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_011_M1", "nameTh": "กระบวนที่ 1 · ม่านนํ้าวนเก้าชั้นดูดกลืนเพล", "arch": "guard", "type": "p", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "DEF_EXP_012", "nameTh": "เกราะไหมทองหุ่นเชิดรับเคราะห์แทนนาย", "descTh": "เกราะไหมทองหุ่นเชิดรับเคราะห์แทนนาย", "cat": "DEFENSIVE_TECHNIQUE", "tier": 5, "reqTier": 4, "path": "MECH_PUPPET", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_ZEN_SOUNDPROOF_BELL", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_012_M1", "nameTh": "กระบวนที่ 1 · เกราะไหมทองหุ่นเชิดรับเคราะห", "arch": "guard", "type": "p", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "DEF_EXP_013", "nameTh": "ปราการค่ายกลโล่ประสานสามทัพ", "descTh": "ปราการค่ายกลโล่ประสานสามทัพ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_SHARED_PHALANX_WALL", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_013_M1", "nameTh": "กระบวนที่ 1 · ปราการค่ายกลโล่ประสานสามทัพ", "arch": "guard", "type": "p", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "DEF_EXP_014", "nameTh": "เคล็ดกายาไหลลื่นดั่งปรอทไร้จุดจับ", "descTh": "เคล็ดกายาไหลลื่นดั่งปรอทไร้จุดจับ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_COTTON_BELLY_BOUNCE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_014_M1", "nameTh": "กระบวนที่ 1 · เคล็ดกายาไหลลื่นดั่งปรอทไร้จ", "arch": "guard", "type": "p", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "DEF_EXP_015", "nameTh": "มหาวิชากระจกแปดเหลี่ยมหักเหอาคม", "descTh": "มหาวิชากระจกแปดเหลี่ยมหักเหอาคม", "cat": "DEFENSIVE_TECHNIQUE", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_PORCUPINE_BONE_SPUR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_015_M1", "nameTh": "กระบวนที่ 1 · มหาวิชากระจกแปดเหลี่ยมหักเหอ", "arch": "guard", "type": "p", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "DEF_EXP_016", "nameTh": "มหาปราการกระดูกเพชรไม่หวั่นสายฟ้าทัณฑ์", "descTh": "มหาปราการกระดูกเพชรไม่หวั่นสายฟ้าทัณฑ์", "cat": "DEFENSIVE_TECHNIQUE", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_SHARED_PHALANX_WALL", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_016_M1", "nameTh": "กระบวนที่ 1 · มหาปราการกระดูกเพชรไม่หวั่นส", "arch": "guard", "type": "p", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "DEF_EXP_017", "nameTh": "มหาวิชาหมื่นศาสตราไม่อาจแตะชายเสื้อ", "descTh": "มหาวิชาหมื่นศาสตราไม่อาจแตะชายเสื้อ", "cat": "DEFENSIVE_TECHNIQUE", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_COTTON_BELLY_BOUNCE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_017_M1", "nameTh": "กระบวนที่ 1 · มหาวิชาหมื่นศาสตราไม่อาจแตะช", "arch": "guard", "type": "p", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "DEF_EXP_018", "nameTh": "มหาปราการเสาคํ้าสวรรค์พิทักษ์อาราม", "descTh": "มหาปราการเสาคํ้าสวรรค์พิทักษ์อาราม", "cat": "DEFENSIVE_TECHNIQUE", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "DKW_ZEN_SOUNDPROOF_BELL", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "COMBAT_DEFENSE", "moveDefs": [{"id": "DEF_EXP_018_M1", "nameTh": "กระบวนที่ 1 · มหาปราการเสาคํ้าสวรรค์พิทักษ", "arch": "guard", "type": "p", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "SUP_EXP_001", "nameTh": "วิชาพ่นเหล้าขาวชะล้างแผลสด", "descTh": "วิชาพ่นเหล้าขาวชะล้างแผลสด", "cat": "SUPPORT_TECHNIQUE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_LIFE_LOAN_NEEDLE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_001_M1", "nameTh": "กระบวนที่ 1 · วิชาพ่นเหล้าขาวชะล้างแผลสด", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "SUP_EXP_002", "nameTh": "เสียงขลุ่ยไม้ไผ่เรียกสติคนตื่นตระหนก", "descTh": "เสียงขลุ่ยไม้ไผ่เรียกสติคนตื่นตระหนก", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_OVERHEAL_LOTUS_SHIELD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_002_M1", "nameTh": "กระบวนที่ 1 · เสียงขลุ่ยไม้ไผ่เรียกสติคนตื", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_EXP_003", "nameTh": "พลุกระบี่สัญญาณขอความช่วยเหลือฉุกเฉิน", "descTh": "พลุกระบี่สัญญาณขอความช่วยเหลือฉุกเฉิน", "cat": "SUPPORT_TECHNIQUE", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_DISTRESS_SWORD_FLARE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_003_M1", "nameTh": "กระบวนที่ 1 · พลุกระบี่สัญญาณขอความช่วยเหล", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "SUP_EXP_004", "nameTh": "เคล็ดซ่อมข้อต่อหุ่นและสมานแผลอสูรคู่ใจ", "descTh": "เคล็ดซ่อมข้อต่อหุ่นและสมานแผลอสูรคู่ใจ", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 2, "path": "MECH_PUPPET", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_PUPPET_PET_FIELD_PATCH", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_004_M1", "nameTh": "กระบวนที่ 1 · เคล็ดซ่อมข้อต่อหุ่นและสมานแผ", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_EXP_005", "nameTh": "เข็มเงินยืมพลังชีวิตต่อลมหายใจ", "descTh": "เข็มเงินยืมพลังชีวิตต่อลมหายใจ", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_LIFE_LOAN_NEEDLE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_005_M1", "nameTh": "กระบวนที่ 1 · เข็มเงินยืมพลังชีวิตต่อลมหาย", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_EXP_006", "nameTh": "เคล็ดมุกหยกเก็บกักปราณสำรองยามว่าง", "descTh": "เคล็ดมุกหยกเก็บกักปราณสำรองยามว่าง", "cat": "SUPPORT_TECHNIQUE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_DISTRESS_SWORD_FLARE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_006_M1", "nameTh": "กระบวนที่ 1 · เคล็ดมุกหยกเก็บกักปราณสำรองย", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "SUP_EXP_007", "nameTh": "ค่ายกลธงห้าสีสลับแถวถอนคนเจ็บ", "descTh": "ค่ายกลธงห้าสีสลับแถวถอนคนเจ็บ", "cat": "SUPPORT_TECHNIQUE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_QIMEN_FOG_EXTRACTION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_007_M1", "nameTh": "กระบวนที่ 1 · ค่ายกลธงห้าสีสลับแถวถอนคนเจ็", "arch": "support", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "SUP_EXP_008", "nameTh": "นํ้าอมฤตบัวขาวล้นถ้วยเป็นเกราะคุ้มกาย", "descTh": "นํ้าอมฤตบัวขาวล้นถ้วยเป็นเกราะคุ้มกาย", "cat": "SUPPORT_TECHNIQUE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_OVERHEAL_LOTUS_SHIELD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_008_M1", "nameTh": "กระบวนที่ 1 · นํ้าอมฤตบัวขาวล้นถ้วยเป็นเกร", "arch": "support", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "SUP_EXP_009", "nameTh": "บทสวดบังสุกุลชำระซากสลายไอมรณะ", "descTh": "บทสวดบังสุกุลชำระซากสลายไอมรณะ", "cat": "SUPPORT_TECHNIQUE", "tier": 4, "reqTier": 3, "path": "BUDDHA_DHARMA", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_CORPSE_PURIFY_REQUIEM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_009_M1", "nameTh": "กระบวนที่ 1 · บทสวดบังสุกุลชำระซากสลายไอมร", "arch": "support", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "SUP_EXP_010", "nameTh": "กำยานเจ็ดบุปผาสลายมารในใจกลางศึก", "descTh": "กำยานเจ็ดบุปผาสลายมารในใจกลางศึก", "cat": "SUPPORT_TECHNIQUE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_QIMEN_FOG_EXTRACTION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_010_M1", "nameTh": "กระบวนที่ 1 · กำยานเจ็ดบุปผาสลายมารในใจกลา", "arch": "support", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "SUP_EXP_011", "nameTh": "เข็มทองกระตุ้นจุดศักยภาพแฝงชั่วคราว", "descTh": "เข็มทองกระตุ้นจุดศักยภาพแฝงชั่วคราว", "cat": "SUPPORT_TECHNIQUE", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_CORPSE_PURIFY_REQUIEM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_011_M1", "nameTh": "กระบวนที่ 1 · เข็มทองกระตุ้นจุดศักยภาพแฝงช", "arch": "support", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "SUP_EXP_012", "nameTh": "ทำนองพิณสายฝนชะล้างพิษร้อนทั้งกองทัพ", "descTh": "ทำนองพิณสายฝนชะล้างพิษร้อนทั้งกองทัพ", "cat": "SUPPORT_TECHNIQUE", "tier": 5, "reqTier": 4, "path": "SONIC_HARMONY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_DISTRESS_SWORD_FLARE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_012_M1", "nameTh": "กระบวนที่ 1 · ทำนองพิณสายฝนชะล้างพิษร้อนทั", "arch": "support", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "SUP_EXP_013", "nameTh": "โองการกลองศึกสามรัวไม่ถอยแม้ก้าวเดียว", "descTh": "โองการกลองศึกสามรัวไม่ถอยแม้ก้าวเดียว", "cat": "SUPPORT_TECHNIQUE", "tier": 5, "reqTier": 4, "path": "STRATEGY_GOVERNANCE", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_LIFE_LOAN_NEEDLE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_013_M1", "nameTh": "กระบวนที่ 1 · โองการกลองศึกสามรัวไม่ถอยแม้", "arch": "support", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "SUP_EXP_014", "nameTh": "ม่านดาราชี้ช่องโหว่ประสานเป้าสังหาร", "descTh": "ม่านดาราชี้ช่องโหว่ประสานเป้าสังหาร", "cat": "SUPPORT_TECHNIQUE", "tier": 5, "reqTier": 4, "path": "ASTRO_DIVINATION", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_OVERHEAL_LOTUS_SHIELD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_014_M1", "nameTh": "กระบวนที่ 1 · ม่านดาราชี้ช่องโหว่ประสานเป้", "arch": "support", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "SUP_EXP_015", "nameTh": "มหาวิชาต่อเส้นเอ็นเชื่อมกระดูกกลางสมรภูมิ", "descTh": "มหาวิชาต่อเส้นเอ็นเชื่อมกระดูกกลางสมรภูมิ", "cat": "SUPPORT_TECHNIQUE", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_OVERHEAL_LOTUS_SHIELD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_015_M1", "nameTh": "กระบวนที่ 1 · มหาวิชาต่อเส้นเอ็นเชื่อมกระด", "arch": "support", "type": "m", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "SUP_EXP_016", "nameTh": "มหาค่ายกลผูกชีพห้าธาตุหมุนเวียนไม่สิ้นสุด", "descTh": "มหาค่ายกลผูกชีพห้าธาตุหมุนเวียนไม่สิ้นสุด", "cat": "SUPPORT_TECHNIQUE", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_QIMEN_FOG_EXTRACTION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_016_M1", "nameTh": "กระบวนที่ 1 · มหาค่ายกลผูกชีพห้าธาตุหมุนเว", "arch": "support", "type": "m", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "SUP_EXP_017", "nameTh": "มหาโคมวิญญาณเรียกขวัญคืนจากประตูผี", "descTh": "มหาโคมวิญญาณเรียกขวัญคืนจากประตูผี", "cat": "SUPPORT_TECHNIQUE", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_CORPSE_PURIFY_REQUIEM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_017_M1", "nameTh": "กระบวนที่ 1 · มหาโคมวิญญาณเรียกขวัญคืนจากป", "arch": "support", "type": "m", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "SUP_EXP_018", "nameTh": "มหาสังคีตฟ้าดินสงบศึกชุบชูหมื่นชีวา", "descTh": "มหาสังคีตฟ้าดินสงบศึกชุบชูหมื่นชีวา", "cat": "SUPPORT_TECHNIQUE", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "SKW_DISTRESS_SWORD_FLARE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "HEAL_SUPPORT_TRAINING", "moveDefs": [{"id": "SUP_EXP_018_M1", "nameTh": "กระบวนที่ 1 · มหาสังคีตฟ้าดินสงบศึกชุบชูหม", "arch": "support", "type": "m", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "AUX_EXP_001", "nameTh": "ตำราแยกแยะเห็ดพิษและสมุนไพรแฝด", "descTh": "ตำราแยกแยะเห็ดพิษและสมุนไพรแฝด", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_PILL_CLOUD_SEALER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_001_M1", "nameTh": "กระบวนที่ 1 · ตำราแยกแยะเห็ดพิษและสมุนไพรแ", "arch": "heal", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_EXP_002", "nameTh": "เคล็ดก่อไฟสูบลมเตาถ่านสมํ่าเสมอ", "descTh": "เคล็ดก่อไฟสูบลมเตาถ่านสมํ่าเสมอ", "cat": "AUXILIARY_ART", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_SPIRIT_ANVIL_RESONANCE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_002_M1", "nameTh": "กระบวนที่ 1 · เคล็ดก่อไฟสูบลมเตาถ่านสมํ่าเ", "arch": "support", "type": "m", "M": 1.23, "cd": 6, "qi": 13}]}, {"id": "AUX_EXP_003", "nameTh": "วิชาดูโหงวเฮ้งคัดศิษย์หน้าประตูเขา", "descTh": "วิชาดูโหงวเฮ้งคัดศิษย์หน้าประตูเขา", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_GARDEN_TOTEM_POLLINATION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_003_M1", "nameTh": "กระบวนที่ 1 · วิชาดูโหงวเฮ้งคัดศิษย์หน้าปร", "arch": "heal", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_EXP_004", "nameTh": "ยันต์หุ่นฟางไล่นกและหมูป่าเฝ้าแปลงนา", "descTh": "ยันต์หุ่นฟางไล่นกและหมูป่าเฝ้าแปลงนา", "cat": "AUXILIARY_ART", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_GARDEN_TOTEM_POLLINATION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_004_M1", "nameTh": "กระบวนที่ 1 · ยันต์หุ่นฟางไล่นกและหมูป่าเฝ", "arch": "support", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "AUX_EXP_005", "nameTh": "ศาสตร์เคาะหินฟังโพรงแร่ศิลาปราณ", "descTh": "ศาสตร์เคาะหินฟังโพรงแร่ศิลาปราณ", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_CARAVAN_CRYO_STASIS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_005_M1", "nameTh": "กระบวนที่ 1 · ศาสตร์เคาะหินฟังโพรงแร่ศิลาป", "arch": "heal", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_EXP_006", "nameTh": "ตำราดองนํ้าแข็งผนึกลังเสบียงเดินทางไกล", "descTh": "ตำราดองนํ้าแข็งผนึกลังเสบียงเดินทางไกล", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_CARAVAN_CRYO_STASIS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_006_M1", "nameTh": "กระบวนที่ 1 · ตำราดองนํ้าแข็งผนึกลังเสบียง", "arch": "support", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_EXP_007", "nameTh": "เคล็ดเกลาคำสอนถ่ายทอดวิชารุ่นสู่รุ่น", "descTh": "เคล็ดเกลาคำสอนถ่ายทอดวิชารุ่นสู่รุ่น", "cat": "AUXILIARY_ART", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_PILL_CLOUD_SEALER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_007_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเกลาคำสอนถ่ายทอดวิชารุ่", "arch": "heal", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "AUX_EXP_008", "nameTh": "วิชาเป่าขลุ่ยเรียกผึ้งหยกผสมเกสรสมุนไพร", "descTh": "วิชาเป่าขลุ่ยเรียกผึ้งหยกผสมเกสรสมุนไพร", "cat": "AUXILIARY_ART", "tier": 4, "reqTier": 3, "path": "SPIRIT_HUSBANDRY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_GARDEN_TOTEM_POLLINATION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_008_M1", "nameTh": "กระบวนที่ 1 · วิชาเป่าขลุ่ยเรียกผึ้งหยกผสม", "arch": "support", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "AUX_EXP_009", "nameTh": "ศาสตร์ชงชาส่องใจจับพิรุธขุนนางฉ้อฉล", "descTh": "ศาสตร์ชงชาส่องใจจับพิรุธขุนนางฉ้อฉล", "cat": "AUXILIARY_ART", "tier": 4, "reqTier": 3, "path": "STRATEGY_GOVERNANCE", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_CENSOR_TRUTH_MIRROR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_009_M1", "nameTh": "กระบวนที่ 1 · ศาสตร์ชงชาส่องใจจับพิรุธขุนน", "arch": "heal", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "AUX_EXP_010", "nameTh": "เคล็ดนวดเส้นลมปราณฟื้นฟูสัตว์อสูรและเพาะพันธุ์", "descTh": "เคล็ดนวดเส้นลมปราณฟื้นฟูสัตว์อสูรและเพาะพันธุ์", "cat": "AUXILIARY_ART", "tier": 4, "reqTier": 3, "path": "BEAST_SOVEREIGN", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_CENSOR_TRUTH_MIRROR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_010_M1", "nameTh": "กระบวนที่ 1 · เคล็ดนวดเส้นลมปราณฟื้นฟูสัตว", "arch": "support", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "AUX_EXP_011", "nameTh": "วิชาคัดลอกซ่อมแซมตำราขาดวิ่นโบราณ", "descTh": "วิชาคัดลอกซ่อมแซมตำราขาดวิ่นโบราณ", "cat": "AUXILIARY_ART", "tier": 4, "reqTier": 3, "path": "LORE_ARCHIVIST", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_CARAVAN_CRYO_STASIS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_011_M1", "nameTh": "กระบวนที่ 1 · วิชาคัดลอกซ่อมแซมตำราขาดวิ่น", "arch": "heal", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "AUX_EXP_012", "nameTh": "มหาศาสตร์กางร่มปราณรับสายฟ้าแทนศิษย์รัก", "descTh": "มหาศาสตร์กางร่มปราณรับสายฟ้าแทนศิษย์รัก", "cat": "AUXILIARY_ART", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_TRIBULATION_LIGHTNING_ROD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_012_M1", "nameTh": "กระบวนที่ 1 · มหาศาสตร์กางร่มปราณรับสายฟ้า", "arch": "support", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "AUX_EXP_013", "nameTh": "มหาเคล็ดควบแน่นเมฆาโอสถสกัดเม็ดยาคู่", "descTh": "มหาเคล็ดควบแน่นเมฆาโอสถสกัดเม็ดยาคู่", "cat": "AUXILIARY_ART", "tier": 5, "reqTier": 4, "path": "CRAFT_CREATION", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_PILL_CLOUD_SEALER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_013_M1", "nameTh": "กระบวนที่ 1 · มหาเคล็ดควบแน่นเมฆาโอสถสกัดเ", "arch": "heal", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "AUX_EXP_014", "nameTh": "มหาศาสตร์ตีเหล็กพับพันทบปลุกวิญญาณศาสตรา", "descTh": "มหาศาสตร์ตีเหล็กพับพันทบปลุกวิญญาณศาสตรา", "cat": "AUXILIARY_ART", "tier": 5, "reqTier": 4, "path": "CRAFT_CREATION", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_SPIRIT_ANVIL_RESONANCE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_014_M1", "nameTh": "กระบวนที่ 1 · มหาศาสตร์ตีเหล็กพับพันทบปลุก", "arch": "support", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "AUX_EXP_015", "nameTh": "มหาวิชาปรับฮวงจุ้ยเชื่อมเส้นชีพจรมังกรแปดยอดเขา", "descTh": "มหาวิชาปรับฮวงจุ้ยเชื่อมเส้นชีพจรมังกรแปดยอดเขา", "cat": "AUXILIARY_ART", "tier": 6, "reqTier": 5, "path": "DRAGON_VEIN_GEOMANCY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_GARDEN_TOTEM_POLLINATION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_015_M1", "nameTh": "กระบวนที่ 1 · มหาวิชาปรับฮวงจุ้ยเชื่อมเส้น", "arch": "heal", "type": "m", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "AUX_EXP_016", "nameTh": "มหาตำราการทูตเจ็ดลิ้นผูกพันธมิตรสิบเก้าสำนัก", "descTh": "มหาตำราการทูตเจ็ดลิ้นผูกพันธมิตรสิบเก้าสำนัก", "cat": "AUXILIARY_ART", "tier": 6, "reqTier": 5, "path": "STRATEGY_GOVERNANCE", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_CENSOR_TRUTH_MIRROR", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_016_M1", "nameTh": "กระบวนที่ 1 · มหาตำราการทูตเจ็ดลิ้นผูกพันธ", "arch": "support", "type": "m", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "AUX_EXP_017", "nameTh": "มหาศาสตร์จำศีลเต่าหิมะยืดอายุขัยผู้เฒ่าเฝ้าหอ", "descTh": "มหาศาสตร์จำศีลเต่าหิมะยืดอายุขัยผู้เฒ่าเฝ้าหอ", "cat": "AUXILIARY_ART", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_CARAVAN_CRYO_STASIS", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_017_M1", "nameTh": "กระบวนที่ 1 · มหาศาสตร์จำศีลเต่าหิมะยืดอาย", "arch": "heal", "type": "m", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "AUX_EXP_018", "nameTh": "มหาคัมภีร์บูรณะอารามเนรมิตวิมานเซียน", "descTh": "มหาคัมภีร์บูรณะอารามเนรมิตวิมานเซียน", "cat": "AUXILIARY_ART", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "AKW_TRIBULATION_LIGHTNING_ROD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "PROFESSION_LIFESTYLE", "moveDefs": [{"id": "AUX_EXP_018_M1", "nameTh": "กระบวนที่ 1 · มหาคัมภีร์บูรณะอารามเนรมิตวิ", "arch": "support", "type": "m", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "FRB_EXP_001", "nameTh": "วิชาฝืนเปิดจุดชีพจรย้อนกระแส", "descTh": "วิชาฝืนเปิดจุดชีพจรย้อนกระแส", "cat": "FORBIDDEN_ART", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_WHITE_HAIR_LIFESPAN_TORCH", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_001_M1", "nameTh": "กระบวนที่ 1 · วิชาฝืนเปิดจุดชีพจรย้อนกระแส", "arch": "burst", "type": "m", "M": 1.41, "cd": 5, "qi": 18}]}, {"id": "FRB_EXP_002", "nameTh": "เคล็ดเลี้ยงหนอนกู่โลหิตในหัวใจ", "descTh": "เคล็ดเลี้ยงหนอนกู่โลหิตในหัวใจ", "cat": "FORBIDDEN_ART", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_MARTYR_LOTUS_FINAL_BLOOM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_002_M1", "nameTh": "กระบวนที่ 1 · เคล็ดเลี้ยงหนอนกู่โลหิตในหัว", "arch": "burst", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "FRB_EXP_003", "nameTh": "วิชาเผาหยดเลือดแก่นแท้เร่งความเร็วสามเท่า", "descTh": "วิชาเผาหยดเลือดแก่นแท้เร่งความเร็วสามเท่า", "cat": "FORBIDDEN_ART", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_CORPSE_PUPPET_ARISEN", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_003_M1", "nameTh": "กระบวนที่ 1 · วิชาเผาหยดเลือดแก่นแท้เร่งคว", "arch": "burst", "type": "m", "M": 1.59, "cd": 5, "qi": 23}]}, {"id": "FRB_EXP_004", "nameTh": "มนต์ปลุกโครงกระดูกทหารเก่าขึ้นรับศึก", "descTh": "มนต์ปลุกโครงกระดูกทหารเก่าขึ้นรับศึก", "cat": "FORBIDDEN_ART", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_CORPSE_PUPPET_ARISEN", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_004_M1", "nameTh": "กระบวนที่ 1 · มนต์ปลุกโครงกระดูกทหารเก่าขึ", "arch": "burst", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "FRB_EXP_005", "nameTh": "เคล็ดสูบปราณคู่ต่อสู้เข้าตันเถียนตรงๆ", "descTh": "เคล็ดสูบปราณคู่ต่อสู้เข้าตันเถียนตรงๆ", "cat": "FORBIDDEN_ART", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_BLOOD_ESCAPE_RIFT", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_005_M1", "nameTh": "กระบวนที่ 1 · เคล็ดสูบปราณคู่ต่อสู้เข้าตัน", "arch": "burst", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "FRB_EXP_006", "nameTh": "วิชาบังคับอสูรคู่สัญญาคลุ้มคลั่งเผาโลหิต", "descTh": "วิชาบังคับอสูรคู่สัญญาคลุ้มคลั่งเผาโลหิต", "cat": "FORBIDDEN_ART", "tier": 4, "reqTier": 3, "path": "BEAST_SOVEREIGN", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_BORROW_TOMORROW_REALM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_006_M1", "nameTh": "กระบวนที่ 1 · วิชาบังคับอสูรคู่สัญญาคลุ้มค", "arch": "burst", "type": "m", "M": 1.77, "cd": 4, "qi": 28}]}, {"id": "FRB_EXP_007", "nameTh": "เคล็ดตัดสายใยรักแลกคมกระบี่ไร้ใจ", "descTh": "เคล็ดตัดสายใยรักแลกคมกระบี่ไร้ใจ", "cat": "FORBIDDEN_ART", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_HEARTLESS_SEVER_EMOTION", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_007_M1", "nameTh": "กระบวนที่ 1 · เคล็ดตัดสายใยรักแลกคมกระบี่ไ", "arch": "burst", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "FRB_EXP_008", "nameTh": "วิชาโลหิตฉีกมิติพาหมู่คณะหนีตาย", "descTh": "วิชาโลหิตฉีกมิติพาหมู่คณะหนีตาย", "cat": "FORBIDDEN_ART", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_BLOOD_ESCAPE_RIFT", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_008_M1", "nameTh": "กระบวนที่ 1 · วิชาโลหิตฉีกมิติพาหมู่คณะหนี", "arch": "burst", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "FRB_EXP_009", "nameTh": "มหาเวทขโมยศรัทธาปั้นเทวรูปเทียม", "descTh": "มหาเวทขโมยศรัทธาปั้นเทวรูปเทียม", "cat": "FORBIDDEN_ART", "tier": 5, "reqTier": 4, "path": "GOD", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_CORPSE_PUPPET_ARISEN", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_009_M1", "nameTh": "กระบวนที่ 1 · มหาเวทขโมยศรัทธาปั้นเทวรูปเท", "arch": "burst", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "FRB_EXP_010", "nameTh": "มหาวิชาผมขาวชั่วข้ามคืนเผาอายุขัยผ่าฟ้า", "descTh": "มหาวิชาผมขาวชั่วข้ามคืนเผาอายุขัยผ่าฟ้า", "cat": "FORBIDDEN_ART", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_WHITE_HAIR_LIFESPAN_TORCH", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_010_M1", "nameTh": "กระบวนที่ 1 · มหาวิชาผมขาวชั่วข้ามคืนเผาอา", "arch": "burst", "type": "m", "M": 1.95, "cd": 4, "qi": 33}]}, {"id": "FRB_EXP_011", "nameTh": "มหาเคล็ดยืมตบะวันพรุ่งฝืนก้าวข้ามขั้น", "descTh": "มหาเคล็ดยืมตบะวันพรุ่งฝืนก้าวข้ามขั้น", "cat": "FORBIDDEN_ART", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_BORROW_TOMORROW_REALM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_011_M1", "nameTh": "กระบวนที่ 1 · มหาเคล็ดยืมตบะวันพรุ่งฝืนก้า", "arch": "burst", "type": "m", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "FRB_EXP_012", "nameTh": "มหาอาคมชักใยกองทัพหุ่นศพพันนาย", "descTh": "มหาอาคมชักใยกองทัพหุ่นศพพันนาย", "cat": "FORBIDDEN_ART", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_CORPSE_PUPPET_ARISEN", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_012_M1", "nameTh": "กระบวนที่ 1 · มหาอาคมชักใยกองทัพหุ่นศพพันน", "arch": "burst", "type": "m", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "FRB_EXP_013", "nameTh": "มหาวิชาบดขยี้จุดตันเถียนรองระเบิดปราณ", "descTh": "มหาวิชาบดขยี้จุดตันเถียนรองระเบิดปราณ", "cat": "FORBIDDEN_ART", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_WHITE_HAIR_LIFESPAN_TORCH", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_013_M1", "nameTh": "กระบวนที่ 1 · มหาวิชาบดขยี้จุดตันเถียนรองร", "arch": "burst", "type": "m", "M": 2.13, "cd": 3, "qi": 38}]}, {"id": "FRB_EXP_014", "nameTh": "มหาคัมภีร์กลืนกินสายฟ้าทัณฑ์สวรรค์ดิบ", "descTh": "มหาคัมภีร์กลืนกินสายฟ้าทัณฑ์สวรรค์ดิบ", "cat": "FORBIDDEN_ART", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_MARTYR_LOTUS_FINAL_BLOOM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_014_M1", "nameTh": "กระบวนที่ 1 · มหาคัมภีร์กลืนกินสายฟ้าทัณฑ์", "arch": "burst", "type": "m", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "FRB_EXP_015", "nameTh": "มหาวัฏจักรดูดกลืนวิญญาณเก้าอเวจี", "descTh": "มหาวัฏจักรดูดกลืนวิญญาณเก้าอเวจี", "cat": "FORBIDDEN_ART", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_CORPSE_PUPPET_ARISEN", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_015_M1", "nameTh": "กระบวนที่ 1 · มหาวัฏจักรดูดกลืนวิญญาณเก้าอ", "arch": "burst", "type": "m", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "FRB_EXP_016", "nameTh": "มหาปณิธานบัวโลหิตสละชีพคํ้าจุนอาราม", "descTh": "มหาปณิธานบัวโลหิตสละชีพคํ้าจุนอาราม", "cat": "FORBIDDEN_ART", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "FKW_MARTYR_LOTUS_FINAL_BLOOM", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "role": "TABOO_OVERDRIVE", "moveDefs": [{"id": "FRB_EXP_016_M1", "nameTh": "กระบวนที่ 1 · มหาปณิธานบัวโลหิตสละชีพคํ้าจ", "arch": "burst", "type": "m", "M": 2.31, "cd": 3, "qi": 43}]}, {"id": "PAS_EXP_001", "nameTh": "กระเพาะเหล็กทหารเลวทนอดอยาก", "descTh": "กระเพาะเหล็กทหารเลวทนอดอยาก", "cat": "PASSIVE", "tier": 1, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.6900000000000001}, "grade": "Common", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_BROKEN_BLADE_IMPROVISER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.025, "defPct": 0.03, "hpMaxPct": 0.035, "qiRecPct": 0.04}}, {"id": "PAS_EXP_002", "nameTh": "สายตาพ่อค้าเก่าประเมินค่าของแม่นยำ", "descTh": "สายตาพ่อค้าเก่าประเมินค่าของแม่นยำ", "cat": "PASSIVE", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_POISON_SOAKED_PHARMACIST", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_EXP_003", "nameTh": "มือนิ่งช่างเจียระไนไม่ทำวัตถุดิบแตก", "descTh": "มือนิ่งช่างเจียระไนไม่ทำวัตถุดิบแตก", "cat": "PASSIVE", "tier": 2, "reqTier": 1, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.73}, "grade": "Refined", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_SENIOR_BROTHER_SPINE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.05, "defPct": 0.06, "hpMaxPct": 0.07, "qiRecPct": 0.08}}, {"id": "PAS_EXP_004", "nameTh": "กายาหมอยาชิมพิษร้อยสมุนไพร", "descTh": "กายาหมอยาชิมพิษร้อยสมุนไพร", "cat": "PASSIVE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_POISON_SOAKED_PHARMACIST", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_EXP_005", "nameTh": "แผ่นหลังศิษย์พี่ใหญ่คุ้มครองรุ่นน้อง", "descTh": "แผ่นหลังศิษย์พี่ใหญ่คุ้มครองรุ่นน้อง", "cat": "PASSIVE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_SENIOR_BROTHER_SPINE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_EXP_006", "nameTh": "คมดาบหักในมือยังไร้เทียมทาน", "descTh": "คมดาบหักในมือยังไร้เทียมทาน", "cat": "PASSIVE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_BROKEN_BLADE_IMPROVISER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_EXP_007", "nameTh": "สัญชาตญาณนักล่าสมบัติเห็นทางลับ", "descTh": "สัญชาตญาณนักล่าสมบัติเห็นทางลับ", "cat": "PASSIVE", "tier": 3, "reqTier": 2, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.77}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_BROKEN_BLADE_IMPROVISER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.075, "defPct": 0.09, "hpMaxPct": 0.105, "qiRecPct": 0.12}}, {"id": "PAS_EXP_008", "nameTh": "สองมือวาดกลมเหลี่ยมร่ายวิชามือซ้ายขวา", "descTh": "สองมือวาดกลมเหลี่ยมร่ายวิชามือซ้ายขวา", "cat": "PASSIVE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_LEFT_RIGHT_MUTUAL_MIND", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.1, "defPct": 0.12, "hpMaxPct": 0.14, "qiRecPct": 0.16}}, {"id": "PAS_EXP_009", "nameTh": "ยิ่งดวลกับผู้สูงส่งยิ่งบรรลุเร็ว", "descTh": "ยิ่งดวลกับผู้สูงส่งยิ่งบรรลุเร็ว", "cat": "PASSIVE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_BATTLE_EPIPHANY_MIMIC", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.1, "defPct": 0.12, "hpMaxPct": 0.14, "qiRecPct": 0.16}}, {"id": "PAS_EXP_010", "nameTh": "เงาจันทร์พรางสังหารนัดแรกปลิดชีพ", "descTh": "เงาจันทร์พรางสังหารนัดแรกปลิดชีพ", "cat": "PASSIVE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_LEFT_RIGHT_MUTUAL_MIND", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.1, "defPct": 0.12, "hpMaxPct": 0.14, "qiRecPct": 0.16}}, {"id": "PAS_EXP_011", "nameTh": "หัตถ์เทวดาฝังเข็มไม่เปลืองโอสถ", "descTh": "หัตถ์เทวดาฝังเข็มไม่เปลืองโอสถ", "cat": "PASSIVE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "NEUTRAL", "elementProfile": {"primary": "NEUTRAL", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_TEN_YEARS_ONE_SWORD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.1, "defPct": 0.12, "hpMaxPct": 0.14, "qiRecPct": 0.16}}, {"id": "PAS_EXP_012", "nameTh": "จิตปราชญ์อ่านทะลุค่ายกลโบราณ", "descTh": "จิตปราชญ์อ่านทะลุค่ายกลโบราณ", "cat": "PASSIVE", "tier": 4, "reqTier": 3, "path": "ANY", "sub": "NONE", "power": 24, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 0.81}, "grade": "Rare", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_BATTLE_EPIPHANY_MIMIC", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.1, "defPct": 0.12, "hpMaxPct": 0.14, "qiRecPct": 0.16}}, {"id": "PAS_EXP_013", "nameTh": "สิบปีลับหนึ่งกระบี่รอวันชักออกจากฝัก", "descTh": "สิบปีลับหนึ่งกระบี่รอวันชักออกจากฝัก", "cat": "PASSIVE", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_TEN_YEARS_ONE_SWORD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.125, "defPct": 0.15, "hpMaxPct": 0.175, "qiRecPct": 0.2}}, {"id": "PAS_EXP_014", "nameTh": "ชีพจรเต่ามังกรฟื้นเลือดทุกจังหวะหายใจ", "descTh": "ชีพจรเต่ามังกรฟื้นเลือดทุกจังหวะหายใจ", "cat": "PASSIVE", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_POISON_SOAKED_PHARMACIST", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.125, "defPct": 0.15, "hpMaxPct": 0.175, "qiRecPct": 0.2}}, {"id": "PAS_EXP_015", "nameTh": "จิตสังหารสะกดสัตว์อสูรไม่กล้าสบตา", "descTh": "จิตสังหารสะกดสัตว์อสูรไม่กล้าสบตา", "cat": "PASSIVE", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_SENIOR_BROTHER_SPINE", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.125, "defPct": 0.15, "hpMaxPct": 0.175, "qiRecPct": 0.2}}, {"id": "PAS_EXP_016", "nameTh": "เนตรอ่านกระแสธาตุผสานปฏิกิริยา", "descTh": "เนตรอ่านกระแสธาตุผสานปฏิกิริยา", "cat": "PASSIVE", "tier": 5, "reqTier": 4, "path": "ANY", "sub": "NONE", "power": 24, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 0.8500000000000001}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_LEFT_RIGHT_MUTUAL_MIND", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.125, "defPct": 0.15, "hpMaxPct": 0.175, "qiRecPct": 0.2}}, {"id": "PAS_EXP_017", "nameTh": "เตายุทธ์ในอกไม่กลัวไฟพิภพและเหมันต์", "descTh": "เตายุทธ์ในอกไม่กลัวไฟพิภพและเหมันต์", "cat": "PASSIVE", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_TEN_YEARS_ONE_SWORD", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.15, "defPct": 0.18, "hpMaxPct": 0.21, "qiRecPct": 0.24}}, {"id": "PAS_EXP_018", "nameTh": "ก้าวพ้นเงาพญายมหลบคมประหาร", "descTh": "ก้าวพ้นเงาพญายมหลบคมประหาร", "cat": "PASSIVE", "tier": 6, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 24, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 0.89}, "grade": "Exceptional", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_BATTLE_EPIPHANY_MIMIC", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.15, "defPct": 0.18, "hpMaxPct": 0.21, "qiRecPct": 0.24}}, {"id": "PAS_EXP_019", "nameTh": "มหากายาไม่แปดเปื้อนกรรมและคำสาป", "descTh": "มหากายาไม่แปดเปื้อนกรรมและคำสาป", "cat": "PASSIVE", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_BROKEN_BLADE_IMPROVISER", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.175, "defPct": 0.21, "hpMaxPct": 0.245, "qiRecPct": 0.28}}, {"id": "PAS_EXP_020", "nameTh": "มหาเจตจำนงปรมาจารย์ยืนหยัดคนสุดท้าย", "descTh": "มหาเจตจำนงปรมาจารย์ยืนหยัดคนสุดท้าย", "cat": "PASSIVE", "tier": 7, "reqTier": 6, "path": "ANY", "sub": "NONE", "power": 24, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 0.93}, "grade": "Legendary", "isLowTierFolkArt": false, "isExpansionNonCombatArt": true, "carbonKeyword": "PKW_POISON_SOAKED_PHARMACIST", "obtainSources": ["SECT_LIBRARY", "EXPEDITION_RELIC", "VISITOR_EXCHANGE"], "passive": {"atkPct": 0.175, "defPct": 0.21, "hpMaxPct": 0.245, "qiRecPct": 0.28}}];
+  JD.TECH.midHighNonCombatArts = [].concat(JD.TECH.midHighMantras, JD.TECH.midHighNonCombatOnly);
+
+  JD.TECH.sovereignCombatArts = [{"id": "TCMB_SOV_01_NAMELESS_ZERO_RETURN", "shortId": "TCMB_SOV_01", "nameTh": "กระบวนท่าไร้ชื่อคืนสู่ศูนย์", "descTh": "มหาวิชาต่อสู้เหนือตำนานแห่งบรรพชนไร้ลักษณ์ ตัดทอนทุกกระบวนท่าของศัตรูกลับสู่ความว่างเปล่าปฐมกาล รองรับศาสตราทุกตระกูลและมือเปล่า", "cat": "COMBAT_TECHNIQUE", "role": "SOVEREIGN_COMBAT", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 185, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "secondary": "NEUTRAL", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "weaponTypes": ["ALL", "UNARMED"], "carbonKeyword": "KW_TCMB_REALM_DEFIANCE", "sovereignKeywords": ["KW_TCMB_REALM_DEFIANCE", "KW_TCMB_UNBROKEN_FLOW", "KW_TCMB_WEAPON_OMNI_FORM", "KW_TCMB_AUTHORED_SOUL_VERSE", "KW_TCMB_SCAR_DETONATOR"], "scarKind": "SCAR_VOID_ZERO_RIFT", "awakeningGate": "GATE_ANCESTRAL_SHRINE_RESONANCE", "verses": [{"verse": 1, "id": "TCMB_SOV_01_V1", "nameTh": "บทที่ 1 · ไร้ลักษณ์แรกเริ่ม", "arch": "strike", "type": "p", "M": 2.45, "cd": 2, "qi": 28, "descTh": "ตัดกระแสปราณเกราะป้องกันและเปิดจังหวะต่อเนื่อง"}, {"verse": 2, "id": "TCMB_SOV_01_V2", "nameTh": "บทที่ 2 · สะบั้นพันธะหมื่นธรรม", "arch": "pierce", "type": "p", "M": 2.95, "cd": 3, "qi": 34, "descTh": "แทงทะลุจุดอ่อนปราณและฝังรอยแผลเต๋าสุญตา"}, {"verse": 3, "id": "TCMB_SOV_01_V3", "nameTh": "บทที่ 3 · คืนสู่ความว่างเปล่าไร้จุดจบ", "arch": "burst", "type": "m", "M": 3.85, "cd": 4, "qi": 45, "descTh": "จุดระเบิดรอยแผลเต๋าและลบล้างบัฟศัตรูทั้งแถว"}], "moveDefs": [{"id": "TCMB_SOV_01_V1", "nameTh": "บทที่ 1 · ไร้ลักษณ์แรกเริ่ม", "arch": "strike", "type": "p", "M": 2.45, "cd": 2, "qi": 28}, {"id": "TCMB_SOV_01_V2", "nameTh": "บทที่ 2 · สะบั้นพันธะหมื่นธรรม", "arch": "pierce", "type": "p", "M": 2.95, "cd": 3, "qi": 34}, {"id": "TCMB_SOV_01_V3", "nameTh": "บทที่ 3 · คืนสู่ความว่างเปล่าไร้จุดจบ", "arch": "burst", "type": "m", "M": 3.85, "cd": 4, "qi": 45}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TCMB_SOV_02_NINE_HEAVENS_SHATTERING_FIST", "shortId": "TCMB_SOV_02", "nameTh": "หมัดทลายเก้าชั้นฟ้าสะท้านม่านภพ", "descTh": "มหาวิชาศึกสายกายาและปราณ霸道 ทุบทำลายม่านปราการและบดขยี้แรงกดดันขอบเขตของศัตรูที่อยู่ขั้นสูงกว่า", "cat": "COMBAT_TECHNIQUE", "role": "SOVEREIGN_COMBAT", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 190, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "secondary": "LIGHTNING", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "weaponTypes": ["ALL", "UNARMED"], "carbonKeyword": "KW_TCMB_SCAR_DETONATOR", "sovereignKeywords": ["KW_TCMB_REALM_DEFIANCE", "KW_TCMB_SCAR_DETONATOR", "KW_TCMB_UNBROKEN_FLOW"], "scarKind": "SCAR_TECTONIC_GRAVITY_WELL", "awakeningGate": "GATE_TRIBULATION_SURVIVAL", "verses": [{"verse": 1, "id": "TCMB_SOV_02_V1", "nameTh": "บทที่ 1 · ก้าวสั่นสะเทือนขุนเขา", "arch": "sweep", "type": "p", "M": 2.5, "cd": 2, "qi": 30, "descTh": "กระแทกคลื่นแรงโน้มถ่วงดึงศัตรูเข้าสู่จุดศูนย์กลาง"}, {"verse": 2, "id": "TCMB_SOV_02_V2", "nameTh": "บทที่ 2 · หมัดแยกผืนพิภพ", "arch": "crush", "type": "p", "M": 3.1, "cd": 3, "qi": 36, "descTh": "ทะลวงเกราะหนักและสร้างหลุมแรงดึงดูดปฐพี"}, {"verse": 3, "id": "TCMB_SOV_02_V3", "nameTh": "บทที่ 3 · ทลายเก้าชั้นฟ้าไร้พ่าย", "arch": "burst", "type": "p", "M": 3.95, "cd": 4, "qi": 48, "descTh": "ระเบิดรอยแยกธรณีสร้างความเสียหายจริงตามค่าป้องกัน"}], "moveDefs": [{"id": "TCMB_SOV_02_V1", "nameTh": "บทที่ 1 · ก้าวสั่นสะเทือนขุนเขา", "arch": "sweep", "type": "p", "M": 2.5, "cd": 2, "qi": 30}, {"id": "TCMB_SOV_02_V2", "nameTh": "บทที่ 2 · หมัดแยกผืนพิภพ", "arch": "strike", "type": "p", "M": 3.1, "cd": 3, "qi": 36}, {"id": "TCMB_SOV_02_V3", "nameTh": "บทที่ 3 · ทลายเก้าชั้นฟ้าไร้พ่าย", "arch": "burst", "type": "p", "M": 3.95, "cd": 4, "qi": 48}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "TRIBULATION_EPIPHANY"]}, {"id": "TCMB_SOV_03_MYRIAD_THREADS_CAUSAL_DANCE", "shortId": "TCMB_SOV_03", "nameTh": "ระบำหมื่นเส้นด้ายชักใยชะตาภพ", "descTh": "มหาวิชาเส้นด้ายเหตุผลและค่ายกลสังสารวัฏ ถักทอสายใยเชื่อมความเสียหายศัตรูและสะท้อนชะตากรรม", "cat": "COMBAT_TECHNIQUE", "role": "SOVEREIGN_COMBAT", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 182, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "secondary": "ASTRAL_VOID", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "weaponTypes": ["ALL", "UNARMED"], "carbonKeyword": "KW_TCMB_UNBROKEN_FLOW", "sovereignKeywords": ["KW_TCMB_UNBROKEN_FLOW", "KW_TCMB_WEAPON_OMNI_FORM", "KW_TCMB_AUTHORED_SOUL_VERSE"], "scarKind": "SCAR_KARMIC_SILK_WEB", "awakeningGate": "GATE_APEX_NEMESIS_DUEL", "verses": [{"verse": 1, "id": "TCMB_SOV_03_V1", "nameTh": "บทที่ 1 · ร้อยด้ายผูกเงา", "arch": "control", "type": "m", "M": 2.35, "cd": 2, "qi": 28, "descTh": "ผูกสายใยชะตาเชื่อมศัตรูแนวหน้าและแนวหลัง"}, {"verse": 2, "id": "TCMB_SOV_03_V2", "nameTh": "บทที่ 2 · กงล้อด้ายสังสารวัฏ", "arch": "flurry", "type": "m", "M": 2.9, "cd": 3, "qi": 35, "descTh": "กรีดเส้นด้ายปราณหลายจังหวะและดูดความเร็วร่าย"}, {"verse": 3, "id": "TCMB_SOV_03_V3", "nameTh": "บทที่ 3 · ตัดขาดเส้นด้ายชะตาฟ้า", "arch": "burst", "type": "m", "M": 3.8, "cd": 4, "qi": 44, "descTh": "กระชากเส้นด้ายกรรมระเบิดความเสียหายประสานทั้งสนาม"}], "moveDefs": [{"id": "TCMB_SOV_03_V1", "nameTh": "บทที่ 1 · ร้อยด้ายผูกเงา", "arch": "control", "type": "m", "M": 2.35, "cd": 2, "qi": 28}, {"id": "TCMB_SOV_03_V2", "nameTh": "บทที่ 2 · กงล้อด้ายสังสารวัฏ", "arch": "flurry", "type": "m", "M": 2.9, "cd": 3, "qi": 35}, {"id": "TCMB_SOV_03_V3", "nameTh": "บทที่ 3 · ตัดขาดเส้นด้ายชะตาฟ้า", "arch": "burst", "type": "m", "M": 3.8, "cd": 4, "qi": 44}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "NEMESIS_CONQUEST"]}, {"id": "TCMB_SOV_04_PHANTOM_SEVEN_BLINKS_ECLIPSE", "shortId": "TCMB_SOV_04", "nameTh": "เจ็ดก้าวสุริยคราสดับเงาไร้ร่องรอย", "descTh": "มหาวิชาสังหารพริบตาผ่านรอยแยกเงาสุริยคราส ข้ามแถวหน้าเข้าประชิดจุดตายพร้อมตัดจังหวะร่ายของศัตรูทันที", "cat": "COMBAT_TECHNIQUE", "role": "SOVEREIGN_COMBAT", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 188, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "secondary": "WIND", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "weaponTypes": ["ALL", "UNARMED"], "carbonKeyword": "KW_TCMB_WEAPON_OMNI_FORM", "sovereignKeywords": ["KW_TCMB_WEAPON_OMNI_FORM", "KW_TCMB_REALM_DEFIANCE", "KW_TCMB_SCAR_DETONATOR"], "scarKind": "SCAR_ECLIPSE_SHADOW_MIRROR", "awakeningGate": "GATE_APEX_NEMESIS_DUEL", "verses": [{"verse": 1, "id": "TCMB_SOV_04_V1", "nameTh": "บทที่ 1 · ก้าวเร้นเงาจันทร์ดับ", "arch": "pierce", "type": "p", "M": 2.55, "cd": 2, "qi": 28, "descTh": "พริบตาข้ามแนวป้องกันเข้าจู่โจมจุดสำคัญ"}, {"verse": 2, "id": "TCMB_SOV_04_V2", "nameTh": "บทที่ 2 · เจ็ดเงาสะท้อนคมสังหาร", "arch": "flurry", "type": "p", "M": 3.05, "cd": 3, "qi": 35, "descTh": "ร่างเงาเจ็ดทิศประสานคมอาวุธพร้อมกัน"}, {"verse": 3, "id": "TCMB_SOV_04_V3", "nameTh": "บทที่ 3 · สุริยคราสกลืนแสงนิรันดร์", "arch": "burst", "type": "p", "M": 3.9, "cd": 4, "qi": 46, "descTh": "ปิดม่านสุริยคราสสังหารและรีเซ็ตคูลดาวน์เมื่อโค่นเป้าหมาย"}], "moveDefs": [{"id": "TCMB_SOV_04_V1", "nameTh": "บทที่ 1 · ก้าวเร้นเงาจันทร์ดับ", "arch": "pierce", "type": "p", "M": 2.55, "cd": 2, "qi": 28}, {"id": "TCMB_SOV_04_V2", "nameTh": "บทที่ 2 · เจ็ดเงาสะท้อนคมสังหาร", "arch": "flurry", "type": "p", "M": 3.05, "cd": 3, "qi": 35}, {"id": "TCMB_SOV_04_V3", "nameTh": "บทที่ 3 · สุริยคราสกลืนแสงนิรันดร์", "arch": "burst", "type": "p", "M": 3.9, "cd": 4, "qi": 46}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "NEMESIS_CONQUEST"]}, {"id": "TCMB_SOV_05_HARMONIC_MERCY_WRATH_SEAL", "shortId": "TCMB_SOV_05", "nameTh": "มุทราทวิลักษณ์เมตตาพิโรธ", "descTh": "มหาวิชามุทราทวิลักษณ์แห่งโพธิสัตว์และวัชรปาณี ฟื้นฟูสหายร่วมรบพร้อมสะท้อนโทสะวัชระใส่ผู้รุกราน", "cat": "COMBAT_TECHNIQUE", "role": "SOVEREIGN_COMBAT", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 184, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "secondary": "WOOD_LIFE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "weaponTypes": ["ALL", "UNARMED"], "carbonKeyword": "KW_TCMB_AUTHORED_SOUL_VERSE", "sovereignKeywords": ["KW_TCMB_AUTHORED_SOUL_VERSE", "KW_TCMB_UNBROKEN_FLOW", "KW_TCMB_REALM_DEFIANCE"], "scarKind": "SCAR_GOLDEN_LOTUS_SANCTUARY", "awakeningGate": "GATE_ANCESTRAL_SHRINE_RESONANCE", "verses": [{"verse": 1, "id": "TCMB_SOV_05_V1", "nameTh": "บทที่ 1 · หัตถ์เมตตาบงกชทอง", "arch": "strike", "type": "m", "M": 2.4, "cd": 2, "qi": 28, "descTh": "โจมตีด้วยรัศมีธรรมพร้อมฟื้นฟูพลังชีวิตสหายที่บาดเจ็บสุด"}, {"verse": 2, "id": "TCMB_SOV_05_V2", "nameTh": "บทที่ 2 · เนตรวัชระสยบมาร", "arch": "counter", "type": "m", "M": 2.95, "cd": 3, "qi": 34, "descTh": "สะท้อนแรงโจมตีและชำระล้างสถานะผิดปกติ"}, {"verse": 3, "id": "TCMB_SOV_05_V3", "nameTh": "บทที่ 3 · มหาอาณาจักรเมตตาพิโรธ", "arch": "burst", "type": "m", "M": 3.75, "cd": 4, "qi": 44, "descTh": "ปลดปล่อยมุทราคู่พิพากษาศัตรูและกางเกราะคุ้มครองทั้งทีม"}], "moveDefs": [{"id": "TCMB_SOV_05_V1", "nameTh": "บทที่ 1 · หัตถ์เมตตาบงกชทอง", "arch": "strike", "type": "m", "M": 2.4, "cd": 2, "qi": 28}, {"id": "TCMB_SOV_05_V2", "nameTh": "บทที่ 2 · เนตรวัชระสยบมาร", "arch": "counter", "type": "m", "M": 2.95, "cd": 3, "qi": 34}, {"id": "TCMB_SOV_05_V3", "nameTh": "บทที่ 3 · มหาอาณาจักรเมตตาพิโรธ", "arch": "burst", "type": "m", "M": 3.75, "cd": 4, "qi": 44}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TCMB_SOV_06_PRIMORDIAL_FOUR_ELEMENTS_CATACLYSM", "shortId": "TCMB_SOV_06", "nameTh": "มหาวิบัติสี่ธาตุหลอมคืนปฐมกาล", "descTh": "มหาวิชาหลอมรวมดิน น้ำ ลม ไฟ คืนสู่เพลิงโกลาหลปฐมกาล จุดปฏิกิริยาธาตุซ้อนทับโดยไม่สนความต้านทานธาตุ", "cat": "COMBAT_TECHNIQUE", "role": "SOVEREIGN_COMBAT", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 192, "element": "FIRE", "elementProfile": {"primary": "FIRE", "secondary": "WATER_ICE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "weaponTypes": ["ALL", "UNARMED"], "carbonKeyword": "KW_TCMB_SCAR_DETONATOR", "sovereignKeywords": ["KW_TCMB_SCAR_DETONATOR", "KW_TCMB_REALM_DEFIANCE", "KW_TCMB_AUTHORED_SOUL_VERSE"], "scarKind": "SCAR_PRIMORDIAL_CHAOS_CAULDRON", "awakeningGate": "GATE_TRIBULATION_SURVIVAL", "verses": [{"verse": 1, "id": "TCMB_SOV_06_V1", "nameTh": "บทที่ 1 · อัคคีเหมันต์หมุนวน", "arch": "sweep", "type": "m", "M": 2.48, "cd": 2, "qi": 30, "descTh": "ประทับตราเพลิงและน้ำแข็งพร้อมกันในคราเดียว"}, {"verse": 2, "id": "TCMB_SOV_06_V2", "nameTh": "บทที่ 2 · วายุอัสนีผ่าปฐพี", "arch": "flurry", "type": "m", "M": 3.08, "cd": 3, "qi": 36, "descTh": "เร่งปฏิกิริยาธาตุสี่ทิศและฉีกเกราะเวท"}, {"verse": 3, "id": "TCMB_SOV_06_V3", "nameTh": "บทที่ 3 · หลอมสี่ธาตุคืนสู่โกลาหล", "arch": "burst", "type": "m", "M": 4.0, "cd": 4, "qi": 50, "descTh": "ยุบตัวสี่ธาตุเป็นเตาหลอมปฐมกาลเผาผลาญทั้งสนามรบ"}], "moveDefs": [{"id": "TCMB_SOV_06_V1", "nameTh": "บทที่ 1 · อัคคีเหมันต์หมุนวน", "arch": "sweep", "type": "m", "M": 2.48, "cd": 2, "qi": 30}, {"id": "TCMB_SOV_06_V2", "nameTh": "บทที่ 2 · วายุอัสนีผ่าปฐพี", "arch": "flurry", "type": "m", "M": 3.08, "cd": 3, "qi": 36}, {"id": "TCMB_SOV_06_V3", "nameTh": "บทที่ 3 · หลอมสี่ธาตุคืนสู่โกลาหล", "arch": "burst", "type": "m", "M": 4.0, "cd": 4, "qi": 50}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "TRIBULATION_EPIPHANY"]}];
+  JD.TECH.sovereignMantras = [{"id": "TMNT_SOV_01_PRIMORDIAL_INNER_UNIVERSE", "shortId": "TMNT_SOV_01", "nameTh": "มหาคัมภีร์จักรวาลภายในปฐมกาล", "descTh": "เปลี่ยนตันเถียนให้เป็นจักรวาลจำลองที่ผลิตปราณเองอย่างอิสระแม้ไร้ชีพจรวิญญาณภายนอก และไม่ได้รับผลกระทบจากสภาพอากาศเลวร้าย", "cat": "QI_MANTRA", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TMNT_SELF_CONTAINED_STAR", "mantraBonus": {"qiMaxPct": 0.45, "cultRatePct": 0.38, "mdefPct": 0.28, "tribulationResist": 0.18}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TMNT_SOV_02_ETERNAL_MOLTING_OUROBOROS", "shortId": "TMNT_SOV_02", "nameTh": "มหาคัมภีร์เก้าผลัดคราบนิรันดร์ย้อนวัย", "descTh": "ผลัดสังขารย้อนวัยและเปลี่ยนความเสื่อมชราเป็นรากฐานตบะบริสุทธิ์ ยืดอายุขัยและฟื้นฟูบาดแผลเรื้อรัง", "cat": "QI_MANTRA", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 178, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TMNT_REJUVENATION_MOLT", "mantraBonus": {"qiMaxPct": 0.38, "cultRatePct": 0.34, "lifespanBonusYears": 120, "hpRegenPct": 0.25}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "LONGEVITY_CRUCIBLE"]}, {"id": "TMNT_SOV_03_UNMOVING_HEART_MIRROR_SUTRA", "shortId": "TMNT_SOV_03", "nameTh": "มหาคัมภีร์กระจกจิตว่างเปล่าสะท้อนหมื่นกฎ", "descTh": "จิตใสประดุจกระจกสุญตา ป้องกันมารในใจสมบูรณ์และสะท้อนการโจมตีทางจิตวิญญาณกลับสู่ผู้ร่าย", "cat": "QI_MANTRA", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 176, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TMNT_VOID_MIND_REFLECT", "mantraBonus": {"qiMaxPct": 0.4, "cultRatePct": 0.35, "mdefPct": 0.35, "heartDemonImmune": true}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TMNT_SOV_04_MYRIAD_LAWS_DEVOURING_CRUCIBLE", "shortId": "TMNT_SOV_04", "nameTh": "มหาคัมภีร์เตาหลอมกลืนกินหมื่นวิถี", "descTh": "ย่อยสลายพิษโอสถ คำสาป และปราณต่างสายให้กลายเป็นปราณต้นกำเนิดบริสุทธิ์", "cat": "QI_MANTRA", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 182, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TMNT_OMNI_DIGESTION", "mantraBonus": {"qiMaxPct": 0.44, "cultRatePct": 0.36, "pillToxicityZero": true}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ALCHEMY_CRUCIBLE"]}, {"id": "TMNT_SOV_05_MORTAL_SPINE_UNBOWED_HEART", "shortId": "TMNT_SOV_05", "nameTh": "มหาคัมภีร์หัวใจเหล็กไหลไร้ปราณสยบเซียน", "descTh": "จังหวะหัวใจปุถุชนผู้ไม่ก้มหัวให้สวรรค์ รองรับทั้งผู้ไร้ปราณและผู้ฝึกกายา เปลี่ยนแรงกดดันขอบเขตเป็นพลังโจมตี", "cat": "QI_MANTRA", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 184, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TMNT_GODSLAYER_HEARTBEAT", "mantraBonus": {"qiMaxPct": 0.35, "cultRatePct": 0.35, "atkPct": 0.25, "defPct": 0.25}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "TRIBULATION_EPIPHANY"]}];
+  JD.TECH.sovereignNonCombatArts = [{"id": "TQGG_SOV_01_SHRINKING_CONTINENT_ONE_STEP", "shortId": "TQGG_SOV_01", "nameTh": "มหาย่างก้าวย่อแผ่นดินในหนึ่งก้าว", "descTh": "มหาย่างก้าวย่อแผ่นดินในหนึ่งก้าว · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "LIGHTNESS_ART", "role": "MOVEMENT_STEALTH_RECON", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TQGG_METEOR_LANDING", "moveDefs": [{"id": "TQGG_SOV_01_M1", "nameTh": "มหาเคล็ด · มหาย่างก้าวย่อแผ่นดินในหนึ่งก้", "arch": "evade", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TQGG_SOV_02_KARMA_SHADOWLESS_VANISH", "shortId": "TQGG_SOV_02", "nameTh": "มหาวิชาไร้ร่องรอยลบตัวตนจากชะตาภพ", "descTh": "มหาวิชาไร้ร่องรอยลบตัวตนจากชะตาภพ · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "LIGHTNESS_ART", "role": "MOVEMENT_STEALTH_RECON", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TQGG_CAUSAL_ERASURE", "moveDefs": [{"id": "TQGG_SOV_02_M1", "nameTh": "มหาเคล็ด · มหาวิชาไร้ร่องรอยลบตัวตนจากชะต", "arch": "evade", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TQGG_SOV_03_HEAVEN_LISTENING_OMNISCIENT_GAZE", "shortId": "TQGG_SOV_03", "nameTh": "มหาเนตรทิพย์สดับลมเก้าพิภพ", "descTh": "มหาเนตรทิพย์สดับลมเก้าพิภพ · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "LIGHTNESS_ART", "role": "MOVEMENT_STEALTH_RECON", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "WIND", "elementProfile": {"primary": "WIND", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TQGG_OMNISCIENT_EYE", "moveDefs": [{"id": "TQGG_SOV_03_M1", "nameTh": "มหาเคล็ด · มหาเนตรทิพย์สดับลมเก้าพิภพ", "arch": "evade", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TQGG_SOV_04_TITAN_SKY_SHATTERING_BOUND", "shortId": "TQGG_SOV_04", "nameTh": "มหาย่างก้าวพญามังกรเหยียบเมฆาถล่มฟ้า", "descTh": "มหาย่างก้าวพญามังกรเหยียบเมฆาถล่มฟ้า · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "LIGHTNESS_ART", "role": "MOVEMENT_STEALTH_RECON", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TQGG_METEOR_LANDING", "moveDefs": [{"id": "TQGG_SOV_04_M1", "nameTh": "มหาเคล็ด · มหาย่างก้าวพญามังกรเหยียบเมฆาถ", "arch": "evade", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TDEF_SOV_01_IMMOVABLE_VAJRA_WORLD_MOUNTAIN", "shortId": "TDEF_SOV_01", "nameTh": "มหาปราการขุนเขาพระสุเมรุวัชระไม่ไหวติง", "descTh": "มหาปราการขุนเขาพระสุเมรุวัชระไม่ไหวติง · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "DEFENSIVE_TECHNIQUE", "role": "COMBAT_DEFENSE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TDEF_SUMERU_CAP", "moveDefs": [{"id": "TDEF_SOV_01_M1", "nameTh": "มหาเคล็ด · มหาปราการขุนเขาพระสุเมรุวัชระไ", "arch": "guard", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TDEF_SOV_02_TAIJI_ORIGIN_RETURN_EMPTINESS", "shortId": "TDEF_SOV_02", "nameTh": "มหาวิชาว่างเปล่าสี่ตำลึงคืนหมื่นชั่งสู่ฟ้าดิน", "descTh": "มหาวิชาว่างเปล่าสี่ตำลึงคืนหมื่นชั่งสู่ฟ้าดิน · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "DEFENSIVE_TECHNIQUE", "role": "COMBAT_DEFENSE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TDEF_ORIGIN_RESERVOIR", "moveDefs": [{"id": "TDEF_SOV_02_M1", "nameTh": "มหาเคล็ด · มหาวิชาว่างเปล่าสี่ตำลึงคืนหมื", "arch": "guard", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TDEF_SOV_03_NINE_LOTUS_MARTYR_SANCTUARY", "shortId": "TDEF_SOV_03", "nameTh": "มหาโดมเก้าบงกชคุ้มครองสรรพชีวิต", "descTh": "มหาโดมเก้าบงกชคุ้มครองสรรพชีวิต · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "DEFENSIVE_TECHNIQUE", "role": "COMBAT_DEFENSE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TDEF_SQUAD_AEGIS", "moveDefs": [{"id": "TDEF_SOV_03_M1", "nameTh": "มหาเคล็ด · มหาโดมเก้าบงกชคุ้มครองสรรพชีวิ", "arch": "guard", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TDEF_SOV_04_VOID_PHASE_CICADA_SOVEREIGN", "shortId": "TDEF_SOV_04", "nameTh": "มหาเคล็ดกายาว่างเปล่าไร้ที่ให้ฟันต้อง", "descTh": "มหาเคล็ดกายาว่างเปล่าไร้ที่ให้ฟันต้อง · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "DEFENSIVE_TECHNIQUE", "role": "COMBAT_DEFENSE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TDEF_PHASE_IMMUNITY", "moveDefs": [{"id": "TDEF_SOV_04_M1", "nameTh": "มหาเคล็ด · มหาเคล็ดกายาว่างเปล่าไร้ที่ให้", "arch": "guard", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TSUP_SOV_01_NINE_SOULS_RETURN_GOLDEN_NEEDLE", "shortId": "TSUP_SOV_01", "nameTh": "มหาเข็มทองคำเรียกคืนเก้าวิญญาณ", "descTh": "มหาเข็มทองคำเรียกคืนเก้าวิญญาณ · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "SUPPORT_TECHNIQUE", "role": "HEAL_SUPPORT_TRAINING", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TSUP_YAMA_RECALL", "moveDefs": [{"id": "TSUP_SOV_01_M1", "nameTh": "มหาเคล็ด · มหาเข็มทองคำเรียกคืนเก้าวิญญาณ", "arch": "heal", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TSUP_SOV_02_CELESTIAL_ORCHESTRA_OF_FORTY_DAOS", "shortId": "TSUP_SOV_02", "nameTh": "มหาสังคีตประสานสี่สิบสามมรรคาสะเทือนภพ", "descTh": "มหาสังคีตประสานสี่สิบสามมรรคาสะเทือนภพ · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "SUPPORT_TECHNIQUE", "role": "HEAL_SUPPORT_TRAINING", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "LIGHT_YANG", "elementProfile": {"primary": "LIGHT_YANG", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TSUP_DAO_SYMPHONY", "moveDefs": [{"id": "TSUP_SOV_02_M1", "nameTh": "มหาเคล็ด · มหาสังคีตประสานสี่สิบสามมรรคาส", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TSUP_SOV_03_EIGHT_BANNERS_IMPERIAL_WAR_MATRIX", "shortId": "TSUP_SOV_03", "nameTh": "มหาพยุหะธงแปดทิศพลิกกระดานศึก", "descTh": "มหาพยุหะธงแปดทิศพลิกกระดานศึก · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "SUPPORT_TECHNIQUE", "role": "HEAL_SUPPORT_TRAINING", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TSUP_WAR_MATRIX", "moveDefs": [{"id": "TSUP_SOV_03_M1", "nameTh": "มหาเคล็ด · มหาพยุหะธงแปดทิศพลิกกระดานศึก", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TSUP_SOV_04_BODHI_RAIN_TRANSMUTING_CALAMITY", "shortId": "TSUP_SOV_04", "nameTh": "มหาพิรุณโพธิ์แปรพิษภัยเป็นน้ำอมฤต", "descTh": "มหาพิรุณโพธิ์แปรพิษภัยเป็นน้ำอมฤต · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "SUPPORT_TECHNIQUE", "role": "HEAL_SUPPORT_TRAINING", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "WATER_ICE", "elementProfile": {"primary": "WATER_ICE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TSUP_CALAMITY_NECTAR", "moveDefs": [{"id": "TSUP_SOV_04_M1", "nameTh": "มหาเคล็ด · มหาพิรุณโพธิ์แปรพิษภัยเป็นน้ำอ", "arch": "heal", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TAUX_SOV_01_HEAVEN_PILL_NINE_CLOUDS_CANON", "shortId": "TAUX_SOV_01", "nameTh": "มหาตำราเมฆาโอสถเก้าสีหลอมฟ้า", "descTh": "มหาตำราเมฆาโอสถเก้าสีหลอมฟ้า · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "AUXILIARY_ART", "role": "PROFESSION_LIFESTYLE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "AKW_PILL_CLOUD_SEALER", "moveDefs": [{"id": "TAUX_SOV_01_M1", "nameTh": "มหาเคล็ด · มหาตำราเมฆาโอสถเก้าสีหลอมฟ้า", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TAUX_SOV_02_GOD_FORGE_MYRIAD_SPIRITS_HAMMER", "shortId": "TAUX_SOV_02", "nameTh": "มหาค้อนเทวะหลอมหมื่นจิตศาสตรา", "descTh": "มหาค้อนเทวะหลอมหมื่นจิตศาสตรา · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "AUXILIARY_ART", "role": "PROFESSION_LIFESTYLE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "AKW_SPIRIT_ANVIL_RESONANCE", "moveDefs": [{"id": "TAUX_SOV_02_M1", "nameTh": "มหาเคล็ด · มหาค้อนเทวะหลอมหมื่นจิตศาสตรา", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TAUX_SOV_03_EARTH_DRAGON_EIGHT_PEAKS_GENESIS", "shortId": "TAUX_SOV_03", "nameTh": "มหาวิชาพลิกชีพจรปฐพีเนรมิตแดนเซียน", "descTh": "มหาวิชาพลิกชีพจรปฐพีเนรมิตแดนเซียน · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "AUXILIARY_ART", "role": "PROFESSION_LIFESTYLE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "AKW_GARDEN_TOTEM_POLLINATION", "moveDefs": [{"id": "TAUX_SOV_03_M1", "nameTh": "มหาเคล็ด · มหาวิชาพลิกชีพจรปฐพีเนรมิตแดนเ", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TAUX_SOV_04_MYRIAD_BEASTS_SOVEREIGN_COVENANT", "shortId": "TAUX_SOV_04", "nameTh": "มหาพันธสัญญาจอมราชันย์สรรพสัตว์ร่วมใจ", "descTh": "มหาพันธสัญญาจอมราชันย์สรรพสัตว์ร่วมใจ · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "AUXILIARY_ART", "role": "PROFESSION_LIFESTYLE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "AKW_CARAVAN_CRYO_STASIS", "moveDefs": [{"id": "TAUX_SOV_04_M1", "nameTh": "มหาเคล็ด · มหาพันธสัญญาจอมราชันย์สรรพสัตว", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TAUX_SOV_05_AKASHIC_GRAND_MENTOR_TRANSMISSION", "shortId": "TAUX_SOV_05", "nameTh": "มหาศาสตร์หนึ่งคำชี้แนะเบิกเนตรพันศิษย์", "descTh": "มหาศาสตร์หนึ่งคำชี้แนะเบิกเนตรพันศิษย์ · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "AUXILIARY_ART", "role": "PROFESSION_LIFESTYLE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "AKW_CENSOR_TRUTH_MIRROR", "moveDefs": [{"id": "TAUX_SOV_05_M1", "nameTh": "มหาเคล็ด · มหาศาสตร์หนึ่งคำชี้แนะเบิกเนตร", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TFRB_SOV_01_USURPING_HEAVEN_MANDATE_DECREE", "shortId": "TFRB_SOV_01", "nameTh": "มหาโองการช่วงชิงอาณัติสวรรค์", "descTh": "มหาโองการช่วงชิงอาณัติสวรรค์ · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "FORBIDDEN_ART", "role": "TABOO_OVERDRIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "LIGHTNING", "elementProfile": {"primary": "LIGHTNING", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TFRB_STEAL_MANDATE", "moveDefs": [{"id": "TFRB_SOV_01_M1", "nameTh": "มหาเคล็ด · มหาโองการช่วงชิงอาณัติสวรรค์", "arch": "burst", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TFRB_SOV_02_NAMELESS_ERASURE_SAVING_ALL_BEINGS", "shortId": "TFRB_SOV_02", "nameTh": "มหาวิชาลบนามตนเองจากแผ่นดินแลกชีวิตหมู่สหาย", "descTh": "มหาวิชาลบนามตนเองจากแผ่นดินแลกชีวิตหมู่สหาย · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "FORBIDDEN_ART", "role": "TABOO_OVERDRIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TFRB_OBLIVION_SAVE", "moveDefs": [{"id": "TFRB_SOV_02_M1", "nameTh": "มหาเคล็ด · มหาวิชาลบนามตนเองจากแผ่นดินแลก", "arch": "support", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TFRB_SOV_03_NINE_ABYSSES_BLOOD_GOD_AVATAR", "shortId": "TFRB_SOV_03", "nameTh": "มหาวิชาจุติร่างอสูรโลหิตผ่าเก้าอเวจี", "descTh": "มหาวิชาจุติร่างอสูรโลหิตผ่าเก้าอเวจี · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "FORBIDDEN_ART", "role": "TABOO_OVERDRIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "BLOOD_DEMON", "elementProfile": {"primary": "BLOOD_DEMON", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TFRB_ASURA_AVATAR", "moveDefs": [{"id": "TFRB_SOV_03_M1", "nameTh": "มหาเคล็ด · มหาวิชาจุติร่างอสูรโลหิตผ่าเก้", "arch": "burst", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TFRB_SOV_04_SAMSARA_NIRVANA_REINCARNATION_LOTUS", "shortId": "TFRB_SOV_04", "nameTh": "มหาปณิธานเผาสังขารฝากเมล็ดพันธุ์ชาติหน้า", "descTh": "มหาปณิธานเผาสังขารฝากเมล็ดพันธุ์ชาติหน้า · คัมภีร์เหนือตำนานขั้นสูงสุดแห่งโลกเบื้องล่าง", "cat": "FORBIDDEN_ART", "role": "TABOO_OVERDRIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "carbonKeyword": "KW_TFRB_REINCARNATION_SEED", "moveDefs": [{"id": "TFRB_SOV_04_M1", "nameTh": "มหาเคล็ด · มหาปณิธานเผาสังขารฝากเมล็ดพันธ", "arch": "burst", "type": "m", "M": 2.85, "cd": 3, "qi": 32}], "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "ANCESTRAL_SHRINE_EPIPHANY"]}, {"id": "TPAS_SOV_01_SWORD_STAR_APEX_HEART", "shortId": "TPAS_SOV_01", "nameTh": "มหาดาราจักรหัวใจกระบี่เอกะสะบั้นดารา", "descTh": "มหาดาราจักรหัวใจกระบี่เอกะสะบั้นดารา · ดาวฤกษ์หลักติดตัวไม่กินช่องสวมใส่ (Zero-Slot Keystone +2 ดวงดาวดาราจักร)", "cat": "PASSIVE", "role": "PASSIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "zeroSlotPassive": true, "constellationStarBonus": 2, "passiveConstellation": "SWORD_STAR", "passive": {"atkPct": 0.18, "defPct": 0.18, "hpMaxPct": 0.22, "qiMaxPct": 0.22, "critAdd": 8}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "CONSTELLATION_EPIPHANY"]}, {"id": "TPAS_SOV_02_VAJRA_TIGER_UNDYING_MARROW", "shortId": "TPAS_SOV_02", "nameTh": "มหาดาราจักรพยัคฆ์วัชระค้ำพิภพ", "descTh": "มหาดาราจักรพยัคฆ์วัชระค้ำพิภพ · ดาวฤกษ์หลักติดตัวไม่กินช่องสวมใส่ (Zero-Slot Keystone +2 ดวงดาวดาราจักร)", "cat": "PASSIVE", "role": "PASSIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "EARTH_METAL", "elementProfile": {"primary": "EARTH_METAL", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "zeroSlotPassive": true, "constellationStarBonus": 2, "passiveConstellation": "VAJRA_TIGER", "passive": {"atkPct": 0.18, "defPct": 0.18, "hpMaxPct": 0.22, "qiMaxPct": 0.22, "critAdd": 8}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "CONSTELLATION_EPIPHANY"]}, {"id": "TPAS_SOV_03_JADE_SPRING_IMMORTAL_NECTAR_BODY", "shortId": "TPAS_SOV_03", "nameTh": "มหาดาราจักรน้ำพุหยกอมฤตนิรันดร์", "descTh": "มหาดาราจักรน้ำพุหยกอมฤตนิรันดร์ · ดาวฤกษ์หลักติดตัวไม่กินช่องสวมใส่ (Zero-Slot Keystone +2 ดวงดาวดาราจักร)", "cat": "PASSIVE", "role": "PASSIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "WOOD_LIFE", "elementProfile": {"primary": "WOOD_LIFE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "zeroSlotPassive": true, "constellationStarBonus": 2, "passiveConstellation": "JADE_SPRING", "passive": {"atkPct": 0.18, "defPct": 0.18, "hpMaxPct": 0.22, "qiMaxPct": 0.22, "critAdd": 8}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "CONSTELLATION_EPIPHANY"]}, {"id": "TPAS_SOV_04_SHADOW_MOON_PHANTOM_FATE", "shortId": "TPAS_SOV_04", "nameTh": "มหาดาราจักรเงาจันทราเร้นชะตา", "descTh": "มหาดาราจักรเงาจันทราเร้นชะตา · ดาวฤกษ์หลักติดตัวไม่กินช่องสวมใส่ (Zero-Slot Keystone +2 ดวงดาวดาราจักร)", "cat": "PASSIVE", "role": "PASSIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "YIN_SHADOW", "elementProfile": {"primary": "YIN_SHADOW", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "zeroSlotPassive": true, "constellationStarBonus": 2, "passiveConstellation": "SHADOW_MOON", "passive": {"atkPct": 0.18, "defPct": 0.18, "hpMaxPct": 0.22, "qiMaxPct": 0.22, "critAdd": 8}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "CONSTELLATION_EPIPHANY"]}, {"id": "TPAS_SOV_05_ASTRAL_MIND_OMNISCIENT_CALCULUS", "shortId": "TPAS_SOV_05", "nameTh": "มหาดาราจักรจิตดาราคำนวณหมื่นกัลป์", "descTh": "มหาดาราจักรจิตดาราคำนวณหมื่นกัลป์ · ดาวฤกษ์หลักติดตัวไม่กินช่องสวมใส่ (Zero-Slot Keystone +2 ดวงดาวดาราจักร)", "cat": "PASSIVE", "role": "PASSIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "ASTRAL_VOID", "elementProfile": {"primary": "ASTRAL_VOID", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "zeroSlotPassive": true, "constellationStarBonus": 2, "passiveConstellation": "ASTRAL_MIND", "passive": {"atkPct": 0.18, "defPct": 0.18, "hpMaxPct": 0.22, "qiMaxPct": 0.22, "critAdd": 8}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "CONSTELLATION_EPIPHANY"]}, {"id": "TPAS_SOV_06_GOLDEN_CRUCIBLE_HEAVEN_ARTISAN", "shortId": "TPAS_SOV_06", "nameTh": "มหาดาราจักรเตาทองคำสรรค์สร้างเทวะ", "descTh": "มหาดาราจักรเตาทองคำสรรค์สร้างเทวะ · ดาวฤกษ์หลักติดตัวไม่กินช่องสวมใส่ (Zero-Slot Keystone +2 ดวงดาวดาราจักร)", "cat": "PASSIVE", "role": "PASSIVE", "tier": 8, "transcendentRank": 8, "reqTier": 5, "path": "ANY", "sub": "NONE", "power": 180, "element": "FIRE", "elementProfile": {"primary": "FIRE", "affinityWeight": 1.0}, "grade": "Transcendent", "transcendent": true, "transcendentArt": true, "isSectHeritage": true, "zeroSlotPassive": true, "constellationStarBonus": 2, "passiveConstellation": "GOLDEN_CRUCIBLE", "passive": {"atkPct": 0.18, "defPct": 0.18, "hpMaxPct": 0.22, "qiMaxPct": 0.22, "critAdd": 8}, "obtainSources": ["SOVEREIGN_AWAKENING_GATE", "CONSTELLATION_EPIPHANY"]}];
+  JD.TECH.transcendentCodices = [].concat(JD.TECH.sovereignCombatArts, JD.TECH.sovereignMantras, JD.TECH.sovereignNonCombatArts);
+  JD.TECH.transcendentArts = JD.TECH.transcendentCodices;
+
+  JD.TECH.extraMantras = [].concat(JD.TECH.lowTierMantras, JD.TECH.midHighMantras, JD.TECH.sovereignMantras);
+  JD.TECH.expansionNonCombatArts = [].concat(JD.TECH.lowTierNonCombatArts, JD.TECH.midHighNonCombatOnly, JD.TECH.sovereignCombatArts, JD.TECH.sovereignNonCombatArts);
+})(typeof globalThis !== 'undefined' ? globalThis : this);

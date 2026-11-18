@@ -2253,8 +2253,19 @@
         life = Math.round(life * mr.spec.lifeBonusMult);
       }
     }
-    if (npc.ext && Number.isFinite(npc.ext.burnedLifespanYears) && npc.ext.burnedLifespanYears > 0) {
-      life = Math.max(18, life - Math.round(npc.ext.burnedLifespanYears));
+    if (npc.ext) {
+      if (Number.isFinite(npc.ext.burnedLifespanYears) && npc.ext.burnedLifespanYears > 0) {
+        life = Math.max(18, life - Math.round(npc.ext.burnedLifespanYears));
+      }
+      if (Number.isFinite(npc.ext.elixirLifespanBonus) && npc.ext.elixirLifespanBonus > 0) {
+        life += Math.round(npc.ext.elixirLifespanBonus);
+      }
+    }
+    if (c.mantra && c.mantra.charCodeAt(0) === 84) {
+      const mObj = TECH_BY_ID[c.mantra];
+      if (mObj && mObj.mantraBonus && Number.isFinite(mObj.mantraBonus.lifespanBonusYears)) {
+        life += Math.round(mObj.mantraBonus.lifespanBonusYears);
+      }
     }
     return life;
   };
@@ -2378,9 +2389,23 @@
     return val;
   };
 
-  const TECH_BY_ID = {}, MOVE_PARENT_BY_ID = {};
+  const TECH_BY_ID = {}, MOVE_PARENT_BY_ID = {}, MANTRA_BY_ID = {};
   JD.TECH.techniques.forEach(t => { TECH_BY_ID[t.id] = t; if (Array.isArray(t.moveDefs)) t.moveDefs.forEach(m => { MOVE_PARENT_BY_ID[m.id] = t; }); });
-  JD.TECH.mantras.forEach(t => { TECH_BY_ID[t.id] = t; if (Array.isArray(t.moveDefs)) t.moveDefs.forEach(m => { MOVE_PARENT_BY_ID[m.id] = t; }); });
+  JD.TECH.mantras.forEach(t => { TECH_BY_ID[t.id] = t; MANTRA_BY_ID[t.id] = t; if (Array.isArray(t.moveDefs)) t.moveDefs.forEach(m => { MOVE_PARENT_BY_ID[m.id] = t; }); });
+  (JD.TECH.extraMantras || []).forEach(t => {
+    if (!t || !t.id) return;
+    TECH_BY_ID[t.id] = t;
+    MANTRA_BY_ID[t.id] = t;
+    if (t.shortId) { TECH_BY_ID[t.shortId] = t; MANTRA_BY_ID[t.shortId] = t; }
+  });
+  (JD.TECH.expansionNonCombatArts || []).forEach(t => {
+    if (!t || !t.id) return;
+    TECH_BY_ID[t.id] = t;
+    if (t.shortId) TECH_BY_ID[t.shortId] = t;
+    if (Array.isArray(t.moveDefs)) t.moveDefs.forEach(m => { if (m && m.id) MOVE_PARENT_BY_ID[m.id] = t; });
+  });
+  CULT.techById = TECH_BY_ID;
+  CULT.mantraById = MANTRA_BY_ID;
   CULT.tech = id => TECH_BY_ID[id] || MOVE_PARENT_BY_ID[id];
   CULT.registerDynamicTech = t => {
     if (!t || !t.id) return null;
@@ -5205,7 +5230,7 @@
         const t = TECH_BY_ID[tid];
         if (!t) continue;
         const cId = t.passiveConstellation || ((t.cat === 'PASSIVE' || t.cat === 'INNATE_SUBPATH' || t.cat === 'PASSIVE_GRAND_DAO' || t.cat === 'INNATE_GRAND_DAO' || t.innateOnly || /^INNATE_|^ART_C117_INNATE_/.test(tid)) ? this.classifyPassiveTech(t) : null);
-        if (cId && counts[cId] != null) counts[cId]++;
+        if (cId && counts[cId] != null) counts[cId] += (t.zeroSlotPassive && t.constellationStarBonus) ? t.constellationStarBonus : 1;
       }
 
       // Choose dominant or user-focused constellation
@@ -5228,6 +5253,7 @@
         spec,
         setTier,
         matchedPassivesCount: matchedCount,
+        totalStars: matchedCount,
         countsByConstellation: counts,
         atkBonusPct: +((spec.atkBonusPerTier || 0.04) * setTier).toFixed(3),
         dmgRedPct: +((spec.dmgRedPerTier || 0.03) * setTier).toFixed(3),
@@ -14062,4 +14088,251 @@
       return r;
     };
   };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_CULTIVATION_RUNTIME_V260 === */
+(function initCarbonCultivationHooks(g) {
+  const CULT = g.CULT, JD = g.JD, HC = g.HC, U = g.U;
+  if (!CULT || !JD) return;
+
+  // 1. Ensure all extraMantras & expansionNonCombatArts are indexed and enriched across the 5 Non-Combat Pillars
+  const extraM = JD.TECH.extraMantras || [];
+  const extraNC = JD.TECH.expansionNonCombatArts || [];
+  CULT.allMantras = () => (JD.TECH.mantras || []).concat(extraM);
+  CULT.allTechniques = () => (JD.TECH.techniques || []).concat(extraNC);
+
+  // Enrich Qinggong, Defensive, Support, Forbidden, and Passive Constellation metadata on expansionNonCombatArts
+  if (CULT.QINGGONG_SYSTEM && typeof CULT.QINGGONG_SYSTEM.mapTechToQinggongMode === 'function') {
+    extraNC.forEach(t => {
+      if (!t || (t.cat !== 'LIGHTNESS_ART' && t.cat !== 'MOVEMENT_TECHNIQUE')) return;
+      const mId = t.qinggongMode || CULT.QINGGONG_SYSTEM.mapTechToQinggongMode(t);
+      if (mId && CULT.QINGGONG_SYSTEM.MODES[mId]) {
+        t.qinggongMode = mId;
+        t.qinggongSpec = CULT.QINGGONG_SYSTEM.MODES[mId];
+      }
+    });
+  }
+  if (CULT.DEFENSIVE_SYSTEM && typeof CULT.DEFENSIVE_SYSTEM.classifyDefensiveTech === 'function') {
+    extraNC.forEach(t => {
+      if (!t || t.cat !== 'DEFENSIVE_TECHNIQUE') return;
+      const aId = t.defensiveArchetype || CULT.DEFENSIVE_SYSTEM.classifyDefensiveTech(t);
+      if (aId && CULT.DEFENSIVE_SYSTEM.ARCHETYPES[aId]) {
+        t.defensiveArchetype = aId;
+        t.defensiveSpec = CULT.DEFENSIVE_SYSTEM.ARCHETYPES[aId];
+      }
+    });
+  }
+  if (CULT.SUPPORT_SYSTEM && typeof CULT.SUPPORT_SYSTEM.classifySupportTech === 'function') {
+    extraNC.forEach(t => {
+      if (!t || (t.cat !== 'SUPPORT_TECHNIQUE' && t.cat !== 'AUXILIARY_ART')) return;
+      const aId = t.supportArchetype || CULT.SUPPORT_SYSTEM.classifySupportTech(t);
+      if (aId && CULT.SUPPORT_SYSTEM.ARCHETYPES[aId]) {
+        t.supportArchetype = aId;
+        t.supportSpec = CULT.SUPPORT_SYSTEM.ARCHETYPES[aId];
+      }
+    });
+  }
+  if (CULT.FORBIDDEN_SYSTEM && typeof CULT.FORBIDDEN_SYSTEM.classifyForbiddenTech === 'function') {
+    extraNC.forEach(t => {
+      if (!t || (t.cat !== 'FORBIDDEN_ART' && t.cat !== 'FORBIDDEN_TECHNIQUE')) return;
+      const aId = t.forbiddenArchetype || CULT.FORBIDDEN_SYSTEM.classifyForbiddenTech(t);
+      if (aId && CULT.FORBIDDEN_SYSTEM.ARCHETYPES[aId]) {
+        t.forbiddenArchetype = aId;
+        t.forbiddenSpec = CULT.FORBIDDEN_SYSTEM.ARCHETYPES[aId];
+      }
+    });
+  }
+  if (CULT.PASSIVE_RESONANCE) {
+    CULT.PASSIVE_CONSTELLATION_SYSTEM = CULT.PASSIVE_RESONANCE;
+    extraNC.forEach(t => {
+      if (!t || t.cat !== 'PASSIVE') return;
+      const cId = CULT.PASSIVE_RESONANCE.classifyPassiveTech(t);
+      if (cId && CULT.PASSIVE_RESONANCE.CONSTELLATIONS[cId]) {
+        t.passiveConstellation = cId;
+        t.constellationSpec = CULT.PASSIVE_RESONANCE.CONSTELLATIONS[cId];
+      }
+    });
+
+  }
+
+  // 2. Expose CULT.mantraPoolWithExtras(path) while keeping default CULT.mantraPool(path) deterministic for legacy seed trajectories
+  CULT.mantraPoolWithExtras = path => {
+    const base = CULT.mantraPool(path).slice();
+    const seen = new Set(base.map(m => m.id));
+    for (const m of extraM) {
+      if (!m || seen.has(m.id)) continue;
+      if (m.path === path || m.path === 'ANY') {
+        seen.add(m.id);
+        base.push({
+          id: m.id,
+          nameTh: m.nameTh,
+          path: m.path,
+          tier: m.tier || 1,
+          power: m.power || 20,
+          element: m.element || 'NEUTRAL',
+          elementProfile: m.elementProfile,
+          legendary: !!(m.legendary || m.transcendent),
+          transcendent: !!m.transcendent
+        });
+      }
+    }
+    return base;
+  };
+
+  // 3. Protect Transcendent arts & zero-slot passives from active-slot pruning
+  const _origRetention = CULT.techRetentionScore;
+  CULT.techRetentionScore = (npc, tOrId) => {
+    const t = typeof tOrId === 'string' ? CULT.tech(tOrId) : tOrId;
+    if (t && (t.transcendent || t.transcendentArt || t.zeroSlotPassive)) return 1e9;
+    return _origRetention(npc, tOrId);
+  };
+
+  // 4. 5-Channel High-Frequency Low-Tier Non-Combat Distribution Engine (NONCMB_LOW_01A-01D)
+  CULT.LOW_TIER_DISTRIBUTION = {
+    CHANNELS: Object.freeze([
+      'STARTER_SECT_LIBRARY',
+      'RECRUIT_MUNDANE_BACKGROUND',
+      'PEDDLER_CHEAP_STALL',
+      'DAILY_CHORE_EPIPHANY',
+      'SENIOR_JUNIOR_HAND_ME_DOWN'
+    ]),
+    seedStarterSectLibrary(W, count = 7) {
+      if (!W || !W.sect) return [];
+      // Deterministic isolated RNG (0 calls to W.rng!)
+      const rng = new U.RNG(String(W.seed || 'seed') + ':low_lib');
+      const pool = (JD.TECH.lowTierArts || []).filter(t => t && (t.tier || 1) <= 2);
+      if (!pool.length) return [];
+      const picked = [];
+      const used = new Set();
+      const target = Math.max(6, Math.min(8, Number(count) || 7));
+      for (let i = 0; i < pool.length * 2 && picked.length < target; i++) {
+        const cand = pool[Math.floor(rng.next() * pool.length)];
+        if (cand && !used.has(cand.id)) {
+          used.add(cand.id);
+          picked.push(cand.id);
+        }
+      }
+      W.sect.lowTierLibrary = picked.slice();
+      return picked;
+    },
+    grantRecruitMundaneArt(W, npc) {
+      if (!npc || !npc.cult) return null;
+      const rng = new U.RNG(String((W && W.seed) || 'seed') + ':recruit_low:' + String(npc.id));
+      const pool = (JD.TECH.lowTierArts || []).filter(t => t && (t.tier || 1) === 1);
+      if (!pool.length) return null;
+      const pick = pool[Math.floor(rng.next() * pool.length)];
+      if (!pick) return null;
+      if (pick.cat === 'QI_MANTRA') {
+        npc.cult.unlockedMantras = npc.cult.unlockedMantras || [];
+        if (!npc.cult.unlockedMantras.includes(pick.id)) npc.cult.unlockedMantras.push(pick.id);
+      } else {
+        npc.cult.techs = npc.cult.techs || [];
+        if (!npc.cult.techs.includes(pick.id)) npc.cult.techs.push(pick.id);
+      }
+      npc.mundaneOriginArtId = pick.id;
+      return pick;
+    },
+    generatePeddlerLowStock(W, day) {
+      const rng = new U.RNG(String((W && W.seed) || 'seed') + ':peddler_low:' + String(day || (W && W.day) || 1));
+      const pool = JD.TECH.lowTierArts || [];
+      const stock = [];
+      for (let i = 0; i < 4 && pool.length > 0; i++) {
+        const it = pool[Math.floor(rng.next() * pool.length)];
+        if (it && !stock.some(x => x.id === it.id)) {
+          stock.push({ id: it.id, nameTh: it.nameTh, tier: it.tier || 1, priceStones: (it.tier || 1) * 18 });
+        }
+      }
+      return stock;
+    },
+    tryChoreEpiphany(W, npc, choreKind) {
+      if (!npc || !npc.cult) return null;
+      const pool = (JD.TECH.lowTierNonCombatArts || []).filter(t => t && (t.cat === 'AUXILIARY_ART' || t.cat === 'PASSIVE' || t.cat === 'LIGHTNESS_ART') && !npc.cult.techs.includes(t.id));
+      if (!pool.length) return null;
+      const idx = Math.abs(U.hashStr(String(npc.id) + ':' + String(choreKind || 'chore') + ':' + String((W && W.day) || 1))) % pool.length;
+      const art = pool[idx];
+      if (art && !npc.cult.techs.includes(art.id)) {
+        npc.cult.techs.push(art.id);
+        return art;
+      }
+      return null;
+    },
+    transmitSeniorToJunior(W, senior, junior) {
+      if (!senior || !junior || !senior.cult || !junior.cult) return null;
+      const shared = (senior.cult.techs || []).find(id => {
+        const t = CULT.tech(id);
+        return t && t.isLowTierFolkArt && !junior.cult.techs.includes(id);
+      });
+      const targetId = shared || ((JD.TECH.lowTierNonCombatArts && JD.TECH.lowTierNonCombatArts[0]) ? JD.TECH.lowTierNonCombatArts[0].id : null);
+      if (!targetId) return null;
+      if (!junior.cult.techs.includes(targetId)) junior.cult.techs.push(targetId);
+      junior.cult.tm = junior.cult.tm || {};
+      junior.cult.tm[targetId] = Math.max(junior.cult.tm[targetId] || 0, 25);
+      return CULT.tech(targetId);
+    }
+  };
+
+  // 5. Three Non-Scroll Sovereign Awakening Gates (TRANSCENDENT_TECH_01A-02D)
+  CULT.SOVEREIGN_AWAKENING_GATES = {
+    GATES: Object.freeze({
+      GATE_TRIBULATION_SURVIVAL: 'บรรลุผ่านการรอดชีวิตจากทัณฑ์สวรรค์หรือศึกเฉียดตาย (HP < 15%)',
+      GATE_ANCESTRAL_SHRINE_RESONANCE: 'บรรลุผ่านการสั่นพ้องป้ายวิญญาณบูรพาจารย์รุ่นที่ 1–6 ณ ศาลบรรพชน',
+      GATE_APEX_NEMESIS_DUEL: 'บรรลุผ่านการโค่นศัตรูคู่อาฆาตระดับสูงหรือฝึกฝนวิชาถึงขั้นสมบูรณ์ (Mastery 100)'
+    }),
+    checkSovereignCombatAwakening(W, npc, gateId, opts) {
+      opts = opts || {};
+      if (!npc || !npc.cult) return { ok: false, reason: 'no-cult' };
+      const allSov = JD.TECH.transcendentCodices || [];
+      const preferredId = opts.techId && CULT.tech(opts.techId) ? CULT.tech(opts.techId).id : null;
+      let target = preferredId ? CULT.tech(preferredId) : allSov.find(t => t && (!t.awakeningGate || t.awakeningGate === gateId) && !npc.cult.techs.includes(t.id) && !(npc.cult.unlockedMantras || []).includes(t.id));
+      if (!target) target = allSov[0];
+      if (!target) return { ok: false, reason: 'no-target' };
+      if (target.cat === 'QI_MANTRA') {
+        npc.cult.unlockedMantras = npc.cult.unlockedMantras || [];
+        if (!npc.cult.unlockedMantras.includes(target.id)) npc.cult.unlockedMantras.push(target.id);
+        npc.cult.mantra = target.id;
+      } else {
+        npc.cult.techs = npc.cult.techs || [];
+        if (!npc.cult.techs.includes(target.id)) npc.cult.techs.push(target.id);
+        npc.cult.tm = npc.cult.tm || {};
+        npc.cult.tm[target.id] = Math.max(npc.cult.tm[target.id] || 0, opts.initialMastery || 60);
+      }
+      npc.awakenedSovereignArts = npc.awakenedSovereignArts || [];
+      if (!npc.awakenedSovereignArts.includes(target.id)) npc.awakenedSovereignArts.push(target.id);
+      if (W && typeof W.log === 'function' && !opts.quiet) {
+        W.log('cultivation', '✦ ' + (HC ? HC.fullName(npc) : npc.id) + ' ตื่นรู้คัมภีร์เหนือตำนาน「' + target.nameTh + '」ผ่าน' + (this.GATES[gateId] || gateId), [npc.id]);
+      }
+      return { ok: true, tech: target, techId: target.id, gateId };
+    }
+  };
+  CULT.checkSovereignCombatAwakening = (W, npc, gateId, opts) => CULT.SOVEREIGN_AWAKENING_GATES.checkSovereignCombatAwakening(W, npc, gateId, opts);
+
+  // 6. Wire CULT.lifespan, CULT.rate, CULT.breakthroughChance & MARTIAL.canActivateMantra
+
+
+  const _origRateCarbon = CULT.rate;
+  CULT.rate = (npc, env, W) => {
+    let r = _origRateCarbon(npc, env);
+    if (W && W.sect && W.sect.pillCloudBlessingUntil > 0 && (W.t || 0) < W.sect.pillCloudBlessingUntil) {
+      r *= (W.sect.pillCloudCultMult || 1.28);
+    }
+    return r;
+  };
+
+  const _origBtChanceCarbon = CULT.breakthroughChance;
+  CULT.breakthroughChance = (npc, prep) => {
+    let p = _origBtChanceCarbon(npc, prep);
+    if (npc && npc.equip && g.SECT && g.SECT.evaluateTranscendentPantheonResonance) {
+      const eq = npc.equip;
+      const hasTrans = (eq.WEAPON && eq.WEAPON.transcendent) || (eq.ARMOR && eq.ARMOR.transcendent) || (eq.ACCESSORY && eq.ACCESSORY.transcendent);
+      if (hasTrans) {
+        const w = (prep && prep.W) || (g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || null;
+        const pan = g.SECT.evaluateTranscendentPantheonResonance(w, npc);
+        if (pan && pan.breakthroughBonus > 0) {
+          p = Math.min(0.96, p + pan.breakthroughBonus);
+        }
+      }
+    }
+    return p;
+  };
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

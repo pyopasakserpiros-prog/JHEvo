@@ -86,7 +86,7 @@
           s.leaderNameTh=f.leaderNameTh;
           s.specialtyMatIds=Array.isArray(f.specialtyMatIds)?f.specialtyMatIds.slice():[];
         } else {
-          s.leaderNameTh=(s.figures&&s.figures.master&&s.figures.master.fullNameTh)||s.leaderNameTh||f.leaderNameTh;
+          s.leaderNameTh=(s.figures&&s.figures.master&&(s.figures.master.titleAndNameTh||s.figures.master.fullNameTh))||s.leaderNameTh||f.leaderNameTh;
           const mergedMats=(Array.isArray(s.specialtyMatIds)?s.specialtyMatIds:[]).concat(Array.isArray(f.specialtyMatIds)?f.specialtyMatIds:[]);
           s.specialtyMatIds=Array.from(new Set(mergedMats));
         }

@@ -27,3 +27,13 @@ The user does not require older save compatibility, but saves produced by the re
 Implement in canonical source/data, update the standalone build, add relevant regression coverage, run appropriate validation, and report exact commands/results and limitations. Update project status, affected skills, reports, registries, and the next-patch handoff. A PDF's verification claims are not evidence for this branch. Do not force-push; inspect the remote tip and preserve newer work.
 
 Historical prompts remain available for context, but only the active assignment above authorizes work in this handoff.
+
+## Latest Completed Assignment: Carbon Compendia Integration (`JS2-v2.6.0-CARBON-COMPENDIA`)
+
+- **Disposition Ledger**: `docs/handovers/CARBON_31_PDF_DISPOSITION_LEDGER.md` (All 31 PDFs from commits `881fecf` and `6670b49` audited and integrated).
+- **Patch Report**: `PATCH_REPORTS/CARBON_COMPENDIA_JS2_V2_6_0.md` and `GAME_SOURCE/PATCH_REPORTS/CARBON_COMPENDIA_JS2_V2_6_0.md`.
+- **Master Regression Suite**: `GAME_SOURCE/test/carbon_compendia_master_suite.js` (`184 / 184` suites passing in `run_parallel_tests.js`, `0 errors / 0 warnings` in `validate_data_schema.js`, `155:2f9c9dd7` in `core_lock.js`).
+## Full Release Audit & Human Behavior Review (`185 / 185 PASS`)
+- **Audit Report**: `PATCH_REPORTS/FULL_RELEASE_AUDIT_AND_HUMAN_BEHAVIOR_REVIEW_V2_6_0.md` and `docs/handovers/FULL_RELEASE_AUDIT_AND_HUMAN_BEHAVIOR_REVIEW_V2_6_0.md`.
+- **Release Audit Suite**: `GAME_SOURCE/test/full_release_audit_and_behavior_suite.js` (`185 / 185` suites passing in `run_parallel_tests.js`, `0` failures, `263` JS files syntax-checked).
+- **Fixed Defects (`REL-DEF-01`..`REL-DEF-12`)**: Wired `CULT.lifespan` elixir/mantra bonuses, `CULT.rate` 7-day Pill-Cloud (`1.28×`), `CULT.breakthroughChance` Pantheon Convergence (`0.75×` soft-cap past `+55%`), `MARTIAL.canActivateMantra` unlocked extra/sovereign mantras, `SECT.EDITOR.catalog` & `spawnItem` Transcendent items/pills, `COMBAT.strike` & `COMBAT.tick` automatic Transcendent Armor/Weapon/Cut-In/Dao-Scar hooks, `AI.kill` Pill-Relic crystallization, `SECT.electSuccessor` Regalia succession, `SECT.spawnCompanionOffspring` bloodline inheritance, `SIM.serialize` mid-combat `_lastStepTick` persistence, and `CONTENT.ensure` external sect leader epithet preservation.

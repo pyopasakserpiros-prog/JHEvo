@@ -9824,3 +9824,89 @@
     if (sig && pMap[pid]) sig.nameTh = pMap[pid];
   }
 })();
+
+/* === CARBON_COMPENDIA_RENDER_TRANSCENDENT_VFX_V260 === */
+;(function initCarbonRenderTranscendentVfx() {
+  const g = typeof globalThis !== 'undefined' ? globalThis : window;
+  const R = g.Render, JD = g.JD;
+  if (!R) return;
+
+  // 4-Phase (ignition, manifestation, impact, lingering) 92-118px Transcendent VFX Catalog
+  R.TRANSCENDENT_VFX_SCENES = Object.freeze({
+    REGALIA_STAGE_0_VEIL: { id: 'REGALIA_STAGE_0_VEIL', radiusPx: 92, primary: '#9da7b3', secondary: '#dfe6ee', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    REGALIA_SOVEREIGN_APEX: { id: 'REGALIA_SOVEREIGN_APEX', radiusPx: 112, primary: '#ffd740', secondary: '#ff9ef5', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    LOOM_OF_SCARS_CHRYSALIS: { id: 'LOOM_OF_SCARS_CHRYSALIS', radiusPx: 104, primary: '#ff4d6d', secondary: '#ffd740', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    OUROBOROS_SUNDIAL_REWIND: { id: 'OUROBOROS_SUNDIAL_REWIND', radiusPx: 106, primary: '#83f5e2', secondary: '#ffd740', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    MYRIAD_COFFIN_APOCALYPSE: { id: 'MYRIAD_COFFIN_APOCALYPSE', radiusPx: 116, primary: '#ffd740', secondary: '#83f5e2', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    TCMB_SOV_01_NAMELESS_ZERO_RETURN: { id: 'TCMB_SOV_01_NAMELESS_ZERO_RETURN', radiusPx: 114, primary: '#9d4edd', secondary: '#83f5e2', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    TCMB_SOV_02_NINE_HEAVENS_SHATTERING_FIST: { id: 'TCMB_SOV_02_NINE_HEAVENS_SHATTERING_FIST', radiusPx: 116, primary: '#ffd166', secondary: '#ff5e36', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    TCMB_SOV_03_MYRIAD_THREADS_CAUSAL_DANCE: { id: 'TCMB_SOV_03_MYRIAD_THREADS_CAUSAL_DANCE', radiusPx: 112, primary: '#c77dff', secondary: '#83f5e2', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    TCMB_SOV_04_PHANTOM_SEVEN_BLINKS_ECLIPSE: { id: 'TCMB_SOV_04_PHANTOM_SEVEN_BLINKS_ECLIPSE', radiusPx: 114, primary: '#7209b7', secondary: '#ffffff', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    TCMB_SOV_05_HARMONIC_MERCY_WRATH_SEAL: { id: 'TCMB_SOV_05_HARMONIC_MERCY_WRATH_SEAL', radiusPx: 115, primary: '#ffd740', secondary: '#38d39f', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    TCMB_SOV_06_PRIMORDIAL_FOUR_ELEMENTS_CATACLYSM: { id: 'TCMB_SOV_06_PRIMORDIAL_FOUR_ELEMENTS_CATACLYSM', radiusPx: 118, primary: '#ff5e36', secondary: '#38b6ff', phases: ['ignition', 'manifestation', 'impact', 'lingering'] },
+    FORGE_TRIBULATION_QUENCH: { id: 'FORGE_TRIBULATION_QUENCH', radiusPx: 110, primary: '#ffd740', secondary: '#b565ff', phases: ['ignition', 'manifestation', 'impact', 'lingering'] }
+  });
+
+  R.drawTranscendentVfxScene = (ctx, sceneKey, x, y, progress = 0.5, opts) => {
+    if (!ctx) return false;
+    const sc = R.TRANSCENDENT_VFX_SCENES[sceneKey] || R.TRANSCENDENT_VFX_SCENES.REGALIA_SOVEREIGN_APEX;
+    const p = Math.max(0, Math.min(1, Number(progress) || 0.5));
+    const phaseIdx = p < 0.2 ? 0 : (p < 0.55 ? 1 : (p < 0.85 ? 2 : 3));
+    const rad = sc.radiusPx * (0.45 + 0.55 * Math.sin(p * Math.PI));
+    ctx.save();
+    ctx.strokeStyle = sc.primary;
+    ctx.fillStyle = sc.secondary;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, rad * 0.62, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    return { rendered: true, sceneId: sc.id, phase: sc.phases[phaseIdx], radiusPx: sc.radiusPx };
+  };
+
+  R.drawTranscendentRegaliaVisual = (ctx, x, y, regalia, frameTick = 0) => {
+    if (!ctx || !regalia) return false;
+    const stg = Math.max(0, Math.min(5, Number(regalia.awakeningStage) || 0));
+    const rad = 92 + stg * 4;
+    ctx.save();
+    ctx.strokeStyle = stg === 0 ? '#9da7b3' : '#ffd740';
+    ctx.lineWidth = 1.8 + stg * 0.3;
+    ctx.beginPath();
+    ctx.arc(x, y, rad * 0.25, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    return { rendered: true, stage: stg, radiusPx: rad };
+  };
+
+  R.drawBattlefieldDaoScars = (ctx, f, cam, frameTick = 0) => {
+    if (!ctx || !f || !Array.isArray(f.daoScars) || !f.daoScars.length) return 0;
+    let drawn = 0;
+    ctx.save();
+    for (const sc of f.daoScars) {
+      if (!sc) continue;
+      const sx = sc.x || 180, sy = sc.y || 140;
+      ctx.strokeStyle = '#ff9ef5';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(sx, sy, (sc.radius || 4.5) * 8, 0, Math.PI * 2);
+      ctx.stroke();
+      drawn++;
+    }
+    ctx.restore();
+    return drawn;
+  };
+
+  R.drawTranscendentCutInBanner = (ctx, cutInState, frameTick = 0) => {
+    if (!ctx || !cutInState) return false;
+    ctx.save();
+    ctx.fillStyle = 'rgba(36, 0, 70, 0.85)';
+    ctx.fillRect(20, 20, 280, 36);
+    ctx.strokeStyle = '#ffd740';
+    ctx.strokeRect(20, 20, 280, 36);
+    ctx.restore();
+    return true;
+  };
+})();

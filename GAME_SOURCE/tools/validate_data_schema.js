@@ -309,7 +309,20 @@ for (const mt of mantrasList) {
   check(mt && typeof mt.id === 'string', `Mantra missing id`);
   check(mt.nameTh && typeof mt.nameTh === 'string' && !/[\u4e00-\u9fff]/.test(mt.nameTh), `Mantra ${mt.id} missing or unlocalized nameTh: ${mt.nameTh}`);
 }
-console.log(`  ✓ Audited ${techniques.length} martial techniques and ${mantrasList.length} mantras (zero unknown archetypes, statuses, buffs, or composable keywords)`);
+const extraMantras = Array.isArray(JD.TECH?.extraMantras) ? JD.TECH.extraMantras : [];
+const expNonCombat = Array.isArray(JD.TECH?.expansionNonCombatArts) ? JD.TECH.expansionNonCombatArts : [];
+for (const em of extraMantras) {
+  check(em && typeof em.id === 'string' && typeof em.nameTh === 'string', `Extra mantra missing id/nameTh`);
+  check(!!(CULT && CULT.tech && CULT.tech(em.id)), `Extra mantra ${em.id} not indexed in CULT.tech`);
+}
+for (const enc of expNonCombat) {
+  check(enc && typeof enc.id === 'string' && typeof enc.nameTh === 'string', `Expansion art missing id/nameTh`);
+  check(!!(CULT && CULT.tech && CULT.tech(enc.id)), `Expansion art ${enc.id} not indexed in CULT.tech`);
+}
+for (const p of (JD.CORE?.patriarchPreHistoryTemplates || [])) {
+  check(!/โลกเบื้องบน|สวรรค์ชั้นบน|Upper World/i.test(JSON.stringify(p)), `Pre-history plaque ${p.id} leaks Upper-World lore`);
+}
+console.log(`  ✓ Audited ${techniques.length} martial techniques, ${mantrasList.length} base mantras, ${extraMantras.length} extra mantras & ${expNonCombat.length} Carbon non-combat/sovereign arts`);
 
 // 5. Audit Effects, Buffs, Parameters & Source Integrity
 console.log('\n▶ [5/6] Auditing Effects, Buffs, Parameters & Acquisition Sources...');

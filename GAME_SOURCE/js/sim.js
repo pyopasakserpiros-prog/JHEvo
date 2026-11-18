@@ -1205,7 +1205,7 @@
       map: { mapW: M.W, mapH: M.H, extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
     };
     const transientSet = SIM.TRANSIENT_CACHE_KEYS;
-    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil', '_elemAuras', '_poiseGauge', '_ccDrStacks', '_shadowClones', '_boneArmorHp', '_supHealIcd', '_cheatDeathSavesCount', '_salvaged']);
+    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil', '_elemAuras', '_poiseGauge', '_ccDrStacks', '_ccDrUntil', '_shadowClones', '_boneArmorHp', '_supHealIcd', '_cheatDeathSavesCount', '_cheatDeathFightId', '_salvaged', '_lastStepTick', '_lastSupportBlessAt', '_lastUrgentBnAt', '_lastAegisInterceptTick', '_lastDodgeOrParryAt', '_lastTacLogAt', '_roundStartFired', '_lastTabooCostTick', '_lastAttackElement', '_unitFirstStrikeDone', '_closedOnBy', '_gapClosedOn', '_traitCds', '_lastSovCutInTick', '_cocoonUsedInFight', '_cocoonStasisUntil', '_lastChronoRewindTick', '_pendingChronoEcho', '_tcmbFlow', '_woundLedgerPool', '_chronoBookmarks', '_castCounter', '_basePreTranscendent', '_lastSpiritBeastCrucibleGain']);
     return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && !PERSISTED_UNDERSCORE_KEYS.has(k))) ? undefined : v);
   };
   SIM.deserialize = str => {
@@ -1315,7 +1315,7 @@
       M.buildings.forEach(b => { b.inside = []; });
       W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
       W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta); W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); }; W.makeNpc = o => SIM.addNpc(W, o);
-      const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'workSteps', 'timePhase', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
+      const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'workSteps', 'timePhase', '_lastWildTickT', '_lastHourlyUpdateT', '_lastDailyUpdateDay', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
       if (s.celestialAlignment) W.celestialAlignment = s.celestialAlignment;
       if (s.celestialEvent) W.celestialEvent = s.celestialEvent;
       W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));
@@ -1653,6 +1653,8 @@
       W.workSteps = Number.isSafeInteger(rawSnap.workSteps) && rawSnap.workSteps >= 0 ? rawSnap.workSteps : Math.round((W.t || 0) * (SIM.DAY_FACTOR || 1.5));
       W.timePhase = Number.isInteger(rawSnap.timePhase) && rawSnap.timePhase >= 0 && rawSnap.timePhase < 3 ? rawSnap.timePhase : 0;
       W._lastDailyUpdateDay = W.day;
+      W._lastWildTickT = W.t;
+      if (W.t % 60 === 0 && (W.timePhase || 0) > 0) W._lastHourlyUpdateT = W.t;
       if (isLegacy240Map && W.map) {
         const dx = 62, dy = 42;
         const shiftEntity = u => {
@@ -1704,4 +1706,52 @@
     return W;
   };
 
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_SIM_HOOKS_V260 === */
+(function initCarbonSimHooks(g) {
+  const SIM = g.SIM, SECT = g.SECT, CULT = g.CULT, ECO = g.ECO;
+  if (!SIM) return;
+
+  const _origSimCreateCarbon = SIM.create;
+  SIM.create = (seed, opts) => {
+    const W = _origSimCreateCarbon(seed, opts);
+    if (W && W.sect) {
+      if (SECT && SECT.ensurePreHistoryLineage) SECT.ensurePreHistoryLineage(W);
+      if (SECT && SECT.PATRIARCH_REGALIA) SECT.PATRIARCH_REGALIA.ensure(W);
+      if (SECT && SECT.TRANSCENDENT_PANTHEON) SECT.TRANSCENDENT_PANTHEON.ensureWorldState(W);
+      if (CULT && CULT.LOW_TIER_DISTRIBUTION) CULT.LOW_TIER_DISTRIBUTION.seedStarterSectLibrary(W, 7);
+    }
+    return W;
+  };
+
+  const _origAddNpcCarbon = SIM.addNpc;
+  if (typeof _origAddNpcCarbon === 'function') {
+    SIM.addNpc = (W, opts) => {
+      const n = _origAddNpcCarbon(W, opts);
+      if (n && W && W.sect) {
+        if (!Number.isFinite(n.sectGeneration)) {
+          n.sectGeneration = (n.id === W.sect.masterId) ? (W.sect.masterGeneration || 7) : ((W.sect.masterGeneration || 7) + 1);
+        }
+        if (opts && opts.grantMundaneLowArt && CULT && CULT.LOW_TIER_DISTRIBUTION) {
+          CULT.LOW_TIER_DISTRIBUTION.grantRecruitMundaneArt(W, n);
+        }
+      }
+      return n;
+    };
+  }
+
+  const _origDeserializeCarbon = SIM.deserialize;
+  if (typeof _origDeserializeCarbon === 'function') {
+    SIM.deserialize = raw => {
+      const W = _origDeserializeCarbon(raw);
+      if (W && W.sect) {
+        if (SECT && SECT.ensurePreHistoryLineage) SECT.ensurePreHistoryLineage(W);
+        if (SECT && SECT.PATRIARCH_REGALIA) SECT.PATRIARCH_REGALIA.ensure(W);
+        if (SECT && SECT.TRANSCENDENT_PANTHEON) SECT.TRANSCENDENT_PANTHEON.ensureWorldState(W);
+        if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems(W);
+      }
+      return W;
+    };
+  }
 })(typeof globalThis !== 'undefined' ? globalThis : this);

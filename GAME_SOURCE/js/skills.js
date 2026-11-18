@@ -9065,3 +9065,66 @@
     }
   }
 })();
+
+/* === CARBON_COMPENDIA_SKILLS_AND_VERSES_V260 === */
+;(function initCarbonSkillsAndVerses() {
+  const g = typeof globalThis !== 'undefined' ? globalThis : window;
+  const SK = g.SK, JD = g.JD, CULT = g.CULT, HC = g.HC, U = g.U;
+  if (!SK || !JD) return;
+
+  // 1. Register Sovereign Statuses into SK.STATUS & SK.SOVEREIGN_STATUS_CATALOG
+  SK.SOVEREIGN_STATUS_CATALOG = {
+    sov_origin_sunder: { id: 'sov_origin_sunder', nameTh: 'สะบั้นปราณต้นกำเนิด', kind: 'debuff', dur: 12 },
+    sov_veil_blindspot: { id: 'sov_veil_blindspot', nameTh: 'เร้นจุดบอดสายตา', kind: 'buff', dur: 10 },
+    sov_lineage_aegis: { id: 'sov_lineage_aegis', nameTh: 'ปราการเจ็ดชั่วรุ่น', kind: 'buff', dur: 14 },
+    sov_cocoon_stasis: { id: 'sov_cocoon_stasis', nameTh: 'ดักแด้ทอชะตากำเนิดใหม่', kind: 'buff', dur: 4 },
+    sov_chrono_bookmark: { id: 'sov_chrono_bookmark', nameTh: 'ตราคั่นเวลากาลนิรันดร์', kind: 'buff', dur: 16 },
+    sov_coffin_suppressed: { id: 'sov_coffin_suppressed', nameTh: 'หีบหมื่นศาสตราสะกดข่ม', kind: 'debuff', dur: 10 },
+    sov_dao_scar_burn: { id: 'sov_dao_scar_burn', nameTh: 'รอยแผลเต๋ากัดกร่อน', kind: 'debuff', dur: 12 },
+    sov_fourth_verse_zenith: { id: 'sov_fourth_verse_zenith', nameTh: 'รู้แจ้งกระบวนท่าที่สี่ของตน', kind: 'buff', dur: 20 }
+  };
+  SK.STATUS = SK.STATUS || {};
+  for (const [k, v] of Object.entries(SK.SOVEREIGN_STATUS_CATALOG)) {
+    if (!SK.STATUS[k]) SK.STATUS[k] = v;
+  }
+
+  // 2. Index Sovereign Combat Techniques (TCMB_SOV_01..06)
+  SK.SOVEREIGN_COMBAT_TECHS = {};
+  (JD.TECH.sovereignCombatArts || []).forEach(t => {
+    if (!t || !t.id) return;
+    SK.SOVEREIGN_COMBAT_TECHS[t.id] = t;
+    if (t.shortId) SK.SOVEREIGN_COMBAT_TECHS[t.shortId] = t;
+  });
+
+  // 3. Deterministic Self-Authored 4th Verse Synthesizer (0 W.rng calls!)
+  SK.synthesizeFourthVerse = (W, npc, techOrId) => {
+    if (!npc) return null;
+    const t = typeof techOrId === 'string' ? ((CULT && CULT.tech && CULT.tech(techOrId)) || SK.SOVEREIGN_COMBAT_TECHS[techOrId]) : techOrId;
+    if (!t) return null;
+    npc.authoredSovereignVerses = npc.authoredSovereignVerses || {};
+    if (npc.authoredSovereignVerses[t.id]) return npc.authoredSovereignVerses[t.id];
+
+    const given = (npc.h && npc.h.name && npc.h.name.given) || 'ไร้ชื่อ';
+    const pathKey = (npc.cult && npc.cult.path) || 'XIAN';
+    const elem = t.element || 'ASTRAL_VOID';
+    const verse4 = {
+      verse: 4,
+      id: t.id + '_V4_' + String(npc.id || 'NPC'),
+      parentTechId: t.id,
+      authorNpcId: npc.id,
+      nameTh: 'บทที่ 4 (บัญญัติเอง) · ' + given + 'ผ่าวิถี' + t.nameTh.slice(0, 18),
+      arch: 'burst',
+      type: 'm',
+      M: 4.65,
+      cd: 5,
+      qi: 52,
+      element: elem,
+      path: pathKey,
+      isSelfAuthoredFourthVerse: true,
+      descTh: 'กระบวนท่าที่สี่ซึ่ง ' + (HC ? HC.fullName(npc) : given) + ' บัญญัติขึ้นเองหลังบรรลุความเข้าใจเต็มร้อย'
+    };
+    npc.authoredSovereignVerses[t.id] = verse4;
+    if (t.shortId) npc.authoredSovereignVerses[t.shortId] = verse4;
+    return verse4;
+  };
+})();

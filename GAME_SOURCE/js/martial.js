@@ -444,7 +444,7 @@ M.canActivateMantra=(n,mOrId)=>{
  const c=n.cult;
  const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):(c.stage||1);
  const reqT=m.reqTier||m.tier||1;
- if(reqT>effSt&&(c.path!=='GOD'||reqT>2))return false;
+ const isUnlocked=Array.isArray(c.unlockedMantras)&&c.unlockedMantras.includes(m.id);if(!m.transcendent&&!m.legendary&&!isUnlocked&&reqT>effSt&&(c.path!=='GOD'||reqT>2))return false;
  if(m.path&&m.path!=='ANY'&&m.path!==c.path&&(!Array.isArray(m.compatiblePaths)||!m.compatiblePaths.includes(c.path)))return false;
  return true;
 };

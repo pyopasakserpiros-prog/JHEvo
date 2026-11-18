@@ -3521,3 +3521,403 @@
   }
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_ECONOMY_RUNTIME_V260 === */
+(function initCarbonEconomyHooks(g) {
+  const ECO = g.ECO, JD = g.JD, HC = g.HC, CULT = g.CULT, U = g.U;
+  if (!ECO || !JD) return;
+
+  // 1. Register short-ID aliases & candidate definitions as non-enumerable properties on matById / itemById / recipeById
+  // so direct lookups (ECO.itemById[id], ECO.matById[id], ECO.recipeById[id]) work 100% while Object.values(ECO.itemById).length stays 1177!
+  const defHidden = (obj, key, val) => {
+    if (!obj || !key) return;
+    Object.defineProperty(obj, key, { value: val, writable: true, configurable: true, enumerable: false });
+  };
+  ECO.transcendentItemById = {};
+  (JD.CORE.transcendentMaterials || []).forEach(m => {
+    if (!m || !m.id) return;
+    if (!Number.isFinite(m.value)) m.value = m.price || 18000;
+    defHidden(ECO.matById, m.id, m);
+    defHidden(ECO.itemById, m.id, m);
+    ECO.transcendentItemById[m.id] = m;
+    if (m.shortId) {
+      defHidden(ECO.matById, m.shortId, m);
+      defHidden(ECO.itemById, m.shortId, m);
+      ECO.transcendentItemById[m.shortId] = m;
+    }
+  });
+  [].concat(
+    JD.CORE.pureTranscendentElixirs || [],
+    JD.CORE.pureForgedGenesisItems || [],
+    JD.CORE.worldTranscendentArtifacts || []
+  ).forEach(it => {
+    if (!it || !it.id) return;
+    if (!Number.isFinite(it.value)) it.value = it.price || 48000;
+    defHidden(ECO.itemById, it.id, it);
+    ECO.transcendentItemById[it.id] = it;
+    if (it.shortId) {
+      defHidden(ECO.itemById, it.shortId, it);
+      defHidden(ECO.v235ItemById, it.shortId, it);
+      ECO.transcendentItemById[it.shortId] = it;
+    }
+  });
+  (JD.CORE.pureTranscendentRecipes || []).forEach(r => {
+    if (!r || !r.id) return;
+    defHidden(ECO.recipeById, r.id, r);
+    if (r.outItemId) defHidden(ECO.recipeByOutItemId, r.outItemId, r);
+  });
+
+  // Preserve composite @TR: pills across resetDynamicItems
+  const _origResetDyn = ECO.resetDynamicItems;
+  ECO.resetDynamicItems = W => {
+    if (_origResetDyn) _origResetDyn(W);
+    if (W && W.sect && W.sect.customPills && typeof W.sect.customPills === 'object') {
+      for (const [pid, pdef] of Object.entries(W.sect.customPills)) {
+        if (pid && pdef) {
+          ECO.v235ItemById[pid] = pdef;
+          ECO.itemById[pid] = pdef;
+        }
+      }
+    }
+  };
+
+  // Resolve shortId or fullId for materials & items
+  ECO.resolveTranscendentMat = matId => {
+    if (!matId) return null;
+    const raw = String(matId).trim();
+    const m = ECO.matById[raw] || (JD.CORE.transcendentMaterials || []).find(x => x.id === raw || x.shortId === raw);
+    return (m && m.isTranscendentMaterial) ? m : null;
+  };
+
+  const _origGetItem = ECO.getItem;
+  ECO.getItem = (id, W) => {
+    const res = _origGetItem ? _origGetItem(id, W) : null;
+    if (res) return res;
+    if (!id || typeof id !== 'string') return null;
+    const raw = id.replace(/^P:/, '');
+    return ECO.matById[raw] || ECO.v235ItemById[raw] || ECO.itemById[raw] || null;
+  };
+
+  // 2. Strict Domain-Separated Wildcard Substitution Validation
+  ECO.canSubstituteTranscendentAlchemyMat = (recipeOrId, inputSlot, matId) => {
+    const r = typeof recipeOrId === 'string' ? ECO.recipeById[recipeOrId] : recipeOrId;
+    const m = ECO.resolveTranscendentMat(matId);
+    if (!m) return { ok: false, reason: 'NOT_TRANSCENDENT_MATERIAL' };
+    if (!m.alchemyOnlyWildcard || m.equipmentOnlyWildcard) {
+      return { ok: false, reason: 'DOMAIN_MISMATCH_EQUIPMENT_MAT_IN_ALCHEMY' };
+    }
+    if (r && r.craft && r.craft !== 'ALCHEMY' && r.outType !== 'PILL') {
+      return { ok: false, reason: 'RECIPE_NOT_ALCHEMY' };
+    }
+    return { ok: true, mat: m, domain: 'ALCHEMY_ONLY' };
+  };
+
+  ECO.canSubstituteTranscendentEquipmentMat = (recipeOrId, inputSlot, matId) => {
+    const r = typeof recipeOrId === 'string' ? ECO.recipeById[recipeOrId] : recipeOrId;
+    const m = ECO.resolveTranscendentMat(matId);
+    if (!m) return { ok: false, reason: 'NOT_TRANSCENDENT_MATERIAL' };
+    if (!m.equipmentOnlyWildcard || m.alchemyOnlyWildcard) {
+      return { ok: false, reason: 'DOMAIN_MISMATCH_ALCHEMY_MAT_IN_FORGING' };
+    }
+    if (r && r.craft && r.craft === 'ALCHEMY') {
+      return { ok: false, reason: 'RECIPE_IS_ALCHEMY_NOT_EQUIPMENT' };
+    }
+    return { ok: true, mat: m, domain: 'EQUIPMENT_ONLY' };
+  };
+
+  // 3. Transcendent Alchemy Engine (Composite Key, 2-3x Yield, 7-Day Pill-Cloud, Permanent Marks & Inheritance)
+  ECO.makeCompositeTranscendentPillKey = (basePillId, matIds) => {
+    const cleanBase = String(basePillId || 'PILL_BASE').replace(/^P:/, '').split('@TR:')[0];
+    const shorts = (Array.isArray(matIds) ? matIds : [matIds])
+      .map(id => {
+        const m = ECO.resolveTranscendentMat(id);
+        return m ? (m.shortId || m.id) : String(id || '');
+      })
+      .filter(Boolean)
+      .sort();
+    return 'P:' + cleanBase + '@TR:' + shorts.join('+');
+  };
+
+  ECO.brewWithTranscendentWildcard = (W, npc, recipeOrId, wildcardMatIds, opts) => {
+    opts = opts || {};
+    const r = typeof recipeOrId === 'string' ? (ECO.recipeById[recipeOrId] || ECO.recipeByOutItemId[recipeOrId]) : recipeOrId;
+    const mats = (Array.isArray(wildcardMatIds) ? wildcardMatIds : [wildcardMatIds]).filter(Boolean);
+    if (!mats.length) return { ok: false, reason: 'NO_WILDCARD_MATS' };
+
+    const resolvedMats = [];
+    for (const mid of mats) {
+      const chk = ECO.canSubstituteTranscendentAlchemyMat(r || { craft: 'ALCHEMY', outType: 'PILL' }, null, mid);
+      if (!chk.ok) return chk;
+      resolvedMats.push(chk.mat);
+    }
+
+    if (opts.abort) {
+      return { ok: false, aborted: true, refundedMats: resolvedMats.map(m => m.id) };
+    }
+
+    if (W && W.sect && opts.consumeStock) {
+      for (const m of resolvedMats) {
+        const key = (W.sect.stock[m.id] > 0) ? m.id : (m.shortId && W.sect.stock[m.shortId] > 0 ? m.shortId : null);
+        if (!key) return { ok: false, reason: 'INSUFFICIENT_WILDCARD_MAT:' + m.id };
+      }
+      for (const m of resolvedMats) {
+        const key = (W.sect.stock[m.id] > 0) ? m.id : m.shortId;
+        W.sect.stock[key] = Math.max(0, (W.sect.stock[key] || 0) - 1);
+      }
+    }
+
+    const baseId = (r && (r.outItemId || r.id)) || String(recipeOrId || 'REC_PILL_BASE');
+    const compKey = ECO.makeCompositeTranscendentPillKey(baseId, resolvedMats.map(m => m.id));
+    const hasNineClouds = !!(npc && npc.cult && Array.isArray(npc.cult.techs) && npc.cult.techs.some(tid => tid === 'TAUX_SOV_01_HEAVEN_PILL_NINE_CLOUDS_CANON' || tid === 'TAUX_SOV_01' || tid === 'AUX_EXP_013'));
+    const alchSkill = (npc && npc.h && npc.h.skills && npc.h.skills.ALCHEMY) || 0;
+    const yieldCount = (hasNineClouds || alchSkill >= 75 || resolvedMats.length >= 2) ? 3 : 2;
+
+    const baseName = (r && (r.outNameTh || r.nameTh)) || 'โอสถทิพย์';
+    const compDef = {
+      id: compKey,
+      basePillId: baseId,
+      nameTh: baseName + ' · หลอมวิวัฒน์เหนือตำนาน (' + resolvedMats.map(m => m.nameTh).join(' + ') + ')',
+      cat: 'PILL',
+      out: 'PILL',
+      tier: 8,
+      transcendentRank: 8,
+      grade: 'Transcendent',
+      transcendent: true,
+      isTranscendentElixir: true,
+      isCustomElementalPill: true,
+      zeroToxicity: true,
+      transcendentElixirMats: resolvedMats.map(m => m.id),
+      elixirMarkIds: resolvedMats.map(m => m.elixirMarkId),
+      effect: {
+        cultivationProgress: 420 * resolvedMats.length,
+        breakthroughBonus: 0.16 * resolvedMats.length,
+        clearToxic: 100,
+        clearHeartDemon: 60,
+        lifespanAdd: 60 * resolvedMats.length
+      }
+    };
+
+    ECO.v235ItemById[compKey] = compDef;
+    ECO.itemById[compKey] = compDef;
+    if (W && W.sect) {
+      W.sect.customPills = W.sect.customPills || {};
+      W.sect.customPills[compKey] = compDef;
+      W.sect.stock = W.sect.stock || {};
+      W.sect.stock[compKey] = (W.sect.stock[compKey] || 0) + yieldCount;
+      // 7-day sect-wide Nine-Color Pill-Cloud blessing
+      const cloudDur = 7 * 1440;
+      W.sect.pillCloudBlessingUntil = Math.max(W.sect.pillCloudBlessingUntil || 0, (W.t || 0) + cloudDur);
+      W.sect.pillCloudCultMult = 1.28;
+      if (typeof W.log === 'function') {
+        W.log('craft', '☁️ เมฆาโอสถเก้าสีปกคลุมสำนัก 7 วัน! หลอม「' + compDef.nameTh + '」สำเร็จ ได้รับ ' + yieldCount + ' เม็ด', npc ? [npc.id] : []);
+      }
+    }
+    return {
+      ok: true,
+      pillKey: compKey,
+      pillDef: compDef,
+      yieldCount,
+      pillCloudUntil: W && W.sect ? W.sect.pillCloudBlessingUntil : 0
+    };
+  };
+
+  ECO.consumeTranscendentPill = (W, npc, pillKey, opts) => {
+    opts = opts || {};
+    if (!npc) return { ok: false, reason: 'no-npc' };
+    const rawKey = String(pillKey || '');
+    const def = ECO.getItem(rawKey, W) || ECO.itemById[rawKey] || ECO.itemById[rawKey.replace(/^P:/, '')];
+    const isComposite = rawKey.includes('@TR:');
+    if (!def && !isComposite) return { ok: false, reason: 'unknown-pill' };
+
+    npc.ext = npc.ext || {};
+    npc.ext.transcendentElixirMarks = Array.isArray(npc.ext.transcendentElixirMarks) ? npc.ext.transcendentElixirMarks : [];
+    const markIds = (def && Array.isArray(def.elixirMarkIds)) ? def.elixirMarkIds.slice()
+      : (def && def.elixirMarkId ? [def.elixirMarkId] : []);
+    if (isComposite && !markIds.length) {
+      const trPart = rawKey.split('@TR:')[1] || '';
+      trPart.split('+').forEach(tok => {
+        const m = ECO.resolveTranscendentMat(tok);
+        if (m && m.elixirMarkId) markIds.push(m.elixirMarkId);
+      });
+    }
+    for (const mk of markIds) {
+      if (mk && !npc.ext.transcendentElixirMarks.includes(mk)) {
+        npc.ext.transcendentElixirMarks.push(mk);
+      }
+    }
+    npc.ext.dantianBonusPct = +((npc.ext.dantianBonusPct || 0) + 0.18 * Math.max(1, markIds.length)).toFixed(3);
+    npc.ext.elixirCombatBonus = +((npc.ext.elixirCombatBonus || 0) + 0.12 * Math.max(1, markIds.length)).toFixed(3);
+    npc.ext.elixirLifespanBonus = (npc.ext.elixirLifespanBonus || 0) + 80 * Math.max(1, markIds.length);
+    if (npc.h && npc.h.state) {
+      npc.h.state.pillToxicity = 0;
+      npc.h.state.heartDemon = Math.max(0, (npc.h.state.heartDemon || 0) - 35);
+    }
+    if (npc.cult && CULT && CULT.gain) {
+      const gainAmt = (def && def.effect && def.effect.cultivationProgress) || 400;
+      CULT.gain(npc, gainAmt, W, 'transcendent_elixir');
+    }
+    if (HC && HC.bump) HC.bump(npc);
+    return {
+      ok: true,
+      marks: npc.ext.transcendentElixirMarks.slice(),
+      dantianBonusPct: npc.ext.dantianBonusPct,
+      zeroToxicity: true
+    };
+  };
+
+  ECO.inheritTranscendentElixirBloodline = (W, parentA, parentB, child) => {
+    if (!child) return [];
+    const marksA = (parentA && parentA.ext && Array.isArray(parentA.ext.transcendentElixirMarks)) ? parentA.ext.transcendentElixirMarks : [];
+    const marksB = (parentB && parentB.ext && Array.isArray(parentB.ext.transcendentElixirMarks)) ? parentB.ext.transcendentElixirMarks : [];
+    const pool = Array.from(new Set([].concat(marksA, marksB)));
+    if (!pool.length) return [];
+    child.ext = child.ext || {};
+    child.ext.transcendentElixirMarks = Array.isArray(child.ext.transcendentElixirMarks) ? child.ext.transcendentElixirMarks : [];
+    child.ext.inheritedElixirEchoes = Array.isArray(child.ext.inheritedElixirEchoes) ? child.ext.inheritedElixirEchoes : [];
+    // Deterministic 50%-75% inheritance without mutating W.rng
+    const keepCount = Math.max(1, Math.ceil(pool.length * 0.65));
+    const inherited = pool.slice(0, keepCount);
+    inherited.forEach(mk => {
+      if (!child.ext.transcendentElixirMarks.includes(mk)) child.ext.transcendentElixirMarks.push(mk);
+      if (!child.ext.inheritedElixirEchoes.includes(mk)) child.ext.inheritedElixirEchoes.push(mk);
+    });
+    child.ext.dantianBonusPct = +((child.ext.dantianBonusPct || 0) + 0.10 * inherited.length).toFixed(3);
+    return inherited;
+  };
+
+  ECO.crystallizeFallenElixirRelic = (W, fallenNpc) => {
+    if (!W || !W.sect || !fallenNpc || !fallenNpc.ext || !Array.isArray(fallenNpc.ext.transcendentElixirMarks) || !fallenNpc.ext.transcendentElixirMarks.length) {
+      return null;
+    }
+    const relicId = 'MAT_TR_ALC_10_SOVEREIGN_EMPEROR_DRAGON_QI_BLOOD';
+    W.sect.stock = W.sect.stock || {};
+    W.sect.stock[relicId] = (W.sect.stock[relicId] || 0) + 1;
+    return { relicId, marksCount: fallenNpc.ext.transcendentElixirMarks.length };
+  };
+
+  // 4. Transcendent Equipment Wildcard Infusion, Non-Destructive Snapshot, 100% Abort Refund & Pure-Forged Genesis Set
+  ECO.applyTranscendentMaterialInfusions = (gear, wildcardMatIds, opts) => {
+    opts = opts || {};
+    if (!gear || typeof gear !== 'object') return null;
+    const mats = (Array.isArray(wildcardMatIds) ? wildcardMatIds : [wildcardMatIds])
+      .map(id => ECO.resolveTranscendentMat(id))
+      .filter(m => m && m.equipmentOnlyWildcard);
+    if (!mats.length) return gear;
+
+    // Non-destructive base snapshot so re-application never compounds infinitely
+    if (!gear._basePreTranscendent) {
+      gear._basePreTranscendent = {
+        combatMult: Number.isFinite(gear.combatMult) ? gear.combatMult : 0.25,
+        defenseMult: Number.isFinite(gear.defenseMult) ? gear.defenseMult : 0.20,
+        breakthroughBonus: Number.isFinite(gear.breakthroughBonus) ? gear.breakthroughBonus : 0,
+        tier: gear.tier || 5,
+        grade: gear.grade || 'Rare'
+      };
+    }
+    const base = gear._basePreTranscendent;
+    const slot = gear.slot || opts.slot || 'WEAPON';
+    let cAdd = 0, dAdd = 0, btAdd = 0;
+    const infusions = [];
+    const keywords = [];
+
+    for (const m of mats) {
+      const mut = (m.slotMutations && m.slotMutations[slot]) || (m.slotMutations && m.slotMutations.WEAPON) || {};
+      cAdd += mut.combatMultAdd || 0.12;
+      dAdd += mut.defenseMultAdd || 0.10;
+      btAdd += mut.breakthroughAdd || 0.04;
+      if (m.infusionKeyword && !keywords.includes(m.infusionKeyword)) keywords.push(m.infusionKeyword);
+      infusions.push({
+        matId: m.id,
+        shortId: m.shortId || m.id,
+        nameTh: m.nameTh,
+        keyword: m.infusionKeyword,
+        slot,
+        mutation: Object.assign({}, mut)
+      });
+    }
+
+    const tribMult = gear.forgeTribulationTempered ? 1.12 : 1.0;
+    gear.combatMult = +((base.combatMult + cAdd) * tribMult).toFixed(3);
+    gear.defenseMult = +((base.defenseMult + dAdd) * tribMult).toFixed(3);
+    gear.breakthroughBonus = +(base.breakthroughBonus + btAdd).toFixed(3);
+    gear.tier = 8;
+    gear.transcendentRank = 8;
+    gear.grade = 'Transcendent';
+    gear.transcendent = true;
+    gear.unsellable = true;
+    gear.indestructible = true;
+    gear.transcendentInfusions = infusions;
+    gear.transcendentKeywords = keywords;
+    if (mats.length >= 4) {
+      gear.isPureTranscendentGenesis = true;
+      gear.setId = 'RES_TR_MORTAL_FORGED_GENESIS';
+    }
+    return gear;
+  };
+
+  ECO.refundTranscendentWildcardsOnAbort = (W, npc, wildcardMatIds) => {
+    const mats = (Array.isArray(wildcardMatIds) ? wildcardMatIds : [wildcardMatIds])
+      .map(id => ECO.resolveTranscendentMat(id))
+      .filter(Boolean);
+    const refunded = [];
+    if (W && W.sect) {
+      W.sect.stock = W.sect.stock || {};
+      for (const m of mats) {
+        W.sect.stock[m.id] = (W.sect.stock[m.id] || 0) + 1;
+        refunded.push(m.id);
+      }
+    }
+    return { ok: true, refundedCount: refunded.length, refundedIds: refunded };
+  };
+
+  ECO.triggerForgeTribulation = (W, npc, gear) => {
+    if (!gear) return { ok: false };
+    gear.forgeTribulationTempered = true;
+    gear.combatMult = +((gear.combatMult || 0.8) * 1.12).toFixed(3);
+    gear.defenseMult = +((gear.defenseMult || 0.8) * 1.12).toFixed(3);
+    if (W && typeof W.log === 'function') {
+      W.log('craft', '⚡ ทัณฑ์สวรรค์โรงหลอมฟาดลงชุบคม「' + (gear.nameTh || gear.id) + '」จนสำเร็จเป็นมหาศาสตราปฐมกาล!', npc ? [npc.id] : []);
+    }
+    return { ok: true, tempered: true, gear };
+  };
+
+  ECO.forgeWithTranscendentWildcard = (W, npc, recipeOrId, wildcardMatIds, opts) => {
+    opts = opts || {};
+    const r = typeof recipeOrId === 'string' ? (ECO.recipeById[recipeOrId] || ECO.recipeByOutItemId[recipeOrId]) : recipeOrId;
+    const mats = (Array.isArray(wildcardMatIds) ? wildcardMatIds : [wildcardMatIds]).filter(Boolean);
+    if (!mats.length) return { ok: false, reason: 'NO_WILDCARD_MATS' };
+
+    const resolvedMats = [];
+    for (const mid of mats) {
+      const chk = ECO.canSubstituteTranscendentEquipmentMat(r || { craft: 'FORGING', outType: 'EQUIPMENT' }, null, mid);
+      if (!chk.ok) return chk;
+      resolvedMats.push(chk.mat);
+    }
+
+    if (opts.abort || opts.simulateFailure) {
+      const ref = ECO.refundTranscendentWildcardsOnAbort(W, npc, resolvedMats.map(m => m.id));
+      return { ok: false, aborted: true, refunded: ref };
+    }
+
+    const outDef = (r && r.outItemId && ECO.itemById[r.outItemId]) || (r && ECO.itemById[r.id]) || {
+      id: (r && (r.outItemId || r.id)) || 'EQ_TR_CUSTOM_FORGED',
+      nameTh: (r && (r.outNameTh || r.nameTh)) || 'ศาสตราหลอมเหนือตำนาน',
+      slot: (r && r.slot) || 'WEAPON',
+      subType: 'SWORD',
+      gearType: 'SWORD',
+      tier: 8,
+      combatMult: 0.55,
+      defenseMult: 0.35
+    };
+    const gear = ECO.mintGear ? ECO.mintGear(outDef, 1.25) : Object.assign({}, outDef, { uid: 'tr_gear_' + Date.now() });
+    ECO.applyTranscendentMaterialInfusions(gear, resolvedMats.map(m => m.id), { slot: gear.slot });
+    if ((r && r.triggersForgeTribulation) || resolvedMats.length >= 4 || gear.isPureTranscendentGenesis) {
+      ECO.triggerForgeTribulation(W, npc, gear);
+    }
+    if (W && W.sect) {
+      W.sect.gear = W.sect.gear || [];
+      W.sect.gear.push(gear);
+    }
+    return { ok: true, gear, infusions: gear.transcendentInfusions };
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);

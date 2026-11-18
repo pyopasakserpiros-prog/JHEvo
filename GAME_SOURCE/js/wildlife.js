@@ -393,6 +393,11 @@
       } else W.log('explore',HC.fullName(n) + ' ไม่อาจผูกพันกับ ' + b.name + ': ' + capture.reason,[n.id]);
     }
     if (b.captured && n && !n.dead) {
+      if (f && f.ctx) {
+        f.ctx.landContributions = f.ctx.landContributions && Object.keys(f.ctx.landContributions).length ? f.ctx.landContributions : { [n.id]: 100 };
+        WILD.awardLandQi(W, f, b);
+      }
+      if (WILD.awardSpiritBeastCrucible) WILD.awardSpiritBeastCrucible(W, n, b, { nonLethal: true });
       b.dead = false;
       b.gone = true;
       const z = zones[b.zone];
@@ -402,6 +407,7 @@
       n.merit += Math.max(1, Math.round(b.tier * 1.5));
     } else if (b.dead && winner === 'A' && n && !n.dead) {
       WILD.awardLandQi(W, f, b);
+      if (WILD.awardSpiritBeastCrucible) WILD.awardSpiritBeastCrucible(W, n, b, { nonLethal: false });
       const allSpecies = (JD.BEASTS.species || []).concat(JD.BEASTS.kings || []);
       const species = allSpecies.find(s => s.id === b.speciesId);
       n.inv.mats = n.inv.mats || {};
@@ -585,4 +591,28 @@
 
   g.WILD = WILD;
   if (typeof module === 'object' && module.exports) module.exports = WILD;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_WILDLIFE_CRUCIBLE_V260 === */
+(function initCarbonWildlifeCrucible(g) {
+  const WILD = g.WILD, CULT = g.CULT;
+  if (!WILD || !CULT) return;
+  WILD.awardSpiritBeastCrucible = (W, n, b, opts) => {
+    opts = opts || {};
+    if (!W || !n || !n.cult || !b) return 0;
+    const thresh = Math.max(10, CULT.threshold ? CULT.threshold(n) : 100);
+    const bTier = Math.max(1, b.tier || 1);
+    const nStage = Math.max(1, n.cult.stage || 1);
+    const ratio = Math.max(0.008, Math.min(0.022, 0.012 * (bTier / nStage)));
+    const expBonus = +(thresh * ratio).toFixed(2);
+    n._lastSpiritBeastCrucibleGain = expBonus;
+    n.spiritBeastQiCrucibleCount = (n.spiritBeastQiCrucibleCount || 0) + 1;
+    if (W.sect) {
+      W.sect.originEchoes = (W.sect.originEchoes || 0) + 1;
+      if (g.SECT && g.SECT.PATRIARCH_REGALIA && g.SECT.PATRIARCH_REGALIA.advanceAwakening) {
+        g.SECT.PATRIARCH_REGALIA.advanceAwakening(W, n, 'VALLEY_BEAST_QI', 1);
+      }
+    }
+    return expBonus;
+  };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

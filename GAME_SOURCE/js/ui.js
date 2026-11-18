@@ -7699,3 +7699,206 @@
   };
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_UI_AND_SVG_ICONS_V260 === */
+;(function initCarbonUiAndSvgIcons() {
+  const g = typeof globalThis !== 'undefined' ? globalThis : window;
+  const UI = g.UI, JD = g.JD, ECO = g.ECO, CULT = g.CULT, SECT = g.SECT, HC = g.HC;
+  if (!UI) return;
+
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  UI.REGALIA_ELEMENT_PALETTES = Object.freeze({
+    NEUTRAL: { core: '#9da7b3', rim: '#dfe6ee', glow: '#ffd740' },
+    FIRE: { core: '#ff5e36', rim: '#ffd166', glow: '#ff9e00' },
+    WATER_ICE: { core: '#38b6ff', rim: '#ccf2ff', glow: '#72efdd' },
+    LIGHTNING: { core: '#b565ff', rim: '#f3d9fa', glow: '#ffd740' },
+    WOOD_LIFE: { core: '#38d39f', rim: '#d8f3dc', glow: '#95d5b2' },
+    EARTH_METAL: { core: '#d4a373', rim: '#fefae0', glow: '#ffd166' },
+    WIND: { core: '#64dfdf', rim: '#e0fbfc', glow: '#80ffdb' },
+    YIN_SHADOW: { core: '#7209b7', rim: '#e0aaff', glow: '#c77dff' },
+    LIGHT_YANG: { core: '#ffd166', rim: '#ffffff', glow: '#ffea00' },
+    BLOOD_DEMON: { core: '#d90429', rim: '#ffccd5', glow: '#ff4d6d' },
+    ASTRAL_VOID: { core: '#9d4edd', rim: '#83f5e2', glow: '#ff9ef5' }
+  });
+
+  // Deterministic 0-RNG 96x96 SVG Generators
+  UI.renderPatriarchRegaliaIconHtml = (regalia, sizePx = 48) => {
+    const reg = regalia || {};
+    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
+    const stg = Math.max(0, Math.min(5, Number(reg.awakeningStage) || 0));
+    const form = String(reg.currentForm || reg.subType || 'ORIGIN_STONE').toUpperCase();
+    const elem = String(reg.element || 'NEUTRAL').toUpperCase();
+    const pal = UI.REGALIA_ELEMENT_PALETTES[elem] || UI.REGALIA_ELEMENT_PALETTES.NEUTRAL;
+    const secPal = reg.secondaryElement && UI.REGALIA_ELEMENT_PALETTES[reg.secondaryElement] ? UI.REGALIA_ELEMENT_PALETTES[reg.secondaryElement] : null;
+    const ringCount = 1 + Math.floor(stg / 2);
+    let shapeSvg = '<polygon points="48,16 74,34 66,74 30,74 22,34" fill="' + pal.core + '" stroke="' + pal.rim + '" stroke-width="2.5"/>';
+    if (form.includes('SWORD') || form.includes('BLADE')) {
+      shapeSvg = '<path d="M48 10 L55 62 L48 74 L41 62 Z" fill="' + pal.core + '" stroke="' + pal.rim + '" stroke-width="2.2"/><rect x="34" y="62" width="28" height="5" rx="2" fill="' + pal.glow + '"/><rect x="45" y="67" width="6" height="16" fill="' + pal.rim + '"/>';
+    } else if (form.includes('SPEAR') || form.includes('HALBERD') || form.includes('STAFF')) {
+      shapeSvg = '<line x1="48" y1="12" x2="48" y2="86" stroke="' + pal.rim + '" stroke-width="4"/><polygon points="48,8 58,28 48,24 38,28" fill="' + pal.core + '" stroke="' + pal.glow + '" stroke-width="2"/>';
+    } else if (form.includes('ARMOR') || form.includes('ROBE')) {
+      shapeSvg = '<path d="M28 24 L48 16 L68 24 L62 76 L34 76 Z" fill="' + pal.core + '" stroke="' + pal.rim + '" stroke-width="2.4"/>';
+    }
+    const dualArc = secPal ? '<circle cx="48" cy="48" r="39" fill="none" stroke="' + secPal.core + '" stroke-width="2" stroke-dasharray="8 5"/>' : '';
+    return '<span class="transcendent-svg-wrap grade-transcendent" data-regalia-stage="' + stg + '" data-regalia-form="' + esc(form) + '" data-regalia-element="' + esc(elem) + '" style="width:' + sz + 'px;height:' + sz + 'px" title="' + esc((reg.nameTh || 'ตราหินเทาไร้ลักษณ์') + ' · ขั้น ' + stg) + '">' +
+      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(reg.nameTh || 'ตราหินเทาไร้ลักษณ์') + '">' +
+      '<circle cx="48" cy="48" r="43" fill="none" stroke="' + pal.glow + '" stroke-width="1.8" opacity="0.85"/>' +
+      (ringCount >= 2 ? '<circle cx="48" cy="48" r="34" fill="none" stroke="' + pal.rim + '" stroke-width="1.3" opacity="0.65"/>' : '') +
+      dualArc + shapeSvg +
+      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦6★</text>' +
+      '</svg></span>';
+  };
+
+  UI.renderTranscendentArmorIconHtml = (item, sizePx = 48) => {
+    const it = item || {};
+    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
+    const wt = String(it.armorWeightClass || it.subType || 'ROBE').toUpperCase();
+    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-armor="' + esc(wt) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(it.nameTh || 'ภูษาทอรอยแผลหมื่นชะตา') + '">' +
+      '<circle cx="48" cy="48" r="42" fill="none" stroke="#ff4d6d" stroke-width="2" stroke-dasharray="6 3"/>' +
+      '<path d="M24 24 L48 14 L72 24 L66 78 L30 78 Z" fill="#590d22" stroke="#ffb3c1" stroke-width="2.5"/>' +
+      '<path d="M34 36 L62 58 M60 34 L36 62" stroke="#ffd740" stroke-width="2"/>' +
+      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + esc(wt) + '</text>' +
+      '</svg></span>';
+  };
+
+  UI.renderTranscendentAccessoryIconHtml = (item, sizePx = 48) => {
+    const it = item || {};
+    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
+    const sub = String(it.accessorySubtype || it.subType || 'CHARM').toUpperCase();
+    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-accessory="' + esc(sub) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(it.nameTh || 'นาฬิกาแดดอูโรโบรอสย้อนกัลป์') + '">' +
+      '<circle cx="48" cy="48" r="38" fill="none" stroke="#83f5e2" stroke-width="3"/>' +
+      '<circle cx="48" cy="48" r="24" fill="none" stroke="#ffd740" stroke-width="2" stroke-dasharray="5 4"/>' +
+      '<line x1="48" y1="48" x2="48" y2="26" stroke="#ffffff" stroke-width="2.5"/>' +
+      '<line x1="48" y1="48" x2="64" y2="48" stroke="#ff9ef5" stroke-width="2.5"/>' +
+      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + esc(sub) + '</text>' +
+      '</svg></span>';
+  };
+
+  UI.renderTranscendentWeaponIconHtml = (item, sizePx = 48) => {
+    const it = item || {};
+    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
+    const fam = String(it.gearType || it.subType || 'SWORD').toUpperCase();
+    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-weapon="' + esc(fam) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(it.nameTh || 'หีบศาสตราหมื่นสำนักกลืนสวรรค์') + '">' +
+      '<rect x="30" y="18" width="36" height="58" rx="4" fill="#2b2d42" stroke="#ffd740" stroke-width="2.5"/>' +
+      '<path d="M18 30 L28 66 M78 30 L68 66 M48 10 L48 82" stroke="#83f5e2" stroke-width="2.5"/>' +
+      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + esc(fam) + '</text>' +
+      '</svg></span>';
+  };
+
+  UI.renderTranscendentArtIconHtml = (tech, sizePx = 48) => {
+    const t = tech || {};
+    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
+    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-art="' + esc(t.id || 'SOV_ART') + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(t.nameTh || 'คัมภีร์เหนือตำนาน') + '">' +
+      '<rect x="22" y="14" width="52" height="66" rx="6" fill="#240046" stroke="#ff9ef5" stroke-width="2.5"/>' +
+      '<circle cx="48" cy="46" r="16" fill="none" stroke="#ffd740" stroke-width="2"/>' +
+      '<text x="48" y="50" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="bold">道</text>' +
+      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦T8·6★</text>' +
+      '</svg></span>';
+  };
+
+  UI.renderTranscendentMaterialIconHtml = (mat, sizePx = 48) => {
+    const m = mat || {};
+    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
+    const dom = m.alchemyOnlyWildcard ? 'ALC' : 'EQ';
+    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-mat="' + esc(dom) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(m.nameTh || 'วัตถุดิบเหนือตำนาน') + '">' +
+      '<polygon points="48,12 78,36 66,76 30,76 18,36" fill="#3c096c" stroke="#83f5e2" stroke-width="2.5"/>' +
+      '<circle cx="48" cy="46" r="12" fill="#ffd740"/>' +
+      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + dom + '</text>' +
+      '</svg></span>';
+  };
+
+  UI.renderTranscendentElixirIconHtml = (pill, sizePx = 48) => {
+    const p = pill || {};
+    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
+    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-elixir="true" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(p.nameTh || 'มหาโอสถเหนือตำนาน') + '">' +
+      '<circle cx="48" cy="46" r="24" fill="#ff9e00" stroke="#ffffff" stroke-width="2.5"/>' +
+      '<path d="M20 46 Q48 20 76 46 Q48 72 20 46 Z" fill="none" stroke="#ff9ef5" stroke-width="2"/>' +
+      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦丹·6★</text>' +
+      '</svg></span>';
+  };
+
+  // Enhance resolveItemArt & renderAtlasIconHtml with non-mutating Transcendent metadata
+  const _origResolveItemArt = UI.resolveItemArt;
+  UI.resolveItemArt = item => {
+    const art = _origResolveItemArt(item);
+    if (!art || !item) return art;
+    const eq = item.gear || item.eq || item;
+    const raw = String(item.templateId || eq.id || item.itemId || item.id || item.key || '').replace(/^(P:|T:|S:)/, '');
+    const def = (ECO && ECO.itemById && ECO.itemById[raw]) || (ECO && ECO.matById && ECO.matById[raw]) || (CULT && CULT.tech && CULT.tech(raw)) || {};
+    const isTrans = !!(item.transcendent || eq.transcendent || def.transcendent || eq.isPatriarchRegalia || def.isPatriarchRegalia || item.grade === 'Transcendent' || eq.grade === 'Transcendent' || def.grade === 'Transcendent' || String(raw).includes('@TR:'));
+    if (isTrans) {
+      art.transcendent = true;
+      art.transcendentStars = 6;
+      art.transcendentBadgeTh = '✦ เหนือตำนาน · 6★';
+    }
+    return art;
+  };
+
+  const _origRenderAtlas = UI.renderAtlasIconHtml;
+  UI.renderAtlasIconHtml = (item, sizePx) => {
+    const html = _origRenderAtlas(item, sizePx);
+    if (!item) return html;
+    const eq = item.gear || item.eq || item;
+    const raw = String(item.templateId || eq.id || item.itemId || item.id || item.key || '').replace(/^(P:|T:|S:)/, '');
+    const def = (ECO && ECO.itemById && ECO.itemById[raw]) || (ECO && ECO.matById && ECO.matById[raw]) || (CULT && CULT.tech && CULT.tech(raw)) || {};
+    const isTrans = !!(item.transcendent || eq.transcendent || def.transcendent || eq.isPatriarchRegalia || def.isPatriarchRegalia || item.grade === 'Transcendent' || eq.grade === 'Transcendent' || def.grade === 'Transcendent' || String(raw).includes('@TR:'));
+    if (isTrans && typeof html === 'string') {
+      return html.replace('class="inv-atlas-ic item-art ', 'class="inv-atlas-ic item-art grade-transcendent ');
+    }
+    return html;
+  };
+
+  // Enhance UI.rSect with Gen-7 Lineage Plaques & Patriarch Regalia Pedestal Card (0 RNG, 0 State Mutation)
+  if (typeof UI.rSect === 'function') {
+    const _origRSectCarbon = UI.rSect;
+    UI.rSect = wArg => {
+      const html = _origRSectCarbon(wArg);
+      const W = wArg || (UI.G && UI.G.W);
+      if (!W || !W.sect) return html;
+      const reg = W.sect.patriarchRegalia;
+      const plaques = Array.isArray(W.sect.patriarchPreHistory) ? W.sect.patriarchPreHistory : [];
+      const master = W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null;
+      const pantheon = (SECT && SECT.evaluateTranscendentPantheonResonance && master) ? SECT.evaluateTranscendentPantheonResonance(W, master) : null;
+      let card = '<div class="regalia-pedestal-card">';
+      card += '<div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">';
+      card += '<div style="display:flex;align-items:center;gap:10px">' + (reg ? UI.renderPatriarchRegaliaIconHtml(reg, 44) : '') +
+        '<div><div style="font-weight:700;color:#ffd740">🏛️ มรดกเจ้าสำนักรุ่นที่ ' + esc(W.sect.masterGeneration || 7) + ' · ' + esc((reg && reg.nameTh) || 'ตราหินเทาไร้ลักษณ์') + ' <span class="transcendent-badge-6star">✦ เหนือตำนาน · 6★</span></div>' +
+        '<div class="muted" style="font-size:12px">รูปลักษณ์ปัจจุบัน: <b>' + esc((reg && reg.currentForm) || 'ORIGIN_STONE') + '</b> · ขั้นตื่นรู้: <b>' + esc((reg && reg.awakeningStage) || 0) + '/5</b> · ธาตุ: <b>' + esc((reg && reg.element) || 'NEUTRAL') + (reg && reg.secondaryElement ? (' + ' + esc(reg.secondaryElement)) : '') + '</b> · เสียงสะท้อนต้นกำเนิด: <b>' + esc(W.sect.originEchoes || 0) + '</b></div></div></div>';
+      if (pantheon && pantheon.count > 0) {
+        card += '<span class="chip g">สั่นพ้องมหาศาสตรา: ' + pantheon.count + ' ชิ้น (ทะลวง +' + Math.round((pantheon.breakthroughBonus || 0) * 100) + '%)</span>';
+      }
+      card += '</div>';
+      if (plaques.length) {
+        card += '<div style="margin-top:6px;font-size:11.5px" class="muted">จารึกบูรพาจารย์ 6 รุ่นก่อนหน้า: ' +
+          plaques.map(p => '<span class="chip" title="' + esc(p.deedSummaryTh) + '">รุ่นที่ ' + p.generation + ' · ' + esc(p.titleTh.split('·')[1] || p.titleTh) + '</span>').join(' ') +
+          '</div>';
+      }
+      card += '</div>';
+      return html + card;
+    };
+  }
+
+  // Enhance UI.rEdit with Patriarch Regalia Polymorphic Studio (0 RNG, 0 State Mutation on Render)
+  if (typeof UI.rEdit === 'function') {
+    const _origREditCarbon = UI.rEdit;
+    UI.rEdit = () => {
+      const html = _origREditCarbon();
+      const W = UI.G && UI.G.W;
+      if (!W || !W.sect || !W.sect.patriarchRegalia) return html;
+      const reg = W.sect.patriarchRegalia;
+      const forms = Object.keys((JD.CORE.PATRIARCH_REGALIA_SPECS && JD.CORE.PATRIARCH_REGALIA_SPECS.forms) || { ORIGIN_STONE: 1, SWORD: 1, BLADE: 1, SPEAR: 1 });
+      const studio = '<div class="card regalia-pedestal-card" id="editRegaliaStudio">' +
+        '<b>✦ สตูดิโอจำแลงตราหินเทาไร้ลักษณ์ (Patriarch Regalia Polymorphic Studio)</b>' +
+        '<div class="muted" style="margin:4px 0">รูปลักษณ์รองรับ ' + forms.length + ' รูปแบบ · ขั้นตื่นรู้ปัจจุบัน: ' + (reg.awakeningStage || 0) + '/5 · ตราประทับบรรพชน: ' + ((reg.imprints || []).length) + ' ตรา</div>' +
+        '</div>';
+      return html + studio;
+    };
+  }
+})();

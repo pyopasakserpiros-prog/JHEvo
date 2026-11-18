@@ -17950,3 +17950,571 @@
   }
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_SECT_AND_PANTHEON_V260 === */
+(function initCarbonSectAndPantheon(g) {
+  const SECT = g.SECT, JD = g.JD, ECO = g.ECO, CULT = g.CULT, HC = g.HC, U = g.U;
+  if (!SECT || !JD) return;
+
+  // 1. Pre-History Ancestral Lineage (Gen 1-6 Plaques + Gen-7 Sect Master)
+  SECT.ensurePreHistoryLineage = W => {
+    if (!W || !W.sect) return [];
+    if (!Number.isFinite(W.sect.masterGeneration)) W.sect.masterGeneration = 7;
+    if (!Number.isFinite(W.sect.originEchoes)) W.sect.originEchoes = 0;
+    if (!Array.isArray(W.sect.patriarchPreHistory) || W.sect.patriarchPreHistory.length < 6) {
+      W.sect.patriarchPreHistory = JSON.parse(JSON.stringify(JD.CORE.patriarchPreHistoryTemplates || []));
+    }
+    const master = W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null;
+    if (master && !Number.isFinite(master.sectGeneration)) master.sectGeneration = W.sect.masterGeneration;
+    (W.npcs || []).forEach(n => {
+      if (!n) return;
+      if (n.id === W.sect.masterId) n.sectGeneration = W.sect.masterGeneration;
+      else if (!Number.isFinite(n.sectGeneration)) n.sectGeneration = W.sect.masterGeneration + 1;
+    });
+    return W.sect.patriarchPreHistory;
+  };
+  SECT.getPreHistoryTablets = W => SECT.ensurePreHistoryLineage(W);
+
+  // Enhance prayAtAncestralShrine to also support praying to Gen 1-6 Pre-History Plaques when specified
+  if (typeof SECT.prayAtAncestralShrine === 'function') {
+    const _origPrayCarbon = SECT.prayAtAncestralShrine;
+    SECT.prayAtAncestralShrine = (W, n, tabletId) => {
+      const preList = SECT.ensurePreHistoryLineage(W);
+      const preMatch = tabletId ? preList.find(p => p && p.id === tabletId) : null;
+      if (preMatch && n && !n.dead) {
+        W.sect.originEchoes = (W.sect.originEchoes || 0) + 1;
+        n.ancestralBlessing = {
+          tabletId: preMatch.id,
+          patriarchGeneration: preMatch.generation,
+          titleTh: preMatch.titleTh,
+          until: (W.t || 0) + 14 * 1440,
+          breakthroughBonus: 0.08
+        };
+        n.ancestralPrayerCooldownUntil = (W.t || 0) + 30 * 1440;
+        if (SECT.PATRIARCH_REGALIA && SECT.PATRIARCH_REGALIA.advanceAwakening) {
+          SECT.PATRIARCH_REGALIA.advanceAwakening(W, n, 'DAO_INSIGHT', 1);
+        }
+        return { ok: true, tabletId: preMatch.id, preHistoryPlaque: preMatch, originEchoes: W.sect.originEchoes };
+      }
+      return _origPrayCarbon(W, n, tabletId);
+    };
+  }
+
+  // 2. Neutral Patriarch Origin Regalia Engine (REGALIA_ORIGIN_FORMLESS_STONE, TRANSCENDENT_01A-01C)
+  const REG_SPECS = JD.CORE.PATRIARCH_REGALIA_SPECS || {};
+  SECT.PATRIARCH_REGALIA = {
+    SPECS: REG_SPECS,
+    ensure(W) {
+      if (!W || !W.sect) return null;
+      SECT.ensurePreHistoryLineage(W);
+      if (!W.sect.patriarchRegalia || typeof W.sect.patriarchRegalia !== 'object') {
+        const st0 = (REG_SPECS.awakeningStages && REG_SPECS.awakeningStages[0]) || { stage: 0, nameTh: 'ขั้นที่ 0 · หินเทาไร้ลักษณ์', combatMult: 0.38, defenseMult: 0.38, breakthroughBonus: 0.12 };
+        W.sect.patriarchRegalia = {
+          id: 'REGALIA_ORIGIN_FORMLESS_STONE',
+          uid: 'REGALIA_UID_SECT_ORIGIN_01',
+          nameTh: 'ตราหินเทาไร้ลักษณ์',
+          descTh: 'ตราหินเทาไร้ลักษณ์ประจำตำแหน่งเจ้าสำนักรุ่นที่ 7 จำแลงได้ 24 รูปลักษณ์ตามวิถีแห่งผู้ถือครอง',
+          cat: 'EQUIPMENT',
+          out: 'EQUIPMENT',
+          slot: 'ACCESSORY',
+          subType: 'CHARM',
+          gearType: 'CHARM',
+          role: 'BALANCED',
+          tier: 8,
+          transcendentRank: 8,
+          grade: 'Transcendent',
+          transcendent: true,
+          isPatriarchRegalia: true,
+          soulboundToMaster: true,
+          soulboundMasterId: W.sect.masterId || null,
+          unsellable: true,
+          indestructible: true,
+          awakeningStage: 0,
+          stageNameTh: st0.nameTh,
+          currentForm: 'ORIGIN_STONE',
+          element: 'NEUTRAL',
+          secondaryElement: null,
+          fixedStats: true,
+          st: { atk: 48, def: 48, mdef: 48, acc: 12 },
+          combatMult: st0.combatMult,
+          defenseMult: st0.defenseMult,
+          breakthroughBonus: st0.breakthroughBonus,
+          imprints: ['IMP_BLADE_VANGUARD'],
+          sovereignKeywords: ['KW_SOV_ROLE_TRANSMUTE', 'KW_SOV_MOMENTUM_EQUALIZE', 'KW_SOV_ORIGIN_SIPHON'],
+          pillars: { REALM: 1, SECT_DEED: 0, DAO_INSIGHT: 0, VALLEY_BEAST_QI: 0 }
+        };
+      }
+      const reg = W.sect.patriarchRegalia;
+      const master = W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null;
+      if (master) {
+        reg.soulboundMasterId = master.id;
+        Object.defineProperty(master, 'patriarchRegalia', { value: reg, writable: true, configurable: true, enumerable: false });
+      }
+      return reg;
+    },
+    getEquippedRegalia(W, npc) {
+      if (!W || !W.sect) return null;
+      const reg = this.ensure(W);
+      if (!npc) return reg;
+      if (npc.id === W.sect.masterId || npc.patriarchRegalia === reg) return reg;
+      const eq = npc.equip || {};
+      for (const k of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+        if (eq[k] && eq[k].isPatriarchRegalia) return eq[k];
+      }
+      return null;
+    },
+    morphForm(W, npc, targetForm, opts) {
+      opts = opts || {};
+      const reg = this.ensure(W);
+      if (!reg) return { ok: false, reason: 'no-regalia' };
+      const forms = (REG_SPECS && REG_SPECS.forms) || {};
+      const key = String(targetForm || 'ORIGIN_STONE').toUpperCase();
+      const spec = forms[key] || forms.ORIGIN_STONE;
+      if (!spec) return { ok: false, reason: 'invalid-form' };
+      const prevSlot = reg.slot;
+      reg.currentForm = spec.id;
+      reg.nameTh = spec.nameTh;
+      reg.slot = spec.slot;
+      reg.subType = spec.subType;
+      reg.gearType = spec.gearType;
+      reg.role = spec.role;
+      const owner = npc || (W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null);
+      if (owner && owner.equip && opts.equipSlot !== false) {
+        if (prevSlot && owner.equip[prevSlot] === reg && prevSlot !== reg.slot) {
+          owner.equip[prevSlot] = null;
+        }
+        if (opts.equipSlot === true || !owner.equip[reg.slot] || owner.equip[reg.slot].isPatriarchRegalia) {
+          owner.equip[reg.slot] = reg;
+        }
+        if (HC && HC.bump) HC.bump(owner);
+      }
+      return { ok: true, form: reg.currentForm, slot: reg.slot, gearType: reg.gearType, regalia: reg };
+    },
+    attuneElement(W, npc, primaryElement, secondaryElement) {
+      const reg = this.ensure(W);
+      if (!reg) return { ok: false };
+      const valid = (REG_SPECS && REG_SPECS.elements) || ['NEUTRAL'];
+      if (primaryElement && valid.includes(primaryElement)) {
+        reg.element = primaryElement;
+      }
+      if (secondaryElement && valid.includes(secondaryElement) && (reg.awakeningStage || 0) >= 4) {
+        reg.secondaryElement = secondaryElement;
+      } else if (secondaryElement === null) {
+        reg.secondaryElement = null;
+      }
+      reg.elementProfile = {
+        primary: reg.element || 'NEUTRAL',
+        secondary: reg.secondaryElement || undefined,
+        affinityWeight: 1.0
+      };
+      return { ok: true, element: reg.element, secondaryElement: reg.secondaryElement, regalia: reg };
+    },
+    advanceAwakening(W, npc, vector, amount = 1) {
+      const reg = this.ensure(W);
+      if (!reg) return { ok: false };
+      reg.pillars = reg.pillars || { REALM: 1, SECT_DEED: 0, DAO_INSIGHT: 0, VALLEY_BEAST_QI: 0 };
+      if (vector && reg.pillars[vector] != null) {
+        reg.pillars[vector] += Number(amount) || 1;
+      }
+      const master = npc || (W && W.byId && W.sect && W.byId[W.sect.masterId]);
+      const mStage = (master && master.cult && master.cult.stage) || 1;
+      reg.pillars.REALM = Math.max(reg.pillars.REALM || 1, mStage);
+      const totalProgress = (reg.pillars.REALM || 1) + (reg.pillars.SECT_DEED || 0) + (reg.pillars.DAO_INSIGHT || 0) + Math.floor((reg.pillars.VALLEY_BEAST_QI || 0) / 2);
+      const targetStage = Math.max(reg.awakeningStage || 0, Math.min(5, Math.floor(totalProgress / 3)));
+      return this.setAwakeningStage(W, master, targetStage);
+    },
+    setAwakeningStage(W, npc, stageNum) {
+      const reg = this.ensure(W);
+      if (!reg) return { ok: false };
+      const stIdx = Math.max(0, Math.min(5, Math.floor(Number(stageNum) || 0)));
+      const stages = (REG_SPECS && REG_SPECS.awakeningStages) || [];
+      const spec = stages[stIdx] || stages[0] || { stage: stIdx, combatMult: 0.38 + stIdx * 0.14, defenseMult: 0.38 + stIdx * 0.12, breakthroughBonus: 0.12 + stIdx * 0.04 };
+      reg.awakeningStage = stIdx;
+      reg.stageNameTh = spec.nameTh || ('ขั้นที่ ' + stIdx);
+      reg.combatMult = spec.combatMult;
+      reg.defenseMult = spec.defenseMult;
+      reg.breakthroughBonus = spec.breakthroughBonus;
+      const allKws = (REG_SPECS && REG_SPECS.sovereignKeywords) || [];
+      reg.sovereignKeywords = allKws.slice(0, Math.min(allKws.length, 3 + stIdx * 2));
+      if (stIdx >= 4 && !reg.secondaryElement) {
+        reg.secondaryElement = reg.element === 'FIRE' ? 'LIGHTNING' : 'ASTRAL_VOID';
+      }
+      if (npc && HC && HC.bump) HC.bump(npc);
+      return { ok: true, awakeningStage: reg.awakeningStage, regalia: reg };
+    },
+    unlockImprint(W, npc, imprintId) {
+      const reg = this.ensure(W);
+      if (!reg) return { ok: false };
+      const imps = (REG_SPECS && REG_SPECS.imprints) || {};
+      if (!imps[imprintId]) return { ok: false, reason: 'invalid-imprint' };
+      reg.imprints = Array.isArray(reg.imprints) ? reg.imprints : [];
+      if (!reg.imprints.includes(imprintId)) reg.imprints.push(imprintId);
+      return { ok: true, imprints: reg.imprints.slice(), regalia: reg };
+    },
+    transferToNewMaster(W, newMaster) {
+      if (!W || !W.sect || !newMaster) return null;
+      const reg = this.ensure(W);
+      W.sect.masterGeneration = (W.sect.masterGeneration || 7) + 1;
+      newMaster.sectGeneration = W.sect.masterGeneration;
+      reg.soulboundMasterId = newMaster.id;
+      newMaster.patriarchRegalia = reg;
+      newMaster.equip = newMaster.equip || {};
+      if (!newMaster.equip[reg.slot]) newMaster.equip[reg.slot] = reg;
+      this.advanceAwakening(W, newMaster, 'SECT_DEED', 2);
+      return reg;
+    }
+  };
+
+  // 3. World-Singleton Armor, Accessory & World-Roaming Weapon Pantheon (TRANSCENDENT_02A-04B)
+  SECT.TRANSCENDENT_PANTHEON = {
+    ensureWorldState(W) {
+      if (!W) return null;
+      W.world = W.world || {};
+      if (!W.world.transcendentSingletons) {
+        W.world.transcendentSingletons = {
+          ARM_TRANSCENDENT_LOOM_OF_SCARS: {
+            id: 'ARM_TRANSCENDENT_LOOM_OF_SCARS',
+            discovered: false,
+            ownerNpcId: null,
+            inSectVault: false,
+            awakeningStage: 1,
+            scarSutures: ['SUTURE_PHYSICAL_WARD', 'SUTURE_ELEMENTAL_WEAVE'],
+            woundLedgerCap: 2500
+          },
+          ACC_TRANSCENDENT_OUROBOROS_SUNDIAL: {
+            id: 'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL',
+            discovered: false,
+            ownerNpcId: null,
+            inSectVault: false,
+            awakeningStage: 1,
+            timeDilationStudyBonus: 0.35,
+            echoEveryNthCast: 3
+          }
+        };
+      }
+      if (!Array.isArray(W.world.roamingTranscendentWeapons)) {
+        W.world.roamingTranscendentWeapons = [
+          {
+            id: 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN',
+            nameTh: 'หีบศาสตราหมื่นสำนักกลืนสวรรค์',
+            holderKind: 'RIVAL_OVERLORD',
+            holderNameTh: 'จอมราชันย์สุสานศาสตรา กู๋อู๋ซวง',
+            holderPower: 4200,
+            killStreak: 3,
+            evolutionTier: 2,
+            digestedFamilies: ['SWORD', 'BLADE', 'SPEAR', 'FIST'],
+            escortBladesCount: 2,
+            conqueredBySect: false,
+            ownerNpcId: null
+          }
+        ];
+      }
+      return {
+        singletons: W.world.transcendentSingletons,
+        roamingWeapons: W.world.roamingTranscendentWeapons
+      };
+    },
+    syncAdaptiveArtifact(npc, gear) {
+      if (!npc || !gear || typeof gear !== 'object') return gear;
+      const path = (npc.cult && npc.cult.path) || 'XIAN';
+      if (gear.isTranscendentArmor || gear.triWeightAdaptive || gear.id === 'ARM_TRANSCENDENT_LOOM_OF_SCARS') {
+        const weight = ['BODY', 'ARENA_GLORY', 'GRAVITY_DAO', 'DEVOURING_FLESH'].includes(path) ? 'HEAVY'
+          : (['VOID_SPACE', 'NINPO_SHADOW', 'SHADOW_SAMURAI', 'WANDERING_DAO'].includes(path) ? 'LIGHT' : 'ROBE');
+        gear.subType = weight;
+        gear.gearType = weight;
+        gear.armorWeightClass = weight;
+        gear.scarSutures = Array.isArray(gear.scarSutures) ? gear.scarSutures : ['SUTURE_PHYSICAL_WARD', 'SUTURE_ELEMENTAL_WEAVE', 'SUTURE_MIND_AEGIS'];
+        gear._woundLedgerPool = Number.isFinite(gear._woundLedgerPool) ? gear._woundLedgerPool : 0;
+      }
+      if (gear.isTranscendentAccessory || gear.pentaSubtypeAdaptive || gear.id === 'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL') {
+        const sub = ['BODY', 'ARENA_GLORY'].includes(path) ? 'BRACELET'
+          : (['VOID_SPACE', 'NINPO_SHADOW'].includes(path) ? 'SHOES'
+          : (['SAGE_SUPPORT', 'BUDDHA_DHARMA', 'GOD'].includes(path) ? 'NECKLACE'
+          : (['XIAN', 'CRAFT_CREATION'].includes(path) ? 'RING' : 'CHARM')));
+        gear.subType = sub;
+        gear.gearType = sub;
+        gear.accessorySubtype = sub;
+        gear._chronoBookmarks = Array.isArray(gear._chronoBookmarks) ? gear._chronoBookmarks : [];
+        gear._castCounter = Number.isFinite(gear._castCounter) ? gear._castCounter : 0;
+      }
+      if (gear.isTranscendentWeapon || gear.omniWeaponAdaptive || gear.id === 'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN') {
+        const wSkills = ['SWORD', 'BLADE', 'SPEAR', 'FIST_PALM', 'BOW', 'STAFF', 'FOCUS', 'ZITHER', 'BRUSH', 'WHIP', 'ROSARY', 'CLAW', 'NEEDLE', 'FAN', 'ASTROLABE', 'ABACUS'];
+        let bestSk = 'SWORD', bestVal = -1;
+        if (npc.h && npc.h.skills) {
+          for (const sk of wSkills) {
+            const v = Number(npc.h.skills[sk]) || 0;
+            if (v > bestVal) { bestVal = v; bestSk = sk; }
+          }
+        }
+        const fam = bestSk === 'FIST_PALM' ? 'FIST' : bestSk;
+        gear.subType = fam;
+        gear.gearType = fam;
+        gear.digestedFamilies = Array.isArray(gear.digestedFamilies) ? gear.digestedFamilies : ['SWORD', 'BLADE', 'SPEAR', 'FIST'];
+        if (!gear.digestedFamilies.includes(fam)) gear.digestedFamilies.push(fam);
+        gear.escortBladesCount = Math.min(4, Math.max(1, Math.floor(gear.digestedFamilies.length / 3) + 1));
+      }
+      return gear;
+    },
+    claimWorldTranscendentArtifact(W, npc, artifactId, opts) {
+      opts = opts || {};
+      this.ensureWorldState(W);
+      const def = ECO && ECO.itemById ? ECO.itemById[artifactId] : null;
+      if (!def) return { ok: false, reason: 'unknown-artifact' };
+      const gear = ECO && ECO.mintGear ? ECO.mintGear(def, 1.30) : Object.assign({}, def, { uid: 'tr_art_' + Date.now() });
+      gear.transcendent = true;
+      gear.grade = 'Transcendent';
+      gear.unsellable = true;
+      gear.indestructible = true;
+      if (npc) {
+        this.syncAdaptiveArtifact(npc, gear);
+        if (opts.equip !== false) {
+          npc.equip = npc.equip || {};
+          npc.equip[gear.slot || 'WEAPON'] = gear;
+        }
+      } else if (W && W.sect) {
+        W.sect.gear = W.sect.gear || [];
+        W.sect.gear.push(gear);
+      }
+      if (W.world.transcendentSingletons && W.world.transcendentSingletons[artifactId]) {
+        W.world.transcendentSingletons[artifactId].discovered = true;
+        W.world.transcendentSingletons[artifactId].ownerNpcId = npc ? npc.id : null;
+      }
+      const roam = (W.world.roamingTranscendentWeapons || []).find(r => r.id === artifactId);
+      if (roam) {
+        roam.conqueredBySect = true;
+        roam.holderKind = 'SECT_BEARER';
+        roam.ownerNpcId = npc ? npc.id : null;
+      }
+      return { ok: true, gear, artifactId };
+    },
+    tickRoamingNemesis(W) {
+      this.ensureWorldState(W);
+      for (const rw of (W.world.roamingTranscendentWeapons || [])) {
+        if (rw && !rw.conqueredBySect) {
+          rw.killStreak = (rw.killStreak || 1) + 1;
+          rw.holderPower = Math.min(9500, (rw.holderPower || 4200) + 120);
+          const allFams = ['SWORD','BLADE','SPEAR','FIST','BOW','STAFF','FOCUS','ZITHER','BRUSH','WHIP','ROSARY','CLAW','NEEDLE','FAN','ASTROLABE','ABACUS'];
+          const nextFam = allFams[rw.killStreak % allFams.length];
+          if (!rw.digestedFamilies.includes(nextFam)) rw.digestedFamilies.push(nextFam);
+          rw.escortBladesCount = Math.min(4, Math.max(1, Math.floor(rw.digestedFamilies.length / 4) + 1));
+        }
+      }
+    },
+    evaluateTranscendentPantheonResonance(W, npc) {
+      if (!npc) return { count: 0, genesisCount: 0, active: false, combatBonusPct: 0, defenseBonusPct: 0, breakthroughBonus: 0 };
+      const eq = npc.equip || {};
+      const pieces = [];
+      let genesisCount = 0;
+      for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+        const it = eq[slot];
+        if (!it) continue;
+        if (it.transcendent || it.isPatriarchRegalia || it.isTranscendentArmor || it.isTranscendentAccessory || it.isTranscendentWeapon || it.isPureTranscendentGenesis) {
+          pieces.push(it.id);
+        }
+        if (it.isPureTranscendentGenesis || it.setId === 'RES_TR_MORTAL_FORGED_GENESIS') {
+          genesisCount++;
+        }
+      }
+      if (W && W.sect && npc.id === W.sect.masterId && W.sect.patriarchRegalia && !pieces.includes('REGALIA_ORIGIN_FORMLESS_STONE')) {
+        pieces.push('REGALIA_ORIGIN_FORMLESS_STONE');
+      }
+      const count = pieces.length;
+      const rawBt = count >= 3 ? 0.68 : (count === 2 ? 0.36 : (count === 1 ? 0.14 : 0));
+      // Mandatory soft-cap: 0.75x diminishing returns past +55% (0.55) combined breakthrough bonus
+      const softCappedBt = rawBt > 0.55 ? +(0.55 + (rawBt - 0.55) * 0.75).toFixed(4) : rawBt;
+      return {
+        count,
+        pieces,
+        genesisCount,
+        active: count >= 2,
+        pantheon3Piece: count >= 3,
+        genesisSetActive: genesisCount >= 2,
+        genesis3Piece: genesisCount >= 3,
+        combatBonusPct: count >= 3 ? 0.42 : (count === 2 ? 0.22 : 0),
+        defenseBonusPct: count >= 3 ? 0.38 : (count === 2 ? 0.20 : 0),
+        rawBreakthroughBonus: rawBt,
+        breakthroughBonus: softCappedBt,
+        softCapApplied: rawBt > 0.55
+      };
+    }
+  };
+  SECT.evaluateTranscendentPantheonResonance = (W, npc) => SECT.TRANSCENDENT_PANTHEON.evaluateTranscendentPantheonResonance(W, npc);
+
+  // 4. Extend SECT.EDITOR.catalog & spawnItem so all Carbon manuals/mantras/codices are browsable and spawnable
+  if (SECT.EDITOR && typeof SECT.EDITOR.catalog === 'function') {
+    const _origCatalog = SECT.EDITOR.catalog;
+    SECT.EDITOR.catalog = (W, filters) => {
+      filters = filters || {};
+      const base = _origCatalog(W, filters);
+      const seenKeys = new Set(base.map(c => c.key));
+      const q = (filters.search || filters.q || '').trim().toLowerCase();
+      const kindFilter = filters.kind && filters.kind !== 'ALL' ? filters.kind : null;
+      const tierFilter = Number.isFinite(Number(filters.tier)) && Number(filters.tier) > 0 ? Number(filters.tier) : null;
+      const elemFilter = filters.element && filters.element !== 'ALL' ? filters.element : null;
+      const rarityFilter = filters.rarity && filters.rarity !== 'ALL' ? String(filters.rarity).toLowerCase() : null;
+      const destFilter = filters.dest || null;
+
+      const matchesFilter = item => {
+        if (kindFilter && item.kind !== kindFilter) return false;
+        if (tierFilter && item.tier !== tierFilter) return false;
+        if (elemFilter && item.element !== elemFilter) return false;
+        if (rarityFilter) {
+          if (rarityFilter === 'legendary' && !item.legendary) return false;
+          if (rarityFilter !== 'legendary' && String(item.grade || '').toLowerCase() !== rarityFilter && String(item.rarity || '').toLowerCase() !== rarityFilter) return false;
+        }
+        if (destFilter === 'sect' && !item.canSect) return false;
+        if (destFilter === 'npc' && !item.canNpc) return false;
+        if (q) {
+          const blob = [item.id, item.nameTh, item.kind, item.cat, item.path, item.element, item.descTh].join(' ').toLowerCase();
+          const tokens = q.split(/\s+/).filter(Boolean);
+          for (const tk of tokens) {
+            if (!blob.includes(tk)) return false;
+          }
+        }
+        return true;
+      };
+
+      const addTechList = (list, regName) => {
+        (list || []).forEach(t => {
+          if (!t || !t.id) return;
+          const key = 'TECH_MANUAL:' + t.id;
+          if (seenKeys.has(key)) return;
+          const entry = {
+            key,
+            kind: 'TECH_MANUAL',
+            id: t.id,
+            nameTh: t.nameTh,
+            tier: t.tier || 1,
+            cat: t.cat,
+            path: t.path || 'ANY',
+            element: t.element || 'NEUTRAL',
+            grade: t.grade || (t.transcendent ? 'Transcendent' : 'Common'),
+            rarity: t.grade || (t.transcendent ? 'Transcendent' : 'Common'),
+            transcendent: !!t.transcendent,
+            sourceRegistry: regName,
+            stackable: false,
+            canSect: true,
+            canNpc: true,
+            descTh: t.descTh || t.nameTh
+          };
+          if (matchesFilter(entry)) {
+            seenKeys.add(key);
+            base.push(entry);
+          }
+        });
+      };
+      addTechList(JD.TECH.extraMantras, 'JD.TECH.extraMantras');
+      addTechList(JD.TECH.expansionNonCombatArts, 'JD.TECH.expansionNonCombatArts');
+
+      (JD.CORE.transcendentMaterials || []).forEach(m => {
+        if (!m || !m.id) return;
+        const key = 'MATERIAL:' + m.id;
+        if (seenKeys.has(key)) return;
+        const entry = {
+          key, kind: 'MATERIAL', id: m.id, nameTh: m.nameTh, tier: m.tier || 8,
+          cat: m.cat || 'ORE', element: m.element || 'NEUTRAL', grade: 'Transcendent', rarity: 'Transcendent',
+          transcendent: true, sourceRegistry: 'JD.CORE.transcendentMaterials',
+          stackable: true, canSect: true, canNpc: true, descTh: m.descTh || m.nameTh
+        };
+        if (matchesFilter(entry)) { seenKeys.add(key); base.push(entry); }
+      });
+
+      (JD.CORE.pureTranscendentElixirs || []).forEach(p => {
+        if (!p || !p.id) return;
+        const key = 'PILL:P:' + p.id;
+        if (seenKeys.has(key)) return;
+        const entry = {
+          key, kind: 'PILL', id: 'P:' + p.id, rawId: p.id, nameTh: p.nameTh, tier: p.tier || 8,
+          element: p.element || 'NEUTRAL', grade: 'Transcendent', rarity: 'Transcendent',
+          transcendent: true, sourceRegistry: 'JD.CORE.pureTranscendentElixirs',
+          stackable: true, canSect: true, canNpc: true, descTh: p.descTh || p.nameTh
+        };
+        if (matchesFilter(entry)) { seenKeys.add(key); base.push(entry); }
+      });
+
+      [].concat(JD.CORE.pureForgedGenesisItems || [], JD.CORE.worldTranscendentArtifacts || []).forEach(it => {
+        if (!it || !it.id) return;
+        const key = 'EQUIPMENT:' + it.id;
+        if (seenKeys.has(key)) return;
+        const entry = {
+          key, kind: 'EQUIPMENT', id: it.id, nameTh: it.nameTh, tier: it.tier || 8,
+          slot: it.slot || 'WEAPON', subType: it.subType || 'SWORD', element: it.element || 'NEUTRAL',
+          grade: 'Transcendent', rarity: 'Transcendent', transcendent: true,
+          sourceRegistry: 'JD.CORE.transcendentEquipment', stackable: false, canSect: true, canNpc: true,
+          descTh: it.descTh || it.nameTh
+        };
+        if (matchesFilter(entry)) { seenKeys.add(key); base.push(entry); }
+      });
+
+      (JD.CORE.pureTranscendentRecipes || []).forEach(r => {
+        if (!r || !r.id) return;
+        const key = 'RECIPE_SCROLL:' + r.id;
+        if (seenKeys.has(key)) return;
+        const entry = {
+          key, kind: 'RECIPE_SCROLL', id: r.id, nameTh: 'ม้วนตำรับ「' + r.nameTh + '」', tier: r.tier || 8,
+          element: 'NEUTRAL', grade: 'Transcendent', rarity: 'Transcendent', transcendent: true,
+          sourceRegistry: 'JD.CORE.pureTranscendentRecipes', stackable: false, canSect: true, canNpc: true,
+          descTh: r.nameTh
+        };
+        if (matchesFilter(entry)) { seenKeys.add(key); base.push(entry); }
+      });
+
+      return base;
+    };
+
+    const _origSpawnItem = SECT.EDITOR.spawnItem;
+    SECT.EDITOR.spawnItem = (W, opts) => {
+      const res = _origSpawnItem(W, opts);
+      if (res && res.ok) return res;
+      if (!W || !W.sect || !opts) return res;
+      const rawId = String(opts.id || '').replace(/^(P:|T:|S:)/, '');
+      const qty = Math.max(1, Math.min(50000, Math.floor(Number(opts.qty == null ? 1 : opts.qty))));
+      const dest = opts.dest || 'sect';
+      const npc = dest === 'npc' && W.byId ? W.byId[opts.npcId] : null;
+
+      if (opts.kind === 'PILL') {
+        const pDef = (ECO && ECO.itemById && ECO.itemById[rawId]) || (ECO && ECO.transcendentItemById && ECO.transcendentItemById[rawId]);
+        if (pDef) {
+          const pKey = 'P:' + pDef.id;
+          if (dest === 'sect') {
+            W.sect.stock[pKey] = (W.sect.stock[pKey] || 0) + qty;
+          } else if (npc) {
+            npc.inv = npc.inv || { mats: {}, pills: {}, gear: [], manuals: [], recipes: [] };
+            npc.inv.pills = npc.inv.pills || {};
+            npc.inv.pills[pKey] = (npc.inv.pills[pKey] || 0) + qty;
+          }
+          return { ok: true, kind: 'PILL', id: pKey, nameTh: pDef.nameTh, qty, dest };
+        }
+      }
+      return res;
+    };
+  }
+
+  // Hook SECT.electSuccessor for Patriarch Regalia generational succession
+  if (typeof SECT.electSuccessor === 'function') {
+    const _origElectSucc = SECT.electSuccessor;
+    SECT.electSuccessor = (W, opts) => {
+      const prevMasterId = W && W.sect ? W.sect.masterId : null;
+      const res = _origElectSucc(W, opts);
+      const newMasterId = W && W.sect ? W.sect.masterId : null;
+      if (newMasterId && newMasterId !== prevMasterId && W.byId && W.byId[newMasterId] && SECT.PATRIARCH_REGALIA) {
+        SECT.PATRIARCH_REGALIA.transferToNewMaster(W, W.byId[newMasterId]);
+      }
+      return res;
+    };
+  }
+
+  // Hook SECT.spawnCompanionOffspring for Transcendent Elixir Bloodline Inheritance
+  if (typeof SECT.spawnCompanionOffspring === 'function') {
+    const _origSpawnOffspring = SECT.spawnCompanionOffspring;
+    SECT.spawnCompanionOffspring = (W, parentAOrId, parentBOrId, opts) => {
+      const res = _origSpawnOffspring(W, parentAOrId, parentBOrId, opts);
+      if (res && (res.childNpc || res.child) && ECO && ECO.inheritTranscendentElixirBloodline) {
+        const a = typeof parentAOrId === 'object' ? parentAOrId : (W && W.byId && W.byId[parentAOrId]);
+        const b = typeof parentBOrId === 'object' ? parentBOrId : (W && W.byId && W.byId[parentBOrId]);
+        ECO.inheritTranscendentElixirBloodline(W, a, b, res.childNpc || res.child);
+      }
+      return res;
+    };
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
