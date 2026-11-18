@@ -1,4 +1,4 @@
-> **Historical checkpoint — superseded:** The 260c repair is complete. The active assignment is now [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](../../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md), covering the 31 PDFs introduced by uploads 881fecf and 6670b49. Keep this file as a record of the prior checkpoint; do not use it to block or duplicate the current assignment.
+> Historical checkpoint for the completed 260c repair. Start at the root [START_HERE_FOR_AI.md](../../../START_HERE_FOR_AI.md) for the current assignment.
 
 # ARCHIVE: จุดส่งต่องานหลัง 260c repair — รอคำสั่งผู้ใช้ในเวลานั้น
 

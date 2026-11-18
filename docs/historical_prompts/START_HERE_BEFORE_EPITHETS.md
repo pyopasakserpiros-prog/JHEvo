@@ -1,4 +1,4 @@
-> ARCHIVED historical pre-epithet notes. The current assignment is the root [Carbon compendia prompt](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md); the former epithet prompt is kept as an archive in this folder.
+> Archived pre-epithet notes. Start at the root [START_HERE_FOR_AI.md](../../START_HERE_FOR_AI.md) for the current assignment.
 
 > ตรวจหลังหมวด 01–13 (2026-11-15): ดู [รายงานผลตรวจและงานค้าง](../../after%20debug/02_POST13_REVIEW_AND_NEXT_PATCH.md) สำหรับข้อบกพร่องที่พบหลัง final-release และ [แผนแพตช์ถัดไป](../../after%20debug/03_NEXT_PATCH_POST13.md) ซึ่งรอผู้ใช้สั่งเริ่ม การผ่าน regression ไม่เท่ากับปิดทุกข้อในเอกสารต้นฉบับ
 

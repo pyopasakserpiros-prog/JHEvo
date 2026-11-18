@@ -1,4 +1,4 @@
-> Historical project-status snapshot. Current status and assignment are in the root [project status](../project_status_and_ai_onboarding.md) and [Carbon prompt](../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md).
+> Historical project-status snapshot. Use the root [project status](../project_status_and_ai_onboarding.md) and [starting guide](../START_HERE_FOR_AI.md) for the current branch.
 
 > **สถานะปัจจุบัน (`JS2-v2.6.0` ส่งมอบสมบูรณ์แล้ว — 9 พฤศจิกายน 2026):** พัฒนาและทดสอบแพตช์ **JS2-v2.6.0 พงศาวดารมีชีวิต การรายงานยุทธภพ และตัวกรองการรับข่าว** เสร็จสมบูรณ์ 100% (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, ผลฐานพงศาวดารผ่าน **148/148 กลุ่ม**; ผล VFX refinement ล่าสุดอยู่ในส่วน T6 ด้านล่าง) ดูรายละเอียดใน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](../PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจ [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](../docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md) งาน authorship/barter/relic biography เดิมยังคงถูกพักไว้ใน `docs/deferred/`
 
@@ -153,7 +153,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 
 ## 3. แผนแม่บท 5 ระยะสำหรับข้อเสนอสร้างสรรค์ 36 ข้อ (5-Phase Master Roadmap: PROP-01 ถึง PROP-36)
 
-> หมายเหตุ: ตาราง v3.x ด้านล่างเป็น roadmap รุ่นก่อนและใช้เป็นข้อมูลประวัติ ไม่ใช่งาน active ปัจจุบัน งานปัจจุบันดูที่ `../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md` และ `../START_HERE_FOR_AI.md`
+> หมายเหตุ: ตาราง v3.x ด้านล่างเป็น roadmap รุ่นก่อนและใช้เป็นข้อมูลประวัติ ไม่ใช่งาน active ปัจจุบัน งานปัจจุบันดูที่ `../START_HERE_FOR_AI.md`
 
 | ระยะ (Phase) | เวอร์ชันเป้าหมาย | ข้อเสนอที่ครอบคลุม | หัวใจสำคัญของระบบ | สถานะ |
 | :---: | :---: | :--- | :--- | :---: |
@@ -168,7 +168,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 
 ## 4. คำแนะนำสำหรับ AI ในการเริ่มงานรอบถัดไป (Active AI Guidance for Next Turn)
 
-> **ใบสั่งงานปัจจุบันของ repository:** [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) และ [review guide](../docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). ข้อความด้านล่างเป็นคำแนะนำจาก snapshot เก่าและไม่ใช่ขอบเขตงานปัจจุบัน.
+> **ใบสั่งงาน Carbon ในอดีต:** [พรอมต์เก็บถาวร](../docs/historical_prompts/ARCHIVE_CARBON_COMPENDIA.md) และ [review guide](../docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md) งานปัจจุบันอยู่ใน [START_HERE_FOR_AI.md](../START_HERE_FOR_AI.md)
 
 1. อ่าน START_HERE_FOR_AI.md, AGENTS.md และใบสั่งงาน active ให้ครบ แล้วตรวจซอร์ส/ชุดทดสอบจาก ZIP ล่าสุดก่อนเริ่ม
 2. ทำออร่าขั้นสูงสุดของ 43 วิถีและเอฟเฟกต์วิชาระดับสูงตามข้อมูลจริง โดยใช้ maxStage ของแต่ละวิถี ตรวจเอกลักษณ์ การต่อเข้าระบบ และประสิทธิภาพตามใบสั่งงาน

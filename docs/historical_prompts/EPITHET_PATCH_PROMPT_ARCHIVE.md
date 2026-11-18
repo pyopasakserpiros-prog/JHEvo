@@ -1,4 +1,4 @@
-> **ARCHIVED — ห้ามใช้เป็นงานปัจจุบันหรือเริ่มทำตามคำสั่งด้านล่าง**: ระบบฉายาได้ถูกรวมและพัฒนาแล้ว เนื้อหาด้านล่างเก็บไว้เพื่อบันทึกข้อกำหนดเดิมเท่านั้น งานปัจจุบันให้ยึด [START_HERE_FOR_AI.md](../../START_HERE_FOR_AI.md) และ [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md)
+> ระบบฉายาด้านล่างเป็นบันทึกข้อกำหนดเดิม งานปัจจุบันเริ่มที่ [START_HERE_FOR_AI.md](../../START_HERE_FOR_AI.md)
 
 # ARCHIVE: ใบสั่งงานฉายาสำหรับ Gemini Argon4 — สมญานามมีชีวิตแห่งยุทธภพ
 

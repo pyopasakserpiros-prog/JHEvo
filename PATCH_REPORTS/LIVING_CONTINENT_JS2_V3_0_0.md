@@ -21,7 +21,7 @@ Development base: `main-debug` at `e4ce280`. Runtime stays in JianghuSect 2. The
 
 ## Runtime boundaries
 
-The city and court layer is an exterior simulation of settlements, officials and diplomacy. Residents of the player sect continue to use the existing residential map. The full historical succession, claimant and war arcs remain proposals. Existing abstract diplomatic exchanges and market ledger transactions are separate from routed trips. Regular coastal ferries are part of the fixed geography. Shared passenger vessels are documented in the next patch proposal.
+The city and court layer is an exterior simulation of settlements, officials and diplomacy. Residents of the player sect continue to use the existing residential map. The full historical succession, claimant and war arcs remain proposals. Existing abstract diplomatic exchanges and market ledger transactions are separate from routed trips. Regular coastal ferries are part of the fixed geography. Shared passenger vessels are documented in a [deferred proposal](../docs/deferred/GROUP_TRANSPORTATION_PROPOSAL.md).
 
 The source tree and rebuilt `GAME_SOURCE/JianghuSect_single.html` share the same data. Both terrain layers are embedded in the single file. `AGENTS.md`, `js/human_core.js`, script order and test load order match the base. The human core fingerprint is `155:2f9c9dd7`.
 

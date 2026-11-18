@@ -1,6 +1,6 @@
 # ข้อมูลและแนวทางเสนอ Gemini Argon4 — แพตช์ฉายา
 
-> Historical reference for the completed epithet implementation. The active assignment is the [Carbon compendia patch](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md). The design notes below are not active instructions.
+> Historical reference for the completed epithet implementation. Start at the root [START_HERE_FOR_AI.md](../../START_HERE_FOR_AI.md) for the current assignment.
 
 ฐานอ้างอิงในอดีต: `main-debug` commit `92e0d82` ข้อความต่อจากนี้บันทึกสถานะและข้อเสนอ ณ เวลานั้น ส่วนระบบฉายาได้รับการพัฒนาแล้ว `AGENTS.md` เป็นกฎสูงสุดของโครงการ และคำสั่งผู้ใช้มีลำดับเหนือข้อเสนอในไฟล์นี้
 

@@ -1,4 +1,4 @@
-> Historical report archive. The active assignment is the root [Carbon compendia prompt](../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md); this index documents prior audits and releases.
+> Historical report archive. Start at the root [START_HERE_FOR_AI.md](../START_HERE_FOR_AI.md) for the current assignment.
 
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 

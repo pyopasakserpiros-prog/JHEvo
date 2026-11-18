@@ -1,8 +1,10 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
+> **แพตช์ถัดไป — JS2 v3.1.0 Living Lore:** เริ่มที่ [พรอมต์สำหรับ Gemini](ACTIVE_PATCH_PROMPT_V3_1_0.md), [ดัชนีเอกสาร Lore และจุดเชื่อมในซอร์จ](docs/handovers/JS2_V3_1_0_LORE_SOURCE_MAP.md) และ [ข้อเสนอออกแบบจาก Codex](docs/handovers/JS2_V3_1_0_LIVING_LORE_DESIGN_FOR_GEMINI.md) แพตช์นี้จะเพิ่มเรื่องเล่า ความรู้รายบุคคล การสำรวจและอีเวนต์ที่เกิดจาก NPC ตัวเกมในสาขายังเป็นฐาน v3.0.0
+
 > **JS2-v3.0.0 Living Continent:** 54 เมือง ด่าน และชุมชนในแผนที่ทวีป 1,000 × 1,000 ลี้ เปิด **ยุทธภพ → อาณาจักร** เพื่อดูทั้ง 9 อาณาจักร, 67 ตำแหน่ง เมืองหลวง นโยบาย และไมตรี ผู้เล่นเปิดจากหมุดเมือง หน้าตัวละคร หรือข่าวที่มีพิกัดได้ NPC เยี่ยมเมืองเองตามเสบียง ความสนใจ ระยะทาง และความผูกพันกับบ้านเกิด ความสัมพันธ์ระหว่างคนได้รับผลตามบุคลิกและความไว้ใจกันจริง คณะเดินทางและขบวนเสบียงที่ออกเดินทางแล้วมีเวลาออก ถึง และกลับตามเส้นทาง แผนที่ซูม 1×–10× พร้อมภาพรายละเอียดที่โหลดตามพื้นที่ที่เห็น [รายงานและผลตรวจ](PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md).
 
-> **ข้อมูลพัฒนา:** `JD.CONTINENT` เป็น gazetteer และเส้นทางตั้งต้น, `EXPED.SETTLEMENTS` และ `ensureWorldTopology` คือข้อมูลที่แผนที่กับเกมใช้ร่วมกัน, `W.world.continent` ถือสถานะเมืองและราชสำนัก, `npc.ext.world` ถือบ้านเกิด ห้ามโยงการซูมกับระยะเดินทาง [ข้อเสนอพาหนะกลุ่มสำหรับแพตช์ถัดไป](ACTIVE_PATCH_PROMPT_V3_1_0.md).
+> **ข้อมูลพัฒนา:** `JD.CONTINENT` เป็น gazetteer และเส้นทางตั้งต้น, `EXPED.SETTLEMENTS` และ `ensureWorldTopology` คือข้อมูลที่แผนที่กับเกมใช้ร่วมกัน, `W.world.continent` ถือสถานะเมืองและราชสำนัก, `npc.ext.world` ถือบ้านเกิด ห้ามโยงการซูมกับระยะเดินทาง [ข้อเสนอพาหนะกลุ่มที่พักไว้](docs/deferred/GROUP_TRANSPORTATION_PROPOSAL.md).
 
 
 > **โมเดลอสูรป่ารอบสำนัก:** ตัววาด Canvas แยกอสูรในพูลเดิม 125 ชนิดเป็น 35 รูปทรงพื้นฐาน มีลายและองค์ประกอบตามชนิด เช่น เขากิเลน หางจิ้งจอก และเศียรมังกร ขนาดเพิ่มตาม T1–T7 และอสูรหายากมีวงปราณใต้เท้า ใช้ภาพเดียวกันเมื่อเดินและเข้าศึก พร้อมแถบเลือดตอนต่อสู้ [รายงานและผลตรวจ](PATCH_REPORTS/WILD_BEAST_MODELS_JS2_V2_6_0.md).
@@ -19,7 +21,7 @@
 
 > **ฐานพัฒนาหลัง 260e:** ภาพคัมภีร์เหนือตำนาน 38 วิชา ตราบรรพชน 24 รูปแบบ และอุปกรณ์ Pantheon/Genesis ใช้ภาพเฉพาะในคลังและหน้าตรวจสอบ ฉาก 4 จังหวะรับข้อมูลจริงจากการร่ายและการทำงานของอุปกรณ์ ดู [ขอบเขตและผลตรวจ](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
 
-> **Historical Carbon handoff:** The 31-PDF Carbon assignment is prior context for the current branch. Start at [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), then read [the active prompt](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and [the review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). Prepared against main-debug commit 6670b49; preserve newer work. AGENTS.md remains immutable without explicit user authorization.
+> **Historical Carbon handoff:** The 31-PDF Carbon assignment is prior context for the current branch. Start at [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md), then read [the archived Carbon prompt](docs/historical_prompts/ARCHIVE_CARBON_COMPENDIA.md) and [the review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). Prepared against main-debug commit 6670b49; preserve newer work. AGENTS.md remains immutable without explicit user authorization.
 
 > **สถานะตอนส่งมอบ (`JS2-v2.6.0` — 9 พฤศจิกายน 2026):** พัฒนาและทดสอบแพตช์ **JS2-v2.6.0 พงศาวดารมีชีวิต การรายงานยุทธภพ และตัวกรองการรับข่าว** เสร็จสมบูรณ์ 100% (`SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`, ผลฐานพงศาวดารผ่าน **148/148 กลุ่ม**; ผล VFX refinement ล่าสุดอยู่ในส่วน T6 ด้านล่าง) ดูรายละเอียดใน [`PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md`](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจ [`docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md`](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md) งาน authorship/barter/relic biography เดิมยังคงถูกพักไว้ใน `docs/deferred/`
 
@@ -174,7 +176,7 @@ All 15 assignments and the baseline no-duplicate audit are recorded in [Skill VF
 
 ## 3. แผนแม่บท 5 ระยะสำหรับข้อเสนอสร้างสรรค์ 36 ข้อ (5-Phase Master Roadmap: PROP-01 ถึง PROP-36)
 
-> หมายเหตุ: ตาราง v3.x ด้านล่างเป็น roadmap รุ่นก่อนและใช้เป็นข้อมูลประวัติ ไม่ใช่งาน active ปัจจุบัน งานปัจจุบันดูที่ `START_HERE_FOR_AI.md` และ `ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md`
+> หมายเหตุ: ตาราง v3.x ด้านล่างเป็น roadmap รุ่นก่อนและใช้เป็นข้อมูลประวัติ ไม่ใช่งาน active ปัจจุบัน งานปัจจุบันดูที่ `START_HERE_FOR_AI.md` และ `ACTIVE_PATCH_PROMPT_V3_1_0.md`
 
 | ระยะ (Phase) | เวอร์ชันเป้าหมาย | ข้อเสนอที่ครอบคลุม | หัวใจสำคัญของระบบ | สถานะ |
 | :---: | :---: | :--- | :--- | :---: |

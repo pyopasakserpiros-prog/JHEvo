@@ -1,4 +1,4 @@
-> Historical bug-report archive. The current assignment is in the root [START_HERE_FOR_AI.md](../START_HERE_FOR_AI.md) and [active Carbon prompt](../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md); the instructions below describe an older snapshot.
+> Historical bug-report archive. Start at the root [START_HERE_FOR_AI.md](../START_HERE_FOR_AI.md) for the current assignment. The instructions below describe an older snapshot.
 
 # เริ่มงานที่นี่ — JianghuSect 2
 

@@ -1,4 +1,4 @@
-> **ARCHIVED — completed historical assignment. Do not execute as current work.** The current assignment is [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md); this file records the original JS2-v2.6.0 reporting prompt.
+> Archived v2.6.0 reporting assignment. Start at the root [START_HERE_FOR_AI.md](../../START_HERE_FOR_AI.md) for the current assignment.
 
 # ARCHIVE: ใบสั่งงาน JS2-v2.6.0 — พงศาวดารมีชีวิตและการรายงานยุทธภพ
 

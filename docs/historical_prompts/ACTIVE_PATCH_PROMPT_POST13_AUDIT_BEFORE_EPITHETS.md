@@ -1,4 +1,4 @@
-> ARCHIVED prior Post-13 audit assignment. The current assignment is the root [Carbon compendia prompt](../../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md).
+> Archived Post-13 audit assignment. Start at the root [START_HERE_FOR_AI.md](../../START_HERE_FOR_AI.md) for the current assignment.
 
 # พรอมต์สำหรับ Gemini — แพตช์ถัดไปจากรายงานใหม่ 13 ฉบับ
 

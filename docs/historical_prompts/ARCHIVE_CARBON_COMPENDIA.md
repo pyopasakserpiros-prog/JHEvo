@@ -1,3 +1,5 @@
+> Historical assignment for the completed Carbon compendia patch. The current handoff starts at [START_HERE_FOR_AI.md](../../START_HERE_FOR_AI.md).
+
 # Active Patch Assignment: Integrate and Develop the Latest Carbon Compendia
 
 **Target:** main-debug, prepared from commit 6670b49
@@ -5,7 +7,7 @@
 **Status:** Ready for implementation
 **Language:** English for this prompt, design notes, implementation report, and handoff. Player-facing strings must follow the project's existing Thai localization conventions.
 
-This is the active assignment. Read this file and the [review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md), then inspect the repository and implement the best coherent patch you can justify. The user has already authorized independent design and implementation judgment. Do not stop at a proposal, summary, or request for a new prompt.
+This is the active assignment. Read this file and the [review guide](../handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md), then inspect the repository and implement the best coherent patch you can justify. The user has already authorized independent design and implementation judgment. Do not stop at a proposal, summary, or request for a new prompt.
 
 ## Mission
 

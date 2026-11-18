@@ -1,5 +1,7 @@
 # JianghuSect 2 (ภาค 2) — JS2-v3.0.0 Living Continent
 
+> **แพตช์ถัดไปสำหรับ Gemini — v3.1.0 Living Lore:** เปิด [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) เพื่ออ่านพรอมต์ ดัชนี Lore และข้อเสนอออกแบบใน ZIP
+
 เปิด **ยุทธภพ → แผนที่ยุทธภพ** เพื่อดูทวีปเต็มผืน ซูมเข้าเพื่ออ่านภูมิประเทศและดูตำแหน่งจริงของคณะเดินทาง หรือเปิด **ยุทธภพ → อาณาจักร** เพื่อดูราชสำนัก เมือง และผู้ครองตำแหน่งทั้ง 9 อาณาจักร [รายงาน Living Continent](PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md)
 
 > **main-debug — คู่หูแห่งหุบเขา:** มีคู่หูประจำถิ่น 18 แบบ (T1–T2 ระดับละ 5) NPC ผูกพันธสัญญาเอง และมีท่าขี่พาหนะกับกระบี่บินบนแผนที่ [รายงานแพตช์](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md).
@@ -10,7 +12,7 @@
 
 > **main-debug — Transcendent VFX:** ภาพวิชาและอุปกรณ์เหนือตำนานชุดใหม่เชื่อมกับการต่อสู้และคลังแล้ว ดู [รายงานแพตช์](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
 
-> **Historical Carbon assignment:** Gemini Argon4 received [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
+> **Historical Carbon assignment:** Gemini Argon4 received [the archived Carbon prompt](docs/historical_prompts/ARCHIVE_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
 
 > **main-debug — ล่าอสูรหุบเขา:** อสูรทั่วไป T1–T7 เกิดบนบกและในแม่น้ำ มินิบอสกับบอสให้คณะล่ารวมตัวเองตามกำลังและตบะ บอสเหนือตำนานต้องมีผู้พร้อมอย่างน้อย 51 คน บอสพำนักสงบจนถูกท้าทาย [รายงานแพตช์](PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md).
 

@@ -1,4 +1,4 @@
-> Current Gemini Argon4 assignment: [Carbon compendia patch](../ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](../docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). Epithet material below is historical implementation reference, not an active assignment.
+> Current assignment: [v3.1.0 Living Lore](../ACTIVE_PATCH_PROMPT_V3_1_0.md) and its [lore source map](../docs/handovers/JS2_V3_1_0_LORE_SOURCE_MAP.md). The epithet material below records earlier implementation.
 
 # 💡 คลังไอเดียและแนวคิดสำหรับอนาคต (Ideas & Knowledge Scrapbook)
 
