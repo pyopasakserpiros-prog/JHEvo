@@ -1,6 +1,6 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
 
-> **main-debug — คู่หูแห่งหุบเขา:** เพิ่มคู่หู T6–T1 ระดับละสองตัว NPC ผูกพันธสัญญากับอสูรป่านอกสำนักจากการออกสำรวจ [รายงานแพตช์](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md).
+> **main-debug — คู่หูแห่งหุบเขา:** มีคู่หูประจำถิ่น 18 แบบ (T1–T2 ระดับละ 5) NPC ผูกพันธสัญญาเอง และมีท่าขี่พาหนะกับกระบี่บินบนแผนที่ [รายงานแพตช์](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md).
 
 > **main-debug — สัตว์คู่หูสามระดับ:** คุนเผิง จิ้งจอกเก้าหาง กิเลน และไป๋เจ๋อ รวม 12 แบบ มีจุดเด่น จุดอ่อน และเส้นทางที่ NPC ค้นพบเอง ดู [รายงานแพตช์](PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
 

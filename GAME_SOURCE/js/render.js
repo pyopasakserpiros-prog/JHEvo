@@ -4234,26 +4234,31 @@
 
       const ap = this.appearance(n);
       const sc = ap.scale * 1.15 * (n.rank === 6 ? 1.08 : 1);
-      const qgInfo = (g.CULT && g.CULT.QINGGONG && n.cult) ? g.CULT.QINGGONG.resolveNpcMode(W, n) : null;
-      const qgMode = (moving || act === 'qinggong') && qgInfo ? qgInfo.modeId : 'MORTAL_WALK';
-      const remSteps = n.path ? Math.max(0, n.path.length - (n.pi || 0)) : 0;
-      const isShortHop = moving && !n.travel && remSteps > 0 && remSteps < 5;
-      const isAerialFlight = !isShortHop && (moving || act === 'qinggong') && (qgMode === 'SWORD_FLIGHT' || qgMode === 'CELESTIAL_LEVITATION');
+      const mount = moving && n.path && act !== 'fight' ? g.EXPED?.travelMount(n) : null;
+      const ridingAirborne = !!mount && R.isAirborneMount(mount);
+      const qgInfo = !mount && act !== 'fight' && (moving || act === 'qinggong') && n.cult ? CULT.QINGGONG?.resolveNpcMode(W, n) : null;
+      const qgMode = qgInfo && (!qgInfo.airborne || n.aerialFlightActive || act === 'qinggong')
+        ? qgInfo.modeId : 'MORTAL_WALK';
+      const ridingSword = qgMode === 'SWORD_FLIGHT';
+      const isAerialFlight = ridingAirborne || ridingSword || qgMode === 'CELESTIAL_LEVITATION';
       const isLeapBound = (moving || act === 'qinggong') && qgMode === 'LEAP_BOUND';
       const isWaterDrift = (moving || act === 'qinggong') && qgMode === 'WATER_LOTUS_DRIFT';
       const ph = this.t * (act === 'fight' || n.run ? 14 : (qgMode !== 'MORTAL_WALK' ? 13 : 9)) + (n.n || 0) * 1.7;
-      const step = isAerialFlight ? 0 : (moving ? Math.sin(ph) : 0);
-      const aerialLift = qgMode === 'CELESTIAL_LEVITATION'
+      const step = mount || isAerialFlight ? 0 : (moving ? Math.sin(ph) : 0);
+      const motionTime = (mount || ridingSword) && this.isReducedMotion() ? 0 : this.t;
+      const aerialLift = mount
+        ? (ridingAirborne ? 24 + Math.sin(motionTime * 5) * 1.9 : 12 + Math.sin(motionTime * 8) * .9)
+        : qgMode === 'CELESTIAL_LEVITATION'
         ? (14.5 + Math.sin(this.t * 3.8 + (n.n || 0)) * 2.4)
         : qgMode === 'SWORD_FLIGHT'
-        ? (11.5 + Math.sin(this.t * 5.0 + (n.n || 0)) * 1.8)
+        ? (11.5 + Math.sin(motionTime * 5.0 + (n.n || 0)) * 1.8)
         : isLeapBound
         ? (Math.abs(Math.sin(this.t * 7.2 + (n.n || 0))) * 13.5)
         : isWaterDrift
         ? (2.2 + Math.sin(this.t * 4.5 + (n.n || 0)) * 0.8)
         : 0;
       const bob = moving
-        ? (isAerialFlight ? aerialLift : (Math.abs(Math.sin(ph)) * 1.35 + aerialLift))
+        ? (isAerialFlight || mount ? aerialLift : (Math.abs(Math.sin(ph)) * 1.35 + aerialLift))
         : (act === 'qinggong' ? aerialLift : (act === 'cultivate' || act === 'sleep' ? 0 : Math.sin(this.t * 2 + (n.n || 0)) * 0.25));
       const face = n.face >= 0 ? 1 : -1;
       const inDoStage = !moving && (!n.act || n.act.stage !== 'move');
@@ -4287,7 +4292,7 @@
 
       // Companion Spirit Beast beside disciple on map (Pillar 1D)
       if (ap.hasPet) {
-        this.drawCompanionPets(ctx, n, p, sc);
+        this.drawCompanionPets(ctx, n, p, sc, mount);
       }
 
       // Legendary passive/mantra aura (pure read-only)
@@ -4348,15 +4353,27 @@
       const legL = pose === 'sit' ? 0 : step * 2.5, legR = pose === 'sit' ? 0 : -step * 2.5;
 
       const by = -bob;
-      // Patch v5.4.0: Underfoot Mount / Sword Flight / Celestial Cloud / Phantom Blink Clones
+      if (mount) R.drawTravelMount(ctx, mount, by, motionTime, this.isReducedMotion());
+      // Patch v5.4.0: Underfoot Sword Flight / Celestial Cloud / Phantom Blink Clones
       if (qgMode !== 'MORTAL_WALK' && (moving || act === 'qinggong')) {
         this.drawQinggongBodyEffects(ctx, n, ap, qgMode, qgInfo, by, step);
       }
 
       // Boots / Crossed legs (elevated by `by` when airborne or leaping!)
       ctx.fillStyle = '#2d313b';
-      if (pose === 'sit') {
+      if (mount) {
+        // Torso sits on the saddle. The near knee and boot overlap the flank.
+        ctx.fillStyle = '#293435';
+        ctx.beginPath(); ctx.ellipse(0, by - 3, 5.4, 1.9, 0, 0, 7); ctx.fill();
+        ctx.strokeStyle = shade(robe, -.27);
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(-2, by - 5); ctx.lineTo(2.6, by - 1); ctx.lineTo(1.5, by + 3.3); ctx.stroke();
+        ctx.fillStyle = '#202a2e'; ctx.fillRect(.6, by + 2.2, 3.5, 2.1);
+      } else if (pose === 'sit') {
         ctx.beginPath(); ctx.ellipse(0, -2 + by, 5.8, 2.2, 0, 0, 7); ctx.fill();
+      } else if (ridingSword) {
+        ctx.fillRect(-4.9, by - 4.5, 3, 4.5);
+        ctx.fillRect(2.8, by - 5.3, 3.4, 5.3);
       } else if (isAerialFlight) {
         // Poised immortal / sword-rider stance with boots resting atop the flying sword or cloud
         ctx.fillRect(-3.0, -5.5 + by, 2.4, 5.5);
@@ -4444,7 +4461,11 @@
 
       // Context-Sensitive Arms & Sleeves
       let armA = -0.2 + (moving ? -step * 0.55 : 0), armB = 0.2 + (moving ? step * 0.55 : 0);
-      if (act === 'practice' || act === 'skillDrill' || (act === 'fight' && lunge)) {
+      if (mount) {
+        armA = .95; armB = 1.2;
+      } else if (ridingSword) {
+        armA = .75; armB = -.84;
+      } else if (act === 'practice' || act === 'skillDrill' || (act === 'fight' && lunge)) {
         armA = -1.35 + Math.sin(this.t * 9 + (n.n || 0)) * 0.85;
       } else if (pose === 'sit') {
         armA = 0.85; armB = 0.85;
@@ -4464,9 +4485,9 @@
       ctx.beginPath(); ctx.arc(3 + Math.sin(armA) * 6 + lunge, -12 + by + Math.cos(armA) * 5.5, 1.45, 0, 7); ctx.fill();
 
       // Weapon / Activity Prop + Legendary Weapon Visual Silhouette
-      if (ap.weaponVisualKey && ap.weaponUsable) {
+      if (!ridingSword && ap.weaponVisualKey && ap.weaponUsable) {
         this.drawLegendaryWeaponVisual(ctx, n, ap, armA, by, lunge, act);
-      } else if (ap.weaponVisualKey && !ap.weaponUsable) {
+      } else if (!ridingSword && ap.weaponVisualKey && !ap.weaponUsable) {
         // Sealed / dormant scabbard on back when weapon requirements are not met
         ctx.save();
         ctx.strokeStyle = "#5c6470";
@@ -4474,8 +4495,8 @@
         ctx.beginPath(); ctx.moveTo(-3.2, -13 + by); ctx.lineTo(2.4, -5 + by); ctx.stroke();
         ctx.restore();
       }
-      this.drawProp(ctx, n, act, armA, by, lunge, ap);
-      if (this.opts.flyingSwords !== false) {
+      if (!ridingSword) this.drawProp(ctx, n, act, armA, by, lunge, ap);
+      if (!ridingSword && this.opts.flyingSwords !== false) {
         this.drawOrbitingFlyingWeapon(ctx, n, ap, by, act);
       }
       if (this.opts.combatSlashes !== false) {
@@ -6156,8 +6177,9 @@
       return true;
     },
 
-    drawCompanionPets(ctx, n, p, sc) {
-      const pets = Array.isArray(n.pets) ? CULT.activePets(n) : (n.pet && n.pet.active !== false ? [n.pet] : []);
+    drawCompanionPets(ctx, n, p, sc, mount) {
+      let pets = Array.isArray(n.pets) ? CULT.activePets(n) : (n.pet && n.pet.active !== false ? [n.pet] : []);
+      if (mount) pets = pets.filter(pet => pet !== mount);
       const pet = pets[0];
       if (!pet) return false;
       const t = this.isReducedMotion() ? 0 : this.t + (n.n || 0) * 0.6;
@@ -6692,6 +6714,7 @@
         const bladeCol = hasWpn ? (ap.weaponColor || '#00f5d4') : '#8ecae6';
         const glowCol = hasWpn ? '#ffd166' : '#48cae4';
         const sy = by + 0.8;
+        const time = this.isReducedMotion() ? 0 : t;
 
         // Trailing sword-qi jet stream behind the flying sword
         for (let i = 1; i <= 4; i++) {
@@ -6699,16 +6722,16 @@
           ctx.lineWidth = Math.max(0.8, 2.6 - i * 0.45);
           ctx.globalAlpha = 0.65 - i * 0.12;
           ctx.beginPath();
-          ctx.moveTo(-7 - i * 3.5, sy + Math.sin(t * 10 + i) * 0.9);
-          ctx.lineTo(-14 - i * 4.8, sy + Math.cos(t * 9 + i) * 1.3);
+          ctx.moveTo(-7 - i * 3.5, sy + Math.sin(time * 10 + i) * 0.9);
+          ctx.lineTo(-14 - i * 4.8, sy + Math.cos(time * 9 + i) * 1.3);
           ctx.stroke();
         }
 
         // Outer Qi Aura around the flying sword
-        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 8);
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(time * 8);
         ctx.fillStyle = bladeCol;
         ctx.beginPath();
-        ctx.ellipse(1.0, sy, 13.5, 2.9, 0, 0, Math.PI * 2);
+        ctx.ellipse(1.0, sy, 17.0, 2.9, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // Crisp Sword Blade Body (pointing forward +X in local facing coords)
@@ -6718,9 +6741,9 @@
         ctx.lineWidth = 1.1;
         ctx.beginPath();
         ctx.moveTo(-9.5, sy - 1.25);
-        ctx.lineTo(9.2, sy - 1.05);
-        ctx.lineTo(13.2, sy);
-        ctx.lineTo(9.2, sy + 1.05);
+        ctx.lineTo(13.2, sy - 1.05);
+        ctx.lineTo(19.2, sy);
+        ctx.lineTo(13.2, sy + 1.05);
         ctx.lineTo(-9.5, sy + 1.25);
         ctx.closePath();
         ctx.fill();
@@ -10614,13 +10637,13 @@
   };
 
   const paths = new Map();
-  R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face) => {
+  R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face, riding = false) => {
     const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec || typeof Path2D !== 'function') return false;
     const [ink, mid, light, shine, gold] = illustration(spec).color;
     const floating = spec.symbol === 'AZURE_DRAGON' || spec.symbol === 'VERMILION_PHOENIX' || spec.familyId === 'KUNPENG';
     ctx.save();
-    ctx.translate(x, y - (floating ? Math.sin(time * 2.1) * 3 + scale * 13 : 0));
+    ctx.translate(x, y - (floating && !riding ? Math.sin(time * 2.1) * 3 + scale * 13 : 0));
     ctx.scale((face || 1) * scale, scale);
     ctx.translate(-80, -94);
     ctx.lineJoin = 'round';
@@ -10729,6 +10752,42 @@
       detail:'M43 69 57 64 74 65 90 71 83 77 62 76 52 72Z M98 35 111 33 116 36 106 38Z',
       accent:'M48 71 67 69 79 72 M116 38 118 39'
     },
+    GRASS_TURTLE: {
+      color:['#24392a','#63805c','#b5c68a','#e1e4aa'],
+      body:'M19 83 31 77 36 63 52 52 75 46 96 54 110 70 121 67 135 69 143 75 136 81 122 82 119 89 110 91 103 84 65 86 57 94 45 94 48 85 28 86Z',
+      detail:'M39 69 53 56 73 50 68 62 59 70 47 75Z M69 66 77 51 93 57 106 72 90 74Z M44 77 61 75 69 69 85 76 77 82 56 83Z',
+      accent:'M52 59 56 56 M81 55 85 58 M50 80Q76 72 99 80 M130 73 133 74'
+    },
+    GOAT: {
+      color:['#30423e','#748c83','#d6dfbd','#e9c781'],
+      body:'M20 61 34 64 48 56 74 54 89 51 101 42 113 45 125 43 139 53 140 60 128 67 116 64 107 74 108 90 101 94 95 91 96 72 79 76 74 91 64 93 65 79 48 78 43 91 36 93 33 91 38 75Z',
+      detail:'M104 45Q91 34 94 22Q105 27 111 43Z M113 45Q108 30 114 21Q122 24 120 46Z M103 54 114 47 127 48 136 54 129 58 120 56 111 63 107 70Z M41 62 55 58 75 58 67 65 53 66Z',
+      accent:'M98 31 103 33 M114 29 117 30 M123 52 126 53 M131 62 136 59'
+    },
+    MOTH: {
+      airborne:true, color:['#3c2d41','#7d6281','#e3bedc','#fff1ae'],
+      body:'M75 52Q44 22 21 32Q12 63 47 74Q36 86 57 92L79 76 90 92Q114 89 108 75Q143 65 142 34Q121 19 88 52L91 61 83 79 75 66Z',
+      detail:'M27 38Q47 37 71 56L63 68Q34 63 27 38Z M135 37Q114 39 91 57L100 68Q125 64 135 37Z M49 78 64 73 71 77 58 86Z M97 76 107 83 96 84 90 79Z',
+      accent:'M78 52 73 42 68 40 M85 52 91 41 96 39 M38 50Q47 44 53 52Q47 59 38 50Z M107 52Q116 44 123 51Q116 58 107 52Z'
+    },
+    WILDCAT: {
+      color:['#343533','#816f57','#c7ae84','#f4d27e'],
+      body:'M40 72Q33 80 20 72Q10 64 18 54L22 56Q18 65 28 68L45 67 56 59 80 60 99 64 108 48 115 43 120 52 132 45 133 57 144 64 140 72 124 76 114 84 113 92 104 94 104 81 81 83 73 92 64 92 67 82 52 83 47 91 38 91 41 79Z',
+      detail:'M106 58 120 54 133 58 142 65 135 70 125 69 114 76 107 68Z M50 68 59 63 78 63 84 70 65 71Z',
+      accent:'M59 60 63 68 M70 61 74 69 M81 61 86 69 M94 63 98 71 M124 61 128 62 M22 65 25 68'
+    },
+    FAWN: {
+      color:['#3f3a26','#92744b','#d7bb7e','#fff0af'],
+      body:'M30 67 46 60 69 58 87 61 99 48 103 37 113 44 123 43 132 50 140 53 136 61 120 62 111 75 113 92 104 96 101 78 88 78 81 94 72 95 77 77 54 80 49 92 41 95 39 93 45 77 31 76 20 66Z',
+      detail:'M103 43Q90 35 94 28Q106 31 111 44Z M114 44Q118 34 129 34Q127 42 123 46Z M108 50 121 47 132 52 132 56 119 57 115 65 106 62Z',
+      accent:'M47 65 50 65 M57 63 60 63 M67 63 70 63 M53 69 56 69 M64 68 67 68 M123 51 126 52'
+    },
+    MANTIS: {
+      color:['#273b2b','#5e7948','#bdd28a','#ecdc7f'],
+      body:'M22 78 34 67 66 62 83 62 95 52 100 39 112 32 122 40 117 49 109 50 101 67 94 79 97 91 90 93 84 79 72 77 61 93 52 95 48 91 63 77 45 77 35 85Z M101 59 117 64 128 55 132 62 119 73 105 67Z',
+      detail:'M28 75 43 68 74 64 85 67 75 73 52 74Z M101 42 112 35 118 40 114 44 105 47Z',
+      accent:'M107 36 101 28 95 27 M115 34 119 25 127 23 M108 42 112 42 M52 69 63 68 M120 66 125 61'
+    },
     WOLF: {
       color:['#283845','#576b78','#a8c1c4','#dff2c6'],
       body:'M26 75 16 62 37 72 47 61 62 59 78 63 90 60 102 47 107 36 114 46 126 40 128 54 142 61 138 68 124 71 112 76 111 90 102 93 103 79 83 81 76 92 66 92 67 80 54 80 47 91 37 91 41 77Z',
@@ -10770,7 +10829,7 @@
   };
 
   const regionalPathCache = new Map();
-  R.drawRegionalCompanion = (ctx, spec, stage, x, y, time, face, reduced) => {
+  R.drawRegionalCompanion = (ctx, spec, stage, x, y, time, face, reduced, riding = false) => {
     if (typeof Path2D !== 'function') return false;
     const art = regionalArt[spec.key];
     let layers = regionalPathCache.get(spec.key);
@@ -10778,10 +10837,10 @@
       layers = regionalLayers(spec, art).map(([path, ...paint]) => [new Path2D(path), ...paint]);
       regionalPathCache.set(spec.key, layers);
     }
-    const size = regionalScale(spec, stage);
+    const size = riding ? .43 : regionalScale(spec, stage);
     const [ink, pigment, pale, accent] = art.color;
     ctx.save();
-    ctx.translate(x, y - (art.airborne ? 3.5 + (reduced ? 0 : Math.sin(time * 3.8) * 1.75) : 0));
+    ctx.translate(x, y - (art.airborne && !riding ? 3.5 + (reduced ? 0 : Math.sin(time * 3.8) * 1.75) : 0));
     ctx.scale(face * size, size);
     ctx.translate(-80, -94);
     ctx.lineCap = ctx.lineJoin = 'round';
@@ -10804,5 +10863,28 @@
     }
     ctx.restore();
     return true;
+  };
+  R.isAirborneMount = pet => pet.family === 'AVIAN' || pet.fourSymbol === 'VERMILION_PHOENIX' ||
+    pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'AZURE_DRAGON';
+
+  const mountArtByFamily = {
+    AVIAN:'HAWK', UNGULATE:'GOAT', CANINE:'WOLF', FELINE:'WILDCAT',
+    URSINE_BOAR:'BOAR', SHELL_GUARDIAN:'GRASS_TURTLE', SERPENT:'PYTHON', CHIMERA:'TAOTIE'
+  };
+  const symbolMountArt = new Map((g.JD.CORE.sovereignCompanions || []).map(spec => [spec.symbol, spec]));
+  R.drawTravelMount = (ctx, pet, by, time, reduced) => {
+    const curated = CULT.curatedCompanionSpec(pet.speciesId);
+    const beast = curated || symbolMountArt.get(pet.fourSymbol || pet.bloodlineTrait);
+    if (beast) {
+      const stage = curated ? pet.growthStage || 1 : 4;
+      const seat = beast.familyId === 'KUNPENG' ? 17 : 20;
+      if (R.drawSovereignCompanion(ctx, beast.id, stage, -2, by + seat, .55, time, 1, true)) return;
+    }
+    const body = CULT.regionalCompanionSpec(pet.speciesId) || { key:mountArtByFamily[pet.family] || 'WOLF', tier:2 };
+    if (R.drawRegionalCompanion(ctx, body, pet.growthStage || 2, -2,
+      by + (body.key === 'HAWK' ? 12 : 16), time, 1, reduced, true)) return;
+    // Keep the contact silhouette available when a browser cannot construct Path2D.
+    ctx.fillStyle = '#667b65';
+    ctx.beginPath(); ctx.ellipse(0, by + 3, 11, 4.5, 0, 0, 7); ctx.fill();
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

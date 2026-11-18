@@ -257,8 +257,8 @@
     pts[pts.length - 1] = [Math.floor(gx), Math.floor(gy)];
     return pts;
   };
-  AI.goTo = (W, n, tx, ty) => {
-    const qg = (CULT.QINGGONG && n && n.cult) ? CULT.QINGGONG.resolveNpcMode(W, n) : null;
+  AI.goTo = (W, n, tx, ty, qgOverride) => {
+    const qg = qgOverride !== undefined ? qgOverride : (CULT.QINGGONG && n?.cult ? CULT.QINGGONG.resolveNpcMode(W, n) : null);
     const dist = Math.hypot(tx - n.x, ty - n.y);
     if (qg && qg.airborne && dist >= 3.5) {
       const goal = MAP.nearestPassable ? MAP.nearestPassable(W.map, tx, ty) : { x: Math.floor(tx), y: Math.floor(ty) };
@@ -307,10 +307,10 @@
     }
     return v;
   };
-  AI.stepMove = (W, n) => {
+  AI.stepMove = (W, n, qgOverride) => {
     let p = n.path; if (!p) { n.aerialFlightActive = false; return true; }
-    const qg = (CULT.QINGGONG && n.cult) ? CULT.QINGGONG.resolveNpcMode(W, n) : null;
-    const st = (CULT.QINGGONG && n.cult) ? CULT.QINGGONG.ensureState(n) : null;
+    const qg = qgOverride !== undefined ? qgOverride : (CULT.QINGGONG && n.cult ? CULT.QINGGONG.resolveNpcMode(W, n) : null);
+    const st = qg ? CULT.QINGGONG.ensureState(n) : null;
 
     // If NPC was flying an aerial path but ran out of Qi (exhaustedFallback), snap to nearest walkable tile if over blocked terrain and replan ground path safely
     if (n.aerialFlightActive && (!qg || !qg.airborne)) {
@@ -382,7 +382,7 @@
       else { n.x += dx / d * budget; n.y += dy / d * budget; totalMoved += budget; budget = 0; }
       if (d > 0.02) { if (Math.abs(dx) > 0.02) n.face = dx >= 0 ? 1 : -1; n.dir = Math.atan2(dy, dx); }
     }
-    if (totalMoved > 0 && CULT.QINGGONG && n.cult) {
+    if (totalMoved > 0 && qg) {
       CULT.QINGGONG.stepQinggongMove(W, n, totalMoved, qg);
     }
     if (n.pi >= p.length) { n.path = null; n.aerialFlightActive = false; return true; }

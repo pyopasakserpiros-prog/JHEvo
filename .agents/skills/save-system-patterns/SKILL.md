@@ -7,6 +7,8 @@ category: save-load-persistence
 
 # JianghuSect Evolution — Save/Load Serialization & Migration Blueprint (`js/sim.js`)
 
+Regional companions persist their encounter zone on the pet record and their assigned mount in `npc.travel.mountUid`. The live mount is revalidated before drawing or moving. Visitor hydration also runs at trader arrival so the same-day cache and reload agree. See [regional companion and travel report](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md).
+
 > **Current baseline 4.1.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill governs `SIM.serialize(W)` and `SIM.deserialize(str)` in `GAME_SOURCE/js/sim.js` (lines 559–653), covering transient cache stripping, current-schema save/load and mid-action recovery. Legacy compatibility is not required unless the user requests it; test the actual affected paths.

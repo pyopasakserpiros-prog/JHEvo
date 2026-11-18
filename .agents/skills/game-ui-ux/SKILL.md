@@ -7,7 +7,7 @@ category: ui-ux-design
 
 # JianghuSect Evolution — Wuxia UI/UX, Sprite Atlas & Edit Hub Blueprint (`js/ui.js`, `js/render.js`, `css/style.css`)
 
-For twelve ordinary regional companions, `Render.drawRegionalCompanion` shares path geometry with `Render.regionalCompanionSvg` and `UI.regionalCompanionCard`. The card shows live tier, age, readiness, and trade-offs. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+For eighteen ordinary regional companions, `Render.drawRegionalCompanion` shares path geometry with `Render.regionalCompanionSvg` and `UI.regionalCompanionCard`. The card shows live tier, age, readiness, trade-offs, and recorded encounter locations. Travel poses use `EXPED.travelMount` when the assigned animal is available and the owner is on the expedition path, or the active `AI.goTo` aerial route for sword flight. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
 
 Curated companion art is shared by the map, nursery, and profile through the sovereign companion renderer. Mythic lineages distinguish silhouettes and accessories by family, then grow visual scale and effect layers by age and grade. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
 

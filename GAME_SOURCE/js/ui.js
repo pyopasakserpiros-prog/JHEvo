@@ -7823,11 +7823,14 @@
     const stages = ['วัยเยาว์', 'โตเต็มวัย', 'อาวุโส', 'ปลุกสายเลือด'];
     const age = stages[Math.min(4, Math.max(1, pet.growthStage || 1)) - 1];
     const tier = pet.tier || spec.tier;
+    const origin = pet.originZone && g.WILD?.zones[pet.originZone]?.nameTh;
+    const source = CULT.beastSpeciesById(spec.sourceId)?.nameTh || '';
     return '<div class="sovereign-pet-card regional-pet-card" data-tier="' + tier + '">' +
       g.Render.regionalCompanionSvg(spec.id, pet.growthStage || 1) + '<div><span class="companion-grade">T' +
       tier + ' · ' + esc(age) + '</span><b>' + esc(pet.nameTh) + '</b><p>' +
       esc(spec.strengthTh) + '</p><div class="muted">' + esc(spec.limitTh) + '</div><div class="muted">' +
-      esc(pet.injured ? 'พักฟื้น' : pet.active ? 'ร่วมทาง' : 'สำรอง') + ' · ความผูกพัน ' + Math.round(pet.bond || 0) + '%</div></div></div>';
+      esc(pet.injured ? 'พักฟื้น' : pet.active ? 'ร่วมทาง' : 'สำรอง') + ' · ความผูกพัน ' + Math.round(pet.bond || 0) + '%</div>' +
+      (source ? '<div class="muted">ต้นสาย ' + esc(source) + (origin ? ' · พบที่' + esc(origin) : '') + '</div>' : '') + '</div></div>';
   };
 
   const nurseryCards = W => {

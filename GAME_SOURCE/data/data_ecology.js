@@ -12736,10 +12736,22 @@
       { p:{ hp:.018 }, f:{ move:-2 } }, 'เสริมพลังชีวิตและการป้องกันกาย', 'ลดความเร็วเคลื่อนที่เล็กน้อย'),
     regionalForm(2, 'CRANE', 'ECO2_BEAST_AVIAN_2', 'กระเรียนปีกหยกน้ำค้าง', 'AVIAN', 'MYSTIC_SUPPORT', 70, 'AUSPICIOUS_SPIRIT',
       { p:{ mdef:.023, hp:-.015 } }, 'หนุนการต้านเวทและการทะลวงด่าน', 'พลังชีวิตลดเล็กน้อยและขี่เดินทางไม่ได้'),
+    regionalForm(2, 'GRASS_TURTLE', 'ECO2_BEAST_SHELL_2', 'เต่ากระดองตะไคร่', 'SHELL_GUARDIAN', 'IRON_GUARDIAN', 74, 'IRON_CARAPACE',
+      { p:{ mdef:.024, atk:-.018 } }, 'หนุนการป้องกันกายและต้านเวท', 'แรงโจมตีกายของผู้เลี้ยงลดเล็กน้อย'),
+    regionalForm(2, 'GOAT', 'ECO2_BEAST_UNGULATE_2', 'แพะผาเขาเมฆ', 'UNGULATE', 'MOUNT_CHARGER', 71, 'ALPHA_FANG',
+      { p:{ mdef:-.025 }, f:{ move:2 } }, 'ช่วยเดินทางและบรรทุกสัมภาระเมื่อโตเต็มวัย', 'ต้านเวทได้น้อยลงและต้องพักเมื่อเหนื่อย'),
+    regionalForm(2, 'MOTH', 'BEAST_V222_MIRAGE_SILK_MOTH', 'ผีเสื้อแพรหมอกจันทร์', 'ARTHROPOD_SWARM', 'MYSTIC_SUPPORT', 68, 'AUSPICIOUS_SPIRIT',
+      { p:{ hp:-.012 }, f:{ cast:2, eva:2 } }, 'ช่วยให้ร่ายไวและหลบได้ดีขึ้น', 'พลังชีวิตผู้เลี้ยงลดเล็กน้อย'),
     regionalForm(1, 'WOLF', 'BEAST_MIST_WOLF', 'หมาป่าหูหมอก', 'CANINE', 'FEROCIOUS_ASSAULT', 57, 'ALPHA_FANG',
       { p:{ def:-.014 }, f:{ move:2 } }, 'ช่วยจู่โจมและเพิ่มความเร็วเคลื่อนที่', 'พลังป้องกันกายลดเล็กน้อย'),
     regionalForm(1, 'MUSHROOM', 'ECO2_BEAST_PLANT_SPIRIT_1', 'ภูตเห็ดตะเกียงมอส', 'PLANT_SPIRIT', 'MYSTIC_SUPPORT', 52, 'AUSPICIOUS_SPIRIT',
-      { p:{ mdef:.016 }, f:{ move:-1 } }, 'เสริมการต้านเวทและหนุนการทะลวงด่าน', 'เคลื่อนตัวช้าลงเล็กน้อย')
+      { p:{ mdef:.016 }, f:{ move:-1 } }, 'เสริมการต้านเวทและหนุนการทะลวงด่าน', 'เคลื่อนตัวช้าลงเล็กน้อย'),
+    regionalForm(1, 'WILDCAT', 'ECO2_BEAST_FELINE_1', 'แมวป่าหางหินลาย', 'FELINE', 'FEROCIOUS_ASSAULT', 55, 'ALPHA_FANG',
+      { p:{ mdef:-.012 }, f:{ acc:3 } }, 'เสริมความแม่นยำและการโจมตีกาย', 'ต้านเวทได้น้อยลงเล็กน้อย'),
+    regionalForm(1, 'FAWN', 'ECO2_BEAST_UNGULATE_1', 'กวางดาวยอดหญ้า', 'UNGULATE', 'MYSTIC_SUPPORT', 51, 'AUSPICIOUS_SPIRIT',
+      { p:{ hp:.013, atk:-.012 } }, 'หนุนพลังชีวิตและการทะลวงด่าน', 'แรงโจมตีกายลดลงและขี่ไม่ได้'),
+    regionalForm(1, 'MANTIS', 'ECO2_BEAST_ARTHROPOD_1', 'ตั๊กแตนตะขอใบไผ่', 'ARTHROPOD_SWARM', 'VENOM_SWARM', 53, 'VENOM_GLAND',
+      { p:{ def:-.018 }, f:{ pen:2 } }, 'หนุนการเจาะเกราะ', 'เกราะกายผู้เลี้ยงลดเล็กน้อย')
   ];
   JD.TECH.transcendentCodices = [].concat(JD.TECH.sovereignCombatArts, JD.TECH.sovereignMantras, JD.TECH.sovereignNonCombatArts);
   JD.TECH.transcendentArts = JD.TECH.transcendentCodices;

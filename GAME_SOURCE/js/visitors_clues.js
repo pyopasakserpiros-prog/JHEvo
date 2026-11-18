@@ -4597,6 +4597,40 @@
   };
   VC.VISITOR_ROLES = VISITOR_ROLES;
 
+  const ensureVisitorRecord = (W, v, idx = 0) => {
+    if (!v || typeof v !== 'object') return;
+    if (!v.id) v.id = 'visitor_' + (idx + 1);
+    if (!v.role) v.role = v.kind === 'trader' ? 'merchant' : 'wanderer';
+    if (!v.state) v.state = (v.untilDay != null && v.untilDay < W.day) ? 'offsite' : 'admitted';
+    if (!v.accessLevel) v.accessLevel = v.kind === 'trader' ? 'market_and_plaza' : 'public_courtyard';
+    if (!Number.isFinite(v.x) || !Number.isFinite(v.y)) {
+      const b = (W.map && W.map.byId && W.map.byId[v.kind === 'trader' ? 'market' : 'tea_garden']) || (W.map && W.map.byId && W.map.byId.plaza);
+      v.x = b ? b.x + b.w / 2 : 118;
+      v.y = b ? b.y + b.h / 2 : 70;
+      v.px = v.x;
+      v.py = v.y;
+    }
+    if (!v.h) {
+      // New arrivals and hydrated visitors use the same deterministic profile.
+      const seedStr = String(W.seed || 'legacy') + ':visitor:' + v.id;
+      const localRng = new U.RNG(seedStr);
+      const oldDay = HC.nowDay;
+      HC.nowDay = W.day || 360;
+      try {
+        v.h = HC.generate(localRng, { id: v.id, day: W.day || 360, ageYears: 32, quality: 0.4 }).h;
+      } finally {
+        HC.nowDay = oldDay;
+      }
+      if (v.nameTh) {
+        v.h.name.given = v.nameTh;
+        v.h.name.family = '';
+      }
+    }
+    if (!Array.isArray(v.interactedNpcIds)) v.interactedNpcIds = [];
+    if (!Number.isFinite(v.visitCount)) v.visitCount = 1;
+    if (!Number.isFinite(v.hospitalityScore)) v.hospitalityScore = 50;
+  };
+
   VC.ensure = (W, fullSync) => {
     if (!W || !W.world) return null;
     const w = W.world;
@@ -4659,37 +4693,7 @@
       if (!Array.isArray(W.sect.clueArchive)) W.sect.clueArchive = [];
     }
 
-    // Normalize existing visitors (idempotent migration for old trader records)
-    w.visitors.forEach((v, idx) => {
-      if (!v || typeof v !== 'object') return;
-      if (!v.id) v.id = 'visitor_' + (idx + 1);
-      if (!v.role) v.role = v.kind === 'trader' ? 'merchant' : 'wanderer';
-      if (!v.state) v.state = (v.untilDay != null && v.untilDay < W.day) ? 'offsite' : 'admitted';
-      if (!v.accessLevel) v.accessLevel = v.kind === 'trader' ? 'market_and_plaza' : 'public_courtyard';
-      if (!Number.isFinite(v.x) || !Number.isFinite(v.y)) {
-        const b = (W.map && W.map.byId && W.map.byId[v.kind === 'trader' ? 'market' : 'tea_garden']) || (W.map && W.map.byId && W.map.byId.plaza);
-        v.x = b ? b.x + b.w / 2 : 118;
-        v.y = b ? b.y + b.h / 2 : 70;
-        v.px = v.x;
-        v.py = v.y;
-      }
-      if (!v.h) {
-        // Deterministic fallback human profile for legacy save trader records without consuming W.rng!
-        const seedStr = String(W.seed || 'legacy') + ':visitor:' + v.id;
-        const localRng = new U.RNG(seedStr);
-        const oldDay = HC.nowDay;
-        HC.nowDay = W.day || 360;
-        v.h = HC.generate(localRng, { id: v.id, day: W.day || 360, ageYears: 32, quality: 0.4 }).h;
-        HC.nowDay = oldDay;
-        if (v.nameTh) {
-          v.h.name.given = v.nameTh;
-          v.h.name.family = '';
-        }
-      }
-      if (!Array.isArray(v.interactedNpcIds)) v.interactedNpcIds = [];
-      if (!Number.isFinite(v.visitCount)) v.visitCount = 1;
-      if (!Number.isFinite(v.hospitalityScore)) v.hospitalityScore = 50;
-    });
+    w.visitors.forEach((v, idx) => ensureVisitorRecord(W, v, idx));
 
     if (!Array.isArray(w.visitorNews)) w.visitorNews = [];
     VC.syncUniqueArtifacts(W);
@@ -5248,7 +5252,8 @@
   EXT.openVisit = (W, options) => {
     const v = origOpenVisit(W, options);
     if (!v) return v;
-    const cs = VC.ensure(W);
+    ensureVisitorRecord(W, v);
+    VC.ensure(W);
     v.role = 'merchant';
     const _subTh = ({ general: 'ทั่วไป', medicine: 'สมุนไพร·โอสถ', caravan: 'กองคาราวาน', rare: 'ของหายาก' })[v.subtype || 'general'] || (v.subtype || 'ทั่วไป');
     v.roleTitleTh = 'วาณิชพเนจร (' + _subTh + ')';

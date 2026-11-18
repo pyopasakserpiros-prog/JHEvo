@@ -4,6 +4,7 @@ const G = require('./load');
 const { SIM, EXT, VC } = G;
 
 const W = SIM.create('merchant-guest-lifecycle-regression');
+VC.ensure(W); // The daily cache is already active when a trader arrives.
 const original = EXT.openVisit(W, {
   id: 'trader_return_fixture', subtype: 'general', nameTh: 'พ่อค้าทดสอบ', stones: 517,
   stock: { grain: 3 }, wants: { meal: 2 }, stayDays: 2
@@ -11,6 +12,14 @@ const original = EXT.openVisit(W, {
 assert.strictEqual(original.kind, 'trader');
 assert.strictEqual(original.role, 'merchant');
 assert.strictEqual(original.stones, 517);
+assert.strictEqual(original.h.name.given, original.nameTh);
+assert.deepStrictEqual(original.interactedNpcIds, []);
+assert.strictEqual(original.visitCount, 1);
+const snapshot = SIM.serialize(W);
+const savedVisitor = JSON.parse(snapshot).world.visitors.find(v => v.id === original.id);
+const reloadedVisitor = SIM.deserialize(snapshot).world.visitors.find(v => v.id === original.id);
+assert.deepStrictEqual(reloadedVisitor, savedVisitor, 'same-day arrival hydrates identically before and after load');
+
 
 VC.departVisitor(W, original, 'regression fixture departure');
 const saved = W.world.guestRegistry[original.id];

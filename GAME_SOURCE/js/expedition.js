@@ -272,6 +272,28 @@
     }
   };
 
+  const regionalMounts = Object.freeze({
+    HAWK: { duration:.86, capacity:1.4 },
+    GOAT: { duration:.92, capacity:1.15 }
+  });
+
+  const mountReady = pet => {
+    if (!pet || pet.active === false || pet.dead || pet.injured || (pet.fatigue || 0) >= 95) return false;
+    const lineage = CULT.lineageCompanionSpec(pet.speciesId);
+    if (lineage) return lineage.familyId === 'KUNPENG' && pet.growthStage >= 3 && pet.hunger >= 38 && pet.fatigue < 75;
+    const regional = CULT.regionalCompanionSpec(pet.speciesId);
+    if (regional && !pet.fourSymbol) return !!regionalMounts[regional.key] && pet.growthStage >= 2 && pet.hunger >= 38 && pet.fatigue < 75;
+    return pet.role === 'MOUNT_CHARGER' || pet.family === 'AVIAN' || pet.family === 'UNGULATE' ||
+      pet.fourSymbol === 'VERMILION_PHOENIX' || pet.fourSymbol === 'AZURE_DRAGON';
+  };
+
+  X.travelMount = npc => {
+    const uid = npc?.travel?.mountUid;
+    if (!uid || npc.dead || npc.away || npc.act?.id === 'fight') return null;
+    const sameMount = pet => (pet?.uid || pet?.id) === uid && mountReady(pet);
+    return npc.pets?.find(sameMount) || (sameMount(npc.pet) ? npc.pet : null);
+  };
+
   X.createParty = (W, party, opts) => {
     opts = opts || {};
     if (!W || !Array.isArray(party) || !party.length) return { ok: false, reason: 'invalid-party', members: [] };
@@ -286,23 +308,17 @@
     }
     const mounts = [];
     let hasPhoenixMount = false, hasAzureDragonMount = false;
-    let fastestMount = 1;
+    let fastestMount = 1, mountCapacity = 1;
     for (const n of members) {
       const pets = (Array.isArray(n.pets) ? n.pets : []).concat(n.pet ? [n.pet] : []);
-      const pet = pets.find(p => {
-        if (!p || p.active === false || p.dead || p.injured || (p.fatigue || 0) >= 95) return false;
-        const lineage = CULT.lineageCompanionSpec(p.speciesId);
-        if (lineage) return lineage.familyId === 'KUNPENG' && p.growthStage >= 3 && p.hunger >= 38 && p.fatigue < 75;
-        const regional = CULT.regionalCompanionSpec(p.speciesId);
-        if (regional && !p.fourSymbol) return regional.key === 'HAWK' && p.growthStage >= 2 && p.hunger >= 38 && p.fatigue < 75;
-        return p.role === 'MOUNT_CHARGER' || p.family === 'AVIAN' || p.family === 'UNGULATE' ||
-          p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON';
-      });
+      const pet = pets.find(mountReady);
       if (pet) {
         const lineage = CULT.lineageCompanionSpec(pet.speciesId);
-        const regional = CULT.regionalCompanionSpec(pet.speciesId);
-        const mountDuration = lineage ? [.83, .75, .69][lineage.gradeRank - 1] : regional ? .86 : .75;
+        const regional = !pet.fourSymbol && CULT.regionalCompanionSpec(pet.speciesId);
+        const route = regional && regionalMounts[regional.key];
+        const mountDuration = lineage ? [.83, .75, .69][lineage.gradeRank - 1] : (route?.duration ?? .75);
         fastestMount = Math.min(fastestMount, mountDuration);
+        mountCapacity = Math.max(mountCapacity, route?.capacity ?? 1.4);
         if (pet.fourSymbol === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'VERMILION_PHOENIX') hasPhoenixMount = true;
         if (pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'AZURE_DRAGON') hasAzureDragonMount = true;
         mounts.push({ ownerId: n.id, uid: pet.uid || pet.id || null, nameTh: pet.nameTh || 'พาหนะวิญญาณ', role: pet.role || null, family: pet.family || null, fourSymbol: pet.fourSymbol || null, tier: pet.tier || 1 });
@@ -320,7 +336,7 @@
     const hasDragonShipNav = members.some(m => m && m.cult && (m.cult.sub === 'DRAGON_SHIP_NAVIGATOR' || m.cult.path === 'TIDE_VOYAGER'));
     const hasPocketArch = members.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT');
     const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : fastestMount;
-    const mountCapMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
+    const mountCapMult = hasPhoenixMount ? 1.60 : mountCapacity;
     const navDurFactor = (isWaterRoute && hasDragonShipNav) ? (members.some(m => m && m.cult && m.cult.sub === 'DRAGON_SHIP_NAVIGATOR') ? 0.82 : 0.90) : 1;
     const rawDurMult = applyQinggongToTrip ? mountDurMult * qgBonus.durationMultiplier : mountDurMult;
     const durMult = +(Math.max(0.45, rawDurMult * navDurFactor)).toFixed(3);
@@ -352,6 +368,10 @@
       carryCapacity: Math.max(1, Math.floor(baseCapacity * capMult))
     };
   };
+
+  const tripMountUid = (ex, npc) => Array.isArray(ex.mount)
+    ? ex.mount.find(mount => mount.ownerId === npc.id)?.uid || null
+    : null;
 
   X.depart = (W, party, kind, region, opts) => {
     opts = opts || {};
@@ -418,22 +438,23 @@
       ex.carry = sell; if (!sell.length && (W.sect.stones < 1000)) { ex.kind = kind = 'gather'; }
     }
     w.expeds.push(ex);
-    party.forEach(p => { AI.interruptFor(W, p); p.expId = ex.id; p.lastTrip = W.day; p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; p.travel = { to: 'exit', ex: ex.id }; p.path = null; p.run = false; });
+    party.forEach(p => { AI.interruptFor(W, p); p.expId = ex.id; p.lastTrip = W.day; p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; p.travel = { to: 'exit', ex: ex.id, mountUid: tripMountUid(ex,p) }; p.path = null; p.run = false; });
     X.releaseDeployedGarrisons(W, party);
     W.log('mission', party.map(p => p.h.name.given).join('、') + ' ออกเดินทาง「' + X.MISSIONS[kind].nameTh + '」ไปยัง' + region.nameTh + ' (ราว ' + days + ' วัน)', party.map(p => p.id));
     return ex;
   };
   X.travelStep = (W, n) => {
     const tv = n.travel; if (!tv) return false;
+    const qgOverride = X.travelMount(n) ? null : undefined;
     if (tv.to === 'exit') {
-      if (!n.path) { if (!AI.goTo(W, n, MAP.EXIT.x, MAP.EXIT.y)) { n.x = MAP.EXIT.x + .5; n.y = MAP.EXIT.y + .5; } }
+      if (!n.path) { if (!AI.goTo(W, n, MAP.EXIT.x, MAP.EXIT.y, qgOverride)) { n.x = MAP.EXIT.x + .5; n.y = MAP.EXIT.y + .5; } }
       n.run = true;
-      if (AI.stepMove(W, n) || Math.hypot(n.x - MAP.EXIT.x, n.y - MAP.EXIT.y) < 1.5) { n.away = true; n.travel = null; n.run = false; n.path = null; n.hidden = true; }
+      if (AI.stepMove(W, n, qgOverride) || Math.hypot(n.x - MAP.EXIT.x, n.y - MAP.EXIT.y) < 1.5) { n.away = true; n.travel = null; n.run = false; n.path = null; n.hidden = true; }
       return true;
     }
     if (tv.to === 'home') {
-      if (!n.path) { if (!AI.goTo(W, n, MAP.GATE_IN.x, MAP.GATE_IN.y)) { n.x = MAP.GATE_IN.x + .5; n.y = MAP.GATE_IN.y + .5; } }
-      if (AI.stepMove(W, n) || Math.hypot(n.x - MAP.GATE_IN.x, n.y - MAP.GATE_IN.y) < 1.5) { n.travel = null; n.path = null; n.run = false; n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; }
+      if (!n.path) { if (!AI.goTo(W, n, MAP.GATE_IN.x, MAP.GATE_IN.y, qgOverride)) { n.x = MAP.GATE_IN.x + .5; n.y = MAP.GATE_IN.y + .5; } }
+      if (AI.stepMove(W, n, qgOverride) || Math.hypot(n.x - MAP.GATE_IN.x, n.y - MAP.GATE_IN.y) < 1.5) { n.travel = null; n.path = null; n.run = false; n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; }
       return true;
     }
     return false;
@@ -563,7 +584,7 @@
     try {
       if (alive.length) X.handover(W, ex, alive, out);
     } finally {
-      alive.forEach(m => { m.away = false; m.hidden = false; m.x = MAP.EXIT.x + .5 + rng.gauss(0, 0.8); m.y = MAP.EXIT.y + .5; m.travel = { to: 'home' }; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); HC.experience(m, 'adventure', 0.6); m.merit += 8 + reg.danger * 3; AI.mem(W, m, 'กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 ณ ' + reg.nameTh + ' ' + (ex.journal.slice(-2).join(', ') || ''), 0.8); });
+      alive.forEach(m => { m.away = false; m.hidden = false; m.x = MAP.EXIT.x + .5 + rng.gauss(0, 0.8); m.y = MAP.EXIT.y + .5; m.travel = { to: 'home', mountUid: tripMountUid(ex,m) }; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); HC.experience(m, 'adventure', 0.6); m.merit += 8 + reg.danger * 3; AI.mem(W, m, 'กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 ณ ' + reg.nameTh + ' ' + (ex.journal.slice(-2).join(', ') || ''), 0.8); });
     }
     const ppl = members.map(m => m.h.name.given).join('、');
     const brief = ex.kind === 'fortune' && out.notes.length ? out.notes.slice(0, 2).join(' / ') : Object.keys(out.mats).length || out.stones || out.gear.length ? ('ได้ ' + X.summarize(out)) : (ex.journal.slice(-1)[0] || 'ไม่ได้อะไรมากนัก');

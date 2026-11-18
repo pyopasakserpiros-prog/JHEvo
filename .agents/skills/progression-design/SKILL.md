@@ -7,7 +7,7 @@ category: cultivation-progression
 
 # JianghuSect Progression: 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension, Mentorship & Living Jianghu
 
-Ordinary T6–T1 regional forms use `CULT.regionalCompanionSpec` and normal pet ages, feeding, roster, and level. NPCs receive them through `AI.ACTS.wildHunt`. Only the grown, healthy regional hawk is a normal mount among these forms (travel ×0.86). [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+Ordinary T6–T1 regional forms use `CULT.regionalCompanionSpec` and normal pet ages, feeding, roster, and level. NPCs receive them through `AI.ACTS.wildHunt`. Grown, ready hawks and goats are expedition mounts (travel ×0.86 and ×0.92 respectively). [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
 
 The four mythic companion lineages use `JD.CORE.lineageCompanions`, `EXPLORE.resolveSanctum`, and the existing sovereign nursery. Keep grade separate from age. Each grade needs its own sanctum acquisition gates, and NPC care governs growth. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
 

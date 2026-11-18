@@ -605,6 +605,7 @@
     }
     const outcome = CULT.bindPet(W, n, form.id, { provenance:'regional_bond', replaceWeakest:true });
     if (!outcome.ok) return false;
+    outcome.pet.originZone = b.zone;
     b.captured = true;
     b.capturedBy = n.id;
     b.gone = true;

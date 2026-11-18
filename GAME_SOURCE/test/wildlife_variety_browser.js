@@ -42,10 +42,49 @@ const {chromium}=(()=>{try{return require('playwright');}catch(_){return require
    UI.openNpc(n.id,'pets');
    return images.size;
   });
-  assert.strictEqual(regionalCount,12);
+  assert.strictEqual(regionalCount,18);
   const card=page.locator('.regional-pet-card[data-tier="6"]');
   await card.waitFor({state:'visible'});
   assert((await card.textContent()).includes('ภูตพฤกษาผาหยั่งราก'));
+  const travelDraw=await page.evaluate(()=>{
+   const W=G.W,r=G.R,n=W.byId[W.sect.masterId];
+   const canvas=document.getElementById('beast-gallery'),ctx=canvas.getContext('2d');
+   r.cam.z=1;
+   n.pets=[];n.pet=null;
+   n.x=30.5;n.y=32.5;
+   const goat=CULT.bindPet(W,n,'PET_REGIONAL_GOAT',{provenance:'regional_bond',level:4}).pet;
+   const trip=EXPED.depart(W,[n],'gather');
+   if (!trip?.mount.some(m=>m.uid===goat.uid)) throw Error('No planned NPC rider');
+   EXPED.travelStep(W,n);
+   let mountDraws=0, swordDraws=0;
+   const drawMount=Render.drawTravelMount, drawQinggong=r.drawQinggongBodyEffects;
+   Render.drawTravelMount=(...args)=>{ if(args[1]===goat) mountDraws++; return drawMount(...args); };
+   r.drawQinggongBodyEffects=(...args)=>{ if(args[3]==='SWORD_FLIGHT') swordDraws++; return drawQinggong.call(r,...args); };
+   try {
+    const p={x:20,y:13};
+    r.drawNpc(ctx,n,p,12);
+    goat.injured=true;
+    r.drawNpc(ctx,n,p,12);
+    goat.injured=false;
+    n.travel=null;n.path=null;
+    r.drawNpc(ctx,n,p,12);
+    n.cult.path='XIAN';n.cult.sub='SWORD_FLIGHT';n.cult.stage=4;
+    n.cult.techs.push('QG_IMPERIAL_SWORD_FLIGHT_T5');
+    n.equip.WEAPON={id:'EQ_TEST_SWORD',nameTh:'กระบี่ทดสอบ',slot:'WEAPON',tier:3};
+    n.h.state.qi=CULT.qiMax(n);
+    CULT.QINGGONG.ensureState(n).preferredMode='SWORD_FLIGHT';
+    HC.bump(n);
+    AI.goTo(W,n,n.x+1,n.y);
+    r.drawNpc(ctx,n,p,12);
+    AI.goTo(W,n,n.x+20,n.y);
+    const aerial=n.aerialFlightActive;
+    r.drawNpc(ctx,n,p,12);
+    n.h.state.qi=0;
+    r.drawNpc(ctx,n,p,12);
+    return {mountDraws,swordDraws,aerial};
+   } finally {Render.drawTravelMount=drawMount;r.drawQinggongBodyEffects=drawQinggong;}
+  });
+  assert.deepStrictEqual(travelDraw,{mountDraws:1,swordDraws:1,aerial:true});
   assert.deepStrictEqual(errors,[]);
   console.log('PASS browser Canvas beast families: '+JSON.stringify(result));
  } finally {await browser.close();}

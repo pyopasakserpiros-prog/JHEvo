@@ -80,8 +80,8 @@ console.log(`PASS ${entries} pool entries, ${unique.size} species, ${signatures.
 {
  const {AI,CULT,EXPED} = G;
  const specs = JD.CORE.regionalCompanions;
- assert.deepStrictEqual(specs.map(s=>s.tier),[6,6,5,5,4,4,3,3,2,2,1,1]);
- assert.strictEqual(new Set(specs.map(s=>s.id)).size,12);
+ assert.deepStrictEqual(specs.map(s=>s.tier),[6,6,5,5,4,4,3,3,2,2,2,2,2,1,1,1,1,1]);
+ assert.strictEqual(new Set(specs.map(s=>s.id)).size,18);
  const encounter = (spec, onRoll=true) => {
   const world = SIM.create('regional-bond-' + spec.id);
   const npc = world.byId[world.sect.masterId];
@@ -112,6 +112,11 @@ console.log(`PASS ${entries} pool entries, ${unique.size} species, ${signatures.
   assert.strictEqual(pet.element,beast.element);
   assert.strictEqual(pet.role,spec.role);
   assert.strictEqual(pet.provenance,'regional_bond');
+  assert.strictEqual(pet.originZone,beast.zone);
+  if (spec.tier <= 2) {
+   assert(Object.values(WILD.zones).some(z=>!z.legendary && z.pools.some(p=>!p.legendary && p.speciesIds.includes(spec.sourceId))));
+   assert(WILD.zones.meadow.pools.some(p=>!p.legendary && p.speciesIds.includes(spec.sourceId)));
+  }
   assert.strictEqual(pet.growthStage,1);
   assert(pet.active && beast.captured && beast.gone && !beast.dead);
   assert.strictEqual(ECO.count(world,'grain'),grain-(spec.tier>=4?2:1));
@@ -123,9 +128,12 @@ console.log(`PASS ${entries} pool entries, ${unique.size} species, ${signatures.
   const trip=()=>EXPED.createParty(world,[npc],{useQinggong:false});
   assert.strictEqual(trip().hasMount,false);
   pet.growthStage=2;
-  assert.strictEqual(trip().durationMultiplier,spec.key==='HAWK'?.86:1);
+  const mounted=trip();
+  assert.strictEqual(mounted.durationMultiplier,({HAWK:.86,GOAT:.92})[spec.key]||1);
+  assert.strictEqual(mounted.capacityMultiplier,({HAWK:1.4,GOAT:1.15})[spec.key]||1);
   const loaded=SIM.deserialize(SIM.serialize(world));
   assert.strictEqual(loaded.byId[npc.id].pets[0].uid,pet.uid);
+  assert.strictEqual(loaded.byId[npc.id].pets[0].originZone,beast.zone);
   assert.strictEqual(loaded.byId[npc.id].regionalBondReadyAt,npc.regionalBondReadyAt);
  }
  const noticed=encounter(specs[0]);
@@ -152,5 +160,28 @@ console.log(`PASS ${entries} pool entries, ${unique.size} species, ${signatures.
  ECO.take(scarce.world,'grain',ECO.count(scarce.world,'grain'));
  scarce.attempt();
  assert(!scarce.beast.regionalBondTried && !(scarce.npc.pets||[]).length,'protect the food reserve');
+ const route=encounter(specs.find(s=>s.key==='GOAT'));
+ assert(route.attempt());
+ const goat=route.npc.pets[0];
+ goat.level=4;
+ CULT.ensurePets(route.npc);
+ const ex=EXPED.depart(route.world,[route.npc],'gather');
+ assert(ex && ex.mount[0].uid===goat.uid);
+ assert.strictEqual(EXPED.travelMount(route.npc),goat);
+ assert(EXPED.travelStep(route.world,route.npc));
+ assert(route.npc.path && !route.npc.aerialFlightActive);
+ const savedRoute=SIM.deserialize(SIM.serialize(route.world));
+ assert.strictEqual(EXPED.travelMount(savedRoute.byId[route.npc.id]).uid,goat.uid);
+ goat.fatigue=90;
+ assert.strictEqual(EXPED.travelMount(route.npc),null);
+ goat.fatigue=0;
+ route.npc.act={id:'fight'};
+ assert.strictEqual(EXPED.travelMount(route.npc),null);
+ route.npc.act={id:'idle',ctx:{}};
+ route.npc.away=true;
+ route.npc.travel=null;
+ EXPED.resolve(route.world,ex,[route.npc]);
+ assert.strictEqual(route.npc.travel.to,'home');
+ assert.strictEqual(EXPED.travelMount(route.npc),goat);
  console.log('PASS regional companions T6 to T1, autonomous bonding, difficulty, failure, conservation, role effects, mount and save');
 }

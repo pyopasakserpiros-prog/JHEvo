@@ -1,6 +1,6 @@
 # AI Handoff — JianghuSect 2 / main-debug
 
-> **Latest patch:** [Regional companions T6–T1](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md) adds twelve bonded forms through NPC-run local wildlife encounters.
+> **Latest patch:** [Regional companions T6–T1](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md) covers eighteen bonded forms from local wildlife and live riding poses for expedition mounts and sword flight.
 
 > **Higher companion grades:** [Mythic companion lineages](PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md) adds twelve autonomous companions and distinct in-world acquisition, combat roles, art, and grades.
 
