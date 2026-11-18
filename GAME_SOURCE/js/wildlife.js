@@ -340,12 +340,17 @@
     return b;
   };
 
-  WILD.startFight = (W, n, b, opts) => {
+  const canApproach = (W, n, b) => {
     if (!n || n.dead || n.away || n.travel || !b || b.dead || b.gone || b.fighting || n.act.id === 'fight') return false;
     if (!isOutsideWall(W.map, n.x, n.y) || !isOutsideWall(W.map, b.x, b.y) || Math.hypot(n.x - b.x, n.y - b.y) > 3) return false;
     // สัตว์ดุร้ายห้ามเริ่มต่อสู้หรือโจมตีข้ามแนวเก็บสมุนไพรปลอดภัย
     if (b.aggressive && MAP.isInSafeBelt && (MAP.isInSafeBelt(n.x, n.y) || MAP.isInSafeBelt(b.x, b.y))) return false;
 
+    return true;
+  };
+
+  WILD.startFight = (W, n, b, opts) => {
+    if (!canApproach(W, n, b)) return false;
     W.foes.push(b);
     W.foeById[b.id] = b;
     const ctx = Object.assign({ beastId: b.id, hunterId: n.id, huntStartedAt: W.t, expectedTravel: n.landHuntTrip?.travel || 0, baseCultRate: CULT.rate(n, 1), prepared: n.h.state.satiety>=50 && n.h.state.energy>=45 && n.h.state.rest>=40, landContributions: {} }, opts || {});
@@ -532,7 +537,11 @@
       if (b.aggressive && (W._isNewCalendarMinute !== false && W.t % 15 === 0)) {
         // อสูรก้าวร้าวไม่โจมตีผู้คนที่อยู่ในแนวเก็บสมุนไพรปลอดภัยหน้าประตูสำนัก
         const n = W.npcs.find(n => !n.dead && !n.away && !n.hidden && !n.travel && isOutsideWall(W.map, n.x, n.y) && !(MAP.isInSafeBelt && MAP.isInSafeBelt(n.x, n.y)) && n.act.id !== 'fight' && Math.hypot(n.x - b.x, n.y - b.y) < 2.5);
-        if (n) WILD.startFight(W, n, b);
+        if (n) {
+          // Preserve the NPC's planned approach if the same beast notices them first.
+          if (n.act.id === 'wildHunt' && n.act.ctx?.beastId === b.id && tryRegionalBond(W, n, b)) continue;
+          WILD.startFight(W, n, b);
+        }
       }
       if (!b.fighting && isNewCalendarMinute && (W._isNewCalendarMinute !== false && W.t % 90 === 0)) {
         const z = zones[b.zone];
@@ -552,12 +561,70 @@
     state.beasts = state.beasts.filter(b => !b.gone && !b.dead);
   };
 
+  const regionalBySource = new Map((JD.CORE.regionalCompanions || []).map(sp => [sp.sourceId, sp]));
+  const bondSkill = [0, 6, 14, 25, 38, 52];
+  const bondChance = [.58, .49, .41, .34, .27, .21];
+
+  const regionalBondCandidate = (W, n, b) => {
+    const form = regionalBySource.get(b.speciesId);
+    if (!form || b.regionalBondTried || b.tameable === false || n.regionalBondReadyAt > W.t) return null;
+    const pets = (n.pets || []).filter(p => p && !p.dead);
+    const activeSlots = CULT.maxActivePets(n);
+    if (pets.some(p => p.speciesId === form.id) || (pets.length >= activeSlots && !pets.some(p => p.active && p.tier < form.tier)) ||
+        (n.pets || []).length >= activeSlots + CULT.maxReservePets(n)) return null;
+    const stage = CULT.effectiveTechStage(n);
+    if (stage < form.tier || n.h.state.energy < 35) return null;
+    const skill = g.MARTIAL.skillRead(n, 'BEAST_TAMING');
+    if (skill < bondSkill[form.tier - 1]) return null;
+    const interest = HC.eff(n, 'interests.beasts');
+    const empathy = HC.eff(n, 'personality.empathy');
+    const temperament = .62 * interest + .25 * empathy + .13 * skill;
+    if (temperament < 47 + form.tier * 2) return null;
+    return { form, skill, empathy };
+  };
+
+  const tryRegionalBond = (W, n, b) => {
+    if (!canApproach(W, n, b)) return false;
+    const candidate = regionalBondCandidate(W, n, b);
+    if (!candidate) return false;
+    const eligibility = WILD.captureEligibility(n, b);
+    if (!eligibility.allowed || eligibility.offeringMatId) return false;
+    const { form, skill, empathy } = candidate;
+    const bait = form.tier >= 4 ? 2 : 1;
+    if (ECO.count(W, 'grain') < W.npcs.filter(person => !person.dead).length + bait ||
+        !ECO.take(W, 'grain', bait)) return false;
+    b.regionalBondTried = true;
+    n.regionalBondReadyAt = W.t + 1440;
+    const chance = U.clamp(bondChance[form.tier - 1] + skill * .003 + (empathy - 50) * .002, .12, .87);
+    g.MARTIAL.skillPractice(n, 'BEAST_TAMING', .5, 1.2);
+    if (!W.rng.chance(chance)) {
+      W.log('explore', HC.fullName(n) + ' วางอาหารให้ ' + b.name + ' แต่ยังไม่ยอมเข้าใกล้', [n.id]);
+      if (b.aggressive) return false;
+      delete n.landHuntTrip;
+      return true;
+    }
+    const outcome = CULT.bindPet(W, n, form.id, { provenance:'regional_bond', replaceWeakest:true });
+    if (!outcome.ok) return false;
+    b.captured = true;
+    b.capturedBy = n.id;
+    b.gone = true;
+    delete n.landHuntTrip;
+    W.wildlife.captures = (W.wildlife.captures || 0) + 1;
+    W.log('explore', HC.fullName(n) + ' รับ ' + b.name + ' เป็นคู่หู 「' + form.nameTh + '」 T' + form.tier +
+      ' หลังเข้าใกล้ใน' + (zones[b.zone]?.nameTh || 'ป่านอกสำนัก'), [n.id]);
+    return true;
+  };
+
   AI.ACTS.wildHunt = {
     nameTh: 'ล่าอสูรใกล้สำนัก',
     icon: '🐺',
     color: '#b67862',
     can: (n, W) => { const bs = W.wildlife && W.wildlife.beasts; if (!(bs && bs.length && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > (n._nd ? n._nd.hpMax : CULT.hpMax(n)) * 0.6)) return false; let minP = Infinity; for (let i = 0; i < bs.length; i++) { const b = bs[i]; if (!b.dead && !b.gone && !b.fighting && b.power < minP) minP = b.power; } if (minP === Infinity) return false; return CULT.power(n) >= minP * 0.8; },
     score(n, W, S) {
+      if ((n.pets || []).length < CULT.maxActivePets(n) && (!n.regionalBondReadyAt || n.regionalBondReadyAt <= W.t)) {
+        const interest = HC.eff(n, 'interests.beasts');
+        if (interest >= 60) S.add('ชอบติดตามร่องรอยสัตว์วิญญาณ', (interest - 55) / 85);
+      }
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
       if (n.cult && n.cult.path === 'BODY') S.add('ขัดเกลากายาผ่านการล่าอสูร', 0.85);
       S.add('รับปราณหุบเขาและโอกาสได้วัตถุดิบ', 0.55);
@@ -573,7 +640,8 @@
       let b = null;
       for (let offset=0; offset<nearby.length && !b; offset+=8) {
         const ranked = nearby.slice(offset,offset+8).map(({beast}) => ({beast,
-          value:g.COG ? g.COG.huntValue(W,n,beast) : -Math.hypot(n.x-beast.x,n.y-beast.y)}));
+          value:(g.COG ? g.COG.huntValue(W,n,beast) : -Math.hypot(n.x-beast.x,n.y-beast.y)) +
+            (regionalBondCandidate(W,n,beast) ? .38 : 0) }));
         ranked.sort((a,b)=>b.value-a.value);
         b = ranked.find(entry=>Number.isFinite(entry.value))?.beast || null;
       }
@@ -582,7 +650,7 @@
     },
     start(n, W, ctx) {
       const b = W.wildlife.beasts.find(b => b.id === ctx.beastId);
-      return !!b && WILD.startFight(W, n, b);
+      return !!b && (tryRegionalBond(W, n, b) || WILD.startFight(W, n, b));
     },
     dur: () => 1,
     tick() {},

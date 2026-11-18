@@ -6164,18 +6164,26 @@
       const face = n.face >= 0 ? 1 : -1;
       const px = -face * 10.5;
       const py = 1.5 + Math.sin(t * 4.2) * 0.9;
-      const sovereign = pets.filter(CULT.isCuratedCompanion);
-      if (sovereign.length) {
-        const cap = this.resolveQuality() === 'low' ? 1 : 2;
-        sovereign.slice(0, cap).forEach((companion, i) => {
-          const stage = companion.growthStage || 1;
-          const lineage = CULT.lineageCompanionSpec(companion.speciesId);
-          const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
-          R.drawSovereignCompanion(ctx, companion.speciesId, stage,
-            -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face);
-        });
-        return true;
+      const illustrated = pets.filter(CULT.isCuratedCompanion);
+      for (const companion of pets) {
+        if (CULT.regionalCompanionSpec(companion.speciesId)) illustrated.push(companion);
       }
+      const cap = illustrated.length > 1 && this.resolveQuality() === 'low' ? 1 : 2;
+      let drewCompanion = false;
+      for (const [i, companion] of illustrated.slice(0, cap).entries()) {
+        const stage = companion.growthStage || 1;
+        const regional = CULT.regionalCompanionSpec(companion.speciesId);
+        if (regional) {
+          drewCompanion = R.drawRegionalCompanion(ctx, regional, stage,
+            px - face * (5 + i * 22), py + i * 14, t, face, this.isReducedMotion()) || drewCompanion;
+          continue;
+        }
+        const lineage = CULT.lineageCompanionSpec(companion.speciesId);
+        const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
+        drewCompanion = R.drawSovereignCompanion(ctx, companion.speciesId, stage,
+          -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face) || drewCompanion;
+      }
+      if (drewCompanion) return true;
       const spId = String(pet.speciesId || pet.id || 'SPIRIT_FOX').toUpperCase();
       const sym = pet.awakenedSymbol || pet.fourSymbol || null;
       const col = sym === 'AZURE_DRAGON' ? '#00e5ff'
@@ -10650,6 +10658,149 @@
         const sx = 80 + Math.cos(a) * 68, sy = 61 + Math.sin(a * 1.7) * 42;
         ctx.beginPath(); ctx.moveTo(sx, sy - 5); ctx.lineTo(sx + 3, sy); ctx.lineTo(sx, sy + 5); ctx.lineTo(sx - 3, sy); ctx.closePath(); ctx.fill();
       }
+    }
+    ctx.restore();
+    return true;
+  };
+  // Shared coordinates for the map and the NPC card. Tier accents sit behind each silhouette.
+  const regionalArt = {
+    TAOTIE: {
+      color:['#22152d','#5a385b','#ce84a1','#f9c17b'],
+      body:'M23 89 27 67 16 55 32 61 46 47 64 45 77 56 91 47 96 32 109 42 116 21 131 32 127 46 145 57 147 68 134 72 126 71 131 85 123 96 111 96 113 78 89 75 79 94 67 94 72 76 57 78 46 94 33 94 39 77Z',
+      detail:'M91 48Q106 47 108 60L123 62 116 70 101 67 91 55Z M35 64Q52 52 68 55L52 71Z M119 45 134 52 125 54Z',
+      accent:'M32 83Q78 28 141 83 M50 77 48 64 56 59 66 64 65 71 60 75 55 72 M123 64 130 64 126 72Z'
+    },
+    BODHI: {
+      color:['#172b29','#495943','#96b276','#ebd58b'],
+      body:'M30 81 44 65 33 59 21 40 38 50 53 50 55 31 69 24 67 10 81 21 92 28 98 15 111 11 110 26 122 29 133 22 128 41 146 48 129 57 108 53 109 67 125 76 142 92 119 88 103 77 111 94 98 94 86 81 66 89 56 94 43 94 50 79Z',
+      detail:'M68 23 64 48 72 62 62 82 75 75 83 60 79 51 88 46 99 55 104 49 94 42 101 29 84 39Z M24 51 39 58 51 60 43 55Z',
+      accent:'M62 89Q82 67 93 85 M42 62Q84 18 125 60 M79 53 84 45 89 53 84 60Z M111 35 119 29 118 37Z'
+    },
+    HAWK: {
+      airborne:true, color:['#17263d','#415880','#a6c9f0','#baf9ff'],
+      body:'M17 36 47 40 59 55 74 59 76 49 64 28 59 13 77 22 90 39 103 39 114 30 123 34 132 44 143 46 135 52 122 53 116 68 102 77 91 79 76 91 60 89 67 81 53 81 32 66 15 59 29 58 12 48 32 50Z',
+      detail:'M36 52 57 60 76 68 65 75 45 67Z M74 29 92 44 103 51 93 56 78 42Z M113 36 121 36 129 46 120 46Z',
+      accent:'M26 74Q60 96 140 60 M38 79Q90 104 139 69 M123 43 130 44 125 47Z M101 62 108 57'
+    },
+    FOX: {
+      color:['#302644','#7a6891','#ddcbed','#f3b9cf'],
+      back:Array.from({length:9}, (_, i) => {
+        const x = 17 + i * 5, y = 17 + Math.abs(i-4)*4;
+        return 'M65 76Q' + (x-19) + ' 77 ' + x + ' ' + y + 'Q' + (x+8) + ' ' + (y+19) +
+          ' 52 55Q64 60 70 72Z';
+      }),
+      body:'M43 78 53 64 69 61 95 65 111 54 110 42 121 49 132 38 135 57 146 66 139 73 123 73 113 83 114 93 104 93 100 81 83 85 75 95 65 95 68 82 57 91 48 91Z',
+      detail:'M96 65 111 54 114 62 132 57 144 65 139 72 124 69 115 76 104 75Z M130 48 132 56 127 56Z',
+      accent:'M44 30Q69 20 76 48 M115 74Q126 72 134 70 M132 62 137 62 134 65Z'
+    },
+    TORTOISE: {
+      color:['#382329','#815044','#c28d60','#ffc46f'],
+      body:'M16 85 26 78 30 65 45 51 63 44 81 34 100 45 115 61 129 61 141 68 145 76 135 81 124 81 122 90 111 92 102 86 66 88 56 93 42 93 49 84 30 83Z',
+      detail:'M31 77 41 59 61 54 61 65 55 76Z M65 51 82 39 99 47 101 59 87 71 68 63Z M90 74 104 62 112 63 120 76 109 82Z',
+      accent:'M61 54 65 66 56 78 M82 39 85 50 79 57 86 68 78 80 M103 63 106 72 116 74 M135 72 138 73'
+    },
+    SCORPION: {
+      color:['#3d2327','#8f4e36','#cc8361','#ffc590'],
+      body:'M38 80 43 67 53 62 68 63 81 72 94 70 102 55 102 41 91 33 80 33 71 40 66 35 71 21 77 27 93 24 109 31 116 44 114 59 102 77 88 83 76 84 71 93 63 92 67 81 58 80 54 92 47 91 49 79 43 79 38 91 30 90 34 77 24 74 17 64 21 56 27 64 32 64 29 54 39 60 37 70Z',
+      detail:'M43 69 51 63 58 67 50 76Z M59 66 67 66 72 73 66 79 57 75Z M103 44 114 45 113 51 103 50Z M88 28 93 26 100 29 98 33Z',
+      accent:'M71 25 74 31 69 34 M44 77 49 78 M103 56 111 58 M79 85 88 85'
+    },
+    PYTHON: {
+      color:['#183929','#447858','#82be83','#e8d787'],
+      body:'M23 87Q15 70 44 65Q65 61 78 68Q102 78 111 63Q112 57 104 52L98 46 101 39 117 33 132 37 139 46 133 52 119 55Q137 78 113 88Q93 97 76 86Q47 71 37 82Q33 88 55 92L57 96Q26 99 23 87Z',
+      detail:'M102 46 112 39 126 38 137 45 124 47 118 51Z M31 75Q51 67 72 75L70 81Q50 75 31 83Z',
+      accent:'M53 70 60 74 M67 72 74 78 M83 80 87 86 M97 81 101 86 M113 73 117 76 M126 42 130 43'
+    },
+    BAT: {
+      airborne:true, color:['#261b39','#664d86','#b6a8d6','#f4b4d8'],
+      body:'M76 51 69 40 67 28 77 35 87 31 94 21 98 36 94 49Q119 22 149 30L137 46 137 63Q120 51 118 69Q105 59 94 78L85 87 75 76Q61 60 48 69Q43 53 24 63L24 47 12 38Q42 26 76 51Z',
+      detail:'M27 43 56 47 70 62Q59 54 49 61Q44 53 29 56Z M102 56 119 43 139 35 134 47 132 55Q123 49 118 58Z M74 41 80 38 91 38 94 42 91 50 77 51Z',
+      accent:'M82 43 85 44 M91 42 92 43 M19 70Q37 67 49 74 M113 75Q125 66 140 68'
+    },
+    BOAR: {
+      color:['#302a2a','#77645b','#bdab90','#f1ddae'],
+      body:'M25 74 28 63 39 61 45 53 56 54 63 47 73 51 86 46 93 53 105 52 119 61 130 61 137 68 136 76 124 82 113 81 107 92 99 92 100 81 66 84 57 94 49 94 51 84 33 82 24 87 18 84Z',
+      detail:'M45 63 54 55 59 62 65 55 71 61 82 53 92 60 83 66 61 67Z M116 64 128 64 135 68 133 73 118 72Z M125 77 139 66 136 81 126 84Z',
+      accent:'M47 74 60 71 82 70 M111 66 115 66'
+    },
+    CRANE: {
+      color:['#224340','#7cb0a2','#deefe0','#e8be7c'],
+      body:'M37 73 24 68 38 65 54 60 74 62 91 67 97 56 92 43 100 32 114 32 122 37 140 40 125 43 115 42 106 44 112 56 111 67 100 77 85 81 78 91 96 96 90 99 71 94 74 82 62 81 58 94 60 100 53 100 52 93 56 79Z',
+      detail:'M43 69 57 64 74 65 90 71 83 77 62 76 52 72Z M98 35 111 33 116 36 106 38Z',
+      accent:'M48 71 67 69 79 72 M116 38 118 39'
+    },
+    WOLF: {
+      color:['#283845','#576b78','#a8c1c4','#dff2c6'],
+      body:'M26 75 16 62 37 72 47 61 62 59 78 63 90 60 102 47 107 36 114 46 126 40 128 54 142 61 138 68 124 71 112 76 111 90 102 93 103 79 83 81 76 92 66 92 67 80 54 80 47 91 37 91 41 77Z',
+      detail:'M90 62 102 48 109 55 124 51 131 58 141 62 135 68 121 66 112 73 102 71Z M54 64 72 66 81 73 65 74Z',
+      accent:'M123 57 127 58 M103 48 106 43'
+    },
+    MUSHROOM: {
+      color:['#263c31','#6b8e54','#c6d99a','#fff3b3'],
+      body:'M35 76Q32 68 44 57Q58 45 73 42Q62 40 61 34Q67 21 85 18Q106 18 115 32Q116 40 105 42Q128 49 138 65Q142 76 124 79L106 78 107 87 114 92 109 95 96 94 90 84 84 84 80 94 69 94 65 90 73 84 74 78Q52 81 35 76Z',
+      detail:'M38 69Q58 54 86 51Q117 54 134 69Q121 71 104 67Q87 66 74 70Q51 74 38 69Z M78 35Q82 26 92 27Q102 27 106 35Z',
+      accent:'M81 76 85 76 M94 76 98 76 M58 61 62 60 M106 61 110 62'
+    }
+  };
+
+  const regionalScale = (spec, stage) => [0, .15, .205, .265][Math.min(3, Math.max(1, stage))] * (.68 + spec.tier * .05);
+  const regionalLayers = (spec, art) => {
+    const [ink, pigment, pale, accent] = art.color;
+    return [
+      ...(art.back || []).map(path => [path, pigment, ink, 1.8]),
+      [art.body, pigment, ink, 2.8],
+      [art.detail, pale, ink, .8],
+      [art.accent, null, accent, spec.tier >= 5 ? 2 : 1.4]
+    ];
+  };
+
+  R.regionalCompanionSvg = (speciesId, stage) => {
+    const spec = CULT.regionalCompanionSpec(speciesId);
+    if (!spec) return '';
+    const art = regionalArt[spec.key];
+    const size = regionalScale(spec, stage) / .265;
+    const [ink, , , accent] = art.color;
+    const outline = spec.tier >= 5 && stage >= 2
+      ? '<ellipse cx="80" cy="92" rx="60" ry="11" fill="none" stroke="' + accent + '" opacity=".54"/>' : '';
+    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
+      '<ellipse cx="80" cy="98" rx="' + (56 * size) + '" ry="8" fill="' + ink + '" opacity=".65"/>' +
+      '<g transform="translate(80 94) scale(' + size + ') translate(-80 -94)" stroke-linecap="round" stroke-linejoin="round">' + outline +
+      regionalLayers(spec, art).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
+        '" stroke="' + stroke + '" stroke-width="' + width + '"/>').join('') + '</g></svg>';
+  };
+
+  const regionalPathCache = new Map();
+  R.drawRegionalCompanion = (ctx, spec, stage, x, y, time, face, reduced) => {
+    if (typeof Path2D !== 'function') return false;
+    const art = regionalArt[spec.key];
+    let layers = regionalPathCache.get(spec.key);
+    if (!layers) {
+      layers = regionalLayers(spec, art).map(([path, ...paint]) => [new Path2D(path), ...paint]);
+      regionalPathCache.set(spec.key, layers);
+    }
+    const size = regionalScale(spec, stage);
+    const [ink, pigment, pale, accent] = art.color;
+    ctx.save();
+    ctx.translate(x, y - (art.airborne ? 3.5 + (reduced ? 0 : Math.sin(time * 3.8) * 1.75) : 0));
+    ctx.scale(face * size, size);
+    ctx.translate(-80, -94);
+    ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.fillStyle = '#11182665';
+    ctx.beginPath(); ctx.ellipse(80, 98, 48, 8, 0, 0, Math.PI * 2); ctx.fill();
+    if (spec.tier >= 5 && stage >= 2) {
+      ctx.strokeStyle = accent + '70';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(80, 94, 58, 10, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    const gradient = ctx.createLinearGradient(49, 97, 90, 18);
+    gradient.addColorStop(0, ink);
+    gradient.addColorStop(.52, pigment);
+    gradient.addColorStop(1, pale);
+    for (const [path, fill, stroke, width] of layers) {
+      if (fill) { ctx.fillStyle = fill === pigment ? gradient : fill; ctx.fill(path); }
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = width;
+      ctx.stroke(path);
     }
     ctx.restore();
     return true;

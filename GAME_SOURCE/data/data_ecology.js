@@ -12711,6 +12711,36 @@
       ['ไป๋เจ๋อจักษุสารพัดภพ', 'ดวงตารอบเรือนกายอ่านทั้งร่องรอยและคำสาป ชะล้างผลเสียได้สองอย่างในจังหวะเดียว']
     ], 'อ่านและล้างผลรบกวนของสหายใกล้ตัว', 'เสริมการโจมตีโดยตรงได้น้อย และไม่มีผลชะล้างเมื่อทีมยังปกติ', {mdef:.08,acc:5,atk:-.05})
   ];
+  // Bonded forms of existing wild species. The wild source keeps its original behavior and drops.
+  const regionalForm = (tier, key, sourceId, nameTh, family, role, cp, trait, stats, strengthTh, limitTh) => ({
+    id:'PET_REGIONAL_' + key, key, sourceId, nameTh, tier, family, role, cp, trait, stats, strengthTh, limitTh
+  });
+  JD.CORE.regionalCompanions = [
+    regionalForm(6, 'TAOTIE', 'BEAST_MYTHIC_TAOTIE_SHADOW', 'เทาเที่ยคาบเงาผา', 'CHIMERA', 'FEROCIOUS_ASSAULT', 254, 'ALPHA_FANG',
+      { p:{ atk:.035, mdef:-.045 }, f:{ pen:4 } }, 'เสริมแรงโจมตีและเจาะเกราะ', 'ผู้เลี้ยงต้านเวทได้น้อยลง'),
+    regionalForm(6, 'BODHI', 'ECO2_BEAST_PLANT_SPIRIT_6', 'ภูตพฤกษาผาหยั่งราก', 'PLANT_SPIRIT', 'IRON_GUARDIAN', 237, 'IRON_CARAPACE',
+      { p:{ hp:.045, def:.035 }, f:{ move:-5 } }, 'เสริมพลังชีวิตและการป้องกันกาย', 'ผู้เลี้ยงเคลื่อนที่ช้าลง'),
+    regionalForm(5, 'HAWK', 'BEAST_ASTRAL_VOID_HAWK_5', 'เหยี่ยวแหวกช่องดารา', 'AVIAN', 'MOUNT_CHARGER', 186, 'ALPHA_FANG',
+      { p:{ hp:-.025 }, f:{ move:4, eva:5 } }, 'หนุนความเร็วและการหลบ โตแล้วพาคณะเดินทางได้', 'ผู้เลี้ยงมีพลังชีวิตลดลง'),
+    regionalForm(5, 'FOX', 'ECO2_BEAST_CANINE_5', 'จิ้งจอกเงินหางแพรดึก', 'CANINE', 'MYSTIC_SUPPORT', 173, 'AUSPICIOUS_SPIRIT',
+      { p:{ matk:.032, def:-.035 }, f:{ cast:4 } }, 'เสริมพลังเวทและความเร็วร่าย', 'ผู้เลี้ยงรับการโจมตีกายภาพได้ลดลง'),
+    regionalForm(4, 'TORTOISE', 'BEAST_LAVA_FLAME_TORTOISE_4', 'เต่ากระดองตะกรันเพลิง', 'SHELL_GUARDIAN', 'IRON_GUARDIAN', 136, 'IRON_CARAPACE',
+      { p:{ def:.033 }, f:{ move:-4 } }, 'เพิ่มการป้องกันกาย', 'หนักและทำให้ผู้เลี้ยงเดินช้าลง'),
+    regionalForm(4, 'SCORPION', 'BEAST_SAND_SCORPION', 'แมงป่องหางถ่านแดง', 'ARTHROPOD_SWARM', 'VENOM_SWARM', 129, 'VENOM_GLAND',
+      { p:{ mdef:-.027 }, f:{ pen:5 } }, 'เพิ่มการเจาะเกราะ', 'ผู้เลี้ยงต้านเวทได้น้อยลง'),
+    regionalForm(3, 'PYTHON', 'BEAST_EMERALD_PYTHON', 'เหลือมหวายหยก', 'SERPENT', 'VENOM_SWARM', 101, 'VENOM_GLAND',
+      { p:{ atk:.02 }, f:{ move:-2 } }, 'เสริมแรงโจมตีและเจาะเกราะ', 'เคลื่อนที่ได้คล่องน้อยลง'),
+    regionalForm(3, 'BAT', 'BEAST_YIN_SHADOW_BAT_3', 'ค้างคาวใบหูม่วง', 'AVIAN', 'MYSTIC_SUPPORT', 94, 'AUSPICIOUS_SPIRIT',
+      { p:{ def:-.022 }, f:{ acc:4 } }, 'หนุนความแม่นยำและการต้านเวท', 'เกราะกายลดลงและขี่เดินทางไม่ได้'),
+    regionalForm(2, 'BOAR', 'BEAST_IRON_BOAR', 'หมูป่าสันเหล็ก', 'URSINE_BOAR', 'IRON_GUARDIAN', 76, 'IRON_CARAPACE',
+      { p:{ hp:.018 }, f:{ move:-2 } }, 'เสริมพลังชีวิตและการป้องกันกาย', 'ลดความเร็วเคลื่อนที่เล็กน้อย'),
+    regionalForm(2, 'CRANE', 'ECO2_BEAST_AVIAN_2', 'กระเรียนปีกหยกน้ำค้าง', 'AVIAN', 'MYSTIC_SUPPORT', 70, 'AUSPICIOUS_SPIRIT',
+      { p:{ mdef:.023, hp:-.015 } }, 'หนุนการต้านเวทและการทะลวงด่าน', 'พลังชีวิตลดเล็กน้อยและขี่เดินทางไม่ได้'),
+    regionalForm(1, 'WOLF', 'BEAST_MIST_WOLF', 'หมาป่าหูหมอก', 'CANINE', 'FEROCIOUS_ASSAULT', 57, 'ALPHA_FANG',
+      { p:{ def:-.014 }, f:{ move:2 } }, 'ช่วยจู่โจมและเพิ่มความเร็วเคลื่อนที่', 'พลังป้องกันกายลดเล็กน้อย'),
+    regionalForm(1, 'MUSHROOM', 'ECO2_BEAST_PLANT_SPIRIT_1', 'ภูตเห็ดตะเกียงมอส', 'PLANT_SPIRIT', 'MYSTIC_SUPPORT', 52, 'AUSPICIOUS_SPIRIT',
+      { p:{ mdef:.016 }, f:{ move:-1 } }, 'เสริมการต้านเวทและหนุนการทะลวงด่าน', 'เคลื่อนตัวช้าลงเล็กน้อย')
+  ];
   JD.TECH.transcendentCodices = [].concat(JD.TECH.sovereignCombatArts, JD.TECH.sovereignMantras, JD.TECH.sovereignNonCombatArts);
   JD.TECH.transcendentArts = JD.TECH.transcendentCodices;
 

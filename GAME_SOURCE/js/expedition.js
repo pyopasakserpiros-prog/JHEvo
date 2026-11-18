@@ -293,12 +293,16 @@
         if (!p || p.active === false || p.dead || p.injured || (p.fatigue || 0) >= 95) return false;
         const lineage = CULT.lineageCompanionSpec(p.speciesId);
         if (lineage) return lineage.familyId === 'KUNPENG' && p.growthStage >= 3 && p.hunger >= 38 && p.fatigue < 75;
+        const regional = CULT.regionalCompanionSpec(p.speciesId);
+        if (regional && !p.fourSymbol) return regional.key === 'HAWK' && p.growthStage >= 2 && p.hunger >= 38 && p.fatigue < 75;
         return p.role === 'MOUNT_CHARGER' || p.family === 'AVIAN' || p.family === 'UNGULATE' ||
           p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON';
       });
       if (pet) {
         const lineage = CULT.lineageCompanionSpec(pet.speciesId);
-        fastestMount = Math.min(fastestMount, lineage ? [.83, .75, .69][lineage.gradeRank - 1] : .75);
+        const regional = CULT.regionalCompanionSpec(pet.speciesId);
+        const mountDuration = lineage ? [.83, .75, .69][lineage.gradeRank - 1] : regional ? .86 : .75;
+        fastestMount = Math.min(fastestMount, mountDuration);
         if (pet.fourSymbol === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'VERMILION_PHOENIX') hasPhoenixMount = true;
         if (pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'AZURE_DRAGON') hasAzureDragonMount = true;
         mounts.push({ ownerId: n.id, uid: pet.uid || pet.id || null, nameTh: pet.nameTh || 'พาหนะวิญญาณ', role: pet.role || null, family: pet.family || null, fourSymbol: pet.fourSymbol || null, tier: pet.tier || 1 });

@@ -75,3 +75,82 @@ try {
 const saved=SIM.deserialize(SIM.serialize(W));
 assert.deepStrictEqual(saved.wildlife.beasts.map(b=>({id:b.speciesId,ability:b.specialAbility,element:b.elementProfile,skills:b.skl})), W.wildlife.beasts.map(b=>({id:b.speciesId,ability:b.specialAbility,element:b.elementProfile,skills:b.skl})));
 console.log(`PASS ${entries} pool entries, ${unique.size} species, ${signatures.size} skill sets, ${casts} real casts, source identity and catalog isolation`);
+
+// Regional companions bind from real wild encounters through the NPC's hunt action.
+{
+ const {AI,CULT,EXPED} = G;
+ const specs = JD.CORE.regionalCompanions;
+ assert.deepStrictEqual(specs.map(s=>s.tier),[6,6,5,5,4,4,3,3,2,2,1,1]);
+ assert.strictEqual(new Set(specs.map(s=>s.id)).size,12);
+ const encounter = (spec, onRoll=true) => {
+  const world = SIM.create('regional-bond-' + spec.id);
+  const npc = world.byId[world.sect.masterId];
+  npc.cult.path='XIAN'; npc.cult.stage=spec.tier;
+  npc.h.interests.beasts=100;
+  npc.h.personality.empathy=100;
+  npc.h.skills.BEAST_TAMING=80;
+  npc.h.state.energy=90;
+  WILD.init(world);
+  const zone = Object.values(WILD.zones).find(z=>z.pools.some(p=>p.speciesIds.includes(spec.sourceId)));
+  assert(zone, 'wild source must have a reachable encounter');
+  const pool = zone.pools.find(p=>p.speciesIds.includes(spec.sourceId));
+  const beast = WILD.spawn(world,zone.id,pool.id,{speciesId:spec.sourceId});
+  assert(beast && beast.drops.length, 'existing live source and material loop');
+  npc.x=beast.x; npc.y=beast.y;
+  npc.act={id:'wildHunt',stage:'do',ctx:{}};
+  ECO.add(world,'grain',200);
+  world.rng.chance=()=>onRoll;
+  return {world,npc,beast,attempt:()=>AI.ACTS.wildHunt.start(npc,world,{beastId:beast.id})};
+ };
+ for (const spec of specs) {
+  const {world,npc,beast,attempt}=encounter(spec);
+  const grain=ECO.count(world,'grain'), kills=world.wildlife.kills||0;
+  assert(attempt(), spec.id);
+  const pet=npc.pets.find(p=>p.speciesId===spec.id);
+  assert(pet, spec.id + ' binds through AI.ACTS.wildHunt');
+  assert.strictEqual(pet.tier,spec.tier);
+  assert.strictEqual(pet.element,beast.element);
+  assert.strictEqual(pet.role,spec.role);
+  assert.strictEqual(pet.provenance,'regional_bond');
+  assert.strictEqual(pet.growthStage,1);
+  assert(pet.active && beast.captured && beast.gone && !beast.dead);
+  assert.strictEqual(ECO.count(world,'grain'),grain-(spec.tier>=4?2:1));
+  assert.strictEqual(world.wildlife.kills||0,kills,'bonding does not settle a kill or give its rewards');
+  assert.strictEqual(attempt(),false);
+  assert.strictEqual(npc.pets.filter(p=>p.speciesId===spec.id).length,1);
+  const stats=CULT.petStatBonuses(npc);
+  assert(stats && Object.values(stats.p||{}).concat(Object.values(stats.f||{})).some(v=>v!==0));
+  const trip=()=>EXPED.createParty(world,[npc],{useQinggong:false});
+  assert.strictEqual(trip().hasMount,false);
+  pet.growthStage=2;
+  assert.strictEqual(trip().durationMultiplier,spec.key==='HAWK'?.86:1);
+  const loaded=SIM.deserialize(SIM.serialize(world));
+  assert.strictEqual(loaded.byId[npc.id].pets[0].uid,pet.uid);
+  assert.strictEqual(loaded.byId[npc.id].regionalBondReadyAt,npc.regionalBondReadyAt);
+ }
+ const noticed=encounter(specs[0]);
+ noticed.beast.aggressive=true;
+ noticed.npc.act.ctx.beastId=noticed.beast.id;
+ noticed.world.t=Math.ceil(noticed.world.t/15)*15+15;
+ WILD.tick(noticed.world);
+ assert(noticed.beast.captured && !noticed.beast.fighting, 'a planned NPC approach survives an aggressive encounter');
+ const lowSkill=encounter(specs[0]);
+ lowSkill.npc.h.skills.BEAST_TAMING=0;
+ lowSkill.attempt();
+ assert(!lowSkill.beast.regionalBondTried && !(lowSkill.npc.pets||[]).length,'high forms require actual skill');
+ const lowStage=encounter(specs[0]);
+ lowStage.npc.cult.stage=1;
+ lowStage.attempt();
+ assert(!lowStage.beast.regionalBondTried && !(lowStage.npc.pets||[]).length,'high forms require actual cultivation');
+ const shortReprieve=encounter(specs.at(-2),false);
+ shortReprieve.beast.aggressive=false;
+ const before=ECO.count(shortReprieve.world,'grain');
+ assert(shortReprieve.attempt());
+ assert(!shortReprieve.beast.gone && shortReprieve.beast.regionalBondTried && !(shortReprieve.npc.pets||[]).length);
+ assert.strictEqual(ECO.count(shortReprieve.world,'grain'),before-1,'failed offer costs bait but leaves a live wild animal');
+ const scarce=encounter(specs.at(-1));
+ ECO.take(scarce.world,'grain',ECO.count(scarce.world,'grain'));
+ scarce.attempt();
+ assert(!scarce.beast.regionalBondTried && !(scarce.npc.pets||[]).length,'protect the food reserve');
+ console.log('PASS regional companions T6 to T1, autonomous bonding, difficulty, failure, conservation, role effects, mount and save');
+}

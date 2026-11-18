@@ -7420,6 +7420,11 @@
   CULT.isSovereignCompanion = pet => !!(pet && mythicSpecies[pet.speciesId]);
   CULT.lineageCompanionSpec = id => Object.hasOwn(lineageSpecies, id) ? lineageSpecies[id] : null;
   CULT.curatedCompanionSpec = id => CULT.sovereignCompanionSpec(id) || CULT.lineageCompanionSpec(id);
+  const regionalSpecies = new Map((JD.CORE.regionalCompanions || []).map(sp => {
+    const source = JD.BEASTS.species.find(beast => beast.id === sp.sourceId);
+    return [sp.id, { ...sp, element:source?.element }];
+  }));
+  CULT.regionalCompanionSpec = id => regionalSpecies.get(id) || null;
   CULT.isCuratedCompanion = pet => !!(pet && CULT.curatedCompanionSpec(pet.speciesId));
   CULT.recoverLineageCompanion = (W, spec, party) =>
     CULT.lineageCompanionSpec(spec?.id) ? recoverCuratedCompanion(W, spec, party) : false;
@@ -7557,7 +7562,7 @@
 
   CULT.beastSpeciesById = id => {
     if (!CULT._speciesById) CULT.allBeastSpecies();
-    return CULT.curatedCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
+    return CULT.curatedCompanionSpec(id) || CULT.regionalCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
   };
 
   CULT.inferSpeciesFamily = sp => {
@@ -7688,7 +7693,7 @@
     const growthSt = clamp(opts.growthStage != null ? opts.growthStage : (isSovAwakened ? 4 : 1), 1, 4);
     const level = clamp(opts.level != null ? opts.level : (isSovAwakened ? 9 : Math.max(1, (growthSt - 1) * 3 + 1)), 1, 9);
     const role = CULT.normalizePetRole(opts.role || fallbackSp.role || CULT.defaultRoleForSpecies(fallbackSp));
-    const trait = isSovAwakened ? 'SOVEREIGN_AWAKENED' : (opts.bloodlineTrait || opts.trait || CULT.defaultTraitForSpecies(fallbackSp));
+    const trait = isSovAwakened ? 'SOVEREIGN_AWAKENED' : (opts.bloodlineTrait || opts.trait || CULT.regionalCompanionSpec(fallbackSp.id)?.trait || CULT.defaultTraitForSpecies(fallbackSp));
     const el = opts.element || fallbackSp.element || 'WIND';
     const bondVal = clamp(opts.bond != null ? opts.bond : (opts.loyalty != null ? opts.loyalty : 70), 0, 100);
     const hungerVal = clamp(opts.hunger != null ? opts.hunger : (opts.satisfaction != null ? opts.satisfaction : 90), 0, 100);
@@ -7796,6 +7801,12 @@
             const lane = ['move','cast','acc','eva'].includes(stat) ? f : p;
             lane[stat] = (lane[stat] || 0) + amount * factor;
           }
+        }
+        const regional = CULT.regionalCompanionSpec(pet.speciesId);
+        if (regional) {
+          const factor = w * (0.65 + .12 * Math.min(3, pet.growthStage || 1));
+          for (const [stat, amount] of Object.entries(regional.stats.p || {})) p[stat] = (p[stat] || 0) + amount * factor;
+          for (const [stat, amount] of Object.entries(regional.stats.f || {})) f[stat] = (f[stat] || 0) + amount * factor;
         }
         if (pet.mechArmored) {
           p.def = (p.def || 0) + 0.06 * w;

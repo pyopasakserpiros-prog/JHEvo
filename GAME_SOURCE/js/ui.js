@@ -5923,8 +5923,11 @@
     return h;
   }
 
+  function transcendentTechniqueArt(t) {
+    return g.Render?.isTranscendent(t) ? UI.renderAtlasIconHtml(t, 32) + ' ' : '';
+  }
+
   function renderTechTab(W, n) {
-    const art = t => g.Render && g.Render.isTranscendent(t) ? UI.renderAtlasIconHtml(t, 32) + ' ' : '';
     if (!n.cult) return '<div class="card muted">ตัวละครนี้ยังเป็นปุถุชน ยังไม่ตื่นรู้ปราณหรือฝึกวรยุทธ์</div>';
     let h = '';
     const c = n.cult, M = g.MARTIAL;
@@ -5933,7 +5936,7 @@
     h += '<h3>1. คัมภีร์ลมปราณหลัก (Mantra)</h3><div class="card">';
     if (curMantra) {
       const em = g.ELEM ? g.ELEM.explainCompatibility(n, curMantra, 'MANTRA_PRACTICE') : null;
-      h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>' + art(curMantra) + esc(curMantra.nameTh) + '</b> ' + gradeChip(curMantra) + '</div>';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>' + transcendentTechniqueArt(curMantra) + esc(curMantra.nameTh) + '</b> ' + gradeChip(curMantra) + '</div>';
       h += '<div class="muted" style="margin-top:2px">' + esc(curMantra.descTh || curMantra.desc || '') + '</div>';
       if (em) h += '<div class="muted" style="font-size:11.5px;color:var(--text)">' + esc(em.summaryTh) + ' · อัตราบำเพ็ญ ×' + em.cultivationMultiplier.toFixed(2) + (em.breakthroughBonus ? ' · โบนัสทะลวงด่าน ' + (em.breakthroughBonus >= 0 ? '+' : '') + Math.round(em.breakthroughBonus * 100) + '%' : '') + '</div>';
     } else {
@@ -5980,7 +5983,7 @@
         const sigId = p.signatureVfx || (parent && parent.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(parent || p, p) : null);
         const sigSpec = (sigId && g.SK && g.SK.SIGNATURE_VFX_CATALOG) ? g.SK.SIGNATURE_VFX_CATALOG[sigId] : null;
         const sigBadge = sigSpec ? (' <span class="chip g">' + esc(sigSpec.icon + ' เอฟเฟกต์เฉพาะ: ' + sigSpec.nameTh) + '</span> <button type="button" class="btn" style="padding:1px 6px;font-size:10.5px" data-do="preview-signature-vfx" data-arg="' + esc(n.id + '|' + sigSpec.id) + '">✨ ชมท่าไม้ตาย</button>') : '';
-        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + art(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + sigBadge + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + transcendentTechniqueArt(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + sigBadge + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่มีกระบวนท่าต่อสู้ที่ติดตั้ง</div>';
@@ -6386,6 +6389,8 @@
             if (CULT.isCuratedCompanion(p)) return UI.sovereignCompanionCard(p.speciesId, p.growthStage || 1,
               'ดูแลแล้ว ' + (p.careDays || 0) + ' วัน · ผูกพัน ' + Math.round(p.bond || 0) + '% · ' +
               (p.active ? 'ร่วมทาง' : p.injured ? 'พักฟื้น' : 'สำรอง'));
+            const regional = CULT.regionalCompanionSpec(p.speciesId);
+            if (regional) return UI.regionalCompanionCard(p, regional);
             const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
             return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><div><b>' + (p.sovereignAwakened ? '👑 ' : '🐾 ') + esc(p.nameTh) + '</b> <span class="chip ' + (p.active ? 'ok' : '') + '">' + (p.active ? 'ร่วมรบ' : 'พักฟื้น') + ' · T' + (p.tier || 1) + '</span> <span class="chip b">' + esc(gNames[p.growthStage || 1] || 'วัยเยาว์') + '</span><div class="muted" style="font-size:11.5px">ความภักดี ' + Math.round(p.loyalty || 0) + '% · ความผูกพัน (Bond) ' + Math.round(p.bond != null ? p.bond : (p.bondXp || 0)) + '</div></div><button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|' + (p.uid || p.id || '')) + '">🐾 ประทับร่างอสูร</button></div>';
           }).join('') + '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn ok" style="padding:3px 9px;font-size:11px" data-do="ingest-beast-core" data-arg="' + esc(n.id) + '">🐉 กลืนแก่นอสูรหลอมตันเถียน</button><button class="btn" style="padding:3px 9px;font-size:11px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|') + '">⚡ สถิตร่างอสูรคู่สัญญา</button></div></div>';
@@ -6412,7 +6417,7 @@
             const mastery = (g.SK.masteryPoints && parent) ? g.SK.masteryPoints(n, parent.id) : 0;
             const allM = (g.SK.allMoves && parent && Array.isArray(parent.moveDefs) && parent.moveDefs.length > 1) ? g.SK.allMoves(parent) : [];
             const lockedM = allM.filter(mv => !g.SK.canSelectMove(n, parent, mv.id));
-            return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + art(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+            return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + transcendentTechniqueArt(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
           }).join('') + '</div>';
         }
       }
@@ -7812,6 +7817,17 @@
       '<div><span class="companion-grade">' + esc(grade + ' · ' + (spec.directionTh ? 'ทิศ' + spec.directionTh : spec.familyTh)) + '</span><b>' +
       esc(stage === 0 ? spec.eggTh : spec.nameTh) + '</b><div class="muted">' +
       esc(stageTh) + (note ? ' · ' + esc(note) : '') + '</div>' + details + '</div></div>';
+  };
+
+  UI.regionalCompanionCard = (pet, spec) => {
+    const stages = ['วัยเยาว์', 'โตเต็มวัย', 'อาวุโส', 'ปลุกสายเลือด'];
+    const age = stages[Math.min(4, Math.max(1, pet.growthStage || 1)) - 1];
+    const tier = pet.tier || spec.tier;
+    return '<div class="sovereign-pet-card regional-pet-card" data-tier="' + tier + '">' +
+      g.Render.regionalCompanionSvg(spec.id, pet.growthStage || 1) + '<div><span class="companion-grade">T' +
+      tier + ' · ' + esc(age) + '</span><b>' + esc(pet.nameTh) + '</b><p>' +
+      esc(spec.strengthTh) + '</p><div class="muted">' + esc(spec.limitTh) + '</div><div class="muted">' +
+      esc(pet.injured ? 'พักฟื้น' : pet.active ? 'ร่วมทาง' : 'สำรอง') + ' · ความผูกพัน ' + Math.round(pet.bond || 0) + '%</div></div></div>';
   };
 
   const nurseryCards = W => {

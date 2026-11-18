@@ -7,6 +7,8 @@ category: world-procgen-exploration
 
 # JianghuSect Procedural Generation: Random Gear Engine, World, Exploration & Ecology
 
+Wild sources for `JD.CORE.regionalCompanions` keep their original spawning and drops. An accepted offer marks that live wild instance captured and gone, without running the kill rewards. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose

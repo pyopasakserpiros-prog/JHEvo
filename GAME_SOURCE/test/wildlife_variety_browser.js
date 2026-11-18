@@ -26,6 +26,26 @@ const {chromium}=(()=>{try{return require('playwright');}catch(_){return require
    return rows;
   });
   assert(result.length>=10);for(const row of result){assert(row.opaque>30,JSON.stringify(row));assert(row.skills>0);}
+  const regionalCount=await page.evaluate(()=>{
+   const W=G.W, n=W.byId[W.sect.masterId];
+   const canvas=document.getElementById('beast-gallery'), ctx=canvas.getContext('2d');
+   const images=new Set();
+   for(const spec of JD.CORE.regionalCompanions){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save();ctx.translate(100,80);ctx.scale(3,3);
+    if(!Render.drawRegionalCompanion(ctx,spec,3,0,0,0,1,true)) throw Error('Missing companion sprite for '+spec.id);
+    ctx.restore();
+    images.add(ctx.getImageData(60,0,80,100).data.reduce((hash,pixel)=>(hash*31+pixel)|0,0));
+   }
+   const pet=CULT.bindPet(W,n,'PET_REGIONAL_BODHI',{provenance:'regional_bond'});
+   if(!pet.ok) throw Error(pet.reason);
+   UI.openNpc(n.id,'pets');
+   return images.size;
+  });
+  assert.strictEqual(regionalCount,12);
+  const card=page.locator('.regional-pet-card[data-tier="6"]');
+  await card.waitFor({state:'visible'});
+  assert((await card.textContent()).includes('ภูตพฤกษาผาหยั่งราก'));
   assert.deepStrictEqual(errors,[]);
   console.log('PASS browser Canvas beast families: '+JSON.stringify(result));
  } finally {await browser.close();}

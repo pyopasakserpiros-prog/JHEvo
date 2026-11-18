@@ -1,6 +1,8 @@
 # AI Handoff — JianghuSect 2 / main-debug
 
-> **Latest patch:** [Mythic companion lineages](PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md) adds twelve autonomous companions and distinct in-world acquisition, combat roles, art, and grades.
+> **Latest patch:** [Regional companions T6–T1](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md) adds twelve bonded forms through NPC-run local wildlife encounters.
+
+> **Higher companion grades:** [Mythic companion lineages](PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md) adds twelve autonomous companions and distinct in-world acquisition, combat roles, art, and grades.
 
 > **Acquisition baseline:** [Sovereign archive and origins audit](PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md) supersedes the original Carbon acquisition claims. The four existing sanctums now have runnable source routes.
 

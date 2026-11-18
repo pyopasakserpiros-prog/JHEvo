@@ -387,6 +387,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .sovereign-pet-card.rank-2 { border-color: #ba9c61; }
 .sovereign-pet-card.rank-3 { border-color: #c191cf; box-shadow: inset 0 0 15px #a461c21d; }
 .sovereign-pet-card p { margin: 4px 0; font-size: 11.5px; }
+.regional-pet-card { border-color: #55766b; background: radial-gradient(ellipse at left, #2a4944, #141b26 72%); }
+.regional-pet-card .companion-grade { color: #cee5d7; }
+.regional-pet-card[data-tier="3"], .regional-pet-card[data-tier="4"] { border-color: #6e8592; }
+.regional-pet-card[data-tier="5"], .regional-pet-card[data-tier="6"] { border-color: #91966f; }
 
 </style>
 </head>
@@ -74651,6 +74655,36 @@ JD.ITEMS.items.forEach(it => {
       ['ไป๋เจ๋อจักษุสารพัดภพ', 'ดวงตารอบเรือนกายอ่านทั้งร่องรอยและคำสาป ชะล้างผลเสียได้สองอย่างในจังหวะเดียว']
     ], 'อ่านและล้างผลรบกวนของสหายใกล้ตัว', 'เสริมการโจมตีโดยตรงได้น้อย และไม่มีผลชะล้างเมื่อทีมยังปกติ', {mdef:.08,acc:5,atk:-.05})
   ];
+  // Bonded forms of existing wild species. The wild source keeps its original behavior and drops.
+  const regionalForm = (tier, key, sourceId, nameTh, family, role, cp, trait, stats, strengthTh, limitTh) => ({
+    id:'PET_REGIONAL_' + key, key, sourceId, nameTh, tier, family, role, cp, trait, stats, strengthTh, limitTh
+  });
+  JD.CORE.regionalCompanions = [
+    regionalForm(6, 'TAOTIE', 'BEAST_MYTHIC_TAOTIE_SHADOW', 'เทาเที่ยคาบเงาผา', 'CHIMERA', 'FEROCIOUS_ASSAULT', 254, 'ALPHA_FANG',
+      { p:{ atk:.035, mdef:-.045 }, f:{ pen:4 } }, 'เสริมแรงโจมตีและเจาะเกราะ', 'ผู้เลี้ยงต้านเวทได้น้อยลง'),
+    regionalForm(6, 'BODHI', 'ECO2_BEAST_PLANT_SPIRIT_6', 'ภูตพฤกษาผาหยั่งราก', 'PLANT_SPIRIT', 'IRON_GUARDIAN', 237, 'IRON_CARAPACE',
+      { p:{ hp:.045, def:.035 }, f:{ move:-5 } }, 'เสริมพลังชีวิตและการป้องกันกาย', 'ผู้เลี้ยงเคลื่อนที่ช้าลง'),
+    regionalForm(5, 'HAWK', 'BEAST_ASTRAL_VOID_HAWK_5', 'เหยี่ยวแหวกช่องดารา', 'AVIAN', 'MOUNT_CHARGER', 186, 'ALPHA_FANG',
+      { p:{ hp:-.025 }, f:{ move:4, eva:5 } }, 'หนุนความเร็วและการหลบ โตแล้วพาคณะเดินทางได้', 'ผู้เลี้ยงมีพลังชีวิตลดลง'),
+    regionalForm(5, 'FOX', 'ECO2_BEAST_CANINE_5', 'จิ้งจอกเงินหางแพรดึก', 'CANINE', 'MYSTIC_SUPPORT', 173, 'AUSPICIOUS_SPIRIT',
+      { p:{ matk:.032, def:-.035 }, f:{ cast:4 } }, 'เสริมพลังเวทและความเร็วร่าย', 'ผู้เลี้ยงรับการโจมตีกายภาพได้ลดลง'),
+    regionalForm(4, 'TORTOISE', 'BEAST_LAVA_FLAME_TORTOISE_4', 'เต่ากระดองตะกรันเพลิง', 'SHELL_GUARDIAN', 'IRON_GUARDIAN', 136, 'IRON_CARAPACE',
+      { p:{ def:.033 }, f:{ move:-4 } }, 'เพิ่มการป้องกันกาย', 'หนักและทำให้ผู้เลี้ยงเดินช้าลง'),
+    regionalForm(4, 'SCORPION', 'BEAST_SAND_SCORPION', 'แมงป่องหางถ่านแดง', 'ARTHROPOD_SWARM', 'VENOM_SWARM', 129, 'VENOM_GLAND',
+      { p:{ mdef:-.027 }, f:{ pen:5 } }, 'เพิ่มการเจาะเกราะ', 'ผู้เลี้ยงต้านเวทได้น้อยลง'),
+    regionalForm(3, 'PYTHON', 'BEAST_EMERALD_PYTHON', 'เหลือมหวายหยก', 'SERPENT', 'VENOM_SWARM', 101, 'VENOM_GLAND',
+      { p:{ atk:.02 }, f:{ move:-2 } }, 'เสริมแรงโจมตีและเจาะเกราะ', 'เคลื่อนที่ได้คล่องน้อยลง'),
+    regionalForm(3, 'BAT', 'BEAST_YIN_SHADOW_BAT_3', 'ค้างคาวใบหูม่วง', 'AVIAN', 'MYSTIC_SUPPORT', 94, 'AUSPICIOUS_SPIRIT',
+      { p:{ def:-.022 }, f:{ acc:4 } }, 'หนุนความแม่นยำและการต้านเวท', 'เกราะกายลดลงและขี่เดินทางไม่ได้'),
+    regionalForm(2, 'BOAR', 'BEAST_IRON_BOAR', 'หมูป่าสันเหล็ก', 'URSINE_BOAR', 'IRON_GUARDIAN', 76, 'IRON_CARAPACE',
+      { p:{ hp:.018 }, f:{ move:-2 } }, 'เสริมพลังชีวิตและการป้องกันกาย', 'ลดความเร็วเคลื่อนที่เล็กน้อย'),
+    regionalForm(2, 'CRANE', 'ECO2_BEAST_AVIAN_2', 'กระเรียนปีกหยกน้ำค้าง', 'AVIAN', 'MYSTIC_SUPPORT', 70, 'AUSPICIOUS_SPIRIT',
+      { p:{ mdef:.023, hp:-.015 } }, 'หนุนการต้านเวทและการทะลวงด่าน', 'พลังชีวิตลดเล็กน้อยและขี่เดินทางไม่ได้'),
+    regionalForm(1, 'WOLF', 'BEAST_MIST_WOLF', 'หมาป่าหูหมอก', 'CANINE', 'FEROCIOUS_ASSAULT', 57, 'ALPHA_FANG',
+      { p:{ def:-.014 }, f:{ move:2 } }, 'ช่วยจู่โจมและเพิ่มความเร็วเคลื่อนที่', 'พลังป้องกันกายลดเล็กน้อย'),
+    regionalForm(1, 'MUSHROOM', 'ECO2_BEAST_PLANT_SPIRIT_1', 'ภูตเห็ดตะเกียงมอส', 'PLANT_SPIRIT', 'MYSTIC_SUPPORT', 52, 'AUSPICIOUS_SPIRIT',
+      { p:{ mdef:.016 }, f:{ move:-1 } }, 'เสริมการต้านเวทและหนุนการทะลวงด่าน', 'เคลื่อนตัวช้าลงเล็กน้อย')
+  ];
   JD.TECH.transcendentCodices = [].concat(JD.TECH.sovereignCombatArts, JD.TECH.sovereignMantras, JD.TECH.sovereignNonCombatArts);
   JD.TECH.transcendentArts = JD.TECH.transcendentCodices;
 
@@ -84081,6 +84115,11 @@ JD.ITEMS.items.forEach(it => {
   CULT.isSovereignCompanion = pet => !!(pet && mythicSpecies[pet.speciesId]);
   CULT.lineageCompanionSpec = id => Object.hasOwn(lineageSpecies, id) ? lineageSpecies[id] : null;
   CULT.curatedCompanionSpec = id => CULT.sovereignCompanionSpec(id) || CULT.lineageCompanionSpec(id);
+  const regionalSpecies = new Map((JD.CORE.regionalCompanions || []).map(sp => {
+    const source = JD.BEASTS.species.find(beast => beast.id === sp.sourceId);
+    return [sp.id, { ...sp, element:source?.element }];
+  }));
+  CULT.regionalCompanionSpec = id => regionalSpecies.get(id) || null;
   CULT.isCuratedCompanion = pet => !!(pet && CULT.curatedCompanionSpec(pet.speciesId));
   CULT.recoverLineageCompanion = (W, spec, party) =>
     CULT.lineageCompanionSpec(spec?.id) ? recoverCuratedCompanion(W, spec, party) : false;
@@ -84218,7 +84257,7 @@ JD.ITEMS.items.forEach(it => {
 
   CULT.beastSpeciesById = id => {
     if (!CULT._speciesById) CULT.allBeastSpecies();
-    return CULT.curatedCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
+    return CULT.curatedCompanionSpec(id) || CULT.regionalCompanionSpec(id) || (CULT._speciesById && CULT._speciesById[id]) || null;
   };
 
   CULT.inferSpeciesFamily = sp => {
@@ -84349,7 +84388,7 @@ JD.ITEMS.items.forEach(it => {
     const growthSt = clamp(opts.growthStage != null ? opts.growthStage : (isSovAwakened ? 4 : 1), 1, 4);
     const level = clamp(opts.level != null ? opts.level : (isSovAwakened ? 9 : Math.max(1, (growthSt - 1) * 3 + 1)), 1, 9);
     const role = CULT.normalizePetRole(opts.role || fallbackSp.role || CULT.defaultRoleForSpecies(fallbackSp));
-    const trait = isSovAwakened ? 'SOVEREIGN_AWAKENED' : (opts.bloodlineTrait || opts.trait || CULT.defaultTraitForSpecies(fallbackSp));
+    const trait = isSovAwakened ? 'SOVEREIGN_AWAKENED' : (opts.bloodlineTrait || opts.trait || CULT.regionalCompanionSpec(fallbackSp.id)?.trait || CULT.defaultTraitForSpecies(fallbackSp));
     const el = opts.element || fallbackSp.element || 'WIND';
     const bondVal = clamp(opts.bond != null ? opts.bond : (opts.loyalty != null ? opts.loyalty : 70), 0, 100);
     const hungerVal = clamp(opts.hunger != null ? opts.hunger : (opts.satisfaction != null ? opts.satisfaction : 90), 0, 100);
@@ -84457,6 +84496,12 @@ JD.ITEMS.items.forEach(it => {
             const lane = ['move','cast','acc','eva'].includes(stat) ? f : p;
             lane[stat] = (lane[stat] || 0) + amount * factor;
           }
+        }
+        const regional = CULT.regionalCompanionSpec(pet.speciesId);
+        if (regional) {
+          const factor = w * (0.65 + .12 * Math.min(3, pet.growthStage || 1));
+          for (const [stat, amount] of Object.entries(regional.stats.p || {})) p[stat] = (p[stat] || 0) + amount * factor;
+          for (const [stat, amount] of Object.entries(regional.stats.f || {})) f[stat] = (f[stat] || 0) + amount * factor;
         }
         if (pet.mechArmored) {
           p.def = (p.def || 0) + 0.06 * w;
@@ -124735,12 +124780,16 @@ JD.ITEMS.items.forEach(it => {
         if (!p || p.active === false || p.dead || p.injured || (p.fatigue || 0) >= 95) return false;
         const lineage = CULT.lineageCompanionSpec(p.speciesId);
         if (lineage) return lineage.familyId === 'KUNPENG' && p.growthStage >= 3 && p.hunger >= 38 && p.fatigue < 75;
+        const regional = CULT.regionalCompanionSpec(p.speciesId);
+        if (regional && !p.fourSymbol) return regional.key === 'HAWK' && p.growthStage >= 2 && p.hunger >= 38 && p.fatigue < 75;
         return p.role === 'MOUNT_CHARGER' || p.family === 'AVIAN' || p.family === 'UNGULATE' ||
           p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON';
       });
       if (pet) {
         const lineage = CULT.lineageCompanionSpec(pet.speciesId);
-        fastestMount = Math.min(fastestMount, lineage ? [.83, .75, .69][lineage.gradeRank - 1] : .75);
+        const regional = CULT.regionalCompanionSpec(pet.speciesId);
+        const mountDuration = lineage ? [.83, .75, .69][lineage.gradeRank - 1] : regional ? .86 : .75;
+        fastestMount = Math.min(fastestMount, mountDuration);
         if (pet.fourSymbol === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'VERMILION_PHOENIX') hasPhoenixMount = true;
         if (pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'AZURE_DRAGON') hasAzureDragonMount = true;
         mounts.push({ ownerId: n.id, uid: pet.uid || pet.id || null, nameTh: pet.nameTh || 'พาหนะวิญญาณ', role: pet.role || null, family: pet.family || null, fourSymbol: pet.fourSymbol || null, tier: pet.tier || 1 });
@@ -162199,12 +162248,17 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     return b;
   };
 
-  WILD.startFight = (W, n, b, opts) => {
+  const canApproach = (W, n, b) => {
     if (!n || n.dead || n.away || n.travel || !b || b.dead || b.gone || b.fighting || n.act.id === 'fight') return false;
     if (!isOutsideWall(W.map, n.x, n.y) || !isOutsideWall(W.map, b.x, b.y) || Math.hypot(n.x - b.x, n.y - b.y) > 3) return false;
     // สัตว์ดุร้ายห้ามเริ่มต่อสู้หรือโจมตีข้ามแนวเก็บสมุนไพรปลอดภัย
     if (b.aggressive && MAP.isInSafeBelt && (MAP.isInSafeBelt(n.x, n.y) || MAP.isInSafeBelt(b.x, b.y))) return false;
 
+    return true;
+  };
+
+  WILD.startFight = (W, n, b, opts) => {
+    if (!canApproach(W, n, b)) return false;
     W.foes.push(b);
     W.foeById[b.id] = b;
     const ctx = Object.assign({ beastId: b.id, hunterId: n.id, huntStartedAt: W.t, expectedTravel: n.landHuntTrip?.travel || 0, baseCultRate: CULT.rate(n, 1), prepared: n.h.state.satiety>=50 && n.h.state.energy>=45 && n.h.state.rest>=40, landContributions: {} }, opts || {});
@@ -162391,7 +162445,11 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       if (b.aggressive && (W._isNewCalendarMinute !== false && W.t % 15 === 0)) {
         // อสูรก้าวร้าวไม่โจมตีผู้คนที่อยู่ในแนวเก็บสมุนไพรปลอดภัยหน้าประตูสำนัก
         const n = W.npcs.find(n => !n.dead && !n.away && !n.hidden && !n.travel && isOutsideWall(W.map, n.x, n.y) && !(MAP.isInSafeBelt && MAP.isInSafeBelt(n.x, n.y)) && n.act.id !== 'fight' && Math.hypot(n.x - b.x, n.y - b.y) < 2.5);
-        if (n) WILD.startFight(W, n, b);
+        if (n) {
+          // Preserve the NPC's planned approach if the same beast notices them first.
+          if (n.act.id === 'wildHunt' && n.act.ctx?.beastId === b.id && tryRegionalBond(W, n, b)) continue;
+          WILD.startFight(W, n, b);
+        }
       }
       if (!b.fighting && isNewCalendarMinute && (W._isNewCalendarMinute !== false && W.t % 90 === 0)) {
         const z = zones[b.zone];
@@ -162411,12 +162469,70 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     state.beasts = state.beasts.filter(b => !b.gone && !b.dead);
   };
 
+  const regionalBySource = new Map((JD.CORE.regionalCompanions || []).map(sp => [sp.sourceId, sp]));
+  const bondSkill = [0, 6, 14, 25, 38, 52];
+  const bondChance = [.58, .49, .41, .34, .27, .21];
+
+  const regionalBondCandidate = (W, n, b) => {
+    const form = regionalBySource.get(b.speciesId);
+    if (!form || b.regionalBondTried || b.tameable === false || n.regionalBondReadyAt > W.t) return null;
+    const pets = (n.pets || []).filter(p => p && !p.dead);
+    const activeSlots = CULT.maxActivePets(n);
+    if (pets.some(p => p.speciesId === form.id) || (pets.length >= activeSlots && !pets.some(p => p.active && p.tier < form.tier)) ||
+        (n.pets || []).length >= activeSlots + CULT.maxReservePets(n)) return null;
+    const stage = CULT.effectiveTechStage(n);
+    if (stage < form.tier || n.h.state.energy < 35) return null;
+    const skill = g.MARTIAL.skillRead(n, 'BEAST_TAMING');
+    if (skill < bondSkill[form.tier - 1]) return null;
+    const interest = HC.eff(n, 'interests.beasts');
+    const empathy = HC.eff(n, 'personality.empathy');
+    const temperament = .62 * interest + .25 * empathy + .13 * skill;
+    if (temperament < 47 + form.tier * 2) return null;
+    return { form, skill, empathy };
+  };
+
+  const tryRegionalBond = (W, n, b) => {
+    if (!canApproach(W, n, b)) return false;
+    const candidate = regionalBondCandidate(W, n, b);
+    if (!candidate) return false;
+    const eligibility = WILD.captureEligibility(n, b);
+    if (!eligibility.allowed || eligibility.offeringMatId) return false;
+    const { form, skill, empathy } = candidate;
+    const bait = form.tier >= 4 ? 2 : 1;
+    if (ECO.count(W, 'grain') < W.npcs.filter(person => !person.dead).length + bait ||
+        !ECO.take(W, 'grain', bait)) return false;
+    b.regionalBondTried = true;
+    n.regionalBondReadyAt = W.t + 1440;
+    const chance = U.clamp(bondChance[form.tier - 1] + skill * .003 + (empathy - 50) * .002, .12, .87);
+    g.MARTIAL.skillPractice(n, 'BEAST_TAMING', .5, 1.2);
+    if (!W.rng.chance(chance)) {
+      W.log('explore', HC.fullName(n) + ' วางอาหารให้ ' + b.name + ' แต่ยังไม่ยอมเข้าใกล้', [n.id]);
+      if (b.aggressive) return false;
+      delete n.landHuntTrip;
+      return true;
+    }
+    const outcome = CULT.bindPet(W, n, form.id, { provenance:'regional_bond', replaceWeakest:true });
+    if (!outcome.ok) return false;
+    b.captured = true;
+    b.capturedBy = n.id;
+    b.gone = true;
+    delete n.landHuntTrip;
+    W.wildlife.captures = (W.wildlife.captures || 0) + 1;
+    W.log('explore', HC.fullName(n) + ' รับ ' + b.name + ' เป็นคู่หู 「' + form.nameTh + '」 T' + form.tier +
+      ' หลังเข้าใกล้ใน' + (zones[b.zone]?.nameTh || 'ป่านอกสำนัก'), [n.id]);
+    return true;
+  };
+
   AI.ACTS.wildHunt = {
     nameTh: 'ล่าอสูรใกล้สำนัก',
     icon: '🐺',
     color: '#b67862',
     can: (n, W) => { const bs = W.wildlife && W.wildlife.beasts; if (!(bs && bs.length && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > (n._nd ? n._nd.hpMax : CULT.hpMax(n)) * 0.6)) return false; let minP = Infinity; for (let i = 0; i < bs.length; i++) { const b = bs[i]; if (!b.dead && !b.gone && !b.fighting && b.power < minP) minP = b.power; } if (minP === Infinity) return false; return CULT.power(n) >= minP * 0.8; },
     score(n, W, S) {
+      if ((n.pets || []).length < CULT.maxActivePets(n) && (!n.regionalBondReadyAt || n.regionalBondReadyAt <= W.t)) {
+        const interest = HC.eff(n, 'interests.beasts');
+        if (interest >= 60) S.add('ชอบติดตามร่องรอยสัตว์วิญญาณ', (interest - 55) / 85);
+      }
       S.add('ชอบล่าและต่อสู้', (HC.eff(n, 'interests.combat') - 35) / 40 + (HC.eff(n, 'interests.exploring') - 40) / 60);
       if (n.cult && n.cult.path === 'BODY') S.add('ขัดเกลากายาผ่านการล่าอสูร', 0.85);
       S.add('รับปราณหุบเขาและโอกาสได้วัตถุดิบ', 0.55);
@@ -162432,7 +162548,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       let b = null;
       for (let offset=0; offset<nearby.length && !b; offset+=8) {
         const ranked = nearby.slice(offset,offset+8).map(({beast}) => ({beast,
-          value:g.COG ? g.COG.huntValue(W,n,beast) : -Math.hypot(n.x-beast.x,n.y-beast.y)}));
+          value:(g.COG ? g.COG.huntValue(W,n,beast) : -Math.hypot(n.x-beast.x,n.y-beast.y)) +
+            (regionalBondCandidate(W,n,beast) ? .38 : 0) }));
         ranked.sort((a,b)=>b.value-a.value);
         b = ranked.find(entry=>Number.isFinite(entry.value))?.beast || null;
       }
@@ -162441,7 +162558,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     },
     start(n, W, ctx) {
       const b = W.wildlife.beasts.find(b => b.id === ctx.beastId);
-      return !!b && WILD.startFight(W, n, b);
+      return !!b && (tryRegionalBond(W, n, b) || WILD.startFight(W, n, b));
     },
     dur: () => 1,
     tick() {},
@@ -180276,18 +180393,26 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const face = n.face >= 0 ? 1 : -1;
       const px = -face * 10.5;
       const py = 1.5 + Math.sin(t * 4.2) * 0.9;
-      const sovereign = pets.filter(CULT.isCuratedCompanion);
-      if (sovereign.length) {
-        const cap = this.resolveQuality() === 'low' ? 1 : 2;
-        sovereign.slice(0, cap).forEach((companion, i) => {
-          const stage = companion.growthStage || 1;
-          const lineage = CULT.lineageCompanionSpec(companion.speciesId);
-          const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
-          R.drawSovereignCompanion(ctx, companion.speciesId, stage,
-            -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face);
-        });
-        return true;
+      const illustrated = pets.filter(CULT.isCuratedCompanion);
+      for (const companion of pets) {
+        if (CULT.regionalCompanionSpec(companion.speciesId)) illustrated.push(companion);
       }
+      const cap = illustrated.length > 1 && this.resolveQuality() === 'low' ? 1 : 2;
+      let drewCompanion = false;
+      for (const [i, companion] of illustrated.slice(0, cap).entries()) {
+        const stage = companion.growthStage || 1;
+        const regional = CULT.regionalCompanionSpec(companion.speciesId);
+        if (regional) {
+          drewCompanion = R.drawRegionalCompanion(ctx, regional, stage,
+            px - face * (5 + i * 22), py + i * 14, t, face, this.isReducedMotion()) || drewCompanion;
+          continue;
+        }
+        const lineage = CULT.lineageCompanionSpec(companion.speciesId);
+        const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
+        drewCompanion = R.drawSovereignCompanion(ctx, companion.speciesId, stage,
+          -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face) || drewCompanion;
+      }
+      if (drewCompanion) return true;
       const spId = String(pet.speciesId || pet.id || 'SPIRIT_FOX').toUpperCase();
       const sym = pet.awakenedSymbol || pet.fourSymbol || null;
       const col = sym === 'AZURE_DRAGON' ? '#00e5ff'
@@ -184762,6 +184887,149 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         const sx = 80 + Math.cos(a) * 68, sy = 61 + Math.sin(a * 1.7) * 42;
         ctx.beginPath(); ctx.moveTo(sx, sy - 5); ctx.lineTo(sx + 3, sy); ctx.lineTo(sx, sy + 5); ctx.lineTo(sx - 3, sy); ctx.closePath(); ctx.fill();
       }
+    }
+    ctx.restore();
+    return true;
+  };
+  // Shared coordinates for the map and the NPC card. Tier accents sit behind each silhouette.
+  const regionalArt = {
+    TAOTIE: {
+      color:['#22152d','#5a385b','#ce84a1','#f9c17b'],
+      body:'M23 89 27 67 16 55 32 61 46 47 64 45 77 56 91 47 96 32 109 42 116 21 131 32 127 46 145 57 147 68 134 72 126 71 131 85 123 96 111 96 113 78 89 75 79 94 67 94 72 76 57 78 46 94 33 94 39 77Z',
+      detail:'M91 48Q106 47 108 60L123 62 116 70 101 67 91 55Z M35 64Q52 52 68 55L52 71Z M119 45 134 52 125 54Z',
+      accent:'M32 83Q78 28 141 83 M50 77 48 64 56 59 66 64 65 71 60 75 55 72 M123 64 130 64 126 72Z'
+    },
+    BODHI: {
+      color:['#172b29','#495943','#96b276','#ebd58b'],
+      body:'M30 81 44 65 33 59 21 40 38 50 53 50 55 31 69 24 67 10 81 21 92 28 98 15 111 11 110 26 122 29 133 22 128 41 146 48 129 57 108 53 109 67 125 76 142 92 119 88 103 77 111 94 98 94 86 81 66 89 56 94 43 94 50 79Z',
+      detail:'M68 23 64 48 72 62 62 82 75 75 83 60 79 51 88 46 99 55 104 49 94 42 101 29 84 39Z M24 51 39 58 51 60 43 55Z',
+      accent:'M62 89Q82 67 93 85 M42 62Q84 18 125 60 M79 53 84 45 89 53 84 60Z M111 35 119 29 118 37Z'
+    },
+    HAWK: {
+      airborne:true, color:['#17263d','#415880','#a6c9f0','#baf9ff'],
+      body:'M17 36 47 40 59 55 74 59 76 49 64 28 59 13 77 22 90 39 103 39 114 30 123 34 132 44 143 46 135 52 122 53 116 68 102 77 91 79 76 91 60 89 67 81 53 81 32 66 15 59 29 58 12 48 32 50Z',
+      detail:'M36 52 57 60 76 68 65 75 45 67Z M74 29 92 44 103 51 93 56 78 42Z M113 36 121 36 129 46 120 46Z',
+      accent:'M26 74Q60 96 140 60 M38 79Q90 104 139 69 M123 43 130 44 125 47Z M101 62 108 57'
+    },
+    FOX: {
+      color:['#302644','#7a6891','#ddcbed','#f3b9cf'],
+      back:Array.from({length:9}, (_, i) => {
+        const x = 17 + i * 5, y = 17 + Math.abs(i-4)*4;
+        return 'M65 76Q' + (x-19) + ' 77 ' + x + ' ' + y + 'Q' + (x+8) + ' ' + (y+19) +
+          ' 52 55Q64 60 70 72Z';
+      }),
+      body:'M43 78 53 64 69 61 95 65 111 54 110 42 121 49 132 38 135 57 146 66 139 73 123 73 113 83 114 93 104 93 100 81 83 85 75 95 65 95 68 82 57 91 48 91Z',
+      detail:'M96 65 111 54 114 62 132 57 144 65 139 72 124 69 115 76 104 75Z M130 48 132 56 127 56Z',
+      accent:'M44 30Q69 20 76 48 M115 74Q126 72 134 70 M132 62 137 62 134 65Z'
+    },
+    TORTOISE: {
+      color:['#382329','#815044','#c28d60','#ffc46f'],
+      body:'M16 85 26 78 30 65 45 51 63 44 81 34 100 45 115 61 129 61 141 68 145 76 135 81 124 81 122 90 111 92 102 86 66 88 56 93 42 93 49 84 30 83Z',
+      detail:'M31 77 41 59 61 54 61 65 55 76Z M65 51 82 39 99 47 101 59 87 71 68 63Z M90 74 104 62 112 63 120 76 109 82Z',
+      accent:'M61 54 65 66 56 78 M82 39 85 50 79 57 86 68 78 80 M103 63 106 72 116 74 M135 72 138 73'
+    },
+    SCORPION: {
+      color:['#3d2327','#8f4e36','#cc8361','#ffc590'],
+      body:'M38 80 43 67 53 62 68 63 81 72 94 70 102 55 102 41 91 33 80 33 71 40 66 35 71 21 77 27 93 24 109 31 116 44 114 59 102 77 88 83 76 84 71 93 63 92 67 81 58 80 54 92 47 91 49 79 43 79 38 91 30 90 34 77 24 74 17 64 21 56 27 64 32 64 29 54 39 60 37 70Z',
+      detail:'M43 69 51 63 58 67 50 76Z M59 66 67 66 72 73 66 79 57 75Z M103 44 114 45 113 51 103 50Z M88 28 93 26 100 29 98 33Z',
+      accent:'M71 25 74 31 69 34 M44 77 49 78 M103 56 111 58 M79 85 88 85'
+    },
+    PYTHON: {
+      color:['#183929','#447858','#82be83','#e8d787'],
+      body:'M23 87Q15 70 44 65Q65 61 78 68Q102 78 111 63Q112 57 104 52L98 46 101 39 117 33 132 37 139 46 133 52 119 55Q137 78 113 88Q93 97 76 86Q47 71 37 82Q33 88 55 92L57 96Q26 99 23 87Z',
+      detail:'M102 46 112 39 126 38 137 45 124 47 118 51Z M31 75Q51 67 72 75L70 81Q50 75 31 83Z',
+      accent:'M53 70 60 74 M67 72 74 78 M83 80 87 86 M97 81 101 86 M113 73 117 76 M126 42 130 43'
+    },
+    BAT: {
+      airborne:true, color:['#261b39','#664d86','#b6a8d6','#f4b4d8'],
+      body:'M76 51 69 40 67 28 77 35 87 31 94 21 98 36 94 49Q119 22 149 30L137 46 137 63Q120 51 118 69Q105 59 94 78L85 87 75 76Q61 60 48 69Q43 53 24 63L24 47 12 38Q42 26 76 51Z',
+      detail:'M27 43 56 47 70 62Q59 54 49 61Q44 53 29 56Z M102 56 119 43 139 35 134 47 132 55Q123 49 118 58Z M74 41 80 38 91 38 94 42 91 50 77 51Z',
+      accent:'M82 43 85 44 M91 42 92 43 M19 70Q37 67 49 74 M113 75Q125 66 140 68'
+    },
+    BOAR: {
+      color:['#302a2a','#77645b','#bdab90','#f1ddae'],
+      body:'M25 74 28 63 39 61 45 53 56 54 63 47 73 51 86 46 93 53 105 52 119 61 130 61 137 68 136 76 124 82 113 81 107 92 99 92 100 81 66 84 57 94 49 94 51 84 33 82 24 87 18 84Z',
+      detail:'M45 63 54 55 59 62 65 55 71 61 82 53 92 60 83 66 61 67Z M116 64 128 64 135 68 133 73 118 72Z M125 77 139 66 136 81 126 84Z',
+      accent:'M47 74 60 71 82 70 M111 66 115 66'
+    },
+    CRANE: {
+      color:['#224340','#7cb0a2','#deefe0','#e8be7c'],
+      body:'M37 73 24 68 38 65 54 60 74 62 91 67 97 56 92 43 100 32 114 32 122 37 140 40 125 43 115 42 106 44 112 56 111 67 100 77 85 81 78 91 96 96 90 99 71 94 74 82 62 81 58 94 60 100 53 100 52 93 56 79Z',
+      detail:'M43 69 57 64 74 65 90 71 83 77 62 76 52 72Z M98 35 111 33 116 36 106 38Z',
+      accent:'M48 71 67 69 79 72 M116 38 118 39'
+    },
+    WOLF: {
+      color:['#283845','#576b78','#a8c1c4','#dff2c6'],
+      body:'M26 75 16 62 37 72 47 61 62 59 78 63 90 60 102 47 107 36 114 46 126 40 128 54 142 61 138 68 124 71 112 76 111 90 102 93 103 79 83 81 76 92 66 92 67 80 54 80 47 91 37 91 41 77Z',
+      detail:'M90 62 102 48 109 55 124 51 131 58 141 62 135 68 121 66 112 73 102 71Z M54 64 72 66 81 73 65 74Z',
+      accent:'M123 57 127 58 M103 48 106 43'
+    },
+    MUSHROOM: {
+      color:['#263c31','#6b8e54','#c6d99a','#fff3b3'],
+      body:'M35 76Q32 68 44 57Q58 45 73 42Q62 40 61 34Q67 21 85 18Q106 18 115 32Q116 40 105 42Q128 49 138 65Q142 76 124 79L106 78 107 87 114 92 109 95 96 94 90 84 84 84 80 94 69 94 65 90 73 84 74 78Q52 81 35 76Z',
+      detail:'M38 69Q58 54 86 51Q117 54 134 69Q121 71 104 67Q87 66 74 70Q51 74 38 69Z M78 35Q82 26 92 27Q102 27 106 35Z',
+      accent:'M81 76 85 76 M94 76 98 76 M58 61 62 60 M106 61 110 62'
+    }
+  };
+
+  const regionalScale = (spec, stage) => [0, .15, .205, .265][Math.min(3, Math.max(1, stage))] * (.68 + spec.tier * .05);
+  const regionalLayers = (spec, art) => {
+    const [ink, pigment, pale, accent] = art.color;
+    return [
+      ...(art.back || []).map(path => [path, pigment, ink, 1.8]),
+      [art.body, pigment, ink, 2.8],
+      [art.detail, pale, ink, .8],
+      [art.accent, null, accent, spec.tier >= 5 ? 2 : 1.4]
+    ];
+  };
+
+  R.regionalCompanionSvg = (speciesId, stage) => {
+    const spec = CULT.regionalCompanionSpec(speciesId);
+    if (!spec) return '';
+    const art = regionalArt[spec.key];
+    const size = regionalScale(spec, stage) / .265;
+    const [ink, , , accent] = art.color;
+    const outline = spec.tier >= 5 && stage >= 2
+      ? '<ellipse cx="80" cy="92" rx="60" ry="11" fill="none" stroke="' + accent + '" opacity=".54"/>' : '';
+    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
+      '<ellipse cx="80" cy="98" rx="' + (56 * size) + '" ry="8" fill="' + ink + '" opacity=".65"/>' +
+      '<g transform="translate(80 94) scale(' + size + ') translate(-80 -94)" stroke-linecap="round" stroke-linejoin="round">' + outline +
+      regionalLayers(spec, art).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
+        '" stroke="' + stroke + '" stroke-width="' + width + '"/>').join('') + '</g></svg>';
+  };
+
+  const regionalPathCache = new Map();
+  R.drawRegionalCompanion = (ctx, spec, stage, x, y, time, face, reduced) => {
+    if (typeof Path2D !== 'function') return false;
+    const art = regionalArt[spec.key];
+    let layers = regionalPathCache.get(spec.key);
+    if (!layers) {
+      layers = regionalLayers(spec, art).map(([path, ...paint]) => [new Path2D(path), ...paint]);
+      regionalPathCache.set(spec.key, layers);
+    }
+    const size = regionalScale(spec, stage);
+    const [ink, pigment, pale, accent] = art.color;
+    ctx.save();
+    ctx.translate(x, y - (art.airborne ? 3.5 + (reduced ? 0 : Math.sin(time * 3.8) * 1.75) : 0));
+    ctx.scale(face * size, size);
+    ctx.translate(-80, -94);
+    ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.fillStyle = '#11182665';
+    ctx.beginPath(); ctx.ellipse(80, 98, 48, 8, 0, 0, Math.PI * 2); ctx.fill();
+    if (spec.tier >= 5 && stage >= 2) {
+      ctx.strokeStyle = accent + '70';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(80, 94, 58, 10, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    const gradient = ctx.createLinearGradient(49, 97, 90, 18);
+    gradient.addColorStop(0, ink);
+    gradient.addColorStop(.52, pigment);
+    gradient.addColorStop(1, pale);
+    for (const [path, fill, stroke, width] of layers) {
+      if (fill) { ctx.fillStyle = fill === pigment ? gradient : fill; ctx.fill(path); }
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = width;
+      ctx.stroke(path);
     }
     ctx.restore();
     return true;
@@ -190696,8 +190964,11 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     return h;
   }
 
+  function transcendentTechniqueArt(t) {
+    return g.Render?.isTranscendent(t) ? UI.renderAtlasIconHtml(t, 32) + ' ' : '';
+  }
+
   function renderTechTab(W, n) {
-    const art = t => g.Render && g.Render.isTranscendent(t) ? UI.renderAtlasIconHtml(t, 32) + ' ' : '';
     if (!n.cult) return '<div class="card muted">ตัวละครนี้ยังเป็นปุถุชน ยังไม่ตื่นรู้ปราณหรือฝึกวรยุทธ์</div>';
     let h = '';
     const c = n.cult, M = g.MARTIAL;
@@ -190706,7 +190977,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     h += '<h3>1. คัมภีร์ลมปราณหลัก (Mantra)</h3><div class="card">';
     if (curMantra) {
       const em = g.ELEM ? g.ELEM.explainCompatibility(n, curMantra, 'MANTRA_PRACTICE') : null;
-      h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>' + art(curMantra) + esc(curMantra.nameTh) + '</b> ' + gradeChip(curMantra) + '</div>';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>' + transcendentTechniqueArt(curMantra) + esc(curMantra.nameTh) + '</b> ' + gradeChip(curMantra) + '</div>';
       h += '<div class="muted" style="margin-top:2px">' + esc(curMantra.descTh || curMantra.desc || '') + '</div>';
       if (em) h += '<div class="muted" style="font-size:11.5px;color:var(--text)">' + esc(em.summaryTh) + ' · อัตราบำเพ็ญ ×' + em.cultivationMultiplier.toFixed(2) + (em.breakthroughBonus ? ' · โบนัสทะลวงด่าน ' + (em.breakthroughBonus >= 0 ? '+' : '') + Math.round(em.breakthroughBonus * 100) + '%' : '') + '</div>';
     } else {
@@ -190753,7 +191024,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         const sigId = p.signatureVfx || (parent && parent.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(parent || p, p) : null);
         const sigSpec = (sigId && g.SK && g.SK.SIGNATURE_VFX_CATALOG) ? g.SK.SIGNATURE_VFX_CATALOG[sigId] : null;
         const sigBadge = sigSpec ? (' <span class="chip g">' + esc(sigSpec.icon + ' เอฟเฟกต์เฉพาะ: ' + sigSpec.nameTh) + '</span> <button type="button" class="btn" style="padding:1px 6px;font-size:10.5px" data-do="preview-signature-vfx" data-arg="' + esc(n.id + '|' + sigSpec.id) + '">✨ ชมท่าไม้ตาย</button>') : '';
-        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + art(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + sigBadge + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + transcendentTechniqueArt(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + sigBadge + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่มีกระบวนท่าต่อสู้ที่ติดตั้ง</div>';
@@ -191159,6 +191430,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
             if (CULT.isCuratedCompanion(p)) return UI.sovereignCompanionCard(p.speciesId, p.growthStage || 1,
               'ดูแลแล้ว ' + (p.careDays || 0) + ' วัน · ผูกพัน ' + Math.round(p.bond || 0) + '% · ' +
               (p.active ? 'ร่วมทาง' : p.injured ? 'พักฟื้น' : 'สำรอง'));
+            const regional = CULT.regionalCompanionSpec(p.speciesId);
+            if (regional) return UI.regionalCompanionCard(p, regional);
             const gNames = { 1: 'วัยเยาว์ (Juvenile)', 2: 'โตเต็มวัย (Mature)', 3: 'อสูรบรรพกาล (Elder)', 4: 'ราชันย์อสูรจุติ (Sovereign Awakened)' };
             return '<div style="padding:4px 0;border-bottom:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><div><b>' + (p.sovereignAwakened ? '👑 ' : '🐾 ') + esc(p.nameTh) + '</b> <span class="chip ' + (p.active ? 'ok' : '') + '">' + (p.active ? 'ร่วมรบ' : 'พักฟื้น') + ' · T' + (p.tier || 1) + '</span> <span class="chip b">' + esc(gNames[p.growthStage || 1] || 'วัยเยาว์') + '</span><div class="muted" style="font-size:11.5px">ความภักดี ' + Math.round(p.loyalty || 0) + '% · ความผูกพัน (Bond) ' + Math.round(p.bond != null ? p.bond : (p.bondXp || 0)) + '</div></div><button class="btn pri" style="padding:2px 7px;font-size:10.5px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|' + (p.uid || p.id || '')) + '">🐾 ประทับร่างอสูร</button></div>';
           }).join('') + '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn ok" style="padding:3px 9px;font-size:11px" data-do="ingest-beast-core" data-arg="' + esc(n.id) + '">🐉 กลืนแก่นอสูรหลอมตันเถียน</button><button class="btn" style="padding:3px 9px;font-size:11px" data-do="activate-beast-possession" data-arg="' + esc(n.id + '|') + '">⚡ สถิตร่างอสูรคู่สัญญา</button></div></div>';
@@ -191185,7 +191458,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
             const mastery = (g.SK.masteryPoints && parent) ? g.SK.masteryPoints(n, parent.id) : 0;
             const allM = (g.SK.allMoves && parent && Array.isArray(parent.moveDefs) && parent.moveDefs.length > 1) ? g.SK.allMoves(parent) : [];
             const lockedM = allM.filter(mv => !g.SK.canSelectMove(n, parent, mv.id));
-            return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + art(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+            return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + transcendentTechniqueArt(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
           }).join('') + '</div>';
         }
       }
@@ -192585,6 +192858,17 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       '<div><span class="companion-grade">' + esc(grade + ' · ' + (spec.directionTh ? 'ทิศ' + spec.directionTh : spec.familyTh)) + '</span><b>' +
       esc(stage === 0 ? spec.eggTh : spec.nameTh) + '</b><div class="muted">' +
       esc(stageTh) + (note ? ' · ' + esc(note) : '') + '</div>' + details + '</div></div>';
+  };
+
+  UI.regionalCompanionCard = (pet, spec) => {
+    const stages = ['วัยเยาว์', 'โตเต็มวัย', 'อาวุโส', 'ปลุกสายเลือด'];
+    const age = stages[Math.min(4, Math.max(1, pet.growthStage || 1)) - 1];
+    const tier = pet.tier || spec.tier;
+    return '<div class="sovereign-pet-card regional-pet-card" data-tier="' + tier + '">' +
+      g.Render.regionalCompanionSvg(spec.id, pet.growthStage || 1) + '<div><span class="companion-grade">T' +
+      tier + ' · ' + esc(age) + '</span><b>' + esc(pet.nameTh) + '</b><p>' +
+      esc(spec.strengthTh) + '</p><div class="muted">' + esc(spec.limitTh) + '</div><div class="muted">' +
+      esc(pet.injured ? 'พักฟื้น' : pet.active ? 'ร่วมทาง' : 'สำรอง') + ' · ความผูกพัน ' + Math.round(pet.bond || 0) + '%</div></div></div>';
   };
 
   const nurseryCards = W => {
