@@ -3491,7 +3491,7 @@
       return clamp(Math.round(250 / sa.cast), 2, 6);
     }
     const sa = ST.get(a), p = chooseSkill(W, f, a, d, ctx);
-    if (p) { useSkill(W, f, a, d, p, ctx); return clamp(Math.round(p.wind * 100 / sa.cast), 2, 18); }
+    if (p) { C.useSkill(W, f, a, d, p, ctx); return clamp(Math.round(p.wind * 100 / sa.cast), 2, 18); }
     // Basic attack range check: if out of basic weapon reach, step closer instead of hitting across map with basic attack
     const wp = (SKs() && SKs().weaponTacticalProfile) ? SKs().weaponTacticalProfile(a) : null;
     const basicReach = (wp && wp.engageRange) || 1.7;
@@ -7846,6 +7846,19 @@
     KW_TFRB_REINCARNATION_SEED: { id: 'KW_TFRB_REINCARNATION_SEED', group: 'SOV_FRB', nameTh: 'ฝากเมล็ดพันธุ์นิพพาน' }
   });
 
+  // Renderer snapshots live outside the world/save and do not consume simulation RNG.
+  const visualProcs = new WeakMap();
+  C.transcendentVisualProcs = actor => visualProcs.get(actor);
+  C.noteTranscendentVisual = (W, actor, kind, target = actor, gear = null) => {
+    if (!W || !actor || !target || !Number.isFinite(actor.x) || !Number.isFinite(actor.y) ||
+        !Number.isFinite(target.x) || !Number.isFinite(target.y)) return;
+    let pending = visualProcs.get(actor);
+    if (!pending) visualProcs.set(actor, pending = new Map());
+    pending.set(kind, { kind, t: W.t, x: target.x, y: target.y, originX: actor.x, originY: actor.y,
+      gear: gear && { id: gear.id, currentForm: gear.currentForm, awakeningStage: gear.awakeningStage,
+        element: gear.element, secondaryElement: gear.secondaryElement } });
+  };
+
   // 2. Persistent Battlefield Dao-Scars (max 3 active scars per arena)
   C.spawnBattlefieldDaoScar = (W, f, spec) => {
     if (!f) return null;
@@ -7916,6 +7929,7 @@
         kind: t.scarKind || 'SCAR_VOID_ZERO_RIFT',
         nameTh: 'รอยแผลเต๋า · ' + t.nameTh,
         casterId: actor.id,
+        x: (target || actor).x, y: (target || actor).y,
         side: (f.A && f.A.includes(actor.id)) ? 'A' : 'B',
         dur: 10
       });
@@ -7947,6 +7961,7 @@
     if (f) {
       f.lastTranscendentCutIn = { t: tNow, defenderId: defender.id, attackerId: attacker.id, counterDmg };
     }
+    C.noteTranscendentVisual(W, defender, 'clash', attacker);
     return { triggered: true, mitigationMult: 0.65, counterDmg };
   };
 
@@ -7969,6 +7984,7 @@
       const rebHp = Math.max(10, Math.round(maxHp * 0.38));
       if (C.setHp) C.setHp(defender, rebHp);
       defender.fx = { t: tNow, text: '🦋 ดักแด้ภูษาหมื่นชะตาชุบชีวิต!' };
+      C.noteTranscendentVisual(W, defender, 'chrysalis');
       return { dmg: 0, cocoonTriggered: true, woundPool: arm._woundLedgerPool };
     }
     return { dmg: adjDmg, cocoonTriggered: false, woundPool: arm._woundLedgerPool };
@@ -7993,6 +8009,7 @@
         C.setHp(actor, snap.hp);
         actor._lastChronoRewindTick = tNow;
         rewindTriggered = true;
+        C.noteTranscendentVisual(W, actor, 'rewind');
       }
     }
 
@@ -8011,6 +8028,7 @@
         }
       }
     }
+    if (echoTriggered) C.noteTranscendentVisual(W, actor, 'echo', target || actor);
     return { echoTriggered, rewindTriggered, castCounter: acc._castCounter };
   };
 
@@ -8029,6 +8047,7 @@
       const bonusDmg = escortHits * Math.max(6, Math.round((C.hpMax ? C.hpMax(defender) : 100) * 0.03));
       C.setHp(defender, Math.max(1, C.hp(defender) - bonusDmg));
     }
+    C.noteTranscendentVisual(W, attacker, 'arsenal', defender || attacker);
     return { escortHits, digestedCount: wpn.digestedFamilies.length };
   };
 
@@ -8040,7 +8059,11 @@
         C.processTranscendentAccessoryCast(W, f, a, t, p);
       }
       if (p && p.tech && /^TCMB_SOV_/.test(p.tech)) {
-        C.advanceSovereignVerseFlow(W, f, a, t, p.tech);
+        const flow = C.advanceSovereignVerseFlow(W, f, a, t, p.tech);
+        const previousFx = a.castFx;
+        const result = _origUseSkillCarbon.apply(this, arguments);
+        if (flow && a.castFx && a.castFx !== previousFx) a.castFx.sovereignVerse = flow.currentVerse;
+        return result;
       }
       return _origUseSkillCarbon.apply(this, arguments);
     };

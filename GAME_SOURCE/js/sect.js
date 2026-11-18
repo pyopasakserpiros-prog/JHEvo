@@ -18129,6 +18129,7 @@
       const stIdx = Math.max(0, Math.min(5, Math.floor(Number(stageNum) || 0)));
       const stages = (REG_SPECS && REG_SPECS.awakeningStages) || [];
       const spec = stages[stIdx] || stages[0] || { stage: stIdx, combatMult: 0.38 + stIdx * 0.14, defenseMult: 0.38 + stIdx * 0.12, breakthroughBonus: 0.12 + stIdx * 0.04 };
+      const awaken = stIdx > (reg.awakeningStage || 0);
       reg.awakeningStage = stIdx;
       reg.stageNameTh = spec.nameTh || ('ขั้นที่ ' + stIdx);
       reg.combatMult = spec.combatMult;
@@ -18140,6 +18141,9 @@
         reg.secondaryElement = reg.element === 'FIRE' ? 'LIGHTNING' : 'ASTRAL_VOID';
       }
       if (npc && HC && HC.bump) HC.bump(npc);
+      if (awaken && g.COMBAT && g.COMBAT.noteTranscendentVisual) {
+        g.COMBAT.noteTranscendentVisual(W, npc, 'awaken', npc, reg);
+      }
       return { ok: true, awakeningStage: reg.awakeningStage, regalia: reg };
     },
     unlockImprint(W, npc, imprintId) {

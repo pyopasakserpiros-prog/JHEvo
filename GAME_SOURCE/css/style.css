@@ -308,13 +308,35 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .chron-numeric-row{padding:3px 0;border-bottom:1px dashed #2e4438}
 .chron-numeric-row:last-child{border-bottom:0}
 
-/* === CARBON_COMPENDIA_TRANSCENDENT_STYLES_V260 === */
-.grade-transcendent,
-.item-art.grade-transcendent {
-  border: 1.5px solid #ffd740 !important;
-  box-shadow: 0 0 8px rgba(255, 158, 245, 0.72), inset 0 0 6px rgba(131, 245, 226, 0.45) !important;
-  position: relative;
+/* Transcendent inventory art and equipment inspection. */
+.inv-atlas-ic.transcendent-svg-wrap {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9px;
+  border: 1px solid var(--tr-ivory, #ffeabc);
+  background: radial-gradient(ellipse at 52% 38%, var(--tr-ink, #642c98), #20152e 65%, #0c0d19);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--tr-ink, #ab96ce) 65%, transparent);
+  vertical-align: middle;
 }
+.inv-cell.r-Transcendent {
+  border-color: #e8c3ff;
+  background-image: linear-gradient(155deg, #5c32764d, #14252600 75%);
+}
+.inv-b-tl.transcendent-rank { background: #322148; color: #ffeac4; border-color: #cfaaff; }
+.transcendent-showcase {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 12px;
+  border: 1px solid #9b75ba;
+  background: radial-gradient(ellipse at left, #593d6c80, #171624);
+}
+.transcendent-showcase b { display: block; margin-top: 4px; color: #fff1ce; }
 .transcendent-badge-6star {
   display: inline-flex;
   align-items: center;
@@ -334,14 +356,4 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   border-radius: 10px;
   padding: 10px 12px;
   margin: 8px 0;
-}
-.transcendent-svg-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1.5px solid #ffd740;
-  box-shadow: 0 0 8px rgba(255, 158, 245, 0.6);
-  background: radial-gradient(circle at 50% 42%, #2d1f46 0%, #111522 75%);
 }

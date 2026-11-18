@@ -48,6 +48,8 @@
     return '<canvas class="building-showcase" data-bid="' + esc(b.id) + '" data-w="' + (w || 210) + '" data-h="' + (h || 92) + '" style="border-radius:8px;display:block;margin:6px auto"></canvas>';
   }
   function relicShowcaseHtml(item, w, h) {
+    const sovereign = UI.transcendentShowcaseHtml && UI.transcendentShowcaseHtml(item);
+    if (sovereign) return sovereign;
     const eq = item && (item.eq || item.gear || item);
     const tier = (item && item.tier) || (eq && eq.tier) || 1;
     const el = (eq && eq.element) || '';
@@ -494,6 +496,7 @@
   };
 
   function gradeChip(t) {
+    if (g.Render && g.Render.isTranscendent(t)) return '<span class="transcendent-badge-6star">✦ เหนือตำนาน · 6★</span>';
     if (!t) return '';
     const gKey = t.grade || (t.legendary ? 'Legendary' : 'Common');
     const gDef = (JD.MARTIAL && JD.MARTIAL.GRADES && JD.MARTIAL.GRADES[gKey]) || { nameTh: gKey, color: '#9aa5b1' };
@@ -2496,7 +2499,7 @@
     }
     if (UI.libraryDetail) {
       const t = CULT.tech(UI.libraryDetail);
-      if (t) { const info = techniqueSummary(t); h += '<div class="library-popup"><button class="btn library-close" data-do="library-detail" data-arg="">✕ ปิด</button><b>' + esc(t.nameTh) + '</b><div>' + esc(info.pathText) + (info.subText ? ' · ' + esc(info.subText) : '') + '</div><div>' + esc(info.weaponText) + '</div><div>ขั้น ' + (t.reqTier || t.tier || 1) + ' · ' + esc((g.ELEM && g.ELEM.META && g.ELEM.META[t.element] || {}).nameTh || 'ไร้ธาตุ') + '</div><div>' + (t.power != null ? 'พลัง ' + esc(String(t.power)) + ' · ' : '') + 'ค่าศึกษา ' + ((g.CPE && g.CPE.techPrice) ? g.CPE.techPrice(W, t) : (t.reqTier || t.tier || 1) * 30) + ' คป.</div><div>' + esc(t.descTh || '') + '</div>' + (Array.isArray(t.moves) && t.moves.length ? '<div>กระบวนท่า: ' + t.moves.map(esc).join(' · ') + '</div>' : '') + '</div>'; }
+      if (t) { const info = techniqueSummary(t); h += '<div class="library-popup"><button class="btn library-close" data-do="library-detail" data-arg="">✕ ปิด</button>' + (UI.transcendentShowcaseHtml(t) || '<b>' + esc(t.nameTh) + '</b>') + '<div>' + esc(info.pathText) + (info.subText ? ' · ' + esc(info.subText) : '') + '</div><div>' + esc(info.weaponText) + '</div><div>ขั้น ' + (t.reqTier || t.tier || 1) + ' · ' + esc((g.ELEM && g.ELEM.META && g.ELEM.META[t.element] || {}).nameTh || 'ไร้ธาตุ') + '</div><div>' + (t.power != null ? 'พลัง ' + esc(String(t.power)) + ' · ' : '') + 'ค่าศึกษา ' + ((g.CPE && g.CPE.techPrice) ? g.CPE.techPrice(W, t) : (t.reqTier || t.tier || 1) * 30) + ' คป.</div><div>' + esc(t.descTh || '') + '</div>' + (Array.isArray(t.moves) && t.moves.length ? '<div>กระบวนท่า: ' + t.moves.map(esc).join(' · ') + '</div>' : '') + '</div>'; }
     }
     return h;
   };
@@ -3377,7 +3380,7 @@
           const eqTypeTh = eqType && g.MARTIAL.TYPES && g.MARTIAL.TYPES[eqType];
           const element = selItem.eq && selItem.eq.element && g.ELEM && g.ELEM.META && g.ELEM.META[selItem.eq.element];
           const summaryExtra = techInfo ? [techInfo.pathText, techInfo.subText, techInfo.weaponText].filter(Boolean).join(' · ') : [eqTypeTh, element && element.nameTh].filter(Boolean).join(' · ');
-          const rLabel = selItem.legendary || selItem.rarity === "Legendary" ? "★ ตำนาน" : selItem.rarity === "Exceptional" ? "◆ ล้ำเลิศ" : selItem.rarity === "Rare" ? "▲ หายาก" : "ทั่วไป";
+          const rLabel = UI.itemArtGrade(selItem) === "Transcendent" ? "✦ เหนือตำนาน · 6★" : selItem.legendary || selItem.rarity === "Legendary" ? "★ ตำนาน" : selItem.rarity === "Exceptional" ? "◆ ล้ำเลิศ" : selItem.rarity === "Rare" ? "▲ หายาก" : "ทั่วไป";
           h += "<div class=\"inv-detail-panel\" data-detail-for=\"" + esc(selItem.selKey) + "\">" +
             ((selItem.kind === "EQUIPMENT" || selItem.broadCat === "EQUIPMENT" || selItem.eq) ? relicShowcaseHtml(selItem, 180, 82) : "") +
             "<div class=\"inv-detail-top\">" +
@@ -3412,7 +3415,7 @@
         h += "<select id=\"stockTier\">" + [["ALL", "ทุกระดับ"], ["1", "ระดับ 1"], ["2", "ระดับ 2"], ["3", "ระดับ 3"], ["4", "ระดับ 4"], ["5", "ระดับ 5"], ["6", "ระดับ 6"], ["7", "ระดับ 7"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.stockTier === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
         h += "<select id=\"stockSort\">" + [["qty", "เรียงตามจำนวน"], ["tier", "เรียงตามระดับ"], ["value", "เรียงตามมูลค่า"], ["name", "เรียงตามชื่อ"]].map(([k, v]) => "<option value=\"" + k + "\"" + (UI.stockSort === k ? " selected" : "") + ">" + v + "</option>").join("") + "</select>";
         h += "</div>";
-        h += stockRows.length ? stockRows.slice(0, 60).map(r => "<div class=\"logrow\"><span><span class=\"chip\">" + esc(r.kindTh) + " T" + r.tier + "</span> <b>" + esc(r.nameTh) + "</b> ×" + r.qty + "</span><span class=\"muted\">" + esc(r.statusTh) + "</span></div>").join("") : "<div class=\"muted\">ไม่พบไอเทมในคลังที่ตรงกับเงื่อนไขการค้นหา</div>";
+        h += stockRows.length ? stockRows.slice(0, 60).map(r => "<div class=\"logrow\"><span>" + transcendentRowIcon(r) + "<span class=\"chip\">" + esc(r.kindTh) + " T" + r.tier + "</span> <b>" + esc(r.nameTh) + "</b> ×" + r.qty + "</span><span class=\"muted\">" + esc(r.statusTh) + "</span></div>").join("") : "<div class=\"muted\">ไม่พบไอเทมในคลังที่ตรงกับเงื่อนไขการค้นหา</div>";
       }
       h += "</div>";
 
@@ -3519,7 +3522,7 @@
           "</div>";
 
         if (selItem && buyer) {
-          const rLabel = selItem.legendary || selItem.rarity === "Legendary" ? "★ ตำนาน" : selItem.rarity === "Exceptional" ? "◆ ล้ำเลิศ" : selItem.rarity === "Rare" ? "▲ หายาก" : "ทั่วไป";
+          const rLabel = UI.itemArtGrade(selItem) === "Transcendent" ? "✦ เหนือตำนาน · 6★" : selItem.legendary || selItem.rarity === "Legendary" ? "★ ตำนาน" : selItem.rarity === "Exceptional" ? "◆ ล้ำเลิศ" : selItem.rarity === "Rare" ? "▲ หายาก" : "ทั่วไป";
           let actBtn = "";
           if (selItem.shopKind === "bounty_mat") {
             const haveMat = (buyer.inv && buyer.inv.mats && buyer.inv.mats[selItem.id]) || 0;
@@ -5749,10 +5752,15 @@
       "</div></div>";
   }
 
+  function transcendentRowIcon(item) {
+    return UI.itemArtGrade(item) === 'Transcendent' ? UI.renderAtlasIconHtml(item, 30) + ' ' : '';
+  }
+
   function renderGridCellHtml(it, isSelected, selectAction) {
-    const rCls = it.legendary || it.rarity === "Legendary" ? "r-Legendary" : it.rarity === "Exceptional" ? "r-Exceptional" : it.rarity === "Rare" ? "r-Rare" : it.rarity === "Refined" ? "r-Refined" : "";
-    const tlCls = it.legendary || it.rarity === "Legendary" ? "leg" : it.rarity === "Exceptional" ? "exc" : it.rarity === "Rare" ? "rar" : it.rarity === "Refined" ? "ref" : "";
-    const sym = it.legendary || it.rarity === "Legendary" ? "★" : it.rarity === "Exceptional" ? "◆" : it.rarity === "Rare" ? "▲" : "";
+    const trans = UI.itemArtGrade(it) === 'Transcendent';
+    const rCls = trans ? 'r-Transcendent' : it.legendary || it.rarity === "Legendary" ? "r-Legendary" : it.rarity === "Exceptional" ? "r-Exceptional" : it.rarity === "Rare" ? "r-Rare" : it.rarity === "Refined" ? "r-Refined" : "";
+    const tlCls = trans ? 'transcendent-rank' : it.legendary || it.rarity === "Legendary" ? "leg" : it.rarity === "Exceptional" ? "exc" : it.rarity === "Rare" ? "rar" : it.rarity === "Refined" ? "ref" : "";
+    const sym = trans ? '✦' : it.legendary || it.rarity === "Legendary" ? "★" : it.rarity === "Exceptional" ? "◆" : it.rarity === "Rare" ? "▲" : "";
     let trBadge = "";
     if (it.kind === "EQUIPPED") trBadge = "<span class=\"inv-b-tr\">สวม</span>";
     else if (it.locked) trBadge = "<span class=\"inv-b-tr warn\">🔒</span>";
@@ -5870,7 +5878,7 @@
         "</div>";
 
       if (selItem) {
-        const rLabel = selItem.legendary || selItem.rarity === "Legendary" ? "★ ตำนาน" : selItem.rarity === "Exceptional" ? "◆ ล้ำเลิศ" : selItem.rarity === "Rare" ? "▲ หายาก" : "ทั่วไป";
+        const rLabel = UI.itemArtGrade(selItem) === "Transcendent" ? "✦ เหนือตำนาน · 6★" : selItem.legendary || selItem.rarity === "Legendary" ? "★ ตำนาน" : selItem.rarity === "Exceptional" ? "◆ ล้ำเลิศ" : selItem.rarity === "Rare" ? "▲ หายาก" : "ทั่วไป";
         h += "<div class=\"inv-detail-panel\" data-detail-for=\"" + esc(selItem.selKey) + "\">" +
           ((selItem.kind === "EQUIPPED" || selItem.kind === "EQUIPMENT" || selItem.broadCat === "EQUIPMENT" || selItem.eq) ? relicShowcaseHtml(selItem, 180, 82) : "") +
           "<div class=\"inv-detail-top\">" +
@@ -5907,7 +5915,7 @@
       } else {
         h += items.map(it => {
           const btns = renderPersonalBagActionsHtml(n, it);
-          return "<div class=\"logrow\" style=\"align-items:center\"><div><span class=\"chip " + (it.kind === "EQUIPPED" ? "g" : "b") + "\">" + esc(it.kindTh) + " T" + it.tier + "</span> <b>" + esc(it.nameTh) + "</b> ×" + it.qty + (it.spawned ? " <span class=\"chip v\">ไอเทมเสก (0 คป.)</span>" : "") + "<div class=\"muted\" style=\"font-size:11px\">" + esc(it.descTh || "") + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\">" + btns + "</div></div>";
+          return "<div class=\"logrow\" style=\"align-items:center\"><div>" + transcendentRowIcon(it) + "<span class=\"chip " + (it.kind === "EQUIPPED" ? "g" : "b") + "\">" + esc(it.kindTh) + " T" + it.tier + "</span> <b>" + esc(it.nameTh) + "</b> ×" + it.qty + (it.spawned ? " <span class=\"chip v\">ไอเทมเสก (0 คป.)</span>" : "") + "<div class=\"muted\" style=\"font-size:11px\">" + esc(it.descTh || "") + "</div></div><div style=\"display:flex;gap:4px;flex-wrap:wrap\">" + btns + "</div></div>";
         }).join("");
       }
     }
@@ -5916,6 +5924,7 @@
   }
 
   function renderTechTab(W, n) {
+    const art = t => g.Render && g.Render.isTranscendent(t) ? UI.renderAtlasIconHtml(t, 32) + ' ' : '';
     if (!n.cult) return '<div class="card muted">ตัวละครนี้ยังเป็นปุถุชน ยังไม่ตื่นรู้ปราณหรือฝึกวรยุทธ์</div>';
     let h = '';
     const c = n.cult, M = g.MARTIAL;
@@ -5924,7 +5933,7 @@
     h += '<h3>1. คัมภีร์ลมปราณหลัก (Mantra)</h3><div class="card">';
     if (curMantra) {
       const em = g.ELEM ? g.ELEM.explainCompatibility(n, curMantra, 'MANTRA_PRACTICE') : null;
-      h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>' + esc(curMantra.nameTh) + '</b> ' + gradeChip(curMantra) + '</div>';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>' + art(curMantra) + esc(curMantra.nameTh) + '</b> ' + gradeChip(curMantra) + '</div>';
       h += '<div class="muted" style="margin-top:2px">' + esc(curMantra.descTh || curMantra.desc || '') + '</div>';
       if (em) h += '<div class="muted" style="font-size:11.5px;color:var(--text)">' + esc(em.summaryTh) + ' · อัตราบำเพ็ญ ×' + em.cultivationMultiplier.toFixed(2) + (em.breakthroughBonus ? ' · โบนัสทะลวงด่าน ' + (em.breakthroughBonus >= 0 ? '+' : '') + Math.round(em.breakthroughBonus * 100) + '%' : '') + '</div>';
     } else {
@@ -5971,7 +5980,7 @@
         const sigId = p.signatureVfx || (parent && parent.signatureVfx) || (g.SK && g.SK.resolveSignatureVfx ? g.SK.resolveSignatureVfx(parent || p, p) : null);
         const sigSpec = (sigId && g.SK && g.SK.SIGNATURE_VFX_CATALOG) ? g.SK.SIGNATURE_VFX_CATALOG[sigId] : null;
         const sigBadge = sigSpec ? (' <span class="chip g">' + esc(sigSpec.icon + ' เอฟเฟกต์เฉพาะ: ' + sigSpec.nameTh) + '</span> <button type="button" class="btn" style="padding:1px 6px;font-size:10.5px" data-do="preview-signature-vfx" data-arg="' + esc(n.id + '|' + sigSpec.id) + '">✨ ชมท่าไม้ตาย</button>') : '';
-        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + sigBadge + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+        return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + art(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + sigBadge + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (elemInter ? '<div class="muted" style="font-size:11px;color:var(--text)">' + esc(elemInter.summaryTh) + '</div>' : '') + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่มีกระบวนท่าต่อสู้ที่ติดตั้ง</div>';
@@ -6001,7 +6010,7 @@
           const btn = inSlot
             ? ' <button class="btn" style="padding:1px 6px;font-size:10.5px" data-do="unequip-passive" data-arg="' + n.id + '|' + t.id + '">ถอด</button>'
             : (isComp && condOk ? ' <button class="btn pri" style="padding:1px 6px;font-size:10.5px" data-do="equip-passive" data-arg="' + n.id + '|' + t.id + '">สวมใส่</button>' : '');
-          return '<div style="padding:3px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(' + esc(M.conditionText(t)) + ')</span><div class="muted" style="font-size:11px">' + esc(statusTxt) + '</div></div><div>' + btn + '</div></div>';
+          return '<div style="padding:3px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + art(t) + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(' + esc(M.conditionText(t)) + ')</span><div class="muted" style="font-size:11px">' + esc(statusTxt) + '</div></div><div>' + btn + '</div></div>';
         }).join('');
       } else {
         h += '<div class="muted">ยังไม่มีวิชาติดตัวที่เรียนรู้</div>';
@@ -6018,7 +6027,7 @@
         const ex = g.ELEM ? g.ELEM.explainCompatibility(n, t, 'COMBAT_SKILL') : null;
         const tc = (M && M.resolveTechCompatibility) ? M.resolveTechCompatibility(n, t) : null;
         const _catTh = ({ COMBAT_TECHNIQUE: 'กระบวนท่าต่อสู้', INNER_KUNGFU: 'คัมภีร์บ่มเพาะ', MOVEMENT_TECHNIQUE: 'วิชาตัวเบา', SUPPORT_TECHNIQUE: 'วิชาหนุนเสริม', DEFENSIVE_TECHNIQUE: 'วิชาคุ้มกาย', FORBIDDEN_ART: 'วิชาต้องห้าม', PASSIVE: 'วิชาติดตัว' })[t.cat] || (t.cat || 'วิชา');
-        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(_catTh) + ')</span></div>' + (tc ? '<div class="muted" style="font-size:11px;color:#b8d8ff">⚖ ' + esc(tc.summaryTh) + '</div>' : '') + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
+        return '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div>' + art(t) + gradeChip(t) + ' <b>' + esc(t.nameTh) + '</b> <span class="muted">(ขั้น ' + t.tier + ' · ' + esc(_catTh) + ')</span></div>' + (tc ? '<div class="muted" style="font-size:11px;color:#b8d8ff">⚖ ' + esc(tc.summaryTh) + '</div>' : '') + (ex ? '<div class="muted" style="font-size:11px">' + esc(ex.summaryTh) + '</div>' : '') + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่ได้เรียนรู้วิชาใด</div>';
@@ -6400,7 +6409,7 @@
             const mastery = (g.SK.masteryPoints && parent) ? g.SK.masteryPoints(n, parent.id) : 0;
             const allM = (g.SK.allMoves && parent && Array.isArray(parent.moveDefs) && parent.moveDefs.length > 1) ? g.SK.allMoves(parent) : [];
             const lockedM = allM.filter(mv => !g.SK.canSelectMove(n, parent, mv.id));
-            return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
+            return '<div style="padding:4px 0;border-bottom:1px solid var(--line,#3a3f4a)"><b>' + art(parent || p) + esc(p.nameTh) + '</b> ' + gradeChip(parent || p) + ' <span class="muted">(ความชำนาญ ' + mastery + ' · ขั้นวิชา ' + curStage + '/' + maxStage + ')</span><div class="muted" style="font-size:12px">' + esc(p.summary) + '</div>' + (lockedM.length ? '<div class="muted" style="font-size:11px;color:#e8c43a">🔒 กระบวนท่าที่ยังไม่ปลดล็อก: ' + lockedM.map(lm => esc(lm.nameTh) + ' (ขั้นวิชา ' + (lm.stageReq || 1) + '/ชำนาญ ' + (lm.reqMastery || 0) + ')').join(' · ') + '</div>' : '') + '</div>';
           }).join('') + '</div>';
         }
       }
@@ -7703,156 +7712,89 @@
 /* === CARBON_COMPENDIA_UI_AND_SVG_ICONS_V260 === */
 ;(function initCarbonUiAndSvgIcons() {
   const g = typeof globalThis !== 'undefined' ? globalThis : window;
-  const UI = g.UI, JD = g.JD, ECO = g.ECO, CULT = g.CULT, SECT = g.SECT, HC = g.HC;
+  const UI = g.UI, JD = g.JD, ECO = g.ECO, CULT = g.CULT;
   if (!UI) return;
 
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  UI.REGALIA_ELEMENT_PALETTES = Object.freeze({
-    NEUTRAL: { core: '#9da7b3', rim: '#dfe6ee', glow: '#ffd740' },
-    FIRE: { core: '#ff5e36', rim: '#ffd166', glow: '#ff9e00' },
-    WATER_ICE: { core: '#38b6ff', rim: '#ccf2ff', glow: '#72efdd' },
-    LIGHTNING: { core: '#b565ff', rim: '#f3d9fa', glow: '#ffd740' },
-    WOOD_LIFE: { core: '#38d39f', rim: '#d8f3dc', glow: '#95d5b2' },
-    EARTH_METAL: { core: '#d4a373', rim: '#fefae0', glow: '#ffd166' },
-    WIND: { core: '#64dfdf', rim: '#e0fbfc', glow: '#80ffdb' },
-    YIN_SHADOW: { core: '#7209b7', rim: '#e0aaff', glow: '#c77dff' },
-    LIGHT_YANG: { core: '#ffd166', rim: '#ffffff', glow: '#ffea00' },
-    BLOOD_DEMON: { core: '#d90429', rim: '#ffccd5', glow: '#ff4d6d' },
-    ASTRAL_VOID: { core: '#9d4edd', rim: '#83f5e2', glow: '#ff9ef5' }
-  });
-
-  // Deterministic 0-RNG 96x96 SVG Generators
-  UI.renderPatriarchRegaliaIconHtml = (regalia, sizePx = 48) => {
-    const reg = regalia || {};
-    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
-    const stg = Math.max(0, Math.min(5, Number(reg.awakeningStage) || 0));
-    const form = String(reg.currentForm || reg.subType || 'ORIGIN_STONE').toUpperCase();
-    const elem = String(reg.element || 'NEUTRAL').toUpperCase();
-    const pal = UI.REGALIA_ELEMENT_PALETTES[elem] || UI.REGALIA_ELEMENT_PALETTES.NEUTRAL;
-    const secPal = reg.secondaryElement && UI.REGALIA_ELEMENT_PALETTES[reg.secondaryElement] ? UI.REGALIA_ELEMENT_PALETTES[reg.secondaryElement] : null;
-    const ringCount = 1 + Math.floor(stg / 2);
-    let shapeSvg = '<polygon points="48,16 74,34 66,74 30,74 22,34" fill="' + pal.core + '" stroke="' + pal.rim + '" stroke-width="2.5"/>';
-    if (form.includes('SWORD') || form.includes('BLADE')) {
-      shapeSvg = '<path d="M48 10 L55 62 L48 74 L41 62 Z" fill="' + pal.core + '" stroke="' + pal.rim + '" stroke-width="2.2"/><rect x="34" y="62" width="28" height="5" rx="2" fill="' + pal.glow + '"/><rect x="45" y="67" width="6" height="16" fill="' + pal.rim + '"/>';
-    } else if (form.includes('SPEAR') || form.includes('HALBERD') || form.includes('STAFF')) {
-      shapeSvg = '<line x1="48" y1="12" x2="48" y2="86" stroke="' + pal.rim + '" stroke-width="4"/><polygon points="48,8 58,28 48,24 38,28" fill="' + pal.core + '" stroke="' + pal.glow + '" stroke-width="2"/>';
-    } else if (form.includes('ARMOR') || form.includes('ROBE')) {
-      shapeSvg = '<path d="M28 24 L48 16 L68 24 L62 76 L34 76 Z" fill="' + pal.core + '" stroke="' + pal.rim + '" stroke-width="2.4"/>';
+  const trBadge = '<span class="transcendent-badge-6star">✦ เหนือตำนาน · 6★</span>';
+  const itemPresentation = item => {
+    if (!item || !g.Render) return null;
+    const gear = item.gear || item.eq || item;
+    const ids = [gear.id, item.templateId, item.itemId, item.id, item.key].filter(Boolean)
+      .map(id => String(id).replace(/^(P:|T:|S:)/, ''));
+    for (const id of ids) {
+      const def = CULT.tech(id) || ECO.itemById[id] || (ECO.matById && ECO.matById[id]) ||
+        (ECO.transcendentItemById && ECO.transcendentItemById[id]);
+      if (g.Render.isTranscendent(def)) return { ...def, ...gear, id };
+      if (id.includes('@TR:')) {
+        const parts = id.split('@TR:');
+        const mat = ECO.resolveTranscendentMat && ECO.resolveTranscendentMat(parts[1].split('+')[0]);
+        return { ...gear, id, element: (mat && mat.element) || gear.element };
+      }
     }
-    const dualArc = secPal ? '<circle cx="48" cy="48" r="39" fill="none" stroke="' + secPal.core + '" stroke-width="2" stroke-dasharray="8 5"/>' : '';
-    return '<span class="transcendent-svg-wrap grade-transcendent" data-regalia-stage="' + stg + '" data-regalia-form="' + esc(form) + '" data-regalia-element="' + esc(elem) + '" style="width:' + sz + 'px;height:' + sz + 'px" title="' + esc((reg.nameTh || 'ตราหินเทาไร้ลักษณ์') + ' · ขั้น ' + stg) + '">' +
-      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(reg.nameTh || 'ตราหินเทาไร้ลักษณ์') + '">' +
-      '<circle cx="48" cy="48" r="43" fill="none" stroke="' + pal.glow + '" stroke-width="1.8" opacity="0.85"/>' +
-      (ringCount >= 2 ? '<circle cx="48" cy="48" r="34" fill="none" stroke="' + pal.rim + '" stroke-width="1.3" opacity="0.65"/>' : '') +
-      dualArc + shapeSvg +
-      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦6★</text>' +
-      '</svg></span>';
+    return g.Render.isTranscendent(gear) || g.Render.isTranscendent(item) ? gear : null;
   };
 
-  UI.renderTranscendentArmorIconHtml = (item, sizePx = 48) => {
-    const it = item || {};
-    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
-    const wt = String(it.armorWeightClass || it.subType || 'ROBE').toUpperCase();
-    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-armor="' + esc(wt) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
-      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(it.nameTh || 'ภูษาทอรอยแผลหมื่นชะตา') + '">' +
-      '<circle cx="48" cy="48" r="42" fill="none" stroke="#ff4d6d" stroke-width="2" stroke-dasharray="6 3"/>' +
-      '<path d="M24 24 L48 14 L72 24 L66 78 L30 78 Z" fill="#590d22" stroke="#ffb3c1" stroke-width="2.5"/>' +
-      '<path d="M34 36 L62 58 M60 34 L36 62" stroke="#ffd740" stroke-width="2"/>' +
-      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + esc(wt) + '</text>' +
-      '</svg></span>';
+  const icon = (item, sizePx = 48) => {
+    const art = g.Render.transcendentArt(item);
+    const name = item.nameTh || 'สมบัติเหนือตำนาน';
+    const size = Math.max(16, Math.min(128, Number(sizePx) || 48));
+    const elevation = art.regalia ? art.stage : 4;
+    const sigil = Array.from({ length: elevation + 1 }, (_, i) => {
+      const x = 28 + i * 44 / Math.max(1, elevation);
+      const y = 88 - Math.abs(50 - x) * .18;
+      return '<path d="M'+x+' '+(y-3)+'l2 3-2 3-2-3Z" fill="'+art.accent+'"/>';
+    }).join('');
+    const bookCover = art.codex ? (
+      '<path d="M17 34 33 17 76 17 86 28 76 80 64 86 17 86 11 78Z" fill="#140e22" stroke="' + art.accent + '" stroke-width="1.35"/>' +
+      '<path d="M17 34 33 17H78L67 75H18Z" fill="' + art.ink + '" fill-opacity=".28" stroke="' + art.ink + '"/>' +
+      '<path d="M18 70H36M17 74H32M68 78l11-49M20 82h41" stroke="' + art.accent + '" stroke-opacity=".65" stroke-width="1.25"/>'
+    ) : '';
+    const ornament = art.codex ? 'translate(21 17) scale(.60)' : 'translate(9 7) scale(.82)';
+    const motif = '<path d="' + art.path + '" fill-rule="evenodd" stroke-linejoin="round" ';
+    return '<span class="inv-atlas-ic item-art grade-transcendent transcendent-svg-wrap" role="img" aria-label="' +
+      esc(name + ' · เหนือตำนาน · 6 ดาว') + '" data-art-grade="Transcendent" data-art-key="' +
+      esc(item.id || art.key) + '" data-art-form="' + art.key + '" data-art-stage="' + art.stage +
+      '" style="width:' + size + 'px;height:' + size + 'px;--tr-ink:' + art.ink + ';--tr-ivory:' + art.accent + '">' +
+      '<svg viewBox="0 0 100 100" width="' + size + '" height="' + size + '" aria-hidden="true">' +
+      '<path d="M12 29 27 8H73L88 25 95 50 89 73 75 92H25L11 76 5 50Z" fill="#100d20" fill-opacity=".48" stroke="' + art.ink + '" stroke-opacity=".68"/>' +
+      '<path d="M8 37 20 23 24 9M92 37 80 23 76 9M8 63 20 79 24 91M92 63 80 79 76 91M42 11h16M41 93h18" fill="none" stroke="' + art.accent + '" stroke-opacity=".72" stroke-width="1.5"/>' +
+      '<path d="M50 5 53 11 50 17 47 11Z M11 47 14 51 11 55 8 51Z M89 47 92 51 89 55 86 51Z" fill="' + art.accent + '"/>' +
+      bookCover + '<g transform="' + ornament + '">' +
+      motif + 'fill="none" stroke="' + art.ink + '" stroke-opacity=".26" stroke-width="11"/>' +
+      motif + 'fill="' + art.ink + '" stroke="#0c0b16" stroke-width="5"/>' +
+      motif + 'fill="' + art.ink + '" stroke="' + art.light + '" stroke-width="2.3"/>' +
+      motif + 'fill="none" stroke="' + art.accent + '" stroke-opacity=".72" stroke-width=".72" stroke-dasharray="8 5"/>' +
+      '</g>' + sigil + '</svg></span>';
   };
+  UI.renderPatriarchRegaliaIconHtml = (regalia, size) => icon({ id:'REGALIA_ORIGIN_FORMLESS_STONE', ...regalia }, size);
+  UI.renderTranscendentArmorIconHtml = (item, size) => icon({ id:'ARM_TRANSCENDENT_LOOM_OF_SCARS', ...item }, size);
+  UI.renderTranscendentAccessoryIconHtml = (item, size) => icon({ id:'ACC_TRANSCENDENT_OUROBOROS_SUNDIAL', ...item }, size);
+  UI.renderTranscendentWeaponIconHtml = (item, size) => icon({ id:'WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN', ...item }, size);
+  UI.renderTranscendentArtIconHtml = (item, size) => icon(item || { id:'TMNT_SOV_01' }, size);
+  UI.renderTranscendentMaterialIconHtml = (item, size) => icon(item || { id:'MAT_TR_SOV_01' }, size);
+  UI.renderTranscendentElixirIconHtml = (item, size) => icon(item || { id:'PILL_TR_PURE_01' }, size);
 
-  UI.renderTranscendentAccessoryIconHtml = (item, sizePx = 48) => {
-    const it = item || {};
-    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
-    const sub = String(it.accessorySubtype || it.subType || 'CHARM').toUpperCase();
-    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-accessory="' + esc(sub) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
-      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(it.nameTh || 'นาฬิกาแดดอูโรโบรอสย้อนกัลป์') + '">' +
-      '<circle cx="48" cy="48" r="38" fill="none" stroke="#83f5e2" stroke-width="3"/>' +
-      '<circle cx="48" cy="48" r="24" fill="none" stroke="#ffd740" stroke-width="2" stroke-dasharray="5 4"/>' +
-      '<line x1="48" y1="48" x2="48" y2="26" stroke="#ffffff" stroke-width="2.5"/>' +
-      '<line x1="48" y1="48" x2="64" y2="48" stroke="#ff9ef5" stroke-width="2.5"/>' +
-      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + esc(sub) + '</text>' +
-      '</svg></span>';
-  };
-
-  UI.renderTranscendentWeaponIconHtml = (item, sizePx = 48) => {
-    const it = item || {};
-    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
-    const fam = String(it.gearType || it.subType || 'SWORD').toUpperCase();
-    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-weapon="' + esc(fam) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
-      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(it.nameTh || 'หีบศาสตราหมื่นสำนักกลืนสวรรค์') + '">' +
-      '<rect x="30" y="18" width="36" height="58" rx="4" fill="#2b2d42" stroke="#ffd740" stroke-width="2.5"/>' +
-      '<path d="M18 30 L28 66 M78 30 L68 66 M48 10 L48 82" stroke="#83f5e2" stroke-width="2.5"/>' +
-      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + esc(fam) + '</text>' +
-      '</svg></span>';
-  };
-
-  UI.renderTranscendentArtIconHtml = (tech, sizePx = 48) => {
-    const t = tech || {};
-    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
-    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-art="' + esc(t.id || 'SOV_ART') + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
-      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(t.nameTh || 'คัมภีร์เหนือตำนาน') + '">' +
-      '<rect x="22" y="14" width="52" height="66" rx="6" fill="#240046" stroke="#ff9ef5" stroke-width="2.5"/>' +
-      '<circle cx="48" cy="46" r="16" fill="none" stroke="#ffd740" stroke-width="2"/>' +
-      '<text x="48" y="50" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="bold">道</text>' +
-      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦T8·6★</text>' +
-      '</svg></span>';
-  };
-
-  UI.renderTranscendentMaterialIconHtml = (mat, sizePx = 48) => {
-    const m = mat || {};
-    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
-    const dom = m.alchemyOnlyWildcard ? 'ALC' : 'EQ';
-    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-mat="' + esc(dom) + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
-      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(m.nameTh || 'วัตถุดิบเหนือตำนาน') + '">' +
-      '<polygon points="48,12 78,36 66,76 30,76 18,36" fill="#3c096c" stroke="#83f5e2" stroke-width="2.5"/>' +
-      '<circle cx="48" cy="46" r="12" fill="#ffd740"/>' +
-      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦' + dom + '</text>' +
-      '</svg></span>';
-  };
-
-  UI.renderTranscendentElixirIconHtml = (pill, sizePx = 48) => {
-    const p = pill || {};
-    const sz = Math.max(24, Math.min(128, Number(sizePx) || 48));
-    return '<span class="transcendent-svg-wrap grade-transcendent" data-transcendent-elixir="true" style="width:' + sz + 'px;height:' + sz + 'px">' +
-      '<svg viewBox="0 0 96 96" width="' + sz + '" height="' + sz + '" aria-label="' + esc(p.nameTh || 'มหาโอสถเหนือตำนาน') + '">' +
-      '<circle cx="48" cy="46" r="24" fill="#ff9e00" stroke="#ffffff" stroke-width="2.5"/>' +
-      '<path d="M20 46 Q48 20 76 46 Q48 72 20 46 Z" fill="none" stroke="#ff9ef5" stroke-width="2"/>' +
-      '<text x="48" y="91" text-anchor="middle" fill="#ffd740" font-size="9" font-weight="bold">✦丹·6★</text>' +
-      '</svg></span>';
-  };
-
-  // Enhance resolveItemArt & renderAtlasIconHtml with non-mutating Transcendent metadata
-  const _origResolveItemArt = UI.resolveItemArt;
+  const baseGrade = UI.itemArtGrade;
+  UI.itemArtGrade = item => itemPresentation(item) ? 'Transcendent' : baseGrade(item);
+  const baseArt = UI.resolveItemArt;
   UI.resolveItemArt = item => {
-    const art = _origResolveItemArt(item);
-    if (!art || !item) return art;
-    const eq = item.gear || item.eq || item;
-    const raw = String(item.templateId || eq.id || item.itemId || item.id || item.key || '').replace(/^(P:|T:|S:)/, '');
-    const def = (ECO && ECO.itemById && ECO.itemById[raw]) || (ECO && ECO.matById && ECO.matById[raw]) || (CULT && CULT.tech && CULT.tech(raw)) || {};
-    const isTrans = !!(item.transcendent || eq.transcendent || def.transcendent || eq.isPatriarchRegalia || def.isPatriarchRegalia || item.grade === 'Transcendent' || eq.grade === 'Transcendent' || def.grade === 'Transcendent' || String(raw).includes('@TR:'));
-    if (isTrans) {
-      art.transcendent = true;
-      art.transcendentStars = 6;
-      art.transcendentBadgeTh = '✦ เหนือตำนาน · 6★';
-    }
-    return art;
+    const spec = itemPresentation(item);
+    if (!spec) return baseArt(item);
+    return { grade:'Transcendent', tier:spec.tier || 8, key:'transcendent:' + (spec.id || 'gear'),
+      nameTh:spec.nameTh, transcendent:true, transcendentStars:6, ...g.Render.transcendentArt(spec) };
   };
-
-  const _origRenderAtlas = UI.renderAtlasIconHtml;
-  UI.renderAtlasIconHtml = (item, sizePx) => {
-    const html = _origRenderAtlas(item, sizePx);
-    if (!item) return html;
-    const eq = item.gear || item.eq || item;
-    const raw = String(item.templateId || eq.id || item.itemId || item.id || item.key || '').replace(/^(P:|T:|S:)/, '');
-    const def = (ECO && ECO.itemById && ECO.itemById[raw]) || (ECO && ECO.matById && ECO.matById[raw]) || (CULT && CULT.tech && CULT.tech(raw)) || {};
-    const isTrans = !!(item.transcendent || eq.transcendent || def.transcendent || eq.isPatriarchRegalia || def.isPatriarchRegalia || item.grade === 'Transcendent' || eq.grade === 'Transcendent' || def.grade === 'Transcendent' || String(raw).includes('@TR:'));
-    if (isTrans && typeof html === 'string') {
-      return html.replace('class="inv-atlas-ic item-art ', 'class="inv-atlas-ic item-art grade-transcendent ');
-    }
-    return html;
+  const baseIcon = UI.renderAtlasIconHtml;
+  UI.renderAtlasIconHtml = (item, size) => {
+    const spec = itemPresentation(item);
+    return spec ? icon(spec, size) : baseIcon(item, size);
+  };
+  UI.transcendentShowcaseHtml = item => {
+    const spec = itemPresentation(item);
+    if (!spec) return '';
+    return '<div class="transcendent-showcase">' + icon(spec, 96) +
+      '<div>' + trBadge + '<b>' + esc(spec.nameTh || item.nameTh || 'สมบัติเหนือตำนาน') + '</b></div></div>';
   };
 
   // Enhance UI.rSect with Gen-7 Lineage Plaques & Patriarch Regalia Pedestal Card (0 RNG, 0 State Mutation)
@@ -7868,7 +7810,7 @@
       const pantheon = (SECT && SECT.evaluateTranscendentPantheonResonance && master) ? SECT.evaluateTranscendentPantheonResonance(W, master) : null;
       let card = '<div class="regalia-pedestal-card">';
       card += '<div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">';
-      card += '<div style="display:flex;align-items:center;gap:10px">' + (reg ? UI.renderPatriarchRegaliaIconHtml(reg, 44) : '') +
+      card += '<div style="display:flex;align-items:center;gap:10px">' + (reg ? UI.renderPatriarchRegaliaIconHtml(reg, 64) : '') +
         '<div><div style="font-weight:700;color:#ffd740">🏛️ มรดกเจ้าสำนักรุ่นที่ ' + esc(W.sect.masterGeneration || 7) + ' · ' + esc((reg && reg.nameTh) || 'ตราหินเทาไร้ลักษณ์') + ' <span class="transcendent-badge-6star">✦ เหนือตำนาน · 6★</span></div>' +
         '<div class="muted" style="font-size:12px">รูปลักษณ์ปัจจุบัน: <b>' + esc((reg && reg.currentForm) || 'ORIGIN_STONE') + '</b> · ขั้นตื่นรู้: <b>' + esc((reg && reg.awakeningStage) || 0) + '/5</b> · ธาตุ: <b>' + esc((reg && reg.element) || 'NEUTRAL') + (reg && reg.secondaryElement ? (' + ' + esc(reg.secondaryElement)) : '') + '</b> · เสียงสะท้อนต้นกำเนิด: <b>' + esc(W.sect.originEchoes || 0) + '</b></div></div></div>';
       if (pantheon && pantheon.count > 0) {
@@ -7896,6 +7838,7 @@
       const forms = Object.keys((JD.CORE.PATRIARCH_REGALIA_SPECS && JD.CORE.PATRIARCH_REGALIA_SPECS.forms) || { ORIGIN_STONE: 1, SWORD: 1, BLADE: 1, SPEAR: 1 });
       const studio = '<div class="card regalia-pedestal-card" id="editRegaliaStudio">' +
         '<b>✦ สตูดิโอจำแลงตราหินเทาไร้ลักษณ์ (Patriarch Regalia Polymorphic Studio)</b>' +
+        UI.transcendentShowcaseHtml(reg) +
         '<div class="muted" style="margin:4px 0">รูปลักษณ์รองรับ ' + forms.length + ' รูปแบบ · ขั้นตื่นรู้ปัจจุบัน: ' + (reg.awakeningStage || 0) + '/5 · ตราประทับบรรพชน: ' + ((reg.imprints || []).length) + ' ตรา</div>' +
         '</div>';
       return html + studio;

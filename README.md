@@ -1,5 +1,7 @@
 # JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
 
+> **main-debug — Transcendent VFX:** ภาพวิชาและอุปกรณ์เหนือตำนานชุดใหม่เชื่อมกับการต่อสู้และคลังแล้ว ดู [รายงานแพตช์](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
+
 > **Active assignment:** Gemini Argon4 should read [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
 
 > **main-debug — Living Hunt:** poolอสูรบก125ชนิด ข้อมูลต้นแบบและสกิลจริง เป้าหมาย48/เพดาน60 ดู [รายงานและข้อจำกัดการตรวจ](PATCH_REPORTS/LIVING_HUNT_VARIETY.md)

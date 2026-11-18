@@ -1,5 +1,7 @@
 # AI Handoff — JianghuSect 2 / main-debug
 
+> **Current main-debug baseline:** Carbon 260e has been imported, and its Transcendent visual prototype has been replaced. Read the [visual overhaul report](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md) before changing this tier. The 31-PDF assignment below is prior context for the patch.
+
 ## Active assignment
 
 Read and execute [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md), together with the [review guide for the latest two Carbon uploads](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md).

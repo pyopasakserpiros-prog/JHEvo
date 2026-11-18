@@ -215,7 +215,7 @@ console.log('===================================================================
   console.log('  ✓ [6/7] 352 Scriptures/Codices, 4-Verse Flow, Dao-Scars, Clash Cut-In & +2 Star Keystones Verified');
 }
 
-// 7. 0-RNG 0-Mutation SVG Icons, 4-Phase Canvas2D VFX & Save/Load Roundtrip
+// 7. Live Transcendent visual routing, SVG art and save/load roundtrip
 {
   const W = SIM.create('carbon-ui-vfx-purity');
   const beforeSer = SIM.serialize(W);
@@ -230,6 +230,17 @@ console.log('===================================================================
   const svg7 = UI.renderTranscendentElixirIconHtml(ECO.itemById.PILL_TR_PURE_01_HEAVEN_DEFYING_GENESIS_ELIXIR, 64);
   assert.ok(svg1.includes('<svg') && svg2.includes('<svg') && svg3.includes('<svg') && svg4.includes('<svg') && svg5.includes('<svg') && svg6.includes('<svg') && svg7.includes('<svg'));
 
+  const catalog = JD.TECH.transcendentCodices;
+  assert.strictEqual(catalog.length, 38);
+  for (const t of catalog) {
+    assert.ok(Render.transcendentCastSpec(t, t.id).path);
+    assert.ok(UI.renderAtlasIconHtml({ id: 'T:' + t.id, kind: 'TECH_MANUAL' }, 40).includes('data-art-grade="Transcendent"'));
+  }
+  const forms = Object.keys(JD.CORE.PATRIARCH_REGALIA_SPECS.forms);
+  const silhouettes = new Set(forms.map(currentForm => Render.transcendentArt({ ...W.sect.patriarchRegalia, currentForm }).path));
+  assert.strictEqual(silhouettes.size, 24);
+  assert.ok(UI.renderAtlasIconHtml({ id: 'P:TEST@TR:MAT_TR_ALC_01' }).includes('data-art-form="vial"'));
+
   assert.strictEqual(SIM.serialize(W), beforeSer, 'SVG generators must have 0 state mutation');
   assert.strictEqual(JSON.stringify(W.rng.getState()), beforeRng, 'SVG generators must consume 0 W.rng');
 
@@ -237,7 +248,24 @@ console.log('===================================================================
   assert.strictEqual(loaded.sect.masterGeneration, 7);
   assert.strictEqual(loaded.sect.patriarchPreHistory.length, 6);
   assert.strictEqual(loaded.sect.patriarchRegalia.id, 'REGALIA_ORIGIN_FORMLESS_STONE');
-  console.log('  ✓ [7/7] Deterministic 0-RNG SVG Icons, 4-Phase Canvas2D VFX & Save/Load Round-Trip Verified');
+  const a = W.byId[W.sect.masterId], target = W.npcs.find(n => n.id !== a.id);
+  const tech = JD.TECH.sovereignCombatArts[0];
+  const fight = { A:[a.id], B:[target.id], serious:false, state:'fight' };
+  a.equip.WEAPON = { ...ECO.itemById.WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN };
+  COMBAT.useSkill(W, fight, a, target, { ...tech.moveDefs[0], tech:tech.id, icon:'✦', wind:5, tier:8 }, {});
+  assert.strictEqual(a.castFx.techId, tech.id);
+  assert.strictEqual(a.castFx.sovereignVerse, 1);
+  const renderer = Object.assign({
+    W, cam:{ x:a.x * Render.TILE_SIZE, y:a.y * Render.TILE_SIZE, z:1 },
+    vw:412, vh:860, alpha:1, castActive:new Map(), castSeen:new Map(), castClock:0, castLastTime:null
+  }, Render.methods);
+  renderer.updateCastEffects(100);
+  const active = [...renderer.castActive.values()];
+  assert.ok(active.some(fx => fx.transcendent && fx.transcendent.name === tech.nameTh && fx.verse === 1));
+  assert.ok(active.some(fx => fx.transcendentKind === 'arsenal'));
+  assert.ok(COMBAT.transcendentVisualProcs(a).has('arsenal'));
+  assert.equal(COMBAT.transcendentVisualProcs(SIM.deserialize(SIM.serialize(W)).byId[a.id]), undefined);
+  console.log('  ✓ [7/7] Live cast and artifact routing, 38 Codex icons, 24 Regalia forms, purity & save/load verified');
 }
 
 console.log('✅ ALL CARBON COMPENDIA MASTER SUITE CHECKS PASSED!');

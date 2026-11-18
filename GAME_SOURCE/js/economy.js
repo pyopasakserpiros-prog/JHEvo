@@ -3873,6 +3873,7 @@
   ECO.triggerForgeTribulation = (W, npc, gear) => {
     if (!gear) return { ok: false };
     gear.forgeTribulationTempered = true;
+    if (g.COMBAT && g.COMBAT.noteTranscendentVisual) g.COMBAT.noteTranscendentVisual(W, npc, 'forge');
     gear.combatMult = +((gear.combatMult || 0.8) * 1.12).toFixed(3);
     gear.defenseMult = +((gear.defenseMult || 0.8) * 1.12).toFixed(3);
     if (W && typeof W.log === 'function') {
