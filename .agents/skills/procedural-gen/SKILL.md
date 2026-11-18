@@ -201,6 +201,10 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
 
 ศึกปิดล้อมจบเองหลัง 20 วันโดยใช้กำลังป้องกันจริงหากยังไม่มีการตอบสนอง ไม่ต้องรอพันธมิตร ข่าวแพ้/ชนะต้องตรงผล รางวัลศึกไม่เกิน world pool และต้องโอน fromPool.
 
+## Valley hunt habitats and grades
+
+Land definitions remain reusable. Base T6/T7, T1–T6 minibosses and the three raid grades are local runtime profiles. The rare slot is rolled hourly and prioritizes a T7 boss after the legendary and transcendent rolls. River pools use the water-only catalog and require an actual river pixel next to a walkable bank. Aquatic foes hold that water position and use a shore-range attack. [Patch details](../../../PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md)
+
 ## Living Hunt variety (2026-11-16)
 `WILD.expandPools` รวมทุกอสูรบก125ชนิด/241ช่องตามถิ่นอาศัยและระดับ; อัปเดตครั้งแรกและเมื่อcatalogมีจำนวนเปลี่ยน. `WILD.speciesDefinition` รวมราชันกับชนิดฐานและเติมelementProfileที่ขาดจากธาตุเดิม. Spawn deep-copy ข้อมูลต้นแบบก่อนลง runtime ลดน้ำหนักชนิดและพูลที่มีซ้ำ HP เฉพาะตัวที่เกิดใช้ `landCombatForTier`; อสูรนอกแผนที่อ่านค่าของแหล่งเดิม. กฎจับใช้ `WILD.captureEligibility`; สมุนไพรต้องอยู่ในกระเป๋าจริง. รายละเอียดและผลตรวจ: PATCH_REPORTS/LIVING_HUNT_VARIETY.md.
 

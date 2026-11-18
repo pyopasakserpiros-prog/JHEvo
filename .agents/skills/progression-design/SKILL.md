@@ -14,7 +14,7 @@ The four mythic companion lineages use `JD.CORE.lineageCompanions`, `EXPLORE.res
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 
-ปราณจากศึกหุบเขาใช้ `WILD.awardLandQi` แบ่งงบเดียวตามผลงานก่อนลดส่วนของผู้รับแต่ละคนตามกำลังและ `CULT.equivalentStage` เทียบกับ tier อสูร สูตรไม่เอาส่วนที่ถูกหักไปเพิ่มให้สมาชิกอื่น [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
+ปราณจากศึกหุบเขาใช้ `WILD.awardLandQi` แบ่งงบเดียวตามผลงานก่อนลดส่วนของผู้รับแต่ละคนตามกำลังและ `CULT.equivalentStage` เทียบกับ tier อสูร สูตรไม่เอาส่วนที่ถูกหักไปเพิ่มให้สมาชิกอื่น บอสปรับขนาดงบรวมตามระดับความยากและคิดขั้นเทียบเคียงเป็น 7/8/9 สำหรับ T7/ตำนาน/เหนือตำนาน [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
 
 ## Purpose
 Progression reference for `GAME_SOURCE/js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js`, `js/sect.js`, `js/explore.js`, `js/expedition.js`, `data/data_cult.js`, `data/data_martial.js`; check historical details against current source.

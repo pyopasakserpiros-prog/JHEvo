@@ -1238,11 +1238,12 @@
       const wf = (W && Array.isArray(W.fights) && W.fights.find(f => f && !f.over && f.kind === 'wild')) || (W && Array.isArray(W.fights) && W.fights.find(f => f && !f.over)) || null;
       const b0 = (wf && wf.ctx && wf.ctx.beastId && W.foeById && W.foeById[wf.ctx.beastId]) || (W && W.wildlife && Array.isArray(W.wildlife.beasts) && W.wildlife.beasts.find(b => b && !b.dead && !b.gone && b.fighting)) || (W && W.wildlife && Array.isArray(W.wildlife.beasts) && W.wildlife.beasts.find(b => b && !b.dead && !b.gone && b.legendary)) || null;
       const n0 = (wf && wf.ctx && wf.ctx.hunterId && W.byId && W.byId[wf.ctx.hunterId]) || (wf && Array.isArray(wf.A) && W.byId && W.byId[wf.A[0]]) || null;
-      const tgt = b0 || n0;
+      const requested = arg && W?.wildlife?.beasts?.find(b => b.id === arg && !b.dead && !b.gone);
+      const tgt = requested || b0 || n0;
       if (tgt && G.R && G.R.focus) {
         UI.close();
         G.R.follow = false;
-        if (n0) G.R.selected = n0.id;
+        if (n0 && !requested) G.R.selected = n0.id;
         G.R.focus(tgt.x, tgt.y, Math.max(G.R.cam.z, 1.85));
         UI.toast('🐺 เลื่อนกล้องส่องดูการล่าอสูรนอกกำแพง (' + (b0 ? b0.name : HC.fullName(n0)) + ')');
       }
@@ -5190,13 +5191,22 @@
     let h = '<div class="card"><b>🐾 สัตว์อสูรและนิเวศยุทธภพ v1.10.12</b><div class="muted">สัตว์อสูร 80 ชนิด 12 ตระกูล วัตถุดิบ 160 รายการ และสูตรผลิต 80 สูตร อสูรอาศัยอยู่ตามทิศและภูมิประเทศรอบสำนัก</div></div>';
 
     const active = W.wildlife ? W.wildlife.beasts.filter(b => !b.dead && !b.gone) : [];
-    h += '<h3>สัตว์อสูรบนแผนที่ขณะนี้ (' + active.length + '/12)</h3>';
+    h += '<h3>สัตว์อสูรบนแผนที่ขณะนี้ (' + active.length + '/' + (g.WILD?.MAX_ACTIVE_BEASTS || 60) + ')</h3>';
     if (active.length) {
       h += active.map(b => {
-        const z = g.WILD?.zones[b.zone];
+        const z = g.WILD?.zoneDefinition(b.zone);
         const zName = z ? z.nameTh : b.zone;
         const hpPct = Math.round((b.hp / b.hpMax) * 100);
-        return '<div class="card"><b>' + (b.legendary ? '★ ' : '') + esc(b.name) + '</b> <span class="chip ' + (b.legendary ? 'v' : b.tier >= 4 ? 'ok' : 'b') + '">ระดับ ' + b.tier + '</span> <span class="chip">' + esc(zName) + '</span><div>พลังรบ ' + b.power + ' CP · เลือด ' + Math.round(b.hp) + '/' + b.hpMax + ' (' + hpPct + '%)</div>' + (b.legendary ? '<div class="muted">อสูรบรรพกาลหายาก อาจจากไปเมื่อใดก็ได้</div>' : '') + '</div>';
+        const raid = g.WILD?.raidProfile(b);
+        const status = b.fighting ? 'กำลังต่อสู้' : b.raidAssembly
+          ? 'กำลังรวมคณะล่า ' + b.raidAssembly.members.length + ' คน จากที่ต้องพร้อมอย่างน้อย ' + raid.minimum + ' คน'
+          : 'พำนักสงบ · คณะล่าต้องพร้อมอย่างน้อย ' + (raid?.minimum || 1) + ' คน';
+        const bossInfo = raid ? '<div class="muted">' + esc(status) + '</div><button class="btn" data-do="focus-wild-fight" data-arg="' +
+          esc(b.id) + '">ดูตำแหน่ง</button>' : '';
+        return '<div class="card"><b>' + (b.legendary ? '★ ' : '') + esc(b.name) + '</b> <span class="chip ' +
+          (b.legendary ? 'v' : b.tier >= 4 ? 'ok' : 'b') + '">' + esc(raid?.nameTh || 'ระดับ ' + b.tier) +
+          '</span> <span class="chip">' + esc(zName) + '</span><div>พลังรบ ' + b.power + ' CP · เลือด ' +
+          Math.round(b.hp) + '/' + b.hpMax + ' (' + hpPct + '%)</div>' + bossInfo + '</div>';
       }).join('');
     } else {
       h += '<div class="muted">ยังไม่มีสัตว์อสูรปรากฏตัวรอบสำนักในขณะนี้</div>';

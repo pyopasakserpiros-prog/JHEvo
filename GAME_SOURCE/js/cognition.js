@@ -2404,7 +2404,7 @@
       title = targetId ? 'เสนอให้เจ้าสำนักพิจารณาขยาย ' + W.map.byId[targetId].nameTh : 'ยังไม่พบความแออัดที่ต้องเสนอขยาย';
     }
     if (r.id === 'wildwarden') {
-      const danger = (W.wildlife?.beasts || []).filter(b => !b.dead && !b.gone && b.legendary).length;
+      const danger = (W.wildlife?.beasts || []).filter(b => !b.dead && !b.gone && b.aggressive && !g.WILD?.raidProfile(b) && b.legendary).length;
       title = danger ? 'เฝ้าระวังอสูรตำนาน ไม่แนะนำผู้ล่าที่ไม่พร้อม' : 'ประเมินพื้นที่และความพร้อมในการล่า';
       actions = danger ? ['guard'] : ['guard', 'wildHunt'];
     }

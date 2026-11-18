@@ -206,6 +206,18 @@
       ['ivory','M14-13 28-14 25-10 22-13 20-10 18-12 16-10Z'],
       ['eye','M22-19 25-18 23-17Z']
     ] },
+    crab: { top: 25, shadow: 20, layers: [
+      ['shade','M-14-13-24-11-26-4-23-4-20-9-12-8Z M-5-10-12-5-12 1-9 0-7-4 1-9Z M5-11 14-5 16 0 19-1 19-6 12-12Z'],
+      ['body','M-18-14Q-11-23 1-21Q14-20 18-12L21-14 22-20 28-24 31-20 28-16 32-15 29-10 22-10 17-7Q5-2-7-6L-19-8-25-12-32-14-31-21-27-23-27-17-22-20-19-17-22-13Z'],
+      ['light','M-13-15Q-6-22 6-18L13-14 9-10 0-14-9-10Z'],
+      ['eye','M11-18 13-16 11-14Z M5-19 7-17 5-15Z']
+    ] },
+    whale: { top: 30, hover: 2, shadow: 25, layers: [
+      ['body','M-22-13-31-19-38-18-34-13-38-8-32-7-23-10Q-13-19-9-22Q8-32 23-25Q33-24 35-18L33-11 27-7 16-5-3-6Q-16-6-22-13Z'],
+      ['light','M-19-12Q-5-8 8-10Q28-9 33-15L33-10 25-7 12-5-5-6Z'],
+      ['shade','M-5-11Q3-13 10-11-1-4-15 1-13-3Z'],
+      ['eye','M24-19 27-18 25-16Z']
+    ] },
     dragon: { top: 37, hover: 4, shadow: 25, layers: [
       ['shade','M-29-7Q-35-10-30-19L-29-13Q-19-24-14-22-12-26-8-23-6-29-2-26 2-31 4-24 7-27 9-21 12-28 15-23 21-30 21-21Q18-10 7-9Q-7-13-16-12Z'],
       ['body','M-32-8Q-25-8-21-14Q-12-25-3-20Q5-16 11-22L14-30 17-32 19-35 22-31 26-32 28-29 33-28 34-24 27-22 21-22Q18-11 7-11Q-3-13-5-10L-5-4-11-1-12-4-8-7-8-13Q-14-15-18-11L-18-7-22-4-26-6-25-8Q-29-6-32-8Z'],
@@ -250,6 +262,20 @@
     BEAST_THUNDER_ROC: ['bird', 'bolt'],
     BEAST_BLOOD_TIGER: ['cat', 'stripes', 'fangs', ['#833b49', '#f8ad92']],
     BEAST_ABYSSAL_DRAGON: ['dragon', null, 'hydra'],
+    ECO2_BEAST_SHELL_5: ['turtle', 'plates', 'dragonHead'],
+    ECO2_BEAST_AQUATIC_1: ['shark', 'scales'],
+    ECO2_BEAST_AQUATIC_2: ['shark', 'spots'],
+    ECO2_BEAST_AQUATIC_3: ['crocodile', 'spikes'],
+    ECO2_BEAST_AQUATIC_4: ['shark', 'embers'],
+    ECO2_BEAST_AQUATIC_5: ['whale', 'stars'],
+    ECO2_BEAST_AQUATIC_6: ['dragon', 'scales'],
+    ECO2_BEAST_MYTHIC_3: ['turtle', 'stars', 'dragonHead'],
+    ECO2_BEAST_MYTHIC_6: ['whale', 'stars', 'wings'],
+    BEAST_V222_FROST_GLACIER_WYRM: ['dragon', 'rime'],
+    BEAST_V222_SOLAR_GOLD_TORTOISE: ['turtle', 'embers'],
+    BEAST_V222_ABYSSAL_LEVIATHAN_CRAB: ['crab', 'rime'],
+    BEAST_V222_CELESTIAL_LOTUS_CRANE: ['crane', 'leaves'],
+    BEAST_V240_MAELSTROM_LEVIATHAN_SERPENT: ['serpent', 'rime', 'hydra'],
     BEAST_ABYSSAL_LEVIATHAN_TURTLE: ['turtle', 'spikes', 'dragonHead'],
     BEAST_YIN_SHADOW_BAT_3: ['bat'],
     BEAST_LAVA_FLAME_TORTOISE_4: ['turtle', 'embers'],
@@ -383,9 +409,11 @@
     const tier = clamp(Math.floor(Number(b.tier || species?.tier) || 1), 1, 7);
     const palette = artPalette || wildPalette[b.element || species?.element] || wildPalette.NEUTRAL;
     const visual = b.visual || species?.visual;
-    const scale = wildTierScale[tier] * clamp(.9 + .1 * (Number(visual?.scale) || 1), .95, 1.06)
+    const raid = g.WILD?.raidProfile(b);
+    const raidScale = raid?.grade === 'TRANSCENDENT' ? 2.25 : raid?.grade === 'LEGENDARY' ? 1.6 : raid ? 1.16 : 1;
+    const scale = raidScale * wildTierScale[tier] * clamp(.9 + .1 * (Number(visual?.scale) || 1), .95, 1.06)
       * (b.legendary ? 1.08 : 1);
-    return { model, tier, scale, palette, visual, marking, trim };
+    return { model, tier, scale, palette, visual, marking, trim, raid };
   };
 
   function paintWildLayer(ctx, layer, colors, flap) {
@@ -2174,7 +2202,7 @@
         items.push({ y: p.y + (showIndoor ? 6 : 0), n, p, k: 'n' });
       });
       (W.foes || []).forEach(f => {
-        const margin = f.wild ? 100 : 50;
+        const margin = f.raidGrade ? 220 : f.wild ? 100 : 50;
         if (!f.gone && !f.dead && Math.abs(f.x * TS - c.x) < hw + margin && Math.abs(f.y * TS - c.y) < hh + margin) items.push({ y: f.y, f, k: 'f' });
       });
       (W.world && Array.isArray(W.world.visitors) ? W.world.visitors : []).forEach(v => {
@@ -2184,7 +2212,8 @@
         if (Math.abs(v.x * TS - c.x) < hw + 45 && Math.abs(v.y * TS - c.y) < hh + 55) items.push({ y: v.y, v, k: 'v' });
       });
       (W.wildlife?.beasts || []).forEach(b => {
-        if (!b.fighting && !b.dead && !b.gone && Math.abs(b.x * TS - c.x) < hw + 100 && Math.abs(b.y * TS - c.y) < hh + 100) items.push({ y: b.y, w: b, k: 'w' });
+        const margin = b.raidGrade ? 220 : 100;
+        if (!b.fighting && !b.dead && !b.gone && Math.abs(b.x * TS - c.x) < hw + margin && Math.abs(b.y * TS - c.y) < hh + margin) items.push({ y: b.y, w: b, k: 'w' });
       });
       (W.wildResources?.nodes || []).forEach(rn => {
         if (rn.remaining > 0 && Math.abs(rn.x * TS - c.x) < hw + 40 && Math.abs(rn.y * TS - c.y) < hh + 40) items.push({ y: rn.y, res: rn, k: 'res' });
@@ -5418,7 +5447,7 @@
       const x = (localStep ? b._px + dx * alpha : b.x) * TS;
       const y = (localStep ? b._py + dy * alpha : b.y) * TS;
       const zoom = this.cam.z;
-      const { model, tier, scale, palette, visual, marking, trim } = R.resolveWildBeastArt(b);
+      const { model, tier, scale, palette, visual, marking, trim, raid } = R.resolveWildBeastArt(b);
       const body = visual?.body || palette[0];
       const light = visual?.accent || palette[1];
       const ink = '#18232e';
@@ -5442,6 +5471,15 @@
       ctx.beginPath();
       ctx.ellipse(0, 1, shadow * scale, 3.9 * scale, 0, 0, 7);
       ctx.fill();
+      if (b.aquaticHunt) {
+        ctx.strokeStyle = '#b9f1ff99';
+        ctx.lineWidth = 1.1;
+        for (let i = 0; i < 2; i++) {
+          ctx.beginPath();
+          ctx.ellipse(0, 2 + i * 3, (shadow + i * 4) * scale, (2.4 + i) * scale, 0, 0, Math.PI);
+          ctx.stroke();
+        }
+      }
       if (groundRing) {
         ctx.lineWidth = 1.05;
         ctx.strokeStyle = light;
@@ -5455,6 +5493,53 @@
           ctx.stroke();
         }
         ctx.globalAlpha /= .68;
+      }
+      if (raid) {
+        const rings = raid.grade === 'TRANSCENDENT' ? 3 : raid.grade === 'LEGENDARY' ? 2 : 1;
+        const centerY = -model.top * scale * .43;
+        const radius = (shadow + 6) * scale;
+        const pulse = b.raidPulse || b.raidPulseFlash;
+        ctx.save();
+        if (pulse) {
+          const cx = pulse.x * TS - x, cy = pulse.y * TS - y;
+          ctx.strokeStyle = b.raidPulse ? '#ffc78c' : '#fff2de';
+          ctx.fillStyle = b.raidPulse ? '#f4795940' : '#fff1aa58';
+          ctx.lineWidth = b.raidPulse ? 2 : 4;
+          if (b.raidPulse) ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.arc(cx, cy, pulse.radius * TS, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        if (rings >= 2 && detail) {
+          const aura = ctx.createRadialGradient(0, centerY, radius * .1, 0, centerY, radius * 1.45);
+          aura.addColorStop(0, raid.color + '68');
+          aura.addColorStop(.55, raid.color + '28');
+          aura.addColorStop(1, raid.color + '00');
+          ctx.fillStyle = aura;
+          ctx.fillRect(-radius * 1.45, centerY - radius * 1.45, radius * 2.9, radius * 2.9);
+        }
+        ctx.strokeStyle = raid.color;
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < rings; i++) {
+          ctx.globalAlpha = .70 - i * .15;
+          ctx.beginPath();
+          const spin = time * (i % 2 ? -.15 : .18) + i * 2.1;
+          ctx.ellipse(0, centerY, radius * (1 + i * .16), radius * (.74 + i * .13), -.28 + i * .27, spin, spin + 4.6);
+          ctx.stroke();
+        }
+        if (rings === 3 && detail) {
+          ctx.globalAlpha = .86;
+          ctx.fillStyle = '#e5fdff';
+          for (let i = 0; i < 8; i++) {
+            const a = time * .17 + i * Math.PI / 4;
+            const dx = Math.cos(a) * radius * 1.32, dy = centerY + Math.sin(a) * radius;
+            ctx.beginPath();
+            ctx.moveTo(dx, dy - 6); ctx.lineTo(dx + 3, dy);
+            ctx.lineTo(dx, dy + 6); ctx.lineTo(dx - 3, dy); ctx.closePath(); ctx.fill();
+          }
+        }
+        ctx.restore();
       }
       if (zoom >= .42) this.drawCommonStatusAuras(ctx, b, 0);
 
@@ -5483,13 +5568,13 @@
       const labelY = -(top + lift + 6) * scale;
       const showHealth = zoom >= .55 && b.fighting && Number.isFinite(b.hp) && b.hpMax > 0;
       if (showHealth) this.hpBar(ctx, 0, labelY, b.hp / b.hpMax, shadow * scale * 1.5);
-      if (zoom > .8) {
+      if (zoom > .8 || (raid && zoom >= .55)) {
         ctx.font = (groundRing ? 'bold ' : '') + '9px ' + FONT;
         ctx.textAlign = 'center';
         ctx.lineWidth = 2.3;
         ctx.strokeStyle = '#1b2a28';
-        ctx.fillStyle = groundRing ? palette[1] : '#f8f2dc';
-        const label = (b.name || b.nameTh || '') + ' · T' + tier;
+        ctx.fillStyle = raid?.color || (groundRing ? palette[1] : '#f8f2dc');
+        const label = (b.name || b.nameTh || '') + ' · ' + (raid?.nameTh || 'T' + tier);
         const textY = labelY - (showHealth ? 5 : 0);
         ctx.strokeText(label, 0, textY);
         ctx.fillText(label, 0, textY);

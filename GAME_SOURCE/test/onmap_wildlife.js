@@ -50,9 +50,9 @@ console.log('PASS deterministic spawning, peaceful proximity, exterior boundary 
       if (helper.act.id === 'wildHunt' && helper.path && AI.stepMove(W, helper)) AI.arrive(W, helper);
     }
   }
-  assert.deepEqual(new Set(fight.A), new Set([lead.id, healer.id, front.id]), 'Helpers walk in and join the same fight');
-  assert.equal(healer.act.ctx.fid, fight.id);
-  assert.equal(front.act.ctx.fid, fight.id);
+  const helper = [healer, front].find(n => fight.A.includes(n.id));
+  assert(helper && fight.A.length === 2, 'A helper walks in and joins the same T5 fight');
+  assert.equal(helper.act.ctx.fid, fight.id);
 
   ECO.addPersonalPill(lead, 'P:BASIC_HP', 1, 1);
   ECO.addPersonalPill(lead, 'P:BASIC_QI', 1, 1);
@@ -75,14 +75,18 @@ console.log('PASS deterministic spawning, peaceful proximity, exterior boundary 
   const b = WILD.spawn(W, 'legend', null, { speciesId: 'BEAST_ABYSSAL_DRAGON' });
   const hunter = W.npcs[0];
   Object.assign(hunter, { x: b.x + 1, y: b.y });
-  assert(WILD.startFight(W, hunter, b));
-  const fight = W.fights.at(-1);
+  assert(!WILD.startFight(W, hunter, b), 'A solo hunter cannot aggro the T7 raid');
+  assert(!b.aggressive);
+  W.foes.push(b);
+  W.foeById[b.id] = b;
+  const fight = COMBAT.startFight(W, [hunter.id], [b.id], 'wild', { serious: true, ctx: { beastId: b.id } });
+  b.fighting = fight.id;
   W.rng.chance = () => false;
   W.rng.next = () => .5;
-  const hit = { M: 20, type: 'p', forced: true, noProc: true, noCounter: true, noReflect: true };
-  const hpBefore = b.hp;
-  for (let i = 0; i < 3; i++) COMBAT.strike(W, fight, hunter, b, hit);
-  assert(b.hp < hpBefore && b.hp > b.hpMax * .65 && !b.dead, 'The valley dragon survives a burst that used to end the fight');
+  const hit = { M: 100, type: 'p', forced: true, noProc: true, noCounter: true, noReflect: true };
+  for (let i = 0; i < 100; i++) COMBAT.strike(W, fight, hunter, b, { ...hit });
+  assert(b.hp > 0 && !b.dead, '100 capped bursts cannot one-cycle the full HP body');
+  assert(b.hp < b.hpMax * .1, 'Sustained attacks make decisive progress');
   const copy = { id: 'outside-check', foe: true, name: b.name, tier: b.tier,
     power: b.power, hp: b.hpMax, hpMax: b.hpMax, x: b.x, y: b.y, sx: [] };
   const unprotectedHit = b.hpMax * .4;
@@ -90,6 +94,6 @@ console.log('PASS deterministic spawning, peaceful proximity, exterior boundary 
   assert(Math.abs(copy.hp - (copy.hpMax - unprotectedHit)) <= 1, 'A foe without the valley effect is not protected');
   const beforeBeastStrike = copy.hp;
   COMBAT.applyDamage(W, fight, b, copy, 100);
-  assert(Math.abs(beforeBeastStrike - copy.hp - 58) <= 1, 'A T7 valley beast deals 58% of its unmodified damage');
-  console.log('PASS elite wildlife durability decoupled from hit size and isolated to valley beasts');
+  assert(Math.abs(beforeBeastStrike - copy.hp - 48) <= 1, 'A T7 valley beast deals 48% of its unmodified damage');
+  console.log('PASS 100 simulated heavy hits on a T7 body and region-only damage limits');
 }

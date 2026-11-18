@@ -23,7 +23,12 @@
     return Math.min(hm, baseHp);
   };
   C.hp = u => u.foe ? u.hp : u.h.state.hp;
-  C.setHp = (u, v) => { if (u.foe) u.hp = v; else u.h.state.hp = v; };
+  C.setHp = (u, v) => {
+    if (!u.foe) { u.h.state.hp = v; return; }
+    const profile = u.fighting && v < u.hp && g.WILD?.landCombatProfile(u);
+    // Direct HP deductions (e.g. equipment follow-up effects) must respect the same beast barrier.
+    u.hp = profile ? Math.max(v, u.hp - g.WILD.landHitLimit(u, profile)) : v;
+  };
   C.name = u => u.foe ? u.name : u.h.name.given;
   C.agi = u => u.foe ? 50 + u.tier * 3 : (E(u, 'physiology.agility') + E(u, 'physiology.reflex')) / 2;
 
@@ -422,7 +427,7 @@
   };
 
   function moveToward(W, u, tx, ty, run, fOpt) {
-    if (!u || !Number.isFinite(tx) || !Number.isFinite(ty)) return;
+    if (!u || u.aquaticHunt || !Number.isFinite(tx) || !Number.isFinite(ty)) return;
     const ST = STs();
     const tNow = (W && W.t != null) ? W.t : 0;
     if (ST && (ST.has(u, 'stun', tNow) || ST.has(u, 'paralyze', tNow) || ST.has(u, 'root', tNow) || ST.has(u, 'grounded', tNow) || ST.has(u, 'cryoStasis', tNow))) {
@@ -1263,7 +1268,10 @@
       g.CULT.GRAND_DAO_MECHANICS.recordTemporalHpSnapshot(W, d, C.hp(d));
     }
     if (landDefense && a !== d && dmg > 0) {
-      dmg = Math.min(dmg, valley.landDamageReference(d) * landDefense.hitCap);
+      dmg = Math.min(dmg, valley.landHitLimit(d, landDefense));
+    }
+    if (landOffense && !d.foe && dmg > 0) {
+      dmg = Math.min(dmg, hm * (.11 + Math.min(a.tier || 1, 7) * .018));
     }
     if (landDefense && a && !a.foe && dmg > 0) {
       f.ctx.landContributions = f.ctx.landContributions || {};
@@ -1406,7 +1414,7 @@
           a.fx = { t: W.t, text: '🙏 ยั้งมือไว้ชีวิต!' };
         }
       }
-      else if (f && f.kind === 'wild' && !d.foe && !(a && a.legendary) && ((d.inj ? d.inj.length : 0) < 3)) {
+      else if (f && f.kind === 'wild' && !d.foe && (f.ctx?.valleyRaid || (!(a && a.legendary) && ((d.inj ? d.inj.length : 0) < 3)))) {
         hp = Math.max(1, Math.round(hm * 0.06));
         C.setHp(d, hp);
         d.fled = true; d.run = true; f.fled = true;
@@ -1422,7 +1430,7 @@
     const ratio = hp / hm;
     const hasNoRetreatVow = !!(d && !d.foe && d.voluntaryVows && d.voluntaryVows.VOW_NO_RETREAT && d.voluntaryVows.VOW_NO_RETREAT.active && ((d.h && d.h.state && d.h.state.fear) || 0) < 88);
     const landBoss = landDefense?.partySize > 1;
-    const fleeAt = landBoss ? Math.min(fleeThreshold(d), .05) : fleeThreshold(d);
+    const fleeAt = landDefense?.grade ? 0 : landBoss ? Math.min(fleeThreshold(d), .05) : fleeThreshold(d);
     if (ratio < (nonlethal ? yieldThreshold(d) : fleeAt) && !d.yield && !d.fled) {
       if (nonlethal) d.yield = true; else if (!hasNoRetreatVow && W.rng.chance(d.foe ? 0.7 : 0.5)) {
         d.fled = true; d.fx = { t: W.t, text: 'ถอย!' };
@@ -2013,7 +2021,8 @@
     const landOffense = valley && valley.landCombatProfile(a);
     const refHm = landDefense ? valley.landDamageReference(d) : C.stageRefHp(d);
     const beastGuard = !d.foe && g.MARTIAL && g.MARTIAL.isBeast(a) ? g.MARTIAL.skillEffects(d).beastDamage : 1;
-    const dmg = refHm * (landDefense ? Math.min(frac, landDefense.hitCap) : frac) * beastGuard;
+    const rawDamage = refHm * frac * beastGuard;
+    const dmg = landDefense ? Math.min(rawDamage, valley.landHitLimit(d, landDefense)) : rawDamage;
     a.fx = a.fx || {}; if (!o.silent) { a.fx = { t: W.t, text: o.label || (crit ? 'จุดตาย!' : type === 'p' ? W.rng.pick(FX_PHYS) : W.rng.pick(FX_MAG)) }; }
     const forecastDamage = landOffense ? dmg * landOffense.damageOut : dmg;
     d.fx = { t: W.t, text: (avatarAssisted ? '⚡ ร่างจำแลงศาสตราประสานโจมตี! ' : (crit ? '✦' : '')) + '-' + Math.max(1, Math.round(forecastDamage)) };
@@ -3715,6 +3724,7 @@
       return;
     }
 
+    if (f.ctx?.valleyRaid && g.WILD?.evadeRaidPulse(W, f, n)) return;
     const landHunt = f.kind === 'wild' && g.WILD?.landCombatProfile(C.unit(W, f.ctx.beastId));
     // During a valley hunt a ready disciple can recover even while outside melee range.
     if (landHunt && !ctx.channeling && (ctx.cd || 0) <= 1 && g.CPE?.fightUse(W, n, ctx, landRecovery)) {
@@ -4056,7 +4066,8 @@
         }
       }
       const elapsedFight = W.t - (fTac.combatStartedAt || f.t0);
-      const timeout = elapsedFight > (f.kind === 'raid' ? 900 : 300);
+      const valleyRaid = f.ctx?.valleyRaid && f.kind === 'wild' && g.WILD?.raidProfile(C.unit(W, f.ctx.beastId));
+      const timeout = elapsedFight > (valleyRaid?.timeout || (f.kind === 'raid' ? 900 : 300));
 
       // Raid Inner Sanctum Breach check when no defenders are left or raiders hold the Main Hall
       if (f.kind === 'raid') {
@@ -4093,6 +4104,7 @@
           else if (!a.length && !b.length) { f.winner = null; fTac.outcome = 'MUTUAL_DOWN'; }
           else { f.winner = null; fTac.outcome = 'TIMEOUT_DRAW'; }
         }
+        if (valleyRaid && f.winner === 'A') f.ctx.raidSurvivors = a.filter(n => W.byId[n.id]).map(n => n.id);
         C.conclude(W, f);
       }
     }

@@ -7,7 +7,7 @@ const catalogBefore = JSON.stringify(JD.BEASTS);
 const unique = new Set();
 const signatures = new Set();
 let entries = 0;
-const healthMultipliers = [4.5, 5, 5.4, 5.9, 6.4, 7.2, 8.2];
+const healthMultipliers = [5.2, 5.8, 6.8, 7.8, 9, 11, 26];
 for (const [zoneId,zone] of Object.entries(WILD.zones)) {
  for (const pool of zone.pools) for (const id of pool.speciesIds) {
   WILD.init(W);W.wildlife.beasts=[];

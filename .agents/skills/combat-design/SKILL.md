@@ -404,7 +404,11 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 - **Equipment & Combat Action VFX**: `SK.EQUIP_EFFECT_VFX_CATALOG` (`64` forms + 31 Resonance Sets) and `SK.COMBAT_ACTION_VFX_CATALOG` (`36` forms).
 - **Targeting & Spatial Delivery Invariants**: Offensive `blink`/`stanceShift`/`tetherLink` moves with `M > 0`, explicit `selectTargets` selectors (`LOWEST_HP_ENEMY`, etc.), and in-range offensive relic procs anchor impact at the target (`x, y`) while preserving caster origin (`originX, originY`) for ranged projectile/beam/dash delivery (`drawRangedAndSpatialDeliveryVfx`).
 
-## Living Hunt phase 1
+## Valley hunt and boss encounters
+
+`WILD.landCombatProfile` selects an ordinary, miniboss or raid profile only for live valley wildlife. The strike reference stays at 4× the species health basis while `WILD.landHitLimit` applies the per-packet cap in both normal damage and direct HP deductions. T7 raid caps each packet at 0.99% HP. Boss phases and pulse geometry live in `WILD.tick`. Pulse victims must be living members of the active party, outside the wall and within the warned radius. T7 and rarer variants use the same fight engine and per-NPC pills, healing and cooldowns. [Patch details](../../../PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md)
+
+## Living Hunt phase 1 (historical pacing)
 
 เฉพาะอสูร `wild && landInfluence` ในศึก `wild` ใช้ตาราง `WILD.landCombatProfile`: HP สูงสุดตาม T1–T7, ฐานตีคงที่จาก `WILD.landDamageReference` และเพดานความเสียหายต่อครั้งหลังผลบรรเทา ท่ารักษาอสูรและสถานะฟื้นเลือดตามสัดส่วนใช้ฐานคงที่เช่นกัน `ctx.landContributions` นับความเสียหายและการรักษาจริง `CPE.fightUse` รับ threshold เฉพาะศึกหุบเขาเพื่อให้ NPC ใช้โอสถที่มีจากนอกระยะตีได้ [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
 

@@ -10,7 +10,7 @@
 
 > **Active assignment:** Gemini Argon4 should read [ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md](ACTIVE_PATCH_PROMPT_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
 
-> **main-debug — Living Hunt:** พูลอสูรบก 125 ชนิด เป้าหมาย 48 ตัวและเพดาน 60 ตัว อสูร T5–T7 มีโอกาสเป็นศึกกลุ่ม NPC เดินมาสมทบเองและพิจารณาตบะเทียบเคียงกับวัตถุดิบที่ต้องการ [จังหวะศึกและรางวัลปราณ](PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md) · [ข้อมูลพูล](PATCH_REPORTS/LIVING_HUNT_VARIETY.md)
+> **main-debug — ล่าอสูรหุบเขา:** อสูรทั่วไป T1–T7 เกิดบนบกและในแม่น้ำ มินิบอสกับบอสให้คณะล่ารวมตัวเองตามกำลังและตบะ บอสเหนือตำนานต้องมีผู้พร้อมอย่างน้อย 51 คน บอสพำนักสงบจนถูกท้าทาย [รายงานแพตช์](PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md).
 
 > **main-debug — โมเดลอสูรรอบสำนัก:** อสูร 125 ชนิดใช้ 35 รูปทรงพื้นฐาน แยกด้วยลายเฉพาะและขนาด T1–T7 เห็นรูปลักษณ์เดิมต่อเนื่องจากเดินสำรวจถึงต่อสู้ [รายงานแพตช์](PATCH_REPORTS/WILD_BEAST_MODELS_JS2_V2_6_0.md).
 

@@ -919,6 +919,9 @@
       const fam = SK.beastFamily(u);
       L.push(mk(['CANINE','FELINE'].includes(fam) && t >= 2 ? 'flurry' : 'strike',
         ['BOAR','UNGULATE'].includes(fam) ? 'เขี้ยวเขากระแทก' : fam === 'AVIAN' ? 'กรงเล็บวิหค' : 'ตะปบกัดฉีก', t, 'p'));
+      if (u.aquaticHunt) L.push(mk('wave', 'คลื่นปราณซัดตลิ่ง', t, 'm', {
+        range: { min: 0, max: 4.25, shape: 'SINGLE', requiresLoS: false }
+      }));
       if (['BOAR','UNGULATE','CANINE'].includes(fam)) L.push(mk('charge', 'อสูรพุ่งทะลวง',t,'p'));
       if (['URSINE','SHELL'].includes(fam)) L.push(mk('guard', 'เกราะกายอสูร',t,'p',{shield:0.12,self:true}));
       if (['AVIAN','PLANT','PLANT_SPIRIT','CHIMERA'].includes(fam))

@@ -7880,6 +7880,8 @@
       return { ok:false, reason:'สายพันธุ์นี้ผูกพันธสัญญาได้จากกรุวิหารเท่านั้น' };
     }
 
+    if (g.WILD?.raidProfile(speciesOrBeast)) return { ok: false, reason: 'อสูรจ้าวหุบเขาผูกพันธสัญญาไม่ได้' };
+
     // Conservation check: if capturing a live wild beast instance, mark it captured/gone so it cannot also be killed or captured twice
     if (speciesOrBeast && typeof speciesOrBeast === 'object' && speciesOrBeast.wild) {
       if (speciesOrBeast.capturedBy || speciesOrBeast.dead || speciesOrBeast.gone) {
@@ -7913,6 +7915,7 @@
   CULT.attemptTameBeast = (W, npc, beastOrSpecies, opts) => {
     opts = opts || {};
     if (!npc || npc.dead) return { ok: false, reason: 'ตัวละครไม่พร้อมฝึกอสูร' };
+    if (g.WILD?.raidProfile(beastOrSpecies)) return { ok: false, reason: 'อสูรจ้าวหุบเขาผูกพันธสัญญาไม่ได้' };
     if (opts.forceSuccess) opts.force = true;
     const spId = typeof beastOrSpecies === 'string' ? beastOrSpecies : (beastOrSpecies && (beastOrSpecies.speciesId || beastOrSpecies.id));
     const sp = CULT.beastSpeciesById(spId) || (typeof beastOrSpecies === 'object' ? beastOrSpecies : null) || (CULT.allBeastSpecies && CULT.allBeastSpecies()[0]);
