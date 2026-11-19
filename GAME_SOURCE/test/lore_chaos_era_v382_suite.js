@@ -8,8 +8,8 @@ console.log('=== JS2 v3.8.2 — Novel-Grade Era 0–1 Chaos Lore Archive Suite =
 
 // [1/5] Version, Standalone File Existence, 40-Script Lock & 3.8.1 Save Hydration
 {
-  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.2');
-  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.3');
+  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.3-grand-lore-chronicles-11books');
   assert(fs.existsSync(path.join(__dirname, '../data/lore_chronicle_e0_e1.js')), 'Standalone lore_chronicle_e0_e1.js must exist');
   assert(fs.existsSync(path.join(__dirname, '../tools/sync_lore_bundle.js')), 'tools/sync_lore_bundle.js must exist');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');

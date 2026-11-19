@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * sync_lore_bundle.js — ซิงค์ไฟล์ Lore แยก (GAME_SOURCE/data/lore_chronicle_e0_e1.js)
+ * sync_lore_bundle.js — ซิงค์ไฟล์ Lore แยกทั้งหมด (11 บทมหากาพย์ภายใต้ GAME_SOURCE/data/lore_chronicle_*.js)
  * เข้าสู่บล็อกเฉพาะท้ายไฟล์ GAME_SOURCE/data/data_expansion.js
  * เพื่อให้ผู้พัฒนาแก้ไฟล์ Lore แยกได้อย่างอิสระเหมือนอ่านนิยาย โดยยังรักษาข้อบังคับ 40 <script> tags ครบ 100%
  */
@@ -10,7 +10,17 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const loreFiles = [
-  'data/lore_chronicle_e0_e1.js'
+  'data/lore_chronicle_p1_antediluvian_and_cosmology.js',
+  'data/lore_chronicle_e0_tianshu_pillar_sect.js',
+  'data/lore_chronicle_p2_tiangu_heroes_and_hidden_relics.js',
+  'data/lore_chronicle_e0_e1.js',
+  'data/lore_chronicle_e1_e2_great_reunifier.js',
+  'data/lore_chronicle_e26_yujing_sect_and_ink_moth.js',
+  'data/lore_chronicle_e26_late_survivor_sects.js',
+  'data/lore_chronicle_p3_middle_epochs_12_kingdoms.js',
+  'data/lore_chronicle_e99_eve_of_balance.js',
+  'data/lore_chronicle_p4_yunhe_treaty_and_six_fallen.js',
+  'data/lore_chronicle_p5_present_epoch101_convergence.js'
 ];
 const targetPath = path.join(root, 'data/data_expansion.js');
 const START_MARK = '\n/* === LORE_CHRONICLE_BUNDLE_START (auto-synced by tools/sync_lore_bundle.js) === */\n';

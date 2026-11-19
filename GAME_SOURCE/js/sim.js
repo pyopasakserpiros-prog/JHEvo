@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '3.8.2',
+    PATCH_VERSION: '3.8.3',
     SUPPORTED_PATCHES: ['3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.6.0b', '3.6.0c', '3.7.0', '3.7.0a', '3.7.0b', '3.7.0c', '3.8.0', '3.8.1', '3.8.2', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
-    SAVE_SCHEMA_VERSION: '3.8.2-chaos-era-lore-archive',
+    SAVE_SCHEMA_VERSION: '3.8.3-grand-lore-chronicles-11books',
     DAY_FACTOR: 1.5,
     CALENDAR_MINS_PER_DAY: 1440,
     WORK_STEPS_PER_DAY: 2160,

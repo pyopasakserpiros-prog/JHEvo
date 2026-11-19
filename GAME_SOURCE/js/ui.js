@@ -868,6 +868,7 @@
       show('lore', '📜 พงศาวดารและตำนานโลก (Master Lore Compendium)', [
         ['eras', '⏳ 6 มหายุคสมัย'],
         ['chaos_e0_e1', '📖 มหากาพย์ยุค 0–1'],
+        ['chronicles', '📚 คลังมหากาพย์ 11 บท'],
         ['empires', '🏚️ อาณาจักร & ราชวงศ์'],
         ['figures', '🧙‍♂️ 60 ยอดคนตำนาน'],
         ['cosmos', '🌌 จักรวาล & 6 ราชันอสูร'],
@@ -5239,6 +5240,82 @@
           + '<div style="font-size:12px;line-height:1.6;margin-top:5px">' + esc(fs.summaryTh || '') + '</div>'
           + (fs.reusableHooks && fs.reusableHooks.length ? ('<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">' + fs.reusableHooks.map(hk => '<span class="chip">' + esc(hk) + '</span>').join(' ') + '</div>') : '')
           + '</div>';
+      }
+      return h;
+    }
+
+    if (tab === 'chronicles') {
+      const BOOKS = [
+        { k: 'P1', label: '🌑 พาร์ท 1: ปฐมกาล & 6 จักรวรรดิพ้นหมอก', data: JD && JD.LORE_CHRONICLE_P1_ANTEDILUVIAN },
+        { k: 'TS', label: '🏛️ มหานิกายแกนฟ้าเทียนซู (ยุค 0–1)', data: JD && JD.LORE_CHRONICLE_E0_TIANSHU },
+        { k: 'P2', label: '👑 พาร์ท 2: จินหยาง & วีรชนเทียนกู่ #1–25', data: JD && JD.LORE_CHRONICLE_P2_TIANGU_HEROES },
+        { k: 'E01', label: '🔥 มหากาพย์กลียุค 0–1 (8 ก๊ก)', data: JD && JD.LORE_CHRONICLE_E0_E1 },
+        { k: 'DQ', label: '🐉 มหาจักรวรรดิต้าเฉียน (ยุค 1–2)', data: JD && JD.LORE_CHRONICLE_E1_E2_DAQIAN },
+        { k: 'E26A', label: '🦋 นิกายอวี้จิง & ผีเสื้อราตรีโม่หมิง (ยุค 26)', data: JD && JD.LORE_CHRONICLE_E26_YUJING },
+        { k: 'E26B', label: '🖌️ ผู้รอดชีวิตปลายยุค 26 & ศาลาพู่กันฟ้าคราม', data: JD && JD.LORE_CHRONICLE_E26_LATE },
+        { k: 'P3', label: '⚔️ พาร์ท 3: 12 อาณาจักรยุคกลาง & #32–41', data: JD && JD.LORE_CHRONICLE_P3_MIDDLE_EPOCHS },
+        { k: 'E99', label: '☄️ มหากาพย์ยุคที่ 99 (ศึก 2 ดินแดนศักดิ์สิทธิ์)', data: JD && JD.LORE_CHRONICLE_E99_EVE_OF_BALANCE },
+        { k: 'P4', label: '⚖️ พาร์ท 4: สนธิสัญญาหยุนเหอ & 6 แคว้นล่มสลาย', data: JD && JD.LORE_CHRONICLE_P4_YUNHE_BALANCE },
+        { k: 'P5', label: '✨ พาร์ท 5: ปัจจุบันกาล ยุค 101 & 15 ผู้กุมชะตา', data: JD && JD.LORE_CHRONICLE_P5_PRESENT_EPOCH101 }
+      ];
+      const selK = UI.loreChronicleBook || 'P1';
+      const cur = BOOKS.find(b => b.k === selK) || BOOKS[0];
+      h += '<div class="subtab-bar" style="margin:6px 0 10px 0;gap:5px">';
+      for (const b of BOOKS) {
+        h += '<button class="chip' + (cur.k === b.k ? ' b' : '') + '" data-do="set-lore-chronicle-book" data-arg="' + b.k + '">' + esc(b.label) + '</button>';
+      }
+      h += '</div>';
+      const D = cur.data;
+      if (!D) return h + '<div class="card"><div class="muted">ไม่พบข้อมูลมหากาพย์บทนี้</div></div>';
+      const meta = D.META || D.EMPIRE_PROFILE || D.SECT_PROFILE || {};
+      h += '<div class="card" style="border-left:4px solid #38bdf8;margin-bottom:10px">'
+        + '<b style="font-size:14px">📚 ' + esc(meta.partLabelTh || meta.titleTh || meta.nameTh || cur.label) + '</b>'
+        + (meta.eraSpanTh ? ('<div class="muted" style="font-size:11.5px;margin-top:3px">⏳ ' + esc(meta.eraSpanTh) + '</div>') : '')
+        + (meta.themeTh || meta.canonGuardrailsTh ? ('<div style="font-size:12px;margin-top:4px;line-height:1.5">' + esc(meta.themeTh || meta.canonGuardrailsTh) + '</div>') : '')
+        + '</div>';
+      const evList = D.EVENTS || [];
+      if (evList.length) {
+        h += '<div class="muted" style="font-size:12px;margin:8px 0 4px 0"><b>📜 เหตุการณ์หลัก (' + evList.length + ' บท)</b></div>';
+        for (const ev of evList) {
+          h += '<div class="card" style="border-left:3px solid #f59e0b;margin-bottom:8px">'
+            + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b style="font-size:13px">' + esc(ev.titleTh || ev.nameTh || '') + '</b>'
+            + '<span class="chip">' + esc(ev.yearLabelTh || '') + '</span></div>'
+            + (ev.locationTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">📍 ' + esc(ev.locationTh) + '</div>') : '')
+            + '<div style="font-size:12px;line-height:1.65;margin-top:6px;white-space:pre-line">' + esc(ev.novelNarrativeTh || ev.narrativeTh || ev.summaryTh || '') + '</div>'
+            + (ev.aftermathTh ? ('<div class="muted" style="font-size:11.5px;margin-top:5px">➡️ <b>ผลสืบเนื่อง:</b> ' + esc(ev.aftermathTh) + '</div>') : '')
+            + '</div>';
+        }
+      }
+      const figList = D.FIGURES || D.FIGURES_E0_E1 || D.FIGURES_1_TO_25 || D.FIGURES_32_TO_41 || D.FIGURES_42_TO_45 || D.FIGURES_46_TO_60 || D.FIGURES_E99 || [];
+      if (figList.length) {
+        h += '<div class="muted" style="font-size:12px;margin:10px 0 4px 0"><b>🧙‍♂️ ทำเนียบบุคคลสำคัญ (' + figList.length + ' คน)</b></div>';
+        for (const fg of figList) {
+          h += '<div class="card" style="border-left:3px solid #34d399;margin-bottom:7px">'
+            + '<b>' + esc((fg.num ? ('#' + fg.num + ' ') : '') + (fg.nameTh || fg.titleTh || '')) + '</b>'
+            + (fg.titleTh && fg.nameTh ? (' <span class="muted" style="font-size:11.5px">— ' + esc(fg.titleTh) + '</span>') : '')
+            + (fg.definingDateTh || fg.eraSpanTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc(fg.definingDateTh || fg.eraSpanTh) + '</div>') : '')
+            + '<div style="font-size:12px;line-height:1.6;margin-top:4px">' + esc(fg.novelBiographyTh || fg.biographyTh || fg.bioTh || fg.summaryTh || '') + '</div>'
+            + (fg.currentLocationAndHookTh || fg.possibleLocationTh ? ('<div class="muted" style="font-size:11px;margin-top:4px">📍 ' + esc(fg.currentLocationAndHookTh || fg.possibleLocationTh) + '</div>') : '')
+            + '</div>';
+        }
+      }
+      const extraLists = [
+        ['🌊 6 มหาจักรวรรดิพ้นทะเลหมอก', D.OUTER_SIX_EMPIRES],
+        ['🐉 6 ราชันอสูรบรรพกาล', D.BEAST_KINGS],
+        ['⚔️ 12 อาณาจักรยุคกลาง', D.MIDDLE_TWELVE_KINGDOMS],
+        ['⏳ 6 แคว้นที่เพิ่งล่มสลาย', D.RECENT_SIX_FALLEN],
+        ['🛡️ 5 รัฐกันชน', D.FIVE_BUFFER_KINGDOMS],
+        ['❓ ปริศนาปลายเปิดแห่งโลก', D.OPEN_WORLD_MYSTERIES],
+        ['🏯 สำนักที่ถือกำเนิด/ล่มสลาย', D.SURVIVOR_SECTS || D.FALLEN_SECTS]
+      ];
+      for (const [secTitle, arr] of extraLists) {
+        if (!Array.isArray(arr) || !arr.length) continue;
+        h += '<div class="muted" style="font-size:12px;margin:10px 0 4px 0"><b>' + esc(secTitle) + ' (' + arr.length + ')</b></div>';
+        for (const it of arr) {
+          h += '<div class="card" style="margin-bottom:7px"><b>' + esc(it.nameTh || it.titleTh || '') + '</b>'
+            + (it.foundedDateTh || it.fallenDateTh || it.lastContactDateTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc([it.foundedDateTh, it.fallenDateTh, it.lastContactDateTh].filter(Boolean).join(' → ')) + '</div>') : '')
+            + '<div style="font-size:12px;line-height:1.55;margin-top:4px">' + esc(it.chronicleTh || it.loreChronicleTh || it.historicalRecordTh || it.causeOfFallTh || it.summaryTh || it.roleInBalanceTh || '') + '</div></div>';
+        }
       }
       return h;
     }

@@ -8,8 +8,8 @@ console.log('=== JS2 v3.8.0 — Master Lore Compendium & Dedicated Era Lore Wind
 
 // [1/6] Version, 40-Script Lock & Legacy 3.7.0c Save Hydration
 {
-  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.2');
-  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.3');
+  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.3-grand-lore-chronicles-11books');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
   const scriptCount = (html.match(/<script\s+src=/g) || []).length;
   assert.strictEqual(scriptCount, 40, `Expected exact 40 <script> tags, got ${scriptCount}`);
