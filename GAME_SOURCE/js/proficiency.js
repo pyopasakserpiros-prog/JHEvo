@@ -186,7 +186,7 @@ M.pickSkillPractice=(W,n)=>{
  }
  let best=null,score=-Infinity;
  const eqRaw=M.equippedType(n),eqWpnSkill=eqRaw==='FIST'?'FIST_PALM':eqRaw,profSk=profession&&profession.skill;
- const allIds=bnMap.WATER_ICE?M.SKILL_IDS.concat(['WATER_ICE']):bnMap.WOOD_LIFE?M.SKILL_IDS.concat(['WOOD_LIFE']):M.SKILL_IDS;
+ const allIds=M.SKILL_IDS.slice();if(bnMap.WATER_ICE)allIds.push('WATER_ICE');if(bnMap.WOOD_LIFE)allIds.push('WOOD_LIFE');
  for(let i=0;i<allIds.length;i++){
   const id=allIds[i],info=M.SKILL_INFO[id]||elemGateSkills[id],interest=HC.eff(n,'interests.'+info.interest),need=(100-M.skillRead(n,id))*.25,role=(n.post==='healer'&&id==='MEDICINE'||n.post==='steward'&&id==='construction'||n.post==='treasury'&&id==='administration')?20:0;
   const eqBonus=(id===eqWpnSkill&&groups.weapon.includes(id))?18:0;

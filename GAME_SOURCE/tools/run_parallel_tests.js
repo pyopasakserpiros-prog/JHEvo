@@ -62,7 +62,7 @@ function checkSyntax(file) {
 
 (async () => {
   const started = Date.now();
-  const soloSuites = new Set(["v320_dormant_awakening_suite", "browser_mobile_perf", "v340_combat_depth_and_duet_synergies_suite", "v350_macro_jianghu_and_alchemy_suite", "v360_immortal_endgame_dynasty_suite", "v400_living_frontier_and_sect_charter_suite", "v410_sect_expansion_and_architecture_suite"]);
+  const soloSuites = new Set(["v235_comprehensive_mechanics_and_elemental_fusion_suite", "v320_dormant_awakening_suite", "browser_mobile_perf", "v340_combat_depth_and_duet_synergies_suite", "v350_macro_jianghu_and_alchemy_suite", "v360_immortal_endgame_dynasty_suite", "v400_living_frontier_and_sect_charter_suite", "v410_sect_expansion_and_architecture_suite"]);
   const parallelIndices = [];
   const soloIndices = [];
   tests.forEach((t, idx) => (soloSuites.has(t) ? soloIndices : parallelIndices).push(idx));

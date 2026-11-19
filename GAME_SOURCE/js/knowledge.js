@@ -253,6 +253,7 @@ M.crystalPrice=(W,key)=>{
 };
 M.crystalReward=(W,key)=>Math.max(0,Math.floor(M.crystalPrice(W,key)*.4));
 function removeUnit(n,key){
+ if(!n||!n.inv||!n.inv.crystals)return false;
  const held=n.inv.crystals[key];if(!Number.isInteger(held)||held<1)return false;
  if(held===1)delete n.inv.crystals[key];else n.inv.crystals[key]=held-1;
  const receipt=n.inv.crystalBought&&n.inv.crystalBought[key];if(receipt){receipt.qty--;if(receipt.qty<=0)delete n.inv.crystalBought[key];}
@@ -656,7 +657,8 @@ M.crystalDecision=(W,n,key)=>{
  if(e.ok&&fit>=45)return {action:'use',reason:'ตรงวิถีและความถนัด',fit};
  const k=M.knowledge(key),effSt=n&&n.cult?(CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage):0,future=k&&n.cult&&effSt+1>=k.tier&&fit>=55;
  if(future&&wealth>45||fit>=65&&loyalty<45)return {action:'retain',reason:'เก็บไว้สำหรับขั้นถัดไป',fit};
- return {action:loyalty>35||(n.cp||0)<100?'donate':'retain',reason:fit<0?'ต่างสาย/เรียนซ้ำ':'สะสมแต้มแลกของจำเป็น',fit};
+ const act=loyalty>35||(n.cp||0)<100?'donate':'retain';
+ return {action:act,reason:act==='retain'?'เก็บผลึกไว้พิจารณารอบหน้า':(fit<0?'ต่างสาย/เรียนซ้ำ':'สะสมแต้มแลกของจำเป็น'),fit};
 };
 M.pickSubStudy=(W,n)=>(W.sect.subLibrary||[]).map(id=>({id,key:M.subKey(id)})).filter(x=>M.eligible(n,x.key).ok&&M.studyFee(W,x.key)<=(n.cp||0)&&subById[x.id].tier<=SECT.canLearnTier(W,n)).sort((a,b)=>M.knowledgeFit(n,b.key)-M.knowledgeFit(n,a.key)).find(x=>M.knowledgeFit(n,x.key)>=55)||null;
 M.daily=W=>{

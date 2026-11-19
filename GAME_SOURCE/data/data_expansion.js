@@ -8270,3 +8270,1120 @@ if (JD.CORE && JD.CORE.curatedTraits && typeof JD.CORE.curatedTraits === 'object
     s.nameTh=corrections[s.proposalNo];const d=JD.CORE.curatedTraits[s.id];if(d)d.nameTh=s.nameTh;
   }
 })();
+
+
+// ============================================================================
+// JS2 v3.2.0 Equipment Expansion (84 Items, 84 Acyclic Recipes, 3 Sets)
+// ============================================================================
+(function (g) {
+  'use strict';
+  const JD = g.JD = g.JD || {};
+  JD.ITEMS = JD.ITEMS || { materials: [], items: [], recipes: [] };
+  JD.ITEMS.items = JD.ITEMS.items || [];
+  JD.ITEMS.recipes = JD.ITEMS.recipes || [];
+  JD.MARTIAL = JD.MARTIAL || {};
+  JD.MARTIAL.v320ResonanceSets = JD.MARTIAL.v320ResonanceSets || [];
+
+  const EL_PROFILES = {
+    NEUTRAL: { mode: 'EXPLICIT_NON_ELEMENTAL', primary: 'NEUTRAL', weights: {} },
+    FIRE: { mode: 'INTRINSIC_SINGLE', primary: 'FIRE', weights: { FIRE: 1 } },
+    WATER_ICE: { mode: 'INTRINSIC_SINGLE', primary: 'WATER_ICE', weights: { WATER_ICE: 1 } },
+    WOOD_LIFE: { mode: 'INTRINSIC_SINGLE', primary: 'WOOD_LIFE', weights: { WOOD_LIFE: 1 } },
+    EARTH_METAL: { mode: 'INTRINSIC_SINGLE', primary: 'EARTH_METAL', weights: { EARTH_METAL: 1 } },
+    WIND: { mode: 'INTRINSIC_SINGLE', primary: 'WIND', weights: { WIND: 1 } },
+    LIGHTNING: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHTNING', weights: { LIGHTNING: 1 } },
+    LIGHT_YANG: { mode: 'INTRINSIC_SINGLE', primary: 'LIGHT_YANG', weights: { LIGHT_YANG: 1 } },
+    YIN_SHADOW: { mode: 'INTRINSIC_SINGLE', primary: 'YIN_SHADOW', weights: { YIN_SHADOW: 1 } },
+    ASTRAL: { mode: 'SPECIAL_ELEMENT', primary: 'ASTRAL', weights: { ASTRAL: 1 } },
+    BLOOD_DEMON: { mode: 'SPECIAL_ELEMENT', primary: 'BLOOD_DEMON', weights: { BLOOD_DEMON: 1 } }
+  };
+
+  const MIN_MASTERY = { 1: 10, 2: 24, 3: 38, 4: 54, 5: 68, 6: 82, 7: 92 };
+  const TIER_VALUE = { 1: 42, 2: 95, 3: 195, 4: 380, 5: 780, 6: 1480, 7: 2800 };
+
+  const V320_SPECS = [
+    // --- Pillar A: Underserved SubTypes & Early-Game Foundation (36 items) ---
+    // SHOES across T1, T2, T4, T5, T6, T7
+    {
+      id: 'EQ_V320_SHOES_T1', nameTh: 'รองเท้าฟางย่างก้าววายุ', slot: 'ACCESSORY', subType: 'SHOES',
+      tier: 1, element: 'WIND', craft: 'FORGING',
+      st: { move: 5, eva: 6, def: 4 },
+      effects: [{ effectId: 'EFX_SIDESTEP_EVASION', params: { evasionChanceBonus: 0.08, movementCost: 2 } }],
+      combatKeywords: [{ kw: 'KW_ACCURACY', params: { add: 4 } }],
+      inputs: [{ matId: 'MAT_BP_WOLF_PELT_1', count: 2 }, { matId: 'MAT_HERB_DEW_GRASS_1', count: 2 }],
+      descTh: 'รองเท้าถักจากหญ้าน้ำค้างและหนังหมาป่า ช่วยให้ศิษย์ใหม่เคลื่อนที่คล่องตัวขึ้นในสมรภูมิ'
+    },
+    {
+      id: 'EQ_V320_SHOES_T2', nameTh: 'รองเท้าหนังหมูป่าเหยียบศิลา', slot: 'ACCESSORY', subType: 'SHOES',
+      tier: 2, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { move: 6, eva: 10, def: 12 },
+      effects: [{ effectId: 'EFX_HASTE_STEP', params: { dur: 45, speedBonus: 0.12 } }],
+      combatKeywords: [{ kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.12 } }],
+      inputs: [{ matId: 'MAT_BP_BOAR_HIDE_2', count: 2 }, { matId: 'MAT_ORE_COLD_STEEL_2', count: 1 }],
+      descTh: 'รองเท้าเสริมแผ่นเหล็กเย็น ยิ่งผ่านการเดินทัพสึกหรอยิ่งทรงตัวมั่นคง'
+    },
+    {
+      id: 'EQ_V320_SHOES_T4', nameTh: 'รองเท้าอสนีเหินข้ามเมฆา', slot: 'ACCESSORY', subType: 'SHOES',
+      tier: 4, element: 'LIGHTNING', craft: 'FORGING',
+      st: { move: 11, eva: 28, cast: 6 },
+      effects: [{ effectId: 'EFX_HASTE_STEP', params: { dur: 60, speedBonus: 0.22 } }],
+      combatKeywords: [{ kw: 'KW_ACCURACY', params: { add: 10, vsEvasive: 6 } }],
+      obtainSources: ['FORGE', 'MARKET', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_THUNDER_JADE_4', count: 2 }, { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }],
+      descTh: 'รองเท้าฝังหยกอสนีคราม เร่งจังหวะการรุกและหลบหลีกกลางพายุสายฟ้า'
+    },
+    {
+      id: 'EQ_V320_SHOES_T5', nameTh: 'รองเท้าขนปีกครุฑท่องนภา', slot: 'ACCESSORY', subType: 'SHOES',
+      tier: 5, element: 'WIND', craft: 'FORGING',
+      st: { move: 15, eva: 48, def: 26 },
+      effects: [{ effectId: 'EFX_SKY_LEVITATION_DRIVE', params: { liftScale: 0.22, speedMultiplier: 1.15 } }],
+      combatKeywords: [{ kw: 'KW_CHARGE_CELL', params: { maxCells: 3, triggerOn: 'onDodge' } }],
+      obtainSources: ['FORGE', 'MARKET', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_ROC_FEATHER_5', count: 2 }, { matId: 'MAT_FORM_SKY_LEVITATION_CORE_5', count: 1 }],
+      descTh: 'รองเท้าประดับขนนกสายฟ้าสวรรค์ สะสมประจุลมทุกครั้งที่หลบหลีกได้สำเร็จ'
+    },
+    {
+      id: 'EQ_V320_SHOES_T6', nameTh: 'รองเท้าก้าวพยัคฆ์ข้ามภพ', slot: 'ACCESSORY', subType: 'SHOES',
+      tier: 6, element: 'LIGHT_YANG', craft: 'FORGING',
+      st: { move: 20, eva: 78, atk: 42, crit: 4 },
+      effects: [{ effectId: 'EFX_SIDESTEP_EVASION', params: { evasionChanceBonus: 0.26, movementCost: 1 } }],
+      combatKeywords: [{ kw: 'KW_CRIT_OVERFLOW', params: { ratio: 1.0 } }],
+      obtainSources: ['FORGE', 'EXPEDITION', 'LORE'],
+      inputs: [{ matId: 'MAT_BP_TIGER_BONE_6', count: 2 }, { matId: 'MAT_ORE_DIVINE_GOLD_6', count: 2 }],
+      descTh: 'รองเท้าสลักจากกระดูกเสือระดับเซียน พุ่งทะยานดุจแสงอาทิตย์'
+    },
+    {
+      id: 'EQ_V320_SHOES_T7', nameTh: 'รองเท้าดาราก้าวกาลบรรพกาล', slot: 'ACCESSORY', subType: 'SHOES',
+      tier: 7, element: 'ASTRAL', craft: 'ARRAY',
+      st: { move: 26, eva: 120, cast: 14, mdef: 65 },
+      effects: [{ effectId: 'EFX_V320_CHRONO_DELAY', params: { delayRounds: 1, mitigationPct: 0.20 } }],
+      combatKeywords: [{ kw: 'KW_SOUL_SCAR_ECHO', params: { maxLineage: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION', 'LORE'],
+      provenanceLoreId: 'LORE_BEIMING_EMPEROR',
+      lineage: [{ nameTh: 'จักรพรรดิเป่ยหมิงรุ่นปฐมกาล', bonusStat: 'eva', bonusVal: 18 }],
+      inputs: [{ matId: 'MAT_TR_ASTRAL_DEW', count: 1 }, { matId: 'MAT_ORE_PRIMORDIAL_CRYSTAL_7', count: 2 }],
+      descTh: 'รองเท้าก้าวดาราจากหอคลังหลวงเป่ยหมิง หน่วงสถานะร้ายให้ทำงานช้าลงหนึ่งจังหวะ'
+    },
+
+    // AUX_TOOL at T1 & T2 (4 items)
+    {
+      id: 'EQ_V320_AUX_T1_FORGE', nameTh: 'คีมเหล็กดำจับถ่านหลอม', slot: 'ACCESSORY', subType: 'AUX_TOOL',
+      tier: 1, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 6, def: 6, cast: 2 },
+      effects: [{ effectId: 'EFX_FORGING_STABILIZATION', params: { craftBonusPath: 'FORGING', successBonusRatio: 0.06, qualityBonusRatio: 0.04 } }],
+      combatKeywords: [{ kw: 'KW_CRAFT_PRECISION', params: { chance: 0.05 } }],
+      inputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }],
+      descTh: 'อุปกรณ์ช่างหลอมพื้นฐาน ช่วยคุมอุณหภูมิและเพิ่มโอกาสได้ศาสตราคุณภาพดี'
+    },
+    {
+      id: 'EQ_V320_AUX_T1_HERB', nameTh: 'ตะกร้าหวายเก็บโอสถน้ำค้าง', slot: 'ACCESSORY', subType: 'AUX_TOOL',
+      tier: 1, element: 'WOOD_LIFE', craft: 'FORGING',
+      st: { hp: 22, mdef: 6 },
+      effects: [{ effectId: 'EFX_HERB_POLLINATION', params: { craftBonusPath: 'HERBALISM', yieldBonusRatio: 0.14, qualityBonusRatio: 0.04 } }],
+      combatKeywords: [{ kw: 'KW_CRAFT_PRECISION', params: { chance: 0.04 } }],
+      inputs: [{ matId: 'MAT_HERB_DEW_GRASS_1', count: 3 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }],
+      descTh: 'เครื่องมือเก็บสมุนไพรรักษาความสดของแก่นปราณในใบยา'
+    },
+    {
+      id: 'EQ_V320_AUX_T2_ALCH', nameTh: 'เตาชาอุ่นโอสถดินเผา', slot: 'ACCESSORY', subType: 'AUX_TOOL',
+      tier: 2, element: 'FIRE', craft: 'FORGING',
+      st: { matk: 12, mdef: 10, hp: 32 },
+      effects: [{ effectId: 'EFX_V320_SPIRIT_MENDING', params: { craftBonusPath: 'ALCHEMY', successBonusRatio: 0.08, qualityBonusRatio: 0.06, mendPerDay: 2 } }],
+      combatKeywords: [{ kw: 'KW_CRAFT_PRECISION', params: { chance: 0.07 } }],
+      inputs: [{ matId: 'MAT_HERB_CINDER_LEAF_1', count: 2 }, { matId: 'MAT_ORE_JADE_SLATE_2', count: 2 }],
+      descTh: 'เตาขนาดพกพาสำหรับศิษย์สายปรุงโอสถ ช่วยคุมไฟและถนอมความทนทานอุปกรณ์ระหว่างเดินทาง'
+    },
+    {
+      id: 'EQ_V320_AUX_T2_WHET', nameTh: 'ชุดหินลับศาสตราปราณเย็น', slot: 'ACCESSORY', subType: 'AUX_TOOL',
+      tier: 2, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 14, pen: 4, acc: 8 },
+      effects: [{ effectId: 'EFX_V320_SPIRIT_MENDING', params: { craftBonusPath: 'FORGING', successBonusRatio: 0.07, qualityBonusRatio: 0.05, sharpenBonus: 0.08 } }],
+      combatKeywords: [{ kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.14 } }],
+      inputs: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }, { matId: 'MAT_BP_BOAR_HIDE_2', count: 1 }],
+      descTh: 'หินลับอาวุธพกพา ช่วยฟื้นคมศาสตราและเสริมพลังเจาะเกราะหลังการต่อสู้'
+    },
+
+    // ORNAMENT at T1 & T2 (4 items)
+    {
+      id: 'EQ_V320_ORN_T1_BELL', nameTh: 'กระดิ่งลมทองแดงเตือนภัย', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      tier: 1, element: 'WIND', craft: 'TALISMAN',
+      st: { eva: 5, acc: 6, mdef: 6 },
+      effects: [{ effectId: 'EFX_INTENT_SENSE', params: { intentSensitivity: 30, firstTurnEvasionBonus: 0.10 } }],
+      combatKeywords: [{ kw: 'KW_ACCURACY', params: { add: 4 } }],
+      inputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 1 }, { matId: 'MAT_BP_WOLF_HAIR_1', count: 2 }],
+      descTh: 'เครื่องประดับห้อยเอวส่งเสียงเตือนเมื่อมีจิตสังหารเข้าใกล้ในรอบแรก'
+    },
+    {
+      id: 'EQ_V320_ORN_T1_JADE', nameTh: 'ปิ่นหยกน้ำค้างสงบจิต', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      tier: 1, element: 'WATER_ICE', craft: 'TALISMAN',
+      st: { matk: 7, mdef: 8, cast: 2 },
+      effects: [{ effectId: 'EFX_CALM_MIND', params: { heartDemonReduction: 8, soulDefenseBonus: 14 } }],
+      combatKeywords: [{ kw: 'KW_FOCUS_WINDOW', params: { bonusPct: 0.06 } }],
+      inputs: [{ matId: 'MAT_HERB_DEW_GRASS_1', count: 2 }, { matId: 'MAT_ORE_CINNABAR_1', count: 1 }],
+      descTh: 'เครื่องประดับหยกเย็นช่วยให้สมาธิระหว่างเดินปราณมั่นคง'
+    },
+    {
+      id: 'EQ_V320_ORN_T2_INCENSE', nameTh: 'ตลับกำยานบัวหยกพกพา', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      tier: 2, element: 'WOOD_LIFE', craft: 'TALISMAN',
+      st: { hp: 36, mdef: 14, cast: 4 },
+      effects: [{ effectId: 'EFX_QI_RESERVOIR', params: { reservoirCapacity: 160, leakagePerDay: 1 } }],
+      combatKeywords: [{ kw: 'KW_FOCUS_WINDOW', params: { bonusPct: 0.09 } }],
+      inputs: [{ matId: 'MAT_HERB_JADE_LOTUS_2', count: 2 }, { matId: 'MAT_FORM_SPIRIT_INK_SAND_2', count: 1 }],
+      descTh: 'ตลับกำยานขนาดเล็กคอยหล่อเลี้ยงเส้นลมปราณยามบำเพ็ญเพียรต่อเนื่อง'
+    },
+    {
+      id: 'EQ_V320_ORN_T2_SEAL', nameTh: 'ตราหยกศิลาสื่อปราณ', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      tier: 2, element: 'EARTH_METAL', craft: 'ARRAY',
+      st: { def: 12, mdef: 14, crit: 2.5 },
+      effects: [{ effectId: 'EFX_FORMATION_HARMONIZATION', params: { syncBonus: 8, stabilityBonus: 8 } }],
+      combatKeywords: [{ kw: 'KW_PIERCE', params: { pct: 6, vsShield: 0.12 } }],
+      inputs: [{ matId: 'MAT_ORE_JADE_SLATE_2', count: 2 }, { matId: 'MAT_BP_BOAR_CORE_2', count: 1 }],
+      descTh: 'ตราพกสลักอักขระปฐพี ช่วยประสานปราณกับค่ายกลและเจาะม่านคุ้มกาย'
+    },
+
+    // T1–T2 Underserved Weapons: ABACUS, ASTROLABE, CLAW, FAN, NEEDLE, ROSARY (12 items)
+    {
+      id: 'EQ_V320_ABACUS_T1', nameTh: 'ลูกคิดไม้แก่นเหล็กบัญชีต้น', slot: 'WEAPON', subType: 'ABACUS',
+      tier: 1, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 9, matk: 9, def: 4, pen: 3 },
+      effects: [{ effectId: 'EFX_V200_ABACUS_LEDGER_SETTLE', params: { settleRatio: 0.10 } }],
+      combatKeywords: [{ kw: 'KW_ACCURACY', params: { add: 5 } }],
+      inputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_ORE_CINNABAR_1', count: 1 }],
+      descTh: 'ลูกคิดเหล็กดำสำหรับศิษย์สายการค้าและยุทธศาสตร์ ใช้คำนวณจุดอ่อนศัตรู'
+    },
+    {
+      id: 'EQ_V320_ABACUS_T2', nameTh: 'ลูกคิดเหล็กเย็นหักลบชะตา', slot: 'WEAPON', subType: 'ABACUS',
+      tier: 2, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 20, matk: 20, def: 9, pen: 5 },
+      effects: [{ effectId: 'EFX_V200_ABACUS_LEDGER_SETTLE', params: { settleRatio: 0.15 } }],
+      combatKeywords: [{ kw: 'KW_ARMOR_READ', params: { perStack: 2, maxStacks: 4 } }],
+      inputs: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }, { matId: 'MAT_BP_BOAR_CORE_2', count: 1 }],
+      descTh: 'ลูกคิดรางเหล็กเย็น อ่านจังหวะเกราะศัตรูทีละเม็ดจนเผยช่องโหว่'
+    },
+    {
+      id: 'EQ_V320_ASTROLABE_T1', nameTh: 'จานดาราสำริดส่องทิศ', slot: 'WEAPON', subType: 'ASTROLABE',
+      tier: 1, element: 'ASTRAL', craft: 'ARRAY',
+      st: { matk: 13, acc: 9, crit: 2 },
+      effects: [{ effectId: 'EFX_V200_ASTROLABE_STAR_LOCK', params: { lockAccBonus: 8 } }],
+      combatKeywords: [{ kw: 'KW_ACCURACY', params: { add: 6 } }],
+      inputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 2 }, { matId: 'MAT_ORE_BLACK_IRON_1', count: 1 }],
+      descTh: 'วงแหวนดาราระดับต้นสำหรับผู้เริ่มต้นวิถีดาราศาสตร์'
+    },
+    {
+      id: 'EQ_V320_ASTROLABE_T2', nameTh: 'แอสโทรแล็บศิลาหยกนับดาว', slot: 'WEAPON', subType: 'ASTROLABE',
+      tier: 2, element: 'ASTRAL', craft: 'ARRAY',
+      st: { matk: 28, acc: 16, crit: 3.5 },
+      effects: [{ effectId: 'EFX_V200_ASTROLABE_STAR_LOCK', params: { lockAccBonus: 14 } }],
+      combatKeywords: [{ kw: 'KW_MARKSMAN_FOCUS', params: { maxStacks: 4, critPerStack: 3 } }],
+      inputs: [{ matId: 'MAT_ORE_JADE_SLATE_2', count: 2 }, { matId: 'MAT_FORM_SPIRIT_INK_SAND_2', count: 1 }],
+      descTh: 'แอสโทรแล็บสลักหยกสื่อปราณ จับตำแหน่งเป้าหมายต่อเนื่องอย่างแม่นยำ'
+    },
+    {
+      id: 'EQ_V320_CLAW_T1', nameTh: 'กรงเล็บเขี้ยวหมาป่าลมกรด', slot: 'WEAPON', subType: 'CLAW',
+      tier: 1, element: 'WIND', craft: 'FORGING',
+      st: { atk: 13, crit: 3.5, pen: 4 },
+      effects: [{ effectId: 'EFX_BLEEDING', params: { bleedDamagePerTurn: 16 } }],
+      combatKeywords: [{ kw: 'KW_CRIT_BREAK', params: { stacks: 1, dur: 2 } }],
+      inputs: [{ matId: 'MAT_BP_WOLF_FANG_1', count: 2 }, { matId: 'MAT_ORE_BLACK_IRON_1', count: 1 }],
+      descTh: 'สนับกรงเล็บเขี้ยวหมาป่าวายุ ฉีกเกราะเบาและทิ้งบาดแผลเลือดออก'
+    },
+    {
+      id: 'EQ_V320_CLAW_T2', nameTh: 'กรงเล็บเหล็กเย็นฉีกเงา', slot: 'WEAPON', subType: 'CLAW',
+      tier: 2, element: 'YIN_SHADOW', craft: 'FORGING',
+      st: { atk: 29, crit: 5.5, pen: 6 },
+      effects: [{ effectId: 'EFX_V200_ATAVISM_CLAW_REND', params: { rendRatio: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_CRIT_BREAK', params: { stacks: 1, dur: 3 } }],
+      inputs: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }, { matId: 'MAT_BP_BOAR_HIDE_2', count: 1 }],
+      descTh: 'กรงเล็บคู่ชุบเหล็กเย็น ทลายเกราะเมื่อโจมตีติดคริติคอล'
+    },
+    {
+      id: 'EQ_V320_FAN_T1', nameTh: 'พัดกระดาษสาหมอกวายุ', slot: 'WEAPON', subType: 'FAN',
+      tier: 1, element: 'WIND', craft: 'TALISMAN',
+      st: { matk: 12, cast: 4, eva: 5 },
+      effects: [{ effectId: 'EFX_V200_TEMPEST_FAN_GALE', params: { galePower: 45 } }],
+      combatKeywords: [{ kw: 'KW_ACCURACY', params: { add: 4, vsEvasive: 4 } }],
+      inputs: [{ matId: 'MAT_BP_WOLF_HAIR_1', count: 2 }, { matId: 'MAT_HERB_DEW_GRASS_1', count: 1 }],
+      descTh: 'พัดด้ามไผ่ขับเคลื่อนกระแสลมบางเบา ปัดป้องและร่ายวิชาได้ไว'
+    },
+    {
+      id: 'EQ_V320_FAN_T2', nameTh: 'พัดเหล็กเย็นโปรยกล้วยไม้หมอก', slot: 'WEAPON', subType: 'FAN',
+      tier: 2, element: 'WOOD_LIFE', craft: 'FORGING',
+      st: { matk: 26, cast: 6, eva: 10 },
+      effects: [{ effectId: 'EFX_V200_TEMPEST_FAN_GALE', params: { galePower: 85 } }],
+      combatKeywords: [{ kw: 'KW_TEMPO_STEAL', params: { rounds: 1, cd: 3 } }],
+      inputs: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 1 }, { matId: 'MAT_HERB_MIST_ORCHID_2', count: 2 }],
+      descTh: 'พัดซี่เหล็กเย็นอาบกลิ่นกล้วยไม้หมอก รบกวนจังหวะการร่ายวิชาของศัตรู'
+    },
+    {
+      id: 'EQ_V320_NEEDLE_T1', nameTh: 'เข็มชาดสกัดจุดเบื้องต้น', slot: 'WEAPON', subType: 'NEEDLE',
+      tier: 1, element: 'FIRE', craft: 'FORGING',
+      st: { atk: 8, matk: 10, acc: 8, pen: 5 },
+      effects: [{ effectId: 'EFX_V200_MERIDIAN_VENOM_NEEDLE', params: { needlePower: 38 } }],
+      combatKeywords: [{ kw: 'KW_PIERCE', params: { pct: 10, vsShield: 0.15 } }],
+      inputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 2 }, { matId: 'MAT_ORE_BLACK_IRON_1', count: 1 }],
+      descTh: 'ชุดเข็มเหล็กชาดขนาดเล็กสำหรับฝึกทิ่มแทงจุดชีพจรทะลุเกราะ'
+    },
+    {
+      id: 'EQ_V320_NEEDLE_T2', nameTh: 'เข็มเงินปราณเย็นทลายม่าน', slot: 'WEAPON', subType: 'NEEDLE',
+      tier: 2, element: 'WATER_ICE', craft: 'FORGING',
+      st: { atk: 18, matk: 22, acc: 14, pen: 8 },
+      effects: [{ effectId: 'EFX_V200_MERIDIAN_VENOM_NEEDLE', params: { needlePower: 76 } }],
+      combatKeywords: [{ kw: 'KW_PIERCE', params: { pct: 14, vsShield: 0.25 } }],
+      inputs: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }, { matId: 'MAT_HERB_JADE_LOTUS_2', count: 1 }],
+      descTh: 'เข็มเรียวยาวเจาะผ่านม่านคุ้มกายของศัตรูได้อย่างแม่นยำ'
+    },
+    {
+      id: 'EQ_V320_ROSARY_T1', nameTh: 'ประคำไม้ชาดภาวนาต้น', slot: 'WEAPON', subType: 'ROSARY',
+      tier: 1, element: 'LIGHT_YANG', craft: 'TALISMAN',
+      st: { matk: 11, mdef: 8, hp: 20 },
+      effects: [{ effectId: 'EFX_V200_BODHI_MERIT_PULSE', params: { pulseHeal: 28 } }],
+      combatKeywords: [{ kw: 'KW_REFLECT', params: { pct: 6, cap: 0.15, filter: 'any' } }],
+      inputs: [{ matId: 'MAT_ORE_CINNABAR_1', count: 2 }, { matId: 'MAT_HERB_CINDER_LEAF_1', count: 1 }],
+      descTh: 'ประคำ 18 เม็ดสำหรับศิษย์สายพุทธธรรมและผู้บำเพ็ญจิต'
+    },
+    {
+      id: 'EQ_V320_ROSARY_T2', nameTh: 'ประคำบัวหยกสะท้อนกรรม', slot: 'WEAPON', subType: 'ROSARY',
+      tier: 2, element: 'LIGHT_YANG', craft: 'TALISMAN',
+      st: { matk: 24, mdef: 16, hp: 46 },
+      effects: [{ effectId: 'EFX_V200_BODHI_MERIT_PULSE', params: { pulseHeal: 55 } }],
+      combatKeywords: [{ kw: 'KW_STATUS_TRANSFER', params: { cd: 3 } }],
+      inputs: [{ matId: 'MAT_HERB_JADE_LOTUS_2', count: 2 }, { matId: 'MAT_ORE_JADE_SLATE_2', count: 1 }],
+      descTh: 'ประคำหยกเขียว เมื่อปัดป้องสำเร็จจะสะท้อนสถานะร้ายกลับสู่ผู้ก่อกรรม'
+    },
+
+    // T2 Armors & T1–T2 Accessories (10 items)
+    {
+      id: 'EQ_V320_HEAVY_T2', nameTh: 'เกราะหนักหนังเหล็กหมูป่า', slot: 'ARMOR', subType: 'HEAVY',
+      tier: 2, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { def: 32, mdef: 16, hp: 58, move: -3 },
+      effects: [{ effectId: 'EFX_V320_PATINA_AEGIS', params: { maxArmorBonusPct: 0.20 } }],
+      combatKeywords: [{ kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.18 } }],
+      inputs: [{ matId: 'MAT_BP_BOAR_HIDE_2', count: 2 }, { matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }],
+      descTh: 'เกราะหนักเสริมแผ่นเหล็กเย็น ยิ่งมีรอยบุบจากศึกยิ่งซับแรงกระแทกได้ดี'
+    },
+    {
+      id: 'EQ_V320_LIGHT_T2', nameTh: 'เกราะเบากล้วยไม้หมอกเร้นกาย', slot: 'ARMOR', subType: 'LIGHT',
+      tier: 2, element: 'WIND', craft: 'FORGING',
+      st: { def: 22, mdef: 18, eva: 14, move: 4 },
+      effects: [{ effectId: 'EFX_TIMED_PARRY', params: { parryMitigationRatio: 0.30, parryCharges: 1 } }],
+      combatKeywords: [{ kw: 'KW_ABSORB_RELEASE', params: { pct: 0.18 } }],
+      inputs: [{ matId: 'MAT_BP_BOAR_HIDE_2', count: 1 }, { matId: 'MAT_HERB_MIST_ORCHID_2', count: 2 }],
+      descTh: 'เกราะเบาคล่องตัว ดูดซับแรงปะทะบางส่วนไว้ปลดปล่อยกลับในการโต้กลับ'
+    },
+    {
+      id: 'EQ_V320_ROBE_T2', nameTh: 'อาภรณ์บัวหยกประสานค่ายกล', slot: 'ARMOR', subType: 'ROBE',
+      tier: 2, element: 'WOOD_LIFE', craft: 'TALISMAN',
+      st: { def: 16, mdef: 30, hp: 42, cast: 5 },
+      effects: [{ effectId: 'EFX_CONTROL_RESILIENCE', params: { controlDurationReductionRatio: 0.22, resilienceScore: 28 } }],
+      combatKeywords: [{ kw: 'KW_FOCUS_WINDOW', params: { bonusPct: 0.08 } }],
+      inputs: [{ matId: 'MAT_HERB_JADE_LOTUS_2', count: 2 }, { matId: 'MAT_FORM_BLANK_ARRAY_FLAG_2', count: 1 }],
+      descTh: 'อาภรณ์ปักลายบัวหยก ลดระยะเวลาถูกควบคุมและเร่งความเร็วร่ายวิชา'
+    },
+    {
+      id: 'EQ_V320_RING_T1', nameTh: 'แหวนเหล็กดำรวมจุดคม', slot: 'ACCESSORY', subType: 'RING',
+      tier: 1, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 7, crit: 2.5, acc: 5 },
+      effects: [{ effectId: 'EFX_ARMOR_FRACTURE', params: { armorReductionRatio: 0.10 } }],
+      combatKeywords: [{ kw: 'KW_ACCURACY', params: { add: 4 } }],
+      inputs: [{ matId: 'MAT_ORE_BLACK_IRON_1', count: 2 }, { matId: 'MAT_BP_WOLF_FANG_1', count: 1 }],
+      descTh: 'แหวนเหล็กดำสลักร่องคม ช่วยรวมแรงกระแทกที่ปลายศาสตรา'
+    },
+    {
+      id: 'EQ_V320_RING_T2', nameTh: 'แหวนหยกเย็นเฉียบคมคริ', slot: 'ACCESSORY', subType: 'RING',
+      tier: 2, element: 'WATER_ICE', craft: 'FORGING',
+      st: { matk: 14, crit: 4, critDmg: 10 },
+      effects: [{ effectId: 'EFX_CHILL_FREEZE', params: { chillStacks: 1, slowRatio: 0.15 } }],
+      combatKeywords: [{ kw: 'KW_CRIT_OVERFLOW', params: { ratio: 0.8 } }],
+      inputs: [{ matId: 'MAT_ORE_JADE_SLATE_2', count: 2 }, { matId: 'MAT_HERB_JADE_LOTUS_2', count: 1 }],
+      descTh: 'แหวนหยกเย็น แปลงโอกาสคริติคอลส่วนเกินเป็นความรุนแรง'
+    },
+    {
+      id: 'EQ_V320_NECK_T1', nameTh: 'สร้อยเขี้ยวอสูรคุ้มชีพ', slot: 'ACCESSORY', subType: 'NECKLACE',
+      tier: 1, element: 'NEUTRAL', craft: 'FORGING',
+      st: { hp: 28, def: 6, mdef: 6 },
+      effects: [{ effectId: 'EFX_BARRIER_SHIELD', params: { barrierCapacity: 110 } }],
+      combatKeywords: [{ kw: 'KW_ABSORB_RELEASE', params: { pct: 0.12 } }],
+      inputs: [{ matId: 'MAT_BP_WOLF_FANG_1', count: 2 }, { matId: 'MAT_BP_WOLF_PELT_1', count: 1 }],
+      descTh: 'สร้อยร้อยเขี้ยวอสูรป่า เสริมพลังชีวิตและม่านปราณคุ้มกาย'
+    },
+    {
+      id: 'EQ_V320_NECK_T2', nameTh: 'สร้อยแก่นอสูรหลอมปราณ', slot: 'ACCESSORY', subType: 'NECKLACE',
+      tier: 2, element: 'NEUTRAL', craft: 'ARRAY',
+      st: { hp: 56, def: 12, mdef: 14 },
+      effects: [{ effectId: 'EFX_QI_RESERVOIR', params: { reservoirCapacity: 180, leakagePerDay: 1 } }],
+      combatKeywords: [{ kw: 'KW_CHARGE_CELL', params: { maxCells: 3, triggerOn: 'onStruck' } }],
+      inputs: [{ matId: 'MAT_BP_BOAR_CORE_2', count: 2 }, { matId: 'MAT_ORE_COLD_STEEL_2', count: 1 }],
+      descTh: 'สร้อยบรรจุแก่นอสูร เก็บสะสมประจุเมื่อถูกโจมตีเพื่อปลดปล่อยคืน'
+    },
+    {
+      id: 'EQ_V320_BRAC_T1', nameTh: 'ปลอกแขนหนังอสูรห้ามเลือด', slot: 'ACCESSORY', subType: 'BRACELET',
+      tier: 1, element: 'WOOD_LIFE', craft: 'FORGING',
+      st: { def: 7, cast: 3, hp: 18 },
+      effects: [{ effectId: 'EFX_INJURY_MEND', params: { healPct: 0.12 } }],
+      combatKeywords: [{ kw: 'KW_STATUS_TRANSFER', params: { cd: 4 } }],
+      inputs: [{ matId: 'MAT_BP_WOLF_PELT_1', count: 2 }, { matId: 'MAT_HERB_DEW_GRASS_1', count: 1 }],
+      descTh: 'ปลอกแขนบุสมุนไพรห้ามเลือด ลดแรงกระแทกและช่วยสมานบาดแผลระหว่างศึก'
+    },
+    {
+      id: 'EQ_V320_BRAC_T2', nameTh: 'กำไลหน่วงเวลาเหล็กเย็น', slot: 'ACCESSORY', subType: 'BRACELET',
+      tier: 2, element: 'WATER_ICE', craft: 'ARRAY',
+      st: { def: 12, mdef: 14, cast: 5 },
+      effects: [{ effectId: 'EFX_V320_CHRONO_DELAY', params: { delayRounds: 1, mitigationPct: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_TEMPO_STEAL', params: { rounds: 1, cd: 3 } }],
+      inputs: [{ matId: 'MAT_ORE_COLD_STEEL_2', count: 2 }, { matId: 'MAT_FORM_SPIRIT_INK_SAND_2', count: 1 }],
+      descTh: 'กำไลสลักอักขระกาลเวลา ช่วยชะลอพิษและสถานะลบให้มีจังหวะชำระล้างก่อนออกฤทธิ์'
+    },
+    {
+      id: 'EQ_V320_CHARM_T1', nameTh: 'เครื่องรางถุงหอมขจัดพิษป่า', slot: 'ACCESSORY', subType: 'CHARM',
+      tier: 1, element: 'WOOD_LIFE', craft: 'TALISMAN',
+      st: { mdef: 9, hp: 20, eva: 4 },
+      effects: [{ effectId: 'EFX_CLEAR_DEBUFFS', params: { maxStatusesRemoved: 1 } }],
+      combatKeywords: [{ kw: 'KW_ADAPTIVE_RESIST', params: { step: 0.03, max: 0.15 } }],
+      inputs: [{ matId: 'MAT_HERB_DEW_GRASS_1', count: 2 }, { matId: 'MAT_HERB_CINDER_LEAF_1', count: 1 }],
+      descTh: 'ถุงหอมสมุนไพรปราณช่วยต้านทานไอพิษและสัตว์ป่าระดับต่ำขณะออกลาดตระเวน'
+    },
+
+    // --- Pillar B: Granted-Skill & Skill-Modifier Specialist Gear (16 items, T3–T6) ---
+    {
+      id: 'EQ_V320_GS_SWORD_T3', nameTh: 'กระบี่สายน้ำไหลย้อนคม', slot: 'WEAPON', subType: 'SWORD',
+      tier: 3, element: 'WATER_ICE', craft: 'FORGING',
+      st: { atk: 58, matk: 26, crit: 5, acc: 18 },
+      grantedSkills: ['MP_SWORD_FLOWING_PARRY_T2'],
+      skillModifiers: [{ targetArch: 'parry', cdDelta: -1, critAdd: 8 }],
+      effects: [{ effectId: 'EFX_TIMED_PARRY', params: { parryMitigationRatio: 0.35, parryCharges: 2 } }],
+      combatKeywords: [{ kw: 'KW_STATUS_TRANSFER', params: { cd: 3 } }],
+      obtainSources: ['FORGE', 'MARKET', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_STAR_COPPER_3', count: 2 }, { matId: 'MAT_BP_PYTHON_SCALE_3', count: 2 }],
+      descTh: 'กระบี่เหล็กดาราที่มอบวิชาปัดป้องไหลลื่นให้ผู้สวมใส่ พร้อมลดคูลดาวน์ท่าปัดป้อง'
+    },
+    {
+      id: 'EQ_V320_GS_BLADE_T3', nameTh: 'ดาบผ่าศิลาสะท้านเกราะ', slot: 'WEAPON', subType: 'BLADE',
+      tier: 3, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 66, pen: 10, critDmg: 18 },
+      grantedSkills: ['MP_BLADE_IRON_CLEAVER_T2'],
+      skillModifiers: [{ targetArch: 'sweep', multAdd: 0.18, penAdd: 10 }],
+      effects: [{ effectId: 'EFX_ARMOR_FRACTURE', params: { armorReductionRatio: 0.25 } }],
+      combatKeywords: [{ kw: 'KW_ARMOR_READ', params: { perStack: 3, maxStacks: 6 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_ORE_STAR_COPPER_3', count: 3 }, { matId: 'MAT_ORE_MAGNET_LODESTONE_3', count: 1 }],
+      descTh: 'ดาบใหญ่เนื้อหนาที่ค่อยๆ ถอดเกราะศัตรูทุกครั้งที่ฟันปะทะเป้าหมายเดิม'
+    },
+    {
+      id: 'EQ_V320_GS_SPEAR_T3', nameTh: 'ทวนทะลวงค่ายกลทองแดงดารา', slot: 'WEAPON', subType: 'SPEAR',
+      tier: 3, element: 'LIGHTNING', craft: 'FORGING',
+      st: { atk: 62, pen: 12, acc: 20 },
+      grantedSkills: ['MP_SPEAR_IRON_BREAKER_T3'],
+      skillModifiers: [{ targetArch: 'pierce', multAdd: 0.16, penAdd: 12 }],
+      effects: [{ effectId: 'EFX_SHOCK_CONDUCTION', params: { shockDamage: 52, maxChainTargets: 2 } }],
+      combatKeywords: [{ kw: 'KW_PIERCE', params: { pct: 16, vsShield: 0.28 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_THUNDER_SCORCH_COPPER_3', count: 2 }, { matId: 'MAT_BP_PYTHON_TENDON_3', count: 2 }],
+      descTh: 'ทวนปลายสายฟ้า เจาะทะลุม่านปราณและปล่อยวิชาทะลวงแนวหน้า'
+    },
+    {
+      id: 'EQ_V320_GS_FIST_T3', nameTh: 'สนับมือล็อกข้อกระดูกอสูร', slot: 'WEAPON', subType: 'FIST',
+      tier: 3, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 56, def: 22, cast: 7, pen: 8 },
+      grantedSkills: ['MP_FIST_JOINT_LOCK_CLAW_T2'],
+      skillModifiers: [{ targetArch: 'strike', poiseAdd: 22 }],
+      effects: [{ effectId: 'EFX_INTENT_SENSE', params: { intentSensitivity: 48, firstTurnEvasionBonus: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_TEMPO_STEAL', params: { rounds: 1, cd: 3 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_BP_PYTHON_SCALE_3', count: 2 }, { matId: 'MAT_ORE_STAR_COPPER_3', count: 2 }],
+      descTh: 'สนับมือจับล็อกข้อต่อ ขัดจังหวะการเดินปราณของศัตรูในระยะประชิด'
+    },
+    {
+      id: 'EQ_V320_GS_BOW_T4', nameTh: 'ธนูเงาจันทร์สอยดาว', slot: 'WEAPON', subType: 'BOW',
+      tier: 4, element: 'YIN_SHADOW', craft: 'FORGING',
+      st: { atk: 118, acc: 46, crit: 8, critDmg: 24 },
+      grantedSkills: ['MP_BOW_SHADOW_SNIPE'],
+      skillModifiers: [{ targetArch: 'snipe', critAdd: 12, multAdd: 0.20 }],
+      effects: [{ effectId: 'EFX_DETECTION_REVEAL', params: { revealPower: 60, scanRadius: 35 } }],
+      combatKeywords: [{ kw: 'KW_MARKSMAN_FOCUS', params: { maxStacks: 5, critPerStack: 4 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_BP_SCORPION_STING_4', count: 2 }],
+      descTh: 'คันธนูเล็งเป้าต่อเนื่อง ยิ่งยิงซ้ำเป้าหมายเดิมยิ่งแม่นยำและคริติคอลรุนแรง'
+    },
+    {
+      id: 'EQ_V320_GS_STAFF_T4', nameTh: 'พลองขุนเขาค้ำจุนปฐพี', slot: 'WEAPON', subType: 'STAFF',
+      tier: 4, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 98, def: 48, mdef: 36, hp: 110 },
+      grantedSkills: ['MP_STAFF_MOUNTAIN_ANCHOR_T5'],
+      skillModifiers: [{ targetArch: 'guard', multAdd: 0.22 }],
+      effects: [{ effectId: 'EFX_GUARDED_DAMAGE_SHARE', params: { shareRatio: 0.30 } }],
+      combatKeywords: [{ kw: 'KW_ABSORB_RELEASE', params: { pct: 0.24 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_BP_EARTH_CORE_4', count: 2 }],
+      descTh: 'พลองหนักประทับยันต์ขุนเขา ดูดซับแรงโจมตีไว้ปลดปล่อยคืนและปกป้องสหาย'
+    },
+    {
+      id: 'EQ_V320_GS_FOCUS_T3', nameTh: 'ลูกแก้วระฆังหยกชำระมาร', slot: 'WEAPON', subType: 'FOCUS',
+      tier: 3, element: 'LIGHT_YANG', craft: 'ARRAY',
+      st: { matk: 64, mdef: 28, cast: 7 },
+      grantedSkills: ['MP_FOCUS_SOUL_BELL_T3'],
+      skillModifiers: [{ targetArch: 'heal', multAdd: 0.16 }],
+      effects: [{ effectId: 'EFX_CALM_MIND', params: { heartDemonReduction: 18, soulDefenseBonus: 32 } }],
+      combatKeywords: [{ kw: 'KW_FOCUS_WINDOW', params: { bonusPct: 0.12 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_FORM_ARRAY_CORE_basic_3', count: 2 }, { matId: 'MAT_HERB_MERIDIAN_FLOWER_3', count: 2 }],
+      descTh: 'ศาสตราโฟกัสสลักระฆังหยกขาว มอบวิชาชำระจิตมารและเสริมพลังการรักษา'
+    },
+    {
+      id: 'EQ_V320_GS_ZITHER_T4', nameTh: 'พิณสายฟ้าสอดประสานชีพจร', slot: 'WEAPON', subType: 'ZITHER',
+      tier: 4, element: 'WOOD_LIFE', craft: 'FORGING',
+      st: { matk: 124, mdef: 40, cast: 10 },
+      grantedSkills: ['ART_SAGE_SUP_001'],
+      skillModifiers: [{ targetArch: 'heal', cdDelta: -1, multAdd: 0.18 }],
+      effects: [{ effectId: 'EFX_V320_PAIRED_LINK', params: { syncHealPct: 0.10 } }],
+      combatKeywords: [{ kw: 'KW_PAIRED_RESONANCE', params: { shareBuffPct: 0.15 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_HERB_DRAGON_GRASS_4', count: 2 }, { matId: 'MAT_FORM_SOUL_WOOD_PILLAR_4', count: 2 }],
+      descTh: 'พิณไม้โบราณที่เชื่อมเสียงดนตรีเข้ากับชีพจรสหายร่วมรบ'
+    },
+    {
+      id: 'EQ_V320_GS_NEEDLE_T4', nameTh: 'เข็มสุญตาแทรกมิติ', slot: 'WEAPON', subType: 'NEEDLE',
+      tier: 4, element: 'ASTRAL', craft: 'FORGING',
+      st: { atk: 76, matk: 94, acc: 36, pen: 16 },
+      grantedSkills: ['TECH_V200_VOID_SPACE_ACT_01'],
+      skillModifiers: [{ targetArch: 'pierce', penAdd: 14, critAdd: 8 }],
+      effects: [{ effectId: 'EFX_ARMOR_FRACTURE', params: { armorReductionRatio: 0.30 } }],
+      combatKeywords: [{ kw: 'KW_PIERCE', params: { pct: 20, vsShield: 0.35 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_FORM_BLOOD_FIEND_CRYSTAL_4', count: 1 }],
+      descTh: 'เข็มเงินแทรกช่องว่างมิติ มอบวิชาสายสุญตาและเจาะเกราะทะลุโล่'
+    },
+    {
+      id: 'EQ_V320_GS_ASTROLABE_T4', nameTh: 'แอสโทรแล็บพยากรณ์เจ็ดดารา', slot: 'WEAPON', subType: 'ASTROLABE',
+      tier: 4, element: 'ASTRAL', craft: 'ARRAY',
+      st: { matk: 126, acc: 38, crit: 7, cast: 9 },
+      grantedSkills: ['TECH_V200_ASTRO_DIVINATION_ACT_01'],
+      skillModifiers: [{ targetArch: 'buff', cdDelta: -1 }],
+      effects: [{ effectId: 'EFX_DETECTION_REVEAL', params: { revealPower: 68, scanRadius: 40 } }],
+      combatKeywords: [{ kw: 'KW_CRIT_OVERFLOW', params: { ratio: 1.1 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_THUNDER_JADE_4', count: 2 }, { matId: 'MAT_FORM_EARTH_ARRAY_CORE_4', count: 1 }],
+      descTh: 'วงแหวนดาราพยากรณ์ อ่านวิถีโจมตีล่วงหน้าและแปลงคริส่วนเกินเป็นดาเมจ'
+    },
+    {
+      id: 'EQ_V320_GS_ABACUS_T4', nameTh: 'ลูกคิดทองคำชั่งดุลยุทธภพ', slot: 'WEAPON', subType: 'ABACUS',
+      tier: 4, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { atk: 88, matk: 88, def: 32, pen: 12 },
+      grantedSkills: ['TECH_V200_MERCANTILE_DAO_ACT_01'],
+      skillModifiers: [{ targetArch: 'strike', multAdd: 0.15 }],
+      effects: [{ effectId: 'EFX_V200_ABACUS_LEDGER_SETTLE', params: { settleRatio: 0.24 } }],
+      combatKeywords: [{ kw: 'KW_DEED_LEDGER', params: { maxStage: 3 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_ORE_QUICKSAND_SPIRIT_GOLD_4', count: 2 }, { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }],
+      descTh: 'ลูกคิดทองคำวิญญาณ จดจำสถิติชัยชนะเพื่อปลดปล่อยโบนัสสะสม'
+    },
+    {
+      id: 'EQ_V320_GS_CLAW_T5', nameTh: 'กรงเล็บอสุราทะลวงมิติ', slot: 'WEAPON', subType: 'CLAW',
+      tier: 5, element: 'BLOOD_DEMON', craft: 'FORGING',
+      st: { atk: 245, crit: 12, pen: 18, critDmg: 34 },
+      grantedSkills: ['TECH_V200_VOID_SPACE_ACT_05'],
+      skillModifiers: [{ targetArch: 'blink', cdDelta: -1, critAdd: 10 }],
+      effects: [{ effectId: 'EFX_V320_CURSED_SIPHON', params: { leechPct: 0.18, selfCostPct: 0.03 } }],
+      combatKeywords: [{ kw: 'KW_CRIT_BREAK', params: { stacks: 2, dur: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_METEOR_IRON_5', count: 2 }, { matId: 'MAT_BP_HEAVEN_CORE_5', count: 2 }],
+      descTh: 'กรงเล็บเหล็กอุกกาบาต ดูดซับพลังชีวิตศัตรูเมื่อคริติคอลแลกกับไอสังหาร'
+    },
+    {
+      id: 'EQ_V320_GS_FAN_T5', nameTh: 'พัดพยากรณ์มรสุมสวรรค์', slot: 'WEAPON', subType: 'FAN',
+      tier: 5, element: 'LIGHTNING', craft: 'TALISMAN',
+      st: { matk: 238, cast: 14, eva: 42, acc: 36 },
+      grantedSkills: ['TECH_V200_ASTRO_DIVINATION_ACT_03'],
+      skillModifiers: [{ targetArch: 'aoe', multAdd: 0.20, cdDelta: -1 }],
+      effects: [{ effectId: 'EFX_V200_TEMPEST_FAN_GALE', params: { galePower: 180 } }],
+      combatKeywords: [{ kw: 'KW_TEMPO_STEAL', params: { rounds: 1, cd: 2 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_ROC_FEATHER_5', count: 2 }, { matId: 'MAT_ZITHER_PHOENIX_HEARTWOOD_5', count: 1 }],
+      descTh: 'พัดขนนกสายฟ้า มอบวิชาพยากรณ์และขโมยจังหวะการร่ายของศัตรู'
+    },
+    {
+      id: 'EQ_V320_GS_BRUSH_T6', nameTh: 'พู่กันอาญาสิทธิ์ทูตสวรรค์', slot: 'WEAPON', subType: 'BRUSH',
+      tier: 6, element: 'LIGHT_YANG', craft: 'TALISMAN',
+      st: { matk: 440, acc: 72, cast: 18, crit: 9 },
+      grantedSkills: ['MP_SPEAR_DIVINE_JUDGMENT_T6'],
+      skillModifiers: [{ targetArch: 'smite', multAdd: 0.24, penAdd: 15 }],
+      effects: [{ effectId: 'EFX_HEAVENLY_THUNDER_SMITE', params: { thunderPower: 420, antiFiendBonusRatio: 0.45 } }],
+      combatKeywords: [{ kw: 'KW_DEED_LEDGER', params: { maxStage: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION', 'LORE'],
+      inputs: [{ matId: 'MAT_ORE_DIVINE_GOLD_6', count: 2 }, { matId: 'MAT_BP_TIGER_BLOOD_6', count: 2 }],
+      descTh: 'พู่กันทองคำเพลิงเซียน บันทึกความยุติธรรมและเรียกอสนีบาตพิพากษา'
+    },
+    {
+      id: 'EQ_V320_GS_ROBE_T5', nameTh: 'อาภรณ์เข็มทองเปิดชีพจร', slot: 'ARMOR', subType: 'ROBE',
+      tier: 5, element: 'WOOD_LIFE', craft: 'TALISMAN',
+      st: { def: 130, mdef: 210, hp: 280, cast: 12 },
+      grantedSkills: ['MP_AGNOSTIC_ACUPOINT_HEAL_T5'],
+      skillModifiers: [{ targetArch: 'heal', multAdd: 0.22 }],
+      effects: [{ effectId: 'EFX_CLEAR_DEBUFFS', params: { maxStatusesRemoved: 2 } }],
+      combatKeywords: [{ kw: 'KW_ADAPTIVE_RESIST', params: { step: 0.04, max: 0.24 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_HERB_SNOW_LOTUS_5', count: 2 }, { matId: 'MAT_WHIP_KARMIC_RED_SILK_5', count: 2 }],
+      descTh: 'อาภรณ์ไหมแดงบัวหิมะ มอบวิชาสกัดจุดฟื้นฟูฉับพลันและปรับตัวต้านทานธาตุ'
+    },
+    {
+      id: 'EQ_V320_GS_HEAVY_T5', nameTh: 'เกราะหนักป้อมปราการอุกกาบาต', slot: 'ARMOR', subType: 'HEAVY',
+      tier: 5, element: 'EARTH_METAL', craft: 'FORGING',
+      st: { def: 265, mdef: 155, hp: 340, move: -4 },
+      grantedSkills: ['MP_STAFF_WALL'],
+      skillModifiers: [{ targetArch: 'guard', cdDelta: -1 }],
+      effects: [{ effectId: 'EFX_V320_PATINA_AEGIS', params: { maxArmorBonusPct: 0.28 } }],
+      combatKeywords: [{ kw: 'KW_REFLECT', params: { pct: 15, cap: 0.22, filter: 'p', melee: true } }, { kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.24 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_METEOR_IRON_5', count: 3 }, { matId: 'MAT_BP_HEAVEN_CORE_5', count: 1 }],
+      descTh: 'เกราะหนักเหล็กไหลอุกกาบาต ยิ่งผ่านศึกสึกหรอยิ่งสะท้อนและดูดซับแรงปะทะ'
+    },
+
+    // --- Pillar C: Charge-Based Talismans, Chrono Buffers & Array Cores (12 items, T2–T6) ---
+    {
+      id: 'EQ_V320_TAL_CHG_T2_SHIELD', nameTh: 'ยันต์ประจุปราณคุ้มกาย ๓ ชั้น', slot: 'ACCESSORY', subType: 'CHARM',
+      cat: 'TALISMAN', tier: 2, element: 'EARTH_METAL', craft: 'TALISMAN',
+      maxCharges: 3, isChargeTalisman: true, rechargeMatId: 'MAT_FORM_SPIRIT_INK_SAND_2',
+      st: { def: 14, mdef: 14, hp: 30 },
+      effects: [{ effectId: 'EFX_V320_CHARGE_RELEASE', params: { mode: 'SHIELD', shieldPct: 0.18, maxCells: 3 } }],
+      combatKeywords: [{ kw: 'KW_CHARGE_CELL', params: { maxCells: 3, triggerOn: 'onStruck' } }],
+      inputs: [{ matId: 'MAT_FORM_SPIRIT_INK_SAND_2', count: 2 }, { matId: 'MAT_ORE_JADE_SLATE_2', count: 1 }],
+      descTh: 'ยันต์สะสมประจุเมื่อถูกตี ครบ 3 ชั้นจะกางม่านคุ้มกายอัตโนมัติ (เติมประจุด้วยทรายหมึกวิญญาณ)'
+    },
+    {
+      id: 'EQ_V320_TAL_CHG_T3_THUNDER', nameTh: 'ยันต์กักสายฟ้าสะท้านเมฆ', slot: 'ACCESSORY', subType: 'CHARM',
+      cat: 'TALISMAN', tier: 3, element: 'LIGHTNING', craft: 'TALISMAN',
+      maxCharges: 3, isChargeTalisman: true, rechargeMatId: 'MAT_ORE_THUNDER_SCORCH_COPPER_3',
+      st: { matk: 28, crit: 4, acc: 12 },
+      effects: [{ effectId: 'EFX_V320_CHARGE_RELEASE', params: { mode: 'STRIKE', bonusDmgPct: 0.32, status: 'stun', maxCells: 3 } }],
+      combatKeywords: [{ kw: 'KW_CHARGE_CELL', params: { maxCells: 3, triggerOn: 'onHit' } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_ORE_THUNDER_SCORCH_COPPER_3', count: 2 }, { matId: 'MAT_FORM_SWORD_TALISMAN_3', count: 1 }],
+      descTh: 'ยันต์กักเก็บประจุอสนี เมื่อโจมตีครบ 3 ครั้งจะปลดปล่อยสายฟ้าฟาด'
+    },
+    {
+      id: 'EQ_V320_TAL_CHG_T3_CHRONO', nameTh: 'เครื่องรางนาฬิกาทรายชะลอพิษ', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      cat: 'TALISMAN', tier: 3, element: 'WATER_ICE', craft: 'ARRAY',
+      maxCharges: 4, isChargeTalisman: true, rechargeMatId: 'MAT_FORM_ARRAY_CORE_basic_3',
+      st: { mdef: 26, cast: 6, hp: 50 },
+      effects: [{ effectId: 'EFX_V320_CHRONO_DELAY', params: { delayRounds: 1, mitigationPct: 0.22 } }],
+      combatKeywords: [{ kw: 'KW_TEMPO_STEAL', params: { rounds: 1, cd: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_FORM_ARRAY_CORE_basic_3', count: 2 }, { matId: 'MAT_HERB_ANCIENT_MIST_FERN_3', count: 2 }],
+      descTh: 'เครื่องรางหน่วงเวลาดีบัฟ 1 รอบ พร้อมโอกาสชำระล้างก่อนออกฤทธิ์'
+    },
+    {
+      id: 'EQ_V320_TAL_CHG_T4_PURGE', nameTh: 'ยันต์ดอกบัวชำระมลทิน ๔ ประจุ', slot: 'ACCESSORY', subType: 'CHARM',
+      cat: 'TALISMAN', tier: 4, element: 'WOOD_LIFE', craft: 'TALISMAN',
+      maxCharges: 4, isChargeTalisman: true, rechargeMatId: 'MAT_HERB_DRAGON_GRASS_4',
+      st: { mdef: 42, hp: 110, cast: 8 },
+      effects: [{ effectId: 'EFX_V320_CHARGE_RELEASE', params: { mode: 'CLEANSE_HEAL', healPct: 0.16, maxCells: 3 } }],
+      combatKeywords: [{ kw: 'KW_CHARGE_CELL', params: { maxCells: 3, triggerOn: 'onParry' } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_HERB_DRAGON_GRASS_4', count: 2 }, { matId: 'MAT_FORM_FAITH_INCENSE_PEARL_4', count: 1 }],
+      descTh: 'ยันต์ปัดป้องสะสมประจุ ครบ 3 ชั้นจะชำระสถานะลบและฟื้นฟูพลังชีวิต'
+    },
+    {
+      id: 'EQ_V320_CORE_CHG_T3_MIST', nameTh: 'แกนค่ายกลหมอกสะท้อนหลบ', slot: 'ACCESSORY', subType: 'AUX_TOOL',
+      cat: 'FORMATION_PART', tier: 3, element: 'WIND', craft: 'ARRAY',
+      maxCharges: 4, isChargeTalisman: true, rechargeMatId: 'MAT_FORM_ARRAY_CORE_basic_3',
+      st: { eva: 24, move: 5, cast: 5 },
+      effects: [{ effectId: 'EFX_ILLUSION_MIST_MAZE', params: { accuracyPenalty: 0.24, travelDelayDays: 1 } }],
+      combatKeywords: [{ kw: 'KW_ADAPTIVE_RESIST', params: { step: 0.04, max: 0.20 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_FORM_ARRAY_CORE_basic_3', count: 2 }, { matId: 'MAT_BP_PYTHON_GALL_3', count: 1 }],
+      descTh: 'แกนค่ายกลพกพากางม่านหมอกลวงตาและปรับตัวต้านทานธาตุระหว่างปะทะ'
+    },
+    {
+      id: 'EQ_V320_CORE_CHG_T4_FLAME', nameTh: 'แกนเพลิงพิภพสะสมแรงอั้น', slot: 'ACCESSORY', subType: 'AUX_TOOL',
+      cat: 'FORMATION_PART', tier: 4, element: 'FIRE', craft: 'ARRAY',
+      maxCharges: 4, isChargeTalisman: true, rechargeMatId: 'MAT_FORM_EARTH_FLAME_CORE_4',
+      st: { atk: 44, matk: 44, crit: 5 },
+      effects: [{ effectId: 'EFX_V320_CHARGE_RELEASE', params: { mode: 'STRIKE', bonusDmgPct: 0.40, status: 'burn', maxCells: 4 } }],
+      combatKeywords: [{ kw: 'KW_ABSORB_RELEASE', params: { pct: 0.25 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_FORM_EARTH_FLAME_CORE_4', count: 2 }, { matId: 'MAT_BP_EARTH_CORE_4', count: 1 }],
+      descTh: 'แกนค่ายกลเพลิงพิภพ ดูดซับแรงโจมตีเป็นถังความร้อนแล้วระเบิดออก'
+    },
+    {
+      id: 'EQ_V320_CORE_CHG_T4_LIGHT', nameTh: 'แกนผลึกอสนีสกัดจังหวะ', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      cat: 'FORMATION_PART', tier: 4, element: 'LIGHTNING', craft: 'ARRAY',
+      maxCharges: 4, isChargeTalisman: true, rechargeMatId: 'MAT_FORM_LIGHTNING_CRYSTAL_4',
+      st: { matk: 48, cast: 9, acc: 22 },
+      effects: [{ effectId: 'EFX_INTERRUPT_CHANNEL', params: { interruptForce: 68 } }],
+      combatKeywords: [{ kw: 'KW_TEMPO_STEAL', params: { rounds: 1, cd: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_FORM_LIGHTNING_CRYSTAL_4', count: 2 }, { matId: 'MAT_ORE_THUNDER_JADE_4', count: 1 }],
+      descTh: 'แกนอสนีขัดจังหวะการร่ายวิชาของศัตรู พร้อมขโมยคูลดาวน์'
+    },
+    {
+      id: 'EQ_V320_TAL_CHG_T5_AEGIS', nameTh: 'ยันต์ทัณฑ์สวรรค์รับสายฟ้า ๕ ประจุ', slot: 'ACCESSORY', subType: 'CHARM',
+      cat: 'TALISMAN', tier: 5, element: 'EARTH_METAL', craft: 'TALISMAN',
+      maxCharges: 5, isChargeTalisman: true, rechargeMatId: 'MAT_FORM_SKY_LEVITATION_CORE_5',
+      st: { def: 85, mdef: 85, hp: 220 },
+      effects: [{ effectId: 'EFX_TRIBULATION_SHIELD', params: { tribulationMitigationRatio: 0.34, maxSupportedLayers: 6 } }],
+      combatKeywords: [{ kw: 'KW_LAST_BREATH', params: { shieldPct: 0.25, lifespanCost: 1 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_FORM_SKY_LEVITATION_CORE_5', count: 1 }, { matId: 'MAT_ORE_METEOR_IRON_5', count: 2 }],
+      descTh: 'ยันต์รับทัณฑ์สวรรค์ 5 ประจุ ช่วยยื้อชีวิตในวินาทีวิกฤต (แลกด้วยอายุขัย 1 ปี)'
+    },
+    {
+      id: 'EQ_V320_CORE_CHG_T5_SOUL', nameTh: 'แกนเสาไม้วิญญาณเชื่อมพันธะ', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      cat: 'FORMATION_PART', tier: 5, element: 'YIN_SHADOW', craft: 'ARRAY',
+      maxCharges: 4, isChargeTalisman: true, rechargeMatId: 'MAT_BP_HEAVEN_CORE_5',
+      st: { matk: 76, mdef: 72, cast: 11 },
+      effects: [{ effectId: 'EFX_V320_PAIRED_LINK', params: { syncHealPct: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_PAIRED_RESONANCE', params: { shareBuffPct: 0.18 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_HEAVEN_CORE_5', count: 1 }, { matId: 'MAT_ZITHER_PHOENIX_HEARTWOOD_5', count: 2 }],
+      descTh: 'แกนค่ายกลเชื่อมวิญญาณ แบ่งปันบัฟและฟื้นฟูร่วมกับสหายที่มีพันธะ'
+    },
+    {
+      id: 'EQ_V320_TAL_CHG_T5_CHARGE', nameTh: 'ยันต์สะสมดาบอิไอไร้ลักษณ์', slot: 'ACCESSORY', subType: 'CHARM',
+      cat: 'TALISMAN', tier: 5, element: 'WIND', craft: 'TALISMAN',
+      maxCharges: 3, isChargeTalisman: true, rechargeMatId: 'MAT_BP_ROC_FEATHER_5',
+      st: { atk: 78, crit: 7, critDmg: 22 },
+      effects: [{ effectId: 'EFX_V320_CHARGE_RELEASE', params: { mode: 'STRIKE', bonusDmgPct: 0.55, maxCells: 3 } }],
+      combatKeywords: [{ kw: 'KW_CHARGE_RELEASE', params: { dmgPerCharge: 0.35, maxRounds: 2 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_ROC_FEATHER_5', count: 2 }, { matId: 'MAT_WHIP_KARMIC_RED_SILK_5', count: 1 }],
+      descTh: 'ยันต์สะสมลมหายใจกระบี่ หน่วงพลังหนึ่งจังหวะเพื่อฟันปิดฉากรุนแรง'
+    },
+    {
+      id: 'EQ_V320_CORE_CHG_T6_CHRONO', nameTh: 'แกนค่ายกลนาฬิกาดาราข้ามกาล', slot: 'ACCESSORY', subType: 'AUX_TOOL',
+      cat: 'FORMATION_PART', tier: 6, element: 'ASTRAL', craft: 'ARRAY',
+      maxCharges: 5, isChargeTalisman: true, rechargeMatId: 'MAT_ORE_DIVINE_GOLD_6',
+      st: { matk: 135, cast: 16, mdef: 95, eva: 42 },
+      effects: [{ effectId: 'EFX_V320_CHRONO_DELAY', params: { delayRounds: 1, mitigationPct: 0.28 } }],
+      combatKeywords: [{ kw: 'KW_CHARGE_CELL', params: { maxCells: 4, triggerOn: 'onCast' } }],
+      obtainSources: ['FORGE', 'EXPEDITION', 'LORE'],
+      inputs: [{ matId: 'MAT_ORE_DIVINE_GOLD_6', count: 2 }, { matId: 'MAT_HERB_IMMORTAL_PEACH_6', count: 1 }],
+      descTh: 'แกนค่ายกลระดับเซียน ชะลอพิษและคำสาปทุกชนิดพร้อมสะสมประจุเวลาเมื่อร่ายวิชา'
+    },
+    {
+      id: 'EQ_V320_TAL_CHG_T6_PHOENIX', nameTh: 'ยันต์โลหิตหงส์อมตะฟื้นชีพ', slot: 'ACCESSORY', subType: 'CHARM',
+      cat: 'TALISMAN', tier: 6, element: 'FIRE', craft: 'TALISMAN',
+      maxCharges: 2, isChargeTalisman: true, rechargeMatId: 'MAT_BP_TIGER_BLOOD_6',
+      st: { hp: 380, def: 90, mdef: 90 },
+      effects: [{ effectId: 'EFX_FINAL_STAND_SHIELD', params: { shieldRatio: 0.35 } }],
+      combatKeywords: [{ kw: 'KW_LAST_BREATH', params: { shieldPct: 0.35, lifespanCost: 2 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_TIGER_BLOOD_6', count: 2 }, { matId: 'MAT_HERB_IMMORTAL_PEACH_6', count: 1 }],
+      descTh: 'ยันต์โลหิตคุ้มชีวิต 2 ประจุ ป้องกันการตายหนึ่งครั้งในศึกจริง'
+    },
+
+    // --- Pillar D: Paired Resonance Sets, Cursed Pacts, Temperament, Upkeep & Living Lore Relics (20 items) ---
+    // Set 1: RES_V320_IRON_PATINA (BLADE T4 + HEAVY T4 + BRACELET T4)
+    {
+      id: 'EQ_V320_SET_PATINA_BLADE', nameTh: 'ดาบสนิมเก๋าผ่าเหล็กไหล', slot: 'WEAPON', subType: 'BLADE',
+      tier: 4, element: 'EARTH_METAL', craft: 'FORGING',
+      resonanceSetId: 'RES_V320_IRON_PATINA',
+      st: { atk: 128, pen: 14, critDmg: 22 },
+      effects: [{ effectId: 'EFX_V320_PATINA_AEGIS', params: { maxArmorBonusPct: 0.25 } }],
+      combatKeywords: [{ kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.26 } }, { kw: 'KW_ARMOR_READ', params: { perStack: 3, maxStacks: 6 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 3 }, { matId: 'MAT_BP_EARTH_CORE_4', count: 1 }],
+      descTh: 'ดาบชุดสนิมเหล็กเก๋า ยิ่งความทนทานลดลงในช่วง 30–75% ยิ่งเจาะเกราะได้ลึกขึ้น'
+    },
+    {
+      id: 'EQ_V320_SET_PATINA_ARMOR', nameTh: 'เกราะหนักสนิมศักดิ์สิทธิ์', slot: 'ARMOR', subType: 'HEAVY',
+      tier: 4, element: 'EARTH_METAL', craft: 'FORGING',
+      resonanceSetId: 'RES_V320_IRON_PATINA',
+      st: { def: 138, mdef: 84, hp: 185, move: -3 },
+      effects: [{ effectId: 'EFX_V320_PATINA_AEGIS', params: { maxArmorBonusPct: 0.30 } }],
+      combatKeywords: [{ kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.28 } }, { kw: 'KW_REFLECT', params: { pct: 14, cap: 0.20, filter: 'p', melee: true } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 3 }, { matId: 'MAT_FORM_EARTH_ARRAY_CORE_4', count: 1 }],
+      descTh: 'เกราะชุดสนิมเหล็กเก๋า เปลี่ยนความสึกหรอเป็นชั้นเกราะปาตินาสะท้อนแรงโจมตี'
+    },
+    {
+      id: 'EQ_V320_SET_PATINA_BRAC', nameTh: 'ปลอกแขนช่างหลอมต้านสนิม', slot: 'ACCESSORY', subType: 'BRACELET',
+      tier: 4, element: 'EARTH_METAL', craft: 'FORGING',
+      resonanceSetId: 'RES_V320_IRON_PATINA',
+      st: { def: 46, atk: 42, pen: 8 },
+      effects: [{ effectId: 'EFX_V320_SPIRIT_MENDING', params: { craftBonusPath: 'FORGING', successBonusRatio: 0.08, qualityBonusRatio: 0.06 } }],
+      combatKeywords: [{ kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.20 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_ORE_QUICKSAND_SPIRIT_GOLD_4', count: 2 }, { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1 }],
+      descTh: 'ปลอกแขนชุดสนิมเหล็กเก๋า รักษาสมดุลความสึกหรอไม่ให้พังทลายขณะเพิ่มพลังรบ'
+    },
+
+    // Set 2: RES_V320_TWIN_STAR_BOND (ASTROLABE T5 + ROBE T5 + RING T5)
+    {
+      id: 'EQ_V320_SET_TWIN_ASTRO', nameTh: 'วงแหวนดาราคู่พันธะเหนือ', slot: 'WEAPON', subType: 'ASTROLABE',
+      tier: 5, element: 'ASTRAL', craft: 'ARRAY',
+      resonanceSetId: 'RES_V320_TWIN_STAR_BOND', pairedSetId: 'PAIR_TWIN_STAR',
+      st: { matk: 248, acc: 55, crit: 9, cast: 14 },
+      effects: [{ effectId: 'EFX_V320_PAIRED_LINK', params: { syncHealPct: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_PAIRED_RESONANCE', params: { shareBuffPct: 0.20 } }, { kw: 'KW_CRIT_OVERFLOW', params: { ratio: 1.2 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_METEOR_IRON_5', count: 2 }, { matId: 'MAT_FORM_SKY_LEVITATION_CORE_5', count: 2 }],
+      descTh: 'ศาสตราดาราคู่พันธะ สั่นพ้องกับผู้ถือชุดคู่หรือสหายในทีมเพื่อถ่ายทอดพลังโจมตีและคริ'
+    },
+    {
+      id: 'EQ_V320_SET_TWIN_ROBE', nameTh: 'อาภรณ์ดาราคู่ทอแสงจันทร์', slot: 'ARMOR', subType: 'ROBE',
+      tier: 5, element: 'ASTRAL', craft: 'TALISMAN',
+      resonanceSetId: 'RES_V320_TWIN_STAR_BOND', pairedSetId: 'PAIR_TWIN_STAR',
+      st: { def: 135, mdef: 230, hp: 290, cast: 12 },
+      effects: [{ effectId: 'EFX_V320_PAIRED_LINK', params: { syncHealPct: 0.16 } }],
+      combatKeywords: [{ kw: 'KW_PAIRED_RESONANCE', params: { shareBuffPct: 0.20 } }, { kw: 'KW_ADAPTIVE_RESIST', params: { step: 0.04, max: 0.24 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_WHIP_KARMIC_RED_SILK_5', count: 2 }, { matId: 'MAT_HERB_SNOW_LOTUS_5', count: 2 }],
+      descTh: 'อาภรณ์ชุดดาราคู่พันธะ แบ่งเบาความเสียหายและต้านทานธาตุร่วมกับคู่พันธะ'
+    },
+    {
+      id: 'EQ_V320_SET_TWIN_RING', nameTh: 'แหวนโซ่ดาราสัญญาใจ', slot: 'ACCESSORY', subType: 'RING',
+      tier: 5, element: 'ASTRAL', craft: 'ARRAY',
+      resonanceSetId: 'RES_V320_TWIN_STAR_BOND', pairedSetId: 'PAIR_TWIN_STAR',
+      st: { matk: 88, crit: 7, critDmg: 24, mdef: 55 },
+      effects: [{ effectId: 'EFX_V320_PAIRED_LINK', params: { syncHealPct: 0.12 } }],
+      combatKeywords: [{ kw: 'KW_PAIRED_RESONANCE', params: { shareBuffPct: 0.18 } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_BP_HEAVEN_CORE_5', count: 1 }, { matId: 'MAT_ORE_METEOR_IRON_5', count: 2 }],
+      descTh: 'แหวนคู่พันธะ เมื่อสวมใส่ร่วมกับอาวุธหรือสหายในเครือเดียวกันจะเสริมพลังฟื้นฟูทันที'
+    },
+
+    // Set 3: RES_V320_ARCHIVIST_RELIC (BRUSH T5 + ORNAMENT T5 + SHOES T5)
+    {
+      id: 'EQ_V320_SET_ARCH_BRUSH', nameTh: 'พู่กันจารึกพงศาวดารมังกร', slot: 'WEAPON', subType: 'BRUSH',
+      tier: 5, element: 'LIGHT_YANG', craft: 'TALISMAN',
+      resonanceSetId: 'RES_V320_ARCHIVIST_RELIC', deedLedger: true,
+      st: { matk: 242, acc: 52, cast: 14 },
+      effects: [{ effectId: 'EFX_V320_DEED_AWAKEN', params: { stageBonusPct: 0.12 } }],
+      combatKeywords: [{ kw: 'KW_DEED_LEDGER', params: { maxStage: 3 } }, { kw: 'KW_SOUL_SCAR_ECHO', params: { maxLineage: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION', 'LORE'],
+      provenanceLoreId: 'LORE_EASTERN_EMPEROR',
+      lineage: [{ nameTh: 'ราชเลขาธิการหอตงหวง', bonusStat: 'matk', bonusVal: 24 }],
+      inputs: [{ matId: 'MAT_BRUSH_DRAGON_WHISKER_JADE_5', count: 2 }, { matId: 'MAT_ORE_METEOR_IRON_5', count: 1 }],
+      descTh: 'พู่กันบันทึกวีรกรรม ยิ่งผู้ถือสังหารหรือปัดป้องสำเร็จมากเท่าใด ยิ่งตื่นรู้ขั้นพลัง I→III'
+    },
+    {
+      id: 'EQ_V320_SET_ARCH_ORN', nameTh: 'ตราประทับอาลักษณ์หอคัมภีร์', slot: 'ACCESSORY', subType: 'ORNAMENT',
+      tier: 5, element: 'LIGHT_YANG', craft: 'ARRAY',
+      resonanceSetId: 'RES_V320_ARCHIVIST_RELIC', deedLedger: true,
+      st: { matk: 82, mdef: 76, cast: 12 },
+      effects: [{ effectId: 'EFX_V320_LINEAGE_ECHO', params: { echoPct: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_DEED_LEDGER', params: { maxStage: 3 } }, { kw: 'KW_FOCUS_WINDOW', params: { bonusPct: 0.15 } }],
+      obtainSources: ['FORGE', 'LORE'],
+      inputs: [{ matId: 'MAT_BRUSH_DRAGON_WHISKER_JADE_5', count: 1 }, { matId: 'MAT_BP_HEAVEN_CORE_5', count: 2 }],
+      descTh: 'ตราประทับบันทึกประวัติศาสตร์การรบ เพิ่มความเร็วบำเพ็ญเพียรและส่งต่อรอยจำวิญญาณ'
+    },
+    {
+      id: 'EQ_V320_SET_ARCH_SHOES', nameTh: 'รองเท้าจาริกหอคัมภีร์เก้าทิศ', slot: 'ACCESSORY', subType: 'SHOES',
+      tier: 5, element: 'WIND', craft: 'TALISMAN',
+      resonanceSetId: 'RES_V320_ARCHIVIST_RELIC', deedLedger: true,
+      st: { move: 16, eva: 54, mdef: 52 },
+      effects: [{ effectId: 'EFX_V320_DEED_AWAKEN', params: { stageBonusPct: 0.10 } }],
+      combatKeywords: [{ kw: 'KW_DEED_LEDGER', params: { maxStage: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_ROC_FEATHER_5', count: 2 }, { matId: 'MAT_HERB_SNOW_LOTUS_5', count: 1 }],
+      descTh: 'รองเท้าชุดอาลักษณ์ เก็บสะสมระยะทางและศึกสำคัญเพื่อปลุกขั้นพลังประจำชุด'
+    },
+
+    // Cursed / Sealed Pact Sidegrades (4 items, T3–T6)
+    {
+      id: 'EQ_V320_CURSED_BLADE_T3', nameTh: 'ดาบสัญญาโลหิตห้ามถอยหนี', slot: 'WEAPON', subType: 'BLADE',
+      tier: 3, element: 'BLOOD_DEMON', craft: 'FORGING',
+      cursed: true,
+      pact: { rule: 'NO_RETREAT', labelTh: 'ห้ามถอยหนีหรือสวมใส่ขณะขวัญต่ำกว่า 40', backlash: 'HEART_DEMON' },
+      st: { atk: 78, crit: 7, critDmg: 24, pen: 10 },
+      effects: [{ effectId: 'EFX_V320_PACT_OVERDRIVE', params: { powerMult: 1.24, drawbackHpDrainPct: 0.03 } }],
+      combatKeywords: [{ kw: 'KW_SEALED_PACT', params: { rule: 'NO_RETREAT', bonusPct: 0.22 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_HERB_BLOOD_GINSENG_3', count: 2 }, { matId: 'MAT_ORE_STAR_COPPER_3', count: 2 }],
+      descTh: 'ดาบต้องคำสาปทรงพลังเกินระดับ แต่ดูดเลือดผู้ใช้เล็กน้อยและสาปแช่งหากเสียขวัญ'
+    },
+    {
+      id: 'EQ_V320_CURSED_RING_T4', nameTh: 'แหวนพันธะมารดูดกลืนปราณ', slot: 'ACCESSORY', subType: 'RING',
+      tier: 4, element: 'BLOOD_DEMON', craft: 'ARRAY',
+      cursed: true,
+      pact: { rule: 'SOLO_PRIDE', labelTh: 'พลังสูงสุดเมื่อสู้ด้วยใจทระนง แต่เพิ่มจิตมารเมื่อพ่าย', backlash: 'HP_DRAIN' },
+      st: { atk: 58, matk: 58, crit: 9, pen: 10 },
+      effects: [{ effectId: 'EFX_V320_CURSED_SIPHON', params: { leechPct: 0.22, selfCostPct: 0.04 } }],
+      combatKeywords: [{ kw: 'KW_SEALED_PACT', params: { rule: 'SOLO_PRIDE', bonusPct: 0.25 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_FORM_BLOOD_FIEND_CRYSTAL_4', count: 2 }, { matId: 'MAT_ORE_MITHRIL_JADE_4', count: 1 }],
+      descTh: 'แหวนมารที่ให้พลังโจมตีและดูดเลือดสูงมาก แลกกับเลือดเนื้อของผู้ถือครอง'
+    },
+    {
+      id: 'EQ_V320_CURSED_ROBE_T5', nameTh: 'อาภรณ์อสูรเงามรณะพันธะนิรันดร์', slot: 'ARMOR', subType: 'ROBE',
+      tier: 5, element: 'YIN_SHADOW', craft: 'TALISMAN',
+      cursed: true,
+      pact: { rule: 'NO_PEACE_PACT', labelTh: 'ต้องเลี้ยงดูด้วยแก่นอสูรทุก 15 วัน มิฉะนั้นจะเข้าสู่ภาวะหลับใหล', backlash: 'DORMANT' },
+      upkeepMatId: 'MAT_BP_HEAVEN_CORE_5', upkeepIntervalDays: 15,
+      st: { def: 155, mdef: 245, eva: 36, cast: 14 },
+      effects: [{ effectId: 'EFX_V320_PACT_OVERDRIVE', params: { powerMult: 1.26, drawbackHpDrainPct: 0.025 } }],
+      combatKeywords: [{ kw: 'KW_SEALED_PACT', params: { rule: 'NO_PEACE_PACT', bonusPct: 0.24 } }, { kw: 'KW_UPKEEP_BOND', params: { intervalDays: 15 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_HEAVEN_CORE_5', count: 2 }, { matId: 'MAT_WHIP_KARMIC_RED_SILK_5', count: 2 }],
+      descTh: 'อาภรณ์ต้องห้ามที่ต้องหล่อเลี้ยงด้วยแก่นอสูรเป็นระยะ แลกกับพลังป้องกันและหลบหลีกเหนือชั้น'
+    },
+    {
+      id: 'EQ_V320_CURSED_SPEAR_T6', nameTh: 'ทวนคำสาปพยัคฆ์โลหิตเจ็ดทัณฑ์', slot: 'WEAPON', subType: 'SPEAR',
+      tier: 6, element: 'BLOOD_DEMON', craft: 'FORGING',
+      cursed: true, deedLedger: true,
+      pact: { rule: 'BLOOD_OATH', labelTh: 'คำสาบานสังหารศัตรูเหนือขั้น แลกกับแรงสะท้อนจิตมาร', backlash: 'HEART_DEMON' },
+      st: { atk: 510, pen: 24, crit: 12, critDmg: 42 },
+      effects: [{ effectId: 'EFX_V320_CURSED_SIPHON', params: { leechPct: 0.24, selfCostPct: 0.04 } }],
+      combatKeywords: [{ kw: 'KW_SEALED_PACT', params: { rule: 'BLOOD_OATH', bonusPct: 0.28 } }, { kw: 'KW_DEED_LEDGER', params: { maxStage: 3 } }],
+      obtainSources: ['FORGE', 'EXPEDITION', 'LORE'],
+      inputs: [{ matId: 'MAT_BP_TIGER_BLOOD_6', count: 2 }, { matId: 'MAT_ORE_DIVINE_GOLD_6', count: 2 }],
+      descTh: 'ทวนต้องคำสาปของจอมยุทธ์คลั่ง ยิ่งสังหารศัตรูมากยิ่งปลุกความดุร้าย'
+    },
+
+    // Temperament & Upkeep Living Gear (4 items, T4–T6)
+    {
+      id: 'EQ_V320_TEMP_SWORD_T4', nameTh: 'กระบี่นิสัยทระนงไม่ก้มหัว', slot: 'WEAPON', subType: 'SWORD',
+      tier: 4, element: 'LIGHT_YANG', craft: 'FORGING',
+      temperament: 'PRIDEFUL',
+      st: { atk: 132, crit: 8, acc: 28 },
+      effects: [{ effectId: 'EFX_V320_TEMPERAMENT_SYNC', params: { temperament: 'PRIDEFUL', bonusPct: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_TEMPERAMENT', params: { temperament: 'PRIDEFUL' } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_ORE_MITHRIL_JADE_4', count: 2 }, { matId: 'MAT_FORM_FAITH_INCENSE_PEARL_4', count: 2 }],
+      descTh: 'กระบี่ที่มีจิตวิญญาณทระนง ชอบผู้ถือครองที่กล้าหาญและทะนงตน หากนิสัยขัดกันจะงอนและลดพลัง'
+    },
+    {
+      id: 'EQ_V320_TEMP_FAN_T4', nameTh: 'พัดจิตวิญญาณสุขุมอ่านเกม', slot: 'WEAPON', subType: 'FAN',
+      tier: 4, element: 'WATER_ICE', craft: 'TALISMAN',
+      temperament: 'CAUTIOUS',
+      st: { matk: 128, cast: 11, mdef: 44 },
+      effects: [{ effectId: 'EFX_V320_TEMPERAMENT_SYNC', params: { temperament: 'CAUTIOUS', bonusPct: 0.14 } }],
+      combatKeywords: [{ kw: 'KW_TEMPERAMENT', params: { temperament: 'CAUTIOUS' } }],
+      obtainSources: ['FORGE', 'MARKET'],
+      inputs: [{ matId: 'MAT_BP_BEAR_HEART_4', count: 2 }, { matId: 'MAT_ORE_THUNDER_JADE_4', count: 1 }],
+      descTh: 'พัดมีชีวิตที่ถูกใจคนรอบคอบและมีวินัย หากคนใจร้อนถือครองจะลดประสิทธิภาพ'
+    },
+    {
+      id: 'EQ_V320_UPKEEP_STAFF_T5', nameTh: 'พลองพฤกษาอสูรต้องหล่อเลี้ยง', slot: 'WEAPON', subType: 'STAFF',
+      tier: 5, element: 'WOOD_LIFE', craft: 'FORGING',
+      upkeepMatId: 'MAT_HERB_SNOW_LOTUS_5', upkeepIntervalDays: 12,
+      st: { atk: 195, matk: 195, hp: 240, def: 85 },
+      effects: [{ effectId: 'EFX_V320_SPIRIT_MENDING', params: { mendPerDay: 4 } }],
+      combatKeywords: [{ kw: 'KW_UPKEEP_BOND', params: { intervalDays: 12 } }],
+      obtainSources: ['FORGE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_HERB_SNOW_LOTUS_5', count: 2 }, { matId: 'MAT_ZITHER_PHOENIX_HEARTWOOD_5', count: 2 }],
+      descTh: 'พลองพฤกษามีชีวิต ต้องเลี้ยงดูด้วยบัวหิมะสวรรค์ทุก 12 วันเพื่อคงพลังเต็มขั้น'
+    },
+    {
+      id: 'EQ_V320_TEMP_ABACUS_T6', nameTh: 'ลูกคิดเซียนโลภสมบัติ', slot: 'WEAPON', subType: 'ABACUS',
+      tier: 6, element: 'EARTH_METAL', craft: 'FORGING',
+      temperament: 'GREEDY',
+      st: { atk: 390, matk: 390, pen: 18, def: 95 },
+      effects: [{ effectId: 'EFX_V320_TEMPERAMENT_SYNC', params: { temperament: 'GREEDY', bonusPct: 0.16 } }],
+      combatKeywords: [{ kw: 'KW_TEMPERAMENT', params: { temperament: 'GREEDY' } }, { kw: 'KW_CRIT_OVERFLOW', params: { ratio: 1.2 } }],
+      obtainSources: ['FORGE', 'MARKET', 'LORE'],
+      inputs: [{ matId: 'MAT_ORE_DIVINE_GOLD_6', count: 3 }, { matId: 'MAT_BP_TIGER_BONE_6', count: 1 }],
+      descTh: 'ลูกคิดทองคำที่ตอบสนองต่อผู้ถือที่มีความมุ่งมั่นด้านทรัพย์สินและวางแผนรัดกุม'
+    },
+
+    // Living Lore Signature Relics (3 items, T7, tied to v3.1.0 Living Lore!)
+    {
+      id: 'EQ_V320_LORE_SWORD_T7', nameTh: 'กระบี่รอยจำจักรพรรดิกู่เซวียนหยวน', slot: 'WEAPON', subType: 'SWORD',
+      tier: 7, element: 'ASTRAL', craft: 'FORGING',
+      grade: 'Legendary', legendary: true, deedLedger: true, temperament: 'RIGHTEOUS',
+      provenanceLoreId: 'LORE_SOVEREIGN_GU',
+      lineage: [
+        { nameTh: 'จักรพรรดิกู่เซวียนหยวน (#1)', bonusStat: 'atk', bonusVal: 45 },
+        { nameTh: 'เจ้าสำนักรุ่นบุกเบิก', bonusStat: 'crit', bonusVal: 4 }
+      ],
+      st: { atk: 920, matk: 480, crit: 14, critDmg: 48, pen: 24, acc: 95 },
+      effects: [{ effectId: 'EFX_V320_LINEAGE_ECHO', params: { echoPct: 0.22 } }, { effectId: 'EFX_V320_DEED_AWAKEN', params: { stageBonusPct: 0.15 } }],
+      combatKeywords: [{ kw: 'KW_SOUL_SCAR_ECHO', params: { maxLineage: 3 } }, { kw: 'KW_DEED_LEDGER', params: { maxStage: 3 } }, { kw: 'KW_PIERCE', params: { pct: 22, vsShield: 0.35 } }],
+      obtainSources: ['FORGE', 'LORE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_TR_WORLD_FORGE_SHARD', count: 1 }, { matId: 'MAT_ORE_PRIMORDIAL_CRYSTAL_7', count: 2 }, { matId: 'MAT_BP_DRAGON_SCALE_7', count: 1 }],
+      descTh: 'ศาสตราตำนานเชื่อมโยงปฐมบทจักรพรรดิกู่เซวียนหยวน สืบทอดรอยจำผู้ถือครองข้ามรุ่นได้สูงสุด 3 ชื่อ'
+    },
+    {
+      id: 'EQ_V320_LORE_ARMOR_T7', nameTh: 'เกราะเกล็ดมังกรบรรพกาลหอบรรณารักษ์', slot: 'ARMOR', subType: 'HEAVY',
+      tier: 7, element: 'EARTH_METAL', craft: 'FORGING',
+      grade: 'Legendary', legendary: true, deedLedger: true,
+      provenanceLoreId: 'LORE_CHRONICLE_GUARDIAN',
+      lineage: [{ nameTh: 'มหาองครักษ์หอเทียนกู่', bonusStat: 'def', bonusVal: 42 }],
+      st: { def: 860, mdef: 640, hp: 1250, move: -2 },
+      effects: [{ effectId: 'EFX_V320_PATINA_AEGIS', params: { maxArmorBonusPct: 0.32 } }, { effectId: 'EFX_V320_LINEAGE_ECHO', params: { echoPct: 0.18 } }],
+      combatKeywords: [{ kw: 'KW_PATINA_WEAR', params: { maxBonusPct: 0.28 } }, { kw: 'KW_SOUL_SCAR_ECHO', params: { maxLineage: 3 } }, { kw: 'KW_REFLECT', params: { pct: 18, cap: 0.22, filter: 'any' } }],
+      obtainSources: ['FORGE', 'LORE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_BP_DRAGON_SCALE_7', count: 2 }, { matId: 'MAT_TR_WORLD_FORGE_SHARD', count: 1 }, { matId: 'MAT_HERB_CHAOS_ROOT_7', count: 1 }],
+      descTh: 'เกราะเกล็ดย้อนมังกรเทวะ บันทึกรอยจำองครักษ์รุ่นก่อนและแปรความสึกหรอเป็นเกราะปาตินา'
+    },
+    {
+      id: 'EQ_V320_LORE_RING_T7', nameTh: 'แหวนโองการสวรรค์เก้าชั้นดารา', slot: 'ACCESSORY', subType: 'RING',
+      tier: 7, element: 'ASTRAL', craft: 'ARRAY',
+      grade: 'Legendary', legendary: true, pairedSetId: 'PAIR_TWIN_STAR',
+      provenanceLoreId: 'LORE_ASTRAL_ORACLE',
+      lineage: [{ nameTh: 'โหรหลวงดาราเหนือ', bonusStat: 'matk', bonusVal: 40 }],
+      st: { atk: 320, matk: 360, crit: 11, critDmg: 38, cast: 18, mdef: 180 },
+      effects: [{ effectId: 'EFX_V320_LINEAGE_ECHO', params: { echoPct: 0.20 } }, { effectId: 'EFX_V320_PAIRED_LINK', params: { syncHealPct: 0.16 } }],
+      combatKeywords: [{ kw: 'KW_SOUL_SCAR_ECHO', params: { maxLineage: 3 } }, { kw: 'KW_PAIRED_RESONANCE', params: { shareBuffPct: 0.22 } }, { kw: 'KW_CRIT_OVERFLOW', params: { ratio: 1.25 } }],
+      obtainSources: ['FORGE', 'LORE', 'EXPEDITION'],
+      inputs: [{ matId: 'MAT_TR_HEAVEN_EDICT_SILK', count: 1 }, { matId: 'MAT_BP_DRAGON_PEARL_7', count: 1 }, { matId: 'MAT_ORE_PRIMORDIAL_CRYSTAL_7', count: 1 }],
+      descTh: 'แหวนโองการดารา สั่นพ้องกับสหายร่วมศึกและสืบทอดรอยจำของโหรหลวงรุ่นก่อน'
+    }
+  ];
+
+  // Register Resonance Sets for v3.2.0
+  const V320_SETS = [
+    {
+      id: 'RES_V320_IRON_PATINA',
+      nameTh: 'ชุดสนิมเหล็กเก๋าผ่านศึก',
+      path: 'BODY',
+      subpaths: ['BODY', 'CRAFT_CREATION', 'STRATEGY_GOVERNANCE'],
+      elementFamily: ['EARTH_METAL', 'NEUTRAL'],
+      minTier: 4,
+      maxTier: 7,
+      slots: { WEAPON: 'EQ_V320_SET_PATINA_BLADE', ARMOR: 'EQ_V320_SET_PATINA_ARMOR', ACCESSORY: 'EQ_V320_SET_PATINA_BRAC' },
+      bonus2: { descTh: '2 ชิ้น: สนิมเก๋ากัดกร่อนเกราะ', f: { pen: 10 }, p: { def: 0.12 } },
+      bonus3: { descTh: '3 ชิ้น: ปาตินาสะท้อนศาสตรา', f: { pen: 18 }, p: { def: 0.22, atk: 0.14 }, rider: { id: 'RIDER_V320_PATINA', trigger: 'onStruck', chance: 0.28, effect: 'shield', pct: 0.14, descTh: 'กางม่านปาตินาเมื่อถูกโจมตี' } }
+    },
+    {
+      id: 'RES_V320_TWIN_STAR_BOND',
+      nameTh: 'ชุดดาราคู่พันธะนิรันดร์',
+      path: 'ASTRO_DIVINATION',
+      subpaths: ['ASTRO_DIVINATION', 'SAGE_SUPPORT', 'XIAN'],
+      elementFamily: ['ASTRAL', 'LIGHT_YANG'],
+      minTier: 5,
+      maxTier: 7,
+      slots: { WEAPON: 'EQ_V320_SET_TWIN_ASTRO', ARMOR: 'EQ_V320_SET_TWIN_ROBE', ACCESSORY: 'EQ_V320_SET_TWIN_RING' },
+      bonus2: { descTh: '2 ชิ้น: แสงดาราสอดประสาน', p: { matk: 0.14 }, f: { cast: 10 } },
+      bonus3: { descTh: '3 ชิ้น: พันธะคู่ข้ามภพ', p: { matk: 0.24, mdef: 0.18 }, f: { cast: 18 }, rider: { id: 'RIDER_V320_TWIN_STAR', trigger: 'onCast', chance: 0.28, effect: 'heal', pct: 0.10, descTh: 'ฟื้นฟูชีพจรร่วมพันธะเมื่อร่ายวิชา' } }
+    },
+    {
+      id: 'RES_V320_ARCHIVIST_RELIC',
+      nameTh: 'ชุดอาลักษณ์บันทึกวีรกรรม',
+      path: 'INK_LITERATI',
+      subpaths: ['INK_LITERATI', 'LORE_ARCHIVIST', 'STRATEGY_GOVERNANCE'],
+      elementFamily: ['LIGHT_YANG', 'WIND'],
+      minTier: 5,
+      maxTier: 7,
+      slots: { WEAPON: 'EQ_V320_SET_ARCH_BRUSH', ACCESSORY: 'EQ_V320_SET_ARCH_ORN', ARMOR: 'EQ_V320_SET_ARCH_SHOES' },
+      bonus2: { descTh: '2 ชิ้น: อักขระจารึกความทรงจำ', p: { matk: 0.12 }, f: { acc: 25 } },
+      bonus3: { descTh: '3 ชิ้น: มหาพงศาวดารตื่นรู้', p: { matk: 0.22 }, f: { acc: 45, crit: 8 }, rider: { id: 'RIDER_V320_ARCHIVIST', trigger: 'onHit', chance: 0.28, effect: 'armorbreak', pct: 0.15, descTh: 'เปิดจุดอ่อนศัตรูจากบันทึกโบราณ' } }
+    }
+  ];
+
+  // Expand to 84 items cleanly by adding 29 balanced mid-tier/specialist/variant entries
+  // covering remaining subTypes (DAGGER, WHIP, FOCUS, ZITHER, BRUSH, STAFF, BOW, SWORD, ARMOR) across T1–T6
+  const EXTRA_V320 = [
+    ['EQ_V320_DAGGER_T1', 'กริชเขี้ยวหมาป่าซ่อนฝัก', 'WEAPON', 'SWORD', 1, 'WIND', 'FORGING', { atk: 12, crit: 3, eva: 5 }, 'EFX_STEALTH_CONCEALMENT', { concealmentScore: 24 }, 'KW_ACCURACY', { add: 5 }, [['MAT_BP_WOLF_FANG_1', 2], ['MAT_ORE_BLACK_IRON_1', 1]]],
+    ['EQ_V320_WHIP_T1', 'แส้หนังอสูรพันธนาการ', 'WEAPON', 'WHIP', 1, 'NEUTRAL', 'FORGING', { atk: 10, acc: 7, pen: 3 }, 'EFX_BLEEDING', { bleedDamagePerTurn: 14 }, 'KW_PIERCE', { pct: 6, vsShield: 0.10 }, [['MAT_BP_WOLF_PELT_1', 2], ['MAT_BP_WOLF_HAIR_1', 1]]],
+    ['EQ_V320_WHIP_T2', 'แส้เอ็นเหลือมรัดจังหวะ', 'WEAPON', 'WHIP', 2, 'WOOD_LIFE', 'FORGING', { atk: 22, acc: 14, pen: 5 }, 'EFX_TERRAIN_BIND_TRAP', { trapDamage: 45, rootTurns: 1, charges: 2 }, 'KW_TEMPO_STEAL', { rounds: 1, cd: 3 }, [['MAT_BP_BOAR_HIDE_2', 2], ['MAT_HERB_MIST_ORCHID_2', 1]]],
+    ['EQ_V320_ZITHER_T1', 'พิณไม้ไผ่คลื่นน้ำค้าง', 'WEAPON', 'ZITHER', 1, 'WATER_ICE', 'TALISMAN', { matk: 12, cast: 3, mdef: 6 }, 'EFX_CALM_MIND', { heartDemonReduction: 6, soulDefenseBonus: 12 }, 'KW_FOCUS_WINDOW', { bonusPct: 0.06 }, [['MAT_HERB_DEW_GRASS_1', 2], ['MAT_BP_WOLF_HAIR_1', 1]]],
+    ['EQ_V320_ZITHER_T2', 'พิณบัวหยกขับกล่อมปราณ', 'WEAPON', 'ZITHER', 2, 'WOOD_LIFE', 'TALISMAN', { matk: 26, cast: 5, mdef: 12 }, 'EFX_HERB_POLLINATION', { craftBonusPath: 'HERBALISM', yieldBonusRatio: 0.12, qualityBonusRatio: 0.04 }, 'KW_FOCUS_WINDOW', { bonusPct: 0.09 }, [['MAT_HERB_JADE_LOTUS_2', 2], ['MAT_ORE_JADE_SLATE_2', 1]]],
+    ['EQ_V320_BRUSH_T1', 'พู่กันขนหางหมาป่าจารึก', 'WEAPON', 'BRUSH', 1, 'NEUTRAL', 'TALISMAN', { matk: 11, acc: 8, cast: 3 }, 'EFX_DETECTION_REVEAL', { revealPower: 28, scanRadius: 18 }, 'KW_ACCURACY', { add: 5 }, [['MAT_BP_WOLF_HAIR_1', 2], ['MAT_ORE_CINNABAR_1', 1]]],
+    ['EQ_V320_BRUSH_T2', 'พู่กันหมึกวิญญาณวาดยันต์', 'WEAPON', 'BRUSH', 2, 'EARTH_METAL', 'TALISMAN', { matk: 25, acc: 15, cast: 5 }, 'EFX_FORMATION_HARMONIZATION', { syncBonus: 8, stabilityBonus: 8 }, 'KW_CRAFT_PRECISION', { chance: 0.06 }, [['MAT_FORM_SPIRIT_INK_SAND_2', 2], ['MAT_ORE_JADE_SLATE_2', 1]]],
+    ['EQ_V320_FOCUS_T1', 'ลูกแก้วชาดปราณเริ่มต้น', 'WEAPON', 'FOCUS', 1, 'FIRE', 'ARRAY', { matk: 13, crit: 2, cast: 3 }, 'EFX_BURNING', { burnDamagePerTurn: 14 }, 'KW_ACCURACY', { add: 4 }, [['MAT_ORE_CINNABAR_1', 2], ['MAT_HERB_CINDER_LEAF_1', 1]]],
+    ['EQ_V320_FOCUS_T2', 'คทาศิลาหยกสะสมปราณ', 'WEAPON', 'FOCUS', 2, 'EARTH_METAL', 'ARRAY', { matk: 28, cast: 5, mdef: 12 }, 'EFX_QI_RESERVOIR', { reservoirCapacity: 150, leakagePerDay: 1 }, 'KW_CHARGE_CELL', { maxCells: 3, triggerOn: 'onCast' }, [['MAT_ORE_JADE_SLATE_2', 2], ['MAT_BP_BOAR_CORE_2', 1]]],
+    ['EQ_V320_BOW_T1', 'ธนูไม้ไผ่เขี้ยวหมาป่า', 'WEAPON', 'BOW', 1, 'WIND', 'FORGING', { atk: 12, acc: 10, crit: 2.5 }, 'EFX_INTENT_SENSE', { intentSensitivity: 30, firstTurnEvasionBonus: 0.08 }, 'KW_MARKSMAN_FOCUS', { maxStacks: 3, critPerStack: 3 }, [['MAT_BP_WOLF_FANG_1', 2], ['MAT_BP_WOLF_HAIR_1', 1]]],
+    ['EQ_V320_BOW_T2', 'ธนูศรเหล็กเย็นเล็งเป้า', 'WEAPON', 'BOW', 2, 'WATER_ICE', 'FORGING', { atk: 27, acc: 18, crit: 4 }, 'EFX_CHILL_FREEZE', { chillStacks: 1, slowRatio: 0.16 }, 'KW_MARKSMAN_FOCUS', { maxStacks: 4, critPerStack: 3 }, [['MAT_ORE_COLD_STEEL_2', 2], ['MAT_BP_BOAR_HIDE_2', 1]]],
+    ['EQ_V320_STAFF_T1', 'พลองไม้แก่นปราณคุ้มกาย', 'WEAPON', 'STAFF', 1, 'WOOD_LIFE', 'FORGING', { atk: 10, def: 8, hp: 22 }, 'EFX_BARRIER_SHIELD', { barrierCapacity: 100 }, 'KW_ABSORB_RELEASE', { pct: 0.12 }, [['MAT_HERB_DEW_GRASS_1', 2], ['MAT_ORE_BLACK_IRON_1', 1]]],
+    ['EQ_V320_STAFF_T2', 'พลองเหล็กเย็นปัดป้องคม', 'WEAPON', 'STAFF', 2, 'EARTH_METAL', 'FORGING', { atk: 23, def: 18, hp: 48 }, 'EFX_TIMED_PARRY', { parryMitigationRatio: 0.28, parryCharges: 1 }, 'KW_STATUS_TRANSFER', { cd: 3 }, [['MAT_ORE_COLD_STEEL_2', 2], ['MAT_BP_BOAR_HIDE_2', 1]]],
+    ['EQ_V320_SPEAR_T1', 'ทวนเหล็กดำทะลวงแนวหน้า', 'WEAPON', 'SPEAR', 1, 'EARTH_METAL', 'FORGING', { atk: 13, pen: 5, acc: 6 }, 'EFX_ARMOR_FRACTURE', { armorReductionRatio: 0.12 }, 'KW_PIERCE', { pct: 8, vsShield: 0.12 }, [['MAT_ORE_BLACK_IRON_1', 2], ['MAT_BP_WOLF_FANG_1', 1]]],
+    ['EQ_V320_SPEAR_T2', 'ทวนหนังเหล็กทะลุเกราะ', 'WEAPON', 'SPEAR', 2, 'EARTH_METAL', 'FORGING', { atk: 28, pen: 8, acc: 12 }, 'EFX_ARMOR_FRACTURE', { armorReductionRatio: 0.18 }, 'KW_ARMOR_READ', { perStack: 2, maxStacks: 5 }, [['MAT_ORE_COLD_STEEL_2', 2], ['MAT_BP_BOAR_CORE_2', 1]]],
+    ['EQ_V320_SWORD_T3', 'กระบี่เหลือมมรกตสะท้อนพิษ', 'WEAPON', 'SWORD', 3, 'WOOD_LIFE', 'FORGING', { atk: 58, crit: 5.5, acc: 20 }, 'EFX_TOXIN_INFECTION', { toxinPotency: 32, toxinKind: 'NEUROTOXIN' }, 'KW_CRIT_BREAK', { stacks: 1, dur: 3 }, [['MAT_BP_PYTHON_GALL_3', 2], ['MAT_ORE_STAR_COPPER_3', 2]]],
+    ['EQ_V320_LIGHT_T3', 'เกราะเบาเกล็ดเหลือมมรกต', 'ARMOR', 'LIGHT', 3, 'WOOD_LIFE', 'FORGING', { def: 46, mdef: 40, eva: 26, move: 5 }, 'EFX_SIDESTEP_EVASION', { evasionChanceBonus: 0.20, movementCost: 2 }, 'KW_ADAPTIVE_RESIST', { step: 0.04, max: 0.20 }, [['MAT_BP_PYTHON_SCALE_3', 2], ['MAT_BP_PYTHON_TENDON_3', 2]]],
+    ['EQ_V320_HEAVY_T3', 'เกราะหนักแม่เหล็กดูดศาสตรา', 'ARMOR', 'HEAVY', 3, 'EARTH_METAL', 'FORGING', { def: 68, mdef: 42, hp: 96, move: -3 }, 'EFX_WEAPON_MAGNET_DISARM', { weaponPenaltyRatio: 0.35, disarmChance: 0.35 }, 'KW_REFLECT', { pct: 12, cap: 0.18, filter: 'p', melee: true }, [['MAT_ORE_MAGNET_LODESTONE_3', 2], ['MAT_ORE_STAR_COPPER_3', 2]]],
+    ['EQ_V320_ROBE_T3', 'อาภรณ์เฟิร์นหมอกโบราณ', 'ARMOR', 'ROBE', 3, 'WATER_ICE', 'TALISMAN', { def: 36, mdef: 66, hp: 82, cast: 8 }, 'EFX_CONTROL_RESILIENCE', { controlDurationReductionRatio: 0.28, resilienceScore: 36 }, 'KW_FOCUS_WINDOW', { bonusPct: 0.12 }, [['MAT_HERB_ANCIENT_MIST_FERN_3', 2], ['MAT_HERB_MERIDIAN_FLOWER_3', 2]]],
+    ['EQ_V320_ROSARY_T3', 'ประคำเปิดชีพจรแปดทิศ', 'WEAPON', 'ROSARY', 3, 'LIGHT_YANG', 'TALISMAN', { matk: 56, mdef: 38, hp: 80 }, 'EFX_V200_BODHI_MERIT_PULSE', { pulseHeal: 85 }, 'KW_STATUS_TRANSFER', { cd: 3 }, [['MAT_HERB_MERIDIAN_FLOWER_3', 2], ['MAT_FORM_ARRAY_CORE_basic_3', 1]]],
+    ['EQ_V320_CLAW_T4', 'กรงเล็บเหล็กในเพลิงสุริยัน', 'WEAPON', 'CLAW', 4, 'FIRE', 'FORGING', { atk: 124, crit: 9, pen: 14, critDmg: 26 }, 'EFX_BURNING', { burnDamagePerTurn: 48 }, 'KW_CRIT_BREAK', { stacks: 2, dur: 3 }, [['MAT_BP_SCORPION_STING_4', 2], ['MAT_ORE_MITHRIL_JADE_4', 2]]],
+    ['EQ_V320_WHIP_T4', 'แส้ทองวิญญาณทรายดูด', 'WEAPON', 'WHIP', 4, 'EARTH_METAL', 'FORGING', { atk: 112, acc: 32, pen: 12, crit: 6 }, 'EFX_GRAVITY_QI_SEAL', { speedReductionRatio: 0.32, qiThroughputPenalty: 0.22 }, 'KW_TEMPO_STEAL', { rounds: 1, cd: 3 }, [['MAT_ORE_QUICKSAND_SPIRIT_GOLD_4', 2], ['MAT_BP_EARTH_CORE_4', 1]]],
+    ['EQ_V320_FIST_T5', 'สนับมืออุกกาบาตสะสมแรง', 'WEAPON', 'FIST', 5, 'FIRE', 'FORGING', { atk: 242, def: 82, cast: 12, pen: 16 }, 'EFX_V320_CHARGE_RELEASE', { mode: 'STRIKE', bonusDmgPct: 0.44, maxCells: 3 }, 'KW_CHARGE_CELL', { maxCells: 3, triggerOn: 'onHit' }, [['MAT_ORE_METEOR_IRON_5', 2], ['MAT_BP_HEAVEN_CORE_5', 2]]],
+    ['EQ_V320_BOW_T5', 'ธนูขนนกครุฑเจาะม่านฟ้า', 'WEAPON', 'BOW', 5, 'LIGHTNING', 'FORGING', { atk: 246, acc: 72, crit: 10, critDmg: 32 }, 'EFX_SHOCK_CONDUCTION', { shockDamage: 125, maxChainTargets: 3 }, 'KW_MARKSMAN_FOCUS', { maxStacks: 5, critPerStack: 4 }, [['MAT_BP_ROC_FEATHER_5', 2], ['MAT_ORE_METEOR_IRON_5', 2]]],
+    ['EQ_V320_NEEDLE_T5', 'เข็มไหมแดงด้ายชะตา', 'WEAPON', 'NEEDLE', 5, 'ASTRAL', 'TALISMAN', { atk: 165, matk: 185, acc: 64, pen: 20 }, 'EFX_V320_PAIRED_LINK', { syncHealPct: 0.12 }, 'KW_PIERCE', { pct: 22, vsShield: 0.35 }, [['MAT_WHIP_KARMIC_RED_SILK_5', 2], ['MAT_ORE_METEOR_IRON_5', 1]]],
+    ['EQ_V320_ROSARY_T5', 'ประคำบัวหิมะต้านทัณฑ์', 'WEAPON', 'ROSARY', 5, 'WATER_ICE', 'TALISMAN', { matk: 228, mdef: 110, hp: 240 }, 'EFX_TRIBULATION_SHIELD', { tribulationMitigationRatio: 0.28, maxSupportedLayers: 6 }, 'KW_LAST_BREATH', { shieldPct: 0.25, lifespanCost: 1 }, [['MAT_HERB_SNOW_LOTUS_5', 2], ['MAT_BP_HEAVEN_CORE_5', 1]]],
+    ['EQ_V320_BRAC_T6', 'กำไลพยัคฆ์ราชันย์สะท้อนคม', 'ACCESSORY', 'BRACELET', 6, 'LIGHT_YANG', 'FORGING', { atk: 145, def: 95, cast: 14, crit: 6 }, 'EFX_DAMAGE_REFLECT', { reflectRatio: 0.24, maxReflectCap: 560 }, 'KW_REFLECT', { pct: 16, cap: 0.22, filter: 'any' }, [['MAT_BP_TIGER_BONE_6', 2], ['MAT_ORE_DIVINE_GOLD_6', 1]]],
+    ['EQ_V320_NECK_T6', 'สร้อยผลท้อเซียนยืดอายุขัย', 'ACCESSORY', 'NECKLACE', 6, 'WOOD_LIFE', 'TALISMAN', { hp: 420, mdef: 120, def: 90 }, 'EFX_V320_SPIRIT_MENDING', { mendPerDay: 6 }, 'KW_FOCUS_WINDOW', { bonusPct: 0.18 }, [['MAT_HERB_IMMORTAL_PEACH_6', 2], ['MAT_BP_TIGER_BLOOD_6', 1]]],
+    ['EQ_V320_LIGHT_T6', 'เกราะเบาเพลิงเซียนเร่งจังหวะ', 'ARMOR', 'LIGHT', 6, 'FIRE', 'FORGING', { def: 320, mdef: 280, eva: 88, move: 12 }, 'EFX_HASTE_STEP', { dur: 60, speedBonus: 0.26 }, 'KW_ADAPTIVE_RESIST', { step: 0.04, max: 0.24 }, [['MAT_ORE_DIVINE_GOLD_6', 2], ['MAT_BP_TIGER_BONE_6', 2]]]
+  ];
+
+  // Fix typo in CLAW_T4 inputs cleanly
+  for (const row of EXTRA_V320) {
+    if (row[0] === 'EQ_V320_CLAW_T4') {
+      row[12] = [['MAT_BP_SCORPION_STING_4', 2], ['MAT_ORE_MITHRIL_JADE_4', 2]];
+    }
+    const [id, nameTh, slot, subType, tier, element, craft, st, efxId, efxParams, kwId, kwParams, rawInputs] = row;
+    V320_SPECS.push({
+      id, nameTh, slot, subType, tier, element, craft, st,
+      effects: [{ effectId: efxId, params: efxParams }],
+      combatKeywords: [{ kw: kwId, params: kwParams }],
+      obtainSources: tier <= 2 ? ['FORGE', 'MARKET'] : ['FORGE', 'MARKET', 'EXPEDITION'],
+      inputs: rawInputs.map(([matId, count]) => ({ matId, count })),
+      descTh: nameTh + ' — ยุทธภัณฑ์มาตรฐาน v3.2.0 ระดับ T' + tier + ' เสริมกลไก ' + kwId
+    });
+  }
+
+  for (const spec of V320_SPECS) {
+    const recId = 'REC_' + spec.id;
+    const el = spec.element || 'NEUTRAL';
+    const itemObj = {
+      id: spec.id,
+      recipeId: recId,
+      nameTh: spec.nameTh,
+      descTh: spec.descTh || spec.nameTh,
+      cat: spec.cat || 'EQUIPMENT',
+      out: 'EQUIPMENT',
+      slot: spec.slot,
+      subType: spec.subType,
+      gearType: spec.subType,
+      tier: spec.tier,
+      minStage: Math.max(1, spec.tier - 1),
+      value: TIER_VALUE[spec.tier] || (spec.tier * 90),
+      price: TIER_VALUE[spec.tier] || (spec.tier * 90),
+      craft: spec.craft || 'FORGING',
+      element: el,
+      elementProfile: EL_PROFILES[el] || EL_PROFILES.NEUTRAL,
+      dur: 100,
+      maxDur: 100,
+      durability: 100,
+      st: spec.st,
+      effects: spec.effects || [],
+      combatKeywords: spec.combatKeywords || [],
+      obtainSources: spec.obtainSources || (spec.tier <= 2 ? ['FORGE', 'MARKET'] : ['FORGE', 'MARKET', 'EXPEDITION']),
+      versionAdded: 'v3.2.0'
+    };
+    if (spec.slot === 'WEAPON') itemObj.weaponType = spec.subType;
+    if (spec.slot === 'ARMOR') itemObj.armorType = spec.subType;
+    if (Array.isArray(spec.grantedSkills) && spec.grantedSkills.length) itemObj.grantedSkills = spec.grantedSkills.slice();
+    if (Array.isArray(spec.skillModifiers) && spec.skillModifiers.length) itemObj.skillModifiers = spec.skillModifiers.slice();
+    if (spec.maxCharges > 0) {
+      itemObj.maxCharges = spec.maxCharges;
+      itemObj.charges = spec.maxCharges;
+      itemObj.isChargeTalisman = !!spec.isChargeTalisman;
+      itemObj.rechargeMatId = spec.rechargeMatId;
+    }
+    if (spec.resonanceSetId) itemObj.resonanceSetId = spec.resonanceSetId;
+    if (spec.pairedSetId) itemObj.pairedSetId = spec.pairedSetId;
+    if (spec.cursed) itemObj.cursed = true;
+    if (spec.pact) itemObj.pact = spec.pact;
+    if (spec.temperament) itemObj.temperament = spec.temperament;
+    if (spec.deedLedger) itemObj.deedLedger = true;
+    if (spec.upkeepMatId) {
+      itemObj.upkeepMatId = spec.upkeepMatId;
+      itemObj.upkeepIntervalDays = spec.upkeepIntervalDays || 14;
+    }
+    if (spec.provenanceLoreId) itemObj.provenanceLoreId = spec.provenanceLoreId;
+    if (Array.isArray(spec.lineage)) itemObj.lineage = spec.lineage.slice();
+    if (spec.grade) itemObj.grade = spec.grade;
+    if (spec.legendary) itemObj.legendary = true;
+
+    JD.ITEMS.items.push(itemObj);
+
+    const recObj = {
+      id: recId,
+      nameTh: 'ตำรับหลอม' + spec.nameTh,
+      craft: spec.craft || 'FORGING',
+      outType: 'EQUIPMENT',
+      outItemId: spec.id,
+      outNameTh: spec.nameTh,
+      gearType: spec.subType,
+      yield: 1,
+      tier: spec.tier,
+      minMastery: MIN_MASTERY[spec.tier] || 10,
+      starter: spec.tier <= 2,
+      discoverable: spec.tier >= 3,
+      inputs: spec.inputs,
+      versionAdded: 'v3.2.0'
+    };
+    JD.ITEMS.recipes.push(recObj);
+  }
+
+  JD.v320ResonanceSets = V320_SETS;
+})(typeof window !== 'undefined' ? window : globalThis);

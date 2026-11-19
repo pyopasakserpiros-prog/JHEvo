@@ -616,8 +616,11 @@
       return (it.uid || it.id || '') + ':' + (it._modVer || 0) + ':' + mSig + ':' + rSig + ':' + gSig;
     };
     const eqKey = slotSig(eq.WEAPON) + '|' + slotSig(eq.ARMOR) + '|' + slotSig(eq.ACCESSORY);
+    const archState = n.archetypeMasteryState;
+    const archId = (archState && archState.archetypeId) || n.subpathArchetype || null;
+    const archTier = (archState && archState.tier) || n.subpathArchetypeTier || 0;
     const slc = n._skListCache;
-    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === effSt && slc.mantra === c.mantra && slc.tl === tl && slc.tSig === tSig && slc.eqKey === eqKey && slc.ver === (n._passVer || 0)) {
+    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === effSt && slc.mantra === c.mantra && slc.tl === tl && slc.tSig === tSig && slc.eqKey === eqKey && slc.archId === archId && slc.archTier === archTier && slc.ver === (n._passVer || 0)) {
       return slc.out;
     }
     const activeIds = (g.MARTIAL ? g.MARTIAL.activeTechs(n) : n.cult.techs).slice();
@@ -658,15 +661,15 @@
         }
       }
     }
-    if (SK.getArchetypeSignatureSkills && n.subpathArchetypeMastery) {
-      const sigSkills = SK.getArchetypeSignatureSkills(n);
+    if (SK.getArchetypeSignatureSkills && archId && archTier >= 4) {
+      const sigSkills = SK.getArchetypeSignatureSkills(archId, archTier);
       if (Array.isArray(sigSkills)) {
         for (const sm of sigSkills) {
           if (sm && sm.id && !out.some(x => x.id === sm.id)) out.push(sm);
         }
       }
     }
-    n._skListCache = { path: c.path, sub: c.sub, st: effSt, mantra: c.mantra, tl, tSig, eqKey, ver: n._passVer || 0, out };
+    n._skListCache = { path: c.path, sub: c.sub, st: effSt, mantra: c.mantra, tl, tSig, eqKey, archId, archTier, ver: n._passVer || 0, out };
     return out;
   };
 

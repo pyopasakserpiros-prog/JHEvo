@@ -1,6 +1,6 @@
 # JS2 v3.1.0 Living Lore — Codex design proposals for Gemini
 
-These are new story and systems proposals against the v3.0.0 source. Place IDs are real anchors. Proposed people, names, incidents, local customs, uses and rewards require your design and source verification. Start with the [active assignment](../../ACTIVE_PATCH_PROMPT_V3_1_0.md) and [lore source map](JS2_V3_1_0_LORE_SOURCE_MAP.md). Gemini has the final say and should invent and ship original ideas of its own.
+These are new story and systems proposals against the v3.0.0 source. Place IDs are real anchors. Proposed people, names, incidents, local customs, uses and rewards require your design and source verification. Start with the [archived v3.1.0 assignment](../historical_prompts/ACTIVE_PATCH_PROMPT_V3_1_0.md) and [lore source map](JS2_V3_1_0_LORE_SOURCE_MAP.md). Gemini has the final say and should invent and ship original ideas of its own.
 
 ## Where the current lore could grow
 

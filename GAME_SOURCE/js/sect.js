@@ -940,8 +940,8 @@
       if (n.rank < 3) n.rank = 3;
       W.sect.successorId = n.id;
     } else {
-      if (n.rank < Math.max(4, reqRank)) n.rank = Math.max(4, reqRank);
-      n.isElder = true;
+      if (n.rank < reqRank) n.rank = reqRank;
+      if (reqRank >= 4) n.isElder = true;
     }
     W.sect.posts[post] = n.id; n.sat = Math.min(100, (n.sat || 60) + 12);
     HC.experience(n, 'promoted', 1);
@@ -1236,11 +1236,14 @@
       entries.push({ npc: h, post, spec, bonus });
       totalNeeded += bonus;
     });
-    const avail = Math.max(0, (W.sect.stones || 0) - 100);
-    const scale = totalNeeded > 0 ? Math.min(1, avail / totalNeeded) : 1;
+    const maxBudget = opts.forceFull ? Math.max(0, W.sect.stones || 0) : Math.max(0, (W.sect.stones || 0) - 100);
+    const scale = totalNeeded > 0 ? Math.min(1, maxBudget / totalNeeded) : 1;
     let totalPaid = 0;
+    let remainingBudget = maxBudget;
     entries.forEach(({ npc, post, spec, bonus }) => {
-      const paid = Math.max(opts.forceFull ? bonus : 0, Math.round(bonus * (opts.forceFull ? 1 : scale)));
+      const want = Math.round(bonus * scale);
+      const paid = opts.free ? bonus : Math.max(0, Math.min(remainingBudget, want));
+      if (!opts.free) remainingBudget -= paid;
       if (paid > 0) {
         npc.inv.stones = (npc.inv.stones || 0) + paid;
         npc.personalStones = (npc.personalStones || 0) + paid;
@@ -6966,9 +6969,11 @@
       // High undercurrent crisis: most dissatisfied clique leader challenges leadership or stages a schism
       const aggrievedId = SECT.CLIQUE_IDS.slice().sort((a, b) => (pol.cliques[a].satisfaction || 50) - (pol.cliques[b].satisfaction || 50))[0];
       const aggClique = pol.cliques[aggrievedId];
-      const challenger = (aggClique && aggClique.leaderId && W.byId[aggClique.leaderId]) || W.npcs.find(n => n && !n.dead && n.id !== W.sect.masterId);
+      const rawLeader = aggClique && aggClique.leaderId && W.byId[aggClique.leaderId];
+      const validChallenger = u => !!(u && !u.dead && !u.away && !u.exiled && u.id !== W.sect.masterId);
+      const challenger = validChallenger(rawLeader) ? rawLeader : W.npcs.find(validChallenger);
       const master = W.byId[W.sect.masterId];
-      if (challenger && master && challenger.id !== master.id) {
+      if (challenger && master && !master.dead && !master.away && challenger.id !== master.id) {
         W.duelQueue = W.duelQueue || [];
         if (!W.duelQueue.some(d => d.kind === 'leadership')) {
           W.duelQueue.push({ a: challenger.id, b: master.id, kind: 'leadership', serious: false, cause: 'UNDERCURRENT_CRISIS' });
@@ -18584,4 +18589,111 @@
       return res;
     };
   }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === LIVING_LORE_SECT_AUTONOMY_V310 === */
+(function initLivingLoreSectAutonomy(g) {
+  'use strict';
+  const SECT = g.SECT, HC = g.HC, CULT = g.CULT, U = g.U;
+  if (!SECT || !SECT.AUTONOMY || !HC || !U) return;
+  const clamp = U.clamp, E = (n, p) => HC.eff(n, p);
+
+  const _origOpportunitiesLore = SECT.AUTONOMY.opportunities;
+  SECT.AUTONOMY.opportunities = function(W, n) {
+    const out = _origOpportunitiesLore ? _origOpportunitiesLore.call(this, W, n) : [];
+    if (!this.eligible(W, n) || !g.EXPED || !g.EXPED.LIVING_LORE || !g.COG) return out;
+
+    const day = W.day || 0;
+    const stage = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : ((n.cult && n.cult.stage) || 1);
+    if (stage < 3 && (n.rank || 0) < 2 && !n.post && n.id !== W.sect.masterId) return out;
+    const history = n.autonomousOpportunities || {};
+    if (history['@lore'] != null && day - history['@lore'] < 5) return out;
+
+    const addLoreOpt = (id, reasonTh, score, cooldownDays, run) => {
+      if (history[id] != null && day - history[id] < cooldownDays) return;
+      out.push({ id, reasonTh, score: clamp(score, 0.08, 1.45), run });
+    };
+
+    const ll = W.world && W.world.livingLore;
+    const nLore = g.COG.peekLoreState ? g.COG.peekLoreState(n) : null;
+    const curiosity = E(n, 'personality.curiosity') / 100;
+    const scholar = E(n, 'values.knowledgeCraft') / 100;
+    const duty = E(n, 'values.sectDuty') / 100;
+
+    // 1. Active Story Leads held by this NPC
+    if (ll && nLore && Array.isArray(nLore.activeLeads)) {
+      for (const storyId of nLore.activeLeads) {
+        const st = ll.stories && ll.stories[storyId];
+        const sDef = g.EXPED.LIVING_LORE.STORY_BY_ID[storyId];
+        if (!st || !sDef || st.status === 'resolved') continue;
+        const sc = 0.38 + curiosity * 0.35 + scholar * 0.25;
+        addLoreOpt(
+          'lore:story:' + storyId,
+          'สืบค้นและสอบทานหลักฐานเรื่อง「' + sDef.titleTh + '」ตามเบาะแสที่ตนรับรู้',
+          sc,
+          6,
+          () => g.EXPED.advanceLivingLoreStory(W, n, storyId, {
+            witnessIds: [n.id],
+            sourceKind: st.stageIdx === 0 ? 'library_stele' : 'city_ledger'
+          })
+        );
+      }
+    }
+
+    // 2. Officer / Domain-matched Story Chain progression when a story is active or contested
+    if (ll && ll.stories) {
+      const post = n.post || (n.id === W.sect.masterId ? 'master' : n.id === W.sect.deputyId ? 'deputy' : null);
+      if (post || E(n, 'personality.curiosity') >= 62) {
+        for (const sDef of g.EXPED.LIVING_LORE.STORY_CHAINS) {
+          const st = ll.stories[sDef.id];
+          if (!st || st.status === 'resolved') continue;
+          const domainFit =
+            (sDef.category === 'CRAFT_LABOR' && ['forge', 'alchemy'].includes(post)) ||
+            (sDef.category === 'RELIC_MAKER_LINEAGE' && ['forge', 'arraymaster'].includes(post)) ||
+            (sDef.category === 'MARTIAL_SCHISM' && ['scripture', 'martial', 'master'].includes(post)) ||
+            (sDef.category === 'SECT_LINEAGE' && ['master', 'deputy', 'scripture', 'disciples'].includes(post)) ||
+            (sDef.category === 'EPIDEMIC_RECOVERY' && ['healer', 'herbal', 'alchemy'].includes(post)) ||
+            (sDef.category === 'FOLK_MEMORIAL' && ['healer', 'envoy'].includes(post)) ||
+            (sDef.category === 'ECOLOGY_BEAST' && ['beastmaster', 'wildwarden'].includes(post)) ||
+            (sDef.category === 'GEOGRAPHY_ROUTE' && ['quartermaster', 'mission'].includes(post)) ||
+            (sDef.category === 'DYNASTY_TRADE' && ['treasury', 'marketmaster', 'envoy'].includes(post)) ||
+            (sDef.category === 'SLICE_OF_LIFE' && ['provision', 'steward'].includes(post)) ||
+            (sDef.category === 'BREAKTHROUGH_LORE' && ['scripture', 'healer', 'master'].includes(post)) ||
+            (sDef.category === 'EPITHET_DISPUTE' && ['spymaster', 'scripture', 'envoy'].includes(post));
+          if (!domainFit && st.status === 'dormant') continue;
+          const sc = 0.32 + (domainFit ? 0.28 : 0) + duty * 0.22 + curiosity * 0.18;
+          addLoreOpt(
+            'lore:domain:' + sDef.id,
+            'ใช้ความเชี่ยวชาญตรวจชำระเรื่อง「' + sDef.titleTh + '」',
+            sc,
+            8,
+            () => g.EXPED.advanceLivingLoreStory(W, n, sDef.id, {
+              witnessIds: [n.id],
+              sourceKind: domainFit ? 'workshop_practice' : 'library_stele'
+            })
+          );
+          break; // keep candidate list compact (at most 1 domain story per check)
+        }
+      }
+    }
+
+    // 3. Compile verified personal lore into the Sect Lore Archive
+    if (nLore && nLore.knownFacts && Array.isArray(W.sect.loreArchive)) {
+      for (const entry of Object.values(nLore.knownFacts)) {
+        if (!entry || entry.status !== 'verified' || W.sect.loreArchive.includes(entry.factId)) continue;
+        const fDef = g.EXPED.LIVING_LORE.FACT_BY_ID[entry.factId];
+        if (!fDef) continue;
+        addLoreOpt(
+          'lore:archive:' + entry.factId,
+          'เรียบเรียงความจริงที่พิสูจน์แล้วเรื่อง「' + fDef.titleTh + '」ขึ้นทะเบียนหอจดหมายเหตุสำนัก',
+          0.48 + scholar * 0.35 + duty * 0.20,
+          10,
+          () => g.EXPED.compileLoreToSectArchive(W, n, entry.factId)
+        );
+        break;
+      }
+    }
+
+    return out;
+  };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

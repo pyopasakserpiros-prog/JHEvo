@@ -4530,6 +4530,7 @@
       const seats = Object.values(court.seats).filter(seat => seat.stationId === node.id);
       h += seats.map(seat => courtSeatDetails(W,state,seat)).join('');
     }
+    if (typeof UI.renderSettlementLoreHtml === 'function') h += UI.renderSettlementLoreHtml(W, node.id);
     return h;
   }
   function atlasCategory(n) {
@@ -5796,11 +5797,63 @@
         parts.push((inf ? inf.nameTh : k) + " " + (v >= 0 ? "+" : "") + Math.round(v * 10) / 10 + (isPct ? "%" : ""));
       });
     }
+    if (eq.maxCharges > 0) parts.push("ประจุ " + (eq.charges != null ? eq.charges : eq.maxCharges) + "/" + eq.maxCharges);
+    if (eq.deeds && eq.deeds.stage) parts.push("จารึกวีรกรรม ขั้น " + (eq.deeds.stage === 3 ? "III" : eq.deeds.stage === 2 ? "II" : "I"));
+    const _tempTh = { PRIDEFUL: "หยิ่งทระนง", CAUTIOUS: "สุขุมรอบคอบ", GREEDY: "ละโมบทรัพย์", RIGHTEOUS: "เที่ยงธรรม" };
+    if (eq.temperament) parts.push("จิตวิญญาณ: " + (_tempTh[eq.temperament] || eq.temperament));
+    if (eq.cursed) parts.push("ศาสตราต้องสาป");
+    if (eq.pact && eq.pact.labelTh) parts.push("สัญญาผนึก: " + eq.pact.labelTh);
+    if (eq.upkeepMatId) parts.push("ต้องเลี้ยงดูทุก " + (eq.upkeepIntervalDays || 14) + " วัน");
+    if (eq.pairedSetId) parts.push("สั่นพ้องคู่พันธะ");
+    if (eq.dormant) parts.push("สถานะ: หลับใหล (รอวัสดุเลี้ยงดู)");
+    if (Array.isArray(eq.combatKeywords) && eq.combatKeywords.length) {
+      const kwLabels = eq.combatKeywords.map(k => {
+        const kid = typeof k === "string" ? k : (k && (k.id || k.kw));
+        const cat = (g.COMBAT && ((g.COMBAT.KEYWORDS_CATALOG && g.COMBAT.KEYWORDS_CATALOG[kid]) || (g.COMBAT.EQUIPMENT_KEYWORDS_CATALOG && g.COMBAT.EQUIPMENT_KEYWORDS_CATALOG[kid]))) || null;
+        return cat ? cat.nameTh.split(" (")[0] : kid;
+      }).filter(Boolean);
+      if (kwLabels.length) parts.push("คีย์เวิร์ด: " + kwLabels.join(", "));
+    }
+    if (Array.isArray(eq.lineage) && eq.lineage.length) parts.push("รอยจำผู้ถือครอง " + eq.lineage.length + " รุ่น");
+    if (eq.provenanceLoreId) parts.push("ตำนานเชื่อมโยง: " + eq.provenanceLoreId);
     if (Array.isArray(eq.effects) && eq.effects.length) {
       eq.effects.forEach(ef => { if (ef.nameTh || ef.effectId) parts.push(ef.nameTh || ef.effectId); });
     }
     return parts.length ? parts.join(" · ") : "อุปกรณ์เสริมกำลังยุทธ์";
   }
+
+  UI.formatExternalWorldEventsSummary = (W) => {
+    if (!W || !g.EXPED || !g.EXPED.EXTERNAL_WORLD_EVENTS) return '';
+    const sum = g.EXPED.EXTERNAL_WORLD_EVENTS.peekSummary(W);
+    if (!sum.activeCount && !sum.resolvedCount) return 'โลกภายนอกสงบ';
+    const parts = ['อีเวนต์โลกภายนอก ' + sum.activeCount + ' เหตุการณ์ (คลี่คลายแล้ว ' + sum.resolvedCount + ')'];
+    if (sum.activeNamesTh.length) parts.push('กำลังเกิด: ' + sum.activeNamesTh.join(', '));
+    if (sum.recentTh) parts.push('ล่าสุด: ' + sum.recentTh);
+    return parts.join(' · ');
+  };
+
+  UI.formatTacticalSixPathSummary = (W, n) => {
+    if (!n || n.foe) return '';
+    const parts = [];
+    if (g.COMBAT && g.COMBAT.inferDefaultRow) {
+      const r = g.COMBAT.inferDefaultRow(n);
+      parts.push(r === 'BACK_ROW' ? 'แนวหลัง (Back Row)' : 'แนวหน้า (Front Row)');
+    }
+    if (n.voluntaryVow && n.voluntaryVow.active) {
+      parts.push('สัจจะ: ' + n.voluntaryVow.nameTh);
+    }
+    if (n.secRes && n.secRes.stacks > 0) {
+      parts.push(n.secRes.nameTh + ' ' + n.secRes.stacks + '/' + n.secRes.max);
+    }
+    if (n.weaponAffinity && n.weaponAffinity.strikes > 0) {
+      parts.push('คุ้นเคยศาสตรา ' + n.weaponAffinity.strikes + '/8');
+    }
+    if (n.sixPathMastery && g.CULT && g.CULT.SIX_PATH_MASTERY) {
+      const sm = g.CULT.SIX_PATH_MASTERY.getStatBonuses(W, n);
+      if (sm && sm.summaryTh) parts.push(sm.summaryTh);
+    }
+    return parts.join(' · ');
+  };
 
   function buildPersonalBagItems(W, n) {
     const items = [];
@@ -7715,7 +7768,7 @@
       h += '<div class="muted" style="margin-bottom:8px">เครื่องมือทดลองสำหรับผู้สังเกตการณ์ — ไม่ใช่ส่วนหนึ่งของระบบสำนักตามปกติ ใช้ดูว่า NPC ตัดสินใจอย่างไรเมื่อเกิดเหตุ</div>';
       h += [['stones', '💎 มอบศิลา 1,000'], ['food', '🍚 มอบเสบียง'], ['raid', '⚠ เรียกโจรบุก'], ['beast', '🐺 เรียกอสูรบุก'], ['recruit', '🧑‍🎓 เรียกผู้สมัครเข้าสำนัก'], ['banquet', '🎎 ให้เจ้าสำนักจัดงานเลี้ยง'], ['tourney', '🏆 ให้เจ้าสำนักจัดประลองยุทธ์'], ['challenge', '⚔ ให้ผู้อาวุโสท้าชิงตำแหน่ง'], ['heal', '✨ รักษาทุกคนจนหาย']].map(t => '<button class="btn" data-do="tool" data-arg="' + t[0] + '">' + t[1] + '</button>').join('');
     } else {
-      h += '<div class="card"><b>สำนักเมฆาหยก v1.10 · ยุทธภพและสายวิชา</b><div class="muted">เกมจำลองสำนักยุทธภพแบบ sandbox — NPC ทุกคนมี “แกนมนุษย์” ชุดเดียวกัน 155 มิติ (บุคลิก 14 · คุณค่า 8 · กาย 22 · ปัญญา 18 · สังคม 7 · อารมณ์ 7 · ความสนใจ 24 · พรสวรรค์ 6 · ความถนัด · ทักษะ) ตัดสินใจเองจากตัวตน ไม่มีสคริปต์ตายตัว</div></div><div class="card"><b>ข้อมูลเกม</b><div class="muted">เมล็ดโลก: ' + esc(G.W.seed) + ' · เวอร์ชันแกน: ' + esc(HC.FINGERPRINT) + '<br>ข้อมูลวิถี/โอสถ/คัมภีร์/อสูรสกัดจาก Jianghu Universal Game Data Pack v1</div></div>';
+      h += '<div class="card"><b>สำนักเมฆาหยก v' + esc((g.SIM && g.SIM.PATCH_VERSION) || '3.5.0b') + ' · ยุทธภพและสายวิชา</b><div class="muted">เกมจำลองสำนักยุทธภพแบบ sandbox — NPC ทุกคนมี “แกนมนุษย์” ชุดเดียวกัน 155 มิติ (บุคลิก 14 · คุณค่า 8 · กาย 22 · ปัญญา 18 · สังคม 7 · อารมณ์ 7 · ความสนใจ 24 · พรสวรรค์ 6 · ความถนัด · ทักษะ) ตัดสินใจเองจากตัวตน ไม่มีสคริปต์ตายตัว</div></div><div class="card"><b>ข้อมูลเกม</b><div class="muted">เมล็ดโลก: ' + esc(G.W.seed) + ' · เวอร์ชันแกน: ' + esc(HC.FINGERPRINT) + '<br>ข้อมูลวิถี/โอสถ/คัมภีร์/อสูรสกัดจาก Jianghu Universal Game Data Pack v1</div></div>';
     }
     return h;
   };
@@ -8290,6 +8343,320 @@
         '<div class="muted" style="margin:4px 0">รูปลักษณ์รองรับ ' + forms.length + ' รูปแบบ · ขั้นตื่นรู้ปัจจุบัน: ' + (reg.awakeningStage || 0) + '/5 · ตราประทับบรรพชน: ' + ((reg.imprints || []).length) + ' ตรา</div>' +
         '</div>';
       return html + studio;
+    };
+  }
+})();
+
+
+/* ============================================================================
+ * JS2-v3.1.0 — LIVING LORE READ-ONLY OBSERVER UI SURFACES
+ * (Zero RNG Consumption, Zero State Mutation, Secret-Gated Epistemic Views)
+ * ============================================================================ */
+;(function initLivingLoreUiSurfaces() {
+  'use strict';
+  const g = typeof globalThis !== 'undefined' ? globalThis : window;
+  const UI = g.UI, EXPED = g.EXPED, COG = g.COG, HC = g.HC;
+  if (!UI) return;
+
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  const STATUS_CHIP_CLASS = {
+    verified: 'ok',
+    contested: 'r',
+    believed: 'b',
+    rumor: '',
+    active: 'b',
+    resolved: 'ok',
+    dormant: ''
+  };
+
+  const STORY_STATUS_TH = {
+    dormant: 'รอผู้ค้นพบเบาะแส',
+    active: 'กำลังสืบค้นสายที่ 1',
+    contested: 'หลักฐานสองกระแสขัดแย้ง (รอพิสูจน์สายที่ 2)',
+    resolved: 'พิสูจน์และคลี่คลายแล้ว'
+  };
+
+  function atlasFocusBtn(node, labelTh) {
+    if (!node || !node.id) return '';
+    const data = node.nodeId ? node : { nodeId: node.id, nameTh: node.nameTh, x: node.x, y: node.y, macroRegion: node.macroRegion };
+    return ' <button type="button" class="chip atlas-location" data-do="atlas-event" data-arg="' +
+      esc(JSON.stringify(data)) + '">' + esc(labelTh || ('📍 ' + (node.nameTh || node.id))) + '</button>';
+  }
+
+  // 1. Settlement Lore HTML for World Atlas City Detail Panel
+  UI.renderSettlementLoreHtml = (W, nodeId) => {
+    if (!W || !nodeId || !g.EXPED || !g.EXPED.getSettlementLoreView) return '';
+    const view = g.EXPED.getSettlementLoreView(W, nodeId);
+    if (!view) return '';
+    const hasFallen = Array.isArray(view.fallenDynasties) && view.fallenDynasties.length > 0;
+    const hasFacts = Array.isArray(view.facts) && view.facts.length > 0;
+    const hasStories = Array.isArray(view.stories) && view.stories.length > 0;
+    if (!hasFallen && !hasFacts && !hasStories) return '';
+
+    let h = '<div class="atlas-lore-box" style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line,#3a3f4a)">';
+    if (hasFallen) {
+      for (const d of view.fallenDynasties) {
+        h += '<div class="atlas-fact">🏛️ <b>ร่องรอยราชวงศ์โบราณ: ' + esc(d.nameTh) + '</b> <span class="muted">(' + esc(d.eraTh) + ')</span>' +
+          '<div class="muted" style="font-size:11.5px">• หลักฐานในพื้นที่: ' + esc(d.remnantSignTh) + '</div>' +
+          '<div class="muted" style="font-size:11.5px">• มุมมองทางการ: ' + esc(d.courtAccountTh) + '</div>' +
+          '<div class="muted" style="font-size:11.5px">• คำบอกเล่าท้องถิ่น: ' + esc(d.folkAccountTh) + '</div></div>';
+      }
+    }
+    if (hasFacts) {
+      h += '<div class="atlas-fact"><b>📜 ตำนานและบันทึกท้องถิ่น (' + view.facts.length + ')</b>';
+      for (const f of view.facts) {
+        h += '<div style="margin-top:3px;font-size:11.5px"><span class="chip ' + (STATUS_CHIP_CLASS[f.status] || '') + '">' +
+          esc(f.accountLabelTh || f.status) + '</span> <b>' + esc(f.titleTh) + '</b>: <span class="muted">' + esc(f.summaryTh) + '</span></div>';
+      }
+      h += '</div>';
+    }
+    if (hasStories) {
+      h += '<div class="atlas-fact"><b>🧭 สายเรื่องราวที่เชื่อมโยง (' + view.stories.length + ')</b>';
+      for (const s of view.stories) {
+        h += '<div style="margin-top:3px;font-size:11.5px"><span class="chip ' + (STATUS_CHIP_CLASS[s.status] || '') + '">' +
+          esc(STORY_STATUS_TH[s.status] || s.status) + '</span> <b>' + esc(s.titleTh) + '</b>' +
+          (s.resolutionLabelTh ? (' — <span class="muted">' + esc(s.resolutionLabelTh) + '</span>') : '') + '</div>';
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  };
+
+  // 2. NPC Sheet Living Lore & Epistemic Beliefs Card
+  UI.renderNpcLivingLoreCard = (W, n) => {
+    if (!W || !n || !g.COG || !g.COG.getNpcLoreSummary) return '';
+    const sum = g.COG.getNpcLoreSummary(W, n);
+    if (!sum) return '';
+
+    let h = '<div class="card npc-living-lore-card" style="margin-top:8px;border-color:rgba(167,139,250,0.45)">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
+      '<b>📜 ความรู้ ตำนาน และมุมมองประวัติศาสตร์ (Living Lore &amp; Beliefs)</b>' +
+      '<span class="chip b">รู้ ' + sum.totalKnown + ' เรื่อง · พิสูจน์แล้ว ' + sum.verifiedCount + ' · ขัดแย้ง ' + sum.contestedCount + '</span></div>';
+
+    if (sum.hometownTh || sum.polityTh) {
+      h += '<div class="muted" style="font-size:11.5px;margin-top:3px">🏠 รากเหง้าภูมิลำเนา: <b>' +
+        esc(sum.hometownTh || 'ไม่ระบุเมือง') + '</b>' + (sum.polityTh ? (' (' + esc(sum.polityTh) + ')') : '') +
+        (sum.debatesCount ? (' · ถกเถียงตีความแล้ว ' + sum.debatesCount + ' ครั้ง') : '') + '</div>';
+    }
+
+    if (Array.isArray(sum.activeLeads) && sum.activeLeads.length > 0 && g.EXPED && g.EXPED.LIVING_LORE) {
+      const leadBadges = sum.activeLeads.map(sid => {
+        const sDef = g.EXPED.LIVING_LORE.STORY_BY_ID && g.EXPED.LIVING_LORE.STORY_BY_ID[sid];
+        return sDef ? ('<span class="chip v" style="font-size:11px">🧭 ' + esc(sDef.titleTh) + '</span>') : '';
+      }).filter(Boolean).join(' ');
+      if (leadBadges) {
+        h += '<div style="margin-top:5px;font-size:11.5px"><span class="muted">เบาะแสที่กำลังสนใจสืบค้น:</span> ' + leadBadges + '</div>';
+      }
+    }
+
+    if (Array.isArray(sum.adoptedCustoms) && sum.adoptedCustoms.length > 0 && W.world && W.world.livingLore && W.world.livingLore.adoptedCustoms) {
+      const cLabels = sum.adoptedCustoms.map(cid => {
+        const cObj = W.world.livingLore.adoptedCustoms[cid];
+        return cObj ? ('<span class="chip ok" style="font-size:11px">✦ ' + esc(cObj.labelTh) + '</span>') : '';
+      }).filter(Boolean).join(' ');
+      if (cLabels) {
+        h += '<div style="margin-top:5px;font-size:11.5px"><span class="muted">ธรรมเนียมที่นำมาปฏิบัติ:</span> ' + cLabels + '</div>';
+      }
+    }
+
+    if (sum.facts.length > 0) {
+      h += '<div style="margin-top:6px;display:flex;flex-direction:column;gap:5px">';
+      for (const f of sum.facts.slice(0, 10)) {
+        const chipCls = STATUS_CHIP_CLASS[f.status] || '';
+        h += '<div style="padding:5px 7px;border:1px solid var(--line,#3a3f4a);border-radius:6px;font-size:11.5px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">' +
+          '<b>' + esc(f.titleTh) + '</b>' +
+          '<span><span class="chip ' + chipCls + '" style="font-size:10.5px">' + esc(f.statusLabelTh) + '</span> ' +
+          '<span class="chip" style="font-size:10.5px">เชื่อมั่น ' + f.confidence + '% · หลักฐานอิสระ ' + f.independentLineages + ' สาย</span></span></div>' +
+          '<div style="margin-top:2px;color:#d8b4fe">มุมมองที่ยึดถือ: <b>' + esc(f.accountLabelTh) + '</b> <span class="muted">(' + esc(f.sourceLabelTh) +
+          (f.learnedFromNameTh ? (' จาก ' + esc(f.learnedFromNameTh)) : '') + ')</span></div>' +
+          '<div class="muted" style="margin-top:2px">' + esc(f.summaryTh) + '</div>';
+        if (f.contestedAccountId && f.contestedLabelTh) {
+          h += '<div style="margin-top:3px;padding-top:3px;border-top:1px dotted var(--line,#3a3f4a);color:#fca5a5">' +
+            '⚡ กระแสที่ขัดแย้งกัน: <b>' + esc(f.contestedLabelTh) + '</b> — <span class="muted">' + esc(f.contestedSummaryTh || '') + '</span></div>';
+        }
+        h += '</div>';
+      }
+      h += '</div>';
+    } else {
+      h += '<div class="muted" style="margin-top:4px;font-size:11.5px">ยังไม่มีบันทึกตำนานเฉพาะตัว</div>';
+    }
+    h += '</div>';
+    return h;
+  };
+
+  // 3. World Tab Living Lore & 20 Story Chains Archive Panel
+  UI.renderWorldLivingLoreArchive = W => {
+    if (!W || !g.EXPED || !g.EXPED.getLivingLorePlayerView) return '';
+    const view = g.EXPED.getLivingLorePlayerView(W);
+    if (!view) return '';
+
+    let h = '<div class="card living-lore-world-archive" style="margin-top:10px;border-color:rgba(167,139,250,0.5)">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px">' +
+      '<div><h3 style="margin:0">📚 หอจดหมายเหตุตำนานมีชีวิต · 4 ชั้นความจริง &amp; 20 สายเรื่องราว (Living Lore Archive)</h3>' +
+      '<div class="muted" style="font-size:11.5px">ติดตามความรู้ที่ศิษย์ค้นพบจากการเยือนเมือง การสนทนา การตรวจศิลาจารึก และการคลี่คลายเรื่องเล่าที่ขัดแย้งกันเองตามธรรมชาติ</div></div>' +
+      '<div><span class="chip ok">ขึ้นทะเบียนหอคัมภีร์ ' + view.archivedCount + ' เรื่อง</span> ' +
+      '<span class="chip b">กำลังสืบค้น ' + view.activeStoriesCount + ' สาย</span> ' +
+      '<span class="chip v">คลี่คลายแล้ว ' + view.resolvedStoriesCount + '/20 สาย</span></div></div>';
+
+    // Section A: Active & Resolved Playable Story Chains
+    h += '<details open style="margin-top:6px"><summary style="cursor:pointer;font-weight:700">🧭 สายเรื่องราวและการสืบค้นในโลกยุทธภพ (20 Playable Story Chains)</summary>';
+    h += '<div style="margin-top:6px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px">';
+    for (const s of view.stories) {
+      const chipCls = STATUS_CHIP_CLASS[s.status] || '';
+      h += '<div style="padding:7px 9px;border:1px solid var(--line,#3a3f4a);border-radius:6px;font-size:11.5px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap">' +
+        '<b>' + esc(s.titleTh) + '</b>' +
+        '<span class="chip ' + chipCls + '" style="font-size:10px">' + esc(STORY_STATUS_TH[s.status] || s.status) + ' (' + (s.status === 'resolved' ? s.totalStages : s.stageIdx) + '/' + s.totalStages + ')</span></div>' +
+        '<div class="muted" style="margin-top:3px">' + esc(s.summaryTh) + '</div>';
+      if (s.status === 'resolved' && s.resolutionLabelTh) {
+        h += '<div style="margin-top:4px;color:#86efac">✔ <b>บทสรุปที่ศิษย์เลือก:</b> ' + esc(s.resolutionLabelTh) + '</div>' +
+          '<div class="muted" style="font-size:11px">ผลสะท้อนต่อโลก: ' + esc(s.resolutionConsequenceTh || '') + '</div>';
+      } else if (s.currentStageTitleTh && s.status !== 'dormant') {
+        h += '<div style="margin-top:4px;color:#93c5fd">▶ <b>ขั้นปัจจุบัน:</b> ' + esc(s.currentStageTitleTh) + '</div>';
+      }
+      if (s.witnessNamesTh && s.witnessNamesTh.length) {
+        h += '<div class="muted" style="margin-top:3px;font-size:11px">พยาน/ผู้สืบค้น: ' + esc(s.witnessNamesTh.join('、')) + '</div>';
+      }
+      if (s.locationNode) {
+        h += '<div style="margin-top:4px">' + atlasFocusBtn(s.locationNode, '📍 ' + s.locationNode.nameTh) + '</div>';
+      }
+      h += '</div>';
+    }
+    h += '</div></details>';
+
+    // Section B: 4 Epistemic Layers (with secret gating for Layer 3 & Layer 4)
+    h += '<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">🏛️ 4 ชั้นความจริงแห่งประวัติศาสตร์ (ตำนานชาวบ้าน · พงศาวดารราชสำนัก · อรรถาธิบายสำนัก · ความจริงที่พิสูจน์แล้ว)</summary>';
+    for (const layer of view.layers) {
+      h += '<div style="margin-top:8px;padding:6px 8px;border-left:3px solid #a78bfa;background:rgba(167,139,250,0.04)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><b>' + esc(layer.nameTh) + '</b>' +
+        '<span class="chip" style="font-size:10.5px">ค้นพบแล้ว ' + layer.discoveredCount + '/' + layer.totalCount + ' เรื่อง</span></div>' +
+        '<div class="muted" style="font-size:11px;margin-bottom:5px">' + esc(layer.descTh) + '</div>';
+      for (const f of layer.facts) {
+        if (f.veiled) {
+          h += '<div class="muted" style="padding:3px 0;font-size:11.5px">' + esc(f.titleTh) + '</div>';
+          continue;
+        }
+        h += '<div style="padding:4px 0;border-top:1px dotted var(--line,#3a3f4a);font-size:11.5px">' +
+          '<b>' + esc(f.titleTh) + '</b> ' +
+          '<span class="chip ' + (STATUS_CHIP_CLASS[f.status] || '') + '" style="font-size:10px">' + esc(f.status) + '</span>' +
+          (f.archivedInSect ? ' <span class="chip ok" style="font-size:10px">อยู่ในหอจดหมายเหตุ</span>' : '');
+        if (Array.isArray(f.knownAccounts) && f.knownAccounts.length) {
+          for (const acc of f.knownAccounts) {
+            h += '<div class="muted" style="margin-left:8px;font-size:11px">• <b>' + esc(acc.labelTh) + ':</b> ' + esc(acc.summaryTh) + '</div>';
+          }
+        }
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    h += '</details>';
+
+    // Section C: Adopted Customs & Route Modifiers
+    if ((view.adoptedCustoms && view.adoptedCustoms.length) || (view.routeModifiers && view.routeModifiers.length)) {
+      h += '<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">✦ ธรรมเนียมปฏิบัติและผลสะท้อนเส้นทางที่สำนักค้นพบ (' +
+        ((view.adoptedCustoms ? view.adoptedCustoms.length : 0) + (view.routeModifiers ? view.routeModifiers.length : 0)) + ')</summary><div style="margin-top:5px;font-size:11.5px">';
+      for (const c of (view.adoptedCustoms || [])) {
+        h += '<div style="padding:3px 0">✦ <b>' + esc(c.labelTh) + '</b> — <span class="muted">' + esc(c.consequenceTh) + '</span></div>';
+      }
+      for (const rm of (view.routeModifiers || [])) {
+        const nA = g.EXPED.SETTLEMENTS && g.EXPED.SETTLEMENTS[rm.from];
+        const nB = g.EXPED.SETTLEMENTS && g.EXPED.SETTLEMENTS[rm.to];
+        h += '<div style="padding:3px 0">🧭 <b>เส้นทาง ' + esc((nA && nA.nameTh) || rm.from) + ' ↔ ' + esc((nB && nB.nameTh) || rm.to) +
+          '</b>: เวลาเดินทาง ×' + rm.multiplier + ' (' + esc(rm.labelTh) + ')</div>';
+      }
+      h += '</div></details>';
+    }
+
+    h += '</div>';
+    return h;
+  };
+
+  // Hook UI.rNpc to include the NPC Living Lore Card
+  if (typeof UI.rNpc === 'function') {
+    const _origRNpcLore = UI.rNpc;
+    UI.rNpc = () => {
+      let html = _origRNpcLore();
+      const W = UI.G && UI.G.W;
+      const n = W && W.byId && W.byId[UI.npcId];
+      if (W && n && (!UI.tab || UI.tab === 'ov' || UI.tab === 'combat' || UI.tab === 'mind' || UI.tab === 'lineage')) {
+        const tacSum = UI.formatTacticalSixPathSummary ? UI.formatTacticalSixPathSummary(W, n) : '';
+        if (tacSum && !html.includes('npc-tactical-sixpath-card')) {
+          html += '<div class="card npc-tactical-sixpath-card"><b>⚔ ยุทธวิธีและวิถีลึก (v3.3)</b><div class="muted">' + esc(tacSum) + '</div></div>';
+        }
+        const loreCard = UI.renderNpcLivingLoreCard(W, n);
+        if (loreCard && !html.includes('npc-living-lore-card')) {
+          html += loreCard;
+        }
+      }
+      return html;
+    };
+  }
+
+  // Hook UI.rWorld to include the World Living Lore Archive (when not on full-screen map or polities view)
+  if (typeof UI.rWorld === 'function') {
+    const _origRWorldLore = UI.rWorld;
+    UI.rWorld = () => {
+      const html = _origRWorldLore();
+      const W = UI.G && UI.G.W;
+      if (!W || UI.tab === 'map' || UI.tab === 'polities') return html;
+      let outHtml = html;
+      const eweSum = UI.formatExternalWorldEventsSummary ? UI.formatExternalWorldEventsSummary(W) : '';
+      if (eweSum && !outHtml.includes('world-external-events-card')) {
+        outHtml += '<div class="card world-external-events-card"><b>🌍 อีเวนต์โลกภายนอก (v3.4)</b><div class="muted">' + esc(eweSum) + '</div></div>';
+      }
+      const archiveCard = UI.renderWorldLivingLoreArchive(W);
+      if (archiveCard && !outHtml.includes('living-lore-world-archive')) {
+        outHtml += archiveCard;
+      }
+      return outHtml;
+    };
+  }
+
+  // Hook UI.rPolities to include Polity Fallen Dynasties & Local Lore when a polity is selected
+  if (typeof UI.rPolities === 'function') {
+    const _origRPolitiesLore = UI.rPolities;
+    UI.rPolities = W => {
+      const html = _origRPolitiesLore(W);
+      const pid = UI.selectedPolityId;
+      if (!W || !pid || !g.EXPED || !g.EXPED.getPolityLoreView) return html;
+      const pView = g.EXPED.getPolityLoreView(W, pid);
+      if (!pView) return html;
+
+      let extra = '<details class="polity-section" open><summary>ประวัติศาสตร์ ราชวงศ์ที่ล่มสลาย และตำนานท้องถิ่น <span>' +
+        ((pView.fallenDynasties ? pView.fallenDynasties.length : 0) + (pView.facts ? pView.facts.length : 0)) + '</span></summary>';
+      if (Array.isArray(pView.fallenDynasties) && pView.fallenDynasties.length) {
+        for (const d of pView.fallenDynasties) {
+          extra += '<div class="polity-row" style="display:block;padding:6px 0">' +
+            '<div>🏛️ <b>' + esc(d.nameTh) + '</b> <small class="muted">(' + esc(d.eraTh) + ')</small></div>' +
+            '<div class="muted" style="font-size:11.5px">• ร่องรอยที่หลงเหลือ: ' + esc(d.remnantSignTh) + '</div>' +
+            '<div class="muted" style="font-size:11.5px">• บันทึกราชสำนัก: ' + esc(d.courtAccountTh) + '</div>' +
+            '<div class="muted" style="font-size:11.5px">• ความทรงจำชาวบ้าน: ' + esc(d.folkAccountTh) + '</div></div>';
+        }
+      }
+      if (Array.isArray(pView.facts) && pView.facts.length) {
+        for (const f of pView.facts) {
+          extra += '<div class="polity-row" style="display:block;padding:5px 0">' +
+            '<div>📜 <b>' + esc(f.titleTh) + '</b> <span class="chip ' + (STATUS_CHIP_CLASS[f.status] || '') + '" style="font-size:10px">' + esc(f.accountLabelTh) + '</span></div>' +
+            '<div class="muted" style="font-size:11.5px">' + esc(f.summaryTh) + '</div></div>';
+        }
+      }
+      if (Array.isArray(pView.stories) && pView.stories.length) {
+        for (const s of pView.stories) {
+          extra += '<div class="polity-row" style="display:block;padding:4px 0">' +
+            '<div>🧭 <b>' + esc(s.titleTh) + '</b> <span class="chip ' + (STATUS_CHIP_CLASS[s.status] || '') + '" style="font-size:10px">' +
+            esc(STORY_STATUS_TH[s.status] || s.status) + ' (' + (s.status === 'resolved' ? s.totalStages : s.stageIdx) + '/' + s.totalStages + ')</span></div>' +
+            (s.resolutionLabelTh ? ('<div class="muted" style="font-size:11.5px">บทสรุป: ' + esc(s.resolutionLabelTh) + '</div>') : '') + '</div>';
+        }
+      }
+      extra += '</details>';
+      return html + extra;
     };
   }
 })();

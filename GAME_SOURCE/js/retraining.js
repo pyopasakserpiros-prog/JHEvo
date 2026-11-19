@@ -24,7 +24,7 @@ M.retrainingQuote=(W,n,key,opts)=>{
 };
 M.retrain=(W,n,key,opts)=>{
  const quote=M.retrainingQuote(W,n,key,opts);if(!quote.ok)return quote;if(!quote.affordable)return {ok:false,reason:'แต้มไม่พอ'};
- if(quote.source==='crystal'&&!(n.inv.crystals[key]>=1))return {ok:false,reason:'ผลึกถูกใช้ไปแล้ว'};
+ if(quote.source==='crystal'&&!((n.inv&&n.inv.crystals&&n.inv.crystals[key])>=1))return {ok:false,reason:'ผลึกถูกใช้ไปแล้ว'};
  if(quote.fee&&!CPE.spend(W,n,quote.fee,'เปลี่ยนวิถีศึกษาสาย'+quote.knowledge.nameTh))return {ok:false,reason:'แต้มไม่พอ'};
  // No RNG or fallible operation follows payment; consume a unit only on this successful commit.
  if(quote.source==='crystal')M.consumeCrystalUnit(n,key);else CPE.S(W).techSales+=quote.fee;
@@ -83,7 +83,8 @@ M.evaluateRetraining=(W,n,key)=>{
  const targetSkill=Math.max(...preferred.map(type=>M.weaponSkill(n,type))),currentSkill=Math.max(...oldPreferred.map(type=>M.weaponSkill(n,type))),ambition=HC.eff(n,'personality.ambition'),caution=HC.eff(n,'personality.caution'),rational=HC.eff(n,'personality.rationality'),curiosity=HC.eff(n,'personality.curiosity');
  const isSubOk=(t,subId)=>CULT.isSubCompatible?CULT.isSubCompatible(t,subId,false):(!t.sub||t.sub===subId);
  const oldActive=M.activeTechs(n).map(CULT.tech).filter(Boolean),lost=oldActive.filter(t=>t.path!=='ANY'&&t.path!==k.path||!isSubOk(t,k.id)),compatible=oldActive.filter(t=>(t.path==='ANY'||t.path===k.path)&&isSubOk(t,k.id));
- const sourcePool=JD.TECH.techniques.filter(t=>!t.innateOnly&&t.path===k.path&&isSubOk(t,k.id)&&(t.reqTier||t.tier)<=Math.max(k.tier,quote.newStage+1)&&((n.cult.techs||[]).includes(t.id)||W.sect.library.includes(t.id)||(n.inv.techs||[]).includes(t.id)||(n.inv.crystals[M.techKey(t.id)]||0)>0));
+ const invTechs=(n.inv&&Array.isArray(n.inv.techs))?n.inv.techs:[],invCrys=(n.inv&&n.inv.crystals)||{},sectLib=(W.sect&&Array.isArray(W.sect.library))?W.sect.library:[];
+ const sourcePool=JD.TECH.techniques.filter(t=>!t.innateOnly&&t.path===k.path&&isSubOk(t,k.id)&&(t.reqTier||t.tier)<=Math.max(k.tier,quote.newStage+1)&&((n.cult.techs||[]).includes(t.id)||sectLib.includes(t.id)||invTechs.includes(t.id)||(invCrys[M.techKey(t.id)]||0)>0));
  const gearReady=preferred.includes(M.equippedType(n)),techReady=sourcePool.length>0;
  const rows=affinities(W,n),target=rows.find(x=>x.sub===k.id),currentAffinity=rows.find(x=>x.sub===n.cult.sub),affinityAdv=clamp((target?target.score:50)-(currentAffinity?currentAffinity.score:50),-25,25)*.4;
  const tgtSubDef=CULT.subInfo(k.path,k.id),curSubDef=CULT.subInfo(n.cult.path,n.cult.sub);

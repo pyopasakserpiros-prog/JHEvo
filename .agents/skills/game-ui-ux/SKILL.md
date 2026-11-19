@@ -310,3 +310,8 @@ New Sovereign codices and gear use `vfxShape` and the Transcendent grade route. 
 ## JS2-v3.0.0 Living Continent (2026-11-18)
 
 Players reach the map and dedicated kingdom directory through **ยุทธภพ**. `UI.rPolities` reads the actual capital, court seats, city data, diplomacy and recent news. `world-polity` links a city or NPC profile to that directory. `atlas-event` centers on the recorded coordinate, including an expired event. Filters distinguish cities, sects, fortune and special sites. Symbols stay screen-sized across 1×–10× zoom. At 2.8× detail tiles use the second terrain image, and city sketches appear from 5.5×. Both JPEGs are embedded by `tools/build_single.js`. `test/world_atlas_browser.js` exercises these controls.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

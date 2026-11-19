@@ -6066,7 +6066,13 @@
     };
   }
   CULT.breakthrough = (W, npc, prep) => {
-    const c = npc.cult, rng = W.rng;
+    const c = npc && npc.cult, rng = W && W.rng;
+    if (!c) return { ok: false, p: 0, injured: false, died: false, stageFrom: 0, reason: 'no-cult' };
+    const pathDef = CULT.PATHS[c.path];
+    const maxStage = (pathDef && Array.isArray(pathDef.stages) && pathDef.stages.length) || 9;
+    if ((c.stage || 1) >= maxStage) {
+      return { ok: false, p: 0, injured: false, died: false, stageFrom: c.stage, maxStageReached: true, reason: 'max-stage' };
+    }
     const p = CULT.breakthroughChance(npc, Object.assign({}, prep || {}, { now: W.t, W }));
     c.attempts++;
     const ok = rng.next() < p;
@@ -8998,6 +9004,7 @@
     const oath = npc.daoOath || (npc.ext && npc.ext.daoOath);
     if (oath && oath.upheld && (oath.id === 'VOW_ABSTAIN_PILLS' || oath.id === 'VOW_NO_MEDICINE' || oath.id === 'VEGETARIAN_PACIFIST')) return true;
     if (npc.voluntaryVows && npc.voluntaryVows.VOW_NO_MEDICINE && npc.voluntaryVows.VOW_NO_MEDICINE.active) return true;
+    if (npc.voluntaryVow && npc.voluntaryVow.active && npc.voluntaryVow.id === 'VOW_NO_PILL') return true;
     return false;
   };
   CULT.isAbstainingMedicine = CULT.isAbstainingFromPills;
@@ -9012,6 +9019,7 @@
     const oath = npc.daoOath || (npc.ext && npc.ext.daoOath);
     if (oath && oath.upheld && (oath.id === 'VOW_NO_RETREAT' || oath.id === 'VOW_CHALLENGE_STRONG')) return true;
     if (npc.voluntaryVows && npc.voluntaryVows.VOW_NO_RETREAT && npc.voluntaryVows.VOW_NO_RETREAT.active) return true;
+    if (npc.voluntaryVow && npc.voluntaryVow.active && npc.voluntaryVow.id === 'VOW_NO_RETREAT') return true;
     return false;
   };
   CULT.grantAcquiredTrait = (npc, traitId) => {
@@ -14136,7 +14144,7 @@
       const dex=W.sect.explore; // visit is authoritative even when it returns no value
       if(spot==='stele'||spot==='ruin') {
         ET.emit(W,n,'ANCIENT_STELE_DECIPHERED');
-        const count=n.experienceEventLog.counts.ANCIENT_STELE_DECIPHERED||0;
+        const count=(n.experienceEventLog&&n.experienceEventLog.counts&&n.experienceEventLog.counts.ANCIENT_STELE_DECIPHERED)||0;
         if(count>=8)ET.grantAcquired(W,n,'TR_AC_REFLECTION_WALL_INHERITOR','studied-ancient-stele');
         if(count>=12 && (n.h.skills.SCRIPTURE||0)>=65)ET.grantAcquired(W,n,'TR_AC_ANCIENT_RING_MENTORED','advanced-ancient-stele-study');
         if(spot==='ruin' && (n.sx||[]).some(x=>x.k==='curse'))ET.grantAcquired(W,n,'TR_AC_TOMB_CURSE_BRANDED','actual-ruin-curse');
@@ -14501,6 +14509,313 @@
       }
     }
     return p;
+  };
+
+
+  /* ============================================================================
+   * JS2 v3.3.0: Voluntary Martial Vows (S07) & Six-Path Deep Mastery Engine
+   * ============================================================================ */
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  function detHash330(str) {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  CULT.MARTIAL_VOWS = {
+    CATALOG: Object.freeze({
+      VOW_NO_PILL: {
+        id: 'VOW_NO_PILL',
+        nameTh: 'สัจจะงดโอสถในศึก',
+        descTh: 'ไม่พึ่งพาโอสถระหว่างศึก แลกกับพลังโจมตี +12% และอัตราบ่มเพาะ +8%',
+        breachKind: 'PILL_IN_COMBAT',
+        p: { atk: 0.12, matk: 0.12 },
+        f: { crit: 4 },
+        cultRatePct: 0.08
+      },
+      VOW_NO_RETREAT: {
+        id: 'VOW_NO_RETREAT',
+        nameTh: 'สัจจะยืนหยัดไม่ถอยหนี',
+        descTh: 'ไม่หลบหนีจากสมรภูมิ แลกกับพลังป้องกัน +14% และพลังชีวิต +10%',
+        breachKind: 'RETREAT',
+        p: { def: 0.14, mdef: 0.12, hp: 0.10 },
+        f: {},
+        cultRatePct: 0.05
+      },
+      VOW_SOLO_DUEL: {
+        id: 'VOW_SOLO_DUEL',
+        nameTh: 'สัจจะดวลเดี่ยวทระนง',
+        descTh: 'ยืนหยัดประลองด้วยศักดิ์ศรี แลกกับคริติคอล +8% และเจาะเกราะ +10%',
+        breachKind: 'UNFAIR_ASSIST',
+        p: { atk: 0.10 },
+        f: { crit: 8, pen: 10 },
+        cultRatePct: 0.06
+      },
+      VOW_IRON_SILENCE: {
+        id: 'VOW_IRON_SILENCE',
+        nameTh: 'สัจจะบำเพ็ญสงบวาจา',
+        descTh: 'สำรวมจิตบำเพ็ญเงียบสงัด เร่งความเร็วบ่มเพาะ +14% และป้องกันวิชา +10%',
+        breachKind: 'DISTURBANCE',
+        p: { mdef: 0.10 },
+        f: { cast: 6 },
+        cultRatePct: 0.14
+      }
+    }),
+
+    evaluateAutonomousAdoption(W, npc) {
+      if (!W || !npc || npc.dead || npc.foe || !npc.cult || !g.HC || !g.HC.eff) return null;
+      if (npc.voluntaryVow && npc.voluntaryVow.active) return npc.voluntaryVow;
+      if (npc.voluntaryVow && npc.voluntaryVow.backlashUntilDay && (W.day || 0) < npc.voluntaryVow.backlashUntilDay) return null;
+      if ((npc.cult.stage || 1) < 2) return null;
+      const E = g.HC.eff;
+      const pride = E(npc, 'personality.pride');
+      const courage = E(npc, 'personality.courage');
+      const discipline = E(npc, 'personality.discipline');
+      const caution = E(npc, 'personality.caution');
+      const honor = E(npc, 'values.honorLegacy');
+      if (caution >= 78 && honor < 60) return null;
+      let picked = null;
+      if (pride >= 68 && courage >= 62) picked = 'VOW_SOLO_DUEL';
+      else if (courage >= 68 && honor >= 62) picked = 'VOW_NO_RETREAT';
+      else if (discipline >= 68 && (npc.cult.path === 'LORE_ARCHIVIST' || npc.cult.path === 'BUDDHA_DHARMA' || npc.cult.path === 'XIAN')) picked = 'VOW_IRON_SILENCE';
+      else if (discipline >= 65 && pride >= 60) picked = 'VOW_NO_PILL';
+      if (!picked) return null;
+      const spec = CULT.MARTIAL_VOWS.CATALOG[picked];
+      npc.voluntaryVow = {
+        id: spec.id,
+        nameTh: spec.nameTh,
+        active: true,
+        swornDay: W.day || 0,
+        breaches: (npc.voluntaryVow && npc.voluntaryVow.breaches) || 0,
+        backlashUntilDay: 0
+      };
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      return npc.voluntaryVow;
+    },
+
+    recordBreach(W, npc, breachKind) {
+      if (!npc || !npc.voluntaryVow || !npc.voluntaryVow.active) return { ok: false, reason: 'no-active-vow' };
+      const spec = CULT.MARTIAL_VOWS.CATALOG[npc.voluntaryVow.id];
+      if (!spec || (breachKind && spec.breachKind !== breachKind)) return { ok: false, reason: 'mismatch' };
+      npc.voluntaryVow.active = false;
+      npc.voluntaryVow.breaches = (npc.voluntaryVow.breaches || 0) + 1;
+      npc.voluntaryVow.backlashUntilDay = (W ? (W.day || 0) : 0) + 15;
+      if (npc.h && npc.h.state) {
+        npc.h.state.heartDemon = Math.min(100, (npc.h.state.heartDemon || 0) + 12);
+      }
+      if (g.STATS) {
+        g.STATS.addStatus(npc, 'vowBacklash', 24, null, W ? (W.t || 0) : 0);
+        if (g.STATS.dirty) g.STATS.dirty(npc);
+      }
+      if (W && W.log) {
+        W.log('cult', '⚠️ ' + ((npc.h && npc.h.name && npc.h.name.given) || 'ศิษย์') + ' ผิด「' + spec.nameTh + '」เกิดแรงสะท้อนสัจจะ (VOW_BACKLASH)!', [npc.id]);
+      }
+      return { ok: true, vowId: spec.id, breaches: npc.voluntaryVow.breaches };
+    },
+
+    getBonuses(npc) {
+      if (!npc || !npc.voluntaryVow || !npc.voluntaryVow.active) return null;
+      return CULT.MARTIAL_VOWS.CATALOG[npc.voluntaryVow.id] || null;
+    }
+  };
+
+  CULT.SIX_PATH_MASTERY = {
+    PATHS: Object.freeze(['ANCESTRAL_RITUAL', 'TIDE_VOYAGER', 'LORE_ARCHIVIST', 'FORTUNE_GAMBLER', 'SPIRIT_HUSBANDRY', 'ARENA_GLORY']),
+
+    ensure(W, npc) {
+      if (!npc || npc.foe || !npc.cult || !CULT.SIX_PATH_MASTERY.PATHS.includes(npc.cult.path)) return null;
+      const p = npc.cult.path;
+      if (!npc.sixPathMastery || npc.sixPathMastery.path !== p) {
+        npc.sixPathMastery = {
+          path: p,
+          marrowEchoes: [],
+          currentMark: 0,
+          loreIndexRank: 1,
+          stakeTier: 'CONSERVATIVE',
+          stakeWins: 0,
+          stakeLosses: 0,
+          stakeDebtUntilDay: 0,
+          stakeJackpotUntilDay: 0,
+          bloomStacks: 1,
+          arenaStreak: 0,
+          crowdRoar: 0,
+          lastSyncDay: -1
+        };
+      }
+      return npc.sixPathMastery;
+    },
+
+    syncDaily(W, npc) {
+      const m = CULT.SIX_PATH_MASTERY.ensure(W, npc);
+      if (!W || !m) return null;
+      const day = W.day || 0;
+      m.lastSyncDay = day;
+      const p = m.path;
+
+      if (p === 'ANCESTRAL_RITUAL') {
+        const fallen = (W.sect && Array.isArray(W.sect.fallen) && W.sect.fallen.length) ? W.sect.fallen.slice(-3) : [];
+        const rawGraves = fallen.length ? fallen : (Array.isArray(W.graveyard) ? W.graveyard.slice(-3) : []);
+        if (rawGraves.length > 0) {
+          m.marrowEchoes = rawGraves.map((entry, idx) => {
+            const gObj = typeof entry === 'string' ? ((W.byId && W.byId[entry]) || (W.sect && Array.isArray(W.sect.fallen) && W.sect.fallen.find(x => x && x.id === entry)) || null) : entry;
+            const nm = (gObj && (gObj.nameTh || gObj.name)) || (gObj && gObj.h && gObj.h.name && ((gObj.h.name.family || gObj.h.name.surname || '') + (gObj.h.name.given || ''))) || ('บรรพชนรุ่น ' + (idx + 1));
+            const stg = (gObj && gObj.stage) || (gObj && gObj.cult && gObj.cult.stage) || 2;
+            return { nameTh: nm, stage: stg };
+          });
+        } else if (m.marrowEchoes.length === 0) {
+          m.marrowEchoes = [{ nameTh: 'ปฐมบูรพาจารย์ผู้ก่อตั้งสำนัก', stage: Math.max(2, (npc.cult.stage || 1)) }];
+        }
+      } else if (p === 'TIDE_VOYAGER') {
+        const isRain = !!(W.weather && (W.weather.kind === 'rain' || W.weather.kind === 'storm'));
+        const nearRiver = Number.isFinite(npc.y) && npc.y >= 245;
+        const survSk = (npc.h && npc.h.skills && Math.max(npc.h.skills.survival || 0, npc.h.skills.fishing || 0)) || 0;
+        const fishingBonus = survSk >= 25 ? 1 : 0;
+        m.currentMark = clamp((isRain ? 2 : 1) + (nearRiver ? 1 : 0) + fishingBonus, 1, 3);
+      } else if (p === 'LORE_ARCHIVIST') {
+        const ll = W.world && W.world.livingLore;
+        let factCount = 0;
+        if (ll && ll.facts && typeof ll.facts === 'object') {
+          for (const fk in ll.facts) { if (ll.facts[fk] && ll.facts[fk].discovered) factCount++; }
+        } else if (ll && ll.discoveredFacts && typeof ll.discoveredFacts === 'object') {
+          factCount = Object.keys(ll.discoveredFacts).length;
+        }
+        const libCount = (W.sect && Array.isArray(W.sect.library) ? W.sect.library.length : (W.sect && Array.isArray(W.sect.manuals) ? W.sect.manuals.length : 0));
+        m.loreIndexRank = clamp(1 + Math.floor((factCount + libCount * 0.5) / 4), 1, 5);
+      } else if (p === 'FORTUNE_GAMBLER') {
+        const E = g.HC && g.HC.eff;
+        const sens = E ? E(npc, 'personality.sensationSeeking') : 50;
+        const courage = E ? E(npc, 'personality.courage') : 50;
+        const caution = E ? E(npc, 'personality.caution') : 50;
+        if (sens >= 68 && courage >= 62 && caution < 55) m.stakeTier = 'ALL_IN';
+        else if (sens >= 52 || courage >= 58) m.stakeTier = 'BOLD';
+        else m.stakeTier = 'CONSERVATIVE';
+      } else if (p === 'SPIRIT_HUSBANDRY') {
+        const season = (W.season != null ? W.season : (W.weather && W.weather.season != null ? W.weather.season : 0));
+        const isWarmSeason = season === 0 || season === 1 || season === 'spring' || season === 'summer';
+        const seasonBase = isWarmSeason ? 3 : 2;
+        const herbSkill = (npc.h && npc.h.skills && npc.h.skills.herbalism) || 0;
+        m.bloomStacks = clamp(seasonBase + Math.floor(herbSkill / 35), 1, 5);
+      } else if (p === 'ARENA_GLORY') {
+        const nearbyAllies = Array.isArray(W.npcs) ? W.npcs.filter(o => o && o.id !== npc.id && !o.dead && !o.away && Number.isFinite(o.x) && Number.isFinite(npc.x) && Math.hypot(o.x - npc.x, o.y - npc.y) <= 18).length : 0;
+        m.crowdRoar = clamp(Math.floor(nearbyAllies / 2) + Math.min(3, m.arenaStreak || 0), 0, 5);
+      }
+
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      return m;
+    },
+
+    resolveStakeWager(W, npc, context) {
+      const m = CULT.SIX_PATH_MASTERY.ensure(W, npc);
+      if (!W || !m || m.path !== 'FORTUNE_GAMBLER') return { ok: false, reason: 'not-gambler' };
+      const day = W.day || 0;
+      const tier = m.stakeTier || 'CONSERVATIVE';
+      const roll = (detHash330((W.seed || 'seed') + ':' + npc.id + ':' + day + ':' + (context || 'combat') + ':' + (m.stakeWins + m.stakeLosses)) % 100) / 100;
+      const winThreshold = tier === 'ALL_IN' ? 0.45 : (tier === 'BOLD' ? 0.55 : 0.68);
+      const won = roll < winThreshold;
+      if (won) {
+        m.stakeWins = (m.stakeWins || 0) + 1;
+        m.stakeJackpotUntilDay = day + 3;
+        m.stakeDebtUntilDay = 0;
+        CULT.gainPathGauge(npc, tier === 'ALL_IN' ? 35 : (tier === 'BOLD' ? 22 : 12));
+      } else {
+        m.stakeLosses = (m.stakeLosses || 0) + 1;
+        m.stakeDebtUntilDay = day + 2;
+        if (npc.h && npc.h.state) npc.h.state.heartDemon = Math.min(100, (npc.h.state.heartDemon || 0) + (tier === 'ALL_IN' ? 8 : 4));
+      }
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      return { ok: true, won, tier, wins: m.stakeWins, losses: m.stakeLosses };
+    },
+
+    recordArenaVictory(W, npc) {
+      const m = CULT.SIX_PATH_MASTERY.ensure(W, npc);
+      if (!m || m.path !== 'ARENA_GLORY') return null;
+      m.arenaStreak = Math.min(10, (m.arenaStreak || 0) + 1);
+      m.crowdRoar = clamp(Math.max(m.crowdRoar || 0, Math.min(5, m.arenaStreak)), 0, 5);
+      CULT.gainPathGauge(npc, 20);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+      return m;
+    },
+
+    getStatBonuses(W, npc) {
+      const m = npc && npc.sixPathMastery;
+      if (!m || !npc.cult || m.path !== npc.cult.path) return null;
+      const day = W ? (W.day || 0) : 0;
+      const p = {}, f = {};
+      let cultRatePct = 0, yieldBonusPct = 0, summaryTh = '';
+      if (m.path === 'ANCESTRAL_RITUAL') {
+        const cnt = Array.isArray(m.marrowEchoes) ? Math.min(3, m.marrowEchoes.length) : 0;
+        if (cnt > 0) {
+          p.def = cnt * 0.04;
+          p.mdef = cnt * 0.04;
+          p.atk = cnt * 0.03;
+          p.matk = cnt * 0.03;
+          summaryTh = 'เสียงบรรพชน ' + cnt + '/3 ร่าง';
+        }
+      } else if (m.path === 'TIDE_VOYAGER') {
+        const cm = clamp(m.currentMark || 0, 0, 3);
+        if (cm > 0) {
+          f.move = cm * 3;
+          p.eva = cm * 0.05;
+          p.matk = cm * 0.04;
+          yieldBonusPct = cm * 0.08;
+          summaryTh = 'กระแสสมุทร ' + cm + '/3 ขั้น';
+        }
+      } else if (m.path === 'LORE_ARCHIVIST') {
+        const rk = clamp(m.loreIndexRank || 1, 1, 5);
+        p.matk = rk * 0.03;
+        f.acc = rk * 4;
+        cultRatePct = rk * 0.04;
+        summaryTh = 'ดัชนีหอคัมภีร์ ขั้น ' + rk + '/5';
+      } else if (m.path === 'FORTUNE_GAMBLER') {
+        if (m.stakeJackpotUntilDay && day <= m.stakeJackpotUntilDay) {
+          const mul = m.stakeTier === 'ALL_IN' ? 1.5 : (m.stakeTier === 'BOLD' ? 1.2 : 1.0);
+          p.atk = 0.10 * mul;
+          p.matk = 0.10 * mul;
+          f.crit = Math.round(8 * mul);
+          summaryTh = 'เดิมพันชนะ (' + m.stakeTier + ')';
+        } else if (m.stakeDebtUntilDay && day <= m.stakeDebtUntilDay) {
+          p.def = -0.08;
+          summaryTh = 'หนี้ชะตาเดิมพัน (-8% ป้องกัน)';
+        } else {
+          summaryTh = 'ระดับเดิมพัน: ' + (m.stakeTier || 'CONSERVATIVE');
+        }
+      } else if (m.path === 'SPIRIT_HUSBANDRY') {
+        const bs = clamp(m.bloomStacks || 1, 1, 5);
+        p.hp = bs * 0.03;
+        p.mdef = bs * 0.03;
+        yieldBonusPct = bs * 0.06;
+        summaryTh = 'พฤกษาเบ่งบาน ' + bs + '/5 ชั้น';
+      } else if (m.path === 'ARENA_GLORY') {
+        const cr = clamp(m.crowdRoar || 0, 0, 5);
+        if (cr > 0) {
+          p.atk = cr * 0.035;
+          f.crit = cr * 2;
+          summaryTh = 'เสียงก้องสังเวียน ' + cr + '/5 (สถิติ ' + (m.arenaStreak || 0) + ')';
+        }
+      }
+      return { p, f, cultRatePct, yieldBonusPct, summaryTh };
+    }
+  };
+
+  const _origRateV330 = CULT.rate;
+  CULT.rate = (npc, env, W) => {
+    let r = _origRateV330(npc, env, W);
+    if (npc && !npc.foe) {
+      const vb = CULT.MARTIAL_VOWS.getBonuses(npc);
+      if (vb && vb.cultRatePct) {
+        const hasOtherVow = !!((npc.daoOath && npc.daoOath.upheld) || (npc.voluntaryVows && Object.values(npc.voluntaryVows).some(v => v && v.active)));
+        const effVowPct = hasOtherVow ? Math.min(0.06, vb.cultRatePct * 0.4) : vb.cultRatePct;
+        r *= (1 + effVowPct);
+      }
+      const wRef = W || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || null;
+      const sm = CULT.SIX_PATH_MASTERY.getStatBonuses(wRef, npc);
+      if (sm && sm.cultRatePct) r *= (1 + sm.cultRatePct);
+    }
+    return r;
   };
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -6,14 +6,14 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '3.0.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
-    SAVE_SCHEMA_VERSION: '3.0.0-living-continent',
+    PATCH_VERSION: '3.5.0c',
+    SUPPORTED_PATCHES: ['3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
+    SAVE_SCHEMA_VERSION: '3.5.0c-release-polish',
     DAY_FACTOR: 1.5,
     CALENDAR_MINS_PER_DAY: 1440,
     WORK_STEPS_PER_DAY: 2160,
     MIN_PER_YEAR: 360 * 1440,
-    TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
+    TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence', 'castFx'])
   };
   const E = (n, p) => HC.eff(n, p);
 
@@ -834,22 +834,51 @@
               if (ECO && ECO.wearGear) ECO.wearGear(it, 0.5, W, n);
               else it.dur = Math.max(0, it.dur - 0.5);
             }
+            const hasPatina = Array.isArray(it.combatKeywords) && it.combatKeywords.some(k => k.kw === 'KW_PATINA_WEAR');
+            const repairThreshold = hasPatina ? 0.28 : 0.45;
             if (it.procedural && n.act.id !== 'fight') {
               if (it.retired || (it.dur <= 0 && (it.maxDur || 100) <= 20)) {
                 if (ECO && ECO.retireGear) ECO.retireGear(W, n, it);
-              } else if ((it.dur <= 0 || it.dur <= (it.maxDur || 100) * 0.45) && (it.maxDur || 100) > 20 && ECO && ECO.repairGear) {
+              } else if ((it.dur <= 0 || it.dur <= (it.maxDur || 100) * repairThreshold) && (it.maxDur || 100) > 20 && ECO && ECO.repairGear) {
                 const hasPersonalStone = n.inv && n.inv.mats && Object.keys(ECO.REPAIR_STONES || {}).some(sid => (n.inv.mats[sid] || 0) > 0);
                 if (!n.away || hasPersonalStone) ECO.repairGear(W, it, null, n);
               }
+            }
+            const hrNow = Math.floor((W.t || 0) / 60);
+            if (!n.away && n.act.id !== 'fight' && it.maxCharges > 0 && (it.charges || 0) <= 0 && ECO && ECO.rechargeGear && hrNow % 24 === 0) {
+              ECO.rechargeGear(W, it, n, { quiet: true });
+            }
+            if (ECO && ECO.recordGearLineage && hrNow % 24 === 0 && (it.provenanceLoreId || (it.combatKeywords && it.combatKeywords.some(k => k && (k.kw === 'KW_SOUL_SCAR_ECHO' || k.id === 'KW_SOUL_SCAR_ECHO'))))) {
+              ECO.recordGearLineage(W, it, n);
             }
           }
         }
       }
     });
-    if (W.t % 24 === 0 && g.SECT && g.SECT.FORBIDDEN_VAULT && g.SECT.FORBIDDEN_VAULT.evaluateAutonomousSectVault) {
+    const _simHr = Math.floor((W.t || 0) / 60);
+    if (W._isNewCalendarMinute && W.t % 1440 === 0 && g.CULT) {
+      for (const n of W.npcs) {
+        if (!n || n.dead) continue;
+        if (g.CULT.MARTIAL_VOWS && g.CULT.MARTIAL_VOWS.evaluateAutonomousAdoption) {
+          g.CULT.MARTIAL_VOWS.evaluateAutonomousAdoption(W, n);
+        }
+        if (g.CULT.SIX_PATH_MASTERY && g.CULT.SIX_PATH_MASTERY.syncDaily) {
+          g.CULT.SIX_PATH_MASTERY.syncDaily(W, n);
+        }
+      }
+      if (g.EXPED && g.EXPED.EXTERNAL_WORLD_EVENTS && g.EXPED.EXTERNAL_WORLD_EVENTS.tickDaily) {
+        g.EXPED.EXTERNAL_WORLD_EVENTS.tickDaily(W);
+      }
+    }
+    if (_simHr % 72 === 0 && ECO && ECO.maintainUpkeepGear) {
+      for (const n of W.npcs) {
+        if (n && !n.dead && !n.away) ECO.maintainUpkeepGear(W, n);
+      }
+    }
+    if (_simHr % 24 === 0 && g.SECT && g.SECT.FORBIDDEN_VAULT && g.SECT.FORBIDDEN_VAULT.evaluateAutonomousSectVault) {
       g.SECT.FORBIDDEN_VAULT.evaluateAutonomousSectVault(W);
     }
-    if (W.t % 12 === 0 && g.CULT && g.CULT.SUPPORT_ARTS && g.CULT.SUPPORT_ARTS.evaluateAutonomousEmergencySupport) {
+    if (_simHr % 12 === 0 && g.CULT && g.CULT.SUPPORT_ARTS && g.CULT.SUPPORT_ARTS.evaluateAutonomousEmergencySupport) {
       g.CULT.SUPPORT_ARTS.evaluateAutonomousEmergencySupport(W);
     }
     W.map.buildings.forEach(b => { if (b.building && W.t >= b.building.until) SIM.finishBuilding(W, b); });
@@ -1223,6 +1252,13 @@
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
     const SUPPORTED_SAVE_SCHEMAS = new Set([
       SIM.SAVE_SCHEMA_VERSION,
+      '3.5.0b-p1-hardening',
+      '3.5.0a-p0-hardening',
+      '3.4.0-world-events',
+      '3.3.0-tactical-sixpaths',
+      '3.2.0-equipment-expansion',
+      '3.1.0-living-lore',
+      '3.0.0-living-continent',
       '2.6.0-living-chronicle-and-reporting',
       '2.5.0-pathbound-visuals-and-item-art',
       '2.4.0-tactical-composable-grand-dao',
@@ -1308,7 +1344,7 @@
       if (s.wildResources) W.wildResources = s.wildResources;
       if (s.fishing) W.fishing = s.fishing;
       W.npcs = s.npcs.map(n => {
-        const base = { id: n.id, h: n.h, mods: n.mods || [], ext: n.ext || {}, _ver: n._ver || 1, _c: null, _d: null };
+        const base = { id: n.id, h: n.h, mods: n.mods || [], ext: n.ext || {}, _ver: (n._ver != null ? n._ver : 1), _c: null, _d: null };
         for (const k of Object.keys(n)) {
           if (!(k in base) && !SIM.TRANSIENT_CACHE_KEYS.has(k)) base[k] = n[k];
         }
@@ -1320,7 +1356,7 @@
       s.map.extra.forEach(e => { if (!object(e)) invalid('map.extra'); const b = M.buildings.find(x => x.n === e.bid); if (!b) invalid('map.extra.bid'); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
       M.stations.forEach(st => { st.occ = null; if (st.owner != null) st.owner = null; });
       M.buildings.forEach(b => { b.inside = []; });
-      W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
+      W.npcs.forEach(n => { if (!Number.isFinite(n.px)) n.px = n.x; if (!Number.isFinite(n.py)) n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
       EXPED.initContinent(W);
       (W.npcs || []).forEach(n => EXPED.assignHometown(W,n));
       W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta); W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); }; W.makeNpc = o => SIM.addNpc(W, o);
@@ -1635,9 +1671,9 @@
     return snap;
   };
 
-  const _origSimDailyEp = SIM.daily;
-  SIM.daily = (W, silent) => {
-    const res = _origSimDailyEp(W, silent);
+  const _origSimDailyEp = SIM.dailyUpdate;
+  SIM.dailyUpdate = (W, silent) => {
+    const res = typeof _origSimDailyEp === 'function' ? _origSimDailyEp(W, silent) : undefined;
     if (!silent && W && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.onDailyTick) {
       g.CULT.EPITHETS.onDailyTick(W);
     }
@@ -1759,6 +1795,48 @@
         if (SECT && SECT.PATRIARCH_REGALIA) SECT.PATRIARCH_REGALIA.ensure(W);
         if (SECT && SECT.TRANSCENDENT_PANTHEON) SECT.TRANSCENDENT_PANTHEON.ensureWorldState(W);
         if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems(W);
+      }
+      return W;
+    };
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+/* === LIVING_LORE_SIM_HOOKS_V310 === */
+(function initLivingLoreSimHooks(g) {
+  'use strict';
+  const SIM = g.SIM;
+  if (!SIM) return;
+
+  const _origSimCreateLore = SIM.create;
+  SIM.create = (seed, opts) => {
+    const W = _origSimCreateLore(seed, opts);
+    if (W && g.EXPED && g.EXPED.initLivingLore) {
+      g.EXPED.initLivingLore(W);
+    }
+    return W;
+  };
+
+  const _origAddNpcLore = SIM.addNpc;
+  if (typeof _origAddNpcLore === 'function') {
+    SIM.addNpc = (W, opts) => {
+      const n = _origAddNpcLore(W, opts);
+      if (n && W && g.EXPED && g.EXPED.seedNpcInitialLore) {
+        if (g.EXPED.assignHometown && (!n.ext || !n.ext.world || !n.ext.world.hometownNodeId)) {
+          g.EXPED.assignHometown(W, n);
+        }
+        g.EXPED.seedNpcInitialLore(W, n);
+      }
+      return n;
+    };
+  }
+
+  const _origDeserializeLore = SIM.deserialize;
+  if (typeof _origDeserializeLore === 'function') {
+    SIM.deserialize = raw => {
+      const W = _origDeserializeLore(raw);
+      if (W && g.EXPED && g.EXPED.initLivingLore) {
+        g.EXPED.initLivingLore(W);
       }
       return W;
     };

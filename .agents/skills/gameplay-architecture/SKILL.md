@@ -562,3 +562,8 @@ NPC opportunities อยู่ใน AI → SECT.AUTONOMY → native effects; �
 ## JS2-v3.0.0 Living Continent (2026-11-18)
 
 `EXPED.initContinent` stores settlements, civil offices, candidates and diplomatic scores under `W.world.continent`. Immutable gazetteer coordinates live in `JD.CONTINENT`. The map consumes `ensureWorldTopology`. `EXPED.hourly` drives timed arrivals and returns, `SECT.OUTPOSTS_LOGISTICS.settleSupplyConvoys` runs from `SIM.hourly`, and `EXPED.tickContinentalCourts` guards its monthly processing. Event payloads can carry a location snapshot including node ID, name and coordinates. Temporary render tiles stay outside `W`. Source script order and the human core lock are unchanged.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

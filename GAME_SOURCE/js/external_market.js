@@ -119,7 +119,8 @@
     const skill = clamp(Number.isFinite(rawSkill) ? rawSkill : 40, 0, 100);
     const isAppraiserSub = !!(npcObj && npcObj.cult && npcObj.cult.sub === 'TREASURE_APPRAISER_SAGE');
     const isMerchantPath = !!(npcObj && npcObj.cult && npcObj.cult.path === 'MERCANTILE_DAO');
-    const hasFreeTrade = !!(W && W.world && Array.isArray(W.world.treaties) && W.world.treaties.some(t => t && t.active && (t.type === 'FREE_TRADE_TREATY' || t.kind === 'TRADE')));
+    const treatyList = (W && W.world && W.world.politics && Array.isArray(W.world.politics.treaties)) ? W.world.politics.treaties : ((W && W.world && Array.isArray(W.world.treaties)) ? W.world.treaties : []);
+    const hasFreeTrade = treatyList.some(t => t && t.active !== false && (t.type === 'FREE_TRADE_TREATY' || t.kind === 'TRADE' || t.id === 'FREE_TRADE_TREATY'));
     let mult = 1;
     if (side === 'sect-buy') mult = (1.15 - skill / 850) * (hasFreeTrade ? 0.96 : 1);
     else if (side === 'sect-sell') mult = (0.78 + skill / 900) * (hasFreeTrade ? 1.04 : 1);
@@ -176,6 +177,13 @@
         : ['ITEM_REPAIR_STONE_1', 'ITEM_REPAIR_STONE_2'];
     const stPick = W.rng.pick(stonePool);
     if (stPick && EXT.isTradable(stPick)) addStock(W, stock, stPick, 1, subtype === 'rare' ? 2 : 3);
+    if ((subtype === 'rare' || subtype === 'caravan' || W.rng.chance(0.45)) && ECO.itemById) {
+      const eqPool = Object.values(ECO.itemById).filter(it => it && it.id && it.id.startsWith('EQ_V320_') && (it.tier || 1) <= maxT && EXT.isTradable('EQ:' + it.id));
+      if (eqPool.length) {
+        const eqPick = W.rng.pick(eqPool);
+        addStock(W, stock, 'EQ:' + eqPick.id, 1, 1);
+      }
+    }
     return stock;
   }
   function buildWants(W, stock, subtype) {

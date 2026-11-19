@@ -3684,7 +3684,7 @@
     // T7 equipment has owner-bound, type-aware accents, not fabricated relic procs.
     drawT7EquipmentGlyph(ctx,type,r){
       if(!ctx)return false;
-      type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY',PENDANT:'NECKLACE',BOSS_TROPHY:'ORNAMENT',TALISMAN:'CHARM',FIST_PALM:'FIST'})[type]||type;
+      type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY',PENDANT:'NECKLACE',BOSS_TROPHY:'ORNAMENT',TALISMAN:'CHARM',FIST_PALM:'FIST',SHOES:'CHARM'})[type]||type;
       if(R.WEAPON_MOTION_VFX[type])return this.drawWeaponMotionVfx(ctx,{weaponType:type,tier:7,angle:-.35},.5,r,true,.66);
       ctx.save();ctx.scale(r,r);ctx.strokeStyle='#d4ca9d';ctx.lineWidth=1/r;
       const line=(ps,closed=false)=>{ctx.beginPath();ps.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(closed)ctx.closePath();ctx.stroke();};
@@ -6689,6 +6689,7 @@
 
     drawCompanionPets(ctx, n, p, sc, mount) {
       let pets = Array.isArray(n.pets) ? CULT.activePets(n) : (n.pet && n.pet.active !== false ? [n.pet] : []);
+      if (!pets.length && Array.isArray(n.pets)) pets = n.pets.filter(p => p && p.active !== false && !p.dead && !p.injured);
       if (mount) pets = pets.filter(pet => pet !== mount);
       const pet = pets[0];
       if (!pet) return false;
@@ -10119,24 +10120,18 @@
       opts: { names: false, bubbles: false, realmHalos: true, flyingSwords: true, combatSlashes: true }
     }, R.methods);
 
-    const savedAct = n.act;
-    try {
-      const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : poseMode === 'qinggong' ? 'qinggong' : poseMode === 'mantra' ? 'mantra' : poseMode === 'defensive' ? 'defensive' : poseMode === 'support' ? 'support' : poseMode === 'forbidden' ? 'forbidden' : 'cultivate';
-      const proxyNpc = Object.create(n);
-      proxyNpc.x = 0;
-      proxyNpc.y = 0;
-      proxyNpc.px = 0;
-      proxyNpc.py = 0;
-      proxyNpc.act = { id: actId, ctx: {} };
-
-      ctx.save();
-      ctx.translate(cx, gy);
-      ctx.scale(2.15, 2.15);
-      fakeRenderer.drawNpc(ctx, proxyNpc, { x: 0, y: 0 }, 12);
-      ctx.restore();
-    } finally {
-      if (savedAct !== undefined) n.act = savedAct;
-    }
+    const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : poseMode === 'qinggong' ? 'qinggong' : poseMode === 'mantra' ? 'mantra' : poseMode === 'defensive' ? 'defensive' : poseMode === 'support' ? 'support' : poseMode === 'forbidden' ? 'forbidden' : 'cultivate';
+    const proxyNpc = Object.create(n);
+    proxyNpc.x = 0;
+    proxyNpc.y = 0;
+    proxyNpc.px = 0;
+    proxyNpc.py = 0;
+    proxyNpc.act = { id: actId, ctx: {} };
+    ctx.save();
+    ctx.translate(cx, gy);
+    ctx.scale(2.15, 2.15);
+    fakeRenderer.drawNpc(ctx, proxyNpc, { x: 0, y: 0 }, 12);
+    ctx.restore();
 
     // 4. Top-Left Realm & Path Badge Overlay + Border Frame
     const stgTitle = (g.CULT && g.CULT.stageName && n.cult) ? g.CULT.stageName(n) : ('ขั้น ' + stg + ' ' + rSpec.nameTh);

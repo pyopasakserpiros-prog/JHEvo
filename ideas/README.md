@@ -1,4 +1,4 @@
-> Current assignment: [v3.1.0 Living Lore](../ACTIVE_PATCH_PROMPT_V3_1_0.md) and its [lore source map](../docs/handovers/JS2_V3_1_0_LORE_SOURCE_MAP.md). The epithet material below records earlier implementation.
+> Historical v3.1.0 assignment (completed): [v3.1.0 Living Lore](../docs/historical_prompts/ACTIVE_PATCH_PROMPT_V3_1_0.md) and its [lore source map](../docs/handovers/JS2_V3_1_0_LORE_SOURCE_MAP.md). Active release status is in [START_HERE_FOR_AI.md](../START_HERE_FOR_AI.md) and [CHANGELOG_JS2_V310_TO_V350C.md](../CHANGELOG_JS2_V310_TO_V350C.md). The epithet material below records earlier implementation.
 
 # 💡 คลังไอเดียและแนวคิดสำหรับอนาคต (Ideas & Knowledge Scrapbook)
 

@@ -4670,6 +4670,7 @@
     }
     W.log('mission',members.map(HC.fullName).join('、') + ' เดินทางถึง' + city.nameTh,
       members.map(n => n.id),{location:stampPlace(city),storyThreadId:'city:' + city.id});
+    if (typeof X.onCityVisitLore === 'function') X.onCityVisitLore(W, ex, members);
   }
 
   /* =========================================================================
@@ -9551,11 +9552,11 @@
     STORY_RIPPLE_CANON_SYNC: Object.freeze({
       'STORY-SYNC-01': 'ยายเมิ่ง (#24) แบ่งเศษผ้ารองถาดน้ำชาแช่เย็นจากเรือสำราญสวรรค์เป็น 2 ส่วน: แกนกลางเป็นภูษาชั้นในผนึกเหมันต์ที่กู่หลิงเฟย (#2) สวมจำศีล ส่วนเศษด้ายขอบนอกทอเป็นอาภรณ์ขนนกกระเรียนสวรรค์ในซากอุทยานหลวง และปราณหยกใสหมิงยวี่ที่กู่เทียนเฉิน (#46) ฝึกโดยไร้ผ้าคุ้มกายจึงค่อยๆ แช่แข็งหัวใจตนเอง',
       'STORY-SYNC-02': 'ซือหม่าชุน (#4) ดัดแปลงสมุดระเบียบคุมทะเบียนทาสเหมืองและอักขระแปะผนึกลังส่วยของสวรรค์เป็นระบบปกครองตงหวง และคุณชายสาม ซือหม่าชิง (#52) แสร้งเสเพลกว้านซื้อของเก่าชำรุดทั่วแผ่นดินเพราะรู้ความจริงว่ามีเพียงของขยะไร้ปราณเซียนเท่านั้นที่รอดม่านกั้นภพลงมาได้',
-      'STORY-SYNC-03': 'เถ้าแก่เฉียน (#22) นำโครงลูกคิดเหล็กเบี้ยวที่เสมียนเหมืองสวรรค์โยนทิ้งมาใส่ลูกปัดทองคำคลังหลวง 99 เม็ดซ่อนไว้ในเจดีย์หินริมผา และเก็บลูกปัดแม่กุญแจเม็ดที่ 100 ไว้ที่โต๊ะคิดเงินโรงเตี๊ยมไร้ชื่อริมทาง (อีเวนต์ #32)',
+      'STORY-SYNC-03': 'เถ้าแก่เฉียน (#22) นำโครงลูกคิดเหล็กเบี้ยวที่เสมียนเหมืองสวรรค์โยนทิ้งมาใส่ลูกปัดทองคำคลังหลวง 99 เม็ดซ่อนไว้ในเจดีย์หินริมผา และเก็บลูกปัดแม่กุญแจเม็ดที่ 100 ไว้ที่โต๊ะคิดเงินโรงเตี๊ยมไร้ชื่อริมทาง (อีเวนต์ #10)',
       'STORY-SYNC-04': 'ซิงเฉินจื่อ (#16) ใช้แผ่นจานจำลองกลุ่มดาวของเล่นเด็กจากตระกูลโหรสวรรค์ที่เฟืองบิ่นสองซี่ส่องพบว่าม่านกั้นภพหักเหดวงดาวและมีเงามืดเบื้องบนชักใย จึงซ่อนจานสวรรค์ไว้นอกหอดูดาวก่อนเวลาหยุดนิ่ง (อีเวนต์ #29) และส่งต่อภารกิจแก่ซิงอวิ๋น (#49)',
       'STORY-SYNC-05': 'ตราพยัคฆ์ไท่จี๋ประกาศิตทัพของทัวป๋าเลี่ย (#5) หล่อเป็น 2 ซีกคู่กัน: ทัวป๋ากัง (#60) เฝ้าซีกพยัคฆ์ขวาบนผาหินแดงซีหรงเพื่อถ่วงดุลทัวป๋าเจิ้นเทียน (#56) ส่วนซีกไท่จี๋ซ้ายจมอยู่ในค่ายทะเลทรายโบราณ (เควสต์เบาะแส)',
       'STORY-SYNC-06': 'กำไลหยกมังกรหงส์คู่สวรรค์ถูกแกะสลักเป็น 2 วงคู่กันจากหยกหลวงเทียนกู่: วงมังกรเหมันต์อยู่กับองค์หญิงกู่ชิงเสวี่ย (#47) ในฐานะตราตั้งรัชทายาทเป่ยหมิง ส่วนวงหงส์มังกรคู่บำเพ็ญตกค้างอยู่ในตำหนักหยกคู่กลางซากอุทยานหลวง',
-      'STORY-SYNC-07': 'พญาอสูรคลั่ง โซ่วหวง (#31) นำเศษคราบปลอกเล็บผุของสุนัขคุ้ยซากสายเลือดเทาเที่ยเจือจางที่ร่วงจากรอยแยกอเวจีมาตีเป็นกรงเล็บเทาเที่ย จนคืนจันทร์สีเลือดสัญชาตญาณตะกละในคราบอเวจีปลุกฝูงสัตว์เลี้ยงหันกลับมาฉีกเนื้อโซ่วหวงกินทั้งเป็น (อีเวนต์ #12)',
+      'STORY-SYNC-07': 'พญาอสูรคลั่ง โซ่วหวง (#31) นำเศษคราบปลอกเล็บผุของสุนัขคุ้ยซากสายเลือดเทาเที่ยเจือจางที่ร่วงจากรอยแยกอเวจีมาตีเป็นกรงเล็บเทาเที่ย จนคืนจันทร์สีเลือดสัญชาตญาณตะกละในคราบอเวจีปลุกฝูงสัตว์เลี้ยงหันกลับมาฉีกเนื้อโซ่วหวงกินทั้งเป็น (อีเวนต์ #8)',
       'STORY-SYNC-08': 'แม่ทัพหญิง มู่หรงเสวี่ย (#7) เผาอายุขัยและแก่นโลหิตทั้งหมดเป็นบงกชโลหิตระเบิดสังหารร่างทรงที่อัญเชิญเศษเสี้ยวจิตหนึ่งในพันส่วนของผู้ตรวจการโลกเบื้องบนลงมาประทับกลางสนามรบ (อีเวนต์ #20)',
       'STORY-SYNC-09': 'เซียนกระบี่ขี้เมา จิ้วเจี้ยนเซียน (#39) แทงหนึ่งกระบี่เซียนเหินจากฟากฟ้าสะกิดม่านกั้นภพเป็นรูเข็มเหนือซากอุทยานหลวง และเห็นคนกวาดถนนชั้นต่ำบนโลกเบื้องบนสะบัดไม้กวาดปัดปราณกระบี่สูงสุดของเขาดับวูบเหมือนปัดขี้เถ้าไฟ (อีเวนต์ #35)',
       'STORY-SYNC-10': 'ทูตตกสวรรค์ ขงหมิง (#21) คืออดีตผู้เหินหาวที่ถูกส่งลงมาเป็นเบี้ยสงครามและถูกแรงระเบิดประตูมิติหลวงบดขยี้ตันเถียนจนตบะร่วงต่ำกว่าเกณฑ์ม่านฟ้า จึงติดค้างในโลกล่างถาวร ส่วนเสิ่นเทียนจุน (#28) ใช้เศษใบปลิวบทสวดคนรับใช้หน้าประตูวัดสวรรค์ทำพิธีจนถูกม่านฟ้าตบสวน (อีเวนต์ #25)',
@@ -9724,5 +9725,3701 @@
       return res;
     };
   }
+
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+/* ============================================================================
+ * JS2-v3.1.0 — LIVING LORE, 4 EPISTEMIC LAYERS, FALLEN DYNASTIES ARCHIVE,
+ * 28 MULTI-PERSPECTIVE CANON FACTS & 20 MULTI-STAGE PLAYABLE STORY CHAINS
+ * ============================================================================ */
+(function initLivingLoreExpeditionEngine(g) {
+  'use strict';
+  const X = g.EXPED, HC = g.HC, U = g.U, JD = g.JD;
+  const getCOG = () => g.COG, getCULT = () => g.CULT, getECO = () => g.ECO, getSECT = () => g.SECT, getAI = () => g.AI;
+  if (!X || !HC || !U) return;
+  const E = (n, p) => HC.eff(n, p), clamp = U.clamp;
+
+  const EPISTEMIC_LAYERS = Object.freeze({
+    PROVINCIAL_VEIL: Object.freeze({
+      id: 'PROVINCIAL_VEIL',
+      order: 1,
+      nameTh: 'ชั้นที่ 1 · ม่านหมอกชนบทและคำบอกเล่าพื้นบ้าน',
+      shortTh: 'คำบอกเล่าพื้นบ้าน',
+      secretGate: false,
+      descTh: 'เรื่องเล่าปากเปล่าในโรงเตี๊ยม เพลงคนแจวเรือ คติความเชื่อของชาวบ้าน และจารีตท้องถิ่นใน 54 เมืองและด่าน ซึ่งมักเจืออภินิหารหรืออคติของแต่ละท้องที่'
+    }),
+    IMPERIAL_CHESSBOARD: Object.freeze({
+      id: 'IMPERIAL_CHESSBOARD',
+      order: 2,
+      nameTh: 'ชั้นที่ 2 · กระดานหมากเก้าแคว้น ราชวงศ์ที่ล่มสลาย และศึกตัวแทน 19 สำนัก',
+      shortTh: 'กระดานหมากเก้าแคว้น',
+      secretGate: false,
+      descTh: 'สนธิสัญญาหยุนเหอ 820 ปีของซูฉิน (#37) การคานอำนาจของ 3 มหาจักรวรรดิ 5 แคว้นกลาง สภาเจ็ดวาณิช และร่องรอยของราชวงศ์ที่เพิ่งล่มสลายซึ่งยังหลงเหลืออยู่ในระบบภาษีและสายตระกูล'
+    }),
+    SHATTERED_SUBCONTINENT: Object.freeze({
+      id: 'SHATTERED_SUBCONTINENT',
+      order: 3,
+      nameTh: 'ชั้นที่ 3 · ความลับอนุทวีปแตกสลาย ม่านกั้นภพเทียนกู่ และของตกค้างจากเบื้องบน',
+      shortTh: 'ความลับม่านกั้นภพ',
+      secretGate: true,
+      descTh: 'ความจริงเรื่องการระเบิดประตูมิติหลวงของกู่เสวียนหยวน (#1) กฎเพดานตบะขั้น 9 ที่ม่านฟ้ากดทับ สัจธรรมว่าของวิเศษโบราณหลายชิ้นเป็นเพียงของใช้สามัญจากโลกเบื้องบน และแผ่นดินห้าภูมิภาคเป็นเพียงหลุมอุกกาบาตที่ถูกล้อมด้วยทะเลหมอกไร้ขอบเขต'
+    }),
+    ERASED_PREHISTORY: Object.freeze({
+      id: 'ERASED_PREHISTORY',
+      order: 4,
+      nameTh: 'ชั้นที่ 4 · ยุคบรรพกาลก่อนเทียนกู่และปฐมบทผู้ก่อตั้งสำนักที่ถูกปิดบัง',
+      shortTh: 'ปฐมประวัติที่ถูกลบ',
+      secretGate: true,
+      descTh: 'ยุคบรรพกาลสามสมัยที่ถูกราชสำนักเทียนกู่ลบออกจากพงศาวดาร หอจดหมายเหตุสี่มหาแดนลับ และชาติกำเนิดที่แท้จริงของปรมาจารย์ผู้ก่อตั้งสำนักรุ่นที่ 1 (#45) ผู้ทิ้งตราหินเทาไร้ลักษณ์ไว้เพื่อหลบเลี่ยงสายตาสวรรค์'
+    })
+  });
+
+  const FALLEN_DYNASTIES_ARCHIVE = Object.freeze({
+    DYN_TIANGU: Object.freeze({
+      id: 'DYN_TIANGU',
+      nameTh: 'มหาจักรวรรดิโบราณเทียนกู่',
+      eraTh: 'ยุคที่ 1–2 · ก่อนการระเบิดประตูมิติหลวง (~1,000 ปีก่อน)',
+      successorPolityIds: ['POL_BEIMING', 'POL_DONGHUANG', 'POL_XIRONG', 'POL_YUNHE'],
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'PASS_YH_YUGUAN_RUIN_POST', 'CITY_BM_HANYU_CAPITAL'],
+      remnantSignTh: 'เหรียญสำริดตราประตูสวรรค์ ศิลาจารึกอักษรหลวงยุคกู่เสวียนหยวน (#1) และฐานค่ายกลสิบสองคบเพลิง',
+      courtAccountTh: 'ราชสำนักเป่ยหมิงอ้างสิทธิ์สายเลือดสกุลกู่โดยตรง ส่วนตงหวงบันทึกว่าเทียนกู่ล่มสลายเพราะความอหังการของกษัตริย์องค์สุดท้าย',
+      folkAccountTh: 'ชาวบ้านเล่าขานว่านครหลวงเทียนกู่ถูกทวยเทพลงทัณฑ์จนจมลงใต้หุบเขาและกลายเป็นซากอุทยานสวรรค์'
+    }),
+    DYN_QINGLAN: Object.freeze({
+      id: 'DYN_QINGLAN',
+      nameTh: 'ราชวงศ์ชิงหลานโบราณ (แคว้นสายน้ำคราม)',
+      eraTh: 'ยุคก่อนปัจจุบัน · เพิ่งล่มสลายเมื่อ ~90 ปีก่อนและถูกผนวกเข้าตงหวง',
+      successorPolityIds: ['POL_DONGHUANG'],
+      anchorNodeIds: ['CITY_DH_QINGLAN_DICE_CITY', 'PASS_DH_BAILANG_RIVER_LOCK'],
+      remnantSignTh: 'ตราประทับครั่งทองเหลืองรูปคลื่นคู่ของด่านภาษีเก่า และตั๋วแลกเงินใต้ดินที่โรงจำนำเก่ายังรับแลก',
+      courtAccountTh: 'พงศาวดารตงหวงระบุว่าเจ้าแคว้นชิงหลานบริหารคลังล้มเหลวจนต้องขอสวามิภักดิ์ต่อราชธานีเก้าคลังสุริยัน',
+      folkAccountTh: 'คนแจวเรือและนายหน้าเก่ากระซิบว่าคลังเสบียงใต้น้ำของชิงหลานยังไม่เคยถูกเปิด และตราภาษีเก่ายังใช้เบิกของในห้องลับได้'
+    }),
+    DYN_ZHENYANG: Object.freeze({
+      id: 'DYN_ZHENYANG',
+      nameTh: 'แคว้นปราการเจิ้นหยาง',
+      eraTh: 'ยุคก่อนปัจจุบัน · ล่มสลายในศึกพรมแดนตะวันออก–กลางเมื่อ ~110 ปีก่อน',
+      successorPolityIds: ['POL_DONGHUANG', 'POL_YUNHE'],
+      anchorNodeIds: ['CITY_DH_ZHENYANG_RUIN_PREF', 'TOWN_YH_WUYUN_POST'],
+      remnantSignTh: 'ป้อมศิลาครึ่งซีกและหมุดเหล็กบอกแนวเขตแดนที่ตอกซ้อนกับหลักศิลาหยุนเหอ',
+      courtAccountTh: 'ตงหวงถือว่าเจิ้นหยางเป็นมณฑลหน้าด่านที่ถูกกบฏเผาทำลาย จึงตั้งด่านเก็บภาษีซ่อมป้อมทับที่เดิม',
+      folkAccountTh: 'ทายาททหารยามเจิ้นหยางเล่าว่าแม่ทัพคนสุดท้ายเปิดประตูระบายพลเรือนหนีเข้าหยุนเหอก่อนเผาคลังแสงตนเอง'
+    }),
+    DYN_CANGLAN: Object.freeze({
+      id: 'DYN_CANGLAN',
+      nameTh: 'แคว้นหมอกชางหลาน',
+      eraTh: 'ยุคกลางเจ็ดธงศึก · ล่มสลายเมื่อ ~240 ปีก่อนในหุบเขาหมอกเหนือ',
+      successorPolityIds: ['POL_YOUMING', 'POL_BEIMING'],
+      anchorNodeIds: ['CITY_YM_HUNDENG_CAPITAL', 'TOWN_YM_SHIBEI_RUBBING', 'PASS_YM_WUKUI_MIST_GATE'],
+      remnantSignTh: 'ป้ายหยกครึ่งซีกสลักนามสกุลผู้อพยพ และเทคนิคลอกลายศิลาจารึกด้วยหมึกควันสน',
+      courtAccountTh: 'ถูกบันทึกสั้นๆ ว่าเป็นแคว้นเล็กที่สลายตัวไปเองจากภัยหนาวและหมอกพิษ',
+      folkAccountTh: 'ตระกูลที่อพยพลงใต้ยังเก็บป้ายหยกครึ่งซีกไว้เทียบหาญาติพี่น้องที่พลัดพรากในคืนเผาบัญชีเกณฑ์ทหาร'
+    }),
+    DYN_YANLING: Object.freeze({
+      id: 'DYN_YANLING',
+      nameTh: 'ราชวงศ์เหยียนหลิง (แคว้นสองแควโบราณ)',
+      eraTh: 'ยุคสิบสองแคว้นล่มสลาย · ~420 ปีก่อน ก่อนกำเนิดสภาเจ็ดวาณิชหยุนเหอ',
+      successorPolityIds: ['POL_YUNHE'],
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE', 'TOWN_YH_CUIZHU_TEA'],
+      remnantSignTh: 'ขีดวัดระดับน้ำท่วมโบราณใต้ตอม่อสะพานศิลาสามแคว และสมุดบัญชีส่วยข้าวฤดูแล้ง',
+      courtAccountTh: 'สภาเจ็ดวาณิชหยุนเหอบันทึกว่าเหยียนหลิงล่มสลายเพราะเก็บภาษีน้ำขูดรีดพ่อค้า',
+      folkAccountTh: 'ชาวประมงเชื่อว่ากษัตริย์เหยียนหลิงทำผิดคำสัตย์ต่อพญามังกรน้ำ ทำให้แม่น้ำสองแควไหลย้อนกลับทุกเจ็ดปี'
+    }),
+    DYN_DAXIA_SEVEN_BANNERS: Object.freeze({
+      id: 'DYN_DAXIA_SEVEN_BANNERS',
+      nameTh: 'พันธมิตรเจ็ดธงศึกต้าเซี่ย',
+      eraTh: 'ยุคกลียุคหลังประตูมิติแตก · ~750 ปีก่อน',
+      successorPolityIds: ['POL_BEIMING', 'POL_XIRONG'],
+      anchorNodeIds: ['PASS_BM_HANLONG_GATE', 'TOWN_BM_BAIMEI_OLD_FORT', 'PASS_BM_XUEFENG_WEST'],
+      remnantSignTh: 'หัวทวนสำริดหักและแผนที่หนังแกะที่วาดโค้งน้ำโบราณก่อนแผ่นดินทรุด',
+      courtAccountTh: 'เป่ยหมิงบันทึกว่าเป็นกองทัพขุนศึกนอกรีตที่ถูกปฐมกษัตริย์สกุลกู่ปราบปรามจนราบคาบ',
+      folkAccountTh: 'พรานแดนเหนือเล่าว่าเป็นกองทัพผู้รอดชีวิตที่ตั้งค่ายสกัดอสูร裂缝มิติจนตัวตายหมดทั้งเจ็ดกองธง'
+    }),
+    DYN_HUANGSHA_OASIS: Object.freeze({
+      id: 'DYN_HUANGSHA_OASIS',
+      nameTh: 'สมาพันธ์โอเอซิสทรายทองหวงซา',
+      eraTh: 'ยุคก่อนการรวมแผ่นดินซีหรง · ~310 ปีก่อน',
+      successorPolityIds: ['POL_XIRONG', 'POL_CHIYAN'],
+      anchorNodeIds: ['CITY_XR_SHAYU_OASIS', 'PASS_XR_HUANGSHA_FORT', 'TOWN_XR_XINYUE_WELL'],
+      remnantSignTh: 'ช่องส่งน้ำใต้ดินโบราณ (Karez) และแท่นฝนหมึกหินทรายแดงสลักตราพยัคฆ์ครึ่งซีก',
+      courtAccountTh: 'จักรวรรดิซีหรงบันทึกว่าชนเผ่าโอเอซิสยอมมอบบ่อน้ำทั้งเก้าแลกกับการคุ้มครองจากกองทัพทัวป๋า',
+      folkAccountTh: 'คนนำทางทะเลทรายรู้ดีว่ายังมีท่อส่งน้ำใต้ดินและจุดพักคาราวานลับที่ไม่อยู่ในแผนที่ทหารซีหรง'
+    }),
+    DYN_NANZHU_LEAGUE: Object.freeze({
+      id: 'DYN_NANZHU_LEAGUE',
+      nameTh: 'สันนิบาตเดินเรือสมุทรทักษิณ',
+      eraTh: 'ยุคสำรวจทะเลหมอก · ~180 ปีก่อน',
+      successorPolityIds: ['POL_DONGHUANG', 'POL_GUJIAO'],
+      anchorNodeIds: ['CITY_SO_NANZHU_PEARL_ISLE', 'CITY_SO_LONGWAN_SHIPYARD', 'PASS_SO_DENGTAI_LIGHTHOUSE'],
+      remnantSignTh: 'สมุดปมเชือกหยั่งร่องน้ำสามตะเกียง และแผ่นไม้สักสลักชื่อเรือที่สูญหายในม่านหมอก',
+      courtAccountTh: 'ตงหวงสั่งยุบสันนิบาตเดินเรือโดยอ้างว่าลักลอบค้าเกลือเถื่อนและสมคบโจรสลัดโขดหินดำ',
+      folkAccountTh: 'ชาวเรือเกาะไข่มุกเล่าว่ากองเรือใหญ่แล่นเลยแนวประภาคารออกไปพบกำแพงหมอกไร้ก้นบึ้งก่อนจะเหลือเรือรอดกลับมาเพียงลำเดียว'
+    })
+  });
+
+  const CANON_FACTS = Object.freeze([
+    {
+      id: 'FACT_01_SHUANGJIANG_BACKFLOW',
+      storyId: 'STORY_01_SHUANGJIANG_FLOOD_LEDGER',
+      titleTh: 'ปรากฏการณ์น้ำไหลย้อนและสมุดระดับน้ำซวงเจียง',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'],
+      relatedPaths: ['TIDE_VOYAGER', 'STRATEGY_GOVERNANCE', 'MERCANTILE_DAO'],
+      relatedFigures: [37, 53],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'ROUTE_SAFETY', legNodes: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], travelBonus: 0.14, descTh: 'ลดความล่าช้าและความเสี่ยงขบวนเรือข้ามสองแควหยุนเหอ–ด่านสะพานศิลาสามแคว' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานพญานาคราชทวงส่วยสองแคว',
+          credibilityBase: 48,
+          biasTh: 'เรื่องเล่าคนแจวเรือและโรงสุราท่าเทียบเรือซวงเจียง',
+          summaryTh: 'ชาวเรือร่ำลือว่าทุกปลายฤดูใบไม้ร่วงปีที่เจ็ด พญามังกรใต้น้ำจะพลิกตัวทวงส่วยกษัตริย์เหยียนหลิง ทำให้กระแสน้ำสองแควไหลย้อนกลับและกลืนเรือสินค้าที่บรรทุกหนัก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศเตือนภัยร่องน้ำสภาเจ็ดวาณิช',
+          credibilityBase: 62,
+          biasTh: 'ประกาศทางการของนายท่าเรือหยุนเหอเพื่อเก็บค่าธรรมเนียมนำร่อง',
+          summaryTh: 'สภาเจ็ดวาณิชระบุว่ากระแสน้ำปั่นป่วนเกิดจากเรือต่างแคว้นทอดสมอขวางร่องน้ำ จึงต้องเรียกเก็บค่านำร่องพิเศษในช่วงน้ำหลาก'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกปราณวารีปะทะชีพจรปฐพี',
+          credibilityBase: 65,
+          biasTh: 'สมมติฐานของผู้ฝึกตนสายวารีและค่ายกล',
+          summaryTh: 'ผู้ฝึกตนเชื่อว่าใต้จุดบรรจบแม่น้ำมีรอยรั่วของชีพจรปฐพีที่ดันมวลน้ำให้ตีกลับเป็นพักๆ เมื่อปราณหยินสะสมตัว'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'หลักฐานขีดวัดระดับน้ำแล้งและสมุดส่วยข้าวราชวงศ์เหยียนหลิง',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการเทียบขีดหินใต้ตอม่อสะพานศิลาสามแควกับสมุดคลังข้าวโบราณ',
+          summaryTh: 'รอยสิ่ววัดระดับน้ำใต้ตอม่อสะพานศิลาสามแควและสมุดส่วยข้าวโบราณพิสูจน์ว่า เมื่อปีใดหิมะแดนเหนือละลายช้าประจวบกับฝนหลงฤดูฝั่งตะวันออก สันดอนทรายใต้น้ำจะหนุนให้น้ำตีกลับเป็นเวลา 9 วัน สามารถคำนวณล่วงหน้าและปรับเส้นทางคาราวานหลบได้อย่างแม่นยำ'
+        }
+      }
+    },
+    {
+      id: 'FACT_02_BAILU_DUAL_COMMENTARY',
+      storyId: 'STORY_02_BAILU_DUAL_ANNOTATED_MANUAL',
+      titleTh: 'อรรถาธิบายสองลายมือในคัมภีร์สำนักศึกษาไป๋ลู่',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'MARTIAL_SCHISM',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_BAILU_ACADEMY', 'CITY_YH_OLD_DAREN_SQUARE'],
+      relatedPaths: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'LORE_ARCHIVIST'],
+      relatedFigures: [21, 37],
+      secretGate: false,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'STUDY_SYNTHESIS', studySpeedBonus: 0.12, descTh: 'เพิ่มความเร็วและความปลอดภัยในการตีความคัมภีร์ด้วยอรรถาธิบายประสานสองสำนักคิด' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือคัมภีร์ต้องสาปของศิษย์ทรยศ',
+          credibilityBase: 45,
+          biasTh: 'คำเล่าลือในหมู่บัณฑิตฝึกหัดเมืองไป๋ลู่',
+          summaryTh: 'ร่ำลือกันว่าผู้เขียนหมึกสีชาดในขอบคัมภีร์คือศิษย์เอกที่ธาตุไฟเข้าแทรกและจงใจเขียนเคล็ดวิชาลวงไว้สังหารผู้เรียนรุ่นหลัง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ทะเบียนตำราต้องห้ามของหอตรวจการการศึกษา',
+          credibilityBase: 60,
+          biasTh: 'มุมมองขุนนางผู้ควบคุมสำนักศึกษา',
+          summaryTh: 'หอทะเบียนตำราจัดให้ฉบับที่มีรอยแก้หมึกแดงเป็นฉบับคัดลอกผิดพลาดที่ควรเก็บเข้ากรุเพื่อรักษามาตรฐานการสอบ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ข้อพิพาทสายเร่งรัดหมึกชาดกับสายมั่นคงหมึกดำ',
+          credibilityBase: 68,
+          biasTh: 'ความขัดแย้งระหว่างอาจารย์สายรุกและสายตั้งรับ',
+          summaryTh: 'หมึกดำเน้นเดินปราณช้าแต่ปลอดภัย ส่วนหมึกชาดแนะให้บีบอัดปราณผ่านจุดชีพจรลัดซึ่งรุนแรงกว่าแต่เสี่ยงบาดเจ็บภายใน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกโต้ตอบของสองปรมาจารย์ร่วมสาบานแห่งไป๋ลู่',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการเทียบลายมือต้นฉบับในหอสมุดไป๋ลู่และตราประทับคู่',
+          summaryTh: 'ทั้งสองลายมือเขียนโดยปรมาจารย์คู่ร่วมสาบานคนเดียวกันในช่วงวัยหนุ่ม (หมึกชาด) และวัยชรา (หมึกดำ) เพื่อชี้แนะว่าผู้มีกายาแข็งแกร่งใช้ทางลัดหมึกชาดได้เมื่อมีหมึกดำคอยคุมจังหวะผ่อนลมหายใจ'
+        }
+      }
+    },
+    {
+      id: 'FACT_03_QINGLAN_DOUBLE_TOLL_SEAL',
+      storyId: 'STORY_03_QINGLAN_SECOND_TOLL_STAMP',
+      titleTh: 'ตราประทับด่านภาษีซ้อนแห่งราชวงศ์ชิงหลาน',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_QINGLAN_DICE_CITY', 'CITY_DH_ZHENYANG_RUIN_PREF'],
+      relatedPaths: ['MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'STRATEGY_GOVERNANCE'],
+      relatedFigures: [52, 53, 54],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'TRADE_TRUST_AND_CACHE', tradeBonus: 0.10, descTh: 'เข้าใจธรรมเนียมตั๋วแลกเงินเก่าชิงหลานและระเบียบศุลกากรตงหวง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือภาษีผีราชวงศ์ชิงหลาน',
+          credibilityBase: 46,
+          biasTh: 'เรื่องเล่าของคนคุมเกวียนและนักพนันเมืองชิงหลาน',
+          summaryTh: 'พ่อค้าร่ำลือว่าหีบสินค้าใดที่มีตราคลื่นคู่ของราชวงศ์ชิงหลานที่ล่มสลายไปเมื่อเก้าสิบปีก่อนประทับซ้อนอยู่ จะถูกผีขุนนางเก่าตามทวงส่วยกลางทาง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'หมายปราบปรามตราปลอมของสำนักตรวจการตงหวง',
+          credibilityBase: 64,
+          biasTh: 'ประกาศของมือปราบเอี๊ยนหลัว (#54)',
+          summaryTh: 'สำนักตรวจการตงหวงประกาศว่าตราคลื่นคู่เป็นตราเถื่อนของกบฏหลงยุค ผู้ครอบครองหีบสินค้าต้องถูกยึดของกลางและสอบสวน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'รหัสลับเครือข่ายนายหน้าหอการค้าหมื่นสมุทร',
+          credibilityBase: 67,
+          biasTh: 'บันทึกของนายวาณิชย์สายการค้า',
+          summaryTh: 'นายหน้าอาวุโสทราบว่าตระกูลคหบดีเก่าในเมืองชิงหลานและเจิ้นหยางยังใช้ตราครั่งทองเหลืองดั้งเดิมเป็นตั๋วรับประกันสินค้าระหว่างห้องใต้ดินเก่า'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'สมุดเทียบตราภาษีเปลี่ยนผ่านชิงหลาน–ตงหวง',
+          credibilityBase: 92,
+          biasTh: 'พิสูจน์จากการสอบทานสมุดบัญชีด่านเจิ้นหยางเก่ากับนายหน้าเมืองชิงหลาน',
+          summaryTh: 'เมื่อตงหวงผนวกแคว้นชิงหลาน ว่านจินเหนียง (#53) ได้อนุญาตให้นายหน้าคลังเก่าประทับตราคลื่นคู่กำกับใต้ตราลูกคิดทองคำเพื่อรับรองสิทธิเบิกพัสดุคงค้างจากคลังใต้ดินโดยไม่ผิดกฎหมายศุลกากร'
+        }
+      }
+    },
+    {
+      id: 'FACT_04_YUGUAN_REFUGEE_BOUNDARY',
+      storyId: 'STORY_04_YUGUAN_TWO_VILLAGE_BOUNDARY',
+      titleTh: 'หลักศิลาสองชื่อแห่งด่านหยกเก่าอวี้กวาน',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_YUGUAN_RUIN_POST', 'TOWN_YH_LIUWAN_FERRY'],
+      relatedPaths: ['WANDERING_DAO', 'STRATEGY_GOVERNANCE', 'ARCHITECT_FORTIFIER'],
+      relatedFigures: [38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SETTLEMENT_HARMONY', anchorNodeIds: ['PASS_YH_YUGUAN_RUIN_POST'], safetyBonus: 6, descTh: 'ประสานรอยร้าวสองหมู่บ้านรอบด่านหยกเก่าอวี้กวาน เพิ่มความปลอดภัยเส้นทาง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข้อพิพาทสันเขาแย่งน้ำสองตระกูล',
+          credibilityBase: 50,
+          biasTh: 'คำอ้างของชาวบ้านสองฝั่งสันเขาอวี้กวาน',
+          summaryTh: 'หมู่บ้านฝั่งเหนือเรียกสันเขานี้ว่าเนินพักพลองเขียว ส่วนหมู่บ้านฝั่งใต้เรียกว่าผาแบ่งข้าว ต่างฝ่ายต่างอ้างว่าบรรพชนตนเป็นผู้ตั้งหลักศิลาก่อน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'แผนที่รังวัดที่ดินของด่านภาษีอวี้กวาน',
+          credibilityBase: 61,
+          biasTh: 'บันทึกของเสมียนด่านเพื่อเก็บส่วยทั้งสองหมู่บ้าน',
+          summaryTh: 'เสมียนด่านอ้างว่าหลักศิลาเดิมลบเลือนไปแล้ว พื้นที่ทั้งสองฝั่งจึงถือเป็นที่หลวงซึ่งต้องจ่ายค่าธรรมเนียมผ่านทางเพิ่ม'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกเส้นทางอพยพของราชันย์พเนจรหงชี (#38)',
+          credibilityBase: 68,
+          biasTh: 'ตำนานสายจอมยุทธ์พเนจร',
+          summaryTh: 'เล่าขานว่าหงชี (#38) ใช้พลองหยกเขียวปักแบ่งเขตให้ขบวนผู้ลี้ภัยสองกลุ่มพักแรมคนละฟากเขาเพื่อไม่ให้แย่งฟืนและน้ำกัน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'รอยสลักสองด้านบนฐานศิลาบอกทางม้าเร็วโบราณ',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการขุดแต่งฐานหลักศิลาและเทียบสมุดสายตระกูลทั้งสองหมู่บ้าน',
+          summaryTh: 'ฐานศิลาที่จมอยู่ใต้ดินครึ่งศอกสลักชื่อทั้งสองไว้คนละด้านโดยหงชี (#38) เพื่อให้สองตระกูลผลัดกันดูแลบ่อน้ำและคบเพลิงนำทางแก่คนเดินทางไกล'
+        }
+      }
+    },
+    {
+      id: 'FACT_05_FORD_BEAST_MOLTING_CYCLE',
+      storyId: 'STORY_05_BEAST_KEEPER_FORD_NOTEBOOK',
+      titleTh: 'สมุดบันทึกคนเลี้ยงอสูรและวงจรลอกคราบริมแก่งน้ำตื้น',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'ECOLOGY',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['TOWN_BM_BINGHE_FUR_POST', 'TOWN_GJ_YaoZhai_HUNT'],
+      relatedPaths: ['BEAST_SOVEREIGN', 'SPIRIT_HUSBANDRY', 'PRIMORDIAL_SHIFTER'],
+      relatedFigures: [31, 40],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'BEAST_ECOLOGY_INSIGHT', companionAffinityBonus: 0.12, descTh: 'เข้าใจวงจรลอกคราบและวางรังของสัตว์อสูรริมน้ำ ลดการปะทะโดยไม่จำเป็นและเก็บคราบสมุนไพรได้' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลืออสูรคลั่งอาละวาดปิดแก่งน้ำ',
+          credibilityBase: 47,
+          biasTh: 'ความตื่นตระหนกของพ่อค้าขนสัตว์และชาวบ้าน',
+          summaryTh: 'ร่ำลือว่ามีอสูรกลายพันธุ์ดุร้ายดักซุ่มทำร้ายขบวนเดินทางตรงแก่งน้ำตื้น ต้องระดมมือปราบไปกวาดล้างให้สิ้นซาก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศตั้งค่าหัวอสูรรบกวนเส้นทางเสบียง',
+          credibilityBase: 60,
+          biasTh: 'คำสั่งด่านทหารชายแดน',
+          summaryTh: 'ด่านหน้าออกประกาศปิดแก่งน้ำชั่วคราวและตั้งรางวัลนำจับเขี้ยวอสูรเพื่อเปิดทางส่งเสบียงทหาร'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ตำราเก็บเกี่ยววัตถุดิบอสูรช่วงผลัดเกล็ด',
+          credibilityBase: 66,
+          biasTh: 'มุมมองของนักปรุงยาและผู้ล่าอสูร',
+          summaryTh: 'ระบุว่าช่วงที่สัตว์อสูรริมน้ำรวมฝูงคือจังหวะที่เกล็ดอ่อนแอที่สุด เหมาะแก่การชิงเก็บแก่นอสูรและคราบเกล็ด'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'สมุดบันทึกสนามของคนเลี้ยงอสูรเฒ่า',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการตรวจสมุดบันทึกหนังสัตว์และร่องรอยรังริมตลิ่ง',
+          summaryTh: 'สัตว์อสูรเพียงขึ้นมาถูหินลอกคราบและเฝ้าไข่ริมแก่งน้ำตื้นเพียง 6 วันต่อฤดู หากเลี่ยงทางเดินริมตลิ่งหรือวางเกลือแร่ล่อไว้ห่างแก่ง จะสามารถเก็บคราบเกล็ดสมบูรณ์ได้โดยไม่เกิดการนองเลือด'
+        }
+      }
+    },
+    {
+      id: 'FACT_06_STOREROOM_ANVIL_TALISMAN',
+      storyId: 'STORY_06_STOREROOM_FLOORBOARD_SHRINE',
+      titleTh: 'หิ้งบูชาช่างหลอมและตราเหล็กใต้พื้นห้องเก็บของเก่า',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'CRAFT_LABOR',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_TIEKUANG_HOLLOW', 'CITY_CY_RONGLU_CAPITAL'],
+      relatedPaths: ['CRAFT_CREATION', 'RECLAMATION_DAO', 'ARCHITECT_FORTIFIER'],
+      relatedFigures: [14],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'GEAR_REPAIR_WARD', craftBonus: 0.10, descTh: 'ฟื้นฟูตำรับชุบขี้เถ้าถนอมเกราะและซ่อมบำรุงอุปกรณ์ป้องกันจากวัสดุสามัญ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือยันต์อาถรรพ์ใต้พื้นไม้ห้องเก็บของ',
+          credibilityBase: 44,
+          biasTh: 'ความหวาดระแวงของศิษย์เวรทำความสะอาด',
+          summaryTh: 'ศิษย์รับใช้ที่ไปรื้อแผ่นไม้ผุในห้องเก็บของเก่าพบทั่งเหล็กจิ๋วเปื้อนเขม่าและแผ่นไม้สลักชื่อแปลกๆ จึงลือกันว่าเป็นของทำคุณไสยที่คนรุ่นก่อนซ่อนไว้'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บัญชีพัสดุชำรุดรอหลอมทิ้ง',
+          credibilityBase: 58,
+          biasTh: 'มุมมองเสมียนคลังที่เน้นความเป็นระเบียบ',
+          summaryTh: 'จัดให้เศษเหล็กและแผ่นไม้ใต้พื้นเป็นเพียงขยะจากการซ่อมอาคารรุ่นเก่าที่ควรนำไปหลอมรวมเป็นเหล็กแท่งธรรมดา'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ธรรมเนียมฝากคมทั่งของช่างฝึกหัดสายโอวหยางเหยียน (#14)',
+          credibilityBase: 70,
+          biasTh: 'จารีตโรงหลอมโบราณ',
+          summaryTh: 'ช่างตีเหล็กยุคก่อนนิยมซ่อนทั่งจำลองและสูตรผสมขี้เถ้าชุบเกราะไว้ใต้พื้นโรงงาน เพื่อเป็นเครื่องรางคุ้มกันไฟเตาหลอมตีกลับ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ตำรับชุบเกราะเหล็กผสมขี้เถ้าไม้สนของช่างรุ่นที่สี่',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการถอดรหัสตราช่างบนทั่งจิ๋วและทดลองชุบแผ่นเกราะจริง',
+          summaryTh: 'เป็นหิ้งรำลึกถึงหัวหน้าช่างหลอมสมัยเจ้าสำนักรุ่นที่ 4 ที่คิดค้นวิธีใช้ขี้เถ้าสมุนไพรและแร่เหล็กสามัญชุบผิวชุดเกราะให้ทนแรงกระแทกและซ่อมแซมง่ายในยามสำนักขาดแคลนศิลาวิญญาณ'
+        }
+      }
+    },
+    {
+      id: 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR',
+      storyId: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR',
+      titleTh: 'ปริศนาเก้าอี้ว่างและกระบี่ไม้ท้อข้างแท่นตราหินเทาไร้ลักษณ์',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'SECT_LINEAGE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'TOWN_YH_QINGXI_FOOT'],
+      relatedPaths: ['XIAN', 'SWORD_DOMAIN', 'ANCESTRAL_RITUAL'],
+      relatedFigures: [45],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'LINEAGE_COHESION', regaliaInsightBonus: 1, descTh: 'ประสานความเข้าใจมรดกเจ้าสำนักรุ่นที่ 7 ระหว่างกระบี่ไม้ท้อฝึกหัดกับตราหินเทาไร้ลักษณ์' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือกระบี่ไม้ท้อคือศาสตราเซียนที่ถูกสับเปลี่ยน',
+          credibilityBase: 46,
+          biasTh: 'คำซุบซิบของศิษย์ใหม่และชาวยุทธ์นอกสำนัก (อิงร่าง LORE_05 เดิม)',
+          summaryTh: 'คนภายนอกร่ำลือว่าสมบัติประจำตำแหน่งเจ้าสำนักรุ่นที่ 7 คือกระบี่ไม้ท้อไร้คมที่แขวนอยู่ข้างเก้าอี้ว่างในโถงบรรพชน และสงสัยว่าเหตุใดเจ้าสำนักปัจจุบันจึงถือครองตราหินเทาไร้ลักษณ์แทน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกสำรวจสำนักยุทธ์ของหอทะเบียนหยุนเหอ',
+          credibilityBase: 59,
+          biasTh: 'รายงานของเสมียนแคว้นหยุนเหอ',
+          summaryTh: 'ระบุว่าสำนักเคยเกิดศึกชิงตำแหน่งในรุ่นที่ 6 จนศิษย์พี่ใหญ่หนีออกจากสำนักไปพร้อมเก้าอี้ประจำตำแหน่งที่ถูกปล่อยว่างไว้'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ธรรมเนียมคารวะผู้พิทักษ์ด่านและศาสตราไร้รูป',
+          credibilityBase: 72,
+          biasTh: 'คำสอนของผู้อาวุโสหอคัมภีร์',
+          summaryTh: 'ยืนยันว่าตราประจำตำแหน่งที่แท้จริงตั้งแต่รุ่นที่ 1 คือ「ตราหินเทาไร้ลักษณ์」(REGALIA_ORIGIN_FORMLESS_STONE) ส่วนกระบี่ไม้ท้อและเก้าอี้ว่างเป็นอนุสรณ์ภายในของรุ่นที่ 6'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกสั่งเสียของเจ้าสำนักรุ่นที่ 6 โม่ชางไห่',
+          credibilityBase: 96,
+          biasTh: 'พิสูจน์จากการเทียบจารึกป้ายบรรพชนรุ่นที่ 5–6 กับสมุดรายนามผู้สละชีพหน้าด่าน',
+          summaryTh: 'ตราประจำตำแหน่งที่แท้จริงคือ「ตราหินเทาไร้ลักษณ์」ซึ่งจำแลงได้ 24 รูปลักษณ์ ส่วนกระบี่ไม้ท้อเป็นเพียงไม้ฝึกซ้อมวัยเยาว์ที่เจ้าสำนักรุ่นที่ 6 โม่ชางไห่ แขวนไว้คู่กับเก้าอี้ว่างของศิษย์พี่ร่วมสาบานผู้สละชีพต้านศึกหน้าหุบเขา เพื่อให้เจ้าสำนักรุ่นที่ 7 จดจำทั้งอำนาจแห่งตราหินและคุณธรรมแห่งผู้เสียสละ'
+        }
+      }
+    },
+    {
+      id: 'FACT_08_TIANGU_MISSING_RIVER_BEND',
+      storyId: 'STORY_08_MISSING_BEND_TRAIL_SKETCH',
+      titleTh: 'ภาพร่างแผนที่รอยพับขาดของสมรภูมิกำแพงหลวงเทียนกู่',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['PASS_BM_HANLONG_GATE', 'CITY_BM_XINGYUN_CITADEL', 'TOWN_BM_BAIMEI_OLD_FORT'],
+      relatedPaths: ['SWORD_DOMAIN', 'STAR_FATE', 'WANDERING_DAO'],
+      relatedFigures: [6, 8, 16],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'RUIN_TRAIL_PRECISION', expedSafetyBonus: 0.12, descTh: 'กำหนดพิกัดร่องรอยสมรภูมิเทียนกู่แม่นยำขึ้นและรับมือกรณีมีผู้สำรวจไปถึงก่อนได้อย่างสมบูรณ์' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'แผนที่ขุมทรัพย์รอยพับขาดจากโรงเตี๊ยมแดนเหนือ',
+          credibilityBase: 45,
+          biasTh: 'คำโฆษณาของนักขายแผนที่โบราณ',
+          summaryTh: 'อ้างว่าหลังรอยพับที่ขาดหายไปของแผนที่หนังแกะคือคลังอาวุธลับของหลี่เจี้ยนซิน (#6) และเย่ชิงชาง (#8) ที่ยังไม่เคยมีผู้ใดค้นพบ'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'เขตหวงห้ามทางทหารของด่านประตูมังกรน้ำแข็ง',
+          credibilityBase: 62,
+          biasTh: 'คำสั่งกองทัพเป่ยหมิง',
+          summaryTh: 'กองทัพเป่ยหมิงประกาศว่าแนวสันเขาหลังด่านหานหลงเป็นเพียงหน้าผาน้ำแข็งถล่มที่ไม่มีเส้นทางเดินทัพหรือโบราณสถานใดๆ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกการเปลี่ยนร่องน้ำหลังแรงระเบิดประตูมิติหลวง',
+          credibilityBase: 70,
+          biasTh: 'แผนที่ดาราพยากรณ์ของสายซิงเฉินจื่อ (#16)',
+          summaryTh: 'ชี้ว่าคุ้งน้ำในภาพร่างไม่ได้วาดผิด แต่แม่น้ำโบราณเปลี่ยนทิศทางไปสามสิบลี้หลังจากแผ่นดินทรุดตัวในวันระเบิดประตูมิติหลวง'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'พิกัดจริงของเนินธนูหักและหลักศิลาองครักษ์เทียนกู่',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการคำนวณมุมดาวซิงหยวนเทียบกับร่องน้ำแห้งหลังเมืองเก่ากระบี่เหมยขาว',
+          summaryTh: 'รอยพับที่หายไปคือร่องน้ำแห้งที่เชื่อมระหว่างด่านหานหลงกับเมืองเก่าไป๋เหมย แม้สมบัติเอกอาจถูกผู้มีวาสนาหรือสำนักอื่นอัญเชิญไปแล้ว แต่หลักศิลาบันทึกกลยุทธ์ตั้งรับ 7 วัน 7 คืนของหลี่เจี้ยนซิน (#6) ยังคงสลักอยู่บนผนังผาให้ผู้มาเยือนศึกษามรรคายุทธ์ได้เสมอ'
+        }
+      }
+    },
+    {
+      id: 'FACT_09_HAIMEN_NANZHU_SALT_CURRENT',
+      storyId: 'STORY_09_ONE_SALT_LINE_TWO_PORTS',
+      titleTh: 'สายเกลือหนึ่งเส้นและร่องน้ำมรสุมระหว่างสองท่าเรือ',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_HAIMEN_PORT', 'CITY_SO_NANZHU_PEARL_ISLE', 'CITY_SO_LONGWAN_SHIPYARD'],
+      relatedPaths: ['TIDE_VOYAGER', 'MERCANTILE_DAO', 'CRAFT_CREATION'],
+      relatedFigures: [53],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SALT_PROVISION_BUFFER', provisionBonus: 0.12, descTh: 'สำรองเกลือและเสบียงก่อนฤดูมรสุมและเพิ่มความราบรื่นของเส้นทางเรือไห่เหมิน–หนานจู' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข้อกล่าวหากักตุนเกลือระหว่างไห่เหมินกับเกาะหนานจู',
+          credibilityBase: 49,
+          biasTh: 'ความบาดหมางของกรรมกรท่าเรือทั้งสองฝั่ง',
+          summaryTh: 'ชาวท่าเรือไห่เหมินโทษว่าชาวเกาะไข่มุกหนานจูแอบกักตุนเกลือทะเลไว้โก่งราคาหน้ามรสุม ส่วนชาวเกาะหนานจูโทษว่ากองเรือตงหวงสั่งกักเรือเสบียง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ระเบียบควบคุมโควตาเกลือหลวงตงหวง',
+          credibilityBase: 63,
+          biasTh: 'ประกาศขุนนางคลังท่าเรือไห่เหมิน',
+          summaryTh: 'อ้างว่าภาวะเกลือขาดแคลนเกิดจากการลักลอบเดินเรือหนีภาษี จึงต้องเพิ่มด่านตรวจเรือประมงอิสระแถบอ่าวหลงวาน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกกระแสน้ำอุ่นปะทะลมมรสุมทักษิณ',
+          credibilityBase: 68,
+          biasTh: 'ปูมเดินเรือของสายนาวิกสมุทร',
+          summaryTh: 'สังเกตว่าทุกสามปีจะมีกระแสน้ำวนพัดทรายมาปิดร่องน้ำตื้นหน้าอ่าวไห่เหมิน ทำให้เรือบรรทุกเกลือท้องแบนแล่นผ่านไม่ได้'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ตารางน้ำขึ้นน้ำลงและปูมเรือเกลืออู่ต่อเรือหลงวาน',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการเทียบสมุดปูมเรือทั้งสองท่ากับระดับสันดอนปากอ่าว',
+          summaryTh: 'ความตึงเครียดเกิดจากร่องน้ำตื้นปากอ่าวไห่เหมินตื้นเขินในช่วงลมมรสุมเปลี่ยนทิศ 12 วัน หากเปลี่ยนไปขนถ่ายผ่านท่าอู่ต่อเรือหลงวานและสำรองเกลือถนอมอาหารล่วงหน้า ทั้งสองท่าเรือจะค้าขายได้ต่อเนื่องโดยไม่ขาดแคลน'
+        }
+      }
+    },
+    {
+      id: 'FACT_10_ROADSIDE_PHYSICIAN_STELE',
+      storyId: 'STORY_10_DAMAGED_MEMORIAL_RESTORED_NAME',
+      titleTh: 'นามที่เลือนหายบนศิลาอนุสรณ์ริมทางสุวรรณโพธิ์',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'FOLK_CUSTOM',
+      polityId: 'POL_SUVARNABODHI',
+      anchorNodeIds: ['TOWN_SB_CIHANG_ALMS', 'CITY_SB_JINYA_SANGHA', 'TOWN_GJ_BAICAO_STILT'],
+      relatedPaths: ['SAGE_SUPPORT', 'BUDDHA_DHARMA', 'PESTILENCE_REMEDY'],
+      relatedFigures: [13],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'MEDICAL_MEMORIAL_BLESSING', healingBonus: 0.12, descTh: 'สืบทอดตำรับต้มยาสมุนไพรบรรเทาไข้ป่าและเชิดชูเกียรติหมอยาสามัญชน' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ศาลเซียนกระบี่นิรนามผู้ฟันภูผาเปิดทาง',
+          credibilityBase: 48,
+          biasTh: 'คำร่ำลือของนักเดินทางที่แวะจุดธูปริมทาง',
+          summaryTh: 'ชาวบ้านเข้าใจว่ารอยบากบนศิลาอนุสรณ์ที่แตกหักคือรอยกระบี่ของจอมยุทธ์โบราณ จึงนิยมนำสุราและอาวุธมาเซ่นไหว้ขอพรให้ชนะศึก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'หลักเขตแดนเก่าของสังฆารามสุวรรณโพธิ์',
+          credibilityBase: 58,
+          biasTh: 'บัญชีสำรวจสิ่งปลูกสร้างริมทางหลวง',
+          summaryTh: 'บันทึกไว้สั้นๆ ว่าเป็นเพียงหลักหินบอกระยะทางที่ชำรุดจากยุคสงครามแคว้นกลาง'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ร่องรอยอักขระสายหมอหลวงไป๋เฉ่า (#13)',
+          credibilityBase: 69,
+          biasTh: 'ข้อสังเกตของหมอยาที่อ่านพบชื่อสมุนไพรท้ายแผ่นหิน',
+          summaryTh: 'บรรทัดล่างสุดของศิลาที่จมอยู่ในโคลนมีอักษรย่อของสัดส่วนต้มยาแก้ไข้หมอกพิษ ไม่ใช่เคล็ดวิชากระบี่'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ทะเบียนโรงทานฉือหางและอนุสรณ์หมอยาเดินเท้า「เว่ยชิง」',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการลอกคราบตะไคร่บนศิลาเทียบกับสมุดมรณบัตรโรงทานฉือหาง',
+          summaryTh: 'รอยบากบนหินไม่ใช่รอยกระบี่ แต่เป็นร่องวางคานหาบหม้อยาของหมอยาสามัญชนนาม「เว่ยชิง」และคนส่งสารที่แบกหม้อยาสมุนไพรฝ่าพายุฝนไปช่วยชาวบ้านสามหมู่บ้านจนสิ้นใจ การคืนนามที่แท้จริงให้ศิลาช่วยฟื้นฟูตำรับยาต้มป้องกันไข้หมอกให้หอโอสถ'
+        }
+      }
+    },
+    {
+      id: 'FACT_11_FERRY_TRAVELER_TWICE_PAID_MEAL',
+      storyId: 'STORY_11_MEAL_PAID_TWICE',
+      titleTh: 'ธรรมเนียมฝากค่าข้าวคนเดินทางและมื้ออาหารที่ถูกจ่ายซ้ำ',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'FOLK_CUSTOM',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_LIUWAN_FERRY', 'TOWN_YH_QINGXI_FOOT'],
+      relatedPaths: ['CRAFT_CREATION', 'WANDERING_DAO', 'BOND_COMPANION'],
+      relatedFigures: [38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'COMMUNAL_MEAL_WARMTH', moodBonus: 6, descTh: 'เสริมสร้างน้ำใจไมตรีในโรงครัวสำนักและลดความโดดเดี่ยวของศิษย์ต่างถิ่น' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือสายลับติดสินบนพ่อครัวหรือเทวดาเตาไฟให้พร',
+          credibilityBase: 45,
+          biasTh: 'คำถกเถียงระหว่างเวรยามผู้ระแวงกับพ่อครัวผู้ภูมิใจ',
+          summaryTh: 'เมื่อพบเบี้ยค่าอาหารวางซ้ำไว้ใต้หม้อแกงในโรงครัวถึงสองครั้ง ศิษย์เวรยามสงสัยว่าเป็นรหัสลับของสายสืบภายนอก ส่วนพ่อครัวคุยโวว่าฝีมือแกงร้อนของตนประทับใจยอดคนเร้นกาย'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกเงินเกินบัญชีเบิกจ่ายโรงครัว',
+          credibilityBase: 56,
+          biasTh: 'ระเบียบตรวจนับเบี้ยของหอคลัง',
+          summaryTh: 'สันนิษฐานว่าเสมียนโรงครัวนับเบี้ยสวัสดิการรายสัปดาห์ซ้ำซ้อน จึงให้นำขึ้นบัญชีเงินสำรองเบ็ดเตล็ด'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'การตอบแทนน้ำใจเงียบของศิษย์ร่วมสำนัก',
+          credibilityBase: 70,
+          biasTh: 'ความเข้าใจของศิษย์ที่เคยร่วมโต๊ะอาหาร',
+          summaryTh: 'เชื่อว่าเป็นศิษย์ที่เคยได้รับความช่วยเหลือเรื่องอาหารการกินในวันแรกเข้าสำนัก จึงนำเบี้ยมาวางคืนให้โรงครัวอย่างเงียบๆ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ธรรมเนียม「ฝากชามอุ่นท่าข้ามฟากคุ้งหลิวเขียว」',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากพยานในโรงครัวและศิษย์ที่มีบ้านเกิดแถบท่าข้ามฟากคุ้งหลิวเขียว',
+          summaryTh: 'ชาวท่าข้ามฟากคุ้งหลิวเขียวมีธรรมเนียมว่า เมื่อคนเดินทางได้รับน้ำใจจากสหายแปลกหน้าในยามขัดสน เมื่อตั้งตัวได้จะแอบวางค่าอาหารสองเท่าไว้ใต้หม้อแกงเพื่อเลี้ยงคนหลงทางคนถัดไปโดยไม่เอ่ยชื่อ'
+        }
+      }
+    },
+    {
+      id: 'FACT_12_RED_RIDGE_TWIN_PASS_NAMES',
+      storyId: 'STORY_12_WRONG_RIDGE_BEAST_REPORT',
+      titleTh: 'ความสับสนของชื่อเรียก「สันเขาหินแดง」บนทางหลวงประจิม',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_CHIYAN_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS', 'PASS_XR_XUEYU_PENAL_GATE'],
+      relatedPaths: ['WANDERING_DAO', 'BEAST_SOVEREIGN', 'STRATEGY_GOVERNANCE'],
+      relatedFigures: [57],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'WEST_ROUTE_DISAMBIGUATION', legNodes: ['CITY_XR_CHIYAN_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS'], travelBonus: 0.13, descTh: 'แยกแยะพิกัดด่านผาหินแดงซีหรงกับด่านช่องเถ้าดำฉื่อเยี่ยน ป้องกันคณะเดินทางอ้อมผิดสันเขา' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวด่วนอสูรหินถล่มปิดทาง「สันเขาแดง」',
+          credibilityBase: 46,
+          biasTh: 'คำบอกเล่าอย่างตื่นตระหนกของคนนำสารคาราวาน',
+          summaryTh: 'คนนำสารตะโกนแจ้งข่าวว่าฝูงอสูรและหินถล่มปิดทาง「สันเขาแดง」จนเดินทางไม่ได้ แต่คนท้องถิ่นเรียกทั้งผาหินแดงซีหรงและช่องเถ้าดำฉื่อเยี่ยนว่าสันเขาแดงเหมือนกัน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศปิดด่านชั่วคราวของกองทัพหน้าซีหรง',
+          credibilityBase: 60,
+          biasTh: 'บันทึกทหารด่านที่ระบุแต่ชื่อมณฑลกว้างๆ',
+          summaryTh: 'ระบุเพียงว่าเส้นทางรอยต่อซีหรง–ฉื่อเยี่ยนมีความเสี่ยงระดับสูงและแนะนำให้ขบวนสินค้าอ้อมลงใต้ผ่านโอเอซิสซาอวี่'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'วิธีสังเกตสีฝุ่นแร่บนล้อเกวียนคาราวาน',
+          credibilityBase: 71,
+          biasTh: 'เคล็ดวิชาแกะรอยของฝ่ายลาดตระเวนอสูร',
+          summaryTh: 'ชี้ว่าดินแดนซีหรงเป็นทรายเหล็กสีชาด ส่วนด่านช่องเถ้าดำฉื่อเยี่ยนเป็นเขม่ากำมะถันสีเทาอมแดง สามารถดูจากคราบล้อเกวียนของผู้ส่งข่าวได้'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'แผนที่จำแนกสองสันเขาและจุดอสูรปะทุจริง',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการตรวจคราบแร่กำมะถันของขบวนสินค้าและส่งหน่วยลาดตระเวนยืนยันพิกัด',
+          summaryTh: 'จุดที่เกิดหินถล่มจริงคือไหล่เขาทิศเหนือของด่านช่องเถ้าดำเฮยเหยียน (PASS_CY_HEIYAN_ASH_PASS) ไม่ใช่ทางหลวงเข้าสู่นครปราการผาหินแดงซีหรง การยืนยันพิกัดช่วยให้แผนที่ยุทธภพระบุตำแหน่งแม่นยำและไม่ต้องอ้อมเสียเวลาหลายวัน'
+        }
+      }
+    },
+    {
+      id: 'FACT_13_MERIDIAN_BELL_OMEN',
+      storyId: 'STORY_13_BOTTLENECK_BELL_ECHO',
+      titleTh: 'เสียงระฆังหลอนยามติดคอขวดและบันทึกธาตุไฟเข้าแทรก',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'BREAKTHROUGH',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_HANYU_CAPITAL', 'CITY_BM_XUELIAN_SPRINGS'],
+      relatedPaths: ['XIAN', 'HEART_SOUL', 'SONIC_RESONANCE', 'BUDDHA_DHARMA'],
+      relatedFigures: [46, 47],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'BREAKTHROUGH_CALIBRATION', btStabilityBonus: 0.04, descTh: 'แยกแยะเสียงชีพจรตีกลับจากนิมิตทะลวงขั้น ลดความเสี่ยงธาตุไฟเข้าแทรกยามจิตมารสูง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ความเชื่อเรื่อง「ระฆังสวรรค์สามคราเรียกทะลวงขั้น」',
+          credibilityBase: 47,
+          biasTh: 'คำร่ำลือในหมู่ศิษย์ที่ติดคอขวดมานาน',
+          summaryTh: 'ผู้ฝึกตนที่ติดคอขวดเล่าต่อกันว่า หากนั่งสมาธิยามดึกแล้วได้ยินเสียงระฆังกังวานในหูสามครั้ง แปลว่าประตูสวรรค์เปิดรับ ต้องรีบฝืนเดินปราณทะลวงขั้นทันที'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกอาการปราณเหมันต์สะท้อนของราชสำนักเป่ยหมิง',
+          credibilityBase: 63,
+          biasTh: 'รายงานหมอหลวงประจำนครหลวงปราการหยกเหมันต์',
+          summaryTh: 'หมอหลวงเป่ยหมิงบันทึกว่าผู้ฝึกวิชาสายน้ำแข็งระดับสูงมักได้ยินเสียงกังวานคล้ายหยกกระทบกันเมื่อความดันปราณในจุดไป่ฮุ่ยพุ่งสูงเกินเกณฑ์'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกเตือนภัยของเจ้าสำนักรุ่นที่ 5 กู้เหยียนจือ',
+          credibilityBase: 72,
+          biasTh: 'สมุดบันทึกข้างแท่นจำศีลของบูรพาจารย์รุ่นที่ 5',
+          summaryTh: 'กู้เหยียนจือเขียนเตือนไว้ก่อนมรณภาพว่า ในคืนพายุหิมะเขาหลงเชื่อเสียงระฆังในโสตประสาทว่าเป็นนิมิตตื่นรู้ จึงฝืนเร่งปราณจนธาตุไฟเข้าแทรก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'หลักวินิจฉัย「เสียงสะท้อนชีพจรขมับก่อนจิตมารปะทุ」',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการเทียบสมุดบันทึกเจ้าสำนักรุ่นที่ 5 กับตำราแช่แข็งชีพจรน้ำพุหิมะอุ่นเสวี่ยเหลียน',
+          summaryTh: 'เสียงระฆังสามคราในหูไม่ใช่ลางมงคลให้ฝืนทะลวงขั้น แต่เป็นอาการปราณอัดแน่นที่จุดขมับเมื่อค่าจิตมารหรือความเหนื่อยล้าสูงเกินไป ผู้รู้หลักนี้จะชะลอการฝืนทะลวงขั้นขณะจิตมารสูงและปรับลมหายใจให้มั่นคงก่อนลงมือจริง'
+        }
+      }
+    },
+    {
+      id: 'FACT_14_CANGLAN_GRANARY_HALF_TALLY',
+      storyId: 'STORY_14_HALF_JADE_CLAN_TALLY',
+      titleTh: 'ป้ายหยกครึ่งซีกและบัญชีเผาคลังแสงแคว้นหมอกชางหลาน',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_YOUMING',
+      anchorNodeIds: ['CITY_YM_HUNDENG_CAPITAL', 'TOWN_YM_SHIBEI_RUBBING', 'TOWN_YH_CUIZHU_TEA'],
+      relatedPaths: ['ANCESTRAL_RITUAL', 'NETHER_GRAVE', 'BOND_COMPANION'],
+      relatedFigures: [38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'CLAN_KINSHIP_RECONCILIATION', trustBonus: 18, descTh: 'คลี่คลายความเข้าใจผิดข้ามสายตระกูลผู้อพยพแคว้นชางหลาน เสริมความสามัคคีในสำนัก' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'คำกล่าวหาบรรพชนสายใต้ว่าขโมยตราคลังเสบียงหนีทัพ',
+          credibilityBase: 46,
+          biasTh: 'ความขมขื่นของตระกูลสายเหนือที่ตกค้างในโยวหมิง',
+          summaryTh: 'ทายาทสายเหนือเชื่อว่าในคืนที่แคว้นชางหลานแตก บรรพชนสายใต้ได้หักป้ายหยกครึ่งซีกและขโมยกุญแจคลังเสบียงหนีลงมาปลูกชาที่หยุนเหอ ทิ้งให้พี่น้องอดอยาก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกการปราบกบฏคลังข้าวแห่งนครโคมวิญญาณโยวหมิง',
+          credibilityBase: 58,
+          biasTh: 'พงศาวดารฝ่ายผู้ชนะศึกยุคเจ็ดธง',
+          summaryTh: 'บันทึกว่านายคลังแคว้นชางหลานวางเพลิงเผายุ้งฉางหลวงก่อนหลบหนี ทำให้กองทัพผู้พิชิตยึดได้เพียงเถ้าถ่าน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'รอยบากคู่บนป้ายหยกอพยพของศิษย์สองสายตระกูล',
+          credibilityBase: 69,
+          biasTh: 'การสังเกตรอยสลักด้านในของป้ายหยกประจำตระกูล',
+          summaryTh: 'เมื่อนำป้ายหยกครึ่งซีกของสองสายตระกูลมาประกบกัน รอยบากด้านในกลับเป็นแผนผังห้องใต้ดินที่ไม่ใช่คลังข้าว แต่เป็นหอทะเบียนเกณฑ์ทหาร'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ศิลาจารึกสือเปยและบันทึกเผาบัญชีรายชื่อเยาวชนชางหลาน',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการประกบป้ายหยกสองซีกและเทียบแผ่นลอกลายศิลาตำบลสือเปย',
+          summaryTh: 'สิ่งที่ถูกเผาในคืนแคว้นชางหลานแตกไม่ใช่คลังข้าว แต่คือสมุดทะเบียนรายชื่อเยาวชนทั้งเจ็ดตำบล บรรพชนสายเหนือและสายใต้แบ่งป้ายหยกคนละซีก โดยสายใต้พาเด็กๆ หนีลงใต้ ส่วนสายเหนือยอมอยู่เผาบัญชีเกณฑ์ทหารเพื่อไม่ให้กองทัพผู้รุกรานตามล่าลูกหลานได้'
+        }
+      }
+    },
+    {
+      id: 'FACT_15_FROST_DEW_KILN_BANKING',
+      storyId: 'STORY_15_NIGHT_DEW_KILN_SHIFT',
+      titleTh: 'ธรรมเนียมกลบเถ้าเตาหลอมรับน้ำค้างกะดึกแห่งฉื่อเยี่ยน',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'CRAFT_LABOR',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_CY_LIUHUANG_SULFUR'],
+      relatedPaths: ['CRAFT_CREATION', 'RECLAMATION_DAO'],
+      relatedFigures: [14],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'WORKSHOP_KILN_CUSTOM', craftSafetyBonus: 0.15, slagSalvageBonus: 1, descTh: 'ป้องกันไอพิษเตาหลอมตีกลับยามดึกและเก็บกู้เขม่าแร่บริสุทธิ์จากการควบแน่นน้ำค้าง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'เสียงบ่นเรื่องกฎกลั่นแกล้งศิษย์กะดึกให้เฝ้าชามน้ำเย็น',
+          credibilityBase: 45,
+          biasTh: 'ความเข้าใจของศิษย์โรงหลอมและหอโอสถรุ่นเยาว์',
+          summaryTh: 'ศิษย์ฝึกหัดมักบ่นว่ากฎที่บังคับให้คนเข้าเวรกะสุดท้ายต้องกลบขี้เถ้าครึ่งปล่องและวางชามน้ำบ่อเย็นเฉียบไว้หน้าเตาเป็นเพียงการรับน้องที่ผู้อาวุโสคิดขึ้นเพื่อดูว่าศิษย์แอบหลับหรือไม่'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ข้อบังคับป้องกันอัคคีภัยสมาพันธ์ช่างฉื่อเยี่ยน',
+          credibilityBase: 63,
+          biasTh: 'ระเบียบความปลอดภัยของนครเตาหลอมอัคคี',
+          summaryTh: 'ระบุเพียงว่าเป็นกฎลดความร้อนสะสมของเตาหลอมหลวงในช่วงเปลี่ยนกะเช้ามืด'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'เคล็ดเลี้ยงไฟหยินหยางของสายปรมาจารย์โอวหยางเหยียน (#14)',
+          credibilityBase: 70,
+          biasTh: 'คำอธิบายเชิงปราณธาตุไฟและน้ำ',
+          summaryTh: 'อธิบายว่าการวางชามน้ำเย็นหน้าปล่องเถ้าช่วยดึงไอหยินยามรุ่งสางมาสะกดเปลวไฟคลั่งไม่ให้ปะทุทำลายตัวยาและเนื้อเหล็ก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'กลไกควบแน่นไอกำมะถันและเก็บกู้ผงแร่บริสุทธิ์กะน้ำค้าง',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการตรวจคราบผลึกในชามน้ำหน้าเตาหลอมและบันทึกช่างเหมืองหลิวหวง',
+          summaryTh: 'เมื่ออุณหภูมิภายนอกลดลงยามใกล้รุ่ง ก๊าซพิษกำมะถันในปล่องเตาจะจมตัวไหลย้อนกลับเข้าสู่ห้องหลอม การกลบเถ้าครึ่งปล่องและวางชามน้ำเย็นจะดักจับไอพิษให้ควบแน่นตกผลึกอยู่ในชามน้ำ ทั้งช่วยป้องกันช่างกะเช้าสูดไอพิษและได้ผงแร่บริสุทธิ์กลับมาใช้ใหม่'
+        }
+      }
+    },
+    {
+      id: 'FACT_16_TIGER_SEAL_CHIPPED_INKSTONE',
+      storyId: 'STORY_16_EXILED_PRINCE_INKSTONE',
+      titleTh: 'แท่นฝนหมึกตราพยัคฆ์บิ่นและบัญชีสำมะโนครัวชายแดนซีหรง',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_SHAYU_OASIS', 'PASS_XR_XUEYU_PENAL_GATE', 'CITY_XR_CHIYAN_CAPITAL'],
+      relatedPaths: ['STRATEGY_GOVERNANCE', 'MERCANTILE_DAO', 'OATH_BINDER'],
+      relatedFigures: [5, 56, 57, 60],
+      secretGate: false,
+      defaultAccount: 'COURT_CANON',
+      gameplayEffect: { kind: 'COURT_SCHOLAR_PATRONAGE', diplomacyBonus: 8, descTh: 'ได้รับความไว้วางใจจากเครือข่ายขุนนางสายพิทักษ์ราษฎรและเพิ่มเสถียรภาพการทูตชายแดน' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือขุนนางตกอับลักลอบขายตราพยัคฆ์จำลอง',
+          credibilityBase: 46,
+          biasTh: 'คำซุบซิบในตลาดโอเอซิสซาอวี่',
+          summaryTh: 'ร่ำลือว่าบัณฑิตตกอับที่พเนจรมาแถบชายแดนถูกปลดจากราชสำนักเพราะยักยอกเสบียงทัพ และพยายามนำแท่นฝนหมึกสลักลายพยัคฆ์บิ่นมาหลอกขายเป็นสมบัติยุคทัวป๋าเลี่ย (#5)'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'หมายถอดยศเสมียนด่านคุกโซ่โลหิตฐานขัดคำสั่งเกณฑ์พล',
+          credibilityBase: 64,
+          biasTh: 'ประกาศทางการของขุนศึกสายเหยี่ยวแห่งซีหรง',
+          summaryTh: 'ระบุว่าขุนนางผู้นี้ถูกถอดยศและเนรเทศเพราะจงใจทำสมุดสำมะโนครัวชายแดนสูญหาย ทำให้การระดมพลล่าช้า'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ร่องรอยตราประทับสายทัวป๋ากัง (#60) ผู้ถ่วงดุลอำนาจ',
+          credibilityBase: 71,
+          biasTh: 'การวิเคราะห์ของเจ้าหอข่าวกรองสำนัก',
+          summaryTh: 'สังเกตว่ารอยบิ่นบนแท่นฝนหมึกตรงกับตราประทับประจำตัวของผู้ตรวจการสายทัวป๋ากัง (#60) ที่คัดค้านการรีดไถเสบียงชาวบ้านโอเอซิส'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ต้นฉบับสำมะโนครัวจริงที่ซ่อนอยู่ในฐานแท่นฝนหมึกสองชั้น',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการถอดสลักฐานแท่นฝนหมึกและตรวจสอบตัวเลขบ่อน้ำโอเอซิสซาอวี่',
+          summaryTh: 'ภายในฐานแท่นฝนหมึกซ่อนบัญชีสำมะโนครัวฉบับจริงที่พิสูจน์ว่าผู้ตรวจการท่านนี้ปฏิเสธที่จะปลอมตัวเลขจำนวนประชากรโอเอซิสเพื่อป้องกันไม่ให้ชาวบ้านถูกเกณฑ์ส่วยน้ำเกินกำลังจนบ่อน้ำแห้งขอด'
+        }
+      }
+    },
+    {
+      id: 'FACT_17_BITTER_WILLOW_MIASMA_WELL',
+      storyId: 'STORY_17_BITTER_WILLOW_PLAGUE_WELL',
+      titleTh: 'บ่อน้ำรากหลิวขมและบันทึกสกัดไข้หมอกพิษแดนทักษิณ',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'ECOLOGY',
+      polityId: 'POL_GUJIAO',
+      anchorNodeIds: ['CITY_GJ_WANGU_TOTEM', 'TOWN_GJ_BAICAO_STILT', 'PASS_GJ_QIZHANG_MIASMA'],
+      relatedPaths: ['VENOM_GU', 'PESTILENCE_REMEDY', 'SAGE_SUPPORT'],
+      relatedFigures: [13, 40],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'MIASMA_WELL_PURIFICATION', clinicBonus: 0.14, descTh: 'นำหลักการกรองพิษด้วยรากหลิวขมมาใช้ในสถานรักษาและลดความระแวงระหว่างชาวกู่เจียวกับสุวรรณโพธิ์' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือบ่อน้ำต้องสาปหนอนกู่รากดำ',
+          credibilityBase: 47,
+          biasTh: 'ความหวาดกลัวของนักเดินทางที่เห็นรากไม้สีดำชอนไชปากบ่อน้ำ',
+          summaryTh: 'ชาวบ้านและคนเดินทางเลี่ยงไม่กล้าตักน้ำจากบ่อหินเก่าที่มีรากหลิวสีคล้ำพันรอบปากบ่อ เพราะเชื่อว่าแม่มดกู่เจียววางพิษสาปให้น้ำมีรสฝาดขม'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'คำสั่งปิดบ่อน้ำชายแดนค่ายไผ่หมอกเจ็ดชั้น',
+          credibilityBase: 59,
+          biasTh: 'มาตรการกักกันโรคของด่านชายแดน',
+          summaryTh: 'สั่งปักป้ายห้ามใช้น้ำจากบ่อที่มีรากหลิวชอนไชโดยสันนิษฐานว่าเป็นต้นตอของไข้ป่าฤดูฝน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกพฤกษาดูดซับพิษของสายหมู่บ้านไป๋เฉ่า',
+          credibilityBase: 71,
+          biasTh: 'ความรู้สมุนไพรของหมอยาแดนทักษิณ',
+          summaryTh: 'ชี้ว่าต้นหลิวขมทักษิณจะแผ่รากลงสู่น้ำที่มีไอพิษหมอกสะสมเพื่อดูดซับโลหะหนักและพิษแมลงไว้ในเปลือกราก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกปลูกหลิวขมล้อมบ่อน้ำของศิษย์สายหมอหลวงไป๋เฉ่า (#13)',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการตรวจคุณภาพน้ำและเทียบแผ่นไม้ไผ่บันทึกโรคระบาดเมื่อห้าสิบปีก่อน',
+          summaryTh: 'เมื่อครั้งเกิดไข้หมอกระบาดใหญ่ หมอยาจากหมู่บ้านไป๋เฉ่าและหมอผีกู่เจียวได้ร่วมมือกันปลูกต้นหลิวขมล้อมบ่อน้ำหลักเพื่อให้รากไม้กรองพิษจากตาน้ำใต้ดิน รสฝาดขมเล็กน้อยในน้ำคือตัวยาธรรมชาติที่ช่วยให้ชาวบ้านรอดพ้นจากโรคระบาด'
+        }
+      }
+    },
+    {
+      id: 'FACT_18_THREE_LANTERN_FOG_UNDERTOW',
+      storyId: 'STORY_18_FOG_LANTERN_FERRY_OATH',
+      titleTh: 'คำสัตย์สามตะเกียงและร่องน้ำดูดริมขอบทะเลหมอกทักษิณ',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'FOLK_CUSTOM',
+      polityId: null,
+      anchorNodeIds: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD', 'TOWN_SO_OUYU_FISHER_ISLE'],
+      relatedPaths: ['TIDE_VOYAGER', 'WANDERING_DAO', 'VOID_SPACE'],
+      relatedFigures: [40],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SEA_FOG_NAVIGATION', legNodes: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD'], travelBonus: 0.14, descTh: 'เดินเรือเลียบขอบทะเลหมอกอย่างปลอดภัยด้วยวิธีหยั่งร่องน้ำสามตะเกียง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานโคมไฟวิญญาณสำเภาผีลากเรือลงก้นสมุทร',
+          credibilityBase: 48,
+          biasTh: 'ความเชื่อของชาวประมงเกาะโอวอวี๋',
+          summaryTh: 'คนเรือสาบานว่าจะไม่ออกเรือหลังยามสามหากเห็นแสงไฟสีเขียวลอยเรี่ยน้ำ เพราะเชื่อว่าเป็นโคมนำทางของสำเภาผีที่จะลากเรือคนเป็นหายเข้าไปในทะเลหมอกไร้ขอบเขต'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศห้ามเดินเรือยามวิกาลของป้อมประภาคารปากน้ำ',
+          credibilityBase: 61,
+          biasTh: 'คำสั่งควบคุมการลักลอบขนสินค้าทางทะเล',
+          summaryTh: 'อ้างว่าแสงไฟสีเขียวคือสัญญาณนัดหมายของโจรสลัดโขดหินหมอกเฮยเจียว จึงห้ามเรือประมงออกจากท่าหลังเที่ยงคืน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ปูมเชือกหยั่งน้ำของสันนิบาตเดินเรือสมุทรทักษิณ',
+          credibilityBase: 72,
+          biasTh: 'บันทึกของนายท้ายเรืออาวุโสอู่ต่อเรือหลงวาน',
+          summaryTh: 'ระบุว่าแสงสีเขียวเกิดจากสาหร่ายเรืองแสงก้นร่องน้ำลึกที่ถูกกระแสน้ำดูดพัดขึ้นมาเมื่อม่านหมอกภายนอกบีบตัว'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ความจริงของแนวร่องน้ำดูดขอบม่านกั้นภพและเศษไม้สลักจากโพ้นทะเลหมอก',
+          credibilityBase: 96,
+          biasTh: 'พิสูจน์จากการหยั่งร่องน้ำสามตะเกียงและเก็บกู้แผ่นไม้เรือโบราณที่ซัดติดโขดหินประภาคาร',
+          summaryTh: 'แสงสีเขียวคือสาหร่ายเรืองแสงที่ถูกกระแสน้ำวนริมขอบม่านกั้นภพพัดขึ้นมา การแขวนตะเกียงน้ำมันปลาสามดวงเรียงตามแนวดิ่งช่วยให้กะระยะห่างจากแนวร่องน้ำดูดได้แม่นยำ และเศษไม้เรือที่ลอยมาจากนอกม่านหมอกมีอักษรของจักรวรรดิภายนอกที่ยืนยันว่าแผ่นดินห้าภูมิภาคเป็นเพียงอนุทวีปที่ถูกผนึกไว้'
+        }
+      }
+    },
+    {
+      id: 'FACT_19_MUTE_ARMORER_TWIN_TEMPER',
+      storyId: 'STORY_19_SILENT_ANVIL_TEMPER_LINE',
+      titleTh: 'ลายน้ำประสานทั่งไร้เสียงของสองตระกูลช่างหลอมคู่พิพาท',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'CRAFT_LABOR',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_YX_TAMAHAGANE_SAND', 'CITY_YX_WUYACASTLE'],
+      relatedPaths: ['CRAFT_CREATION', 'SHADOW_SAMURAI', 'SWORD_DOMAIN'],
+      relatedFigures: [14, 41],
+      secretGate: false,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'TWIN_FORGE_TEMPER_SYNERGY', weaponQualityBonus: 0.12, descTh: 'ผสานเทคนิคชุบแข็งอัคคีฉื่อเยี่ยนและตีทบทรายเหล็กดำหยุนเซียว เพิ่มความทนทานและพลังศาสตรา' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข้อกล่าวหาขโมยคัมภีร์ตีดาบข้ามแผ่นดิน',
+          credibilityBase: 47,
+          biasTh: 'คำท้าดวลระหว่างช่างตีเหล็กฉื่อเยี่ยนกับช่างดาบหยุนเซียว',
+          summaryTh: 'ช่างหลอมแดนประจิมและช่างตีดาบผาเมฆาต่างกล่าวหาว่าอีกฝ่ายส่งสายลับมาขโมยเคล็ดวิชา「ลายน้ำประสานรอยร้าว」ของบรรพชนตนไปดัดแปลง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ข้อบังคับห้ามส่งออกแร่เหล็กดำและกำมะถันเพลิง',
+          credibilityBase: 60,
+          biasTh: 'นโยบายผูกขาดยุทธภัณฑ์ของทั้งสองแคว้น',
+          summaryTh: 'ทั้งสองแคว้นอ้างสิทธิ์ความเป็นต้นตำรับเพื่อสั่งห้ามค้าขายแลกเปลี่ยนแร่เหล็กข้ามภูมิภาค'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'รอยตอกกั่นดาบคู่ของสายโอวหยางเหยียน (#14) และเคนชิน (#41)',
+          credibilityBase: 71,
+          biasTh: 'การตรวจสอบกั่นศาสตราโบราณในคลังแสงสำนัก',
+          summaryTh: 'พบว่าใต้กั่นดาบโบราณของทั้งสองสายมีรอยตอกรูปค้อนไขว้ไร้ลิ้นระฆังแบบเดียวกัน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกของช่างเกราะใบ้แห่งกรมศาสตราหลวงเทียนกู่',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการถอดกั่นศาสตราโบราณทั้งสองสายมาเทียบและหลอมประสานทรายเหล็กดำกับไฟกำมะถัน',
+          summaryTh: 'ต้นตระกูลช่างทั้งสองแคว้นเคยเป็นศิษย์ร่วมเตาของช่างเกราะใบ้ผู้ช่วยงานโอวหยางเหยียน (#14) โดยศิษย์พี่นำเคล็ดไฟแรงไปตั้งรกรากที่ฉื่อเยี่ยน ส่วนศิษย์น้องนำเคล็ดตีทบเหล็กเย็นไปที่หาดทรายเหล็กดำหยุนเซียว เมื่อนำสองเคล็ดมาประสานกันจึงได้ลายน้ำประสานทั่งไร้เสียงที่สมบูรณ์แบบ'
+        }
+      }
+    },
+    {
+      id: 'FACT_20_BROKEN_BRIDGE_EPITHET_DISPUTE',
+      storyId: 'STORY_20_TWO_FACES_OF_ONE_EPITHET',
+      titleTh: 'สมญานามเดียว สองตำนานที่ขัดแย้งแห่งช่องลมประจิมซีเฟิง',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'EPITHET_LEGEND',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_XIFENG_GORGE', 'CITY_YH_SHUANGJIANG'],
+      relatedPaths: ['SWORD_DOMAIN', 'FOLKLORE_RUMOR', 'ARENA_GLORY'],
+      relatedFigures: [6, 38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'EPITHET_CHRONICLE_VERIFICATION', fameBonus: 10, descTh: 'บันทึกทั้งนามเสียงที่ผู้คนร่ำลือและข้อเท็จจริงจากพยานในเหตุการณ์สะพานขาดช่องลมซีเฟิง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'เพลงโรงเตี๊ยมเหนือ:「จอมมารดาบเดียวสังหารสามสิบโจรหน้าสะพาน」',
+          credibilityBase: 48,
+          biasTh: 'การแต่งเติมให้ดุดันน่าเกรงขามของนักเล่านิทานแดนเหนือ',
+          summaryTh: 'โรงเตี๊ยมสายเหนือขับขานว่าเจ้าของสมญานามสะบั้นสะพานซีเฟิงได้ลงมือสังหารโจรภูเขาสามสิบศพในดาบเดียวจนลำธารย้อมเป็นสีเลือด'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกคดีทำลายสะพานแขวนหลวงด่านช่องลมซีเฟิง',
+          credibilityBase: 59,
+          biasTh: 'สำนวนสอบสวนของด่านตรวจการที่มองแต่ความเสียหายของทรัพย์สิน',
+          summaryTh: 'บันทึกว่าจอมยุทธ์พเนจรใช้กำลังภายในฟันเชือกสะพานแขวนขาดทำให้ทางส่งส่วยหยุดชะงักไปสามวัน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'เรื่องเล่าท่าข้ามฟากใต้:「ผู้ฟันเชือกสะพานเปิดทางหนีให้ชาวบ้านโดยไม่เปื้อนเลือด」',
+          credibilityBase: 71,
+          biasTh: 'คำบอกเล่าของลูกหลานชาวบ้านที่รอดชีวิตในวันเกิดเหตุ',
+          summaryTh: 'ชาวบ้านฝั่งใต้ยืนยันว่าจอมยุทธ์ผู้นั้นไม่ได้ฆ่าใครเลยแม้แต่คนเดียว แต่ฟันเชือกสะพานแขวนหลังจากชาวบ้านข้ามพ้นหมดแล้ว เพื่อสกัดกองโจรไม่ให้ตามทัน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'พงศาวดารสองด้านของสมญานาม「ดาบสะบั้นสะพานซีเฟิง」',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการสอบทานพยานชาวบ้าน รอยดาบบนเสาหินสะพาน และคำให้การของอดีตหัวหน้าโจรที่กลับใจ',
+          summaryTh: 'จอมยุทธ์ฟันเชือกสะพานขาดในดาบเดียวโดยไม่ปลิดชีพผู้ใดเพื่อรักษาศีลไม่สังหาร แต่หัวหน้าโจรที่พ่ายแพ้เกิดความอับอายที่ไม่กล้ากระโดดข้ามเหว จึงปั้นเรื่องโกหกว่าลูกน้องตนถูกยอดฝีมือลึกลับสังหารไปสามสิบคนเพื่อรักษาหน้า จนเกิดเป็นสองตำนานที่ขัดแย้งกัน'
+        }
+      }
+    },
+    {
+      id: 'FACT_21_SU_QIN_820YR_YUNHE_TREATY',
+      storyId: null,
+      titleTh: 'สนธิสัญญาหยุนเหอ 820 ปี และกลไกถ่วงดุลเก้าแคว้นของซูฉิน (#37)',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'CITY_YH_OLD_DAREN_SQUARE'],
+      relatedPaths: ['STRATEGY_GOVERNANCE', 'MERCANTILE_DAO'],
+      relatedFigures: [37, 46, 52, 57],
+      secretGate: false,
+      defaultAccount: 'COURT_CANON',
+      gameplayEffect: { kind: 'DIPLOMACY_INSIGHT', diplomacyBonus: 5, descTh: 'เข้าใจกติกากันชนหยุนเหอและการทูตระหว่างสามมหาอำนาจ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานลิ้นสาริกาหยุดสามกองทัพของมหาเสนาบดีซูฉิน (#37)',
+          credibilityBase: 52,
+          biasTh: 'นิทานโรงน้ำชานครสองแควหยุนเหอ',
+          summaryTh: 'ชาวบ้านเล่าว่าซูฉิน (#37) ยืนพูดบนสะพานสองแควสามวันสามคืนจนกษัตริย์สามจักรวรรดิยอมวางอาวุธและยกหุบเขาหยุนเหอให้เป็นเขตปลอดทหาร'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'สนธิสัญญาเขตกันชนการค้าและห้ามเดินทัพหลวงผ่านหยุนเหอ',
+          credibilityBase: 72,
+          biasTh: 'เอกสารทางการของสภาเจ็ดวาณิชและสามมหาจักรวรรดิ',
+          summaryTh: 'สามมหาจักรวรรดิ (เป่ยหมิง ตงหวง ซีหรง) ลงนามรับรองความเป็นกลางของแคว้นอิสระหยุนเหอ เพื่อใช้เป็นตลาดกลางแลกเปลี่ยนเสบียงและศิลาวิญญาณโดยห้ามส่งกองทัพหลวงล่วงล้ำ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'กติกา 19 สำนักตัวแทนใต้เงาสนธิสัญญาหยุนเหอ',
+          credibilityBase: 76,
+          biasTh: 'บันทึกการเมืองยุทธภพของหอข่าวกรอง',
+          summaryTh: 'เพราะสนธิสัญญาห้ามกองทัพหลวงรบกันโดยตรงในเขตกันชน ทั้งเก้าแคว้นจึงหันมาหนุนหลังสำนักยุทธ์ทั้ง 19 แห่งให้ทำศึกชิงแหล่งทรัพยากรและบารมีแทนราชสำนัก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'เงื่อนไขลับใต้ศิลาสนธิสัญญาหยุนเหอเรื่องชีพจรปราณใต้หุบเขา',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากสำเนาสนธิสัญญาฉบับเต็มในหอจดหมายเหตุเมืองเก่าสิบสองคบเพลิง',
+          summaryTh: 'สาเหตุแท้จริงที่ซูฉิน (#37) โน้มน้าวสามจักรวรรดิได้สำเร็จ คือการชี้ให้เห็นว่าหากเกิดสงครามใหญ่เหนือหุบเขาหยุนเหอ แรงสั่นสะเทือนจะทำให้ผนึกประตูมิติหลวงใต้ดินปริแตกและดึงทัณฑ์ม่านฟ้าลงมาทำลายทุกแคว้นพร้อมกัน'
+        }
+      }
+    },
+    {
+      id: 'FACT_22_SIMA_QING_BROKEN_CURIO_HUNT',
+      storyId: null,
+      titleTh: 'ความลับการกว้านซื้อของเก่าชำรุดของคุณชายสามซือหม่าชิง (#52)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'DYNASTY',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_JIUKU_CAPITAL', 'CITY_DH_QINGLAN_DICE_CITY'],
+      relatedPaths: ['MERCANTILE_DAO', 'LORE_ARCHIVIST', 'STRATEGY_GOVERNANCE'],
+      relatedFigures: [4, 52, 53],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'CURIO_APPRAISAL_INSIGHT', tradeBonus: 0.08, descTh: 'รู้เท่าทันมูลค่าของวัตถุโบราณไร้ปราณที่รอดพ้นม่านกั้นภพ (STORY-SYNC-02)' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือคุณชายเสเพลคลั่งสะสมถ้วยชามร้าว',
+          credibilityBase: 50,
+          biasTh: 'เพลงล้อเลียนในโรงเตี๊ยมตงหวง',
+          summaryTh: 'ชาวเมืองหัวเราะเยาะว่าซือหม่าชิง (#52) และหอการค้าของว่านจินเหนียง (#53) ใช้เงินคลังไปกว้านซื้อถ้วยชามบิ่นและเศษพัดพังๆ ตามแผงของเก่าเพราะความเพี้ยน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'โครงการรวบรวมโบราณวัตถุยุคก่อตั้งราชวงศ์ซือหม่า',
+          credibilityBase: 64,
+          biasTh: 'คำชี้แจงของกรมคลังตงหวง',
+          summaryTh: 'อ้างว่าเป็นการรวบรวมเครื่องใช้โบราณเพื่อจัดแสดงในหอเกียรติยศราชธานีเก้าคลังสุริยัน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'การแกะรอยอักขระผนึกลังส่วยของซือหม่าชุน (#4)',
+          credibilityBase: 76,
+          biasTh: 'บันทึกของปรมาจารย์ค่ายกลและอาลักษณ์',
+          summaryTh: 'สังเกตว่าของเก่าที่ซือหม่าชิงกว้านซื้อล้วนมีรอยตราประทับอักขระแบบเดียวกับสมุดคุมทะเบียนทาสเหมืองของปฐมเสนาบดีซือหม่าชุน (#4)'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'กฎการคัดกรองของม่านกั้นภพ: มีเพียงขยะไร้ปราณเซียนที่รอดลงมาได้ (STORY-SYNC-02)',
+          credibilityBase: 96,
+          biasTh: 'พิสูจน์จากการตรวจเศษภาชนะไร้ปราณที่ทนทานต่อแรงบดขยี้ของม่านฟ้า',
+          summaryTh: 'ซือหม่าชิง (#52) รู้ความลับจากบันทึกต้นตระกูลว่า ม่านกั้นภพจะบดขยี้ศาสตราที่มีปราณเซียนทุกชิ้นที่ร่วงลงมาจากโลกเบื้องบน มีเพียง「ของใช้สามัญที่ชำรุดและไร้ปราณ」เท่านั้นที่หลุดรอดลงมาได้โดยไม่ถูกทำลาย'
+        }
+      }
+    },
+    {
+      id: 'FACT_23_MINGYU_FROST_ROBE_AND_HEART_FREEZE',
+      storyId: null,
+      titleTh: 'อาการหัวใจน้ำแข็งของกู่เทียนเฉิน (#46) และเศษผ้าปูโต๊ะน้ำชาสวรรค์ (STORY-SYNC-01)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'MARTIAL_SCHISM',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_HANYU_CAPITAL', 'CITY_BM_XUELIAN_SPRINGS'],
+      relatedPaths: ['XIAN', 'ICE_FROST', 'CRAFT_CREATION'],
+      relatedFigures: [2, 24, 46, 47],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'FROST_MERIDIAN_GUARD', frostResistBonus: 0.10, descTh: 'เข้าใจผลข้างเคียงของปราณหยกใสหมิงยวี่และวิธีถนอมเส้นชีพจรหัวใจ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือพายุหิมะวิปริตและการหาโอสถหยางรักษาจักรพรรดิเป่ยหมิง',
+          credibilityBase: 50,
+          biasTh: 'คำร่ำลือของพ่อค้าสมุนไพรแดนเหนือ',
+          summaryTh: 'ร่ำลือว่าจักรพรรดิกู่เทียนเฉิน (#46) ประชวรด้วยโรคไอเย็นย้อนกลับเข้าสู่หัวใจ จึงส่งทูตออกกว้านซื้อสมุนไพรธาตุหยางทั่วแผ่นดิน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศการเข้าฌานหลอมกายาหยกเหมันต์ขั้นสูงสุด',
+          credibilityBase: 62,
+          biasTh: 'แถลงการณ์ราชสำนักเป่ยหมิง',
+          summaryTh: 'ราชสำนักประกาศว่าไอเย็นรอบตำหนักหลวงเกิดจากการที่องค์จักรพรรดิบรรลุเคล็ดปราณหยกใสหมิงยวี่ขั้นที่เก้า'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ปริศนาอาภรณ์ขนนกกระเรียนสวรรค์ที่ขาดหายไปครึ่งผืน',
+          credibilityBase: 75,
+          biasTh: 'บันทึกของยอดช่างทอและผู้ฝึกตนสายเหมันต์',
+          summaryTh: 'ระบุว่าเคล็ดปราณหมิงยวี่ของกู่หลิงเฟย (#2) ต้องฝึกควบคู่กับภูษาผนึกเหมันต์ที่ยายเมิ่ง (#24) ทอไว้ มิฉะนั้นปราณเย็นจะแช่แข็งชีพจรหัวใจผู้ฝึก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ความจริงของผ้ารองถาดน้ำชาแช่เย็นจากเรือสำราญโลกเบื้องบน (STORY-SYNC-01)',
+          credibilityBase: 97,
+          biasTh: 'พิสูจน์จากบันทึกยายเมิ่ง (#24) และเส้นใยอาภรณ์ในซากอุทยานหลวง',
+          summaryTh: 'ภูษาวิเศษที่กู่หลิงเฟย (#2) สวมจำศีลแท้จริงคือเศษผ้ารองถาดน้ำชาแช่เย็นจากเรือสำราญสวรรค์ที่ยายเมิ่ง (#24) นำมาตัดเย็บ ส่วนกู่เทียนเฉิน (#46) ฝึกวิชาหมิงยวี่โดยไม่มีผ้าชั้นในคุ้มกาย หัวใจของเขาจึงค่อยๆ ถูกแช่แข็งทีละน้อย'
+        }
+      }
+    },
+    {
+      id: 'FACT_24_XINGCHENZI_TOY_ASTROLABE_GEAR',
+      storyId: null,
+      titleTh: 'จานจำลองกลุ่มดาวเฟืองบิ่นสองซี่ของซิงเฉินจื่อ (#16) และการหักเหของม่านฟ้า (STORY-SYNC-04)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'MARTIAL_SCHISM',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_XINGYUN_CITADEL'],
+      relatedPaths: ['STAR_FATE', 'ARRAY_TALISMAN', 'CHRONO_FATE'],
+      relatedFigures: [16, 49],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'ASTRAL_REFRACTION_CALIBRATION', divinationBonus: 0.12, descTh: 'ชดเชยค่าความคลาดเคลื่อนของแสงดาวที่หักเหผ่านม่านกั้นภพ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานจานดาราสวรรค์ทำนายชะตาหมื่นปี',
+          credibilityBase: 48,
+          biasTh: 'คำเล่าลือในเมืองดาราพยากรณ์ซิงหยวน',
+          summaryTh: 'เชื่อว่านักพรตดาราซิงเฉินจื่อ (#16) ได้รับพระราชทานจานหมุนดวงดาวจากเทพแห่งโชคชะตาและซ่อนไว้ในหอดูดาวที่เวลาหยุดนิ่ง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ปฏิทินดาราหลวงแห่งหอพยากรณ์เป่ยหมิง',
+          credibilityBase: 64,
+          biasTh: 'บันทึกโหรหลวง',
+          summaryTh: 'โหรหลวงใช้ตารางดาวของซิงเฉินจื่อในการคำนวณฤกษ์ยามศึก แต่พบว่าทุกๆ ร้อยปีตำแหน่งดาวเหนือจะคลาดเคลื่อนไปสององศาโดยไม่ทราบสาเหตุ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ภารกิจลับที่ซิงเฉินจื่อ (#16) มอบให้ซิงอวิ๋น (#49)',
+          credibilityBase: 76,
+          biasTh: 'บันทึกสายวิถีดาราชะตา',
+          summaryTh: 'ซิงเฉินจื่อค้นพบว่าท้องฟ้าที่คนโลกล่างมองเห็นเป็นภาพลวงที่ถูกม่านกั้นภพหักเห จึงฝากป้ายหยกดาราให้ซิงอวิ๋น (#49) สืบหาความจริง'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ลูกข่างจำลองกลุ่มดาวของเล่นเด็กจากตระกูลโหรโลกเบื้องบน (STORY-SYNC-04)',
+          credibilityBase: 97,
+          biasTh: 'พิสูจน์จากรอยเฟืองบิ่นสองซี่และการคำนวณมุมหักเหของม่านฟ้า',
+          summaryTh: 'จานสวรรค์ของซิงเฉินจื่อ (#16) แท้จริงคือของเล่นจำลองกลุ่มดาวสำหรับเด็กในตระกูลโหรสวรรค์ที่เฟืองบิ่นไปสองซี่แล้วถูกโยนทิ้งลงมา แต่เพียงของเล่นชิ้นนั้นก็ทำให้ซิงเฉินจื่อคำนวณพบว่าม่านฟ้ากำลังบิดเบือนแสงดาวและมีเงามืดเบื้องบนคอยเฝ้ามองโลกล่างอยู่'
+        }
+      }
+    },
+    {
+      id: 'FACT_25_KONG_MING_SHATTERED_DANTIAN_STRANDING',
+      storyId: null,
+      titleTh: 'กฎแรงดีดม่านฟ้าและสาเหตุที่ทูตตกสวรรค์ขงหมิง (#21) ติดค้างในโลกล่าง (STORY-SYNC-10)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'SECT_LINEAGE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_XIFENG_GORGE', 'CITY_YH_BAILU_ACADEMY'],
+      relatedPaths: ['VOID_SPACE', 'HEART_SOUL', 'DIVINE_SUMMONER'],
+      relatedFigures: [19, 21, 28, 39],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SKY_CURTAIN_LAW_INSIGHT', tribulationResistBonus: 0.08, descTh: 'เข้าใจกฎแรงกดทับของม่านกั้นภพและการจำกัดตบะโลกล่าง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'นิทานนักพรตขี้เมาผู้วางหมากหินริมผาเมฆา',
+          credibilityBase: 47,
+          biasTh: 'คำบอกเล่าของเสี่ยวเอ้อร์โรงเตี๊ยมด่านหน้า (BALLAD_06)',
+          summaryTh: 'เล่าว่ามีนักพรตชราชุดผ้าป่านขาดวิ่นชอบเอาเศษหยกสลักอักษรประหลาดมาจ่ายค่าสุราแล้วแหงนมองฟ้าถอนหายใจเหมือนคนกลับบ้านไม่ได้'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกผู้ลี้ภัยปริศนายุคประตูมิติหลวงระเบิด',
+          credibilityBase: 60,
+          biasTh: 'แฟ้มลับสำนักตรวจการ',
+          summaryTh: 'สันนิษฐานว่าเป็นเพียงยอดฝีมือโบราณที่บาดเจ็บจากการระเบิดที่เทียนกู่และหลบซ่อนตัวตามแนวเขาหยุนเหอ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บทเรียนม่านฟ้าตบสวนของเสิ่นเทียนจุน (#28) และหนึ่งกระบี่ของจิ้วเจี้ยนเซียน (#39)',
+          credibilityBase: 76,
+          biasTh: 'บันทึกเตือนภัยของสายอัญเชิญเทวะและวิถีกระบี่',
+          summaryTh: 'ระบุว่าม่านกั้นภพจะดีดหรือบดขยี้ผู้ที่มีตบะเกินเพดานขั้น 9 ทันที ดังที่เสิ่นเทียนจุน (#28) เคยถูกม่านฟ้าตบสวนเมื่อทำพิธีเรียกทวยเทพ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ตันเถียนที่แหลกสลายของเบี้ยสงครามจากโลกเบื้องบน (STORY-SYNC-10)',
+          credibilityBase: 97,
+          biasTh: 'พิสูจน์จากบันทึกหมากล้อมของขงหมิง (#21) และผนึกของเฮ่อเหลียนม่อ (#19)',
+          summaryTh: 'ขงหมิง (#21) และแม่ทัพศัตรูเฮ่อเหลียนม่อ (#19) คือผู้มาจากโลกเบื้องบนที่ถูกแรงระเบิดประตูมิติหลวงบดขยี้ตันเถียนจนตบะร่วงหล่นต่ำกว่าเกณฑ์ขั้น 9 ม่านกั้นภพจึงมองว่าพวกเขาเป็นเพียงสิ่งมีชีวิตโลกล่างและไม่ดีดกลับขึ้นไป ทำให้ต้องติดค้างอยู่ในโลกเบื้องล่างชั่วนิรันดร์'
+        }
+      }
+    },
+    {
+      id: 'FACT_26_SUBCONTINENT_CRATER_BEYOND_FOG_SEA',
+      storyId: null,
+      titleTh: 'สัจธรรมอนุทวีปหลุมอุกกาบาต 1,000 × 1,000 ลี้ และมหาอาณาจักรพ้นทะเลหมอก (LORE_06B)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'GEOGRAPHY',
+      polityId: null,
+      anchorNodeIds: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'PASS_SO_HEIJIAO_CORSAIR_REEF', 'PASS_BM_XUEFENG_WEST'],
+      relatedPaths: ['TIDE_VOYAGER', 'WANDERING_DAO', 'STAR_FATE'],
+      relatedFigures: [1, 16, 21],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'CONTINENTAL_HORIZON_AWARENESS', explorationBonus: 0.10, descTh: 'ตระหนักถึงขอบเขตที่แท้จริงของแผนที่ห้าภูมิภาคและม่านหมอกรอบอนุทวีป' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ความเชื่อว่าแผ่นดินเก้าแคว้นคือโลกมนุษย์ทั้งหมด',
+          credibilityBase: 50,
+          biasTh: 'โลกทัศน์สามัญของชาวบ้านและจอมยุทธ์ทั่วไป',
+          summaryTh: 'ผู้คนทั่วไปเชื่อว่าแผ่นดินห้าภูมิภาคกว้างพันลี้คูณพันลี้คือใต้หล้าทั้งหมด ส่วนนอกทะเลหมอกและเทือกเขาน้ำแข็งคือสุดขอบโลกที่ไร้สิ่งมีชีวิต'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'แผนที่ยุทธศาสตร์เก้าแคว้นฉบับราชสำนัก',
+          credibilityBase: 65,
+          biasTh: 'แผนที่ทางการของสามมหาจักรวรรดิ',
+          summaryTh: 'กำหนดให้แนวทะเลหมอกทักษิณและทุ่งน้ำแข็งเหนือเป็นเขตสิ้นสุดพระราชอาณาเขตและห้ามจัดตั้งกองเรือสำรวจออกนอกม่านหมอก'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ข้อสังเกตเรื่องแนวภูเขาวงแหวนรอบแผ่นดินห้าภูมิภาค',
+          credibilityBase: 76,
+          biasTh: 'การสำรวจภูมิลักษณ์ของนักพรตดาราและนักเดินเรือ',
+          summaryTh: 'สังเกตว่าเทือกเขาเหนือ ผาเมฆาตะวันออก ทะเลทรายตะวันตก และโขดหินทะเลใต้ ล้วนโค้งเข้าหากันเป็นรูปขอบหลุมวงกลมขนาดมหึมาโดยมีหุบเขาหยุนเหอเป็นจุดศูนย์กลาง'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'อนุทวีปหลุมระเบิดเทียนกู่ที่ถูกตัดขาดจากแผ่นดินใหญ่ภายนอก (LORE_06B)',
+          credibilityBase: 98,
+          biasTh: 'พิสูจน์จากการประกอบแผนที่ธรณีสัณฐานห้าภูมิภาคเข้ากับบันทึกม่านกั้นภพ',
+          summaryTh: 'แผ่นดิน 1,000 × 1,000 ลี้ทั้งหมดเป็นเพียง「หลุมระเบิดของประตูมิติหลวงเทียนกู่」ที่ถูกโดมม่านกั้นภพครอบไว้เหมือนกะลา ทะเลหมอกที่ล้อมรอบคือขอบม่านผนึก และพ้นม่านหมอกออกไปภายนอกยังมีแผ่นดินใหญ่และมหาอาณาจักรอื่นของโลกเบื้องล่างตั้งอยู่'
+        }
+      }
+    },
+    {
+      id: 'FACT_27_ANTEDILUVIAN_THREE_SOVEREIGN_EPOCHS',
+      storyId: null,
+      titleTh: 'สามยุคบรรพกาลก่อนเทียนกู่ที่ถูกกรมพิธีการลบออกจากประวัติศาสตร์ (LORE_06A)',
+      layer: 'ERASED_PREHISTORY',
+      category: 'SECT_LINEAGE',
+      polityId: null,
+      anchorNodeIds: ['TOWN_YM_SHIBEI_RUBBING', 'TOWN_BM_BAIMEI_OLD_FORT', 'CITY_GJ_WANGU_TOTEM'],
+      relatedPaths: ['LORE_ARCHIVIST', 'PRIMORDIAL_SHIFTER', 'STAR_FATE'],
+      relatedFigures: [1, 15, 25],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'ANTEDILUVIAN_SANCTUM_INSIGHT', sanctumBonus: 0.12, descTh: 'เข้าใจต้นกำเนิดของสี่มหาแดนลับและคัมภีร์บรรพกาลก่อนยุคเทียนกู่' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานว่าเทียนกู่คืออาณาจักรแรกของมนุษยชาติ',
+          credibilityBase: 48,
+          biasTh: 'ประวัติศาสตร์ฉบับท่องจำในสำนักศึกษา',
+          summaryTh: 'ตำราเรียนทุกแคว้นสอนตรงกันว่าก่อนการสถาปนามหาจักรวรรดิเทียนกู่ แผ่นดินนี้เป็นเพียงป่ารกร้างที่ไร้ซึ่งอารยธรรมและวิถีบำเพ็ญ'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'พงศาวดารปฐมกษัตริย์เทียนกู่ผู้ประทานอักษรและไฟปราณ',
+          credibilityBase: 64,
+          biasTh: 'โฆษณาชวนเชื่อของราชวงศ์กู่โบราณ',
+          summaryTh: 'เชิดชูว่าราชวงศ์เทียนกู่เป็นผู้คิดค้นมหาวิถีทั้งปวงและสร้างมหาแดนลับทั้งสี่ไว้เป็นคลังหลวง'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ร่องรอยอักขระก่อนยุคเทียนกู่ในหอจดหมายเหตุสี่มหาแดนลับ',
+          credibilityBase: 78,
+          biasTh: 'การค้นพบของคณะสำรวจมหาแดนลับโบราณ (SANCTUM_SOV_01..04)',
+          summaryTh: 'ชั้นหินใต้ฐานมหาแดนลับทั้งสี่มีอายุเก่าแก่กว่ายุคเทียนกู่นับหมื่นปี และใช้อักขระดาวหลอม-โลหิตอสูรที่ไม่ตรงกับอักษรหลวงเทียนกู่'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'สามยุคบรรพกาลที่ถูกลบ: ยุคเตาหลอมดารา ยุคพันธสัญญาอสูรบรรพกาล และยุคพฤกษาวิญญาณ (LORE_06A)',
+          credibilityBase: 98,
+          biasTh: 'พิสูจน์จากศิลาชั้นลึกสุดของสี่มหาแดนลับและบันทึกที่รอดจากการเผาตำราของกรมพิธีการเทียนกู่',
+          summaryTh: 'ก่อนยุคเทียนกู่เคยมีอารยธรรมรุ่งเรืองถึง 3 ยุค ได้แก่ ยุคเตาหลอมดาราบรรพกาล ยุคพันธสัญญาราชันอสูร และยุคพฤกษาวิญญาณโลกา ซึ่งผู้ก่อตั้งเทียนกู่ได้สั่งเผาทำลายบันทึกทั้งหมดเพื่อผูกขาดความชอบธรรมว่าตนเป็นจุดเริ่มต้นของมรรคา'
+        }
+      }
+    },
+    {
+      id: 'FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL',
+      storyId: null,
+      titleTh: 'ชาติกำเนิดที่แท้จริงของปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45) และเหตุผลของตราหินเทาไร้ลักษณ์',
+      layer: 'ERASED_PREHISTORY',
+      category: 'SECT_LINEAGE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'PASS_YH_YUGUAN_RUIN_POST'],
+      relatedPaths: ['XIAN', 'VOID_SPACE', 'HEART_SOUL'],
+      relatedFigures: [21, 25, 45],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'FOUNDER_ORIGIN_AWAKENING', regaliaInsightBonus: 2, descTh: 'ปลุกเสียงสะท้อนต้นกำเนิดของตราหินเทาไร้ลักษณ์โดยคงความลับไม่ให้รั่วไหลสู่สาธารณะ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานผู้เฒ่านิรนามผู้เร้นกายในหุบเขาเมฆาเร้น',
+          credibilityBase: 55,
+          biasTh: 'บันทึกเปิดเผยบนป้ายบรรพชนรุ่นที่ 1 (PATRIARCH_GEN_1)',
+          summaryTh: 'บันทึกสาธารณะของสำนักระบุเพียงว่า ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 เป็นผู้เฒ่าพเนจรนิรนามที่เข้ามาปลูกกระท่อมดูแลสัตว์วิญญาณและทิ้งตราหินเทาไร้ลักษณ์ไว้ก่อนเดินหายเข้าทะเลหมอก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ทะเบียนสำนักขนาดเล็กไร้สังกัดในหุบเขาสองแคว',
+          credibilityBase: 60,
+          biasTh: 'บันทึกของสภาเจ็ดวาณิชหยุนเหอ',
+          summaryTh: 'มองว่าสำนักของเราเป็นเพียงสำนักท้องถิ่นที่สืบทอดกันมาเจ็ดรุ่นโดยไม่ได้ข้องเกี่ยวกับราชสำนักหรือศึกประตูมิติโบราณ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ความเชื่อมโยงระหว่างค่ายกลฐานสำนักกับซากประตูมิติหลวงใต้ก้นเหว',
+          credibilityBase: 78,
+          biasTh: 'ข้อสังเกตของเจ้าสำนักรุ่นที่ 6–7 เมื่อตราหินเทาไร้ลักษณ์ตื่นรู้',
+          summaryTh: 'ค่ายกลแปดยอดเขาของสำนักถูกวางทับจุดศูนย์ถ่วงของซากประตูมิติหลวงใต้ก้นเหวอย่างจงใจ เพื่อใช้ปราณธรรมชาติของสัตว์วิญญาณและผู้ฝึกตนหลากหลายวิถีช่วยกลบเกลื่อนรอยรั่วมิติ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ผู้เฝ้ายามนิรนาม (#45) ผู้หลอมตราหินไร้ลักษณ์เพื่อซ่อนผู้สืบทอดจากสายตาสวรรค์ (LORE_05B)',
+          credibilityBase: 99,
+          biasTh: 'ความลับสูงสุดที่เปิดเผยเฉพาะเมื่อตราหินเทาไร้ลักษณ์และบันทึกบรรพชนครบสมบูรณ์',
+          summaryTh: 'ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45) คืออดีตผู้ตรวจการค่ายกลจากโลกเบื้องบนที่เลือกสละนามและผนึกตบะตนเองไว้ใต้หุบเขาเพื่อเฝ้ารอยร้าวประตูมิติหลวง เขาจงใจหลอม「ตราหินเทาไร้ลักษณ์」ให้ดูเหมือนก้อนหินสามัญไร้ปราณเซียนและไม่ผูกมัดกับวิถีใดวิถีหนึ่ง เพื่อไม่ให้ม่านกั้นภพและสายตาจากโลกเบื้องบนตรวจจับและลงทัณฑ์เจ้าสำนักรุ่นที่ 2 ถึงรุ่นที่ 7 ได้'
+        }
+      }
+    }
+  ]);
+
+  const FACT_BY_ID = Object.freeze(Object.fromEntries(CANON_FACTS.map(f => [f.id, f])));
+
+  // 20 Multi-Stage Playable Living Lore Story Chains (12 Adopted & Refined from Codex + 8 Original Gemini Chains)
+  const STORY_CHAINS = Object.freeze([
+    {
+      id: 'STORY_01_SHUANGJIANG_FLOOD_LEDGER',
+      titleTh: 'สมุดระดับน้ำท่วมและตำนานน้ำไหลย้อนแห่งซวงเจียง',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_ROUTE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_01_SHUANGJIANG_BACKFLOW',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'],
+      summaryTh: 'เปรียบเทียบเพลงโรงเตี๊ยมเรื่องพญานาคราชทำให้น้ำสองแควไหลย้อน กับรอยสิ่ววัดระดับน้ำแล้งใต้สะพานศิลาสามแควและสมุดส่วยข้าวโบราณ',
+       stages: [
+        {
+          idx: 0,
+          id: 'SPARK_BACKFLOW_RUMOR',
+          titleTh: 'ได้ยินคำร่ำลือเรื่องน้ำสองแควไหลย้อนกลืนเรือสินค้า',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'FOLK_ORAL',
+          descTh: 'คนแจวเรือที่นครสองแควหยุนเหอเล่าขานเรื่องกระแสน้ำไหลย้อนทุกปลายฤดูใบไม้ร่วง จนขบวนคาราวานลังเลที่จะข้ามน้ำ'
+        },
+        {
+          idx: 1,
+          id: 'CHECK_BRIDGE_CHISEL_AND_LEDGER',
+          titleTh: 'สำรวจรอยสิ่ววัดระดับน้ำใต้ตอม่อสะพานศิลาสามแควและสมุดส่วยข้าว',
+          locationId: 'PASS_YH_SANJIANG_BRIDGE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ตรวจสอบขีดหินโบราณยุคเหยียนหลิงใต้ตอม่อสะพานศิลาสามแควเทียบกับบันทึกปีที่หิมะเหนือละลายช้า'
+        },
+        {
+          idx: 2,
+          id: 'RESOLVE_HYDRO_CHRONICLE',
+          titleTh: 'สรุปวัฏจักรสันดอนหนุนน้ำและวางแนวทางเดินเรือของสำนัก',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกแนวทางนำความรู้เรื่องช่วงน้ำหนุน 9 วันไปใช้ปรับตารางคาราวานหรือบันทึกเข้าหอคัมภีร์'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'CAUTIOUS_CONVOY_TIMETABLE',
+          labelTh: 'ปรับตารางคาราวานและเรือข้ามฟากหลบช่วงน้ำหนุน 9 วัน',
+          match: n => E(n, 'personality.caution') >= 55 || ['quartermaster', 'mission', 'treasury'].includes(n.post),
+          consequenceTh: 'ฝ่ายยุทธปัจจัยกำหนดตารางเดินเรือหลบช่วงสันดอนหนุนน้ำ ลดเวลาเดินทางและความเสี่ยงบนเส้นทางซวงเจียง–สะพานศิลาสามแควถาวร',
+          effect: { routeBonusLeg: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], routeMultiplier: 0.86, citySafetyDelta: 4 }
+        },
+        {
+          id: 'SCHOLAR_HYDRO_ARCHIVE',
+          labelTh: 'เรียบเรียง「พงศาวดารอุทกวิทยาสองแคว」ขึ้นทะเบียนหอคัมภีร์',
+          match: n => E(n, 'values.knowledgeCraft') >= 55 || ['scripture', 'master', 'deputy'].includes(n.post),
+          consequenceTh: 'บันทึกหลักฐานขีดวัดระดับน้ำยุคเหยียนหลิงเข้าหอจดหมายเหตุสำนัก เพิ่มความเข้าใจคัมภีร์และบารมีทางวิชาการ',
+          effect: { routeBonusLeg: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], routeMultiplier: 0.90, sectFameDelta: 6, skillPractice: 'SCRIPTURE' }
+        },
+        {
+          id: 'FERRYMAN_MARKER_REPAIR',
+          labelTh: 'ตอกหมุดเตือนระดับน้ำร่วมกับสมาคมคนแจวเรือซวงเจียง',
+          match: () => true,
+          consequenceTh: 'ซ่อมแซมหลักวัดระดับน้ำริมตลิ่งร่วมกับชาวเรือซวงเจียง เพิ่มความรุ่งเรืองและความปลอดภัยของท่าเรือ',
+          effect: { routeBonusLeg: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], routeMultiplier: 0.88, cityProsperityDelta: 5, citySafetyDelta: 3 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_02_BAILU_DUAL_ANNOTATED_MANUAL',
+      titleTh: 'คัมภีร์สองลายมือแห่งสำนักศึกษาไป๋ลู่',
+      group: 'CODEX_ADOPTED',
+      category: 'MARTIAL_SCHISM',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_02_BAILU_DUAL_COMMENTARY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_BAILU_ACADEMY', 'CITY_YH_OLD_DAREN_SQUARE'],
+      summaryTh: 'คัมภีร์ฝึกปราณเล่มเดียวกันมีรอยจดหมายเหตุริมกระดาษสองสี (หมึกชาดเร่งรัดปราณ กับ หมึกดำประคองชีพจร) ที่โต้เถียงกันเองทุกบท',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MARGIN_DISPUTE',
+          titleTh: 'พบรอยอรรถาธิบายหมึกชาดและหมึกดำโต้เถียงกันในคัมภีร์',
+          locationId: 'CITY_YH_BAILU_ACADEMY',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ศิษย์ที่อ่านคัมภีร์จากสายสำนักศึกษาไป๋ลู่พบคำสอนสองแนวทางที่ขัดแย้งกันในหน้าเดียว'
+        },
+        {
+          idx: 1,
+          id: 'COMPARE_HANDWRITING_AND_BREATH',
+          titleTh: 'เทียบน้ำหนักพู่กันและทดลองเดินปราณตามจังหวะทั้งสอง',
+          locationId: 'CITY_YH_OLD_DAREN_SQUARE',
+          accountId: 'COURT_CANON',
+          descTh: 'ตรวจสอบต้นฉบับในหอสมุดไป๋ลู่พบว่าหางอักษรทั้งสองสีมาจากข้อมือคนเดียวกันในต่างช่วงวัย'
+        },
+        {
+          idx: 2,
+          id: 'SYNTHESIZE_DUAL_ANNOTATION',
+          titleTh: 'ตัดสินใจแนวทางถ่ายทอดคัมภีร์สองลายมือในสำนัก',
+          locationId: 'CITY_YH_BAILU_ACADEMY',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกวิธีใช้ประโยชน์จากอรรถาธิบายหมึกชาดและหมึกดำตามจริตของผู้เรียน'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'HARMONIZED_COMMENTARY_EDITION',
+          labelTh: 'จัดทำฉบับประสาน「รุกด้วยหมึกชาด คุมด้วยหมึกดำ」ไว้ในหอคัมภีร์',
+          match: n => E(n, 'aptitudes.comprehension') >= 55 || ['scripture', 'master', 'deputy'].includes(n.post),
+          consequenceTh: 'หอคัมภีร์สำนักได้อรรถาธิบายประสานสองวัย ช่วยให้ศิษย์ศึกษาวิชาได้รวดเร็วและปลอดภัยขึ้น',
+          effect: { customId: 'CUSTOM_BAILU_HARMONIZED_STUDY', studySpeedMult: 1.08, skillPractice: 'SCRIPTURE', sectFameDelta: 5 }
+        },
+        {
+          id: 'CRIMSON_INK_BREAKTHROUGH_DRILL',
+          labelTh: 'ฝึกฝนเคล็ดบีบอัดปราณหมึกชาดเพื่อเร่งความชำนาญกระบวนท่า',
+          match: n => E(n, 'personality.ambition') >= 60 || E(n, 'personality.courage') >= 60,
+          consequenceTh: 'ศิษย์สายรุกนำเคล็ดหมึกชาดมาใช้ฝึกซ้อมเร่งความก้าวหน้าตบะและทักษะการรบ',
+          effect: { customId: 'CUSTOM_BAILU_CRIMSON_DRILL', cultGain: 28, skillPractice: 'SWORD' }
+        },
+        {
+          id: 'BLACK_INK_FOUNDATION_ORTHODOXY',
+          labelTh: 'ยึดแนวทางหมึกดำเป็นมาตรฐานสอนศิษย์ใหม่เพื่อป้องกันลมปราณตีกลับ',
+          match: () => true,
+          consequenceTh: 'วางรากฐานการเดินปราณตามแนวหมึกดำ ลดความตึงเครียดและจิตมารของศิษย์ในสำนัก',
+          effect: { customId: 'CUSTOM_BAILU_BLACK_FOUNDATION', heartDemonDelta: -10, skillPractice: 'SCRIPTURE' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_03_QINGLAN_SECOND_TOLL_STAMP',
+      titleTh: 'ตราประทับด่านภาษีซ้อนแห่งราชวงศ์ชิงหลานที่ล่มสลาย',
+      group: 'CODEX_ADOPTED',
+      category: 'DYNASTY_TRADE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_03_QINGLAN_DOUBLE_TOLL_SEAL',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_QINGLAN_DICE_CITY', 'CITY_DH_ZHENYANG_RUIN_PREF'],
+      summaryTh: 'หีบสินค้าจากแดนตะวันออกมีตราครั่งทองเหลืองรูปคลื่นคู่ของราชวงศ์ชิงหลานที่ล่มสลายไปเมื่อเก้าสิบปีก่อนประทับซ้อนอยู่ใต้ตราลูกคิดทองคำตงหวง',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_DOUBLE_SEAL_CRATE',
+          titleTh: 'ตรวจพบตราครั่งรูปคลื่นคู่โบราณประทับซ้อนบนหีบสินค้า',
+          locationId: 'CITY_DH_QINGLAN_DICE_CITY',
+          accountId: 'FOLK_ORAL',
+          descTh: 'คนคุมคาราวานพบตราภาษีสองยุคซ้อนกันบนลังพัสดุจากเมืองสายน้ำครามชิงหลาน'
+        },
+        {
+          idx: 1,
+          id: 'INQUIRE_ZHENYANG_CUSTOMS_BROKER',
+          titleTh: 'สอบทานสมุดเทียบตราภาษีเก่าที่เมืองป้อมเจิ้นหยางเก่า',
+          locationId: 'CITY_DH_ZHENYANG_RUIN_PREF',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่านายหน้าตระกูลเก่าใช้ตราชิงหลานเป็นตั๋วรับรองสิทธิ์เบิกพัสดุคงค้างในคลังใต้ดินยุคเปลี่ยนผ่าน'
+        },
+        {
+          idx: 2,
+          id: 'SETTLE_QINGLAN_TALLY',
+          titleTh: 'จัดการสิทธิ์เบิกพัสดุคลังเก่าและรายงานศุลกากรตงหวง',
+          locationId: 'CITY_DH_QINGLAN_DICE_CITY',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกวิธีดำเนินการกับตั๋วตราคลื่นคู่ระหว่างการเบิกพัสดุคงค้างหรือการสร้างไมตรีทางการทูต'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'REDEEM_QINGLAN_CELLAR_SHIPMENT',
+          labelTh: 'ใช้ตั๋วตราคลื่นคู่เบิกพัสดุและศิลาวิญญาณคงค้างจากนายหน้าชิงหลาน',
+          match: n => E(n, 'values.wealthResource') >= 52 || ['treasury', 'marketmaster', 'quartermaster'].includes(n.post),
+          consequenceTh: 'เบิกศิลาวิญญาณและวัตถุดิบที่เก็บรักษาไว้ในคลังใต้ดินเมืองชิงหลานเข้าสู่คลังสำนักอย่างถูกต้องตามธรรมเนียมนายหน้า',
+          effect: { closedLoopStonesFromPool: 120, cityProsperityDelta: 4 }
+        },
+        {
+          id: 'REPORT_CUSTOMS_RECONCILIATION',
+          labelTh: 'ส่งมอบสำเนาสมุดเทียบตราให้ด่านศุลกากรตงหวงเพื่อปลดข้อหาค้าของเถื่อน',
+          match: n => E(n, 'personality.integrity') >= 58 || ['envoy', 'discipline', 'master'].includes(n.post),
+          consequenceTh: 'ด่านตรวจการตงหวงยกเลิกหมายอายัดขบวนสินค้าของพ่อค้าชิงหลาน เพิ่มความเชื่อถือทางการทูตและความปลอดภัยของเมือง',
+          effect: { citySafetyDelta: 6, cityProsperityDelta: 3, sectFameDelta: 6 }
+        },
+        {
+          id: 'ARCHIVE_FALLEN_REALM_SEAL',
+          labelTh: 'เก็บรักษาแม่พิมพ์ตราคลื่นคู่ไว้ในหอจดหมายเหตุราชวงศ์ที่ล่มสลาย',
+          match: () => true,
+          consequenceTh: 'บันทึกประวัติการเปลี่ยนผ่านแคว้นชิงหลาน–ตงหวงไว้เป็นตำราการค้าและประวัติศาสตร์ของสำนัก',
+          effect: { sectFameDelta: 5, skillPractice: 'SCRIPTURE' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_04_YUGUAN_TWO_VILLAGE_BOUNDARY',
+      titleTh: 'หลักศิลาสองชื่อแห่งด่านหยกเก่าอวี้กวาน',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_COMMUNITY',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_04_YUGUAN_REFUGEE_BOUNDARY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_YUGUAN_RUIN_POST', 'TOWN_YH_LIUWAN_FERRY'],
+      summaryTh: 'สองหมู่บ้านผู้ลี้ภัยเก่าเรียกสันเขาเดียวกันคนละชื่อตามบันทึกต้นตระกูลยุคหงชี (#38) ขณะที่เสมียนด่านอ้างแผนที่ภาษีใหม่เข้ายึดบ่อน้ำ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_RIDGE_NAME_QUARREL',
+          titleTh: 'พบข้อพิพาทเรียกชื่อสันเขาและสิทธิ์ดูแลบ่อน้ำที่ด่านหยกเก่าอวี้กวาน',
+          locationId: 'PASS_YH_YUGUAN_RUIN_POST',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ชาวบ้านสองฝั่งเขาโต้เถียงกันเรื่องชื่อดั้งเดิมของสันเขาและสิทธิ์การใช้น้ำซับริมทาง'
+        },
+        {
+          idx: 1,
+          id: 'EXCAVATE_COURIER_MILESTONE_BASE',
+          titleTh: 'ขุดแต่งฐานหลักศิลาม้าเร็วและเทียบสมุดอพยพที่ท่าข้ามฟากคุ้งหลิวเขียว',
+          locationId: 'TOWN_YH_LIUWAN_FERRY',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบฐานหินยุคหงชี (#38) ที่สลักชื่อทั้งสองหมู่บ้านไว้คนละด้านของหลักศิลาเดียวกัน'
+        },
+        {
+          idx: 2,
+          id: 'RESTORE_DUAL_BOUNDARY_MARKER',
+          titleTh: 'ไกล่เกลี่ยข้อพิพาทและตั้งหลักศิลาสองชื่อขึ้นใหม่',
+          locationId: 'PASS_YH_YUGUAN_RUIN_POST',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ตัดสินใจวิธีจัดการหลักศิลาและระเบียบดูแลบ่อน้ำริมด่านอวี้กวาน'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'ERECT_TWIN_NAME_STELE',
+          labelTh: 'ยกหลักศิลาสองชื่อขึ้นตั้งใหม่และให้สองหมู่บ้านผลัดเวรดูแลบ่อน้ำตามคำสัตย์หงชี (#38)',
+          match: n => E(n, 'personality.empathy') >= 50 || E(n, 'personality.integrity') >= 55,
+          consequenceTh: 'สองหมู่บ้านยุติความบาดหมางและร่วมกันดูแลบ่อน้ำและคบเพลิงนำทางที่ด่านอวี้กวาน',
+          effect: { citySafetyDelta: 7, cityProsperityDelta: 4, sectFameDelta: 6 }
+        },
+        {
+          id: 'REGISTER_YUNHE_COURIER_WAYSTATION',
+          labelTh: 'ขึ้นทะเบียนหลักศิลาเป็นสถานีพักม้าเร็วร่วมกับสภาหยุนเหอ',
+          match: n => ['envoy', 'mission', 'quartermaster'].includes(n.post) || E(n, 'aptitudes.socialCommerce') >= 55,
+          consequenceTh: 'ด่านอวี้กวานและท่าข้ามฟากคุ้งหลิวเขียวกลายเป็นจุดพักคาราวานที่ปลอดภัยและรวดเร็วขึ้น',
+          effect: { routeBonusLeg: ['PASS_YH_YUGUAN_RUIN_POST', 'CITY_YH_OLD_DAREN_SQUARE'], routeMultiplier: 0.88, cityProsperityDelta: 5 }
+        },
+        {
+          id: 'RUBBING_FOR_SECT_STELE_HALL',
+          labelTh: 'คัดลอกลายสลักพลองหยกของหงชี (#38) กลับมาศึกษาที่หอคัมภีร์',
+          match: () => true,
+          consequenceTh: 'ได้ภาพลอกลายจารึกโบราณของราชันย์พเนจรหงชี (#38) กลับมาเพิ่มพูนความรู้ในสำนัก',
+          effect: { citySafetyDelta: 4, skillPractice: 'STAFF' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_05_BEAST_KEEPER_FORD_NOTEBOOK',
+      titleTh: 'สมุดบันทึกคนเลี้ยงอสูรริมแก่งน้ำตื้น',
+      group: 'CODEX_ADOPTED',
+      category: 'ECOLOGY_BEAST',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_05_FORD_BEAST_MOLTING_CYCLE',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['TOWN_BM_BINGHE_FUR_POST', 'TOWN_GJ_YaoZhai_HUNT'],
+      summaryTh: 'สมุดบันทึกหนังสัตว์ของคนเลี้ยงอสูรเฒ่าอธิบายพฤติกรรมรวมฝูงลอกคราบริมแก่งน้ำตื้น ซึ่งสวนทางกับข่าวลือเรื่องอสูรคลั่ง',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_FORD_BEAST_SCARE',
+          titleTh: 'รับทราบข่าวลืออสูรริมน้ำรวมฝูงขวางแก่งน้ำตื้น',
+          locationId: 'TOWN_BM_BINGHE_FUR_POST',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พรานและคนเดินทางร่ำลือว่ามีฝูงอสูรดุร้ายยึดแก่งน้ำตื้นจนไม่มีใครกล้าข้าม'
+        },
+        {
+          idx: 1,
+          id: 'READ_KEEPER_FIELD_NOTES',
+          titleTh: 'ค้นพบสมุดบันทึกคนเลี้ยงอสูรและตรวจร่องรอยคราบเกล็ดริมตลิ่ง',
+          locationId: 'TOWN_GJ_YaoZhai_HUNT',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าฝูงอสูรเพียงขึ้นมาถูหินลอกคราบตามฤดูกาลและจะดุร้ายเฉพาะเมื่อมีคนเหยียบรังริมน้ำ'
+        },
+        {
+          idx: 2,
+          id: 'CHOOSE_FORD_ECOLOGY_POLICY',
+          titleTh: 'ตัดสินใจแนวทางปฏิบัติต่อฝูงอสูรช่วงลอกคราบริมแก่ง',
+          locationId: 'TOWN_BM_BINGHE_FUR_POST',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกแนวทางจัดการแก่งน้ำตื้นตามหน้าที่และปณิธานของศิษย์ผู้รับผิดชอบ'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'KEEPER_CONSERVATION_SALT_MARK',
+          labelTh: 'ปักหลักหินเกลือแร่ล่อฝูงอสูรให้อยู่ห่างทางข้ามและอนุรักษ์รัง',
+          match: n => ['beastmaster', 'healer'].includes(n.post) || E(n, 'personality.empathy') >= 58 || ['BEAST_SOVEREIGN', 'SPIRIT_HUSBANDRY'].includes(n.cult?.path),
+          consequenceTh: 'ฝูงอสูรย้ายไปลอกคราบที่คุ้งน้ำสงบหลังหลักเกลือแร่ ทางข้ามปลอดภัยและสัตว์คู่หูในสำนักมีความผูกพันเพิ่มขึ้น',
+          effect: { customId: 'CUSTOM_KEEPER_FORD_SANCTUARY', citySafetyDelta: 6, petBondBonus: 8 }
+        },
+        {
+          id: 'ALCHEMIST_MOLTED_SCALE_HARVEST',
+          labelTh: 'จัดเวรเก็บคราบเกล็ดที่ลอกทิ้งริมหินมาปรุงโอสถโดยไม่รบกวนฝูงอสูร',
+          match: n => ['alchemy', 'herbal'].includes(n.post) || E(n, 'interests.alchemy') >= 55,
+          consequenceTh: 'หอโอสถได้คราบเกล็ดอสูรที่สมบูรณ์มาใช้เป็นวัตถุดิบโดยไม่ต้องเสี่ยงปะทะกับฝูงอสูร',
+          effect: { customId: 'CUSTOM_MOLTED_SCALE_HARVEST', skillPractice: 'ALCHEMY', cityProsperityDelta: 4 }
+        },
+        {
+          id: 'CAUTIOUS_FORD_DETOUR_POSTS',
+          labelTh: 'ปักป้ายเตือนช่วงเวลาลอกคราบ 6 วันให้คาราวานใช้ทางเลี่ยงเนินสูง',
+          match: () => true,
+          consequenceTh: 'คนเดินทางและคาราวานเลี่ยงตลิ่งในช่วง 6 วันลอกคราบ ลดการสูญเสียบนเส้นทางแดนเหนือและแดนทักษิณ',
+          effect: { citySafetyDelta: 5, skillPractice: 'BEAST_TAMING' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_06_STOREROOM_FLOORBOARD_SHRINE',
+      titleTh: 'หิ้งบูชาช่างหลอมใต้พื้นไม้ห้องเก็บของเก่า',
+      group: 'CODEX_ADOPTED',
+      category: 'CRAFT_TRADITION',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_06_STOREROOM_ANVIL_TALISMAN',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_TIEKUANG_HOLLOW', 'CITY_CY_RONGLU_CAPITAL'],
+      summaryTh: 'ใต้แผ่นไม้พื้นห้องเก็บของเก่าในสำนักมีทั่งเหล็กจิ๋วและป้ายชื่อช่างหลอมซ่อนอยู่ เมื่อเทียบกับตราเหล็กที่ตำบลเตาเหล็กซากสำริดจึงพบตำรับชุบขี้เถ้าถนอมเกราะ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_FLOORBOARD_DISCOVERY',
+          titleTh: 'พบทั่งเหล็กจิ๋วและแผ่นไม้สลักตราช่างใต้พื้นห้องเก็บของเก่า',
+          locationId: 'TOWN_YH_TIEKUANG_HOLLOW',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ระหว่างจัดระเบียบห้องเก็บของในสำนัก ศิษย์พบหิ้งเหล็กขนาดเล็กซ่อนอยู่ใต้คานไม้พร้อมห่อขี้เถ้าสน'
+        },
+        {
+          idx: 1,
+          id: 'TRACE_MAKER_MARK_AT_TIEKUANG',
+          titleTh: 'นำตราช่างไปเทียบกับสมุดตระกูลช่างที่ตำบลเตาเหล็กซากสำริด',
+          locationId: 'TOWN_YH_TIEKUANG_HOLLOW',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเป็นตราของหัวหน้าช่างหลอมสมัยเจ้าสำนักรุ่นที่ 4 ผู้คิดค้นวิธีชุบผิวชุดเกราะด้วยขี้เถ้าสมุนไพร'
+        },
+        {
+          idx: 2,
+          id: 'RESTORE_ASH_TEMPER_METHOD',
+          titleTh: 'ฟื้นฟูตำรับชุบขี้เถ้าถนอมเกราะและบูรณะหิ้งรำลึกช่างหลอม',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'นำวิธีชุบขี้เถ้าถนอมเกราะกลับมาใช้ในโรงหลอมสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'ADOPT_ASH_WARD_ARMOR_MAINTENANCE',
+          labelTh: 'บรรจุ「ตำรับชุบขี้เถ้าสนถนอมเกราะ」เป็นขั้นตอนมาตรฐานของโรงหลอมสำนัก',
+          match: n => ['forge', 'arraymaster', 'quartermaster'].includes(n.post) || E(n, 'aptitudes.crafting') >= 52,
+          consequenceTh: 'โรงหลอมสำนักนำวิธีชุบขี้เถ้าสนมาเคลือบชุดเกราะพื้นฐาน ช่วยเพิ่มความทนทานและพลังป้องกันให้ศิษย์ทั้งสำนัก',
+          effect: { customId: 'CUSTOM_STOREROOM_ASH_TEMPER', skillPractice: 'FORGING', cityProsperityDelta: 4 }
+        },
+        {
+          id: 'SHRINE_HONOR_ARTISAN_LINEAGE',
+          labelTh: 'ตั้งหิ้งรำลึกบูรพาจารย์ช่างหลอมไว้ข้างเตาหลอมหลักเพื่อสร้างขวัญกำลังใจฝ่ายผลิต',
+          match: () => true,
+          consequenceTh: 'ศิษย์สายช่างรู้สึกได้รับเกียรติและสืบทอดความประณีตในการดูแลรักษาอุปกรณ์ของสำนัก',
+          effect: { customId: 'CUSTOM_ARTISAN_SHRINE_HONOR', sectFameDelta: 5, skillPractice: 'FORGING' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR',
+      titleTh: 'เก้าอี้ว่างและกระบี่ไม้ท้อในโถงบรรพชนรุ่นที่เจ็ด',
+      group: 'CODEX_ADOPTED',
+      category: 'SECT_LINEAGE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'TOWN_YH_QINGXI_FOOT'],
+      summaryTh: 'คลี่คลายข่าวลือเรื่องกระบี่ไม้ท้อและเก้าอี้ว่างในโถงบรรพชน โดยเชื่อมโยงบันทึกเจ้าสำนักรุ่นที่ 5–6 เข้ากับตราหินเทาไร้ลักษณ์ของเจ้าสำนักรุ่นที่ 7',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_EMPTY_CHAIR_RUMOR',
+          titleTh: 'ศิษย์รุ่นใหม่ตั้งคำถามเรื่องเก้าอี้ว่างและกระบี่ไม้ท้อข้างแท่นบรรพชน',
+          locationId: 'TOWN_YH_QINGXI_FOOT',
+          accountId: 'FOLK_ORAL',
+          descTh: 'เกิดคำร่ำลือในหมู่ศิษย์ว่าเหตุใดข้างแท่นป้ายบรรพชนรุ่นที่ 6 จึงมีเก้าอี้ว่างและกระบี่ไม้ท้อไร้คมแขวนอยู่'
+        },
+        {
+          idx: 1,
+          id: 'INSPECT_GEN5_GEN6_ARCHIVE_NOTES',
+          titleTh: 'ค้นคว้าสมุดบันทึกของเจ้าสำนักรุ่นที่ 5 กู้เหยียนจือ และรุ่นที่ 6 โม่ชางไห่',
+          locationId: 'CITY_YH_OLD_DAREN_SQUARE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบบันทึกว่าตราประจำตำแหน่งแท้จริงคือตราหินเทาไร้ลักษณ์ ส่วนเก้าอี้ว่างและกระบี่ไม้ท้อเป็นอนุสรณ์ถึงศิษย์พี่ผู้สละชีพเฝ้าด่านหน้า'
+        },
+        {
+          idx: 2,
+          id: 'AFFIRM_GEN7_STEWARDSHIP_RITE',
+          titleTh: 'ประกอบพิธีรำลึกผู้พิทักษ์ด่านและยืนยันธรรมเนียมผู้สืบทอดรุ่นที่ 7',
+          locationId: 'CITY_YH_OLD_DAREN_SQUARE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เจ้าสำนักและผู้อาวุโสประกาศความหมายที่แท้จริงของเก้าอี้ว่างและตราหินเทาไร้ลักษณ์ต่อศิษย์ทั้งสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'REGALIA_DAO_INSIGHT_RESONANCE',
+          labelTh: 'อัญเชิญตราหินเทาไร้ลักษณ์ขึ้นรับกระแสปณิธานบูรพาจารย์ทั้ง 6 รุ่น',
+          match: (n, W) => W && W.sect && (n.id === W.sect.masterId || n.post === 'disciples'),
+          consequenceTh: 'ตราหินเทาไร้ลักษณ์สั่นพ้องกับปณิธานบูรพาจารย์รุ่นที่ 1–6 เพิ่มแต้มตื่นรู้ DAO_INSIGHT และเสียงสะท้อนต้นกำเนิดของสำนัก',
+          effect: { regaliaVector: 'DAO_INSIGHT', regaliaAmount: 1, originEchoesDelta: 2, sectFameDelta: 8 }
+        },
+        {
+          id: 'GUARDIAN_CHAIR_MEMORIAL_ETCHING',
+          labelTh: 'สลักนามศิษย์พี่ผู้พิทักษ์ด่านไว้ที่พนักเก้าอี้ว่างและใช้กระบี่ไม้ท้อสอนวิชาพื้นฐานแก่ศิษย์ใหม่',
+          match: () => true,
+          consequenceTh: 'ศิษย์ทั้งสำนักเข้าใจรากเหง้าความเสียสละของรุ่นที่ 6 เพิ่มความภักดีและขวัญกำลังใจในการปกป้องสำนัก',
+          effect: { originEchoesDelta: 1, sectFameDelta: 6, skillPractice: 'SWORD' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_08_MISSING_BEND_TRAIL_SKETCH',
+      titleTh: 'ภาพร่างแผนที่รอยพับขาดของสมรภูมิเทียนกู่',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_RUIN',
+      layer: 'SHATTERED_SUBCONTINENT',
+      factId: 'FACT_08_TIANGU_MISSING_RIVER_BEND',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['PASS_BM_HANLONG_GATE', 'CITY_BM_XINGYUN_CITADEL', 'TOWN_BM_BAIMEI_OLD_FORT'],
+      summaryTh: 'ภาพร่างถ่านไม้แสดงจุดสังเกตสองแห่งของสมรภูมิเทียนกู่แต่ตรงกลางขาดหายไปตามรอยพับ ต้องคำนวณร่องน้ำโบราณที่เปลี่ยนทิศหลังประตูมิติระเบิด',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_CREASED_CHARCOAL_MAP',
+          titleTh: 'ได้ภาพร่างแผนที่ถ่านไม้ที่รอยพับตรงคุ้งน้ำขาดหายไป',
+          locationId: 'PASS_BM_HANLONG_GATE',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พบแผ่นหนังแกะวาดแนวปราการของหลี่เจี้ยนซิน (#6) และเนินธนูของเย่ชิงชาง (#8) แต่ส่วนเชื่อมตรงกลางฉีกขาด'
+        },
+        {
+          idx: 1,
+          id: 'CALCULATE_OLD_RIVERBED_AT_XINGYUN',
+          titleTh: 'เทียบแผนที่ดาวเมืองซิงหยวนเพื่อหาแนวร่องน้ำแห้งก่อนแผ่นดินทรุด',
+          locationId: 'CITY_BM_XINGYUN_CITADEL',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'คำนวณพบว่าแม่น้ำโบราณเบี่ยงทิศไปทางเมืองเก่ากระบี่เหมยขาวหลังจากแรงระเบิดประตูมิติหลวง'
+        },
+        {
+          idx: 2,
+          id: 'SURVEY_BAIMEI_BATTLE_RIDGE',
+          titleTh: 'ลงพื้นที่สำรวจร่องน้ำแห้งหลังเมืองเก่ากระบี่เหมยขาว',
+          locationId: 'TOWN_BM_BAIMEI_OLD_FORT',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ตรวจสอบหลักศิลาสมรภูมิเทียนกู่และบันทึกผลลัพธ์ตามสภาพจริงของโบราณสถาน'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'INSCRIBE_LI_JIANXIN_DEFENSE_FORMATION',
+          labelTh: 'ลอกลายจารึกค่ายกลตั้งรับ 7 วัน 7 คืนของหลี่เจี้ยนซิน (#6) บนผาหิน',
+          match: n => E(n, 'values.martialPeak') >= 55 || ['martial', 'commander', 'vanguard'].includes(n.post),
+          consequenceTh: 'แม้ศาสตราเอกในตำนานจะมีผู้ถือครองตามกฎหนึ่งเดียวในโลกแล้ว แต่คณะสำรวจได้จารึกกระบวนท่าตั้งรับหน้าประตูเมืองเทียนกู่กลับมาเสริมทักษะการรบของสำนักอย่างสมบูรณ์',
+          effect: { routeBonusLeg: ['PASS_BM_HANLONG_GATE', 'TOWN_BM_BAIMEI_OLD_FORT'], routeMultiplier: 0.88, skillPractice: 'SWORD', sectFameDelta: 8 }
+        },
+        {
+          id: 'RECOVER_METEOR_ARROW_SLAG',
+          labelTh: 'เก็บกู้เศษหัวธนูเหล็กไหลของทัพเย่ชิงชาง (#8) จากชั้นดินร่องน้ำแห้ง',
+          match: () => true,
+          consequenceTh: 'เก็บกู้เศษโลหะสมรภูมิโบราณและบันทึกพิกัดร่องน้ำเทียนกู่ลงในแผนที่สำนักอย่างแม่นยำ',
+          effect: { closedLoopStonesFromPool: 90, skillPractice: 'FORGING', citySafetyDelta: 4 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_09_ONE_SALT_LINE_TWO_PORTS',
+      titleTh: 'สายเกลือหนึ่งเส้น สองท่าเรือพิพาท',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_TRADE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_09_HAIMEN_NANZHU_SALT_CURRENT',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_HAIMEN_PORT', 'CITY_SO_NANZHU_PEARL_ISLE', 'CITY_SO_LONGWAN_SHIPYARD'],
+      summaryTh: 'ท่าเรือไห่เหมินและเกาะไข่มุกหนานจูต่างกล่าวหาอีกฝ่ายว่ากักตุนเกลือทะเล แต่บันทึกน้ำขึ้นน้ำลงของอู่ต่อเรือหลงวานชี้ว่าเกิดจากสันดอนทรายหนุนช่วงมรสุมเปลี่ยนทิศ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_SALT_SHORTAGE_BLAME',
+          titleTh: 'รับรู้ข้อพิพาทเรื่องเกลือขาดแคลนระหว่างท่าเรือไห่เหมินกับเกาะหนานจู',
+          locationId: 'CITY_DH_HAIMEN_PORT',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พ่อค้าเกลือสองท่าเรือต่างโทษกันไปมาจนราคาเสบียงริมฝั่งผันผวน'
+        },
+        {
+          idx: 1,
+          id: 'CHECK_LONGWAN_TIDE_AND_DRAFT_LOGS',
+          titleTh: 'ตรวจสอบสมุดกินน้ำลึกของเรือบรรทุกเกลือที่อู่ต่อเรืออ่าวหลงวาน',
+          locationId: 'CITY_SO_LONGWAN_SHIPYARD',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเรือเกลือท้องแบนติดสันดอนปากอ่าวไห่เหมินเฉพาะช่วงมรสุมเปลี่ยนทิศ 12 วัน'
+        },
+        {
+          idx: 2,
+          id: 'ESTABLISH_MONSOON_SALT_RELAY',
+          titleTh: 'วางระบบขนถ่ายเกลือผ่านอ่าวหลงวานและสำรองเสบียงก่อนมรสุม',
+          locationId: 'CITY_SO_NANZHU_PEARL_ISLE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คลี่คลายความเข้าใจผิดของสองท่าเรือและปรับแผนเสบียงของสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'QUARTERMASTER_PRE_MONSOON_STOCK',
+          labelTh: 'จัดซื้อและสำรองเกลือถนอมเสบียงเข้าโรงครัวสำนักก่อนช่วงมรสุมเปลี่ยนทิศ',
+          match: n => ['provision', 'quartermaster', 'treasury'].includes(n.post) || E(n, 'personality.caution') >= 55,
+          consequenceTh: 'ฝ่ายเสบียงสำรองเกลือและอาหารแห้งล่วงหน้า พร้อมเปิดทางขนถ่ายผ่านอ่าวหลงวาน ทำให้ทั้งสองท่าเรือรุ่งเรืองขึ้น',
+          effect: { routeBonusLeg: ['CITY_DH_HAIMEN_PORT', 'CITY_SO_LONGWAN_SHIPYARD'], routeMultiplier: 0.87, cityProsperityDelta: 6, mealGrant: 6 }
+        },
+        {
+          id: 'ARBITRATE_TWO_PORT_FERRY_PACT',
+          labelTh: 'เป็นคนกลางจัดตารางเรือลำเลียงน้ำตื้นระหว่างไห่เหมิน–หลงวาน–หนานจู',
+          match: () => true,
+          consequenceTh: 'นายท่าทั้งสองฝั่งยอมรับตารางเดินเรือตามร่องน้ำมรสุม ลดความตึงเครียดชายฝั่งทักษิณ–บูรพา',
+          effect: { routeBonusLeg: ['CITY_SO_LONGWAN_SHIPYARD', 'CITY_SO_NANZHU_PEARL_ISLE'], routeMultiplier: 0.88, citySafetyDelta: 5, cityProsperityDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_10_DAMAGED_MEMORIAL_RESTORED_NAME',
+      titleTh: 'ชื่อที่เลือนหายบนศิลาอนุสรณ์ริมทาง',
+      group: 'CODEX_ADOPTED',
+      category: 'FOLK_MEMORIAL',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_10_ROADSIDE_PHYSICIAN_STELE',
+      polityId: 'POL_SUVARNABODHI',
+      anchorNodeIds: ['TOWN_SB_CIHANG_ALMS', 'CITY_SB_JINYA_SANGHA', 'TOWN_GJ_BAICAO_STILT'],
+      summaryTh: 'ศิลาอนุสรณ์แตกหักริมทางถูกชาวบ้านเข้าใจผิดว่าเป็นหลุมศพเซียนกระบี่ แต่เมื่อลอกตะไคร่และค้นทะเบียนโรงทานฉือหางกลับพบว่าเป็นอนุสรณ์ของหมอยาเดินเท้าผู้สละชีพ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MISATTRIBUTED_SWORD_SHRINE',
+          titleTh: 'พบศิลาอนุสรณ์ริมทางที่ถูกเซ่นไหว้ในฐานะศาลเซียนกระบี่นิรนาม',
+          locationId: 'TOWN_SB_CIHANG_ALMS',
+          accountId: 'FOLK_ORAL',
+          descTh: 'นักเดินทางพากันวางจอกสุราหน้าหินแตกที่มีรอยบากลึกโดยเชื่อว่าเป็นรอยกระบี่โบราณ'
+        },
+        {
+          idx: 1,
+          id: 'RUB_MOSS_GROOVES_AND_CHECK_ALMS_ROLL',
+          titleTh: 'ลอกคราบตะไคร่อ่านอักษรย่อสมุนไพรและค้นสมุดโรงทานฉือหาง',
+          locationId: 'CITY_SB_JINYA_SANGHA',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบชื่อหมอยาสามัญชน「เว่ยชิง」และสูตรยาต้มแก้ไข้หมอกที่สลักอยู่โคนแผ่นหิน'
+        },
+        {
+          idx: 2,
+          id: 'RESTORE_PHYSICIAN_MEMORIAL_NAME',
+          titleTh: 'สลักชื่อหมอยาเว่ยชิงคืนสู่ศิลาและฟื้นฟูตำรับยาต้มริมทาง',
+          locationId: 'TOWN_SB_CIHANG_ALMS',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คืนเกียรติยศที่แท้จริงให้ผู้วายชนม์และนำความรู้ทางการแพทย์กลับมาใช้'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'HEALER_ADOPT_WEIQING_DECOCTION',
+          labelTh: 'บูรณะป้ายชื่อหมอยาเว่ยชิงและนำตำรับน้ำต้มสมุนไพรไปใช้ในสถานรักษาสำนัก',
+          match: n => ['healer', 'alchemy', 'herbal'].includes(n.post) || E(n, 'personality.empathy') >= 55,
+          consequenceTh: 'หอโอสถและสถานรักษาได้แนวทางต้มยาสมุนไพรพื้นฐานช่วยฟื้นฟูอาการบาดเจ็บและความเหนื่อยล้าของศิษย์',
+          effect: { customId: 'CUSTOM_WEIQING_HERBAL_BROTH', skillPractice: 'MEDICINE', citySafetyDelta: 5, sectFameDelta: 6 }
+        },
+        {
+          id: 'WAYSIDE_HERB_TEA_PAVILION',
+          labelTh: 'ตั้งซุ้มหม้อน้ำชาสมุนไพรข้างศิลาอนุสรณ์เพื่อดูแลคนเดินทางตามเจตนารมณ์เดิม',
+          match: () => true,
+          consequenceTh: 'คนเดินทางแถบโรงทานฉือหางและหมู่บ้านไป๋เฉ่าได้รับน้ำชาสมุนไพรคุ้มกันไข้ป่า สร้างชื่อเสียงด้านเมตตาธรรมแก่สำนัก',
+          effect: { cityProsperityDelta: 5, citySafetyDelta: 4, sectFameDelta: 7 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_11_MEAL_PAID_TWICE',
+      titleTh: 'มื้ออาหารที่ถูกจ่ายซ้ำในโรงครัวสำนัก',
+      group: 'CODEX_ADOPTED',
+      category: 'SLICE_OF_LIFE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_11_FERRY_TRAVELER_TWICE_PAID_MEAL',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_LIUWAN_FERRY', 'TOWN_YH_QINGXI_FOOT'],
+      summaryTh: 'เรื่องราวชีวิตประจำวันในโรงครัวสำนัก เมื่อมีผู้วางเบี้ยค่าอาหารซ้ำไว้ใต้หม้อแกงสองครั้ง จนเกิดความเข้าใจผิดระหว่างเวรยามผู้ระแวงกับพ่อครัวผู้ภูมิใจ ก่อนจะพบว่าเป็นธรรมเนียมฝากชามอุ่นของศิษย์จากท่าข้ามฟาก',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_EXTRA_TALLY_UNDER_POT',
+          titleTh: 'พบเบี้ยค่าอาหารวางซ้ำไว้ใต้หม้อแกงในโรงครัวสำนักเป็นครั้งที่สอง',
+          locationId: 'TOWN_YH_QINGXI_FOOT',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พ่อครัวและเวรยามในโรงครัวถกเถียงกันว่าใครเป็นคนแอบวางเบี้ยค่าอาหารเกินไว้ใต้หม้อแกง'
+        },
+        {
+          idx: 1,
+          id: 'WITNESS_DAWN_KITCHEN_EXCHANGE',
+          titleTh: 'สังเกตเห็นศิษย์ต่างถิ่นแอบวางเบี้ยไว้ข้างเตาไฟยามเช้ามืด',
+          locationId: 'TOWN_YH_LIUWAN_FERRY',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ศิษย์ที่เข้าครัวแต่เช้าพบว่าผู้วางเบี้ยคือศิษย์น้องจากท่าข้ามฟากคุ้งหลิวเขียวที่เคยได้รับน้ำใจจากศิษย์พี่ในวันแรกเข้าสำนัก'
+        },
+        {
+          idx: 2,
+          id: 'KEEP_WARM_BOWL_CUSTOM',
+          titleTh: 'เข้าใจธรรมเนียม「ฝากชามอุ่นท่าข้ามฟาก」และส่งต่อน้ำใจในโรงครัว',
+          locationId: 'TOWN_YH_LIUWAN_FERRY',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ผู้ที่อยู่ในเหตุการณ์เลือกวิธีรักษาธรรมเนียมน้ำใจเล็กๆ นี้ไว้ในโรงครัวสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'KITCHEN_WARM_BOWL_HOOK',
+          labelTh: 'แขวนป้ายไม้「ชามอุ่นฝากสหาย」ไว้หน้าเตาแกงเพื่อให้ศิษย์แบ่งปันมื้ออาหารแก่ผู้กลับจากเดินทางไกล',
+          match: n => ['provision', 'steward'].includes(n.post) || E(n, 'personality.empathy') >= 50,
+          consequenceTh: 'โรงครัวสำนักมีธรรมเนียมเก็บแกงอุ่นไว้ให้ศิษย์ที่เพิ่งกลับจากการเดินทางไกล ช่วยเพิ่มอารมณ์ดีและลดความโดดเดี่ยว',
+          effect: { customId: 'CUSTOM_FERRY_WARM_BOWL', moodDelta: 8, lonelinessDelta: -10, mealGrant: 3 }
+        },
+        {
+          id: 'QUIET_GRATITUDE_BOND',
+          labelTh: 'เก็บเรื่องนี้ไว้เป็นความลับที่รู้กันเฉพาะพยานในโรงครัวเพื่อไม่ให้ผู้ฝากเบี้ยเคอะเขิน',
+          match: () => true,
+          consequenceTh: 'พยานในโรงครัวยิ้มรับธรรมเนียมเงียบๆ นี้และกระชับความสัมพันธ์ฉันพี่น้องร่วมสำนักให้แน่นแฟ้นขึ้น',
+          effect: { moodDelta: 6, lonelinessDelta: -8 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_12_WRONG_RIDGE_BEAST_REPORT',
+      titleTh: 'รายงานอสูรปิดทางผิดสันเขา',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_RECON',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_12_RED_RIDGE_TWIN_PASS_NAMES',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_CHIYAN_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS', 'PASS_XR_XUEYU_PENAL_GATE'],
+      summaryTh: 'รายงานด่วนแจ้งว่าฝูงอสูรและหินถล่มปิดทาง「สันเขาแดง」ซึ่งเป็นชื่อเรียกซ้ำกันของสองเส้นทางบนพรมแดนประจิม ต้องตรวจคราบแร่กำมะถันเพื่อระบุสันเขาที่แท้จริง',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_AMBIGUOUS_RED_RIDGE_ALERT',
+          titleTh: 'รับแจ้งข่าวด่วนเรื่องหินถล่มและอสูรปิดทาง「สันเขาแดง」โดยไม่ระบุพิกัดชัดเจน',
+          locationId: 'PASS_XR_XUEYU_PENAL_GATE',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ข่าวลือระบุเพียงชื่อเล่นท้องถิ่นว่าสันเขาแดงถูกปิด ทำให้ไม่แน่ชัดว่าเป็นทางไปซีหรงหรือฉื่อเยี่ยน'
+        },
+        {
+          idx: 1,
+          id: 'INSPECT_CARAVAN_SULFUR_DUST',
+          titleTh: 'ตรวจคราบเขม่ากำมะถันบนล้อเกวียนและสอบทานเส้นทางที่ด่านช่องเถ้าดำ',
+          locationId: 'PASS_CY_HEIYAN_ASH_PASS',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบคราบกำมะถันจากหมู่บ้านหลิวหวงบนเกวียนผู้ส่งข่าว ยืนยันว่าเหตุเกิดที่ด่านช่องเถ้าดำเฮยเหยียน'
+        },
+        {
+          idx: 2,
+          id: 'UPDATE_ATLAS_RIDGE_WARNING',
+          titleTh: 'ปรับปรุงพิกัดเตือนภัยบนแผนที่ยุทธภพและเปิดทางเลี่ยงที่ถูกต้อง',
+          locationId: 'CITY_XR_CHIYAN_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'บันทึกความแตกต่างของสองสันเขาลงในแผนที่เดินทัพและเคลียร์เส้นทางที่ถูกเข้าใจผิด'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'CLEAR_HEIYAN_ROCKSLIDE_PASS',
+          labelTh: 'ส่งหน่วยลาดตระเวนไปเคลียร์หินถล่มที่ด่านช่องเถ้าดำเฮยเหยียนและปักป้ายแยกชื่อสองสันเขา',
+          match: n => ['wildwarden', 'vanguard', 'commander', 'mission'].includes(n.post) || E(n, 'personality.courage') >= 55,
+          consequenceTh: 'เปิดทางด่านช่องเถ้าดำเฮยเหยียนและแก้ไขความสับสนบนแผนที่ประจิม ทำให้การเดินทางทั้งสายซีหรงและฉื่อเยี่ยนรวดเร็วขึ้น',
+          effect: { routeBonusLeg: ['CITY_CY_RONGLU_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS'], routeMultiplier: 0.86, citySafetyDelta: 6 }
+        },
+        {
+          id: 'VERIFY_XIRONG_HIGHWAY_OPEN',
+          labelTh: 'ยืนยันในสมุดแผนที่สำนักว่าทางหลวงสู่นครปราการผาหินแดงซีหรงยังคงเปิดโล่งปลอดภัย',
+          match: () => true,
+          consequenceTh: 'ขบวนเดินทางสายตะวันตกไม่ต้องเสียเวลาอ้อมทะเลทรายโดยใช่เหตุ และแผนที่สำนักระบุพิกัดสันเขาอย่างแม่นยำ',
+          effect: { routeBonusLeg: ['PASS_XR_XUEYU_PENAL_GATE', 'CITY_XR_CHIYAN_CAPITAL'], routeMultiplier: 0.88, citySafetyDelta: 4 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_13_BOTTLENECK_BELL_ECHO',
+      titleTh: 'เสียงระฆังหลอนยามติดคอขวดและบันทึกธาตุไฟเข้าแทรก',
+      group: 'GEMINI_ORIGINAL',
+      category: 'BREAKTHROUGH_LORE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_13_MERIDIAN_BELL_OMEN',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_HANYU_CAPITAL', 'CITY_BM_XUELIAN_SPRINGS'],
+      summaryTh: 'ศิษย์ที่ติดคอขวดร่ำลือว่าเสียงระฆังกังวานสามครั้งในหูยามดึกคือลางมงคลให้ฝืนทะลวงขั้นทันที แต่เมื่อเทียบสมุดบันทึกเจ้าสำนักรุ่นที่ 5 กับตำราแพทย์น้ำพุหิมะอุ่นเสวี่ยเหลียนจึงพบว่าเป็นสัญญาณเตือนชีพจรขมับตีกลับก่อนจิตมารปะทุ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MIDNIGHT_BELL_SUPERSTITION',
+          titleTh: 'ศิษย์ที่ติดคอขวดเล่าขานเรื่องเสียงระฆังสวรรค์สามคราเรียกทะลวงขั้น',
+          locationId: 'CITY_BM_HANYU_CAPITAL',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ความเชื่อเรื่องเสียงระฆังในหูยามดึกแพร่สะพัดในหมู่ผู้ฝึกตนที่ใจร้อนอยากทะลวงคอขวด'
+        },
+        {
+          idx: 1,
+          id: 'CROSSCHECK_GEN5_DIARY_AND_XUELIAN_NOTES',
+          titleTh: 'เทียบสมุดบันทึกธาตุไฟเข้าแทรกของเจ้าสำนักรุ่นที่ 5 กับตำราแพทย์เมืองน้ำพุหิมะอุ่น',
+          locationId: 'CITY_BM_XUELIAN_SPRINGS',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเสียงระฆังสามคราคืออาการปราณอัดแน่นที่จุดขมับเมื่อจิตมารสะสมเกินเกณฑ์'
+        },
+        {
+          idx: 2,
+          id: 'CODIFY_BOTTLENECK_PULSE_DIAGNOSIS',
+          titleTh: 'บัญญัติหลักตรวจชีพจรขมับก่อนปิดด่านทะลวงขั้นในสำนัก',
+          locationId: 'CITY_BM_XUELIAN_SPRINGS',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เผยแพร่ความจริงเรื่องเสียงสะท้อนชีพจรเพื่อให้ศิษย์ประเมินโอกาสทะลวงขั้นตามความเป็นจริง'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'TEACH_MERIDIAN_BELL_CAUTION',
+          labelTh: 'บรรจุ「หลักฟังเสียงชีพจรขมับสามครา」ในหอคัมภีร์เพื่อระงับการฝืนทะลวงขั้นยามจิตมารสูง',
+          match: n => ['scripture', 'healer', 'master', 'deputy'].includes(n.post) || E(n, 'personality.rationality') >= 55,
+          consequenceTh: 'ศิษย์ในสำนักแยกแยะอาการชีพจรตีกลับออกจากนิมิตลวงได้แม่นยำขึ้น ลดความสูญเสียจากการฝืนทะลวงขั้นและลดจิตมารสะสม',
+          effect: { customId: 'CUSTOM_MERIDIAN_BELL_DIAGNOSIS', heartDemonDelta: -12, skillPractice: 'MEDICINE', sectFameDelta: 6 }
+        },
+        {
+          id: 'XUELIAN_WARM_SPRING_BREATHING',
+          labelTh: 'นำเคล็ดผ่อนลมหายใจน้ำพุอุ่นเสวี่ยเหลียนมาใช้คลายความดันปราณก่อนเข้าด่าน',
+          match: () => true,
+          consequenceTh: 'ผู้ฝึกตนที่ติดคอขวดรู้จักผ่อนปราณคลายจุดขมับก่อนเข้าด่านทะลวงขั้น เพิ่มความมั่นคงทางอารมณ์',
+          effect: { customId: 'CUSTOM_WARM_SPRING_BREATH', heartDemonDelta: -8, cultGain: 20 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_14_HALF_JADE_CLAN_TALLY',
+      titleTh: 'ป้ายหยกครึ่งซีกของตระกูลพลัดถิ่นแคว้นชางหลาน',
+      group: 'GEMINI_ORIGINAL',
+      category: 'KINSHIP_CLAN',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_14_CANGLAN_GRANARY_HALF_TALLY',
+      polityId: 'POL_YOUMING',
+      anchorNodeIds: ['CITY_YM_HUNDENG_CAPITAL', 'TOWN_YM_SHIBEI_RUBBING', 'TOWN_YH_CUIZHU_TEA'],
+      summaryTh: 'ศิษย์และชาวบ้านสองสายตระกูลที่อพยพจากแคว้นหมอกชางหลานถือป้ายหยกครึ่งซีกที่ประกบกันได้พอดี แต่ต่างฝ่ายต่างจำประวัติศาสตร์คนละด้านเรื่องการเผาคลังในคืนเมืองแตก',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MATCHING_JADE_HALVES',
+          titleTh: 'พบป้ายหยกครึ่งซีกสองชิ้นที่มีรอยหักตรงกันแต่เล่าเรื่องคืนเมืองแตกต่างกัน',
+          locationId: 'TOWN_YH_CUIZHU_TEA',
+          accountId: 'FOLK_ORAL',
+          descTh: 'สายตระกูลฝั่งใต้และสายตระกูลฝั่งเหนือต่างเข้าใจว่าอีกฝ่ายทอดทิ้งตระกูลในคืนที่แคว้นชางหลานล่มสลาย'
+        },
+        {
+          idx: 1,
+          id: 'COMPARE_SHIBEI_RUBBING_AND_NOTCHES',
+          titleTh: 'นำป้ายหยกสองซีกมาประกบและเทียบกับแผ่นลอกลายศิลาที่ตำบลสือเปย',
+          locationId: 'TOWN_YM_SHIBEI_RUBBING',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'รอยสลักด้านในป้ายหยกเมื่อประกบกันชี้ไปยังหอทะเบียนเกณฑ์ทหารของแคว้นชางหลาน ไม่ใช่คลังข้าว'
+        },
+        {
+          idx: 2,
+          id: 'RECONCILE_TWO_BRANCH_ANCESTORS',
+          titleTh: 'เปิดเผยความเสียสละของบรรพชนทั้งสองสายที่เผาบัญชีเกณฑ์ทหารช่วยลูกหลาน',
+          locationId: 'CITY_YM_HUNDENG_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ประสานรอยร้าวสองสายตระกูลและบันทึกเกียรติคุณลงในทำเนียบเครือญาติสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'SWORN_CLAN_REUNION_RITE',
+          labelTh: 'จัดพิธีเชื่อมป้ายหยกสองสายตระกูลในโถงบรรพชนและฟื้นฟูไมตรีพี่น้องร่วมรากเหง้า',
+          match: n => E(n, 'values.familyClan') >= 52 || E(n, 'personality.loyalty') >= 55,
+          consequenceTh: 'ทายาททั้งสองสายตระกูลคลายความแค้นนับร้อยปีและจับมือเป็นพี่น้องร่วมสาบาน เพิ่มความไว้วางใจและความอบอุ่นในสำนัก',
+          effect: { customId: 'CUSTOM_CANGLAN_JADE_REUNION', moodDelta: 10, lonelinessDelta: -12, sectFameDelta: 6 }
+        },
+        {
+          id: 'SHIBEI_GENEALOGY_ARCHIVE',
+          labelTh: 'ฝากสำเนาแผ่นลอกลายสายตระกูลชางหลานไว้ที่ตำบลศิลาจารึกสือเปยและหอทะเบียนสำนัก',
+          match: () => true,
+          consequenceTh: 'หอทะเบียนสำนักและตำบลสือเปยมีบันทึกสายตระกูลผู้อพยพที่ถูกต้อง ช่วยให้ผู้พลัดถิ่นสืบหารากเหง้าของตนได้',
+          effect: { cityProsperityDelta: 4, citySafetyDelta: 4, sectFameDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_15_NIGHT_DEW_KILN_SHIFT',
+      titleTh: 'ธรรมเนียมเฝ้าเตาไฟกะน้ำค้างแข็ง',
+      group: 'GEMINI_ORIGINAL',
+      category: 'CRAFT_LABOR',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_15_FROST_DEW_KILN_BANKING',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_CY_LIUHUANG_SULFUR'],
+      summaryTh: 'ศิษย์โรงหลอมและหอโอสถรุ่นใหม่มองว่าธรรมเนียมกลบเถ้าครึ่งปล่องและวางชามน้ำบ่อเย็นหน้าเตากะดึกเป็นภาระไร้สาระ จนกระทั่งได้เทียบกับภูมิปัญญาเตาหลอมกำมะถันแห่งฉื่อเยี่ยน',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_NIGHT_SHIFT_GRUMBLING',
+          titleTh: 'ศิษย์เวรเตาหลอมกะดึกตั้งข้อกังขาเรื่องกฎวางชามน้ำเย็นและกลบเถ้าครึ่งปล่อง',
+          locationId: 'TOWN_CY_LIUHUANG_SULFUR',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ศิษย์ฝึกหัดคิดจะยกเลิกธรรมเนียมวางชามน้ำหน้าเตาเพราะคิดว่าเป็นเพียงกฎรับน้องโบราณ'
+        },
+        {
+          idx: 1,
+          id: 'OBSERVE_DAWN_SULFUR_CONDENSATION',
+          titleTh: 'ตรวจพบผลึกเขม่าแร่และไอกำมะถันที่ควบแน่นอยู่ในชามน้ำยามน้ำค้างลง',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ช่างอาวุโสแห่งนครเตาหลอมอัคคีฉื่อเยี่ยนชี้ให้เห็นว่าชามน้ำเย็นช่วยดักก๊าซพิษไม่ให้ไหลย้อนเข้าปอดช่างกะเช้า'
+        },
+        {
+          idx: 2,
+          id: 'STANDARDIZE_FROST_DEW_SALVAGE',
+          titleTh: 'ยกระดับธรรมเนียมกลบเถ้ารับน้ำค้างเป็นเคล็ดความปลอดภัยและเก็บกู้ผงแร่ของสำนัก',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ศิษย์สายช่างเข้าใจเหตุผลที่แท้จริงและนำผงแร่ควบแน่นในชามน้ำกลับมาใช้ประโยชน์'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'KILN_DEW_MINERAL_RECLAMATION',
+          labelTh: 'เก็บกู้ผงแร่และเขม่าสมุนไพรที่ควบแน่นในชามน้ำค้างมาใช้เป็นวัตถุดิบเสริมของโรงหลอมและหอโอสถ',
+          match: n => ['forge', 'alchemy'].includes(n.post) || E(n, 'values.knowledgeCraft') >= 52,
+          consequenceTh: 'โรงงานสำนักทั้งปลอดภัยจากไอพิษตีกลับและได้ผงแร่ควบแน่นกลับมาใช้ประโยชน์ในระบบเศรษฐกิจหมุนเวียน',
+          effect: { customId: 'CUSTOM_FROST_DEW_KILN_SALVAGE', skillPractice: 'FORGING', cityProsperityDelta: 5 }
+        },
+        {
+          id: 'SAFE_MORNING_SHIFT_PROTOCOL',
+          labelTh: 'กำหนดให้การตรวจชามน้ำหน้าเตาเป็นสัญญาณเปิดงานที่ปลอดภัยของช่างกะเช้าทุกคน',
+          match: () => true,
+          consequenceTh: 'ลดความเหนื่อยล้าและอุบัติเหตุจากไอความร้อนในโรงหลอมและหอโอสถอย่างยั่งยืน',
+          effect: { customId: 'CUSTOM_SAFE_KILN_SHIFT', skillPractice: 'ALCHEMY', moodDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_16_EXILED_PRINCE_INKSTONE',
+      titleTh: 'แท่นฝนหมึกตราพยัคฆ์บิ่นของขุนนางตกอับ',
+      group: 'GEMINI_ORIGINAL',
+      category: 'COURT_AMBITION',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_16_TIGER_SEAL_CHIPPED_INKSTONE',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_SHAYU_OASIS', 'PASS_XR_XUEYU_PENAL_GATE', 'CITY_XR_CHIYAN_CAPITAL'],
+      summaryTh: 'บัณฑิตขุนนางตกอับจากแดนประจิมพกแท่นฝนหมึกหินทรายแดงที่มีรอยตราพยัคฆ์บิ่น ถูกทางการกล่าวหาว่าทำบัญชีทหารหาย แต่ภายในฐานแท่นฝนหมึกกลับซ่อนสำมะโนครัวจริงที่ปกป้องชาวบ้านโอเอซิส',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_DISGRACED_SCHOLAR_RUMOR',
+          titleTh: 'พบขุนนางตกอับพร้อมแท่นฝนหมึกตราพยัคฆ์บิ่นที่เมืองการค้าโอเอซิสซาอวี่',
+          locationId: 'CITY_XR_SHAYU_OASIS',
+          accountId: 'COURT_CANON',
+          descTh: 'มีเสียงลือว่าขุนนางผู้นี้ถูกถอดยศจากด่านคุกโซ่โลหิตเพราะทุจริตและทำบัญชีเกณฑ์พลสูญหาย'
+        },
+        {
+          idx: 1,
+          id: 'UNLOCK_DOUBLE_BOTTOM_INKSTONE',
+          titleTh: 'พบรอยสลักสายทัวป๋ากัง (#60) และช่องลับใต้แท่นฝนหมึกหินทรายแดง',
+          locationId: 'PASS_XR_XUEYU_PENAL_GATE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'เปิดฐานแท่นฝนหมึกพบสำมะโนครัวบ่อน้ำฉบับจริงที่ขุนนางผู้นี้ซ่อนไว้เพื่อไม่ให้ชาวโอเอซิสถูกขูดรีดส่วยน้ำเกินจริง'
+        },
+        {
+          idx: 2,
+          id: 'DECIDE_CENSUS_LEDGER_FATE',
+          titleTh: 'ตัดสินใจแนวทางจัดการสำมะโนครัวโอเอซิสและชะตาของขุนนางผู้ซื่อสัตย์',
+          locationId: 'CITY_XR_CHIYAN_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกแนวทางระหว่างการคุ้มครองปราชญ์ผู้ซื่อตรงหรือการส่งหลักฐานให้ผู้ตรวจการราชสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'SHELTER_SCHOLAR_TREATISE_IN_SECT',
+          labelTh: 'เชิญบัณฑิตมาเป็นที่ปรึกษาตำราปกครองในหอคัมภีร์และเก็บรักษาสำมะโนครัวคุ้มครองชาวโอเอซิส',
+          match: n => E(n, 'personality.integrity') >= 55 || E(n, 'values.knowledgeCraft') >= 55 || ['scripture', 'master', 'deputy'].includes(n.post),
+          consequenceTh: 'สำนักได้ตำราบริหารยุทธปัจจัยชายแดนและสร้างสายสัมพันธ์อันดีกับชาวเมืองโอเอซิสซาอวี่',
+          effect: { customId: 'CUSTOM_OASIS_CENSUS_WISDOM', cityProsperityDelta: 6, citySafetyDelta: 5, sectFameDelta: 7, skillPractice: 'SCRIPTURE' }
+        },
+        {
+          id: 'DELIVER_PROOF_TO_XIRONG_CENSOR',
+          labelTh: 'ส่งสำเนาหลักฐานให้ผู้ตรวจการสายทัวป๋ากัง (#60) เพื่อคืนยศแก่ขุนนางผู้ซื่อสัตย์ในราชสำนักซีหรง',
+          match: () => true,
+          consequenceTh: 'ขุนนางผู้ซื่อตรงได้รับการคืนเกียรติในราชสำนักซีหรง ช่วยเพิ่มเสถียรภาพและไมตรีทางการทูตต่อสำนัก',
+          effect: { citySafetyDelta: 7, closedLoopStonesFromPool: 100, sectFameDelta: 6 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_17_BITTER_WILLOW_PLAGUE_WELL',
+      titleTh: 'บ่อน้ำหลิวขมและบันทึกโรคระบาดฤดูฝน',
+      group: 'GEMINI_ORIGINAL',
+      category: 'EPIDEMIC_RECOVERY',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_17_BITTER_WILLOW_MIASMA_WELL',
+      polityId: 'POL_GUJIAO',
+      anchorNodeIds: ['CITY_GJ_WANGU_TOTEM', 'TOWN_GJ_BAICAO_STILT', 'PASS_GJ_QIZHANG_MIASMA'],
+      summaryTh: 'ชาวบ้านและคนเดินทางหวาดกลัวบ่อน้ำที่มีรากหลิวสีดำชอนไชโดยคิดว่าเป็นคำสาปหนอนกู่ แต่บันทึกไม้ไผ่ของหมู่บ้านหมอสมุนไพรไป๋เฉ่าพิสูจน์ว่าเป็นการปลูกหลิวขมเพื่อกรองพิษไข้หมอก',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_CURSED_WELL_PANIC',
+          titleTh: 'พบความตื่นตระหนกเรื่องบ่อน้ำรากหลิวขมถูกกล่าวหาว่าเป็นบ่อพิษกู่เจียว',
+          locationId: 'PASS_GJ_QIZHANG_MIASMA',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ขบวนเดินทางไม่กล้าดื่มน้ำจากบ่อหินริมทางและกล่าวโทษชาวกู่เจียวว่าวางยาพิษในตาน้ำ'
+        },
+        {
+          idx: 1,
+          id: 'TEST_WILLOW_BARK_AT_BAICAO_STILT',
+          titleTh: 'ตรวจฤทธิ์เปลือกรากหลิวขมและค้นบันทึกโรคระบาดที่หมู่บ้านหมอสมุนไพรไป๋เฉ่า',
+          locationId: 'TOWN_GJ_BAICAO_STILT',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเปลือกรากหลิวขมมีฤทธิ์ดูดซับพิษหมอกและสกัดเชื้อไข้ป่าในน้ำใต้ดิน'
+        },
+        {
+          idx: 2,
+          id: 'PROPAGATE_BITTER_WILLOW_FILTRATION',
+          titleTh: 'ประกาศความจริงเรื่องบ่อน้ำกรองพิษและนำกิ่งหลิวขมมาปลูกริมร่องน้ำสถานรักษา',
+          locationId: 'CITY_GJ_WANGU_TOTEM',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คลี่คลายความหวาดระแวงที่ด่านหมอกเจ็ดชั้นและยกระดับการป้องกันโรคในสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'PLANT_BITTER_WILLOW_AT_SECT_SPRING',
+          labelTh: 'นำกิ่งพันธุ์หลิวขมทักษิณมาปลูกรอบร่องน้ำหอโอสถและสถานรักษาของสำนัก',
+          match: n => ['healer', 'herbal', 'alchemy'].includes(n.post) || E(n, 'personality.empathy') >= 52,
+          consequenceTh: 'น้ำในสถานรักษาสำนักมีฤทธิ์ต้านพิษหมอกอ่อนๆ ช่วยให้ผู้บาดเจ็บและผู้ติดพิษฟื้นตัวเร็วขึ้น',
+          effect: { customId: 'CUSTOM_BITTER_WILLOW_SPRING', skillPractice: 'MEDICINE', citySafetyDelta: 5, sectFameDelta: 6 }
+        },
+        {
+          id: 'CLEAN_AND_MARK_MIASMA_WELLS',
+          labelTh: 'ทำความสะอาดปากบ่อและติดป้ายอธิบายคุณประโยชน์ของรากหลิวขมตลอดแนวทางกู่เจียว–สุวรรณโพธิ์',
+          match: () => true,
+          consequenceTh: 'คนเดินทางและชาวบ้านทั้งสองแคว้นกลับมาใช้น้ำบ่อได้อย่างมั่นใจ ลดความตึงเครียดบริเวณชายแดนทักษิณ',
+          effect: { routeBonusLeg: ['PASS_GJ_QIZHANG_MIASMA', 'TOWN_GJ_BAICAO_STILT'], routeMultiplier: 0.88, citySafetyDelta: 6, cityProsperityDelta: 4 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_18_FOG_LANTERN_FERRY_OATH',
+      titleTh: 'ตะเกียงน้ำมันปลาและคำสัตย์คนแจวเรือข้ามหมอก',
+      group: 'GEMINI_ORIGINAL',
+      category: 'VESSEL_FERRY_LORE',
+      layer: 'SHATTERED_SUBCONTINENT',
+      factId: 'FACT_18_THREE_LANTERN_FOG_UNDERTOW',
+      polityId: null,
+      anchorNodeIds: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD', 'TOWN_SO_OUYU_FISHER_ISLE'],
+      summaryTh: 'ชาวประมงเกาะโอวอวี๋ไม่กล้าออกเรือเมื่อเห็นแสงสีเขียวลอยเรี่ยน้ำเพราะกลัวสำเภาผี แต่ปูมเชือกหยั่งน้ำของอู่ต่อเรือหลงวานชี้ว่าเป็นสาหร่ายเรืองแสงจากร่องน้ำดูดริมขอบม่านกั้นภพ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_GREEN_FOG_LIGHT_TABOO',
+          titleTh: 'รับรู้ข้อห้ามออกเรือยามเห็นแสงไฟสีเขียวลอยเรี่ยน้ำที่เกาะประมงโอวอวี๋',
+          locationId: 'TOWN_SO_OUYU_FISHER_ISLE',
+          accountId: 'FOLK_ORAL',
+          descTh: 'คนเรือเล่าขานเรื่องโคมไฟสำเภาผีที่ลากเรือหายเข้าไปในทะเลหมอกทักษิณ'
+        },
+        {
+          idx: 1,
+          id: 'STUDY_THREE_LANTERN_KNOT_LOG',
+          titleTh: 'ค้นคว้าสมุดปมเชือกหยั่งร่องน้ำสามตะเกียงที่อู่ต่อเรืออ่าวหลงวาน',
+          locationId: 'CITY_SO_LONGWAN_SHIPYARD',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบวิธีแขวนตะเกียงน้ำมันปลาสามดวงเพื่อวัดความลึกและหลบแนวร่องน้ำดูดที่พัดสาหร่ายเรืองแสงขึ้นมา'
+        },
+        {
+          idx: 2,
+          id: 'SOUND_OUTER_FOG_RECOVER_DRIFTWOOD',
+          titleTh: 'ทดลองหยั่งร่องน้ำหน้าป้อมประภาคารและเก็บกู้แผ่นไม้เรือจากโพ้นทะเลหมอก',
+          locationId: 'PASS_SO_DENGTAI_LIGHTHOUSE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ยืนยันความปลอดภัยของวิธีเดินเรือสามตะเกียงและพบร่องรอยอักษรจากแผ่นดินใหญ่นอกม่านหมอก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'ADOPT_THREE_LANTERN_FERRY_CODE',
+          labelTh: 'ถ่ายทอด「วิธีหยั่งร่องน้ำสามตะเกียง」ให้กองเรือข้ามฟากและคณะสำรวจทางน้ำของสำนัก',
+          match: n => ['mission', 'quartermaster', 'wildwarden'].includes(n.post) || ['TIDE_VOYAGER', 'WANDERING_DAO'].includes(n.cult?.path),
+          consequenceTh: 'การเดินเรือแถบปากน้ำมังกรหลับและอ่าวหลงวานปลอดภัยจากกระแสน้ำดูดริมทะเลหมอกและเดินทางได้รวดเร็วขึ้น',
+          effect: { routeBonusLeg: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD'], routeMultiplier: 0.85, citySafetyDelta: 6, cityProsperityDelta: 4 }
+        },
+        {
+          id: 'DECODE_BEYOND_FOG_DRIFTWOOD',
+          labelTh: 'นำแผ่นไม้สักสลักอักษรจากโพ้นทะเลหมอกกลับมาเก็บรักษาในหอจดหมายเหตุความลับม่านกั้นภพ',
+          match: () => true,
+          consequenceTh: 'หอคัมภีร์ได้หลักฐานชิ้นสำคัญที่ยืนยันว่าพ้นทะเลหมอกทักษิณออกไปยังมีอาณาจักรอื่นตั้งอยู่',
+          effect: { customId: 'CUSTOM_OUTER_FOG_DRIFTWOOD_PROOF', sectFameDelta: 8, skillPractice: 'SCRIPTURE' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_19_SILENT_ANVIL_TEMPER_LINE',
+      titleTh: 'ลายน้ำประสานรอยร้าวของตระกูลช่างไร้เสียง',
+      group: 'GEMINI_ORIGINAL',
+      category: 'RELIC_MAKER_LINEAGE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_19_MUTE_ARMORER_TWIN_TEMPER',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_YX_TAMAHAGANE_SAND', 'CITY_YX_WUYACASTLE'],
+      summaryTh: 'ช่างหลอมอัคคีฉื่อเยี่ยนและช่างตีดาบทรายเหล็กดำหยุนเซียวต่างกล่าวหาว่าอีกฝ่ายขโมยเคล็ด「ลายน้ำประสานรอยร้าว」แต่เมื่อถอดกั่นศาสตราโบราณมาเทียบกลับพบตราค้อนไขว้ของช่างเกราะใบ้คนเดียวกัน',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_RIVAL_SMITH_ACCUSATION',
+          titleTh: 'รับรู้ข้อพิพาทเรื่องผู้คิดค้นลายน้ำประสานรอยร้าวระหว่างช่างฉื่อเยี่ยนกับช่างหยุนเซียว',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ช่างหลอมสองภูมิภาคโต้เถียงกันเรื่องสิทธิ์ความเป็นเจ้าของเคล็ดวิชาซ่อมรอยร้าวศาสตราโบราณ'
+        },
+        {
+          idx: 1,
+          id: 'INSPECT_TANG_MARKS_AT_TAMAHAGANE',
+          titleTh: 'ตรวจสอบรอยตอกรูปค้อนไขว้ไร้ลิ้นระฆังใต้กั่นดาบโบราณที่หมู่บ้านหาดทรายเหล็กดำ',
+          locationId: 'TOWN_YX_TAMAHAGANE_SAND',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าต้นตระกูลช่างทั้งสองฝั่งเคยเป็นศิษย์พี่ศิษย์น้องร่วมเตาของช่างเกราะใบ้แห่งยุคเทียนกู่'
+        },
+        {
+          idx: 2,
+          id: 'REUNITE_FIRE_AND_WAVE_TEMPER',
+          titleTh: 'ผสานเคล็ดชุบไฟแรงฉื่อเยี่ยนเข้ากับเคล็ดตีทบเหล็กเย็นหยุนเซียวในโรงหลอมสำนัก',
+          locationId: 'CITY_YX_WUYACASTLE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คืนความสมบูรณ์ให้เคล็ดลายน้ำประสานทั่งไร้เสียงและยุติความบาดหมางของสองสายช่าง'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'MASTER_SILENT_ANVIL_SUTURE',
+          labelTh: 'บรรจุ「เคล็ดประสานทั่งไร้เสียงสองสายช่าง」ในโรงหลอมสำนักเพื่อยกระดับการบำรุงรักษาศาสตรา',
+          match: n => ['forge', 'arraymaster'].includes(n.post) || E(n, 'aptitudes.crafting') >= 55,
+          consequenceTh: 'ช่างหลอมของสำนักเชี่ยวชาญการประสานรอยร้าวและดูแลรักษาศาสตราทั้งสายหนักและสายคมเฉียบ',
+          effect: { customId: 'CUSTOM_SILENT_ANVIL_SUTURE', skillPractice: 'FORGING', cityProsperityDelta: 6, sectFameDelta: 7 }
+        },
+        {
+          id: 'BROKER_IRON_SULFUR_CRAFT_EXCHANGE',
+          labelTh: 'ประสานการแลกเปลี่ยนทรายเหล็กดำหยุนเซียวกับถ่านกำมะถันฉื่อเยี่ยนผ่านตลาดกลาง',
+          match: () => true,
+          consequenceTh: 'เปิดช่องทางแลกเปลี่ยนวัตถุดิบตีเหล็กระหว่างสองภูมิภาคและสร้างรายได้หมุนเวียนแก่สำนัก',
+          effect: { closedLoopStonesFromPool: 110, cityProsperityDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_20_TWO_FACES_OF_ONE_EPITHET',
+      titleTh: 'สมญานามเดียว สองตำนานที่ขัดแย้ง',
+      group: 'GEMINI_ORIGINAL',
+      category: 'EPITHET_DISPUTE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_20_BROKEN_BRIDGE_EPITHET_DISPUTE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_XIFENG_GORGE', 'CITY_YH_SHUANGJIANG'],
+      summaryTh: 'สมญานาม「ดาบสะบั้นสะพานซีเฟิง」ถูกขับขานในโรงเตี๊ยมเหนือว่าเป็นจอมมารผู้สังหารโจรสามสิบศพ แต่ชาวบ้านฝั่งใต้ยืนยันว่าเป็นจอมยุทธ์ผู้ฟันเชือกสะพานช่วยชาวบ้านหนีโดยไม่ฆ่าผู้ใดเลย',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_CONTRADICTORY_BALLADS',
+          titleTh: 'ได้ยินเพลงโรงเตี๊ยมสองสำนวนที่เล่าวีรกรรมของสมญานามเดียวกันตรงข้ามกันอย่างสิ้นเชิง',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'FOLK_ORAL',
+          descTh: 'สำนวนเหนือเล่าว่าเป็นจอมยุทธ์อำมหิตผู้ฆ่าล้างสามสิบศพ ส่วนสำนวนใต้เล่าว่าเป็นผู้ถือศีลไม่สังหาร'
+        },
+        {
+          idx: 1,
+          id: 'EXAMINE_XIFENG_BRIDGE_PILLAR_AND_WITNESS',
+          titleTh: 'ตรวจรอยดาบบนเสาหินด่านช่องลมประจิมซีเฟิงและสอบถามพยานที่อยู่ในเหตุการณ์',
+          locationId: 'PASS_YH_XIFENG_GORGE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบรอยดาบตัดเชือกสะพานเพียงรอยเดียว และได้พบอดีตโจรภูเขาที่สารภาพว่าหัวหน้าตนกุเรื่องสามสิบศพขึ้นเพื่อกลบเกลื่อนความขลาด'
+        },
+        {
+          idx: 2,
+          id: 'RECORD_DUAL_FACET_EPITHET_CHRONICLE',
+          titleTh: 'บันทึกทั้งนามเสียงที่น่าเกรงขามและคุณธรรมที่แท้จริงลงในทำเนียบสมญานามยุทธภพ',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกวิธีบันทึกประวัติสมญานามในหอจดหมายเหตุสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'CHRONICLE_TRUTH_AND_DETERRENCE',
+          labelTh: 'บันทึกความจริงทั้งสองด้านไว้ในทำเนียบสมญานาม:「นามข่มขวัญโจร คุณธรรมคุ้มครองชาวบ้าน」',
+          match: n => ['scripture', 'spymaster', 'envoy'].includes(n.post) || E(n, 'aptitudes.comprehension') >= 52,
+          consequenceTh: 'ทำเนียบสมญานามของสำนักบันทึกทั้งที่มาของข่าวลือและข้อเท็จจริงจากพยาน ช่วยเพิ่มความน่าเชื่อถือของพงศาวดารสำนัก',
+          effect: { customId: 'CUSTOM_DUAL_EPITHET_VERIFICATION', sectFameDelta: 8, citySafetyDelta: 5, skillPractice: 'SCRIPTURE' }
+        },
+        {
+          id: 'BALLAD_CORRECTION_AT_SHUANGJIANG',
+          labelTh: 'ถ่ายทอดบทเพลงฉบับจริงให้วณิพกนครสองแควหยุนเหอขับขานเชิดชูคุณธรรมไม่สังหาร',
+          match: () => true,
+          consequenceTh: 'เรื่องราวจอมยุทธ์ตัดสะพานโดยไม่เปื้อนเลือดกลายเป็นบทเพลงสอนใจในนครสองแควหยุนเหอ',
+          effect: { sectFameDelta: 7, moodDelta: 6, cityProsperityDelta: 4 }
+        }
+      ]
+    }
+  ]);
+
+  const STORY_BY_ID = Object.freeze(Object.fromEntries(STORY_CHAINS.map(s => [s.id, s])));
+
+  // Ordinary Slice-of-Life & Lore-Driven Emergent Event Templates
+  const EMERGENT_LORE_EVENTS = Object.freeze([
+    {
+      id: 'EMERGENT_01_FERRY_TIDE_DEBATE',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_01_SHUANGJIANG_BACKFLOW',
+      storyId: 'STORY_01_SHUANGJIANG_FLOOD_LEDGER',
+      nodeId: 'CITY_YH_SHUANGJIANG',
+      titleTh: 'คนแจวเรือซวงเจียงถกเถียงเรื่องขีดระดับน้ำใต้ตอม่อสะพานเก่า',
+      storyTh: 'ริมท่าเทียบเรือนครสองแควหยุนเหอ คนแจวเรือเฒ่ากับเสมียนท่าเรือชี้ให้ศิษย์ที่เดินทางผ่านมาดูรอยสิ่วโบราณใต้ตอม่อหินซึ่งโผล่พ้นน้ำขึ้นมาในยามน้ำลด พร้อมถกเถียงกันว่าปีนี้กระแสน้ำหนุนจะมาเร็วกว่ากำหนดหรือไม่',
+      originCauseTh: 'ระดับน้ำสองแควลดต่ำลงจนเผยให้เห็นขีดวัดระดับน้ำยุคเหยียนหลิง',
+      consequenceTh: 'ผู้ที่อยู่ในเหตุการณ์ได้รับรู้ข้อมูลเรื่องระดับน้ำสองแควจากสถานที่จริง'
+    },
+    {
+      id: 'EMERGENT_02_SCRIPTURE_MARGIN_NOTE',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_02_BAILU_DUAL_COMMENTARY',
+      storyId: 'STORY_02_BAILU_DUAL_ANNOTATED_MANUAL',
+      nodeId: 'CITY_YH_BAILU_ACADEMY',
+      titleTh: 'ศิษย์หอคัมภีร์พบหมายเหตุสองสีในสำเนาตำราจากไป๋ลู่',
+      storyTh: 'ระหว่างคัดลอกคัมภีร์ที่ชำรุดในหอคัมภีร์ ศิษย์พบกระดาษคั่นหน้าจากเมืองบัณฑิตกวางขาวไป๋ลู่ที่มีรอยพู่กันหมึกชาดและหมึกดำเขียนโต้ตอบกันเรื่องวิธีโคจรลมปราณผ่านจุดชีพจรลัด',
+      originCauseTh: 'การตรวจชำระและคัดลอกคัมภีร์ประจำสัปดาห์ในหอคัมภีร์',
+      consequenceTh: 'จุดประกายการถกเถียงและเปรียบเทียบแนวทางฝึกฝนระหว่างสายรุกและสายมั่นคง'
+    },
+    {
+      id: 'EMERGENT_03_QINGLAN_WAX_STAMP_PARCEL',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_03_QINGLAN_DOUBLE_TOLL_SEAL',
+      storyId: 'STORY_03_QINGLAN_SECOND_TOLL_STAMP',
+      nodeId: 'CITY_DH_QINGLAN_DICE_CITY',
+      titleTh: 'หีบพัสดุจากแดนบูรพามีตราครั่งคลื่นคู่ของราชวงศ์ชิงหลานติดมาด้วย',
+      storyTh: 'ขณะตรวจรับหีบสมุนไพรแห้งและใบชาจากขบวนค้าขายตะวันออก ผู้ดูแลคลังสังเกตเห็นตราครั่งทองเหลืองรูปคลื่นคู่ของแคว้นชิงหลานที่ล่มสลายไปเมื่อเก้าสิบปีก่อนประทับซ้อนอยู่ใต้ตราด่านภาษีตงหวง',
+      originCauseTh: 'การหมุนเวียนสินค้าระหว่างคลังเก่าริมแม่น้ำชิงหลานกับตลาดหยุนเหอ',
+      consequenceTh: 'เปิดเบาะแสเรื่องเครือข่ายตั๋วแลกเงินและคลังพัสดุยุคเปลี่ยนผ่านแคว้นชิงหลาน'
+    },
+    {
+      id: 'EMERGENT_04_KITCHEN_TWICE_PAID_SOUP',
+      kind: 'SLICE_OF_LIFE',
+      factId: 'FACT_11_FERRY_TRAVELER_TWICE_PAID_MEAL',
+      storyId: 'STORY_11_MEAL_PAID_TWICE',
+      nodeId: 'TOWN_YH_LIUWAN_FERRY',
+      titleTh: 'เบี้ยค่าอาหารปริศนาวางซ้ำใต้หม้อแกงร้อนในโรงครัวสำนัก',
+      storyTh: 'หลังมื้อค่ำในโรงครัวสำนัก พ่อครัวพบเบี้ยค่าอาหารถูกวางซ้อนไว้ใต้ถาดหม้อแกงเป็นครั้งที่สองของสัปดาห์ ศิษย์ที่นั่งร่วมโต๊ะต่างอมยิ้มและคาดเดากันไปต่างๆ นานาว่าเป็นฝีมือของผู้ใด',
+      originCauseTh: 'ศิษย์จากลุ่มน้ำหยุนเหอปฏิบัติตามธรรมเนียมฝากชามอุ่นตอบแทนน้ำใจสหายอย่างเงียบๆ',
+      consequenceTh: 'บรรยากาศในโรงครัวอบอุ่นขึ้นและพยานในโรงครัวได้เรียนรู้ธรรมเนียมคนเดินทางริมท่าข้ามฟาก'
+    },
+    {
+      id: 'EMERGENT_05_NIGHT_KILN_WATER_BOWL',
+      kind: 'SLICE_OF_LIFE',
+      factId: 'FACT_15_FROST_DEW_KILN_BANKING',
+      storyId: 'STORY_15_NIGHT_DEW_KILN_SHIFT',
+      nodeId: 'CITY_CY_RONGLU_CAPITAL',
+      titleTh: 'คราบผลึกแร่ในชามน้ำบ่อหน้าเตาหลอมกะน้ำค้างแข็ง',
+      storyTh: 'ยามเช้ามืดที่น้ำค้างลงจัด ศิษย์เวรโรงหลอมที่เข้ามาเปิดเตาพบว่าในชามน้ำเย็นที่วางทิ้งไว้หน้าปล่องเถ้าเมื่อคืนมีคราบผงแร่ละเอียดลอยจับอยู่เต็มผิวน้ำ ส่วนอากาศในห้องหลอมกลับปลอดโปร่งไร้กลิ่นกำมะถันฉุน',
+      originCauseTh: 'อุณหภูมิรุ่งสางลดต่ำทำให้ไอกำมะถันและผงแร่ควบแน่นลงในชามน้ำเย็นหน้าเตา',
+      consequenceTh: 'ศิษย์สายช่างเริ่มเข้าใจเหตุผลที่แท้จริงของธรรมเนียมกลบเถ้ารับน้ำค้าง'
+    },
+    {
+      id: 'EMERGENT_06_ANCESTRAL_WOODEN_SWORD_DUSTING',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR',
+      storyId: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR',
+      nodeId: 'CITY_YH_OLD_DAREN_SQUARE',
+      titleTh: 'ศิษย์เวรทำความสะอาดโถงบรรพชนพบรอยสลักใต้ด้ามกระบี่ไม้ท้อข้างเก้าอี้ว่าง',
+      storyTh: 'ขณะปัดฝุ่นโถงป้ายวิญญาณบูรพาจารย์รุ่นที่ 1–6 ศิษย์เวรสังเกตเห็นว่าใต้ด้ามกระบี่ไม้ท้อไร้คมที่แขวนอยู่ข้างเก้าอี้ว่างมีอักษรย่อของเจ้าสำนักรุ่นที่ 6 โม่ชางไห่ สลักคำว่า「ระลึกถึงศิษย์พี่ผู้เฝ้าประตูเขา」คู่กับบันทึกกล่าวถึงตราหินเทาไร้ลักษณ์',
+      originCauseTh: 'การดูแลทำความสะอาดและสักการะป้ายบรรพชนประจำเดือน',
+      consequenceTh: 'ช่วยไขข้อข้องใจของศิษย์รุ่นใหม่เรื่องความแตกต่างระหว่างกระบี่ไม้ท้อที่ระลึกกับตราหินเทาไร้ลักษณ์ประจำตำแหน่งเจ้าสำนักรุ่นที่ 7'
+    },
+    {
+      id: 'EMERGENT_07_BOTTLENECK_MIDNIGHT_CHIME',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_13_MERIDIAN_BELL_OMEN',
+      storyId: 'STORY_13_BOTTLENECK_BELL_ECHO',
+      nodeId: 'CITY_BM_XUELIAN_SPRINGS',
+      titleTh: 'การสนทนาเรื่องเสียงระฆังในหูยามติดคอขวดที่ลานฝึกสมาธิ',
+      storyTh: 'หลังเสร็จสิ้นการนั่งสมาธิรอบค่ำ ศิษย์ที่กำลังติดคอขวดเล่าให้สหายฟังว่าตนได้ยินเสียงกังวานคล้ายระฆังสามครั้งในโสตประสาท ผู้อาวุโสที่เดินผ่านมาได้ยินจึงเตือนให้นึกถึงบันทึกของเจ้าสำนักรุ่นที่ 5 กู้เหยียนจือ',
+      originCauseTh: 'ความดันปราณสะสมที่จุดขมับของผู้ฝึกตนที่ติดคอขวด',
+      consequenceTh: 'เกิดการแลกเปลี่ยนความรู้เรื่องการแยกแยะสัญญาณเตือนชีพจรตีกลับออกจากนิมิตทะลวงขั้น'
+    },
+    {
+      id: 'EMERGENT_08_EPITHET_TAVERN_VERSIONS',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_20_BROKEN_BRIDGE_EPITHET_DISPUTE',
+      storyId: 'STORY_20_TWO_FACES_OF_ONE_EPITHET',
+      nodeId: 'PASS_YH_XIFENG_GORGE',
+      titleTh: 'ผู้มาเยือนสองคนเล่าตำนาน「ดาบสะบั้นสะพานซีเฟิง」ไม่ตรงกัน',
+      storyTh: 'ที่ศาลาพักร้อนหน้าสำนัก คนเดินม้าจากแดนเหนือและพ่อค้าใบชาจากแดนใต้ต่างเล่าที่มาของสมญานามดาบสะบั้นสะพานซีเฟิงไปคนละขั้ว คนหนึ่งว่าฆ่าโจรสามสิบศพ อีกคนว่าฟันเชือกสะพานช่วยชาวบ้านโดยไม่ฆ่าใครเลย',
+      originCauseTh: 'การแพร่กระจายของข่าวลือและเพลงโรงเตี๊ยมจากสองภูมิภาคที่มาบรรจบกันที่หยุนเหอ',
+      consequenceTh: 'ศิษย์ที่ได้ยินบันทึกทั้งสองกระแสไว้รอการพิสูจน์ที่ด่านช่องลมประจิมซีเฟิง'
+    }
+  ]);
+
+  X.LIVING_LORE = Object.freeze({
+    VERSION: '3.1.0-living-lore',
+    EPISTEMIC_LAYERS,
+    FALLEN_DYNASTIES_ARCHIVE,
+    CANON_FACTS,
+    FACT_BY_ID,
+    STORY_CHAINS,
+    STORY_BY_ID,
+    EMERGENT_LORE_EVENTS
+  });
+
+  // Ensure world & sect Living Lore runtime state
+  X.initLivingLore = W => {
+    if (!W || !W.world) return null;
+    if (!W.world.livingLore || typeof W.world.livingLore !== 'object') {
+      W.world.livingLore = {
+        version: '3.1.0-living-lore',
+        facts: {},
+        stories: {},
+        routeModifiers: {},
+        adoptedCustoms: {},
+        epithetDisputes: {},
+        recentEvents: [],
+        eventSeq: 0,
+        lastTickDay: -1,
+        lastEmergentDay: -3
+      };
+    }
+    const ll = W.world.livingLore;
+    if (!ll.facts || typeof ll.facts !== 'object') ll.facts = {};
+    if (!ll.stories || typeof ll.stories !== 'object') ll.stories = {};
+    if (!ll.routeModifiers || typeof ll.routeModifiers !== 'object') ll.routeModifiers = {};
+    if (!ll.adoptedCustoms || typeof ll.adoptedCustoms !== 'object') ll.adoptedCustoms = {};
+    if (!ll.epithetDisputes || typeof ll.epithetDisputes !== 'object') ll.epithetDisputes = {};
+    if (!Array.isArray(ll.recentEvents)) ll.recentEvents = [];
+
+    if (W.sect) {
+      if (!Array.isArray(W.sect.loreArchive)) W.sect.loreArchive = [];
+    }
+
+    // Ensure all 28 Canon Facts have a state record in ll.facts
+    for (const f of CANON_FACTS) {
+      if (!ll.facts[f.id]) {
+        ll.facts[f.id] = {
+          factId: f.id,
+          discovered: false,
+          firstDiscoveredDay: null,
+          firstDiscovererId: null,
+          knownAccounts: [],
+          evidenceLineages: [],
+          status: 'undiscovered',
+          archivedInSect: false,
+          lastUpdatedDay: W.day || 0
+        };
+      }
+    }
+
+    // Ensure all 20 Story Chains have a state record in ll.stories
+    for (const s of STORY_CHAINS) {
+      if (!ll.stories[s.id]) {
+        ll.stories[s.id] = {
+          storyId: s.id,
+          factId: s.factId,
+          stageIdx: 0,
+          status: 'dormant', // 'dormant' | 'active' | 'contested' | 'resolved'
+          sparkedDay: null,
+          resolvedDay: null,
+          resolutionId: null,
+          resolutionLabelTh: null,
+          resolutionConsequenceTh: null,
+          leadNpcIds: [],
+          witnessIds: [],
+          evidenceLineages: [],
+          history: []
+        };
+      }
+    }
+
+    // Seed initial lore for existing NPCs if not yet seeded
+    if (Array.isArray(W.npcs)) {
+      for (const n of W.npcs) {
+        if (n && !n.dead && (!n.ext || !n.ext.lore)) {
+          X.seedNpcInitialLore(W, n);
+        }
+      }
+    }
+    return ll;
+  };
+
+  // Seed an NPC with 2-3 organic hometown / polity / path beliefs at creation or recruitment
+  X.seedNpcInitialLore = (W, npc) => {
+    if (!W || !npc || npc.dead || !getCOG() || !getCOG().learnLoreFact) return;
+    getCOG().ensureLoreState(npc);
+    const homeId = npc.ext && npc.ext.world && npc.ext.world.hometownNodeId;
+    const polityId = npc.ext && npc.ext.world && npc.ext.world.birthPolityId;
+    const pathId = npc.cult && npc.cult.path;
+
+    // 1. Find a non-secret fact anchored at or near the NPC's hometown or polity
+    const homeFacts = CANON_FACTS.filter(f => !f.secretGate && (
+      (homeId && Array.isArray(f.anchorNodeIds) && f.anchorNodeIds.includes(homeId)) ||
+      (polityId && f.polityId === polityId)
+    ));
+    if (homeFacts.length) {
+      const idx = Math.abs((npc.h && npc.h.genome) || 1) % homeFacts.length;
+      const f = homeFacts[idx];
+      const acc = (polityId === f.polityId && E(npc, 'personality.discipline') >= 62) ? 'COURT_CANON' : 'FOLK_ORAL';
+      getCOG().learnLoreFact(W, npc, f.id, {
+        accountId: acc,
+        originEventId: 'hometown:' + (homeId || polityId || 'yunhe') + ':' + f.id + ':' + acc,
+        sourceKind: 'hometown',
+        storyId: f.storyId
+      });
+    }
+
+    // 2. Seed sect generational lore (FACT_07) or Yunhe treaty lore (FACT_21) for sect members
+    if (npc.id === (W.sect && W.sect.masterId) || (npc.rank || 0) >= 3) {
+      getCOG().learnLoreFact(W, npc, 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR', {
+        accountId: 'SECT_ORTHODOX',
+        originEventId: 'sect:ancestral_hall:FACT_07:SECT_ORTHODOX',
+        sourceKind: 'ancestral_plaque',
+        storyId: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR'
+      });
+      getCOG().learnLoreFact(W, npc, 'FACT_21_SU_QIN_820YR_YUNHE_TREATY', {
+        accountId: 'SECT_ORTHODOX',
+        originEventId: 'sect:archive:FACT_21:SECT_ORTHODOX',
+        sourceKind: 'library_stele'
+      });
+    } else {
+      // Junior disciples start with the folk/campus rumor about the wooden sword & empty chair or a path-linked fact
+      const pathFacts = CANON_FACTS.filter(f => !f.secretGate && pathId && Array.isArray(f.relatedPaths) && f.relatedPaths.includes(pathId));
+      const f2 = pathFacts[0] || FACT_BY_ID.FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR;
+      if (f2) {
+        getCOG().learnLoreFact(W, npc, f2.id, {
+          accountId: 'FOLK_ORAL',
+          originEventId: 'campus:rumor:' + f2.id + ':FOLK_ORAL',
+          sourceKind: 'conversation',
+          storyId: f2.storyId
+        });
+      }
+    }
+  };
+
+  function routeLegKey(a, b) {
+    return a < b ? (a + '::' + b) : (b + '::' + a);
+  }
+
+  function applyStoryResolutionEffects(W, npc, storyDef, storyState, branch) {
+    if (!W || !storyDef || !branch) return;
+    const ll = X.initLivingLore(W);
+    const eff = branch.effect || {};
+    const state = W.world && W.world.continent;
+
+    if (Array.isArray(eff.routeBonusLeg) && eff.routeBonusLeg.length === 2) {
+      const k = routeLegKey(eff.routeBonusLeg[0], eff.routeBonusLeg[1]);
+      ll.routeModifiers[k] = {
+        legKey: k,
+        from: eff.routeBonusLeg[0],
+        to: eff.routeBonusLeg[1],
+        multiplier: clamp(Number(eff.routeMultiplier) || 0.88, 0.72, 1.25),
+        storyId: storyDef.id,
+        labelTh: branch.labelTh,
+        sinceDay: W.day || 0
+      };
+    }
+
+    if (state && state.cities) {
+      for (const nodeId of (storyDef.anchorNodeIds || [])) {
+        const cStats = state.cities[nodeId];
+        if (!cStats) continue;
+        if (eff.citySafetyDelta) cStats.safety = clamp(cStats.safety + eff.citySafetyDelta, 20, 98);
+        if (eff.cityProsperityDelta) cStats.prosperity = clamp(cStats.prosperity + eff.cityProsperityDelta, 20, 98);
+      }
+    }
+
+    if (eff.customId) {
+      ll.adoptedCustoms[eff.customId] = {
+        id: eff.customId,
+        storyId: storyDef.id,
+        labelTh: branch.labelTh,
+        consequenceTh: branch.consequenceTh,
+        adoptedByNpcId: npc ? npc.id : null,
+        adoptedDay: W.day || 0
+      };
+      if (npc && getCOG() && getCOG().ensureLoreState) {
+        const nLore = getCOG().ensureLoreState(npc);
+        if (nLore && !nLore.adoptedCustoms.includes(eff.customId)) {
+          nLore.adoptedCustoms.push(eff.customId);
+        }
+      }
+    }
+
+    if (eff.closedLoopStonesFromPool && getECO() && typeof getECO().ReceiveExternalStones === 'function') {
+      const poolAvail = (W.world && W.world.resourcePool && W.world.resourcePool.stones) || 0;
+      const amt = Math.min(poolAvail, Math.max(0, Math.round(eff.closedLoopStonesFromPool)));
+      if (amt > 0) {
+        getECO().ReceiveExternalStones(W, amt, 'living_lore:' + storyDef.id);
+      }
+    }
+
+    if (eff.mealGrant && W.sect && W.sect.stock) {
+      W.sect.stock.meal = (W.sect.stock.meal || 0) + Math.max(1, Math.round(eff.mealGrant));
+    }
+
+    if (eff.sectFameDelta && W.sect) {
+      W.sect.fame = Math.max(0, (W.sect.fame || 0) + eff.sectFameDelta);
+    }
+
+    if (eff.originEchoesDelta && W.sect) {
+      W.sect.originEchoes = (W.sect.originEchoes || 0) + eff.originEchoesDelta;
+    }
+
+    if (eff.regaliaVector && getSECT() && getSECT().PATRIARCH_REGALIA && getSECT().PATRIARCH_REGALIA.advanceAwakening) {
+      const master = (W.byId && W.sect && W.byId[W.sect.masterId]) || npc;
+      getSECT().PATRIARCH_REGALIA.advanceAwakening(W, master, eff.regaliaVector, eff.regaliaAmount || 1);
+    }
+
+    if (npc && !npc.dead) {
+      if (eff.skillPractice && HC.practice) {
+        HC.practice(npc, eff.skillPractice, 0.45, 1.15);
+      }
+      if (eff.cultGain && npc.cult && getCULT() && getCULT().gain) {
+        getCULT().gain(npc, eff.cultGain, W, 'living_lore_insight');
+      }
+      if (eff.heartDemonDelta && npc.h && npc.h.state) {
+        npc.h.state.heartDemon = clamp((npc.h.state.heartDemon || 0) + eff.heartDemonDelta, 0, 100);
+      }
+      if (eff.moodDelta || eff.lonelinessDelta) {
+        HC.feel(npc, { mood: eff.moodDelta || 0, loneliness: eff.lonelinessDelta || 0 });
+      }
+      if (eff.petBondBonus && Array.isArray(npc.pets)) {
+        npc.pets.forEach(p => {
+          if (p) p.bond = clamp((p.bond || 50) + eff.petBondBonus, 0, 100);
+        });
+      }
+    }
+  }
+
+  // Advance or resolve a multi-stage Living Lore story chain through real NPC action
+  X.advanceLivingLoreStory = (W, npc, storyId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world || !storyId) return { ok: false, reason: 'invalid-args' };
+    const ll = X.initLivingLore(W);
+    const storyDef = STORY_BY_ID[storyId];
+    if (!storyDef) return { ok: false, reason: 'unknown-story' };
+    const st = ll.stories[storyId];
+    if (!st) return { ok: false, reason: 'missing-story-state' };
+    if (st.status === 'resolved' && !opts.allowReplay) {
+      return { ok: false, reason: 'already-resolved', story: st };
+    }
+
+    const actor = npc || (W.byId && W.sect && W.byId[W.sect.masterId]) || (W.npcs && W.npcs[0]);
+    if (!actor || actor.dead) return { ok: false, reason: 'no-living-actor' };
+
+    const curIdx = st.status === 'dormant' ? 0 : clamp((st.stageIdx || 0) + 1, 0, storyDef.stages.length - 1);
+    const stageDef = storyDef.stages[curIdx] || storyDef.stages[storyDef.stages.length - 1];
+    const locNode = (stageDef && stageDef.locationId && X.SETTLEMENTS && X.SETTLEMENTS[stageDef.locationId])
+      || (storyDef.anchorNodeIds && storyDef.anchorNodeIds[0] && X.SETTLEMENTS && X.SETTLEMENTS[storyDef.anchorNodeIds[0]])
+      || null;
+    const locSnap = locNode ? { nodeId: locNode.id, nameTh: locNode.nameTh, x: locNode.x, y: locNode.y, macroRegion: locNode.macroRegion } : null;
+
+    const originEventId = opts.originEventId || ('story:' + storyId + ':stage:' + curIdx + ':day:' + (W.day || 0) + ':' + (locNode ? locNode.id : 'sect'));
+    if (!st.evidenceLineages.includes(originEventId)) {
+      st.evidenceLineages.push(originEventId);
+    }
+    if (!st.leadNpcIds.includes(actor.id)) st.leadNpcIds.push(actor.id);
+    const witnessIds = Array.isArray(opts.witnessIds) && opts.witnessIds.length ? opts.witnessIds : [actor.id];
+    for (const wid of witnessIds) {
+      if (wid && !st.witnessIds.includes(wid) && st.witnessIds.length < 12) st.witnessIds.push(wid);
+    }
+
+    st.stageIdx = curIdx;
+    if (st.sparkedDay == null) st.sparkedDay = W.day || 0;
+
+    // Teach the linked lore fact at this stage's epistemic account to all witnesses
+    const learnAccount = (curIdx >= storyDef.stages.length - 1)
+      ? 'VERIFIED_CHRONICLE'
+      : (stageDef && stageDef.accountId) || 'FOLK_ORAL';
+    const isPhysical = curIdx >= 1 || ['city_ledger', 'library_stele', 'item_inscription', 'ancestral_plaque', 'expedition_witness'].includes(opts.sourceKind);
+
+    for (const wid of witnessIds) {
+      const wNpc = W.byId && W.byId[wid];
+      if (wNpc && !wNpc.dead && getCOG() && getCOG().learnLoreFact) {
+        getCOG().learnLoreFact(W, wNpc, storyDef.factId, {
+          accountId: learnAccount,
+          originEventId,
+          sourceKind: opts.sourceKind || (curIdx === 0 ? 'city_visit' : curIdx === 1 ? 'city_ledger' : 'expedition_witness'),
+          storyId: storyDef.id,
+          physicalProof: isPhysical
+        });
+      }
+    }
+
+    if (curIdx < storyDef.stages.length - 1) {
+      st.status = curIdx === 0 ? 'active' : 'contested';
+      const histText = HC.fullName(actor) + ' ' + stageDef.titleTh + (locNode ? (' ณ ' + locNode.nameTh) : '');
+      st.history.push({ day: W.day || 0, t: W.t || 0, stageIdx: curIdx, actorId: actor.id, locationId: locNode ? locNode.id : null, textTh: histText });
+      if (st.history.length > 10) st.history.shift();
+
+      if (getAI() && getAI().mem) {
+        getAI().mem(W, actor, stageDef.titleTh + ' (' + storyDef.titleTh + ')', 0.65);
+      }
+
+      if (X.recordChronicle && !opts.silentChronicle) {
+        X.recordChronicle(W, {
+          eventKey: 'living_lore:' + storyId + ':s' + curIdx + ':' + (W.day || 0),
+          category: 'LEGEND',
+          reportFormat: curIdx === 0 ? 'TAVERN_BALLAD' : 'TRAVELOGUE_CHRONICLE',
+          isRumor: curIdx === 0,
+          unverified: curIdx < 2,
+          epistemicStatus: curIdx === 0 ? 'RUMOR' : 'CONTESTED',
+          icon: curIdx === 0 ? '📜' : '🔍',
+          titleTh: '【เบาะแสตำนานมีชีวิต】' + storyDef.titleTh + ' · ' + stageDef.titleTh,
+          storyTh: HC.fullName(actor) + ' ' + stageDef.descTh,
+          originCauseTh: 'การสืบค้นและเปรียบเทียบคำบอกเล่าในโลกยุทธภพ (' + storyDef.titleTh + ')',
+          consequenceTh: curIdx === 0 ? 'ยังเป็นคำบอกเล่าขั้นต้น รอการสอบทานหลักฐานสายที่สอง' : 'พบหลักฐานสองกระแสที่ต้องตัดสินใจสรุปผล',
+          macroRegion: (locNode && locNode.macroRegion) || 'CENTRAL_HEARTLAND',
+          location: locSnap,
+          actorIds: witnessIds,
+          storyThreadId: 'lore:' + storyDef.id,
+          quiet: true
+        });
+      }
+
+      return { ok: true, resolved: false, stageIdx: curIdx, status: st.status, story: st };
+    }
+
+    // Final stage (Stage 2): select personality/role-matched resolution branch!
+    const branches = storyDef.resolutions || [];
+    const chosenBranch = (opts.resolutionId && branches.find(b => b.id === opts.resolutionId))
+      || branches.find(b => typeof b.match === 'function' && b.match(actor, W))
+      || branches[branches.length - 1];
+
+    st.status = 'resolved';
+    st.resolvedDay = W.day || 0;
+    st.resolutionId = chosenBranch ? chosenBranch.id : 'DEFAULT_RESOLUTION';
+    st.resolutionLabelTh = chosenBranch ? chosenBranch.labelTh : 'สรุปบันทึกเข้าหอคัมภีร์';
+    st.resolutionConsequenceTh = chosenBranch ? chosenBranch.consequenceTh : 'บันทึกความจริงลงในพงศาวดารสำนัก';
+
+    const resHistText = HC.fullName(actor) + ' คลี่คลาย「' + storyDef.titleTh + '」: ' + st.resolutionLabelTh;
+    st.history.push({ day: W.day || 0, t: W.t || 0, stageIdx: curIdx, actorId: actor.id, locationId: locNode ? locNode.id : null, textTh: resHistText, resolved: true });
+    if (st.history.length > 10) st.history.shift();
+
+    // Remove from activeLeads of witnesses once resolved
+    for (const wid of st.witnessIds) {
+      const wNpc = W.byId && W.byId[wid];
+      const wLore = wNpc && getCOG() && getCOG().peekLoreState ? getCOG().peekLoreState(wNpc) : null;
+      if (wLore && Array.isArray(wLore.activeLeads)) {
+        wLore.activeLeads = wLore.activeLeads.filter(id => id !== storyId);
+      }
+    }
+
+    applyStoryResolutionEffects(W, actor, storyDef, st, chosenBranch);
+
+    // Compile the verified fact to the Sect Lore Archive
+    X.compileLoreToSectArchive(W, actor, storyDef.factId, { storyId: storyDef.id, quiet: true });
+
+    if (getAI() && getAI().mem) {
+      getAI().mem(W, actor, 'พิสูจน์ความจริงเรื่อง「' + storyDef.titleTh + '」และตัดสินใจ: ' + st.resolutionLabelTh, 0.85);
+    }
+
+    if (X.recordChronicle && !opts.silentChronicle) {
+      X.recordChronicle(W, {
+        eventKey: 'living_lore:' + storyId + ':resolved:' + (W.day || 0),
+        category: 'LEGEND',
+        reportFormat: 'SECT_STELE_INSCRIPTION',
+        isRumor: false,
+        unverified: false,
+        epistemicStatus: 'VERIFIED',
+        milestone: true,
+        icon: '🏛️',
+        titleTh: '【คลี่คลายตำนานมีชีวิต】' + storyDef.titleTh + ' — ' + st.resolutionLabelTh,
+        storyTh: HC.fullName(actor) + ' สอบทานหลักฐานจนพิสูจน์ความจริงของ「' + storyDef.titleTh + '」และดำเนินการ: ' + st.resolutionLabelTh,
+        originCauseTh: storyDef.summaryTh,
+        consequenceTh: st.resolutionConsequenceTh,
+        macroRegion: (locNode && locNode.macroRegion) || 'CENTRAL_HEARTLAND',
+        location: locSnap,
+        actorIds: witnessIds,
+        storyThreadId: 'lore:' + storyDef.id,
+        quiet: false
+      });
+    }
+
+    return {
+      ok: true,
+      resolved: true,
+      stageIdx: curIdx,
+      status: st.status,
+      resolutionId: st.resolutionId,
+      resolutionLabelTh: st.resolutionLabelTh,
+      consequenceTh: st.resolutionConsequenceTh,
+      story: st
+    };
+  };
+
+  // Compile a verified lore fact into the Sect Archive (`W.sect.loreArchive`)
+  X.compileLoreToSectArchive = (W, npc, factId, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect || !factId) return { ok: false, reason: 'invalid-args' };
+    const ll = X.initLivingLore(W);
+    const factDef = FACT_BY_ID[factId];
+    if (!factDef) return { ok: false, reason: 'unknown-fact' };
+
+    if (!Array.isArray(W.sect.loreArchive)) W.sect.loreArchive = [];
+    const already = W.sect.loreArchive.includes(factId);
+    if (!already) {
+      W.sect.loreArchive.push(factId);
+    }
+    if (ll.facts[factId]) {
+      ll.facts[factId].discovered = true;
+      ll.facts[factId].archivedInSect = true;
+      ll.facts[factId].status = 'verified';
+      if (!ll.facts[factId].knownAccounts.includes('VERIFIED_CHRONICLE')) {
+        ll.facts[factId].knownAccounts.push('VERIFIED_CHRONICLE');
+      }
+    }
+
+    // Share with key sect officers (Scripture Elder, Spymaster, Sect Master)
+    const officers = [
+      getSECT() && getSECT().holder ? getSECT().holder(W, 'scripture') : null,
+      getSECT() && getSECT().holder ? getSECT().holder(W, 'spymaster') : null,
+      W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null
+    ].filter(Boolean);
+
+    const originEventId = 'archive_compile:' + factId + ':' + (npc ? npc.id : 'sect');
+    officers.forEach(off => {
+      if (!off.dead && getCOG() && getCOG().learnLoreFact) {
+        getCOG().learnLoreFact(W, off, factId, {
+          accountId: 'VERIFIED_CHRONICLE',
+          originEventId,
+          sourceKind: 'library_stele',
+          fromId: npc ? npc.id : null,
+          fromNameTh: npc ? HC.fullName(npc) : 'หอคัมภีร์',
+          physicalProof: true
+        });
+      }
+    });
+
+    if (npc && !npc.dead && HC.practice) {
+      HC.practice(npc, 'SCRIPTURE', 0.30, 1.1);
+    }
+    return { ok: true, factId, newlyArchived: !already };
+  };
+
+  // Triggered whenever an NPC party arrives at a settlement on a city_visit
+  X.onCityVisitLore = (W, ex, members) => {
+    if (!W || !ex || !Array.isArray(members) || !members.length) return null;
+    const ll = X.initLivingLore(W);
+    const cityId = ex.targetNodeId || ex.region;
+    const city = X.SETTLEMENTS && X.SETTLEMENTS[cityId];
+    if (!city) return null;
+
+    const leader = members[0];
+    const witnessIds = members.map(m => m.id);
+
+    // 1. Check if any story chain is anchored at this city and not yet resolved
+    const anchoredStories = STORY_CHAINS.filter(s => Array.isArray(s.anchorNodeIds) && s.anchorNodeIds.includes(city.id));
+    for (const sDef of anchoredStories) {
+      const st = ll.stories[sDef.id];
+      if (!st || st.status === 'resolved') continue;
+      // Check if any member has this story as an active lead or if it's dormant
+      const hasLead = members.some(m => {
+        const ml = getCOG() && getCOG().peekLoreState ? getCOG().peekLoreState(m) : null;
+        return ml && Array.isArray(ml.activeLeads) && ml.activeLeads.includes(sDef.id);
+      });
+      if (hasLead || st.status === 'dormant' || st.status === 'active') {
+        return X.advanceLivingLoreStory(W, leader, sDef.id, {
+          witnessIds,
+          sourceKind: st.status === 'dormant' ? 'city_visit' : 'city_ledger',
+          originEventId: 'city_visit:' + city.id + ':' + sDef.id + ':stage:' + (st.stageIdx || 0)
+        });
+      }
+    }
+
+    // 2. Otherwise, learn a local lore fact anchored at this settlement or polity
+    const localFacts = CANON_FACTS.filter(f =>
+      (Array.isArray(f.anchorNodeIds) && f.anchorNodeIds.includes(city.id)) ||
+      (city.polityId && f.polityId === city.polityId && !f.secretGate)
+    );
+    if (localFacts.length) {
+      const f = localFacts[((W.day || 0) + city.order) % localFacts.length];
+      const isAcademyOrCapital = city.specialty === 'academy' || city.tier >= 4;
+      const acc = isAcademyOrCapital ? 'COURT_CANON' : 'FOLK_ORAL';
+      const originEventId = 'visit_stele:' + city.id + ':' + f.id + ':' + acc;
+      for (const m of members) {
+        if (getCOG() && getCOG().learnLoreFact) {
+          getCOG().learnLoreFact(W, m, f.id, {
+            accountId: acc,
+            originEventId,
+            sourceKind: isAcademyOrCapital ? 'city_ledger' : 'city_visit',
+            storyId: f.storyId,
+            physicalProof: isAcademyOrCapital
+          });
+        }
+      }
+      return { ok: true, learnedFactId: f.id, accountId: acc, cityId: city.id };
+    }
+    return null;
+  };
+
+  // Daily/Periodic Living Lore Simulation Tick (emergent slice-of-life & lore events from world activity)
+  X.tickLivingLore = W => {
+    if (!W || !W.world || !W.sect) return;
+    const ll = X.initLivingLore(W);
+    const day = W.day || 0;
+    if (day <= ll.lastTickDay) return;
+    ll.lastTickDay = day;
+
+    const livingNpcs = (W.npcs || []).filter(n => n && !n.dead && !n.exiled);
+    if (!livingNpcs.length) return;
+
+    // 1. Check for natural emergent lore / slice-of-life spark every 4 days based on real sect/world activity
+    if (day >= (ll.lastEmergentDay || 0) + 4) {
+      const candidateTemplates = EMERGENT_LORE_EVENTS.filter(ev => {
+        const st = ev.storyId ? ll.stories[ev.storyId] : null;
+        return !st || st.status !== 'resolved';
+      });
+      if (candidateTemplates.length) {
+        const tpl = candidateTemplates[(day + (ll.eventSeq || 0)) % candidateTemplates.length];
+        // Pick real witnesses currently doing matching activities or residing in sect
+        const homeNpcs = livingNpcs.filter(n => !n.away);
+        const witnesses = (homeNpcs.length ? homeNpcs : livingNpcs).slice(0, 2);
+        const lead = witnesses[0];
+        if (lead) {
+          ll.lastEmergentDay = day;
+          ll.eventSeq = (ll.eventSeq || 0) + 1;
+          const originEventId = 'emergent:' + tpl.id + ':day:' + day;
+          for (const wNpc of witnesses) {
+            if (getCOG() && getCOG().learnLoreFact) {
+              getCOG().learnLoreFact(W, wNpc, tpl.factId, {
+                accountId: 'FOLK_ORAL',
+                originEventId,
+                sourceKind: tpl.kind === 'SLICE_OF_LIFE' ? 'workshop_practice' : 'visitor_rumor',
+                storyId: tpl.storyId
+              });
+            }
+          }
+          if (tpl.storyId && ll.stories[tpl.storyId] && ll.stories[tpl.storyId].status === 'dormant') {
+            X.advanceLivingLoreStory(W, lead, tpl.storyId, {
+              witnessIds: witnesses.map(x => x.id),
+              originEventId,
+              sourceKind: 'visitor_rumor',
+              silentChronicle: true
+            });
+          }
+          const locNode = tpl.nodeId && X.SETTLEMENTS ? X.SETTLEMENTS[tpl.nodeId] : null;
+          const locSnap = locNode ? { nodeId: locNode.id, nameTh: locNode.nameTh, x: locNode.x, y: locNode.y, macroRegion: locNode.macroRegion } : null;
+          const evRec = {
+            id: 'll_ev_' + ll.eventSeq,
+            day,
+            templateId: tpl.id,
+            factId: tpl.factId,
+            storyId: tpl.storyId,
+            titleTh: tpl.titleTh,
+            storyTh: tpl.storyTh,
+            witnessIds: witnesses.map(x => x.id),
+            location: locSnap
+          };
+          ll.recentEvents.push(evRec);
+          if (ll.recentEvents.length > 18) ll.recentEvents.shift();
+
+          if (X.recordChronicle) {
+            X.recordChronicle(W, {
+              eventKey: 'living_lore_emergent:' + tpl.id + ':' + day,
+              category: tpl.kind === 'SLICE_OF_LIFE' ? 'LIFE' : 'LEGEND',
+              reportFormat: tpl.kind === 'SLICE_OF_LIFE' ? 'TEAHOUSE_GOSSIP' : 'TAVERN_BALLAD',
+              isRumor: tpl.kind !== 'SLICE_OF_LIFE',
+              unverified: true,
+              icon: tpl.kind === 'SLICE_OF_LIFE' ? '🍵' : '📜',
+              titleTh: tpl.titleTh,
+              storyTh: tpl.storyTh,
+              originCauseTh: tpl.originCauseTh,
+              consequenceTh: tpl.consequenceTh,
+              macroRegion: (locNode && locNode.macroRegion) || 'CENTRAL_HEARTLAND',
+              location: locSnap,
+              actorIds: witnesses.map(x => x.id),
+              storyThreadId: tpl.storyId ? ('lore:' + tpl.storyId) : ('fact:' + tpl.factId),
+              quiet: true
+            });
+          }
+        }
+      }
+    }
+
+    // 2. Unlock Layer 3 / Layer 4 deep truths organically when sufficient Layer 2 / Sanctum / Regalia milestones exist
+    const reg = W.sect.patriarchRegalia;
+    const master = W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null;
+    if (master && !master.dead && reg && (reg.awakeningStage >= 2 || (W.sect.originEchoes || 0) >= 2)) {
+      const f28 = ll.facts.FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL;
+      if (f28 && !f28.discovered) {
+        getCOG().learnLoreFact(W, master, 'FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL', {
+          accountId: reg.awakeningStage >= 3 ? 'VERIFIED_CHRONICLE' : 'SECT_ORTHODOX',
+          originEventId: 'regalia_resonance:stage:' + reg.awakeningStage,
+          sourceKind: 'ancestral_plaque',
+          physicalProof: reg.awakeningStage >= 3
+        });
+      }
+    }
+  };
+
+  // Pure Read-Only Views for UI (0 RNG, 0 State Mutation!)
+  X.getLivingLorePlayerView = (W, opts) => {
+    opts = opts || {};
+    const ll = W && W.world && W.world.livingLore;
+    const archiveIds = (W && W.sect && Array.isArray(W.sect.loreArchive)) ? W.sect.loreArchive : [];
+
+    const layers = Object.values(EPISTEMIC_LAYERS).map(layer => {
+      const layerFacts = CANON_FACTS.filter(f => f.layer === layer.id).map(f => {
+        const wf = ll && ll.facts && ll.facts[f.id];
+        const discovered = !!(opts.debugRevealAll || (wf && wf.discovered) || archiveIds.includes(f.id));
+        const veiled = !!(f.secretGate && !discovered);
+        const status = wf ? wf.status : 'undiscovered';
+        const knownAccIds = (wf && Array.isArray(wf.knownAccounts) && wf.knownAccounts.length)
+          ? wf.knownAccounts
+          : (discovered ? [f.defaultAccount || 'FOLK_ORAL'] : []);
+        const visibleAccounts = veiled
+          ? []
+          : knownAccIds.map(aid => f.accounts[aid]).filter(Boolean);
+        return {
+          id: f.id,
+          titleTh: veiled ? '🔒 ความลับที่ยังไม่มีศิษย์ค้นพบ (' + layer.shortTh + ')' : f.titleTh,
+          layer: f.layer,
+          category: f.category,
+          polityId: f.polityId,
+          anchorNodeIds: veiled ? [] : (f.anchorNodeIds || []).slice(),
+          discovered,
+          veiled,
+          status,
+          archivedInSect: archiveIds.includes(f.id),
+          knownAccounts: visibleAccounts,
+          evidenceLineageCount: wf && Array.isArray(wf.evidenceLineages) ? wf.evidenceLineages.length : 0,
+          storyId: f.storyId || null
+        };
+      });
+      return {
+        id: layer.id,
+        order: layer.order,
+        nameTh: layer.nameTh,
+        shortTh: layer.shortTh,
+        descTh: layer.descTh,
+        secretGate: layer.secretGate,
+        discoveredCount: layerFacts.filter(f => f.discovered).length,
+        totalCount: layerFacts.length,
+        facts: layerFacts
+      };
+    });
+
+    const stories = STORY_CHAINS.map(s => {
+      const st = (ll && ll.stories && ll.stories[s.id]) || { stageIdx: 0, status: 'dormant', witnessIds: [], history: [] };
+      const wf = ll && ll.facts && ll.facts[s.factId];
+      const factDef = FACT_BY_ID[s.factId];
+      const veiled = !!(factDef && factDef.secretGate && st.status === 'dormant' && !(wf && wf.discovered) && !opts.debugRevealAll);
+      const curStage = s.stages[clamp(st.stageIdx || 0, 0, s.stages.length - 1)];
+      const locNode = (curStage && curStage.locationId && X.SETTLEMENTS && X.SETTLEMENTS[curStage.locationId])
+        || (s.anchorNodeIds && s.anchorNodeIds[0] && X.SETTLEMENTS && X.SETTLEMENTS[s.anchorNodeIds[0]])
+        || null;
+      return {
+        id: s.id,
+        titleTh: veiled ? '🔒 เรื่องราวเร้นลับที่รอผู้ค้นพบ' : s.titleTh,
+        group: s.group,
+        category: s.category,
+        layer: s.layer,
+        factId: s.factId,
+        polityId: s.polityId,
+        anchorNodeIds: veiled ? [] : s.anchorNodeIds.slice(),
+        locationNode: veiled ? null : locNode,
+        summaryTh: veiled ? 'ยังไม่มีศิษย์หรือสายข่าวในสำนักไปพบเบาะแสของเรื่องราวนี้' : s.summaryTh,
+        status: st.status || 'dormant',
+        stageIdx: st.stageIdx || 0,
+        totalStages: s.stages.length,
+        currentStageTitleTh: veiled ? 'รอการค้นพบ' : (curStage ? curStage.titleTh : ''),
+        currentStageDescTh: veiled ? '' : (curStage ? curStage.descTh : ''),
+        resolutionId: st.resolutionId || null,
+        resolutionLabelTh: st.resolutionLabelTh || null,
+        resolutionConsequenceTh: st.resolutionConsequenceTh || null,
+        witnessNamesTh: (st.witnessIds || []).map(id => (W && W.byId && W.byId[id] && HC.fullName(W.byId[id])) || null).filter(Boolean),
+        history: (st.history || []).slice(-4)
+      };
+    });
+
+    return {
+      version: '3.1.0-living-lore',
+      layers,
+      stories,
+      fallenDynasties: Object.values(FALLEN_DYNASTIES_ARCHIVE),
+      archivedCount: archiveIds.length,
+      activeStoriesCount: stories.filter(s => s.status === 'active' || s.status === 'contested').length,
+      resolvedStoriesCount: stories.filter(s => s.status === 'resolved').length,
+      adoptedCustoms: ll ? Object.values(ll.adoptedCustoms || {}) : [],
+      routeModifiers: ll ? Object.values(ll.routeModifiers || {}) : [],
+      recentEvents: ll ? (ll.recentEvents || []).slice(-6).reverse() : []
+    };
+  };
+
+  // Pure Read-Only Settlement Lore View for Atlas Popup & City Details (0 RNG, 0 State Mutation)
+  X.getSettlementLoreView = (W, nodeId) => {
+    if (!nodeId) return null;
+    const ll = W && W.world && W.world.livingLore;
+    const archiveIds = (W && W.sect && Array.isArray(W.sect.loreArchive)) ? W.sect.loreArchive : [];
+
+    const fallen = Object.values(FALLEN_DYNASTIES_ARCHIVE).filter(d => Array.isArray(d.anchorNodeIds) && d.anchorNodeIds.includes(nodeId));
+    const facts = CANON_FACTS.filter(f => Array.isArray(f.anchorNodeIds) && f.anchorNodeIds.includes(nodeId)).map(f => {
+      const wf = ll && ll.facts && ll.facts[f.id];
+      const discovered = !!((wf && wf.discovered) || archiveIds.includes(f.id));
+      if (f.secretGate && !discovered) return null;
+      const topAccId = (wf && wf.status === 'verified')
+        ? 'VERIFIED_CHRONICLE'
+        : ((wf && Array.isArray(wf.knownAccounts) && wf.knownAccounts[wf.knownAccounts.length - 1]) || f.defaultAccount || 'FOLK_ORAL');
+      const acc = f.accounts[topAccId] || f.accounts.FOLK_ORAL;
+      return {
+        id: f.id,
+        titleTh: f.titleTh,
+        status: (wf && wf.status) || 'rumor',
+        accountLabelTh: acc ? acc.labelTh : '',
+        summaryTh: acc ? acc.summaryTh : ''
+      };
+    }).filter(Boolean);
+
+    const stories = STORY_CHAINS.filter(s => Array.isArray(s.anchorNodeIds) && s.anchorNodeIds.includes(nodeId)).map(s => {
+      const st = (ll && ll.stories && ll.stories[s.id]) || { status: 'dormant', stageIdx: 0 };
+      const factDef = FACT_BY_ID[s.factId];
+      const wf = ll && ll.facts && ll.facts[s.factId];
+      if (factDef && factDef.secretGate && st.status === 'dormant' && !(wf && wf.discovered)) return null;
+      return {
+        id: s.id,
+        titleTh: s.titleTh,
+        status: st.status || 'dormant',
+        stageIdx: st.stageIdx || 0,
+        totalStages: s.stages.length,
+        resolutionLabelTh: st.resolutionLabelTh || null
+      };
+    }).filter(Boolean);
+
+    return { nodeId, fallenDynasties: fallen, facts, stories };
+  };
+
+  // Pure Read-Only Polity Lore View for UI.rPolities (0 RNG, 0 State Mutation)
+  X.getPolityLoreView = (W, polityId) => {
+    if (!polityId) return null;
+    const ll = W && W.world && W.world.livingLore;
+    const archiveIds = (W && W.sect && Array.isArray(W.sect.loreArchive)) ? W.sect.loreArchive : [];
+
+    const fallen = Object.values(FALLEN_DYNASTIES_ARCHIVE).filter(d => Array.isArray(d.successorPolityIds) && d.successorPolityIds.includes(polityId));
+    const facts = CANON_FACTS.filter(f => f.polityId === polityId).map(f => {
+      const wf = ll && ll.facts && ll.facts[f.id];
+      const discovered = !!((wf && wf.discovered) || archiveIds.includes(f.id));
+      if (f.secretGate && !discovered) return null;
+      const topAccId = (wf && wf.status === 'verified')
+        ? 'VERIFIED_CHRONICLE'
+        : ((wf && Array.isArray(wf.knownAccounts) && wf.knownAccounts[wf.knownAccounts.length - 1]) || f.defaultAccount || 'FOLK_ORAL');
+      const acc = f.accounts[topAccId] || f.accounts.FOLK_ORAL;
+      return {
+        id: f.id,
+        titleTh: f.titleTh,
+        status: (wf && wf.status) || 'rumor',
+        accountLabelTh: acc ? acc.labelTh : '',
+        summaryTh: acc ? acc.summaryTh : ''
+      };
+    }).filter(Boolean);
+
+    const stories = STORY_CHAINS.filter(s => s.polityId === polityId).map(s => {
+      const st = (ll && ll.stories && ll.stories[s.id]) || { status: 'dormant', stageIdx: 0 };
+      const factDef = FACT_BY_ID[s.factId];
+      const wf = ll && ll.facts && ll.facts[s.factId];
+      if (factDef && factDef.secretGate && st.status === 'dormant' && !(wf && wf.discovered)) return null;
+      return {
+        id: s.id,
+        titleTh: s.titleTh,
+        status: st.status || 'dormant',
+        stageIdx: st.stageIdx || 0,
+        totalStages: s.stages.length,
+        resolutionLabelTh: st.resolutionLabelTh || null
+      };
+    }).filter(Boolean);
+
+    return { polityId, fallenDynasties: fallen, facts, stories };
+  };
+
+  // Hook X.initContinent so every initialized continent also initializes Living Lore
+  const _origInitContinentLore = X.initContinent;
+  X.initContinent = W => {
+    const res = _origInitContinentLore ? _origInitContinentLore(W) : undefined;
+    X.initLivingLore(W);
+    return res;
+  };
+
+  // Hook X.tickContinentalCourts to also tick Living Lore
+  const _origTickCourtsLore = X.tickContinentalCourts;
+  X.tickContinentalCourts = W => {
+    const res = _origTickCourtsLore ? _origTickCourtsLore(W) : undefined;
+    X.tickLivingLore(W);
+    return res;
+  };
+
+  // Hook X.planContinentalRoute so verified route lore modifiers (STORY_01, STORY_04, STORY_08, STORY_09, STORY_12, STORY_17, STORY_18) causally affect route travel days
+  const _origPlanRouteLore = X.planContinentalRoute;
+  X.planContinentalRoute = (W, topo, target, fromId) => {
+    const route = _origPlanRouteLore ? _origPlanRouteLore(W, topo, target, fromId) : null;
+    if (!route || !Array.isArray(route.legs) || !route.legs.length) return route;
+    const mods = W && W.world && W.world.livingLore && W.world.livingLore.routeModifiers;
+    if (!mods || !Object.keys(mods).length) return route;
+    let totalDays = 0;
+    for (const leg of route.legs) {
+      const k = routeLegKey(leg.from, leg.to);
+      const m = mods[k];
+      if (m && Number.isFinite(m.multiplier)) {
+        leg.days = +(leg.days * m.multiplier).toFixed(4);
+        leg.loreModifierStoryId = m.storyId;
+      }
+      totalDays += leg.days;
+    }
+    route.days = totalDays;
+    return route;
+  };
+
+  // Hook X.cityVisitDrive so NPCs carrying active lore leads at reachable settlements gain extra curiosity motivation
+  const _origCityVisitDriveLore = X.cityVisitDrive;
+  X.cityVisitDrive = (W, npc) => {
+    const base = _origCityVisitDriveLore ? _origCityVisitDriveLore(W, npc) : 0;
+    if (!base || !npc) return base;
+    const nLore = getCOG() && getCOG().peekLoreState ? getCOG().peekLoreState(npc) : null;
+    if (nLore && Array.isArray(nLore.activeLeads) && nLore.activeLeads.length > 0) {
+      const boost = Math.min(0.35, nLore.activeLeads.length * 0.12 * (E(npc, 'personality.curiosity') / 60));
+      return clamp(base + boost, 0.1, 1.95);
+    }
+    return base;
+  };
+
+
+  /* ============================================================================
+   * JS2 v3.4.0: 40 External World Random Events & Living Lore Cross-Links
+   * (10 Categories · 100% Autonomous NPC Resolution · Zero-RNG Daily Spawn)
+   * ============================================================================ */
+  function detHash340(str) {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  const EXT_EVENT_CATEGORIES = Object.freeze({
+    ANCIENT_WAR_RUINS: { id: 'ANCIENT_WAR_RUINS', nameTh: 'มรดกมหาสงครามโบราณและซากเทียนกู่', order: 1 },
+    THREE_EMPIRES_POLITICS: { id: 'THREE_EMPIRES_POLITICS', nameTh: 'การเมืองและศึกตัวแทน 3 มหาอำนาจ', order: 2 },
+    CELESTIAL_ANOMALIES: { id: 'CELESTIAL_ANOMALIES', nameTh: 'ปรากฏการณ์ฟ้าดินวิปริตและรอยแยกม่านภพ', order: 3 },
+    WANDERING_JIANGHU_TRADE: { id: 'WANDERING_JIANGHU_TRADE', nameTh: 'ยุทธภพพเนจร การค้า ตลาดมืด และโรงเตี๊ยม', order: 4 },
+    BEAST_ECOLOGY_KINGS: { id: 'BEAST_ECOLOGY_KINGS', nameTh: 'นิเวศวิทยาสัตว์อสูรและราชันอสูร', order: 5 },
+    HIDDEN_DESTINY_LEGENDS: { id: 'HIDDEN_DESTINY_LEGENDS', nameTh: 'วาสนาลับและบุคคลในตำนานชุดแรก', order: 6 },
+    ANCIENT_GENERALS_ENEMIES: { id: 'ANCIENT_GENERALS_ENEMIES', nameTh: 'ปฐมบรรพชน ขุนพลโบราณ และตัวแปรจากอาณาจักรศัตรู', order: 7 },
+    HERMIT_ARTISAN_MASTERS: { id: 'HERMIT_ARTISAN_MASTERS', nameTh: 'ยอดปราชญ์สายอาชีพและปรมาจารย์เร้นกายยุคโบราณ', order: 8 },
+    CHAOS_ERA_HEROES: { id: 'CHAOS_ERA_HEROES', nameTh: 'มหาราชาผู้โศกเศร้าและยอดคนแห่งยุคกลียุคหมื่นราชวงศ์', order: 9 },
+    MODERN_EMPIRES_GATEKEEPER: { id: 'MODERN_EMPIRES_GATEKEEPER', nameTh: 'ตัวละครเอกยุคปัจจุบันของ 3 มหาอำนาจและปริศนาใต้สำนัก', order: 10 }
+  });
+
+  // Compact structured specification for all 40 events:
+  // [no, id, cat, nameTh, figureTh, impact, days, prefPaths, rewardMatId, loreFactIdx, relicLinkId, storySync]
+  const RAW_40_EVENTS = [
+    [1, 'EXT_EVT_01_BLACK_CAVALRY', 'ANCIENT_WAR_RUINS', 'สุสานทหารม้าเกราะดำผุดกลางพายุทราย', 'แม่ทัพหานพัวจวิน (#11)', 'REGIONAL', 15, ['STRATEGY_GOVERNANCE', 'BUDDHA_DHARMA', 'ANCESTRAL_RITUAL', 'NETHER_GRAVE'], 'MAT_ORE_METEOR_IRON_5', 0, 'LEG_ACC_TAICHI_HEAVEN_SEAL', 'STORY-SYNC-05'],
+    [2, 'EXT_EVT_02_CURSED_GOLD_VAULT', 'ANCIENT_WAR_RUINS', 'คลังทองคำต้องสาปของเสนาบดีฝ่ายขวาถล่ม', 'ราชันย์คลังมืด เหยียนกวง (#26)', 'REGIONAL', 14, ['MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'BUDDHA_DHARMA'], 'MAT_ORE_QUICKSAND_SPIRIT_GOLD_4', 1, 'EQ_V320_TEMP_ABACUS_T6', null],
+    [3, 'EXT_EVT_03_ENEMY_SKY_ARK', 'ANCIENT_WAR_RUINS', 'ซากสำเภาเวหาจากอาณาจักรศัตรูตกลงกลางหุบเขา', 'ขุนพลนาวาเวหาโบราณ', 'CONTINENTAL', 16, ['MECH_PUPPET', 'CRAFT_CREATION', 'TIDE_VOYAGER', 'ARRAY_TALISMAN'], 'MAT_FORM_SKY_LEVITATION_CORE_5', 2, 'EQ_V320_SHOES_T5', null],
+    [4, 'EXT_EVT_04_BEIMING_PURGE', 'THREE_EMPIRES_POLITICS', 'พระราชโองการกวาดล้างมารแห่งเป่ยหมิง', 'ราชสำนักเป่ยหมิง (#46)', 'CONTINENTAL', 18, ['XIAN', 'BUDDHA_DHARMA', 'DEMON', 'STRATEGY_GOVERNANCE'], 'MAT_HERB_SNOW_LOTUS_5', 3, 'EQ_V320_SHOES_T7', 'STORY-SYNC-01'],
+    [5, 'EXT_EVT_05_DONGHUANG_EMBARGO', 'THREE_EMPIRES_POLITICS', 'สงครามภาษีและการประมูลลับแห่งตงหวง', 'ตระกูลซือหม่า (#51/#52)', 'CONTINENTAL', 16, ['MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'LORE_ARCHIVIST'], 'MAT_ORE_DIVINE_GOLD_6', 4, 'EQ_V320_SET_ARCH_BRUSH', 'STORY-SYNC-02'],
+    [6, 'EXT_EVT_06_XIRONG_GAUNTLET', 'THREE_EMPIRES_POLITICS', 'เทียบเชิญประลองยุทธ์เลือดแห่งซีหรง', 'ตระกูลแม่ทัพทัวป๋า (#56/#60)', 'CONTINENTAL', 15, ['ARENA_GLORY', 'BODY', 'SHADOW_SAMURAI'], 'MAT_BP_TIGER_BLOOD_6', 5, 'EQ_V320_CURSED_SPEAR_T6', 'STORY-SYNC-05'],
+    [7, 'EXT_EVT_07_WORLD_BARRIER_RIFT', 'CELESTIAL_ANOMALIES', 'รอยแยกม่านกั้นภพปริแตก — เศษเสี้ยวทัณฑ์สวรรค์', 'ผู้เหินหาวนิรนามโลกเบื้องบน', 'MYTHIC', 12, ['VOID_SPACE', 'ASTRO_DIVINATION', 'ARRAY_TALISMAN'], 'MAT_ORE_PRIMORDIAL_CRYSTAL_7', 6, 'EQ_V320_LORE_SWORD_T7', 'STORY-SYNC-12'],
+    [8, 'EXT_EVT_08_BLOOD_MOON_DEMONS', 'CELESTIAL_ANOMALIES', 'คืนจันทร์สีเลือดและคลื่นจิตมารระบาด', 'คลื่นจิตมารยุคมืด', 'REGIONAL', 10, ['BUDDHA_DHARMA', 'HEART_SOUL', 'DEMON', 'OCCULT_MAGE'], 'MAT_FORM_BLOOD_FIEND_CRYSTAL_4', 7, 'EQ_V320_CURSED_RING_T4', 'STORY-SYNC-07'],
+    [9, 'EXT_EVT_09_PRIMORDIAL_SPRING', 'CELESTIAL_ANOMALIES', 'น้ำพุวิญญาณบรรพกาลปะทุกลางรอยเลื่อนแผ่นดิน', 'ชีพจรมังกรโบราณ', 'REGIONAL', 14, ['DRAGON_VEIN_GEOMANCY', 'SPIRIT_HUSBANDRY', 'TIDE_VOYAGER'], 'MAT_HERB_DRAGON_GRASS_4', 8, 'EQ_V320_UPKEEP_STAFF_T5', null],
+    [10, 'EXT_EVT_10_NAMELESS_INN_TEA', 'WANDERING_JIANGHU_TRADE', 'ชุมนุมโต๊ะน้ำชาที่โรงเตี๊ยมไร้ชื่อ — แผนที่คลังสมบัติทั้งเก้า', 'เถ้าแก่เฉียน (#22)', 'REGIONAL', 14, ['WANDERING_DAO', 'MERCANTILE_DAO', 'LORE_ARCHIVIST'], 'MAT_ORE_STAR_COPPER_3', 9, 'LEG_WPN_CAISHEN_GOLDEN_ABACUS', 'STORY-SYNC-03'],
+    [11, 'EXT_EVT_11_GHOST_SHIP_MIST', 'WANDERING_JIANGHU_TRADE', 'เรือสำเภาผีของนายหญิงหลานอินเทียบท่าคืนหมอกทมิฬ', 'นายหญิงหลานอิน', 'REGIONAL', 12, ['TIDE_VOYAGER', 'FORTUNE_GAMBLER', 'NINPO_SHADOW'], 'MAT_WHIP_KARMIC_RED_SILK_5', 10, 'EQ_V320_SET_TWIN_ROBE', null],
+    [12, 'EXT_EVT_12_REFUGEE_AMBUSH', 'WANDERING_JIANGHU_TRADE', 'ขบวนนักโทษประหารและผู้ลี้ภัยถูกโจรภูเขาซุ่มโจมตี', 'กองกำลังเร่ร่อนชายแดน', 'MINOR', 10, ['BODY', 'ARENA_GLORY', 'SAGE_SUPPORT', 'STRATEGY_GOVERNANCE'], 'MAT_ORE_COLD_STEEL_2', 11, 'EQ_V320_HEAVY_T2', null],
+    [13, 'EXT_EVT_13_PHOENIX_EGG_VOLCANO', 'BEAST_ECOLOGY_KINGS', 'ไข่อมตะของราชันหงส์เพลิงกำลังจะฟักกลางปล่องภูเขาไฟ', 'ราชันหงส์เพลิงบรรพกาล', 'CONTINENTAL', 14, ['BEAST_SOVEREIGN', 'SPIRIT_HUSBANDRY', 'PRIMORDIAL_SHIFTER'], 'MAT_ZITHER_PHOENIX_HEARTWOOD_5', 12, 'EQ_V320_TAL_CHG_T6_PHOENIX', null],
+    [14, 'EXT_EVT_14_BLOOD_WOLF_ALPHA', 'BEAST_ECOLOGY_KINGS', 'จ่าฝูงหมาป่าพันธะโลหิตบาดเจ็บหนีตายมาพึ่งเขตสำนัก', 'จ่าฝูงหมาป่าพันธะโลหิต', 'MINOR', 10, ['BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'SPIRIT_HUSBANDRY'], 'MAT_BP_WOLF_FANG_1', 13, 'EQ_V320_CLAW_T1', null],
+    [15, 'EXT_EVT_15_ANCIENT_TREE_SPIRIT', 'BEAST_ECOLOGY_KINGS', 'ภูตต้นไม้โบราณพันปีถูกหนอนปรสิตกลืนกินราก', 'ภูตพฤกษาพันปี', 'REGIONAL', 12, ['SPIRIT_HUSBANDRY', 'VENOM_GU', 'SAGE_SUPPORT'], 'MAT_HERB_JADE_LOTUS_2', 14, 'EQ_V320_ROBE_T2', null],
+    [16, 'EXT_EVT_16_BLIND_ZITHER_SAGE', 'HIDDEN_DESTINY_LEGENDS', 'เสียงพิณไร้สายในคืนเดือนมืด — บททดสอบของคีตเซียนตาบอด', 'คีตเซียนตาบอด', 'REGIONAL', 12, ['SONIC_HARMONY', 'HEART_SOUL', 'LORE_ARCHIVIST'], 'MAT_FORM_SOUL_WOOD_PILLAR_4', 15, 'EQ_V320_GS_ZITHER_T4', null],
+    [17, 'EXT_EVT_17_OLD_MAN_WOOD_SWORD', 'HIDDEN_DESTINY_LEGENDS', 'ชายชราพเนจรผู้ไร้ชื่อขอแลกกระบี่ไม้กับอาหารหนึ่งมื้อ', 'ยอดฝีมือเร้นกายนิรนาม', 'MINOR', 10, ['WANDERING_DAO', 'XIAN', 'SHADOW_SAMURAI'], 'MAT_HERB_DEW_GRASS_1', 16, 'EQ_V320_GS_SWORD_T3', null],
+    [18, 'EXT_EVT_18_BETRAYED_GENERAL_PRISON', 'HIDDEN_DESTINY_LEGENDS', 'รอยแยกคุกมืดใต้ดิน — เสียงโซ่ตรวนของขุนพลผู้ถูกตราหน้าว่าทรยศ', 'ขุนพลผู้ถูกจองจำ', 'REGIONAL', 14, ['STRATEGY_GOVERNANCE', 'ANCESTRAL_RITUAL', 'KARMA_SAMSARA'], 'MAT_ORE_MITHRIL_JADE_4', 17, 'EQ_V320_SET_PATINA_ARMOR', null],
+    [19, 'EXT_EVT_19_TUOBA_PHANTOM_SPEAR', 'ANCIENT_GENERALS_ENEMIES', 'เสียงทวนในพายุทรายสีเลือด — เงาร่างของแม่ทัพใหญ่ทัวป๋าเลี่ย', 'แม่ทัพใหญ่ทัวป๋าเลี่ย (#5)', 'CONTINENTAL', 15, ['ARENA_GLORY', 'BODY', 'STRATEGY_GOVERNANCE'], 'MAT_ORE_METEOR_IRON_5', 18, 'EQ_V320_GS_SPEAR_T3', 'STORY-SYNC-05'],
+    [20, 'EXT_EVT_20_MURONG_BLOOD_LOTUS', 'ANCIENT_GENERALS_ENEMIES', 'ดอกบัวโลหิตนิรันดร์บานกลางบึงมรณะ — การตื่นขึ้นของมู่หรงเสวี่ย', 'แม่ทัพหญิงมู่หรงเสวี่ย (#7)', 'MYTHIC', 15, ['ANCESTRAL_RITUAL', 'DEMON', 'KARMA_SAMSARA'], 'MAT_HERB_BLOOD_GINSENG_3', 19, 'EQ_V320_CURSED_ROBE_T5', 'STORY-SYNC-08'],
+    [21, 'EXT_EVT_21_TWIN_ASSASSINS', 'ANCIENT_GENERALS_ENEMIES', 'เงาคู่ในคืนไร้จันทร์ — บททดสอบของฝาแฝดมือสังหารหลวง', 'ฝาแฝดมือสังหารหลวง', 'REGIONAL', 12, ['NINPO_SHADOW', 'SHADOW_SAMURAI', 'VOID_SPACE'], 'MAT_BP_SCORPION_STING_4', 20, 'EQ_V320_GS_NEEDLE_T4', null],
+    [22, 'EXT_EVT_22_STANDING_TITAN_LEIZHEN', 'ANCIENT_GENERALS_ENEMIES', 'ยักษ์ศิลาค้ำถ้ำลืมตาตื่น — บททดสอบหมัดเหล็กของจ้าวพยัคฆ์เหลยเจิ้น', 'จ้าวพยัคฆ์เหลยเจิ้น', 'CONTINENTAL', 14, ['BODY', 'GRAVITY_DAO', 'ARENA_GLORY'], 'MAT_BP_EARTH_CORE_4', 21, 'EQ_V320_FIST_T5', null],
+    [23, 'EXT_EVT_23_STRANDED_ENEMY_GENERAL', 'ANCIENT_GENERALS_ENEMIES', 'ห้องจำศีลใต้หุบเขาไฟ — ขุนพลอาณาจักรศัตรูที่หนีกลับไม่ทัน', 'ขุนพลต่างภพจำศีล', 'CONTINENTAL', 14, ['STRATEGY_GOVERNANCE', 'LORE_ARCHIVIST', 'BODY'], 'MAT_FORM_EARTH_FLAME_CORE_4', 22, 'EQ_V320_CORE_CHG_T4_FLAME', null],
+    [24, 'EXT_EVT_24_ICE_COFFIN_ENVOY', 'ANCIENT_GENERALS_ENEMIES', 'โลงหยกน้ำแข็งของทูตสาวจากอีกฟากฟ้า', 'ทูตหญิงต่างภพในโลงหยก', 'CONTINENTAL', 14, ['TIDE_VOYAGER', 'SAGE_SUPPORT', 'LORE_ARCHIVIST'], 'MAT_BP_BEAR_HEART_4', 23, 'EQ_V320_TEMP_FAN_T4', null],
+    [25, 'EXT_EVT_25_FALLEN_UPPER_ENVOY', 'ANCIENT_GENERALS_ENEMIES', 'ทูตสวรรค์ปีกหักกลางหุบเขา — คำเตือนจากโลกเบื้องบน', 'ทูตตกสวรรค์ ขงหมิง (#21)', 'MYTHIC', 16, ['DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'LORE_ARCHIVIST'], 'MAT_TR_HEAVEN_EDICT_SILK', 24, 'EQ_V320_LORE_RING_T7', 'STORY-SYNC-10'],
+    [26, 'EXT_EVT_26_MAD_APOTHECARY', 'HERMIT_ARTISAN_MASTERS', 'คนบ้าในบึงหมอกพิษ — โอสถหนึ่งเม็ดหรือพิษล้างบาง', 'ปรมาจารย์โอสถคลั่ง', 'REGIONAL', 12, ['VENOM_GU', 'SPIRIT_HUSBANDRY', 'CRAFT_CREATION'], 'MAT_HERB_VENOM_VINE_3', 25, 'EQ_V320_AUX_T2_ALCH', null],
+    [27, 'EXT_EVT_27_MAGMA_BLACKSMITH', 'HERMIT_ARTISAN_MASTERS', 'วิญญาณช่างหลอมในหัวใจเปลวเพลิง — ตีเหล็กหนึ่งหมื่นค้อน', 'โอวหยางเหยียน (#14)', 'CONTINENTAL', 14, ['CRAFT_CREATION', 'BODY', 'ARENA_GLORY'], 'MAT_TR_WORLD_FORGE_SHARD', 26, 'EQ_V320_SET_PATINA_BLADE', 'STORY-SYNC-12'],
+    [28, 'EXT_EVT_28_GONGSHU_PUPPET_VAULT', 'HERMIT_ARTISAN_MASTERS', 'ห้องนิรภัยหุ่นเชิดหยกขาว — ปริศนากลไกของกงซูจี', 'กงซูจี ปราชญ์กลไก', 'REGIONAL', 14, ['MECH_PUPPET', 'CRAFT_CREATION', 'ARRAY_TALISMAN'], 'MAT_FORM_EARTH_ARRAY_CORE_4', 27, 'EQ_V320_CORE_CHG_T4_LIGHT', null],
+    [29, 'EXT_EVT_29_FROZEN_STAR_TOWER', 'HERMIT_ARTISAN_MASTERS', 'หอคอยดูดาวที่เวลาหยุดนิ่ง — คำพยากรณ์สุดท้ายของซิงเฉินจื่อ', 'ซิงเฉินจื่อ (#16)', 'MYTHIC', 15, ['ASTRO_DIVINATION', 'CHRONO_EPOCH', 'LORE_ARCHIVIST'], 'MAT_TR_ASTRAL_DEW', 23, 'LEG_WPN_HETU_LUOSHU_ASTROLABE', 'STORY-SYNC-04'],
+    [30, 'EXT_EVT_30_SWEEPING_MONK', 'HERMIT_ARTISAN_MASTERS', 'หลวงจีนชรากวาดใบไม้กลางวัดร้าง — คมดาบที่ซ่อนในไม้กวาด', 'หลวงจีนชราวัดร้าง', 'REGIONAL', 12, ['BUDDHA_DHARMA', 'HEART_SOUL', 'WANDERING_DAO'], 'MAT_FORM_FAITH_INCENSE_PEARL_4', 12, 'EQ_V320_ROSARY_T5', null],
+    [31, 'EXT_EVT_31_GRANNY_MENG_HUT', 'HERMIT_ARTISAN_MASTERS', 'กระท่อมปะชุนเสื้อผ้าริมบึง — เส้นไหมสวรรค์ของแม่เฒ่ายายเมิ่ง', 'แม่เฒ่ายายเมิ่ง (#24)', 'CONTINENTAL', 14, ['CRAFT_CREATION', 'SAGE_SUPPORT', 'TIDE_VOYAGER'], 'MAT_WHIP_KARMIC_RED_SILK_5', 22, 'LEG_ARM_CELESTIAL_CRANE_ROBE', 'STORY-SYNC-01'],
+    [32, 'EXT_EVT_32_HUNDRED_DAY_EMPEROR', 'CHAOS_ERA_HEROES', 'บัลลังก์หินกลางทุ่งร้าง — เจตนารมณ์ของจักรพรรดิร้อยวัน หลินเทียน', 'จักรพรรดิร้อยวัน หลินเทียน', 'CONTINENTAL', 14, ['STRATEGY_GOVERNANCE', 'ANCESTRAL_RITUAL', 'INK_LITERATI'], 'MAT_BRUSH_DRAGON_WHISKER_JADE_5', 20, 'EQ_V320_GS_BRUSH_T6', null],
+    [33, 'EXT_EVT_33_SEVEN_BANNER_WAGER', 'CHAOS_ERA_HEROES', 'ขุนพลขี้เมาผู้แบกธงขาดเจ็ดผืน — การเดิมพันครั้งที่แปดของเกาเซิ่ง', 'ขุนพลเกาเซิ่ง', 'REGIONAL', 12, ['FORTUNE_GAMBLER', 'ARENA_GLORY', 'STRATEGY_GOVERNANCE'], 'MAT_BP_HEAVEN_CORE_5', 13, 'EQ_V320_GS_ABACUS_T4', null],
+    [34, 'EXT_EVT_34_GAMBLER_PRINCE_DICE', 'CHAOS_ERA_HEROES', 'บ่อนพนันชะตาขององค์ชายไร้บ้าน — ทอยเต๋าแลกสมบัติตำนาน', 'องค์ชายพเนจรนักเดิมพัน', 'REGIONAL', 12, ['FORTUNE_GAMBLER', 'MERCANTILE_DAO', 'WANDERING_DAO'], 'MAT_ORE_DIVINE_GOLD_6', 21, 'EQ_V320_SET_TWIN_RING', null],
+    [35, 'EXT_EVT_35_DRUNKEN_SWORD_IMMORTAL', 'CHAOS_ERA_HEROES', 'น้ำเต้าสุราบนยอดไผ่ — ท้าดวลร่ำสุรากับเซียนกระบี่ขี้เมา', 'จิ้วเจี้ยนเซียน (#39)', 'MYTHIC', 14, ['XIAN', 'WANDERING_DAO', 'ARENA_GLORY'], 'MAT_HERB_IMMORTAL_PEACH_6', 6, 'EQ_V320_TEMP_SWORD_T4', 'STORY-SYNC-09'],
+    [36, 'EXT_EVT_36_KENSHIN_CLOUD_CLIFF', 'CHAOS_ERA_HEROES', 'คมดาบไร้ปราณบนผาเมฆา — บททดสอบจิตว่างเปล่าของซามูไรเคนชิน', 'ซามูไรเคนชิน (#41)', 'CONTINENTAL', 14, ['SHADOW_SAMURAI', 'ARENA_GLORY', 'HEART_SOUL'], 'MAT_ORE_METEOR_IRON_5', 19, 'EQ_V320_TAL_CHG_T5_CHARGE', 'STORY-SYNC-11'],
+    [37, 'EXT_EVT_37_CROWN_PRINCESS_MARKET', 'MODERN_EMPIRES_GATEKEEPER', 'เทพธิดาเก้าเหมันต์ปลอมตัวเดินตลาด — องค์หญิงรัชทายาทเป่ยหมิง', 'กู่ชิงเสวี่ย (#47)', 'CONTINENTAL', 14, ['XIAN', 'STRATEGY_GOVERNANCE', 'MERCANTILE_DAO'], 'MAT_HERB_SNOW_LOTUS_5', 22, 'LEG_ACC_DRAGON_PHOENIX_BANGLE', 'STORY-SYNC-06'],
+    [38, 'EXT_EVT_38_XINGYUN_OBSERVATION', 'MODERN_EMPIRES_GATEKEEPER', 'นักพรตพเนจรดูดาวหน้าประตูสำนัก — เจ้าหอดูดาวซิงอวิ๋น', 'ซิงอวิ๋น (#49)', 'CONTINENTAL', 14, ['ASTRO_DIVINATION', 'LORE_ARCHIVIST', 'ARRAY_TALISMAN'], 'MAT_ORE_THUNDER_JADE_4', 23, 'EQ_V320_GS_ASTROLABE_T4', 'STORY-SYNC-04'],
+    [39, 'EXT_EVT_39_CENSOR_WARRANT', 'MODERN_EMPIRES_GATEKEEPER', 'หมายจับตุลาการหน้าเหล็ก — เหยียนหลัวแห่งตงหวงตามล่าถึงพรมแดน', 'เหยียนหลัว ตุลาการตงหวง', 'CONTINENTAL', 14, ['STRATEGY_GOVERNANCE', 'KARMA_SAMSARA', 'ARENA_GLORY'], 'MAT_BP_TIGER_BONE_6', 15, 'EQ_V320_LORE_ARMOR_T7', 'STORY-SYNC-02'],
+    [40, 'EXT_EVT_40_FACELESS_GATEKEEPER', 'MODERN_EMPIRES_GATEKEEPER', 'เสียงเรียกจากใต้ฐานประตูมิติ — การตื่นขึ้นของผู้เฝ้าประตูไร้หน้า', 'ผู้เฝ้าประตูไร้หน้าแห่งเทียนกู่', 'MYTHIC', 18, ['ANCESTRAL_RITUAL', 'LORE_ARCHIVIST', 'VOID_SPACE', 'ARRAY_TALISMAN'], 'MAT_TR_VOID_MATRIX_CORE', 27, 'EQ_V320_LORE_SWORD_T7', 'STORY-SYNC-12']
+  ];
+
+  const EXT_EVENT_CATALOG = Object.freeze(RAW_40_EVENTS.map(row => {
+    const [no, id, category, nameTh, loreFigureTh, impact, durationDays, preferredPaths, rewardMatId, loreFactIdx, relicLinkId, storySync] = row;
+    return Object.freeze({
+      no, id, category,
+      categoryNameTh: EXT_EVENT_CATEGORIES[category].nameTh,
+      nameTh, loreFigureTh, impact, durationDays,
+      preferredPaths: Object.freeze(preferredPaths.slice()),
+      rewardMatId, loreFactIdx, relicLinkId, storySync,
+      outcomes: Object.freeze([
+        { key: 'HONORABLE', labelTh: 'เจรจา/คลี่คลายด้วยปัญญาและเกียรติ', repDelta: 24, cultExp: 85, matQty: 2, stones: 60 },
+        { key: 'RIGHTEOUS', labelTh: 'ประกอบพิธีชำระ/ช่วยเหลือด้วยคุณธรรม', repDelta: 32, cultExp: 70, matQty: 1, stones: 35 },
+        { key: 'AMBITIOUS', labelTh: 'ช่วงชิงผลประโยชน์และแก่นพลังต้องห้าม', repDelta: -12, cultExp: 110, matQty: 3, stones: 95, heartDemon: 6 },
+        { key: 'PRAGMATIC', labelTh: 'สังเกตการณ์เก็บกวาดและถอยอย่างปลอดภัย', repDelta: 6, cultExp: 45, matQty: 1, stones: 25 }
+      ])
+    });
+  }));
+
+  const EXT_EVENT_BY_ID = Object.freeze(Object.fromEntries(EXT_EVENT_CATALOG.map(e => [e.id, e])));
+
+  X.EXTERNAL_WORLD_EVENTS = {
+    VERSION: '3.4.0-world-events',
+    CATEGORIES: EXT_EVENT_CATEGORIES,
+    CATALOG: EXT_EVENT_CATALOG,
+    BY_ID: EXT_EVENT_BY_ID,
+
+    ensureWorldState(W) {
+      if (!W) return null;
+      W.world = W.world || {};
+      if (!W.world.externalWorldEvents || typeof W.world.externalWorldEvents !== 'object') {
+        W.world.externalWorldEvents = { active: [], resolvedReceipts: {}, history: [], lastSpawnDay: -7 };
+      }
+      const st = W.world.externalWorldEvents;
+      if (!Array.isArray(st.active)) st.active = [];
+      if (!st.resolvedReceipts || typeof st.resolvedReceipts !== 'object') st.resolvedReceipts = {};
+      if (!Array.isArray(st.history)) st.history = [];
+      return st;
+    },
+
+    spawnDeterministicEvent(W, opts) {
+      opts = opts || {};
+      const st = X.EXTERNAL_WORLD_EVENTS.ensureWorldState(W);
+      if (!st) return null;
+      const day = W.day || 0;
+      if (!opts.force && st.active.length >= 3) return null;
+      if (!opts.force && day - (st.lastSpawnDay || -7) < 7) return null;
+
+      let chosen = opts.eventId ? EXT_EVENT_BY_ID[opts.eventId] : null;
+      if (!chosen) {
+        const activeIds = new Set(st.active.map(a => a && a.id));
+        const pool = EXT_EVENT_CATALOG.filter(ev => !activeIds.has(ev.id) && !(st.resolvedReceipts[ev.id] && (day - st.resolvedReceipts[ev.id].day) < 45));
+        if (!pool.length) return null;
+        const idx = detHash340((W.seed || 'seed') + ':ext_evt:' + day + ':' + st.history.length) % pool.length;
+        chosen = pool[idx];
+      }
+      const instance = {
+        uid: 'wevt_' + chosen.no + '_' + day,
+        id: chosen.id,
+        no: chosen.no,
+        category: chosen.category,
+        nameTh: chosen.nameTh,
+        loreFigureTh: chosen.loreFigureTh,
+        impact: chosen.impact,
+        spawnedDay: day,
+        expiresDay: day + chosen.durationDays,
+        relicLinkId: chosen.relicLinkId || null,
+        storySync: chosen.storySync || null
+      };
+      st.active.push(instance);
+      st.lastSpawnDay = day;
+      if (W.log && !opts.quiet) {
+        W.log('world', '🌍 อีเวนต์โลกภายนอก [' + chosen.categoryNameTh + ']:「' + chosen.nameTh + '」(' + chosen.loreFigureTh + ')', []);
+      }
+      return instance;
+    },
+
+    chooseAutonomousOutcome(W, npc, ev) {
+      if (!ev) return null;
+      const E = g.HC && g.HC.eff;
+      const mor = (npc && E) ? E(npc, 'values.morality') : 50;
+      const amb = (npc && E) ? E(npc, 'personality.ambition') : 50;
+      const caut = (npc && E) ? E(npc, 'personality.caution') : 50;
+      const cour = (npc && E) ? E(npc, 'personality.courage') : 50;
+      const path = npc && npc.cult && npc.cult.path;
+      const doctrine = (W && W.sect && W.sect.doctrine) || 'BALANCED';
+      const isPref = path && ev.preferredPaths.includes(path);
+      // STORY-SYNC-10 guard on Event 25: DIVINE_* only (exclude mortal GOD path)
+      const isDarkOrAmb = (amb >= 68 && mor < 48) || ['DEMON', 'VOID_HERETIC_PACT', 'NETHER_GRAVE', 'OCCULT_MAGE'].includes(path) || doctrine === 'RUTHLESS';
+      if (ev.no === 25 && ['DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER'].includes(path)) {
+        return ev.outcomes[2]; // AMBITIOUS divine mandate strike
+      }
+      if (isPref && (cour >= 55 || mor >= 55)) return ev.outcomes[0]; // HONORABLE
+      if (mor >= 65 || doctrine === 'RIGHTEOUS' || ['BUDDHA_DHARMA', 'SAGE_SUPPORT', 'ANCESTRAL_RITUAL', 'SPIRIT_HUSBANDRY'].includes(path)) return ev.outcomes[1]; // RIGHTEOUS
+      if (isDarkOrAmb) return ev.outcomes[2]; // AMBITIOUS
+      if (caut >= 62) return ev.outcomes[3]; // PRAGMATIC
+      return isPref ? ev.outcomes[0] : ev.outcomes[3];
+    },
+
+    resolveEventAutonomously(W, npc, eventOrId, opts) {
+      opts = opts || {};
+      const st = X.EXTERNAL_WORLD_EVENTS.ensureWorldState(W);
+      if (!st || !npc || npc.dead) return { ok: false, reason: 'invalid-actor' };
+      const evId = typeof eventOrId === 'string' ? eventOrId : (eventOrId && eventOrId.id);
+      const ev = EXT_EVENT_BY_ID[evId];
+      if (!ev) return { ok: false, reason: 'unknown-event' };
+      const day = W.day || 0;
+      const prev = st.resolvedReceipts[ev.id];
+      if (!opts.force && prev && (day - prev.day) < 45) {
+        return { ok: false, reason: 'already-resolved-recently' };
+      }
+
+      const outcome = X.EXTERNAL_WORLD_EVENTS.chooseAutonomousOutcome(W, npc, ev);
+      // Closed-loop transfer from canonical W.world.resourcePool.stones (never conjure stones)
+      let stonesPaid = outcome.stones || 0;
+      if (W.sect && stonesPaid > 0) {
+        const pool = W.world && W.world.resourcePool;
+        if (pool && Number.isFinite(pool.stones)) {
+          stonesPaid = Math.min(stonesPaid, Math.max(0, Math.floor(pool.stones)));
+          pool.stones -= stonesPaid;
+        } else {
+          stonesPaid = 0;
+        }
+        if (stonesPaid > 0) W.sect.stones = (W.sect.stones || 0) + stonesPaid;
+      }
+      if (W.sect && outcome.repDelta) {
+        W.sect.rep = Math.max(0, (W.sect.rep || 0) + outcome.repDelta);
+      }
+      if (npc.cult && g.CULT && g.CULT.gain && outcome.cultExp > 0) {
+        g.CULT.gain(npc, outcome.cultExp, W, 'external_world_event');
+      }
+      if (outcome.heartDemon && npc.h && npc.h.state) {
+        npc.h.state.heartDemon = Math.min(100, (npc.h.state.heartDemon || 0) + outcome.heartDemon);
+      }
+      let matAwarded = null;
+      if (ev.rewardMatId && g.ECO && g.ECO.matById && g.ECO.matById[ev.rewardMatId] && g.ECO.add) {
+        g.ECO.add(W, ev.rewardMatId, outcome.matQty || 1);
+        matAwarded = ev.rewardMatId;
+      }
+      // Cross-link to canonical v3.1.0 Living Lore facts[id] (plus legacy discoveredFacts index)
+      let loreFactId = null;
+      if (X.LIVING_LORE && Array.isArray(X.LIVING_LORE.CANON_FACTS) && X.LIVING_LORE.CANON_FACTS.length) {
+        const cf = X.LIVING_LORE.CANON_FACTS[ev.loreFactIdx % X.LIVING_LORE.CANON_FACTS.length];
+        if (cf && cf.id) {
+          if (typeof X.LIVING_LORE.ensureWorldState === 'function') X.LIVING_LORE.ensureWorldState(W);
+          W.world.livingLore = W.world.livingLore || {};
+          W.world.livingLore.facts = W.world.livingLore.facts || {};
+          const wf = W.world.livingLore.facts[cf.id] || (W.world.livingLore.facts[cf.id] = { id: cf.id, discovered: false, archivedInSect: false, status: 'undiscovered', knownAccounts: [] });
+          wf.discovered = true;
+          if (wf.status === 'undiscovered') wf.status = 'rumored';
+          if (!Array.isArray(wf.knownAccounts)) wf.knownAccounts = [];
+          if (!wf.knownAccounts.includes('WORLD_EVENT')) wf.knownAccounts.push('WORLD_EVENT');
+          wf.lastSourceEventId = ev.id;
+          wf.lastActorId = npc.id;
+          wf.discoveredDay = wf.discoveredDay != null ? wf.discoveredDay : day;
+          W.world.livingLore.discoveredFacts = W.world.livingLore.discoveredFacts || {};
+          W.world.livingLore.discoveredFacts[cf.id] = { day, sourceEventId: ev.id, actorId: npc.id };
+          loreFactId = cf.id;
+        }
+      }
+
+      st.active = st.active.filter(a => a && a.id !== ev.id);
+      const actorName = (npc.h && npc.h.name) ? ((npc.h.name.surname || '') + (npc.h.name.given || '')) : npc.id;
+      const entry = {
+        id: ev.id,
+        no: ev.no,
+        nameTh: ev.nameTh,
+        category: ev.category,
+        day,
+        actorId: npc.id,
+        actorNameTh: actorName,
+        outcomeKey: outcome.key,
+        outcomeLabelTh: outcome.labelTh,
+        stonesPaid,
+        matAwarded,
+        loreFactId,
+        relicLinkId: ev.relicLinkId || null
+      };
+      st.resolvedReceipts[ev.id] = { day, outcomeKey: outcome.key, actorId: npc.id };
+      st.history.push(entry);
+      if (st.history.length > 60) st.history.shift();
+      if (W.log && !opts.quiet) {
+        W.log('chronicle', '🌍 ' + actorName + ' คลี่คลายอีเวนต์「' + ev.nameTh + '」(' + outcome.labelTh + ')', [npc.id]);
+      }
+      return { ok: true, entry };
+    },
+
+    tickDaily(W) {
+      const st = X.EXTERNAL_WORLD_EVENTS.ensureWorldState(W);
+      if (!st) return null;
+      const day = W.day || 0;
+      st.active = st.active.filter(a => a && day <= (a.expiresDay || day));
+      X.EXTERNAL_WORLD_EVENTS.spawnDeterministicEvent(W, { quiet: false });
+      if (st.active.length > 0 && Array.isArray(W.npcs)) {
+        const targetEvt = st.active.find(a => a && (day - (a.spawnedDay || 0)) >= 3);
+        if (targetEvt) {
+          const evDef = EXT_EVENT_BY_ID[targetEvt.id];
+          const busyActs = new Set(['fight', 'breakthrough', 'seclusion', 'sleep', 'heal']);
+          const candidates = W.npcs.filter(n => n && !n.dead && !n.foe && !n.away && !n.exiled && n.cult && (n.cult.stage || 1) >= 2 && (!n.act || !busyActs.has(n.act.id)) && (!n.h || !n.h.state || (n.h.state.energy || 100) >= 25));
+          if (candidates.length > 0) {
+            const scored = candidates.map(n => {
+              const prefBonus = (evDef && evDef.preferredPaths.includes(n.cult.path)) ? 100 : 0;
+              const repeatPenalty = (st.lastActorId && st.lastActorId === n.id) ? -60 : 0;
+              const stageBonus = Math.min(30, (n.cult.stage || 1) * 4);
+              const tie = detHash340((W.seed || 'seed') + ':' + targetEvt.id + ':' + day + ':' + n.id) % 19;
+              return { n, score: prefBonus + repeatPenalty + stageBonus + tie };
+            }).sort((a, b) => b.score - a.score);
+            const chosenNpc = scored[0].n;
+            const res = X.EXTERNAL_WORLD_EVENTS.resolveEventAutonomously(W, chosenNpc, targetEvt.id, { quiet: false });
+            if (res && res.ok) {
+              st.lastActorId = chosenNpc.id;
+              if (chosenNpc.h && chosenNpc.h.state) {
+                chosenNpc.h.state.energy = Math.max(10, (chosenNpc.h.state.energy || 60) - 18);
+                chosenNpc.h.state.satiety = Math.max(10, (chosenNpc.h.state.satiety || 60) - 10);
+              }
+            }
+          }
+        }
+      }
+      return st;
+    },
+
+    peekSummary(W) {
+      const st = W && W.world && W.world.externalWorldEvents;
+      if (!st) return { activeCount: 0, resolvedCount: 0, activeNamesTh: [], recentTh: '' };
+      const activeNamesTh = (st.active || []).map(a => a.nameTh);
+      const last = (st.history && st.history.length) ? st.history[st.history.length - 1] : null;
+      return {
+        activeCount: activeNamesTh.length,
+        resolvedCount: Object.keys(st.resolvedReceipts || {}).length,
+        activeNamesTh,
+        recentTh: last ? (last.actorNameTh + ': ' + last.nameTh + ' (' + last.outcomeLabelTh + ')') : ''
+      };
+    }
+  };
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);

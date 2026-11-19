@@ -9,8 +9,8 @@ const M=g.MARTIAL={
  BASE_PASSIVE_SLOTS:D.BASE_PASSIVE_SLOTS||3,
  PASSIVE_SLOT_BONUSES:D.PASSIVE_SLOT_BONUSES||{},
  SYNERGIES:D.SYNERGIES||[],
- RESONANCE_SETS:D.RESONANCE_SETS||[],
- RESONANCE_BY_ID:Object.fromEntries((D.RESONANCE_SETS||[]).map(s=>[s.id,s])),
+ RESONANCE_SETS:[...(D.RESONANCE_SETS||[]),...(g.JD.v320ResonanceSets||[])],
+ RESONANCE_BY_ID:Object.fromEntries([...(D.RESONANCE_SETS||[]),...(g.JD.v320ResonanceSets||[])].map(s=>[s.id,s])),
  INNATE_TECHNIQUES:D.innateTechniques||[],
  INNATE_BY_SUB:Object.fromEntries((D.innateTechniques||[]).map(t=>[t.innateSubpath,t]))
 };
@@ -1160,13 +1160,14 @@ M.gearSuitability=(n,it,price)=>{
    GS_CACHE.set(n,gsc);
   }else{
    const hit=gsc.wm.get(it);
-   if(hit&&hit.q===it.q&&hit.dur===it.dur&&hit.maxDur===it.maxDur&&hit.broken===it.broken&&hit.attEl===it.attunedElement){
+   const gSig=ST.gearStateSig?ST.gearStateSig(it):'';
+   if(hit&&hit.gSig===gSig&&hit.broken===it.broken&&hit.attEl===it.attunedElement){
     const cost=Number.isFinite(price)?price:0,thrift=.08+HC.eff(n,'values.wealthResource')/350;
     return {score:hit.rawPower-cost*thrift,rawPower:hit.rawPower,reasons:hit.reasons,type:hit.type,fit:hit.fit,durK:hit.durK};
    }
   }
  }
- const path=paths[c.path]||paths.XIAN,cSub=(CULT.resolveSubId?CULT.resolveSubId(c.sub):c.sub),sub=profiles[cSub],type=M.gearType(it),weapons=sub?sub[3]:path.weapons,armor=sub?sub[4]:path.armor,reasons=[],s=it.st||ST.gearStats(Object.assign({},it));
+ const path=paths[c.path]||paths.XIAN,cSub=(CULT.resolveSubId?CULT.resolveSubId(c.sub):c.sub),sub=profiles[cSub],type=M.gearType(it),weapons=sub?sub[3]:path.weapons,armor=sub?sub[4]:path.armor,reasons=[],s=ST.gearStats(it);
  let fit=1;
  if(it.slot==='WEAPON'){
   const wIdx=weapons.indexOf(type);
@@ -1177,11 +1178,11 @@ M.gearSuitability=(n,it,price)=>{
   if(M.weaponSkill){const wsk=M.weaponSkill(n,type);if(wsk>=45){fit+=Math.min(.22,(wsk-40)*.0035);reasons.push('ชำนาญอาวุธ ('+Math.round(wsk)+')');}else if(wsk<20&&wIdx<0){fit-=.08;}}
  }
  if(it.slot==='ARMOR'){fit=armor.includes(type)?1.25:.85;reasons.push(armor.includes(type)?'เกราะตรงวิถี':'เกราะต่างแนว');}
- if(it.slot==='ACCESSORY'){if(type==='SHOES'&&(armor.includes('LIGHT')||(s.move||0)>0)){fit=1.15;reasons.push('รองเท้าเสริมความคล่องตัวตรงสาย');}else if((type==='RING'&&((s.atk||0)>0||(s.crit||0)>0))||(type==='CHARM'&&(s.matk||0)>0)||(type==='NECKLACE'&&(s.hp||0)>0)||(type==='BRACELET'&&(s.cast||0)>0)){fit=1.12;reasons.push('เครื่องประดับหนุนจุดเด่นของสาย');}}
+ if(it.slot==='ACCESSORY'){if(type==='SHOES'&&(armor.includes('LIGHT')||(s.move||0)>0)){fit=1.15;reasons.push('รองเท้าเสริมความคล่องตัวตรงสาย');}else if(type==='AUX_TOOL'){fit=1.13;reasons.push('อุปกรณ์เสริมอาชีพ/ค่ายกล');}else if(type==='ORNAMENT'&&(s.mdef||0)>0){fit=1.12;reasons.push('เครื่องประดับเสริมสมาธิและปราณ');}else if((type==='RING'&&((s.atk||0)>0||(s.crit||0)>0))||(type==='CHARM'&&(s.matk||0)>0)||(type==='NECKLACE'&&(s.hp||0)>0)||(type==='BRACELET'&&(s.cast||0)>0)){fit=1.12;reasons.push('เครื่องประดับหนุนจุดเด่นของสาย');}}
  const pDefRole=(JD.CULT&&JD.CULT.paths&&JD.CULT.paths[c.path]&&JD.CULT.paths[c.path].statWeights)||null;
  const role=c.path==='BODY'?{atk:1.35,matk:.45,def:1.2,mdef:1.1}:c.path==='HEART_SOUL'||c.path==='XIAN'?{atk:.65,matk:1.35,def:1.1,mdef:1}:c.path==='DEMON'?{atk:1.15,matk:1.15,def:.85,mdef:.9}:c.path==='MECH_PUPPET'?{atk:1.15,matk:1.15,def:1.25,mdef:1.1}:c.path==='KARMA_SAMSARA'?{atk:.95,matk:1.28,def:1.12,mdef:1.32}:c.path==='BEAST_SOVEREIGN'?{atk:1.25,matk:.95,def:1.18,mdef:1.05}:c.path==='SAGE_SUPPORT'?{atk:.85,matk:1.30,def:1.18,mdef:1.34}:c.path==='CRAFT_CREATION'?{atk:1.15,matk:1.25,def:1.22,mdef:1.22}:c.path==='ARRAY_TALISMAN'?{atk:0.90,matk:1.32,def:1.15,mdef:1.30}:c.path==='STRATEGY_GOVERNANCE'?{atk:1.12,matk:1.22,def:1.22,mdef:1.22}:pDefRole?{atk:pDefRole.atk||1,matk:pDefRole.matk||1,def:pDefRole.def||1,mdef:pDefRole.mdef||1}:{atk:1,matk:1.1,def:1,mdef:1.2};
- let power=(s.atk||0)*role.atk+(s.matk||0)*role.matk+(s.def||0)*role.def+(s.mdef||0)*role.mdef+(s.hp||0)*.5+(s.crit||0)*8+(s.critDmg||0)*1.5+(s.pen||0)*6+(s.cast||0)*3+(s.eva||0)*.6+(s.acc||0)*2;
- if(it.combatMult||it.defMult){
+ let power=(s.atk||0)*role.atk+(s.matk||0)*role.matk+(s.def||0)*role.def+(s.mdef||0)*role.mdef+(s.hp||0)*.5+(s.crit||0)*8+(s.critDmg||0)*1.5+(s.pen||0)*6+(s.cast||0)*3+(s.eva||0)*.6+(s.acc||0)*2+(s.move||0)*2;
+ if(it.procedural&&(it.combatMult||it.defMult)){
   const stageScale=22+c.stage*16;
   power+=(it.combatMult||0)*stageScale*(role.atk+role.matk)*.55+(it.defMult||0)*stageScale*(role.def+role.mdef)*.55;
  }
@@ -1255,6 +1256,39 @@ M.gearSuitability=(n,it,price)=>{
   if(elemCompat.equipmentSuitabilityMult>=1.06)reasons.push('ธาตุสอดคล้องรากปราณ ('+Math.round(elemCompat.equipmentSuitabilityMult*100)+'%)');
   else if(elemCompat.equipmentSuitabilityMult<=0.92)reasons.push('ธาตุขัดแย้งรากปราณ ('+Math.round(elemCompat.equipmentSuitabilityMult*100)+'%)');
  }
+ if(Array.isArray(it.grantedSkills)&&it.grantedSkills.length){
+  let usableG=0;
+  for(const gs of it.grantedSkills){const gid=typeof gs==='string'?gs:(gs&&(gs.techId||gs.id));if(gid&&CULT.tech&&CULT.tech(gid))usableG++;}
+  if(usableG>0){fit+=Math.min(0.28,usableG*0.14);if((c.techs||[]).length<4)fit+=0.10;reasons.push('มอบวิชาประจำศาสตรา ('+usableG+' วิชา)');}
+ }
+ if(Array.isArray(it.skillModifiers)&&it.skillModifiers.length){
+  fit+=Math.min(0.20,it.skillModifiers.length*0.08);reasons.push('เสริมอานุภาพกระบวนท่า');
+ }
+ if(it.cursed||it.pact){
+  const sens=HC.eff(n,'personality.sensationSeeking'),amb=HC.eff(n,'personality.ambition'),caut=HC.eff(n,'personality.caution'),mor=HC.eff(n,'values.morality');
+  const darkPath=['MO','DEMON','VOID_HERETIC_PACT','NETHER_GRAVE','DEVOURING_FLESH'].includes(c.path);
+  if(darkPath||sens>=60||amb>=65){fit+=0.18;reasons.push('ยอมรับพันธะคำสาปแลกพลังรบ');}
+  else if(caut>=65||mor>=72||['BUDDHA','BUDDHA_DHARMA','CONFUCIAN'].includes(c.path)){fit*=0.45;reasons.push('ปฏิเสธพันธะคำสาปขัดต่อหลักธรรม');}
+ }
+ if(it.temperament){
+  const pride=HC.eff(n,'personality.pride'),caut=HC.eff(n,'personality.caution'),wealth=HC.eff(n,'values.wealthResource'),mor=HC.eff(n,'values.morality');
+  let tMatch=0;
+  if(it.temperament==='PRIDEFUL')tMatch=pride>=62?1:(pride<=35?-1:0);
+  else if(it.temperament==='CAUTIOUS')tMatch=caut>=62?1:(caut<=35?-1:0);
+  else if(it.temperament==='GREEDY')tMatch=wealth>=62?1:(wealth<=35?-1:0);
+  else if(it.temperament==='RIGHTEOUS')tMatch=mor>=62?1:(mor<=35?-1:0);
+  if(tMatch>0){fit+=0.16;reasons.push('นิสัยตรงจิตวิญญาณศาสตรา ('+it.temperament+')');}
+  else if(tMatch<0){fit-=0.22;reasons.push('นิสัยขัดจิตวิญญาณศาสตรา (งอน)');}
+ }
+ if(it.pairedSetId&&n.equip){
+  const hasSelfPair=Object.values(n.equip).some(eq=>eq&&eq!==it&&eq.pairedSetId===it.pairedSetId);
+  if(hasSelfPair){fit+=0.16;reasons.push('สั่นพ้องคู่พันธะศาสตรา');}
+ }
+ if(it.combatKeywords&&it.combatKeywords.some(k=>k.kw==='KW_PATINA_WEAR')){
+  const maxDp=it.maxDur==null?100:it.maxDur,curDp=it.dur==null?maxDp:it.dur,rDp=curDp/Math.max(20,maxDp);
+  if(rDp>=0.30&&rDp<=0.78){fit+=0.14;reasons.push('สนิมเก๋าปาตินาช่วงพลังสูงสุด');}
+ }
+ if(it.dormant){fit*=0.70;reasons.push('ศาสตราหลับใหล (รอวัสดุเลี้ยงดู)');}
  const caution=HC.eff(n,'personality.caution')/100,aggression=HC.eff(n,'personality.aggression')/100;
  power+=(s.def||0)*caution*.35+(s.hp||0)*caution*.18+(s.atk||0)*aggression*.2;
  if(["guard","commander","wildwarden"].includes(n.post)){power+=(s.def||0)*.25+(s.hp||0)*.15;}
@@ -1267,7 +1301,7 @@ M.gearSuitability=(n,it,price)=>{
  else if(curD<maxD*.85||maxD<95)reasons.push('ทนทาน '+Math.round(curD)+'/'+Math.round(maxD));
  power*=durK;
  const rawPower=power*fit;
- if(gsc)gsc.wm.set(it,{q:it.q,dur:it.dur,maxDur:it.maxDur,broken:it.broken,attEl:it.attunedElement,rawPower,reasons,type,fit,durK});
+ if(gsc)gsc.wm.set(it,{gSig:ST.gearStateSig?ST.gearStateSig(it):'',q:it.q,dur:it.dur,maxDur:it.maxDur,broken:it.broken,attEl:it.attunedElement,rawPower,reasons,type,fit,durK});
  const cost=Number.isFinite(price)?price:0,thrift=.08+HC.eff(n,'values.wealthResource')/350;
  return {score:rawPower-cost*thrift,rawPower,reasons,type,fit,durK};
 };

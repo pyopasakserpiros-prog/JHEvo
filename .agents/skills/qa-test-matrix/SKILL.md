@@ -231,3 +231,8 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 ## JS2-v3.0.0 Living Continent (2026-11-18)
 
 For map and civil government changes run the schema tool, `world_atlas`, `world_atlas_standalone`, `world_atlas_browser`, `observer_autonomy_suite` and `observer_controls_browser`. Also cover mount-adjusted trial travel in `v210_pagoda_warbeasts_conference_suite` and actual reserve/release behavior and convoy visual in the v400 and v520 suites. Compare failed legacy suites against the base before attributing failures to new work. See `PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md` for this run's scope and results.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

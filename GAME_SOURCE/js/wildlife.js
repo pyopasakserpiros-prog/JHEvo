@@ -715,7 +715,7 @@
         .sort((a, b) => shares[b.id] - shares[a.id])[0] || (survivors ? null : n);
     }
 
-    if (!b.captured && f.ctx && f.ctx.tameIntent && winner === 'A' && n && !n.dead && CULT.attemptTameBeast) {
+    if (!b.captured && !b.dead && f.ctx && f.ctx.tameIntent && winner === 'A' && n && !n.dead && CULT.attemptTameBeast) {
       b.hp = Math.min(b.hp || 1, Math.max(1, Math.round(b.hpMax * 0.15)));
       const capture = f.ctx.forceTame ? {allowed:true} : WILD.captureEligibility(n,b);
       if (capture.allowed) {
@@ -1094,6 +1094,7 @@
     const nStage = Math.max(1, CULT.equivalentStage(n));
     const ratio = Math.max(0.008, Math.min(0.022, 0.012 * (bTier / nStage)));
     const expBonus = +(thresh * ratio).toFixed(2);
+    if (expBonus > 0 && CULT.gain) CULT.gain(n, expBonus, W, 'spirit_beast_crucible');
     n._lastSpiritBeastCrucibleGain = expBonus;
     n.spiritBeastQiCrucibleCount = (n.spiritBeastQiCrucibleCount || 0) + 1;
     if (W.sect) {

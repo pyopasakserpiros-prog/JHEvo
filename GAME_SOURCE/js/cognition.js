@@ -1471,7 +1471,8 @@
             add('gear_upgrade', 'จัดหา' + gearUp.gear.nameTh + 'คู่กาย', 0.22 + (E(n, 'values.martialPeak') + E(n, 'interests.combat')) / 190, gearUp.gear.uid || gearUp.gear.id, { slot: gearUp.gear.slot, price: gearUp.price });
           }
         }
-        const recipes = [...(n.inv.recipes || []), ...(n.recipes || [])].map(id => ECO.recipeById[id]).filter(r2 => r2 && r2.craft === 'ALCHEMY' && r2.inputs.some(i => (n.inv.mats[i.matId] || 0) > 0));
+        const invRec = (n.inv && n.inv.recipes) || [], invMats = (n.inv && n.inv.mats) || {};
+        const recipes = [...invRec, ...(n.recipes || [])].map(id => ECO.recipeById[id]).filter(r2 => r2 && r2.craft === 'ALCHEMY' && r2.inputs.some(i => (invMats[i.matId] || 0) > 0));
         if (recipes[0]) {
           add('craft', 'เก็บส่วนผสมเพื่อปรุง ' + recipes[0].nameTh, 0.2 + (E(n, 'interests.alchemy') + E(n, 'values.knowledgeCraft')) / 120, recipes[0].id, { startCrafted: n.stats?.crafted || 0 });
         }
@@ -1529,7 +1530,7 @@
     const isFast = !!(SAcc && SAcc._fast), out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = isFast ? ((_, x) => { if (x > 0.025 || x < -0.025) SAcc.u += (x < -2 ? -2 : x > 2 ? 2 : x); }) : ((why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } });
     let mc = n._cogModCtx;
     if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
-      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, iPl = n.h.intellect.planning, tSo = n.h.temperament.sociability, vFr = n.h.values.freedom, pCa = n.h.personality.caution, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
+      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, iPl = n.h.intellect.planning, tSo = n.h.temperament.sociability, vFr = n.h.values.freedom, pCa = n.h.personality.caution, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= Math.min(80, Math.round((CULT.hpMax ? CULT.hpMax(n) : 100) * 0.65))) ? null : rawGoal, cpNow = n.cp || 0;
       const postsRef = W.sect && W.sect.posts;
       const safeNow = safe(n), hourBand = ((W.t % 1440) / 60) | 0, planAnchor = W.sect && W.sect.officePlans && W.sect.officePlans.alchemy ? W.sect.officePlans.alchemy.by : null;
       const officeRev = (W.sect && W.sect._officeOrderSeq) || 0;
@@ -1985,8 +1986,18 @@
         COG.remember(W, b, { kind: "broken_commitment", subjectId: a.id, severity: 0.55 });
       }
     }
-    if (ca.commitment && ca.commitment.partnerId === b.id) { ca.commitment.status = resStatus; ca.commitment = null; }
-    if (cb.commitment && cb.commitment.partnerId === a.id) { cb.commitment.status = resStatus; cb.commitment = null; }
+    if (ca.commitment && ca.commitment.partnerId === b.id) {
+      const cid = ca.commitment.id;
+      ca.commitment.status = resStatus;
+      if (Array.isArray(ca.commitments)) { const m = ca.commitments.find(x => x && x.id === cid); if (m) m.status = resStatus; }
+      ca.commitment = null;
+    }
+    if (cb.commitment && cb.commitment.partnerId === a.id) {
+      const cidB = cb.commitment.id;
+      cb.commitment.status = resStatus;
+      if (Array.isArray(cb.commitments)) { const m = cb.commitments.find(x => x && x.id === cidB); if (m) m.status = resStatus; }
+      cb.commitment = null;
+    }
     return resStatus;
   };
 
@@ -2843,6 +2854,565 @@
       if (n.epithets.redemptionDrive && n.epithets.redemptionDrive.active) {
         base.redemptionDriveTh = n.epithets.redemptionDrive.whyTh;
       }
+    }
+    return base;
+  };
+
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === LIVING_LORE_COG_ENGINE_V310 === */
+(function initLivingLoreCognitionEngine(g) {
+  'use strict';
+  const COG = g.COG, HC = g.HC, CULT = g.CULT, SECT = g.SECT, U = g.U;
+  if (!COG || !HC || !U) return;
+  const E = (n, p) => HC.eff(n, p), clamp = U.clamp;
+
+  const MAX_KNOWN_FACTS = 32;
+  const MAX_EVIDENCE_LINEAGES = 6;
+  const MAX_ACTIVE_LEADS = 8;
+
+  const ACCOUNT_WEIGHT_BASE = Object.freeze({
+    FOLK_ORAL: 48,
+    COURT_CANON: 62,
+    SECT_ORTHODOX: 66,
+    VERIFIED_CHRONICLE: 90
+  });
+
+  const SOURCE_CREDIBILITY_MOD = Object.freeze({
+    hometown: 4,
+    visitor_rumor: -4,
+    conversation: 0,
+    mentorship: 10,
+    city_visit: 12,
+    city_ledger: 18,
+    library_stele: 16,
+    ancestral_plaque: 16,
+    item_inscription: 17,
+    workshop_practice: 15,
+    expedition_witness: 20
+  });
+
+  // Read-only peek (never mutates NPC or world state; safe for UI & serialization checks)
+  COG.peekLoreState = n => {
+    if (!n || !n.ext || !n.ext.lore || typeof n.ext.lore !== 'object') return null;
+    return n.ext.lore;
+  };
+
+  // Mutating ensure (called only during simulation ticks / learning actions)
+  COG.ensureLoreState = n => {
+    if (!n || typeof n !== 'object') return null;
+    n.ext = n.ext || {};
+    if (!n.ext.lore || typeof n.ext.lore !== 'object') {
+      n.ext.lore = {
+        knownFacts: {},
+        factOrder: [],
+        activeLeads: [],
+        debatesCount: 0,
+        verifiedCount: 0,
+        lastLearnDay: -99,
+        adoptedCustoms: []
+      };
+    }
+    const L = n.ext.lore;
+    if (!L.knownFacts || typeof L.knownFacts !== 'object') L.knownFacts = {};
+    if (!Array.isArray(L.factOrder)) L.factOrder = Object.keys(L.knownFacts);
+    if (!Array.isArray(L.activeLeads)) L.activeLeads = [];
+    if (!Array.isArray(L.adoptedCustoms)) L.adoptedCustoms = [];
+    return L;
+  };
+
+  function getFactDef(factId) {
+    return (g.EXPED && g.EXPED.LIVING_LORE && g.EXPED.LIVING_LORE.FACT_BY_ID && g.EXPED.LIVING_LORE.FACT_BY_ID[factId]) || null;
+  }
+
+  function evaluateAccountAppeal(W, n, factDef, accountId, opts) {
+    opts = opts || {};
+    const acc = (factDef && factDef.accounts && factDef.accounts[accountId]) || null;
+    let score = (acc && Number.isFinite(acc.credibilityBase)) ? acc.credibilityBase : (ACCOUNT_WEIGHT_BASE[accountId] || 55);
+    score += SOURCE_CREDIBILITY_MOD[opts.sourceKind || 'conversation'] || 0;
+    if (opts.physicalProof) score += 18;
+
+    const rational = E(n, 'personality.rationality');
+    const comp = E(n, 'aptitudes.comprehension');
+    const trust = E(n, 'personality.trustfulness');
+    const curiosity = E(n, 'personality.curiosity');
+    const loyalty = E(n, 'personality.loyalty');
+    const birthPolity = n.ext && n.ext.world && n.ext.world.birthPolityId;
+
+    if (accountId === 'FOLK_ORAL') {
+      score += (trust - 50) * 0.22 + (curiosity - 50) * 0.12 - (rational - 50) * 0.16;
+      if (opts.sourceKind === 'hometown') score += 8;
+    } else if (accountId === 'COURT_CANON') {
+      score += (E(n, 'personality.discipline') - 50) * 0.18 + (E(n, 'values.powerStatus') - 50) * 0.15;
+      if (factDef && factDef.polityId && birthPolity === factDef.polityId) {
+        score += (loyalty - 45) * 0.22;
+      } else if (factDef && factDef.polityId && birthPolity && g.EXPED && g.EXPED.polityOpinion) {
+        const op = g.EXPED.polityOpinion(W, birthPolity, factDef.polityId);
+        if (op < -24) score -= 12;
+      }
+    } else if (accountId === 'SECT_ORTHODOX') {
+      score += (E(n, 'values.sectDuty') - 50) * 0.20 + (E(n, 'values.honorLegacy') - 50) * 0.16;
+      if (factDef && Array.isArray(factDef.relatedPaths) && n.cult && factDef.relatedPaths.includes(n.cult.path)) {
+        score += 10;
+      }
+    } else if (accountId === 'VERIFIED_CHRONICLE') {
+      score += (rational - 45) * 0.28 + (comp - 45) * 0.26;
+    }
+
+    if (opts.fromId && n.h && n.h.mind && n.h.mind.relations && n.h.mind.relations[opts.fromId]) {
+      const rel = n.h.mind.relations[opts.fromId];
+      score += ((rel.t ?? 40) - 45) * 0.24 + ((rel.r ?? 30) - 30) * 0.12;
+    }
+    return clamp(Math.round(score), 15, 98);
+  }
+
+  function syncWorldFactIndex(W, factId, rec, isNewDiscovery) {
+    if (!W || !W.world) return;
+    if (g.EXPED && g.EXPED.initLivingLore && !W.world.livingLore) {
+      g.EXPED.initLivingLore(W);
+    }
+    const ll = W.world.livingLore;
+    if (!ll || !ll.facts) return;
+    const wf = ll.facts[factId] || (ll.facts[factId] = {
+      factId,
+      discovered: false,
+      firstDiscoveredDay: null,
+      firstDiscovererId: null,
+      knownAccounts: [],
+      evidenceLineages: [],
+      status: 'undiscovered',
+      archivedInSect: false,
+      lastUpdatedDay: W.day || 0
+    });
+    if (!wf.discovered) {
+      wf.discovered = true;
+      wf.firstDiscoveredDay = W.day || 0;
+      wf.firstDiscovererId = rec.npcId || null;
+    }
+    if (rec.accountId && !wf.knownAccounts.includes(rec.accountId)) {
+      wf.knownAccounts.push(rec.accountId);
+    }
+    for (const lin of (rec.evidenceLineages || [])) {
+      if (lin && !wf.evidenceLineages.includes(lin) && wf.evidenceLineages.length < 12) {
+        wf.evidenceLineages.push(lin);
+      }
+    }
+    if (rec.status === 'verified' || rec.accountId === 'VERIFIED_CHRONICLE') {
+      wf.status = 'verified';
+    } else if (wf.status !== 'verified') {
+      if (rec.status === 'contested' || wf.knownAccounts.length > 1) wf.status = 'contested';
+      else if (wf.status === 'undiscovered') wf.status = rec.status || 'rumor';
+    }
+    wf.lastUpdatedDay = W.day || 0;
+  }
+
+  COG.addLoreLead = (n, storyId) => {
+    if (!n || !storyId) return false;
+    const L = COG.ensureLoreState(n);
+    if (!L) return false;
+    if (!L.activeLeads.includes(storyId)) {
+      L.activeLeads.push(storyId);
+      if (L.activeLeads.length > MAX_ACTIVE_LEADS) L.activeLeads.shift();
+      return true;
+    }
+    return false;
+  };
+
+  // Core epistemic learning engine with strict originEventId lineage tracking
+  COG.learnLoreFact = (W, n, factId, opts) => {
+    opts = opts || {};
+    if (!n || n.dead || !factId) return { ok: false, reason: 'invalid-target' };
+    const factDef = getFactDef(factId);
+    const L = COG.ensureLoreState(n);
+    const day = (W && Number.isFinite(W.day)) ? W.day : 0;
+    const defaultAccount = (factDef && factDef.defaultAccount) || 'FOLK_ORAL';
+    const incomingAccount = (opts.accountId && (!factDef || !factDef.accounts || factDef.accounts[opts.accountId]))
+      ? opts.accountId
+      : defaultAccount;
+    const originEventId = String(opts.originEventId || ('origin:' + factId + ':' + incomingAccount + ':' + (opts.sourceKind || 'seed')));
+    const sourceKind = opts.sourceKind || 'conversation';
+    const storyId = opts.storyId || (factDef && factDef.storyId) || null;
+
+    const evalConf = opts.confidence != null
+      ? clamp(Math.round(opts.confidence), 15, 98)
+      : evaluateAccountAppeal(W, n, factDef, incomingAccount, opts);
+
+    const prev = L.knownFacts[factId];
+    if (!prev) {
+      // Evict oldest unverified, non-lead fact if at capacity
+      if (L.factOrder.length >= MAX_KNOWN_FACTS) {
+        const evictIdx = L.factOrder.findIndex(fid => {
+          const entry = L.knownFacts[fid];
+          return entry && entry.status !== 'verified' && (!entry.storyId || !L.activeLeads.includes(entry.storyId));
+        });
+        const dropId = evictIdx >= 0 ? L.factOrder.splice(evictIdx, 1)[0] : L.factOrder.shift();
+        if (dropId) delete L.knownFacts[dropId];
+      }
+
+      const initStatus = (incomingAccount === 'VERIFIED_CHRONICLE' || (opts.physicalProof && incomingAccount !== 'FOLK_ORAL'))
+        ? 'verified'
+        : (evalConf >= 62 ? 'believed' : 'rumor');
+
+      const entry = {
+        factId,
+        npcId: n.id,
+        accountId: incomingAccount,
+        contestedAccountId: null,
+        accountsHeard: [incomingAccount],
+        evidenceLineages: [originEventId],
+        independentLineages: 1,
+        confidence: evalConf,
+        status: initStatus,
+        sourceKind,
+        learnedFromId: opts.fromId || null,
+        learnedFromNameTh: opts.fromNameTh || null,
+        learnedDay: day,
+        updatedDay: day,
+        storyId,
+        noteTh: opts.noteTh || (factDef && factDef.accounts && factDef.accounts[incomingAccount] && factDef.accounts[incomingAccount].summaryTh) || ''
+      };
+      L.knownFacts[factId] = entry;
+      if (!L.factOrder.includes(factId)) L.factOrder.push(factId);
+      L.lastLearnDay = day;
+      if (initStatus === 'verified') {
+        L.verifiedCount = Object.values(L.knownFacts).filter(x => x && x.status === 'verified').length;
+      }
+      if (storyId && (initStatus !== 'verified' || opts.keepLead)) {
+        COG.addLoreLead(n, storyId);
+      }
+      syncWorldFactIndex(W, factId, entry, true);
+      return {
+        ok: true,
+        isNew: true,
+        corroborated: false,
+        contested: false,
+        sameLineage: false,
+        accountId: entry.accountId,
+        status: entry.status,
+        confidence: entry.confidence,
+        independentLineages: entry.independentLineages
+      };
+    }
+
+    // Already knows this factId: check if originEventId is already in evidenceLineages
+    if (!Array.isArray(prev.evidenceLineages)) prev.evidenceLineages = [originEventId];
+    if (!Array.isArray(prev.accountsHeard)) prev.accountsHeard = [prev.accountId];
+    const hasLineage = prev.evidenceLineages.includes(originEventId);
+
+    if (hasLineage && incomingAccount === prev.accountId && !opts.physicalProof) {
+      // Anti-Echo-Chamber Invariant: hearing the same originEventId again does NOT count as independent corroboration
+      return {
+        ok: true,
+        isNew: false,
+        corroborated: false,
+        contested: prev.status === 'contested',
+        sameLineage: true,
+        accountId: prev.accountId,
+        status: prev.status,
+        confidence: prev.confidence,
+        independentLineages: prev.independentLineages
+      };
+    }
+
+    let corroborated = false;
+    let contested = false;
+
+    if (!hasLineage) {
+      prev.evidenceLineages.push(originEventId);
+      if (prev.evidenceLineages.length > MAX_EVIDENCE_LINEAGES) prev.evidenceLineages.shift();
+      prev.independentLineages = (prev.independentLineages || 1) + 1;
+      corroborated = true;
+    }
+    if (!prev.accountsHeard.includes(incomingAccount)) {
+      prev.accountsHeard.push(incomingAccount);
+    }
+
+    const canSynthesizeVerified = !!(factDef && factDef.accounts && factDef.accounts.VERIFIED_CHRONICLE);
+    const highComp = (E(n, 'aptitudes.comprehension') + E(n, 'personality.rationality')) >= 108;
+
+    if (incomingAccount === prev.accountId) {
+      // Independent lineage supporting the same account
+      const boost = opts.physicalProof ? 18 : 12;
+      prev.confidence = clamp(prev.confidence + boost, 15, 98);
+      if (prev.independentLineages >= 2 && (opts.physicalProof || incomingAccount === 'VERIFIED_CHRONICLE' || (canSynthesizeVerified && highComp && sourceKind !== 'conversation'))) {
+        if (canSynthesizeVerified) prev.accountId = 'VERIFIED_CHRONICLE';
+        prev.status = 'verified';
+        prev.contestedAccountId = null;
+        prev.confidence = Math.max(prev.confidence, 86);
+      } else if (prev.status === 'rumor' && prev.confidence >= 62) {
+        prev.status = 'believed';
+      }
+    } else {
+      // Competing account encountered!
+      contested = true;
+      const curAppeal = evaluateAccountAppeal(W, n, factDef, prev.accountId, { sourceKind: prev.sourceKind });
+      const newAppeal = evalConf;
+
+      if (incomingAccount === 'VERIFIED_CHRONICLE' || (opts.physicalProof && prev.independentLineages >= 2)) {
+        prev.contestedAccountId = prev.accountId;
+        prev.accountId = canSynthesizeVerified ? 'VERIFIED_CHRONICLE' : incomingAccount;
+        prev.status = 'verified';
+        prev.confidence = clamp(Math.max(prev.confidence, newAppeal) + 10, 75, 98);
+      } else if (canSynthesizeVerified && prev.independentLineages >= 2 && highComp && ['city_ledger', 'library_stele', 'item_inscription', 'expedition_witness', 'ancestral_plaque'].includes(sourceKind)) {
+        // High-comprehension investigator reconciles two conflicting partial accounts with primary evidence
+        prev.contestedAccountId = prev.accountId;
+        prev.accountId = 'VERIFIED_CHRONICLE';
+        prev.status = 'verified';
+        prev.confidence = clamp(Math.max(curAppeal, newAppeal) + 14, 80, 98);
+      } else {
+        // Remains contested between the two accounts
+        if (newAppeal > curAppeal + 8 && prev.status !== 'verified') {
+          prev.contestedAccountId = prev.accountId;
+          prev.accountId = incomingAccount;
+          prev.confidence = clamp(newAppeal, 35, 88);
+        } else {
+          prev.contestedAccountId = incomingAccount;
+          prev.confidence = clamp(Math.round((prev.confidence + newAppeal) / 2), 30, 85);
+        }
+        if (prev.status !== 'verified') {
+          prev.status = 'contested';
+        }
+      }
+    }
+
+    prev.updatedDay = day;
+    if (opts.sourceKind) prev.lastSourceKind = opts.sourceKind;
+    if (opts.fromId) prev.lastFromId = opts.fromId;
+    if (opts.noteTh) prev.noteTh = opts.noteTh;
+    else if (factDef && factDef.accounts && factDef.accounts[prev.accountId]) {
+      prev.noteTh = factDef.accounts[prev.accountId].summaryTh;
+    }
+
+    L.lastLearnDay = day;
+    L.verifiedCount = Object.values(L.knownFacts).filter(x => x && x.status === 'verified').length;
+    if (storyId && prev.status !== 'verified') {
+      COG.addLoreLead(n, storyId);
+    }
+    syncWorldFactIndex(W, factId, prev, false);
+
+    return {
+      ok: true,
+      isNew: false,
+      corroborated,
+      contested,
+      sameLineage: false,
+      accountId: prev.accountId,
+      contestedAccountId: prev.contestedAccountId,
+      status: prev.status,
+      confidence: prev.confidence,
+      independentLineages: prev.independentLineages
+    };
+  };
+
+  // Resolve a conversation / debate when two NPCs hold different accounts of the same lore fact
+  COG.resolveLoreDebate = (W, a, b, factId) => {
+    if (!W || !a || !b || a.dead || b.dead || !factId) return null;
+    const La = COG.ensureLoreState(a), Lb = COG.ensureLoreState(b);
+    const ea = La && La.knownFacts[factId], eb = Lb && Lb.knownFacts[factId];
+    if (!ea || !eb) return null;
+    const factDef = getFactDef(factId);
+    La.debatesCount = (La.debatesCount || 0) + 1;
+    Lb.debatesCount = (Lb.debatesCount || 0) + 1;
+
+    const linA = ea.evidenceLineages[ea.evidenceLineages.length - 1] || ('debate:' + a.id);
+    const linB = eb.evidenceLineages[eb.evidenceLineages.length - 1] || ('debate:' + b.id);
+
+    // Each side hears the other's account with its existing originEventId
+    const resB = COG.learnLoreFact(W, b, factId, {
+      accountId: ea.accountId,
+      originEventId: linA,
+      sourceKind: 'conversation',
+      fromId: a.id,
+      fromNameTh: HC.fullName(a),
+      storyId: ea.storyId
+    });
+    const resA = COG.learnLoreFact(W, a, factId, {
+      accountId: eb.accountId,
+      originEventId: linB,
+      sourceKind: 'conversation',
+      fromId: b.id,
+      fromNameTh: HC.fullName(b),
+      storyId: eb.storyId
+    });
+
+    if (g.AI && g.AI.mem && factDef) {
+      g.AI.mem(W, a, 'ถกเถียงมุมมองเรื่อง「' + factDef.titleTh + '」กับ ' + b.h.name.given, 0.55);
+      g.AI.mem(W, b, 'ถกเถียงมุมมองเรื่อง「' + factDef.titleTh + '」กับ ' + a.h.name.given, 0.55);
+    }
+    return { factId, resA, resB };
+  };
+
+  // Word-of-mouth lore transmission during social interactions & mentorship
+  COG.shareLoreOnInteract = (W, a, b, mode) => {
+    if (!W || !a || !b || a.dead || b.dead) return null;
+    const La = COG.peekLoreState(a), Lb = COG.peekLoreState(b);
+    const aFacts = La ? Object.values(La.knownFacts || {}) : [];
+    const bFacts = Lb ? Object.values(Lb.knownFacts || {}) : [];
+    if (!aFacts.length && !bFacts.length) return null;
+
+    // 1. Check if they share a factId with DIFFERENT accountIds -> Epistemic Debate!
+    if (La && Lb) {
+      for (const fa of aFacts) {
+        const fb = Lb.knownFacts[fa.factId];
+        if (fb && fb.accountId !== fa.accountId) {
+          return COG.resolveLoreDebate(W, a, b, fa.factId);
+        }
+      }
+    }
+
+    // 2. Otherwise, pick a salient fact from speaker to listener
+    const transmitOne = (speaker, listener, sFacts) => {
+      if (!sFacts.length) return null;
+      const lState = COG.peekLoreState(listener);
+      const ranked = sFacts.slice().sort((x, y) => {
+        const xNew = !(lState && lState.knownFacts && lState.knownFacts[x.factId]) ? 30 : 0;
+        const yNew = !(lState && lState.knownFacts && lState.knownFacts[y.factId]) ? 30 : 0;
+        const xVer = x.status === 'verified' ? 18 : x.status === 'contested' ? 14 : 0;
+        const yVer = y.status === 'verified' ? 18 : y.status === 'contested' ? 14 : 0;
+        return (yNew + yVer + (y.confidence || 50)) - (xNew + xVer + (x.confidence || 50));
+      });
+      const chosen = ranked[0];
+      if (!chosen) return null;
+      // Preserve existing originEventId so repeating one story does not create a fake new lineage!
+      const originEventId = (Array.isArray(chosen.evidenceLineages) && chosen.evidenceLineages[0])
+        || ('origin:' + chosen.factId + ':' + chosen.accountId);
+      const srcKind = mode === 'teach' ? 'mentorship' : 'conversation';
+      return COG.learnLoreFact(W, listener, chosen.factId, {
+        accountId: chosen.accountId,
+        originEventId,
+        sourceKind: srcKind,
+        fromId: speaker.id,
+        fromNameTh: HC.fullName(speaker),
+        storyId: chosen.storyId
+      });
+    };
+
+    const outAtoB = transmitOne(a, b, aFacts);
+    const outBtoA = transmitOne(b, a, bFacts);
+    return { outAtoB, outBtoA };
+  };
+
+  // Pure read-only summary for UI & observer inspection (0 RNG, 0 state mutation)
+  COG.getNpcLoreSummary = (W, n) => {
+    const L = COG.peekLoreState(n);
+    const origin = (g.EXPED && g.EXPED.originView) ? g.EXPED.originView(n) : null;
+    if (!L) {
+      return {
+        hometownTh: origin && origin.city ? origin.city.nameTh : null,
+        polityTh: origin && origin.polity ? origin.polity.nameTh : null,
+        totalKnown: 0,
+        verifiedCount: 0,
+        contestedCount: 0,
+        debatesCount: 0,
+        activeLeads: [],
+        facts: [],
+        adoptedCustoms: []
+      };
+    }
+    const ACCOUNT_LABEL_TH = {
+      FOLK_ORAL: 'ตำนานปากเปล่าชาวบ้าน',
+      COURT_CANON: 'บันทึกทางการราชสำนัก',
+      SECT_ORTHODOX: 'อรรถาธิบายสายสำนักยุทธ์',
+      VERIFIED_CHRONICLE: 'ความจริงที่พิสูจน์จากหลักฐาน'
+    };
+    const STATUS_LABEL_TH = {
+      rumor: 'ข่าวลือที่เพิ่งได้ยิน',
+      believed: 'ความเชื่อที่ยึดถือ',
+      contested: 'ข้อมูลสองกระแสขัดแย้งกัน',
+      verified: 'พิสูจน์แล้วจากหลักฐานหลายสาย'
+    };
+    const SOURCE_LABEL_TH = {
+      hometown: 'เรื่องเล่าจากบ้านเกิด',
+      visitor_rumor: 'คำบอกเล่าของผู้มาเยือน',
+      conversation: 'สนทนาแลกเปลี่ยนกับสหาย',
+      mentorship: 'ได้รับการชี้แนะจากอาจารย์/ผู้อาวุโส',
+      city_visit: 'เดินทางเยือนเมืองและพบเห็นด้วยตนเอง',
+      city_ledger: 'ตรวจสอบสมุดทะเบียนและหลักศิลาในเมือง',
+      library_stele: 'ค้นคว้าบันทึกหอคัมภีร์และศิลาจารึก',
+      ancestral_plaque: 'สักการะและอ่านจารึกป้ายบรรพชนรุ่นที่ 1–6',
+      item_inscription: 'ตรวจพบรอยสลักและตราช่างบนศาสตรา/วัตถุ',
+      workshop_practice: 'พิสูจน์จากการลงมือปฏิบัติในโรงงานสำนัก',
+      expedition_witness: 'ประสบเหตุและเป็นพยานในการเดินทางสำรวจ'
+    };
+
+    const entries = Object.values(L.knownFacts || {}).filter(Boolean).sort((a, b) => (b.updatedDay || 0) - (a.updatedDay || 0));
+    const facts = entries.map(e => {
+      const def = getFactDef(e.factId);
+      const acc = def && def.accounts && def.accounts[e.accountId];
+      const contestAcc = (e.contestedAccountId && def && def.accounts && def.accounts[e.contestedAccountId]) || null;
+      return {
+        factId: e.factId,
+        titleTh: (def && def.titleTh) || e.factId,
+        layer: (def && def.layer) || 'PROVINCIAL_VEIL',
+        category: (def && def.category) || 'FOLK_CUSTOM',
+        accountId: e.accountId,
+        accountLabelTh: (acc && acc.labelTh) || ACCOUNT_LABEL_TH[e.accountId] || e.accountId,
+        summaryTh: (acc && acc.summaryTh) || e.noteTh || '',
+        contestedAccountId: e.contestedAccountId || null,
+        contestedLabelTh: contestAcc ? (contestAcc.labelTh || ACCOUNT_LABEL_TH[e.contestedAccountId]) : null,
+        contestedSummaryTh: contestAcc ? contestAcc.summaryTh : null,
+        status: e.status || 'rumor',
+        statusLabelTh: STATUS_LABEL_TH[e.status] || 'ข่าวลือ',
+        confidence: e.confidence || 50,
+        independentLineages: e.independentLineages || (Array.isArray(e.evidenceLineages) ? e.evidenceLineages.length : 1),
+        sourceKind: e.sourceKind || 'conversation',
+        sourceLabelTh: SOURCE_LABEL_TH[e.sourceKind] || 'การบอกเล่า',
+        learnedFromNameTh: e.learnedFromNameTh || null,
+        learnedDay: e.learnedDay || 0,
+        updatedDay: e.updatedDay || 0,
+        storyId: e.storyId || null
+      };
+    });
+
+    return {
+      hometownTh: origin && origin.city ? origin.city.nameTh : null,
+      polityTh: origin && origin.polity ? origin.polity.nameTh : null,
+      totalKnown: facts.length,
+      verifiedCount: facts.filter(f => f.status === 'verified').length,
+      contestedCount: facts.filter(f => f.status === 'contested').length,
+      debatesCount: L.debatesCount || 0,
+      activeLeads: (L.activeLeads || []).slice(),
+      adoptedCustoms: (L.adoptedCustoms || []).slice(),
+      facts
+    };
+  };
+
+  // Hook into COG.shareKnowledgeOnInteract
+  const _origShareKnowLore = COG.shareKnowledgeOnInteract;
+  COG.shareKnowledgeOnInteract = (W, a, b, mode) => {
+    const res = _origShareKnowLore ? _origShareKnowLore(W, a, b, mode) : undefined;
+    if (W && a && b && !a.dead && !b.dead) {
+      COG.shareLoreOnInteract(W, a, b, mode);
+    }
+    return res;
+  };
+
+  // Hook into COG.perceivedBreakthroughChance so verified bottleneck folklore (FACT_13_MERIDIAN_BELL_OMEN) calibrates judgment
+  const _origPerceivedBtLore = COG.perceivedBreakthroughChance;
+  COG.perceivedBreakthroughChance = (W, n, rawP) => {
+    const base = _origPerceivedBtLore ? _origPerceivedBtLore(W, n, rawP) : clamp(Number(rawP) || 0, 0.01, 0.99);
+    const L = COG.peekLoreState(n);
+    if (!L || !L.knownFacts) return base;
+    const bellEntry = L.knownFacts.FACT_13_MERIDIAN_BELL_OMEN;
+    if (!bellEntry) return base;
+    const hd = (n.h && n.h.state && n.h.state.heartDemon) || 0;
+    if (bellEntry.status === 'verified' || bellEntry.accountId === 'VERIFIED_CHRONICLE') {
+      // Verified meridian insight prevents reckless heart-demon overconfidence and steadies calm breakthroughs
+      if (hd >= 38) return clamp(base - 0.06, 0.02, 0.95);
+      return clamp(base + 0.025, 0.03, 0.98);
+    } else if (bellEntry.accountId === 'FOLK_ORAL' && hd >= 38) {
+      // Unverified folk superstition mistakes meridian tinnitus for a lucky heavenly bell omen!
+      return clamp(base + 0.045, 0.03, 0.98);
+    }
+    return base;
+  };
+
+  // Hook into COG.explain (pure read-only)
+  const _origExplainLore = COG.explain;
+  COG.explain = (W, n) => {
+    const base = _origExplainLore ? _origExplainLore(W, n) : {};
+    if (n) {
+      base.livingLore = COG.getNpcLoreSummary(W, n);
     }
     return base;
   };

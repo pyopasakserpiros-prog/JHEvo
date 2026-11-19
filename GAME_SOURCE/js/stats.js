@@ -198,14 +198,54 @@
         addStat('matk', 'ศรัทธาเสื่อมถอย (พลังเทพถดถอย)', 'p', -0.25);
       }
     }
+    if (!n.foe && CRef && CRef.MARTIAL_VOWS) {
+      const vb = CRef.MARTIAL_VOWS.getBonuses(n);
+      if (vb) {
+        for (const [k, v] of Object.entries(vb.p || {})) if (v) addStat(k, 'สัจจะ: ' + vb.nameTh, 'p', v);
+        for (const [k, v] of Object.entries(vb.f || {})) if (v) addStat(k, 'สัจจะ: ' + vb.nameTh, 'f', v);
+      }
+    }
+    if (!n.foe && CRef && CRef.SIX_PATH_MASTERY) {
+      const wRef330 = (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || null;
+      const sm = CRef.SIX_PATH_MASTERY.getStatBonuses(wRef330, n);
+      if (sm) {
+        for (const [k, v] of Object.entries(sm.p || {})) if (v) addStat(k, 'ชำนาญวิถี: ' + sm.summaryTh, 'p', v);
+        for (const [k, v] of Object.entries(sm.f || {})) if (v) addStat(k, 'ชำนาญวิถี: ' + sm.summaryTh, 'f', v);
+      }
+    }
+    if (!n.foe && n.weaponAffinity && n.weaponAffinity.strikes > 0 && g.COMBAT && g.COMBAT.getWeaponAffinityBonus) {
+      const wa = g.COMBAT.getWeaponAffinityBonus(n);
+      if (wa.bonusAcc > 0) addStat('acc', 'ความคุ้นเคยศาสตรา (' + wa.strikes + ' ท่า)', 'f', wa.bonusAcc);
+      if (wa.bonusCrit > 0) addStat('crit', 'ความคุ้นเคยศาสตรา (' + wa.strikes + ' ท่า)', 'f', wa.bonusCrit);
+    }
+    if (!n.foe && n.secRes && n.secRes.stacks > 0) {
+      if (n.secRes.id === 'KILLING_INTENT') addStat('crit', 'จิตสังหาร (' + n.secRes.stacks + '/5)', 'f', n.secRes.stacks * 3);
+      else if (n.secRes.id === 'OVERDRIVE_GEARS') addStat('pen', 'แต้มกลไก (' + n.secRes.stacks + '/5)', 'f', n.secRes.stacks * 3);
+    }
   };
 
   /* ---------- อุปกรณ์: ค่าสเตตัสต่อชิ้น (คำนวณเมื่อใช้ครั้งแรก เก็บไว้ในชิ้นนั้น) ---------- */
   const GT = [28, 62, 130, 270, 560, 1100, 2100];
   function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function rn(h, k) { let x = (h ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0; return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
+  ST.gearStateSig = it => {
+    if (!it) return '';
+    const durRatio = (it.dur != null && it.maxDur) ? Math.round((it.dur / it.maxDur) * 100) : 100;
+    const deedStage = (it.deeds && it.deeds.stage) || 0;
+    const linSig = Array.isArray(it.lineage) && it.lineage.length
+      ? it.lineage.slice(0, 3).map(l => l ? ((l.bonusStat || '') + ':' + (l.bonusVal || 0)) : '').join(',')
+      : '';
+    return (it.tier || 1) + '|' + (it.q || 1) + '|' + durRatio + '|' + (it.dormant ? 1 : 0) + '|' + deedStage + '|' + linSig;
+  };
   ST.gearStats = it => {
-    if (it.st) return it.st;
+    if (!it) return {};
+    const sig = ST.gearStateSig(it);
+    if (it.st && it._stSig === sig) return it.st;
+    if (it.st && !it._stSig && !it.baseSt) {
+      it.baseSt = Object.assign({}, it.st);
+      it.baseTier = it.baseTier || clamp(it.tier || 1, 1, 7);
+      it.baseQ = it.baseQ || it.q || 1;
+    }
     const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '') + (it.procedural ? (it.uid || '') : '')), f = 1 + 0.12 * tier, s = {};
     const hasRolledAffixes = Array.isArray(it.affixes) && it.affixes.length > 0;
     const pool = [['crit', () => (2.2 + 2 * rn(h, 5)) * f], ['critDmg', () => (8 + 8 * rn(h, 6)) * f], ['pen', () => (3 + 4 * rn(h, 7)) * f], ['acc', () => base * 0.12], ['cast', () => (3 + 4 * rn(h, 8)) * f], ['eva', () => base * 0.1], ['hp', () => base * 0.45], ['move', () => 3 + 3 * rn(h, 9)], ['mdef', () => base * 0.18], ['def', () => base * 0.18]];
@@ -234,6 +274,19 @@
       else if (eid === 'EFX_MIND_SHIELD' || eid === 'EFX_CONTROL_RESILIENCE' || eid === 'EFX_CALM_MIND' || eid === 'EFX_REALM_SUPPRESSION_GUARD') { s.mdef = (s.mdef || 0) + base * 0.14; s.hp = (s.hp || 0) + base * 0.15; }
       else if (eid === 'EFX_HASTE_STEP' || eid === 'EFX_SKY_LEVITATION_DRIVE') { s.move = (s.move || 0) + 6; s.cast = (s.cast || 0) + 5; }
       else if (eid === 'EFX_QI_RESERVOIR' || eid === 'EFX_FORMATION_HARMONIZATION') { s.matk = (s.matk || 0) + base * 0.10; s.cast = (s.cast || 0) + 4; }
+      else if (eid === 'EFX_V320_PATINA_AEGIS') {
+        const durRatio = (it.dur != null && it.maxDur) ? (it.dur / it.maxDur) : 1.0;
+        const patinaBonus = (durRatio >= 0.30 && durRatio <= 0.78) ? (p.maxArmorBonusPct || 0.22) : 0.06;
+        s.def = (s.def || 0) + base * patinaBonus * 0.45;
+        s.mdef = (s.mdef || 0) + base * patinaBonus * 0.30;
+      } else if (eid === 'EFX_V320_PACT_OVERDRIVE' || eid === 'EFX_V320_CURSED_SIPHON') {
+        s.atk = (s.atk || 0) + base * 0.14;
+        s.matk = (s.matk || 0) + base * 0.14;
+        s.crit = (s.crit || 0) + 3;
+      } else if (eid === 'EFX_V320_CHRONO_DELAY') {
+        s.mdef = (s.mdef || 0) + base * 0.16;
+        s.eva = (s.eva || 0) + base * 0.10;
+      }
       else if (eid.startsWith('EFX_V234_')) {
         if (p.bonusAtkPct) s.atk = (s.atk || 0) + base * p.bonusAtkPct;
         if (p.bonusMatkPct) s.matk = (s.matk || 0) + base * p.bonusMatkPct;
@@ -250,7 +303,7 @@
     });
     if (!it.baseSt) {
       const type = (g.MARTIAL && g.MARTIAL.gearType) ? g.MARTIAL.gearType(it) : (it.gearType || it.weaponType || it.armorType || it.subType || JD.MARTIAL.classify(it.slot, it.nameTh));
-      const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, ROSARY: { matk: base * .12, mdef: base * .14, hp: base * .18 }, CLAW: { atk: base * .15, crit: 4, pen: 5 }, NEEDLE: { atk: base * .08, matk: base * .10, acc: base * .16, pen: 6 }, FAN: { matk: base * .13, cast: 5, eva: base * .08 }, ASTROLABE: { matk: base * .14, acc: base * .16, crit: 3 }, ABACUS: { atk: base * .10, matk: base * .10, pen: 5, def: base * .08 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 } }[type] || {};
+      const typed = { SWORD: { crit: 3 }, BLADE: { atk: base * .12 }, BOW: { acc: base * .18, crit: 2 }, SPEAR: { pen: 5 }, STAFF: { def: base * .16 }, FIST: { cast: 5 }, FOCUS: { matk: base * .12 }, ZITHER: { matk: base * .14, cast: 4, mdef: base * .08 }, BRUSH: { matk: base * .12, acc: base * .15, cast: 3 }, WHIP: { atk: base * .08, acc: base * .14, pen: 4, crit: 2 }, ROSARY: { matk: base * .12, mdef: base * .14, hp: base * .18 }, CLAW: { atk: base * .15, crit: 4, pen: 5 }, NEEDLE: { atk: base * .08, matk: base * .10, acc: base * .16, pen: 6 }, FAN: { matk: base * .13, cast: 5, eva: base * .08 }, ASTROLABE: { matk: base * .14, acc: base * .16, crit: 3 }, ABACUS: { atk: base * .10, matk: base * .10, pen: 5, def: base * .08 }, HEAVY: { def: base * .18, move: -4 }, LIGHT: { eva: base * .15, move: 4 }, ROBE: { mdef: base * .2, cast: 4 }, RING: { crit: 2 }, NECKLACE: { hp: base * .3 }, BRACELET: { cast: 4 }, CHARM: { mdef: base * .12 }, SHOES: { move: 6, eva: base * .12 }, AUX_TOOL: { cast: 4, acc: base * .10 }, ORNAMENT: { mdef: base * .12, crit: 2 } }[type] || {};
       for (const k in typed) s[k] = (s[k] || 0) + typed[k];
     }
     if (!it.procedural && Number.isFinite(it.combatMult) && it.combatMult > 0) {
@@ -268,8 +321,26 @@
         if (Number.isFinite(s[dk])) s[dk] = s[dk] * (1 + it.artisan.defenseBonus);
       }
     }
+    if (it.deeds && it.deeds.stage > 1) {
+      const deedMult = 1 + (it.deeds.stage - 1) * 0.08;
+      for (const dk of ['atk', 'matk', 'def', 'mdef']) {
+        if (Number.isFinite(s[dk])) s[dk] *= deedMult;
+      }
+    }
+    if (Array.isArray(it.lineage) && it.lineage.length > 0) {
+      for (const lin of it.lineage.slice(0, 3)) {
+        if (lin && lin.bonusStat && Number.isFinite(lin.bonusVal)) {
+          s[lin.bonusStat] = (s[lin.bonusStat] || 0) + lin.bonusVal;
+        }
+      }
+    }
+    if (it.dormant) {
+      for (const dk of Object.keys(s)) {
+        if (Number.isFinite(s[dk])) s[dk] *= 0.75;
+      }
+    }
     for (const k in s) s[k] = Math.round(s[k] * 10) / 10;
-    it.st = s; return s;
+    it.st = s; it._stSig = sig; return s;
   };
   ST.gearScore = it => { const s = ST.gearStats(it); return (s.atk || 0) + (s.matk || 0) + (s.def || 0) + (s.mdef || 0) + (s.hp || 0) * 0.5 + (s.eva || 0) * 0.6 + (s.acc || 0) * 0.6 + (s.crit || 0) * 8 + (s.critDmg || 0) * 1.5 + (s.pen || 0) * 6 + (s.cast || 0) * 3 + (s.move || 0) * 2; };
 
@@ -592,6 +663,16 @@
       }
     }
     if (n._beastFusedUntil && n._beastFusedUntil > ST.now) ext = (ext ^ 0x4000) | 0;
+    if (n.voluntaryVow && n.voluntaryVow.active) ext = (ext * 31 + n.voluntaryVow.id.length * 17 + 7) | 0;
+    if (n.sixPathMastery) {
+      const m = n.sixPathMastery;
+      ext = (ext * 31 + (m.currentMark || 0) * 3 + (m.loreIndexRank || 0) * 5 + (m.bloomStacks || 0) * 7 + (m.crowdRoar || 0) * 11 + (m.stakeWins || 0) * 13 + (m.stakeLosses || 0) * 19 + (Array.isArray(m.marrowEchoes) ? m.marrowEchoes.length : 0) * 23) | 0;
+    }
+    if (n.weaponAffinity && n.weaponAffinity.strikes) ext = (ext * 31 + n.weaponAffinity.strikes * 29) | 0;
+    if (n.secRes && n.secRes.stacks) ext = (ext * 31 + n.secRes.stacks * 37 + (n.secRes.id ? n.secRes.id.charCodeAt(0) * 13 : 0)) | 0;
+    if (n.h && n.h.state && Number.isFinite(n.h.state.heartDemon)) ext = (ext * 31 + Math.floor(n.h.state.heartDemon / 5) * 19) | 0;
+    if (n.demonicRealmsGauge && Number.isFinite(n.demonicRealmsGauge.value)) ext = (ext * 31 + Math.floor(n.demonicRealmsGauge.value / 10) * 23) | 0;
+    if (n.archetypeMasteryState) ext = (ext * 31 + (n.archetypeMasteryState.tier || 0) * 41 + (n.archetypeMasteryState.archetypeId ? n.archetypeMasteryState.archetypeId.length * 7 : 0)) | 0;
     if (n.mechState) {
       const integ = n.mechState.integrity != null ? n.mechState.integrity : 100;
       const integBand = integ < 25 ? 1 : integ < 40 ? 2 : 3;
@@ -624,7 +705,10 @@
     if (n.voluntaryVows) {
       for (const vk in n.voluntaryVows) {
         const vw = n.voluntaryVows[vk];
-        if (vw) ext = (ext * 33 + vk.charCodeAt(4 || 0) + (vw.active ? 7 : 3) + (vw.broken ? 13 : 0)) | 0;
+        if (vw) {
+          let vh = 0; for (let i = 0; i < vk.length; i++) vh = (vh * 31 + vk.charCodeAt(i)) | 0;
+          ext = (ext * 33 + vh + (vw.active ? 7 : 3) + (vw.broken ? 13 : 0)) | 0;
+        }
       }
     }
     if (n.apexDaoTitle && n.apexDaoTitle.id) ext = (ext ^ (n.apexDaoTitle.id.charCodeAt(0) * 65537)) | 0;
@@ -902,9 +986,9 @@
     const shrineLv = (!n.foe && wRefKey && wRefKey.sect && wRefKey.sect.infernalShrine) ? (wRefKey.sect.infernalShrine.consecrationLevel || 0) : 0;
     const lifeKey = CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.contextKey ? CULT.EXPERIENCE_TRAITS.contextKey(n, wRefKey) : '';
     const postKey = lifeKey + ':' + (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + shrineLv + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0) + ':' + (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) ? n.combatHistory.unlockedTraits.length : 0);
-    const eqW = Eq.WEAPON || null, eqWdur = (eqW ? eqW.dur : 0) + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + (eqW ? (eqW.tier || 0) + ':' + (eqW.q || 1) + ':' + (eqW._modVer || 0) + ':' + (Array.isArray(eqW.socketedRunes) ? eqW.socketedRunes.length : 0) : '') + ':' + postKey;
-    const eqA = Eq.ARMOR || null, eqAdur = (eqA ? eqA.dur : 0) + ':' + (eqA ? (eqA.tier || 0) + ':' + (eqA.q || 1) + ':' + (eqA._modVer || 0) + ':' + (Array.isArray(eqA.socketedRunes) ? eqA.socketedRunes.length : 0) : '');
-    const eqX = Eq.ACCESSORY || null, eqXdur = (eqX ? eqX.dur : 0) + ':' + (eqX ? (eqX.tier || 0) + ':' + (eqX.q || 1) + ':' + (eqX._modVer || 0) + ':' + (Array.isArray(eqX.socketedRunes) ? eqX.socketedRunes.length : 0) : '');
+    const eqW = Eq.WEAPON || null, eqWdur = (eqW ? ST.gearStateSig(eqW) : '') + ':' + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + (eqW ? (eqW._modVer || 0) + ':' + (Array.isArray(eqW.socketedRunes) ? eqW.socketedRunes.length : 0) : '') + ':' + postKey;
+    const eqA = Eq.ARMOR || null, eqAdur = (eqA ? ST.gearStateSig(eqA) : '') + ':' + (eqA ? (eqA._modVer || 0) + ':' + (Array.isArray(eqA.socketedRunes) ? eqA.socketedRunes.length : 0) : '');
+    const eqX = Eq.ACCESSORY || null, eqXdur = (eqX ? ST.gearStateSig(eqX) : '') + ':' + (eqX ? (eqX._modVer || 0) + ':' + (Array.isArray(eqX.socketedRunes) ? eqX.socketedRunes.length : 0) : '');
     const cb = n._csBase;
     if (cb && cb.day === HC.nowDay && cb.ver === n._ver &&
         cb.cPath === cPath && cb.cStage === cStage && cb.cSub === cSub && cb.cMantra === cMantra &&

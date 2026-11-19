@@ -18,7 +18,11 @@
     CULINARY_SPIRIT: 'CRAFT_CREATION', SPIRIT_FARMING: 'SAGE_SUPPORT',ABYSSAL_SEAFARER: 'BODY', SWORD_DOMAIN: 'XIAN',
     SPEAR_DOMAIN: 'BODY', BLADE_DOMAIN: 'DEMON', FIST_DOMAIN: 'BODY', BOW_DOMAIN: 'XIAN',
     NECRO_CORPSE: 'DEMON', BLOOD_LINEAGE: 'DEMON', ILLUSION_MIRAGE: 'HEART_SOUL', FIVE_ELEMENTS_CYCLE: 'XIAN',
-    YIN_YANG_DUALITY: 'XIAN', HEAVENLY_THUNDER: 'XIAN', STARLIGHT_MONARCH: 'GOD'
+    YIN_YANG_DUALITY: 'XIAN', HEAVENLY_THUNDER: 'XIAN', STARLIGHT_MONARCH: 'GOD',
+    DEVOURING_FLESH: 'DEMON', NETHER_GRAVE: 'DEMON', VOID_HERETIC_PACT: 'DEMON', OCCULT_MAGE: 'DEMON',
+    DIVINE_SUMMONER: 'GOD', DIVINE_POSSESSION: 'GOD', DIVINE_CHANNELER: 'GOD',
+    NINPO_SHADOW: 'BODY', NINPO_ELEMENTAL: 'XIAN', ANCESTRAL_RITUAL: 'GOD', TIDE_VOYAGER: 'BODY',
+    LORE_ARCHIVIST: 'ARRAY_TALISMAN', FORTUNE_GAMBLER: 'STRATEGY_GOVERNANCE', SPIRIT_HUSBANDRY: 'SAGE_SUPPORT', ARENA_GLORY: 'BODY'
   };
   BN.resolveBreakthroughPillKey = c => {
     if (!c) return null;
@@ -68,7 +72,7 @@
     const heldInfo = heldKey ? ECO.pillInfo(heldKey) : null;
     const rawP0 = CULT.breakthroughChance(n, { env: 0.05, pill: c.btBonus || 0 }) + ((heldInfo && heldInfo.effect && heldInfo.effect.breakthroughBonus) || (heldKey ? 0.18 : 0));
     const p0 = (g.COG && g.COG.perceivedBreakthroughChance) ? g.COG.perceivedBreakthroughChance(W, n, rawP0) : rawP0;
-    const key = BN.pillKey(c), tr = BN.treasureOf(c);
+    const key = BN.resolveBreakthroughPillKey(c) || BN.pillKey(c), tr = BN.treasureOf(c);
     const keyInfo = ECO.pillInfo(key);
     const abstaining = !!(CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n));
     const pillObt = (!abstaining && !heldKey && ECO.count(W, key) > 0) ? ((keyInfo && keyInfo.effect && keyInfo.effect.breakthroughBonus) || 0.18) : 0;
@@ -152,7 +156,7 @@
       W.log('breakthrough', (m && m.id === w.id ? '' : (m ? m.h.name.given : 'เจ้าสำนัก') + ' มอบ') + (m && m.id === w.id ? w.h.name.given + ' เก็บ' : ' ') + TR[w.cult.path + ':' + w.cult.stage].nameTh + (m && m.id === w.id ? 'ไว้ใช้เอง' : 'ให้ ' + w.h.name.given + ' เพื่อทะลวง'), [w.id]);
     });
     Object.keys(demand).forEach(k => {
-      const [path, st] = k.split(':'); const key = 'P:BT_' + path + '_' + st;
+      const [path, st] = k.split(':'); const key = BN.resolveBreakthroughPillKey({ path, stage: +st }) || ('P:BT_' + path + '_' + st);
       if (ECO.count(W, key) <= 0) return;
       const cands = stuck.filter(n => n.cult.path === path && n.cult.stage === +st && !BN.heldPill(n) && !n.away).sort((a, b) => scoreFor(W, b) - scoreFor(W, a));
       const w = cands[0]; if (!w || scoreFor(W, w) < 0.35) return; // ที่เหลือไปซื้อเองที่ตลาด
@@ -197,7 +201,7 @@
         const gk = personalGen[0];
         const gq = (n.inv.pillQuality && n.inv.pillQuality[gk]) || 1;
         n.inv.pills[gk]--;
-        if (n.inv.pills[gk] <= 0) delete n.inv.pills[gk];
+        if (n.inv.pills[gk] <= 0) { delete n.inv.pills[gk]; if (n.inv.pillQuality) delete n.inv.pillQuality[gk]; }
         ECO.applyQualityPill(W, n, gk, gq);
         return;
       }
@@ -232,9 +236,9 @@
     inside: true
   };
   // ทะลวงได้เฉพาะเมื่อแผนคือ "ลุย"; start ใหม่ใช้ BN.prepare
-  const AB = AI.ACTS.breakthrough, origCan = AB.can, origDone = AB.done;
+  const AB = AI.ACTS.breakthrough, origCan = AB.can, origStart = AB.start, origDone = AB.done;
   AB.can = (n, W) => origCan(n, W) && !!n.cult.bn && n.cult.bn.plan === 'go';
-  AB.start = (n, W, ctx) => { BN.prepare(W, n); n.cult.lastTry = W.day; n.sealedBt = true; return true; };
+  AB.start = (n, W, ctx) => { BN.prepare(W, n); const ok = origStart ? origStart(n, W, ctx) : true; n.cult.lastTry = W.day; n.sealedBt = true; return ok !== false; };
 
   /* ---- ของวิเศษ: ผจญภัยพบสมบัติ ---- */
   const origResolve = X.resolve;

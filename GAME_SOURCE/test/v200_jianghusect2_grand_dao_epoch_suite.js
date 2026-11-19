@@ -28,8 +28,8 @@ function check(cond, msg) {
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   check(hcSha === 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js SHA-256 must remain byte-for-byte identical');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  check((SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || SIM.PATCH_VERSION === '3.0.0'))))))), `SIM.PATCH_VERSION must be '2.0.0' (got ${SIM.PATCH_VERSION})`);
-  check((SIM.SAVE_SCHEMA_VERSION === '2.0.0-grand-dao-epoch-mortal-awakening' || (SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || (SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting' || SIM.SAVE_SCHEMA_VERSION === '3.0.0-living-continent')))))), `SIM.SAVE_SCHEMA_VERSION must be '2.0.0-grand-dao-epoch-mortal-awakening' (got ${SIM.SAVE_SCHEMA_VERSION})`);
+  check((SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.5.0c')))))))), `SIM.PATCH_VERSION must be '2.0.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.SAVE_SCHEMA_VERSION === '2.0.0-grand-dao-epoch-mortal-awakening' || (SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || (SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting' || (SIM.SAVE_SCHEMA_VERSION === '3.0.0-living-continent' || SIM.SAVE_SCHEMA_VERSION === '3.5.0c-release-polish'))))))), `SIM.SAVE_SCHEMA_VERSION must be '2.0.0-grand-dao-epoch-mortal-awakening' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   check(Array.isArray(SIM.SUPPORTED_PATCHES) && SIM.SUPPORTED_PATCHES.includes('2.0.0'), 'SIM.SUPPORTED_PATCHES must include 2.0.0');
   console.log('  ✓ [0/6] Core Lock & v2.0.0 Schema Invariants Verified');
 }
@@ -249,7 +249,7 @@ function check(cond, msg) {
   check(EXPLORE.NINE_DAO_PAGODA && Array.isArray(EXPLORE.NINE_DAO_PAGODA.floors) && EXPLORE.NINE_DAO_PAGODA.floors.length === 43,
     `EXPLORE.NINE_DAO_PAGODA.floors must have 27 floors (got ${EXPLORE.NINE_DAO_PAGODA?.floors?.length})`);
   check(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length === 43, 'Must have 43 RES_NINE_DAO_* Pagoda resonance sets');
-  check(MARTIAL.RESONANCE_SETS.length === 62, 'Must have 46 total equipment resonance sets (19 baseline + 27 Pagoda)');
+  check(MARTIAL.RESONANCE_SETS.filter(x => !x.id.startsWith('RES_V320_')).length === 62, 'Must have 46 total equipment resonance sets (19 baseline + 27 Pagoda)');
   console.log('  ✓ [5/6] Pillar 5: 15 Cross-Path Synergies & 27-Floor Nine-Dao Pagoda Verified');
 }
 

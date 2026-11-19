@@ -1176,12 +1176,13 @@
   const origGearStats = ST.gearStats;
   ST.gearStats = it => {
     if (!it) return {};
-    if (it.st && it._vcNorm) return it.st;
+    const sig = ST.gearStateSig ? ST.gearStateSig(it) : '';
+    if (it.st && it._vcNorm && it._stSig === sig) return it.st;
     VC.normalizeGearItem(it);
     const def = VC.LEGENDARY_WEAPON_BY_ID[it.id];
     if (def && def.fixedStats) {
       const qRatio = clamp(VC.gearQuality(it) / (def.q || 1.35), 0.75, 1.40);
-      if (it.st && it._stQ === qRatio) return it.st;
+      if (it.st && it._stQ === qRatio && it._stSig === sig) return it.st;
       const s = {};
       for (const [k, val] of Object.entries(def.fixedStats)) {
         s[k] = (k === 'crit' || k === 'critDmg' || k === 'pen' || k === 'move' || k === 'cast')
@@ -1206,9 +1207,22 @@
           if (Number.isFinite(s[dk])) s[dk] = s[dk] * (1 + it.artisan.defenseBonus);
         }
       }
+      if (it.deeds && it.deeds.stage > 1) {
+        const deedMult = 1 + (it.deeds.stage - 1) * 0.08;
+        for (const dk of ['atk', 'matk', 'def', 'mdef']) { if (Number.isFinite(s[dk])) s[dk] *= deedMult; }
+      }
+      if (Array.isArray(it.lineage) && it.lineage.length > 0) {
+        for (const lin of it.lineage.slice(0, 3)) {
+          if (lin && lin.bonusStat && Number.isFinite(lin.bonusVal)) s[lin.bonusStat] = (s[lin.bonusStat] || 0) + lin.bonusVal;
+        }
+      }
+      if (it.dormant) {
+        for (const dk of Object.keys(s)) { if (Number.isFinite(s[dk])) s[dk] *= 0.75; }
+      }
       for (const k of Object.keys(s)) s[k] = Math.round(s[k] * 10) / 10;
       it.st = s;
       it._stQ = qRatio;
+      it._stSig = sig;
       return s;
     }
     return origGearStats(it);

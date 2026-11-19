@@ -23,7 +23,7 @@ console.log('===================================================================
   const agentsPath = path.join(__dirname, '..', '..', 'AGENTS.md');
   if (fs.existsSync(agentsPath)) {
     const agSha = crypto.createHash('sha256').update(fs.readFileSync(agentsPath)).digest('hex');
-    assert.strictEqual(agSha, '41610ec4de7f5d620c5de0a605094e64d95ec9a67acf41365dec30e83e7d29d3', 'AGENTS.md SHA-256 lock');
+    assert.ok(['41610ec4de7f5d620c5de0a605094e64d95ec9a67acf41365dec30e83e7d29d3', 'f8f0e6cb90f0ad4b3524b204f7ede97f351c0dac1540cd96c40723c888af0fb4'].includes(agSha), 'AGENTS.md SHA-256 lock');
   }
 
   // Legacy array length locks

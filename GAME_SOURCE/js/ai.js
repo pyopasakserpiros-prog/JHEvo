@@ -965,7 +965,7 @@
       const btThreadId = 'thread:cult:' + n.id + ':' + (res.ok ? Math.max(1, c.stage - 1) : c.stage);
       const btThreadTitle = 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(n);
       const btChancePct = Math.round((res.p || 0) * 100);
-      const hasNoMedVow = Array.isArray(n.voluntaryVows) && n.voluntaryVows.includes('VOW_NO_MEDICINE');
+      const hasNoMedVow = !!(CULT.isAbstainingFromPills ? CULT.isAbstainingFromPills(n) : (n.voluntaryVows && n.voluntaryVows.VOW_NO_MEDICINE && n.voluntaryVows.VOW_NO_MEDICINE.active));
       const lifeRatio = (HC.ageYears && CULT.lifespan) ? (HC.ageYears(n) / Math.max(1, n.lifespanMax || CULT.lifespan(n))) : 0;
       const btOriginTh = hasNoMedVow
         ? ('ยึดมั่นสัจจะไม่พึ่งพาโอสถแม้แต่เม็ดเดียว อาศัยรากฐานบริสุทธิ์ของตนเข้าฝ่าด่านตรงๆ (โอกาสสำเร็จ ' + btChancePct + '%)')
@@ -2145,6 +2145,7 @@
     if (n.id === W.sect.masterId) {
       if (SECT.resolvePlayerSuccessionCrisis) SECT.resolvePlayerSuccessionCrisis(W, 'เจ้าสำนักเสียชีวิต');
       else SECT.succession(W, 'เจ้าสำนักเสียชีวิต');
+      if (W.sect.masterId === n.id) W.sect.masterId = null;
     }
     if (n.id === W.sect.deputyId) W.sect.deputyId = null;
     if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
@@ -2168,15 +2169,17 @@
         W.world.resourcePool.stones += toPool;
       }
     }
-    n.inv.stones = 0;
     n.personalStones = 0;
-    for (const k in (n.inv.pills || {})) ECO.add(W, k, n.inv.pills[k]); n.inv.pills = {};
-    for (const p of (n.inv.craftedPills || [])) if (p && p.key && p.qty > 0) ECO.add(W, p.key, p.qty); n.inv.craftedPills = [];
-    for (const k in (n.inv.mats || {})) ECO.add(W, k, n.inv.mats[k]); n.inv.mats = {};
-    for (const id of (n.inv.techs || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id); n.inv.techs = [];
-    for (const id of (n.inv.recipes || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; } n.inv.recipes = [];
+    if (n.inv) {
+      n.inv.stones = 0;
+      for (const k in (n.inv.pills || {})) ECO.add(W, k, n.inv.pills[k]); n.inv.pills = {};
+      for (const p of (n.inv.craftedPills || [])) if (p && p.key && p.qty > 0) ECO.add(W, p.key, p.qty); n.inv.craftedPills = [];
+      for (const k in (n.inv.mats || {})) ECO.add(W, k, n.inv.mats[k]); n.inv.mats = {};
+      for (const id of (n.inv.techs || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id); n.inv.techs = [];
+      for (const id of (n.inv.recipes || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; } n.inv.recipes = [];
+    }
     if (g.MARTIAL) g.MARTIAL.returnKnowledge(W, n);
-    for (const k in n.equip) { if (n.equip[k]) W.sect.gear.push(n.equip[k]); } n.equip = {};
+    if (n.equip) { for (const k in n.equip) { if (n.equip[k]) W.sect.gear.push(n.equip[k]); } } n.equip = {};
     if (n.inv && Array.isArray(n.inv.gear)) { for (const g2 of n.inv.gear) { if (g2) W.sect.gear.push(g2); } n.inv.gear = []; }
     if (g.VC && g.VC.syncUniqueArtifacts) g.VC.syncUniqueArtifacts(W);
     W.sect.fallen = (W.sect.fallen || []); W.sect.fallen.push({ id: n.id, name: n.h.name.family + n.h.name.given, day: W.day, why, rank: n.rank, path: n.cult ? n.cult.path : null, sub: n.cult ? n.cult.sub : null, stage: n.cult ? n.cult.stage : 0 });
@@ -2336,6 +2339,7 @@
     if (!(n.cool.pair > W.t)) { _FastS.u = 0; A.pair.score(n, W, _FastS); if (g.COG) g.COG.modifiers(W, n, 'pair', _FastS); cands.push({ id: 'pair', u: _FastS.u }); }
     // ผู้ตัดสินเลือก: softmax ตามนิสัย
     const temp = g.COG ? g.COG.choiceTemperature(n) : clamp(0.12 + E(n, 'temperament.sensationSeeking') / 600 + E(n, 'personality.creativity') / 900 - E(n, 'personality.discipline') / 700 + E(n, 'temperament.emotionalReactivity') / 1000, 0.05, 0.4);
+    if (!cands.length) return { id: 'idle', stage: 'do', left: 10, total: 10, ctx: {}, why: ['พักฟื้น'] };
     cands.sort((x, y) => y.u - x.u);
     const mx = cands[0].u;
     const winCut = mx - Math.max(0.65, temp * 3.5);
@@ -2550,4 +2554,103 @@
     return res;
   };
 
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === LIVING_LORE_AI_ACTIVITY_HOOKS_V310 === */
+(function initLivingLoreAiActivityHooks(g) {
+  'use strict';
+  const AI = g.AI, HC = g.HC, CULT = g.CULT;
+  if (!AI || !AI.ACTS || !HC) return;
+  const A = AI.ACTS;
+
+  // 1. Scripture Hall study -> can discover or corroborate textual lore (FACT_02, FACT_07, FACT_13, FACT_21)
+  if (A.study && typeof A.study.done === 'function') {
+    const _origStudyDoneLore = A.study.done;
+    A.study.done = function(n, W, ctx) {
+      const res = _origStudyDoneLore.apply(this, arguments);
+      if (W && n && !n.dead && g.COG && g.COG.learnLoreFact && g.EXPED && g.EXPED.LIVING_LORE) {
+        const ll = g.EXPED.initLivingLore ? g.EXPED.initLivingLore(W) : (W.world && W.world.livingLore);
+        if (ll && ll.adoptedCustoms && ll.adoptedCustoms.CUSTOM_BAILU_HARMONIZED_STUDY && n.cult && CULT && CULT.gain) {
+          CULT.gain(n, 3.5, W, 'bailu_harmonized_commentary');
+        }
+        const studyFacts = [
+          'FACT_02_BAILU_DUAL_COMMENTARY',
+          'FACT_13_MERIDIAN_BELL_OMEN',
+          'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR',
+          'FACT_21_SU_QIN_820YR_YUNHE_TREATY'
+        ];
+        const pickId = studyFacts[((W.day || 0) + (n.n || 0)) % studyFacts.length];
+        const nLore = g.COG.peekLoreState ? g.COG.peekLoreState(n) : null;
+        const alreadyKnown = nLore && nLore.knownFacts && nLore.knownFacts[pickId];
+        const acc = alreadyKnown && alreadyKnown.accountId === 'FOLK_ORAL' ? 'SECT_ORTHODOX' : (alreadyKnown && alreadyKnown.accountId ? alreadyKnown.accountId : 'SECT_ORTHODOX');
+        g.COG.learnLoreFact(W, n, pickId, {
+          accountId: acc,
+          originEventId: 'scripture_hall:' + pickId + ':era:' + Math.floor((W.day || 0) / 15),
+          sourceKind: 'library_stele',
+          physicalProof: !!(alreadyKnown && alreadyKnown.independentLineages >= 1)
+        });
+      }
+      return res;
+    };
+  }
+
+  // 2. Forge & Alchemy -> can discover or apply workshop/maker lore (FACT_06, FACT_15, FACT_19)
+  for (const actKey of ['forge', 'brew']) {
+    if (A[actKey] && typeof A[actKey].done === 'function') {
+      const _origCraftDoneLore = A[actKey].done;
+      A[actKey].done = function(n, W, ctx) {
+        const res = _origCraftDoneLore.apply(this, arguments);
+        if (W && n && !n.dead && g.COG && g.COG.learnLoreFact && g.EXPED && g.EXPED.LIVING_LORE) {
+          const ll = g.EXPED.initLivingLore ? g.EXPED.initLivingLore(W) : (W.world && W.world.livingLore);
+          if (ll && ll.adoptedCustoms && (ll.adoptedCustoms.CUSTOM_FROST_DEW_KILN_SALVAGE || ll.adoptedCustoms.CUSTOM_SAFE_KILN_SHIFT)) {
+            HC.feel(n, { stress: -2, mood: 2 });
+          }
+          const factId = actKey === 'forge'
+            ? (((W.day || 0) % 2 === 0) ? 'FACT_06_STOREROOM_ANVIL_TALISMAN' : 'FACT_19_MUTE_ARMORER_TWIN_TEMPER')
+            : 'FACT_15_FROST_DEW_KILN_BANKING';
+          g.COG.learnLoreFact(W, n, factId, {
+            accountId: 'SECT_ORTHODOX',
+            originEventId: 'workshop:' + actKey + ':' + factId,
+            sourceKind: 'workshop_practice'
+          });
+        }
+        return res;
+      };
+    }
+  }
+
+  // 3. Kitchen cooking -> slice-of-life twice-paid meal custom (FACT_11 / STORY_11)
+  if (A.cook && typeof A.cook.done === 'function') {
+    const _origCookDoneLore = A.cook.done;
+    A.cook.done = function(n, W, ctx) {
+      const res = _origCookDoneLore.apply(this, arguments);
+      if (W && n && !n.dead && g.COG && g.COG.learnLoreFact) {
+        g.COG.learnLoreFact(W, n, 'FACT_11_FERRY_TRAVELER_TWICE_PAID_MEAL', {
+          accountId: 'SECT_ORTHODOX',
+          originEventId: 'canteen:warm_bowl_tally:' + Math.floor((W.day || 0) / 10),
+          sourceKind: 'workshop_practice',
+          storyId: 'STORY_11_MEAL_PAID_TWICE'
+        });
+      }
+      return res;
+    };
+  }
+
+  // 4. Ancestral Shrine prayer -> Gen 1-7 lineage lore (FACT_07)
+  if (A.pray && typeof A.pray.done === 'function') {
+    const _origPrayDoneLore = A.pray.done;
+    A.pray.done = function(n, W, ctx) {
+      const res = _origPrayDoneLore.apply(this, arguments);
+      if (W && n && !n.dead && g.COG && g.COG.learnLoreFact) {
+        g.COG.learnLoreFact(W, n, 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR', {
+          accountId: 'SECT_ORTHODOX',
+          originEventId: 'ancestral_shrine:gen1_6_plaques',
+          sourceKind: 'ancestral_plaque',
+          storyId: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR',
+          physicalProof: true
+        });
+      }
+      return res;
+    };
+  }
 })(typeof globalThis !== 'undefined' ? globalThis : this);

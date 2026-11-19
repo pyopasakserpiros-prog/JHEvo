@@ -1,6 +1,14 @@
-# JianghuSect 2 (ภาค 2) — JS2-v3.0.0 Living Continent
+> **Latest Stable Release: JianghuSect 2 (`JS2 v3.5.0c`)** — เล่นได้ทันทีผ่าน `GAME_SOURCE/JianghuSect_single.html` (ไฟล์เดี่ยว) หรือ `GAME_SOURCE/index.html` · ดูสรุปการอัปเดตทั้งหมดตั้งแต่ `v3.1.0` → `v3.5.0c` ได้ใน [`CHANGELOG_JS2_V310_TO_V350C.md`](CHANGELOG_JS2_V310_TO_V350C.md) และรายละเอียดทุกแพทในโฟลเดอร์ [`PATCH_REPORTS/`](PATCH_REPORTS/)
 
-> **แพตช์ถัดไปสำหรับ Gemini — v3.1.0 Living Lore:** เปิด [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) เพื่ออ่านพรอมต์ ดัชนี Lore และข้อเสนอออกแบบใน ZIP
+> **Current Version:** JS2 v3.4.0 External World Events (`3.4.0-world-events`) · See `PATCH_REPORTS/WORLD_EVENTS_JS2_V3_4_0.md` & `docs/handovers/JS2_V3_5_0_NEXT_PATCH_HANDOFF.md`
+
+> **Current Version:** JS2 v3.3.0 Tactical Combat & Six-Path Mastery (`3.3.0-tactical-sixpaths`) · See `PATCH_REPORTS/TACTICAL_SIXPATHS_JS2_V3_3_0.md`
+
+> **Current Version:** JS2 v3.2.0 Equipment Expansion (`3.2.0-equipment-expansion`) · See `PATCH_REPORTS/EQUIPMENT_EXPANSION_JS2_V3_2_0.md` & `docs/handovers/JS2_V3_3_0_NEXT_PATCH_HANDOFF.md`
+
+# JianghuSect 2 (ภาค 2) — JS2-v3.1.0 Living Lore
+
+> **อัปเดตล่าสุด — JS2-v3.1.0 Living Lore (ตำนานมีชีวิต ความรู้รายบุคคล 4 ชั้นความจริง และ 20 สายเรื่องราวในยุทธภพ):** พัฒนาและตรวจสอบเสร็จสมบูรณ์ (`187 / 187 PASS`) ดูรายงานฉบับเต็มที่ [PATCH_REPORTS/LIVING_LORE_JS2_V3_1_0.md](PATCH_REPORTS/LIVING_LORE_JS2_V3_1_0.md), ทะเบียนประสาน Lore ที่ [JS2_V3_1_0_LIVING_LORE_CANON_AND_DISPOSITION.md](docs/handovers/JS2_V3_1_0_LIVING_LORE_CANON_AND_DISPOSITION.md), และคำแนะนำสำหรับ AI ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md)
 
 เปิด **ยุทธภพ → แผนที่ยุทธภพ** เพื่อดูทวีปเต็มผืน ซูมเข้าเพื่ออ่านภูมิประเทศและดูตำแหน่งจริงของคณะเดินทาง หรือเปิด **ยุทธภพ → อาณาจักร** เพื่อดูราชสำนัก เมือง และผู้ครองตำแหน่งทั้ง 9 อาณาจักร [รายงาน Living Continent](PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md)
 
@@ -35,7 +43,7 @@
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**
 > - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)
-> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือ **`JS2-v2.6.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
+> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (รุ่นเสถียรปัจจุบันคือ **`JS2-v3.5.0c`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 

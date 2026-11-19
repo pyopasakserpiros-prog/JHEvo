@@ -70,7 +70,7 @@
     requestAnimationFrame(frame);
     const R = G.R; if (!R) return;
     // เก็บเวลาที่ผ่านไปทั้งหมด แม้เฟรมก่อนหน้าช้า; จำกัดงานด้วยงบประมวลผลด้านล่าง
-    const dt = Number.isFinite(ts) && Number.isFinite(last) ? Math.max(0, (ts - last) / 1000) : 0;
+    const dt = Number.isFinite(ts) && Number.isFinite(last) ? Math.min(5.0, Math.max(0, (ts - last) / 1000)) : 0;
     if (Number.isFinite(ts)) last = ts;
     try {
       if (G.W && !UI.paused) {
